@@ -1,0 +1,20 @@
+
+local
+   $(MLTON_LIB)/com/ssh/extended-basis/unstable/basis.mlb
+   $(MLTON_LIB)/com/ssh/prettier/unstable/lib.mlb
+   $(ML_ENV)/env/env.mlb
+   $(APPLICATION)/generic.mlb
+in
+   ann
+      "forceUsed"
+      "sequenceNonUnit warn"
+      "warnUnused true"
+   in
+      local
+
+      in
+         public/export/export.sml
+	 (* public/export/$(SML_COMPILER).sml *)
+      end
+   end
+end

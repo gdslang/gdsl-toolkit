@@ -1,0 +1,22 @@
+
+group is
+   $/basis.cm
+   $/smlnj-lib.cm
+   $/pp-lib.cm
+   $/controls-lib.cm
+   $/ml-lpt-lib.cm
+
+   ../../common
+      (basic-control.sml
+       error.sml
+       float-lit.sml
+       integer-lit.sml
+       literal.sml
+       stamp.sml
+       stats.sml
+       basis.sml)
+
+   ../../parser/spec-parse-tree.sml
+   ../../parser/spec.l : ml-ulex
+   ../../parser/spec.g : ml-antlr
+   ../../parser/parser.sml

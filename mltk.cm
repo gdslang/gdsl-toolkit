@@ -1,0 +1,6 @@
+
+library
+   source(detail/export.sml)
+is
+   detail/export.sml
+   detail/ml/smlnj/unsealed.cm
