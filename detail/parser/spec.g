@@ -4,6 +4,7 @@
 %tokens
    : KW_andalso ("andalso")
    | KW_case ("case")
+   | KW_in ("in")
    | KW_do ("do")
    | KW_datatype ("datatype")
    | KW_decode ("decode")
@@ -14,16 +15,17 @@
    | KW_end ("end")
    | KW_if ("if")
    | KW_let ("let")
+   | KW_val ("val")
+   | KW_rec ("rec")
    | KW_mod ("%")
    | KW_of ("of")
    | KW_orelse ("orelse")
-   | KW_otherwise ("otherwise")
    | KW_granularity ("granularity")
    | KW_raise ("raise")
    | KW_state ("state")
    | KW_then ("then")
    | KW_type ("type")
-   | KW_rec ("rec")
+   | BIND ("<-")
    | ASSIGN (":=")
    | DOT (".")
    | TICK ("'")
@@ -115,45 +117,33 @@
 );
 
 Program
-   : Decl (";"? Decl)*
-      => ({span=FULL_SPAN, tree=Decl::SR})
+   : Decl (";"? Decl)* =>
+      ({span=FULL_SPAN, tree=Decl::SR})
    ;
 
 Decl
    : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
    | "include" STRING => (markDecl (FULL_SPAN, PT.INCLUDEdecl STRING))
    | "state" "=" StateTy => (markDecl (FULL_SPAN, PT.STATEdecl StateTy))
-   | TypeDecl => (markDecl (FULL_SPAN, PT.TYdecl TypeDecl))
-   | ValueDecl => (markDecl (FULL_SPAN, PT.VALUEdecl ValueDecl))
-   | DecodeDecl => (markDecl (FULL_SPAN, PT.DECODEdecl DecodeDecl))
+   | "datatype" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
+   | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
+   | "decode" "[" DecodePat+ "]" pat=
+      ( "=" Exp =>
+         (mark PT.MARKdecodedecl (FULL_SPAN, PT.DECODEdecodedecl (DecodePat, Exp)))
+      | ("|" Exp "=" Exp)+ =>
+         (mark PT.MARKdecodedecl (FULL_SPAN, PT.GUARDEDdecodedecl (DecodePat, SR)))) =>
+      (markDecl (FULL_SPAN, PT.DECODEdecl pat))
+   | "val" Name decl=
+      ( "[" DecodePat+ "]" "=" Exp =>
+         (PT.DECODEdecl (mark PT.MARKdecodedecl (FULL_SPAN, PT.NAMEDdecodedecl (Name, DecodePat, Exp))))
+      | args=Name* "=" Exp =>
+         (PT.VALUEdecl (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETvaluedecl (Name, args, Exp))))) =>
+      (markDecl (FULL_SPAN, decl))
    ;
 
 StateTy
    : "{" Name ":" Ty "=" Exp ("," Name ":" Ty "=" Exp)* "}" =>
       ((Name, Ty, Exp)::SR)
-   ;
-
-DecodeDecl
-   : "decode" "[" DecodePat+ "]" pat=
-      ( "=" Exp =>
-         (mark PT.MARKdecodedecl (FULL_SPAN, PT.DECODEdecodedecl (DecodePat, Exp)))
-      | ("|" Exp "=" Exp)+ =>
-         (mark PT.MARKdecodedecl (FULL_SPAN, PT.GUARDEDdecodedecl (DecodePat, SR)))) =>
-      (pat)
-   | Name "[" DecodePat+ "]" "=" Exp =>
-      (mark PT.MARKdecodedecl (FULL_SPAN, PT.NAMEDdecodedecl (Name, DecodePat, Exp)))
-   ;
-
-ValueDecl
-   : "let" Name Name* "=" Exp =>
-      (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETvaluedecl (Name1, Name2, Exp)))
-   ;
-
-TypeDecl
-   : "datatype" Name "=" ConDecls =>
-      (mark PT.MARKtydecl (FULL_SPAN, PT.DATATYPEtydecl (Name, ConDecls)))
-   | "type" Name "=" Ty =>
-      (mark PT.MARKtydecl (FULL_SPAN, PT.TYPEtydecl (Name, Ty)))
    ;
 
 ConDecls
@@ -203,23 +193,30 @@ ClosedExp
       (mark PT.MARKexp (FULL_SPAN, PT.IFexp (Exp1, Exp2, Exp3)))
    | "raise" Exp =>
       (mark PT.MARKexp (FULL_SPAN, PT.RAISEexp Exp))
-   | "do" Exp ";" (Exp ";")+ =>
-      (mark PT.MARKexp (FULL_SPAN, PT.SEQexp (Exp::SR)))
+   | "do" (MonadicExp ";")+ =>
+      (mark PT.MARKexp (FULL_SPAN, PT.SEQexp SR))
+   ;
+
+MonadicExp
+   : Exp =>
+      (mark PT.MARKseqexp (FULL_SPAN, PT.ACTIONseqexp Exp))
+   | Name "<-" Exp =>
+      (mark PT.MARKseqexp (FULL_SPAN, PT.BINDseqexp (Name, Exp)))
    ;
 
 (* HACK *)
 Cases
    : %try Pat ":" ClosedExp "|" Cases =>
-      (mark PT.MARKmatch (Pat_SPAN, PT.CASEmatch (Pat, ClosedExp))::Cases)
-   | %try Pat ":" Exp =>
-      ([mark PT.MARKmatch (FULL_SPAN, PT.CASEmatch (Pat, Exp))])
+      (mark PT.MARKmatch (Pat_SPAN, PT.CASEmatch ((Pat, ClosedExp)))::Cases)
+   | %try Pat ":" ClosedExp =>
+      ([mark PT.MARKmatch (FULL_SPAN, PT.CASEmatch (Pat, ClosedExp))])
    ;
 
 Pat
    : "'" BITSTR "'" => (mark PT.MARKpat (FULL_SPAN, PT.BITpat BITSTR))
    | "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
    | Lit => (mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
-   | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat {span=FULL_SPAN, tree=([], Op.uminus)}))
+   | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat {span=FULL_SPAN, tree=([], Name)}))
    ;
 
 OrElseExp
@@ -266,6 +263,13 @@ AtomicExp
    | "(" Exp ")" => (Exp)
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
       (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp ((Name, Exp)::SR)))
+   | "let" ValueDecl+ "in" Exp "end" =>
+      (mark PT.MARKexp (FULL_SPAN, PT.LETexp (ValueDecl, Exp)))
+   ;
+
+ValueDecl
+   : "val" Name Name* "=" Exp =>
+      (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETvaluedecl (Name1, Name2, Exp)))
    ;
 
 Lit

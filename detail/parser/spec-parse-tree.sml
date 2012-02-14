@@ -25,15 +25,10 @@ structure SpecParseTree = struct
     | INCLUDEdecl of string
     | GRANULARITYdecl of IntInf.int
     | STATEdecl of (var_bind * ty * exp) list
-    | TYdecl of tydecl
+    | TYPEdecl of ty_bind * ty
+    | DATATYPEdecl of ty_bind * condecl list
     | DECODEdecl of decodedecl
     | VALUEdecl of valuedecl
-
-   and tydecl =
-      MARKtydecl of tydecl mark
-    | TYPEtydecl of ty_bind * ty
-    | DATATYPEtydecl of ty_bind * condecl list
-    | RECDATATYPEtydecl of ty_bind * condecl list
 
    and decodedecl =
       MARKdecodedecl of decodedecl mark
@@ -44,6 +39,7 @@ structure SpecParseTree = struct
    and valuedecl =
       MARKvaluedecl of valuedecl mark
     | LETvaluedecl of var_bind * var_bind list * exp
+    | LETRECvaluedecl of var_bind * var_bind list * exp
 
    and condecl =
       MARKcondecl of condecl mark
@@ -57,20 +53,25 @@ structure SpecParseTree = struct
 
    and exp =
       MARKexp of exp mark
-    | LETexp of (valuedecl list * exp)
-    | IFexp of (exp * exp * exp)
-    | CASEexp of (exp * match list)
+    | LETexp of valuedecl list * exp
+    | IFexp of exp * exp * exp
+    | CASEexp of exp * match list
     | RAISEexp of exp
-    | ANDALSOexp of (exp * exp)
-    | ORELSEexp of (exp * exp)
-    | BINARYexp of (exp * op_id * exp) (* infix binary expressions *)
-    | APPLYexp of (exp * exp) (* application *)
+    | ANDALSOexp of exp * exp
+    | ORELSEexp of exp * exp
+    | BINARYexp of exp * op_id * exp (* infix binary expressions *)
+    | APPLYexp of exp * exp
     | RECORDexp of (var_bind * exp) list
     | LITexp of lit
-    | SEQexp of exp list (* monadic sequence of two or more expressions *)
+    | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)
     (* | CONSTRAINTexp of exp * ty (* type constraint *) *)
     | FNexp of (var_bind * exp) list (* anonymous function *)
+
+   and seqexp =
+      MARKseqexp of seqexp mark
+    | ACTIONseqexp of exp
+    | BINDseqexp of var_bind * exp
 
    and decodepat =
       MARKdecodepat of decodepat mark
