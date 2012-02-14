@@ -13,7 +13,7 @@ state =
     OPNDSZ:1=0,
     ADDRSZ:1=0}
 
-#include "x86-registers.spec"
+include "x86-registers.spec"
 
 datatype register =
    EAX
@@ -67,7 +67,8 @@ val imm = do
    sizeTag <- query size;
    case sizeTag of
       B: imm8
-    | W: imm16;
+    | W: imm16
+end
 
 decode [0x80 /r]
    | OPNDSZ = mov r/m16 r16
@@ -78,4 +79,4 @@ decode [0xC7 /0]
    | OPNDSZ = mov r16 imm16
    | otherwise = mov r32 imm32
 
-decode [0x66] = do update {OPNDSZ=1}; continue;
+decode [0x66] = do update {OPNDSZ=1}; continue end

@@ -199,7 +199,7 @@ ClosedExp
       (mark PT.MARKexp (FULL_SPAN, PT.IFexp (Exp1, Exp2, Exp3)))
    | "raise" Exp =>
       (mark PT.MARKexp (FULL_SPAN, PT.RAISEexp Exp))
-   | "do" (MonadicExp ";")+ =>
+   | "do" MonadicExp (";" MonadicExp)* "end" =>
       (mark PT.MARKexp (FULL_SPAN, PT.SEQexp SR))
    ;
 

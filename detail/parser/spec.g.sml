@@ -361,7 +361,7 @@ fun ClosedExp_PROD_2_ACT (Exp1, Exp2, Exp3, KW_else, KW_then, KW_if, Exp1_SPAN :
 fun ClosedExp_PROD_3_ACT (Exp, KW_raise, Exp_SPAN : (Lex.pos * Lex.pos), KW_raise_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.RAISEexp Exp))
-fun ClosedExp_PROD_4_ACT (SR, KW_do, SR_SPAN : (Lex.pos * Lex.pos), KW_do_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun ClosedExp_PROD_4_ACT (SR, MonadicExp, KW_do, KW_end, SR_SPAN : (Lex.pos * Lex.pos), MonadicExp_SPAN : (Lex.pos * Lex.pos), KW_do_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.SEQexp SR))
 fun MonadicExp_PROD_1_ACT (Exp, Exp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -997,33 +997,23 @@ and ClosedExp_NT (strm) = let
             end
       fun ClosedExp_PROD_4 (strm) = let
             val (KW_do_RES, KW_do_SPAN, strm') = matchKW_do(strm)
+            val (MonadicExp_RES, MonadicExp_SPAN, strm') = MonadicExp_NT(strm')
             fun ClosedExp_PROD_4_SUBRULE_1_NT (strm) = let
-                  val (MonadicExp_RES, MonadicExp_SPAN, strm') = MonadicExp_NT(strm)
-                  val (SEMI_RES, SEMI_SPAN, strm') = matchSEMI(strm')
-                  val FULL_SPAN = (#1(MonadicExp_SPAN), #2(SEMI_SPAN))
+                  val (SEMI_RES, SEMI_SPAN, strm') = matchSEMI(strm)
+                  val (MonadicExp_RES, MonadicExp_SPAN, strm') = MonadicExp_NT(strm')
+                  val FULL_SPAN = (#1(SEMI_SPAN), #2(MonadicExp_SPAN))
                   in
                     ((MonadicExp_RES), FULL_SPAN, strm')
                   end
             fun ClosedExp_PROD_4_SUBRULE_1_PRED (strm) = (case (lex(strm))
-                   of (Tok.KW_case, _, strm') => true
-                    | (Tok.KW_do, _, strm') => true
-                    | (Tok.KW_if, _, strm') => true
-                    | (Tok.KW_let, _, strm') => true
-                    | (Tok.KW_raise, _, strm') => true
-                    | (Tok.LP, _, strm') => true
-                    | (Tok.LCB, _, strm') => true
-                    | (Tok.TILDE, _, strm') => true
-                    | (Tok.ID(_), _, strm') => true
-                    | (Tok.QID(_), _, strm') => true
-                    | (Tok.POSINT(_), _, strm') => true
-                    | (Tok.NEGINT(_), _, strm') => true
-                    | (Tok.STRING(_), _, strm') => true
+                   of (Tok.SEMI, _, strm') => true
                     | _ => false
                   (* end case *))
-            val (SR_RES, SR_SPAN, strm') = EBNF.posclos(ClosedExp_PROD_4_SUBRULE_1_PRED, ClosedExp_PROD_4_SUBRULE_1_NT, strm')
-            val FULL_SPAN = (#1(KW_do_SPAN), #2(SR_SPAN))
+            val (SR_RES, SR_SPAN, strm') = EBNF.closure(ClosedExp_PROD_4_SUBRULE_1_PRED, ClosedExp_PROD_4_SUBRULE_1_NT, strm')
+            val (KW_end_RES, KW_end_SPAN, strm') = matchKW_end(strm')
+            val FULL_SPAN = (#1(KW_do_SPAN), #2(KW_end_SPAN))
             in
-              (UserCode.ClosedExp_PROD_4_ACT (SR_RES, KW_do_RES, SR_SPAN : (Lex.pos * Lex.pos), KW_do_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.ClosedExp_PROD_4_ACT (SR_RES, MonadicExp_RES, KW_do_RES, KW_end_RES, SR_SPAN : (Lex.pos * Lex.pos), MonadicExp_SPAN : (Lex.pos * Lex.pos), KW_do_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in
@@ -1066,6 +1056,7 @@ and MonadicExp_NT (strm) = let
               (case (lex(strm'))
                of (Tok.KW_andalso, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_div, _, strm') => MonadicExp_PROD_1(strm)
+                | (Tok.KW_end, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_let, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_mod, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_orelse, _, strm') => MonadicExp_PROD_1(strm)
