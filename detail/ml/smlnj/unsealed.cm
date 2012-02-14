@@ -16,6 +16,7 @@ group is
        stats.sml
        basis.sml)
 
+   ../../parser/mk-ast.sml
    ../../parser/spec-parse-tree.sml
    ../../parser/spec.l : ml-ulex
    ../../parser/spec.g : ml-antlr
