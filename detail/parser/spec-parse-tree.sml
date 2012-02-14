@@ -62,6 +62,7 @@ structure SpecParseTree = struct
     | BINARYexp of exp * op_id * exp (* infix binary expressions *)
     | APPLYexp of exp * exp
     | RECORDexp of (var_bind * exp) list
+    | SELECTexp of var_bind (* record field selector ".name" *)
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)

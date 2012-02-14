@@ -261,10 +261,10 @@ ApplyExp
       (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=([], Op.uminus)}, AtomicExp)))
    ;
 
-(* TODO: let bindings *)
 AtomicExp
    : Lit => (mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
    | Qid => (mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
+   | SELECT => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp SELECT))
    | "(" ")" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "(" Exp ")" => (Exp)
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
