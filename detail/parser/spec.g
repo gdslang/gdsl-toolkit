@@ -178,7 +178,13 @@ TokPat
 
 PrimBitPat
    : BITSTR => (mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
-   | Name ":" POSINT => (mark PT.MARKbitpat (FULL_SPAN, PT.NAMEDbitpat (Name, POSINT)))
+   | Name (":" POSINT)? =>
+      (mark
+         PT.MARKbitpat
+         (FULL_SPAN,
+          case SR of
+             NONE => PT.NAMEDbitpat Name
+           | SOME i => PT.BITVECbitpat (Name, i)))
    ;
 
 Exp

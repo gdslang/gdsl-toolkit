@@ -81,7 +81,8 @@ structure SpecParseTree = struct
    and bitpat =
       MARKbitpat of bitpat mark
     | BITSTRbitpat of string
-    | NAMEDbitpat of var_bind * IntInf.int
+    | NAMEDbitpat of var_bind
+    | BITVECbitpat of var_bind * IntInf.int
 
    and tokpat =
       MARKtokpat of tokpat mark

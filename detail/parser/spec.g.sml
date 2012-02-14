@@ -342,8 +342,14 @@ fun TokPat_PROD_2_ACT (Name, Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.p
   ( mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Name))
 fun PrimBitPat_PROD_1_ACT (BITSTR, BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
-fun PrimBitPat_PROD_2_ACT (Name, POSINT, COLON, Name_SPAN : (Lex.pos * Lex.pos), POSINT_SPAN : (Lex.pos * Lex.pos), COLON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( mark PT.MARKbitpat (FULL_SPAN, PT.NAMEDbitpat (Name, POSINT)))
+fun PrimBitPat_PROD_2_ACT (SR, Name, SR_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  (
+      mark
+         PT.MARKbitpat
+         (FULL_SPAN,
+          case SR of
+             NONE => PT.NAMEDbitpat Name
+           | SOME i => PT.BITVECbitpat (Name, i)))
 fun Exp_PROD_1_ACT (ClosedExp, ClosedExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( ClosedExp)
 fun Exp_PROD_2_ACT (KW_case, Cases, KW_of, ClosedExp, KW_case_SPAN : (Lex.pos * Lex.pos), Cases_SPAN : (Lex.pos * Lex.pos), KW_of_SPAN : (Lex.pos * Lex.pos), ClosedExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -1466,11 +1472,21 @@ fun PrimBitPat_NT (strm) = let
             end
       fun PrimBitPat_PROD_2 (strm) = let
             val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
-            val (COLON_RES, COLON_SPAN, strm') = matchCOLON(strm')
-            val (POSINT_RES, POSINT_SPAN, strm') = matchPOSINT(strm')
-            val FULL_SPAN = (#1(Name_SPAN), #2(POSINT_SPAN))
+            fun PrimBitPat_PROD_2_SUBRULE_1_NT (strm) = let
+                  val (COLON_RES, COLON_SPAN, strm') = matchCOLON(strm)
+                  val (POSINT_RES, POSINT_SPAN, strm') = matchPOSINT(strm')
+                  val FULL_SPAN = (#1(COLON_SPAN), #2(POSINT_SPAN))
+                  in
+                    ((POSINT_RES), FULL_SPAN, strm')
+                  end
+            fun PrimBitPat_PROD_2_SUBRULE_1_PRED (strm) = (case (lex(strm))
+                   of (Tok.COLON, _, strm') => true
+                    | _ => false
+                  (* end case *))
+            val (SR_RES, SR_SPAN, strm') = EBNF.optional(PrimBitPat_PROD_2_SUBRULE_1_PRED, PrimBitPat_PROD_2_SUBRULE_1_NT, strm')
+            val FULL_SPAN = (#1(Name_SPAN), #2(SR_SPAN))
             in
-              (UserCode.PrimBitPat_PROD_2_ACT (Name_RES, POSINT_RES, COLON_RES, Name_SPAN : (Lex.pos * Lex.pos), POSINT_SPAN : (Lex.pos * Lex.pos), COLON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.PrimBitPat_PROD_2_ACT (SR_RES, Name_RES, SR_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in
