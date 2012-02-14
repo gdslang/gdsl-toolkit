@@ -1,9 +1,6 @@
 
 (* Types used in the AST variant for parsing *)
 structure ParseTreeTypes : AST_CORE = struct
-   (* a term marked with a source-map span *)
-   type 'a mark = 'a Error.mark
-
    (* qualified names *)
    type 'a path = (Atom.atom list * 'a) Error.mark
 
