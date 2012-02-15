@@ -14,7 +14,8 @@ group is
        literal.sml
        stamp.sml
        stats.sml
-       basis.sml)
+       basis.sml
+       pp.sml)
 
    ../../parser/mk-ast.sml
    ../../parser/spec-parse-tree.sml
