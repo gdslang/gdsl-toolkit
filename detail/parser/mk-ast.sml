@@ -2,10 +2,14 @@
 signature AST_CORE = sig
    type ty_bind
    type ty_use
+   type syn_bind
+   type syn_use
    type con_bind
    type con_use
    type var_bind
    type var_use
+   type field_bind
+   type field_use
    type op_id
 end
 
@@ -15,10 +19,14 @@ functor MkAst (Core: AST_CORE) = struct
 
    type ty_bind = Core.ty_bind
    type ty_use = Core.ty_use
+   type syn_bind = Core.syn_bind
+   type syn_use = Core.syn_use
    type con_bind = Core.con_bind
    type con_use = Core.con_use
    type var_bind = Core.var_bind
    type var_use = Core.var_use
+   type field_bind = Core.field_bind
+   type field_use = Core.field_use
    type op_id = Core.op_id
 
    datatype decl =
@@ -26,7 +34,7 @@ functor MkAst (Core: AST_CORE) = struct
     | INCLUDEdecl of string
     | GRANULARITYdecl of IntInf.int
     | STATEdecl of (var_bind * ty * exp) list
-    | TYPEdecl of ty_bind * ty
+    | TYPEdecl of syn_bind * ty
     | DATATYPEdecl of ty_bind * condecl list
     | DECODEdecl of decodedecl
     | VALUEdecl of valuedecl
@@ -49,21 +57,20 @@ functor MkAst (Core: AST_CORE) = struct
    and ty =
       MARKty of ty mark
     | BITty of IntInf.int
-    | NAMEDty of ty_use
-    | RECty of (var_bind * ty) list
+    | NAMEDty of syn_use
+    | RECty of (field_bind * ty) list
 
    and exp =
       MARKexp of exp mark
     | LETexp of valuedecl list * exp
     | IFexp of exp * exp * exp
     | CASEexp of exp * match list
-    | RAISEexp of exp
     | ANDALSOexp of exp * exp
     | ORELSEexp of exp * exp
     | BINARYexp of exp * op_id * exp (* infix binary expressions *)
     | APPLYexp of exp * exp
-    | RECORDexp of (var_bind * exp) list
-    | SELECTexp of exp * var_bind  (* record field selector "x.field" *)
+    | RECORDexp of (field_bind * exp) list
+    | SELECTexp of exp * field_use  (* record field selector "x.field" *)
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)

@@ -5,13 +5,17 @@ structure AbstractTreeTypes : AST_CORE = struct
    type 'a path = (Atom.atom list * 'a) Error.mark
 
    type qid = VarInfo.symid path
-   type ty_bind = VarInfo.symid
-   type ty_use = qid
-   type con_bind = VarInfo.symid
-   type con_use = qid
+   type ty_bind = TypeInfo.symid
+   type ty_use = TypeInfo.symid
+   type syn_bind = TSynInfo.symid
+   type syn_use = TSynInfo.symid
+   type con_bind = ConInfo.symid
+   type con_use = ConInfo.symid
    type var_bind = VarInfo.symid
-   type var_use = qid
-   type op_id = VarInfo.symid
+   type var_use = VarInfo.symid
+   type field_bind = FieldInfo.symid
+   type field_use = FieldInfo.symid
+   type op_id = var_use
 end
 
 (*  abstract tree representation of decoder specifications. *)

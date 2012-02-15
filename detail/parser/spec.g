@@ -177,8 +177,9 @@ ClosedExp
    : OrElseExp
    | "if" Exp "then" Exp "else" Exp =>
       (mark PT.MARKexp (FULL_SPAN, PT.IFexp (Exp1, Exp2, Exp3)))
-   | "raise" Exp =>
-      (mark PT.MARKexp (FULL_SPAN, PT.RAISEexp Exp))
+(* | "raise" Exp =>
+       (mark PT.MARKexp (FULL_SPAN, PT.RAISEexp Exp))
+*)
    | "do" MonadicExp (";" MonadicExp)* "end" =>
       (mark PT.MARKexp (FULL_SPAN, PT.SEQexp SR))
    ;
@@ -242,7 +243,7 @@ SelectExp
 ApplyExp
    : AtomicExp exp=
       ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))
-      | "." Name => (PT.SELECTexp (AtomicExp, Name))) =>
+      | "." Qid => (PT.SELECTexp (AtomicExp, Qid))) =>
          (mark PT.MARKexp (FULL_SPAN, exp))
    | "~" AtomicExp =>
       (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, AtomicExp)))

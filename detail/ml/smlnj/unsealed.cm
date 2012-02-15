@@ -27,3 +27,6 @@ group is
    ../../semantic/var-info.sml
    ../../semantic/con-info.sml
    ../../semantic/type-info.sml
+   ../../semantic/tsyn-info.sml
+   ../../semantic/field-info.sml
+   ../../semantic/lang-types.sml

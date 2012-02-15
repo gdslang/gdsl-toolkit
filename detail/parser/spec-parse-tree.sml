@@ -7,10 +7,14 @@ structure ParseTreeTypes : AST_CORE = struct
 
    type ty_bind = Atom.atom
    type ty_use = qid
+   type syn_bind = Atom.atom
+   type syn_use = qid
    type con_bind = Atom.atom
    type con_use = qid
    type var_bind = Atom.atom
    type var_use = qid
+   type field_bind = Atom.atom
+   type field_use = qid
    type op_id = Atom.atom
 end
 
