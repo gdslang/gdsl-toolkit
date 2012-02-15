@@ -26,46 +26,27 @@
    | KW_then ("then")
    | KW_type ("type")
    | BIND ("<-")
-   | ASSIGN (":=")
-   | DOT (".")
+   | EQ ("=")
    | TICK ("'")
-   | HASH ("#")
-   | DS ("$")
+   | DOT (".")
    | LP ("(")
    | RP (")")
    | LB ("[")
    | RB ("]")
    | LCB ("{")
    | RCB ("}")
-   | LTEQ ("<=")
-   | LT ("<")
-   | NEQ ("<>")
-   | GTEQ (">=")
-   | GT (">")
-   | DCOLON ("::")
-   | AT ("@")
    | CONCAT ("^")
-   | PSUB ("!")
    | PLUS ("+")
    | MINUS ("-")
    | TIMES ("*")
    | SLASH ("/")
-   | BACKSLASH ("\\")
-   | EQ ("=")
    | TILDE ("~")
    | COMMA (",")
    | SEMI (";")
    | BAR ("|")
    | COLON (":")
-   | SEAL (":>")
-   | ARROW ("->")
-   | DARROW ("=>")
    | WILD ("_")
-   | NDWILD ("?")
-   | PCHOICE ("|?|")
-   | AMP ("&")
    | BITSTR of string
-   | SELECT of Atom.atom
    | TYVAR of Atom.atom
    | ID of Atom.atom
    | QID of (Atom.atom list) * Atom.atom
@@ -241,17 +222,22 @@ RExp
    ;
 
 AExp
-   : MExp (( "+" => (Op.plus) | "-" => (Op.minus) ) MExp => (SR, MExp))* =>
+   : MExp (( "+" => (Op.plus) | "-" => (Op.minus)) MExp => (SR, MExp))* =>
       (mark PT.MARKexp (FULL_SPAN, mkLBinExp (MExp, SR)))
    ;
 
 MExp
-   : ApplyExp
+   : SelectExp
       (( "*" => (Op.times)
        | "div" => (Op.div)
        | "%" => (Op.mod)) ApplyExp =>
-      (SR, ApplyExp))* =>
-         (mark PT.MARKexp (FULL_SPAN, mkLBinExp (ApplyExp, SR)))
+      (SR, SelectExp))* =>
+         (mark PT.MARKexp (FULL_SPAN, mkLBinExp (SelectExp, SR)))
+   ;
+
+SelectExp
+   : ApplyExp (("." => (Op.select) | "^" => (Op.concat)) ApplyExp => (SR, ApplyExp))* =>
+      (mark PT.MARKexp (FULL_SPAN, mkLBinExp (ApplyExp, SR)))
    ;
 
 ApplyExp
@@ -264,7 +250,6 @@ ApplyExp
 AtomicExp
    : Lit => (mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
    | Qid => (mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
-   | SELECT => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp SELECT))
    | "(" ")" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "(" Exp ")" => (Exp)
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>

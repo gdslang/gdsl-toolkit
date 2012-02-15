@@ -1,20 +1,36 @@
 
 local
-   $(MLTON_LIB)/com/ssh/extended-basis/unstable/basis.mlb
-   $(MLTON_LIB)/com/ssh/prettier/unstable/lib.mlb
-   $(ML_ENV)/env/env.mlb
-   $(APPLICATION)/generic.mlb
+   $(SML_LIB)/basis/basis.mlb
+   $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
+   $(SML_LIB)/smlnj-lib/PP/pp-lib.mlb
+   $(SML_LIB)/smlnj-lib/Controls/controls-lib.mlb
+   $(SML_LIB)/mllpt-lib/ml-lpt-lib.mlb
 in
+
    ann
       "forceUsed"
       "sequenceNonUnit warn"
       "warnUnused true"
    in
       local
-
+         detail/common/basic-control.sml
+         detail/common/error.sml
+         detail/common/float-lit.sml
+         detail/common/integer-lit.sml
+         detail/common/literal.sml
+         detail/common/stamp.sml
+         detail/common/basis.sml
+         detail/parser/mk-ast.sml
+         detail/parser/spec-parse-tree.sml
+         ann
+            "warnUnused false"
+         in
+            detail/parser/spec.l.sml
+            detail/parser/spec.g.sml
+         end
+         detail/parser/parser.sml
       in
-         public/export/export.sml
-	 (* public/export/$(SML_COMPILER).sml *)
+         detail/export.sml
       end
    end
 end

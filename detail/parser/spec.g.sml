@@ -10,46 +10,27 @@ SpecTokens = struct
       | QID of (Atom.atom list) * Atom.atom
       | ID of Atom.atom
       | TYVAR of Atom.atom
-      | SELECT of Atom.atom
       | BITSTR of string
-      | AMP
-      | PCHOICE
-      | NDWILD
       | WILD
-      | DARROW
-      | ARROW
-      | SEAL
       | COLON
       | BAR
       | SEMI
       | COMMA
       | TILDE
-      | EQ
-      | BACKSLASH
       | SLASH
       | TIMES
       | MINUS
       | PLUS
-      | PSUB
       | CONCAT
-      | AT
-      | DCOLON
-      | GT
-      | GTEQ
-      | NEQ
-      | LT
-      | LTEQ
       | RCB
       | LCB
       | RB
       | LB
       | RP
       | LP
-      | DS
-      | HASH
-      | TICK
       | DOT
-      | ASSIGN
+      | TICK
+      | EQ
       | BIND
       | KW_type
       | KW_then
@@ -75,7 +56,7 @@ SpecTokens = struct
       | KW_case
       | KW_andalso
 
-    val allToks = [EOF, AMP, PCHOICE, NDWILD, WILD, DARROW, ARROW, SEAL, COLON, BAR, SEMI, COMMA, TILDE, EQ, BACKSLASH, SLASH, TIMES, MINUS, PLUS, PSUB, CONCAT, AT, DCOLON, GT, GTEQ, NEQ, LT, LTEQ, RCB, LCB, RB, LB, RP, LP, DS, HASH, TICK, DOT, ASSIGN, BIND, KW_type, KW_then, KW_state, KW_raise, KW_granularity, KW_orelse, KW_of, KW_mod, KW_rec, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_extend, KW_include, KW_decode, KW_datatype, KW_do, KW_in, KW_case, KW_andalso]
+    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, KW_type, KW_then, KW_state, KW_raise, KW_granularity, KW_orelse, KW_of, KW_mod, KW_rec, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_extend, KW_include, KW_decode, KW_datatype, KW_do, KW_in, KW_case, KW_andalso]
 
     fun toString tok =
 (case (tok)
@@ -88,46 +69,27 @@ SpecTokens = struct
   | (QID(_)) => "QID"
   | (ID(_)) => "ID"
   | (TYVAR(_)) => "TYVAR"
-  | (SELECT(_)) => "SELECT"
   | (BITSTR(_)) => "BITSTR"
-  | (AMP) => "&"
-  | (PCHOICE) => "|?|"
-  | (NDWILD) => "?"
   | (WILD) => "_"
-  | (DARROW) => "=>"
-  | (ARROW) => "->"
-  | (SEAL) => ":>"
   | (COLON) => ":"
   | (BAR) => "|"
   | (SEMI) => ";"
   | (COMMA) => ","
   | (TILDE) => "~"
-  | (EQ) => "="
-  | (BACKSLASH) => "\\"
   | (SLASH) => "/"
   | (TIMES) => "*"
   | (MINUS) => "-"
   | (PLUS) => "+"
-  | (PSUB) => "!"
   | (CONCAT) => "^"
-  | (AT) => "@"
-  | (DCOLON) => "::"
-  | (GT) => ">"
-  | (GTEQ) => ">="
-  | (NEQ) => "<>"
-  | (LT) => "<"
-  | (LTEQ) => "<="
   | (RCB) => "}"
   | (LCB) => "{"
   | (RB) => "]"
   | (LB) => "["
   | (RP) => ")"
   | (LP) => "("
-  | (DS) => "$"
-  | (HASH) => "#"
-  | (TICK) => "'"
   | (DOT) => "."
-  | (ASSIGN) => ":="
+  | (TICK) => "'"
+  | (EQ) => "="
   | (BIND) => "<-"
   | (KW_type) => "type"
   | (KW_then) => "then"
@@ -164,46 +126,27 @@ SpecTokens = struct
   | (QID(_)) => false
   | (ID(_)) => false
   | (TYVAR(_)) => false
-  | (SELECT(_)) => false
   | (BITSTR(_)) => false
-  | (AMP) => false
-  | (PCHOICE) => false
-  | (NDWILD) => false
   | (WILD) => false
-  | (DARROW) => false
-  | (ARROW) => false
-  | (SEAL) => false
   | (COLON) => false
   | (BAR) => false
   | (SEMI) => false
   | (COMMA) => false
   | (TILDE) => false
-  | (EQ) => false
-  | (BACKSLASH) => false
   | (SLASH) => false
   | (TIMES) => false
   | (MINUS) => false
   | (PLUS) => false
-  | (PSUB) => false
   | (CONCAT) => false
-  | (AT) => false
-  | (DCOLON) => false
-  | (GT) => false
-  | (GTEQ) => false
-  | (NEQ) => false
-  | (LT) => false
-  | (LTEQ) => false
   | (RCB) => false
   | (LCB) => false
   | (RB) => false
   | (LB) => false
   | (RP) => false
   | (LP) => false
-  | (DS) => false
-  | (HASH) => false
-  | (TICK) => false
   | (DOT) => false
-  | (ASSIGN) => false
+  | (TICK) => false
+  | (EQ) => false
   | (BIND) => false
   | (KW_type) => false
   | (KW_then) => false
@@ -402,18 +345,27 @@ fun AExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, MExp, SR_SPAN : (Lex.pos * Lex.pos), M
 fun AExp_PROD_1_ACT (SR, MExp, SR_SPAN : (Lex.pos * Lex.pos), MExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, mkLBinExp (MExp, SR)))
-fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (TIMES, ApplyExp, TIMES_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (TIMES, SelectExp, TIMES_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Op.times)
-fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (ApplyExp, KW_div, ApplyExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp, KW_div, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Op.div)
-fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (ApplyExp, KW_mod, ApplyExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (SelectExp, KW_mod, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Op.mod)
-fun MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, SelectExp, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-      SR, ApplyExp)
-fun MExp_PROD_1_ACT (SR, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+      SR, SelectExp)
+fun MExp_PROD_1_ACT (SR, SelectExp, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-         mark PT.MARKexp (FULL_SPAN, mkLBinExp (ApplyExp, SR)))
+         mark PT.MARKexp (FULL_SPAN, mkLBinExp (SelectExp, SR)))
+fun SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (DOT, ApplyExp, DOT_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( Op.select)
+fun SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (CONCAT, ApplyExp, CONCAT_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( Op.concat)
+fun SelectExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( SR, ApplyExp)
+fun SelectExp_PROD_1_ACT (SR, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  (
+      mark PT.MARKexp (FULL_SPAN, mkLBinExp (ApplyExp, SR)))
 fun ApplyExp_PROD_1_ACT (AtomicExp1, AtomicExp2, AtomicExp1_SPAN : (Lex.pos * Lex.pos), AtomicExp2_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, mkApply(AtomicExp1, AtomicExp2)))
@@ -424,16 +376,14 @@ fun AtomicExp_PROD_1_ACT (Lit, Lit_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.
   ( mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
 fun AtomicExp_PROD_2_ACT (Qid, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
-fun AtomicExp_PROD_3_ACT (SELECT, SELECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( mark PT.MARKexp (FULL_SPAN, PT.SELECTexp SELECT))
-fun AtomicExp_PROD_4_ACT (LP, RP, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun AtomicExp_PROD_3_ACT (LP, RP, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
-fun AtomicExp_PROD_5_ACT (LP, RP, Exp, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun AtomicExp_PROD_4_ACT (LP, RP, Exp, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Exp)
-fun AtomicExp_PROD_6_ACT (EQ, SR, Exp, LCB, RCB, Name, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun AtomicExp_PROD_5_ACT (EQ, SR, Exp, LCB, RCB, Name, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.RECORDexp ((Name, Exp)::SR)))
-fun AtomicExp_PROD_7_ACT (Exp, ValueDecl, KW_in, KW_end, KW_let, Exp_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun AtomicExp_PROD_6_ACT (Exp, ValueDecl, KW_in, KW_end, KW_let, Exp_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.LETexp (ValueDecl, Exp)))
 fun ValueDecl_PROD_1_ACT (EQ, Exp, Name1, Name2, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -514,40 +464,12 @@ fun matchTYVAR strm = (case (lex(strm))
  of (Tok.TYVAR(x), span, strm') => (x, span, strm')
   | _ => fail()
 (* end case *))
-fun matchSELECT strm = (case (lex(strm))
- of (Tok.SELECT(x), span, strm') => (x, span, strm')
-  | _ => fail()
-(* end case *))
 fun matchBITSTR strm = (case (lex(strm))
  of (Tok.BITSTR(x), span, strm') => (x, span, strm')
   | _ => fail()
 (* end case *))
-fun matchAMP strm = (case (lex(strm))
- of (Tok.AMP, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchPCHOICE strm = (case (lex(strm))
- of (Tok.PCHOICE, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchNDWILD strm = (case (lex(strm))
- of (Tok.NDWILD, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
 fun matchWILD strm = (case (lex(strm))
  of (Tok.WILD, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchDARROW strm = (case (lex(strm))
- of (Tok.DARROW, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchARROW strm = (case (lex(strm))
- of (Tok.ARROW, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchSEAL strm = (case (lex(strm))
- of (Tok.SEAL, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchCOLON strm = (case (lex(strm))
@@ -570,14 +492,6 @@ fun matchTILDE strm = (case (lex(strm))
  of (Tok.TILDE, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
-fun matchEQ strm = (case (lex(strm))
- of (Tok.EQ, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchBACKSLASH strm = (case (lex(strm))
- of (Tok.BACKSLASH, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
 fun matchSLASH strm = (case (lex(strm))
  of (Tok.SLASH, span, strm') => ((), span, strm')
   | _ => fail()
@@ -594,40 +508,8 @@ fun matchPLUS strm = (case (lex(strm))
  of (Tok.PLUS, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
-fun matchPSUB strm = (case (lex(strm))
- of (Tok.PSUB, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
 fun matchCONCAT strm = (case (lex(strm))
  of (Tok.CONCAT, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchAT strm = (case (lex(strm))
- of (Tok.AT, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchDCOLON strm = (case (lex(strm))
- of (Tok.DCOLON, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchGT strm = (case (lex(strm))
- of (Tok.GT, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchGTEQ strm = (case (lex(strm))
- of (Tok.GTEQ, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchNEQ strm = (case (lex(strm))
- of (Tok.NEQ, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchLT strm = (case (lex(strm))
- of (Tok.LT, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchLTEQ strm = (case (lex(strm))
- of (Tok.LTEQ, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchRCB strm = (case (lex(strm))
@@ -654,24 +536,16 @@ fun matchLP strm = (case (lex(strm))
  of (Tok.LP, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
-fun matchDS strm = (case (lex(strm))
- of (Tok.DS, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchHASH strm = (case (lex(strm))
- of (Tok.HASH, span, strm') => ((), span, strm')
+fun matchDOT strm = (case (lex(strm))
+ of (Tok.DOT, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchTICK strm = (case (lex(strm))
  of (Tok.TICK, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
-fun matchDOT strm = (case (lex(strm))
- of (Tok.DOT, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchASSIGN strm = (case (lex(strm))
- of (Tok.ASSIGN, span, strm') => ((), span, strm')
+fun matchEQ strm = (case (lex(strm))
+ of (Tok.EQ, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchBIND strm = (case (lex(strm))
@@ -924,7 +798,6 @@ fun Exp_NT (strm) = let
           | (Tok.LP, _, strm') => Exp_PROD_1(strm)
           | (Tok.LCB, _, strm') => Exp_PROD_1(strm)
           | (Tok.TILDE, _, strm') => Exp_PROD_1(strm)
-          | (Tok.SELECT(_), _, strm') => Exp_PROD_1(strm)
           | (Tok.ID(_), _, strm') => Exp_PROD_1(strm)
           | (Tok.QID(_), _, strm') => Exp_PROD_1(strm)
           | (Tok.POSINT(_), _, strm') => Exp_PROD_1(strm)
@@ -1027,7 +900,6 @@ and ClosedExp_NT (strm) = let
           | (Tok.LP, _, strm') => ClosedExp_PROD_1(strm)
           | (Tok.LCB, _, strm') => ClosedExp_PROD_1(strm)
           | (Tok.TILDE, _, strm') => ClosedExp_PROD_1(strm)
-          | (Tok.SELECT(_), _, strm') => ClosedExp_PROD_1(strm)
           | (Tok.ID(_), _, strm') => ClosedExp_PROD_1(strm)
           | (Tok.QID(_), _, strm') => ClosedExp_PROD_1(strm)
           | (Tok.POSINT(_), _, strm') => ClosedExp_PROD_1(strm)
@@ -1064,13 +936,14 @@ and MonadicExp_NT (strm) = let
                 | (Tok.KW_let, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_mod, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_orelse, _, strm') => MonadicExp_PROD_1(strm)
+                | (Tok.DOT, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.LP, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.LCB, _, strm') => MonadicExp_PROD_1(strm)
+                | (Tok.CONCAT, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.PLUS, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.MINUS, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.TIMES, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.SEMI, _, strm') => MonadicExp_PROD_1(strm)
-                | (Tok.SELECT(_), _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.ID(_), _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.QID(_), _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.POSINT(_), _, strm') => MonadicExp_PROD_1(strm)
@@ -1088,7 +961,6 @@ and MonadicExp_NT (strm) = let
           | (Tok.LP, _, strm') => MonadicExp_PROD_1(strm)
           | (Tok.LCB, _, strm') => MonadicExp_PROD_1(strm)
           | (Tok.TILDE, _, strm') => MonadicExp_PROD_1(strm)
-          | (Tok.SELECT(_), _, strm') => MonadicExp_PROD_1(strm)
           | (Tok.QID(_), _, strm') => MonadicExp_PROD_1(strm)
           | (Tok.POSINT(_), _, strm') => MonadicExp_PROD_1(strm)
           | (Tok.NEGINT(_), _, strm') => MonadicExp_PROD_1(strm)
@@ -1202,7 +1074,7 @@ and AExp_NT (strm) = let
           FULL_SPAN, strm')
       end
 and MExp_NT (strm) = let
-      val (ApplyExp_RES, ApplyExp_SPAN, strm') = ApplyExp_NT(strm)
+      val (SelectExp_RES, SelectExp_SPAN, strm') = SelectExp_NT(strm)
       fun MExp_PROD_1_SUBRULE_1_NT (strm) = let
             val (SR_RES, SR_SPAN, strm') = let
             fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_NT (strm) = let
@@ -1210,21 +1082,21 @@ and MExp_NT (strm) = let
                         val (TIMES_RES, TIMES_SPAN, strm') = matchTIMES(strm)
                         val FULL_SPAN = (#1(TIMES_SPAN), #2(TIMES_SPAN))
                         in
-                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (TIMES_RES, ApplyExp_RES, TIMES_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (TIMES_RES, SelectExp_RES, TIMES_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                             FULL_SPAN, strm')
                         end
                   fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2 (strm) = let
                         val (KW_div_RES, KW_div_SPAN, strm') = matchKW_div(strm)
                         val FULL_SPAN = (#1(KW_div_SPAN), #2(KW_div_SPAN))
                         in
-                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (ApplyExp_RES, KW_div_RES, ApplyExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp_RES, KW_div_RES, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                             FULL_SPAN, strm')
                         end
                   fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3 (strm) = let
                         val (KW_mod_RES, KW_mod_SPAN, strm') = matchKW_mod(strm)
                         val FULL_SPAN = (#1(KW_mod_SPAN), #2(KW_mod_SPAN))
                         in
-                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (ApplyExp_RES, KW_mod_RES, ApplyExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (SelectExp_RES, KW_mod_RES, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                             FULL_SPAN, strm')
                         end
                   in
@@ -1244,7 +1116,7 @@ and MExp_NT (strm) = let
             val (ApplyExp_RES, ApplyExp_SPAN, strm') = ApplyExp_NT(strm')
             val FULL_SPAN = (#1(SR_SPAN), #2(ApplyExp_SPAN))
             in
-              (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR_RES, ApplyExp_RES, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR_RES, SelectExp_RES, ApplyExp_RES, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun MExp_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
@@ -1254,9 +1126,9 @@ and MExp_NT (strm) = let
               | _ => false
             (* end case *))
       val (SR_RES, SR_SPAN, strm') = EBNF.closure(MExp_PROD_1_SUBRULE_1_PRED, MExp_PROD_1_SUBRULE_1_NT, strm')
-      val FULL_SPAN = (#1(ApplyExp_SPAN), #2(SR_SPAN))
+      val FULL_SPAN = (#1(SelectExp_SPAN), #2(SR_SPAN))
       in
-        (UserCode.MExp_PROD_1_ACT (SR_RES, ApplyExp_RES, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.MExp_PROD_1_ACT (SR_RES, SelectExp_RES, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 and ApplyExp_NT (strm) = let
@@ -1272,7 +1144,6 @@ and ApplyExp_NT (strm) = let
                    of (Tok.KW_let, _, strm') => true
                     | (Tok.LP, _, strm') => true
                     | (Tok.LCB, _, strm') => true
-                    | (Tok.SELECT(_), _, strm') => true
                     | (Tok.ID(_), _, strm') => true
                     | (Tok.QID(_), _, strm') => true
                     | (Tok.POSINT(_), _, strm') => true
@@ -1300,7 +1171,6 @@ and ApplyExp_NT (strm) = let
           | (Tok.KW_let, _, strm') => ApplyExp_PROD_1(strm)
           | (Tok.LP, _, strm') => ApplyExp_PROD_1(strm)
           | (Tok.LCB, _, strm') => ApplyExp_PROD_1(strm)
-          | (Tok.SELECT(_), _, strm') => ApplyExp_PROD_1(strm)
           | (Tok.ID(_), _, strm') => ApplyExp_PROD_1(strm)
           | (Tok.QID(_), _, strm') => ApplyExp_PROD_1(strm)
           | (Tok.POSINT(_), _, strm') => ApplyExp_PROD_1(strm)
@@ -1325,35 +1195,28 @@ and AtomicExp_NT (strm) = let
                 FULL_SPAN, strm')
             end
       fun AtomicExp_PROD_3 (strm) = let
-            val (SELECT_RES, SELECT_SPAN, strm') = matchSELECT(strm)
-            val FULL_SPAN = (#1(SELECT_SPAN), #2(SELECT_SPAN))
+            val (LP_RES, LP_SPAN, strm') = matchLP(strm)
+            val (RP_RES, RP_SPAN, strm') = matchRP(strm')
+            val FULL_SPAN = (#1(LP_SPAN), #2(RP_SPAN))
             in
-              (UserCode.AtomicExp_PROD_3_ACT (SELECT_RES, SELECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.AtomicExp_PROD_3_ACT (LP_RES, RP_RES, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun AtomicExp_PROD_4 (strm) = let
             val (LP_RES, LP_SPAN, strm') = matchLP(strm)
-            val (RP_RES, RP_SPAN, strm') = matchRP(strm')
-            val FULL_SPAN = (#1(LP_SPAN), #2(RP_SPAN))
-            in
-              (UserCode.AtomicExp_PROD_4_ACT (LP_RES, RP_RES, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-                FULL_SPAN, strm')
-            end
-      fun AtomicExp_PROD_5 (strm) = let
-            val (LP_RES, LP_SPAN, strm') = matchLP(strm)
             val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
             val (RP_RES, RP_SPAN, strm') = matchRP(strm')
             val FULL_SPAN = (#1(LP_SPAN), #2(RP_SPAN))
             in
-              (UserCode.AtomicExp_PROD_5_ACT (LP_RES, RP_RES, Exp_RES, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.AtomicExp_PROD_4_ACT (LP_RES, RP_RES, Exp_RES, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
-      fun AtomicExp_PROD_6 (strm) = let
+      fun AtomicExp_PROD_5 (strm) = let
             val (LCB_RES, LCB_SPAN, strm') = matchLCB(strm)
             val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
             val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
             val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
-            fun AtomicExp_PROD_6_SUBRULE_1_NT (strm) = let
+            fun AtomicExp_PROD_5_SUBRULE_1_NT (strm) = let
                   val (COMMA_RES, COMMA_SPAN, strm') = matchCOMMA(strm)
                   val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
                   val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
@@ -1362,67 +1225,65 @@ and AtomicExp_NT (strm) = let
                   in
                     ((Name_RES, Exp_RES), FULL_SPAN, strm')
                   end
-            fun AtomicExp_PROD_6_SUBRULE_1_PRED (strm) = (case (lex(strm))
+            fun AtomicExp_PROD_5_SUBRULE_1_PRED (strm) = (case (lex(strm))
                    of (Tok.COMMA, _, strm') => true
                     | _ => false
                   (* end case *))
-            val (SR_RES, SR_SPAN, strm') = EBNF.closure(AtomicExp_PROD_6_SUBRULE_1_PRED, AtomicExp_PROD_6_SUBRULE_1_NT, strm')
+            val (SR_RES, SR_SPAN, strm') = EBNF.closure(AtomicExp_PROD_5_SUBRULE_1_PRED, AtomicExp_PROD_5_SUBRULE_1_NT, strm')
             val (RCB_RES, RCB_SPAN, strm') = matchRCB(strm')
             val FULL_SPAN = (#1(LCB_SPAN), #2(RCB_SPAN))
             in
-              (UserCode.AtomicExp_PROD_6_ACT (EQ_RES, SR_RES, Exp_RES, LCB_RES, RCB_RES, Name_RES, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.AtomicExp_PROD_5_ACT (EQ_RES, SR_RES, Exp_RES, LCB_RES, RCB_RES, Name_RES, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
-      fun AtomicExp_PROD_7 (strm) = let
+      fun AtomicExp_PROD_6 (strm) = let
             val (KW_let_RES, KW_let_SPAN, strm') = matchKW_let(strm)
-            fun AtomicExp_PROD_7_SUBRULE_1_NT (strm) = let
+            fun AtomicExp_PROD_6_SUBRULE_1_NT (strm) = let
                   val (ValueDecl_RES, ValueDecl_SPAN, strm') = ValueDecl_NT(strm)
                   val FULL_SPAN = (#1(ValueDecl_SPAN), #2(ValueDecl_SPAN))
                   in
                     ((ValueDecl_RES), FULL_SPAN, strm')
                   end
-            fun AtomicExp_PROD_7_SUBRULE_1_PRED (strm) = (case (lex(strm))
+            fun AtomicExp_PROD_6_SUBRULE_1_PRED (strm) = (case (lex(strm))
                    of (Tok.KW_val, _, strm') => true
                     | _ => false
                   (* end case *))
-            val (ValueDecl_RES, ValueDecl_SPAN, strm') = EBNF.posclos(AtomicExp_PROD_7_SUBRULE_1_PRED, AtomicExp_PROD_7_SUBRULE_1_NT, strm')
+            val (ValueDecl_RES, ValueDecl_SPAN, strm') = EBNF.posclos(AtomicExp_PROD_6_SUBRULE_1_PRED, AtomicExp_PROD_6_SUBRULE_1_NT, strm')
             val (KW_in_RES, KW_in_SPAN, strm') = matchKW_in(strm')
             val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
             val (KW_end_RES, KW_end_SPAN, strm') = matchKW_end(strm')
             val FULL_SPAN = (#1(KW_let_SPAN), #2(KW_end_SPAN))
             in
-              (UserCode.AtomicExp_PROD_7_ACT (Exp_RES, ValueDecl_RES, KW_in_RES, KW_end_RES, KW_let_RES, Exp_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.AtomicExp_PROD_6_ACT (Exp_RES, ValueDecl_RES, KW_in_RES, KW_end_RES, KW_let_RES, Exp_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in
         (case (lex(strm))
-         of (Tok.KW_let, _, strm') => AtomicExp_PROD_7(strm)
-          | (Tok.SELECT(_), _, strm') => AtomicExp_PROD_3(strm)
+         of (Tok.KW_let, _, strm') => AtomicExp_PROD_6(strm)
+          | (Tok.ID(_), _, strm') => AtomicExp_PROD_2(strm)
+          | (Tok.QID(_), _, strm') => AtomicExp_PROD_2(strm)
           | (Tok.POSINT(_), _, strm') => AtomicExp_PROD_1(strm)
           | (Tok.NEGINT(_), _, strm') => AtomicExp_PROD_1(strm)
           | (Tok.STRING(_), _, strm') => AtomicExp_PROD_1(strm)
-          | (Tok.ID(_), _, strm') => AtomicExp_PROD_2(strm)
-          | (Tok.QID(_), _, strm') => AtomicExp_PROD_2(strm)
           | (Tok.LP, _, strm') =>
               (case (lex(strm'))
-               of (Tok.RP, _, strm') => AtomicExp_PROD_4(strm)
-                | (Tok.KW_case, _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.KW_do, _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.KW_if, _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.KW_let, _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.KW_raise, _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.LP, _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.LCB, _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.TILDE, _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.SELECT(_), _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.ID(_), _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.QID(_), _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.POSINT(_), _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.NEGINT(_), _, strm') => AtomicExp_PROD_5(strm)
-                | (Tok.STRING(_), _, strm') => AtomicExp_PROD_5(strm)
+               of (Tok.RP, _, strm') => AtomicExp_PROD_3(strm)
+                | (Tok.KW_case, _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.KW_do, _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.KW_if, _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.KW_let, _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.KW_raise, _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.LP, _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.LCB, _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.TILDE, _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.ID(_), _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.QID(_), _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.POSINT(_), _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.NEGINT(_), _, strm') => AtomicExp_PROD_4(strm)
+                | (Tok.STRING(_), _, strm') => AtomicExp_PROD_4(strm)
                 | _ => fail()
               (* end case *))
-          | (Tok.LCB, _, strm') => AtomicExp_PROD_6(strm)
+          | (Tok.LCB, _, strm') => AtomicExp_PROD_5(strm)
           | _ => fail()
         (* end case *))
       end
@@ -1445,6 +1306,54 @@ and ValueDecl_NT (strm) = let
       val FULL_SPAN = (#1(KW_val_SPAN), #2(Exp_SPAN))
       in
         (UserCode.ValueDecl_PROD_1_ACT (EQ_RES, Exp_RES, Name1_RES, Name2_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+and SelectExp_NT (strm) = let
+      val (ApplyExp_RES, ApplyExp_SPAN, strm') = ApplyExp_NT(strm)
+      fun SelectExp_PROD_1_SUBRULE_1_NT (strm) = let
+            val (SR_RES, SR_SPAN, strm') = let
+            fun SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_NT (strm) = let
+                  fun SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1 (strm) = let
+                        val (DOT_RES, DOT_SPAN, strm') = matchDOT(strm)
+                        val FULL_SPAN = (#1(DOT_SPAN), #2(DOT_SPAN))
+                        in
+                          (UserCode.SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (DOT_RES, ApplyExp_RES, DOT_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                            FULL_SPAN, strm')
+                        end
+                  fun SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2 (strm) = let
+                        val (CONCAT_RES, CONCAT_SPAN, strm') = matchCONCAT(strm)
+                        val FULL_SPAN = (#1(CONCAT_SPAN), #2(CONCAT_SPAN))
+                        in
+                          (UserCode.SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (CONCAT_RES, ApplyExp_RES, CONCAT_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                            FULL_SPAN, strm')
+                        end
+                  in
+                    (case (lex(strm))
+                     of (Tok.CONCAT, _, strm') =>
+                          SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2(strm)
+                      | (Tok.DOT, _, strm') =>
+                          SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1(strm)
+                      | _ => fail()
+                    (* end case *))
+                  end
+            in
+              SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_NT(strm)
+            end
+            val (ApplyExp_RES, ApplyExp_SPAN, strm') = ApplyExp_NT(strm')
+            val FULL_SPAN = (#1(SR_SPAN), #2(ApplyExp_SPAN))
+            in
+              (UserCode.SelectExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR_RES, ApplyExp_RES, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun SelectExp_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.DOT, _, strm') => true
+              | (Tok.CONCAT, _, strm') => true
+              | _ => false
+            (* end case *))
+      val (SR_RES, SR_SPAN, strm') = EBNF.closure(SelectExp_PROD_1_SUBRULE_1_PRED, SelectExp_PROD_1_SUBRULE_1_NT, strm')
+      val FULL_SPAN = (#1(ApplyExp_SPAN), #2(SR_SPAN))
+      in
+        (UserCode.SelectExp_PROD_1_ACT (SR_RES, ApplyExp_RES, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun TokPat_NT (strm) = let

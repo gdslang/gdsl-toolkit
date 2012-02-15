@@ -7,4 +7,6 @@ structure Op = struct
    val plus = Atom.atom "+"
    val minus = Atom.atom "-"
    val uminus = Atom.atom "~"
+   val concat = Atom.atom "^"
+   val select = Atom.atom "."
 end

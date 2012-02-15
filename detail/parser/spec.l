@@ -93,14 +93,11 @@ fun fromHexString s = let
 %let hexnum = "0x"{hexdigit}+;
 %let idchar = {letter}|{dig}|"_"|"-";
 %let id = {letter}{idchar}*;
-%let qidt = {id}".";
-%let qualifiedid = {qidt}+{id};
 %let esc = "\\"[abfnrtv\\\"]|"\\"{dig}{dig}{dig};
 %let sgood = [\032-\126]&[^\"\\]; (* sgood means "characters good inside strings" *)
 %let ws = " "|[\t\n\v\f\r];
 %let binary = [0-1];
 %let bitstr = {binary}+;
-%let select = "."{idchar}+;
 %let sym=[-!%&$+/:<=>?@~`\^|#*\\];
 %let symid={sym}+;
 
@@ -123,7 +120,7 @@ fun fromHexString s = let
 <INITIAL>"do" => (T.KW_do);
 <INITIAL>"in" => (T.KW_in);
 <INITIAL>"div" => (T.KW_div);
-<INITIAL>"<-" => (T.BIND)
+<INITIAL>"<-" => (T.BIND);
 <INITIAL>"%" => (T.KW_mod);
 <INITIAL>"of" => (T.KW_of);
 <INITIAL>"[" => (T.LB);
@@ -145,6 +142,7 @@ fun fromHexString s = let
 <INITIAL>"-" => (T.MINUS);
 <INITIAL>"~" => (T.TILDE);
 <INITIAL>"'" => (YYBEGIN BITPAT; T.TICK);
+<INITIAL>"." => (T.DOT);
 
 <BITPAT>":" => (YYBEGIN BITPATNUM; T.COLON);
 <BITPAT,BITPATNUM>"'" => (YYBEGIN INITIAL; T.TICK);
@@ -153,8 +151,6 @@ fun fromHexString s = let
 <BITPAT>{ws} => (skip ());
 <BITPATNUM>{ws} => (YYBEGIN BITPAT; skip());
 
-<INITIAL>{select} => (T.SELECT (Atom.atom yytext));
-<INITIAL>{qualifiedid} => (T.QID(mkQId yytext));
 <INITIAL>{id} => (T.ID (Atom.atom yytext));
 <INITIAL>{symid} => (T.SYMBOL (Atom.atom yytext));
 <INITIAL,BITPATNUM>{num} => (T.POSINT(valOf (IntInf.fromString yytext)));
