@@ -1,10 +1,10 @@
 
 (* Types used in the AST variant for parsing *)
 structure ParseTreeTypes : AST_CORE = struct
-   (* qualified names *)
-   type 'a path = (Atom.atom list * 'a) Error.mark
 
+   type 'a path = 'a Error.mark
    type qid = Atom.atom path
+
    type ty_bind = Atom.atom
    type ty_use = qid
    type con_bind = Atom.atom

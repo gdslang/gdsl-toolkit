@@ -49,7 +49,6 @@
    | BITSTR of string
    | TYVAR of Atom.atom
    | ID of Atom.atom
-   | QID of (Atom.atom list) * Atom.atom
    | POSINT of IntInf.int (* positive integer *)
    | NEGINT of IntInf.int (* negative integer *)
    | FLOAT of FloatLit.float
@@ -203,7 +202,7 @@ Pat
    : "'" BITSTR "'" => (mark PT.MARKpat (FULL_SPAN, PT.BITpat BITSTR))
    | "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
    | Lit => (mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
-   | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat {span=FULL_SPAN, tree=([], Name)}))
+   | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat {span=FULL_SPAN, tree=Name}))
    ;
 
 OrElseExp
@@ -236,15 +235,17 @@ MExp
    ;
 
 SelectExp
-   : ApplyExp (("." => (Op.select) | "^" => (Op.concat)) ApplyExp => (SR, ApplyExp))* =>
+   : ApplyExp (("^" => (Op.concat)) ApplyExp => (SR, ApplyExp))* =>
       (mark PT.MARKexp (FULL_SPAN, mkLBinExp (ApplyExp, SR)))
    ;
 
 ApplyExp
-   : AtomicExp AtomicExp* =>
-      (mark PT.MARKexp (FULL_SPAN, mkApply(AtomicExp1, AtomicExp2)))
+   : AtomicExp exp=
+      ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))
+      | "." Name => (PT.SELECTexp (AtomicExp, Name))) =>
+         (mark PT.MARKexp (FULL_SPAN, exp))
    | "~" AtomicExp =>
-      (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=([], Op.uminus)}, AtomicExp)))
+      (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, AtomicExp)))
    ;
 
 AtomicExp
@@ -282,6 +283,5 @@ Sym
    ;
 
 Qid
-   : QID => ({span=FULL_SPAN, tree=QID})
-   | ID => ({span=FULL_SPAN, tree=([], ID)})
+   : ID => ({span=FULL_SPAN, tree=ID})
    ;

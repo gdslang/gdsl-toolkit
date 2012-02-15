@@ -10,7 +10,6 @@ signature AST_CORE = sig
 end
 
 functor MkAst (Core: AST_CORE) = struct
-
    (* a term marked with a source-map span *)
    type 'a mark = 'a Error.mark
 
@@ -64,7 +63,7 @@ functor MkAst (Core: AST_CORE) = struct
     | BINARYexp of exp * op_id * exp (* infix binary expressions *)
     | APPLYexp of exp * exp
     | RECORDexp of (var_bind * exp) list
-    | SELECTexp of var_bind (* record field selector ".name" *)
+    | SELECTexp of exp * var_bind  (* record field selector "x.field" *)
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)

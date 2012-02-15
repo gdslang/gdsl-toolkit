@@ -6,7 +6,6 @@ local
    $(SML_LIB)/smlnj-lib/Controls/controls-lib.mlb
    $(SML_LIB)/mllpt-lib/ml-lpt-lib.mlb
 in
-
    ann
       "forceUsed"
       "sequenceNonUnit warn"
@@ -25,8 +24,8 @@ in
          ann
             "warnUnused false"
          in
-            detail/parser/spec.l.sml
             detail/parser/spec.g.sml
+            detail/parser/spec.l.sml
          end
          detail/parser/parser.sml
       in
