@@ -33,6 +33,7 @@ end = struct
    fun parse fp = let
       val ins = TextIO.openIn fp
       val ers = Error.mkErrStream fp
+      val () = Controls.set (BasicControl.verbose, 1)
    in
       parseFile (ers, ins)
          before

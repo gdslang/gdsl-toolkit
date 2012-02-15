@@ -49,9 +49,9 @@ val imm16 ['byte1:8' 'byte2:8'] = return (IMM16 {value=byte1 ^ byte2})
 
 # The 's' action reads one bit and updates the monadic state
 val s ['sizeBit:1'] = let
-   val sizeTag =
+   val sizeBit =
       case sizeBit of
-         '0':B
+         '0': B
        | '1': W
    val someTag =
       case sizeBit of

@@ -132,6 +132,7 @@ fun fromHexString s = let
 <INITIAL>"=" => (T.EQ);
 <INITIAL>"," => (T.COMMA);
 <INITIAL>";" => (T.SEMI);
+<INITIAL>"^" => (T.CONCAT);
 <INITIAL>"|" => (T.BAR);
 <INITIAL>":" => (T.COLON);
 <INITIAL>"(" => (T.LP);
@@ -172,8 +173,8 @@ fun fromHexString s = let
 <STRING>. =>
    (lexErr
       (yypos,
-         ["bad character `", String.toString yytext,
-			 "' in string literal"])
+       ["bad character `", String.toString yytext,
+		  "' in string literal"])
    ;continue());
 
 <COMMENT>"(*" =>
@@ -187,6 +188,6 @@ fun fromHexString s = let
 
 <INITIAL,BITPAT,BITPATNUM>. =>
    (lexErr
-         (yypos,
-          ["bad character `", String.toString yytext, "'"])
+      (yypos,
+       ["bad character `", String.toString yytext, "'"])
    ;continue());
