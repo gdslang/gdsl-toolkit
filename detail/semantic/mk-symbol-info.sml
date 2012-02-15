@@ -8,6 +8,8 @@ functor MkSymbolInfo (Core : SYMINFO_CORE) : sig
    type symid
    type table
 
+   exception SymbolAlreadyDefined
+
    val badSymId : symid
    val empty : table
    val lookup : (table * Atom.atom) -> symid option
@@ -20,16 +22,16 @@ end = struct
    structure SymbolTable = IntRedBlackMap
    structure Reverse = AtomRedBlackMap
 
-   exception SymbolAlreadyDefined
-
    datatype symid = SymId of int
+
+   exception SymbolAlreadyDefined
 
    datatype SymbolInfo =
       SymbolInfo of Atom.atom * Error.span * symid * Core.info
 
    type table = SymbolInfo SymbolTable.map * symid Reverse.map
 
-   val badSymId = SymId (0-1)
+   val badSymId = SymId (~1)
 
    fun emptySymInfo (atom,span,id) =
       SymbolInfo (atom, span, id, Core.empty)
