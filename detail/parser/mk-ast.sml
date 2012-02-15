@@ -90,7 +90,7 @@ functor MkAst (Core: AST_CORE) = struct
    and bitpat =
       MARKbitpat of bitpat mark
     | BITSTRbitpat of string
-    | NAMEDbitpat of var_bind
+    | NAMEDbitpat of var_use
     | BITVECbitpat of var_bind * IntInf.int
 
    and tokpat =
@@ -106,7 +106,7 @@ functor MkAst (Core: AST_CORE) = struct
       MARKpat of pat mark
     | BITpat of string
     | LITpat of lit
-    | IDpat of var_use
+    | IDpat of var_bind
     | WILDpat
 
    and lit =
