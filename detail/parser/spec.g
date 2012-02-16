@@ -158,13 +158,13 @@ TokPat
 
 PrimBitPat
    : BITSTR => (mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
-   | Name (":" POSINT)? =>
+   | Qid (":" POSINT)? =>
       (mark
          PT.MARKbitpat
          (FULL_SPAN,
           case SR of
-             NONE => PT.NAMEDbitpat Name
-           | SOME i => PT.BITVECbitpat (Name, i)))
+             NONE => PT.NAMEDbitpat Qid
+           | SOME i => PT.BITVECbitpat (#tree Qid, i)))
    ;
 
 Exp
@@ -203,7 +203,7 @@ Pat
    : "'" BITSTR "'" => (mark PT.MARKpat (FULL_SPAN, PT.BITpat BITSTR))
    | "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
    | Lit => (mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
-   | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat {span=FULL_SPAN, tree=Name}))
+   | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat Name))
    ;
 
 OrElseExp

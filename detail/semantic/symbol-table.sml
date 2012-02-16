@@ -53,36 +53,68 @@ end = struct
             span,
             ["duplicate " ^ str ^ " declaration ",
              Atom.toString(atom)])
-        ; let val (SOME id) = lookup (!table, atom) in id end)
+        ; lookup (!table, atom))
 
     val newVar = newSym (varTable, VI.create, VI.lookup, "variable")
+    fun newLetVar v = let val id = newVar v in
+       (varTable :=
+         VI.updateInfo (!varTable, id, VarInfoUtil.setLetBound true);
+        id)
+       end
     val newCon = newSym (conTable, CI.create, CI.lookup, "constructor")
     val newType = newSym (typeTable, TI.create, TI.lookup, "type")
     val newTSyn = newSym (tSynTable, SI.create, SI.lookup, "type synonym")
     fun newField (span, atom) =
       let val (newTable, id) = FI.create (!fieldTable, atom, span)
       in (fieldTable := newTable; id) end
-      handle SymbolAlreadyDefined =>
-        let val (SOME id) = FI.lookup (!fieldTable, atom) in id end
+      handle SymbolAlreadyDefined => FI.lookup (!fieldTable, atom)
 
-    fun useSym (table, badSymId, lookup, str) (_,{ tree=atom, span}) =
-      case lookup (!table, atom)
+    fun useSym (table, badSymId, find, str) (_,{ tree=atom, span}) =
+      case find (!table, atom)
         of (SOME id) => id
         | NONE => (Error.errorAt
              (errStrm,
               span,
               ["the " ^ str ^ Atom.toString(atom) ^ " is not defined "]);
            badSymId)
-    val useVar = useSym (varTable, VI.badSymId, VI.lookup, "variable")
-    val useCon = useSym (conTable, CI.badSymId, CI.lookup, "constructor")
-    val useType = useSym (typeTable, TI.badSymId, TI.lookup, "type")
-    val useTSyn = useSym (tSynTable, SI.badSymId, SI.lookup, "type synonym")
+    val useVar = useSym (varTable, VI.badSymId, VI.find, "variable")
+    val useCon = useSym (conTable, CI.badSymId, CI.find, "constructor")
+    val useType = useSym (typeTable, TI.badSymId, TI.find, "type")
+    val useTSyn = useSym (tSynTable, SI.badSymId, SI.find, "type synonym")
     fun useField (_, { tree=atom, span}) =
       let val (newTable, id) = FI.create (!fieldTable, atom, span)
       in (fieldTable := newTable; id) end
-      handle SymbolAlreadyDefined =>
-        let val (SOME id) = FI.lookup (!fieldTable, atom) in id end
+      handle SymbolAlreadyDefined => FI.lookup (!fieldTable, atom) 
 
+    val startScope = varTable := VI.push (!varTable)
+    val endScope = varTable := VI.pop (!varTable)
+    
+    (* define a first traversal that registers all let rec bindings *)
+    fun regDecl _ (PT.MARKdecl { span = s, tree = m }) = regDecl s m
+      | regDecl s (PT.DECODEdecl dd) = regDecodedecl s dd 
+      | regDecl s (PT.VALUEdecl vd) = regValuedecl s vd
+      | regDecl s _ = ()
+    and regDecodedecl _ (PT.MARKdecodedecl { span = s, tree = m }) =
+          regDecodedecl s m
+      | regDecodedecl s (PT.NAMEDdecodedecl (v, l, e)) =
+          (case VI.find (!varTable, v) of (SOME _) => ()
+                                        | (NONE) => (newLetVar (s,v); ()))
+      | regDecodedecl s (PT.DECODEdecodedecl (l,e)) =
+          let val v = Atom.atom "decode" in
+          case VI.find (!varTable, v) of (SOME _) => ()
+                                        | NONE => (newLetVar (s,v); ()) end
+      | regDecodedecl s (PT.GUARDEDdecodedecl (pl, el)) =
+          let val v = Atom.atom "decode" in
+          case VI.find (!varTable, v) of (SOME _) => ()
+                                       | NONE => (newLetVar (s,v); ()) end
+    and regValuedecl _ (PT.MARKvaluedecl { span = s, tree = m }) =
+          regValuedecl s m
+      | regValuedecl s (PT.LETRECvaluedecl (v,l,e)) =
+          (case VI.find (!varTable, v) of (SOME _) => ()
+                                        | NONE => (newLetVar (s,v); ()))
+      | regValuedecl s _ = ()
+
+    (* define a second traversal that is a full translation of the tree *)
     fun convDecl s (PT.MARKdecl m) = AST.MARKdecl (convMark convDecl m)
       | convDecl s (PT.INCLUDEdecl str) = AST.INCLUDEdecl str
       | convDecl s (PT.GRANULARITYdecl i) = AST.GRANULARITYdecl i
@@ -105,6 +137,24 @@ end = struct
          List.map (fn (e1,e2) => (convExp s e1, convExp s e2)) el)
     and convValuedecl s (PT.MARKvaluedecl m) =
         AST.MARKvaluedecl (convMark convValuedecl m)
+      | convValuedecl s (PT.LETvaluedecl (v,l,e)) = AST.LETvaluedecl
+        let val _ = startScope
+            val l = List.map (fn v => newVar (s,v)) l
+            val e = convExp s e
+            val _ = endScope
+            val id = newLetVar (s,v)
+        in (id, l, e) end
+      | convValuedecl s (PT.LETRECvaluedecl (v,l,e)) = AST.LETRECvaluedecl
+        let val _ = startScope
+            val id = VI.lookup (!varTable, v)
+            val l = List.map (fn v => newVar (s,v)) l
+            val e = convExp s e
+            val _ = endScope
+        in (id, l, e) end
+    and convCondecl s (PT.MARKcondecl m) =
+        AST.MARKcondecl (convMark convCondecl m)
+      | convCondecl s (PT.CONdecl (c,to)) = AST.CONdecl
+        (newCon (s,c), case to of NONE => NONE | SOME t => SOME (convTy s t))
     and convTy s (PT.MARKty m) = AST.MARKty (convMark convTy m)
       | convTy s (PT.BITty i) = AST.BITty i
       | convTy s (PT.NAMEDty n) = AST.NAMEDty (useTSyn (s,n))
@@ -112,7 +162,8 @@ end = struct
         (List.map (fn (f,t) => (newField (s,f), convTy s t)) l)
     and convExp s (PT.MARKexp m) = AST.MARKexp (convMark convExp m)
       | convExp s (PT.LETexp (l,e)) = AST.LETexp
-          (List.map (convValuedecl s) l, convExp s e)
+          (List.map (regValuedecl s) l;
+          (List.map (convValuedecl s) l, convExp s e))
       | convExp s (PT.IFexp (e1,e2,e3)) = AST.IFexp
           (convExp s e1, convExp s e2, convExp s e3)
       | convExp s (PT.CASEexp (e,l)) = AST.CASEexp
@@ -134,24 +185,47 @@ end = struct
       | convExp s (PT.IDexp v) = AST.IDexp (useVar (s,v))
       | convExp s (PT.FNexp l) = AST.FNexp
           (List.map (fn (v,e) => (newVar (s,v), convExp s e)) l)
-    and convSeqexp s (PT.MARKseqexp m) =
-        AST.MARKseqexp (convMark convSeqexp m)
-    and convCondecl s (PT.MARKcondecl m) =
-        AST.MARKcondecl (convMark convCondecl m)
+    and convSeqexp s (PT.MARKseqexp m) = AST.MARKseqexp (convMark convSeqexp m)
+      | convSeqexp s (PT.ACTIONseqexp e) = AST.ACTIONseqexp (convExp s e)
+      | convSeqexp s (PT.BINDseqexp (v,e)) = AST.BINDseqexp
+          (newVar (s,v), convExp s e)
     and convDecodepat s (PT.MARKdecodepat m) =
         AST.MARKdecodepat (convMark convDecodepat m)
+      | convDecodepat s (PT.TOKENdecodepat t) =
+        AST.TOKENdecodepat (convTokpat s t)
+      | convDecodepat s (PT.BITdecodepat l) =
+        AST.BITdecodepat (List.map (convBitpat s) l)
+    and convBitpat s (PT.MARKbitpat m) =
+        AST.MARKbitpat (convMark convBitpat m)
+      | convBitpat s (PT.BITSTRbitpat str) = AST.BITSTRbitpat str
+      | convBitpat s (PT.NAMEDbitpat v) = AST.NAMEDbitpat (useVar (s,v))
+      | convBitpat s (PT.BITVECbitpat (var,size)) = AST.BITVECbitpat
+        (newVar (s,var), size)
+    and convTokpat s (PT.MARKtokpat m) =
+        AST.MARKtokpat (convMark convTokpat m)
+      | convTokpat s (PT.TOKtokpat i) = AST.TOKtokpat i
+      | convTokpat s (PT.NAMEDtokpat v) = AST.NAMEDtokpat (newVar (s,v))
     and convMatch s (PT.MARKmatch m) =
         AST.MARKmatch (convMark convMatch m)
+      | convMatch s (PT.CASEmatch (p,e)) =
+        AST.CASEmatch (convPat s p, convExp s e)
+    and convPat s (PT.MARKpat m) =
+        AST.MARKpat (convMark convPat m)
+      | convPat s (PT.BITpat str) = AST.BITpat str
+      | convPat s (PT.LITpat lit) = AST.LITpat (convLit s lit)
+      | convPat s (PT.IDpat v) = AST.IDpat (newVar (s,v))
+      | convPat s (PT.WILDpat) = AST.WILDpat
     and convLit s (PT.INTlit i) = AST.INTlit i
       | convLit s (PT.FLTlit f) = AST.FLTlit f
       | convLit s (PT.STRlit str) = AST.STRlit str
-   in
+      
+   in (convMark (fn s => List.map (regDecl s)) ast;
       {ast= convMark (fn s => List.map (convDecl s)) ast,
        vars= !varTable,
        cons= !conTable,
        types= !typeTable,
        tsyns= !tSynTable,
-       fields= !fieldTable}
+       fields= !fieldTable})
    end
 
    fun resolveSymbols ast = let

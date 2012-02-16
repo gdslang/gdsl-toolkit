@@ -282,14 +282,14 @@ fun TokPat_PROD_2_ACT (Name, Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.p
   ( mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Name))
 fun PrimBitPat_PROD_1_ACT (BITSTR, BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
-fun PrimBitPat_PROD_2_ACT (SR, Name, SR_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun PrimBitPat_PROD_2_ACT (SR, Qid, SR_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark
          PT.MARKbitpat
          (FULL_SPAN,
           case SR of
-             NONE => PT.NAMEDbitpat Name
-           | SOME i => PT.BITVECbitpat (Name, i)))
+             NONE => PT.NAMEDbitpat Qid
+           | SOME i => PT.BITVECbitpat (#tree Qid, i)))
 fun Exp_PROD_1_ACT (ClosedExp, ClosedExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( ClosedExp)
 fun Exp_PROD_2_ACT (KW_case, Cases, KW_of, ClosedExp, KW_case_SPAN : (Lex.pos * Lex.pos), Cases_SPAN : (Lex.pos * Lex.pos), KW_of_SPAN : (Lex.pos * Lex.pos), ClosedExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -320,7 +320,7 @@ fun Pat_PROD_2_ACT (WILD, WILD_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos 
 fun Pat_PROD_3_ACT (Lit, Lit_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
 fun Pat_PROD_4_ACT (Name, Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( mark PT.MARKpat (FULL_SPAN, PT.IDpat {span=FULL_SPAN, tree=Name}))
+  ( mark PT.MARKpat (FULL_SPAN, PT.IDpat Name))
 fun OrElseExp_PROD_1_ACT (SR, AndAlsoExp, SR_SPAN : (Lex.pos * Lex.pos), AndAlsoExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, mkCondExp PT.ORELSEexp (AndAlsoExp, SR)))
@@ -1422,7 +1422,7 @@ fun PrimBitPat_NT (strm) = let
                 FULL_SPAN, strm')
             end
       fun PrimBitPat_PROD_2 (strm) = let
-            val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
+            val (Qid_RES, Qid_SPAN, strm') = Qid_NT(strm)
             fun PrimBitPat_PROD_2_SUBRULE_1_NT (strm) = let
                   val (COLON_RES, COLON_SPAN, strm') = matchCOLON(strm)
                   val (POSINT_RES, POSINT_SPAN, strm') = matchPOSINT(strm')
@@ -1435,9 +1435,9 @@ fun PrimBitPat_NT (strm) = let
                     | _ => false
                   (* end case *))
             val (SR_RES, SR_SPAN, strm') = EBNF.optional(PrimBitPat_PROD_2_SUBRULE_1_PRED, PrimBitPat_PROD_2_SUBRULE_1_NT, strm')
-            val FULL_SPAN = (#1(Name_SPAN), #2(SR_SPAN))
+            val FULL_SPAN = (#1(Qid_SPAN), #2(SR_SPAN))
             in
-              (UserCode.PrimBitPat_PROD_2_ACT (SR_RES, Name_RES, SR_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.PrimBitPat_PROD_2_ACT (SR_RES, Qid_RES, SR_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in
