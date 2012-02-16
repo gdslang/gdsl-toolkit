@@ -3,6 +3,7 @@ signature SymbolTableSig  = sig
    type symid
    type table
 
+   val compare_symid : symid * symid -> order
 
    val badSymId : symid
    val empty : table
@@ -32,6 +33,8 @@ structure SymbolTable :> SymbolTableSig = struct
 
    datatype symid = SymId of int
 
+   fun compare_symid (SymId i1, SymId i2) = Int.compare (i1,i2)
+   
    exception SymbolAlreadyDefined
 
    type SymbolInfo = Atom.atom * Error.span * symid
@@ -96,3 +99,10 @@ structure SymbolTable :> SymbolTableSig = struct
    fun getAtom ti = let val (atom,_,_) = getSymbolInfo ti in atom end
    fun getSpan ti = let val (_,span,_) = getSymbolInfo ti in span end
 end
+
+structure ord_symid = struct
+  type ord_key = SymbolTable.symid
+  val compare = SymbolTable.compare_symid
+end
+
+structure SymMap = RedBlackMapFn(ord_symid)

@@ -22,22 +22,26 @@ structure Types = struct
       (* a bit vector of a fixed size *)
     | tExpVec of tExp
       (* a Herbrand constant, can only occur as the argument of tExpVec *)
-    | tExpConst of int
+    | tExpConst of IntInf.int
       (* an algebraic data type with a list of type arguments *)
     | tExpAlg of tVar list
       (* a record *)
-    | tExpRec of rField list
+    | tExpRec of (rField) list
       (* a type variable *)
     | tExpVar of tVar
     
-  and rField = rField of {
+  and rField = RField of {
     fieldName : FieldInfo.symid,
-    fieldtExp : tExp,
-    fieldPresent : bitIdx
+    fieldType : tExp
   }
-  
+
   val tDummy = tExpVar (TVar ~1)
   
+  type condescr = tExp option SymMap.map
+  
+  type typedescr = { tdVars : tVar list,
+                     tdCons : condescr }
+
   datatype Subst = Subst of tVar * tExp
   
   datatype Substs = Substs of Subst list

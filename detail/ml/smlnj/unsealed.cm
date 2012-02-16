@@ -23,5 +23,6 @@ group is
    ../../parser/parser.sml
    ../../semantic/spec-abstract-tree.sml
    ../../semantic/symbol-table-type.sml
-   ../../semantic/resolve-symbols.sml
    ../../semantic/lang-types.sml
+   ../../semantic/resolve-symbols.sml
+   ../../semantic/resolve-type-info.sml
