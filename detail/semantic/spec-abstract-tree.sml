@@ -14,9 +14,26 @@ structure TSynInfo = SymbolTable
 (* symbol information for record fields *)
 structure FieldInfo = SymbolTable
 
+structure SymbolTables : sig
+
+    val varTable : ConInfo.table ref
+    val conTable : ConInfo.table ref
+    val typeTable : TypeInfo.table ref
+    val tSynTable : TSynInfo.table ref
+    val fieldTable : FieldInfo.table ref
+    
+end = struct
+
+  val varTable = ref VarInfo.empty
+  val conTable = ref ConInfo.empty
+  val typeTable = ref TypeInfo.empty
+  val tSynTable = ref TSynInfo.empty
+  val fieldTable = ref FieldInfo.empty
+
+end
 
 (* Types used in the AST variant for parsing *)
-structure AbstractTreeTypes : AST_CORE = struct
+and AbstractTreeTypes : AST_CORE = struct
    (* qualified names *)
    type 'a path = (Atom.atom list * 'a) Error.mark
 
