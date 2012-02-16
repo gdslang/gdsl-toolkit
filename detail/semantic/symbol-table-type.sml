@@ -1,9 +1,4 @@
-signature SYMINFO_CORE = sig
-   type info
-   val empty : info
-end
-
-functor MkSymbolInfo (Core : SYMINFO_CORE) : sig
+signature SymbolTableSig  = sig
 
    type symid
    type table
@@ -22,13 +17,15 @@ functor MkSymbolInfo (Core : SYMINFO_CORE) : sig
 
    val push : table -> table
    val pop : table -> table
-   val getInfo : (table * symid) -> Core.info
+   (*val getInfo : (table * symid) -> Core.info
    val updateInfo : (table * symid * (Core.info -> Core.info)) -> table
-   val setInfo : (table * symid * Core.info) -> table
+   val setInfo : (table * symid * Core.info) -> table*)
    val getAtom : (table * symid) -> Atom.atom
    val getSpan : (table * symid) -> Error.span
 
-end = struct
+end
+
+structure SymbolTable :> SymbolTableSig = struct
 
    structure SymbolTable = IntRedBlackMap
    structure Reverse = AtomRedBlackMap
@@ -37,13 +34,13 @@ end = struct
 
    exception SymbolAlreadyDefined
 
-   type SymbolInfo = Atom.atom * Error.span * symid * Core.info
+   type SymbolInfo = Atom.atom * Error.span * symid
 
    type table = (SymbolInfo SymbolTable.map * symid Reverse.map) list
 
    val badSymId = SymId (~1)
 
-   fun emptySymInfo (atom,span,id) = (atom, span, id, Core.empty)
+   fun emptySymInfo (atom,span,id) = (atom, span, id)
 
    val empty = [(SymbolTable.empty, Reverse.empty)]
 
@@ -85,7 +82,7 @@ end = struct
               (SOME c) => c
             | (NONE) => getSymbolInfo (r, id)
        end
-   fun getInfo ti = let val (_,_,_,info) = getSymbolInfo ti in info end
+   (*fun getInfo ti = let val (_,_,_,info) = getSymbolInfo ti in info end
    fun updateInfo ([], id, update) = raise InvalidSymbolId
      | updateInfo ((st,rev)::r, id, update) = 
        let val (SymId idx) = id in 
@@ -95,7 +92,7 @@ end = struct
             | (NONE) => let val ts = updateInfo (r, id, update)
                         in (st,rev)::ts end
        end
-   fun setInfo (ts, id, info) = updateInfo (ts, id, fn _ => info)      
-   fun getAtom ti = let val (atom,_,_,_) = getSymbolInfo ti in atom end
-   fun getSpan ti = let val (_,span,_,_) = getSymbolInfo ti in span end
+   fun setInfo (ts, id, info) = updateInfo (ts, id, fn _ => info)      *)
+   fun getAtom ti = let val (atom,_,_) = getSymbolInfo ti in atom end
+   fun getSpan ti = let val (_,span,_) = getSymbolInfo ti in span end
 end

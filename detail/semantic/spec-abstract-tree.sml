@@ -1,4 +1,20 @@
 
+(* symbol information for variables *)
+structure VarInfo = SymbolTable
+
+(* symbol information for constructors *)
+structure ConInfo = SymbolTable
+
+(* symbol information for types *)
+structure TypeInfo = SymbolTable
+
+(* symbol information for type synonyms *)
+structure TSynInfo = SymbolTable
+
+(* symbol information for record fields *)
+structure FieldInfo = SymbolTable
+
+
 (* Types used in the AST variant for parsing *)
 structure AbstractTreeTypes : AST_CORE = struct
    (* qualified names *)

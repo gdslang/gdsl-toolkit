@@ -22,11 +22,6 @@ group is
    ../../parser/spec.g : ml-antlr
    ../../parser/parser.sml
    ../../semantic/spec-abstract-tree.sml
-   ../../semantic/symbol-table.sml
-   ../../semantic/mk-symbol-info.sml
-   ../../semantic/var-info.sml
-   ../../semantic/con-info.sml
-   ../../semantic/type-info.sml
-   ../../semantic/tsyn-info.sml
-   ../../semantic/field-info.sml
+   ../../semantic/symbol-table-type.sml
+   ../../semantic/resolve-symbols.sml
    ../../semantic/lang-types.sml

@@ -5,6 +5,7 @@
 structure SpecParseTree = SpecParseTree
 structure Parser = Parser
 structure SpecAbstractTree = SpecAbstractTree
-structure SymbolTable = SymbolTable
+structure ResolveSymbols = ResolveSymbols
+structure Types = Types
 
 (** == Exported functors == *)

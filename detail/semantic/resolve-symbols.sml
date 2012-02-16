@@ -1,4 +1,4 @@
-structure SymbolTable : sig
+structure ResolveSymbols : sig
 
    (* annotate AST with symbol identifiers, return false if there were errors *)
    val resolveSymbolPass:
@@ -56,11 +56,7 @@ end = struct
         ; lookup (!table, atom))
 
     val newVar = newSym (varTable, VI.create, VI.lookup, "variable")
-    fun newLetVar v = let val id = newVar v in
-       (varTable :=
-         VI.updateInfo (!varTable, id, VarInfoUtil.setLetBound true);
-        id)
-       end
+    val newLetVar = newVar
     val newCon = newSym (conTable, CI.create, CI.lookup, "constructor")
     val newType = newSym (typeTable, TI.create, TI.lookup, "type")
     val newTSyn = newSym (tSynTable, SI.create, SI.lookup, "type synonym")

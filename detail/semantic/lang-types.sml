@@ -1,35 +1,45 @@
 structure Types = struct
-  datatype BitIdx = BitIdx of int
+  
+  datatype bitIdx = BitIdx of int
   
   val badBitIdx = BitIdx (~1)
   
-  datatype TVar = TVar of int
+  datatype tVar = TVar of int
   
-  val tVarGenerator = 0 ref
+  val tVarGenerator = ref 0
   
-  fun freshTVar = (let val v = !tVarGenerator in tVarGenerator := v+1 end;
-                   TVar v)
-    
-  datatype Type =
+  val freshTVar = let val v = !tVarGenerator in 
+                    (tVarGenerator := v+1; TVar v)
+                  end
+
+  datatype tExp =
       (* a type synoym with its expanded type *)
-      TypeSyn of (TSynInfo.SymId * Type)
+      tExpSyn of (TSynInfo.symid * tExp)
       (* an whole number *)
-    | TypeZeno
+    | tExpZeno
+      (* a floating point number *)
+    | tExpFloat
       (* a bit vector of a fixed size *)
-    | TypeVec of Type
-      (* a Herbrand constant, can only occur as the argument of TypeVec *)
-    | TypeConst of int
+    | tExpVec of tExp
+      (* a Herbrand constant, can only occur as the argument of tExpVec *)
+    | tExpConst of int
       (* an algebraic data type with a list of type arguments *)
-    | TypeAlg of TVar list
+    | tExpAlg of tVar list
       (* a record *)
-    | TypeRec of Field list
+    | tExpRec of rField list
       (* a type variable *)
-    | TypeVar of TVar
+    | tExpVar of tVar
     
-  and Field = Field of {
-    fieldName : Atom.atom,
-    fieldType : Type,
-    fieldPresent : BitIdx
+  and rField = rField of {
+    fieldName : FieldInfo.symid,
+    fieldtExp : tExp,
+    fieldPresent : bitIdx
   }
+  
+  val tDummy = tExpVar (TVar ~1)
+  
+  datatype Subst = Subst of tVar * tExp
+  
+  datatype Substs = Substs of Subst list
   
 end
