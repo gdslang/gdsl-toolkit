@@ -16,6 +16,23 @@ structure ParseTreeTypes : AST_CORE = struct
    type field_bind = Atom.atom
    type field_use = qid
    type op_id = Atom.atom
+
+   val bind = Pretty.token o Atom.toString
+
+   val ty_bind = bind
+   val var_bind = bind
+   val syn_bind = bind
+   val con_bind = bind
+   val field_bind = bind
+   val op_id = bind
+
+   val use: qid -> Pretty.pp_desc = Pretty.token o Atom.toString o #tree
+
+   val ty_use = use
+   val var_use = use
+   val syn_use = use
+   val con_use = use
+   val field_use = use
 end
 
 (* Parse-tree representation of decoder specifications. *)

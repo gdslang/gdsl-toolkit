@@ -11,6 +11,17 @@ signature AST_CORE = sig
    type field_bind
    type field_use
    type op_id
+   val var_bind: var_bind -> Pretty.pp_desc
+   val var_use: var_use -> Pretty.pp_desc
+   val ty_bind: ty_bind -> Pretty.pp_desc
+   val ty_use: ty_use -> Pretty.pp_desc
+   val syn_bind: syn_bind -> Pretty.pp_desc
+   val syn_use: syn_use -> Pretty.pp_desc
+   val con_bind: con_bind -> Pretty.pp_desc
+   val con_use: con_use -> Pretty.pp_desc
+   val field_bind: field_bind -> Pretty.pp_desc
+   val field_use: field_use -> Pretty.pp_desc
+   val op_id: op_id -> Pretty.pp_desc
 end
 
 functor MkAst (Core: AST_CORE) = struct
@@ -74,7 +85,6 @@ functor MkAst (Core: AST_CORE) = struct
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)
-    (* | CONSTRAINTexp of exp * ty (* type constraint *) *)
     | FNexp of (var_bind * exp) list (* anonymous function *)
 
    and seqexp =
@@ -116,4 +126,58 @@ functor MkAst (Core: AST_CORE) = struct
 
    type specification = decl list mark
 
+   structure PP = struct
+      open Pretty
+      val zeroIndent = Pretty.PPS.Rel 0
+      val dflIndent = Pretty.PPS.Rel 3
+      val empty = token "<.>"
+
+      fun spec (ss:specification) = vBox (zeroIndent, map decl (#tree ss))
+
+      and decl t =
+         case t of
+            MARKdecl t' => decl (#tree t')
+          | INCLUDEdecl inc => hBox [token "include", space 1, token inc, newline]
+          | GRANULARITYdecl i => hBox [token "granularity", space 1, int i, newline]
+          | STATEdecl ss =>
+               hBox
+                  [token "state", space 1, lb,
+                   hvBox (dflIndent, map (tuple3 (Core.var_bind, ty, exp)) ss),
+                   rb, newline]
+          | TYPEdecl t =>
+               hBox [token "type", space 1, tuple2 (Core.syn_bind, ty) t, newline]
+          | DATATYPEdecl (t, decls) =>
+               hBox
+                  [token "datatype", space 1, Core.ty_bind t, lb,
+                   hvBox (dflIndent, map condecl decls),
+                   rb, newline]
+          | DECODEdecl dec => hBox [decodedecl dec, newline]
+          | VALUEdecl dec => hBox [valuedecl dec, newline]
+
+      and decodedecl t = empty
+
+      and valuedecl t = empty
+
+      and condecl t = empty
+
+      and ty t = empty
+
+      and exp t = empty
+
+      and seqexp t = empty
+
+      and decodepat t = empty
+
+      and bitpat t = empty
+
+      and tokpat t = empty
+
+      and match t = empty
+
+      and pat t = empty
+
+      and lit t = empty
+
+      val pretty = Pretty.pretty o spec
+   end
 end

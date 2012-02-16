@@ -16,6 +16,23 @@ structure AbstractTreeTypes : AST_CORE = struct
    type field_bind = FieldInfo.symid
    type field_use = FieldInfo.symid
    type op_id = var_use
+
+   fun bind a = Pretty.token "{-}"
+
+   val ty_bind = bind
+   val var_bind = bind
+   val syn_bind = bind
+   val con_bind = bind
+   val field_bind = bind
+   val op_id = bind
+
+   fun use a = Pretty.token "{-}"
+
+   val ty_use = use
+   val var_use = use
+   val syn_use = use
+   val con_use = use
+   val field_use = use
 end
 
 (*  abstract tree representation of decoder specifications. *)
