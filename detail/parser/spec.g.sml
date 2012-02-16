@@ -300,7 +300,7 @@ fun ClosedExp_PROD_2_ACT (Exp1, Exp2, Exp3, KW_else, KW_then, KW_if, Exp1_SPAN :
       mark PT.MARKexp (FULL_SPAN, PT.IFexp (Exp1, Exp2, Exp3)))
 fun ClosedExp_PROD_3_ACT (SR, MonadicExp, KW_do, KW_end, SR_SPAN : (Lex.pos * Lex.pos), MonadicExp_SPAN : (Lex.pos * Lex.pos), KW_do_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-      mark PT.MARKexp (FULL_SPAN, PT.SEQexp SR))
+      mark PT.MARKexp (FULL_SPAN, PT.SEQexp (MonadicExp::SR)))
 fun MonadicExp_PROD_1_ACT (Exp, Exp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKseqexp (FULL_SPAN, PT.ACTIONseqexp Exp))

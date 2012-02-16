@@ -181,7 +181,7 @@ ClosedExp
        (mark PT.MARKexp (FULL_SPAN, PT.RAISEexp Exp))
 *)
    | "do" MonadicExp (";" MonadicExp)* "end" =>
-      (mark PT.MARKexp (FULL_SPAN, PT.SEQexp SR))
+      (mark PT.MARKexp (FULL_SPAN, PT.SEQexp (MonadicExp::SR)))
    ;
 
 MonadicExp
