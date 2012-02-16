@@ -153,7 +153,7 @@ BitPat
 
 TokPat
    : Int => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
-   | Name => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Name))
+   | Qid => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Qid))
    ;
 
 PrimBitPat
@@ -181,7 +181,7 @@ ClosedExp
        (mark PT.MARKexp (FULL_SPAN, PT.RAISEexp Exp))
 *)
    | "do" MonadicExp (";" MonadicExp)* "end" =>
-      (mark PT.MARKexp (FULL_SPAN, PT.SEQexp SR))
+      (mark PT.MARKexp (FULL_SPAN, PT.SEQexp (MonadicExp::SR)))
    ;
 
 MonadicExp
