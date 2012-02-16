@@ -19,6 +19,14 @@ structure ResolveSymbols : sig
           tsyns: TSynInfo.table,
           fields: FieldInfo.table}
 
+   val test: string ->
+         {ast: SpecAbstractTree.specification,
+          vars: VarInfo.table,
+          cons: ConInfo.table,
+          types: TypeInfo.table,
+          tsyns: TSynInfo.table,
+          fields: FieldInfo.table}
+
 end = struct
 
   structure PT = SpecParseTree
@@ -227,8 +235,18 @@ end = struct
    fun resolveSymbols ast = let
       val ers = Error.mkErrStream "<no file>"
    in
-      resolveSymbolPass (ers, ast)
-         before
-            Error.report (TextIO.stdErr, ers)
+     resolveSymbolPass (ers, ast)
+       before
+         Error.report (TextIO.stdErr, ers)
    end
+   
+   fun test fp = let
+     val ers = Error.mkErrStream fp
+     val (SOME ast) = Parser.parse fp
+   in
+     resolveSymbolPass (ers, ast)
+       before
+         Error.report (TextIO.stdErr, ers)
+   end
+
 end
