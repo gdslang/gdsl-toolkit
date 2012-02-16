@@ -15,7 +15,9 @@ group is
        stamp.sml
        stats.sml
        basis.sml
-       pp.sml)
+       pp.sml
+       layout-sig.sml
+       layout.sml)
 
    ../../parser/mk-ast.sml
    ../../parser/spec-parse-tree.sml

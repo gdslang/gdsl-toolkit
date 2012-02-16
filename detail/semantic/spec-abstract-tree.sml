@@ -17,7 +17,7 @@ structure AbstractTreeTypes : AST_CORE = struct
    type field_use = FieldInfo.symid
    type op_id = var_use
 
-   fun bind a = Pretty.token "{-}"
+   fun bind a = Layout.str "{-}"
 
    val ty_bind = bind
    val var_bind = bind
@@ -26,7 +26,7 @@ structure AbstractTreeTypes : AST_CORE = struct
    val field_bind = bind
    val op_id = bind
 
-   fun use a = Pretty.token "{-}"
+   fun use a = Layout.str "{-}"
 
    val ty_use = use
    val var_use = use

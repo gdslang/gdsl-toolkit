@@ -278,8 +278,8 @@ fun BitPat_PROD_1_ACT (PrimBitPat, TICK1, TICK2, PrimBitPat_SPAN : (Lex.pos * Le
       mark PT.MARKdecodepat (FULL_SPAN, PT.BITdecodepat PrimBitPat))
 fun TokPat_PROD_1_ACT (Int, Int_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
-fun TokPat_PROD_2_ACT (Name, Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Name))
+fun TokPat_PROD_2_ACT (Qid, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Qid))
 fun PrimBitPat_PROD_1_ACT (BITSTR, BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
 fun PrimBitPat_PROD_2_ACT (SR, Qid, SR_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -1399,10 +1399,10 @@ fun TokPat_NT (strm) = let
                 FULL_SPAN, strm')
             end
       fun TokPat_PROD_2 (strm) = let
-            val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
-            val FULL_SPAN = (#1(Name_SPAN), #2(Name_SPAN))
+            val (Qid_RES, Qid_SPAN, strm') = Qid_NT(strm)
+            val FULL_SPAN = (#1(Qid_SPAN), #2(Qid_SPAN))
             in
-              (UserCode.TokPat_PROD_2_ACT (Name_RES, Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.TokPat_PROD_2_ACT (Qid_RES, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in

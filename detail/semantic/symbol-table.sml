@@ -43,7 +43,7 @@ end = struct
     val typeTable = ref TypeInfo.empty
     val tSynTable = ref TSynInfo.empty
     val fieldTable = ref FieldInfo.empty
-    
+
     fun newSym (table, create, lookup, str) (span, atom) =
       let val (newTable, id) = create (!table, atom, span)
       in (table := newTable; id) end
@@ -84,14 +84,14 @@ end = struct
     fun useField (_, { tree=atom, span}) =
       let val (newTable, id) = FI.create (!fieldTable, atom, span)
       in (fieldTable := newTable; id) end
-      handle SymbolAlreadyDefined => FI.lookup (!fieldTable, atom) 
+      handle SymbolAlreadyDefined => FI.lookup (!fieldTable, atom)
 
     val startScope = varTable := VI.push (!varTable)
     val endScope = varTable := VI.pop (!varTable)
-    
+
     (* define a first traversal that registers all let rec bindings *)
     fun regDecl _ (PT.MARKdecl { span = s, tree = m }) = regDecl s m
-      | regDecl s (PT.DECODEdecl dd) = regDecodedecl s dd 
+      | regDecl s (PT.DECODEdecl dd) = regDecodedecl s dd
       | regDecl s (PT.VALUEdecl vd) = regValuedecl s vd
       | regDecl s _ = ()
     and regDecodedecl _ (PT.MARKdecodedecl { span = s, tree = m }) =
@@ -124,7 +124,7 @@ end = struct
         AST.TYPEdecl (newTSyn (s,tb), convTy s t)
       | convDecl s (PT.DATATYPEdecl (tb, l)) = AST.DATATYPEdecl
         (newType (s,tb), List.map (convCondecl s) l)
-      | convDecl s (PT.DECODEdecl dd) = AST.DECODEdecl (convDecodedecl s dd) 
+      | convDecl s (PT.DECODEdecl dd) = AST.DECODEdecl (convDecodedecl s dd)
       | convDecl s (PT.VALUEdecl vd) = AST.VALUEdecl (convValuedecl s vd)
     and convDecodedecl s (PT.MARKdecodedecl m) =
           AST.MARKdecodedecl (convMark convDecodedecl m)
@@ -183,8 +183,7 @@ end = struct
       | convExp s (PT.LITexp lit) = AST.LITexp (convLit s lit)
       | convExp s (PT.SEQexp l) = AST.SEQexp (List.map (convSeqexp s) l)
       | convExp s (PT.IDexp v) = AST.IDexp (useVar (s,v))
-      | convExp s (PT.FNexp l) = AST.FNexp
-          (List.map (fn (v,e) => (newVar (s,v), convExp s e)) l)
+      | convExp s (PT.FNexp (v, e)) = AST.FNexp (newVar (s,v), convExp s e)
     and convSeqexp s (PT.MARKseqexp m) = AST.MARKseqexp (convMark convSeqexp m)
       | convSeqexp s (PT.ACTIONseqexp e) = AST.ACTIONseqexp (convExp s e)
       | convSeqexp s (PT.BINDseqexp (v,e)) = AST.BINDseqexp
@@ -204,7 +203,7 @@ end = struct
     and convTokpat s (PT.MARKtokpat m) =
         AST.MARKtokpat (convMark convTokpat m)
       | convTokpat s (PT.TOKtokpat i) = AST.TOKtokpat i
-      | convTokpat s (PT.NAMEDtokpat v) = AST.NAMEDtokpat (newVar (s,v))
+      | convTokpat s (PT.NAMEDtokpat v) = AST.NAMEDtokpat (useVar (s,v))
     and convMatch s (PT.MARKmatch m) =
         AST.MARKmatch (convMark convMatch m)
       | convMatch s (PT.CASEmatch (p,e)) =
@@ -218,7 +217,7 @@ end = struct
     and convLit s (PT.INTlit i) = AST.INTlit i
       | convLit s (PT.FLTlit f) = AST.FLTlit f
       | convLit s (PT.STRlit str) = AST.STRlit str
-      
+
    in (convMark (fn s => List.map (regDecl s)) ast;
       {ast= convMark (fn s => List.map (convDecl s)) ast,
        vars= !varTable,

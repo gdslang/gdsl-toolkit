@@ -11,17 +11,17 @@ signature AST_CORE = sig
    type field_bind
    type field_use
    type op_id
-   val var_bind: var_bind -> Pretty.pp_desc
-   val var_use: var_use -> Pretty.pp_desc
-   val ty_bind: ty_bind -> Pretty.pp_desc
-   val ty_use: ty_use -> Pretty.pp_desc
-   val syn_bind: syn_bind -> Pretty.pp_desc
-   val syn_use: syn_use -> Pretty.pp_desc
-   val con_bind: con_bind -> Pretty.pp_desc
-   val con_use: con_use -> Pretty.pp_desc
-   val field_bind: field_bind -> Pretty.pp_desc
-   val field_use: field_use -> Pretty.pp_desc
-   val op_id: op_id -> Pretty.pp_desc
+   val var_bind: var_bind -> Layout.layout
+   val var_use: var_use -> Layout.layout
+   val ty_bind: ty_bind -> Layout.layout
+   val ty_use: ty_use -> Layout.layout
+   val syn_bind: syn_bind -> Layout.layout
+   val syn_use: syn_use -> Layout.layout
+   val con_bind: con_bind -> Layout.layout
+   val con_use: con_use -> Layout.layout
+   val field_bind: field_bind -> Layout.layout
+   val field_use: field_use -> Layout.layout
+   val op_id: op_id -> Layout.layout
 end
 
 functor MkAst (Core: AST_CORE) = struct
@@ -85,7 +85,7 @@ functor MkAst (Core: AST_CORE) = struct
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)
-    | FNexp of (var_bind * exp) list (* anonymous function *)
+    | FNexp of (var_bind * exp) (* anonymous function *)
 
    and seqexp =
       MARKseqexp of seqexp mark
@@ -106,7 +106,7 @@ functor MkAst (Core: AST_CORE) = struct
    and tokpat =
       MARKtokpat of tokpat mark
     | TOKtokpat of IntInf.int
-    | NAMEDtokpat of var_bind
+    | NAMEDtokpat of var_use
 
    and match =
       MARKmatch of match mark
@@ -127,56 +127,113 @@ functor MkAst (Core: AST_CORE) = struct
    type specification = decl list mark
 
    structure PP = struct
-      open Pretty
-      val zeroIndent = Pretty.PPS.Rel 0
-      val dflIndent = Pretty.PPS.Rel 3
-      val empty = token "<.>"
+      open Layout Pretty Core
+      val empty = str "<.>"
+      val space = str " "
 
-      fun spec (ss:specification) = vBox (zeroIndent, map decl (#tree ss))
+      fun spec (ss:specification) = align (map decl (#tree ss))
 
       and decl t =
          case t of
-            MARKdecl t' => decl (#tree t')
-          | INCLUDEdecl inc => hBox [token "include", space 1, token inc, newline]
-          | GRANULARITYdecl i => hBox [token "granularity", space 1, int i, newline]
-          | STATEdecl ss =>
-               hBox
-                  [token "state", space 1, lb,
-                   hvBox (dflIndent, map (tuple3 (Core.var_bind, ty, exp)) ss),
-                   rb, newline]
-          | TYPEdecl t =>
-               hBox [token "type", space 1, tuple2 (Core.syn_bind, ty) t, newline]
-          | DATATYPEdecl (t, decls) =>
-               hBox
-                  [token "datatype", space 1, Core.ty_bind t, lb,
-                   hvBox (dflIndent, map condecl decls),
-                   rb, newline]
-          | DECODEdecl dec => hBox [decodedecl dec, newline]
-          | VALUEdecl dec => hBox [valuedecl dec, newline]
+            MARKdecl t' => paren (decl (#tree t'))
+          | INCLUDEdecl inc => seq [str "INCLUDE", space, str inc]
+          | GRANULARITYdecl i => seq [str "GRANULARITY", space, int i]
+          | STATEdecl ss => seq [str "STATE", space, list (map (tuple3 (var_bind, ty, exp)) ss)]
+          | TYPEdecl (t, tyexp) => seq [str "TYPE", space, syn_bind t, space, ty tyexp]
+          | DATATYPEdecl (t, decls) => seq [str "DATATYPE", space, ty_bind t, space, list (map condecl decls)]
+          | DECODEdecl decl => decodedecl decl
+          | VALUEdecl decl => valuedecl decl
 
-      and decodedecl t = empty
+      and decodedecl t =
+         case t of
+            MARKdecodedecl t' => decodedecl (#tree t')
+          | NAMEDdecodedecl (name, pats, e) => seq [str "DECODE", space, var_bind name, space, list (map decodepat pats), space, exp e]
+          | DECODEdecodedecl (pats, e) => seq [str "DECODE", space, list (map decodepat pats), space, exp e]
+          | GUARDEDdecodedecl (pats, gexps) => seq [str "DECODE", space, list (map decodepat pats), space, list (map guardedexp gexps)]
 
-      and valuedecl t = empty
+      and decodepat t =
+         case t of
+            MARKdecodepat t' => decodepat (#tree t')
+          | BITdecodepat bp => list (map bitpat bp)
+          | TOKENdecodepat tp => tokpat tp
 
-      and condecl t = empty
+      and bitpat t =
+         case t of
+            MARKbitpat t' => bitpat (#tree t')
+          | BITSTRbitpat s => str s
+          | NAMEDbitpat n => var_use n
+          | BITVECbitpat tybp => tuple2 (var_bind, int) tybp
 
-      and ty t = empty
+      and tokpat t =
+         case t of
+            MARKtokpat t' => tokpat (#tree t')
+          | TOKtokpat tok => str (IntInf.fmt StringCvt.HEX tok)
+          | NAMEDtokpat n => var_use n
 
-      and exp t = empty
+      and guardedexp gexp = tuple2 (exp, exp) gexp
 
-      and seqexp t = empty
+      and valuedecl t =
+         case t of
+            MARKvaluedecl t' => valuedecl (#tree t')
+          | LETvaluedecl (name, args, e) => seq [str "LET", space, var_bind name, space, list (map var_bind args), space, exp e]
+          | LETRECvaluedecl (name, args, e) => seq [str "REC", space, var_bind name, space, list (map var_bind args), space, exp e]
 
-      and decodepat t = empty
+      and condecl t =
+         case t of
+            MARKcondecl t' => condecl (#tree t')
+          | CONdecl (name, optTy) =>
+               case optTy of
+                  NONE => con_bind name
+                | SOME t => seq [con_bind name, space, ty t]
 
-      and bitpat t = empty
+      and ty t =
+         case t of
+            MARKty t' => ty (#tree t')
+          | BITty i => int i
+          | NAMEDty alias => Core.syn_use alias
+          | RECty fields => list (map (tuple2 (field_bind, ty)) fields)
 
-      and tokpat t = empty
+      and seqexp t =
+         case t of
+            MARKseqexp t' => seqexp (#tree t')
+          | ACTIONseqexp act => exp act
+          | BINDseqexp bnd => tuple2 (var_bind, exp) bnd
 
-      and match t = empty
+      and match t =
+         case t of
+            MARKmatch t' => match (#tree t')
+          | CASEmatch ps => tuple2 (pat, exp) ps
 
-      and pat t = empty
+      and pat t =
+         case t of
+            MARKpat t' => pat (#tree t')
+          | BITpat s => str s
+          | LITpat l => lit l
+          | IDpat n => var_bind n
+          | WILDpat => str "_"
 
-      and lit t = empty
+      and lit t =
+         case t of
+            INTlit i => int i
+          | FLTlit f => str (FloatLit.toString f)
+          | STRlit s => str s
+
+      and exp t =
+         case t of
+            MARKexp t' => exp (#tree t')
+          | LETexp bs => paren (seq [str "LET", space, tuple2 (list o map valuedecl, exp) bs])
+          | IFexp iff => paren (seq [str "IF", space, tuple3 (exp, exp, exp) iff])
+          | CASEexp (e, ms) => paren (seq [str "CASE", space, exp e, space, list (map match ms)])
+          | ANDALSOexp (e1, e2) => paren (seq [str "ANDALSO", space, exp e1, space, exp e2])
+          | ORELSEexp (e1, e2) => paren (seq [str "ORELSE", space, exp e1, space, exp e2])
+          | BINARYexp (e1, opid, e2) => paren (seq [op_id opid, space, exp e1, space, exp e2])
+          | APPLYexp (e1, e2) => paren (seq [str "APP", space, exp e1, space, exp e2])
+          | RECORDexp fs => listex "{" "}" "," (map (tuple2 (field_bind, exp)) fs)
+          | SELECTexp s => paren (seq [str "SELECT", space, tuple2 (exp, field_use) s])
+          | LITexp l => lit l
+          | SEQexp s => paren (seq [str "DO", space, list (map seqexp s)])
+          | IDexp id => var_use id
+          | FNexp (x, e) => paren (seq [str "FN", space, var_bind x, space, exp e])
 
       val pretty = Pretty.pretty o spec
    end

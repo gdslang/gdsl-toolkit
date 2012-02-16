@@ -153,7 +153,7 @@ BitPat
 
 TokPat
    : Int => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
-   | Name => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Name))
+   | Qid => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Qid))
    ;
 
 PrimBitPat
