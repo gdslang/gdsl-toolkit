@@ -7,8 +7,8 @@ structure ResolveSymbols : sig
    val resolveSymbols: SpecParseTree.specification ->
                        SpecAbstractTree.specification
 
-   val test: string -> SpecAbstractTree.specification
-
+   val test: string -> unit
+   val startScope : unit -> unit
 end = struct
 
   structure PT = SpecParseTree
@@ -17,7 +17,6 @@ end = struct
   structure FI = FieldInfo
   structure CI = ConInfo
   structure TI = TypeInfo
-  structure SI = TSynInfo
   structure ST = SymbolTables
   
   exception NotImplemented
@@ -28,6 +27,10 @@ end = struct
 
   fun convMark conv {span, tree} = {span=span, tree=conv span tree}
 
+  fun startScope () = ST.varTable := VI.push (!ST.varTable)
+  fun endScope () = ST.varTable := VI.pop (!ST.varTable)
+
+
   fun resolveSymbolPass (errStrm, ast) = let
 
     fun newSym (table, create, lookup, str) (span, atom) =
@@ -37,7 +40,7 @@ end = struct
         (Error.errorAt
            (errStrm,
             span,
-            ["duplicate " ^ str ^ " declaration ",
+            ["duplicate ", str, " declaration ",
              Atom.toString(atom)])
         ; lookup (!table, atom))
 
@@ -45,31 +48,30 @@ end = struct
     val newLetVar = newVar
     val newCon = newSym (ST.conTable, CI.create, CI.lookup, "constructor")
     val newType = newSym (ST.typeTable, TI.create, TI.lookup, "type")
-    val newTSyn = newSym (ST.tSynTable, SI.create, SI.lookup, "type synonym")
+    val newTSyn = newSym (ST.typeTable, TI.create, TI.lookup, "type synonym")
     fun newField (span, atom) =
       let val (newTable, id) = FI.create (!ST.fieldTable, atom, span)
       in (ST.fieldTable := newTable; id) end
       handle SymbolAlreadyDefined => FI.lookup (!ST.fieldTable, atom)
 
-    fun useSym (table, badSymId, find, str) (_,{ tree=atom, span}) =
+    fun useSym (table, create, find, str) (_,{ tree=atom, span}) =
       case find (!table, atom)
         of (SOME id) => id
         | NONE => (Error.errorAt
              (errStrm,
               span,
-              ["the " ^ str ^ Atom.toString(atom) ^ " is not defined "]);
-           badSymId)
-    val useVar = useSym (ST.varTable, VI.badSymId, VI.find, "variable")
-    val useCon = useSym (ST.conTable, CI.badSymId, CI.find, "constructor")
-    val useType = useSym (ST.typeTable, TI.badSymId, TI.find, "type")
-    val useTSyn = useSym (ST.tSynTable, SI.badSymId, SI.find, "type synonym")
+              ["the ", str, " ", Atom.toString(atom), " is not defined "]);
+           let val (newTable, id) = create (!table, atom, span)
+           in (table := newTable; id) end)
+
+    val useVar = useSym (ST.varTable, VI.create, VI.find, "variable")
+    val useCon = useSym (ST.conTable, CI.create, CI.find, "constructor")
+    val useType = useSym (ST.typeTable, TI.create, TI.find, "type")
+
     fun useField (_, { tree=atom, span}) =
       let val (newTable, id) = FI.create (!ST.fieldTable, atom, span)
       in (ST.fieldTable := newTable; id) end
       handle SymbolAlreadyDefined => FI.lookup (!ST.fieldTable, atom)
-
-    val startScope = ST.varTable := VI.push (!ST.varTable)
-    val endScope = ST.varTable := VI.pop (!ST.varTable)
 
     (* define a first traversal that registers all let rec bindings *)
     fun regDecl _ (PT.MARKdecl { span = s, tree = m }) = regDecl s m
@@ -111,7 +113,7 @@ end = struct
     and convDecodedecl s (PT.MARKdecodedecl m) =
           AST.MARKdecodedecl (convMark convDecodedecl m)
       | convDecodedecl s (PT.NAMEDdecodedecl (v, l, e)) = AST.NAMEDdecodedecl
-        (newVar (s,v), List.map (convDecodepat s) l, convExp s e)
+        (VI.lookup (!ST.varTable, v), List.map (convDecodepat s) l, convExp s e)
       | convDecodedecl s (PT.DECODEdecodedecl (l,e)) = AST.DECODEdecodedecl
         (List.map (convDecodepat s) l, convExp s e)
       | convDecodedecl s (PT.GUARDEDdecodedecl (pl, el)) =
@@ -120,18 +122,24 @@ end = struct
     and convValuedecl s (PT.MARKvaluedecl m) =
         AST.MARKvaluedecl (convMark convValuedecl m)
       | convValuedecl s (PT.LETvaluedecl (v,l,e)) = AST.LETvaluedecl
-        let val _ = startScope
+        let val _ = startScope ()
+            (*val _ = TextIO.print ("before vars e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val l = List.map (fn v => newVar (s,v)) l
+            (*val _ = TextIO.print ("before e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val e = convExp s e
-            val _ = endScope
+            (*val _ = TextIO.print ("after e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
+            val _ = endScope ()
             val id = newLetVar (s,v)
         in (id, l, e) end
       | convValuedecl s (PT.LETRECvaluedecl (v,l,e)) = AST.LETRECvaluedecl
-        let val _ = startScope
-            val id = VI.lookup (!ST.varTable, v)
+        let val id = VI.lookup (!ST.varTable, v)
+            val _ = startScope ()
+            (*val _ = TextIO.print ("before vars e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val l = List.map (fn v => newVar (s,v)) l
+            (*val _ = TextIO.print ("before e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val e = convExp s e
-            val _ = endScope
+            (*val _ = TextIO.print ("after e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
+            val _ = endScope ()
         in (id, l, e) end
     and convCondecl s (PT.MARKcondecl m) =
         AST.MARKcondecl (convMark convCondecl m)
@@ -139,13 +147,19 @@ end = struct
         (newCon (s,c), case to of NONE => NONE | SOME t => SOME (convTy s t))
     and convTy s (PT.MARKty m) = AST.MARKty (convMark convTy m)
       | convTy s (PT.BITty i) = AST.BITty i
-      | convTy s (PT.NAMEDty n) = AST.NAMEDty (useTSyn (s,n))
+      | convTy s (PT.NAMEDty n) = AST.NAMEDty (useType (s,n))
       | convTy s (PT.RECty l) = AST.RECty
         (List.map (fn (f,t) => (newField (s,f), convTy s t)) l)
     and convExp s (PT.MARKexp m) = AST.MARKexp (convMark convExp m)
-      | convExp s (PT.LETexp (l,e)) = AST.LETexp
-          (List.map (regValuedecl s) l;
-          (List.map (convValuedecl s) l, convExp s e))
+      | convExp s (PT.LETexp (l,e)) = AST.LETexp (let
+          val _ = startScope ()
+          val _ = List.map (regValuedecl s) l
+          val l = List.map (convValuedecl s) l
+          (*val _ = TextIO.print ("before e2:\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
+          val r = convExp s e
+          val _ = endScope ()
+          (*val _ = TextIO.print ("after e2:\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
+        in (l,r) end)
       | convExp s (PT.IFexp (e1,e2,e3)) = AST.IFexp
           (convExp s e1, convExp s e2, convExp s e3)
       | convExp s (PT.CASEexp (e,l)) = AST.CASEexp
@@ -200,7 +214,11 @@ end = struct
       | convLit s (PT.FLTlit f) = AST.FLTlit f
       | convLit s (PT.STRlit str) = AST.STRlit str
 
-   in (convMark (fn s => List.map (regDecl s)) ast;
+   in (ST.varTable := VarInfo.empty;
+       ST.conTable := ConInfo.empty;
+       ST.typeTable := TypeInfo.empty;
+       ST.fieldTable := FieldInfo.empty;
+       convMark (fn s => List.map (regDecl s)) ast;
        convMark (fn s => List.map (convDecl s)) ast)
    end
 
@@ -214,11 +232,11 @@ end = struct
    
    fun test fp = let
      val ers = Error.mkErrStream fp
-     val (SOME ast) = Parser.parse fp
-   in
-     resolveSymbolPass (ers, ast)
-       before
-         Error.report (TextIO.stdErr, ers)
+   in case Parser.parse fp of
+       SOME ast => (AST.PP.pretty (resolveSymbolPass (ers, ast)); TextIO.print "\n")
+                  before
+                    Error.report (TextIO.stdErr, ers)
+     | NONE => Error.report (TextIO.stdErr, ers)
    end
 
 end

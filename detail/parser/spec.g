@@ -119,6 +119,10 @@ Decl
       | args=Name* "=" Exp =>
          (PT.VALUEdecl (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETvaluedecl (Name, args, Exp))))) =>
       (markDecl (FULL_SPAN, decl))
+   | "rec" Name decl=
+      ( args=Name* "=" Exp =>
+         (PT.VALUEdecl (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETRECvaluedecl (Name, args, Exp))))) =>
+      (markDecl (FULL_SPAN, decl))
    ;
 
 StateTy
@@ -260,9 +264,13 @@ AtomicExp
       (mark PT.MARKexp (FULL_SPAN, PT.LETexp (ValueDecl, Exp)))
    ;
 
+
+
 ValueDecl
    : "val" Name Name* "=" Exp =>
       (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETvaluedecl (Name1, Name2, Exp)))
+   | "rec" Name Name* "=" Exp =>
+      (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETRECvaluedecl (Name1, Name2, Exp)))
    ;
 
 Lit
