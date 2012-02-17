@@ -8,13 +8,14 @@ structure Types = struct
   
   val tVarGenerator = ref 0
   
-  val freshTVar = let val v = !tVarGenerator in 
-                    (tVarGenerator := v+1; TVar v)
-                  end
+  fun freshTVar () =
+    let val v = !tVarGenerator in (tVarGenerator := v+1; TVar v) end
 
   datatype tExp =
+      (* a function *)
+      tExpFun of (tExp * tExp)
       (* a type synoym with its expanded type *)
-      tExpSyn of (TSynInfo.symid * tExp)
+    | tExpSyn of (TSynInfo.symid * tExp)
       (* an whole number *)
     | tExpZeno
       (* a floating point number *)
@@ -29,6 +30,8 @@ structure Types = struct
     | tExpRec of (rField) list
       (* a type variable *)
     | tExpVar of tVar
+      (* the state monad *)
+    | tExpMonad of tExp
     
   and rField = RField of {
     fieldName : FieldInfo.symid,
