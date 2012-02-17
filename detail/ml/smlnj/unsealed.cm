@@ -30,3 +30,4 @@ group is
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
    ../../semantic/primitives.sml
+   ../../opt/inline.sml
