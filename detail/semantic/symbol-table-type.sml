@@ -5,7 +5,6 @@ signature SymbolTableSig  = sig
 
    val compare_symid : symid * symid -> order
 
-   val badSymId : symid
    val empty : table
 
    exception InvalidSymbol of Atom.atom
@@ -18,12 +17,12 @@ signature SymbolTableSig  = sig
 
    val push : table -> table
    val pop : table -> table
-   (*val getInfo : (table * symid) -> Core.info
-   val updateInfo : (table * symid * (Core.info -> Core.info)) -> table
-   val setInfo : (table * symid * Core.info) -> table*)
-   val getAtom : (table * symid) -> Atom.atom
-   val getSpan : (table * symid) -> Error.span
 
+   val getAtom : (table * symid) -> Atom.atom
+   val getString : (table * symid) -> string
+   val getSpan : (table * symid) -> Error.span
+   
+   val toString : table -> string
 end
 
 structure SymbolTable :> SymbolTableSig = struct
@@ -39,65 +38,77 @@ structure SymbolTable :> SymbolTableSig = struct
 
    type SymbolInfo = Atom.atom * Error.span * symid
 
-   type table = (SymbolInfo SymbolTable.map * symid Reverse.map) list
-
-   val badSymId = SymId (~1)
+   type table = (SymbolInfo SymbolTable.map * symid Reverse.map list)
 
    fun emptySymInfo (atom,span,id) = (atom, span, id)
 
-   val empty = [(SymbolTable.empty, Reverse.empty)]
+   val empty = (SymbolTable.empty, [Reverse.empty])
 
-   fun find ([], atom) = NONE
-     | find ((st,rev)::r, atom) = 
+   fun find ((st, []), atom) = NONE
+     | find ((st, rev::r), atom) = 
        case Reverse.find (rev, atom) of
            (SOME id) => SOME id
-         | NONE => find (r, atom)
+         | NONE => find ((st, r), atom)
 
    exception InvalidSymbol of Atom.atom
-   fun lookup (ts, atom) = case find (ts, atom) of
+   fun lookup (ts, atom) = (TextIO.print ("lookup up " ^ Atom.toString atom ^ "\n");
+     case find (ts, atom) of
          (SOME id) => id
-       | NONE => raise InvalidSymbol atom
+       | NONE => raise InvalidSymbol atom)
 
-   fun create (ts, atom, span) =
-      let val (st,rev)::r = ts in
-      case Reverse.find (rev, atom) of
-         SOME id => raise SymbolAlreadyDefined
-       | NONE =>
-         let
-            val no = SymbolTable.numItems st+1
-            val id = SymId no
-            val st = SymbolTable.insert (st, no, emptySymInfo (atom,span,id))
-            val rev = Reverse.insert (rev, atom, id)
-         in
-            ((st,rev)::r, id)
-         end
+   fun create (ts as (st, revs), atom, span) = (TextIO.print ("creating " ^ Atom.toString atom ^ "\n");
+      let val (rev::r) = revs in
+        case Reverse.find (rev, atom) of
+           SOME id => raise SymbolAlreadyDefined
+         | NONE =>
+           let
+              val no = SymbolTable.numItems st+1
+              val id = SymId no
+              val st = SymbolTable.insert (st, no, emptySymInfo (atom,span,id))
+              val rev = Reverse.insert (rev, atom, id)
+           in
+              ((st,rev::r), id)
+           end
       end
+      )
     
-   fun push ts = (SymbolTable.empty, Reverse.empty) :: ts
-   fun pop ts = let val (_ :: r) = ts in r end 
+   fun push (st, r) = (st, Reverse.empty :: r)
+   fun pop ts = let val (st, _ :: r) = ts in (st, r) end 
    
    exception InvalidSymbolId
 
-   fun getSymbolInfo ([], id) = raise InvalidSymbolId
-     | getSymbolInfo ((st,rev)::r, id) =
-       let val (SymId idx) = id in 
-          case SymbolTable.find (st, idx) of
-              (SOME c) => c
-            | (NONE) => getSymbolInfo (r, id)
-       end
-   (*fun getInfo ti = let val (_,_,_,info) = getSymbolInfo ti in info end
-   fun updateInfo ([], id, update) = raise InvalidSymbolId
-     | updateInfo ((st,rev)::r, id, update) = 
-       let val (SymId idx) = id in 
-          case SymbolTable.find (st, idx) of
-              (SOME (a,s,_,info)) =>
-                (SymbolTable.insert (st, idx, (a,s,id,update info)), rev)::r
-            | (NONE) => let val ts = updateInfo (r, id, update)
-                        in (st,rev)::ts end
-       end
-   fun setInfo (ts, id, info) = updateInfo (ts, id, fn _ => info)      *)
+   fun getSymbolInfo ((st, _), SymId idx) =
+        case SymbolTable.find (st, idx) of
+            (SOME c) => c
+          | (NONE) => raise InvalidSymbolId
+
    fun getAtom ti = let val (atom,_,_) = getSymbolInfo ti in atom end
+   fun getString (ti as (_, SymId i)) = Atom.toString (getAtom ti) ^
+                                      "<" ^ Int.toString i ^ ">"
    fun getSpan ti = let val (_,span,_) = getSymbolInfo ti in span end
+   
+   fun toString (st, revs) =
+      let val (r :: rev) = revs
+          fun fS a i [] = 10000
+            | fS a i (r :: rev) =
+              (case Reverse.find (r, a) of
+                  NONE => 1+fS a i rev
+                | SOME (SymId j) => if j<>i then 1+fS a i rev else 0
+              )
+          and findScope a i = case fS a i revs of
+                0 => "" 
+              | 1 => " declared 1 scope up"
+              | n => if n<10000 then " declared " ^ Int.toString(n) ^ " scopes up"
+                     else " out of scope"
+      in
+        List.foldl (op ^) (Int.toString (List.length revs) ^ " scopes\n") (
+          List.map
+            (fn (a,_,SymId i) => Int.toString i ^ " -> " ^ Atom.toString a ^
+                                 findScope a i ^ "\n")
+            (SymbolTable.listItems st)
+          )
+      end
+      
 end
 
 structure ord_symid = struct

@@ -9,14 +9,12 @@ structure ResolveTypeInfo : sig
          vars: VarInfo.table,
          cons: ConInfo.table,
          types: TypeInfo.table,
-         tsyns: TSynInfo.table,
          fields: FieldInfo.table }) ->
 
         {ast: SpecAbstractTree.specification,
          vars: VarInfo.table,
          cons: ConInfo.table,
          types: TypeInfo.table,
-         tsyns: TSynInfo.table,
          fields: FieldInfo.table,
          tsynDefs: SynonymMap,
          typeDefs: DatatypeMap,
@@ -41,7 +39,7 @@ end = struct
   structure C = SymMap
   structure T = Types
   
-  fun resolveTypeInfo (errStrm, {ast, vars, cons, types, tsyns, fields}) = let
+  fun resolveTypeInfo (errStrm, {ast, vars, cons, types, fields}) = let
     val synTable = ref (S.empty : SynonymMap)
     val dtyTable = ref (D.empty : DatatypeMap)
     val conTable = ref (C.empty : ConstructorMap)
@@ -76,7 +74,7 @@ end = struct
           )
     val { span = s, tree = declList } = ast
   in (List.map (fn d => vDecl (s,d)) declList;
-      { ast = ast, vars = vars, cons = cons, types = types, tsyns = tsyns, fields = fields,
+      { ast = ast, vars = vars, cons = cons, types = types, fields = fields,
         tsynDefs = !synTable, typeDefs = !dtyTable, conParents = !conTable })
   end
 end

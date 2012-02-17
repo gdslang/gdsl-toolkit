@@ -1,25 +1,24 @@
 
 (* symbol information for variables *)
-structure VarInfo = SymbolTable
+structure VarInfo (*:> SymbolTableSig *)= SymbolTable
 
 (* symbol information for constructors *)
-structure ConInfo = SymbolTable
+structure ConInfo (*:> SymbolTableSig *)= SymbolTable
 
 (* symbol information for types *)
-structure TypeInfo = SymbolTable
+structure TypeInfo (*:> SymbolTableSig *)= SymbolTable
 
 (* symbol information for type synonyms *)
-structure TSynInfo = SymbolTable
+structure TSynInfo (*:> SymbolTableSig *)= SymbolTable
 
 (* symbol information for record fields *)
-structure FieldInfo = SymbolTable
+structure FieldInfo (*:> SymbolTableSig *)= SymbolTable
 
 structure SymbolTables : sig
 
-    val varTable : ConInfo.table ref
+    val varTable : VarInfo.table ref
     val conTable : ConInfo.table ref
     val typeTable : TypeInfo.table ref
-    val tSynTable : TSynInfo.table ref
     val fieldTable : FieldInfo.table ref
     
 end = struct
@@ -27,13 +26,12 @@ end = struct
   val varTable = ref VarInfo.empty
   val conTable = ref ConInfo.empty
   val typeTable = ref TypeInfo.empty
-  val tSynTable = ref TSynInfo.empty
   val fieldTable = ref FieldInfo.empty
 
 end
 
 (* Types used in the AST variant for parsing *)
-and AbstractTreeTypes : AST_CORE = struct
+structure AbstractTreeTypes : AST_CORE = struct
    (* qualified names *)
    type 'a path = (Atom.atom list * 'a) Error.mark
 
@@ -50,22 +48,24 @@ and AbstractTreeTypes : AST_CORE = struct
    type field_use = FieldInfo.symid
    type op_id = var_use
 
-   fun bind a = Layout.str "{-}"
+   fun tyP id = Layout.str (TypeInfo.getString(!SymbolTables.typeTable, id))
+   fun synP id = Layout.str (TSynInfo.getString(!SymbolTables.typeTable, id))
+   fun conP id = Layout.str (ConInfo.getString(!SymbolTables.conTable, id))
+   fun varP id = Layout.str (VarInfo.getString(!SymbolTables.varTable, id))
+   fun fieldP id = Layout.str (FieldInfo.getString(!SymbolTables.fieldTable, id))
 
-   val ty_bind = bind
-   val var_bind = bind
-   val syn_bind = bind
-   val con_bind = bind
-   val field_bind = bind
-   val op_id = bind
+   val ty_bind = tyP
+   val ty_use = tyP
+   val var_bind = varP
+   val var_use = varP
+   val syn_bind = synP
+   val syn_use = synP
+   val con_bind = conP
+   val con_use = conP
+   val field_bind = fieldP
+   val field_use = fieldP
+   val op_id = varP
 
-   fun use a = Layout.str "{-}"
-
-   val ty_use = use
-   val var_use = use
-   val syn_use = use
-   val con_use = use
-   val field_use = use
 end
 
 (*  abstract tree representation of decoder specifications. *)

@@ -3,16 +3,16 @@ granularity = 8
 
 datatype size = B | W
 
-# The state of the R8C decoder contains the size bit
-state {
- # initial value doesn't matter
+ (*The state of the R8C decoder contains the size bit*)
+state = {
+ (*initial value doesn't matter*)
  size: size = B
 }
 
-# Store the original bit vectors
+(*Store the original bit vectors*)
 datatype imm =
-   IMM8 {value: 8}
- | IMM16 {value: 16}
+   IMM8 of {value: 8}
+ | IMM16 of {value: 16}
 
 datatype opnd =
    R0L
@@ -27,7 +27,7 @@ datatype opnd =
  | SUM of {lhs: opnd, rhs: opnd}
  | IMM of {value: imm}
 
-# Type alias for instruction with "src" and "dst" operands
+(*Type alias for instruction with "src" and "dst" operands*)
 type arg2 = {size: size, src: opnd, dst: opnd}
 
 datatype instruction =
@@ -35,7 +35,7 @@ datatype instruction =
  | ADCF of {size: size, dst: opnd}
  | ADD of arg2
 
-# The 's' action reads one bit and updates the monadic state
+ (*The 's' action reads one bit and updates the monadic state*)
 val s ['sizeBit:1'] = let
    val sizeTag =
       case sizeBit of
@@ -45,8 +45,8 @@ in
    update {size=sizeTag}
 end
 
-# `imm` is a monadic action that reads 8 or 16 bits, depending on the current
-# state
+ (*`imm` is a monadic action that reads 8 or 16 bits, depending on the current
+ state*)
 val imm = do
    sizeTag = query size;
    case sizeTag of
@@ -56,9 +56,9 @@ val imm = do
 imm8 ['byte:8'] = return (IMM8 {value=byte})
 imm16 ['byte1:8' 'byte2:8'] = return (IMM16 {value=byte1 ^ byte2})
 
-# `opnd` is an (monadic) action that does not read any input but merely
-# dispatches over its 4-bit argument and returns an AST for that argument
-opnd argument = do
+(*`opnd` is an (monadic) action that does not read any input but merely
+dispatches over its 4-bit argument and returns an AST for that argument*)
+val opnd argument = do
   s = query size;
   case argument of
      '0000': return (case s of '0': R0L | '1': R0)
@@ -95,7 +95,7 @@ opnd argument = do
       return (IMM {value=i});
    ;
 
-# generate an instruction with one destination
+ (*generate an instruction with one destination*)
 instrD constr genDest = do
    arg = genDest;
    sizeTag = query size;
@@ -107,14 +107,14 @@ instrDI constr genDest = do
   sizeTag = query size;
   return constr {size=sizeTag, src= IMM {i}, dst=arg};
 
-# generate an instruction with two arguments
+ (*generate an instruction with two arguments*)
 instrSD constr genSrc genDest = do
   src = genSrc;
   dest = genDest;
   sizeTag = query size;
   return (constr {size=sizeTag, src=src, dst=dest});
 
-# in all instructions, the monadic action s updates the global state
+ (*in all instructions, the monadic action s updates the global state*)
 decode ['0111 011 s' '0110 dest:4'] = instrDI ADC (opnd dest)
 decode ['1011 000 s' 'src:4 dest:4'] = instrSD ADC (opnd src) (opnd dest)
 decode ['0111 011 s' '1110 dest:4'] = instrD ADCF (opnd dest)
