@@ -34,7 +34,6 @@ end = struct
   fun resolveSymbolPass (errStrm, ast) = let
 
     fun newSym (table, create, lookup, str) (span, atom) =
-     (TextIO.print ("newSym " ^ str ^ " " ^ Atom.toString atom ^ "\n");
       let val (newTable, id) = create (!table, atom, span)
       in (table := newTable; id) end
       handle SymbolAlreadyDefined =>
@@ -44,7 +43,7 @@ end = struct
             ["duplicate ", str, " declaration ",
              Atom.toString(atom)])
         ; lookup (!table, atom))
-     )
+
     val newVar = newSym (ST.varTable, VI.create, VI.lookup, "variable")
     val newLetVar = newVar
     val newCon = newSym (ST.conTable, CI.create, CI.lookup, "constructor")
@@ -56,9 +55,6 @@ end = struct
       handle SymbolAlreadyDefined => FI.lookup (!ST.fieldTable, atom)
 
     fun useSym (table, create, find, str) (_,{ tree=atom, span}) =
-     (TextIO.print ("useSym " ^ str ^ " " ^ Atom.toString atom ^ "\n");
-      (*TextIO.print ("current vars: " ^ SymbolTable.toString(!SymbolTables.varTable) ^ "\n");*)
-
       case find (!table, atom)
         of (SOME id) => id
         | NONE => (Error.errorAt
@@ -67,7 +63,7 @@ end = struct
               ["the ", str, " ", Atom.toString(atom), " is not defined "]);
            let val (newTable, id) = create (!table, atom, span)
            in (table := newTable; id) end)
-      )
+
     val useVar = useSym (ST.varTable, VI.create, VI.find, "variable")
     val useCon = useSym (ST.conTable, CI.create, CI.find, "constructor")
     val useType = useSym (ST.typeTable, TI.create, TI.find, "type")
@@ -127,22 +123,22 @@ end = struct
         AST.MARKvaluedecl (convMark convValuedecl m)
       | convValuedecl s (PT.LETvaluedecl (v,l,e)) = AST.LETvaluedecl
         let val _ = startScope ()
-            val _ = TextIO.print ("before vars e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");
+            (*val _ = TextIO.print ("before vars e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val l = List.map (fn v => newVar (s,v)) l
-            val _ = TextIO.print ("before e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");
+            (*val _ = TextIO.print ("before e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val e = convExp s e
-            val _ = TextIO.print ("after e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");
+            (*val _ = TextIO.print ("after e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val _ = endScope ()
             val id = newLetVar (s,v)
         in (id, l, e) end
       | convValuedecl s (PT.LETRECvaluedecl (v,l,e)) = AST.LETRECvaluedecl
         let val id = VI.lookup (!ST.varTable, v)
             val _ = startScope ()
-            val _ = TextIO.print ("before vars e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");
+            (*val _ = TextIO.print ("before vars e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val l = List.map (fn v => newVar (s,v)) l
-            val _ = TextIO.print ("before e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");
+            (*val _ = TextIO.print ("before e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val e = convExp s e
-            val _ = TextIO.print ("after e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");
+            (*val _ = TextIO.print ("after e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
             val _ = endScope ()
         in (id, l, e) end
     and convCondecl s (PT.MARKcondecl m) =
@@ -159,10 +155,10 @@ end = struct
           val _ = startScope ()
           val _ = List.map (regValuedecl s) l
           val l = List.map (convValuedecl s) l
-          val _ = TextIO.print ("before e2:\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");
+          (*val _ = TextIO.print ("before e2:\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
           val r = convExp s e
           val _ = endScope ()
-          val _ = TextIO.print ("after e2:\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");
+          (*val _ = TextIO.print ("after e2:\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
         in (l,r) end)
       | convExp s (PT.IFexp (e1,e2,e3)) = AST.IFexp
           (convExp s e1, convExp s e2, convExp s e3)
@@ -223,7 +219,6 @@ end = struct
        ST.typeTable := TypeInfo.empty;
        ST.fieldTable := FieldInfo.empty;
        convMark (fn s => List.map (regDecl s)) ast;
-       TextIO.print ("all global rec vars:\n" ^ SymbolTable.toString(!SymbolTables.varTable) ^ "\n");
        convMark (fn s => List.map (convDecl s)) ast)
    end
 

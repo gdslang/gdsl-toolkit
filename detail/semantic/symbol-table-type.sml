@@ -51,12 +51,12 @@ structure SymbolTable :> SymbolTableSig = struct
          | NONE => find ((st, r), atom)
 
    exception InvalidSymbol of Atom.atom
-   fun lookup (ts, atom) = (TextIO.print ("lookup up " ^ Atom.toString atom ^ "\n");
+   fun lookup (ts, atom) =
      case find (ts, atom) of
          (SOME id) => id
-       | NONE => raise InvalidSymbol atom)
+       | NONE => raise InvalidSymbol atom
 
-   fun create (ts as (st, revs), atom, span) = (TextIO.print ("creating " ^ Atom.toString atom ^ "\n");
+   fun create (ts as (st, revs), atom, span) =
       let val (rev::r) = revs in
         case Reverse.find (rev, atom) of
            SOME id => raise SymbolAlreadyDefined
@@ -70,7 +70,6 @@ structure SymbolTable :> SymbolTableSig = struct
               ((st,rev::r), id)
            end
       end
-      )
     
    fun push (st, r) = (st, Reverse.empty :: r)
    fun pop ts = let val (st, _ :: r) = ts in (st, r) end 
