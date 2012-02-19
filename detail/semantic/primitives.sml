@@ -10,17 +10,17 @@ structure Primitives = struct
   val s4 : tVar = freshTVar ()
   
   (*create a type from two vectors to one vector, all of size s*)
-  fun vvv s = tExpFun (tExpVec (tExpVar s))
-              (tExpFun (tExpVec (tExpVar s)) (tExpVec (tExpVar s)))
+  fun vvv s = TExpFun (TExpVec (TExpVar s),
+                       TExpFun (TExpVec (TExpVar s), TExpVec (TExpVar s)))
   
   val primitiveValues = [
-    { pName = "continue", pType = tExpMonad (tExpVar r) },
-    { pName = "#anon_decode_function", pType = tExpMonad (tExpVar r) },
+    { pName = "continue", pType = TExpMonad (TExpVar r) },
+    { pName = "#anon_decode_function", pType = TExpMonad (TExpVar r) },
     { pName = "+", pType = vvv s1 },
     { pName = "*", pType = vvv s2 },
-    { pName = "signed", pType = tExpFun (tExpVec (tExpVar s3)) tExpZeno },
-    { pName = "unsigned", pType = tExpFun (tExpVec (tExpVar s4)) tExpZeno },
-    { pName = "bits8", pType = tExpFun tExpZeno (tExpVec (tExpConst 8)) }
+    { pName = "signed", pType = TExpFun (TExpVec (TExpVar s3), TExpZeno) },
+    { pName = "unsigned", pType = TExpFun (TExpVec (TExpVar s4), TExpZeno) },
+    { pName = "bits8", pType = TExpFun (TExpZeno, TExpVec (TExpConst 8)) }
   ]
 
-end
+end                                                       

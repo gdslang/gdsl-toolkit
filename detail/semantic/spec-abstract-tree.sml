@@ -8,9 +8,6 @@ structure ConInfo (*:> SymbolTableSig *)= SymbolTable
 (* symbol information for types *)
 structure TypeInfo (*:> SymbolTableSig *)= SymbolTable
 
-(* symbol information for type synonyms *)
-structure TSynInfo (*:> SymbolTableSig *)= SymbolTable
-
 (* symbol information for record fields *)
 structure FieldInfo (*:> SymbolTableSig *)= SymbolTable
 
@@ -38,8 +35,8 @@ structure AbstractTreeTypes : AST_CORE = struct
    type qid = VarInfo.symid path
    type ty_bind = TypeInfo.symid
    type ty_use = TypeInfo.symid
-   type syn_bind = TSynInfo.symid
-   type syn_use = TSynInfo.symid
+   type syn_bind = TypeInfo.symid
+   type syn_use = TypeInfo.symid
    type con_bind = ConInfo.symid
    type con_use = ConInfo.symid
    type var_bind = VarInfo.symid
@@ -49,7 +46,7 @@ structure AbstractTreeTypes : AST_CORE = struct
    type op_id = var_use
 
    fun tyP id = Layout.str (TypeInfo.getString(!SymbolTables.typeTable, id))
-   fun synP id = Layout.str (TSynInfo.getString(!SymbolTables.typeTable, id))
+   fun synP id = Layout.str (TypeInfo.getString(!SymbolTables.typeTable, id))
    fun conP id = Layout.str (ConInfo.getString(!SymbolTables.conTable, id))
    fun varP id = Layout.str (VarInfo.getString(!SymbolTables.varTable, id))
    fun fieldP id = Layout.str (FieldInfo.getString(!SymbolTables.fieldTable, id))

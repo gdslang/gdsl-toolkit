@@ -12,5 +12,6 @@ structure InlineDecodePatterns = InlineDecodePatterns
 structure SymbolTables = SymbolTables
 structure SymbolTable = SymbolTable
 structure VarInfo = VarInfo
+structure Types = Types
 
 (** == Exported functors == *)

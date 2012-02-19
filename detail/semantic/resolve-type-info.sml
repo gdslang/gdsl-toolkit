@@ -55,10 +55,10 @@ end = struct
           end
       | vDecl (s, _) = ()
     and vType (s, AST.MARKty { span, tree }) = vType (span,tree)
-      | vType (s, AST.BITty i) = T.tExpVec (T.tExpConst i)
+      | vType (s, AST.BITty i) = T.TExpVec (T.TExpConst i)
       | vType (s, AST.NAMEDty n) =
-          T.tExpSyn (n, S.lookup (!synTable, n))
-      | vType (s, AST.RECty l) = T.tExpRec (List.map (vField s) l)
+          T.TExpSyn (n, S.lookup (!synTable, n))
+      | vType (s, AST.RECty l) = T.TExpRec (List.map (vField s) l)
     and vField s (n, ty) = T.RField { fieldName = n, fieldType = vType (s, ty) }
     and vCondecl (s,d, []) = SymMap.empty : Types.condescr
       | vCondecl (s,d, AST.MARKcondecl { span, tree }::l) = vCondecl (s,d,tree::l)

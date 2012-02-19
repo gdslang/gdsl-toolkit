@@ -29,5 +29,5 @@ group is
    ../../semantic/lang-types.sml
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
-   ../../semantic/primitives.sml
+   ../../semantic/primitives.sml 
    ../../opt/inline.sml
