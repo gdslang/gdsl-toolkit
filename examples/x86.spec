@@ -7,11 +7,11 @@ granularity = 32
 
 # The state of the decode monad
 state =
-   {MODE64:1=0,
-    REP:1=0,
-    REXW:1=0,
-    OPNDSZ:1=0,
-    ADDRSZ:1=0}
+   {mode64:1=0,
+    rep:1=0,
+    rexw:1=0,
+    opndsz:1=0,
+    addrsz:1=0}
 
 include "x86-registers.spec"
 
@@ -79,18 +79,18 @@ val r/m16 = do
 end
 
 val mov a1 a2 = do
-   a1' <- a1;
-   a2' <- a2;
-   return (MOV {op1=a1', op2=a2'})
+   a1 <- a1;
+   a2 <- a2;
+   return (MOV {op1=a1, op2=a2})
 end
 
 dec [0x80 /r]
-   | OPNDSZ = mov r/m16 r16
-   | REXW = mov r/m64 r64
+   | opndsz = mov r/m16 r16
+   | rexw = mov r/m64 r64
    | otherwise = mov r/m32 r32
 
 dec [0x66 0xC7 /0]
-   | OPNDSZ = mov r16 imm16
+   | opndsz = mov r16 imm16
    | otherwise = mov r32 imm32
 
-dec [0x66] = do update {OPNDSZ=1}; continue end
+dec [0x66] = do update {opndsz=1}; continue end

@@ -1,67 +1,92 @@
 structure Types = struct
   
-  datatype bitIdx = BitIdx of int
+  datatype tvar = TVAR of int
   
-  val badBitIdx = BitIdx (~1)
+  fun tvarEq (TVAR v1, TVAR v2) = v1=v2
+  fun tvarIfEq (var1, var2, t, e) = if tvarEq (var1, var2) then t else e
   
-  datatype tVar = TVar of int
+  val tvarGenerator = ref 0
   
-  fun tVarEq (TVar v1, TVar v2) = v1=v2
-  fun tVarIfEq (var1, var2, t, e) = if tVarEq (var1, var2) then t else e
-  
-  val tVarGenerator = ref 0
-  
-  fun freshTVar () =
-    let val v = !tVarGenerator in (tVarGenerator := v+1; TVar v) end
+  fun freshTVar () = let
+     val v = !tvarGenerator
+  in
+     (tvarGenerator := v+1; TVAR v)
+  end
 
-  datatype tExp =
+  datatype texp =
       (* a function *)
-      TExpFun of (tExp * tExp)
+      FUN of (texp * texp)
       (* a type synoym with its expanded type *)
-    | TExpSyn of (TypeInfo.symid * tExp)
+    | SYN of (TypeInfo.symid * texp)
       (* an whole number *)
-    | TExpZeno
+    | ZENO
       (* a floating point number *)
-    | TExpFloat
+    | FLOAT
       (* a bit vector of a fixed size *)
-    | TExpVec of tExp
-      (* a Herbrand constant, can only occur as the argument of tExpVec *)
-    | TExpConst of IntInf.int
+    | VEC of texp
+      (* a Herbrand constant, can only occur as the argument of VEC *)
+    | CONST of IntInf.int
+      (* extension of a record, can only apply to the special tvar of record *)
+    | FIELD of (texp * rfield)
       (* an algebraic data type with a list of type arguments *)
-    | TExpAlg of (TypeInfo.symid * tExp list)
+    | ALG of (TypeInfo.symid * texp list)
       (* a record *)
-    | TExpRec of (rField) list
+    | RECORD of (tvar * rfield list)
       (* the state monad *)
-    | TExpMonad of tExp
+    | MONAD of texp
       (* a type variable *)
-    | TExpVar of tVar
+    | VAR of tvar
     
-  and rField = RField of {
-    fieldName : FieldInfo.symid,
-    fieldType : tExp
+  and rfield = RField of {
+    name : FieldInfo.symid,
+    fty : texp,
+    needed : BooleanDomain.bvar
   }
 
-    
-  type condescr = tExp option SymMap.map
+  fun compare_rfield (RField f1, RField f2) =
+         Atom.compare (SymbolTable.getAtom(!SymbolTables.fieldTable,#name f1),
+                       SymbolTable.getAtom(!SymbolTables.fieldTable,#name f2))
+
+  type condescr = texp option SymMap.map
   
-  type typedescr = { tdVars : tVar list,
+  type typedescr = { tdVars : tvar list,
                      tdCons : condescr }
 
-  type Subst = tVar * tExp
+  type Subst = tvar * texp
+  fun mkSubst arg = arg
+
+  (* thrown if two field substitutions are to be unified or if a field should
+  be added to a record that already has it, both of which indicates a bug *)
+  exception EquivalenceClassError
   
   fun applySubstToExp ((v,e), exp) = let
-    fun aS (TExpFun (f1, f2)) = TExpFun (aS f1, aS f2)
-      | aS (TExpSyn (syn, t)) = TExpSyn (syn, aS t)
-      | aS (TExpZeno) = TExpZeno
-      | aS (TExpFloat) = TExpFloat
-      | aS (TExpVec t) = TExpVec (aS t)
-      | aS (TExpConst c) = TExpConst c
-      | aS (TExpAlg (ty, l)) = TExpAlg (ty, List.map aS l)
-      | aS (TExpRec l) = TExpRec (List.map aSF l)
-      | aS (TExpMonad t) = TExpMonad (aS t)
-      | aS (TExpVar var) = tVarIfEq (var, v, e, TExpVar var)
-    and aSF (RField { fieldName = n, fieldType = t }) =
-            RField { fieldName = n, fieldType =  aS t }
+    fun aS (FUN (f1, f2)) = FUN (aS f1, aS f2)
+      | aS (SYN (syn, t)) = SYN (syn, aS t)
+      | aS (ZENO) = ZENO
+      | aS (FLOAT) = FLOAT
+      | aS (VEC t) = VEC (aS t)
+      | aS (CONST c) = CONST c
+      | aS (FIELD (e, f)) = FIELD (aS e, aSF f)
+      | aS (ALG (ty, l)) = ALG (ty, List.map aS l)
+      | aS (RECORD (var,l)) = tvarIfEq(var, v,
+         let
+            fun insertField (f, []) = [f]
+              | insertField (f1, f2 :: l) = (case compare_rfield (f1,f2) of
+                   LESS => f1 :: f2 :: l
+                 | GREATER => f2 :: insertField (f1, l)
+                 | EQUAL => raise EquivalenceClassError)
+            fun addField (VAR var, l) = (var, l)
+              | addField (FIELD (e, f), l) = addField (e, insertField (f,l))
+              | addField _ = raise EquivalenceClassError
+         in
+            RECORD (addField (e, l))
+         end
+         , RECORD (var, List.map aSF l))
+      | aS (MONAD t) = MONAD (aS t)
+      | aS (VAR var) = tvarIfEq (var, v, e, VAR var)
+    and
+      aSF (RField {name = n, fty = t, needed = b}) =
+         RField {name = n, fty =  aS t, needed = b}
     in aS exp end                                          
   
   datatype Substs = Substs of Subst list
@@ -76,27 +101,59 @@ structure Types = struct
 
   exception UnificationFailure
 
-  fun mgu (TExpFun (f1, f2), TExpFun (g1, g2), s) =
+  
+  fun mgu (FUN (f1, f2), FUN (g1, g2), s) =
        mgu (f1, g1, mgu (f2, g2, s))
-    | mgu (TExpSyn (_, t1), t2, s) = mgu (t1, t2, s)
-    | mgu (t1, TExpSyn (_, t2), s) = mgu (t1, t2, s)
-    | mgu (TExpZeno, TExpZeno, s) = s
-    | mgu (TExpFloat, TExpFloat, s) = s
-    | mgu (TExpVec t1, TExpVec t2, s) = mgu (t1, t2, s)
-    | mgu (TExpConst c1, TExpConst c2, s) =
+    | mgu (SYN (_, t1), t2, s) = mgu (t1, t2, s)
+    | mgu (t1, SYN (_, t2), s) = mgu (t1, t2, s)
+    | mgu (ZENO, ZENO, s) = s
+    | mgu (FLOAT, FLOAT, s) = s
+    | mgu (VEC t1, VEC t2, s) = mgu (t1, t2, s)
+    | mgu (CONST c1, CONST c2, s) =
         if c1=c2 then s else raise UnificationFailure
-    | mgu (TExpAlg (ty1, l1), TExpAlg (ty2, l2), s) =
+    | mgu (FIELD _, FIELD _, s) = raise EquivalenceClassError
+    | mgu (RECORD (v1,l1), RECORD (v2,l2), s) =
+      let
+         fun unify (v1, v2, [], [], s) = s
+           | unify (v1, v2, (f1 as RField e1) :: fs1,
+                    (f2 as RField e2) :: fs2, s) =
+               (case compare_rfield (f1,f2) of
+                  EQUAL => unify (v1, v2, fs1, fs2, mgu (#fty e1, #fty e2, s))
+                | LESS => let
+                     val newVar = freshTVar ()
+                  in unify (v1, newVar, fs1, f2 :: fs2,
+                            addSubst (v2, FIELD (VAR newVar, f1)) s)
+                  end
+                | GREATER => let
+                     val newVar = freshTVar ()
+                  in unify (newVar, v2, f1 :: fs1, fs2,
+                            addSubst (v1, FIELD (VAR newVar, f2)) s)
+                  end)
+           | unify (v1, v2, f1 :: fs1, [], s) = let
+                     val newVar = freshTVar ()
+                  in unify (v1, newVar, fs1, [],
+                            addSubst (v2, FIELD (VAR newVar, f1)) s)
+                  end
+           | unify (v1, v2, [], f2 :: fs2, s) = let
+                     val newVar = freshTVar ()
+                  in unify (newVar, v2, [], fs2,
+                            addSubst (v1, FIELD (VAR newVar, f2)) s)
+                  end
+      in
+         unify (v1,v2,l1,l2,s)
+      end
+    | mgu (ALG (ty1, l1), ALG (ty2, l2), s) =
       (case SymbolTable.compare_symid (ty1, ty2) of
         LESS => raise UnificationFailure
       | GREATER => raise UnificationFailure
       | EQAL => let
-          fun recUni (e1::e1s, e2::e2s, s) =
-                recUni (e1s, e2s, mgu (e1, e2, s))
-            | recUni ([], [], s) = s
-            | recUni _ = raise UnificationFailure
-          in recUni (l1, l2, s) end)
-    | mgu (TExpVar v, e, s) = addSubst (v, applySubstsToExp s e) s
-    | mgu (e, TExpVar v, s) = addSubst (v, applySubstsToExp s e) s
+          fun mguList (e1::e1s, e2::e2s, s) =
+                mguList (e1s, e2s, mgu (e1, e2, s))
+            | mguList ([], [], s) = s
+            | mguList _ = raise UnificationFailure
+          in mguList (l1, l2, s) end)
+    | mgu (VAR v, e, s) = addSubst (v, applySubstsToExp s e) s
+    | mgu (e, VAR v, s) = addSubst (v, applySubstsToExp s e) s
     | mgu (_,_,s) = raise UnificationFailure
                                           
   structure VarMap = IntRedBlackMap
@@ -113,29 +170,34 @@ structure Types = struct
       if curPrec>neededPrec then "(" ^ str ^ ")" else str
     val p_app = 10
     val p_tyn =  9
-    fun sT (p, TExpFun (f1, f2)) =
+    fun sT (p, FUN (f1, f2)) =
           br (p, p_app, sT (p_app+1, f1) ^ " -> " ^ sT (p_app, f2))
-      | sT (p, TExpSyn (syn, t)) = 
+      | sT (p, SYN (syn, t)) = 
           br (p, p_tyn, SymbolTable.getString(!SymbolTables.typeTable, syn))
-      | sT (p, TExpZeno) = "int"
-      | sT (p, TExpFloat) = "float"
-      | sT (p, TExpVec t) = "[" ^ sT (0, t) ^ "]"
-      | sT (p, TExpConst c) = IntInf.toString(c)
-      | sT (p, TExpAlg (ty, l)) = let
+      | sT (p, ZENO) = "int"
+      | sT (p, FLOAT) = "float"
+      | sT (p, VEC t) = "[" ^ sT (0, t) ^ "]"
+      | sT (p, CONST c) = IntInf.toString(c)
+      | sT (p, FIELD (VAR v,f)) = sTF f ^ showVar v ^ ": ..."
+      | sT (p, FIELD (e,f)) = sTF f ^ ", " ^ sT (p,e)
+      | sT (p, ALG (ty, l)) = let
           val conStr = SymbolTable.getString(!SymbolTables.typeTable, ty)
           in if List.null l then conStr else br (p, p_tyn,
             List.foldl (fn (s1,s2) => s1 ^ " " ^ s2) conStr (
               List.map (fn e => sT (p_tyn+1, e)) l))
           end
-      | sT (p, TExpRec l) = "{" ^ comma (List.map sTF l) ^ "}"
-      | sT (p, TExpMonad t) = br (p, p_tyn, "S " ^ sT (p_tyn+1, t))
-      | sT (p, TExpVar (TVar var)) = (case VarMap.find (!siTab, var) of
+      | sT (p, RECORD (v,l)) = "{" ^ List.foldl (op ^) "" (List.map sTF l) ^
+                                   showVar v ^ ": ...}"
+      | sT (p, MONAD t) = br (p, p_tyn, "S " ^ sT (p_tyn+1, t))
+      | sT (p, VAR v) = showVar v
+   and showVar (TVAR var) = (case VarMap.find (!siTab, var) of
           SOME str => str
         | NONE => let val str = name (VarMap.numItems(!siTab)) in
                   (siTab := VarMap.insert(!siTab, var, str); str)
         end)
-    and sTF (RField { fieldName = n, fieldType = t }) =
-            SymbolTable.getString(!SymbolTables.fieldTable, n) ^ sT (0, t)
+    and sTF (RField {name = n, fty = t, needed = b}) =
+            SymbolTable.getString(!SymbolTables.fieldTable, n) ^ ": " ^ 
+            sT (0, t) ^ ", "
     in (sT (0, ty), !siTab) 
    end
 

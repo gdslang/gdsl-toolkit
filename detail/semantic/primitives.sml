@@ -2,25 +2,25 @@ structure Primitives = struct
   open Types
   
   (* result type of the decoder function *)
-  val r : tVar = freshTVar ()
+  val r : tvar = freshTVar ()
   
-  val s1 : tVar = freshTVar ()
-  val s2 : tVar = freshTVar ()
-  val s3 : tVar = freshTVar ()
-  val s4 : tVar = freshTVar ()
+  val s1 : tvar = freshTVar ()
+  val s2 : tvar = freshTVar ()
+  val s3 : tvar = freshTVar ()
+  val s4 : tvar = freshTVar ()
   
   (*create a type from two vectors to one vector, all of size s*)
-  fun vvv s = TExpFun (TExpVec (TExpVar s),
-                       TExpFun (TExpVec (TExpVar s), TExpVec (TExpVar s)))
+  fun vvv s = FUN (VEC (VAR s),
+                       FUN (VEC (VAR s), VEC (VAR s)))
   
   val primitiveValues = [
-    { pName = "continue", pType = TExpMonad (TExpVar r) },
-    { pName = "#anon_decode_function", pType = TExpMonad (TExpVar r) },
+    { pName = "continue", pType = MONAD (VAR r) },
+    { pName = "#anon_decode_function", pType = MONAD (VAR r) },
     { pName = "+", pType = vvv s1 },
     { pName = "*", pType = vvv s2 },
-    { pName = "signed", pType = TExpFun (TExpVec (TExpVar s3), TExpZeno) },
-    { pName = "unsigned", pType = TExpFun (TExpVec (TExpVar s4), TExpZeno) },
-    { pName = "bits8", pType = TExpFun (TExpZeno, TExpVec (TExpConst 8)) }
+    { pName = "signed", pType = FUN (VEC (VAR s3), ZENO) },
+    { pName = "unsigned", pType = FUN (VEC (VAR s4), ZENO) },
+    { pName = "bits8", pType = FUN (ZENO, VEC (CONST 8)) }
   ]
 
 end                                                       
