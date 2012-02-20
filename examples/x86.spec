@@ -16,9 +16,9 @@ state =
 include "x86-registers.spec"
 
 datatype register =
-   RAX
- | EBX
- | ECX
+   RAX | EAX | AX | AH | AL
+ | RBX | EBX | BX | BH | BL
+ | RCX | ECX | CX | CH | CL
 
 datatype opnd =
    REG of {sizeinbits: int, reg: register}
@@ -46,6 +46,7 @@ val fromEnum i =
 
 dec imm8 ['byte:8'] = return (IMM8 {value=byte})
 dec imm16 ['byte1:8' 'byte2:8'] = return (IMM16 {value=byte1 ^ byte2})
+dec imm32 ['byte1:8' 'byte2:8' 'byte3:8' 'byte4:8'] = return (IMM32 {value=byte1 ^ byte2 ^ byte3 ^ byte4})
 
 # The 's' action reads one bit and updates the monadic state
 dec s ['sizeBit:1'] = let
@@ -70,18 +71,42 @@ val imm = do
     | W: imm16
 end
 
+val regByNum num =
+   case reg of
+       '000': return AX
+     | '001': return CX
+     | '010': return DX
+     | '011': return BX
+     | '100': return SP
+     | '101': return BP
+     | '110': return SI
+     | '111': return DI
+end
+
 val r/m16 = do
    mod <- query mod;
    rm <- query rm;
    case mod of
-      '001': return AX
-    | '010': return BX
+      '00': case rm of
+             ...
+    | '11: return (regByNum rm)
+end
+
+val r16 = do
+   reg <- query reg;
+   return (regByNum reg)
 end
 
 val mov a1 a2 = do
    a1' <- a1;
    a2' <- a2;
    return (MOV {op1=a1', op2=a2'})
+end
+
+val add a1 a2 = do
+   a1' <- a1;
+   a2' <- a2;
+   return (ADD {op1=a1', op2=a2'})
 end
 
 dec [0x80 /r]
@@ -92,5 +117,11 @@ dec [0x80 /r]
 dec [0x66 0xC7 /0]
    | OPNDSZ = mov r16 imm16
    | otherwise = mov r32 imm32
+
+dec [0x04]
+     add AL imm8
+
+dec [0x05]
+     add AX imm16
 
 dec [0x66] = do update {OPNDSZ=1}; continue end
