@@ -49,6 +49,7 @@
    | BITSTR of string
    | TYVAR of Atom.atom
    | ID of Atom.atom
+   | CONS of Atom.atom
    | POSINT of IntInf.int (* positive integer *)
    | NEGINT of IntInf.int (* negative integer *)
    | FLOAT of FloatLit.float
@@ -137,7 +138,7 @@ ConDecls
    ;
 
 ConDecl
-   : Name ("of" Ty)? => (mark PT.MARKcondecl (FULL_SPAN, PT.CONdecl (Name, SR)))
+   : ConBind ("of" Ty)? => (mark PT.MARKcondecl (FULL_SPAN, PT.CONdecl (ConBind, SR)))
    ;
 
 Ty
@@ -258,6 +259,7 @@ ApplyExp
 AtomicExp
    : Lit => (mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
    | Qid => (mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
+   | ConUse => (mark PT.MARKexp (FULL_SPAN, PT.CONexp ConUse))
    | "(" ")" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "(" Exp ")" => (Exp)
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
@@ -265,8 +267,6 @@ AtomicExp
    | "let" ValueDecl+ "in" Exp "end" =>
       (mark PT.MARKexp (FULL_SPAN, PT.LETexp (ValueDecl, Exp)))
    ;
-
-
 
 ValueDecl
    : "val" Name Name* "=" Exp =>
@@ -287,6 +287,15 @@ Int
 
 Name
    : ID => (ID)
+   ;
+
+(* Constructors *)
+ConBind
+   : CONS => (CONS)
+   ;
+
+ConUse
+   : CONS => ({span=FULL_SPAN, tree=CONS})
    ;
 
 Sym

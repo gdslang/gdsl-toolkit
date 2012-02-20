@@ -60,7 +60,7 @@ end = struct
         | NONE => (Error.errorAt
              (errStrm,
               span,
-              ["the ", str, " ", Atom.toString(atom), " is not defined "]);
+              [str, " '", Atom.toString(atom), "' is not defined "]);
            let val (newTable, id) = create (!table, atom, span)
            in (table := newTable; id) end)
 
@@ -179,6 +179,7 @@ end = struct
       | convExp s (PT.LITexp lit) = AST.LITexp (convLit s lit)
       | convExp s (PT.SEQexp l) = AST.SEQexp (List.map (convSeqexp s) l)
       | convExp s (PT.IDexp v) = AST.IDexp (useVar (s,v))
+      | convExp s (PT.CONexp c) = AST.CONexp (useCon (s,c))
       | convExp s (PT.FNexp (v, e)) = AST.FNexp (newVar (s,v), convExp s e)
     and convSeqexp s (PT.MARKseqexp m) = AST.MARKseqexp (convMark convSeqexp m)
       | convSeqexp s (PT.ACTIONseqexp e) = AST.ACTIONseqexp (convExp s e)

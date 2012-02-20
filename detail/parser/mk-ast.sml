@@ -46,7 +46,7 @@ functor MkAst (Core: AST_CORE) = struct
     | GRANULARITYdecl of IntInf.int
     | STATEdecl of (var_bind * ty * exp) list
     | TYPEdecl of syn_bind * ty
-    | DATATYPEdecl of ty_bind * condecl list
+    | DATATYPEdecl of con_bind * condecl list
     | DECODEdecl of decodedecl
     | VALUEdecl of valuedecl
 
@@ -85,7 +85,7 @@ functor MkAst (Core: AST_CORE) = struct
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)
-    (*| CONexp of con_use *)
+    | CONexp of con_use (* constructor *)
     | FNexp of var_bind * exp (* anonymous function *)
 
    and seqexp =
@@ -141,7 +141,7 @@ functor MkAst (Core: AST_CORE) = struct
           | GRANULARITYdecl i => seq [str "GRANULARITY", space, int i]
           | STATEdecl ss => seq [str "STATE", space, list (map (tuple3 (var_bind, ty, exp)) ss)]
           | TYPEdecl (t, tyexp) => seq [str "TYPE", space, syn_bind t, space, ty tyexp]
-          | DATATYPEdecl (t, decls) => seq [str "DATATYPE", space, ty_bind t, space, list (map condecl decls)]
+          | DATATYPEdecl (t, decls) => seq [str "DATATYPE", space, con_bind t, space, list (map condecl decls)]
           | DECODEdecl decl => decodedecl decl
           | VALUEdecl decl => valuedecl decl
 
@@ -234,6 +234,7 @@ functor MkAst (Core: AST_CORE) = struct
           | LITexp l => lit l
           | SEQexp s => paren (seq [str "DO", space, list (map seqexp s)])
           | IDexp id => var_use id
+          | CONexp con => seq [str "`", con_use con]
           | FNexp (x, e) => paren (seq [str "FN", space, var_bind x, space, exp e])
 
       val pretty = Pretty.pretty o spec
