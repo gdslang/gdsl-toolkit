@@ -95,15 +95,25 @@ structure Types = struct
   fun applySubstsToExp (Substs l) exp =
         List.foldl applySubstToExp exp l  
   fun applySubstToSubst subst (v2, e2) = (v2, applySubstToExp (subst, e2))
-  fun addSubst subst (Substs l) =
-        Substs (subst::List.map (applySubstToSubst subst) l)
-        
+  fun addSubst (v,e) (substs as Substs l) =
+      let
+         (*val _ = TextIO.print ("adding subst: " ^ showSubst (v,e) ^ "\n")*)
+         val subst = (v,applySubstsToExp substs e)
+      in
+         Substs (subst::List.map (applySubstToSubst subst) l)
+      end
+
+
 
   exception UnificationFailure
 
   
   fun mgu (FUN (f1, f2), FUN (g1, g2), s) =
-       mgu (f1, g1, mgu (f2, g2, s))
+      let
+         val s = mgu (f2, g2, s)
+      in
+         mgu (applySubstsToExp s f1, applySubstsToExp s g1, s)
+      end
     | mgu (SYN (_, t1), t2, s) = mgu (t1, t2, s)
     | mgu (t1, SYN (_, t2), s) = mgu (t1, t2, s)
     | mgu (ZENO, ZENO, s) = s
@@ -118,7 +128,15 @@ structure Types = struct
            | unify (v1, v2, (f1 as RField e1) :: fs1,
                     (f2 as RField e2) :: fs2, s) =
                (case compare_rfield (f1,f2) of
-                  EQUAL => unify (v1, v2, fs1, fs2, mgu (#fty e1, #fty e2, s))
+                  EQUAL =>
+                  let
+                     val s = mgu (#fty e1, #fty e2, s)
+                     fun aSF (RField {name = n, fty = t, needed = b}) =
+                              RField {name = n, fty = applySubstsToExp s t,
+                              needed = b}
+                  in
+                     unify (v1, v2, List.map aSF fs1, List.map aSF fs2, s)
+                  end
                 | LESS => let
                      val newVar = freshTVar ()
                   in unify (v1, newVar, fs1, f2 :: fs2,
@@ -147,13 +165,18 @@ structure Types = struct
         LESS => raise UnificationFailure
       | GREATER => raise UnificationFailure
       | EQAL => let
-          fun mguList (e1::e1s, e2::e2s, s) =
-                mguList (e1s, e2s, mgu (e1, e2, s))
+          fun mguList (e1::e1s, e2::e2s, s) = let
+                  val s = mgu (e1, e2, s)
+                in
+                   mguList (List.map (applySubstsToExp s) e1s,
+                            List.map (applySubstsToExp s) e2s,
+                            s)
+                end
             | mguList ([], [], s) = s
             | mguList _ = raise UnificationFailure
           in mguList (l1, l2, s) end)
-    | mgu (VAR v, e, s) = addSubst (v, applySubstsToExp s e) s
-    | mgu (e, VAR v, s) = addSubst (v, applySubstsToExp s e) s
+    | mgu (VAR v, e, s) = addSubst (v,e) s
+    | mgu (e, VAR v, s) = addSubst (v,e) s
     | mgu (_,_,s) = raise UnificationFailure
                                           
   structure VarMap = IntRedBlackMap
@@ -161,7 +184,15 @@ structure Types = struct
   fun name idx = (if idx>25 then name (Int.div (idx,26)-1) else "") ^
         Char.toString (Char.chr (Char.ord #"a"+Int.mod (idx,26)))
   
-  fun showTypeTable (ty, showInfo) = let
+  fun varToString (TVAR var, tab) = case VarMap.find (tab, var) of
+          SOME str => (str, tab)
+        | NONE => let
+             val str = name (VarMap.numItems(tab))
+          in
+             (str, VarMap.insert(tab, var, str))
+          end
+
+  fun showTypeSI (ty, showInfo) = let
     val siTab = ref showInfo
     fun comma [] = ""
       | comma [v] = v
@@ -190,11 +221,11 @@ structure Types = struct
                                    showVar v ^ ": ...}"
       | sT (p, MONAD t) = br (p, p_tyn, "S " ^ sT (p_tyn+1, t))
       | sT (p, VAR v) = showVar v
-   and showVar (TVAR var) = (case VarMap.find (!siTab, var) of
-          SOME str => str
-        | NONE => let val str = name (VarMap.numItems(!siTab)) in
-                  (siTab := VarMap.insert(!siTab, var, str); str)
-        end)
+   and showVar var = let 
+         val (str, newSiTab) = varToString (var, !siTab)
+      in
+         (siTab := newSiTab; str)
+      end
     and sTF (RField {name = n, fty = t, needed = b}) =
             SymbolTable.getString(!SymbolTables.fieldTable, n) ^ ": " ^ 
             sT (0, t) ^ ", "
@@ -202,6 +233,27 @@ structure Types = struct
    end
 
    fun showType ty =
-    let val (str,_) = showTypeTable (ty, emptyShowInfo) in str end
+    let val (str,_) = showTypeSI (ty, emptyShowInfo) in str end
+
+   fun showSubstSI ((v, t), showInfo) = let
+      val (vStr, showInfo) = varToString (v, showInfo)
+      val (tStr, showInfo) = showTypeSI (t, showInfo)
+   in
+      (vStr ^ "/" ^ tStr, showInfo)
+   end
+   
+   fun showSubst subst =
+      let val (str, _) = showSubstSI (subst, emptyShowInfo) in str end
+      
+   fun showSubsts (Substs l) = let
+         fun pr (s, (res, sep, si)) = let
+               val (str, si) = showSubstSI (s, si)
+            in
+               (res ^ sep ^ str, ", ", si)
+            end
+         val (res, _, si) = List.foldl pr ("", "", emptyShowInfo) l
+      in
+         "[" ^ res ^ "]"
+      end
 
 end
