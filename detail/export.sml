@@ -14,6 +14,7 @@ structure SymbolTables = SymbolTables
 structure SymbolTable = SymbolTable
 structure VarInfo = VarInfo
 structure Types = Types
+structure BooleanDomain = BooleanDomain
 structure Main = Main
 
 (** ## Exported functors *)
