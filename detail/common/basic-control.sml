@@ -26,18 +26,6 @@ structure BasicControl :  sig
   (* enable collection of GC and memory statistics *)
     val gcStats : bool Controls.control
 
-  (* enable logging mode *)
-    val logging : bool Controls.control
-
-  (* enable hw perf counters mode *)
-    val perf : bool Controls.control
-
-  (* maximum leaf size in ropes *)
-    val maxLeafSize : int Controls.control
-
-  (* perform dead function elimination on the parse tree *)
-    val treeShake : bool Controls.control
-
   (* wrap a 'pre -> 'post pass with a tracing diagnostic, controled by the
    * "verbose" control.
    *)
@@ -87,7 +75,7 @@ structure BasicControl :  sig
 
   end = struct
 
-    val topRegistry = ControlRegistry.new {help = "spec controls"}
+    val topRegistry = ControlRegistry.new {help = "SPEC Controls"}
 
     fun nest (prefix, reg, pri) = ControlRegistry.nest topRegistry {
 	    prefix = SOME prefix,
@@ -114,22 +102,6 @@ structure BasicControl :  sig
 	    default = 0
 	  }
 
-    val maxLeafSize : int Controls.control = Controls.genControl {
-            name = "max-leaf-size",
-            pri = [0, 0],
-            obscurity = 0,
-            help = "sets the upper bound on number of data items at leaves of ropes",
-            default = 256
-          }
-
-    val treeShake : bool Controls.control = Controls.genControl {
-            name = "tree-shake",
-            pri = [0, 0],
-            obscurity = 0,
-            help = "dead function elimination on the parse tree (dead functions do not get type checked)",
-            default = false
-          }
-
   (* link with debug version of runtime mode *)
     val debug : bool Controls.control = Controls.genControl {
 	    name = "debug",
@@ -137,15 +109,6 @@ structure BasicControl :  sig
 	    obscurity = 0,
 	    help = "include debugging support",
 	    default = false
-	  }
-
-  (* select the top-level thread scheduler *)
-    val scheduler : string Controls.control = Controls.genControl {
-	    name = "scheduler",
-	    pri = [0, 1, 2],
-	    obscurity = 0,
-	    help = "select the top-level thread-scheduler (round-robin or work-stealers)",
-	    default = "round-robin"
 	  }
 
   (* enable collection of GC and memory statistics *)
@@ -157,24 +120,6 @@ structure BasicControl :  sig
 	    default = false
 	  }
 
-  (* enable logging mode *)
-    val logging : bool Controls.control = Controls.genControl {
-	    name = "log",
-	    pri = [0, 1, 4],
-	    obscurity = 0,
-	    help = "enable logging of event history",
-	    default = false
-	  }
-
-  (* enable hw perf counter mode *)
-    val perf : bool Controls.control = Controls.genControl {
-	    name = "perf",
-	    pri = [0, 1, 4],
-	    obscurity = 0,
-	    help = "enable hardware performance counter tracking",
-	    default = false
-	  }
-
     val () = (
 	  ControlRegistry.register topRegistry {
 	      ctl = Controls.stringControl ControlUtil.Cvt.int verbose,
@@ -183,35 +128,14 @@ structure BasicControl :  sig
 	  ControlRegistry.register topRegistry {
 	      ctl = Controls.stringControl ControlUtil.Cvt.bool debug,
 	      envName = NONE
-	    };
-	  ControlRegistry.register topRegistry {
-	      ctl = Controls.stringControl ControlUtil.Cvt.string scheduler,
-	      envName = NONE
-	    };
-	  ControlRegistry.register topRegistry {
-	      ctl = Controls.stringControl ControlUtil.Cvt.bool logging,
-	      envName = NONE
-	    };
-	  ControlRegistry.register topRegistry {
-	      ctl = Controls.stringControl ControlUtil.Cvt.bool perf,
-	      envName = NONE
-	    };
-          ControlRegistry.register topRegistry {
-              ctl = Controls.stringControl ControlUtil.Cvt.bool treeShake,
-              envName = NONE
-            };
-          ControlRegistry.register topRegistry {
-              ctl = Controls.stringControl ControlUtil.Cvt.int maxLeafSize,
-              envName = NONE
-            })
-
+	    })
 
     local
       val indent = ref 0
       val verboseCtl = verbose
     in
-    val push = fn () => indent := !indent + 1
-    val pop = fn () => indent := !indent - 1
+    val push = fn () => indent := !indent + 4
+    val pop = fn () => indent := !indent - 4
     val say = fn s => (
 	  print (CharVector.tabulate (!indent, fn _ => #" "));
 	  print s;

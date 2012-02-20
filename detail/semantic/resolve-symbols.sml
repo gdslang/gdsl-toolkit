@@ -174,8 +174,9 @@ end = struct
           (convExp s e1, convExp s e2)
       | convExp s (PT.RECORDexp l) = AST.RECORDexp
           (List.map (fn (f,e) => (newField (s,f), convExp s e)) l)
-      | convExp s (PT.SELECTexp (e,f)) = AST.SELECTexp
-          (convExp s e, useField (s,f))
+      | convExp s (PT.SELECTexp f) = AST.SELECTexp (useField (s,f))
+      | convExp s (PT.UPDATEexp fs) =
+         AST.UPDATEexp (List.map (fn (f,e) => (useField (s,f), convExp s e)) fs)
       | convExp s (PT.LITexp lit) = AST.LITexp (convLit s lit)
       | convExp s (PT.SEQexp l) = AST.SEQexp (List.map (convSeqexp s) l)
       | convExp s (PT.IDexp v) = AST.IDexp (useVar (s,v))
@@ -210,6 +211,8 @@ end = struct
       | convPat s (PT.BITpat str) = AST.BITpat str
       | convPat s (PT.LITpat lit) = AST.LITpat (convLit s lit)
       | convPat s (PT.IDpat v) = AST.IDpat (newVar (s,v))
+      | convPat s (PT.CONpat (c, SOME p)) = AST.CONpat (useCon (s,c), SOME (convPat s p))
+      | convPat s (PT.CONpat (c, NONE)) = AST.CONpat (useCon (s,c), NONE)
       | convPat s (PT.WILDpat) = AST.WILDpat
     and convLit s (PT.INTlit i) = AST.INTlit i
       | convLit s (PT.FLTlit f) = AST.FLTlit f

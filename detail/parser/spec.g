@@ -25,6 +25,8 @@
    | KW_state ("state")
    | KW_then ("then")
    | KW_type ("type")
+   | WITH ("@")
+   | SELECT ("$")
    | BIND ("<-")
    | EQ ("=")
    | TICK ("'")
@@ -211,6 +213,7 @@ Pat
    | "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
    | Lit => (mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
    | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat Name))
+   | ConUse Pat? => (mark PT.MARKpat (FULL_SPAN, PT.CONpat (ConUse, Pat)))
    ;
 
 OrElseExp
@@ -249,8 +252,7 @@ SelectExp
 
 ApplyExp
    : AtomicExp exp=
-      ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))
-      | "." Qid => (PT.SELECTexp (AtomicExp, Qid))) =>
+      ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))) =>
          (mark PT.MARKexp (FULL_SPAN, exp))
    | "~" AtomicExp =>
       (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, AtomicExp)))
@@ -260,6 +262,9 @@ AtomicExp
    : Lit => (mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
    | Qid => (mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
    | ConUse => (mark PT.MARKexp (FULL_SPAN, PT.CONexp ConUse))
+   | "@" "{" Qid "=" Exp ("," Qid "=" Exp)* "}" =>
+      (mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp ((Qid, Exp)::SR)))
+   | "$" Qid => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp Qid))
    | "(" ")" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "(" Exp ")" => (Exp)
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>

@@ -5,6 +5,7 @@ structure Parser : sig
    val parseFile: (Error.err_stream * TextIO.instream) -> SpecParseTree.specification option
    val parse: string -> SpecParseTree.specification option
    val run: TextIO.instream -> SpecParseTree.specification CompilationMonad.t
+   val trace: TextIO.outstream * SpecParseTree.specification -> SpecParseTree.specification CompilationMonad.t
 
 end = struct
 
@@ -38,6 +39,13 @@ end = struct
       case parseFile (errs, ins) of
          NONE => fail
        | SOME spec => return spec)
+   end
+
+   fun trace (os, spec) = let
+      open CompilationMonad
+   in
+      SpecParseTree.PP.prettyTo (os, spec)
+     ;return spec
    end
 
    fun parse fp = let

@@ -36,8 +36,8 @@ datatype insn =
  | DIV of binop
 
 # Example of bit-patterns
-dec /0 ['mod:2 001 rm:3'] = update {mod=mod, rm=rm, reg/opcode=1}
-dec /r ['mod:2 reg/opcode:3 rm:3'] = update {mod=mod, reg/opcode=reg/opcode, rm=rm}
+dec /0 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
+dec /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
 
 val fromEnum i =
    case i of
@@ -58,21 +58,21 @@ dec s ['sizeBit:1'] = let
          '0': W
        | '1': B
 in
-   update {size=sizeTag}
+   update @{size=sizeTag}
 end
 
 # `imm` is a monadic action that reads 8 or 16 bits, depending on the current
 # state
 val imm = do
-   sizeTag <- query size;
+   sizeTag <- query$size;
    case sizeTag of
       B: imm8
     | W: imm16
 end
 
 val r/m16 = do
-   mod <- query mod;
-   rm <- query rm;
+   mod <- query$mod;
+   rm <- query$rm;
    case mod of
       '001': return AX
     | '010': return BX
@@ -93,4 +93,4 @@ dec [0x66 0xC7 /0]
    | opndsz = mov r16 imm16
    | otherwise = mov r32 imm32
 
-dec [0x66] = do update {opndsz=1}; continue end
+dec [0x66] = do update @{opndsz=1}; continue end
