@@ -71,16 +71,56 @@ val imm = do
     | W: imm16
 end
 
-val regByNum num =
-   case reg of
-       '000': return AX
-     | '001': return CX
-     | '010': return DX
-     | '011': return BX
-     | '100': return SP
-     | '101': return BP
-     | '110': return SI
-     | '111': return DI
+val regN num size =
+   case num of
+       '000': case size of
+	         128: XMM0
+	       |  64: RAX
+	       |  32: EAX
+	       |  16: AX
+	       |   8: AL
+     | '001': case size of
+	         128: XMM1
+	       |  64: RCX
+	       |  32: ECX
+	       |  16: CX
+	       |   8: CL
+     | '010': case size of
+	         128: XMM2
+	       |  64: RDX
+	       |  32: EDX
+	       |  16: DX
+	       |   8: DL
+     | '011': case size of
+	         128: XMM3
+	       |  64: RBX
+	       |  32: EBX
+	       |  16: BX
+	       |   8: BL
+     | '100': case size of
+	         128: XMM4
+	       |  64: RSP
+	       |  32: ESP
+	       |  16: SP
+	       |   8: AH
+     | '101': case size of
+	         128: XMM5
+	       |  64: RBP
+	       |  32: EBP
+	       |  16: BP
+	       |   8: CH
+     | '110': case size of
+	         128: XMM6
+	       |  64: RSI
+	       |  32: ESI
+	       |  16: SI
+	       |   8: DH
+     | '111': case size of
+	         128: XMM7
+	       |  64: RDI
+	       |  32: EDI
+	       |  16: DI
+	       |   8: BH
 end
 
 val r/m16 = do
@@ -89,12 +129,12 @@ val r/m16 = do
    case mod of
       '00': case rm of
              ...
-    | '11: return (regByNum rm)
+    | '11': return (regN rm)
 end
 
 val r16 = do
    reg <- query reg;
-   return (regByNum reg)
+   return (regN reg)
 end
 
 val mov a1 a2 = do
@@ -122,6 +162,7 @@ dec [0x04]
      add AL imm8
 
 dec [0x05]
-     add AX imm16
+   | OPNDSZ = add AX imm16
+   | otherwise add EAX imm32
 
 dec [0x66] = do update {OPNDSZ=1}; continue end
