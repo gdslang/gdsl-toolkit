@@ -160,10 +160,18 @@ end = struct
       {span=span, tree=inlined}
    end
 
+   fun dumpPre (os, (_, spec)) = SpecAbstractTree.PP.prettyTo (os, spec)
+   fun dumpPost (os, spec) = SpecAbstractTree.PP.prettyTo (os, spec)
+
    val inline =
-      BasicControl.mkTracePassSimple
+      BasicControl.mkKeepPass
          {passName="inlineDecodePatterns",
-          pass=inlineDecodePatterns}
+          registry=BasicControl.topRegistry,
+          pass=inlineDecodePatterns,
+          preExt="ast",
+          preOutput=dumpPre,
+          postExt="ast",
+          postOutput=dumpPost}
 
    fun run spec = let
       open CompilationMonad

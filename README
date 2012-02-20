@@ -16,7 +16,13 @@ which makes an ugly hack necessary after grammar regeneration.
 
     $ cd $CLONE
     $ mlton mltk.mlb
-    $ ./mltk examples/x86.spec
+    # show usage
+    $ /.mltk -h
+    $ ./mltk -Ckeep-parseFile=true examples/x86.spec
+    dumping info to parseFile0.pre.ast
+        parseFile starting
+        parseFile finished in: 0.011s (inclusive)
+    dumping info to parseFile0.post.ast
 
 ## Compiling with SML/NJ
 
