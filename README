@@ -1,0 +1,36 @@
+
+# Testing the SPEC parser
+
+The SPEC parser is written in SML using ml-antlr and ml-ulex. SPEC can
+be compiled with both `MLTON` and `SML/NJ`. Currently ml-ulex has a bug
+which makes an ugly hack necessary after grammar regeneration.
+
+## Repository checkout
+
+    $ hg clone ssh://hg@bitbucket.org/mb0/mltk
+
+
+## Compiling with `MLTON`
+
+- Install `MLTON` see: http://www.mlton.org
+
+    $ cd $CLONE
+    $ mlton mltk.mlb
+    # show usage
+    $ /.mltk -h
+    $ ./mltk -Ckeep-parseFile=true examples/x86.spec
+    dumping info to parseFile0.pre.ast
+        parseFile starting
+        parseFile finished in: 0.011s (inclusive)
+    dumping info to parseFile0.post.ast
+
+## Compiling with SML/NJ
+
+- Install `SML/NJ` see: http://www.smlnj.org
+
+    $ cd $CLONE
+    $ rlwrap sml
+    - CM.make "mltk.cm";
+    - Main.run "examples/x86.spec";
+
+-- h4ppy h4ck1n9

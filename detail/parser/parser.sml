@@ -27,9 +27,17 @@ end = struct
 	end
 
    val parseFile =
-      BasicControl.mkTracePassSimple
+      BasicControl.mkKeepPass
          {passName="parseFile",
-          pass=parseFile}
+          registry=BasicControl.topRegistry,
+          pass=parseFile,
+          preExt="ast",
+          preOutput=ignore,
+          postExt="ast",
+          postOutput=fn (os, spec) =>
+            case spec of
+               NONE => ()
+             | SOME x => SpecParseTree.PP.prettyTo (os, x)}
 
    fun run ins = let
       open CompilationMonad
