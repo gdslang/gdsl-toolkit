@@ -7,6 +7,7 @@ structure Main = struct
 
       fun all ins =
          Parser.run ins >>=
+         ResolveSymbols.run >>=
          InlineDecodePatterns.run
 
       fun run fp = let

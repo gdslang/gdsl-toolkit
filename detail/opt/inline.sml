@@ -7,12 +7,12 @@
  *     all use-sites of the pattern
  *)
 structure InlineDecodePatterns : sig
-   val inline: Error.err_stream * SpecParseTree.specification -> SpecParseTree.specification
-   val run: SpecParseTree.specification -> SpecParseTree.specification CompilationMonad.t
+   val inline: Error.err_stream * SpecAbstractTree.specification -> SpecAbstractTree.specification
+   val run: SpecAbstractTree.specification -> SpecAbstractTree.specification CompilationMonad.t
 end = struct
 
-   structure Map = AtomMap
-   structure T = SpecParseTree
+   structure Map = SymMap
+   structure T = SpecAbstractTree
 
    datatype t =
       IN of {namedpatterns: (T.decodepat list * T.exp) Map.map,
@@ -45,29 +45,30 @@ end = struct
    fun flattenDecodePatterns err t spec = let
       open T
       val map = ref (get#namedpatterns t)
+      val varmap = !SymbolTables.varTable
 
       fun inline (x, exp) =
          (* TODO: handle recursive decode patterns *)
-         case Map.find (!map, #tree x) of
+         case Map.find (!map, x) of
             NONE =>
                (Error.errorAt
                   (err,
-                   #span x,
-                   ["Unbound or recursive pattern reference"])
+                   VarInfo.getSpan (varmap, x),
+                   ["Unbound or recursive pattern detected"])
                ;raise CompilationMonad.CompilationError)
           | SOME (pats, exp') =>
                let
                   (* remove `x` from available patterns, if it coccurs twice,
                    * we have found recursion (remember that all `x` are unique
                    *)
-                  val (map', _) = Map.remove (!map, #tree x)
+                  val (map', _) = Map.remove (!map, x)
                   val () = map := map'
                   val ps =
                      flattenDecodePats
                         (pats,
                          SEQexp [ACTIONseqexp exp', ACTIONseqexp exp])
                in
-                  map := Map.insert (!map, #tree x, ps)
+                  map := Map.insert (!map, x, ps)
                  ;ps
                end
 
@@ -152,7 +153,7 @@ end = struct
       List.map flattenDecl spec
    end
 
-   fun inlineDecodePatterns (err, {span, tree}:SpecParseTree.specification) = let
+   fun inlineDecodePatterns (err, {span, tree}:SpecAbstractTree.specification) = let
       val t = grabNamedPatterns tree
       val inlined = flattenDecodePatterns err t tree
    in
