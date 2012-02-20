@@ -8,8 +8,8 @@ local
 in
    ann
       "forceUsed"
-      "sequenceNonUnit warn"
-      "warnUnused true"
+      (* "sequenceNonUnit warn" *)
+      (* "warnUnused true" *)
    in
       local
          detail/common/basic-control.sml
