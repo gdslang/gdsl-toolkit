@@ -1,6 +1,6 @@
 structure ResolveTypeInfo : sig
 
-  type SynonymMap = Types.tExp SymMap.map
+  type SynonymMap = Types.texp SymMap.map
   type DatatypeMap = Types.typedescr SymMap.map
   type ConstructorMap = TypeInfo.symid SymMap.map
   
@@ -22,7 +22,7 @@ structure ResolveTypeInfo : sig
          
 end = struct
   
-  type SynonymMap = Types.tExp SymMap.map
+  type SynonymMap = Types.texp SymMap.map
   type DatatypeMap = Types.typedescr SymMap.map
   type ConstructorMap = TypeInfo.symid SymMap.map
 
@@ -38,6 +38,7 @@ end = struct
   structure D = SymMap
   structure C = SymMap
   structure T = Types
+  structure BD = BooleanDomain
   
   fun resolveTypeInfo (errStrm, {ast, vars, cons, types, fields}) = let
     val synTable = ref (S.empty : SynonymMap)
@@ -55,11 +56,13 @@ end = struct
           end
       | vDecl (s, _) = ()
     and vType (s, AST.MARKty { span, tree }) = vType (span,tree)
-      | vType (s, AST.BITty i) = T.TExpVec (T.TExpConst i)
+      | vType (s, AST.BITty i) = T.VEC (T.CONST i)
       | vType (s, AST.NAMEDty n) =
-          T.TExpSyn (n, S.lookup (!synTable, n))
-      | vType (s, AST.RECty l) = T.TExpRec (List.map (vField s) l)
-    and vField s (n, ty) = T.RField { fieldName = n, fieldType = vType (s, ty) }
+         T.SYN (n, S.lookup (!synTable, n))
+      | vType (s, AST.RECty l) =
+         T.RECORD (Types.freshTVar (), List.map (vField s) l)
+    and vField s (n, ty) =
+         T.RField {name = n, fty = vType (s, ty), needed = BD.invalidBVar}
     and vCondecl (s,d, []) = SymMap.empty : Types.condescr
       | vCondecl (s,d, AST.MARKcondecl { span, tree }::l) = vCondecl (s,d,tree::l)
       | vCondecl (s,d, AST.CONdecl (c, arg)::l) =
