@@ -20,12 +20,6 @@ structure BasicControl :  sig
   (* verbosity of diagnostics. *)
     val verbose : int Controls.control
 
-  (* sequential mode *)
-    val sequential : bool Controls.control
-
-  (* select the top-level thread scheduler *)
-    val scheduler : string Controls.control
-
   (* link with debug version of runtime mode *)
     val debug : bool Controls.control
 
@@ -136,15 +130,6 @@ structure BasicControl :  sig
             default = false
           }
 
-  (* sequential mode *)
-    val sequential : bool Controls.control = Controls.genControl {
-	    name = "sequential",
-	    pri = [0, 1, 1],
-	    obscurity = 0,
-	    help = "compile sequential programs",
-	    default = false
-	  }
-
   (* link with debug version of runtime mode *)
     val debug : bool Controls.control = Controls.genControl {
 	    name = "debug",
@@ -196,10 +181,6 @@ structure BasicControl :  sig
 	      envName = NONE
 	    };
 	  ControlRegistry.register topRegistry {
-	      ctl = Controls.stringControl ControlUtil.Cvt.bool sequential,
-	      envName = NONE
-	    };
-	  ControlRegistry.register topRegistry {
 	      ctl = Controls.stringControl ControlUtil.Cvt.bool debug,
 	      envName = NONE
 	    };
@@ -229,8 +210,8 @@ structure BasicControl :  sig
       val indent = ref 0
       val verboseCtl = verbose
     in
-    val push = fn () => indent := !indent + 4
-    val pop = fn () => indent := !indent - 4
+    val push = fn () => indent := !indent + 1
+    val pop = fn () => indent := !indent - 1
     val say = fn s => (
 	  print (CharVector.tabulate (!indent, fn _ => #" "));
 	  print s;

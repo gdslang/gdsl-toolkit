@@ -7,7 +7,7 @@
    | KW_in ("in")
    | KW_do ("do")
    | KW_datatype ("datatype")
-   | KW_decode ("decode")
+   | KW_dec ("dec")
    | KW_include ("include")
    | KW_extend ("extend")
    | KW_div ("div")
@@ -107,16 +107,18 @@ Decl
    | "state" "=" StateTy => (markDecl (FULL_SPAN, PT.STATEdecl StateTy))
    | "datatype" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
-   | "decode" "[" DecodePat+ "]" pat=
+   | "dec" "[" DecodePat+ "]" pat=
       ( "=" Exp =>
          (mark PT.MARKdecodedecl (FULL_SPAN, PT.DECODEdecodedecl (DecodePat, Exp)))
       | ("|" Exp "=" Exp)+ =>
          (mark PT.MARKdecodedecl (FULL_SPAN, PT.GUARDEDdecodedecl (DecodePat, SR)))) =>
       (markDecl (FULL_SPAN, PT.DECODEdecl pat))
-   | "val" Name decl=
+   | "dec" Name decl=
       ( "[" DecodePat+ "]" "=" Exp =>
-         (PT.DECODEdecl (mark PT.MARKdecodedecl (FULL_SPAN, PT.NAMEDdecodedecl (Name, DecodePat, Exp))))
-      | args=Name* "=" Exp =>
+         (PT.DECODEdecl (mark PT.MARKdecodedecl (FULL_SPAN, PT.NAMEDdecodedecl (Name, DecodePat, Exp))))) =>
+      (markDecl (FULL_SPAN, decl))
+   | "val" Name decl=
+      ( args=Name* "=" Exp =>
          (PT.VALUEdecl (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETvaluedecl (Name, args, Exp))))) =>
       (markDecl (FULL_SPAN, decl))
    | "rec" Name decl=

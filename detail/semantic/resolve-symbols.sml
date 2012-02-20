@@ -1,11 +1,9 @@
 structure ResolveSymbols : sig
 
    (* annotate AST with symbol identifiers, return false if there were errors *)
-   val resolveSymbolPass: (Error.err_stream * SpecParseTree.specification) ->
-                          SpecAbstractTree.specification
-
-   val resolveSymbols: SpecParseTree.specification ->
-                       SpecAbstractTree.specification
+   val resolveSymbolPass: (Error.err_stream * SpecParseTree.specification) -> SpecAbstractTree.specification
+   val resolveSymbols: SpecParseTree.specification -> SpecAbstractTree.specification
+   val run: SpecParseTree.specification -> SpecAbstractTree.specification CompilationMonad.t
 
    val test: string -> unit
    val startScope : unit -> unit
@@ -18,8 +16,10 @@ end = struct
   structure CI = ConInfo
   structure TI = TypeInfo
   structure ST = SymbolTables
-  
+
   exception NotImplemented
+
+   infix >>= >>
 
   fun resolveErr errStrm (pos, msg) = Error.errorAt(errStrm, (pos, pos), msg)
 
@@ -229,7 +229,14 @@ end = struct
        before
          Error.report (TextIO.stdErr, ers)
    end
-   
+
+   fun run spec = let
+      open CompilationMonad
+   in
+      getErrorStream >>= (fn errs =>
+      return (resolveSymbolPass (errs, spec)))
+   end
+
    fun test fp = let
      val ers = Error.mkErrStream fp
    in case Parser.parse fp of

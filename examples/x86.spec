@@ -79,9 +79,9 @@ val r/m16 = do
 end
 
 val mov a1 a2 = do
-   a1' <- a1;
-   a2' <- a2;
-   return (MOV {op1=a1', op2=a2'})
+   a1 <- a1;
+   a2 <- a2;
+   return (MOV {op1=a1, op2=a2})
 end
 
 dec [0x80 /r]
