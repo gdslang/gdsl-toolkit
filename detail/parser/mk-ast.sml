@@ -85,6 +85,7 @@ functor MkAst (Core: AST_CORE) = struct
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)
+    (*| CONexp of con_use *)
     | FNexp of var_bind * exp (* anonymous function *)
 
    and seqexp =

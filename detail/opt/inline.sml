@@ -3,13 +3,12 @@
  * ## Inlining of decode patterns.
  *
  *   - Inline named decode patterns into all use-sites.
- *   - Introducue a top-level monadic action using the named patterns
- *     right-hand sides
  *   - Insert calls to the monadic action into the rhs expression of
  *     all use-sites of the pattern
  *)
 structure InlineDecodePatterns : sig
-   val run: SpecParseTree.specification -> SpecParseTree.specification
+   val inline: Error.err_stream * SpecParseTree.specification -> SpecParseTree.specification
+   val run: SpecParseTree.specification -> SpecParseTree.specification CompilationMonad.t
 end = struct
 
    structure Map = AtomMap
@@ -43,16 +42,26 @@ end = struct
       foldl grabFromDecl empty spec
    end
 
-   fun flattenDecodePatterns t spec = let
+   fun flattenDecodePatterns err t spec = let
       open T
       val map = ref (get#namedpatterns t)
 
       fun inline (x, exp) =
          (* TODO: handle recursive decode patterns *)
          case Map.find (!map, #tree x) of
-            NONE => raise Fail "Unbound pattern reference"
+            NONE =>
+               (Error.errorAt
+                  (err,
+                   #span x,
+                   ["Unbound or recursive pattern reference"])
+               ;raise CompilationMonad.CompilationError)
           | SOME (pats, exp') =>
                let
+                  (* remove `x` from available patterns, if it coccurs twice,
+                   * we have found recursion (remember that all `x` are unique
+                   *)
+                  val (map', _) = Map.remove (!map, #tree x)
+                  val () = map := map'
                   val ps =
                      flattenDecodePats
                         (pats,
@@ -111,6 +120,12 @@ end = struct
          case decodedecl of
             MARKdecodedecl t' => flattenDecodeDecl (#tree t')
           | DECODEdecodedecl decl => DECODEdecodedecl (flattenDecodePats decl)
+          | NAMEDdecodedecl (x, decl, exp) =>
+               let
+                  val (decl, exp) = flattenDecodePats (decl, exp)
+               in
+                  NAMEDdecodedecl (x, decl, exp)
+               end
           | GUARDEDdecodedecl (pats, cases) =>
                let
                   val (pats, inlineExp) = flattenDecodePats (pats, SEQexp [])
@@ -126,7 +141,6 @@ end = struct
                in
                   GUARDEDdecodedecl (pats, lp (cases, []))
                end
-          | otherwise => otherwise
 
       and flattenDecl decl =
          case decl of
@@ -138,15 +152,23 @@ end = struct
       List.map flattenDecl spec
    end
 
-   fun inlineDecodePatterns ({span, tree}:SpecParseTree.specification) = let
+   fun inlineDecodePatterns (err, {span, tree}:SpecParseTree.specification) = let
       val t = grabNamedPatterns tree
-      val inlined = flattenDecodePatterns t tree
+      val inlined = flattenDecodePatterns err t tree
    in
       {span=span, tree=inlined}
    end
 
-   val run =
+   val inline =
       BasicControl.mkTracePassSimple
          {passName="inlineDecodePatterns",
           pass=inlineDecodePatterns}
+
+   fun run spec = let
+      open CompilationMonad
+      infix >>=
+   in
+      getErrorStream >>= (fn errs =>
+      return (inline (errs, spec)))
+   end
 end

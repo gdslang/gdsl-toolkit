@@ -17,7 +17,8 @@ group is
        basis.sml
        pp.sml
        layout-sig.sml
-       layout.sml)
+       layout.sml
+       compilation-monad.sml)
 
    ../../parser/mk-ast.sml
    ../../parser/spec-parse-tree.sml
@@ -29,5 +30,7 @@ group is
    ../../semantic/lang-types.sml
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
-   ../../semantic/primitives.sml 
+   ../../semantic/primitives.sml
    ../../opt/inline.sml
+
+   ../../driver/main.sml
