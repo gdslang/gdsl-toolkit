@@ -19,6 +19,10 @@ in
          detail/common/literal.sml
          detail/common/stamp.sml
          detail/common/basis.sml
+         detail/common/layout-sig.sml
+         detail/common/layout.sml
+         detail/common/pp.sml
+         detail/common/compilation-monad.sml
          detail/parser/mk-ast.sml
          detail/parser/spec-parse-tree.sml
          ann
@@ -28,6 +32,16 @@ in
             detail/parser/spec.l.sml
          end
          detail/parser/parser.sml
+         detail/semantic/symbol-table-type.sml
+         detail/semantic/spec-abstract-tree.sml
+         detail/semantic/boolean-domain.sml
+         detail/semantic/lang-types.sml
+         detail/semantic/resolve-symbols.sml
+         detail/semantic/resolve-type-info.sml
+         detail/semantic/primitives.sml
+         detail/opt/inline.sml
+         detail/driver/main.sml
+         detail/ml/mlton/main.sml
       in
          detail/export.sml
       end

@@ -243,5 +243,6 @@ functor MkAst (Core: AST_CORE) = struct
           | FNexp (x, e) => paren (seq [str "FN", space, var_bind x, space, exp e])
 
       val pretty = Pretty.pretty o spec
+      fun prettyTo (os, t) = Pretty.prettyTo (os, spec t)
    end
 end
