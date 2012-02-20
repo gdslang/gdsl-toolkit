@@ -36,6 +36,7 @@ in
          detail/semantic/spec-abstract-tree.sml
          detail/semantic/boolean-domain.sml
          detail/semantic/lang-types.sml
+         detail/semantic/primitives.sml
          detail/semantic/resolve-symbols.sml
          detail/semantic/resolve-type-info.sml
          detail/semantic/primitives.sml

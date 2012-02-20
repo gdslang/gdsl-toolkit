@@ -29,8 +29,8 @@ group is
    ../../semantic/spec-abstract-tree.sml
    ../../semantic/boolean-domain.sml
    ../../semantic/lang-types.sml
+   ../../semantic/primitives.sml
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
-   ../../semantic/primitives.sml
    ../../opt/inline.sml
    ../../driver/main.sml
