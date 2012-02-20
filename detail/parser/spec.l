@@ -133,6 +133,8 @@ fun fromHexString s = let
 <INITIAL>"}" => (T.RCB);
 <INITIAL>"_" => (T.WILD);
 <INITIAL>"*" => (T.TIMES);
+<INITIAL>"@" => (T.WITH);
+<INITIAL>"$" => (T.SELECT);
 <INITIAL>"=" => (T.EQ);
 <INITIAL>"," => (T.COMMA);
 <INITIAL>";" => (T.SEMI);

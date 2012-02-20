@@ -81,7 +81,8 @@ functor MkAst (Core: AST_CORE) = struct
     | BINARYexp of exp * op_id * exp (* infix binary expressions *)
     | APPLYexp of exp * exp
     | RECORDexp of (field_bind * exp) list
-    | SELECTexp of exp * field_use  (* record field selector "x.field" *)
+    | SELECTexp of field_use  (* record field selector "$field" *)
+    | UPDATEexp of (field_use * exp) list (* functional record update "@{a=a'} *)
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use (* either variable or nullary constant *)
@@ -118,6 +119,7 @@ functor MkAst (Core: AST_CORE) = struct
     | BITpat of string
     | LITpat of lit
     | IDpat of var_bind
+    | CONpat of con_use * pat option
     | WILDpat
 
    and lit =
@@ -211,6 +213,8 @@ functor MkAst (Core: AST_CORE) = struct
           | BITpat s => str s
           | LITpat l => lit l
           | IDpat n => var_bind n
+          | CONpat (n, SOME p) => seq [con_use n, space, pat p]
+          | CONpat (n, _) => con_use n
           | WILDpat => str "_"
 
       and lit t =
@@ -230,7 +234,8 @@ functor MkAst (Core: AST_CORE) = struct
           | BINARYexp (e1, opid, e2) => paren (seq [op_id opid, space, exp e1, space, exp e2])
           | APPLYexp (e1, e2) => paren (seq [str "APP", space, exp e1, space, exp e2])
           | RECORDexp fs => listex "{" "}" "," (map (tuple2 (field_bind, exp)) fs)
-          | SELECTexp s => paren (seq [str "SELECT", space, tuple2 (exp, field_use) s])
+          | SELECTexp f => paren (seq [str "SELECT", space, field_use f])
+          | UPDATEexp fs => paren (seq [str "UPDATE", space, listex "{" "}" "," (map (tuple2 (field_use, exp)) fs)])
           | LITexp l => lit l
           | SEQexp s => paren (seq [str "DO", space, list (map seqexp s)])
           | IDexp id => var_use id
