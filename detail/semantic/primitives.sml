@@ -37,17 +37,19 @@ structure Primitives = struct
       { tName = "string", tType = FLOAT}
    ]
 
-   val noSpan = (Position.fromInt ~1, Position.fromInt ~1)
-
    structure ST = SymbolTables
    
    fun addVar { pName = n, pType } = let
-         val (newTable, _) = SymbolTable.create (!ST.varTable, Atom.atom n, noSpan)
+         val (newTable, _) = SymbolTable.create (!ST.varTable,
+                                                 Atom.atom n,
+                                                 SymbolTable.noSpan)
       in
          (ST.varTable := newTable)
       end
    fun addType { tName = t, tType } = let
-         val (newTable, _) = SymbolTable.create (!ST.typeTable, Atom.atom t, noSpan)
+         val (newTable, _) = SymbolTable.create (!ST.typeTable,
+                                                 Atom.atom t,
+                                                 SymbolTable.noSpan)
       in
          (ST.typeTable := newTable)
       end

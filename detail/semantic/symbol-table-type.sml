@@ -3,6 +3,8 @@ signature SymbolTableSig  = sig
    type symid
    type table
 
+   val noSpan : Error.span
+
    val compare_symid : symid * symid -> order
 
    val empty : table
@@ -31,6 +33,8 @@ structure SymbolTable :> SymbolTableSig = struct
    structure Reverse = AtomRedBlackMap
 
    datatype symid = SymId of int
+
+   val noSpan = (Position.fromInt ~1, Position.fromInt ~1)
 
    fun compare_symid (SymId i1, SymId i2) = Int.compare (i1,i2)
 
