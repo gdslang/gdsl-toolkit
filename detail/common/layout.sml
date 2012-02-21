@@ -1,8 +1,9 @@
-(* Copyright (C) 1999-2002 Henry Cejtin, Matthew Fluet, Suresh
+(* Copyright (C) 2009 Matthew Fluet.
+ * Copyright (C) 1999-2006 Henry Cejtin, Matthew Fluet, Suresh
  *    Jagannathan, and Stephen Weeks.
  *
- * MLton is released under the GNU General Public License (GPL).
- * Please see the file MLton-LICENSE for license information.
+ * MLton is released under a BSD-style license.
+ * See the file MLton-LICENSE for details.
  *)
 structure Layout :> LAYOUT =
 struct
@@ -10,10 +11,10 @@ struct
 (*    structure Out = Outstream0   *)
 
     val detailed = ref false
-        
+
     fun switch {detailed = d,normal = n} x =
         if !detailed then d x else n x
-           
+
     datatype t = T of {length: int,
                        tree: tree}
     and tree =
@@ -26,19 +27,19 @@ struct
     type layout = t
 
     fun length (T {length, ...}) = length
-        
+
     val empty = T {length = 0, tree = Empty}
-        
+
     fun isEmpty (T {length = 0, ...}) = true
       | isEmpty _ = false
-        
+
     fun str s =
         case s of
             "" => empty
           | _ => T {length = String.size s, tree = String s}
-                
+
     fun fold (l, b, f) = foldl f b l
-        
+
     fun seq ts =
         let val len = fold (ts, 0, fn (t,n) => n + length t)
         in case len of
@@ -50,9 +51,9 @@ struct
        short elements displays as
        [1, 2, 3
         4, 5, 6]
-       
+
        instead of
-       
+
        [1,
         2,
         3,
@@ -83,15 +84,15 @@ struct
     end
 
     fun indent (t, n) = T {length = length t, tree = Indent (t, n)}
-        
+
     val tabSize: int = 8
-        
+
     fun K x _ = x
 
     fun blanks (n: int): string =
         concat [CharVector.tabulate (n div tabSize, K #"\t"),
                 CharVector.tabulate (n mod tabSize, K #" ")]
-        
+
 (*
     fun outputTree (t, out) =
         let val print = Out.outputc out
@@ -115,7 +116,7 @@ struct
                                  ; print ")")
         in loop t
         end
-*)    
+*)
 
 (* doesn't include newlines. new version below - tom *)
 
@@ -137,14 +138,14 @@ struct
         in
             String.concat (rev (loop (t, [])))
         end
-*)    
+*)
     fun layout_print {tree: t,
                print: string -> unit,
                lineWidth: int} =
         let
             (*val _ = outputTree (t, out)*)
             fun newline () = print "\n"
-                
+
             fun outputCompact (t, {at, printAt}) =
                 let
                     fun loop (T {tree, ...}) =
@@ -162,7 +163,7 @@ struct
                 in loop t
                     ; {at = at, printAt = at}
                 end
-            
+
             fun loop (t as T {length, tree}, state as {at, printAt}) =
                 let
                     fun prePrint () =
@@ -226,12 +227,12 @@ struct
 
 (*
     fun outputl (t, out) = (output (t, out); Out.newline out)
-*)      
+*)
 
 (*     fun makeOutput layoutX (x, out) = output (layoutX x, out)
- *)        
+ *)
     fun ignore _ = empty
-        
+
     fun separate (ts, s) =
         case ts of
             [] => []
@@ -240,13 +241,13 @@ struct
                                    | loop (t :: ts) = s :: t:: (loop ts)
                              in loop ts
                              end)
-                
+
     fun separateLeft (ts, s) =
         case ts of
             [] => []
           | [t] => ts
           | t :: ts => t :: (map (fn t => seq [str s, t]) ts)
-                
+
     fun separateRight (ts, s) =
         rev (let val ts = rev ts
              in case ts of
@@ -254,14 +255,14 @@ struct
                | [t] => ts
                | t :: ts => t :: (map (fn t => seq [t, str s]) ts)
              end)
-        
+
     fun alignPrefix (ts, prefix) =
         case ts of
             [] => empty
           | t :: ts =>
                 mayAlign [t, indent (mayAlign (map (fn t => seq [str prefix, t]) ts),
                                      ~ (String.size prefix))]
-                
+
     local
         fun sequence (start, finish, sep) ts =
             seq [str start, mayAlign (separateRight (ts, sep)), str finish]
@@ -285,9 +286,9 @@ struct
     fun array x = list (Array.foldr (op ::) [] x)
 
     fun namedRecord (name, fields) = seq [str name, str " ", record fields]
-        
+
     fun paren t = seq [str "(", t, str ")"]
-        
+
     fun tuple2 (l1, l2) (x1, x2) = tuple [l1 x1, l2 x2]
     fun tuple3 (l1, l2, l3) (x1, x2, x3) = tuple [l1 x1, l2 x2, l3 x3]
     fun tuple4 (l1, l2, l3, l4) (x1, x2, x3, x4) = tuple [l1 x1, l2 x2, l3 x3, l4 x4]

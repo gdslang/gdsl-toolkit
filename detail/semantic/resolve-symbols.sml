@@ -1,14 +1,16 @@
+
+(**
+ * ## Resolve Symbols
+ *
+ * Annotate AST with symbol identifiers.
+ *)
 structure ResolveSymbols : sig
 
-   (* annotate AST with symbol identifiers, return false if there were errors *)
-   val resolveSymbolPass: (Error.err_stream * SpecParseTree.specification) ->
-                          SpecAbstractTree.specification
+   val resolveSymbolPass: (Error.err_stream * SpecParseTree.specification) -> SpecAbstractTree.specification
+   val run: SpecParseTree.specification -> SpecAbstractTree.specification CompilationMonad.t
 
-   val resolveSymbols: SpecParseTree.specification ->
-                       SpecAbstractTree.specification
-
-   val test: string -> unit
    val startScope : unit -> unit
+
 end = struct
 
   structure PT = SpecParseTree
@@ -18,8 +20,10 @@ end = struct
   structure CI = ConInfo
   structure TI = TypeInfo
   structure ST = SymbolTables
-  
+
   exception NotImplemented
+
+   infix >>= >>
 
   fun resolveErr errStrm (pos, msg) = Error.errorAt(errStrm, (pos, pos), msg)
 
@@ -60,7 +64,7 @@ end = struct
         | NONE => (Error.errorAt
              (errStrm,
               span,
-              ["the ", str, " ", Atom.toString(atom), " is not defined "]);
+              [str, " '", Atom.toString(atom), "' is not defined "]);
            let val (newTable, id) = create (!table, atom, span)
            in (table := newTable; id) end)
 
@@ -112,13 +116,24 @@ end = struct
       | convDecl s (PT.VALUEdecl vd) = AST.VALUEdecl (convValuedecl s vd)
     and convDecodedecl s (PT.MARKdecodedecl m) =
           AST.MARKdecodedecl (convMark convDecodedecl m)
-      | convDecodedecl s (PT.NAMEDdecodedecl (v, l, e)) = AST.NAMEDdecodedecl
-        (VI.lookup (!ST.varTable, v), List.map (convDecodepat s) l, convExp s e)
-      | convDecodedecl s (PT.DECODEdecodedecl (l,e)) = AST.DECODEdecodedecl
-        (List.map (convDecodepat s) l, convExp s e)
-      | convDecodedecl s (PT.GUARDEDdecodedecl (pl, el)) =
-        AST.GUARDEDdecodedecl (List.map (convDecodepat s) pl,
-         List.map (fn (e1,e2) => (convExp s e1, convExp s e2)) el)
+      | convDecodedecl s (PT.NAMEDdecodedecl (v, l, e)) = let
+            val _ = startScope ()
+            val res = AST.NAMEDdecodedecl (VI.lookup (!ST.varTable, v),
+                        List.map (convDecodepat s) l, convExp s e)
+            val _ = endScope ()
+         in res end
+      | convDecodedecl s (PT.DECODEdecodedecl (l,e)) = let
+            val _ = startScope ()
+            val res = AST.DECODEdecodedecl
+                        (List.map (convDecodepat s) l, convExp s e)
+            val _ = endScope ()
+         in res end
+      | convDecodedecl s (PT.GUARDEDdecodedecl (pl, el)) = let
+            val _ = startScope ()
+            val res = AST.GUARDEDdecodedecl (List.map (convDecodepat s) pl,
+                  List.map (fn (e1,e2) => (convExp s e1, convExp s e2)) el)
+            val _ = endScope ()
+         in res end
     and convValuedecl s (PT.MARKvaluedecl m) =
         AST.MARKvaluedecl (convMark convValuedecl m)
       | convValuedecl s (PT.LETvaluedecl (v,l,e)) = AST.LETvaluedecl
@@ -174,16 +189,28 @@ end = struct
           (convExp s e1, convExp s e2)
       | convExp s (PT.RECORDexp l) = AST.RECORDexp
           (List.map (fn (f,e) => (newField (s,f), convExp s e)) l)
-      | convExp s (PT.SELECTexp (e,f)) = AST.SELECTexp
-          (convExp s e, useField (s,f))
+      | convExp s (PT.SELECTexp f) = AST.SELECTexp (useField (s,f))
+      | convExp s (PT.UPDATEexp fs) =
+         AST.UPDATEexp (List.map (fn (f,e) => (useField (s,f), convExp s e)) fs)
       | convExp s (PT.LITexp lit) = AST.LITexp (convLit s lit)
-      | convExp s (PT.SEQexp l) = AST.SEQexp (List.map (convSeqexp s) l)
+      | convExp s (PT.SEQexp l) = AST.SEQexp (convSeqexp s l)
       | convExp s (PT.IDexp v) = AST.IDexp (useVar (s,v))
+      | convExp s (PT.CONexp c) = AST.CONexp (useCon (s,c))
       | convExp s (PT.FNexp (v, e)) = AST.FNexp (newVar (s,v), convExp s e)
-    and convSeqexp s (PT.MARKseqexp m) = AST.MARKseqexp (convMark convSeqexp m)
-      | convSeqexp s (PT.ACTIONseqexp e) = AST.ACTIONseqexp (convExp s e)
-      | convSeqexp s (PT.BINDseqexp (v,e)) = AST.BINDseqexp
-          (newVar (s,v), convExp s e)
+    and convSeqexp s [] = []
+      | convSeqexp _ (PT.MARKseqexp { tree = ast, span = s } :: l) =
+         convSeqexp s (ast :: l)
+      | convSeqexp s (PT.ACTIONseqexp e :: l) =
+         AST.ACTIONseqexp (convExp s e) :: convSeqexp s l
+      | convSeqexp s (PT.BINDseqexp (v,e) :: l) = let
+            val rhs = convExp s e
+            val _ = startScope ()
+            val lhs = newVar (s,v)
+            val rem = convSeqexp s l
+            val _ = endScope ()
+         in
+            AST.BINDseqexp (lhs, rhs) :: rem
+         end
     and convDecodepat s (PT.MARKdecodepat m) =
         AST.MARKdecodepat (convMark convDecodepat m)
       | convDecodepat s (PT.TOKENdecodepat t) =
@@ -209,34 +236,27 @@ end = struct
       | convPat s (PT.BITpat str) = AST.BITpat str
       | convPat s (PT.LITpat lit) = AST.LITpat (convLit s lit)
       | convPat s (PT.IDpat v) = AST.IDpat (newVar (s,v))
+      | convPat s (PT.CONpat (c, SOME p)) = AST.CONpat (useCon (s,c), SOME (convPat s p))
+      | convPat s (PT.CONpat (c, NONE)) = AST.CONpat (useCon (s,c), NONE)
       | convPat s (PT.WILDpat) = AST.WILDpat
     and convLit s (PT.INTlit i) = AST.INTlit i
       | convLit s (PT.FLTlit f) = AST.FLTlit f
       | convLit s (PT.STRlit str) = AST.STRlit str
 
-   in (ST.varTable := VarInfo.empty;
-       ST.conTable := ConInfo.empty;
-       ST.typeTable := TypeInfo.empty;
-       ST.fieldTable := FieldInfo.empty;
+   in (Primitives.addPrimitivesToTables ();
        convMark (fn s => List.map (regDecl s)) ast;
        convMark (fn s => List.map (convDecl s)) ast)
    end
 
-   fun resolveSymbols ast = let
-      val ers = Error.mkErrStream "<no file>"
-   in
-     resolveSymbolPass (ers, ast)
-       before
-         Error.report (TextIO.stdErr, ers)
-   end
-   
-   fun test fp = let
-     val ers = Error.mkErrStream fp
-   in case Parser.parse fp of
-       SOME ast => (AST.PP.pretty (resolveSymbolPass (ers, ast)); TextIO.print "\n")
-                  before
-                    Error.report (TextIO.stdErr, ers)
-     | NONE => Error.report (TextIO.stdErr, ers)
-   end
+   val resolveSymbolPass =
+      BasicControl.mkTracePassSimple
+         {passName="resolveSymbolPass",
+          pass=resolveSymbolPass}
 
+   fun run spec = let
+      open CompilationMonad
+   in
+      getErrorStream >>= (fn errs =>
+      return (resolveSymbolPass (errs, spec)))
+   end
 end

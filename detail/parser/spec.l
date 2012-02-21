@@ -92,9 +92,13 @@ fun fromHexString s = let
 %let hexdigit = [0-9a-fA-F];
 %let hexnum = "0x"{hexdigit}+;
 %let idchar = {letter}|{dig}|"_"|"-";
+(* Constructors start with upper case letters *)
+%let constart = [A-Z];
+%let cons = {constart}{idchar}*;
 %let id = {letter}{idchar}*;
 %let esc = "\\"[abfnrtv\\\"]|"\\"{dig}{dig}{dig};
-%let sgood = [\032-\126]&[^\"\\]; (* sgood means "characters good inside strings" *)
+(* sgood means "characters good inside strings" *)
+%let sgood = [\032-\126]&[^\"\\];
 %let ws = " "|[\t\n\v\f\r];
 %let binary = [0-1];
 %let bitstr = {binary}+;
@@ -107,7 +111,7 @@ fun fromHexString s = let
 <INITIAL>"datatype" => (T.KW_datatype);
 <INITIAL>"extend" => (T.KW_extend);
 <INITIAL>"type" => (T.KW_type);
-<INITIAL>"decode" => (T.KW_decode);
+<INITIAL>"dec" => (T.KW_dec);
 <INITIAL>"raise" => (T.KW_raise);
 <INITIAL>"if" => (T.KW_if);
 <INITIAL>"then" => (T.KW_then);
@@ -129,6 +133,8 @@ fun fromHexString s = let
 <INITIAL>"}" => (T.RCB);
 <INITIAL>"_" => (T.WILD);
 <INITIAL>"*" => (T.TIMES);
+<INITIAL>"@" => (T.WITH);
+<INITIAL>"$" => (T.SELECT);
 <INITIAL>"=" => (T.EQ);
 <INITIAL>"," => (T.COMMA);
 <INITIAL>";" => (T.SEMI);
@@ -150,6 +156,7 @@ fun fromHexString s = let
 <BITPAT>{ws} => (skip ());
 <BITPATNUM>{ws} => (YYBEGIN BITPAT; skip());
 
+<INITIAL>{cons} => (T.CONS (Atom.atom yytext));
 <INITIAL>{id} => (T.ID (Atom.atom yytext));
 <INITIAL>{symid} => (T.SYMBOL (Atom.atom yytext));
 <INITIAL,BITPATNUM>{num} => (T.POSINT(valOf (IntInf.fromString yytext)));

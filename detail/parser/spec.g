@@ -7,7 +7,7 @@
    | KW_in ("in")
    | KW_do ("do")
    | KW_datatype ("datatype")
-   | KW_decode ("decode")
+   | KW_dec ("dec")
    | KW_include ("include")
    | KW_extend ("extend")
    | KW_div ("div")
@@ -25,6 +25,8 @@
    | KW_state ("state")
    | KW_then ("then")
    | KW_type ("type")
+   | WITH ("@")
+   | SELECT ("$")
    | BIND ("<-")
    | EQ ("=")
    | TICK ("'")
@@ -49,6 +51,7 @@
    | BITSTR of string
    | TYVAR of Atom.atom
    | ID of Atom.atom
+   | CONS of Atom.atom
    | POSINT of IntInf.int (* positive integer *)
    | NEGINT of IntInf.int (* negative integer *)
    | FLOAT of FloatLit.float
@@ -107,16 +110,18 @@ Decl
    | "state" "=" StateTy => (markDecl (FULL_SPAN, PT.STATEdecl StateTy))
    | "datatype" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
-   | "decode" "[" DecodePat+ "]" pat=
+   | "dec" "[" DecodePat+ "]" pat=
       ( "=" Exp =>
          (mark PT.MARKdecodedecl (FULL_SPAN, PT.DECODEdecodedecl (DecodePat, Exp)))
       | ("|" Exp "=" Exp)+ =>
          (mark PT.MARKdecodedecl (FULL_SPAN, PT.GUARDEDdecodedecl (DecodePat, SR)))) =>
       (markDecl (FULL_SPAN, PT.DECODEdecl pat))
-   | "val" Name decl=
+   | "dec" Name decl=
       ( "[" DecodePat+ "]" "=" Exp =>
-         (PT.DECODEdecl (mark PT.MARKdecodedecl (FULL_SPAN, PT.NAMEDdecodedecl (Name, DecodePat, Exp))))
-      | args=Name* "=" Exp =>
+         (PT.DECODEdecl (mark PT.MARKdecodedecl (FULL_SPAN, PT.NAMEDdecodedecl (Name, DecodePat, Exp))))) =>
+      (markDecl (FULL_SPAN, decl))
+   | "val" Name decl=
+      ( args=Name* "=" Exp =>
          (PT.VALUEdecl (mark PT.MARKvaluedecl (FULL_SPAN, PT.LETvaluedecl (Name, args, Exp))))) =>
       (markDecl (FULL_SPAN, decl))
    | "rec" Name decl=
@@ -135,7 +140,7 @@ ConDecls
    ;
 
 ConDecl
-   : Name ("of" Ty)? => (mark PT.MARKcondecl (FULL_SPAN, PT.CONdecl (Name, SR)))
+   : ConBind ("of" Ty)? => (mark PT.MARKcondecl (FULL_SPAN, PT.CONdecl (ConBind, SR)))
    ;
 
 Ty
@@ -208,6 +213,7 @@ Pat
    | "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
    | Lit => (mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
    | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat Name))
+   | ConUse Pat? => (mark PT.MARKpat (FULL_SPAN, PT.CONpat (ConUse, Pat)))
    ;
 
 OrElseExp
@@ -246,8 +252,7 @@ SelectExp
 
 ApplyExp
    : AtomicExp exp=
-      ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))
-      | "." Qid => (PT.SELECTexp (AtomicExp, Qid))) =>
+      ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))) =>
          (mark PT.MARKexp (FULL_SPAN, exp))
    | "~" AtomicExp =>
       (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, AtomicExp)))
@@ -256,6 +261,10 @@ ApplyExp
 AtomicExp
    : Lit => (mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
    | Qid => (mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
+   | ConUse => (mark PT.MARKexp (FULL_SPAN, PT.CONexp ConUse))
+   | "@" "{" Qid "=" Exp ("," Qid "=" Exp)* "}" =>
+      (mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp ((Qid, Exp)::SR)))
+   | "$" Qid => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp Qid))
    | "(" ")" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "(" Exp ")" => (Exp)
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
@@ -263,8 +272,6 @@ AtomicExp
    | "let" ValueDecl+ "in" Exp "end" =>
       (mark PT.MARKexp (FULL_SPAN, PT.LETexp (ValueDecl, Exp)))
    ;
-
-
 
 ValueDecl
    : "val" Name Name* "=" Exp =>
@@ -285,6 +292,15 @@ Int
 
 Name
    : ID => (ID)
+   ;
+
+(* Constructors *)
+ConBind
+   : CONS => (CONS)
+   ;
+
+ConUse
+   : CONS => ({span=FULL_SPAN, tree=CONS})
    ;
 
 Sym

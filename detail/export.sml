@@ -1,7 +1,8 @@
 
-(** == Exported signatures == *)
+(** ## Exported signatures *)
 
-(** == Exported structures == *)
+(** ## Exported structures *)
+
 structure SpecParseTree = SpecParseTree
 structure Parser = Parser
 structure SpecAbstractTree = SpecAbstractTree
@@ -12,5 +13,9 @@ structure InlineDecodePatterns = InlineDecodePatterns
 structure SymbolTables = SymbolTables
 structure SymbolTable = SymbolTable
 structure VarInfo = VarInfo
+structure Types = Types
+structure BooleanDomain = BooleanDomain
+structure Main = Main
 
-(** == Exported functors == *)
+(** ## Exported functors *)
+

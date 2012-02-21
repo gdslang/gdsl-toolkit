@@ -15,19 +15,22 @@ group is
        stamp.sml
        stats.sml
        basis.sml
-       pp.sml
        layout-sig.sml
-       layout.sml)
+       layout.sml
+       pp.sml
+       compilation-monad.sml)
 
    ../../parser/mk-ast.sml
    ../../parser/spec-parse-tree.sml
    ../../parser/spec.l : ml-ulex
    ../../parser/spec.g : ml-antlr
    ../../parser/parser.sml
-   ../../semantic/spec-abstract-tree.sml
    ../../semantic/symbol-table-type.sml
+   ../../semantic/spec-abstract-tree.sml
+   ../../semantic/boolean-domain.sml
    ../../semantic/lang-types.sml
+   ../../semantic/primitives.sml
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
-   ../../semantic/primitives.sml
    ../../opt/inline.sml
+   ../../driver/main.sml

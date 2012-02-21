@@ -21,7 +21,7 @@ signature SymbolTableSig  = sig
    val getAtom : (table * symid) -> Atom.atom
    val getString : (table * symid) -> string
    val getSpan : (table * symid) -> Error.span
-   
+
    val toString : table -> string
 end
 
@@ -33,7 +33,7 @@ structure SymbolTable :> SymbolTableSig = struct
    datatype symid = SymId of int
 
    fun compare_symid (SymId i1, SymId i2) = Int.compare (i1,i2)
-   
+
    exception SymbolAlreadyDefined
 
    type SymbolInfo = Atom.atom * Error.span * symid
@@ -45,7 +45,7 @@ structure SymbolTable :> SymbolTableSig = struct
    val empty = (SymbolTable.empty, [Reverse.empty])
 
    fun find ((st, []), atom) = NONE
-     | find ((st, rev::r), atom) = 
+     | find ((st, rev::r), atom) =
        case Reverse.find (rev, atom) of
            (SOME id) => SOME id
          | NONE => find ((st, r), atom)
@@ -70,10 +70,10 @@ structure SymbolTable :> SymbolTableSig = struct
               ((st,rev::r), id)
            end
       end
-    
+
    fun push (st, r) = (st, Reverse.empty :: r)
-   fun pop ts = let val (st, _ :: r) = ts in (st, r) end 
-   
+   fun pop ts = let val (st, _ :: r) = ts in (st, r) end
+
    exception InvalidSymbolId
 
    fun getSymbolInfo ((st, _), SymId idx) =
@@ -82,10 +82,10 @@ structure SymbolTable :> SymbolTableSig = struct
           | (NONE) => raise InvalidSymbolId
 
    fun getAtom ti = let val (atom,_,_) = getSymbolInfo ti in atom end
-   fun getString (ti as (_, SymId i)) = Atom.toString (getAtom ti) ^
-                                      "<" ^ Int.toString i ^ ">"
+   fun getString (ti as (_, SymId i)) =
+      Atom.toString (getAtom ti) ^ "#" ^ Int.toString i
    fun getSpan ti = let val (_,span,_) = getSymbolInfo ti in span end
-   
+
    fun toString (st, revs) =
       let val (r :: rev) = revs
           fun fS a i [] = 10000
@@ -95,7 +95,7 @@ structure SymbolTable :> SymbolTableSig = struct
                 | SOME (SymId j) => if j<>i then 1+fS a i rev else 0
               )
           and findScope a i = case fS a i revs of
-                0 => "" 
+                0 => ""
               | 1 => " declared 1 scope up"
               | n => if n<10000 then " declared " ^ Int.toString(n) ^ " scopes up"
                      else " out of scope"
@@ -107,7 +107,7 @@ structure SymbolTable :> SymbolTableSig = struct
             (SymbolTable.listItems st)
           )
       end
-      
+
 end
 
 structure ord_symid = struct
