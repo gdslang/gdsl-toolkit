@@ -34,3 +34,9 @@ which makes an ugly hack necessary after grammar regeneration.
     - Main.run "examples/x86.spec";
 
 -- h4ppy h4ck1n9
+
+# Resources
+
+For ml-antlr and sml tutorials have a look at
+   - http://www.classes.cs.uchicago.edu/archive/2009/winter/22610-1/resources.html
+   - http://www.classes.cs.uchicago.edu/archive/2009/winter/22610-1/resources/ml-lpt.pdf
