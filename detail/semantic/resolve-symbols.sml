@@ -1,12 +1,16 @@
+
+(**
+ * ## Resolve Symbols
+ *
+ * Annotate AST with symbol identifiers.
+ *)
 structure ResolveSymbols : sig
 
-   (* annotate AST with symbol identifiers, return false if there were errors *)
    val resolveSymbolPass: (Error.err_stream * SpecParseTree.specification) -> SpecAbstractTree.specification
-   val resolveSymbols: SpecParseTree.specification -> SpecAbstractTree.specification
    val run: SpecParseTree.specification -> SpecAbstractTree.specification CompilationMonad.t
 
-   val test: string -> unit
    val startScope : unit -> unit
+
 end = struct
 
   structure PT = SpecParseTree
@@ -244,13 +248,10 @@ end = struct
        convMark (fn s => List.map (convDecl s)) ast)
    end
 
-   fun resolveSymbols ast = let
-      val ers = Error.mkErrStream "<no file>"
-   in
-     resolveSymbolPass (ers, ast)
-       before
-         Error.report (TextIO.stdErr, ers)
-   end
+   val resolveSymbolPass =
+      BasicControl.mkTracePassSimple
+         {passName="resolveSymbolPass",
+          pass=resolveSymbolPass}
 
    fun run spec = let
       open CompilationMonad
@@ -258,14 +259,4 @@ end = struct
       getErrorStream >>= (fn errs =>
       return (resolveSymbolPass (errs, spec)))
    end
-
-   fun test fp = let
-     val ers = Error.mkErrStream fp
-   in case Parser.parse fp of
-       SOME ast => (AST.PP.pretty (resolveSymbolPass (ers, ast)); TextIO.print "\n")
-                  before
-                    Error.report (TextIO.stdErr, ers)
-     | NONE => Error.report (TextIO.stdErr, ers)
-   end
-
 end
