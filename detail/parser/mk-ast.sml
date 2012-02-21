@@ -138,21 +138,24 @@ functor MkAst (Core: AST_CORE) = struct
 
       and decl t =
          case t of
-            MARKdecl t' => paren (decl (#tree t'))
+            MARKdecl t' => decl (#tree t')
           | INCLUDEdecl inc => seq [str "INCLUDE", space, str inc]
           | GRANULARITYdecl i => seq [str "GRANULARITY", space, int i]
-          | STATEdecl ss => seq [str "STATE", space, list (map (tuple3 (var_bind, ty, exp)) ss)]
+          | STATEdecl ss => def (str "STATE", list (map (tuple3 (var_bind, ty, exp)) ss))
           | TYPEdecl (t, tyexp) => seq [str "TYPE", space, syn_bind t, space, ty tyexp]
-          | DATATYPEdecl (t, decls) => seq [str "DATATYPE", space, con_bind t, space, list (map condecl decls)]
+          | DATATYPEdecl (t, decls) => def (seq [str "DATATYPE", space, con_bind t], list (map condecl decls))
           | DECODEdecl decl => decodedecl decl
           | VALUEdecl decl => valuedecl decl
 
       and decodedecl t =
          case t of
             MARKdecodedecl t' => decodedecl (#tree t')
-          | NAMEDdecodedecl (name, pats, e) => seq [str "DECODE", space, var_bind name, space, list (map decodepat pats), space, exp e]
-          | DECODEdecodedecl (pats, e) => seq [str "DECODE", space, list (map decodepat pats), space, exp e]
-          | GUARDEDdecodedecl (pats, gexps) => seq [str "DECODE", space, list (map decodepat pats), space, list (map guardedexp gexps)]
+          | NAMEDdecodedecl (name, pats, e) => def (seq [str "DECODE", space, var_bind name, space, list (map decodepat pats)], exp e)
+          | DECODEdecodedecl (pats, e) => def (seq [str "DECODE", space, list (map decodepat pats)], exp e)
+          | GUARDEDdecodedecl (pats, gexps) =>
+               def
+                  (seq [str "DECODE", space, list (map decodepat pats)],
+                   seq [str "[", alignPrefix (map guardedexp gexps, ","), str "]"])
 
       and decodepat t =
          case t of
@@ -178,8 +181,8 @@ functor MkAst (Core: AST_CORE) = struct
       and valuedecl t =
          case t of
             MARKvaluedecl t' => valuedecl (#tree t')
-          | LETvaluedecl (name, args, e) => seq [str "LET", space, var_bind name, space, list (map var_bind args), space, exp e]
-          | LETRECvaluedecl (name, args, e) => seq [str "REC", space, var_bind name, space, list (map var_bind args), space, exp e]
+          | LETvaluedecl (name, args, e) => def (seq [str "VAL", space, var_bind name, space, list (map var_bind args)], exp e)
+          | LETRECvaluedecl (name, args, e) => def (seq [str "REC", space, var_bind name, space, list (map var_bind args)], exp e)
 
       and condecl t =
          case t of
@@ -241,6 +244,8 @@ functor MkAst (Core: AST_CORE) = struct
           | IDexp id => var_use id
           | CONexp con => seq [str "`", con_use con]
           | FNexp (x, e) => paren (seq [str "FN", space, var_bind x, space, exp e])
+
+      and def (nameAndArgs, body) = align [nameAndArgs, indent 2 body]
 
       val pretty = Pretty.pretty o spec
       fun prettyTo (os, t) = Pretty.prettyTo (os, spec t)
