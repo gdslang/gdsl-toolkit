@@ -67,7 +67,7 @@ end = struct
                         (pats,
                          SEQexp [ACTIONseqexp exp', ACTIONseqexp exp])
                in
-                  map := Map.insert (!map, x, ps)
+                  map := Map.insert (!map, x, (pats, exp'))
                  ;ps
                end
 

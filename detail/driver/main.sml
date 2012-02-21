@@ -76,7 +76,7 @@ structure Main = struct
 
    and processFile (arg, args) =
       case (arg, args) of
-         (file, []) => (run file; OS.Process.exit OS.Process.success)
+         (file, []) => run file
        | _ => usage ()
 
    and processOption (arg, args) = let
@@ -102,5 +102,7 @@ structure Main = struct
       ;OS.Process.exit OS.Process.failure)
 
    and run fp = Passes.run fp
-   fun main () = processArgs (CommandLine.arguments())
+   fun main () =
+      (processArgs (CommandLine.arguments())
+      ;OS.Process.exit OS.Process.success)
 end
