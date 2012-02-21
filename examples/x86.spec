@@ -7,19 +7,23 @@ granularity = 32
 
 # The state of the decode monad
 state =
-   {MODE64:1=0,
-    REP:1=0,
-    REXW:1=0,
-    OPNDSZ:1=0,
-    ADDRSZ:1=0}
+   {mode64:1=0,
+    rep:1=0,
+    rexw:1=0,
+    opndsz:1=0,
+    addrsz:1=0}
 
-include "x86-registers.spec"
+#include "x86-registers.spec"
 
 datatype register =
-   AL | AH | AX | EAX | RAX
- | BL | BH | BX | EBX | RBX
- | CL | CH | CX | ECX | RCX
- | DL | DH | DX | EDX | RDX
+   AL | AH | AX | EAX | RAX | XMM0
+ | CL | CH | CX | ECX | RCX | XMM1
+ | DL | DH | DX | EDX | RDX | XMM2
+ | BL | BH | BX | EBX | RBX | XMM3
+ | SP | ESP | RSP | XMM4
+ | BP | EBP | RBP | XMM5
+ | SI | ESI | RSI | XMM6
+ | DI | EDI | RDI | XMM7
 
 datatype opnd =
    REG of {sizeinbits: int, reg: register}
@@ -38,6 +42,9 @@ datatype insn =
  | SUB of binop
  | MUL of binop
  | DIV of binop
+
+datatype size =
+	B | W
 
 # Example of bit-patterns
 dec /0 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
@@ -64,13 +71,13 @@ dec s ['sizeBit:1'] = let
          '0': W
        | '1': B
 in
-   update {size=sizeTag}
+   update {size=someTag}
 end
 
 # `imm` is a monadic action that reads 8 or 16 bits, depending on the current
 # state
 val imm = do
-   sizeTag <- query size;
+   sizeTag <- query $size;
    case sizeTag of
       B: imm8
     | W: imm16
@@ -78,68 +85,68 @@ end
 
 val regN num size =
    case num of
-       '000': case size of
+       '000': (case size of
 	         128: XMM0
 	       |  64: RAX
 	       |  32: EAX
 	       |  16: AX
-	       |   8: AL
-     | '001': case size of
+	       |   8: AL)
+     | '001': (case size of
 	         128: XMM1
 	       |  64: RCX
 	       |  32: ECX
 	       |  16: CX
-	       |   8: CL
-     | '010': case size of
+	       |   8: CL)
+     | '010': (case size of
 	         128: XMM2
 	       |  64: RDX
 	       |  32: EDX
 	       |  16: DX
-	       |   8: DL
-     | '011': case size of
+	       |   8: DL)
+     | '011': (case size of
 	         128: XMM3
 	       |  64: RBX
 	       |  32: EBX
 	       |  16: BX
-	       |   8: BL
-     | '100': case size of
+	       |   8: BL)
+     | '100': (case size of
 	         128: XMM4
 	       |  64: RSP
 	       |  32: ESP
 	       |  16: SP
-	       |   8: AH
-     | '101': case size of
+	       |   8: AH)
+     | '101': (case size of
 	         128: XMM5
 	       |  64: RBP
 	       |  32: EBP
 	       |  16: BP
-	       |   8: CH
-     | '110': case size of
+	       |   8: CH)
+     | '110': (case size of
 	         128: XMM6
 	       |  64: RSI
 	       |  32: ESI
 	       |  16: SI
-	       |   8: DH
-     | '111': case size of
+	       |   8: DH)
+     | '111': (case size of
 	         128: XMM7
 	       |  64: RDI
 	       |  32: EDI
 	       |  16: DI
-	       |   8: BH
-end
+	       |   8: BH)
+
 
 val r/m16 = do
    mod <- query $mod;
    rm <- query $rm;
    case mod of
-      '00': case rm of
-             ...
-    | '11': return (regN rm)
+#      '00': case rm of
+#             ...
+(*    |*) '11': return (regN rm 32)
 end
 
 val r16 = do
-   reg <- query reg;
-   return (regN reg)
+   reg <- query $reg;
+   return (regN reg 32)
 end
 
 val r32 = return EAX
