@@ -48,7 +48,6 @@ end = struct
       val varmap = !SymbolTables.varTable
 
       fun inline (x, exp) =
-         (* TODO: handle recursive decode patterns *)
          case Map.find (!map, x) of
             NONE =>
                (Error.errorAt
@@ -129,16 +128,16 @@ end = struct
                end
           | GUARDEDdecodedecl (pats, cases) =>
                let
-                  val (pats, inlineExp) = flattenDecodePats (pats, SEQexp [])
                   fun lp (cases, acc) =
                      case cases of
                         [] => rev acc
                       | (guard, exp)::cs =>
-                           lp (cs,
-                               (guard,
-                                (SEQexp
-                                    [ACTIONseqexp inlineExp,
-                                     ACTIONseqexp exp]))::acc)
+                           let
+                              val (_, inlined) = flattenDecodePats (pats, exp)
+                           in
+                              lp (cs, (guard, inlined)::acc)
+                           end
+                  val (pats, _) = flattenDecodePats (pats, SEQexp[])
                in
                   GUARDEDdecodedecl (pats, lp (cases, []))
                end
