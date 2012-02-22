@@ -5,13 +5,17 @@
 
 granularity = 32
 
+datatype rex = REX of { w:1, r:1, x:1, b:1 }
+
 # The state of the decode monad
 state =
    {mode64:1=0,
     rep:1=0,
     rexw:1=0,
     opndsz:1=0,
-    addrsz:1=0}
+    addrsz:1=0,
+    rex:rex = REX { w = 0, r = 0,  x = 0, b = 0 }
+    }
 
 #include "x86-registers.spec"
 
@@ -135,13 +139,34 @@ val regN num size =
 	       |   8: BH)
 
 
-val r/m16 = do
+val operandSize = do
+	rex <- query $rex;
+	opndsz <- query $opndsz;
+	case ($w rex) of
+	   '0': (case opndsz of
+	   	    '0': return 32
+		  | '1': return 16)
+	 | '1': return 64
+end
+
+val addressSize = do
+	addrsz <- query $addrsz;
+	case addrsz of
+	   '0': return 64
+	 | '1': return 32
+end
+
+val r/m = do
    mod <- query $mod;
    rm <- query $rm;
    case mod of
 #      '00': case rm of
 #             ...
 (*    |*) '11': return (regN rm 32)
+end
+
+val r/m16 = do
+	42
 end
 
 val r16 = do
@@ -173,3 +198,4 @@ dec [0x66 0xC7 /0]
    | otherwise = mov r32 imm32
 
 dec [0x66] = do update @{opndsz=1}; continue end
+dec [0x67] = do update @{addrsz=1}; continue end
