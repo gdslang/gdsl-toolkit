@@ -156,17 +156,19 @@ val addressSize = do
 	 | '1': return 32
 end
 
-val r/m = do
+val r/m oS aS = do
    mod <- query $mod;
    rm <- query $rm;
+   oS <- oS;
+   aS <- aS;
    case mod of
 #      '00': case rm of
 #             ...
-(*    |*) '11': return (regN rm 32)
+(*    |*) '11': return (regN rm oS)
 end
 
 val r/m16 = do
-	42
+	r/m 16
 end
 
 val r16 = do
@@ -193,9 +195,8 @@ dec [0x80 /r]
    | rexw = mov r/m64 r64
    | otherwise = mov r/m32 r32
 
-dec [0x66 0xC7 /0]
-   | opndsz = mov r16 imm16
-   | otherwise = mov r32 imm32
+dec [0x66 0xC7 /0] | opndsz = mov r16 imm16
+   		   | otherwise = mov r32 imm32
 
 dec [0x66] = do update @{opndsz=1}; continue end
 dec [0x67] = do update @{addrsz=1}; continue end
