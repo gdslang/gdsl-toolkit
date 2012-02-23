@@ -29,16 +29,32 @@ datatype register =
  | SI | ESI | RSI | XMM6
  | DI | EDI | RDI | XMM7
 
-datatype opnd =
+datatype lopnd =
    REG of {sizeinbits: int, reg: register}
- | MEM of {accesssize: int, opnd: opnd}
- | IMM of {sizeinbits: int, value: int}
- | BIN of {op: string, left:opnd, right:opnd}
+ | MEM of {accesssize: int, mop: opexp}
+
+datatype ropnd =
+   RLOP of lopnd
  | IMM8 of 8
  | IMM16 of 16
  | IMM32 of 32
 
-type binop = {op1:opnd, op2:opnd}
+datatype opexp =
+   ESUM of { a: opexp, b:opexp }
+ | EPROD of { a: opexp, b:opexp }
+ | EOPND of ropnd
+# | IMM of {sizeinbits: int, value: int}
+# | BIN of {op: string, left:opnd, right:opnd}
+
+#datatype lval =
+# | LMEM of {accesssize: int, mop: opexp}
+# | LREG of {sizeinbits: int, reg: register}
+
+#datatype rval =
+# | RMEM of {accesssize: int, mop: opexp}
+# | RVAL of opexp
+
+type binop = {op1:lopnd, op2:ropnd}
 
 datatype insn =
    MOV of binop
