@@ -27,8 +27,11 @@ group is
    ../../parser/parser.sml
    ../../semantic/symbol-table-type.sml
    ../../semantic/spec-abstract-tree.sml
-   ../../semantic/boolean-domain.sml
-   ../../semantic/lang-types.sml
+   ../../semantic/typing/boolean-domain.sml
+   ../../semantic/typing/lang-types.sml
+   ../../semantic/typing/tvar.sml
+   ../../semantic/typing/environment.sml
+   ../../semantic/inference.sml
    ../../semantic/primitives.sml
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
