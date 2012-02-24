@@ -6,6 +6,7 @@ signature SymbolTableSig  = sig
    val noSpan : Error.span
 
    val compare_symid : symid * symid -> order
+   val eq_symid : symid * symid -> bool
 
    val empty : table
 
@@ -37,7 +38,8 @@ structure SymbolTable :> SymbolTableSig = struct
    val noSpan = (Position.fromInt ~1, Position.fromInt ~1)
 
    fun compare_symid (SymId i1, SymId i2) = Int.compare (i1,i2)
-
+   fun eq_symid  (SymId i1, SymId i2) = i1=i2
+   
    exception SymbolAlreadyDefined
 
    type SymbolInfo = Atom.atom * Error.span * symid

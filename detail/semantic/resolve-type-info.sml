@@ -60,9 +60,9 @@ end = struct
       | vType (s, AST.NAMEDty n) =
          T.SYN (n, S.lookup (!synTable, n))
       | vType (s, AST.RECty l) =
-         T.RECORD (Types.freshTVar (), List.map (vField s) l)
+         T.RECORD (Types.freshTVar (), BD.freshBVar (), List.map (vField s) l)
     and vField s (n, ty) =
-         T.RField {name = n, fty = vType (s, ty), needed = BD.invalidBVar}
+         T.RField {name = n, fty = vType (s, ty), exists = BD.freshBVar ()}
     and vCondecl (s,d, []) = SymMap.empty : Types.condescr
       | vCondecl (s,d, AST.MARKcondecl { span, tree }::l) = vCondecl (s,d,tree::l)
       | vCondecl (s,d, AST.CONdecl (c, arg)::l) =

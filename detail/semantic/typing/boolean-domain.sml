@@ -1,24 +1,22 @@
 structure BooleanDomain : sig
 
+   (*creation of Boolean variables*)
    type bvar
-   
-   val invalidBVar : bvar
+   val freshBVar : unit -> bvar
+
+   val eq : (bvar * bvar) -> bool
    
    type bfun
    
    val empty : bfun
 
-   (*introduce a variable that is unbounded*)
-   val introVar : bfun -> bfun * bvar
-   
-   (*introduce a variable that is constant*)
-   val introConst : bfun * bool -> bfun * bvar
+   val showVar : bvar -> string
    
    exception Unsatisfiable
    
-   val intersectVar : bfun * bvar * bvar -> bfun
+   val meetVarEqualsVar : bfun * bvar * bvar -> bfun
 
-   val intersectConst : bfun * bvar * bool -> bfun
+   val meetVarEqualsConst : bfun * bvar * bool -> bfun
 
    val eliminate : bfun * bvar list -> bfun
 
@@ -28,15 +26,23 @@ structure BooleanDomain : sig
    
 end = struct
 
-   datatype bVar = BVAR of int
+   datatype bvar = BVAR of int
 
-   type bvar = bVar
-   
-   val invalidBVar = BVAR 0
+   fun eq (BVAR v1, BVAR v2) = v1=v2
+
+   val bvarGenerator = ref 0
+
+   fun freshBVar () = let
+     val v = !bvarGenerator
+   in
+     (bvarGenerator := v+1; BVAR v)
+   end
 
    type bfun = unit
    
    val empty = ()
+
+   fun showVar (BVAR i) = "." ^ Int.toString i
 
    fun introVar f = (f, BVAR 0)
    
@@ -44,9 +50,9 @@ end = struct
    
    exception Unsatisfiable
    
-   fun intersectVar (f, v1, v2) = f
+   fun meetVarEqualsVar (f, v1, v2) = f
 
-   fun intersectConst (f, v, c) = f
+   fun meetVarEqualsConst (f, v, c) = f
 
    fun eliminate (f,l) = f
 

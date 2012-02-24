@@ -7,8 +7,10 @@ structure Main = struct
 
       fun all ins =
          Parser.run ins >>=
-         ResolveSymbols.run >>=
-         InlineDecodePatterns.run
+         ResolveSymbols.run >>= (fn ast =>
+         TypeInference.run ast >>= (fn tys =>
+         InlineDecodePatterns.run ast
+         ))
 
       fun run fp = let
          val ins = TextIO.openIn fp
