@@ -36,9 +36,9 @@ end = struct
    infix >>= >>
    
    type rhsInfo = (SymbolTable.symid *
-                   AST.decodepat option *
+                   (*pattern and guard for decode function*)
+                   (AST.decodepat list * AST.exp option) option *
                    AST.var_bind list *       (*arguments*)
-                   AST.exp option *          (*guard*)
                    AST.exp)
 
    structure SIMap = RedBlackMapFn (
@@ -50,9 +50,12 @@ end = struct
 fun typeInferencePass (errStrm, ast) = let
    val st = ref (ST.empty : symbol_types)
    
-   fun reportError conv {span, tree} = conv tree
+   fun reportError conv ({span = _, error = isErr }, env) {span=s, tree=t} =
+      conv ({span = s, error = isErr},env) t
       handle (UnificationFailure str) =>
-         (Error.errorAt (errStrm, span, [str]); raise TypeError)
+         (Error.errorAt (errStrm, s, [str]); raise TypeError)
+   val anonSym = VarInfo.lookup
+        (!SymbolTables.varTable, Atom.atom Primitives.anonDecodeFunction)     
 
    (* define a first traversal that creates a group of all top-level decls *)
    fun topDecl (AST.MARKdecl {span, tree=t}) = topDecl t
@@ -60,98 +63,55 @@ fun typeInferencePass (errStrm, ast) = let
      | topDecl (AST.VALUEdecl vd) = topValuedecl vd
      | topDecl _ = []
    and topDecodedecl (AST.MARKdecodedecl {span, tree=t}) = topDecodedecl t
-     | topDecodedecl (AST.NAMEDdecodedecl (v,pats,_)) =
-       [(v, SOME (checkDecodePats SymbolTable.noSpan pats))]
-     | topDecodedecl (AST.DECODEdecodedecl (pats,_)) = genAnonDecEntry pats
-     | topDecodedecl (AST.GUARDEDdecodedecl (pats,_)) = genAnonDecEntry pats
-   and genAnonDecEntry pats = 
-         [(VarInfo.lookup (!SymbolTables.varTable,
-          Atom.atom Primitives.anonDecodeFunction),
-         SOME (checkDecodePats SymbolTable.noSpan pats))]
-   and checkDecodePats s pats = let
-      fun cBP (_,NONE) = NONE
-        | cBP (AST.MARKbitpat {span, tree = t},v) = cBP (t,v)
-        | cBP (AST.BITSTRbitpat str, SOME v) = SOME (v+String.size str)
-        | cBP (AST.NAMEDbitpat _, v) = NONE
-        | cBP (AST.BITVECbitpat (_,s), SOME v) = SOME (IntInf.toInt(s)+v)
-      fun cDP _ (AST.MARKdecodepat {span = s,tree = t},v) = cDP s (t,v)
-        | cDP s (AST.TOKENdecodepat _,v) = v
-        | cDP s (AST.BITdecodepat pats, NONE) = List.foldl cBP (SOME 0) pats
-        | cDP s (AST.BITdecodepat pats, SOME v) =
-          (case List.foldl cBP (SOME 0) pats of
-             SOME v' => if v'=v then SOME v else
-               (Error.errorAt (errStrm, s, ["size of pattern is ",
-                 Int.toString(v'), " while it was ", Int.toString(v),
-                 " previously"]); NONE)
-           | NONE => SOME v)
-      in
-         List.foldl (cDP s) NONE pats
-      end
-     
+     | topDecodedecl (AST.NAMEDdecodedecl (v,_,_)) = [(v, true)]
+     | topDecodedecl (AST.DECODEdecodedecl (pats,_)) = [(anonSym, true)]
+     | topDecodedecl (AST.GUARDEDdecodedecl (pats,_)) = [(anonSym, true)]
    and topValuedecl (AST.MARKvaluedecl {span, tree = t}) = topValuedecl t
-     | topValuedecl (AST.LETvaluedecl (v,_,_)) = SIMap.singleton (v,NONE)
-     | topValuedecl (AST.LETRECvaluedecl (v,_,_)) = SIMap.singleton (v,NONE)
+     | topValuedecl (AST.LETvaluedecl (v,_,_)) = [(v,false)]
+     | topValuedecl (AST.LETRECvaluedecl (v,_,_)) = [(v,false)]
    
    val toplevelEnv = E.primitiveEnvironment (Primitives.getSymbolTypes ())
    val toplevelEnv = E.pushGroup
-         (List.map (fn (s, v) => case v of
-              NONE => (s, NONE)
-            | SOME NONE => (s, SOME (VAR (TVar.freshTVar (), BD.freshBVar ())))
-            | SOME (SOME v) => (s, SOME (CONST v)))
-          (SISet.listItemsi
-            (List.foldl (fn (ast,l) => topDecl ast @ l) [] 
-              (#tree (ast : SpecAbstractTree.specification))))
-         , toplevelEnv)
+      (List.foldl (op @) []
+         (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))
+      , toplevelEnv)
+
    (* define a second traversal that is a full inference of the tree *)
-   fun infDecl env (AST.MARKdecl m) = reportError (infDecl env) m
+   fun calcFixpoint stenv (sym, mDec, args, rhs) =
+      let
+         fun runFixpoint (st,env) = let
+            val env = E.pushTop env
+            val (stable, env) = E.popToFunction (sym, env)
+         in
+            if stable then env else runFixpoint (st,env)
+         end
+      in
+         runFixpoint stenv
+      end
+   
+   and infDecl stenv (AST.MARKdecl m) = reportError infDecl stenv m
      (*| infDecl env (AST.STATEdecl l) = AST.STATEdecl
        (List.map (fn (v,t,e) => (newVar (s,v), infTy env t, infExp env e)) l)*)
-     (*| infDecl env (AST.DECODEdecl dd) = AST.DECODEdecl (infDecodedecl env dd)
-     | infDecl env (AST.VALUEdecl vd) = AST.VALUEdecl (infValuedecl env vd)*)
-     | infDecl env _ = env
-   (*and infDecodedecl env (AST.MARKdecodedecl m) =
-         AST.MARKdecodedecl (reportError infDecodedecl m)
-     | infDecodedecl env (AST.NAMEDdecodedecl (v, l, e)) = let
-           val _ = startScope ()
-           val reenv = AST.NAMEDdecodedecl (VI.lookup (!ST.varTable, v),
-                       List.map (infDecodepat s) l, infExp env e)
-           val _ = endScope ()
-        in reenv end
-     | infDecodedecl env (AST.DECODEdecodedecl (l,e)) = let
-           val _ = startScope ()
-           val reenv = AST.DECODEdecodedecl
-                       (List.map (infDecodepat s) l, infExp env e)
-           val _ = endScope ()
-        in reenv end
-     | infDecodedecl env (AST.GUARDEDdecodedecl (pl, el)) = let
-           val _ = startScope ()
-           val reenv = AST.GUARDEDdecodedecl (List.map (infDecodepat s) pl,
-                 List.map (fn (e1,e2) => (infExp env e1, infExp env e2)) el)
-           val _ = endScope ()
-        in reenv end
-   and infValuedecl env (AST.MARKvaluedecl m) =
-       AST.MARKvaluedecl (reportError infValuedecl m)
-     | infValuedecl env (AST.LETvaluedecl (v,l,e)) = AST.LETvaluedecl
-       let val _ = startScope ()
-           (*val _ = TextIO.print ("before varenv e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
-           val l = List.map (fn v => newVar (s,v)) l
-           (*val _ = TextIO.print ("before e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
-           val e = infExp env e
-           (*val _ = TextIO.print ("after e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
-           val _ = endScope ()
-           val id = newLetVar (s,v)
-       in (id, l, e) end
-     | infValuedecl env (AST.LETRECvaluedecl (v,l,e)) = AST.LETRECvaluedecl
-       let val id = VI.lookup (!ST.varTable, v)
-           val _ = startScope ()
-           (*val _ = TextIO.print ("before varenv e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
-           val l = List.map (fn v => newVar (s,v)) l
-           (*val _ = TextIO.print ("before e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
-           val e = infExp env e
-           (*val _ = TextIO.print ("after e1 of " ^ Atom.toString v ^ ":\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
-           val _ = endScope ()
-       in (id, l, e) end
-   and infCondecl env (AST.MARKcondecl m) =
+     | infDecl stenv (AST.DECODEdecl dd) = infDecodedecl stenv dd
+     | infDecl stenv (AST.VALUEdecl vd) = infValuedecl stenv vd
+     | infDecl (st,env) _ = env
+   and infDecodedecl stenv (AST.MARKdecodedecl m) =
+         reportError infDecodedecl stenv m
+     | infDecodedecl stenv (AST.NAMEDdecodedecl (v, l, e)) =
+        calcFixpoint stenv (v, SOME (l, NONE), [], e)
+     | infDecodedecl stenv (AST.DECODEdecodedecl (l,e)) =
+        calcFixpoint stenv (anonSym, SOME (l, NONE), [], e)
+     | infDecodedecl (st,env) (AST.GUARDEDdecodedecl (l, el)) =
+         List.foldl (fn ((guard, rhs), env) =>
+            calcFixpoint (st,env) (anonSym, SOME (l, SOME guard), [], rhs))
+            env el
+   and infValuedecl stenv (AST.MARKvaluedecl m) =
+         reportError infValuedecl stenv m
+     | infValuedecl stenv (AST.LETvaluedecl (v,l,e)) =
+         calcFixpoint stenv (v, NONE, l, e)
+     | infValuedecl stenv (AST.LETRECvaluedecl (v,l,e)) =
+         calcFixpoint stenv (v, NONE, l, e)
+(*   and infCondecl env (AST.MARKcondecl m) =
        AST.MARKcondecl (reportError infCondecl m)
      | infCondecl env (AST.CONdecl (c,to)) = AST.CONdecl
        (newCon (s,c), case to of NONE => NONE | SOME t => SOME (infTy env t))
@@ -239,7 +199,9 @@ fun typeInferencePass (errStrm, ast) = let
      | infLit env (AST.STRlit str) = AST.STRlit str*)
 
    in
-      ( List.foldl (fn (d,env) => infDecl env d) toplevelEnv
+      ( List.foldl (fn (d,env) => infDecl ({span = SymbolTable.noSpan,
+                                            error = false},env) d)
+                   toplevelEnv
                    (#tree (ast : SpecAbstractTree.specification))
       ; !st)
    end

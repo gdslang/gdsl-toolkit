@@ -7,14 +7,15 @@ structure Environment : sig
    val pushSingle : VarInfo.symid * Types.texp * environment -> environment
    
    (*add a group of bindings to the current environment, each element in a
-   binding is identified by its symbol, each binding has an optional type that
-   is set to the width of the pattern that it matches; this entry is none for
-   normal functions*)
-   val pushGroup : (VarInfo.symid * Types.texp option) list * environment ->
+   binding is identified by its symbol, the flag is true if the symbol
+   is a decoder function*)
+   val pushGroup : (VarInfo.symid * bool) list * environment ->
                   environment
    val pushTop : environment -> environment
    val pushRecord : FieldInfo.symid list * environment -> environment
    val pushSymbol : VarInfo.symid * Error.span * environment -> environment
+   
+   val popToFunction : VarInfo.symid * environment -> bool * environment
    
    (*val reduceFunction : envionrment -> environment*)
    
@@ -75,13 +76,32 @@ end = struct
    fun pushSingle (sym, t, (scs, bFun)) =
          ({ bindInfo = SINGLE {name = sym, ty = t},
            typeVars = texpVarset (t,prevTVars scs)} :: scs, bFun)
+
+   structure SISet = RedBlackSetFn (
+      struct
+         type ord_key = SymbolTable.symid
+         val compare = SymbolTable.compare_symid
+      end)           
    fun pushGroup (syms, (scs, bFun)) = 
-         ({ bindInfo = GROUP (List.map (fn (s,ow) =>
-            {name = s, ty = NONE, width = ow, uses = []}) syms),
-            typeVars = List.foldl (fn ((s,ow), set) => case ow of
-                 SOME w => texpVarset (w,set)
-               | NONE => set) (prevTVars scs) syms
-         } :: scs, bFun)
+      let
+         val (funs, nonFuns) = List.partition (fn (s,dec) => not dec) syms
+         val funDefs = List.map
+            (fn (s,_) => {name = s, ty = NONE, width = NONE, uses = []}) funs
+         val nonFunSyms =
+            SISet.listItems (SISet.fromList (List.map (fn (s,_) => s) funs))
+         val nonFunDefs = List.map
+            (fn s => {name = s, ty = NONE, width =
+              SOME (VAR (TVar.freshTVar (), BD.freshBVar ())),
+              uses = []}) nonFunSyms
+         val tvs = TVar.fromList
+            (List.map (fn {width = w, ...} => case w of
+               SOME (VAR (v,_)) => v
+             | _ => raise InferenceBug) nonFunDefs)
+      in                                                                    
+         ({bindInfo = GROUP (funDefs @ nonFunDefs),
+           typeVars = TVar.union (tvs,prevTVars scs)} :: scs, bFun)
+      end                                    
+
    fun pushTop (scs, bFun) = case scs of
         [] => raise InferenceBug
       | {bindInfo = _, typeVars = tv} :: _ =>
@@ -169,7 +189,21 @@ end = struct
       in 
          ({bindInfo = KAPPA {ty = sType}, typeVars = prevTVars scs} :: scs, bFun)
       end
-   
+
+   fun popToFunction (sym, (scs, bFun)) =
+      let
+         val (scs, bs, t) = (case scs of
+              ({bindInfo = KAPPA {ty =t}, typeVars=_} ::
+               (scs as {bindInfo = GROUP bs, typeVars} :: _)) => (scs, bs, t)
+            | _ => raise InferenceBug)
+         val typeOpt = 
+            case List.filter (fn {name,...} => ST.eq_symid (sym,name)) bs of
+                 [{name, ty, width, uses}] => ty
+               | _ => raise InferenceBug
+      in
+         (true, (scs, bFun))
+      end
+
    fun meet ((scs1, bFun1), (scs2, bFun2)) = (scs2, bFun2)
 
    (*val pushKappa t bs = KAPPA {ty = t} :: bs
