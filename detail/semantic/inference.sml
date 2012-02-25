@@ -81,9 +81,9 @@ fun typeInferencePass (errStrm, ast) = let
       let
          fun runFixpoint (st,env) = let
             val env = E.pushTop env
-            val (stable, env) = E.popToFunction (sym, env)
+            val env = E.popToFunction (sym, env)
          in
-            if stable then env else runFixpoint (st,env)
+            env (*if stable then env else runFixpoint (st,env)*)
          end
       in
          runFixpoint stenv

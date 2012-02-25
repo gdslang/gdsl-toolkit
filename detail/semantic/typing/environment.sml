@@ -14,8 +14,8 @@ structure Environment : sig
    val pushTop : environment -> environment
    val pushRecord : FieldInfo.symid list * environment -> environment
    val pushSymbol : VarInfo.symid * Error.span * environment -> environment
-   
-   val popToFunction : VarInfo.symid * environment -> bool * environment
+
+   val popToFunction : VarInfo.symid * environment -> environment
    
    (*val reduceFunction : envionrment -> environment*)
    
@@ -35,6 +35,11 @@ end = struct
 
    (*any error that is not due to unification*)
    exception InferenceBug
+   
+   datatype bind_info
+      = SIMPLE of { ty : texp }
+      | COMPOUND of { ty : texp option, width : texp option,
+                     uses : (Error.span * texp) list }
 
    datatype binding
       = KAPPA of {
@@ -51,38 +56,136 @@ end = struct
          uses : (Error.span * texp) list
       } list
    
-   type scope = {
-      bindInfo : binding,
-      typeVars : TVar.set
-   }
-
+   (*a scope contains one of the bindings above and some additional
+   information that make substitution and join cheaper*)
+   structure Scope : sig
+      type scope
+      type environment = scope list * BD.bfun
+      val initial : binding -> environment
+      val wrap : (binding * environment) -> environment
+      val unwrap : environment -> (binding * environment)
+      val lookup : ST.symid * environment -> bind_info
+      val update : ST.symid  *
+                   (bind_info * BD.bfun -> bind_info * BD.bfun) *
+                   environment-> environment
+   end = struct
+      type scope = {
+         bindInfo : binding,
+         typeVars : TVar.set,
+         version : int
+      }
+      type environment = scope list * BD.bfun
    
-   type environment = scope list * BD.bfun
+      val verCounter = ref 0
+      fun nextVersion () =  let
+           val v = !verCounter
+         in
+           (verCounter := v+1; v)
+         end             
 
-   fun primitiveEnvironment l = ([{
-      bindInfo = GROUP (List.map (fn (s,t,ow) => {name = s, ty = SOME t,
-                                                  width = ow, uses = []}) l),
-      typeVars = TVar.union
-         (List.foldl (fn ((s,t,ow), set) => texpVarset (t,set)) TVar.empty l
-         ,List.foldl (fn ((s,t,ow), set) => case ow of
-              SOME w => texpVarset (w,set)
-            | NONE => set) TVar.empty l
-         )
-   }], BD.empty)
+      fun prevTVars [] = raise InferenceBug
+        | prevTVars ({bindInfo, typeVars = tv, version}::_) = tv
+
+      fun varsOfBinding (KAPPA {ty=t},set) = texpVarset (t,set)
+        | varsOfBinding (SINGLE {name, ty=t},set) = texpVarset (t,set)
+        | varsOfBinding (GROUP bs,set) = let
+           fun vsOpt (SOME t,set) = texpVarset (t,set)
+             | vsOpt (NONE,set) = set
+           fun getUsesVars ((_,t),set) = texpVarset (t,set)
+           fun getBindVars ({name, ty=t, width=w, uses},set) =
+               List.foldl getUsesVars (vsOpt (t, vsOpt (w,set))) uses
+        in
+           List.foldl getBindVars set bs
+        end
+      fun initial b =
+         ([{
+            bindInfo = b,
+            typeVars = varsOfBinding (b,TVar.empty),
+            version = 0
+          }],BD.empty)
+      fun wrap (b, (scs, bFun)) =
+         ({
+            bindInfo = b,
+            typeVars = varsOfBinding (b,prevTVars scs),
+            version = nextVersion ()
+         }::scs,bFun)
+      fun unwrap ({bindInfo = bi, typeVars, version} :: scs, bFun) =
+            (bi, (scs, bFun))
+        | unwrap ([], bFun) = raise InferenceBug
+      
+      fun lookup (sym, (scs, bFun)) =
+         let
+            fun l [] = raise InferenceBug
+              | l ({bindInfo = KAPPA _, typeVars, version}::scs) = l scs
+              | l ({bindInfo = SINGLE {name, ty}, typeVars, version}::scs) =
+                  if ST.eq_symid (sym,name) then SIMPLE { ty = ty} else l scs
+              | l ({bindInfo = GROUP bs, typeVars, version}::scs) =
+                  let fun lG [] = l scs
+                        | lG ({name, ty, width, uses}::bs) =
+                           if ST.eq_symid (sym,name) then
+                              COMPOUND { ty = ty, width = width, uses = uses }
+                           else lG bs
+                  in
+                     lG bs
+                  end
+         in
+            l scs
+         end
+      
+      fun update (sym, action, env) =
+         let
+            fun tryUpdate (KAPPA _, bFun) = NONE
+              | tryUpdate (SINGLE {name, ty}, bFun) =
+                if ST.eq_symid (sym,name) then
+                  let
+                     val (SIMPLE {ty}, bFun) = action (SIMPLE {ty = ty}, bFun)
+                  in
+                     SOME (SINGLE {name = name, ty = ty}, bFun)
+                  end
+                else NONE
+              | tryUpdate (GROUP bs, bFun) =
+               let fun upd (otherBs, []) = NONE
+                     | upd (otherBs, (b as {name, ty, width, uses})::bs) =
+                        if ST.eq_symid (sym,name) then
+                           let val (COMPOUND { ty = ty, width = width,
+                                               uses = uses }, bFun) =
+                                   action (COMPOUND { ty = ty, width = width,
+                                                      uses = uses }, bFun)
+                           in
+                              SOME (GROUP (List.revAppend (otherBs,
+                                          {name = name, ty = ty,
+                                          width = width, uses = uses} :: bs))
+                                   ,bFun)
+                           end
+                        else upd (b::otherBs, bs)
+               in
+                  upd ([],bs)
+               end
+            fun unravel (bs, env) = case unwrap env of
+               (b, env as (scs, bFun)) =>
+                  (case tryUpdate (b, bFun) of
+                       NONE => unravel (b::bs, env)
+                     | SOME (b,bFun) => List.foldl wrap (scs, bFun) (b::bs) )
+         in
+            unravel ([], env)
+         end
+   end
    
-   fun prevTVars [] = raise InferenceBug
-     | prevTVars ({bindInfo = _, typeVars = tv}::_) = tv
+   type environment = Scope.environment
 
-   fun pushSingle (sym, t, (scs, bFun)) =
-         ({ bindInfo = SINGLE {name = sym, ty = t},
-           typeVars = texpVarset (t,prevTVars scs)} :: scs, bFun)
+   fun primitiveEnvironment l = Scope.initial
+      (GROUP (List.map (fn (s,t,ow) => {name = s, ty = SOME t,
+                                        width = ow, uses = []}) l))
+   
+   fun pushSingle (sym, t, env) = Scope.wrap (SINGLE {name = sym, ty = t},env)
+   
 
    structure SISet = RedBlackSetFn (
       struct
          type ord_key = SymbolTable.symid
          val compare = SymbolTable.compare_symid
       end)           
-   fun pushGroup (syms, (scs, bFun)) = 
+   fun pushGroup (syms, env) = 
       let
          val (funs, nonFuns) = List.partition (fn (s,dec) => not dec) syms
          val funDefs = List.map
@@ -93,31 +196,20 @@ end = struct
             (fn s => {name = s, ty = NONE, width =
               SOME (VAR (TVar.freshTVar (), BD.freshBVar ())),
               uses = []}) nonFunSyms
-         val tvs = TVar.fromList
-            (List.map (fn {width = w, ...} => case w of
-               SOME (VAR (v,_)) => v
-             | _ => raise InferenceBug) nonFunDefs)
       in                                                                    
-         ({bindInfo = GROUP (funDefs @ nonFunDefs),
-           typeVars = TVar.union (tvs,prevTVars scs)} :: scs, bFun)
+         Scope.wrap (GROUP (funDefs @ nonFunDefs), env)
       end                                    
 
-   fun pushTop (scs, bFun) = case scs of
-        [] => raise InferenceBug
-      | {bindInfo = _, typeVars = tv} :: _ =>
+   fun pushTop env = 
       let
          val a = TVar.freshTVar ()
          val b = BD.freshBVar ()
       in
-         ({bindInfo = KAPPA {ty = VAR (a,b)}, typeVars = TVar.add(a,tv)} :: scs,
-         bFun)
+         Scope.wrap (KAPPA {ty = VAR (a,b)}, env)
       end
-   fun pushRecord (fs, (scs, bFun)) = case scs of
-        [] => raise InferenceBug
-      | {bindInfo = _, typeVars = tv} :: _ =>
+   fun pushRecord (fs, (scs, bFun)) =
       let
          val m = TVar.freshTVar ()
-         val tv = TVar.add (m,tv)
          fun genFields (out, [], bFun) = (out, bFun)
            | genFields (out, fid :: fids, bFun) =
             let
@@ -137,71 +229,48 @@ end = struct
          val b = BD.freshBVar ()
          val (fields, bFun) = genFields ([], fs, bFun)
       in
-         ({bindInfo = KAPPA {ty = RECORD (m, b, fields)}, typeVars = tv} :: scs,
-         bFun)
+         Scope.wrap (KAPPA {ty = RECORD (m, b, fields)}, (scs, bFun))
       end
 
    exception LookupNeedsToAddUse
 
    fun eq_span ((p1s,p1e), (p2s,p2e)) =
-    Position.toInt p1s=Position.toInt p2s andalso
-    Position.toInt p1e=Position.toInt p2e
+      Position.toInt p1s=Position.toInt p2s andalso
+      Position.toInt p1e=Position.toInt p2e
 
-   fun pushSymbol (sym, span, (scs, bFun)) =
-      let
-         fun lookup [] = raise InferenceBug
-           | lookup ({bindInfo = KAPPA _, typeVars =_}::scs) = lookup scs
-           | lookup ({bindInfo = SINGLE {name, ty}, typeVars =_}::scs) =
-              if ST.eq_symid (sym,name) then ty else lookup scs
-           | lookup ({bindInfo = GROUP bs, typeVars =_}::scs) =
-               let fun lG [] = lookup scs
-                     | lG ({name, ty, width=_, uses}::bs) =
-                        if ST.eq_symid (sym,name) then
-                           case ty of SOME ty => ty
-                                    | NONE => raise LookupNeedsToAddUse
-                        else lG bs
-               in
-                  lG bs
-               end
-         val (scs, sType) = (scs, lookup scs) handle LookupNeedsToAddUse =>
-            let
-               val var = TVar.freshTVar ()
-               val b = BD.freshBVar ()
-               val res = VAR (var,b)
-               fun fixUses [] = raise InferenceBug
-                 | fixUses ((b as {name = n, ty = t, width = w, uses = us})::bs) =
-                     if ST.eq_symid (sym,n) then
-                        {name = n, ty = t, width = w, uses = (span,res)::us }::bs
-                     else b::fixUses bs
-               fun rebuild [] = raise InferenceBug
-                 | rebuild ({bindInfo = GROUP bs, typeVars = tv}::scs) =
-                     if List.exists (fn {name,...} => ST.eq_symid (sym,name)) bs
-                     then {bindInfo = GROUP (fixUses bs),
-                           typeVars = TVar.add(var,tv)}::scs
-                     else {bindInfo = GROUP bs,
-                           typeVars = TVar.add(var,tv)}::rebuild scs
-                 | rebuild ({bindInfo = other, typeVars = tv}::scs) =
-                     {bindInfo = other,
-                      typeVars = TVar.add(var,tv)}::rebuild scs
-            in
-               (rebuild scs, res)
-            end
-      in 
-         ({bindInfo = KAPPA {ty = sType}, typeVars = prevTVars scs} :: scs, bFun)
-      end
 
-   fun popToFunction (sym, (scs, bFun)) =
+   fun pushSymbol (sym, span, env) =
+      (case Scope.lookup (sym,env) of
+          SIMPLE {ty = t} => Scope.wrap (KAPPA {ty = t}, env)
+        | COMPOUND {ty = SOME t, width, uses} =>
+            Scope.wrap (KAPPA {ty = t}, env)
+        | COMPOUND {ty = NONE, width, uses} =>
+          (case List.find (fn (sp,t) => eq_span (sp,span)) uses of
+               SOME (sp,t) => Scope.wrap (KAPPA {ty = t}, env)
+             | NONE =>
+             let
+                val res = VAR (TVar.freshTVar (),BD.freshBVar ())
+                fun action (COMPOUND {ty, width, uses},bFun) =
+                     (COMPOUND {ty = ty, width = width,
+                      uses = (span,res)::uses}, bFun)
+                  | action _ = raise InferenceBug
+                val env = Scope.update (sym, action, env)
+             in
+                Scope.wrap (KAPPA {ty = res}, env)
+             end
+          )
+      )
+
+
+   fun popToFunction (sym, env) =
       let
-         val (scs, bs, t) = (case scs of
-              ({bindInfo = KAPPA {ty =t}, typeVars=_} ::
-               (scs as {bindInfo = GROUP bs, typeVars} :: _)) => (scs, bs, t)
-            | _ => raise InferenceBug)
-         val typeOpt = 
-            case List.filter (fn {name,...} => ST.eq_symid (sym,name)) bs of
-                 [{name, ty, width, uses}] => ty
-               | _ => raise InferenceBug
+         fun setType t (COMPOUND {ty = NONE, width, uses}, bFun) =
+               (COMPOUND {ty = SOME t, width = width, uses = uses}, bFun)
+           | setType t _ = raise InferenceBug
       in
-         (true, (scs, bFun))
+         case Scope.unwrap env of
+              (KAPPA {ty=t}, env) => Scope.update (sym, setType t, env)
+            | _ => raise InferenceBug
       end
 
    fun meet ((scs1, bFun1), (scs2, bFun2)) = (scs2, bFun2)
