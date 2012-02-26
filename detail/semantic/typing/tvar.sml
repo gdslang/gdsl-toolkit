@@ -22,6 +22,7 @@ structure TVar : sig
    val intersection : (set * set) -> set
    val difference : (set * set) -> set
    val isEmpty : set -> bool
+   val setToString : (set * varmap) -> (string * varmap)
 
 end = struct
 
@@ -61,4 +62,17 @@ end = struct
    val intersection = IntListSet.intersection
    val difference = IntListSet.difference
    val isEmpty = IntListSet.isEmpty
+   fun setToString (set, si) =
+      let
+         fun show (v, (str, sep, si)) =
+            let
+               val (vStr, si) = varToString (TVAR v,si)
+            in
+               (str ^ sep ^ vStr, ", ", si)
+            end
+         val (res, _, si) =
+            List.foldl show ("", "{", si) (IntListSet.listItems set)
+      in
+         (res  ^ "}", si)
+      end
 end

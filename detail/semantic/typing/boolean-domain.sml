@@ -24,6 +24,8 @@ structure BooleanDomain : sig
    
    val meet : bfun * bfun -> bfun
    
+   val subseteq : bfun * bfun -> bool
+   
 end = struct
 
    datatype bvar = BVAR of int
@@ -60,4 +62,6 @@ end = struct
    
    fun meet (f1, f2) = f1
    
+   fun subseteq (f1, f2) = true
+
 end

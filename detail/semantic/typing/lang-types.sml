@@ -74,6 +74,8 @@ structure Types = struct
 
    datatype Substs = Substs of Subst list
 
+   fun substsDom (Substs ss) =
+         List.foldl (fn ((v,_), set) => TVar.add (v,set)) TVar.empty ss
 
    val a = freshTVar ()
    val b = freshTVar ()

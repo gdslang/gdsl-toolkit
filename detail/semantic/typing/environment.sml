@@ -19,7 +19,7 @@ structure Environment : sig
    
    (*val reduceFunction : envionrment -> environment*)
    
-   val meet : environment * environment -> environment
+   val meet : environment * environment -> environment * bool
    
    (*val pushKappa : Types.texp * environment -> environment
    val popBinding : environment -> environment
@@ -27,6 +27,8 @@ structure Environment : sig
    val pushId : SymbolTable.symid * environment -> environment
    
    val applyToAllTypes : (Types.texp -> Types.texp * environment) -> environment*)
+   val toString : environment -> string
+   val show : environment -> unit
    
 end = struct
    structure ST = SymbolTable
@@ -64,10 +66,14 @@ end = struct
       val initial : binding -> environment
       val wrap : (binding * environment) -> environment
       val unwrap : environment -> (binding * environment)
+      val unwrapDifferent : environment * environment ->
+            (binding * binding) option * environment * environment
+      val hasVars : environment * TVar.set -> bool
       val lookup : ST.symid * environment -> bind_info
       val update : ST.symid  *
                    (bind_info * BD.bfun -> bind_info * BD.bfun) *
                    environment-> environment
+      val toString : scope * TVar.varmap -> string * TVar.varmap
    end = struct
       type scope = {
          bindInfo : binding,
@@ -112,7 +118,21 @@ end = struct
       fun unwrap ({bindInfo = bi, typeVars, version} :: scs, bFun) =
             (bi, (scs, bFun))
         | unwrap ([], bFun) = raise InferenceBug
+      fun unwrapDifferent
+            ((all1 as ({bindInfo = bi1, typeVars = _, version = v1 : int}::scs1,
+             bFun1))
+            ,(all2 as ({bindInfo = bi2, typeVars = _, version = v2 : int}::scs2,
+             bFun2))) =
+            if v1=v2 then (NONE, all1, all2)
+            else (SOME (bi1,bi2),(scs1,bFun1),(scs2,bFun2))
+        | unwrapDifferent (all1 as ([], _), all2 as ([], _)) =
+            (NONE, all1, all2)
+        | unwrapDifferent (_, _) = raise InferenceBug
       
+      fun hasVars (({bindInfo, typeVars = tv, version}::_,_),set) =
+            TVar.isEmpty (TVar.intersection (tv, set))
+        | hasVars (([],_),_) = false
+
       fun lookup (sym, (scs, bFun)) =
          let
             fun l [] = raise InferenceBug
@@ -169,6 +189,64 @@ end = struct
          in
             unravel ([], env)
          end
+      fun showVarsVer (typeVars,ver,si) =
+         let
+            val (vsStr, si) = TVar.setToString (typeVars,si)
+         in
+            (", ver=" ^ Int.toString(ver) ^ ", vars=" ^ vsStr, si)
+         end
+
+      fun toString ({bindInfo = KAPPA {ty}, typeVars, version}, si) =
+            let
+               val (scStr, si) = showVarsVer (typeVars, version, si)
+               val (tStr, si) = showTypeSI (ty,si)
+            in
+               ("KAPPA : " ^ tStr ^ scStr, si)
+            end
+        | toString ({bindInfo = SINGLE {name, ty}, typeVars, version}, si) =
+            let
+               val (scStr, si) = showVarsVer (typeVars, version, si)
+               val (tStr, si) = showTypeSI (ty,si)
+            in
+               (ST.getString(!SymbolTables.varTable, name) ^
+                " : " ^ tStr ^ scStr, si)
+            end
+        | toString ({bindInfo = GROUP bs, typeVars, version}, si) =
+            let
+               val (scStr, si) = showVarsVer (typeVars, version, si)
+               fun prTyOpt (NONE, str, si) = ("", si)
+                 | prTyOpt (SOME t, str, si) = let
+                    val (tStr, si) = showTypeSI (t, si)
+                 in
+                     (str ^ tStr, si)
+                 end
+               fun printU (((p1,p2), t), (str, sep, si)) =
+                  let
+                     val (tStr, si) = showTypeSI (t, si)
+                  in
+                     (str ^
+                      sep ^ Int.toString(Position.toInt p1) ^
+                      "-" ^ Int.toString(Position.toInt p2) ^
+                      ":" ^ tStr
+                     ,", ", si)
+                  end
+               fun printB ({name,ty,width,uses}, (str, si)) =
+                  let
+                     val (tStr, si) = prTyOpt (ty, " : ", si)
+                     val (wStr, si) = prTyOpt (width, ", width = ", si)
+                     val (uStr, _, si) = 
+                           List.foldl printU ("", "\n    uses: ", si) uses
+                  in
+                    (str ^
+                     "\n  " ^ ST.getString(!SymbolTables.varTable, name) ^
+                     tStr ^ wStr ^ uStr
+                    ,si)
+                  end
+                val (bsStr, si) = List.foldr printB ("", si) bs
+            in
+               ("binding group" ^ scStr ^ bsStr, si)
+            end
+               
    end
    
    type environment = Scope.environment
@@ -273,8 +351,43 @@ end = struct
             | _ => raise InferenceBug
       end
 
-   fun meet ((scs1, bFun1), (scs2, bFun2)) = (scs2, bFun2)
-
+   fun meet (env1, env2) =
+      let
+         fun unify (env1, env2, substs) =
+            case Scope.unwrapDifferent (env1, env2) of
+                 (SOME (KAPPA {ty = ty1}, KAPPA {ty = ty2}), env1, env2) =>
+                     unify (env1, env2, mgu(ty1, ty2, substs))
+               | (SOME (SINGLE {name = _, ty = ty1},
+                        SINGLE {name = _, ty = ty2}), env1, env2) =>
+                     unify (env1, env2, mgu(ty1, ty2, substs))
+               | (SOME (GROUP bs1, GROUP bs2), env1, evn2) =>
+               let
+                  fun mguOpt (SOME t1, SOME t2, s) = mgu (t1, t2, s)
+                    | mguOpt (NONE, NONE, s) = s
+                    | mguOpt (_, _, _) = raise InferenceBug
+                  fun mguUses (u1, u2, s) = s
+                  fun uB (({name = n1, ty = t1, width = w1, uses = u1},
+                           {name = n2, ty = t2, width = w2, uses = u2}), s) =
+                     if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
+                     mguUses (u1, u2, mguOpt (t1, t2, mguOpt (w1, w2, s)))
+                  val substs = List.foldl uB substs (ListPair.zipEq (bs1,bs2))
+               in
+                  unify (env1, env2, substs)
+               end      
+               | (NONE, env1, env2) => substs
+               | (SOME _, _, _) => raise InferenceBug
+         val substs = unify (env1, env2, emptySubsts)
+         val sVars = substsDom substs
+         fun substBinding (KAPPA {ty=ty}, env) =
+               (KAPPA {ty=applySubstsToExp substs ty}, env)
+         fun doSubst env =
+               if Scope.hasVars (env,sVars) then
+                  case substBinding (Scope.unwrap env) of
+                     (b,env) => Scope.wrap (b, doSubst env)
+               else env
+      in
+         (doSubst env2, not (Scope.hasVars (env2, sVars)))
+      end
    (*val pushKappa t bs = KAPPA {ty = t} :: bs
    val popBinding (b :: bs) = bs
      | popBinding [] = raise InferenceBug
@@ -284,4 +397,18 @@ end = struct
    val pushId (sym, bs) = raise InferenceBug
 
    val applyToAllTypes (): (Types.texp -> Types.texp, bindings) -> bindings*)
+   fun toString (scs, bFun) = 
+      let
+         fun show (s, (str, si)) =
+            let
+               val (bStr, si) = Scope.toString (s, si)
+            in
+               (bStr ^ "\n" ^ str, si)
+            end
+         val (str, _) = List.foldr show ("", TVar.emptyShowInfo) scs
+      in
+         str
+      end
+   fun show env = TextIO.print (toString env)
+
 end
