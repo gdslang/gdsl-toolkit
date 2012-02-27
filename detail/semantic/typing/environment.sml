@@ -295,7 +295,7 @@ end = struct
                val b = BD.freshBVar ()
                val b' = BD.freshBVar ()
                val newField = RField { name = fid, fty = VAR (a,b'), exists = b}
-               val bFun = BD.meetVarEqualsConst (bFun, b, true)
+               val bFun = BD.meetVarEquals (b, true, bFun)
                fun addField [] = [newField]
                  | addField (f :: fd) = (case compare_rfield (newField, f) of
                       EQUAL => raise InferenceBug
