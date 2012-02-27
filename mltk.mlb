@@ -34,8 +34,10 @@ in
          detail/parser/parser.sml
          detail/semantic/symbol-table-type.sml
          detail/semantic/spec-abstract-tree.sml
-         detail/semantic/boolean-domain.sml
-         detail/semantic/lang-types.sml
+         detail/semantic/typing/boolean-domain.sml
+         detail/semantic/typing/tvar.sml
+         detail/semantic/typing/lang-types.sml
+         detail/semantic/typing/environment.sml
          detail/semantic/primitives.sml
          detail/semantic/resolve-symbols.sml
          detail/semantic/resolve-type-info.sml
