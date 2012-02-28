@@ -31,6 +31,9 @@ structure Environment : sig
    
    (*stack: [t1 -> t2,...] -> [t2,...]*)
    val reduceToResult : environment -> environment
+                                               
+   (*stack: [t1,t2,...] -> [...] and substitution mgu(t1,t2) applied*)
+   val reduceUnify : environment -> environment
    
    (*stack: [t,...] -> [...] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
@@ -419,6 +422,50 @@ end = struct
             Scope.wrap (KAPPA {ty = t2}, env)
          | _ => raise InferenceBug
 
+   fun applySubsts (substs, env) =
+      let
+         val sVars = substsDom substs
+         fun substBinding (KAPPA {ty=ty}, env) =
+               (KAPPA {ty=applySubstsToExp substs ty}, env)
+           | substBinding (SINGLE {name = n, ty = ty}, env) =
+               (SINGLE {name = n, ty = applySubstsToExp substs ty}, env)
+           | substBinding (GROUP bs, env) =
+               let
+                  val envRef = ref env
+                  fun optSubst (SOME t) = SOME (applySubstsToExp substs t)
+                    | optSubst NONE = NONE
+                  fun usesSubst (s,t) = (s, applySubstsToExp substs t)
+                  fun substB {name = n, ty = t, width = w, uses = u} =
+                     {name = n, ty = optSubst t, width = optSubst w,
+                      uses = List.map usesSubst u }
+                  val bs = List.map substB bs
+               in
+                  (GROUP bs, !envRef)
+               end
+         fun doSubst env =
+            if Scope.hasVars (env,sVars) then
+               case substBinding (Scope.unwrap env) of
+                  (b,env) => Scope.wrap (b, doSubst env)
+            else env
+      in
+         doSubst env
+      end
+
+   fun reduceUnify env = 
+      let
+         val (t2, env) = case Scope.unwrap env of
+                             (KAPPA {ty = t}, env) => (t,env)
+                           | (SINGLE {name, ty = t}, env) => (t,env)
+                           | _ => raise InferenceBug
+         val (t1, env) = case Scope.unwrap env of
+                             (KAPPA {ty = t}, env) => (t,env)
+                           | (SINGLE {name, ty = t}, env) => (t,env)
+                           | _ => raise InferenceBug
+         val substs = mgu(t1,t2,emptySubsts)
+      in
+         applySubsts(substs, env)
+      end
+
    fun popToFunction (sym, env) =
       let
          fun setType t (COMPOUND {ty = NONE, width, uses}, bFun) =
@@ -458,33 +505,8 @@ end = struct
                | (SOME _, _, _) => raise InferenceBug
          val substs = unify (env1, env2, emptySubsts)
          val sVars = substsDom substs
-         (*val (substsStr, si) = showSubstsSI (substs,TVar.emptyShowInfo)
-         val (varStr, si) = TVar.setToString(sVars,si)
-         val _ = TextIO.print ("substitutions " ^ substsStr ^ ", domain " ^ varStr ^ "\n")*)
-         fun substBinding (KAPPA {ty=ty}, env) =
-               (KAPPA {ty=applySubstsToExp substs ty}, env)
-           | substBinding (SINGLE {name = n, ty = ty}, env) =
-               (SINGLE {name = n, ty = applySubstsToExp substs ty}, env)
-           | substBinding (GROUP bs, env) =
-               let
-                  val envRef = ref env
-                  fun optSubst (SOME t) = SOME (applySubstsToExp substs t)
-                    | optSubst NONE = NONE
-                  fun usesSubst (s,t) = (s, applySubstsToExp substs t)
-                  fun substB {name = n, ty = t, width = w, uses = u} =
-                     {name = n, ty = optSubst t, width = optSubst w,
-                      uses = List.map usesSubst u }
-                  val bs = List.map substB bs
-               in
-                  (GROUP bs, !envRef)
-               end
-         fun doSubst env =
-               if Scope.hasVars (env,sVars) then
-                  case substBinding (Scope.unwrap env) of
-                     (b,env) => Scope.wrap (b, doSubst env)
-               else env
       in
-         (doSubst env2, not (Scope.hasVars (env2, sVars)))
+         (applySubsts (substs, env2), not (Scope.hasVars (env2, sVars)))
       end
    (*val pushKappa t bs = KAPPA {ty = t} :: bs
    val popBinding (b :: bs) = bs

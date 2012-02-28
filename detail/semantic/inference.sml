@@ -46,7 +46,7 @@ end = struct
 
 
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
-   val st = ref (SMap.empty : E.symbol_type SMap.map)
+   val sm = ref (SMap.empty : E.symbol_type SMap.map)
    val { tsynDefs, typeDefs, conParents} = ti
    
    fun reportError conv ({span = _, error = isErr }, env) {span=s, tree=t} =
@@ -111,28 +111,29 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          calcFixpoint stenv (v, NONE, l, e)
      | infValuedecl stenv (AST.LETRECvaluedecl (v,l,e)) =
          calcFixpoint stenv (v, NONE, l, e)
-(*   and infCondecl stenv (AST.MARKcondecl m) =
-       AST.MARKcondecl (reportError infCondecl m)
-     | infCondecl stenv (AST.CONdecl (c,to)) = AST.CONdecl
-       (newCon (s,c), case to of NONE => NONE | SOME t => SOME (infTy stenv t))
-   and infTy stenv (AST.MARKty m) = AST.MARKty (reportError infTy m)
-     | infTy stenv (AST.BITty i) = AST.BITty i
-     | infTy stenv (AST.NAMEDty n) = AST.NAMEDty (useType (s,n))
-     | infTy stenv (AST.RECty l) = AST.RECty
-       (List.map (fn (f,t) => (newField (s,f), infTy stenv t)) l)*)
    and infExp stenv (AST.MARKexp m) = reportError infExp stenv m
-(*     | infExp (st,env) (AST.LETexp (l,e)) = AST.LETexp (let
-         val _ = startScope ()
-         val _ = List.map (regValuedecl s) l
-         val l = List.map (infValuedecl s) l
-         (*val _ = TextIO.print ("before e2:\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
-         val r = infExp (st,env) e
-         val _ = endScope ()
-         (*val _ = TextIO.print ("after e2:\n" ^ SymbolTable.toString(!ST.varTable) ^ "\n");*)
-       in (l,r) end)
-     | infExp (st,env) (AST.IFexp (e1,e2,e3)) = AST.IFexp
-         (infExp (st,env) e1, infExp (st,env) e2, infExp (st,env) e3)
-     | infExp (st,env) (AST.CASEexp (e,l)) = AST.CASEexp
+     | infExp (st,env) (AST.LETexp (l,e)) =
+      let                                              
+         val names = List.map topValuedecl l
+         val env = E.pushGroup (List.foldl (op @) [] names, env)
+         val env = List.foldl (fn (d,env) => infValuedecl (st,env) d) env l
+         val (symbols, env) = E.popGroup env
+      in
+         (sm := List.foldl SMap.insert' (!sm) symbols
+         ;infExp (st,env) e)
+      end
+     | infExp (st,env) (AST.IFexp (e1,e2,e3)) =
+      let
+         val env = E.pushRenamedType (VEC (CONST 1), env)
+         val env = infExp (st,env) e1
+         val env = E.reduceUnify env
+         val envT = infExp (st,env) e2
+         val envE = infExp (st,env) e3
+         val (env,_) = E.meet (envT,envE)
+      in
+         env
+      end
+(*     | infExp (st,env) (AST.CASEexp (e,l)) = AST.CASEexp
          (infExp (st,env) e, List.map (infMatch s) l)
      | infExp (st,env) (AST.ANDALSOexp (e1,e2)) = AST.ANDALSOexp
          (infExp (st,env) e1, infExp (st,env) e2)
@@ -156,9 +157,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (List.map (fn (f,e) => (newField (s,f), infExp (st,env) e)) l)
      | infExp (st,env) (AST.SELECTexp f) = AST.SELECTexp (useField (s,f))
      | infExp (st,env) (AST.UPDATEexp fs) =
-        AST.UPDATEexp (List.map (fn (f,e) => (useField (s,f), infExp (st,env) e)) fs)
-     | infExp (st,env) (AST.LITexp lit) = AST.LITexp (infLit (st,env) lit)
-     | infExp (st,env) (AST.SEQexp l) = AST.SEQexp (infSeqexp (st,env) l)*)
+        AST.UPDATEexp (List.map (fn (f,e) => (useField (s,f), infExp (st,env) e)) fs)*)
+     | infExp (st,env) (AST.LITexp lit) = infLit (st,env) lit
+     (*| infExp (st,env) (AST.SEQexp l) = AST.SEQexp (infSeqexp (st,env) l)*)
      | infExp (st,env) (AST.IDexp v) = E.pushSymbol (v, getSpan st, env)
      | infExp (st,env) (AST.CONexp c) =
       let
@@ -171,8 +172,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             | SOME t =>
                E.pushRenamedType (FUN (t,ALG (dcon, List.map VAR vs)), env)
       end
-(*     | infExp (st,env) (AST.FNexp (v, e)) = AST.FNexp (newVar (s,v), infExp (st,env) e)
-   and infSeqexp stenv [] = []
+     | infExp (st,env) (AST.FNexp (v, e)) = 
+         E.reduceToFunction (infExp (st,E.pushLambdaVar (v,env)) e)
+(*   and infSeqexp stenv [] = []
      | infSeqexp _ (AST.MARKseqexp { tree = ast, span = stenv } :: l) =
         infSeqexp stenv (ast :: l)
      | infSeqexp stenv (AST.ACTIONseqexp e :: l) =
@@ -213,10 +215,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infPat stenv (AST.IDpat v) = AST.IDpat (newVar (s,v))
      | infPat stenv (AST.CONpat (c, SOME p)) = AST.CONpat (useCon (s,c), SOME (infPat stenv p))
      | infPat stenv (AST.CONpat (c, NONE)) = AST.CONpat (useCon (s,c), NONE)
-     | infPat stenv (AST.WILDpat) = AST.WILDpat
-   and infLit stenv (AST.INTlit i) = AST.INTlit i
-     | infLit stenv (AST.FLTlit f) = AST.FLTlit f
-     | infLit stenv (AST.STRlit str) = AST.STRlit str*)
+     | infPat stenv (AST.WILDpat) = AST.WILDpat*)
+   and infLit (st,env) (AST.INTlit i) = E.pushRenamedType (ZENO, env)
+     | infLit (st,env) (AST.FLTlit f) = E.pushRenamedType (FLOAT, env)
+     | infLit (st,env) (AST.STRlit str) = E.pushRenamedType (UNIT, env)
 
    val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes ())
    val toplevelEnv = E.pushGroup
@@ -231,8 +233,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val (toplevelSymbols, primEnv) = E.popGroup toplevelEnv
    val (primSymbols, _) = E.popGroup primEnv
    in
-      ( st := List.foldl SMap.insert' (!st) (toplevelSymbols @ primSymbols)
-      ; SMap.listItemsi (!st))
+      ( sm := List.foldl SMap.insert' (!sm) (toplevelSymbols @ primSymbols)
+      ; SMap.listItemsi (!sm))
    end
 
    val typeInferencePass =
