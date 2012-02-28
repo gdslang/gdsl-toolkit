@@ -17,6 +17,7 @@ structure TVar : sig
    val empty : set
    val singleton : tvar -> set
    val fromList : tvar list -> set
+   val listItems : set -> tvar list
    val add : (tvar * set) -> set
    val union : (set * set) -> set
    val intersection : (set * set) -> set
@@ -57,6 +58,7 @@ end = struct
    val empty = IntListSet.empty
    fun singleton (TVAR v) = IntListSet.singleton v
    fun fromList l = IntListSet.fromList (List.map (fn (TVAR v) => v) l)
+   fun listItems vs = List.map (fn v => (TVAR v)) (IntListSet.listItems vs)
    fun add (TVAR v, l) = IntListSet.add' (v, l)
    val union = IntListSet.union
    val intersection = IntListSet.intersection

@@ -61,7 +61,7 @@ structure Types = struct
 
    type condescr = texp option SymMap.map
 
-   type typedescr = { tdVars : tvar list,
+   type typedescr = { tdVars : (tvar * BD.bvar) list,
                      tdCons : condescr }
 
    datatype SubstTarget
@@ -260,7 +260,18 @@ structure Types = struct
    and
      setFlagsToTopF (RField {name = n, fty = t, exists = _}) =
         RField {name = n, fty =  setFlagsToTop t, exists = BD.freshBVar ()}
-        
+
+   fun renameType t =
+      let
+         val vs = texpVarset (t, TVar.empty)
+         val substs = Substs (
+               List.map (fn v => (v,
+                 WITH_TYPE (VAR (TVar.freshTVar (), BD.freshBVar ())))
+               ) (TVar.listItems vs))
+      in
+         applySubstsToExp substs t
+      end
+
    fun mgu (FUN (f1, f2), FUN (g1, g2), s) =
       let
          val s = mgu (f1, g1, s)
@@ -280,7 +291,7 @@ structure Types = struct
     | mgu (RECORD (v1,b1,l1), RECORD (v2,b2,l2), s) =
       let
          fun unify (v1, v2, [], [], s) = if TVar.eq (v1,v2) then s else
-               addSubst (v1, WITH_FIELD ([],v2)) s
+               addSubst (v2, WITH_FIELD ([],v1)) s
            | unify (v1, v2, (f1 as RField e1) :: fs1,
                     (f2 as RField e2) :: fs2, s) =
                (case compare_rfield (f1,f2) of
@@ -341,13 +352,16 @@ structure Types = struct
             mguList (l1, l2, s)
          end
       end
-    | mgu (VAR (v,b), e, s) =
+      (*mgu is right-biased in that mgu(a,b) always creates b/a which means
+      that the resulting substitution never modifies the lhs if that is
+      avoidable*)
+    | mgu (e, VAR (v,b), s) =
       let
          val newSubst = (v,WITH_TYPE (applySubstsToExp s e))
       in   
         addSubst newSubst s
       end
-    | mgu (e, VAR (v,b), s) =
+    | mgu (VAR (v,b), e, s) =
       let
          val newSubst = (v,WITH_TYPE (applySubstsToExp s e))
       in   

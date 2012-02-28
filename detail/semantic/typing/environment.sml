@@ -1,6 +1,10 @@
 structure Environment : sig
    type environment
-   
+
+   datatype symbol_type =
+        VALUE of {symType : Types.texp}
+      | DECODE of {symType : Types.texp, width : Types.texp}
+
    val primitiveEnvironment : (SymbolTable.symid * Types.texp *
                                (Types.texp option)) list -> environment
    
@@ -11,10 +15,24 @@ structure Environment : sig
    is a decoder function*)
    val pushGroup : (VarInfo.symid * bool) list * environment ->
                   environment
+   val popGroup : environment -> 
+                  (VarInfo.symid * symbol_type) list * environment
    val pushTop : environment -> environment
+   val pushRenamedType : Types.texp * environment -> environment
+
    val pushRecord : FieldInfo.symid list * environment -> environment
    val pushSymbol : VarInfo.symid * Error.span * environment -> environment
-
+   
+   (*stack: [...] -> [x:a,...], a fresh*)
+   val pushLambdaVar : VarInfo.symid * environment -> environment
+   
+   (*stack: [t2,t1,...] -> [t1 -> t2,...]*)
+   val reduceToFunction : environment -> environment
+   
+   (*stack: [t1 -> t2,...] -> [t2,...]*)
+   val reduceToResult : environment -> environment
+   
+   (*stack: [t,...] -> [...] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
    
    (*val reduceFunction : envionrment -> environment*)
@@ -28,6 +46,7 @@ structure Environment : sig
    
    val applyToAllTypes : (Types.texp -> Types.texp * environment) -> environment*)
    val toString : environment -> string
+   val topToString : environment -> string
    val show : environment -> unit
    
 end = struct
@@ -58,6 +77,10 @@ end = struct
          uses : (Error.span * texp) list
       } list
    
+   datatype symbol_type =
+        VALUE of {symType : Types.texp}
+      | DECODE of {symType : Types.texp, width : Types.texp}
+
    (*a scope contains one of the bindings above and some additional
    information that make substitution and join cheaper*)
    structure Scope : sig
@@ -130,7 +153,7 @@ end = struct
         | unwrapDifferent (_, _) = raise InferenceBug
       
       fun hasVars (({bindInfo, typeVars = tv, version}::_,_),set) =
-            TVar.isEmpty (TVar.intersection (tv, set))
+            not (TVar.isEmpty (TVar.intersection (tv, set)))
         | hasVars (([],_),_) = false
 
       fun lookup (sym, (scs, bFun)) =
@@ -269,7 +292,7 @@ end = struct
          val funDefs = List.map
             (fn (s,_) => {name = s, ty = NONE, width = NONE, uses = []}) funs
          val nonFunSyms =
-            SISet.listItems (SISet.fromList (List.map (fn (s,_) => s) funs))
+            SISet.listItems (SISet.fromList (List.map (fn (s,_) => s) nonFuns))
          val nonFunDefs = List.map
             (fn s => {name = s, ty = NONE, width =
               SOME (VAR (TVar.freshTVar (), BD.freshBVar ())),
@@ -278,6 +301,16 @@ end = struct
          Scope.wrap (GROUP (funDefs @ nonFunDefs), env)
       end                                    
 
+   fun popGroup env = case Scope.unwrap env of
+        (GROUP bs, env) =>
+         (List.map (fn {name = n, ty = t, width = w, uses = _} =>
+            case (t,w) of
+                 (SOME t, NONE) => (n, VALUE {symType = t})
+               | (SOME t, SOME w) => (n, DECODE {symType = t, width = w})
+               | _ => raise InferenceBug
+            ) bs, env)
+      | _ => raise InferenceBug
+
    fun pushTop env = 
       let
          val a = TVar.freshTVar ()
@@ -285,6 +318,9 @@ end = struct
       in
          Scope.wrap (KAPPA {ty = VAR (a,b)}, env)
       end
+
+   fun pushRenamedType (t, env) = Scope.wrap (KAPPA {ty = renameType t}, env)
+
    fun pushRecord (fs, (scs, bFun)) =
       let
          val m = TVar.freshTVar ()
@@ -316,6 +352,24 @@ end = struct
       Position.toInt p1s=Position.toInt p2s andalso
       Position.toInt p1e=Position.toInt p2e
 
+   fun toString (scs, bFun) = 
+      let
+         fun show (s, (str, si)) =
+            let
+               val (bStr, si) = Scope.toString (s, si)
+            in
+               (bStr ^ "\n" ^ str, si)
+            end
+         val (str, _) = List.foldr show ("", TVar.emptyShowInfo) scs
+      in
+         str
+      end
+
+   fun topToString (s :: scs, bFun) = toString ([s], bFun)
+     | topToString ([], bFun) = ""
+
+   fun show env = TextIO.print (toString env)
+
 
    fun pushSymbol (sym, span, env) =
       (case Scope.lookup (sym,env) of
@@ -339,6 +393,31 @@ end = struct
           )
       )
 
+   fun pushLambdaVar (sym, env) =
+      let
+         val t = VAR (TVar.freshTVar (), BD.freshBVar ())
+      in
+         Scope.wrap (SINGLE {name = sym, ty = t}, env)
+      end
+
+   fun reduceToFunction env =
+      let
+         val (t2, env) = case Scope.unwrap env of
+                             (KAPPA {ty = t}, env) => (t,env)
+                           | (SINGLE {name, ty = t}, env) => (t,env)
+                           | _ => raise InferenceBug
+         val (t1, env) = case Scope.unwrap env of
+                             (KAPPA {ty = t}, env) => (t,env)
+                           | (SINGLE {name, ty = t}, env) => (t,env)
+                           | _ => raise InferenceBug
+      in
+         Scope.wrap (KAPPA {ty = FUN (t1,t2)}, env)
+      end
+
+   fun reduceToResult env = case Scope.unwrap env of
+           (KAPPA {ty = FUN (t1,t2)}, env) =>
+            Scope.wrap (KAPPA {ty = t2}, env)
+         | _ => raise InferenceBug
 
    fun popToFunction (sym, env) =
       let
@@ -353,6 +432,7 @@ end = struct
 
    fun meet (env1, env2) =
       let
+         (*val _ = TextIO.print ("unifying " ^ toString(env1) ^ " and " ^ toString(env2) ^ "\n")*)
          fun unify (env1, env2, substs) =
             case Scope.unwrapDifferent (env1, env2) of
                  (SOME (KAPPA {ty = ty1}, KAPPA {ty = ty2}), env1, env2) =>
@@ -378,8 +458,26 @@ end = struct
                | (SOME _, _, _) => raise InferenceBug
          val substs = unify (env1, env2, emptySubsts)
          val sVars = substsDom substs
+         (*val (substsStr, si) = showSubstsSI (substs,TVar.emptyShowInfo)
+         val (varStr, si) = TVar.setToString(sVars,si)
+         val _ = TextIO.print ("substitutions " ^ substsStr ^ ", domain " ^ varStr ^ "\n")*)
          fun substBinding (KAPPA {ty=ty}, env) =
                (KAPPA {ty=applySubstsToExp substs ty}, env)
+           | substBinding (SINGLE {name = n, ty = ty}, env) =
+               (SINGLE {name = n, ty = applySubstsToExp substs ty}, env)
+           | substBinding (GROUP bs, env) =
+               let
+                  val envRef = ref env
+                  fun optSubst (SOME t) = SOME (applySubstsToExp substs t)
+                    | optSubst NONE = NONE
+                  fun usesSubst (s,t) = (s, applySubstsToExp substs t)
+                  fun substB {name = n, ty = t, width = w, uses = u} =
+                     {name = n, ty = optSubst t, width = optSubst w,
+                      uses = List.map usesSubst u }
+                  val bs = List.map substB bs
+               in
+                  (GROUP bs, !envRef)
+               end
          fun doSubst env =
                if Scope.hasVars (env,sVars) then
                   case substBinding (Scope.unwrap env) of
@@ -397,18 +495,4 @@ end = struct
    val pushId (sym, bs) = raise InferenceBug
 
    val applyToAllTypes (): (Types.texp -> Types.texp, bindings) -> bindings*)
-   fun toString (scs, bFun) = 
-      let
-         fun show (s, (str, si)) =
-            let
-               val (bStr, si) = Scope.toString (s, si)
-            in
-               (bStr ^ "\n" ^ str, si)
-            end
-         val (str, _) = List.foldr show ("", TVar.emptyShowInfo) scs
-      in
-         str
-      end
-   fun show env = TextIO.print (toString env)
-
 end

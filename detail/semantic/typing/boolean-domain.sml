@@ -36,7 +36,7 @@ structure BooleanDomain : sig
    
    val meet : bfun * bfun -> bfun
    
-   val b1 : bvar
+   (*val b1 : bvar
    val b2 : bvar
    val b3 : bvar
    val b4 : bvar
@@ -47,7 +47,7 @@ structure BooleanDomain : sig
    val f2 : bfun
    val f3 : bfun
    val f4 : bfun
-   val f5 : bfun
+   val f5 : bfun*)
 
 end = struct
 
@@ -218,7 +218,7 @@ end = struct
    fun meet ((us, cs), f) =
       CS.foldl addClause (addUnits (US.listItems us,f)) cs
    
-   val b1 = freshBVar ()
+   (*val b1 = freshBVar ()
    val b2 = freshBVar ()
    val b3 = freshBVar ()
    val b4 = freshBVar ()
@@ -229,6 +229,6 @@ end = struct
    val f2 = meetVarImpliesVar(b3,b2,f1)
    val f3 = meetVarImpliesVar(b4,b3,f2)
    val f4 = meetVarImpliesVar(b5,b4,meetNotBoth(b1,b4,f3))
-   val f5 = meetVarImpliesVar(b6,b5,meetVarImpliesVar(b1,b6,f4))
+   val f5 = meetVarImpliesVar(b6,b5,meetVarImpliesVar(b1,b6,f4))*)
    
 end
