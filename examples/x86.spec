@@ -179,26 +179,51 @@ end
 dec sib ['scale:2 index:3 base:3'] = do
    mod <- query $mod;
    base_exp <- case base of
-   		  '000': EAX
-		| '001': ECX
-		| '010': EDX
-		| '011': EBX
-		| '100': ESP
+   		  '000': return EAX
+		| '001': return ECX
+		| '010': return EDX
+		| '011': return EBX
+		| '100': return ESP
 		| '101': (case mod of
 			     '00': do
 			     	      disp32 <- imm32;
-				      disp32
+				      return disp32
 			     	   end
 			   | '01': do
 			     	      disp8 <- imm8;
-				      ESUM { disp8, EBP }
+				      return ESUM { disp8, EBP }
 			     	   end
 			   | '10': do
 			     	      disp32 <- imm32;
-				      ESUM { disp32, EBP }
+				      return ESUM { disp32, EBP }
 			     	   end)
-		| '110': ESI
-		| '111': EDI
+		| '110': return ESI
+		| '111': return EDI;
+   case scale of
+      '00': (case index of
+                '000': return ESUM { base_exp, EAX }
+              | '001': return ESUM { base_exp, ECX }
+              | '010': return ESUM { base_exp, EDX }
+              | '011': return ESUM { base_exp, EBX }
+              | '100': return base_exp
+              | '011': return ESUM { base_exp, EBP }
+              | '011': return ESUM { base_exp, ESI }
+              | '011': return ESUM { base_exp, EDI })
+    | otherwise: do
+    		    scale_exp <- case scale of
+		    		    '01': return 2
+				  | '10': return 4
+				  | '11': return 8;
+		    case index of
+		       '000': return ESUM { base_exp, EPROD { EAX, scale_exp } }
+		     | '001': return ESUM { base_exp, EPROD { ECX, scale_exp } }
+		     | '010': return ESUM { base_exp, EPROD { EDX, scale_exp } }
+		     | '011': return ESUM { base_exp, EPROD { EBX, scale_exp } }
+		     | '100': return base_exp
+		     | '011': return ESUM { base_exp, EPROD { EBP, scale_exp } }
+		     | '011': return ESUM { base_exp, EPROD { ESI, scale_exp } }
+		     | '011': return ESUM { base_exp, EPROD { EDI, scale_exp } }
+    		 end
 end
 
 
