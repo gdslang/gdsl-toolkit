@@ -174,7 +174,7 @@ structure Types = struct
             in
                (res ^ sep ^ str, ", ", si)
             end
-         val (res, _, si) = List.foldl pr ("", "[", si) l
+         val (res, _, si) = List.foldl pr ("[", "", si) l
       in
          (res ^ "]", si)
       end
@@ -183,8 +183,8 @@ structure Types = struct
 
    fun insertField (f, []) = [f]
      | insertField (f1, f2 :: l) = (case compare_rfield (f1,f2) of
-          GREATER => f1 :: f2 :: l
-        | LESS => f2 :: insertField (f1, l)
+          LESS => f1 :: f2 :: l
+        | GREATER => f2 :: insertField (f1, l)
         | EQUAL => (
             (*TextIO.print (showTypes [("trying to insert ",e), (" into ",(RECORD (var,l)))]);*)
             raise SubstitutionBug))
@@ -203,8 +203,9 @@ structure Types = struct
               case target of
                    WITH_FIELD (newFs, newVar) =>
                     RECORD (newVar, b, List.foldl insertField fs newFs)
+                 (*| WITH_TYPE (VAR (v,b)) => RECORD (v, b, fs)*)
                  | WITH_TYPE _ => raise SubstitutionBug
-           else RECORD (var, b, List.map (applySubstToRField  subst) fs)
+           else RECORD (var, b, List.map (applySubstToRField subst) fs)
         | aS (MONAD t) = MONAD (aS t)
         | aS (VAR (var,b)) = if TVar.eq (var, v) then
               case target of
@@ -226,9 +227,32 @@ structure Types = struct
    fun addSubst (subst as (v, WITH_TYPE t)) (Substs l) =
       let
          fun tSubst (v2, WITH_TYPE t2) =
-            (v2, WITH_TYPE (applySubstToExp (subst, t2)))
+            let
+               val t = applySubstToExp (subst, t2)
+               val vs = texpVarset (t, TVar.empty)
+               (*val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
+               val (vsStr, si) = TVar.setToString(vs, si)
+               val (tStr, si) = showTypeSI (t, si)
+               val _ = TextIO.print ("subst " ^ vStr ^ "/" ^ tStr ^ " has vars " ^ vStr ^ "\n")*)
+            in
+               if List.exists (fn v => TVar.eq(v,v2)) (TVar.listItems vs) then
+                  let
+                     val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
+                     val (tStr,si) = showTypeSI (t,si)
+                  in
+                     raise UnificationFailure ("infinite type " ^ vStr ^ " = " ^ tStr)
+                  end
+               else
+                  (v2, WITH_TYPE t)
+            end
            | tSubst (v2, WITH_FIELD (fs, v3)) =
             (v2, WITH_FIELD (List.map (applySubstToRField subst) fs, v3))
+         (*val (vStr,si) = TVar.varToString (v,TVar.emptyShowInfo)
+         val (tStr,si) = showTypeSI (t,si)
+         val (sStr,si) = showSubstsSI (Substs l, si)
+         val (rStr,_ ) = showSubstsSI (Substs (subst::List.map tSubst l),si)
+         val _ = TextIO.print ("adding " ^ vStr ^ "/" ^ tStr ^ " to " ^ sStr ^
+                  " yielding " ^ rStr ^ "\n")*)
       in
          Substs (subst::List.map tSubst l)
       end
@@ -244,6 +268,14 @@ structure Types = struct
          Substs (fSubst l)
       end
 
+   fun findSubstForVar (v, Substs l) =
+      let
+         fun lookup [] = NONE
+           | lookup ((v',r) :: l) =
+               if TVar.eq (v,v') then SOME r else lookup l
+      in
+         lookup l
+      end
 
    fun setFlagsToTop (FUN (f1, f2)) = FUN (setFlagsToTop f1, setFlagsToTop f2)
      | setFlagsToTop (SYN (syn, t)) = SYN (syn, setFlagsToTop t)
@@ -272,12 +304,7 @@ structure Types = struct
          applySubstsToExp substs t
       end
 
-   fun mgu (FUN (f1, f2), FUN (g1, g2), s) =
-      let
-         val s = mgu (f1, g1, s)
-      in
-         mgu (applySubstsToExp s f2, applySubstsToExp s g2, s)
-      end
+   fun mgu (FUN (f1, f2), FUN (g1, g2), s) = mgu (f2, g2, mgu (f1, g1, s))
     | mgu (SYN (_, t1), t2, s) = mgu (t1, t2, s)
     | mgu (t1, SYN (_, t2), s) = mgu (t1, t2, s)
     | mgu (ZENO, ZENO, s) = s
@@ -299,8 +326,7 @@ structure Types = struct
                   let
                      val s = mgu (#fty e1, #fty e2, s)
                    in
-                     unify (v1, v2, List.map (applySubstsToRField s) fs1,
-                                    List.map (applySubstsToRField s) fs2, s)
+                     unify (v1, v2, fs1, fs2, s)
                   end
                 | LESS => let
                      val newVar = freshTVar ()
@@ -311,7 +337,8 @@ structure Types = struct
                      val newVar = freshTVar ()
                   in unify (newVar, v2, f1 :: fs1, fs2,
                             addSubst (v1, WITH_FIELD ([f2], newVar)) s)
-                  end)
+                  end
+               )
            | unify (v1, v2, f1 :: fs1, [], s) = let
                      val newVar = freshTVar ()
                   in unify (v1, newVar, fs1, [],
@@ -322,6 +349,13 @@ structure Types = struct
                   in unify (newVar, v2, [], fs2,
                             addSubst (v1, WITH_FIELD ([f2], newVar)) s)
                   end
+         fun applySubsts (v, fs) = (case findSubstForVar (v, s) of
+              NONE => (v,fs)
+            | SOME (WITH_FIELD (fs',v')) => (v', List.foldl insertField fs fs')
+            | _ => raise SubstitutionBug
+         )
+         val (v1,l1) = applySubsts (v1,l1)
+         val (v2,l2) = applySubsts (v2,l2)
       in
          unify (v1,v2,l1,l2,s)
       end
@@ -357,17 +391,22 @@ structure Types = struct
       avoidable*)
     | mgu (e, VAR (v,b), s) =
       let
-         val newSubst = (v,WITH_TYPE (applySubstsToExp s e))
-      in   
-        addSubst newSubst s
+         fun unifyVars (v,b,e,s) =
+               case findSubstForVar (v,s) of
+                    NONE => addSubst (v,WITH_TYPE e) s
+                  | SOME (WITH_TYPE t) => mgu (e, t, s)
+                  | _ => raise SubstitutionBug
+      in
+        case e of
+           VAR (v',b') => if TVar.eq (v',v) then s else unifyVars (v,b,e,s)
+         | _ => unifyVars (v,b,e,s)
       end
     | mgu (VAR (v,b), e, s) =
-      let
-         val newSubst = (v,WITH_TYPE (applySubstsToExp s e))
-      in   
-        addSubst newSubst s
-      end
-
+         (case findSubstForVar (v,s) of
+              NONE => addSubst (v,WITH_TYPE e) s
+            | SOME (WITH_TYPE t) => mgu (e, t, s)
+            | _ => raise SubstitutionBug
+         )
     | mgu (t1,t2,s) =
       let fun descr (FUN _) = "a function type"
             | descr (ZENO) = "int"
@@ -385,6 +424,12 @@ structure Types = struct
                                    descr t2)
       end
                                        
+   and unifyVars (v,b,e,s) =
+      case findSubstForVar (v,s) of
+           NONE => addSubst (v,WITH_TYPE e) s
+         | SOME (WITH_TYPE t) => mgu (t, e, s)
+         | _ => raise SubstitutionBug
+
     fun dbgMgu (t1, t2) =
       let
          val (t1Str, si) = showTypeSI (t1, TVar.emptyShowInfo)

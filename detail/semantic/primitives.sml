@@ -21,11 +21,11 @@ structure Primitives = struct
 
    val anonDecodeFunction : string = "top-level decode function"
    val globalState : string = "global state"
-   
+   val caseExpression : string = "case expression"
+      
    val primitiveValues
       : {pName : string, pType : texp, dType : texp option} list
-      = [
-         { pName = "continue", pType = MONAD (var r), dType = SOME (var size) },
+      = [{ pName = "continue", pType = MONAD (var r), dType = SOME (var size) },
          { pName = anonDecodeFunction, pType = MONAD (var r), dType = SOME (var size) },
          { pName = globalState, pType = var state, dType = NONE },
          (*{ pName = "return", pType = FUN (var a, MONAD (var a)), dType = NONE},
@@ -69,6 +69,7 @@ structure Primitives = struct
          ST.typeTable := TypeInfo.empty;
          ST.fieldTable := FieldInfo.empty;
          List.map addVar primitiveValues;
+         addVar {pName = caseExpression, pType = UNIT, dType = NONE};
          List.map addType primitiveTypes
          )
    fun getSymbolTypes () = List.map

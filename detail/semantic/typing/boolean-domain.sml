@@ -22,7 +22,9 @@ structure BooleanDomain : sig
 
    val meetEither : bvar * bvar * bfun -> bfun
    
-   val meetVarEquals : bvar * bool * bfun -> bfun
+   val meetVarZero : bvar * bfun -> bfun
+
+   val meetVarOne : bvar * bfun -> bfun
 
    type bvarset
    
@@ -146,11 +148,11 @@ end = struct
    fun meetNotBoth (BVAR v1, BVAR v2, f) = addClause ((~v1,~v2),f)
    fun meetEither (BVAR v1, BVAR v2, f) = addClause ((v1,v2),f)
 
-   fun meetVarEquals (BVAR v, true, f) =
+   fun meetVarOne (BVAR v, f) =
          (TextIO.print ("\nmeet with " ^ i v ^ " = t\n");
          addUnits ([v], f)
          )
-     | meetVarEquals (BVAR v, false, f) =
+   fun meetVarZero (BVAR v, f) =
          (TextIO.print ("\nmeet with " ^ i v ^ " = f\n");
          addUnits ([~v], f)
          )

@@ -18,32 +18,41 @@ structure Environment : sig
    val popGroup : environment -> 
                   (VarInfo.symid * symbol_type) list * environment
    val pushTop : environment -> environment
-   val pushRenamedType : Types.texp * environment -> environment
+   
+   (*pushes the given type onto the stack, if the flag is true, type variables
+   are renamed*)
+   val pushType : bool * Types.texp * environment -> environment
 
-   val pushRecord : FieldInfo.symid list * environment -> environment
+
    val pushSymbol : VarInfo.symid * Error.span * environment -> environment
    
-   (*stack: [...] -> [x:a,...], a fresh*)
+   (*stack: [...] -> [..., x:a], a fresh*)
+   val pushLambdaVar' : VarInfo.symid * environment -> (Types.texp * environment)
    val pushLambdaVar : VarInfo.symid * environment -> environment
    
-   (*stack: [t2,t1,...] -> [t1 -> t2,...]*)
+   (*stack: [..., t0, t1, ... tn] -> [..., {f1:t1, ... fn:tn, t0:...}]*)
+   val reduceToRecord : (BooleanDomain.bvar * FieldInfo.symid) list *
+                        environment -> environment
+
+   (*stack: [...,t1,t2] -> [...,t1 -> t2]*)
    val reduceToFunction : environment -> environment
    
-   (*stack: [t1 -> t2,...] -> [t2,...]*)
+   (*stack: [...,t1 -> t2] -> [...t2]*)
    val reduceToResult : environment -> environment
-                                               
-   (*stack: [t1,t2,...] -> [...] and substitution mgu(t1,t2) applied*)
-   val reduceUnify : environment -> environment
-   
-   (*stack: [t,...] -> [...] and type of function f is set to t*)
+
+   (*stack: [..., tn, ..., t2, t1, t0] -> [..., t0]*)
+   val return : int * environment -> environment
+
+   val popKappa : environment -> environment
+
+   (*stack: [...] -> [...,t] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
    
    (*val reduceFunction : envionrment -> environment*)
    
-   val meet : environment * environment -> environment * bool
+   val meet : environment * environment -> environment
    
    (*val pushKappa : Types.texp * environment -> environment
-   val popBinding : environment -> environment
    val popKappa : environment -> (Types.texp * environment)
    val pushId : SymbolTable.symid * environment -> environment
    
@@ -322,32 +331,8 @@ end = struct
          Scope.wrap (KAPPA {ty = VAR (a,b)}, env)
       end
 
-   fun pushRenamedType (t, env) = Scope.wrap (KAPPA {ty = renameType t}, env)
-
-   fun pushRecord (fs, (scs, bFun)) =
-      let
-         val m = TVar.freshTVar ()
-         fun genFields (out, [], bFun) = (out, bFun)
-           | genFields (out, fid :: fids, bFun) =
-            let
-               val a = TVar.freshTVar ()
-               val b = BD.freshBVar ()
-               val b' = BD.freshBVar ()
-               val newField = RField { name = fid, fty = VAR (a,b'), exists = b}
-               val bFun = BD.meetVarEquals (b, true, bFun)
-               fun addField [] = [newField]
-                 | addField (f :: fd) = (case compare_rfield (newField, f) of
-                      EQUAL => raise InferenceBug
-                    | LESS => newField :: f :: fd
-                    | GREATER => f :: addField fd)
-            in
-               genFields (addField out, fids, bFun)
-            end
-         val b = BD.freshBVar ()
-         val (fields, bFun) = genFields ([], fs, bFun)
-      in
-         Scope.wrap (KAPPA {ty = RECORD (m, b, fields)}, (scs, bFun))
-      end
+   fun pushType (true, t, env) = Scope.wrap (KAPPA {ty = renameType t}, env)
+     | pushType (false, t, env) = Scope.wrap (KAPPA {ty = t}, env)
 
    exception LookupNeedsToAddUse
 
@@ -355,7 +340,7 @@ end = struct
       Position.toInt p1s=Position.toInt p2s andalso
       Position.toInt p1e=Position.toInt p2e
 
-   fun toString (scs, bFun) = 
+   fun toStringSI ((scs, bFun),si) = 
       let
          fun show (s, (str, si)) =
             let
@@ -363,11 +348,17 @@ end = struct
             in
                (bStr ^ "\n" ^ str, si)
             end
-         val (str, _) = List.foldr show ("", TVar.emptyShowInfo) scs
+      in
+         List.foldr show ("", si) scs
+      end
+
+   fun toString env =
+      let
+         val (str, _) = toStringSI (env,TVar.emptyShowInfo)
       in
          str
       end
-
+   
    fun topToString (s :: scs, bFun) = toString ([s], bFun)
      | topToString ([], bFun) = ""
 
@@ -396,11 +387,36 @@ end = struct
           )
       )
 
+   fun pushLambdaVar' (sym, env) =
+      let
+         val t = VAR (TVar.freshTVar (), BD.freshBVar ())
+      in
+         (t, Scope.wrap (SINGLE {name = sym, ty = t}, env))
+      end
+
    fun pushLambdaVar (sym, env) =
       let
          val t = VAR (TVar.freshTVar (), BD.freshBVar ())
       in
          Scope.wrap (SINGLE {name = sym, ty = t}, env)
+      end
+
+   fun reduceToRecord (bns, env) =
+      let
+         fun genFields (fs, [], env) = (case Scope.unwrap env of
+                 (KAPPA {ty=VAR (tv,bv)}, env) =>
+                  Scope.wrap (KAPPA {ty = RECORD (tv, bv, fs)}, env)
+               | _ => raise InferenceBug
+            )
+           | genFields (fs, (bVar, fName) :: bns, env) =
+               (case Scope.unwrap env of
+                    (KAPPA {ty=t}, env) =>
+                        genFields (insertField (
+                           RField { name = fName, fty = t, exists = bVar},
+                           fs), bns, env)
+                  | _ => raise InferenceBug)
+      in
+         genFields ([], bns, env)
       end
 
    fun reduceToFunction env =
@@ -466,6 +482,24 @@ end = struct
          applySubsts(substs, env)
       end
 
+   fun return (n,env) =
+      let
+         val (t, env) = Scope.unwrap env
+         fun popN (n,env) = if n<=0 then env else
+            let
+               val (_, env) = Scope.unwrap env
+            in
+               popN (n-1, env)
+            end
+      in
+         Scope.wrap (t, popN (n,env))
+      end
+      
+
+   fun popKappa env = case Scope.unwrap env of
+        (KAPPA {ty}, env) => env
+      | _ => raise InferenceBug
+
    fun popToFunction (sym, env) =
       let
          fun setType t (COMPOUND {ty = NONE, width, uses}, bFun) =
@@ -504,9 +538,11 @@ end = struct
                | (NONE, env1, env2) => substs
                | (SOME _, _, _) => raise InferenceBug
          val substs = unify (env1, env2, emptySubsts)
-         val sVars = substsDom substs
+         val (eStr,si) = toStringSI (env2, TVar.emptyShowInfo)
+         val (sStr,_) = showSubstsSI (substs,si)
+         (*val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ eStr)*)
       in
-         (applySubsts (substs, env2), not (Scope.hasVars (env2, sVars)))
+         applySubsts (substs, env2)
       end
    (*val pushKappa t bs = KAPPA {ty = t} :: bs
    val popBinding (b :: bs) = bs

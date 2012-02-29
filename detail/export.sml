@@ -16,6 +16,7 @@ structure VarInfo = VarInfo
 structure Types = Types
 structure BooleanDomain = BooleanDomain
 structure Environment = Environment
+structure TVar = TVar
 structure Main = Main
 
 (** ## Exported functors *)
