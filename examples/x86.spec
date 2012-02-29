@@ -45,6 +45,7 @@ datatype ropnd =
  | IMM8 of 8
  | IMM16 of 16
  | IMM32 of 32
+ | IMM64 of 64
 
 datatype opexp =
    ESUM of { a: opexp, b:opexp }
@@ -83,6 +84,8 @@ dec imm8 ['byte:8'] = return (IMM8 {value=byte})
 dec imm16 ['byte1:8' 'byte2:8'] = return (IMM16 {value=byte1 ^ byte2})
 dec imm32 ['byte1:8' 'byte2:8' 'byte3:8' 'byte4:8'] =
   return (IMM32 {value=byte1 ^ byte2 ^ byte3 ^ byte4})
+dec imm64 ['byte1:8' 'byte2:8' 'byte3:8' 'byte4:8' 'byte5:8' 'byte6:8' 'byte7:8' 'byte8:8'] =
+  return (IMM64 {value=byte1 ^ byte2 ^ byte3 ^ byte4 ^ byte5 ^ byte6 ^ byte7 ^ byte8})
 
 # The 's' action reads one bit and updates the monadic state
 dec s ['sizeBit:1'] = let
@@ -256,6 +259,15 @@ val g oS = do
    return regN reg oS
 end
 
+val i oS = do
+   oS <- oS;
+   case oS of
+      B: imm8
+    | W: imm16
+    | DW: imm32
+    | Q: imm64
+end
+
 val v = operandSize
 
 val eb = e (return B)
@@ -263,6 +275,8 @@ val ev = e v
 
 val gb = g (return B)
 val gv = g v
+
+val ib = i (return B)
 
 val r/m16 = do
 	e W
@@ -297,6 +311,7 @@ doc [0x00] = add eb gb
 doc [0x01] = add ev gv
 doc [0x02] = add gb eb
 doc [0x03] = add gv ev
+doc [0x04] = add AL ib
 
 dec [0x80 /r]
    | opndsz = mov r/m16 r16
