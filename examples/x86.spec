@@ -19,6 +19,9 @@ state =
 
 #include "x86-registers.spec"
 
+datatype size =
+	B | W, DW, Q, DQW
+
 datatype register =
    AL | AH | AX | EAX | RAX | XMM0
  | CL | CH | CX | ECX | RCX | XMM1
@@ -29,13 +32,13 @@ datatype register =
  | SI | ESI | RSI | XMM6
  | DI | EDI | RDI | XMM7
 
-#datatype lopnd;
-#datatype ropnd;
-#datatype opexp;
+datatype lopnd;
+datatype ropnd;
+datatype opexp;
 
 datatype lopnd =
    REG of register
- | MEM of {accesssize: int, mop: (* opexp *) int}
+ | MEM of {accesssize: size, mop: opexp}
 
 datatype ropnd =
    RLOP of lopnd
@@ -66,9 +69,6 @@ datatype insn =
  | SUB of binop
  | MUL of binop
  | DIV of binop
-
-datatype size =
-	B | W, DW, Q, DQW
 
 # Example of bit-patterns
 dec /0 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
@@ -160,21 +160,47 @@ val regN num size =
 
 
 val operandSize = do
-	rex <- query $rex;
-	opndsz <- query $opndsz;
-	case ($w rex) of
-	   '0': (case opndsz of
-	   	    '0': return DW
-		  | '1': return W)
-	 | '1': return QW
+   rex <- query $rex;
+   opndsz <- query $opndsz;
+   case ($w rex) of
+      '0': (case opndsz of
+   	       '0': return DW
+   	     | '1': return W)
+    | '1': return QW
 end
 
 val addressSize = do
-	addrsz <- query $addrsz;
-	case addrsz of
-	   '0': return QW
-	 | '1': return DW
+   addrsz <- query $addrsz;
+   case addrsz of
+      '0': return QW
+    | '1': return DW
+end	
+
+dec sib ['scale:2 index:3 base:3'] = do
+   mod <- query $mod;
+   base_exp <- case base of
+   		  '000': EAX
+		| '001': ECX
+		| '010': EDX
+		| '011': EBX
+		| '100': ESP
+		| '101': (case mod of
+			     '00': do
+			     	      disp32 <- imm32;
+				      disp32
+			     	   end
+			   | '01': do
+			     	      disp8 <- imm8;
+				      ESUM { disp8, EBP }
+			     	   end
+			   | '10': do
+			     	      disp32 <- imm32;
+				      ESUM { disp32, EBP }
+			     	   end)
+		| '110': ESI
+		| '111': EDI
 end
+
 
 val E oS aS = do
    mod <- query $mod;
