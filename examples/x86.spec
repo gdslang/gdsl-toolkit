@@ -29,9 +29,13 @@ datatype register =
  | SI | ESI | RSI | XMM6
  | DI | EDI | RDI | XMM7
 
+#datatype lopnd;
+#datatype ropnd;
+#datatype opexp;
+
 datatype lopnd =
-   REG of {sizeinbits: int, reg: register}
- | MEM of {accesssize: int, mop: opexp}
+   REG of register
+ | MEM of {accesssize: int, mop: (* opexp *) int}
 
 datatype ropnd =
    RLOP of lopnd
@@ -64,7 +68,7 @@ datatype insn =
  | DIV of binop
 
 datatype size =
-	B | W
+	B | W, DW, Q, DQW
 
 # Example of bit-patterns
 dec /0 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
@@ -78,7 +82,7 @@ val fromEnum i =
 dec imm8 ['byte:8'] = return (IMM8 {value=byte})
 dec imm16 ['byte1:8' 'byte2:8'] = return (IMM16 {value=byte1 ^ byte2})
 dec imm32 ['byte1:8' 'byte2:8' 'byte3:8' 'byte4:8'] =
-  return (IMM16 {value=byte1 ^ byte2 ^ byte3 ^ byte4})
+  return (IMM32 {value=byte1 ^ byte2 ^ byte3 ^ byte4})
 
 # The 's' action reads one bit and updates the monadic state
 dec s ['sizeBit:1'] = let
@@ -160,31 +164,41 @@ val operandSize = do
 	opndsz <- query $opndsz;
 	case ($w rex) of
 	   '0': (case opndsz of
-	   	    '0': return 32
-		  | '1': return 16)
-	 | '1': return 64
+	   	    '0': return DW
+		  | '1': return W)
+	 | '1': return QW
 end
 
 val addressSize = do
 	addrsz <- query $addrsz;
 	case addrsz of
-	   '0': return 64
-	 | '1': return 32
+	   '0': return QW
+	 | '1': return DW
 end
 
-val r/m oS aS = do
+val E oS aS = do
    mod <- query $mod;
    rm <- query $rm;
    oS <- oS;
    aS <- aS;
    case mod of
-#      '00': case rm of
-#             ...
-(*    |*) '11': return (regN rm oS)
+      '00': (case rm of
+                '000': return MEM { oS, EAX }
+	      | '001': return MEM { oS, ECX }
+	      | '010': return MEM { oS, EDX }
+	      | '011': return MEM { oS, EBX }
+	      | '011': ...
+	      | '101': do
+	      	          disp32 <- imm32;
+			  return MEM { oS, disp32 }
+	      	       end
+	      | '110': return MEM { oS, REG { 32, ESI } }
+	      | '111': return MEM { oS, REG { 32, EDI } })
+    | '11': return (regN rm oS)
 end
 
 val r/m16 = do
-	r/m 16
+	E 16 32
 end
 
 val r16 = do
