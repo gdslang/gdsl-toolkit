@@ -20,7 +20,7 @@ state =
 #include "x86-registers.spec"
 
 datatype size =
-	B | W, DW, Q, DQW
+	B | W | DW | Q | DQW
 
 datatype register =
    AL | AH | AX | EAX | RAX | XMM0
@@ -227,29 +227,45 @@ dec sib ['scale:2 index:3 base:3'] = do
 end
 
 
-val E oS aS = do
+val e oS = do
    mod <- query $mod;
    rm <- query $rm;
    oS <- oS;
-   aS <- aS;
+   aS <- addressSize;
    case mod of
       '00': (case rm of
                 '000': return MEM { oS, EAX }
 	      | '001': return MEM { oS, ECX }
 	      | '010': return MEM { oS, EDX }
 	      | '011': return MEM { oS, EBX }
-	      | '011': ...
+	      | '011': do
+	      		  sib_exp <- sib;
+			  return MEM { oS, sib_exp }
+		       end
 	      | '101': do
 	      	          disp32 <- imm32;
 			  return MEM { oS, disp32 }
 	      	       end
-	      | '110': return MEM { oS, REG { 32, ESI } }
-	      | '111': return MEM { oS, REG { 32, EDI } })
-    | '11': return (regN rm oS)
+	      | '110': return MEM { oS, ESI }
+	      | '111': return MEM { oS, EDI })
+    | '11': return regN rm oS
 end
 
+val g oS = do
+   reg <- query $reg;
+   return regN reg oS
+end
+
+val v = operandSize
+
+val eb = e (return B)
+val ev = e v
+
+val gb = g (return B)
+val gv = g v
+
 val r/m16 = do
-	E 16 32
+	e W
 end
 
 val r16 = do
@@ -265,11 +281,22 @@ val r64 = return RAX
 
 val r/m64 = return RAX
 
+val add a1 a2 = do
+   a1 <- a1;
+   a2 <- a2;
+   return ADD { a1, a2 }
+end
+
 val mov a1 a2 = do
    a1 <- a1;
    a2 <- a2;
-   return (MOV {op1=a1, op2=a2})
+   return MOV { a1, a2 }
 end
+
+doc [0x00] = add eb gb
+doc [0x01] = add ev gv
+doc [0x02] = add gb eb
+doc [0x03] = add gv ev
 
 dec [0x80 /r]
    | opndsz = mov r/m16 r16
