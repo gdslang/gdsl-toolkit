@@ -282,15 +282,34 @@ val i oS = do
     | QW: imm64
 end
 
+val b = return B
 val v = operandSize
+val z = do
+   oS <- operandSize;
+   case oS of
+      W: return W
+    | DW: return DW
+    | QW: return QW
+end
 
-val eb = e (return B)
+val eb = e b
 val ev = e v
 
-val gb = g (return B)
+val gb = g b
 val gv = g v
 
-val ib = i (return B)
+val ib = i b
+val iz = i z
+
+val al = return AL
+
+val rAX = do
+   oS <- operandSize;
+   case oS of
+      W: return AX
+    | DW: return EAX
+    | QW: return RAX
+end
 
 val r/m16 = do
 	e W
@@ -325,7 +344,8 @@ dec [0x00] = add eb gb
 dec [0x01] = add ev gv
 dec [0x02] = add gb eb
 dec [0x03] = add gv ev
-dec [0x04] = add AL ib
+dec [0x04] = add al ib
+dec [0x05] = add rAX iz
 
 dec [0x80 /r]
    | opndsz = mov r/m16 r16
