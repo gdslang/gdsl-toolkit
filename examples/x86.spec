@@ -20,7 +20,7 @@ state =
 #include "x86-registers.spec"
 
 datatype size =
-	B | W | DW | Q | DQW
+	B | W | DW | QW | DQW
 
 datatype register =
    AL | AH | AX | EAX | RAX | XMM0
@@ -32,37 +32,51 @@ datatype register =
  | SI | ESI | RSI | XMM6
  | DI | EDI | RDI | XMM7
 
-datatype lopnd;
-datatype ropnd;
-datatype opexp;
-
-datatype lopnd =
+datatype opexp =
    REG of register
- | MEM of {accesssize: size, mop: opexp}
-
-datatype ropnd =
-   RLOP of lopnd
  | IMM8 of 8
  | IMM16 of 16
  | IMM32 of 32
  | IMM64 of 64
+ | ESUM of { a:opexp, b:opexp }
+ | EPROD of { a:opexp, b:opexp }
 
-datatype opexp =
-   ESUM of { a: opexp, b:opexp }
- | EPROD of { a: opexp, b:opexp }
- | EOPND of ropnd
+datatype mopnd = MEM of {accesssize: size, mop: opexp}
+
+datatype lopnd =
+   LDIR of register
+ | LMEM of mopnd
+
+datatype ropnd =
+   RDIR of opexp
+ | RMEM of mopnd
+
+#datatype lopnd;
+#datatype ropnd;
+#datatype opexp;
+#datatype lopnd =
+#   REG of register
+# | MEM of {accesssize: size, mop: opexp}
+#datatype ropnd =
+#   RLOP of lopnd
+# | IMM8 of 8
+# | IMM16 of 16
+# | IMM32 of 32
+# | IMM64 of 64
+#datatype opexp =
+#   ESUM of { a: opexp, b:opexp }
+# | EPROD of { a: opexp, b:opexp }
+# | EOPND of ropnd
 # | IMM of {sizeinbits: int, value: int}
 # | BIN of {op: string, left:opnd, right:opnd}
-
 #datatype lval =
 # | LMEM of {accesssize: int, mop: opexp}
 # | LREG of {sizeinbits: int, reg: register}
-
 #datatype rval =
 # | RMEM of {accesssize: int, mop: opexp}
 # | RVAL of opexp
 
-type binop = {op1:lopnd, op2:ropnd}
+type binop = { l:lopnd, r:ropnd}
 
 datatype insn =
    MOV of binop
@@ -194,38 +208,38 @@ dec sib ['scale:2 index:3 base:3'] = do
 			     	   end
 			   | '01': do
 			     	      disp8 <- imm8;
-				      return ESUM { disp8, EBP }
+				      return ESUM { a = disp8, b = EBP }
 			     	   end
 			   | '10': do
 			     	      disp32 <- imm32;
-				      return ESUM { disp32, EBP }
+				      return ESUM { a = disp32, b = EBP }
 			     	   end)
 		| '110': return ESI
 		| '111': return EDI;
    case scale of
       '00': (case index of
-                '000': return ESUM { base_exp, EAX }
-              | '001': return ESUM { base_exp, ECX }
-              | '010': return ESUM { base_exp, EDX }
-              | '011': return ESUM { base_exp, EBX }
+                '000': return ESUM { a = base_exp, b = EAX }
+              | '001': return ESUM { a = base_exp, b = ECX }
+              | '010': return ESUM { a = base_exp, b = EDX }
+              | '011': return ESUM { a = base_exp, b = EBX }
               | '100': return base_exp
-              | '011': return ESUM { base_exp, EBP }
-              | '011': return ESUM { base_exp, ESI }
-              | '011': return ESUM { base_exp, EDI })
+              | '011': return ESUM { a = base_exp, b = EBP }
+              | '011': return ESUM { a = base_exp, b = ESI }
+              | '011': return ESUM { a = base_exp, b = EDI })
     | otherwise: do
     		    scale_exp <- case scale of
-		    		    '01': return 2
-				  | '10': return 4
-				  | '11': return 8;
+		    		    '01': return bits8(2)
+				  | '10': return bits8(4)
+				  | '11': return bits8(8);
 		    case index of
-		       '000': return ESUM { base_exp, EPROD { EAX, scale_exp } }
-		     | '001': return ESUM { base_exp, EPROD { ECX, scale_exp } }
-		     | '010': return ESUM { base_exp, EPROD { EDX, scale_exp } }
-		     | '011': return ESUM { base_exp, EPROD { EBX, scale_exp } }
+		       '000': return ESUM { a = base_exp, b = EPROD { a = EAX, b = scale_exp } }
+		     | '001': return ESUM { a = base_exp, b = EPROD { a = ECX, b = scale_exp } }
+		     | '010': return ESUM { a = base_exp, b = EPROD { a = EDX, b = scale_exp } }
+		     | '011': return ESUM { a = base_exp, b = EPROD { a = EBX, b = scale_exp } }
 		     | '100': return base_exp
-		     | '011': return ESUM { base_exp, EPROD { EBP, scale_exp } }
-		     | '011': return ESUM { base_exp, EPROD { ESI, scale_exp } }
-		     | '011': return ESUM { base_exp, EPROD { EDI, scale_exp } }
+		     | '011': return ESUM { a = base_exp, b = EPROD { a = EBP, b = scale_exp } }
+		     | '011': return ESUM { a = base_exp, b = EPROD { a = ESI, b = scale_exp } }
+		     | '011': return ESUM { a = base_exp, b = EPROD { a = EDI, b = scale_exp } }
     		 end
 end
 
@@ -237,20 +251,20 @@ val e oS = do
    aS <- addressSize;
    case mod of
       '00': (case rm of
-                '000': return MEM { oS, EAX }
-	      | '001': return MEM { oS, ECX }
-	      | '010': return MEM { oS, EDX }
-	      | '011': return MEM { oS, EBX }
+                '000': return MEM { accesssize = oS, mop = EAX }
+	      | '001': return MEM { accesssize = oS, mop = ECX }
+	      | '010': return MEM { accesssize = oS, mop = EDX }
+	      | '011': return MEM { accesssize = oS, mop = EBX }
 	      | '011': do
 	      		  sib_exp <- sib;
-			  return MEM { oS, sib_exp }
+			  return MEM { accesssize = oS, mop = sib_exp }
 		       end
 	      | '101': do
 	      	          disp32 <- imm32;
-			  return MEM { oS, disp32 }
+			  return MEM { accesssize = oS, mop = disp32 }
 	      	       end
-	      | '110': return MEM { oS, ESI }
-	      | '111': return MEM { oS, EDI })
+	      | '110': return MEM { accesssize = oS, mop = ESI }
+	      | '111': return MEM { accesssize = oS, mop = EDI })
     | '11': return regN rm oS
 end
 
@@ -265,7 +279,7 @@ val i oS = do
       B: imm8
     | W: imm16
     | DW: imm32
-    | Q: imm64
+    | QW: imm64
 end
 
 val v = operandSize
@@ -298,20 +312,20 @@ val r/m64 = return RAX
 val add a1 a2 = do
    a1 <- a1;
    a2 <- a2;
-   return ADD { a1, a2 }
+   return ADD { l = a1, r = a2 }
 end
 
 val mov a1 a2 = do
    a1 <- a1;
    a2 <- a2;
-   return MOV { a1, a2 }
+   return MOV { l = a1, r = a2 }
 end
 
-doc [0x00] = add eb gb
-doc [0x01] = add ev gv
-doc [0x02] = add gb eb
-doc [0x03] = add gv ev
-doc [0x04] = add AL ib
+dec [0x00] = add eb gb
+dec [0x01] = add ev gv
+dec [0x02] = add gb eb
+dec [0x03] = add gv ev
+dec [0x04] = add AL ib
 
 dec [0x80 /r]
    | opndsz = mov r/m16 r16
