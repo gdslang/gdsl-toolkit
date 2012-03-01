@@ -79,9 +79,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val env = List.foldl E.pushLambdaVar env args
-         (*val _ = TextIO.print ("after pushing args:\n" ^ E.topToString env)*)
          val env = infExp (st,env) rhs
-         (*val _ = TextIO.print ("before popping args:\n" ^ E.topToString env)*)
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
          (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
          val env = E.popToFunction (sym, env)

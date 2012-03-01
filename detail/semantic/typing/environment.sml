@@ -24,6 +24,8 @@ structure Environment : sig
    val pushType : bool * Types.texp * environment -> environment
 
 
+   (*given an occurrence of a symbol at a position, push its type onto the
+   stack and return if an instance of this type must be used*)
    val pushSymbol : VarInfo.symid * Error.span * environment -> environment
    
    (*stack: [...] -> [..., x:a], a fresh*)
@@ -47,6 +49,9 @@ structure Environment : sig
 
    (*stack: [...] -> [...,t] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
+
+   (*the type of function f is unset*)
+   val clearFunction : VarInfo.symid * environment -> environment
    
    (*val reduceFunction : envionrment -> environment*)
    
@@ -65,6 +70,7 @@ end = struct
    structure ST = SymbolTable
    structure BD = BooleanDomain
    open Types
+   open Substitutions
 
    (*any error that is not due to unification*)
    exception InferenceBug
@@ -104,7 +110,7 @@ end = struct
       val unwrapDifferent : environment * environment ->
             (binding * binding) option * environment * environment
       val hasVars : environment * TVar.set -> bool
-      val lookup : ST.symid * environment -> bind_info
+      val lookup : ST.symid * environment -> TVar.set * bind_info
       val update : ST.symid  *
                    (bind_info * BD.bfun -> bind_info * BD.bfun) *
                    environment-> environment
@@ -170,15 +176,20 @@ end = struct
 
       fun lookup (sym, (scs, bFun)) =
          let
+            fun getEnv ({bindInfo, typeVars = tv, version}::scs) = tv
+              | getEnv [] = TVar.empty
             fun l [] = raise InferenceBug
               | l ({bindInfo = KAPPA _, typeVars, version}::scs) = l scs
               | l ({bindInfo = SINGLE {name, ty}, typeVars, version}::scs) =
-                  if ST.eq_symid (sym,name) then SIMPLE { ty = ty} else l scs
+                  if ST.eq_symid (sym,name) then
+                     (getEnv scs, SIMPLE { ty = ty})
+                  else l scs
               | l ({bindInfo = GROUP bs, typeVars, version}::scs) =
                   let fun lG [] = l scs
                         | lG ({name, ty, width, uses}::bs) =
                            if ST.eq_symid (sym,name) then
-                              COMPOUND { ty = ty, width = width, uses = uses }
+                              (getEnv scs,
+                              COMPOUND { ty = ty, width = width, uses = uses })
                            else lG bs
                   in
                      lG bs
@@ -186,7 +197,7 @@ end = struct
          in
             l scs
          end
-      
+
       fun update (sym, action, env) =
          let
             fun tryUpdate (KAPPA _, bFun) = NONE
@@ -331,7 +342,12 @@ end = struct
          Scope.wrap (KAPPA {ty = VAR (a,b)}, env)
       end
 
-   fun pushType (true, t, env) = Scope.wrap (KAPPA {ty = renameType t}, env)
+   fun pushType (true, t, (scs, bFun)) =
+      let
+         val (t,bFun) = instantiateType (TVar.empty,t,bFun)
+      in
+         Scope.wrap (KAPPA {ty = t}, (scs, bFun))
+      end
      | pushType (false, t, env) = Scope.wrap (KAPPA {ty = t}, env)
 
    exception LookupNeedsToAddUse
@@ -364,13 +380,19 @@ end = struct
 
    fun show env = TextIO.print (toString env)
 
+   fun createInstance (sym, env) = env
 
    fun pushSymbol (sym, span, env) =
       (case Scope.lookup (sym,env) of
-          SIMPLE {ty = t} => Scope.wrap (KAPPA {ty = t}, env)
-        | COMPOUND {ty = SOME t, width, uses} =>
-            Scope.wrap (KAPPA {ty = t}, env)
-        | COMPOUND {ty = NONE, width, uses} =>
+          (_, SIMPLE {ty = t}) => Scope.wrap (KAPPA {ty = t}, env)
+        | (tvs, COMPOUND {ty = SOME t, width, uses}) =>
+         let
+            val (scs,bFun) = env
+            val (t,bFun) = instantiateType (tvs, t, bFun)
+         in
+            Scope.wrap (KAPPA {ty = t}, (scs,bFun))
+         end
+        | (_, COMPOUND {ty = NONE, width, uses}) =>
           (case List.find (fn (sp,t) => eq_span (sp,span)) uses of
                SOME (sp,t) => Scope.wrap (KAPPA {ty = t}, env)
              | NONE =>
@@ -438,33 +460,42 @@ end = struct
             Scope.wrap (KAPPA {ty = t2}, env)
          | _ => raise InferenceBug
 
-   fun applySubsts (substs, env) =
+   fun applySubsts (substs, (scs, bFun)) =
       let
          val sVars = substsDom substs
-         fun substBinding (KAPPA {ty=ty}, env) =
-               (KAPPA {ty=applySubstsToExp substs ty}, env)
-           | substBinding (SINGLE {name = n, ty = ty}, env) =
-               (SINGLE {name = n, ty = applySubstsToExp substs ty}, env)
-           | substBinding (GROUP bs, env) =
+         fun substBinding (KAPPA {ty=t}, ei) =
+            (case applySubstsToExp substs (t,ei) of (t,ei) =>
+               (KAPPA {ty = t}, ei))
+           | substBinding (SINGLE {name = n, ty = t}, ei) =
+            (case applySubstsToExp substs (t,ei) of (t,ei) =>
+               (SINGLE {name = n, ty = t}, ei))
+           | substBinding (GROUP bs, ei) =
                let
-                  val envRef = ref env
-                  fun optSubst (SOME t) = SOME (applySubstsToExp substs t)
+                  val eiRef = ref ei
+                  fun optSubst (SOME t) =
+                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
+                        (eiRef := ei; SOME t))
                     | optSubst NONE = NONE
-                  fun usesSubst (s,t) = (s, applySubstsToExp substs t)
+                  fun usesSubst (s,t) =
+                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
+                        (eiRef := ei; (s, t)))
                   fun substB {name = n, ty = t, width = w, uses = u} =
                      {name = n, ty = optSubst t, width = optSubst w,
                       uses = List.map usesSubst u }
-                  val bs = List.map substB bs
                in
-                  (GROUP bs, !envRef)
+                  (GROUP (List.map substB bs), !eiRef)
                end
-         fun doSubst env =
-            if Scope.hasVars (env,sVars) then
-               case substBinding (Scope.unwrap env) of
-                  (b,env) => Scope.wrap (b, doSubst env)
-            else env
+         fun doSubst (scs, ei) =
+            if Scope.hasVars ((scs, BD.empty),sVars) then
+               let
+                  val (b, (scs,_)) = Scope.unwrap (scs, BD.empty)
+                  val (b, ei) = substBinding (b, ei)
+               in
+                  Scope.wrap (b, doSubst (scs, ei))
+               end
+            else (scs, finalizeExpandInfo ei)
       in
-         doSubst env
+         doSubst (scs, createExpandInfo bFun)
       end
 
    fun reduceUnify env = 
@@ -508,6 +539,17 @@ end = struct
       in
          case Scope.unwrap env of
               (KAPPA {ty=t}, env) => Scope.update (sym, setType t, env)
+            | _ => raise InferenceBug
+      end
+
+   fun clearFunction (sym, env) =
+      let
+         fun resetType t (COMPOUND {ty = SOME _, width, uses}, bFun) =
+               (COMPOUND {ty = NONE, width = width, uses = uses}, bFun)
+           | resetType t _ = raise InferenceBug
+      in
+         case Scope.unwrap env of
+              (KAPPA {ty=t}, env) => Scope.update (sym, resetType t, env)
             | _ => raise InferenceBug
       end
 
