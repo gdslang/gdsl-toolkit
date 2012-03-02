@@ -126,54 +126,54 @@ end
 
 val regN num size =
    case num of
-       '000': (case size of
-	         128: XMM0
-	       |  64: RAX
-	       |  32: EAX
-	       |  16: AX
-	       |   8: AL)
-     | '001': (case size of
-	         128: XMM1
-	       |  64: RCX
-	       |  32: ECX
-	       |  16: CX
-	       |   8: CL)
-     | '010': (case size of
-	         128: XMM2
-	       |  64: RDX
-	       |  32: EDX
-	       |  16: DX
-	       |   8: DL)
-     | '011': (case size of
-	         128: XMM3
-	       |  64: RBX
-	       |  32: EBX
-	       |  16: BX
-	       |   8: BL)
-     | '100': (case size of
-	         128: XMM4
-	       |  64: RSP
-	       |  32: ESP
-	       |  16: SP
-	       |   8: AH)
-     | '101': (case size of
-	         128: XMM5
-	       |  64: RBP
-	       |  32: EBP
-	       |  16: BP
-	       |   8: CH)
-     | '110': (case size of
-	         128: XMM6
-	       |  64: RSI
-	       |  32: ESI
-	       |  16: SI
-	       |   8: DH)
-     | '111': (case size of
-	         128: XMM7
-	       |  64: RDI
-	       |  32: EDI
-	       |  16: DI
-	       |   8: BH)
+       0: (case size of
+	         DQW: XMM0
+	       |  QW: RAX
+	       |  DW: EAX
+	       |   W: AX
+	       |   B: AL)
+     | 1: (case size of
+	         DQW: XMM1
+	       |  QW: RCX
+	       |  DW: ECX
+	       |   W: CX
+	       |   B: CL)
+     | 2: (case size of
+	         DQW: XMM2
+	       |  QW: RDX
+	       |  DW: EDX
+	       |   W: DX
+	       |   B: DL)
+     | 3: (case size of
+	         DQW: XMM3
+	       |  QW: RBX
+	       |  DW: EBX
+	       |   W: BX
+	       |   B: BL)
+     | 4: (case size of
+	         DQW: XMM4
+	       |  QW: RSP
+	       |  DW: ESP
+	       |   W: SP
+	       |   B: AH)
+     | 5: (case size of
+	         DQW: XMM5
+	       |  QW: RBP
+	       |  DW: EBP
+	       |   W: BP
+	       |   B: CH)
+     | 6: (case size of
+	         DQW: XMM6
+	       |  QW: RSI
+	       |  DW: ESI
+	       |   W: SI
+	       |   B: DH)
+     | 7: (case size of
+	         DQW: XMM7
+	       |  QW: RDI
+	       |  DW: EDI
+	       |   W: DI
+	       |   B: BH)
 
 
 val operandSize = do
@@ -265,7 +265,7 @@ val e oS = do
 	      	       end
 	      | '110': return MEM { accesssize = oS, mop = ESI }
 	      | '111': return MEM { accesssize = oS, mop = EDI })
-    | '11': return regN rm oS
+    | '11': return regN (unsigned rm) oS
 end
 
 val g oS = do
