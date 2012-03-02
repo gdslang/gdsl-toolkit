@@ -58,7 +58,7 @@ end = struct
           | SOME (pats, exp') =>
                let
                   (* remove `x` from available patterns, if it coccurs twice,
-                   * we have found recursion (remember that all `x` are unique
+                   * we have found recursion (remember that all `x` are unique)
                    *)
                   val (map', _) = Map.remove (!map, x)
                   val () = map := map'
@@ -152,15 +152,15 @@ end = struct
       List.map flattenDecl spec
    end
 
-   fun inlineDecodePatterns (err, {span, tree}:SpecAbstractTree.specification) = let
+   fun inlineDecodePatterns (err, {span, tree}:T.specification) = let
       val t = grabNamedPatterns tree
       val inlined = flattenDecodePatterns err t tree
    in
       {span=span, tree=inlined}
    end
 
-   fun dumpPre (os, (_, spec)) = SpecAbstractTree.PP.prettyTo (os, spec)
-   fun dumpPost (os, spec) = SpecAbstractTree.PP.prettyTo (os, spec)
+   fun dumpPre (os, (_, spec)) = T.PP.prettyTo (os, spec)
+   fun dumpPost (os, spec) = T.PP.prettyTo (os, spec)
 
    val inline =
       BasicControl.mkKeepPass

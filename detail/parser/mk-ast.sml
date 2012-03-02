@@ -131,9 +131,6 @@ functor MkAst (Core: AST_CORE) = struct
 
    structure PP = struct
       open Layout Pretty Core
-      val empty = str "<.>"
-      val space = str " "
-
       fun spec (ss:specification) = align (map decl (#tree ss))
 
       and decl t =

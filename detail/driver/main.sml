@@ -8,7 +8,8 @@ structure Main = struct
       fun all ins =
          Parser.run ins >>=
          ResolveSymbols.run >>=
-         InlineDecodePatterns.run
+         InlineDecodePatterns.run >>=
+         DesugarDecodePatterns.run
 
       fun run fp = let
          val ins = TextIO.openIn fp

@@ -100,7 +100,7 @@ fun fromHexString s = let
 (* sgood means "characters good inside strings" *)
 %let sgood = [\032-\126]&[^\"\\];
 %let ws = " "|[\t\n\v\f\r];
-%let binary = [0-1];
+%let binary = [0-1\.];
 %let bitstr = {binary}+;
 %let sym=[-!%&$+/:<=>?@~`\^|#*\\];
 %let symid={sym}+;
