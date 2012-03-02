@@ -86,7 +86,7 @@ datatype insn =
  | DIV of binop
 
 # Example of bit-patterns
-dec /0 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
+dec /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
 dec /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
 
 val fromEnum i =
@@ -340,12 +340,23 @@ val mov a1 a2 = do
    return MOV { l = a1, r = a2 }
 end
 
-dec [0x00] = add eb gb
-dec [0x01] = add ev gv
-dec [0x02] = add gb eb
-dec [0x03] = add gv ev
-dec [0x04] = add al ib
-dec [0x05] = add rAX iz
+val grp0 a b = do
+   reg <- query $reg;
+   case reg of
+      '000': return add a b
+end
+
+
+dec [0x00 /r] = add eb gb
+dec [0x01 /r] = add ev gv
+dec [0x02 /r] = add gb eb
+dec [0x03 /r] = add gv ev
+dec [0x04 /r] = add al ib
+dec [0x05 /r] = add rAX iz
+dec [0x80 /r] = grp0 eb ib
+dec [0x81 /r] = grp0 ev iz
+dec [0x82 /r] = grp0 eb ib
+dec [0x83 /r] = grp0 ev ib
 
 dec [0x80 /r]
    | opndsz = mov r/m16 r16
