@@ -268,12 +268,15 @@ end
 
 dec sib ['scale:2 index:3 base:3'] = do
    mod <- query $mod;
+   rex <- query $rex;
+   reg <- case $b rex of 0: return regAll | otherwise: return regHigher;
+   aS <- addressSize;
    base_exp <- case base of
-   		  '000': return EAX
-		| '001': return ECX
-		| '010': return EDX
-		| '011': return EBX
-		| '100': return ESP
+   		  '000': return reg rA aS
+		| '001': return reg rC aS
+		| '010': return reg rD aS
+		| '011': return reg rB aS
+		| '100': return reg rSP aS
 		| '101': (case mod of
 			     '00': do
 			     	      disp32 <- imm32;
@@ -281,38 +284,38 @@ dec sib ['scale:2 index:3 base:3'] = do
 			     	   end
 			   | '01': do
 			     	      disp8 <- imm8;
-				      return ESUM { a = disp8, b = EBP }
+				      return ESUM { a = disp8, b = reg rBP aS }
 			     	   end
 			   | '10': do
 			     	      disp32 <- imm32;
-				      return ESUM { a = disp32, b = EBP }
+				      return ESUM { a = disp32, b = reg rBP aS }
 			     	   end)
-		| '110': return ESI
-		| '111': return EDI;
+		| '110': return reg rSI aS
+		| '111': return reg rDI aS;
    case scale of
       '00': (case index of
-                '000': return ESUM { a = base_exp, b = EAX }
-              | '001': return ESUM { a = base_exp, b = ECX }
-              | '010': return ESUM { a = base_exp, b = EDX }
-              | '011': return ESUM { a = base_exp, b = EBX }
+                '000': return ESUM { a = base_exp, b = reg rA aS }
+              | '001': return ESUM { a = base_exp, b = reg rC aS }
+              | '010': return ESUM { a = base_exp, b = reg rD aS }
+              | '011': return ESUM { a = base_exp, b = reg rB aS }
               | '100': return base_exp
-              | '011': return ESUM { a = base_exp, b = EBP }
-              | '011': return ESUM { a = base_exp, b = ESI }
-              | '011': return ESUM { a = base_exp, b = EDI })
+              | '011': return ESUM { a = base_exp, b = reg rB aS }
+              | '011': return ESUM { a = base_exp, b = reg rSI aS }
+              | '011': return ESUM { a = base_exp, b = reg rDI aS })
     | otherwise: do
     		    scale_exp <- case scale of
 		    		    '01': return bits8(2)
 				  | '10': return bits8(4)
 				  | '11': return bits8(8);
 		    case index of
-		       '000': return ESUM { a = base_exp, b = EPROD { a = EAX, b = scale_exp } }
-		     | '001': return ESUM { a = base_exp, b = EPROD { a = ECX, b = scale_exp } }
-		     | '010': return ESUM { a = base_exp, b = EPROD { a = EDX, b = scale_exp } }
-		     | '011': return ESUM { a = base_exp, b = EPROD { a = EBX, b = scale_exp } }
+		       '000': return ESUM { a = base_exp, b = EPROD { a = reg rA aS, b = scale_exp } }
+		     | '001': return ESUM { a = base_exp, b = EPROD { a = reg rC aS, b = scale_exp } }
+		     | '010': return ESUM { a = base_exp, b = EPROD { a = reg rD aS, b = scale_exp } }
+		     | '011': return ESUM { a = base_exp, b = EPROD { a = reg rB aS, b = scale_exp } }
 		     | '100': return base_exp
-		     | '011': return ESUM { a = base_exp, b = EPROD { a = EBP, b = scale_exp } }
-		     | '011': return ESUM { a = base_exp, b = EPROD { a = ESI, b = scale_exp } }
-		     | '011': return ESUM { a = base_exp, b = EPROD { a = EDI, b = scale_exp } }
+		     | '011': return ESUM { a = base_exp, b = EPROD { a = reg rB aS, b = scale_exp } }
+		     | '011': return ESUM { a = base_exp, b = EPROD { a = reg rSI aS, b = scale_exp } }
+		     | '011': return ESUM { a = base_exp, b = EPROD { a = reg rDI aS, b = scale_exp } }
     		 end
 end
 
