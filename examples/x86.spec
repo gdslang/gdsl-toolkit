@@ -467,3 +467,5 @@ dec [0x66 0xC7 /0] | opndsz = mov r16 imm16
 
 dec [0x66] = do update @{opndsz=1}; continue end
 dec [0x67] = do update @{addrsz=1}; continue end
+dec ['0100 w:1 r:1 x:1 b:1'] = do update @{rex = { w = w, r = r, x = x, b = b }}; continue; end
+    
