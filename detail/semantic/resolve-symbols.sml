@@ -243,7 +243,7 @@ end = struct
       | convLit s (PT.FLTlit f) = AST.FLTlit f
       | convLit s (PT.STRlit str) = AST.STRlit str
 
-   in (Primitives.addPrimitivesToTables ();
+   in (Primitives.registerPrimitives ();
        convMark (fn s => List.map (regDecl s)) ast;
        convMark (fn s => List.map (convDecl s)) ast)
    end

@@ -87,7 +87,7 @@ structure SpecDesugaredTree = struct
    end
 end
 
-structure DesugarControls = struct
+structure DesugarControl = struct
    val (registry, debug) =
       BasicControl.newRegistryWithDebug
          {name="desugar",
@@ -175,7 +175,7 @@ end = struct
    val pass =
       BasicControl.mkKeepPass
          {passName="detokenizeDecodePatterns",
-          registry=DesugarControls.registry,
+          registry=DesugarControl.registry,
           pass=pass,
           preExt="ast",
           preOutput=dumpPre,
@@ -236,7 +236,7 @@ end = struct
    val pass =
       BasicControl.mkKeepPass
          {passName="retokenizeDecodePatterns",
-          registry=DesugarControls.registry,
+          registry=DesugarControl.registry,
           pass=pass,
           preExt="ast",
           preOutput=dumpPre,
@@ -276,7 +276,7 @@ end = struct
    end
 
    val tok = Atom.atom "tok"
-   val consume = SymbolTables.varTable
+   val consume = Atom.atom "consume"
 
    fun freshTok () = let
       val (tab, sym) =
@@ -307,9 +307,12 @@ end = struct
 
    and consumeTok () = let
       val tok = freshTok()
-      val consume = DT.T.ACTIONseqexp (DT.T.
+      val consume =
+       DT.T.IDexp
+         (VarInfo.lookup
+            (!SymbolTables.varTable, consume))
    in
-      DT.T.BINDseqexp (tok, 
+      DT.T.BINDseqexp (tok, consume)
    end
 
    fun dumpPre (os, spec) = DT.PP.prettyTo (os, spec)
@@ -319,7 +322,7 @@ end = struct
    val pass =
       BasicControl.mkKeepPass
          {passName="desugarToplevelDecodeDeclarations",
-          registry=DesugarControls.registry,
+          registry=DesugarControl.registry,
           pass=pass,
           preExt="ast",
           preOutput=dumpPre,
@@ -359,7 +362,7 @@ end = struct
    val desugar =
       BasicControl.mkKeepPass
          {passName="desugarDecodePatterns",
-          registry=DesugarControls.registry,
+          registry=DesugarControl.registry,
           pass=pass,
           preExt="ast",
           preOutput=dumpPre,
