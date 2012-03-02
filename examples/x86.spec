@@ -322,12 +322,14 @@ val e oS = do
    rm <- query $rm;
    oS <- oS;
    aS <- addressSize;
+   rex <- query $rex;
+   reg <- case $b rex of 0: return regAll | otherwise: return regHigher;
    case mod of
       '00': (case rm of
-                '000': return MEM { accesssize = oS, mop = regN rA aS }
-	      | '001': return MEM { accesssize = oS, mop = regN rC aS }
-	      | '010': return MEM { accesssize = oS, mop = regN rD aS }
-	      | '011': return MEM { accesssize = oS, mop = regN rB aS }
+                '000': return MEM { accesssize = oS, mop = reg rA aS }
+	      | '001': return MEM { accesssize = oS, mop = reg rC aS }
+	      | '010': return MEM { accesssize = oS, mop = reg rD aS }
+	      | '011': return MEM { accesssize = oS, mop = reg rB aS }
 	      | '011': do
 	      		  sib_exp <- sib;
 			  return MEM { accesssize = oS, mop = sib_exp }
@@ -336,9 +338,9 @@ val e oS = do
 	      	          disp32 <- imm32;
 			  return MEM { accesssize = oS, mop = disp32 }
 	      	       end
-	      | '110': return MEM { accesssize = oS, mop = regN rSI aS }
-	      | '111': return MEM { accesssize = oS, mop = regN rDI aS })
-    | '11': return regN (unsigned rm) oS
+	      | '110': return MEM { accesssize = oS, mop = reg rSI aS }
+	      | '111': return MEM { accesssize = oS, mop = reg rDI aS })
+    | '11': return reg (unsigned rm) oS
     | otherwise: do
     		    disp_exp <- case mod of
 		    		   '01': do
@@ -350,10 +352,10 @@ val e oS = do
 				            return disp32
 			     	         end;
 		    case rm of
-		       '000': return MEM { accesssize = oS, mop = ESUM { a = regN rA aS, b = disp_exp } }
-		     | '001': return MEM { accesssize = oS, mop = ESUM { a = regN rC aS, b = disp_exp } }
-		     | '010': return MEM { accesssize = oS, mop = ESUM { a = regN rD aS, b = disp_exp } }
-		     | '011': return MEM { accesssize = oS, mop = ESUM { a = regN rB aS, b = disp_exp } }
+		       '000': return MEM { accesssize = oS, mop = ESUM { a = reg rA aS, b = disp_exp } }
+		     | '001': return MEM { accesssize = oS, mop = ESUM { a = reg rC aS, b = disp_exp } }
+		     | '010': return MEM { accesssize = oS, mop = ESUM { a = reg rD aS, b = disp_exp } }
+		     | '011': return MEM { accesssize = oS, mop = ESUM { a = reg rB aS, b = disp_exp } }
 		     | '011': do
 			  sib_exp <- sib;
 			  return MEM { accesssize = oS, mop = sib_exp }
@@ -362,14 +364,16 @@ val e oS = do
 			  disp32 <- imm32;
 			  return MEM { accesssize = oS, mop = disp32 }
 		              end
-		     | '110': return MEM { accesssize = oS, mop = ESUM { a = regN rSI aS, b = disp_exp } }
-		     | '111': return MEM { accesssize = oS, mop = ESUM { a = regN rDI aS, b = disp_exp } }    
+		     | '110': return MEM { accesssize = oS, mop = ESUM { a = reg rSI aS, b = disp_exp } }
+		     | '111': return MEM { accesssize = oS, mop = ESUM { a = reg rDI aS, b = disp_exp } }    
                  end
 end
 
 val g oS = do
-   reg <- query $reg;
-   return regN reg oS
+   register <- query $reg;
+   rex <- query $rex;
+   reg <- case $b rex of 0: return regAll | otherwise: return regHigher;
+   return reg register oS
 end
 
 val i oS = do
@@ -416,7 +420,7 @@ end
 
 val r16 = do
    reg <- query $reg;
-   return (regN reg 32)
+   return (regAll reg 32)
 end
 
 val r32 = return EAX
@@ -467,5 +471,5 @@ dec [0x66 0xC7 /0] | opndsz = mov r16 imm16
 
 dec [0x66] = do update @{opndsz=1}; continue end
 dec [0x67] = do update @{addrsz=1}; continue end
-dec ['0100 w:1 r:1 x:1 b:1'] = do update @{rex = { w = w, r = r, x = x, b = b }}; continue; end
+dec ['0100 w:1 r:1 x:1 b:1'] = do update @{rex = { w = w, r = r, x = x, b = b }}; continue end
     
