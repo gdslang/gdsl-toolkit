@@ -31,6 +31,15 @@ datatype register =
  | BP | EBP | RBP | XMM5
  | SI | ESI | RSI | XMM6
  | DI | EDI | RDI | XMM7
+ | R8L  | R8W  | R8D  | R8
+ | R9L  | R9W  | R9D  | R9
+ | R10L | R10W | R10D | R10
+ | R11L | R11W | R11D | R11
+ | R12L | R12W | R12D | R12
+ | R13L | R13W | R13D | R13
+ | R14L | R14W | R14D | R14
+ | R15L | R15W | R15D | R15
+ | R16L | R16W | R16D | R16
 
 datatype opexp =
    REG of register
@@ -133,56 +142,111 @@ val imm = do
     | W: imm16
 end
 
-val regN num size =
+val regAll num size =
    case num of
-       0: (case size of
+        0: (case size of
 	         DQW: XMM0
 	       |  QW: RAX
 	       |  DW: EAX
 	       |   W: AX
 	       |   B: AL)
-     | 1: (case size of
+     |  1: (case size of
 	         DQW: XMM1
 	       |  QW: RCX
 	       |  DW: ECX
 	       |   W: CX
 	       |   B: CL)
-     | 2: (case size of
+     |  2: (case size of
 	         DQW: XMM2
 	       |  QW: RDX
 	       |  DW: EDX
 	       |   W: DX
 	       |   B: DL)
-     | 3: (case size of
+     |  3: (case size of
 	         DQW: XMM3
 	       |  QW: RBX
 	       |  DW: EBX
 	       |   W: BX
 	       |   B: BL)
-     | 4: (case size of
+     |  4: (case size of
 	         DQW: XMM4
 	       |  QW: RSP
 	       |  DW: ESP
 	       |   W: SP
 	       |   B: AH)
-     | 5: (case size of
+     |  5: (case size of
 	         DQW: XMM5
 	       |  QW: RBP
 	       |  DW: EBP
 	       |   W: BP
 	       |   B: CH)
-     | 6: (case size of
+     |  6: (case size of
 	         DQW: XMM6
 	       |  QW: RSI
 	       |  DW: ESI
 	       |   W: SI
 	       |   B: DH)
-     | 7: (case size of
+     |  7: (case size of
 	         DQW: XMM7
 	       |  QW: RDI
 	       |  DW: EDI
 	       |   W: DI
 	       |   B: BH)
+     |  8: (case size of
+#	         DQW: XMM0
+	          QW: R8
+	       |  DW: R8D
+	       |   W: R8W
+	       |   B: R8L)
+     |  8: (case size of
+#	         DQW: XMM0
+	          QW: R8
+	       |  DW: R8D
+	       |   W: R8W
+	       |   B: R8L)
+     |  9: (case size of
+#	         DQW: XMM0
+	          QW: R10
+	       |  DW: R10D
+	       |   W: R10W
+	       |   B: R10L)
+     | 10: (case size of
+#	         DQW: XMM0
+	          QW: R11
+	       |  DW: R11D
+	       |   W: R11W
+	       |   B: R11L)
+     | 11: (case size of
+#	         DQW: XMM0
+	          QW: R9
+	       |  DW: R9D
+	       |   W: R9W
+	       |   B: R9L)
+     | 12: (case size of
+#	         DQW: XMM0
+	          QW: R12
+	       |  DW: R12D
+	       |   W: R12W
+	       |   B: R12L)
+     | 13: (case size of
+#	         DQW: XMM0
+	          QW: R13
+	       |  DW: R13D
+	       |   W: R13W
+	       |   B: R13L)
+     | 14: (case size of
+#	         DQW: XMM0
+	          QW: R14
+	       |  DW: R14D
+	       |   W: R14W
+	       |   B: R14L)
+     | 15: (case size of
+#	         DQW: XMM0
+	          QW: R15
+	       |  DW: R15D
+	       |   W: R15W
+	       |   B: R15L)
+val regHigher num size = regAll (num + 8) size;
 
 
 val operandSize = do
