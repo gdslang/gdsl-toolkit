@@ -15,13 +15,17 @@ structure Primitives = struct
    val a : tvar = freshTVar ()
    val d : tvar = freshTVar ()
    val e : tvar = freshTVar ()
+   val t = freshTVar
 
    (*create a type from two vectors to one vector, all of size s*)
    fun vvv s = FUN (VEC (VAR s), FUN (VEC (VAR s), VEC (VAR s)))
 
    val primitiveValues =
-      [{name="continue", ty=MONAD (VAR r)},
+      [{name="true", ty=ZENO},
+       {name="false", ty=ZENO},
+       {name="continue", ty=MONAD (VAR r)},
        {name="consume", ty=MONAD (VEC (VAR s6))},
+       (* TODO *) {name="slice", ty=MONAD (VAR (t ()))},
        {name="#anon_decode_function", ty=MONAD (VAR r)},
        {name="return", ty=FUN (VAR a, MONAD (VAR a))},
        {name="update", ty=FUN (FUN (VAR state, VAR state), MONAD (VAR d))},

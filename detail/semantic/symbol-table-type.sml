@@ -16,6 +16,7 @@ signature SymbolTableSig  = sig
 
    exception SymbolAlreadyDefined
    val create : (table * Atom.atom * Error.span) -> (table * symid)
+   val fresh: table * Atom.atom -> table * symid
 
    val push : table -> table
    val pop : table -> table
@@ -74,6 +75,14 @@ structure SymbolTable :> SymbolTableSig = struct
               ((st,rev::r), id)
            end
       end
+
+   fun fresh ((st, revs), atom) = let
+      val no = SymbolTable.numItems st + 1
+      val id = SymId no
+      val st = SymbolTable.insert (st, no, emptySymInfo (atom, noSpan, id))
+   in
+      ((st, revs), id)
+   end
 
    fun push (st, r) = (st, Reverse.empty :: r)
    fun pop ts = let val (st, _ :: r) = ts in (st, r) end
