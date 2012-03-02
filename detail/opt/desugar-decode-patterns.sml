@@ -317,6 +317,7 @@ structure DesugarDecodeDeclarations = struct
    end
 
    fun desugarCases (decls: (pat list VS.slice * guarded) VS.slice) = let
+      open DT.T
       fun grabExp () = #2 (VS.sub (decls, 0))
       val bottom = 
          VS.length decls = 1 andalso
@@ -332,11 +333,11 @@ structure DesugarDecodeDeclarations = struct
          let
             val (tok, bindTok) = consumeTok ()
          in
-            DT.T.SEQexp
+            SEQexp
                [bindTok,
-                DT.T.ACTIONseqexp
-                  (DT.T.CASEexp
-                     (DT.T.IDexp tok, desugarMatches tok decls))]
+                ACTIONseqexp
+                  (CASEexp
+                     (IDexp tok, desugarMatches tok decls))]
          end
    end
 
