@@ -273,8 +273,34 @@ val e oS = do
 			  return MEM { accesssize = oS, mop = disp32 }
 	      	       end
 	      | '110': return MEM { accesssize = oS, mop = regN rSI aS }
-	      | '111': return MEM { accesssize = oS, mop = regN rSI aS })
+	      | '111': return MEM { accesssize = oS, mop = regN rDI aS })
     | '11': return regN (unsigned rm) oS
+    | otherwise: do
+    		    disp_exp <- case mod of
+		    		   '01': do
+			     	            disp8 <- imm8;
+				            return disp8
+			     	         end
+		    		 | '10': do
+			     	            disp32 <- imm32;
+				            return disp32
+			     	         end;
+		    case rm of
+		       '000': return MEM { accesssize = oS, mop = ESUM { a = regN rA aS, b = disp_exp } }
+		     | '001': return MEM { accesssize = oS, mop = ESUM { a = regN rC aS, b = disp_exp } }
+		     | '010': return MEM { accesssize = oS, mop = ESUM { a = regN rD aS, b = disp_exp } }
+		     | '011': return MEM { accesssize = oS, mop = ESUM { a = regN rB aS, b = disp_exp } }
+		     | '011': do
+			  sib_exp <- sib;
+			  return MEM { accesssize = oS, mop = sib_exp }
+		              end
+		     | '101': do
+			  disp32 <- imm32;
+			  return MEM { accesssize = oS, mop = disp32 }
+		              end
+		     | '110': return MEM { accesssize = oS, mop = ESUM { a = regN rSI aS, b = disp_exp } }
+		     | '111': return MEM { accesssize = oS, mop = ESUM { a = regN rDI aS, b = disp_exp } }    
+                 end
 end
 
 val g oS = do
