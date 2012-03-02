@@ -76,6 +76,15 @@ datatype ropnd =
 # | RMEM of {accesssize: int, mop: opexp}
 # | RVAL of opexp
 
+val rA = 0
+val rC = 1
+val rD = 2
+val rB = 3
+val rSP = 4
+val rBP = 5
+val rSI = 6
+val rDI = 7
+
 type binop = { l:lopnd, r:ropnd}
 
 datatype insn =
@@ -251,10 +260,10 @@ val e oS = do
    aS <- addressSize;
    case mod of
       '00': (case rm of
-                '000': return MEM { accesssize = oS, mop = EAX }
-	      | '001': return MEM { accesssize = oS, mop = ECX }
-	      | '010': return MEM { accesssize = oS, mop = EDX }
-	      | '011': return MEM { accesssize = oS, mop = EBX }
+                '000': return MEM { accesssize = oS, mop = regN rA aS }
+	      | '001': return MEM { accesssize = oS, mop = regN rC aS }
+	      | '010': return MEM { accesssize = oS, mop = regN rD aS }
+	      | '011': return MEM { accesssize = oS, mop = regN rB aS }
 	      | '011': do
 	      		  sib_exp <- sib;
 			  return MEM { accesssize = oS, mop = sib_exp }
@@ -263,8 +272,8 @@ val e oS = do
 	      	          disp32 <- imm32;
 			  return MEM { accesssize = oS, mop = disp32 }
 	      	       end
-	      | '110': return MEM { accesssize = oS, mop = ESI }
-	      | '111': return MEM { accesssize = oS, mop = EDI })
+	      | '110': return MEM { accesssize = oS, mop = regN rSI aS }
+	      | '111': return MEM { accesssize = oS, mop = regN rSI aS })
     | '11': return regN (unsigned rm) oS
 end
 
