@@ -12,6 +12,8 @@ structure Primitives = struct
    val s3 : tvar = freshTVar ()
    val s4 : tvar = freshTVar ()
    val s5 : tvar = freshTVar ()
+   val s6 : tvar = freshTVar ()
+   val s7 : tvar = freshTVar ()
    val a : tvar = freshTVar ()
    val d : tvar = freshTVar ()
    val e : tvar = freshTVar ()
@@ -33,9 +35,12 @@ structure Primitives = struct
          { pName = "query", pType = FUN (FUN (var state, var state), MONAD (var e)), dType = NONE},
          { pName = "+", pType = vvv s1, dType = NONE},
          { pName = "*", pType = vvv s2, dType = NONE},
-         { pName = "signed", pType = FUN (VEC (var s3), ZENO), dType = NONE},
+         { pName = "signed", pType = FUN (VEC (var s3), ZENO), dType = NONE},*)
          { pName = "unsigned", pType = FUN (VEC (var s4), ZENO), dType = NONE},
-         { pName = "bits8", pType = FUN (ZENO, VEC (CONST 8)), dType = NONE},
+         { pName = "||", pType = FUN (VEC (CONST 1), FUN (VEC (CONST 1), VEC (CONST 1))), dType = NONE},
+         { pName = "<~", pType = FUN (VEC (var s6), FUN (VEC (var s6), VEC (CONST 1))), dType = NONE},
+         { pName = ">~", pType = FUN (VEC (var s7), FUN (VEC (var s7), VEC (CONST 1))), dType = NONE},
+         (*{ pName = "bits8", pType = FUN (ZENO, VEC (CONST 8)), dType = NONE},
          { pName = "^", pType = vvv s5, dType = NONE},*)
          { pName = "otherwise", pType = VEC (CONST 1), dType = NONE}
       ]

@@ -209,8 +209,7 @@ Cases
    ;
 
 Pat
-   : "'" BITSTR "'" => (mark PT.MARKpat (FULL_SPAN, PT.BITpat BITSTR))
-   | "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
+   : "_" => (mark PT.MARKpat (FULL_SPAN, PT.WILDpat))
    | Lit => (mark PT.MARKpat (FULL_SPAN, PT.LITpat Lit))
    | Name => (mark PT.MARKpat (FULL_SPAN, PT.IDpat Name))
    | ConUse Pat? => (mark PT.MARKpat (FULL_SPAN, PT.CONpat (ConUse, Pat)))
@@ -283,7 +282,8 @@ ValueDecl
 Lit
    : Int => (PT.INTlit Int)
    | STRING => (PT.STRlit STRING)
-   ;
+   | "'" BITSTR "'" => (PT.VEClit BITSTR)
+   ;                   
 
 Int
    : POSINT => (POSINT)

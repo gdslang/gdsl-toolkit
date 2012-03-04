@@ -116,7 +116,6 @@ functor MkAst (Core: AST_CORE) = struct
 
    and pat =
       MARKpat of pat mark
-    | BITpat of string
     | LITpat of lit
     | IDpat of var_bind
     | CONpat of con_use * pat option
@@ -126,6 +125,7 @@ functor MkAst (Core: AST_CORE) = struct
       INTlit of IntInf.int
     | FLTlit of FloatLit.float
     | STRlit of string
+    | VEClit of string
 
    type specification = decl list mark
 
@@ -213,7 +213,6 @@ functor MkAst (Core: AST_CORE) = struct
       and pat t =
          case t of
             MARKpat t' => pat (#tree t')
-          | BITpat s => str s
           | LITpat l => lit l
           | IDpat n => var_bind n
           | CONpat (n, SOME p) => seq [con_use n, space, pat p]
@@ -225,6 +224,7 @@ functor MkAst (Core: AST_CORE) = struct
             INTlit i => int i
           | FLTlit f => str (FloatLit.toString f)
           | STRlit s => str s
+          | VEClit s => str s
 
       and exp t =
          case t of

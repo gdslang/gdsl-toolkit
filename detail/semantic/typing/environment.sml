@@ -28,6 +28,14 @@ structure Environment : sig
    stack and return if an instance of this type must be used*)
    val pushSymbol : VarInfo.symid * Error.span * environment -> environment
    
+   val getUsages : VarInfo.symid * environment -> Error.span list
+   
+   (*stack: [...,t] -> [...] and type of f for call-site s is set to t*)
+   val popToUsage : VarInfo.symid * Error.span * environment -> environment
+
+   (*stack: [...] -> [...,t] where t is type of usage of f at call-site s*)
+   val pushUsage : VarInfo.symid * Error.span * environment -> environment
+   
    (*stack: [...] -> [..., x:a], a fresh*)
    val pushLambdaVar' : VarInfo.symid * environment -> (Types.texp * environment)
    val pushLambdaVar : VarInfo.symid * environment -> environment
@@ -47,21 +55,16 @@ structure Environment : sig
 
    val popKappa : environment -> environment
 
-   (*stack: [...] -> [...,t] and type of function f is set to t*)
+   (*stack: [...,t] -> [...] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
 
    (*the type of function f is unset*)
    val clearFunction : VarInfo.symid * environment -> environment
-   
-   (*val reduceFunction : envionrment -> environment*)
-   
+  
    val meet : environment * environment -> environment
+
+   val subseteq : environment * environment -> bool
    
-   (*val pushKappa : Types.texp * environment -> environment
-   val popKappa : environment -> (Types.texp * environment)
-   val pushId : SymbolTable.symid * environment -> environment
-   
-   val applyToAllTypes : (Types.texp -> Types.texp * environment) -> environment*)
    val toString : environment -> string
    val topToString : environment -> string
    val show : environment -> unit
@@ -123,14 +126,14 @@ end = struct
       }
       type environment = scope list * BD.bfun
    
-      val verCounter = ref 0
+      val verCounter = ref 1
       fun nextVersion () =  let
            val v = !verCounter
          in
            (verCounter := v+1; v)
          end             
 
-      fun prevTVars [] = raise InferenceBug
+      fun prevTVars [] = TVar.empty
         | prevTVars ({bindInfo, typeVars = tv, version}::_) = tv
 
       fun varsOfBinding (KAPPA {ty=t},set) = texpVarset (t,set)
@@ -409,6 +412,49 @@ end = struct
           )
       )
 
+   fun compare_span ((p1s,p1e), (p2s,p2e)) =
+      (case Int.compare (Position.toInt p1s,
+                         Position.toInt p2s) of
+           EQUAL => Int.compare (Position.toInt p1e,
+                                 Position.toInt p2e)
+         | res => res)
+
+   fun getUsages (sym, env) = (case Scope.lookup (sym, env) of
+           (_, SIMPLE {ty}) => []
+         | (_, COMPOUND {ty, width, uses = us}) =>
+            List.map (fn (span,_) => span) us
+         )
+
+   fun pushUsage (sym, span, env) = (case Scope.lookup (sym, env) of
+           (_, SIMPLE {ty}) => raise InferenceBug
+         | (_, COMPOUND {ty, width, uses = us}) =>
+         let
+            fun lookup ((s,t) :: us) = (case compare_span (s,span) of
+                    EQUAL => t
+                  | _ => lookup us)
+              | lookup [] = raise InferenceBug
+         in
+            Scope.wrap (KAPPA {ty = lookup us}, env)
+         end)
+
+   fun popToUsage (sym, span, env) = (case Scope.unwrap env of
+        (KAPPA {ty = tUse}, env) =>
+         let
+            fun setUsage (COMPOUND {ty, width, uses = us}, bFun) =
+               let
+                  fun replace ((s,t) :: us) = (case compare_span (s,span) of
+                       EQUAL => (s,tUse) :: us
+                     |  _ => (s,t) :: replace us)
+                    | replace [] = raise InferenceBug
+               in
+                  (COMPOUND {ty = ty, width = width, uses = replace us}, bFun)
+               end
+              | setUsage _ = raise InferenceBug
+         in
+            Scope.update (sym, setUsage, env)
+         end
+     | _ => raise InferenceBug)
+
    fun pushLambdaVar' (sym, env) =
       let
          val t = VAR (TVar.freshTVar (), BD.freshBVar ())
@@ -553,46 +599,87 @@ end = struct
             | _ => raise InferenceBug
       end
 
+   fun unify (env1, env2, substs) =
+      (case Scope.unwrapDifferent (env1, env2) of
+           (SOME (KAPPA {ty = ty1}, KAPPA {ty = ty2}), env1, env2) =>
+               unify (env1, env2, mgu(ty1, ty2, substs))
+         | (SOME (SINGLE {name = _, ty = ty1},
+                  SINGLE {name = _, ty = ty2}), env1, env2) =>
+               unify (env1, env2, mgu(ty1, ty2, substs))
+         | (SOME (GROUP bs1, GROUP bs2), env1, env2) =>
+            let
+               fun mguOpt (SOME t1, SOME t2, s) = mgu (t1, t2, s)
+                 | mguOpt (NONE, NONE, s) = s
+                 | mguOpt (_, _, _) = raise InferenceBug
+               fun mguUses (u1, u2, s) = s
+               fun uB (({name = n1, ty = t1, width = w1, uses = u1},
+                        {name = n2, ty = t2, width = w2, uses = u2}), s) =
+                  if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
+                  mguUses (u1, u2, mguOpt (t1, t2, mguOpt (w1, w2, s)))
+               (*val _ = if List.length bs1=List.length bs2 then () else
+                     TextIO.print ("*************** mgu of\n" ^ topToString (Scope.wrap (GROUP bs1,env1)) ^ "\ndoes not match\n" ^ topToString (Scope.wrap (GROUP bs2,env2)))*)
+               val substs = List.foldl uB substs (ListPair.zipEq (bs1,bs2))
+            in
+               unify (env1, env2, substs)
+            end      
+         | (NONE, env1, env2) => substs
+         | (SOME _, _, _) => raise InferenceBug
+      )
+
+   fun mergeUses (env1,env2) =
+      (case Scope.unwrapDifferent (env1, env2) of
+           (SOME (KAPPA {ty = t1}, KAPPA {ty = t2}), env1, env2) =>
+               Scope.wrap (KAPPA {ty = t1}, mergeUses (env1, env2))
+         | (SOME (SINGLE {name = n1, ty = t1},
+                  SINGLE {name = _, ty = _}), env1, env2) =>
+               Scope.wrap (SINGLE {name = n1, ty = t1}, mergeUses (env1, env2))
+         | (SOME (GROUP bs1, GROUP bs2), env1, env2) =>
+            let
+               fun mergeOpt (SOME t1, SOME t2) = SOME t1
+                 | mergeOpt (NONE, NONE) = NONE
+                 | mergeOpt (_, _) = raise InferenceBug
+               fun mUses ((s1,t1) :: us1, (s2,t2) :: us2) =
+                  (case compare_span (s1,s2) of
+                       GREATER => (s2,t2) :: mUses ((s1,t1) :: us1, us2)
+                     | _ => (s1,t1) :: mUses (us1, (s2,t2) :: us2))
+                 | mUses ([], us2) = us2
+                 | mUses (us1, []) = us1
+               fun mB ({name = n1, ty = t1, width = w1, uses = u1},
+                       {name = n2, ty = t2, width = w2, uses = u2}) =
+                  if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
+                  {name = n1, ty = mergeOpt (t1,t2), width = mergeOpt (w1,w2),
+                   uses = mUses (u1,u2) }
+               (*val _ = if List.length u1=List.length u2 then () else
+                     TextIO.print ("*************** mergeUses of\n" ^ topToString (Scope.wrap (GROUP bs1,env1)) ^ "\ndoes not match\n" ^ topToString (Scope.wrap (GROUP bs2,env2)))*)
+               val bs = List.map mB (ListPair.zipEq (bs1,bs2))
+            in
+               Scope.wrap (GROUP bs, mergeUses (env1,env2))
+            end      
+         | (NONE, env1, env2) => env1
+         | (SOME _, _, _) => raise InferenceBug
+      )
+   
    fun meet (env1, env2) =
       let
          (*val _ = TextIO.print ("unifying " ^ toString(env1) ^ " and " ^ toString(env2) ^ "\n")*)
-         fun unify (env1, env2, substs) =
-            case Scope.unwrapDifferent (env1, env2) of
-                 (SOME (KAPPA {ty = ty1}, KAPPA {ty = ty2}), env1, env2) =>
-                     unify (env1, env2, mgu(ty1, ty2, substs))
-               | (SOME (SINGLE {name = _, ty = ty1},
-                        SINGLE {name = _, ty = ty2}), env1, env2) =>
-                     unify (env1, env2, mgu(ty1, ty2, substs))
-               | (SOME (GROUP bs1, GROUP bs2), env1, evn2) =>
-               let
-                  fun mguOpt (SOME t1, SOME t2, s) = mgu (t1, t2, s)
-                    | mguOpt (NONE, NONE, s) = s
-                    | mguOpt (_, _, _) = raise InferenceBug
-                  fun mguUses (u1, u2, s) = s
-                  fun uB (({name = n1, ty = t1, width = w1, uses = u1},
-                           {name = n2, ty = t2, width = w2, uses = u2}), s) =
-                     if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
-                     mguUses (u1, u2, mguOpt (t1, t2, mguOpt (w1, w2, s)))
-                  val substs = List.foldl uB substs (ListPair.zipEq (bs1,bs2))
-               in
-                  unify (env1, env2, substs)
-               end      
-               | (NONE, env1, env2) => substs
-               | (SOME _, _, _) => raise InferenceBug
          val substs = unify (env1, env2, emptySubsts)
-         val (eStr,si) = toStringSI (env2, TVar.emptyShowInfo)
+               handle ListPair.UnequalLengths =>
+                 (TextIO.print ("+++++ bad: unifying\n" ^ toString(env1) ^ "+++++ and\n" ^ toString(env2) ^ "\n"); raise InferenceBug)
+         val env = mergeUses (env1, env2)
+         (*val _ = TextIO.print ("***** after adjusting uses:\n" ^ toString(env) ^ "\n")*)
+         (*val (eStr,si) = toStringSI (env2, TVar.emptyShowInfo)
          val (sStr,_) = showSubstsSI (substs,si)
-         (*val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ eStr)*)
+         val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ eStr)*)
       in
-         applySubsts (substs, env2)
+         applySubsts (substs, env)
       end
-   (*val pushKappa t bs = KAPPA {ty = t} :: bs
-   val popBinding (b :: bs) = bs
-     | popBinding [] = raise InferenceBug
-   val popKappa (KAPPA {ty = t} :: bs) = (t, bs)
-     | popKappa [] = raise InferenceBug
 
-   val pushId (sym, bs) = raise InferenceBug
+   fun subseteq (env1, env2) =
+      let
+         val substs = unify (env1, env2, emptySubsts)
+         val vs = substsDom substs
+      in
+         not (Scope.hasVars (env1, vs))
+      end
 
-   val applyToAllTypes (): (Types.texp -> Types.texp, bindings) -> bindings*)
 end

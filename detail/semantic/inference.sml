@@ -20,7 +20,8 @@ end = struct
    structure E = Environment
    structure BD = BooleanDomain
    structure TI = ResolveTypeInfo
-
+   structure S = Substitutions
+   
    type symbol_types = (SymbolTable.symid * E.symbol_type) list
 
    structure SMap = RedBlackMapFn (
@@ -30,7 +31,7 @@ end = struct
       end)
 
    open Types
-  
+
    exception NotImplemented
 
    exception TypeError
@@ -50,9 +51,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val caseExpSymId = SymbolTable.lookup(!SymbolTables.varTable,
                                          Atom.atom Primitives.caseExpression)
    
-   fun reportError conv ({span = _, error = isErr }, env) {span=s, tree=t} =
+   fun reportError conv ({span = _, error = isErr }, env) {span=s as (p,_), tree=t} =
       conv ({span = s, error = isErr},env) t
-      handle (UnificationFailure str) =>
+      handle (S.UnificationFailure str) =>
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
    fun getSpan {span = s, error = _} = s
    
@@ -81,12 +82,24 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = List.foldl E.pushLambdaVar env args
          val env = infExp (st,env) rhs
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
-         (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
+         val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)
          val env = E.popToFunction (sym, env)
-         (*val _ = TextIO.print ("after popping fun:\n" ^ E.topToString env)*)
-         val stable = true
+         val _ = TextIO.print ("after popping fun:\n" ^ E.topToString env)
+         val us = E.getUsages (sym, env)
+         fun checkCallSite (s, (entailed, env)) =
+            let
+               val envFun = E.pushSymbol (sym, s, env)
+               val envCall = E.pushUsage (sym, s, env)
+               val stable = E.subseteq (envFun, envCall)
+               val env = if stable then env else
+                           E.popToUsage (sym, s, E.meet (envFun, envCall))
+            in
+               (entailed andalso stable, env)
+            end
+         val (stable, env) = List.foldl checkCallSite (true, env) us
       in
-         if stable then env else calcFixpoint (st, env) (sym, dec, args, rhs)
+         if stable then env else
+         calcFixpoint (st, E.clearFunction (sym, env)) (sym, dec, args, rhs)
       end
          handle TypeError => E.popToFunction (sym, (E.pushTop env))
 
@@ -203,13 +216,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val tf = VAR (TVar.freshTVar (), BD.freshBVar ())
          val env = E.pushType (false, tf, env)
          val exists = BD.freshBVar ()
-         val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")
+         (*val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")*)
          val (scs, bFun) = E.reduceToRecord ([(exists, f)], env)
          val env = (scs, BD.meetVarOne (exists, bFun))
-         val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")
+         (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf, env)
          val env = E.reduceToFunction env
-         val _ = TextIO.print ("**** after func reduce:\n" ^ E.toString env ^ "\n")
+         (*val _ = TextIO.print ("**** after func reduce:\n" ^ E.toString env ^ "\n")*)
       in
          env
       end
@@ -244,7 +257,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.LITexp lit) = infLit (st,env) lit
      (*| infExp (st,env) (AST.SEQexp l) = AST.SEQexp (infSeqexp (st,env) l)*)
-     | infExp (st,env) (AST.IDexp v) = E.pushSymbol (v, getSpan st, env)
+     | infExp (st,env) (AST.IDexp v) =
+      let
+         val env = E.pushSymbol (v, getSpan st, env)
+         val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.toString env)
+      in
+         env
+      end
      | infExp (st,env) (AST.CONexp c) =
       let
          val dcon = SymMap.lookup (conParents, c)
@@ -305,8 +324,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          E.return (n,env)
       end
    and infPat stenv (AST.MARKpat m) = reportError infPat stenv m
-     | infPat (st,env) (AST.BITpat str) =
-         (0, E.pushType (false, VEC (CONST (IntInf.fromInt (String.size str))), env))
      | infPat (st,env) (AST.LITpat lit) = (0, infLit (st,env) lit)
      | infPat (st,env) (AST.IDpat v) =
       let
@@ -319,6 +336,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (n,envPat) = infPat (st,env) p
          val envPat = E.pushTop envPat
          val envCon = infExp (st,env) (AST.CONexp c)
+         val _ = TextIO.print ("+++++ meet for constructor")
          val env = E.meet (envPat,envCon)
          val env = E.reduceToResult env
       in
@@ -330,13 +348,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infLit (st,env) (AST.INTlit i) = E.pushType (false, ZENO, env)
      | infLit (st,env) (AST.FLTlit f) = E.pushType (false, FLOAT, env)
      | infLit (st,env) (AST.STRlit str) = E.pushType (false, UNIT, env)
+     | infLit (st,env) (AST.VEClit str) =
+         E.pushType (false, VEC (CONST (IntInf.fromInt (String.size str))), env)
 
    val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes ())
    val toplevelEnv = E.pushGroup
       (List.foldl (op @) []
          (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))
       , primEnv)
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    val toplevelEnv = List.foldl (fn (d,env) =>
          infDecl ({span = SymbolTable.noSpan, error = false},env) d
          ) toplevelEnv (#tree (ast : SpecAbstractTree.specification))
