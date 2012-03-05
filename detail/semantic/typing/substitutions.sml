@@ -14,7 +14,9 @@ structure Substitutions : sig
 
    val showSubstsSI : Substs * TVar.varmap -> string * TVar.varmap
    
-
+   (*raise an exception if the type contains a record with a nested field name*)
+   val checkFieldRecursion : Types.texp -> unit
+   
    type expand_info
    
    val createExpandInfo : BooleanDomain.bfun -> expand_info
@@ -122,6 +124,46 @@ end = struct
         | EQUAL => (
             (*TextIO.print (showTypes [("trying to insert ",e), (" into ",(RECORD (var,l)))]);*)
             raise SubstitutionBug))
+
+   structure SISet = RedBlackSetFn (
+      struct
+         type ord_key = SymbolTable.symid
+         val compare = SymbolTable.compare_symid
+      end)           
+
+   fun checkFieldRecursion t =
+      let
+         fun cFR (FUN (f1, f2)) = SISet.union (cFR f1, cFR f2)
+           | cFR (SYN (syn, t)) = cFR t
+           | cFR (ZENO) = SISet.empty
+           | cFR (FLOAT) = SISet.empty
+           | cFR (UNIT) = SISet.empty
+           | cFR (VEC t) = cFR t
+           | cFR (CONST c) = SISet.empty
+           | cFR (ALG (ty, l)) = List.foldl SISet.union SISet.empty
+                                 (List.map cFR l)
+           | cFR (RECORD (_, _, fs)) =
+               let
+                  fun chkField (RField { name = n, fty = t, exists = _}) =
+                     case cFR t of set =>
+                     if SISet.member (set, n) then
+                        raise UnificationFailure ("infinite field nesting " ^
+                           SymbolTable.getString(!SymbolTables.fieldTable, n) ^
+                           " : " ^ showType t)
+                     else SISet.add (set, n)
+               in
+                  List.foldl SISet.union SISet.empty (List.map chkField fs)
+               end
+           | cFR (MONAD t) = cFR t
+           | cFR (VAR _) = SISet.empty
+         val s = cFR t
+         (*fun showSyms [] = ""
+           | showSyms (s :: ss) = SymbolTable.getString(!SymbolTables.fieldTable, s) ^ " " ^ showSyms ss
+         val _ = TextIO.print ("===== checkFieldRecursion on " ^ showType t ^
+                               ": " ^ showSyms (SISet.listItems s) ^ "\n")*)
+      in
+         ()
+      end
 
    fun applySubstToExp (subst as (v, target)) (exp, ei) = let
       val eiRef = ref (ei : expand_info)

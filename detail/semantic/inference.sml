@@ -76,30 +76,54 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
+   val iterCount = ref 0
    fun calcFixpoint (st,env) (sym, dec, args, rhs) =
       let
          val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val env = List.foldl E.pushLambdaVar env args
          val env = infExp (st,env) rhs
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
-         val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)
+         (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
          val env = E.popToFunction (sym, env)
-         val _ = TextIO.print ("after popping fun:\n" ^ E.topToString env)
+         (*val _ = TextIO.print ("after popping fun:\n" ^ E.topToString env)*)
          val us = E.getUsages (sym, env)
          fun checkCallSite (s, (entailed, env)) =
             let
                val envFun = E.pushSymbol (sym, s, env)
+               val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)
                val envCall = E.pushUsage (sym, s, env)
-               val stable = E.subseteq (envFun, envCall)
-               val env = if stable then env else
-                           E.popToUsage (sym, s, E.meet (envFun, envCall))
+               val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)
+               fun raiseError str =
+                  let
+                     val si = TVar.emptyShowInfo
+                     val (sFun, si) = E.kappaToStringSI (envFun, si)
+                     val (sCall, si) = E.kappaToStringSI (envCall, si)
+                  in 
+                     (Error.errorAt (errStrm, s, [str,
+                     " when checking call to ",
+                     SymbolTable.getString(!SymbolTables.varTable, sym),
+                     "\ncall requires type  " ^ sCall,
+                     "\ndefinition has type " ^ sFun]))
+                  end
+               val stable = E.subseteq (envCall, envFun)
+                  handle (S.UnificationFailure str) => (raiseError str; true)
             in
-               (entailed andalso stable, env)
+               if stable then (entailed, env) else
+                  (false, E.popToUsage (sym, s, E.meet (envCall, envFun)))
+                     handle (S.UnificationFailure str) => (raiseError str; (true, env))
             end
          val (stable, env) = List.foldl checkCallSite (true, env) us
       in
          if stable then env else
-         calcFixpoint (st, E.clearFunction (sym, env)) (sym, dec, args, rhs)
+         (iterCount := !iterCount + 1;
+         if !iterCount > 3 then 
+            raise (S.UnificationFailure ("type of " ^
+               SymbolTable.getString(!SymbolTables.varTable, sym) ^
+               " not stable after " ^ Int.toString (!iterCount) ^
+               " iterations"))
+         else
+           calcFixpoint (st, E.clearFunction (sym, env)) (sym, dec, args, rhs)
+         )
       end
          handle TypeError => E.popToFunction (sym, (E.pushTop env))
 
@@ -260,7 +284,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.IDexp v) =
       let
          val env = E.pushSymbol (v, getSpan st, env)
-         val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.toString env)
+         (*val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.toString env)*)
       in
          env
       end
@@ -376,7 +400,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       open CompilationMonad
    in
       getErrorStream >>= (fn errs =>
-      return (typeInferencePass (errs, ti, spec)))
+      return (typeInferencePass (errs, ti, spec)
+         handle TypeError => []
+         )
+      )
    end
    
    val showTable = (fn (str,_) => str) o List.foldl (fn ((sym,st), (str,si)) =>
