@@ -131,9 +131,6 @@ functor MkAst (Core: AST_CORE) = struct
 
    structure PP = struct
       open Layout Pretty Core
-      val empty = str "<.>"
-      val space = str " "
-
       fun spec (ss:specification) = align (map decl (#tree ss))
 
       and decl t =
@@ -213,7 +210,7 @@ functor MkAst (Core: AST_CORE) = struct
       and pat t =
          case t of
             MARKpat t' => pat (#tree t')
-          | BITpat s => str s
+          | BITpat s => seq [str "'", str s, str "'"]
           | LITpat l => lit l
           | IDpat n => var_bind n
           | CONpat (n, SOME p) => seq [con_use n, space, pat p]
@@ -231,7 +228,11 @@ functor MkAst (Core: AST_CORE) = struct
             MARKexp t' => exp (#tree t')
           | LETexp bs => paren (seq [str "LET", space, tuple2 (list o map valuedecl, exp) bs])
           | IFexp iff => paren (seq [str "IF", space, tuple3 (exp, exp, exp) iff])
-          | CASEexp (e, ms) => paren (seq [str "CASE", space, exp e, space, list (map match ms)])
+          | CASEexp (e, ms) =>
+               paren
+                  (def
+                     (seq [str "CASE", space, exp e],
+                      list (map match ms)))
           | ANDALSOexp (e1, e2) => paren (seq [str "ANDALSO", space, exp e1, space, exp e2])
           | ORELSEexp (e1, e2) => paren (seq [str "ORELSE", space, exp e1, space, exp e2])
           | BINARYexp (e1, opid, e2) => paren (seq [op_id opid, space, exp e1, space, exp e2])

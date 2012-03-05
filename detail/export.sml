@@ -10,6 +10,7 @@ structure ResolveSymbols = ResolveSymbols
 structure ResolveTypeInfo = ResolveTypeInfo
 structure Types = Types
 structure InlineDecodePatterns = InlineDecodePatterns
+structure DesugarDecodePatterns = DesugarDecodePatterns
 structure SymbolTables = SymbolTables
 structure SymbolTable = SymbolTable
 structure VarInfo = VarInfo
