@@ -408,6 +408,9 @@ val ib = i b
 val iz = i z
 
 val al = return AL
+val ax = return AX
+val eax = return EAX
+val rax = return RAX
 
 val rAX = do
    oS <- operandSize;
@@ -417,8 +420,17 @@ val rAX = do
     | QW: return RAX
 end
 
+val r/m8 = do
+	e (return B)
+end
 val r/m16 = do
-	e W
+	e (return W)
+end
+val r/m32 = do
+	e (return DW)
+end
+val r/m64 = do
+	e (return QW)
 end
 
 val r16 = do
@@ -427,12 +439,7 @@ val r16 = do
 end
 
 val r32 = return EAX
-
-val r/m32 = return EAX
-
 val r64 = return RAX
-
-val r/m64 = return RAX
 
 val add a1 a2 = do
    a1 <- a1;
@@ -457,12 +464,22 @@ dec [0x00 /r] = add eb gb
 dec [0x01 /r] = add ev gv
 dec [0x02 /r] = add gb eb
 dec [0x03 /r] = add gv ev
-dec [0x04 /r] = add al ib
+dec [0x04] = add al ib
 dec [0x05 /r] = add rAX iz
 dec [0x80 /r] = grp0 eb ib
 dec [0x81 /r] = grp0 ev iz
 dec [0x82 /r] = grp0 eb ib
 dec [0x83 /r] = grp0 ev ib
+
+dec [0x04] = add al imm8
+dec [0x05] = do
+   oS <- operandSize;
+   case oS of
+      W: return (add ax imm16)
+    | DW: return (add eax imm32)
+    | QW: return (add rax imm64)
+end
+dec [0x80 /0] = r/m8 imm8
 
 dec [0x80 /r]
    | opndsz = mov r/m16 r16
@@ -475,4 +492,4 @@ dec [0x66 0xC7 /0] | opndsz = mov r16 imm16
 dec [0x66] = do update @{opndsz=1}; continue end
 dec [0x67] = do update @{addrsz=1}; continue end
 dec ['0100 w:1 r:1 x:1 b:1'] = do update @{rex = { w = w, r = r, x = x, b = b }}; continue end
-    
+
