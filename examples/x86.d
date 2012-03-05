@@ -389,6 +389,9 @@ val i oS = do
 end
 
 val b = return B
+val w = return W
+val d = return DW
+val q = return QW
 val v = operandSize
 val z = do
    oS <- operandSize;
@@ -420,26 +423,15 @@ val rAX = do
     | QW: return RAX
 end
 
-val r/m8 = do
-	e (return B)
-end
-val r/m16 = do
-	e (return W)
-end
-val r/m32 = do
-	e (return DW)
-end
-val r/m64 = do
-	e (return QW)
-end
+val r/m8 = e b
+val r/m16 = e w
+val r/m32 = e d
+val r/m64 = e q
 
-val r16 = do
-   reg <- query $reg;
-   return (regAll reg 32)
-end
-
-val r32 = return EAX
-val r64 = return RAX
+val r8 = g b
+val r16 = g w
+val r32 = g d
+val r64 = g q
 
 val add a1 a2 = do
    a1 <- a1;
@@ -480,14 +472,44 @@ dec [0x05] = do
     | QW: return (add rax imm64)
 end
 dec [0x80 /0] = r/m8 imm8
+dec [0x81 /0] = do
+   oS <- operandSize;
+   case oS of
+      W: return (add r/m16 imm16)
+    | DW: return (add r/m32 imm32)
+    | QW: return (add r/m64 imm64)
+end
+dec [0x83 /0] = do
+   oS <- operandSize;
+   case oS of
+      W: return (add r/m16 imm8)
+    | DW: return (add r/m32 imm8)
+    | QW: return (add r/m64 imm8)
+end
+dec [0x00 /r] = add r/m8 r8
+dec [0x01 /0] = do
+   oS <- operandSize;
+   case oS of
+      W: return (add r/m16 r16)
+    | DW: return (add r/m32 r32)
+    | QW: return (add r/m64 r64)
+end
+dec [0x02 /r] = add r8 r/m8
+dec [0x03 /0] = do
+   oS <- operandSize;
+   case oS of
+      W: return (add r16 r/m16)
+    | DW: return (add r32 r/m32)
+    | QW: return (add r64 r/m64)
+end
 
-dec [0x80 /r]
-   | opndsz = mov r/m16 r16
-   | rexw = mov r/m64 r64
-   | otherwise = mov r/m32 r32
-
-dec [0x66 0xC7 /0] | opndsz = mov r16 imm16
-   		   | otherwise = mov r32 imm32
+# ???
+#dec [0x80 /r]
+#   | opndsz = mov r/m16 r16
+#   | rexw = mov r/m64 r64
+#   | otherwise = mov r/m32 r32
+#dec [0x66 0xC7 /0] | opndsz = mov r16 imm16
+#   		   | otherwise = mov r32 imm32
 
 dec [0x66] = do update @{opndsz=1}; continue end
 dec [0x67] = do update @{addrsz=1}; continue end
