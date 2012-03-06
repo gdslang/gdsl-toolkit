@@ -142,93 +142,6 @@ val imm = do
     | W: imm16
 end
 
-val reg8 num =
-   case num of
-       0: AL
-    |  1: CL
-    |  2: DL
-    |  3: BL
-    |  4: AH
-    |  5: CH
-    |  6: DH
-    |  7: BH
-    |  8: R8L
-    |  9: R10L
-    | 10: R11L
-    | 11: R9L
-    | 12: R12L
-    | 13: R13L
-    | 14: R14L
-    | 15: R15L
-
-val reg16 num =
-   case num of
-       0: AX
-    |  1: CX
-    |  2: DX
-    |  3: BX
-    |  4: SP
-    |  5: BP
-    |  6: SI
-    |  7: DI
-    |  8: R8W
-    |  9: R10W
-    | 10: R11W
-    | 11: R9W
-    | 12: R12W
-    | 13: R13W
-    | 14: R14W
-    | 15: R15W
-
-val reg32 num =
-   case num of
-       0: EAX
-    |  1: ECX
-    |  2: EDX
-    |  3: EBX
-    |  4: ESP
-    |  5: EBP
-    |  6: ESI
-    |  7: EDI
-    |  8: R8D
-    |  9: R10D
-    | 10: R11D
-    | 11: R9D
-    | 12: R12D
-    | 13: R13D
-    | 14: R14D
-    | 15: R15D
-
-val reg64 num =
-   case num of
-       0: RAX
-    |  1: RCX
-    |  2: RDX
-    |  3: RBX
-    |  4: RSP
-    |  5: RBP
-    |  6: RSI
-    |  7: RDI
-    |  8: R8
-    |  9: R10
-    | 10: R11
-    | 11: R9
-    | 12: R12
-    | 13: R13
-    | 14: R14
-    | 15: R15
-
-val reg128 num =
-   case num of
-       0: XMM0
-    |  1: XMM1
-    |  2: XMM2
-    |  3: XMM3
-    |  4: XMM4
-    |  5: XMM5
-    |  6: XMM6
-    |  7: XMM7
-
 val regAll num size =
    case num of
         0: (case size of
@@ -329,7 +242,6 @@ val regAll num size =
 	       |   B: R15L)
 val regHigher num size = regAll (num + 8) size;
 
-
 val operandSize = do
    rex <- query $rex;
    opndsz <- query $opndsz;
@@ -347,8 +259,9 @@ val addressSize = do
     | '1': return DW
 end	
 
-#dec base ['000'] = reg
-#dec sib['scale index base']
+dec base ['000'] = reg
+
+dec sib['scale index base']
 
 dec sib ['scale:2 index:3 base:3'] = do
    mod <- query $mod;
@@ -402,28 +315,6 @@ dec sib ['scale:2 index:3 base:3'] = do
 		     | '011': return ESUM { a = base_exp, b = EPROD { a = reg rDI aS, b = scale_exp } }
     		 end
 end
-
-#val reg16 r =
-#   case r of
-#      '000' : AX
-#    | '001' : BX
-#val reg32 r = 
-#   case r of
-#      '000' : RAX
-#    | '001' : RBX
-#val r/m toReg s =
-#   mod <- query $mod;
-#   rm <- query $rm;
-#   case mod of
-#      '00' :
-#      	(case rm of 
-#	   '100' : dosib s 
-#	  | otherwise : return MEM {accesssize=s, mop=toReg rm})
-#    | '11' : return (toReg rm)
-#val r/m16 = r/m reg16 16
-#val r/m32 = r/m reg32 32
-#dec /0 ['mod:2 000 rm:3'] =
-#dec [0x00 /0] = add r/m16 imm16
 
 val e oS = do
    mod <- query $mod;
@@ -531,15 +422,7 @@ end
 val r/m8 = e b
 val r/m16 = e w
 val r/m32 = e d
-
-val r/m32 = do
-  reg <- query $reg
-  return reg16 reg
-
 val r/m64 = e q
-
-
-val r/m16 = 
 
 val r8 = g b
 val r16 = g w
@@ -571,17 +454,17 @@ dec [0x02 /r] = add gb eb
 dec [0x03 /r] = add gv ev
 dec [0x04] = add al ib
 dec [0x05 /r] = add rAX iz
-dec [0x80 /r] = add eb ib
+dec [0x80 /r] = grp0 eb ib
 dec [0x81 /r] = grp0 ev iz
 dec [0x82 /r] = grp0 eb ib
 dec [0x83 /r] = grp0 ev ib
 
-dec [0x83 /0] = add r16 rm/imm16
-dec [0x83 /1] = adc bla bla
-dec [0x05]
-   | rexw = return (add rax imm64)
-   | opndsz = return (add eax imm32)
-   | otherwise = return (add ax imm16)
+#dec [0x83 /0] = add r16 rm/imm16
+#dec [0x83 /1] = adc bla bla
+#dec [0x05]
+#   | rexw = return (add rax imm64)
+#   | opndsz = return (add eax imm32)
+#   | otherwise = return (add ax imm16)
 
 dec [0x04] = add al imm8
 dec [0x05] = do
