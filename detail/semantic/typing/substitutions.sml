@@ -10,7 +10,11 @@ structure Substitutions : sig
 
    val emptySubsts : Substs
 
-   val substsDom : Substs -> TVar.set
+   val substsFilter : Substs * TVar.set -> Substs
+   
+   val isEmpty : Substs -> bool
+
+   val areSubstsSimilar : Substs * Substs -> bool
 
    val showSubstsSI : Substs * TVar.varmap -> string * TVar.varmap
    
@@ -50,8 +54,10 @@ end = struct
 
    datatype Substs = Substs of Subst list
 
-   fun substsDom (Substs ss) =
-         List.foldl (fn ((v,_), set) => TVar.add (v,set)) TVar.empty ss
+   fun substsFilter (Substs ss, set) =
+     Substs (List.filter (fn (v,_) => TVar.member (set,v)) ss)
+
+   fun isEmpty (Substs ss) = List.null ss
 
    val a = freshTVar ()
    val b = freshTVar ()
@@ -432,4 +438,25 @@ end = struct
       in
          ("unifying t1=" ^ t1Str ^ "\nwith     t2=" ^ t2Str ^ "\n" ^ sStr)
       end
+
+   fun areSubstsSimilar (Substs ss1, Substs ss2) =
+      let
+         fun isSubstsRenaming (Substs ss) =
+            List.all (fn (v,st) => case st of
+                 WITH_TYPE (VAR _) => true
+               | WITH_TYPE _ => false
+               | WITH_FIELD _ => false) ss
+         fun findSimilar (_,WITH_TYPE t1) =
+            List.exists (fn (_,st) => case st of
+                 WITH_TYPE t2 => isSubstsRenaming (mgu (t1,t2,emptySubsts))
+               | WITH_FIELD _ => false) ss1
+           | findSimilar (_,WITH_FIELD (fs1,_)) =
+            List.exists (fn (_,st) => case st of
+                 WITH_TYPE _ => false
+               | WITH_FIELD (fs2,_) => false) ss1
+      in
+         List.all findSimilar ss2
+      end
+
+
 end

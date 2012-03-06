@@ -44,7 +44,6 @@ end = struct
                    AST.var_bind list *       (*arguments*)
                    AST.exp)
 
-
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val sm = ref (SMap.empty : E.symbol_type SMap.map)
    val { tsynDefs, typeDefs, conParents} = ti
@@ -76,10 +75,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
+
+   (*for error detection, we track a counter an a map from locations to
+   substitutions*)
    val iterCount = ref 0
+   val substRef = ref (E.SpanMap.empty : S.Substs E.SpanMap.map)
    fun calcFixpoint (st,env) (sym, dec, args, rhs) =
       let
-         val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+         (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
          val env = List.foldl E.pushLambdaVar env args
          val env = infExp (st,env) rhs
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
@@ -90,12 +93,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun checkCallSite (s, (entailed, env)) =
             let
                val envFun = E.pushSymbol (sym, s, env)
-               val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)
+               (*val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)*)
                val envCall = E.pushUsage (sym, s, env)
-               val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)
-               fun raiseError str =
+               (*val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)*)
+               val si = TVar.emptyShowInfo
+               fun raiseError (si,str) =
                   let
-                     val si = TVar.emptyShowInfo
                      val (sFun, si) = E.kappaToStringSI (envFun, si)
                      val (sCall, si) = E.kappaToStringSI (envCall, si)
                   in 
@@ -105,18 +108,43 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      "\ncall requires type  " ^ sCall,
                      "\ndefinition has type " ^ sFun]))
                   end
-               val stable = E.subseteq (envCall, envFun)
-                  handle (S.UnificationFailure str) => (raiseError str; true)
+               val substs = E.subseteq (envCall, envFun)
+                  handle (S.UnificationFailure str) => (raiseError (si,str)
+                         ; S.emptySubsts)
+               val stable = S.isEmpty substs
+               val stable = stable orelse
+                  (case E.SpanMap.find (!substRef, s) of
+                    SOME prevSubsts =>
+                     if not (S.isEmpty substs) andalso
+                        S.areSubstsSimilar (prevSubsts, substs) then
+                        let
+                           val (pStr,si) = S.showSubstsSI (prevSubsts, si)
+                           val (sStr,si) = S.showSubstsSI (substs, si)
+                        in
+                           (raiseError (si, "unbounded refinement with " ^ pStr ^
+                              " and " ^ sStr ^ " due to recursive call")
+                           ; true)
+                        end
+                     else
+                        (if S.isEmpty substs then () else
+                         substRef := E.SpanMap.insert (!substRef, s, substs)
+                        ; false)
+                  | NONE =>
+                     (if S.isEmpty substs then () else
+                      substRef := E.SpanMap.insert (!substRef, s, substs)
+                     ; false)
+                  )
             in
                if stable then (entailed, env) else
                   (false, E.popToUsage (sym, s, E.meet (envCall, envFun)))
-                     handle (S.UnificationFailure str) => (raiseError str; (true, env))
+                     handle (S.UnificationFailure str) =>
+                        (raiseError (si,str); (true, env))
             end
          val (stable, env) = List.foldl checkCallSite (true, env) us
       in
          if stable then env else
          (iterCount := !iterCount + 1;
-         if !iterCount > 3 then 
+         if !iterCount >= 3 then 
             raise (S.UnificationFailure ("type of " ^
                SymbolTable.getString(!SymbolTables.varTable, sym) ^
                " not stable after " ^ Int.toString (!iterCount) ^
@@ -380,7 +408,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       (List.foldl (op @) []
          (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))
       , primEnv)
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val toplevelEnv = List.foldl (fn (d,env) =>
          infDecl ({span = SymbolTable.noSpan, error = false},env) d
          ) toplevelEnv (#tree (ast : SpecAbstractTree.specification))
