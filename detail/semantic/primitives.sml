@@ -52,12 +52,13 @@ structure Primitives = struct
 *)
 
    val primitiveValues =
-      [{name="true", ty=ZENO},
-       {name="false", ty=ZENO},
+      [{name="true", ty=VEC (CONST 1)},
+       {name="false", ty=VEC (CONST 1)},
        {name="continue", ty=MONAD (var r)},
        {name="consume", ty=MONAD (VEC (var s6))},
        (* TODO *) {name="slice", ty=MONAD (var (t ()))},
-       {name="#anon_decode_function", ty=MONAD (var r)},
+       {name=globalState, ty=var state},
+       {name=anonDecodeFunction, ty=MONAD (var r)},
        {name="return", ty=FUN (var a, MONAD (var a))},
        {name="update", ty=FUN (FUN (var state, var state), MONAD (var d))},
        {name="query", ty=FUN (FUN (var state, var state), MONAD (var e))},
@@ -68,6 +69,9 @@ structure Primitives = struct
        {name="bits8", ty=FUN (ZENO, VEC (CONST 8))},
        {name="^", ty=vvv s5},
        {name="otherwise", ty=VEC (CONST 1)}]
+
+   val primitiveDecoders =
+      [{name=anonDecodeFunction, ty=var size}]
 
    val primitiveTypes =
       [{name="int", ty=ZENO},
@@ -90,4 +94,19 @@ structure Primitives = struct
       ;ST.fieldTable := FieldInfo.empty
       ;List.map (addPrim ST.varTable) primitiveValues
       ;List.map (addPrim ST.typeTable) primitiveTypes)
+   
+   fun getSymbolTypes () =
+      let
+         fun find n ({name, ty} :: nts) = (case String.compare (n,name) of
+                 EQUAL => SOME ty
+               | _ => find n nts
+            )
+           | find n [] = NONE
+         fun genTriple {name=n, ty=t} =
+            (SymbolTable.lookup(!ST.varTable, Atom.atom n)
+            ,t
+            ,find n primitiveDecoders)
+      in
+         List.map genTriple primitiveValues
+      end
 end                                                       

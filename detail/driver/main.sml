@@ -26,8 +26,9 @@ structure Main = struct
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          TypeInference.run (tInfo, ast) >>= (fn tys =>
          (TextIO.print (TypeInference.showTable tys);
-         InlineDecodePatterns.run ast)
-         )))
+         SplitDeclarations.run ast >>=
+         InlineDecodePatterns.run
+         ))))
 
       fun runTc fp = let
          val ins = TextIO.openIn fp
