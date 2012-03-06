@@ -82,7 +82,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val substRef = ref (E.SpanMap.empty : S.Substs E.SpanMap.map)
    fun calcFixpoint (st,env) (sym, dec, args, rhs) =
       let
-         (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val env = List.foldl E.pushLambdaVar env args
          val env = infExp (st,env) rhs
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
@@ -93,9 +93,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun checkCallSite (s, (entailed, env)) =
             let
                val envFun = E.pushSymbol (sym, s, env)
-               (*val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)*)
+               val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)
                val envCall = E.pushUsage (sym, s, env)
-               (*val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)*)
+               val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)
                val si = TVar.emptyShowInfo
                fun raiseError (si,str) =
                   let
@@ -111,12 +111,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val substs = E.subseteq (envCall, envFun)
                   handle (S.UnificationFailure str) => (raiseError (si,str)
                          ; S.emptySubsts)
+               val _ = TextIO.print ("***** substitutions: " ^ (fn (str,_) => str) (S.showSubstsSI (substs,si)) ^ "\n")
                val stable = S.isEmpty substs
-               val stable = stable orelse
-                  (case E.SpanMap.find (!substRef, s) of
+               (*val stable = stable orelse
+                  (TextIO.print "***** inserting\n"; case E.SpanMap.find (!substRef, s) of
                     SOME prevSubsts =>
-                     if not (S.isEmpty substs) andalso
-                        S.areSubstsSimilar (prevSubsts, substs) then
+                     if S.areSubstsSimilar (prevSubsts, substs) then
                         let
                            val (pStr,si) = S.showSubstsSI (prevSubsts, si)
                            val (sStr,si) = S.showSubstsSI (substs, si)
@@ -126,24 +126,26 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                            ; true)
                         end
                      else
-                        (if S.isEmpty substs then () else
-                         substRef := E.SpanMap.insert (!substRef, s, substs)
+                        (substRef := E.SpanMap.insert (!substRef, s, substs)
                         ; false)
                   | NONE =>
-                     (if S.isEmpty substs then () else
-                      substRef := E.SpanMap.insert (!substRef, s, substs)
+                     (substRef := E.SpanMap.insert (!substRef, s, substs)
                      ; false)
-                  )
+                  )*)
+               val env = E.meet (envCall, envFun)
+               val _ = TextIO.print ("before updating usage:\n" ^ E.toString env)
+               val env = E.popToUsage (sym, s, env)
             in
-               if stable then (entailed, env) else
-                  (false, E.popToUsage (sym, s, E.meet (envCall, envFun)))
-                     handle (S.UnificationFailure str) =>
-                        (raiseError (si,str); (true, env))
+               if stable then (entailed, env) else (false, env)
+                     (*handle (S.UnificationFailure str) =>
+                        (raiseError (si,str); (entailed, env))*)
             end
          val (stable, env) = List.foldl checkCallSite (true, env) us
       in
          if stable then env else
          (iterCount := !iterCount + 1;
+         TextIO.print ("****** iteration " ^ Int.toString (!iterCount) ^
+                     ", environment:\n" ^ E.toString env);
          if !iterCount >= 3 then 
             raise (S.UnificationFailure ("type of " ^
                SymbolTable.getString(!SymbolTables.varTable, sym) ^
@@ -226,15 +228,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.APPLYexp (e1,e2)) =
       let
          val envFun = infExp (st,env) e1
-         (*val _ = TextIO.print ("**** app func:\n" ^ E.toString envFun)*)
+         val _ = TextIO.print ("**** app func:\n" ^ E.toString envFun)
          val envArg = infExp (st,env) e2
-         (*val _ = TextIO.print ("**** app arg:\n" ^ E.toString envArg)*)
+         val _ = TextIO.print ("**** app arg:\n" ^ E.toString envArg)
          val envArg = E.pushTop envArg
          val envArg = E.reduceToFunction envArg
-         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.toString envArg)*)
+         val _ = TextIO.print ("**** app turning arg:\n" ^ E.toString envArg)
          val env = E.meet (envFun, envArg)
          val env = E.reduceToResult env
-         (*val _ = TextIO.print ("**** app result:\n" ^ E.toString env)*)
+         val _ = TextIO.print ("**** app result:\n" ^ E.toString env)
       in
          env
       end
