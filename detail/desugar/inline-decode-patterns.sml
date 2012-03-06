@@ -1,45 +1,32 @@
 
 (**
  * ## Inlining of decode patterns.
- *
- *   - Inline named decode patterns into all use-sites.
- *   - Insert calls to the monadic action into the rhs expression of
- *     all use-sites of the pattern
  *)
 structure InlineDecodePatterns : sig
-   val inline: Error.err_stream * SpecAbstractTree.specification -> SpecAbstractTree.specification
-   val run: SpecAbstractTree.specification -> SpecAbstractTree.specification CompilationMonad.t
+   val run: SplitDeclarations.o -> SplitDeclarations.o CompilationMonad.t
 end = struct
 
    structure Map = SymMap
    structure T = SpecAbstractTree
 
    datatype t =
-      IN of {namedpatterns: (T.decodepat list * T.exp) Map.map,
-             decodedecls: T.decodedecl list}
+      IN of {namedpatterns: (T.decodepat list * T.exp) Map.map}
 
-   val empty = IN {namedpatterns=Map.empty, decodedecls= []}
+   val empty = IN {namedpatterns=Map.empty}
    fun get s (IN t) = s t
    fun insert t k v =
-      IN
-         {namedpatterns= Map.insert (get#namedpatterns t, k, v),
-          decodedecls= []}
+      IN {namedpatterns= Map.insert (get#namedpatterns t, k, v)}
 
    (* traverse the specification and collect all "named" patterns *)
    fun grabNamedPatterns spec = let
       open T
-      fun grabFromDecodeDecl (decl, t) =
+      fun grab (decl, t) =
          case decl of
-            MARKdecodedecl decl' => grabFromDecodeDecl (#tree decl', t)
+            MARKdecodedecl decl' => grab (#tree decl', t)
           | NAMEDdecodedecl (name, pats, exp) => insert t name (pats, exp)
           | _ => t
-      fun grabFromDecl (decl, t) =
-         case decl of
-            MARKdecl decl' => grabFromDecl (#tree decl', t)
-          | DECODEdecl decode => grabFromDecodeDecl (decode, t)
-          | _ => t
    in
-      foldl grabFromDecl empty spec
+      foldl grab empty spec
    end
 
    fun flattenDecodePatterns err t spec = let
@@ -141,31 +128,27 @@ end = struct
                in
                   GUARDEDdecodedecl (pats, lp (cases, []))
                end
-
-      and flattenDecl decl =
-         case decl of
-            MARKdecl t' => flattenDecl (#tree t')
-          | DECODEdecl decl => DECODEdecl (flattenDecodeDecl decl)
-          | otherwise => otherwise
-
    in
-      List.map flattenDecl spec
+      List.map flattenDecodeDecl spec
    end
 
-   fun inlineDecodePatterns (err, {span, tree}:T.specification) = let
-      val t = grabNamedPatterns tree
-      val inlined = flattenDecodePatterns err t tree
+   fun inlineDecodePatterns (err, spec) = let
+      open Spec
+      val (_, ds) = get#declarations spec
+      val t = grabNamedPatterns ds
+      val inlined = flattenDecodePatterns err t ds
    in
-      {span=span, tree=inlined}
+      upd (fn (vs, _) => (vs, inlined)) spec
    end
 
-   fun dumpPre (os, (_, spec)) = T.PP.prettyTo (os, spec)
-   fun dumpPost (os, spec) = T.PP.prettyTo (os, spec)
+   val pp = Spec.PP.prettyTo Spec.PP.prettyDecls
+   fun dumpPre (os, (_, spec)) = pp (os, spec)
+   fun dumpPost (os, spec) = pp (os, spec)
 
    val inline =
       BasicControl.mkKeepPass
          {passName="inlineDecodePatterns",
-          registry=BasicControl.topRegistry,
+          registry=DesugarControl.registry,
           pass=inlineDecodePatterns,
           preExt="ast",
           preOutput=dumpPre,

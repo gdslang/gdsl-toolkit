@@ -37,6 +37,14 @@ group is
    ../../semantic/primitives.sml
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
-   ../../opt/inline.sml
-   ../../opt/desugar-decode-patterns.sml
+   ../../spec/core.sml
+   ../../spec/spec.sml
+   ../../desugar/desugar-control.sml
+   ../../desugar/desugared-tree.sml
+   ../../desugar/split-declarations.sml
+   ../../desugar/inline-decode-patterns.sml
+   ../../desugar/detokenize.sml
+   ../../desugar/retokenize.sml
+   ../../desugar/desugar-decode-patterns.sml
+   ../../desugar/desugar.sml
    ../../driver/main.sml
