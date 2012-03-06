@@ -19,6 +19,25 @@ structure Main = struct
             before
                TextIO.closeIn ins
       end
+
+      fun allTc ins = 
+         Parser.run ins >>=
+         ResolveSymbols.run >>= (fn ast =>
+         ResolveTypeInfo.run ast >>= (fn tInfo =>
+         TypeInference.run (tInfo, ast) >>= (fn tys =>
+         (TextIO.print (TypeInference.showTable tys);
+         InlineDecodePatterns.run ast)
+         )))
+
+      fun runTc fp = let
+         val ins = TextIO.openIn fp
+         val ers = Error.mkErrStream fp
+         val () = Controls.set (BasicControl.verbose, 1)
+      in
+         CompilationMonad.run ers (allTc ins >> return ())
+            before
+               TextIO.closeIn ins
+      end
    end
 
    fun showControls () = let
