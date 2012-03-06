@@ -40,7 +40,7 @@ structure Core = struct
       fun con sym = SpecAbstractTree.PP.con_use sym
       fun fld sym = SpecAbstractTree.PP.field_use sym
 
-      fun layout exp =
+      fun layout exp = let open Exp in
          case exp of
             LET (ds, e) =>
                align 
@@ -65,19 +65,24 @@ structure Core = struct
           | UPDATE fs => seq [str "@", record (map field fs)]
           | SELECT f => seq [str "$", fld f]
           | SEQ ss =>
-               align
-                  [str "do",
-                   indent 3 (alignPrefix (map seqexp ss, ";"))]
+               align 
+                  [align
+                     [str "do",
+                      indent 3 (align (separateRight (map seqexp ss, ";")))],
+                   str "end"]
           | LIT l => SpecAbstractTree.PP.lit l
           | CON c => seq [str "`", con c]
           | ID id => var id
+      end
       and field (s, e) =
-         (FieldInfo.getString (!SymbolTables.varTable, s), layout e)
-      and casee (p, e) = seq [pat p, space, str ":", space, layout e]
-      and cases cs =
+         (FieldInfo.getString (!SymbolTables.fieldTable, s), layout e)
+      and casee (p, e) =
          align
-            [indent 3 (casee (hd cs)),
-             indent 1 (alignPrefix (map casee (tl cs), "| "))]
+            [seq [pat p, space, str ":"],
+             indent 3 (layout e)]
+      and cases cs =
+         case cs of [] => str "<empty>" | cs =>
+            indent 3 (alignPrefix (map casee cs, "| "))
       and decls ds = align (map decl ds)
       and decl (n, args, exp) =
          def (seq (str "val"::space::(map var (n::args))),
@@ -94,7 +99,7 @@ structure Core = struct
          align [seq [intro, space, str "="], indent 3 body]
       and pat p =
          case p of
-            BIT s => str s
+            BIT s => seq [str "'", str s, str "'"]
           | INT i => int i
           | CON (c, SOME p) => seq [str "`", con c, space, pat p]
           | CON (c, NONE) => seq [str "`", con c]

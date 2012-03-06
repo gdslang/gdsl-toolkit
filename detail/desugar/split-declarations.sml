@@ -14,7 +14,7 @@ end = struct
    type decodedecl = SpecAbstractTree.decodedecl
    type o = (valuedecl list * decodedecl list) Spec.t
 
-   fun split spec = let
+   fun split {span, tree} = let
       open T
       val granularity = ref (~1: IntInf.int)
       val state = ref [[]]
@@ -43,7 +43,8 @@ end = struct
             MARKcondecl t => grabCondecl (#tree t)
           | CONdecl d => d
    in
-      Spec.IN
+      app splitToplevel tree
+     ;Spec.IN
          {granularity= !granularity,
           state= hd(!state),
           typealias= rev (!typealias),
