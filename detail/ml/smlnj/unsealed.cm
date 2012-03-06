@@ -31,6 +31,7 @@ group is
    ../../semantic/spec-abstract-tree.sml
    ../../semantic/typing/boolean-domain.sml
    ../../semantic/typing/lang-types.sml
+   ../../semantic/typing/substitutions.sml
    ../../semantic/typing/tvar.sml
    ../../semantic/typing/environment.sml
    ../../semantic/inference.sml

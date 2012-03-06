@@ -116,7 +116,6 @@ functor MkAst (Core: AST_CORE) = struct
 
    and pat =
       MARKpat of pat mark
-    | BITpat of string
     | LITpat of lit
     | IDpat of var_bind
     | CONpat of con_use * pat option
@@ -126,11 +125,15 @@ functor MkAst (Core: AST_CORE) = struct
       INTlit of IntInf.int
     | FLTlit of FloatLit.float
     | STRlit of string
+    | VEClit of string
 
    type specification = decl list mark
 
    structure PP = struct
       open Layout Pretty Core
+      val empty = str "<.>"
+      val space = str " "
+
       fun spec (ss:specification) = align (map decl (#tree ss))
 
       and decl t =
@@ -210,7 +213,6 @@ functor MkAst (Core: AST_CORE) = struct
       and pat t =
          case t of
             MARKpat t' => pat (#tree t')
-          | BITpat s => seq [str "'", str s, str "'"]
           | LITpat l => lit l
           | IDpat n => var_bind n
           | CONpat (n, SOME p) => seq [con_use n, space, pat p]
@@ -222,6 +224,7 @@ functor MkAst (Core: AST_CORE) = struct
             INTlit i => int i
           | FLTlit f => str (FloatLit.toString f)
           | STRlit s => str s
+          | VEClit s => seq [str "'", str s, str "'"]
 
       and exp t =
          case t of

@@ -1,31 +1,31 @@
 structure ResolveTypeInfo : sig
 
-  type SynonymMap = Types.texp SymMap.map
-  type DatatypeMap = Types.typedescr SymMap.map
-  type ConstructorMap = TypeInfo.symid SymMap.map
+  type synonym_map = Types.texp SymMap.map
+  type datatype_map = Types.typedescr SymMap.map
+  type constructor_map = TypeInfo.symid SymMap.map
   
-  val resolveTypeInfo : (Error.err_stream *
-        {ast: SpecAbstractTree.specification,
-         vars: VarInfo.table,
-         cons: ConInfo.table,
-         types: TypeInfo.table,
-         fields: FieldInfo.table }) ->
+  type type_info = {
+      tsynDefs: synonym_map,
+      typeDefs: datatype_map,
+      conParents: constructor_map
+   }
 
-        {ast: SpecAbstractTree.specification,
-         vars: VarInfo.table,
-         cons: ConInfo.table,
-         types: TypeInfo.table,
-         fields: FieldInfo.table,
-         tsynDefs: SynonymMap,
-         typeDefs: DatatypeMap,
-         conParents: ConstructorMap }
+   val resolveTypeInfoPass: (Error.err_stream * SpecAbstractTree.specification) -> type_info
+   val run: SpecAbstractTree.specification -> type_info CompilationMonad.t
          
 end = struct
-  
-  type SynonymMap = Types.texp SymMap.map
-  type DatatypeMap = Types.typedescr SymMap.map
-  type ConstructorMap = TypeInfo.symid SymMap.map
 
+  infix >>= >>
+
+  type synonym_map = Types.texp SymMap.map
+  type datatype_map = Types.typedescr SymMap.map
+  type constructor_map = TypeInfo.symid SymMap.map
+
+  type type_info = {
+      tsynDefs: synonym_map,
+      typeDefs: datatype_map,
+      conParents: constructor_map
+   }
   (*val resolveTypeInfoPass:
       (Error.err_stream * SpecParseTree.specification) ->
          {syn: map,
@@ -40,10 +40,14 @@ end = struct
   structure T = Types
   structure BD = BooleanDomain
   
-  fun resolveTypeInfo (errStrm, {ast, vars, cons, types, fields}) = let
-    val synTable = ref (S.empty : SynonymMap)
-    val dtyTable = ref (D.empty : DatatypeMap)
-    val conTable = ref (C.empty : ConstructorMap)
+  fun resolveTypeInfoPass (errStrm, ast) = let
+    val vars = !SymbolTables.varTable
+    val cons = !SymbolTables.conTable
+    val types = !SymbolTables.typeTable
+    val fields = !SymbolTables.fieldTable
+    val synTable = ref (S.empty : synonym_map)
+    val dtyTable = ref (D.empty : datatype_map)
+    val conTable = ref (C.empty : constructor_map)
   
     fun convMark conv {span, tree} = {span=span, tree=conv span tree}
     fun vDecl (s, AST.MARKdecl { span, tree }) = vDecl (span, tree)
@@ -58,11 +62,14 @@ end = struct
     and vType (s, AST.MARKty { span, tree }) = vType (span,tree)
       | vType (s, AST.BITty i) = T.VEC (T.CONST i)
       | vType (s, AST.NAMEDty n) =
-         T.SYN (n, S.lookup (!synTable, n))
+         (case S.find (!synTable, n) of
+              (SOME t) => T.SYN (n, t)
+            | NONE => T.ALG (n, [])
+         )
       | vType (s, AST.RECty l) =
-         T.RECORD (Types.freshTVar (), List.map (vField s) l)
+         T.RECORD (Types.freshTVar (), BD.freshBVar (), List.map (vField s) l)
     and vField s (n, ty) =
-         T.RField {name = n, fty = vType (s, ty), needed = BD.invalidBVar}
+         T.RField {name = n, fty = vType (s, ty), exists = BD.freshBVar ()}
     and vCondecl (s,d, []) = SymMap.empty : Types.condescr
       | vCondecl (s,d, AST.MARKcondecl { span, tree }::l) = vCondecl (s,d,tree::l)
       | vCondecl (s,d, AST.CONdecl (c, arg)::l) =
@@ -77,7 +84,19 @@ end = struct
           )
     val { span = s, tree = declList } = ast
   in (List.map (fn d => vDecl (s,d)) declList;
-      { ast = ast, vars = vars, cons = cons, types = types, fields = fields,
-        tsynDefs = !synTable, typeDefs = !dtyTable, conParents = !conTable })
+      { tsynDefs = !synTable, typeDefs = !dtyTable, conParents = !conTable } : type_info)
   end
+
+   val resolveTypeInfoPass =
+      BasicControl.mkTracePassSimple
+         {passName="resolveTypeInfoPass",
+          pass=resolveTypeInfoPass}
+
+   fun run spec = let
+      open CompilationMonad
+   in
+      getErrorStream >>= (fn errs =>
+      return (resolveTypeInfoPass (errs, spec)))
+   end
+
 end

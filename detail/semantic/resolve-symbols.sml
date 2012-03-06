@@ -233,7 +233,6 @@ end = struct
         AST.CASEmatch (convPat s p, convExp s e)
     and convPat s (PT.MARKpat m) =
         AST.MARKpat (convMark convPat m)
-      | convPat s (PT.BITpat str) = AST.BITpat str
       | convPat s (PT.LITpat lit) = AST.LITpat (convLit s lit)
       | convPat s (PT.IDpat v) = AST.IDpat (newVar (s,v))
       | convPat s (PT.CONpat (c, SOME p)) = AST.CONpat (useCon (s,c), SOME (convPat s p))
@@ -242,6 +241,7 @@ end = struct
     and convLit s (PT.INTlit i) = AST.INTlit i
       | convLit s (PT.FLTlit f) = AST.FLTlit f
       | convLit s (PT.STRlit str) = AST.STRlit str
+      | convLit s (PT.VEClit str) = AST.VEClit str
 
    in (Primitives.registerPrimitives ();
        convMark (fn s => List.map (regDecl s)) ast;

@@ -114,9 +114,9 @@ structure DesugaredTree = struct
       and pat p =
          case p of
             MARKpat t => pat (#tree t)
-          | BITpat s => Pat.BIT s
           | CONpat (s, p) => Pat.CON (s, Option.map pat p)
           | LITpat (INTlit i) => Pat.INT i
+          | LITpat (VEClit i) => Pat.BIT i
           | LITpat _ => raise CM.CompilationError
           | IDpat id => Pat.ID id
           | WILDpat => Pat.WILD
