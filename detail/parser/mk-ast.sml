@@ -224,14 +224,18 @@ functor MkAst (Core: AST_CORE) = struct
             INTlit i => int i
           | FLTlit f => str (FloatLit.toString f)
           | STRlit s => str s
-          | VEClit s => str s
+          | VEClit s => seq [str "'", str s, str "'"]
 
       and exp t =
          case t of
             MARKexp t' => exp (#tree t')
           | LETexp bs => paren (seq [str "LET", space, tuple2 (list o map valuedecl, exp) bs])
           | IFexp iff => paren (seq [str "IF", space, tuple3 (exp, exp, exp) iff])
-          | CASEexp (e, ms) => paren (seq [str "CASE", space, exp e, space, list (map match ms)])
+          | CASEexp (e, ms) =>
+               paren
+                  (def
+                     (seq [str "CASE", space, exp e],
+                      list (map match ms)))
           | ANDALSOexp (e1, e2) => paren (seq [str "ANDALSO", space, exp e1, space, exp e2])
           | ORELSEexp (e1, e2) => paren (seq [str "ORELSE", space, exp e1, space, exp e2])
           | BINARYexp (e1, opid, e2) => paren (seq [op_id opid, space, exp e1, space, exp e2])

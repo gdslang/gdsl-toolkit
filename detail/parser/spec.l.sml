@@ -1,8 +1,8 @@
 structure SpecLex  = struct
 
-    datatype yystart_state =
+    datatype yystart_state = 
 STRING | COMMENT | BITPATNUM | BITPAT | INITIAL
-    structure UserDeclarations =
+    structure UserDeclarations = 
       struct
 
 
@@ -89,13 +89,13 @@ fun fromHexString s = let
       end
 
     local
-    datatype yymatch
+    datatype yymatch 
       = yyNO_MATCH
       | yyMATCH of ULexBuffer.stream * action * yymatch
     withtype action = ULexBuffer.stream * yymatch -> UserDeclarations.lex_result
 
-    val yytable : ((UTF8.wchar * UTF8.wchar * int) list * int list) Vector.vector =
-Vector.fromList[([(0w0,0w31,5),
+    val yytable : ((UTF8.wchar * UTF8.wchar * int) list * int list) Vector.vector = 
+#[([(0w0,0w31,5),
 (0w127,0w2147483647,5),
 (0w32,0w33,6),
 (0w35,0w91,6),
@@ -116,7 +116,7 @@ Vector.fromList[([(0w0,0w31,5),
 (0w48,0w57,23)], []), ([(0w0,0w8,20),
 (0w14,0w31,20),
 (0w33,0w38,20),
-(0w40,0w46,20),
+(0w40,0w45,20),
 (0w50,0w57,20),
 (0w59,0w64,20),
 (0w91,0w96,20),
@@ -124,10 +124,11 @@ Vector.fromList[([(0w0,0w31,5),
 (0w9,0w13,25),
 (0w32,0w32,25),
 (0w39,0w39,22),
-(0w47,0w47,26),
-(0w65,0w90,26),
-(0w97,0w122,26),
-(0w48,0w49,27),
+(0w46,0w46,26),
+(0w48,0w49,26),
+(0w47,0w47,27),
+(0w65,0w90,27),
+(0w97,0w122,27),
 (0w58,0w58,28)], []), ([(0w0,0w8,20),
 (0w14,0w31,20),
 (0w127,0w2147483647,20),
@@ -207,15 +208,17 @@ Vector.fromList[([(0w0,0w31,5),
 (0w118,0w118,10),
 (0w48,0w57,11)], [64]), ([], [63]), ([], [60, 63]), ([(0w48,0w57,12)], [63]), ([(0w48,0w57,13)], []), ([], [60]), ([(0w32,0w33,14),
 (0w35,0w91,14),
-(0w93,0w126,14)], [61]), ([], [67]), ([(0w42,0w42,19)], [67]), ([(0w41,0w41,18)], [67]), ([], [66]), ([], [65]), ([], [68]), ([], [48, 68]), ([], [44, 68]), ([(0w48,0w57,24)], [52, 68]), ([(0w48,0w57,24)], [52]), ([], [47, 68]), ([(0w45,0w45,30),
-(0w47,0w57,30),
-(0w65,0w90,30),
-(0w95,0w95,30),
-(0w97,0w122,30)], [46, 68]), ([(0w48,0w49,29)], [45, 68]), ([], [43, 68]), ([(0w48,0w49,29)], [45]), ([(0w45,0w45,30),
-(0w47,0w57,30),
-(0w65,0w90,30),
-(0w95,0w95,30),
-(0w97,0w122,30)], [46]), ([], [56, 68]), ([(0w33,0w33,74),
+(0w93,0w126,14)], [61]), ([], [67]), ([(0w42,0w42,19)], [67]), ([(0w41,0w41,18)], [67]), ([], [66]), ([], [65]), ([], [68]), ([], [48, 68]), ([], [44, 68]), ([(0w48,0w57,24)], [52, 68]), ([(0w48,0w57,24)], [52]), ([], [47, 68]), ([(0w46,0w46,30),
+(0w48,0w49,30)], [45, 68]), ([(0w45,0w45,29),
+(0w47,0w57,29),
+(0w65,0w90,29),
+(0w95,0w95,29),
+(0w97,0w122,29)], [46, 68]), ([], [43, 68]), ([(0w45,0w45,29),
+(0w47,0w57,29),
+(0w65,0w90,29),
+(0w95,0w95,29),
+(0w97,0w122,29)], [46]), ([(0w46,0w46,30),
+(0w48,0w49,30)], [45]), ([], [56, 68]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -910,7 +913,7 @@ Vector.fromList[([(0w0,0w31,5),
 
     fun yystreamifyReader' p readFn strm = let
           val s = ref strm
-	  fun iter(strm, n, accum) =
+	  fun iter(strm, n, accum) = 
 	        if n > 1024 then (String.implode (rev accum), strm)
 		else (case readFn strm
 		       of NONE => (String.implode (rev accum), strm)
@@ -927,7 +930,7 @@ Vector.fromList[([(0w0,0w31,5),
 
     fun yystreamifyInstream' p strm = yystreamify' p (fn ()=>TextIO.input strm)
 
-    fun innerLex
+    fun innerLex 
 (yyarg as  lexErr)(yystrm_, yyss_, yysm) = let
         (* current start state *)
           val yyss = ref yyss_
@@ -943,13 +946,13 @@ Vector.fromList[([(0w0,0w31,5),
 	  val yystartPos = ref (yygetPos())
 	(* get one char of input *)
 	  fun yygetc strm = (case UTF8.getu ULexBuffer.getc strm
-                of (SOME (0w10, s')) =>
+                of (SOME (0w10, s')) => 
 		     (AntlrStreamPos.markNewLine yysm (ULexBuffer.getpos strm);
 		      SOME (0w10, s'))
 		 | x => x)
           fun yygetList getc strm = let
             val get1 = UTF8.getu getc
-            fun iter (strm, accum) =
+            fun iter (strm, accum) = 
 	        (case get1 strm
 	          of NONE => rev accum
 	           | SOME (w, strm') => iter (strm', w::accum)
@@ -964,32 +967,32 @@ Vector.fromList[([(0w0,0w31,5),
           open UserDeclarations
           fun lex () = let
             fun yystuck (yyNO_MATCH) = raise Fail "lexer reached a stuck state"
-	      | yystuck (yyMATCH (strm, action, old)) =
+	      | yystuck (yyMATCH (strm, action, old)) = 
 		  action (strm, old)
 	    val yypos = yygetPos()
 	    fun yygetlineNo strm = AntlrStreamPos.lineNo yysm (ULexBuffer.getpos strm)
 	    fun yygetcolNo  strm = AntlrStreamPos.colNo  yysm (ULexBuffer.getpos strm)
 	    fun yyactsToMatches (strm, [],	  oldMatches) = oldMatches
-	      | yyactsToMatches (strm, act::acts, oldMatches) =
+	      | yyactsToMatches (strm, act::acts, oldMatches) = 
 		  yyMATCH (strm, act, yyactsToMatches (strm, acts, oldMatches))
-	    fun yygo actTable =
+	    fun yygo actTable = 
 		(fn (~1, _, oldMatches) => yystuck oldMatches
 		  | (curState, strm, oldMatches) => let
 		      val (transitions, finals') = Vector.sub (yytable, curState)
 		      val finals = map (fn i => Vector.sub (actTable, i)) finals'
-		      fun tryfinal() =
+		      fun tryfinal() = 
 		            yystuck (yyactsToMatches (strm, finals, oldMatches))
 		      fun find (c, []) = NONE
-			| find (c, (c1, c2, s)::ts) =
+			| find (c, (c1, c2, s)::ts) = 
 		            if c1 <= c andalso c <= c2 then SOME s
 			    else find (c, ts)
 		      in case yygetc strm
-			  of SOME(c, strm') =>
+			  of SOME(c, strm') => 
 			       (case find (c, transitions)
 				 of NONE => tryfinal()
-				  | SOME n =>
+				  | SOME n => 
 				      yygo actTable
-					(n, strm',
+					(n, strm', 
 					 yyactsToMatches (strm, finals, oldMatches)))
 			   | NONE => tryfinal()
 		      end)
@@ -1114,7 +1117,7 @@ fun yyAction63 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
-
+        
    lexErr
       (yypos,
        ["bad escape character `", String.toString yytext,
@@ -1125,7 +1128,7 @@ fun yyAction64 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
-
+        
    lexErr
       (yypos,
        ["bad character `", String.toString yytext,
@@ -1133,11 +1136,11 @@ fun yyAction64 (strm, lastMatch : yymatch) = let
    ;continue()
       end
 fun yyAction65 (strm, lastMatch : yymatch) = (yystrm := strm;
-
+      
    depth := !depth + 1
 	;skip())
 fun yyAction66 (strm, lastMatch : yymatch) = (yystrm := strm;
-
+      
    depth := !depth - 1
    ;if (!depth = 0) then YYBEGIN INITIAL else ()
 	;skip ())
@@ -1146,7 +1149,7 @@ fun yyAction68 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
-
+        
    lexErr
       (yypos,
        ["bad character `", String.toString yytext, "'"])
@@ -1183,11 +1186,11 @@ in
       (* end case *))
 end
 end
-            and skip() = (yystartPos := yygetPos();
+            and skip() = (yystartPos := yygetPos(); 
 			  yylastwasnref := ULexBuffer.lastWasNL (!yystrm);
 			  continue())
 	    in (continue(), (!yystartPos, yygetPos()), !yystrm, !yyss) end
-          in
+          in 
             lex()
           end
   in
@@ -1195,33 +1198,33 @@ end
     type span = AntlrStreamPos.span
     type tok = UserDeclarations.lex_result
 
-    datatype prestrm = STRM of ULexBuffer.stream *
+    datatype prestrm = STRM of ULexBuffer.stream * 
 		(yystart_state * tok * span * prestrm * yystart_state) option ref
     type strm = (prestrm * yystart_state)
 
-    fun lex sm
+    fun lex sm 
 (yyarg as  lexErr)(STRM (yystrm, memo), ss) = (case !memo
 	  of NONE => let
-	     val (tok, span, yystrm', ss') = innerLex
+	     val (tok, span, yystrm', ss') = innerLex 
 yyarg(yystrm, ss, sm)
 	     val strm' = STRM (yystrm', ref NONE);
-	     in
+	     in 
 	       memo := SOME (ss, tok, span, strm', ss');
 	       (tok, span, (strm', ss'))
 	     end
-	   | SOME (ss', tok, span, strm', ss'') =>
+	   | SOME (ss', tok, span, strm', ss'') => 
 	       if ss = ss' then
 		 (tok, span, (strm', ss''))
 	       else (
 		 memo := NONE;
-		 lex sm
+		 lex sm 
 yyarg(STRM (yystrm, memo), ss))
          (* end case *))
 
     fun streamify input = (STRM (yystreamify' 0 input, ref NONE), INITIAL)
-    fun streamifyReader readFn strm = (STRM (yystreamifyReader' 0 readFn strm, ref NONE),
+    fun streamifyReader readFn strm = (STRM (yystreamifyReader' 0 readFn strm, ref NONE), 
 				       INITIAL)
-    fun streamifyInstream strm = (STRM (yystreamifyInstream' 0 strm, ref NONE),
+    fun streamifyInstream strm = (STRM (yystreamifyInstream' 0 strm, ref NONE), 
 				  INITIAL)
 
     fun getPos (STRM (strm, _), _) = ULexBuffer.getpos strm
