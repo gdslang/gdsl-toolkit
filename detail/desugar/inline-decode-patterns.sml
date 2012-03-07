@@ -1,6 +1,10 @@
 
 (**
  * ## Inlining of decode patterns.
+ *
+ *   - Inlining in presence of guarded decode declarations
+ *     might lead to code size explosion. We might tackle this
+ *     when the need arises.
  *)
 structure InlineDecodePatterns : sig
    val run: DesugarGuards.o -> DesugarGuards.o CompilationMonad.t
