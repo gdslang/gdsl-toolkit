@@ -5,83 +5,63 @@
 
 %defs(
 
-    structure T = SpecTokens
+   structure T = SpecTokens
+   type lex_result = T.token
 
-  (* some type lex_result is necessitated by ml-ulex *)
-    type lex_result = T.token
+   (* used for keeping track of comment depth *)
+   val depth = ref 0
 
-  (* the depth int ref will be used for keeping track of comment depth *)
-    val depth = ref 0
+   (* list of string fragments to concatenate *)
+   val buf : string list ref = ref []
 
-  (* list of string fragments to concatenate *)
-    val buf : string list ref = ref []
+   (* add a string to the buffer *)
+   fun addStr s = (buf := s :: !buf)
 
-  (* add a string to the buffer *)
-    fun addStr s = (buf := s :: !buf)
+   (* make a FLOAT token from a substring *)
+   fun mkFloat ss = let
+	   val (isNeg, rest) =
+         (case Substring.getc ss of
+            SOME(#"-", r) => (true, r)
+		    | SOME(#"~", r) => (true, r)
+		    | _ => (false, ss))
+	   val (whole, rest) = Substring.splitl Char.isDigit rest
+	   val rest = Substring.triml 1 rest (* remove "." *)
+	   val (frac, rest) = Substring.splitl Char.isDigit rest
+	   val exp =
+         if Substring.isEmpty rest
+		      then 0
+		   else
+            let
+		         val rest = Substring.triml 1 rest (* remove "e" or "E" *)
+		      in
+		         #1(valOf(Int.scan StringCvt.DEC Substring.getc rest))
+		      end
+   in
+	    T.FLOAT
+         (FloatLit.float
+            {isNeg = isNeg,
+		       whole = Substring.string whole,
+		       frac = Substring.string frac,
+		       exp = exp})
+	end
 
-  (* make a FLOAT token from a substring *)
-    fun mkFloat ss = let
-	  val (isNeg, rest) = (case Substring.getc ss
-		 of SOME(#"-", r) => (true, r)
-		  | SOME(#"~", r) => (true, r)
-		  | _ => (false, ss)
-		(* end case *))
-	  val (whole, rest) = Substring.splitl Char.isDigit rest
-	  val rest = Substring.triml 1 rest (* remove "." *)
-	  val (frac, rest) = Substring.splitl Char.isDigit rest
-	  val exp = if Substring.isEmpty rest
-		then 0
-		else let
-		  val rest = Substring.triml 1 rest (* remove "e" or "E" *)
-		  in
-		    #1(valOf(Int.scan StringCvt.DEC Substring.getc rest))
-		  end
-	  in
-	    T.FLOAT(FloatLit.float{
-		isNeg = isNeg,
-		whole = Substring.string whole,
-		frac = Substring.string frac,
-		exp = exp
-	      })
-	  end
+   (* scan a number from a hexidecimal string *)
+   val fromHexString = valOf o (StringCvt.scanString (IntInf.scan StringCvt.HEX))
+   (* FIXME: the above code doesn't work in SML/NJ; here is a work around *)
+   fun fromHexString s = let
+      val SOME(n, _) =
+         IntInf.scan
+            StringCvt.HEX
+            Substring.getc
+	         (Substring.triml 2 (Substring.full s))
+   in
+	   n
+   end
 
-  (* scan a number from a hexidecimal string *)
-    val fromHexString = valOf o (StringCvt.scanString (IntInf.scan StringCvt.HEX))
-(* FIXME: the above code doesn't work in SML/NJ; here is a work around *)
-fun fromHexString s = let
-      val SOME(n, _) = IntInf.scan StringCvt.HEX Substring.getc
-	    (Substring.triml 2 (Substring.full s))
-      in
-	n
-      end
+   fun eof () = T.EOF
 
-  (* convert a HLOp ID to an atom *)
-    fun cvtHLOpId id = Atom.atom(String.extract(id, 1, NONE))
-
-  (* split a qualified ID up into its prefix and id parts *)
-    fun makeQualifiedId cvtId id = let
-	  fun revMap ([], l) = l
-	    | revMap (x::xs, l) = revMap(xs, Atom.atom x :: l)
-	  in
-	    case List.rev (String.tokens (fn c => c = #".") id)
-	      of (id::path) => (revMap (path, []), cvtId id)
-	       | _ => raise Fail "bogus qualified ID"
-	    (* end case *)
-	  end
-
-    val mkQId = makeQualifiedId Atom.atom
-    val mkQHLOpId = makeQualifiedId cvtHLOpId
-
-  (* eof : unit -> lex_result *)
-  (* ml-ulex requires this as well *)
-    fun eof () = T.EOF
-
-  (* count the nesting depth of "(" inside primcode blocks *)
-    val primDepth = ref 0
-    fun inPrimCode () = (!primDepth > 0)
-    fun primPush () = (primDepth := !primDepth + 1)
-    fun primPop () = let val p = !primDepth-1 in primDepth := p; (p > 0) end
-    fun mkString() = T.STRING (String.concat(List.rev (!buf)))
+   (* count the nesting depth of "(" inside primcode blocks *)
+   fun mkString() = T.STRING (String.concat(List.rev (!buf)))
 );
 
 %states INITIAL BITPAT BITPATNUM STRING COMMENT;
@@ -97,7 +77,6 @@ fun fromHexString s = let
 %let cons = {constart}{idchar}*;
 %let id = {letter}{idchar}*;
 %let esc = "\\"[abfnrtv\\\"]|"\\"{dig}{dig}{dig};
-(* sgood means "characters good inside strings" *)
 %let sgood = [\032-\126]&[^\"\\];
 %let ws = " "|[\t\n\v\f\r];
 %let binary = [0-1\.];
@@ -108,10 +87,9 @@ fun fromHexString s = let
 <INITIAL>"granularity" => (T.KW_granularity);
 <INITIAL>"state" => (T.KW_state);
 <INITIAL>"include" => (T.KW_include);
+<INITIAL>"export" => (T.KW_export);
 <INITIAL>"datatype" => (T.KW_datatype);
-<INITIAL>"extend" => (T.KW_extend);
 <INITIAL>"type" => (T.KW_type);
-<INITIAL>"dec" => (T.KW_dec);
 <INITIAL>"raise" => (T.KW_raise);
 <INITIAL>"if" => (T.KW_if);
 <INITIAL>"then" => (T.KW_then);
@@ -120,7 +98,6 @@ fun fromHexString s = let
 <INITIAL>"let" => (T.KW_let);
 <INITIAL>"val" => (T.KW_val);
 <INITIAL>"end" => (T.KW_end);
-<INITIAL>"rec" => (T.KW_rec);
 <INITIAL>"do" => (T.KW_do);
 <INITIAL>"in" => (T.KW_in);
 <INITIAL>"div" => (T.KW_div);

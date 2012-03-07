@@ -5,6 +5,7 @@ structure Spec = struct
    type ty = SpecAbstractTree.ty
    datatype 'a t = IN of
       {granularity: IntInf.int,
+       exports: sym list,
        state: (sym * ty * exp) list,
        typealias: (sym * ty) list,
        datatypes: (sym * (sym * ty option) list) list,
@@ -13,6 +14,7 @@ structure Spec = struct
    fun get s (IN t) = s t
    fun upd f (IN t) =
       IN {granularity= #granularity t,
+          exports= #exports t,
           state= #state t,
           typealias= #typealias t,
           datatypes= #datatypes t,
@@ -24,6 +26,7 @@ structure Spec = struct
       fun t pA t =
          record
             [("granularity", int (get#granularity t)),
+             ("exports", dots),
              ("state", dots),
              ("typealias", dots),
              ("datatypes", dots),
@@ -31,9 +34,9 @@ structure Spec = struct
          
       fun prettyTo pA (os, spec) = Pretty.prettyTo (os, t pA spec) 
       fun prettyDecls (values, decodes) = let
-         open Layout Pretty
-         val vs = list (map SpecAbstractTree.PP.valuedecl values)
-         val ds = list (map SpecAbstractTree.PP.decodedecl decodes)
+         open Layout Pretty SpecAbstractTree
+         val vs = align (map PP.recdecl values)
+         val ds = align (map (fn d => PP.decl (DECODEdecl d)) decodes)
       in
          list [vs, ds]
       end

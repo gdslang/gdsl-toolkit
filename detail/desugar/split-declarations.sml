@@ -1,17 +1,23 @@
 
 structure SplitDeclarations: sig
+   type sym = VarInfo.symid
+   type pat = SpecAbstractTree.decodepat
+   type exp = SpecAbstractTree.exp
    type i = SpecAbstractTree.specification
-   type valuedecl = SpecAbstractTree.valuedecl
-   type decodedecl = SpecAbstractTree.decodedecl
+   type valuedecl = sym * sym list * exp
+   type decodedecl = sym * pat list * (exp, (exp * exp) list) Sum.t
    type o = (valuedecl list * decodedecl list) Spec.t
    val run: i -> o CompilationMonad.t
 end = struct
 
    structure CM = CompilationMonad
    structure T = SpecAbstractTree
+   type sym = VarInfo.symid
    type i = SpecAbstractTree.specification
-   type valuedecl = SpecAbstractTree.valuedecl
-   type decodedecl = SpecAbstractTree.decodedecl
+   type pat = SpecAbstractTree.decodepat
+   type exp = SpecAbstractTree.exp
+   type valuedecl = sym * sym list * exp
+   type decodedecl = sym * pat list * (exp, (exp * exp) list) Sum.t
    type o = (valuedecl list * decodedecl list) Spec.t
 
    fun split {span, tree} = let
@@ -22,6 +28,7 @@ end = struct
       val datatypes = ref []
       val valuedecls = ref []
       val decodedecls = ref []
+      val exports = ref []
 
       fun splitToplevel spec =
          case spec of
@@ -31,22 +38,16 @@ end = struct
           | STATEdecl d => state := [d]
           | TYPEdecl d => typealias := d::(!typealias)
           | DECODEdecl d => decodedecls := d::(!decodedecls)
-          | VALUEdecl d => valuedecls := d::(!valuedecls)
-          | DATATYPEdecl (n, condecls) =>
-               let
-                  val cons = map grabCondecl condecls
-               in
-                  datatypes := (n, cons)::(!datatypes)
-               end
-      and grabCondecl decl =
-         case decl of
-            MARKcondecl t => grabCondecl (#tree t)
-          | CONdecl d => d
+          | LETRECdecl d => valuedecls := d::(!valuedecls)
+          | EXPORTdecl es => exports := !exports@es
+          | DATATYPEdecl (n, cons) => datatypes := (n, cons)::(!datatypes)
+
    in
       app splitToplevel tree
      ;Spec.IN
          {granularity= !granularity,
           state= hd(!state),
+          exports= !exports,
           typealias= rev (!typealias),
           datatypes= rev (!datatypes),
           declarations= (rev (!valuedecls), rev (!decodedecls))}

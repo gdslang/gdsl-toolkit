@@ -7,83 +7,63 @@ STRING | COMMENT | BITPATNUM | BITPAT | INITIAL
 
 
 
-    structure T = SpecTokens
+   structure T = SpecTokens
+   type lex_result = T.token
 
-  (* some type lex_result is necessitated by ml-ulex *)
-    type lex_result = T.token
+   (* used for keeping track of comment depth *)
+   val depth = ref 0
 
-  (* the depth int ref will be used for keeping track of comment depth *)
-    val depth = ref 0
+   (* list of string fragments to concatenate *)
+   val buf : string list ref = ref []
 
-  (* list of string fragments to concatenate *)
-    val buf : string list ref = ref []
+   (* add a string to the buffer *)
+   fun addStr s = (buf := s :: !buf)
 
-  (* add a string to the buffer *)
-    fun addStr s = (buf := s :: !buf)
+   (* make a FLOAT token from a substring *)
+   fun mkFloat ss = let
+	   val (isNeg, rest) =
+         (case Substring.getc ss of
+            SOME(#"-", r) => (true, r)
+		    | SOME(#"~", r) => (true, r)
+		    | _ => (false, ss))
+	   val (whole, rest) = Substring.splitl Char.isDigit rest
+	   val rest = Substring.triml 1 rest (* remove "." *)
+	   val (frac, rest) = Substring.splitl Char.isDigit rest
+	   val exp =
+         if Substring.isEmpty rest
+		      then 0
+		   else
+            let
+		         val rest = Substring.triml 1 rest (* remove "e" or "E" *)
+		      in
+		         #1(valOf(Int.scan StringCvt.DEC Substring.getc rest))
+		      end
+   in
+	    T.FLOAT
+         (FloatLit.float
+            {isNeg = isNeg,
+		       whole = Substring.string whole,
+		       frac = Substring.string frac,
+		       exp = exp})
+	end
 
-  (* make a FLOAT token from a substring *)
-    fun mkFloat ss = let
-	  val (isNeg, rest) = (case Substring.getc ss
-		 of SOME(#"-", r) => (true, r)
-		  | SOME(#"~", r) => (true, r)
-		  | _ => (false, ss)
-		(* end case *))
-	  val (whole, rest) = Substring.splitl Char.isDigit rest
-	  val rest = Substring.triml 1 rest (* remove "." *)
-	  val (frac, rest) = Substring.splitl Char.isDigit rest
-	  val exp = if Substring.isEmpty rest
-		then 0
-		else let
-		  val rest = Substring.triml 1 rest (* remove "e" or "E" *)
-		  in
-		    #1(valOf(Int.scan StringCvt.DEC Substring.getc rest))
-		  end
-	  in
-	    T.FLOAT(FloatLit.float{
-		isNeg = isNeg,
-		whole = Substring.string whole,
-		frac = Substring.string frac,
-		exp = exp
-	      })
-	  end
+   (* scan a number from a hexidecimal string *)
+   val fromHexString = valOf o (StringCvt.scanString (IntInf.scan StringCvt.HEX))
+   (* FIXME: the above code doesn't work in SML/NJ; here is a work around *)
+   fun fromHexString s = let
+      val SOME(n, _) =
+         IntInf.scan
+            StringCvt.HEX
+            Substring.getc
+	         (Substring.triml 2 (Substring.full s))
+   in
+	   n
+   end
 
-  (* scan a number from a hexidecimal string *)
-    val fromHexString = valOf o (StringCvt.scanString (IntInf.scan StringCvt.HEX))
-(* FIXME: the above code doesn't work in SML/NJ; here is a work around *)
-fun fromHexString s = let
-      val SOME(n, _) = IntInf.scan StringCvt.HEX Substring.getc
-	    (Substring.triml 2 (Substring.full s))
-      in
-	n
-      end
+   fun eof () = T.EOF
 
-  (* convert a HLOp ID to an atom *)
-    fun cvtHLOpId id = Atom.atom(String.extract(id, 1, NONE))
-
-  (* split a qualified ID up into its prefix and id parts *)
-    fun makeQualifiedId cvtId id = let
-	  fun revMap ([], l) = l
-	    | revMap (x::xs, l) = revMap(xs, Atom.atom x :: l)
-	  in
-	    case List.rev (String.tokens (fn c => c = #".") id)
-	      of (id::path) => (revMap (path, []), cvtId id)
-	       | _ => raise Fail "bogus qualified ID"
-	    (* end case *)
-	  end
-
-    val mkQId = makeQualifiedId Atom.atom
-    val mkQHLOpId = makeQualifiedId cvtHLOpId
-
-  (* eof : unit -> lex_result *)
-  (* ml-ulex requires this as well *)
-    fun eof () = T.EOF
-
-  (* count the nesting depth of "(" inside primcode blocks *)
-    val primDepth = ref 0
-    fun inPrimCode () = (!primDepth > 0)
-    fun primPush () = (primDepth := !primDepth + 1)
-    fun primPop () = let val p = !primDepth-1 in primDepth := p; (p > 0) end
-    fun mkString() = T.STRING (String.concat(List.rev (!buf)))
+   (* count the nesting depth of "(" inside primcode blocks *)
+   fun mkString() = T.STRING (String.concat(List.rev (!buf)))
 
 
       end
@@ -95,820 +75,7 @@ fun fromHexString s = let
     withtype action = ULexBuffer.stream * yymatch -> UserDeclarations.lex_result
 
     val yytable : ((UTF8.wchar * UTF8.wchar * int) list * int list) Vector.vector = 
-#[([(0w0,0w31,5),
-(0w127,0w2147483647,5),
-(0w32,0w33,6),
-(0w35,0w91,6),
-(0w93,0w126,6),
-(0w34,0w34,7),
-(0w92,0w92,8)], []), ([(0w0,0w39,15),
-(0w41,0w41,15),
-(0w43,0w2147483647,15),
-(0w40,0w40,16),
-(0w42,0w42,17)], []), ([(0w0,0w8,20),
-(0w14,0w31,20),
-(0w33,0w38,20),
-(0w40,0w47,20),
-(0w58,0w2147483647,20),
-(0w9,0w13,21),
-(0w32,0w32,21),
-(0w39,0w39,22),
-(0w48,0w57,23)], []), ([(0w0,0w8,20),
-(0w14,0w31,20),
-(0w33,0w38,20),
-(0w40,0w45,20),
-(0w50,0w57,20),
-(0w59,0w64,20),
-(0w91,0w96,20),
-(0w123,0w2147483647,20),
-(0w9,0w13,25),
-(0w32,0w32,25),
-(0w39,0w39,22),
-(0w46,0w46,26),
-(0w48,0w49,26),
-(0w47,0w47,27),
-(0w65,0w90,27),
-(0w97,0w122,27),
-(0w58,0w58,28)], []), ([(0w0,0w8,20),
-(0w14,0w31,20),
-(0w127,0w2147483647,20),
-(0w9,0w13,31),
-(0w32,0w32,31),
-(0w33,0w33,32),
-(0w38,0w38,32),
-(0w62,0w63,32),
-(0w92,0w92,32),
-(0w96,0w96,32),
-(0w34,0w34,33),
-(0w35,0w35,34),
-(0w36,0w36,35),
-(0w37,0w37,36),
-(0w39,0w39,37),
-(0w40,0w40,38),
-(0w41,0w41,39),
-(0w42,0w42,40),
-(0w43,0w43,41),
-(0w44,0w44,42),
-(0w45,0w45,43),
-(0w46,0w46,44),
-(0w47,0w47,45),
-(0w48,0w48,46),
-(0w49,0w57,47),
-(0w58,0w58,48),
-(0w59,0w59,49),
-(0w60,0w60,50),
-(0w61,0w61,51),
-(0w64,0w64,52),
-(0w65,0w90,53),
-(0w91,0w91,54),
-(0w93,0w93,55),
-(0w94,0w94,56),
-(0w95,0w95,57),
-(0w97,0w98,58),
-(0w102,0w102,58),
-(0w104,0w104,58),
-(0w106,0w107,58),
-(0w109,0w110,58),
-(0w112,0w113,58),
-(0w117,0w117,58),
-(0w119,0w122,58),
-(0w99,0w99,59),
-(0w100,0w100,60),
-(0w101,0w101,61),
-(0w103,0w103,62),
-(0w105,0w105,63),
-(0w108,0w108,64),
-(0w111,0w111,65),
-(0w114,0w114,66),
-(0w115,0w115,67),
-(0w116,0w116,68),
-(0w118,0w118,69),
-(0w123,0w123,70),
-(0w124,0w124,71),
-(0w125,0w125,72),
-(0w126,0w126,73)], []), ([], [64]), ([(0w32,0w33,14),
-(0w35,0w91,14),
-(0w93,0w126,14)], [61, 64]), ([], [62, 64]), ([(0w0,0w33,9),
-(0w35,0w47,9),
-(0w58,0w91,9),
-(0w93,0w96,9),
-(0w99,0w101,9),
-(0w103,0w109,9),
-(0w111,0w113,9),
-(0w115,0w115,9),
-(0w117,0w117,9),
-(0w119,0w2147483647,9),
-(0w34,0w34,10),
-(0w92,0w92,10),
-(0w97,0w98,10),
-(0w102,0w102,10),
-(0w110,0w110,10),
-(0w114,0w114,10),
-(0w116,0w116,10),
-(0w118,0w118,10),
-(0w48,0w57,11)], [64]), ([], [63]), ([], [60, 63]), ([(0w48,0w57,12)], [63]), ([(0w48,0w57,13)], []), ([], [60]), ([(0w32,0w33,14),
-(0w35,0w91,14),
-(0w93,0w126,14)], [61]), ([], [67]), ([(0w42,0w42,19)], [67]), ([(0w41,0w41,18)], [67]), ([], [66]), ([], [65]), ([], [68]), ([], [48, 68]), ([], [44, 68]), ([(0w48,0w57,24)], [52, 68]), ([(0w48,0w57,24)], [52]), ([], [47, 68]), ([(0w46,0w46,30),
-(0w48,0w49,30)], [45, 68]), ([(0w45,0w45,29),
-(0w47,0w57,29),
-(0w65,0w90,29),
-(0w95,0w95,29),
-(0w97,0w122,29)], [46, 68]), ([], [43, 68]), ([(0w45,0w45,29),
-(0w47,0w57,29),
-(0w65,0w90,29),
-(0w95,0w95,29),
-(0w97,0w122,29)], [46]), ([(0w46,0w46,30),
-(0w48,0w49,30)], [45]), ([], [56, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [51, 68]), ([], [58, 68]), ([(0w0,0w9,152),
-(0w11,0w32,152),
-(0w34,0w34,152),
-(0w39,0w41,152),
-(0w44,0w44,152),
-(0w46,0w46,152),
-(0w48,0w57,152),
-(0w59,0w59,152),
-(0w65,0w91,152),
-(0w93,0w93,152),
-(0w95,0w95,152),
-(0w97,0w123,152),
-(0w125,0w125,152),
-(0w127,0w2147483647,152),
-(0w33,0w33,153),
-(0w35,0w38,153),
-(0w42,0w43,153),
-(0w45,0w45,153),
-(0w47,0w47,153),
-(0w58,0w58,153),
-(0w60,0w64,153),
-(0w92,0w92,153),
-(0w94,0w94,153),
-(0w96,0w96,153),
-(0w124,0w124,153),
-(0w126,0w126,153)], [51, 59, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [29, 51, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [20, 51, 68]), ([], [41, 68]), ([(0w42,0w42,151)], [36, 68]), ([], [37, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [27, 51, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [38, 51, 68]), ([], [31, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [39, 51, 68]), ([], [42, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74),
-(0w45,0w45,150),
-(0w47,0w47,150),
-(0w48,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [50, 51, 68]), ([(0w46,0w46,76),
-(0w48,0w57,147),
-(0w120,0w120,148)], [52, 68]), ([(0w46,0w46,76),
-(0w48,0w57,147)], [52, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [35, 51, 68]), ([], [32, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74),
-(0w45,0w45,146)], [51, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [30, 51, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [28, 51, 68]), ([(0w45,0w45,145),
-(0w47,0w57,145),
-(0w65,0w90,145),
-(0w95,0w95,145),
-(0w97,0w122,145)], [49, 50, 68]), ([], [22, 68]), ([], [23, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [33, 51, 68]), ([], [26, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w122,81),
-(0w97,0w97,142)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w100,81),
-(0w102,0w104,81),
-(0w106,0w110,81),
-(0w112,0w122,81),
-(0w97,0w97,130),
-(0w101,0w101,131),
-(0w105,0w105,132),
-(0w111,0w111,133)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w107,81),
-(0w109,0w109,81),
-(0w111,0w119,81),
-(0w121,0w122,81),
-(0w108,0w108,120),
-(0w110,0w110,121),
-(0w120,0w120,122)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w113,81),
-(0w115,0w122,81),
-(0w114,0w114,110)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w101,81),
-(0w103,0w109,81),
-(0w111,0w122,81),
-(0w102,0w102,103),
-(0w110,0w110,104)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,101)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w101,81),
-(0w103,0w122,81),
-(0w102,0w102,100)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w100,81),
-(0w102,0w122,81),
-(0w97,0w97,94),
-(0w101,0w101,95)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,90)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w103,81),
-(0w105,0w120,81),
-(0w122,0w122,81),
-(0w104,0w104,84),
-(0w121,0w121,85)], [50, 68]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w122,81),
-(0w97,0w97,82)], [50, 68]), ([], [24, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [34, 51, 68]), ([], [25, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74),
-(0w48,0w57,75)], [40, 51, 68]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [51]), ([(0w46,0w46,76),
-(0w48,0w57,75)], [53]), ([(0w48,0w57,77)], []), ([(0w48,0w57,77),
-(0w69,0w69,78),
-(0w101,0w101,78)], [54]), ([(0w43,0w43,79),
-(0w126,0w126,79),
-(0w48,0w57,80)], []), ([(0w48,0w57,80)], []), ([(0w48,0w57,80)], [54]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w107,81),
-(0w109,0w122,81),
-(0w108,0w108,83)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [13, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,88)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w111,81),
-(0w113,0w122,81),
-(0w112,0w112,86)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,87)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [5, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w109,81),
-(0w111,0w122,81),
-(0w110,0w110,89)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [9, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w122,81),
-(0w97,0w97,91)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,92)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,93)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [1, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w104,81),
-(0w106,0w122,81),
-(0w105,0w105,97)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w98,81),
-(0w100,0w122,81),
-(0w99,0w99,96)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [15, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w114,81),
-(0w116,0w122,81),
-(0w115,0w115,98)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,99)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [7, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [21, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,102)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [12, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [8, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w98,81),
-(0w100,0w122,81),
-(0w99,0w99,105)], [17, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w107,81),
-(0w109,0w122,81),
-(0w108,0w108,106)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w116,81),
-(0w118,0w122,81),
-(0w117,0w117,107)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w99,81),
-(0w101,0w122,81),
-(0w100,0w100,108)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,109)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [2, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w122,81),
-(0w97,0w97,111)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w109,81),
-(0w111,0w122,81),
-(0w110,0w110,112)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w116,81),
-(0w118,0w122,81),
-(0w117,0w117,113)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w107,81),
-(0w109,0w122,81),
-(0w108,0w108,114)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w122,81),
-(0w97,0w97,115)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w113,81),
-(0w115,0w122,81),
-(0w114,0w114,116)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w104,81),
-(0w106,0w122,81),
-(0w105,0w105,117)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,118)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w120,81),
-(0w122,0w122,81),
-(0w121,0w121,119)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [0, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w114,81),
-(0w116,0w122,81),
-(0w115,0w115,128)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w99,81),
-(0w101,0w122,81),
-(0w100,0w100,127)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,123)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,124)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w109,81),
-(0w111,0w122,81),
-(0w110,0w110,125)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w99,81),
-(0w101,0w122,81),
-(0w100,0w100,126)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [4, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [14, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,129)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [10, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,136)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w98,81),
-(0w100,0w122,81),
-(0w99,0w99,135)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w117,81),
-(0w119,0w122,81),
-(0w118,0w118,134)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [16, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [18, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [6, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w122,81),
-(0w97,0w97,137)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,138)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w120,81),
-(0w122,0w122,81),
-(0w121,0w121,139)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w111,81),
-(0w113,0w122,81),
-(0w112,0w112,140)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,141)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [3, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w114,81),
-(0w116,0w122,81),
-(0w115,0w115,143)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,144)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [11, 50]), ([(0w45,0w45,145),
-(0w47,0w57,145),
-(0w65,0w90,145),
-(0w95,0w95,145),
-(0w97,0w122,145)], [49, 50]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w45,0w45,74),
-(0w47,0w47,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74)], [19, 51]), ([(0w46,0w46,76),
-(0w48,0w57,147)], [52]), ([(0w48,0w57,149),
-(0w65,0w70,149),
-(0w97,0w102,149)], []), ([(0w48,0w57,149),
-(0w65,0w70,149),
-(0w97,0w102,149)], [55]), ([(0w33,0w33,74),
-(0w35,0w38,74),
-(0w42,0w43,74),
-(0w58,0w58,74),
-(0w60,0w64,74),
-(0w92,0w92,74),
-(0w94,0w94,74),
-(0w96,0w96,74),
-(0w124,0w124,74),
-(0w126,0w126,74),
-(0w45,0w45,150),
-(0w47,0w47,150),
-(0w48,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [50, 51]), ([], [57]), ([(0w0,0w9,152),
-(0w11,0w2147483647,152)], [59]), ([(0w0,0w9,152),
-(0w11,0w32,152),
-(0w34,0w34,152),
-(0w39,0w41,152),
-(0w44,0w44,152),
-(0w46,0w46,152),
-(0w48,0w57,152),
-(0w59,0w59,152),
-(0w65,0w91,152),
-(0w93,0w93,152),
-(0w95,0w95,152),
-(0w97,0w123,152),
-(0w125,0w125,152),
-(0w127,0w2147483647,152),
-(0w33,0w33,153),
-(0w35,0w38,153),
-(0w42,0w43,153),
-(0w45,0w45,153),
-(0w47,0w47,153),
-(0w58,0w58,153),
-(0w60,0w64,153),
-(0w92,0w92,153),
-(0w94,0w94,153),
-(0w96,0w96,153),
-(0w124,0w124,153),
-(0w126,0w126,153)], [51, 59])]
+Vector.fromList []
     fun yystreamify' p input = ULexBuffer.mkStream (p, input)
 
     fun yystreamifyReader' p readFn strm = let
@@ -1002,118 +169,116 @@ let
 fun yyAction0 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_granularity)
 fun yyAction1 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_state)
 fun yyAction2 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_include)
-fun yyAction3 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_datatype)
-fun yyAction4 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_extend)
+fun yyAction3 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_export)
+fun yyAction4 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_datatype)
 fun yyAction5 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_type)
-fun yyAction6 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_dec)
-fun yyAction7 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_raise)
-fun yyAction8 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_if)
-fun yyAction9 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_then)
-fun yyAction10 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_else)
-fun yyAction11 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_case)
-fun yyAction12 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_let)
-fun yyAction13 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_val)
-fun yyAction14 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_end)
-fun yyAction15 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_rec)
-fun yyAction16 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_do)
-fun yyAction17 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_in)
-fun yyAction18 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_div)
-fun yyAction19 (strm, lastMatch : yymatch) = (yystrm := strm;  T.BIND)
-fun yyAction20 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_mod)
-fun yyAction21 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_of)
-fun yyAction22 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LB)
-fun yyAction23 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RB)
-fun yyAction24 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LCB)
-fun yyAction25 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RCB)
-fun yyAction26 (strm, lastMatch : yymatch) = (yystrm := strm;  T.WILD)
-fun yyAction27 (strm, lastMatch : yymatch) = (yystrm := strm;  T.TIMES)
-fun yyAction28 (strm, lastMatch : yymatch) = (yystrm := strm;  T.WITH)
-fun yyAction29 (strm, lastMatch : yymatch) = (yystrm := strm;  T.SELECT)
-fun yyAction30 (strm, lastMatch : yymatch) = (yystrm := strm;  T.EQ)
-fun yyAction31 (strm, lastMatch : yymatch) = (yystrm := strm;  T.COMMA)
-fun yyAction32 (strm, lastMatch : yymatch) = (yystrm := strm;  T.SEMI)
-fun yyAction33 (strm, lastMatch : yymatch) = (yystrm := strm;  T.CONCAT)
-fun yyAction34 (strm, lastMatch : yymatch) = (yystrm := strm;  T.BAR)
-fun yyAction35 (strm, lastMatch : yymatch) = (yystrm := strm;  T.COLON)
-fun yyAction36 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LP)
-fun yyAction37 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RP)
-fun yyAction38 (strm, lastMatch : yymatch) = (yystrm := strm;  T.PLUS)
-fun yyAction39 (strm, lastMatch : yymatch) = (yystrm := strm;  T.MINUS)
-fun yyAction40 (strm, lastMatch : yymatch) = (yystrm := strm;  T.TILDE)
-fun yyAction41 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction6 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_raise)
+fun yyAction7 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_if)
+fun yyAction8 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_then)
+fun yyAction9 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_else)
+fun yyAction10 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_case)
+fun yyAction11 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_let)
+fun yyAction12 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_val)
+fun yyAction13 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_end)
+fun yyAction14 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_do)
+fun yyAction15 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_in)
+fun yyAction16 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_div)
+fun yyAction17 (strm, lastMatch : yymatch) = (yystrm := strm;  T.BIND)
+fun yyAction18 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_mod)
+fun yyAction19 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_of)
+fun yyAction20 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LB)
+fun yyAction21 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RB)
+fun yyAction22 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LCB)
+fun yyAction23 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RCB)
+fun yyAction24 (strm, lastMatch : yymatch) = (yystrm := strm;  T.WILD)
+fun yyAction25 (strm, lastMatch : yymatch) = (yystrm := strm;  T.TIMES)
+fun yyAction26 (strm, lastMatch : yymatch) = (yystrm := strm;  T.WITH)
+fun yyAction27 (strm, lastMatch : yymatch) = (yystrm := strm;  T.SELECT)
+fun yyAction28 (strm, lastMatch : yymatch) = (yystrm := strm;  T.EQ)
+fun yyAction29 (strm, lastMatch : yymatch) = (yystrm := strm;  T.COMMA)
+fun yyAction30 (strm, lastMatch : yymatch) = (yystrm := strm;  T.SEMI)
+fun yyAction31 (strm, lastMatch : yymatch) = (yystrm := strm;  T.CONCAT)
+fun yyAction32 (strm, lastMatch : yymatch) = (yystrm := strm;  T.BAR)
+fun yyAction33 (strm, lastMatch : yymatch) = (yystrm := strm;  T.COLON)
+fun yyAction34 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LP)
+fun yyAction35 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RP)
+fun yyAction36 (strm, lastMatch : yymatch) = (yystrm := strm;  T.PLUS)
+fun yyAction37 (strm, lastMatch : yymatch) = (yystrm := strm;  T.MINUS)
+fun yyAction38 (strm, lastMatch : yymatch) = (yystrm := strm;  T.TILDE)
+fun yyAction39 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN BITPAT; T.TICK)
-fun yyAction42 (strm, lastMatch : yymatch) = (yystrm := strm;  T.DOT)
-fun yyAction43 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction40 (strm, lastMatch : yymatch) = (yystrm := strm;  T.DOT)
+fun yyAction41 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN BITPATNUM; T.COLON)
-fun yyAction44 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction42 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN INITIAL; T.TICK)
-fun yyAction45 (strm, lastMatch : yymatch) = let
+fun yyAction43 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.BITSTR yytext
       end
-fun yyAction46 (strm, lastMatch : yymatch) = let
+fun yyAction44 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.ID (Atom.atom yytext)
       end
-fun yyAction47 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
-fun yyAction48 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction45 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
+fun yyAction46 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN BITPAT; skip())
-fun yyAction49 (strm, lastMatch : yymatch) = let
+fun yyAction47 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.CONS (Atom.atom yytext)
       end
-fun yyAction50 (strm, lastMatch : yymatch) = let
+fun yyAction48 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.ID (Atom.atom yytext)
       end
-fun yyAction51 (strm, lastMatch : yymatch) = let
+fun yyAction49 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.SYMBOL (Atom.atom yytext)
       end
-fun yyAction52 (strm, lastMatch : yymatch) = let
+fun yyAction50 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.POSINT(valOf (IntInf.fromString yytext))
       end
-fun yyAction53 (strm, lastMatch : yymatch) = let
+fun yyAction51 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.NEGINT(valOf (IntInf.fromString yytext))
       end
-fun yyAction54 (strm, lastMatch : yymatch) = let
+fun yyAction52 (strm, lastMatch : yymatch) = let
       val yysubstr = yymksubstr(strm)
       in
         yystrm := strm;  mkFloat yysubstr
       end
-fun yyAction55 (strm, lastMatch : yymatch) = let
+fun yyAction53 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.POSINT(fromHexString yytext)
       end
-fun yyAction56 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
-fun yyAction57 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction54 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
+fun yyAction55 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN COMMENT; depth := 1; skip())
-fun yyAction58 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction56 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN STRING; skip())
-fun yyAction59 (strm, lastMatch : yymatch) = (yystrm := strm;  skip())
-fun yyAction60 (strm, lastMatch : yymatch) = let
+fun yyAction57 (strm, lastMatch : yymatch) = (yystrm := strm;  skip())
+fun yyAction58 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  addStr(valOf(String.fromString yytext)); continue()
       end
-fun yyAction61 (strm, lastMatch : yymatch) = let
+fun yyAction59 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  addStr yytext; continue()
       end
-fun yyAction62 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction60 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN INITIAL; mkString())
-fun yyAction63 (strm, lastMatch : yymatch) = let
+fun yyAction61 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1124,7 +289,7 @@ fun yyAction63 (strm, lastMatch : yymatch) = let
 		  "' in string literal"])
    ;continue()
       end
-fun yyAction64 (strm, lastMatch : yymatch) = let
+fun yyAction62 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1135,17 +300,17 @@ fun yyAction64 (strm, lastMatch : yymatch) = let
 		  "' in string literal"])
    ;continue()
       end
-fun yyAction65 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction63 (strm, lastMatch : yymatch) = (yystrm := strm;
       
    depth := !depth + 1
 	;skip())
-fun yyAction66 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction64 (strm, lastMatch : yymatch) = (yystrm := strm;
       
    depth := !depth - 1
    ;if (!depth = 0) then YYBEGIN INITIAL else ()
 	;skip ())
-fun yyAction67 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
-fun yyAction68 (strm, lastMatch : yymatch) = let
+fun yyAction65 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
+fun yyAction66 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1155,35 +320,4374 @@ fun yyAction68 (strm, lastMatch : yymatch) = let
        ["bad character `", String.toString yytext, "'"])
    ;continue()
       end
-val yyactTable = Vector.fromList([yyAction0, yyAction1, yyAction2, yyAction3,
-  yyAction4, yyAction5, yyAction6, yyAction7, yyAction8, yyAction9, yyAction10,
-  yyAction11, yyAction12, yyAction13, yyAction14, yyAction15, yyAction16,
-  yyAction17, yyAction18, yyAction19, yyAction20, yyAction21, yyAction22,
-  yyAction23, yyAction24, yyAction25, yyAction26, yyAction27, yyAction28,
-  yyAction29, yyAction30, yyAction31, yyAction32, yyAction33, yyAction34,
-  yyAction35, yyAction36, yyAction37, yyAction38, yyAction39, yyAction40,
-  yyAction41, yyAction42, yyAction43, yyAction44, yyAction45, yyAction46,
-  yyAction47, yyAction48, yyAction49, yyAction50, yyAction51, yyAction52,
-  yyAction53, yyAction54, yyAction55, yyAction56, yyAction57, yyAction58,
-  yyAction59, yyAction60, yyAction61, yyAction62, yyAction63, yyAction64,
-  yyAction65, yyAction66, yyAction67, yyAction68])
-in
-  if ULexBuffer.eof(!(yystrm))
-    then let
-      val yycolno = ref(yygetcolNo(!(yystrm)))
-      val yylineno = ref(yygetlineNo(!(yystrm)))
-      in
-        (case (!(yyss))
-         of _ => (UserDeclarations.eof())
-        (* end case *))
-      end
-    else (case (!(yyss))
-       of STRING => yygo yyactTable (0, !(yystrm), yyNO_MATCH)
-        | COMMENT => yygo yyactTable (1, !(yystrm), yyNO_MATCH)
-        | BITPATNUM => yygo yyactTable (2, !(yystrm), yyNO_MATCH)
-        | BITPAT => yygo yyactTable (3, !(yystrm), yyNO_MATCH)
-        | INITIAL => yygo yyactTable (4, !(yystrm), yyNO_MATCH)
+fun yyQ80 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction52(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ80(strm', yyMATCH(strm, yyAction52, yyNO_MATCH))
+            else if inp < 0wx30
+              then yyAction52(strm, yyNO_MATCH)
+            else if inp <= 0wx39
+              then yyQ80(strm', yyMATCH(strm, yyAction52, yyNO_MATCH))
+              else yyAction52(strm, yyNO_MATCH)
       (* end case *))
+fun yyQ79 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ80(strm', lastMatch)
+            else if inp < 0wx30
+              then yystuck(lastMatch)
+            else if inp <= 0wx39
+              then yyQ80(strm', lastMatch)
+              else yystuck(lastMatch)
+      (* end case *))
+fun yyQ78 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ80(strm', lastMatch)
+            else if inp < 0wx30
+              then if inp = 0wx2B
+                  then yyQ79(strm', lastMatch)
+                  else yystuck(lastMatch)
+            else if inp = 0wx7E
+              then yyQ79(strm', lastMatch)
+            else if inp < 0wx7E
+              then if inp <= 0wx39
+                  then yyQ80(strm', lastMatch)
+                  else yystuck(lastMatch)
+              else yystuck(lastMatch)
+      (* end case *))
+fun yyQ77 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction52(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx45
+              then yyQ78(strm', yyMATCH(strm, yyAction52, yyNO_MATCH))
+            else if inp < 0wx45
+              then if inp = 0wx30
+                  then yyQ77(strm', yyMATCH(strm, yyAction52, yyNO_MATCH))
+                else if inp < 0wx30
+                  then yyAction52(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ77(strm', yyMATCH(strm, yyAction52, yyNO_MATCH))
+                  else yyAction52(strm, yyNO_MATCH)
+            else if inp = 0wx65
+              then yyQ78(strm', yyMATCH(strm, yyAction52, yyNO_MATCH))
+              else yyAction52(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ76 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ77(strm', lastMatch)
+            else if inp < 0wx30
+              then yystuck(lastMatch)
+            else if inp <= 0wx39
+              then yyQ77(strm', lastMatch)
+              else yystuck(lastMatch)
+      (* end case *))
+fun yyQ75 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction51(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx2F
+              then yyAction51(strm, yyNO_MATCH)
+            else if inp < 0wx2F
+              then if inp = 0wx2E
+                  then yyQ76(strm', yyMATCH(strm, yyAction51, yyNO_MATCH))
+                  else yyAction51(strm, yyNO_MATCH)
+            else if inp <= 0wx39
+              then yyQ75(strm', yyMATCH(strm, yyAction51, yyNO_MATCH))
+              else yyAction51(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ74 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction49(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction49(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction49(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                          else yyAction49(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction49(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction49(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyAction49(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction49(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction49(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyAction49(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction49(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+              else yyAction49(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ73 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction38(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction38(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction38(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                          else yyAction38(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction38(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction38(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                      else yyAction38(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                  else yyQ75(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction38(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction38(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                      else yyAction38(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                  else yyAction38(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction38(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+                  else yyAction38(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction38, yyNO_MATCH))
+              else yyAction38(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ72 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction23(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction23(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ71 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction32(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction32(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction32(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                          else yyAction32(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction32(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction32(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                      else yyAction32(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                  else yyAction32(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction32(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction32(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                      else yyAction32(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                  else yyAction32(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction32(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+                  else yyAction32(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction32, yyNO_MATCH))
+              else yyAction32(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ70 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction22(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction22(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ81 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ83 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction12(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction12, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction12(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction12, yyNO_MATCH))
+                      else yyAction12(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction12, yyNO_MATCH))
+                  else yyAction12(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction12(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction12(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction12, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction12, yyNO_MATCH))
+                  else yyAction12(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction12, yyNO_MATCH))
+              else yyAction12(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ82 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6D
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6D
+              then if inp = 0wx6C
+                  then yyQ83(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ69 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ82(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ87 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction5(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction5, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction5(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction5, yyNO_MATCH))
+                      else yyAction5(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction5, yyNO_MATCH))
+                  else yyAction5(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction5(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction5(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction5, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction5, yyNO_MATCH))
+                  else yyAction5(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction5, yyNO_MATCH))
+              else yyAction5(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ86 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ87(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ85 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx71
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx71
+              then if inp = 0wx70
+                  then yyQ86(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ89 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction8(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction8, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction8(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction8, yyNO_MATCH))
+                      else yyAction8(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction8, yyNO_MATCH))
+                  else yyAction8(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction8(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction8(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction8, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction8, yyNO_MATCH))
+                  else yyAction8(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction8, yyNO_MATCH))
+              else yyAction8(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ88 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6F
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6F
+              then if inp = 0wx6E
+                  then yyQ89(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ84 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ88(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ68 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5F
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx5F
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx41
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx41
+                  then if inp <= 0wx39
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp <= 0wx5A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx69
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx69
+              then if inp = 0wx61
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx61
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx68
+                  then yyQ84(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx7A
+              then if inp = 0wx79
+                  then yyQ85(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ93 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction1(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction1, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction1(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction1, yyNO_MATCH))
+                      else yyAction1(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction1, yyNO_MATCH))
+                  else yyAction1(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction1(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction1(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction1, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction1, yyNO_MATCH))
+                  else yyAction1(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction1, yyNO_MATCH))
+              else yyAction1(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ92 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ93(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ91 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx75
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx75
+              then if inp = 0wx74
+                  then yyQ92(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ90 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ91(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ67 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx75
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx75
+              then if inp = 0wx74
+                  then yyQ90(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ97 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction6(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction6, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction6(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction6, yyNO_MATCH))
+                      else yyAction6(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction6, yyNO_MATCH))
+                  else yyAction6(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction6(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction6(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction6, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction6, yyNO_MATCH))
+                  else yyAction6(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction6, yyNO_MATCH))
+              else yyAction6(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ96 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ97(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ95 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx74
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx74
+              then if inp = 0wx73
+                  then yyQ96(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ94 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6A
+              then if inp = 0wx69
+                  then yyQ95(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ66 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ94(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ98 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction19(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction19, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction19(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction19, yyNO_MATCH))
+                      else yyAction19(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction19, yyNO_MATCH))
+                  else yyAction19(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction19(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction19(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction19, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction19, yyNO_MATCH))
+                  else yyAction19(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction19, yyNO_MATCH))
+              else yyAction19(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ65 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx67
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx67
+              then if inp = 0wx66
+                  then yyQ98(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ100 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction11(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction11, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction11(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction11, yyNO_MATCH))
+                      else yyAction11(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction11, yyNO_MATCH))
+                  else yyAction11(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction11(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction11(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction11, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction11, yyNO_MATCH))
+                  else yyAction11(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction11, yyNO_MATCH))
+              else yyAction11(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ99 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx75
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx75
+              then if inp = 0wx74
+                  then yyQ100(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ64 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ99(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ107 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction2(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction2, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction2(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction2, yyNO_MATCH))
+                      else yyAction2(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction2, yyNO_MATCH))
+                  else yyAction2(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction2(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction2(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction2, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction2, yyNO_MATCH))
+                  else yyAction2(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction2, yyNO_MATCH))
+              else yyAction2(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ106 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ107(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ105 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx65
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx65
+              then if inp = 0wx64
+                  then yyQ106(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ104 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx76
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx76
+              then if inp = 0wx75
+                  then yyQ105(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ103 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6D
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6D
+              then if inp = 0wx6C
+                  then yyQ104(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ102 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction15(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction15(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+                      else yyAction15(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction15(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction15(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+                  else yyAction15(strm, yyNO_MATCH)
+            else if inp = 0wx64
+              then yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+            else if inp < 0wx64
+              then if inp = 0wx63
+                  then yyQ103(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction15, yyNO_MATCH))
+              else yyAction15(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ101 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction7(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction7, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction7(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction7, yyNO_MATCH))
+                      else yyAction7(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction7, yyNO_MATCH))
+                  else yyAction7(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction7(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction7(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction7, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction7, yyNO_MATCH))
+                  else yyAction7(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction7, yyNO_MATCH))
+              else yyAction7(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ63 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5F
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx5F
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx41
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx41
+                  then if inp <= 0wx39
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp <= 0wx5A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx67
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx67
+              then if inp = 0wx61
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx61
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx66
+                  then yyQ101(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx6F
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6F
+              then if inp = 0wx6E
+                  then yyQ102(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ117 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction0(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction0, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction0(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction0, yyNO_MATCH))
+                      else yyAction0(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction0, yyNO_MATCH))
+                  else yyAction0(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction0(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction0(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction0, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction0, yyNO_MATCH))
+                  else yyAction0(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction0, yyNO_MATCH))
+              else yyAction0(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ116 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx7A
+              then if inp = 0wx79
+                  then yyQ117(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ115 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx75
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx75
+              then if inp = 0wx74
+                  then yyQ116(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ114 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6A
+              then if inp = 0wx69
+                  then yyQ115(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ113 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx73
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx73
+              then if inp = 0wx72
+                  then yyQ114(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ112 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ113(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ111 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6D
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6D
+              then if inp = 0wx6C
+                  then yyQ112(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ110 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx76
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx76
+              then if inp = 0wx75
+                  then yyQ111(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ109 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6F
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6F
+              then if inp = 0wx6E
+                  then yyQ110(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ108 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ109(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ62 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx73
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx73
+              then if inp = 0wx72
+                  then yyQ108(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ124 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction3(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction3, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction3(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction3, yyNO_MATCH))
+                      else yyAction3(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction3, yyNO_MATCH))
+                  else yyAction3(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction3(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction3(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction3, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction3, yyNO_MATCH))
+                  else yyAction3(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction3, yyNO_MATCH))
+              else yyAction3(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ123 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx75
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx75
+              then if inp = 0wx74
+                  then yyQ124(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ122 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx73
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx73
+              then if inp = 0wx72
+                  then yyQ123(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ121 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx70
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx70
+              then if inp = 0wx6F
+                  then yyQ122(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ120 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx71
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx71
+              then if inp = 0wx70
+                  then yyQ121(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ125 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction13(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction13, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction13(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction13, yyNO_MATCH))
+                      else yyAction13(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction13, yyNO_MATCH))
+                  else yyAction13(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction13(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction13(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction13, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction13, yyNO_MATCH))
+                  else yyAction13(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction13, yyNO_MATCH))
+              else yyAction13(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ119 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx65
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx65
+              then if inp = 0wx64
+                  then yyQ125(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ127 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction9(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction9, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction9(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction9, yyNO_MATCH))
+                      else yyAction9(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction9, yyNO_MATCH))
+                  else yyAction9(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction9(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction9(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction9, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction9, yyNO_MATCH))
+                  else yyAction9(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction9, yyNO_MATCH))
+              else yyAction9(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ126 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ127(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ118 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx74
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx74
+              then if inp = 0wx73
+                  then yyQ126(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ61 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx60
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then if inp = 0wx2E
+                      then yyAction48(strm, yyNO_MATCH)
+                    else if inp < 0wx2E
+                      then if inp = 0wx2D
+                          then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                          else yyAction48(strm, yyNO_MATCH)
+                      else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5B
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then if inp <= 0wx40
+                      then yyAction48(strm, yyNO_MATCH)
+                      else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6F
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6F
+              then if inp = 0wx6D
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx6D
+                  then if inp = 0wx6C
+                      then yyQ118(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ119(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx79
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx79
+              then if inp = 0wx78
+                  then yyQ120(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ130 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction14(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction14, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction14(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction14, yyNO_MATCH))
+                      else yyAction14(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction14, yyNO_MATCH))
+                  else yyAction14(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction14(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction14(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction14, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction14, yyNO_MATCH))
+                  else yyAction14(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction14, yyNO_MATCH))
+              else yyAction14(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ131 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction16(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction16, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction16(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction16, yyNO_MATCH))
+                      else yyAction16(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction16, yyNO_MATCH))
+                  else yyAction16(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction16(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction16(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction16, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction16, yyNO_MATCH))
+                  else yyAction16(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction16, yyNO_MATCH))
+              else yyAction16(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ129 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx77
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx77
+              then if inp = 0wx76
+                  then yyQ131(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ137 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction4(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction4, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction4(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction4, yyNO_MATCH))
+                      else yyAction4(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction4, yyNO_MATCH))
+                  else yyAction4(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction4(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction4(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction4, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction4, yyNO_MATCH))
+                  else yyAction4(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction4, yyNO_MATCH))
+              else yyAction4(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ136 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ137(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ135 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx71
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx71
+              then if inp = 0wx70
+                  then yyQ136(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ134 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx7A
+              then if inp = 0wx79
+                  then yyQ135(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ133 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx75
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx75
+              then if inp = 0wx74
+                  then yyQ134(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ132 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ133(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ128 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx75
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx75
+              then if inp = 0wx74
+                  then yyQ132(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ60 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx60
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then if inp = 0wx2E
+                      then yyAction48(strm, yyNO_MATCH)
+                    else if inp < 0wx2E
+                      then if inp = 0wx2D
+                          then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                          else yyAction48(strm, yyNO_MATCH)
+                      else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5B
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then if inp <= 0wx40
+                      then yyAction48(strm, yyNO_MATCH)
+                      else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx6A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx6A
+              then if inp = 0wx62
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx62
+                  then yyQ128(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx69
+                  then yyQ129(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx70
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx70
+              then if inp = 0wx6F
+                  then yyQ130(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ140 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction10(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction10, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction10(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction10, yyNO_MATCH))
+                      else yyAction10(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction10, yyNO_MATCH))
+                  else yyAction10(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction10(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction10(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction10, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction10, yyNO_MATCH))
+                  else yyAction10(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction10, yyNO_MATCH))
+              else yyAction10(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ139 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx66
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx65
+                  then yyQ140(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ138 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx74
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx74
+              then if inp = 0wx73
+                  then yyQ139(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ59 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx5B
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx5B
+              then if inp = 0wx2F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx3A
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp <= 0wx40
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx61
+              then yyQ138(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ58 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                      else yyAction48(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyAction48(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ57 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction24(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction24(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ56 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction31(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction31(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction31(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                          else yyAction31(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction31(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction31(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                      else yyAction31(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                  else yyAction31(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction31(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction31(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                      else yyAction31(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                  else yyAction31(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction31(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+                  else yyAction31(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction31, yyNO_MATCH))
+              else yyAction31(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ55 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction21(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction21(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ54 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction20(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction20(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ141 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction47(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction47(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+                      else yyAction47(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+                  else yyAction47(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction47(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction47(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+                  else yyAction47(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+              else yyAction47(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ53 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction47(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction47(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+                      else yyAction47(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+                  else yyAction47(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction47(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction47(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+                  else yyAction47(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ141(strm', yyMATCH(strm, yyAction47, yyNO_MATCH))
+              else yyAction47(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ52 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction26(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction26(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction26(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                          else yyAction26(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction26(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction26(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                      else yyAction26(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                  else yyAction26(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction26(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction26(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                      else yyAction26(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                  else yyAction26(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction26(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+                  else yyAction26(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction26, yyNO_MATCH))
+              else yyAction26(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ51 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction28(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction28(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction28(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                          else yyAction28(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction28(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction28(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                      else yyAction28(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                  else yyAction28(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction28(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction28(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                      else yyAction28(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                  else yyAction28(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction28(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+                  else yyAction28(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction28, yyNO_MATCH))
+              else yyAction28(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ142 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction17(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction17(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction17(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                          else yyAction17(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction17(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction17(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                      else yyAction17(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                  else yyAction17(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction17(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction17(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                      else yyAction17(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                  else yyAction17(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction17(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+                  else yyAction17(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction17, yyNO_MATCH))
+              else yyAction17(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ50 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction49(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction49(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction49(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                          else yyAction49(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction49(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction49(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ142(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyAction49(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction49(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction49(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyAction49(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction49(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+              else yyAction49(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ49 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction30(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction30(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ48 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction33(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction33(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction33(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                          else yyAction33(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction33(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction33(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                      else yyAction33(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                  else yyAction33(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction33(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction33(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                      else yyAction33(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                  else yyAction33(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction33(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+                  else yyAction33(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction33, yyNO_MATCH))
+              else yyAction33(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ143 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction50(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx2F
+              then yyAction50(strm, yyNO_MATCH)
+            else if inp < 0wx2F
+              then if inp = 0wx2E
+                  then yyQ76(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+                  else yyAction50(strm, yyNO_MATCH)
+            else if inp <= 0wx39
+              then yyQ143(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+              else yyAction50(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ47 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction50(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx2F
+              then yyAction50(strm, yyNO_MATCH)
+            else if inp < 0wx2F
+              then if inp = 0wx2E
+                  then yyQ76(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+                  else yyAction50(strm, yyNO_MATCH)
+            else if inp <= 0wx39
+              then yyQ143(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+              else yyAction50(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ145 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction53(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ145(strm', yyMATCH(strm, yyAction53, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx30
+                  then yyQ145(strm', yyMATCH(strm, yyAction53, yyNO_MATCH))
+                else if inp < 0wx30
+                  then yyAction53(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ145(strm', yyMATCH(strm, yyAction53, yyNO_MATCH))
+                  else yyAction53(strm, yyNO_MATCH)
+            else if inp = 0wx61
+              then yyQ145(strm', yyMATCH(strm, yyAction53, yyNO_MATCH))
+            else if inp < 0wx61
+              then if inp <= 0wx46
+                  then yyQ145(strm', yyMATCH(strm, yyAction53, yyNO_MATCH))
+                  else yyAction53(strm, yyNO_MATCH)
+            else if inp <= 0wx66
+              then yyQ145(strm', yyMATCH(strm, yyAction53, yyNO_MATCH))
+              else yyAction53(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ144 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ145(strm', lastMatch)
+            else if inp < 0wx41
+              then if inp = 0wx30
+                  then yyQ145(strm', lastMatch)
+                else if inp < 0wx30
+                  then yystuck(lastMatch)
+                else if inp <= 0wx39
+                  then yyQ145(strm', lastMatch)
+                  else yystuck(lastMatch)
+            else if inp = 0wx61
+              then yyQ145(strm', lastMatch)
+            else if inp < 0wx61
+              then if inp <= 0wx46
+                  then yyQ145(strm', lastMatch)
+                  else yystuck(lastMatch)
+            else if inp <= 0wx66
+              then yyQ145(strm', lastMatch)
+              else yystuck(lastMatch)
+      (* end case *))
+fun yyQ46 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction50(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ143(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+            else if inp < 0wx30
+              then if inp = 0wx2E
+                  then yyQ76(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+                  else yyAction50(strm, yyNO_MATCH)
+            else if inp = 0wx78
+              then yyQ144(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+            else if inp < 0wx78
+              then if inp <= 0wx39
+                  then yyQ143(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+                  else yyAction50(strm, yyNO_MATCH)
+              else yyAction50(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ146 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3C
+              then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx3C
+              then if inp = 0wx2C
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                          else yyAction48(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction48(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction48(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx30
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx30
+                  then if inp = 0wx2E
+                      then yyAction48(strm, yyNO_MATCH)
+                      else yyQ146(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx3B
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5C
+                  then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx5C
+                  then if inp = 0wx41
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                    else if inp = 0wx5B
+                      then yyAction48(strm, yyNO_MATCH)
+                      else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5D
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx7D
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7B
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ45 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction48(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3C
+              then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx3C
+              then if inp = 0wx2C
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                          else yyAction48(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction48(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction48(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx30
+                  then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx30
+                  then if inp = 0wx2E
+                      then yyAction48(strm, yyNO_MATCH)
+                      else yyQ146(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx3B
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5C
+                  then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp < 0wx5C
+                  then if inp = 0wx41
+                      then yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                    else if inp = 0wx5B
+                      then yyAction48(strm, yyNO_MATCH)
+                      else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                else if inp = 0wx5D
+                  then yyAction48(strm, yyNO_MATCH)
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx7D
+              then yyAction48(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7B
+                  then yyAction48(strm, yyNO_MATCH)
+                else if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+                  else yyQ81(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction48, yyNO_MATCH))
+              else yyAction48(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ44 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction40(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction40(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ43 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction37(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction37(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction37(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                          else yyAction37(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction37(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction37(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                      else yyAction37(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                  else yyAction37(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction37(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction37(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                      else yyAction37(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                  else yyAction37(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction37(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+                  else yyAction37(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction37, yyNO_MATCH))
+              else yyAction37(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ42 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction29(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction29(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ41 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction36(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction36(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction36(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                          else yyAction36(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction36(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction36(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                      else yyAction36(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                  else yyAction36(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction36(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction36(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                      else yyAction36(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                  else yyAction36(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction36(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+                  else yyAction36(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction36, yyNO_MATCH))
+              else yyAction36(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ40 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction25(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction25(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction25(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                          else yyAction25(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction25(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction25(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                      else yyAction25(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                  else yyAction25(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction25(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction25(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                      else yyAction25(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                  else yyAction25(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction25(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+                  else yyAction25(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction25, yyNO_MATCH))
+              else yyAction25(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ39 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction35(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction35(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ147 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction55(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction55(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ38 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction34(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx2A
+              then yyQ147(strm', yyMATCH(strm, yyAction34, yyNO_MATCH))
+              else yyAction34(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ37 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction39(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction39(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ36 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction18(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction18(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction18(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                          else yyAction18(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction18(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction18(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                      else yyAction18(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                  else yyAction18(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction18(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction18(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                      else yyAction18(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                  else yyAction18(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction18(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+                  else yyAction18(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction18, yyNO_MATCH))
+              else yyAction18(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ35 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction27(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction27(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction27(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                          else yyAction27(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction27(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction27(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                      else yyAction27(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                  else yyAction27(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction27(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction27(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                      else yyAction27(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                  else yyAction27(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction27(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+                  else yyAction27(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction27, yyNO_MATCH))
+              else yyAction27(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ148 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction57(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wxA
+              then yyAction57(strm, yyNO_MATCH)
+              else yyQ148(strm', yyMATCH(strm, yyAction57, yyNO_MATCH))
+      (* end case *))
+fun yyQ149 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction49(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3A
+              then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx3A
+              then if inp = 0wx27
+                  then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx27
+                  then if inp = 0wx21
+                      then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx21
+                      then if inp = 0wxA
+                          then yyAction49(strm, yyNO_MATCH)
+                          else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp = 0wx22
+                      then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx2D
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx2D
+                  then if inp = 0wx2A
+                      then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx2A
+                      then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp = 0wx2C
+                      then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp = 0wx5F
+              then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx5F
+              then if inp = 0wx5C
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx5C
+                  then if inp = 0wx3C
+                      then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx3C
+                      then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp <= 0wx40
+                      then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx5D
+                  then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp = 0wx7D
+              then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx7D
+              then if inp = 0wx61
+                  then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx61
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx7C
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp = 0wx7E
+              then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+              else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+      (* end case *))
+fun yyQ34 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction49(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3A
+              then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx3A
+              then if inp = 0wx27
+                  then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx27
+                  then if inp = 0wx21
+                      then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx21
+                      then if inp = 0wxA
+                          then yyAction49(strm, yyNO_MATCH)
+                          else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp = 0wx22
+                      then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx2D
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx2D
+                  then if inp = 0wx2A
+                      then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx2A
+                      then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp = 0wx2C
+                      then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp = 0wx5F
+              then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx5F
+              then if inp = 0wx5C
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx5C
+                  then if inp = 0wx3C
+                      then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx3C
+                      then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp <= 0wx40
+                      then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx5D
+                  then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp = 0wx7D
+              then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx7D
+              then if inp = 0wx61
+                  then yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx61
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx7C
+                  then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp = 0wx7E
+              then yyQ149(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+              else yyQ148(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+      (* end case *))
+fun yyQ33 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction56(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction56(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ32 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction49(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx3B
+              then yyAction49(strm, yyNO_MATCH)
+            else if inp < 0wx3B
+              then if inp = 0wx2C
+                  then yyAction49(strm, yyNO_MATCH)
+                else if inp < 0wx2C
+                  then if inp = 0wx23
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx21
+                          then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                          else yyAction49(strm, yyNO_MATCH)
+                    else if inp = 0wx27
+                      then yyAction49(strm, yyNO_MATCH)
+                    else if inp < 0wx27
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp <= 0wx29
+                      then yyAction49(strm, yyNO_MATCH)
+                      else yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp = 0wx2F
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                else if inp < 0wx2F
+                  then if inp = 0wx2D
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyAction49(strm, yyNO_MATCH)
+                else if inp = 0wx3A
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+            else if inp < 0wx60
+              then if inp = 0wx5D
+                  then yyAction49(strm, yyNO_MATCH)
+                else if inp < 0wx5D
+                  then if inp = 0wx41
+                      then yyAction49(strm, yyNO_MATCH)
+                    else if inp < 0wx41
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                    else if inp = 0wx5C
+                      then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                      else yyAction49(strm, yyNO_MATCH)
+                else if inp = 0wx5E
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx7D
+              then yyAction49(strm, yyNO_MATCH)
+            else if inp < 0wx7D
+              then if inp = 0wx7C
+                  then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+                  else yyAction49(strm, yyNO_MATCH)
+            else if inp = 0wx7E
+              then yyQ74(strm', yyMATCH(strm, yyAction49, yyNO_MATCH))
+              else yyAction49(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ31 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction54(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction54(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ20 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction66(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction66(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ4 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE =>
+            if ULexBuffer.eof(!(yystrm))
+              then let
+                val yycolno = ref(yygetcolNo(!(yystrm)))
+                val yylineno = ref(yygetlineNo(!(yystrm)))
+                in
+                  (case (!(yyss))
+                   of _ => (UserDeclarations.eof())
+                  (* end case *))
+                end
+              else yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx5C
+              then yyQ32(strm', lastMatch)
+            else if inp < 0wx5C
+              then if inp = 0wx2B
+                  then yyQ41(strm', lastMatch)
+                else if inp < 0wx2B
+                  then if inp = 0wx24
+                      then yyQ35(strm', lastMatch)
+                    else if inp < 0wx24
+                      then if inp = 0wx20
+                          then yyQ31(strm', lastMatch)
+                        else if inp < 0wx20
+                          then if inp = 0wx9
+                              then yyQ31(strm', lastMatch)
+                            else if inp < 0wx9
+                              then yyQ20(strm', lastMatch)
+                            else if inp <= 0wxD
+                              then yyQ31(strm', lastMatch)
+                              else yyQ20(strm', lastMatch)
+                        else if inp = 0wx22
+                          then yyQ33(strm', lastMatch)
+                        else if inp = 0wx21
+                          then yyQ32(strm', lastMatch)
+                          else yyQ34(strm', lastMatch)
+                    else if inp = 0wx28
+                      then yyQ38(strm', lastMatch)
+                    else if inp < 0wx28
+                      then if inp = 0wx26
+                          then yyQ32(strm', lastMatch)
+                        else if inp = 0wx25
+                          then yyQ36(strm', lastMatch)
+                          else yyQ37(strm', lastMatch)
+                    else if inp = 0wx29
+                      then yyQ39(strm', lastMatch)
+                      else yyQ40(strm', lastMatch)
+                else if inp = 0wx3B
+                  then yyQ49(strm', lastMatch)
+                else if inp < 0wx3B
+                  then if inp = 0wx2F
+                      then yyQ45(strm', lastMatch)
+                    else if inp < 0wx2F
+                      then if inp = 0wx2D
+                          then yyQ43(strm', lastMatch)
+                        else if inp = 0wx2C
+                          then yyQ42(strm', lastMatch)
+                          else yyQ44(strm', lastMatch)
+                    else if inp = 0wx31
+                      then yyQ47(strm', lastMatch)
+                    else if inp < 0wx31
+                      then yyQ46(strm', lastMatch)
+                    else if inp = 0wx3A
+                      then yyQ48(strm', lastMatch)
+                      else yyQ47(strm', lastMatch)
+                else if inp = 0wx40
+                  then yyQ52(strm', lastMatch)
+                else if inp < 0wx40
+                  then if inp = 0wx3D
+                      then yyQ51(strm', lastMatch)
+                    else if inp = 0wx3C
+                      then yyQ50(strm', lastMatch)
+                      else yyQ32(strm', lastMatch)
+                else if inp = 0wx5B
+                  then yyQ54(strm', lastMatch)
+                  else yyQ53(strm', lastMatch)
+            else if inp = 0wx6D
+              then yyQ58(strm', lastMatch)
+            else if inp < 0wx6D
+              then if inp = 0wx65
+                  then yyQ61(strm', lastMatch)
+                else if inp < 0wx65
+                  then if inp = 0wx60
+                      then yyQ32(strm', lastMatch)
+                    else if inp < 0wx60
+                      then if inp = 0wx5E
+                          then yyQ56(strm', lastMatch)
+                        else if inp = 0wx5D
+                          then yyQ55(strm', lastMatch)
+                          else yyQ57(strm', lastMatch)
+                    else if inp = 0wx63
+                      then yyQ59(strm', lastMatch)
+                    else if inp = 0wx64
+                      then yyQ60(strm', lastMatch)
+                      else yyQ58(strm', lastMatch)
+                else if inp = 0wx69
+                  then yyQ63(strm', lastMatch)
+                else if inp < 0wx69
+                  then if inp = 0wx67
+                      then yyQ62(strm', lastMatch)
+                      else yyQ58(strm', lastMatch)
+                else if inp = 0wx6C
+                  then yyQ64(strm', lastMatch)
+                  else yyQ58(strm', lastMatch)
+            else if inp = 0wx76
+              then yyQ69(strm', lastMatch)
+            else if inp < 0wx76
+              then if inp = 0wx72
+                  then yyQ66(strm', lastMatch)
+                else if inp < 0wx72
+                  then if inp = 0wx6F
+                      then yyQ65(strm', lastMatch)
+                      else yyQ58(strm', lastMatch)
+                else if inp = 0wx74
+                  then yyQ68(strm', lastMatch)
+                else if inp = 0wx73
+                  then yyQ67(strm', lastMatch)
+                  else yyQ58(strm', lastMatch)
+            else if inp = 0wx7D
+              then yyQ72(strm', lastMatch)
+            else if inp < 0wx7D
+              then if inp = 0wx7B
+                  then yyQ70(strm', lastMatch)
+                else if inp = 0wx7C
+                  then yyQ71(strm', lastMatch)
+                  else yyQ58(strm', lastMatch)
+            else if inp = 0wx7E
+              then yyQ73(strm', lastMatch)
+              else yyQ20(strm', lastMatch)
+      (* end case *))
+fun yyQ28 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction41(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction41(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ29 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction44(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction44(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+                      else yyAction44(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+                  else yyAction44(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction44(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction44(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+                  else yyAction44(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+              else yyAction44(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ27 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction44(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx41
+              then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+            else if inp < 0wx41
+              then if inp = 0wx2E
+                  then yyAction44(strm, yyNO_MATCH)
+                else if inp < 0wx2E
+                  then if inp = 0wx2D
+                      then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+                      else yyAction44(strm, yyNO_MATCH)
+                else if inp <= 0wx39
+                  then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+                  else yyAction44(strm, yyNO_MATCH)
+            else if inp = 0wx60
+              then yyAction44(strm, yyNO_MATCH)
+            else if inp < 0wx60
+              then if inp = 0wx5B
+                  then yyAction44(strm, yyNO_MATCH)
+                else if inp < 0wx5B
+                  then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+                else if inp = 0wx5F
+                  then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+                  else yyAction44(strm, yyNO_MATCH)
+            else if inp <= 0wx7A
+              then yyQ29(strm', yyMATCH(strm, yyAction44, yyNO_MATCH))
+              else yyAction44(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ30 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction43(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx2F
+              then yyAction43(strm, yyNO_MATCH)
+            else if inp < 0wx2F
+              then if inp = 0wx2E
+                  then yyQ30(strm', yyMATCH(strm, yyAction43, yyNO_MATCH))
+                  else yyAction43(strm, yyNO_MATCH)
+            else if inp <= 0wx31
+              then yyQ30(strm', yyMATCH(strm, yyAction43, yyNO_MATCH))
+              else yyAction43(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ26 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction43(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx2F
+              then yyAction43(strm, yyNO_MATCH)
+            else if inp < 0wx2F
+              then if inp = 0wx2E
+                  then yyQ30(strm', yyMATCH(strm, yyAction43, yyNO_MATCH))
+                  else yyAction43(strm, yyNO_MATCH)
+            else if inp <= 0wx31
+              then yyQ30(strm', yyMATCH(strm, yyAction43, yyNO_MATCH))
+              else yyAction43(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ22 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction42(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction42(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ25 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction45(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction45(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ3 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE =>
+            if ULexBuffer.eof(!(yystrm))
+              then let
+                val yycolno = ref(yygetcolNo(!(yystrm)))
+                val yylineno = ref(yygetlineNo(!(yystrm)))
+                in
+                  (case (!(yyss))
+                   of _ => (UserDeclarations.eof())
+                  (* end case *))
+                end
+              else yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx2F
+              then yyQ27(strm', lastMatch)
+            else if inp < 0wx2F
+              then if inp = 0wx21
+                  then yyQ20(strm', lastMatch)
+                else if inp < 0wx21
+                  then if inp = 0wxE
+                      then yyQ20(strm', lastMatch)
+                    else if inp < 0wxE
+                      then if inp <= 0wx8
+                          then yyQ20(strm', lastMatch)
+                          else yyQ25(strm', lastMatch)
+                    else if inp = 0wx20
+                      then yyQ25(strm', lastMatch)
+                      else yyQ20(strm', lastMatch)
+                else if inp = 0wx28
+                  then yyQ20(strm', lastMatch)
+                else if inp < 0wx28
+                  then if inp = 0wx27
+                      then yyQ22(strm', lastMatch)
+                      else yyQ20(strm', lastMatch)
+                else if inp = 0wx2E
+                  then yyQ26(strm', lastMatch)
+                  else yyQ20(strm', lastMatch)
+            else if inp = 0wx41
+              then yyQ27(strm', lastMatch)
+            else if inp < 0wx41
+              then if inp = 0wx3A
+                  then yyQ28(strm', lastMatch)
+                else if inp < 0wx3A
+                  then if inp <= 0wx31
+                      then yyQ26(strm', lastMatch)
+                      else yyQ20(strm', lastMatch)
+                  else yyQ20(strm', lastMatch)
+            else if inp = 0wx61
+              then yyQ27(strm', lastMatch)
+            else if inp < 0wx61
+              then if inp <= 0wx5A
+                  then yyQ27(strm', lastMatch)
+                  else yyQ20(strm', lastMatch)
+            else if inp <= 0wx7A
+              then yyQ27(strm', lastMatch)
+              else yyQ20(strm', lastMatch)
+      (* end case *))
+fun yyQ24 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction50(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ24(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+            else if inp < 0wx30
+              then yyAction50(strm, yyNO_MATCH)
+            else if inp <= 0wx39
+              then yyQ24(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+              else yyAction50(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ23 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction50(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ24(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+            else if inp < 0wx30
+              then yyAction50(strm, yyNO_MATCH)
+            else if inp <= 0wx39
+              then yyQ24(strm', yyMATCH(strm, yyAction50, yyNO_MATCH))
+              else yyAction50(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ21 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction46(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction46(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ2 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE =>
+            if ULexBuffer.eof(!(yystrm))
+              then let
+                val yycolno = ref(yygetcolNo(!(yystrm)))
+                val yylineno = ref(yygetlineNo(!(yystrm)))
+                in
+                  (case (!(yyss))
+                   of _ => (UserDeclarations.eof())
+                  (* end case *))
+                end
+              else yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx21
+              then yyQ20(strm', lastMatch)
+            else if inp < 0wx21
+              then if inp = 0wxE
+                  then yyQ20(strm', lastMatch)
+                else if inp < 0wxE
+                  then if inp <= 0wx8
+                      then yyQ20(strm', lastMatch)
+                      else yyQ21(strm', lastMatch)
+                else if inp = 0wx20
+                  then yyQ21(strm', lastMatch)
+                  else yyQ20(strm', lastMatch)
+            else if inp = 0wx28
+              then yyQ20(strm', lastMatch)
+            else if inp < 0wx28
+              then if inp = 0wx27
+                  then yyQ22(strm', lastMatch)
+                  else yyQ20(strm', lastMatch)
+            else if inp = 0wx30
+              then yyQ23(strm', lastMatch)
+            else if inp < 0wx30
+              then yyQ20(strm', lastMatch)
+            else if inp <= 0wx39
+              then yyQ23(strm', lastMatch)
+              else yyQ20(strm', lastMatch)
+      (* end case *))
+fun yyQ18 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction64(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction64(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ17 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction65(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx29
+              then yyQ18(strm', yyMATCH(strm, yyAction65, yyNO_MATCH))
+              else yyAction65(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ19 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction63(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction63(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ16 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction65(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx2A
+              then yyQ19(strm', yyMATCH(strm, yyAction65, yyNO_MATCH))
+              else yyAction65(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ15 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction65(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction65(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ1 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE =>
+            if ULexBuffer.eof(!(yystrm))
+              then let
+                val yycolno = ref(yygetcolNo(!(yystrm)))
+                val yylineno = ref(yygetlineNo(!(yystrm)))
+                in
+                  (case (!(yyss))
+                   of _ => (UserDeclarations.eof())
+                  (* end case *))
+                end
+              else yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx29
+              then yyQ15(strm', lastMatch)
+            else if inp < 0wx29
+              then if inp = 0wx28
+                  then yyQ16(strm', lastMatch)
+                  else yyQ15(strm', lastMatch)
+            else if inp = 0wx2A
+              then yyQ17(strm', lastMatch)
+              else yyQ15(strm', lastMatch)
+      (* end case *))
+fun yyQ13 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction58(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction58(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ12 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ13(strm', lastMatch)
+            else if inp < 0wx30
+              then yystuck(lastMatch)
+            else if inp <= 0wx39
+              then yyQ13(strm', lastMatch)
+              else yystuck(lastMatch)
+      (* end case *))
+fun yyQ11 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction61(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx30
+              then yyQ12(strm', yyMATCH(strm, yyAction61, yyNO_MATCH))
+            else if inp < 0wx30
+              then yyAction61(strm, yyNO_MATCH)
+            else if inp <= 0wx39
+              then yyQ12(strm', yyMATCH(strm, yyAction61, yyNO_MATCH))
+              else yyAction61(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ10 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction58(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction58(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ9 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction61(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction61(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ8 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction62(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx66
+              then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+            else if inp < 0wx66
+              then if inp = 0wx3A
+                  then yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                else if inp < 0wx3A
+                  then if inp = 0wx23
+                      then yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                    else if inp < 0wx23
+                      then if inp = 0wx22
+                          then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                          else yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                    else if inp <= 0wx2F
+                      then yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                      else yyQ11(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                else if inp = 0wx5D
+                  then yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                else if inp < 0wx5D
+                  then if inp = 0wx5C
+                      then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                      else yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                else if inp = 0wx61
+                  then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                else if inp < 0wx61
+                  then yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                else if inp <= 0wx62
+                  then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                  else yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+            else if inp = 0wx73
+              then yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+            else if inp < 0wx73
+              then if inp = 0wx6F
+                  then yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                else if inp < 0wx6F
+                  then if inp = 0wx6E
+                      then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                      else yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                else if inp = 0wx72
+                  then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                  else yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+            else if inp = 0wx76
+              then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+            else if inp < 0wx76
+              then if inp = 0wx74
+                  then yyQ10(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+                  else yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+              else yyQ9(strm', yyMATCH(strm, yyAction62, yyNO_MATCH))
+      (* end case *))
+fun yyQ7 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction60(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction60(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ14 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction59(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx23
+              then yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+            else if inp < 0wx23
+              then if inp = 0wx20
+                  then yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+                else if inp < 0wx20
+                  then yyAction59(strm, yyNO_MATCH)
+                else if inp = 0wx22
+                  then yyAction59(strm, yyNO_MATCH)
+                  else yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+            else if inp = 0wx5D
+              then yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+            else if inp < 0wx5D
+              then if inp = 0wx5C
+                  then yyAction59(strm, yyNO_MATCH)
+                  else yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+            else if inp <= 0wx7E
+              then yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+              else yyAction59(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ6 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction59(strm, yyNO_MATCH)
+        | SOME(inp, strm') =>
+            if inp = 0wx23
+              then yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+            else if inp < 0wx23
+              then if inp = 0wx20
+                  then yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+                else if inp < 0wx20
+                  then yyAction59(strm, yyNO_MATCH)
+                else if inp = 0wx22
+                  then yyAction59(strm, yyNO_MATCH)
+                  else yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+            else if inp = 0wx5D
+              then yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+            else if inp < 0wx5D
+              then if inp = 0wx5C
+                  then yyAction59(strm, yyNO_MATCH)
+                  else yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+            else if inp <= 0wx7E
+              then yyQ14(strm', yyMATCH(strm, yyAction59, yyNO_MATCH))
+              else yyAction59(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ5 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE => yyAction62(strm, yyNO_MATCH)
+        | SOME(inp, strm') => yyAction62(strm, yyNO_MATCH)
+      (* end case *))
+fun yyQ0 (strm, lastMatch : yymatch) = (case (yygetc(strm))
+       of NONE =>
+            if ULexBuffer.eof(!(yystrm))
+              then let
+                val yycolno = ref(yygetcolNo(!(yystrm)))
+                val yylineno = ref(yygetlineNo(!(yystrm)))
+                in
+                  (case (!(yyss))
+                   of _ => (UserDeclarations.eof())
+                  (* end case *))
+                end
+              else yystuck(lastMatch)
+        | SOME(inp, strm') =>
+            if inp = 0wx23
+              then yyQ6(strm', lastMatch)
+            else if inp < 0wx23
+              then if inp = 0wx20
+                  then yyQ6(strm', lastMatch)
+                else if inp < 0wx20
+                  then yyQ5(strm', lastMatch)
+                else if inp = 0wx22
+                  then yyQ7(strm', lastMatch)
+                  else yyQ6(strm', lastMatch)
+            else if inp = 0wx5D
+              then yyQ6(strm', lastMatch)
+            else if inp < 0wx5D
+              then if inp = 0wx5C
+                  then yyQ8(strm', lastMatch)
+                  else yyQ6(strm', lastMatch)
+            else if inp <= 0wx7E
+              then yyQ6(strm', lastMatch)
+              else yyQ5(strm', lastMatch)
+      (* end case *))
+in
+  (case (!(yyss))
+   of STRING => yyQ0(!(yystrm), yyNO_MATCH)
+    | COMMENT => yyQ1(!(yystrm), yyNO_MATCH)
+    | BITPATNUM => yyQ2(!(yystrm), yyNO_MATCH)
+    | BITPAT => yyQ3(!(yystrm), yyNO_MATCH)
+    | INITIAL => yyQ4(!(yystrm), yyNO_MATCH)
+  (* end case *))
 end
 end
             and skip() = (yystartPos := yygetPos(); 
