@@ -4,9 +4,9 @@ structure SplitDeclarations: sig
    type pat = SpecAbstractTree.decodepat
    type exp = SpecAbstractTree.exp
    type i = SpecAbstractTree.specification
-   type valuedecl = sym * sym list * exp
-   type decodedecl = sym * pat list * (exp, (exp * exp) list) Sum.t
-   type o = (valuedecl list * decodedecl list) Spec.t
+   type value = sym * sym list * exp
+   type decode = pat list * (exp, (exp * exp) list) Sum.t
+   type o = (value list * decode list SymMap.map) Spec.t
    val run: i -> o CompilationMonad.t
 end = struct
 
@@ -16,9 +16,9 @@ end = struct
    type i = SpecAbstractTree.specification
    type pat = SpecAbstractTree.decodepat
    type exp = SpecAbstractTree.exp
-   type valuedecl = sym * sym list * exp
-   type decodedecl = sym * pat list * (exp, (exp * exp) list) Sum.t
-   type o = (valuedecl list * decodedecl list) Spec.t
+   type value = sym * sym list * exp
+   type decode = pat list * (exp, (exp * exp) list) Sum.t
+   type o = (value list * decode list SymMap.map) Spec.t
 
    fun split {span, tree} = let
       open T
@@ -27,8 +27,14 @@ end = struct
       val typealias = ref []
       val datatypes = ref []
       val valuedecls = ref []
-      val decodedecls = ref []
+      val decodedecls = ref SymMap.empty
       val exports = ref []
+
+      fun insertDecode (n, pats, es) =
+         decodedecls :=
+            SymMap.unionWith
+               op@
+               (!decodedecls, SymMap.singleton (n, [(pats, es)]))
 
       fun splitToplevel spec =
          case spec of
@@ -37,11 +43,10 @@ end = struct
           | GRANULARITYdecl i => granularity := i
           | STATEdecl d => state := [d]
           | TYPEdecl d => typealias := d::(!typealias)
-          | DECODEdecl d => decodedecls := d::(!decodedecls)
+          | DECODEdecl d => insertDecode d
           | LETRECdecl d => valuedecls := d::(!valuedecls)
           | EXPORTdecl es => exports := !exports@es
           | DATATYPEdecl (n, cons) => datatypes := (n, cons)::(!datatypes)
-
    in
       app splitToplevel tree
      ;Spec.IN
@@ -50,11 +55,11 @@ end = struct
           exports= !exports,
           typealias= rev (!typealias),
           datatypes= rev (!datatypes),
-          declarations= (rev (!valuedecls), rev (!decodedecls))}
+          declarations= (rev (!valuedecls), !decodedecls)}
    end
 
    fun dumpPre (os, spec) = T.PP.prettyTo (os, spec)
-   fun dumpPost (os, spec) = Spec.PP.prettyTo Spec.PP.prettyDecls (os, spec)
+   fun dumpPost (os, spec) = Pretty.prettyTo (os, Spec.PP.anySpec spec)
 
    val split =
       BasicControl.mkKeepPass

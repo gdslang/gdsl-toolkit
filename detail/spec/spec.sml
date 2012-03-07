@@ -23,7 +23,7 @@ structure Spec = struct
    structure PP = struct
       open Layout Pretty
       val dots = str "<..>"
-      fun t pA t =
+      fun spec pA t =
          record
             [("granularity", int (get#granularity t)),
              ("exports", dots),
@@ -31,14 +31,6 @@ structure Spec = struct
              ("typealias", dots),
              ("datatypes", dots),
              ("declarations", pA (get#declarations t))]
-         
-      fun prettyTo pA (os, spec) = Pretty.prettyTo (os, t pA spec) 
-      fun prettyDecls (values, decodes) = let
-         open Layout Pretty SpecAbstractTree
-         val vs = align (map PP.recdecl values)
-         val ds = align (map (fn d => PP.decl (DECODEdecl d)) decodes)
-      in
-         list [vs, ds]
-      end
+      fun anySpec t = spec (fn _ => dots) t
    end
 end
