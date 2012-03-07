@@ -56,6 +56,7 @@ structure Primitives = struct
        {name="false", ty=VEC (CONST 1)},
        {name="continue", ty=MONAD (var r)},
        {name="consume", ty=MONAD (VEC (var s6))},
+       {name="raise", ty=MONAD (var (t()))},
        (* TODO *) {name="slice", ty=MONAD (var (t ()))},
        {name=globalState, ty=var state},
        {name=anonDecodeFunction, ty=MONAD (var r)},

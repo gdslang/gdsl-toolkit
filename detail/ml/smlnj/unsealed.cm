@@ -43,6 +43,7 @@ group is
    ../../desugar/desugar-control.sml
    ../../desugar/desugared-tree.sml
    ../../desugar/split-declarations.sml
+   ../../desugar/desugar-guards.sml
    ../../desugar/inline-decode-patterns.sml
    ../../desugar/detokenize.sml
    ../../desugar/retokenize.sml

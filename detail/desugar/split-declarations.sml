@@ -1,5 +1,5 @@
 
-structure SplitDeclarations: sig
+structure SplitDeclarations : sig
    type sym = VarInfo.symid
    type pat = SpecAbstractTree.decodepat
    type exp = SpecAbstractTree.exp

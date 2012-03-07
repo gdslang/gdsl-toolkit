@@ -14,6 +14,7 @@ end = struct
 
    fun all s = 
       SplitDeclarations.run s >>=
+      DesugarGuards.run >>=
       InlineDecodePatterns.run >>=
       Detokenize.run >>=
       Retokenize.run >>=
