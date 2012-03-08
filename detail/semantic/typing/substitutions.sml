@@ -31,6 +31,10 @@ structure Substitutions : sig
    val applySubstsToExp : Substs -> Types.texp * expand_info ->
                           Types.texp * expand_info
 
+   (*retrieve a list of Boolean flags within this type and the information if
+   the flag appears in covariant (false) or contravariant (true) position*)
+   val getFlagsForType : Types.texp -> (bool * BooleanDomain.bvar) list
+   
    val instantiateType : TVar.set * Types.texp * BooleanDomain.bfun ->
                          Types.texp * BooleanDomain.bfun
 
@@ -306,6 +310,25 @@ end = struct
      setFlagsToTopF (RField {name = n, fty = t, exists = _}) =
         RField {name = n, fty =  setFlagsToTop t, exists = BD.freshBVar ()}
 
+   fun getFlags con (FUN (f1, f2)) = getFlags (not con) f1 @ getFlags con f2
+     | getFlags con (SYN (syn, t)) = getFlags con t
+     | getFlags con (ZENO) = []
+     | getFlags con (FLOAT) = []
+     | getFlags con (UNIT) = []
+     | getFlags con (VEC t) = getFlags con t
+     | getFlags con (CONST c) = []
+     | getFlags con (ALG (ty, l)) =
+         List.concat (List.map (getFlags con) l)
+     | getFlags con (RECORD (var, b, l)) =
+         (con,b) :: List.concat (List.map (getFlagsF con) l)
+     | getFlags con (MONAD t) = getFlags con t
+     | getFlags con (VAR (var,b)) = [(con,b)]
+   and
+     getFlagsF con (RField {name = n, fty = t, exists = b}) =
+       (con,b) :: getFlags con t
+   
+   val getFlagsForType = getFlags false
+   
    fun instantiateType (vs,t,bFun) =
       let
          val vs = TVar.difference (texpVarset (t, TVar.empty), vs)

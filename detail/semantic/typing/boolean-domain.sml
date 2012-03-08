@@ -22,9 +22,9 @@ structure BooleanDomain : sig
 
    val meetEither : bvar * bvar * bfun -> bfun
    
-   val meetVarZero : bvar * bfun -> bfun
+   val meetVarZero : bvar -> bfun -> bfun
 
-   val meetVarOne : bvar * bfun -> bfun
+   val meetVarOne : bvar -> bfun -> bfun
 
    type bvarset
    
@@ -34,7 +34,7 @@ structure BooleanDomain : sig
    
    val projectOnto : bvarset * bfun -> bfun
 
-   val expand : bvar list * bvar list * bfun -> bfun
+   val expand : bvar list * (bool * bvar) list * bfun -> bfun
    
    val meet : bfun * bfun -> bfun
    
@@ -148,11 +148,11 @@ end = struct
    fun meetNotBoth (BVAR v1, BVAR v2, f) = addClause ((~v1,~v2),f)
    fun meetEither (BVAR v1, BVAR v2, f) = addClause ((v1,v2),f)
 
-   fun meetVarOne (BVAR v, f) =
+   fun meetVarOne (BVAR v) f =
          (TextIO.print ("\nmeet with " ^ i v ^ " = t\n");
          addUnits ([v], f)
          )
-   fun meetVarZero (BVAR v, f) =
+   fun meetVarZero (BVAR v) f =
          (TextIO.print ("\nmeet with " ^ i v ^ " = f\n");
          addUnits ([~v], f)
          )
@@ -197,8 +197,9 @@ end = struct
    fun expand (l1, l2, (us, cs)) =
       let
          val h = HT.mkTable (List.length l1, Bug)
-         val _ = ListPair.appEq (fn (BVAR v1, BVAR v2) =>
-                                 HT.insert h (v1,v2)) (l1, l2)
+         val _ = ListPair.appEq (fn (BVAR v1, (invert, BVAR v2)) =>
+                                 HT.insert h (v1,if invert then ~v2 else v2))
+                                (l1, l2)
          fun trans v = case HT.find h (Int.abs v) of
                           NONE => NONE
                         | SOME v' => SOME (if v<0 then ~v' else v')
