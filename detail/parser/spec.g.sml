@@ -231,7 +231,7 @@ fun Program_PROD_1_ACT (SR, Decl, SR_SPAN : (Lex.pos * Lex.pos), Decl_SPAN : (Le
       {span=FULL_SPAN, tree=Decl::SR})
 fun Decl_PROD_1_ACT (EQ, Int, KW_granularity, EQ_SPAN : (Lex.pos * Lex.pos), Int_SPAN : (Lex.pos * Lex.pos), KW_granularity_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
-fun Decl_PROD_2_ACT (Qid, KW_export, Qid_SPAN : (Lex.pos * Lex.pos), KW_export_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Decl_PROD_2_ACT (EQ, Qid, KW_export, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), KW_export_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
 fun Decl_PROD_3_ACT (STRING, KW_include, STRING_SPAN : (Lex.pos * Lex.pos), KW_include_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( markDecl (FULL_SPAN, PT.INCLUDEdecl STRING))
@@ -1676,6 +1676,7 @@ fun Decl_NT (strm) = let
             end
       fun Decl_PROD_2 (strm) = let
             val (KW_export_RES, KW_export_SPAN, strm') = matchKW_export(strm)
+            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
             fun Decl_PROD_2_SUBRULE_1_NT (strm) = let
                   val (Qid_RES, Qid_SPAN, strm') = Qid_NT(strm)
                   val FULL_SPAN = (#1(Qid_SPAN), #2(Qid_SPAN))
@@ -1689,7 +1690,7 @@ fun Decl_NT (strm) = let
             val (Qid_RES, Qid_SPAN, strm') = EBNF.closure(Decl_PROD_2_SUBRULE_1_PRED, Decl_PROD_2_SUBRULE_1_NT, strm')
             val FULL_SPAN = (#1(KW_export_SPAN), #2(Qid_SPAN))
             in
-              (UserCode.Decl_PROD_2_ACT (Qid_RES, KW_export_RES, Qid_SPAN : (Lex.pos * Lex.pos), KW_export_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.Decl_PROD_2_ACT (EQ_RES, Qid_RES, KW_export_RES, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), KW_export_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun Decl_PROD_3 (strm) = let

@@ -112,23 +112,27 @@ functor MkAst (Core: AST_CORE) = struct
    structure PP = struct
       open Layout Pretty Core
 
+      val is = seq [space, str "="]
+
       fun spec (ss:specification) = align (map decl (#tree ss))
 
       and decl t =
          case t of
             MARKdecl t' => decl (#tree t')
           | INCLUDEdecl inc => seq [str "include", space, str inc]
-          | GRANULARITYdecl i => seq [str "granularity", space, int i]
+          | GRANULARITYdecl i => seq [str "granularity", is, space, int i]
           | EXPORTdecl es =>
-               seq [str "export", space, seq (separate (map var_use es, " "))]
+               seq
+                  [str "export", is, space,
+                   seq (separate (map var_use es, " "))]
           | STATEdecl fs =>
                let
                   fun field (n, t, e) =
-                     seq [lb, var_bind n, str ":", ty t, str "=", exp e]
+                     seq [var_bind n, str ":", ty t, str "=", exp e]
                in
                   align
-                     [str "state",
-                      indent 3 (list (map field fs))]
+                     [seq [str "state", is],
+                      indent 3 (listex "{" "}" "," (map field fs))]
                end
           | TYPEdecl (t, tyexp) =>
                seq [str "type", space, syn_bind t, space, ty tyexp]
@@ -136,30 +140,33 @@ functor MkAst (Core: AST_CORE) = struct
                align
                   [seq [str "datatype", space, con_bind t],
                    indent 3 (alignPrefix (map condecl decls, "| "))]
-          | DECODEdecl (n, args, Sum.INL e) =>
+          | DECODEdecl (n, ps, Sum.INL e) =>
                align
                   [seq
-                     [str "val", space, var_bind n, space,
-                      seq (separate (map decodepat args, " ")), space, str "="],
+                     [str "val", space, var_bind n, space, decodepats ps, is],
                    indent 3 (exp e)]
-          | DECODEdecl (n, args, Sum.INR ges) =>
+          | DECODEdecl (n, ps, Sum.INR ges) =>
                align
                   [seq
-                     [str "val", space, var_bind n, space,
-                      seq (separate (map decodepat args, " ")), space, str "="],
+                     [str "val", space, var_bind n, space, decodepats ps, is],
                    indent 3
                      (alignPrefix
                         (map
                            (fn (e1, e2) =>
-                              seq [exp e1, space, str "=", space, exp e2])
+                              seq [exp e1, is, space, exp e2])
                            ges,
                          "| "))]
           | LETRECdecl d => recdecl d
 
+      and decodepats ps =
+         seq
+            [str "[",
+             seq (separate (map decodepat ps, " ")),
+             str "]"]
       and decodepat t =
          case t of
             MARKdecodepat t' => decodepat (#tree t')
-          | BITdecodepat bp => list (map bitpat bp)
+          | BITdecodepat bp => listex "'" "'" " " (map bitpat bp)
           | TOKENdecodepat tp => tokpat tp
 
       and bitpat t =
@@ -167,7 +174,7 @@ functor MkAst (Core: AST_CORE) = struct
             MARKbitpat t' => bitpat (#tree t')
           | BITSTRbitpat s => str s
           | NAMEDbitpat n => var_use n
-          | BITVECbitpat tybp => tuple2 (var_bind, int) tybp
+          | BITVECbitpat (n, t) => seq [var_bind n, str ":", int t]
 
       and tokpat t =
          case t of

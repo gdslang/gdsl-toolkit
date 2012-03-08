@@ -47,6 +47,6 @@ group is
    ../../desugar/inline-decode-patterns.sml
    ../../desugar/detokenize.sml
    ../../desugar/retokenize.sml
-   ../../desugar/desugar-decode-patterns.sml
+   ../../desugar/desugar-decode-syntax.sml
    ../../desugar/desugar.sml
    ../../driver/main.sml

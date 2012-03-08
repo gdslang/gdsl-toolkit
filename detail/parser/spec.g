@@ -103,7 +103,7 @@ Program
 
 Decl
    : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
-   | "export" Qid* => (markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
+   | "export" "=" Qid* => (markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
    | "include" STRING => (markDecl (FULL_SPAN, PT.INCLUDEdecl STRING))
    | "state" "=" StateTy => (markDecl (FULL_SPAN, PT.STATEdecl StateTy))
    | "datatype" Name "=" ConDecls =>

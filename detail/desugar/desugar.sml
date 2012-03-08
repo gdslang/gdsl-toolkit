@@ -18,7 +18,7 @@ end = struct
       InlineDecodePatterns.run >>=
       Detokenize.run >>=
       Retokenize.run >>=
-      DesugarToplevel.run
+      DesugarDecodeSyntax.run
 
    fun dumpPre (os, (_, spec)) = AT.PP.prettyTo (os, spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
@@ -26,7 +26,7 @@ end = struct
 
    val desugar =
       BasicControl.mkKeepPass
-         {passName="desugarDecodeDeclarations",
+         {passName="desugar",
           registry=DesugarControl.registry,
           pass=pass,
           preExt="ast",

@@ -4,7 +4,7 @@ structure Core = struct
    type sym = SymbolTable.symid
 
    structure Lit : sig
-      type lit = SpecAbstractTree.lit
+      datatype lit = datatype SpecAbstractTree.lit
       type t = lit
    end = struct
       open SpecAbstractTree
