@@ -2,7 +2,7 @@
 structure Desugar : sig
    val run:
       SpecAbstractTree.specification ->
-         DesugaredTree.IRSpec.t CompilationMonad.t
+         DesugaredTree.spec CompilationMonad.t
 end = struct
 
    structure CM = CompilationMonad
@@ -21,7 +21,7 @@ end = struct
       DesugarToplevel.run
 
    fun dumpPre (os, (_, spec)) = AT.PP.prettyTo (os, spec)
-   fun dumpPost (os, spec) = DT.PP.prettyTo (os, spec)
+   fun dumpPost (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
    fun pass (s, spec) = CM.run s (all spec)
 
    val desugar =

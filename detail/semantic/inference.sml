@@ -61,16 +61,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    (* define a first traversal that creates a group of all top-level decls *)
    fun topDecl (AST.MARKdecl {span, tree=t}) = topDecl t
-     | topDecl (AST.DECODEdecl dd) = topDecodedecl dd
-     | topDecl (AST.VALUEdecl vd) = topValuedecl vd
+     | topDecl (AST.DECODEdecl dd) = topDecodeDecl dd
+     | topDecl (AST.LETRECdecl vd) = topLetrecDecl vd
      | topDecl _ = []
-   and topDecodedecl (AST.MARKdecodedecl {span, tree=t}) = topDecodedecl t
-     | topDecodedecl (AST.NAMEDdecodedecl (v,_,_)) = [(v, true)]
-     | topDecodedecl (AST.DECODEdecodedecl (pats,_)) = [(anonSym, true)]
-     | topDecodedecl (AST.GUARDEDdecodedecl (pats,_)) = [(anonSym, true)]
-   and topValuedecl (AST.MARKvaluedecl {span, tree = t}) = topValuedecl t
-     | topValuedecl (AST.LETvaluedecl (v,_,_)) = [(v,false)]
-     | topValuedecl (AST.LETRECvaluedecl (v,_,_)) = [(v,false)]
+
+   and topDecodeDecl (v, _, _) = [(v, true)]
+
+   and topLetrecDecl (v, _, _) = [(v,false)]
    
    (* define a second traversal that is a full inference of the tree *)
    
@@ -161,28 +158,23 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      (*| infDecl env (AST.STATEdecl l) = AST.STATEdecl
        (List.map (fn (v,t,e) => (newVar (s,v), infTy env t, infExp env e)) l)*)
      | infDecl stenv (AST.DECODEdecl dd) = infDecodedecl stenv dd
-     | infDecl stenv (AST.VALUEdecl vd) = infValuedecl stenv vd
+     | infDecl stenv (AST.LETRECdecl vd) = infValuedecl stenv vd
      | infDecl (st,env) _ = env
-   and infDecodedecl stenv (AST.MARKdecodedecl m) =
-         reportError infDecodedecl stenv m
-     | infDecodedecl stenv (AST.NAMEDdecodedecl (v, l, e)) =
-        calcFixpoint stenv (v, SOME (l, NONE), [], e)
-     | infDecodedecl stenv (AST.DECODEdecodedecl (l,e)) =
-        calcFixpoint stenv (anonSym, SOME (l, NONE), [], e)
-     | infDecodedecl (st,env) (AST.GUARDEDdecodedecl (l, el)) =
-         List.foldl (fn ((guard, rhs), env) =>
-            calcFixpoint (st,env) (anonSym, SOME (l, SOME guard), [], rhs))
+
+   and infDecodedecl stenv (v, l, Sum.INL e) =
+         calcFixpoint stenv (v, SOME (l, NONE), [], e)
+     | infDecodedecl (st,env) (v, l, Sum.INR el) =
+         List.foldl
+            (fn ((guard, rhs), env) =>
+               calcFixpoint (st,env) (anonSym, SOME (l, SOME guard), [], rhs))
             env el
-   and infValuedecl stenv (AST.MARKvaluedecl m) =
-         reportError infValuedecl stenv m
-     | infValuedecl stenv (AST.LETvaluedecl (v,l,e)) =
-         calcFixpoint stenv (v, NONE, l, e)
-     | infValuedecl stenv (AST.LETRECvaluedecl (v,l,e)) =
-         calcFixpoint stenv (v, NONE, l, e)
+
+   and infValuedecl stenv (v,l,e) = calcFixpoint stenv (v, NONE, l, e)
+
    and infExp stenv (AST.MARKexp m) = reportError infExp stenv m
-     | infExp (st,env) (AST.LETexp (l,e)) =
+     | infExp (st,env) (AST.LETRECexp (l,e)) =
       let                                              
-         val names = List.map topValuedecl l
+         val names = List.map topLetrecDecl l
          val env = E.pushGroup (List.foldl (op @) [] names, env)
          val env = List.foldl (fn (d,env) => infValuedecl (st,env) d) env l
          val (symbols, env) = E.popGroup env
@@ -361,8 +353,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
        AST.MARKtokpat (reportError infTokpat m)
      | infTokpat stenv (AST.TOKtokpat i) = AST.TOKtokpat i
      | infTokpat stenv (AST.NAMEDtokpat v) = AST.NAMEDtokpat (useVar (s,v))*)
-   and infMatch stenv (AST.MARKmatch m) = reportError infMatch stenv m
-     | infMatch (st,env) (AST.CASEmatch (p,e)) =
+   and infMatch (st,env) (p,e) =
       let
          val (n,env) = infPat (st,env) p
          (*val _ = TextIO.print ("**** after pat:\n" ^ E.toString env)*)
@@ -377,6 +368,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          E.return (n,env)
       end
+
    and infPat stenv (AST.MARKpat m) = reportError infPat stenv m
      | infPat (st,env) (AST.LITpat lit) = (0, infLit (st,env) lit)
      | infPat (st,env) (AST.IDpat v) =

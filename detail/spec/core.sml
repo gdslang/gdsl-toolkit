@@ -2,7 +2,16 @@
 structure Core = struct
    
    type sym = SymbolTable.symid
-   structure Pattern = struct
+
+   structure Lit : sig
+      type lit = SpecAbstractTree.lit
+      type t = lit
+   end = struct
+      open SpecAbstractTree
+      type t = lit
+   end
+
+   structure Pat = struct
       datatype t =
          BIT of string
        | INT of IntInf.int
@@ -13,16 +22,17 @@ structure Core = struct
 
    structure Exp = struct
       datatype t =
-         LET of decl list * t
-       | REC of decl list * t
+         LETVAL of sym * t * t
+       | LETREC of decl list * t
        | IF of t * t * t
-       | CASE of t * (Pattern.t * t) list
+       | CASE of t * (Pat.t * t) list
        | APP of t * t
+       | FN of sym * t
        | RECORD of (sym * t) list
        | UPDATE of (sym * t) list
        | SELECT of sym
        | SEQ of seq list
-       | LIT of lit
+       | LIT of Lit.t
        | CON of sym
        | ID of sym
 
@@ -31,24 +41,23 @@ structure Core = struct
        | BIND of sym * t
 
       withtype decl = sym * sym list * t
-      and lit = SpecAbstractTree.lit
    end
 
    structure PP = struct
-      open Layout Pretty Exp Pattern
+      open Layout Pretty Exp Pat
       fun var sym = SpecAbstractTree.PP.var_use sym
       fun con sym = SpecAbstractTree.PP.con_use sym
       fun fld sym = SpecAbstractTree.PP.field_use sym
 
       fun layout exp = let open Exp in
          case exp of
-            LET (ds, e) =>
+            LETVAL (n, e, body) =>
                align 
-                  [align [str "let", indent 3 (decls ds)],
-                   align [str "in", indent 3 (layout e)]]
-          | REC (ds, e) =>
+                  [def (seq [str "letval", space, var n], layout e),
+                   align [str "in", indent 3 (layout body)]]
+          | LETREC (ds, e) =>
                align 
-                  [align [str "let", indent 3 (recdecls ds)],
+                  [align [str "letrec", indent 3 (recdecls ds)],
                    align [str "in", indent 3 (layout e)]]
           | IF (iff, thenn, elsee) =>
                align
@@ -60,6 +69,10 @@ structure Core = struct
                align
                   [seq [str "case", space, layout e, space, str "of"],
                    cases cs]
+          | FN (n, e) =>
+               align
+                  [seq [str "\\", var n, str "."],
+                   indent 3 (layout e)]
           | APP (e1, e2) => seq [layout e1, space, layout e2]
           | RECORD fs => record (map field fs)
           | UPDATE fs => seq [str "@", record (map field fs)]
@@ -83,10 +96,6 @@ structure Core = struct
       and cases cs =
          case cs of [] => str "<empty>" | cs =>
             indent 3 (alignPrefix (map casee cs, "| "))
-      and decls ds = align (map decl ds)
-      and decl (n, args, exp) =
-         def (seq (str "val"::space::(map var (n::args))),
-              layout exp)
       and recdecls ds = align (map recdecl ds)
       and recdecl (n, args, exp) =
          def (seq (str "rec"::space::(map var (n::args))),

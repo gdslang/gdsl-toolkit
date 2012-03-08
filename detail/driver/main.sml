@@ -26,8 +26,7 @@ structure Main = struct
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          TypeInference.run (tInfo, ast) >>= (fn tys =>
          (TextIO.print (TypeInference.showTable tys);
-         SplitDeclarations.run ast >>=
-         InlineDecodePatterns.run
+         Desugar.run ast
          ))))
 
       fun runTc fp = let

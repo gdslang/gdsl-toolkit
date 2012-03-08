@@ -1,22 +1,18 @@
 
 structure Retokenize : sig
    val run:
-      DesugaredTree.IRSpec.t ->
-         DesugaredTree.IRSpec.t CompilationMonad.t
+      DesugaredTree.spec ->
+         DesugaredTree.spec CompilationMonad.t
 end = struct
 
    structure CM = CompilationMonad
    structure DT = DesugaredTree
-   open DT DT.Decode
 
-   val granularity = 8 
+   fun retokenize granularity ds = map (retok granularity) ds
 
-   fun retokenize pat =
-      case pat of
-         NAMED (n, pats, e) => NAMED (n, retokenizePats pats, e)
-       | TOP (pats, e) => TOP (retokenizePats pats, e)
+   and retok granularity (ps, e) = (retokPats granularity ps, e)
 
-   and retokenizePats pats = let
+   and retokPats granularity pats = let
       fun lp (p, len, tok, pats) =
          case p of
             [] =>
@@ -38,26 +34,26 @@ end = struct
       lp (pats, 0, [], [])
    end
 
-   fun dumpPre (os, spec) = DT.PP.prettyTo (os, spec)
-   fun dumpPost (os, spec) = DT.PP.prettyTo (os, spec)
-   fun pass t =
+   fun dump (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
+
+   fun pass spec =
       Spec.upd
-         (fn (vs, ds) => (vs, map retokenize ds)) t
+         (fn (vs, ds) =>
+            (vs,
+             SymMap.map
+               (retokenize
+                  (IntInf.toInt (Spec.get#granularity spec))) ds))
+         spec
 
    val pass =
       BasicControl.mkKeepPass
-         {passName="retokenizeDecodePatterns",
+         {passName="retokenize",
           registry=DesugarControl.registry,
           pass=pass,
           preExt="ast",
-          preOutput=dumpPre,
+          preOutput=dump,
           postExt="ast",
-          postOutput=dumpPost}
+          postOutput=dump}
 
-   fun run spec = let
-      open CompilationMonad
-      infix >>=
-   in
-      return (pass spec)
-   end
+   fun run spec = CM.return (pass spec)
 end

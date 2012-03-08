@@ -4,8 +4,9 @@ structure DesugarDecodeDeclarations = struct
    structure CM = CompilationMonad
    structure DT = DesugaredTree
    structure Set = IntRedBlackSet
+   structure Pat = DesugaredTree.Pat
 
-   open DT DT.Decode
+   open DT 
 
    fun insert (map, k, i) = let
       val s =
@@ -64,7 +65,16 @@ structure DesugarDecodeDeclarations = struct
       VS.foldli buildEquiv StringMap.empty decls
    end
 
-   fun desugarCases (decls: (DecodePattern.t list VS.slice * guarded) VS.slice) = let
+   fun desugar ds = let
+      fun lp (ds, acc) =
+         case ds of
+            [] => rev acc
+          | (toks, e)::ds => lp (ds, (toVec toks, e)::acc)
+   in
+      desugarCases (toVec (lp (ds, [])))
+   end
+
+   and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
       fun grabExp () = #2 (VS.sub (decls, 0))
       val bottom = 
          VS.length decls = 1 andalso
@@ -75,7 +85,7 @@ structure DesugarDecodeDeclarations = struct
             end
    in
       if bottom
-         then desugarGuarded (grabExp ())
+         then grabExp ()
       else
          let
             val (tok, bindTok) = consumeTok ()
@@ -92,7 +102,7 @@ structure DesugarDecodeDeclarations = struct
       val equiv = buildEquivClass decls
       
       fun genBindSlices indices = let
-         open DecodePattern
+         open DT.Pat
          fun grabSlices (i, acc) = let
             val (toks, e) = VS.sub (decls, i)
             fun grab (pats, offs, acc) =
@@ -100,8 +110,8 @@ structure DesugarDecodeDeclarations = struct
                   [] => acc
                 | pat::ps =>
                      case pat of
-                        BITSTR _ => grab (ps, offs + size pat, acc)
-                      | BIND (n, i) =>
+                        VEC _ => grab (ps, offs + size pat, acc)
+                      | BND (n, i) =>
                            grab
                               (ps,
                                offs + size pat,
@@ -133,50 +143,42 @@ structure DesugarDecodeDeclarations = struct
       end
 
       fun buildMatch (pat, indices, pats) =
-         (Pat.BIT pat, stepDown indices)::pats
+         (Core.Pat.BIT pat, stepDown indices)::pats
    in
       StringMap.foldli buildMatch [] equiv
    end
-
-   and desugarGuarded guarded =
-      case guarded of
-         Sum.INL e => e
-       | Sum.INR es => (* TODO: translate guards *) #2 (hd es)
 end
 
 structure DesugarToplevel : sig
    val run:
-      DesugaredTree.IRSpec.t ->
-         DesugaredTree.IRSpec.t CompilationMonad.t
+      DesugaredTree.spec ->
+         DesugaredTree.spec CompilationMonad.t
 end = struct
 
-   structure VS = VectorSlice
    structure CM = CompilationMonad
    structure DT = DesugaredTree
-   structure Set = IntRedBlackSet
 
-   open DT
+   fun desugar ds =
+      List.map
+         (fn (n, ds) =>
+            (n, [], DesugarDecodeDeclarations.desugar ds))
+         (SymMap.listItemsi ds)
 
-   val decode = Atom.atom "decode"
-   fun decodeFn () = (VarInfo.lookup (!SymbolTables.varTable, decode))
+   fun dumpPre (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
+   fun dumpPost (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
 
-   val desugar = DesugarDecodeDeclarations.desugarCases o grabToplevel
-
-   fun dumpPre (os, spec) = DT.PP.prettyTo (os, spec) 
-   fun dumpPost (os, spec) = DT.PP.prettyTo (os, spec) 
    fun pass t =
       Spec.upd
          (fn (vs, ds) =>
             let
-               val e = desugar ds
-               val d = decodeFn ()
+               val vss = desugar ds
             in
-               (vs@[Decl.REC (d, [], e)], ds)
+               (vs@vss, ds)
             end) t
       
    val pass =
       BasicControl.mkKeepPass
-         {passName="desugarToplevelDecodeDeclarations",
+         {passName="desugarSyntax",
           registry=DesugarControl.registry,
           pass=pass,
           preExt="ast",
@@ -185,7 +187,7 @@ end = struct
           postOutput=dumpPost}
 
    fun run spec = let
-      open CompilationMonad
+      open CM
       infix >>=
    in
       return (pass spec)
