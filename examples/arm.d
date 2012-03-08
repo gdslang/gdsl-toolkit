@@ -68,9 +68,10 @@ val cond ['1100'] = update @{cond=GT}
 val cond ['1101'] = update @{cond=LE}
 val cond ['1110'] = update @{cond=NONE}
 
-val shift imm ty rm = LSL
+val shiftType imm ty rm = LSL
 
-val shift ['imm:5 ty:2 0 rm:4'] = update @{shift=shift imm ty rm}
+val shift ['imm:5 ty:2 0 rm:4'] =
+   update @{shift=shiftType imm ty rm}
 
 val build i = do
    c <- query $cond
@@ -84,5 +85,5 @@ val buildWithShift i = do
 val main ['cond 0010000 s:1 rn:4 rd:4 imm:12'] =
    build AND {s=s, op1=reg rn, op2=reg rd, op3=IMM12 imm}
 val main ['cond 0000101 s:1 rn:4 rd:4 shift'] =
-   build ADC {s=s, op1=reg rn, op2=reg rd}
+   buildWithShift ADC {s=s, op1=reg rn, op2=reg rd}
 
