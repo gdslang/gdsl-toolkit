@@ -1,5 +1,5 @@
 
-structure DesugarDecodeDeclarations = struct
+structure DesugarDecode = struct
    structure VS = VectorSlice
    structure CM = CompilationMonad
    structure DT = DesugaredTree
@@ -149,7 +149,7 @@ structure DesugarDecodeDeclarations = struct
    end
 end
 
-structure DesugarToplevel : sig
+structure DesugarDecodeSyntax : sig
    val run:
       DesugaredTree.spec ->
          DesugaredTree.spec CompilationMonad.t
@@ -161,7 +161,7 @@ end = struct
    fun desugar ds =
       List.map
          (fn (n, ds) =>
-            (n, [], DesugarDecodeDeclarations.desugar ds))
+            (n, [], DesugarDecode.desugar ds))
          (SymMap.listItemsi ds)
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
@@ -178,7 +178,7 @@ end = struct
       
    val pass =
       BasicControl.mkKeepPass
-         {passName="desugarSyntax",
+         {passName="desugarDecodeSyntax",
           registry=DesugarControl.registry,
           pass=pass,
           preExt="ast",

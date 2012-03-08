@@ -22,15 +22,18 @@ structure Spec = struct
 
    structure PP = struct
       open Layout Pretty
-      val dots = str "<..>"
+      val dots = str ".."
+      val is = seq [space, str "=", space]
       fun spec pA t =
-         record
-            [("granularity", int (get#granularity t)),
-             ("exports", dots),
-             ("state", dots),
-             ("typealias", dots),
-             ("datatypes", dots),
-             ("declarations", pA (get#declarations t))]
+         align
+            [seq [str "granularity", is, int (get#granularity t)],
+             seq [str "export", is, dots],
+             seq [str "state", is, dots],
+             seq [str "typealiases", is, dots],
+             seq [str "datatypes", is, dots],
+             seq [str "declarations", is],
+             pA (get#declarations t)]
+
       fun anySpec t = spec (fn _ => dots) t
    end
 end

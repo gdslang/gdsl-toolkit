@@ -271,7 +271,7 @@ end = struct
 
    val resolveSymbolPass =
       BasicControl.mkTracePassSimple
-         {passName="resolveSymbolPass",
+         {passName="resolveSymbols",
           pass=resolveSymbolPass}
 
    fun run spec = let

@@ -8,10 +8,11 @@ structure SplitDeclarations : sig
    type decode = pat list * (exp, (exp * exp) list) Sum.t
    type o = (value list * decode list SymMap.map) Spec.t
    val run: i -> o CompilationMonad.t
+   val layout: (value list * decode list SymMap.map) -> Layout.layout
 end = struct
 
    structure CM = CompilationMonad
-   structure T = SpecAbstractTree
+   structure AST = SpecAbstractTree
    type sym = VarInfo.symid
    type i = SpecAbstractTree.specification
    type pat = SpecAbstractTree.decodepat
@@ -21,7 +22,7 @@ end = struct
    type o = (value list * decode list SymMap.map) Spec.t
 
    fun split {span, tree} = let
-      open T
+      open AST
       val granularity = ref (~1: IntInf.int)
       val state = ref [[]]
       val typealias = ref []
@@ -58,8 +59,24 @@ end = struct
           declarations= (rev (!valuedecls), !decodedecls)}
    end
 
-   fun dumpPre (os, spec) = T.PP.prettyTo (os, spec)
-   fun dumpPost (os, spec) = Pretty.prettyTo (os, Spec.PP.anySpec spec)
+   fun dumpPre (os, spec) = AST.PP.prettyTo (os, spec)
+
+   fun layout (vs, ds) = let
+      open Layout Pretty
+      fun dec n (pats, e) =
+         AST.PP.decl
+            (AST.DECODEdecl (n, pats, e))
+      fun decs (n, ds, acc) = map (dec n) ds @ acc
+      fun letrec (n, pats, e) =
+         AST.PP.decl
+            (AST.LETRECdecl (n, pats, e))
+   in
+      align
+         [align (SymMap.foldli decs [] ds),
+          align (map letrec vs)]
+   end
+
+   fun dumpPost (os, spec) = Pretty.prettyTo (os, Spec.PP.spec layout spec)
 
    val split =
       BasicControl.mkKeepPass
