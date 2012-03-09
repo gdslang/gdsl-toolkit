@@ -43,18 +43,24 @@ structure Core = struct
       withtype decl = sym * sym list * t
    end
 
+   structure Spec = struct
+      open Spec
+      type t = Exp.decl list Spec.t
+   end
+
    structure PP = struct
       open Layout Pretty Exp Pat
       fun var sym = SpecAbstractTree.PP.var_use sym
       fun con sym = SpecAbstractTree.PP.con_use sym
       fun fld sym = SpecAbstractTree.PP.field_use sym
-
+      val is = seq [space, str "=", space]
+      val inn = seq [space, str "in"]
       fun layout exp = let open Exp in
          case exp of
             LETVAL (n, e, body) =>
-               align 
-                  [def (seq [str "letval", space, var n], layout e),
-                   align [str "in", indent 3 (layout body)]]
+               align
+                  [seq [str "letval", space, var n, is, layout e, inn],
+                   indent 3 (layout body)]
           | LETREC (ds, e) =>
                align 
                   [align [str "letrec", indent 3 (recdecls ds)],
@@ -98,7 +104,7 @@ structure Core = struct
             indent 3 (alignPrefix (map casee cs, "| "))
       and recdecls ds = align (map recdecl ds)
       and recdecl (n, args, exp) =
-         def (seq (str "rec"::space::(map var (n::args))),
+         def (seq [str "rec", space, seq (separate (map var (n::args), " "))],
               layout exp)
       and seqexp s =
          case s of
@@ -114,5 +120,6 @@ structure Core = struct
           | CON (c, NONE) => seq [str "`", con c]
           | ID id => var id
           | WILD => str "_"
+      val spec = Spec.PP.spec recdecls
    end
 end

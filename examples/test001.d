@@ -54,7 +54,7 @@ val mov o1 o2 = do
    return MOV {op1=op1, op2=op2}
 end
 
-val main [0x83 /0] =
+val main [0x83 /0]
  | $rexw = mov r64 r/m64 
 
 val main [0x83 /1] = return OR

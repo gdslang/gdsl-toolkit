@@ -2,7 +2,7 @@
 structure Desugar : sig
    val run:
       SpecAbstractTree.specification ->
-         DesugaredTree.spec CompilationMonad.t
+         Core.Spec.t CompilationMonad.t
 end = struct
 
    structure CM = CompilationMonad
@@ -18,10 +18,11 @@ end = struct
       InlineDecodePatterns.run >>=
       Detokenize.run >>=
       Retokenize.run >>=
-      DesugarDecodeSyntax.run
+      DesugarDecodeSyntax.run >>=
+      DesugarMonadicSequences.run
 
    fun dumpPre (os, (_, spec)) = AT.PP.prettyTo (os, spec)
-   fun dumpPost (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
+   fun dumpPost (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun pass (s, spec) = CM.run s (all spec)
 
    val desugar =

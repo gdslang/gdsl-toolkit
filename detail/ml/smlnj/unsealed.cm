@@ -48,5 +48,6 @@ group is
    ../../desugar/detokenize.sml
    ../../desugar/retokenize.sml
    ../../desugar/desugar-decode-syntax.sml
+   ../../desugar/desugar-monadic-sequences.sml
    ../../desugar/desugar.sml
    ../../driver/main.sml

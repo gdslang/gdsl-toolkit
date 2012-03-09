@@ -152,7 +152,7 @@ end
 structure DesugarDecodeSyntax : sig
    val run:
       DesugaredTree.spec ->
-         DesugaredTree.spec CompilationMonad.t
+         Core.Spec.t CompilationMonad.t
 end = struct
 
    structure CM = CompilationMonad
@@ -165,7 +165,7 @@ end = struct
          (SymMap.listItemsi ds)
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
-   fun dumpPost (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
+   fun dumpPost (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)
 
    fun pass t =
       Spec.upd
@@ -173,7 +173,7 @@ end = struct
             let
                val vss = desugar ds
             in
-               (vs@vss, ds)
+               vs@vss
             end) t
       
    val pass =
@@ -186,10 +186,5 @@ end = struct
           postExt="ast",
           postOutput=dumpPost}
 
-   fun run spec = let
-      open CM
-      infix >>=
-   in
-      return (pass spec)
-   end
+   fun run spec = CM.return (pass spec)
 end
