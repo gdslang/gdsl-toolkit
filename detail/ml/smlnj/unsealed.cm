@@ -50,4 +50,5 @@ group is
    ../../desugar/desugar-decode-syntax.sml
    ../../desugar/desugar-monadic-sequences.sml
    ../../desugar/desugar.sml
+   ../../cps/cps.sml
    ../../driver/main.sml

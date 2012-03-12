@@ -15,6 +15,7 @@ structure DesugaredTree = DesugaredTree
 structure Core = Core
 structure SymbolTables = SymbolTables
 structure SymbolTable = SymbolTable
+structure CPS = CPS
 structure VarInfo = VarInfo
 structure Types = Types
 structure BooleanDomain = BooleanDomain

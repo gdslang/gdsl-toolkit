@@ -83,15 +83,27 @@ end = struct
          handle SymbolAlreadyDefined =>
             FI.lookup (!ST.fieldTable, atom)
 
-      (* define a first traversal that registers all let rec bindings *)
-
+      (* define a first traversal that registers:
+       *   - type synonyms
+       *   - datatype declarations including constructors
+       *   - toplevel val bindings
+       *)
       fun regDecl s decl =
          case decl of
             PT.MARKdecl {span, tree} => regDecl span tree
           | PT.EXPORTdecl es => app (fn e => regVar s (#tree e)) es
           | PT.DECODEdecl d => regDecodeDecl s d
           | PT.LETRECdecl d => regLetrecDecl s d
+          | PT.DATATYPEdecl (n, ds) => (regTy s n; app (regCon s) ds)
+          | PT.TYPEdecl (n, _) => regTy s n 
           | _ => ()
+
+      and regTy s n =
+         case VI.find (!ST.typeTable, n) of
+            NONE => ignore (newType (s, n))
+          | _ => ()
+
+      and regCon s (c, _) = ignore (newCon (s, c))
 
       and regVar s n =
          case VI.find (!ST.varTable, n) of
@@ -116,12 +128,12 @@ end = struct
           | PT.STATEdecl l =>
                AST.STATEdecl
                   (List.map
-                     (fn (v,t,e) => (newVar (s,v), convTy s t, convExp s e)) l)
+                     (fn (v,t,e) => (newField (s,v), convTy s t, convExp s e)) l)
           | PT.TYPEdecl (tb, t) =>
-               AST.TYPEdecl (newTSyn (s,tb), convTy s t)
+               AST.TYPEdecl (useType (s,{span=s, tree=tb}), convTy s t)
           | PT.DATATYPEdecl (tb, l) =>
                AST.DATATYPEdecl
-                  (newType (s, tb), List.map (convCondecl s) l)
+                  (useType (s, {span=s, tree=tb}), List.map (convCondecl s) l)
           | PT.DECODEdecl dd => AST.DECODEdecl (convDecodeDecl s dd)
           | PT.LETRECdecl vd => AST.LETRECdecl (convLetrecDecl s vd)
 
@@ -164,7 +176,7 @@ end = struct
       end
 
       and convCondecl s (c, to) =
-         (newCon (s, c), case to of NONE => NONE | SOME t => SOME (convTy s t))
+         (useCon (s, {span=s, tree=c}), case to of NONE => NONE | SOME t => SOME (convTy s t))
 
       and convTy s t =
          case t of
