@@ -282,12 +282,12 @@ val r/m-without-sib reg = do
     | '01':
          do
             i <- imm8;
-            mem (SUM{a=reg rm, b=IMM8 i})
+            mem (SUM{a=reg rm, b=i})
          end
     | '10':
          do
             i <- imm32;
-            mem (SUM{a=reg rm, b=IMM8 i})
+            mem (SUM{a=reg rm, b=i})
          end
     | '11': return (reg rm)
    end
@@ -322,37 +322,22 @@ val xmm128 = r/ xmm
 
 val moffs8 = do
    i <- imm8;
-   mem (IMM8 i)
+   mem i
 end
 
 val moffs16 = do
    i <- imm16;
-   mem (IMM16 i)
+   mem i
 end
 
 val moffs32 = do
    i <- imm32;
-   mem (IMM32 i)
+   mem i
 end
 
 val moffs64 = do
    i <- imm64;
-   mem (IMM64 i)
-end
-
-val imm8/ = do
-   i <- imm8;
-   return (IMM8 i)
-end
-
-val imm16/ = do
-   i <- imm16;
-   return (IMM16 i)
-end
-
-val imm32/ = do
-   i <- imm32;
-   return (IMM32 i)
+   mem i
 end
 
 val binop cons giveOp1 giveOp2 = do
@@ -409,42 +394,42 @@ val one-byte-opcodes [0xa2] = mov moffs8 (return (REG AL))
 val one-byte-opcodes [0xa3]
  | $addrsz = mov moffs16 (return (REG AX))
  | otherwise = mov moffs32 (return (REG EAX))
-val one-byte-opcodes [0xb0] = mov (return (REG AL)) imm8/
-val one-byte-opcodes [0xb1] = mov (return (REG CL)) imm8/
-val one-byte-opcodes [0xb2] = mov (return (REG DL)) imm8/
-val one-byte-opcodes [0xb3] = mov (return (REG BL)) imm8/
-val one-byte-opcodes [0xb4] = mov (return (REG AH)) imm8/
-val one-byte-opcodes [0xb5] = mov (return (REG CH)) imm8/
-val one-byte-opcodes [0xb6] = mov (return (REG DH)) imm8/
-val one-byte-opcodes [0xb7] = mov (return (REG BH)) imm8/
+val one-byte-opcodes [0xb0] = mov (return (REG AL)) imm8
+val one-byte-opcodes [0xb1] = mov (return (REG CL)) imm8
+val one-byte-opcodes [0xb2] = mov (return (REG DL)) imm8
+val one-byte-opcodes [0xb3] = mov (return (REG BL)) imm8
+val one-byte-opcodes [0xb4] = mov (return (REG AH)) imm8
+val one-byte-opcodes [0xb5] = mov (return (REG CH)) imm8
+val one-byte-opcodes [0xb6] = mov (return (REG DH)) imm8
+val one-byte-opcodes [0xb7] = mov (return (REG BH)) imm8
 val one-byte-opcodes [0xb8]
- | $opndsz = mov (return (REG AX)) imm16/
- | otherwise = mov (return (REG EAX)) imm32/
+ | $opndsz = mov (return (REG AX)) imm16
+ | otherwise = mov (return (REG EAX)) imm32
 val one-byte-opcodes [0xb9]
- | $opndsz = mov (return (REG CX)) imm16/
- | otherwise = mov (return (REG ECX)) imm32/
+ | $opndsz = mov (return (REG CX)) imm16
+ | otherwise = mov (return (REG ECX)) imm32
 val one-byte-opcodes [0xba]
- | $opndsz = mov (return (REG DX)) imm16/
- | otherwise = mov (return (REG EDX)) imm32/
+ | $opndsz = mov (return (REG DX)) imm16
+ | otherwise = mov (return (REG EDX)) imm32
 val one-byte-opcodes [0xbb]
- | $opndsz = mov (return (REG BX)) imm16/
- | otherwise = mov (return (REG EBX)) imm32/
+ | $opndsz = mov (return (REG BX)) imm16
+ | otherwise = mov (return (REG EBX)) imm32
 val one-byte-opcodes [0xbc]
- | $opndsz = mov (return (REG SP)) imm16/
- | otherwise = mov (return (REG ESP)) imm32/
+ | $opndsz = mov (return (REG SP)) imm16
+ | otherwise = mov (return (REG ESP)) imm32
 val one-byte-opcodes [0xbd]
- | $opndsz = mov (return (REG BP)) imm16/
- | otherwise = mov (return (REG EBP)) imm32/
+ | $opndsz = mov (return (REG BP)) imm16
+ | otherwise = mov (return (REG EBP)) imm32
 val one-byte-opcodes [0xbe]
- | $opndsz = mov (return (REG SI)) imm16/
- | otherwise = mov (return (REG ESI)) imm32/
+ | $opndsz = mov (return (REG SI)) imm16
+ | otherwise = mov (return (REG ESI)) imm32
 val one-byte-opcodes [0xbf]
- | $opndsz = mov (return (REG DI)) imm16/
- | otherwise = mov (return (REG EDI)) imm32/
-val one-byte-opcodes [0xC6 /0] = mov r/m8 imm8/
+ | $opndsz = mov (return (REG DI)) imm16
+ | otherwise = mov (return (REG EDI)) imm32
+val one-byte-opcodes [0xC6 /0] = mov r/m8 imm8
 val one-byte-opcodes [0xC7 /0]
- | $opndsz = mov r/m16 imm16/
- | otherwise = mov r/m32 imm32/
+ | $opndsz = mov r/m16 imm16
+ | otherwise = mov r/m32 imm32
 
 ## Two Byte Opcodes with Prefix 0x0f
 
