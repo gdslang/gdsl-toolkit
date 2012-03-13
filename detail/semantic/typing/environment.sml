@@ -82,6 +82,7 @@ structure Environment : sig
    val affectedFunctions : Substitutions.Substs * environment -> SymbolSet.set
    
    val toString : environment -> string
+   val toStringSI : environment * TVar.varmap -> string * TVar.varmap
    val topToString : environment -> string
    val kappaToStringSI : environment * TVar.varmap -> string * TVar.varmap
    
@@ -209,7 +210,7 @@ end = struct
 
       fun lookup (sym, (scs, bFun)) =
          let
-            fun getEnv ({bindInfo, typeVars = tv, version}::scs) = tv
+            fun getEnv ({bindInfo, typeVars = tv, version}::_) = tv
               | getEnv [] = TVar.empty
             fun l [] = raise InferenceBug
               | l ({bindInfo = KAPPA _, typeVars, version}::scs) = l scs
@@ -218,14 +219,14 @@ end = struct
                      (getEnv scs, SIMPLE { ty = ty})
                   else l scs
               | l ({bindInfo = GROUP bs, typeVars, version}::scs) =
-                  let fun lG [] = l scs
-                        | lG ({name, ty, width, uses}::bs) =
+                  let fun lG other [] = l scs
+                        | lG other ((b as {name, ty, width, uses})::bs) =
                            if ST.eq_symid (sym,name) then
-                              (getEnv scs,
+                              (varsOfBinding (GROUP (other @ bs), getEnv scs),
                               COMPOUND { ty = ty, width = width, uses = uses })
-                           else lG bs
+                           else lG (b :: other) bs
                   in
-                     lG bs
+                     lG [] bs
                   end
          in
             l scs
@@ -411,16 +412,45 @@ end = struct
          str
       end
    
-   fun topToString (s :: scs, bFun) = toString ([s], bFun)
-     | topToString ([], bFun) = ""
+   fun topToString env =
+      let
+         fun tts acc (sc :: scs, bFun) =
+            (case Scope.unwrap (sc :: scs, bFun) of
+                 (GROUP _, (_, bFun)) => toString (acc @ [sc], bFun)
+               | (_, env) => tts (acc @ [sc]) env) 
+           | tts acc ([], bFun) = toString (acc, bFun)
+      in
+         tts [] env
+      end
 
    fun kappaToStringSI (env, si) = (case Scope.unwrap env of
         (KAPPA {ty = t}, _) => showTypeSI (t,si)
       | _ => raise InferenceBug
    )
 
-   fun affectedFunctions tv = SymbolSet.empty
-   
+   fun affectedFunctions (substs, env) =
+      let
+         fun aF (ss, ([], _)) = ss
+           | aF (ss, env) = case Scope.unwrap env of
+              (KAPPA {ty}, env) => aF (ss, env)
+            | (SINGLE {name = n, ty = t}, env) => aF (ss, env)
+            | (GROUP l, env) =>
+            let
+               fun aFL (ss, []) = aF (ss, env)
+                 | aFL (ss, {name, ty = NONE, width, uses} :: l) = aFL (ss, l)
+                 | aFL (ss, {name = n, ty = SOME t, width, uses} :: l) =
+                     if isEmpty (substsFilter (substs,
+                        texpVarset (t,TVar.empty)))
+                     then aFL (ss, l)
+                     else aFL (SymbolSet.add' (n, ss), l)
+                        
+            in
+               aFL (ss, l)
+            end
+      in
+         aF (SymbolSet.empty, env)
+      end
+
    fun pushSymbol (sym, span, env) =
       (case Scope.lookup (sym,env) of
           (_, SIMPLE {ty = t}) => Scope.wrap (KAPPA {ty = t}, env)

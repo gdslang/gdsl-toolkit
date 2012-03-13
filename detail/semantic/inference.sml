@@ -123,8 +123,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                                          E.meet (envCall, envFun))
                   handle (S.UnificationFailure str) =>
                      (raiseError str; (S.emptySubsts, (envCall, envCall)))
-               val _ = TextIO.print ("***** substitutions: " ^ (fn (str,_) => str) (S.showSubstsSI (substs,TVar.emptyShowInfo)) ^ "\n")
-               val _ = TextIO.print ("before updating usage:\n" ^ E.toString env)
+               val (sStr, si) = S.showSubstsSI (substs,TVar.emptyShowInfo)
+               val _ = TextIO.print ("***** substitutions: " ^ sStr ^ " on function def\n")
+               val (eStr, _) = E.toStringSI (envFun,si)
+               val _ = TextIO.print ("before updating usage:\n" ^ eStr)
                val env = E.popToUsage (sym, s, env)
                val affectedSyms = E.affectedFunctions (substs,env)
             in
@@ -177,9 +179,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = List.foldl E.pushLambdaVar env args
          val env = infExp (st,env) rhs
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
-         (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
+         val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)
          val env = E.popToFunction (sym, env)
-         (*val _ = TextIO.print ("after popping fun:\n" ^ E.topToString env)*)
+         val _ = TextIO.print ("after popping fun: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)
       in
          checkUsages false (sym, env)
       end
@@ -262,20 +264,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp stenv (AST.BINARYexp (e1, opid,e2)) =
          infExp stenv (AST.APPLYexp (AST.APPLYexp (AST.IDexp opid, e1), e2))
      | infExp (st,env) (AST.APPLYexp (e1,e2)) =
-      let
+      let                                      
          val envFun = infExp (st,env) e1
-         val _ = TextIO.print ("**** app func:\n" ^ E.toString envFun)
+         val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)
          val envArg = infExp (st,env) e2
-         val _ = TextIO.print ("**** app arg:\n" ^ E.toString envArg)
+         val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)
          val envArg = E.pushTop envArg
          val envArg = E.reduceToFunction envArg
-         val _ = TextIO.print ("**** app turning arg:\n" ^ E.toString envArg)
+         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArg)*)
          val (envFun, envArg) = E.meet (envFun, envArg)
          val _ = E.genFlow (envFun, envArg) (*this is flow of result*)
          val env = E.reduceToResult envFun
-         val _ = TextIO.print ("**** app result:\n" ^ E.toString env)
+         (*val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)*)
       in
-         env
+         env                                                         
       end
         
      | infExp (st,env) (AST.RECORDexp l) =
