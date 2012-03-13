@@ -26,7 +26,7 @@ structure Main = struct
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          TypeInference.run (tInfo, ast) >>= (fn tys =>
          (TextIO.print (TypeInference.showTable tys);
-         Desugar.run ast
+         return ()
          ))))
 
       fun runTc fp = let

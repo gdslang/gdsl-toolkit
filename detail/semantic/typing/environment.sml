@@ -3,6 +3,8 @@ structure Environment : sig
 
    structure SpanMap : ORD_MAP where type Key.ord_key = Error.span
 
+   structure SymbolSet : ORD_SET where type Key.ord_key = SymbolTable.symid
+   
    datatype symbol_type =
         VALUE of {symType : Types.texp}
       | DECODE of {symType : Types.texp, width : Types.texp}
@@ -29,7 +31,7 @@ structure Environment : sig
    (*given an occurrence of a symbol at a position, push its type onto the
    stack and return if an instance of this type must be used*)
    val pushSymbol : VarInfo.symid * Error.span * environment -> environment
-   
+
    val getUsages : VarInfo.symid * environment -> Error.span list
    
    (*stack: [...,t] -> [...] and type of f for call-site s is set to t*)
@@ -74,6 +76,10 @@ structure Environment : sig
    (*returns the set of substitutions for the first environment, this is empty
    if the the first environment is more specific (smaller) than the second*)
    val subseteq : environment * environment -> Substitutions.Substs
+
+   (*query all function symbols in binding groups that would be modified by
+   the given substitutions*)
+   val affectedFunctions : Substitutions.Substs * environment -> SymbolSet.set
    
    val toString : environment -> string
    val topToString : environment -> string
@@ -332,11 +338,12 @@ end = struct
    fun pushSingle (sym, t, env) = Scope.wrap (SINGLE {name = sym, ty = t},env)
    
 
-   structure SISet = RedBlackSetFn (
+   structure SymbolSet = RedBlackSetFn (
       struct
          type ord_key = SymbolTable.symid
          val compare = SymbolTable.compare_symid
-      end)           
+      end)
+          
    fun pushGroup (syms, env) = 
       let
          val (funs, nonFuns) = List.partition (fn (s,dec) => not dec) syms
@@ -344,7 +351,7 @@ end = struct
             (fn (s,_) => {name = s, ty = NONE, width = NONE, uses = SpanMap.empty})
             funs
          val nonFunSyms =
-            SISet.listItems (SISet.fromList (List.map (fn (s,_) => s) nonFuns))
+            SymbolSet.listItems (SymbolSet.fromList (List.map (fn (s,_) => s) nonFuns))
          val nonFunDefs = List.map
             (fn s => {name = s, ty = NONE, width =
               SOME (VAR (TVar.freshTVar (), BD.freshBVar ())),
@@ -412,6 +419,8 @@ end = struct
       | _ => raise InferenceBug
    )
 
+   fun affectedFunctions tv = SymbolSet.empty
+   
    fun pushSymbol (sym, span, env) =
       (case Scope.lookup (sym,env) of
           (_, SIMPLE {ty = t}) => Scope.wrap (KAPPA {ty = t}, env)
