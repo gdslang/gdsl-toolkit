@@ -77,6 +77,39 @@ datatype opnd =
  | SUM of {a:opnd, b:opnd}
  | SCALE of {imm:2, opnd:opnd}
 
+val al = return (REG AL)
+val ah = return (REG AH)
+val ax = return (REG AX)
+val eax = return (REG EAX)
+val rax = return (REG RAX)
+val bl = return (REG BL)
+val bh = return (REG BH)
+val bx = return (REG BX)
+val ebx = return (REG EBX)
+val rbx = return (REG RBX)
+val cl = return (REG CL)
+val ch = return (REG CH)
+val cx = return (REG CX)
+val ecx = return (REG ECX)
+val rcx = return (REG RCX)
+val dl = return (REG DL)
+val dh = return (REG DH)
+val dx = return (REG DX)
+val edx = return (REG EDX)
+val rdx = return (REG RDX)
+val sp = return (REG SP)
+val esp = return (REG ESP)
+val rsp = return (REG RSP)
+val bp = return (REG BP)
+val ebp = return (REG EBP)
+val rbp = return (REG RBP)
+val si = return (REG SI)
+val esi = return (REG ESI)
+val rsi = return (REG RSI)
+val di = return (REG DI)
+val edi = return (REG EDI)
+val rdi = return (REG RDI)
+
 # A type alias used for instructions taking two arguments
 type binop = {opnd1:opnd, opnd2:opnd}
 
@@ -377,11 +410,11 @@ val main [] = one-byte-opcode
 
 ### MOV Vol 2A 3-643
 
-val one-byte-opcode [0x04] = add (return (REG AL)) imm8
+val one-byte-opcode [0x04] = add al imm8
 val one-byte-opcode [0x05]
-   | $rexw = add (return (REG RAX)) imm64
-   | $opndsz = add (return (REG RAX)) imm32
-   | otherwise = add (return (REG RAX)) imm16
+   | $rexw = add rax imm64
+   | $opndsz = add rax imm32
+   | otherwise = add rax imm16
 val one-byte-opcode [0x80 /0] = r/m8 imm8
 val one-byte-opcode [0x81 /0]
    | $rexw = add r/m64 imm64
@@ -413,46 +446,46 @@ val one-byte-opcode [0x8b /r]
  | otherwise = mov r32 r/m32
 val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3)
 val one-byte-opcode [0x8e /r] = mov (r/ sreg3) r/m16
-val one-byte-opcode [0xa0] = mov (return (REG AL)) moffs8 
+val one-byte-opcode [0xa0] = mov al moffs8 
 val one-byte-opcode [0xa1]
- | $addrsz = mov (return (REG AX)) moffs16
- | otherwise = mov (return (REG EAX)) moffs32
-val one-byte-opcode [0xa2] = mov moffs8 (return (REG AL))
+ | $addrsz = mov ax moffs16
+ | otherwise = mov eax moffs32
+val one-byte-opcode [0xa2] = mov moffs8 al
 val one-byte-opcode [0xa3]
- | $addrsz = mov moffs16 (return (REG AX))
- | otherwise = mov moffs32 (return (REG EAX))
-val one-byte-opcode [0xb0] = mov (return (REG AL)) imm8
-val one-byte-opcode [0xb1] = mov (return (REG CL)) imm8
-val one-byte-opcode [0xb2] = mov (return (REG DL)) imm8
-val one-byte-opcode [0xb3] = mov (return (REG BL)) imm8
-val one-byte-opcode [0xb4] = mov (return (REG AH)) imm8
-val one-byte-opcode [0xb5] = mov (return (REG CH)) imm8
-val one-byte-opcode [0xb6] = mov (return (REG DH)) imm8
-val one-byte-opcode [0xb7] = mov (return (REG BH)) imm8
+ | $addrsz = mov moffs16 ax
+ | otherwise = mov moffs32 eax
+val one-byte-opcode [0xb0] = mov al imm8
+val one-byte-opcode [0xb1] = mov cl imm8
+val one-byte-opcode [0xb2] = mov dl imm8
+val one-byte-opcode [0xb3] = mov bl imm8
+val one-byte-opcode [0xb4] = mov ah imm8
+val one-byte-opcode [0xb5] = mov ch imm8
+val one-byte-opcode [0xb6] = mov dh imm8
+val one-byte-opcode [0xb7] = mov bh imm8
 val one-byte-opcode [0xb8]
- | $opndsz = mov (return (REG AX)) imm16
- | otherwise = mov (return (REG EAX)) imm32
+ | $opndsz = mov ax imm16
+ | otherwise = mov eax imm32
 val one-byte-opcode [0xb9]
- | $opndsz = mov (return (REG CX)) imm16
- | otherwise = mov (return (REG ECX)) imm32
+ | $opndsz = mov cx imm16
+ | otherwise = mov ecx imm32
 val one-byte-opcode [0xba]
- | $opndsz = mov (return (REG DX)) imm16
- | otherwise = mov (return (REG EDX)) imm32
+ | $opndsz = mov dx imm16
+ | otherwise = mov edx imm32
 val one-byte-opcode [0xbb]
- | $opndsz = mov (return (REG BX)) imm16
- | otherwise = mov (return (REG EBX)) imm32
+ | $opndsz = mov bx imm16
+ | otherwise = mov ebx imm32
 val one-byte-opcode [0xbc]
- | $opndsz = mov (return (REG SP)) imm16
- | otherwise = mov (return (REG ESP)) imm32
+ | $opndsz = mov sp imm16
+ | otherwise = mov esp imm32
 val one-byte-opcode [0xbd]
- | $opndsz = mov (return (REG BP)) imm16
- | otherwise = mov (return (REG EBP)) imm32
+ | $opndsz = mov bp imm16
+ | otherwise = mov ebp imm32
 val one-byte-opcode [0xbe]
- | $opndsz = mov (return (REG SI)) imm16
- | otherwise = mov (return (REG ESI)) imm32
+ | $opndsz = mov si imm16
+ | otherwise = mov esi imm32
 val one-byte-opcode [0xbf]
- | $opndsz = mov (return (REG DI)) imm16
- | otherwise = mov (return (REG EDI)) imm32
+ | $opndsz = mov di imm16
+ | otherwise = mov edi imm32
 val one-byte-opcode [0xC6 /0] = mov r/m8 imm8
 val one-byte-opcode [0xC7 /0]
  | $opndsz = mov r/m16 imm16
