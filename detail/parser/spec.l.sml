@@ -7,83 +7,63 @@ STRING | COMMENT | BITPATNUM | BITPAT | INITIAL
 
 
 
-    structure T = SpecTokens
+   structure T = SpecTokens
+   type lex_result = T.token
 
-  (* some type lex_result is necessitated by ml-ulex *)
-    type lex_result = T.token
+   (* used for keeping track of comment depth *)
+   val depth = ref 0
 
-  (* the depth int ref will be used for keeping track of comment depth *)
-    val depth = ref 0
+   (* list of string fragments to concatenate *)
+   val buf : string list ref = ref []
 
-  (* list of string fragments to concatenate *)
-    val buf : string list ref = ref []
+   (* add a string to the buffer *)
+   fun addStr s = (buf := s :: !buf)
 
-  (* add a string to the buffer *)
-    fun addStr s = (buf := s :: !buf)
+   (* make a FLOAT token from a substring *)
+   fun mkFloat ss = let
+	   val (isNeg, rest) =
+         (case Substring.getc ss of
+            SOME(#"-", r) => (true, r)
+		    | SOME(#"~", r) => (true, r)
+		    | _ => (false, ss))
+	   val (whole, rest) = Substring.splitl Char.isDigit rest
+	   val rest = Substring.triml 1 rest (* remove "." *)
+	   val (frac, rest) = Substring.splitl Char.isDigit rest
+	   val exp =
+         if Substring.isEmpty rest
+		      then 0
+		   else
+            let
+		         val rest = Substring.triml 1 rest (* remove "e" or "E" *)
+		      in
+		         #1(valOf(Int.scan StringCvt.DEC Substring.getc rest))
+		      end
+   in
+	    T.FLOAT
+         (FloatLit.float
+            {isNeg = isNeg,
+		       whole = Substring.string whole,
+		       frac = Substring.string frac,
+		       exp = exp})
+	end
 
-  (* make a FLOAT token from a substring *)
-    fun mkFloat ss = let
-	  val (isNeg, rest) = (case Substring.getc ss
-		 of SOME(#"-", r) => (true, r)
-		  | SOME(#"~", r) => (true, r)
-		  | _ => (false, ss)
-		(* end case *))
-	  val (whole, rest) = Substring.splitl Char.isDigit rest
-	  val rest = Substring.triml 1 rest (* remove "." *)
-	  val (frac, rest) = Substring.splitl Char.isDigit rest
-	  val exp = if Substring.isEmpty rest
-		then 0
-		else let
-		  val rest = Substring.triml 1 rest (* remove "e" or "E" *)
-		  in
-		    #1(valOf(Int.scan StringCvt.DEC Substring.getc rest))
-		  end
-	  in
-	    T.FLOAT(FloatLit.float{
-		isNeg = isNeg,
-		whole = Substring.string whole,
-		frac = Substring.string frac,
-		exp = exp
-	      })
-	  end
+   (* scan a number from a hexidecimal string *)
+   val fromHexString = valOf o (StringCvt.scanString (IntInf.scan StringCvt.HEX))
+   (* FIXME: the above code doesn't work in SML/NJ; here is a work around *)
+   fun fromHexString s = let
+      val SOME(n, _) =
+         IntInf.scan
+            StringCvt.HEX
+            Substring.getc
+	         (Substring.triml 2 (Substring.full s))
+   in
+	   n
+   end
 
-  (* scan a number from a hexidecimal string *)
-    val fromHexString = valOf o (StringCvt.scanString (IntInf.scan StringCvt.HEX))
-(* FIXME: the above code doesn't work in SML/NJ; here is a work around *)
-fun fromHexString s = let
-      val SOME(n, _) = IntInf.scan StringCvt.HEX Substring.getc
-	    (Substring.triml 2 (Substring.full s))
-      in
-	n
-      end
+   fun eof () = T.EOF
 
-  (* convert a HLOp ID to an atom *)
-    fun cvtHLOpId id = Atom.atom(String.extract(id, 1, NONE))
-
-  (* split a qualified ID up into its prefix and id parts *)
-    fun makeQualifiedId cvtId id = let
-	  fun revMap ([], l) = l
-	    | revMap (x::xs, l) = revMap(xs, Atom.atom x :: l)
-	  in
-	    case List.rev (String.tokens (fn c => c = #".") id)
-	      of (id::path) => (revMap (path, []), cvtId id)
-	       | _ => raise Fail "bogus qualified ID"
-	    (* end case *)
-	  end
-
-    val mkQId = makeQualifiedId Atom.atom
-    val mkQHLOpId = makeQualifiedId cvtHLOpId
-
-  (* eof : unit -> lex_result *)
-  (* ml-ulex requires this as well *)
-    fun eof () = T.EOF
-
-  (* count the nesting depth of "(" inside primcode blocks *)
-    val primDepth = ref 0
-    fun inPrimCode () = (!primDepth > 0)
-    fun primPush () = (primDepth := !primDepth + 1)
-    fun primPop () = let val p = !primDepth-1 in primDepth := p; (p > 0) end
-    fun mkString() = T.STRING (String.concat(List.rev (!buf)))
+   (* count the nesting depth of "(" inside primcode blocks *)
+   fun mkString() = T.STRING (String.concat(List.rev (!buf)))
 
 
       end
@@ -186,9 +166,9 @@ fun fromHexString s = let
 (0w123,0w123,70),
 (0w124,0w124,71),
 (0w125,0w125,72),
-(0w126,0w126,73)], []), ([], [64]), ([(0w32,0w33,14),
+(0w126,0w126,73)], []), ([], [63]), ([(0w32,0w33,14),
 (0w35,0w91,14),
-(0w93,0w126,14)], [61, 64]), ([], [62, 64]), ([(0w0,0w33,9),
+(0w93,0w126,14)], [60, 63]), ([], [61, 63]), ([(0w0,0w33,9),
 (0w35,0w47,9),
 (0w58,0w91,9),
 (0w93,0w96,9),
@@ -206,19 +186,19 @@ fun fromHexString s = let
 (0w114,0w114,10),
 (0w116,0w116,10),
 (0w118,0w118,10),
-(0w48,0w57,11)], [64]), ([], [63]), ([], [60, 63]), ([(0w48,0w57,12)], [63]), ([(0w48,0w57,13)], []), ([], [60]), ([(0w32,0w33,14),
+(0w48,0w57,11)], [63]), ([], [62]), ([], [59, 62]), ([(0w48,0w57,12)], [62]), ([(0w48,0w57,13)], []), ([], [59]), ([(0w32,0w33,14),
 (0w35,0w91,14),
-(0w93,0w126,14)], [61]), ([], [67]), ([(0w42,0w42,19)], [67]), ([(0w41,0w41,18)], [67]), ([], [66]), ([], [65]), ([], [68]), ([], [48, 68]), ([], [44, 68]), ([(0w48,0w57,24)], [52, 68]), ([(0w48,0w57,24)], [52]), ([], [47, 68]), ([(0w46,0w46,30),
-(0w48,0w49,30)], [45, 68]), ([(0w45,0w45,29),
+(0w93,0w126,14)], [60]), ([], [66]), ([(0w42,0w42,19)], [66]), ([(0w41,0w41,18)], [66]), ([], [65]), ([], [64]), ([], [67]), ([], [46, 67]), ([], [42, 67]), ([(0w48,0w57,24)], [50, 67]), ([(0w48,0w57,24)], [50]), ([], [45, 67]), ([(0w46,0w46,30),
+(0w48,0w49,30)], [43, 67]), ([(0w45,0w45,29),
 (0w47,0w57,29),
 (0w65,0w90,29),
 (0w95,0w95,29),
-(0w97,0w122,29)], [46, 68]), ([], [43, 68]), ([(0w45,0w45,29),
+(0w97,0w122,29)], [44, 67]), ([], [41, 67]), ([(0w45,0w45,29),
 (0w47,0w57,29),
 (0w65,0w90,29),
 (0w95,0w95,29),
-(0w97,0w122,29)], [46]), ([(0w46,0w46,30),
-(0w48,0w49,30)], [45]), ([], [56, 68]), ([(0w33,0w33,74),
+(0w97,0w122,29)], [44]), ([(0w46,0w46,30),
+(0w48,0w49,30)], [43]), ([], [54, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -229,32 +209,33 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [51, 68]), ([], [58, 68]), ([(0w0,0w9,152),
-(0w11,0w32,152),
-(0w34,0w34,152),
-(0w39,0w41,152),
-(0w44,0w44,152),
-(0w46,0w46,152),
-(0w48,0w57,152),
-(0w59,0w59,152),
-(0w65,0w91,152),
-(0w93,0w93,152),
-(0w95,0w95,152),
-(0w97,0w123,152),
-(0w125,0w125,152),
-(0w127,0w2147483647,152),
-(0w33,0w33,153),
-(0w35,0w38,153),
-(0w42,0w43,153),
-(0w45,0w45,153),
-(0w47,0w47,153),
-(0w58,0w58,153),
-(0w60,0w64,153),
-(0w92,0w92,153),
-(0w94,0w94,153),
-(0w96,0w96,153),
-(0w124,0w124,153),
-(0w126,0w126,153)], [51, 59, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [49, 67]), ([], [56, 67]), ([(0w0,0w9,148),
+(0w11,0w32,148),
+(0w34,0w34,148),
+(0w39,0w41,148),
+(0w44,0w44,148),
+(0w46,0w46,148),
+(0w48,0w57,148),
+(0w59,0w59,148),
+(0w65,0w91,148),
+(0w93,0w93,148),
+(0w95,0w95,148),
+(0w97,0w123,148),
+(0w125,0w125,148),
+(0w127,0w2147483647,148),
+(0w10,0w10,149),
+(0w33,0w33,150),
+(0w35,0w38,150),
+(0w42,0w43,150),
+(0w45,0w45,150),
+(0w47,0w47,150),
+(0w58,0w58,150),
+(0w60,0w64,150),
+(0w92,0w92,150),
+(0w94,0w94,150),
+(0w96,0w96,150),
+(0w124,0w124,150),
+(0w126,0w126,150)], [49, 57, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -265,7 +246,7 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [29, 51, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [27, 49, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -276,7 +257,7 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [20, 51, 68]), ([], [41, 68]), ([(0w42,0w42,151)], [36, 68]), ([], [37, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [18, 49, 67]), ([], [39, 67]), ([(0w42,0w42,147)], [34, 67]), ([], [35, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -287,7 +268,7 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [27, 51, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [25, 49, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -298,7 +279,7 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [38, 51, 68]), ([], [31, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [36, 49, 67]), ([], [29, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -309,7 +290,7 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [39, 51, 68]), ([], [42, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [37, 49, 67]), ([], [40, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w58,0w58,74),
@@ -319,15 +300,15 @@ fun fromHexString s = let
 (0w96,0w96,74),
 (0w124,0w124,74),
 (0w126,0w126,74),
-(0w45,0w45,150),
-(0w47,0w47,150),
+(0w45,0w45,146),
+(0w47,0w47,146),
 (0w48,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [50, 51, 68]), ([(0w46,0w46,76),
-(0w48,0w57,147),
-(0w120,0w120,148)], [52, 68]), ([(0w46,0w46,76),
-(0w48,0w57,147)], [52, 68]), ([(0w33,0w33,74),
+(0w97,0w122,81)], [48, 49, 67]), ([(0w46,0w46,76),
+(0w48,0w57,143),
+(0w120,0w120,144)], [50, 67]), ([(0w46,0w46,76),
+(0w48,0w57,143)], [50, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -338,7 +319,7 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [35, 51, 68]), ([], [32, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [33, 49, 67]), ([], [30, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w47,0w47,74),
@@ -349,7 +330,7 @@ fun fromHexString s = let
 (0w96,0w96,74),
 (0w124,0w124,74),
 (0w126,0w126,74),
-(0w45,0w45,146)], [51, 68]), ([(0w33,0w33,74),
+(0w45,0w45,142)], [49, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -360,7 +341,7 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [30, 51, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [28, 49, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -371,11 +352,11 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [28, 51, 68]), ([(0w45,0w45,145),
-(0w47,0w57,145),
-(0w65,0w90,145),
-(0w95,0w95,145),
-(0w97,0w122,145)], [49, 50, 68]), ([], [22, 68]), ([], [23, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [26, 49, 67]), ([(0w45,0w45,141),
+(0w47,0w57,141),
+(0w65,0w90,141),
+(0w95,0w95,141),
+(0w97,0w122,141)], [47, 48, 67]), ([], [20, 67]), ([], [21, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -386,27 +367,25 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [33, 51, 68]), ([], [26, 68]), ([(0w45,0w45,81),
+(0w126,0w126,74)], [31, 49, 67]), ([], [24, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [50, 68]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w98,0w122,81),
-(0w97,0w97,142)], [50, 68]), ([(0w45,0w45,81),
+(0w97,0w97,138)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w98,0w100,81),
-(0w102,0w104,81),
+(0w98,0w104,81),
 (0w106,0w110,81),
 (0w112,0w122,81),
-(0w97,0w97,130),
-(0w101,0w101,131),
-(0w105,0w105,132),
-(0w111,0w111,133)], [50, 68]), ([(0w45,0w45,81),
+(0w97,0w97,128),
+(0w105,0w105,129),
+(0w111,0w111,130)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
@@ -414,48 +393,46 @@ fun fromHexString s = let
 (0w109,0w109,81),
 (0w111,0w119,81),
 (0w121,0w122,81),
-(0w108,0w108,120),
-(0w110,0w110,121),
-(0w120,0w120,122)], [50, 68]), ([(0w45,0w45,81),
+(0w108,0w108,118),
+(0w110,0w110,119),
+(0w120,0w120,120)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w113,81),
 (0w115,0w122,81),
-(0w114,0w114,110)], [50, 68]), ([(0w45,0w45,81),
+(0w114,0w114,108)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w101,81),
 (0w103,0w109,81),
 (0w111,0w122,81),
-(0w102,0w102,103),
-(0w110,0w110,104)], [50, 68]), ([(0w45,0w45,81),
+(0w102,0w102,101),
+(0w110,0w110,102)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w100,81),
 (0w102,0w122,81),
-(0w101,0w101,101)], [50, 68]), ([(0w45,0w45,81),
+(0w101,0w101,99)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w101,81),
 (0w103,0w122,81),
-(0w102,0w102,100)], [50, 68]), ([(0w45,0w45,81),
+(0w102,0w102,98)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w98,0w100,81),
-(0w102,0w122,81),
-(0w97,0w97,94),
-(0w101,0w101,95)], [50, 68]), ([(0w45,0w45,81),
+(0w98,0w122,81),
+(0w97,0w97,94)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w115,81),
 (0w117,0w122,81),
-(0w116,0w116,90)], [50, 68]), ([(0w45,0w45,81),
+(0w116,0w116,90)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
@@ -463,12 +440,12 @@ fun fromHexString s = let
 (0w105,0w120,81),
 (0w122,0w122,81),
 (0w104,0w104,84),
-(0w121,0w121,85)], [50, 68]), ([(0w45,0w45,81),
+(0w121,0w121,85)], [48, 67]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w98,0w122,81),
-(0w97,0w97,82)], [50, 68]), ([], [24, 68]), ([(0w33,0w33,74),
+(0w97,0w97,82)], [48, 67]), ([], [22, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -479,7 +456,7 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [34, 51, 68]), ([], [25, 68]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [32, 49, 67]), ([], [23, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -491,7 +468,7 @@ fun fromHexString s = let
 (0w96,0w96,74),
 (0w124,0w124,74),
 (0w126,0w126,74),
-(0w48,0w57,75)], [40, 51, 68]), ([(0w33,0w33,74),
+(0w48,0w57,75)], [38, 49, 67]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -502,356 +479,336 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [51]), ([(0w46,0w46,76),
-(0w48,0w57,75)], [53]), ([(0w48,0w57,77)], []), ([(0w48,0w57,77),
+(0w126,0w126,74)], [49]), ([(0w46,0w46,76),
+(0w48,0w57,75)], [51]), ([(0w48,0w57,77)], []), ([(0w48,0w57,77),
 (0w69,0w69,78),
-(0w101,0w101,78)], [54]), ([(0w43,0w43,79),
+(0w101,0w101,78)], [52]), ([(0w43,0w43,79),
 (0w126,0w126,79),
-(0w48,0w57,80)], []), ([(0w48,0w57,80)], []), ([(0w48,0w57,80)], [54]), ([(0w45,0w45,81),
+(0w48,0w57,80)], []), ([(0w48,0w57,80)], []), ([(0w48,0w57,80)], [52]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w107,81),
 (0w109,0w122,81),
-(0w108,0w108,83)], [50]), ([(0w45,0w45,81),
+(0w108,0w108,83)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [13, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [12, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w100,81),
 (0w102,0w122,81),
-(0w101,0w101,88)], [50]), ([(0w45,0w45,81),
+(0w101,0w101,88)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w111,81),
 (0w113,0w122,81),
-(0w112,0w112,86)], [50]), ([(0w45,0w45,81),
+(0w112,0w112,86)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w100,81),
 (0w102,0w122,81),
-(0w101,0w101,87)], [50]), ([(0w45,0w45,81),
+(0w101,0w101,87)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [5, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [5, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w109,81),
 (0w111,0w122,81),
-(0w110,0w110,89)], [50]), ([(0w45,0w45,81),
+(0w110,0w110,89)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [9, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [8, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w98,0w122,81),
-(0w97,0w97,91)], [50]), ([(0w45,0w45,81),
+(0w97,0w97,91)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w115,81),
 (0w117,0w122,81),
-(0w116,0w116,92)], [50]), ([(0w45,0w45,81),
+(0w116,0w116,92)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w100,81),
 (0w102,0w122,81),
-(0w101,0w101,93)], [50]), ([(0w45,0w45,81),
+(0w101,0w101,93)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [1, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [1, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w104,81),
 (0w106,0w122,81),
-(0w105,0w105,97)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w98,81),
-(0w100,0w122,81),
-(0w99,0w99,96)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [15, 50]), ([(0w45,0w45,81),
+(0w105,0w105,95)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w114,81),
 (0w116,0w122,81),
-(0w115,0w115,98)], [50]), ([(0w45,0w45,81),
+(0w115,0w115,96)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w100,81),
 (0w102,0w122,81),
-(0w101,0w101,99)], [50]), ([(0w45,0w45,81),
+(0w101,0w101,97)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [7, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [6, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [21, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [19, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w115,81),
 (0w117,0w122,81),
-(0w116,0w116,102)], [50]), ([(0w45,0w45,81),
+(0w116,0w116,100)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [12, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [11, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [8, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [7, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w98,81),
 (0w100,0w122,81),
-(0w99,0w99,105)], [17, 50]), ([(0w45,0w45,81),
+(0w99,0w99,103)], [15, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w107,81),
 (0w109,0w122,81),
-(0w108,0w108,106)], [50]), ([(0w45,0w45,81),
+(0w108,0w108,104)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w116,81),
 (0w118,0w122,81),
-(0w117,0w117,107)], [50]), ([(0w45,0w45,81),
+(0w117,0w117,105)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w99,81),
 (0w101,0w122,81),
-(0w100,0w100,108)], [50]), ([(0w45,0w45,81),
+(0w100,0w100,106)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w100,81),
 (0w102,0w122,81),
-(0w101,0w101,109)], [50]), ([(0w45,0w45,81),
+(0w101,0w101,107)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [2, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [2, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w98,0w122,81),
-(0w97,0w97,111)], [50]), ([(0w45,0w45,81),
+(0w97,0w97,109)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w109,81),
 (0w111,0w122,81),
-(0w110,0w110,112)], [50]), ([(0w45,0w45,81),
+(0w110,0w110,110)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w116,81),
 (0w118,0w122,81),
-(0w117,0w117,113)], [50]), ([(0w45,0w45,81),
+(0w117,0w117,111)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w107,81),
 (0w109,0w122,81),
-(0w108,0w108,114)], [50]), ([(0w45,0w45,81),
+(0w108,0w108,112)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w98,0w122,81),
-(0w97,0w97,115)], [50]), ([(0w45,0w45,81),
+(0w97,0w97,113)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w113,81),
 (0w115,0w122,81),
-(0w114,0w114,116)], [50]), ([(0w45,0w45,81),
+(0w114,0w114,114)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w104,81),
 (0w106,0w122,81),
-(0w105,0w105,117)], [50]), ([(0w45,0w45,81),
+(0w105,0w105,115)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w115,81),
 (0w117,0w122,81),
-(0w116,0w116,118)], [50]), ([(0w45,0w45,81),
+(0w116,0w116,116)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w120,81),
 (0w122,0w122,81),
-(0w121,0w121,119)], [50]), ([(0w45,0w45,81),
+(0w121,0w121,117)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [0, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [0, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w114,81),
 (0w116,0w122,81),
-(0w115,0w115,128)], [50]), ([(0w45,0w45,81),
+(0w115,0w115,126)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w99,81),
 (0w101,0w122,81),
-(0w100,0w100,127)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,123)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,124)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w109,81),
-(0w111,0w122,81),
-(0w110,0w110,125)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w99,81),
-(0w101,0w122,81),
-(0w100,0w100,126)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [4, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [14, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w100,81),
-(0w102,0w122,81),
-(0w101,0w101,129)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [10, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,136)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w98,81),
-(0w100,0w122,81),
-(0w99,0w99,135)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w117,81),
-(0w119,0w122,81),
-(0w118,0w118,134)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [16, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [18, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w122,81)], [6, 50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w98,0w122,81),
-(0w97,0w97,137)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w115,81),
-(0w117,0w122,81),
-(0w116,0w116,138)], [50]), ([(0w45,0w45,81),
-(0w47,0w57,81),
-(0w65,0w90,81),
-(0w95,0w95,81),
-(0w97,0w120,81),
-(0w122,0w122,81),
-(0w121,0w121,139)], [50]), ([(0w45,0w45,81),
+(0w100,0w100,125)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w111,81),
 (0w113,0w122,81),
-(0w112,0w112,140)], [50]), ([(0w45,0w45,81),
+(0w112,0w112,121)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w110,81),
+(0w112,0w122,81),
+(0w111,0w111,122)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w113,81),
+(0w115,0w122,81),
+(0w114,0w114,123)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w115,81),
+(0w117,0w122,81),
+(0w116,0w116,124)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w122,81)], [3, 48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w122,81)], [13, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w100,81),
 (0w102,0w122,81),
-(0w101,0w101,141)], [50]), ([(0w45,0w45,81),
+(0w101,0w101,127)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [3, 50]), ([(0w45,0w45,81),
+(0w97,0w122,81)], [9, 48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w115,81),
+(0w117,0w122,81),
+(0w116,0w116,132)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w117,81),
+(0w119,0w122,81),
+(0w118,0w118,131)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w122,81)], [14, 48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w122,81)], [16, 48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w98,0w122,81),
+(0w97,0w97,133)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w115,81),
+(0w117,0w122,81),
+(0w116,0w116,134)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w120,81),
+(0w122,0w122,81),
+(0w121,0w121,135)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w111,81),
+(0w113,0w122,81),
+(0w112,0w112,136)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w100,81),
+(0w102,0w122,81),
+(0w101,0w101,137)], [48]), ([(0w45,0w45,81),
+(0w47,0w57,81),
+(0w65,0w90,81),
+(0w95,0w95,81),
+(0w97,0w122,81)], [4, 48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w114,81),
 (0w116,0w122,81),
-(0w115,0w115,143)], [50]), ([(0w45,0w45,81),
+(0w115,0w115,139)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
 (0w97,0w100,81),
 (0w102,0w122,81),
-(0w101,0w101,144)], [50]), ([(0w45,0w45,81),
+(0w101,0w101,140)], [48]), ([(0w45,0w45,81),
 (0w47,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [11, 50]), ([(0w45,0w45,145),
-(0w47,0w57,145),
-(0w65,0w90,145),
-(0w95,0w95,145),
-(0w97,0w122,145)], [49, 50]), ([(0w33,0w33,74),
+(0w97,0w122,81)], [10, 48]), ([(0w45,0w45,141),
+(0w47,0w57,141),
+(0w65,0w90,141),
+(0w95,0w95,141),
+(0w97,0w122,141)], [47, 48]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w45,0w45,74),
@@ -862,12 +819,12 @@ fun fromHexString s = let
 (0w94,0w94,74),
 (0w96,0w96,74),
 (0w124,0w124,74),
-(0w126,0w126,74)], [19, 51]), ([(0w46,0w46,76),
-(0w48,0w57,147)], [52]), ([(0w48,0w57,149),
-(0w65,0w70,149),
-(0w97,0w102,149)], []), ([(0w48,0w57,149),
-(0w65,0w70,149),
-(0w97,0w102,149)], [55]), ([(0w33,0w33,74),
+(0w126,0w126,74)], [17, 49]), ([(0w46,0w46,76),
+(0w48,0w57,143)], [50]), ([(0w48,0w57,145),
+(0w65,0w70,145),
+(0w97,0w102,145)], []), ([(0w48,0w57,145),
+(0w65,0w70,145),
+(0w97,0w102,145)], [53]), ([(0w33,0w33,74),
 (0w35,0w38,74),
 (0w42,0w43,74),
 (0w58,0w58,74),
@@ -877,38 +834,38 @@ fun fromHexString s = let
 (0w96,0w96,74),
 (0w124,0w124,74),
 (0w126,0w126,74),
-(0w45,0w45,150),
-(0w47,0w47,150),
+(0w45,0w45,146),
+(0w47,0w47,146),
 (0w48,0w57,81),
 (0w65,0w90,81),
 (0w95,0w95,81),
-(0w97,0w122,81)], [50, 51]), ([], [57]), ([(0w0,0w9,152),
-(0w11,0w2147483647,152)], [59]), ([(0w0,0w9,152),
-(0w11,0w32,152),
-(0w34,0w34,152),
-(0w39,0w41,152),
-(0w44,0w44,152),
-(0w46,0w46,152),
-(0w48,0w57,152),
-(0w59,0w59,152),
-(0w65,0w91,152),
-(0w93,0w93,152),
-(0w95,0w95,152),
-(0w97,0w123,152),
-(0w125,0w125,152),
-(0w127,0w2147483647,152),
-(0w33,0w33,153),
-(0w35,0w38,153),
-(0w42,0w43,153),
-(0w45,0w45,153),
-(0w47,0w47,153),
-(0w58,0w58,153),
-(0w60,0w64,153),
-(0w92,0w92,153),
-(0w94,0w94,153),
-(0w96,0w96,153),
-(0w124,0w124,153),
-(0w126,0w126,153)], [51, 59])]
+(0w97,0w122,81)], [48, 49]), ([], [55]), ([(0w0,0w9,148),
+(0w11,0w2147483647,148)], [57]), ([], [58]), ([(0w0,0w9,148),
+(0w11,0w32,148),
+(0w34,0w34,148),
+(0w39,0w41,148),
+(0w44,0w44,148),
+(0w46,0w46,148),
+(0w48,0w57,148),
+(0w59,0w59,148),
+(0w65,0w91,148),
+(0w93,0w93,148),
+(0w95,0w95,148),
+(0w97,0w123,148),
+(0w125,0w125,148),
+(0w127,0w2147483647,148),
+(0w33,0w33,150),
+(0w35,0w38,150),
+(0w42,0w43,150),
+(0w45,0w45,150),
+(0w47,0w47,150),
+(0w58,0w58,150),
+(0w60,0w64,150),
+(0w92,0w92,150),
+(0w94,0w94,150),
+(0w96,0w96,150),
+(0w124,0w124,150),
+(0w126,0w126,150)], [49, 57])]
     fun yystreamify' p input = ULexBuffer.mkStream (p, input)
 
     fun yystreamifyReader' p readFn strm = let
@@ -1002,118 +959,117 @@ let
 fun yyAction0 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_granularity)
 fun yyAction1 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_state)
 fun yyAction2 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_include)
-fun yyAction3 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_datatype)
-fun yyAction4 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_extend)
+fun yyAction3 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_export)
+fun yyAction4 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_datatype)
 fun yyAction5 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_type)
-fun yyAction6 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_dec)
-fun yyAction7 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_raise)
-fun yyAction8 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_if)
-fun yyAction9 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_then)
-fun yyAction10 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_else)
-fun yyAction11 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_case)
-fun yyAction12 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_let)
-fun yyAction13 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_val)
-fun yyAction14 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_end)
-fun yyAction15 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_rec)
-fun yyAction16 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_do)
-fun yyAction17 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_in)
-fun yyAction18 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_div)
-fun yyAction19 (strm, lastMatch : yymatch) = (yystrm := strm;  T.BIND)
-fun yyAction20 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_mod)
-fun yyAction21 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_of)
-fun yyAction22 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LB)
-fun yyAction23 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RB)
-fun yyAction24 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LCB)
-fun yyAction25 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RCB)
-fun yyAction26 (strm, lastMatch : yymatch) = (yystrm := strm;  T.WILD)
-fun yyAction27 (strm, lastMatch : yymatch) = (yystrm := strm;  T.TIMES)
-fun yyAction28 (strm, lastMatch : yymatch) = (yystrm := strm;  T.WITH)
-fun yyAction29 (strm, lastMatch : yymatch) = (yystrm := strm;  T.SELECT)
-fun yyAction30 (strm, lastMatch : yymatch) = (yystrm := strm;  T.EQ)
-fun yyAction31 (strm, lastMatch : yymatch) = (yystrm := strm;  T.COMMA)
-fun yyAction32 (strm, lastMatch : yymatch) = (yystrm := strm;  T.SEMI)
-fun yyAction33 (strm, lastMatch : yymatch) = (yystrm := strm;  T.CONCAT)
-fun yyAction34 (strm, lastMatch : yymatch) = (yystrm := strm;  T.BAR)
-fun yyAction35 (strm, lastMatch : yymatch) = (yystrm := strm;  T.COLON)
-fun yyAction36 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LP)
-fun yyAction37 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RP)
-fun yyAction38 (strm, lastMatch : yymatch) = (yystrm := strm;  T.PLUS)
-fun yyAction39 (strm, lastMatch : yymatch) = (yystrm := strm;  T.MINUS)
-fun yyAction40 (strm, lastMatch : yymatch) = (yystrm := strm;  T.TILDE)
-fun yyAction41 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction6 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_raise)
+fun yyAction7 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_if)
+fun yyAction8 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_then)
+fun yyAction9 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_else)
+fun yyAction10 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_case)
+fun yyAction11 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_let)
+fun yyAction12 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_val)
+fun yyAction13 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_end)
+fun yyAction14 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_do)
+fun yyAction15 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_in)
+fun yyAction16 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_div)
+fun yyAction17 (strm, lastMatch : yymatch) = (yystrm := strm;  T.BIND)
+fun yyAction18 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_mod)
+fun yyAction19 (strm, lastMatch : yymatch) = (yystrm := strm;  T.KW_of)
+fun yyAction20 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LB)
+fun yyAction21 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RB)
+fun yyAction22 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LCB)
+fun yyAction23 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RCB)
+fun yyAction24 (strm, lastMatch : yymatch) = (yystrm := strm;  T.WILD)
+fun yyAction25 (strm, lastMatch : yymatch) = (yystrm := strm;  T.TIMES)
+fun yyAction26 (strm, lastMatch : yymatch) = (yystrm := strm;  T.WITH)
+fun yyAction27 (strm, lastMatch : yymatch) = (yystrm := strm;  T.SELECT)
+fun yyAction28 (strm, lastMatch : yymatch) = (yystrm := strm;  T.EQ)
+fun yyAction29 (strm, lastMatch : yymatch) = (yystrm := strm;  T.COMMA)
+fun yyAction30 (strm, lastMatch : yymatch) = (yystrm := strm;  T.SEMI)
+fun yyAction31 (strm, lastMatch : yymatch) = (yystrm := strm;  T.CONCAT)
+fun yyAction32 (strm, lastMatch : yymatch) = (yystrm := strm;  T.BAR)
+fun yyAction33 (strm, lastMatch : yymatch) = (yystrm := strm;  T.COLON)
+fun yyAction34 (strm, lastMatch : yymatch) = (yystrm := strm;  T.LP)
+fun yyAction35 (strm, lastMatch : yymatch) = (yystrm := strm;  T.RP)
+fun yyAction36 (strm, lastMatch : yymatch) = (yystrm := strm;  T.PLUS)
+fun yyAction37 (strm, lastMatch : yymatch) = (yystrm := strm;  T.MINUS)
+fun yyAction38 (strm, lastMatch : yymatch) = (yystrm := strm;  T.TILDE)
+fun yyAction39 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN BITPAT; T.TICK)
-fun yyAction42 (strm, lastMatch : yymatch) = (yystrm := strm;  T.DOT)
-fun yyAction43 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction40 (strm, lastMatch : yymatch) = (yystrm := strm;  T.DOT)
+fun yyAction41 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN BITPATNUM; T.COLON)
-fun yyAction44 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction42 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN INITIAL; T.TICK)
-fun yyAction45 (strm, lastMatch : yymatch) = let
+fun yyAction43 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.BITSTR yytext
       end
-fun yyAction46 (strm, lastMatch : yymatch) = let
+fun yyAction44 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.ID (Atom.atom yytext)
       end
-fun yyAction47 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
-fun yyAction48 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction45 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
+fun yyAction46 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN BITPAT; skip())
-fun yyAction49 (strm, lastMatch : yymatch) = let
+fun yyAction47 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.CONS (Atom.atom yytext)
       end
-fun yyAction50 (strm, lastMatch : yymatch) = let
+fun yyAction48 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.ID (Atom.atom yytext)
       end
-fun yyAction51 (strm, lastMatch : yymatch) = let
+fun yyAction49 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.SYMBOL (Atom.atom yytext)
       end
-fun yyAction52 (strm, lastMatch : yymatch) = let
+fun yyAction50 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.POSINT(valOf (IntInf.fromString yytext))
       end
-fun yyAction53 (strm, lastMatch : yymatch) = let
+fun yyAction51 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.NEGINT(valOf (IntInf.fromString yytext))
       end
-fun yyAction54 (strm, lastMatch : yymatch) = let
+fun yyAction52 (strm, lastMatch : yymatch) = let
       val yysubstr = yymksubstr(strm)
       in
         yystrm := strm;  mkFloat yysubstr
       end
-fun yyAction55 (strm, lastMatch : yymatch) = let
+fun yyAction53 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  T.POSINT(fromHexString yytext)
       end
-fun yyAction56 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
-fun yyAction57 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction54 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
+fun yyAction55 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN COMMENT; depth := 1; skip())
-fun yyAction58 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction56 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN STRING; skip())
-fun yyAction59 (strm, lastMatch : yymatch) = (yystrm := strm;  skip())
-fun yyAction60 (strm, lastMatch : yymatch) = let
+fun yyAction57 (strm, lastMatch : yymatch) = (yystrm := strm;  skip())
+fun yyAction58 (strm, lastMatch : yymatch) = (yystrm := strm;  skip())
+fun yyAction59 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  addStr(valOf(String.fromString yytext)); continue()
       end
-fun yyAction61 (strm, lastMatch : yymatch) = let
+fun yyAction60 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  addStr yytext; continue()
       end
-fun yyAction62 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction61 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN INITIAL; mkString())
-fun yyAction63 (strm, lastMatch : yymatch) = let
+fun yyAction62 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1124,7 +1080,7 @@ fun yyAction63 (strm, lastMatch : yymatch) = let
 		  "' in string literal"])
    ;continue()
       end
-fun yyAction64 (strm, lastMatch : yymatch) = let
+fun yyAction63 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1135,17 +1091,17 @@ fun yyAction64 (strm, lastMatch : yymatch) = let
 		  "' in string literal"])
    ;continue()
       end
-fun yyAction65 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction64 (strm, lastMatch : yymatch) = (yystrm := strm;
       
    depth := !depth + 1
 	;skip())
-fun yyAction66 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction65 (strm, lastMatch : yymatch) = (yystrm := strm;
       
    depth := !depth - 1
    ;if (!depth = 0) then YYBEGIN INITIAL else ()
 	;skip ())
-fun yyAction67 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
-fun yyAction68 (strm, lastMatch : yymatch) = let
+fun yyAction66 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
+fun yyAction67 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1166,7 +1122,7 @@ val yyactTable = Vector.fromList([yyAction0, yyAction1, yyAction2, yyAction3,
   yyAction47, yyAction48, yyAction49, yyAction50, yyAction51, yyAction52,
   yyAction53, yyAction54, yyAction55, yyAction56, yyAction57, yyAction58,
   yyAction59, yyAction60, yyAction61, yyAction62, yyAction63, yyAction64,
-  yyAction65, yyAction66, yyAction67, yyAction68])
+  yyAction65, yyAction66, yyAction67])
 in
   if ULexBuffer.eof(!(yystrm))
     then let

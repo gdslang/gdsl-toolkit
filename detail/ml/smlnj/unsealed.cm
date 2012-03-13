@@ -31,12 +31,24 @@ group is
    ../../semantic/spec-abstract-tree.sml
    ../../semantic/typing/boolean-domain.sml
    ../../semantic/typing/lang-types.sml
+   ../../semantic/typing/substitutions.sml
    ../../semantic/typing/tvar.sml
    ../../semantic/typing/environment.sml
    ../../semantic/inference.sml
    ../../semantic/primitives.sml
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
-   ../../opt/inline.sml
-   ../../opt/desugar-decode-patterns.sml
+   ../../spec/core.sml
+   ../../spec/spec.sml
+   ../../desugar/desugar-control.sml
+   ../../desugar/desugared-tree.sml
+   ../../desugar/split-declarations.sml
+   ../../desugar/desugar-guards.sml
+   ../../desugar/inline-decode-patterns.sml
+   ../../desugar/detokenize.sml
+   ../../desugar/retokenize.sml
+   ../../desugar/desugar-decode-syntax.sml
+   ../../desugar/desugar-monadic-sequences.sml
+   ../../desugar/desugar.sml
+   ../../cps/cps.sml
    ../../driver/main.sml

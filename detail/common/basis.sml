@@ -1,4 +1,13 @@
 
+structure StringMap = struct
+   structure Key = struct
+      open String
+      type ord_key = string
+   end
+   structure Map = RedBlackMapFn(Key)
+   open Map
+end
+
 structure Op = struct
    nonfix div mod
    val times = Atom.atom "*"
@@ -9,4 +18,6 @@ structure Op = struct
    val uminus = Atom.atom "~"
    val concat = Atom.atom "^"
    val select = Atom.atom "."
+   val andAlso = Atom.atom "and"
+   val orElse = Atom.atom "or"
 end

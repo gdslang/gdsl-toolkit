@@ -1,7 +1,7 @@
 
 structure CompilationMonad : sig
    type state = Error.err_stream
-   type 'answer t = state -> state * 'answer
+   type 'answer t = state -> 'answer * state
    exception CompilationError
 
    val >>= : 'a t * ('a -> 'b t) -> 'b t
@@ -25,19 +25,19 @@ end = struct
    infix >> >>=
 
    type state = Error.err_stream
-   type 'answer t = state -> state * 'answer
+   type 'answer t = state -> 'answer * state
 
    exception CompilationError
 
-   fun return v s = (s, v)
+   fun return v s = (v, s)
    fun getState s = (s, s)
-   fun setState s _ = (s, ())
+   fun setState s _ = ((), s)
    val getErrorStream: Error.err_stream t = getState
    fun fail s = raise CompilationError
 
    fun aT >>= a2bT = fn s =>
       let
-         val (s, a) =
+         val (a, s) =
             aT s
                handle CompilationError =>
                   (Error.report (TextIO.stdErr, s)
@@ -64,7 +64,7 @@ end = struct
    val warningAt = liftErr2 Error.warningAt
 
    fun run state action = let
-      val (_, b) = action state
+      val (b, _) = action state
    in
       b
    end

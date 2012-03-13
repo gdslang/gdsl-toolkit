@@ -8,8 +8,7 @@ structure Main = struct
       fun all ins =
          Parser.run ins >>=
          ResolveSymbols.run >>=
-         InlineDecodePatterns.run >>=
-         DesugarDecodePatterns.run
+         Desugar.run
 
       fun run fp = let
          val ins = TextIO.openIn fp
@@ -17,6 +16,25 @@ structure Main = struct
          val () = Controls.set (BasicControl.verbose, 1)
       in
          CompilationMonad.run ers (all ins >> return ())
+            before
+               TextIO.closeIn ins
+      end
+
+      fun allTc ins = 
+         Parser.run ins >>=
+         ResolveSymbols.run >>= (fn ast =>
+         ResolveTypeInfo.run ast >>= (fn tInfo =>
+         TypeInference.run (tInfo, ast) >>= (fn tys =>
+         (TextIO.print (TypeInference.showTable tys);
+         Desugar.run ast
+         ))))
+
+      fun runTc fp = let
+         val ins = TextIO.openIn fp
+         val ers = Error.mkErrStream fp
+         val () = Controls.set (BasicControl.verbose, 1)
+      in
+         CompilationMonad.run ers (allTc ins >> return ())
             before
                TextIO.closeIn ins
       end
