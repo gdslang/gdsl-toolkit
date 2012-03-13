@@ -129,7 +129,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      (substRef := E.SpanMap.insert (!substRef, s, substs)
                      ; false)
                   )*)
-               val env = E.meet (envCall, envFun)
+               val (env, _) = E.meet (envCall, envFun)
                val _ = TextIO.print ("before updating usage:\n" ^ E.toString env)
                val env = E.popToUsage (sym, s, env)
             in
@@ -186,11 +186,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val envWant = E.pushType (false, VEC (CONST 1), env)
          val envHave = infExp (st,env) e1
-         val env = E.meet (envWant, envHave)
+         val (env, _) = E.meet (envWant, envHave)
          val env = E.popKappa env
          val envT = infExp (st,env) e2
          val envE = infExp (st,env) e3
-         val env = E.meet (envT,envE)
+         val (env, _) = E.meet (envT,envE)
       in
          env
       end
@@ -201,12 +201,19 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** after case exp:\n" ^ E.toString envExp)*)
          val envVar = E.pushType (false, t, env)
          (*val _ = TextIO.print ("**** after case dup:\n" ^ E.toString envVar)*)
-         val env = E.meet (envExp, envVar)
+         val (env, _) = E.meet (envExp, envVar)
          val env = E.popKappa env
          val envs = List.map (infMatch (st,env)) l
          val (env1::env2::_) = envs
          val envNeutral = E.pushTop env
-         val env = List.foldl E.meet envNeutral envs
+         fun genFlow (inEnv, nEnv) =
+            let
+               val (inEnv, nEnv) = E.meet (inEnv, nEnv)
+               val _ = E.genFlow (inEnv, nEnv)
+            in
+               inEnv
+            end
+         val env = List.foldl genFlow envNeutral envs
          (*val _ = TextIO.print ("**** all envs:\n" ^ E.toString env)*)
       in
          E.return (1,env)
@@ -226,8 +233,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envArg = E.pushTop envArg
          val envArg = E.reduceToFunction envArg
          val _ = TextIO.print ("**** app turning arg:\n" ^ E.toString envArg)
-         val env = E.meet (envFun, envArg)
-         val env = E.reduceToResult env
+         val (envFun, envArg) = E.meet (envFun, envArg)
+         val _ = E.genFlow (envFun, envArg) (*this is flow of result*)
+         val env = E.reduceToResult envFun
          val _ = TextIO.print ("**** app result:\n" ^ E.toString env)
       in
          env
@@ -235,18 +243,17 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
         
      | infExp (st,env) (AST.RECORDexp l) =
       let
-         val (scs,bFun) = env
          val bVar = BD.freshBVar ()
-         val bFun = BD.meetVarZero (bVar, bFun)
+         val env = E.meetBoolean (BD.meetVarZero bVar, env)
          val t = VAR (TVar.freshTVar (), bVar)
-         val env = E.pushType (false, t, (scs,bFun))
+         val env = E.pushType (false, t, env)
          fun pushField ((fid,e), (nts, env)) =
             let
-               val (scs,bFun) = infExp (st,env) e
+               val env = infExp (st,env) e
                val bVar = BD.freshBVar ()
-               val bFun = BD.meetVarOne (bVar, bFun)
+               val env = E.meetBoolean (BD.meetVarOne bVar, env)
             in
-               ((bVar, fid) :: nts, (scs, bFun))
+               ((bVar, fid) :: nts, env)
             end
          val (nts, env) = List.foldl pushField ([], env) l
          (*val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")*)
@@ -263,8 +270,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.pushType (false, tf, env)
          val exists = BD.freshBVar ()
          (*val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")*)
-         val (scs, bFun) = E.reduceToRecord ([(exists, f)], env)
-         val env = (scs, BD.meetVarOne (exists, bFun))
+         val env = E.reduceToRecord ([(exists, f)], env)
+         val env = E.meetBoolean (BD.meetVarOne exists, env)
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf, env)
          val env = E.reduceToFunction env
@@ -289,11 +296,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.pushType (false, fieldsVar, env)
          fun pushOutField ((fid,e), (nts, env)) =
             let
-               val (scs,bFun) = infExp (st,env) e
+               val env = infExp (st,env) e
                val bVar = BD.freshBVar ()
-               val bFun = BD.meetVarOne (bVar, bFun)
+               val env = E.meetBoolean (BD.meetVarOne bVar, env)
             in
-               ((bVar, fid) :: nts, (scs, bFun))
+               ((bVar, fid) :: nts, env)
             end
          val (nts, env) = List.foldl pushOutField ([], env) fs
          val env = E.reduceToRecord (nts, env)
@@ -360,7 +367,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envScru = E.popKappa env
          val envScru = E.pushSymbol (caseExpSymId, SymbolTable.noSpan, envScru)
          (*val _ = TextIO.print ("**** after case dup:\n" ^ E.toString envScru)*)
-         val env = E.meet (env, envScru)
+         val (envScru, env) = E.meet (envScru, env)
+         val _ = E.genFlow (envScru, env)
          (*val _ = TextIO.print ("**** after mgu:\n" ^ E.toString env)*)
          val env = E.popKappa env
          val env = infExp (st,env) e
@@ -383,7 +391,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envPat = E.pushTop envPat
          val envCon = infExp (st,env) (AST.CONexp c)
          val _ = TextIO.print ("+++++ meet for constructor")
-         val env = E.meet (envPat,envCon)
+         val (env, _) = E.meet (envPat,envCon)
          val env = E.reduceToResult env
       in
          (n, env)
