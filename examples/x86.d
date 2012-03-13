@@ -109,14 +109,31 @@ val rsi = return (REG RSI)
 val di = return (REG DI)
 val edi = return (REG EDI)
 val rdi = return (REG RDI)
+val mm0 = return (REG mm0)
+val mm1 = return (REG mm1)
+val mm2 = return (REG mm2)
+val mm3 = return (REG mm3)
+val mm4 = return (REG mm4)
+val mm5 = return (REG mm5)
+val mm6 = return (REG mm6)
+val mm7 = return (REG mm7)
+val xmm0 = return (REG xmm0)
+val xmm1 = return (REG xmm1)
+val xmm2 = return (REG xmm2)
+val xmm3 = return (REG xmm3)
+val xmm4 = return (REG xmm4)
+val xmm5 = return (REG xmm5)
+val xmm6 = return (REG xmm6)
+val xmm7 = return (REG xmm7)
 
 # A type alias used for instructions taking two arguments
 type binop = {opnd1:opnd, opnd2:opnd}
 
 datatype insn =
    ADD of binop
- |  MOV of binop
+ | MOV of binop
  | CVTPD2PI of binop
+ | XADD of binop
 
 val imm8 ['b:8'] = return (IMM8 b)
 val imm16 ['b1:8 b2:8'] = return (IMM16 (b1 ^ b2))
@@ -138,6 +155,18 @@ val reg8 n =
     | '111': REG BH
    end
 
+val reg8r n =
+   case n of
+      '000': REG R8L
+    | '001': REG R10L
+    | '010': REG R11L
+    | '011': REG R9L
+    | '100': REG R12L
+    | '101': REG R13L
+    | '110': REG R14L
+    | '111': REG R15L
+   end
+
 val reg16 n =
    case n of
       '000': REG AX
@@ -150,6 +179,18 @@ val reg16 n =
     | '111': REG DI
    end
 
+val reg16r n =
+   case n of
+      '000': REG R8L
+    | '001': REG R10L
+    | '010': REG R11L
+    | '011': REG R9L
+    | '100': REG R12L
+    | '101': REG R13L
+    | '110': REG R14L
+    | '111': REG R15L
+   end
+
 val reg32 n =
    case n of
       '000': REG EAX
@@ -160,6 +201,18 @@ val reg32 n =
     | '101': REG EBP
     | '110': REG ESI
     | '111': REG EDI
+   end
+
+val reg32r n =
+   case n of
+      '000': REG R8D
+    | '001': REG R10D
+    | '010': REG R11D
+    | '011': REG R9D
+    | '100': REG R12D
+    | '101': REG R13D
+    | '110': REG R14D
+    | '111': REG R15D
    end
 
 val reg64 n =
@@ -384,6 +437,8 @@ end
 
 val mov = binop MOV
 val add = binop ADD
+val cvtpdf2pi = binop CVTPD2PI
+val xadd = binop XADD
 
 ## The REX prefixes
 
@@ -399,8 +454,10 @@ val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz=1}; main end
 val main [0x67] = do update @{addrsz=1}; main end
-val main [0x66 0x0f] = twp-byte-opcode-0f 
-val main [0x66 /rex 0x0f] = twp-byte-opcode-0f 
+val main [0x66 0x0f 0x38] = three-byte-opcode-0f-38
+val main [0x66 /rex 0x0f 0x38] = three-byte-opcode-0f-38
+val main [0x66 0x0f] = two-byte-opcode-0f 
+val main [0x66 /rex 0x0f] = two-byte-opcode-0f 
 val main [/rex] = one-byte-opcode
 val main [] = one-byte-opcode
 
@@ -408,33 +465,33 @@ val main [] = one-byte-opcode
 
 ## One Byte Opcodes
 
-### MOV Vol 2A 3-643
-
+### ADD Vol. 2A 3-35
 val one-byte-opcode [0x04] = add al imm8
 val one-byte-opcode [0x05]
-   | $rexw = add rax imm64
-   | $opndsz = add rax imm32
-   | otherwise = add rax imm16
+ | $rexw = add rax imm64
+ | $opndsz = add rax imm32
+ | otherwise = add rax imm16
 val one-byte-opcode [0x80 /0] = r/m8 imm8
 val one-byte-opcode [0x81 /0]
-   | $rexw = add r/m64 imm64
-   | $opndsz = add r/m32 imm32
-   | otherwise = add r/m16 imm16
+ | $rexw = add r/m64 imm64
+ | $opndsz = add r/m32 imm32
+ | otherwise = add r/m16 imm16
 val one-byte-opcode [0x83 /0]
-   | $rexw = add r/m64 imm8
-   | $opndsz = add r/m32 imm8
-   | otherwise = add r/m16 imm8
+ | $rexw = add r/m64 imm8
+ | $opndsz = add r/m32 imm8
+ | otherwise = add r/m16 imm8
 val one-byte-opcode [0x00 /r] = add r/m8 r8
 val one-byte-opcode [0x01 /0]
-   | $rexw = add r/m64 r64
-   | $opndsz = add r/m32 r32
-   | otherwise = add r/m16 r16
+ | $rexw = add r/m64 r64
+ | $opndsz = add r/m32 r32
+ | otherwise = add r/m16 r16
 val one-byte-opcode [0x02 /r] = add r8 r/m8
 val one-byte-opcode [0x03 /0]
-   | $rexw = add r64 r/m64
-   | $opndsz = add r32 r/m32
-   | otherwise = add r16 r/m16
+ | $rexw = add r64 r/m64
+ | $opndsz = add r32 r/m32
+ | otherwise = add r16 r/m16
 
+### MOV Vol 2A 3-643
 val one-byte-opcode [0x88 /r] = mov r/m8 r8
 val one-byte-opcode [0x89 /r] 
  | $opndsz = mov r/m16 r16
@@ -494,5 +551,21 @@ val one-byte-opcode [0xC7 /0]
 ## Two Byte Opcodes with Prefix 0x0f
 
 ### CVTPD2PI Vol 2A 3-248
+val two-byte-opcode-0f [0x2d /r] = cvtpdf2pi mm64 xmm/m128
 
-val twp-byte-opcode-0f [0x2d /r] = binop CVTPD2PI mm64 xmm/m128
+### XADD Vol. 2B 4-667
+val two-byte-opcode-0f [0xc0 /r] = xadd r/m8 r8
+val two-byte-opcode-0f [0xc1 /r]
+ | $rexw = xadd r/m64 r64
+ | $opndsz = mov r/m16 r16
+ | otherwise = mov r/m32 r32
+
+## Three Byte Opcodes with Prefix 0x0f38
+
+### PHADDW/PHADDD Vol. 2B 4-253
+val three-byte-opcode-0f-38 [01 /r]
+ | $opndsz = phaddw xmm128 xmm/m128
+ | otherwise = phaddw mm64 mm/m64
+val three-byte-opcode-0f-38 [02 /r]
+ | $opndsz = phaddd xmm128 xmm/m128
+ | otherwise = phaddd mm64 mm/m64
