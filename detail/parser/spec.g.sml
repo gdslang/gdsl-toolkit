@@ -1750,7 +1750,7 @@ fun Decl_NT (strm) = let
                     | (Tok.NEGINT(_), _, strm') => true
                     | _ => false
                   (* end case *))
-            val (DecodePat_RES, DecodePat_SPAN, strm') = EBNF.posclos(Decl_PROD_8_SUBRULE_1_PRED, Decl_PROD_8_SUBRULE_1_NT, strm')
+            val (DecodePat_RES, DecodePat_SPAN, strm') = EBNF.closure(Decl_PROD_8_SUBRULE_1_PRED, Decl_PROD_8_SUBRULE_1_NT, strm')
             val (RB_RES, RB_SPAN, strm') = matchRB(strm')
             val (decl_RES, decl_SPAN, strm') = let
             fun Decl_PROD_8_SUBRULE_2_NT (strm) = let

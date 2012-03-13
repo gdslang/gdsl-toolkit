@@ -111,7 +111,7 @@ Decl
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
    | "val" Name Name* "=" Exp =>
       (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
-   | "val" Name "[" DecodePat+ "]" decl=
+   | "val" Name "[" DecodePat* "]" decl=
       ( "=" Exp =>
          (PT.DECODEdecl (Name, DecodePat, Sum.INL Exp))
       | ("|" Exp "=" Exp)+ =>

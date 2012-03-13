@@ -84,7 +84,6 @@ datatype insn =
    MOV of binop
  | CVTPD2PI of binop
 
-
 val imm8 ['b:8'] = return (IMM8 b)
 val imm16 ['b1:8 b2:8'] = return (IMM16 (b1 ^ b2))
 val imm32 ['b1:8 b2:8 b3:8 b4:8'] = return (IMM32 (b1 ^ b2 ^ b3 ^ b4))
@@ -380,93 +379,75 @@ val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz=1}; main end
 val main [0x67] = do update @{addrsz=1}; main end
-
-# An different approach would be to allow for empty 
-# decode declarations:
-
-#recursion-depth pre = 4
-#val pre [0x2e] = do update @{segment=CS}; pre end
-#val pre [0x36] = do update @{segment=SS}; pre end
-#val pre [0x3e] = do update @{segment=DS}; pre end
-#val pre [0x26] = do update @{segment=ES}; pre end
-#val pre [0x64] = do update @{segment=FS}; pre end
-#val pre [0x65] = do update @{segment=GS}; pre end
-#val pre [0x66] = do update @{opndsz=1}; pre end
-#val pre [0x67] = do update @{addrsz=1}; pre end
-#val pre [0x66 /rex? 0x0f] = two-byte-opcodes-0f 
-#val pre [0x66 0x0f] = two-byte-opcodes-0f 
-#val pre [0x66 /rex 0x0f] = two-byte-opcodes-0f 
-#val pre [/rex] = main
-#val pre [] = main
+val main [0x66 0x0f] = two-byte-opcodes-0f 
+val main [0x66 /rex 0x0f] = two-byte-opcodes-0f 
+val main [/rex] = main
+val main [] = one-byte-opcodes
 
 ## Instruction decoders
 
+## One Byte Opcodes
+
 ### MOV Vol 2A 3-643
 
-val main [0x88 /r] = mov r/m8 r8
-val main [0x89 /r] 
+val one-byte-opcodes [0x88 /r] = mov r/m8 r8
+val one-byte-opcodes [0x89 /r] 
  | $opndsz = mov r/m16 r16
 #| $rexw = mov r/m64 r64
  | otherwise = mov r/m32 r32
-val main [0x8a /r] = mov r8 r/m8
-val main [0x8b /r]
+val one-byte-opcodes [0x8a /r] = mov r8 r/m8
+val one-byte-opcodes [0x8b /r]
  | $opndsz = mov r16 r/m16
  | otherwise = mov r32 r/m32
-val main [0x8c /r] = mov r/m16 (r/ sreg3)
-val main [0x8e /r] = mov (r/ sreg3) r/m16
-val main [0xa0] = mov (return AL) moffs8 
-val main [0xa1]
+val one-byte-opcodes [0x8c /r] = mov r/m16 (r/ sreg3)
+val one-byte-opcodes [0x8e /r] = mov (r/ sreg3) r/m16
+val one-byte-opcodes [0xa0] = mov (return AL) moffs8 
+val one-byte-opcodes [0xa1]
  | $addrsz = mov (return (REG AX)) moffs16
  | otherwise = mov (return (REG EAX)) moffs32
-val main [0xa2] = mov moffs8 (return (REG AL))
-val main [0xa3]
+val one-byte-opcodes [0xa2] = mov moffs8 (return (REG AL))
+val one-byte-opcodes [0xa3]
  | $addrsz = mov moffs16 (return (REG AX))
  | otherwise = mov moffs32 (return (REG EAX))
-val main [0xb0] = mov (return (REG AL)) imm8/
-val main [0xb1] = mov (return (REG CL)) imm8/
-val main [0xb2] = mov (return (REG DL)) imm8/
-val main [0xb3] = mov (return (REG BL)) imm8/
-val main [0xb4] = mov (return (REG AH)) imm8/
-val main [0xb5] = mov (return (REG CH)) imm8/
-val main [0xb6] = mov (return (REG DH)) imm8/
-val main [0xb7] = mov (return (REG BH)) imm8/
-val main [0xb8]
+val one-byte-opcodes [0xb0] = mov (return (REG AL)) imm8/
+val one-byte-opcodes [0xb1] = mov (return (REG CL)) imm8/
+val one-byte-opcodes [0xb2] = mov (return (REG DL)) imm8/
+val one-byte-opcodes [0xb3] = mov (return (REG BL)) imm8/
+val one-byte-opcodes [0xb4] = mov (return (REG AH)) imm8/
+val one-byte-opcodes [0xb5] = mov (return (REG CH)) imm8/
+val one-byte-opcodes [0xb6] = mov (return (REG DH)) imm8/
+val one-byte-opcodes [0xb7] = mov (return (REG BH)) imm8/
+val one-byte-opcodes [0xb8]
  | $opndsz = mov (return (REG AX)) imm16/
  | otherwise = mov (return (REG EAX)) imm32/
-val main [0xb9]
+val one-byte-opcodes [0xb9]
  | $opndsz = mov (return (REG CX)) imm16/
  | otherwise = mov (return (REG ECX)) imm32/
-val main [0xba]
+val one-byte-opcodes [0xba]
  | $opndsz = mov (return (REG DX)) imm16/
  | otherwise = mov (return (REG EDX)) imm32/
-val main [0xbb]
+val one-byte-opcodes [0xbb]
  | $opndsz = mov (return (REG BX)) imm16/
  | otherwise = mov (return (REG EBX)) imm32/
-val main [0xbc]
+val one-byte-opcodes [0xbc]
  | $opndsz = mov (return (REG SP)) imm16/
  | otherwise = mov (return (REG ESP)) imm32/
-val main [0xbd]
+val one-byte-opcodes [0xbd]
  | $opndsz = mov (return (REG BP)) imm16/
  | otherwise = mov (return (REG EBP)) imm32/
-val main [0xbe]
+val one-byte-opcodes [0xbe]
  | $opndsz = mov (return (REG SI)) imm16/
  | otherwise = mov (return (REG ESI)) imm32/
-val main [0xbf]
+val one-byte-opcodes [0xbf]
  | $opndsz = mov (return (REG DI)) imm16/
  | otherwise = mov (return (REG EDI)) imm32/
-val main [0xC6 /0] = mov r/m8 imm8/
-val main [0xC7 /0]
+val one-byte-opcodes [0xC6 /0] = mov r/m8 imm8/
+val one-byte-opcodes [0xC7 /0]
  | $opndsz = mov r/m16 imm16/
  | otherwise = mov r/m32 imm32/
 
+## Two Byte Opcodes with Prefix 0x0f
+
 ### CVTPD2PI Vol 2A 3-248
 
-val main [0x66 0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128 
-val main [0x66 /rex 0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128 
-#val main [0x66 /rex? 0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128 
-
-#val two-byte-opcodes-0f [0x2d /r] = binop CVTPD2PI mm64 xmm/m128
-
-### Parse REX prefixes
-val main [/rex] = main
-
+val two-byte-opcodes-0f [0x2d /r] = binop CVTPD2PI mm64 xmm/m128
