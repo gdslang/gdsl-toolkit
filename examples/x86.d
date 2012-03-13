@@ -81,7 +81,8 @@ datatype opnd =
 type binop = {opnd1:opnd, opnd2:opnd}
 
 datatype insn =
-   MOV of binop
+   ADD of binop
+ |  MOV of binop
  | CVTPD2PI of binop
 
 val imm8 ['b:8'] = return (IMM8 b)
@@ -253,7 +254,7 @@ val r/m-with-sib = do
    mod <- query $mod;
    case mod of
       '00': mem sibOpnd
-    | '01': 
+    | '01':
          do
             i <- imm8;
             mem (SUM{a=sibOpnd, b=i})
@@ -349,6 +350,7 @@ val binop cons giveOp1 giveOp2 = do
 end
 
 val mov = binop MOV
+val add = binop ADD
 
 ## The REX prefixes
 
@@ -375,6 +377,31 @@ val main [] = one-byte-opcode
 
 ### MOV Vol 2A 3-643
 
+val one-byte-opcode [0x04] = add (return (REG AL)) imm8
+val one-byte-opcode [0x05]
+   | $rexw = add (return (REG RAX)) imm64
+   | $opndsz = add (return (REG RAX)) imm32
+   | otherwise = add (return (REG RAX)) imm16
+val one-byte-opcode [0x80 /0] = r/m8 imm8
+val one-byte-opcode [0x81 /0]
+   | $rexw = add r/m64 imm64
+   | $opndsz = add r/m32 imm32
+   | otherwise = add r/m16 imm16
+val one-byte-opcode [0x83 /0]
+   | $rexw = add r/m64 imm8
+   | $opndsz = add r/m32 imm8
+   | otherwise = add r/m16 imm8
+val one-byte-opcode [0x00 /r] = add r/m8 r8
+val one-byte-opcode [0x01 /0]
+   | $rexw = add r/m64 r64
+   | $opndsz = add r/m32 r32
+   | otherwise = add r/m16 r16
+val one-byte-opcode [0x02 /r] = add r8 r/m8
+val one-byte-opcode [0x03 /0]
+   | $rexw = add r64 r/m64
+   | $opndsz = add r32 r/m32
+   | otherwise = add r16 r/m16
+
 val one-byte-opcode [0x88 /r] = mov r/m8 r8
 val one-byte-opcode [0x89 /r] 
  | $opndsz = mov r/m16 r16
@@ -386,7 +413,7 @@ val one-byte-opcode [0x8b /r]
  | otherwise = mov r32 r/m32
 val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3)
 val one-byte-opcode [0x8e /r] = mov (r/ sreg3) r/m16
-val one-byte-opcode [0xa0] = mov (return AL) moffs8 
+val one-byte-opcode [0xa0] = mov (return (REG AL)) moffs8 
 val one-byte-opcode [0xa1]
  | $addrsz = mov (return (REG AX)) moffs16
  | otherwise = mov (return (REG EAX)) moffs32
