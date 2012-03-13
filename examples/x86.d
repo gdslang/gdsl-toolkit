@@ -381,7 +381,7 @@ val main [0x66] = do update @{opndsz=1}; main end
 val main [0x67] = do update @{addrsz=1}; main end
 val main [0x66 0x0f] = two-byte-opcodes-0f 
 val main [0x66 /rex 0x0f] = two-byte-opcodes-0f 
-val main [/rex] = main
+val main [/rex] = one-byte-opcodes
 val main [] = one-byte-opcodes
 
 ## Instruction decoders
