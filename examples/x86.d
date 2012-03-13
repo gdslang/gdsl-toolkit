@@ -302,6 +302,8 @@ val r/m reg = do
    end
 end
 
+val reg-rex-x n = R18
+
 val r/m8 = r/m reg8
 val r/m16 = r/m reg16
 val r/m32 = r/m reg32
@@ -364,8 +366,8 @@ val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz=1}; main end
 val main [0x67] = do update @{addrsz=1}; main end
-val main [0x66 0x0f] = twp-byte-opcode-0f 
-val main [0x66 /rex 0x0f] = twp-byte-opcode-0f 
+val main [0x66 0x0f] = two-byte-opcode-0f 
+val main [0x66 /rex 0x0f] = two-byte-opcode-0f 
 val main [/rex] = one-byte-opcode
 val main [] = one-byte-opcode
 
@@ -435,4 +437,4 @@ val one-byte-opcode [0xC7 /0]
 
 ### CVTPD2PI Vol 2A 3-248
 
-val twp-byte-opcode-0f [0x2d /r] = binop CVTPD2PI mm64 xmm/m128
+val two-byte-opcode-0f [0x2d /r] = binop CVTPD2PI mm64 xmm/m128

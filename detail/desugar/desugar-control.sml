@@ -4,5 +4,5 @@ structure DesugarControl = struct
       BasicControl.newRegistryWithDebug
          {name="desugar",
           pri=9,
-          help="controls for the desugaring phases"}
+          help="controls for the desugaring passes"}
 end

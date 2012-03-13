@@ -137,7 +137,7 @@ end = struct
       lp (flattenSeq ss)
    end
       
-   end (* local *)
+   end (* end local *)
 
    fun desugarMonadic es =
       Builtin.mk() @ map (fn (n, ns, e) => (n, ns, desugar e)) es
