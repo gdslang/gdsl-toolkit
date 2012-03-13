@@ -19,6 +19,7 @@ structure DesugarDecode = struct
 
    val tok = Atom.atom "tok"
    val consume = Atom.atom "consume"
+   val unconsume = Atom.atom "unconsume"
    val slice = Atom.atom "slice"
 
    fun freshTok () = let
@@ -36,6 +37,15 @@ structure DesugarDecode = struct
                (!SymbolTables.varTable, consume))
    in
       (tok, Exp.BIND (tok, consume))
+   end
+
+   fun unconsumeTok () = let
+      val unconsume =
+         Exp.ID
+            (VarInfo.lookup
+               (!SymbolTables.varTable, unconsume))
+   in
+      Exp.ACTION unconsume
    end
 
    fun sliceExp (tok, offs, sz) = let
@@ -65,6 +75,8 @@ structure DesugarDecode = struct
       VS.foldli buildEquiv StringMap.empty decls
    end
 
+   fun isWildcardPattern p = String.size p = 0
+
 (*
    fun layoutDecls (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
       open Layout Pretty
@@ -78,6 +90,7 @@ structure DesugarDecode = struct
           str " "]
    end
 *)
+
    fun desugar ds = let
       fun lp (ds, acc) =
          case ds of
@@ -138,9 +151,16 @@ structure DesugarDecode = struct
          rev (Set.foldl grabSlices [] indices)
       end
 
-      fun stepDown indices = let
+      fun stepDown indices wildcard = let
          fun nextIdx (i, acc) = let
             val (toks, e) = VS.sub (decls, i)
+            val e =
+               if wildcard
+                  then
+                     Exp.SEQ
+                        [unconsumeTok (),
+                         Exp.ACTION e]
+               else e
          in
             if VS.length toks = 0
                then (toVec [], e)::acc
@@ -155,7 +175,7 @@ structure DesugarDecode = struct
       end
 
       fun buildMatch (pat, indices, pats) =
-         (Core.Pat.BIT pat, stepDown indices)::pats
+         (Core.Pat.BIT pat, stepDown indices (isWildcardPattern pat))::pats
    in
       StringMap.foldli buildMatch [] equiv
    end

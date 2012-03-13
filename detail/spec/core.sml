@@ -104,7 +104,7 @@ structure Core = struct
             indent 3 (alignPrefix (map casee cs, "| "))
       and recdecls ds = align (map recdecl ds)
       and recdecl (n, args, exp) =
-         def (seq [str "rec", space, seq (separate (map var (n::args), " "))],
+         def (seq [str "val", space, seq (separate (map var (n::args), " "))],
               layout exp)
       and seqexp s =
          case s of
