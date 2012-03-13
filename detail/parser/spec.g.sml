@@ -291,10 +291,10 @@ fun PrimBitPat_PROD_2_ACT (SR, Qid, SR_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (L
            | SOME i => PT.BITVECbitpat (#tree Qid, i)))
 fun Exp_PROD_1_ACT (ClosedExp, ClosedExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( ClosedExp)
-fun Exp_PROD_2_ACT (KW_case, Cases, KW_of, ClosedExp, KW_end, KW_case_SPAN : (Lex.pos * Lex.pos), Cases_SPAN : (Lex.pos * Lex.pos), KW_of_SPAN : (Lex.pos * Lex.pos), ClosedExp_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Exp_PROD_2_ACT (Cases, KW_of, KW_end, KW_case, ClosedExp, Cases_SPAN : (Lex.pos * Lex.pos), KW_of_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_case_SPAN : (Lex.pos * Lex.pos), ClosedExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.CASEexp (ClosedExp, Cases)))
-fun ClosedExp_PROD_2_ACT (Exp1, Exp2, Exp3, KW_else, KW_then, KW_if, Exp1_SPAN : (Lex.pos * Lex.pos), Exp2_SPAN : (Lex.pos * Lex.pos), Exp3_SPAN : (Lex.pos * Lex.pos), KW_else_SPAN : (Lex.pos * Lex.pos), KW_then_SPAN : (Lex.pos * Lex.pos), KW_if_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun ClosedExp_PROD_2_ACT (Exp1, Exp2, Exp3, KW_if, KW_else, KW_then, Exp1_SPAN : (Lex.pos * Lex.pos), Exp2_SPAN : (Lex.pos * Lex.pos), Exp3_SPAN : (Lex.pos * Lex.pos), KW_if_SPAN : (Lex.pos * Lex.pos), KW_else_SPAN : (Lex.pos * Lex.pos), KW_then_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.IFexp (Exp1, Exp2, Exp3)))
 fun ClosedExp_PROD_3_ACT (SR, MonadicExp, KW_do, KW_end, SR_SPAN : (Lex.pos * Lex.pos), MonadicExp_SPAN : (Lex.pos * Lex.pos), KW_do_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -340,11 +340,11 @@ fun AExp_PROD_1_ACT (SR, MExp, SR_SPAN : (Lex.pos * Lex.pos), MExp_SPAN : (Lex.p
       mark PT.MARKexp (FULL_SPAN, mkLBinExp (MExp, SR)))
 fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (TIMES, SelectExp, TIMES_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Op.times)
-fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp, KW_div, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (KW_div, SelectExp, KW_div_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Op.div)
-fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (SelectExp, KW_mod, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (KW_mod, SelectExp, KW_mod_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Op.mod)
-fun MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, SelectExp, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, ApplyExp, SelectExp, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       SR, SelectExp)
 fun MExp_PROD_1_ACT (SR, SelectExp, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -383,7 +383,7 @@ fun AtomicExp_PROD_7_ACT (LP, RP, Exp, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : 
 fun AtomicExp_PROD_8_ACT (EQ, SR, Exp, LCB, RCB, Name, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.RECORDexp ((Name, Exp)::SR)))
-fun AtomicExp_PROD_9_ACT (Exp, ValueDecl, KW_in, KW_end, KW_let, Exp_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun AtomicExp_PROD_9_ACT (Exp, KW_in, KW_end, KW_let, ValueDecl, Exp_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.LETRECexp (ValueDecl, Exp)))
 fun ValueDecl_PROD_1_ACT (EQ, Exp, Name1, Name2, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -821,7 +821,7 @@ fun Exp_NT (strm) = let
             val (KW_end_RES, KW_end_SPAN, strm') = matchKW_end(strm')
             val FULL_SPAN = (#1(KW_case_SPAN), #2(KW_end_SPAN))
             in
-              (UserCode.Exp_PROD_2_ACT (KW_case_RES, Cases_RES, KW_of_RES, ClosedExp_RES, KW_end_RES, KW_case_SPAN : (Lex.pos * Lex.pos), Cases_SPAN : (Lex.pos * Lex.pos), KW_of_SPAN : (Lex.pos * Lex.pos), ClosedExp_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.Exp_PROD_2_ACT (Cases_RES, KW_of_RES, KW_end_RES, KW_case_RES, ClosedExp_RES, Cases_SPAN : (Lex.pos * Lex.pos), KW_of_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_case_SPAN : (Lex.pos * Lex.pos), ClosedExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in
@@ -883,7 +883,7 @@ and ClosedExp_NT (strm) = let
             val (Exp3_RES, Exp3_SPAN, strm') = Exp_NT(strm')
             val FULL_SPAN = (#1(KW_if_SPAN), #2(Exp3_SPAN))
             in
-              (UserCode.ClosedExp_PROD_2_ACT (Exp1_RES, Exp2_RES, Exp3_RES, KW_else_RES, KW_then_RES, KW_if_RES, Exp1_SPAN : (Lex.pos * Lex.pos), Exp2_SPAN : (Lex.pos * Lex.pos), Exp3_SPAN : (Lex.pos * Lex.pos), KW_else_SPAN : (Lex.pos * Lex.pos), KW_then_SPAN : (Lex.pos * Lex.pos), KW_if_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.ClosedExp_PROD_2_ACT (Exp1_RES, Exp2_RES, Exp3_RES, KW_if_RES, KW_else_RES, KW_then_RES, Exp1_SPAN : (Lex.pos * Lex.pos), Exp2_SPAN : (Lex.pos * Lex.pos), Exp3_SPAN : (Lex.pos * Lex.pos), KW_if_SPAN : (Lex.pos * Lex.pos), KW_else_SPAN : (Lex.pos * Lex.pos), KW_then_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun ClosedExp_PROD_3 (strm) = let
@@ -1110,14 +1110,14 @@ and MExp_NT (strm) = let
                         val (KW_div_RES, KW_div_SPAN, strm') = matchKW_div(strm)
                         val FULL_SPAN = (#1(KW_div_SPAN), #2(KW_div_SPAN))
                         in
-                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp_RES, KW_div_RES, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (KW_div_RES, SelectExp_RES, KW_div_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                             FULL_SPAN, strm')
                         end
                   fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3 (strm) = let
                         val (KW_mod_RES, KW_mod_SPAN, strm') = matchKW_mod(strm)
                         val FULL_SPAN = (#1(KW_mod_SPAN), #2(KW_mod_SPAN))
                         in
-                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (SelectExp_RES, KW_mod_RES, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (KW_mod_RES, SelectExp_RES, KW_mod_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                             FULL_SPAN, strm')
                         end
                   in
@@ -1137,7 +1137,7 @@ and MExp_NT (strm) = let
             val (ApplyExp_RES, ApplyExp_SPAN, strm') = ApplyExp_NT(strm')
             val FULL_SPAN = (#1(SR_SPAN), #2(ApplyExp_SPAN))
             in
-              (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR_RES, SelectExp_RES, ApplyExp_RES, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR_RES, ApplyExp_RES, SelectExp_RES, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun MExp_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
@@ -1333,7 +1333,7 @@ and AtomicExp_NT (strm) = let
             val (KW_end_RES, KW_end_SPAN, strm') = matchKW_end(strm')
             val FULL_SPAN = (#1(KW_let_SPAN), #2(KW_end_SPAN))
             in
-              (UserCode.AtomicExp_PROD_9_ACT (Exp_RES, ValueDecl_RES, KW_in_RES, KW_end_RES, KW_let_RES, Exp_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.AtomicExp_PROD_9_ACT (Exp_RES, KW_in_RES, KW_end_RES, KW_let_RES, ValueDecl_RES, Exp_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in

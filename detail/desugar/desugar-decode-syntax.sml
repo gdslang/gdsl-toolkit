@@ -65,16 +65,19 @@ structure DesugarDecode = struct
       VS.foldli buildEquiv StringMap.empty decls
    end
 
+(*
    fun layoutDecls (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
       open Layout Pretty
+      fun pats ps = vector (VS.map (fn ps => list (map DT.PP.pat ps)) ps)
    in
-      vector (VS.map
-         (fn (pss, e) =>
-            vector (VS.map
-               (fn ps => 
-                  list (map DT.PP.pat ps)) pss)) decls)
+      align
+         [str "decls:", 
+          vector (VS.map
+            (fn pse =>
+               tuple2 (pats, DT.PP.exp) pse) decls),
+          str " "]
    end
-
+*)
    fun desugar ds = let
       fun lp (ds, acc) =
          case ds of
@@ -85,14 +88,12 @@ structure DesugarDecode = struct
    end
 
    and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
-      fun grabExp () = #2 (VS.sub (decls, 0))
-      val bottom = 
-         VS.length decls = 1 andalso
-            let
-               val (toks, _) = VS.sub (decls, 0)
-            in
-               VS.length toks = 0
-            end
+      fun grabExp () = 
+         if VS.length decls <> 1 
+            then raise CM.CompilationError
+         else #2 (VS.sub (decls, 0))
+      fun isEmpty (vs, _) = VS.length vs = 0
+      val bottom = VS.all isEmpty decls
    in
       if bottom
          then grabExp ()
@@ -109,7 +110,7 @@ structure DesugarDecode = struct
    end
 
    and desugarMatches tok decls = let
-      val () = print "desugarMatches\n"
+      (* val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
       val equiv = buildEquivClass decls
       
       fun genBindSlices indices = let
@@ -172,8 +173,7 @@ end = struct
    fun desugar ds =
       List.map
          (fn (n, ds) =>
-            (Pretty.prettyTo (TextIO.stdOut, Core.PP.var n);
-             (n, [], DesugarDecode.desugar ds)))
+             (n, [], DesugarDecode.desugar ds))
          (SymMap.listItemsi ds)
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)

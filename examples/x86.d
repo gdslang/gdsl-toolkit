@@ -364,10 +364,10 @@ val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz=1}; main end
 val main [0x67] = do update @{addrsz=1}; main end
-val main [0x66 0x0f] = two-byte-opcodes-0f 
-val main [0x66 /rex 0x0f] = two-byte-opcodes-0f 
-val main [/rex] = one-byte-opcodes
-val main [] = one-byte-opcodes
+val main [0x66 0x0f] = twp-byte-opcode-0f 
+val main [0x66 /rex 0x0f] = twp-byte-opcode-0f 
+val main [/rex] = one-byte-opcode
+val main [] = one-byte-opcode
 
 ## Instruction decoders
 
@@ -375,59 +375,59 @@ val main [] = one-byte-opcodes
 
 ### MOV Vol 2A 3-643
 
-val one-byte-opcodes [0x88 /r] = mov r/m8 r8
-val one-byte-opcodes [0x89 /r] 
+val one-byte-opcode [0x88 /r] = mov r/m8 r8
+val one-byte-opcode [0x89 /r] 
  | $opndsz = mov r/m16 r16
 #| $rexw = mov r/m64 r64
  | otherwise = mov r/m32 r32
-val one-byte-opcodes [0x8a /r] = mov r8 r/m8
-val one-byte-opcodes [0x8b /r]
+val one-byte-opcode [0x8a /r] = mov r8 r/m8
+val one-byte-opcode [0x8b /r]
  | $opndsz = mov r16 r/m16
  | otherwise = mov r32 r/m32
-val one-byte-opcodes [0x8c /r] = mov r/m16 (r/ sreg3)
-val one-byte-opcodes [0x8e /r] = mov (r/ sreg3) r/m16
-val one-byte-opcodes [0xa0] = mov (return AL) moffs8 
-val one-byte-opcodes [0xa1]
+val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3)
+val one-byte-opcode [0x8e /r] = mov (r/ sreg3) r/m16
+val one-byte-opcode [0xa0] = mov (return AL) moffs8 
+val one-byte-opcode [0xa1]
  | $addrsz = mov (return (REG AX)) moffs16
  | otherwise = mov (return (REG EAX)) moffs32
-val one-byte-opcodes [0xa2] = mov moffs8 (return (REG AL))
-val one-byte-opcodes [0xa3]
+val one-byte-opcode [0xa2] = mov moffs8 (return (REG AL))
+val one-byte-opcode [0xa3]
  | $addrsz = mov moffs16 (return (REG AX))
  | otherwise = mov moffs32 (return (REG EAX))
-val one-byte-opcodes [0xb0] = mov (return (REG AL)) imm8
-val one-byte-opcodes [0xb1] = mov (return (REG CL)) imm8
-val one-byte-opcodes [0xb2] = mov (return (REG DL)) imm8
-val one-byte-opcodes [0xb3] = mov (return (REG BL)) imm8
-val one-byte-opcodes [0xb4] = mov (return (REG AH)) imm8
-val one-byte-opcodes [0xb5] = mov (return (REG CH)) imm8
-val one-byte-opcodes [0xb6] = mov (return (REG DH)) imm8
-val one-byte-opcodes [0xb7] = mov (return (REG BH)) imm8
-val one-byte-opcodes [0xb8]
+val one-byte-opcode [0xb0] = mov (return (REG AL)) imm8
+val one-byte-opcode [0xb1] = mov (return (REG CL)) imm8
+val one-byte-opcode [0xb2] = mov (return (REG DL)) imm8
+val one-byte-opcode [0xb3] = mov (return (REG BL)) imm8
+val one-byte-opcode [0xb4] = mov (return (REG AH)) imm8
+val one-byte-opcode [0xb5] = mov (return (REG CH)) imm8
+val one-byte-opcode [0xb6] = mov (return (REG DH)) imm8
+val one-byte-opcode [0xb7] = mov (return (REG BH)) imm8
+val one-byte-opcode [0xb8]
  | $opndsz = mov (return (REG AX)) imm16
  | otherwise = mov (return (REG EAX)) imm32
-val one-byte-opcodes [0xb9]
+val one-byte-opcode [0xb9]
  | $opndsz = mov (return (REG CX)) imm16
  | otherwise = mov (return (REG ECX)) imm32
-val one-byte-opcodes [0xba]
+val one-byte-opcode [0xba]
  | $opndsz = mov (return (REG DX)) imm16
  | otherwise = mov (return (REG EDX)) imm32
-val one-byte-opcodes [0xbb]
+val one-byte-opcode [0xbb]
  | $opndsz = mov (return (REG BX)) imm16
  | otherwise = mov (return (REG EBX)) imm32
-val one-byte-opcodes [0xbc]
+val one-byte-opcode [0xbc]
  | $opndsz = mov (return (REG SP)) imm16
  | otherwise = mov (return (REG ESP)) imm32
-val one-byte-opcodes [0xbd]
+val one-byte-opcode [0xbd]
  | $opndsz = mov (return (REG BP)) imm16
  | otherwise = mov (return (REG EBP)) imm32
-val one-byte-opcodes [0xbe]
+val one-byte-opcode [0xbe]
  | $opndsz = mov (return (REG SI)) imm16
  | otherwise = mov (return (REG ESI)) imm32
-val one-byte-opcodes [0xbf]
+val one-byte-opcode [0xbf]
  | $opndsz = mov (return (REG DI)) imm16
  | otherwise = mov (return (REG EDI)) imm32
-val one-byte-opcodes [0xC6 /0] = mov r/m8 imm8
-val one-byte-opcodes [0xC7 /0]
+val one-byte-opcode [0xC6 /0] = mov r/m8 imm8
+val one-byte-opcode [0xC7 /0]
  | $opndsz = mov r/m16 imm16
  | otherwise = mov r/m32 imm32
 
@@ -435,4 +435,4 @@ val one-byte-opcodes [0xC7 /0]
 
 ### CVTPD2PI Vol 2A 3-248
 
-val two-byte-opcodes-0f [0x2d /r] = binop CVTPD2PI mm64 xmm/m128
+val twp-byte-opcode-0f [0x2d /r] = binop CVTPD2PI mm64 xmm/m128

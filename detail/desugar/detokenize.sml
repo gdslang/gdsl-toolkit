@@ -38,7 +38,7 @@ end = struct
                         (IntInf.orb (pat, 0x100),
                       0x1ff))
             in
-               [Pat.VEC (String.substring (bitstr, 0, 8))]
+               [Pat.VEC (String.substring (bitstr, 1, 8))]
             end
        | _ => raise CM.CompilationError (* Inlining must have failed! *)
 
