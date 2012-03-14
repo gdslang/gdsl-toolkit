@@ -214,7 +214,8 @@ end = struct
          let
             fun getEnv ({bindInfo, typeVars = tv, version}::_) = tv
               | getEnv [] = TVar.empty
-            fun l [] = raise InferenceBug
+            fun l [] = (TextIO.print ("urk, tried to lookup non-exitent symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+                       ;raise InferenceBug)
               | l ({bindInfo = KAPPA _, typeVars, version}::scs) = l scs
               | l ({bindInfo = SINGLE {name, ty}, typeVars, version}::scs) =
                   if ST.eq_symid (sym,name) then
