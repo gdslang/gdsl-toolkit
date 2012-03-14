@@ -711,7 +711,7 @@ end = struct
                    {name = n2, ty = mergeOpt (t2,t1),
                     width = mergeOpt (w2,w1),
                     uses = SpanMap.unionWith (fn (x,y) => x) (u2,u1)})
-               (*val _ = if List.length u1=List.length u2 then () else
+               (*val _ = if List.length bs1=List.length bs2 then () else
                      TextIO.print ("*************** mergeUses of\n" ^ topToString (Scope.wrap (GROUP bs1,env1)) ^ "\ndoes not match\n" ^ topToString (Scope.wrap (GROUP bs2,env2)))*)
                val (bs1,bs2) = ListPair.unzip
                                  (List.map mB (ListPair.zipEq (bs1,bs2)))
@@ -736,9 +736,10 @@ end = struct
                  (TextIO.print ("+++++ bad: unifying\n" ^ toString(env1) ^ "+++++ and\n" ^ toString(env2) ^ "\n"); raise InferenceBug)*)
          val (env1,env2) = mergeUses (env1, env2)
          (*val _ = TextIO.print ("***** after adjusting uses:\n" ^ toString(env) ^ "\n")*)
-         (*val (eStr,si) = toStringSI (env2, TVar.emptyShowInfo)
+         val (e1Str,si) = toStringSI (env1, TVar.emptyShowInfo)
+         val (e2Str,si) = toStringSI (env2, si)
          val (sStr,_) = showSubstsSI (substs,si)
-         val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ eStr)*)
+         (*val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str)*)
       in
          (applySubsts (substs, env1), applySubsts (substs, env2))
       end
@@ -755,6 +756,8 @@ end = struct
                   BD.meetVarImpliesVar (f2,f1,bf)
                else
                   BD.meetVarImpliesVar (f1,f2,bf)
+            (*val _ = if List.length l1=List.length l2 then () else
+                  TextIO.print ("*************** genFlow of\n" ^ topToString env1 ^ "\ndoes not match\n" ^ topToString env2)*)
          in
             (bFun1 := ListPair.foldlEq genImpl (!bFun1) (l1, l2); ())
          end

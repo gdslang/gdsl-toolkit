@@ -340,7 +340,6 @@ end = struct
          val (sStr, si) = TVar.setToString (vs, si)
          val (vStr, si) = TVar.setToString (texpVarset (t, TVar.empty), si)
          val (suStr, si) = showSubstsSI (substs, si)
-         val _ = TextIO.print ("instantiating " ^ tStr ^ " by substituting " ^ suStr ^ " and i.e. " ^ vStr ^ " without " ^ sStr ^ "\n")
          val (t,ei) = applySubstsToExp substs (t, createExpandInfo bFun)
       in
          (t, finalizeExpandInfo ei)
@@ -421,7 +420,12 @@ end = struct
       let
          fun unifyVars (v,b,e,s) =
                case findSubstForVar (v,s) of
-                    NONE => addSubst (v,WITH_TYPE e) s
+                    NONE => 
+                     let
+                       val (e, _) = applySubstsToExp s (e, noExpandInfo)
+                     in
+                        addSubst (v,WITH_TYPE e) s
+                     end
                   | SOME (WITH_TYPE t) => mgu (e, t, s)
                   | _ => raise SubstitutionBug
       in
@@ -431,7 +435,12 @@ end = struct
       end
     | mgu (VAR (v,b), e, s) =
          (case findSubstForVar (v,s) of
-              NONE => addSubst (v,WITH_TYPE e) s
+              NONE =>
+               let
+                 val (e, _) = applySubstsToExp s (e, noExpandInfo)
+               in
+                  addSubst (v,WITH_TYPE e) s
+               end
             | SOME (WITH_TYPE t) => mgu (e, t, s)
             | _ => raise SubstitutionBug
          )

@@ -17,7 +17,10 @@ structure Primitives = struct
    val s7 : tvar = freshTVar ()
    val s8 : tvar = freshTVar ()
    val s9 : tvar = freshTVar ()
+   val s10 : tvar = freshTVar ()
    val a : tvar = freshTVar ()
+   val b : tvar = freshTVar ()
+   val c : tvar = freshTVar ()
    val d : tvar = freshTVar ()
    val e : tvar = freshTVar ()
    val t = freshTVar
@@ -43,8 +46,8 @@ structure Primitives = struct
        {name="return", ty=FUN (var a, MONAD (var a))},
        {name=">>=", ty=
          let
-            val a' = var a
-            val b' = var a
+            val a' = var b
+            val b' = var c
          in
             (* 'a M -> ('a -> 'b M) -> 'b M *)
             FUN (FUN (MONAD a', FUN (a', MONAD b')), MONAD b')
@@ -61,6 +64,7 @@ structure Primitives = struct
        {name = ">~", ty = FUN (VEC (var s7), FUN (VEC (var s7), VEC (CONST 1)))},
        {name = "==", ty = FUN (var s8, FUN (var s8, VEC (CONST 1)))},
        {name = "!=", ty = FUN (var s9, FUN (var s9, VEC (CONST 1)))},
+       {name = "not", ty = vvv s10},
        {name="^", ty=vvv s5},
        {name="otherwise", ty=VEC (CONST 1)}]
 
