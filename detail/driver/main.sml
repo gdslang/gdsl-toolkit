@@ -8,7 +8,8 @@ structure Main = struct
       fun all ins =
          Parser.run ins >>=
          ResolveSymbols.run >>=
-         Desugar.run
+         Desugar.run >>=
+         CPSPasses.run
 
       fun run fp = let
          val ins = TextIO.openIn fp
@@ -26,7 +27,7 @@ structure Main = struct
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          TypeInference.run (tInfo, ast) >>= (fn tys =>
          (TextIO.print (TypeInference.showTable tys);
-         Desugar.run ast
+         return ()
          ))))
 
       fun runTc fp = let

@@ -22,9 +22,9 @@ structure BooleanDomain : sig
 
    val meetEither : bvar * bvar * bfun -> bfun
    
-   val meetVarZero : bvar * bfun -> bfun
+   val meetVarZero : bvar -> bfun -> bfun
 
-   val meetVarOne : bvar * bfun -> bfun
+   val meetVarOne : bvar -> bfun -> bfun
 
    type bvarset
    
@@ -34,7 +34,7 @@ structure BooleanDomain : sig
    
    val projectOnto : bvarset * bfun -> bfun
 
-   val expand : bvar list * bvar list * bfun -> bfun
+   val expand : bvar list * (bool * bvar) list * bfun -> bfun
    
    val meet : bfun * bfun -> bfun
    
@@ -107,8 +107,8 @@ end = struct
    exception Unsatisfiable
    
    fun addUnits ([], f) = f
-     | addUnits (v :: vs, f as (us, cs)) =
-     (TextIO.print ("\nasserting " ^ i v ^ " in:" ^ showBFun f);
+     | addUnits (v :: vs, f as (us, cs)) = (
+     (*TextIO.print ("\nasserting " ^ i v ^ " in:" ^ showBFun f);*)
       if US.member (us,~v) then raise Unsatisfiable else
       if US.member (us, v) then addUnits (vs, f) else
       let
@@ -118,16 +118,16 @@ end = struct
             if List.exists (fn v' => v'=v) vs then vs else
             if List.exists (fn v' => v'= ~v) vs then raise Unsatisfiable else
             v :: vs
-         fun calcUnits ((v1,v2), units) =
-            (TextIO.print ("\nlooking at " ^ i v1 ^ " v " ^ i v2);
+         fun calcUnits ((v1,v2), units) = (
+            (*TextIO.print ("\nlooking at " ^ i v1 ^ " v " ^ i v2);*)
             if v= ~v1 then ins v2 units else
             if v= ~v2 then ins v1 units else
             (* v=v1 orelse v=v2 *) units
             )
          val units = CS.foldl calcUnits vs withV
-         val _ = TextIO.print ("\nsolving by asserting " ^ i v ^
+         (*val _ = TextIO.print ("\nsolving by asserting " ^ i v ^
                                ", giving units " ^ showUS (US.fromList units) ^
-                               "due to" ^ showBFun (US.empty, withV))
+                               "due to" ^ showBFun (US.empty, withV))*)
       in
          addUnits (units, (US.add' (v,us), withoutV))
       end
@@ -141,19 +141,19 @@ end = struct
          if v1=v2 then addUnits ([v1], f) else f
       ) else (us, CS.add' (if v1<v2 then (v1,v2) else (v2,v1), cs))
    
-   fun meetVarImpliesVar (BVAR v1, BVAR v2, f) =
-      (TextIO.print ("\nmeet with " ^ i v1 ^ " -> " ^ i v2 ^ "\n");
+   fun meetVarImpliesVar (BVAR v1, BVAR v2, f) = (
+      (*TextIO.print ("\nmeet with " ^ i v1 ^ " -> " ^ i v2 ^ "\n");*)
       if v1=v2 then f else addClause ((~v1,v2), f)
       )
    fun meetNotBoth (BVAR v1, BVAR v2, f) = addClause ((~v1,~v2),f)
    fun meetEither (BVAR v1, BVAR v2, f) = addClause ((v1,v2),f)
 
-   fun meetVarOne (BVAR v, f) =
-         (TextIO.print ("\nmeet with " ^ i v ^ " = t\n");
+   fun meetVarOne (BVAR v) f = (
+         (*TextIO.print ("\nmeet with " ^ i v ^ " = t\n");*)
          addUnits ([v], f)
          )
-   fun meetVarZero (BVAR v, f) =
-         (TextIO.print ("\nmeet with " ^ i v ^ " = f\n");
+   fun meetVarZero (BVAR v) f = (
+         (*TextIO.print ("\nmeet with " ^ i v ^ " = f\n");*)
          addUnits ([~v], f)
          )
    
@@ -197,8 +197,9 @@ end = struct
    fun expand (l1, l2, (us, cs)) =
       let
          val h = HT.mkTable (List.length l1, Bug)
-         val _ = ListPair.appEq (fn (BVAR v1, BVAR v2) =>
-                                 HT.insert h (v1,v2)) (l1, l2)
+         val _ = ListPair.appEq (fn (BVAR v1, (invert, BVAR v2)) =>
+                                 HT.insert h (v1,if invert then ~v2 else v2))
+                                (l1, l2)
          fun trans v = case HT.find h (Int.abs v) of
                           NONE => NONE
                         | SOME v' => SOME (if v<0 then ~v' else v')

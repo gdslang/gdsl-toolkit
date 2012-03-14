@@ -35,6 +35,7 @@ structure Primitives = struct
        {name="unconsume", ty=MONAD UNIT},
        {name="raise", ty=MONAD (var (t()))},
        (* TODO *) {name="slice", ty=MONAD (var (t ()))},
+       {name=caseExpression, ty=UNIT},
        {name=globalState, ty=var state},
        {name=anonDecodeFunction, ty=MONAD (var r)},
        {name="return", ty=FUN (var a, MONAD (var a))},
@@ -53,6 +54,9 @@ structure Primitives = struct
        {name="signed", ty=FUN (VEC (var s3), ZENO)},
        {name="unsigned", ty=FUN (VEC (var s4), ZENO)},
        {name="bits8", ty=FUN (ZENO, VEC (CONST 8))},
+       {name = "||", ty = FUN (VEC (CONST 1), FUN (VEC (CONST 1), VEC (CONST 1)))},
+       {name = "<~", ty = FUN (VEC (var s6), FUN (VEC (var s6), VEC (CONST 1)))},
+       {name = ">~", ty = FUN (VEC (var s7), FUN (VEC (var s7), VEC (CONST 1)))},
        {name="^", ty=vvv s5},
        {name="otherwise", ty=VEC (CONST 1)}]
 

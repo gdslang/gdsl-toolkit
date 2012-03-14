@@ -3,6 +3,8 @@ structure Environment : sig
 
    structure SpanMap : ORD_MAP where type Key.ord_key = Error.span
 
+   structure SymbolSet : ORD_SET where type Key.ord_key = SymbolTable.symid
+   
    datatype symbol_type =
         VALUE of {symType : Types.texp}
       | DECODE of {symType : Types.texp, width : Types.texp}
@@ -29,7 +31,7 @@ structure Environment : sig
    (*given an occurrence of a symbol at a position, push its type onto the
    stack and return if an instance of this type must be used*)
    val pushSymbol : VarInfo.symid * Error.span * environment -> environment
-   
+
    val getUsages : VarInfo.symid * environment -> Error.span list
    
    (*stack: [...,t] -> [...] and type of f for call-site s is set to t*)
@@ -62,17 +64,30 @@ structure Environment : sig
 
    (*the type of function f is unset*)
    val clearFunction : VarInfo.symid * environment -> environment
-  
-   val meet : environment * environment -> environment
+
+   (*apply the Boolean function*)
+   val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
+                     environment -> environment
+
+   val meet : environment * environment -> environment * environment
+
+   val genFlow : environment * environment -> unit
 
    (*returns the set of substitutions for the first environment, this is empty
    if the the first environment is more specific (smaller) than the second*)
    val subseteq : environment * environment -> Substitutions.Substs
+
+   (*query all function symbols in binding groups that would be modified by
+   the given substitutions*)
+   val affectedFunctions : Substitutions.Substs * environment -> SymbolSet.set
    
    val toString : environment -> string
+   val toStringSI : environment * TVar.varmap -> string * TVar.varmap
    val topToString : environment -> string
+   val topToStringSI : environment * TVar.varmap -> string * TVar.varmap
    val kappaToStringSI : environment * TVar.varmap -> string * TVar.varmap
-   
+   val funTypeToStringSI  : environment * VarInfo.symid * TVar.varmap ->
+                            string * TVar.varmap
 end = struct
    structure ST = SymbolTable
    structure BD = BooleanDomain
@@ -122,7 +137,7 @@ end = struct
    information that make substitution and join cheaper*)
    structure Scope : sig
       type scope
-      type environment = scope list * BD.bfun
+      type environment = scope list * BD.bfun ref
       val initial : binding -> environment
       val wrap : (binding * environment) -> environment
       val unwrap : environment -> (binding * environment)
@@ -131,7 +146,7 @@ end = struct
       val getVars : environment -> TVar.set
       val lookup : ST.symid * environment -> TVar.set * bind_info
       val update : ST.symid  *
-                   (bind_info * BD.bfun -> bind_info * BD.bfun) *
+                   (bind_info * BD.bfun ref -> bind_info * BD.bfun ref) *
                    environment-> environment
       val toString : scope * TVar.varmap -> string * TVar.varmap
    end = struct
@@ -140,7 +155,7 @@ end = struct
          typeVars : TVar.set,
          version : int
       }
-      type environment = scope list * BD.bfun
+      type environment = scope list * BD.bfun ref
    
       val verCounter = ref 1
       fun nextVersion () =  let
@@ -171,7 +186,7 @@ end = struct
             bindInfo = b,
             typeVars = varsOfBinding (b,TVar.empty),
             version = 0
-          }],BD.empty)
+          }],ref BD.empty)
       fun wrap (b, (scs, bFun)) =
          ({
             bindInfo = b,
@@ -197,7 +212,7 @@ end = struct
 
       fun lookup (sym, (scs, bFun)) =
          let
-            fun getEnv ({bindInfo, typeVars = tv, version}::scs) = tv
+            fun getEnv ({bindInfo, typeVars = tv, version}::_) = tv
               | getEnv [] = TVar.empty
             fun l [] = raise InferenceBug
               | l ({bindInfo = KAPPA _, typeVars, version}::scs) = l scs
@@ -206,14 +221,14 @@ end = struct
                      (getEnv scs, SIMPLE { ty = ty})
                   else l scs
               | l ({bindInfo = GROUP bs, typeVars, version}::scs) =
-                  let fun lG [] = l scs
-                        | lG ({name, ty, width, uses}::bs) =
+                  let fun lG other [] = l scs
+                        | lG other ((b as {name, ty, width, uses})::bs) =
                            if ST.eq_symid (sym,name) then
-                              (getEnv scs,
+                              (varsOfBinding (GROUP (other @ bs), getEnv scs),
                               COMPOUND { ty = ty, width = width, uses = uses })
-                           else lG bs
+                           else lG (b :: other) bs
                   in
-                     lG bs
+                     lG [] bs
                   end
          in
             l scs
@@ -326,11 +341,12 @@ end = struct
    fun pushSingle (sym, t, env) = Scope.wrap (SINGLE {name = sym, ty = t},env)
    
 
-   structure SISet = RedBlackSetFn (
+   structure SymbolSet = RedBlackSetFn (
       struct
          type ord_key = SymbolTable.symid
          val compare = SymbolTable.compare_symid
-      end)           
+      end)
+          
    fun pushGroup (syms, env) = 
       let
          val (funs, nonFuns) = List.partition (fn (s,dec) => not dec) syms
@@ -338,7 +354,7 @@ end = struct
             (fn (s,_) => {name = s, ty = NONE, width = NONE, uses = SpanMap.empty})
             funs
          val nonFunSyms =
-            SISet.listItems (SISet.fromList (List.map (fn (s,_) => s) nonFuns))
+            SymbolSet.listItems (SymbolSet.fromList (List.map (fn (s,_) => s) nonFuns))
          val nonFunDefs = List.map
             (fn s => {name = s, ty = NONE, width =
               SOME (VAR (TVar.freshTVar (), BD.freshBVar ())),
@@ -367,9 +383,9 @@ end = struct
 
    fun pushType (true, t, (scs, bFun)) =
       let
-         val (t,bFun) = instantiateType (TVar.empty,t,bFun)
+         val (t,bf) = instantiateType (TVar.empty,t,!bFun)
       in
-         Scope.wrap (KAPPA {ty = t}, (scs, bFun))
+         (bFun := bf; Scope.wrap (KAPPA {ty = t}, (scs, bFun)))
       end
      | pushType (false, t, env) = Scope.wrap (KAPPA {ty = t}, env)
 
@@ -398,13 +414,58 @@ end = struct
          str
       end
    
-   fun topToString (s :: scs, bFun) = toString ([s], bFun)
-     | topToString ([], bFun) = ""
+   fun topToStringSI (env, si) =
+      let
+         fun tts acc (sc :: scs, bFun) =
+            (case Scope.unwrap (sc :: scs, bFun) of
+                 (GROUP _, (_, bFun)) => toStringSI ((acc @ [sc], bFun), si)
+               | (_, env) => tts (acc @ [sc]) env) 
+           | tts acc ([], bFun) = toStringSI ((acc, bFun), si)
+      in
+         tts [] env
+      end
+
+   fun topToString env =
+      let
+         val (str, _) = topToStringSI (env,TVar.emptyShowInfo)
+      in
+         str
+      end
 
    fun kappaToStringSI (env, si) = (case Scope.unwrap env of
         (KAPPA {ty = t}, _) => showTypeSI (t,si)
       | _ => raise InferenceBug
    )
+
+   fun funTypeToStringSI (env, f, si) = (case Scope.lookup (f,env) of
+        (_, COMPOUND { ty = SOME t, width, uses }) => showTypeSI (t,si)
+      | _ => raise InferenceBug
+   )
+   fun affectedFunctions (substs, env) =
+      let
+         fun aF (ss, substs, ([], _)) = ss
+           | aF (ss, substs, env) = if isEmpty substs then ss else
+             case Scope.unwrap env of
+              (KAPPA {ty}, env) =>
+              aF (ss, substsFilter (substs, Scope.getVars env), env)
+            | (SINGLE {name = n, ty = t}, env) =>
+              aF (ss, substsFilter (substs, Scope.getVars env), env)
+            | (GROUP l, env) =>
+            let
+               fun aFL (ss, []) =
+                   aF (ss, substsFilter (substs, Scope.getVars env), env)
+                 | aFL (ss, {name, ty = NONE, width, uses} :: l) = aFL (ss, l)
+                 | aFL (ss, {name = n, ty = SOME t, width, uses} :: l) =
+                     if isEmpty (substsFilter (substs,
+                        texpVarset (t,TVar.empty)))
+                     then aFL (ss, l)
+                     else aFL (SymbolSet.add' (n, ss), l)
+            in
+               aFL (ss, l)
+            end
+      in
+         aF (SymbolSet.empty, substs, env)
+      end
 
    fun pushSymbol (sym, span, env) =
       (case Scope.lookup (sym,env) of
@@ -412,9 +473,9 @@ end = struct
         | (tvs, COMPOUND {ty = SOME t, width, uses}) =>
          let
             val (scs,bFun) = env
-            val (t,bFun) = instantiateType (tvs, t, bFun)
+            val (t,bf) = instantiateType (tvs, t, !bFun)
          in
-            Scope.wrap (KAPPA {ty = t}, (scs,bFun))
+            (bFun := bf; Scope.wrap (KAPPA {ty = t}, (scs,bFun)))
          end
         | (_, COMPOUND {ty = NONE, width, uses}) =>
           (case SpanMap.find (uses, span) of
@@ -533,33 +594,21 @@ end = struct
                end
          fun doSubst (scs, ei) =
             let
-               val substs = substsFilter (substs, Scope.getVars (scs, BD.empty))
+               val substs = substsFilter (substs,
+                                          Scope.getVars (scs, ref BD.empty))
             in
-               if isEmpty substs then (scs, finalizeExpandInfo ei) else
+               if isEmpty substs then (bFun := finalizeExpandInfo ei
+                                      ;(scs, bFun))
+               else
                   let
-                     val (b, (scs,_)) = Scope.unwrap (scs, BD.empty)
+                     val (b, (scs,_)) = Scope.unwrap (scs, ref BD.empty)
                      val (b, ei) = substBinding (b, ei, substs)
                   in
                      Scope.wrap (b, doSubst (scs, ei))
                   end
             end
       in
-         doSubst (scs, createExpandInfo bFun)
-      end
-
-   fun reduceUnify env = 
-      let
-         val (t2, env) = case Scope.unwrap env of
-                             (KAPPA {ty = t}, env) => (t,env)
-                           | (SINGLE {name, ty = t}, env) => (t,env)
-                           | _ => raise InferenceBug
-         val (t1, env) = case Scope.unwrap env of
-                             (KAPPA {ty = t}, env) => (t,env)
-                           | (SINGLE {name, ty = t}, env) => (t,env)
-                           | _ => raise InferenceBug
-         val substs = mgu(t1,t2,emptySubsts)
-      in
-         applySubsts(substs, env)
+         doSubst (scs, createExpandInfo (!bFun))
       end
 
    fun return (n,env) =
@@ -637,10 +686,17 @@ end = struct
    fun mergeUses (env1,env2) =
       (case Scope.unwrapDifferent (env1, env2) of
            (SOME (KAPPA {ty = t1}, KAPPA {ty = t2}), env1, env2) =>
-               Scope.wrap (KAPPA {ty = t1}, mergeUses (env1, env2))
+            (case mergeUses (env1, env2) of (env1, env2) =>
+               (Scope.wrap (KAPPA {ty = t1}, env1),
+                Scope.wrap (KAPPA {ty = t2}, env2))
+            )
          | (SOME (SINGLE {name = n1, ty = t1},
-                  SINGLE {name = _, ty = _}), env1, env2) =>
-               Scope.wrap (SINGLE {name = n1, ty = t1}, mergeUses (env1, env2))
+                  SINGLE {name = n2, ty = t2}), env1, env2) =>
+            if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
+            (case mergeUses (env1, env2) of (env1, env2) =>
+               (Scope.wrap (SINGLE {name = n1, ty = t1}, env1),
+                Scope.wrap (SINGLE {name = n2, ty = t2}, env2))
+            )
          | (SOME (GROUP bs1, GROUP bs2), env1, env2) =>
             let
                fun mergeOpt (SOME t1, SOME t2) = SOME t1
@@ -649,17 +705,28 @@ end = struct
                fun mB ({name = n1, ty = t1, width = w1, uses = u1},
                        {name = n2, ty = t2, width = w2, uses = u2}) =
                   if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
-                  {name = n1, ty = mergeOpt (t1,t2), width = mergeOpt (w1,w2),
-                   uses = SpanMap.unionWith (fn (x,y) => x) (u1,u2) }
+                  ({name = n1, ty = mergeOpt (t1,t2),
+                    width = mergeOpt (w1,w2),
+                    uses = SpanMap.unionWith (fn (x,y) => x) (u1,u2)},
+                   {name = n2, ty = mergeOpt (t2,t1),
+                    width = mergeOpt (w2,w1),
+                    uses = SpanMap.unionWith (fn (x,y) => x) (u2,u1)})
                (*val _ = if List.length u1=List.length u2 then () else
                      TextIO.print ("*************** mergeUses of\n" ^ topToString (Scope.wrap (GROUP bs1,env1)) ^ "\ndoes not match\n" ^ topToString (Scope.wrap (GROUP bs2,env2)))*)
-               val bs = List.map mB (ListPair.zipEq (bs1,bs2))
+               val (bs1,bs2) = ListPair.unzip
+                                 (List.map mB (ListPair.zipEq (bs1,bs2)))
             in
-               Scope.wrap (GROUP bs, mergeUses (env1,env2))
+               (case mergeUses (env1, env2) of (env1, env2) =>
+                  (Scope.wrap (GROUP bs1, env1),
+                   Scope.wrap (GROUP bs2, env2))
+               )
             end      
-         | (NONE, env1, env2) => env1
+         | (NONE, env1, env2) => (env1, env2)
          | (SOME _, _, _) => raise InferenceBug
       )
+
+   fun meetBoolean (update, (scs, bFun)) =
+      (scs, (bFun := update (!bFun); bFun))
    
    fun meet (env1, env2) =
       let
@@ -667,22 +734,39 @@ end = struct
          val substs = unify (env1, env2, emptySubsts)
                (*handle ListPair.UnequalLengths =>
                  (TextIO.print ("+++++ bad: unifying\n" ^ toString(env1) ^ "+++++ and\n" ^ toString(env2) ^ "\n"); raise InferenceBug)*)
-         val env = mergeUses (env1, env2)
+         val (env1,env2) = mergeUses (env1, env2)
          (*val _ = TextIO.print ("***** after adjusting uses:\n" ^ toString(env) ^ "\n")*)
          (*val (eStr,si) = toStringSI (env2, TVar.emptyShowInfo)
          val (sStr,_) = showSubstsSI (substs,si)
          val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ eStr)*)
       in
-         applySubsts (substs, env)
+         (applySubsts (substs, env1), applySubsts (substs, env2))
       end
 
+   fun genFlow (env1, env2) = case (Scope.unwrap env1, Scope.unwrap env2) of
+        ((KAPPA {ty=t1}, (_, bFun1)), (KAPPA {ty=t2}, (_, bFun2))) =>
+         if (bFun1 <> bFun2) then raise InferenceBug else
+         let
+            val l1 = getFlagsForType t1
+            val l2 = getFlagsForType t2
+            fun genImpl ((contra1,f1),(contra2,f2),bf) =
+               if contra1<>contra2 then raise InferenceBug else
+               if contra1 then
+                  BD.meetVarImpliesVar (f2,f1,bf)
+               else
+                  BD.meetVarImpliesVar (f1,f2,bf)
+         in
+            (bFun1 := ListPair.foldlEq genImpl (!bFun1) (l1, l2); ())
+         end
+       | _ => raise InferenceBug
+  
    fun subseteq (env1, env2) =
       let
          val substs = unify (env1, env2, emptySubsts)
-         val si = TVar.emptyShowInfo
+         (*val si = TVar.emptyShowInfo
          val (e1Str, si) = toStringSI (env1, si)
          val (e2Str, si) = toStringSI (env2, si)
-         val (sStr, si) = showSubstsSI (substs, si)
+         val (sStr, si) = showSubstsSI (substs, si)*)
          val substs = substsFilter (substs, Scope.getVars env1)
          (*val _ = TextIO.print ("+++++ substitution " ^ sStr ^ " indicates" ^
                   (if isEmpty substs then "" else " not") ^
