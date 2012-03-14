@@ -75,12 +75,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val maxIter = 0
    fun checkUsages reportWarnings (sym, env) =
       let
+         (*val _ = TextIO.print ("***** usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " in " ^ (if reportWarnings then " fixpoint\n" else " first round\n"))*)
          fun checkUsage (s, (unstable, env)) =
             let
                val envFun = E.pushSymbol (sym, s, env)
-               val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)
+               (*val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)*)
                val envCall = E.pushUsage (sym, s, env)
-               val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)
+               (*val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)*)
                (*inform about a unification failure when checking call site
                with definition*)
                fun raiseError str =
@@ -97,7 +98,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   end
                (*warn about refinement of definition due to a call site*)
                fun raiseWarning (substs, syms) =
-                  if not reportWarnings then () else
+                  if E.SymbolSet.isEmpty syms then () else
                   let
                      val si = TVar.emptyShowInfo
                      val (sSubst, si) = S.showSubstsSI (substs, si)
@@ -105,13 +106,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                         let
                            val sStr = SymbolTable.getString
                               (!SymbolTables.varTable, sym)
-                           val env = E.pushSymbol (sym, SymbolTable.noSpan, env)
-                           val (sType, si) = E.kappaToStringSI (env, si)
+                           val (sType, si) = E.funTypeToStringSI (env, sym, si)
                         in
                            (res ^ pre ^ sStr ^ " : " ^ sType, ", ", si)
                         end
                      val (symsStr, _, _) =
-                        List.foldl showSyms ("", "", si) syms
+                        List.foldl showSyms ("", "", si)
+                           (E.SymbolSet.listItems syms)
                   in 
                      (Error.warningAt (errStrm, s, [
                      "call to ",
@@ -123,12 +124,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                                          E.meet (envCall, envFun))
                   handle (S.UnificationFailure str) =>
                      (raiseError str; (S.emptySubsts, (envCall, envCall)))
-               val (sStr, si) = S.showSubstsSI (substs,TVar.emptyShowInfo)
-               val _ = TextIO.print ("***** substitutions: " ^ sStr ^ " on function def\n")
-               val (eStr, _) = E.toStringSI (envFun,si)
-               val _ = TextIO.print ("before updating usage:\n" ^ eStr)
-               val env = E.popToUsage (sym, s, env)
-               val affectedSyms = E.affectedFunctions (substs,env)
+                     val env = E.popToUsage (sym, s, env)
+               val affectedSyms = E.affectedFunctions (substs,envCall)
+               val _ = raiseWarning (substs, affectedSyms)
             in
                (E.SymbolSet.union (unstable, affectedSyms), env)
             end
@@ -143,9 +141,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                         (E.SymbolSet.union (unstable,newUnstable), env)
                   ) (E.SymbolSet.empty, env) (E.SymbolSet.listItems syms)
 
-   fun calcFixpoint curIter (syms, env) = 
+   fun calcFixpoint curIter (syms, env) =
          if E.SymbolSet.isEmpty syms then env else
-         if curIter<=maxIter then
+         if curIter<maxIter then
             calcFixpoint (curIter+1) (checkCallSites true (syms, env))
          else
          let
@@ -175,13 +173,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    
    fun infBinding (st,env) (sym, dec, args, rhs) =
       let
-         val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+         (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
          val env = List.foldl E.pushLambdaVar env args
          val env = infExp (st,env) rhs
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
-         val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)
+         (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
          val env = E.popToFunction (sym, env)
-         val _ = TextIO.print ("after popping fun: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)
+         (*val _ = TextIO.print ("after popping fun: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)*)
       in
          checkUsages false (sym, env)
       end
@@ -266,9 +264,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.APPLYexp (e1,e2)) =
       let                                      
          val envFun = infExp (st,env) e1
-         val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)
+         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)*)
          val envArg = infExp (st,env) e2
-         val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)
+         (*val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
          val envArg = E.pushTop envArg
          val envArg = E.reduceToFunction envArg
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArg)*)

@@ -84,8 +84,10 @@ structure Environment : sig
    val toString : environment -> string
    val toStringSI : environment * TVar.varmap -> string * TVar.varmap
    val topToString : environment -> string
+   val topToStringSI : environment * TVar.varmap -> string * TVar.varmap
    val kappaToStringSI : environment * TVar.varmap -> string * TVar.varmap
-   
+   val funTypeToStringSI  : environment * VarInfo.symid * TVar.varmap ->
+                            string * TVar.varmap
 end = struct
    structure ST = SymbolTable
    structure BD = BooleanDomain
@@ -412,15 +414,22 @@ end = struct
          str
       end
    
-   fun topToString env =
+   fun topToStringSI (env, si) =
       let
          fun tts acc (sc :: scs, bFun) =
             (case Scope.unwrap (sc :: scs, bFun) of
-                 (GROUP _, (_, bFun)) => toString (acc @ [sc], bFun)
+                 (GROUP _, (_, bFun)) => toStringSI ((acc @ [sc], bFun), si)
                | (_, env) => tts (acc @ [sc]) env) 
-           | tts acc ([], bFun) = toString (acc, bFun)
+           | tts acc ([], bFun) = toStringSI ((acc, bFun), si)
       in
          tts [] env
+      end
+
+   fun topToString env =
+      let
+         val (str, _) = topToStringSI (env,TVar.emptyShowInfo)
+      in
+         str
       end
 
    fun kappaToStringSI (env, si) = (case Scope.unwrap env of
@@ -428,27 +437,34 @@ end = struct
       | _ => raise InferenceBug
    )
 
+   fun funTypeToStringSI (env, f, si) = (case Scope.lookup (f,env) of
+        (_, COMPOUND { ty = SOME t, width, uses }) => showTypeSI (t,si)
+      | _ => raise InferenceBug
+   )
    fun affectedFunctions (substs, env) =
       let
-         fun aF (ss, ([], _)) = ss
-           | aF (ss, env) = case Scope.unwrap env of
-              (KAPPA {ty}, env) => aF (ss, env)
-            | (SINGLE {name = n, ty = t}, env) => aF (ss, env)
+         fun aF (ss, substs, ([], _)) = ss
+           | aF (ss, substs, env) = if isEmpty substs then ss else
+             case Scope.unwrap env of
+              (KAPPA {ty}, env) =>
+              aF (ss, substsFilter (substs, Scope.getVars env), env)
+            | (SINGLE {name = n, ty = t}, env) =>
+              aF (ss, substsFilter (substs, Scope.getVars env), env)
             | (GROUP l, env) =>
             let
-               fun aFL (ss, []) = aF (ss, env)
+               fun aFL (ss, []) =
+                   aF (ss, substsFilter (substs, Scope.getVars env), env)
                  | aFL (ss, {name, ty = NONE, width, uses} :: l) = aFL (ss, l)
                  | aFL (ss, {name = n, ty = SOME t, width, uses} :: l) =
                      if isEmpty (substsFilter (substs,
                         texpVarset (t,TVar.empty)))
                      then aFL (ss, l)
                      else aFL (SymbolSet.add' (n, ss), l)
-                        
             in
                aFL (ss, l)
             end
       in
-         aF (SymbolSet.empty, env)
+         aF (SymbolSet.empty, substs, env)
       end
 
    fun pushSymbol (sym, span, env) =
@@ -747,10 +763,10 @@ end = struct
    fun subseteq (env1, env2) =
       let
          val substs = unify (env1, env2, emptySubsts)
-         val si = TVar.emptyShowInfo
+         (*val si = TVar.emptyShowInfo
          val (e1Str, si) = toStringSI (env1, si)
          val (e2Str, si) = toStringSI (env2, si)
-         val (sStr, si) = showSubstsSI (substs, si)
+         val (sStr, si) = showSubstsSI (substs, si)*)
          val substs = substsFilter (substs, Scope.getVars env1)
          (*val _ = TextIO.print ("+++++ substitution " ^ sStr ^ " indicates" ^
                   (if isEmpty substs then "" else " not") ^
