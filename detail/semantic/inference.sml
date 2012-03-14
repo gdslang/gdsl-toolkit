@@ -371,13 +371,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val var = VAR (TVar.freshTVar (), BD.freshBVar ())
          val envMon = E.pushType (false, MONAD var, env)
-         val _ = TextIO.print ("**** monad pattern:\n" ^ E.toString envMon)
+         val _ = TextIO.print ("**** monad pattern:\n" ^ E.topToString envMon)
          val envExp = infExp (st,env) e
-         val _ = TextIO.print ("**** monad expression:\n" ^ E.toString envExp)
+         val _ = TextIO.print ("**** monad expression:\n" ^ E.topToString envExp)
          val (envMon, envExp) = E.meet (envMon, envExp)
          val _ = E.genFlow (envMon, envExp)
       in
-         if List.null l then env else infSeqexp (st, E.popKappa envMon) l
+         if List.null l then envMon else infSeqexp (st, E.popKappa envMon) l
       end
      | infSeqexp (st,env) (AST.BINDseqexp (v,e) :: l) =
       let
