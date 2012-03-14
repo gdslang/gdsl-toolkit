@@ -59,8 +59,8 @@ structure Primitives = struct
        {name = "||", ty = FUN (VEC (CONST 1), FUN (VEC (CONST 1), VEC (CONST 1)))},
        {name = "<~", ty = FUN (VEC (var s6), FUN (VEC (var s6), VEC (CONST 1)))},
        {name = ">~", ty = FUN (VEC (var s7), FUN (VEC (var s7), VEC (CONST 1)))},
-       {name = "==", ty = FUN (VEC (var s8), FUN (VEC (var s8), VEC (CONST 1)))},
-       {name = "!=", ty = FUN (VEC (var s9), FUN (VEC (var s9), VEC (CONST 1)))},
+       {name = "==", ty = FUN (var s8, FUN (var s8, VEC (CONST 1)))},
+       {name = "!=", ty = FUN (var s9, FUN (var s9, VEC (CONST 1)))},
        {name="^", ty=vvv s5},
        {name="otherwise", ty=VEC (CONST 1)}]
 
