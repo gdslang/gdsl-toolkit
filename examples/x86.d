@@ -172,6 +172,9 @@ val reg8r n =
     | '111': REG R15L
    end
 
+val reg8? rex =
+   if rex == 0 then reg8 else reg8r
+
 val reg16 n =
    case n of
       '000': REG AX
@@ -195,6 +198,9 @@ val reg16r n =
     | '110': REG R14L
     | '111': REG R15L
    end
+
+val reg16? rex =
+   if rex == 0 then reg16 else reg16r
 
 val reg32 n =
    case n of
@@ -220,6 +226,9 @@ val reg32r n =
     | '111': REG R15D
    end
 
+val reg32? rex =
+   if rex == 0 then reg32 else reg32r
+
 val reg64 n =
    case n of
       '000': REG RAX
@@ -243,6 +252,9 @@ val reg64r n =
     | '110': REG R14
     | '111': REG R15
    end
+
+val reg64? rex =
+   if rex == 0 then reg64 else reg64r
 
 val sreg3 n =
    case n of
@@ -280,6 +292,9 @@ val xmmr n =
     | '111': REG XMM15
    end
 
+val xmm? rex =
+   if rex == 0 then xmm else xmmr
+
 val mm n =
    case n of
       '000': REG MM0
@@ -304,6 +319,9 @@ val mmr n =
     | '111': REG MM15
    end
 
+val mm? rex =
+   if rex == 0 then mm else mmr
+
 # Deslice the mod/rm byte and put it into the the state
 
 val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=0}
@@ -316,54 +334,64 @@ val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=6}
 val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=7}
 val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
 
-val reg-by-size-and-rex size rex =
-   case size of
-      B: if rex == 1 then reg8r else reg8
-    | W: if rex == 1 then reg16r else reg16
+#val reg-by-size-and-rex size rex =
+#   case size of
+#      B: if rex == 1 then reg8r else reg8
+#    | W: if rex == 1 then reg16r else reg16
+#    | DW: if rex == 1 then reg32r else reg32
+#    | QW: if rex == 1 then reg64r else reg64
+#    | DQW: if rex == 1 then reg16r else 
 
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
 
-val sib-without-index reg = do
+val sib-without-index reg? = do
    mod <- query $mod;
+   rexb <- query $rexb;
    case mod of
       '00': imm32
-    | '01': return (reg '101') # rBP
-    | '10': return (reg '101') # rBP
+    | '01': return ((reg? rexb) '101') # rBP
+    | '10': return ((reg? rexb) '101') # rBP
    end
 end
 
-val sib-without-base reg scale index =
+val sib-without-base reg? scale index = do
+   rexx <- query $rexx;
    let
-      val scaled = SCALE{imm=scale, opnd=reg index}
+      val scaled = SCALE{imm=scale, opnd=(reg? rexx) index}
    in
       do
          mod <- query $mod;
+	 rexb <- query $rexb;
          case mod of
             '00': 
                do
                   i <- imm32;
                   return (SUM{a=scaled, b=IMM32 i})
                end
-          | _ : return (SUM{a=scaled, b=reg '101'}) # rBP
+          | _ : return (SUM{a=scaled, b=(reg? rexb) '101'}) # rBP
          end
       end
    end
+end
 
-val sib-with-index-and-base reg s i b =
-   return (SUM{a=SCALE{imm=s, opnd=i}, b=reg b})
+val sib-with-index-and-base reg? s i b = do
+   rexx <- query $rexx;
+   rexb <- query $rexb;
+   return (SUM{a=SCALE{imm=s, opnd=(reg? rexx) i}, b=(reg? rexb) b})
+end
 
 val sib ['scale:2 100 101']
- | $addrsz = sib-without-index reg16
- | otherwise = sib-without-index reg32
+ | $addrsz = sib-without-index reg16?
+ | otherwise = sib-without-index reg32?
 
 val sib ['scale:2 index:3 101'] 
- | $addrsz = sib-without-base reg16 scale index
- | otherwise = sib-without-base reg32 scale index
+ | $addrsz = sib-without-base reg16? scale index
+ | otherwise = sib-without-base reg32? scale index
 
 val sib ['scale:2 index:3 base:3']
- | $addrsz = sib-with-index-and-base reg16 scale index base
- | otherwise = sib-with-index-and-base reg32 scale index base
+ | $addrsz = sib-with-index-and-base reg16? scale index base
+ | otherwise = sib-with-index-and-base reg32? scale index base
 
 ## Decoding the mod/rm byte
 
@@ -426,33 +454,35 @@ val r/m-without-sib reg = do
    end
 end
 
-val r/m reg = do
+val r/m reg? = do
    mod <- query $mod;
    rm <- query $rm;
+   rexb <- query $rexb;
    case rm of
       '100': r/m-with-sib
-    | _ : r/m-without-sib reg
+    | _ : r/m-without-sib (reg? rexb)
    end
 end
 
-val r/m8 = r/m reg8
-val r/m16 = r/m reg16
-val r/m32 = r/m reg32
-val r/m64 = r/m reg64
-val mm/m64 = r/m mm
-val xmm/m128 = r/m xmm
+val r/m8 = r/m reg8?
+val r/m16 = r/m reg16?
+val r/m32 = r/m reg32?
+val r/m64 = r/m reg64?
+val mm/m64 = r/m mm?
+val xmm/m128 = r/m xmm?
 
-val r/ reg = do
+val r/ reg? = do
+   rexr <- query $rexr;
    r <- query $reg;
-   return reg r
+   return (reg? rexr) r
 end
 
-val r8 = r/ reg8
-val r16 = r/ reg16
-val r32 = r/ reg32
-val r64 = r/ reg64
-val mm64 = r/ mm
-val xmm128 = r/ xmm
+val r8 = r/ reg8?
+val r16 = r/ reg16?
+val r32 = r/ reg32?
+val r64 = r/ reg64?
+val mm64 = r/ mm?
+val xmm128 = r/ xmm?
 
 val moffs8 = do
    i <- imm8;
