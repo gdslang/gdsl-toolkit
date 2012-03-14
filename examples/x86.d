@@ -23,6 +23,9 @@ state =
     rexb:1=0,
     rexr:1=0,
     rexx:1=0,
+    vexm:5=00001,
+    vexv:4=0000,
+    vexl:1=0,
     opndsz:1=0,
     addrsz:1=0,
     segment:register=DS}
@@ -535,6 +538,29 @@ val xadd = binop XADD
 val phaddw = binop PHADDW
 val phaddd = binop PHADDD
 
+## The VEX prefixes
+
+val vex-pp pp =
+   case pp of
+      '01': update @{opndsz=1};
+#    | '10': => F3 Prefix
+#    | '11': => F2 Prefix
+   end
+
+val /vex ['0xc4 r:1 x:1 b:1 m:5 w:1 v:4 l:1 p:2] = do
+   update @{rexr=r, rexx=x, rexb=b, vexm=m, vexv=v, vexl=l};
+   vex-pp pp;
+end
+
+val /vex ['0xc5 r:1 v:4 l:1 p:2] = do
+   update @{rexr=r, vexv=v, vexl=l};
+   vex-pp pp;
+end
+
+# Rückgabewert in Pattern??
+
+end
+
 ## The REX prefixes
 
 val /rex ['0100 w:1 r:1 x:1 b:1'] = update @{rexw=w, rexb=b, rexx=x, rexr=r}
@@ -555,6 +581,14 @@ val main [0x66 0x0f] = two-byte-opcode-0f
 val main [0x66 /rex 0x0f] = two-byte-opcode-0f 
 val main [/rex] = one-byte-opcode
 val main [] = one-byte-opcode
+val main [/vex] = do
+   vexm <- query $vexm;
+   case vexm of
+      '00001': two-byte-opcode-0f
+    | '00010': three-byte-opcode-0f-38
+#   | '00011': three-byte-opcode-0f-3a
+#   | _: one-byte-opcode
+end
 
 ## Instruction decoders
 
