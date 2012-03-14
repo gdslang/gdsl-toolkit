@@ -55,6 +55,14 @@ datatype register =
  | XMM5
  | XMM6
  | XMM7
+ | XMM8
+ | XMM9
+ | XMM10
+ | XMM11
+ | XMM12
+ | XMM13
+ | XMM14
+ | XMM15
  | MM0
  | MM1
  | MM2
@@ -63,6 +71,14 @@ datatype register =
  | MM5
  | MM6
  | MM7
+ | MM8
+ | MM9
+ | MM10
+ | MM11
+ | MM12
+ | MM13
+ | MM14
+ | MM15
  | ES
  | SS
  | DS
