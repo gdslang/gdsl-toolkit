@@ -15,6 +15,8 @@ structure Primitives = struct
    val s5 : tvar = freshTVar ()
    val s6 : tvar = freshTVar ()
    val s7 : tvar = freshTVar ()
+   val s8 : tvar = freshTVar ()
+   val s9 : tvar = freshTVar ()
    val a : tvar = freshTVar ()
    val d : tvar = freshTVar ()
    val e : tvar = freshTVar ()
@@ -57,6 +59,8 @@ structure Primitives = struct
        {name = "||", ty = FUN (VEC (CONST 1), FUN (VEC (CONST 1), VEC (CONST 1)))},
        {name = "<~", ty = FUN (VEC (var s6), FUN (VEC (var s6), VEC (CONST 1)))},
        {name = ">~", ty = FUN (VEC (var s7), FUN (VEC (var s7), VEC (CONST 1)))},
+       {name = "==", ty = FUN (VEC (var s8), FUN (VEC (var s8), VEC (CONST 1)))},
+       {name = "!=", ty = FUN (VEC (var s9), FUN (VEC (var s9), VEC (CONST 1)))},
        {name="^", ty=vvv s5},
        {name="otherwise", ty=VEC (CONST 1)}]
 

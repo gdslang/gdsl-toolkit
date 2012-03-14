@@ -255,10 +255,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          E.return (1,env)
       end
-(*     | infExp (st,env) (AST.ANDALSOexp (e1,e2)) = AST.ANDALSOexp
-         (infExp (st,env) e1, infExp (st,env) e2)
-     | infExp (st,env) (AST.ORELSEexp (e1,e2)) = AST.ORELSEexp
-         (infExp (st,env) e1, infExp (st,env) e2)*)
      | infExp stenv (AST.BINARYexp (e1, opid,e2)) =
          infExp stenv (AST.APPLYexp (AST.APPLYexp (AST.IDexp opid, e1), e2))
      | infExp (st,env) (AST.APPLYexp (e1,e2)) =
@@ -271,7 +267,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envArg = E.reduceToFunction envArg
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArg)*)
          val (envFun, envArg) = E.meet (envFun, envArg)
-         val _ = E.genFlow (envFun, envArg) (*this is flow of result*)
+         val _ = E.genFlow (envArg, envFun)
          val env = E.reduceToResult envFun
          (*val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)*)
       in
@@ -345,8 +341,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          env
       end
-     | infExp (st,env) (AST.LITexp lit) = infLit (st,env) lit
-     (*| infExp (st,env) (AST.SEQexp l) = AST.SEQexp (infSeqexp (st,env) l)*)
+     | infExp stenv (AST.LITexp lit) = infLit stenv lit
+     | infExp stenv (AST.SEQexp l) = infSeqexp stenv l
      | infExp (st,env) (AST.IDexp v) =
       let
          val env = E.pushSymbol (v, getSpan st, env)
@@ -367,21 +363,36 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.FNexp (v, e)) =
          E.reduceToFunction (infExp (st, E.pushLambdaVar (v,env)) e)
-(*   and infSeqexp stenv [] = []
-     | infSeqexp _ (AST.MARKseqexp { tree = ast, span = stenv } :: l) =
-        infSeqexp stenv (ast :: l)
-     | infSeqexp stenv (AST.ACTIONseqexp e :: l) =
-        AST.ACTIONseqexp (infExp stenv e) :: infSeqexp stenv l
-     | infSeqexp stenv (AST.BINDseqexp (v,e) :: l) = let
-           val rhstenv = infExp stenv e
-           val _ = startScope ()
-           val lhstenv = newVar (s,v)
-           val rem = infSeqexp stenv l
-           val _ = endScope ()
-        in
-           AST.BINDseqexp (lhs, rhs) :: rem
-        end
-   and infDecodepat stenv (AST.MARKdecodepat m) =
+   and infSeqexp stenv [] = raise
+         (S.UnificationFailure "last statement in a sequence may not bind a variable")
+     | infSeqexp stenv (AST.MARKseqexp m :: l) =
+         reportError (fn stenv => fn e => infSeqexp stenv (e :: l)) stenv m
+     | infSeqexp (st,env) (AST.ACTIONseqexp e :: l) =
+      let
+         val var = VAR (TVar.freshTVar (), BD.freshBVar ())
+         val envMon = E.pushType (false, MONAD var, env)
+         val _ = TextIO.print ("**** monad pattern:\n" ^ E.toString envMon)
+         val envExp = infExp (st,env) e
+         val _ = TextIO.print ("**** monad expression:\n" ^ E.toString envExp)
+         val (envMon, envExp) = E.meet (envMon, envExp)
+         val _ = E.genFlow (envMon, envExp)
+      in
+         if List.null l then env else infSeqexp (st, E.popKappa envMon) l
+      end
+     | infSeqexp (st,env) (AST.BINDseqexp (v,e) :: l) =
+      let
+         val (t,env) = E.pushLambdaVar' (v, env)
+         val envMon = E.pushType (false, MONAD t, env)
+         val envExp = infExp (st,env) e
+         val (envMon, envExp) = E.meet (envMon, envExp)
+         val _ = E.genFlow (envMon, envExp)
+         val env = E.popKappa envMon
+         val env = infSeqexp (st, env) l
+         val env = E.return (1, env)
+      in
+         env
+      end
+(*   and infDecodepat stenv (AST.MARKdecodepat m) =
        AST.MARKdecodepat (reportError infDecodepat m)
      | infDecodepat stenv (AST.TOKENdecodepat t) =
        AST.TOKENdecodepat (infTokpat stenv t)
