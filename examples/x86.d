@@ -27,6 +27,9 @@ state =
     addrsz:1=0,
     segment:register=DS}
 
+datatype size =
+	B | W | DW | QW | DQW
+
 datatype register =
    AL | AH | AX | EAX | RAX
  | BL | BH | BX | EBX | RBX
@@ -134,6 +137,8 @@ datatype insn =
  | MOV of binop
  | CVTPD2PI of binop
  | XADD of binop
+ | PHADDW of binop
+ | PHADDD of binop
 
 val imm8 ['b:8'] = return (IMM8 b)
 val imm16 ['b1:8 b2:8'] = return (IMM16 (b1 ^ b2))
@@ -227,6 +232,18 @@ val reg64 n =
     | '111': REG RDI
    end
 
+val reg64r n =
+   case n of
+      '000': REG R8
+    | '001': REG R10
+    | '010': REG R11
+    | '011': REG R9
+    | '100': REG R12
+    | '101': REG R13
+    | '110': REG R14
+    | '111': REG R15
+   end
+
 val sreg3 n =
    case n of
       '000': REG ES
@@ -251,6 +268,18 @@ val xmm n =
     | '111': REG XMM7
    end
 
+val xmmr n =
+   case n of
+      '000': REG XMM8
+    | '001': REG XMM9
+    | '010': REG XMM10
+    | '011': REG XMM11
+    | '100': REG XMM12
+    | '101': REG XMM13
+    | '110': REG XMM14
+    | '111': REG XMM15
+   end
+
 val mm n =
    case n of
       '000': REG MM0
@@ -261,6 +290,18 @@ val mm n =
     | '101': REG MM5
     | '110': REG MM6
     | '111': REG MM7
+   end
+
+val mmr n =
+   case n of
+      '000': REG MM8
+    | '001': REG MM9
+    | '010': REG MM10
+    | '011': REG MM11
+    | '100': REG MM12
+    | '101': REG MM13
+    | '110': REG MM14
+    | '111': REG MM15
    end
 
 # Deslice the mod/rm byte and put it into the the state
@@ -274,6 +315,11 @@ val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=5}
 val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=6}
 val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=7}
 val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
+
+val reg-by-size-and-rex size rex =
+   case size of
+      B: if rex == 1 then reg8r else reg8
+    | W: if rex == 1 then reg16r else reg16
 
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
@@ -393,6 +439,7 @@ val r/m8 = r/m reg8
 val r/m16 = r/m reg16
 val r/m32 = r/m reg32
 val r/m64 = r/m reg64
+val mm/m64 = r/m mm
 val xmm/m128 = r/m xmm
 
 val r/ reg = do
@@ -439,6 +486,8 @@ val mov = binop MOV
 val add = binop ADD
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
+val phaddw = binop PHADDW
+val phaddd = binop PHADDD
 
 ## The REX prefixes
 
