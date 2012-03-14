@@ -331,11 +331,16 @@ end = struct
    
    fun instantiateType (vs,t,bFun) =
       let
-         val vs = TVar.difference (texpVarset (t, TVar.empty), vs)
+         val toReplace = TVar.difference (texpVarset (t, TVar.empty), vs)
          val substs = Substs (
                List.map (fn v => (v,
                  WITH_TYPE (VAR (TVar.freshTVar (), BD.freshBVar ())))
-               ) (TVar.listItems vs))
+               ) (TVar.listItems toReplace))
+         val (tStr, si) = showTypeSI (t, TVar.emptyShowInfo)
+         val (sStr, si) = TVar.setToString (vs, si)
+         val (vStr, si) = TVar.setToString (texpVarset (t, TVar.empty), si)
+         val (suStr, si) = showSubstsSI (substs, si)
+         val _ = TextIO.print ("instantiating " ^ tStr ^ " by substituting " ^ suStr ^ " and i.e. " ^ vStr ^ " without " ^ sStr ^ "\n")
          val (t,ei) = applySubstsToExp substs (t, createExpandInfo bFun)
       in
          (t, finalizeExpandInfo ei)
@@ -396,6 +401,7 @@ end = struct
       in
          unify (v1,v2,l1,l2,s)
       end
+    | mgu (MONAD ty1, MONAD ty2, s) = mgu (ty1, ty2, s)
     | mgu (ALG (ty1, l1), ALG (ty2, l2), s) =
       let fun incompat () = raise UnificationFailure (
             "cannot match constructor " ^
