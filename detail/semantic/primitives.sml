@@ -53,7 +53,7 @@ structure Primitives = struct
             FUN (FUN (MONAD a', FUN (a', MONAD b')), MONAD b')
          end},
        {name="update", ty=FUN (FUN (var state, var state), MONAD (var d))},
-       {name="query", ty=FUN (FUN (var state, var state), MONAD (var e))},
+       {name="query", ty=FUN (FUN (var state, var e), MONAD (var e))},
        {name="+", ty=vvv s1},
        {name="*", ty=vvv s2},
        {name="signed", ty=FUN (VEC (var s3), ZENO)},

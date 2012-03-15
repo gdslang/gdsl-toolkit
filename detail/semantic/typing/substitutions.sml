@@ -131,15 +131,15 @@ end = struct
      | insertField (f1, f2 :: l) = (case compare_rfield (f1,f2) of
           LESS => f1 :: f2 :: l
         | GREATER => f2 :: insertField (f1, l)
-        | EQUAL => (
-            (*TextIO.print (showTypes [("trying to insert ",e), (" into ",(RECORD (var,l)))]);*)
+        | EQUAL => (TextIO.print ("inserting same field " ^ SymbolTable.getString(!SymbolTables.varTable, case f1 of RField {name=n,fty,exists} => n) ^
+				  " into " ^ showType (RECORD (TVar.freshTVar (),BooleanDomain.freshBVar (), f2 :: l)));
             raise SubstitutionBug))
 
    structure SISet = RedBlackSetFn (
       struct
          type ord_key = SymbolTable.symid
          val compare = SymbolTable.compare_symid
-      end)           
+      end)
 
    fun checkFieldRecursion t =
       let

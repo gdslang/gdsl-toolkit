@@ -455,12 +455,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infDecodepat sym (st,env) (AST.BITdecodepat l) =
       let
          val envGra = E.pushWidth (granularitySymId, env)
-         val _ = TextIO.print ("**** decpat pushing granularity:\n" ^ E.topToString envGra)
+         (*val _ = TextIO.print ("**** decpat pushing granularity:\n" ^ E.topToString envGra)*)
          val envPat = List.foldl (fn (b,env) => infBitpatSize (st,env) b)
                                  env l
-         val _ = TextIO.print ("**** decpat pushing sizes:\n" ^ E.topToString envPat)
+         (*val _ = TextIO.print ("**** decpat pushing sizes:\n" ^ E.topToString envPat)*)
          val envPat = E.reduceToSum (List.length l,envPat)
-         val _ = TextIO.print ("**** decpat sum:\n" ^ E.topToString envPat)
+         (*val _ = TextIO.print ("**** decpat sum:\n" ^ E.topToString envPat)*)
          val (env, _) = E.meet (envGra, envPat)
          val env = E.popKappa env
       in

@@ -353,14 +353,6 @@ val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=6}
 val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=7}
 val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
 
-#val reg-by-size-and-rex size rex =
-#   case size of
-#      B: if rex == 1 then reg8r else reg8
-#    | W: if rex == 1 then reg16r else reg16
-#    | DW: if rex == 1 then reg32r else reg32
-#    | QW: if rex == 1 then reg64r else reg64
-#    | DQW: if rex == 1 then reg16r else 
-
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
 
