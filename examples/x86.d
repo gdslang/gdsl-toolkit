@@ -194,6 +194,8 @@ val reg8r n =
 val reg8? rex =
    if rex == 0 then reg8 else reg8r
 
+val reg8F n = (reg8? (prefix n)) (suffix n)
+
 val reg16 n =
    case n of
       '000': REG AX
@@ -220,6 +222,8 @@ val reg16r n =
 
 val reg16? rex =
    if rex == 0 then reg16 else reg16r
+
+val reg16F n = (reg16? (prefix n)) (suffix n)
 
 val reg32 n =
    case n of
@@ -248,6 +252,8 @@ val reg32r n =
 val reg32? rex =
    if rex == 0 then reg32 else reg32r
 
+val reg32F n = (reg32? (prefix n)) (suffix n)
+
 val reg64 n =
    case n of
       '000': REG RAX
@@ -274,6 +280,8 @@ val reg64r n =
 
 val reg64? rex =
    if rex == 0 then reg64 else reg64r
+
+val reg64F n = (reg64? (prefix n)) (suffix n)
 
 val sreg3 n =
    case n of
@@ -314,6 +322,8 @@ val xmmr n =
 val xmm? rex =
    if rex == 0 then xmm else xmmr
 
+val xmmF n = (xmm? (prefix n)) (suffix n)
+
 val mm n =
    case n of
       '000': REG MM0
@@ -340,6 +350,8 @@ val mmr n =
 
 val mm? rex =
    if rex == 0 then mm else mmr
+
+val mmF n = (mm? (prefix n)) (suffix n)
 
 # Deslice the mod/rm byte and put it into the the state
 
@@ -495,6 +507,11 @@ val r64 = r/ reg64?
 val mm64 = r/ mm?
 val xmm128 = r/ xmm?
 
+val vex.xmm = do
+   vexv <- query $vexv;
+   return (xmmF (not vexv))
+end
+
 val moffs8 = do
    i <- imm8;
    mem i
@@ -574,8 +591,8 @@ val main [] = one-byte-opcode
 val main [/vex] = do
    vexm <- query $vexm;
    case vexm of
-      '00001': two-byte-opcode-0f
-    | '00010': three-byte-opcode-0f-38
+      '00001': two-byte-opcode-0f-vex
+    | '00010': three-byte-opcode-0f-38-vex
 #   | '00011': three-byte-opcode-0f-3a
 #   | _: one-byte-opcode
     end
@@ -689,3 +706,5 @@ val three-byte-opcode-0f-38 [01 /r]
 val three-byte-opcode-0f-38 [02 /r]
  | $opndsz = phaddd xmm128 xmm/m128
  | otherwise = phaddd mm64 mm/m64
+val three-byte-opcode-0f-38-vex [01 /r]
+ | $opndsz && (not $vexl) = vphaddw xmm128 vex.xmm xmm/m128
