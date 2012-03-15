@@ -131,22 +131,22 @@ val rsi = return (REG RSI)
 val di = return (REG DI)
 val edi = return (REG EDI)
 val rdi = return (REG RDI)
-val mm0 = return (REG mm0)
-val mm1 = return (REG mm1)
-val mm2 = return (REG mm2)
-val mm3 = return (REG mm3)
-val mm4 = return (REG mm4)
-val mm5 = return (REG mm5)
-val mm6 = return (REG mm6)
-val mm7 = return (REG mm7)
-val xmm0 = return (REG xmm0)
-val xmm1 = return (REG xmm1)
-val xmm2 = return (REG xmm2)
-val xmm3 = return (REG xmm3)
-val xmm4 = return (REG xmm4)
-val xmm5 = return (REG xmm5)
-val xmm6 = return (REG xmm6)
-val xmm7 = return (REG xmm7)
+val mm0 = return (REG MM0)
+val mm1 = return (REG MM1)
+val mm2 = return (REG MM2)
+val mm3 = return (REG MM3)
+val mm4 = return (REG MM4)
+val mm5 = return (REG MM5)
+val mm6 = return (REG MM6)
+val mm7 = return (REG MM7)
+val xmm0 = return (REG XMM0)
+val xmm1 = return (REG XMM1)
+val xmm2 = return (REG XMM2)
+val xmm3 = return (REG XMM3)
+val xmm4 = return (REG XMM4)
+val xmm5 = return (REG XMM5)
+val xmm6 = return (REG XMM6)
+val xmm7 = return (REG XMM7)
 
 # A type alias used for instructions taking two arguments
 type binop = {opnd1:opnd, opnd2:opnd}
@@ -542,24 +542,22 @@ val phaddd = binop PHADDD
 
 val vex-pp pp =
    case pp of
-      '01': update @{opndsz=1};
+      '01': update @{opndsz=1}
 #    | '10': => F3 Prefix
 #    | '11': => F2 Prefix
    end
 
-val /vex ['0xc4 r:1 x:1 b:1 m:5 w:1 v:4 l:1 p:2] = do
+val /vex [0xc4 'r:1 x:1 b:1 m:5 w:1 v:4 l:1 pp:2'] = do
    update @{rexr=r, rexx=x, rexb=b, vexm=m, vexv=v, vexl=l};
-   vex-pp pp;
+   vex-pp pp
 end
 
-val /vex ['0xc5 r:1 v:4 l:1 p:2] = do
+val /vex [0xc5 'r:1 v:4 l:1 pp:2'] = do
    update @{rexr=r, vexv=v, vexl=l};
-   vex-pp pp;
+   vex-pp pp
 end
 
 # Rückgabewert in Pattern??
-
-end
 
 ## The REX prefixes
 
@@ -588,6 +586,7 @@ val main [/vex] = do
     | '00010': three-byte-opcode-0f-38
 #   | '00011': three-byte-opcode-0f-3a
 #   | _: one-byte-opcode
+    end
 end
 
 ## Instruction decoders
