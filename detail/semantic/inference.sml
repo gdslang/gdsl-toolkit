@@ -73,7 +73,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    
    (*local helper function to infer types for a binding group*)
    val maxIter = 0
-   fun checkUsages reportWarnings (sym, env) =
+   fun checkUsages (sym, env) =
       let
          (*val _ = TextIO.print ("***** usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " in " ^ (if reportWarnings then " fixpoint\n" else " first round\n"))*)
          fun checkUsage (s, (unstable, env)) =
@@ -124,8 +124,27 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                                          E.meet (envCall, envFun))
                   handle (S.UnificationFailure str) =>
                      (raiseError str; (S.emptySubsts, (envCall, envCall)))
-                     val env = E.popToUsage (sym, s, env)
+               val env = E.popToUsage (sym, s, env)
                val affectedSyms = E.affectedFunctions (substs,envCall)
+               (*if the currently examined symbol has been updated then we
+               check if it's stable now, so we don't flag natural updates
+               as critical recursion*)
+               val affectedSyms =
+                  if E.SymbolSet.member (affectedSyms,sym) then 
+                  let
+                     val envFun = E.pushSymbol (sym, s, env)
+                     val envCall = E.pushUsage (sym, s, env)
+                     val substs = E.subseteq (envCall, envFun)
+                        handle (S.UnificationFailure str) =>
+                           (raiseError str; S.emptySubsts)
+                  in
+                     if S.isEmpty substs then
+                        E.SymbolSet.delete (affectedSyms, sym)
+                     else
+                        affectedSyms
+                  end
+                  else
+                     affectedSyms
                val _ = raiseWarning (substs, affectedSyms)
             in
                (E.SymbolSet.union (unstable, affectedSyms), env)
@@ -134,9 +153,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          List.foldl checkUsage (E.SymbolSet.empty, env) (E.getUsages (sym, env))
       end
 
-   fun checkCallSites reportWarnings (syms, env) =
+   fun checkCallSites (syms, env) =
       List.foldl (fn (sym, (unstable, env)) =>
-                  case checkUsages reportWarnings (sym, env) of
+                  case checkUsages (sym, env) of
                      (newUnstable, env) =>
                         (E.SymbolSet.union (unstable,newUnstable), env)
                   ) (E.SymbolSet.empty, env) (E.SymbolSet.listItems syms)
@@ -144,7 +163,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    fun calcFixpoint curIter (syms, env) =
          if E.SymbolSet.isEmpty syms then env else
          if curIter<maxIter then
-            calcFixpoint (curIter+1) (checkCallSites true (syms, env))
+            calcFixpoint (curIter+1) (checkCallSites (syms, env))
          else
          let
             val si = TVar.emptyShowInfo
@@ -181,7 +200,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.popToFunction (sym, env)
          (*val _ = TextIO.print ("after popping fun: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)*)
       in
-         checkUsages false (sym, env)
+         checkUsages (sym, env)
       end
 
    and infDecl stenv (AST.MARKdecl m) = reportError infDecl stenv m
