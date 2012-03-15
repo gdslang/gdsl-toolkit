@@ -28,7 +28,7 @@ structure Primitives = struct
    (*create a type from two vectors to one vector, all of size s*)
    fun vvv s = FUN (VEC (var s), FUN (VEC (var s), VEC (var s)))
 
-   val anonDecodeFunction : string = "top-level decode function"
+   val granularity : string = "granularity"
    val globalState : string = "global state"
    val caseExpression : string = "case expression"
 
@@ -36,13 +36,13 @@ structure Primitives = struct
       [{name="true", ty=VEC (CONST 1)},
        {name="false", ty=VEC (CONST 1)},
        {name="continue", ty=MONAD (var r)},
-       {name="consume", ty=MONAD (VEC (var s6))},
+       {name="consume", ty=MONAD (VEC (var size))},
        {name="unconsume", ty=MONAD UNIT},
        {name="raise", ty=MONAD (var (t()))},
        (* TODO *) {name="slice", ty=MONAD (var (t ()))},
        {name=caseExpression, ty=UNIT},
        {name=globalState, ty=var state},
-       {name=anonDecodeFunction, ty=MONAD (var r)},
+       {name=granularity, ty=UNIT},
        {name="return", ty=FUN (var a, MONAD (var a))},
        {name=">>=", ty=
          let
@@ -69,7 +69,8 @@ structure Primitives = struct
        {name="otherwise", ty=VEC (CONST 1)}]
 
    val primitiveDecoders =
-      [{name=anonDecodeFunction, ty=var size}]
+      [{name=granularity, ty=var size},
+       {name="consume", ty=var size}]
 
    val primitiveTypes =
       [{name="int", ty=ZENO},
