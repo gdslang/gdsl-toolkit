@@ -49,15 +49,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val { tsynDefs, typeDefs, conParents} = ti
    val caseExpSymId = SymbolTable.lookup(!SymbolTables.varTable,
                                          Atom.atom Primitives.caseExpression)
+   val stateSymId = SymbolTable.lookup(!SymbolTables.varTable,
+                                       Atom.atom Primitives.globalState)
+   val granularitySymId = SymbolTable.lookup(!SymbolTables.varTable,
+                                             Atom.atom Primitives.granularity)
    
    fun reportError conv ({span = _, error = isErr }, env) {span=s as (p,_), tree=t} =
       conv ({span = s, error = isErr},env) t
       handle (S.UnificationFailure str) =>
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
    fun getSpan {span = s, error = _} = s
-   
-   val anonSym = VarInfo.lookup
-        (!SymbolTables.varTable, Atom.atom Primitives.anonDecodeFunction)     
 
    (* define a first traversal that creates a group of all top-level decls *)
    fun topDecl (AST.MARKdecl {span, tree=t}) = topDecl t
@@ -190,12 +191,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          end
    val calcFixpoint = calcFixpoint 0
    
-   fun infBinding (st,env) (sym, dec, args, rhs) =
+   fun infBinding (st,env) (sym, dec, guard, args, rhs) =
       let
          (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         fun pushDecoderBindings(d,(n, env)) =
+            case infDecodepat sym (st,env) d of (nArgs, env) => (n+nArgs, env)
+         val (n,env) = List.foldl pushDecoderBindings (0,env) dec
          val env = List.foldl E.pushLambdaVar env args
          val env = infExp (st,env) rhs
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
+         val env = E.return (n,env)
          (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
          val env = E.popToFunction (sym, env)
          (*val _ = TextIO.print ("after popping fun: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)*)
@@ -204,20 +209,44 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
 
    and infDecl stenv (AST.MARKdecl m) = reportError infDecl stenv m
-     (*| infDecl env (AST.STATEdecl l) = AST.STATEdecl
-       (List.map (fn (v,t,e) => (newVar (s,v), infTy env t, infExp env e)) l)*)
+     | infDecl (st,env) (AST.GRANULARITYdecl w) =
+      let
+         val envGra = E.pushWidth (granularitySymId, env)
+         val envInt = E.pushType (false, CONST w, env)
+         val (env, _) = E.meet (envGra, envInt)
+         val env = E.popKappa env
+      in
+         (E.SymbolSet.empty, env)
+      end
+     | infDecl (st,env) (AST.STATEdecl l) =
+      let
+         val envState = E.pushSymbol (stateSymId, SymbolTable.noSpan, env)
+         val extBVar = BD.freshBVar ()
+         val extVar = VAR (TVar.freshTVar (), extBVar) 
+         val env = E.meetBoolean (BD.meetVarZero extBVar, env)
+         val env = E.pushType (false, extVar, env)
+         val fieldBVar = BD.freshBVar ()
+         val env = E.meetBoolean (BD.meetVarOne fieldBVar, env)
+         val env = List.foldl (fn ((_,_,e), env) => infExp (st,env) e) env l
+         val fieldList = List.rev (List.map (fn (v,_,_) => (fieldBVar,v)) l)
+         val env = E.reduceToRecord (fieldList, env)
+         val (env,_) = E.meet (envState, env)
+         val env = E.clearFunction (stateSymId, env)
+         val env = E.popToFunction (stateSymId, env)
+      in
+         checkUsages (stateSymId, env)
+      end
      | infDecl stenv (AST.DECODEdecl dd) = infDecodedecl stenv dd
      | infDecl (st,env) (AST.LETRECdecl (v,l,e)) =
-         infBinding (st,env) (v, NONE, l, e)
+         infBinding (st,env) (v, [], NONE, l, e)
      | infDecl (st,env) _ = (E.SymbolSet.empty, env)
 
    and infDecodedecl stenv (v, l, Sum.INL e) =
-         infBinding stenv (v, SOME (l, NONE), [], e)
+         infBinding stenv (v, l, NONE, [], e)
      | infDecodedecl (st,env) (v, l, Sum.INR el) =
          List.foldl
             (fn ((guard, rhs), (unstable, env)) =>
-               case infBinding (st,env)
-                  (anonSym, SOME (l, SOME guard), [], rhs) of
+               case infBinding (st,env) (v, l, SOME guard, [], rhs) of
                   (newUnstable, env) =>
                      (E.SymbolSet.union (unstable, newUnstable), env)
             ) (E.SymbolSet.empty, env) el
@@ -228,7 +257,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val names = List.map topLetrecDecl l
          val env = E.pushGroup (List.concat names, env)
          val (unstable, env) = List.foldl (fn ((v,l,e), (unstable, env)) =>
-               case infBinding (st, env) (v, NONE, l, e) of
+               case infBinding (st, env) (v, [], NONE, l, e) of
                   (newUnstable, env) =>
                      (E.SymbolSet.union (newUnstable, unstable), env)
             ) (E.SymbolSet.empty, env) l
@@ -412,22 +441,47 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          env
       end
-(*   and infDecodepat stenv (AST.MARKdecodepat m) =
-       AST.MARKdecodepat (reportError infDecodepat m)
-     | infDecodepat stenv (AST.TOKENdecodepat t) =
-       AST.TOKENdecodepat (infTokpat stenv t)
-     | infDecodepat stenv (AST.BITdecodepat l) =
-       AST.BITdecodepat (List.map (infBitpat s) l)
-   and infBitpat stenv (AST.MARKbitpat m) =
-       AST.MARKbitpat (reportError infBitpat m)
-     | infBitpat stenv (AST.BITSTRbitpat str) = AST.BITSTRbitpat str
-     | infBitpat stenv (AST.NAMEDbitpat v) = AST.NAMEDbitpat (useVar (s,v))
-     | infBitpat stenv (AST.BITVECbitpat (var,size)) = AST.BITVECbitpat
-       (newVar (s,var), size)
-   and infTokpat stenv (AST.MARKtokpat m) =
-       AST.MARKtokpat (reportError infTokpat m)
-     | infTokpat stenv (AST.TOKtokpat i) = AST.TOKtokpat i
-     | infTokpat stenv (AST.NAMEDtokpat v) = AST.NAMEDtokpat (useVar (s,v))*)
+   and infDecodepat sym stenv (AST.MARKdecodepat m) =
+               reportError (infDecodepat sym) stenv m
+      | infDecodepat sym (st, env) (AST.TOKENdecodepat t) =
+         let
+            val envGra = E.pushWidth (granularitySymId, env)
+            val envDec = E.pushWidth (sym, env)
+            val (env, _) = E.meet (envGra, envDec)
+            val env = E.popKappa env
+         in
+            infTokpat (st, env) t
+         end
+     | infDecodepat sym (st,env) (AST.BITdecodepat l) =
+      let
+         val envGra = E.pushWidth (granularitySymId, env)
+         val _ = TextIO.print ("**** decpat pushing granularity:\n" ^ E.topToString envGra)
+         val envPat = List.foldl (fn (b,env) => infBitpatSize (st,env) b)
+                                 env l
+         val _ = TextIO.print ("**** decpat pushing sizes:\n" ^ E.topToString envPat)
+         val envPat = E.reduceToSum (List.length l,envPat)
+         val _ = TextIO.print ("**** decpat sum:\n" ^ E.topToString envPat)
+         val (env, _) = E.meet (envGra, envPat)
+         val env = E.popKappa env
+      in
+         List.foldl (fn (b,(n,env)) => case infBitpat (st,env) b of
+                        (nArgs, env) => (n+nArgs, env)) (0, env) l
+      end
+   and infBitpatSize stenv (AST.MARKbitpat m) =
+         reportError infBitpatSize stenv m
+     | infBitpatSize (st,env) (AST.BITSTRbitpat str) =
+         E.pushType (false, CONST (IntInf.fromInt (String.size str)), env)
+     | infBitpatSize (st,env) (AST.NAMEDbitpat v) = E.pushWidth (v,env)
+     | infBitpatSize (st,env) (AST.BITVECbitpat (var,size)) =
+         E.pushType (false, CONST size, env)
+   and infBitpat stenv (AST.MARKbitpat m) = reportError infBitpat stenv m
+     | infBitpat (st,env) (AST.BITSTRbitpat str) = (0,env)
+     | infBitpat (st,env) (AST.NAMEDbitpat v) =
+         (1, E.pushSymbol (v, getSpan st, env))
+     | infBitpat (st,env) (AST.BITVECbitpat (v,s)) = (1, E.pushLambdaVar (v,env))
+   and infTokpat stenv (AST.MARKtokpat m) = reportError infTokpat stenv m
+     | infTokpat (st,env) (AST.TOKtokpat i) = (0, env)
+     | infTokpat (st,env) (AST.NAMEDtokpat v) = (1, E.pushLambdaVar (v,env))
    and infMatch (st,env) (p,e) =
       let
          val (n,env) = infPat (st,env) p
@@ -458,7 +512,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (n,envPat) = infPat (st,env) p
          val envPat = E.pushTop envPat
          val envCon = infExp (st,env) (AST.CONexp c)
-         val _ = TextIO.print ("+++++ meet for constructor")
+         (*val _ = TextIO.print ("+++++ meet for constructor")*)
          val (env, _) = E.meet (envPat,envCon)
          val env = E.reduceToResult env
       in

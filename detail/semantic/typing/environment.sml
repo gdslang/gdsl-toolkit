@@ -27,6 +27,8 @@ structure Environment : sig
    are renamed*)
    val pushType : bool * Types.texp * environment -> environment
 
+   (* push the width of a decode onto the stack*)
+   val pushWidth : VarInfo.symid * environment -> environment
 
    (*given an occurrence of a symbol at a position, push its type onto the
    stack and return if an instance of this type must be used*)
@@ -48,6 +50,9 @@ structure Environment : sig
    val reduceToRecord : (BooleanDomain.bvar * FieldInfo.symid) list *
                         environment -> environment
 
+   (*stack: [..., tn, ..., t2, t1, t0] -> [..., SUM (tn,..t0)]*)
+   val reduceToSum : int * environment -> environment
+   
    (*stack: [...,t1,t2] -> [...,t1 -> t2]*)
    val reduceToFunction : environment -> environment
    
@@ -390,6 +395,15 @@ end = struct
       end
      | pushType (false, t, env) = Scope.wrap (KAPPA {ty = t}, env)
 
+   fun pushWidth (sym, env) =
+      (case Scope.lookup (sym,env) of
+          (_, COMPOUND {ty, width = SOME t, uses}) =>
+            Scope.wrap (KAPPA {ty = t}, env)
+        | _ => raise (UnificationFailure (
+            SymbolTable.getString(!SymbolTables.varTable, sym) ^
+            " is not a decoder"))
+      )
+
    exception LookupNeedsToAddUse
 
    fun eq_span ((p1s,p1e), (p2s,p2e)) =
@@ -549,6 +563,11 @@ end = struct
       in
          genFields ([], bns, env)
       end
+
+   fun reduceToSum (n, env) = if n>0 then
+         case Scope.unwrap env of (_, env) => reduceToSum (n-1, env)
+      else
+         pushTop env
 
    fun reduceToFunction env =
       let
