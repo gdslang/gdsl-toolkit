@@ -18,6 +18,10 @@ structure Primitives = struct
    val s8 : tvar = freshTVar ()
    val s9 : tvar = freshTVar ()
    val s10 : tvar = freshTVar ()
+   val s11 : tvar = freshTVar ()
+   val s12 : tvar = freshTVar ()
+   val s13 : tvar = freshTVar ()
+   val s14 : tvar = freshTVar ()
    val a : tvar = freshTVar ()
    val b : tvar = freshTVar ()
    val c : tvar = freshTVar ()
@@ -31,7 +35,7 @@ structure Primitives = struct
    val granularity : string = "granularity"
    val globalState : string = "global state"
    val caseExpression : string = "case expression"
-
+   
    val primitiveValues =
       [{name="true", ty=VEC (CONST 1)},
        {name="false", ty=VEC (CONST 1)},
@@ -39,7 +43,6 @@ structure Primitives = struct
        {name="consume", ty=MONAD (VEC (var size))},
        {name="unconsume", ty=MONAD UNIT},
        {name="raise", ty=MONAD (var (t()))},
-       (* TODO *) {name="slice", ty=MONAD (var (t ()))},
        {name=caseExpression, ty=UNIT},
        {name=globalState, ty=var state},
        {name=granularity, ty=UNIT},
@@ -57,7 +60,8 @@ structure Primitives = struct
        {name="+", ty=vvv s1},
        {name="*", ty=vvv s2},
        {name="signed", ty=FUN (VEC (var s3), ZENO)},
-       {name="unsigned", ty=FUN (VEC (var s4), ZENO)},
+       {name="^", ty=FUN (VEC (var s4), FUN (VEC (var s4), VEC (var s5)))},
+       {name="unsigned", ty=FUN (VEC (var s11), ZENO)},
        {name="bits8", ty=FUN (ZENO, VEC (CONST 8))},
        {name = "||", ty = FUN (VEC (CONST 1), FUN (VEC (CONST 1), VEC (CONST 1)))},
        {name = "<~", ty = FUN (VEC (var s6), FUN (VEC (var s6), VEC (CONST 1)))},
@@ -65,7 +69,8 @@ structure Primitives = struct
        {name = "==", ty = FUN (var s8, FUN (var s8, VEC (CONST 1)))},
        {name = "!=", ty = FUN (var s9, FUN (var s9, VEC (CONST 1)))},
        {name = "not", ty = vvv s10},
-       {name="^", ty=vvv s5},
+       {name="prefix", ty = FUN (VEC (var s11), VEC (var s12))},
+       {name="suffix", ty = FUN (VEC (var s13), VEC (var s14))},
        {name="otherwise", ty=VEC (CONST 1)}]
 
    val primitiveDecoders =
