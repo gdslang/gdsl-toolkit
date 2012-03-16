@@ -255,10 +255,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          infBinding (st,env) (v, [], NONE, l, e)
      | infDecl (st,env) _ = (E.SymbolSet.empty, env)
 
-   and infDecodedecl stenv (v, l, Sum.INL e) =
-         infBinding stenv (v, l, NONE, [], e)
+   and infDecodedecl (st,env) (v, l, Sum.INL e) =
+         infBinding (st, E.clearFunction (v,env)) (v, l, NONE, [], e)
      | infDecodedecl (st,env) (v, l, Sum.INR el) =
       let
+         val env = E.clearFunction (v,env)
          val env = E.pushTop env
          val env = List.foldl
             (fn ((guard, rhs), env) => let
