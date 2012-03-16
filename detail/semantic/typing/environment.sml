@@ -672,7 +672,7 @@ end = struct
 
    fun clearFunction (sym, env) =
       let
-         fun resetType (COMPOUND {ty = SOME _, width, uses}, bFun) =
+         fun resetType (COMPOUND {ty = _, width, uses}, bFun) =
                (COMPOUND {ty = NONE, width = width, uses = uses}, bFun)
            | resetType _ = raise InferenceBug
       in
@@ -710,10 +710,7 @@ end = struct
                unify (env1, env2, substs)
             end      
          | (NONE, env1, env2) => substs
-         | (SOME _, _, _) => (
-            TextIO.print ("**** unify first arg:\n" ^ topToString env1);
-            TextIO.print ("**** unify second arg:\n" ^ topToString env2);
-            raise InferenceBug)
+         | (SOME _, _, _) => raise InferenceBug
       )
 
    fun mergeUses (env1,env2) =

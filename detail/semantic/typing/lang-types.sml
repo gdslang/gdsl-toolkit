@@ -6,6 +6,8 @@ structure Types = struct
    type varset = TVar.set
    val freshTVar = TVar.freshTVar
    
+   type size_constraint = { pos : TVar.tvar list, neg : TVar.tvar list, const : int}
+
    datatype texp =
       (* a function *)
       FUN of (texp * texp)
@@ -21,6 +23,8 @@ structure Types = struct
     | VEC of texp
       (* a Herbrand constant, can only occur as the argument of VEC *)
     | CONST of IntInf.int
+      (* a list of size constraints, can only occur as the arg of VEC *)
+    | SUM of size_constraint list
       (* an algebraic data type with a list of type arguments *)
     | ALG of (TypeInfo.symid * texp list)
       (* a record *)
@@ -44,6 +48,7 @@ structure Types = struct
         | tV (UNIT, vs) = vs
         | tV (VEC t, vs) = tV (t, vs)
         | tV (CONST c, vs) = vs
+        (*| tV (SUM l) = List.foldl*)
         | tV (ALG (ty, l), vs) = List.foldl tV vs l
         | tV (RECORD (v,_,l), vs) = List.foldl tVF (TVar.add (v,vs)) l
         | tV (MONAD t, vs) = tV (t, vs)
@@ -62,9 +67,9 @@ structure Types = struct
 
    fun showTypeSI (ty, showInfo) = let
     val siTab = ref showInfo
-    fun comma [] = ""
-      | comma [v] = v
-      | comma (v :: vs) = v ^ ", " ^ comma vs
+    fun sep s [] = ""
+      | sep s [v] = v
+      | sep s (v :: vs) = v ^ s ^ sep s vs
     fun br (curPrec, existsPrec,str) =
       if curPrec>existsPrec then "(" ^ str ^ ")" else str
     val p_app = 10
@@ -78,6 +83,18 @@ structure Types = struct
       | sT (p, UNIT) = "()"
       | sT (p, VEC t) = "[" ^ sT (0, t) ^ "]"
       | sT (p, CONST c) = IntInf.toString(c)
+      | sT (p, SUM l) = sep "," (List.map (fn {pos,neg,const} =>
+         let
+            val posStr = sep "+" (List.map showVar pos)
+            val negStr = sep "-" (List.map showVar neg)
+         in
+            if String.size posStr=0 then Int.toString(const) ^ "=" ^ negStr
+            else
+            if String.size negStr=0 then posStr ^ "=" ^ Int.toString(~const)
+            else
+               posStr ^ (if const>=0 then "+" else "") ^ Int.toString(const) ^ 
+               "=" ^ negStr
+         end) l)
       | sT (p, ALG (ty, l)) = let
           val conStr = SymbolTable.getString(!SymbolTables.typeTable, ty)
           in if List.null l then conStr else br (p, p_tyn,
