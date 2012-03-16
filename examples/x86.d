@@ -155,6 +155,8 @@ type trinop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
 datatype insn =
    ADD of binop
  | MOV of binop
+ | MASKMOVDQU of binop
+ | VMASKMOVDQU of binop
  | CVTPD2PI of binop
  | XADD of binop
  | PHADDW of binop
@@ -550,8 +552,10 @@ val trinop cons giveOp1 giveOp2 giveOp3 = do
    return (cons {op1=op1, op2=op2, op3=op3})
 end
 
-val mov = binop MOV
 val add = binop ADD
+val mov = binop MOV
+val maskmovdqu = binop MASKMOVDQU
+val vmaskmovdqu = binop VMASKMOVDQU
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
@@ -603,8 +607,8 @@ val main [] = one-byte-opcode
 val main [/vex] = do
    vexm <- query $vexm;
    case vexm of
-#      '00001': two-byte-opcode-0f-vex
-(*    |*) '00010': three-byte-opcode-0f-38-vex
+      '00001': two-byte-opcode-0f-vex
+    | '00010': three-byte-opcode-0f-38-vex
 #   | '00011': three-byte-opcode-0f-3a-vex
 #   | _: one-byte-opcode
     end
@@ -698,6 +702,12 @@ val one-byte-opcode [0xC7 /0]
  | otherwise = mov r/m32 imm32
 
 ## Two Byte Opcodes with Prefix 0x0f
+
+### MASKMOVDQU Vol. 2B 4-9
+val two-byte-opcode-0f [0xf7 /r] 
+(* | $mod == '11'*) = maskmovdqu xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0xf7 /r] 
+(* | $mod == '11' && VEX.128.66.0F.WIG*) = vmaskmovdqu xmm128 xmm/m128
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f [0x2d /r] = cvtpdf2pi mm64 xmm/m128
