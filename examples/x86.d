@@ -150,6 +150,7 @@ val xmm7 = return (REG XMM7)
 
 # A type alias used for instructions taking two arguments
 type binop = {opnd1:opnd, opnd2:opnd}
+type trinop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
 
 datatype insn =
    ADD of binop
@@ -602,9 +603,9 @@ val main [] = one-byte-opcode
 val main [/vex] = do
    vexm <- query $vexm;
    case vexm of
-      '00001': two-byte-opcode-0f-vex
-    | '00010': three-byte-opcode-0f-38-vex
-#   | '00011': three-byte-opcode-0f-3a
+#      '00001': two-byte-opcode-0f-vex
+(*    |*) '00010': three-byte-opcode-0f-38-vex
+#   | '00011': three-byte-opcode-0f-3a-vex
 #   | _: one-byte-opcode
     end
 end
@@ -718,6 +719,6 @@ val three-byte-opcode-0f-38 [02 /r]
  | $opndsz = phaddd xmm128 xmm/m128
  | otherwise = phaddd mm64 mm/m64
 val three-byte-opcode-0f-38-vex [01 /r]
- | $opndsz andalso (not $vexl) = vphaddw xmm128 vex/xmm xmm/m128
+ | $opndsz (*andalso (not $vexl)*) = vphaddw xmm128 vex/xmm xmm/m128
 val three-byte-opcode-0f-38-vex [02 /r]
- | $opndsz andalso (not $vexl) = vphaddd xmm128 vex/xmm xmm/m128
+ | $opndsz (*andalso (not $vexl)*) = vphaddd xmm128 vex/xmm xmm/m128
