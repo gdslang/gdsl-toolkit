@@ -194,6 +194,19 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    fun infRhs (st,env) (sym, dec, guard, args, rhs) =
       let
          (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         fun checkGuard (g,env) =
+            let
+               val envRef = E.pushSymbol (stateSymId, SymbolTable.noSpan, env)
+               val envRef = E.pushType (false, VEC (CONST 1), envRef)
+               val envRef = E.reduceToFunction envRef
+               val envGua = infExp (st, env) g
+               val (env, _) = E.meet (envRef, envGua)
+               
+            in
+               E.popKappa env
+            end
+         val env = case guard of SOME g => checkGuard (g,env)
+                               | NONE => env
          fun pushDecoderBindings(d,(n, env)) =
             case infDecodepat sym (st,env) d of (nArgs, env) => (n+nArgs, env)
          val (n,env) = List.foldl pushDecoderBindings (0,env) dec
