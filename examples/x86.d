@@ -163,6 +163,7 @@ datatype insn =
  | MOV of binop
  | MASKMOVDQU of binop
  | VMASKMOVDQU of binop
+ | MASKMOVQ of binop
  | CVTPD2PI of binop
  | XADD of binop
  | PHADDW of binop
@@ -513,6 +514,12 @@ val xmm/nomem = do
       '11': r/m xmm?
    end
 end
+val mm/nomem = do
+   mod <- query $mod;
+   case mod of
+      '11': r/m mm?
+   end
+end
 
 val r/ reg? = do
    rexr <- query $rexr;
@@ -571,6 +578,7 @@ val add = binop ADD
 val mov = binop MOV
 val maskmovdqu = binop MASKMOVDQU
 val vmaskmovdqu = binop VMASKMOVDQU
+val maskmovq = binop MASKMOVQ
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
@@ -620,6 +628,9 @@ val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz='1'}; main end
 val main [0x67] = do update @{addrsz='1'}; main end
+
+val not-opndsz? s = (*not*) ($opndsz s) #FIXFIXFIX
+
 val main [0x66 0x0f 0x38] = three-byte-opcode-0f-38
 val main [0x66 /rex 0x0f 0x38] = three-byte-opcode-0f-38
 val main [0x66 0x0f] = two-byte-opcode-0f 
@@ -726,14 +737,18 @@ val one-byte-opcode [0xC7 /0]
 ## Two Byte Opcodes with Prefix 0x0f
 
 ### MASKMOVDQU Vol. 2B 4-9
-val two-byte-opcode-0f [0xf7 /r] = maskmovdqu xmm128 xmm/nomem
+val two-byte-opcode-0f [0xf7 /r] 
+ | $opndsz = maskmovdqu xmm128 xmm/nomem
 val two-byte-opcode-0f-vex [0xf7 /r] 
  | vex-noflag? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem
 
 ### MASKMOVQ Vol. 2B 4-11
+val two-byte-opcode-0f [0xf7 /r]
+ | not-opndsz? = maskmovq mm64 mm/nomem
 
 ### CVTPD2PI Vol 2A 3-248
-val two-byte-opcode-0f [0x2d /r] = cvtpdf2pi mm64 xmm/m128
+val two-byte-opcode-0f-66 [0x2d /r] 
+ | $opndsz = cvtpdf2pi mm64 xmm/m128
 
 ### XADD Vol. 2B 4-667
 val two-byte-opcode-0f [0xc0 /r] = xadd r/m8 r8
