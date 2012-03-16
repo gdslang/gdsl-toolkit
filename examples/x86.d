@@ -306,6 +306,8 @@ val sreg3 n =
 #| '111': reserved
    end
 
+val sreg3? rex = sreg3
+
 val xmm n =
    case n of
       '000': REG XMM0
@@ -432,8 +434,8 @@ val sib ['scale:2 index:3 base:3']
 val addrsz = do
    sz <- query $addrsz;
    case sz of
-      1: 16
-    | 0: 32
+      '1': return 16
+    | '0': return 32
    end
 end
 
@@ -515,7 +517,7 @@ end
 val r/ reg? = do
    rexr <- query $rexr;
    r <- query $reg;
-   return (reg? rexr) r
+   return ((reg? rexr) r)
 end
 
 val r8 = r/ reg8?
@@ -527,7 +529,7 @@ val xmm128 = r/ xmm?
 
 val vex/xmm = do
    vexv <- query $vexv;
-   return (xmmF (not vexv))
+   return (xmmF ((*not*) vexv)) #FIXFIXFIX
 end
 
 val moffs8 = do
@@ -580,7 +582,7 @@ val vphaddd = trinop VPHADDD
 
 val vex-pp pp =
    case pp of
-      '01': update @{opndsz=1}
+      '01': update @{opndsz='1'}
 #    | '10': => F3 Prefix
 #    | '11': => F2 Prefix
    end
@@ -616,8 +618,8 @@ val main [0x3e] = do update @{segment=DS}; main end
 val main [0x26] = do update @{segment=ES}; main end
 val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
-val main [0x66] = do update @{opndsz=1}; main end
-val main [0x67] = do update @{addrsz=1}; main end
+val main [0x66] = do update @{opndsz='1'}; main end
+val main [0x67] = do update @{addrsz='1'}; main end
 val main [0x66 0x0f 0x38] = three-byte-opcode-0f-38
 val main [0x66 /rex 0x0f 0x38] = three-byte-opcode-0f-38
 val main [0x66 0x0f] = two-byte-opcode-0f 
@@ -644,7 +646,7 @@ val one-byte-opcode [0x05]
  | $rexw = add rax imm64
  | $opndsz = add rax imm32
  | otherwise = add rax imm16
-val one-byte-opcode [0x80 /0] = r/m8 imm8
+val one-byte-opcode [0x80 /0] = add r/m8 imm8
 val one-byte-opcode [0x81 /0]
  | $rexw = add r/m64 imm64
  | $opndsz = add r/m32 imm32
@@ -674,8 +676,8 @@ val one-byte-opcode [0x8a /r] = mov r8 r/m8
 val one-byte-opcode [0x8b /r]
  | $opndsz = mov r16 r/m16
  | otherwise = mov r32 r/m32
-val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3)
-val one-byte-opcode [0x8e /r] = mov (r/ sreg3) r/m16
+val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3?)
+val one-byte-opcode [0x8e /r] = mov (r/ sreg3?) r/m16
 val one-byte-opcode [0xa0] = mov al moffs8 
 val one-byte-opcode [0xa1]
  | $addrsz = mov ax moffs16
