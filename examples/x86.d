@@ -505,6 +505,13 @@ val r/m64 = r/m reg64?
 val mm/m64 = r/m mm?
 val xmm/m128 = r/m xmm?
 
+val xmm/nomem = do
+   mod <- query $mod;
+   case mod of
+      '11': r/m xmm?
+   end
+end
+
 val r/ reg? = do
    rexr <- query $rexr;
    r <- query $reg;
@@ -587,6 +594,13 @@ val /vex [0xc5 'r:1 v:4 l:1 pp:2'] = do
    update @{rexr=r, vexv=v, vexl=l};
    vex-pp pp
 end
+
+val vex-128? s = $vexl s
+val vex-256? s = not ($vexl s)
+val vex-noflag? s = ($vexv s) == '1111'
+val vex-66? s = ($vexp s) == '01'
+val vex-f2? s = ($vexp s) == '11'
+val vex-f3? s = ($vexp s) == '10'
 
 # Rückgabewert in Pattern??
 
@@ -710,10 +724,9 @@ val one-byte-opcode [0xC7 /0]
 ## Two Byte Opcodes with Prefix 0x0f
 
 ### MASKMOVDQU Vol. 2B 4-9
-val two-byte-opcode-0f [0xf7 /r] 
-(* | $mod == '11'*) = maskmovdqu xmm128 xmm/m128
+val two-byte-opcode-0f [0xf7 /r] = maskmovdqu xmm128 xmm/nomem
 val two-byte-opcode-0f-vex [0xf7 /r] 
-(* | $mod == '11' && VEX.128.66.0F.WIG*) = vmaskmovdqu xmm128 xmm/m128
+ | vex-noflag? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem
 
 ### MASKMOVQ Vol. 2B 4-11
 
