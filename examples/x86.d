@@ -752,6 +752,6 @@ val three-byte-opcode-0f-38 [02 /r]
  | $opndsz = phaddd xmm128 xmm/m128
  | otherwise = phaddd mm64 mm/m64
 val three-byte-opcode-0f-38-vex [01 /r]
- | $opndsz (*andalso (not $vexl)*) = vphaddw xmm128 vex/xmm xmm/m128
+ | $opndsz & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
 val three-byte-opcode-0f-38-vex [02 /r]
- | $opndsz (*andalso (not $vexl)*) = vphaddd xmm128 vex/xmm xmm/m128
+ | $opndsz & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
