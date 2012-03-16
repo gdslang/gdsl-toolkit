@@ -289,7 +289,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (env, _) = E.meet (envExp, envVar)
          val env = E.popKappa env
          val envs = List.map (infMatch (st,env)) l
-         val (env1::env2::_) = envs
          val envNeutral = E.pushTop env
          fun genFlow (inEnv, nEnv) =
             let
