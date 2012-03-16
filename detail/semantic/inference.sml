@@ -73,8 +73,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
-   val maxIter = 0
-   fun checkUsages (sym, env) =
+   val maxIter = 1
+   fun checkUsages printWarn (sym, env) =
       let
          (*val _ = TextIO.print ("***** usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " in " ^ (if reportWarnings then " fixpoint\n" else " first round\n"))*)
          fun checkUsage (s, (unstable, env)) =
@@ -99,7 +99,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   end
                (*warn about refinement of definition due to a call site*)
                fun raiseWarning (substs, syms) =
-                  if E.SymbolSet.isEmpty syms then () else
+                  if E.SymbolSet.isEmpty syms orelse not printWarn then ()
+                  else
                   let
                      val si = TVar.emptyShowInfo
                      val (sSubst, si) = S.showSubstsSI (substs, si)
@@ -127,7 +128,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      (raiseError str; (S.emptySubsts, (envCall, envCall)))
                val env = E.popToUsage (sym, s, env)
                val affectedSyms = E.affectedFunctions (substs,envCall)
-               (*if the currently examined symbol has been updated then we
+               (*(*if the currently examined symbol has been updated then we
                check if it's stable now, so we don't flag natural updates
                as critical recursion*)
                val affectedSyms =
@@ -145,7 +146,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                         affectedSyms
                   end
                   else
-                     affectedSyms
+                     affectedSyms*)
                val _ = raiseWarning (substs, affectedSyms)
             in
                (E.SymbolSet.union (unstable, affectedSyms), env)
@@ -154,9 +155,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          List.foldl checkUsage (E.SymbolSet.empty, env) (E.getUsages (sym, env))
       end
 
-   fun checkCallSites (syms, env) =
+   fun checkCallSites printWarn (syms, env) =
       List.foldl (fn (sym, (unstable, env)) =>
-                  case checkUsages (sym, env) of
+                  case checkUsages printWarn (sym, env) of
                      (newUnstable, env) =>
                         (E.SymbolSet.union (unstable,newUnstable), env)
                   ) (E.SymbolSet.empty, env) (E.SymbolSet.listItems syms)
@@ -164,7 +165,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    fun calcFixpoint curIter (syms, env) =
          if E.SymbolSet.isEmpty syms then env else
          if curIter<maxIter then
-            calcFixpoint (curIter+1) (checkCallSites (syms, env))
+            calcFixpoint (curIter+1)
+               (checkCallSites (curIter=maxIter) (syms, env))
          else
          let
             val si = TVar.emptyShowInfo
@@ -219,7 +221,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          env
       end
    and infBinding stenv (sym, dec, guard, args, rhs) =
-         checkUsages (sym, E.popToFunction (sym,
+         checkUsages false (sym, E.popToFunction (sym,
             infRhs stenv (sym, dec, guard, args, rhs)))
 
    and infDecl stenv (AST.MARKdecl m) = reportError infDecl stenv m
@@ -248,7 +250,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.clearFunction (stateSymId, env)
          val env = E.popToFunction (stateSymId, env)
       in
-         checkUsages (stateSymId, env)
+         checkUsages false (stateSymId, env)
       end
      | infDecl stenv (AST.DECODEdecl dd) = infDecodedecl stenv dd
      | infDecl (st,env) (AST.LETRECdecl (v,l,e)) =
@@ -256,22 +258,29 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infDecl (st,env) _ = (E.SymbolSet.empty, env)
 
    and infDecodedecl (st,env) (v, l, Sum.INL e) =
-         infBinding (st, E.clearFunction (v,env)) (v, l, NONE, [], e)
+      let
+         val env = E.pushFunctionOrTop (v,env)
+         val envRhs = E.popKappa env
+         val envRhs = infRhs (st,envRhs) (v, l, NONE, [], e)
+         val (env, _) = E.meet (env, envRhs)
+         val env = E.popToFunction (v,env)
+      in
+         checkUsages false (v,env)
+      end
      | infDecodedecl (st,env) (v, l, Sum.INR el) =
       let
-         val env = E.clearFunction (v,env)
-         val env = E.pushTop env
+         val env = E.pushFunctionOrTop (v,env)
          val env = List.foldl
             (fn ((guard, rhs), env) => let
                val envRhs = E.popKappa env
-               val newEnv = infRhs (st,envRhs) (v, l, SOME guard, [], rhs)
-               val (env, _) = E.meet (env, newEnv)
+               val envRhs = infRhs (st,envRhs) (v, l, SOME guard, [], rhs)
+               val (env, _) = E.meet (env, envRhs)
             in
                env
             end) env el
          val env = E.popToFunction (v,env)
       in
-         checkUsages (v,env)
+         checkUsages false (v,env)
       end
 
    and infExp stenv (AST.MARKexp m) = reportError infExp stenv m

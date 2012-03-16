@@ -25,6 +25,8 @@ structure Primitives = struct
    val s15 : tvar = freshTVar ()
    val s16 : tvar = freshTVar ()
    val s17 : tvar = freshTVar ()
+   val s18 : tvar = freshTVar ()
+   val s19 : tvar = freshTVar ()
    val a : tvar = freshTVar ()
    val b : tvar = freshTVar ()
    val c : tvar = freshTVar ()
@@ -62,9 +64,8 @@ structure Primitives = struct
        {name="update", ty=FUN (FUN (var state, var state), MONAD (var d))},
        {name="query", ty=FUN (FUN (var state, var e), MONAD (var e))},
        {name="+", ty=vvv s1},
-       {name="*", ty=vvv s2},
-       {name="signed", ty=FUN (VEC (var s3), ZENO)},
-       {name="unsigned", ty=FUN (VEC (var s11), ZENO)},
+       {name="-", ty=vvv s2},
+       {name="*", ty=vvv s3},
        {name="bits8", ty=FUN (ZENO, VEC (CONST 8))},
        {name = "||", ty = vvv s4},
        {name = "&&", ty = vvv s5},
@@ -76,6 +77,8 @@ structure Primitives = struct
        {name="prefix", ty = FUN (VEC (var s11), VEC (var s12))},
        {name="suffix", ty = FUN (VEC (var s13), VEC (var s14))},
        {name="^", ty=FUN (VEC (var s15), FUN (VEC (var s16), VEC (var s17)))},
+       {name="signed", ty=FUN (VEC (var s18), ZENO)},
+       {name="unsigned", ty=FUN (VEC (var s19), ZENO)},
        {name="otherwise", ty=FUN (var state, VEC (CONST 1))}]
 
    val primitiveDecoders =

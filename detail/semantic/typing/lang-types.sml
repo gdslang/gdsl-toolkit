@@ -5,7 +5,9 @@ structure Types = struct
    type tvar = TVar.tvar
    type varset = TVar.set
    val freshTVar = TVar.freshTVar
-   
+
+   val concisePrint = true
+
    type size_constraint = { pos : TVar.tvar list, neg : TVar.tvar list, const : int}
 
    datatype texp =
@@ -23,8 +25,8 @@ structure Types = struct
     | VEC of texp
       (* a Herbrand constant, can only occur as the argument of VEC *)
     | CONST of IntInf.int
-      (* a list of size constraints, can only occur as the arg of VEC *)
-    | SUM of size_constraint list
+      (*(* a list of size constraints, can only occur as the arg of VEC *)
+    | SUM of size_constraint list*)
       (* an algebraic data type with a list of type arguments *)
     | ALG of (TypeInfo.symid * texp list)
       (* a record *)
@@ -83,7 +85,7 @@ structure Types = struct
       | sT (p, UNIT) = "()"
       | sT (p, VEC t) = "[" ^ sT (0, t) ^ "]"
       | sT (p, CONST c) = IntInf.toString(c)
-      | sT (p, SUM l) = sep "," (List.map (fn {pos,neg,const} =>
+      (*| sT (p, SUM l) = sep "," (List.map (fn {pos,neg,const} =>
          let
             val posStr = sep "+" (List.map showVar pos)
             val negStr = sep "-" (List.map showVar neg)
@@ -94,7 +96,7 @@ structure Types = struct
             else
                posStr ^ (if const>=0 then "+" else "") ^ Int.toString(const) ^ 
                "=" ^ negStr
-         end) l)
+         end) l)*)
       | sT (p, ALG (ty, l)) = let
           val conStr = SymbolTable.getString(!SymbolTables.typeTable, ty)
           in if List.null l then conStr else br (p, p_tyn,
@@ -102,9 +104,12 @@ structure Types = struct
               List.map (fn e => sT (p_tyn+1, e)) l))
           end
       | sT (p, RECORD (v,b,l)) = "{" ^ List.foldl (op ^) "" (List.map sTF l) ^
-                                   showVar v ^ BD.showVar b ^ ": ...}"
+                                   showVar v ^ 
+                                   (if concisePrint then "" else BD.showVar b)
+                                   ^ ":...}"
       | sT (p, MONAD t) = br (p, p_tyn, "S " ^ sT (p_tyn+1, t))
-      | sT (p, VAR (v,b)) = showVar v ^ BD.showVar b
+      | sT (p, VAR (v,b)) = showVar v ^ 
+            (if concisePrint then "" else BD.showVar b)
    and showVar var = let 
          val (str, newSiTab) = TVar.varToString (var, !siTab)
       in
@@ -112,7 +117,8 @@ structure Types = struct
       end
     and sTF (RField {name = n, fty = t, exists = b}) =
             SymbolTable.getString(!SymbolTables.fieldTable, n) ^
-            BD.showVar b  ^ ": " ^ sT (0, t) ^ ", "
+            (if concisePrint then "" else BD.showVar b)  ^
+            ": " ^ sT (0, t) ^ ", "
     in (sT (0, ty), !siTab) 
    end
 

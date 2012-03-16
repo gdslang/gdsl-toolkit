@@ -31,6 +31,8 @@ end
 
 structure SymbolTable :> SymbolTableSig = struct
 
+   val concisePrint : bool = true
+
    structure SymbolTable = IntRedBlackMap
    structure Reverse = AtomRedBlackMap
 
@@ -98,7 +100,8 @@ structure SymbolTable :> SymbolTableSig = struct
 
    fun getAtom ti = let val (atom,_,_) = getSymbolInfo ti in atom end
    fun getString (ti as (_, SymId i)) =
-      Atom.toString (getAtom ti) ^ "#" ^ Int.toString i
+      Atom.toString (getAtom ti) ^ 
+         (if concisePrint then "" else "#" ^ Int.toString i)
    fun getSpan ti = let val (_,span,_) = getSymbolInfo ti in span end
 
    fun toString (st, revs) =

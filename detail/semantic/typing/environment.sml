@@ -70,7 +70,10 @@ structure Environment : sig
 
    (*the type of function f is unset*)
    val clearFunction : VarInfo.symid * environment -> environment
-
+   
+   (*push a function type if it is set, otherwise push top*)
+   val pushFunctionOrTop : VarInfo.symid * environment -> environment
+   
    (*apply the Boolean function*)
    val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
                      environment -> environment
@@ -672,11 +675,26 @@ end = struct
 
    fun clearFunction (sym, env) =
       let
-         fun resetType (COMPOUND {ty = _, width, uses}, bFun) =
+         fun resetType (COMPOUND {ty = SOME _, width, uses}, bFun) =
                (COMPOUND {ty = NONE, width = width, uses = uses}, bFun)
            | resetType _ = raise InferenceBug
       in
          Scope.update (sym, resetType, env)
+      end
+
+   fun pushFunctionOrTop (sym, env) =
+      let
+         val tyRef = ref UNIT
+         fun setType (COMPOUND {ty = SOME t, width, uses}, bFun) =
+               (tyRef := t
+               ;(COMPOUND {ty = NONE, width = width, uses = uses}, bFun))
+           | setType (COMPOUND {ty = NONE, width, uses}, bFun) =
+               (tyRef := VAR (TVar.freshTVar (), BD.freshBVar ())
+               ;(COMPOUND {ty = NONE, width = width, uses = uses}, bFun))
+           | setType _ = raise InferenceBug
+         val env = Scope.update (sym, setType, env)
+      in
+         Scope.wrap (KAPPA {ty = !tyRef}, env)
       end
 
    fun unify (env1, env2, substs) =
