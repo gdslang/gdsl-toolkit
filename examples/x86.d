@@ -17,18 +17,24 @@ export = main
 
 # The state of the decode monad
 state =
-   {mode64:1=0,
-    rep:1=0,
-    rexw:1=0,
-    rexb:1=0,
-    rexr:1=0,
-    rexx:1=0,
-    vexm:5=00001,
-    vexv:4=0000,
-    vexl:1=0,
-    opndsz:1=0,
-    addrsz:1=0,
+   {mode64:1='0',
+    rep:1='0',
+    rexw:1='0',
+    rexb:1='0',
+    rexr:1='0',
+    rexx:1='0',
+    vexm:5='00001',
+    vexv:4='0000',
+    vexl:1='0',
+    opndsz:1='0',
+    addrsz:1='0',
     segment:register=DS}
+
+val sel1 & sel2 = 
+   let val a s = sel1 s && sel2 s
+   in 
+      a
+   end
 
 datatype size =
 	B | W | DW | QW | DQW
@@ -197,7 +203,7 @@ val reg8r n =
    end
 
 val reg8? rex =
-   if rex == 0 then reg8 else reg8r
+   if rex then reg8r else reg8
 
 val reg8F n = (reg8? (prefix n)) (suffix n)
 
@@ -226,7 +232,7 @@ val reg16r n =
    end
 
 val reg16? rex =
-   if rex == 0 then reg16 else reg16r
+   if rex then reg16r else reg16
 
 val reg16F n = (reg16? (prefix n)) (suffix n)
 
@@ -255,7 +261,7 @@ val reg32r n =
    end
 
 val reg32? rex =
-   if rex == 0 then reg32 else reg32r
+   if rex then reg32r else reg32
 
 val reg32F n = (reg32? (prefix n)) (suffix n)
 
@@ -284,7 +290,7 @@ val reg64r n =
    end
 
 val reg64? rex =
-   if rex == 0 then reg64 else reg64r
+   if rex then reg64r else reg64
 
 val reg64F n = (reg64? (prefix n)) (suffix n)
 
@@ -325,7 +331,7 @@ val xmmr n =
    end
 
 val xmm? rex =
-   if rex == 0 then xmm else xmmr
+   if rex then xmmr else xmm
 
 val xmmF n = (xmm? (prefix n)) (suffix n)
 
@@ -354,7 +360,7 @@ val mmr n =
    end
 
 val mm? rex =
-   if rex == 0 then mm else mmr
+   if rex then mmr else mm
 
 val mmF n = (mm? (prefix n)) (suffix n)
 
