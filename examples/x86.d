@@ -158,6 +158,8 @@ datatype insn =
  | XADD of binop
  | PHADDW of binop
  | PHADDD of binop
+ | VPHADDW of trinop
+ | VPHADDD of trinop
 
 val imm8 ['b:8'] = return (IMM8 b)
 val imm16 ['b1:8 b2:8'] = return (IMM16 (b1 ^ b2))
@@ -507,7 +509,7 @@ val r64 = r/ reg64?
 val mm64 = r/ mm?
 val xmm128 = r/ xmm?
 
-val vex.xmm = do
+val vex/xmm = do
    vexv <- query $vexv;
    return (xmmF (not vexv))
 end
@@ -540,12 +542,21 @@ val binop cons giveOp1 giveOp2 = do
    #   return (MOV {op1, op2})
 end
 
+val trinop cons giveOp1 giveOp2 giveOp3 = do
+   op1 <- giveOp1;
+   op2 <- giveOp2;
+   op3 <- giveOp3;
+   return (cons {op1=op1, op2=op2, op3=op3})
+end
+
 val mov = binop MOV
 val add = binop ADD
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
 val phaddd = binop PHADDD
+val vphaddw = trinop VPHADDW
+val vphaddd = trinop VPHADDD
 
 ## The VEX prefixes
 
@@ -707,4 +718,6 @@ val three-byte-opcode-0f-38 [02 /r]
  | $opndsz = phaddd xmm128 xmm/m128
  | otherwise = phaddd mm64 mm/m64
 val three-byte-opcode-0f-38-vex [01 /r]
- | $opndsz && (not $vexl) = vphaddw xmm128 vex.xmm xmm/m128
+ | $opndsz andalso (not $vexl) = vphaddw xmm128 vex/xmm xmm/m128
+val three-byte-opcode-0f-38-vex [02 /r]
+ | $opndsz andalso (not $vexl) = vphaddd xmm128 vex/xmm xmm/m128
