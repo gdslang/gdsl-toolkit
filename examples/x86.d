@@ -709,6 +709,8 @@ val two-byte-opcode-0f [0xf7 /r]
 val two-byte-opcode-0f-vex [0xf7 /r] 
 (* | $mod == '11' && VEX.128.66.0F.WIG*) = vmaskmovdqu xmm128 xmm/m128
 
+### MASKMOVQ Vol. 2B 4-11
+
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f [0x2d /r] = cvtpdf2pi mm64 xmm/m128
 
