@@ -19,7 +19,8 @@ structure Environment : sig
    is a decoder function*)
    val pushGroup : (VarInfo.symid * bool) list * environment ->
                   environment
-   val popGroup : environment -> 
+   (*the flag is true if the outermost scope should be kept*)
+   val popGroup : environment * bool ->
                   (VarInfo.symid * symbol_type) list * environment
    val pushTop : environment -> environment
    
@@ -369,7 +370,15 @@ end = struct
          Scope.wrap (GROUP (funDefs @ nonFunDefs), env)
       end                                    
 
-   fun popGroup env = case Scope.unwrap env of
+   fun popGroup (env, true) = (case Scope.unwrap env of
+        (KAPPA {ty=t}, env) =>
+         let
+           val (vs, env) = popGroup (env, false)
+         in
+            (vs, Scope.wrap (KAPPA {ty=t}, env))
+         end
+       | _ => raise InferenceBug)
+     | popGroup (env, false) = case Scope.unwrap env of
         (GROUP bs, env) =>
          (List.map (fn {name = n, ty = t, width = w, uses = _} =>
             case (t,w) of
@@ -456,6 +465,7 @@ end = struct
         (_, COMPOUND { ty = SOME t, width, uses }) => showTypeSI (t,si)
       | _ => raise InferenceBug
    )
+
    fun affectedFunctions (substs, env) =
       let
          fun aF (ss, substs, ([], _)) = ss
@@ -653,7 +663,7 @@ end = struct
       let
          fun setType t (COMPOUND {ty = NONE, width, uses}, bFun) =
                (COMPOUND {ty = SOME t, width = width, uses = uses}, bFun)
-           | setType t _ = raise InferenceBug
+           | setType t _ = (TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
       in
          case Scope.unwrap env of
               (KAPPA {ty=t}, env) => Scope.update (sym, setType t, env)
@@ -700,7 +710,10 @@ end = struct
                unify (env1, env2, substs)
             end      
          | (NONE, env1, env2) => substs
-         | (SOME _, _, _) => raise InferenceBug
+         | (SOME _, _, _) => (
+            TextIO.print ("**** unify first arg:\n" ^ topToString env1);
+            TextIO.print ("**** unify second arg:\n" ^ topToString env2);
+            raise InferenceBug)
       )
 
    fun mergeUses (env1,env2) =
@@ -756,12 +769,13 @@ end = struct
                  (TextIO.print ("+++++ bad: unifying\n" ^ toString(env1) ^ "+++++ and\n" ^ toString(env2) ^ "\n"); raise InferenceBug)*)
          val (env1,env2) = mergeUses (env1, env2)
          (*val _ = TextIO.print ("***** after adjusting uses:\n" ^ toString(env) ^ "\n")*)
-         val (e1Str,si) = toStringSI (env1, TVar.emptyShowInfo)
-         val (e2Str,si) = toStringSI (env2, si)
+         val (e1Str,si) = topToStringSI (env1, TVar.emptyShowInfo)
+         val (e2Str,si) = topToStringSI (env2, si)
          val (sStr,_) = showSubstsSI (substs,si)
-         (*val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str)*)
+         fun h () = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str)
       in
          (applySubsts (substs, env1), applySubsts (substs, env2))
+            (*handle SubstitutionBug => (h (); raise SubstitutionBug)*)
       end
 
    fun genFlow (env1, env2) = case (Scope.unwrap env1, Scope.unwrap env2) of

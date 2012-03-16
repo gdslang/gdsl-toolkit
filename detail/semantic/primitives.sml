@@ -22,6 +22,9 @@ structure Primitives = struct
    val s12 : tvar = freshTVar ()
    val s13 : tvar = freshTVar ()
    val s14 : tvar = freshTVar ()
+   val s15 : tvar = freshTVar ()
+   val s16 : tvar = freshTVar ()
+   val s17 : tvar = freshTVar ()
    val a : tvar = freshTVar ()
    val b : tvar = freshTVar ()
    val c : tvar = freshTVar ()
@@ -31,6 +34,7 @@ structure Primitives = struct
 
    (*create a type from two vectors to one vector, all of size s*)
    fun vvv s = FUN (VEC (var s), FUN (VEC (var s), VEC (var s)))
+   fun vvb s = FUN (VEC (var s), FUN (VEC (var s), VEC (CONST 1)))
 
    val granularity : string = "granularity"
    val globalState : string = "global state"
@@ -60,18 +64,19 @@ structure Primitives = struct
        {name="+", ty=vvv s1},
        {name="*", ty=vvv s2},
        {name="signed", ty=FUN (VEC (var s3), ZENO)},
-       {name="^", ty=FUN (VEC (var s4), FUN (VEC (var s4), VEC (var s5)))},
        {name="unsigned", ty=FUN (VEC (var s11), ZENO)},
        {name="bits8", ty=FUN (ZENO, VEC (CONST 8))},
-       {name = "||", ty = FUN (VEC (CONST 1), FUN (VEC (CONST 1), VEC (CONST 1)))},
-       {name = "<~", ty = FUN (VEC (var s6), FUN (VEC (var s6), VEC (CONST 1)))},
-       {name = ">~", ty = FUN (VEC (var s7), FUN (VEC (var s7), VEC (CONST 1)))},
-       {name = "==", ty = FUN (var s8, FUN (var s8, VEC (CONST 1)))},
-       {name = "!=", ty = FUN (var s9, FUN (var s9, VEC (CONST 1)))},
+       {name = "||", ty = vvv s4},
+       {name = "&&", ty = vvv s5},
+       {name = "<~", ty = vvb s6},
+       {name = ">~", ty = vvb s7},
+       {name = "==", ty = vvb s8},
+       {name = "!=", ty = vvb s9},
        {name = "not", ty = vvv s10},
        {name="prefix", ty = FUN (VEC (var s11), VEC (var s12))},
        {name="suffix", ty = FUN (VEC (var s13), VEC (var s14))},
-       {name="otherwise", ty=VEC (CONST 1)}]
+       {name="^", ty=FUN (VEC (var s15), FUN (VEC (var s16), VEC (var s17)))},
+       {name="otherwise", ty=FUN (var state, VEC (CONST 1))}]
 
    val primitiveDecoders =
       [{name=granularity, ty=var size},

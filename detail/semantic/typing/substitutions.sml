@@ -131,9 +131,9 @@ end = struct
      | insertField (f1, f2 :: l) = (case compare_rfield (f1,f2) of
           LESS => f1 :: f2 :: l
         | GREATER => f2 :: insertField (f1, l)
-        | EQUAL => (TextIO.print ("inserting same field " ^ SymbolTable.getString(!SymbolTables.varTable, case f1 of RField {name=n,fty,exists} => n) ^
-				  " into " ^ showType (RECORD (TVar.freshTVar (),BooleanDomain.freshBVar (), f2 :: l)));
-            raise SubstitutionBug))
+        | EQUAL => (*(TextIO.print ("inserting same field " ^ SymbolTable.getString(!SymbolTables.fieldTable, case f1 of RField {name=n,fty,exists} => n) ^
+                    " into " ^ showType (RECORD (TVar.freshTVar (),BooleanDomain.freshBVar (), f2 :: l)));*)
+            raise SubstitutionBug)
 
    structure SISet = RedBlackSetFn (
       struct
@@ -451,7 +451,7 @@ end = struct
             | descr (UNIT) = "()"
             | descr (VEC (CONST c)) = "a vector of " ^ IntInf.toString c ^ " bits"
             | descr (VEC _) = "a bit vector"
-            | descr (ALG (ty, _)) = "a constructor " ^
+            | descr (ALG (ty, _)) = "type " ^
                SymbolTable.getString(!SymbolTables.typeTable, ty)
             | descr (RECORD _) = "a record"
             | descr (MONAD _) = "an action"

@@ -378,7 +378,7 @@ val sib-without-base reg? scale index = do
             '00': 
                do
                   i <- imm32;
-                  return (SUM{a=scaled, b=IMM32 i})
+                  return (SUM{a=scaled, b=i})
                end
           | _ : return (SUM{a=scaled, b=(reg? rexb) '101'}) # rBP
          end
