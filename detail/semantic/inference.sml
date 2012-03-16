@@ -191,9 +191,22 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          end
    val calcFixpoint = calcFixpoint 0
    
-   fun infBinding (st,env) (sym, dec, guard, args, rhs) =
+   fun infRhs (st,env) (sym, dec, guard, args, rhs) =
       let
          (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         fun checkGuard (g,env) =
+            let
+               val envRef = E.pushSymbol (stateSymId, SymbolTable.noSpan, env)
+               val envRef = E.pushType (false, VEC (CONST 1), envRef)
+               val envRef = E.reduceToFunction envRef
+               val envGua = infExp (st, env) g
+               val (env, _) = E.meet (envRef, envGua)
+               
+            in
+               E.popKappa env
+            end
+         val env = case guard of SOME g => checkGuard (g,env)
+                               | NONE => env
          fun pushDecoderBindings(d,(n, env)) =
             case infDecodepat sym (st,env) d of (nArgs, env) => (n+nArgs, env)
          val (n,env) = List.foldl pushDecoderBindings (0,env) dec
@@ -202,11 +215,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
          val env = E.return (n,env)
          (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
-         val env = E.popToFunction (sym, env)
-         (*val _ = TextIO.print ("after popping fun: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)*)
       in
-         checkUsages (sym, env)
+         env
       end
+   and infBinding stenv (sym, dec, guard, args, rhs) =
+         checkUsages (sym, E.popToFunction (sym,
+            infRhs stenv (sym, dec, guard, args, rhs)))
 
    and infDecl stenv (AST.MARKdecl m) = reportError infDecl stenv m
      | infDecl (st,env) (AST.GRANULARITYdecl w) =
@@ -244,12 +258,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infDecodedecl stenv (v, l, Sum.INL e) =
          infBinding stenv (v, l, NONE, [], e)
      | infDecodedecl (st,env) (v, l, Sum.INR el) =
-         List.foldl
-            (fn ((guard, rhs), (unstable, env)) =>
-               case infBinding (st,env) (v, l, SOME guard, [], rhs) of
-                  (newUnstable, env) =>
-                     (E.SymbolSet.union (unstable, newUnstable), env)
-            ) (E.SymbolSet.empty, env) el
+      let
+         val env = E.pushTop env
+         val env = List.foldl
+            (fn ((guard, rhs), env) => let
+               val envRhs = E.popKappa env
+               val newEnv = infRhs (st,envRhs) (v, l, SOME guard, [], rhs)
+               val (env, _) = E.meet (env, newEnv)
+            in
+               env
+            end) env el
+         val env = E.popToFunction (v,env)
+      in
+         checkUsages (v,env)
+      end
 
    and infExp stenv (AST.MARKexp m) = reportError infExp stenv m
      | infExp (st,env) (AST.LETRECexp (l,e)) =
@@ -263,7 +285,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             ) (E.SymbolSet.empty, env) l
          val env = calcFixpoint (unstable, env)
          val env = infExp (st,env) e
-         val (symbols, env) = E.popGroup env
+         val (symbols, env) = E.popGroup (env, true)
       in
          (sm := List.foldl SMap.insert' (!sm) symbols; env)
       end
@@ -402,11 +424,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val dcon = SymMap.lookup (conParents, c)
          val { tdVars = vs, tdCons = cs } = SymMap.lookup (typeDefs, dcon)
          val tArgOpt = SymMap.lookup (cs, c)
+         val env =
+            case tArgOpt of
+                 NONE => E.pushType (true, ALG (dcon, List.map VAR vs), env)
+               | SOME t =>
+                  E.pushType (true, FUN (t,ALG (dcon, List.map VAR vs)), env)
+         (*val _ = TextIO.print ("**** looking for " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n" ^ E.topToString env)*)
       in
-         case tArgOpt of
-              NONE => E.pushType (true, ALG (dcon, List.map VAR vs), env)
-            | SOME t =>
-               E.pushType (true, FUN (t,ALG (dcon, List.map VAR vs)), env)
+         env
       end
      | infExp (st,env) (AST.FNexp (v, e)) =
          E.reduceToFunction (infExp (st, E.pushLambdaVar (v,env)) e)
@@ -539,8 +564,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          ) (E.SymbolSet.empty, toplevelEnv)
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
-   val (toplevelSymbols, primEnv) = E.popGroup toplevelEnv
-   val (primSymbols, _) = E.popGroup primEnv
+   val (toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
+   val (primSymbols, _) = E.popGroup (primEnv, false)
    in
       ( sm := List.foldl SMap.insert' (!sm) (toplevelSymbols @ primSymbols)
       ; SMap.listItemsi (!sm))
