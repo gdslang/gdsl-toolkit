@@ -128,25 +128,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      (raiseError str; (S.emptySubsts, (envCall, envCall)))
                val env = E.popToUsage (sym, s, env)
                val affectedSyms = E.affectedFunctions (substs,envCall)
-               (*(*if the currently examined symbol has been updated then we
-               check if it's stable now, so we don't flag natural updates
-               as critical recursion*)
-               val affectedSyms =
-                  if E.SymbolSet.member (affectedSyms,sym) then 
-                  let
-                     val envFun = E.pushSymbol (sym, s, env)
-                     val envCall = E.pushUsage (sym, s, env)
-                     val substs = E.subseteq (envCall, envFun)
-                        handle (S.UnificationFailure str) =>
-                           (raiseError str; S.emptySubsts)
-                  in
-                     if S.isEmpty substs then
-                        E.SymbolSet.delete (affectedSyms, sym)
-                     else
-                        affectedSyms
-                  end
-                  else
-                     affectedSyms*)
                val _ = raiseWarning (substs, affectedSyms)
             in
                (E.SymbolSet.union (unstable, affectedSyms), env)

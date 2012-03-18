@@ -577,10 +577,18 @@ end = struct
          genFields ([], bns, env)
       end
 
-   fun reduceToSum (n, env) = if n>0 then
-         case Scope.unwrap env of (_, env) => reduceToSum (n-1, env)
-      else
-         pushTop env
+   fun reduceToSum (n, env) =
+      let
+         fun rTS (n, vars, const) = if n>0 then
+               case Scope.unwrap env of
+                    (KAPPA {ty = CONST c}, env) => rTS (n-1, vars, c+const)
+                  | (KAPPA {ty = VAR (v,_)}, env) => rTS (n-1, v::vars, const)
+                  | _ => raise InferenceBug
+            else
+               pushTop env
+      in
+         rTS (n, [], 0)
+      end
 
    fun reduceToFunction env =
       let

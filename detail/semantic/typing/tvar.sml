@@ -5,6 +5,7 @@ structure TVar : sig
    val freshTVar : unit -> tvar
 
    val eq : (tvar * tvar) -> bool
+   val compare_tvar : tvar * tvar -> order
 
    (*displaying type variables*)
    type varmap
@@ -31,6 +32,7 @@ end = struct
    datatype tvar = TVAR of int
 
    fun eq (TVAR v1, TVAR v2) = v1=v2
+   fun compare_tvar (TVAR v1, TVAR v2) = Int.compare (v1,v2)
 
    val tvarGenerator = ref 0
 
@@ -54,18 +56,18 @@ end = struct
              (str, VarMap.insert(tab, var, str))
           end
 
-   type set = IntListSet.set
+   type set = IntRedBlackSet.set
 
-   val empty = IntListSet.empty
-   fun singleton (TVAR v) = IntListSet.singleton v
-   fun fromList l = IntListSet.fromList (List.map (fn (TVAR v) => v) l)
-   fun listItems vs = List.map (fn v => (TVAR v)) (IntListSet.listItems vs)
-   fun add (TVAR v, l) = IntListSet.add' (v, l)
-   val union = IntListSet.union
-   val intersection = IntListSet.intersection
-   val difference = IntListSet.difference
-   fun member (l,TVAR v) = IntListSet.member (l,v)
-   val isEmpty = IntListSet.isEmpty
+   val empty = IntRedBlackSet.empty
+   fun singleton (TVAR v) = IntRedBlackSet.singleton v
+   fun fromList l = IntRedBlackSet.fromList (List.map (fn (TVAR v) => v) l)
+   fun listItems vs = List.map (fn v => (TVAR v)) (IntRedBlackSet.listItems vs)
+   fun add (TVAR v, l) = IntRedBlackSet.add' (v, l)
+   val union = IntRedBlackSet.union
+   val intersection = IntRedBlackSet.intersection
+   val difference = IntRedBlackSet.difference
+   fun member (l,TVAR v) = IntRedBlackSet.member (l,v)
+   val isEmpty = IntRedBlackSet.isEmpty
    fun setToString (set, si) =
       let
          fun show (v, (str, sep, si)) =
@@ -75,8 +77,8 @@ end = struct
                (str ^ sep ^ vStr, ", ", si)
             end
          val (res, _, si) =
-            List.foldl show ("", "{", si) (IntListSet.listItems set)
+            List.foldl show ("", "{", si) (IntRedBlackSet.listItems set)
       in
          (res  ^ "}", si)
-      end
+      end                               
 end

@@ -4,7 +4,8 @@ local
    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
    $(SML_LIB)/smlnj-lib/PP/pp-lib.mlb
    $(SML_LIB)/smlnj-lib/Controls/controls-lib.mlb
-   $(SML_LIB)/mllpt-lib/ml-lpt-lib.mlb
+   (*$(SML_LIB)/mllpt-lib/ml-lpt-lib.mlb*)
+   $(SML_LIB)/ml-lpt/lib/ml-lpt-lib.mlb
 in
    ann
       "forceUsed"
