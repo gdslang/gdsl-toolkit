@@ -26,6 +26,7 @@ state =
     vexm:5='00001',
     vexv:4='0000',
     vexl:1='0',
+    vexp:2='00',
     opndsz:1='0',
     addrsz:1='0',
     segment:register=DS}
@@ -35,6 +36,16 @@ val sel1 & sel2 =
    in 
       a
    end
+
+val / sel =
+   let val a s = not (sel s)
+   in
+      a
+   end
+
+val opndsz? s = $opndsz s
+val addrsz? s = $addrsz s
+val rexw? s = $rexw s
 
 datatype size =
 	B | W | DW | QW | DQW
@@ -214,6 +225,8 @@ datatype insn =
  | MASKMOVQ of binop
  | MAXPD of binop
  | VMAXPD of trinop
+ | MAXPS of binop
+ | VMAXPS of trinop
  | CVTPD2PI of binop
  | XADD of binop
  | PHADDW of binop
@@ -498,15 +511,15 @@ val sib-with-index-and-base reg? s i b = do
 end
 
 val sib ['scale:2 100 101']
- | $addrsz = sib-without-index reg16?
+ | addrsz? = sib-without-index reg16?
  | otherwise = sib-without-index reg32?
 
 val sib ['scale:2 index:3 101'] 
- | $addrsz = sib-without-base reg16? scale index
+ | addrsz? = sib-without-base reg16? scale index
  | otherwise = sib-without-base reg32? scale index
 
 val sib ['scale:2 index:3 base:3']
- | $addrsz = sib-with-index-and-base reg16? scale index base
+ | addrsz? = sib-with-index-and-base reg16? scale index base
  | otherwise = sib-with-index-and-base reg32? scale index base
 
 ## Decoding the mod/rm byte
@@ -664,6 +677,8 @@ val vmaskmovdqu = binop VMASKMOVDQU
 val maskmovq = binop MASKMOVQ
 val maxpd = binop MAXPD
 val vmaxpd = trinop VMAXPD
+val maxps = binop MAXPS
+val vmaxps = trinop VMAXPS
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
@@ -681,18 +696,19 @@ val vex-pp pp =
    end
 
 val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 pp:2'] = do
-   update @{rexr=r, rexx=x, rexb=b, vexm=m, vexv=v, vexl=l};
+   update @{rexr=r, rexx=x, rexb=b, vexm=m, vexv=v, vexl=l, vexp=pp};
    vex-pp pp
 end
 
 val /vex [0xc5 'r:1 v:4 l:1 pp:2'] = do
-   update @{rexr=r, vexv=v, vexl=l};
+   update @{rexr=r, vexv=v, vexl=l, vexp=pp};
    vex-pp pp
 end
 
 val vex-128? s = $vexl s
 val vex-256? s = not ($vexl s)
 val vex-noflag? s = ($vexv s) == '1111'
+val vex-no-simd? s = ($vexp s) == '00'
 val vex-66? s = ($vexp s) == '01'
 val vex-f2? s = ($vexp s) == '11'
 val vex-f3? s = ($vexp s) == '10'
@@ -713,8 +729,6 @@ val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz='1'}; main end
 val main [0x67] = do update @{addrsz='1'}; main end
-
-val not-opndsz? s = not ($opndsz s) #FIXFIXFIX
 
 val main [0x66 0x0f 0x38] = three-byte-opcode-0f-38
 val main [0x66 /rex 0x0f 0x38] = three-byte-opcode-0f-38
@@ -739,48 +753,48 @@ end
 ### ADD Vol. 2A 3-35
 val one-byte-opcode [0x04] = add al imm8
 val one-byte-opcode [0x05]
- | $rexw = add rax imm64
- | $opndsz = add rax imm32
+ | rexw? = add rax imm64
+ | opndsz? = add rax imm32
  | otherwise = add rax imm16
 val one-byte-opcode [0x80 /0] = add r/m8 imm8
 val one-byte-opcode [0x81 /0]
- | $rexw = add r/m64 imm64
- | $opndsz = add r/m32 imm32
+ | rexw? = add r/m64 imm64
+ | opndsz? = add r/m32 imm32
  | otherwise = add r/m16 imm16
 val one-byte-opcode [0x83 /0]
- | $rexw = add r/m64 imm8
- | $opndsz = add r/m32 imm8
+ | rexw? = add r/m64 imm8
+ | opndsz? = add r/m32 imm8
  | otherwise = add r/m16 imm8
 val one-byte-opcode [0x00 /r] = add r/m8 r8
 val one-byte-opcode [0x01 /0]
- | $rexw = add r/m64 r64
- | $opndsz = add r/m32 r32
+ | rexw? = add r/m64 r64
+ | opndsz? = add r/m32 r32
  | otherwise = add r/m16 r16
 val one-byte-opcode [0x02 /r] = add r8 r/m8
 val one-byte-opcode [0x03 /0]
- | $rexw = add r64 r/m64
- | $opndsz = add r32 r/m32
+ | rexw? = add r64 r/m64
+ | opndsz? = add r32 r/m32
  | otherwise = add r16 r/m16
 
 ### MOV Vol 2A 3-643
 val one-byte-opcode [0x88 /r] = mov r/m8 r8
 val one-byte-opcode [0x89 /r] 
- | $opndsz = mov r/m16 r16
-#| $rexw = mov r/m64 r64
+ | opndsz? = mov r/m16 r16
+#| rexw? = mov r/m64 r64
  | otherwise = mov r/m32 r32
 val one-byte-opcode [0x8a /r] = mov r8 r/m8
 val one-byte-opcode [0x8b /r]
- | $opndsz = mov r16 r/m16
+ | opndsz? = mov r16 r/m16
  | otherwise = mov r32 r/m32
 val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3?)
 val one-byte-opcode [0x8e /r] = mov (r/ sreg3?) r/m16
 val one-byte-opcode [0xa0] = mov al moffs8 
 val one-byte-opcode [0xa1]
- | $addrsz = mov ax moffs16
+ | addrsz? = mov ax moffs16
  | otherwise = mov eax moffs32
 val one-byte-opcode [0xa2] = mov moffs8 al
 val one-byte-opcode [0xa3]
- | $addrsz = mov moffs16 ax
+ | addrsz? = mov moffs16 ax
  | otherwise = mov moffs32 eax
 val one-byte-opcode [0xb0] = mov al imm8
 val one-byte-opcode [0xb1] = mov cl imm8
@@ -791,76 +805,83 @@ val one-byte-opcode [0xb5] = mov ch imm8
 val one-byte-opcode [0xb6] = mov dh imm8
 val one-byte-opcode [0xb7] = mov bh imm8
 val one-byte-opcode [0xb8]
- | $opndsz = mov ax imm16
+ | opndsz? = mov ax imm16
  | otherwise = mov eax imm32
 val one-byte-opcode [0xb9]
- | $opndsz = mov cx imm16
+ | opndsz? = mov cx imm16
  | otherwise = mov ecx imm32
 val one-byte-opcode [0xba]
- | $opndsz = mov dx imm16
+ | opndsz? = mov dx imm16
  | otherwise = mov edx imm32
 val one-byte-opcode [0xbb]
- | $opndsz = mov bx imm16
+ | opndsz? = mov bx imm16
  | otherwise = mov ebx imm32
 val one-byte-opcode [0xbc]
- | $opndsz = mov sp imm16
+ | opndsz? = mov sp imm16
  | otherwise = mov esp imm32
 val one-byte-opcode [0xbd]
- | $opndsz = mov bp imm16
+ | opndsz? = mov bp imm16
  | otherwise = mov ebp imm32
 val one-byte-opcode [0xbe]
- | $opndsz = mov si imm16
+ | opndsz? = mov si imm16
  | otherwise = mov esi imm32
 val one-byte-opcode [0xbf]
- | $opndsz = mov di imm16
+ | opndsz? = mov di imm16
  | otherwise = mov edi imm32
 val one-byte-opcode [0xC6 /0] = mov r/m8 imm8
 val one-byte-opcode [0xC7 /0]
- | $opndsz = mov r/m16 imm16
+ | opndsz? = mov r/m16 imm16
  | otherwise = mov r/m32 imm32
 
 ## Two Byte Opcodes with Prefix 0x0f
 
 ### MASKMOVDQU Vol. 2B 4-9
 val two-byte-opcode-0f [0xf7 /r] 
- | $opndsz = maskmovdqu xmm128 xmm/nomem
+ | opndsz? = maskmovdqu xmm128 xmm/nomem
 val two-byte-opcode-0f-vex [0xf7 /r] 
  | vex-noflag? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem
 
 ### MASKMOVQ Vol. 2B 4-11
 val two-byte-opcode-0f [0xf7 /r]
- | not-opndsz? = maskmovq mm64 mm/nomem
+ | / opndsz? = maskmovq mm64 mm/nomem
 
 ### MAXPD Vol. 2B 4-13
 val two-byte-opcode-0f [0x5f /r] 
- | $opndsz = maxpd xmm128 xmm/m128
+ | / opndsz? = maxpd xmm128 xmm/m128
 val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
 val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
 
+### MAXPS 4-16 Vol. 2B
+val two-byte-opcode-0f [0x5f /r] 
+ | / opndsz? = maxps xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-128? & vex-no-simd? = vmaxps xmm128 vex/xmm xmm/m128
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-256? & vex-no-simd? = vmaxps ymm256 vex/ymm ymm/m256
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
- | $opndsz = cvtpdf2pi mm64 xmm/m128
+ | opndsz? = cvtpdf2pi mm64 xmm/m128
 
 ### XADD Vol. 2B 4-667
 val two-byte-opcode-0f [0xc0 /r] = xadd r/m8 r8
 val two-byte-opcode-0f [0xc1 /r]
- | $rexw = xadd r/m64 r64
- | $opndsz = mov r/m16 r16
+ | rexw? = xadd r/m64 r64
+ | opndsz? = mov r/m16 r16
  | otherwise = mov r/m32 r32
 
 ## Three Byte Opcodes with Prefix 0x0f38
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
- | $opndsz = phaddw xmm128 xmm/m128
+ | opndsz? = phaddw xmm128 xmm/m128
  | otherwise = phaddw mm64 mm/m64
 val three-byte-opcode-0f-38 [02 /r]
- | $opndsz = phaddd xmm128 xmm/m128
+ | opndsz? = phaddd xmm128 xmm/m128
  | otherwise = phaddd mm64 mm/m64
 val three-byte-opcode-0f-38-vex [01 /r]
- | $opndsz & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
+ | opndsz? & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
 val three-byte-opcode-0f-38-vex [02 /r]
- | $opndsz & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
+ | opndsz? & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
