@@ -172,10 +172,10 @@ datatype insn =
  | VPHADDD of trinop
 
 val imm8 ['b:8'] = return (IMM8 b)
-val imm16 ['b1:8 b2:8'] = return (IMM16 (b1 ^ b2))
-val imm32 ['b1:8 b2:8 b3:8 b4:8'] = return (IMM32 (b1 ^ b2 ^ b3 ^ b4))
-val imm64 ['b1:8 b2:8 b3:8 b4:8 b5:8 b6:8 b7:8 b8:8'] =
-   return (IMM32 (b1 ^ b2 ^ b3 ^ b4 ^ b5 ^ b6 ^ b7 ^ b8))
+val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b1 ^ b2))
+val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (IMM32 (b1 ^ b2 ^ b3 ^ b4))
+val imm64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
+   return (IMM64 (b1 ^ b2 ^ b3 ^ b4 ^ b5 ^ b6 ^ b7 ^ b8))
 
 ## Convert a bit-vectors to registers
 
@@ -595,7 +595,7 @@ val vex-pp pp =
 #    | '11': => F2 Prefix
    end
 
-val /vex [0xc4 'r:1 x:1 b:1 m:5 w:1 v:4 l:1 pp:2'] = do
+val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 pp:2'] = do
    update @{rexr=r, rexx=x, rexb=b, vexm=m, vexv=v, vexl=l};
    vex-pp pp
 end

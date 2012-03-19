@@ -584,8 +584,11 @@ end = struct
                     (KAPPA {ty = CONST c}, env) => rTS (n-1, vars, c+const, env)
                   | (KAPPA {ty = VAR (v,_)}, env) => rTS (n-1, v::vars, const, env)
                   | _ => raise InferenceBug
-            else
-               pushTop env
+            else case vars of
+                 [] => Scope.wrap (KAPPA {ty = CONST const}, env)
+               | [v] => Scope.wrap (KAPPA {ty = VAR (v, BD.freshBVar ())}, env)
+               | _ => raise Substitutions.UnificationFailure
+                  ("connot deal with numeric constraint")
       in
          rTS (n, [], 0, env)
       end
