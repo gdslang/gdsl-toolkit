@@ -615,14 +615,12 @@ val mm64 = r/ mm?
 val xmm128 = r/ xmm?
 val ymm256 = r/ ymm?
 
-val vex/xmm = do
+val vex/'mm mmF = do
    vexv <- query $vexv;
-   return (xmmF (not vexv)) #FIXFIXFIX
+   return (mmF (not vexv))
 end
-val vex/ymm = do
-   vexv <- query $vexv;
-   return (ymmF (not vexv)) #FIXFIXFIX
-end
+val vex/xmm = vex/'mm xmmF
+val vex/ymm = vex/'mm ymmF
 
 val moffs8 = do
    i <- imm8;
@@ -693,7 +691,7 @@ val /vex [0xc5 'r:1 v:4 l:1 pp:2'] = do
 end
 
 val vex-128? s = $vexl s
-val vex-256? s = (*not*) ($vexl s)
+val vex-256? s = not ($vexl s)
 val vex-noflag? s = ($vexv s) == '1111'
 val vex-66? s = ($vexp s) == '01'
 val vex-f2? s = ($vexp s) == '11'
@@ -716,7 +714,7 @@ val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz='1'}; main end
 val main [0x67] = do update @{addrsz='1'}; main end
 
-val not-opndsz? s = (*not*) ($opndsz s) #FIXFIXFIX
+val not-opndsz? s = not ($opndsz s) #FIXFIXFIX
 
 val main [0x66 0x0f 0x38] = three-byte-opcode-0f-38
 val main [0x66 /rex 0x0f 0x38] = three-byte-opcode-0f-38
