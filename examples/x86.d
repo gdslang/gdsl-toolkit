@@ -746,6 +746,15 @@ val two-byte-opcode-0f-vex [0xf7 /r]
 val two-byte-opcode-0f [0xf7 /r]
  | not-opndsz? = maskmovq mm64 mm/nomem
 
+### MAXPD Vol. 2B 4-13
+val two-byte-opcode-0f [0x5f /r] 
+ | $opndsz = maxpd xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
+
+
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
  | $opndsz = cvtpdf2pi mm64 xmm/m128
