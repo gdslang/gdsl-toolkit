@@ -72,6 +72,22 @@ datatype register =
  | XMM13
  | XMM14
  | XMM15
+ | YMM0
+ | YMM1
+ | YMM2
+ | YMM3
+ | YMM4
+ | YMM5
+ | YMM6
+ | YMM7
+ | YMM8
+ | YMM9
+ | YMM10
+ | YMM11
+ | YMM12
+ | YMM13
+ | YMM14
+ | YMM15
  | MM0
  | MM1
  | MM2
@@ -145,6 +161,14 @@ val mm4 = return (REG MM4)
 val mm5 = return (REG MM5)
 val mm6 = return (REG MM6)
 val mm7 = return (REG MM7)
+val mm8 = return (REG MM8)
+val mm9 = return (REG MM9)
+val mm10 = return (REG MM10)
+val mm11 = return (REG MM11)
+val mm12 = return (REG MM12)
+val mm13 = return (REG MM13)
+val mm14 = return (REG MM14)
+val mm15 = return (REG MM15)
 val xmm0 = return (REG XMM0)
 val xmm1 = return (REG XMM1)
 val xmm2 = return (REG XMM2)
@@ -153,6 +177,30 @@ val xmm4 = return (REG XMM4)
 val xmm5 = return (REG XMM5)
 val xmm6 = return (REG XMM6)
 val xmm7 = return (REG XMM7)
+val xmm8 = return (REG XMM8)
+val xmm9 = return (REG XMM9)
+val xmm10 = return (REG XMM10)
+val xmm11 = return (REG XMM11)
+val xmm12 = return (REG XMM12)
+val xmm13 = return (REG XMM13)
+val xmm14 = return (REG XMM14)
+val xmm15 = return (REG XMM15)
+val ymm0 = return (REG YMM0)
+val ymm1 = return (REG YMM1)
+val ymm2 = return (REG YMM2)
+val ymm3 = return (REG YMM3)
+val ymm4 = return (REG YMM4)
+val ymm5 = return (REG YMM5)
+val ymm6 = return (REG YMM6)
+val ymm7 = return (REG YMM7)
+val ymm8 = return (REG YMM8)
+val ymm9 = return (REG YMM9)
+val ymm10 = return (REG YMM10)
+val ymm11 = return (REG YMM11)
+val ymm12 = return (REG YMM12)
+val ymm13 = return (REG YMM13)
+val ymm14 = return (REG YMM14)
+val ymm15 = return (REG YMM15)
 
 # A type alias used for instructions taking two arguments
 type binop = {opnd1:opnd, opnd2:opnd}
@@ -164,6 +212,8 @@ datatype insn =
  | MASKMOVDQU of binop
  | VMASKMOVDQU of binop
  | MASKMOVQ of binop
+ | MAXPD of binop
+ | VMAXPD of trinop
  | CVTPD2PI of binop
  | XADD of binop
  | PHADDW of binop
@@ -338,6 +388,35 @@ val xmm? rex =
 
 val xmmF n = (xmm? (prefix n)) (suffix n)
 
+val ymm n =
+   case n of
+      '000': REG YMM0
+    | '001': REG YMM1
+    | '010': REG YMM2
+    | '011': REG YMM3
+    | '100': REG YMM4
+    | '101': REG YMM5
+    | '110': REG YMM6
+    | '111': REG YMM7
+   end
+
+val ymmr n =
+   case n of
+      '000': REG YMM8
+    | '001': REG YMM9
+    | '010': REG YMM10
+    | '011': REG YMM11
+    | '100': REG YMM12
+    | '101': REG YMM13
+    | '110': REG YMM14
+    | '111': REG YMM15
+   end
+
+val ymm? rex =
+   if rex then ymmr else ymm
+
+val ymmF n = (ymm? (prefix n)) (suffix n)
+
 val mm n =
    case n of
       '000': REG MM0
@@ -507,6 +586,7 @@ val r/m32 = r/m reg32?
 val r/m64 = r/m reg64?
 val mm/m64 = r/m mm?
 val xmm/m128 = r/m xmm?
+val ymm/m256 = r/m ymm?
 
 val xmm/nomem = do
    mod <- query $mod;
@@ -533,10 +613,15 @@ val r32 = r/ reg32?
 val r64 = r/ reg64?
 val mm64 = r/ mm?
 val xmm128 = r/ xmm?
+val ymm256 = r/ ymm?
 
 val vex/xmm = do
    vexv <- query $vexv;
    return (xmmF ((*not*) vexv)) #FIXFIXFIX
+end
+val vex/ymm = do
+   vexv <- query $vexv;
+   return (ymmF ((*not*) vexv)) #FIXFIXFIX
 end
 
 val moffs8 = do
@@ -579,6 +664,8 @@ val mov = binop MOV
 val maskmovdqu = binop MASKMOVDQU
 val vmaskmovdqu = binop VMASKMOVDQU
 val maskmovq = binop MASKMOVQ
+val maxpd = binop MAXPD
+val vmaxpd = trinop VMAXPD
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
@@ -606,7 +693,7 @@ val /vex [0xc5 'r:1 v:4 l:1 pp:2'] = do
 end
 
 val vex-128? s = $vexl s
-val vex-256? s = not ($vexl s)
+val vex-256? s = (*not*) ($vexl s)
 val vex-noflag? s = ($vexv s) == '1111'
 val vex-66? s = ($vexp s) == '01'
 val vex-f2? s = ($vexp s) == '11'
