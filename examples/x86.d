@@ -19,6 +19,7 @@ export = main
 state =
    {mode64:1='0',
     rep:1='0',
+    rex:1='0',
     rexw:1='0',
     rexb:1='0',
     rexr:1='0',
@@ -46,6 +47,7 @@ val / sel =
 val opndsz? s = $opndsz s
 val addrsz? s = $addrsz s
 val rexw? s = $rexw s
+val rex? s = $rex s
 
 datatype size =
 	B | W | DW | QW | DQW
@@ -695,12 +697,14 @@ val vex-pp pp =
 #    | '11': => F2 Prefix
    end
 
-val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 pp:2'] = do
+val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 pp:2']
+ | / rex? = do
    update @{rexr=r, rexx=x, rexb=b, vexm=m, vexv=v, vexl=l, vexp=pp};
    vex-pp pp
 end
 
-val /vex [0xc5 'r:1 v:4 l:1 pp:2'] = do
+val /vex [0xc5 'r:1 v:4 l:1 pp:2']
+ | / rex? = do
    update @{rexr=r, vexv=v, vexl=l, vexp=pp};
    vex-pp pp
 end
@@ -717,7 +721,7 @@ val vex-f3? s = ($vexp s) == '10'
 
 ## The REX prefixes
 
-val /rex ['0100 w:1 r:1 x:1 b:1'] = update @{rexw=w, rexb=b, rexx=x, rexr=r}
+val /rex ['0100 w:1 r:1 x:1 b:1'] = update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
 
 ## Decode prefixes, recursion could be limited with "recursion-depth main = 4" 
 
