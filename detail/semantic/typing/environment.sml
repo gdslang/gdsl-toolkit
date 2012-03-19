@@ -579,15 +579,15 @@ end = struct
 
    fun reduceToSum (n, env) =
       let
-         fun rTS (n, vars, const) = if n>0 then
+         fun rTS (n, vars, const, env) = if n>0 then
                case Scope.unwrap env of
-                    (KAPPA {ty = CONST c}, env) => rTS (n-1, vars, c+const)
-                  | (KAPPA {ty = VAR (v,_)}, env) => rTS (n-1, v::vars, const)
+                    (KAPPA {ty = CONST c}, env) => rTS (n-1, vars, c+const, env)
+                  | (KAPPA {ty = VAR (v,_)}, env) => rTS (n-1, v::vars, const, env)
                   | _ => raise InferenceBug
             else
                pushTop env
       in
-         rTS (n, [], 0)
+         rTS (n, [], 0, env)
       end
 
    fun reduceToFunction env =
