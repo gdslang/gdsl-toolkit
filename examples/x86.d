@@ -239,6 +239,8 @@ datatype insn =
  | MFENCE
  | MINPD of binop
  | VMINPD of trinop
+ | MINPS of binop
+ | VMINPS of trinop
  | CVTPD2PI of binop
  | XADD of binop
  | PHADDW of binop
@@ -709,6 +711,8 @@ val vmaxss = trinop VMAXSS
 val mfence = return MFENCE
 val minpd = binop MINPD
 val vminpd = trinop VMINPD
+val minps = binop MINPS
+val vminps = trinop VMINPS
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
@@ -911,12 +915,20 @@ val two-byte-opcode-0f-vex [0x5f /r]
 val two-byte-opcode-0f [0xae /6] = mfence
 
 ### MINPD Vol. 2B 4-25
-val two-byte-opcode-0f [0x5f /r] 
+val two-byte-opcode-0f [0x5d /r] 
  | / opndsz? = minpd xmm128 xmm/m128
-val two-byte-opcode-0f-vex [0x5f /r] 
+val two-byte-opcode-0f-vex [0x5d /r] 
  | vex-128? & vex-66? = vminpd xmm128 vex/xmm xmm/m128
-val two-byte-opcode-0f-vex [0x5f /r] 
+val two-byte-opcode-0f-vex [0x5d /r] 
  | vex-256? & vex-66? = vminpd ymm256 vex/ymm ymm/m256
+
+### MAXPS Vol. 2B 4-28
+val two-byte-opcode-0f [0x5d /r] 
+ | / opndsz? = minps xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x5d /r] 
+ | vex-128? & vex-no-simd? = vminps xmm128 vex/xmm xmm/m128
+val two-byte-opcode-0f-vex [0x5d /r] 
+ | vex-256? & vex-no-simd? = vminps ymm256 vex/ymm ymm/m256
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
