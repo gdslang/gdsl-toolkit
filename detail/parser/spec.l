@@ -71,7 +71,7 @@
 %let num = {dig}+;
 %let hexdigit = [0-9a-fA-F];
 %let hexnum = "0x"{hexdigit}+;
-%let idchar = {letter}|{dig}|"_"|"-"|"?";
+%let idchar = {letter}|{dig}|"_"|"-"|"?"|"\'";
 (* Constructors start with upper case letters *)
 %let constart = [A-Z];
 %let cons = {constart}{idchar}*;
