@@ -887,6 +887,8 @@ val two-byte-opcode-0f-vex [0x5f /r]
 ### MAXSD Vol. 2B 4-19
 val two-byte-opcode-0f [0x5f /r] 
  | / repne? = maxsd xmm128 xmm/m64
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-f2? = vmaxsd xmm128 vex/xmm xmm/m64
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
