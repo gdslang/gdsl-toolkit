@@ -18,6 +18,7 @@ export = main
 # The state of the decode monad
 state =
    {mode64:1='0',
+    repne:1='0',
     rep:1='0',
     rex:1='0',
     rexw:1='0',
@@ -46,6 +47,8 @@ val / sel =
 
 val opndsz? s = $opndsz s
 val addrsz? s = $addrsz s
+val repne? s = $repne s
+val rep? s = $rep s
 val rexw? s = $rexw s
 val rex? s = $rex s
 
@@ -229,6 +232,8 @@ datatype insn =
  | VMAXPD of trinop
  | MAXPS of binop
  | VMAXPS of trinop
+ | MAXSD of binop
+ | VMAXSD of trinop
  | CVTPD2PI of binop
  | XADD of binop
  | PHADDW of binop
@@ -558,7 +563,7 @@ val r/m-with-sib = do
    end
 end
 
-val r/m-without-sib reg = do
+val r/m-without-sib reg addr-reg = do
    mod <- query $mod;
    rm <- query $rm;
    case mod of
@@ -569,19 +574,27 @@ val r/m-without-sib reg = do
                   i <- imm32;
                   mem i
                end
-          | _ : mem (reg rm)
+          | _ : mem (addr-reg rm)
          end
     | '01':
          do
             i <- imm8;
-            mem (SUM{a=reg rm, b=i})
+            mem (SUM{a=addr-reg rm, b=i})
          end
     | '10':
          do
             i <- imm32;
-            mem (SUM{a=reg rm, b=i})
+            mem (SUM{a=addr-reg rm, b=i})
          end
     | '11': return (reg rm)
+   end
+end
+
+val addrReg = do
+   addrsz <- query $addrsz;
+   case addrsz of
+      '0': return reg64?
+    | '1': return reg32?
    end
 end
 
@@ -589,9 +602,10 @@ val r/m reg? = do
    mod <- query $mod;
    rm <- query $rm;
    rexb <- query $rexb;
+   addr-reg? <- addrReg;
    case rm of
       '100': r/m-with-sib
-    | _ : r/m-without-sib (reg? rexb)
+    | _ : r/m-without-sib (reg? rexb) (addr-reg? rexb)
    end
 end
 
@@ -601,6 +615,7 @@ val r/m32 = r/m reg32?
 val r/m64 = r/m reg64?
 val mm/m64 = r/m mm?
 val xmm/m128 = r/m xmm?
+val xmm/m64 = r/m xmm?
 val ymm/m256 = r/m ymm?
 
 val xmm/nomem = do
@@ -681,6 +696,8 @@ val maxpd = binop MAXPD
 val vmaxpd = trinop VMAXPD
 val maxps = binop MAXPS
 val vmaxps = trinop VMAXPS
+val maxsd = binop MAXSD
+val vmaxsd = trinop VMAXSD
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
@@ -733,6 +750,8 @@ val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz='1'}; main end
 val main [0x67] = do update @{addrsz='1'}; main end
+val main [0xf2] = do update @{repne='1'}; main end
+val main [0xf3] = do update @{rep='1'}; main end
 
 val main [0x66 0x0f 0x38] = three-byte-opcode-0f-38
 val main [0x66 /rex 0x0f 0x38] = three-byte-opcode-0f-38
@@ -864,6 +883,10 @@ val two-byte-opcode-0f-vex [0x5f /r]
  | vex-128? & vex-no-simd? = vmaxps xmm128 vex/xmm xmm/m128
 val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-256? & vex-no-simd? = vmaxps ymm256 vex/ymm ymm/m256
+
+### MAXSD Vol. 2B 4-19
+val two-byte-opcode-0f [0x5f /r] 
+ | / repne? = maxsd xmm128 xmm/m64
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
