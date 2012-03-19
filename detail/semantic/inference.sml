@@ -209,7 +209,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infDecl (st,env) (AST.GRANULARITYdecl w) =
       let
          val envGra = E.pushWidth (granularitySymId, env)
-         val envInt = E.pushType (false, CONST w, env)
+         val envInt = E.pushType (false, CONST (IntInf.toInt w), env)
          val (env, _) = E.meet (envGra, envInt)
          val env = E.popKappa env
       in
@@ -485,10 +485,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infBitpatSize stenv (AST.MARKbitpat m) =
          reportError infBitpatSize stenv m
      | infBitpatSize (st,env) (AST.BITSTRbitpat str) =
-         E.pushType (false, CONST (IntInf.fromInt (String.size str)), env)
+         E.pushType (false, CONST (String.size str), env)
      | infBitpatSize (st,env) (AST.NAMEDbitpat v) = E.pushWidth (v,env)
      | infBitpatSize (st,env) (AST.BITVECbitpat (var,size)) =
-         E.pushType (false, CONST size, env)
+         E.pushType (false, CONST (IntInf.toInt size), env)
    and infBitpat stenv (AST.MARKbitpat m) = reportError infBitpat stenv m
      | infBitpat (st,env) (AST.BITSTRbitpat str) = (0,env)
      | infBitpat (st,env) (AST.NAMEDbitpat v) =
@@ -540,9 +540,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infLit (st,env) (AST.FLTlit f) = E.pushType (false, FLOAT, env)
      | infLit (st,env) (AST.STRlit str) = E.pushType (false, UNIT, env)
      | infLit (st,env) (AST.VEClit str) =
-         E.pushType (false, VEC (CONST (IntInf.fromInt (String.size str))), env)
+         E.pushType (false, VEC (CONST (String.size str)), env)
 
    val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes ())
+   val primEnv = E.meetSizeConstraint (Primitives.initialSizeConstraints, primEnv)
    val toplevelEnv = E.pushGroup
       (List.concat
          (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))
@@ -555,6 +556,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          ) (E.SymbolSet.empty, toplevelEnv)
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val (toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
    val (primSymbols, _) = E.popGroup (primEnv, false)
    in

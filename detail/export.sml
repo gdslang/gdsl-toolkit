@@ -18,6 +18,7 @@ structure SymbolTable = SymbolTable
 structure CPS = CPS
 structure VarInfo = VarInfo
 structure Types = Types
+structure SC = SizeConstraint
 structure BooleanDomain = BooleanDomain
 structure Environment = Environment
 structure TVar = TVar

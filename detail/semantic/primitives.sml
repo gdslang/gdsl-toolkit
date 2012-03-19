@@ -1,5 +1,6 @@
 structure Primitives = struct
    structure ST = SymbolTables
+   structure SC = SizeConstraint
    open Types
 
    fun var a = VAR (a,BD.freshBVar ())
@@ -36,6 +37,7 @@ structure Primitives = struct
 
    (*create a type from two vectors to one vector, all of size s*)
    fun vvv s = FUN (VEC (var s), FUN (VEC (var s), VEC (var s)))
+   fun vv  s = FUN (VEC (var s), VEC (var s))
    fun vvb s = FUN (VEC (var s), FUN (VEC (var s), VEC (CONST 1)))
 
    val granularity : string = "granularity"
@@ -73,13 +75,16 @@ structure Primitives = struct
        {name = ">~", ty = vvb s7},
        {name = "==", ty = vvb s8},
        {name = "!=", ty = vvb s9},
-       {name = "not", ty = vvv s10},
+       {name = "not", ty = vv s10},
        {name="prefix", ty = FUN (VEC (var s11), VEC (var s12))},
        {name="suffix", ty = FUN (VEC (var s13), VEC (var s14))},
        {name="^", ty=FUN (VEC (var s15), FUN (VEC (var s16), VEC (var s17)))},
        {name="signed", ty=FUN (VEC (var s18), ZENO)},
        {name="unsigned", ty=FUN (VEC (var s19), ZENO)},
        {name="otherwise", ty=FUN (var state, VEC (CONST 1))}]
+
+   fun initialSizeConstraints scs = 
+      SC.add (SC.equality (s17, [s15,s16], 0), scs)
 
    val primitiveDecoders =
       [{name=granularity, ty=var size},

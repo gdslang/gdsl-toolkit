@@ -63,7 +63,7 @@ end = struct
       and vType (s, t) =
          case t of
             AST.MARKty {span, tree} => vType (span,tree)
-          | AST.BITty i => T.VEC (T.CONST i)
+          | AST.BITty i => T.VEC (T.CONST (IntInf.toInt i))
           | AST.NAMEDty n =>
                (case S.find (!synTable, n) of
                   SOME t => T.SYN (n, t)

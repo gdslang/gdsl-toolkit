@@ -5,7 +5,7 @@ structure TVar : sig
    val freshTVar : unit -> tvar
 
    val eq : (tvar * tvar) -> bool
-   val compare_tvar : tvar * tvar -> order
+   val compare : tvar * tvar -> order
 
    (*displaying type variables*)
    type varmap
@@ -32,7 +32,7 @@ end = struct
    datatype tvar = TVAR of int
 
    fun eq (TVAR v1, TVAR v2) = v1=v2
-   fun compare_tvar (TVAR v1, TVAR v2) = Int.compare (v1,v2)
+   fun compare (TVAR v1, TVAR v2) = Int.compare (v1,v2)
 
    val tvarGenerator = ref 0
 
@@ -48,13 +48,13 @@ end = struct
    fun name idx = (if idx>25 then name (Int.div (idx,26)-1) else "") ^
         Char.toString (Char.chr (Char.ord #"a"+Int.mod (idx,26)))
 
-   fun varToString (TVAR var, tab) = case VarMap.find (tab, var) of
-          SOME str => (str, tab)
-        | NONE => let
-             val str = name (VarMap.numItems(tab))
-          in
-             (str, VarMap.insert(tab, var, str))
-          end
+   fun varToString (TVAR var, tab) = (*(name var, tab)*) case VarMap.find (tab, var) of
+                SOME str => (str, tab)
+              | NONE => let
+                   val str = name (VarMap.numItems(tab))
+                in
+                   (str, VarMap.insert(tab, var, str))
+                end
 
    type set = IntRedBlackSet.set
 

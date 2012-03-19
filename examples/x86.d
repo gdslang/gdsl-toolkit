@@ -617,11 +617,11 @@ val ymm256 = r/ ymm?
 
 val vex/xmm = do
    vexv <- query $vexv;
-   return (xmmF ((*not*) vexv)) #FIXFIXFIX
+   return (xmmF (not vexv)) #FIXFIXFIX
 end
 val vex/ymm = do
    vexv <- query $vexv;
-   return (ymmF ((*not*) vexv)) #FIXFIXFIX
+   return (ymmF (not vexv)) #FIXFIXFIX
 end
 
 val moffs8 = do

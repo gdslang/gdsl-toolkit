@@ -24,7 +24,7 @@ structure Types = struct
       (* a bit vector of a fixed size *)
     | VEC of texp
       (* a Herbrand constant, can only occur as the argument of VEC *)
-    | CONST of IntInf.int
+    | CONST of int
       (*(* a list of size constraints, can only occur as the arg of VEC *)
     | SUM of size_constraint list*)
       (* an algebraic data type with a list of type arguments *)
@@ -84,7 +84,7 @@ structure Types = struct
       | sT (p, FLOAT) = "float"
       | sT (p, UNIT) = "()"
       | sT (p, VEC t) = "[" ^ sT (0, t) ^ "]"
-      | sT (p, CONST c) = IntInf.toString(c)
+      | sT (p, CONST c) = Int.toString(c)
       (*| sT (p, SUM l) = sep "," (List.map (fn {pos,neg,const} =>
          let
             val posStr = sep "+" (List.map showVar pos)
