@@ -234,6 +234,8 @@ datatype insn =
  | VMAXPS of trinop
  | MAXSD of binop
  | VMAXSD of trinop
+ | MAXSS of binop
+ | VMAXSS of trinop
  | CVTPD2PI of binop
  | XADD of binop
  | PHADDW of binop
@@ -616,6 +618,7 @@ val r/m64 = r/m reg64?
 val mm/m64 = r/m mm?
 val xmm/m128 = r/m xmm?
 val xmm/m64 = r/m xmm?
+val xmm/m32 = r/m xmm?
 val ymm/m256 = r/m ymm?
 
 val xmm/nomem = do
@@ -698,6 +701,8 @@ val maxps = binop MAXPS
 val vmaxps = trinop VMAXPS
 val maxsd = binop MAXSD
 val vmaxsd = trinop VMAXSD
+val maxss = binop MAXSS
+val vmaxss = trinop VMAXSS
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
@@ -889,6 +894,12 @@ val two-byte-opcode-0f [0x5f /r]
  | / repne? = maxsd xmm128 xmm/m64
 val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-f2? = vmaxsd xmm128 vex/xmm xmm/m64
+
+### MAXSS Vol. 2B 4-21
+val two-byte-opcode-0f [0x5f /r] 
+ | / rep? = maxss xmm128 xmm/m32
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-f3? = vmaxss xmm128 vex/xmm xmm/m32
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
