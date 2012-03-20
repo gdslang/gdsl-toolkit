@@ -251,6 +251,7 @@ datatype insn =
  | VMOVAPD of binop
  | MOVAPS of binop
  | VMOVAPS of binop
+ | MOVBE of binop
  | PHADDW of binop
  | PHADDD of binop
  | VPHADDW of trinop
@@ -648,6 +649,19 @@ val mm/nomem = do
    end
 end
 
+val m? r/m? = do
+   mod <- query $mod;
+   case mod of
+      '00': r/m?
+    | '01': r/m?
+    | '10': r/m?
+   end
+#   if (unsigned (not mod)) > 0 then r/m? else r/m?
+end
+val m16 = m? r/m16
+val m32 = m? r/m32
+val m64 = m? r/m64
+
 val r/ reg? = do
    rexr <- query $rexr;
    r <- query $reg;
@@ -732,6 +746,7 @@ val movapd = binop MOVAPD
 val vmovapd = binop VMOVAPD
 val movaps = binop MOVAPS
 val vmovaps = binop VMOVAPS
+val movbe = binop MOVBE
 val phaddw = binop PHADDW
 val phaddd = binop PHADDD
 val vphaddw = trinop VPHADDW
@@ -812,27 +827,27 @@ end
 val one-byte-opcode [0x04] = add al imm8
 val one-byte-opcode [0x05]
  | rexw? = add rax imm64
- | opndsz? = add rax imm32
- | otherwise = add rax imm16
+ | opndsz? = add ax imm16
+ | otherwise = add eax imm32
 val one-byte-opcode [0x80 /0] = add r/m8 imm8
 val one-byte-opcode [0x81 /0]
  | rexw? = add r/m64 imm64
- | opndsz? = add r/m32 imm32
- | otherwise = add r/m16 imm16
+ | opndsz? = add r/m16 imm16
+ | otherwise = add r/m32 imm32
 val one-byte-opcode [0x83 /0]
  | rexw? = add r/m64 imm8
- | opndsz? = add r/m32 imm8
- | otherwise = add r/m16 imm8
+ | opndsz? = add r/m16 imm8
+ | otherwise = add r/m32 imm8
 val one-byte-opcode [0x00 /r] = add r/m8 r8
 val one-byte-opcode [0x01 /0]
  | rexw? = add r/m64 r64
- | opndsz? = add r/m32 r32
- | otherwise = add r/m16 r16
+ | opndsz? = add r/m16 r16
+ | otherwise = add r/m32 r32
 val one-byte-opcode [0x02 /r] = add r8 r/m8
 val one-byte-opcode [0x03 /0]
  | rexw? = add r64 r/m64
- | opndsz? = add r32 r/m32
- | otherwise = add r16 r/m16
+ | opndsz? = add r16 r/m16
+ | otherwise = add r32 r/m32
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
@@ -994,6 +1009,16 @@ val two-byte-opcode-0f-vex [0x28 /r]
  | vex-noflag? & vex-256? & vex-no-simd? = vmovaps ymm256 ymm/m256
 val two-byte-opcode-0f-vex [0x29 /r] 
  | vex-noflag? & vex-256? & vex-no-simd? = vmovaps ymm/m256 ymm256
+
+### MOVBE 4-58 Vol. 2B
+val three-byte-opcode-0f-38 [0xf0 /r]
+ | rexw? = movbe r64 m64
+ | opndsz? = movbe r16 m16
+ | otherwise = movbe r32 m32
+val three-byte-opcode-0f-38 [0xf1 /r]
+ | rexw? = movbe m64 r64
+ | opndsz? = movbe m16 r16
+ | otherwise = movbe m32 r32
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
