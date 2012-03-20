@@ -245,6 +245,7 @@ datatype insn =
  | VMINSD of trinop
  | MINSS of binop
  | VMINSS of trinop
+ | MONITOR
  | CVTPD2PI of binop
  | XADD of binop
  | PHADDW of binop
@@ -721,6 +722,7 @@ val minsd = binop MINSD
 val vminsd = trinop VMINSD
 val minss = binop MINSS
 val vminss = trinop VMINSS
+val monitor = return MONITOR
 val cvtpdf2pi = binop CVTPD2PI
 val xadd = binop XADD
 val phaddw = binop PHADDW
@@ -949,6 +951,9 @@ val two-byte-opcode-0f [0x5d /r]
  | / rep? = minss xmm128 xmm/m32
 val two-byte-opcode-0f-vex [0x5d /r] 
  | vex-f3? = vminss xmm128 vex/xmm xmm/m32
+
+### MONITOR Vol. 2B 4-35
+val two-byte-opcode-0f [0xae 0x01 0xc8] = monitor
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
