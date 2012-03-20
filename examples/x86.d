@@ -256,6 +256,8 @@ datatype insn =
  | VMOVD of binop
  | MOVQ of binop
  | VMOVQ of binop
+ | MOVDDUP of binop
+ | VMOVDDUP of binop
  | PHADDW of binop
  | VPHADDW of trinop
  | PHADDD of binop
@@ -755,6 +757,8 @@ val movd = binop MOVD
 val vmovd = binop VMOVD
 val movq = binop MOVQ
 val vmovq = binop VMOVQ
+val movddup = binop MOVDDUP
+val vmovddup = binop VMOVDDUP
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
 val phaddd = binop PHADDD
@@ -1037,7 +1041,6 @@ val two-byte-opcode-0f [0x7e /r]
  | / opndsz? & / rexw? = movd r/m32 mm64
 val two-byte-opcode-0f-vex [0x6e /r]
  | vex-noflag? & vex-128? & vex-66? & / rexw? = vmovd xmm128 r/m32
-val two-byte-opcode-0f-vex [0x6e /r]
  | vex-noflag? & vex-128? & vex-66? & rexw? = vmovd xmm128 r/m64
 val two-byte-opcode-0f [0x6e /r]
  | opndsz? & rexw? = movq xmm128 r/m64
@@ -1047,8 +1050,15 @@ val two-byte-opcode-0f [0x7e /r]
  | opndsz? & / rexw? = movd r/m32 xmm128
 val two-byte-opcode-0f-vex [0x7e /r]
  | vex-noflag? & vex-128? & vex-66? & / rexw? = vmovd r/m32 xmm128
-val two-byte-opcode-0f-vex [0x7e /r]
  | vex-noflag? & vex-128? & vex-66? & rexw? = vmovd r/m64 xmm128
+
+### MOVDDUP 4-64 Vol. 2B
+val two-byte-opcode-0f [0x12 /r]
+ | repne? = movddup xmm128 xmm/m64
+val two-byte-opcode-0f-vex [0x12 /r]
+ | vex-noflag? & vex-128? & vex-f2? = vmovddup xmm128 xmm/m64
+ | vex-noflag? & vex-256? & vex-f2? = vmovddup ymm256 ymm/m256
+
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
