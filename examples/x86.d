@@ -252,9 +252,13 @@ datatype insn =
  | MOVAPS of binop
  | VMOVAPS of binop
  | MOVBE of binop
+ | MOVD of binop
+ | VMOVD of binop
+ | MOVQ of binop
+ | VMOVQ of binop
  | PHADDW of binop
- | PHADDD of binop
  | VPHADDW of trinop
+ | PHADDD of binop
  | VPHADDD of trinop
  | XADD of binop
 
@@ -747,9 +751,13 @@ val vmovapd = binop VMOVAPD
 val movaps = binop MOVAPS
 val vmovaps = binop VMOVAPS
 val movbe = binop MOVBE
+val movd = binop MOVD
+val vmovd = binop VMOVD
+val movq = binop MOVQ
+val vmovq = binop VMOVQ
 val phaddw = binop PHADDW
-val phaddd = binop PHADDD
 val vphaddw = trinop VPHADDW
+val phaddd = binop PHADDD
 val vphaddd = trinop VPHADDD
 val xadd = binop XADD
 
@@ -764,7 +772,7 @@ val vex-pp pp =
 
 val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 pp:2']
  | / rex? = do
-   update @{rexr=r, rexx=x, rexb=b, vexm=m, vexv=v, vexl=l, vexp=pp};
+   update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=pp};
    vex-pp pp
 end
 
@@ -1019,6 +1027,28 @@ val three-byte-opcode-0f-38 [0xf1 /r]
  | rexw? = movbe m64 r64
  | opndsz? = movbe m16 r16
  | otherwise = movbe m32 r32
+
+### MOVD/MOVQ Vol. 2B 4-61
+val two-byte-opcode-0f [0x6e /r]
+ | / opndsz? & rexw? = movq mm64 r/m64
+ | / opndsz? & / rexw? = movd mm64 r/m32
+val two-byte-opcode-0f [0x7e /r]
+ | / opndsz? & rexw? = movq r/m64 mm64
+ | / opndsz? & / rexw? = movd r/m32 mm64
+val two-byte-opcode-0f-vex [0x6e /r]
+ | vex-noflag? & vex-128? & vex-66? & / rexw? = vmovd xmm128 r/m32
+val two-byte-opcode-0f-vex [0x6e /r]
+ | vex-noflag? & vex-128? & vex-66? & rexw? = vmovd xmm128 r/m64
+val two-byte-opcode-0f [0x6e /r]
+ | opndsz? & rexw? = movq xmm128 r/m64
+ | opndsz? & / rexw? = movd xmm128 r/m32
+val two-byte-opcode-0f [0x7e /r]
+ | opndsz? & rexw? = movq r/m64 xmm128
+ | opndsz? & / rexw? = movd r/m32 xmm128
+val two-byte-opcode-0f-vex [0x7e /r]
+ | vex-noflag? & vex-128? & vex-66? & / rexw? = vmovd r/m32 xmm128
+val two-byte-opcode-0f-vex [0x7e /r]
+ | vex-noflag? & vex-128? & vex-66? & rexw? = vmovd r/m64 xmm128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
