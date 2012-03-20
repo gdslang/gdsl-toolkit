@@ -400,7 +400,7 @@ end = struct
             val (bFun, sCons) = !consRef
             val curVars = SC.getVarset sCons
             val unbounded = TVar.difference (curVars,remVars)
-            val _ = TextIO.print ("unbounded vars: " ^ #1 (TVar.setToString (unbounded,TVar.emptyShowInfo)) ^ "\n")
+            (*val _ = TextIO.print ("unbounded vars: " ^ #1 (TVar.setToString (unbounded,TVar.emptyShowInfo)) ^ "\n")*)
             val siRef = ref TVar.emptyShowInfo
             fun showUse (n, t) =
                let
@@ -413,6 +413,11 @@ end = struct
                   ; nStr ^ " : " ^ tStr ^ " has ambiguous vector sizes" ^
                      (if String.size cStr=0 then "" else " where " ^ cStr))
                end
+            val unbounded = List.foldl (fn
+                  ({name,ty=SOME t,width,uses},vs) =>
+                     TVar.difference (vs, texpVarset (t,TVar.empty))
+                  | _ => raise InferenceBug)
+                  unbounded bs
             val badSizes = List.concat (
                List.map (fn {name = n,ty,width,uses = us} =>
                   List.map (fn (sp,t) => (sp, showUse (n, t))) (
@@ -552,11 +557,11 @@ end = struct
                | NONE => TVar.empty
             val (t,bFun,sCons) = instantiateType (tvs, t, decVars, bFun, sCons)
             val env = (scs,consRef)
-            fun action (COMPOUND {ty, width, uses},consRef) =
+            (*fun action (COMPOUND {ty, width, uses},consRef) =
                (COMPOUND {ty = ty, width = width,
                 uses = SpanMap.insert (uses, span, t)}, consRef)
               | action _ = raise InferenceBug
-            val env = Scope.update (sym, action, env)
+            val env = Scope.update (sym, action, env)*)
          in
             (consRef := (bFun,sCons); Scope.wrap (KAPPA {ty = t}, env))
          end

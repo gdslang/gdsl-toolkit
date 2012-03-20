@@ -298,9 +298,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val (t,env) = E.pushLambdaVar' (caseExpSymId, env)
          val envExp = infExp (st,env) e
-         val _ = TextIO.print ("**** after case exp:\n" ^ E.toString envExp)
+         (*val _ = TextIO.print ("**** after case exp:\n" ^ E.toString envExp)*)
          val envVar = E.pushType (false, t, env)
-         val _ = TextIO.print ("**** after case dup:\n" ^ E.toString envVar)
+         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.toString envVar)*)
          val (env, _) = E.meet (envExp, envVar)
          val env = E.popKappa env
          val envs = List.map (infMatch (st,env)) l
@@ -326,17 +326,17 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          E.return (1,env)
       end
-     | infExp stenv (AST.BINARYexp (e1, opid,e2)) =
+     | infExp stenv (AST.BINARYexp (e1, opid, e2)) =
          infExp stenv (AST.APPLYexp (AST.APPLYexp (AST.IDexp opid, e1), e2))
      | infExp (st,env) (AST.APPLYexp (e1,e2)) =
       let                                      
          val envFun = infExp (st,env) e1
-         val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)
+         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)*)
          val envArg = infExp (st,env) e2
          (*val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction envArgRes
-         val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)
+         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)*)
          val (envFun, envArgRes) = E.meet (envFun, envArgRes)
             handle S.UnificationFailure str =>
             let
@@ -349,7 +349,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             end
          val _ = E.genFlow (envArgRes, envFun)
          val env = E.reduceToResult envFun
-         val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)
+         (*val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)*)
       in
          env                                                         
       end
@@ -576,7 +576,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          ) (E.SymbolSet.empty, toplevelEnv)
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val (badSizes, toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, primSymbols, _) = E.popGroup (primEnv, false)

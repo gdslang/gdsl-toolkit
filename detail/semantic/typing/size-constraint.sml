@@ -74,84 +74,6 @@ end = struct
 
    exception SizeConstraintBug
 
-   fun add (sc,scs) =
-      let
-         fun merge (mul1,mul2,ts1,ts2) =
-            let
-               fun m ((f1,v1)::ts1, (f2,v2)::ts2) =
-                  (case TVar.compare (v1,v2) of
-                       LESS => (mul1*f1,v1) :: m (ts1, (f2,v2)::ts2)
-                     | GREATER => (mul2*f2,v2) :: m ((f1,v1)::ts1, ts2)
-                     | EQUAL => 
-                        let
-                           val f = mul1*f1+mul2*f2
-                        in
-                           if f=0 then m (ts1,ts2) else (f,v1) :: m (ts1,ts2)
-                        end)
-                 | m ((f1,v1)::ts1, []) = (mul1*f1,v1) :: m (ts1, [])
-                 | m ([], (f2,v2)::ts2) = (mul2*f2,v2) :: m ([], ts2)
-                 | m ([], []) = []
-            in
-               m (ts1,ts2)
-            end
-         fun ins ({terms = [], const = 0}, scs) = REDUNDANT
-           | ins ({terms = [], const = _}, scs) = UNSATISFIABLE
-           | ins ({terms = [(f,v)], const = n}, []) = 
-               if Int.rem (~n, f) <> 0 then FRACTIONAL
-               else if Int.quot (~n, f) <0 then NEGATIVE
-               else RESULT ([(v,Int.quot (~n, f))], [])
-           | ins (sc, []) = RESULT ([],[sc])
-           | ins ((sc1 as {terms = ts1 as ((f1,v1) :: rem), const = n1}),
-                  (sc2 as {terms = ts2 as ((f2,v2) :: _), const = n2}) :: scs) =
-               let
-                  fun genResult (is,scs) =
-                     if not (List.null rem) then RESULT (is,scs) else
-                     if Int.rem (~n1, f1) <> 0 then FRACTIONAL
-                     else if Int.quot (~n1, f1) <0 then NEGATIVE
-                     else RESULT ((v1,Int.quot (~n1, f1)) :: is, scs)
-               in
-                  case TVar.compare (v1,v2) of
-                       GREATER => genResult ([], sc1 :: sc2 :: scs)
-                     | LESS => (case ins (sc1, scs) of
-                          RESULT (is,scs) => genResult (is, sc2 :: scs)
-                        | other => other)
-                     | EQUAL =>
-                        let
-                           val newTs = merge (f2,~f1,ts1,ts2)
-                           val newN = f2*n1-f1*n2
-                           
-                        in
-                           case ins ({terms = newTs, const = newN}, scs) of
-                                RESULT (is,scs) => genResult (is, sc2 :: scs)
-                              | other => other
-                        end
-               end
-            | ins _ = raise SizeConstraintBug
-      val (eStr, si) = toStringSI ([sc], NONE, TVar.emptyShowInfo)
-      val (sStr, si) = toStringSI (scs, NONE, si)
-      val nStr = case ins (sc,scs) of
-           RESULT (_, scs) => #1 (toStringSI (scs, NONE, si))
-         | UNSATISFIABLE => "unsatisfiabilitiy"
-         | REDUNDANT => "redundancy"
-         | FRACTIONAL => "non-integrality"
-         | NEGATIVE => "negativitiy"
-      val _ = TextIO.print ("inserting " ^ eStr ^ " into " ^ sStr ^ ", leading to " ^ nStr ^ "\n")
-   in
-      ins (sc, scs)
-   end
-
-   fun fromList eqs =
-      let
-         fun fL ([], scs) = scs
-           | fL (eq :: eqs, scs) = case add (eq, scs) of
-                RESULT ([], scs) => fL (eqs, scs)
-              | _ => raise SizeConstraintBug
-      in
-         fL (eqs, empty)
-      end
-
-   fun listItems scs = scs
-
    fun addTermToSC (f,v,{terms = ts, const = c}) =
       let
          fun aTSC (res,[]) = res @ [(f,v)]
@@ -169,6 +91,91 @@ end = struct
       case List.find (fn (fac,var) => TVar.eq (v,var)) ts of
            NONE => 0
          | SOME (fac,_) => fac
+
+   fun mergeSC (_,0,sc1,sc2) = sc1
+     | mergeSC (0,_,sc1,sc2) = sc2
+     | mergeSC (mul1,mul2,{terms = ts1, const = n1},
+               {terms = ts2, const = n2}) =
+      let
+         fun m ((f1,v1)::ts1, (f2,v2)::ts2) =
+            (case TVar.compare (v1,v2) of
+                 LESS => (mul1*f1,v1) :: m (ts1, (f2,v2)::ts2)
+               | GREATER => (mul2*f2,v2) :: m ((f1,v1)::ts1, ts2)
+               | EQUAL => 
+                  let
+                     val f = mul1*f1+mul2*f2
+                  in
+                     if f=0 then m (ts1,ts2) else (f,v1) :: m (ts1,ts2)
+                  end)
+           | m ((f1,v1)::ts1, []) = (mul1*f1,v1) :: m (ts1, [])
+           | m ([], (f2,v2)::ts2) = (mul2*f2,v2) :: m ([], ts2)
+           | m ([], []) = []
+      in
+         {terms = m (ts1,ts2), const = mul1*n1+mul2*n2}
+      end
+
+   fun add (eq,scs) =
+      let
+         fun inline (sc as {terms = (f,v) :: _, const = n2}, eq) =
+               mergeSC (~f, lookupVarSC (v, eq), eq, sc)
+           | inline (_, eq) = eq
+         fun eqsIntoEq (eq, scs) = List.foldl inline eq scs
+         fun eqIntoEqs (eq, scs) = List.map (fn sc => inline (eq,sc)) scs
+         fun insert (eq as {terms = [], const}, scs) = eq :: scs
+           | insert (eq as {terms = (_,v1) :: _, const = n1},
+                    (sc as {terms = (_,v2) :: _, const = n2}) :: scs) =
+               (case TVar.compare (v1,v2) of
+                    LESS => eq :: sc :: scs
+                  | GREATER => sc :: insert (eq, scs)
+                  | EQUAL => raise SizeConstraintBug)
+           | insert (eq, []) = [eq]
+           | insert (eq, sc :: scs) = sc :: insert (eq, scs)
+         fun gatherFun ({terms = [], const = 0}, res) = res
+           | gatherFun ({terms = [], const = _}, res) = UNSATISFIABLE
+           | gatherFun ({terms = [(f,v)], const = n}, RESULT (is,eqs)) = 
+               if Int.rem (~n, f) <> 0 then FRACTIONAL
+               else if Int.quot (~n, f) < 0 then NEGATIVE
+               else RESULT ((v,Int.quot (~n, f))::is, eqs)
+           | gatherFun (eq, RESULT (is,eqs)) = RESULT (is,eqs @ [eq])
+           | gatherFun (eq, res) = res
+         val eq = eqsIntoEq (eq, scs)
+         val scs = eqIntoEqs (eq, scs)
+         (*val (eStr, si) = toStringSI ([eq], NONE, TVar.emptyShowInfo)
+         val (sStr, si) = toStringSI (scs, NONE, si)
+         val _ = TextIO.print ("inserting " ^ eStr ^ " into " ^ sStr ^ "\n")*)
+         val scs = insert (eq,scs)
+         val res = List.foldl gatherFun (RESULT ([],[])) scs
+         (*val nStr = case res of
+              RESULT (is, scs) =>
+              let
+                 val (scsStr, si) = (toStringSI (scs, NONE, si))
+                 val (vsStr, si) = List.foldl (fn ((v,f),(str, si)) =>
+                   let val (vStr, si) = TVar.varToString (v,si) in
+                      (str ^ " " ^ vStr ^ "=" ^ Int.toString(f), si)
+                   end) ("", si) is
+              in
+                 "result : " ^ scsStr ^ " and " ^ vsStr ^ "instantiated\n"
+              end
+            | UNSATISFIABLE => "unsatisfiabilitiy"
+            | REDUNDANT => "redundancy"
+            | FRACTIONAL => "non-integrality"
+            | NEGATIVE => "negativitiy"
+         val _ = TextIO.print ("new system is " ^ nStr ^ "\n")*)
+      in
+         res
+      end
+
+   fun fromList eqs =
+      let
+         fun fL ([], scs) = scs
+           | fL (eq :: eqs, scs) = case add (eq, scs) of
+                RESULT ([], scs) => fL (eqs, scs)
+              | _ => raise SizeConstraintBug
+      in
+         fL (eqs, empty)
+      end
+
+   fun listItems scs = scs
 
    fun equality (lhs, terms, c) =
       List.foldl (fn ((f,v), sc) => addTermToSC (f,v,sc))
@@ -199,10 +206,10 @@ end = struct
 
    fun rename (v1,v2,scs) =
       let
-         val (tVar1, si) = TVar.varToString (v1, TVar.emptyShowInfo)
+         (*val (tVar1, si) = TVar.varToString (v1, TVar.emptyShowInfo)
          val (tVar2, si) = TVar.varToString (v2, si)
          val (sStr, si) = toStringSI (scs, NONE, si)
-         val _ = TextIO.print ("renaming " ^ tVar1 ^ " to " ^ tVar2 ^ " in " ^ sStr ^ "\n")
+         val _ = TextIO.print ("renaming " ^ tVar1 ^ " to " ^ tVar2 ^ " in " ^ sStr ^ "\n")*)
          fun hasV1 {terms = ts,const} =
             List.exists (fn (_,v) => TVar.eq(v,v1)) ts
          val (withVar, retained) = List.partition hasV1 scs
