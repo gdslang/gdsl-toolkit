@@ -249,6 +249,8 @@ datatype insn =
  | MOV of binop
  | MOVAPD of binop
  | VMOVAPD of binop
+ | MOVAPS of binop
+ | VMOVAPS of binop
  | PHADDW of binop
  | PHADDD of binop
  | VPHADDW of trinop
@@ -728,6 +730,8 @@ val monitor = return MONITOR
 val mov = binop MOV
 val movapd = binop MOVAPD
 val vmovapd = binop VMOVAPD
+val movaps = binop MOVAPS
+val vmovaps = binop VMOVAPS
 val phaddw = binop PHADDW
 val phaddd = binop PHADDD
 val vphaddw = trinop VPHADDW
@@ -976,6 +980,20 @@ val two-byte-opcode-0f-vex [0x28 /r]
  | vex-noflag? & vex-256? & vex-66? = vmovapd ymm256 ymm/m256
 val two-byte-opcode-0f-vex [0x29 /r] 
  | vex-noflag? & vex-256? & vex-66? = vmovapd ymm/m256 ymm256
+
+### MOVAPS Vol. 2B 4-55
+val two-byte-opcode-0f [0x28 /r] 
+ | / opndsz? = movaps xmm128 xmm/m128
+val two-byte-opcode-0f [0x29 /r] 
+ | / opndsz? = movaps xmm/m128 xmm128
+val two-byte-opcode-0f-vex [0x28 /r] 
+ | vex-noflag? & vex-128? & vex-no-simd? = vmovaps xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x29 /r] 
+ | vex-noflag? & vex-128? & vex-no-simd? = vmovaps xmm/m128 xmm128
+val two-byte-opcode-0f-vex [0x28 /r] 
+ | vex-noflag? & vex-256? & vex-no-simd? = vmovaps ymm256 ymm/m256
+val two-byte-opcode-0f-vex [0x29 /r] 
+ | vex-noflag? & vex-256? & vex-no-simd? = vmovaps ymm/m256 ymm256
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
