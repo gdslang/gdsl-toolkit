@@ -262,6 +262,7 @@ datatype insn =
  | VMOVDQA of binop
  | MOVDQU of binop
  | VMOVDQU of binop
+ | MOVDQ2Q of binop
  | PHADDW of binop
  | VPHADDW of trinop
  | PHADDD of binop
@@ -767,6 +768,7 @@ val movdqa = binop MOVDQA
 val vmovdqa = binop VMOVDQA
 val movdqu = binop MOVDQU
 val vmovdqu = binop VMOVDQU
+val movdq2q = binop MOVDQ2Q
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
 val phaddd = binop PHADDD
@@ -1090,6 +1092,10 @@ val two-byte-opcode-0f-vex [0x6f /r]
 val two-byte-opcode-0f-vex [0x7f /r]
  | vex-noflag? & vex-128? & vex-f3? = vmovdqu xmm/m128 xmm128
  | vex-noflag? & vex-256? & vex-f3? = vmovdqu ymm/m256 ymm256
+
+### MOVDQ2Q Vol. 2B 4-73
+val two-byte-opcode-0f [0xd6 /r]
+ | repne? = movdq2q mm64 xmm128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
