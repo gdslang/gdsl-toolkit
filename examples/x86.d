@@ -263,6 +263,9 @@ datatype insn =
  | MOVDQU of binop
  | VMOVDQU of binop
  | MOVDQ2Q of binop
+ | MOVHLPS of binop
+ | VMOVHLPS of trinop
+
  | PHADDW of binop
  | VPHADDW of trinop
  | PHADDD of binop
@@ -647,18 +650,14 @@ val xmm/m64 = r/m xmm?
 val xmm/m32 = r/m xmm?
 val ymm/m256 = r/m ymm?
 
-val xmm/nomem = do
+val reg?/nomem reg? = do
    mod <- query $mod;
    case mod of
-      '11': r/m xmm?
+      '11': r/m reg?
    end
 end
-val mm/nomem = do
-   mod <- query $mod;
-   case mod of
-      '11': r/m mm?
-   end
-end
+val xmm/nomem128 = reg?/nomem xmm?
+val mm/nomem64 = reg?/nomem mm?
 
 val m? r/m? = do
    mod <- query $mod;
@@ -769,6 +768,9 @@ val vmovdqa = binop VMOVDQA
 val movdqu = binop MOVDQU
 val vmovdqu = binop VMOVDQU
 val movdq2q = binop MOVDQ2Q
+val movhlps = binop MOVHLPS
+val vmovhlps = trinop VMOVHLPS
+
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
 val phaddd = binop PHADDD
@@ -877,13 +879,13 @@ val two-byte-opcode-0f-66 [0x2d /r]
 
 ### MASKMOVDQU Vol. 2B 4-9
 val two-byte-opcode-0f [0xf7 /r] 
- | opndsz? = maskmovdqu xmm128 xmm/nomem
+ | opndsz? = maskmovdqu xmm128 xmm/nomem128
 val two-byte-opcode-0f-vex [0xf7 /r] 
- | vex-noflag? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem
+ | vex-noflag? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem128
 
 ### MASKMOVQ Vol. 2B 4-11
 val two-byte-opcode-0f [0xf7 /r]
- | / opndsz? = maskmovq mm64 mm/nomem
+ | / opndsz? = maskmovq mm64 mm/nomem64
 
 ### MAXPD Vol. 2B 4-13
 val two-byte-opcode-0f [0x5f /r] 
@@ -1096,6 +1098,12 @@ val two-byte-opcode-0f-vex [0x7f /r]
 ### MOVDQ2Q Vol. 2B 4-73
 val two-byte-opcode-0f [0xd6 /r]
  | repne? = movdq2q mm64 xmm128
+
+### MOVHLPS Vol. 2B 4-75
+val two-byte-opcode-0f [0x12 /r]
+ | / opndsz? = movhlps xmm128 xmm/nomem128
+val two-byte-opcode-0f-vex [0x12 /r]
+ | vex-128? & vex-no-simd? = vmovhlps xmm128 vex/xmm xmm/nomem128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
