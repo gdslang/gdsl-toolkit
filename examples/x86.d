@@ -224,7 +224,7 @@ type trinop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
 
 datatype insn =
    ADD of binop
- | MOV of binop
+ | CVTPD2PI of binop
  | MASKMOVDQU of binop
  | VMASKMOVDQU of binop
  | MASKMOVQ of binop
@@ -246,12 +246,12 @@ datatype insn =
  | MINSS of binop
  | VMINSS of trinop
  | MONITOR
- | CVTPD2PI of binop
- | XADD of binop
+ | MOV of binop
  | PHADDW of binop
  | PHADDD of binop
  | VPHADDW of trinop
  | VPHADDD of trinop
+ | XADD of binop
 
 val imm8 ['b:8'] = return (IMM8 b)
 val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b1 ^ b2))
@@ -701,7 +701,7 @@ val trinop cons giveOp1 giveOp2 giveOp3 = do
 end
 
 val add = binop ADD
-val mov = binop MOV
+val cvtpdf2pi = binop CVTPD2PI
 val maskmovdqu = binop MASKMOVDQU
 val vmaskmovdqu = binop VMASKMOVDQU
 val maskmovq = binop MASKMOVQ
@@ -723,12 +723,12 @@ val vminsd = trinop VMINSD
 val minss = binop MINSS
 val vminss = trinop VMINSS
 val monitor = return MONITOR
-val cvtpdf2pi = binop CVTPD2PI
-val xadd = binop XADD
+val mov = binop MOV
 val phaddw = binop PHADDW
 val phaddd = binop PHADDD
 val vphaddw = trinop VPHADDW
 val vphaddd = trinop VPHADDD
+val xadd = binop XADD
 
 ## The VEX prefixes
 
@@ -797,6 +797,8 @@ end
 ## Instruction decoders
 
 ## One Byte Opcodes
+## Two Byte Opcodes with Prefix 0x0f
+## Three Byte Opcodes with Prefix 0x0f38
 
 ### ADD Vol. 2A 3-35
 val one-byte-opcode [0x04] = add al imm8
@@ -824,64 +826,9 @@ val one-byte-opcode [0x03 /0]
  | opndsz? = add r32 r/m32
  | otherwise = add r16 r/m16
 
-### MOV Vol 2A 3-643
-val one-byte-opcode [0x88 /r] = mov r/m8 r8
-val one-byte-opcode [0x89 /r] 
- | opndsz? = mov r/m16 r16
-#| rexw? = mov r/m64 r64
- | otherwise = mov r/m32 r32
-val one-byte-opcode [0x8a /r] = mov r8 r/m8
-val one-byte-opcode [0x8b /r]
- | opndsz? = mov r16 r/m16
- | otherwise = mov r32 r/m32
-val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3?)
-val one-byte-opcode [0x8e /r] = mov (r/ sreg3?) r/m16
-val one-byte-opcode [0xa0] = mov al moffs8 
-val one-byte-opcode [0xa1]
- | addrsz? = mov ax moffs16
- | otherwise = mov eax moffs32
-val one-byte-opcode [0xa2] = mov moffs8 al
-val one-byte-opcode [0xa3]
- | addrsz? = mov moffs16 ax
- | otherwise = mov moffs32 eax
-val one-byte-opcode [0xb0] = mov al imm8
-val one-byte-opcode [0xb1] = mov cl imm8
-val one-byte-opcode [0xb2] = mov dl imm8
-val one-byte-opcode [0xb3] = mov bl imm8
-val one-byte-opcode [0xb4] = mov ah imm8
-val one-byte-opcode [0xb5] = mov ch imm8
-val one-byte-opcode [0xb6] = mov dh imm8
-val one-byte-opcode [0xb7] = mov bh imm8
-val one-byte-opcode [0xb8]
- | opndsz? = mov ax imm16
- | otherwise = mov eax imm32
-val one-byte-opcode [0xb9]
- | opndsz? = mov cx imm16
- | otherwise = mov ecx imm32
-val one-byte-opcode [0xba]
- | opndsz? = mov dx imm16
- | otherwise = mov edx imm32
-val one-byte-opcode [0xbb]
- | opndsz? = mov bx imm16
- | otherwise = mov ebx imm32
-val one-byte-opcode [0xbc]
- | opndsz? = mov sp imm16
- | otherwise = mov esp imm32
-val one-byte-opcode [0xbd]
- | opndsz? = mov bp imm16
- | otherwise = mov ebp imm32
-val one-byte-opcode [0xbe]
- | opndsz? = mov si imm16
- | otherwise = mov esi imm32
-val one-byte-opcode [0xbf]
- | opndsz? = mov di imm16
- | otherwise = mov edi imm32
-val one-byte-opcode [0xC6 /0] = mov r/m8 imm8
-val one-byte-opcode [0xC7 /0]
- | opndsz? = mov r/m16 imm16
- | otherwise = mov r/m32 imm32
-
-## Two Byte Opcodes with Prefix 0x0f
+### CVTPD2PI Vol 2A 3-248
+val two-byte-opcode-0f-66 [0x2d /r] 
+ | opndsz? = cvtpdf2pi mm64 xmm/m128
 
 ### MASKMOVDQU Vol. 2B 4-9
 val two-byte-opcode-0f [0xf7 /r] 
@@ -955,18 +902,62 @@ val two-byte-opcode-0f-vex [0x5d /r]
 ### MONITOR Vol. 2B 4-35
 val two-byte-opcode-0f [0xae 0x01 0xc8] = monitor
 
-### CVTPD2PI Vol 2A 3-248
-val two-byte-opcode-0f-66 [0x2d /r] 
- | opndsz? = cvtpdf2pi mm64 xmm/m128
-
-### XADD Vol. 2B 4-667
-val two-byte-opcode-0f [0xc0 /r] = xadd r/m8 r8
-val two-byte-opcode-0f [0xc1 /r]
- | rexw? = xadd r/m64 r64
+### MOV Vol 2A 3-643
+val one-byte-opcode [0x88 /r] = mov r/m8 r8
+val one-byte-opcode [0x89 /r] 
  | opndsz? = mov r/m16 r16
+#| rexw? = mov r/m64 r64
  | otherwise = mov r/m32 r32
-
-## Three Byte Opcodes with Prefix 0x0f38
+val one-byte-opcode [0x8a /r] = mov r8 r/m8
+val one-byte-opcode [0x8b /r]
+ | opndsz? = mov r16 r/m16
+ | otherwise = mov r32 r/m32
+val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3?)
+val one-byte-opcode [0x8e /r] = mov (r/ sreg3?) r/m16
+val one-byte-opcode [0xa0] = mov al moffs8 
+val one-byte-opcode [0xa1]
+ | addrsz? = mov ax moffs16
+ | otherwise = mov eax moffs32
+val one-byte-opcode [0xa2] = mov moffs8 al
+val one-byte-opcode [0xa3]
+ | addrsz? = mov moffs16 ax
+ | otherwise = mov moffs32 eax
+val one-byte-opcode [0xb0] = mov al imm8
+val one-byte-opcode [0xb1] = mov cl imm8
+val one-byte-opcode [0xb2] = mov dl imm8
+val one-byte-opcode [0xb3] = mov bl imm8
+val one-byte-opcode [0xb4] = mov ah imm8
+val one-byte-opcode [0xb5] = mov ch imm8
+val one-byte-opcode [0xb6] = mov dh imm8
+val one-byte-opcode [0xb7] = mov bh imm8
+val one-byte-opcode [0xb8]
+ | opndsz? = mov ax imm16
+ | otherwise = mov eax imm32
+val one-byte-opcode [0xb9]
+ | opndsz? = mov cx imm16
+ | otherwise = mov ecx imm32
+val one-byte-opcode [0xba]
+ | opndsz? = mov dx imm16
+ | otherwise = mov edx imm32
+val one-byte-opcode [0xbb]
+ | opndsz? = mov bx imm16
+ | otherwise = mov ebx imm32
+val one-byte-opcode [0xbc]
+ | opndsz? = mov sp imm16
+ | otherwise = mov esp imm32
+val one-byte-opcode [0xbd]
+ | opndsz? = mov bp imm16
+ | otherwise = mov ebp imm32
+val one-byte-opcode [0xbe]
+ | opndsz? = mov si imm16
+ | otherwise = mov esi imm32
+val one-byte-opcode [0xbf]
+ | opndsz? = mov di imm16
+ | otherwise = mov edi imm32
+val one-byte-opcode [0xC6 /0] = mov r/m8 imm8
+val one-byte-opcode [0xC7 /0]
+ | opndsz? = mov r/m16 imm16
+ | otherwise = mov r/m32 imm32
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
@@ -979,3 +970,10 @@ val three-byte-opcode-0f-38-vex [01 /r]
  | opndsz? & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
 val three-byte-opcode-0f-38-vex [02 /r]
  | opndsz? & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
+
+### XADD Vol. 2B 4-667
+val two-byte-opcode-0f [0xc0 /r] = xadd r/m8 r8
+val two-byte-opcode-0f [0xc1 /r]
+ | rexw? = xadd r/m64 r64
+ | opndsz? = mov r/m16 r16
+ | otherwise = mov r/m32 r32
