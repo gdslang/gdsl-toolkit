@@ -31,7 +31,10 @@ state =
     vexp:2='00',
     opndsz:1='0',
     addrsz:1='0',
-    segment:register=DS}
+    segment:register=DS,
+    mod:2='00',
+    reg:3='000',
+    rm:3='000'}
 
 val sel1 & sel2 = 
    let val a s = sel1 s && sel2 s
@@ -51,6 +54,12 @@ val repne? s = $repne s
 val rep? s = $rep s
 val rexw? s = $rexw s
 val rex? s = $rex s
+val mod-mem? s =
+   case $mod s of
+      '11': '1'
+    | otherwise: '0'
+    end
+val mod-reg? s = / (mod-mem? s)
 
 datatype size =
 	B | W | DW | QW | DQW
@@ -1133,20 +1142,19 @@ val two-byte-opcode-0f-vex [0x17 /r]
 
 ### MOVHPS Vol. 2B 4-79
 val two-byte-opcode-0f [0x16 /r]
- | / opndsz? = movhps xmm128 m64
+ | mod-mem? & / opndsz? = movhps xmm128 m64
 val two-byte-opcode-0f [0x17 /r]
- | / opndsz? = movhps m64 xmm128
+ | mod-mem? & / opndsz? = movhps m64 xmm128
 val two-byte-opcode-0f-vex [0x16 /r]
- | vex-128? & vex-no-simd? = vmovhps xmm128 vex/xmm m64
+ | mod-mem? & vex-128? & vex-no-simd? = vmovhps xmm128 vex/xmm m64
 val two-byte-opcode-0f-vex [0x17 /r]
- | vex-noreg? & vex-128? & vex-no-simd? = vbmovhps m64 xmm128
+ | mod-mem? & vex-noreg? & vex-128? & vex-no-simd? = vbmovhps m64 xmm128
 
 ### MOVLHPS Vol. 2B 4-81
 val two-byte-opcode-0f [0x16 /r]
- | / opndsz? = movlhps xmm128 xmm/nomem128
+ | mod-reg? & / opndsz? = movlhps xmm128 xmm/nomem128
 val two-byte-opcode-0f-vex [0x16 /r]
- | vex-128? & vex-no-simd? = vmovlhps xmm128 vex/xmm xmm/nomem128
-# FIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIXFIX
+ | mod-reg? & vex-128? & vex-no-simd? = vmovlhps xmm128 vex/xmm xmm/nomem128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
