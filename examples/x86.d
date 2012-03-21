@@ -59,7 +59,7 @@ val mod-mem? s =
       '11': '1'
     | otherwise: '0'
     end
-val mod-reg? s = / (mod-mem? s)
+val mod-reg? s = not (mod-mem? s)
 
 datatype size =
 	B | W | DW | QW | DQW
