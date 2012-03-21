@@ -295,6 +295,8 @@ datatype insn =
  | VMOVMSKPS of binop
  | MOVNTDQA of binop
  | VMOVNTDQA of binop
+ | MOVNTDQ of binop
+ | VMOVNTDQ of binop
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -702,6 +704,7 @@ val m16 = m? r/m16
 val m32 = m? r/m32
 val m64 = m? r/m64
 val m128 = m? xmm/m128
+val m256 = m? ymm/m256
 
 val r/ reg? = do
    rexr <- query $rexr;
@@ -821,6 +824,8 @@ val movmskps = binop MOVMSKPS
 val vmovmskps = binop VMOVMSKPS
 val movntdqa = binop MOVNTDQA
 val vmovntdqa = binop VMOVNTDQA
+val movntdq = binop MOVNTDQ
+val vmovntdq = binop VMOVNTDQ
 
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
@@ -1235,6 +1240,14 @@ val three-byte-opcode-0f-38 [0x2a /r]
  | opndsz? = movntdqa xmm128 m128
 val three-byte-opcode-0f-38-vex [0x2a /r]
  | vex-noreg? & vex-128? & vex-66? = vmovntdqa xmm128 m128
+
+### MOVNTDQ Vol. 2B 4-95
+val two-byte-opcode-0f [0xe7 /r]
+ | opndsz? = movntdq m128 xmm128
+val two-byte-opcode-0f-vex [0xe7 /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovntdq m128 xmm128
+val two-byte-opcode-0f-vex [0xe7 /r]
+ | vex-noreg? & vex-256? & vex-66? = vmovntdq m256 ymm256
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
