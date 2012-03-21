@@ -291,6 +291,8 @@ datatype insn =
  | VBMOVLPS of binop
  | MOVMSKPD of binop
  | VMOVMSKPD of binop
+ | MOVMSKPS of binop
+ | VMOVMSKPS of binop
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -812,6 +814,8 @@ val vmovlps = trinop VMOVLPD
 val vbmovlps = binop VBMOVLPD
 val movmskpd = binop MOVMSKPD
 val vmovmskpd = binop VMOVMSKPD
+val movmskps = binop MOVMSKPS
+val vmovmskps = binop VMOVMSKPS
 
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
@@ -1203,10 +1207,23 @@ val two-byte-opcode-0f-vex [0x50 /r]
 val two-byte-opcode-0f-vex [0x50 /r]
  | mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
  | / mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
-#########################
+(*#########################
 ##### ~~ VERIFY! ~~ #####
-#########################
+#########################*)
 
+### MOVMSKPS Vol. 2B 4-89
+val two-byte-opcode-0f [0x50 /r]
+ | mode64? & / opndsz? = movmskpd r64 xmm128
+ | / mode64? & opndsz? = movmskpd r32 xmm128
+val two-byte-opcode-0f-vex [0x50 /r]
+ | mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
+ | / mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
+val two-byte-opcode-0f-vex [0x50 /r]
+ | mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
+ | / mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
+(*#########################
+##### ~~ VERIFY! ~~ #####
+#########################*)
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
