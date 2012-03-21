@@ -293,6 +293,8 @@ datatype insn =
  | VMOVMSKPD of binop
  | MOVMSKPS of binop
  | VMOVMSKPS of binop
+ | MOVNTDQA of binop
+ | VMOVNTDQA of binop
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -699,6 +701,7 @@ end
 val m16 = m? r/m16
 val m32 = m? r/m32
 val m64 = m? r/m64
+val m128 = m? xmm/m128
 
 val r/ reg? = do
    rexr <- query $rexr;
@@ -816,6 +819,8 @@ val movmskpd = binop MOVMSKPD
 val vmovmskpd = binop VMOVMSKPD
 val movmskps = binop MOVMSKPS
 val vmovmskps = binop VMOVMSKPS
+val movntdqa = binop MOVNTDQA
+val vmovntdqa = binop VMOVNTDQA
 
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
@@ -1224,6 +1229,12 @@ val two-byte-opcode-0f-vex [0x50 /r]
 (*#########################
 ##### ~~ VERIFY! ~~ #####
 #########################*)
+
+### MOVNTDQA Vol. 2B 4-92
+val three-byte-opcode-0f-38 [0x2a /r]
+ | opndsz? = movntdqa xmm128 m128
+val three-byte-opcode-0f-38-vex [0x2a /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovntdqa xmm128 m128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
