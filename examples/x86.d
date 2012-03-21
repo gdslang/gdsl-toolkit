@@ -60,6 +60,7 @@ val mod-mem? s =
     | otherwise: '0'
     end
 val mod-reg? s = not (mod-mem? s)
+val mode64? s = $mode64 s
 
 datatype size =
 	B | W | DW | QW | DQW
@@ -288,6 +289,8 @@ datatype insn =
  | MOVLPS of binop
  | VMOVLPS of trinop
  | VBMOVLPS of binop
+ | MOVMSKPD of binop
+ | VMOVMSKPD of binop
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -807,6 +810,8 @@ val vbmovlpd = binop VBMOVLPD
 val movlps = binop MOVLPD
 val vmovlps = trinop VMOVLPD
 val vbmovlps = binop VBMOVLPD
+val movmskpd = binop MOVMSKPD
+val vmovmskpd = binop VMOVMSKPD
 
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
@@ -1187,6 +1192,21 @@ val two-byte-opcode-0f-vex [0x12 /r]
  | vex-128? & vex-no-simd? = vmovlps xmm128 vex/xmm m64
 val two-byte-opcode-0f-vex [0x13 /r]
  | vex-noreg? & vex-128? & vex-no-simd? = vbmovlps m64 xmm128
+
+### MOVMSKPD Vol. 2B 4-87
+val two-byte-opcode-0f [0x50 /r]
+ | mode64? & opndsz? = movmskpd r64 xmm128
+ | / mode64? & opndsz? = movmskpd r32 xmm128
+val two-byte-opcode-0f-vex [0x50 /r]
+ | mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
+ | / mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
+val two-byte-opcode-0f-vex [0x50 /r]
+ | mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
+ | / mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
+#########################
+##### ~~ VERIFY! ~~ #####
+#########################
+
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
