@@ -38,7 +38,10 @@ structure Substitutions : sig
    the flag appears in covariant (false) or contravariant (true) position*)
    val getFlagsForType : Types.texp -> (bool * BooleanDomain.bvar) list
    
-   val instantiateType : TVar.set * Types.texp * 
+   (*create a fresh type by instantiating the variables in the given type,
+   plus those in the third set (meant to expand the decode width variables)
+   but without those variable in the first set*)
+   val instantiateType : TVar.set * Types.texp * TVar.set *
       BooleanDomain.bfun * SizeConstraint.size_constraint_set ->
       Types.texp * BooleanDomain.bfun * SizeConstraint.size_constraint_set
 
@@ -301,39 +304,26 @@ end = struct
 
    fun applySizeConstraints (sCons, substs) =
       let
-         val vs = List.foldl TVar.union TVar.empty
-            (List.map SC.getVarset (SC.listItems sCons))
+         val vs = SC.getVarset sCons
          val (Substs ss) = substsFilter (substs, vs)
-         fun updateSubsts (act, sCons, subst) =
-            let
-               fun uS (res, [], substs) = (res, substs)
-                 | uS (res, sc :: scs, substs) = case act sc of
-                       SC.INSTANCE (v,c) =>
-                        let
-                           val (scs', substs') = updateSubsts
-                             (fn sc => SC.applyInstantiation (v,c,sc), scs, substs)
-                        in
-                           uS (res, scs', addSubst (v,WITH_TYPE (CONST c)) substs')
-                        end
-                     | SC.RESULT sc => uS (SC.add (sc, res), scs, substs)
-                     | SC.REDUNDANT => uS (res, scs, substs)
-                     | SC.UNSATISFIABLE => raise UnificationFailure
-                        "size constraints over vectors are unsatisfiable"
-                     | SC.FRACTIONAL => raise UnificationFailure
-                        "solution to size constraint is not integral"
-                     | SC.NEGATIVE => raise UnificationFailure
-                        "constraint implies that vector has non-positive size"
-            in
-               uS (SC.empty, SC.listItems sCons, substs)
-            end
-         fun checkConstraint (s, (sCons, substs)) = case s of
-              (v,WITH_TYPE (CONST c)) => updateSubsts
-               (fn sc => SC.applyInstantiation (v,c,sc), sCons, substs)
-            | (v1,WITH_TYPE (VAR (v2,_))) => updateSubsts
-               (fn sc => SC.applyRenaming (v1,v2,sc), sCons, substs)
-            | _ => raise SubstitutionBug
+         fun updateSubsts ((v,WITH_TYPE (CONST c)), (sCons, substs)) =
+            (case SC.add (SC.equality (v,[],c), sCons) of
+                SC.RESULT (is,sCons) =>
+                  (sCons, List.foldl (fn ((v,c), substs) =>
+                     addSubst (v,WITH_TYPE (CONST c)) substs) substs is)
+               | SC.REDUNDANT => (sCons, substs)
+               | SC.UNSATISFIABLE => raise UnificationFailure
+                  "size constraints over vectors are unsatisfiable"
+               | SC.FRACTIONAL => raise UnificationFailure
+                  "solution to size constraint is not integral"
+               | SC.NEGATIVE => raise UnificationFailure
+                  "constraint implies that vector has non-positive size"
+            )
+           | updateSubsts ((v1,WITH_TYPE (VAR (v2,_))), (sCons, substs)) =
+               (SC.rename (v1,v2,sCons), substs)
+           | updateSubsts _ = raise SubstitutionBug
       in
-         List.foldl checkConstraint (sCons, substs) ss
+         List.foldl updateSubsts (sCons, substs) ss
       end
 
    fun setFlagsToTop (FUN (f1, f2)) = FUN (setFlagsToTop f1, setFlagsToTop f2)
@@ -371,25 +361,26 @@ end = struct
    
    val getFlagsForType = getFlags false
    
-   fun instantiateType (vs,t,bFun,sCons) =
+   fun instantiateType (vs,t,extraTVars,bFun,sCons) =
       let
-         val toReplace = TVar.difference (texpVarset (t, TVar.empty), vs)
+         val toReplace = TVar.difference (texpVarset (t, extraTVars), vs)
          val substs = Substs (
                List.map (fn v => (v,
                  WITH_TYPE (VAR (TVar.freshTVar (), BD.freshBVar ())))
                ) (TVar.listItems toReplace))
          val newSCons = SC.filter (toReplace, sCons)
          val (newSCons, substs) = applySizeConstraints (newSCons, substs)
+         val mergedSCons = SC.merge (newSCons, sCons)
          (*val (tStr, si) = showTypeSI (t, TVar.emptyShowInfo)
          val (sStr, si) = TVar.setToString (vs, si)
          val (vStr, si) = TVar.setToString (texpVarset (t, TVar.empty), si)
          val (suStr, si) = showSubstsSI (substs, si)
          val (scStr1,si) = SC.toStringSI (sCons, NONE, si)
-         val (scStr2,si) = SC.toStringSI (SC.merge (sCons, newSCons), NONE, si)
+         val (scStr2,si) = SC.toStringSI (mergedSCons, NONE, si)
          val _ = TextIO.print ("instantiating " ^ tStr ^ " using " ^ suStr ^ ", extending " ^ scStr1 ^ " to " ^ scStr2 ^ "\n")*)
          val (t,ei) = applySubstsToExp substs (t, createExpandInfo bFun)
       in
-         (t, finalizeExpandInfo ei, SC.merge (sCons, newSCons))
+         (t, finalizeExpandInfo ei, mergedSCons)
       end
 
    fun mgu (FUN (f1, f2), FUN (g1, g2), s) = mgu (f2, g2, mgu (f1, g1, s))

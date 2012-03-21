@@ -58,6 +58,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       conv ({span = s, error = isErr},env) t
       handle (S.UnificationFailure str) =>
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
+   val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
    fun getSpan {span = s, error = _} = s
 
    (* define a first traversal that creates a group of all top-level decls *)
@@ -276,7 +277,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             ) (E.SymbolSet.empty, env) l
          val env = calcFixpoint (unstable, env)
          val env = infExp (st,env) e
-         val (symbols, env) = E.popGroup (env, true)
+         val (badSizes, symbols, env) = E.popGroup (env, true)
+         val _ = reportBadSizes badSizes
       in
          (sm := List.foldl SMap.insert' (!sm) symbols; env)
       end
@@ -306,6 +308,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun genFlow (inEnv, nEnv) =
             let
                val (inEnv, nEnv) = E.meet (inEnv, nEnv)
+                  handle S.UnificationFailure str =>
+                  let
+                     val (sStr, si) = E.kappaToStringSI (inEnv, TVar.emptyShowInfo)
+                     val (cStr, si) = E.kappaToStringSI (nEnv, si)
+                  in
+                     raise S.UnificationFailure
+                      (str ^ " while matching\n\tscrutinee TODO : " ^ sStr ^
+                      "\n\twith test TODO : " ^ cStr)
+                  end
                val _ = E.genFlow (inEnv, nEnv)
             in
                inEnv
@@ -315,7 +326,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          E.return (1,env)
       end
-     | infExp stenv (AST.BINARYexp (e1, opid,e2)) =
+     | infExp stenv (AST.BINARYexp (e1, opid, e2)) =
          infExp stenv (AST.APPLYexp (AST.APPLYexp (AST.IDexp opid, e1), e2))
      | infExp (st,env) (AST.APPLYexp (e1,e2)) =
       let                                      
@@ -323,11 +334,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)*)
          val envArg = infExp (st,env) e2
          (*val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
-         val envArg = E.pushTop envArg
-         val envArg = E.reduceToFunction envArg
-         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArg)*)
-         val (envFun, envArg) = E.meet (envFun, envArg)
-         val _ = E.genFlow (envArg, envFun)
+         val envArgRes = E.pushTop envArg
+         val envArgRes = E.reduceToFunction envArgRes
+         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)*)
+         val (envFun, envArgRes) = E.meet (envFun, envArgRes)
+            handle S.UnificationFailure str =>
+            let
+               val (aStr, si) = E.kappaToStringSI (envArg, TVar.emptyShowInfo)
+               val (fStr, si) = E.kappaToStringSI (envFun, si)
+            in
+               raise S.UnificationFailure
+                (str ^ " while passing\n\targument TODO : " ^ aStr ^
+                "\n\tto function TODO : " ^ fStr)
+            end
+         val _ = E.genFlow (envArgRes, envFun)
          val env = E.reduceToResult envFun
          (*val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)*)
       in
@@ -542,8 +562,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infLit (st,env) (AST.VEClit str) =
          E.pushType (false, VEC (CONST (String.size str)), env)
 
-   val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes ())
-   val primEnv = E.meetSizeConstraint (Primitives.initialSizeConstraints, primEnv)
+   val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes (),
+                  SizeConstraint.fromList Primitives.primitiveSizeConstraints)
    val toplevelEnv = E.pushGroup
       (List.concat
          (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))
@@ -557,8 +577,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
    (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
-   val (toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
-   val (primSymbols, _) = E.popGroup (primEnv, false)
+   val (badSizes, toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
+   val _ = reportBadSizes badSizes
+   val (badSizes, primSymbols, _) = E.popGroup (primEnv, false)
+   val _ = reportBadSizes badSizes
    in
       ( sm := List.foldl SMap.insert' (!sm) (toplevelSymbols @ primSymbols)
       ; SMap.listItemsi (!sm))

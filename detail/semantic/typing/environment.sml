@@ -10,7 +10,9 @@ structure Environment : sig
       | DECODE of {symType : Types.texp, width : Types.texp}
 
    val primitiveEnvironment : (SymbolTable.symid * Types.texp *
-                               (Types.texp option)) list -> environment
+                               (Types.texp option)) list *
+                               SizeConstraint.size_constraint list ->
+                               environment
    
    val pushSingle : VarInfo.symid * Types.texp * environment -> environment
    
@@ -21,6 +23,7 @@ structure Environment : sig
                   environment
    (*the flag is true if the outermost scope should be kept*)
    val popGroup : environment * bool ->
+                  (Error.span * string) list *
                   (VarInfo.symid * symbol_type) list * environment
    val pushTop : environment -> environment
    
@@ -153,8 +156,8 @@ end = struct
       type scope
       type constraints = BD.bfun * SC.size_constraint_set
       type environment = scope list * constraints ref
-      val initial : binding -> environment
-      val wrap : (binding * environment) -> environment
+      val initial : binding * SC.size_constraint_set -> environment
+      val wrap : binding * environment -> environment
       val unwrap : environment -> (binding * environment)
       val unwrapDifferent : environment * environment ->
             (binding * binding) option * environment * environment
@@ -197,12 +200,12 @@ end = struct
         in
            List.foldl getBindVars set bs
         end
-      fun initial b =
+      fun initial (b, scs) =
          ([{
             bindInfo = b,
             typeVars = varsOfBinding (b,TVar.empty),
             version = 0
-          }],ref (BD.empty, SC.empty))
+          }],ref (BD.empty, scs))
       fun wrap (b, (scs, consRef)) =
          ({
             bindInfo = b,
@@ -351,9 +354,10 @@ end = struct
    
    type environment = Scope.environment
 
-   fun primitiveEnvironment l = Scope.initial
+   fun primitiveEnvironment (l,scs) = Scope.initial
       (GROUP (List.map (fn (s,t,ow) => {name = s, ty = SOME t,
-                                        width = ow, uses = SpanMap.empty}) l))
+                                        width = ow, uses = SpanMap.empty}) l),
+       scs)
    
    fun pushSingle (sym, t, env) = Scope.wrap (SINGLE {name = sym, ty = t},env)
    
@@ -383,19 +387,54 @@ end = struct
    fun popGroup (env, true) = (case Scope.unwrap env of
         (KAPPA {ty=t}, env) =>
          let
-           val (vs, env) = popGroup (env, false)
+           val (badUses, vs, env) = popGroup (env, false)
          in
-            (vs, Scope.wrap (KAPPA {ty=t}, env))
+            (badUses, vs, Scope.wrap (KAPPA {ty=t}, env))
          end
        | _ => raise InferenceBug)
      | popGroup (env, false) = case Scope.unwrap env of
         (GROUP bs, env) =>
-         (List.map (fn {name = n, ty = t, width = w, uses = _} =>
-            case (t,w) of
-                 (SOME t, NONE) => (n, VALUE {symType = t})
-               | (SOME t, SOME w) => (n, DECODE {symType = t, width = w})
-               | _ => raise InferenceBug
-            ) bs, env)
+         let
+            val remVars = Scope.getVars env
+            val (_, consRef) = env
+            val (bFun, sCons) = !consRef
+            val curVars = SC.getVarset sCons
+            val unbounded = TVar.difference (curVars,remVars)
+            (*val _ = TextIO.print ("unbounded vars: " ^ #1 (TVar.setToString (unbounded,TVar.emptyShowInfo)) ^ "\n")*)
+            val siRef = ref TVar.emptyShowInfo
+            fun showUse (n, t) =
+               let
+                  val nStr = SymbolTable.getString(!SymbolTables.varTable, n)
+                  val (tStr, si) = showTypeSI (t, !siRef)
+                  val vs = texpVarset (t,TVar.empty)
+                  val (cStr, si) = SC.toStringSI (sCons, SOME vs, si)
+               in
+                  (siRef := si
+                  ; nStr ^ " : " ^ tStr ^ " has ambiguous vector sizes" ^
+                     (if String.size cStr=0 then "" else " where " ^ cStr))
+               end
+            val unbounded = List.foldl (fn
+                  ({name,ty=SOME t,width,uses},vs) =>
+                     TVar.difference (vs, texpVarset (t,TVar.empty))
+                  | _ => raise InferenceBug)
+                  unbounded bs
+            val badSizes = List.concat (
+               List.map (fn {name = n,ty,width,uses = us} =>
+                  List.map (fn (sp,t) => (sp, showUse (n, t))) (
+                     SpanMap.listItemsi (
+                        SpanMap.filter (fn t =>
+                           not (TVar.isEmpty (TVar.intersection
+                              (texpVarset (t,TVar.empty), unbounded)))
+                           ) us))) bs)
+            val funList = List.map (fn {name = n, ty = t, width = w, uses = _} =>
+               case (t,w) of
+                    (SOME t, NONE) => (n, VALUE {symType = t})
+                  | (SOME t, SOME w) => (n, DECODE {symType = t, width = w})
+                  | _ => raise InferenceBug
+               ) bs
+         in
+            (badSizes, funList, env)
+         end
       | _ => raise InferenceBug
 
    fun pushTop env = 
@@ -409,7 +448,8 @@ end = struct
    fun pushType (true, t, (scs, consRef)) =
       let
          val (bFun, sCons) = !consRef
-         val (t,bFun,sCons) = instantiateType (TVar.empty,t,bFun,sCons)
+         val (t,bFun,sCons) =
+            instantiateType (TVar.empty,t,TVar.empty,bFun,sCons)
       in
          (consRef := (bFun,sCons); Scope.wrap (KAPPA {ty = t}, (scs, consRef)))
       end
@@ -508,13 +548,22 @@ end = struct
    fun pushSymbol (sym, span, env) =
       (case Scope.lookup (sym,env) of
           (_, SIMPLE {ty = t}) => Scope.wrap (KAPPA {ty = t}, env)
-        | (tvs, COMPOUND {ty = SOME t, width, uses}) =>
+        | (tvs, COMPOUND {ty = SOME t, width = w, uses}) =>
          let
             val (scs,consRef) = env
             val (bFun, sCons) = !consRef
-            val (t,bFun,sCons) = instantiateType (tvs, t, bFun, sCons)
+            val decVars = case w of
+                 SOME t => texpVarset (t,TVar.empty)
+               | NONE => TVar.empty
+            val (t,bFun,sCons) = instantiateType (tvs, t, decVars, bFun, sCons)
+            val env = (scs,consRef)
+            (*fun action (COMPOUND {ty, width, uses},consRef) =
+               (COMPOUND {ty = ty, width = width,
+                uses = SpanMap.insert (uses, span, t)}, consRef)
+              | action _ = raise InferenceBug
+            val env = Scope.update (sym, action, env)*)
          in
-            (consRef := (bFun,sCons); Scope.wrap (KAPPA {ty = t}, (scs,consRef)))
+            (consRef := (bFun,sCons); Scope.wrap (KAPPA {ty = t}, env))
          end
         | (_, COMPOUND {ty = NONE, width, uses}) =>
           (case SpanMap.find (uses, span) of

@@ -21,8 +21,10 @@ structure Primitives = struct
    val s10 : tvar = freshTVar ()
    val s11 : tvar = freshTVar ()
    val s12 : tvar = freshTVar ()
+   val s12' : tvar = freshTVar ()
    val s13 : tvar = freshTVar ()
    val s14 : tvar = freshTVar ()
+   val s14' : tvar = freshTVar ()
    val s15 : tvar = freshTVar ()
    val s16 : tvar = freshTVar ()
    val s17 : tvar = freshTVar ()
@@ -83,12 +85,16 @@ structure Primitives = struct
        {name="unsigned", ty=FUN (VEC (var s19), ZENO)},
        {name="otherwise", ty=FUN (var state, VEC (CONST 1))}]
 
-   fun initialSizeConstraints scs = 
-      SC.add (SC.equality (s17, [s15,s16], 0), scs)
+   val primitiveSizeConstraints = [
+      SC.equality (s17, [s15,s16], 0),
+      SC.equality (s11, [s12,s12'], 0),
+      SC.equality (s13, [s14,s14'], 0)]
 
    val primitiveDecoders =
       [{name=granularity, ty=var size},
-       {name="consume", ty=var size}]
+       {name="consume", ty=var size},
+       {name="prefix", ty=var s12'}, (* hack to get s12' expanded with s11,s12 *)
+       {name="suffix", ty=var s14'}]
 
    val primitiveTypes =
       [{name="int", ty=ZENO},
