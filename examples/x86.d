@@ -1117,8 +1117,8 @@ val two-byte-opcode-0f [0x6e /r]
  | / opndsz? & rexw? = movq mm64 r/m64
  | / opndsz? & / rexw? = movd mm64 r/m32
 val two-byte-opcode-0f [0x7e /r]
- | / opndsz? & rexw? = movq r/m64 mm64
- | / opndsz? & / rexw? = movd r/m32 mm64
+ | / opndsz? & rexw? & / rep? = movq r/m64 mm64
+ | / opndsz? & / rexw? & / rep? = movd r/m32 mm64
 val two-byte-opcode-0f-vex [0x6e /r]
  | vex-noreg? & vex-128? & vex-66? & / rexw? = vmovd xmm128 r/m32
  | vex-noreg? & vex-128? & vex-66? & rexw? = vmovd xmm128 r/m64
@@ -1126,8 +1126,8 @@ val two-byte-opcode-0f [0x6e /r]
  | opndsz? & rexw? = movq xmm128 r/m64
  | opndsz? & / rexw? = movd xmm128 r/m32
 val two-byte-opcode-0f [0x7e /r]
- | opndsz? & rexw? = movq r/m64 xmm128
- | opndsz? & / rexw? = movd r/m32 xmm128
+ | opndsz? & rexw? & / rep? = movq r/m64 xmm128
+ | opndsz? & / rexw? & / rep? = movd r/m32 xmm128
 val two-byte-opcode-0f-vex [0x7e /r]
  | vex-noreg? & vex-128? & vex-66? & / rexw? = vmovd r/m32 xmm128
  | vex-noreg? & vex-128? & vex-66? & rexw? = vmovd r/m64 xmm128
@@ -1280,6 +1280,16 @@ val two-byte-opcode-0f-vex [0x2b /r]
 ### MOVNTQ Vol. 2B 4-103
 val two-byte-opcode-0f [0xe7 /r]
  | / opndsz? = movntq m64 mm64
+
+### MOVQ Vol. 2B 4-105
+val two-byte-opcode-0f [0x6f /r]
+ | / opndsz? = movq mm64 mm/m64
+val two-byte-opcode-0f [0x7f /r]
+ | / opndsz? = movq mm/m64 mm64
+val two-byte-opcode-0f [0x7e /r]
+ | / opndsz? & rep? = movq xmm128 xmm/m64
+val two-byte-opcode-0f [0xd6 /r]
+ | opndsz? = movq xmm/m64 xmm128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
