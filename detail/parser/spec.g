@@ -2,8 +2,7 @@
 %name Spec;
 
 %tokens
-   : KW_andalso ("andalso")
-   | KW_case ("case")
+   : KW_case ("case")
    | KW_in ("in")
    | KW_do ("do")
    | KW_datatype ("datatype")
@@ -17,12 +16,13 @@
    | KW_val ("val")
    | KW_mod ("%")
    | KW_of ("of")
-   | KW_orelse ("orelse")
    | KW_granularity ("granularity")
    | KW_raise ("raise")
    | KW_state ("state")
    | KW_then ("then")
    | KW_type ("type")
+   | KW_andalso ("andalso")
+   | KW_orelse ("orelse")
    | WITH ("@")
    | SELECT ("$")
    | BIND ("<-")
@@ -111,8 +111,8 @@ Decl
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
    | "val" Name Name* "=" Exp =>
       (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
-   | "val" Name Sym Name "=" Exp =>
-      (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, [Name1, Name2], Exp)))
+   | "val" Sym Name* "=" Exp =>
+      (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
    | "val" Name "[" DecodePat* "]" decl=
       ( "=" Exp =>
          (PT.DECODEdecl (Name, DecodePat, Sum.INL Exp))

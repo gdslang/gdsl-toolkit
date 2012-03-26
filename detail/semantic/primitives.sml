@@ -1,3 +1,4 @@
+
 structure Primitives = struct
    structure ST = SymbolTables
    structure SC = SizeConstraint
@@ -71,13 +72,13 @@ structure Primitives = struct
        {name="-", ty=vvv s2},
        {name="*", ty=vvv s3},
        {name="bits8", ty=FUN (ZENO, VEC (CONST 8))},
-       {name = "||", ty = vvv s4},
-       {name = "&&", ty = vvv s5},
-       {name = "<~", ty = vvb s6},
-       {name = ">~", ty = vvb s7},
-       {name = "==", ty = vvb s8},
-       {name = "!=", ty = vvb s9},
-       {name = "not", ty = vv s10},
+       {name=Atom.toString Op.orElse, ty = vvv s4},
+       {name=Atom.toString Op.andAlso, ty = vvv s5},
+       {name="<~", ty = vvb s6},
+       {name=">~", ty = vvb s7},
+       {name="==", ty = vvb s8},
+       {name="!=", ty = vvb s9},
+       {name="not", ty = vv s10},
        {name="prefix", ty = FUN (VEC (var s11), VEC (var s12))},
        {name="suffix", ty = FUN (VEC (var s13), VEC (var s14))},
        {name="^", ty=FUN (VEC (var s15), FUN (VEC (var s16), VEC (var s17)))},
@@ -85,10 +86,10 @@ structure Primitives = struct
        {name="unsigned", ty=FUN (VEC (var s19), ZENO)},
        {name="otherwise", ty=FUN (var state, VEC (CONST 1))}]
 
-   val primitiveSizeConstraints = [
-      SC.equality (s17, [s15,s16], 0),
-      SC.equality (s11, [s12,s12'], 0),
-      SC.equality (s13, [s14,s14'], 0)]
+   val primitiveSizeConstraints =
+      [SC.equality (s17, [s15,s16], 0),
+       SC.equality (s11, [s12,s12'], 0),
+       SC.equality (s13, [s14,s14'], 0)]
 
    val primitiveDecoders =
       [{name=granularity, ty=var size},

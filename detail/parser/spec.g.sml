@@ -34,12 +34,13 @@ SpecTokens = struct
       | BIND
       | SELECT
       | WITH
+      | KW_orelse
+      | KW_andalso
       | KW_type
       | KW_then
       | KW_state
       | KW_raise
       | KW_granularity
-      | KW_orelse
       | KW_of
       | KW_mod
       | KW_val
@@ -54,9 +55,8 @@ SpecTokens = struct
       | KW_do
       | KW_in
       | KW_case
-      | KW_andalso
 
-    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_type, KW_then, KW_state, KW_raise, KW_granularity, KW_orelse, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_export, KW_include, KW_datatype, KW_do, KW_in, KW_case, KW_andalso]
+    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_orelse, KW_andalso, KW_type, KW_then, KW_state, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_export, KW_include, KW_datatype, KW_do, KW_in, KW_case]
 
     fun toString tok =
 (case (tok)
@@ -93,12 +93,13 @@ SpecTokens = struct
   | (BIND) => "<-"
   | (SELECT) => "$"
   | (WITH) => "@"
+  | (KW_orelse) => "orelse"
+  | (KW_andalso) => "andalso"
   | (KW_type) => "type"
   | (KW_then) => "then"
   | (KW_state) => "state"
   | (KW_raise) => "raise"
   | (KW_granularity) => "granularity"
-  | (KW_orelse) => "orelse"
   | (KW_of) => "of"
   | (KW_mod) => "%"
   | (KW_val) => "val"
@@ -113,7 +114,6 @@ SpecTokens = struct
   | (KW_do) => "do"
   | (KW_in) => "in"
   | (KW_case) => "case"
-  | (KW_andalso) => "andalso"
 (* end case *))
     fun isKW tok =
 (case (tok)
@@ -150,12 +150,13 @@ SpecTokens = struct
   | (BIND) => false
   | (SELECT) => false
   | (WITH) => false
+  | (KW_orelse) => false
+  | (KW_andalso) => false
   | (KW_type) => false
   | (KW_then) => false
   | (KW_state) => false
   | (KW_raise) => false
   | (KW_granularity) => false
-  | (KW_orelse) => false
   | (KW_of) => false
   | (KW_mod) => false
   | (KW_val) => false
@@ -170,7 +171,6 @@ SpecTokens = struct
   | (KW_do) => false
   | (KW_in) => false
   | (KW_case) => false
-  | (KW_andalso) => false
 (* end case *))
 
 
@@ -245,9 +245,9 @@ fun Decl_PROD_6_ACT (EQ, Ty, Name, KW_type, EQ_SPAN : (Lex.pos * Lex.pos), Ty_SP
 fun Decl_PROD_7_ACT (EQ, Exp, Name1, Name2, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
-fun Decl_PROD_8_ACT (EQ, Exp, Sym, Name1, Name2, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Decl_PROD_8_ACT (EQ, Exp, Sym, Name, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-      markDecl (FULL_SPAN, PT.LETRECdecl (Sym, [Name1, Name2], Exp)))
+      markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
 fun Decl_PROD_9_SUBRULE_2_PROD_1_ACT (EQ, LB, RB, Exp, Name, DecodePat, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
          PT.DECODEdecl (Name, DecodePat, Sum.INL Exp))
@@ -566,6 +566,14 @@ fun matchWITH strm = (case (lex(strm))
  of (Tok.WITH, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
+fun matchKW_orelse strm = (case (lex(strm))
+ of (Tok.KW_orelse, span, strm') => ((), span, strm')
+  | _ => fail()
+(* end case *))
+fun matchKW_andalso strm = (case (lex(strm))
+ of (Tok.KW_andalso, span, strm') => ((), span, strm')
+  | _ => fail()
+(* end case *))
 fun matchKW_type strm = (case (lex(strm))
  of (Tok.KW_type, span, strm') => ((), span, strm')
   | _ => fail()
@@ -584,10 +592,6 @@ fun matchKW_raise strm = (case (lex(strm))
 (* end case *))
 fun matchKW_granularity strm = (case (lex(strm))
  of (Tok.KW_granularity, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchKW_orelse strm = (case (lex(strm))
- of (Tok.KW_orelse, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchKW_of strm = (case (lex(strm))
@@ -644,10 +648,6 @@ fun matchKW_in strm = (case (lex(strm))
 (* end case *))
 fun matchKW_case strm = (case (lex(strm))
  of (Tok.KW_case, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchKW_andalso strm = (case (lex(strm))
- of (Tok.KW_andalso, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 
@@ -950,11 +950,11 @@ and MonadicExp_NT (strm) = let
         (case (lex(strm))
          of (Tok.ID(_), _, strm') =>
               (case (lex(strm'))
-               of (Tok.KW_andalso, _, strm') => MonadicExp_PROD_1(strm)
-                | (Tok.KW_div, _, strm') => MonadicExp_PROD_1(strm)
+               of (Tok.KW_div, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_end, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_let, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_mod, _, strm') => MonadicExp_PROD_1(strm)
+                | (Tok.KW_andalso, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_orelse, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.WITH, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.SELECT, _, strm') => MonadicExp_PROD_1(strm)
@@ -1738,14 +1738,23 @@ fun Decl_NT (strm) = let
             end
       fun Decl_PROD_8 (strm) = let
             val (KW_val_RES, KW_val_SPAN, strm') = matchKW_val(strm)
-            val (Name1_RES, Name1_SPAN, strm') = Name_NT(strm')
             val (Sym_RES, Sym_SPAN, strm') = Sym_NT(strm')
-            val (Name2_RES, Name2_SPAN, strm') = Name_NT(strm')
+            fun Decl_PROD_8_SUBRULE_1_NT (strm) = let
+                  val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
+                  val FULL_SPAN = (#1(Name_SPAN), #2(Name_SPAN))
+                  in
+                    ((Name_RES), FULL_SPAN, strm')
+                  end
+            fun Decl_PROD_8_SUBRULE_1_PRED (strm) = (case (lex(strm))
+                   of (Tok.ID(_), _, strm') => true
+                    | _ => false
+                  (* end case *))
+            val (Name_RES, Name_SPAN, strm') = EBNF.closure(Decl_PROD_8_SUBRULE_1_PRED, Decl_PROD_8_SUBRULE_1_NT, strm')
             val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
             val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
             val FULL_SPAN = (#1(KW_val_SPAN), #2(Exp_SPAN))
             in
-              (UserCode.Decl_PROD_8_ACT (EQ_RES, Exp_RES, Sym_RES, Name1_RES, Name2_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.Decl_PROD_8_ACT (EQ_RES, Exp_RES, Sym_RES, Name_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun Decl_PROD_9 (strm) = let
@@ -1823,9 +1832,9 @@ fun Decl_NT (strm) = let
                      of (Tok.LB, _, strm') => Decl_PROD_9(strm)
                       | (Tok.EQ, _, strm') => Decl_PROD_7(strm)
                       | (Tok.ID(_), _, strm') => Decl_PROD_7(strm)
-                      | (Tok.SYMBOL(_), _, strm') => Decl_PROD_8(strm)
                       | _ => fail()
                     (* end case *))
+                | (Tok.SYMBOL(_), _, strm') => Decl_PROD_8(strm)
                 | _ => fail()
               (* end case *))
           | (Tok.KW_datatype, _, strm') => Decl_PROD_5(strm)
