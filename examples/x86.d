@@ -736,7 +736,10 @@ val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz='1'}; main end
 val main [0x67] = do update @{addrsz='1'}; main end
 
-val not-opndsz? s = (*not*) (opndsz? s) #FIXFIXFIX
+val not-opndsz? = do
+   f <- opndsz?;
+   return (not f)
+end
 
 val main [0x66 0x0f 0x38] = three-byte-opcode-0f-38
 val main [0x66 /rex 0x0f 0x38] = three-byte-opcode-0f-38
@@ -846,21 +849,17 @@ val one-byte-opcode [0xC7 /0]
 ### MASKMOVDQU Vol. 2B 4-9
 val two-byte-opcode-0f [0xf7 /r] 
  | opndsz? = maskmovdqu xmm128 xmm/nomem
-val two-byte-opcode-0f-vex [0xf7 /r] 
+ | otherwise = maskmovq mm64 mm/nomem
+ 
+val two-byte-opcode-0f-vex [0xf7 /r]
  | vex-noflag? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem
-
-### MASKMOVQ Vol. 2B 4-11
-val two-byte-opcode-0f [0xf7 /r]
- | not-opndsz? = maskmovq mm64 mm/nomem
 
 ### MAXPD Vol. 2B 4-13
 val two-byte-opcode-0f [0x5f /r] 
  | opndsz? = maxpd xmm128 xmm/m128
 val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
-val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
-
 
 ### CVTPD2PI Vol 2A 3-248
 val two-byte-opcode-0f-66 [0x2d /r] 
