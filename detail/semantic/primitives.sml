@@ -4,7 +4,7 @@ structure Primitives = struct
    structure SC = SizeConstraint
    open Types
 
-   fun var a = VAR (a,BD.freshBVar ())
+   fun var a = VAR (a, BD.freshBVar ())
 
    (* result type of the decoder function *)
    val r : tvar = freshTVar ()
@@ -52,7 +52,8 @@ structure Primitives = struct
        {name="false", ty=VEC (CONST 1)},
        {name="continue", ty=MONAD (var r)},
        {name="consume", ty=MONAD (VEC (var size))},
-       {name="unconsume", ty=MONAD UNIT},
+       {name="unconsume", ty=MONAD UNIT}, 
+       (* TODO *) {name="slice", ty=MONAD (var (t ()))},
        {name="raise", ty=MONAD (var (t()))},
        {name=caseExpression, ty=UNIT},
        {name=globalState, ty=var state},

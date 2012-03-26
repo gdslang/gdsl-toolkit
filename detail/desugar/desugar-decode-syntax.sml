@@ -77,7 +77,6 @@ structure DesugarDecode = struct
 
    fun isWildcardPattern p = String.size p = 0
 
-(*
    fun layoutDecls (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
       open Layout Pretty
       fun pats ps = vector (VS.map (fn ps => list (map DT.PP.pat ps)) ps)
@@ -89,7 +88,6 @@ structure DesugarDecode = struct
                tuple2 (pats, DT.PP.exp) pse) decls),
           str " "]
    end
-*)
 
    fun desugar ds = let
       fun lp (ds, acc) =
@@ -123,7 +121,7 @@ structure DesugarDecode = struct
    end
 
    and desugarMatches tok decls = let
-      (* val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
+      val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls)
       val equiv = buildEquivClass decls
       
       fun genBindSlices indices = let
