@@ -1360,4 +1360,4 @@ val two-byte-opcode-0f [0xc1 /r]
 # 0x67 0xc4 0xe1 0xf9 *...* (Usual case - instruction uses non default address size)
 # 0x66 0xc4 0xe1 0xf9 *...* (Unusual reuse of a VEX-included prefix outside of VEX - instruction is *invalid*)
 # 0x45 0xc4 0xe1 0xf9 *...* (Unusual use of a REX prefix in VEX instruction - instruction is *invalid*)
-# 0xc4 0xe1 0xf9 [some legacy prefix] *...* (Unusual positioning of legacy prefix - VEX prefix is not recognized and decoded separately ) (?)
+# 0xc4 0xe1 0xf9 [some legacy prefix] *...* (Unusual positioning of a legacy prefix - VEX prefix is not recognized and decoded separately ) (?)
