@@ -39,7 +39,7 @@ state =
 val & giveA giveB = do
    a <- giveA;
    b <- giveB;
-   return (a && b)
+   return (a andalso b)
 end
 
 val / sel =
@@ -48,19 +48,24 @@ val / sel =
       a
    end
 
-val opndsz? s = $opndsz s
-val addrsz? s = $addrsz s
-val repne? s = $repne s
-val rep? s = $rep s
-val rexw? s = $rexw s
-val rex? s = $rex s
-val mod-mem? s =
-   case $mod s of
-      '11': '1'
-    | otherwise: '0'
+val opndsz? = query $opndsz
+val addrsz? = query $addrsz
+val repne? =  query $repne
+val rep? = query $rep
+val rexw? = query $rexw
+val rex? = query $rex
+val mod-mem? = do
+   mod <- query $mod;
+   case mod of
+      '11': return '1'
+    | otherwise: return '0'
     end
-val mod-reg? s = not (mod-mem? s)
-val mode64? s = $mode64 s
+end
+val mod-reg? s = do 
+   mod-mem <- mod-mem?;
+   return (not mod-mem)
+end
+val mode64? = query $mode64
 
 datatype size =
 	B | W | DW | QW | DQW
@@ -972,7 +977,7 @@ val two-byte-opcode-0f-66 [0x2d /r]
 ### MASKMOVDQU Vol. 2B 4-9
 val two-byte-opcode-0f [0xf7 /r] 
  | opndsz? = maskmovdqu xmm128 xmm/nomem128
-val two-byte-opcode-0f-vex [0xf7 /r] 
+val two-byte-opcode-0f-vex [0xf7 /r]
  | vex-noreg? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem128
 
 ### MASKMOVQ Vol. 2B 4-11
@@ -984,7 +989,6 @@ val two-byte-opcode-0f [0x5f /r]
  | / opndsz? = maxpd xmm128 xmm/m128
 val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
-val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
 
 ### MAXPS 4-16 Vol. 2B
