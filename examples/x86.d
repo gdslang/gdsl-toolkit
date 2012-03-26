@@ -36,11 +36,11 @@ state =
     reg:3='000',
     rm:3='000'}
 
-val sel1 & sel2 = 
-   let val a s = sel1 s && sel2 s
-   in 
-      a
-   end
+val & giveA giveB = do
+   a <- giveA;
+   b <- giveB;
+   return (a && b)
+end
 
 val / sel =
    let val a s = not (sel s)
@@ -866,13 +866,37 @@ val /vex [0xc5 'r:1 v:4 l:1 pp:2']
    vex-pp pp
 end
 
-val vex-128? s = $vexl s
-val vex-256? s = not ($vexl s)
-val vex-noreg? s = ($vexv s) == '1111'
-val vex-no-simd? s = ($vexp s) == '00'
-val vex-66? s = ($vexp s) == '01'
-val vex-f2? s = ($vexp s) == '11'
-val vex-f3? s = ($vexp s) == '10'
+val vex-128? = query $vexl
+
+val vex-256? = do
+   b <- query $vexl;
+   return (not b)
+end
+
+val vex-noreg? = do 
+   v <- query $vexv;
+   return (v == '1111')
+end
+
+val vex-66? = do
+   p <- query $vexp;
+   return (p == '01')
+end
+
+val vex-f2? = do
+   p <- query $vexp;
+   return (p == '11')
+end
+
+val vex-f3? = do
+   p <- query $vexp;
+   return (p == '10')
+end
+
+val vex-no-simd? = do
+   p <- query $vexp;
+   return (p == '00')
+end
 
 # Rückgabewert in Pattern??
 
