@@ -135,7 +135,11 @@ end = struct
                         trans0 e (fn z =>
                            trans y fs ((f, z)::fvs))
             in
-               Exp.LETREC ([(f, k, [x], trans x fs [])], kappa f)
+               (* Exp.LETREC ([(f, k, [x], trans x fs [])], kappa f) *)
+               Exp.LETVAL
+                  (f,
+                   Exp.FN (k, x, trans x fs []),
+                   kappa f)
             end
        | SELECT fld =>
             let
@@ -144,9 +148,17 @@ end = struct
                val x = fresh variable
                val z = fresh variable
             in
-               Exp.LETREC
+               
+               (* Exp.LETREC
                   ([(f, k, [x],
                      Exp.LETPRJ (z, fld, x, Exp.CC (k, z)))],
+                   kappa f) *)
+               Exp.LETVAL
+                  (f,
+                   Exp.FN
+                     (k,
+                      x,
+                      Exp.LETPRJ (z, fld, x, Exp.CC (k, z))),
                    kappa f)
             end
        | CON c =>
@@ -166,9 +178,16 @@ end = struct
                   val x = fresh variable
                   val y = fresh variable
                in
-                  Exp.LETREC
+                  (* Exp.LETREC
                      ([(f, k, [x],
                        Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, y)))],
+                      kappa f) *)
+                  Exp.LETVAL
+                     (f,
+                      Exp.FN
+                        (k,
+                         x,
+                         Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, y))),
                       kappa f)
                end
        | LIT l =>
