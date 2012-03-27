@@ -20,7 +20,7 @@ structure CPS = struct
          LETVAL of Var.v * cval * term
        | LETREC of recdecl list * term
        | LETPRJ of Var.v * field * Var.v * term
-       | LETUPD of Var.v * (field * Var.v) list * term
+       | LETUPD of Var.v * Var.v * (field * Var.v) list * term
        | LETCC of ccdecl list * term
        | APP of Var.v * Var.c * Var.v
        | CC of Var.c * Var.v
@@ -47,9 +47,9 @@ structure CPS = struct
    end
 
    structure CCTab = struct
-      structure CCTab = SymbolTable
+      structure CCTab = VarInfo
       open CCTab
-      val ccs = ref CCTab.empty
+      val ccs = SymbolTables.varTable
       val kont = Atom.atom "k"
       fun cvar id = Layout.str (getString (!ccs, id))
    end
@@ -78,10 +78,10 @@ structure CPS = struct
                      [str "letval", space, var x, is,
                       str "$", fld f, space, var v, inn],
                    indent 3 (term body)]
-          | LETUPD (x, fvs, body) =>
+          | LETUPD (x, y, fvs, body) =>
                align
                   [seq
-                     [str "letval", space, var x, is,
+                     [str "letval", space, var x, is, var y,
                       str "@", listex "{" "}" "," (map updFld fvs) , inn],
                    indent 3 (term body)]
           | LETCC (cs, body) =>

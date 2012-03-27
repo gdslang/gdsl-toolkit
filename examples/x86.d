@@ -478,7 +478,7 @@ val sib-without-base reg? scale index = do
    in
       do
          mod <- query $mod;
-	 rexb <- query $rexb;
+	      rexb <- query $rexb;
          case mod of
             '00': 
                do
@@ -741,10 +741,10 @@ val not-opndsz? = do
    return (not f)
 end
 
-val main [0x66 0x0f 0x38] = three-byte-opcode-0f-38
-val main [0x66 /rex 0x0f 0x38] = three-byte-opcode-0f-38
-val main [0x66 0x0f] = two-byte-opcode-0f 
-val main [0x66 /rex 0x0f] = two-byte-opcode-0f 
+val main [0x0f 0x38] = three-byte-opcode-0f-38
+val main [/rex 0x0f 0x38] = three-byte-opcode-0f-38
+val main [0x0f] = two-byte-opcode-0f 
+val main [/rex 0x0f] = two-byte-opcode-0f
 val main [/rex] = one-byte-opcode
 val main [] = one-byte-opcode
 val main [/vex] = do

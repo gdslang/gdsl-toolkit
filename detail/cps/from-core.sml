@@ -10,20 +10,19 @@ end = struct
    structure CCTab = CPS.CCTab
 
    val variable = Atom.atom "x"
+   val function = Atom.atom "f"
+   val constructor = Atom.atom "cons"
+   val continuation = CCTab.kont
 
-   val kont = CCTab.kont
-   val ccs = CCTab.ccs
+   val constructors: (Spec.sym * Spec.ty option) SymMap.map ref = ref SymMap.empty
 
-   fun freshC () = let
+   fun isEnumLike c =
+      case SymMap.lookup (!constructors, c) of
+         (_, NONE) => true | _ => false
+
+   fun fresh variable = let
       val (tab, sym) =
-         CCTab.fresh (!ccs, kont)
-   in
-      sym before ccs := tab
-   end
-
-   fun freshV () = let
-      val (tab, sym) =
-            VarInfo.fresh (!SymbolTables.varTable, variable)
+         VarInfo.fresh (!SymbolTables.varTable, variable)
    in
       sym before SymbolTables.varTable := tab
    end
@@ -36,10 +35,12 @@ end = struct
       Spec.upd
          (fn cs =>
             let
-               val main = freshV ()
-               val kont = freshC ()
+               val main = fresh function
+               val kont = fresh continuation
+               val () = constructors := Spec.get#constructors spec
             in
                trans0 
+                  (* TODO: "export" exported symbols as record *)
                   (LETREC (cs, RECORD []))
                   (fn z => Exp.APP (main, kont, z))
             end) spec
@@ -48,7 +49,7 @@ end = struct
       case e of
          LETVAL (v, e, body) =>
             let
-               val j = freshC ()
+               val j = fresh continuation
                val body = trans0 body kappa
             in
                Exp.LETCC ([(j, v, body)], trans1 e j)
@@ -63,12 +64,12 @@ end = struct
                kappa
        | CASE (e, ps) =>
             let
-               val j = freshC ()
+               val j = fresh continuation
                fun trans z ps cps ks =
                   case ps of
                      [] =>
                         let
-                           val x = freshV ()
+                           val x = fresh variable
                         in
                            Exp.LETCC
                               ((j, x, kappa x)::cps,
@@ -76,7 +77,7 @@ end = struct
                         end
                    | (p, e)::ps =>
                         let
-                           val k = freshC ()
+                           val k = fresh continuation
                            val (x, ks) = transPat p k ks
                         in
                            trans z ps ((k, x, trans1 e j)::cps) ks
@@ -86,8 +87,8 @@ end = struct
             end
        | APP (e1, e2) =>
             let
-               val k = freshC ()
-               val x = freshV ()
+               val k = fresh continuation
+               val x = fresh variable
             in
                trans0 e1 (fn x1 =>
                   trans0 e2 (fn x2 =>
@@ -95,8 +96,8 @@ end = struct
             end
        | FN (x, e) =>
             let
-               val f = freshV ()
-               val k = freshC ()
+               val f = fresh function
+               val k = fresh continuation
             in
                Exp.LETREC ([(f, k, [x], trans1 e k)], kappa f) 
             end
@@ -106,7 +107,7 @@ end = struct
                   case fs of
                      [] =>
                         let
-                           val x = freshV ()
+                           val x = fresh variable
                         in
                            Exp.LETVAL (x, Exp.REC fvs, kappa x)
                         end
@@ -118,30 +119,30 @@ end = struct
             end
        | UPDATE fs => 
             let
-               val f = freshV ()
-               val k = freshC ()
-               val x = freshV ()
-               val z = freshV ()
-               fun trans fs fvs =
+               val f = fresh function
+               val k = fresh continuation
+               val x = fresh variable
+               val z = fresh variable
+               fun trans y fs fvs =
                   case fs of
                      [] =>
                         let
-                           val x = freshV ()
+                           val x = fresh variable
                         in
-                           Exp.LETUPD (x, fvs, kappa x)
+                           Exp.LETUPD (x, y, fvs, kappa x)
                         end
                    | (f, e)::fs =>
                         trans0 e (fn z =>
-                           trans fs ((f, z)::fvs))
+                           trans y fs ((f, z)::fvs))
             in
-               Exp.LETREC ([(f, k, [x], trans fs [])], kappa f)
+               Exp.LETREC ([(f, k, [x], trans x fs [])], kappa f)
             end
        | SELECT fld =>
             let
-               val f = freshV ()
-               val k = freshC ()
-               val x = freshV ()
-               val z = freshV ()
+               val f = fresh function
+               val k = fresh continuation
+               val x = fresh variable
+               val z = fresh variable
             in
                Exp.LETREC
                   ([(f, k, [x],
@@ -149,20 +150,30 @@ end = struct
                    kappa f)
             end
        | CON c =>
-            let
-               val f = freshV ()
-               val k = freshC ()
-               val x = freshV ()
-               val y = freshV ()
-            in
-               Exp.LETREC
-                  ([(f, k, [x],
-                    Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, y)))],
-                   kappa f)
-            end
+            if isEnumLike c
+               then
+                  let
+                     val x = fresh variable
+                     val y = fresh variable
+                  in
+                     Exp.LETVAL (y, Exp.UNT,
+                     Exp.LETVAL (x, Exp.INJ (c, y), kappa x))
+                  end
+            else
+               let
+                  val f = fresh constructor
+                  val k = fresh continuation
+                  val x = fresh variable
+                  val y = fresh variable
+               in
+                  Exp.LETREC
+                     ([(f, k, [x],
+                       Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, y)))],
+                      kappa f)
+               end
        | LIT l =>
             let
-               val x = freshV ()
+               val x = fresh variable
             in
                Exp.LETVAL (x, transLit l, kappa x)
             end
@@ -170,7 +181,7 @@ end = struct
        | _ => raise CM.CompilationError
   
    and transPat p k ks =
-      let
+      let (* TODO *)
          open Core.Pat
          fun toIdx p =
             case p of
@@ -178,14 +189,14 @@ end = struct
              | INT i => IntInf.toString i
              | CON (s, NONE) => Int.toString (SymbolTable.toInt s)
              | _ => "" 
-         val x = freshV ()
+         val x = fresh variable
       in
          (x, StringMap.insert (ks, toIdx p, k))
       end
 
    and trans0rec (n, args, e) =
       let
-         val k = freshC ()
+         val k = fresh continuation
       in
          (n, k, args, trans1 e k)
       end
@@ -194,7 +205,7 @@ end = struct
       case e of
          LETVAL (v, e, body) =>
             let
-               val j = freshC ()
+               val j = fresh continuation
                val body = trans1 body kont
             in
                Exp.LETCC ([(j, v, body)], trans1 e j)
@@ -213,7 +224,7 @@ end = struct
                   case ps of
                      (p, e)::ps =>
                         let
-                           val k = freshC ()
+                           val k = fresh continuation
                            val (x, ks) = transPat p k ks
                         in
                            trans z ps ((k, x, trans1 e kont)::cps) ks
@@ -228,8 +239,8 @@ end = struct
                   Exp.APP (x1, kont, x2)))
        | FN (x, e) =>
             let
-               val f = freshV ()
-               val j = freshC ()
+               val f = fresh function
+               val j = fresh continuation
             in
                Exp.LETVAL (f, Exp.FN (j, x, trans1 e kont), Exp.CC (kont, f))
             end
@@ -239,7 +250,7 @@ end = struct
                   case fs of
                      [] =>
                         let
-                           val x = freshV ()
+                           val x = fresh variable
                         in
                            Exp.LETVAL (x, Exp.REC fvs, Exp.CC (kont, x))
                         end
@@ -251,54 +262,71 @@ end = struct
             end
        | UPDATE fs => 
             let
-               val f = freshV ()
-               val k = freshC ()
-               val x = freshV ()
-               val z = freshV ()
-               fun trans fs fvs =
+               val f = fresh function
+               val k = fresh continuation
+               val x = fresh variable
+               val z = fresh variable
+               fun trans y fs fvs =
                   case fs of
                      [] =>
                         let
-                           val x = freshV ()
+                           val x = fresh variable
                         in
-                           Exp.LETUPD (x, fvs, Exp.CC (kont, x))
+                           Exp.LETUPD (x, y, fvs, Exp.CC (kont, x))
                         end
                    | (f, e)::fs =>
                         trans0 e (fn z =>
-                           trans fs ((f, z)::fvs))
+                           trans y fs ((f, z)::fvs))
             in
                (* TODO: letval f = \k x. ... *)
-               Exp.LETREC ([(f, k, [x], trans fs [])], Exp.CC (kont, f))
+               Exp.LETVAL
+                  (f,
+                   Exp.FN (k, x, trans x fs []),
+                   Exp.CC (kont, f))
             end
        | SELECT fld =>
             let
-               val f = freshV ()
-               val k = freshC ()
-               val x = freshV ()
-               val z = freshV ()
+               val f = fresh function
+               val k = fresh continuation
+               val x = fresh variable
+               val z = fresh variable
             in
                (* TODO: letval f = \k x. ... *)
-               Exp.LETREC
-                  ([(f, k, [x],
-                     Exp.LETPRJ (z, fld, x, Exp.CC (k, z)))],
+               Exp.LETVAL
+                  (f,
+                   Exp.FN (k, x, Exp.LETPRJ (z, fld, x, Exp.CC (k, z))),
                    Exp.CC (kont, f))
             end
        | CON c =>
-            let
-               val f = freshV ()
-               val k = freshC ()
-               val x = freshV ()
-               val y = freshV ()
-            in
-               (* TODO: letval f = \k x. ... *)
-               Exp.LETREC
-                  ([(f, k, [x],
-                    Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, y)))],
-                   Exp.CC (kont, f))
-            end
+            if isEnumLike c
+               then
+                  let
+                     val x = fresh variable
+                     val y = fresh variable
+                  in
+                     Exp.LETVAL (y, Exp.UNT,
+                     Exp.LETVAL (x, Exp.INJ (c, y), Exp.CC (kont, x)))
+                  end
+            else
+               let
+                  val f = fresh constructor
+                  val k = fresh continuation
+                  val x = fresh variable
+                  val y = fresh variable
+               in
+                  (* TODO: letval f = \k x. ... *)
+                  Exp.LETVAL
+                     (f,
+                      Exp.FN
+                        (k,
+                         x,
+                         Exp.LETVAL
+                           (y, Exp.INJ (c, x), Exp.CC (k, y))),
+                      Exp.CC (kont, f))
+               end
        | LIT l =>
             let
-               val x = freshV ()
+               val x = fresh variable
             in
                Exp.LETVAL (x, transLit l, Exp.CC (kont, x))
             end
