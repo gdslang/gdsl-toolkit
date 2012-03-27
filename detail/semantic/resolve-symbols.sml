@@ -257,8 +257,15 @@ end = struct
           | PT.TOKtokpat i => AST.TOKtokpat i
           | PT.NAMEDtokpat v => AST.NAMEDtokpat (useVar (s,v))
 
-      and convMatch s (p, e) = (convPat s p, convExp s e)
-
+      and convMatch s (p, e) =
+         let
+            val _ = startScope ()
+            val p = convPat s p
+            val e = convExp s e
+            val _ = endScope ()
+         in
+            (p,e)
+         end
       and convPat s p = 
          case p of
             PT.MARKpat m => AST.MARKpat (convMark convPat m)
