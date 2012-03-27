@@ -62,7 +62,7 @@ functor MkAst (Core: AST_CORE) = struct
     | LETRECexp of (var_bind * var_bind list * exp) list * exp
     | IFexp of exp * exp * exp
     | CASEexp of exp * (pat * exp) list
-    | BINARYexp of exp * op_id * exp 
+    | BINARYexp of exp * infixop * exp 
     | APPLYexp of exp * exp
     | RECORDexp of (field_bind * exp) list
     | SELECTexp of field_use 
@@ -72,6 +72,10 @@ functor MkAst (Core: AST_CORE) = struct
     | IDexp of var_use 
     | CONexp of con_use (* constructor *)
     | FNexp of var_bind * exp 
+
+   and infixop =
+      MARKinfixop of infixop mark
+    | OPinfixop of op_id
 
    and seqexp =
       MARKseqexp of seqexp mark
@@ -230,7 +234,7 @@ functor MkAst (Core: AST_CORE) = struct
                   [seq [str "case", space, exp e, str "of"],
                    indent 3 (alignPrefix (map casee cs, "| "))]
           | BINARYexp (e1, opid, e2) =>
-               seq [op_id opid, space, exp e1, space, exp e2]
+               seq [infixop opid, space, exp e1, space, exp e2]
           | APPLYexp (e1, e2) => seq [exp e1, space, exp e2]
           | RECORDexp fs => listex "{" "}" "," (map field fs)
           | SELECTexp f => seq [str "$", field_use f]
@@ -246,6 +250,11 @@ functor MkAst (Core: AST_CORE) = struct
           | CONexp con => seq [str "`", con_use con]
           | FNexp (x, e) => seq [str "\\", var_bind x, str ".", exp e]
 
+      and infixop t =
+         case t of
+            MARKinfixop t' => infixop (#tree t')
+          | OPinfixop opid => op_id opid
+          
       and recdecl (n, args, e) =
          align
             [seq

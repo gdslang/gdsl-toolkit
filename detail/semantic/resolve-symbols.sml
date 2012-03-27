@@ -206,7 +206,7 @@ end = struct
                AST.CASEexp (convExp s e, List.map (convMatch s) l)
           | PT.BINARYexp (e1, opid, e2) =>
                AST.BINARYexp
-                  (convExp s e1, useVar (s,{span=s, tree=opid}), convExp s e2)
+                  (convExp s e1, convInfixop s opid, convExp s e2)
           | PT.APPLYexp (e1,e2) =>
                AST.APPLYexp (convExp s e1, convExp s e2)
           | PT.RECORDexp l =>
@@ -222,6 +222,10 @@ end = struct
           | PT.CONexp c => AST.CONexp (useCon (s,c))
           | PT.FNexp (v, e) => AST.FNexp (newVar (s,v), convExp s e)
 
+      and convInfixop s e =
+         case e of
+            PT.MARKinfixop m => AST.MARKinfixop (convMark convInfixop m)
+          | PT.OPinfixop opid => AST.OPinfixop (useVar (s,{span=s, tree=opid}))
       and convSeqexp s ss =
          case ss of
             [] => []

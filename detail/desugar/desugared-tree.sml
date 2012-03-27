@@ -49,10 +49,10 @@ structure DesugaredTree = struct
           | LETRECexp (vs, e) => Exp.LETREC (map recdecl vs, exp e)
           | IFexp (iff, thenn, elsee) => Exp.IF (exp iff, exp thenn, exp elsee)
           | CASEexp (e, cases) => Exp.CASE (exp e, map match cases)
-          | BINARYexp (l, binop, r) =>
+          | BINARYexp (l, i, r) =>
                Exp.APP
                   (Exp.APP
-                     (Exp.ID binop,
+                     (infixop i,
                       exp l),
                    exp r)
           | APPLYexp (e1, e2) => Exp.APP (exp e1, exp e2)
@@ -64,6 +64,11 @@ structure DesugaredTree = struct
           | SEQexp seq => Exp.SEQ (map seqexp seq)
           | IDexp id => Exp.ID id
           | FNexp _ => raise CM.CompilationError
+
+      and infixop e =
+         case e of
+            MARKinfixop t => infixop (#tree t)
+          | OPinfixop binop => Exp.ID binop
 
       and fields fs = map (fn (f, e) => (f, exp e)) fs
 

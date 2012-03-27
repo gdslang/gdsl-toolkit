@@ -349,14 +349,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          E.return (1,env)
       end
-     | infExp stenv (AST.BINARYexp (e1, opid, e2)) =
-         infExp stenv (AST.APPLYexp (AST.APPLYexp (AST.IDexp opid, e1), e2))
+     | infExp stenv (AST.BINARYexp (e1, binop, e2)) =
+      let
+         fun infixToExp (AST.MARKinfixop {tree = t, span = s}) =
+               AST.MARKexp ({tree = infixToExp t, span = s})
+           | infixToExp (AST.OPinfixop opid) = AST.IDexp opid
+      in
+         infExp stenv (AST.APPLYexp (AST.APPLYexp (infixToExp binop, e1), e2))
+      end
      | infExp (st,env) (AST.APPLYexp (e1,e2)) =
       let                                      
          val envFun = infExp (st,env) e1
-         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)*)
          val envArg = infExp (st,env) e2
-         (*val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
+         val _ = TextIO.print ("**** app func:\n" ^ E.toString envFun)
+         val _ = TextIO.print ("**** app arg:\n" ^ E.toString envArg)
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction envArgRes
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)*)
@@ -368,7 +374,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                             envFun, "to function " ^ showProg (20, PP.exp, e1))
          val _ = E.genFlow (envArgRes, envFun)
          val env = E.reduceToResult envFun
-         (*val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)*)
+         val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)
       in
          env                                                         
       end
@@ -465,6 +471,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.FNexp (v, e)) =
          E.reduceToFunction (infExp (st, E.pushLambdaVar (v,env)) e)
+         
    and infSeqexp stenv [] = raise
          (S.UnificationFailure "last statement in a sequence may not bind a variable")
      | infSeqexp stenv (AST.MARKseqexp m :: l) =
@@ -546,13 +553,22 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infBitpatSize (st,env) (AST.BITSTRbitpat str) =
          E.pushType (false, CONST (String.size str), env)
      | infBitpatSize (st,env) (AST.NAMEDbitpat v) = E.pushWidth (v,env)
-     | infBitpatSize (st,env) (AST.BITVECbitpat (var,size)) =
-         E.pushType (false, CONST (IntInf.toInt size), env)
+     | infBitpatSize (st,env) (AST.BITVECbitpat (v,s)) =
+         E.pushType (false, CONST (IntInf.toInt s), env)
    and infBitpat stenv (AST.MARKbitpat m) = reportError infBitpat stenv m
      | infBitpat (st,env) (AST.BITSTRbitpat str) = (0,env)
      | infBitpat (st,env) (AST.NAMEDbitpat v) =
          (1, E.pushSymbol (v, getSpan st, env))
-     | infBitpat (st,env) (AST.BITVECbitpat (v,s)) = (1, E.pushLambdaVar (v,env))
+     | infBitpat (st,env) (AST.BITVECbitpat (v,s)) =
+         let
+            val env = E.pushLambdaVar (v,env)
+            val envVar = E.pushSymbol (v, getSpan st, env)
+            val envWidth = E.pushType (false, VEC (CONST (IntInf.toInt s)), env)
+            val (envVar, envWidth) = E.meet (envVar, envWidth)
+            val env = E.popKappa envVar
+         in
+            (1, env)
+         end
    and infTokpat stenv (AST.MARKtokpat m) = reportError infTokpat stenv m
      | infTokpat (st,env) (AST.TOKtokpat i) = (0, env)
      | infTokpat (st,env) (AST.NAMEDtokpat v) = (1, E.pushLambdaVar (v,env))
@@ -621,7 +637,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          ) (E.SymbolSet.empty, toplevelEnv)
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    val (badSizes, toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, primSymbols, _) = E.popGroup (primEnv, false)
