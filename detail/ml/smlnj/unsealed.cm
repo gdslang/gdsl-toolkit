@@ -55,4 +55,5 @@ group is
    ../../cps/cps-control.sml
    ../../cps/cps-passes.sml
    ../../cps/from-core.sml
+   ../../cps/cps-opt.sml
    ../../driver/main.sml

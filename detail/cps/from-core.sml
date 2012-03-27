@@ -31,6 +31,20 @@ end = struct
 
    local open Core.Exp in
 
+   fun field f = let
+      val tab = SymbolTables.fieldTable
+      val n = VarInfo.getAtom (!SymbolTables.varTable, f)
+   in
+      case FieldInfo.find (!tab, n) of
+         SOME s => s
+       | NONE =>
+            let
+               val (tab, sym) = FieldInfo.fresh (!tab, n)
+            in
+               sym before SymbolTables.fieldTable := tab
+            end
+   end
+
    fun translate spec =
       Spec.upd
          (fn cs =>
@@ -38,10 +52,19 @@ end = struct
                val main = fresh function
                val kont = fresh continuation
                val () = constructors := Spec.get#constructors spec
+               fun exports cs =
+                  rev (foldl
+                     (fn ((f, _, _), acc) => 
+                        let
+                           val fld = field f
+                        in
+                           (fld, ID f)::acc
+                        end)
+                     [] cs)
             in
                trans0 
                   (* TODO: "export" exported symbols as record *)
-                  (LETREC (cs, RECORD []))
+                  (LETREC (cs, RECORD (exports cs)))
                   (fn z => Exp.APP (main, kont, z))
             end) spec
 

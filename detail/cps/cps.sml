@@ -29,10 +29,10 @@ structure CPS = struct
       and cval =
          FN of Var.c * Var.v * term
        | INJ of tag * Var.v
+       | REC of (field * Var.v) list
        | INT of IntInf.int
        | FLT of FloatLit.float
        | STR of string
-       | REC of (field * Var.v) list
        | VEC of string
        | UNT
       
