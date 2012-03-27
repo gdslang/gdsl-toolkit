@@ -205,12 +205,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
          fun checkGuard (g,env) =
             let
-               val envRef = E.pushSymbol (stateSymId, SymbolTable.noSpan, env)
-               val envRef = E.pushType (false, VEC (CONST 1), envRef)
-               val envRef = E.reduceToFunction envRef
+               val envRef = E.pushType (false, MONAD (VEC (CONST 1)), env)
                val envGua = infExp (st, env) g
                val (env, _) = E.meet (envRef, envGua)
-               
+            handle S.UnificationFailure str =>
+               refineError (str,
+                            " when checking guards",
+                            envRef, "required guard type        ",
+                            envGua, "guard " ^ showProg (20, PP.exp, g))
             in
                E.popKappa env
             end
