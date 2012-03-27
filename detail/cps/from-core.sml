@@ -7,11 +7,12 @@ end = struct
 
    structure CM = CompilationMonad
    structure Exp = CPS.Exp
-   structure CCTab = SymbolTable
+   structure CCTab = CPS.CCTab
 
-   val ccs = ref CCTab.empty
-   val kont = Atom.atom "k"
    val variable = Atom.atom "x"
+
+   val kont = CCTab.kont
+   val ccs = CCTab.ccs
 
    fun freshC () = let
       val (tab, sym) =
@@ -52,9 +53,37 @@ end = struct
             in
                Exp.LETCC ([(j, v, body)], trans1 e j)
             end
-       | LETREC (ds, body) => raise CM.CompilationError
-       | IF (iff, thenn, elsee) =>raise CM.CompilationError
-       | CASE (e, ps) => raise CM.CompilationError
+       | LETREC (ds, body) => Exp.LETREC (map trans0rec ds, trans0 body kappa)
+       | IF (iff, thenn, elsee) =>
+            trans0
+               (CASE
+                  (iff,
+                   [(Core.Pat.BIT "1", thenn),
+                    (Core.Pat.BIT "0", elsee)]))
+               kappa
+       | CASE (e, ps) =>
+            let
+               val j = freshC ()
+               fun trans z ps cps ks =
+                  case ps of
+                     [] =>
+                        let
+                           val x = freshV ()
+                        in
+                           Exp.LETCC
+                              ((j, x, kappa x)::cps,
+                               Exp.CASE (z, ks))
+                        end
+                   | (p, e)::ps =>
+                        let
+                           val k = freshC ()
+                           val (x, ks) = transPat p k ks
+                        in
+                           trans z ps ((k, x, trans1 e j)::cps) ks
+                        end
+            in
+               trans0 e (fn z => trans z ps [] StringMap.empty)
+            end
        | APP (e1, e2) =>
             let
                val k = freshC ()
@@ -87,7 +116,26 @@ end = struct
             in
                trans fs []
             end
-       | UPDATE fs => raise CM.CompilationError
+       | UPDATE fs => 
+            let
+               val f = freshV ()
+               val k = freshC ()
+               val x = freshV ()
+               val z = freshV ()
+               fun trans fs fvs =
+                  case fs of
+                     [] =>
+                        let
+                           val x = freshV ()
+                        in
+                           Exp.LETUPD (x, fvs, kappa x)
+                        end
+                   | (f, e)::fs =>
+                        trans0 e (fn z =>
+                           trans fs ((f, z)::fvs))
+            in
+               Exp.LETREC ([(f, k, [x], trans fs [])], kappa f)
+            end
        | SELECT fld =>
             let
                val f = freshV ()
@@ -120,18 +168,140 @@ end = struct
             end
        | ID v => kappa v
        | _ => raise CM.CompilationError
-   
+  
+   and transPat p k ks =
+      let
+         open Core.Pat
+         fun toIdx p =
+            case p of
+               BIT str => str
+             | INT i => IntInf.toString i
+             | CON (s, NONE) => Int.toString (SymbolTable.toInt s)
+             | _ => "" 
+         val x = freshV ()
+      in
+         (x, StringMap.insert (ks, toIdx p, k))
+      end
+
+   and trans0rec (n, args, e) =
+      let
+         val k = freshC ()
+      in
+         (n, k, args, trans1 e k)
+      end
+
    and trans1 e kont =
       case e of
-         LETVAL (v, e, body) => raise CM.CompilationError
-       | LETREC (ds, body) => raise CM.CompilationError
-       | IF (iff, thenn, elsee) => raise CM.CompilationError
-       | CASE (e, ps) => raise CM.CompilationError
-       | APP (e1, e2) => raise CM.CompilationError
-       | FN (n, e) => raise CM.CompilationError
-       | RECORD fs => raise CM.CompilationError
-       | UPDATE fs => raise CM.CompilationError
-       | SEQ _ => raise CM.CompilationError
+         LETVAL (v, e, body) =>
+            let
+               val j = freshC ()
+               val body = trans1 body kont
+            in
+               Exp.LETCC ([(j, v, body)], trans1 e j)
+            end
+       | LETREC (ds, body) => Exp.LETREC (map trans0rec ds, trans1 body kont)
+       | IF (iff, thenn, elsee) =>
+            trans1
+               (CASE
+                  (iff,
+                   [(Core.Pat.BIT "1", thenn),
+                    (Core.Pat.BIT "0", elsee)]))
+               kont
+       | CASE (e, ps) =>
+            let
+               fun trans z ps cps ks =
+                  case ps of
+                     (p, e)::ps =>
+                        let
+                           val k = freshC ()
+                           val (x, ks) = transPat p k ks
+                        in
+                           trans z ps ((k, x, trans1 e kont)::cps) ks
+                        end
+                   | [] => Exp.LETCC (cps, Exp.CASE (z, ks))
+            in
+               trans0 e (fn z => trans z ps [] StringMap.empty)
+            end
+       | APP (e1, e2) =>
+            trans0 e1 (fn x1 =>
+               trans0 e2 (fn x2 =>
+                  Exp.APP (x1, kont, x2)))
+       | FN (x, e) =>
+            let
+               val f = freshV ()
+               val j = freshC ()
+            in
+               Exp.LETVAL (f, Exp.FN (j, x, trans1 e kont), Exp.CC (kont, f))
+            end
+       | RECORD fs =>
+            let
+               fun trans fs fvs =
+                  case fs of
+                     [] =>
+                        let
+                           val x = freshV ()
+                        in
+                           Exp.LETVAL (x, Exp.REC fvs, Exp.CC (kont, x))
+                        end
+                   | (f, e)::fs =>
+                        trans0 e (fn z =>
+                           trans fs ((f, z)::fvs))
+            in
+               trans fs []
+            end
+       | UPDATE fs => 
+            let
+               val f = freshV ()
+               val k = freshC ()
+               val x = freshV ()
+               val z = freshV ()
+               fun trans fs fvs =
+                  case fs of
+                     [] =>
+                        let
+                           val x = freshV ()
+                        in
+                           Exp.LETUPD (x, fvs, Exp.CC (kont, x))
+                        end
+                   | (f, e)::fs =>
+                        trans0 e (fn z =>
+                           trans fs ((f, z)::fvs))
+            in
+               (* TODO: letval f = \k x. ... *)
+               Exp.LETREC ([(f, k, [x], trans fs [])], Exp.CC (kont, f))
+            end
+       | SELECT fld =>
+            let
+               val f = freshV ()
+               val k = freshC ()
+               val x = freshV ()
+               val z = freshV ()
+            in
+               (* TODO: letval f = \k x. ... *)
+               Exp.LETREC
+                  ([(f, k, [x],
+                     Exp.LETPRJ (z, fld, x, Exp.CC (k, z)))],
+                   Exp.CC (kont, f))
+            end
+       | CON c =>
+            let
+               val f = freshV ()
+               val k = freshC ()
+               val x = freshV ()
+               val y = freshV ()
+            in
+               (* TODO: letval f = \k x. ... *)
+               Exp.LETREC
+                  ([(f, k, [x],
+                    Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, y)))],
+                   Exp.CC (kont, f))
+            end
+       | LIT l =>
+            let
+               val x = freshV ()
+            in
+               Exp.LETVAL (x, transLit l, Exp.CC (kont, x))
+            end
        | ID x => Exp.CC (kont, x)
        | _ => raise CM.CompilationError
 

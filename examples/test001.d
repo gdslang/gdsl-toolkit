@@ -46,7 +46,7 @@ val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=7}
 
 
 val r64 = return RAX
-val r/m64 = return MEM {ptrSz=W64, accSz:W64, op=RAX}
+val r/m64 = return MEM {ptrSz=W64, accSz=W64, op=RAX}
 
 val mov o1 o2 = do
    op1 <- o1;

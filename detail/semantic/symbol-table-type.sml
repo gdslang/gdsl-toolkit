@@ -27,17 +27,19 @@ signature SymbolTableSig  = sig
    val getSpan : (table * symid) -> Error.span
 
    val toString : table -> string
+   val toInt: symid -> int
 end
 
 structure SymbolTable :> SymbolTableSig = struct
 
-   val concisePrint : bool = true
+   val concisePrint : bool = false
 
    structure SymbolTable = IntRedBlackMap
    structure Reverse = AtomRedBlackMap
 
    datatype symid = SymId of int
 
+   fun toInt (SymId i) = i
    val noSpan = (Position.fromInt ~1, Position.fromInt ~1)
 
    fun compare_symid (SymId i1, SymId i2) = Int.compare (i1,i2)

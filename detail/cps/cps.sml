@@ -20,13 +20,15 @@ structure CPS = struct
          LETVAL of Var.v * cval * term
        | LETREC of recdecl list * term
        | LETPRJ of Var.v * field * Var.v * term
+       | LETUPD of Var.v * (field * Var.v) list * term
        | LETCC of ccdecl list * term
        | APP of Var.v * Var.c * Var.v
        | CC of Var.c * Var.v
-       | CASE of Var.v * Var.c SymMap.map
+       | CASE of Var.v * Var.c StringMap.map
 
       and cval =
-         INJ of tag * Var.v
+         FN of Var.c * Var.v * term
+       | INJ of tag * Var.v
        | INT of IntInf.int
        | FLT of FloatLit.float
        | STR of string
@@ -44,12 +46,20 @@ structure CPS = struct
       type t = Exp.t Spec.t
    end
 
+   structure CCTab = struct
+      structure CCTab = SymbolTable
+      open CCTab
+      val ccs = ref CCTab.empty
+      val kont = Atom.atom "k"
+      fun cvar id = Layout.str (getString (!ccs, id))
+   end
+
    structure PP = struct
       open Layout Pretty Exp Var
       val var = Core.PP.var
       val con = Core.PP.con
       val fld = Core.PP.fld
-      val cvar = Core.PP.var
+      val cvar = CCTab.cvar
       val is = seq [space, str "=", space]
       val inn = seq [space, str "in"]
       fun term t = 
@@ -66,7 +76,13 @@ structure CPS = struct
                align
                   [seq
                      [str "letval", space, var x, is,
-                      fld f, space, var v, inn],
+                      str "$", fld f, space, var v, inn],
+                   indent 3 (term body)]
+          | LETUPD (x, fvs, body) =>
+               align
+                  [seq
+                     [str "letval", space, var x, is,
+                      str "@", listex "{" "}" "," (map updFld fvs) , inn],
                    indent 3 (term body)]
           | LETCC (cs, body) =>
                align 
@@ -75,16 +91,16 @@ structure CPS = struct
           | CASE (v, ks) =>
                align
                   [seq [str "case", space, var v, space, str "of"],
-                   cases (SymMap.listItems ks)]
+                   cases (StringMap.listItems ks)]
           | APP (f, c, v) => seq [var f, space, cvar c, space, var v]
           | CC (c, v) => seq [cvar c, space, var v]
       and cval v =
          case v of
-          (*  FN (c, v, body) =>
+            FN (c, v, body) =>
                align
                   [seq [str "\\", cvar c, space, var v, str "."],
-                   indent 3 (term body)] *)
-            INJ (tag, v) => seq [con tag, space, var v]
+                   indent 3 (term body)]
+          | INJ (tag, v) => seq [con tag, space, var v]
           | INT i => int i
           | FLT f => str (FloatLit.toString f)
           | STR s => str s
@@ -95,8 +111,9 @@ structure CPS = struct
                         (fn (f, v) =>
                            seq [fld f, is, var v]) fs)
           | UNT => str "{}"
-      and casee c = cvar c
+      and updFld (f, v) = seq [fld f, is, var v]
       and cases cs = indent 3 (alignPrefix (map casee cs, "| "))
+      and casee c = cvar c
       and ccdecls cs = align (map ccdecl cs)
       and ccdecl (c, v, body) = 
          align
@@ -104,7 +121,9 @@ structure CPS = struct
              indent 3 (term body)]
       and recdecls ds = align (map recdecl ds)
       and recdecl (v, c, vs, body) =
-         def (seq [str "rec", space, seq (separate (map var (v::c::vs), " "))],
+         def (seq
+               [str "rec", space,
+                seq (separate ([var v, cvar c]@map var vs, " "))],
               term body)
       and def (intro, body) =
          align [seq [intro, space, str "="], indent 3 body]
