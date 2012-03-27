@@ -15,25 +15,22 @@ datatype reg =
  | EBX
  | RAX
 
-datatype sz =
-   W32
- | W64
-
 datatype op =
    REG of reg
- | MEM of {accSz:sz, ptrSz:sz, op:op}
- # ... SUM of ...
+ | MEM of {accSz:int, ptrSz:int, op:op}
+
+type binop = {op1:op, op2:op}
 
 datatype insn =
-   MOV of {op1:op, op2:op}
- | ADD
- | AND
- | ADC
- | CMP
- | OR
- | SBB
- | SUB
- | XOR
+   MOV of binop
+ | ADD of binop
+ | OR of binop
+ | ADC of binop
+ | SBB of binop
+ | AND of binop
+ | XOR of binop
+ | CMP of binop
+ | SUB of binop
 
 val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=0}
 val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
@@ -44,25 +41,22 @@ val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=5}
 val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=6}
 val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=7}
 
-
 val r64 = return RAX
-val r/m64 = return MEM {ptrSz=W64, accSz:W64, op=RAX}
+val r/m64 = return MEM {ptrSz=64, accSz=64, op=RAX}
 
-val mov o1 o2 = do
-   op1 <- o1;
-   op2 <- o2;
-   return MOV {op1=op1, op2=op2}
+val binop cons giveOp1 giveOp2 = do
+   op1 <- giveOp1;
+   op2 <- giveOp2;
+   return cons {op1=op1, op2=op2}
 end
 
-val main [0x83 /0]
- | $rexw = mov r64 r/m64 
-
-val main [0x83 /1] = return OR
-val main [0x83 /2] = return ADC
-val main [0x83 /3] = return SBB
-val main [0x83 /4] = return AND
-val main [0x83 /5] = return SUB
-val main [0x83 /6] = return XOR
-val main [0x83 /7] = return CMP
+val main [0x83 /0] = binop MOV r64 r/m64
+val main [0x83 /1] = binop OR r64 r/m64
+val main [0x83 /2] = binop ADC r64 r/m64
+val main [0x83 /3] = binop SBB r64 r/m64
+val main [0x83 /4] = binop AND r64 r/m64
+val main [0x83 /5] = binop SUB r64 r/m64
+val main [0x83 /6] = binop XOR r64 r/m64
+val main [0x83 /7] = binop CMP r64 r/m64
 
 val main [0x66] = do update @{opndsz=1}; main end

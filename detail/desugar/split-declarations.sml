@@ -27,6 +27,7 @@ end = struct
       val state = ref [[]]
       val typealias = ref []
       val datatypes = ref []
+      val constructors = ref SymMap.empty
       val valuedecls = ref []
       val decodedecls = ref SymMap.empty
       val exports = ref []
@@ -36,6 +37,17 @@ end = struct
             SymMap.unionWith
                op@
                (!decodedecls, SymMap.singleton (n, [(pats, es)]))
+
+      fun updateConstructors (n, cons) = let
+         fun updateCons (c, optTy) =
+            case SymMap.find (!constructors, c) of
+               NONE =>
+                  constructors :=
+                     SymMap.insert (!constructors, c, (n, optTy))
+             | _ => raise CM.CompilationError
+      in
+         app updateCons cons
+      end
 
       fun splitToplevel spec =
          case spec of
@@ -47,7 +59,10 @@ end = struct
           | DECODEdecl d => insertDecode d
           | LETRECdecl d => valuedecls := d::(!valuedecls)
           | EXPORTdecl es => exports := !exports@es
-          | DATATYPEdecl (n, cons) => datatypes := (n, cons)::(!datatypes)
+          | DATATYPEdecl (n, cons) =>
+               (datatypes := (n, cons)::(!datatypes)
+               ;updateConstructors (n, cons))
+                  
    in
       app splitToplevel tree
      ;Spec.IN
@@ -56,6 +71,7 @@ end = struct
           exports= !exports,
           typealias= rev (!typealias),
           datatypes= rev (!datatypes),
+          constructors= !constructors,
           declarations= (rev (!valuedecls), !decodedecls)}
    end
 

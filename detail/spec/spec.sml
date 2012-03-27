@@ -9,6 +9,7 @@ structure Spec = struct
        state: (sym * ty * exp) list,
        typealias: (sym * ty) list,
        datatypes: (sym * (sym * ty option) list) list,
+       constructors: (sym * ty option) SymMap.map,
        declarations: 'a}
 
    fun get s (IN t) = s t
@@ -18,6 +19,7 @@ structure Spec = struct
           state= #state t,
           typealias= #typealias t,
           datatypes= #datatypes t,
+          constructors= #constructors t,
           declarations= f (#declarations t)}
 
    structure PP = struct
@@ -31,6 +33,7 @@ structure Spec = struct
              seq [str "state", is, dots],
              seq [str "typealiases", is, dots],
              seq [str "datatypes", is, dots],
+             seq [str "constructors", is, dots],
              seq [str "declarations", is],
              pA (get#declarations t)]
 

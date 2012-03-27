@@ -23,6 +23,7 @@ structure BooleanDomain = BooleanDomain
 structure Environment = Environment
 structure TVar = TVar
 structure Main = Main
+structure Census = Census
 
 (** ## Exported functors *)
 
