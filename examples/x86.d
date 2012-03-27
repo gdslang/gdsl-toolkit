@@ -42,11 +42,12 @@ val & giveA giveB = do
    return (a andalso b)
 end
 
-val / sel =
-   let val a s = not (sel s)
-   in
-      a
-   end
+val / act = do
+   res <- act;
+   return (not res)
+end
+
+val otherwise = return '1'
 
 val opndsz? = query $opndsz
 val addrsz? = query $addrsz
@@ -61,10 +62,7 @@ val mod-mem? = do
     | otherwise: return '0'
     end
 end
-val mod-reg? s = do 
-   mod-mem <- mod-mem?;
-   return (not mod-mem)
-end
+val mod-reg? = / mod-mem?
 val mode64? = query $mode64
 
 datatype size =
