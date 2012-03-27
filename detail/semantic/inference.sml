@@ -361,8 +361,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let                                      
          val envFun = infExp (st,env) e1
          val envArg = infExp (st,env) e2
-         val _ = TextIO.print ("**** app func:\n" ^ E.toString envFun)
-         val _ = TextIO.print ("**** app arg:\n" ^ E.toString envArg)
+         (*val _ = TextIO.print ("**** app func:\n" ^ E.toString envFun)
+         val _ = TextIO.print ("**** app arg:\n" ^ E.toString envArg)*)
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction envArgRes
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)*)
@@ -374,7 +374,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                             envFun, "to function " ^ showProg (20, PP.exp, e1))
          val _ = E.genFlow (envArgRes, envFun)
          val env = E.reduceToResult envFun
-         val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)
+         (*val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)*)
       in
          env                                                         
       end
@@ -530,7 +530,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          end
      | infDecodepat sym (st,env) (AST.BITdecodepat l) =
       let
-         val envGra = E.pushWidth (granularitySymId, env)
+         val envGra = E.pushWidth (sym, env)
          (*val _ = TextIO.print ("**** decpat pushing granularity:\n" ^ E.topToString envGra)*)
          val envPat = List.foldl (fn (b,env) => infBitpatSize (st,env) b)
                                  env l
@@ -637,7 +637,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          ) (E.SymbolSet.empty, toplevelEnv)
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val (badSizes, toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, primSymbols, _) = E.popGroup (primEnv, false)

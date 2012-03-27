@@ -348,7 +348,7 @@ val reg8r n =
 val reg8? rex =
    if rex then reg8r else reg8
 
-val reg8F n = (reg8? (prefix n)) (suffix n)
+# val reg8F n = (reg8? (prefix n)) (suffix n)
 
 val reg16 n =
    case n of
@@ -377,7 +377,7 @@ val reg16r n =
 val reg16? rex =
    if rex then reg16r else reg16
 
-val reg16F n = (reg16? (prefix n)) (suffix n)
+# val reg16F n = (reg16? (prefix n)) (suffix n)
 
 val reg32 n =
    case n of
@@ -406,7 +406,7 @@ val reg32r n =
 val reg32? rex =
    if rex then reg32r else reg32
 
-val reg32F n = (reg32? (prefix n)) (suffix n)
+# val reg32F n = (reg32? (prefix n)) (suffix n)
 
 val reg64 n =
    case n of
@@ -435,7 +435,7 @@ val reg64r n =
 val reg64? rex =
    if rex then reg64r else reg64
 
-val reg64F n = (reg64? (prefix n)) (suffix n)
+# val reg64F n = (reg64? (prefix n)) (suffix n)
 
 val sreg3 n =
    case n of
@@ -536,18 +536,18 @@ val mmr n =
 val mm? rex =
    if rex then mmr else mm
 
-val mmF n = (mm? (prefix n)) (suffix n)
+# val mmF n = (mm? (prefix n)) (suffix n)
 
 # Deslice the mod/rm byte and put it into the the state
 
-val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=0}
-val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
-val /2 ['mod:2 010 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=2}
-val /3 ['mod:2 011 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=3}
-val /4 ['mod:2 100 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=4}
-val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=5}
-val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=6}
-val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=7}
+val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='000'}
+val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='001'}
+val /2 ['mod:2 010 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='010'}
+val /3 ['mod:2 011 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='011'}
+val /4 ['mod:2 100 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='100'}
+val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='101'}
+val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='110'}
+val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='111'}
 val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
 
 ## Decoding the SIB byte
