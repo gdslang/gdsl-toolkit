@@ -1,4 +1,6 @@
 
+structure BetaFunLinPass = MkCPSPass (BetaFunLin)
+
 structure CPSPasses : sig
    val run:
       Core.Spec.t ->
@@ -11,7 +13,8 @@ end = struct
    infix >>=
 
    fun all s = 
-      FromCore.run s
+      FromCore.run s >>=
+      BetaFunLinPass.run
 
    fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, CPS.PP.spec spec)

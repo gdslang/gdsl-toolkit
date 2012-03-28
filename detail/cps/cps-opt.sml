@@ -103,9 +103,20 @@ structure BetaFunLin = struct
    open CPS.Exp
    structure Map = SymMap
 
-   val cnt = ref 0
-   fun click () = cnt := !cnt + 1
-   fun reset () = cnt := 0
+   val clicks = ref 0
+   fun click () = clicks := !clicks + 1
+   fun reset () = clicks := 0
+
+   fun hasAppSite f cps = let
+      fun visitor (cps, seed) =
+         case cps of
+            APP (g, _, _) => seed orelse SymbolTable.eq_symid (f, g)
+          | _ => false
+   in
+      CPS.Fold.run
+         {visitterm=visitor,
+          visitcval=fn _ => false} false cps
+   end
 
    fun simplify census env sigma t =
       case t of
@@ -114,6 +125,7 @@ structure BetaFunLin = struct
                val env' = Map.insert (env, f, (k, x, K))
             in
                if Census.count census f = 1
+                  andalso hasAppSite f L
                   then (click (); simplify census env' sigma L)
                else
                   LETVAL
@@ -176,6 +188,13 @@ structure BetaFunLin = struct
        | INJ (t, x) => INJ (t, Subst.apply sigma x)
        | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
        | otherwise => otherwise
-   
-   fun run t = simplify (Census.run t) Map.empty Subst.empty t
+  
+   val name = "betaFunLin"
+   fun run t =
+      let
+         val () = reset ()
+         val t' = simplify (Census.run t) Map.empty Subst.empty t
+      in
+         (t', !clicks)
+      end
 end

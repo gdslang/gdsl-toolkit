@@ -54,6 +54,43 @@ structure CPS = struct
       fun cvar id = Layout.str (getString (!ccs, id))
    end
 
+   structure Fold = struct
+      fun run {visitterm, visitcval} seed cps = let
+         open Exp
+         fun lpTerm (cps, seed) = let
+            val seed = visitterm (cps, seed)
+         in
+            case cps of
+               LETVAL (_, v, t) =>
+                  lpTerm
+                     (t,
+                      visitterm (t, lpCVal (v, seed)))
+             | LETREC (ds, t) => lpTerm (t, visitterm (t, lpRec (ds, seed)))
+             | LETUPD (_, _, _, t) => lpTerm (t, visitterm (t, seed))
+             | LETPRJ (_, _, _, t) => lpTerm (t, visitterm (t, seed))
+             | LETCC (ds, t) => lpTerm (t, visitterm (t, lpCC (ds, seed)))
+             | _ => seed
+         end
+         and lpRec (ds, seed) =
+            foldl
+               (fn ((_, _, _, t), seed) => lpTerm (t, seed))
+               seed ds
+         and lpCC (ds, seed) =
+            foldl
+               (fn ((_, _, t), seed) => lpTerm (t, seed))
+               seed ds
+         and lpCVal (v, seed) = let
+            val seed = visitcval (v, seed)
+         in
+            case v of
+               FN (_, _, t) => lpTerm (t, seed)
+             | _ => seed
+         end
+      in
+         lpTerm (cps, seed)
+      end
+   end
+
    structure PP = struct
       open Layout Pretty Exp Var
       val var = Core.PP.var
