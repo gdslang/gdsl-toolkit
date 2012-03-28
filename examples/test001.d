@@ -51,12 +51,12 @@ val binop cons giveOp1 giveOp2 = do
 end
 
 val main [0x83 /0] = binop MOV r64 r/m64
-val main [0x83 /1] = binop OR r64 r/m64
-val main [0x83 /2] = binop ADC r64 r/m64
-val main [0x83 /3] = binop SBB r64 r/m64
-val main [0x83 /4] = binop AND r64 r/m64
-val main [0x83 /5] = binop SUB r64 r/m64
-val main [0x83 /6] = binop XOR r64 r/m64
-val main [0x83 /7] = binop CMP r64 r/m64
+#val main [0x83 /1] = binop OR r64 r/m64
+#val main [0x83 /2] = binop ADC r64 r/m64
+#val main [0x83 /3] = binop SBB r64 r/m64
+#val main [0x83 /4] = binop AND r64 r/m64
+#val main [0x83 /5] = binop SUB r64 r/m64
+#val main [0x83 /6] = binop XOR r64 r/m64
+#val main [0x83 /7] = binop CMP r64 r/m64
 
 val main [0x66] = do update @{opndsz=1}; main end

@@ -53,7 +53,8 @@ group is
    ../../desugar/desugar.sml
    ../../cps/cps.sml
    ../../cps/cps-control.sml
-   ../../cps/cps-passes.sml
    ../../cps/from-core.sml
    ../../cps/cps-opt.sml
+   ../../cps/mk-cps-pass.sml
+   ../../cps/cps-passes.sml
    ../../driver/main.sml

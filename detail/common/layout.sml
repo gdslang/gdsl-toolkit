@@ -89,9 +89,7 @@ struct
 
     fun K x _ = x
 
-    fun blanks (n: int): string =
-        concat [CharVector.tabulate (n div tabSize, K #"\t"),
-                CharVector.tabulate (n mod tabSize, K #" ")]
+    fun blanks (n: int): string = CharVector.tabulate (n, K #" ")
 
 (*
     fun outputTree (t, out) =
