@@ -323,30 +323,32 @@ fun OrElseExp_PROD_1_ACT (SR, AndAlsoExp, SR_SPAN : (Lex.pos * Lex.pos), AndAlso
   (
       mark PT.MARKexp (FULL_SPAN, mkLBinExp (AndAlsoExp, SR)))
 fun OrElse_PROD_1_ACT (KW_orelse, KW_orelse_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( Op.orElse)
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.orElse))
 fun AndAlsoExp_PROD_1_ACT (SR, RExp, SR_SPAN : (Lex.pos * Lex.pos), RExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, mkLBinExp (RExp, SR)))
 fun AndAlso_PROD_1_ACT (KW_andalso, KW_andalso_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( Op.andAlso)
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.andAlso))
+fun RExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (Sym, AExp, Sym_SPAN : (Lex.pos * Lex.pos), AExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Sym))
 fun RExp_PROD_1_ACT (SR, AExp, SR_SPAN : (Lex.pos * Lex.pos), AExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, mkLBinExp(AExp, SR)))
 fun AExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (MExp, PLUS, MExp_SPAN : (Lex.pos * Lex.pos), PLUS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( Op.plus)
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.plus))
 fun AExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (MExp, MINUS, MExp_SPAN : (Lex.pos * Lex.pos), MINUS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( Op.minus)
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.minus))
 fun AExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, MExp, SR_SPAN : (Lex.pos * Lex.pos), MExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( SR, MExp)
 fun AExp_PROD_1_ACT (SR, MExp, SR_SPAN : (Lex.pos * Lex.pos), MExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, mkLBinExp (MExp, SR)))
 fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (TIMES, SelectExp, TIMES_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( Op.times)
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.times))
 fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp, KW_div, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( Op.div)
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.div))
 fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (SelectExp, KW_mod, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( Op.mod)
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.mod))
 fun MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, SelectExp, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       SR, SelectExp)
@@ -354,7 +356,7 @@ fun MExp_PROD_1_ACT (SR, SelectExp, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPA
   (
          mark PT.MARKexp (FULL_SPAN, mkLBinExp (SelectExp, SR)))
 fun SelectExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (CONCAT, ApplyExp, CONCAT_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( Op.concat)
+  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.concat))
 fun SelectExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( SR, ApplyExp)
 fun SelectExp_PROD_1_ACT (SR, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -1033,11 +1035,21 @@ and AndAlsoExp_NT (strm) = let
 and RExp_NT (strm) = let
       val (AExp_RES, AExp_SPAN, strm') = AExp_NT(strm)
       fun RExp_PROD_1_SUBRULE_1_NT (strm) = let
-            val (Sym_RES, Sym_SPAN, strm') = Sym_NT(strm)
-            val (AExp_RES, AExp_SPAN, strm') = AExp_NT(strm')
-            val FULL_SPAN = (#1(Sym_SPAN), #2(AExp_SPAN))
+            val (SR_RES, SR_SPAN, strm') = let
+            fun RExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_NT (strm) = let
+                  val (Sym_RES, Sym_SPAN, strm') = Sym_NT(strm)
+                  val FULL_SPAN = (#1(Sym_SPAN), #2(Sym_SPAN))
+                  in
+                    (UserCode.RExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (Sym_RES, AExp_RES, Sym_SPAN : (Lex.pos * Lex.pos), AExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                      FULL_SPAN, strm')
+                  end
             in
-              ((Sym_RES, AExp_RES), FULL_SPAN, strm')
+              RExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_NT(strm)
+            end
+            val (AExp_RES, AExp_SPAN, strm') = AExp_NT(strm')
+            val FULL_SPAN = (#1(SR_SPAN), #2(AExp_SPAN))
+            in
+              ((SR_RES, AExp_RES), FULL_SPAN, strm')
             end
       fun RExp_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
              of (Tok.SYMBOL(_), _, strm') => true

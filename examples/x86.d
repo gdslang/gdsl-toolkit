@@ -18,7 +18,9 @@ export = main
 # The state of the decode monad
 state =
    {mode64:1='0',
+    repne:1='0',
     rep:1='0',
+    rex:1='0',
     rexw:1='0',
     rexb:1='0',
     rexr:1='0',
@@ -26,9 +28,42 @@ state =
     vexm:5='00001',
     vexv:4='0000',
     vexl:1='0',
+    vexp:2='00',
     opndsz:1='0',
     addrsz:1='0',
-    segment:register=DS}
+    segment:register=DS,
+    mod:2='00',
+    reg:3='000',
+    rm:3='000'}
+
+val & giveA giveB = do
+   a <- giveA;
+   b <- giveB;
+   return (a andalso b)
+end
+
+val / act = do
+   res <- act;
+   return (not res)
+end
+
+val otherwise = return '1'
+
+val opndsz? = query $opndsz
+val addrsz? = query $addrsz
+val repne? =  query $repne
+val rep? = query $rep
+val rexw? = query $rexw
+val rex? = query $rex
+val mod-mem? = do
+   mod <- query $mod;
+   case mod of
+      '11': return '1'
+    | otherwise: return '0'
+    end
+end
+val mod-reg? = / mod-mem?
+val mode64? = query $mode64
 
 datatype size =
 	B | W | DW | QW | DQW
@@ -198,33 +233,86 @@ val ymm15 = return (REG YMM15)
 
 # A type alias used for instructions taking two arguments
 type binop = {opnd1:opnd, opnd2:opnd}
-type triop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
+type trinop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
 
 datatype insn =
    ADD of binop
- | MOV of binop
+ | CVTPD2PI of binop
  | MASKMOVDQU of binop
  | VMASKMOVDQU of binop
  | MASKMOVQ of binop
  | MAXPD of binop
- | VMAXPD of triop
- | CVTPD2PI of binop
- | XADD of binop
+ | VMAXPD of trinop
+ | MAXPS of binop
+ | VMAXPS of trinop
+ | MAXSD of binop
+ | VMAXSD of trinop
+ | MAXSS of binop
+ | VMAXSS of trinop
+ | MFENCE
+ | MINPD of binop
+ | VMINPD of trinop
+ | MINPS of binop
+ | VMINPS of trinop
+ | MINSD of binop
+ | VMINSD of trinop
+ | MINSS of binop
+ | VMINSS of trinop
+ | MONITOR
+ | MOV of binop
+ | MOVAPD of binop
+ | VMOVAPD of binop
+ | MOVAPS of binop
+ | VMOVAPS of binop
+ | MOVBE of binop
+ | MOVD of binop
+ | VMOVD of binop
+ | MOVQ of binop
+ | VMOVQ of binop
+ | MOVDDUP of binop
+ | VMOVDDUP of binop
+ | MOVDQA of binop
+ | VMOVDQA of binop
+ | MOVDQU of binop
+ | VMOVDQU of binop
+ | MOVDQ2Q of binop
+ | MOVHLPS of binop
+ | VMOVHLPS of trinop
+ | MOVHPD of binop
+ | VMOVHPD of trinop
+ | VBMOVHPD of binop
+ | MOVHPS of binop
+ | VMOVHPS of trinop
+ | VBMOVHPS of binop
+ | MOVLHPS of binop
+ | VMOVLHPS of trinop
+ | MOVLPD of binop
+ | VMOVLPD of trinop
+ | VBMOVLPD of binop
+ | MOVLPS of binop
+ | VMOVLPS of trinop
+ | VBMOVLPS of binop
+ | MOVMSKPD of binop
+ | VMOVMSKPD of binop
+ | MOVMSKPS of binop
+ | VMOVMSKPS of binop
+ | MOVNTDQA of binop
+ | VMOVNTDQA of binop
+ | MOVNTDQ of binop
+ | VMOVNTDQ of binop
+ | MOVNTI of binop
+ | MOVNTPD of binop
+ | VMOVNTPD of binop
+ | MOVNTPS of binop
+ | VMOVNTPS of binop
+ | MOVNTQ of binop
+
  | PHADDW of binop
+ | VPHADDW of trinop
  | PHADDD of binop
- | VPHADDW of triop
- | VPHADDD of triop
+ | VPHADDD of trinop
+ | XADD of binop
 
-val & giveA giveB = do
-   a <- giveA;
-   b <- giveB;
-   return (a andalso b)
-end
-
-val opndsz? = query $opndsz
-val addrsz? = query $addrsz
-val rexw? = query $rexw
-   
 val imm8 ['b:8'] = return (IMM8 b)
 val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b1 ^ b2))
 val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (IMM32 (b1 ^ b2 ^ b3 ^ b4))
@@ -260,7 +348,7 @@ val reg8r n =
 val reg8? rex =
    if rex then reg8r else reg8
 
-val reg8F n = (reg8? (prefix n)) (suffix n)
+# val reg8F n = (reg8? (prefix n)) (suffix n)
 
 val reg16 n =
    case n of
@@ -289,7 +377,7 @@ val reg16r n =
 val reg16? rex =
    if rex then reg16r else reg16
 
-val reg16F n = (reg16? (prefix n)) (suffix n)
+# val reg16F n = (reg16? (prefix n)) (suffix n)
 
 val reg32 n =
    case n of
@@ -315,9 +403,10 @@ val reg32r n =
     | '111': REG R15D
    end
 
-val reg32? rex = if rex then reg32r else reg32
+val reg32? rex =
+   if rex then reg32r else reg32
 
-val reg32F n = (reg32? (prefix n)) (suffix n)
+# val reg32F n = (reg32? (prefix n)) (suffix n)
 
 val reg64 n =
    case n of
@@ -343,9 +432,10 @@ val reg64r n =
     | '111': REG R15
    end
 
-val reg64? rex = if rex then reg64r else reg64
+val reg64? rex =
+   if rex then reg64r else reg64
 
-val reg64F n = (reg64? (prefix n)) (suffix n)
+# val reg64F n = (reg64? (prefix n)) (suffix n)
 
 val sreg3 n =
    case n of
@@ -385,7 +475,8 @@ val xmmr n =
     | '111': REG XMM15
    end
 
-val xmm? rex = if rex then xmmr else xmm
+val xmm? rex =
+   if rex then xmmr else xmm
 
 val xmmF n = (xmm? (prefix n)) (suffix n)
 
@@ -413,7 +504,8 @@ val ymmr n =
     | '111': REG YMM15
    end
 
-val ymm? rex = if rex then ymmr else ymm
+val ymm? rex =
+   if rex then ymmr else ymm
 
 val ymmF n = (ymm? (prefix n)) (suffix n)
 
@@ -444,18 +536,18 @@ val mmr n =
 val mm? rex =
    if rex then mmr else mm
 
-val mmF n = (mm? (prefix n)) (suffix n)
+# val mmF n = (mm? (prefix n)) (suffix n)
 
 # Deslice the mod/rm byte and put it into the the state
 
-val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=0}
-val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=1}
-val /2 ['mod:2 010 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=2}
-val /3 ['mod:2 011 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=3}
-val /4 ['mod:2 100 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=4}
-val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=5}
-val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=6}
-val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=7}
+val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='000'}
+val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='001'}
+val /2 ['mod:2 010 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='010'}
+val /3 ['mod:2 011 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='011'}
+val /4 ['mod:2 100 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='100'}
+val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='101'}
+val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='110'}
+val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='111'}
 val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
 
 ## Decoding the SIB byte
@@ -512,7 +604,7 @@ val sib ['scale:2 index:3 base:3']
 ## Decoding the mod/rm byte
 
 val addrsz = do
-   sz <- query addrsz?;
+   sz <- query $addrsz;
    case sz of
       '1': return 16
     | '0': return 32
@@ -543,7 +635,7 @@ val r/m-with-sib = do
    end
 end
 
-val r/m-without-sib reg = do
+val r/m-without-sib reg addr-reg = do
    mod <- query $mod;
    rm <- query $rm;
    case mod of
@@ -554,19 +646,27 @@ val r/m-without-sib reg = do
                   i <- imm32;
                   mem i
                end
-          | _ : mem (reg rm)
+          | _ : mem (addr-reg rm)
          end
     | '01':
          do
             i <- imm8;
-            mem (SUM{a=reg rm, b=i})
+            mem (SUM{a=addr-reg rm, b=i})
          end
     | '10':
          do
             i <- imm32;
-            mem (SUM{a=reg rm, b=i})
+            mem (SUM{a=addr-reg rm, b=i})
          end
     | '11': return (reg rm)
+   end
+end
+
+val addrReg = do
+   addrsz <- query $addrsz;
+   case addrsz of
+      '0': return reg64?
+    | '1': return reg32?
    end
 end
 
@@ -574,9 +674,10 @@ val r/m reg? = do
    mod <- query $mod;
    rm <- query $rm;
    rexb <- query $rexb;
+   addr-reg? <- addrReg;
    case rm of
       '100': r/m-with-sib
-    | _ : r/m-without-sib (reg? rexb)
+    | _ : r/m-without-sib (reg? rexb) (addr-reg? rexb)
    end
 end
 
@@ -586,20 +687,33 @@ val r/m32 = r/m reg32?
 val r/m64 = r/m reg64?
 val mm/m64 = r/m mm?
 val xmm/m128 = r/m xmm?
+val xmm/m64 = r/m xmm?
+val xmm/m32 = r/m xmm?
 val ymm/m256 = r/m ymm?
 
-val xmm/nomem = do
+val reg?/nomem reg? = do
    mod <- query $mod;
    case mod of
-      '11': r/m xmm?
+      '11': r/m reg?
    end
 end
-val mm/nomem = do
+val xmm/nomem128 = reg?/nomem xmm?
+val mm/nomem64 = reg?/nomem mm?
+
+val m? r/m? = do
    mod <- query $mod;
    case mod of
-      '11': r/m mm?
+      '00': r/m?
+    | '01': r/m?
+    | '10': r/m?
    end
+#   if (unsigned (not mod)) > 0 then r/m? else r/m?
 end
+val m16 = m? r/m16
+val m32 = m? r/m32
+val m64 = m? r/m64
+val m128 = m? xmm/m128
+val m256 = m? ymm/m256
 
 val r/ reg? = do
    rexr <- query $rexr;
@@ -615,14 +729,12 @@ val mm64 = r/ mm?
 val xmm128 = r/ xmm?
 val ymm256 = r/ ymm?
 
-val vex/xmm = do
+val vex/'mm mmF = do
    vexv <- query $vexv;
-   return (xmmF (not vexv)) #FIXFIXFIX
+   return (mmF (not vexv))
 end
-val vex/ymm = do
-   vexv <- query $vexv;
-   return (ymmF (not vexv)) #FIXFIXFIX
-end
+val vex/xmm = vex/'mm xmmF
+val vex/ymm = vex/'mm ymmF
 
 val moffs8 = do
    i <- imm8;
@@ -652,7 +764,7 @@ val binop cons giveOp1 giveOp2 = do
    #   return (MOV {op1, op2})
 end
 
-val triop cons giveOp1 giveOp2 giveOp3 = do
+val trinop cons giveOp1 giveOp2 giveOp3 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
    op3 <- giveOp3;
@@ -660,18 +772,81 @@ val triop cons giveOp1 giveOp2 giveOp3 = do
 end
 
 val add = binop ADD
-val mov = binop MOV
+val cvtpdf2pi = binop CVTPD2PI
 val maskmovdqu = binop MASKMOVDQU
 val vmaskmovdqu = binop VMASKMOVDQU
 val maskmovq = binop MASKMOVQ
 val maxpd = binop MAXPD
-val vmaxpd = triop VMAXPD
-val cvtpdf2pi = binop CVTPD2PI
-val xadd = binop XADD
+val vmaxpd = trinop VMAXPD
+val maxps = binop MAXPS
+val vmaxps = trinop VMAXPS
+val maxsd = binop MAXSD
+val vmaxsd = trinop VMAXSD
+val maxss = binop MAXSS
+val vmaxss = trinop VMAXSS
+val mfence = return MFENCE
+val minpd = binop MINPD
+val vminpd = trinop VMINPD
+val minps = binop MINPS
+val vminps = trinop VMINPS
+val minsd = binop MINSD
+val vminsd = trinop VMINSD
+val minss = binop MINSS
+val vminss = trinop VMINSS
+val monitor = return MONITOR
+val mov = binop MOV
+val movapd = binop MOVAPD
+val vmovapd = binop VMOVAPD
+val movaps = binop MOVAPS
+val vmovaps = binop VMOVAPS
+val movbe = binop MOVBE
+val movd = binop MOVD
+val vmovd = binop VMOVD
+val movq = binop MOVQ
+val vmovq = binop VMOVQ
+val movddup = binop MOVDDUP
+val vmovddup = binop VMOVDDUP
+val movdqa = binop MOVDQA
+val vmovdqa = binop VMOVDQA
+val movdqu = binop MOVDQU
+val vmovdqu = binop VMOVDQU
+val movdq2q = binop MOVDQ2Q
+val movhlps = binop MOVHLPS
+val vmovhlps = trinop VMOVHLPS
+val movhpd = binop MOVHPD
+val vmovhpd = trinop VMOVHPD
+val vbmovhpd = binop VBMOVHPD
+val movhps = binop MOVHPS
+val vmovhps = trinop VMOVHPS
+val vbmovhps = binop VBMOVHPS
+val movlhps = binop MOVLHPS
+val vmovlhps = trinop VMOVLHPS
+val movlpd = binop MOVLPD
+val vmovlpd = trinop VMOVLPD
+val vbmovlpd = binop VBMOVLPD
+val movlps = binop MOVLPD
+val vmovlps = trinop VMOVLPD
+val vbmovlps = binop VBMOVLPD
+val movmskpd = binop MOVMSKPD
+val vmovmskpd = binop VMOVMSKPD
+val movmskps = binop MOVMSKPS
+val vmovmskps = binop VMOVMSKPS
+val movntdqa = binop MOVNTDQA
+val vmovntdqa = binop VMOVNTDQA
+val movntdq = binop MOVNTDQ
+val vmovntdq = binop VMOVNTDQ
+val movnti = binop MOVNTI
+val movntpd = binop MOVNTPD
+val vmovntpd = binop VMOVNTPD
+val movntps = binop MOVNTPD
+val vmovntps = binop VMOVNTPD
+val movntq = binop MOVNTQ
+
 val phaddw = binop PHADDW
+val vphaddw = trinop VPHADDW
 val phaddd = binop PHADDD
-val vphaddw = triop VPHADDW
-val vphaddd = triop VPHADDD
+val vphaddd = trinop VPHADDD
+val xadd = binop XADD
 
 ## The VEX prefixes
 
@@ -682,13 +857,15 @@ val vex-pp pp =
 #    | '11': => F2 Prefix
    end
 
-val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 pp:2'] = do
-   update @{rexr=r, rexx=x, rexb=b, vexm=m, vexv=v, vexl=l};
+val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 pp:2']
+ | / rex? = do
+   update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=pp};
    vex-pp pp
 end
 
-val /vex [0xc5 'r:1 v:4 l:1 pp:2'] = do
-   update @{rexr=r, vexv=v, vexl=l};
+val /vex [0xc5 'r:1 v:4 l:1 pp:2']
+ | / rex? = do
+   update @{rexr=r, vexv=v, vexl=l, vexp=pp};
    vex-pp pp
 end
 
@@ -699,7 +876,7 @@ val vex-256? = do
    return (not b)
 end
 
-val vex-noflag? = do 
+val vex-noreg? = do 
    v <- query $vexv;
    return (v == '1111')
 end
@@ -719,11 +896,16 @@ val vex-f3? = do
    return (p == '10')
 end
 
+val vex-no-simd? = do
+   p <- query $vexp;
+   return (p == '00')
+end
+
 # Rückgabewert in Pattern??
 
 ## The REX prefixes
 
-val /rex ['0100 w:1 r:1 x:1 b:1'] = update @{rexw=w, rexb=b, rexx=x, rexr=r}
+val /rex ['0100 w:1 r:1 x:1 b:1'] = update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
 
 ## Decode prefixes, recursion could be limited with "recursion-depth main = 4" 
 
@@ -735,11 +917,8 @@ val main [0x64] = do update @{segment=FS}; main end
 val main [0x65] = do update @{segment=GS}; main end
 val main [0x66] = do update @{opndsz='1'}; main end
 val main [0x67] = do update @{addrsz='1'}; main end
-
-val not-opndsz? = do
-   f <- opndsz?;
-   return (not f)
-end
+val main [0xf2] = do update @{repne='1'}; main end
+val main [0xf3] = do update @{rep='1'}; main end
 
 val main [0x0f 0x38] = three-byte-opcode-0f-38
 val main [/rex 0x0f 0x38] = three-byte-opcode-0f-38
@@ -760,32 +939,109 @@ end
 ## Instruction decoders
 
 ## One Byte Opcodes
+## Two Byte Opcodes with Prefix 0x0f
+## Three Byte Opcodes with Prefix 0x0f38
 
 ### ADD Vol. 2A 3-35
 val one-byte-opcode [0x04] = add al imm8
 val one-byte-opcode [0x05]
  | rexw? = add rax imm64
- | opndsz? = add rax imm32
- | otherwise = add rax imm16
+ | opndsz? = add ax imm16
+ | otherwise = add eax imm32
 val one-byte-opcode [0x80 /0] = add r/m8 imm8
 val one-byte-opcode [0x81 /0]
  | rexw? = add r/m64 imm64
- | opndsz? = add r/m32 imm32
- | otherwise = add r/m16 imm16
+ | opndsz? = add r/m16 imm16
+ | otherwise = add r/m32 imm32
 val one-byte-opcode [0x83 /0]
  | rexw? = add r/m64 imm8
- | opndsz? = add r/m32 imm8
- | otherwise = add r/m16 imm8
+ | opndsz? = add r/m16 imm8
+ | otherwise = add r/m32 imm8
 val one-byte-opcode [0x00 /r] = add r/m8 r8
 val one-byte-opcode [0x01 /0]
  | rexw? = add r/m64 r64
- | opndsz? = add r/m32 r32
- | otherwise = add r/m16 r16
+ | opndsz? = add r/m16 r16
+ | otherwise = add r/m32 r32
 val one-byte-opcode [0x02 /r] = add r8 r/m8
 val one-byte-opcode [0x03 /0]
  | rexw? = add r64 r/m64
- | opndsz? = add r32 r/m32
- | otherwise = add r16 r/m16
+ | opndsz? = add r16 r/m16
+ | otherwise = add r32 r/m32
+
+### CVTPD2PI Vol 2A 3-248
+val two-byte-opcode-0f-66 [0x2d /r] 
+ | opndsz? = cvtpdf2pi mm64 xmm/m128
+
+### MASKMOVDQU Vol. 2B 4-9
+val two-byte-opcode-0f [0xf7 /r] 
+ | opndsz? = maskmovdqu xmm128 xmm/nomem128
+val two-byte-opcode-0f-vex [0xf7 /r]
+ | vex-noreg? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem128
+
+### MASKMOVQ Vol. 2B 4-11
+val two-byte-opcode-0f [0xf7 /r]
+ | / opndsz? = maskmovq mm64 mm/nomem64
+
+### MAXPD Vol. 2B 4-13
+val two-byte-opcode-0f [0x5f /r] 
+ | / opndsz? = maxpd xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
+ | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
+
+### MAXPS 4-16 Vol. 2B
+val two-byte-opcode-0f [0x5f /r] 
+ | / opndsz? = maxps xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-128? & vex-no-simd? = vmaxps xmm128 vex/xmm xmm/m128
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-256? & vex-no-simd? = vmaxps ymm256 vex/ymm ymm/m256
+
+### MAXSD Vol. 2B 4-19
+val two-byte-opcode-0f [0x5f /r] 
+ | / repne? = maxsd xmm128 xmm/m64
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-f2? = vmaxsd xmm128 vex/xmm xmm/m64
+
+### MAXSS Vol. 2B 4-21
+val two-byte-opcode-0f [0x5f /r] 
+ | / rep? = maxss xmm128 xmm/m32
+val two-byte-opcode-0f-vex [0x5f /r] 
+ | vex-f3? = vmaxss xmm128 vex/xmm xmm/m32
+
+### MFENCE Vol. 2B 4-23
+val two-byte-opcode-0f [0xae /6] = mfence
+
+### MINPD Vol. 2B 4-25
+val two-byte-opcode-0f [0x5d /r] 
+ | / opndsz? = minpd xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x5d /r] 
+ | vex-128? & vex-66? = vminpd xmm128 vex/xmm xmm/m128
+val two-byte-opcode-0f-vex [0x5d /r] 
+ | vex-256? & vex-66? = vminpd ymm256 vex/ymm ymm/m256
+
+### MINPS Vol. 2B 4-28
+val two-byte-opcode-0f [0x5d /r] 
+ | / opndsz? = minps xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x5d /r] 
+ | vex-128? & vex-no-simd? = vminps xmm128 vex/xmm xmm/m128
+val two-byte-opcode-0f-vex [0x5d /r] 
+ | vex-256? & vex-no-simd? = vminps ymm256 vex/ymm ymm/m256
+
+### MINSD Vol. 2B 4-31
+val two-byte-opcode-0f [0x5d /r] 
+ | / repne? = minsd xmm128 xmm/m64
+val two-byte-opcode-0f-vex [0x5d /r] 
+ | vex-f2? = vminsd xmm128 vex/xmm xmm/m64
+
+### MINSS Vol. 2B 4-33
+val two-byte-opcode-0f [0x5d /r] 
+ | / rep? = minss xmm128 xmm/m32
+val two-byte-opcode-0f-vex [0x5d /r] 
+ | vex-f3? = vminss xmm128 vex/xmm xmm/m32
+
+### MONITOR Vol. 2B 4-35
+val two-byte-opcode-0f [0xae 0x01 0xc8] = monitor
 
 ### MOV Vol 2A 3-643
 val one-byte-opcode [0x88 /r] = mov r/m8 r8
@@ -844,35 +1100,222 @@ val one-byte-opcode [0xC7 /0]
  | opndsz? = mov r/m16 imm16
  | otherwise = mov r/m32 imm32
 
-## Two Byte Opcodes with Prefix 0x0f
+### MOVAPD Vol. 2B 4-52
+val two-byte-opcode-0f [0x28 /r] 
+ | opndsz? = movapd xmm128 xmm/m128
+val two-byte-opcode-0f [0x29 /r] 
+ | opndsz? = movapd xmm/m128 xmm128
+val two-byte-opcode-0f-vex [0x28 /r] 
+ | vex-noreg? & vex-128? & vex-66? = vmovapd xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x29 /r] 
+ | vex-noreg? & vex-128? & vex-66? = vmovapd xmm/m128 xmm128
+val two-byte-opcode-0f-vex [0x28 /r] 
+ | vex-noreg? & vex-256? & vex-66? = vmovapd ymm256 ymm/m256
+val two-byte-opcode-0f-vex [0x29 /r] 
+ | vex-noreg? & vex-256? & vex-66? = vmovapd ymm/m256 ymm256
 
-### MASKMOVDQU Vol. 2B 4-9
-val two-byte-opcode-0f [0xf7 /r] 
- | opndsz? = maskmovdqu xmm128 xmm/nomem
- | otherwise = maskmovq mm64 mm/nomem
- 
-val two-byte-opcode-0f-vex [0xf7 /r]
- | vex-noflag? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem
+### MOVAPS Vol. 2B 4-55
+val two-byte-opcode-0f [0x28 /r] 
+ | / opndsz? = movaps xmm128 xmm/m128
+val two-byte-opcode-0f [0x29 /r] 
+ | / opndsz? = movaps xmm/m128 xmm128
+val two-byte-opcode-0f-vex [0x28 /r] 
+ | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm128 xmm/m128
+val two-byte-opcode-0f-vex [0x29 /r] 
+ | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm/m128 xmm128
+val two-byte-opcode-0f-vex [0x28 /r] 
+ | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm256 ymm/m256
+val two-byte-opcode-0f-vex [0x29 /r] 
+ | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm/m256 ymm256
 
-### MAXPD Vol. 2B 4-13
-val two-byte-opcode-0f [0x5f /r] 
- | opndsz? = maxpd xmm128 xmm/m128
-val two-byte-opcode-0f-vex [0x5f /r] 
- | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
- | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
+### MOVBE Vol. 2B 4-58
+val three-byte-opcode-0f-38 [0xf0 /r]
+ | rexw? = movbe r64 m64
+ | opndsz? = movbe r16 m16
+ | otherwise = movbe r32 m32
+val three-byte-opcode-0f-38 [0xf1 /r]
+ | rexw? = movbe m64 r64
+ | opndsz? = movbe m16 r16
+ | otherwise = movbe m32 r32
 
-### CVTPD2PI Vol 2A 3-248
-val two-byte-opcode-0f-66 [0x2d /r] 
- | opndsz? = cvtpdf2pi mm64 xmm/m128
+### MOVD/MOVQ Vol. 2B 4-61
+val two-byte-opcode-0f [0x6e /r]
+ | / opndsz? & rexw? = movq mm64 r/m64
+ | / opndsz? & / rexw? = movd mm64 r/m32
+val two-byte-opcode-0f [0x7e /r]
+ | / opndsz? & rexw? & / rep? = movq r/m64 mm64
+ | / opndsz? & / rexw? & / rep? = movd r/m32 mm64
+val two-byte-opcode-0f-vex [0x6e /r]
+ | vex-noreg? & vex-128? & vex-66? & / rexw? = vmovd xmm128 r/m32
+ | vex-noreg? & vex-128? & vex-66? & rexw? = vmovd xmm128 r/m64
+val two-byte-opcode-0f [0x6e /r]
+ | opndsz? & rexw? = movq xmm128 r/m64
+ | opndsz? & / rexw? = movd xmm128 r/m32
+val two-byte-opcode-0f [0x7e /r]
+ | opndsz? & rexw? & / rep? = movq r/m64 xmm128
+ | opndsz? & / rexw? & / rep? = movd r/m32 xmm128
+val two-byte-opcode-0f-vex [0x7e /r]
+ | vex-noreg? & vex-128? & vex-66? & / rexw? = vmovd r/m32 xmm128
+ | vex-noreg? & vex-128? & vex-66? & rexw? = vmovd r/m64 xmm128
 
-### XADD Vol. 2B 4-667
-val two-byte-opcode-0f [0xc0 /r] = xadd r/m8 r8
-val two-byte-opcode-0f [0xc1 /r]
- | rexw? = xadd r/m64 r64
- | opndsz? = mov r/m16 r16
- | otherwise = mov r/m32 r32
+### MOVDDUP Vol. 2B 4-64
+val two-byte-opcode-0f [0x12 /r]
+ | repne? = movddup xmm128 xmm/m64
+val two-byte-opcode-0f-vex [0x12 /r]
+ | vex-noreg? & vex-128? & vex-f2? = vmovddup xmm128 xmm/m64
+ | vex-noreg? & vex-256? & vex-f2? = vmovddup ymm256 ymm/m256
 
-## Three Byte Opcodes with Prefix 0x0f38
+### MOVDQA Vol. 2B 4-67
+val two-byte-opcode-0f [0x6f /r]
+ | opndsz? = movdqa xmm128 xmm/m128
+val two-byte-opcode-0f [0x7f /r]
+ | opndsz? = movdqa xmm/m128 xmm128
+val two-byte-opcode-0f-vex [0x6f /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovdqa xmm128 xmm/m128
+ | vex-noreg? & vex-256? & vex-66? = vmovdqa ymm256 ymm/m256
+val two-byte-opcode-0f-vex [0x7f /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovdqa xmm/m128 xmm128
+ | vex-noreg? & vex-256? & vex-66? = vmovdqa ymm/m256 ymm256
+
+### MOVDQU Vol. 2B 4-70
+val two-byte-opcode-0f [0x6f /r]
+ | rep? = movdqu xmm128 xmm/m128
+val two-byte-opcode-0f [0x7f /r]
+ | rep? = movdqu xmm/m128 xmm128
+val two-byte-opcode-0f-vex [0x6f /r]
+ | vex-noreg? & vex-128? & vex-f3? = vmovdqu xmm128 xmm/m128
+ | vex-noreg? & vex-256? & vex-f3? = vmovdqu ymm256 ymm/m256
+val two-byte-opcode-0f-vex [0x7f /r]
+ | vex-noreg? & vex-128? & vex-f3? = vmovdqu xmm/m128 xmm128
+ | vex-noreg? & vex-256? & vex-f3? = vmovdqu ymm/m256 ymm256
+
+### MOVDQ2Q Vol. 2B 4-73
+val two-byte-opcode-0f [0xd6 /r]
+ | repne? = movdq2q mm64 xmm128
+
+### MOVHLPS Vol. 2B 4-75
+val two-byte-opcode-0f [0x12 /r]
+ | / opndsz? = movhlps xmm128 xmm/nomem128
+val two-byte-opcode-0f-vex [0x12 /r]
+ | vex-128? & vex-no-simd? = vmovhlps xmm128 vex/xmm xmm/nomem128
+
+### MOVHPD Vol. 2B 4-77
+val two-byte-opcode-0f [0x16 /r]
+ | opndsz? = movhpd xmm128 m64
+val two-byte-opcode-0f [0x17 /r]
+ | opndsz? = movhpd m64 xmm128
+val two-byte-opcode-0f-vex [0x16 /r]
+ | vex-128? & vex-66? = vmovhpd xmm128 vex/xmm m64
+val two-byte-opcode-0f-vex [0x17 /r]
+ | vex-noreg? & vex-128? & vex-66? = vbmovhpd m64 xmm128
+
+### MOVHPS Vol. 2B 4-79
+val two-byte-opcode-0f [0x16 /r]
+ | mod-mem? & / opndsz? = movhps xmm128 m64
+val two-byte-opcode-0f [0x17 /r]
+ | mod-mem? & / opndsz? = movhps m64 xmm128
+val two-byte-opcode-0f-vex [0x16 /r]
+ | mod-mem? & vex-128? & vex-no-simd? = vmovhps xmm128 vex/xmm m64
+val two-byte-opcode-0f-vex [0x17 /r]
+ | mod-mem? & vex-noreg? & vex-128? & vex-no-simd? = vbmovhps m64 xmm128
+
+### MOVLHPS Vol. 2B 4-81
+val two-byte-opcode-0f [0x16 /r]
+ | mod-reg? & / opndsz? = movlhps xmm128 xmm/nomem128
+val two-byte-opcode-0f-vex [0x16 /r]
+ | mod-reg? & vex-128? & vex-no-simd? = vmovlhps xmm128 vex/xmm xmm/nomem128
+
+### MOVLPD Vol. 2B 4-83
+val two-byte-opcode-0f [0x12 /r]
+ | opndsz? = movlpd xmm128 m64
+val two-byte-opcode-0f [0x13 /r]
+ | opndsz? = movlpd m64 xmm128
+val two-byte-opcode-0f-vex [0x12 /r]
+ | vex-128? & vex-66? = vmovlpd xmm128 vex/xmm m64
+val two-byte-opcode-0f-vex [0x13 /r]
+ | vex-noreg? & vex-128? & vex-66? = vbmovlpd m64 xmm128
+
+### MOVLPS Vol. 2B 4-85
+val two-byte-opcode-0f [0x12 /r]
+ | / opndsz? = movlps xmm128 m64
+val two-byte-opcode-0f [0x13 /r]
+ | / opndsz? = movlps m64 xmm128
+val two-byte-opcode-0f-vex [0x12 /r]
+ | vex-128? & vex-no-simd? = vmovlps xmm128 vex/xmm m64
+val two-byte-opcode-0f-vex [0x13 /r]
+ | vex-noreg? & vex-128? & vex-no-simd? = vbmovlps m64 xmm128
+
+### MOVMSKPD Vol. 2B 4-87
+val two-byte-opcode-0f [0x50 /r]
+ | mode64? & opndsz? = movmskpd r64 xmm128
+ | / mode64? & opndsz? = movmskpd r32 xmm128
+val two-byte-opcode-0f-vex [0x50 /r]
+ | mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
+ | / mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
+ | mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
+ | / mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
+(*#########################
+##### ~~ VERIFY! ~~ #####
+#########################*)
+
+### MOVMSKPS Vol. 2B 4-89
+val two-byte-opcode-0f [0x50 /r]
+ | mode64? & / opndsz? = movmskpd r64 xmm128
+ | / mode64? & opndsz? = movmskpd r32 xmm128
+val two-byte-opcode-0f-vex [0x50 /r]
+ | mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
+ | / mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
+ | mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
+ | / mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
+(*#########################
+##### ~~ VERIFY! ~~ #####
+#########################*)
+
+### MOVNTDQA Vol. 2B 4-92
+val three-byte-opcode-0f-38 [0x2a /r]
+ | opndsz? = movntdqa xmm128 m128
+val three-byte-opcode-0f-38-vex [0x2a /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovntdqa xmm128 m128
+
+### MOVNTDQ Vol. 2B 4-95
+val two-byte-opcode-0f [0xe7 /r]
+ | opndsz? = movntdq m128 xmm128
+val two-byte-opcode-0f-vex [0xe7 /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovntdq m128 xmm128
+ | vex-noreg? & vex-256? & vex-66? = vmovntdq m256 ymm256
+
+### MOVNTI Vol. 2B 4-97
+val two-byte-opcode-0f [0xc3 /r]
+ | / opndsz? & / rexw? = movnti m32 r32
+ | / opndsz? & rexw? = movnti m64 r64
+
+### MOVNTPD Vol. 2B 4-99
+val two-byte-opcode-0f [0x2b /r]
+ | opndsz? = movntpd m128 xmm128
+val two-byte-opcode-0f-vex [0x2b /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovntpd m128 xmm128
+ | vex-noreg? & vex-256? & vex-66? = vmovntpd m256 ymm256
+
+### MOVNTPS Vol. 2B 4-99
+val two-byte-opcode-0f [0x2b /r]
+ | / opndsz? = movntps m128 xmm128
+val two-byte-opcode-0f-vex [0x2b /r]
+ | vex-noreg? & vex-128? & vex-no-simd? = vmovntps m128 xmm128
+ | vex-noreg? & vex-256? & vex-no-simd? = vmovntps m256 ymm256
+
+### MOVNTQ Vol. 2B 4-103
+val two-byte-opcode-0f [0xe7 /r]
+ | / opndsz? = movntq m64 mm64
+
+### MOVQ Vol. 2B 4-105
+val two-byte-opcode-0f [0x6f /r]
+ | / opndsz? = movq mm64 mm/m64
+val two-byte-opcode-0f [0x7f /r]
+ | / opndsz? = movq mm/m64 mm64
+val two-byte-opcode-0f [0x7e /r]
+ | / opndsz? & rep? = movq xmm128 xmm/m64
+val two-byte-opcode-0f [0xd6 /r]
+ | opndsz? = movq xmm/m64 xmm128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val three-byte-opcode-0f-38 [01 /r]
@@ -885,3 +1328,34 @@ val three-byte-opcode-0f-38-vex [01 /r]
  | opndsz? & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
 val three-byte-opcode-0f-38-vex [02 /r]
  | opndsz? & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
+
+### XADD Vol. 2B 4-667
+val two-byte-opcode-0f [0xc0 /r] = xadd r/m8 r8
+val two-byte-opcode-0f [0xc1 /r]
+ | rexw? = xadd r/m64 r64
+ | opndsz? = mov r/m16 r16
+ | otherwise = mov r/m32 r32
+
+# Prefix Examples
+#
+# Example situation:
+# 0x67: Address size prefix
+# 0x45: Specific operand override REX prefix
+# 0xf3: Mandatory prefix
+#
+# 0x67 0xf3 0x45 *...* (Usual case - instruction uses the extended register set, a non default address size and 0xf3 as opcode extension)
+# 0xf3 0x67 0x45 *...* (Unusual positioning of mandatory prefix - works as above)
+# 0x67 0x45 0xf3 *...* (Unusual REX prefix positioning - REX prefix is *ignored*, instruction uses a non default address size and 0xf3 as opcode extension)
+# 0xf3 0x45 0x67 *...* (Unusual positioning of mandatory and REX prefix - REX prefix is *ignored*, instruction uses a non default address size and 0xf3 as opcode extension)
+#
+# Example situation:
+# 0x67: Address size prefix
+# 0x66: Operand size prefix
+# 0x45: Specific operand override REX prefix
+# 0xc4 0xe1 0xf9: Specific VEX prefix (VEX.128.66.0F.W1)
+#
+# 0xc4 0xe1 0xf9 *...* (Usual case)
+# 0x67 0xc4 0xe1 0xf9 *...* (Usual case - instruction uses non default address size)
+# 0x66 0xc4 0xe1 0xf9 *...* (Unusual reuse of a VEX-included prefix outside of VEX - instruction is *invalid*)
+# 0x45 0xc4 0xe1 0xf9 *...* (Unusual use of a REX prefix in VEX instruction - instruction is *invalid*)
+# 0xc4 0xe1 0xf9 [some legacy prefix] *...* (Unusual positioning of a legacy prefix - VEX prefix is not recognized and decoded separately ) (?)

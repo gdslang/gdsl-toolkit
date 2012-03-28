@@ -74,8 +74,8 @@ structure Types = struct
       | sep s (v :: vs) = v ^ s ^ sep s vs
     fun br (curPrec, existsPrec,str) =
       if curPrec>existsPrec then "(" ^ str ^ ")" else str
-    val p_app = 10
-    val p_tyn =  9
+    val p_app = 9
+    val p_tyn = 10
     fun sT (p, FUN (f1, f2)) =
           br (p, p_app, sT (p_app+1, f1) ^ " -> " ^ sT (p_app, f2))
       | sT (p, SYN (syn, t)) = 

@@ -208,7 +208,7 @@ OrElseExp
    ;
 
 OrElse
-   : "orelse" => (Op.orElse)
+   : "orelse" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.orElse))
    ;
 
 AndAlsoExp
@@ -217,30 +217,36 @@ AndAlsoExp
    ;
 
 AndAlso
-   : "andalso" => (Op.andAlso)
+   : "andalso" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.andAlso))
    ;
 
 RExp
-   : AExp (Sym AExp)* =>
+   : AExp ((Sym => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Sym))
+          ) AExp)* =>
       (mark PT.MARKexp (FULL_SPAN, mkLBinExp(AExp, SR)))
    ;
 
 AExp
-   : MExp (( "+" => (Op.plus) | "-" => (Op.minus)) MExp => (SR, MExp))* =>
+   : MExp (( "+" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.plus))
+           | "-" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.minus))
+          ) MExp => (SR, MExp))* =>
       (mark PT.MARKexp (FULL_SPAN, mkLBinExp (MExp, SR)))
    ;
 
 MExp
    : SelectExp
-      (( "*" => (Op.times)
-       | "div" => (Op.div)
-       | "%" => (Op.mod)) ApplyExp =>
+      (( "*" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.times))
+       | "div" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.div))
+       | "%" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.mod))
+       ) ApplyExp =>
       (SR, SelectExp))* =>
          (mark PT.MARKexp (FULL_SPAN, mkLBinExp (SelectExp, SR)))
    ;
 
 SelectExp
-   : ApplyExp (("^" => (Op.concat)) ApplyExp => (SR, ApplyExp))* =>
+   : ApplyExp 
+      (("^" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.concat))
+      ) ApplyExp => (SR, ApplyExp))* =>
       (mark PT.MARKexp (FULL_SPAN, mkLBinExp (ApplyExp, SR)))
    ;
 

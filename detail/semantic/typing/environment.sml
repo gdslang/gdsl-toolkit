@@ -557,11 +557,11 @@ end = struct
                | NONE => TVar.empty
             val (t,bFun,sCons) = instantiateType (tvs, t, decVars, bFun, sCons)
             val env = (scs,consRef)
-            (*fun action (COMPOUND {ty, width, uses},consRef) =
+            fun action (COMPOUND {ty, width, uses},consRef) =
                (COMPOUND {ty = ty, width = width,
                 uses = SpanMap.insert (uses, span, t)}, consRef)
               | action _ = raise InferenceBug
-            val env = Scope.update (sym, action, env)*)
+            val env = Scope.update (sym, action, env)
          in
             (consRef := (bFun,sCons); Scope.wrap (KAPPA {ty = t}, env))
          end

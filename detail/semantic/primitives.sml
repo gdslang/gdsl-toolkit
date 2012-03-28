@@ -84,8 +84,7 @@ structure Primitives = struct
        {name="suffix", ty = FUN (VEC (var s13), VEC (var s14))},
        {name="^", ty=FUN (VEC (var s15), FUN (VEC (var s16), VEC (var s17)))},
        {name="signed", ty=FUN (VEC (var s18), ZENO)},
-       {name="unsigned", ty=FUN (VEC (var s19), ZENO)},
-       {name="otherwise", ty=FUN (var state, VEC (CONST 1))}]
+       {name="unsigned", ty=FUN (VEC (var s19), ZENO)}]
 
    val primitiveSizeConstraints =
       [SC.equality (s17, [s15,s16], 0),
