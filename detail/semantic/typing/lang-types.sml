@@ -25,8 +25,6 @@ structure Types = struct
     | VEC of texp
       (* a Herbrand constant, can only occur as the argument of VEC *)
     | CONST of int
-      (*(* a list of size constraints, can only occur as the arg of VEC *)
-    | SUM of size_constraint list*)
       (* an algebraic data type with a list of type arguments *)
     | ALG of (TypeInfo.symid * texp list)
       (* a record *)
@@ -50,7 +48,6 @@ structure Types = struct
         | tV (UNIT, vs) = vs
         | tV (VEC t, vs) = tV (t, vs)
         | tV (CONST c, vs) = vs
-        (*| tV (SUM l) = List.foldl*)
         | tV (ALG (ty, l), vs) = List.foldl tV vs l
         | tV (RECORD (v,_,l), vs) = List.foldl tVF (TVar.add (v,vs)) l
         | tV (MONAD t, vs) = tV (t, vs)
@@ -58,7 +55,7 @@ structure Types = struct
       and tVF (RField {name = n, fty = t, exists = b}, vs) = tV (t,vs)
       in (tV (e, vs))
    end
-   
+
    fun compare_rfield (RField f1, RField f2) =
      SymbolTable.compare_symid (#name f1, #name f2)
 
@@ -85,18 +82,6 @@ structure Types = struct
       | sT (p, UNIT) = "()"
       | sT (p, VEC t) = "[" ^ sT (0, t) ^ "]"
       | sT (p, CONST c) = Int.toString(c)
-      (*| sT (p, SUM l) = sep "," (List.map (fn {pos,neg,const} =>
-         let
-            val posStr = sep "+" (List.map showVar pos)
-            val negStr = sep "-" (List.map showVar neg)
-         in
-            if String.size posStr=0 then Int.toString(const) ^ "=" ^ negStr
-            else
-            if String.size negStr=0 then posStr ^ "=" ^ Int.toString(~const)
-            else
-               posStr ^ (if const>=0 then "+" else "") ^ Int.toString(const) ^ 
-               "=" ^ negStr
-         end) l)*)
       | sT (p, ALG (ty, l)) = let
           val conStr = SymbolTable.getString(!SymbolTables.typeTable, ty)
           in if List.null l then conStr else br (p, p_tyn,
