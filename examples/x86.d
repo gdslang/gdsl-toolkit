@@ -518,20 +518,20 @@ val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
 
-val sib-without-index reg? = do
+val sib-without-index reg = do
    mod <- query $mod;
    rexb <- query $rexb;
    case mod of
       '00': imm32
-    | '01': return ((reg? rexb) '101') # rBP
-    | '10': return ((reg? rexb) '101') # rBP
+    | '01': return ((reg rexb) '101') # rBP
+    | '10': return ((reg rexb) '101') # rBP
    end
 end
 
-val sib-without-base reg? scale index = do
+val sib-without-base reg scale index = do
    rexx <- query $rexx;
    let
-      val scaled = SCALE{imm=scale, opnd=(reg? rexx) index}
+      val scaled = SCALE{imm=scale, opnd=(reg rexx) index}
    in
       do
          mod <- query $mod;
@@ -542,16 +542,16 @@ val sib-without-base reg? scale index = do
                   i <- imm32;
                   return (SUM{a=scaled, b=i})
                end
-          | _ : return (SUM{a=scaled, b=(reg? rexb) '101'}) # rBP
+          | _ : return (SUM{a=scaled, b=(reg rexb) '101'}) # rBP
          end
       end
    end
 end
 
-val sib-with-index-and-base reg? s i b = do
+val sib-with-index-and-base reg s i b = do
    rexx <- query $rexx;
    rexb <- query $rexb;
-   return (SUM{a=SCALE{imm=s, opnd=(reg? rexx) i}, b=(reg? rexb) b})
+   return (SUM{a=SCALE{imm=s, opnd=(reg rexx) i}, b=(reg rexb) b})
 end
 
 val sib ['scale:2 100 101']
@@ -635,14 +635,14 @@ val addrReg = do
    end
 end
 
-val r/m reg? = do
+val r/m reg = do
    mod <- query $mod;
    rm <- query $rm;
    rexb <- query $rexb;
-   addr-reg? <- addrReg;
+   addr-reg <- addrReg;
    case rm of
       '100': r/m-with-sib
-    | _ : r/m-without-sib (reg? rexb) (addr-reg? rexb)
+    | _ : r/m-without-sib (reg rexb) (addr-reg rexb)
    end
 end
 
@@ -656,34 +656,34 @@ val xmm/m64 = r/m xmm-rex
 val xmm/m32 = r/m xmm-rex
 val ymm/m256 = r/m ymm-rex
 
-val reg?/nomem reg? = do
+val reg/nomem reg = do
    mod <- query $mod;
    case mod of
-      '11': r/m reg?
+      '11': r/m reg
    end
 end
-val xmm/nomem128 = reg?/nomem xmm-rex
-val mm/nomem64 = reg?/nomem mm-rex
+val xmm/nomem128 = reg/nomem xmm-rex
+val mm/nomem64 = reg/nomem mm-rex
 
-val m? r/m? = do
+val m r/m = do
    mod <- query $mod;
    case mod of
-      '00': r/m?
-    | '01': r/m?
-    | '10': r/m?
+      '00': r/m
+    | '01': r/m
+    | '10': r/m
    end
-#   if (unsigned (not mod)) > 0 then r/m? else r/m?
+#   if (unsigned (not mod)) > 0 then r/m else r/m
 end
-val m16 = m? r/m16
-val m32 = m? r/m32
-val m64 = m? r/m64
-val m128 = m? xmm/m128
-val m256 = m? ymm/m256
+val m16 = m r/m16
+val m32 = m r/m32
+val m64 = m r/m64
+val m128 = m xmm/m128
+val m256 = m ymm/m256
 
-val r/ reg? = do
+val r/ reg = do
    rexr <- query $rexr;
    r <- query $reg;
-   return ((reg? rexr) r)
+   return ((reg rexr) r)
 end
 
 val r8 = r/ reg8-rex
