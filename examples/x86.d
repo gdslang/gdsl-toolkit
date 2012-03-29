@@ -323,119 +323,99 @@ val imm64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
 
 val reg8 n =
    case n of
-      '000': REG AL
-    | '001': REG CL
-    | '010': REG DL
-    | '011': REG BL
-    | '100': REG AH
-    | '101': REG CH
-    | '110': REG DH
-    | '111': REG BH
+      '0000': REG AL
+    | '0001': REG CL
+    | '0010': REG DL
+    | '0011': REG BL
+    | '0100': REG AH
+    | '0101': REG CH
+    | '0110': REG DH
+    | '0111': REG BH
+    | '1000': REG R8L
+    | '1001': REG R10L
+    | '1010': REG R11L
+    | '1011': REG R9L
+    | '1100': REG R12L
+    | '1101': REG R13L
+    | '1110': REG R14L
+    | '1111': REG R15L
    end
 
-val reg8r n =
-   case n of
-      '000': REG R8L
-    | '001': REG R10L
-    | '010': REG R11L
-    | '011': REG R9L
-    | '100': REG R12L
-    | '101': REG R13L
-    | '110': REG R14L
-    | '111': REG R15L
-   end
-
-val reg8? rex =
-   if rex then reg8r else reg8
-
-# val reg8F n = (reg8? (prefix n)) (suffix n)
+val reg8-lower n = reg8 ('0' ^ n)
+val reg8-higher n = reg8 ('1' ^ n)
+val reg8-rex rex = if rex then reg8-higher else reg8-lower
 
 val reg16 n =
    case n of
-      '000': REG AX
-    | '001': REG CX
-    | '010': REG DX
-    | '011': REG BX
-    | '100': REG SP
-    | '101': REG BP
-    | '110': REG SI
-    | '111': REG DI
+      '0000': REG AX
+    | '0001': REG CX
+    | '0010': REG DX
+    | '0011': REG BX
+    | '0100': REG SP
+    | '0101': REG BP
+    | '0110': REG SI
+    | '0111': REG DI
+    | '1000': REG R8L
+    | '1001': REG R10L
+    | '1010': REG R11L
+    | '1011': REG R9L
+    | '1100': REG R12L
+    | '1101': REG R13L
+    | '1110': REG R14L
+    | '1111': REG R15L
    end
 
-val reg16r n =
-   case n of
-      '000': REG R8L
-    | '001': REG R10L
-    | '010': REG R11L
-    | '011': REG R9L
-    | '100': REG R12L
-    | '101': REG R13L
-    | '110': REG R14L
-    | '111': REG R15L
-   end
-
-val reg16? rex =
-   if rex then reg16r else reg16
-
-# val reg16F n = (reg16? (prefix n)) (suffix n)
+val reg16-lower n = reg16 ('0' ^ n)
+val reg16-higher n = reg16 ('1' ^ n)
+val reg16-rex rex = if rex then reg16-higher else reg16-lower
 
 val reg32 n =
    case n of
-      '000': REG EAX
-    | '001': REG ECX
-    | '010': REG EDX
-    | '011': REG EBX
-    | '100': REG ESP
-    | '101': REG EBP
-    | '110': REG ESI
-    | '111': REG EDI
+      '0000': REG EAX
+    | '0001': REG ECX
+    | '0010': REG EDX
+    | '0011': REG EBX
+    | '0100': REG ESP
+    | '0101': REG EBP
+    | '0110': REG ESI
+    | '0111': REG EDI
+    | '1000': REG R8D
+    | '1001': REG R10D
+    | '1010': REG R11D
+    | '1011': REG R9D
+    | '1100': REG R12D
+    | '1101': REG R13D
+    | '1110': REG R14D
+    | '1111': REG R15D
    end
 
-val reg32r n =
-   case n of
-      '000': REG R8D
-    | '001': REG R10D
-    | '010': REG R11D
-    | '011': REG R9D
-    | '100': REG R12D
-    | '101': REG R13D
-    | '110': REG R14D
-    | '111': REG R15D
-   end
-
-val reg32? rex =
-   if rex then reg32r else reg32
-
-# val reg32F n = (reg32? (prefix n)) (suffix n)
+val reg32-lower n = reg32 ('0' ^ n)
+val reg32-higher n = reg32 ('1' ^ n)
+val reg32-rex rex = if rex then reg32-higher else reg32-lower
 
 val reg64 n =
    case n of
-      '000': REG RAX
-    | '001': REG RCX
-    | '010': REG RDX
-    | '011': REG RBX
-    | '100': REG RSP
-    | '101': REG RBP
-    | '110': REG RSI
-    | '111': REG RDI
+      '0000': REG RAX
+    | '0001': REG RCX
+    | '0010': REG RDX
+    | '0011': REG RBX
+    | '0100': REG RSP
+    | '0101': REG RBP
+    | '0110': REG RSI
+    | '0111': REG RDI
+    | '1000': REG R8
+    | '1001': REG R10
+    | '1010': REG R11
+    | '1011': REG R9
+    | '1100': REG R12
+    | '1101': REG R13
+    | '1110': REG R14
+    | '1111': REG R15
    end
 
-val reg64r n =
-   case n of
-      '000': REG R8
-    | '001': REG R10
-    | '010': REG R11
-    | '011': REG R9
-    | '100': REG R12
-    | '101': REG R13
-    | '110': REG R14
-    | '111': REG R15
-   end
-
-val reg64? rex =
-   if rex then reg64r else reg64
-
-# val reg64F n = (reg64? (prefix n)) (suffix n)
+val reg64-lower n = reg64 ('0' ^ n)
+val reg64-higher n = reg64 ('1' ^ n)
+val reg64-rex rex = if rex then reg64-higher else reg64-lower
 
 val sreg3 n =
    case n of
@@ -451,92 +431,77 @@ val sreg3 n =
 
 val sreg3? rex = sreg3
 
+val mm n =
+   case n of
+      '0000': REG MM0
+    | '0001': REG MM1
+    | '0010': REG MM2
+    | '0011': REG MM3
+    | '0100': REG MM4
+    | '0101': REG MM5
+    | '0110': REG MM6
+    | '0111': REG MM7
+    | '1000': REG MM8
+    | '1001': REG MM9
+    | '1010': REG MM10
+    | '1011': REG MM11
+    | '1100': REG MM12
+    | '1101': REG MM13
+    | '1110': REG MM14
+    | '1111': REG MM15
+   end
+
+val mm-lower n = mm ('0' ^ n)
+val mm-higher n = mm ('1' ^ n)
+val mm-rex rex = if rex then mm-higher else mm-lower
+
 val xmm n =
    case n of
-      '000': REG XMM0
-    | '001': REG XMM1
-    | '010': REG XMM2
-    | '011': REG XMM3
-    | '100': REG XMM4
-    | '101': REG XMM5
-    | '110': REG XMM6
-    | '111': REG XMM7
+      '0000': REG XMM0
+    | '0001': REG XMM1
+    | '0010': REG XMM2
+    | '0011': REG XMM3
+    | '0100': REG XMM4
+    | '0101': REG XMM5
+    | '0110': REG XMM6
+    | '0111': REG XMM7
+    | '1000': REG XMM8
+    | '1001': REG XMM9
+    | '1010': REG XMM10
+    | '1011': REG XMM11
+    | '1100': REG XMM12
+    | '1101': REG XMM13
+    | '1110': REG XMM14
+    | '1111': REG XMM15
    end
 
-val xmmr n =
-   case n of
-      '000': REG XMM8
-    | '001': REG XMM9
-    | '010': REG XMM10
-    | '011': REG XMM11
-    | '100': REG XMM12
-    | '101': REG XMM13
-    | '110': REG XMM14
-    | '111': REG XMM15
-   end
-
-val xmm? rex =
-   if rex then xmmr else xmm
-
-val xmmF n = (xmm? (prefix n)) (suffix n)
+val xmm-lower n = xmm ('0' ^ n)
+val xmm-higher n = xmm ('1' ^ n)
+val xmm-rex rex = if rex then xmm-higher else xmm-lower
 
 val ymm n =
    case n of
-      '000': REG YMM0
-    | '001': REG YMM1
-    | '010': REG YMM2
-    | '011': REG YMM3
-    | '100': REG YMM4
-    | '101': REG YMM5
-    | '110': REG YMM6
-    | '111': REG YMM7
+      '0000': REG YMM0
+    | '0001': REG YMM1
+    | '0010': REG YMM2
+    | '0011': REG YMM3
+    | '0100': REG YMM4
+    | '0101': REG YMM5
+    | '0110': REG YMM6
+    | '0111': REG YMM7
+    | '1000': REG YMM8
+    | '1001': REG YMM9
+    | '1010': REG YMM10
+    | '1011': REG YMM11
+    | '1100': REG YMM12
+    | '1101': REG YMM13
+    | '1110': REG YMM14
+    | '1111': REG YMM15
    end
 
-val ymmr n =
-   case n of
-      '000': REG YMM8
-    | '001': REG YMM9
-    | '010': REG YMM10
-    | '011': REG YMM11
-    | '100': REG YMM12
-    | '101': REG YMM13
-    | '110': REG YMM14
-    | '111': REG YMM15
-   end
-
-val ymm? rex =
-   if rex then ymmr else ymm
-
-val ymmF n = (ymm? (prefix n)) (suffix n)
-
-val mm n =
-   case n of
-      '000': REG MM0
-    | '001': REG MM1
-    | '010': REG MM2
-    | '011': REG MM3
-    | '100': REG MM4
-    | '101': REG MM5
-    | '110': REG MM6
-    | '111': REG MM7
-   end
-
-val mmr n =
-   case n of
-      '000': REG MM8
-    | '001': REG MM9
-    | '010': REG MM10
-    | '011': REG MM11
-    | '100': REG MM12
-    | '101': REG MM13
-    | '110': REG MM14
-    | '111': REG MM15
-   end
-
-val mm? rex =
-   if rex then mmr else mm
-
-# val mmF n = (mm? (prefix n)) (suffix n)
+val ymm-lower n = ymm ('0' ^ n)
+val ymm-higher n = ymm ('1' ^ n)
+val ymm-rex rex = if rex then ymm-higher else ymm-lower
 
 # Deslice the mod/rm byte and put it into the the state
 
@@ -590,16 +555,16 @@ val sib-with-index-and-base reg? s i b = do
 end
 
 val sib ['scale:2 100 101']
- | addrsz? = sib-without-index reg16?
- | otherwise = sib-without-index reg32?
+ | addrsz? = sib-without-index reg16-rex
+ | otherwise = sib-without-index reg32-rex
 
 val sib ['scale:2 index:3 101'] 
- | addrsz? = sib-without-base reg16? scale index
- | otherwise = sib-without-base reg32? scale index
+ | addrsz? = sib-without-base reg16-rex scale index
+ | otherwise = sib-without-base reg32-rex scale index
 
 val sib ['scale:2 index:3 base:3']
- | addrsz? = sib-with-index-and-base reg16? scale index base
- | otherwise = sib-with-index-and-base reg32? scale index base
+ | addrsz? = sib-with-index-and-base reg16-rex scale index base
+ | otherwise = sib-with-index-and-base reg32-rex scale index base
 
 ## Decoding the mod/rm byte
 
@@ -665,8 +630,8 @@ end
 val addrReg = do
    addrsz <- query $addrsz;
    case addrsz of
-      '0': return reg64?
-    | '1': return reg32?
+      '0': return reg64-rex
+    | '1': return reg32-rex
    end
 end
 
@@ -681,15 +646,15 @@ val r/m reg? = do
    end
 end
 
-val r/m8 = r/m reg8?
-val r/m16 = r/m reg16?
-val r/m32 = r/m reg32?
-val r/m64 = r/m reg64?
-val mm/m64 = r/m mm?
-val xmm/m128 = r/m xmm?
-val xmm/m64 = r/m xmm?
-val xmm/m32 = r/m xmm?
-val ymm/m256 = r/m ymm?
+val r/m8 = r/m reg8-rex
+val r/m16 = r/m reg16-rex
+val r/m32 = r/m reg32-rex
+val r/m64 = r/m reg64-rex
+val mm/m64 = r/m mm-rex
+val xmm/m128 = r/m xmm-rex
+val xmm/m64 = r/m xmm-rex
+val xmm/m32 = r/m xmm-rex
+val ymm/m256 = r/m ymm-rex
 
 val reg?/nomem reg? = do
    mod <- query $mod;
@@ -697,8 +662,8 @@ val reg?/nomem reg? = do
       '11': r/m reg?
    end
 end
-val xmm/nomem128 = reg?/nomem xmm?
-val mm/nomem64 = reg?/nomem mm?
+val xmm/nomem128 = reg?/nomem xmm-rex
+val mm/nomem64 = reg?/nomem mm-rex
 
 val m? r/m? = do
    mod <- query $mod;
@@ -721,20 +686,20 @@ val r/ reg? = do
    return ((reg? rexr) r)
 end
 
-val r8 = r/ reg8?
-val r16 = r/ reg16?
-val r32 = r/ reg32?
-val r64 = r/ reg64?
-val mm64 = r/ mm?
-val xmm128 = r/ xmm?
-val ymm256 = r/ ymm?
+val r8 = r/ reg8-rex
+val r16 = r/ reg16-rex
+val r32 = r/ reg32-rex
+val r64 = r/ reg64-rex
+val mm64 = r/ mm-rex
+val xmm128 = r/ xmm-rex
+val ymm256 = r/ ymm-rex
 
 val vex/'mm mmF = do
    vexv <- query $vexv;
    return (mmF (not vexv))
 end
-val vex/xmm = vex/'mm xmmF
-val vex/ymm = vex/'mm ymmF
+val vex/xmm = vex/'mm xmm
+val vex/ymm = vex/'mm ymm
 
 val moffs8 = do
    i <- imm8;
