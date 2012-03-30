@@ -937,7 +937,7 @@ end = struct
          | (SOME _, _, _) => raise InferenceBug
       )
 
-   fun equalizeFlow (env1, env2 as (_,consRef)) =
+   (*fun equalizeFlow (env1, env2 as (_,consRef)) =
       let
          val (bFun, sCons) = !consRef
          fun addEqs (t1, t2, bFun) =
@@ -974,7 +974,7 @@ end = struct
          val bFun = eF (bFun, env1, env2)
       in
          consRef := (bFun, sCons)
-      end
+      end*)
 
    fun genFlow (env1, env2) = case (Scope.unwrap env1, Scope.unwrap env2) of
         ((KAPPA {ty=t1}, (_, consRef1)), (KAPPA {ty=t2}, (_, consRef2))) =>
@@ -985,9 +985,9 @@ end = struct
             fun genImpl ((contra1,f1),(contra2,f2),bf) =
                if contra1<>contra2 then raise InferenceBug else
                if contra1 then
-                  BD.meetVarImpliesVar (f2,f1,bf)
+                  BD.meetVarImpliesVar (f2,f1) bf
                else
-                  BD.meetVarImpliesVar (f1,f2,bf)
+                  BD.meetVarImpliesVar (f1,f2) bf
             (*val _ = if List.length l1=List.length l2 then () else
                   TextIO.print ("*************** genFlow of\n" ^ topToString env1 ^ "\ndoes not match\n" ^ topToString env2)*)
             val (bFun, sCons) = !consRef1

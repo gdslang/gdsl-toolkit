@@ -16,13 +16,13 @@ structure BooleanDomain : sig
 
    exception Unsatisfiable of bvar
    
-   val meetVarImpliesVar : bvar * bvar * bfun -> bfun
+   val meetVarImpliesVar : bvar * bvar -> bfun -> bfun
 
-   val meetNotBoth : bvar * bvar * bfun -> bfun
+   (*val meetNotBoth : bvar * bvar * bfun -> bfun
 
    val meetEither : bvar * bvar * bfun -> bfun
    
-   val meetEqual : bvar * bvar * bfun -> bfun
+   val meetEqual : bvar * bvar * bfun -> bfun*)
 
    val meetVarZero : bvar -> bfun -> bfun
 
@@ -148,7 +148,7 @@ end = struct
          if v1=v2 then addUnits ([v1], f) else f
       ) else (us, CS.add' (if v1<v2 then (v1,v2) else (v2,v1), cs))
    
-   fun meetVarImpliesVar (BVAR v1, BVAR v2, f) = (
+   fun meetVarImpliesVar (BVAR v1, BVAR v2) f = (
       (*TextIO.print ("meet with " ^ i v1 ^ " -> " ^ i v2 ^ "\n");*)
       if v1=v2 then f else addClause ((~v1,v2), f)
       )

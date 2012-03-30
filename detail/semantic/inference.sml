@@ -624,8 +624,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infLit (st,env) (AST.VEClit str) =
          E.pushType (false, VEC (CONST (String.size str)), env)
 
+   (*enforce the size constraints of the primitives*)
    val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes (),
                   SizeConstraint.fromList Primitives.primitiveSizeConstraints)
+
+   (*enforce all flow constraint of the primitives*)
+   val primEnv = List.foldl E.meetBoolean primEnv
+                  Primitives.primitiveFlowConstraints
+   
    (*gather all the field flags of data type declarations and set their fields
    to one and their type vars to zero*)
    val conArgs = (List.mapPartial (fn x => x) o List.concat o
