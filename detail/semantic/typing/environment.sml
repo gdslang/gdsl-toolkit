@@ -833,7 +833,17 @@ end = struct
            | setType t _ = (TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
       in
          case Scope.unwrap env of
-              (KAPPA {ty=t}, env) => Scope.update (sym, setType t, env)
+              (KAPPA {ty=t}, env) =>
+               let
+                  val env = Scope.update (sym, setType t, env)
+                  val bVars = Scope.getBVars env
+                  val (_, consRef) = env
+                  val (bFun, sCons) = !consRef
+                  val bFun = BD.projectOnto (bVars, bFun)
+                  val _ = consRef := (bFun, sCons)
+               in
+                  env
+               end
             | _ => raise InferenceBug
       end
 

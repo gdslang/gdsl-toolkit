@@ -19,6 +19,8 @@ structure Primitives = struct
    val state = freshVar ()
    val state' = newFlow state
    val state'' = newFlow state
+   val state''' = newFlow state
+   val state'''' = newFlow state
    val size = freshVar ()
    val s1 = freshVar ()
    val s2 = freshVar ()
@@ -61,18 +63,20 @@ structure Primitives = struct
    val primitiveValues =
       [{name="true", ty=VEC (CONST 1)},
        {name="false", ty=VEC (CONST 1)},
-       {name="consume", ty=MONAD (VEC size)},
-       {name="unconsume", ty=MONAD UNIT}, 
-       (* TODO *) {name="slice", ty=MONAD (freshVar ())},
-       {name="raise", ty=MONAD (freshVar ())},
+       {name="consume", ty=MONAD (VEC size,newFlow state, newFlow state)},
+       {name="unconsume", ty=MONAD (UNIT,newFlow state, newFlow state)}, 
+       (* TODO *) {name="slice", ty=MONAD (freshVar (),newFlow state, newFlow state)},
+       {name="raise", ty=MONAD (freshVar (),newFlow state, newFlow state)},
        {name=caseExpression, ty=UNIT},
        {name=globalState, ty=state},
        {name=granularity, ty=UNIT},
        (* 'a M -> ('a -> 'b M) -> 'b M *)
-       {name=">>=", ty=FUN (MONAD a, FUN (FUN (a', MONAD b), MONAD b'))},
-       {name="return", ty=FUN (c, MONAD (c'))},
-       {name="update", ty=FUN (FUN (state, state'), MONAD (d))},
-       {name="query", ty=FUN (FUN (state'', e), MONAD (e'))},
+       {name=">>=", ty=FUN (MONAD (a,newFlow state, newFlow state),
+            FUN (FUN (a', MONAD (b,newFlow state, newFlow state)),
+               MONAD (b',newFlow state, newFlow state)))},
+       {name="update", ty=FUN (FUN (state, state'), MONAD (d,state,state'))},
+       {name="query", ty=FUN (FUN (state'', e), MONAD (e',state'',state'''))},
+       {name="return", ty=FUN (c, MONAD (c',state'''',state''''))},
        {name="+", ty=vvv s1},
        {name="-", ty=vvv s2},
        {name="*", ty=vvv s3},
@@ -98,6 +102,7 @@ structure Primitives = struct
    val primitiveFlowConstraints =
       [BD.meetVarZero (bvar size),
        BD.meetVarImpliesVar (bvar state, bvar state'),
+       BD.meetVarImpliesVar (bvar state'', bvar state'''),
        BD.meetVarImpliesVar (bvar a, bvar a'),
        BD.meetVarImpliesVar (bvar b, bvar b'),
        BD.meetVarImpliesVar (bvar c, bvar c'),

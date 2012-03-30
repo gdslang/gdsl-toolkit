@@ -216,7 +216,7 @@ end = struct
                in
                   List.foldl SISet.union SISet.empty (List.map chkField fs)
                end
-           | cFR (MONAD t) = cFR t
+           | cFR (MONAD (r,f,t)) = SISet.union (cFR r, SISet.union (cFR f, cFR t))
            | cFR (VAR _) = SISet.empty
          val s = cFR t
          (*fun showSyms [] = ""
@@ -251,7 +251,7 @@ end = struct
             in
                (eiRef := ei; RECORD (var, b, fs))
             end
-        | aS (MONAD t) = MONAD (aS t)
+        | aS (MONAD (r,f,t)) = MONAD (aS r,aS f,aS t)
         | aS (VAR (var,b)) = if TVar.eq (var, v) then
               case addToExpandInfo (var, b, target, !eiRef) of
                    (WITH_TYPE t,ei) => (eiRef := ei; t)
@@ -443,7 +443,8 @@ end = struct
       in
          unify (v1,v2,l1,l2,s)
       end
-    | mgu (MONAD ty1, MONAD ty2, s) = mgu (ty1, ty2, s)
+    | mgu (MONAD (r1,f1,t1), MONAD (r2,f2,t2), s) =
+         mgu (r1, r2, mgu (f1, f2, mgu (t1, t2, s)))
     | mgu (ALG (ty1, l1), ALG (ty2, l2), s) =
       let fun incompat () = raise UnificationFailure (
             "cannot match constructor " ^

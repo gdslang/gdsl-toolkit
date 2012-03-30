@@ -27,8 +27,8 @@ structure Types = struct
     | ALG of (TypeInfo.symid * texp list)
       (* a record *)
     | RECORD of (TVar.tvar * BD.bvar * rfield list)
-      (* the state monad *)
-    | MONAD of texp
+      (* the state monad: return value, input state, output state *)
+    | MONAD of texp * texp * texp
       (* a type variable *)
     | VAR of TVar.tvar * BD.bvar
  
@@ -48,7 +48,7 @@ structure Types = struct
         | tV (CONST c, vs) = vs
         | tV (ALG (ty, l), vs) = List.foldl tV vs l
         | tV (RECORD (v,_,l), vs) = List.foldl tVF (TVar.add (v,vs)) l
-        | tV (MONAD t, vs) = tV (t, vs)
+        | tV (MONAD (r,f,t), vs) = tV (r, tV (f, tV (t, vs)))
         | tV (VAR (v,_), vs) = TVar.add (v,vs)
       and tVF (RField {name = n, fty = t, exists = b}, vs) = tV (t,vs)
       in (tV (e, vs))
@@ -65,7 +65,7 @@ structure Types = struct
         | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
         | tV co (RECORD (_,b,l), bs) =
          List.foldl (tVF co) (cons ((co,b),bs)) l
-        | tV co (MONAD t, bs) = tV co (t, bs)
+        | tV co (MONAD (r,f,t), bs) = tV co (r, tV (not co) (f, tV co (t, bs)))
         | tV co (VAR (_,v), bs) = cons ((co,v),bs)
       and tVF co (RField {name = n, fty = t, exists = b}, bs) =
          tV co (t, cons ((co,b),bs))
@@ -83,7 +83,7 @@ structure Types = struct
         | tV pn (ALG (ty, l)) = List.foldl (fn (t,pn) => tV pn t) pn l
         | tV (p,n) (RECORD (_,b,l)) = 
             List.foldl (fn (f,pn) => tVF pn f) (p, BD.addToSet (b,n)) l
-        | tV pn (MONAD t) = tV pn (t)
+        | tV pn (MONAD (r,f,t)) = tV (tV (tV pn r) f) t
         | tV (p,n) (VAR (_,b)) = (p, BD.addToSet(b,n))
       and tVF (p,n) (RField {name, fty = t, exists = b}) =
          tV (BD.addToSet (b,p), n) t
@@ -103,7 +103,7 @@ structure Types = struct
         | ff (RECORD (_,b,l)) = (case List.mapPartial ffF l of
               (f :: _) => SOME f
             | [] => NONE)
-        | ff (MONAD t) = ff t
+        | ff (MONAD (r,f,t)) = takeIfSome (r, (takeIfSome (f,ff t)))
         | ff (VAR (b,_)) = NONE
       and ffF (RField {name = n, fty = t, exists = b}) =
          if BD.eq(v,b) then SOME n else ff t
@@ -120,7 +120,8 @@ structure Types = struct
      | setFlagsToTop (ALG (ty, l)) = ALG (ty, List.map setFlagsToTop l)
      | setFlagsToTop (RECORD (var, b, l)) =
          RECORD (var, BD.freshBVar (), List.map setFlagsToTopF l)
-     | setFlagsToTop (MONAD t) = MONAD (setFlagsToTop t)
+     | setFlagsToTop (MONAD (r,f,t)) =
+         MONAD (setFlagsToTop r, setFlagsToTop f, setFlagsToTop t)
      | setFlagsToTop (VAR (var,b)) = VAR (var, BD.freshBVar ())
    and
      setFlagsToTopF (RField {name = n, fty = t, exists = _}) =
@@ -162,7 +163,7 @@ structure Types = struct
                                    showVar v ^ 
                                    (if concisePrint then "" else BD.showVar b)
                                    ^ ":...}"
-      | sT (p, MONAD t) = br (p, p_tyn, "S " ^ sT (p_tyn+1, t))
+      | sT (p, MONAD (r,f,t)) = br (p, p_tyn, "S " ^ sT (p_tyn+1, r))
       | sT (p, VAR (v,b)) = showVar v ^ 
             (if concisePrint then "" else BD.showVar b)
    and showVar var = let 

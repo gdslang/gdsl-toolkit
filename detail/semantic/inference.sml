@@ -85,6 +85,17 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
    fun getSpan {span = s, error = _} = s
+   fun pushMonadType (t,env) =
+      let
+         val tvar = TVar.freshTVar ()
+         val fromBVar = BD.freshBVar ()
+         val toBVar = BD.freshBVar ()
+         val fromVar = VAR (tvar, fromBVar)
+         val toVar = VAR (tvar, toBVar)
+         val env = E.pushType (false, MONAD (t, fromVar, toVar), env)
+      in
+         E.meetBoolean (BD.meetVarImpliesVar (fromBVar, toBVar), env)
+      end
 
    (* define a first traversal that creates a group of all top-level decls *)
    fun topDecl (AST.MARKdecl {span, tree=t}) = topDecl t
@@ -205,7 +216,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
          fun checkGuard (g,env) =
             let
-               val envRef = E.pushType (false, MONAD (VEC (CONST 1)), env)
+               val stateVar = VAR (freshTVar (), BD.freshBVar ())
+               val monadType = MONAD (VEC (CONST 1), stateVar, stateVar)
+               val envRef = E.pushType (false, monadType, env)
                val envGua = infExp (st, env) g
                val (env, _) = E.meet (envRef, envGua)
             handle S.UnificationFailure str =>
@@ -480,8 +493,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infSeqexp (st,env) (AST.ACTIONseqexp e :: l) =
       let
          (*val _ = TextIO.print ("****before monad:\n" ^ E.topToString env)*)
-         val var = VAR (TVar.freshTVar (), BD.freshBVar ())
-         val envMon = E.pushType (false, MONAD var, env)
+         val t = VAR (TVar.freshTVar (), BD.freshBVar ())
+         val envMon = pushMonadType (t,env)
          (*val _ = TextIO.print ("**** monad pattern:\n" ^ E.topToString envMon)*)
          val envExp = infExp (st,env) e
          (*val _ = TextIO.print ("**** monad expression:\n" ^ E.topToString envExp)*)
@@ -498,7 +511,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infSeqexp (st,env) (AST.BINDseqexp (v,e) :: l) =
       let
          val (t,env) = E.pushLambdaVar' (v, env)
-         val envMon = E.pushType (false, MONAD t, env)
+         val envMon = pushMonadType (t, env)
          val envExp = infExp (st,env) e
          val (envMon, envExp) = E.meet (envMon, envExp)
             handle S.UnificationFailure str =>
