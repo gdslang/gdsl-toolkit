@@ -807,52 +807,22 @@ val main [0x66] = do update @{opndsz='1'}; p66 end
 val main [0x67] = do update @{addrsz='1'}; main end
 val main [0xf2] = do update @{repne='1'}; pf2 end
 val main [0xf3] = do update @{rep='1'}; pf3 end
-val main [/rex] = main #Todo: Ignore REX before legacy prefixes
-val main [/vex] = do #Todo: (REX|0x66|0xf2|0xf3) + VEX => Error
+
+val main [0x0f 0x38] = three-byte-opcode-0f-38
+val main [/rex 0x0f 0x38] = three-byte-opcode-0f-38
+val main [0x0f] = two-byte-opcode-0f 
+val main [/rex 0x0f] = two-byte-opcode-0f
+val main [/rex] = one-byte-opcode
+val main [] = one-byte-opcode
+val main [/vex] = do
    vexm <- query $vexm;
    case vexm of
-      '00001': vex-0f
-    | '00010': vex-0f-38
-#   | '00011': vex-0f-3a
-#   | _: main
+      '00001': two-byte-opcode-0f-vex
+    | '00010': three-byte-opcode-0f-38-vex
+#   | '00011': three-byte-opcode-0f-3a-vex
+#   | _: one-byte-opcode
     end
 end
-
-val p66 [0x2e] = do update @{segment=CS}; p66 end
-val p66 [0x36] = do update @{segment=SS}; p66 end
-val p66 [0x3e] = do update @{segment=DS}; p66 end
-val p66 [0x26] = do update @{segment=ES}; p66 end
-val p66 [0x64] = do update @{segment=FS}; p66 end
-val p66 [0x65] = do update @{segment=GS}; p66 end
-val p66 [0x66] = do update @{opndsz='1'}; p66 end
-val p66 [0x67] = do update @{addrsz='1'}; p66 end
-#val p66 [0xf2] = do update @{repne='1'}; ?? end
-#val p66 [0xf3] = do update @{rep='1'}; ?? end
-val p66 [/rex] = p66 #Todo: Ignore REX before legacy prefixes
-
-val pf2 [0x2e] = do update @{segment=CS}; pf2 end
-val pf2 [0x36] = do update @{segment=SS}; pf2 end
-val pf2 [0x3e] = do update @{segment=DS}; pf2 end
-val pf2 [0x26] = do update @{segment=ES}; pf2 end
-val pf2 [0x64] = do update @{segment=FS}; pf2 end
-val pf2 [0x65] = do update @{segment=GS}; pf2 end
-#val pf2 [0x66] = do update @{opndsz='1'}; ?? end
-val pf2 [0x67] = do update @{addrsz='1'}; pf2 end
-val pf2 [0xf2] = do update @{repne='1'}; pf2 end
-#val pf2 [0xf3] = do update @{rep='1'}; ?? end
-val pf2 [/rex] = main #Todo: Ignore REX before legacy prefixes
-
-val  pf3 [0x2e] = do update @{segment=CS}; pf3 end
-val  pf3 [0x36] = do update @{segment=SS}; pf3 end
-val  pf3 [0x3e] = do update @{segment=DS}; pf3 end
-val  pf3 [0x26] = do update @{segment=ES}; pf3 end
-val  pf3 [0x64] = do update @{segment=FS}; pf3 end
-val  pf3 [0x65] = do update @{segment=GS}; pf3 end
-#val pf3 [0x66] = do update @{opndsz='1'}; ?? end
-val  pf3 [0x67] = do update @{addrsz='1'}; pf3 end
-#val pf3 [0xf2] = do update @{repne='1'}; ?? end
-val  pf3 [0xf3] = do update @{rep='1'}; pf3 end
-val  pf3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
 ## Instruction decoders
 
