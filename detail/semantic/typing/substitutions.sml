@@ -14,8 +14,6 @@ structure Substitutions : sig
    
    val isEmpty : Substs -> bool
 
-   val areSubstsSimilar : Substs * Substs -> bool
-
    val showSubstsSI : Substs * TVar.varmap -> string * TVar.varmap
    
    (*raise an exception if the type contains a record with a nested field name*)
@@ -23,10 +21,8 @@ structure Substitutions : sig
    
    type expand_info
    
-   val createExpandInfo : BooleanDomain.bfun -> expand_info
-   val addToExpandInfo : TVar.tvar * BooleanDomain.bvar *
-         Types.texp * expand_info -> Types.texp * expand_info
-   val finalizeExpandInfo : expand_info -> BooleanDomain.bfun
+   val emptyExpandInfo : expand_info
+   val applyExpandInfo : expand_info -> BooleanDomain.bfun -> BooleanDomain.bfun
 
    val applySizeConstraints : SizeConstraint.size_constraint_set * Substs ->
                               SizeConstraint.size_constraint_set * Substs
@@ -34,10 +30,6 @@ structure Substitutions : sig
    val applySubstsToExp : Substs -> Types.texp * expand_info ->
                           Types.texp * expand_info
 
-   (*retrieve a list of Boolean flags within this type and the information if
-   the flag appears in covariant (false) or contravariant (true) position*)
-   val getFlagsForType : Types.texp -> (bool * BooleanDomain.bvar) list
-   
    (*create a fresh type by instantiating the variables in the given type,
    plus those in the third set (meant to expand the decode width variables)
    but without those variable in the first set*)
@@ -125,15 +117,67 @@ end = struct
       end
 
    val emptySubsts = Substs []
-   
-   type expand_info = unit option
 
-   val noExpandInfo = NONE
-   fun createExpandInfo bFun = SOME ()
-   fun addToExpandInfo (tvar, bvar, t, NONE) = (t, NONE)
-     | addToExpandInfo (tvar, bvar, t, SOME ()) = (t, SOME ())
-   fun finalizeExpandInfo (NONE) = BD.empty
-     | finalizeExpandInfo (SOME ()) = BD.empty
+   structure TVMap = RedBlackMapFn (
+      struct
+         type ord_key = TVar.tvar
+         val compare = TVar.compare
+      end)
+
+   type expand_detail = { substVars : BD.bvar list,
+                          instInfo : (BD.bvar * (bool * BD.bvar) list) list }   
+
+   type expand_info = expand_detail TVMap.map
+
+   val emptyExpandInfo = TVMap.empty : expand_info
+
+   fun addToExpandInfo (tvar, bvar, target, ei) =
+      let
+         fun getTargetVars (WITH_TYPE t) = texpBVarset (op ::) (t,[])
+           | getTargetVars (WITH_FIELD (fs,var)) =
+            List.foldl
+               (fn (RField {name = n, fty = t, exists = b},bs) =>
+                  texpBVarset (op ::) (t,(false,b)::bs))
+               [] fs
+         val detail = case TVMap.find (ei, tvar) of
+              SOME detail => detail
+            | NONE => {substVars = List.map #2 (getTargetVars target),
+                       instInfo = []}
+         fun genTargetInstance (WITH_TYPE t) = WITH_TYPE (setFlagsToTop t)
+           | genTargetInstance (WITH_FIELD (fs,var)) =
+               WITH_FIELD (List.map setFlagsToTopF fs, var)
+         val newTarget = genTargetInstance target
+         val newDetail = case detail of { substVars = sVs, instInfo = ii } =>
+               {substVars = sVs,
+                instInfo = (bvar, getTargetVars newTarget) :: ii}
+      in
+         (newTarget, TVMap.insert (ei, tvar, newDetail))
+      end
+
+   fun applyExpandInfo ei bFun =
+      let
+         fun aEI ({substVars = sVs, instInfo = infos}, bFun) =
+            let
+               val bFun = List.foldl
+                     (fn ((_,inst), bFun) =>
+                        BD.expand (sVs, List.map (fn (_,v) => (false,v))
+                                        inst, bFun)
+                     ) bFun infos
+               fun shave (info as ((_ :: _) :: _)) =
+                     SOME (List.map List.hd info, List.map List.tl info)
+                 | shave ([] :: _) = NONE
+                 | shave _ = raise SubstitutionBug
+               val (tvarInfo, insts) = ListPair.unzip infos
+               fun expandTVar (insts,bFun) = case shave insts of
+                    NONE => bFun
+                  | SOME (inst, insts) =>
+                     expandTVar (insts, BD.expand (tvarInfo, inst, bFun))
+            in
+               expandTVar (insts, bFun)
+            end
+      in
+         List.foldl aEI bFun (TVMap.listItems ei)
+      end
 
    fun insertField (f, []) = [f]
      | insertField (f1, f2 :: l) = (case compare_rfield (f1,f2) of
@@ -195,11 +239,13 @@ end = struct
         | aS (ALG (ty, l)) = ALG (ty, List.map aS l)
         | aS (RECORD (var, b, fs)) =
             if TVar.eq (var, v) then
-               case target of
-                   WITH_FIELD (newFs, newVar) =>
-                    RECORD (newVar, b, List.foldl insertField fs newFs)
-                 | WITH_TYPE (VAR (v,b)) => RECORD (v, b, fs)
-                 | WITH_TYPE _ => raise SubstitutionBug
+              case addToExpandInfo (var, b, target, !eiRef) of
+                 (target,ei) => (eiRef := ei; case target of
+                      WITH_FIELD (newFs, newVar) =>
+                       RECORD (newVar, b, List.foldl insertField fs newFs)
+                    | WITH_TYPE (VAR (v,b)) => RECORD (v, b, fs)
+                    | WITH_TYPE _ => raise SubstitutionBug
+                 )
             else let
                val (fs, ei) = applySubstToRFields subst (fs, !eiRef)
             in
@@ -207,14 +253,9 @@ end = struct
             end
         | aS (MONAD t) = MONAD (aS t)
         | aS (VAR (var,b)) = if TVar.eq (var, v) then
-              case target of
-                 WITH_TYPE t =>
-                  let
-                     val (t,ei) = addToExpandInfo (var, b, t, !eiRef)
-                  in
-                     (eiRef := ei; t)
-                  end
-               | WITH_FIELD _ => raise SubstitutionBug
+              case addToExpandInfo (var, b, target, !eiRef) of
+                   (WITH_TYPE t,ei) => (eiRef := ei; t)
+                 | (WITH_FIELD _,ei) => raise SubstitutionBug
            else VAR (var,b)
       in
          (aS exp, !eiRef)
@@ -251,7 +292,7 @@ end = struct
       let
          fun tSubst (v2, WITH_TYPE t2) =
             let
-               val (t, _) = applySubstToExp subst (t2, noExpandInfo)
+               val (t, _) = applySubstToExp subst (t2, emptyExpandInfo)
                val vs = texpVarset (t, TVar.empty)
                (*val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
                val (vsStr, si) = TVar.setToString(vs, si)
@@ -270,7 +311,7 @@ end = struct
             end
            | tSubst (v2, WITH_FIELD (fs, v3)) =
             (v2, WITH_FIELD (List.map (fn f =>
-               case applySubstToRField subst (f,noExpandInfo) of
+               case applySubstToRField subst (f,emptyExpandInfo) of
                   (f,_) => f) fs, v3))
          (*val (vStr,si) = TVar.varToString (v,TVar.emptyShowInfo)
          val (tStr,si) = showTypeSI (t,si)
@@ -311,7 +352,6 @@ end = struct
                 SC.RESULT (is,sCons) =>
                   (sCons, List.foldl (fn ((v,c), substs) =>
                      addSubst (v,WITH_TYPE (CONST c)) substs) substs is)
-               | SC.REDUNDANT => (sCons, substs)
                | SC.UNSATISFIABLE => raise UnificationFailure
                   "size constraints over vectors are unsatisfiable"
                | SC.FRACTIONAL => raise UnificationFailure
@@ -326,41 +366,6 @@ end = struct
          List.foldl updateSubsts (sCons, substs) ss
       end
 
-   fun setFlagsToTop (FUN (f1, f2)) = FUN (setFlagsToTop f1, setFlagsToTop f2)
-     | setFlagsToTop (SYN (syn, t)) = SYN (syn, setFlagsToTop t)
-     | setFlagsToTop (ZENO) = ZENO
-     | setFlagsToTop (FLOAT) = FLOAT
-     | setFlagsToTop (UNIT) = UNIT
-     | setFlagsToTop (VEC t) = VEC (setFlagsToTop t)
-     | setFlagsToTop (CONST c) = CONST c
-     | setFlagsToTop (ALG (ty, l)) = ALG (ty, List.map setFlagsToTop l)
-     | setFlagsToTop (RECORD (var, b, l)) =
-         RECORD (var, BD.freshBVar (), List.map setFlagsToTopF l)
-     | setFlagsToTop (MONAD t) = MONAD (setFlagsToTop t)
-     | setFlagsToTop (VAR (var,b)) = VAR (var, BD.freshBVar ())
-   and
-     setFlagsToTopF (RField {name = n, fty = t, exists = _}) =
-        RField {name = n, fty =  setFlagsToTop t, exists = BD.freshBVar ()}
-
-   fun getFlags con (FUN (f1, f2)) = getFlags (not con) f1 @ getFlags con f2
-     | getFlags con (SYN (syn, t)) = getFlags con t
-     | getFlags con (ZENO) = []
-     | getFlags con (FLOAT) = []
-     | getFlags con (UNIT) = []
-     | getFlags con (VEC t) = getFlags con t
-     | getFlags con (CONST c) = []
-     | getFlags con (ALG (ty, l)) =
-         List.concat (List.map (getFlags con) l)
-     | getFlags con (RECORD (var, b, l)) =
-         (con,b) :: List.concat (List.map (getFlagsF con) l)
-     | getFlags con (MONAD t) = getFlags con t
-     | getFlags con (VAR (var,b)) = [(con,b)]
-   and
-     getFlagsF con (RField {name = n, fty = t, exists = b}) =
-       (con,b) :: getFlags con t
-   
-   val getFlagsForType = getFlags false
-   
    fun instantiateType (vs,t,extraTVars,bFun,sCons) =
       let
          val toReplace = TVar.difference (texpVarset (t, extraTVars), vs)
@@ -378,9 +383,9 @@ end = struct
          val (scStr1,si) = SC.toStringSI (sCons, NONE, si)
          val (scStr2,si) = SC.toStringSI (mergedSCons, NONE, si)
          val _ = TextIO.print ("instantiating " ^ tStr ^ " using " ^ suStr ^ ", extending " ^ scStr1 ^ " to " ^ scStr2 ^ "\n")*)
-         val (t,ei) = applySubstsToExp substs (t, createExpandInfo bFun)
+         val (t,ei) = applySubstsToExp substs (t, emptyExpandInfo)
       in
-         (t, finalizeExpandInfo ei, mergedSCons)
+         (t, applyExpandInfo ei bFun, mergedSCons)
       end
 
    fun mgu (FUN (f1, f2), FUN (g1, g2), s) = mgu (f2, g2, mgu (f1, g1, s))
@@ -460,7 +465,7 @@ end = struct
                case findSubstForVar (v,s) of
                     NONE => 
                      let
-                       val (e, _) = applySubstsToExp s (e, noExpandInfo)
+                       val (e, _) = applySubstsToExp s (e, emptyExpandInfo)
                      in
                         addSubst (v,WITH_TYPE e) s
                      end
@@ -475,7 +480,7 @@ end = struct
          (case findSubstForVar (v,s) of
               NONE =>
                let
-                 val (e, _) = applySubstsToExp s (e, noExpandInfo)
+                 val (e, _) = applySubstsToExp s (e, emptyExpandInfo)
                in
                   addSubst (v,WITH_TYPE e) s
                end
@@ -514,25 +519,5 @@ end = struct
       in
          ("unifying t1=" ^ t1Str ^ "\nwith     t2=" ^ t2Str ^ "\n" ^ sStr)
       end
-
-   fun areSubstsSimilar (Substs ss1, Substs ss2) =
-      let
-         fun isSubstsRenaming (Substs ss) =
-            List.all (fn (v,st) => case st of
-                 WITH_TYPE (VAR _) => true
-               | WITH_TYPE _ => false
-               | WITH_FIELD _ => false) ss
-         fun findSimilar (_,WITH_TYPE t1) =
-            List.exists (fn (_,st) => case st of
-                 WITH_TYPE t2 => isSubstsRenaming (mgu (t1,t2,emptySubsts))
-               | WITH_FIELD _ => false) ss1
-           | findSimilar (_,WITH_FIELD (fs1,_)) =
-            List.exists (fn (_,st) => case st of
-                 WITH_TYPE _ => false
-               | WITH_FIELD (fs2,_) => false) ss1
-      in
-         List.all findSimilar ss2
-      end
-
 
 end

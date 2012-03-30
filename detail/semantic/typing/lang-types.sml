@@ -8,8 +8,6 @@ structure Types = struct
 
    val concisePrint = true
 
-   type size_constraint = { pos : TVar.tvar list, neg : TVar.tvar list, const : int}
-
    datatype texp =
       (* a function *)
       FUN of (texp * texp)
@@ -55,6 +53,78 @@ structure Types = struct
       and tVF (RField {name = n, fty = t, exists = b}, vs) = tV (t,vs)
       in (tV (e, vs))
    end
+
+   fun texpBVarset cons (e, bs) = let
+      fun tV co (FUN (f1, f2), bs) = tV co (f2, tV (not co) (f1, bs))
+        | tV co (SYN (syn, t), bs) = tV co (t, bs)
+        | tV co (ZENO, bs) = bs
+        | tV co (FLOAT, bs) = bs
+        | tV co (UNIT, bs) = bs
+        | tV co (VEC t, bs) = tV co (t, bs)
+        | tV co (CONST c, bs) = bs
+        | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
+        | tV co (RECORD (_,b,l), bs) =
+         List.foldl (tVF co) (cons ((co,b),bs)) l
+        | tV co (MONAD t, bs) = tV co (t, bs)
+        | tV co (VAR (_,v), bs) = cons ((co,v),bs)
+      and tVF co (RField {name = n, fty = t, exists = b}, bs) =
+         tV co (t, cons ((co,b),bs))
+      in (tV false (e, bs))
+   end
+
+   fun fieldBVarsets (e, pn) = let
+      fun tV pn (FUN (f1, f2)) = tV (tV pn f2) f1
+        | tV pn (SYN (syn, t)) = tV pn t
+        | tV pn (ZENO) = pn
+        | tV pn (FLOAT) = pn
+        | tV pn (UNIT) = pn
+        | tV pn (VEC t) = tV pn t
+        | tV pn (CONST c) = pn
+        | tV pn (ALG (ty, l)) = List.foldl (fn (t,pn) => tV pn t) pn l
+        | tV (p,n) (RECORD (_,b,l)) = 
+            List.foldl (fn (f,pn) => tVF pn f) (p, BD.addToSet (b,n)) l
+        | tV pn (MONAD t) = tV pn (t)
+        | tV (p,n) (VAR (_,b)) = (p, BD.addToSet(b,n))
+      and tVF (p,n) (RField {name, fty = t, exists = b}) =
+         tV (BD.addToSet (b,p), n) t
+      in (tV pn e)
+   end
+
+   fun fieldOfBVar (v, e) = let
+      fun takeIfSome (t,fo) = case ff t of SOME f => SOME f | NONE => fo
+      and ff (FUN (f1, f2)) = takeIfSome (f1, ff f2)
+        | ff (SYN (syn, t)) = ff t
+        | ff (ZENO) = NONE
+        | ff (FLOAT) = NONE
+        | ff (UNIT) = NONE
+        | ff (VEC t) = ff t
+        | ff (CONST c) = NONE
+        | ff (ALG (ty, l)) = List.foldl takeIfSome NONE l
+        | ff (RECORD (_,b,l)) = (case List.mapPartial ffF l of
+              (f :: _) => SOME f
+            | [] => NONE)
+        | ff (MONAD t) = ff t
+        | ff (VAR (b,_)) = NONE
+      and ffF (RField {name = n, fty = t, exists = b}) =
+         if BD.eq(v,b) then SOME n else ff t
+      in ff e
+   end
+
+   fun setFlagsToTop (FUN (f1, f2)) = FUN (setFlagsToTop f1, setFlagsToTop f2)
+     | setFlagsToTop (SYN (syn, t)) = SYN (syn, setFlagsToTop t)
+     | setFlagsToTop (ZENO) = ZENO
+     | setFlagsToTop (FLOAT) = FLOAT
+     | setFlagsToTop (UNIT) = UNIT
+     | setFlagsToTop (VEC t) = VEC (setFlagsToTop t)
+     | setFlagsToTop (CONST c) = CONST c
+     | setFlagsToTop (ALG (ty, l)) = ALG (ty, List.map setFlagsToTop l)
+     | setFlagsToTop (RECORD (var, b, l)) =
+         RECORD (var, BD.freshBVar (), List.map setFlagsToTopF l)
+     | setFlagsToTop (MONAD t) = MONAD (setFlagsToTop t)
+     | setFlagsToTop (VAR (var,b)) = VAR (var, BD.freshBVar ())
+   and
+     setFlagsToTopF (RField {name = n, fty = t, exists = _}) =
+        RField {name = n, fty = setFlagsToTop t, exists = BD.freshBVar ()}
 
    fun compare_rfield (RField f1, RField f2) =
      SymbolTable.compare_symid (#name f1, #name f2)

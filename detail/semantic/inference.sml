@@ -120,8 +120,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      (Error.errorAt (errStrm, s, [str,
                      " when checking call to ",
                      SymbolTable.getString(!SymbolTables.varTable, sym),
-                     "\ncall requires type  " ^ sCall,
-                     "\ndefinition has type " ^ sFun]))
+                     "\n\tcall requires type  " ^ sCall,
+                     "\n\tdefinition has type " ^ sFun]))
                   end
                (*warn about refinement of definition due to a call site*)
                fun raiseWarning (substs, syms) =
@@ -146,7 +146,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      "call to ",
                      SymbolTable.getString(!SymbolTables.varTable, sym),
                      " requires refinement ", sSubst,
-                     "\nfor " ^ symsStr]))
+                     "\n\tfor " ^ symsStr]))
                   end
                val (substs, (env, _)) = (E.subseteq (envCall, envFun),
                                          E.meet (envCall, envFun))
@@ -194,7 +194,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             (Error.errorAt (errStrm, s, [
             "no typing found for ",
             symsStr,
-            "\npass --inference-iterations=",
+            "\n\tpass --inference-iterations=",
             Int.toString (maxIter+1),
             " to try a little harder"]); env)
          end
@@ -374,7 +374,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                             envFun, "to function " ^ showProg (20, PP.exp, e1))
          val _ = E.genFlow (envArgRes, envFun)
          val env = E.reduceToResult envFun
-         (*val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)*)
+         (*val _ = TextIO.print ("**** app fun unified:\n" ^ E.topToString envFun)
+         val _ = TextIO.print ("**** app arg unified:\n" ^ E.topToString envArgRes)*)
       in
          env                                                         
       end
@@ -394,9 +395,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                ((bVar, fid) :: nts, env)
             end
          val (nts, env) = List.foldl pushField ([], env) l
-         (*val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")*)
+         (*val _ = TextIO.print ("**** rec exp, single fields:\n" ^ E.toString env ^ "\n")*)
          val env = E.reduceToRecord (nts, env)
-         (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
+         (*val _ = TextIO.print ("**** rec exp, combined:\n" ^ E.toString env ^ "\n")*)
       in
          env
       end
@@ -413,7 +414,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf, env)
          val env = E.reduceToFunction env
-         (*val _ = TextIO.print ("**** after func reduce:\n" ^ E.toString env ^ "\n")*)
+         (*val _ = TextIO.print ("**** rec selector:\n" ^ E.toString env ^ "\n")*)
       in
          env
       end
@@ -625,6 +626,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes (),
                   SizeConstraint.fromList Primitives.primitiveSizeConstraints)
+   (*gather all the field flags of data type declarations and set their fields
+   to one and their type vars to zero*)
+   val conArgs = (List.mapPartial (fn x => x) o List.concat o
+                 List.map (fn cd => SymMap.listItems (#tdCons cd))
+                 ) (SymMap.listItems typeDefs)
+   val (posFlags, negFlags) = List.foldl
+         fieldBVarsets (BD.emptySet, BD.emptySet) conArgs
+   val primEnv = E.meetBoolean (BD.meetVarSetOne posFlags o
+                                BD.meetVarSetZero negFlags, primEnv)
    val toplevelEnv = E.pushGroup
       (List.concat
          (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))

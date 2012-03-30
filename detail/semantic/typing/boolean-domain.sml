@@ -14,7 +14,7 @@ structure BooleanDomain : sig
    
    val showBFun : bfun -> string
 
-   exception Unsatisfiable
+   exception Unsatisfiable of bvar
    
    val meetVarImpliesVar : bvar * bvar * bfun -> bfun
 
@@ -22,12 +22,18 @@ structure BooleanDomain : sig
 
    val meetEither : bvar * bvar * bfun -> bfun
    
+   val meetEqual : bvar * bvar * bfun -> bfun
+
    val meetVarZero : bvar -> bfun -> bfun
 
    val meetVarOne : bvar -> bfun -> bfun
 
    type bvarset
    
+   val meetVarSetZero : bvarset -> bfun -> bfun
+
+   val meetVarSetOne : bvarset -> bfun -> bfun
+
    val emptySet : bvarset
    
    val addToSet : bvar * bvarset -> bvarset
@@ -81,8 +87,8 @@ end = struct
    type clauses = Clauses.set
    structure CS = Clauses
 
-   type units = IntBinarySet.set
-   structure US = IntBinarySet
+   type units = IntListSet.set
+   structure US = IntListSet
 
    type bfun = units * clauses
    
@@ -102,22 +108,23 @@ end = struct
             if v2<0 andalso v2<0 then "!" ^ i (~v1) ^ "v!" ^ i (~v2) else
             "error") ^ " "
          ) ""
-   fun showBFun (us, cs) = "\n" ^ showUS us ^ "\n" ^ showCS cs
+   fun showBFun (us, cs) = "units: " ^ showUS us ^ "\nimpl: " ^ showCS cs
 
-   exception Unsatisfiable
+   exception Unsatisfiable of bvar
    
    fun addUnits ([], f) = f
      | addUnits (v :: vs, f as (us, cs)) = (
      (*TextIO.print ("\nasserting " ^ i v ^ " in:" ^ showBFun f);*)
-      if US.member (us,~v) then raise Unsatisfiable else
+      if US.member (us,~v) then raise (Unsatisfiable (BVAR (abs v))) else
       if US.member (us, v) then addUnits (vs, f) else
       let
          fun hasV (v1,v2) = v1=v orelse v1= ~v orelse v2=v orelse v2= ~v
          val (withV, withoutV) = CS.partition hasV cs
          fun ins v vs =
             if List.exists (fn v' => v'=v) vs then vs else
-            if List.exists (fn v' => v'= ~v) vs then raise Unsatisfiable else
-            v :: vs
+            if List.exists (fn v' => v'= ~v) vs then
+               raise Unsatisfiable (BVAR (abs v)) 
+            else v :: vs
          fun calcUnits ((v1,v2), units) = (
             (*TextIO.print ("\nlooking at " ^ i v1 ^ " v " ^ i v2);*)
             if v= ~v1 then ins v2 units else
@@ -142,11 +149,13 @@ end = struct
       ) else (us, CS.add' (if v1<v2 then (v1,v2) else (v2,v1), cs))
    
    fun meetVarImpliesVar (BVAR v1, BVAR v2, f) = (
-      (*TextIO.print ("\nmeet with " ^ i v1 ^ " -> " ^ i v2 ^ "\n");*)
+      (*TextIO.print ("meet with " ^ i v1 ^ " -> " ^ i v2 ^ "\n");*)
       if v1=v2 then f else addClause ((~v1,v2), f)
       )
    fun meetNotBoth (BVAR v1, BVAR v2, f) = addClause ((~v1,~v2),f)
    fun meetEither (BVAR v1, BVAR v2, f) = addClause ((v1,v2),f)
+   fun meetEqual  (BVAR v1, BVAR v2, f) =
+      if v1=v2 then f else addClause ((~v1,~v2), addClause ((v1,v2),f))
 
    fun meetVarOne (BVAR v) f = (
          (*TextIO.print ("\nmeet with " ^ i v ^ " = t\n");*)
@@ -156,7 +165,7 @@ end = struct
          (*TextIO.print ("\nmeet with " ^ i v ^ " = f\n");*)
          addUnits ([~v], f)
          )
-   
+
    fun resolve ([], (us, cs)) = (us, cs)
      | resolve (v :: vs, (us, cs)) =
      let
@@ -176,6 +185,14 @@ end = struct
    structure IS = IntBinarySet
    type bvarset = IS.set
    
+   fun meetVarSetOne is f = (
+         addUnits (IS.listItems is, f)
+         )
+   fun meetVarSetZero is f = (
+         addUnits (List.map (~) (IS.listItems is), f)
+         )
+   
+
    val emptySet = IS.empty
    fun addToSet (BVAR v, set) = IS.add' (v,set)
    
@@ -203,19 +220,19 @@ end = struct
          fun trans v = case HT.find h (Int.abs v) of
                           NONE => NONE
                         | SOME v' => SOME (if v<0 then ~v' else v')
-         val us = US.foldl (fn (v,set) => case trans v of
+         val newUnits = US.foldl (fn (v,set) => case trans v of
                           NONE => set
-                        | SOME v => US.add' (v,set))
-                  us us
-         val cs = CS.foldl (fn ((v1,v2),set) =>
+                        | SOME v => v :: set
+                     ) [] us
+         val newClauses = CS.foldl (fn ((v1,v2),set) =>
                case (trans v1, trans v2) of
                     (NONE, NONE) => set
-                  | (SOME v1, NONE) => CS.add' ((v1,v2),set)
-                  | (NONE, SOME v2) => CS.add' ((v1,v2),set)
-                  | (SOME v1, SOME v2) => CS.add' ((v1,v2),set))
-               cs cs
+                  | (SOME v1, NONE) => (v1,v2) :: set
+                  | (NONE, SOME v2) => (v1,v2) :: set
+                  | (SOME v1, SOME v2) => (v1,v2) :: set
+               ) [] cs
       in
-         (us, cs)
+         List.foldl addClause (addUnits (newUnits, (us, cs))) newClauses
       end
    
    fun meet ((us, cs), f) =
