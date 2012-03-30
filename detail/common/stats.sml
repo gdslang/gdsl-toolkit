@@ -35,7 +35,7 @@ structure Stats :> sig
 
     val nextCounter = ref 0
     val verbose = ref false
-    val reportStats = ref false
+    val reportStats = ref true
 
     type counter = int
 
@@ -80,12 +80,10 @@ structure Stats :> sig
 		  then let
 		    val n = Array.sub(counters, i)
 		    in
-		      if n > 0
-			then prl [
+			 prl [
 			    StringCvt.padRight #" " 31 (Array.sub(names, i)),
-			    " ", Int.toString n, "\n"
-			  ]
-			else ();
+			    "=", Int.toString n, "\n"
+			  ];
 		      lp (i+1)
 		    end
 		  else ()

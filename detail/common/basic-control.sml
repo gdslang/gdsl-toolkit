@@ -213,9 +213,9 @@ structure BasicControl :  sig
 		val post = if Controls.get keepPassCtl
 		      then let
 			val fileName = (case Controls.get keepPassBaseName
-			       of NONE => concat [passName, Int.toString count]
+			       of NONE => concat [passName, ".", Int.toString count]
 				| SOME baseName => concat [
-				      baseName, ".", passName, Int.toString count
+				      baseName, ".", passName, ".", Int.toString count
 				    ]
 			      (* end case *))
 			val outPre = openOut (concat [fileName, ".pre.", preExt])

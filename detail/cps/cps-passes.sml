@@ -1,5 +1,8 @@
 
-structure BetaFunLinPass = MkCPSPass (BetaFunLin)
+structure BetaFunPass = MkCPSPass (BetaFun)
+structure BetaRecPass = MkCPSPass (BetaRec)
+structure BetaContPass = MkCPSPass (BetaCont)
+structure DeadValPass = MkCPSPass (DeadVal)
 
 structure CPSPasses : sig
    val run:
@@ -12,9 +15,17 @@ end = struct
    open CM
    infix >>=
 
+   fun allBeta cps =
+      BetaRecPass.run cps >>=
+      BetaFunPass.run >>=
+      BetaContPass.run >>=
+      DeadValPass.run
+
    fun all s = 
       FromCore.run s >>=
-      BetaFunLinPass.run
+      allBeta >>=
+      allBeta >>=
+      allBeta
 
    fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, CPS.PP.spec spec)

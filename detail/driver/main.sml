@@ -15,10 +15,11 @@ structure Main = struct
          val ins = TextIO.openIn fp
          val ers = Error.mkErrStream fp
          val () = Controls.set (BasicControl.verbose, 1)
+         val () = Stats.resetAll()
       in
          CompilationMonad.run ers (all ins >> return ())
             before
-               TextIO.closeIn ins
+               (TextIO.closeIn ins; Stats.report())
       end
 
       fun allTc ins = 

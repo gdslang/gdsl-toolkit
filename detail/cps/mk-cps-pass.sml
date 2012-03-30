@@ -10,6 +10,8 @@ functor MkCPSPass (Core: CPSCORE) = struct
 
    structure CM = CompilationMonad
 
+   val clicks = Stats.newCounter ("cps." ^ Core.name ^ ".clicks")
+
    fun dumpPre (os, cps) = Pretty.prettyTo (os, CPS.PP.term cps)
    fun dumpPost (os, t) = let
       open Layout Pretty
@@ -33,6 +35,14 @@ functor MkCPSPass (Core: CPSCORE) = struct
           postExt="ast",
           postOutput=dumpPost}
 
-   fun run spec = CM.return (Spec.upd (#1 o pass) spec)
-
+   fun run spec =
+      CM.return
+         (Spec.upd
+            (fn cps =>
+               let
+                  val (cps, cnt) = pass cps
+                  val () = Stats.bump (clicks, cnt)
+               in
+                  cps
+               end) spec)
 end

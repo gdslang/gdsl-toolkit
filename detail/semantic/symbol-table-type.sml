@@ -136,3 +136,4 @@ structure ord_symid = struct
 end
 
 structure SymMap = RedBlackMapFn(ord_symid)
+structure SymSet = RedBlackSetFn(ord_symid)
