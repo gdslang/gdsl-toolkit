@@ -21,7 +21,10 @@ structure Environment : sig
    is a decoder function*)
    val pushGroup : (VarInfo.symid * bool) list * environment ->
                   environment
-   (*the flag is true if the outermost scope should be kept*)
+   (*remove a binding group from the stack; the flag is true if the outermost
+   scope should be kept, the result is a list of error messages about
+   ambiguous type variables and a list with types of the symbols in this
+   group*)
    val popGroup : environment * bool ->
                   (Error.span * string) list *
                   (VarInfo.symid * symbol_type) list * environment
@@ -46,7 +49,7 @@ structure Environment : sig
    (*stack: [...] -> [...,t] where t is type of usage of f at call-site s*)
    val pushUsage : VarInfo.symid * Error.span * environment -> environment
    
-   (*stack: [...] -> [..., x:a], a fresh*)
+   (*stack: [...] -> [..., x:a], 'a' fresh; primed version also returns 'a'*)
    val pushLambdaVar' : VarInfo.symid * environment -> (Types.texp * environment)
    val pushLambdaVar : VarInfo.symid * environment -> environment
    
@@ -398,6 +401,8 @@ end = struct
             val remVars = Scope.getVars env
             val (_, consRef) = env
             val (bFun, sCons) = !consRef
+            (*figure out if there are any function usages that have unresolved
+            type variables that relate to sizes*)
             val curVars = SC.getVarset sCons
             val unbounded = TVar.difference (curVars,remVars)
             (*val _ = TextIO.print ("unbounded vars: " ^ #1 (TVar.setToString (unbounded,TVar.emptyShowInfo)) ^ "\n")*)
@@ -426,12 +431,17 @@ end = struct
                            not (TVar.isEmpty (TVar.intersection
                               (texpVarset (t,TVar.empty), unbounded)))
                            ) us))) bs)
+            (*create a list of functions and their types*)
             val funList = List.map (fn {name = n, ty = t, width = w, uses = _} =>
                case (t,w) of
                     (SOME t, NONE) => (n, VALUE {symType = t})
                   | (SOME t, SOME w) => (n, DECODE {symType = t, width = w})
                   | _ => raise InferenceBug
                ) bs
+            (*project out variables from the size and Boolean domains that are
+            no longer needed*)
+            val sCons = SC.filter (remVars, sCons)
+            val _ = consRef := (bFun, sCons)
          in
             (badSizes, funList, env)
          end
@@ -557,11 +567,18 @@ end = struct
                | NONE => TVar.empty
             val (t,bFun,sCons) = instantiateType (tvs, t, decVars, bFun, sCons)
             val env = (scs,consRef)
+            (*we need to record the usage sites of all functions (primitives,
+            really) that have explicity size constraints in order to be able
+            to later generate error messages for ambiguous uses of these
+            functions*)
             fun action (COMPOUND {ty, width, uses},consRef) =
                (COMPOUND {ty = ty, width = width,
                 uses = SpanMap.insert (uses, span, t)}, consRef)
               | action _ = raise InferenceBug
-            val env = Scope.update (sym, action, env)
+            val env =
+               if TVar.isEmpty (TVar.intersection (decVars, SC.getVarset sCons))
+               then env
+               else Scope.update (sym, action, env)
          in
             (consRef := (bFun,sCons); Scope.wrap (KAPPA {ty = t}, env))
          end
