@@ -34,6 +34,8 @@ structure Environment : sig
    are renamed*)
    val pushType : bool * Types.texp * environment -> environment
 
+   val pushMonadType : Types.texp * environment -> environment
+   
    (* push the width of a decode onto the stack*)
    val pushWidth : VarInfo.symid * environment -> environment
 
@@ -484,6 +486,22 @@ end = struct
          (consRef := (bFun,sCons); Scope.wrap (KAPPA {ty = t}, (scs, consRef)))
       end
      | pushType (false, t, env) = Scope.wrap (KAPPA {ty = t}, env)
+
+   fun pushMonadType (t, (scs, consRef)) =
+      let
+         val (bFun, sCons) = !consRef
+         val tvar = TVar.freshTVar ()
+         val fromBVar = BD.freshBVar ()
+         val toBVar = BD.freshBVar ()
+         val fromVar = VAR (tvar, fromBVar)
+         val toVar = VAR (tvar, toBVar)
+         val bFun = BD.meetVarImpliesVar (fromBVar, toBVar) bFun
+         val (t,bFun,sCons) =
+            instantiateType (texpVarset(t,TVar.empty),t,TVar.empty,bFun,sCons)
+         val _ = consRef := (bFun,sCons)
+      in
+         Scope.wrap (KAPPA {ty = MONAD (t, fromVar, toVar)}, (scs, consRef))
+      end
 
    fun pushWidth (sym, env) =
       (case Scope.lookup (sym,env) of
