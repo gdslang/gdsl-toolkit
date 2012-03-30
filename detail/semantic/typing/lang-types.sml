@@ -65,7 +65,7 @@ structure Types = struct
         | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
         | tV co (RECORD (_,b,l), bs) =
          List.foldl (tVF co) (cons ((co,b),bs)) l
-        | tV co (MONAD (r,f,t), bs) = tV co (r, tV (not co) (f, tV co (t, bs)))
+        | tV co (MONAD (r,f,t), bs) = tV co (r, bs) (*tV (not co) (f, tV co (t, bs)))*)
         | tV co (VAR (_,v), bs) = cons ((co,v),bs)
       and tVF co (RField {name = n, fty = t, exists = b}, bs) =
          tV co (t, cons ((co,b),bs))
