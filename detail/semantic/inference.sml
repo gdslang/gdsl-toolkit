@@ -85,6 +85,17 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
    fun getSpan {span = s, error = _} = s
+   fun pushMonadType (t,env) =
+      let
+         val tvar = TVar.freshTVar ()
+         val fromBVar = BD.freshBVar ()
+         val toBVar = BD.freshBVar ()
+         val fromVar = VAR (tvar, fromBVar)
+         val toVar = VAR (tvar, toBVar)
+         val env = E.pushType (false, MONAD (t, fromVar, toVar), env)
+      in
+         E.meetBoolean (BD.meetVarImpliesVar (fromBVar, toBVar), env)
+      end
 
    (* define a first traversal that creates a group of all top-level decls *)
    fun topDecl (AST.MARKdecl {span, tree=t}) = topDecl t
@@ -120,8 +131,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      (Error.errorAt (errStrm, s, [str,
                      " when checking call to ",
                      SymbolTable.getString(!SymbolTables.varTable, sym),
-                     "\ncall requires type  " ^ sCall,
-                     "\ndefinition has type " ^ sFun]))
+                     "\n\tcall requires type  " ^ sCall,
+                     "\n\tdefinition has type " ^ sFun]))
                   end
                (*warn about refinement of definition due to a call site*)
                fun raiseWarning (substs, syms) =
@@ -146,7 +157,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      "call to ",
                      SymbolTable.getString(!SymbolTables.varTable, sym),
                      " requires refinement ", sSubst,
-                     "\nfor " ^ symsStr]))
+                     "\n\tfor " ^ symsStr]))
                   end
                val (substs, (env, _)) = (E.subseteq (envCall, envFun),
                                          E.meet (envCall, envFun))
@@ -194,7 +205,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             (Error.errorAt (errStrm, s, [
             "no typing found for ",
             symsStr,
-            "\npass --inference-iterations=",
+            "\n\tpass --inference-iterations=",
             Int.toString (maxIter+1),
             " to try a little harder"]); env)
          end
@@ -205,7 +216,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
          fun checkGuard (g,env) =
             let
-               val envRef = E.pushType (false, MONAD (VEC (CONST 1)), env)
+               val stateVar = VAR (freshTVar (), BD.freshBVar ())
+               val monadType = MONAD (VEC (CONST 1), stateVar, stateVar)
+               val envRef = E.pushType (false, monadType, env)
                val envGua = infExp (st, env) g
                val (env, _) = E.meet (envRef, envGua)
             handle S.UnificationFailure str =>
@@ -374,7 +387,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                             envFun, "to function " ^ showProg (20, PP.exp, e1))
          val _ = E.genFlow (envArgRes, envFun)
          val env = E.reduceToResult envFun
-         (*val _ = TextIO.print ("**** app result:\n" ^ E.topToString env)*)
+         (*val _ = TextIO.print ("**** app fun unified:\n" ^ E.topToString envFun)
+         val _ = TextIO.print ("**** app arg unified:\n" ^ E.topToString envArgRes)*)
       in
          env                                                         
       end
@@ -394,9 +408,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                ((bVar, fid) :: nts, env)
             end
          val (nts, env) = List.foldl pushField ([], env) l
-         (*val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")*)
+         (*val _ = TextIO.print ("**** rec exp, single fields:\n" ^ E.toString env ^ "\n")*)
          val env = E.reduceToRecord (nts, env)
-         (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
+         (*val _ = TextIO.print ("**** rec exp, combined:\n" ^ E.toString env ^ "\n")*)
       in
          env
       end
@@ -413,7 +427,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf, env)
          val env = E.reduceToFunction env
-         (*val _ = TextIO.print ("**** after func reduce:\n" ^ E.toString env ^ "\n")*)
+         (*val _ = TextIO.print ("**** rec selector:\n" ^ E.toString env ^ "\n")*)
       in
          env
       end
@@ -479,8 +493,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infSeqexp (st,env) (AST.ACTIONseqexp e :: l) =
       let
          (*val _ = TextIO.print ("****before monad:\n" ^ E.topToString env)*)
-         val var = VAR (TVar.freshTVar (), BD.freshBVar ())
-         val envMon = E.pushType (false, MONAD var, env)
+         val t = VAR (TVar.freshTVar (), BD.freshBVar ())
+         val envMon = pushMonadType (t,env)
          (*val _ = TextIO.print ("**** monad pattern:\n" ^ E.topToString envMon)*)
          val envExp = infExp (st,env) e
          (*val _ = TextIO.print ("**** monad expression:\n" ^ E.topToString envExp)*)
@@ -497,7 +511,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infSeqexp (st,env) (AST.BINDseqexp (v,e) :: l) =
       let
          val (t,env) = E.pushLambdaVar' (v, env)
-         val envMon = E.pushType (false, MONAD t, env)
+         val envMon = pushMonadType (t, env)
          val envExp = infExp (st,env) e
          val (envMon, envExp) = E.meet (envMon, envExp)
             handle S.UnificationFailure str =>
@@ -623,8 +637,23 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infLit (st,env) (AST.VEClit str) =
          E.pushType (false, VEC (CONST (String.size str)), env)
 
+   (*enforce the size constraints of the primitives*)
    val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes (),
                   SizeConstraint.fromList Primitives.primitiveSizeConstraints)
+
+   (*enforce all flow constraint of the primitives*)
+   val primEnv = List.foldl E.meetBoolean primEnv
+                  Primitives.primitiveFlowConstraints
+   
+   (*gather all the field flags of data type declarations and set their fields
+   to one and their type vars to zero*)
+   val conArgs = (List.mapPartial (fn x => x) o List.concat o
+                 List.map (fn cd => SymMap.listItems (#tdCons cd))
+                 ) (SymMap.listItems typeDefs)
+   val (posFlags, negFlags) = List.foldl
+         fieldBVarsets (BD.emptySet, BD.emptySet) conArgs
+   val primEnv = E.meetBoolean (BD.meetVarSetOne posFlags o
+                                BD.meetVarSetZero negFlags, primEnv)
    val toplevelEnv = E.pushGroup
       (List.concat
          (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))

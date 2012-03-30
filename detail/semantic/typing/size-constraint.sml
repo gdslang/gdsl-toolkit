@@ -8,7 +8,6 @@ structure SizeConstraint : sig
 
    datatype instantiation
       = RESULT of (TVar.tvar * int) list * size_constraint_set
-      | REDUNDANT
       | UNSATISFIABLE
       | FRACTIONAL
       | NEGATIVE
@@ -37,7 +36,6 @@ end = struct
 
    datatype instantiation
       = RESULT of (TVar.tvar * int) list * size_constraint_set
-      | REDUNDANT
       | UNSATISFIABLE
       | FRACTIONAL
       | NEGATIVE
@@ -157,7 +155,6 @@ end = struct
                  "result : " ^ scsStr ^ " and " ^ vsStr ^ "instantiated\n"
               end
             | UNSATISFIABLE => "unsatisfiabilitiy"
-            | REDUNDANT => "redundancy"
             | FRACTIONAL => "non-integrality"
             | NEGATIVE => "negativitiy"
          val _ = TextIO.print ("new system is " ^ nStr ^ "\n")*)
@@ -198,7 +195,6 @@ end = struct
          fun m ([], scs) = scs
            | m (eq :: eqs, scs) = case add (eq, scs) of
                 RESULT (_, scs) => m (eqs, scs)
-              | REDUNDANT => m (eqs, scs)
               | _ => raise SizeConstraintBug
       in
          m (scs1, scs2)
