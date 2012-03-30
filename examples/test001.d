@@ -42,12 +42,12 @@ val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=6}
 val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode=7}
 
 val r64 = return RAX
-val r/m64 = return MEM {ptrSz=64, accSz=64, op=RAX}
+val r/m64 = return (MEM {ptrSz=64, accSz=64, op=RAX})
 
 val binop cons giveOp1 giveOp2 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
-   return cons {op1=op1, op2=op2}
+   return (cons {op1=op1, op2=op2})
 end
 
 val main [0x83 /0] = binop MOV r64 r/m64

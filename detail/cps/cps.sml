@@ -22,12 +22,12 @@ structure CPS = struct
        | LETPRJ of Var.v * field * Var.v * term
        | LETUPD of Var.v * Var.v * (field * Var.v) list * term
        | LETCC of ccdecl list * term
-       | APP of Var.v * Var.c * Var.v
-       | CC of Var.c * Var.v
+       | APP of Var.v * Var.c * Var.v list
+       | CC of Var.c * Var.v list
        | CASE of Var.v * Var.c StringMap.map
 
       and cval =
-         FN of Var.c * Var.v * term
+         FN of Var.c * Var.v list * term
        | INJ of tag * Var.v
        | REC of (field * Var.v) list
        | INT of IntInf.int
@@ -37,7 +37,7 @@ structure CPS = struct
        | UNT
       
       withtype recdecl = Var.v * Var.c * Var.v list * term
-      and ccdecl = Var.c * Var.v * term
+      and ccdecl = Var.c * Var.v list * term
       type t = term
    end
 
@@ -129,13 +129,19 @@ structure CPS = struct
                align
                   [seq [str "case", space, var v, space, str "of"],
                    cases (StringMap.listItems ks)]
-          | APP (f, c, v) => seq [var f, space, cvar c, space, var v]
-          | CC (c, v) => seq [cvar c, space, var v]
+          | APP (f, c, [x]) => seq [var f, space, cvar c, space, var x]
+          | APP (f, c, xs) =>
+               seq
+                  [var f, space, cvar c, space,
+                   listex "(" ")" "," (map var xs)]
+          | CC (c, [v]) => seq [cvar c, space, var v]
+          | CC (c, vs) => seq [cvar c, space, listex "(" ")" "," (map var vs)]
+      and vars xs = seq (separate (map var xs, " "))
       and cval v =
          case v of
-            FN (c, v, body) =>
+            FN (c, xs, body) =>
                align
-                  [seq [str "\\", cvar c, space, var v, str "."],
+                  [seq [str "\\", cvar c, space, vars xs, str "."],
                    indent 3 (term body)]
           | INJ (tag, v) => seq [con tag, space, var v]
           | INT i => int i
@@ -152,14 +158,14 @@ structure CPS = struct
       and cases cs = indent 3 (alignPrefix (map casee cs, "| "))
       and casee c = cvar c
       and ccdecls cs = align (map ccdecl cs)
-      and ccdecl (c, v, body) = 
+      and ccdecl (c, vs, body) = 
          align
-            [seq [str "rec", space, cvar c, space, var v, is],
+            [seq [str "val", space, cvar c, space, vars vs, is],
              indent 3 (term body)]
       and recdecls ds = align (map recdecl ds)
       and recdecl (v, c, vs, body) =
          def (seq
-               [str "rec", space,
+               [str "val", space,
                 seq (separate ([var v, cvar c]@map var vs, " "))],
               term body)
       and def (intro, body) =

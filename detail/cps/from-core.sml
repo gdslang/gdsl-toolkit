@@ -65,7 +65,7 @@ end = struct
                trans0 
                   (* TODO: "export" exported symbols as record *)
                   (LETREC (cs, RECORD (exports cs)))
-                  (fn z => Exp.APP (main, kont, z))
+                  (fn z => Exp.APP (main, kont, [z]))
             end) spec
 
    and trans0 e kappa = 
@@ -75,7 +75,7 @@ end = struct
                val j = fresh continuation
                val body = trans0 body kappa
             in
-               Exp.LETCC ([(j, v, body)], trans1 e j)
+               Exp.LETCC ([(j, [v], body)], trans1 e j)
             end
        | LETREC (ds, body) => Exp.LETREC (map trans0rec ds, trans0 body kappa)
        | IF (iff, thenn, elsee) =>
@@ -95,7 +95,7 @@ end = struct
                            val x = fresh variable
                         in
                            Exp.LETCC
-                              ((j, x, kappa x)::cps,
+                              ((j, [x], kappa x)::cps,
                                Exp.CASE (z, ks))
                         end
                    | (p, e)::ps =>
@@ -103,7 +103,7 @@ end = struct
                            val k = fresh continuation
                            val (x, ks) = transPat p k ks
                         in
-                           trans z ps ((k, x, trans1 e j)::cps) ks
+                           trans z ps ((k, [x], trans1 e j)::cps) ks
                         end
             in
                trans0 e (fn z => trans z ps [] StringMap.empty)
@@ -115,7 +115,7 @@ end = struct
             in
                trans0 e1 (fn x1 =>
                   trans0 e2 (fn x2 =>
-                     Exp.LETCC ([(k, x, kappa x)], Exp.APP (x1, k, x2))))
+                     Exp.LETCC ([(k, [x], kappa x)], Exp.APP (x1, k, [x2]))))
             end
        | FN (x, e) =>
             let
@@ -161,7 +161,7 @@ end = struct
                (* Exp.LETREC ([(f, k, [x], trans x fs [])], kappa f) *)
                Exp.LETVAL
                   (f,
-                   Exp.FN (k, x, trans x fs []),
+                   Exp.FN (k, [x], trans x fs []),
                    kappa f)
             end
        | SELECT fld =>
@@ -180,8 +180,8 @@ end = struct
                   (f,
                    Exp.FN
                      (k,
-                      x,
-                      Exp.LETPRJ (z, fld, x, Exp.CC (k, z))),
+                      [x],
+                      Exp.LETPRJ (z, fld, x, Exp.CC (k, [z]))),
                    kappa f)
             end
        | CON c =>
@@ -200,6 +200,8 @@ end = struct
                   val k = fresh continuation
                   val x = fresh variable
                   val y = fresh variable
+                  val j = fresh continuation
+                  val z = fresh variable
                in
                   (* Exp.LETREC
                      ([(f, k, [x],
@@ -209,9 +211,9 @@ end = struct
                      (f,
                       Exp.FN
                         (k,
-                         x,
-                         Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, y))),
-                      kappa f)
+                         [x],
+                         Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, [y]))),
+                      kappa f) 
                end
        | LIT l =>
             let
@@ -250,7 +252,7 @@ end = struct
                val j = fresh continuation
                val body = trans1 body kont
             in
-               Exp.LETCC ([(j, v, body)], trans1 e j)
+               Exp.LETCC ([(j, [v], body)], trans1 e j)
             end
        | LETREC (ds, body) => Exp.LETREC (map trans0rec ds, trans1 body kont)
        | IF (iff, thenn, elsee) =>
@@ -269,7 +271,7 @@ end = struct
                            val k = fresh continuation
                            val (x, ks) = transPat p k ks
                         in
-                           trans z ps ((k, x, trans1 e kont)::cps) ks
+                           trans z ps ((k, [x], trans1 e kont)::cps) ks
                         end
                    | [] => Exp.LETCC (cps, Exp.CASE (z, ks))
             in
@@ -278,13 +280,13 @@ end = struct
        | APP (e1, e2) =>
             trans0 e1 (fn x1 =>
                trans0 e2 (fn x2 =>
-                  Exp.APP (x1, kont, x2)))
+                  Exp.APP (x1, kont, [x2])))
        | FN (x, e) =>
             let
                val f = fresh function
                val j = fresh continuation
             in
-               Exp.LETVAL (f, Exp.FN (j, x, trans1 e kont), Exp.CC (kont, f))
+               Exp.LETVAL (f, Exp.FN (j, [x], trans1 e kont), Exp.CC (kont, [f]))
             end
        | RECORD fs =>
             let
@@ -294,7 +296,7 @@ end = struct
                         let
                            val x = fresh variable
                         in
-                           Exp.LETVAL (x, Exp.REC fvs, Exp.CC (kont, x))
+                           Exp.LETVAL (x, Exp.REC fvs, Exp.CC (kont, [x]))
                         end
                    | (f, e)::fs =>
                         trans0 e (fn z =>
@@ -314,7 +316,7 @@ end = struct
                         let
                            val x = fresh variable
                         in
-                           Exp.LETUPD (x, y, fvs, Exp.CC (kont, x))
+                           Exp.LETUPD (x, y, fvs, Exp.CC (kont, [x]))
                         end
                    | (f, e)::fs =>
                         trans0 e (fn z =>
@@ -323,8 +325,8 @@ end = struct
                (* TODO: letval f = \k x. ... *)
                Exp.LETVAL
                   (f,
-                   Exp.FN (k, x, trans x fs []),
-                   Exp.CC (kont, f))
+                   Exp.FN (k, [x], trans x fs []),
+                   Exp.CC (kont, [f]))
             end
        | SELECT fld =>
             let
@@ -336,8 +338,8 @@ end = struct
                (* TODO: letval f = \k x. ... *)
                Exp.LETVAL
                   (f,
-                   Exp.FN (k, x, Exp.LETPRJ (z, fld, x, Exp.CC (k, z))),
-                   Exp.CC (kont, f))
+                   Exp.FN (k, [x], Exp.LETPRJ (z, fld, x, Exp.CC (k, [z]))),
+                   Exp.CC (kont, [f]))
             end
        | CON c =>
             if isEnumLike c
@@ -347,7 +349,7 @@ end = struct
                      val y = fresh variable
                   in
                      Exp.LETVAL (y, Exp.UNT,
-                     Exp.LETVAL (x, Exp.INJ (c, y), Exp.CC (kont, x)))
+                     Exp.LETVAL (x, Exp.INJ (c, y), Exp.CC (kont, [x])))
                   end
             else
                let
@@ -361,18 +363,18 @@ end = struct
                      (f,
                       Exp.FN
                         (k,
-                         x,
+                         [x],
                          Exp.LETVAL
-                           (y, Exp.INJ (c, x), Exp.CC (k, y))),
-                      Exp.CC (kont, f))
+                           (y, Exp.INJ (c, x), Exp.CC (k, [y]))),
+                      Exp.CC (kont, [f]))
                end
        | LIT l =>
             let
                val x = fresh variable
             in
-               Exp.LETVAL (x, transLit l, Exp.CC (kont, x))
+               Exp.LETVAL (x, transLit l, Exp.CC (kont, [x]))
             end
-       | ID x => Exp.CC (kont, x)
+       | ID x => Exp.CC (kont, [x])
        | _ => raise CM.CompilationError
 
    and transLit l =
