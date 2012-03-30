@@ -74,8 +74,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val { tsynDefs, typeDefs, conParents} = ti
    val caseExpSymId = SymbolTable.lookup(!SymbolTables.varTable,
                                          Atom.atom Primitives.caseExpression)
-   val stateSymId = SymbolTable.lookup(!SymbolTables.varTable,
-                                       Atom.atom Primitives.globalState)
+   (*val stateSymId = SymbolTable.lookup(!SymbolTables.varTable,
+                                       Atom.atom Primitives.globalState)*)
    val granularitySymId = SymbolTable.lookup(!SymbolTables.varTable,
                                              Atom.atom Primitives.granularity)
    
@@ -245,7 +245,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          (E.SymbolSet.empty, env)
       end
-     | infDecl (st,env) (AST.STATEdecl l) =
+     (*| infDecl (st,env) (AST.STATEdecl l) =
       let
          val envState = E.pushSymbol (stateSymId, SymbolTable.noSpan, env)
          val extBVar = BD.freshBVar ()
@@ -262,7 +262,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.popToFunction (stateSymId, env)
       in
          checkUsages false (stateSymId, env)
-      end
+      end*)
      | infDecl stenv (AST.DECODEdecl dd) = infDecodedecl stenv dd
      | infDecl (st,env) (AST.LETRECdecl (v,l,e)) =
          infBinding (st,env) (v, [], NONE, l, e)
@@ -655,7 +655,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          ) (E.SymbolSet.empty, toplevelEnv)
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    val (badSizes, toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, primSymbols, _) = E.popGroup (primEnv, false)

@@ -856,8 +856,9 @@ end = struct
                   val env = Scope.update (sym, setType t, env)
                   val bVars = Scope.getBVars env
                   val (_, consRef) = env
-                  val (bFun, sCons) = !consRef
+                  val (bFun, sCons) = !consRef              
                   val bFun = BD.projectOnto (bVars, bFun)
+                  (*val _ = TextIO.print ("boolean domain after popping " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ BD.showBFun bFun ^ "\n")*)
                   val _ = consRef := (bFun, sCons)
                in
                   env

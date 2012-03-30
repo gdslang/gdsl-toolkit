@@ -16,11 +16,20 @@ structure Primitives = struct
 
    (* result type of the decoder function *)
    val r = freshVar ()
-   val state = freshVar ()
-   val state' = newFlow state
-   val state'' = newFlow state
-   val state''' = newFlow state
-   val state'''' = newFlow state
+   val stateA = freshVar ()
+   val stateB = freshVar ()
+   val stateC = freshVar ()
+   val stateD = freshVar ()
+   val stateE = freshVar ()
+   val stateF = freshVar ()
+   val stateF' = newFlow stateF
+   val stateF'' = newFlow stateF
+   val stateF''' = newFlow stateF
+   val stateG = freshVar ()
+   val stateG' = newFlow stateG
+   val stateG'' = newFlow stateG
+   val stateH = freshVar ()
+   val stateH' = newFlow stateH
    val size = freshVar ()
    val s1 = freshVar ()
    val s2 = freshVar ()
@@ -63,20 +72,20 @@ structure Primitives = struct
    val primitiveValues =
       [{name="true", ty=VEC (CONST 1)},
        {name="false", ty=VEC (CONST 1)},
-       {name="consume", ty=MONAD (VEC size,newFlow state, newFlow state)},
-       {name="unconsume", ty=MONAD (UNIT,newFlow state, newFlow state)}, 
-       (* TODO *) {name="slice", ty=MONAD (freshVar (),newFlow state, newFlow state)},
-       {name="raise", ty=MONAD (freshVar (),newFlow state, newFlow state)},
+       {name="consume", ty=MONAD (VEC size,stateA, stateA)},
+       {name="unconsume", ty=MONAD (UNIT,stateB, stateB)}, 
+       (* TODO *) {name="slice", ty=MONAD (freshVar (),stateC, newFlow stateC)},
+       {name="raise", ty=MONAD (freshVar (),stateD, stateD)},
        {name=caseExpression, ty=UNIT},
-       {name=globalState, ty=state},
+       (*{name=globalState, ty=state},*)
        {name=granularity, ty=UNIT},
        (* 'a M -> ('a -> 'b M) -> 'b M *)
-       {name=">>=", ty=FUN (MONAD (a,newFlow state, newFlow state),
-            FUN (FUN (a', MONAD (b,newFlow state, newFlow state)),
-               MONAD (b',newFlow state, newFlow state)))},
-       {name="update", ty=FUN (FUN (state, state'), MONAD (d,state,state'))},
-       {name="query", ty=FUN (FUN (state'', e), MONAD (e',state'',state'''))},
-       {name="return", ty=FUN (c, MONAD (c',state'''',state''''))},
+       {name=">>=", ty=FUN (MONAD (a, stateE, stateE),
+            FUN (FUN (a', MONAD (b,stateE, stateE)),
+               MONAD (b', stateE, stateE)))},
+       {name="update", ty=FUN (FUN (stateF', stateF''), MONAD (d,stateF,stateF'''))},
+       {name="query", ty=FUN (FUN (stateG', e), MONAD (e',stateG,stateG''))},
+       {name="return", ty=FUN (c, MONAD (c',stateH,stateH'))},
        {name="+", ty=vvv s1},
        {name="-", ty=vvv s2},
        {name="*", ty=vvv s3},
@@ -101,8 +110,12 @@ structure Primitives = struct
 
    val primitiveFlowConstraints =
       [BD.meetVarZero (bvar size),
-       BD.meetVarImpliesVar (bvar state, bvar state'),
-       BD.meetVarImpliesVar (bvar state'', bvar state'''),
+       BD.meetVarImpliesVar (bvar stateF, bvar stateF'),
+       BD.meetVarImpliesVar (bvar stateF', bvar stateF''),
+       BD.meetVarImpliesVar (bvar stateF'', bvar stateF'''),
+       BD.meetVarImpliesVar (bvar stateG, bvar stateG'),
+       BD.meetVarImpliesVar (bvar stateG, bvar stateG''),
+       BD.meetVarImpliesVar (bvar stateH, bvar stateH'),
        BD.meetVarImpliesVar (bvar a, bvar a'),
        BD.meetVarImpliesVar (bvar b, bvar b'),
        BD.meetVarImpliesVar (bvar c, bvar c'),
