@@ -45,4 +45,12 @@ functor MkCPSPass (Core: CPSCORE) = struct
                in
                   cps
                end) spec)
+   
+   fun runCounting spec =
+      let
+         val (cps, cnt) = pass (Spec.get#declarations spec)
+      in
+         CM.return
+            (Spec.upd (fn _ => cps) spec, cnt)
+      end
 end
