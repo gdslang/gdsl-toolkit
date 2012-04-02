@@ -144,25 +144,22 @@ end = struct
             let
                val f = fresh function
                val k = fresh continuation
-               val x = fresh variable
                val z = fresh variable
-               fun trans y fs fvs =
+               val x = fresh variable
+               fun trans fs fvs =
                   case fs of
                      [] =>
-                        let
-                           val x = fresh variable
-                        in
-                           Exp.LETUPD (x, y, fvs, kappa x)
-                        end
+                        Exp.LETVAL
+                           (f,
+                            Exp.FN (k, [x],
+                              Exp.LETUPD (z, x, fvs,
+                                 Exp.CC (k, [z]))),
+                            kappa f)
                    | (f, e)::fs =>
                         trans0 e (fn z =>
-                           trans y fs ((f, z)::fvs))
+                           trans fs ((f, z)::fvs))
             in
-               (* Exp.LETREC ([(f, k, [x], trans x fs [])], kappa f) *)
-               Exp.LETVAL
-                  (f,
-                   Exp.FN (k, [x], trans x fs []),
-                   kappa f)
+               trans fs []
             end
        | SELECT fld =>
             let

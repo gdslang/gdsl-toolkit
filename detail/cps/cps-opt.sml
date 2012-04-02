@@ -828,6 +828,128 @@ structure BetaCont = struct
       end
 end
 
+structure BetaPair = struct
+   open CPS.Exp
+   structure CM = CompilationMonad
+   structure Map = SymMap
+   structure Set = SymSet
+
+   val clicks = ref 0
+   val inlined = ref Set.empty
+   fun click () = clicks := !clicks + 1
+   fun reset () = (clicks := 0; inlined := Set.empty)
+
+   fun markInlined f = inlined := Set.add (!inlined, f)
+   fun usedLinearly f =
+      Census.count f = 1
+      andalso Set.member (!inlined, f)
+
+   val eq = SymbolTable.eq_symid
+   
+   fun updateEnv env x fs = 
+      let
+         fun insertField ((f, x), env) = Map.insert (env, f, x)
+         fun insertAll env fs = foldl insertField env fs
+      in
+         case Map.find (env, x) of
+            NONE => insertAll Map.empty fs
+          | SOME fss => insertAll fss fs
+      end
+
+   fun simplify env sigma t =
+      case t of
+         LETVAL (y, REC fs, L) =>
+            let
+               val y = Subst.apply sigma y
+               val fs = map (fn (f, x) => (f, Subst.apply sigma x)) fs
+               val env' =
+                  Map.insert
+                     (env,
+                      y,
+                      foldl
+                        (fn ((f, x), fs) =>
+                           Map.insert (fs, f, x)) Map.empty fs)
+            in
+               LETVAL (y, REC fs, simplify env' sigma L)
+            end
+       | LETVAL (x, v, L) =>
+            LETVAL
+               (x,
+                simplifyVal env sigma v,
+                simplify env sigma L)
+       | LETREC (ds, t) =>
+            LETREC
+               (map (simplifyRec env sigma) ds,
+                simplify env sigma t)
+       | LETPRJ (y, f, x, K) =>
+            let
+               val x = Subst.apply sigma x
+               val env' = Map.insert (env, x, updateEnv env x [(f, y)])
+            in
+               case Map.find (env, x) of
+                  NONE => LETPRJ (y, f, x, simplify env' sigma K)
+                | SOME fs =>
+                     (case Map.find (fs, f) of
+                        NONE => LETPRJ (y, f, x, simplify env' sigma K)
+                      | SOME x =>
+                           let
+                              val sigma = Subst.extend sigma x y
+                           in
+                              click(); simplify env sigma K
+                           end)
+            end
+       | LETUPD (x, y, fs, K) =>
+            let
+               val y = Subst.apply sigma y
+               val fs = map (fn (f, x) => (f, Subst.apply sigma x)) fs
+               val env' =
+                  Map.insert
+                     (env,
+                      x,
+                      updateEnv env y fs)
+            in
+               LETUPD (x, y, fs, simplify env' sigma K)
+            end
+       | LETCC (cs, t) =>
+            LETCC
+               (map (fn (k, x, t) => (k, x, simplify env sigma t)) cs,
+                simplify env sigma t)
+       | CC (k, xs) =>
+            CC (Subst.apply sigma k, Subst.applyAll sigma xs)
+       | CASE (x, cs) =>
+            CASE
+               (Subst.apply sigma x,
+                StringMap.map (fn k => Subst.apply sigma k) cs)
+       | APP (f, j, ys) =>
+            let
+               val f = Subst.apply sigma f
+               val j = Subst.apply sigma j
+               val ys = Subst.applyAll sigma ys
+            in
+               APP (f, j, ys)
+            end
+   
+   and simplifyRec env sigma (f, k, xs, t) =
+      (f, k, xs, simplify env sigma t)
+   
+   and simplifyVal env sigma v =
+      case v of
+         FN (k, x, t) => FN (k, x, simplify env sigma t)
+       | INJ (t, x) => INJ (t, Subst.apply sigma x)
+       | REC _ => raise CM.CompilationError
+       | otherwise => otherwise
+  
+   val name = "betaPair"
+   fun run t =
+      let
+         val () = reset ()
+         val _ = Census.run t
+         val t' = simplify Map.empty Subst.empty t
+      in
+         (t', !clicks)
+      end
+end
+
 structure DeadVal = struct
    open CPS.Exp
    structure Map = SymMap
