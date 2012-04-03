@@ -21,7 +21,7 @@ structure CPS = struct
        | LETREC of recdecl list * term
        | LETPRJ of Var.v * field * Var.v * term
        | LETUPD of Var.v * Var.v * (field * Var.v) list * term
-       | LETCC of ccdecl list * term
+       | LETCONT of ccdecl list * term
        | APP of Var.v * Var.c * Var.v list
        | CC of Var.c * Var.v list
        | CASE of Var.v * Var.c StringMap.map
@@ -68,7 +68,7 @@ structure CPS = struct
              | LETREC (ds, t) => lpTerm (t, visitterm (t, lpRec (ds, seed)))
              | LETUPD (_, _, _, t) => lpTerm (t, visitterm (t, seed))
              | LETPRJ (_, _, _, t) => lpTerm (t, visitterm (t, seed))
-             | LETCC (ds, t) => lpTerm (t, visitterm (t, lpCC (ds, seed)))
+             | LETCONT (ds, t) => lpTerm (t, visitterm (t, lpCC (ds, seed)))
              | _ => seed
          end
          and lpRec (ds, seed) =
@@ -121,9 +121,9 @@ structure CPS = struct
                      [str "letval", space, var x, is, var y,
                       str "@", listex "{" "}" "," (map updFld fvs) , inn],
                    indent 3 (term body)]
-          | LETCC (cs, body) =>
+          | LETCONT (cs, body) =>
                align 
-                  [align [str "letcc", indent 3 (ccdecls cs)],
+                  [align [str "letcont", indent 3 (ccdecls cs)],
                    align [str "in", indent 3 (term body)]]
           | CASE (v, ks) =>
                align

@@ -75,7 +75,7 @@ end = struct
                val j = fresh continuation
                val body = trans0 body kappa
             in
-               Exp.LETCC ([(j, [v], body)], trans1 e j)
+               Exp.LETCONT ([(j, [v], body)], trans1 e j)
             end
        | LETREC (ds, body) => Exp.LETREC (map trans0rec ds, trans0 body kappa)
        | IF (iff, thenn, elsee) =>
@@ -94,7 +94,7 @@ end = struct
                         let
                            val x = fresh variable
                         in
-                           Exp.LETCC
+                           Exp.LETCONT
                               ((j, [x], kappa x)::cps,
                                Exp.CASE (z, ks))
                         end
@@ -115,7 +115,7 @@ end = struct
             in
                trans0 e1 (fn x1 =>
                   trans0 e2 (fn x2 =>
-                     Exp.LETCC ([(k, [x], kappa x)], Exp.APP (x1, k, [x2]))))
+                     Exp.LETCONT ([(k, [x], kappa x)], Exp.APP (x1, k, [x2]))))
             end
        | FN (x, e) =>
             let
@@ -249,7 +249,7 @@ end = struct
                val j = fresh continuation
                val body = trans1 body kont
             in
-               Exp.LETCC ([(j, [v], body)], trans1 e j)
+               Exp.LETCONT ([(j, [v], body)], trans1 e j)
             end
        | LETREC (ds, body) => Exp.LETREC (map trans0rec ds, trans1 body kont)
        | IF (iff, thenn, elsee) =>
@@ -270,7 +270,7 @@ end = struct
                         in
                            trans z ps ((k, [x], trans1 e kont)::cps) ks
                         end
-                   | [] => Exp.LETCC (cps, Exp.CASE (z, ks))
+                   | [] => Exp.LETCONT (cps, Exp.CASE (z, ks))
             in
                trans0 e (fn z => trans z ps [] StringMap.empty)
             end

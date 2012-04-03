@@ -54,7 +54,7 @@ structure Census = struct
                ;update n y
                ;app (visitField n) fs
                ;visitTerm n t)
-          | LETCC (ds, t) => (app (visitCCDecl n) ds; visitTerm n t)
+          | LETCONT (ds, t) => (app (visitCCDecl n) ds; visitTerm n t)
           | APP (x, k, ys) =>
                (update n x
                ;update n k
@@ -167,11 +167,11 @@ structure Subst = struct
             in
                LETUPD (x', y', fs', rename sigma t)
             end
-       | LETCC (ds, t) =>
+       | LETCONT (ds, t) =>
             let
                val (sigma, ds) = renameConts sigma ds
             in
-               LETCC (ds, rename sigma t)
+               LETCONT (ds, rename sigma t)
             end
        | APP (f, k, xs) =>
             APP
@@ -317,7 +317,7 @@ structure Rec = struct
                in
                   env
                end
-           | LETCC (ds, t) =>
+           | LETCONT (ds, t) =>
                let
                   val env = visitConts (ds, env)
                   val env = visitTerm (t, env)
@@ -499,8 +499,8 @@ structure BetaFun = struct
              Subst.apply sigma y,
              map (fn (f, z) => (f, Subst.apply sigma z)) fs,
              simplify env sigma t)
-      | LETCC (cs, t) =>
-         LETCC
+      | LETCONT (cs, t) =>
+         LETCONT
             (map (fn (k, x, t) => (k, x, simplify env sigma t)) cs,
              simplify env sigma t)
       | CC (k, xs) =>
@@ -607,8 +607,8 @@ structure BetaRec = struct
              Subst.apply sigma y,
              map (fn (f, z) => (f, Subst.apply sigma z)) fs,
              simplify env sigma t)
-      | LETCC (cs, t) =>
-         LETCC
+      | LETCONT (cs, t) =>
+         LETCONT
             (map (fn (k, x, t) => (k, x, simplify env sigma t)) cs,
              simplify env sigma t)
       | CC (k, xs) =>
@@ -754,7 +754,7 @@ structure BetaCont = struct
          in
             APP (f, j, ys)
          end
-      | LETCC (cs, K) =>
+      | LETCONT (cs, K) =>
          let
             (* update environment with potentially recursive continuations *)
             val env' = 
@@ -777,7 +777,7 @@ structure BetaCont = struct
          in
             case List.filter (fn (k, _, _) => not (usedLinearly k)) cs of
                [] => K
-             | cs => LETCC (cs, K)
+             | cs => LETCONT (cs, K)
          end
       | CC (k, ys) =>
          let
@@ -910,8 +910,8 @@ structure BetaPair = struct
             in
                LETUPD (x, y, fs, simplify env' sigma K)
             end
-       | LETCC (cs, t) =>
-            LETCC
+       | LETCONT (cs, t) =>
+            LETCONT
                (map (fn (k, x, t) => (k, x, simplify env sigma t)) cs,
                 simplify env sigma t)
        | CC (k, xs) =>
@@ -990,10 +990,10 @@ structure DeadVal = struct
                 y,
                 fs,
                 simplify K)
-      | LETCC (cs, K) =>
+      | LETCONT (cs, K) =>
          (case simplifyCCs cs of
             [] => (click(); simplify K)
-          | cs => LETCC (cs, simplify K))
+          | cs => LETCONT (cs, simplify K))
       | otherwise => otherwise
    
    and simplifyRecs ds =

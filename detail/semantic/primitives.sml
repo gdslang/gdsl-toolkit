@@ -54,6 +54,7 @@ structure Primitives = struct
        {name="consume", ty=MONAD (VEC (var size))},
        {name="unconsume", ty=MONAD UNIT}, 
        (* TODO *) {name="slice", ty=MONAD (var (t ()))},
+       (* TODO *) {name="%slice", ty=MONAD (var (t ()))},
        {name="raise", ty=MONAD (var (t()))},
        {name=caseExpression, ty=UNIT},
        {name=globalState, ty=var state},
@@ -66,6 +67,14 @@ structure Primitives = struct
          in
             (* 'a M -> ('a -> 'b M) -> 'b M *)
             FUN (FUN (MONAD a', FUN (a', MONAD b')), MONAD b')
+         end},
+       {name=">>", ty=
+         let
+            val a' = var b
+            val b' = var c
+         in
+            (* 'a M -> 'b M -> 'b M *)
+            FUN (FUN (MONAD a', MONAD b'), MONAD b')
          end},
        {name="update", ty=FUN (FUN (var state, var state), MONAD (var d))},
        {name="query", ty=FUN (FUN (var state, var e), MONAD (var e))},
