@@ -925,39 +925,33 @@ val p66 [0x03 /0] = add r16 r/m16
 
 ### CVTPD2PI Vol 2A 3-248
 val cvtpdf2pi = binop CVTPD2PI
-val two-byte-opcode-0f-66 [0x2d /r] 
- | opndsz? = cvtpdf2pi mm64 xmm/m128
+val p66 [0x0f 0x2d /r] = cvtpdf2pi mm64 xmm/m128
 
 ### MASKMOVDQU Vol. 2B 4-9
 val maskmovdqu = binop MASKMOVDQU
 val vmaskmovdqu = binop VMASKMOVDQU
-val two-byte-opcode-0f [0xf7 /r] 
- | opndsz? = maskmovdqu xmm128 xmm/nomem128
-val two-byte-opcode-0f-vex [0xf7 /r]
+val p66 [0x0f 0xf7 /r] = maskmovdqu xmm128 xmm/nomem128
+val vex-0f [0xf7 /r]
  | vex-noreg? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem128
 
 ### MASKMOVQ Vol. 2B 4-11
 val maskmovq = binop MASKMOVQ
-val two-byte-opcode-0f [0xf7 /r]
- | / opndsz? = maskmovq mm64 mm/nomem64
+val main [0x0f 0xf7 /r] = maskmovq mm64 mm/nomem64
 
 ### MAXPD Vol. 2B 4-13
 val maxpd = binop MAXPD
 val vmaxpd = trinop VMAXPD
-val two-byte-opcode-0f [0x5f /r] 
- | / opndsz? = maxpd xmm128 xmm/m128
-val two-byte-opcode-0f-vex [0x5f /r] 
+val main [0x0f 0x5f /r] = maxpd xmm128 xmm/m128
+val vex-0f [0x5f /r] 
  | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
  | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
 
 ### MAXPS 4-16 Vol. 2B
 val maxps = binop MAXPS
 val vmaxps = trinop VMAXPS
-val two-byte-opcode-0f [0x5f /r] 
- | / opndsz? = maxps xmm128 xmm/m128
-val two-byte-opcode-0f-vex [0x5f /r] 
+val main [0x0f 0x5f /r] = maxps xmm128 xmm/m128
+val vex-0f [0x5f /r] 
  | vex-128? & vex-no-simd? = vmaxps xmm128 vex/xmm xmm/m128
-val two-byte-opcode-0f-vex [0x5f /r] 
  | vex-256? & vex-no-simd? = vmaxps ymm256 vex/ymm ymm/m256
 
 ### MAXSD Vol. 2B 4-19
