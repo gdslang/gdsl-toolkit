@@ -826,8 +826,8 @@ val p66 [0x64] = do update @{segment=FS}; p66 end
 val p66 [0x65] = do update @{segment=GS}; p66 end
 val p66 [0x66] = do update @{opndsz='1'}; p66 end
 val p66 [0x67] = do update @{addrsz='1'}; p66 end
-#val p66 [0xf2] = do update @{repne='1'}; ?? end
-#val p66 [0xf3] = do update @{rep='1'}; ?? end
+val p66 [0xf2] = do update @{repne='1'}; p66-f2 end
+val p66 [0xf3] = do update @{rep='1'}; p66-f3 end
 val p66 [/rex] = p66 #Todo: Ignore REX before legacy prefixes
 
 val pf2 [0x2e] = do update @{segment=CS}; pf2 end
@@ -836,23 +836,59 @@ val pf2 [0x3e] = do update @{segment=DS}; pf2 end
 val pf2 [0x26] = do update @{segment=ES}; pf2 end
 val pf2 [0x64] = do update @{segment=FS}; pf2 end
 val pf2 [0x65] = do update @{segment=GS}; pf2 end
-#val pf2 [0x66] = do update @{opndsz='1'}; ?? end
+val pf2 [0x66] = do update @{opndsz='1'}; p66-f2 end
 val pf2 [0x67] = do update @{addrsz='1'}; pf2 end
 val pf2 [0xf2] = do update @{repne='1'}; pf2 end
-#val pf2 [0xf3] = do update @{rep='1'}; ?? end
+val pf2 [0xf3] = do update @{rep='1'}; pf2-f3 end
 val pf2 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
-val  pf3 [0x2e] = do update @{segment=CS}; pf3 end
-val  pf3 [0x36] = do update @{segment=SS}; pf3 end
-val  pf3 [0x3e] = do update @{segment=DS}; pf3 end
-val  pf3 [0x26] = do update @{segment=ES}; pf3 end
-val  pf3 [0x64] = do update @{segment=FS}; pf3 end
-val  pf3 [0x65] = do update @{segment=GS}; pf3 end
-#val pf3 [0x66] = do update @{opndsz='1'}; ?? end
-val  pf3 [0x67] = do update @{addrsz='1'}; pf3 end
-#val pf3 [0xf2] = do update @{repne='1'}; ?? end
-val  pf3 [0xf3] = do update @{rep='1'}; pf3 end
-val  pf3 [/rex] = main #Todo: Ignore REX before legacy prefixes
+val pf3 [0x2e] = do update @{segment=CS}; pf3 end
+val pf3 [0x36] = do update @{segment=SS}; pf3 end
+val pf3 [0x3e] = do update @{segment=DS}; pf3 end
+val pf3 [0x26] = do update @{segment=ES}; pf3 end
+val pf3 [0x64] = do update @{segment=FS}; pf3 end
+val pf3 [0x65] = do update @{segment=GS}; pf3 end
+val pf3 [0x66] = do update @{opndsz='1'}; p66-f3 end
+val pf3 [0x67] = do update @{addrsz='1'}; pf3 end
+val pf3 [0xf2] = do update @{repne='1'}; pf2-f3 end
+val pf3 [0xf3] = do update @{rep='1'}; pf3 end
+val pf3 [/rex] = main #Todo: Ignore REX before legacy prefixes
+
+val p66-f2 [0x2e] = do update @{segment=CS}; p66-f2 end
+val p66-f2 [0x36] = do update @{segment=SS}; p66-f2 end
+val p66-f2 [0x3e] = do update @{segment=DS}; p66-f2 end
+val p66-f2 [0x26] = do update @{segment=ES}; p66-f2 end
+val p66-f2 [0x64] = do update @{segment=FS}; p66-f2 end
+val p66-f2 [0x65] = do update @{segment=GS}; p66-f2 end
+val p66-f2 [0x66] = do update @{opndsz='1'}; p66-f2 end
+val p66-f2 [0x67] = do update @{addrsz='1'}; p66-f2 end
+val p66-f2 [0xf2] = do update @{repne='1'}; p66-f2 end
+val p66-f2 [0xf3] = do update @{rep='1'}; p66-f2-f3 end
+val p66-f2 [/rex] = main #Todo: Ignore REX before legacy prefixes
+
+val p66-f3 [0x2e] = do update @{segment=CS}; p66-f3 end
+val p66-f3 [0x36] = do update @{segment=SS}; p66-f3 end
+val p66-f3 [0x3e] = do update @{segment=DS}; p66-f3 end
+val p66-f3 [0x26] = do update @{segment=ES}; p66-f3 end
+val p66-f3 [0x64] = do update @{segment=FS}; p66-f3 end
+val p66-f3 [0x65] = do update @{segment=GS}; p66-f3 end
+val p66-f3 [0x66] = do update @{opndsz='1'}; p66-f3 end
+val p66-f3 [0x67] = do update @{addrsz='1'}; p66-f3 end
+val p66-f3 [0xf2] = do update @{repne='1'}; p66-f2-f3 end
+val p66-f3 [0xf3] = do update @{rep='1'}; p66-f3 end
+val p66-f3 [/rex] = main #Todo: Ignore REX before legacy prefixes
+
+val p66-f2-f3 [0x2e] = do update @{segment=CS}; p66-f2-f3 end
+val p66-f2-f3 [0x36] = do update @{segment=SS}; p66-f2-f3 end
+val p66-f2-f3 [0x3e] = do update @{segment=DS}; p66-f2-f3 end
+val p66-f2-f3 [0x26] = do update @{segment=ES}; p66-f2-f3 end
+val p66-f2-f3 [0x64] = do update @{segment=FS}; p66-f2-f3 end
+val p66-f2-f3 [0x65] = do update @{segment=GS}; p66-f2-f3 end
+val p66-f2-f3 [0x66] = do update @{opndsz='1'}; p66-f2-f3 end
+val p66-f2-f3 [0x67] = do update @{addrsz='1'}; p66-f2-f3 end
+val p66-f2-f3 [0xf2] = do update @{repne='1'}; p66-f2-f3 end
+val p66-f2-f3 [0xf3] = do update @{rep='1'}; p66-f2-f3 end
+val p66-f2-f3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
 ## Instruction decoders
 
@@ -862,30 +898,30 @@ val  pf3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
 ### ADD Vol. 2A 3-35
 val add = binop ADD
-val one-byte-opcode [0x04] = add al imm8
-val one-byte-opcode [0x05]
+val main [0x04] = add al imm8
+val main [0x05]
  | rexw? = add rax imm64
- | opndsz? = add ax imm16
  | otherwise = add eax imm32
-val one-byte-opcode [0x80 /0] = add r/m8 imm8
-val one-byte-opcode [0x81 /0]
+val p66 [0x05] = add ax imm16
+val main [0x80 /0] = add r/m8 imm8
+val main [0x81 /0]
  | rexw? = add r/m64 imm64
- | opndsz? = add r/m16 imm16
  | otherwise = add r/m32 imm32
-val one-byte-opcode [0x83 /0]
+val p66 [0x81 /0] = add r/m16 imm16
+val main [0x83 /0]
  | rexw? = add r/m64 imm8
- | opndsz? = add r/m16 imm8
  | otherwise = add r/m32 imm8
-val one-byte-opcode [0x00 /r] = add r/m8 r8
-val one-byte-opcode [0x01 /0]
+val p66 [0x83 /0] = add r/m16 imm8
+val main [0x00 /r] = add r/m8 r8
+val main [0x01 /0]
  | rexw? = add r/m64 r64
- | opndsz? = add r/m16 r16
  | otherwise = add r/m32 r32
-val one-byte-opcode [0x02 /r] = add r8 r/m8
-val one-byte-opcode [0x03 /0]
+val p66 [0x01 /0] = add r/m16 r16
+val main [0x02 /r] = add r8 r/m8
+val main [0x03 /0]
  | rexw? = add r64 r/m64
- | opndsz? = add r16 r/m16
  | otherwise = add r32 r/m32
+val p66 [0x03 /0] = add r16 r/m16
 
 ### CVTPD2PI Vol 2A 3-248
 val cvtpdf2pi = binop CVTPD2PI
