@@ -851,6 +851,104 @@ structure BetaPair = struct
       end
 end
 
+structure HoistFun = struct
+   open CPS.Exp
+   structure Map = SymMap
+   structure Set = SymSet
+
+   val clicks = ref 0
+   fun click () = clicks := !clicks + 1
+   fun reset () = clicks := 0
+
+   fun simplify env sigma t =
+      case t of
+         LETVAL (f, FN (k, xs, K), L) =>
+            LETVAL
+               (f,
+                FN (k, xs, simplify env sigma K),
+                simplify env sigma L)
+       | LETVAL (x, v, K) =>
+            (case simplify env sigma K of
+               LETVAL (f, FN (k, xs, L), M) => 
+                  (click();
+                   LETVAL
+                     (f,
+                      FN
+                        (k,
+                         xs,
+                         LETVAL (x, simplifyVal env sigma v, L)),
+                      M))
+             | K => LETVAL (x, v, K))
+       | LETREC (ds, L) =>
+            LETREC
+               (simplifyRecs env sigma ds,
+                simplify env sigma L)
+       | LETPRJ (x, f, y, t) =>
+            LETPRJ
+               (x,
+                f,
+                Subst.apply sigma y,
+                simplify env sigma t)
+       | LETUPD (x, y, fs, t) =>
+            LETUPD
+               (x,
+                Subst.apply sigma y,
+                map (fn (f, z) => (f, Subst.apply sigma z)) fs,
+                simplify env sigma t)
+       | LETCONT (cs, t) =>
+            LETCONT
+               (map (fn (k, x, t) => (k, x, simplify env sigma t)) cs,
+                simplify env sigma t)
+       | CC (k, xs) =>
+            CC (Subst.apply sigma k, Subst.applyAll sigma xs)
+       | CASE (x, cs) =>
+            CASE
+               (Subst.apply sigma x,
+                StringMap.map (fn k => Subst.apply sigma k) cs)
+       | APP (f, j, ys) =>
+            let
+               val f = Subst.apply sigma f
+               val j = Subst.apply sigma j
+               val ys = Subst.applyAll sigma ys
+            in
+               APP (f, j, ys)
+            end
+
+   and simplifyRecs env sigma ds = map (simplifyRec env sigma) ds
+  
+   and simplifyRec env sigma (f, k, [], K) =
+      (case simplify env sigma K of
+         K as LETVAL (g, FN (l, xs, L), M) =>
+            (case M of
+               CC (j, [h]) =>
+                  if VarInfo.eq_symid (j, k)
+                     andalso VarInfo.eq_symid (g, h)
+                     then (click(); (f, l, xs, L))
+                  else (f, k, [], K)
+             | _ => (f, k, [], K))
+       | K => (f, k, [], K))
+
+     | simplifyRec env sigma (f, k, xs, K) = (f, k, xs, simplify env sigma K)
+
+   and simplifyVal env sigma v =
+      case v of
+         FN (k, x, t) => FN (k, x, simplify env sigma t)
+       | INJ (t, x) => INJ (t, Subst.apply sigma x)
+       | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
+       | otherwise => otherwise
+  
+   val name = "hoistFun"
+   fun run t =
+      let
+         val _ = reset ()
+         val _ = Census.run t
+         val t' = simplify Map.empty Subst.empty t
+      in
+         (t', !clicks)
+      end
+end
+
 structure DeadVal = struct
    open CPS.Exp
    structure Map = SymMap
