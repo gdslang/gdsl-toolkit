@@ -59,6 +59,9 @@ structure Primitives = struct
    val d = freshVar ()
    val e = freshVar ()
    val e' = newFlow e
+   val f = freshVar ()
+   val g = freshVar ()
+   val g' = newFlow g
 
    (*create a type from two vectors to one vector, all of size s*)
    fun vvv s = FUN (VEC s, FUN (VEC s, VEC s))
@@ -72,9 +75,9 @@ structure Primitives = struct
    val primitiveValues =
       [{name="true", ty=VEC (CONST 1)},
        {name="false", ty=VEC (CONST 1)},
-       {name="consume", ty=MONAD (VEC size,stateA, stateA)},
-       {name="unconsume", ty=MONAD (UNIT,stateB, stateB)}, 
-       (* TODO *) {name="slice", ty=MONAD (freshVar (),stateC, newFlow stateC)},
+       {name="%consume", ty=MONAD (VEC size,stateA, stateA)},
+       {name="%unconsume", ty=MONAD (UNIT,stateB, stateB)}, 
+       (* TODO *) {name="%slice", ty=MONAD (freshVar (),stateC, newFlow stateC)},
        {name="raise", ty=MONAD (freshVar (),stateD, stateD)},
        {name=caseExpression, ty=UNIT},
        (*{name=globalState, ty=state},*)
@@ -83,6 +86,10 @@ structure Primitives = struct
        {name=">>=", ty=FUN (MONAD (a, stateE, stateE),
             FUN (FUN (a', MONAD (b,stateE, stateE)),
                MONAD (b', stateE, stateE)))},
+       (* 'f M -> 'g M -> 'g M *)
+       {name=">>", ty=FUN (MONAD (f, stateE, stateE),
+            FUN (MONAD (g,stateE, stateE),
+               MONAD (g', stateE, stateE)))},
        {name="update", ty=FUN (FUN (stateF', stateF''), MONAD (d,stateF,stateF'''))},
        {name="query", ty=FUN (FUN (stateG', e), MONAD (e',stateG,stateG''))},
        {name="return", ty=FUN (c, MONAD (c',stateH,stateH'))},
@@ -120,6 +127,7 @@ structure Primitives = struct
        BD.meetVarImpliesVar (bvar b, bvar b'),
        BD.meetVarImpliesVar (bvar c, bvar c'),
        BD.meetVarImpliesVar (bvar e, bvar e'),
+       BD.meetVarImpliesVar (bvar g, bvar g'),
        BD.meetVarZero (bvar s1),
        BD.meetVarZero (bvar s2),
        BD.meetVarZero (bvar s3),

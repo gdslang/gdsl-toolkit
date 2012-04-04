@@ -21,13 +21,14 @@ structure CPS = struct
        | LETREC of recdecl list * term
        | LETPRJ of Var.v * field * Var.v * term
        | LETUPD of Var.v * Var.v * (field * Var.v) list * term
-       | LETCC of ccdecl list * term
+       | LETCONT of ccdecl list * term
        | APP of Var.v * Var.c * Var.v list
        | CC of Var.c * Var.v list
        | CASE of Var.v * Var.c StringMap.map
 
       and cval =
          FN of Var.c * Var.v list * term
+       | PRI of Var.v * Var.v list
        | INJ of tag * Var.v
        | REC of (field * Var.v) list
        | INT of IntInf.int
@@ -68,7 +69,7 @@ structure CPS = struct
              | LETREC (ds, t) => lpTerm (t, visitterm (t, lpRec (ds, seed)))
              | LETUPD (_, _, _, t) => lpTerm (t, visitterm (t, seed))
              | LETPRJ (_, _, _, t) => lpTerm (t, visitterm (t, seed))
-             | LETCC (ds, t) => lpTerm (t, visitterm (t, lpCC (ds, seed)))
+             | LETCONT (ds, t) => lpTerm (t, visitterm (t, lpCC (ds, seed)))
              | _ => seed
          end
          and lpRec (ds, seed) =
@@ -99,12 +100,20 @@ structure CPS = struct
       val cvar = CCTab.cvar
       val is = seq [space, str "=", space]
       val inn = seq [space, str "in"]
+      fun isLetvalLike body =
+         case body of
+            LETVAL _ => true
+          | LETPRJ _ => true
+          | LETUPD _ => true
+          | _ => false
       fun term t = 
          case t of
             LETVAL (n, cv, body) =>
                align
                   [seq [str "letval", space, var n, is, cval cv, inn],
-                   indent 3 (term body)]
+                   if isLetvalLike body
+                      then term body
+                   else indent 3 (term body)]
           | LETREC (ds, body) =>
                align 
                   [align [str "letrec", indent 3 (recdecls ds)],
@@ -114,16 +123,20 @@ structure CPS = struct
                   [seq
                      [str "letval", space, var x, is,
                       str "$", fld f, space, var v, inn],
-                   indent 3 (term body)]
+                   if isLetvalLike body
+                      then term body
+                   else indent 3 (term body)]
           | LETUPD (x, y, fvs, body) =>
                align
                   [seq
                      [str "letval", space, var x, is, var y,
                       str "@", listex "{" "}" "," (map updFld fvs) , inn],
-                   indent 3 (term body)]
-          | LETCC (cs, body) =>
+                   if isLetvalLike body
+                      then term body
+                   else indent 3 (term body)]
+          | LETCONT (cs, body) =>
                align 
-                  [align [str "letcc", indent 3 (ccdecls cs)],
+                  [align [str "letcont", indent 3 (ccdecls cs)],
                    align [str "in", indent 3 (term body)]]
           | CASE (v, ks) =>
                align
@@ -143,6 +156,13 @@ structure CPS = struct
                align
                   [seq [str "\\", cvar c, space, vars xs, str "."],
                    indent 3 (term body)]
+          | PRI (f, xs) =>
+               seq
+                  [var f,
+                   seq
+                     [str "(",
+                      seq (separate (map var xs, ",")),
+                      str ")"]]
           | INJ (tag, v) => seq [con tag, space, var v]
           | INT i => int i
           | FLT f => str (FloatLit.toString f)

@@ -29,9 +29,11 @@ end = struct
       fun mk () = let
          open Core.Exp
          val >>= = get ">>=" 
+         val >> = get ">>"
          val return = get "return"
          val update =  get "update"
          val query = get "query"
+         val slice = get "slice"
          val answer = field (Atom.atom "1")
          val state = field (Atom.atom "2")
          fun select (f, e) = APP (SELECT f, e)
@@ -50,12 +52,30 @@ end = struct
                val s = fresh "s"
                val a = fresh "a"
                val m = fresh "m"
-               val e =
+               val body =
                    LETVAL (a, APP (ID aM, ID s),
                    LETVAL (m, APP (ID a2bM, select (answer, ID a)),
                       APP (ID m, select (state, ID a))))
             in
-               (>>=, [aM, a2bM, s], e)
+               (>>=, [aM, a2bM, s], body)
+            end
+
+         (* val >> aM bM s =
+          *    letval a = aM s in
+          *       bM (#2 a)
+          *    end
+          *)
+         val >> = 
+            let
+               val aM = fresh "aM"
+               val bM = fresh "bM"
+               val a = fresh "a"
+               val s = fresh "s"
+               val body = 
+                  LETVAL (a, APP (ID aM, ID s),
+                     APP (ID bM, select (state, ID a)))
+            in
+               (>>, [aM, bM, s], body)
             end
 
          (* val query f s = return (f s) *)
@@ -93,9 +113,8 @@ end = struct
             in
                (return, [a, s], e)
             end
-
       in
-         [>>=, return, update, query]
+         [>>=, >>, return, update, query]
       end
 
    end
@@ -127,11 +146,12 @@ end = struct
 
    and desugarSeq ss = let
       val >>= = Builtin.get ">>="
+      val >> = Builtin.get ">>"
       fun lp ss =
          case ss of
             [ACTION a] => desugar a
           | BIND (n, a)::ss => APP (APP (ID >>=, desugar a), FN (n, lp ss))
-          | ACTION a::ss => APP (APP (ID >>=, desugar a), lp ss)
+          | ACTION a::ss => APP (APP (ID >>, desugar a), lp ss)
           | _ => raise CM.CompilationError
    in
       lp (flattenSeq ss)
