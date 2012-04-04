@@ -2,6 +2,7 @@
 structure Aux = struct
    val function = Atom.atom "f"
    val continuation = Atom.atom "k"
+   val variable = Atom.atom "x"
 
    val variables = SymbolTables.varTable
 
@@ -80,6 +81,7 @@ structure Census = struct
       and visitCVal n cval = 
          case cval of
             FN (k, xs, t) => (touch k; app touch xs; visitTerm n t)
+          | PRI (f, xs) => (update n f; app (update n) xs)
           | INJ (_, x) => update n x
           | REC fs => app (visitField n) fs
           | _ => () 
@@ -132,6 +134,22 @@ structure Subst = struct
       end
 
    fun copyAll xs = map copy xs
+
+   fun renameAll sigma xs =
+      let
+         val ys = copyAll xs
+         val sigma = extendAll sigma ys xs
+      in
+         (sigma, ys)
+      end
+
+   fun renameOne sigma x =
+      let
+         val y = copy x
+         val sigma = extend sigma y x
+      in
+         (sigma, y)
+      end
 
    local open CPS.Exp in
    
@@ -239,6 +257,7 @@ structure Subst = struct
             in
                FN (k', xs', rename sigma t)
             end
+       | PRI (f, xs) => PRI (apply sigma f, applyAll sigma xs)
        | INJ (c, x) => INJ (c, apply sigma x)
        | REC fs => REC (map (fn (f, x) => (f, apply sigma x)) fs)
        | otherwise => otherwise
@@ -326,7 +345,6 @@ structure Rec = struct
                end
            | LETVAL (x, v, t) => unuse (visitCVal (v, visitTerm (t, env))) x 
            | CASE (x, ks) => unuse (visitCases (ks, env)) x
-
 
       and visitCases (ks, env) = 
          StringMap.foldl (fn (k, env) => use env k) env ks
@@ -425,6 +443,7 @@ structure Rec = struct
          case cv of
             INJ (_, x) => use env x
           | REC fs => uses env (map #2 fs)
+          | PRI (f, xs) => uses env (f::xs)
           | FN (k, xs, t) =>
              let
                 val env = visitTerm (t, env)
@@ -435,19 +454,7 @@ structure Rec = struct
              end
           | _ => env
    in
-      let
-         val () = print "rec-start\n"
-         val () = recs := #2 (visitTerm (cps, empty))
-         val () = print "rec-end\n"
-         val () =
-            Set.app
-               (fn x =>
-                  print
-                     (VarInfo.getString (!SymbolTables.varTable, x) ^ "\n"))
-               (!recs)
-      in
-         ()
-      end
+      recs := #2 (visitTerm (cps, empty))
    end
 end
 
@@ -479,119 +486,7 @@ structure BetaFun = struct
                else LETVAL (f, FN (k, xs, K), L)
             end
       | LETVAL (x, v, L) =>
-         LETVAL
-            (x,
-             simplifyVal env sigma v,
-             simplify env sigma L)
-      | LETREC (ds, t) =>
-         LETREC
-            (map (simplifyRec env sigma) ds,
-             simplify env sigma t)
-      | LETPRJ (x, f, y, t) =>
-         LETPRJ
-            (x,
-             f,
-             Subst.apply sigma y,
-             simplify env sigma t)
-      | LETUPD (x, y, fs, t) =>
-         LETUPD
-            (x,
-             Subst.apply sigma y,
-             map (fn (f, z) => (f, Subst.apply sigma z)) fs,
-             simplify env sigma t)
-      | LETCONT (cs, t) =>
-         LETCONT
-            (map (fn (k, x, t) => (k, x, simplify env sigma t)) cs,
-             simplify env sigma t)
-      | CC (k, xs) =>
-         CC (Subst.apply sigma k, map (Subst.apply sigma) xs)
-      | CASE (x, cs) =>
-         CASE
-            (Subst.apply sigma x,
-             StringMap.map (fn k => Subst.apply sigma k) cs)
-      | APP (f, j, ys) =>
-         let
-            val f = Subst.apply sigma f
-            val j = Subst.apply sigma j
-            val ys = Subst.applyAll sigma ys
-         in
-            case Map.find (env, f) of
-               NONE => APP (f, j, ys)
-             | SOME (k, xs, K) =>
-                  if length xs > length ys
-                     then 
-                        let
-                           val _ = click()
-                           val _ = markInlined f
-                           val ly = length ys
-                           val lx = length xs
-                           val f' = Aux.fresh Aux.function
-                           val applied = List.take(xs, ly)
-                           val missing = List.drop(xs, ly)
-                           val sigma = Subst.extendAll sigma ys applied
-                           val K = 
-                              if Census.count f <> 1
-                                 then simplify env sigma (Subst.rename sigma K)
-                              else simplify env sigma K
-
-                        in
-                           LETVAL (f', FN (k, missing, K), CC (j, [f']))
-                        end
-                  else if length xs = length ys
-                     then
-                        let
-                           val _ = click()
-                           val _ = markInlined f
-                           val sigma = Subst.extend sigma j k
-                           val sigma = Subst.extendAll sigma ys xs
-                        in
-                           if Census.count f <> 1
-                              then simplify env sigma (Subst.rename sigma K)
-                           else simplify env sigma K
-                        end
-                  else APP (f, j, ys)
-         end
-   
-   and simplifyRec env sigma (f, k, xs, t) =
-      (f, k, xs, simplify env sigma t)
-   
-   and simplifyVal env sigma v =
-      case v of
-         FN (k, x, t) => FN (k, x, simplify env sigma t)
-       | INJ (t, x) => INJ (t, Subst.apply sigma x)
-       | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
-       | otherwise => otherwise
-  
-   val name = "betaFun"
-   fun run t =
-      let
-         val () = reset ()
-         val _ = Census.run t
-         val t' = simplify Map.empty Subst.empty t
-      in
-         (t', !clicks)
-      end
-end
-
-structure BetaRec = struct
-   open CPS.Exp
-   structure Map = SymMap
-   structure Set = SymSet
-
-   val clicks = ref 0
-   val inlined = ref Set.empty
-   fun click () = clicks := !clicks + 1
-   fun reset () = (clicks := 0; inlined := Set.empty)
-
-   fun markInlined f = inlined := Set.add (!inlined, f)
-   fun usedLinearly f =
-      Census.count f = 1
-      andalso Set.member (!inlined, f)
-
-   fun simplify env sigma t =
-      case t of
-        LETVAL (x, v, L) =>
-         LETVAL
+        LETVAL
             (x,
              simplifyVal env sigma v,
              simplify env sigma L)
@@ -649,6 +544,7 @@ structure BetaRec = struct
             case Map.find (env, f) of
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
+                  (* XXX: proper alpha renaming on all paths... *)
                   if Rec.isRec f then APP (f, j, ys)
                   else if length xs > length ys
                      then
@@ -660,6 +556,8 @@ structure BetaRec = struct
                            val f' = Aux.fresh Aux.function
                            val applied = List.take(xs, ly)
                            val missing = List.drop(xs, ly)
+                           val (sigma, k) = Subst.renameOne sigma k
+                           val (sigma, missing) = Subst.renameAll sigma missing
                            val sigma = Subst.extendAll sigma ys applied
                            val K = 
                               if Census.count f <> 1
@@ -690,9 +588,10 @@ structure BetaRec = struct
          FN (k, x, t) => FN (k, x, simplify env sigma t)
        | INJ (t, x) => INJ (t, Subst.apply sigma x)
        | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
        | otherwise => otherwise
   
-   val name = "betaRec"
+   val name = "betaFun"
    fun run t =
       let
          val _ = reset ()
@@ -814,6 +713,7 @@ structure BetaCont = struct
          FN (k, x, t) => FN (k, x, simplify env sigma t)
        | INJ (t, x) => INJ (t, Subst.apply sigma x)
        | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
        | otherwise => otherwise
   
    val name = "betaCont"
@@ -936,6 +836,7 @@ structure BetaPair = struct
       case v of
          FN (k, x, t) => FN (k, x, simplify env sigma t)
        | INJ (t, x) => INJ (t, Subst.apply sigma x)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
        | REC _ => raise CM.CompilationError
        | otherwise => otherwise
   

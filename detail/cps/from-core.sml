@@ -14,6 +14,94 @@ end = struct
    val constructor = Atom.atom "cons"
    val continuation = CCTab.kont
 
+   structure Builtin = struct
+      fun fresh v = let
+         val (tab, sym) =
+            VarInfo.fresh (!SymbolTables.varTable, Atom.atom v)
+      in
+         sym before SymbolTables.varTable := tab
+      end
+
+      fun field f = let
+         val (tab, sym) =
+            FieldInfo.fresh (!SymbolTables.fieldTable, f)
+      in
+         sym before SymbolTables.fieldTable := tab
+      end
+      
+      fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
+
+      fun mk () = let
+         open CPS.Exp
+         val slice = get "slice"
+         val consume = get "consume"
+         val unconsume = get "unconsume"
+
+         (* val slice k tok offs sz s =
+          *    letval x = %slice(tok,offs,sz,s) in
+          *       k x
+          *)
+         val slice =
+            let
+               val tok = fresh "tok"
+               val offs = fresh "offs"
+               val sz = fresh "sz"
+               val s = fresh "s"
+               val x = fresh "x"
+               val k = fresh "k" 
+               val primSlice = get "%slice"
+               val body =
+                  LETVAL
+                     (x,
+                      PRI (primSlice, [tok, offs, sz, s]),
+                      CC (k, [x]))
+            in
+               (slice, k, [tok, offs, sz, s], body) 
+            end
+
+         (* val consume k s =
+          *    letval x = %consume(s) in
+          *       k x
+          *)
+         val consume =
+            let
+               val k = fresh "k"
+               val s = fresh "s"
+               val x = fresh "x"
+               val primConsume = get "%consume"
+               val body =
+                  LETVAL
+                     (x,
+                      PRI (primConsume, [s]),
+                      CC (k, [x]))
+            in
+               (consume, k, [s], body)
+            end
+
+         (* val unconsume k s =
+          *    letval x = %unconsume(s) in
+          *       k x
+          *)
+         val unconsume =
+            let
+               val k = fresh "k"
+               val s = fresh "s"
+               val x = fresh "x"
+               val primUnconsume = get "%unconsume"
+               val body =
+                  LETVAL
+                     (x,
+                      PRI (primUnconsume, [s]),
+                      CC (k, [x]))
+            in
+               (unconsume, k, [s], body)
+            end
+      in
+         [slice, consume, unconsume]
+      end
+
+   end
+
    val constructors: (Spec.sym * Spec.ty option) SymMap.map ref = ref SymMap.empty
 
    fun isEnumLike c =
@@ -61,11 +149,16 @@ end = struct
                            (fld, ID f)::acc
                         end)
                      [] cs)
+               val cps =
+                  trans0 
+                     (* TODO: "export" exported symbols as record *)
+                     (LETREC (cs, RECORD (exports cs)))
+                     (fn z => Exp.APP (main, kont, [z]))
             in
-               trans0 
-                  (* TODO: "export" exported symbols as record *)
-                  (LETREC (cs, RECORD (exports cs)))
-                  (fn z => Exp.APP (main, kont, [z]))
+               case cps of
+                  Exp.LETREC (cs, body) =>
+                     Exp.LETREC (Builtin.mk()@cs, body)
+                | _ => raise CM.CompilationError
             end) spec
 
    and trans0 e kappa = 

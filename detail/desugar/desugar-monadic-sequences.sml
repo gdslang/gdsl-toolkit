@@ -113,37 +113,8 @@ end = struct
             in
                (return, [a, s], e)
             end
-
-         (* val slice tok offs sz s =
-          *    letval x = {tok=tok, offset=offs, size=sz, state=s} in
-          *       %slice x
-          *)
-         val slice =
-            let
-               val tok = fresh "tok"
-               val offs = fresh "offs"
-               val sz = fresh "sz"
-               val s = fresh "s"
-               val x = fresh "x"
-               val tokf = field (Atom.atom "tok")
-               val offsetf = field (Atom.atom "offset")
-               val sizef = field (Atom.atom "size")
-               val statef = field (Atom.atom "state")
-               val primSlice = get "%slice"
-               val body =
-                  LETVAL
-                     (x,
-                      RECORD
-                        [(tokf, ID tok),
-                         (offsetf, ID offs),
-                         (sizef, ID sz),
-                         (statef, ID s)],
-                      APP (ID primSlice, ID x))
-            in
-               (slice, [tok, offs, sz, s], body) 
-            end
       in
-         [>>=, >>, return, update, query, slice]
+         [>>=, >>, return, update, query]
       end
 
    end
