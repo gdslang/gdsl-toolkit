@@ -207,19 +207,22 @@ end = struct
            List.foldl getBindVars set bs
         end
       
-      val texpBVars = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs))
-      fun bvarsOfBinding (KAPPA {ty=t},set) = texpBVars (t,set)
-        | bvarsOfBinding (SINGLE {name, ty=t},set) = texpBVars (t,set)
-        | bvarsOfBinding (GROUP bs,set) = let
-           fun vsOpt (SOME t,set) = texpBVars (t,set)
-             | vsOpt (NONE,set) = set
-           fun getUsesVars ((_,t),set) = texpBVars (t,set)
-           fun getBindVars ({name, ty=t, width=w, uses},set) =
+      fun bvarsOfBinding (b,set) =
+         let
+            val texpBVars =
+               texpBVarset (fn ((_,_,v),vs) => BD.addToSet (v,vs))
+            fun vsOpt (SOME t,set) = texpBVars (t,set)
+              | vsOpt (NONE,set) = set
+            fun getUsesVars ((_,t),set) = texpBVars (t,set)
+            fun getBindVars ({name, ty=t, width=w, uses},set) =
                List.foldl (texpBVars) (vsOpt (t, vsOpt (w,set)))
                   (SpanMap.listItems uses)
-        in
-           List.foldl getBindVars set bs
-        end
+         in
+            case b of
+                 KAPPA {ty=t} => texpBVars (t,set)
+               | SINGLE {name, ty=t} => texpBVars (t,set)
+               | GROUP bs => List.foldl getBindVars set bs
+         end
 
       fun initial (b, scs) =
          ([{
@@ -1009,8 +1012,8 @@ end = struct
         ((KAPPA {ty=t1}, (_, consRef1)), (KAPPA {ty=t2}, (_, consRef2))) =>
          if (consRef1 <> consRef2) then raise InferenceBug else
          let
-            val l1 = texpBVarset (op ::) (t1, [])
-            val l2 = texpBVarset (op ::) (t2, [])
+            val l1 = texpBVarset (fn ((co,_,v),vs) => (co,v)::vs) (t1, [])
+            val l2 = texpBVarset (fn ((co,_,v),vs) => (co,v)::vs) (t2, [])
             fun genImpl ((contra1,f1),(contra2,f2),bf) =
                if contra1<>contra2 then raise InferenceBug else
                if contra1 then
