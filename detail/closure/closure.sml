@@ -63,4 +63,14 @@ structure Closure = struct
              xs: Var.v list,
              body: Block.t}
    end
+
+   structure Spec = struct
+      open CPS.Spec
+      type t = Fun.t list Spec.t
+   end
+
+   structure PP = struct
+      open Layout Pretty
+      fun spec s = str "<.closure.>"
+   end
 end

@@ -58,4 +58,7 @@ group is
    ../../cps/mk-cps-pass.sml
    ../../cps/cps-passes.sml
    ../../closure/closure.sml
+   ../../closure/closure-control.sml
+   ../../closure/from-cps.sml
+   ../../closure/closure-passes.sml
    ../../driver/main.sml

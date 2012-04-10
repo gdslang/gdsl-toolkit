@@ -30,9 +30,9 @@ functor MkCPSPass (Core: CPSCORE) = struct
          {passName=Core.name,
           registry=CPSControl.registry,
           pass=Core.run,
-          preExt="ast",
+          preExt="cps",
           preOutput=dumpPre,
-          postExt="ast",
+          postExt="cps",
           postOutput=dumpPost}
 
    fun run spec =

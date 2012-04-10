@@ -95,18 +95,158 @@ structure Census = struct
    val run = visit 1
 end
 
-structure Env = struct
-   type t = CPS.Exp.term SymMap.map
+structure FreeVars = struct
+   structure Map = SymMap
+   structure Set = SymSet
+   type t = Set.set Map.map
 
-   val empty = SymMap.empty
-   fun add env x t = SymMap.insert (env, x, t)
-   fun addRec env xs = 
-      foldl
-         (fn ((f, _, _, t), env) =>
-            add env f t)
-         env xs
-   fun lookup env x = SymMap.find (env, x)
+   val freevars = ref Map.empty : t ref
 
+   fun def env x = Set.delete (env, x) handle NotFound => env
+   fun use env x = Set.add (env, x)
+   fun useAll env xs = foldl (fn (x, env) => use env x) env xs
+   fun defAll env xs = foldl (fn (x, env) => def env x) env xs
+   fun defAllWith f env xs = foldl (fn (x, env) => def env (f x)) env xs
+   fun merge a b = Set.union (a, b)
+   fun set f xs =
+      if Set.isEmpty xs
+         then ()
+      else freevars := Map.insert (!freevars, f, xs)
+   fun get f =
+      case Map.find (!freevars, f) of
+         NONE => Set.empty
+       | SOME xs => xs
+
+   fun run cps = let
+      open CPS.Exp
+      fun visitTerm (env, cps) = 
+         case cps of
+            LETVAL (x, v as (FN _), body) =>
+               let
+                  val env = visitTerm (env, body)
+                  val env = visitCVal (env, v)
+                  val env = def env x
+               in
+                  set x env; env
+               end
+          | LETVAL (x, v, body) =>
+               let
+                  val env = visitTerm (env, body)
+                  val env = visitCVal (env, v)
+                  val env = def env x
+               in
+                  env
+               end
+          | LETREC (ds, body) =>
+               let
+                  (* PERF *)
+                  val _ =
+                     app
+                        (fn (f, k, xs, body) =>
+                           let
+                              val env = visitTerm (env, body)
+                              val env = def env f
+                              val env = def env k
+                              val env = defAll env xs
+                              val env = defAllWith #1 env ds 
+                           in
+                              set f env
+                           end) ds
+                  val env = visitTerm (env, body)
+                  val env =
+                     foldl
+                        (fn ((f, _, _, _), env) =>
+                           merge (get f) env) env ds
+                  val env = defAllWith #1 env ds
+               in
+                  env
+               end
+          | LETCONT (ds, body) =>
+               let
+                  (* PERF *)
+                  val _ =
+                     app
+                        (fn (k, xs, body) =>
+                           let
+                              val env = visitTerm (env, body)
+                              val env = def env k
+                              val env = defAll env xs
+                           in
+                              set k env
+                           end) ds
+                  val env = visitTerm (env, body)
+                  val env =
+                     foldl
+                        (fn ((k, _, _), env) =>
+                           merge (get k) env) env ds
+                  val env = defAllWith #1 env ds
+               in
+                  env
+               end
+          | LETPRJ (y, _, x, body) =>
+               let
+                  val env = visitTerm (env, body)
+                  val env = use env x
+                  val env = def env y
+               in
+                  env
+               end
+          | LETUPD (y, x, fs, body) =>
+               let
+                  val env = visitTerm (env, body)
+                  val env = use env x
+                  val env = useAll env (map #2 fs)
+                  val env = def env y
+               in
+                  env
+               end
+          | APP (f, k, xs) =>
+               let
+                  val env = use env f
+                  val env = use env k
+                  val env = useAll env xs
+               in
+                  env
+               end
+          | CC (k, xs) =>
+               let
+                  val env = use env k
+                  val env = useAll env xs
+               in
+                  env
+               end
+          | CASE (x, ks) =>
+               let
+                  val env = use env x
+                  val env = StringMap.foldl (fn (k, env) => use env k) env ks
+               in
+                  env
+               end
+
+      and visitCVal (env, cval) =
+         case cval of
+            FN (k, xs, body) =>
+               let
+                  val env = visitTerm (env, body)
+                  val env = def env k
+                  val env = defAll env xs
+               in
+                  env
+               end
+          | PRI (_, xs) => useAll env xs
+          | INJ (_, x) => use env x
+          | REC fs => useAll env (map #2 fs)
+          | _ => env
+   in
+      visitTerm (Set.empty, cps)
+   end
+   
+   fun dump () =
+      Pretty.prettyTo
+         (TextIO.stdOut,
+          Pretty.symmap
+            {key=CPS.PP.var,
+             item=Pretty.symset CPS.PP.var} (!freevars))
 end
 
 structure Subst = struct
