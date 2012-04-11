@@ -384,9 +384,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
         
      | infExp (st,env) (AST.RECORDexp l) =
       let
-         val bVar = BD.freshBVar ()
-         val env = E.meetBoolean (BD.meetVarZero bVar, env)
-         val t = VAR (TVar.freshTVar (), bVar)
+         val t = freshVar ()
+         val env = E.meetBoolean (BD.meetVarZero (bvar t), env)
          val env = E.pushType (false, t, env)
          fun pushField ((fid,e), (nts, env)) =
             let
@@ -407,14 +406,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.SELECTexp f) =
       let
          val env = E.pushTop env
-         val tf = VAR (TVar.freshTVar (), BD.freshBVar ())
+         val tf = freshVar ()
+         val tf' = newFlow tf
          val env = E.pushType (false, tf, env)
          val exists = BD.freshBVar ()
          (*val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.reduceToRecord ([(exists, f)], env)
-         val env = E.meetBoolean (BD.meetVarOne exists, env)
+         val env = E.meetBoolean (BD.meetVarImpliesVar (bvar tf, bvar tf') o
+                                  BD.meetVarOne exists, env)
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
-         val env = E.pushType (false, tf, env)
+         val env = E.pushType (false, tf', env)
          val env = E.reduceToFunction env
          (*val _ = TextIO.print ("**** rec selector:\n" ^ E.toString env ^ "\n")*)
       in
@@ -422,7 +423,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.UPDATEexp fs) =
       let
-         val fieldsVar = VAR (TVar.freshTVar (), BD.freshBVar ())
+         val fieldsVar = freshVar ()
          val env = E.pushType (false, fieldsVar, env)
          fun pushInpField ((fid,e), (nts, env)) =
             let

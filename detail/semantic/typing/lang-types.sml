@@ -6,7 +6,7 @@ structure Types = struct
    type varset = TVar.set
    val freshTVar = TVar.freshTVar
 
-   val concisePrint = true
+   val concisePrint = false
 
    datatype texp =
       (* a function *)
@@ -37,6 +37,16 @@ structure Types = struct
       fty : texp,
       exists : BooleanDomain.bvar
    }
+
+   exception LangTypesBug
+              
+   fun newFlow (VAR (a,_)) = VAR (a, BD.freshBVar ())
+     | newFlow _ = raise LangTypesBug
+   fun freshVar () = VAR (freshTVar (), BD.freshBVar ())
+   fun bvar (VAR (v,b)) = b
+     | bvar _ = raise LangTypesBug
+   fun tvar (VAR (v,b)) = v
+     | tvar _ = raise LangTypesBug      
 
    fun texpVarset (e, vs) = let
       fun tV (FUN (f1, f2), vs) = tV (f2, tV (f1, vs))
