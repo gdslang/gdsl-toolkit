@@ -912,30 +912,30 @@ val pf2-f3 [] = opt
 
 ### ADD Vol. 2A 3-35
 val add = binop ADD
-val main [0x04] = add al imm8
-val main [0x05]
+val opt [0x04] = add al imm8
+val opt [0x05]
  | rexw? = add rax imm64
  | otherwise = add eax imm32
-val p66 [0x05] = add ax imm16
-val main [0x80 /0] = add r/m8 imm8
-val main [0x81 /0]
+val p66-opt [0x05] = add ax imm16
+val opt [0x80 /0] = add r/m8 imm8
+val opt [0x81 /0]
  | rexw? = add r/m64 imm64
  | otherwise = add r/m32 imm32
-val p66 [0x81 /0] = add r/m16 imm16
-val main [0x83 /0]
+val p66-opt [0x81 /0] = add r/m16 imm16
+val opt [0x83 /0]
  | rexw? = add r/m64 imm8
  | otherwise = add r/m32 imm8
-val p66 [0x83 /0] = add r/m16 imm8
-val main [0x00 /r] = add r/m8 r8
-val main [0x01 /0]
+val p66-opt [0x83 /0] = add r/m16 imm8
+val opt [0x00 /r] = add r/m8 r8
+val opt [0x01 /0]
  | rexw? = add r/m64 r64
  | otherwise = add r/m32 r32
-val p66 [0x01 /0] = add r/m16 r16
-val main [0x02 /r] = add r8 r/m8
-val main [0x03 /0]
+val p66-opt [0x01 /0] = add r/m16 r16
+val opt [0x02 /r] = add r8 r/m8
+val opt [0x03 /0]
  | rexw? = add r64 r/m64
  | otherwise = add r32 r/m32
-val p66 [0x03 /0] = add r16 r/m16
+val p66-opt [0x03 /0] = add r16 r/m16
 
 ### CVTPD2PI Vol 2A 3-248
 val cvtpdf2pi = binop CVTPD2PI
@@ -971,62 +971,56 @@ val vex-0f [0x5f /r]
 ### MAXSD Vol. 2B 4-19
 val maxsd = binop MAXSD
 val vmaxsd = trinop VMAXSD
-val two-byte-opcode-0f [0x5f /r] 
- | / repne? = maxsd xmm128 xmm/m64
-val two-byte-opcode-0f-vex [0x5f /r] 
+val pf2 [0x0f 0x5f /r] = maxsd xmm128 xmm/m64
+val vex-0f [0x5f /r] 
  | vex-f2? = vmaxsd xmm128 vex/xmm xmm/m64
 
 ### MAXSS Vol. 2B 4-21
 val maxss = binop MAXSS
 val vmaxss = trinop VMAXSS
-val two-byte-opcode-0f [0x5f /r] 
- | / rep? = maxss xmm128 xmm/m32
-val two-byte-opcode-0f-vex [0x5f /r] 
+val pf3 [0x0f 0x5f /r] = maxss xmm128 xmm/m32
+val vex-0f [0x5f /r] 
  | vex-f3? = vmaxss xmm128 vex/xmm xmm/m32
 
 ### MFENCE Vol. 2B 4-23
 val mfence = return MFENCE
-val two-byte-opcode-0f [0xae /6] = mfence
+val main [0x0f 0xae /6] = mfence
 
 ### MINPD Vol. 2B 4-25
 val minpd = binop MINPD
 val vminpd = trinop VMINPD
-val two-byte-opcode-0f [0x5d /r] 
- | / opndsz? = minpd xmm128 xmm/m128
-val two-byte-opcode-0f-vex [0x5d /r] 
+val p66 [0x0f 0x5d /r] = minpd xmm128 xmm/m128
+val vex-0f [0x5d /r] 
  | vex-128? & vex-66? = vminpd xmm128 vex/xmm xmm/m128
-val two-byte-opcode-0f-vex [0x5d /r] 
+val vex-0f [0x5d /r] 
  | vex-256? & vex-66? = vminpd ymm256 vex/ymm ymm/m256
 
 ### MINPS Vol. 2B 4-28
 val minps = binop MINPS
 val vminps = trinop VMINPS
-val two-byte-opcode-0f [0x5d /r] 
- | / opndsz? = minps xmm128 xmm/m128
-val two-byte-opcode-0f-vex [0x5d /r] 
+val main [0x0f 0x5d /r] = minps xmm128 xmm/m128
+val vex-0f [0x5d /r] 
  | vex-128? & vex-no-simd? = vminps xmm128 vex/xmm xmm/m128
-val two-byte-opcode-0f-vex [0x5d /r] 
+val vex-0f [0x5d /r] 
  | vex-256? & vex-no-simd? = vminps ymm256 vex/ymm ymm/m256
 
 ### MINSD Vol. 2B 4-31
 val minsd = binop MINSD
 val vminsd = trinop VMINSD
-val two-byte-opcode-0f [0x5d /r] 
- | / repne? = minsd xmm128 xmm/m64
-val two-byte-opcode-0f-vex [0x5d /r] 
+val pf2 [0x0f 0x5d /r] = minsd xmm128 xmm/m64
+val vex-0f [0x5d /r] 
  | vex-f2? = vminsd xmm128 vex/xmm xmm/m64
 
 ### MINSS Vol. 2B 4-33
 val minss = binop MINSS
 val vminss = trinop VMINSS
-val two-byte-opcode-0f [0x5d /r] 
- | / rep? = minss xmm128 xmm/m32
-val two-byte-opcode-0f-vex [0x5d /r] 
+val pf3 [0x0f 0x5d /r] = minss xmm128 xmm/m32
+val vex-0f [0x5d /r] 
  | vex-f3? = vminss xmm128 vex/xmm xmm/m32
 
 ### MONITOR Vol. 2B 4-35
 val monitor = return MONITOR
-val two-byte-opcode-0f [0xae 0x01 0xc8] = monitor
+val main [0x0f 0xae 0x01 0xc8] = monitor
 
 ### MOV Vol 2A 3-643
 val mov = binop MOV
