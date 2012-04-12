@@ -9,7 +9,8 @@ structure Main = struct
          Parser.run ins >>=
          ResolveSymbols.run >>=
          Desugar.run >>=
-         CPSPasses.run
+         CPSPasses.run >>=
+         ClosurePasses.run
 
       fun run fp = let
          val ins = TextIO.openIn fp

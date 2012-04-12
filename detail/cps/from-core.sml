@@ -149,10 +149,16 @@ end = struct
                            (fld, ID f)::acc
                         end)
                      [] cs)
+               fun exports spec =
+                  let 
+                     val es = Spec.get#exports spec
+                  in
+                     map (fn e => (field e, ID e)) es
+                  end
                val cps =
                   trans0 
                      (* TODO: "export" exported symbols as record *)
-                     (LETREC (cs, RECORD (exports cs)))
+                     (LETREC (cs, RECORD (exports spec)))
                      (fn z => Exp.APP (main, kont, [z]))
             in
                case cps of
@@ -484,9 +490,9 @@ end = struct
          {passName="translateCoreToCPS",
           registry=CPSControl.registry,
           pass=translate,
-          preExt="ast",
+          preExt="core",
           preOutput=dumpPre,
-          postExt="ast",
+          postExt="cps",
           postOutput=dumpPost}
 
    fun run spec = CM.return (translate spec)

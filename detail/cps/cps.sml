@@ -19,9 +19,9 @@ structure CPS = struct
       datatype term =
          LETVAL of Var.v * cval * term
        | LETREC of recdecl list * term
+       | LETCONT of ccdecl list * term
        | LETPRJ of Var.v * field * Var.v * term
        | LETUPD of Var.v * Var.v * (field * Var.v) list * term
-       | LETCONT of ccdecl list * term
        | APP of Var.v * Var.c * Var.v list
        | CC of Var.c * Var.v list
        | CASE of Var.v * Var.c StringMap.map
