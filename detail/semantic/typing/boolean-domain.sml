@@ -38,6 +38,8 @@ structure BooleanDomain : sig
    
    val addToSet : bvar * bvarset -> bvarset
    
+   val setToString : bvarset -> string
+
    val projectOnto : bvarset * bfun -> bfun
 
    val expand : bvar list * (bool * bvar) list * bfun -> bfun
@@ -103,12 +105,12 @@ end = struct
                   (if v<0 then "!" ^ i (~v) else " " ^ i v) ^ " ") ""
    val showCS = CS.foldl (fn ((v1,v2),str) => str ^ (
             if v1>0 andalso v2>0 then i v1 ^ " v " ^ i v2 else
-            if v1<0 andalso v2>0 then i (~v1) ^ "-> " ^ i v2 else
-            if v1>0 andalso v2<0 then i v1 ^ " <-" ^ i (~v2) else
+            if v1<0 andalso v2>0 then i (~v1) ^ "->" ^ i v2 else
+            if v1>0 andalso v2<0 then i v1 ^ "<-" ^ i (~v2) else
             if v2<0 andalso v2<0 then "!" ^ i (~v1) ^ "v!" ^ i (~v2) else
             "error") ^ " "
          ) ""
-   fun showBFun (us, cs) = "units: " ^ showUS us ^ "\nimpl: " ^ showCS cs
+   fun showBFun (us, cs) = showUS us ^ showCS cs
 
    exception Unsatisfiable of bvar
    
@@ -195,6 +197,13 @@ end = struct
 
    val emptySet = IS.empty
    fun addToSet (BVAR v, set) = IS.add' (v,set)
+
+   fun setToString set =
+      let
+         fun show (v, (str, sep)) = (str ^ sep ^ i v, ", ")
+      in
+         #1 (List.foldl show ("", "{") (IS.listItems set)) ^ "}"
+      end                               
    
    fun projectOnto (keep, (us, cs)) =
       let

@@ -6,7 +6,7 @@ structure Types = struct
    type varset = TVar.set
    val freshTVar = TVar.freshTVar
 
-   val concisePrint = true
+   val concisePrint = false
 
    datatype texp =
       (* a function *)
@@ -38,6 +38,16 @@ structure Types = struct
       exists : BooleanDomain.bvar
    }
 
+   exception LangTypesBug
+              
+   fun newFlow (VAR (a,_)) = VAR (a, BD.freshBVar ())
+     | newFlow _ = raise LangTypesBug
+   fun freshVar () = VAR (freshTVar (), BD.freshBVar ())
+   fun bvar (VAR (v,b)) = b
+     | bvar _ = raise LangTypesBug
+   fun tvar (VAR (v,b)) = v
+     | tvar _ = raise LangTypesBug      
+
    fun texpVarset (e, vs) = let
       fun tV (FUN (f1, f2), vs) = tV (f2, tV (f1, vs))
         | tV (SYN (syn, t), vs) = tV (t, vs)
@@ -54,6 +64,10 @@ structure Types = struct
       in (tV (e, vs))
    end
 
+   (*gather Boolean flags, the collection function is generic and is passed a
+   bool that is true if the flag is in a contra-variant position and it is
+   passed an optional type variable with which the Boolean flag is
+   associated*)
    fun texpBVarset cons (e, bs) = let
       fun tV co (FUN (f1, f2), bs) = tV co (f2, tV (not co) (f1, bs))
         | tV co (SYN (syn, t), bs) = tV co (t, bs)
@@ -63,12 +77,13 @@ structure Types = struct
         | tV co (VEC t, bs) = tV co (t, bs)
         | tV co (CONST c, bs) = bs
         | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
-        | tV co (RECORD (_,b,l), bs) =
-         List.foldl (tVF co) (cons ((co,b),bs)) l
-        | tV co (MONAD (r,f,t), bs) = tV co (r, bs) (*tV (not co) (f, tV co (t, bs)))*)
-        | tV co (VAR (_,v), bs) = cons ((co,v),bs)
+        | tV co (RECORD (v,b,l), bs) =
+         List.foldl (tVF co) (cons ((co,SOME v,b),bs)) l
+        | tV co (MONAD (r,f,t), bs) =
+         tV co (r, tV (not co) (f, tV co (t, bs)))
+        | tV co (VAR (v,b), bs) = cons ((co,SOME v,b),bs)
       and tVF co (RField {name = n, fty = t, exists = b}, bs) =
-         tV co (t, cons ((co,b),bs))
+         tV co (t, cons ((co,NONE,b),bs))
       in (tV false (e, bs))
    end
 
@@ -163,7 +178,8 @@ structure Types = struct
                                    showVar v ^ 
                                    (if concisePrint then "" else BD.showVar b)
                                    ^ ":...}"
-      | sT (p, MONAD (r,f,t)) = br (p, p_tyn, "S " ^ sT (p_tyn+1, r))
+      | sT (p, MONAD (r,f,t)) = br (p, p_tyn, "S " ^ sT (p_tyn+1, r)) ^
+         " <" ^ sT (p_app+1, f) ^ " -> " ^ sT (p_app, t) ^ ">"
       | sT (p, VAR (v,b)) = showVar v ^ 
             (if concisePrint then "" else BD.showVar b)
    and showVar var = let 

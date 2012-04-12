@@ -74,8 +74,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val { tsynDefs, typeDefs, conParents} = ti
    val caseExpSymId = SymbolTable.lookup(!SymbolTables.varTable,
                                          Atom.atom Primitives.caseExpression)
-   val stateSymId = SymbolTable.lookup(!SymbolTables.varTable,
-                                       Atom.atom Primitives.globalState)
+   (*val stateSymId = SymbolTable.lookup(!SymbolTables.varTable,
+                                       Atom.atom Primitives.globalState)*)
    val granularitySymId = SymbolTable.lookup(!SymbolTables.varTable,
                                              Atom.atom Primitives.granularity)
    
@@ -85,17 +85,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
    fun getSpan {span = s, error = _} = s
-   fun pushMonadType (t,env) =
-      let
-         val tvar = TVar.freshTVar ()
-         val fromBVar = BD.freshBVar ()
-         val toBVar = BD.freshBVar ()
-         val fromVar = VAR (tvar, fromBVar)
-         val toVar = VAR (tvar, toBVar)
-         val env = E.pushType (false, MONAD (t, fromVar, toVar), env)
-      in
-         E.meetBoolean (BD.meetVarImpliesVar (fromBVar, toBVar), env)
-      end
 
    (* define a first traversal that creates a group of all top-level decls *)
    fun topDecl (AST.MARKdecl {span, tree=t}) = topDecl t
@@ -256,7 +245,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          (E.SymbolSet.empty, env)
       end
-     | infDecl (st,env) (AST.STATEdecl l) =
+     (*| infDecl (st,env) (AST.STATEdecl l) =
       let
          val envState = E.pushSymbol (stateSymId, SymbolTable.noSpan, env)
          val extBVar = BD.freshBVar ()
@@ -273,7 +262,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.popToFunction (stateSymId, env)
       in
          checkUsages false (stateSymId, env)
-      end
+      end*)
      | infDecl stenv (AST.DECODEdecl dd) = infDecodedecl stenv dd
      | infDecl (st,env) (AST.LETRECdecl (v,l,e)) =
          infBinding (st,env) (v, [], NONE, l, e)
@@ -395,9 +384,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
         
      | infExp (st,env) (AST.RECORDexp l) =
       let
-         val bVar = BD.freshBVar ()
-         val env = E.meetBoolean (BD.meetVarZero bVar, env)
-         val t = VAR (TVar.freshTVar (), bVar)
+         val t = freshVar ()
+         val env = E.meetBoolean (BD.meetVarZero (bvar t), env)
          val env = E.pushType (false, t, env)
          fun pushField ((fid,e), (nts, env)) =
             let
@@ -418,14 +406,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.SELECTexp f) =
       let
          val env = E.pushTop env
-         val tf = VAR (TVar.freshTVar (), BD.freshBVar ())
+         val tf = freshVar ()
+         val tf' = newFlow tf
          val env = E.pushType (false, tf, env)
          val exists = BD.freshBVar ()
          (*val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.reduceToRecord ([(exists, f)], env)
-         val env = E.meetBoolean (BD.meetVarOne exists, env)
+         val env = E.meetBoolean (BD.meetVarImpliesVar (bvar tf, bvar tf') o
+                                  BD.meetVarOne exists, env)
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
-         val env = E.pushType (false, tf, env)
+         val env = E.pushType (false, tf', env)
          val env = E.reduceToFunction env
          (*val _ = TextIO.print ("**** rec selector:\n" ^ E.toString env ^ "\n")*)
       in
@@ -433,7 +423,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.UPDATEexp fs) =
       let
-         val fieldsVar = VAR (TVar.freshTVar (), BD.freshBVar ())
+         val fieldsVar = freshVar ()
          val env = E.pushType (false, fieldsVar, env)
          fun pushInpField ((fid,e), (nts, env)) =
             let
@@ -494,7 +484,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          (*val _ = TextIO.print ("****before monad:\n" ^ E.topToString env)*)
          val t = VAR (TVar.freshTVar (), BD.freshBVar ())
-         val envMon = pushMonadType (t,env)
+         val envMon = E.pushMonadType (t,env)
          (*val _ = TextIO.print ("**** monad pattern:\n" ^ E.topToString envMon)*)
          val envExp = infExp (st,env) e
          (*val _ = TextIO.print ("**** monad expression:\n" ^ E.topToString envExp)*)
@@ -511,7 +501,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infSeqexp (st,env) (AST.BINDseqexp (v,e) :: l) =
       let
          val (t,env) = E.pushLambdaVar' (v, env)
-         val envMon = pushMonadType (t, env)
+         val envMon = E.pushMonadType (t, env)
          val envExp = infExp (st,env) e
          val (envMon, envExp) = E.meet (envMon, envExp)
             handle S.UnificationFailure str =>
@@ -666,7 +656,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          ) (E.SymbolSet.empty, toplevelEnv)
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    val (badSizes, toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, primSymbols, _) = E.popGroup (primEnv, false)

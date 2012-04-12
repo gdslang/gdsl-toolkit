@@ -9,6 +9,15 @@ structure Pretty = struct
    val empty = L.str "<.>"
    val space = L.str " "
    val int = L.str o IntInf.toString
+   val is = L.seq [L.str "=", space]
+   fun symmap {key, item} t =
+      L.listex "{" "}" ";"
+         (List.map
+            (fn (k, i) =>
+               L.seq [key k, is, item i]) (SymMap.listItemsi t))
+   fun symset item t =
+      L.listex "{" "}" ";"
+         (List.map item (SymSet.listItems t))
    fun pretty layout = Layout.print (layout, print)
    fun prettyTo (os, layout) = Layout.print (layout, fn s => TextIO.output (os, s))
 end

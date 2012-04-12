@@ -14,6 +14,94 @@ end = struct
    val constructor = Atom.atom "cons"
    val continuation = CCTab.kont
 
+   structure Builtin = struct
+      fun fresh v = let
+         val (tab, sym) =
+            VarInfo.fresh (!SymbolTables.varTable, Atom.atom v)
+      in
+         sym before SymbolTables.varTable := tab
+      end
+
+      fun field f = let
+         val (tab, sym) =
+            FieldInfo.fresh (!SymbolTables.fieldTable, f)
+      in
+         sym before SymbolTables.fieldTable := tab
+      end
+      
+      fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
+
+      fun mk () = let
+         open CPS.Exp
+         val slice = get "slice"
+         val consume = get "consume"
+         val unconsume = get "unconsume"
+
+         (* val slice k tok offs sz s =
+          *    letval x = %slice(tok,offs,sz,s) in
+          *       k x
+          *)
+         val slice =
+            let
+               val tok = fresh "tok"
+               val offs = fresh "offs"
+               val sz = fresh "sz"
+               val s = fresh "s"
+               val x = fresh "x"
+               val k = fresh "k" 
+               val primSlice = get "%slice"
+               val body =
+                  LETVAL
+                     (x,
+                      PRI (primSlice, [tok, offs, sz, s]),
+                      CC (k, [x]))
+            in
+               (slice, k, [tok, offs, sz, s], body) 
+            end
+
+         (* val consume k s =
+          *    letval x = %consume(s) in
+          *       k x
+          *)
+         val consume =
+            let
+               val k = fresh "k"
+               val s = fresh "s"
+               val x = fresh "x"
+               val primConsume = get "%consume"
+               val body =
+                  LETVAL
+                     (x,
+                      PRI (primConsume, [s]),
+                      CC (k, [x]))
+            in
+               (consume, k, [s], body)
+            end
+
+         (* val unconsume k s =
+          *    letval x = %unconsume(s) in
+          *       k x
+          *)
+         val unconsume =
+            let
+               val k = fresh "k"
+               val s = fresh "s"
+               val x = fresh "x"
+               val primUnconsume = get "%unconsume"
+               val body =
+                  LETVAL
+                     (x,
+                      PRI (primUnconsume, [s]),
+                      CC (k, [x]))
+            in
+               (unconsume, k, [s], body)
+            end
+      in
+         [slice, consume, unconsume]
+      end
+
+   end
+
    val constructors: (Spec.sym * Spec.ty option) SymMap.map ref = ref SymMap.empty
 
    fun isEnumLike c =
@@ -61,11 +149,22 @@ end = struct
                            (fld, ID f)::acc
                         end)
                      [] cs)
+               fun exports spec =
+                  let 
+                     val es = Spec.get#exports spec
+                  in
+                     map (fn e => (field e, ID e)) es
+                  end
+               val cps =
+                  trans0 
+                     (* TODO: "export" exported symbols as record *)
+                     (LETREC (cs, RECORD (exports spec)))
+                     (fn z => Exp.APP (main, kont, [z]))
             in
-               trans0 
-                  (* TODO: "export" exported symbols as record *)
-                  (LETREC (cs, RECORD (exports cs)))
-                  (fn z => Exp.APP (main, kont, [z]))
+               case cps of
+                  Exp.LETREC (cs, body) =>
+                     Exp.LETREC (Builtin.mk()@cs, body)
+                | _ => raise CM.CompilationError
             end) spec
 
    and trans0 e kappa = 
@@ -75,7 +174,7 @@ end = struct
                val j = fresh continuation
                val body = trans0 body kappa
             in
-               Exp.LETCC ([(j, [v], body)], trans1 e j)
+               Exp.LETCONT ([(j, [v], body)], trans1 e j)
             end
        | LETREC (ds, body) => Exp.LETREC (map trans0rec ds, trans0 body kappa)
        | IF (iff, thenn, elsee) =>
@@ -94,7 +193,7 @@ end = struct
                         let
                            val x = fresh variable
                         in
-                           Exp.LETCC
+                           Exp.LETCONT
                               ((j, [x], kappa x)::cps,
                                Exp.CASE (z, ks))
                         end
@@ -115,7 +214,7 @@ end = struct
             in
                trans0 e1 (fn x1 =>
                   trans0 e2 (fn x2 =>
-                     Exp.LETCC ([(k, [x], kappa x)], Exp.APP (x1, k, [x2]))))
+                     Exp.LETCONT ([(k, [x], kappa x)], Exp.APP (x1, k, [x2]))))
             end
        | FN (x, e) =>
             let
@@ -144,25 +243,22 @@ end = struct
             let
                val f = fresh function
                val k = fresh continuation
-               val x = fresh variable
                val z = fresh variable
-               fun trans y fs fvs =
+               val x = fresh variable
+               fun trans fs fvs =
                   case fs of
                      [] =>
-                        let
-                           val x = fresh variable
-                        in
-                           Exp.LETUPD (x, y, fvs, kappa x)
-                        end
+                        Exp.LETVAL
+                           (f,
+                            Exp.FN (k, [x],
+                              Exp.LETUPD (z, x, fvs,
+                                 Exp.CC (k, [z]))),
+                            kappa f)
                    | (f, e)::fs =>
                         trans0 e (fn z =>
-                           trans y fs ((f, z)::fvs))
+                           trans fs ((f, z)::fvs))
             in
-               (* Exp.LETREC ([(f, k, [x], trans x fs [])], kappa f) *)
-               Exp.LETVAL
-                  (f,
-                   Exp.FN (k, [x], trans x fs []),
-                   kappa f)
+               trans fs []
             end
        | SELECT fld =>
             let
@@ -252,7 +348,7 @@ end = struct
                val j = fresh continuation
                val body = trans1 body kont
             in
-               Exp.LETCC ([(j, [v], body)], trans1 e j)
+               Exp.LETCONT ([(j, [v], body)], trans1 e j)
             end
        | LETREC (ds, body) => Exp.LETREC (map trans0rec ds, trans1 body kont)
        | IF (iff, thenn, elsee) =>
@@ -273,7 +369,7 @@ end = struct
                         in
                            trans z ps ((k, [x], trans1 e kont)::cps) ks
                         end
-                   | [] => Exp.LETCC (cps, Exp.CASE (z, ks))
+                   | [] => Exp.LETCONT (cps, Exp.CASE (z, ks))
             in
                trans0 e (fn z => trans z ps [] StringMap.empty)
             end
@@ -394,9 +490,9 @@ end = struct
          {passName="translateCoreToCPS",
           registry=CPSControl.registry,
           pass=translate,
-          preExt="ast",
+          preExt="core",
           preOutput=dumpPre,
-          postExt="ast",
+          postExt="cps",
           postOutput=dumpPost}
 
    fun run spec = CM.return (translate spec)
