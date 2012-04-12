@@ -11,8 +11,6 @@ end = struct
    structure Set = SymSet
    structure Clos = Closure.Stmt
 
-   val variable = Atom.atom "x"
-   val function = Atom.atom "f"
    val closure = Atom.atom "closure"
    val fresh = Aux.fresh
 
@@ -57,37 +55,234 @@ end = struct
          {stmts=mapi (fn (x, i) => Clos.LETREF (x, env, i)) xs@stmts,
           flow=flow}
 
+      fun escapes f = Map.inDomain (!bindings, f)
+      val isBound = escapes
+
+      fun free sigma f = Subst.applyAll sigma (Set.listItems (FV.get f))
+   
       fun convTerm sigma cps = 
          case cps of
-            LETVAL (x, FN (k, xs, K), L) =>
+            LETVAL (f, FN (k, xs, K), L) =>
                let
-                  val env = fresh closure
-                  val fs = Set.listItems (FV.get x)
-                  val fs = Subst.applyAll sigma fs
-                  val ys = Subst.copyAll fs
-                  val sigma' = Subst.extendAll sigma ys fs
-                  val K = convTerm sigma' K
-                  val K = unfoldEnv ys env K
-                  val _ = bindFun (x, env, k, xs, Closure.Block.BLOCK K)
-
-                  val clos = fresh closure
-                  val sigma = Subst.extend sigma clos x
+                  val () =
+                     convFun sigma f K
+                        (fn {env, body} =>
+                           bindFun (f, env, k, xs, Closure.Block.BLOCK body))
                   val {stmts, flow} = convTerm sigma L
                in
-                  {stmts=Clos.LETENV (clos, x::fs)::stmts,
+                  {stmts=stmts,
                    flow=flow}
                end
-              
+          | LETVAL (x, v, body) =>
+               let
+                  val {stmts, flow} = convTerm sigma body
+               in
+                  {flow=flow,
+                   stmts=convCVal sigma x v@stmts}
+               end
+          | LETREC (ds, body) =>
+               let
+                  val _ = convRecs sigma ds
+                  val body = convTerm sigma body
+               in
+                  body
+               end
+          | LETCONT (ds, body) =>
+               let
+                  val _ = convConts sigma ds
+                  val body = convTerm sigma body
+               in
+                  body
+               end
+          | LETPRJ (y, f, x, body) =>
+               let
+                  val x = Subst.apply sigma x
+                  val {stmts, flow} = convTerm sigma body
+               in
+                  {flow=flow,
+                   stmts=Clos.LETPRJ (y, f, x)::stmts}
+               end
+          | LETUPD (y, x, ds, body) =>
+               let
+                  val x = Subst.apply sigma x
+                  val fs = map #1 ds
+                  val xs = map #2 ds
+                  val env =
+                     useAll sigma xs
+                        (fn xs =>
+                           [Clos.LETUPD (y, x, ListPair.zip (fs, xs))])
+                  val {stmts, flow} = convTerm sigma body
+               in
+                  {flow=flow,
+                   stmts=env@stmts}
+               end
+          | APP (f, k, xs) =>
+               if isBound f
+                  then
+                     let   
+                        val f = Subst.apply sigma f
+                        val {env, body} = buildEnv sigma f
+                        val k' = ref k
+                        val xs' = ref xs
+                        val stmts = 
+                           use sigma k (fn k =>
+                              useAll sigma xs (fn xs =>
+                                 (k' := k; xs' := xs; body)))
+                     in
+                        {stmts=stmts,
+                         flow=Clos.APP {f=f, closure=env, k= !k', xs= !xs'}}
+                     end               
+               else
+                  let
+                     val f = Subst.apply sigma f
+                     val k' = ref k
+                     val xs' = ref xs
+                     val f' = Subst.copy f
+                     val stmts =
+                        use sigma k (fn k =>
+                           useAll sigma xs (fn xs =>
+                              (k' := k
+                              ;xs' := xs
+                              ;[Clos.LETREF (f', f, 0)])))
+                     in
+                        {stmts=stmts,
+                         flow=Clos.APP {f=f', closure=f, k= !k', xs= !xs'}}
+                     end
+          | CC (k, xs) =>
+               if isBound k
+                  then
+                     let
+                        val k = Subst.apply sigma k
+                        val {env, body} = buildEnv sigma k
+                        val xs' = ref xs
+                        val stmts =
+                           useAll sigma xs (fn xs =>
+                              (xs' := xs
+                              ;body))
+                     in
+                        {stmts=stmts,
+                         flow=Clos.CC {k=k, closure=env, xs= !xs'}}
+                     end
+               else
+                  let
+                     val k = Subst.apply sigma k
+                     val k' = Subst.copy k
+                     val xs' = ref xs
+                     val stmts =
+                        useAll sigma xs (fn xs =>
+                           (xs' := xs
+                           ;[Clos.LETREF (k', k, 0)]))
+                  in
+                     {stmts=stmts,
+                      flow=Clos.CC {k=k', closure=k, xs= !xs'}}
+                  end
+          | CASE (x, ks) =>
+               (* TODO *)
+               {stmts=[],
+                flow=Clos.CASE (Subst.apply sigma x, ks)}
 
-      and convCVal sigma v =
+      and convConts sigma ds = app (convCont sigma) ds
+      and convCont sigma (k, xs, body) =
+         convFun sigma k body
+            (fn {env, body} =>
+               bindCont (k, env, xs, Closure.Block.BLOCK body))
+
+      and convRecs sigma ds = app (convRec sigma) ds
+      and convRec sigma (f, k, xs, body) =
+         convFun sigma f body
+            (fn {env, body} =>
+               bindFun (f, env, k, xs, Closure.Block.BLOCK body))
+
+      and buildEnv sigma f =
+         let
+            val fs = free sigma f
+            val env = fresh closure
+            val stmts = Clos.LETENV (env, f::fs)
+         in
+            {env=env, body=[stmts]}
+         end
+
+      and convFun sigma f body k =
+         let
+            val fs = free sigma f
+            val ys = Subst.copyAll fs
+            val sigma = Subst.extendAll sigma ys fs
+            val body = convTerm sigma body
+            val env = fresh closure
+         in
+            k {env=env, body=unfoldEnv ys env body}
+         end
+
+      and convCVal sigma x v =
          case v of
-            v => []
+            PRI (f, xs) =>
+               useAll sigma xs
+                  (fn xs =>
+                     [Clos.LETVAL (x, Clos.PRI (f, xs))])
+          | INJ (tag, y) =>
+               use sigma y
+                  (fn y =>
+                     [Clos.LETVAL (x, Clos.INJ (tag, y))])
+          | REC ds =>
+               let
+                  val fs = map #1 ds
+                  val xs = map #2 ds
+               in
+                  useAll sigma xs
+                     (fn xs =>
+                        [Clos.LETVAL (x, Clos.REC (ListPair.zip (fs, xs)))])
+               end
+          | INT i => [Clos.LETVAL (x, Clos.INT i)]
+          | FLT f => [Clos.LETVAL (x, Clos.FLT f)]
+          | STR s => [Clos.LETVAL (x, Clos.STR s)]
+          | VEC v => [Clos.LETVAL (x, Clos.VEC v)]
+          | UNT => [Clos.LETVAL (x, Clos.UNT)]
+          | FN _ => raise CM.CompilationError
+
+      and useAll sigma xs k =
+         let
+            val xs = Subst.applyAll sigma xs
+            fun lp (xs, lets, ys) =
+               case xs of
+                  x::xs =>
+                     if escapes x
+                        then
+                           let
+                              val fs = free sigma x
+                              val closure = fresh closure
+                           in
+                              lp (xs,
+                                  Clos.LETENV
+                                    (closure, x::fs)::lets,
+                                  closure::ys)
+                           end
+                     else lp (xs, lets, x::ys)
+                | [] => rev lets@k (rev ys)
+         in
+            lp (xs, [], [])
+         end
+
+      and use sigma x k =
+         let
+            val x = Subst.apply sigma x
+         in
+            if escapes x
+               then
+                  let
+                     val fs = free sigma x
+                     val closure = fresh closure
+                  in
+                     Clos.LETENV (closure, x::fs)::k closure
+                  end
+            else k x
+         end
                
    in
       Spec.upd
          (fn cps =>
             (FV.run cps
             ;FV.dump()
+            ;ignore(convTerm Subst.empty cps)
             ;Map.listItems (!bindings))) spec : Closure.Spec.t
    end
 
@@ -102,7 +297,7 @@ end = struct
          {passName="flatClosureConversion",
           registry=ClosureControl.registry,
           pass=conv,
-          preExt="clos",
+          preExt="cps",
           preOutput=dumpPre,
           postExt="clos",
           postOutput=dumpPost}
