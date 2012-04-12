@@ -896,6 +896,14 @@ val p66-f2-f3 [0xf2] = do update @{repne='1'}; p66-f2-f3 end
 val p66-f2-f3 [0xf3] = do update @{rep='1'}; p66-f2-f3 end
 val p66-f2-f3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
+val p66 [] = p66-opt
+val p66-f2 [] = p66-opt
+val p66-f3 [] = p66-opt
+val p66-f2-f3 [] = p66-opt
+val pf2 [] = opt
+val pf3 [] = opt
+val pf2-f3 [] = opt
+
 ## Instruction decoders
 
 ## One Byte Opcodes
