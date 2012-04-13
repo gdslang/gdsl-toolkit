@@ -992,7 +992,6 @@ val vminpd = trinop VMINPD
 val p66 [0x0f 0x5d /r] = minpd xmm128 xmm/m128
 val vex-0f [0x5d /r] 
  | vex-128? & vex-66? = vminpd xmm128 vex/xmm xmm/m128
-val vex-0f [0x5d /r] 
  | vex-256? & vex-66? = vminpd ymm256 vex/ymm ymm/m256
 
 ### MINPS Vol. 2B 4-28
@@ -1001,7 +1000,6 @@ val vminps = trinop VMINPS
 val main [0x0f 0x5d /r] = minps xmm128 xmm/m128
 val vex-0f [0x5d /r] 
  | vex-128? & vex-no-simd? = vminps xmm128 vex/xmm xmm/m128
-val vex-0f [0x5d /r] 
  | vex-256? & vex-no-simd? = vminps ymm256 vex/ymm ymm/m256
 
 ### MINSD Vol. 2B 4-31
@@ -1024,61 +1022,51 @@ val main [0x0f 0xae 0x01 0xc8] = monitor
 
 ### MOV Vol 2A 3-643
 val mov = binop MOV
-val one-byte-opcode [0x88 /r] = mov r/m8 r8
-val one-byte-opcode [0x89 /r] 
- | opndsz? = mov r/m16 r16
-#| rexw? = mov r/m64 r64
+val opt [0x88 /r] = mov r/m8 r8
+val p66-opt [0x89 /r] = mov r/m16 r16
+val opt [0x89 /r]
+ | rexw? = mov r/m64 r64
  | otherwise = mov r/m32 r32
-val one-byte-opcode [0x8a /r] = mov r8 r/m8
-val one-byte-opcode [0x8b /r]
- | opndsz? = mov r16 r/m16
- | otherwise = mov r32 r/m32
-val one-byte-opcode [0x8c /r] = mov r/m16 (r/ sreg3?)
-val one-byte-opcode [0x8e /r] = mov (r/ sreg3?) r/m16
-val one-byte-opcode [0xa0] = mov al moffs8 
-val one-byte-opcode [0xa1]
+val opt [0x8a /r] = mov r8 r/m8
+val p66-opt [0x8b /r] = mov r16 r/m16
+val opt [0x8b /r] = mov r32 r/m32
+val opt [0x8c /r] = mov r/m16 (r/ sreg3?)
+val opt [0x8e /r] = mov (r/ sreg3?) r/m16
+val opt [0xa0] = mov al moffs8 
+val opt [0xa1]
  | addrsz? = mov ax moffs16
  | otherwise = mov eax moffs32
-val one-byte-opcode [0xa2] = mov moffs8 al
-val one-byte-opcode [0xa3]
+val opt [0xa2] = mov moffs8 al
+val opt [0xa3]
  | addrsz? = mov moffs16 ax
  | otherwise = mov moffs32 eax
-val one-byte-opcode [0xb0] = mov al imm8
-val one-byte-opcode [0xb1] = mov cl imm8
-val one-byte-opcode [0xb2] = mov dl imm8
-val one-byte-opcode [0xb3] = mov bl imm8
-val one-byte-opcode [0xb4] = mov ah imm8
-val one-byte-opcode [0xb5] = mov ch imm8
-val one-byte-opcode [0xb6] = mov dh imm8
-val one-byte-opcode [0xb7] = mov bh imm8
-val one-byte-opcode [0xb8]
- | opndsz? = mov ax imm16
- | otherwise = mov eax imm32
-val one-byte-opcode [0xb9]
- | opndsz? = mov cx imm16
- | otherwise = mov ecx imm32
-val one-byte-opcode [0xba]
- | opndsz? = mov dx imm16
- | otherwise = mov edx imm32
-val one-byte-opcode [0xbb]
- | opndsz? = mov bx imm16
- | otherwise = mov ebx imm32
-val one-byte-opcode [0xbc]
- | opndsz? = mov sp imm16
- | otherwise = mov esp imm32
-val one-byte-opcode [0xbd]
- | opndsz? = mov bp imm16
- | otherwise = mov ebp imm32
-val one-byte-opcode [0xbe]
- | opndsz? = mov si imm16
- | otherwise = mov esi imm32
-val one-byte-opcode [0xbf]
- | opndsz? = mov di imm16
- | otherwise = mov edi imm32
-val one-byte-opcode [0xC6 /0] = mov r/m8 imm8
-val one-byte-opcode [0xC7 /0]
- | opndsz? = mov r/m16 imm16
- | otherwise = mov r/m32 imm32
+val opt [0xb0] = mov al imm8
+val opt [0xb1] = mov cl imm8
+val opt [0xb2] = mov dl imm8
+val opt [0xb3] = mov bl imm8
+val opt [0xb4] = mov ah imm8
+val opt [0xb5] = mov ch imm8
+val opt [0xb6] = mov dh imm8
+val opt [0xb7] = mov bh imm8
+val p66-opt [0xb8] = mov ax imm16
+val opt [0xb8] = mov eax imm32
+val p66-opt [0xb9] = mov cx imm16
+val opt [0xb9] = mov ecx imm32
+val p66-opt [0xba] = mov dx imm16
+val opt [0xba] = mov edx imm32
+val p66-opt [0xbb] = mov bx imm16
+val opt [0xbb] = mov ebx imm32
+val p66-opt [0xbc] = mov sp imm16
+val opt [0xbc] = mov esp imm32
+val p66-opt [0xbd] = mov bp imm16
+val opt [0xbd] = mov ebp imm32
+val p66-opt [0xbe] = mov si imm16
+val opt [0xbe] = mov esi imm32
+val p66-opt [0xbf] = mov di imm16
+val opt [0xbf] = mov edi imm32
+val opt [0xc6 /0] = mov r/m8 imm8
+val p66-opt [0xc7 /0] = mov r/m16 imm16
+val opt [0xc7 /0] = mov r/m32 imm32
 
 ### MOVAPD Vol. 2B 4-52
 val movapd = binop MOVAPD
