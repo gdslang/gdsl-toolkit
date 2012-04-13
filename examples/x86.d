@@ -1160,84 +1160,76 @@ val vex-0f [0x7f /r]
 
 ### MOVDQ2Q Vol. 2B 4-73
 val movdq2q = binop MOVDQ2Q
-val two-byte-opcode-0f [0xd6 /r]
- | repne? = movdq2q mm64 xmm128
+val pf2 [0x0f 0xd6 /r] = movdq2q mm64 xmm128
 
 ### MOVHLPS Vol. 2B 4-75
 val movhlps = binop MOVHLPS
 val vmovhlps = trinop VMOVHLPS
-val two-byte-opcode-0f [0x12 /r]
- | / opndsz? = movhlps xmm128 xmm/nomem128
-val two-byte-opcode-0f-vex [0x12 /r]
+val main [0x0f 0x12 /r] = movhlps xmm128 xmm/nomem128
+val vex-0f [0x12 /r]
  | vex-128? & vex-no-simd? = vmovhlps xmm128 vex/xmm xmm/nomem128
 
 ### MOVHPD Vol. 2B 4-77
 val movhpd = binop MOVHPD
 val vmovhpd = trinop VMOVHPD
 val vbmovhpd = binop VBMOVHPD
-val two-byte-opcode-0f [0x16 /r]
- | opndsz? = movhpd xmm128 m64
-val two-byte-opcode-0f [0x17 /r]
- | opndsz? = movhpd m64 xmm128
-val two-byte-opcode-0f-vex [0x16 /r]
+val p66 [0x0f 0x16 /r] = movhpd xmm128 m64
+val p66 [0x0f 0x17 /r] = movhpd m64 xmm128
+val vex-0f [0x16 /r]
  | vex-128? & vex-66? = vmovhpd xmm128 vex/xmm m64
-val two-byte-opcode-0f-vex [0x17 /r]
+val vex-0f [0x17 /r]
  | vex-noreg? & vex-128? & vex-66? = vbmovhpd m64 xmm128
 
 ### MOVHPS Vol. 2B 4-79
 val movhps = binop MOVHPS
 val vmovhps = trinop VMOVHPS
 val vbmovhps = binop VBMOVHPS
-val two-byte-opcode-0f [0x16 /r]
- | mod-mem? & / opndsz? = movhps xmm128 m64
-val two-byte-opcode-0f [0x17 /r]
- | mod-mem? & / opndsz? = movhps m64 xmm128
-val two-byte-opcode-0f-vex [0x16 /r]
+val main [0x0f 0x16 /r]
+ | mod-mem? = movhps xmm128 m64
+val main [0x0f 0x17 /r]
+ | mod-mem? = movhps m64 xmm128
+val vex-0f [0x16 /r]
  | mod-mem? & vex-128? & vex-no-simd? = vmovhps xmm128 vex/xmm m64
-val two-byte-opcode-0f-vex [0x17 /r]
+val vex-0f [0x17 /r]
  | mod-mem? & vex-noreg? & vex-128? & vex-no-simd? = vbmovhps m64 xmm128
 
 ### MOVLHPS Vol. 2B 4-81
 val movlhps = binop MOVLHPS
 val vmovlhps = trinop VMOVLHPS
-val two-byte-opcode-0f [0x16 /r]
- | mod-reg? & / opndsz? = movlhps xmm128 xmm/nomem128
-val two-byte-opcode-0f-vex [0x16 /r]
+val main [0x0f 0x16 /r]
+ | mod-reg? = movlhps xmm128 xmm/nomem128
+val vex-0f [0x16 /r]
  | mod-reg? & vex-128? & vex-no-simd? = vmovlhps xmm128 vex/xmm xmm/nomem128
 
 ### MOVLPD Vol. 2B 4-83
 val movlpd = binop MOVLPD
 val vmovlpd = trinop VMOVLPD
 val vbmovlpd = binop VBMOVLPD
-val two-byte-opcode-0f [0x12 /r]
- | opndsz? = movlpd xmm128 m64
-val two-byte-opcode-0f [0x13 /r]
- | opndsz? = movlpd m64 xmm128
-val two-byte-opcode-0f-vex [0x12 /r]
+val p66 [0x0f 0x12 /r] = movlpd xmm128 m64
+val p66 [0x0f 0x13 /r] = movlpd m64 xmm128
+val vex-0f [0x12 /r]
  | vex-128? & vex-66? = vmovlpd xmm128 vex/xmm m64
-val two-byte-opcode-0f-vex [0x13 /r]
+val vex-0f [0x13 /r]
  | vex-noreg? & vex-128? & vex-66? = vbmovlpd m64 xmm128
 
 ### MOVLPS Vol. 2B 4-85
 val movlps = binop MOVLPD
 val vmovlps = trinop VMOVLPD
 val vbmovlps = binop VBMOVLPD
-val two-byte-opcode-0f [0x12 /r]
- | / opndsz? = movlps xmm128 m64
-val two-byte-opcode-0f [0x13 /r]
- | / opndsz? = movlps m64 xmm128
-val two-byte-opcode-0f-vex [0x12 /r]
+val main [0x0f 0x12 /r] = movlps xmm128 m64
+val main [0x0f 0x13 /r] = movlps m64 xmm128
+val vex-0f [0x12 /r]
  | vex-128? & vex-no-simd? = vmovlps xmm128 vex/xmm m64
-val two-byte-opcode-0f-vex [0x13 /r]
+val vex-0f [0x13 /r]
  | vex-noreg? & vex-128? & vex-no-simd? = vbmovlps m64 xmm128
 
 ### MOVMSKPD Vol. 2B 4-87
 val movmskpd = binop MOVMSKPD
 val vmovmskpd = binop VMOVMSKPD
-val two-byte-opcode-0f [0x50 /r]
- | mode64? & opndsz? = movmskpd r64 xmm128
- | / mode64? & opndsz? = movmskpd r32 xmm128
-val two-byte-opcode-0f-vex [0x50 /r]
+val p66 [0x0f 0x50 /r]
+ | mode64? = movmskpd r64 xmm128
+ | otherwise = movmskpd r32 xmm128
+val vex-0f [0x50 /r]
  | mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
  | / mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
  | mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
@@ -1249,10 +1241,10 @@ val two-byte-opcode-0f-vex [0x50 /r]
 ### MOVMSKPS Vol. 2B 4-89
 val movmskps = binop MOVMSKPS
 val vmovmskps = binop VMOVMSKPS
-val two-byte-opcode-0f [0x50 /r]
- | mode64? & / opndsz? = movmskpd r64 xmm128
- | / mode64? & opndsz? = movmskpd r32 xmm128
-val two-byte-opcode-0f-vex [0x50 /r]
+val main [0x0f 0x50 /r]
+ | mode64? = movmskpd r64 xmm128
+ | otherwise = movmskpd r32 xmm128
+val vex-0f [0x50 /r]
  | mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
  | / mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
  | mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
@@ -1264,81 +1256,70 @@ val two-byte-opcode-0f-vex [0x50 /r]
 ### MOVNTDQA Vol. 2B 4-92
 val movntdqa = binop MOVNTDQA
 val vmovntdqa = binop VMOVNTDQA
-val three-byte-opcode-0f-38 [0x2a /r]
- | opndsz? = movntdqa xmm128 m128
-val three-byte-opcode-0f-38-vex [0x2a /r]
+val p66 [0x0f 0x38 0x2a /r] = movntdqa xmm128 m128
+val vex-0f-38 [0x2a /r]
  | vex-noreg? & vex-128? & vex-66? = vmovntdqa xmm128 m128
 
 ### MOVNTDQ Vol. 2B 4-95
 val movntdq = binop MOVNTDQ
 val vmovntdq = binop VMOVNTDQ
-val two-byte-opcode-0f [0xe7 /r]
- | opndsz? = movntdq m128 xmm128
-val two-byte-opcode-0f-vex [0xe7 /r]
+val p66 [0x0f 0xe7 /r] = movntdq m128 xmm128
+val vex-0f [0xe7 /r]
  | vex-noreg? & vex-128? & vex-66? = vmovntdq m128 xmm128
  | vex-noreg? & vex-256? & vex-66? = vmovntdq m256 ymm256
 
 ### MOVNTI Vol. 2B 4-97
 val movnti = binop MOVNTI
-val two-byte-opcode-0f [0xc3 /r]
- | / opndsz? & / rexw? = movnti m32 r32
- | / opndsz? & rexw? = movnti m64 r64
+val main [0x0f 0xc3 /r]
+ | rexw? = movnti m64 r64
+ | otherwise = movnti m32 r32
 
 ### MOVNTPD Vol. 2B 4-99
 val movntpd = binop MOVNTPD
 val vmovntpd = binop VMOVNTPD
-val two-byte-opcode-0f [0x2b /r]
- | opndsz? = movntpd m128 xmm128
-val two-byte-opcode-0f-vex [0x2b /r]
+val p66 [0x0f 0x2b /r] = movntpd m128 xmm128
+val vex-0f [0x2b /r]
  | vex-noreg? & vex-128? & vex-66? = vmovntpd m128 xmm128
  | vex-noreg? & vex-256? & vex-66? = vmovntpd m256 ymm256
 
 ### MOVNTPS Vol. 2B 4-99
 val movntps = binop MOVNTPD
 val vmovntps = binop VMOVNTPD
-val two-byte-opcode-0f [0x2b /r]
- | / opndsz? = movntps m128 xmm128
-val two-byte-opcode-0f-vex [0x2b /r]
+val main [0x0f 0x2b /r] = movntps m128 xmm128
+val vex-0f [0x2b /r]
  | vex-noreg? & vex-128? & vex-no-simd? = vmovntps m128 xmm128
  | vex-noreg? & vex-256? & vex-no-simd? = vmovntps m256 ymm256
 
 ### MOVNTQ Vol. 2B 4-103
 val movntq = binop MOVNTQ
-val two-byte-opcode-0f [0xe7 /r]
- | / opndsz? = movntq m64 mm64
+val main [0x0f 0xe7 /r] = movntq m64 mm64
 
 ### MOVQ Vol. 2B 4-105
-val two-byte-opcode-0f [0x6f /r]
- | / opndsz? = movq mm64 mm/m64
-val two-byte-opcode-0f [0x7f /r]
- | / opndsz? = movq mm/m64 mm64
-val two-byte-opcode-0f [0x7e /r]
- | / opndsz? & rep? = movq xmm128 xmm/m64
-val two-byte-opcode-0f [0xd6 /r]
- | opndsz? = movq xmm/m64 xmm128
+val main [0x0f 0x6f /r] = movq mm64 mm/m64
+val main [0x0f 0x7f /r] = movq mm/m64 mm64
+val pf3 [0x0f 0x7e /r] = movq xmm128 xmm/m64
+val p66 [0x0f 0xd6 /r] = movq xmm/m64 xmm128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
 val phaddd = binop PHADDD
 val vphaddd = trinop VPHADDD
-val three-byte-opcode-0f-38 [01 /r]
- | opndsz? = phaddw xmm128 xmm/m128
- | otherwise = phaddw mm64 mm/m64
-val three-byte-opcode-0f-38 [02 /r]
- | opndsz? = phaddd xmm128 xmm/m128
- | otherwise = phaddd mm64 mm/m64
-val three-byte-opcode-0f-38-vex [01 /r]
+val p66 [0x0f 0x38 01 /r] = phaddw xmm128 xmm/m128
+val main [0x0f 0x38 01 /r] = phaddw mm64 mm/m64
+val p66 [0x0f 0x38 02 /r] = phaddd xmm128 xmm/m128
+val main [0x0f 0x38 02 /r] = phaddd mm64 mm/m64
+val vex-0f-38 [01 /r]
  | opndsz? & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
-val three-byte-opcode-0f-38-vex [02 /r]
+val vex-0f-38 [02 /r]
  | opndsz? & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
 
 ### XADD Vol. 2B 4-667
 val xadd = binop XADD
-val two-byte-opcode-0f [0xc0 /r] = xadd r/m8 r8
-val two-byte-opcode-0f [0xc1 /r]
+val main [0x0f 0xc0 /r] = xadd r/m8 r8
+val p66 [0x0f 0xc1 /r] = mov r/m16 r16
+val main [0x0f 0xc1 /r]
  | rexw? = xadd r/m64 r64
- | opndsz? = mov r/m16 r16
  | otherwise = mov r/m32 r32
 
 # Prefix Examples
