@@ -159,15 +159,12 @@ structure Closure = struct
             Fun.FUN {f, k, closure, xs, body} =>
                align
                   [seq
-                     [str "val", space, var f, space,
-                      var closure, space,
-                      var k, space, vars xs, is],
+                     [str "val", space, vars (f::k::closure::xs), is],
                    indent 3 (block body)]
           | Fun.CONT {k, closure, xs, body} =>
                align
                   [seq
-                     [str "val", space, var k, space,
-                      var closure, space, vars xs, is],
+                     [str "val", space, vars (k::closure::xs), is],
                    indent 3 (block body)]
 
       val spec = Spec.PP.spec functions
