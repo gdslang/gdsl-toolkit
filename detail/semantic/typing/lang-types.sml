@@ -65,9 +65,7 @@ structure Types = struct
    end
 
    (*gather Boolean flags, the collection function is generic and is passed a
-   bool that is true if the flag is in a contra-variant position and it is
-   passed an optional type variable with which the Boolean flag is
-   associated*)
+   bool that is true if the flag is in a contra-variant position*)
    fun texpBVarset cons (e, bs) = let
       fun tV co (FUN (f1, f2), bs) = tV co (f2, tV (not co) (f1, bs))
         | tV co (SYN (syn, t), bs) = tV co (t, bs)
@@ -78,12 +76,12 @@ structure Types = struct
         | tV co (CONST c, bs) = bs
         | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
         | tV co (RECORD (v,b,l), bs) =
-         List.foldl (tVF co) (cons ((co,SOME v,b),bs)) l
+         List.foldl (tVF co) (cons ((co,b),bs)) l
         | tV co (MONAD (r,f,t), bs) =
          tV co (r, tV (not co) (f, tV co (t, bs)))
-        | tV co (VAR (v,b), bs) = cons ((co,SOME v,b),bs)
+        | tV co (VAR (v,b), bs) = cons ((co,b),bs)
       and tVF co (RField {name = n, fty = t, exists = b}, bs) =
-         tV co (t, cons ((co,NONE,b),bs))
+         tV co (t, cons ((co,b),bs))
       in (tV false (e, bs))
    end
 

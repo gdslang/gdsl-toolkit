@@ -133,13 +133,11 @@ end = struct
 
    fun addToExpandInfo (tvar, bvar, target, ei) =
       let
-         fun getTargetVars (WITH_TYPE t) =
-            texpBVarset (fn ((co,_,v),vs) => (co,v)::vs) (t,[])
+         fun getTargetVars (WITH_TYPE t) = texpBVarset (op ::) (t,[])
            | getTargetVars (WITH_FIELD (fs,var)) =
             List.foldl
                (fn (RField {name = n, fty = t, exists = b},bs) =>
-                  texpBVarset (fn ((co,_,v),vs) => (co,v)::vs)
-                     (t,(false,b)::bs))
+                  texpBVarset (op ::) (t,(false,b)::bs))
                [] fs
          val detail = case TVMap.find (ei, tvar) of
               SOME detail => detail
