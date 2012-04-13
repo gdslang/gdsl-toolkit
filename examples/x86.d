@@ -896,13 +896,12 @@ val p66-f2-f3 [0xf2] = do update @{repne='1'}; p66-f2-f3 end
 val p66-f2-f3 [0xf3] = do update @{rep='1'}; p66-f2-f3 end
 val p66-f2-f3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
-val p66 [] = p66-opt
-val p66-f2 [] = p66-opt
-val p66-f3 [] = p66-opt
-val p66-f2-f3 [] = p66-opt
-val pf2 [] = opt
-val pf3 [] = opt
-val pf2-f3 [] = opt
+val p66-f2 [] = p66
+val p66-f3 [] = p66
+val p66-f2-f3 [] = p66
+val pf2 [] = main
+val pf3 [] = main
+val pf2-f3 [] = main
 
 ## Instruction decoders
 
@@ -912,30 +911,30 @@ val pf2-f3 [] = opt
 
 ### ADD Vol. 2A 3-35
 val add = binop ADD
-val opt [0x04] = add al imm8
-val opt [0x05]
+val main [0x04] = add al imm8
+val main [0x05]
  | rexw? = add rax imm64
  | otherwise = add eax imm32
-val p66-opt [0x05] = add ax imm16
-val opt [0x80 /0] = add r/m8 imm8
-val opt [0x81 /0]
+val p66 [0x05] = add ax imm16
+val main [0x80 /0] = add r/m8 imm8
+val main [0x81 /0]
  | rexw? = add r/m64 imm64
  | otherwise = add r/m32 imm32
-val p66-opt [0x81 /0] = add r/m16 imm16
-val opt [0x83 /0]
+val p66 [0x81 /0] = add r/m16 imm16
+val main [0x83 /0]
  | rexw? = add r/m64 imm8
  | otherwise = add r/m32 imm8
-val p66-opt [0x83 /0] = add r/m16 imm8
-val opt [0x00 /r] = add r/m8 r8
-val opt [0x01 /0]
+val p66 [0x83 /0] = add r/m16 imm8
+val main [0x00 /r] = add r/m8 r8
+val main [0x01 /0]
  | rexw? = add r/m64 r64
  | otherwise = add r/m32 r32
-val p66-opt [0x01 /0] = add r/m16 r16
-val opt [0x02 /r] = add r8 r/m8
-val opt [0x03 /0]
+val p66 [0x01 /0] = add r/m16 r16
+val main [0x02 /r] = add r8 r/m8
+val main [0x03 /0]
  | rexw? = add r64 r/m64
  | otherwise = add r32 r/m32
-val p66-opt [0x03 /0] = add r16 r/m16
+val p66 [0x03 /0] = add r16 r/m16
 
 ### CVTPD2PI Vol 2A 3-248
 val cvtpdf2pi = binop CVTPD2PI
@@ -1022,59 +1021,57 @@ val main [0x0f 0xae 0x01 0xc8] = monitor
 
 ### MOV Vol 2A 3-643
 val mov = binop MOV
-val opt [0x88 /r] = mov r/m8 r8
-val p66-opt [0x89 /r] = mov r/m16 r16
-val opt [0x89 /r]
+val main [0x88 /r] = mov r/m8 r8
+val p66 [0x89 /r] = mov r/m16 r16
+val main [0x89 /r]
  | rexw? = mov r/m64 r64
  | otherwise = mov r/m32 r32
-val opt [0x8a /r] = mov r8 r/m8
-val p66-opt [0x8b /r] = mov r16 r/m16
-val opt [0x8b /r] = mov r32 r/m32
-val opt [0x8c /r] = mov r/m16 (r/ sreg3?)
-val opt [0x8e /r] = mov (r/ sreg3?) r/m16
-val opt [0xa0] = mov al moffs8 
-val opt [0xa1]
+val main [0x8a /r] = mov r8 r/m8
+val p66 [0x8b /r] = mov r16 r/m16
+val main [0x8b /r] = mov r32 r/m32
+val main [0x8c /r] = mov r/m16 (r/ sreg3?)
+val main [0x8e /r] = mov (r/ sreg3?) r/m16
+val main [0xa0] = mov al moffs8 
+val main [0xa1]
  | addrsz? = mov ax moffs16
  | otherwise = mov eax moffs32
-val opt [0xa2] = mov moffs8 al
-val opt [0xa3]
+val main [0xa2] = mov moffs8 al
+val main [0xa3]
  | addrsz? = mov moffs16 ax
  | otherwise = mov moffs32 eax
-val opt [0xb0] = mov al imm8
-val opt [0xb1] = mov cl imm8
-val opt [0xb2] = mov dl imm8
-val opt [0xb3] = mov bl imm8
-val opt [0xb4] = mov ah imm8
-val opt [0xb5] = mov ch imm8
-val opt [0xb6] = mov dh imm8
-val opt [0xb7] = mov bh imm8
-val p66-opt [0xb8] = mov ax imm16
-val opt [0xb8] = mov eax imm32
-val p66-opt [0xb9] = mov cx imm16
-val opt [0xb9] = mov ecx imm32
-val p66-opt [0xba] = mov dx imm16
-val opt [0xba] = mov edx imm32
-val p66-opt [0xbb] = mov bx imm16
-val opt [0xbb] = mov ebx imm32
-val p66-opt [0xbc] = mov sp imm16
-val opt [0xbc] = mov esp imm32
-val p66-opt [0xbd] = mov bp imm16
-val opt [0xbd] = mov ebp imm32
-val p66-opt [0xbe] = mov si imm16
-val opt [0xbe] = mov esi imm32
-val p66-opt [0xbf] = mov di imm16
-val opt [0xbf] = mov edi imm32
-val opt [0xc6 /0] = mov r/m8 imm8
-val p66-opt [0xc7 /0] = mov r/m16 imm16
-val opt [0xc7 /0] = mov r/m32 imm32
-
-#MARK
+val main [0xb0] = mov al imm8
+val main [0xb1] = mov cl imm8
+val main [0xb2] = mov dl imm8
+val main [0xb3] = mov bl imm8
+val main [0xb4] = mov ah imm8
+val main [0xb5] = mov ch imm8
+val main [0xb6] = mov dh imm8
+val main [0xb7] = mov bh imm8
+val p66 [0xb8] = mov ax imm16
+val main [0xb8] = mov eax imm32
+val p66 [0xb9] = mov cx imm16
+val main [0xb9] = mov ecx imm32
+val p66 [0xba] = mov dx imm16
+val main [0xba] = mov edx imm32
+val p66 [0xbb] = mov bx imm16
+val main [0xbb] = mov ebx imm32
+val p66 [0xbc] = mov sp imm16
+val main [0xbc] = mov esp imm32
+val p66 [0xbd] = mov bp imm16
+val main [0xbd] = mov ebp imm32
+val p66 [0xbe] = mov si imm16
+val main [0xbe] = mov esi imm32
+val p66 [0xbf] = mov di imm16
+val main [0xbf] = mov edi imm32
+val main [0xc6 /0] = mov r/m8 imm8
+val p66 [0xc7 /0] = mov r/m16 imm16
+val main [0xc7 /0] = mov r/m32 imm32
 
 ### MOVAPD Vol. 2B 4-52
 val movapd = binop MOVAPD
 val vmovapd = binop VMOVAPD
-val p66-opt [0x0f 0x28 /r] = movapd xmm128 xmm/m128
-val p66-opt [0x0f 0x29 /r] = movapd xmm/m128 xmm128
+val p66 [0x0f 0x28 /r] = movapd xmm128 xmm/m128
+val p66 [0x0f 0x29 /r] = movapd xmm/m128 xmm128
 val vex-0f [0x28 /r] 
  | vex-noreg? & vex-128? & vex-66? = vmovapd xmm128 xmm/m128
  | vex-noreg? & vex-256? & vex-66? = vmovapd ymm256 ymm/m256
@@ -1085,8 +1082,8 @@ val vex-0f [0x29 /r]
 ### MOVAPS Vol. 2B 4-55
 val movaps = binop MOVAPS
 val vmovaps = binop VMOVAPS
-val opt [0x0f 0x28 /r] = movaps xmm128 xmm/m128
-val opt [0x0f 0x29 /r] = movaps xmm/m128 xmm128
+val main [0x0f 0x28 /r] = movaps xmm128 xmm/m128
+val main [0x0f 0x29 /r] = movaps xmm/m128 xmm128
 val vex-0f [0x28 /r] 
  | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm128 xmm/m128
  | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm256 ymm/m256
@@ -1096,12 +1093,12 @@ val vex-0f [0x29 /r]
 
 ### MOVBE Vol. 2B 4-58
 val movbe = binop MOVBE
-val p66-opt [0x0f 0x38 0xf0 /r] = movbe r16 m16
-val opt [0x0f 0x38 0xf0 /r]
+val p66 [0x0f 0x38 0xf0 /r] = movbe r16 m16
+val main [0x0f 0x38 0xf0 /r]
  | rexw? = movbe r64 m64
  | otherwise = movbe r32 m32
-val p66-opt [0x0f 0x38 0xf1 /r] = movbe m16 r16
-val opt [0x0f 0x38 0xf1 /r]
+val p66 [0x0f 0x38 0xf1 /r] = movbe m16 r16
+val main [0x0f 0x38 0xf1 /r]
  | rexw? = movbe m64 r64
  | otherwise = movbe m32 r32
 
