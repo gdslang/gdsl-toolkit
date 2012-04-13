@@ -9,6 +9,7 @@ structure Pretty = struct
    val empty = L.str "<.>"
    val space = L.str " "
    val int = L.str o IntInf.toString
+   val word = L.str o Word.toString
    val is = L.seq [L.str "=", space]
    fun symmap {key, item} t =
       L.listex "{" "}" ";"

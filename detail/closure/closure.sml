@@ -2,6 +2,7 @@
 structure Closure = struct
 
    type tag = CPS.tag
+   type con = CPS.con
    type field = CPS.field
 
    structure Var = struct
@@ -20,7 +21,7 @@ structure Closure = struct
             {k: Var.c,
              closure: Var.k,
              xs: Var.v list}
-       | CASE of Var.v * Var.c StringMap.map 
+       | CASE of Var.v * (tag list * block) list
 
       and stmt = 
          LETVAL of Var.v * cval
@@ -31,21 +32,24 @@ structure Closure = struct
 
       and cval = 
          PRI of Var.v * Var.v list
-       | INJ of tag * Var.v
+       | INJ of con * Var.v
        | REC of (field * Var.v) list
        | INT of IntInf.int
        | FLT of FloatLit.float
        | STR of string
        | VEC of string
        | UNT
+      
+      and block =
+         BLOCK of
+            {stmts: stmt list,
+             flow: term}
+
+      withtype branch = Var.c * Var.v list
    end
 
    structure Block = struct
-      datatype t =
-         BLOCK of
-            {stmts: Stmt.stmt list,
-             flow: Stmt.term}
-
+      datatype t = datatype Stmt.block
       fun get s (BLOCK ?) = s ?
    end
 
@@ -79,16 +83,20 @@ structure Closure = struct
       val is = seq [space, str "=", space]
 
       fun block (Block.BLOCK {stmts, flow}) =
-         align (map stmt stmts@[term flow])
+         align (map stmt stmts@[indent 3 (term flow)])
 
       and term t =
          case t of
-            APP {f, k, closure, xs=[x]} =>
+            APP {f, k, closure, xs=[]} =>
+               seq [var f, space, var closure, space, var k]
+          | APP {f, k, closure, xs=[x]} =>
                seq [var f, space, var closure, space, var k, space, var x]
           | APP {f, k, closure, xs} =>
                seq
                   [var f, space, var closure, space, var k,
                    listex "(" ")" "," (map var xs)]
+          | CC {k, closure, xs=[]} =>
+               seq [var k, space, var closure]
           | CC {k, closure, xs=[x]} =>
                seq [var k, space, var closure, space, var x]
           | CC {k, closure, xs} => 
@@ -98,7 +106,7 @@ structure Closure = struct
           | CASE (x, ks) =>
                align
                   [seq [str "case", space, var x, space, str "of"],
-                   CPS.PP.cases (StringMap.listItems ks)]
+                   cases ks]
 
       and stmt s =
          case s of
@@ -117,6 +125,12 @@ structure Closure = struct
                    str "[", str (Int.toString i), str "]"]
           | LETENV (env, xs) =>
                seq [str "letval", space, var env, is, list (map var xs)]
+
+      and cases ks = indent 3 (alignPrefix (map casee ks, "| "))
+      and casee (tags, branch) =
+         align
+            [seq [list (map CPS.PP.caseTag tags), str ":"],
+             indent 3 (block branch)]
 
       and cval v =
          case v of

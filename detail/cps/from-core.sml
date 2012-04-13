@@ -200,12 +200,12 @@ end = struct
                    | (p, e)::ps =>
                         let
                            val k = fresh continuation
-                           val (x, ks) = transPat p k ks
+                           val (xs, ks) = transPat p k ks
                         in
-                           trans z ps ((k, [x], trans1 e j)::cps) ks
+                           trans z ps ((k, xs, trans1 e j)::cps) ks
                         end
             in
-               trans0 e (fn z => trans z ps [] StringMap.empty)
+               trans0 e (fn z => trans z ps [] [])
             end
        | APP (e1, e2) =>
             let
@@ -321,17 +321,17 @@ end = struct
        | _ => raise CM.CompilationError
   
    and transPat p k ks =
-      let (* TODO *)
+      let (* TODO: apply arguments to the branches *)
          open Core.Pat
+         fun explode str = [0wx0]
          fun toIdx p =
             case p of
-               BIT str => str
-             | INT i => IntInf.toString i
-             | CON (s, NONE) => Int.toString (SymbolTable.toInt s)
-             | _ => "" 
-         val x = fresh variable
+               BIT str => explode str
+             | INT i => [Word.fromLargeInt (IntInf.toLarge i)]
+             | CON (s, NONE) => [Word.fromInt (SymbolTable.toInt s)]
+             | _ => []
       in
-         (x, StringMap.insert (ks, toIdx p, k))
+         ([], (toIdx p, (k, [](*TODO*)))::ks)
       end
 
    and trans0rec (n, args, e) =
@@ -365,13 +365,13 @@ end = struct
                      (p, e)::ps =>
                         let
                            val k = fresh continuation
-                           val (x, ks) = transPat p k ks
+                           val (xs, ks) = transPat p k ks
                         in
-                           trans z ps ((k, [x], trans1 e kont)::cps) ks
+                           trans z ps ((k, xs, trans1 e kont)::cps) ks
                         end
                    | [] => Exp.LETCONT (cps, Exp.CASE (z, ks))
             in
-               trans0 e (fn z => trans z ps [] StringMap.empty)
+               trans0 e (fn z => trans z ps [] [])
             end
        | APP (e1, e2) =>
             trans0 e1 (fn x1 =>

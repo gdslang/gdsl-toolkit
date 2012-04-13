@@ -61,9 +61,9 @@ structure Census = struct
                ;update n k
                ;app (update n) ys)
           | CC (k, xs) => (update n k; app (update n) xs)
-          | CASE (x, ks) => (update n x; StringMap.appi (visitMatch n) ks)
+          | CASE (x, ks) => (update n x; app (visitMatch n) ks)
 
-      and visitMatch n (_, k) = update n k
+      and visitMatch n (_, (k, xs)) = (update n k; app (update n) xs)
 
       and visitField n (_, v) = update n v
 
@@ -218,7 +218,15 @@ structure FreeVars = struct
           | CASE (x, ks) =>
                let
                   val env = use env x
-                  val env = StringMap.foldl (fn (k, env) => use env k) env ks
+                  val env =
+                     foldl
+                        (fn ((_,(k,xs)), env) =>
+                           let
+                              val env = use env k
+                              val env = useAll env xs
+                           in
+                              env
+                           end) env ks
                in
                   env
                end
@@ -337,7 +345,12 @@ structure Subst = struct
                 apply sigma k,
                 applyAll sigma xs)
        | CC (k, xs) => CC (apply sigma k, applyAll sigma xs)
-       | CASE (x, ks) => CASE (apply sigma x, StringMap.map (apply sigma) ks)
+       | CASE (x, ks) =>
+            CASE
+               (apply sigma x,
+                map
+                  (fn (tags, (k, xs)) =>
+                     (tags, (apply sigma k, applyAll sigma xs))) ks)
 
    and renameRecs sigma ds =
       let
@@ -484,10 +497,23 @@ structure Rec = struct
                   env
                end
            | LETVAL (x, v, t) => unuse (visitCVal (v, visitTerm (t, env))) x 
-           | CASE (x, ks) => unuse (visitCases (ks, env)) x
+           | CASE (x, ks) =>
+               let
+                  val env = use env x
+                  val env = visitCases (ks, env)
+               in
+                  env
+               end
 
       and visitCases (ks, env) = 
-         StringMap.foldl (fn (k, env) => use env k) env ks
+         foldl
+            (fn ((_,(k,xs)), env) =>
+               let
+                  val env = use env k
+                  val env = uses env xs
+               in
+                  env
+               end) env ks
 
       and printUses uses =
          let
@@ -651,7 +677,9 @@ structure BetaFun = struct
       | CASE (x, cs) =>
          CASE
             (Subst.apply sigma x,
-             StringMap.map (fn k => Subst.apply sigma k) cs)
+             map
+               (fn (tags,(k,xs)) =>
+                  (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
       | LETREC (ds, L) =>
          let
             val env' = 
@@ -784,7 +812,9 @@ structure BetaCont = struct
       | CASE (x, cs) =>
          CASE
             (Subst.apply sigma x,
-             StringMap.map (fn k => Subst.apply sigma k) cs)
+             map
+               (fn (tags,(k,xs)) =>
+                  (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
       | APP (f, j, ys) =>
          let
             val f = Subst.apply sigma f
@@ -959,7 +989,9 @@ structure BetaPair = struct
        | CASE (x, cs) =>
             CASE
                (Subst.apply sigma x,
-                StringMap.map (fn k => Subst.apply sigma k) cs)
+                map
+                  (fn (tags,(k,xs)) =>
+                     (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
        | APP (f, j, ys) =>
             let
                val f = Subst.apply sigma f
@@ -1044,7 +1076,9 @@ structure HoistFun = struct
        | CASE (x, cs) =>
             CASE
                (Subst.apply sigma x,
-                StringMap.map (fn k => Subst.apply sigma k) cs)
+                map
+                  (fn (tags,(k,xs)) =>
+                     (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
        | APP (f, j, ys) =>
             let
                val f = Subst.apply sigma f

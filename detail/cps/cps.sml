@@ -7,7 +7,8 @@
  *)
 structure CPS = struct
 
-   type tag = Core.sym
+   type tag = Word.word
+   type con = Core.sym
    type field = Core.sym
 
    structure Var = struct
@@ -19,17 +20,17 @@ structure CPS = struct
       datatype term =
          LETVAL of Var.v * cval * term
        | LETREC of recdecl list * term
-       | LETCONT of ccdecl list * term
+       | LETCONT of contdecl list * term
        | LETPRJ of Var.v * field * Var.v * term
        | LETUPD of Var.v * Var.v * (field * Var.v) list * term
        | APP of Var.v * Var.c * Var.v list
        | CC of Var.c * Var.v list
-       | CASE of Var.v * Var.c StringMap.map
+       | CASE of Var.v * (tag list * branch) list
 
       and cval =
          FN of Var.c * Var.v list * term
        | PRI of Var.v * Var.v list
-       | INJ of tag * Var.v
+       | INJ of con * Var.v
        | REC of (field * Var.v) list
        | INT of IntInf.int
        | FLT of FloatLit.float
@@ -38,7 +39,8 @@ structure CPS = struct
        | UNT
       
       withtype recdecl = Var.v * Var.c * Var.v list * term
-      and ccdecl = Var.c * Var.v list * term
+      and contdecl = Var.c * Var.v list * term
+      and branch = Var.c * Var.v list
       type t = term
    end
 
@@ -136,12 +138,12 @@ structure CPS = struct
                    else indent 3 (term body)]
           | LETCONT (cs, body) =>
                align 
-                  [align [str "letcont", indent 3 (ccdecls cs)],
+                  [align [str "letcont", indent 3 (contdecls cs)],
                    align [str "in", indent 3 (term body)]]
           | CASE (v, ks) =>
                align
                   [seq [str "case", space, var v, space, str "of"],
-                   cases (StringMap.listItems ks)]
+                   cases ks]
           | APP (f, c, [x]) => seq [var f, space, cvar c, space, var x]
           | APP (f, c, xs) =>
                seq
@@ -176,11 +178,16 @@ structure CPS = struct
           | UNT => str "{}"
       and updFld (f, v) = seq [fld f, is, var v]
       and cases cs = indent 3 (alignPrefix (map casee cs, "| "))
-      and casee c = cvar c
-      and ccdecls cs = align (map ccdecl cs)
-      and ccdecl (c, vs, body) = 
+      and casee (tags, branch) =
+         seq [list (map caseTag tags), str ":", space, caseBranch branch]
+      and caseTag tag = word tag
+      and caseBranch (k, []) = seq [cvar k]
+        | caseBranch (k, xs) = seq [cvar k, space, vars xs]
+      and contdecls cs = align (map contdecl cs)
+      and contdecl (c, vs, body) = 
          align
-            [seq [str "val", space, cvar c, space, vars vs, is],
+            [seq [str "val",
+                  space, seq (separate ([cvar c]@map var vs, " ")), is],
              indent 3 (term body)]
       and recdecls ds = align (map recdecl ds)
       and recdecl (v, c, vs, body) =
