@@ -159,7 +159,7 @@ structure Closure = struct
             Fun.FUN {f, k, closure, xs, body} =>
                align
                   [seq
-                     [str "val", space, vars (f::k::closure::xs), is],
+                     [str "val", space, vars (f::closure::k::xs), is],
                    indent 3 (block body)]
           | Fun.CONT {k, closure, xs, body} =>
                align
