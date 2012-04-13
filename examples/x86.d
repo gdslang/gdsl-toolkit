@@ -1068,47 +1068,41 @@ val opt [0xc6 /0] = mov r/m8 imm8
 val p66-opt [0xc7 /0] = mov r/m16 imm16
 val opt [0xc7 /0] = mov r/m32 imm32
 
+#MARK
+
 ### MOVAPD Vol. 2B 4-52
 val movapd = binop MOVAPD
 val vmovapd = binop VMOVAPD
-val two-byte-opcode-0f [0x28 /r] 
- | opndsz? = movapd xmm128 xmm/m128
-val two-byte-opcode-0f [0x29 /r] 
- | opndsz? = movapd xmm/m128 xmm128
-val two-byte-opcode-0f-vex [0x28 /r] 
+val p66-opt [0x0f 0x28 /r] = movapd xmm128 xmm/m128
+val p66-opt [0x0f 0x29 /r] = movapd xmm/m128 xmm128
+val vex-0f [0x28 /r] 
  | vex-noreg? & vex-128? & vex-66? = vmovapd xmm128 xmm/m128
-val two-byte-opcode-0f-vex [0x29 /r] 
- | vex-noreg? & vex-128? & vex-66? = vmovapd xmm/m128 xmm128
-val two-byte-opcode-0f-vex [0x28 /r] 
  | vex-noreg? & vex-256? & vex-66? = vmovapd ymm256 ymm/m256
-val two-byte-opcode-0f-vex [0x29 /r] 
+val vex-0f [0x29 /r] 
+ | vex-noreg? & vex-128? & vex-66? = vmovapd xmm/m128 xmm128
  | vex-noreg? & vex-256? & vex-66? = vmovapd ymm/m256 ymm256
 
 ### MOVAPS Vol. 2B 4-55
 val movaps = binop MOVAPS
 val vmovaps = binop VMOVAPS
-val two-byte-opcode-0f [0x28 /r] 
- | / opndsz? = movaps xmm128 xmm/m128
-val two-byte-opcode-0f [0x29 /r] 
- | / opndsz? = movaps xmm/m128 xmm128
-val two-byte-opcode-0f-vex [0x28 /r] 
+val opt [0x0f 0x28 /r] = movaps xmm128 xmm/m128
+val opt [0x0f 0x29 /r] = movaps xmm/m128 xmm128
+val vex-0f [0x28 /r] 
  | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm128 xmm/m128
-val two-byte-opcode-0f-vex [0x29 /r] 
- | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm/m128 xmm128
-val two-byte-opcode-0f-vex [0x28 /r] 
  | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm256 ymm/m256
-val two-byte-opcode-0f-vex [0x29 /r] 
+val vex-0f [0x29 /r] 
+ | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm/m128 xmm128
  | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm/m256 ymm256
 
 ### MOVBE Vol. 2B 4-58
 val movbe = binop MOVBE
-val three-byte-opcode-0f-38 [0xf0 /r]
+val p66-opt [0x0f 0x38 0xf0 /r] = movbe r16 m16
+val opt [0x0f 0x38 0xf0 /r]
  | rexw? = movbe r64 m64
- | opndsz? = movbe r16 m16
  | otherwise = movbe r32 m32
-val three-byte-opcode-0f-38 [0xf1 /r]
+val p66-opt [0x0f 0x38 0xf1 /r] = movbe m16 r16
+val opt [0x0f 0x38 0xf1 /r]
  | rexw? = movbe m64 r64
- | opndsz? = movbe m16 r16
  | otherwise = movbe m32 r32
 
 ### MOVD/MOVQ Vol. 2B 4-61
