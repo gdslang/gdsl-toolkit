@@ -29,8 +29,7 @@ structure Environment : sig
    ambiguous type variables and a list with types of the symbols in this
    group*)
    val popGroup : environment * bool ->
-                  (Error.span * string) list *
-                  (VarInfo.symid * symbol_type) list * environment
+                  (Error.span * string) list * environment
    val pushTop : environment -> environment
    
    (*pushes the given type onto the stack, if the flag is true, type variables
@@ -45,7 +44,8 @@ structure Environment : sig
    (*given an occurrence of a symbol at a position, push its type onto the
    stack and return if an instance of this type must be used; arguments are
    the symbol to look up, the position it occurred and a list of symbols that
-   denote the current context/function *)
+   denote the current context/function (the latter is ignored if the symbol
+   already has a type) *)
    val pushSymbol : VarInfo.symid * Error.span * VarInfo.symid list *
                     environment -> environment
 
@@ -55,7 +55,8 @@ structure Environment : sig
    val popToUsage : VarInfo.symid * Error.span * environment -> environment
 
    (*stack: [...] -> [...,t] where t is type of usage of f at call-site s*)
-   val pushUsage : VarInfo.symid * Error.span * environment -> environment
+   val pushUsage : VarInfo.symid * Error.span *
+                   (VarInfo.symid * symbol_type) list * environment -> environment
    
    (*stack: [...] -> [..., x:a], 'a' fresh; primed version also returns 'a'*)
    val pushLambdaVar' : VarInfo.symid * environment -> (Types.texp * environment)
@@ -106,7 +107,9 @@ structure Environment : sig
    (*query all function symbols in binding groups that would be modified by
    the given substitutions*)
    val affectedFunctions : Substitutions.Substs * environment -> SymbolSet.set
-   
+
+   val getFunctionInfo : VarInfo.symid * environment -> symbol_type
+
    val toString : environment -> string
    val toStringSI : environment * TVar.varmap -> string * TVar.varmap
    val topToString : environment -> string
@@ -440,9 +443,9 @@ end = struct
    fun popGroup (env, true) = (case Scope.unwrap env of
         (KAPPA {ty=t}, env) =>
          let
-           val (badUses, vs, env) = popGroup (env, false)
+           val (badUses, env) = popGroup (env, false)
          in
-            (badUses, vs, Scope.wrap (KAPPA {ty=t}, env))
+            (badUses, Scope.wrap (KAPPA {ty=t}, env))
          end
        | _ => raise InferenceBug)
      | popGroup (env, false) = case Scope.unwrap env of
@@ -481,19 +484,12 @@ end = struct
                            not (TVar.isEmpty (TVar.intersection
                               (texpVarset (t,TVar.empty), unbounded)))
                            ) us))) bs)
-            (*create a list of functions and their types*)
-            val funList = List.map (fn {name = n, ty = t, width = w, uses = _} =>
-               case (t,w) of
-                    (SOME (t,bFun), NONE) => (n, VALUE {symType = t, symFlow = bFun})
-                  | (SOME (t,bFun), SOME w) => (n, DECODE {symType = t, width = w, symFlow = bFun})
-                  | _ => raise InferenceBug
-               ) bs
             (*project out variables from the size and Boolean domains that are
             no longer needed*)
             val sCons = SC.filter (remVars, sCons)
             val _ = consRef := (bFun, sCons)
          in
-            (badSizes, funList, env)
+            (badSizes, env)
          end
       | _ => raise InferenceBug
 
@@ -626,6 +622,7 @@ end = struct
    fun affectedField (bVar, env) =
       let
          fun aF (_, SOME f) = SOME f
+           | aF (([],_), NONE) = NONE
            | aF (env, NONE) = case Scope.unwrap env of
               (KAPPA {ty = t}, env) => aF (env, fieldOfBVar (bVar, t))
             | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (bVar, t))
@@ -665,8 +662,9 @@ end = struct
          val (bFun, sCons) = !consRef
          val bFun = update bFun
             handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, env)
+         val _ = consRef := (bFun, sCons)
       in
-         (scs, (consRef := (bFun, sCons); consRef))
+         env
       end
 
    fun meetSizeConstraint (update, (scs, consRef)) =
@@ -728,10 +726,23 @@ end = struct
          | (_, COMPOUND {ty, width, uses = us}) => SpanMap.listKeys us
          )
 
-   fun pushUsage (sym, span, env) = (case Scope.lookup (sym, env) of
+   fun pushUsage (sym, span, funList, env) = (case Scope.lookup (sym, env) of
            (_, SIMPLE {ty}) => raise InferenceBug
          | (_, COMPOUND {ty, width, uses = us}) =>
-            Scope.wrap (KAPPA {ty = #2 (SpanMap.lookup (us, span))}, env)
+            let
+               val (fs, t) = SpanMap.lookup (us, span)
+               fun gatherBFun (f,bFun) =
+                  case List.find (fn (f',_) => ST.eq_symid (f,f')) funList of
+                       SOME (_, VALUE { symFlow = bFun', ... }) =>
+                        BD.meet (bFun',bFun)
+                     | SOME (_, DECODE { symFlow = bFun', ... }) =>
+                        BD.meet (bFun',bFun)
+                     | NONE => bFun
+               fun addUsageBFun bFun = List.foldl gatherBFun bFun fs
+               val env = meetBoolean (addUsageBFun, env)
+            in
+               Scope.wrap (KAPPA {ty = t}, env)
+            end
          )
 
    fun popToUsage (sym, span, env) = (case Scope.unwrap env of
@@ -848,6 +859,9 @@ end = struct
       in
          if isEmpty substs then (ei, env) else
             let
+               (*val (sStr, si) = showSubstsSI (substs, TVar.emptyShowInfo)
+               val (eStr, si) = topToStringSI (env, si)
+               val _ = TextIO.print ("applySubst " ^ sStr ^ " to\n" ^ eStr)*)
                val (b, env) = Scope.unwrap env
                val (b, ei) = substBinding (b, ei, substs)
                val (ei, env) = applySubsts (substs, ei, env)
@@ -905,7 +919,7 @@ end = struct
                   val env = Scope.update (sym, setType (t,bFun), env)
                   val bFun = BD.projectOnto (monoBVars,bFun)
                   val _ = consRef := (bFun, sCons)
-                  val _ = TextIO.print ("*** popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ", containing bVars " ^ BD.setToString funBVars ^ ", mono bVars " ^ BD.setToString monoBVars ^ ":\nbefore " ^ BD.showBFun bFunOrig ^ "\nafter " ^ BD.showBFun bFun ^ "\nenvironment:\n" ^ topToString env)
+                  (*val _ = TextIO.print ("*** popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ", containing bVars " ^ BD.setToString funBVars ^ ", mono bVars " ^ BD.setToString monoBVars ^ ":\nbefore " ^ BD.showBFun bFunOrig ^ "\nafter " ^ BD.showBFun bFun ^ "\nenvironment:\n" ^ topToString env)*)
                in
                   env
                end
@@ -1074,12 +1088,12 @@ end = struct
                   flowError (bVar, affectedField (bVar, env1), env2)
             val _ = consRef1 := (bFunNew, sCons)
             
-            val bStr1 = BD.showBFun bFun
+            (*val bStr1 = BD.showBFun bFun
             val bStr2 = BD.showBFun bFunNew
             val (tStr1, si) = showTypeSI (t1, TVar.emptyShowInfo)
             val (tStr2, si) = showTypeSI (t2, si)
             val _ = TextIO.print ("genFlow: from " ^ tStr1 ^ " to " ^ tStr2 ^
-                                  "\nbFun old: " ^ bStr1 ^ "\nbFun new:" ^ bStr2) 
+                                  "\nbFun old: " ^ bStr1 ^ "\nbFun new:" ^ bStr2) *)
          in
             ()
          end
@@ -1094,11 +1108,10 @@ end = struct
          val (_, consRef) = env2
          val (bFun, sCons) = !consRef
          val (sCons, substs) = applySizeConstraints (sCons, substs)
-         val _ = (consRef := (bFun, sCons); ())
+         val _ = consRef := (bFun, sCons)
          val (env1,env2) = mergeUses (env1, env2)
          val (ei, envSame1) = applySubsts (substs, emptyExpandInfo, env1)
          val (ei, envSame2) = applySubsts (substs, ei, env2)
-         (*val _ = TextIO.print ("***** after adjusting uses:\n" ^ toString(env) ^ "\n")*)
          (*val (e1Str,si) = topToStringSI (env1, TVar.emptyShowInfo)
          val (e2Str,si) = topToStringSI (env2, si)
          val (sStr,_) = showSubstsSI (substs,si)
@@ -1116,7 +1129,8 @@ end = struct
          env
       end
 
-   fun meet (env1,env2) = case meetGeneral (env1,env2) of (env, _, _) => env
+   fun meet (env1,env2) =
+      case meetGeneral (env1,env2) of (env, _, _) => env
    
    fun subseteq (env1, env2) =
       let
@@ -1132,5 +1146,13 @@ end = struct
       in
          substs
       end
+
+   fun getFunctionInfo (s,env) =
+      case Scope.lookup (s,env) of
+           (_, COMPOUND {ty = SOME (t,bFun), width = NONE, uses}) =>
+            VALUE {symType = t, symFlow = bFun}
+         | (_, COMPOUND {ty = SOME (t,bFun), width = SOME w, uses}) =>
+            DECODE {symType = t, width = w, symFlow = bFun}
+         | _ => raise InferenceBug
 
 end

@@ -376,16 +376,19 @@ end = struct
          val newSCons = SC.filter (toReplace, sCons)
          val (newSCons, substs) = applySizeConstraints (newSCons, substs)
          val mergedSCons = SC.merge (newSCons, sCons)
+         val (tNew,ei) = applySubstsToExp substs (t, emptyExpandInfo)
+         val bFunNew = applyExpandInfo ei bFun
+
          (*val (tStr, si) = showTypeSI (t, TVar.emptyShowInfo)
+         val (tNewStr, si) = showTypeSI (tNew, si)
          val (sStr, si) = TVar.setToString (vs, si)
          val (vStr, si) = TVar.setToString (texpVarset (t, TVar.empty), si)
          val (suStr, si) = showSubstsSI (substs, si)
          val (scStr1,si) = SC.toStringSI (sCons, NONE, si)
          val (scStr2,si) = SC.toStringSI (mergedSCons, NONE, si)
-         val _ = TextIO.print ("instantiating " ^ tStr ^ " using " ^ suStr ^ ", extending " ^ scStr1 ^ " to " ^ scStr2 ^ "\n")*)
-         val (t,ei) = applySubstsToExp substs (t, emptyExpandInfo)
+         val _ = TextIO.print ("instantiating " ^ tStr ^ " using " ^ suStr ^ " to " ^ tNewStr ^ (*", extending " ^ scStr1 ^ " to " ^ scStr2 ^*) ", old bFun: " ^ BD.showBFun bFun ^ ", new bFun: " ^ BD.showBFun bFunNew ^ "\n")*)
       in
-         (t, applyExpandInfo ei bFun, mergedSCons)
+         (tNew, bFunNew, mergedSCons)
       end
 
    fun mgu (FUN (f1, f2), FUN (g1, g2), s) = mgu (f2, g2, mgu (f1, g1, s))

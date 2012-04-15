@@ -25,11 +25,11 @@ end = struct
    
    type symbol_types = (SymbolTable.symid * E.symbol_type) list
 
-   structure SMap = RedBlackMapFn (
+   (*structure SMap = RedBlackMapFn (
       struct
          type ord_key = SymbolTable.symid
          val compare = SymbolTable.compare_symid
-      end)
+      end)*)
 
    open Types
 
@@ -74,7 +74,7 @@ end = struct
    fun getContext {span = s, context = cx} = cx
 
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
-   val sm = ref (SMap.empty : E.symbol_type SMap.map)
+   val sm = ref ([] : symbol_types)
    val { tsynDefs, typeDefs, conParents} = ti
    val caseExpSymId = SymbolTable.lookup(!SymbolTables.varTable,
                                          Atom.atom Primitives.caseExpression)
@@ -111,12 +111,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val maxIter = 1
    fun checkUsages printWarn (sym, env) =
       let
-         (*val _ = TextIO.print ("***** usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " in " ^ (if reportWarnings then " fixpoint\n" else " first round\n"))*)
+         (*val _ = TextIO.print ("***** usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
          fun checkUsage (s, (unstable, env)) =
             let
                val envFun = E.pushSymbol (sym, s, [], env)
                (*val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)*)
-               val envCall = E.pushUsage (sym, s, env)
+               val envCall = E.pushUsage (sym, s, !sm, env)
                (*val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)*)
                (*inform about a unification failure when checking call site
                with definition*)
@@ -158,7 +158,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      "\n\tfor " ^ symsStr]))
                   end
                val (substs, env) = (E.subseteq (envCall, envFun),
-                                         E.meetFlow (envCall, envFun))
+                                         E.meetFlow (envFun, envCall))
                   handle (S.UnificationFailure str) =>
                      (raiseError str; (S.emptySubsts, envCall))
                val env = E.popToUsage (sym, s, env)
@@ -241,8 +241,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          env
       end
    and infBinding stenv (sym, dec, guard, args, rhs) =
-         checkUsages false (sym, E.popToFunction (sym,
-            infRhs stenv (sym, dec, guard, args, rhs)))
+      let
+         val env = infRhs stenv (sym, dec, guard, args, rhs)
+         val env = E.popToFunction (sym, env)
+         val fInfo = E.getFunctionInfo (sym, env)
+         val _ = sm := (sym, fInfo) :: !sm
+         val env = checkUsages false (sym, env)
+      in
+         env
+      end
 
    and infDecl stenv (AST.MARKdecl m) = reportError infDecl stenv m
      | infDecl (st,env) (AST.GRANULARITYdecl w) =
@@ -284,7 +291,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val st = addToContext (v,st)
          val envRhs = infRhs (st,envRhs) (v, l, NONE, [], e)
          val env = E.meet (env, envRhs)
-         val env = E.popToFunction (v,env)
+         val env = E.popToFunction (v, env)
       in
          checkUsages false (v,env)
       end
@@ -300,7 +307,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             in
                env
             end) env el
-         val env = E.popToFunction (v,env)
+         val env = E.popToFunction (v, env)
       in
          checkUsages false (v,env)
       end
@@ -317,10 +324,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             ) (E.SymbolSet.empty, env) l
          val env = calcFixpoint (unstable, env)
          val env = infExp (st,env) e
-         val (badSizes, symbols, env) = E.popGroup (env, true)
+         val (badSizes, env) = E.popGroup (env, true)
          val _ = reportBadSizes badSizes
       in
-         (sm := List.foldl SMap.insert' (!sm) symbols; env)
+         env
       end
      | infExp (st,env) (AST.IFexp (e1,e2,e3)) =
       let
@@ -375,8 +382,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let                                      
          val envFun = infExp (st,env) e1
          val envArg = infExp (st,env) e2
-         val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)
-         val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)
+         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)
+         val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction envArgRes
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)*)
@@ -387,8 +394,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                             envArg, "argument    " ^ showProg (20, PP.exp, e2),
                             envFun, "to function " ^ showProg (20, PP.exp, e1))
          val env = E.reduceToResult env
-         val _ = TextIO.print ("**** app fun unified:\n" ^ E.topToString envFun)
-         val _ = TextIO.print ("**** app arg unified:\n" ^ E.topToString envArgRes)
+         (*val _ = TextIO.print ("**** app fun unified:\n" ^ E.topToString envFun)
+         val _ = TextIO.print ("**** app arg unified:\n" ^ E.topToString envArgRes)*)
       in
          env                                                         
       end
@@ -665,14 +672,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          ) (E.SymbolSet.empty, toplevelEnv)
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
-   val (badSizes, toplevelSymbols, primEnv) = E.popGroup (toplevelEnv, false)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
-   val (badSizes, primSymbols, _) = E.popGroup (primEnv, false)
+   val (badSizes, _) = E.popGroup (primEnv, false)
    val _ = reportBadSizes badSizes
    in
-      ( sm := List.foldl SMap.insert' (!sm) (toplevelSymbols @ primSymbols)
-      ; SMap.listItemsi (!sm))
+      !sm
    end
 
    val typeInferencePass =
