@@ -645,10 +645,11 @@ end = struct
          aF (env, NONE)
       end
 
-   fun flowError (bVar, fOpt, env2) =
+   fun flowError (bVar, fOpt, envs) =
       let
-         val fOpt = case fOpt of SOME f => SOME f | NONE =>
-                    affectedField (bVar, env2)
+         val fOpt = List.foldl (fn (env,res) => case res of
+                       SOME f => SOME f
+                     | NONE => affectedField (bVar, env)) fOpt envs
          val fStr = case fOpt of
                  NONE => "some other field"
                | SOME f => "field " ^
@@ -661,7 +662,7 @@ end = struct
       let
          val (bFun, sCons) = !consRef
          val bFun = update bFun
-            handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, env)
+            handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env])
          val _ = consRef := (bFun, sCons)
       in
          env
@@ -1085,7 +1086,7 @@ end = struct
             val (bFun, sCons) = !consRef1
             val bFunNew = ListPair.foldlEq genImpl bFun (l1, l2)
                handle (BD.Unsatisfiable bVar) =>
-                  flowError (bVar, affectedField (bVar, env1), env2)
+                  flowError (bVar, affectedField (bVar, env1), [env1,env2])
             val _ = consRef1 := (bFunNew, sCons)
             
             (*val bStr1 = BD.showBFun bFun
@@ -1124,9 +1125,14 @@ end = struct
       let
          val (env1, env2, ei) = meetGeneral (env1,env2)
          val _ = genFlow (env1,env2)
-         val env = meetBoolean (applyExpandInfo ei, env1)
+         val (_, consRef) = env1
+         val (bFun, sCons) = !consRef
+         val bFun = applyExpandInfo ei bFun
+            handle (BD.Unsatisfiable bVar) =>
+               flowError (bVar, NONE, [env1,env2])
+         val _ = consRef := (bFun, sCons)
       in
-         env
+         env1
       end
 
    fun meet (env1,env2) =
