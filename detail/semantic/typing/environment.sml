@@ -6,10 +6,13 @@ structure Environment : sig
    structure SymbolSet : ORD_SET where type Key.ord_key = SymbolTable.symid
    
    datatype symbol_type =
-        VALUE of {symType : Types.texp}
-      | DECODE of {symType : Types.texp, width : Types.texp}
+        VALUE of {symType : Types.texp, symFlow : BooleanDomain.bfun}
+      | DECODE of {symType : Types.texp, symFlow : BooleanDomain.bfun,
+                   width : Types.texp}
 
-   val primitiveEnvironment : (SymbolTable.symid * Types.texp *
+   val primitiveEnvironment : (SymbolTable.symid *
+                               Types.texp *
+                               (BooleanDomain.bfun -> BooleanDomain.bfun) *
                                (Types.texp option)) list *
                                SizeConstraint.size_constraint list ->
                                environment
@@ -26,20 +29,25 @@ structure Environment : sig
    ambiguous type variables and a list with types of the symbols in this
    group*)
    val popGroup : environment * bool ->
-                  (Error.span * string) list *
-                  (VarInfo.symid * symbol_type) list * environment
+                  (Error.span * string) list * environment
    val pushTop : environment -> environment
    
    (*pushes the given type onto the stack, if the flag is true, type variables
    are renamed*)
    val pushType : bool * Types.texp * environment -> environment
 
+   val pushMonadType : Types.texp * environment -> environment
+   
    (* push the width of a decode onto the stack*)
    val pushWidth : VarInfo.symid * environment -> environment
 
    (*given an occurrence of a symbol at a position, push its type onto the
-   stack and return if an instance of this type must be used*)
-   val pushSymbol : VarInfo.symid * Error.span * environment -> environment
+   stack and return if an instance of this type must be used; arguments are
+   the symbol to look up, the position it occurred and a list of symbols that
+   denote the current context/function (the latter is ignored if the symbol
+   already has a type) *)
+   val pushSymbol : VarInfo.symid * Error.span * VarInfo.symid list *
+                    environment -> environment
 
    val getUsages : VarInfo.symid * environment -> Error.span list
    
@@ -47,7 +55,8 @@ structure Environment : sig
    val popToUsage : VarInfo.symid * Error.span * environment -> environment
 
    (*stack: [...] -> [...,t] where t is type of usage of f at call-site s*)
-   val pushUsage : VarInfo.symid * Error.span * environment -> environment
+   val pushUsage : VarInfo.symid * Error.span *
+                   (VarInfo.symid * symbol_type) list * environment -> environment
    
    (*stack: [...] -> [..., x:a], 'a' fresh; primed version also returns 'a'*)
    val pushLambdaVar' : VarInfo.symid * environment -> (Types.texp * environment)
@@ -88,9 +97,8 @@ structure Environment : sig
                              SizeConstraint.size_constraint_set) *
                              environment -> environment
 
-   val meet : environment * environment -> environment * environment
-
-   val genFlow : environment * environment -> unit
+   val meetFlow : environment * environment -> environment
+   val meet : environment * environment -> environment
 
    (*returns the set of substitutions for the first environment, this is empty
    if the the first environment is more specific (smaller) than the second*)
@@ -99,7 +107,9 @@ structure Environment : sig
    (*query all function symbols in binding groups that would be modified by
    the given substitutions*)
    val affectedFunctions : Substitutions.Substs * environment -> SymbolSet.set
-   
+
+   val getFunctionInfo : VarInfo.symid * environment -> symbol_type
+
    val toString : environment -> string
    val toStringSI : environment * TVar.varmap -> string * TVar.varmap
    val topToString : environment -> string
@@ -131,8 +141,8 @@ end = struct
 
    datatype bind_info
       = SIMPLE of { ty : texp }
-      | COMPOUND of { ty : texp option, width : texp option,
-                     uses : texp SpanMap.map }
+      | COMPOUND of { ty : (texp * BD.bfun) option, width : texp option,
+                     uses : (ST.symid list * texp) SpanMap.map }
 
    datatype binding
       = KAPPA of {
@@ -143,15 +153,16 @@ end = struct
       } | GROUP of {
          name : ST.symid,
          (*the type of this function, NONE if not yet known*)
-         ty : texp option,
+         ty : (texp * BD.bfun) option,
          (*this is SOME (CONST w) if this is a decode function with pattern width w*)
          width : texp option,
-         uses : texp SpanMap.map
+         uses : (ST.symid list * texp) SpanMap.map
       } list
    
    datatype symbol_type =
-        VALUE of {symType : Types.texp}
-      | DECODE of {symType : Types.texp, width : Types.texp}
+        VALUE of {symType : Types.texp, symFlow : BooleanDomain.bfun}
+      | DECODE of {symType : Types.texp, symFlow : BooleanDomain.bfun,
+                   width : Types.texp}
 
    (*a scope contains one of the bindings above and some additional
    information that make substitution and join cheaper*)
@@ -165,6 +176,8 @@ end = struct
       val unwrapDifferent : environment * environment ->
             (binding * binding) option * environment * environment
       val getVars : environment -> TVar.set
+      val getBVarsUses : ST.symid * BD.bvarset * environment -> BD.bvarset
+      val getMonoBVars : environment -> BD.bvarset
       val lookup : ST.symid * environment -> TVar.set * bind_info
       val update : ST.symid  *
                    (bind_info * constraints ref -> bind_info * constraints ref) *
@@ -194,15 +207,18 @@ end = struct
         | varsOfBinding (GROUP bs,set) = let
            fun vsOpt (SOME t,set) = texpVarset (t,set)
              | vsOpt (NONE,set) = set
+           fun bvsOpt (SOME (t,_),set) = texpVarset (t,set)
+             | bvsOpt (NONE,set) = set
            fun getUsesVars ((_,t),set) = texpVarset (t,set)
            fun getBindVars ({name, ty=t, width=w, uses},set) =
                List.foldl
-                  texpVarset
-                  (vsOpt (t, vsOpt (w,set)))
+                  getUsesVars
+                  (bvsOpt (t, vsOpt (w,set)))
                   (SpanMap.listItems uses)
         in
            List.foldl getBindVars set bs
         end
+      
       fun initial (b, scs) =
          ([{
             bindInfo = b,
@@ -231,6 +247,34 @@ end = struct
       
       fun getVars ({bindInfo, typeVars = tv, version}::_,_) = tv
         | getVars ([],_) = TVar.empty
+
+      fun getBVarsUses (sym, vs, (scs,_)) =
+         let
+            fun getUsesVars ((ctxt,t),set) =
+               if List.exists (fn x => ST.eq_symid (sym,x)) ctxt then
+                  texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (t,set)
+               else
+                  set
+            fun getBindVars ({name, ty, width, uses},set) =
+               List.foldl getUsesVars set (SpanMap.listItems uses)
+            fun getGroupVars ({bindInfo = bi, typeVars, version},set) =
+               case bi of
+                    KAPPA {ty} => set
+                  | SINGLE {name, ty} => set
+                  | GROUP bs => List.foldl getBindVars set bs
+         in
+            List.foldl getGroupVars vs scs
+         end
+
+      fun getMonoBVars (bis,_) = List.foldl
+        (fn ({bindInfo = bi, typeVars, version},set) => 
+         case bi of
+              KAPPA { ty = t } =>
+               texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (t,set)
+            | SINGLE { ty = t,... } =>
+               texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (t,set)
+            | GROUP _ => set)
+        BD.emptySet bis
 
       fun lookup (sym, (scs, consRef)) =
          let
@@ -325,22 +369,31 @@ end = struct
                  in
                      (str ^ tStr, si)
                  end
-               fun printU (((p1,p2), t), (str, sep, si)) =
+               fun prBTyOpt (NONE, str, si) = ("", si)
+                 | prBTyOpt (SOME (t,bFun), str, si) = let
+                    val (tStr, si) = showTypeSI (t, si)
+                 in
+                     (str ^ tStr ^ ", flow:" ^ BD.showBFun bFun, si)
+                 end
+               fun printU (((p1,p2), (ctxt, t)), (str, sep, si)) =
                   let
                      val (tStr, si) = showTypeSI (t, si)
+                     fun showSym (s,(sep,str)) = (",", str ^ sep ^
+                           ST.getString(!SymbolTables.varTable, s))
                   in
                      (str ^
                       sep ^ Int.toString(Position.toInt p1) ^
                       "-" ^ Int.toString(Position.toInt p2) ^
+                      "@" ^ #2 (List.foldl showSym ("","") ctxt) ^
                       ":" ^ tStr
                      ,", ", si)
                   end
                fun printB ({name,ty,width,uses}, (str, si)) =
                   let
-                     val (tStr, si) = prTyOpt (ty, " : ", si)
+                     val (tStr, si) = prBTyOpt (ty, " : ", si)
                      val (wStr, si) = prTyOpt (width, ", width = ", si)
                      val (uStr, _, si) = 
-                           List.foldl printU ("", "\n    uses: ", si)
+                           List.foldl printU ("", "\n  uses: ", si)
                                       (SpanMap.listItemsi uses)
                   in
                     (str ^
@@ -358,13 +411,13 @@ end = struct
    type environment = Scope.environment
 
    fun primitiveEnvironment (l,scs) = Scope.initial
-      (GROUP (List.map (fn (s,t,ow) => {name = s, ty = SOME t,
-                                        width = ow, uses = SpanMap.empty}) l),
+      (GROUP (List.map (fn (s,t,bFunGen,ow) =>
+         {name = s, ty = SOME (t,bFunGen BD.empty),
+          width = ow, uses = SpanMap.empty}) l),
        scs)
    
    fun pushSingle (sym, t, env) = Scope.wrap (SINGLE {name = sym, ty = t},env)
    
-
    structure SymbolSet = RedBlackSetFn (
       struct
          type ord_key = SymbolTable.symid
@@ -390,9 +443,9 @@ end = struct
    fun popGroup (env, true) = (case Scope.unwrap env of
         (KAPPA {ty=t}, env) =>
          let
-           val (badUses, vs, env) = popGroup (env, false)
+           val (badUses, env) = popGroup (env, false)
          in
-            (badUses, vs, Scope.wrap (KAPPA {ty=t}, env))
+            (badUses, Scope.wrap (KAPPA {ty=t}, env))
          end
        | _ => raise InferenceBug)
      | popGroup (env, false) = case Scope.unwrap env of
@@ -407,7 +460,7 @@ end = struct
             val unbounded = TVar.difference (curVars,remVars)
             (*val _ = TextIO.print ("unbounded vars: " ^ #1 (TVar.setToString (unbounded,TVar.emptyShowInfo)) ^ "\n")*)
             val siRef = ref TVar.emptyShowInfo
-            fun showUse (n, t) =
+            fun showUse (n, (ctxt,t)) =
                let
                   val nStr = SymbolTable.getString(!SymbolTables.varTable, n)
                   val (tStr, si) = showTypeSI (t, !siRef)
@@ -419,7 +472,7 @@ end = struct
                      (if String.size cStr=0 then "" else " where " ^ cStr))
                end
             val unbounded = List.foldl (fn
-                  ({name,ty=SOME t,width,uses},vs) =>
+                  ({name,ty=SOME (t,_),width,uses},vs) =>
                      TVar.difference (vs, texpVarset (t,TVar.empty))
                   | _ => raise InferenceBug)
                   unbounded bs
@@ -427,23 +480,16 @@ end = struct
                List.map (fn {name = n,ty,width,uses = us} =>
                   List.map (fn (sp,t) => (sp, showUse (n, t))) (
                      SpanMap.listItemsi (
-                        SpanMap.filter (fn t =>
+                        SpanMap.filter (fn (_,t) =>
                            not (TVar.isEmpty (TVar.intersection
                               (texpVarset (t,TVar.empty), unbounded)))
                            ) us))) bs)
-            (*create a list of functions and their types*)
-            val funList = List.map (fn {name = n, ty = t, width = w, uses = _} =>
-               case (t,w) of
-                    (SOME t, NONE) => (n, VALUE {symType = t})
-                  | (SOME t, SOME w) => (n, DECODE {symType = t, width = w})
-                  | _ => raise InferenceBug
-               ) bs
             (*project out variables from the size and Boolean domains that are
             no longer needed*)
             val sCons = SC.filter (remVars, sCons)
             val _ = consRef := (bFun, sCons)
          in
-            (badSizes, funList, env)
+            (badSizes, env)
          end
       | _ => raise InferenceBug
 
@@ -465,6 +511,22 @@ end = struct
       end
      | pushType (false, t, env) = Scope.wrap (KAPPA {ty = t}, env)
 
+   fun pushMonadType (t, (scs, consRef)) =
+      let
+         val (bFun, sCons) = !consRef
+         val tvar = TVar.freshTVar ()
+         val fromBVar = BD.freshBVar ()
+         val toBVar = BD.freshBVar ()
+         val fromVar = VAR (tvar, fromBVar)
+         val toVar = VAR (tvar, toBVar)
+         val bFun = BD.meetVarImpliesVar (fromBVar, toBVar) bFun
+         val (t,bFun,sCons) =
+            instantiateType (texpVarset(t,TVar.empty),t,TVar.empty,bFun,sCons)
+         val _ = consRef := (bFun,sCons)
+      in
+         Scope.wrap (KAPPA {ty = MONAD (t, fromVar, toVar)}, (scs, consRef))
+      end
+
    fun pushWidth (sym, env) =
       (case Scope.lookup (sym,env) of
           (_, COMPOUND {ty, width = SOME t, uses}) =>
@@ -482,16 +544,18 @@ end = struct
 
    fun toStringSI ((scs, consRef),si) = 
       let
-         val (_, sCons) = !consRef
-         fun show (s, (str, si)) =
+         val (bFun, sCons) = !consRef
+         fun showCons (s, (str, si)) =
             let
                val (bStr, si) = Scope.toString (s, si)
             in
                (bStr ^ "\n" ^ str, si)
             end
          val (sStr, si) = SC.toStringSI (sCons, NONE, si)
+         val (envConsStr, si) =
+            List.foldr showCons ("sizes: " ^ sStr ^ "\n", si) scs
       in
-         List.foldr show ("sizes: " ^ sStr ^ "\n", si) scs
+         (envConsStr ^ BD.showBFun bFun ^ "\n", si)
       end
 
    fun toString env =
@@ -525,7 +589,7 @@ end = struct
    )
 
    fun funTypeToStringSI (env, f, si) = (case Scope.lookup (f,env) of
-        (_, COMPOUND { ty = SOME t, width, uses }) => showTypeSI (t,si)
+        (_, COMPOUND { ty = SOME (t,_), width, uses }) => showTypeSI (t,si)
       | _ => raise InferenceBug
    )
 
@@ -543,7 +607,7 @@ end = struct
                fun aFL (ss, []) =
                    aF (ss, substsFilter (substs, Scope.getVars env), env)
                  | aFL (ss, {name, ty = NONE, width, uses} :: l) = aFL (ss, l)
-                 | aFL (ss, {name = n, ty = SOME t, width, uses} :: l) =
+                 | aFL (ss, {name = n, ty = SOME (t,_), width, uses} :: l) =
                      if isEmpty (substsFilter (substs,
                         texpVarset (t,TVar.empty)))
                      then aFL (ss, l)
@@ -555,17 +619,76 @@ end = struct
          aF (SymbolSet.empty, substs, env)
       end
 
-   fun pushSymbol (sym, span, env) =
+   fun affectedField (bVar, env) =
+      let
+         fun aF (_, SOME f) = SOME f
+           | aF (([],_), NONE) = NONE
+           | aF (env, NONE) = case Scope.unwrap env of
+              (KAPPA {ty = t}, env) => aF (env, fieldOfBVar (bVar, t))
+            | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (bVar, t))
+            | (GROUP l, env) =>
+            let
+               fun findField ((_,t), SOME f) = SOME f
+                 | findField ((_,t), NONE) = fieldOfBVar (bVar, t)
+               fun aFL {name, ty = tOpt, width, uses} =
+                  List.foldl findField
+                     (case tOpt of
+                          NONE => NONE
+                        | SOME (t,_) => fieldOfBVar (bVar, t))
+                     (SpanMap.listItems uses)
+            in
+               aF (env, case List.mapPartial aFL l of
+                       [] => NONE
+                     | (f :: _) => SOME f)
+            end
+      in
+         aF (env, NONE)
+      end
+
+   fun flowError (bVar, fOpt, envs) =
+      let
+         val fOpt = List.foldl (fn (env,res) => case res of
+                       SOME f => SOME f
+                     | NONE => affectedField (bVar, env)) fOpt envs
+         val fStr = case fOpt of
+                 NONE => "some other field"
+               | SOME f => "field " ^
+                  SymbolTable.getString(!SymbolTables.fieldTable, f)
+      in
+         raise UnificationFailure (fStr ^ " cannot flow here")
+      end
+
+   fun meetBoolean (update, env as (scs, consRef)) =
+      let
+         val (bFun, sCons) = !consRef
+         val bFun = update bFun
+            handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env])
+         val _ = consRef := (bFun, sCons)
+      in
+         env
+      end
+
+   fun meetSizeConstraint (update, (scs, consRef)) =
+      let
+         val (bFun, sCons) = !consRef
+         val sCons = update sCons
+      in
+         (scs, (consRef := (bFun, sCons); consRef))
+      end
+
+   fun pushSymbol (sym, span, ctxt, env) =
       (case Scope.lookup (sym,env) of
           (_, SIMPLE {ty = t}) => Scope.wrap (KAPPA {ty = t}, env)
-        | (tvs, COMPOUND {ty = SOME t, width = w, uses}) =>
+        | (tvs, COMPOUND {ty = SOME (t,bFunFun), width = w, uses}) =>
          let
             val (scs,consRef) = env
             val (bFun, sCons) = !consRef
+            val bFun = BD.meet (bFunFun, bFun)
             val decVars = case w of
                  SOME t => texpVarset (t,TVar.empty)
                | NONE => TVar.empty
             val (t,bFun,sCons) = instantiateType (tvs, t, decVars, bFun, sCons)
+            val _ = consRef := (bFun,sCons)
             val env = (scs,consRef)
             (*we need to record the usage sites of all functions (primitives,
             really) that have explicity size constraints in order to be able
@@ -573,24 +696,24 @@ end = struct
             functions*)
             fun action (COMPOUND {ty, width, uses},consRef) =
                (COMPOUND {ty = ty, width = width,
-                uses = SpanMap.insert (uses, span, t)}, consRef)
+                uses = SpanMap.insert (uses, span, (ctxt, t))}, consRef)
               | action _ = raise InferenceBug
             val env =
                if TVar.isEmpty (TVar.intersection (decVars, SC.getVarset sCons))
                then env
                else Scope.update (sym, action, env)
          in
-            (consRef := (bFun,sCons); Scope.wrap (KAPPA {ty = t}, env))
+            Scope.wrap (KAPPA {ty = t}, env)
          end
         | (_, COMPOUND {ty = NONE, width, uses}) =>
           (case SpanMap.find (uses, span) of
-               SOME t => Scope.wrap (KAPPA {ty = t}, env)
+               SOME (_,t) => Scope.wrap (KAPPA {ty = t}, env)
              | NONE =>
              let
                 val res = VAR (TVar.freshTVar (),BD.freshBVar ())
                 fun action (COMPOUND {ty, width, uses},consRef) =
                      (COMPOUND {ty = ty, width = width,
-                      uses = SpanMap.insert (uses, span, res)}, consRef)
+                      uses = SpanMap.insert (uses, span, (ctxt,res))}, consRef)
                   | action _ = raise InferenceBug
                 val env = Scope.update (sym, action, env)
              in
@@ -604,18 +727,34 @@ end = struct
          | (_, COMPOUND {ty, width, uses = us}) => SpanMap.listKeys us
          )
 
-   fun pushUsage (sym, span, env) = (case Scope.lookup (sym, env) of
+   fun pushUsage (sym, span, funList, env) = (case Scope.lookup (sym, env) of
            (_, SIMPLE {ty}) => raise InferenceBug
          | (_, COMPOUND {ty, width, uses = us}) =>
-            Scope.wrap (KAPPA {ty = SpanMap.lookup (us, span)}, env)
+            let
+               val (fs, t) = SpanMap.lookup (us, span)
+               fun gatherBFun (f,bFun) =
+                  case List.find (fn (f',_) => ST.eq_symid (f,f')) funList of
+                       SOME (_, VALUE { symFlow = bFun', ... }) =>
+                        BD.meet (bFun',bFun)
+                     | SOME (_, DECODE { symFlow = bFun', ... }) =>
+                        BD.meet (bFun',bFun)
+                     | NONE => bFun
+               fun addUsageBFun bFun = List.foldl gatherBFun bFun fs
+               val env = meetBoolean (addUsageBFun, env)
+            in
+               Scope.wrap (KAPPA {ty = t}, env)
+            end
          )
 
    fun popToUsage (sym, span, env) = (case Scope.unwrap env of
         (KAPPA {ty = tUse}, env) =>
          let
             fun setUsage (COMPOUND {ty, width, uses = us}, consRef) =
-                  (COMPOUND {ty = ty, width = width,
-                             uses = SpanMap.insert (us,span,tUse)}, consRef)
+               (case SpanMap.find (us,span) of
+                    NONE => raise InferenceBug
+                  | SOME (ctxt, _) => (COMPOUND {ty = ty, width = width,
+                       uses = SpanMap.insert (us,span,(ctxt,tUse))}, consRef)
+               )
               | setUsage _ = raise InferenceBug
          in
             Scope.update (sym, setUsage, env)
@@ -689,7 +828,7 @@ end = struct
             Scope.wrap (KAPPA {ty = t2}, env)
          | _ => raise InferenceBug
 
-   fun applySubsts (substs, (scs, consRef)) =
+   fun applySubsts (substs, ei, env) =
       let
          fun substBinding (KAPPA {ty=t}, ei, substs) =
             (case applySubstsToExp substs (t,ei) of (t,ei) =>
@@ -704,34 +843,32 @@ end = struct
                      (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
                         (checkFieldRecursion t; eiRef := ei; SOME t))
                     | optSubst NONE = NONE
-                  fun usesSubst t =
+                  fun optBSubst (SOME (t,bFun)) =
                      (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
-                        (checkFieldRecursion t; eiRef := ei; t))
+                        (checkFieldRecursion t; eiRef := ei; SOME (t,bFun)))
+                    | optBSubst NONE = NONE
+                  fun usesSubst (ctxt,t) =
+                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
+                        (checkFieldRecursion t; eiRef := ei; (ctxt,t)))
                   fun substB {name = n, ty = t, width = w, uses = us} =
-                     {name = n, ty = optSubst t, width = optSubst w,
+                     {name = n, ty = optBSubst t, width = optSubst w,
                       uses = SpanMap.map usesSubst us}
                in
                   (GROUP (List.map substB bs), !eiRef)
                end
-         val (bFun, sCons) = !consRef
-         fun doSubst (scs, ei) =
-            let
-               val dummy = ref (BD.empty, SC.empty)
-               val substs = substsFilter (substs,
-                                          Scope.getVars (scs, dummy))
-            in
-               if isEmpty substs then (consRef := (finalizeExpandInfo ei, sCons)
-                                      ;(scs, consRef))
-               else
-                  let
-                     val (b, (scs,_)) = Scope.unwrap (scs, dummy)
-                     val (b, ei) = substBinding (b, ei, substs)
-                  in
-                     Scope.wrap (b, doSubst (scs, ei))
-                  end
-            end
+         val substs = substsFilter (substs, Scope.getVars env)
       in
-         doSubst (scs, createExpandInfo bFun)
+         if isEmpty substs then (ei, env) else
+            let
+               (*val (sStr, si) = showSubstsSI (substs, TVar.emptyShowInfo)
+               val (eStr, si) = topToStringSI (env, si)
+               val _ = TextIO.print ("applySubst " ^ sStr ^ " to\n" ^ eStr)*)
+               val (b, env) = Scope.unwrap env
+               val (b, ei) = substBinding (b, ei, substs)
+               val (ei, env) = applySubsts (substs, ei, env)
+            in
+               (ei, Scope.wrap (b, env))
+            end
       end
 
    fun return (n,env) =
@@ -755,11 +892,38 @@ end = struct
    fun popToFunction (sym, env) =
       let
          fun setType t (COMPOUND {ty = NONE, width, uses}, consRef) =
-               (COMPOUND {ty = SOME t, width = width, uses = uses}, consRef)
+               (COMPOUND {ty = SOME t, width = width, uses = uses},
+                consRef)
            | setType t _ = (TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
       in
          case Scope.unwrap env of
-              (KAPPA {ty=t}, env) => Scope.update (sym, setType t, env)
+              (KAPPA {ty=t}, env) =>
+               let
+                  (*we need to restrict the size of the Boolean formula in two
+                  ways: first, for the function we need all Boolean variables
+                  in its type, all lambda- and kappa-bound types in the
+                  environment as well as all the uses of other functions that
+                  occur in it; secondly, the analysis must continue with a
+                  Boolean formula that contians the Boolean variables of all
+                  lambda- and kappa-bound types in the environment. Since the
+                  latter is usually an empty environment (namely for all
+                  top-level functions), we first calculate the set of Boolean
+                  variables in kappa- and lambda-bound types and use that for
+                  the Boolean formula of the function; then we project onto
+                  the variables in kappa- and lambda-bound types*)
+                  val monoBVars = Scope.getMonoBVars env
+                  val funBVars = Scope.getBVarsUses (sym, monoBVars, env)
+                  val funBVars = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (t, funBVars)
+                  val (_, consRef) = env
+                  val (bFunOrig, sCons) = !consRef
+                  val bFun = BD.projectOnto (funBVars,bFunOrig)
+                  val env = Scope.update (sym, setType (t,bFun), env)
+                  val bFun = BD.projectOnto (monoBVars,bFun)
+                  val _ = consRef := (bFun, sCons)
+                  (*val _ = TextIO.print ("*** popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ", containing bVars " ^ BD.setToString funBVars ^ ", mono bVars " ^ BD.setToString monoBVars ^ ":\nbefore " ^ BD.showBFun bFunOrig ^ "\nafter " ^ BD.showBFun bFun ^ "\nenvironment:\n" ^ topToString env)*)
+               in
+                  env
+               end
             | _ => raise InferenceBug
       end
 
@@ -775,7 +939,7 @@ end = struct
    fun pushFunctionOrTop (sym, env) =
       let
          val tyRef = ref UNIT
-         fun setType (COMPOUND {ty = SOME t, width, uses}, consRef) =
+         fun setType (COMPOUND {ty = SOME (t,_), width, uses}, consRef) =
                (tyRef := t
                ;(COMPOUND {ty = NONE, width = width, uses = uses}, consRef))
            | setType (COMPOUND {ty = NONE, width, uses}, consRef) =
@@ -799,18 +963,21 @@ end = struct
                fun mguOpt (SOME t1, SOME t2, s) = mgu (t1, t2, s)
                  | mguOpt (NONE, NONE, s) = s
                  | mguOpt (_, _, _) = raise InferenceBug
-               fun mguUses ((s1,t1) :: us1, (s2,t2) :: us2, s) =
+               fun mguBOpt (SOME (t1,_), SOME (t2,_), s) = mgu (t1, t2, s)
+                 | mguBOpt (NONE, NONE, s) = s
+                 | mguBOpt (_, _, _) = raise InferenceBug
+               fun mguUses ((s1,(ctxt1,t1)) :: us1, (s2,(ctxt2,t2)) :: us2, s) =
                   (case compare_span (s1,s2) of
                        EQUAL => mguUses (us1, us2, mgu (t1,t2,s))
-                     | LESS => mguUses (us1, (s2,t2) :: us2, s)
-                     | GREATER => mguUses ((s1,t1) :: us1, us2, s)
+                     | LESS => mguUses (us1, (s2,(ctxt2,t2)) :: us2, s)
+                     | GREATER => mguUses ((s1,(ctxt1,t1)) :: us1, us2, s)
                   )
                   | mguUses (_, _, s) = s
                fun uB (({name = n1, ty = t1, width = w1, uses = u1},
                         {name = n2, ty = t2, width = w2, uses = u2}), s) =
                   if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
                   mguUses (SpanMap.listItemsi u1, SpanMap.listItemsi u2,
-                           mguOpt (t1, t2, mguOpt (w1, w2, s)))
+                           mguBOpt (t1, t2, mguOpt (w1, w2, s)))
                (*val _ = if List.length bs1=List.length bs2 then () else
                      TextIO.print ("*************** mgu of\n" ^ topToString (Scope.wrap (GROUP bs1,env1)) ^ "\ndoes not match\n" ^ topToString (Scope.wrap (GROUP bs2,env2)))*)
                val substs = List.foldl uB substs (ListPair.zipEq (bs1,bs2))
@@ -863,23 +1030,77 @@ end = struct
          | (SOME _, _, _) => raise InferenceBug
       )
 
-   fun meetBoolean (update, (scs, consRef)) =
+   (*fun equalizeFlow (env1, env2 as (_,consRef)) =
       let
          val (bFun, sCons) = !consRef
-         val bFun = update bFun
+         fun addEqs (t1, t2, bFun) =
+            let
+               val bVars1 = texpBVarset (fn ((_,v),vs) => v :: vs) (t1,[])
+               val bVars2 = texpBVarset (fn ((_,v),vs) => v :: vs) (t2,[])
+            in
+               List.foldl (fn ((v1,v2), bFun) => BD.meetEqual (v1,v2,bFun))
+                  bFun (ListPair.zip (bVars1,bVars2))
+            end
+         fun eF (bFun, env1,env2) = case Scope.unwrapDifferent (env1, env2) of
+              (NONE, env1, env2) => bFun
+            | (SOME (KAPPA {ty = t1}, KAPPA {ty = t2}), env1, env2) =>
+                  eF (addEqs (t1, t2, bFun), env1, env2)
+            | (SOME (SINGLE {name = _, ty = t1},
+                     SINGLE {name = _, ty = t2}), env1, env2) =>
+                  eF (addEqs (t1, t2, bFun), env1, env2)
+            | (SOME (GROUP bs1, GROUP bs2), env1, env2) =>
+               let
+                  fun eFOpt (SOME t1, SOME t2, bFun) = addEqs (t1, t2, bFun)
+                    | eFOpt (NONE, NONE, bFun) = bFun
+                    | eFOpt (_, _, _) = raise InferenceBug
+                  fun eFB (({name = n1, ty = t1, width = w1, uses = u1},
+                           {name = n2, ty = t2, width = w2, uses = u2}), s) =
+                     if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
+                     List.foldl (fn (((_,t1),(_,t2)),bFun) => addEqs (t1,t2,bFun))
+                         (eFOpt (t1, t2, eFOpt (w1, w2, bFun)))
+                         (ListPair.zipEq (SpanMap.listItemsi u1, SpanMap.listItemsi u2))
+                  val bFun = List.foldl eFB bFun (ListPair.zipEq (bs1,bs2))
+               in
+                  eF (bFun, env1, env2)
+               end
+            | _ => raise InferenceBug                  
+         val bFun = eF (bFun, env1, env2)
       in
-         (scs, (consRef := (bFun, sCons); consRef))
-      end
+         consRef := (bFun, sCons)
+      end*)
 
-   fun meetSizeConstraint (update, (scs, consRef)) =
-      let
-         val (bFun, sCons) = !consRef
-         val sCons = update sCons
-      in
-         (scs, (consRef := (bFun, sCons); consRef))
-      end
-   
-   fun meet (env1, env2) =
+   fun genFlow (env1, env2) = case (Scope.unwrap env1, Scope.unwrap env2) of
+        ((KAPPA {ty=t1}, (_, consRef1)), (KAPPA {ty=t2}, (_, consRef2))) =>
+         if (consRef1 <> consRef2) then raise InferenceBug else
+         let
+            val l1 = texpBVarset (op ::) (t1, [])
+            val l2 = texpBVarset (op ::) (t2, [])
+            fun genImpl ((contra1,f1),(contra2,f2),bf) =
+               if contra1<>contra2 then raise InferenceBug else
+               if contra1 then
+                  BD.meetVarImpliesVar (f2,f1) bf
+               else
+                  BD.meetVarImpliesVar (f1,f2) bf
+            (*val _ = if List.length l1=List.length l2 then () else
+                  TextIO.print ("*************** genFlow of\n" ^ topToString env1 ^ "\ndoes not match\n" ^ topToString env2)*)
+            val (bFun, sCons) = !consRef1
+            val bFunNew = ListPair.foldlEq genImpl bFun (l1, l2)
+               handle (BD.Unsatisfiable bVar) =>
+                  flowError (bVar, affectedField (bVar, env1), [env1,env2])
+            val _ = consRef1 := (bFunNew, sCons)
+            
+            (*val bStr1 = BD.showBFun bFun
+            val bStr2 = BD.showBFun bFunNew
+            val (tStr1, si) = showTypeSI (t1, TVar.emptyShowInfo)
+            val (tStr2, si) = showTypeSI (t2, si)
+            val _ = TextIO.print ("genFlow: from " ^ tStr1 ^ " to " ^ tStr2 ^
+                                  "\nbFun old: " ^ bStr1 ^ "\nbFun new:" ^ bStr2) *)
+         in
+            ()
+         end
+       | _ => raise InferenceBug
+  
+   fun meetGeneral (env1, env2) =
       let
          (*val _ = TextIO.print ("unifying " ^ toString(env1) ^ " and " ^ toString(env2) ^ "\n")*)
          val substs = unify (env1, env2, emptySubsts)
@@ -888,38 +1109,35 @@ end = struct
          val (_, consRef) = env2
          val (bFun, sCons) = !consRef
          val (sCons, substs) = applySizeConstraints (sCons, substs)
-         val _ = (consRef := (bFun, sCons); ())
+         val _ = consRef := (bFun, sCons)
          val (env1,env2) = mergeUses (env1, env2)
-         (*val _ = TextIO.print ("***** after adjusting uses:\n" ^ toString(env) ^ "\n")*)
+         val (ei, envSame1) = applySubsts (substs, emptyExpandInfo, env1)
+         val (ei, envSame2) = applySubsts (substs, ei, env2)
          (*val (e1Str,si) = topToStringSI (env1, TVar.emptyShowInfo)
          val (e2Str,si) = topToStringSI (env2, si)
          val (sStr,_) = showSubstsSI (substs,si)
-         fun h () = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str)*)
+         val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str)*)
       in
-         (applySubsts (substs, env1), applySubsts (substs, env2))
-            (*handle SubstitutionBug => (h (); raise SubstitutionBug)*)
+         (envSame1, envSame2, ei)
       end
 
-   fun genFlow (env1, env2) = case (Scope.unwrap env1, Scope.unwrap env2) of
-        ((KAPPA {ty=t1}, (_, consRef1)), (KAPPA {ty=t2}, (_, consRef2))) =>
-         if (consRef1 <> consRef2) then raise InferenceBug else
-         let
-            val l1 = getFlagsForType t1
-            val l2 = getFlagsForType t2
-            fun genImpl ((contra1,f1),(contra2,f2),bf) =
-               if contra1<>contra2 then raise InferenceBug else
-               if contra1 then
-                  BD.meetVarImpliesVar (f2,f1,bf)
-               else
-                  BD.meetVarImpliesVar (f1,f2,bf)
-            (*val _ = if List.length l1=List.length l2 then () else
-                  TextIO.print ("*************** genFlow of\n" ^ topToString env1 ^ "\ndoes not match\n" ^ topToString env2)*)
-            val (bFun, sCons) = !consRef1
-         in
-            (consRef1 := (ListPair.foldlEq genImpl bFun (l1, l2), sCons); ())
-         end
-       | _ => raise InferenceBug
-  
+   fun meetFlow (env1,env2) =
+      let
+         val (env1, env2, ei) = meetGeneral (env1,env2)
+         val _ = genFlow (env1,env2)
+         val (_, consRef) = env1
+         val (bFun, sCons) = !consRef
+         val bFun = applyExpandInfo ei bFun
+            handle (BD.Unsatisfiable bVar) =>
+               flowError (bVar, NONE, [env1,env2])
+         val _ = consRef := (bFun, sCons)
+      in
+         env1
+      end
+
+   fun meet (env1,env2) =
+      case meetGeneral (env1,env2) of (env, _, _) => env
+   
    fun subseteq (env1, env2) =
       let
          val substs = unify (env1, env2, emptySubsts)
@@ -934,5 +1152,13 @@ end = struct
       in
          substs
       end
+
+   fun getFunctionInfo (s,env) =
+      case Scope.lookup (s,env) of
+           (_, COMPOUND {ty = SOME (t,bFun), width = NONE, uses}) =>
+            VALUE {symType = t, symFlow = bFun}
+         | (_, COMPOUND {ty = SOME (t,bFun), width = SOME w, uses}) =>
+            DECODE {symType = t, width = w, symFlow = bFun}
+         | _ => raise InferenceBug
 
 end

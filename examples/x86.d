@@ -1,5 +1,5 @@
 granularity = 8
-export = main
+export = decoder
 
 # Optional arguments
 #
@@ -16,25 +16,32 @@ export = main
 # recursion-depth = main = 4
 
 # The state of the decode monad
-state =
-   {mode64:1='0',
-    repne:1='0',
-    rep:1='0',
-    rex:1='0',
-    rexw:1='0',
-    rexb:1='0',
-    rexr:1='0',
-    rexx:1='0',
-    vexm:5='00001',
-    vexv:4='0000',
-    vexl:1='0',
-    vexp:2='00',
-    opndsz:1='0',
-    addrsz:1='0',
-    segment:register=DS,
-    mod:2='00',
-    reg:3='000',
-    rm:3='000'}
+val decoder =
+   let val retState x = 
+      {mode64='0',
+       repne='0',
+       rep='0',
+       rex='0',
+       rexw='0',
+       rexb='0',
+       rexr='0',
+       rexx='0',
+       vexm='00001',
+       vexv='0000',
+       vexl='0',
+       vexp='00',
+       opndsz='0',
+       addrsz='0',
+       segment=DS,
+       mod='00',
+       reg='000',
+       rm='000'}
+   in
+      do
+         update retState;
+         main
+      end
+   end
 
 val & giveA giveB = do
    a <- giveA;
@@ -478,7 +485,7 @@ val xmmr n =
 val xmm? rex =
    if rex then xmmr else xmm
 
-val xmmF n = (xmm? (prefix n)) (suffix n)
+val xmmF n = case n of '....' : (xmm? (prefix n)) (suffix n) end
 
 val ymm n =
    case n of
@@ -507,7 +514,7 @@ val ymmr n =
 val ymm? rex =
    if rex then ymmr else ymm
 
-val ymmF n = (ymm? (prefix n)) (suffix n)
+val ymmF n = case n of '....' : (ymm? (prefix n)) (suffix n) end
 
 val mm n =
    case n of
