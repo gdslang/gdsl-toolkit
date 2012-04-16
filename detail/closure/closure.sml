@@ -117,7 +117,7 @@ structure Closure = struct
                    str "$", fld f, space, var x]
           | LETUPD (y, x, fs) =>
                seq
-                  [str "letval", space, var x, is, var y,
+                  [str "letval", space, var y, is, var x,
                    str "@", listex "{" "}" "," (map updFld fs)]
           | LETREF (x, env, i) =>
                seq
