@@ -1,0 +1,12 @@
+XED2:
+$:~/Downloads/pin-2.11-49306-gcc.3.4.6-ia32_intel64-linux/extras/xed2-intel64/examples$ make
+g++    -o xed xed.o xed-disas-macho.o xed-disas-pecoff.o xed-disas-raw.o xed-disas-elf.o xed-symbol-table.o xed-examples-util.o xed-examples-ostreams.o xed-enc-lang.o ../lib/libxed.a 
+xed-examples-util.o: In function `xed_disas_test':
+xed-examples-util.c:(.text+0x16a9): undefined reference to `xed_dot_graph_supp_create'
+xed-examples-util.c:(.text+0x1f3e): undefined reference to `xed_dot_graph_add_instruction'
+xed-examples-util.c:(.text+0x21a0): undefined reference to `xed_dot_graph_dump'
+xed-examples-util.c:(.text+0x21af): undefined reference to `xed_dot_graph_supp_deallocate'
+collect2: ld returned 1 exit status
+make: *** [xed] Error 1
+
+Metasm:
