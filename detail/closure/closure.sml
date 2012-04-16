@@ -36,6 +36,7 @@ structure Closure = struct
        | REC of (field * Var.v) list
        | INT of IntInf.int
        | FLT of FloatLit.float
+       | LAB of Var.v
        | STR of string
        | VEC of string
        | UNT
@@ -144,6 +145,7 @@ structure Closure = struct
           | INJ (tag, v) => seq [con tag, space, var v]
           | INT i => int i
           | FLT f => str (FloatLit.toString f)
+          | LAB l => seq [str "&", var l]
           | STR s => str s
           | VEC s => seq [str "'", str s, str "'"]
           | REC fs =>

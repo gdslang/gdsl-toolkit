@@ -11,7 +11,8 @@ end = struct
    structure Set = SymSet
    structure Clos = Closure.Stmt
 
-   val closure = Atom.atom "closure"
+   val closure = Atom.atom "env"
+   val label = Atom.atom "lab"
    val fresh = Aux.fresh
 
    local open CPS.Exp in
@@ -200,10 +201,13 @@ end = struct
       and buildEnv sigma f =
          let
             val fs = freeUse sigma f
+            val f' = fresh label
             val env = fresh closure
-            val stmts = Clos.LETENV (env, f::fs)
+            val stmts =
+               [Clos.LETVAL (f', Clos.LAB f),
+                Clos.LETENV (env, f'::fs)]
          in
-            {env=env, body=[stmts]}
+            {env=env, body=stmts}
          end
 
       and convFun sigma f body k =
