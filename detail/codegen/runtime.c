@@ -1,8 +1,16 @@
 
 #include "runtime.h"
 
-__unwrapped_obj heap[__RT_HEAP_SIZE];
+__unwrapped_obj heap[__RT_HEAP_SIZE] __attribute((aligned(8)));
 __objref hp = &heap[__RT_HEAP_SIZE];
+
+void __fatal (char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stderr, fmt, ap);
+  va_end(ap);
+  abort();
+}
 
 __obj __print (__obj obj) {
   switch (__TAG(obj)) {
@@ -10,10 +18,10 @@ __obj __print (__obj obj) {
       printf("<#closure>\n");
       break;
     case __INT:
-      printf("<#int: %d>\n", obj->z.value);
+      printf("<#int: %ld>\n", obj->z.value);
       break;
-    case __TUPLE:
-      printf("<#tuple>\n");
+    case __TAGGED:
+      printf("<#tagged>\n");
       break;
     case __LABEL:
       printf("<#label>\n");
@@ -47,11 +55,11 @@ int main (int argc, char** argv) {
     __LABEL_END(s);
 
   __LOCAL0(c);
-    __CLOSURE_BEGIN(c, 0);
+    __CLOSURE_BEGIN(c, 2);
     __CLOSURE_ADD(s);
     __CLOSURE_ADD(x);
-    __CLOSURE_END(c, 0);
+    __CLOSURE_END(c, 2);
 
-  __INVOKE0(s, c);
+  __INVOKE1(s, c);
   return -1; 
 }

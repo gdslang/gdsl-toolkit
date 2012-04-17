@@ -2,6 +2,7 @@
 structure Pretty = struct
    structure L = Layout
    val comma = L.str ","
+   val colon = L.str ":"
    val lp = L.str "("
    val rp = L.str ")"
    val lb = L.str "{"
