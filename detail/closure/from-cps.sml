@@ -124,7 +124,7 @@ end = struct
                   then
                      let   
                         val f = Subst.apply sigma f
-                        val {env, body} = buildEnv sigma f
+                        val {label, env, body} = buildEnv sigma f
                         val k' = ref k
                         val xs' = ref xs
                         val stmts = 
@@ -133,7 +133,7 @@ end = struct
                                  (k' := k; xs' := xs; body)))
                      in
                         {stmts=stmts,
-                         flow=Clos.APP {f=f, closure=env, k= !k', xs= !xs'}}
+                         flow=Clos.APP {f=label, closure=env, k= !k', xs= !xs'}}
                      end               
                else
                   let
@@ -156,7 +156,7 @@ end = struct
                   then
                      let
                         val k = Subst.apply sigma k
-                        val {env, body} = buildEnv sigma k
+                        val {label, env, body} = buildEnv sigma k
                         val xs' = ref xs
                         val stmts =
                            useAll sigma xs (fn xs =>
@@ -164,7 +164,7 @@ end = struct
                               ;body))
                      in
                         {stmts=stmts,
-                         flow=Clos.CC {k=k, closure=env, xs= !xs'}}
+                         flow=Clos.CC {k=label, closure=env, xs= !xs'}}
                      end
                else
                   let
@@ -207,7 +207,7 @@ end = struct
                [Clos.LETVAL (f', Clos.LAB f),
                 Clos.LETENV (env, f'::fs)]
          in
-            {env=env, body=stmts}
+            {label=f', env=env, body=stmts}
          end
 
       and convFun sigma f body k =

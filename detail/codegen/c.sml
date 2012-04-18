@@ -3,12 +3,19 @@ structure Mangle = struct
    structure Map = StringMap
    structure VI = VarInfo
 
-   val variables = !SymbolTables.varTable
+   val variables = SymbolTables.varTable
    val names = ref Map.empty : string Map.map ref
    val revnames = ref Map.empty : string Map.map ref
    val stamp = ref 0
 
-   fun getString sym = VI.getString (variables, sym)
+   fun getString sym =
+      let
+         val s = VI.getString (!variables, sym)
+      in
+         if String.isPrefix "%" s
+            then Atom.toString (VI.getAtom(!variables, sym))
+         else s
+      end
 
    fun insert (plain, mangled) =
       (names :=
@@ -38,7 +45,22 @@ structure Mangle = struct
          s
       end
 
-   fun mangleName s = s (* TODO *)
+   fun mangleName s =
+      let
+         fun tf c =
+            case c of
+               #"%" => "__"
+             | #"#" => "_"
+             | #"<" => "lt"
+             | #">" => "gt"
+             | #"=" => "eq"
+             | #"!" => "ex"
+             | #"*" => "star"
+             | #"-" => "minus"
+             | _ => String.str c
+      in
+         String.translate tf s
+      end
 
    fun mangle sym = 
       let
@@ -98,15 +120,17 @@ structure PrettyC = struct
       align
          [seq [str "switch", lp, x, rp, space, lb],
           indent 2 (align cases),
-          indent 2 (align [str "default:", indent 2 dflt]),
+          indent 2 (align [str "default: {", indent 2 dflt, rb]),
           rb]
    fun casee (cs, body) =
       align
          [align
             (map
                (fn c =>
-                  seq [str "case", space, CPS.PP.caseTag c, colon]) cs),
-          indent 2 body]
+                  seq
+                     [str "case", space, CPS.PP.caseTag c, colon,
+                      space, lb]) cs),
+          indent 2 body, rb]
    fun invoke (f, xs) =
       let
          val n = List.length xs
@@ -180,17 +204,18 @@ structure C = struct
                               ("__RECORD_END_UPDATE",
                                PrettyC.args [y])])]
              | LETENV (y, xs) =>
-                  PrettyC.cseq
-                     [PrettyC.local0 y,
-                      indent 2
-                        (PrettyC.cseq
-                           [PrettyC.call'
-                              ("__CLOSURE_BEGIN",
-                               PrettyC.args [y]),
-                            PrettyC.cseq (map emitEnvAdd xs),
-                            PrettyC.call'
-                              ("__CLOSURE_END",
-                               PrettyC.args [y])])]
+                  let
+                     val n = str (Int.toString (List.length xs))
+                     val args = seq [lp, PrettyC.var y, str ",", n, rp]
+                  in
+                     PrettyC.cseq
+                        [PrettyC.local0 y,
+                         indent 2
+                           (PrettyC.cseq
+                              [PrettyC.call' ("__CLOSURE_BEGIN", args),
+                               PrettyC.cseq (map emitEnvAdd (rev xs)),
+                               PrettyC.call' ("__CLOSURE_END", args)])]
+                  end
 
          and emitCVal x v =
             case v of
@@ -296,7 +321,10 @@ structure C = struct
              | CONT {k, closure, xs, body} =>
                   PrettyC.function (k, closure::xs, emitBlock body)
       in
-         align (map emitPrototype clos @ map emitFun clos)
+         align
+            (str "#include \"runtime.h\"" ::
+             map emitPrototype clos @
+             map emitFun clos)
       end
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Closure.PP.spec spec)

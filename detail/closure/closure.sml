@@ -153,7 +153,7 @@ structure Closure = struct
                      (map
                         (fn (f, v) =>
                            seq [fld f, is, var v]) fs)
-          | UNT => str "{}"
+          | UNT => str "()"
 
       fun functions fs = align (map function fs)
       and function f =

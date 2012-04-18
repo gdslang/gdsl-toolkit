@@ -175,7 +175,7 @@ structure CPS = struct
                      (map
                         (fn (f, v) =>
                            seq [fld f, is, var v]) fs)
-          | UNT => str "{}"
+          | UNT => str "()"
       and updFld (f, v) = seq [fld f, is, var v]
       and cases cs = indent 3 (alignPrefix (map casee cs, "| "))
       and casee (tags, branch) =
