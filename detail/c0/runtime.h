@@ -108,9 +108,17 @@
    
 /** ## Bitvectors */
 
-#define __BV_BEGIN(Cname, n)
-#define __BV_INIT(value)
-#define __BV_END(Cname, n)
+#define __BV_BEGIN(Cname, n)\
+  __CHECK_HEAP(1)
+
+#define __BV_INIT(value)\
+  {__objref o = __ALLOC1();\
+   o->bv.header.tag = __BV;\
+   o->bv.vec = value;\
+
+#define __BV_END(Cname, n)\
+   o->bv.sz = n;\
+   Cname = __WRAP(o);}
 
 /** ## Tagged values (datatypes) */
 
@@ -262,6 +270,8 @@ static inline __word __CASETAG (__obj o) {
       return (__word)o->z.value;
     case __TAGGED:
       return o->tagged.tag;
+    case __BV:
+      return o->bv.vec;
     default:
       __fatal("__CASETAG() applied to non-tagged object");
   }

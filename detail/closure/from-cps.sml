@@ -18,7 +18,8 @@ end = struct
    local open CPS.Exp in
 
    fun conv spec = let
-      
+     
+      val functions = ref Set.empty
       val bindings = ref Map.empty
 
       fun bindFun (f, closure, k, xs, body) =
@@ -44,6 +45,9 @@ end = struct
                    xs=xs,
                    body=body})
 
+      fun defFn f = functions := Set.add (!functions, f)
+      fun boundFn f = Set.member (!functions, f)
+
       fun mapi f xs = 
          let
             fun lp (x::xs, i, acc) = lp (xs, i + 1, f (x, i)::acc)
@@ -57,11 +61,17 @@ end = struct
          {stmts=mapi (fn (x, i) => Clos.LETREF (x, env, i+1)) xs@stmts,
           flow=flow}
 
-      fun escapes f = Map.inDomain (!bindings, f)
-      val isBound = escapes
+      val escapes = boundFn
+      val isBound = boundFn
 
-      fun free sigma f = (* Subst.applyAll sigma *) (Set.listItems (FV.get f))
-      fun freeUse sigma f = Subst.applyAll sigma (Set.listItems (FV.get f))
+      fun free sigma f = 
+         List.filter
+            (not o boundFn)
+            ((Set.listItems (FV.get f)))
+      fun freeUse sigma f =
+         List.filter
+            (not o boundFn)
+            (Subst.applyAll sigma (Set.listItems (FV.get f)))
    
       fun convTerm sigma cps = 
          case cps of
@@ -215,6 +225,7 @@ end = struct
             val fs = free sigma f
             val ys = Subst.copyAll fs
             val sigma = Subst.extendAll sigma ys fs
+            val _ = defFn f
             val body = convTerm sigma body
             val env = fresh closure
          in
