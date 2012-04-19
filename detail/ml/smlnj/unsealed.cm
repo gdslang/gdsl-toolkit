@@ -5,6 +5,7 @@ group is
    $/pp-lib.cm
    $/controls-lib.cm
    $/ml-lpt-lib.cm
+   $/regexp-lib.cm
 
    ../../common
       (basic-control.sml
@@ -20,7 +21,8 @@ group is
        pp.sml
        compilation-monad.sml
        sum-sig.sml
-       sum.sml)
+       sum.sml
+       expand-file.sml)
 
    ../../parser/mk-ast.sml
    ../../parser/spec-parse-tree.sml
