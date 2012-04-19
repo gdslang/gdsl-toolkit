@@ -57,6 +57,7 @@ structure Mangle = struct
              | #"!" => "ex"
              | #"*" => "star"
              | #"-" => "minus"
+             | #"^" => "concat"
              | _ => String.str c
       in
          String.translate tf s
@@ -84,8 +85,10 @@ structure Mangle = struct
           | NONE => mangle sym
       end
 
+   (*
    val apply = fn sym =>
       (Pretty.prettyTo (TextIO.stdOut, CPS.PP.var sym);print"\n";apply sym)
+   *)
 end
 
 structure PrettyC = struct
@@ -124,12 +127,13 @@ structure PrettyC = struct
           rb]
    fun casee (cs, body) =
       align
-         [align
-            (map
-               (fn c =>
-                  seq
-                     [str "case", space, CPS.PP.caseTag c, colon,
-                      space, lb]) cs),
+         [seq
+            [align
+               (map
+                  (fn c =>
+                     seq
+                        [str "case", space, CPS.PP.caseTag c, colon]) cs),
+          space, lb],
           indent 2 body, rb]
    fun invoke (f, xs) =
       let
