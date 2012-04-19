@@ -8,6 +8,7 @@ end = struct
    structure CM = CompilationMonad
    structure Exp = CPS.Exp
    structure CCTab = CPS.CCTab
+   structure S = Substring
 
    val variable = Atom.atom "x"
    val function = Atom.atom "f"
@@ -200,12 +201,12 @@ end = struct
                    | (p, e)::ps =>
                         let
                            val k = fresh continuation
-                           val (x, ks) = transPat p k ks
+                           val (xs, ks) = transPat p k ks
                         in
-                           trans z ps ((k, [x], trans1 e j)::cps) ks
+                           trans z ps ((k, xs, trans1 e j)::cps) ks
                         end
             in
-               trans0 e (fn z => trans z ps [] StringMap.empty)
+               trans0 e (fn z => trans z ps [] [])
             end
        | APP (e1, e2) =>
             let
@@ -320,18 +321,36 @@ end = struct
        | ID v => kappa v
        | _ => raise CM.CompilationError
   
+   and explodePat str =
+      let
+         val toWord =
+            valOf o StringCvt.scanString (Word.scan StringCvt.BIN)
+         val cvt = toWord o String.implode
+         fun lp (s, acc) =
+            case S.getc s of
+               SOME (#".",s) => lp(s,#"0"::acc)@lp(s,#"1"::acc)
+             | SOME (n,s) =>
+                  if not (Char.isDigit n)
+                     then raise Fail ("Invalid bit-pattern: " ^ str)
+                  else lp(s,n::acc)
+             | NONE => [cvt (rev acc)]
+      in
+         lp (S.full str, [])
+      end
+
    and transPat p k ks =
-      let (* TODO *)
+      let (* TODO: apply arguments to the branches *)
+          (* TOOD: check size of generated patterns and bail out if to large *)
          open Core.Pat
+
          fun toIdx p =
             case p of
-               BIT str => str
-             | INT i => IntInf.toString i
-             | CON (s, NONE) => Int.toString (SymbolTable.toInt s)
-             | _ => "" 
-         val x = fresh variable
+               BIT str => explodePat str
+             | INT i => [Word.fromLargeInt (IntInf.toLarge i)]
+             | CON (s, NONE) => [Word.fromInt (SymbolTable.toInt s)]
+             | _ => []
       in
-         (x, StringMap.insert (ks, toIdx p, k))
+         ([], (toIdx p, (k, [](*TODO*)))::ks)
       end
 
    and trans0rec (n, args, e) =
@@ -365,13 +384,13 @@ end = struct
                      (p, e)::ps =>
                         let
                            val k = fresh continuation
-                           val (x, ks) = transPat p k ks
+                           val (xs, ks) = transPat p k ks
                         in
-                           trans z ps ((k, [x], trans1 e kont)::cps) ks
+                           trans z ps ((k, xs, trans1 e kont)::cps) ks
                         end
                    | [] => Exp.LETCONT (cps, Exp.CASE (z, ks))
             in
-               trans0 e (fn z => trans z ps [] StringMap.empty)
+               trans0 e (fn z => trans z ps [] [])
             end
        | APP (e1, e2) =>
             trans0 e1 (fn x1 =>

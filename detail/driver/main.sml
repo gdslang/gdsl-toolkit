@@ -10,7 +10,8 @@ structure Main = struct
          ResolveSymbols.run >>=
          Desugar.run >>=
          CPSPasses.run >>=
-         ClosurePasses.run
+         ClosurePasses.run >>=
+         CodegenPasses.run 
 
       fun run fp = let
          val ins = TextIO.openIn fp
@@ -28,7 +29,7 @@ structure Main = struct
          ResolveSymbols.run >>= (fn ast =>
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          TypeInference.run (tInfo, ast) >>= (fn tys =>
-         return ()
+         return () (*(TextIO.print (TypeInference.showTable tys))*)
          )))
 
       fun runTc fp = let

@@ -61,4 +61,7 @@ group is
    ../../closure/closure-control.sml
    ../../closure/from-cps.sml
    ../../closure/closure-passes.sml
+   ../../codegen/codegen-control.sml
+   ../../codegen/c0/c0.sml
+   ../../codegen/codegen-passes.sml
    ../../driver/main.sml
