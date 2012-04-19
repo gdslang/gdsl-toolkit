@@ -144,6 +144,23 @@ structure PrettyC = struct
       end
 end
 
+structure C0Templates = struct
+   val header = ExpandFile.mkTemplateFromFile "detail/codegen/c0/runtime.h"
+   val runtime = ExpandFile.mkTemplateFromFile "detail/codegen/c0/runtime.c"
+
+   fun expandHeader hooks =
+      ExpandFile.expandTemplate
+         {src=header,
+          dst="dis.h",
+          hooks=hooks}
+
+   fun expandRuntime hooks =
+      ExpandFile.expandTemplate
+         {src=runtime,
+          dst="dis.c",
+          hooks=hooks}
+end
+
 structure C = struct
    structure CM = CompilationMonad
    structure Clos = Closure
@@ -153,6 +170,11 @@ structure C = struct
       let
          open Layout Pretty
          val clos = Spec.get#declarations spec
+         val exports = Spec.get#exports spec
+         fun exported f =
+            List.exists
+               (fn g => SymbolTable.eq_symid (f, g))
+               exports
 
          val emitConTag = str o Int.toString o ConInfo.toInt
 
@@ -324,11 +346,20 @@ structure C = struct
                   PrettyC.function (f, closure::k::xs, emitBlock body)
              | CONT {k, closure, xs, body} =>
                   PrettyC.function (k, closure::xs, emitBlock body)
+
+         fun getSym f =
+            case f of
+               FUN {f,...} => f
+             | CONT {k,...} => k
+
+         val exportedFn = List.filter (exported o getSym) clos
+         val staticFn = List.filter (not o exported o getSym) clos
+
+         val prototypes = map emitPrototype clos
+         val funs = map emitFun clos
+
       in
-         align
-            (str "#include \"runtime.h\"" ::
-             map emitPrototype clos @
-             map emitFun clos)
+         align (prototypes @ funs)
       end
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Closure.PP.spec spec)
