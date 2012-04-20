@@ -328,7 +328,7 @@ structure Subst = struct
             let
                val x' = copy x
                val y' = apply sigma y
-               val fs'= map (fn (f, x) => (f, apply sigma y)) fs
+               val fs'= map (fn (f, x) => (f, apply sigma x)) fs
                val sigma = extend sigma x' x
             in
                LETUPD (x', y', fs', rename sigma t)
@@ -1227,7 +1227,9 @@ structure BetaContFun = struct
    fun click () = clicks := !clicks + 1
    fun reset () = (clicks := 0; inlined := Set.empty)
 
-   fun markInlined f = inlined := Set.add (!inlined, f)
+   fun markInlined f =
+      (Pretty.prettyTo(TextIO.stdOut,Layout.align[CPS.PP.var f]);inlined := Set.add
+      (!inlined, f))
    fun usedLinearly f =
       Census.count f = 1
       andalso Set.member (!inlined, f)
@@ -1329,7 +1331,7 @@ structure BetaContFun = struct
                            val _ = markInlined k
                            val sigma = Subst.extendAll sigma ys xs
                            val K =
-                              if Census.count k <> 1
+                              if Census.count k > 1
                                  then simplify env sigma (Subst.rename sigma K)
                               else simplify env sigma K
                         in
@@ -1361,7 +1363,16 @@ structure BetaContFun = struct
          end
       | APP (f, j, ys) =>
          let
+            val ff = f
             val f = Subst.apply sigma f
+            val _ =
+               if not (SymbolTable.eq_symid (f, ff))
+                  then
+                     Pretty.prettyTo
+                        (TextIO.stdOut,
+                         Layout.seq[CPS.PP.var ff, Layout.str"->",CPS.PP.var f,
+                         Layout.str"\n"])
+               else ()
             val j = Subst.apply sigma j
             val ys = Subst.applyAll sigma ys
          in
@@ -1384,7 +1395,7 @@ structure BetaContFun = struct
                            val (sigma, missing) = Subst.renameAll sigma missing
                            val sigma = Subst.extendAll sigma ys applied
                            val K = 
-                              if Census.count f <> 1
+                              if Census.count f > 1
                                  then simplify env sigma (Subst.rename sigma K)
                               else simplify env sigma K
                         in
@@ -1398,7 +1409,7 @@ structure BetaContFun = struct
                            val sigma = Subst.extend sigma j k
                            val sigma = Subst.extendAll sigma ys xs
                            val K = 
-                              if Census.count f <> 1
+                              if Census.count f > 1
                                  then simplify env sigma (Subst.rename sigma K)
                               else simplify env sigma K
                         in
