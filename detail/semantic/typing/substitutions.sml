@@ -77,29 +77,31 @@ end = struct
       val t2 = FUN(RECORD (c, BD.freshBVar (), [RField { name=f1, fty = VEC (VAR (d,BD.freshBVar ())), exists = BD.freshBVar ()}]), VAR (a,BD.freshBVar ()))
    in (SymbolTables.fieldTable := t; (f1,f2,t1,t2)) end
       
-   fun showSubstSI ((v, WITH_TYPE t), si) =
+   fun showSubstTargetSI (WITH_TYPE t, si) = showTypeSI (t, si)
+     | showSubstTargetSI (WITH_FIELD (fs,vNew), si) =
          let
-            val (vStr, si) = TVar.varToString (v, si)
-            val (tStr, si) = showTypeSI (t, si)
-         in
-            (vStr ^ "/" ^ tStr, si)
-         end
-     | showSubstSI ((v, WITH_FIELD (fs,vNew)), si) =
-         let
-            val (vStr, si) = TVar.varToString (v, si)
             val (vNewStr, si) = TVar.varToString (vNew, si)
             fun genfStr (RField {name = n, fty = t, exists = b}, (str, si)) =
                let
-                  val (tstr, si) = showTypeSI (t, si)
+                  val (tStr, si) = showTypeSI (t, si)
+                  val fStr = BD.showVar b
                   val name = SymbolTable.getString(!SymbolTables.fieldTable, n)
                in
-                  (str ^ name ^ ": " ^ tstr ^ ", ", si)
+                  (str ^ name ^ fStr ^ ": " ^ tStr ^ ", ", si)
                end
             val (fsStr, si) = List.foldl genfStr ("", si) fs
          in
-            (vStr ^ "/" ^ fsStr ^ vNewStr ^ ": ...", si)
+            (fsStr ^ vNewStr ^ ": ...", si)
          end
 
+   fun showSubstSI ((v,st), si) =
+      let
+         val (vStr, si) = TVar.varToString (v, si)
+         val (stStr, si) = showSubstTargetSI (st, si)
+      in
+         (vStr ^ "/" ^ stStr, si)
+      end
+   
    fun showSubst subst =
       let val (str, _) = showSubstSI (subst, TVar.emptyShowInfo) in str end
    
@@ -124,8 +126,8 @@ end = struct
          val compare = TVar.compare
       end)
 
-   type expand_detail = { substVars : BD.bvar list,
-                          instInfo : (BD.bvar * (bool * BD.bvar) list) list }   
+   type expand_detail = { substVars : SubstTarget,
+                          instInfo : (BD.bvar * SubstTarget) list }   
 
    type expand_info = expand_detail TVMap.map
 
@@ -139,17 +141,18 @@ end = struct
             in
                vStr
             end
-         fun showRow (tv, bvList) = 
-            List.foldl (fn (bv,str) => str ^ "\t" ^ BD.showVar bv)
-               (showVar tv) bvList
-         fun showTable (bv, expList) =
-            List.foldl (fn ((f,v), str) => str ^ "\t" ^ 
-               (if f then ",!" else ",") ^ BD.showVar v)
-               (BD.showVar bv ^ ":") expList
-         fun showAll (tv,{substVars = bvList, instInfo = tList }) =
-            showRow (tv, bvList) ^
-            List.foldl (fn (row,str) => str ^ "\n" ^ showTable row)
-               "" tList
+         fun showSubstTarget st =
+            let
+               val (stStr, si) = showSubstTargetSI (st, !siRef)
+               val _ = siRef := si
+            in
+               stStr
+            end
+         fun showAll (tv,{substVars = st, instInfo = stList }) =
+             showVar tv ^ "\t" ^ showSubstTarget st ^
+            List.foldl (fn ((bv,st),str) => str ^ "\n" ^ 
+                        BD.showVar bv ^ ":\t" ^ showSubstTarget st)
+               "" stList
       in
          (List.foldl (fn (e,str) => str ^ showAll e ^ "\n") "" (TVMap.listItemsi ei)
          , !siRef)
@@ -157,27 +160,33 @@ end = struct
 
    val emptyExpandInfo = TVMap.empty : expand_info
 
+   fun getTargetVars (WITH_TYPE t) = texpBVarset (op ::) (t,[])
+     | getTargetVars (WITH_FIELD (fs,var)) =
+      List.foldl
+         (fn (RField {name = n, fty = t, exists = b},bs) =>
+            texpBVarset (op ::) (t,(false,b)::bs))
+         [] fs
+
    fun addToExpandInfo (tvar, bvar, target, ei) =
       let
-         fun getTargetVars (WITH_TYPE t) = texpBVarset (op ::) (t,[])
-           | getTargetVars (WITH_FIELD (fs,var)) =
-            List.foldl
-               (fn (RField {name = n, fty = t, exists = b},bs) =>
-                  texpBVarset (op ::) (t,(false,b)::bs))
-               [] fs
          val detail = case TVMap.find (ei, tvar) of
               SOME detail => detail
-            | NONE => {substVars = List.map #2 (getTargetVars target),
+            | NONE => {substVars = target,
                        instInfo = []}
+         
          fun genTargetInstance (WITH_TYPE t) = WITH_TYPE (setFlagsToTop t)
            | genTargetInstance (WITH_FIELD (fs,var)) =
                WITH_FIELD (List.map setFlagsToTopF fs, var)
-         val newTarget = genTargetInstance target
-         val newDetail = case detail of { substVars = sVs, instInfo = ii } =>
-               {substVars = sVs,
-                instInfo = (bvar, getTargetVars newTarget) :: ii}
+         val newTargetRef = ref target
+         fun updateII ((v,tgt) :: vts) =
+            if BD.eq(v,bvar) then (newTargetRef := tgt; (v,tgt) :: vts) else
+            (v,tgt) :: updateII vts
+           | updateII [] = (newTargetRef := genTargetInstance target
+                           ; [(bvar, !newTargetRef)])
+         val { substVars = sVs, instInfo = ii } = detail
+         val newDetail = { substVars = sVs, instInfo = updateII ii }
       in
-         (newTarget, TVMap.insert (ei, tvar, newDetail))
+         (!newTargetRef, TVMap.insert (ei, tvar, newDetail))
       end
 
    fun applyExpandInfo ei bFun =
@@ -186,7 +195,7 @@ end = struct
             let
                (*val bFun = List.foldl
                      (fn ((_,inst), bFun) =>
-                        BD.expand (sVs, List.map (fn (_,v) => (false,v))
+                        BD.expand (List.map #2 (getTargetVars sVs), List.map (fn (_,v) => (false,v))
                                         inst, bFun)
                      ) bFun infos*)
                fun shave (info as ((_ :: _) :: _)) =
@@ -199,7 +208,7 @@ end = struct
                   | SOME (inst, insts) =>
                      expandTVar (insts, BD.expand (tvarInfo, inst, bFun))
             in
-               expandTVar (insts, bFun)
+               expandTVar (List.map getTargetVars insts, bFun)
             end
       in
          List.foldl aEI bFun (TVMap.listItems ei)
@@ -379,7 +388,10 @@ end = struct
          val (newSCons, substs) = applySizeConstraints (newSCons, substs)
          val mergedSCons = SC.merge (newSCons, sCons)
          val (tNew,ei) = applySubstsToExp substs (t, emptyExpandInfo)
-         val bFunNew = applyExpandInfo ei bFun
+         val tNew = setFlagsToTop tNew
+         val bvs1 = texpBVarset (fn ((_,v),vs) => v :: vs) (t, [])
+         val bvs2 = texpBVarset (fn ((_,v),vs) => (false,v) :: vs) (tNew, [])
+         val bFunNew = BD.expand (bvs1,bvs2,bFun)
 
          (*val (tStr, si) = showTypeSI (t, TVar.emptyShowInfo)
          val (tNewStr, si) = showTypeSI (tNew, si)

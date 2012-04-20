@@ -342,7 +342,7 @@ end = struct
          let
             val (vsStr, si) = TVar.setToString (typeVars,si)
          in
-            (", ver=" ^ Int.toString(ver) ^ ", vars=" ^ vsStr, si)
+            (", ver=" ^ Int.toString(ver) (*^ ", vars=" ^ vsStr*), si)
          end
 
       fun toString ({bindInfo = KAPPA {ty}, typeVars, version}, si) =
@@ -357,7 +357,7 @@ end = struct
                val (scStr, si) = showVarsVer (typeVars, version, si)
                val (tStr, si) = showTypeSI (ty,si)
             in
-               (ST.getString(!SymbolTables.varTable, name) ^
+               ("SYMBOL " ^ ST.getString(!SymbolTables.varTable, name) ^
                 " : " ^ tStr ^ scStr, si)
             end
         | toString ({bindInfo = GROUP bs, typeVars, version}, si) =
@@ -403,7 +403,7 @@ end = struct
                   end
                 val (bsStr, si) = List.foldr printB ("", si) bs
             in
-               ("binding group" ^ scStr ^ bsStr, si)
+               ("GROUP" ^ scStr ^ bsStr, si)
             end
                
    end
@@ -598,6 +598,35 @@ end = struct
       | _ => raise InferenceBug
    )
 
+   fun reduceBooleanFormula (sym,t,setType,reduceToMono,env) =
+      let
+         (*we need to restrict the size of the Boolean formula in two
+         ways: first, for the function we need all Boolean variables
+         in its type, all lambda- and kappa-bound types in the
+         environment as well as all the uses of other functions that
+         occur in it; secondly, the analysis must continue with a
+         Boolean formula that contians the Boolean variables of all
+         lambda- and kappa-bound types in the environment. Since the
+         latter is usually an empty environment (namely for all
+         top-level functions), we first calculate the set of Boolean
+         variables in kappa- and lambda-bound types and use that for
+         the Boolean formula of the function; then we project onto
+         the variables in kappa- and lambda-bound types*)
+         val monoBVars = Scope.getMonoBVars env
+         val funBVars = Scope.getBVarsUses (sym, monoBVars, env)
+         val funBVars = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (t, funBVars)
+         val (_, consRef) = env
+         val (bFunOrig, sCons) = !consRef
+         val bFun = BD.projectOnto (funBVars,bFunOrig)
+         val env = Scope.update (sym, setType (t,bFun), env)
+         val bFun = if reduceToMono then BD.projectOnto (monoBVars,bFun)
+                    else bFunOrig
+         val _ = consRef := (bFun, sCons)
+         (*val _ = TextIO.print ("*** popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ", containing bVars " ^ BD.setToString funBVars ^ ", mono bVars " ^ BD.setToString monoBVars ^ ":\nbefore " ^ BD.showBFun bFunOrig ^ "\nafter " ^ BD.showBFun bFun ^ "\nenvironment:\n" ^ topToString env)*)
+      in
+         env
+      end
+
    fun affectedFunctions (substs, env) =
       let
          fun aF (ss, substs, ([], _)) = ss
@@ -768,15 +797,37 @@ end = struct
    fun popToUsage (sym, span, env) = (case Scope.unwrap env of
         (KAPPA {ty = tUse}, env) =>
          let
+            val changedFuns = ref ([] : ST.symid list)
             fun setUsage (COMPOUND {ty, width, uses = us}, consRef) =
                (case SpanMap.find (us,span) of
                     NONE => raise InferenceBug
-                  | SOME (ctxt, _) => (COMPOUND {ty = ty, width = width,
-                       uses = SpanMap.insert (us,span,(ctxt,tUse))}, consRef)
+                  | SOME (ctxt, _) =>
+                     (changedFuns := ctxt
+                     ; (COMPOUND {ty = ty, width = width,
+                        uses = SpanMap.insert (us,span,(ctxt,tUse))}, consRef)
+                     )
                )
               | setUsage _ = raise InferenceBug
+            val env = Scope.update (sym, setUsage, env)
+            val changedFuns = case Scope.unwrap env of
+                 (GROUP bs, _) => List.filter
+                  (fn f =>
+                     List.exists (fn {name=n, ty, width, uses} =>
+                        ST.eq_symid (f,n)) bs)
+                     (!changedFuns)
+               | _ => []
+            fun setType t (COMPOUND {ty = _, width, uses}, consRef) =
+                  (COMPOUND {ty = SOME t, width = width, uses = uses},
+                   consRef)
+              | setType t _ = raise InferenceBug
+            fun project ([], env) = env
+              | project (f :: fs, env) = case Scope.lookup (f,env) of
+                 (_, COMPOUND { ty = SOME (t,_), width, uses}) =>
+                  project (fs,
+                     reduceBooleanFormula (f,t,setType,List.null fs,env))
+               | _ => raise InferenceBug
          in
-            Scope.update (sym, setUsage, env)
+            project (changedFuns, env)
          end
      | _ => raise InferenceBug)
 
@@ -851,10 +902,10 @@ end = struct
       let
          fun substBinding (KAPPA {ty=t}, ei, substs) =
             (case applySubstsToExp substs (t,ei) of (t,ei) =>
-               ((KAPPA {ty = t}, ei)))
+               (KAPPA {ty = t}, ei))
            | substBinding (SINGLE {name = n, ty = t}, ei, substs) =
             (case applySubstsToExp substs (t,ei) of (t,ei) =>
-               ((SINGLE {name = n, ty = t}, ei)))
+               (SINGLE {name = n, ty = t}, ei))
            | substBinding (GROUP bs, ei, substs) =
                let
                   val eiRef = ref ei
@@ -916,33 +967,7 @@ end = struct
            | setType t _ = (TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
       in
          case Scope.unwrap env of
-              (KAPPA {ty=t}, env) =>
-               let
-                  (*we need to restrict the size of the Boolean formula in two
-                  ways: first, for the function we need all Boolean variables
-                  in its type, all lambda- and kappa-bound types in the
-                  environment as well as all the uses of other functions that
-                  occur in it; secondly, the analysis must continue with a
-                  Boolean formula that contians the Boolean variables of all
-                  lambda- and kappa-bound types in the environment. Since the
-                  latter is usually an empty environment (namely for all
-                  top-level functions), we first calculate the set of Boolean
-                  variables in kappa- and lambda-bound types and use that for
-                  the Boolean formula of the function; then we project onto
-                  the variables in kappa- and lambda-bound types*)
-                  val monoBVars = Scope.getMonoBVars env
-                  val funBVars = Scope.getBVarsUses (sym, monoBVars, env)
-                  val funBVars = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (t, funBVars)
-                  val (_, consRef) = env
-                  val (bFunOrig, sCons) = !consRef
-                  val bFun = BD.projectOnto (funBVars,bFunOrig)
-                  val env = Scope.update (sym, setType (t,bFun), env)
-                  val bFun = BD.projectOnto (monoBVars,bFun)
-                  val _ = consRef := (bFun, sCons)
-                  (*val _ = TextIO.print ("*** popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ", containing bVars " ^ BD.setToString funBVars ^ ", mono bVars " ^ BD.setToString monoBVars ^ ":\nbefore " ^ BD.showBFun bFunOrig ^ "\nafter " ^ BD.showBFun bFun ^ "\nenvironment:\n" ^ topToString env)*)
-               in
-                  env
-               end
+              (KAPPA {ty=t}, env) => reduceBooleanFormula (sym,t,setType,true,env)
             | _ => raise InferenceBug
       end
 
@@ -1109,11 +1134,11 @@ end = struct
                   flowError (bVar, affectedField (bVar, env1), [env1,env2])
             val _ = consRef1 := (bFunNew, sCons)
             
-            (*val bStr = BD.showBFun (ListPair.foldlEq genImpl BD.empty (l1, l2))
+            val bStr = BD.showBFun (ListPair.foldlEq genImpl BD.empty (l1, l2))
             val (tStr1, si) = showTypeSI (t1, TVar.emptyShowInfo)
             val (tStr2, si) = showTypeSI (t2, si)
             val _ = TextIO.print ("genFlow: " ^ tStr1 ^ "\nto     : " ^ tStr2 ^
-                                  "\nresulting in " ^ bStr) *)
+                                  "\ngiving new flow " ^ bStr ^ "\n") 
          in
             ()
          end
@@ -1134,20 +1159,21 @@ end = struct
          val _ = consRef := (bFun, sCons)
          val (env1,env2) = mergeUses (env1, env2)
          
-         (*val (e1Str,si) = kappaToStringSI (env1, TVar.emptyShowInfo)
+         val (eStr, si) = topToStringSI (env1,TVar.emptyShowInfo)
+         val (e1Str,si) = kappaToStringSI (env1, si)
          val (e2Str,si) = kappaToStringSI (env2, si)
          val (e0Str,si) = showExpandInfoSI (ei, si)
          val (sStr,si) = showSubstsSI (substs,si)
-         val _ = TextIO.print ("expand info after unification:\n" ^ e0Str)*)
+         val _ = TextIO.print ("*** arg environment:\n" ^ eStr ^ "expand info due to unification:\n" ^ e0Str)
 
          val (ei, envSame1) = applySubsts (substs, emptyExpandInfo, env1)
          val (ei, envSame2) = applySubsts (substs, ei, env2)
 
-         (*val (eSame1Str,si) = kappaToStringSI (envSame1, si)
+         val (eSame1Str,si) = kappaToStringSI (envSame1, si)
          val (eSame2Str,si) = kappaToStringSI (envSame2, si)
          val (eStr, si) = showExpandInfoSI (ei,si)
          val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str ^ 
-                  "resulting in\n" ^ eSame1Str ^ "and\n" ^ eSame2Str ^ "thereby expanding\n" ^ eStr)*)
+                  "resulting in\n" ^ eSame1Str ^ "and\n" ^ eSame2Str ^ "thereby expanding\n" ^ eStr)
       in
          (envSame1, envSame2, ei)
       end
