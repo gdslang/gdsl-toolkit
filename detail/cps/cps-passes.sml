@@ -36,8 +36,8 @@ end = struct
       DeadValPass.run
 
    fun allBetaCounting cps =
-      BetaFunPass.runCounting cps >>+
-      BetaContPass.runCounting >>+
+      BetaContPass.runCounting cps >>+
+      BetaFunPass.runCounting >>+
       BetaPairPass.runCounting >>+
       HoistFunPass.runCounting >>+
       DeadValPass.runCounting
