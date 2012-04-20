@@ -1321,27 +1321,3 @@ val p66 [0x0f 0xc1 /r] = mov r/m16 r16
 val main [0x0f 0xc1 /r]
  | rexw? = xadd r/m64 r64
  | otherwise = mov r/m32 r32
-
-# Prefix Examples
-#
-# Example situation:
-# 0x67: Address size prefix
-# 0x45: Specific operand override REX prefix
-# 0xf3: Mandatory prefix
-#
-# 0x67 0xf3 0x45 *...* (Usual case - instruction uses the extended register set, a non default address size and 0xf3 as opcode extension)
-# 0xf3 0x67 0x45 *...* (Unusual positioning of mandatory prefix - works as above)
-# 0x67 0x45 0xf3 *...* (Unusual REX prefix positioning - REX prefix is *ignored*, instruction uses a non default address size and 0xf3 as opcode extension)
-# 0xf3 0x45 0x67 *...* (Unusual positioning of mandatory and REX prefix - REX prefix is *ignored*, instruction uses a non default address size and 0xf3 as opcode extension)
-#
-# Example situation:
-# 0x67: Address size prefix
-# 0x66: Operand size prefix
-# 0x45: Specific operand override REX prefix
-# 0xc4 0xe1 0xf9: Specific VEX prefix (VEX.128.66.0F.W1)
-#
-# 0xc4 0xe1 0xf9 *...* (Usual case)
-# 0x67 0xc4 0xe1 0xf9 *...* (Usual case - instruction uses non default address size)
-# 0x66 0xc4 0xe1 0xf9 *...* (Unusual reuse of a VEX-included prefix outside of VEX - instruction is *invalid*)
-# 0x45 0xc4 0xe1 0xf9 *...* (Unusual use of a REX prefix in VEX instruction - instruction is *invalid*)
-# 0xc4 0xe1 0xf9 [some legacy prefix] *...* (Unusual positioning of a legacy prefix - VEX prefix is not recognized and decoded separately ) (?)
