@@ -75,7 +75,7 @@ STRING | COMMENT | BITPATNUM | BITPAT | INITIAL
     withtype action = ULexBuffer.stream * yymatch -> UserDeclarations.lex_result
 
     val yytable : ((UTF8.wchar * UTF8.wchar * int) list * int list) Vector.vector = 
-#[([(0w0,0w31,5),
+Vector.fromList[([(0w0,0w31,5),
 (0w127,0w2147483647,5),
 (0w32,0w33,6),
 (0w35,0w91,6),

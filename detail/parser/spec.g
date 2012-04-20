@@ -265,7 +265,7 @@ AtomicExp
    | "@" "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
       (mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp ((Name, Exp)::SR)))
    | "$" Qid => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp Qid))
-   | "(" ")" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
+   | "{" "}" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "(" Exp ")" => (Exp)
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
       (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp ((Name, Exp)::SR)))

@@ -2,6 +2,7 @@
 structure Pretty = struct
    structure L = Layout
    val comma = L.str ","
+   val colon = L.str ":"
    val lp = L.str "("
    val rp = L.str ")"
    val lb = L.str "{"
@@ -9,6 +10,7 @@ structure Pretty = struct
    val empty = L.str "<.>"
    val space = L.str " "
    val int = L.str o IntInf.toString
+   fun word w = L.str ("0x" ^ Word.fmt StringCvt.HEX w)
    val is = L.seq [L.str "=", space]
    fun symmap {key, item} t =
       L.listex "{" "}" ";"

@@ -5,6 +5,7 @@ group is
    $/pp-lib.cm
    $/controls-lib.cm
    $/ml-lpt-lib.cm
+   $/regexp-lib.cm
 
    ../../common
       (basic-control.sml
@@ -20,7 +21,8 @@ group is
        pp.sml
        compilation-monad.sml
        sum-sig.sml
-       sum.sml)
+       sum.sml
+       expand-file.sml)
 
    ../../parser/mk-ast.sml
    ../../parser/spec-parse-tree.sml
@@ -61,4 +63,7 @@ group is
    ../../closure/closure-control.sml
    ../../closure/from-cps.sml
    ../../closure/closure-passes.sml
+   ../../codegen/codegen-control.sml
+   ../../codegen/c0/c0.sml
+   ../../codegen/codegen-passes.sml
    ../../driver/main.sml
