@@ -76,12 +76,12 @@ structure Types = struct
         | tV co (CONST c, bs) = bs
         | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
         | tV co (RECORD (v,b,l), bs) =
-         List.foldl (tVF co) (cons ((co,b),bs)) l
+            cons ((co,b), List.foldl (tVF co) bs l)
         | tV co (MONAD (r,f,t), bs) =
          tV co (r, tV (not co) (f, tV co (t, bs)))
         | tV co (VAR (v,b), bs) = cons ((co,b),bs)
       and tVF co (RField {name = n, fty = t, exists = b}, bs) =
-         tV co (t, cons ((co,b),bs))
+         cons ((co,b), tV co (t, bs))
       in (tV false (e, bs))
    end
 

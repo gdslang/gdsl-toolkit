@@ -730,7 +730,7 @@ end
 val binop cons giveOp1 giveOp2 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
-   return (cons {op1=op1, op2=op2})
+   return (cons {opnd1=op1, opnd2=op2})
    # We could add syntatic sugar for record field creation:
    #   return (MOV {op1, op2})
 end
@@ -739,7 +739,7 @@ val trinop cons giveOp1 giveOp2 giveOp3 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
    op3 <- giveOp3;
-   return (cons {op1=op1, op2=op2, op3=op3})
+   return (cons {opnd1=op1, opnd2=op2, opnd3=op3})
 end
 
 ## The VEX prefixes
