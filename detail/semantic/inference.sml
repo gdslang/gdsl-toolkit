@@ -292,6 +292,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envRhs = infRhs (st,envRhs) (v, l, NONE, [], e)
          val env = E.meet (env, envRhs)
          val env = E.popToFunction (v, env)
+         val fInfo = E.getFunctionInfo (v, env)
+         val _ = sm := (v, fInfo) :: !sm
       in
          checkUsages false (v,env)
       end
@@ -308,6 +310,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                env
             end) env el
          val env = E.popToFunction (v, env)
+         val fInfo = E.getFunctionInfo (v, env)
+         val _ = sm := (v, fInfo) :: !sm
       in
          checkUsages false (v,env)
       end

@@ -28,7 +28,7 @@ structure Main = struct
          ResolveSymbols.run >>= (fn ast =>
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          TypeInference.run (tInfo, ast) >>= (fn tys =>
-         return () (*(TextIO.print (TypeInference.showTable tys))*)
+         return (TextIO.print (TypeInference.showTable tys))
          )))
 
       fun runTc fp = let
