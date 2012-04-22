@@ -1075,45 +1075,6 @@ end = struct
          | (SOME _, _, _) => raise InferenceBug
       )
 
-   (*fun equalizeFlow (env1, env2 as (_,consRef)) =
-      let
-         val (bFun, sCons) = !consRef
-         fun addEqs (t1, t2, bFun) =
-            let
-               val bVars1 = texpBVarset (fn ((_,v),vs) => v :: vs) (t1,[])
-               val bVars2 = texpBVarset (fn ((_,v),vs) => v :: vs) (t2,[])
-            in
-               List.foldl (fn ((v1,v2), bFun) => BD.meetEqual (v1,v2,bFun))
-                  bFun (ListPair.zip (bVars1,bVars2))
-            end
-         fun eF (bFun, env1,env2) = case Scope.unwrapDifferent (env1, env2) of
-              (NONE, env1, env2) => bFun
-            | (SOME (KAPPA {ty = t1}, KAPPA {ty = t2}), env1, env2) =>
-                  eF (addEqs (t1, t2, bFun), env1, env2)
-            | (SOME (SINGLE {name = _, ty = t1},
-                     SINGLE {name = _, ty = t2}), env1, env2) =>
-                  eF (addEqs (t1, t2, bFun), env1, env2)
-            | (SOME (GROUP bs1, GROUP bs2), env1, env2) =>
-               let
-                  fun eFOpt (SOME t1, SOME t2, bFun) = addEqs (t1, t2, bFun)
-                    | eFOpt (NONE, NONE, bFun) = bFun
-                    | eFOpt (_, _, _) = raise InferenceBug
-                  fun eFB (({name = n1, ty = t1, width = w1, uses = u1},
-                           {name = n2, ty = t2, width = w2, uses = u2}), s) =
-                     if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
-                     List.foldl (fn (((_,t1),(_,t2)),bFun) => addEqs (t1,t2,bFun))
-                         (eFOpt (t1, t2, eFOpt (w1, w2, bFun)))
-                         (ListPair.zipEq (SpanMap.listItemsi u1, SpanMap.listItemsi u2))
-                  val bFun = List.foldl eFB bFun (ListPair.zipEq (bs1,bs2))
-               in
-                  eF (bFun, env1, env2)
-               end
-            | _ => raise InferenceBug                  
-         val bFun = eF (bFun, env1, env2)
-      in
-         consRef := (bFun, sCons)
-      end*)
-
    fun genFlow (env1, env2) = case (Scope.unwrap env1, Scope.unwrap env2) of
         ((KAPPA {ty=t1}, (_, consRef1)), (KAPPA {ty=t2}, (_, consRef2))) =>
          if (consRef1 <> consRef2) then raise InferenceBug else
@@ -1134,11 +1095,11 @@ end = struct
                   flowError (bVar, affectedField (bVar, env1), [env1,env2])
             val _ = consRef1 := (bFunNew, sCons)
             
-            val bStr = BD.showBFun (ListPair.foldlEq genImpl BD.empty (l1, l2))
+            (*val bStr = BD.showBFun (ListPair.foldlEq genImpl BD.empty (l1, l2))
             val (tStr1, si) = showTypeSI (t1, TVar.emptyShowInfo)
             val (tStr2, si) = showTypeSI (t2, si)
             val _ = TextIO.print ("genFlow: " ^ tStr1 ^ "\nto     : " ^ tStr2 ^
-                                  "\ngiving new flow " ^ bStr ^ "\n") 
+                                  "\ngiving new flow " ^ bStr ^ "\n") *)
          in
             ()
          end
@@ -1159,21 +1120,21 @@ end = struct
          val _ = consRef := (bFun, sCons)
          val (env1,env2) = mergeUses (env1, env2)
          
-         val (eStr, si) = topToStringSI (env1,TVar.emptyShowInfo)
+         (*val (eStr, si) = topToStringSI (env1,TVar.emptyShowInfo)
          val (e1Str,si) = kappaToStringSI (env1, si)
          val (e2Str,si) = kappaToStringSI (env2, si)
          val (e0Str,si) = showExpandInfoSI (ei, si)
          val (sStr,si) = showSubstsSI (substs,si)
-         val _ = TextIO.print ("*** arg environment:\n" ^ eStr ^ "expand info due to unification:\n" ^ e0Str)
+         val _ = TextIO.print ("*** arg environment:\n" ^ eStr ^ "expand info due to unification:\n" ^ e0Str)*)
 
          val (ei, envSame1) = applySubsts (substs, emptyExpandInfo, env1)
          val (ei, envSame2) = applySubsts (substs, ei, env2)
 
-         val (eSame1Str,si) = kappaToStringSI (envSame1, si)
+         (*val (eSame1Str,si) = kappaToStringSI (envSame1, si)
          val (eSame2Str,si) = kappaToStringSI (envSame2, si)
          val (eStr, si) = showExpandInfoSI (ei,si)
          val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str ^ 
-                  "resulting in\n" ^ eSame1Str ^ "and\n" ^ eSame2Str ^ "thereby expanding\n" ^ eStr)
+                  "resulting in\n" ^ eSame1Str ^ "and\n" ^ eSame2Str ^ "thereby expanding\n" ^ eStr)*)
       in
          (envSame1, envSame2, ei)
       end

@@ -112,13 +112,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val maxIter = 1
    fun checkUsages printWarn (sym, env) =
       let
-         val _ = TextIO.print ("***** usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+         (*val _ = TextIO.print ("***** usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
          fun checkUsage (s, (unstable, env)) =
             let
                val envFun = E.pushSymbol (sym, s, [], env)
-               val _ = TextIO.print ("pushing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)
+               (*val _ = TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)*)
                val envCall = E.pushUsage (sym, s, !sm, env)
-               val _ = TextIO.print ("pushing usage:\n" ^ E.topToString envCall)
+               (*val _ = TextIO.print ("pushed usage:\n" ^ E.topToString envCall)*)
                (*inform about a unification failure when checking call site
                with definition*)
                fun raiseError str =

@@ -244,7 +244,7 @@ end = struct
                  (target,ei) => (eiRef := ei; case target of
                       WITH_FIELD (newFs, newVar) =>
                        RECORD (newVar, b, List.foldl insertField fs newFs)
-                    | WITH_TYPE (VAR (v,b)) => RECORD (v, b, fs)
+                    (*| WITH_TYPE (VAR (v,b)) => RECORD (v, b, fs)*)
                     | WITH_TYPE _ => raise SubstitutionBug
                  )
             else let
@@ -380,14 +380,14 @@ end = struct
    fun instantiateType (vs,t,extraTVars,bFun,sCons) =
       let
          val toReplace = TVar.difference (texpVarset (t, extraTVars), vs)
-         val substs = Substs (
-               List.map (fn v => (v,
-                 WITH_TYPE (VAR (TVar.freshTVar (), BD.freshBVar ())))
-               ) (TVar.listItems toReplace))
-         val newSCons = SC.filter (toReplace, sCons)
-         val (newSCons, substs) = applySizeConstraints (newSCons, substs)
+         val repl = List.map (fn v => (v, TVar.freshTVar ()))
+                        (TVar.listItems toReplace)
+         val affectedSCons = SC.filter (toReplace, sCons)
+         val newSCons = List.foldl
+               (fn ((v1,v2),sCons) => SC.rename (v1,v2,sCons))
+               affectedSCons repl
          val mergedSCons = SC.merge (newSCons, sCons)
-         val (tNew,ei) = applySubstsToExp substs (t, emptyExpandInfo)
+         val tNew = replaceTVars (t, repl)
          val tNew = setFlagsToTop tNew
          val bvs1 = texpBVarset (fn ((_,v),vs) => v :: vs) (t, [])
          val bvs2 = texpBVarset (fn ((_,v),vs) => (false,v) :: vs) (tNew, [])
@@ -423,7 +423,7 @@ end = struct
             let
                fun unify (v1, v2, [], [], s) = if TVar.eq (v1,v2) then s else
                   let
-                     val (s, ei) = addSubst (v2, WITH_TYPE (VAR (v1,b1))) (s,!eiRef)
+                     val (s, ei) = addSubst (v2, WITH_FIELD ([], v1)) (s,!eiRef)
                      val _ = eiRef := ei
                   in
                      s

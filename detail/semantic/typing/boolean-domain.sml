@@ -240,14 +240,14 @@ end = struct
                   | (NONE, SOME v2) => (v1,v2) :: set
                   | (SOME v1, SOME v2) => (v1,v2) :: set
                ) [] cs
-         val (_,l1Str) = List.foldl (fn (BVAR v,(sep,str)) =>
+         (*val (_,l1Str) = List.foldl (fn (BVAR v,(sep,str)) =>
                         (",",str ^ sep ^ Int.toString v)) ("","") l1
          val (_,l2Str) = List.foldl (fn ((_,BVAR v),(sep,str)) =>
                         (",",str ^ sep ^ Int.toString v)) ("","") l2
          val _ = TextIO.print ("expanding " ^ l1Str ^ " to " ^ l2Str ^
                      " by adding " ^
                      showBFun (US.fromList newUnits, CS.fromList newClauses)
-                     ^ "\n")
+                     ^ "\n")*)
       in
          List.foldl addClause (addUnits (newUnits, (us, cs))) newClauses
       end
