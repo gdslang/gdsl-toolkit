@@ -928,16 +928,16 @@ end = struct
                end
          val substs = substsFilter (substs, Scope.getVars env)
       in
-         if isEmpty substs then (ei, env) else
+         if isEmpty substs then (ei, 0, env) else
             let
                (*val (sStr, si) = showSubstsSI (substs, TVar.emptyShowInfo)
                val (eStr, si) = topToStringSI (env, si)
                val _ = TextIO.print ("applySubst " ^ sStr ^ " to\n" ^ eStr)*)
                val (b, env) = Scope.unwrap env
                val (b, ei) = substBinding (b, ei, substs)
-               val (ei, env) = applySubsts (substs, ei, env)
+               val (ei, n, env) = applySubsts (substs, ei, env)
             in
-               (ei, Scope.wrap (b, env))
+               (ei, n+1, Scope.wrap (b, env))
             end
       end
 
@@ -1075,37 +1075,64 @@ end = struct
          | (SOME _, _, _) => raise InferenceBug
       )
 
-   fun genFlow (env1, env2) = case (Scope.unwrap env1, Scope.unwrap env2) of
-        ((KAPPA {ty=t1}, (_, consRef1)), (KAPPA {ty=t2}, (_, consRef2))) =>
-         if (consRef1 <> consRef2) then raise InferenceBug else
-         let
-            val l1 = texpBVarset (op ::) (t1, [])
-            val l2 = texpBVarset (op ::) (t2, [])
-            fun genImpl ((contra1,f1),(contra2,f2),bf) =
-               if contra1<>contra2 then (TextIO.print ("cannot gen flow from\n" ^ topToString env1 ^ "to\n" ^ topToString env2); raise InferenceBug) else
-               if contra1 then
-                  BD.meetVarImpliesVar (f2,f1) bf
-               else
-                  BD.meetVarImpliesVar (f1,f2) bf
-            (*val _ = if List.length l1=List.length l2 then () else
-                  TextIO.print ("*************** genFlow of\n" ^ topToString env1 ^ "\ndoes not match\n" ^ topToString env2)*)
-            val (bFun, sCons) = !consRef1
-            val bFunNew = ListPair.foldlEq genImpl bFun (l1, l2)
-               handle (BD.Unsatisfiable bVar) =>
-                  flowError (bVar, affectedField (bVar, env1), [env1,env2])
-            val _ = consRef1 := (bFunNew, sCons)
-            
-            (*val bStr = BD.showBFun (ListPair.foldlEq genImpl BD.empty (l1, l2))
-            val (tStr1, si) = showTypeSI (t1, TVar.emptyShowInfo)
-            val (tStr2, si) = showTypeSI (t2, si)
-            val _ = TextIO.print ("genFlow: " ^ tStr1 ^ "\nto     : " ^ tStr2 ^
-                                  "\ngiving new flow " ^ bStr ^ "\n") *)
-         in
-            ()
-         end
-       | _ => raise InferenceBug
-  
-   fun meetGeneral (env1, env2) =
+   fun genFlow (bFun, n, directed, env1, env2) =
+      let
+         fun genImpl (contra,f1,f2,bFun) =
+            if contra then
+               BD.meetVarImpliesVar (f2,f1) bFun
+            else
+               BD.meetVarImpliesVar (f1,f2) bFun
+         fun genInfo ((contra1,f1), (contra2,f2),bFun) =
+            if contra1<>contra2 then (TextIO.print ("cannot gen flow from\n" ^ topToString env1 ^ "to\n" ^ topToString env2); raise InferenceBug) else
+            if BD.eq(f1,f2) then bFun else
+            if directed then genImpl (contra1,f1,f2,bFun) else
+               BD.meetEqual (f1,f2,bFun)
+         fun flowForType (t1,t2,bFun) =
+            let
+               val l1 = texpBVarset (op ::) (t1, [])
+               val l2 = texpBVarset (op ::) (t2, [])
+               (*val _ = if List.length l1=List.length l2 then () else
+                     TextIO.print ("*************** genFlow of\n" ^ topToString env1 ^ "\ndoes not match\n" ^ topToString env2)*)
+               val bFun = ListPair.foldlEq genInfo bFun (l1, l2)
+                     handle (BD.Unsatisfiable bVar) =>
+                        flowError (bVar, affectedField (bVar, env1), [env1,env2])
+
+               val bStr = BD.showBFun (ListPair.foldlEq genInfo BD.empty (l1, l2))
+               val (tStr1, si) = showTypeSI (t1, TVar.emptyShowInfo)
+               val (tStr2, si) = showTypeSI (t2, si)
+               val _ = TextIO.print ("genFlow: " ^ tStr1 ^ "\nto     : " ^ tStr2 ^
+                                     "\ngiving new flow " ^ bStr ^ "\n") 
+            in
+               bFun
+            end
+      in
+         if n<=0 then bFun else case (Scope.unwrap env1, Scope.unwrap env2) of
+             ((KAPPA {ty=t1}, env1), (KAPPA {ty=t2}, env2)) =>
+               genFlow (flowForType (t1,t2,bFun), n-1, false, env1, env2)
+           | ((SINGLE {ty=t1, name = n1}, env1), (SINGLE {ty=t2, name = n2}, env2)) =>
+               genFlow (flowForType (t1,t2,bFun), n-1, false, env1, env2)
+           | ((GROUP bs1, env1), (GROUP bs2, env2)) =>
+               let
+                  fun flowOpt (SOME t1,SOME t2,bFun) = flowForType (t1,t2,bFun)
+                    | flowOpt (NONE,NONE,bFun) = bFun
+                    | flowOpt _ = raise InferenceBug
+                  fun bflowOpt (SOME (t1,_),SOME (t2,_),bFun) = flowForType (t1,t2,bFun)
+                    | bflowOpt (NONE,NONE,bFun) = bFun
+                    | bflowOpt _ = raise InferenceBug
+                  fun genUsesFlow ((_,t1),(_,t2),bFun) = flowForType (t1,t2,bFun)
+                  fun genBindFlow ({name = n1, ty=t1, width=w1, uses = us1},
+                                   {name = n2, ty=t2, width=w2, uses = us2},bFun) =
+                     ListPair.foldl
+                        genUsesFlow
+                        (bflowOpt (t1,t2, flowOpt (w1,w2,bFun)))
+                        (SpanMap.listItems us1,SpanMap.listItems us2)
+               in
+                 ListPair.foldl genBindFlow bFun (bs1,bs2)
+               end
+           | _ => raise InferenceBug
+      end
+
+   fun meetGeneral (env1, env2, directed) =
       let
          (*val _ = TextIO.print ("unifying " ^ toString(env1) ^ " and " ^ toString(env2) ^ "\n")*)
          val (substs, ei) = unify (env1, env2, (emptySubsts, emptyExpandInfo))
@@ -1120,41 +1147,38 @@ end = struct
          val _ = consRef := (bFun, sCons)
          val (env1,env2) = mergeUses (env1, env2)
          
-         (*val (eStr, si) = topToStringSI (env1,TVar.emptyShowInfo)
+         val (eStr, si) = topToStringSI (env1,TVar.emptyShowInfo)
          val (e1Str,si) = kappaToStringSI (env1, si)
          val (e2Str,si) = kappaToStringSI (env2, si)
          val (e0Str,si) = showExpandInfoSI (ei, si)
          val (sStr,si) = showSubstsSI (substs,si)
-         val _ = TextIO.print ("*** arg environment:\n" ^ eStr ^ "expand info due to unification:\n" ^ e0Str)*)
+         val _ = TextIO.print ("*** after meet, second environment:\n" ^ eStr ^ "expand info due to unification:\n" ^ e0Str)
 
-         val (ei, envSame1) = applySubsts (substs, emptyExpandInfo, env1)
-         val (ei, envSame2) = applySubsts (substs, ei, env2)
+         val (ei, n1, envSame1) = applySubsts (substs, emptyExpandInfo, env1)
+         val (ei, n2, envSame2) = applySubsts (substs, ei, env2)
+         val n = Int.max (n1,n2)
+         val (_, consRef) = envSame2
+         val (bFun, sCons) = !consRef
+         val bFun = genFlow (bFun, n, directed, envSame1, envSame2)
+            handle (BD.Unsatisfiable bVar) =>
+               flowError (bVar, NONE, [envSame1,envSame2])
+         val bFun = applyExpandInfo ei bFun
+            handle (BD.Unsatisfiable bVar) =>
+               flowError (bVar, NONE, [envSame1,envSame2])
+         val _ = consRef := (bFun, sCons)
 
-         (*val (eSame1Str,si) = kappaToStringSI (envSame1, si)
+         val (eSame1Str,si) = kappaToStringSI (envSame1, si)
          val (eSame2Str,si) = kappaToStringSI (envSame2, si)
          val (eStr, si) = showExpandInfoSI (ei,si)
          val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str ^ 
-                  "resulting in\n" ^ eSame1Str ^ "and\n" ^ eSame2Str ^ "thereby expanding\n" ^ eStr)*)
+                  "resulting in\n" ^ eSame1Str ^ "and\n" ^ eSame2Str ^ "thereby expanding\n" ^ eStr)
       in
-         (envSame1, envSame2, ei)
+         envSame1
       end
 
-   fun meetFlow (env1,env2) =
-      let
-         val (env1, env2, ei) = meetGeneral (env1,env2)
-         val (_, consRef) = env1
-         val (bFun, sCons) = !consRef
-         val bFun = applyExpandInfo ei bFun
-            handle (BD.Unsatisfiable bVar) =>
-               flowError (bVar, NONE, [env1,env2])
-         val _ = consRef := (bFun, sCons)
-         val _ = genFlow (env1,env2)
-      in
-         env1
-      end
+   fun meetFlow (env1,env2) = meetGeneral (env1,env2,true)
 
-   fun meet (env1,env2) =
-      case meetGeneral (env1,env2) of (env, _, _) => env
+   fun meet (env1,env2) = meetGeneral (env1,env2,false)
    
    fun subseteq (env1, env2) =
       let

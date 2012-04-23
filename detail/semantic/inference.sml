@@ -340,11 +340,17 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envHave = infExp (st,env) e1
          val env = E.meet (envWant, envHave)
          val env = E.popKappa env
-         val envT = infExp (st,env) e2
+         (*val envT = infExp (st,env) e2
+         val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)
+         val env = E.popKappa envT
          val envE = infExp (st,env) e3
-         val env = E.pushTop env
-         val env = E.meetFlow (env,envT)
-         val env = E.meetFlow (env,envE)
+         val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)
+         val env = E.meet (envE,envT)*)
+         val envT = infExp (st,env) e2
+         val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)
+         val envE = infExp (st,env) e3
+         val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)
+         val env = E.meet (envE,envT)
       in
          env
       end
@@ -480,7 +486,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.IDexp v) =
       let
          val env = E.pushSymbol (v, getSpan st, getContext st, env)
-         (*val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.toString env)*)
+         val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)
       in
          env
       end

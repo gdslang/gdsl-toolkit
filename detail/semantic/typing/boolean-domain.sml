@@ -20,9 +20,9 @@ structure BooleanDomain : sig
 
    (*val meetNotBoth : bvar * bvar * bfun -> bfun
 
-   val meetEither : bvar * bvar * bfun -> bfun
+   val meetEither : bvar * bvar * bfun -> bfun*)
    
-   val meetEqual : bvar * bvar * bfun -> bfun*)
+   val meetEqual : bvar * bvar * bfun -> bfun
 
    val meetVarZero : bvar -> bfun -> bfun
 
