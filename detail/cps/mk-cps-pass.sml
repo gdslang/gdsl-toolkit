@@ -20,9 +20,10 @@ functor MkCPSPass (Core: CPSCORE) = struct
             [seq
                [str "cps.", str Core.name, str ".clicks", str "=",
                 str (Int.toString clicks)],
-             CPS.PP.term cps]
+             CPS.PP.term cps,
+             align [str "census=", indent 2 (Census.layout())]]
    in
-      Pretty.prettyTo (os, prettyPass t)
+     Pretty.prettyTo (os, prettyPass t)
    end
 
    val pass =

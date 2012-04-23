@@ -92,15 +92,22 @@ structure Census = struct
      ;!census
    end
 
+   fun layout () =
+      Pretty.symmap
+         {key=CPS.PP.var, item=Layout.str o Int.toString}
+         (!census)
+
    val run = visit 1
 end
 
+(* Currently `FreeVars` is br0k3n considering mutually recursive functions *)
 structure FreeVars = struct
    structure Map = SymMap
    structure Set = SymSet
    type t = Set.set Map.map
 
    val freevars = ref Map.empty : t ref
+   fun reset () = freevars := Map.empty
 
    fun def env x = Set.delete (env, x) handle NotFound => env
    fun use env x = Set.add (env, x)
@@ -246,7 +253,7 @@ structure FreeVars = struct
           | REC fs => useAll env (map #2 fs)
           | _ => env
    in
-      visitTerm (Set.empty, cps)
+      (reset();visitTerm (Set.empty, cps))
    end
    
    fun dump () =
@@ -622,6 +629,52 @@ structure Rec = struct
    in
       recs := #2 (visitTerm (cps, empty))
    end
+end
+
+structure FunInfo = struct
+   structure Map = SymMap
+   open CPS CPS.Exp
+   datatype t =
+      F of Var.v * Var.c * Var.v list * term
+    | C of Var.c * Var.v list * term
+
+   val env = ref Map.empty : t SymMap.map ref
+   fun bindFun (f, (k, xs, K)) =
+      env := Map.insert (!env, f, F (f, k, xs, K))
+   fun bindCont (k, (xs, K)) =
+      env := Map.insert (!env, k, C (k, xs, K))
+   fun lookup s f = s (Map.lookup (!env, f))
+   fun find s f = Option.map s (Map.find (!env, f))
+   fun getFun (F x) = x
+     | getFun _ = raise Match
+   fun getCont (C x) = x
+     | getCont _ = raise Match
+
+   val lookupFun = lookup getFun
+   val lookupCont = lookup getCont
+   val findFun = find getFun
+   val findCont = find getCont
+  
+   fun visitTerm t =
+      case t of
+         LETVAL (f, FN (k, xs, K), L) =>
+            (visitTerm K
+            ;bindFun (f, (k, xs, K))
+            ;visitTerm L)
+       | LETPRJ (_, _, _, body) => visitTerm body
+       | LETUPD (_, _, _, body) => visitTerm body
+       | LETCONT (cs, body) =>
+            (app (fn (k, xs, K) =>
+               (visitTerm K
+               ;bindCont (k, (xs, K)))) cs
+            ;visitTerm body)
+       | LETREC (ds, body) =>
+            (app (fn (f, k, xs, K) =>
+               (visitTerm K
+               ;bindFun (f, (k, xs, K)))) ds
+            ;visitTerm body)
+       | _ => ()
+   val run = visitTerm
 end
 
 structure BetaFun = struct
@@ -1023,14 +1076,21 @@ structure BetaPair = struct
       end
 end
 
-structure HoistFun = struct
+(*
+structure Hoist = struct
    open CPS.Exp
    structure Map = SymMap
    structure Set = SymSet
+   structure FV = FreeVars
+   structure FI = FunInfo
 
    val clicks = ref 0
+   val conts = ref Map.empty
    fun click () = clicks := !clicks + 1
-   fun reset () = clicks := 0
+   fun reset () = (clicks := 0; conts := Map.empty)
+
+   fun insert (k, xs) = conts := Map.insert (!conts, k, xs)
+   fun find k = Map.find (!conts, k)
 
    fun simplify env sigma t =
       case t of
@@ -1041,15 +1101,16 @@ structure HoistFun = struct
                 simplify env sigma L)
        | LETVAL (x, v, K) =>
             (case simplify env sigma K of
-               LETVAL (f, FN (k, xs, L), M) => 
-                  (click();
-                   LETVAL
-                     (f,
-                      FN
-                        (k,
-                         xs,
-                         LETVAL (x, simplifyVal env sigma v, L)),
-                      M))
+               K as LETVAL (f, FN (k, xs, L), M) => 
+                  (case FV.get f of fs =>
+                     if Set.member (fs, f)
+                        then LETVAL (x, v, K)
+                     else 
+                        (click();
+                         LETVAL
+                           (f,
+                            FN (k, xs, L),
+                            LETVAL (x, simplifyVal env sigma v, M))))
              | K => LETVAL (x, v, K))
        | LETREC (ds, L) =>
             LETREC
@@ -1116,7 +1177,120 @@ structure HoistFun = struct
    fun run t =
       let
          val _ = reset ()
+         val _ = FV.run t
          val _ = Census.run t
+         val t' = simplify Map.empty Subst.empty t
+      in
+         (t', !clicks)
+      end
+end
+*)
+
+structure HoistFun = struct
+   open CPS.Exp
+   structure Map = SymMap
+   structure Set = SymSet
+   structure FV = FreeVars
+   structure FI = FunInfo
+
+   val clicks = ref 0
+   val conts = ref Map.empty : CPS.Var.v list Map.map ref
+   fun click () = clicks := !clicks + 1
+   fun reset () = (clicks := 0; conts := Map.empty)
+
+   fun findCont k = Map.find (!conts, k)
+   fun bindCont (k, xs) =
+      case findCont k of
+         NONE => conts := Map.insert (!conts, k, xs)
+       | SOME _ => conts := #1 (Map.remove (!conts, k))
+
+   fun simplify env sigma t =
+      case t of
+         LETVAL (f, FN (k, xs, K), L) =>
+            LETVAL
+               (f,
+                FN (k, xs, simplify env sigma K),
+                simplify env sigma L)
+       | LETVAL (x, v, K) =>
+            (case simplify env sigma K of
+               K as LETVAL (f, FN (k, xs, L), M as CC (_,[g])) => 
+                  if not (VarInfo.eq_symid (g, f))
+                     then LETVAL (x, v, K)
+                  else 
+                     (click();
+                      LETVAL
+                        (f,
+                         FN
+                           (k,
+                            xs,
+                            LETVAL (x, simplifyVal env sigma v, L)),
+                         M))
+             | K => LETVAL (x, v, K))
+       | LETREC (ds, L) =>
+            LETREC
+               (simplifyRecs env sigma ds,
+                simplify env sigma L)
+       | LETPRJ (x, f, y, t) =>
+            LETPRJ
+               (x,
+                f,
+                Subst.apply sigma y,
+                simplify env sigma t)
+       | LETUPD (x, y, fs, t) =>
+            LETUPD
+               (x,
+                Subst.apply sigma y,
+                map (fn (f, z) => (f, Subst.apply sigma z)) fs,
+                simplify env sigma t)
+       | LETCONT (cs, t) =>
+            LETCONT
+               (map (fn (k, x, t) => (k, x, simplify env sigma t)) cs,
+                simplify env sigma t)
+       | CC (k, xs) =>
+            CC (Subst.apply sigma k, Subst.applyAll sigma xs)
+       | CASE (x, cs) =>
+            CASE
+               (Subst.apply sigma x,
+                map
+                  (fn (tags,(k,xs)) =>
+                     (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
+       | APP (f, j, ys) =>
+            let
+               val f = Subst.apply sigma f
+               val j = Subst.apply sigma j
+               val ys = Subst.applyAll sigma ys
+            in
+               APP (f, j, ys)
+            end
+
+   and simplifyRecs env sigma ds = map (simplifyRec env sigma) ds
+  
+   and simplifyRec env sigma (f, k, [], K) =
+      (case simplify env sigma K of
+         K as LETVAL (g, FN (l, xs, L), M) =>
+            (case M of
+               CC (j, [h]) =>
+                  if VarInfo.eq_symid (j, k)
+                     andalso VarInfo.eq_symid (g, h)
+                     then (click(); (f, l, xs, L))
+                  else (f, k, [], K)
+             | _ => (f, k, [], K))
+       | K => (f, k, [], K))
+
+     | simplifyRec env sigma (f, k, xs, K) = (f, k, xs, simplify env sigma K)
+
+   and simplifyVal env sigma v =
+      case v of
+         FN (k, x, t) => FN (k, x, simplify env sigma t)
+       | INJ (t, x) => INJ (t, Subst.apply sigma x)
+       | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
+       | otherwise => otherwise
+  
+   val name = "hoistFun"
+   fun run t =
+      let
+         val _ = reset ()
          val t' = simplify Map.empty Subst.empty t
       in
          (t', !clicks)
@@ -1228,8 +1402,7 @@ structure BetaContFun = struct
    fun reset () = (clicks := 0; inlined := Set.empty)
 
    fun markInlined f =
-      (Pretty.prettyTo(TextIO.stdOut,Layout.align[CPS.PP.var f]);inlined := Set.add
-      (!inlined, f))
+      inlined := Set.add (!inlined, f)
    fun usedLinearly f =
       Census.count f = 1
       andalso Set.member (!inlined, f)
@@ -1331,7 +1504,7 @@ structure BetaContFun = struct
                            val _ = markInlined k
                            val sigma = Subst.extendAll sigma ys xs
                            val K =
-                              if Census.count k > 1
+                              if Census.count k <> 1
                                  then simplify env sigma (Subst.rename sigma K)
                               else simplify env sigma K
                         in
@@ -1363,16 +1536,7 @@ structure BetaContFun = struct
          end
       | APP (f, j, ys) =>
          let
-            val ff = f
             val f = Subst.apply sigma f
-            val _ =
-               if not (SymbolTable.eq_symid (f, ff))
-                  then
-                     Pretty.prettyTo
-                        (TextIO.stdOut,
-                         Layout.seq[CPS.PP.var ff, Layout.str"->",CPS.PP.var f,
-                         Layout.str"\n"])
-               else ()
             val j = Subst.apply sigma j
             val ys = Subst.applyAll sigma ys
          in
@@ -1395,7 +1559,7 @@ structure BetaContFun = struct
                            val (sigma, missing) = Subst.renameAll sigma missing
                            val sigma = Subst.extendAll sigma ys applied
                            val K = 
-                              if Census.count f > 1
+                              if Census.count f <> 1
                                  then simplify env sigma (Subst.rename sigma K)
                               else simplify env sigma K
                         in
@@ -1409,7 +1573,7 @@ structure BetaContFun = struct
                            val sigma = Subst.extend sigma j k
                            val sigma = Subst.extendAll sigma ys xs
                            val K = 
-                              if Census.count f > 1
+                              if Census.count f <> 1
                                  then simplify env sigma (Subst.rename sigma K)
                               else simplify env sigma K
                         in

@@ -300,7 +300,7 @@ end = struct
       Spec.upd
          (fn cps =>
             (FV.run cps
-            ;FV.dump()
+            (*;FV.dump()*)
             ;ignore(convTerm Subst.empty cps)
             ;Map.listItems (!bindings))) spec : Closure.Spec.t
    end
