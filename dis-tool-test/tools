@@ -1,95 +1,111 @@
 objdump:
 objdump -b binary -m k1om -D FILE
 
-1: (Correct decoding)
+01: (Correct decoding)
    0:	67 f3 45 0f 7e d1    	addr32 movq %xmm9,%xmm10
 
-2: (Correct decoding)
+02: (Correct decoding)
    0:	f3 67 45 0f 7e d1    	addr32 movq %xmm9,%xmm10
 
-3: (Wrong decoding)
+03: (Wrong decoding)
    0:	67                   	addr32rex.RB
    1:	45                   	rex.RB
    2:	f3 0f 7e d1          	movq   %xmm1,%xmm2
 
-4: (Wrong decoding)
+04: (Wrong decoding)
    0:	f3                   	repzrex.RB
    1:	45                   	rex.RB
    2:	67 0f 7e d1          	addr32 movd %mm2,%ecx
 
-5: (Correct decoding)
+05: (Correct decoding)
    0:	c4 e1 f9 7e c8       	vmovq  %xmm1,%rax
 
-6: (Correct decoding)
+06: (Correct decoding)
    0:	67 c4 e1 f9 7e c8    	addr32 vmovq %xmm1,%rax
 
-7: (Wrong decoding)
+07: (Wrong decoding)
    0:	66                   	data16
    1:	c4 e1 f9 7e c8       	vmovq  %xmm1,%rax
 
-8: (Wrong decoding)
+08: (Wrong decoding)
    0:	45 c4 e1 f9 7e c8    	rex.RB vmovq %xmm1,%rax
 
-9: (Correctness unknown)
+09: (Correctness unknown)
    0:	c4 e1 f9 67          	(bad)  
    4:	7e c8                	jle    0xffffffffffffffce
 
-SUMMARY: Correct: 4, Wrong: 4 (50%)
+10: (Wrong decoding)
+   0:	67                   	addr32rex.RB
+   1:	45                   	rex.RB
+   2:	f3 0f 7e 11          	movq   (%rcx),%xmm2
+
+11: (Correct decoding)
+   0:	0f 12 11             	movlps (%rcx),%xmm2
+   3:	0f 12 d1             	movhlps %xmm1,%xmm2
+
+SUMMARY: Correct: 5, Wrong: 5 (50%)
 
 xed2:
 xed -64 -ir FILE
 
-1: (Correct decoding)
+01: (Correct decoding)
 XDIS 0: DATAXFER  SSE2   67F3450F7ED1             addr32 movq xmm10, xmm9
 
-2: (Correct decoding)
+02: (Correct decoding)
 XDIS 0: DATAXFER  SSE2   F367450F7ED1             addr32 movq xmm10, xmm9
 
-3: (Correct decoding)
+03: (Correct decoding)
 XDIS 0: DATAXFER  SSE2   6745F30F7ED1             addr32 movq xmm2, xmm1
 
-4: (Correct decoding)
+04: (Correct decoding)
 XDIS 0: DATAXFER  SSE2   F345670F7ED1             addr32 movq xmm2, xmm1
 
-5: (Correct decoding)
+05: (Correct decoding)
 XDIS 0: DATAXFER  AVX    C4E1F97EC8               vmovq rax, xmm1
 
-6: (Correct decoding)
+06: (Correct decoding)
 XDIS 0: DATAXFER  AVX    67C4E1F97EC8             addr32 vmovq rax, xmm1
 
-7: (Correct decoding)
+07: (Correct decoding)
 ERROR: GENERAL_ERROR Could not decode at offset: 0x0 PC: 0x0: [66C4E1F97EC8000000000000000000]
 
-8: (Correct decoding)
+08: (Correct decoding)
 ERROR: GENERAL_ERROR Could not decode at offset: 0x0 PC: 0x0: [45C4E1F97EC8000000000000000000]
 
-9: (Correctness unknown)
+09: (Correctness unknown)
 XDIS 0: AVX       AVX    C4E1F9677EC8             vpackuswb xmm7, xmm0, xmmword ptr [rsi-0x38]
 
-SUMMARY: Correct: 8, Wrong: 0 (100%)
+10: (Correct decoding)
+XDIS 0: DATAXFER  SSE2   6745F30F7E11             movq xmm2, qword ptr [ecx]
+
+11: (Correct decoding)
+XDIS 0: DATAXFER  SSE    0F1211                   movlps xmm2, qword ptr [rcx]
+XDIS 3: DATAXFER  SSE    0F12D1                   movhlps xmm2, xmm1
+
+SUMMARY: Correct: 10, Wrong: 0 (100%)
 
 distorm3:
 disasm -b64 FILE
 
-1: (Correct decoding) [Prefix information is missing]
+01: (Correct decoding) [Prefix information is missing]
 0000000000000000 (06) 67f3450f7ed1             MOVQ XMM10, XMM9
 
-2: (Correct decoding) [Prefix information is missing]
+02: (Correct decoding) [Prefix information is missing]
 0000000000000000 (06) f367450f7ed1             MOVQ XMM10, XMM9
 
-3: (Wrong decoding) [Prefix information is missing]
+03: (Wrong decoding) [Prefix information is missing]
 0000000000000000 (06) 6745f30f7ed1             MOVQ XMM10, XMM9
 
-4: (Wrong decoding) [Prefix information is missing]
+04: (Wrong decoding) [Prefix information is missing]
 0000000000000000 (06) f345670f7ed1             MOVQ XMM10, XMM9
 
-5: (Correct decoding)
+05: (Correct decoding)
 0000000000000000 (05) c4e1f97ec8               VMOVQ RAX, XMM1
 
-6: (Correct decoding) [Prefix information is missing]
+06: (Correct decoding) [Prefix information is missing]
 0000000000000000 (06) 67c4e1f97ec8             VMOVQ RAX, XMM1
 
-7: (Correct decoding [?]) 
+07: (Correct decoding [?]) 
 0000000000000000 (01) 66                       DB 0x66
 0000000000000001 (01) c4                       DB 0xc4
 0000000000000002 (01) e1                       DB 0xe1
@@ -97,16 +113,23 @@ disasm -b64 FILE
 0000000000000004 (01) 7e                       DB 0x7e
 0000000000000005 (01) c8                       DB 0xc8
 
-8: (Wrong decoding)
+08: (Wrong decoding)
 0000000000000000 (06) 45c4e1f97ec8             VMOVQ R8, XMM9
 
-9: (Correctness unknown)
+09: (Correctness unknown)
 0000000000000000 (01) c4                       DB 0xc4
 0000000000000001 (01) e1                       DB 0xe1
 0000000000000002 (01) f9                       DB 0xf9
 0000000000000003 (01) 67                       DB 0x67
 0000000000000004 (02) 7ec8                     JLE 0xffffffffffffffce
 
-SUMMARY: Correct: 2, Wrong: 6 (25%)
+10: (Wrong decoding)
+0000000000000000 (06) 6745f30f7e11             MOVQ XMM10, [R9D]
+
+11: (Correct decoding)
+0000000000000000 (03) 0f1211                   MOVLPS XMM2, [RCX]
+0000000000000003 (03) 0f12d1                   MOVHLPS XMM2, XMM1
+
+SUMMARY: Correct: 3-6, Wrong: 7-4 (30%-60%)
 
 Metasm:
