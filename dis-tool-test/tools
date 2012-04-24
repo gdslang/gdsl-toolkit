@@ -171,3 +171,54 @@ entrypoint_0    db 66h, 0c4h, 0e1h, 0f9h, 7eh, 0c8h ; @0
 
 SUMMARY: Correct: 3-7, Wrong: 7-3 (30%-70%)
 
+BeaEngine (LookInside):
+wine LookInside.exe (GUI)
+
+01: (Correct decoding)
+movq xmm10, xmm9 (AddressSize=InUsePrefix)
+
+02: (Correct decoding)
+movq xmm10, xmm9 (AddressSize=InUsePrefix)
+
+03: (Wrong decoding)
+movq xmm10, xmm9 (AddressSize=InUsePrefix)
+
+04: (Wrong decoding)
+movq xmm10, xmm9 (AddressSize=InUsePrefix)
+
+05: (Wrong decoding)
+???
+loope 004016ECh
+jle 004016BDh
+
+06: (Wrong decoding)
+???
+???
+loope 004016EDh
+jle 004016BDh
+
+07: (Wrong decoding) 
+???
+???
+loope 004016EDh
+jle 004016BEh
+
+08: (Wrong decoding)
+???
+???
+loope 004016EDh
+jle 004016BEh
+
+09: (Correctness unknown)
+??? 
+loope 004016ECh
+jle 004016BEh
+
+10: (Wrong decoding)
+movq xmm10, qword ptr ds:[r9d] (AddressSize=InUsePrefix)
+
+11: (Correct decoding)
+movlps xmm2, qword ptr ds:[rcx]
+movlps xmm2, xmm1
+
+SUMMARY: Correct: 3, Wrong: 7 (30%)
