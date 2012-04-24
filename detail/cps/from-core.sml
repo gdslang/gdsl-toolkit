@@ -418,7 +418,7 @@ end = struct
                val f = fresh function
                val j = fresh continuation
             in
-               Exp.LETVAL (f, Exp.FN (j, [x], trans1 e kont), Exp.CC (kont, [f]))
+               Exp.LETVAL (f, Exp.FN (j, [x], trans1 e j), Exp.CC (kont, [f]))
             end
        | RECORD fs =>
             let
