@@ -149,6 +149,7 @@ structure CPS = struct
                seq
                   [var f, space, cvar c, space,
                    listex "(" ")" "," (map var xs)]
+          | CC (c, []) => cvar c
           | CC (c, [v]) => seq [cvar c, space, var v]
           | CC (c, vs) => seq [cvar c, space, listex "(" ")" "," (map var vs)]
       and vars xs = seq (separate (map var xs, " "))

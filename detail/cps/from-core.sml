@@ -194,9 +194,16 @@ end = struct
                         let
                            val x = fresh variable
                         in
-                           Exp.LETCONT
-                              ((j, [x], kappa x)::cps,
-                               Exp.CASE (z, ks))
+                           case ks of
+                              [([],body)] =>
+                                 Exp.LETCONT
+                                    ((j, [x], kappa x)::cps,
+                                     Exp.CC body)
+
+                            | _ =>
+                                 Exp.LETCONT
+                                    ((j, [x], kappa x)::cps,
+                                     Exp.CASE (z, ks))
                         end
                    | (p, e)::ps =>
                         let
@@ -323,8 +330,10 @@ end = struct
   
    and explodePat str =
       let
-         val toWord =
-            valOf o StringCvt.scanString (Word.scan StringCvt.BIN)
+         fun toWord str =
+            case StringCvt.scanString (Word.scan StringCvt.BIN) str of
+               SOME w => w
+             | NONE => raise Fail ("Invalid bit-pattern: " ^ str)
          val cvt = toWord o String.implode
          fun lp (s, acc) =
             case S.getc s of
@@ -335,7 +344,10 @@ end = struct
                   else lp(s,n::acc)
              | NONE => [cvt (rev acc)]
       in
-         lp (S.full str, [])
+         if CharVector.all (fn c => c = #".") str then [] else
+         case str of
+            "" => []
+          | _ => lp (S.full str, [])
       end
 
    and transPat p k ks =
@@ -388,7 +400,12 @@ end = struct
                         in
                            trans z ps ((k, xs, trans1 e kont)::cps) ks
                         end
-                   | [] => Exp.LETCONT (cps, Exp.CASE (z, ks))
+                   | [] =>
+                        case ks of
+                           [([],body)] =>
+                              Exp.LETCONT (cps, Exp.CC body)
+                         | _ =>
+                              Exp.LETCONT (cps, Exp.CASE (z, ks))
             in
                trans0 e (fn z => trans z ps [] [])
             end
@@ -401,7 +418,7 @@ end = struct
                val f = fresh function
                val j = fresh continuation
             in
-               Exp.LETVAL (f, Exp.FN (j, [x], trans1 e kont), Exp.CC (kont, [f]))
+               Exp.LETVAL (f, Exp.FN (j, [x], trans1 e j), Exp.CC (kont, [f]))
             end
        | RECORD fs =>
             let
@@ -506,7 +523,7 @@ end = struct
 
    val translate =
       BasicControl.mkKeepPass
-         {passName="translateCoreToCPS",
+         {passName="cpsConversion",
           registry=CPSControl.registry,
           pass=translate,
           preExt="core",

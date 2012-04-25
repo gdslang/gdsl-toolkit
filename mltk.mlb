@@ -4,8 +4,9 @@ local
    $(SML_LIB)/smlnj-lib/Util/smlnj-lib.mlb
    $(SML_LIB)/smlnj-lib/PP/pp-lib.mlb
    $(SML_LIB)/smlnj-lib/Controls/controls-lib.mlb
-   (*$(SML_LIB)/mllpt-lib/ml-lpt-lib.mlb*)
-   $(SML_LIB)/ml-lpt/lib/ml-lpt-lib.mlb
+   $(SML_LIB)/smlnj-lib/RegExp/regexp-lib.mlb
+   $(SML_LIB)/mllpt-lib/ml-lpt-lib.mlb
+   (*$(SML_LIB)/ml-lpt/lib/ml-lpt-lib.mlb*)
 in
    ann
       "forceUsed"
@@ -14,7 +15,11 @@ in
    in
       local
          detail/common/basic-control.sml
+         detail/common/stats.sml
+         detail/common/expand-file.sml
          detail/common/error.sml
+         detail/common/sum-sig.sml
+         detail/common/sum.sml
          detail/common/float-lit.sml
          detail/common/integer-lit.sml
          detail/common/literal.sml
@@ -22,8 +27,9 @@ in
          detail/common/basis.sml
          detail/common/layout-sig.sml
          detail/common/layout.sml
-         detail/common/pp.sml
          detail/common/compilation-monad.sml
+         detail/semantic/symbol-table-type.sml
+         detail/common/pp.sml
          detail/parser/mk-ast.sml
          detail/parser/spec-parse-tree.sml
          ann
@@ -33,17 +39,48 @@ in
             detail/parser/spec.l.sml
          end
          detail/parser/parser.sml
-         detail/semantic/symbol-table-type.sml
          detail/semantic/spec-abstract-tree.sml
          detail/semantic/typing/boolean-domain.sml
          detail/semantic/typing/tvar.sml
          detail/semantic/typing/lang-types.sml
+         detail/semantic/typing/size-constraint.sml
+         detail/semantic/typing/substitutions.sml
          detail/semantic/typing/environment.sml
          detail/semantic/primitives.sml
          detail/semantic/resolve-symbols.sml
          detail/semantic/resolve-type-info.sml
-         detail/semantic/primitives.sml
-         detail/opt/inline.sml
+         detail/semantic/inference.sml
+
+         detail/spec/spec.sml
+         detail/spec/core.sml
+
+         detail/desugar/desugar-control.sml
+         detail/desugar/desugared-tree.sml
+         detail/desugar/split-declarations.sml
+         detail/desugar/desugar-guards.sml
+         detail/desugar/inline-decode-patterns.sml
+         detail/desugar/detokenize.sml
+         detail/desugar/retokenize.sml
+         detail/desugar/desugar-decode-syntax.sml
+         detail/desugar/desugar-monadic-sequences.sml
+         detail/desugar/desugar.sml
+
+         detail/cps/cps.sml
+         detail/cps/cps-control.sml
+         detail/cps/from-core.sml
+         detail/cps/cps-opt.sml
+         detail/cps/mk-cps-pass.sml
+         detail/cps/cps-passes.sml
+
+         detail/closure/closure.sml
+         detail/closure/closure-control.sml
+         detail/closure/from-cps.sml
+         detail/closure/closure-passes.sml
+
+         detail/codegen/codegen-control.sml
+         detail/codegen/c0/c0.sml
+         detail/codegen/codegen-passes.sml
+
          detail/driver/main.sml
          detail/ml/mlton/main.sml
       in
