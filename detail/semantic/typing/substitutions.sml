@@ -21,6 +21,7 @@ structure Substitutions : sig
    val showExpandInfoSI : expand_info * TVar.varmap ->
                           string * TVar.varmap
    val emptyExpandInfo : expand_info
+
    val applyExpandInfo : expand_info -> BooleanDomain.bfun -> BooleanDomain.bfun
 
    val applySizeConstraints : SizeConstraint.size_constraint_set * Substs ->
@@ -50,7 +51,7 @@ end = struct
    
    datatype SubstTarget
       = WITH_TYPE of texp
-      | WITH_FIELD of (rfield list * tvar)
+      | WITH_FIELD of (rfield list * tvar * BD.bvar)
    
    type Subst = tvar * SubstTarget
    
@@ -78,9 +79,10 @@ end = struct
    in (SymbolTables.fieldTable := t; (f1,f2,t1,t2)) end
       
    fun showSubstTargetSI (WITH_TYPE t, si) = showTypeSI (t, si)
-     | showSubstTargetSI (WITH_FIELD (fs,vNew), si) =
+     | showSubstTargetSI (WITH_FIELD (fs,vNew,bNew), si) =
          let
             val (vNewStr, si) = TVar.varToString (vNew, si)
+            val bNewStr = BD.showVar bNew
             fun genfStr (RField {name = n, fty = t, exists = b}, (str, si)) =
                let
                   val (tStr, si) = showTypeSI (t, si)
@@ -91,7 +93,7 @@ end = struct
                end
             val (fsStr, si) = List.foldl genfStr ("", si) fs
          in
-            (fsStr ^ vNewStr ^ ": ...", si)
+            (fsStr ^ vNewStr ^ bNewStr ^ ": ...", si)
          end
 
    fun showSubstSI ((v,st), si) =
@@ -161,11 +163,11 @@ end = struct
    val emptyExpandInfo = TVMap.empty : expand_info
 
    fun getTargetVars (WITH_TYPE t) = texpBVarset (op ::) (t,[])
-     | getTargetVars (WITH_FIELD (fs,var)) =
+     | getTargetVars (WITH_FIELD (fs,var,bvar)) =
       List.foldl
          (fn (RField {name = n, fty = t, exists = b},bs) =>
             texpBVarset (op ::) (t,(false,b)::bs))
-         [] fs
+         [(false,bvar)] fs
 
    fun addToExpandInfo (tvar, bvar, target, ei) =
       let
@@ -175,8 +177,8 @@ end = struct
                        instInfo = []}
          
          fun genTargetInstance (WITH_TYPE t) = WITH_TYPE (setFlagsToTop t)
-           | genTargetInstance (WITH_FIELD (fs,var)) =
-               WITH_FIELD (List.map setFlagsToTopF fs, var)
+           | genTargetInstance (WITH_FIELD (fs,var,bvar)) =
+               WITH_FIELD (List.map setFlagsToTopF fs, var, BD.freshBVar ())
          val newTargetRef = ref target
          fun updateII ((v,tgt) :: vts) =
             if BD.eq(v,bvar) then (newTargetRef := tgt; (v,tgt) :: vts) else
@@ -242,9 +244,8 @@ end = struct
             if TVar.eq (var, v) then
               case addToExpandInfo (var, b, target, !eiRef) of
                  (target,ei) => (eiRef := ei; case target of
-                      WITH_FIELD (newFs, newVar) =>
-                       RECORD (newVar, b, List.foldl insertField fs newFs)
-                    (*| WITH_TYPE (VAR (v,b)) => RECORD (v, b, fs)*)
+                      WITH_FIELD (newFs, newVar, newBVar) =>
+                       RECORD (newVar, newBVar, List.foldl insertField fs newFs)
                     | WITH_TYPE _ => raise SubstitutionBug
                  )
             else let
@@ -311,13 +312,12 @@ end = struct
                   end
                else (v2, WITH_TYPE t2)
             end
-           | doSubst (v2, WITH_FIELD (fs, v3)) =
+           | doSubst (v2, WITH_FIELD (fs, v3, bv3)) =
             let
-               val bvar = BooleanDomain.freshBVar ()
-               val t2 = RECORD (v3,bvar,fs)
+               val t2 = RECORD (v3,bv3,fs)
                val (t2,ei) = applySubstToExp subst (t2,!eiRef)
                val _ = eiRef := ei
-               val RECORD (v3,bvar,fs) = t2
+               val RECORD (v3,bv3,fs) = t2
                val vs = texpVarset (t2, TVar.empty)
             in
                if TVar.member(vs,v2) then
@@ -327,7 +327,7 @@ end = struct
                   in
                      raise UnificationFailure ("infinite record " ^ vStr ^ " = " ^ tStr)
                   end
-               else (v2, WITH_FIELD (fs, v3))
+               else (v2, WITH_FIELD (fs, v3, bv3))
             end
             
          (*val (v,repl) = subst
@@ -421,9 +421,18 @@ end = struct
                Int.toString c2 ^ ")")
           | mgu (RECORD (v1,b1,l1), RECORD (v2,b2,l2), s) =
             let
+               fun applySubsts (v, b, fs) = (case findSubstForVar (v, s) of
+                    NONE => (v,b,fs)
+                  | SOME (WITH_FIELD (fs',v',b')) => (v', b', List.foldl insertField fs fs')
+                  | _ => raise SubstitutionBug
+               )
+               val (v1,b1,l1) = applySubsts (v1,b1,l1)
+               val (v2,b2,l2) = applySubsts (v2,b2,l2)
+
                fun unify (v1, v2, [], [], s) = if TVar.eq (v1,v2) then s else
                   let
-                     val (s, ei) = addSubst (v2, WITH_FIELD ([], v1)) (s,!eiRef)
+                     val (s, ei) = addSubst (v2, WITH_FIELD ([], v1, b1))
+                                    (s,!eiRef)
                      val _ = eiRef := ei
                   in
                      s
@@ -440,8 +449,9 @@ end = struct
                    | LESS =>
                      let
                         val newVar = freshTVar ()
+                        val newBVar = BD.freshBVar ()
                         val (f1,ei) = applySubstsToRField s (f1,!eiRef)
-                        val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar)) (s,ei)
+                        val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) (s,ei)
                         val _ = eiRef := ei
                      in
                         unify (v1, newVar, fs1, f2 :: fs2, s)
@@ -449,8 +459,9 @@ end = struct
                    | GREATER =>
                      let
                         val newVar = freshTVar ()
+                        val newBVar = BD.freshBVar ()
                         val (f2,ei) = applySubstsToRField s (f2,!eiRef)
-                        val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar)) (s,ei)
+                        val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) (s,ei)
                         val _ = eiRef := ei
                      in
                         unify (newVar, v2, f1 :: fs1, fs2, s)
@@ -459,8 +470,9 @@ end = struct
                  | unify (v1, v2, f1 :: fs1, [], s) =
                   let
                      val newVar = freshTVar ()
+                     val newBVar = BD.freshBVar ()
                      val (f1,ei) = applySubstsToRField s (f1,!eiRef)
-                     val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar)) (s,ei)
+                     val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) (s,ei)
                      val _ = eiRef := ei
                   in
                      unify (v1, newVar, fs1, [], s)
@@ -468,20 +480,13 @@ end = struct
                  | unify (v1, v2, [], f2 :: fs2, s) =
                   let
                      val newVar = freshTVar ()
+                     val newBVar = BD.freshBVar ()
                      val (f2,ei) = applySubstsToRField s (f2,!eiRef)
-                     val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar)) (s,ei)
+                     val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) (s,ei)
                      val _ = eiRef := ei
                   in
                      unify (newVar, v2, [], fs2, s)
                   end
-               fun applySubsts (v, fs) = (case findSubstForVar (v, s) of
-                    NONE => (v,fs)
-                  | SOME (WITH_FIELD (fs',v')) => (v', List.foldl insertField fs fs')
-                  | SOME (WITH_TYPE (VAR (v',_))) => (v', fs)
-                  | _ => raise SubstitutionBug
-               )
-               val (v1,l1) = applySubsts (v1,l1)
-               val (v2,l2) = applySubsts (v2,l2)
             in
                unify (v1,v2,l1,l2,s)
             end

@@ -212,7 +212,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    
    fun infRhs (st,env) (sym, dec, guard, args, rhs) =
       let
-         (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          fun checkGuard (g,env) =
             let
                val stateVar = VAR (freshTVar (), BD.freshBVar ())
@@ -340,16 +340,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envHave = infExp (st,env) e1
          val env = E.meet (envWant, envHave)
          val env = E.popKappa env
-         (*val envT = infExp (st,env) e2
-         val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)
-         val env = E.popKappa envT
-         val envE = infExp (st,env) e3
-         val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)
-         val env = E.meet (envE,envT)*)
          val envT = infExp (st,env) e2
-         val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)
+         (*val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)*)
          val envE = infExp (st,env) e3
-         val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)
+         (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)*)
          val env = E.meet (envE,envT)
       in
          env
@@ -448,7 +442,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf', env)
          val env = E.reduceToFunction env
-         (*val _ = TextIO.print ("**** rec selector:\n" ^ E.toString env ^ "\n")*)
+         val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")
       in
          env
       end
@@ -466,9 +460,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (nts, env) = List.foldl pushInpField ([], env) fs
          val env = E.reduceToRecord (nts, env)
 
-         val env = E.pushType (false, fieldsVar, env)
+         val fieldsVar' = newFlow fieldsVar
+         val env = E.meetBoolean (BD.meetVarImpliesVar (bvar fieldsVar', bvar fieldsVar), env)
+         val env = E.pushType (false, fieldsVar', env)
          fun pushOutField ((fid,e), (nts, env)) =
             let
+               val _ = TextIO.print ("**** rec update: pushing field " ^ SymbolTable.getString(!SymbolTables.fieldTable, fid) ^ ".\n")
                val env = infExp (st,env) e
                val bVar = BD.freshBVar ()
                val env = E.meetBoolean (BD.meetVarOne bVar, env)
@@ -478,6 +475,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (nts, env) = List.foldl pushOutField ([], env) fs
          val env = E.reduceToRecord (nts, env)
          val env = E.reduceToFunction env
+         val _ = TextIO.print ("**** rec update: function is:\n" ^ E.topToString env ^ "\n")
       in
          env
       end
