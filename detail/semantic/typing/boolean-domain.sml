@@ -20,9 +20,9 @@ structure BooleanDomain : sig
 
    (*val meetNotBoth : bvar * bvar * bfun -> bfun
 
-   val meetEither : bvar * bvar * bfun -> bfun
+   val meetEither : bvar * bvar * bfun -> bfun*)
    
-   val meetEqual : bvar * bvar * bfun -> bfun*)
+   val meetEqual : bvar * bvar * bfun -> bfun
 
    val meetVarZero : bvar -> bfun -> bfun
 
@@ -220,7 +220,7 @@ end = struct
    structure HT = IntHashTable
    exception Bug
    
-   fun expand (l1, l2, (us, cs)) =
+   fun expand (l1, l2, (us, cs)) = if List.null l1 then (us,cs) else
       let
          val h = HT.mkTable (List.length l1, Bug)
          val _ = ListPair.appEq (fn (BVAR v1, (invert, BVAR v2)) =>
@@ -240,6 +240,14 @@ end = struct
                   | (NONE, SOME v2) => (v1,v2) :: set
                   | (SOME v1, SOME v2) => (v1,v2) :: set
                ) [] cs
+         (*val (_,l1Str) = List.foldl (fn (BVAR v,(sep,str)) =>
+                        (",",str ^ sep ^ Int.toString v)) ("","") l1
+         val (_,l2Str) = List.foldl (fn ((_,BVAR v),(sep,str)) =>
+                        (",",str ^ sep ^ Int.toString v)) ("","") l2
+         val _ = TextIO.print ("expanding " ^ l1Str ^ " to " ^ l2Str ^
+                     " by adding " ^
+                     showBFun (US.fromList newUnits, CS.fromList newClauses)
+                     ^ "\n")*)
       in
          List.foldl addClause (addUnits (newUnits, (us, cs))) newClauses
       end
@@ -254,10 +262,10 @@ end = struct
    val b5 = freshBVar ()
    val b6 = freshBVar ()
    
-   val f1 = meetVarImpliesVar(b2,b1,empty)
+   val f1 = meetVarImpliesVar (b2,b1) empty
    val f2 = meetVarImpliesVar(b3,b2,f1)
-   val f3 = meetVarImpliesVar(b4,b3,f2)
-   val f4 = meetVarImpliesVar(b5,b4,meetNotBoth(b1,b4,f3))
-   val f5 = meetVarImpliesVar(b6,b5,meetVarImpliesVar(b1,b6,f4))*)
+   val f3 = meetVarImpliesVar(b4,b3) f2
+   val f4 = meetVarImpliesVar(b5,b4) (meetNotBoth(b1,b4,f3))
+   val f5 = meetVarImpliesVar(b6,b5) (meetVarImpliesVar(b1,b6) f4)*)
    
 end
