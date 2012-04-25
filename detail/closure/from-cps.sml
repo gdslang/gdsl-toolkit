@@ -299,7 +299,7 @@ end = struct
          (fn cps =>
             (FV.run cps
             ;FI.run cps
-            ;FV.dump()
+            (* ;FV.dump() *)
             (* ;FI.dump() *)
             ;ignore(convTerm Subst.empty cps)
             ;Map.listItems (!bindings))) spec : Closure.Spec.t

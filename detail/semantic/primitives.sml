@@ -97,6 +97,8 @@ structure Primitives = struct
         flow = BD.meetVarImpliesVar (bvar stateC, bvar stateC')},
        {name="raise", ty=MONAD (freshVar (),stateD, stateD'),
         flow = noFlow},
+       {name="%and", ty=UNIT, flow = noFlow},
+       {name="%concat", ty=UNIT, flow = noFlow},
        {name=caseExpression, ty=UNIT,
         flow = noFlow},
        (*{name=globalState, ty=state,

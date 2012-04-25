@@ -37,10 +37,61 @@ end = struct
          val slice = get "slice"
          val consume = get "consume"
          val unconsume = get "unconsume"
+         val andd = get "and"
+         val concat = get "^"
 
-         (* val slice k tok offs sz s =
+         (* val and k a b =
+          *    letval x = %and(a,b) in
+          *       k x
+          *)
+         val andd =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primAnd = get "%and"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primAnd, [a, b]),
+                      CC (k, [x]))
+            in
+               (andd, k, [a, b], body)
+            end
+
+         (* val ^ k a b =
+          *    letval x = %concat(a,b) in
+          *       k x
+          *)
+         val concat =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primConcat = get "%concat"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primConcat, [a, b]),
+                      CC (k, [x]))
+            in
+               (concat, k, [a, b], body)
+            end
+
+         (* TODO: fix definition, `%slice` should not take 
+          * the state as argument (is not monadic).
+          *
+          * val slice k tok offs sz s =
           *    letval x = %slice(tok,offs,sz,s) in
           *       k x
+          *
+          * should be
+          *
+          * val slice k tok offs sz =
+          *    letval x = %slice(tok,offs,sz) in
+          *       return k x
           *)
          val slice =
             let
@@ -98,7 +149,7 @@ end = struct
                (unconsume, k, [s], body)
             end
       in
-         [slice, consume, unconsume]
+         [slice, consume, unconsume, andd, concat]
       end
 
    end

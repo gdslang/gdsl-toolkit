@@ -1152,7 +1152,7 @@ structure BetaContFun = struct
 
    fun isInliningCandidate f =
       not (Rec.isRec f) andalso
-         (Set.member (!allwaysInline, f) orelse Census.count f = 1)
+         (Set.member (!allwaysInline, f) orelse Census.count f <> ~1)
 
    fun isInliningCandidateCont k =
       not (Rec.isRec k) orelse Census.count k = 1
@@ -1275,10 +1275,7 @@ structure BetaContFun = struct
                            val _ = click()
                            val _ = markInlined k
                            val sigma = Subst.extendAll sigma ys xs
-                           val K =
-                              if Census.count k > 1
-                                 then Subst.rename sigma (simplify env sigma K)
-                              else simplify env sigma K
+                           val K = Subst.rename sigma (simplify env sigma K)
                         in
                            K
                         end
@@ -1296,6 +1293,21 @@ structure BetaContFun = struct
                   if not (isInliningCandidate f) then APP (f, j, ys)
                   else if length xs > length ys
                      then
+                        (* let
+                           val _ = click()
+                           val _ = markInlined f
+                           val ly = length ys
+                           val lx = length xs
+                           val f' = Aux.fresh Aux.function
+                           val applied = List.take(xs, ly)
+                           val missing = List.drop(xs, ly)
+                           val (sigma, k) = Subst.renameOne sigma k
+                           val (sigma, missing) = Subst.renameAll sigma missing
+                           val sigma = Subst.extendAll sigma ys applied
+                           val K = Subst.rename sigma (simplify env sigma K)
+                        in
+                           LETVAL (f', FN (k, missing, K), CC (j, [f']))
+                        end *)
                         let
                            val _ = click()
                            (* val _ = markInlined f *)
@@ -1319,6 +1331,7 @@ structure BetaContFun = struct
                                  CC (k', [h']))),
                               CC (j', [g'])))
                         end
+
                   else if length xs = length ys
                      then 
                         let
@@ -1327,7 +1340,7 @@ structure BetaContFun = struct
                            val sigma = Subst.extend sigma j k
                            val sigma = Subst.extendAll sigma ys xs
                            val K = 
-                              if Census.count f > 1
+                              if Census.count f <> 1
                                  then Subst.rename sigma (simplify env sigma K)
                               else simplify env sigma K
                         in

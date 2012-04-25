@@ -57,9 +57,23 @@ val binop cons giveOp1 giveOp2 = do
    return (cons {op1=op1, op2=op2})
 end
 
-val main [0x83 /0] = binop MOV r64 r64
+val & giveA giveB = do
+   a <- giveA;
+   b <- giveB;
+   return (a andalso b)
+end
 
-#val main [0x83 /1] = binop OR r64 r/m64
+val rexw? = query $rexw
+val otherwise = return '1'
+
+val main [0x83 /0]
+ | rexw? & rexw? = binop MOV r64 r64
+ | otherwise = binop MOV r/m64 r/m64
+
+val main [0x83 /1]
+  | rexw? & rexw? = binop OR r64 r/m64
+  | otherwise = binop OR r64 r/m64
+
 #val main [0x83 /2] = binop ADC r64 r/m64
 #val main [0x83 /3] = binop SBB r64 r/m64
 #val main [0x83 /4] = binop AND r64 r/m64
