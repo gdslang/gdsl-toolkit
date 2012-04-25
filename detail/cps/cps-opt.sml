@@ -42,10 +42,9 @@ structure Census = struct
    fun update n x = let
       val () = touch x
    in
-      census :=
-         SymMap.unionWith
-            op+
-            (SymMap.singleton (x, n), !census)
+      case SymMap.find (!census, x) of
+         NONE => census := SymMap.insert (!census, x, n)
+       | SOME m => census := SymMap.insert (!census, x, n+m)
    end
 
    fun visitTerm n cps =
@@ -654,6 +653,8 @@ structure FunInfo = struct
    fun getCont (C x) = x
      | getCont _ = raise Match
 
+   fun member k = Map.inDomain (!env, k)
+
    val lookupFun = lookup getFun
    val lookupCont = lookup getCont
    val findFun = find getFun
@@ -665,6 +666,7 @@ structure FunInfo = struct
             (visitTerm K
             ;bindFun (f, (k, xs, K))
             ;visitTerm L)
+       | LETVAL (x, v, L) => visitTerm L
        | LETPRJ (_, _, _, body) => visitTerm body
        | LETUPD (_, _, _, body) => visitTerm body
        | LETCONT (cs, body) =>
@@ -679,6 +681,13 @@ structure FunInfo = struct
             ;visitTerm body)
        | _ => ()
    fun run t = (reset();visitTerm t)
+
+   fun dump () =
+      Pretty.prettyTo
+         (TextIO.stdOut,
+          Pretty.symmap
+            {key=CPS.PP.var,
+             item=fn _ => Pretty.empty} (!env))
 end
 
 structure BetaPair :> sig
@@ -1145,6 +1154,9 @@ structure BetaContFun = struct
       not (Rec.isRec f) andalso
          (Set.member (!allwaysInline, f) orelse Census.count f = 1)
 
+   fun isInliningCandidateCont k =
+      not (Rec.isRec k) orelse Census.count k = 1
+
    datatype t =
       F of Var.c * Var.v list * term
     | C of Var.v list * term
@@ -1252,7 +1264,7 @@ structure BetaContFun = struct
             val k = Subst.apply sigma k
             val ys = Subst.applyAll sigma ys
          in
-            if Rec.isRec k then CC (k, ys)
+            if not (isInliningCandidateCont k) then CC (k, ys)
             else
                case findCont (env, k) of
                   NONE => CC (k, ys)

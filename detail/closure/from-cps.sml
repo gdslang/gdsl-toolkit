@@ -7,6 +7,7 @@ end = struct
 
    structure CM = CompilationMonad
    structure FV = FreeVars
+   structure FI = FunInfo
    structure Map = SymMap
    structure Set = SymSet
    structure Clos = Closure.Stmt
@@ -19,7 +20,6 @@ end = struct
 
    fun conv spec = let
      
-      val functions = ref Set.empty
       val bindings = ref Map.empty
 
       fun bindFun (f, closure, k, xs, body) =
@@ -45,8 +45,7 @@ end = struct
                    xs=xs,
                    body=body})
 
-      fun defFn f = functions := Set.add (!functions, f)
-      fun boundFn f = Set.member (!functions, f)
+      fun boundFn f = FI.member f
 
       fun mapi f xs = 
          let
@@ -225,7 +224,6 @@ end = struct
             val fs = free sigma f
             val ys = Subst.copyAll fs
             val sigma = Subst.extendAll sigma ys fs
-            val _ = defFn f
             val body = convTerm sigma body
             val env = fresh closure
          in
@@ -300,7 +298,9 @@ end = struct
       Spec.upd
          (fn cps =>
             (FV.run cps
-            (*;FV.dump()*)
+            ;FI.run cps
+            ;FV.dump()
+            (* ;FI.dump() *)
             ;ignore(convTerm Subst.empty cps)
             ;Map.listItems (!bindings))) spec : Closure.Spec.t
    end
