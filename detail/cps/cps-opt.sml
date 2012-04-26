@@ -309,8 +309,9 @@ structure Subst = struct
       end
 
    local open CPS.Exp in
-   
-   fun rename sigma cps =
+  
+   fun renameTerm cps = rename empty cps
+   and rename sigma cps =
       case cps of
          LETVAL (x, v, t) =>
             let
@@ -688,6 +689,32 @@ structure FunInfo = struct
           Pretty.symmap
             {key=CPS.PP.var,
              item=fn _ => Pretty.empty} (!env))
+end
+
+structure Cost = struct
+   open CPS CPS.Exp
+  
+   fun inlineCandidate t =
+      let
+         fun lp (t, n) =
+            case t of
+               LETVAL (_, FN (k, xs, K), L) => lp (K, lp (L, n))
+             | LETVAL (_, _, body) => lp (body, n)
+             | LETPRJ (_, _, _, body) => lp (body, n)
+             | LETUPD (_, _, _, body) => lp (body, n)
+             | LETCONT (cs, body) =>
+               foldl
+                  (fn ((_, _, body), n) =>
+                     lp (body, n)) (lp (body, n)) cs
+             | LETREC (ds, body) =>
+               foldl
+                  (fn ((_, _, _, body), n) =>
+                     lp (body, n)) (lp (body, n)) ds
+             | CASE _ => n+1
+             | _ => n
+      in
+         lp (t, 0) = 0
+      end
 end
 
 structure BetaPair :> sig
@@ -1148,14 +1175,20 @@ structure BetaContFun = struct
           Aux.get "unconsume",
           Aux.get "slice",
           Aux.get "update",
-          Aux.get "query"]
+          Aux.get "query",
+          Aux.get "and",
+          Aux.get "^"]
 
-   fun isInliningCandidate f =
+   fun isInliningCandidate f body =
       not (Rec.isRec f) andalso
-         (Set.member (!allwaysInline, f) orelse Census.count f <> ~1)
+         (Set.member (!allwaysInline, f) orelse
+          Census.count f = 1 orelse
+          Cost.inlineCandidate body)
 
-   fun isInliningCandidateCont k =
-      not (Rec.isRec k) orelse Census.count k = 1
+   fun isInliningCandidateCont k body =
+      not (Rec.isRec k) andalso 
+       (Census.count k = 1 orelse
+        Cost.inlineCandidate body)
 
    datatype t =
       F of Var.c * Var.v list * term
@@ -1264,21 +1297,21 @@ structure BetaContFun = struct
             val k = Subst.apply sigma k
             val ys = Subst.applyAll sigma ys
          in
-            if not (isInliningCandidateCont k) then CC (k, ys)
-            else
-               case findCont (env, k) of
-                  NONE => CC (k, ys)
-                | SOME (xs, K) =>
-                     if length xs <> length ys then CC (k, ys)
-                     else
-                        let
-                           val _ = click()
-                           val _ = markInlined k
-                           val sigma = Subst.extendAll sigma ys xs
-                           val K = Subst.rename sigma (simplify env sigma K)
-                        in
-                           K
-                        end
+            case findCont (env, k) of
+               NONE => CC (k, ys)
+             | SOME (xs, K) =>
+                  if not (isInliningCandidateCont k K) then CC (k, ys)
+                  else if length xs <> length ys
+                     then CC (k, ys)
+                  else
+                     let
+                        val _ = click()
+                        val _ = markInlined k
+                        val sigma = Subst.extendAll sigma ys xs
+                        val K = Subst.renameTerm (simplify env sigma K)
+                     in
+                        K
+                     end
          end
       | APP (f, j, ys) =>
          let
@@ -1290,7 +1323,7 @@ structure BetaContFun = struct
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
                   (* XXX: proper alpha renaming on all paths... *)
-                  if not (isInliningCandidate f) then APP (f, j, ys)
+                  if not (isInliningCandidate f K) then APP (f, j, ys)
                   else if length xs > length ys
                      then
                         (* let
@@ -1341,7 +1374,7 @@ structure BetaContFun = struct
                            val sigma = Subst.extendAll sigma ys xs
                            val K = 
                               if Census.count f <> 1
-                                 then Subst.rename sigma (simplify env sigma K)
+                                 then Subst.renameTerm (simplify env sigma K)
                               else simplify env sigma K
                         in
                            K
