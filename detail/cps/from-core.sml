@@ -39,6 +39,8 @@ end = struct
          val unconsume = get "unconsume"
          val andd = get "and"
          val concat = get "^"
+         val == = get "=="
+         val not = get "not"
 
          (* val and k a b =
           *    letval x = %and(a,b) in
@@ -58,6 +60,45 @@ end = struct
                       CC (k, [x]))
             in
                (andd, k, [a, b], body)
+            end
+
+         (* val == k a b =
+          *    letval x = %equal(a,b) in
+          *       k x
+          *)
+         val == =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primEqual = get "%equal"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primEqual, [a, b]),
+                      CC (k, [x]))
+            in
+               (==, k, [a, b], body)
+            end
+
+         (* val not k a =
+          *    letval x = %not(a) in
+          *       k x
+          *)
+         val not =
+            let
+               val a = fresh "a"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primNot = get "%not"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primNot, [a]),
+                      CC (k, [x]))
+            in
+               (not, k, [a], body)
             end
 
          (* val ^ k a b =
@@ -149,7 +190,7 @@ end = struct
                (unconsume, k, [s], body)
             end
       in
-         [slice, consume, unconsume, andd, concat]
+         [slice, consume, unconsume, andd, not, ==, concat]
       end
 
    end

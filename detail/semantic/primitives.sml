@@ -98,6 +98,8 @@ structure Primitives = struct
        {name="raise", ty=MONAD (freshVar (),stateD, stateD'),
         flow = noFlow},
        {name="%and", ty=UNIT, flow = noFlow},
+       {name="%not", ty=UNIT, flow = noFlow},
+       {name="%equal", ty=UNIT, flow = noFlow},
        {name="%concat", ty=UNIT, flow = noFlow},
        {name=caseExpression, ty=UNIT,
         flow = noFlow},

@@ -29,6 +29,11 @@ structure Census = struct
          NONE => ~1
        | SOME i => i
 
+   fun count0 x =
+      case SymMap.find (!census, x) of
+         NONE => 0
+       | SOME i => i
+
    fun copy {src, dst} = 
       case SymMap.find (!census, src) of
          SOME i => census := SymMap.insert (!census, dst, i)
@@ -39,13 +44,25 @@ structure Census = struct
          NONE => census := SymMap.insert (!census, x, 0)
        | _ => ()
 
-   fun update n x = let
-      val () = touch x
-   in
+   fun update n x =
       case SymMap.find (!census, x) of
          NONE => census := SymMap.insert (!census, x, n)
        | SOME m => census := SymMap.insert (!census, x, n+m)
-   end
+
+   fun remove x =
+      if SymMap.inDomain (!census, x)
+         then #1 (SymMap.remove (!census, x))
+      else !census
+
+   fun extend x y =
+      case SymMap.find (!census, y) of
+         NONE => census := remove x
+       | SOME n =>
+            census :=
+               (case SymMap.find (!census, x) of
+                  NONE => remove x
+                | SOME 1 => SymMap.insert (!census, x, 1)
+                | SOME m => SymMap.insert (!census, x, m+n))
 
    fun visitTerm n cps =
       case cps of
@@ -274,7 +291,8 @@ structure Subst = struct
          NONE => x
        | SOME y => y
    fun applyAll sigma xs = map (apply sigma) xs
-   fun extend sigma x y = SymMap.insert (sigma, y, x)
+   fun extend sigma x y =
+      SymMap.insert (sigma, y, x)
    fun extendAll sigma xs ys =
       foldl
          (fn ((y, x), sigma) =>
@@ -285,7 +303,6 @@ structure Subst = struct
       let
          val name = Aux.atomOf x
          val x' = Aux.fresh name
-         val _ = Census.copy {src=x, dst=x'}
       in
          x'
       end
@@ -660,7 +677,7 @@ structure FunInfo = struct
    val lookupCont = lookup getCont
    val findFun = find getFun
    val findCont = find getCont
-  
+
    fun visitTerm t =
       case t of
          LETVAL (f, FN (k, xs, K), L) =>
@@ -683,6 +700,8 @@ structure FunInfo = struct
        | _ => ()
    fun run t = (reset();visitTerm t)
 
+   fun app f = Map.app f (!env)
+
    fun dump () =
       Pretty.prettyTo
          (TextIO.stdOut,
@@ -693,28 +712,45 @@ end
 
 structure Cost = struct
    open CPS CPS.Exp
-  
-   fun inlineCandidate t =
+   structure FI = FunInfo
+   structure Set = SymSet
+   
+   val env = ref Set.empty
+   fun reset () = env := Set.empty
+
+   fun isInliningCandidate t =
       let
          fun lp (t, n) =
             case t of
-               LETVAL (_, FN (k, xs, K), L) => lp (K, lp (L, n))
+               LETVAL (_, FN (k, xs, K), L) => lp (K, lp (L, n)+1)
              | LETVAL (_, _, body) => lp (body, n)
              | LETPRJ (_, _, _, body) => lp (body, n)
              | LETUPD (_, _, _, body) => lp (body, n)
              | LETCONT (cs, body) =>
                foldl
                   (fn ((_, _, body), n) =>
-                     lp (body, n)) (lp (body, n)) cs
+                     lp (body, n)) (lp (body, n)+1) cs
              | LETREC (ds, body) =>
                foldl
                   (fn ((_, _, _, body), n) =>
-                     lp (body, n)) (lp (body, n)) ds
-             | CASE _ => n+1
+                     lp (body, n)) (lp (body, n)+1) ds
+             | CASE (_, cs) => n+List.length cs
              | _ => n
       in
-         lp (t, 0) = 0
+         lp (t, 0) <= 3
       end
+   fun mark () =
+      FI.app
+         (fn FI.F (f, k, xs, body) =>
+               if isInliningCandidate body
+                  then env := Set.add (!env, f)
+               else ()
+           | FI.C (k, xs, body) =>
+               if isInliningCandidate body
+                  then env := Set.add (!env, k)
+               else ())
+   fun inlineCandidate f = Set.member (!env, f)
+   fun run () = (reset();mark()) 
 end
 
 structure BetaPair :> sig
@@ -1150,6 +1186,7 @@ structure DeadVal = struct
 end
 
 structure BetaContFun = struct
+   structure FI = FunInfo
    structure Map = SymMap
    structure Set = SymSet
    open CPS CPS.Exp
@@ -1183,12 +1220,12 @@ structure BetaContFun = struct
       not (Rec.isRec f) andalso
          (Set.member (!allwaysInline, f) orelse
           Census.count f = 1 orelse
-          Cost.inlineCandidate body)
+          Cost.inlineCandidate f)
 
    fun isInliningCandidateCont k body =
       not (Rec.isRec k) andalso 
-       (Census.count k = 1 orelse
-        Cost.inlineCandidate body)
+         (Census.count k = 1 orelse
+          Cost.inlineCandidate k)
 
    datatype t =
       F of Var.c * Var.v list * term
@@ -1308,7 +1345,10 @@ structure BetaContFun = struct
                         val _ = click()
                         val _ = markInlined k
                         val sigma = Subst.extendAll sigma ys xs
-                        val K = Subst.renameTerm (simplify env sigma K)
+                        val K =
+                           if Census.count k <> 1
+                              then Subst.renameTerm (simplify env sigma K)
+                           else Subst.renameTerm (simplify env sigma K)
                      in
                         K
                      end
@@ -1322,6 +1362,222 @@ structure BetaContFun = struct
             case findFun (env, f) of
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
+                  if not (isInliningCandidate f K) then APP (f, j, ys)
+                  else if length xs > length ys
+                     then
+                        let
+                           val _ = click()
+                           (* val _ = markInlined f *)
+                           val ly = length ys
+                           val lx = length xs
+                           val f' = Aux.fresh Aux.function
+                           val j' = Aux.fresh Aux.continuation
+                           val k' = Aux.fresh Aux.continuation
+                           val c' = Aux.fresh Aux.continuation
+                           val g' = Aux.fresh Aux.function
+                           val h' = Aux.fresh Aux.function
+                           val applied = List.take(xs, ly)
+                           val missing = List.drop(xs, ly)
+                           val (_, applied) = Subst.renameAll sigma applied
+                           val (_, missing) = Subst.renameAll sigma missing
+                        in
+                           LETCONT ([(j', [f'], APP (f', j, ys))],
+                              LETVAL (g', FN (k', applied,
+                                 LETVAL (h', FN (c', missing,
+                                    APP (f, c', applied@missing)),
+                                 CC (k', [h']))),
+                              CC (j', [g'])))
+                        end
+
+                  else if length xs = length ys
+                     then 
+                        let
+                           val _ = click()
+                           val _ = markInlined f
+                           val sigma = Subst.extend sigma j k
+                           val sigma = Subst.extendAll sigma ys xs
+                           val K = 
+                              if Census.count f <> 1
+                                 then Subst.renameTerm (simplify env sigma K)
+                              else Subst.renameTerm (simplify env sigma K)
+                        in
+                           K
+                        end
+                  else APP (f, j, ys)
+         end
+   
+   and simplifyVal env sigma v =
+      case v of
+         FN (k, x, t) => FN (k, x, simplify env sigma t)
+       | INJ (t, x) => INJ (t, Subst.apply sigma x)
+       | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
+       | otherwise => otherwise
+  
+   val name = "betaContFun"
+   fun run t =
+      let
+         val _ = reset ()
+         val _ = registerAllwaysInline ()
+         val _ = Rec.run t
+         val _ = FI.run t
+         val _ = Census.run t
+         val _ = Cost.run()
+         val t' = simplify Map.empty Subst.empty t
+      in
+         (t', !clicks)
+      end
+end
+
+
+(* structure BetaContFun0 = struct
+   structure FI = FunInfo
+   structure Map = SymMap
+   structure Set = SymSet
+   open CPS CPS.Exp
+
+   val clicks = ref 0
+   val inlined = ref Set.empty
+   fun click () = clicks := !clicks + 1
+   fun reset () = (clicks := 0; inlined := Set.empty)
+
+   fun markInlined f =
+      inlined := Set.add (!inlined, f)
+   fun usedLinearly f =
+      Census.count f = 1
+      andalso Set.member (!inlined, f)
+
+   val allwaysInline = ref Set.empty
+   fun registerAllwaysInline () = 
+      allwaysInline := Set.fromList
+         [Aux.get ">>",
+          Aux.get "return",
+          Aux.get ">>=",
+          Aux.get "consume",
+          Aux.get "unconsume",
+          Aux.get "slice",
+          Aux.get "update",
+          Aux.get "query",
+          Aux.get "and",
+          Aux.get "^"]
+
+   fun isInliningCandidate f body =
+      not (Rec.isRec f) andalso
+         (Set.member (!allwaysInline, f) orelse
+          Census.count f = 1 orelse
+          Cost.inlineCandidate body)
+
+   fun isInliningCandidateCont k body =
+      not (Rec.isRec k) andalso 
+       (Census.count k = 1 orelse
+        Cost.inlineCandidate body)
+
+   datatype t =
+      F of Var.c * Var.v list * term
+    | C of Var.v list * term
+
+   fun insertFun (env, f, body) = Map.insert (env, f, F body)
+   fun insertCont (env, k, body) = Map.insert (env, k, C body)
+
+   fun lookup s (env, f) = s (Map.lookup (env, f))
+   fun find s (env, f) = Option.map s (Map.find (env, f))
+
+   fun getFun (F x) = x
+     | getFun _ = raise Match
+   fun getCont (C x) = x
+     | getCont _ = raise Match
+
+   val lookupFun = lookup getFun
+   val lookupCont = lookup getCont
+   val findFun = find getFun
+   val findCont = find getCont
+
+   fun simplifyTerm sigma t =
+      case t of
+         LETVAL (f, FN (k, xs, K), L) =>
+            let
+               val K = simplifyTerm sigma K
+               val L = simplifyTerm sigma L
+            in
+               if usedLinearly f
+                  then L
+               else LETVAL (f, FN (k, xs, K), L)
+            end
+      | LETVAL (x, v, L) =>
+        LETVAL
+            (x,
+             simplifyVal sigma v,
+             simplifyTerm sigma L)
+      | LETPRJ (x, f, y, t) =>
+         LETPRJ
+            (x,
+             f,
+             Subst.apply sigma y,
+             simplifyTerm sigma t)
+      | LETUPD (x, y, fs, t) =>
+         LETUPD
+            (x,
+             Subst.apply sigma y,
+             map (fn (f, z) => (f, Subst.apply sigma z)) fs,
+             simplifyTerm sigma t)
+      | CASE (x, cs) =>
+         CASE
+            (Subst.apply sigma x,
+             map
+               (fn (tags,(k,xs)) =>
+                  (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
+      | LETREC (ds, body) =>
+         let
+            val ds =
+               map (fn (f, k, xs, body) =>
+                  (f, k, xs, simplifyTerm sigma body)) ds
+            val body = simplifyTerm sigma body
+         in
+            case List.filter (fn (f, _, _, _) => not (usedLinearly f)) ds of
+               [] => body
+             | ds => LETREC (ds, body)
+         end
+      | LETCONT (cs, body) =>
+         let
+            val cs = 
+               map (fn (k, xs, body) =>
+                  (k, xs, simplifyTerm sigma body)) cs
+            val body = simplifyTerm sigma body
+         in
+            case List.filter (fn (k, _, _) => not (usedLinearly k)) cs of
+               [] => body
+             | cs => LETCONT (cs, body)
+         end
+      | CC (k, ys) =>
+         let
+            val k = Subst.apply sigma k
+            val ys = Subst.applyAll sigma ys
+         in
+            case FI.findCont k of
+               NONE => CC (k, ys)
+             | SOME (_, xs, K) =>
+                  if not (isInliningCandidateCont k K) then CC (k, ys)
+                  else if length xs <> length ys
+                     then CC (k, ys)
+                  else
+                     let
+                        val _ = click()
+                        val _ = markInlined k
+                        val sigma = Subst.extendAll sigma ys xs
+                        val K = Subst.renameTerm (simplifyTerm sigma K)
+                     in
+                        K
+                     end
+         end
+      | APP (f, j, ys) =>
+         let
+            val f = Subst.apply sigma f
+            val j = Subst.apply sigma j
+            val ys = Subst.applyAll sigma ys
+         in
+            case FI.findFun f of
+               NONE => APP (f, j, ys)
+             | SOME (_, k, xs, K) =>
                   (* XXX: proper alpha renaming on all paths... *)
                   if not (isInliningCandidate f K) then APP (f, j, ys)
                   else if length xs > length ys
@@ -1337,7 +1593,7 @@ structure BetaContFun = struct
                            val (sigma, k) = Subst.renameOne sigma k
                            val (sigma, missing) = Subst.renameAll sigma missing
                            val sigma = Subst.extendAll sigma ys applied
-                           val K = Subst.rename sigma (simplify env sigma K)
+                           val K = Subst.rename sigma (simplifyTerm sigma K)
                         in
                            LETVAL (f', FN (k, missing, K), CC (j, [f']))
                         end *)
@@ -1374,17 +1630,17 @@ structure BetaContFun = struct
                            val sigma = Subst.extendAll sigma ys xs
                            val K = 
                               if Census.count f <> 1
-                                 then Subst.renameTerm (simplify env sigma K)
-                              else simplify env sigma K
+                                 then Subst.renameTerm (simplifyTerm sigma K)
+                              else simplifyTerm sigma K
                         in
                            K
                         end
                   else APP (f, j, ys)
          end
    
-   and simplifyVal env sigma v =
+   and simplifyVal sigma v =
       case v of
-         FN (k, x, t) => FN (k, x, simplify env sigma t)
+         FN (k, x, t) => raise Fail "betaContFun.simplifyVal.bug"
        | INJ (t, x) => INJ (t, Subst.apply sigma x)
        | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
        | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
@@ -1397,10 +1653,10 @@ structure BetaContFun = struct
          val _ = registerAllwaysInline ()
          val _ = Rec.run t
          val _ = Census.run t
-         val t' = simplify Map.empty Subst.empty t
+         val _ = FI.run t
+         val t' = simplifyTerm Subst.empty t
       in
          (t', !clicks)
       end
 end
-
-
+*)
