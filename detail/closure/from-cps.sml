@@ -254,7 +254,7 @@ end = struct
           | STR s => [Clos.LETVAL (x, Clos.STR s)]
           | VEC v => [Clos.LETVAL (x, Clos.VEC v)]
           | UNT => [Clos.LETVAL (x, Clos.UNT)]
-          | FN _ => raise CM.CompilationError
+          | FN _ => raise Fail "closureConversion.bug"
 
       and useAll sigma xs k =
          let
@@ -266,11 +266,13 @@ end = struct
                         then
                            let
                               val fs = freeUse sigma x
+                              val l = fresh label
                               val closure = fresh closure
                            in
                               lp (xs,
-                                  Clos.LETENV
-                                    (closure, x::fs)::lets,
+                                  Clos.LETENV (closure, l::fs)::
+                                  Clos.LETVAL (l, Clos.LAB x)::
+                                  lets,
                                   closure::ys)
                            end
                      else lp (xs, lets, x::ys)
@@ -287,9 +289,12 @@ end = struct
                then
                   let
                      val fs = freeUse sigma x
+                     val l = fresh label
                      val closure = fresh closure
                   in
-                     Clos.LETENV (closure, x::fs)::k closure
+                     Clos.LETENV (closure, x::fs)::
+                     Clos.LETVAL (l, Clos.LAB x)::
+                     k closure
                   end
             else k x
          end
