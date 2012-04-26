@@ -41,6 +41,7 @@ end = struct
          val concat = get "^"
          val == = get "=="
          val not = get "not"
+         val raisee = get "raise"
 
          (* val and k a b =
           *    letval x = %and(a,b) in
@@ -121,6 +122,25 @@ end = struct
                (concat, k, [a, b], body)
             end
 
+         (* val ^ k a b =
+          *    letval x = %concat(a,b) in
+          *       k x
+          *)
+         val raisee =
+            let
+               val a = fresh "a"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primRaise = get "%raise"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primRaise, [a]),
+                      CC (k, [x]))
+            in
+               (raisee, k, [a], body)
+            end
+
          (* TODO: fix definition, `%slice` should not take 
           * the state as argument (is not monadic).
           *
@@ -190,7 +210,7 @@ end = struct
                (unconsume, k, [s], body)
             end
       in
-         [slice, consume, unconsume, andd, not, ==, concat]
+         [slice, consume, unconsume, andd, not, ==, concat, raisee]
       end
 
    end
