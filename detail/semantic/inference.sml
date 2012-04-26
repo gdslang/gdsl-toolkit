@@ -465,7 +465,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.pushType (false, fieldsVar', env)
          fun pushOutField ((fid,e), (nts, env)) =
             let
-               val _ = TextIO.print ("**** rec update: pushing field " ^ SymbolTable.getString(!SymbolTables.fieldTable, fid) ^ ".\n")
+               (*val _ = TextIO.print ("**** rec update: pushing field " ^ SymbolTable.getString(!SymbolTables.fieldTable, fid) ^ ".\n")*)
                val env = infExp (st,env) e
                val bVar = BD.freshBVar ()
                val env = E.meetBoolean (BD.meetVarOne bVar, env)
@@ -475,7 +475,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (nts, env) = List.foldl pushOutField ([], env) fs
          val env = E.reduceToRecord (nts, env)
          val env = E.reduceToFunction env
-         val _ = TextIO.print ("**** rec update: function is:\n" ^ E.topToString env ^ "\n")
+         (*val _ = TextIO.print ("**** rec update: function is:\n" ^ E.topToString env ^ "\n")*)
       in
          env
       end

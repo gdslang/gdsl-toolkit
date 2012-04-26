@@ -929,8 +929,13 @@ end = struct
          fun genImpl ((contra1,f1), (contra2,f2),bFun) =
             if contra1<>contra2 then (TextIO.print ("cannot gen impl flow from\n" ^ topToString env1 ^ "to\n" ^ topToString env2); raise InferenceBug) else
             if BD.eq(f1,f2) then bFun else
-            if contra1 then BD.meetVarImpliesVar (f2,f1) bFun
-            else BD.meetVarImpliesVar (f1,f2) bFun
+            let
+               val _ = TextIO.print ("add directed flow: " ^ BD.showVar f1 ^
+                  (if contra1 then "<-" else "->") ^ BD.showVar f2 ^ "\n")
+            in
+               if contra1 then BD.meetVarImpliesVar (f2,f1) bFun
+               else BD.meetVarImpliesVar (f1,f2) bFun
+            end
          fun flowForType (t1,t2,bFun) =
             if directed then
                (t1,
@@ -1164,16 +1169,15 @@ end = struct
          val (e2Str', si) = topToStringSI (env2,si)
 
          val (substs, ei) = unify (env1, env2, (emptySubsts, emptyExpandInfo))
-         val (scs, consRef) = env1
+         (*val (scs, consRef) = env1
          val (_, consRef') = env2
          val _ = if consRef<>consRef' then raise InferenceBug else ()
          val (bFun, sCons) = !consRef
-         val (sCons, substs) = applySizeConstraints (sCons, substs)
          val bFun = applyExpandInfo ei bFun
             handle (BD.Unsatisfiable bVar) =>
                flowError (bVar, NONE, [env1,env2])
          val _ = consRef := (bFun, sCons)
-         val env1 = (scs,consRef)
+         val env1 = (scs,consRef)*)
       
          val (env1,env2) = mergeUses (env1, env2)
          
@@ -1185,10 +1189,11 @@ end = struct
          val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str' ^ "++++ intersected with\n" ^ e2Str' ^ "++++ expand info due to unification:\n" ^ e0Str)
 
          val (ei, env) =
-            applySubsts (substs, emptyExpandInfo, directed, env1, env2)
+            applySubsts (substs, ei, directed, env1, env2)
 
          val (scs, consRef) = env
          val (bFun, sCons) = !consRef
+         val (sCons, substs) = applySizeConstraints (sCons, substs)
          val bFun = applyExpandInfo ei bFun
             handle (BD.Unsatisfiable bVar) =>
                flowError (bVar, NONE, [env,env1,env2])

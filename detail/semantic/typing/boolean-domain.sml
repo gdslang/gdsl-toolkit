@@ -46,7 +46,7 @@ structure BooleanDomain : sig
    
    val meet : bfun * bfun -> bfun
    
-   val b1 : bvar
+   (*val b1 : bvar
    val b2 : bvar
    val b3 : bvar
    val b4 : bvar
@@ -57,7 +57,7 @@ structure BooleanDomain : sig
    val f2 : bfun
    val f3 : bfun
    val f4 : bfun
-   val f5 : bfun
+   val f5 : bfun*)
 
 end = struct
 
@@ -136,7 +136,7 @@ end = struct
          val units = CS.foldl calcUnits vs withV
          (*val _ = TextIO.print ("\nsolving by asserting " ^ i v ^
                                ", giving units " ^ showUS (US.fromList units) ^
-                               "due to" ^ showBFun (US.empty, withV))*)
+                               "due to" ^ showBFun (US.empty, withV) ^ ".\n")*)
       in
          addUnits (units, (US.add' (v,us), withoutV))
       end
@@ -157,7 +157,7 @@ end = struct
    fun meetNotBoth (BVAR v1, BVAR v2, f) = addClause ((~v1,~v2),f)
    fun meetEither (BVAR v1, BVAR v2, f) = addClause ((v1,v2),f)
    fun meetEqual  (BVAR v1, BVAR v2, f) =
-      if v1=v2 then f else addClause ((~v1,v2), addClause ((~v1,v2),f))
+      if v1=v2 then f else addClause ((~v1,v2), addClause ((~v2,v1),f))
 
    fun meetVarOne (BVAR v) f = (
          (*TextIO.print ("\nmeet with " ^ i v ^ " = t\n");*)
@@ -255,7 +255,7 @@ end = struct
    fun meet ((us, cs), f) =
       CS.foldl addClause (addUnits (US.listItems us,f)) cs
    
-   val b1 = freshBVar ()
+   (*val b1 = freshBVar ()
    val b2 = freshBVar ()
    val b3 = freshBVar ()
    val b4 = freshBVar ()
@@ -267,5 +267,5 @@ end = struct
    val f3 = meetVarImpliesVar(b4,b3) f2
    val f4 = meetVarImpliesVar(b5,b4) (meetNotBoth(b1,b4,f3))
    val f5 = meetVarImpliesVar(b6,b5) (meetVarImpliesVar(b1,b6) f4)
-   
+   *)
 end
