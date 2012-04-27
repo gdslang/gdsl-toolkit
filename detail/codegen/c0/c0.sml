@@ -51,13 +51,15 @@ structure Mangle = struct
             case c of
                #"%" => "__"
              | #"#" => "_"
-             | #"<" => "lt"
-             | #">" => "gt"
-             | #"=" => "eq"
-             | #"!" => "ex"
-             | #"*" => "star"
-             | #"-" => "minus"
-             | #"^" => "concat"
+             | #"<" => "_lt_"
+             | #">" => "_gt_"
+             | #"=" => "_eq_"
+             | #"!" => "_ex_"
+             | #"*" => "_star_"
+             | #"-" => "_minus_"
+             | #"^" => "_concat_"
+             | #"/" => "_slash_"
+             | #"?" => "_q_"
              | _ => String.str c
       in
          String.translate tf s
@@ -306,7 +308,8 @@ structure C = struct
                                PrettyC.call' ("__RECORD_END", args)])]
                   end
              | UNT => PrettyC.local1(x, str "__UNIT")
-             | _ => raise Fail "unimplemented letval binding"
+             | STR s => (* TODO *) PrettyC.local1(x, str "__UNIT")
+             | _ => (* TODO *) raise Fail "unimplemented letval binding"
 
          fun emitFlow f =
             case f of

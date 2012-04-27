@@ -54,7 +54,6 @@ structure CPS = struct
       open CCTab
       val ccs = SymbolTables.varTable
       val kont = Atom.atom "k"
-      fun cvar id = Layout.str (getString (!ccs, id))
    end
 
    structure Fold = struct
@@ -99,7 +98,7 @@ structure CPS = struct
       val var = Core.PP.var
       val con = Core.PP.con
       val fld = Core.PP.fld
-      val cvar = CCTab.cvar
+      val cvar = var
       val is = seq [space, str "=", space]
       val inn = seq [space, str "in"]
       fun isLetvalLike body =
@@ -144,28 +143,16 @@ structure CPS = struct
                align
                   [seq [str "case", space, var v, space, str "of"],
                    cases ks]
-          | APP (f, c, [x]) => seq [var f, space, cvar c, space, var x]
-          | APP (f, c, xs) =>
-               seq
-                  [var f, space, cvar c, space,
-                   listex "(" ")" "," (map var xs)]
-          | CC (c, []) => cvar c
-          | CC (c, [v]) => seq [cvar c, space, var v]
-          | CC (c, vs) => seq [cvar c, space, listex "(" ")" "," (map var vs)]
-      and vars xs = seq (separate (map var xs, " "))
+          | APP (f, c, xs) => seq [var f, vars (c::xs)]
+          | CC (c, vs) => seq [cvar c, vars vs]
+      and vars xs = seq [lp, seq (separate (map var xs, ",")), rp]
       and cval v =
          case v of
             FN (c, xs, body) =>
                align
-                  [seq [str "\\", cvar c, space, vars xs, str "."],
+                  [seq [str "\\", vars (c::xs), str "."],
                    indent 3 (term body)]
-          | PRI (f, xs) =>
-               seq
-                  [var f,
-                   seq
-                     [str "(",
-                      seq (separate (map var xs, ",")),
-                      str ")"]]
+          | PRI (f, xs) => seq [var f, vars xs]
           | INJ (tag, v) => seq [con tag, space, var v]
           | INT i => int i
           | FLT f => str (FloatLit.toString f)
@@ -192,9 +179,7 @@ structure CPS = struct
              indent 3 (term body)]
       and recdecls ds = align (map recdecl ds)
       and recdecl (v, c, vs, body) =
-         def (seq
-               [str "val", space,
-                seq (separate ([var v, cvar c]@map var vs, " "))],
+         def (seq [str "val", space, var v, vars (c::vs)],
               term body)
       and def (intro, body) =
          align [seq [intro, space, str "="], indent 3 body]

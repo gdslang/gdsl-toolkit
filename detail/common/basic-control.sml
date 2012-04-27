@@ -148,7 +148,7 @@ structure BasicControl :  sig
 	} = let
 	  fun trace pre = let
 		val msg = Controls.get verboseCtl >= verbose
-                val inclusiveStart = Time.now()
+                val inclusiveStart = Timer.startCPUTimer()
 		in
 		  if msg
 		    then (push (); say (concat [passName, " starting"]))
@@ -163,9 +163,16 @@ structure BasicControl :  sig
 		  (pass pre) before
 		    (if msg
 		      then (let
-                                val inclusive = Time.-(Time.now(), inclusiveStart)
+                                val gc = Timer.checkGCTime inclusiveStart
+                                val {usr,sys} = Timer.checkCPUTimer inclusiveStart
+                                val inclusive = Time.+(usr, sys)
                             in
-                                say (concat [passName, " finished in: ", (Time.toString inclusive), "s (inclusive)"]);
+                                say
+                                 (concat
+                                    [passName,
+                                     " finished in: ",
+                                     (Time.toString inclusive), "s (",
+                                     (Time.toString gc), "s gc)"]);
                                 pop ()
                             end)
 		      else ())
@@ -207,15 +214,16 @@ structure BasicControl :  sig
 	      }
           val countRef = ref 0
 	  fun wrap pre = let
+      fun cntToString s = StringCvt.padLeft #"0" 3 (Int.toString s)
 		val count = !countRef
 		val () = countRef := count + 1
 		val pass = mkTracePassSimple {passName = passName, pass = pass}
 		val post = if Controls.get keepPassCtl
 		      then let
 			val fileName = (case Controls.get keepPassBaseName
-			       of NONE => concat [passName, ".", Int.toString count]
+			       of NONE => concat [passName, ".", cntToString count]
 				| SOME baseName => concat [
-				      baseName, ".", passName, ".", Int.toString count
+				      baseName, ".", passName, ".", cntToString count
 				    ]
 			      (* end case *))
 			val outPre = openOut (concat [fileName, ".pre.", preExt])

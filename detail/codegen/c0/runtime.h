@@ -280,5 +280,10 @@ static inline __word __CASETAG (__obj o) {
 extern __obj __consume (__obj);
 extern __obj __slice (__obj,__obj,__obj,__obj);
 extern __obj __unconsume (__obj);
+extern __obj __concat (__obj,__obj);
+extern __obj __equal (__obj,__obj);
+extern __obj __and (__obj,__obj);
+extern __obj __raise (__obj);
+extern __obj __not (__obj);
 
 #endif /* __RUNTIME_H */

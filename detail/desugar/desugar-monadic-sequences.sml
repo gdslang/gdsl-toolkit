@@ -78,12 +78,15 @@ end = struct
                (>>, [aM, bM, s], body)
             end
 
-         (* val query f s = return (f s) *)
+         (* val query f s = {1=f s, 2=s} *)
          val query = 
             let
                val f = fresh "f"
                val s = fresh "s"
-               val e = APP (ID return, APP (ID f, ID s)) 
+               val e =
+                  RECORD
+                     [(answer, APP (ID f, ID s)),
+                      (state, ID s)]
             in
                (query, [f, s], e)
             end
