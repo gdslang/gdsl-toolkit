@@ -314,7 +314,12 @@ end = struct
    end (* end local *)
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, CPS.PP.spec spec)
-   fun dumpPost (os, spec) = Pretty.prettyTo (os, Closure.PP.spec spec) 
+   fun dumpPost (os, spec) =
+      Pretty.prettyTo
+         (os,
+          Layout.align
+            [Closure.PP.spec spec,
+             Layout.seq [Layout.str "freevars=", FV.layout()]]) 
 
    val conv =
       BasicControl.mkKeepPass
