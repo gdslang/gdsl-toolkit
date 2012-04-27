@@ -24,6 +24,8 @@ structure Substitutions : sig
 
    val applyExpandInfo : expand_info -> BooleanDomain.bfun -> BooleanDomain.bfun
 
+   val substsGetBVars : Substs * BooleanDomain.bvarset -> BooleanDomain.bvarset
+   
    val applySizeConstraints : SizeConstraint.size_constraint_set * Substs ->
                               SizeConstraint.size_constraint_set * Substs
 
@@ -214,6 +216,18 @@ end = struct
             end
       in
          List.foldl aEI bFun (TVMap.listItems ei)
+      end
+
+   fun substsGetBVars (Substs ss, set) =
+      let
+         val texpBVarset = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs))
+         fun getBVars ((_,WITH_TYPE t), set) = texpBVarset (t, set)
+           | getBVars ((_,WITH_FIELD (fs,_,bvar)), set) =
+               List.foldl (fn (RField {name, fty = t, exists = b}, set) =>
+                  texpBVarset (t, BD.addToSet (b,set))) 
+                  (BD.addToSet (bvar, set)) fs
+      in
+         List.foldl getBVars set ss
       end
 
    fun insertField (f, []) = [f]

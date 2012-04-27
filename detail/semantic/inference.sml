@@ -528,6 +528,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envArg = infExp (st,env) e
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction envArgRes
+         val _ = TextIO.print ("function to unify with bind: " ^ E.topToString envArgRes ^ "\n")
          val env = E.meetFlow (envArgRes, envFun)
             handle S.UnificationFailure str =>
                raise S.UnificationFailure (str ^ " in statement\n\t" ^

@@ -36,6 +36,8 @@ structure BooleanDomain : sig
 
    val emptySet : bvarset
    
+   val union : bvarset * bvarset -> bvarset
+   
    val addToSet : bvar * bvarset -> bvarset
    
    val setToString : bvarset -> string
@@ -116,7 +118,7 @@ end = struct
    
    fun addUnits ([], f) = f
      | addUnits (v :: vs, f as (us, cs)) = (
-     (*TextIO.print ("\nasserting " ^ i v ^ " in:" ^ showBFun f);*)
+     (*TextIO.print ("asserting " ^ i v ^ " in:" ^ showBFun f ^ "\n"); *)
       if US.member (us,~v) then raise (Unsatisfiable (BVAR (abs v))) else
       if US.member (us, v) then addUnits (vs, f) else
       let
@@ -134,9 +136,11 @@ end = struct
             (* v=v1 orelse v=v2 *) units
             )
          val units = CS.foldl calcUnits vs withV
-         (*val _ = TextIO.print ("\nsolving by asserting " ^ i v ^
+         val _ = if List.exists (fn u => u= ~160) units then
+                  TextIO.print ("solving by asserting " ^ i v ^
                                ", giving units " ^ showUS (US.fromList units) ^
-                               "due to" ^ showBFun (US.empty, withV) ^ ".\n")*)
+                               "due to" ^ showBFun (US.empty, withV) ^ ".\n")
+                 else ()
       in
          addUnits (units, (US.add' (v,us), withoutV))
       end
@@ -164,7 +168,7 @@ end = struct
          addUnits ([v], f)
          )
    fun meetVarZero (BVAR v) f = (
-         (*TextIO.print ("\nmeet with " ^ i v ^ " = f\n");*)
+         TextIO.print ("\nmeet with " ^ i v ^ " = f\n");
          addUnits ([~v], f)
          )
 
@@ -196,6 +200,8 @@ end = struct
    
 
    val emptySet = IS.empty
+   val union = IS.union
+
    fun addToSet (BVAR v, set) = IS.add' (v,set)
 
    fun setToString set =
@@ -240,14 +246,14 @@ end = struct
                   | (NONE, SOME v2) => (v1,v2) :: set
                   | (SOME v1, SOME v2) => (v1,v2) :: set
                ) [] cs
-         (*val (_,l1Str) = List.foldl (fn (BVAR v,(sep,str)) =>
+         val (_,l1Str) = List.foldl (fn (BVAR v,(sep,str)) =>
                         (",",str ^ sep ^ Int.toString v)) ("","") l1
          val (_,l2Str) = List.foldl (fn ((_,BVAR v),(sep,str)) =>
                         (",",str ^ sep ^ Int.toString v)) ("","") l2
          val _ = TextIO.print ("expanding " ^ l1Str ^ " to " ^ l2Str ^
                      " by adding " ^
                      showBFun (US.fromList newUnits, CS.fromList newClauses)
-                     ^ "\n")*)
+                     ^ "\n")
       in
          List.foldl addClause (addUnits (newUnits, (us, cs))) newClauses
       end
