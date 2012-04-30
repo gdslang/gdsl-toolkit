@@ -751,49 +751,66 @@ val vex-pp pp =
 #    | '11': => F2 Prefix
    end
 
-val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 pp:2']
+val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 p:2']
  | / rex? = do
-   update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=pp};
+   update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=p};
    vex-pp pp
 end
 
-val /vex [0xc5 'r:1 v:4 l:1 pp:2']
+val /vex-3 [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 p:2']
  | / rex? = do
-   update @{rexr=r, vexv=v, vexl=l, vexp=pp};
+   update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=p};
    vex-pp pp
 end
 
+val /vex [0xc5 'r:1 v:4 l:1 p:2']
+ | / rex? = do
+   update @{rexr=r, vexv=v, vexl=l, vexp=p};
+   vex-pp pp
+end
+
+#define vex-128 '1'
 val vex-128? = query $vexl
 
+#define vex-256 '0'
 val vex-256? = do
    b <- query $vexl;
    return (not b)
 end
 
+#define vex-noreg '1111'
 val vex-noreg? = do 
    v <- query $vexv;
    return (v == '1111')
 end
 
+#define vex-66 '01'
 val vex-66? = do
    p <- query $vexp;
    return (p == '01')
 end
 
+#define vex-f2 '11'
 val vex-f2? = do
    p <- query $vexp;
    return (p == '11')
 end
 
+#define vex-f3 '10'
 val vex-f3? = do
    p <- query $vexp;
    return (p == '10')
 end
 
+#define vex-no-simd '00'
 val vex-no-simd? = do
    p <- query $vexp;
    return (p == '00')
 end
+
+#define vex-0f '00001'
+#define vex-0f-38 '00010'
+#define vex-0f-3a '00011'
 
 # Rückgabewert in Pattern??
 
@@ -814,7 +831,7 @@ val main [0x67] = do update @{addrsz='1'}; main end
 val main [0xf2] = do update @{repne='1'}; pf2 end
 val main [0xf3] = do update @{rep='1'}; pf3 end
 val main [/rex] = main #Todo: Ignore REX before legacy prefixes
-val main [/vex] = do #Todo: (REX|0x66|0xf2|0xf3) + VEX => Error
+(*val main [/vex] = do #Todo: (REX|0x66|0xf2|0xf3) + VEX => Error
    vexm <- query $vexm;
    case vexm of
       '00001': vex-0f 
@@ -840,7 +857,7 @@ val vex-0f-3a = do
    case v of
       '1111': vex-0f-3a-noreg
      | _ : vex-0f-3a-reg
-end
+end*)
 
 val p66 [0x2e] = do update @{segment=CS}; p66 end
 val p66 [0x36] = do update @{segment=SS}; p66 end
@@ -962,8 +979,7 @@ val p66 [0x0f 0x2d /r] = cvtpdf2pi mm64 xmm/m128
 val maskmovdqu = binop MASKMOVDQU
 val vmaskmovdqu = binop VMASKMOVDQU
 val p66 [0x0f 0xf7 /r] = maskmovdqu xmm128 xmm/nomem128
-val vex-0f-noreg-128-66 [0xf7 /r]
- | vex-noreg? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0xf7 /r] = vmaskmovdqu xmm128 xmm/nomem128
 
 ### MASKMOVQ Vol. 2B 4-11
 val maskmovq = binop MASKMOVQ
@@ -973,31 +989,27 @@ val main [0x0f 0xf7 /r] = maskmovq mm64 mm/nomem64
 val maxpd = binop MAXPD
 val vmaxpd = trinop VMAXPD
 val main [0x0f 0x5f /r] = maxpd xmm128 xmm/m128
-val vex-0f [0x5f /r] 
- | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
- | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
+val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x5f /r] = vmaxpd xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-66> 0x5f /r] = vmaxpd ymm256 vex/ymm ymm/m256
 
 ### MAXPS 4-16 Vol. 2B
 val maxps = binop MAXPS
 val vmaxps = trinop VMAXPS
 val main [0x0f 0x5f /r] = maxps xmm128 xmm/m128
-val vex-0f [0x5f /r] 
- | vex-128? & vex-no-simd? = vmaxps xmm128 vex/xmm xmm/m128
- | vex-256? & vex-no-simd? = vmaxps ymm256 vex/ymm ymm/m256
+val main [/vex<m=vex-0f,l=vex-128,p=vex=vex-no-simd> 0x5f /r] = vmaxps xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex=vex-no-simd> 0x5f /r] = vmaxps ymm256 vex/ymm ymm/m256
 
 ### MAXSD Vol. 2B 4-19
 val maxsd = binop MAXSD
 val vmaxsd = trinop VMAXSD
 val pf2 [0x0f 0x5f /r] = maxsd xmm128 xmm/m64
-val vex-0f [0x5f /r] 
- | vex-f2? = vmaxsd xmm128 vex/xmm xmm/m64
+val main [/vex<m=vex-0f,p=vex-f2> 0x5f /r] = vmaxsd xmm128 vex/xmm xmm/m64
 
 ### MAXSS Vol. 2B 4-21
 val maxss = binop MAXSS
 val vmaxss = trinop VMAXSS
 val pf3 [0x0f 0x5f /r] = maxss xmm128 xmm/m32
-val vex-0f [0x5f /r] 
- | vex-f3? = vmaxss xmm128 vex/xmm xmm/m32
+val main [/vex<m=vex-0f,p=vex-f3> 0x5f /r] = vmaxss xmm128 vex/xmm xmm/m32
 
 ### MFENCE Vol. 2B 4-23
 val mfence = return MFENCE
@@ -1007,31 +1019,27 @@ val main [0x0f 0xae /6] = mfence
 val minpd = binop MINPD
 val vminpd = trinop VMINPD
 val p66 [0x0f 0x5d /r] = minpd xmm128 xmm/m128
-val vex-0f [0x5d /r] 
- | vex-128? & vex-66? = vminpd xmm128 vex/xmm xmm/m128
- | vex-256? & vex-66? = vminpd ymm256 vex/ymm ymm/m256
+val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x5d /r] = vminpd xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-66> 0x5d /r] = vminpd ymm256 vex/ymm ymm/m256
 
 ### MINPS Vol. 2B 4-28
 val minps = binop MINPS
 val vminps = trinop VMINPS
 val main [0x0f 0x5d /r] = minps xmm128 xmm/m128
-val vex-0f [0x5d /r] 
- | vex-128? & vex-no-simd? = vminps xmm128 vex/xmm xmm/m128
- | vex-256? & vex-no-simd? = vminps ymm256 vex/ymm ymm/m256
+val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x5d /r] = vminps xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-no-simd> 0x5d /r] = vminps ymm256 vex/ymm ymm/m256
 
 ### MINSD Vol. 2B 4-31
 val minsd = binop MINSD
 val vminsd = trinop VMINSD
 val pf2 [0x0f 0x5d /r] = minsd xmm128 xmm/m64
-val vex-0f [0x5d /r] 
- | vex-f2? = vminsd xmm128 vex/xmm xmm/m64
+val main [/vex<m=vex-0f,p=vex-f2> 0x5d /r] = vminsd xmm128 vex/xmm xmm/m64
 
 ### MINSS Vol. 2B 4-33
 val minss = binop MINSS
 val vminss = trinop VMINSS
 val pf3 [0x0f 0x5d /r] = minss xmm128 xmm/m32
-val vex-0f [0x5d /r] 
- | vex-f3? = vminss xmm128 vex/xmm xmm/m32
+val main [/vex<m=vex-0f,p=vex-f3> 0x5d /r] = vminss xmm128 vex/xmm xmm/m32
 
 ### MONITOR Vol. 2B 4-35
 val monitor = return MONITOR
