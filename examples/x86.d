@@ -817,11 +817,29 @@ val main [/rex] = main #Todo: Ignore REX before legacy prefixes
 val main [/vex] = do #Todo: (REX|0x66|0xf2|0xf3) + VEX => Error
    vexm <- query $vexm;
    case vexm of
-      '00001': vex-0f
+      '00001': vex-0f 
     | '00010': vex-0f-38
 #   | '00011': vex-0f-3a
 #   | _: main
     end
+end
+val vex-0f = do
+   v <- query $vexv;
+   case v of
+      '1111': vex-0f-noreg
+     | _ : vex-0f-reg
+end
+val vex-0f-38 = do
+   v <- query $vexv;
+   case v of
+      '1111': vex-0f-38-noreg
+     | _ : vex-0f-38-reg
+end
+val vex-0f-3a = do
+   v <- query $vexv;
+   case v of
+      '1111': vex-0f-3a-noreg
+     | _ : vex-0f-3a-reg
 end
 
 val p66 [0x2e] = do update @{segment=CS}; p66 end
@@ -944,7 +962,7 @@ val p66 [0x0f 0x2d /r] = cvtpdf2pi mm64 xmm/m128
 val maskmovdqu = binop MASKMOVDQU
 val vmaskmovdqu = binop VMASKMOVDQU
 val p66 [0x0f 0xf7 /r] = maskmovdqu xmm128 xmm/nomem128
-val vex-0f [0xf7 /r]
+val vex-0f-noreg-128-66 [0xf7 /r]
  | vex-noreg? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem128
 
 ### MASKMOVQ Vol. 2B 4-11
