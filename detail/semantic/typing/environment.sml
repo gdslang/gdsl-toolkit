@@ -86,12 +86,15 @@ structure Environment : sig
    (*the type of function f is unset*)
    val clearFunction : VarInfo.symid * environment -> environment
    
-   (*push a function type if it is set, otherwise push top*)
-   val pushFunctionOrTop : VarInfo.symid * environment -> environment
+   (*add the given function symbol to the current context*)
+   val pushFunction : VarInfo.symid * environment -> environment
+
+   (*as above, additionally push a function type if it is set, otherwise push
+   top*)
+    val pushFunctionOrTop : VarInfo.symid * environment -> environment
    
-   (*apply the Boolean function*)
-   val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
-                     environment -> environment
+    (*apply the Boolean function*) val meetBoolean : (BooleanDomain.bfun ->
+   BooleanDomain.bfun) * environment -> environment
 
    val meetSizeConstraint : (SizeConstraint.size_constraint_set ->
                              SizeConstraint.size_constraint_set) *
@@ -179,6 +182,9 @@ end = struct
       val getBVars : environment -> BD.bvarset
       val getBVarsUses : ST.symid * BD.bvarset * environment -> BD.bvarset
       val getMonoBVars : environment -> BD.bvarset
+      val pushContext : ST.symid * environment -> environment
+      val popContext : environment -> ST.symid * environment
+      val getContext : environment -> ST.symid list
       val lookup : ST.symid * environment -> TVar.set * bind_info
       val update : ST.symid  *
                    (bind_info * constraints -> bind_info * constraints) *
@@ -189,6 +195,7 @@ end = struct
          bindInfo : binding,
          typeVars : TVar.set,
          boolVars : BD.bvarset,
+         context : VarInfo.symid list,
          version : int
       }
       type constraints = BD.bfun * SC.size_constraint_set
@@ -202,7 +209,7 @@ end = struct
          end             
 
       fun prevTVars [] = TVar.empty
-        | prevTVars ({bindInfo, typeVars = tv, boolVars, version}::_) = tv
+        | prevTVars ({bindInfo, typeVars = tv, boolVars, context, version}::_) = tv
 
       fun varsOfBinding (KAPPA {ty=t},set) = texpVarset (t,set)
         | varsOfBinding (SINGLE {name, ty=t},set) = texpVarset (t,set)
@@ -222,7 +229,7 @@ end = struct
         end
       
       fun prevBVars [] = BD.emptySet
-        | prevBVars ({bindInfo, typeVars, boolVars = bv, version}::_) = bv
+        | prevBVars ({bindInfo, typeVars, boolVars = bv, context, version}::_) = bv
 
       val texpBVarset = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs))
       fun bvarsOfBinding (KAPPA {ty=t},set) = texpBVarset (t,set)
@@ -242,11 +249,15 @@ end = struct
            List.foldl getBindVars set bs
         end
       
+      fun prevContext [] = []
+        | prevContext ({bindInfo, typeVars, boolVars, context = ctxt, version}::_) = ctxt
+
       fun initial (b, scs) =
          ([{
             bindInfo = b,
             typeVars = varsOfBinding (b,TVar.empty),
             boolVars = bvarsOfBinding (b,BD.emptySet),
+            context = [],
             version = 0
           }], (BD.empty, scs))
       fun wrap (b, (scs, cons)) =
@@ -254,15 +265,16 @@ end = struct
             bindInfo = b,
             typeVars = varsOfBinding (b,prevTVars scs),
             boolVars = bvarsOfBinding (b,prevBVars scs),
+            context = prevContext scs,
             version = nextVersion ()
          }::scs,cons)
-      fun unwrap ({bindInfo = bi, typeVars, boolVars, version} :: scs, cons) =
+      fun unwrap ({bindInfo = bi, typeVars, boolVars, context, version} :: scs, cons) =
             (bi, (scs, cons))
         | unwrap ([], cons) = raise InferenceBug
       fun unwrapDifferent
-            ((all1 as ({bindInfo = bi1, typeVars = _, boolVars = _, version = v1 : int}::scs1,
+            ((all1 as ({bindInfo = bi1, typeVars = _, boolVars = _, context = _, version = v1 : int}::scs1,
              cons1))
-            ,(all2 as ({bindInfo = bi2, typeVars = _, boolVars = _, version = v2 : int}::scs2,
+            ,(all2 as ({bindInfo = bi2, typeVars = _, boolVars = _, context = _, version = v2 : int}::scs2,
              cons2))) =
             if v1=v2 then (NONE, all1, all2)
             else (SOME (bi1,bi2),(scs1,cons1),(scs2,cons2))
@@ -270,10 +282,10 @@ end = struct
             (NONE, all1, all2)
         | unwrapDifferent (_, _) = raise InferenceBug
       
-      fun getVars ({bindInfo, typeVars = tv, boolVars, version}::_,_) = tv
+      fun getVars ({bindInfo, typeVars = tv, boolVars, context, version}::_,_) = tv
         | getVars ([],_) = TVar.empty
 
-      fun getBVars ({bindInfo, typeVars, boolVars = tv, version}::_,_) = tv
+      fun getBVars ({bindInfo, typeVars, boolVars = tv, context, version}::_,_) = tv
         | getBVars ([],_) = BD.emptySet
 
       fun getBVarsUses (sym, vs, (scs,_)) =
@@ -285,7 +297,7 @@ end = struct
                   set
             fun getBindVars ({name, ty, width, uses},set) =
                List.foldl getUsesVars set (SpanMap.listItems uses)
-            fun getGroupVars ({bindInfo = bi, typeVars, boolVars, version},set) =
+            fun getGroupVars ({bindInfo = bi, typeVars, boolVars, context, version},set) =
                case bi of
                     KAPPA {ty} => set
                   | SINGLE {name, ty} => set
@@ -295,25 +307,42 @@ end = struct
          end
 
       fun getMonoBVars (bis,_) = List.foldl
-        (fn ({bindInfo = bi, typeVars, boolVars, version},set) => 
+        (fn ({bindInfo = bi, typeVars, boolVars, context, version},set) => 
          case bi of
               KAPPA { ty = t } => texpBVarset (t,set)
             | SINGLE { ty = t,... } => texpBVarset (t,set)
             | GROUP _ => set)
         BD.emptySet bis
 
+      fun pushContext (sym, ({bindInfo = bi, typeVars = tv,
+                              boolVars = bv, context = ctxt, version} :: scs,
+                             sCons)) =
+         ({bindInfo = bi, typeVars = tv, boolVars = bv, context = sym :: ctxt,
+           version = nextVersion ()} :: scs, sCons)
+        | pushContext _ = raise InferenceBug
+
+      fun popContext ({bindInfo = bi, typeVars = tv, boolVars = bv,
+                       context = sym :: ctxt, version} :: scs, sCons) = 
+         (sym, ({bindInfo = bi, typeVars = tv, boolVars = bv, context = ctxt,
+                 version = nextVersion ()} :: scs, sCons))
+        | popContext _ = raise InferenceBug
+
+      fun getContext ({bindInfo, typeVars, boolVars,
+                       context = ctxt, version} :: scs, sCons) = ctxt
+        | getContext _ = raise InferenceBug
+
       fun lookup (sym, (scs, cons)) =
          let
-            fun getEnv ({bindInfo, typeVars = tv, boolVars, version}::_) = tv
+            fun getEnv ({bindInfo, typeVars = tv, boolVars, context, version}::_) = tv
               | getEnv [] = TVar.empty
             fun l [] = (TextIO.print ("urk, tried to lookup non-exitent symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                        ;raise InferenceBug)
-              | l ({bindInfo = KAPPA _, typeVars, boolVars, version}::scs) = l scs
-              | l ({bindInfo = SINGLE {name, ty}, typeVars, boolVars, version}::scs) =
+              | l ({bindInfo = KAPPA _, typeVars, boolVars, context, version}::scs) = l scs
+              | l ({bindInfo = SINGLE {name, ty}, typeVars, boolVars, context, version}::scs) =
                   if ST.eq_symid (sym,name) then
                      (getEnv scs, SIMPLE { ty = ty})
                   else l scs
-              | l ({bindInfo = GROUP bs, typeVars, boolVars, version}::scs) =
+              | l ({bindInfo = GROUP bs, typeVars, boolVars, context, version}::scs) =
                   let fun lG other [] = l scs
                         | lG other ((b as {name, ty, width, uses})::bs) =
                            if ST.eq_symid (sym,name) then
@@ -364,7 +393,7 @@ end = struct
          in
             unravel ([], env)
          end
-      fun showVarsVer (typeVars,boolVars,ver,si) =
+      fun showVarsVer (typeVars,boolVars, context,ver,si) =
          let
             val (vsStr, si) = TVar.setToString (typeVars,si)
             val bsStr = BD.setToString boolVars
@@ -372,24 +401,24 @@ end = struct
             (", ver=" ^ Int.toString(ver) ^ ", bvars = " ^ bsStr (*^ ", vars=" ^ vsStr*), si)
          end
 
-      fun toString ({bindInfo = KAPPA {ty}, typeVars, boolVars, version}, si) =
+      fun toString ({bindInfo = KAPPA {ty}, typeVars, boolVars, context, version}, si) =
             let
-               val (scStr, si) = showVarsVer (typeVars, boolVars, version, si)
+               val (scStr, si) = showVarsVer (typeVars, boolVars, context, version, si)
                val (tStr, si) = showTypeSI (ty,si)
             in
                ("KAPPA : " ^ tStr ^ scStr, si)
             end
-        | toString ({bindInfo = SINGLE {name, ty}, typeVars, boolVars, version}, si) =
+        | toString ({bindInfo = SINGLE {name, ty}, typeVars, boolVars, context, version}, si) =
             let
-               val (scStr, si) = showVarsVer (typeVars, boolVars, version, si)
+               val (scStr, si) = showVarsVer (typeVars, boolVars, context, version, si)
                val (tStr, si) = showTypeSI (ty,si)
             in
                ("SYMBOL " ^ ST.getString(!SymbolTables.varTable, name) ^
                 " : " ^ tStr ^ scStr, si)
             end
-        | toString ({bindInfo = GROUP bs, typeVars, boolVars, version}, si) =
+        | toString ({bindInfo = GROUP bs, typeVars, boolVars, context, version}, si) =
             let
-               val (scStr, si) = showVarsVer (typeVars, boolVars, version, si)
+               val (scStr, si) = showVarsVer (typeVars, boolVars, context, version, si)
                fun prTyOpt (NONE, str, si) = ("", si)
                  | prTyOpt (SOME t, str, si) = let
                     val (tStr, si) = showTypeSI (t, si)
@@ -936,8 +965,8 @@ end = struct
             if contra1<>contra2 then (TextIO.print ("cannot gen impl flow from\n" ^ topToString env1 ^ "to\n" ^ topToString env2); raise InferenceBug) else
             if BD.eq(f1,f2) then bFun else
             let
-               val _ = TextIO.print ("add directed flow: " ^ BD.showVar f1 ^
-                  (if contra1 then "<-" else "->") ^ BD.showVar f2 ^ "\n")
+               (*val _ = TextIO.print ("add directed flow: " ^ BD.showVar f1 ^
+                  (if contra1 then "<-" else "->") ^ BD.showVar f2 ^ "\n")*)
             in
                if contra1 then BD.meetVarImpliesVar (f2,f1) bFun
                else BD.meetVarImpliesVar (f1,f2) bFun
@@ -951,10 +980,10 @@ end = struct
                      flowError (bVar, affectedField (bVar, env1), [env1,env2]))
             else
             let
-               val _ = TextIO.print ("forcing bVars to be equal:" ^
+               (*val _ = TextIO.print ("forcing bVars to be equal:" ^
                   ListPair.foldlEq (fn (f1,f2,str) => str ^ " " ^ BD.showVar f1 ^ "=" ^ BD.showVar f2) ""
                   (texpBVarset (fn ((_,f),fs) => f::fs) (t1, []),
-                   texpBVarset (fn ((_,f),fs) => f::fs) (t2, [])) ^ "\n")
+                   texpBVarset (fn ((_,f),fs) => f::fs) (t2, [])) ^ "\n")*)
             in
                (t1,
                 ListPair.foldlEq BD.meetEqual bFun
@@ -1071,6 +1100,8 @@ end = struct
          Scope.update (sym, resetType, env)
       end
 
+   fun pushFunction (sym,env) = Scope.pushContext (sym,env)
+   
    fun pushFunctionOrTop (sym, env) =
       let
          val tyRef = ref UNIT
@@ -1082,6 +1113,7 @@ end = struct
                ;(COMPOUND {ty = NONE, width = width, uses = uses}, cons))
            | setType _ = raise InferenceBug
          val env = Scope.update (sym, setType, env)
+         val env = Scope.pushContext (sym,env)
       in
          Scope.wrap (KAPPA {ty = !tyRef}, env)
       end
@@ -1195,14 +1227,13 @@ end = struct
          val bVars1 = Scope.getBVars env1
          val bVars2 = Scope.getBVars env2
          val bVars = BD.union (bVars1,bVars2)
-         val bVars = substsGetBVars (substs, bVars)
+         val bVars = expandInfoGetBVars (ei, bVars)
          val bFun = BD.meet (bFun1,bFun2)
          val _ = TextIO.print ("meet of Boolean function:\n" ^ BD.showBFun bFun1 ^ "\nand\n" ^ BD.showBFun bFun2 ^ 
-                              "\nis\n" ^ BD.showBFun bFun ^
-                              "\nprojecting onto " ^ BD.setToString bVars ^ "\n")
-         val bFun = BD.projectOnto (bVars, bFun)
-         val (ei, bFun, env) =
-            applySubsts (substs, ei, bFun, directed, env1, env2)
+                              "\nis\n" ^ BD.showBFun bFun ^ "\n")
+
+         val (ei, bFunFlow, env) =
+            applySubsts (substs, ei, BD.empty, directed, env1, env2)
 
 
          val sCons = SC.merge (sCons1,sCons2)
@@ -1212,6 +1243,7 @@ end = struct
          val bFun = applyExpandInfo ei bFun
             handle (BD.Unsatisfiable bVar) =>
                flowError (bVar, NONE, [env,env1,env2])
+         val bFun = BD.meet (bFunFlow, bFun)
          val (scs,_) = env
          val env = (scs,(bFun, sCons))
 
@@ -1219,7 +1251,9 @@ end = struct
          val (eStr, si) = showExpandInfoSI (ei,si)
          val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str ^ 
                   "resulting in\n" ^ envStr ^ 
-                  "thereby expanding\n" ^ eStr ^ "yielding " ^ BD.showBFun bFun ^ "\n")
+                  "thereby projecting onto " ^ BD.setToString bVars ^
+                  "\nadding flow " ^ BD.showBFun bFunFlow ^
+                  "\nand expanding\n" ^ eStr ^ "yielding " ^ BD.showBFun bFun ^ "\n")
       in
          env
       end

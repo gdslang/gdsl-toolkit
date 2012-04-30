@@ -168,7 +168,7 @@ end = struct
          addUnits ([v], f)
          )
    fun meetVarZero (BVAR v) f = (
-         TextIO.print ("\nmeet with " ^ i v ^ " = f\n");
+         (*TextIO.print ("\nmeet with " ^ i v ^ " = f\n");*)
          addUnits ([~v], f)
          )
 

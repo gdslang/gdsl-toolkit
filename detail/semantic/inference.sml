@@ -241,9 +241,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          env
       end
-   and infBinding stenv (sym, dec, guard, args, rhs) =
+   and infBinding (st,env) (sym, dec, guard, args, rhs) =
       let
-         val env = infRhs stenv (sym, dec, guard, args, rhs)
+         val env = E.pushFunction (sym,env)
+         val env = infRhs (st,env) (sym, dec, guard, args, rhs)
          val env = E.popToFunction (sym, env)
          val fInfo = E.getFunctionInfo (sym, env)
          val _ = sm := (sym, fInfo) :: !sm
