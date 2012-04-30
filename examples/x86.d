@@ -763,7 +763,7 @@ val /vex-3 [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 p:2']
    vex-pp pp
 end
 
-val /vex [0xc5 'r:1 v:4 l:1 p:2']
+val /vex [0xc5 'r:1 v:4 l:1 p:2' x='0' b='0' m='00001' w='0'] 
  | / rex? = do
    update @{rexr=r, vexv=v, vexl=l, vexp=p};
    vex-pp pp
@@ -1183,8 +1183,7 @@ val pf2 [0x0f 0xd6 /r] = movdq2q mm64 xmm128
 val movhlps = binop MOVHLPS
 val vmovhlps = trinop VMOVHLPS
 val main [0x0f 0x12 /r] = movhlps xmm128 xmm/nomem128
-val vex-0f [0x12 /r]
- | vex-128? & vex-no-simd? = vmovhlps xmm128 vex/xmm xmm/nomem128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x12 /r] = vmovhlps xmm128 vex/xmm xmm/nomem128
 
 ### MOVHPD Vol. 2B 4-77
 val movhpd = binop MOVHPD
@@ -1192,10 +1191,8 @@ val vmovhpd = trinop VMOVHPD
 val vbmovhpd = binop VBMOVHPD
 val p66 [0x0f 0x16 /r] = movhpd xmm128 m64
 val p66 [0x0f 0x17 /r] = movhpd m64 xmm128
-val vex-0f [0x16 /r]
- | vex-128? & vex-66? = vmovhpd xmm128 vex/xmm m64
-val vex-0f [0x17 /r]
- | vex-noreg? & vex-128? & vex-66? = vbmovhpd m64 xmm128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x16 /r] = vmovhpd xmm128 vex/xmm m64
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x17 /r] = vbmovhpd m64 xmm128
 
 ### MOVHPS Vol. 2B 4-79
 val movhps = binop MOVHPS
@@ -1205,18 +1202,18 @@ val main [0x0f 0x16 /r]
  | mod-mem? = movhps xmm128 m64
 val main [0x0f 0x17 /r]
  | mod-mem? = movhps m64 xmm128
-val vex-0f [0x16 /r]
- | mod-mem? & vex-128? & vex-no-simd? = vmovhps xmm128 vex/xmm m64
-val vex-0f [0x17 /r]
- | mod-mem? & vex-noreg? & vex-128? & vex-no-simd? = vbmovhps m64 xmm128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x16 /r]
+ | mod-mem? = vmovhps xmm128 vex/xmm m64
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-no-simd> 0x17 /r]
+ | mod-mem? = vbmovhps m64 xmm128
 
 ### MOVLHPS Vol. 2B 4-81
 val movlhps = binop MOVLHPS
 val vmovlhps = trinop VMOVLHPS
 val main [0x0f 0x16 /r]
  | mod-reg? = movlhps xmm128 xmm/nomem128
-val vex-0f [0x16 /r]
- | mod-reg? & vex-128? & vex-no-simd? = vmovlhps xmm128 vex/xmm xmm/nomem128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x16 /r]
+ | mod-reg? = vmovlhps xmm128 vex/xmm xmm/nomem128
 
 ### MOVLPD Vol. 2B 4-83
 val movlpd = binop MOVLPD
@@ -1224,10 +1221,8 @@ val vmovlpd = trinop VMOVLPD
 val vbmovlpd = binop VBMOVLPD
 val p66 [0x0f 0x12 /r] = movlpd xmm128 m64
 val p66 [0x0f 0x13 /r] = movlpd m64 xmm128
-val vex-0f [0x12 /r]
- | vex-128? & vex-66? = vmovlpd xmm128 vex/xmm m64
-val vex-0f [0x13 /r]
- | vex-noreg? & vex-128? & vex-66? = vbmovlpd m64 xmm128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x12 /r] = vmovlpd xmm128 vex/xmm m64
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x13 /r] = vbmovlpd m64 xmm128
 
 ### MOVLPS Vol. 2B 4-85
 val movlps = binop MOVLPD
@@ -1235,10 +1230,8 @@ val vmovlps = trinop VMOVLPD
 val vbmovlps = binop VBMOVLPD
 val main [0x0f 0x12 /r] = movlps xmm128 m64
 val main [0x0f 0x13 /r] = movlps m64 xmm128
-val vex-0f [0x12 /r]
- | vex-128? & vex-no-simd? = vmovlps xmm128 vex/xmm m64
-val vex-0f [0x13 /r]
- | vex-noreg? & vex-128? & vex-no-simd? = vbmovlps m64 xmm128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x12 /r] = vmovlps xmm128 vex/xmm m64
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-no-simd> 0x13 /r] = vbmovlps m64 xmm128
 
 ### MOVMSKPD Vol. 2B 4-87
 val movmskpd = binop MOVMSKPD
