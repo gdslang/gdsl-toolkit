@@ -1307,14 +1307,12 @@ val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
 val phaddd = binop PHADDD
 val vphaddd = trinop VPHADDD
-val p66 [0x0f 0x38 01 /r] = phaddw xmm128 xmm/m128
-val main [0x0f 0x38 01 /r] = phaddw mm64 mm/m64
-val p66 [0x0f 0x38 02 /r] = phaddd xmm128 xmm/m128
-val main [0x0f 0x38 02 /r] = phaddd mm64 mm/m64
-val vex-0f-38 [01 /r]
- | opndsz? & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
-val vex-0f-38 [02 /r]
- | opndsz? & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
+val p66 [0x0f 0x38 0x01 /r] = phaddw xmm128 xmm/m128
+val main [0x0f 0x38 0x01 /r] = phaddw mm64 mm/m64
+val p66 [0x0f 0x38 0x02 /r] = phaddd xmm128 xmm/m128
+val main [0x0f 0x38 0x02 /r] = phaddd mm64 mm/m64
+val main [/vex<m=vex-0f-38,l=vex-128,p=vex-66> 0x01 /r] = vphaddw xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f-38,l=vex-128,p=vex-66> 0x02 /r] = vphaddd xmm128 vex/xmm xmm/m128
 
 ### XADD Vol. 2B 4-667
 val xadd = binop XADD
