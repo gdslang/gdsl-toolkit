@@ -757,15 +757,9 @@ val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 p:2']
    vex-pp pp
 end
 
-val /vex-3 [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 p:2']
- | / rex? = do
-   update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=p};
-   vex-pp pp
-end
-
 val /vex [0xc5 'r:1 v:4 l:1 p:2' x='0' b='0' m='00001' w='0'] 
  | / rex? = do
-   update @{rexr=r, vexv=v, vexl=l, vexp=p};
+   update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=p};
    vex-pp pp
 end
 
@@ -1239,11 +1233,12 @@ val vmovmskpd = binop VMOVMSKPD
 val p66 [0x0f 0x50 /r]
  | mode64? = movmskpd r64 xmm128
  | otherwise = movmskpd r32 xmm128
-val vex-0f [0x50 /r]
- | mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
- | / mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
- | mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
- | / mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x50 /r]
+ | mode64? = vmovmskpd r64 xmm128
+ | otherwise = vmovmskpd r64 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0x50 /r]
+ | mode64? = vmovmskpd r64 ymm256
+ | otherwise = vmovmskpd r64 ymm256
 (*#########################
 ##### ~~ VERIFY! ~~ #####
 #########################*)
@@ -1252,13 +1247,14 @@ val vex-0f [0x50 /r]
 val movmskps = binop MOVMSKPS
 val vmovmskps = binop VMOVMSKPS
 val main [0x0f 0x50 /r]
- | mode64? = movmskpd r64 xmm128
- | otherwise = movmskpd r32 xmm128
-val vex-0f [0x50 /r]
- | mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
- | / mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
- | mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
- | / mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
+ | mode64? = movmskps r64 xmm128
+ | otherwise = movmskps r32 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-no-simd> 0x50 /r]
+ | mode64? = vmovmskps r64 xmm128
+ | otherwise = vmovmskps r64 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-no-simd> 0x50 /r]
+ | mode64? = vmovmskps r64 ymm256
+ | otherwise = vmovmskps r64 ymm256
 (*#########################
 ##### ~~ VERIFY! ~~ #####
 #########################*)
@@ -1267,16 +1263,14 @@ val vex-0f [0x50 /r]
 val movntdqa = binop MOVNTDQA
 val vmovntdqa = binop VMOVNTDQA
 val p66 [0x0f 0x38 0x2a /r] = movntdqa xmm128 m128
-val vex-0f-38 [0x2a /r]
- | vex-noreg? & vex-128? & vex-66? = vmovntdqa xmm128 m128
+val main [/vex<m=vex-0f-38,v=vex-noreg,l=vex-128,p=vex-66> 0x2a /r] = vmovntdqa xmm128 m128
 
 ### MOVNTDQ Vol. 2B 4-95
 val movntdq = binop MOVNTDQ
 val vmovntdq = binop VMOVNTDQ
 val p66 [0x0f 0xe7 /r] = movntdq m128 xmm128
-val vex-0f [0xe7 /r]
- | vex-noreg? & vex-128? & vex-66? = vmovntdq m128 xmm128
- | vex-noreg? & vex-256? & vex-66? = vmovntdq m256 ymm256
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0xe7 /r] = vmovntdq m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0xe7 /r] = vmovntdq m256 ymm256
 
 ### MOVNTI Vol. 2B 4-97
 val movnti = binop MOVNTI
@@ -1288,17 +1282,15 @@ val main [0x0f 0xc3 /r]
 val movntpd = binop MOVNTPD
 val vmovntpd = binop VMOVNTPD
 val p66 [0x0f 0x2b /r] = movntpd m128 xmm128
-val vex-0f [0x2b /r]
- | vex-noreg? & vex-128? & vex-66? = vmovntpd m128 xmm128
- | vex-noreg? & vex-256? & vex-66? = vmovntpd m256 ymm256
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x2b /r] = vmovntpd m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0x2b /r] = vmovntpd m256 ymm256
 
 ### MOVNTPS Vol. 2B 4-99
 val movntps = binop MOVNTPD
 val vmovntps = binop VMOVNTPD
 val main [0x0f 0x2b /r] = movntps m128 xmm128
-val vex-0f [0x2b /r]
- | vex-noreg? & vex-128? & vex-no-simd? = vmovntps m128 xmm128
- | vex-noreg? & vex-256? & vex-no-simd? = vmovntps m256 ymm256
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-no-simd> 0x2b /r] = vmovntps m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-no-simd> 0x2b /r] = vmovntps m256 ymm256
 
 ### MOVNTQ Vol. 2B 4-103
 val movntq = binop MOVNTQ
