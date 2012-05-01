@@ -1290,13 +1290,17 @@ val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-nosimd> 0x2b /r] = vmovntps 
 
 ### MOVNTQ Vol. 2B 4-103
 val movntq = binop MOVNTQ
-val main [0x0f 0xe7 /r] = movntq m64 mm64
+val main [0x0f 0xe7 /r<mod=mod-mem>] = movntq m64 mm64
 
 ### MOVQ Vol. 2B 4-105
 val main [0x0f 0x6f /r] = movq mm64 mm/m64
 val main [0x0f 0x7f /r] = movq mm/m64 mm64
 val pf3 [0x0f 0x7e /r] = movq xmm128 xmm/m64
 val p66 [0x0f 0xd6 /r] = movq xmm/m64 xmm128
+
+### MOVQ2DQ Vol. 2B 4-107
+val movq2dq = binop MOVq2DQ
+val pf3 [0x0f 0xd6 /r<mod=mod-reg>] = movq2dq xmm128 mm/nomem64
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
