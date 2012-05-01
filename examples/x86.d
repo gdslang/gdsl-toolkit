@@ -314,6 +314,8 @@ datatype insn =
  | MOVNTPS of binop
  | VMOVNTPS of binop
  | MOVNTQ of binop
+ | MOVQ2DQ of binop
+ | MOVSB
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -1301,6 +1303,11 @@ val p66 [0x0f 0xd6 /r] = movq xmm/m64 xmm128
 ### MOVQ2DQ Vol. 2B 4-107
 val movq2dq = binop MOVq2DQ
 val pf3 [0x0f 0xd6 /r<mod=mod-reg>] = movq2dq xmm128 mm/nomem64
+
+### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ Vol. 2B 4-109
+val movsb = return MOVSB
+val main [0xa4] = movsb (mem (REG EDI)) (mem (REG ESI))
+# Reihenfolge??
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
