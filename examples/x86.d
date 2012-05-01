@@ -61,14 +61,16 @@ val repne? =  query $repne
 val rep? = query $rep
 val rexw? = query $rexw
 val rex? = query $rex
-val mod-mem? = do
+#define mod-mem '11'
+#define mod-reg '00'|'01'|'10'
+(*val mod-mem? = do
    mod <- query $mod;
    case mod of
       '11': return '1'
     | otherwise: return '0'
     end
 end
-val mod-reg? = / mod-mem?
+val mod-reg? = / mod-mem?*)
 val mode64? = query $mode64
 
 datatype size =
@@ -1192,22 +1194,16 @@ val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x17 /r] = vbmovhpd m64 
 val movhps = binop MOVHPS
 val vmovhps = trinop VMOVHPS
 val vbmovhps = binop VBMOVHPS
-val main [0x0f 0x16 /r]
- | mod-mem? = movhps xmm128 m64
-val main [0x0f 0x17 /r]
- | mod-mem? = movhps m64 xmm128
-val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x16 /r]
- | mod-mem? = vmovhps xmm128 vex/xmm m64
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-no-simd> 0x17 /r]
- | mod-mem? = vbmovhps m64 xmm128
+val main [0x0f 0x16 /r<mod=mod-mem>] = movhps xmm128 m64
+val main [0x0f 0x17 /r<mod=mod-mem>] = movhps m64 xmm128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x16 /r<mod=mod-mem>] = vmovhps xmm128 vex/xmm m64
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-no-simd> 0x17 /r<mod=mod-mem>] = vbmovhps m64 xmm128
 
 ### MOVLHPS Vol. 2B 4-81
 val movlhps = binop MOVLHPS
 val vmovlhps = trinop VMOVLHPS
-val main [0x0f 0x16 /r]
- | mod-reg? = movlhps xmm128 xmm/nomem128
-val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x16 /r]
- | mod-reg? = vmovlhps xmm128 vex/xmm xmm/nomem128
+val main [0x0f 0x16 /r<mod=mod-reg>] = movlhps xmm128 xmm/nomem128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-no-simd> 0x16 /r<mod=mod-reg>] = vmovlhps xmm128 vex/xmm xmm/nomem128
 
 ### MOVLPD Vol. 2B 4-83
 val movlpd = binop MOVLPD
