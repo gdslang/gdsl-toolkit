@@ -325,6 +325,9 @@ datatype insn =
  | VMOVSHDUP of binop
  | MOVSLDUP of binop
  | VMOVSLDUP of binop
+ | MOVSS of binop
+ | VMOVSS of binop
+ | VBMOVSS of binop
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -1353,6 +1356,17 @@ val vmovsldup = binop VMOVSLDUP
 val pf3 [0x0f 0x12 /r] = movsldup xmm128 xmm/mem128
 val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-f3> 0x12 /r] = vmovsldup xmm128 xmm/mem128
 val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-f3> 0x12 /r] = vmovsldup ymm256 xmm/mem256
+
+### MOVSS Vol. 2B 4-123
+val movss = binop MOVSS
+val vmovss = binop VMOVSS
+val vbmovss = binop VBMOVSS
+val pf3 [0x0f 0x10 /r] = movss xmm128 xmm/m32
+val main [/vex<m=vex-0f,p=vex-f3> 0x10 /r<mod=mod-reg>] = vmovss xmm128 vex/xmm xmm/nomem128
+val main [/vex<m=vex-0f,v=vex-noreg,p=vex-f3> 0x10 /r<mod=mod-mem>] = vbmovss xmm128 m32
+val pf3 [0x0f 0x11 /r] = movss xmm/m32 xmm128
+val main [/vex<m=vex-0f,p=vex-f3> 0x11 /r<mod=mod-reg>] = vmovss xmm/nomem128 vex/xmm xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,p=vex-f3> 0x11 /r<mod=mod-mem>] = vbmovss m32 xmm128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
