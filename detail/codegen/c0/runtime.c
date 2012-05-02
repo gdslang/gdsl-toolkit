@@ -1,8 +1,10 @@
 
-#include "runtime.h"
+#include "dis.h"
 
 __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute((aligned(8)));
 __objref hp = &heap[__RT_HEAP_SIZE];
+
+@prototypes@
 
 struct __unwrapped_immediate __unwrapped_UNIT = {.header.tag = __NIL};
 __obj __UNIT = __WRAP(&__unwrapped_UNIT);
@@ -118,6 +120,8 @@ __obj test () {
     __RECORD_END(s,0);
   return __INVOKE3(m,envM,envK,s);
 }
+
+@functions@
 
 int main (int argc, char** argv) {
 

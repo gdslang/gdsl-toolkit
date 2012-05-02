@@ -102,6 +102,7 @@ structure PrettyC = struct
          [str "__obj", space, var f, space, lp,
           seq (separate (map (fn _ => str "__obj") xs, ",")), rp,
           str ";"]
+   fun staticPrototype (f, xs) = seq [str "static", space, prototype (f, xs)]
    fun function (f, xs, body) =
       align
          [seq
@@ -161,11 +162,16 @@ structure C0Templates = struct
          {src=runtime,
           dst="dis.c",
           hooks=hooks}
+
+   fun mkPrint f os = Pretty.prettyTo(os, f())
+   fun mkPrototypesHook d = ("prototypes", mkPrint (fn () => d))
+   fun mkFunctionsHook d = ("functions", mkPrint (fn () => d))
 end
 
 structure C = struct
    structure CM = CompilationMonad
    structure Clos = Closure
+   structure C0 = C0Templates
    open Clos.Fun Clos.Stmt
 
    fun codegen spec =
@@ -342,6 +348,13 @@ structure C = struct
                   PrettyC.prototype (f, closure::k::xs)
              | CONT {k, closure, xs, body} =>
                   PrettyC.prototype (k, closure::xs)
+
+         fun emitStaticPrototype f =
+            case f of
+               FUN {f, closure, k, xs, body} =>
+                  PrettyC.staticPrototype (f, closure::k::xs)
+             | CONT {k, closure, xs, body} =>
+                  PrettyC.staticPrototype (k, closure::xs)
             
          fun emitFun f =
             case f of
@@ -355,12 +368,20 @@ structure C = struct
                FUN {f,...} => f
              | CONT {k,...} => k
 
+         (* TODO: use List.partition instead of 2 calls to filter *)
          val exportedFn = List.filter (exported o getSym) clos
          val staticFn = List.filter (not o exported o getSym) clos
 
-         val prototypes = map emitPrototype clos
-         val funs = map emitFun clos
+         val prototypes =
+            map emitPrototype exportedFn @
+            map emitStaticPrototype staticFn
 
+         val funs = map emitFun clos
+         val _ = C0.expandHeader []
+         val _ =
+            C0.expandRuntime
+               [C0.mkPrototypesHook (align prototypes),
+                C0.mkFunctionsHook (align funs)]
       in
          align (prototypes @ funs)
       end

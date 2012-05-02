@@ -536,21 +536,16 @@ end
 
 val sib-without-base reg scale index = do
    rexx <- query $rexx;
-   let
-      val scaled = SCALE{imm=scale, opnd=(reg rexx) index}
-   in
-      do
-         mod <- query $mod;
-	      rexb <- query $rexb;
-         case mod of
-            '00': 
-               do
-                  i <- imm32;
-                  return (SUM{a=scaled, b=i})
-               end
-          | _ : return (SUM{a=scaled, b=(reg rexb) '101'}) # rBP
+   scaled <- return (SCALE{imm=scale, opnd=reg rexx index});
+   mod <- query $mod;
+   rexb <- query $rexb;
+   case mod of
+      '00': 
+         do
+            i <- imm32;
+            return (SUM{a=scaled, b=i})
          end
-      end
+    | _ : return (SUM{a=scaled, b=(reg rexb) '101'}) # rBP
    end
 end
 

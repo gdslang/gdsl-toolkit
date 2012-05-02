@@ -148,11 +148,12 @@ structure FreeVars = struct
          case cps of
             LETVAL (x, v as (FN _), body) =>
                let
+                  val env' = visitCVal (env, v)
+                  val _ = set x env'
                   val env = visitTerm (env, body)
-                  val env = visitCVal (env, v)
                   val env = def env x
                in
-                  set x env; env
+                  env
                end
           | LETVAL (x, v, body) =>
                let
@@ -170,7 +171,7 @@ structure FreeVars = struct
                         (fn (f, k, xs, body) =>
                            let
                               val env = visitTerm (env, body)
-                              val env = def env f
+                              (* val env = def env f *)
                               val env = def env k
                               val env = defAll env xs
                               val env = defAllWith #1 env ds 
@@ -194,8 +195,9 @@ structure FreeVars = struct
                         (fn (k, xs, body) =>
                            let
                               val env = visitTerm (env, body)
-                              val env = def env k
+                              (* val env = def env k *)
                               val env = defAll env xs
+                              val env = defAllWith #1 env ds 
                            in
                               set k env
                            end) ds
