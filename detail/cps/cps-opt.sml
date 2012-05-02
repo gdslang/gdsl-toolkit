@@ -126,13 +126,6 @@ structure FreeVars = struct
 
    val freevars = ref Map.empty : t ref
    fun reset () = freevars := Map.empty
-
-   fun def env x = Set.delete (env, x) handle NotFound => env
-   fun use env x = Set.add (env, x)
-   fun useAll env xs = foldl (fn (x, env) => use env x) env xs
-   fun defAll env xs = foldl (fn (x, env) => def env x) env xs
-   fun defAllWith f env xs = foldl (fn (x, env) => def env (f x)) env xs
-   fun merge a b = Set.union (a, b)
    fun set f xs =
       if Set.isEmpty xs
          then ()
@@ -141,6 +134,13 @@ structure FreeVars = struct
       case Map.find (!freevars, f) of
          NONE => Set.empty
        | SOME xs => xs
+
+   fun merge a b = Set.union (a, b)
+   fun def env x = Set.delete (env, x) handle NotFound => env
+   fun use env x = merge (Set.add (env, x)) (get x)
+   fun useAll env xs = foldl (fn (x, env) => use env x) env xs
+   fun defAll env xs = foldl (fn (x, env) => def env x) env xs
+   fun defAllWith f env xs = foldl (fn (x, env) => def env (f x)) env xs
 
    fun run cps = let
       open CPS.Exp
@@ -166,7 +166,7 @@ structure FreeVars = struct
           | LETREC (ds, body) =>
                let
                   (* PERF *)
-                  val _ =
+                  fun merge' () =
                      app
                         (fn (f, k, xs, body) =>
                            let
@@ -178,6 +178,8 @@ structure FreeVars = struct
                            in
                               set f env
                            end) ds
+                  val _ = merge'()
+                  val _ = merge'()
                   val env = visitTerm (env, body)
                   val env =
                      foldl
@@ -190,7 +192,7 @@ structure FreeVars = struct
           | LETCONT (ds, body) =>
                let
                   (* PERF *)
-                  val _ =
+                  fun merge' () =
                      app
                         (fn (k, xs, body) =>
                            let
@@ -201,6 +203,8 @@ structure FreeVars = struct
                            in
                               set k env
                            end) ds
+                  val _ = merge'()
+                  val _ = merge'()
                   val env = visitTerm (env, body)
                   val env =
                      foldl

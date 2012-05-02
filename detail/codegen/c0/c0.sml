@@ -120,6 +120,7 @@ structure PrettyC = struct
    fun local1 (x, body) = seq [str "__LOCAL", lp, var x, comma, body, rp]
    fun call' (f, xs) = seq [str f, xs]
    fun call (f, xs) = seq [var f, args xs]
+   fun comment t = seq [str "/*", t, str "*/"]
    fun caseTag x = seq [str "__CASETAG", args [x]]
    fun return x = seq [str "return", space, x, str ";"]
    fun switch (x, cases, dflt) =
@@ -186,7 +187,9 @@ structure C = struct
 
          val emitConTag = str o Int.toString o ConInfo.toInt
 
-         fun emitField f = str (Int.toString (VarInfo.toInt f))
+         fun emitField f =
+            seq [str (Int.toString (VarInfo.toInt f)),
+                 PrettyC.comment (CPS.PP.fld f)]
          
          fun emitRecordSelect (f, x) =
             seq
