@@ -273,13 +273,13 @@ structure FreeVars = struct
    in
       (reset();visitTerm (Set.empty, cps))
    end
-   
-   fun dump () =
-      Pretty.prettyTo
-         (TextIO.stdOut,
-          Pretty.symmap
-            {key=CPS.PP.var,
-             item=Pretty.symset CPS.PP.var} (!freevars))
+  
+   fun layout () =
+      Pretty.symmap
+         {key=CPS.PP.var,
+          item=Pretty.symset CPS.PP.var} (!freevars)
+      
+   fun dump () = Pretty.prettyTo(TextIO.stdOut, layout())
 end
 
 structure Subst = struct
@@ -1192,15 +1192,21 @@ structure BetaContFun = struct
    open CPS CPS.Exp
 
    val clicks = ref 0
-   val inlined = ref Set.empty
+   val inlined = ref Map.empty : int Map.map ref
    fun click () = clicks := !clicks + 1
-   fun reset () = (clicks := 0; inlined := Set.empty)
+   fun reset () = (clicks := 0; inlined := Map.empty)
+
+   fun count0 x =
+      case Map.find (!inlined, x) of
+         NONE => 0
+       | SOME n => n
 
    fun markInlined f =
-      inlined := Set.add (!inlined, f)
+      inlined := Map.insert(!inlined, f, count0 f + 1)
+
    fun usedLinearly f =
       Census.count f = 1
-      andalso Set.member (!inlined, f)
+      andalso count0 f = 1
 
    val allwaysInline = ref Set.empty
    fun registerAllwaysInline () = 
