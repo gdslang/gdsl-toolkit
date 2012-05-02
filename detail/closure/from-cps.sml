@@ -292,8 +292,8 @@ end = struct
                      val l = fresh label
                      val closure = fresh closure
                   in
-                     Clos.LETENV (closure, x::fs)::
                      Clos.LETVAL (l, Clos.LAB x)::
+                     Clos.LETENV (closure, l::fs)::
                      k closure
                   end
             else k x
