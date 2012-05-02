@@ -1368,6 +1368,14 @@ val pf3 [0x0f 0x11 /r] = movss xmm/m32 xmm128
 val main [/vex<m=vex-0f,p=vex-f3> 0x11 /r<mod=mod-reg>] = vmovss xmm/nomem128 vex/xmm xmm128
 val main [/vex<m=vex-0f,v=vex-noreg,p=vex-f3> 0x11 /r<mod=mod-mem>] = vbmovss m32 xmm128
 
+### MOVSX/MOVSXD Vol. 2B 4-126
+val movsx = binop MOVSX
+val movsxd = binop MOVSXD
+val p66 [0x0f 0xbe /r] = movsx r16 r/m8
+val main [0x0f 0xbe /r]
+ | rexw? = movsx r64 r/m8
+ | otherwise = movsx r32 r/m8
+
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
 val vphaddw = trinop VPHADDW
