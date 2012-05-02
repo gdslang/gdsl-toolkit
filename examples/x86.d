@@ -1305,9 +1305,19 @@ val movq2dq = binop MOVq2DQ
 val pf3 [0x0f 0xd6 /r<mod=mod-reg>] = movq2dq xmm128 mm/nomem64
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ Vol. 2B 4-109
-val movsb = return MOVSB
-val main [0xa4] = movsb (mem (REG EDI)) (mem (REG ESI))
-# Reihenfolge??
+val movsb = binop MOVSB
+val main [0xa4] =
+ | mode64? = movsb (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = movsb (mem (REG EDI)) (mem (REG ESI))
+val main [0xa5] =
+ | mode64? & rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
+ | mode64? & / rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = modsd (mem (REG EDI)) (mem (REG ESI))
+val p66 [0xa5] =
+ | mode64? & rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
+ | mode64? & / rexw? = movsw (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = modsw (mem (REG EDI)) (mem (REG ESI))
+
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
