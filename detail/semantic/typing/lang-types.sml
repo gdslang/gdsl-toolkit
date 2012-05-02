@@ -160,6 +160,26 @@ structure Types = struct
       in repl e
    end
 
+   fun replaceBVars (e, vs) = let
+      fun chg v = case List.find (fn (v1,_) => BD.eq(v,v1)) vs of
+           NONE => v
+         | SOME (v1,v2) => v2
+      fun repl (FUN (f1, f2)) = FUN (repl f1, repl f2)
+        | repl (SYN (syn, t)) = SYN (syn, repl t)
+        | repl (ZENO) = ZENO
+        | repl (FLOAT) = FLOAT
+        | repl (UNIT) = UNIT
+        | repl (VEC t) = VEC (repl t)
+        | repl (CONST c) = CONST c
+        | repl (ALG (ty, l)) = ALG (ty, List.map repl l)
+        | repl (RECORD (v,bv,l)) = RECORD (v, chg bv, List.map replF l)
+        | repl (MONAD (r,f,t)) = MONAD (repl r, repl f, repl t)
+        | repl (VAR (v,bv)) = VAR (v,chg bv)
+      and replF (RField {name = n, fty = t, exists = b}) =
+         RField {name = n, fty = repl t, exists = chg b}
+      in repl e
+   end
+
    fun compare_rfield (RField f1, RField f2) =
      SymbolTable.compare_symid (#name f1, #name f2)
 

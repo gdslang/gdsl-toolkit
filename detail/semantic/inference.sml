@@ -212,7 +212,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    
    fun infRhs (st,env) (sym, dec, guard, args, rhs) =
       let
-         (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          fun checkGuard (g,env) =
             let
                val stateVar = VAR (freshTVar (), BD.freshBVar ())
@@ -241,9 +241,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          env
       end
-   and infBinding stenv (sym, dec, guard, args, rhs) =
+   and infBinding (st,env) (sym, dec, guard, args, rhs) =
       let
-         val env = infRhs stenv (sym, dec, guard, args, rhs)
+         val env = E.pushFunction (sym,env)
+         val env = infRhs (st,env) (sym, dec, guard, args, rhs)
          val env = E.popToFunction (sym, env)
          val fInfo = E.getFunctionInfo (sym, env)
          val _ = sm := (sym, fInfo) :: !sm
@@ -341,10 +342,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.meet (envWant, envHave)
          val env = E.popKappa env
          val envT = infExp (st,env) e2
+         (*val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)*)
          val envE = infExp (st,env) e3
-         val env = E.pushTop env
-         val env = E.meetFlow (env,envT)
-         val env = E.meetFlow (env,envE)
+         (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)*)
+         val env = E.meet (envE,envT)
       in
          env
       end
@@ -442,7 +443,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf', env)
          val env = E.reduceToFunction env
-         (*val _ = TextIO.print ("**** rec selector:\n" ^ E.toString env ^ "\n")*)
+         val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")
       in
          env
       end
@@ -460,9 +461,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (nts, env) = List.foldl pushInpField ([], env) fs
          val env = E.reduceToRecord (nts, env)
 
-         val env = E.pushType (false, fieldsVar, env)
+         val fieldsVar' = newFlow fieldsVar
+         val env = E.meetBoolean (BD.meetVarImpliesVar (bvar fieldsVar', bvar fieldsVar), env)
+         val env = E.pushType (false, fieldsVar', env)
          fun pushOutField ((fid,e), (nts, env)) =
             let
+               (*val _ = TextIO.print ("**** rec update: pushing field " ^ SymbolTable.getString(!SymbolTables.fieldTable, fid) ^ ".\n")*)
                val env = infExp (st,env) e
                val bVar = BD.freshBVar ()
                val env = E.meetBoolean (BD.meetVarOne bVar, env)
@@ -472,6 +476,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (nts, env) = List.foldl pushOutField ([], env) fs
          val env = E.reduceToRecord (nts, env)
          val env = E.reduceToFunction env
+         (*val _ = TextIO.print ("**** rec update: function is:\n" ^ E.topToString env ^ "\n")*)
       in
          env
       end
@@ -480,7 +485,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.IDexp v) =
       let
          val env = E.pushSymbol (v, getSpan st, getContext st, env)
-         (*val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.toString env)*)
+         val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)
       in
          env
       end
@@ -524,6 +529,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envArg = infExp (st,env) e
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction envArgRes
+         val _ = TextIO.print ("function to unify with bind: " ^ E.topToString envArgRes ^ "\n")
          val env = E.meetFlow (envArgRes, envFun)
             handle S.UnificationFailure str =>
                raise S.UnificationFailure (str ^ " in statement\n\t" ^
