@@ -242,6 +242,7 @@ val ymm15 = return (REG YMM15)
 # A type alias used for instructions taking two arguments
 type binop = {opnd1:opnd, opnd2:opnd}
 type trinop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
+type quatop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
 
 datatype insn =
    ADD of binop
@@ -335,6 +336,8 @@ datatype insn =
  | MOVUPS ob binop
  | VMOVUPS of binop
  | MOVZX of binop
+ | MPSADBW of trinop
+ | VMPSADBW of quatop
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -1417,6 +1420,12 @@ val main [0x0f 0xb6 /r]
 val main [0x0f 0xb7 /r]
  | rexw? = movzx r64 r/m16
  | otherwise = movzx r32 r/m16
+
+### MPSADBW Vol. 2B 4-137
+val mpsadbw = trinop MSADBW
+val vmpsadbw = quatop VMSADBW
+val p66 [0x0f 0x3a 0x42 /r] = mpsadbw xmm128 xmm/m128 imm8
+val main [/vex<m=vex-0f-3a,l=vex-128,p=vex-66> 0x42 /r] = vmpsadbw xmm128 vex/xmm xmm/m128 imm8
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
