@@ -55,9 +55,12 @@ structure Environment : sig
                            VarInfo.symid list
 
    (*stack: [...,t] -> [...] and type of f for call-site s is set to t*)
-   val popToUsage : VarInfo.symid * Error.span * environment -> environment
+   val popToUsage : VarInfo.symid * Error.span * environment ->
+                    VarInfo.symid list * environment
 
-   (*stack: [...] -> [...,t] where t is type of usage of f at call-site s*)
+   (*stack: [...] -> [...,t] where t is type of usage of f at call-site s,
+     returns a list of functions whose types have changed (and that are
+     still in scope)*)
    val pushUsage : VarInfo.symid * Error.span *
                    (VarInfo.symid * symbol_type) list * environment ->
                    environment
@@ -281,8 +284,12 @@ end = struct
                   texpBVarset (t,set)
                else
                   set
-            fun getBindVars ({name, ty, width, uses},set) =
-               List.foldl getUsesVars set (SpanMap.listItems uses)
+            fun getBindVars ({name=n, ty=tOpt, width, uses},set) =
+               List.foldl getUsesVars
+                  (if ST.eq_symid (sym,n) then case tOpt of
+                     NONE => set | SOME (t,_) => texpBVarset (t,set)
+                   else set)
+                  (SpanMap.listItems uses)
 
          in
             List.foldl getBindVars set bs
@@ -698,10 +705,10 @@ end = struct
          val funBVars = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (t, funBVars)
          val (scs, state) = env
          val bFun = BD.projectOnto (funBVars,Scope.getFlow state)
-         val state = Scope.setFlow bFun state
+         val bFunRem = if reduceToMono then BD.projectOnto (monoBVars,bFun)
+                       else bFun
+         val state = Scope.setFlow bFunRem state
          val env = Scope.update (sym, setType (t,bFun), (scs, state))
-         (*val bFun = if reduceToMono then BD.projectOnto (monoBVars,bFun)
-                    else bFunOrig*)
          (*val _ = TextIO.print ("*** popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ", containing bVars " ^ BD.setToString funBVars ^ ", mono bVars " ^ BD.setToString monoBVars ^ ":\nbefore " ^ BD.showBFun bFunOrig ^ "\nafter " ^ BD.showBFun bFun ^ "\nenvironment:\n" ^ topToString env)*)
       in
          env
@@ -902,7 +909,7 @@ end = struct
             val (scs, state) = env
             val env = (scs, Scope.setCtxt [] state)
          in
-            project (changedFuns, env)
+            (changedFuns, project (changedFuns, env))
          end
      | _ => raise InferenceBug)
 
@@ -1014,7 +1021,7 @@ end = struct
          fun flowForType (t1,t2,bFun) =
             if directed then
                (t1,
-                ListPair.foldlEq genImpl bFun
+                ListPair.foldl genImpl bFun
                   (texpBVarset (op ::) (t1, []), texpBVarset (op ::) (t2, []))
                   handle (BD.Unsatisfiable bVar) =>
                      flowError (bVar, affectedField (bVar, env1), [env1,env2]))
@@ -1147,7 +1154,8 @@ end = struct
       end
 
    fun pushFunction (sym, (scs,state)) =
-         (scs, Scope.setCtxt (sym :: Scope.getCtxt state) state)
+      Scope.update (sym, fn x => x,
+         (scs, Scope.setCtxt (sym :: Scope.getCtxt state) state))
    
    fun pushFunctionOrTop (sym, env) =
       let
@@ -1247,8 +1255,8 @@ end = struct
 
    fun meetGeneral (env1, env2, directed) =
       let
-         val (e1Str', si) = topToStringSI (env1,TVar.emptyShowInfo)
-         val (e2Str', si) = topToStringSI (env2,si)
+         (*val (e1Str', si) = topToStringSI (env1,TVar.emptyShowInfo)
+         val (e2Str', si) = topToStringSI (env2,si)*)
 
          val (substs, ei) = unify (env1, env2, (emptySubsts, emptyExpandInfo))
          (*val (scs, cons) = env1
@@ -1263,11 +1271,11 @@ end = struct
       
          val (env1,env2) = mergeUses (env1, env2)
          
-         val (e1Str,si) = kappaToStringSI (env1, si)
+         (*val (e1Str,si) = kappaToStringSI (env1, si)
          val (e2Str,si) = kappaToStringSI (env2, si)
          val (sStr,si) = showSubstsSI (substs,si)
          val kind = if directed then "directed" else "equalizing"
-         val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str' ^ "++++ intersected with\n" ^ e2Str')
+         val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str' ^ "++++ intersected with\n" ^ e2Str')*)
          val (_, state1) = env1
          val (_, state2) = env2
 
@@ -1276,9 +1284,9 @@ end = struct
          val bVars = BD.union (bVars1,bVars2)
          val bVars = expandInfoGetBVars (ei, bVars)
          val bFun = BD.meet (Scope.getFlow state1, Scope.getFlow state2)
-         val _ = TextIO.print ("meet of Boolean function:\n" ^ BD.showBFun (Scope.getFlow state1) ^
+         (*val _ = TextIO.print ("meet of Boolean function:\n" ^ BD.showBFun (Scope.getFlow state1) ^
                               "\nand\n" ^ BD.showBFun (Scope.getFlow state2) ^ 
-                              "\nis\n" ^ BD.showBFun bFun ^ "\n")
+                              "\nis\n" ^ BD.showBFun bFun ^ "\n")*)
 
          val (ei, bFunFlow, env) =
             applySubsts (substs, ei, BD.empty, directed, env1, env2)
@@ -1295,13 +1303,13 @@ end = struct
          val (scs,state) = env
          val env = (scs,Scope.setSize sCons (Scope.setFlow bFun state))
 
-         val (envStr,si) = topToStringSI (env, si)
+         (*val (envStr,si) = topToStringSI (env, si)
          val (eStr, si) = showExpandInfoSI (ei,si)
          val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str ^ 
                   "resulting in\n" ^ envStr ^ 
                   "thereby projecting onto " ^ BD.setToString bVars ^
                   "\nadding flow " ^ BD.showBFun bFunFlow ^
-                  "\nand expanding\n" ^ eStr ^ "yielding " ^ BD.showBFun bFun ^ "\n")
+                  "\nand expanding\n" ^ eStr ^ "yielding " ^ BD.showBFun bFun ^ "\n")*)
       in
          env
       end

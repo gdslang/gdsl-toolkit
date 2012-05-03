@@ -165,7 +165,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                                          E.meetFlow (envCall, envFun))
                   handle (S.UnificationFailure str) =>
                      (raiseError str; (S.emptySubsts, envCall))
-               val env = E.popToUsage (sym, s, env)
+               val (changed, env) = E.popToUsage (sym, s, env)
+               val _ = sm := List.foldl
+                     (fn (sym,sm) => (sym, E.getFunctionInfo (sym, env)) ::
+                        List.filter (fn (s,_) =>
+                           not (SymbolTable.eq_symid(s,sym))) sm)
+                     (!sm) changed
                val affectedSyms = E.affectedFunctions (substs,env)
                val _ = raiseWarning (substs, affectedSyms)
             in
@@ -446,7 +451,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf', env)
          val env = E.reduceToFunction env
-         val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")
+         (*val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")*)
       in
          env
       end
@@ -488,7 +493,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.IDexp v) =
       let
          val env = E.pushSymbol (v, getSpan st, getContext st, env)
-         val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)
+         (*val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
       in
          env
       end
@@ -532,7 +537,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envArg = infExp (st,env) e
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction envArgRes
-         val _ = TextIO.print ("function to unify with bind: " ^ E.topToString envArgRes ^ "\n")
+         (*val _ = TextIO.print ("function to unify with bind: " ^ E.topToString envArgRes ^ "\n")*)
          val env = E.meetFlow (envArgRes, envFun)
             handle S.UnificationFailure str =>
                raise S.UnificationFailure (str ^ " in statement\n\t" ^
