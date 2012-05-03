@@ -1375,6 +1375,11 @@ val p66 [0x0f 0xbe /r] = movsx r16 r/m8
 val main [0x0f 0xbe /r]
  | rexw? = movsx r64 r/m8
  | otherwise = movsx r32 r/m8
+val main [0x0f 0xbf /r]
+ | rexw? = movsx r64 r/m16
+ | otherwise = movsx r32 r/m16
+val main [0x63 /r]
+ | rexw? = movsxd r64 r/m32
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
