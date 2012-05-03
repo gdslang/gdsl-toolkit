@@ -328,6 +328,10 @@ datatype insn =
  | MOVSS of binop
  | VMOVSS_3 of trinop
  | VMOVSS_2 of binop
+ | MOVSX of binop
+ | MOVSXD of binop
+ | MOVUPD ob binop
+ | VMOVUPD of binop
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -1380,6 +1384,16 @@ val main [0x0f 0xbf /r]
  | otherwise = movsx r32 r/m16
 val main [0x63 /r]
  | rexw? = movsxd r64 r/m32
+
+### MOVUPD Vol. 2B 4-129
+val movupd = binop MOVUPD
+val vmovupd = binop VMOVUPD
+val p66 [0x0f 0x10 /r] = movupd xmm128 xmm/m128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x10 /r] = vmovupd xmm128 xmm/m128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0x10 /r] = vmovupd ymm256 ymm/m256
+val p66 [0x0f 0x11 /r] = movupd xmm/m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x11 /r] = vmovupd xmm/m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0x11 /r] = vmovupd ymm/m256 ymm256
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
