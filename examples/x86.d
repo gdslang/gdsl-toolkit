@@ -48,10 +48,10 @@ val & giveA giveB = do
    return (a andalso b)
 end
 
-val / act = do
+(*val / act = do
    res <- act;
    return (not res)
-end
+end*)
 
 val otherwise = return '1'
 
@@ -70,7 +70,7 @@ val rex? = query $rex
     | otherwise: return '0'
     end
 end
-val mod-reg? = / mod-mem?*)
+val mod-reg? = !mod-mem?*)
 val mode64? = query $mode64
 
 datatype size =
@@ -768,13 +768,13 @@ val vex-pp pp =
    end
 
 val /vex [0xc4 'r:1 x:1 b:1 m:5' 'w:1 v:4 l:1 p:2']
- | / rex? = do
+ | !rex? = do
    update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=p};
    vex-pp pp
 end
 
 val /vex [0xc5 'r:1 v:4 l:1 p:2' x='0' b='0' m='00001' w='0'] 
- | / rex? = do
+ | !rex? = do
    update @{rexr=r, rexx=x, rexb=b, vexm=m, rexw=w, vexv=v, vexl=l, vexp=p};
    vex-pp pp
 end
@@ -1325,11 +1325,11 @@ val main [0xa4] =
  | otherwise = movsb (mem (REG EDI)) (mem (REG ESI))
 val main [0xa5] =
  | mode64? & rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
- | mode64? & / rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
+ | mode64? & !rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
  | otherwise = modsd (mem (REG EDI)) (mem (REG ESI))
 val p66 [0xa5] =
  | mode64? & rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
- | mode64? & / rexw? = movsw (mem (REG RDI)) (mem (REG RSI))
+ | mode64? & !rexw? = movsw (mem (REG RDI)) (mem (REG RSI))
  | otherwise = modsw (mem (REG EDI)) (mem (REG ESI))
 
 ### MOVSD Vol. 2B 4-114
