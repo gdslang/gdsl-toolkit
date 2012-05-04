@@ -352,6 +352,8 @@ datatype insn =
  | NEG of unop
  | NOP_0
  | NOP_1 of unop
+ | NOT of unop
+ | OR of binop
 
  | PHADDW of binop
  | VPHADDW of ternop
@@ -1492,6 +1494,41 @@ val nop_0 = return NOP
 val nop_1 = unop NOP
 val p66 [0x0f 0x1f /0] = nop r/m16
 val main [0x0f 0x1f /0] = nop r/m32
+
+### NOT Vol. 2B 4-162
+val not = unop NOT
+val main [0xf6 /2] = not r/m8
+val p66 [0xf7 /2] = not r/m16
+val main [0xf7 /2]
+ | rexw? = not r/m64
+ | otherwise = not r/m64
+
+### OR Vol. 2B 4-164
+val or = binop OR
+val main [0x0c] = or al imm8
+val p66 [0x0d] = or ax imm16
+val main [0x0d]
+ | rexw? = or rax imm64
+ | otherwise = or eax imm32
+val main [0x80 /1] = or r/m8 imm8
+val p66 [0x81 /1] = or r/m16 imm16
+val main [0x81 /1]
+ | rexw? = or r/m64 imm32
+ | otherwise = or r/m32 imm32
+val p66 [0x83 /1] = or r/m16 imm8
+val main [0x83 /1]
+ | rexw? = or r/m64 imm8
+ | otherwise = or r/m32 imm8
+val main [0x08] = or r/m8 r8
+val p66 [0x09 /1] = or r/m16 imm16
+val main [0x09 /1]
+ | rexw? = or r/m64 imm64
+ | otherwise = or r/m32 imm32
+val main [0x0a] = or r8 r/m8
+val p66 [0x0b /1] = or r16 r/m16
+val main [0x0b /1]
+ | rexw? = or r64 r/m64
+ | otherwise = or r32 r/m32
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
