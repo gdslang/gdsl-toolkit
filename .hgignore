@@ -2,3 +2,6 @@
 \.swp
 resources/
 \.ast
+\.clos
+\.cps
+\.core

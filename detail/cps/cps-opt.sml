@@ -126,13 +126,6 @@ structure FreeVars = struct
 
    val freevars = ref Map.empty : t ref
    fun reset () = freevars := Map.empty
-
-   fun def env x = Set.delete (env, x) handle NotFound => env
-   fun use env x = Set.add (env, x)
-   fun useAll env xs = foldl (fn (x, env) => use env x) env xs
-   fun defAll env xs = foldl (fn (x, env) => def env x) env xs
-   fun defAllWith f env xs = foldl (fn (x, env) => def env (f x)) env xs
-   fun merge a b = Set.union (a, b)
    fun set f xs =
       if Set.isEmpty xs
          then ()
@@ -142,17 +135,25 @@ structure FreeVars = struct
          NONE => Set.empty
        | SOME xs => xs
 
+   fun merge a b = Set.union (a, b)
+   fun def env x = Set.delete (env, x) handle NotFound => env
+   fun use env x = merge (Set.add (env, x)) (get x)
+   fun useAll env xs = foldl (fn (x, env) => use env x) env xs
+   fun defAll env xs = foldl (fn (x, env) => def env x) env xs
+   fun defAllWith f env xs = foldl (fn (x, env) => def env (f x)) env xs
+
    fun run cps = let
       open CPS.Exp
       fun visitTerm (env, cps) = 
          case cps of
             LETVAL (x, v as (FN _), body) =>
                let
+                  val env' = visitCVal (env, v)
+                  val _ = set x env'
                   val env = visitTerm (env, body)
-                  val env = visitCVal (env, v)
                   val env = def env x
                in
-                  set x env; env
+                  env
                end
           | LETVAL (x, v, body) =>
                let
@@ -165,18 +166,20 @@ structure FreeVars = struct
           | LETREC (ds, body) =>
                let
                   (* PERF *)
-                  val _ =
+                  fun merge' () =
                      app
                         (fn (f, k, xs, body) =>
                            let
                               val env = visitTerm (env, body)
-                              val env = def env f
+                              (* val env = def env f *)
                               val env = def env k
                               val env = defAll env xs
                               val env = defAllWith #1 env ds 
                            in
                               set f env
                            end) ds
+                  val _ = merge'()
+                  val _ = merge'()
                   val env = visitTerm (env, body)
                   val env =
                      foldl
@@ -189,16 +192,19 @@ structure FreeVars = struct
           | LETCONT (ds, body) =>
                let
                   (* PERF *)
-                  val _ =
+                  fun merge' () =
                      app
                         (fn (k, xs, body) =>
                            let
                               val env = visitTerm (env, body)
-                              val env = def env k
+                              (* val env = def env k *)
                               val env = defAll env xs
+                              val env = defAllWith #1 env ds 
                            in
                               set k env
                            end) ds
+                  val _ = merge'()
+                  val _ = merge'()
                   val env = visitTerm (env, body)
                   val env =
                      foldl
@@ -1343,8 +1349,9 @@ structure BetaContFun = struct
             case findCont (env, k) of
                NONE => CC (k, ys)
              | SOME (xs, K) =>
-                  if not (isInliningCandidateCont k K) then CC (k, ys)
-                  else if length xs <> length ys
+                  if length xs <> length ys
+                     then (* CC (k, ys) *) raise Fail "betaContFun.Cont"
+                  else if not (isInliningCandidateCont k K)
                      then CC (k, ys)
                   else
                      let
@@ -1368,12 +1375,10 @@ structure BetaContFun = struct
             case findFun (env, f) of
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
-                  if not (isInliningCandidate f K) then APP (f, j, ys)
-                  else if length xs > length ys
+                  if length xs > length ys
                      then
                         let
                            val _ = click()
-                           (* val _ = markInlined f *)
                            val ly = length ys
                            val lx = length xs
                            val f' = Aux.fresh Aux.function
@@ -1394,7 +1399,31 @@ structure BetaContFun = struct
                                  CC (k', [h']))),
                               CC (j', [g'])))
                         end
-
+                  else if length xs < length ys
+                     then
+                        let 
+                           val _ = click()
+                           val ly = length ys
+                           val lx = length xs
+                           val g = Aux.fresh Aux.function
+                           val kg = Aux.fresh Aux.continuation
+                           val g' = Aux.fresh Aux.function
+                           val kg' = Aux.fresh Aux.continuation
+                           val h = Aux.fresh Aux.function
+                           val kh = Aux.fresh Aux.continuation
+                           val app = List.take(ys,lx)
+                           val overapp = List.drop(ys,lx)
+                           val (_, app) = Subst.renameAll sigma app
+                           val (_, overapp) = Subst.renameAll sigma overapp
+                        in
+                           LETCONT ([(kg', [g'], APP (g', j, ys))],
+                              LETVAL (g, FN (kg, app@overapp,
+                                 LETCONT ([(kh, [h], APP (h, kg, overapp))],
+                                    APP (f, kh, app))),
+                                 CC (kg', [g])))
+                        end
+                  else if not (isInliningCandidate f K)
+                     then APP (f, j, ys)
                   else if length xs = length ys
                      then 
                         let

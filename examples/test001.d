@@ -71,8 +71,8 @@ val main [0x83 /0]
  | otherwise = binop MOV r/m64 r/m64
 
 val main [0x83 /1]
-  | rexw? & rexw? = binop OR r64 r/m64
-  | otherwise = binop OR r64 r/m64
+ | rexw? & rexw? = binop OR r64 r/m64
+ | otherwise = binop OR r64 r/m64
 
 #val main [0x83 /2] = binop ADC r64 r/m64
 #val main [0x83 /3] = binop SBB r64 r/m64
