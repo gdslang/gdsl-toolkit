@@ -354,6 +354,11 @@ datatype insn =
  | NOP_1 of unop
  | NOT of unop
  | OR of binop
+ | ORPD of binop
+ | VORPD of ternop
+ | ORPS of binop
+ | VORPS of ternop
+ | OUT of binop
 
  | PHADDW of binop
  | VPHADDW of ternop
@@ -1529,6 +1534,29 @@ val p66 [0x0b /1] = or r16 r/m16
 val main [0x0b /1]
  | rexw? = or r64 r/m64
  | otherwise = or r32 r/m32
+
+### ORPD Vol. 2B 4-164
+val orpd = binop ORPD
+val vorpd = ternop VORPD
+val p66 [0x0f 0x56 /r] = orpd xmm128 xmm/m128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x56 /r] = vorpd xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-66> 0x56 /r] = vorpd ymm256 vex/xmm ymm/m256
+
+### ORPS Vol. 2B 4-169
+val orps = binop ORPS
+val vorps = ternop VORPS
+val main [0x0f 0x56 /r] = orps xmm128 xmm/m128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x56 /r] = vorps xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-nosimd> 0x56 /r] = vorps ymm256 vex/xmm ymm/m256
+
+### OUT Vol. 2B 4-171
+val out = binop OUT
+val main [0xe6] = out imm8 al
+val p66 [0xe7] = out imm8 ax
+val main [0xe7] = out imm8 eax
+val main [0xee] = out dx al
+val p66 [0xef] = out dx ax
+val main [0xef] = out dx eax
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
