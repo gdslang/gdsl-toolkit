@@ -568,7 +568,10 @@ end = struct
                   | descr (VEC _) = "a bit vector"
                   | descr (ALG (ty, _)) = "type " ^
                      SymbolTable.getString(!SymbolTables.typeTable, ty)
-                  | descr (RECORD _) = "a record"
+                  | descr (RECORD (_,_,fs)) = "a record {" ^
+                     #2 (List.foldl (fn (RField {name = n, ...},(sep,str)) =>
+                        (", ", SymbolTable.getString(!SymbolTables.fieldTable, n) ^
+                         sep ^ str)) ("","") fs) ^ "}"
                   | descr (MONAD _) = "an action"
                   | descr _ = "something that shouldn't be here"
             in
