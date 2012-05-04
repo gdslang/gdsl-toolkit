@@ -339,6 +339,15 @@ datatype insn =
  | MOVZX of binop
  | MPSADBW of ternop
  | VMPSADBW of quaternop
+ | MUL of unop
+ | MULPD of binop
+ | VMULPD of ternop
+ | MULPS of binop
+ | VMULPS of ternop
+ | MULSD of binop
+ | VMULSD of ternop
+ | MULSS of binop
+ | VMULSS of ternop
 
  | PHADDW of binop
  | VPHADDW of ternop
@@ -1429,7 +1438,39 @@ val p66 [0x0f 0x3a 0x42 /r] = mpsadbw xmm128 xmm/m128 imm8
 val main [/vex<m=vex-0f-3a,l=vex-128,p=vex-66> 0x42 /r] = vmpsadbw xmm128 vex/xmm xmm/m128 imm8
 
 ### MUL Vol. 2B 4-142
+val mul = unop MUL
 main [0xf6 /4] = mul r/m8
+p66 [0xf7 /4] = mul r/m16
+main [0xf7 /4]
+ | rexw? = mul r/m64
+ | otherwise = mul r/m32
+
+### MULPD Vol. 2B 4-145
+val mulpd = binop MULPD
+val vmulpd = ternop VMULPD
+p66 [0x0f 0x59 /r] = mulpd xmm128 xmm/m128
+main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x59 /r] = vmulpd xmm128 vex/xmm xmm/m128
+main [/vex<m=vex-0f,l=vex-256,p=vex-66> 0x59 /r] = vmulpd ymm256 vex/xmm ymm/m256
+
+### MULPS Vol. 2B 4-147
+val mulps = binop MULPS
+val vmulps = ternop VMULPS
+main [0x0f 0x59 /r] = mulps xmm128 xmm/m128
+main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x59 /r] = vmulps xmm128 vex/xmm xmm/m128
+main [/vex<m=vex-0f,l=vex-256,p=vex-nosimd> 0x59 /r] = vmulps ymm256 vex/xmm ymm/m256
+
+### MULSD Vol. 2B 4-149
+val mulsd = binop MULSD
+val vmulsd = ternop VMULSD
+pf2 [0x0f 0x59 /r] = mulsd xmm128 xmm/m64
+main [/vex<m=vex-0f,p=vex-f2> 0x59 /r] = vmulsd xmm128 vex/xmm xmm/m64
+
+### MULSS Vol. 2B 4-151
+val mulss = binop MULSS
+val vmulss = ternop VMULSS
+pf3 [0x0f 0x59 /r] = mulss xmm128 xmm/m32
+main [/vex<m=vex-0f,p=vex-f3> 0x59 /r] = vmulss xmm128 vex/xmm xmm/m32
+
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
