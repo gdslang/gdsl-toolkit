@@ -2,20 +2,28 @@
 structure Mangle = struct
    structure Map = StringMap
    structure VI = VarInfo
+   structure FI = FieldInfo
+   structure CI = ConInfo
 
    val variables = SymbolTables.varTable
+   val fields = SymbolTables.fieldTable
+   val constructors = SymbolTables.conTable
    val names = ref Map.empty : string Map.map ref
    val revnames = ref Map.empty : string Map.map ref
    val stamp = ref 0
+
+   fun getStringOfPrim sym = Atom.toString (VI.getAtom(!variables, sym))
 
    fun getString sym =
       let
          val s = VI.getString (!variables, sym)
       in
-         if String.isPrefix "%" s
-            then Atom.toString (VI.getAtom(!variables, sym))
+         if String.isPrefix "%" s then getStringOfPrim sym
          else s
       end
+
+   fun getStringOfField sym = Atom.toString(FI.getAtom(!fields, sym))
+   fun getStringOfTag sym = Atom.toString(CI.getAtom(!constructors, sym))
 
    fun insert (plain, mangled) =
       (names :=
@@ -65,9 +73,9 @@ structure Mangle = struct
          String.translate tf s
       end
 
-   fun mangle sym = 
+   fun mangle f sym = 
       let
-         val mangled = mangleName sym
+         val mangled = f sym
       in
          case reverseFind mangled of
             NONE =>
@@ -78,13 +86,69 @@ structure Mangle = struct
                ;mangled)
       end
 
+   fun mangleExport sym =
+      let
+         val mangled = "__" ^ mangleName sym ^ "__"
+      in
+         mangled
+      end
+
+   fun mangleField sym =
+      let
+         val mangled = "___" ^ mangleName sym 
+      in
+         mangled
+      end
+
+   fun mangleTag sym =
+      let
+         val mangled = "__" ^ mangleName sym
+      in
+         mangled
+      end
+
+   fun applyField sym =
+      let
+         val sym = getStringOfField sym
+      in
+         case Map.find (!names, sym) of
+            SOME csym => csym
+          | NONE => mangle mangleField sym
+      end
+
+   fun applyTag sym =
+      let
+         val sym = getStringOfTag sym
+      in
+         case Map.find (!names, sym) of
+            SOME csym => csym
+          | NONE => mangle mangleTag sym
+      end
+
    fun apply sym =
       let
          val sym = getString sym
       in
          case Map.find (!names, sym) of
             SOME csym => csym
-          | NONE => mangle sym
+          | NONE => mangle mangleName sym
+      end
+
+   fun applyExport sym =
+      let
+         val sym' = getString sym
+         val mangled = mangleExport (getStringOfPrim sym)
+      in
+         case Map.find (!names, sym') of
+            SOME csym => csym
+          | NONE =>
+               (case reverseFind mangled of
+                  NONE =>
+                     (insert (sym', mangled)
+                     ;mangled)
+                | SOME _ =>
+                     (insert (sym', resolveCollision mangled)
+                     ;mangled))
       end
 
    (*
@@ -121,8 +185,9 @@ structure PrettyC = struct
    fun call' (f, xs) = seq [str f, xs]
    fun call (f, xs) = seq [var f, args xs]
    fun comment t = seq [str "/*", t, str "*/"]
+   fun define (x, v) = seq [str "#define", space, x, space, v]
    fun caseTag x = seq [str "__CASETAG", args [x]]
-   fun return x = seq [str "return", space, x, str ";"]
+   fun return x = seq [str "return", space, lp, x, rp, str ";"]
    fun switch (x, cases, dflt) =
       align
          [seq [str "switch", lp, x, rp, space, lb],
@@ -167,12 +232,20 @@ structure C0Templates = struct
    fun mkPrint f os = Pretty.prettyTo(os, f())
    fun mkPrototypesHook d = ("prototypes", mkPrint (fn () => d))
    fun mkFunctionsHook d = ("functions", mkPrint (fn () => d))
+   fun mkConstrutorsHook d = ("constructors", mkPrint (fn () => d))
+   fun mkFieldsHook d = ("fields", mkPrint (fn () => d))
+   fun mkExportsHook d = ("exports", mkPrint (fn () => d))
+   fun mkFieldNamesHook d = ("tagnames", mkPrint (fn () => d))
+   fun mkTagNamesHook d = ("fieldnames", mkPrint (fn () => d))
 end
 
 structure C = struct
    structure CM = CompilationMonad
    structure Clos = Closure
    structure C0 = C0Templates
+   structure CI = ConInfo
+   structure FI = FieldInfo
+
    open Clos.Fun Clos.Stmt
 
    fun codegen spec =
@@ -185,7 +258,9 @@ structure C = struct
                (fn g => SymbolTable.eq_symid (f, g))
                exports
 
-         val emitConTag = str o Int.toString o ConInfo.toInt
+         fun emitConTag tag =
+            seq [str (Int.toString (ConInfo.toInt tag)),
+                 PrettyC.comment (CPS.PP.con tag)]
 
          fun emitField f =
             seq [str (Int.toString (VarInfo.toInt f)),
@@ -329,8 +404,8 @@ structure C = struct
              | CASE (x, cs) =>
                   let
                      val cs' = List.filter (fn (cs, _) => not (null cs)) cs
-                     val dflt = List.find (fn (cs, _) => null cs) cs'
-                     val fatalDflt = seq [str "__fatal(\"Match\");"]
+                     val dflt = List.find (fn (cs, _) => null cs) cs
+                     val fatalDflt = seq [str "__fatal(\"<match>\");"]
                      val dflt =
                         case dflt of
                            NONE => fatalDflt
@@ -371,22 +446,93 @@ structure C = struct
                FUN {f,...} => f
              | CONT {k,...} => k
 
-         (* TODO: use List.partition instead of 2 calls to filter *)
+         (* TODO: use `List.partition` instead of 2 calls to `filter` *)
          val exportedFn = List.filter (exported o getSym) clos
+         (* register exported names *)
+         val () =
+            app (fn f =>
+               let
+                  val _ = Mangle.applyExport (getSym f)
+               in
+                  ()
+               end) exportedFn
          val staticFn = List.filter (not o exported o getSym) clos
 
-         val prototypes =
-            map emitPrototype exportedFn @
-            map emitStaticPrototype staticFn
+         val externPrototypes = map emitPrototype exportedFn
+         val staticPrototypes = map emitStaticPrototype staticFn
+
+         val constructors =
+            let
+               val i = str o Int.toString
+               val cs = CI.listItems (!SymbolTables.conTable)
+            in
+               PrettyC.define (str "__NTAGS", i (length cs+1)):: 
+               map (fn tag =>
+                  PrettyC.define
+                     (str (Mangle.applyTag tag),
+                      emitConTag tag)) cs
+            end
+
+         val fields =
+            let
+               val i = str o Int.toString
+               val fs = FI.listItems (!SymbolTables.fieldTable)
+            in
+               PrettyC.define (str "__NFIELDS", i (length fs+1))::
+               map (fn f =>
+                  PrettyC.define
+                     (str (Mangle.applyField f),
+                      emitField f)) fs
+            end
+
+         val constructorNames =
+            let
+               val cs = CI.listItems (!SymbolTables.conTable)
+               val cs = 
+                  map
+                     (fn tag =>
+                        seq [str "\"",
+                             str (Mangle.getStringOfTag tag),
+                             str "\""]) cs
+            in
+               align
+                  [seq [str "static const char* __tagNames[] = "],
+                   indent 2
+                     (seq [listex "{" "}" "," (str "\"<reserved>\""::cs),
+                           str ";"])]
+            end 
+
+         val fieldNames =
+            let
+               val fs = FI.listItems (!SymbolTables.fieldTable)
+               val fs = 
+                  map
+                     (fn f =>
+                        seq [str "\"",
+                             str (Mangle.getStringOfField f),
+                             str "\""]) fs
+            in
+               align
+                  [seq [str "static const char* __fieldNames[] = "],
+                   indent 2
+                     (seq [listex "{" "}" "," (str "\"blob\""::fs),
+                           str ";"])]
+            end 
 
          val funs = map emitFun clos
-         val _ = C0.expandHeader []
+         val _ =
+            C0.expandHeader
+               [C0.mkConstrutorsHook (align constructors),
+                C0.mkFieldsHook (align fields),
+                C0.mkExportsHook (align externPrototypes)]
          val _ =
             C0.expandRuntime
-               [C0.mkPrototypesHook (align prototypes),
-                C0.mkFunctionsHook (align funs)]
+               [C0.mkPrototypesHook (align staticPrototypes),
+                C0.mkFunctionsHook (align funs),
+                C0.mkTagNamesHook constructorNames,
+                C0.mkFieldNamesHook fieldNames]
       in
-         align (prototypes @ funs)
+         align (externPrototypes @ staticPrototypes @ funs)
       end
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Closure.PP.spec spec)

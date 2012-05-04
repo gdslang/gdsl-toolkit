@@ -1,5 +1,5 @@
 granularity = 8
-export = main
+export = main decode
 
 # Optional arguments
 #
@@ -15,32 +15,28 @@ export = main
 # limit = 120
 # recursion-depth = main = 4
 
-val decoder =
-   let val retState x = 
-      {mode64='0',
-       repne='0',
-       rep='0',
-       rex='0',
-       rexw='0',
-       rexb='0',
-       rexr='0',
-       rexx='0',
-       vexm='00001',
-       vexv='0000',
-       vexl='0',
-       vexp='00',
-       opndsz='0',
-       addrsz='0',
-       segment=DS,
-       mod='00',
-       reg='000',
-       rm='000'}
-   in
-      do
-         update retState;
-         main
-      end
-   end
+val decode = do
+   update
+      @{mode64='0',
+        repne='0',
+        rep='0',
+        rex='0',
+        rexw='0',
+        rexb='0',
+        rexr='0',
+        rexx='0',
+        vexm='00001',
+        vexv='0000',
+        vexl='0',
+        vexp='00',
+        opndsz='0',
+        addrsz='0',
+        segment=DS,
+        mod='00',
+        reg='000',
+        rm='000'};
+   main
+end
 
 val & giveA giveB = do
    a <- giveA;
@@ -552,16 +548,27 @@ end
 val sib-with-index-and-base reg s i b = do
    rexx <- query $rexx;
    rexb <- query $rexb;
-   return (SUM{a=SCALE{imm=s, opnd=(reg rexx) i}, b=(reg rexb) b})
+   case i of
+      '100':
+         case b of
+            '101': sib-without-index reg
+          | _: return (SUM{a=SCALE{imm=s, opnd=reg rexx i}, b=reg rexb b})
+         end
+    | _:
+         case b of
+            '101': sib-without-base reg s i
+          | _: return (SUM{a=SCALE{imm=s, opnd=reg rexx i}, b=reg rexb b})
+         end
+   end
 end
 
-val sib ['scale:2 100 101']
- | addrsz? = sib-without-index reg16-rex
- | otherwise = sib-without-index reg32-rex
+#val sib ['scale:2 100 101']
+# | addrsz? = sib-without-index reg16-rex
+# | otherwise = sib-without-index reg32-rex
 
-val sib ['scale:2 index:3 101'] 
- | addrsz? = sib-without-base reg16-rex scale index
- | otherwise = sib-without-base reg32-rex scale index
+#val sib ['scale:2 index:3 101'] 
+# | addrsz? = sib-without-base reg16-rex scale index
+# | otherwise = sib-without-base reg32-rex scale index
 
 val sib ['scale:2 index:3 base:3']
  | addrsz? = sib-with-index-and-base reg16-rex scale index base

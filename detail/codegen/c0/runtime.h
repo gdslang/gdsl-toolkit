@@ -27,6 +27,15 @@
 #define __INVOKE4(o, closure, x, y, z)\
    ((__obj(*)(__obj,__obj,__obj,__obj))((o)->label.f))(closure, x, y, z)
 
+#define __INVOKE5(o, closure, w, x, y, z)\
+   ((__obj(*)(__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, w, x, y, z)
+
+#define __INVOKE6(o, closure, v, w, x, y, z)\
+   ((__obj(*)(__obj,__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, v, w, x, y, z)
+
+#define __INVOKE7(o, closure, u, v, w, x, y, z)\
+   ((__obj(*)(__obj,__obj,__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, u, v, w, x, y, z)
+
 /** ## Integers */
 
 #define __INT_BEGIN(Cname)\
@@ -134,6 +143,23 @@
 #define __TAGGED_END(Cname)\
    Cname = __WRAP(o);}
 
+#define __TAGGED_BEGIN(Cname)\
+  __CHECK_HEAP(1)
+
+/** ## Blobs */
+
+#define __BLOB_BEGIN(Cname)\
+  __CHECK_HEAP(1)
+
+#define __BLOB_INIT(buf, size)\
+  {__objref o = __ALLOC1();\
+   o->blob.header.tag = __BLOB;\
+   o->blob.blob = buf;\
+   o->blob.sz = size;
+
+#define __BLOB_END(Cname)\
+   Cname = __WRAP(o);}
+
 #define __LOCAL0(Cname) __obj Cname
 #define __LOCAL(Cname, body) __obj Cname = body
 
@@ -144,6 +170,7 @@ typedef __unwrapped_obj* __objref;
 typedef __wrapped_obj* __obj;
 typedef uint64_t __word;
 typedef int64_t __int;
+typedef uint8_t __char;
 
 enum __tag {
   __CLOSURE,
@@ -189,6 +216,11 @@ union __unwrapped_obj {
     __header header;
     __obj (*f)(void);
   } label;
+  struct __unwrapped_blob {
+    __header header;
+    __char* blob;
+    __word sz;
+  } blob;
   struct __unwrapped_int {
     __header header;
     __int value;
@@ -215,6 +247,10 @@ union __wrapped_obj {
   struct __label {
     __obj (*f)(void);
   } label;
+  struct __blob {
+    __char* blob;
+    __word sz;
+  } blob;
   struct __int {
     __int value;
   } z;
@@ -229,6 +265,29 @@ extern __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
 extern __objref hp;
 extern __obj __UNIT;
 
+/* ## Constructor tags */
+
+#define __RESERVED 0
+@constructors@
+
+/* ## Record field selectors */
+
+#define ___blob 0
+@fields@
+
+/* ## Exported functions */
+
+@exports@
+
+/* ## Primitive runtime functions */
+
+extern const __char* __tagName (__word i);
+extern const __char* __fieldName (__word i);
+
+__obj __halt (__obj,__obj);
+__obj __print (__obj);
+__obj __println (__obj);
+
 static inline __objref __recordLookup (struct __record* record, __word field) {
   __word i, sz = record->sz;
   __objref fields = record->fields;
@@ -237,7 +296,10 @@ static inline __objref __recordLookup (struct __record* record, __word field) {
     if (o->tagged.tag == field)
        return o;
   }
-  __fatal("record-field '%lz' not found", field);
+  if (field < __NFIELDS)
+    __fatal("record-field '%s' not found",__fieldName(field));
+  else
+    __fatal("record-field '%zu' not found",field);
 }
 
 static inline __word __recordUpdate (__objref fields, __word n, __word field, __obj value) {

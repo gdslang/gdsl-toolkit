@@ -1349,8 +1349,9 @@ structure BetaContFun = struct
             case findCont (env, k) of
                NONE => CC (k, ys)
              | SOME (xs, K) =>
-                  if not (isInliningCandidateCont k K) then CC (k, ys)
-                  else if length xs <> length ys
+                  if length xs <> length ys
+                     then (* CC (k, ys) *) raise Fail "betaContFun.Cont"
+                  else if not (isInliningCandidateCont k K)
                      then CC (k, ys)
                   else
                      let
@@ -1374,12 +1375,10 @@ structure BetaContFun = struct
             case findFun (env, f) of
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
-                  if not (isInliningCandidate f K) then APP (f, j, ys)
-                  else if length xs > length ys
+                  if length xs > length ys
                      then
                         let
                            val _ = click()
-                           (* val _ = markInlined f *)
                            val ly = length ys
                            val lx = length xs
                            val f' = Aux.fresh Aux.function
@@ -1400,7 +1399,31 @@ structure BetaContFun = struct
                                  CC (k', [h']))),
                               CC (j', [g'])))
                         end
-
+                  else if length xs < length ys
+                     then
+                        let 
+                           val _ = click()
+                           val ly = length ys
+                           val lx = length xs
+                           val g = Aux.fresh Aux.function
+                           val kg = Aux.fresh Aux.continuation
+                           val g' = Aux.fresh Aux.function
+                           val kg' = Aux.fresh Aux.continuation
+                           val h = Aux.fresh Aux.function
+                           val kh = Aux.fresh Aux.continuation
+                           val app = List.take(ys,lx)
+                           val overapp = List.drop(ys,lx)
+                           val (_, app) = Subst.renameAll sigma app
+                           val (_, overapp) = Subst.renameAll sigma overapp
+                        in
+                           LETCONT ([(kg', [g'], APP (g', j, ys))],
+                              LETVAL (g, FN (kg, app@overapp,
+                                 LETCONT ([(kh, [h], APP (h, kg, overapp))],
+                                    APP (f, kh, app))),
+                                 CC (kg', [g])))
+                        end
+                  else if not (isInliningCandidate f K)
+                     then APP (f, j, ys)
                   else if length xs = length ys
                      then 
                         let
