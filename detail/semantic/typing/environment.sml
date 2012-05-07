@@ -1028,21 +1028,6 @@ end = struct
                   (texpBVarset (op ::) (t1, []), texpBVarset (op ::) (t2, []))
                   handle (BD.Unsatisfiable bVar) =>
                      flowError (bVar, affectedField (bVar, env1), [env1,env2]))
-                  handle (ListPair.UnequalLengths) =>
-                     let
-                        val (t1Str, si) = showTypeSI (t1, TVar.emptyShowInfo)
-                        val (t2Str, si) = showTypeSI (t2, si)
-                        val (k1Str, si) = kappaToStringSI (env1, si)
-                        val (k2Str, si) = kappaToStringSI (env2, si)
-                        val (sStr, si) = showSubstsSI (substs, si)
-                        val (b,env) = Scope.unwrap env1
-                        val (b,_) =  substBinding (b,emptyExpandInfo)
-                        val (k11Str, si) = kappaToStringSI (Scope.wrap (b,env), si)
-                     in
-                        (TextIO.print ("cannot gen impl flow from\n" ^ k1Str ^ "to\n" ^ k2Str ^
-                         "after applying substitution " ^ sStr ^ "\nto  " ^ t1Str ^
-                         "\nand " ^ t2Str ^ "\nb11" ^ k11Str); raise InferenceBug)                       
-                     end
             else
             let
                (*val _ = TextIO.print ("forcing bVars to be equal:" ^
@@ -1203,41 +1188,40 @@ end = struct
          Scope.wrap (KAPPA {ty = !tyRef}, env)
       end
 
-   fun unify (env1, env2, (substs, ei)) =
+   fun unify (env1, env2, substs) =
       (case Scope.unwrapDifferent (env1, env2) of
            (SOME (KAPPA {ty = ty1}, KAPPA {ty = ty2}), env1, env2) =>
-               unify (env1, env2, mgu(ty1, ty2, substs, ei))
+               unify (env1, env2, mgu(ty1, ty2, substs))
          | (SOME (SINGLE {name = _, ty = ty1},
                   SINGLE {name = _, ty = ty2}), env1, env2) =>
-               unify (env1, env2, mgu(ty1, ty2, substs, ei))
+               unify (env1, env2, mgu(ty1, ty2, substs))
          | (SOME (GROUP bs1, GROUP bs2), env1, env2) =>
             let
-               fun mguOpt (SOME t1, SOME t2, (s,ei)) = mgu (t1,t2,s,ei)
-                 | mguOpt (NONE, NONE, sEi) = sEi
+               fun mguOpt (SOME t1, SOME t2, substs) = mgu (t1,t2,substs)
+                 | mguOpt (NONE, NONE, substs) = substs
                  | mguOpt (_, _, _) = raise InferenceBug
-               fun mguBOpt (SOME (t1,_), SOME (t2,_), (s,ei)) = mgu (t1,t2,s,ei)
-                 | mguBOpt (NONE, NONE, sEi) = sEi
+               fun mguBOpt (SOME (t1,_), SOME (t2,_), substs) = mgu (t1,t2,substs)
+                 | mguBOpt (NONE, NONE, substs) = substs
                  | mguBOpt (_, _, _) = raise InferenceBug
-               fun mguUses ((s1,(ctxt1,t1)) :: us1, (s2,(ctxt2,t2)) :: us2, (s,ei)) =
+               fun mguUses ((s1,(ctxt1,t1)) :: us1, (s2,(ctxt2,t2)) :: us2, substs) =
                   (case compare_span (s1,s2) of
-                       EQUAL => mguUses (us1, us2, mgu (t1,t2,s,ei))
-                     | LESS => mguUses (us1, (s2,(ctxt2,t2)) :: us2, (s,ei))
-                     | GREATER => mguUses ((s1,(ctxt1,t1)) :: us1, us2, (s,ei))
+                       EQUAL => mguUses (us1, us2, mgu (t1,t2,substs))
+                     | LESS => mguUses (us1, (s2,(ctxt2,t2)) :: us2, substs)
+                     | GREATER => mguUses ((s1,(ctxt1,t1)) :: us1, us2, substs)
                   )
-                  | mguUses (_, _, sEi) = sEi
+                  | mguUses (_, _, substs) = substs
                fun uB (({name = n1, ty = t1, width = w1, uses = u1},
-                        {name = n2, ty = t2, width = w2, uses = u2}), sEi) =
+                        {name = n2, ty = t2, width = w2, uses = u2}), substs) =
                   if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
                   mguUses (SpanMap.listItemsi u1, SpanMap.listItemsi u2,
-                           mguBOpt (t1, t2, mguOpt (w1, w2, sEi)))
+                           mguBOpt (t1, t2, mguOpt (w1, w2, substs)))
                (*val _ = if List.length bs1=List.length bs2 then () else
                      TextIO.print ("*************** mgu of\n" ^ topToString (Scope.wrap (GROUP bs1,env1)) ^ "\ndoes not match\n" ^ topToString (Scope.wrap (GROUP bs2,env2)))*)
-               val (substs, ei) = List.foldl uB (substs, ei)
-                                    (ListPair.zipEq (bs1,bs2))
+               val substs = List.foldl uB substs (ListPair.zipEq (bs1,bs2))
             in
-               unify (env1, env2, (substs, ei))
+               unify (env1, env2, substs)
             end      
-         | (NONE, env1, env2) => (substs, ei)
+         | (NONE, env1, env2) => substs
          | (SOME _, _, _) => raise InferenceBug
       )
 
@@ -1288,7 +1272,7 @@ end = struct
          (*val (e1Str', si) = topToStringSI (env1,TVar.emptyShowInfo)
          val (e2Str', si) = topToStringSI (env2,si)*)
 
-         val (substs, ei) = unify (env1, env2, (emptySubsts, emptyExpandInfo))
+         val substs = unify (env1, env2, emptySubsts)
          (*val (scs, cons) = env1
          val (_, cons') = env2
          val _ = if cons<>cons' then raise InferenceBug else ()
@@ -1348,7 +1332,7 @@ end = struct
    
    fun subseteq (env1, env2) =
       let
-         val (substs,_) = unify (env1, env2, (emptySubsts, emptyExpandInfo))
+         val substs = unify (env1, env2, emptySubsts)
          (*val si = TVar.emptyShowInfo
          val (e1Str, si) = toStringSI (env1, si)
          val (e2Str, si) = toStringSI (env2, si)

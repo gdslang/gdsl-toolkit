@@ -295,7 +295,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.meet (env, envRhs)
          val env = E.popToFunction (v, env)
          val fInfo = E.getFunctionInfo (v, env)
-         val _ = sm := (v, fInfo) :: !sm
+         val _ = sm := (v, fInfo) :: List.filter (fn (s,_) =>
+                                       not (SymbolTable.eq_symid(s,v))) (!sm)
       in
          checkUsages false (v,env)
       end
@@ -312,7 +313,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             end) env el
          val env = E.popToFunction (v, env)
          val fInfo = E.getFunctionInfo (v, env)
-         val _ = sm := (v, fInfo) :: !sm
+         val _ = sm := (v, fInfo) :: List.filter (fn (s,_) =>
+                                       not (SymbolTable.eq_symid(s,v))) (!sm)
       in
          checkUsages false (v,env)
       end
