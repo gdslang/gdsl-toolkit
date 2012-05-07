@@ -681,7 +681,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)

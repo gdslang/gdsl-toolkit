@@ -232,20 +232,24 @@ end = struct
            (verCounter := v+1; v)
          end             
 
+      fun isContextRelevant (ctxt1, ctxt2) =
+         List.foldl (fn (sym, hasCommon) => hasCommon orelse
+                     List.exists (fn sym' => ST.eq_symid (sym',sym)) ctxt2)
+                    false ctxt1
+
       fun prevTVars [] = TVar.empty
         | prevTVars ({bindInfo, typeVars = tv, boolVars, version}::_) = tv
 
-      fun varsOfBinding (KAPPA {ty=t},set) = texpVarset (t,set)
-        | varsOfBinding (SINGLE {name, ty=t},set) = texpVarset (t,set)
-        | varsOfBinding (GROUP bs,set) = let
+      fun varsOfBinding (KAPPA {ty=t}, set) = texpVarset (t,set)
+        | varsOfBinding (SINGLE {name, ty=t}, set) = texpVarset (t,set)
+        | varsOfBinding (GROUP bs, set) = let
            fun vsOpt (SOME t,set) = texpVarset (t,set)
              | vsOpt (NONE,set) = set
            fun bvsOpt (SOME (t,_),set) = texpVarset (t,set)
              | bvsOpt (NONE,set) = set
-           fun getUsesVars ((_,t),set) = texpVarset (t,set)
-           fun getBindVars ({name, ty=t, width=w, uses},set) =
-               List.foldl
-                  getUsesVars
+           fun getUsesVars ((ctxt',t),set) = texpVarset (t,set)
+           fun getBindVars ({name=n, ty=t, width=w, uses},set) =
+               List.foldl getUsesVars
                   (bvsOpt (t, vsOpt (w,set)))
                   (SpanMap.listItems uses)
         in
@@ -256,36 +260,20 @@ end = struct
         | prevBVars ({bindInfo, typeVars, boolVars = bv, version}::_) = bv
 
       val texpBVarset = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs))
-      (*fun bvarsOfBinding (KAPPA {ty=t},set) = texpBVarset (t,set)
-        | bvarsOfBinding (SINGLE {name, ty=t},set) = texpBVarset (t,set)
-        | bvarsOfBinding (GROUP bs,set) = let
-           fun vsOpt (SOME t,set) = texpBVarset (t,set)
-             | vsOpt (NONE,set) = set
-           fun bvsOpt (SOME (t,_),set) = texpBVarset (t,set)
-             | bvsOpt (NONE,set) = set
-           fun getUsesVars ((_,t),set) = texpBVarset (t,set)
-           fun getBindVars ({name, ty=t, width=w, uses},set) =
-               List.foldl
-                  getUsesVars
-                  (bvsOpt (t, vsOpt (w,set)))
-                  (SpanMap.listItems uses)
-        in
-           List.foldl getBindVars set bs
-        end
-      *)
 
-      fun bvarsOfBinding (KAPPA {ty}) (sym, set) = texpBVarset (ty,set)
-        | bvarsOfBinding (SINGLE {name, ty}) (sym, set) = texpBVarset (ty,set)
-        | bvarsOfBinding (GROUP bs) (sym, set) =
+      fun bvarsOfBinding (KAPPA {ty}, ctxt, set) = texpBVarset (ty,set)
+        | bvarsOfBinding (SINGLE {name, ty}, ctxt, set) = texpBVarset (ty,set)
+        | bvarsOfBinding (GROUP bs, ctxt, set) =
          let
-            fun getUsesVars ((ctxt,t),set) =
-               if List.exists (fn x => ST.eq_symid (sym,x)) ctxt then
+            fun getUsesVars ((ctxt',t),set) =
+               if isContextRelevant (ctxt',ctxt) then
                   texpBVarset (t,set)
                else
                   set
             fun getBindVars ({name=n, ty=tOpt, width, uses},set) =
                List.foldl getUsesVars
-                  (if ST.eq_symid (sym,n) then case tOpt of
+                  (if List.exists (fn sym => ST.eq_symid (sym,n)) ctxt
+                   then case tOpt of
                      NONE => set | SOME (t,_) => texpBVarset (t,set)
                    else set)
                   (SpanMap.listItems uses)
@@ -297,7 +285,7 @@ end = struct
       fun initial (b, scs) =
          ([{
             bindInfo = b,
-            typeVars = varsOfBinding (b,TVar.empty),
+            typeVars = varsOfBinding (b, TVar.empty),
             boolVars = BD.emptySet,
             version = 0
           }], {
@@ -308,8 +296,8 @@ end = struct
       fun wrap (b, (scs, state)) =
          ({
             bindInfo = b,
-            typeVars = varsOfBinding (b,prevTVars scs),
-            boolVars = List.foldl (bvarsOfBinding b) (prevBVars scs) (getCtxt state),
+            typeVars = varsOfBinding (b, prevTVars scs),
+            boolVars = bvarsOfBinding (b, getCtxt state, prevBVars scs),
             version = nextVersion ()
          }::scs,state)
       fun unwrap ({bindInfo = bi, typeVars, boolVars, version} :: scs, state) =
@@ -326,11 +314,9 @@ end = struct
             (NONE, all1, all2)
         | unwrapDifferent (_, _) = raise InferenceBug
       
-      fun getVars ({bindInfo, typeVars = tv, boolVars, version}::_,_) = tv
-        | getVars ([],_) = TVar.empty
+      fun getVars (scs, state) = prevTVars scs
 
-      fun getBVars ({bindInfo, typeVars, boolVars = tv, version}::_,_) = tv
-        | getBVars ([],_) = BD.emptySet
+      fun getBVars (scs, state) = prevBVars scs
 
       fun getBVarsUses (sym, vs, (scs,_)) =
          let
@@ -360,20 +346,18 @@ end = struct
 
       fun lookup (sym, (scs, cons)) =
          let
-            fun getEnv ({bindInfo, typeVars = tv, boolVars, version}::_) = tv
-              | getEnv [] = TVar.empty
             fun l [] = (TextIO.print ("urk, tried to lookup non-exitent symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                        ;raise InferenceBug)
               | l ({bindInfo = KAPPA _, typeVars, boolVars, version}::scs) = l scs
               | l ({bindInfo = SINGLE {name, ty}, typeVars, boolVars, version}::scs) =
                   if ST.eq_symid (sym,name) then
-                     (getEnv scs, SIMPLE { ty = ty})
+                     (prevTVars scs, SIMPLE { ty = ty})
                   else l scs
               | l ({bindInfo = GROUP bs, typeVars, boolVars, version}::scs) =
                   let fun lG other [] = l scs
                         | lG other ((b as {name, ty, width, uses})::bs) =
                            if ST.eq_symid (sym,name) then
-                              (varsOfBinding (GROUP (other @ bs), getEnv scs),
+                              (varsOfBinding (GROUP (other @ bs), prevTVars scs),
                               COMPOUND { ty = ty, width = width, uses = uses })
                            else lG (b :: other) bs
                   in
