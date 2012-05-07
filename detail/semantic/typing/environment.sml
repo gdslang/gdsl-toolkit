@@ -1300,6 +1300,8 @@ end = struct
          val env1 = (scs,cons)*)
       
          val (env1,env2) = mergeUses (env1, env2)
+         val (ei, bFunFlow, env) =
+            applySubsts (substs, emptyExpandInfo, BD.empty, directed, env1, env2)
          
          (*val (e1Str,si) = kappaToStringSI (env1, si)
          val (e2Str,si) = kappaToStringSI (env2, si)
@@ -1317,10 +1319,6 @@ end = struct
          (*val _ = TextIO.print ("meet of Boolean function:\n" ^ BD.showBFun (Scope.getFlow state1) ^
                               "\nand\n" ^ BD.showBFun (Scope.getFlow state2) ^ 
                               "\nis\n" ^ BD.showBFun bFun ^ "\n")*)
-
-         val (ei, bFunFlow, env) =
-            applySubsts (substs, ei, BD.empty, directed, env1, env2)
-
 
          val sCons = SC.merge (Scope.getSize state1,Scope.getSize state2)
          val (sCons, substs) = applySizeConstraints (sCons, substs)
