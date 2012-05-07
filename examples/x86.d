@@ -590,7 +590,7 @@ val mem op = do
    return (MEM {sz=sz, segment=seg, opnd=op})
 end
 
-val r/m-with-sib = do
+val r/m-with-sib reg = do
    sibOpnd <- sib;
    mod <- query $mod;
    case mod of
@@ -604,6 +604,11 @@ val r/m-with-sib = do
          do
             i <- imm32;
             mem (SUM{a=sibOpnd, b=i})
+         end
+    | '11':
+         do
+            rm <- query $rm;
+            return (reg rm)
          end
    end
 end
@@ -649,7 +654,7 @@ val r/m reg = do
    rexb <- query $rexb;
    addr-reg <- addrReg;
    case rm of
-      '100': r/m-with-sib
+      '100': r/m-with-sib (reg rexb)
     | _ : r/m-without-sib (reg rexb) (addr-reg rexb)
    end
 end
@@ -732,7 +737,7 @@ end
 val binop cons giveOp1 giveOp2 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
-   return (cons {op1=op1, op2=op2})
+   return (cons {opnd1=op1, opnd2=op2})
    # We could add syntatic sugar for record field creation:
    #   return (MOV {op1, op2})
 end
@@ -741,7 +746,7 @@ val trinop cons giveOp1 giveOp2 giveOp3 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
    op3 <- giveOp3;
-   return (cons {op1=op1, op2=op2, op3=op3})
+   return (cons {opnd1=op1, opnd2=op2, opnd3=op3})
 end
 
 ## The VEX prefixes

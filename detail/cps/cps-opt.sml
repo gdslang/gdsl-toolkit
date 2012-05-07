@@ -739,7 +739,7 @@ structure Cost = struct
              | LETREC (ds, body) =>
                foldl
                   (fn ((_, _, _, body), n) =>
-                     lp (body, n)) (lp (body, n)+1) ds
+                     lp (body, n)) (lp (body, n)+5) ds
              | CASE (_, cs) => n+List.length cs
              | _ => n
       in
@@ -1224,6 +1224,7 @@ structure BetaContFun = struct
           Aux.get "unconsume",
           Aux.get "slice",
           Aux.get "update",
+          Aux.get "raise",
           Aux.get "query",
           Aux.get "and",
           Aux.get "^"]
@@ -1465,7 +1466,7 @@ structure BetaContFun = struct
 end
 
 
-(* structure BetaContFun0 = struct
+(* structure BetaContFunConservative = struct
    structure FI = FunInfo
    structure Map = SymMap
    structure Set = SymSet
@@ -1492,6 +1493,7 @@ end
           Aux.get "unconsume",
           Aux.get "slice",
           Aux.get "update",
+          Aux.get "raise",
           Aux.get "query",
           Aux.get "and",
           Aux.get "^"]

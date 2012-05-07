@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <stddef.h>
 #include <string.h>
 
 #define __RT_HEAP_SIZE 10000

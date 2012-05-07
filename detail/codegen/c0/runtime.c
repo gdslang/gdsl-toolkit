@@ -280,18 +280,32 @@ static __obj __test001__ (__obj env, __obj k, __obj s) {
 }
 
 static void printState () {
-  printf("heap: %p, hp: %p, size: %u, obj-size: %zu\n",
-    &heap[0], hp, __RT_HEAP_SIZE, sizeof(__unwrapped_obj));
+  ptrdiff_t d = &heap[__RT_HEAP_SIZE] - hp;
+  int n = d / sizeof(__unwrapped_obj);
+  int used = n*100/__RT_HEAP_SIZE;
+  printf("heap: %p, hp: %p, size: %u, used: %d (%d%%), obj-size: %zu\n",
+    &heap[0], hp, __RT_HEAP_SIZE, n, used, sizeof(__unwrapped_obj));
 }
 
 int main (int argc, char** argv) {
-  __char blob[15] = {0x48, 0x83, 0xc4, 0x08};
+  __char blob001[15] = {0x48, 0x83, 0xc4, 0x08};
+  __char blob002[15] = {0x0f, 0xae, 0x01, 0xc8};
   __word sz = 15;
   __obj o;
+  __obj insn;
   printf("DECODE starting\n");
   printState();
-  o = eval(__decode__,blob,sz);
-  __println(o);
+  o = eval(__decode__,blob001,sz);
+  insn = __RECORD_SELECT(o,___1);
+  __println(insn);
+  printState();
+  printf("DECODE finished\n");
+
+  printf("DECODE starting\n");
+  printState();
+  o = eval(__decode__,blob002,sz);
+  insn = __RECORD_SELECT(o,___1);
+  __println(insn);
   printState();
   printf("DECODE finished\n");
 
