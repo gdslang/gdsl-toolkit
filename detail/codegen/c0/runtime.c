@@ -148,9 +148,7 @@ __obj __slice (__obj tok_, __obj offs_, __obj sz_, __obj s) {
 }
 
 __obj __halt (__obj env, __obj o) {
-   printf("halt\n");
-   __println(o);
-   return (o);
+  return (o);
 }
 
 __obj __runWithState (__obj (*f)(__obj,__obj,__obj), __obj s) {
@@ -260,8 +258,6 @@ __obj __println (__obj o) {
   return (__UNIT);
 }
 
-@functions@
-
 static void __testConcat () {
   __obj x = __concat(__TRUE, __FALSE);
   __println(x);
@@ -289,19 +285,9 @@ static void printState () {
 }
 
 int main (int argc, char** argv) {
-  printState();
-  printf("argc: %d\n", argc);
-  
   __char blob[15] = {0x48, 0x83, 0xc4, 0x08};
   __word sz = 15;
-
-  __testConcat();
-
   __obj o;
-  o = eval(__test000__,blob,sz);
-  printState();
-  o = eval(__test001__,blob,sz);
-
   printf("DECODE starting\n");
   printState();
   o = eval(__decode__,blob,sz);
@@ -311,3 +297,5 @@ int main (int argc, char** argv) {
 
   return (1); 
 }
+
+@functions@
