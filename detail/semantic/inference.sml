@@ -25,12 +25,6 @@ end = struct
    
    type symbol_types = (SymbolTable.symid * E.symbol_type) list
 
-   (*structure SMap = RedBlackMapFn (
-      struct
-         type ord_key = SymbolTable.symid
-         val compare = SymbolTable.compare_symid
-      end)*)
-
    open Types
 
    exception TypeError
@@ -612,7 +606,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          end
    and infTokpat stenv (AST.MARKtokpat m) = reportError infTokpat stenv m
      | infTokpat (st,env) (AST.TOKtokpat i) = (0, env)
-     | infTokpat (st,env) (AST.NAMEDtokpat v) = (1, E.pushLambdaVar (v,env))
+     | infTokpat (st,env) (AST.NAMEDtokpat (v,_)) = (1, E.pushLambdaVar (v,env))
    and infMatch (st,env) (p,e) =
       let
          val (n,env) = infPat (st,env) p
@@ -681,7 +675,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)

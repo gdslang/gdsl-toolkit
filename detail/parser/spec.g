@@ -153,7 +153,7 @@ BitPat
 
 TokPat
    : Int => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
-   | Qid => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Qid))
+   | Qid => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat (Qid,[])))
    ;
 
 PrimBitPat
@@ -265,7 +265,6 @@ AtomicExp
    | "@" "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
       (mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp ((Name, Exp)::SR)))
    | "$" Qid => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp Qid))
-   | "{" "}" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "(" Exp ")" => (Exp)
    | "{" "}" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>

@@ -130,24 +130,13 @@ end = struct
    structure ST = SymbolTable
    structure BD = BooleanDomain
    structure SC = SizeConstraint
+   structure SpanMap = SpanMap
    open Types
    open Substitutions
 
    (*any error that is not due to unification*)
    exception InferenceBug
    
-   fun compare_span ((p1s,p1e), (p2s,p2e)) =
-      (case Int.compare (Position.toInt p1s,
-                         Position.toInt p2s) of
-           EQUAL => Int.compare (Position.toInt p1e,
-                                 Position.toInt p2e)
-         | res => res)
-
-   structure SpanMap = ListMapFn (struct
-         type ord_key = Error.span
-         val compare = compare_span
-      end)           
-
    datatype bind_info
       = SIMPLE of { ty : texp }
       | COMPOUND of { ty : (texp * BD.bfun) option, width : texp option,
@@ -1188,7 +1177,7 @@ end = struct
                  | mguBOpt (NONE, NONE, substs) = substs
                  | mguBOpt (_, _, _) = raise InferenceBug
                fun mguUses ((s1,(ctxt1,t1)) :: us1, (s2,(ctxt2,t2)) :: us2, substs) =
-                  (case compare_span (s1,s2) of
+                  (case SymbolTable.compare_span (s1,s2) of
                        EQUAL => mguUses (us1, us2, mgu (t1,t2,substs))
                      | LESS => mguUses (us1, (s2,(ctxt2,t2)) :: us2, substs)
                      | GREATER => mguUses ((s1,(ctxt1,t1)) :: us1, us2, substs)

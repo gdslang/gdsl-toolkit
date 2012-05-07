@@ -86,6 +86,7 @@ functor MkAst (Core: AST_CORE) = struct
       MARKdecodepat of decodepat mark
     | TOKENdecodepat of tokpat
     | BITdecodepat of bitpat list
+    | DEFAULTdecodepat of var_bind * string
 
    and bitpat =
       MARKbitpat of bitpat mark
@@ -96,8 +97,12 @@ functor MkAst (Core: AST_CORE) = struct
    and tokpat =
       MARKtokpat of tokpat mark
     | TOKtokpat of IntInf.int
-    | NAMEDtokpat of var_use
+    | NAMEDtokpat of var_use * special list
 
+   and special =
+      MARKspecial of special mark
+    | BINDspecial of var_use * string
+    
    and pat =
       MARKpat of pat mark
     | LITpat of lit
@@ -172,6 +177,7 @@ functor MkAst (Core: AST_CORE) = struct
             MARKdecodepat t' => decodepat (#tree t')
           | BITdecodepat bp => listex "'" "'" " " (map bitpat bp)
           | TOKENdecodepat tp => tokpat tp
+          | DEFAULTdecodepat (v,s) => seq [var_bind v, str "='", str s, str "'"]
 
       and bitpat t =
          case t of
@@ -184,7 +190,14 @@ functor MkAst (Core: AST_CORE) = struct
          case t of
             MARKtokpat t' => tokpat (#tree t')
           | TOKtokpat tok => str (IntInf.fmt StringCvt.HEX tok)
-          | NAMEDtokpat n => var_use n
+          | NAMEDtokpat (n, []) => var_use n
+          | NAMEDtokpat (n, sps) =>
+            seq [var_use n, str "=", listex "<" ">" "," (map special sps)]
+
+      and special t =
+         case t of
+            MARKspecial t' => special (#tree t')
+          | BINDspecial (v,s) => seq [var_use v, str "='", str s, str "'"]
 
       and guardedexp gexp = tuple2 (exp, exp) gexp
 

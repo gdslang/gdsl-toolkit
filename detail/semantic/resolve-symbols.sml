@@ -28,6 +28,9 @@ end = struct
    fun convMark conv {span, tree} = {span=span, tree=conv span tree}
    fun startScope () = ST.varTable := VI.push (!ST.varTable)
    fun endScope () = ST.varTable := VI.pop (!ST.varTable)
+   fun startScopeRefs refs = ST.varTable := VI.pushWithReferences (!ST.varTable, refs)
+   fun endScopeRefs () = let val (st,refs) = VI.popWithReferences (!ST.varTable)
+                         in (ST.varTable := st; refs) end
 
    fun resolveSymbolPass (errStrm, ast) = let
 
@@ -44,7 +47,6 @@ end = struct
             ;lookup (!table, atom))
 
       val newVar = newSym (ST.varTable, VI.create, VI.lookup, "variable")
-      val newLetVar = newVar
       val newCon = newSym (ST.conTable, CI.create, CI.lookup, "constructor")
       val newType = newSym (ST.typeTable, TI.create, TI.lookup, "type")
       val newTSyn = newSym (ST.typeTable, TI.create, TI.lookup, "type synonym")
@@ -83,17 +85,21 @@ end = struct
          handle SymbolAlreadyDefined =>
             FI.lookup (!ST.fieldTable, atom)
 
+      type patternVarMap = (SymbolTable.references SpanMap.map) SymMap.map
+      
+      val patternVarRef = ref (SymMap.empty : patternVarMap)
+
       (* define a first traversal that registers:
        *   - type synonyms
        *   - datatype declarations including constructors
        *   - toplevel val bindings
+       *   - bitpat var binding per decoder
        *)
       fun regDecl s decl =
          case decl of
             PT.MARKdecl {span, tree} => regDecl span tree
-          | PT.EXPORTdecl es => app (fn e => regVar s (#tree e)) es
-          | PT.DECODEdecl d => regDecodeDecl s d
-          | PT.LETRECdecl d => regLetrecDecl s d
+          | PT.DECODEdecl (n, pats, _) => regDecode (s, n, pats)
+          | PT.LETRECdecl (n, _, _) => ignore (newVar (s,n))
           | PT.DATATYPEdecl (n, ds) => (regTy s n; app (regCon s) ds)
           | PT.TYPEdecl (n, _) => regTy s n 
           | _ => ()
@@ -105,18 +111,36 @@ end = struct
 
       and regCon s (c, _) = ignore (newCon (s, c))
 
-      and regVar s n =
-         case VI.find (!ST.varTable, n) of
-            NONE => (newLetVar (s, n); ())
+      and regDecode (s, n, pats) =
+         let
+            val decSymId = case VI.find (!ST.varTable, n) of
+                  NONE => newVar (s, n)
+                | SOME id => id
+            val _ = startScope ()
+            val _ = List.map (regDecodepat s) pats
+            val refs = endScopeRefs ()
+            val pV = !patternVarRef
+            val sM = case SymMap.find (pV, decSymId) of
+                        SOME sM => sM
+                      | NONE => SpanMap.empty
+            val sM = SpanMap.insert (sM,s,refs)
+            val pV = SymMap.insert (pV,decSymId,sM)
+          in
+             (patternVarRef := pV; ())
+         end
+
+      and regDecodepat s d =
+         case d of
+            PT.MARKdecodepat {span, tree} => regDecodepat span tree
+          | PT.BITdecodepat pats => ignore (List.map (regBitpat s) pats)
+          | PT.DEFAULTdecodepat (v,bits) => (newVar (s,v); ())
           | _ => ()
 
-      and regDecodeDecl s d =
+      and regBitpat s d =
          case d of
-            (n, _, _) => regVar s n
-
-      and regLetrecDecl s d =
-         case d of
-            (n, _, _) => regVar s n
+            PT.MARKbitpat {span, tree} => regBitpat span tree
+          | PT.BITVECbitpat (v,_) => (newVar (s,v); ())
+          | _ => ()
 
       (* define a second traversal that is a full translation of the tree *)
       fun convDecl s d =
@@ -141,9 +165,11 @@ end = struct
          case d of
             (v, ps, Sum.INL e) =>
                let
-                  val _ = startScope ()
+                  val vSym = VI.lookup (!ST.varTable, v)
+                  val sM = SymMap.lookup (!patternVarRef, vSym)
+                  val _ = startScopeRefs (SpanMap.lookup (sM,s))
                   val res =
-                     (VI.lookup (!ST.varTable, v),
+                     (vSym,
                       List.map (convDecodepat s) ps,
                       Sum.INL (convExp s e))
                   val _ = endScope ()
@@ -152,9 +178,11 @@ end = struct
                end
          | (v, ps, Sum.INR es) =>
                let
-                  val _ = startScope ()
+                  val vSym = VI.lookup (!ST.varTable, v)
+                  val sM = SymMap.lookup (!patternVarRef, vSym)
+                  val _ = startScopeRefs (SpanMap.lookup (sM,s))
                   val res =
-                     (VI.lookup (!ST.varTable, v),
+                     (vSym,
                       List.map (convDecodepat s) ps,
                       Sum.INR
                         (List.map
@@ -193,7 +221,7 @@ end = struct
           | PT.LETRECexp (l, e) =>
                let
                   val _ = startScope ()
-                  val _ = List.map (regLetrecDecl s) l
+                  val _ = List.map (fn (n,_,_) => newVar (s,n)) l
                   val l = List.map (convLetrecDecl s) l
                   val r = convExp s e
                   val _ = endScope ()
@@ -247,19 +275,22 @@ end = struct
             PT.MARKdecodepat m => AST.MARKdecodepat (convMark convDecodepat m)
           | PT.TOKENdecodepat t => AST.TOKENdecodepat (convTokpat s t)
           | PT.BITdecodepat l => AST.BITdecodepat (List.map (convBitpat s) l)
+          (*note: definition registered earlier*)
+          | PT.DEFAULTdecodepat (v,bits) => AST.DEFAULTdecodepat (VI.lookup (!ST.varTable, v), bits)
 
       and convBitpat s p =
          case p of
             PT.MARKbitpat m => AST.MARKbitpat (convMark convBitpat m)
           | PT.BITSTRbitpat str => AST.BITSTRbitpat str
           | PT.NAMEDbitpat v => AST.NAMEDbitpat (useVar (s,v))
-          | PT.BITVECbitpat (var,size) => AST.BITVECbitpat (newVar (s,var), size)
+          (*note: definition registered earlier*)   
+          | PT.BITVECbitpat (v,size) => AST.BITVECbitpat (VI.lookup (!ST.varTable, v), size)
 
       and convTokpat s p =
          case p of
             PT.MARKtokpat m => AST.MARKtokpat (convMark convTokpat m)
           | PT.TOKtokpat i => AST.TOKtokpat i
-          | PT.NAMEDtokpat v => AST.NAMEDtokpat (useVar (s,v))
+          | PT.NAMEDtokpat (v,sps) => AST.NAMEDtokpat (useVar (s,v),[])
 
       and convMatch s (p, e) =
          let
