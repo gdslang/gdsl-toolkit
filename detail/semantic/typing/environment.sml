@@ -771,7 +771,7 @@ end = struct
                        SOME f => SOME f
                      | NONE => affectedField (bVar, env)) fOpt envs
          val fStr = case fOpt of
-                 NONE => "some other field with var " ^ BD.showVar bVar
+                 NONE => "some other field" (*" with var " ^ BD.showVar bVar*)
                | SOME f => "field " ^
                   SymbolTable.getString(!SymbolTables.fieldTable, f)
       in
