@@ -76,12 +76,12 @@ structure Types = struct
         | tV co (CONST c, bs) = bs
         | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
         | tV co (RECORD (v,b,l), bs) =
-         List.foldl (tVF co) (cons ((co,b),bs)) l
+            cons ((co,b), List.foldl (tVF co) bs l)
         | tV co (MONAD (r,f,t), bs) =
          tV co (r, tV (not co) (f, tV co (t, bs)))
         | tV co (VAR (v,b), bs) = cons ((co,b),bs)
       and tVF co (RField {name = n, fty = t, exists = b}, bs) =
-         tV co (t, cons ((co,b),bs))
+         cons ((co,b), tV co (t, bs))
       in (tV false (e, bs))
    end
 
@@ -139,6 +139,46 @@ structure Types = struct
    and
      setFlagsToTopF (RField {name = n, fty = t, exists = _}) =
         RField {name = n, fty = setFlagsToTop t, exists = BD.freshBVar ()}
+
+   fun replaceTVars (e, vs) = let
+      fun chg v = case List.find (fn (v1,_) => TVar.eq(v,v1)) vs of
+           NONE => v
+         | SOME (v1,v2) => v2
+      fun repl (FUN (f1, f2)) = FUN (repl f1, repl f2)
+        | repl (SYN (syn, t)) = SYN (syn, repl t)
+        | repl (ZENO) = ZENO
+        | repl (FLOAT) = FLOAT
+        | repl (UNIT) = UNIT
+        | repl (VEC t) = VEC (repl t)
+        | repl (CONST c) = CONST c
+        | repl (ALG (ty, l)) = ALG (ty, List.map repl l)
+        | repl (RECORD (v,bv,l)) = RECORD (chg v, bv, List.map replF l)
+        | repl (MONAD (r,f,t)) = MONAD (repl r, repl f, repl t)
+        | repl (VAR (v,bv)) = VAR (chg v,bv)
+      and replF (RField {name = n, fty = t, exists = b}) =
+         RField {name = n, fty = repl t, exists = b}
+      in repl e
+   end
+
+   fun replaceBVars (e, vs) = let
+      fun chg v = case List.find (fn (v1,_) => BD.eq(v,v1)) vs of
+           NONE => v
+         | SOME (v1,v2) => v2
+      fun repl (FUN (f1, f2)) = FUN (repl f1, repl f2)
+        | repl (SYN (syn, t)) = SYN (syn, repl t)
+        | repl (ZENO) = ZENO
+        | repl (FLOAT) = FLOAT
+        | repl (UNIT) = UNIT
+        | repl (VEC t) = VEC (repl t)
+        | repl (CONST c) = CONST c
+        | repl (ALG (ty, l)) = ALG (ty, List.map repl l)
+        | repl (RECORD (v,bv,l)) = RECORD (v, chg bv, List.map replF l)
+        | repl (MONAD (r,f,t)) = MONAD (repl r, repl f, repl t)
+        | repl (VAR (v,bv)) = VAR (v,chg bv)
+      and replF (RField {name = n, fty = t, exists = b}) =
+         RField {name = n, fty = repl t, exists = chg b}
+      in repl e
+   end
 
    fun compare_rfield (RField f1, RField f2) =
      SymbolTable.compare_symid (#name f1, #name f2)

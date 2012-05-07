@@ -15,26 +15,32 @@ structure Primitives = struct
    val stateD = freshVar ()
    val stateD' = newFlow stateD
    val stateE = freshVar ()
-   val stateE' = newFlow stateE
-   val stateE'' = newFlow stateE
-   val stateE''' = newFlow stateE
+   val stateE' = freshVar ()
+   val stateE'' = newFlow stateE'
+   val stateE''' = freshVar ()
    val stateE'''' = newFlow stateE
-   val stateE''''' = newFlow stateE
+   val stateE''''' = newFlow stateE'''
    val stateF = freshVar ()
-   val stateF' = newFlow stateF
-   val stateF'' = newFlow stateF
-   val stateF''' = newFlow stateF
+   val stateF' = freshVar ()
+   val stateF'' = newFlow stateF'
+   val stateF''' = freshVar ()
    val stateF'''' = newFlow stateF
-   val stateF''''' = newFlow stateF
+   val stateF''''' = newFlow stateF'''
    val stateG = freshVar ()
    val stateG' = newFlow stateG
    val stateH = freshVar ()
-   val stateH' = newFlow stateH
+   val stateH' = freshVar ()
    val stateH'' = newFlow stateH
-   val stateH''' = newFlow stateH
+   val stateH''' = newFlow stateH'
    val stateI = freshVar ()
    val stateI' = newFlow stateI
    val stateI'' = newFlow stateI
+   val stateJ = freshVar ()
+   val stateJ' = newFlow stateJ
+   val stateK = freshVar ()
+   val stateK' = newFlow stateK
+   val stateL = freshVar ()
+   val stateL' = newFlow stateL
    val a = freshVar ()
    val a' = newFlow a
    val b = freshVar ()
@@ -82,19 +88,13 @@ structure Primitives = struct
         flow = noFlow},
        {name="false", ty=VEC (CONST 1),
         flow = noFlow},
-       {name="%consume", ty=MONAD (VEC size,stateA, stateA'),
+       {name="consume", ty=MONAD (VEC size,stateA, stateA'),
         flow = BD.meetVarZero (bvar size) o
-               BD.meetVarImpliesVar (bvar stateA, bvar stateA')},
-       {name="%unconsume", ty=MONAD (UNIT,stateB, stateB'),
-        flow = BD.meetVarImpliesVar (bvar stateB, bvar stateB')}, 
-       (* TODO *) {name="%slice", ty=MONAD (freshVar (),stateC, stateC'),
-        flow = BD.meetVarImpliesVar (bvar stateC, bvar stateC')},
-       (* TODO *) {name="slice", ty=MONAD (freshVar (),stateC, stateC'),
-        flow = BD.meetVarImpliesVar (bvar stateC, bvar stateC')},
-       (* TODO *) {name="consume", ty=MONAD (freshVar (),stateC, stateC'),
-        flow = BD.meetVarImpliesVar (bvar stateC, bvar stateC')},
-       (* TODO *) {name="unconsume", ty=MONAD (freshVar (),stateC, stateC'),
-        flow = BD.meetVarImpliesVar (bvar stateC, bvar stateC')},
+               BD.meetVarImpliesVar (bvar stateA', bvar stateA)},
+       {name="unconsume", ty=MONAD (UNIT,stateB, stateB'),
+        flow = BD.meetVarImpliesVar (bvar stateB', bvar stateB)}, 
+       {name="slice", ty=MONAD (freshVar (),stateC, stateC'),
+        flow = BD.meetVarImpliesVar (bvar stateC', bvar stateC)},
        {name="raise", ty=MONAD (freshVar (),stateD, stateD'),
         flow = noFlow},
        {name="%raise", ty=UNIT, flow = noFlow},
@@ -112,28 +112,30 @@ structure Primitives = struct
        {name=">>=", ty=FUN (MONAD (a, stateE, stateE'),
             FUN (FUN (a', MONAD (b,stateE'', stateE''')),
                MONAD (b', stateE'''', stateE'''''))),
-        flow = BD.meetVarImpliesVar (bvar a, bvar a') o
-               BD.meetVarImpliesVar (bvar b, bvar b') o
-               BD.meetVarImpliesVar (bvar stateE', bvar stateE'') o
-               BD.meetVarImpliesVar (bvar stateE''', bvar stateE'''') },
+        flow = BD.meetVarImpliesVar (bvar a', bvar a) o
+               BD.meetVarImpliesVar (bvar b', bvar b) o
+               BD.meetVarImpliesVar (bvar stateE, bvar stateE'''') o
+               BD.meetVarImpliesVar (bvar stateE'', bvar stateE') o
+               BD.meetVarImpliesVar (bvar stateE''''', bvar stateE''') },
        (* 'f M -> 'g M -> 'g M *)
        {name=">>", ty=FUN (MONAD (c, stateF, stateF'),
             FUN (MONAD (d,stateF'', stateF'''),
                MONAD (d', stateF'''', stateF'''''))),
-        flow = BD.meetVarImpliesVar (bvar d, bvar d') o
-               BD.meetVarImpliesVar (bvar stateF', bvar stateF'') o
-               BD.meetVarImpliesVar (bvar stateF''', bvar stateF'''')},
+        flow = BD.meetVarImpliesVar (bvar d', bvar d) o
+               BD.meetVarImpliesVar (bvar stateF, bvar stateF'''') o
+               BD.meetVarImpliesVar (bvar stateF'', bvar stateF') o
+               BD.meetVarImpliesVar (bvar stateF''''', bvar stateF''') },
        {name="return", ty=FUN (e, MONAD (e',stateG,stateG')),
-        flow = BD.meetVarImpliesVar (bvar e, bvar e') o
-               BD.meetVarImpliesVar (bvar stateG, bvar stateG') },
-       {name="update", ty=FUN (FUN (stateH', stateH''),
-                               MONAD (f,stateH,stateH''')),
-        flow = BD.meetVarImpliesVar (bvar stateH, bvar stateH') o
-               BD.meetVarImpliesVar (bvar stateH'', bvar stateH''') },
+        flow = BD.meetVarImpliesVar (bvar e', bvar e) o
+               BD.meetVarImpliesVar (bvar stateG', bvar stateG) },
+       {name="update", ty=FUN (FUN (stateH, stateH'),
+                               MONAD (UNIT,stateH'',stateH''')),
+        flow = BD.meetVarImpliesVar (bvar stateH, bvar stateH'') o
+               BD.meetVarImpliesVar (bvar stateH''', bvar stateH') },
        {name="query", ty=FUN (FUN (stateI', g), MONAD (g',stateI,stateI'')),
-        flow = BD.meetVarImpliesVar (bvar g, bvar g') o
-               BD.meetVarImpliesVar (bvar stateI, bvar stateI') o
-               BD.meetVarImpliesVar (bvar stateI, bvar stateI'') },
+        flow = BD.meetVarImpliesVar (bvar g', bvar g) o
+               BD.meetVarImpliesVar (bvar stateI', bvar stateI) o
+               BD.meetVarImpliesVar (bvar stateI'', bvar stateI) },
        {name="+", ty=vvv s1,
         flow = BD.meetVarZero (bvar s1)},
        {name="-", ty=vvv s2,
@@ -167,7 +169,14 @@ structure Primitives = struct
        {name="suffix", ty=FUN (VEC s17, VEC s18),
         flow = BD.meetVarZero (bvar s17) o
                BD.meetVarZero (bvar s18) o
-               BD.meetVarZero (bvar s19)}
+               BD.meetVarZero (bvar s19)},
+       {name="%consume", ty=MONAD (VEC size,stateJ, stateJ'),
+        flow = BD.meetVarZero (bvar size) o
+               BD.meetVarImpliesVar (bvar stateJ', bvar stateJ)},
+       {name="%unconsume", ty=MONAD (UNIT,stateK, stateK'),
+        flow = BD.meetVarImpliesVar (bvar stateK', bvar stateK)}, 
+       {name="%slice", ty=MONAD (freshVar (),stateL, stateL'),
+        flow = BD.meetVarImpliesVar (bvar stateL', bvar stateL)}
        ]
 
    val primitiveSizeConstraints =
@@ -175,9 +184,6 @@ structure Primitives = struct
        SC.equality (tvar s14, [tvar s15,tvar s16], 0),
        SC.equality (tvar s17, [tvar s18,tvar s19], 0)
       ]
-
-   val primitiveFlowConstraints =
-      []
 
    val primitiveDecoders =
       [{name=granularity, ty=size},
