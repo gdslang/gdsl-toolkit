@@ -732,7 +732,7 @@ end
 val binop cons giveOp1 giveOp2 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
-   return (cons {opnd1=op1, opnd2=op2})
+   return (cons {op1=op1, op2=op2})
    # We could add syntatic sugar for record field creation:
    #   return (MOV {op1, op2})
 end
@@ -741,7 +741,7 @@ val trinop cons giveOp1 giveOp2 giveOp3 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
    op3 <- giveOp3;
-   return (cons {opnd1=op1, opnd2=op2, opnd3=op3})
+   return (cons {op1=op1, op2=op2, op3=op3})
 end
 
 ## The VEX prefixes
@@ -1160,82 +1160,82 @@ val vbmovlps = binop VBMOVLPD
 val main [0x0f 0x12 /r] = movlps xmm128 m64
 val main [0x0f 0x13 /r] = movlps m64 xmm128
 
-# val vex-0f [0x13 /r]
-#  | vex-noreg? & vex-128? & vex-66? = vbmovlpd m64 xmm128
-#  | vex-noreg? & vex-128? & vex-no-simd? = vbmovlps m64 xmm128
-# val vex-0f [0x12 /r]
-#  | vex-128? & vex-66? = vmovlpd xmm128 vex/xmm m64
-#  | vex-128? & vex-no-simd? = vmovlps xmm128 vex/xmm m64
-#  | vex-noreg? & vex-128? & vex-f2? = vmovddup xmm128 xmm/m64
-#  | vex-noreg? & vex-256? & vex-f2? = vmovddup ymm256 ymm/m256
-# val vex-0f [0x50 /r]
-#  | mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
-#  | / mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
-#  | mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
-#  | / mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
-#  | mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
-#  | / mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
-#  | mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
-#  | / mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
+val vex-0f [0x13 /r]
+ | vex-noreg? & vex-128? & vex-66? = vbmovlpd m64 xmm128
+ | vex-noreg? & vex-128? & vex-no-simd? = vbmovlps m64 xmm128
+val vex-0f [0x12 /r]
+ | vex-128? & vex-66? = vmovlpd xmm128 vex/xmm m64
+ | vex-128? & vex-no-simd? = vmovlps xmm128 vex/xmm m64
+ | vex-noreg? & vex-128? & vex-f2? = vmovddup xmm128 xmm/m64
+ | vex-noreg? & vex-256? & vex-f2? = vmovddup ymm256 ymm/m256
+val vex-0f [0x50 /r]
+ | mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
+ | / mode64? & vex-noreg? & vex-128? & vex-66? = vmovmskpd r64 xmm128
+ | mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
+ | / mode64? & vex-noreg? & vex-256? & vex-66? = vmovmskpd r64 ymm256
+ | mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
+ | / mode64? & vex-noreg? & vex-128? & vex-no-simd? = vmovmskpd r64 xmm128
+ | mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
+ | / mode64? & vex-noreg? & vex-256? & vex-no-simd? = vmovmskpd r64 ymm256
 val vex-0f-38 [0x2a /r]
  | vex-noreg? & vex-128? & vex-66? = vmovntdqa xmm128 m128
-# val vex-0f [0xe7 /r]
-#  | vex-noreg? & vex-128? & vex-66? = vmovntdq m128 xmm128
-#  | vex-noreg? & vex-256? & vex-66? = vmovntdq m256 ymm256
-# val vex-0f [0x2b /r]
-#  | vex-noreg? & vex-128? & vex-66? = vmovntpd m128 xmm128
-#  | vex-noreg? & vex-256? & vex-66? = vmovntpd m256 ymm256
-#  | vex-noreg? & vex-128? & vex-no-simd? = vmovntps m128 xmm128
-#  | vex-noreg? & vex-256? & vex-no-simd? = vmovntps m256 ymm256
-# val vex-0f-38 [0x01 /r]
-#  | opndsz? & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
-# val vex-0f-38 [0x02 /r]
-#  | opndsz? & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
-# val vex-0f [0x16 /r]
-#  | mod-mem? & vex-128? & vex-no-simd? = vmovhps xmm128 vex/xmm m64
-#  | vex-128? & vex-66? = vmovhpd xmm128 vex/xmm m64
-# val vex-0f [0x17 /r]
-#  | mod-mem? & vex-noreg? & vex-128? & vex-no-simd? = vbmovhps m64 xmm128
-#  | vex-noreg? & vex-128? & vex-66? = vbmovhpd m64 xmm128
-# val vex-0f [0x6f /r]
-#  | vex-noreg? & vex-128? & vex-f3? = vmovdqu xmm128 xmm/m128
-#  | vex-noreg? & vex-256? & vex-f3? = vmovdqu ymm256 ymm/m256
-#  | vex-noreg? & vex-128? & vex-66? = vmovdqa xmm128 xmm/m128
-#  | vex-noreg? & vex-256? & vex-66? = vmovdqa ymm256 ymm/m256
-# val vex-0f [0x7f /r]
-#  | vex-noreg? & vex-128? & vex-f3? = vmovdqu xmm/m128 xmm128
-#  | vex-noreg? & vex-256? & vex-f3? = vmovdqu ymm/m256 ymm256
-#  | vex-noreg? & vex-128? & vex-66? = vmovdqa xmm/m128 xmm128
-#  | vex-noreg? & vex-256? & vex-66? = vmovdqa ymm/m256 ymm256
-# val vex-0f [0x7e /r]
-#  | vex-noreg? & vex-128? & vex-66? & / rexw? = vmovd r/m32 xmm128
-#  | vex-noreg? & vex-128? & vex-66? & rexw? = vmovd r/m64 xmm128
-# val vex-0f [0x5d /r] 
-#  | vex-128? & vex-no-simd? = vminps xmm128 vex/xmm xmm/m128
-#  | vex-256? & vex-no-simd? = vminps ymm256 vex/ymm ymm/m256
-#  | vex-128? & vex-66? = vminpd xmm128 vex/xmm xmm/m128
-#  | vex-256? & vex-66? = vminpd ymm256 vex/ymm ymm/m256
-#  | vex-f2? = vminsd xmm128 vex/xmm xmm/m64
-#  | vex-f3? = vminss xmm128 vex/xmm xmm/m32
-# val vex-0f [0x28 /r] 
-#  | vex-noreg? & vex-128? & vex-66? = vmovapd xmm128 xmm/m128
-#  | vex-noreg? & vex-256? & vex-66? = vmovapd ymm256 ymm/m256
-#  | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm128 xmm/m128
-#  | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm256 ymm/m256
-# val vex-0f [0x29 /r] 
-#  | vex-noreg? & vex-128? & vex-66? = vmovapd xmm/m128 xmm128
-#  | vex-noreg? & vex-256? & vex-66? = vmovapd ymm/m256 ymm256
-#  | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm/m128 xmm128
-#  | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm/m256 ymm256
-# val vex-0f [0x5f /r] 
-#  | vex-f3? = vmaxss xmm128 vex/xmm xmm/m32
-#  | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
-#  | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
-#  | vex-128? & vex-no-simd? = vmaxps xmm128 vex/xmm xmm/m128
-#  | vex-256? & vex-no-simd? = vmaxps ymm256 vex/ymm ymm/m256
-#  | vex-f2? = vmaxsd xmm128 vex/xmm xmm/m64
-# val vex-0f [0xf7 /r]
-#  | vex-noreg? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem128
+val vex-0f [0xe7 /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovntdq m128 xmm128
+ | vex-noreg? & vex-256? & vex-66? = vmovntdq m256 ymm256
+val vex-0f [0x2b /r]
+ | vex-noreg? & vex-128? & vex-66? = vmovntpd m128 xmm128
+ | vex-noreg? & vex-256? & vex-66? = vmovntpd m256 ymm256
+ | vex-noreg? & vex-128? & vex-no-simd? = vmovntps m128 xmm128
+ | vex-noreg? & vex-256? & vex-no-simd? = vmovntps m256 ymm256
+val vex-0f-38 [0x01 /r]
+ | opndsz? & vex-128? & vex-66? = vphaddw xmm128 vex/xmm xmm/m128
+val vex-0f-38 [0x02 /r]
+ | opndsz? & vex-128? & vex-66? = vphaddd xmm128 vex/xmm xmm/m128
+val vex-0f [0x16 /r]
+ | mod-mem? & vex-128? & vex-no-simd? = vmovhps xmm128 vex/xmm m64
+ | vex-128? & vex-66? = vmovhpd xmm128 vex/xmm m64
+val vex-0f [0x17 /r]
+ | mod-mem? & vex-noreg? & vex-128? & vex-no-simd? = vbmovhps m64 xmm128
+ | vex-noreg? & vex-128? & vex-66? = vbmovhpd m64 xmm128
+val vex-0f [0x6f /r]
+ | vex-noreg? & vex-128? & vex-f3? = vmovdqu xmm128 xmm/m128
+ | vex-noreg? & vex-256? & vex-f3? = vmovdqu ymm256 ymm/m256
+ | vex-noreg? & vex-128? & vex-66? = vmovdqa xmm128 xmm/m128
+ | vex-noreg? & vex-256? & vex-66? = vmovdqa ymm256 ymm/m256
+val vex-0f [0x7f /r]
+ | vex-noreg? & vex-128? & vex-f3? = vmovdqu xmm/m128 xmm128
+ | vex-noreg? & vex-256? & vex-f3? = vmovdqu ymm/m256 ymm256
+ | vex-noreg? & vex-128? & vex-66? = vmovdqa xmm/m128 xmm128
+ | vex-noreg? & vex-256? & vex-66? = vmovdqa ymm/m256 ymm256
+val vex-0f [0x7e /r]
+ | vex-noreg? & vex-128? & vex-66? & / rexw? = vmovd r/m32 xmm128
+ | vex-noreg? & vex-128? & vex-66? & rexw? = vmovd r/m64 xmm128
+val vex-0f [0x5d /r] 
+ | vex-128? & vex-no-simd? = vminps xmm128 vex/xmm xmm/m128
+ | vex-256? & vex-no-simd? = vminps ymm256 vex/ymm ymm/m256
+ | vex-128? & vex-66? = vminpd xmm128 vex/xmm xmm/m128
+ | vex-256? & vex-66? = vminpd ymm256 vex/ymm ymm/m256
+ | vex-f2? = vminsd xmm128 vex/xmm xmm/m64
+ | vex-f3? = vminss xmm128 vex/xmm xmm/m32
+val vex-0f [0x28 /r] 
+ | vex-noreg? & vex-128? & vex-66? = vmovapd xmm128 xmm/m128
+ | vex-noreg? & vex-256? & vex-66? = vmovapd ymm256 ymm/m256
+ | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm128 xmm/m128
+ | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm256 ymm/m256
+val vex-0f [0x29 /r] 
+ | vex-noreg? & vex-128? & vex-66? = vmovapd xmm/m128 xmm128
+ | vex-noreg? & vex-256? & vex-66? = vmovapd ymm/m256 ymm256
+ | vex-noreg? & vex-128? & vex-no-simd? = vmovaps xmm/m128 xmm128
+ | vex-noreg? & vex-256? & vex-no-simd? = vmovaps ymm/m256 ymm256
+val vex-0f [0x5f /r] 
+ | vex-f3? = vmaxss xmm128 vex/xmm xmm/m32
+ | vex-128? & vex-66? = vmaxpd xmm128 vex/xmm xmm/m128
+ | vex-256? & vex-66? = vmaxpd ymm256 vex/ymm ymm/m256
+ | vex-128? & vex-no-simd? = vmaxps xmm128 vex/xmm xmm/m128
+ | vex-256? & vex-no-simd? = vmaxps ymm256 vex/ymm ymm/m256
+ | vex-f2? = vmaxsd xmm128 vex/xmm xmm/m64
+val vex-0f [0xf7 /r]
+ | vex-noreg? & vex-128? & vex-66? = vmaskmovdqu xmm128 xmm/nomem128
 
 ### MOVMSKPD Vol. 2B 4-87
 val movmskpd = binop MOVMSKPD
