@@ -1202,35 +1202,27 @@ val main [0x0f 0x16 /r<mod=mod-reg>] = binop MOVLHPS xmm128 xmm/nomem128
 val main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x16 /r<mod=mod-reg>] = ternop VMOVLHPS xmm128 vex/xmm xmm/nomem128
 
 ### MOVLPD Vol. 2B 4-83
-val movlpd = binop MOVLPD
-val vmovlpd_3 = ternop VMOVLPD_3
-val vmovlpd_2 = binop VMOVLPD_2
-val p66 [0x0f 0x12 /r] = movlpd xmm128 m64
-val p66 [0x0f 0x13 /r] = movlpd m64 xmm128
-val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x12 /r] = vmovlpd_3 xmm128 vex/xmm m64
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x13 /r] = vmovlpd_2 m64 xmm128
+val p66 [0x0f 0x12 /r] = binop MOVLPD xmm128 m64
+val p66 [0x0f 0x13 /r] = binop MOVLPD m64 xmm128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x12 /r] = ternop VMOVLPD_3 xmm128 vex/xmm m64
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x13 /r] = binop VMOVLPD_2 m64 xmm128
 
 ### MOVLPS Vol. 2B 4-85
-val movlps = binop MOVLPD
-val vmovlps_3 = ternop VMOVLPD_3
-val vmovlps_2 = binop VMOVLPD_2
-val main [0x0f 0x12 /r<mod=mod-mem>] = movlps xmm128 m64
-val main [0x0f 0x13 /r<mod=mod-mem>] = movlps m64 xmm128
-val main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x12 /r<mod=mod-mem>] = vmovlps_3 xmm128 vex/xmm m64
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-nosimd> 0x13 /r<mod=mod-mem>] = vmovlps_2 m64 xmm128
+val main [0x0f 0x12 /r<mod=mod-mem>] = binop MOVLPS xmm128 m64
+val main [0x0f 0x13 /r<mod=mod-mem>] = binop MOVLPS m64 xmm128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x12 /r<mod=mod-mem>] = ternop VMOVLPS_3 xmm128 vex/xmm m64
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-nosimd> 0x13 /r<mod=mod-mem>] = binop VMOVLPS_2 m64 xmm128
 
 ### MOVMSKPD Vol. 2B 4-87
-val movmskpd = binop MOVMSKPD
-val vmovmskpd = binop VMOVMSKPD
 val p66 [0x0f 0x50 /r]
- | mode64? = movmskpd r64 xmm128
- | otherwise = movmskpd r32 xmm128
+ | mode64? = binop MOVMSKPD r64 xmm128
+ | otherwise = binop MOVMSKPD r32 xmm128
 val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x50 /r]
- | mode64? = vmovmskpd r64 xmm128
- | otherwise = vmovmskpd r64 xmm128
+ | mode64? = binop VMOVMSKPD r64 xmm128
+ | otherwise = binop VMOVMSKPD r64 xmm128
 val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0x50 /r]
- | mode64? = vmovmskpd r64 ymm256
- | otherwise = vmovmskpd r64 ymm256
+ | mode64? = binop VMOVMSKPD r64 ymm256
+ | otherwise = binop VMOVMSKPD r64 ymm256
 (*#########################
 ##### ~~ VERIFY! ~~ #####
 #########################*)
@@ -1239,54 +1231,45 @@ val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0x50 /r]
 val movmskps = binop MOVMSKPS
 val vmovmskps = binop VMOVMSKPS
 val main [0x0f 0x50 /r]
- | mode64? = movmskps r64 xmm128
- | otherwise = movmskps r32 xmm128
+ | mode64? = binop MOVMSKPS r64 xmm128
+ | otherwise = binop MOVMSKPS r32 xmm128
 val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-nosimd> 0x50 /r]
- | mode64? = vmovmskps r64 xmm128
- | otherwise = vmovmskps r64 xmm128
+ | mode64? = binop VMOVMSKPS r64 xmm128
+ | otherwise = binop VMOVMSKPS r64 xmm128
 val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-nosimd> 0x50 /r]
- | mode64? = vmovmskps r64 ymm256
- | otherwise = vmovmskps r64 ymm256
+ | mode64? = binop VMOVMSKPS r64 ymm256
+ | otherwise = binop VMOVMSKPS r64 ymm256
 (*#########################
 ##### ~~ VERIFY! ~~ #####
 #########################*)
 
 ### MOVNTDQA Vol. 2B 4-92
-val movntdqa = binop MOVNTDQA
-val vmovntdqa = binop VMOVNTDQA
-val p66 [0x0f 0x38 0x2a /r] = movntdqa xmm128 m128
-val main [/vex<m=vex-0f-38,v=vex-noreg,l=vex-128,p=vex-66> 0x2a /r] = vmovntdqa xmm128 m128
+val p66 [0x0f 0x38 0x2a /r] = binop MOVNTDQA xmm128 m128
+val main [/vex<m=vex-0f-38,v=vex-noreg,l=vex-128,p=vex-66> 0x2a /r] = binop VMOVNTDQA xmm128 m128
 
 ### MOVNTDQ Vol. 2B 4-95
-val movntdq = binop MOVNTDQ
-val vmovntdq = binop VMOVNTDQ
-val p66 [0x0f 0xe7 /r] = movntdq m128 xmm128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0xe7 /r] = vmovntdq m128 xmm128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0xe7 /r] = vmovntdq m256 ymm256
+val p66 [0x0f 0xe7 /r] = binop MOVNTDQ m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0xe7 /r] = binop VMOVNTDQ m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0xe7 /r] = binop VMOVNTDQ m256 ymm256
 
 ### MOVNTI Vol. 2B 4-97
-val movnti = binop MOVNTI
 val main [0x0f 0xc3 /r]
- | rexw? = movnti m64 r64
- | otherwise = movnti m32 r32
+ | rexw? = binop MOVNTI m64 r64
+ | otherwise = binop MOVNTI m32 r32
 
 ### MOVNTPD Vol. 2B 4-99
-val movntpd = binop MOVNTPD
-val vmovntpd = binop VMOVNTPD
-val p66 [0x0f 0x2b /r] = movntpd m128 xmm128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x2b /r] = vmovntpd m128 xmm128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0x2b /r] = vmovntpd m256 ymm256
+val p66 [0x0f 0x2b /r] = binop MOVNTPD m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-66> 0x2b /r] = binop VMOVNTPD m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-66> 0x2b /r] = binop VMOVNTPD m256 ymm256
 
 ### MOVNTPS Vol. 2B 4-99
-val movntps = binop MOVNTPD
-val vmovntps = binop VMOVNTPD
-val main [0x0f 0x2b /r] = movntps m128 xmm128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-nosimd> 0x2b /r] = vmovntps m128 xmm128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-nosimd> 0x2b /r] = vmovntps m256 ymm256
+val main [0x0f 0x2b /r] = binop MOVNTPS m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-nosimd> 0x2b /r] = binop VMOVNTPS m128 xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-nosimd> 0x2b /r] = binop VMOVNTPS m256 ymm256
 
 ### MOVNTQ Vol. 2B 4-103
 val movntq = binop MOVNTQ
-val main [0x0f 0xe7 /r<mod=mod-mem>] = movntq m64 mm64
+val main [0x0f 0xe7 /r<mod=mod-mem>] = binop MOVNTQ m64 mm64
 
 ### MOVQ Vol. 2B 4-105
 val main [0x0f 0x6f /r] = binop MOVQ mm64 mm/m64
@@ -1295,49 +1278,38 @@ val pf3 [0x0f 0x7e /r] = binop MOVQ xmm128 xmm/m64
 val p66 [0x0f 0xd6 /r] = binop MOVQ xmm/m64 xmm128
 
 ### MOVQ2DQ Vol. 2B 4-107
-val movq2dq = binop MOVq2DQ
-val pf3 [0x0f 0xd6 /r<mod=mod-reg>] = movq2dq xmm128 mm/nomem64
+val pf3 [0x0f 0xd6 /r<mod=mod-reg>] = binop MOVQ2DQ xmm128 mm/nomem64
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ Vol. 2B 4-109
-val movsb = binop MOVSB
-val movsw = binop MOVSW
-val movsq = binop MOVSQ
 val main [0xa4] =
- | mode64? = movsb (mem (REG RDI)) (mem (REG RSI))
- | otherwise = movsb (mem (REG EDI)) (mem (REG ESI))
+ | mode64? = binop MOVSB (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = binop MOVSB (mem (REG EDI)) (mem (REG ESI))
 val main [0xa5] =
- | mode64? & rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
- | mode64? & !rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
- | otherwise = modsd (mem (REG EDI)) (mem (REG ESI))
+ | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+ | mode64? & !rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = binop MODSD (mem (REG EDI)) (mem (REG ESI))
 val p66 [0xa5] =
- | mode64? & rexw? = movsq (mem (REG RDI)) (mem (REG RSI))
- | mode64? & !rexw? = movsw (mem (REG RDI)) (mem (REG RSI))
- | otherwise = modsw (mem (REG EDI)) (mem (REG ESI))
+ | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+ | mode64? & !rexw? = binop MOVSW (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = binop MODSW (mem (REG EDI)) (mem (REG ESI))
 
 ### MOVSD Vol. 2B 4-114
-val movsd = binop MOVSD
-val vmovsd_3 = ternop VMOVSD_3
-val vmovsd_2 = binop VMOVSD_2
-val pf2 [0x0f 0x10 /r] = movsd xmm128 xmm/m64
-val main [/vex<m=vex-0f,p=vex-f2> 0x10 /r<mod=mod-reg>] = vmovsd_3 xmm128 vex/xmm xmm/nomem128
-val main [/vex<m=vex-0f,v=vex-noreg,p=vex-f2> 0x10 /r<mod=mod-mem>] = vmovsd_2 xmm128 m64
-val pf2 [0x0f 0x11 /r] = movsd xmm/m64 xmm128
-val main [/vex<m=vex-0f,p=vex-f2> 0x11 /r<mod=mod-reg>] = vmovsd_3 xmm/nomem128 vex/xmm xmm128
-val main [/vex<m=vex-0f,v=vex-noreg,p=vex-f2> 0x11 /r<mod=mod-mem>] = vmovsd_2 m64 xmm128
+val pf2 [0x0f 0x10 /r] = binop MOVSD xmm128 xmm/m64
+val main [/vex<m=vex-0f,p=vex-f2> 0x10 /r<mod=mod-reg>] = ternop VMOVSD_3 xmm128 vex/xmm xmm/nomem128
+val main [/vex<m=vex-0f,v=vex-noreg,p=vex-f2> 0x10 /r<mod=mod-mem>] = binop VMOVSD_2 xmm128 m64
+val pf2 [0x0f 0x11 /r] = binop MOVSD xmm/m64 xmm128
+val main [/vex<m=vex-0f,p=vex-f2> 0x11 /r<mod=mod-reg>] = ternop VMOVSD_3 xmm/nomem128 vex/xmm xmm128
+val main [/vex<m=vex-0f,v=vex-noreg,p=vex-f2> 0x11 /r<mod=mod-mem>] = binop VMOVSD_2 m64 xmm128
 
 ### MOVSHDUP Vol. 2B 4-117
-val movshdup = binop MOVSHDUP
-val vmovshdup = binop VMOVSHDUP
-val pf3 [0x0f 0x16 /r] = movshdup xmm128 xmm/mem128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-f3> 0x16 /r] = vmovshdup xmm128 xmm/mem128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-f3> 0x16 /r] = vmovshdup ymm256 xmm/mem256
+val pf3 [0x0f 0x16 /r] = binop MOVSHDUP xmm128 xmm/mem128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-f3> 0x16 /r] = binop VMOVSHDUP xmm128 xmm/mem128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-f3> 0x16 /r] = binop VMOVSHDUP ymm256 xmm/mem256
 
 ### MOVSLDUP Vol. 2B 4-120
-val movsldup = binop MOVSLDUP
-val vmovsldup = binop VMOVSLDUP
-val pf3 [0x0f 0x12 /r] = movsldup xmm128 xmm/mem128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-f3> 0x12 /r] = vmovsldup xmm128 xmm/mem128
-val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-f3> 0x12 /r] = vmovsldup ymm256 xmm/mem256
+val pf3 [0x0f 0x12 /r] = binop MOVSLDUP xmm128 xmm/mem128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-128,p=vex-f3> 0x12 /r] = binop VMOVSLDUP xmm128 xmm/mem128
+val main [/vex<m=vex-0f,v=vex-noreg,l=vex-256,p=vex-f3> 0x12 /r] = binop VMOVSLDUP ymm256 xmm/mem256
 
 ### MOVSS Vol. 2B 4-123
 val movss = binop MOVSS
