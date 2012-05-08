@@ -21,8 +21,12 @@ structure Substitutions : sig
    val showExpandInfoSI : expand_info * TVar.varmap ->
                           string * TVar.varmap
    val emptyExpandInfo : expand_info
+
    val applyExpandInfo : expand_info -> BooleanDomain.bfun -> BooleanDomain.bfun
 
+   val expandInfoGetBVars : expand_info * BooleanDomain.bvarset ->
+                                    BooleanDomain.bvarset
+   
    val applySizeConstraints : SizeConstraint.size_constraint_set * Substs ->
                               SizeConstraint.size_constraint_set * Substs
 
@@ -36,8 +40,7 @@ structure Substitutions : sig
       BooleanDomain.bfun * SizeConstraint.size_constraint_set ->
       Types.texp * BooleanDomain.bfun * SizeConstraint.size_constraint_set
 
-   val mgu : Types.texp * Types.texp * Substs * expand_info ->
-             Substs * expand_info
+   val mgu : Types.texp * Types.texp * Substs -> Substs
 
 end = struct
 
@@ -50,7 +53,7 @@ end = struct
    
    datatype SubstTarget
       = WITH_TYPE of texp
-      | WITH_FIELD of (rfield list * tvar)
+      | WITH_FIELD of (rfield list * tvar * BD.bvar)
    
    type Subst = tvar * SubstTarget
    
@@ -78,9 +81,10 @@ end = struct
    in (SymbolTables.fieldTable := t; (f1,f2,t1,t2)) end
       
    fun showSubstTargetSI (WITH_TYPE t, si) = showTypeSI (t, si)
-     | showSubstTargetSI (WITH_FIELD (fs,vNew), si) =
+     | showSubstTargetSI (WITH_FIELD (fs,vNew,bNew), si) =
          let
             val (vNewStr, si) = TVar.varToString (vNew, si)
+            val bNewStr = BD.showVar bNew
             fun genfStr (RField {name = n, fty = t, exists = b}, (str, si)) =
                let
                   val (tStr, si) = showTypeSI (t, si)
@@ -91,7 +95,7 @@ end = struct
                end
             val (fsStr, si) = List.foldl genfStr ("", si) fs
          in
-            (fsStr ^ vNewStr ^ ": ...", si)
+            (fsStr ^ vNewStr ^ bNewStr ^ ": ...", si)
          end
 
    fun showSubstSI ((v,st), si) =
@@ -161,11 +165,11 @@ end = struct
    val emptyExpandInfo = TVMap.empty : expand_info
 
    fun getTargetVars (WITH_TYPE t) = texpBVarset (op ::) (t,[])
-     | getTargetVars (WITH_FIELD (fs,var)) =
+     | getTargetVars (WITH_FIELD (fs,var,bvar)) =
       List.foldl
          (fn (RField {name = n, fty = t, exists = b},bs) =>
             texpBVarset (op ::) (t,(false,b)::bs))
-         [] fs
+         [(false,bvar)] fs
 
    fun addToExpandInfo (tvar, bvar, target, ei) =
       let
@@ -175,8 +179,8 @@ end = struct
                        instInfo = []}
          
          fun genTargetInstance (WITH_TYPE t) = WITH_TYPE (setFlagsToTop t)
-           | genTargetInstance (WITH_FIELD (fs,var)) =
-               WITH_FIELD (List.map setFlagsToTopF fs, var)
+           | genTargetInstance (WITH_FIELD (fs,var,bvar)) =
+               WITH_FIELD (List.map setFlagsToTopF fs, var, BD.freshBVar ())
          val newTargetRef = ref target
          fun updateII ((v,tgt) :: vts) =
             if BD.eq(v,bvar) then (newTargetRef := tgt; (v,tgt) :: vts) else
@@ -214,6 +218,22 @@ end = struct
          List.foldl aEI bFun (TVMap.listItems ei)
       end
 
+   fun expandInfoGetBVars (ei, set) =
+      let
+         val texpBVarset = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs))
+         fun getBVars (WITH_TYPE t, set) = texpBVarset (t, set)
+           | getBVars (WITH_FIELD (fs,_,bvar), set) =
+               List.foldl (fn (RField {name, fty = t, exists = b}, set) =>
+                  texpBVarset (t, BD.addToSet (b,set))) 
+                  (BD.addToSet (bvar, set)) fs
+         fun getBVarsInfo ({substVars = sVs, instInfo = infos}, set) =
+            List.foldl
+               (fn ((bVar,st),set) => getBVars (st, BD.addToSet (bVar,set)))
+               set infos
+      in
+         List.foldl getBVarsInfo set (TVMap.listItems ei)
+      end
+
    fun insertField (f, []) = [f]
      | insertField (f1, f2 :: l) = (case compare_rfield (f1,f2) of
           LESS => f1 :: f2 :: l
@@ -242,9 +262,8 @@ end = struct
             if TVar.eq (var, v) then
               case addToExpandInfo (var, b, target, !eiRef) of
                  (target,ei) => (eiRef := ei; case target of
-                      WITH_FIELD (newFs, newVar) =>
-                       RECORD (newVar, b, List.foldl insertField fs newFs)
-                    (*| WITH_TYPE (VAR (v,b)) => RECORD (v, b, fs)*)
+                      WITH_FIELD (newFs, newVar, newBVar) =>
+                       RECORD (newVar, newBVar, List.foldl insertField fs newFs)
                     | WITH_TYPE _ => raise SubstitutionBug
                  )
             else let
@@ -311,13 +330,12 @@ end = struct
                   end
                else (v2, WITH_TYPE t2)
             end
-           | doSubst (v2, WITH_FIELD (fs, v3)) =
+           | doSubst (v2, WITH_FIELD (fs, v3, bv3)) =
             let
-               val bvar = BooleanDomain.freshBVar ()
-               val t2 = RECORD (v3,bvar,fs)
+               val t2 = RECORD (v3,bv3,fs)
                val (t2,ei) = applySubstToExp subst (t2,!eiRef)
                val _ = eiRef := ei
-               val RECORD (v3,bvar,fs) = t2
+               val RECORD (v3,bv3,fs) = t2
                val vs = texpVarset (t2, TVar.empty)
             in
                if TVar.member(vs,v2) then
@@ -327,7 +345,7 @@ end = struct
                   in
                      raise UnificationFailure ("infinite record " ^ vStr ^ " = " ^ tStr)
                   end
-               else (v2, WITH_FIELD (fs, v3))
+               else (v2, WITH_FIELD (fs, v3, bv3))
             end
             
          (*val (v,repl) = subst
@@ -405,154 +423,144 @@ end = struct
          (tNew, bFunNew, mergedSCons)
       end
 
-   fun mgu (t1,t2,s,ei) =
+   fun mgu (FUN (f1, f2), FUN (g1, g2), s) = mgu (f2, g2, mgu (f1, g1, s))
+     | mgu (SYN (_, t1), t2, s) = mgu (t1, t2, s)
+     | mgu (t1, SYN (_, t2), s) = mgu (t1, t2, s)
+     | mgu (ZENO, ZENO, s) = s
+     | mgu (FLOAT, FLOAT, s) = s
+     | mgu (UNIT, UNIT, s) = s
+     | mgu (VEC t1, VEC t2, s) = mgu (t1, t2, s)
+     | mgu (CONST c1, CONST c2, s) =
+        if c1=c2 then s else raise UnificationFailure (
+         "incompatible bit vectors sizes (" ^ Int.toString c1 ^ " and " ^
+         Int.toString c2 ^ ")")
+     | mgu (RECORD (v1,b1,l1), RECORD (v2,b2,l2), s) =
       let
-         val eiRef = ref ei
-         fun mgu (FUN (f1, f2), FUN (g1, g2), s) = mgu (f2, g2, mgu (f1, g1, s))
-          | mgu (SYN (_, t1), t2, s) = mgu (t1, t2, s)
-          | mgu (t1, SYN (_, t2), s) = mgu (t1, t2, s)
-          | mgu (ZENO, ZENO, s) = s
-          | mgu (FLOAT, FLOAT, s) = s
-          | mgu (UNIT, UNIT, s) = s
-          | mgu (VEC t1, VEC t2, s) = mgu (t1, t2, s)
-          | mgu (CONST c1, CONST c2, s) =
-              if c1=c2 then s else raise UnificationFailure (
-               "incompatible bit vectors sizes (" ^ Int.toString c1 ^ " and " ^
-               Int.toString c2 ^ ")")
-          | mgu (RECORD (v1,b1,l1), RECORD (v2,b2,l2), s) =
+         fun applySubsts (v, b, fs) = (case findSubstForVar (v, s) of
+              NONE => (v,b,fs)
+            | SOME (WITH_FIELD (fs',v',b')) => (v', b', List.foldl insertField fs fs')
+            | _ => raise SubstitutionBug
+         )
+         val (v1,b1,l1) = applySubsts (v1,b1,l1)
+         val (v2,b2,l2) = applySubsts (v2,b2,l2)
+
+         fun unify (v1, v2, [], [], s) = if TVar.eq (v1,v2) then s else
+            #1 (addSubst (v2, WITH_FIELD ([], v1, b1)) (s,emptyExpandInfo))
+           | unify (v1, v2, (f1 as RField e1) :: fs1,
+                    (f2 as RField e2) :: fs2, s) =
+            (case compare_rfield (f1,f2) of
+               EQUAL =>
+               let
+                  val s = mgu (#fty e1, #fty e2, s)
+                in
+                  unify (v1, v2, fs1, fs2, s)
+               end
+             | LESS =>
+               let
+                  val newVar = freshTVar ()
+                  val newBVar = BD.freshBVar ()
+                  val (f1,ei) = applySubstsToRField s (f1,emptyExpandInfo)
+                  val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) (s,ei)
+               in
+                  unify (v1, newVar, fs1, f2 :: fs2, s)
+               end
+             | GREATER =>
+               let
+                  val newVar = freshTVar ()
+                  val newBVar = BD.freshBVar ()
+                  val (f2,ei) = applySubstsToRField s (f2,emptyExpandInfo)
+                  val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) (s,ei)
+               in
+                  unify (newVar, v2, f1 :: fs1, fs2, s)
+               end
+            )
+           | unify (v1, v2, f1 :: fs1, [], s) =
             let
-               fun unify (v1, v2, [], [], s) = if TVar.eq (v1,v2) then s else
-                  let
-                     val (s, ei) = addSubst (v2, WITH_FIELD ([], v1)) (s,!eiRef)
-                     val _ = eiRef := ei
-                  in
-                     s
-                  end
-                 | unify (v1, v2, (f1 as RField e1) :: fs1,
-                          (f2 as RField e2) :: fs2, s) =
-                  (case compare_rfield (f1,f2) of
-                     EQUAL =>
-                     let
-                        val s = mgu (#fty e1, #fty e2, s)
-                      in
-                        unify (v1, v2, fs1, fs2, s)
-                     end
-                   | LESS =>
-                     let
-                        val newVar = freshTVar ()
-                        val (f1,ei) = applySubstsToRField s (f1,!eiRef)
-                        val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar)) (s,ei)
-                        val _ = eiRef := ei
-                     in
-                        unify (v1, newVar, fs1, f2 :: fs2, s)
-                     end
-                   | GREATER =>
-                     let
-                        val newVar = freshTVar ()
-                        val (f2,ei) = applySubstsToRField s (f2,!eiRef)
-                        val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar)) (s,ei)
-                        val _ = eiRef := ei
-                     in
-                        unify (newVar, v2, f1 :: fs1, fs2, s)
-                     end
-                  )
-                 | unify (v1, v2, f1 :: fs1, [], s) =
-                  let
-                     val newVar = freshTVar ()
-                     val (f1,ei) = applySubstsToRField s (f1,!eiRef)
-                     val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar)) (s,ei)
-                     val _ = eiRef := ei
-                  in
-                     unify (v1, newVar, fs1, [], s)
-                  end
-                 | unify (v1, v2, [], f2 :: fs2, s) =
-                  let
-                     val newVar = freshTVar ()
-                     val (f2,ei) = applySubstsToRField s (f2,!eiRef)
-                     val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar)) (s,ei)
-                     val _ = eiRef := ei
-                  in
-                     unify (newVar, v2, [], fs2, s)
-                  end
-               fun applySubsts (v, fs) = (case findSubstForVar (v, s) of
-                    NONE => (v,fs)
-                  | SOME (WITH_FIELD (fs',v')) => (v', List.foldl insertField fs fs')
-                  | SOME (WITH_TYPE (VAR (v',_))) => (v', fs)
-                  | _ => raise SubstitutionBug
-               )
-               val (v1,l1) = applySubsts (v1,l1)
-               val (v2,l2) = applySubsts (v2,l2)
+               val newVar = freshTVar ()
+               val newBVar = BD.freshBVar ()
+               val (f1,ei) = applySubstsToRField s (f1,emptyExpandInfo)
+               val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) (s,ei)
             in
-               unify (v1,v2,l1,l2,s)
+               unify (v1, newVar, fs1, [], s)
             end
-          | mgu (MONAD (r1,f1,t1), MONAD (r2,f2,t2), s) =
-               mgu (r1, r2, mgu (f1, f2, mgu (t1, t2, s)))
-          | mgu (ALG (ty1, l1), ALG (ty2, l2), s) =
-            let fun incompat () = raise UnificationFailure (
-                  "cannot match constructor " ^
-                  SymbolTable.getString(!SymbolTables.typeTable, ty1) ^
-                  " with " ^
-                  SymbolTable.getString(!SymbolTables.typeTable, ty2))
-            in case SymbolTable.compare_symid (ty1, ty2) of
-              LESS => incompat ()
-            | GREATER => incompat ()
-            | EQAL => List.foldl (fn ((e1,e2),s) => mgu (e1,e2,s)) s
-                        (ListPair.zipEq (l1,l2))
-            end
-            (*mgu is right-biased in that mgu(a,b) always creates b/a which means
-            that the resulting substitution never modifies the lhs if that is
-            avoidable*)
-          | mgu (e, VAR (v,b), s) =
+           | unify (v1, v2, [], f2 :: fs2, s) =
             let
-               fun unifyVars (v,b,e,s) =
-                     case findSubstForVar (v,s) of
-                          NONE => 
-                           let
-                             val (e, ei) = applySubstsToExp s (e, !eiRef)
-                             val (s, ei) = addSubst (v,WITH_TYPE e) (s,ei)
-                             val _ = eiRef := ei
-                           in
-                              s
-                           end
-                        | SOME (WITH_TYPE t) => mgu (e, t, s)
-                        | _ => raise SubstitutionBug
+               val newVar = freshTVar ()
+               val newBVar = BD.freshBVar ()
+               val (f2,ei) = applySubstsToRField s (f2,emptyExpandInfo)
+               val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) (s,ei)
             in
-              case e of
-                 VAR (v',b') => if TVar.eq (v',v) then s else unifyVars (v,b,e,s)
-               | _ => unifyVars (v,b,e,s)
+               unify (newVar, v2, [], fs2, s)
             end
-          | mgu (VAR (v,b), e, s) =
-               (case findSubstForVar (v,s) of
-                    NONE =>
+      in
+         unify (v1,v2,l1,l2,s)
+      end
+     | mgu (MONAD (r1,f1,t1), MONAD (r2,f2,t2), s) =
+         mgu (r1, r2, mgu (f1, f2, mgu (t1, t2, s)))
+     | mgu (ALG (ty1, l1), ALG (ty2, l2), s) =
+      let fun incompat () = raise UnificationFailure (
+            "cannot match constructor " ^
+            SymbolTable.getString(!SymbolTables.typeTable, ty1) ^
+            " with " ^
+            SymbolTable.getString(!SymbolTables.typeTable, ty2))
+      in case SymbolTable.compare_symid (ty1, ty2) of
+        LESS => incompat ()
+      | GREATER => incompat ()
+      | EQAL => List.foldl (fn ((e1,e2),s) => mgu (e1,e2,s)) s
+                  (ListPair.zipEq (l1,l2))
+      end
+      (*mgu is right-biased in that mgu(a,b) always creates b/a which means
+      that the resulting substitution never modifies the lhs if that is
+      avoidable*)
+     | mgu (e, VAR (v,b), s) =
+      let
+         fun unifyVars (v,b,e,s) =
+               case findSubstForVar (v,s) of
+                    NONE => 
                      let
-                       val (e, ei) = applySubstsToExp s (e, !eiRef)
-                       val (s,ei) = addSubst (v,WITH_TYPE e) (s,ei)
-                       val _ = eiRef := ei
+                       val (e, ei) = applySubstsToExp s (e, emptyExpandInfo)
+                       val (s, ei) = addSubst (v,WITH_TYPE e) (s,ei)
                      in
                         s
                      end
                   | SOME (WITH_TYPE t) => mgu (e, t, s)
                   | _ => raise SubstitutionBug
-               )
-          | mgu (t1,t2,s) =
-            let fun descr (FUN _) = "a function type"
-                  | descr (ZENO) = "int"
-                  | descr (FLOAT) = "float"
-                  | descr (UNIT) = "()"
-                  | descr (VEC (CONST c)) = "a vector of " ^ 
-                                            Int.toString c ^ " bits"
-                  | descr (VEC _) = "a bit vector"
-                  | descr (ALG (ty, _)) = "type " ^
-                     SymbolTable.getString(!SymbolTables.typeTable, ty)
-                  | descr (RECORD _) = "a record"
-                  | descr (MONAD _) = "an action"
-                  | descr _ = "something that shouldn't be here"
-            in
-               raise UnificationFailure ("cannot match " ^ descr t1 ^
-                                         " against " ^ descr t2)
-            end
       in
-         (mgu (t1,t2,s), !eiRef)
+        case e of
+           VAR (v',b') => if TVar.eq (v',v) then s else unifyVars (v,b,e,s)
+         | _ => unifyVars (v,b,e,s)
+      end
+     | mgu (VAR (v,b), e, s) =
+         (case findSubstForVar (v,s) of
+              NONE =>
+               let
+                 val (e, ei) = applySubstsToExp s (e, emptyExpandInfo)
+                 val (s,ei) = addSubst (v,WITH_TYPE e) (s,ei)
+               in
+                  s
+               end
+            | SOME (WITH_TYPE t) => mgu (e, t, s)
+            | _ => raise SubstitutionBug
+         )
+      | mgu (t1,t2,s) =
+      let fun descr (FUN _) = "a function type"
+            | descr (ZENO) = "int"
+            | descr (FLOAT) = "float"
+            | descr (UNIT) = "()"
+            | descr (VEC (CONST c)) = "a vector of " ^ 
+                                      Int.toString c ^ " bits"
+            | descr (VEC _) = "a bit vector"
+            | descr (ALG (ty, _)) = "type " ^
+               SymbolTable.getString(!SymbolTables.typeTable, ty)
+            | descr (RECORD (_,_,fs)) = "a record {" ^
+               #2 (List.foldl (fn (RField {name = n, ...},(sep,str)) =>
+                  (", ", SymbolTable.getString(!SymbolTables.fieldTable, n) ^
+                   sep ^ str)) ("","") fs) ^ "}"
+            | descr (MONAD _) = "an action"
+            | descr _ = "something that shouldn't be here"
+      in
+         raise UnificationFailure ("cannot match " ^ descr t1 ^
+                                   " against " ^ descr t2)
       end
 
 
@@ -560,7 +568,7 @@ end = struct
       let
          val (t1Str, si) = showTypeSI (t1, TVar.emptyShowInfo)
          val (t2Str, si) = showTypeSI (t2, si)
-         val (substs,_) = mgu (t1,t2,emptySubsts,emptyExpandInfo)
+         val substs = mgu (t1,t2,emptySubsts)
          val (sStr, si) = showSubstsSI (substs, si)
       in
          ("unifying t1=" ^ t1Str ^ "\nwith     t2=" ^ t2Str ^ "\n" ^ sStr)

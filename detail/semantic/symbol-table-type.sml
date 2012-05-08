@@ -22,6 +22,8 @@ signature SymbolTableSig  = sig
    val push : table -> table
    val pop : table -> table
 
+   val listItems: table -> symid list
+
    val getAtom : (table * symid) -> Atom.atom
    val getString : (table * symid) -> string
    val getSpan : (table * symid) -> Error.span
@@ -54,6 +56,8 @@ structure SymbolTable :> SymbolTableSig = struct
    fun emptySymInfo (atom,span,id) = (atom, span, id)
 
    val empty = (SymbolTable.empty, [Reverse.empty])
+
+   fun listItems ((map, _):table) = List.map #3 (SymbolTable.listItems map)
 
    fun find ((st, []), atom) = NONE
      | find ((st, rev::r), atom) =

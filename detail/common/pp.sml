@@ -16,7 +16,7 @@ structure Pretty = struct
       L.listex "{" "}" ";"
          (List.map
             (fn (k, i) =>
-               L.seq [key k, is, item i]) (SymMap.listItemsi t))
+               L.seq [key k, is, item i]) (rev (SymMap.listItemsi t)))
    fun symset item t =
       L.listex "{" "}" ";"
          (List.map item (SymSet.listItems t))

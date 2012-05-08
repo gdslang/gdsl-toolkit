@@ -7,6 +7,7 @@ end = struct
 
    structure CM = CompilationMonad
    structure FV = FreeVars
+   structure FI = FunInfo
    structure Map = SymMap
    structure Set = SymSet
    structure Clos = Closure.Stmt
@@ -19,7 +20,6 @@ end = struct
 
    fun conv spec = let
      
-      val functions = ref Set.empty
       val bindings = ref Map.empty
 
       fun bindFun (f, closure, k, xs, body) =
@@ -45,8 +45,7 @@ end = struct
                    xs=xs,
                    body=body})
 
-      fun defFn f = functions := Set.add (!functions, f)
-      fun boundFn f = Set.member (!functions, f)
+      fun boundFn f = FI.member f
 
       fun mapi f xs = 
          let
@@ -55,6 +54,20 @@ end = struct
          in
             lp (xs, 0, [])
          end
+
+      fun checkArity f =
+         case FI.find (fn x => x) f of
+            NONE => ()
+          | SOME (FI.F (_,_,[x],_)) => ()
+          | SOME (FI.C (_,[x],_)) => ()
+          | _ =>
+               let
+                  val f = Layout.tostring (CPS.PP.var f)
+               in
+                  raise Fail ("closureConversion.arity: " ^ f)
+               end
+
+      val checkArityAll = app checkArity
 
       (* Assuming the corresponding function `f` is not part of `xs` *)
       fun unfoldEnv xs env {stmts, flow} =
@@ -225,7 +238,6 @@ end = struct
             val fs = free sigma f
             val ys = Subst.copyAll fs
             val sigma = Subst.extendAll sigma ys fs
-            val _ = defFn f
             val body = convTerm sigma body
             val env = fresh closure
          in
@@ -256,7 +268,7 @@ end = struct
           | STR s => [Clos.LETVAL (x, Clos.STR s)]
           | VEC v => [Clos.LETVAL (x, Clos.VEC v)]
           | UNT => [Clos.LETVAL (x, Clos.UNT)]
-          | FN _ => raise CM.CompilationError
+          | FN _ => raise Fail "closureConversion.bug"
 
       and useAll sigma xs k =
          let
@@ -267,12 +279,15 @@ end = struct
                      if escapes x
                         then
                            let
+                              val _ = checkArity x
                               val fs = freeUse sigma x
+                              val l = fresh label
                               val closure = fresh closure
                            in
                               lp (xs,
-                                  Clos.LETENV
-                                    (closure, x::fs)::lets,
+                                  Clos.LETENV (closure, l::fs)::
+                                  Clos.LETVAL (l, Clos.LAB x)::
+                                  lets,
                                   closure::ys)
                            end
                      else lp (xs, lets, x::ys)
@@ -288,10 +303,14 @@ end = struct
             if escapes x
                then
                   let
+                     val _ = checkArity x
                      val fs = freeUse sigma x
+                     val l = fresh label
                      val closure = fresh closure
                   in
-                     Clos.LETENV (closure, x::fs)::k closure
+                     Clos.LETVAL (l, Clos.LAB x)::
+                     Clos.LETENV (closure, l::fs)::
+                     k closure
                   end
             else k x
          end
@@ -300,7 +319,9 @@ end = struct
       Spec.upd
          (fn cps =>
             (FV.run cps
-            (*;FV.dump()*)
+            ;FI.run cps
+            (* ;FV.dump() *)
+            (* ;FI.dump() *)
             ;ignore(convTerm Subst.empty cps)
             ;Map.listItems (!bindings))) spec : Closure.Spec.t
    end
@@ -309,7 +330,12 @@ end = struct
    end (* end local *)
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, CPS.PP.spec spec)
-   fun dumpPost (os, spec) = Pretty.prettyTo (os, Closure.PP.spec spec) 
+   fun dumpPost (os, spec) =
+      Pretty.prettyTo
+         (os,
+          Layout.align
+            [Closure.PP.spec spec,
+             Layout.seq [Layout.str "freevars=", FV.layout()]]) 
 
    val conv =
       BasicControl.mkKeepPass

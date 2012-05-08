@@ -143,7 +143,7 @@ structure DesugarDecode = struct
          in
             if VS.length toks = 0
                then acc
-            else grab (VS.sub (toks, 0), 0, acc)
+            else grab (rev (VS.sub (toks, 0)), 0, acc)
          end
       in
          rev (Set.foldl grabSlices [] indices)

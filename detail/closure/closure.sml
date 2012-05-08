@@ -88,22 +88,10 @@ structure Closure = struct
 
       and term t =
          case t of
-            APP {f, k, closure, xs=[]} =>
-               seq [var f, space, var closure, space, var k]
-          | APP {f, k, closure, xs=[x]} =>
-               seq [var f, space, var closure, space, var k, space, var x]
-          | APP {f, k, closure, xs} =>
-               seq
-                  [var f, space, var closure, space, var k,
-                   listex "(" ")" "," (map var xs)]
-          | CC {k, closure, xs=[]} =>
-               seq [var k, space, var closure]
-          | CC {k, closure, xs=[x]} =>
-               seq [var k, space, var closure, space, var x]
+            APP {f, k, closure, xs} =>
+               seq [var f, vars (closure::k::xs)]
           | CC {k, closure, xs} => 
-               seq
-                  [var k, space, var closure,
-                   listex "(" ")" "," (map var xs)]
+               seq [var k, vars (closure::k::xs)]
           | CASE (x, ks) =>
                align
                   [seq [str "case", space, var x, space, str "of"],
@@ -135,13 +123,7 @@ structure Closure = struct
 
       and cval v =
          case v of
-            PRI (f, xs) =>
-               seq
-                  [var f,
-                   seq
-                     [str "(",
-                      seq (separate (map var xs, ",")),
-                      str ")"]]
+            PRI (f, xs) => seq [var f, space, vars xs]
           | INJ (tag, v) => seq [con tag, space, var v]
           | INT i => int i
           | FLT f => str (FloatLit.toString f)
@@ -161,12 +143,12 @@ structure Closure = struct
             Fun.FUN {f, k, closure, xs, body} =>
                align
                   [seq
-                     [str "val", space, vars (f::closure::k::xs), is],
+                     [str "val", space, var f, space, vars (closure::k::xs), is],
                    indent 3 (block body)]
           | Fun.CONT {k, closure, xs, body} =>
                align
                   [seq
-                     [str "val", space, vars (k::closure::xs), is],
+                     [str "val", space, var k, space, vars (closure::xs), is],
                    indent 3 (block body)]
 
       val spec = Spec.PP.spec functions

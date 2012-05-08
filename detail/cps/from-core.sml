@@ -37,10 +37,122 @@ end = struct
          val slice = get "slice"
          val consume = get "consume"
          val unconsume = get "unconsume"
+         val andd = get "and"
+         val concat = get "^"
+         val == = get "=="
+         val not = get "not"
+         val raisee = get "raise"
 
-         (* val slice k tok offs sz s =
+         (* val and k a b =
+          *    letval x = %and(a,b) in
+          *       k x
+          *)
+         val andd =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primAnd = get "%and"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primAnd, [a, b]),
+                      CC (k, [x]))
+            in
+               (andd, k, [a, b], body)
+            end
+
+         (* val == k a b =
+          *    letval x = %equal(a,b) in
+          *       k x
+          *)
+         val == =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primEqual = get "%equal"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primEqual, [a, b]),
+                      CC (k, [x]))
+            in
+               (==, k, [a, b], body)
+            end
+
+         (* val not k a =
+          *    letval x = %not(a) in
+          *       k x
+          *)
+         val not =
+            let
+               val a = fresh "a"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primNot = get "%not"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primNot, [a]),
+                      CC (k, [x]))
+            in
+               (not, k, [a], body)
+            end
+
+         (* val ^ k a b =
+          *    letval x = %concat(a,b) in
+          *       k x
+          *)
+         val concat =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primConcat = get "%concat"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primConcat, [a, b]),
+                      CC (k, [x]))
+            in
+               (concat, k, [a, b], body)
+            end
+
+         (* val ^ k a b =
+          *    letval x = %concat(a,b) in
+          *       k x
+          *)
+         val raisee =
+            let
+               val a = fresh "a"
+               val x = fresh "x"
+               val k = fresh "k"
+               val primRaise = get "%raise"
+               val body = 
+                  LETVAL
+                     (x,
+                      PRI (primRaise, [a]),
+                      CC (k, [x]))
+            in
+               (raisee, k, [a], body)
+            end
+
+         (* TODO: fix definition, `%slice` should not take 
+          * the state as argument (is not monadic).
+          *
+          * val slice k tok offs sz s =
           *    letval x = %slice(tok,offs,sz,s) in
           *       k x
+          *
+          * should be
+          *
+          * val slice k tok offs sz =
+          *    letval x = %slice(tok,offs,sz) in
+          *       return k x
           *)
          val slice =
             let
@@ -98,7 +210,7 @@ end = struct
                (unconsume, k, [s], body)
             end
       in
-         [slice, consume, unconsume]
+         [slice, consume, unconsume, andd, not, ==, concat, raisee]
       end
 
    end
@@ -229,7 +341,7 @@ end = struct
                val f = fresh function
                val k = fresh continuation
             in
-               Exp.LETREC ([(f, k, [x], trans1 e k)], kappa f) 
+               Exp.LETVAL (f, Exp.FN (k, [x], trans1 e k), kappa f) 
             end
        | RECORD fs =>
             let
@@ -368,8 +480,15 @@ end = struct
    and trans0rec (n, args, e) =
       let
          val k = fresh continuation
+         fun unfold (xs, e) =
+            case xs of
+               [] => e
+             | x::xs => FN (x, unfold (xs, e))
       in
-         (n, k, args, trans1 e k)
+         case args of
+            [] => (n, k, args, trans1 e k) (* TODO *)
+          | [x] => (n, k, args, trans1 e k)
+          | x::xs => (n, k, [x], trans1 (unfold (xs, e)) k)
       end
 
    and trans1 e kont =
