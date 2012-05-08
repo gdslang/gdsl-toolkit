@@ -1,5 +1,5 @@
 granularity = 8
-export = main decode
+export = main
 
 # Optional arguments
 #
@@ -15,28 +15,32 @@ export = main decode
 # limit = 120
 # recursion-depth = main = 4
 
-val decode = do
-   update
-      @{mode64='0',
-        repne='0',
-        rep='0',
-        rex='0',
-        rexw='0',
-        rexb='0',
-        rexr='0',
-        rexx='0',
-        vexm='00001',
-        vexv='0000',
-        vexl='0',
-        vexp='00',
-        opndsz='0',
-        addrsz='0',
-        segment=DS,
-        mod='00',
-        reg='000',
-        rm='000'};
-   main
-end
+val decoder =
+   let val retState x = 
+      {mode64='0',
+       repne='0',
+       rep='0',
+       rex='0',
+       rexw='0',
+       rexb='0',
+       rexr='0',
+       rexx='0',
+       vexm='00001',
+       vexv='0000',
+       vexl='0',
+       vexp='00',
+       opndsz='0',
+       addrsz='0',
+       segment=DS,
+       mod='00',
+       reg='000',
+       rm='000'}
+   in
+      do
+         update retState;
+         main
+      end
+   end
 
 val & giveA giveB = do
    a <- giveA;
@@ -62,7 +66,7 @@ val mod-mem? = do
    case mod of
       '11': return '1'
     | otherwise: return '0'
-   end
+    end
 end
 val mod-reg? = / mod-mem?
 val mode64? = query $mode64
@@ -532,43 +536,37 @@ end
 
 val sib-without-base reg scale index = do
    rexx <- query $rexx;
-   scaled <- return (SCALE{imm=scale, opnd=reg rexx index});
-   mod <- query $mod;
-   rexb <- query $rexb;
-   case mod of
-      '00': 
-         do
-            i <- imm32;
-            return (SUM{a=scaled, b=i})
+   let
+      val scaled = SCALE{imm=scale, opnd=(reg rexx) index}
+   in
+      do
+         mod <- query $mod;
+	      rexb <- query $rexb;
+         case mod of
+            '00': 
+               do
+                  i <- imm32;
+                  return (SUM{a=scaled, b=i})
+               end
+          | _ : return (SUM{a=scaled, b=(reg rexb) '101'}) # rBP
          end
-    | _ : return (SUM{a=scaled, b=(reg rexb) '101'}) # rBP
+      end
    end
 end
 
 val sib-with-index-and-base reg s i b = do
    rexx <- query $rexx;
    rexb <- query $rexb;
-   case i of
-      '100':
-         case b of
-            '101': sib-without-index reg
-          | _: return (SUM{a=SCALE{imm=s, opnd=reg rexx i}, b=reg rexb b})
-         end
-    | _:
-         case b of
-            '101': sib-without-base reg s i
-          | _: return (SUM{a=SCALE{imm=s, opnd=reg rexx i}, b=reg rexb b})
-         end
-   end
+   return (SUM{a=SCALE{imm=s, opnd=(reg rexx) i}, b=(reg rexb) b})
 end
 
-#val sib ['scale:2 100 101']
-# | addrsz? = sib-without-index reg16-rex
-# | otherwise = sib-without-index reg32-rex
+val sib ['scale:2 100 101']
+ | addrsz? = sib-without-index reg16-rex
+ | otherwise = sib-without-index reg32-rex
 
-#val sib ['scale:2 index:3 101'] 
-# | addrsz? = sib-without-base reg16-rex scale index
-# | otherwise = sib-without-base reg32-rex scale index
+val sib ['scale:2 index:3 101'] 
+ | addrsz? = sib-without-base reg16-rex scale index
+ | otherwise = sib-without-base reg32-rex scale index
 
 val sib ['scale:2 index:3 base:3']
  | addrsz? = sib-with-index-and-base reg16-rex scale index base
@@ -590,7 +588,7 @@ val mem op = do
    return (MEM {sz=sz, segment=seg, opnd=op})
 end
 
-val r/m-with-sib reg = do
+val r/m-with-sib = do
    sibOpnd <- sib;
    mod <- query $mod;
    case mod of
@@ -604,11 +602,6 @@ val r/m-with-sib reg = do
          do
             i <- imm32;
             mem (SUM{a=sibOpnd, b=i})
-         end
-    | '11':
-         do
-            rm <- query $rm;
-            return (reg rm)
          end
    end
 end
@@ -654,7 +647,7 @@ val r/m reg = do
    rexb <- query $rexb;
    addr-reg <- addrReg;
    case rm of
-      '100': r/m-with-sib (reg rexb)
+      '100': r/m-with-sib
     | _ : r/m-without-sib (reg rexb) (addr-reg rexb)
    end
 end
@@ -737,7 +730,7 @@ end
 val binop cons giveOp1 giveOp2 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
-   return (cons {opnd1=op1, opnd2=op2})
+   return (cons {op1=op1, op2=op2})
    # We could add syntatic sugar for record field creation:
    #   return (MOV {op1, op2})
 end
@@ -746,7 +739,7 @@ val trinop cons giveOp1 giveOp2 giveOp3 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
    op3 <- giveOp3;
-   return (cons {opnd1=op1, opnd2=op2, opnd3=op3})
+   return (cons {op1=op1, op2=op2, op3=op3})
 end
 
 ## The VEX prefixes
@@ -831,84 +824,77 @@ val main [/vex] = do #Todo: (REX|0x66|0xf2|0xf3) + VEX => Error
     end
 end
 
-val rex-clear = do
-   update @{rexw='0'};
-   update @{rexb='0'};
-   update @{rexr='0'};
-   update @{rexx='0'};
-end
+val p66 [0x2e] = do update @{segment=CS}; p66 end
+val p66 [0x36] = do update @{segment=SS}; p66 end
+val p66 [0x3e] = do update @{segment=DS}; p66 end
+val p66 [0x26] = do update @{segment=ES}; p66 end
+val p66 [0x64] = do update @{segment=FS}; p66 end
+val p66 [0x65] = do update @{segment=GS}; p66 end
+val p66 [0x66] = do update @{opndsz='1'}; p66 end
+val p66 [0x67] = do update @{addrsz='1'}; p66 end
+val p66 [0xf2] = do update @{repne='1'}; p66-f2 end
+val p66 [0xf3] = do update @{rep='1'}; p66-f3 end
+val p66 [/rex] = p66 #Todo: Ignore REX before legacy prefixes
 
-val p66 [0x2e] = do rex-clear; update @{segment=CS}; p66 end
-val p66 [0x36] = do rex-clear; update @{segment=SS}; p66 end
-val p66 [0x3e] = do rex-clear; update @{segment=DS}; p66 end
-val p66 [0x26] = do rex-clear; update @{segment=ES}; p66 end
-val p66 [0x64] = do rex-clear; update @{segment=FS}; p66 end
-val p66 [0x65] = do rex-clear; update @{segment=GS}; p66 end
-val p66 [0x66] = do rex-clear; update @{opndsz='1'}; p66 end
-val p66 [0x67] = do rex-clear; update @{addrsz='1'}; p66 end
-val p66 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2 end
-val p66 [0xf3] = do rex-clear; update @{rep='1'}; p66-f3 end
-val p66 [/rex] = p66
+val pf2 [0x2e] = do update @{segment=CS}; pf2 end
+val pf2 [0x36] = do update @{segment=SS}; pf2 end
+val pf2 [0x3e] = do update @{segment=DS}; pf2 end
+val pf2 [0x26] = do update @{segment=ES}; pf2 end
+val pf2 [0x64] = do update @{segment=FS}; pf2 end
+val pf2 [0x65] = do update @{segment=GS}; pf2 end
+val pf2 [0x66] = do update @{opndsz='1'}; p66-f2 end
+val pf2 [0x67] = do update @{addrsz='1'}; pf2 end
+val pf2 [0xf2] = do update @{repne='1'}; pf2 end
+val pf2 [0xf3] = do update @{rep='1'}; pf2-f3 end
+val pf2 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
-val pf2 [0x2e] = do rex-clear; update @{segment=CS}; pf2 end
-val pf2 [0x36] = do rex-clear; update @{segment=SS}; pf2 end
-val pf2 [0x3e] = do rex-clear; update @{segment=DS}; pf2 end
-val pf2 [0x26] = do rex-clear; update @{segment=ES}; pf2 end
-val pf2 [0x64] = do rex-clear; update @{segment=FS}; pf2 end
-val pf2 [0x65] = do rex-clear; update @{segment=GS}; pf2 end
-val pf2 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2 end
-val pf2 [0x67] = do rex-clear; update @{addrsz='1'}; pf2 end
-val pf2 [0xf2] = do rex-clear; update @{repne='1'}; pf2 end
-val pf2 [0xf3] = do rex-clear; update @{rep='1'}; pf2-f3 end
-val pf2 [/rex] = main
+val pf3 [0x2e] = do update @{segment=CS}; pf3 end
+val pf3 [0x36] = do update @{segment=SS}; pf3 end
+val pf3 [0x3e] = do update @{segment=DS}; pf3 end
+val pf3 [0x26] = do update @{segment=ES}; pf3 end
+val pf3 [0x64] = do update @{segment=FS}; pf3 end
+val pf3 [0x65] = do update @{segment=GS}; pf3 end
+val pf3 [0x66] = do update @{opndsz='1'}; p66-f3 end
+val pf3 [0x67] = do update @{addrsz='1'}; pf3 end
+val pf3 [0xf2] = do update @{repne='1'}; pf2-f3 end
+val pf3 [0xf3] = do update @{rep='1'}; pf3 end
+val pf3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
-val pf3 [0x2e] = do rex-clear; update @{segment=CS}; pf3 end
-val pf3 [0x36] = do rex-clear; update @{segment=SS}; pf3 end
-val pf3 [0x3e] = do rex-clear; update @{segment=DS}; pf3 end
-val pf3 [0x26] = do rex-clear; update @{segment=ES}; pf3 end
-val pf3 [0x64] = do rex-clear; update @{segment=FS}; pf3 end
-val pf3 [0x65] = do rex-clear; update @{segment=GS}; pf3 end
-val pf3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f3 end
-val pf3 [0x67] = do rex-clear; update @{addrsz='1'}; pf3 end
-val pf3 [0xf2] = do rex-clear; update @{repne='1'}; pf2-f3 end
-val pf3 [0xf3] = do rex-clear; update @{rep='1'}; pf3 end
-val pf3 [/rex] = main
+val p66-f2 [0x2e] = do update @{segment=CS}; p66-f2 end
+val p66-f2 [0x36] = do update @{segment=SS}; p66-f2 end
+val p66-f2 [0x3e] = do update @{segment=DS}; p66-f2 end
+val p66-f2 [0x26] = do update @{segment=ES}; p66-f2 end
+val p66-f2 [0x64] = do update @{segment=FS}; p66-f2 end
+val p66-f2 [0x65] = do update @{segment=GS}; p66-f2 end
+val p66-f2 [0x66] = do update @{opndsz='1'}; p66-f2 end
+val p66-f2 [0x67] = do update @{addrsz='1'}; p66-f2 end
+val p66-f2 [0xf2] = do update @{repne='1'}; p66-f2 end
+val p66-f2 [0xf3] = do update @{rep='1'}; p66-f2-f3 end
+val p66-f2 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
-val p66-f2 [0x2e] = do rex-clear; update @{segment=CS}; p66-f2 end
-val p66-f2 [0x36] = do rex-clear; update @{segment=SS}; p66-f2 end
-val p66-f2 [0x3e] = do rex-clear; update @{segment=DS}; p66-f2 end
-val p66-f2 [0x26] = do rex-clear; update @{segment=ES}; p66-f2 end
-val p66-f2 [0x64] = do rex-clear; update @{segment=FS}; p66-f2 end
-val p66-f2 [0x65] = do rex-clear; update @{segment=GS}; p66-f2 end
-val p66-f2 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2 end
-val p66-f2 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f2 end
-val p66-f2 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2 end
-val p66-f2 [0xf3] = do rex-clear; update @{rep='1'}; p66-f2-f3 end
-val p66-f2 [/rex] = main
+val p66-f3 [0x2e] = do update @{segment=CS}; p66-f3 end
+val p66-f3 [0x36] = do update @{segment=SS}; p66-f3 end
+val p66-f3 [0x3e] = do update @{segment=DS}; p66-f3 end
+val p66-f3 [0x26] = do update @{segment=ES}; p66-f3 end
+val p66-f3 [0x64] = do update @{segment=FS}; p66-f3 end
+val p66-f3 [0x65] = do update @{segment=GS}; p66-f3 end
+val p66-f3 [0x66] = do update @{opndsz='1'}; p66-f3 end
+val p66-f3 [0x67] = do update @{addrsz='1'}; p66-f3 end
+val p66-f3 [0xf2] = do update @{repne='1'}; p66-f2-f3 end
+val p66-f3 [0xf3] = do update @{rep='1'}; p66-f3 end
+val p66-f3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
-val p66-f3 [0x2e] = do rex-clear; update @{segment=CS}; p66-f3 end
-val p66-f3 [0x36] = do rex-clear; update @{segment=SS}; p66-f3 end
-val p66-f3 [0x3e] = do rex-clear; update @{segment=DS}; p66-f3 end
-val p66-f3 [0x26] = do rex-clear; update @{segment=ES}; p66-f3 end
-val p66-f3 [0x64] = do rex-clear; update @{segment=FS}; p66-f3 end
-val p66-f3 [0x65] = do rex-clear; update @{segment=GS}; p66-f3 end
-val p66-f3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f3 end
-val p66-f3 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f3 end
-val p66-f3 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2-f3 end
-val p66-f3 [0xf3] = do rex-clear; update @{rep='1'}; p66-f3 end
-val p66-f3 [/rex] = main
-
-val p66-f2-f3 [0x2e] = do rex-clear; update @{segment=CS}; p66-f2-f3 end
-val p66-f2-f3 [0x36] = do rex-clear; update @{segment=SS}; p66-f2-f3 end
-val p66-f2-f3 [0x3e] = do rex-clear; update @{segment=DS}; p66-f2-f3 end
-val p66-f2-f3 [0x26] = do rex-clear; update @{segment=ES}; p66-f2-f3 end
-val p66-f2-f3 [0x64] = do rex-clear; update @{segment=FS}; p66-f2-f3 end
-val p66-f2-f3 [0x65] = do rex-clear; update @{segment=GS}; p66-f2-f3 end
-val p66-f2-f3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2-f3 end
-val p66-f2-f3 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f2-f3 end
-val p66-f2-f3 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2-f3 end
-val p66-f2-f3 [0xf3] = do rex-clear; update @{rep='1'}; p66-f2-f3 end
-val p66-f2-f3 [/rex] = main
+val p66-f2-f3 [0x2e] = do update @{segment=CS}; p66-f2-f3 end
+val p66-f2-f3 [0x36] = do update @{segment=SS}; p66-f2-f3 end
+val p66-f2-f3 [0x3e] = do update @{segment=DS}; p66-f2-f3 end
+val p66-f2-f3 [0x26] = do update @{segment=ES}; p66-f2-f3 end
+val p66-f2-f3 [0x64] = do update @{segment=FS}; p66-f2-f3 end
+val p66-f2-f3 [0x65] = do update @{segment=GS}; p66-f2-f3 end
+val p66-f2-f3 [0x66] = do update @{opndsz='1'}; p66-f2-f3 end
+val p66-f2-f3 [0x67] = do update @{addrsz='1'}; p66-f2-f3 end
+val p66-f2-f3 [0xf2] = do update @{repne='1'}; p66-f2-f3 end
+val p66-f2-f3 [0xf3] = do update @{rep='1'}; p66-f2-f3 end
+val p66-f2-f3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
 val p66-f2 [] = p66
 val p66-f3 [] = p66

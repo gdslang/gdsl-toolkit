@@ -1,0 +1,28 @@
+Prefix Examples
+
+Example situation:
+0x67: Address size prefix
+0x45: Specific operand override REX prefix
+0xf3: Mandatory prefix
+
+[Binary 1] 0x67 0xf3 0x45 *...* (Usual case - instruction uses the extended register set, a non default address size and 0xf3 as opcode extension)
+[Binary 2] 0xf3 0x67 0x45 *...* (Unusual positioning of mandatory prefix - works as above)
+[Binary 3] 0x67 0x45 0xf3 *...* (Unusual REX prefix positioning - REX prefix is *ignored*, instruction uses a non default address size and 0xf3 as opcode extension)
+[Binary 4] 0xf3 0x45 0x67 *...* (Unusual positioning of mandatory and REX prefix - REX prefix is *ignored*, instruction uses a non default address size and 0xf3 as opcode extension)
+
+Example situation:
+0x67: Address size prefix
+0x66: Operand size prefix
+0x45: Specific operand override REX prefix
+0xc4 0xe1 0xf9: Specific VEX prefix (VEX.128.66.0F.W1)
+
+[Binary 5] 0xc4 0xe1 0xf9 *...* (Usual case)
+[Binary 6] 0x67 0xc4 0xe1 0xf9 *...* (Usual case - instruction uses a non default address size)
+[Binary 7] 0x66 0xc4 0xe1 0xf9 *...* (Unusual reuse of a VEX-included prefix outside of VEX - instruction is *invalid*)
+[Binary 8] 0x45 0xc4 0xe1 0xf9 *...* (Unusual use of a REX prefix in VEX instruction - instruction is *invalid*)
+[Binary 9] 0xc4 0xe1 0xf9 [some legacy prefix] *...* (Unusual positioning of a legacy prefix - VEX prefix is not recognized and decoded separately ) (?)
+
+---
+
+[Binary 10] 0x67 0x45 0xf3 0x0f 0x7e 0x11 (movq xmm2, qword ptr [ecx]: Unusual REX prefix positioning - see above, binary 3)
+[Binary 11] 0x0f 0x12 0x11 and 0x0f 0x12 0xd1 (movlps xmm2, qword ptr [rcx] and movhlps xmm2, xmm1: Instruction is defined by parameter type)
