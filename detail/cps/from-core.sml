@@ -33,7 +33,7 @@ end = struct
       fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
 
       fun mk () = let
-         open CPS.Exp
+         open Core.Exp
          val slice = get "slice"
          val consume = get "consume"
          val unconsume = get "unconsume"
@@ -43,63 +43,38 @@ end = struct
          val not = get "not"
          val raisee = get "raise"
 
-         (* val and k a b =
-          *    letval x = %and(a,b) in
-          *       k x
-          *)
+         (* val and a b = %and(a,b) *)
          val andd =
             let
                val a = fresh "a"
                val b = fresh "b"
-               val x = fresh "x"
-               val k = fresh "k"
                val primAnd = get "%and"
-               val body = 
-                  LETVAL
-                     (x,
-                      PRI (primAnd, [a, b]),
-                      CC (k, [x]))
+               val body = PRI (primAnd, [a, b])
+                     
             in
-               (andd, k, [a, b], body)
+               (andd, [a, b], body)
             end
 
-         (* val == k a b =
-          *    letval x = %equal(a,b) in
-          *       k x
-          *)
+         (* val == a b = %equal(a,b) *)
          val == =
             let
                val a = fresh "a"
                val b = fresh "b"
-               val x = fresh "x"
-               val k = fresh "k"
                val primEqual = get "%equal"
-               val body = 
-                  LETVAL
-                     (x,
-                      PRI (primEqual, [a, b]),
-                      CC (k, [x]))
+               val body = PRI (primEqual, [a, b])
             in
-               (==, k, [a, b], body)
+               (==, [a, b], body)
             end
 
-         (* val not k a =
-          *    letval x = %not(a) in
-          *       k x
-          *)
+         (* val not a = %not(a) *)
          val not =
             let
                val a = fresh "a"
                val x = fresh "x"
-               val k = fresh "k"
                val primNot = get "%not"
-               val body = 
-                  LETVAL
-                     (x,
-                      PRI (primNot, [a]),
-                      CC (k, [x]))
+               val body = PRI (primNot, [a])
             in
-               (not, k, [a], body)
+               (not, [a], body)
             end
 
          (* val ^ k a b =
@@ -110,35 +85,20 @@ end = struct
             let
                val a = fresh "a"
                val b = fresh "b"
-               val x = fresh "x"
-               val k = fresh "k"
                val primConcat = get "%concat"
-               val body = 
-                  LETVAL
-                     (x,
-                      PRI (primConcat, [a, b]),
-                      CC (k, [x]))
+               val body = PRI (primConcat, [a, b])
             in
-               (concat, k, [a, b], body)
+               (concat, [a, b], body)
             end
 
-         (* val ^ k a b =
-          *    letval x = %concat(a,b) in
-          *       k x
-          *)
+         (* val raise a  = %raise(a) *)
          val raisee =
             let
                val a = fresh "a"
-               val x = fresh "x"
-               val k = fresh "k"
                val primRaise = get "%raise"
-               val body = 
-                  LETVAL
-                     (x,
-                      PRI (primRaise, [a]),
-                      CC (k, [x]))
+               val body = PRI (primRaise, [a])
             in
-               (raisee, k, [a], body)
+               (raisee, [a], body)
             end
 
          (* TODO: fix definition, `%slice` should not take 
@@ -160,54 +120,30 @@ end = struct
                val offs = fresh "offs"
                val sz = fresh "sz"
                val s = fresh "s"
-               val x = fresh "x"
-               val k = fresh "k" 
                val primSlice = get "%slice"
-               val body =
-                  LETVAL
-                     (x,
-                      PRI (primSlice, [tok, offs, sz, s]),
-                      CC (k, [x]))
+               val body = PRI (primSlice, [tok, offs, sz, s])
             in
-               (slice, k, [tok, offs, sz, s], body) 
+               (slice, [tok, offs, sz, s], body) 
             end
 
-         (* val consume k s =
-          *    letval x = %consume(s) in
-          *       k x
-          *)
+         (* val consume s = %consume(s) *)
          val consume =
             let
-               val k = fresh "k"
                val s = fresh "s"
-               val x = fresh "x"
                val primConsume = get "%consume"
-               val body =
-                  LETVAL
-                     (x,
-                      PRI (primConsume, [s]),
-                      CC (k, [x]))
+               val body = PRI (primConsume, [s])
             in
-               (consume, k, [s], body)
+               (consume, [s], body)
             end
 
-         (* val unconsume k s =
-          *    letval x = %unconsume(s) in
-          *       k x
-          *)
+         (* val unconsume s = %unconsume(s) *)
          val unconsume =
             let
-               val k = fresh "k"
                val s = fresh "s"
-               val x = fresh "x"
                val primUnconsume = get "%unconsume"
-               val body =
-                  LETVAL
-                     (x,
-                      PRI (primUnconsume, [s]),
-                      CC (k, [x]))
+               val body = PRI (primUnconsume, [s])
             in
-               (unconsume, k, [s], body)
+               (unconsume, [s], body)
             end
       in
          [slice, consume, unconsume, andd, not, ==, concat, raisee]
@@ -271,13 +207,10 @@ end = struct
                val cps =
                   trans0 
                      (* TODO: "export" exported symbols as record *)
-                     (LETREC (cs, RECORD (exports spec)))
+                     (LETREC (Builtin.mk()@cs, RECORD (exports spec)))
                      (fn z => Exp.APP (main, kont, [z]))
             in
-               case cps of
-                  Exp.LETREC (cs, body) =>
-                     Exp.LETREC (Builtin.mk()@cs, body)
-                | _ => raise CM.CompilationError
+               cps
             end) spec
 
    and trans0 e kappa = 
@@ -335,6 +268,12 @@ end = struct
                trans0 e1 (fn x1 =>
                   trans0 e2 (fn x2 =>
                      Exp.LETCONT ([(k, [x], kappa x)], Exp.APP (x1, k, [x2]))))
+            end
+       | PRI (f, xs) =>
+            let
+               val x = fresh variable
+            in
+               Exp.LETVAL (x, Exp.PRI (f, xs), kappa x)
             end
        | FN (x, e) =>
             let
@@ -532,6 +471,12 @@ end = struct
             trans0 e1 (fn x1 =>
                trans0 e2 (fn x2 =>
                   Exp.APP (x1, kont, [x2])))
+       | PRI (f, xs) =>
+            let
+               val x = fresh variable
+            in
+               Exp.LETVAL (x, Exp.PRI (f, xs), Exp.CC (kont, [x]))
+            end
        | FN (x, e) =>
             let
                val f = fresh function

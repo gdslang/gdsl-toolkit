@@ -976,17 +976,18 @@ structure HoistFun = struct
 
    and simplifyRecs env sigma ds = map (simplifyRec env sigma) ds
   
-   and simplifyRec env sigma (f, k, ys, K) =
+   and simplifyRec env sigma (f, k, [], K) =
       (case simplify env sigma K of
-         K as LETVAL (g, FN (l, xs, L), M) =>
+         K as LETVAL (g, FN (l, [x], L), M) =>
             (case M of
                CC (j, [h]) =>
                   if VarInfo.eq_symid (j, k)
                      andalso VarInfo.eq_symid (g, h)
-                     then (click(); (f, l, ys@xs, L))
-                  else (f, k, ys, K)
-             | _ => (f, k, ys, K))
-       | K => (f, k, ys, K))
+                     then (click(); (f, l, [x], L))
+                  else (f, k, [], K)
+             | _ => (f, k, [], K))
+       | K => (f, k, [], K))
+     | simplifyRec env sigma (f, k, xs, K) = (f, k, xs, simplify env sigma K)
 
    and simplifyVal env sigma v =
       case v of
@@ -1272,8 +1273,8 @@ structure BetaContFun = struct
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
                   if length xs > length ys
-                     then 
-                        let
+                     then raise Fail "betaContFun.partialapplication" 
+                        (* let
                            val _ = click()
                            val ly = length ys
                            val lx = length xs
@@ -1294,10 +1295,10 @@ structure BetaContFun = struct
                                     APP (f, c', applied@missing)),
                                  CC (k', [h']))),
                               CC (j', [g'])))
-                        end
+                        end *) 
                   else if length xs < length ys
-                     then
-                        let 
+                     then APP (f, j, ys)
+                        (* let 
                            val _ = click()
                            val ly = length ys
                            val lx = length xs
@@ -1317,7 +1318,7 @@ structure BetaContFun = struct
                                  LETCONT ([(kh, [h], APP (h, kg, overapp))],
                                     APP (f, kh, app))),
                                  CC (kg', [g])))
-                        end
+                        end *)
                   else if not (isInliningCandidate f K)
                      then APP (f, j, ys)
                   else if length xs = length ys
