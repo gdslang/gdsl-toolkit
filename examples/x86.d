@@ -62,7 +62,7 @@ val mod-mem? = do
    case mod of
       '11': return '1'
     | otherwise: return '0'
-    end
+   end
 end
 val mod-reg? = / mod-mem?
 val mode64? = query $mode64
