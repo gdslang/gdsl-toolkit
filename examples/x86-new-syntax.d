@@ -370,7 +370,10 @@ datatype insn =
 val imm8 ['b:8'] = return (IMM8 b)
 val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b1 ^ b2))
 val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (IMM32 (b1 ^ b2 ^ b3 ^ b4))
-val imm64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
+val imm64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'X86 Example Specification
+
+- Ignore rex before legacy prefix
+] =
    return (IMM64 (b1 ^ b2 ^ b3 ^ b4 ^ b5 ^ b6 ^ b7 ^ b8))
 
 ## Convert a bit-vectors to registers
@@ -1363,70 +1366,57 @@ val main [0x0f 0xb7 /r]
  | otherwise = binop MOVZX r32 r/m16
 
 ### MPSADBW Vol. 2B 4-137
-val mpsadbw = ternop MSADBW
-val vmpsadbw = quaternop VMSADBW
-val p66 [0x0f 0x3a 0x42 /r] = mpsadbw xmm128 xmm/m128 imm8
-val main [/vex<m=vex-0f-3a,l=vex-128,p=vex-66> 0x42 /r] = vmpsadbw xmm128 vex/xmm xmm/m128 imm8
+val p66 [0x0f 0x3a 0x42 /r] = ternop MPSADBW xmm128 xmm/m128 imm8
+val main [/vex<m=vex-0f-3a,l=vex-128,p=vex-66> 0x42 /r] = quaternop VMPSADBW xmm128 vex/xmm xmm/m128 imm8
 
 ### MUL Vol. 2B 4-142
-val mul = unop MUL
-val main [0xf6 /4] = mul r/m8
-val p66 [0xf7 /4] = mul r/m16
+val main [0xf6 /4] = unop MUL r/m8
+val p66 [0xf7 /4] = unop MUL r/m16
 val main [0xf7 /4]
- | rexw? = mul r/m64
- | otherwise = mul r/m32
+ | rexw? = unop MUL r/m64
+ | otherwise = unop MUL r/m32
 
 ### MULPD Vol. 2B 4-145
-val mulpd = binop MULPD
-val vmulpd = ternop VMULPD
-val p66 [0x0f 0x59 /r] = mulpd xmm128 xmm/m128
-val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x59 /r] = vmulpd xmm128 vex/xmm xmm/m128
-val main [/vex<m=vex-0f,l=vex-256,p=vex-66> 0x59 /r] = vmulpd ymm256 vex/xmm ymm/m256
+val p66 [0x0f 0x59 /r] = binop MULPD xmm128 xmm/m128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x59 /r] = ternop VMULPD xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-66> 0x59 /r] = ternop VMULPD ymm256 vex/xmm ymm/m256
 
 ### MULPS Vol. 2B 4-147
 val mulps = binop MULPS
 val vmulps = ternop VMULPS
-val main [0x0f 0x59 /r] = mulps xmm128 xmm/m128
-val main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x59 /r] = vmulps xmm128 vex/xmm xmm/m128
-val main [/vex<m=vex-0f,l=vex-256,p=vex-nosimd> 0x59 /r] = vmulps ymm256 vex/xmm ymm/m256
+val main [0x0f 0x59 /r] = binop MULPS xmm128 xmm/m128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x59 /r] = ternop VMULPS xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-nosimd> 0x59 /r] = ternop VMULPS ymm256 vex/xmm ymm/m256
 
 ### MULSD Vol. 2B 4-149
-val mulsd = binop MULSD
-val vmulsd = ternop VMULSD
-val pf2 [0x0f 0x59 /r] = mulsd xmm128 xmm/m64
-val main [/vex<m=vex-0f,p=vex-f2> 0x59 /r] = vmulsd xmm128 vex/xmm xmm/m64
+val pf2 [0x0f 0x59 /r] = binop MULSD xmm128 xmm/m64
+val main [/vex<m=vex-0f,p=vex-f2> 0x59 /r] = ternop VMULSD xmm128 vex/xmm xmm/m64
 
 ### MULSS Vol. 2B 4-151
-val mulss = binop MULSS
-val vmulss = ternop VMULSS
-val pf3 [0x0f 0x59 /r] = mulss xmm128 xmm/m32
-val main [/vex<m=vex-0f,p=vex-f3> 0x59 /r] = vmulss xmm128 vex/xmm xmm/m32
+val pf3 [0x0f 0x59 /r] = binop MULSS xmm128 xmm/m32
+val main [/vex<m=vex-0f,p=vex-f3> 0x59 /r] = ternop VMULSS xmm128 vex/xmm xmm/m32
 
 ### MWAIT Vol. 2B 4-153
-val mwait = return MWAIT
-val main [0x0f 0x01 0xc9] = mwait
+val main [0x0f 0x01 0xc9] = return MWAIT
 
 ### NEG Vol. 2B 4-157
-val neg = unop NEG
-val main [0xf6 /3] = neg r/m8
-val p66 [0xf7 /3] = neg r/m16
+val main [0xf6 /3] = unop NEGr/m8
+val p66 [0xf7 /3] = unop NEGr/m16
 val main [0xf7 /3]
- | rexw? = neg r/m64
- | otherwise = neg r/m32
+ | rexw? = unop NEGr/m64
+ | otherwise = unop NEGr/m32
 
 ### NOP Vol. 2B 4-160
-val nop_0 = return NOP
-val nop_1 = unop NOP
-val p66 [0x0f 0x1f /0] = nop r/m16
-val main [0x0f 0x1f /0] = nop r/m32
+val main [0x90] = return NOP_0
+val p66 [0x0f 0x1f /0] = unop NOP_1 r/m16
+val main [0x0f 0x1f /0] = unop NOP_1 r/m32
 
 ### NOT Vol. 2B 4-162
-val not = unop NOT
-val main [0xf6 /2] = not r/m8
-val p66 [0xf7 /2] = not r/m16
+val main [0xf6 /2] = unop NOT r/m8
+val p66 [0xf7 /2] = unop NOT r/m16
 val main [0xf7 /2]
- | rexw? = not r/m64
- | otherwise = not r/m64
+ | rexw? = unop NOT r/m64
+ | otherwise = unop NOT r/m64
 
 ### OR Vol. 2B 4-164
 val or = binop OR
