@@ -240,6 +240,7 @@ val ymm14 = return (REG YMM14)
 val ymm15 = return (REG YMM15)
 
 # A type alias used for instructions taking two arguments
+type nullop = {}
 type unop = {opnd1:opnd}
 type binop = {opnd1:opnd, opnd2:opnd}
 type ternop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
@@ -1051,7 +1052,7 @@ val pf3 [0x0f 0x5f /r] = binop MAXSS xmm128 xmm/m32
 val main [/vex<m=vex-0f,p=vex-f3> 0x5f /r] = ternop VMAXSS xmm128 vex/xmm xmm/m32
 
 ### MFENCE Vol. 2B 4-23
-val main [0x0f 0xae /6] = MFENCE
+val main [0x0f 0xae /6] = nullop MFENCE
 
 ### MINPD Vol. 2B 4-25
 val p66 [0x0f 0x5d /r] = binop MINPD xmm128 xmm/m128
@@ -1072,7 +1073,7 @@ val pf3 [0x0f 0x5d /r] = binop MINSS xmm128 xmm/m32
 val main [/vex<m=vex-0f,p=vex-f3> 0x5d /r] = ternop VMINSS xmm128 vex/xmm xmm/m32
 
 ### MONITOR Vol. 2B 4-35
-val main [0x0f 0xae 0x01 0xc8] = MONITOR
+val main [0x0f 0xae 0x01 0xc8] = nullop MONITOR
 
 ### MOV Vol 2A 3-643
 val main [0x88 /r] = binop MOV r/m8 r8
@@ -1397,17 +1398,17 @@ val pf3 [0x0f 0x59 /r] = binop MULSS xmm128 xmm/m32
 val main [/vex<m=vex-0f,p=vex-f3> 0x59 /r] = ternop VMULSS xmm128 vex/xmm xmm/m32
 
 ### MWAIT Vol. 2B 4-153
-val main [0x0f 0x01 0xc9] = return MWAIT
+val main [0x0f 0x01 0xc9] = nullop MWAIT
 
 ### NEG Vol. 2B 4-157
 val main [0xf6 /3] = unop NEGr/m8
 val p66 [0xf7 /3] = unop NEGr/m16
 val main [0xf7 /3]
- | rexw? = unop NEGr/m64
- | otherwise = unop NEGr/m32
+ | rexw? = unop NEG r/m64
+ | otherwise = unop NEG r/m32
 
 ### NOP Vol. 2B 4-160
-val main [0x90] = return NOP_0
+val main [0x90] = nullop NOP_0
 val p66 [0x0f 0x1f /0] = unop NOP_1 r/m16
 val main [0x0f 0x1f /0] = unop NOP_1 r/m32
 
