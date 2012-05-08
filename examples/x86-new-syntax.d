@@ -901,72 +901,72 @@ val vex-0f-3a = do
      | _ : vex-0f-3a-reg
 end*)
 
-val p66 [0x2e] = do update @{segment=CS}; p66 end
-val p66 [0x36] = do update @{segment=SS}; p66 end
-val p66 [0x3e] = do update @{segment=DS}; p66 end
-val p66 [0x26] = do update @{segment=ES}; p66 end
-val p66 [0x64] = do update @{segment=FS}; p66 end
-val p66 [0x65] = do update @{segment=GS}; p66 end
+val p66 [0x2e] = do rex-clear; update @{segment=CS}; p66 end
+val p66 [0x36] = do rex-clear; update @{segment=SS}; p66 end
+val p66 [0x3e] = do rex-clear; update @{segment=DS}; p66 end
+val p66 [0x26] = do rex-clear; update @{segment=ES}; p66 end
+val p66 [0x64] = do rex-clear; update @{segment=FS}; p66 end
+val p66 [0x65] = do rex-clear; update @{segment=GS}; p66 end
 val p66 [0x66] = do rex-clear; update @{opndsz='1'}; p66 end
 val p66 [0x67] = do rex-clear; update @{addrsz='1'}; p66 end
 val p66 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2 end
 val p66 [0xf3] = do rex-clear; update @{rep='1'}; p66-f3 end
 val p66 [/rex] = p66
 
-val pf2 [0x2e] = do update @{segment=CS}; pf2 end
-val pf2 [0x36] = do update @{segment=SS}; pf2 end
-val pf2 [0x3e] = do update @{segment=DS}; pf2 end
-val pf2 [0x26] = do update @{segment=ES}; pf2 end
-val pf2 [0x64] = do update @{segment=FS}; pf2 end
-val pf2 [0x65] = do update @{segment=GS}; pf2 end
+val pf2 [0x2e] = do rex-clear; update @{segment=CS}; pf2 end
+val pf2 [0x36] = do rex-clear; update @{segment=SS}; pf2 end
+val pf2 [0x3e] = do rex-clear; update @{segment=DS}; pf2 end
+val pf2 [0x26] = do rex-clear; update @{segment=ES}; pf2 end
+val pf2 [0x64] = do rex-clear; update @{segment=FS}; pf2 end
+val pf2 [0x65] = do rex-clear; update @{segment=GS}; pf2 end
 val pf2 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2 end
 val pf2 [0x67] = do rex-clear; update @{addrsz='1'}; pf2 end
 val pf2 [0xf2] = do rex-clear; update @{repne='1'}; pf2 end
 val pf2 [0xf3] = do rex-clear; update @{rep='1'}; pf2-f3 end
 val pf2 [/rex] = main
 
-val pf3 [0x2e] = do update @{segment=CS}; pf3 end
-val pf3 [0x36] = do update @{segment=SS}; pf3 end
-val pf3 [0x3e] = do update @{segment=DS}; pf3 end
-val pf3 [0x26] = do update @{segment=ES}; pf3 end
-val pf3 [0x64] = do update @{segment=FS}; pf3 end
-val pf3 [0x65] = do update @{segment=GS}; pf3 end
+val pf3 [0x2e] = do rex-clear; update @{segment=CS}; pf3 end
+val pf3 [0x36] = do rex-clear; update @{segment=SS}; pf3 end
+val pf3 [0x3e] = do rex-clear; update @{segment=DS}; pf3 end
+val pf3 [0x26] = do rex-clear; update @{segment=ES}; pf3 end
+val pf3 [0x64] = do rex-clear; update @{segment=FS}; pf3 end
+val pf3 [0x65] = do rex-clear; update @{segment=GS}; pf3 end
 val pf3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f3 end
 val pf3 [0x67] = do rex-clear; update @{addrsz='1'}; pf3 end
 val pf3 [0xf2] = do rex-clear; update @{repne='1'}; pf2-f3 end
 val pf3 [0xf3] = do rex-clear; update @{rep='1'}; pf3 end
 val pf3 [/rex] = main
 
-val p66-f2 [0x2e] = do update @{segment=CS}; p66-f2 end
-val p66-f2 [0x36] = do update @{segment=SS}; p66-f2 end
-val p66-f2 [0x3e] = do update @{segment=DS}; p66-f2 end
-val p66-f2 [0x26] = do update @{segment=ES}; p66-f2 end
-val p66-f2 [0x64] = do update @{segment=FS}; p66-f2 end
-val p66-f2 [0x65] = do update @{segment=GS}; p66-f2 end
+val p66-f2 [0x2e] = do rex-clear; update @{segment=CS}; p66-f2 end
+val p66-f2 [0x36] = do rex-clear; update @{segment=SS}; p66-f2 end
+val p66-f2 [0x3e] = do rex-clear; update @{segment=DS}; p66-f2 end
+val p66-f2 [0x26] = do rex-clear; update @{segment=ES}; p66-f2 end
+val p66-f2 [0x64] = do rex-clear; update @{segment=FS}; p66-f2 end
+val p66-f2 [0x65] = do rex-clear; update @{segment=GS}; p66-f2 end
 val p66-f2 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2 end
 val p66-f2 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f2 end
 val p66-f2 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2 end
 val p66-f2 [0xf3] = do rex-clear; update @{rep='1'}; p66-f2-f3 end
 val p66-f2 [/rex] = main
 
-val p66-f3 [0x2e] = do update @{segment=CS}; p66-f3 end
-val p66-f3 [0x36] = do update @{segment=SS}; p66-f3 end
-val p66-f3 [0x3e] = do update @{segment=DS}; p66-f3 end
-val p66-f3 [0x26] = do update @{segment=ES}; p66-f3 end
-val p66-f3 [0x64] = do update @{segment=FS}; p66-f3 end
-val p66-f3 [0x65] = do update @{segment=GS}; p66-f3 end
+val p66-f3 [0x2e] = do rex-clear; update @{segment=CS}; p66-f3 end
+val p66-f3 [0x36] = do rex-clear; update @{segment=SS}; p66-f3 end
+val p66-f3 [0x3e] = do rex-clear; update @{segment=DS}; p66-f3 end
+val p66-f3 [0x26] = do rex-clear; update @{segment=ES}; p66-f3 end
+val p66-f3 [0x64] = do rex-clear; update @{segment=FS}; p66-f3 end
+val p66-f3 [0x65] = do rex-clear; update @{segment=GS}; p66-f3 end
 val p66-f3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f3 end
 val p66-f3 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f3 end
 val p66-f3 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2-f3 end
 val p66-f3 [0xf3] = do rex-clear; update @{rep='1'}; p66-f3 end
 val p66-f3 [/rex] = main
 
-val p66-f2-f3 [0x2e] = do update @{segment=CS}; p66-f2-f3 end
-val p66-f2-f3 [0x36] = do update @{segment=SS}; p66-f2-f3 end
-val p66-f2-f3 [0x3e] = do update @{segment=DS}; p66-f2-f3 end
-val p66-f2-f3 [0x26] = do update @{segment=ES}; p66-f2-f3 end
-val p66-f2-f3 [0x64] = do update @{segment=FS}; p66-f2-f3 end
-val p66-f2-f3 [0x65] = do update @{segment=GS}; p66-f2-f3 end
+val p66-f2-f3 [0x2e] = do rex-clear; update @{segment=CS}; p66-f2-f3 end
+val p66-f2-f3 [0x36] = do rex-clear; update @{segment=SS}; p66-f2-f3 end
+val p66-f2-f3 [0x3e] = do rex-clear; update @{segment=DS}; p66-f2-f3 end
+val p66-f2-f3 [0x26] = do rex-clear; update @{segment=ES}; p66-f2-f3 end
+val p66-f2-f3 [0x64] = do rex-clear; update @{segment=FS}; p66-f2-f3 end
+val p66-f2-f3 [0x65] = do rex-clear; update @{segment=GS}; p66-f2-f3 end
 val p66-f2-f3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2-f3 end
 val p66-f2-f3 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f2-f3 end
 val p66-f2-f3 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2-f3 end
