@@ -901,6 +901,13 @@ val vex-0f-3a = do
      | _ : vex-0f-3a-reg
 end*)
 
+val rex-clear = do
+   update @{rexw='0'};
+   update @{rexb='0'};
+   update @{rexr='0'};
+   update @{rexx='0'};
+end
+
 val p66 [0x2e] = do rex-clear; update @{segment=CS}; p66 end
 val p66 [0x36] = do rex-clear; update @{segment=SS}; p66 end
 val p66 [0x3e] = do rex-clear; update @{segment=DS}; p66 end
