@@ -857,7 +857,7 @@ val pf2 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2 end
 val pf2 [0x67] = do rex-clear; update @{addrsz='1'}; pf2 end
 val pf2 [0xf2] = do rex-clear; update @{repne='1'}; pf2 end
 val pf2 [0xf3] = do rex-clear; update @{rep='1'}; pf2-f3 end
-val pf2 [/rex] = main
+val pf2 [/rex] = pf2
 
 val pf3 [0x2e] = do rex-clear; update @{segment=CS}; pf3 end
 val pf3 [0x36] = do rex-clear; update @{segment=SS}; pf3 end
@@ -869,7 +869,7 @@ val pf3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f3 end
 val pf3 [0x67] = do rex-clear; update @{addrsz='1'}; pf3 end
 val pf3 [0xf2] = do rex-clear; update @{repne='1'}; pf2-f3 end
 val pf3 [0xf3] = do rex-clear; update @{rep='1'}; pf3 end
-val pf3 [/rex] = main
+val pf3 [/rex] = pf3
 
 val p66-f2 [0x2e] = do rex-clear; update @{segment=CS}; p66-f2 end
 val p66-f2 [0x36] = do rex-clear; update @{segment=SS}; p66-f2 end
@@ -881,7 +881,7 @@ val p66-f2 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2 end
 val p66-f2 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f2 end
 val p66-f2 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2 end
 val p66-f2 [0xf3] = do rex-clear; update @{rep='1'}; p66-f2-f3 end
-val p66-f2 [/rex] = main
+val p66-f2 [/rex] = p66-f2
 
 val p66-f3 [0x2e] = do rex-clear; update @{segment=CS}; p66-f3 end
 val p66-f3 [0x36] = do rex-clear; update @{segment=SS}; p66-f3 end
@@ -893,7 +893,7 @@ val p66-f3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f3 end
 val p66-f3 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f3 end
 val p66-f3 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2-f3 end
 val p66-f3 [0xf3] = do rex-clear; update @{rep='1'}; p66-f3 end
-val p66-f3 [/rex] = main
+val p66-f3 [/rex] = p66-f3
 
 val p66-f2-f3 [0x2e] = do rex-clear; update @{segment=CS}; p66-f2-f3 end
 val p66-f2-f3 [0x36] = do rex-clear; update @{segment=SS}; p66-f2-f3 end
@@ -905,7 +905,7 @@ val p66-f2-f3 [0x66] = do rex-clear; update @{opndsz='1'}; p66-f2-f3 end
 val p66-f2-f3 [0x67] = do rex-clear; update @{addrsz='1'}; p66-f2-f3 end
 val p66-f2-f3 [0xf2] = do rex-clear; update @{repne='1'}; p66-f2-f3 end
 val p66-f2-f3 [0xf3] = do rex-clear; update @{rep='1'}; p66-f2-f3 end
-val p66-f2-f3 [/rex] = main
+val p66-f2-f3 [/rex] = p66-f2-f3
 
 val p66-f2 [] = p66
 val p66-f3 [] = p66
