@@ -832,10 +832,7 @@ val main [/vex] = do #Todo: (REX|0x66|0xf2|0xf3) + VEX => Error
 end
 
 val rex-clear = do
-   update @{rexw='0'};
-   update @{rexb='0'};
-   update @{rexr='0'};
-   update @{rexx='0'};
+   update @{rexw='0',rexb='0',rexr='0',rexx='0'}
 end
 
 val p66 [0x2e] = do rex-clear; update @{segment=CS}; p66 end
