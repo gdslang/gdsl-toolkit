@@ -403,7 +403,7 @@ end = struct
 
    and transPat p k ks =
       let (* TODO: apply arguments to the branches *)
-          (* TOOD: check size of generated patterns and bail out if to large *)
+          (* TODO: check size of generated patterns and bail out if to large *)
          open Core.Pat
 
          fun toIdx p =
@@ -425,7 +425,13 @@ end = struct
              | x::xs => FN (x, unfold (xs, e))
       in
          case args of
-            [] => (n, k, args, trans1 e k) (* TODO *)
+            [] =>
+               let
+                  val x = fresh variable
+               in
+                  (* TODO *)
+                  (n, k, [x], trans1 (APP (e, ID x)) k)
+               end
           | [x] => (n, k, args, trans1 e k)
           | x::xs => (n, k, [x], trans1 (unfold (xs, e)) k)
       end

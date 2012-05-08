@@ -747,7 +747,7 @@ structure Cost = struct
       let
          fun lp (t, n) =
             case t of
-               LETVAL (_, FN (k, xs, K), L) => lp (K, lp (L, n)+1)
+               LETVAL (_, FN (k, xs, K), L) => lp (K, lp (L, n))
              | LETVAL (_, _, body) => lp (body, n)
              | LETPRJ (_, _, _, body) => lp (body, n)
              | LETUPD (_, _, _, body) => lp (body, n)
