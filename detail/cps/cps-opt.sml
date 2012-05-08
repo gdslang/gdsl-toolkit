@@ -725,7 +725,23 @@ structure Cost = struct
    structure Set = SymSet
    
    val env = ref Set.empty
-   fun reset () = env := Set.empty
+   val allwaysInline = ref Set.empty
+   fun reset () =
+      (env:=Set.empty
+      ;allwaysInline:=Set.fromList
+         [Aux.get ">>",
+          Aux.get "return",
+          Aux.get ">>=",
+          Aux.get "consume",
+          Aux.get "unconsume",
+          Aux.get "slice",
+          Aux.get "update",
+          Aux.get "raise",
+          Aux.get "query",
+          Aux.get "and",
+          Aux.get "^"])
+
+   val allwaysInline = fn f => Set.member (!allwaysInline, f)
 
    fun isInliningCandidate t =
       let
@@ -1107,24 +1123,9 @@ structure BetaContFun = struct
       Census.count f = 1
       andalso count0 f = 1
 
-   val allwaysInline = ref Set.empty
-   fun registerAllwaysInline () = 
-      allwaysInline := Set.fromList
-         [Aux.get ">>",
-          Aux.get "return",
-          Aux.get ">>=",
-          Aux.get "consume",
-          Aux.get "unconsume",
-          Aux.get "slice",
-          Aux.get "update",
-          Aux.get "raise",
-          Aux.get "query",
-          Aux.get "and",
-          Aux.get "^"]
-
    fun isInliningCandidate f body =
       not (Rec.isRec f) andalso
-         (Set.member (!allwaysInline, f) orelse
+         (Cost.allwaysInline f orelse
           Census.count f = 1 orelse
           Cost.inlineCandidate f)
 
@@ -1271,7 +1272,7 @@ structure BetaContFun = struct
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
                   if length xs > length ys
-                     then
+                     then 
                         let
                            val _ = click()
                            val ly = length ys
@@ -1350,7 +1351,6 @@ structure BetaContFun = struct
    fun run t =
       let
          val _ = reset ()
-         val _ = registerAllwaysInline ()
          val _ = Rec.run t
          val _ = FI.run t
          val _ = Census.run t
@@ -1384,24 +1384,9 @@ structure BetaContFunConservative = struct
       Census.count f = 1
       andalso count0 f = 1
 
-   val allwaysInline = ref Set.empty
-   fun registerAllwaysInline () = 
-      allwaysInline := Set.fromList
-         [Aux.get ">>",
-          Aux.get "return",
-          Aux.get ">>=",
-          Aux.get "consume",
-          Aux.get "unconsume",
-          Aux.get "slice",
-          Aux.get "update",
-          Aux.get "raise",
-          Aux.get "query",
-          Aux.get "and",
-          Aux.get "^"]
-
    fun isInliningCandidate f body =
       not (Rec.isRec f) andalso
-         (Set.member (!allwaysInline, f) orelse
+         (Cost.allwaysInline f orelse
           Census.count f = 1 orelse
           Cost.inlineCandidate f)
 
@@ -1580,7 +1565,6 @@ structure BetaContFunConservative = struct
    fun run t =
       let
          val _ = reset ()
-         val _ = registerAllwaysInline ()
          val _ = Rec.run t
          val _ = FI.run t
          val _ = Census.run t

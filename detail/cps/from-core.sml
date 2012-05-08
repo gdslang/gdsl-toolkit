@@ -341,7 +341,7 @@ end = struct
                val f = fresh function
                val k = fresh continuation
             in
-               Exp.LETREC ([(f, k, [x], trans1 e k)], kappa f) 
+               Exp.LETVAL (f, Exp.FN (k, [x], trans1 e k), kappa f) 
             end
        | RECORD fs =>
             let
@@ -480,8 +480,15 @@ end = struct
    and trans0rec (n, args, e) =
       let
          val k = fresh continuation
+         fun unfold (xs, e) =
+            case xs of
+               [] => e
+             | x::xs => FN (x, unfold (xs, e))
       in
-         (n, k, args, trans1 e k)
+         case args of
+            [] => (n, k, args, trans1 e k) (* TODO *)
+          | [x] => (n, k, args, trans1 e k)
+          | x::xs => (n, k, [x], trans1 (unfold (xs, e)) k)
       end
 
    and trans1 e kont =
