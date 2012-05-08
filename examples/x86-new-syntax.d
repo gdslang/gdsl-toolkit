@@ -1419,71 +1419,60 @@ val main [0xf7 /2]
  | otherwise = unop NOT r/m64
 
 ### OR Vol. 2B 4-164
-val or = binop OR
-val main [0x0c] = or al imm8
-val p66 [0x0d] = or ax imm16
+val main [0x0c] = binop OR al imm8
+val p66 [0x0d] = binop OR ax imm16
 val main [0x0d]
- | rexw? = or rax imm64
- | otherwise = or eax imm32
-val main [0x80 /1] = or r/m8 imm8
-val p66 [0x81 /1] = or r/m16 imm16
+ | rexw? = binop OR rax imm64
+ | otherwise = binop OR eax imm32
+val main [0x80 /1] = binop OR r/m8 imm8
+val p66 [0x81 /1] = binop OR r/m16 imm16
 val main [0x81 /1]
- | rexw? = or r/m64 imm32
- | otherwise = or r/m32 imm32
-val p66 [0x83 /1] = or r/m16 imm8
+ | rexw? = binop OR r/m64 imm32
+ | otherwise = binop OR r/m32 imm32
+val p66 [0x83 /1] = binop OR r/m16 imm8
 val main [0x83 /1]
- | rexw? = or r/m64 imm8
- | otherwise = or r/m32 imm8
-val main [0x08] = or r/m8 r8
-val p66 [0x09 /1] = or r/m16 imm16
+ | rexw? = binop OR r/m64 imm8
+ | otherwise = binop OR r/m32 imm8
+val main [0x08] = binop OR r/m8 r8
+val p66 [0x09 /1] = binop OR r/m16 imm16
 val main [0x09 /1]
- | rexw? = or r/m64 imm64
- | otherwise = or r/m32 imm32
-val main [0x0a] = or r8 r/m8
-val p66 [0x0b /1] = or r16 r/m16
+ | rexw? = binop OR r/m64 imm64
+ | otherwise = binop OR r/m32 imm32
+val main [0x0a] = binop OR r8 r/m8
+val p66 [0x0b /1] = binop OR r16 r/m16
 val main [0x0b /1]
- | rexw? = or r64 r/m64
- | otherwise = or r32 r/m32
+ | rexw? = binop OR r64 r/m64
+ | otherwise = binop OR r32 r/m32
 
 ### ORPD Vol. 2B 4-164
-val orpd = binop ORPD
-val vorpd = ternop VORPD
-val p66 [0x0f 0x56 /r] = orpd xmm128 xmm/m128
-val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x56 /r] = vorpd xmm128 vex/xmm xmm/m128
-val main [/vex<m=vex-0f,l=vex-256,p=vex-66> 0x56 /r] = vorpd ymm256 vex/xmm ymm/m256
+val p66 [0x0f 0x56 /r] = binop ORPD xmm128 xmm/m128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-66> 0x56 /r] = ternop VORPD xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-66> 0x56 /r] = ternop VORPD ymm256 vex/xmm ymm/m256
 
 ### ORPS Vol. 2B 4-169
-val orps = binop ORPS
-val vorps = ternop VORPS
-val main [0x0f 0x56 /r] = orps xmm128 xmm/m128
-val main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x56 /r] = vorps xmm128 vex/xmm xmm/m128
-val main [/vex<m=vex-0f,l=vex-256,p=vex-nosimd> 0x56 /r] = vorps ymm256 vex/xmm ymm/m256
+val main [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
+val main [/vex<m=vex-0f,l=vex-128,p=vex-nosimd> 0x56 /r] = ternop VORPS xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f,l=vex-256,p=vex-nosimd> 0x56 /r] = ternop VORPS ymm256 vex/xmm ymm/m256
 
 ### OUT Vol. 2B 4-171
-val out = binop OUT
-val main [0xe6] = out imm8 al
-val p66 [0xe7] = out imm8 ax
-val main [0xe7] = out imm8 eax
-val main [0xee] = out dx al
-val p66 [0xef] = out dx ax
-val main [0xef] = out dx eax
+val main [0xe6] = binop OUT imm8 al
+val p66 [0xe7] = binop OUT imm8 ax
+val main [0xe7] = binop OUT imm8 eax
+val main [0xee] = binop OUT dx al
+val p66 [0xef] = binop OUT dx ax
+val main [0xef] = binop OUT dx eax
 
 ### PHADDW/PHADDD Vol. 2B 4-253
-val phaddw = binop PHADDW
-val vphaddw = ternop VPHADDW
-val phaddd = binop PHADDD
-val vphaddd = ternop VPHADDD
-val p66 [0x0f 0x38 0x01 /r] = phaddw xmm128 xmm/m128
-val main [0x0f 0x38 0x01 /r] = phaddw mm64 mm/m64
-val p66 [0x0f 0x38 0x02 /r] = phaddd xmm128 xmm/m128
-val main [0x0f 0x38 0x02 /r] = phaddd mm64 mm/m64
-val main [/vex<m=vex-0f-38,l=vex-128,p=vex-66> 0x01 /r] = vphaddw xmm128 vex/xmm xmm/m128
-val main [/vex<m=vex-0f-38,l=vex-128,p=vex-66> 0x02 /r] = vphaddd xmm128 vex/xmm xmm/m128
+val p66 [0x0f 0x38 0x01 /r] = binop PHADDW xmm128 xmm/m128
+val main [0x0f 0x38 0x01 /r] = binop PHADDW mm64 mm/m64
+val p66 [0x0f 0x38 0x02 /r] = binop PHADDD xmm128 xmm/m128
+val main [0x0f 0x38 0x02 /r] = binop PHADDD mm64 mm/m64
+val main [/vex<m=vex-0f-38,l=vex-128,p=vex-66> 0x01 /r] = ternop VPHADDW xmm128 vex/xmm xmm/m128
+val main [/vex<m=vex-0f-38,l=vex-128,p=vex-66> 0x02 /r] = ternop VPHADDD xmm128 vex/xmm xmm/m128
 
 ### XADD Vol. 2B 4-667
-val xadd = binop XADD
-val main [0x0f 0xc0 /r] = xadd r/m8 r8
-val p66 [0x0f 0xc1 /r] = xadd r/m16 r16
+val main [0x0f 0xc0 /r] = binop XADD r/m8 r8
+val p66 [0x0f 0xc1 /r] = binop XADD r/m16 r16
 val main [0x0f 0xc1 /r]
- | rexw? = xadd r/m64 r64
- | otherwise = xadd r/m32 r32
+ | rexw? = binop XADD r/m64 r64
+ | otherwise = binop XADD r/m32 r32
