@@ -261,10 +261,10 @@ union __wrapped_obj {
 #define __UNWRAP(x) ((__objref)(((__header*)x)-1))
 #define __TAG(x) ((__UNWRAP((__obj)x))->object.header.tag)
 
-extern void __fatal(char*,...) __attribute__((noreturn));
-extern __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
-extern __objref hp;
-extern __obj __UNIT;
+void __fatal(char*,...) __attribute__((noreturn));
+__unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
+__objref hp;
+__obj __UNIT;
 
 /* ## Constructor tags */
 
@@ -282,8 +282,8 @@ extern __obj __UNIT;
 
 /* ## Primitive runtime functions */
 
-extern const __char* __tagName (__word i);
-extern const __char* __fieldName (__word i);
+const __char* __tagName (__word i);
+const __char* __fieldName (__word i);
 
 __obj __halt (__obj,__obj);
 __obj __print (__obj);
@@ -340,13 +340,14 @@ static inline __word __CASETAG (__obj o) {
   }
 }
 
-extern __obj __consume (__obj);
-extern __obj __slice (__obj,__obj,__obj,__obj);
-extern __obj __unconsume (__obj);
-extern __obj __concat (__obj,__obj);
-extern __obj __equal (__obj,__obj);
-extern __obj __and (__obj,__obj);
-extern __obj __raise (__obj);
-extern __obj __not (__obj);
+__obj __consume (__obj);
+__obj __slice (__obj,__obj,__obj,__obj);
+__obj __unconsume (__obj);
+__obj __concat (__obj,__obj);
+__obj __equal (__obj,__obj);
+__obj __and (__obj,__obj);
+__obj __raise (__obj);
+__obj __not (__obj);
+void __resetHeap();
 
 #endif /* __RUNTIME_H */

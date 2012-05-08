@@ -287,27 +287,38 @@ static void printState () {
     &heap[0], hp, __RT_HEAP_SIZE, n, used, sizeof(__unwrapped_obj));
 }
 
-int main (int argc, char** argv) {
-  __char blob001[15] = {0x48, 0x83, 0xc4, 0x08};
-  __char blob002[15] = {0x0f, 0xae, 0x01, 0xc8};
-  __word sz = 15;
-  __obj o;
-  __obj insn;
-  printf("DECODE starting\n");
-  printState();
-  o = eval(__decode__,blob001,sz);
-  insn = __RECORD_SELECT(o,___1);
-  __println(insn);
-  printState();
-  printf("DECODE finished\n");
+void __resetHeap() {
+   printf("RESET@:");
+   printState();
+   hp = &heap[__RT_HEAP_SIZE];
+}
 
-  printf("DECODE starting\n");
+void decode (char* info, __char* blob, __word sz) {
+  printf("##DECODE starting: %s\n", info);
   printState();
-  o = eval(__decode__,blob002,sz);
-  insn = __RECORD_SELECT(o,___1);
+  __obj o = eval(__decode__,blob,sz);
+  __obj insn = __RECORD_SELECT(o,___1);
   __println(insn);
   printState();
-  printf("DECODE finished\n");
+  printf("##DECODE finished\n");
+}
+
+int main (int argc, char** argv) {
+  __char blob001[15] = {0x67,0xF3,0x45,0x0F,0x7E,0xD1};
+  __char blob002[15] = {0xF3,0x67,0x45,0x0F,0x7E,0xD1};
+  __char blob003[15] = {0x67,0x45,0xF3,0x0F,0x7E,0xD1};
+  __char blob004[15] = {0xF3,0x45,0x67,0x0F,0x7E,0xD1};
+  //__char blob005[15] = {67C4E1F97EC8};
+  //__char blob006[15] = {C4E1F9677EC8};
+  __char blob007[15] = {0x67,0x45,0xF3,0x0F,0x7E,0x11};
+  //__char blob008[15] = {C4E1F97EC8};
+  __word sz = 15;
+
+  decode("addr32 movq xmm10, xmm9", blob001, sz);
+  decode("addr32 movq xmm10, xmm9", blob002, sz);
+  decode("addr32 movq xmm2, xmm1", blob003, sz);
+  decode("addr32 movq xmm2, xmm1", blob004, sz);
+  decode("movq xmm2, qword ptr [rcx]", blob007, sz);
 
   return (1); 
 }
