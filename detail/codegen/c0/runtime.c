@@ -258,25 +258,9 @@ __obj __println (__obj o) {
   return (__UNIT);
 }
 
-static void __testConcat () {
-  __obj x = __concat(__TRUE, __FALSE);
-  __println(x);
-}
-
-static __obj __test000__ (__obj env, __obj k, __obj s) {
-  __LOCAL(kk, __CLOSURE_REF(k,0));
-  __println(s);
-  return __INVOKE2(kk,k,s);
-}
-
-static __obj __test001__ (__obj env, __obj k, __obj s) {
-  __LOCAL(kk, __CLOSURE_REF(k,0));
-  printf("STATE0:");
-  __println(s);
-  s = __consume(s);
-  printf("STATE1:");
-  __println(s);
-  return __INVOKE2(kk,k,s);
+__obj __traceln (const char* s, __obj o) {
+  printf("TRACE:%s:",s);
+  return __println(o);
 }
 
 static void printState () {
@@ -299,8 +283,8 @@ void decode (char* info, __char* blob, __word sz) {
   __obj o = eval(__decode__,blob,sz);
   __obj insn = __RECORD_SELECT(o,___1);
   __println(insn);
-  printState();
-  printf("##DECODE finished\n");
+  __resetHeap();
+  printf("##DECODE finished\n\n");
 }
 
 int main (int argc, char** argv) {
@@ -318,7 +302,7 @@ int main (int argc, char** argv) {
   decode("addr32 movq xmm10, xmm9", blob002, sz);
   decode("addr32 movq xmm2, xmm1", blob003, sz);
   decode("addr32 movq xmm2, xmm1", blob004, sz);
-  decode("movq xmm2, qword ptr [rcx]", blob007, sz);
+  decode("movq xmm2, qword ptr [ecx]", blob007, sz);
 
   return (1); 
 }
