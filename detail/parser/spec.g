@@ -38,6 +38,8 @@
    | CONCAT ("^")
    | PLUS ("+")
    | MINUS ("-")
+   | LESSTHAN ("<")
+   | GREATERTHAN (">")
    | TIMES ("*")
    | SLASH ("/")
    | TILDE ("~")
@@ -153,7 +155,21 @@ BitPat
 
 TokPat
    : Int => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
-   | Qid => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat (Qid,[])))
+   | Qid Specializes? =>
+      (mark PT.MARKtokpat
+         (FULL_SPAN,
+          case Specializes of
+            NONE => PT.NAMEDtokpat (Qid,[])
+          | SOME sps => PT.NAMEDtokpat (Qid,sps)))
+   ;
+
+Specializes
+   : "<" Specialize ("," Specialize)* ">" => (Specialize::SR)
+   ;
+
+Specialize
+   : Qid "=" BITSTR => (mark PT.MARKspecial
+                           (FULL_SPAN, PT.BINDspecial (Qid, BITSTR)))
    ;
 
 PrimBitPat
@@ -303,6 +319,8 @@ ConUse
 
 Sym
    : SYMBOL => (SYMBOL)
+   | "<" => (Atom.atom "<")
+   | ">" => (Atom.atom ">")
    ;
 
 Qid

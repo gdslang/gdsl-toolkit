@@ -40,6 +40,8 @@ functor MkAst (Core: AST_CORE) = struct
    type field_use = Core.field_use
    type op_id = Core.op_id
 
+   type bitpat_lit = string
+
    datatype decl =
       MARKdecl of decl mark
     | INCLUDEdecl of string
@@ -86,11 +88,11 @@ functor MkAst (Core: AST_CORE) = struct
       MARKdecodepat of decodepat mark
     | TOKENdecodepat of tokpat
     | BITdecodepat of bitpat list
-    | DEFAULTdecodepat of var_bind * string
+    | DEFAULTdecodepat of var_bind * bitpat_lit
 
    and bitpat =
       MARKbitpat of bitpat mark
-    | BITSTRbitpat of string
+    | BITSTRbitpat of bitpat_lit
     | NAMEDbitpat of var_use
     | BITVECbitpat of var_bind * IntInf.int
 
@@ -101,7 +103,7 @@ functor MkAst (Core: AST_CORE) = struct
 
    and special =
       MARKspecial of special mark
-    | BINDspecial of var_use * string
+    | BINDspecial of var_use * bitpat_lit
     
    and pat =
       MARKpat of pat mark
@@ -114,7 +116,7 @@ functor MkAst (Core: AST_CORE) = struct
       INTlit of IntInf.int
     | FLTlit of FloatLit.float
     | STRlit of string
-    | VEClit of string
+    | VEClit of bitpat_lit
 
    type specification = decl list mark
 

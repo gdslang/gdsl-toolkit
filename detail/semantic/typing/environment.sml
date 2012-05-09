@@ -399,7 +399,7 @@ end = struct
             val bsStr = BD.setToString boolVars
          in
             (", ver=" ^ Int.toString(ver) ^
-             ", bvars = " ^ bsStr (*^ ", vars=" ^ vsStr*), si)
+             (*", bvars = " ^ bsStr ^ *) ", vars=" ^ vsStr, si)
          end
 
       fun toString ({bindInfo = KAPPA {ty}, typeVars, boolVars, version}, si) =

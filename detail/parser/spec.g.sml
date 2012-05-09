@@ -19,6 +19,8 @@ SpecTokens = struct
       | TILDE
       | SLASH
       | TIMES
+      | GREATERTHAN
+      | LESSTHAN
       | MINUS
       | PLUS
       | CONCAT
@@ -56,7 +58,7 @@ SpecTokens = struct
       | KW_in
       | KW_case
 
-    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_orelse, KW_andalso, KW_type, KW_then, KW_state, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_export, KW_include, KW_datatype, KW_do, KW_in, KW_case]
+    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, GREATERTHAN, LESSTHAN, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_orelse, KW_andalso, KW_type, KW_then, KW_state, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_export, KW_include, KW_datatype, KW_do, KW_in, KW_case]
 
     fun toString tok =
 (case (tok)
@@ -78,6 +80,8 @@ SpecTokens = struct
   | (TILDE) => "~"
   | (SLASH) => "/"
   | (TIMES) => "*"
+  | (GREATERTHAN) => ">"
+  | (LESSTHAN) => "<"
   | (MINUS) => "-"
   | (PLUS) => "+"
   | (CONCAT) => "^"
@@ -135,6 +139,8 @@ SpecTokens = struct
   | (TILDE) => false
   | (SLASH) => false
   | (TIMES) => false
+  | (GREATERTHAN) => false
+  | (LESSTHAN) => false
   | (MINUS) => false
   | (PLUS) => false
   | (CONCAT) => false
@@ -280,8 +286,18 @@ fun BitPat_PROD_1_ACT (PrimBitPat, TICK1, TICK2, PrimBitPat_SPAN : (Lex.pos * Le
       mark PT.MARKdecodepat (FULL_SPAN, PT.BITdecodepat PrimBitPat))
 fun TokPat_PROD_1_ACT (Int, Int_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
-fun TokPat_PROD_2_ACT (Qid, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat (Qid,[])))
+fun TokPat_PROD_2_ACT (Qid, Specializes, Qid_SPAN : (Lex.pos * Lex.pos), Specializes_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  (
+      mark PT.MARKtokpat
+         (FULL_SPAN,
+          case Specializes of
+            NONE => PT.NAMEDtokpat (Qid,[])
+          | SOME sps => PT.NAMEDtokpat (Qid,sps)))
+fun Specializes_PROD_1_ACT (SR, GREATERTHAN, LESSTHAN, Specialize, SR_SPAN : (Lex.pos * Lex.pos), GREATERTHAN_SPAN : (Lex.pos * Lex.pos), LESSTHAN_SPAN : (Lex.pos * Lex.pos), Specialize_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( Specialize::SR)
+fun Specialize_PROD_1_ACT (EQ, Qid, BITSTR, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( mark PT.MARKspecial
+                           (FULL_SPAN, PT.BINDspecial (Qid, BITSTR)))
 fun PrimBitPat_PROD_1_ACT (BITSTR, BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
 fun PrimBitPat_PROD_2_ACT (SR, Qid, SR_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -411,6 +427,10 @@ fun ConUse_PROD_1_ACT (CONS, CONS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.p
   ( {span=FULL_SPAN, tree=CONS})
 fun Sym_PROD_1_ACT (SYMBOL, SYMBOL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( SYMBOL)
+fun Sym_PROD_2_ACT (LESSTHAN, LESSTHAN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( Atom.atom "<")
+fun Sym_PROD_3_ACT (GREATERTHAN, GREATERTHAN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( Atom.atom ">")
 fun Qid_PROD_1_ACT (ID, ID_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( {span=FULL_SPAN, tree=ID})
 
@@ -506,6 +526,14 @@ fun matchSLASH strm = (case (lex(strm))
 (* end case *))
 fun matchTIMES strm = (case (lex(strm))
  of (Tok.TIMES, span, strm') => ((), span, strm')
+  | _ => fail()
+(* end case *))
+fun matchGREATERTHAN strm = (case (lex(strm))
+ of (Tok.GREATERTHAN, span, strm') => ((), span, strm')
+  | _ => fail()
+(* end case *))
+fun matchLESSTHAN strm = (case (lex(strm))
+ of (Tok.LESSTHAN, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchMINUS strm = (case (lex(strm))
@@ -790,11 +818,34 @@ fun Qid_NT (strm) = let
           FULL_SPAN, strm')
       end
 fun Sym_NT (strm) = let
-      val (SYMBOL_RES, SYMBOL_SPAN, strm') = matchSYMBOL(strm)
-      val FULL_SPAN = (#1(SYMBOL_SPAN), #2(SYMBOL_SPAN))
+      fun Sym_PROD_1 (strm) = let
+            val (SYMBOL_RES, SYMBOL_SPAN, strm') = matchSYMBOL(strm)
+            val FULL_SPAN = (#1(SYMBOL_SPAN), #2(SYMBOL_SPAN))
+            in
+              (UserCode.Sym_PROD_1_ACT (SYMBOL_RES, SYMBOL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun Sym_PROD_2 (strm) = let
+            val (LESSTHAN_RES, LESSTHAN_SPAN, strm') = matchLESSTHAN(strm)
+            val FULL_SPAN = (#1(LESSTHAN_SPAN), #2(LESSTHAN_SPAN))
+            in
+              (UserCode.Sym_PROD_2_ACT (LESSTHAN_RES, LESSTHAN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun Sym_PROD_3 (strm) = let
+            val (GREATERTHAN_RES, GREATERTHAN_SPAN, strm') = matchGREATERTHAN(strm)
+            val FULL_SPAN = (#1(GREATERTHAN_SPAN), #2(GREATERTHAN_SPAN))
+            in
+              (UserCode.Sym_PROD_3_ACT (GREATERTHAN_RES, GREATERTHAN_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
       in
-        (UserCode.Sym_PROD_1_ACT (SYMBOL_RES, SYMBOL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
+        (case (lex(strm))
+         of (Tok.GREATERTHAN, _, strm') => Sym_PROD_3(strm)
+          | (Tok.SYMBOL(_), _, strm') => Sym_PROD_1(strm)
+          | (Tok.LESSTHAN, _, strm') => Sym_PROD_2(strm)
+          | _ => fail()
+        (* end case *))
       end
 fun AndAlso_NT (strm) = let
       val (KW_andalso_RES, KW_andalso_SPAN, strm') = matchKW_andalso(strm)
@@ -966,6 +1017,8 @@ and MonadicExp_NT (strm) = let
                 | (Tok.CONCAT, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.PLUS, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.MINUS, _, strm') => MonadicExp_PROD_1(strm)
+                | (Tok.LESSTHAN, _, strm') => MonadicExp_PROD_1(strm)
+                | (Tok.GREATERTHAN, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.TIMES, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.SEMI, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.ID(_), _, strm') => MonadicExp_PROD_1(strm)
@@ -1052,7 +1105,9 @@ and RExp_NT (strm) = let
               ((SR_RES, AExp_RES), FULL_SPAN, strm')
             end
       fun RExp_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.SYMBOL(_), _, strm') => true
+             of (Tok.LESSTHAN, _, strm') => true
+              | (Tok.GREATERTHAN, _, strm') => true
+              | (Tok.SYMBOL(_), _, strm') => true
               | _ => false
             (* end case *))
       val (SR_RES, SR_SPAN, strm') = EBNF.closure(RExp_PROD_1_SUBRULE_1_PRED, RExp_PROD_1_SUBRULE_1_NT, strm')
@@ -1423,6 +1478,36 @@ and SelectExp_NT (strm) = let
         (UserCode.SelectExp_PROD_1_ACT (SR_RES, ApplyExp_RES, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
+fun Specialize_NT (strm) = let
+      val (Qid_RES, Qid_SPAN, strm') = Qid_NT(strm)
+      val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
+      val (BITSTR_RES, BITSTR_SPAN, strm') = matchBITSTR(strm')
+      val FULL_SPAN = (#1(Qid_SPAN), #2(BITSTR_SPAN))
+      in
+        (UserCode.Specialize_PROD_1_ACT (EQ_RES, Qid_RES, BITSTR_RES, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun Specializes_NT (strm) = let
+      val (LESSTHAN_RES, LESSTHAN_SPAN, strm') = matchLESSTHAN(strm)
+      val (Specialize_RES, Specialize_SPAN, strm') = Specialize_NT(strm')
+      fun Specializes_PROD_1_SUBRULE_1_NT (strm) = let
+            val (COMMA_RES, COMMA_SPAN, strm') = matchCOMMA(strm)
+            val (Specialize_RES, Specialize_SPAN, strm') = Specialize_NT(strm')
+            val FULL_SPAN = (#1(COMMA_SPAN), #2(Specialize_SPAN))
+            in
+              ((Specialize_RES), FULL_SPAN, strm')
+            end
+      fun Specializes_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+             of (Tok.COMMA, _, strm') => true
+              | _ => false
+            (* end case *))
+      val (SR_RES, SR_SPAN, strm') = EBNF.closure(Specializes_PROD_1_SUBRULE_1_PRED, Specializes_PROD_1_SUBRULE_1_NT, strm')
+      val (GREATERTHAN_RES, GREATERTHAN_SPAN, strm') = matchGREATERTHAN(strm')
+      val FULL_SPAN = (#1(LESSTHAN_SPAN), #2(GREATERTHAN_SPAN))
+      in
+        (UserCode.Specializes_PROD_1_ACT (SR_RES, GREATERTHAN_RES, LESSTHAN_RES, Specialize_RES, SR_SPAN : (Lex.pos * Lex.pos), GREATERTHAN_SPAN : (Lex.pos * Lex.pos), LESSTHAN_SPAN : (Lex.pos * Lex.pos), Specialize_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
 fun TokPat_NT (strm) = let
       fun TokPat_PROD_1 (strm) = let
             val (Int_RES, Int_SPAN, strm') = Int_NT(strm)
@@ -1433,9 +1518,20 @@ fun TokPat_NT (strm) = let
             end
       fun TokPat_PROD_2 (strm) = let
             val (Qid_RES, Qid_SPAN, strm') = Qid_NT(strm)
-            val FULL_SPAN = (#1(Qid_SPAN), #2(Qid_SPAN))
+            fun TokPat_PROD_2_SUBRULE_1_NT (strm) = let
+                  val (Specializes_RES, Specializes_SPAN, strm') = Specializes_NT(strm)
+                  val FULL_SPAN = (#1(Specializes_SPAN), #2(Specializes_SPAN))
+                  in
+                    ((Specializes_RES), FULL_SPAN, strm')
+                  end
+            fun TokPat_PROD_2_SUBRULE_1_PRED (strm) = (case (lex(strm))
+                   of (Tok.LESSTHAN, _, strm') => true
+                    | _ => false
+                  (* end case *))
+            val (Specializes_RES, Specializes_SPAN, strm') = EBNF.optional(TokPat_PROD_2_SUBRULE_1_PRED, TokPat_PROD_2_SUBRULE_1_NT, strm')
+            val FULL_SPAN = (#1(Qid_SPAN), #2(Specializes_SPAN))
             in
-              (UserCode.TokPat_PROD_2_ACT (Qid_RES, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.TokPat_PROD_2_ACT (Qid_RES, Specializes_RES, Qid_SPAN : (Lex.pos * Lex.pos), Specializes_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in
@@ -1832,6 +1928,8 @@ fun Decl_NT (strm) = let
                       | (Tok.ID(_), _, strm') => Decl_PROD_7(strm)
                       | _ => fail()
                     (* end case *))
+                | (Tok.LESSTHAN, _, strm') => Decl_PROD_8(strm)
+                | (Tok.GREATERTHAN, _, strm') => Decl_PROD_8(strm)
                 | (Tok.SYMBOL(_), _, strm') => Decl_PROD_8(strm)
                 | _ => fail()
               (* end case *))

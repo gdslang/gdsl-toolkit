@@ -7,6 +7,8 @@ structure TypeInference : sig
 
    type symbol_types = (SymbolTable.symid * Environment.symbol_type) list
        
+   val getBitpatLitLength : SpecAbstractTree.bitpat_lit -> int
+
    val typeInferencePass: (Error.err_stream * ResolveTypeInfo.type_info * 
                            SpecAbstractTree.specification) -> symbol_types
    val run: ResolveTypeInfo.type_info * SpecAbstractTree.specification ->
@@ -61,6 +63,19 @@ end = struct
            "\n\t" ^ str2 ^ ": " ^ eStr2)
       end
 
+   fun getBitpatLitLength bp =
+      let
+         val fields = String.fields (fn c => c= #"|") bp
+         fun checkWidth (f,width) =
+            if String.size f <> width then
+                  raise S.UnificationFailure "bit literals have different lengths"
+            else width
+      in
+         case fields of
+            [] => 0
+          | (f::fs) => List.foldl checkWidth (String.size f) fs
+      end
+         
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val sm = ref ([] : symbol_types)
    val { tsynDefs, typeDefs, conParents} = ti
@@ -438,7 +453,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf', env)
          val env = E.reduceToFunction env
-         (*val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")*)
+         val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")
       in
          env
       end
@@ -583,10 +598,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          List.foldl (fn (b,(n,env)) => case infBitpat (st,env) b of
                         (nArgs, env) => (n+nArgs, env)) (0, env) l
       end
+     | infDecodepat sym (st,env) (AST.DEFAULTdecodepat (v,str)) =
+      let
+         val env = E.pushLambdaVar (v,env)
+         val envVar = E.pushSymbol (v, getSpan st, env)
+         val envWidth = E.pushType (false, VEC (CONST (getBitpatLitLength str)), env)
+         val env = E.meet (envVar, envWidth)
+         val env = E.popKappa env
+      in
+         (1, env)
+      end
    and infBitpatSize stenv (AST.MARKbitpat m) =
          reportError infBitpatSize stenv m
      | infBitpatSize (st,env) (AST.BITSTRbitpat str) =
-         E.pushType (false, CONST (String.size str), env)
+         E.pushType (false, CONST (getBitpatLitLength str), env)
      | infBitpatSize (st,env) (AST.NAMEDbitpat v) = E.pushWidth (v,env)
      | infBitpatSize (st,env) (AST.BITVECbitpat (v,s)) =
          E.pushType (false, CONST (IntInf.toInt s), env)
@@ -595,15 +620,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infBitpat (st,env) (AST.NAMEDbitpat v) =
          (1, E.pushSymbol (v, getSpan st, env))
      | infBitpat (st,env) (AST.BITVECbitpat (v,s)) =
-         let
-            val env = E.pushLambdaVar (v,env)
-            val envVar = E.pushSymbol (v, getSpan st, env)
-            val envWidth = E.pushType (false, VEC (CONST (IntInf.toInt s)), env)
-            val env = E.meet (envVar, envWidth)
-            val env = E.popKappa env
-         in
-            (1, env)
-         end
+      let
+         val env = E.pushLambdaVar (v,env)
+         val envVar = E.pushSymbol (v, getSpan st, env)
+         val envWidth = E.pushType (false, VEC (CONST (IntInf.toInt s)), env)
+         val env = E.meet (envVar, envWidth)
+         val env = E.popKappa env
+      in
+         (1, env)
+      end
    and infTokpat stenv (AST.MARKtokpat m) = reportError infTokpat stenv m
      | infTokpat (st,env) (AST.TOKtokpat i) = (0, env)
      | infTokpat (st,env) (AST.NAMEDtokpat (v,_)) = (1, E.pushLambdaVar (v,env))
@@ -675,7 +700,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)
