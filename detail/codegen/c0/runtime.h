@@ -260,6 +260,7 @@ union __wrapped_obj {
 #define __WRAP(x) ((__obj)(((__header*)x)+1))
 #define __UNWRAP(x) ((__objref)(((__header*)x)-1))
 #define __TAG(x) ((__UNWRAP((__obj)x))->object.header.tag)
+#define __FATAL(type) __fatal("%s:%d:%s",__FILE__,__LINE__,#type)
 
 void __fatal(char*,...) __attribute__((noreturn));
 __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
@@ -288,7 +289,7 @@ const __char* __fieldName (__word i);
 __obj __halt (__obj,__obj);
 __obj __print (__obj);
 __obj __println (__obj);
-__obj __traceln (__obj);
+__obj __traceln (const char*,__obj);
 
 static inline __objref __recordLookup (struct __record* record, __word field) {
   __word i, sz = record->sz;
@@ -296,7 +297,7 @@ static inline __objref __recordLookup (struct __record* record, __word field) {
   for (i = 0; i < sz; i++) {
     __objref o = &fields[i];
     if (o->tagged.tag == field)
-       return o;
+       return (o);
   }
   if (field < __NFIELDS)
     __fatal("record-field '%s' not found",__fieldName(field));
@@ -311,7 +312,7 @@ static inline __word __recordUpdate (__objref fields, __word n, __word field, __
     if (o->tagged.tag == field) {
        /* Overwriting already exisiting field */
        o->tagged.payload = value;
-       return 0;
+       return (0);
     }
   }
   /* Allocating new record field */
@@ -319,7 +320,7 @@ static inline __word __recordUpdate (__objref fields, __word n, __word field, __
   o->tagged.header.tag = __TAGGED;
   o->tagged.tag = field;
   o->tagged.payload = value;
-  return 1;
+  return (1);
 }
 
 static inline void __recordCloneFields (struct __record* record) {
@@ -331,11 +332,11 @@ static inline void __recordCloneFields (struct __record* record) {
 static inline __word __CASETAG (__obj o) {
   switch (__TAG(o)) {
     case __INT:
-      return (__word)o->z.value;
+      return ((__word)o->z.value);
     case __TAGGED:
-      return o->tagged.tag;
+      return (o->tagged.tag);
     case __BV:
-      return o->bv.vec;
+      return (o->bv.vec);
     default:
       __fatal("__CASETAG() applied to non-tagged object");
   }

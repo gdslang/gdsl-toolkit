@@ -426,6 +426,7 @@ void decode (char* info, __char* blob, __word sz) {
   __obj o = eval(__decode__,blob,sz);
   __obj insn = __RECORD_SELECT(o,___1);
   __println(insn);
+  prettyln(insn);
   __resetHeap();
   printf("##DECODE finished\n\n");
 }
