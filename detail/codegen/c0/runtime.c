@@ -263,7 +263,14 @@ __obj __traceln (const char* s, __obj o) {
   return (__println(o));
 }
 
-int __isNil (__obj o) {
+__obj __isNil (__obj o) {
+  switch (__TAG(o)) {
+    case __NIL: return (__TRUE);
+    default: return (__FALSE);
+  }
+}
+
+int ___isNil (__obj o) {
   switch (__TAG(o)) {
     case __NIL: return (1);
     default: return (0);
@@ -311,10 +318,21 @@ __obj prettySum (__obj sum) {
   return (prettyOpnds(b));
 }
 
+__obj prettyFac (__obj imm) {
+  switch (__CASETAG(imm)) {
+    case 0: break;
+    case 1: printf("2*");break;
+    case 2: printf("4*");break;
+    case 3: printf("8*");break;
+    default: __fatal("invalid scaling factor");
+  }
+  return (__UNIT);
+}
+
 __obj prettyScale (__obj scale) {
   __obj imm = __RECORD_SELECT(scale,___imm);
   __obj op = __RECORD_SELECT(scale,___opnd);
-  prettyOpnds(imm);
+  prettyFac(imm);
   return (prettyOpnds(op));
 }
 
@@ -332,6 +350,18 @@ __obj prettyOpnds (__obj opnds) {
           return (prettySum(payload));
         case __SCALE:
           return (prettyScale(payload));
+        case __NEARABS:
+          printf("NEAR ");
+          return (prettyOpnds(payload));
+        case __FARABS:
+          printf("FAR ");
+          return (prettyOpnds(payload));
+        case __REL8:
+        case __REL16:
+        case __REL32:
+        case __REL64:
+          printf("RELATIVE ");
+          return (prettyOpnds(payload));
         case __IMM8:
         case __IMM16:
         case __IMM32:
@@ -339,7 +369,7 @@ __obj prettyOpnds (__obj opnds) {
           return (prettyOpnds(payload));
         default:
           printf("%s", __tagName(tag));
-          if (!__isNil(payload)) {
+          if (!___isNil(payload)) {
             printf(",");
             return (prettyOpnds(payload));
           }
@@ -389,7 +419,7 @@ __obj pretty (__obj insn) {
     case __TAGGED: {
       __word tag = insn->tagged.tag;
       printf("%s", __tagName(tag));
-      if (!__isNil(insn->tagged.payload)) {
+      if (!___isNil(insn->tagged.payload)) {
         printf(" ");
         return (prettyOpnds(insn->tagged.payload));
       }
@@ -406,29 +436,22 @@ __obj prettyln (__obj insn) {
   return (__UNIT);
 }
 
-static void printState () {
+__obj __printState () {
   ptrdiff_t d = &heap[__RT_HEAP_SIZE] - hp;
   int n = d / sizeof(__unwrapped_obj);
   int used = n*100/__RT_HEAP_SIZE;
   printf("heap: %p, hp: %p, size: %u, used: %d (%d%%), obj-size: %zu\n",
     &heap[0], hp, __RT_HEAP_SIZE, n, used, sizeof(__unwrapped_obj));
+  return (__UNIT);
 }
 
-void __resetHeap() {
-  printf("RESET@:");
-  printState();
-  hp = &heap[__RT_HEAP_SIZE];
-}
-
-void decode (char* info, __char* blob, __word sz) {
-  printf("##DECODE starting: %s\n", info);
-  printState();
+__obj decode (__char* blob, __word sz) {
   __obj o = eval(__decode__,blob,sz);
+  if (___isNil(o)) {printf("\n");return (__UNIT);}
   __obj insn = __RECORD_SELECT(o,___1);
-  __println(insn);
   prettyln(insn);
   __resetHeap();
-  printf("##DECODE finished\n\n");
+  return (__UNIT);
 }
 
 #ifdef WITHMAIN
@@ -444,11 +467,11 @@ int main (int argc, char** argv) {
   //__char blob008[15] = {C4E1F97EC8};
   __word sz = 15;
 
-  decode("addr32 movq xmm10, xmm9", blob001, sz);
-  decode("addr32 movq xmm10, xmm9", blob002, sz);
-  decode("addr32 movq xmm2, xmm1", blob003, sz);
-  decode("addr32 movq xmm2, xmm1", blob004, sz);
-  decode("movq xmm2, qword ptr [ecx]", blob007, sz);
+  decode(blob001, sz);
+  decode(blob002, sz);
+  decode(blob003, sz);
+  decode(blob004, sz);
+  decode(blob007, sz);
 
   return (1); 
 }
@@ -456,3 +479,8 @@ int main (int argc, char** argv) {
 #endif
 
 @functions@
+
+/* vim:cindent
+ * vim:ts=2
+ * vim:sw=2
+ * vim:expandtab */

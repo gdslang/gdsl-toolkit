@@ -17,7 +17,7 @@ export = main decode
 
 val decode = do
    update
-      @{mode64='0',
+      @{mode64='1',
         repne='0',
         rep='0',
         rex='0',
@@ -153,6 +153,14 @@ datatype opnd =
  | SUM of {a:opnd, b:opnd}
  | SCALE of {imm:2, opnd:opnd}
 
+datatype flowopnd =
+   REL8 of 8
+ | REL16 of 16
+ | REL32 of 32
+ | REL64 of 64
+ | NEARABS of opnd
+ | FARABS of opnd
+
 val al = return (REG AL)
 val ah = return (REG AH)
 val ax = return (REG AX)
@@ -185,6 +193,11 @@ val rsi = return (REG RSI)
 val di = return (REG DI)
 val edi = return (REG EDI)
 val rdi = return (REG RDI)
+val cs = return (REG CS)
+val ds = return (REG DS)
+val es = return (REG ES)
+val fs = return (REG FS)
+val gs = return (REG GS)
 val mm0 = return (REG MM0)
 val mm1 = return (REG MM1)
 val mm2 = return (REG MM2)
@@ -235,8 +248,10 @@ val ymm14 = return (REG YMM14)
 val ymm15 = return (REG YMM15)
 
 # A type alias used for instructions taking two arguments
+type unop = {opnd1:opnd}
 type binop = {opnd1:opnd, opnd2:opnd}
 type trinop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
+type target = {opnd1:flowopnd}
 
 datatype insn =
    ADD of binop
@@ -310,6 +325,11 @@ datatype insn =
  | VMOVNTPS of binop
  | MOVNTQ of binop
 
+ | PUSH of unop
+ | POP of unop
+ | JMP of unop
+ | CALL of target
+
  | SUB of binop
  | XOR of binop
 
@@ -320,10 +340,16 @@ datatype insn =
  | XADD of binop
 
 val imm8 ['b:8'] = return (IMM8 b)
-val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b1 ^ b2))
-val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (IMM32 (b1 ^ b2 ^ b3 ^ b4))
+val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b2 ^ b1))
+val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (IMM32 (b4 ^ b3 ^ b2 ^ b1))
 val imm64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
-   return (IMM64 (b1 ^ b2 ^ b3 ^ b4 ^ b5 ^ b6 ^ b7 ^ b8))
+   return (IMM64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
+
+val rel8 ['b:8'] = return (REL8 b)
+val rel16 ['b1:8' 'b2:8'] = return (REL16 (b2 ^ b1))
+val rel32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (REL32 (b4 ^ b3 ^ b2 ^ b1))
+val rel64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
+   return (REL64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
 
 ## Convert a bit-vectors to registers
 
@@ -556,7 +582,7 @@ val sib-with-index-and-base reg s i b = do
       '100':
          case b of
             '101': sib-without-index reg
-          | _: return (SUM{a=SCALE{imm=s, opnd=reg rexx i}, b=reg rexb b})
+          | _: return (reg rexb b)
          end
     | _:
          case b of
@@ -576,6 +602,7 @@ end
 
 val sib ['scale:2 index:3 base:3']
  | addrsz? = sib-with-index-and-base reg16-rex scale index base
+ | mode64? = sib-with-index-and-base reg64-rex scale index base
  | otherwise = sib-with-index-and-base reg32-rex scale index base
 
 ## Decoding the mod/rm byte
@@ -609,11 +636,13 @@ val r/m-with-sib reg = do
             i <- imm32;
             mem (SUM{a=sibOpnd, b=i})
          end
-    | '11':
-         do
-            rm <- query $rm;
-            return (reg rm)
-         end
+#    | '11':
+#         do
+#            #TODO: this seems wrong, the sib-byte was decoded,
+#            #but is not used...
+#            rm <- query $rm;
+#            return (reg rm)
+#         end
    end
 end
 
@@ -640,7 +669,7 @@ val r/m-without-sib reg addr-reg = do
             i <- imm32;
             mem (SUM{a=addr-reg rm, b=i})
          end
-    | '11': return (reg rm)
+#| '11': return (reg rm)
    end
 end
 
@@ -658,11 +687,16 @@ val r/m ptrTy reg = do
    rm <- query $rm;
    rexb <- query $rexb;
    addr-reg <- addrReg;
-   case rm of
-      '100': r/m-with-sib (reg rexb)
-    | _ : r/m-without-sib (reg rexb) (addr-reg rexb)
+   case mod of
+      '11': return (reg rexb rm)
+    | _:
+         case rm of
+            '100': r/m-with-sib (reg rexb)
+          | _ : r/m-without-sib (reg rexb) (addr-reg rexb)
+         end
    end
 end
+
 
 val r/m8 = r/m 8 reg8-rex
 val r/m16 = r/m 16 reg16-rex
@@ -698,19 +732,29 @@ val m64 = m r/m64
 val m128 = m xmm/m128
 val m256 = m ymm/m256
 
-val r/ reg = do
-   rexr <- query $rexr;
+val r/rexb reg = do
+   mod <- query $rexb;
    r <- query $reg/opcode;
-   return (reg rexr r)
+   return (reg mod r)
 end
 
-val r8 = r/ reg8-rex
-val r16 = r/ reg16-rex
-val r32 = r/ reg32-rex
-val r64 = r/ reg64-rex
-val mm64 = r/ mm-rex
-val xmm128 = r/ xmm-rex
-val ymm256 = r/ ymm-rex
+val r/rexr reg = do
+   mod <- query $rexr;
+   r <- query $reg/opcode;
+   return (reg mod r)
+end
+
+val r8 = r/rexr reg8-rex
+val r16 = r/rexr reg16-rex
+val r32 = r/rexr reg32-rex
+val r64 = r/rexr reg64-rex
+val r8/rexb = r/rexb reg8-rex
+val r16/rexb = r/rexb reg16-rex
+val r32/rexb = r/rexb reg32-rex
+val r64/rexb = r/rexb reg64-rex
+val mm64 = r/rexb mm-rex
+val xmm128 = r/rexr xmm-rex
+val ymm256 = r/rexr ymm-rex
 
 val vex/'mm mmF = do
    vexv <- query $vexv;
@@ -739,6 +783,11 @@ end
 val moffs64 = do
    i <- imm64;
    mem i
+end
+
+val unop cons giveOp1 = do
+  op1 <- giveOp1;
+  return (cons {opnd1=op1})
 end
 
 val binop cons giveOp1 giveOp2 = do
@@ -930,6 +979,26 @@ val pf2-f3 [] = main
 
 ########### Mergen ;-)
 
+val near-abs cons giveOp = do
+   op <- giveOp;
+   return (cons (NEARABS {opnd1=op}))
+end
+
+val near-rel cons giveOp = do
+   op <- giveOp;
+   return (cons {opnd1=op})
+end
+
+val far-abs cons giveOp = do
+   op <- giveOp;
+   return (cons (FARABS {opnd1=op}))
+end
+
+### CALL 3-112 Vol. 2A
+val p66 [0xe8] = near-rel CALL rel16
+val main [0xe8] = near-rel CALL rel32
+val main [0xff /2] = near-abs CALL r/m64
+
 ### SUB 4-572 Vol. 2B
 val main [0x2c] = binop SUB al imm8
 val p66 [0x2d] = binop SUB ax imm16
@@ -958,8 +1027,8 @@ val main [0x2b /r]
 
 ### XOR 4-678 Vol. 2B
 val main [0x34] = binop XOR al imm8
-val p66 [0x34] = binop XOR ax imm16
-val main [0x34]
+val p66 [0x35] = binop XOR ax imm16
+val main [0x35]
  | rexw? = binop XOR rax imm32
  | otherwise = binop XOR eax imm32
 val main [0x80 /6] = binop XOR r/m8 imm8
@@ -982,8 +1051,20 @@ val main [0x33 /r]
  | rexw? = binop XOR r64 r/m64
  | otherwise = binop XOR r32 r/m32
 
-
-###########
+### PUSH 4-275 Vol. 2B
+#TODO: correctly implement 32bit and 64bit modes
+val main [0xff /6] = unop PUSH r/m64
+val p66 [0xff /6] = unop PUSH r/m16
+val main ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r64/rexb end
+val p66 ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r64/rexb end
+val main [0x6a] = unop PUSH imm8
+val p66 [0x68] = unop PUSH imm16
+val main [0x68] = unop PUSH imm32
+val main [0x0e] = unop PUSH cs
+val main [0x16] = unop PUSH ds
+val main [0x06] = unop PUSH es
+val main [0x0f 0xa0] = unop PUSH fs
+val main [0x0f 0xa8] = unop PUSH gs
 
 ### ADD Vol. 2A 3-35
 val add = binop ADD
@@ -1082,9 +1163,11 @@ val main [0x89 /r]
  | otherwise = mov r/m32 r32
 val main [0x8a /r] = mov r8 r/m8
 val p66 [0x8b /r] = mov r16 r/m16
-val main [0x8b /r] = mov r32 r/m32
-val main [0x8c /r] = mov r/m16 (r/ sreg3?)
-val main [0x8e /r] = mov (r/ sreg3?) r/m16
+val main [0x8b /r]
+ | rexw? = mov r64 r/m32
+ | otherwise = mov r32 r/m32
+val main [0x8c /r] = mov r/m16 (r/rexb sreg3?)
+val main [0x8e /r] = mov (r/rexb sreg3?) r/m16
 val main [0xa0] = mov al moffs8 
 val main [0xa1]
  | addrsz? = mov ax moffs16
@@ -1093,40 +1176,22 @@ val main [0xa2] = mov moffs8 al
 val main [0xa3]
  | addrsz? = mov moffs16 ax
  | otherwise = mov moffs32 eax
-val main [0xb0] = mov al imm8
-val main [0xb1] = mov cl imm8
-val main [0xb2] = mov dl imm8
-val main [0xb3] = mov bl imm8
-val main [0xb4] = mov ah imm8
-val main [0xb5] = mov ch imm8
-val main [0xb6] = mov dh imm8
-val main [0xb7] = mov bh imm8
-val p66 [0xb8] = mov ax imm16
-val main [0xb8] = mov eax imm32
-val p66 [0xb9] = mov cx imm16
-val main [0xb9] = mov ecx imm32
-val p66 [0xba] = mov dx imm16
-val main [0xba] = mov edx imm32
-val p66 [0xbb] = mov bx imm16
-val main [0xbb] = mov ebx imm32
-val p66 [0xbc] = mov sp imm16
-val main [0xbc] = mov esp imm32
-val p66 [0xbd] = mov bp imm16
-val main [0xbd] = mov ebp imm32
-val p66 [0xbe] = mov si imm16
-val main [0xbe] = mov esi imm32
-val p66 [0xbf] = mov di imm16
-val main [0xbf] = mov edi imm32
+val main ['10110 r:3'] = do update@{reg/opcode=r}; mov r8/rexb imm8 end
+val p66 ['10111 r:3'] = do update@{reg/opcode=r}; mov r16/rexb imm16 end
+val main ['10111 r:3']
+ | rexw? = do update@{reg/opcode=r}; mov r64/rexb imm64 end
+ | otherwise = do update@{reg/opcode=r}; mov r32/rexb imm32 end
 val main [0xc6 /0] = mov r/m8 imm8
 val p66 [0xc7 /0] = mov r/m16 imm16
-val main [0xc7 /0] = mov r/m32 imm32
+val main [0xc7 /0]
+ | rexw? = mov r/m64 imm32
+ | otherwise = mov r/m32 imm32
 
 ### MOVAPD Vol. 2B 4-52
 val movapd = binop MOVAPD
 val vmovapd = binop VMOVAPD
 val p66 [0x0f 0x28 /r] = movapd xmm128 xmm/m128
 val p66 [0x0f 0x29 /r] = movapd xmm/m128 xmm128
-
 
 ### MOVAPS Vol. 2B 4-55
 val movaps = binop MOVAPS

@@ -260,12 +260,21 @@ union __wrapped_obj {
 #define __WRAP(x) ((__obj)(((__header*)x)+1))
 #define __UNWRAP(x) ((__objref)(((__header*)x)-1))
 #define __TAG(x) ((__UNWRAP((__obj)x))->object.header.tag)
+
+#ifndef RELAXEDFATAL
 #define __FATAL(type) __fatal("%s:%d:%s",__FILE__,__LINE__,#type)
+#else
+#define __FATAL(type)\
+  {printf("%s:%d:%s\n",__FILE__,__LINE__,#type);\
+   return (__UNIT);}
+#endif
 
 void __fatal(char*,...) __attribute__((noreturn));
 __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
 __objref hp;
 __obj __UNIT;
+__obj __TRUE;
+__obj __FALSE;
 
 /* ## Constructor tags */
 
@@ -342,6 +351,18 @@ static inline __word __CASETAG (__obj o) {
   }
 }
 
+static inline int __isTrue (__obj o) {
+   return (o == __TRUE); /* TODO: or isBitVec(o)&&value='1' */
+}
+
+static inline int __isFalse (__obj o) {
+   return (o == __FALSE); /* TODO: or isBitVec(o)&&value='0' */
+}
+
+static inline void __resetHeap() {
+  hp = &heap[__RT_HEAP_SIZE];
+}
+
 __obj __consume (__obj);
 __obj __slice (__obj,__obj,__obj,__obj);
 __obj __unconsume (__obj);
@@ -350,6 +371,15 @@ __obj __equal (__obj,__obj);
 __obj __and (__obj,__obj);
 __obj __raise (__obj);
 __obj __not (__obj);
-void __resetHeap();
+__obj __isNil (__obj);
+
+__obj decode (__char*,__word);
+__obj prettyln (__obj);
+__obj __printState ();
 
 #endif /* __RUNTIME_H */
+
+/* vim:cindent
+ * vim:ts=2
+ * vim:sw=2
+ * vim:expandtab */
