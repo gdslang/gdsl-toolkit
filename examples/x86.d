@@ -310,6 +310,9 @@ datatype insn =
  | VMOVNTPS of binop
  | MOVNTQ of binop
 
+ | SUB of binop
+ | XOR of binop
+
  | PHADDW of binop
  | VPHADDW of trinop
  | PHADDD of binop
@@ -923,6 +926,64 @@ val pf2-f3 [] = main
 ## One Byte Opcodes
 ## Two Byte Opcodes with Prefix 0x0f
 ## Three Byte Opcodes with Prefix 0x0f38
+
+
+########### Mergen ;-)
+
+### SUB 4-572 Vol. 2B
+val main [0x2c] = binop SUB al imm8
+val p66 [0x2d] = binop SUB ax imm16
+val main [0x2d]
+ | rexw? = binop SUB rax imm32
+ | otherwise = binop SUB eax imm32
+val main [0x80 /5] = binop SUB r/m8 imm8
+val p66 [0x81 /5] = binop SUB r/m16 imm16
+val main [0x81 /5]
+ | rexw? = binop SUB r/m64 imm32
+ | otherwise = binop SUB r/m32 imm32
+val p66 [0x83 /5] = binop SUB r/m16 imm8
+val main [0x83 /5]
+ | rexw? = binop SUB r/m64 imm8
+ | otherwise = binop SUB r/m32 imm8
+val main [0x28 /r] = binop SUB r/m8 r8
+val p66 [0x29 /r] = binop SUB r/m16 r16
+val main [0x29 /r]
+ | rexw? = binop SUB r/m64 r32
+ | otherwise = binop SUB r/m32 r32
+val main [0x2a /r] = binop SUB r8 r/m8
+val p66 [0x2b /r] = binop SUB r16 r/m16
+val main [0x2b /r]
+ | rexw? = binop SUB r64 r/m64
+ | otherwise = binop SUB r32 r/m32
+
+### XOR 4-678 Vol. 2B
+val main [0x34] = binop XOR al imm8
+val p66 [0x34] = binop XOR ax imm16
+val main [0x34]
+ | rexw? = binop XOR rax imm32
+ | otherwise = binop XOR eax imm32
+val main [0x80 /6] = binop XOR r/m8 imm8
+val p66 [0x81 /6] = binop XOR r/m16 imm16
+val main [0x81 /6]
+ | rexw? = binop XOR r/m64 imm32
+ | otherwise = binop XOR r/m32 imm32
+val p66 [0x83 /6] = binop XOR r/m16 imm8
+val main [0x83 /6]
+ | rexw? = binop XOR r/m64 imm8
+ | otherwise = binop XOR r/m32 imm8
+val main [0x30 /r] = binop XOR r/m8 r8
+val p66 [0x31 /r] = binop XOR r/m16 r16
+val main [0x31 /r]
+ | rexw? = binop XOR r/m64 r64
+ | otherwise = binop XOR r/m32 r32
+val main [0x32 /r] = binop XOR r8 r/m8
+val p66 [0x33 /r] = binop XOR r16 r/m16
+val main [0x33 /r]
+ | rexw? = binop XOR r64 r/m64
+ | otherwise = binop XOR r32 r/m32
+
+
+###########
 
 ### ADD Vol. 2A 3-35
 val add = binop ADD

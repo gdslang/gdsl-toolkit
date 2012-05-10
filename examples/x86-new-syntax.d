@@ -61,8 +61,8 @@ val repne? =  query $repne
 val rep? = query $rep
 val rexw? = query $rexw
 val rex? = query $rex
-#define mod-mem '11'
-#define mod-reg '00'|'01'|'10'
+#define mod-reg '11'
+#define mod-mem '00|01|10'
 (*val mod-mem? = do
    mod <- query $mod;
    case mod of
