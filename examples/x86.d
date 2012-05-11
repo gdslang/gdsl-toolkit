@@ -158,6 +158,10 @@ datatype flowopnd =
  | REL16 of 16
  | REL32 of 32
  | REL64 of 64
+ | PTR8 of 8
+ | PTR16 of 16
+ | PTR32 of 32
+ | PTR64 of 64
  | NEARABS of opnd
  | FARABS of opnd
 
@@ -253,6 +257,7 @@ type unop = {opnd1:opnd}
 type binop = {opnd1:opnd, opnd2:opnd}
 type trinop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
 type target = {opnd1:flowopnd}
+type ptarget = {opnd1:flowopnd, opnd2:flowopnd}
 
 datatype insn =
    ADD of binop
@@ -333,6 +338,7 @@ datatype insn =
  | PUSH of unop
  | POP of unop
  | JMP of target
+ | JMP_p of ptarget
  | CALL of target
  | JA of target
  | JAE of target
@@ -435,6 +441,11 @@ val rel32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (REL32 (b4 ^ b3 ^ b2 ^ b1))
 val rel64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
    return (REL64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
 
+val ptr8 ['b:8'] = return (PTR8 b)
+val ptr16 ['b1:8' 'b2:8'] = return (PTR16 (b2 ^ b1))
+val ptr32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (PTR32 (b4 ^ b3 ^ b2 ^ b1))
+val ptr64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
+   return (PTR64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
 ## Convert a bit-vectors to registers
 
 val reg8 n =
@@ -1064,6 +1075,12 @@ val far-abs cons giveOp = do
    return (cons (FARABS {opnd1=op}))
 end
 
+val far-abs-ptr cons giveOp1 giveOp2 = do
+   op1 <- giveOp1;
+   op2 <- giveOp2;
+   return (cons {opnd1=op1, opnd2=op2})
+end
+
 val one = return (IMM8 '00000001')
 
 ### CALL 3-112 Vol. 2A
@@ -1308,7 +1325,6 @@ val p66 [0x0f 0x88]
 val main [0x0f 0x88] = near-rel JS rel32
 
 ### JMP 3-552 Vol. 2A
-#TODO: jmp far
 val main [0xeb] = near-rel JMP rel8
 val p66 [0xe9]
  | mode64? = near-rel JMP rel32
@@ -1320,6 +1336,14 @@ val p66 [0xff /4]
 val main [0xff /4]
  | mode64? = near-abs JMP r/m64
  | otherwise = near-abs JMP r/m32
+val p66 [0xea]
+ | !mode64? = far-abs-ptr JMP_p ptr16 ptr16
+val main [0xea]
+ | !mode64? = far-abs-ptr JMP_p ptr32 ptr16
+val p66 [0xff /5] = far-abs-ptr JMP_p (FARABS m16) ptr16
+val main [0xff /5]
+ | rexw? = far-abs-ptr JMP_p (FARABS m16) ptr64
+ | otherwise? = far-abs-ptr JMP_p (FARABS m16) ptr32
 
 ### SETcc 4-372 Vol. 2B
 val main [0x0f 0x97] = unop SETA r/m8
@@ -1441,6 +1465,12 @@ val main ['01011 r:3'] = do update@{reg/opcode=r}; unop POP r64/rexb end
 val main [0x1f] = unop POP ds
 val main [0x07] = unop POP es
 val main [0x17] = unop POP ss
+
+### RET Vol. 2B 4-469
+val main [0xc3] = return RET
+val main [0xcb] = return RET
+val main [0xc2] = unop RET imm16
+val main [0xca] = unop RET imm16
 
 ### ADD Vol. 2A 3-35
 val main [0x04] = binop ADD al imm8
