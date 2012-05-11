@@ -41,6 +41,7 @@ group is
    ../../semantic/primitives.sml
    ../../semantic/resolve-symbols.sml
    ../../semantic/resolve-type-info.sml
+   ../../semantic/specialize.sml
    ../../spec/core.sml
    ../../spec/spec.sml
    ../../desugar/desugar-control.sml

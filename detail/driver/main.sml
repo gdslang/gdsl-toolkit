@@ -8,6 +8,7 @@ structure Main = struct
       fun all ins =
          Parser.run ins >>=
          ResolveSymbols.run >>=
+         Specialize.run >>=
          Desugar.run >>=
          CPSPasses.run >>=
          ClosurePasses.run >>=

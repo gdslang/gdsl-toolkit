@@ -191,7 +191,7 @@ functor MkAst (Core: AST_CORE) = struct
           | TOKtokpat tok => str (IntInf.fmt StringCvt.HEX tok)
           | NAMEDtokpat (n, []) => var_use n
           | NAMEDtokpat (n, sps) =>
-            seq [var_use n, str "=", listex "<" ">" "," (map special sps)]
+            seq [var_use n, listex "<" ">" "," (map special sps)]
 
       and special t =
          case t of

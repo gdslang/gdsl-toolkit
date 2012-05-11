@@ -360,7 +360,7 @@ end = struct
           | PT.NAMEDtokpat (v,sps) =>
             let
                val errRef = ref false
-               fun insBinding bpat (sym,bindings) =
+               fun insBinding bpatOpt (sym,bindings) =
                   if List.exists (fn (s,_) => SymbolTable.eq_symid(s,sym))
                      bindings
                   then
@@ -371,25 +371,25 @@ end = struct
                      ;errRef := true
                      ;bindings)
                   else
-                     (sym,bpat)::bindings
-               fun expandBindVar (s,v,am,bpat,bindings) =
+                     (sym,bpatOpt)::bindings
+               fun expandBindVar (s,v,am,bpatOpt,bindings) =
                   (case AtomMap.find (am,v) of
                      NONE => 
                         (Error.warningAt
                            (errStrm, s,
                             ["specialization variable ", Atom.toString(v),
                             " never used"])
-                        ;[])
+                        ;bindings)
                    | SOME {uses = uf, forwards = fs} =>
-                     List.foldl (expandFwdVar (s,v,bpat))
+                     List.foldl (expandFwdVar (s,v,bpatOpt))
                         (List.foldl
-                           (insBinding bpat)
+                           (insBinding bpatOpt)
                            bindings
                            (SymSet.listItems uf)
                         )
                         (AtomSet.listItems fs)
                   )
-               and expandFwdVar (s,v,bpat) (decName,bindings) =
+               and expandFwdVar (s,v,bpatOpt) (decName,bindings) =
                   let
                      val decNameSymId = useVar(s,{tree=decName,span=s})
                      val am = case SymMap.find (!specDec,decNameSymId) of
@@ -397,7 +397,7 @@ end = struct
                       | SOME am => am
                   in
                      if !errRef then bindings else
-                        expandBindVar (s,v,am,bpat,bindings)
+                        expandBindVar (s,v,am,bpatOpt,bindings)
                   end
 
                val decSymId = useVar (s,v)
@@ -408,11 +408,18 @@ end = struct
                   case p of
                      PT.MARKspecial {tree, span} => convSpecial (tree,bindings)
                    | PT.BINDspecial ({tree=v, span=s},bpat) =>
-                     expandBindVar (s,v,am,bpat,bindings)
-                   | PT.FORWARDspecial v => []
+                     expandBindVar (s,v,am,SOME bpat,bindings)
+                   | PT.FORWARDspecial {tree=v, span=s} =>
+                     expandBindVar (s,v,am,NONE,bindings)
                val bindings = List.foldl convSpecial [] sps
             in
-               AST.NAMEDtokpat (decSymId, List.map AST.BINDspecial bindings)
+               AST.NAMEDtokpat (decSymId,
+                  List.map
+                     (fn (sym, patOpt) => case patOpt of
+                        SOME pat => AST.BINDspecial (sym,pat)
+                      | NONE => AST.FORWARDspecial sym)
+                     bindings
+                  )
             end
       
       and convMatch s (p, e) =
@@ -443,7 +450,7 @@ end = struct
    in
       (Primitives.registerPrimitives ()
       ;convMark (fn s => List.map (regDecl s)) ast
-      ;TextIO.print (smapToString (!specDec))
+      (*;TextIO.print (smapToString (!specDec))*)
       ;convMark (fn s => List.map (convDecl s)) ast)
    end
 
