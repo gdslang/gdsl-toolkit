@@ -198,6 +198,7 @@ val ds = return (REG DS)
 val es = return (REG ES)
 val fs = return (REG FS)
 val gs = return (REG GS)
+val ss = return (REG SS)
 val mm0 = return (REG MM0)
 val mm1 = return (REG MM1)
 val mm2 = return (REG MM2)
@@ -325,17 +326,96 @@ datatype insn =
  | VMOVNTPS of binop
  | MOVNTQ of binop
 
+ | IMUL of unop
+ | IMUL_2 of binop
+ | IMUL_3 of trinop
+
  | PUSH of unop
  | POP of unop
- | JMP of unop
+ | JMP of target
  | CALL of target
- | RET of unop
+ | JA of target
+ | JAE of target
+ | JB of target
+ | JBE of target
+ | JC of target
+ | JCXZ of target
+ | JECXZ of target
+ | JRCXZ of target
+ | JE of target
+ | JG of target
+ | JGE of target
+ | JL of target
+ | JLE of target
+ | JNA of target
+ | JNAE of target
+ | JNB of target
+ | JNBE of target
+ | JNC of target
+ | JNE of target
+ | JNG of target
+ | JNGE of target
+ | JNL of target
+ | JNLE of target
+ | JNO of target
+ | JNP of target
+ | JNS of target
+ | JNZ of target
+ | JO of target
+ | JP of target
+ | JPE of target
+ | JPO of target
+ | JS of target
+ | JZ of target
+ | SETA of unop   
+ | SETAE of unop
+ | SETB of unop
+ | SETBE of unop
+ | SETC of unop
+ | SETE of unop
+ | SETG of unop
+ | SETGE of unop
+ | SETL of unop
+ | SETLE of unop
+ | SETNA of unop
+ | SETNAE of unop
+ | SETNB of unop
+ | SETNBE of unop
+ | SETNC of unop
+ | SETNE of unop
+ | SETNG of unop
+ | SETNGE of unop
+ | SETNL of unop
+ | SETNLE of unop
+ | SETNO of unop
+ | SETNP of unop
+ | SETNS of unop
+ | SETNZ of unop
+ | SETO of unop
+ | SETP of unop
+ | SETPE of unop
+ | SETPO of unop
+ | SETS of unop 
+ | SETZ of unop
+ | RET
+ | RETFAR
+ | RET_1 of unop
+ | RETFAR_1 of unop
  | LEA of binop
  | TEST of binop
  | CMP of binop
+ | SAL of binop
+ | SAR of binop
+ | SHL of binop
  | SHR of binop
  | SUB of binop
  | XOR of binop
+ | INC of unop
+ | MOVZX of binop
+ | MOVSX of binop
+ | OR
+ | NOP
+ | NOP_1 of unop
 
  | PHADDW of binop
  | VPHADDW of trinop
@@ -984,12 +1064,14 @@ val far-abs cons giveOp = do
    return (cons (FARABS {opnd1=op}))
 end
 
+val one = return (IMM8 '00000001')
+
 ### CALL 3-112 Vol. 2A
 val p66 [0xe8] = near-rel CALL rel16
 val main [0xe8] = near-rel CALL rel32
 val main [0xff /2] = near-abs CALL r/m64
 
-## LEA 3-579 Vol. 2A
+### LEA 3-579 Vol. 2A
 val p66 [0x8d /r]
  | addrsz? = binop LEA r16 r/m16
  | otherwise = binop LEA r16 r/m32
@@ -998,6 +1080,263 @@ val main [0x8d /r]
  | rexw? = binop LEA r64 r/m64
  | addrsz? = binop LEA r32 r/m16
  | otherwise = binop LEA r32 r/m32
+
+### INC 3-501 Vol. 2A
+val main [0xfe /0] = unop INC r/m8
+val p66 [0xff /0] = unop INC r/m16
+val main [0xff /0]
+ | rexw? = unop INC r/m64
+ | otherwise = unop INC r/m32
+
+### SAL/SAR/SHL/SHR 4-353 Vol. 2B
+#### SAL/SHL
+val main [0xd0 /4] = binop SHL r/m8 one
+val main [0xd2 /4] = binop SHL r/m8 cl
+val main [0xc0 /4] = binop SHL r/m8 imm8
+val p66 [0xd1 /4] = binop SHL r/m16 one
+val p66 [0xd3 /4] = binop SHL r/m16 cl
+val p66 [0xc1 /4] = binop SHL r/m16 imm8
+val main [0xd1 /4]
+ | rexw? = binop SHL r/m64 one
+ | otherwise = binop SHL r/m32 one
+val main [0xd3 /4]
+ | rexw? = binop SHL r/m64 cl
+ | otherwise = binop SHL r/m32 cl
+val main [0xc1 /4]
+ | rexw? = binop SHL r/m64 imm8
+ | otherwise = binop SHL r/m32 imm8
+#### SAR
+val main [0xd0 /7] = binop SAR r/m8 one
+val main [0xd2 /7] = binop SAR r/m8 cl
+val main [0xc0 /7] = binop SAR r/m8 imm8
+val p66 [0xd1 /7] = binop SAR r/m16 one
+val p66 [0xd3 /7] = binop SAR r/m16 cl
+val p66 [0xc1 /7] = binop SAR r/m16 imm8
+val main [0xd1 /7]
+ | rexw? = binop SAR r/m64 one
+ | otherwise = binop SAR r/m32 one
+val main [0xd3 /7]
+ | rexw? = binop SAR r/m64 cl
+ | otherwise = binop SAR r/m32 cl
+val main [0xc1 /7]
+ | rexw? = binop SAR r/m64 imm8
+ | otherwise = binop SAR r/m32 imm8
+#### SHR
+val main [0xd0 /5] = binop SHR r/m8 one
+val main [0xd2 /5] = binop SHR r/m8 cl
+val main [0xc0 /5] = binop SHR r/m8 imm8
+val p66 [0xd1 /5] = binop SHR r/m16 one
+val p66 [0xd3 /5] = binop SHR r/m16 cl
+val p66 [0xc1 /5] = binop SHR r/m16 imm8
+val main [0xd1 /5]
+ | rexw? = binop SHR r/m64 one
+ | otherwise = binop SHR r/m32 one
+val main [0xd3 /5]
+ | rexw? = binop SHR r/m64 cl
+ | otherwise = binop SHR r/m32 cl
+val main [0xc1 /5] 
+ | rexw? = binop SHR r/m64 imm8
+ | otherwise = binop SHR r/m32 imm8
+
+### TEST 4-451 Vol. 2B
+val main [0xa8] = binop TEST al imm8
+val p66 [0xa9] = binop TEST ax imm16
+val main [0xa9]
+ | rexw? = binop TEST rax imm32
+ | otherwise = binop TEST eax imm32
+val main [0xf6 /0] = binop TEST r/m8 imm8
+val p66 [0xf7 /0] = binop TEST r/m16 imm16
+val main [0xf7 /0]
+ | rexw? = binop TEST r/m64 imm32
+ | otherwise = binop TEST r/m32 imm32
+val main [0x84 /r] = binop TEST r/m8 r8
+val p66 [0x85 /r] = binop TEST r/m16 r16
+val main [0x85 /r]
+ | rexw? = binop TEST r/m64 r64
+ | otherwise = binop TEST r/m32 r32
+
+### CMP 3-150 Vol. 2A
+val main [0x3c] = binop CMP al imm8
+val p66 [0x3d] = binop CMP ax imm16
+val main [0x3d]
+ | rexw? = binop CMP rax imm32
+ | otherwise = binop CMP eax imm32
+val main [0x80 /7] = binop CMP r/m8 imm8
+val p66 [0x81 /7] = binop CMP r/m16 imm16
+val main [0x81 /7]
+ | rexw? = binop CMP r/m64 imm32
+ | otherwise = binop CMP r/m32 imm32
+val p66 [0x83 /7] = binop CMP r/m16 imm8
+val main [0x83 /7]
+ | rexw? = binop CMP r/m64 imm8
+ | otherwise = binop CMP r/m32 imm8
+val main [0x38 /r] = binop CMP r/m8 r8
+val p66 [0x39 /r] = binop CMP r/m16 r16
+val main [0x39 /r]
+ | rexw? = binop CMP r/m64 r64
+ | otherwise = binop CMP r/m32 r32
+val main [0x3A /r] = binop CMP r8 r/m8
+val p66 [0x3B /r] = binop CMP r16 r/m16
+val main [0x3B /r]
+ | rexw? = binop CMP r64 r/m64
+ | otherwise = binop CMP r32 r/m32
+
+### NOP 4-12 Vol. 2B
+val main [0x90] = return NOP
+val p66 [0x90] = return NOP
+val p66 [0x0f 0x1f /0] = unop NOP_1 r/m16
+val main [0x0f 0x1f /0] = unop NOP_1 r/m32
+
+### RET 4-321 Vol. 2B
+val main [0xc3] = return RET
+val main [0xcb] = return RETFAR
+val main [0xc2] = unop RET_1 imm16
+val main [0xca] = unop RETFAR_1 imm16
+
+### IMUL 3-494 Vol. 2A
+val main [0xf6 /5] = unop IMUL r/m8
+val p66 [0xf7 /5] = unop IMUL r/m16
+val main [0xf7 /5]
+ | rexw? = unop IMUL r/m64
+ | otherwise = unop IMUL r/m32
+val p66 [0x0f 0x0a /r] = binop IMUL_2 r16 r/m16
+val main [0x0f 0x0a /r]
+ | rexw? = binop IMUL_2 r64 r/m64
+ | otherwise = binop IMUL_2 r32 r/m32
+val p66 [0x0f 0x6b /r] = binop IMUL_3 r16 r/m16 imm8
+val main [0x0f 0x6b /r]
+ | rexw? = binop IMUL_3 r64 r/m64 imm8
+ | otherwise = binop IMUL_3 r32 r/m32 imm8
+val p66 [0x0f 0x69 /r] = binop IMUL_3 r16 r/m16 imm16
+val main [0x0f 0x69 /r]
+ | rexw? = binop IMUL_3 r64 r/m64 imm32
+ | otherwise = binop IMUL_3 r32 r/m32 imm32
+
+### MOVZX 3-739 Vol. 2A
+val p66 [0x0f 0xb6 /r] = binop MOVZX r16 r/m8
+val main [0x0f 0xb6 /r]
+ | rexw? = binop MOVZX r64 r/m8
+ | otherwise = binop MOVZX r32 r/m8
+val main [0x0f 0xb7 /r]
+ | rexw? = binop MOVZX r64 r/m16
+ | otherwise = binop MOVZX r32 r/m16
+
+### Jcc 3-544 Vol. 2A
+val main [0x77] = near-rel JA rel8  # JNBE
+val main [0x73] = near-rel JAE rel8 # JNB, JNC
+val main [0x72] = near-rel JC rel8  # JB,JNAE
+val main [0x76] = near-rel JBE rel8 # JNA
+val p66 [0xe3] = near-rel JCXZ rel8
+val main[0xe3]
+ | rexw? = near-rel JRCXZ rel8
+ | otherwise = near-rel JECXZ rel8 
+val main [0x74] = near-rel JE rel8  # JZ
+val main [0x7f] = near-rel JG rel8  # JNLE
+val main [0x7d] = near-rel JGE rel8 # JNL
+val main [0x7c] = near-rel JL rel8  # JNGE
+val main [0x7e] = near-rel JLE rel8 # JNG
+val main [0x75] = near-rel JNE rel8 # JNZ
+val main [0x71] = near-rel JNO rel8
+val main [0x7b] = near-rel JNP rel8 # JPO
+val main [0x79] = near-rel JNS rel8
+val main [0x70] = near-rel JO rel8
+val main [0x7a] = near-rel JP rel8  # JPE
+val p66 [0x0f 0x87]
+ | mode64? = near-rel JA rel32
+ | otherwise = near-rel JA rel16
+val main [0x0f 0x87] = near-rel JA rel32
+val p66 [0x0f 0x83]
+ | mode64? = near-rel JAE rel32
+ | otherwise = near-rel JAE rel16
+val main [0x0f 0x83] = near-rel JAE rel32
+val p66 [0x0f 0x82]
+ | mode64? = near-rel JB rel32
+ | otherwise = near-rel JB rel16
+val main [0x0f 0x82] = near-rel JB rel32
+val p66 [0x0f 0x86]
+ | mode64? = near-rel JBE rel32
+ | otherwise = near-rel JBE rel16
+val main [0x0f 0x86] = near-rel JBE rel32
+val p66 [0x0f 0x84]
+ | mode64? = near-rel JE rel32
+ | otherwise = near-rel JE rel16
+val main [0x0f 0x84] = near-rel JE rel32
+val p66 [0x0f 0x8f]
+ | mode64? = near-rel JG rel32
+ | otherwise = near-rel JG rel16
+val main [0x0f 0x8f] = near-rel JG rel32
+val p66 [0x0f 0x8d]
+ | mode64? = near-rel JGE rel32
+ | otherwise = near-rel JGE rel16
+val main [0x0f 0x8d] = near-rel JGE rel32
+val p66 [0x0f 0x8c]
+ | mode64? = near-rel JL rel32
+ | otherwise = near-rel JL rel16
+val main [0x0f 0x8c] = near-rel JL rel32
+val p66 [0x0f 0x8e]
+ | mode64? = near-rel JLE rel32
+ | otherwise = near-rel JLE rel16
+val main [0x0f 0x8e] = near-rel JLE rel32
+val p66 [0x0f 0x85]
+ | mode64? = near-rel JNE rel32
+ | otherwise = near-rel JNE rel16
+val main [0x0f 0x85] = near-rel JNE rel32
+val p66 [0x0f 0x81]
+ | mode64? = near-rel JNO rel32
+ | otherwise = near-rel JNO rel16
+val main [0x0f 0x81] = near-rel JNO rel32
+val p66 [0x0f 0x8b]
+ | mode64? = near-rel JNP rel32
+ | otherwise = near-rel JNP rel16
+val main [0x0f 0x8b] = near-rel JNP rel32
+val p66 [0x0f 0x89]
+ | mode64? = near-rel JNS rel32
+ | otherwise = near-rel JNS rel16
+val main [0x0f 0x89] = near-rel JNS rel32
+val p66 [0x0f 0x80]
+ | mode64? = near-rel JO rel32
+ | otherwise = near-rel JO rel16
+val main [0x0f 0x80] = near-rel JO rel32
+val p66 [0x0f 0x8a]
+ | mode64? = near-rel JP rel32
+ | otherwise = near-rel JP rel16
+val main [0x0f 0x8a] = near-rel JP rel32
+val p66 [0x0f 0x88]
+ | mode64? = near-rel JS rel32
+ | otherwise = near-rel JS rel16
+val main [0x0f 0x88] = near-rel JS rel32
+
+### JMP 3-552 Vol. 2A
+#TODO: jmp far
+val main [0xeb] = near-rel JMP rel8
+val p66 [0xe9]
+ | mode64? = near-rel JMP rel32
+ | otherwise = near-rel JMP rel16
+val main [0xe9] = near-rel JMP rel32
+val p66 [0xff /4]
+ | mode64? = near-abs JMP r/m64
+ | otherwise = near-abs JMP r/m16
+val main [0xff /4]
+ | mode64? = near-abs JMP r/m64
+ | otherwise = near-abs JMP r/m32
+
+### SETcc 4-372 Vol. 2B
+val main [0x0f 0x97] = unop SETA r/m8
+val main [0x0f 0x93] = unop SETAE r/m8
+val main [0x0f 0x92] = unop SETB r/m8
+val main [0x0f 0x96] = unop SETBE r/m8
+val main [0x0f 0x94] = unop SETE r/m8
+val main [0x0f 0x9f] = unop SETG r/m8
+val main [0x0f 0x9d] = unop SETGE r/m8
+val main [0x0f 0x9c] = unop SETL r/m8
+val main [0x0f 0x9e] = unop SETLE r/m8
+val main [0x0f 0x95] = unop SETNE r/m8
+val main [0x0f 0x91] = unop SETNO r/m8
+val main [0x0f 0x9b] = unop SETNP r/m8
+val main [0x0f 0x99] = unop SETNS r/m8
+val main [0x0f 0x90] = unop SETO r/m8
+val main [0x0f 0x9a] = unop SETP r/m8
+val main [0x0f 0x98] = unop SETS r/m8
 
 ### SUB 4-572 Vol. 2B
 val main [0x2c] = binop SUB al imm8
@@ -1017,13 +1356,39 @@ val main [0x83 /5]
 val main [0x28 /r] = binop SUB r/m8 r8
 val p66 [0x29 /r] = binop SUB r/m16 r16
 val main [0x29 /r]
- | rexw? = binop SUB r/m64 r32
+ | rexw? = binop SUB r/m64 r64
  | otherwise = binop SUB r/m32 r32
 val main [0x2a /r] = binop SUB r8 r/m8
 val p66 [0x2b /r] = binop SUB r16 r/m16
 val main [0x2b /r]
  | rexw? = binop SUB r64 r/m64
  | otherwise = binop SUB r32 r/m32
+
+### OR 4-16 Vol. 2B
+val main [0x0c] = binop OR al imm8
+val p66 [0x0d] = binop OR ax imm16
+val main [0x0d]
+ | rexw? = binop OR rax imm32
+ | otherwise = binop OR eax imm32
+val main [0x80 /1] = binop OR r/m8 imm8
+val p66 [0x81 /1] = binop OR r/m16 imm16
+val main [0x81 /1]
+ | rexw? = binop OR r/m64 imm32
+ | otherwise = binop OR r/m32 imm32
+val p66 [0x83 /1] = binop OR r/m16 imm8
+val main [0x83 /1]
+ | rexw? = binop OR r/m64 imm8
+ | otherwise = binop OR r/m32 imm8
+val main [0x08 /r] = binop OR r/m8 r8
+val p66 [0x09 /r] = binop OR r/m16 r16
+val main [0x09 /r]
+ | rexw? = binop OR r/m64 r64
+ | otherwise = binop OR r/m32 r32
+val main [0x0a /r] = binop OR r8 r/m8
+val p66 [0x0b /r] = binop OR r16 r/m16
+val main [0x0b /r]
+ | rexw? = binop OR r64 r/m64
+ | otherwise = binop OR r32 r/m32
 
 ### XOR 4-678 Vol. 2B
 val main [0x34] = binop XOR al imm8
@@ -1053,10 +1418,10 @@ val main [0x33 /r]
 
 ### PUSH 4-275 Vol. 2B
 #TODO: correctly implement 32bit and 64bit modes
-val main [0xff /6] = unop PUSH r/m64
 val p66 [0xff /6] = unop PUSH r/m16
+val main [0xff /6] = unop PUSH r/m64
+val p66 ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r16/rexb end
 val main ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r64/rexb end
-val p66 ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r64/rexb end
 val main [0x6a] = unop PUSH imm8
 val p66 [0x68] = unop PUSH imm16
 val main [0x68] = unop PUSH imm32
@@ -1066,32 +1431,42 @@ val main [0x06] = unop PUSH es
 val main [0x0f 0xa0] = unop PUSH fs
 val main [0x0f 0xa8] = unop PUSH gs
 
+### POP 4-188 Vol. 2B
+#TODO: correctly implement 32bit and 64bit modes
+val p66 [0x8f /0] = unop POP r/m16
+val main [0x8f /0] = unop POP r/m64
+val p66 ['01011 r:3'] = do update@{reg/opcode=r}; unop POP r16/rexb end
+val main ['01011 r:3'] = do update@{reg/opcode=r}; unop POP r64/rexb end
+val main [0x1f] = unop POP ds
+val main [0x07] = unop POP es
+val main [0x17] = unop POP ss
+
 ### ADD Vol. 2A 3-35
 val add = binop ADD
 val main [0x04] = add al imm8
-val main [0x05]
- | rexw? = add rax imm64
- | otherwise = add eax imm32
 val p66 [0x05] = add ax imm16
+val main [0x05]
+ | rexw? = add rax imm32
+ | otherwise = add eax imm32
 val main [0x80 /0] = add r/m8 imm8
 val main [0x81 /0]
- | rexw? = add r/m64 imm64
+ | rexw? = add r/m64 imm32
  | otherwise = add r/m32 imm32
 val p66 [0x81 /0] = add r/m16 imm16
+val p66 [0x83 /0] = add r/m16 imm8
 val main [0x83 /0]
  | rexw? = add r/m64 imm8
  | otherwise = add r/m32 imm8
-val p66 [0x83 /0] = add r/m16 imm8
 val main [0x00 /r] = add r/m8 r8
-val main [0x01 /0]
- | rexw? = add r/m64 r64
- | otherwise = add r/m32 r32
-val p66 [0x01 /0] = add r/m16 r16
+val p66 [0x01 /r] = add r/m16 r16
+val main [0x01 /r]
+ | rexw? = binop ADD r/m64 r64
+ | otherwise = binop ADD r/m32 r32
 val main [0x02 /r] = add r8 r/m8
-val main [0x03 /0]
+val p66 [0x03 /r] = add r16 r/m16
+val main [0x03 /r]
  | rexw? = add r64 r/m64
  | otherwise = add r32 r/m32
-val p66 [0x03 /0] = add r16 r/m16
 
 ### CVTPD2PI Vol 2A 3-248
 val cvtpdf2pi = binop CVTPD2PI
