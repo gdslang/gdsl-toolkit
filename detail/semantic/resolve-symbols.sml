@@ -373,8 +373,7 @@ end = struct
                   else
                      (sym,bpat)::bindings
                fun expandBindVar (s,v,am,bpat,bindings) =
-                  (TextIO.print ("looking up " ^ Atom.toString(v) ^ "\n")
-                  ;case AtomMap.find (am,v) of
+                  (case AtomMap.find (am,v) of
                      NONE => 
                         (Error.warningAt
                            (errStrm, s,
