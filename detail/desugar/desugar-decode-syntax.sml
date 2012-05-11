@@ -21,6 +21,7 @@ structure DesugarDecode = struct
    val consume = Atom.atom "consume"
    val unconsume = Atom.atom "unconsume"
    val slice = Atom.atom "slice"
+   val return = Atom.atom "return"
 
    fun freshTok () = let
       val (tab, sym) =
@@ -61,6 +62,16 @@ structure DesugarDecode = struct
             (APP (slice, ID tok),
              INT offs),
           INT sz) 
+   end
+
+   fun returnExp tok = let
+      open Exp
+      val return =
+         ID
+            (VarInfo.lookup
+               (!SymbolTables.varTable, return))
+   in
+      APP (return, ID tok) 
    end
 
    fun buildEquivClass decls = let
@@ -139,7 +150,11 @@ structure DesugarDecode = struct
                               (ps,
                                offs + size pat,
                                Exp.BIND
-                                 (n, sliceExp (tok, offs, i))::acc)
+                                 (n,
+                                  (* FIXME: this is token size dependent!! *)
+                                  if offs = 0 andalso i = 8 
+                                     then returnExp tok
+                                  else sliceExp (tok, offs, i))::acc)
          in
             if VS.length toks = 0
                then acc

@@ -413,7 +413,7 @@ datatype insn =
  | INC of unop
  | MOVZX of binop
  | MOVSX of binop
- | OR
+ | OR of binop
  | NOP
  | NOP_1 of unop
 
@@ -1199,18 +1199,18 @@ val p66 [0xf7 /5] = unop IMUL r/m16
 val main [0xf7 /5]
  | rexw? = unop IMUL r/m64
  | otherwise = unop IMUL r/m32
-val p66 [0x0f 0x0a /r] = binop IMUL_2 r16 r/m16
-val main [0x0f 0x0a /r]
+val p66 [0x0f 0xaf /r] = binop IMUL_2 r16 r/m16
+val main [0x0f 0xaf /r]
  | rexw? = binop IMUL_2 r64 r/m64
  | otherwise = binop IMUL_2 r32 r/m32
-val p66 [0x0f 0x6b /r] = binop IMUL_3 r16 r/m16 imm8
-val main [0x0f 0x6b /r]
- | rexw? = binop IMUL_3 r64 r/m64 imm8
- | otherwise = binop IMUL_3 r32 r/m32 imm8
-val p66 [0x0f 0x69 /r] = binop IMUL_3 r16 r/m16 imm16
-val main [0x0f 0x69 /r]
- | rexw? = binop IMUL_3 r64 r/m64 imm32
- | otherwise = binop IMUL_3 r32 r/m32 imm32
+val p66 [0x6b /r] = trinop IMUL_3 r16 r/m16 imm8
+val main [0x6b /r]
+ | rexw? = trinop IMUL_3 r64 r/m64 imm8
+ | otherwise = trinop IMUL_3 r32 r/m32 imm8
+val p66 [0x69 /r] = trinop IMUL_3 r16 r/m16 imm16
+val main [0x69 /r]
+ | rexw? = trinop IMUL_3 r64 r/m64 imm32
+ | otherwise = trinop IMUL_3 r32 r/m32 imm32
 
 ### MOVZX 3-739 Vol. 2A
 val p66 [0x0f 0xb6 /r] = binop MOVZX r16 r/m8
@@ -1241,6 +1241,7 @@ val main [0x7b] = near-rel JNP rel8 # JPO
 val main [0x79] = near-rel JNS rel8
 val main [0x70] = near-rel JO rel8
 val main [0x7a] = near-rel JP rel8  # JPE
+val main [0x78] = near-rel JS rel8
 val p66 [0x0f 0x87]
  | mode64? = near-rel JA rel32
  | otherwise = near-rel JA rel16
@@ -1442,31 +1443,30 @@ val main [0x07] = unop POP es
 val main [0x17] = unop POP ss
 
 ### ADD Vol. 2A 3-35
-val add = binop ADD
-val main [0x04] = add al imm8
-val p66 [0x05] = add ax imm16
+val main [0x04] = binop ADD al imm8
+val p66 [0x05] = binop ADD ax imm16
 val main [0x05]
- | rexw? = add rax imm32
- | otherwise = add eax imm32
-val main [0x80 /0] = add r/m8 imm8
+ | rexw? = binop ADD rax imm32   #FIXME!!! imm32
+ | otherwise = binop ADD eax imm32
+val main [0x80 /0] = binop ADD r/m8 imm8
+val p66 [0x81 /0] = binop ADD r/m16 imm16
 val main [0x81 /0]
- | rexw? = add r/m64 imm32
- | otherwise = add r/m32 imm32
-val p66 [0x81 /0] = add r/m16 imm16
-val p66 [0x83 /0] = add r/m16 imm8
+ | rexw? = binop ADD r/m64 imm64 #FIXME!!! imm32
+ | otherwise = binop ADD r/m32 imm32
+val p66 [0x83 /0] = binop ADD r/m16 imm8
 val main [0x83 /0]
- | rexw? = add r/m64 imm8
- | otherwise = add r/m32 imm8
-val main [0x00 /r] = add r/m8 r8
-val p66 [0x01 /r] = add r/m16 r16
+ | rexw? = binop ADD r/m64 imm8
+ | otherwise = binop ADD r/m32 imm8
+val main [0x00 /r] = binop ADD r/m8 r8
+val p66 [0x01 /r] = binop ADD r/m16 r16
 val main [0x01 /r]
  | rexw? = binop ADD r/m64 r64
  | otherwise = binop ADD r/m32 r32
-val main [0x02 /r] = add r8 r/m8
-val p66 [0x03 /r] = add r16 r/m16
+val main [0x02 /r] = binop ADD r8 r/m8
+val p66 [0x03 /r] = binop ADD r16 r/m16
 val main [0x03 /r]
- | rexw? = add r64 r/m64
- | otherwise = add r32 r/m32
+ | rexw? = binop ADD r64 r/m64
+ | otherwise = binop ADD r32 r/m32
 
 ### CVTPD2PI Vol 2A 3-248
 val cvtpdf2pi = binop CVTPD2PI
@@ -1530,37 +1530,36 @@ val monitor = return MONITOR
 val main [0x0f 0xae 0x01 0xc8] = monitor
 
 ### MOV Vol 2A 3-643
-val mov = binop MOV
-val main [0x88 /r] = mov r/m8 r8
-val p66 [0x89 /r] = mov r/m16 r16
+val main [0x88 /r] = binop MOV r/m8 r8
+val p66 [0x89 /r] = binop MOV r/m16 r16
 val main [0x89 /r]
- | rexw? = mov r/m64 r64
- | otherwise = mov r/m32 r32
-val main [0x8a /r] = mov r8 r/m8
-val p66 [0x8b /r] = mov r16 r/m16
+ | rexw? = binop MOV r/m64 r64
+ | otherwise = binop MOV r/m32 r32
+val main [0x8a /r] = binop MOV r8 r/m8
+val p66 [0x8b /r] = binop MOV r16 r/m16
 val main [0x8b /r]
- | rexw? = mov r64 r/m32
- | otherwise = mov r32 r/m32
-val main [0x8c /r] = mov r/m16 (r/rexb sreg3?)
-val main [0x8e /r] = mov (r/rexb sreg3?) r/m16
-val main [0xa0] = mov al moffs8 
+ | rexw? = binop MOV r64 r/m32
+ | otherwise = binop MOV r32 r/m32
+val main [0x8c /r] = binop MOV r/m16 (r/rexb sreg3?)
+val main [0x8e /r] = binop MOV (r/rexb sreg3?) r/m16
+val main [0xa0] = binop MOV al moffs8 
 val main [0xa1]
- | addrsz? = mov ax moffs16
- | otherwise = mov eax moffs32
-val main [0xa2] = mov moffs8 al
+ | addrsz? = binop MOV ax moffs16
+ | otherwise = binop MOV eax moffs32
+val main [0xa2] = binop MOV moffs8 al
 val main [0xa3]
- | addrsz? = mov moffs16 ax
- | otherwise = mov moffs32 eax
-val main ['10110 r:3'] = do update@{reg/opcode=r}; mov r8/rexb imm8 end
-val p66 ['10111 r:3'] = do update@{reg/opcode=r}; mov r16/rexb imm16 end
+ | addrsz? = binop MOV moffs16 ax
+ | otherwise = binop MOV moffs32 eax
+val main ['10110 r:3'] = do update@{reg/opcode=r}; binop MOV r8/rexb imm8 end
+val p66 ['10111 r:3'] = do update@{reg/opcode=r}; binop MOV r16/rexb imm16 end
 val main ['10111 r:3']
- | rexw? = do update@{reg/opcode=r}; mov r64/rexb imm64 end
- | otherwise = do update@{reg/opcode=r}; mov r32/rexb imm32 end
-val main [0xc6 /0] = mov r/m8 imm8
-val p66 [0xc7 /0] = mov r/m16 imm16
+ | rexw? = do update@{reg/opcode=r}; binop MOV r64/rexb imm64 end
+ | otherwise = do update@{reg/opcode=r}; binop MOV r32/rexb imm32 end
+val main [0xc6 /0] = binop MOV r/m8 imm8
+val p66 [0xc7 /0] = binop MOV r/m16 imm16
 val main [0xc7 /0]
- | rexw? = mov r/m64 imm32
- | otherwise = mov r/m32 imm32
+ | rexw? = binop MOV r/m64 imm32
+ | otherwise = binop MOV r/m32 imm32
 
 ### MOVAPD Vol. 2B 4-52
 val movapd = binop MOVAPD
@@ -1820,10 +1819,10 @@ val main [0x0f 0x38 02 /r] = phaddd mm64 mm/m64
 ### XADD Vol. 2B 4-667
 val xadd = binop XADD
 val main [0x0f 0xc0 /r] = xadd r/m8 r8
-val p66 [0x0f 0xc1 /r] = mov r/m16 r16
+val p66 [0x0f 0xc1 /r] = binop MOV r/m16 r16
 val main [0x0f 0xc1 /r]
  | rexw? = xadd r/m64 r64
- | otherwise = mov r/m32 r32
+ | otherwise = binop MOV r/m32 r32
 
 # Prefix Examples
 #

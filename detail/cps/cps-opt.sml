@@ -748,6 +748,7 @@ structure Cost = struct
          fun lp (t, n) =
             case t of
                LETVAL (_, FN (k, xs, K), L) => lp (K, lp (L, n))
+             | LETVAL (_, PRI _, body) => lp (body, n)
              | LETVAL (_, _, body) => lp (body, n)
              | LETPRJ (_, _, _, body) => lp (body, n)
              | LETUPD (_, _, _, body) => lp (body, n)
@@ -760,6 +761,7 @@ structure Cost = struct
                   (fn ((_, _, _, body), n) =>
                      lp (body, n)) (lp (body, n)+5) ds
              | CASE (_, cs) => n+List.length cs
+             | APP _ => n
              | _ => n
       in
          lp (t, 0) <= 3
