@@ -46,10 +46,10 @@ functor MkAst (Core: AST_CORE) = struct
       MARKdecl of decl mark
     | INCLUDEdecl of string
     | GRANULARITYdecl of IntInf.int
-    | STATEdecl of (var_bind * ty * exp) list
     | TYPEdecl of syn_bind * ty
     | DATATYPEdecl of con_bind * (con_bind * ty option) list
-    | DECODEdecl of var_bind * decodepat list * (exp, (exp * exp) list) Sum.t
+    | DECODEdecl of var_bind * decodepat list * 
+                    withclause list * (exp, (exp * exp) list) Sum.t
     | LETRECdecl of var_bind * var_bind list * exp
     | EXPORTdecl of var_use list
 
@@ -84,11 +84,14 @@ functor MkAst (Core: AST_CORE) = struct
     | ACTIONseqexp of exp
     | BINDseqexp of var_bind * exp
 
+   and withclause =
+      MARKwithclause of withclause mark
+    | WITHwithclause of var_bind * bitpat_lit
+
    and decodepat =
       MARKdecodepat of decodepat mark
     | TOKENdecodepat of tokpat
     | BITdecodepat of bitpat list
-    | DEFAULTdecodepat of var_bind * bitpat_lit
 
    and bitpat =
       MARKbitpat of bitpat mark
@@ -104,6 +107,7 @@ functor MkAst (Core: AST_CORE) = struct
    and special =
       MARKspecial of special mark
     | BINDspecial of var_use * bitpat_lit
+    | FORWARDspecial of var_use
     
    and pat =
       MARKpat of pat mark
@@ -136,30 +140,21 @@ functor MkAst (Core: AST_CORE) = struct
                seq
                   [str "export", is, space,
                    seq (separate (map var_use es, " "))]
-          | STATEdecl fs =>
-               let
-                  fun field (n, t, e) =
-                     seq [var_bind n, str ":", ty t, str "=", exp e]
-               in
-                  align
-                     [seq [str "state", is],
-                      indent 3 (listex "{" "}" "," (map field fs))]
-               end
           | TYPEdecl (t, tyexp) =>
                seq [str "type", space, syn_bind t, space, ty tyexp]
           | DATATYPEdecl (t, decls) =>
                align
                   [seq [str "datatype", space, con_bind t],
                    indent 3 (alignPrefix (map condecl decls, "| "))]
-          | DECODEdecl (n, ps, Sum.INL e) =>
+          | DECODEdecl (n, ps, wc, Sum.INL e) =>
                align
                   [seq
-                     [str "val", space, var_bind n, space, decodepats ps, is],
+                     [str "val", space, var_bind n, space, decodepats (ps, wc), is],
                    indent 3 (exp e)]
-          | DECODEdecl (n, ps, Sum.INR ges) =>
+          | DECODEdecl (n, ps, wc, Sum.INR ges) =>
                align
                   [seq
-                     [str "val", space, var_bind n, space, decodepats ps, is],
+                     [str "val", space, var_bind n, space, decodepats (ps, wc), is],
                    indent 3
                      (alignPrefix
                         (map
@@ -169,17 +164,19 @@ functor MkAst (Core: AST_CORE) = struct
                          "| "))]
           | LETRECdecl d => recdecl d
 
-      and decodepats ps =
+      and decodepats (ps,wc) =
          seq
-            [str "[",
-             seq (separate (map decodepat ps, " ")),
-             str "]"]
+            ([str "[",
+             seq (separate (map decodepat ps, " "))] @
+             (if null wc then [] else 
+               [str " with", listex " " "" ", " (map withclause wc)]) @
+             [str "]"])
+
       and decodepat t =
          case t of
             MARKdecodepat t' => decodepat (#tree t')
           | BITdecodepat bp => listex "'" "'" " " (map bitpat bp)
           | TOKENdecodepat tp => tokpat tp
-          | DEFAULTdecodepat (v,s) => seq [var_bind v, str "='", str s, str "'"]
 
       and bitpat t =
          case t of
@@ -200,6 +197,7 @@ functor MkAst (Core: AST_CORE) = struct
          case t of
             MARKspecial t' => special (#tree t')
           | BINDspecial (v,s) => seq [var_use v, str "='", str s, str "'"]
+          | FORWARDspecial v => seq [var_use v]
 
       and guardedexp gexp = tuple2 (exp, exp) gexp
 
@@ -284,6 +282,11 @@ functor MkAst (Core: AST_CORE) = struct
           | ACTIONseqexp act => exp act
           | BINDseqexp (n, e) =>
                seq [var_bind n, space, str "<-", space, exp e]
+
+      and withclause t =
+         case t of
+            MARKwithclause t' => withclause (#tree t')
+          | WITHwithclause (v,s) => seq [var_bind v, str "='", str s, str "'"]
 
       and field (n, e) = seq [field_bind n, str "=", exp e]
 

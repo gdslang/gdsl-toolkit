@@ -24,7 +24,6 @@ end = struct
    fun split {span, tree} = let
       open AST
       val granularity = ref (~1: IntInf.int)
-      val state = ref [[]]
       val typealias = ref []
       val datatypes = ref []
       val constructors = ref SymMap.empty
@@ -32,11 +31,12 @@ end = struct
       val decodedecls = ref SymMap.empty
       val exports = ref []
 
-      fun insertDecode (n, pats, es) =
-         decodedecls :=
-            SymMap.unionWith
-               op@
-               (!decodedecls, SymMap.singleton (n, [(pats, es)]))
+      fun insertDecode (n, pats, wc, es) =
+         if not (null wc) then raise CM.CompilationError else
+            decodedecls :=
+               SymMap.unionWith
+                  op@
+                  (!decodedecls, SymMap.singleton (n, [(pats, es)]))
 
       fun updateConstructors (n, cons) = let
          fun updateCons (c, optTy) =
@@ -54,7 +54,6 @@ end = struct
             MARKdecl t => splitToplevel (#tree t)
           | INCLUDEdecl _ => raise CM.CompilationError 
           | GRANULARITYdecl i => granularity := i
-          | STATEdecl d => state := [d]
           | TYPEdecl d => typealias := d::(!typealias)
           | DECODEdecl d => insertDecode d
           | LETRECdecl d => valuedecls := d::(!valuedecls)
@@ -67,7 +66,6 @@ end = struct
       app splitToplevel tree
      ;Spec.IN
          {granularity= !granularity,
-          state= hd(!state),
           exports= !exports,
           typealias= rev (!typealias),
           datatypes= rev (!datatypes),
@@ -81,7 +79,7 @@ end = struct
       open Layout Pretty
       fun dec n (pats, e) =
          AST.PP.decl
-            (AST.DECODEdecl (n, pats, e))
+            (AST.DECODEdecl (n, pats, [], e))
       fun decs (n, ds, acc) = map (dec n) ds @ acc
       fun letrec (n, pats, e) =
          AST.PP.decl

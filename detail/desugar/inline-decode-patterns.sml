@@ -83,7 +83,6 @@ end = struct
                in
                   lp (rev bitpats, exp, [])
                end
-          | DEFAULTdecodepat _ => []
 
       and flattenDecodePats (pats, exp) = let
          fun lp (pats, exp, acc) =

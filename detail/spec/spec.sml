@@ -6,7 +6,6 @@ structure Spec = struct
    datatype 'a t = IN of
       {granularity: IntInf.int,
        exports: sym list,
-       state: (sym * ty * exp) list,
        typealias: (sym * ty) list,
        datatypes: (sym * (sym * ty option) list) list,
        constructors: (sym * ty option) SymMap.map,
@@ -16,7 +15,6 @@ structure Spec = struct
    fun upd f (IN t) =
       IN {granularity= #granularity t,
           exports= #exports t,
-          state= #state t,
           typealias= #typealias t,
           datatypes= #datatypes t,
           constructors= #constructors t,
@@ -30,7 +28,6 @@ structure Spec = struct
          align
             [seq [str "granularity", is, int (get#granularity t)],
              seq [str "export", is, dots],
-             seq [str "state", is, dots],
              seq [str "typealiases", is, dots],
              seq [str "datatypes", is, dots],
              seq [str "constructors", is, dots],

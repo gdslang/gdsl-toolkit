@@ -36,11 +36,11 @@ SpecTokens = struct
       | BIND
       | SELECT
       | WITH
-      | KW_orelse
-      | KW_andalso
+      | KW_or
+      | KW_and
       | KW_type
       | KW_then
-      | KW_state
+      | KW_with
       | KW_raise
       | KW_granularity
       | KW_of
@@ -58,7 +58,7 @@ SpecTokens = struct
       | KW_in
       | KW_case
 
-    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, GREATERTHAN, LESSTHAN, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_orelse, KW_andalso, KW_type, KW_then, KW_state, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_export, KW_include, KW_datatype, KW_do, KW_in, KW_case]
+    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, GREATERTHAN, LESSTHAN, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_or, KW_and, KW_type, KW_then, KW_with, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_export, KW_include, KW_datatype, KW_do, KW_in, KW_case]
 
     fun toString tok =
 (case (tok)
@@ -97,11 +97,11 @@ SpecTokens = struct
   | (BIND) => "<-"
   | (SELECT) => "$"
   | (WITH) => "@"
-  | (KW_orelse) => "orelse"
-  | (KW_andalso) => "andalso"
+  | (KW_or) => "or"
+  | (KW_and) => "and"
   | (KW_type) => "type"
   | (KW_then) => "then"
-  | (KW_state) => "state"
+  | (KW_with) => "with"
   | (KW_raise) => "raise"
   | (KW_granularity) => "granularity"
   | (KW_of) => "of"
@@ -156,11 +156,11 @@ SpecTokens = struct
   | (BIND) => false
   | (SELECT) => false
   | (WITH) => false
-  | (KW_orelse) => false
-  | (KW_andalso) => false
+  | (KW_or) => false
+  | (KW_and) => false
   | (KW_type) => false
   | (KW_then) => false
-  | (KW_state) => false
+  | (KW_with) => false
   | (KW_raise) => false
   | (KW_granularity) => false
   | (KW_of) => false
@@ -241,31 +241,26 @@ fun Decl_PROD_2_ACT (EQ, Qid, KW_export, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN
   ( markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
 fun Decl_PROD_3_ACT (STRING, KW_include, STRING_SPAN : (Lex.pos * Lex.pos), KW_include_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( markDecl (FULL_SPAN, PT.INCLUDEdecl STRING))
-fun Decl_PROD_4_ACT (EQ, KW_state, StateTy, EQ_SPAN : (Lex.pos * Lex.pos), KW_state_SPAN : (Lex.pos * Lex.pos), StateTy_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( markDecl (FULL_SPAN, PT.STATEdecl StateTy))
-fun Decl_PROD_5_ACT (EQ, Name, KW_datatype, ConDecls, EQ_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_datatype_SPAN : (Lex.pos * Lex.pos), ConDecls_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Decl_PROD_4_ACT (EQ, Name, KW_datatype, ConDecls, EQ_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_datatype_SPAN : (Lex.pos * Lex.pos), ConDecls_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
-fun Decl_PROD_6_ACT (EQ, Ty, Name, KW_type, EQ_SPAN : (Lex.pos * Lex.pos), Ty_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_type_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Decl_PROD_5_ACT (EQ, Ty, Name, KW_type, EQ_SPAN : (Lex.pos * Lex.pos), Ty_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_type_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
-fun Decl_PROD_7_ACT (EQ, Exp, Name1, Name2, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Decl_PROD_6_ACT (EQ, Exp, Name1, Name2, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
-fun Decl_PROD_8_ACT (EQ, Exp, Sym, Name, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Decl_PROD_7_ACT (EQ, Exp, Sym, Name, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
-fun Decl_PROD_9_SUBRULE_2_PROD_1_ACT (EQ, LB, RB, Exp, Name, DecodePat, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Decl_PROD_8_SUBRULE_2_PROD_1_ACT (EQ, LB, RB, Exp, Name, WithClauses, DecodePat, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), WithClauses_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-         PT.DECODEdecl (Name, DecodePat, Sum.INL Exp))
-fun Decl_PROD_9_SUBRULE_2_PROD_2_ACT (LB, RB, SR, Name, DecodePat, KW_val, LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+         PT.DECODEdecl (Name, DecodePat, WithClauses, Sum.INL Exp))
+fun Decl_PROD_8_SUBRULE_2_PROD_2_ACT (LB, RB, SR, Name, WithClauses, DecodePat, KW_val, LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), WithClauses_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-         PT.DECODEdecl (Name, DecodePat, Sum.INR SR))
-fun Decl_PROD_9_ACT (LB, RB, Name, decl, DecodePat, KW_val, LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), decl_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+         PT.DECODEdecl (Name, DecodePat, WithClauses, Sum.INR SR))
+fun Decl_PROD_8_ACT (LB, RB, Name, decl, WithClauses, DecodePat, KW_val, LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), decl_SPAN : (Lex.pos * Lex.pos), WithClauses_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       markDecl (FULL_SPAN, decl))
-fun StateTy_PROD_1_ACT (EQ, SR, Ty, Exp, LCB, RCB, Name, COLON, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Ty_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), COLON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  (
-      (Name, Ty, Exp)::SR)
 fun ConDecls_PROD_1_ACT (SR, ConDecl, SR_SPAN : (Lex.pos * Lex.pos), ConDecl_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( ConDecl::SR)
 fun ConDecl_PROD_1_ACT (SR, ConBind, SR_SPAN : (Lex.pos * Lex.pos), ConBind_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -277,6 +272,13 @@ fun Ty_PROD_2_ACT (Qid, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * L
 fun Ty_PROD_3_ACT (SR, Ty, LCB, RCB, Name, COLON, SR_SPAN : (Lex.pos * Lex.pos), Ty_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), COLON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKty (FULL_SPAN, PT.RECORDty ((Name, Ty)::SR)))
+fun WithClauses_PROD_1_ACT (SR, KW_with, WithClause, SR_SPAN : (Lex.pos * Lex.pos), KW_with_SPAN : (Lex.pos * Lex.pos), WithClause_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( WithClause::SR)
+fun WithClauses_PROD_2_ACT (FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( [])
+fun WithClause_PROD_1_ACT (EQ, Name, TICK1, TICK2, BITSTR, EQ_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  (
+      mark PT.MARKwithclause (FULL_SPAN, PT.WITHwithclause (Name, BITSTR)))
 fun DecodePat_PROD_1_ACT (BitPat, BitPat_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( BitPat)
 fun DecodePat_PROD_2_ACT (TokPat, TokPat_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -295,9 +297,12 @@ fun TokPat_PROD_2_ACT (Qid, Specializes, Qid_SPAN : (Lex.pos * Lex.pos), Special
           | SOME sps => PT.NAMEDtokpat (Qid,sps)))
 fun Specializes_PROD_1_ACT (SR, GREATERTHAN, LESSTHAN, Specialize, SR_SPAN : (Lex.pos * Lex.pos), GREATERTHAN_SPAN : (Lex.pos * Lex.pos), LESSTHAN_SPAN : (Lex.pos * Lex.pos), Specialize_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Specialize::SR)
-fun Specialize_PROD_1_ACT (EQ, Qid, BITSTR, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Specialize_PROD_1_ACT (EQ, Qid, TICK1, TICK2, BITSTR, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKspecial
                            (FULL_SPAN, PT.BINDspecial (Qid, BITSTR)))
+fun Specialize_PROD_2_ACT (Qid, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( mark PT.MARKspecial
+               (FULL_SPAN, PT.FORWARDspecial Qid))
 fun PrimBitPat_PROD_1_ACT (BITSTR, BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
 fun PrimBitPat_PROD_2_ACT (SR, Qid, SR_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -338,12 +343,12 @@ fun Pat_PROD_4_ACT (Pat, ConUse, Pat_SPAN : (Lex.pos * Lex.pos), ConUse_SPAN : (
 fun OrElseExp_PROD_1_ACT (SR, AndAlsoExp, SR_SPAN : (Lex.pos * Lex.pos), AndAlsoExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, mkLBinExp (AndAlsoExp, SR)))
-fun OrElse_PROD_1_ACT (KW_orelse, KW_orelse_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun OrElse_PROD_1_ACT (KW_or, KW_or_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.orElse))
 fun AndAlsoExp_PROD_1_ACT (SR, RExp, SR_SPAN : (Lex.pos * Lex.pos), RExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, mkLBinExp (RExp, SR)))
-fun AndAlso_PROD_1_ACT (KW_andalso, KW_andalso_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun AndAlso_PROD_1_ACT (KW_and, KW_and_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.andAlso))
 fun RExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (Sym, AExp, Sym_SPAN : (Lex.pos * Lex.pos), AExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Sym))
@@ -596,12 +601,12 @@ fun matchWITH strm = (case (lex(strm))
  of (Tok.WITH, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
-fun matchKW_orelse strm = (case (lex(strm))
- of (Tok.KW_orelse, span, strm') => ((), span, strm')
+fun matchKW_or strm = (case (lex(strm))
+ of (Tok.KW_or, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
-fun matchKW_andalso strm = (case (lex(strm))
- of (Tok.KW_andalso, span, strm') => ((), span, strm')
+fun matchKW_and strm = (case (lex(strm))
+ of (Tok.KW_and, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchKW_type strm = (case (lex(strm))
@@ -612,8 +617,8 @@ fun matchKW_then strm = (case (lex(strm))
  of (Tok.KW_then, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
-fun matchKW_state strm = (case (lex(strm))
- of (Tok.KW_state, span, strm') => ((), span, strm')
+fun matchKW_with strm = (case (lex(strm))
+ of (Tok.KW_with, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchKW_raise strm = (case (lex(strm))
@@ -848,17 +853,17 @@ fun Sym_NT (strm) = let
         (* end case *))
       end
 fun AndAlso_NT (strm) = let
-      val (KW_andalso_RES, KW_andalso_SPAN, strm') = matchKW_andalso(strm)
-      val FULL_SPAN = (#1(KW_andalso_SPAN), #2(KW_andalso_SPAN))
+      val (KW_and_RES, KW_and_SPAN, strm') = matchKW_and(strm)
+      val FULL_SPAN = (#1(KW_and_SPAN), #2(KW_and_SPAN))
       in
-        (UserCode.AndAlso_PROD_1_ACT (KW_andalso_RES, KW_andalso_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.AndAlso_PROD_1_ACT (KW_and_RES, KW_and_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun OrElse_NT (strm) = let
-      val (KW_orelse_RES, KW_orelse_SPAN, strm') = matchKW_orelse(strm)
-      val FULL_SPAN = (#1(KW_orelse_SPAN), #2(KW_orelse_SPAN))
+      val (KW_or_RES, KW_or_SPAN, strm') = matchKW_or(strm)
+      val FULL_SPAN = (#1(KW_or_SPAN), #2(KW_or_SPAN))
       in
-        (UserCode.OrElse_PROD_1_ACT (KW_orelse_RES, KW_orelse_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.OrElse_PROD_1_ACT (KW_or_RES, KW_or_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun Exp_NT (strm) = let
@@ -1007,8 +1012,8 @@ and MonadicExp_NT (strm) = let
                 | (Tok.KW_end, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_let, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_mod, _, strm') => MonadicExp_PROD_1(strm)
-                | (Tok.KW_andalso, _, strm') => MonadicExp_PROD_1(strm)
-                | (Tok.KW_orelse, _, strm') => MonadicExp_PROD_1(strm)
+                | (Tok.KW_and, _, strm') => MonadicExp_PROD_1(strm)
+                | (Tok.KW_or, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.WITH, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.SELECT, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.TICK, _, strm') => MonadicExp_PROD_1(strm)
@@ -1057,7 +1062,7 @@ and OrElseExp_NT (strm) = let
               ((OrElse_RES, AndAlsoExp_RES), FULL_SPAN, strm')
             end
       fun OrElseExp_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.KW_orelse, _, strm') => true
+             of (Tok.KW_or, _, strm') => true
               | _ => false
             (* end case *))
       val (SR_RES, SR_SPAN, strm') = EBNF.closure(OrElseExp_PROD_1_SUBRULE_1_PRED, OrElseExp_PROD_1_SUBRULE_1_NT, strm')
@@ -1076,7 +1081,7 @@ and AndAlsoExp_NT (strm) = let
               ((AndAlso_RES, RExp_RES), FULL_SPAN, strm')
             end
       fun AndAlsoExp_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.KW_andalso, _, strm') => true
+             of (Tok.KW_and, _, strm') => true
               | _ => false
             (* end case *))
       val (SR_RES, SR_SPAN, strm') = EBNF.closure(AndAlsoExp_PROD_1_SUBRULE_1_PRED, AndAlsoExp_PROD_1_SUBRULE_1_NT, strm')
@@ -1478,14 +1483,81 @@ and SelectExp_NT (strm) = let
         (UserCode.SelectExp_PROD_1_ACT (SR_RES, ApplyExp_RES, SR_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
-fun Specialize_NT (strm) = let
-      val (Qid_RES, Qid_SPAN, strm') = Qid_NT(strm)
+fun WithClause_NT (strm) = let
+      val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
       val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
+      val (TICK1_RES, TICK1_SPAN, strm') = matchTICK(strm')
       val (BITSTR_RES, BITSTR_SPAN, strm') = matchBITSTR(strm')
-      val FULL_SPAN = (#1(Qid_SPAN), #2(BITSTR_SPAN))
+      val (TICK2_RES, TICK2_SPAN, strm') = matchTICK(strm')
+      val FULL_SPAN = (#1(Name_SPAN), #2(TICK2_SPAN))
       in
-        (UserCode.Specialize_PROD_1_ACT (EQ_RES, Qid_RES, BITSTR_RES, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+        (UserCode.WithClause_PROD_1_ACT (EQ_RES, Name_RES, TICK1_RES, TICK2_RES, BITSTR_RES, EQ_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
+      end
+fun WithClauses_NT (strm) = let
+      fun WithClauses_PROD_1 (strm) = let
+            val (KW_with_RES, KW_with_SPAN, strm') = matchKW_with(strm)
+            val (WithClause_RES, WithClause_SPAN, strm') = WithClause_NT(strm')
+            fun WithClauses_PROD_1_SUBRULE_1_NT (strm) = let
+                  val (COMMA_RES, COMMA_SPAN, strm') = matchCOMMA(strm)
+                  val (WithClause_RES, WithClause_SPAN, strm') = WithClause_NT(strm')
+                  val FULL_SPAN = (#1(COMMA_SPAN), #2(WithClause_SPAN))
+                  in
+                    ((WithClause_RES), FULL_SPAN, strm')
+                  end
+            fun WithClauses_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+                   of (Tok.COMMA, _, strm') => true
+                    | _ => false
+                  (* end case *))
+            val (SR_RES, SR_SPAN, strm') = EBNF.closure(WithClauses_PROD_1_SUBRULE_1_PRED, WithClauses_PROD_1_SUBRULE_1_NT, strm')
+            val FULL_SPAN = (#1(KW_with_SPAN), #2(SR_SPAN))
+            in
+              (UserCode.WithClauses_PROD_1_ACT (SR_RES, KW_with_RES, WithClause_RES, SR_SPAN : (Lex.pos * Lex.pos), KW_with_SPAN : (Lex.pos * Lex.pos), WithClause_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun WithClauses_PROD_2 (strm) = let
+            val FULL_SPAN = (Err.getPos(strm), Err.getPos(strm))
+            in
+              (UserCode.WithClauses_PROD_2_ACT (FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm)
+            end
+      in
+        (case (lex(strm))
+         of (Tok.RB, _, strm') => WithClauses_PROD_2(strm)
+          | (Tok.KW_with, _, strm') => WithClauses_PROD_1(strm)
+          | _ => fail()
+        (* end case *))
+      end
+fun Specialize_NT (strm) = let
+      fun Specialize_PROD_1 (strm) = let
+            val (Qid_RES, Qid_SPAN, strm') = Qid_NT(strm)
+            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
+            val (TICK1_RES, TICK1_SPAN, strm') = matchTICK(strm')
+            val (BITSTR_RES, BITSTR_SPAN, strm') = matchBITSTR(strm')
+            val (TICK2_RES, TICK2_SPAN, strm') = matchTICK(strm')
+            val FULL_SPAN = (#1(Qid_SPAN), #2(TICK2_SPAN))
+            in
+              (UserCode.Specialize_PROD_1_ACT (EQ_RES, Qid_RES, TICK1_RES, TICK2_RES, BITSTR_RES, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun Specialize_PROD_2 (strm) = let
+            val (Qid_RES, Qid_SPAN, strm') = Qid_NT(strm)
+            val FULL_SPAN = (#1(Qid_SPAN), #2(Qid_SPAN))
+            in
+              (UserCode.Specialize_PROD_2_ACT (Qid_RES, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      in
+        (case (lex(strm))
+         of (Tok.ID(_), _, strm') =>
+              (case (lex(strm'))
+               of (Tok.EQ, _, strm') => Specialize_PROD_1(strm)
+                | (Tok.GREATERTHAN, _, strm') => Specialize_PROD_2(strm)
+                | (Tok.COMMA, _, strm') => Specialize_PROD_2(strm)
+                | _ => fail()
+              (* end case *))
+          | _ => fail()
+        (* end case *))
       end
 fun Specializes_NT (strm) = let
       val (LESSTHAN_RES, LESSTHAN_SPAN, strm') = matchLESSTHAN(strm)
@@ -1714,35 +1786,6 @@ fun ConDecls_NT (strm) = let
         (UserCode.ConDecls_PROD_1_ACT (SR_RES, ConDecl_RES, SR_SPAN : (Lex.pos * Lex.pos), ConDecl_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
-fun StateTy_NT (strm) = let
-      val (LCB_RES, LCB_SPAN, strm') = matchLCB(strm)
-      val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
-      val (COLON_RES, COLON_SPAN, strm') = matchCOLON(strm')
-      val (Ty_RES, Ty_SPAN, strm') = Ty_NT(strm')
-      val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
-      val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
-      fun StateTy_PROD_1_SUBRULE_1_NT (strm) = let
-            val (COMMA_RES, COMMA_SPAN, strm') = matchCOMMA(strm)
-            val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
-            val (COLON_RES, COLON_SPAN, strm') = matchCOLON(strm')
-            val (Ty_RES, Ty_SPAN, strm') = Ty_NT(strm')
-            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
-            val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
-            val FULL_SPAN = (#1(COMMA_SPAN), #2(Exp_SPAN))
-            in
-              ((Name_RES, Ty_RES, Exp_RES), FULL_SPAN, strm')
-            end
-      fun StateTy_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.COMMA, _, strm') => true
-              | _ => false
-            (* end case *))
-      val (SR_RES, SR_SPAN, strm') = EBNF.closure(StateTy_PROD_1_SUBRULE_1_PRED, StateTy_PROD_1_SUBRULE_1_NT, strm')
-      val (RCB_RES, RCB_SPAN, strm') = matchRCB(strm')
-      val FULL_SPAN = (#1(LCB_SPAN), #2(RCB_SPAN))
-      in
-        (UserCode.StateTy_PROD_1_ACT (EQ_RES, SR_RES, Ty_RES, Exp_RES, LCB_RES, RCB_RES, Name_RES, COLON_RES, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Ty_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), COLON_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
 fun Decl_NT (strm) = let
       fun Decl_PROD_1 (strm) = let
             val (KW_granularity_RES, KW_granularity_SPAN, strm') = matchKW_granularity(strm)
@@ -1781,37 +1824,49 @@ fun Decl_NT (strm) = let
                 FULL_SPAN, strm')
             end
       fun Decl_PROD_4 (strm) = let
-            val (KW_state_RES, KW_state_SPAN, strm') = matchKW_state(strm)
-            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
-            val (StateTy_RES, StateTy_SPAN, strm') = StateTy_NT(strm')
-            val FULL_SPAN = (#1(KW_state_SPAN), #2(StateTy_SPAN))
-            in
-              (UserCode.Decl_PROD_4_ACT (EQ_RES, KW_state_RES, StateTy_RES, EQ_SPAN : (Lex.pos * Lex.pos), KW_state_SPAN : (Lex.pos * Lex.pos), StateTy_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-                FULL_SPAN, strm')
-            end
-      fun Decl_PROD_5 (strm) = let
             val (KW_datatype_RES, KW_datatype_SPAN, strm') = matchKW_datatype(strm)
             val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
             val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
             val (ConDecls_RES, ConDecls_SPAN, strm') = ConDecls_NT(strm')
             val FULL_SPAN = (#1(KW_datatype_SPAN), #2(ConDecls_SPAN))
             in
-              (UserCode.Decl_PROD_5_ACT (EQ_RES, Name_RES, KW_datatype_RES, ConDecls_RES, EQ_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_datatype_SPAN : (Lex.pos * Lex.pos), ConDecls_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.Decl_PROD_4_ACT (EQ_RES, Name_RES, KW_datatype_RES, ConDecls_RES, EQ_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_datatype_SPAN : (Lex.pos * Lex.pos), ConDecls_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
-      fun Decl_PROD_6 (strm) = let
+      fun Decl_PROD_5 (strm) = let
             val (KW_type_RES, KW_type_SPAN, strm') = matchKW_type(strm)
             val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
             val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
             val (Ty_RES, Ty_SPAN, strm') = Ty_NT(strm')
             val FULL_SPAN = (#1(KW_type_SPAN), #2(Ty_SPAN))
             in
-              (UserCode.Decl_PROD_6_ACT (EQ_RES, Ty_RES, Name_RES, KW_type_RES, EQ_SPAN : (Lex.pos * Lex.pos), Ty_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_type_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.Decl_PROD_5_ACT (EQ_RES, Ty_RES, Name_RES, KW_type_RES, EQ_SPAN : (Lex.pos * Lex.pos), Ty_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_type_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun Decl_PROD_6 (strm) = let
+            val (KW_val_RES, KW_val_SPAN, strm') = matchKW_val(strm)
+            val (Name1_RES, Name1_SPAN, strm') = Name_NT(strm')
+            fun Decl_PROD_6_SUBRULE_1_NT (strm) = let
+                  val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
+                  val FULL_SPAN = (#1(Name_SPAN), #2(Name_SPAN))
+                  in
+                    ((Name_RES), FULL_SPAN, strm')
+                  end
+            fun Decl_PROD_6_SUBRULE_1_PRED (strm) = (case (lex(strm))
+                   of (Tok.ID(_), _, strm') => true
+                    | _ => false
+                  (* end case *))
+            val (Name2_RES, Name2_SPAN, strm') = EBNF.closure(Decl_PROD_6_SUBRULE_1_PRED, Decl_PROD_6_SUBRULE_1_NT, strm')
+            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
+            val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
+            val FULL_SPAN = (#1(KW_val_SPAN), #2(Exp_SPAN))
+            in
+              (UserCode.Decl_PROD_6_ACT (EQ_RES, Exp_RES, Name1_RES, Name2_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun Decl_PROD_7 (strm) = let
             val (KW_val_RES, KW_val_SPAN, strm') = matchKW_val(strm)
-            val (Name1_RES, Name1_SPAN, strm') = Name_NT(strm')
+            val (Sym_RES, Sym_SPAN, strm') = Sym_NT(strm')
             fun Decl_PROD_7_SUBRULE_1_NT (strm) = let
                   val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
                   val FULL_SPAN = (#1(Name_SPAN), #2(Name_SPAN))
@@ -1822,66 +1877,46 @@ fun Decl_NT (strm) = let
                    of (Tok.ID(_), _, strm') => true
                     | _ => false
                   (* end case *))
-            val (Name2_RES, Name2_SPAN, strm') = EBNF.closure(Decl_PROD_7_SUBRULE_1_PRED, Decl_PROD_7_SUBRULE_1_NT, strm')
+            val (Name_RES, Name_SPAN, strm') = EBNF.closure(Decl_PROD_7_SUBRULE_1_PRED, Decl_PROD_7_SUBRULE_1_NT, strm')
             val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
             val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
             val FULL_SPAN = (#1(KW_val_SPAN), #2(Exp_SPAN))
             in
-              (UserCode.Decl_PROD_7_ACT (EQ_RES, Exp_RES, Name1_RES, Name2_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.Decl_PROD_7_ACT (EQ_RES, Exp_RES, Sym_RES, Name_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun Decl_PROD_8 (strm) = let
             val (KW_val_RES, KW_val_SPAN, strm') = matchKW_val(strm)
-            val (Sym_RES, Sym_SPAN, strm') = Sym_NT(strm')
-            fun Decl_PROD_8_SUBRULE_1_NT (strm) = let
-                  val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
-                  val FULL_SPAN = (#1(Name_SPAN), #2(Name_SPAN))
-                  in
-                    ((Name_RES), FULL_SPAN, strm')
-                  end
-            fun Decl_PROD_8_SUBRULE_1_PRED (strm) = (case (lex(strm))
-                   of (Tok.ID(_), _, strm') => true
-                    | _ => false
-                  (* end case *))
-            val (Name_RES, Name_SPAN, strm') = EBNF.closure(Decl_PROD_8_SUBRULE_1_PRED, Decl_PROD_8_SUBRULE_1_NT, strm')
-            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
-            val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
-            val FULL_SPAN = (#1(KW_val_SPAN), #2(Exp_SPAN))
-            in
-              (UserCode.Decl_PROD_8_ACT (EQ_RES, Exp_RES, Sym_RES, Name_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-                FULL_SPAN, strm')
-            end
-      fun Decl_PROD_9 (strm) = let
-            val (KW_val_RES, KW_val_SPAN, strm') = matchKW_val(strm)
             val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
             val (LB_RES, LB_SPAN, strm') = matchLB(strm')
-            fun Decl_PROD_9_SUBRULE_1_NT (strm) = let
+            fun Decl_PROD_8_SUBRULE_1_NT (strm) = let
                   val (DecodePat_RES, DecodePat_SPAN, strm') = DecodePat_NT(strm)
                   val FULL_SPAN = (#1(DecodePat_SPAN), #2(DecodePat_SPAN))
                   in
                     ((DecodePat_RES), FULL_SPAN, strm')
                   end
-            fun Decl_PROD_9_SUBRULE_1_PRED (strm) = (case (lex(strm))
+            fun Decl_PROD_8_SUBRULE_1_PRED (strm) = (case (lex(strm))
                    of (Tok.TICK, _, strm') => true
                     | (Tok.ID(_), _, strm') => true
                     | (Tok.POSINT(_), _, strm') => true
                     | (Tok.NEGINT(_), _, strm') => true
                     | _ => false
                   (* end case *))
-            val (DecodePat_RES, DecodePat_SPAN, strm') = EBNF.closure(Decl_PROD_9_SUBRULE_1_PRED, Decl_PROD_9_SUBRULE_1_NT, strm')
+            val (DecodePat_RES, DecodePat_SPAN, strm') = EBNF.closure(Decl_PROD_8_SUBRULE_1_PRED, Decl_PROD_8_SUBRULE_1_NT, strm')
+            val (WithClauses_RES, WithClauses_SPAN, strm') = WithClauses_NT(strm')
             val (RB_RES, RB_SPAN, strm') = matchRB(strm')
             val (decl_RES, decl_SPAN, strm') = let
-            fun Decl_PROD_9_SUBRULE_2_NT (strm) = let
-                  fun Decl_PROD_9_SUBRULE_2_PROD_1 (strm) = let
+            fun Decl_PROD_8_SUBRULE_2_NT (strm) = let
+                  fun Decl_PROD_8_SUBRULE_2_PROD_1 (strm) = let
                         val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm)
                         val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
                         val FULL_SPAN = (#1(EQ_SPAN), #2(Exp_SPAN))
                         in
-                          (UserCode.Decl_PROD_9_SUBRULE_2_PROD_1_ACT (EQ_RES, LB_RES, RB_RES, Exp_RES, Name_RES, DecodePat_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                          (UserCode.Decl_PROD_8_SUBRULE_2_PROD_1_ACT (EQ_RES, LB_RES, RB_RES, Exp_RES, Name_RES, WithClauses_RES, DecodePat_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), WithClauses_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                             FULL_SPAN, strm')
                         end
-                  fun Decl_PROD_9_SUBRULE_2_PROD_2 (strm) = let
-                        fun Decl_PROD_9_SUBRULE_2_PROD_2_SUBRULE_1_NT (strm) = let
+                  fun Decl_PROD_8_SUBRULE_2_PROD_2 (strm) = let
+                        fun Decl_PROD_8_SUBRULE_2_PROD_2_SUBRULE_1_NT (strm) = let
                               val (BAR_RES, BAR_SPAN, strm') = matchBAR(strm)
                               val (Exp1_RES, Exp1_SPAN, strm') = Exp_NT(strm')
                               val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
@@ -1890,31 +1925,31 @@ fun Decl_NT (strm) = let
                               in
                                 ((Exp1_RES, Exp2_RES), FULL_SPAN, strm')
                               end
-                        fun Decl_PROD_9_SUBRULE_2_PROD_2_SUBRULE_1_PRED (strm) = (case (lex(strm))
+                        fun Decl_PROD_8_SUBRULE_2_PROD_2_SUBRULE_1_PRED (strm) = (case (lex(strm))
                                of (Tok.BAR, _, strm') => true
                                 | _ => false
                               (* end case *))
-                        val (SR_RES, SR_SPAN, strm') = EBNF.posclos(Decl_PROD_9_SUBRULE_2_PROD_2_SUBRULE_1_PRED, Decl_PROD_9_SUBRULE_2_PROD_2_SUBRULE_1_NT, strm)
+                        val (SR_RES, SR_SPAN, strm') = EBNF.posclos(Decl_PROD_8_SUBRULE_2_PROD_2_SUBRULE_1_PRED, Decl_PROD_8_SUBRULE_2_PROD_2_SUBRULE_1_NT, strm)
                         val FULL_SPAN = (#1(SR_SPAN), #2(SR_SPAN))
                         in
-                          (UserCode.Decl_PROD_9_SUBRULE_2_PROD_2_ACT (LB_RES, RB_RES, SR_RES, Name_RES, DecodePat_RES, KW_val_RES, LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                          (UserCode.Decl_PROD_8_SUBRULE_2_PROD_2_ACT (LB_RES, RB_RES, SR_RES, Name_RES, WithClauses_RES, DecodePat_RES, KW_val_RES, LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), WithClauses_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                             FULL_SPAN, strm')
                         end
                   in
                     (case (lex(strm))
                      of (Tok.BAR, _, strm') =>
-                          Decl_PROD_9_SUBRULE_2_PROD_2(strm)
+                          Decl_PROD_8_SUBRULE_2_PROD_2(strm)
                       | (Tok.EQ, _, strm') =>
-                          Decl_PROD_9_SUBRULE_2_PROD_1(strm)
+                          Decl_PROD_8_SUBRULE_2_PROD_1(strm)
                       | _ => fail()
                     (* end case *))
                   end
             in
-              Decl_PROD_9_SUBRULE_2_NT(strm')
+              Decl_PROD_8_SUBRULE_2_NT(strm')
             end
             val FULL_SPAN = (#1(KW_val_SPAN), #2(decl_SPAN))
             in
-              (UserCode.Decl_PROD_9_ACT (LB_RES, RB_RES, Name_RES, decl_RES, DecodePat_RES, KW_val_RES, LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), decl_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.Decl_PROD_8_ACT (LB_RES, RB_RES, Name_RES, decl_RES, WithClauses_RES, DecodePat_RES, KW_val_RES, LB_SPAN : (Lex.pos * Lex.pos), RB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), decl_SPAN : (Lex.pos * Lex.pos), WithClauses_SPAN : (Lex.pos * Lex.pos), DecodePat_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in
@@ -1923,22 +1958,21 @@ fun Decl_NT (strm) = let
               (case (lex(strm'))
                of (Tok.ID(_), _, strm') =>
                     (case (lex(strm'))
-                     of (Tok.LB, _, strm') => Decl_PROD_9(strm)
-                      | (Tok.EQ, _, strm') => Decl_PROD_7(strm)
-                      | (Tok.ID(_), _, strm') => Decl_PROD_7(strm)
+                     of (Tok.LB, _, strm') => Decl_PROD_8(strm)
+                      | (Tok.EQ, _, strm') => Decl_PROD_6(strm)
+                      | (Tok.ID(_), _, strm') => Decl_PROD_6(strm)
                       | _ => fail()
                     (* end case *))
-                | (Tok.LESSTHAN, _, strm') => Decl_PROD_8(strm)
-                | (Tok.GREATERTHAN, _, strm') => Decl_PROD_8(strm)
-                | (Tok.SYMBOL(_), _, strm') => Decl_PROD_8(strm)
+                | (Tok.LESSTHAN, _, strm') => Decl_PROD_7(strm)
+                | (Tok.GREATERTHAN, _, strm') => Decl_PROD_7(strm)
+                | (Tok.SYMBOL(_), _, strm') => Decl_PROD_7(strm)
                 | _ => fail()
               (* end case *))
-          | (Tok.KW_datatype, _, strm') => Decl_PROD_5(strm)
-          | (Tok.KW_include, _, strm') => Decl_PROD_3(strm)
-          | (Tok.KW_granularity, _, strm') => Decl_PROD_1(strm)
+          | (Tok.KW_datatype, _, strm') => Decl_PROD_4(strm)
           | (Tok.KW_export, _, strm') => Decl_PROD_2(strm)
-          | (Tok.KW_state, _, strm') => Decl_PROD_4(strm)
-          | (Tok.KW_type, _, strm') => Decl_PROD_6(strm)
+          | (Tok.KW_granularity, _, strm') => Decl_PROD_1(strm)
+          | (Tok.KW_include, _, strm') => Decl_PROD_3(strm)
+          | (Tok.KW_type, _, strm') => Decl_PROD_5(strm)
           | _ => fail()
         (* end case *))
       end
@@ -1967,7 +2001,6 @@ fun Program_NT (strm) = let
               | (Tok.KW_export, _, strm') => true
               | (Tok.KW_val, _, strm') => true
               | (Tok.KW_granularity, _, strm') => true
-              | (Tok.KW_state, _, strm') => true
               | (Tok.KW_type, _, strm') => true
               | (Tok.SEMI, _, strm') => true
               | _ => false
