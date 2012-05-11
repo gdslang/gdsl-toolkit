@@ -329,7 +329,11 @@ datatype insn =
  | POP of unop
  | JMP of unop
  | CALL of target
-
+ | RET of unop
+ | LEA of binop
+ | TEST of binop
+ | CMP of binop
+ | SHR of binop
  | SUB of binop
  | XOR of binop
 
@@ -592,14 +596,6 @@ val sib-with-index-and-base reg s i b = do
    end
 end
 
-#val sib ['scale:2 100 101']
-# | addrsz? = sib-without-index reg16-rex
-# | otherwise = sib-without-index reg32-rex
-
-#val sib ['scale:2 index:3 101'] 
-# | addrsz? = sib-without-base reg16-rex scale index
-# | otherwise = sib-without-base reg32-rex scale index
-
 val sib ['scale:2 index:3 base:3']
  | addrsz? = sib-with-index-and-base reg16-rex scale index base
  | mode64? = sib-with-index-and-base reg64-rex scale index base
@@ -636,13 +632,6 @@ val r/m-with-sib reg = do
             i <- imm32;
             mem (SUM{a=sibOpnd, b=i})
          end
-#    | '11':
-#         do
-#            #TODO: this seems wrong, the sib-byte was decoded,
-#            #but is not used...
-#            rm <- query $rm;
-#            return (reg rm)
-#         end
    end
 end
 
@@ -669,7 +658,6 @@ val r/m-without-sib reg addr-reg = do
             i <- imm32;
             mem (SUM{a=addr-reg rm, b=i})
          end
-#| '11': return (reg rm)
    end
 end
 
@@ -714,6 +702,7 @@ val reg/nomem reg = do
       '11': r/m 0 reg
    end
 end
+
 val xmm/nomem128 = reg/nomem xmm-rex
 val mm/nomem64 = reg/nomem mm-rex
 
@@ -726,6 +715,7 @@ val m r/m = do
    end
 #   if (unsigned (not mod)) > 0 then r/m else r/m
 end
+
 val m16 = m r/m16
 val m32 = m r/m32
 val m64 = m r/m64
@@ -998,6 +988,16 @@ end
 val p66 [0xe8] = near-rel CALL rel16
 val main [0xe8] = near-rel CALL rel32
 val main [0xff /2] = near-abs CALL r/m64
+
+## LEA 3-579 Vol. 2A
+val p66 [0x8d /r]
+ | addrsz? = binop LEA r16 r/m16
+ | otherwise = binop LEA r16 r/m32
+val main [0x8d /r]
+ | rexw? & addrsz? = binop LEA r64 r/m32
+ | rexw? = binop LEA r64 r/m64
+ | addrsz? = binop LEA r32 r/m16
+ | otherwise = binop LEA r32 r/m32
 
 ### SUB 4-572 Vol. 2B
 val main [0x2c] = binop SUB al imm8
