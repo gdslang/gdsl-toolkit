@@ -1344,6 +1344,11 @@ val p66 [0xff /5] = far-abs-ptr JMP_p (FARABS m16) ptr16
 val main [0xff /5]
  | rexw? = far-abs-ptr JMP_p (FARABS m16) ptr64
  | otherwise? = far-abs-ptr JMP_p (FARABS m16) ptr32
+#TODO: restrict!
+#val p66 [0xff /5<mod-mem>] = far-abs-ptr JMP_p (FARABS m16) ptr16
+#val main [0xff /5<mod-mem>]
+# | rexw? = far-abs-ptr JMP_p (FARABS m16) ptr64
+# | otherwise? = far-abs-ptr JMP_p (FARABS m16) ptr32
 
 ### SETcc 4-372 Vol. 2B
 val main [0x0f 0x97] = unop SETA r/m8
