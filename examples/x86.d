@@ -1466,12 +1466,6 @@ val main [0x1f] = unop POP ds
 val main [0x07] = unop POP es
 val main [0x17] = unop POP ss
 
-### RET Vol. 2B 4-469
-val main [0xc3] = return RET
-val main [0xcb] = return RET
-val main [0xc2] = unop RET imm16
-val main [0xca] = unop RET imm16
-
 ### ADD Vol. 2A 3-35
 val main [0x04] = binop ADD al imm8
 val p66 [0x05] = binop ADD ax imm16
