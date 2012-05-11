@@ -27,6 +27,7 @@ structure Core = struct
        | IF of t * t * t
        | CASE of t * (Pat.t * t) list
        | APP of t * t
+       | PRI of sym * sym list
        | FN of sym * t
        | RECORD of (sym * t) list
        | UPDATE of (sym * t) list
@@ -55,6 +56,7 @@ structure Core = struct
       fun fld sym = SpecAbstractTree.PP.field_use sym
       val is = seq [space, str "=", space]
       val inn = seq [space, str "in"]
+      fun vars xs = seq [lp, seq (separate (map var xs, ",")), rp]
       fun layout exp = let open Exp in
          case exp of
             LETVAL (n, e, body) =>
@@ -80,6 +82,7 @@ structure Core = struct
                   [seq [str "\\", var n, str "."],
                    indent 3 (layout e)]
           | APP (e1, e2) => seq [layout e1, space, layout e2]
+          | PRI (f, xs) => seq [var f, vars xs]
           | RECORD fs => record (map field fs)
           | UPDATE fs => seq [str "@", record (map field fs)]
           | SELECT f => seq [str "$", fld f]

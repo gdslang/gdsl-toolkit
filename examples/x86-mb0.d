@@ -1,5 +1,5 @@
 granularity = 8
-export = main decode
+export = main
 
 # Optional arguments
 #
@@ -15,29 +15,32 @@ export = main decode
 # limit = 120
 # recursion-depth = main = 4
 
-val decode = do
-   update
-      @{mode64='1',
-        repne='0',
-        rep='0',
-        rex='0',
-        rexw='0',
-        rexb='0',
-        rexr='0',
-        rexx='0',
-        vexm='00001',
-        vexv='0000',
-        vexl='0',
-        vexp='00',
-        opndsz='0',
-        addrsz='0',
-        segment=DS,
-        mod='00',
-        reg/opcode='000',
-        rm='000',
-        ptrty=32};
-   main
-end
+val decoder =
+   let val retState x = 
+      {mode64='0',
+       repne='0',
+       rep='0',
+       rex='0',
+       rexw='0',
+       rexb='0',
+       rexr='0',
+       rexx='0',
+       vexm='00001',
+       vexv='0000',
+       vexl='0',
+       vexp='00',
+       opndsz='0',
+       addrsz='0',
+       segment=DS,
+       mod='00',
+       reg='000',
+       rm='000'}
+   in
+      do
+         update retState;
+         main
+      end
+   end
 
 val & giveA giveB = do
    a <- giveA;
@@ -63,7 +66,7 @@ val mod-mem? = do
    case mod of
       '11': return '1'
     | otherwise: return '0'
-   end
+    end
 end
 val mod-reg? = / mod-mem?
 val mode64? = query $mode64
@@ -153,14 +156,6 @@ datatype opnd =
  | SUM of {a:opnd, b:opnd}
  | SCALE of {imm:2, opnd:opnd}
 
-datatype flowopnd =
-   REL8 of 8
- | REL16 of 16
- | REL32 of 32
- | REL64 of 64
- | NEARABS of opnd
- | FARABS of opnd
-
 val al = return (REG AL)
 val ah = return (REG AH)
 val ax = return (REG AX)
@@ -193,11 +188,6 @@ val rsi = return (REG RSI)
 val di = return (REG DI)
 val edi = return (REG EDI)
 val rdi = return (REG RDI)
-val cs = return (REG CS)
-val ds = return (REG DS)
-val es = return (REG ES)
-val fs = return (REG FS)
-val gs = return (REG GS)
 val mm0 = return (REG MM0)
 val mm1 = return (REG MM1)
 val mm2 = return (REG MM2)
@@ -248,10 +238,8 @@ val ymm14 = return (REG YMM14)
 val ymm15 = return (REG YMM15)
 
 # A type alias used for instructions taking two arguments
-type unop = {opnd1:opnd}
 type binop = {opnd1:opnd, opnd2:opnd}
 type trinop = {opnd1:opnd, opnd2:opnd, opnd3:opnd}
-type target = {opnd1:flowopnd}
 
 datatype insn =
    ADD of binop
@@ -325,18 +313,6 @@ datatype insn =
  | VMOVNTPS of binop
  | MOVNTQ of binop
 
- | PUSH of unop
- | POP of unop
- | JMP of unop
- | CALL of target
- | RET of unop
- | LEA of binop
- | TEST of binop
- | CMP of binop
- | SHR of binop
- | SUB of binop
- | XOR of binop
-
  | PHADDW of binop
  | VPHADDW of trinop
  | PHADDD of binop
@@ -344,16 +320,10 @@ datatype insn =
  | XADD of binop
 
 val imm8 ['b:8'] = return (IMM8 b)
-val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b2 ^ b1))
-val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (IMM32 (b4 ^ b3 ^ b2 ^ b1))
+val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b1 ^ b2))
+val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (IMM32 (b1 ^ b2 ^ b3 ^ b4))
 val imm64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
-   return (IMM64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
-
-val rel8 ['b:8'] = return (REL8 b)
-val rel16 ['b1:8' 'b2:8'] = return (REL16 (b2 ^ b1))
-val rel32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (REL32 (b4 ^ b3 ^ b2 ^ b1))
-val rel64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
-   return (REL64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
+   return (IMM64 (b1 ^ b2 ^ b3 ^ b4 ^ b5 ^ b6 ^ b7 ^ b8))
 
 ## Convert a bit-vectors to registers
 
@@ -548,9 +518,8 @@ val /3 ['mod:2 011 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='011'}
 val /4 ['mod:2 100 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='100'}
 val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='101'}
 val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='110'}
-#val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='111'}
+val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='111'}
 val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
-val /7 [/r<mod,reg/opcode='111',rm>] = return {}
 
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
@@ -560,46 +529,47 @@ val sib-without-index reg = do
    rexb <- query $rexb;
    case mod of
       '00': imm32
-    | '01': return (reg rexb '101') # rBP
-    | '10': return (reg rexb '101') # rBP
+    | '01': return ((reg rexb) '101') # rBP
+    | '10': return ((reg rexb) '101') # rBP
    end
 end
 
 val sib-without-base reg scale index = do
    rexx <- query $rexx;
-   scaled <- return (SCALE{imm=scale, opnd=reg rexx index});
-   mod <- query $mod;
-   rexb <- query $rexb;
-   case mod of
-      '00': 
-         do
-            i <- imm32;
-            return (SUM{a=scaled, b=i})
+   let
+      val scaled = SCALE{imm=scale, opnd=(reg rexx) index}
+   in
+      do
+         mod <- query $mod;
+	      rexb <- query $rexb;
+         case mod of
+            '00': 
+               do
+                  i <- imm32;
+                  return (SUM{a=scaled, b=i})
+               end
+          | _ : return (SUM{a=scaled, b=(reg rexb) '101'}) # rBP
          end
-    | _ : return (SUM{a=scaled, b=reg rexb '101'}) # rBP
+      end
    end
 end
 
 val sib-with-index-and-base reg s i b = do
    rexx <- query $rexx;
    rexb <- query $rexb;
-   case i of
-      '100':
-         case b of
-            '101': sib-without-index reg
-          | _: return (reg rexb b)
-         end
-    | _:
-         case b of
-            '101': sib-without-base reg s i
-          | _: return (SUM{a=SCALE{imm=s, opnd=reg rexx i}, b=reg rexb b})
-         end
-   end
+   return (SUM{a=SCALE{imm=s, opnd=(reg rexx) i}, b=(reg rexb) b})
 end
+
+val sib ['scale:2 100 101']
+ | addrsz? = sib-without-index reg16-rex
+ | otherwise = sib-without-index reg32-rex
+
+val sib ['scale:2 index:3 101'] 
+ | addrsz? = sib-without-base reg16-rex scale index
+ | otherwise = sib-without-base reg32-rex scale index
 
 val sib ['scale:2 index:3 base:3']
  | addrsz? = sib-with-index-and-base reg16-rex scale index base
- | mode64? = sib-with-index-and-base reg64-rex scale index base
  | otherwise = sib-with-index-and-base reg32-rex scale index base
 
 ## Decoding the mod/rm byte
@@ -613,12 +583,12 @@ val addrsz = do
 end
 
 val mem op = do
-   sz <- query $ptrty;
+   sz <- addrsz;
    seg <- query $segment;
    return (MEM {sz=sz, segment=seg, opnd=op})
 end
 
-val r/m-with-sib reg = do
+val r/m-with-sib = do
    sibOpnd <- sib;
    mod <- query $mod;
    case mod of
@@ -659,6 +629,7 @@ val r/m-without-sib reg addr-reg = do
             i <- imm32;
             mem (SUM{a=addr-reg rm, b=i})
          end
+    | '11': return (reg rm)
    end
 end
 
@@ -670,40 +641,33 @@ val addrReg = do
    end
 end
 
-val r/m ptrTy reg = do
-   update@{ptrty=ptrTy};
+val r/m reg = do
    mod <- query $mod;
    rm <- query $rm;
    rexb <- query $rexb;
    addr-reg <- addrReg;
-   case mod of
-      '11': return (reg rexb rm)
-    | _:
-         case rm of
-            '100': r/m-with-sib (reg rexb)
-          | _ : r/m-without-sib (reg rexb) (addr-reg rexb)
-         end
+   case rm of
+      '100': r/m-with-sib
+    | _ : r/m-without-sib (reg rexb) (addr-reg rexb)
    end
 end
 
-
-val r/m8 = r/m 8 reg8-rex
-val r/m16 = r/m 16 reg16-rex
-val r/m32 = r/m 32 reg32-rex
-val r/m64 = r/m 64 reg64-rex
-val mm/m64 = r/m 64 mm-rex
-val xmm/m128 = r/m 128 xmm-rex
-val xmm/m64 = r/m 64 xmm-rex
-val xmm/m32 = r/m 32 xmm-rex
-val ymm/m256 = r/m 256 ymm-rex
+val r/m8 = r/m reg8-rex
+val r/m16 = r/m reg16-rex
+val r/m32 = r/m reg32-rex
+val r/m64 = r/m reg64-rex
+val mm/m64 = r/m mm-rex
+val xmm/m128 = r/m xmm-rex
+val xmm/m64 = r/m xmm-rex
+val xmm/m32 = r/m xmm-rex
+val ymm/m256 = r/m ymm-rex
 
 val reg/nomem reg = do
    mod <- query $mod;
    case mod of
-      '11': r/m 0 reg
+      '11': r/m reg
    end
 end
-
 val xmm/nomem128 = reg/nomem xmm-rex
 val mm/nomem64 = reg/nomem mm-rex
 
@@ -716,36 +680,25 @@ val m r/m = do
    end
 #   if (unsigned (not mod)) > 0 then r/m else r/m
 end
-
 val m16 = m r/m16
 val m32 = m r/m32
 val m64 = m r/m64
 val m128 = m xmm/m128
 val m256 = m ymm/m256
 
-val r/rexb reg = do
-   mod <- query $rexb;
-   r <- query $reg/opcode;
-   return (reg mod r)
+val r/ reg = do
+   rexr <- query $rexr;
+   r <- query $reg;
+   return ((reg rexr) r)
 end
 
-val r/rexr reg = do
-   mod <- query $rexr;
-   r <- query $reg/opcode;
-   return (reg mod r)
-end
-
-val r8 = r/rexr reg8-rex
-val r16 = r/rexr reg16-rex
-val r32 = r/rexr reg32-rex
-val r64 = r/rexr reg64-rex
-val r8/rexb = r/rexb reg8-rex
-val r16/rexb = r/rexb reg16-rex
-val r32/rexb = r/rexb reg32-rex
-val r64/rexb = r/rexb reg64-rex
-val mm64 = r/rexb mm-rex
-val xmm128 = r/rexr xmm-rex
-val ymm256 = r/rexr ymm-rex
+val r8 = r/ reg8-rex
+val r16 = r/ reg16-rex
+val r32 = r/ reg32-rex
+val r64 = r/ reg64-rex
+val mm64 = r/ mm-rex
+val xmm128 = r/ xmm-rex
+val ymm256 = r/ ymm-rex
 
 val vex/'mm mmF = do
    vexv <- query $vexv;
@@ -753,8 +706,6 @@ val vex/'mm mmF = do
 end
 val vex/xmm = vex/'mm xmm
 val vex/ymm = vex/'mm ymm
-
-#TODO: set correct `ptrty` for `moffs*`
 
 val moffs8 = do
    i <- imm8;
@@ -776,15 +727,10 @@ val moffs64 = do
    mem i
 end
 
-val unop cons giveOp1 = do
-  op1 <- giveOp1;
-  return (cons {opnd1=op1})
-end
-
 val binop cons giveOp1 giveOp2 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
-   return (cons {opnd1=op1, opnd2=op2})
+   return (cons {op1=op1, op2=op2})
    # We could add syntatic sugar for record field creation:
    #   return (MOV {op1, op2})
 end
@@ -793,7 +739,7 @@ val trinop cons giveOp1 giveOp2 giveOp3 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
    op3 <- giveOp3;
-   return (cons {opnd1=op1, opnd2=op2, opnd3=op3})
+   return (cons {op1=op1, op2=op2, op3=op3})
 end
 
 ## The VEX prefixes
@@ -849,27 +795,25 @@ val vex-no-simd? = do
    return (p == '00')
 end
 
+# Rückgabewert in Pattern??
+
 ## The REX prefixes
 
 val /rex ['0100 w:1 r:1 x:1 b:1'] = update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
 
-val clear-rex = do
-   update @{rexw='0',rexb='0',rexr='0',rexx='0'}
-end
-
 ## Decode prefixes, recursion could be limited with "recursion-depth main = 4" 
 
-val main [0x2e] = do clear-rex; update @{segment=CS}; main end
-val main [0x36] = do clear-rex; update @{segment=SS}; main end
-val main [0x3e] = do clear-rex; update @{segment=DS}; main end
-val main [0x26] = do clear-rex; update @{segment=ES}; main end
-val main [0x64] = do clear-rex; update @{segment=FS}; main end
-val main [0x65] = do clear-rex; update @{segment=GS}; main end
-val main [0x66] = do clear-rex; update @{opndsz='1'}; p66 end
-val main [0x67] = do clear-rex; update @{addrsz='1'}; main end
-val main [0xf2] = do clear-rex; update @{repne='1'}; pf2 end
-val main [0xf3] = do clear-rex; update @{rep='1'}; pf3 end
-val main [/rex] = main 
+val main [0x2e] = do update @{segment=CS}; main end
+val main [0x36] = do update @{segment=SS}; main end
+val main [0x3e] = do update @{segment=DS}; main end
+val main [0x26] = do update @{segment=ES}; main end
+val main [0x64] = do update @{segment=FS}; main end
+val main [0x65] = do update @{segment=GS}; main end
+val main [0x66] = do update @{opndsz='1'}; p66 end
+val main [0x67] = do update @{addrsz='1'}; main end
+val main [0xf2] = do update @{repne='1'}; pf2 end
+val main [0xf3] = do update @{rep='1'}; pf3 end
+val main [/rex] = main #Todo: Ignore REX before legacy prefixes
 val main [/vex] = do #Todo: (REX|0x66|0xf2|0xf3) + VEX => Error
    vexm <- query $vexm;
    case vexm of
@@ -880,85 +824,83 @@ val main [/vex] = do #Todo: (REX|0x66|0xf2|0xf3) + VEX => Error
     end
 end
 
-val p66 [0x2e] = do clear-rex; update @{segment=CS}; p66 end
-val p66 [0x36] = do clear-rex; update @{segment=SS}; p66 end
-val p66 [0x3e] = do clear-rex; update @{segment=DS}; p66 end
-val p66 [0x26] = do clear-rex; update @{segment=ES}; p66 end
-val p66 [0x64] = do clear-rex; update @{segment=FS}; p66 end
-val p66 [0x65] = do clear-rex; update @{segment=GS}; p66 end
-val p66 [0x66] = do clear-rex; update @{opndsz='1'}; p66 end
-val p66 [0x67] = do clear-rex; update @{addrsz='1'}; p66 end
-val p66 [0xf2] = do clear-rex; update @{repne='1'}; p66-f2 end
-val p66 [0xf3] = do clear-rex; update @{rep='1'}; p66-f3 end #TODO: reset `rex`?
-val p66 [/rex] = p66
+val p66 [0x2e] = do update @{segment=CS}; p66 end
+val p66 [0x36] = do update @{segment=SS}; p66 end
+val p66 [0x3e] = do update @{segment=DS}; p66 end
+val p66 [0x26] = do update @{segment=ES}; p66 end
+val p66 [0x64] = do update @{segment=FS}; p66 end
+val p66 [0x65] = do update @{segment=GS}; p66 end
+val p66 [0x66] = do update @{opndsz='1'}; p66 end
+val p66 [0x67] = do update @{addrsz='1'}; p66 end
+val p66 [0xf2] = do update @{repne='1'}; p66-f2 end
+val p66 [0xf3] = do update @{rep='1'}; p66-f3 end
+val p66 [/rex] = p66 #Todo: Ignore REX before legacy prefixes
 
-val pf2 [0x2e] = do clear-rex; update @{segment=CS}; pf2 end
-val pf2 [0x36] = do clear-rex; update @{segment=SS}; pf2 end
-val pf2 [0x3e] = do clear-rex; update @{segment=DS}; pf2 end
-val pf2 [0x26] = do clear-rex; update @{segment=ES}; pf2 end
-val pf2 [0x64] = do clear-rex; update @{segment=FS}; pf2 end
-val pf2 [0x65] = do clear-rex; update @{segment=GS}; pf2 end
-val pf2 [0x66] = do clear-rex; update @{opndsz='1'}; p66-f2 end
-val pf2 [0x67] = do clear-rex; update @{addrsz='1'}; pf2 end
-val pf2 [0xf2] = do clear-rex; update @{repne='1'}; pf2 end #TODO: reset `rex`?
-val pf2 [0xf3] = do clear-rex; update @{rep='1'}; pf2-f3 end
-val pf2 [/rex] = pf2
-val pf2 [] = main
+val pf2 [0x2e] = do update @{segment=CS}; pf2 end
+val pf2 [0x36] = do update @{segment=SS}; pf2 end
+val pf2 [0x3e] = do update @{segment=DS}; pf2 end
+val pf2 [0x26] = do update @{segment=ES}; pf2 end
+val pf2 [0x64] = do update @{segment=FS}; pf2 end
+val pf2 [0x65] = do update @{segment=GS}; pf2 end
+val pf2 [0x66] = do update @{opndsz='1'}; p66-f2 end
+val pf2 [0x67] = do update @{addrsz='1'}; pf2 end
+val pf2 [0xf2] = do update @{repne='1'}; pf2 end
+val pf2 [0xf3] = do update @{rep='1'}; pf2-f3 end
+val pf2 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
-val pf3 [0x2e] = do clear-rex; update @{segment=CS}; pf3 end
-val pf3 [0x36] = do clear-rex; update @{segment=SS}; pf3 end
-val pf3 [0x3e] = do clear-rex; update @{segment=DS}; pf3 end
-val pf3 [0x26] = do clear-rex; update @{segment=ES}; pf3 end
-val pf3 [0x64] = do clear-rex; update @{segment=FS}; pf3 end
-val pf3 [0x65] = do clear-rex; update @{segment=GS}; pf3 end
-val pf3 [0x66] = do clear-rex; update @{opndsz='1'}; p66-f3 end
-val pf3 [0x67] = do clear-rex; update @{addrsz='1'}; pf3 end
-val pf3 [0xf2] = do clear-rex; update @{repne='1'}; pf2-f3 end
-val pf3 [0xf3] = do clear-rex; update @{rep='1'}; pf3 end
-val pf3 [/rex] = pf3
-val pf3 [] = main
+val pf3 [0x2e] = do update @{segment=CS}; pf3 end
+val pf3 [0x36] = do update @{segment=SS}; pf3 end
+val pf3 [0x3e] = do update @{segment=DS}; pf3 end
+val pf3 [0x26] = do update @{segment=ES}; pf3 end
+val pf3 [0x64] = do update @{segment=FS}; pf3 end
+val pf3 [0x65] = do update @{segment=GS}; pf3 end
+val pf3 [0x66] = do update @{opndsz='1'}; p66-f3 end
+val pf3 [0x67] = do update @{addrsz='1'}; pf3 end
+val pf3 [0xf2] = do update @{repne='1'}; pf2-f3 end
+val pf3 [0xf3] = do update @{rep='1'}; pf3 end
+val pf3 [/rex] = main #Todo: Ignore REX before legacy prefixes
 
-val p66-f2 [0x2e] = do clear-rex; update @{segment=CS}; p66-f2 end
-val p66-f2 [0x36] = do clear-rex; update @{segment=SS}; p66-f2 end
-val p66-f2 [0x3e] = do clear-rex; update @{segment=DS}; p66-f2 end
-val p66-f2 [0x26] = do clear-rex; update @{segment=ES}; p66-f2 end
-val p66-f2 [0x64] = do clear-rex; update @{segment=FS}; p66-f2 end
-val p66-f2 [0x65] = do clear-rex; update @{segment=GS}; p66-f2 end
-val p66-f2 [0x66] = do clear-rex; update @{opndsz='1'}; p66-f2 end
-val p66-f2 [0x67] = do clear-rex; update @{addrsz='1'}; p66-f2 end
-val p66-f2 [0xf2] = do clear-rex; update @{repne='1'}; p66-f2 end
-val p66-f2 [0xf3] = do clear-rex; update @{rep='1'}; p66-f2-f3 end
-val p66-f2 [/rex] = p66-f2
+val p66-f2 [0x2e] = do update @{segment=CS}; p66-f2 end
+val p66-f2 [0x36] = do update @{segment=SS}; p66-f2 end
+val p66-f2 [0x3e] = do update @{segment=DS}; p66-f2 end
+val p66-f2 [0x26] = do update @{segment=ES}; p66-f2 end
+val p66-f2 [0x64] = do update @{segment=FS}; p66-f2 end
+val p66-f2 [0x65] = do update @{segment=GS}; p66-f2 end
+val p66-f2 [0x66] = do update @{opndsz='1'}; p66-f2 end
+val p66-f2 [0x67] = do update @{addrsz='1'}; p66-f2 end
+val p66-f2 [0xf2] = do update @{repne='1'}; p66-f2 end
+val p66-f2 [0xf3] = do update @{rep='1'}; p66-f2-f3 end
+val p66-f2 [/rex] = main #Todo: Ignore REX before legacy prefixes
+
+val p66-f3 [0x2e] = do update @{segment=CS}; p66-f3 end
+val p66-f3 [0x36] = do update @{segment=SS}; p66-f3 end
+val p66-f3 [0x3e] = do update @{segment=DS}; p66-f3 end
+val p66-f3 [0x26] = do update @{segment=ES}; p66-f3 end
+val p66-f3 [0x64] = do update @{segment=FS}; p66-f3 end
+val p66-f3 [0x65] = do update @{segment=GS}; p66-f3 end
+val p66-f3 [0x66] = do update @{opndsz='1'}; p66-f3 end
+val p66-f3 [0x67] = do update @{addrsz='1'}; p66-f3 end
+val p66-f3 [0xf2] = do update @{repne='1'}; p66-f2-f3 end
+val p66-f3 [0xf3] = do update @{rep='1'}; p66-f3 end
+val p66-f3 [/rex] = main #Todo: Ignore REX before legacy prefixes
+
+val p66-f2-f3 [0x2e] = do update @{segment=CS}; p66-f2-f3 end
+val p66-f2-f3 [0x36] = do update @{segment=SS}; p66-f2-f3 end
+val p66-f2-f3 [0x3e] = do update @{segment=DS}; p66-f2-f3 end
+val p66-f2-f3 [0x26] = do update @{segment=ES}; p66-f2-f3 end
+val p66-f2-f3 [0x64] = do update @{segment=FS}; p66-f2-f3 end
+val p66-f2-f3 [0x65] = do update @{segment=GS}; p66-f2-f3 end
+val p66-f2-f3 [0x66] = do update @{opndsz='1'}; p66-f2-f3 end
+val p66-f2-f3 [0x67] = do update @{addrsz='1'}; p66-f2-f3 end
+val p66-f2-f3 [0xf2] = do update @{repne='1'}; p66-f2-f3 end
+val p66-f2-f3 [0xf3] = do update @{rep='1'}; p66-f2-f3 end
+val p66-f2-f3 [/rex] = main #Todo: Ignore REX before legacy prefixes
+
 val p66-f2 [] = p66
-
-val p66-f3 [0x2e] = do clear-rex; update @{segment=CS}; p66-f3 end
-val p66-f3 [0x36] = do clear-rex; update @{segment=SS}; p66-f3 end
-val p66-f3 [0x3e] = do clear-rex; update @{segment=DS}; p66-f3 end
-val p66-f3 [0x26] = do clear-rex; update @{segment=ES}; p66-f3 end
-val p66-f3 [0x64] = do clear-rex; update @{segment=FS}; p66-f3 end
-val p66-f3 [0x65] = do clear-rex; update @{segment=GS}; p66-f3 end
-val p66-f3 [0x66] = do clear-rex; update @{opndsz='1'}; p66-f3 end
-val p66-f3 [0x67] = do clear-rex; update @{addrsz='1'}; p66-f3 end
-val p66-f3 [0xf2] = do clear-rex; update @{repne='1'}; p66-f2-f3 end
-val p66-f3 [0xf3] = do clear-rex; update @{rep='1'}; p66-f3 end
-val p66-f3 [/rex] = p66-f3
 val p66-f3 [] = p66
-
-val p66-f2-f3 [0x2e] = do clear-rex; update @{segment=CS}; p66-f2-f3 end
-val p66-f2-f3 [0x36] = do clear-rex; update @{segment=SS}; p66-f2-f3 end
-val p66-f2-f3 [0x3e] = do clear-rex; update @{segment=DS}; p66-f2-f3 end
-val p66-f2-f3 [0x26] = do clear-rex; update @{segment=ES}; p66-f2-f3 end
-val p66-f2-f3 [0x64] = do clear-rex; update @{segment=FS}; p66-f2-f3 end
-val p66-f2-f3 [0x65] = do clear-rex; update @{segment=GS}; p66-f2-f3 end
-val p66-f2-f3 [0x66] = do clear-rex; update @{opndsz='1'}; p66-f2-f3 end
-val p66-f2-f3 [0x67] = do clear-rex; update @{addrsz='1'}; p66-f2-f3 end
-val p66-f2-f3 [0xf2] = do clear-rex; update @{repne='1'}; p66-f2-f3 end
-val p66-f2-f3 [0xf3] = do clear-rex; update @{rep='1'}; p66-f2-f3 end
-val p66-f2-f3 [/rex] = p66-f2-f3
 val p66-f2-f3 [] = p66
-
-
-# TODO
+val pf2 [] = main
+val pf3 [] = main
 val pf2-f3 [] = main
 
 ## Instruction decoders
@@ -966,106 +908,6 @@ val pf2-f3 [] = main
 ## One Byte Opcodes
 ## Two Byte Opcodes with Prefix 0x0f
 ## Three Byte Opcodes with Prefix 0x0f38
-
-
-########### Mergen ;-)
-
-val near-abs cons giveOp = do
-   op <- giveOp;
-   return (cons (NEARABS {opnd1=op}))
-end
-
-val near-rel cons giveOp = do
-   op <- giveOp;
-   return (cons {opnd1=op})
-end
-
-val far-abs cons giveOp = do
-   op <- giveOp;
-   return (cons (FARABS {opnd1=op}))
-end
-
-### CALL 3-112 Vol. 2A
-val p66 [0xe8] = near-rel CALL rel16
-val main [0xe8] = near-rel CALL rel32
-val main [0xff /2] = near-abs CALL r/m64
-
-## LEA 3-579 Vol. 2A
-val p66 [0x8d /r]
- | addrsz? = binop LEA r16 r/m16
- | otherwise = binop LEA r16 r/m32
-val main [0x8d /r]
- | rexw? & addrsz? = binop LEA r64 r/m32
- | rexw? = binop LEA r64 r/m64
- | addrsz? = binop LEA r32 r/m16
- | otherwise = binop LEA r32 r/m32
-
-### SUB 4-572 Vol. 2B
-val main [0x2c] = binop SUB al imm8
-val p66 [0x2d] = binop SUB ax imm16
-val main [0x2d]
- | rexw? = binop SUB rax imm32
- | otherwise = binop SUB eax imm32
-val main [0x80 /5] = binop SUB r/m8 imm8
-val p66 [0x81 /5] = binop SUB r/m16 imm16
-val main [0x81 /5]
- | rexw? = binop SUB r/m64 imm32
- | otherwise = binop SUB r/m32 imm32
-val p66 [0x83 /5] = binop SUB r/m16 imm8
-val main [0x83 /5]
- | rexw? = binop SUB r/m64 imm8
- | otherwise = binop SUB r/m32 imm8
-val main [0x28 /r] = binop SUB r/m8 r8
-val p66 [0x29 /r] = binop SUB r/m16 r16
-val main [0x29 /r]
- | rexw? = binop SUB r/m64 r32
- | otherwise = binop SUB r/m32 r32
-val main [0x2a /r] = binop SUB r8 r/m8
-val p66 [0x2b /r] = binop SUB r16 r/m16
-val main [0x2b /r]
- | rexw? = binop SUB r64 r/m64
- | otherwise = binop SUB r32 r/m32
-
-### XOR 4-678 Vol. 2B
-val main [0x34] = binop XOR al imm8
-val p66 [0x35] = binop XOR ax imm16
-val main [0x35]
- | rexw? = binop XOR rax imm32
- | otherwise = binop XOR eax imm32
-val main [0x80 /6] = binop XOR r/m8 imm8
-val p66 [0x81 /6] = binop XOR r/m16 imm16
-val main [0x81 /6]
- | rexw? = binop XOR r/m64 imm32
- | otherwise = binop XOR r/m32 imm32
-val p66 [0x83 /6] = binop XOR r/m16 imm8
-val main [0x83 /6]
- | rexw? = binop XOR r/m64 imm8
- | otherwise = binop XOR r/m32 imm8
-val main [0x30 /r] = binop XOR r/m8 r8
-val p66 [0x31 /r] = binop XOR r/m16 r16
-val main [0x31 /r]
- | rexw? = binop XOR r/m64 r64
- | otherwise = binop XOR r/m32 r32
-val main [0x32 /r] = binop XOR r8 r/m8
-val p66 [0x33 /r] = binop XOR r16 r/m16
-val main [0x33 /r]
- | rexw? = binop XOR r64 r/m64
- | otherwise = binop XOR r32 r/m32
-
-### PUSH 4-275 Vol. 2B
-#TODO: correctly implement 32bit and 64bit modes
-val main [0xff /6] = unop PUSH r/m64
-val p66 [0xff /6] = unop PUSH r/m16
-val main ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r64/rexb end
-val p66 ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r64/rexb end
-val main [0x6a] = unop PUSH imm8
-val p66 [0x68] = unop PUSH imm16
-val main [0x68] = unop PUSH imm32
-val main [0x0e] = unop PUSH cs
-val main [0x16] = unop PUSH ds
-val main [0x06] = unop PUSH es
-val main [0x0f 0xa0] = unop PUSH fs
-val main [0x0f 0xa8] = unop PUSH gs
 
 ### ADD Vol. 2A 3-35
 val add = binop ADD
@@ -1164,11 +1006,9 @@ val main [0x89 /r]
  | otherwise = mov r/m32 r32
 val main [0x8a /r] = mov r8 r/m8
 val p66 [0x8b /r] = mov r16 r/m16
-val main [0x8b /r]
- | rexw? = mov r64 r/m32
- | otherwise = mov r32 r/m32
-val main [0x8c /r] = mov r/m16 (r/rexb sreg3?)
-val main [0x8e /r] = mov (r/rexb sreg3?) r/m16
+val main [0x8b /r] = mov r32 r/m32
+val main [0x8c /r] = mov r/m16 (r/ sreg3?)
+val main [0x8e /r] = mov (r/ sreg3?) r/m16
 val main [0xa0] = mov al moffs8 
 val main [0xa1]
  | addrsz? = mov ax moffs16
@@ -1177,22 +1017,40 @@ val main [0xa2] = mov moffs8 al
 val main [0xa3]
  | addrsz? = mov moffs16 ax
  | otherwise = mov moffs32 eax
-val main ['10110 r:3'] = do update@{reg/opcode=r}; mov r8/rexb imm8 end
-val p66 ['10111 r:3'] = do update@{reg/opcode=r}; mov r16/rexb imm16 end
-val main ['10111 r:3']
- | rexw? = do update@{reg/opcode=r}; mov r64/rexb imm64 end
- | otherwise = do update@{reg/opcode=r}; mov r32/rexb imm32 end
+val main [0xb0] = mov al imm8
+val main [0xb1] = mov cl imm8
+val main [0xb2] = mov dl imm8
+val main [0xb3] = mov bl imm8
+val main [0xb4] = mov ah imm8
+val main [0xb5] = mov ch imm8
+val main [0xb6] = mov dh imm8
+val main [0xb7] = mov bh imm8
+val p66 [0xb8] = mov ax imm16
+val main [0xb8] = mov eax imm32
+val p66 [0xb9] = mov cx imm16
+val main [0xb9] = mov ecx imm32
+val p66 [0xba] = mov dx imm16
+val main [0xba] = mov edx imm32
+val p66 [0xbb] = mov bx imm16
+val main [0xbb] = mov ebx imm32
+val p66 [0xbc] = mov sp imm16
+val main [0xbc] = mov esp imm32
+val p66 [0xbd] = mov bp imm16
+val main [0xbd] = mov ebp imm32
+val p66 [0xbe] = mov si imm16
+val main [0xbe] = mov esi imm32
+val p66 [0xbf] = mov di imm16
+val main [0xbf] = mov edi imm32
 val main [0xc6 /0] = mov r/m8 imm8
 val p66 [0xc7 /0] = mov r/m16 imm16
-val main [0xc7 /0]
- | rexw? = mov r/m64 imm32
- | otherwise = mov r/m32 imm32
+val main [0xc7 /0] = mov r/m32 imm32
 
 ### MOVAPD Vol. 2B 4-52
 val movapd = binop MOVAPD
 val vmovapd = binop VMOVAPD
 val p66 [0x0f 0x28 /r] = movapd xmm128 xmm/m128
 val p66 [0x0f 0x29 /r] = movapd xmm/m128 xmm128
+
 
 ### MOVAPS Vol. 2B 4-55
 val movaps = binop MOVAPS

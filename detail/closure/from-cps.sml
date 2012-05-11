@@ -55,6 +55,20 @@ end = struct
             lp (xs, 0, [])
          end
 
+      fun checkArity f =
+         case FI.find (fn x => x) f of
+            NONE => ()
+          | SOME (FI.F (_,_,[x],_)) => ()
+          | SOME (FI.C (_,[x],_)) => ()
+          | _ =>
+               let
+                  val f = Layout.tostring (CPS.PP.var f)
+               in
+                  raise Fail ("closureConversion.arity: " ^ f)
+               end
+
+      val checkArityAll = app checkArity
+
       (* Assuming the corresponding function `f` is not part of `xs` *)
       fun unfoldEnv xs env {stmts, flow} =
          {stmts=mapi (fn (x, i) => Clos.LETREF (x, env, i+1)) xs@stmts,
@@ -265,6 +279,7 @@ end = struct
                      if escapes x
                         then
                            let
+                              val _ = checkArity x
                               val fs = freeUse sigma x
                               val l = fresh label
                               val closure = fresh closure
@@ -288,6 +303,7 @@ end = struct
             if escapes x
                then
                   let
+                     val _ = checkArity x
                      val fs = freeUse sigma x
                      val l = fresh label
                      val closure = fresh closure

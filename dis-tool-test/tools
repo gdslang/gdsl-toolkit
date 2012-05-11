@@ -1,0 +1,224 @@
+objdump:
+objdump -b binary -m k1om -D FILE
+
+01: (Correct decoding)
+   0:	67 f3 45 0f 7e d1    	addr32 movq %xmm9,%xmm10
+
+02: (Correct decoding)
+   0:	f3 67 45 0f 7e d1    	addr32 movq %xmm9,%xmm10
+
+03: (Wrong decoding)
+   0:	67                   	addr32rex.RB
+   1:	45                   	rex.RB
+   2:	f3 0f 7e d1          	movq   %xmm1,%xmm2
+
+04: (Wrong decoding)
+   0:	f3                   	repzrex.RB
+   1:	45                   	rex.RB
+   2:	67 0f 7e d1          	addr32 movd %mm2,%ecx
+
+05: (Correct decoding)
+   0:	c4 e1 f9 7e c8       	vmovq  %xmm1,%rax
+
+06: (Correct decoding)
+   0:	67 c4 e1 f9 7e c8    	addr32 vmovq %xmm1,%rax
+
+07: (Wrong decoding)
+   0:	66                   	data16
+   1:	c4 e1 f9 7e c8       	vmovq  %xmm1,%rax
+
+08: (Wrong decoding)
+   0:	45 c4 e1 f9 7e c8    	rex.RB vmovq %xmm1,%rax
+
+09: (Correctness unknown)
+   0:	c4 e1 f9 67          	(bad)  
+   4:	7e c8                	jle    0xffffffffffffffce
+
+10: (Wrong decoding)
+   0:	67                   	addr32rex.RB
+   1:	45                   	rex.RB
+   2:	f3 0f 7e 11          	movq   (%rcx),%xmm2
+
+11: (Correct decoding)
+   0:	0f 12 11             	movlps (%rcx),%xmm2
+   3:	0f 12 d1             	movhlps %xmm1,%xmm2
+
+SUMMARY: Correct: 5, Wrong: 5 (50%)
+
+xed2:
+xed -64 -ir FILE
+
+01: (Correct decoding)
+XDIS 0: DATAXFER  SSE2   67F3450F7ED1             addr32 movq xmm10, xmm9
+
+02: (Correct decoding)
+XDIS 0: DATAXFER  SSE2   F367450F7ED1             addr32 movq xmm10, xmm9
+
+03: (Correct decoding)
+XDIS 0: DATAXFER  SSE2   6745F30F7ED1             addr32 movq xmm2, xmm1
+
+04: (Correct decoding)
+XDIS 0: DATAXFER  SSE2   F345670F7ED1             addr32 movq xmm2, xmm1
+
+05: (Correct decoding)
+XDIS 0: DATAXFER  AVX    C4E1F97EC8               vmovq rax, xmm1
+
+06: (Correct decoding)
+XDIS 0: DATAXFER  AVX    67C4E1F97EC8             addr32 vmovq rax, xmm1
+
+07: (Correct decoding)
+ERROR: GENERAL_ERROR Could not decode at offset: 0x0 PC: 0x0: [66C4E1F97EC8000000000000000000]
+
+08: (Correct decoding)
+ERROR: GENERAL_ERROR Could not decode at offset: 0x0 PC: 0x0: [45C4E1F97EC8000000000000000000]
+
+09: (Correctness unknown)
+XDIS 0: AVX       AVX    C4E1F9677EC8             vpackuswb xmm7, xmm0, xmmword ptr [rsi-0x38]
+
+10: (Correct decoding)
+XDIS 0: DATAXFER  SSE2   6745F30F7E11             movq xmm2, qword ptr [ecx]
+
+11: (Correct decoding)
+XDIS 0: DATAXFER  SSE    0F1211                   movlps xmm2, qword ptr [rcx]
+XDIS 3: DATAXFER  SSE    0F12D1                   movhlps xmm2, xmm1
+
+SUMMARY: Correct: 10, Wrong: 0 (100%)
+
+distorm3:
+disasm -b64 FILE
+
+01: (Correct decoding) [Prefix information is missing]
+0000000000000000 (06) 67f3450f7ed1             MOVQ XMM10, XMM9
+
+02: (Correct decoding) [Prefix information is missing]
+0000000000000000 (06) f367450f7ed1             MOVQ XMM10, XMM9
+
+03: (Wrong decoding) [Prefix information is missing]
+0000000000000000 (06) 6745f30f7ed1             MOVQ XMM10, XMM9
+
+04: (Wrong decoding) [Prefix information is missing]
+0000000000000000 (06) f345670f7ed1             MOVQ XMM10, XMM9
+
+05: (Correct decoding)
+0000000000000000 (05) c4e1f97ec8               VMOVQ RAX, XMM1
+
+06: (Correct decoding) [Prefix information is missing]
+0000000000000000 (06) 67c4e1f97ec8             VMOVQ RAX, XMM1
+
+07: (Correct decoding [?]) 
+0000000000000000 (01) 66                       DB 0x66
+0000000000000001 (01) c4                       DB 0xc4
+0000000000000002 (01) e1                       DB 0xe1
+0000000000000003 (01) f9                       DB 0xf9
+0000000000000004 (01) 7e                       DB 0x7e
+0000000000000005 (01) c8                       DB 0xc8
+
+08: (Wrong decoding)
+0000000000000000 (06) 45c4e1f97ec8             VMOVQ R8, XMM9
+
+09: (Correctness unknown)
+0000000000000000 (01) c4                       DB 0xc4
+0000000000000001 (01) e1                       DB 0xe1
+0000000000000002 (01) f9                       DB 0xf9
+0000000000000003 (01) 67                       DB 0x67
+0000000000000004 (02) 7ec8                     JLE 0xffffffffffffffce
+
+10: (Wrong decoding)
+0000000000000000 (06) 6745f30f7e11             MOVQ XMM10, [R9D]
+
+11: (Correct decoding)
+0000000000000000 (03) 0f1211                   MOVLPS XMM2, [RCX]
+0000000000000003 (03) 0f12d1                   MOVHLPS XMM2, XMM1
+
+SUMMARY: Correct: 3-6, Wrong: 7-4 (30%-60%)
+
+Metasm:
+ruby -r metasm samples/disassemble.rb --cpu X64 FILE
+
+01: (Correct decoding) [Prefix information is missing]
+    movq xmm10, xmm9                             ; @0  67f3450f7ed1
+
+02: (Correct decoding) [Prefix information is missing]
+    movq xmm10, xmm9                             ; @0  f367450f7ed1
+
+03: (Correct decoding) [Prefix information is missing]
+    movq xmm2, xmm1                              ; @0  6745f30f7ed1
+
+04: (Correct decoding) [Prefix information is missing]
+    movq xmm2, xmm1                              ; @0  f345670f7ed1  
+
+05: (Wrong decoding)
+    vmovd eax, xmm1                              ; @0  c4e1f97ec8
+
+06: (Wrong decoding) [Prefix information is missing]
+    vmovd.a32 eax, xmm1                          ; @0  67c4e1f97ec8
+
+07: (Correct decoding [?]) 
+entrypoint_0    db 66h, 0c4h, 0e1h, 0f9h, 7eh, 0c8h ; @0
+
+08: (Wrong decoding)
+    vmovd r8d, xmm9                              ; @0  45c4e1f97ec8
+
+09: (Correctness unknown)
+    vpackuswb xmm7, xmm0, oword ptr [rsi-38h]    ; @0  c4e1f9677ec8
+
+10: (Correct decoding)
+    movq xmm2, oword ptr [ecx]                   ; @0  6745f30f7e11 
+
+11: (Correct decoding)
+    movlps oword ptr [rcx], xmm2                 ; @0  0f1211  
+    movhlps xmm2, xmm1                           ; @3  0f12d1
+
+SUMMARY: Correct: 3-7, Wrong: 7-3 (30%-70%)
+
+BeaEngine (LookInside):
+wine LookInside.exe (GUI)
+
+01: (Correct decoding)
+movq xmm10, xmm9 (AddressSize=InUsePrefix)
+
+02: (Correct decoding)
+movq xmm10, xmm9 (AddressSize=InUsePrefix)
+
+03: (Wrong decoding)
+movq xmm10, xmm9 (AddressSize=InUsePrefix)
+
+04: (Wrong decoding)
+movq xmm10, xmm9 (AddressSize=InUsePrefix)
+
+05: (Wrong decoding)
+???
+loope 004016ECh
+jle 004016BDh
+
+06: (Wrong decoding)
+???
+???
+loope 004016EDh
+jle 004016BDh
+
+07: (Wrong decoding) 
+???
+???
+loope 004016EDh
+jle 004016BEh
+
+08: (Wrong decoding)
+???
+???
+loope 004016EDh
+jle 004016BEh
+
+09: (Correctness unknown)
+??? 
+loope 004016ECh
+jle 004016BEh
+
+10: (Wrong decoding)
+movq xmm10, qword ptr ds:[r9d] (AddressSize=InUsePrefix)
+
+11: (Correct decoding)
+movlps xmm2, qword ptr ds:[rcx]
+movlps xmm2, xmm1
+
+SUMMARY: Correct: 3, Wrong: 7 (30%)

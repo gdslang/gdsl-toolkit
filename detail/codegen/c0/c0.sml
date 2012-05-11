@@ -405,7 +405,7 @@ structure C = struct
                   let
                      val cs' = List.filter (fn (cs, _) => not (null cs)) cs
                      val dflt = List.find (fn (cs, _) => null cs) cs
-                     val fatalDflt = seq [str "__fatal(\"<match>\");"]
+                     val fatalDflt = seq [str "__FATAL(\"<match>\");"]
                      val dflt =
                         case dflt of
                            NONE => fatalDflt

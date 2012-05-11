@@ -448,9 +448,14 @@ end = struct
    end
 
    val resolveSymbolPass =
-      BasicControl.mkTracePassSimple
+      BasicControl.mkKeepPass
          {passName="resolveSymbols",
-          pass=resolveSymbolPass}
+          registry=BasicControl.topRegistry,
+          pass=resolveSymbolPass,
+          preExt="ast",
+          preOutput=fn (os,(err,t)) => PT.PP.prettyTo(os, t),
+          postExt="ast",
+          postOutput=AST.PP.prettyTo}
 
    fun run spec = let
       open CompilationMonad

@@ -1,5 +1,6 @@
 
 structure BetaContFunPass = MkCPSPass (BetaContFun)
+structure BetaContFunConsPass = MkCPSPass (BetaContFunConservative)
 structure BetaPairPass = MkCPSPass (BetaPair)
 structure HoistFunPass = MkCPSPass (HoistFun)
 structure DeadValPass = MkCPSPass (DeadVal)
@@ -33,9 +34,8 @@ end = struct
       DeadValPass.run
 
    fun allBetaCounting cps =
-      BetaContFunPass.runCounting cps >>+
-      (*BetaFunPass.runCounting cps >>+
-      BetaContPass.runCounting >>+ *)
+      BetaContFunConsPass.runCounting cps >>+
+      BetaContFunPass.runCounting >>+
       BetaPairPass.runCounting >>+
       HoistFunPass.runCounting >>+
       DeadValPass.runCounting
