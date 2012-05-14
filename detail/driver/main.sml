@@ -28,10 +28,11 @@ structure Main = struct
       fun allTc ins = 
          Parser.run ins >>=
          ResolveSymbols.run >>= (fn ast =>
+         Specialize.run ast >>= (fn ast =>
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          TypeInference.run (tInfo, ast) >>= (fn tys =>
          return (TextIO.print (TypeInference.showTable tys))
-         )))
+         ))))
 
       fun runTc fp = let
          val ins = TextIO.openIn fp

@@ -1,11 +1,6 @@
 (*A pass that specializes decodes by instantiating the specialization
 variables in duplications of the decoder functions.
 
-   Implementation shortcoming: a decode with two calls to the same subdecoder
-      [ foo<SPEC1> foo<SPEC2>]
-   is rejected if SPEC1 and SPEC2 share a binding to the same variable. Fix:
-   have "bindings" and "forwards" in the "uses" type map from
-   (decoderName,span) instead of (decoderName).
 *)
 structure Specialize : sig
    val run:
@@ -17,9 +12,27 @@ end = struct
 
    type symid = SymbolTable.symid
    type bitpat_set = AtomSet.set
+
+   structure SymSpansMap = RedBlackMapFn(struct
+      type ord_key = (symid * Error.span) list
+      val compare =
+         let
+            fun cmp ([]:(symid * Error.span) list,
+                     []:(symid * Error.span) list) = EQUAL
+              | cmp ([], _) = LESS
+              | cmp (_, []) = GREATER
+              | cmp ((_,s1)::ss1, (_,s2)::ss2) =
+               (case SymbolTable.compare_span(s1, s2)
+                of EQUAL => cmp (ss1,ss2)
+                 | order => order)
+         in
+            cmp
+         end
+   end)           
+
    
    type uses = {bindings : bitpat_set SymMap.map, forwards : SymSet.set}
-   type bindinfo = (uses SymMap.map) SymMap.map
+   type bindinfo = (uses SymSpansMap.map) SymMap.map
 
    fun showBindinfo bs =
       let
@@ -32,9 +45,13 @@ end = struct
          fun showForwards (var, str) =
             SymbolTable.getString(!SymbolTables.varTable, var) ^
             ", " ^ str
-         fun showParent ((decId, {bindings = vs, forwards = fs}), str) =
-            "  " ^
-            SymbolTable.getString(!SymbolTables.varTable, decId) ^
+         fun showSymSpans ((decId,(p1,p2)),(str,sep)) =
+            (SymbolTable.getString(!SymbolTables.varTable, decId) ^
+            ":" ^ Int.toString(Position.toInt p1) ^
+            "-" ^ Int.toString(Position.toInt p2) ^ sep ^ str, ",")
+         fun showParent ((ss, {bindings = vs, forwards = fs}), str) =
+            "    at " ^ 
+            #1 (List.foldl showSymSpans ("","") ss) ^
             " with bindings " ^
             List.foldl showBindings "" (SymMap.listItemsi vs) ^
             " forwards " ^
@@ -42,8 +59,8 @@ end = struct
             "\n" ^ str
          fun showCall ((decId, pm), str) =
             SymbolTable.getString(!SymbolTables.varTable, decId) ^
-            " called in\n" ^ List.foldl showParent "" (SymMap.listItemsi pm) ^
-            "\n" ^ str
+            " called in\n" ^ List.foldl showParent "" (SymSpansMap.listItemsi pm) ^
+            str
       in
          List.foldl showCall "" (SymMap.listItemsi bs)
       end
@@ -55,8 +72,6 @@ end = struct
    fun mergeUses ({bindings = bs1, forwards = fs1},
                   {bindings = bs2, forwards = fs2}) = {bindings = bs2, forwards = fs2}
                   
-   fun convMark conv {span, tree} = {span=span, tree=conv span tree}
-   
    fun gatherBindings (_,errs) (MARKdecl {tree = t, span = s},bs) =
          gatherBindings (s,errs) (t,bs)
      | gatherBindings (s,errs) (DECODEdecl (v,ps,wc,guards),bs) =
@@ -70,10 +85,10 @@ end = struct
             let
                val vs = List.foldl (specialVS s) SymMap.empty sps
                val fs = List.foldl (specialFS s) SymSet.empty sps
-               val site = SymMap.singleton (v, {bindings = vs, forwards = fs})
+               val site = SymSpansMap.singleton ([(v,s)],{bindings = vs, forwards = fs})
                val newBs = SymMap.singleton (callVar, site)
             in
-               SymMap.unionWith (SymMap.unionWith mergeUses) (newBs, bs)
+               SymMap.unionWith (SymSpansMap.unionWith mergeUses) (newBs, bs)
             end
            | tokpatGB s (_,bs) = bs
          and bitpatGB s (MARKbitpat m,bs) = bitpatGB (#span m) (#tree m,bs)
@@ -111,7 +126,35 @@ end = struct
       end
      | gatherBindings _ (_,bs) = bs
    
-   fun propagateBindings (errs, bs) = bs
+   fun propagateBinding (k, bi) =
+      let
+         fun genUse ([],_,ssMap) = ssMap
+           | genUse (ss,uses as {bindings=bs, forwards=fs},ssMap) =
+            let
+               val filter =
+                  SymSet.union (fs,(SymSet.fromList (SymMap.listKeys bs)))
+            in
+               addFiltered (SymMap.empty,filter,[]) ((ss,uses),ssMap)
+            end
+         and addFiltered (acc,filter,prefix) (([],_),ssMap) = ssMap
+           | addFiltered (acc,filter,prefix)
+               ((postfix as ((caller,_)::_),{bindings=bs, forwards=fs}),ssMap) =
+            let
+               val bs = SymMap.filteri (fn (k,_) => SymSet.member (filter,k)) bs
+               val bs = SymMap.unionWith (fn (_,bs) => bs) (acc,bs)
+               val fs = SymSet.intersection (filter,fs)
+            in
+               if SymMap.inDomain (bi,caller) then 
+                  List.foldl (addFiltered (bs,fs,prefix @ postfix)) ssMap
+                     (SymSpansMap.listItemsi (SymMap.lookup (bi,caller)))
+               else
+                  SymSpansMap.insert (ssMap,prefix @ postfix,{bindings=bs, forwards=fs})
+            end
+         val parents = SymMap.lookup (bi, k)
+         val parents = SymSpansMap.foldli genUse SymSpansMap.empty parents
+      in
+         SymMap.insert (bi, k, parents)
+      end
    
    fun instantiate bs (DECODEdecl (v,ps,wc,guards)::ds) =
       let
@@ -128,8 +171,9 @@ end = struct
                      (gatherBindings (s,errs))
                      (SymMap.empty : bindinfo)
                      decls
-         val _ = TextIO.print ("unresolved bindings:\n" ^ showBindinfo bs)
-         val bs = propagateBindings (errs,bs)
+         val _ = TextIO.print ("bindings before:\n" ^ showBindinfo bs)
+         val bs = List.foldl propagateBinding bs (SymMap.listKeys bs)
+         val _ = TextIO.print ("bindungs after:\n" ^ showBindinfo bs)
       in
          {tree = instantiate bs decls, span = s}
       end
