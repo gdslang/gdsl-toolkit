@@ -89,12 +89,12 @@ end = struct
                (concat, [a, b], body)
             end
 
-         (* val raise a = %raise(a) *)
+         (* val raise a = return(%raise(a)) *)
          val raisee =
             let
                val a = fresh "a"
                val primRaise = get "%raise"
-               val body = PRI (primRaise, [a])
+               val body = APP (ID return, PRI (primRaise, [a]))
             in
                (raisee, [a], body)
             end
