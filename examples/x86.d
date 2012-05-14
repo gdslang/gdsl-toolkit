@@ -76,14 +76,14 @@ datatype register =
  | BL | BH | BX | EBX | RBX
  | CL | CH | CX | ECX | RCX
  | DL | DH | DX | EDX | RDX
- | R8L | R8W | R8D | R8 
- | R9L | R9W | R9D | R9 
- | R10L | R10W | R10D | R10 
- | R11L | R11W | R11D | R11 
- | R12L | R12W | R12D | R12 
- | R13L | R13W | R13D | R13 
- | R14L | R14W | R14D | R14 
- | R15L | R15W | R15D | R15 
+ | R8B | R8L | R8D | R8 
+ | R9B | R9L | R9D | R9 
+ | R10B | R10L | R10D | R10 
+ | R11B | R11L | R11D | R11 
+ | R12B | R12L | R12D | R12 
+ | R13B | R13L | R13D | R13 
+ | R14B | R14L | R14D | R14 
+ | R15B | R15L | R15D | R15 
  | SP | ESP | RSP
  | BP | EBP | RBP
  | SI | ESI | RSI
@@ -397,6 +397,36 @@ datatype insn =
  | SETPO of unop
  | SETS of unop 
  | SETZ of unop
+ | CMOVA of binop   
+ | CMOVAE of binop
+ | CMOVB of binop
+ | CMOVBE of binop
+ | CMOVC of binop
+ | CMOVE of binop
+ | CMOVG of binop
+ | CMOVGE of binop
+ | CMOVL of binop
+ | CMOVLE of binop
+ | CMOVNA of binop
+ | CMOVNAE of binop
+ | CMOVNB of binop
+ | CMOVNBE of binop
+ | CMOVNC of binop
+ | CMOVNE of binop
+ | CMOVNG of binop
+ | CMOVNGE of binop
+ | CMOVNL of binop
+ | CMOVNLE of binop
+ | CMOVNO of binop
+ | CMOVNP of binop
+ | CMOVNS of binop
+ | CMOVNZ of binop
+ | CMOVO of binop
+ | CMOVP of binop
+ | CMOVPE of binop
+ | CMOVPO of binop
+ | CMOVS of binop 
+ | CMOVZ of binop
  | RET
  | RETFAR
  | RET_1 of unop
@@ -447,14 +477,14 @@ val reg8 n =
     | '0101': REG CH
     | '0110': REG DH
     | '0111': REG BH
-    | '1000': REG R8L
-    | '1001': REG R10L
-    | '1010': REG R11L
-    | '1011': REG R9L
-    | '1100': REG R12L
-    | '1101': REG R13L
-    | '1110': REG R14L
-    | '1111': REG R15L
+    | '1000': REG R8B
+    | '1001': REG R9B
+    | '1010': REG R10B
+    | '1011': REG R11B
+    | '1100': REG R12B
+    | '1101': REG R13B
+    | '1110': REG R14B
+    | '1111': REG R15B
    end
 
 val reg8-lower n = reg8 ('0' ^ n)
@@ -472,9 +502,9 @@ val reg16 n =
     | '0110': REG SI
     | '0111': REG DI
     | '1000': REG R8L
-    | '1001': REG R10L
-    | '1010': REG R11L
-    | '1011': REG R9L
+    | '1001': REG R9L
+    | '1010': REG R10L
+    | '1011': REG R11L
     | '1100': REG R12L
     | '1101': REG R13L
     | '1110': REG R14L
@@ -496,9 +526,9 @@ val reg32 n =
     | '0110': REG ESI
     | '0111': REG EDI
     | '1000': REG R8D
-    | '1001': REG R10D
-    | '1010': REG R11D
-    | '1011': REG R9D
+    | '1001': REG R9D
+    | '1010': REG R10D
+    | '1011': REG R11D
     | '1100': REG R12D
     | '1101': REG R13D
     | '1110': REG R14D
@@ -520,9 +550,9 @@ val reg64 n =
     | '0110': REG RSI
     | '0111': REG RDI
     | '1000': REG R8
-    | '1001': REG R10
-    | '1010': REG R11
-    | '1011': REG R9
+    | '1001': REG R9
+    | '1010': REG R10
+    | '1011': REG R11
     | '1100': REG R12
     | '1101': REG R13
     | '1110': REG R14
@@ -1221,6 +1251,72 @@ val main [0x0f 0xb7 /r]
  | rexw? = binop MOVZX r64 r/m16
  | otherwise = binop MOVZX r32 r/m16
 
+### CMOVcc 3-143 Vol. 2A
+val p66 [0x0f 0x47 /r] = binop CMOVA r16 r/m16
+val main [0x0f 0x47 /r]
+ | rexw? = binop CMOVA r64 r/m64
+ | otherwise = binop CMOVA r32 r/m32
+val p66 [0x0f 0x43 /r] = binop CMOVAE r16 r/m16
+val main [0x0f 0x43 /r]
+ | rexw? = binop CMOVAE r64 r/m64
+ | otherwise = binop CMOVAE r32 r/m32
+val p66 [0x0f 0x42 /r] = binop CMOVB r16 r/m16
+val main [0x0f 0x42 /r]
+ | rexw? = binop CMOVB r64 r/m64
+ | otherwise = binop CMOVB r32 r/m32
+val p66 [0x0f 0x46 /r] = binop CMOVBE r16 r/m16
+val main [0x0f 0x46 /r]
+ | rexw? = binop CMOVBE r64 r/m64
+ | otherwise = binop CMOVBE r32 r/m32
+val p66 [0x0f 0x44 /r] = binop CMOVE r16 r/m16
+val main [0x0f 0x44 /r]
+ | rexw? = binop CMOVE r64 r/m64
+ | otherwise = binop CMOVE r32 r/m32
+val p66 [0x0f 0x4f /r] = binop CMOVG r16 r/m16
+val main [0x0f 0x4f /r]
+ | rexw? = binop CMOVG r64 r/m64
+ | otherwise = binop CMOVG r32 r/m32
+val p66 [0x0f 0x4d /r] = binop CMOVGE r16 r/m16
+val main [0x0f 0x4d /r]
+ | rexw? = binop CMOVGE r64 r/m64
+ | otherwise = binop CMOVGE r32 r/m32
+val p66 [0x0f 0x4c /r] = binop CMOVL r16 r/m16
+val main [0x0f 0x4c /r]
+ | rexw? = binop CMOVL r64 r/m64
+ | otherwise = binop CMOVL r32 r/m32
+val p66 [0x0f 0x4e /r] = binop CMOVLE r16 r/m16
+val main [0x0f 0x4e /r]
+ | rexw? = binop CMOVLE r64 r/m64
+ | otherwise = binop CMOVLE r32 r/m32
+val p66 [0x0f 0x45 /r] = binop CMOVNE r16 r/m16
+val main [0x0f 0x45 /r]
+ | rexw? = binop CMOVNE r64 r/m64
+ | otherwise = binop CMOVNE r32 r/m32
+val p66 [0x0f 0x41 /r] = binop CMOVNO r16 r/m16
+val main [0x0f 0x41 /r]
+ | rexw? = binop CMOVNO r64 r/m64
+ | otherwise = binop CMOVNO r32 r/m32
+val p66 [0x0f 0x4b /r] = binop CMOVNP r16 r/m16
+val main [0x0f 0x4b /r]
+ | rexw? = binop CMOVNP r64 r/m64
+ | otherwise = binop CMOVNP r32 r/m32
+val p66 [0x0f 0x49 /r] = binop CMOVNS r16 r/m16
+val main [0x0f 0x49 /r]
+ | rexw? = binop CMOVNS r64 r/m64
+ | otherwise = binop CMOVNS r32 r/m32
+val p66 [0x0f 0x40 /r] = binop CMOVO r16 r/m16
+val main [0x0f 0x40 /r]
+ | rexw? = binop CMOVO r64 r/m64
+ | otherwise = binop CMOVO r32 r/m32
+val p66 [0x0f 0x4a /r] = binop CMOVP r16 r/m16
+val main [0x0f 0x4a /r]
+ | rexw? = binop CMOVP r64 r/m64
+ | otherwise = binop CMOVP r32 r/m32
+val p66 [0x0f 0x48 /r] = binop CMOVS r16 r/m16
+val main [0x0f 0x48 /r]
+ | rexw? = binop CMOVS r64 r/m64
+ | otherwise = binop CMOVS r32 r/m32
+
 ### Jcc 3-544 Vol. 2A
 val main [0x77] = near-rel JA rel8  # JNBE
 val main [0x73] = near-rel JAE rel8 # JNB, JNC
@@ -1446,12 +1542,12 @@ val main [0x17] = unop POP ss
 val main [0x04] = binop ADD al imm8
 val p66 [0x05] = binop ADD ax imm16
 val main [0x05]
- | rexw? = binop ADD rax imm32   #FIXME!!! imm32
+ | rexw? = binop ADD rax imm32
  | otherwise = binop ADD eax imm32
 val main [0x80 /0] = binop ADD r/m8 imm8
 val p66 [0x81 /0] = binop ADD r/m16 imm16
 val main [0x81 /0]
- | rexw? = binop ADD r/m64 imm64 #FIXME!!! imm32
+ | rexw? = binop ADD r/m64 imm32 
  | otherwise = binop ADD r/m32 imm32
 val p66 [0x83 /0] = binop ADD r/m16 imm8
 val main [0x83 /0]
