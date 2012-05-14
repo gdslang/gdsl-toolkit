@@ -109,7 +109,15 @@ structure CPS = struct
           | _ => false
       fun term t = 
          case t of
-            LETVAL (n, cv, body) =>
+            LETVAL (n, FN (k, xs, K), body) =>
+               align
+                  [seq [str "letval", space, var n, is],
+                   indent 3
+                     (align [seq [str "\\", vars (k::xs), str "."],
+                             indent 3 (term K)]),
+                   inn,
+                   indent 3 (term body)]
+          | LETVAL (n, cv, body) =>
                align
                   [seq [str "letval", space, var n, is, cval cv, inn],
                    if isLetvalLike body

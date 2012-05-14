@@ -19,20 +19,27 @@ end
 
 structure Census = struct
    open CPS.Exp
-
-   type t = int SymMap.map 
+   infix ++
+   type t = {esc:int,app:int} SymMap.map 
 
    val census = ref SymMap.empty : t ref
 
-   fun count x =
+   fun count s x =
       case SymMap.find (!census, x) of
-         NONE => ~1
-       | SOME i => i
+         NONE => s {esc= ~1,app= ~1}
+       | SOME i => s i
 
-   fun count0 x =
+   fun count0 s x =
       case SymMap.find (!census, x) of
-         NONE => 0
-       | SOME i => i
+         NONE => s {esc=0,app=0}
+       | SOME i => s i
+
+   fun countAll x =
+      let
+         val {esc,app} = count (fn i=>i) x
+      in
+         esc+app
+      end
 
    fun copy {src, dst} = 
       case SymMap.find (!census, src) of
@@ -41,13 +48,17 @@ structure Census = struct
 
    fun touch x =
       case SymMap.find (!census, x) of
-         NONE => census := SymMap.insert (!census, x, 0)
+         NONE => census := SymMap.insert (!census, x, {esc=0,app=0})
        | _ => ()
 
-   fun update n x =
+   fun update f x =
       case SymMap.find (!census, x) of
-         NONE => census := SymMap.insert (!census, x, n)
-       | SOME m => census := SymMap.insert (!census, x, n+m)
+         NONE => census := SymMap.insert (!census, x, f {esc=0,app=0})
+       | SOME m => census := SymMap.insert (!census, x, f m)
+
+   fun E n {esc,app} = {esc=esc+n,app=app}
+   fun A n {esc,app} = {esc=esc,app=app+n}
+   fun {esc=n,app=m} ++ {esc=p,app=q} = {esc=n+p-1,app=m+q-1}
 
    fun remove x =
       if SymMap.inDomain (!census, x)
@@ -60,9 +71,12 @@ structure Census = struct
        | SOME n =>
             census :=
                (case SymMap.find (!census, x) of
-                  NONE => remove x
-                | SOME 1 => SymMap.insert (!census, x, 1)
-                | SOME m => SymMap.insert (!census, x, m+n))
+                  NONE => !census
+                | SOME m => SymMap.insert (!census, x, m++n))
+
+   fun extendAll sigma xs ys =
+      app (fn (y, x) => extend y x)
+          (ListPair.zip (xs, ys))
 
    val remove = fn x => census := remove x
    fun removeAll xs = app remove xs
@@ -71,23 +85,23 @@ structure Census = struct
       case cps of
          LETVAL (x, v, t) => (touch x; visitCVal n v; visitTerm n t)
        | LETREC (ds, t) => (app (visitDecl n) ds; visitTerm n t)
-       | LETPRJ (x, _, y, t) => (touch x; update n y; visitTerm n t)
+       | LETPRJ (x, _, y, t) => (touch x; update (E n) y; visitTerm n t)
        | LETUPD (x, y, fs, t) =>
             (touch x
-            ;update n y
+            ;update (E n) y
             ;app (visitField n) fs
             ;visitTerm n t)
-       | LETCONT (ds, t) => (app (visitCCDecl n) ds; visitTerm n t)
+       | LETCONT (ds, t) => (app (visitCont n) ds; visitTerm n t)
        | APP (x, k, ys) =>
-            (update n x
-            ;update n k
-            ;app (update n) ys)
-       | CC (k, xs) => (update n k; app (update n) xs)
-       | CASE (x, ks) => (update n x; app (visitMatch n) ks)
+            (update (A n) x
+            ;update (E n) k
+            ;app (update (E n)) ys)
+       | CC (k, xs) => (update (A n) k; app (update (E n)) xs)
+       | CASE (x, ks) => (update (E n) x; app (visitMatch n) ks)
 
-   and visitMatch n (_, (k, xs)) = (update n k; app (update n) xs)
+   and visitMatch n (_, (k, xs)) = (update (A n) k; app (update (E n)) xs)
 
-   and visitField n (_, v) = update n v
+   and visitField n (_, v) = update (E n) v
 
    and visitDecl n (f, k, xs, t) =
       (touch f
@@ -95,7 +109,7 @@ structure Census = struct
       ;app touch xs
       ;visitTerm n t)
 
-   and visitCCDecl n (k, xs, t) =
+   and visitCont n (k, xs, t) =
       (touch k
       ;app touch xs
       ;visitTerm n t)
@@ -103,14 +117,16 @@ structure Census = struct
    and visitCVal n cval = 
       case cval of
          FN (k, xs, t) => (touch k; app touch xs; visitTerm n t)
-       | PRI (f, xs) => (update n f; app (update n) xs)
-       | INJ (_, x) => update n x
+       | PRI (f, xs) => (update (A n) f; app (update (E n)) xs)
+       | INJ (_, x) => update (E n) x
        | REC fs => app (visitField n) fs
        | _ => () 
          
    fun layout () =
       Pretty.symmap
-         {key=CPS.PP.var, item=Layout.str o Int.toString}
+         {key=CPS.PP.var,
+          item=fn {esc,app} =>
+            Layout.record [("esc",Pretty.I esc),("app",Pretty.I app)]}
          (!census)
 
    fun run t =
@@ -790,14 +806,8 @@ end = struct
    structure Set = SymSet
 
    val clicks = ref 0
-   val inlined = ref Set.empty
    fun click () = clicks := !clicks + 1
-   fun reset () = (clicks := 0; inlined := Set.empty)
-
-   fun markInlined f = inlined := Set.add (!inlined, f)
-   fun usedLinearly f =
-      Census.count f = 1
-      andalso Set.member (!inlined, f)
+   fun reset () = clicks := 0
 
    val eq = SymbolTable.eq_symid
    
@@ -894,7 +904,7 @@ end = struct
          FN (k, x, t) => FN (k, x, simplify env sigma t)
        | INJ (t, x) => INJ (t, Subst.apply sigma x)
        | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
-       | REC _ => raise CM.CompilationError
+       | REC _ => raise Fail "betaPair.bug"
        | otherwise => otherwise
   
    val name = "betaPair"
@@ -1020,7 +1030,7 @@ structure DeadVal = struct
    fun simplify t =
       case t of
         LETVAL (x, v, K) =>
-         if Census.count x = 0
+         if Census.countAll x = 0
             then (click(); simplify K)
          else
             LETVAL
@@ -1032,7 +1042,7 @@ structure DeadVal = struct
             [] => (click(); simplify K)
           | ds => LETREC (ds, simplify K))
       | LETPRJ (x, f, y, K) =>
-         if Census.count x = 0
+         if Census.countAll x = 0
             then (click(); simplify K)
          else
             LETPRJ
@@ -1041,7 +1051,7 @@ structure DeadVal = struct
                 y,
                 simplify K)
       | LETUPD (x, y, fs, K) =>
-         if Census.count x = 0
+         if Census.countAll x = 0
             then (click(); simplify K)
          else
             LETUPD
@@ -1061,7 +1071,7 @@ structure DeadVal = struct
             List.filter
                (fn (f, _, _, _) =>
                   let
-                     val notDead = Census.count f <> 0
+                     val notDead = Census.countAll f <> 0
                   in
                      if notDead
                         then true
@@ -1077,7 +1087,7 @@ structure DeadVal = struct
             List.filter
                (fn (k, _, _) =>
                   let
-                     val notDead = Census.count k <> 0
+                     val notDead = Census.countAll k <> 0
                   in
                      if notDead
                         then true
@@ -1122,19 +1132,24 @@ structure BetaContFun = struct
    fun markInlined f =
       inlined := Map.insert(!inlined, f, count0 f + 1)
 
+   fun gotInlined f =
+      case Map.find (!inlined, f) of
+         NONE => false
+       | SOME i => i > 0
+
    fun usedLinearly f =
-      Census.count f = 1
-      andalso count0 f = 1
+      Census.count#app f <= 1
+      andalso Census.count#esc f = 0
 
    fun isInliningCandidate f body =
       not (Rec.isRec f) andalso
          (Cost.allwaysInline f orelse
-          Census.count f = 1 orelse
+          usedLinearly f orelse
           Cost.inlineCandidate f)
 
    fun isInliningCandidateCont k body =
       not (Rec.isRec k) andalso 
-         (Census.count k = 1 orelse
+         (usedLinearly k orelse
           Cost.inlineCandidate k)
 
    datatype t =
@@ -1157,6 +1172,8 @@ structure BetaContFun = struct
    val findFun = find getFun
    val findCont = find getCont
 
+   fun drop f = usedLinearly f andalso gotInlined f
+
    fun simplify env sigma t =
       case t of
          LETVAL (f, FN (k, xs, K), L) =>
@@ -1165,7 +1182,7 @@ structure BetaContFun = struct
                val env' = insertFun (env, f, (k, xs, K))
                val L = simplify env' sigma L
             in
-               if usedLinearly f
+               if drop f
                   then L
                else LETVAL (f, FN (k, xs, K), L)
             end
@@ -1207,7 +1224,7 @@ structure BetaContFun = struct
                          (k, xs, simplify env sigma K))) env' ds
             val L = simplify env' sigma L
          in
-            case List.filter (fn (f, _, _, _) => not (usedLinearly f)) ds of
+            case List.filter (fn (f, _, _, _) => not (drop f)) ds of
                [] => L
              | ds => 
                   LETREC
@@ -1235,7 +1252,7 @@ structure BetaContFun = struct
 
             val L = simplify env' sigma L
          in
-            case List.filter (fn (k, _, _) => not (usedLinearly k)) cs of
+            case List.filter (fn (k, _, _) => not (drop k)) cs of
                [] => L
              | cs => LETCONT (cs, L)
          end
@@ -1248,7 +1265,7 @@ structure BetaContFun = struct
                NONE => CC (k, ys)
              | SOME (xs, K) =>
                   if length xs <> length ys
-                     then (* CC (k, ys) *) raise Fail "betaContFun.Cont"
+                     then (* CC (k, ys) *) raise Fail "betaContFun.CC"
                   else if not (isInliningCandidateCont k K)
                      then CC (k, ys)
                   else
@@ -1257,10 +1274,7 @@ structure BetaContFun = struct
                         val _ = markInlined k
                         val sigma = Subst.extendAll sigma ys xs
                         val _ = Census.removeAll ys
-                        val K =
-                           if Census.count k <> 1
-                              then Subst.renameTerm (simplify env sigma K)
-                           else Subst.renameTerm (simplify env sigma K)
+                        val K = Subst.renameTerm (simplify env sigma K)
                      in
                         K
                      end
@@ -1332,10 +1346,7 @@ structure BetaContFun = struct
                            val sigma = Subst.extendAll sigma ys xs
                            val _ = Census.remove j
                            val _ = Census.removeAll ys
-                           val K = 
-                              if Census.count f <> 1
-                                 then Subst.renameTerm (simplify env sigma K)
-                              else Subst.renameTerm (simplify env sigma K)
+                           val K = Subst.renameTerm (simplify env sigma K)
                         in
                            K
                         end
@@ -1383,20 +1394,15 @@ structure BetaContFunConservative = struct
    fun markInlined f =
       inlined := Map.insert(!inlined, f, count0 f + 1)
 
-   fun usedLinearly f =
-      Census.count f = 1
-      andalso count0 f = 1
+   fun gotInlined f =
+      case Map.find (!inlined, f) of
+         NONE => false
+       | SOME i => i > 0
 
-   fun isInliningCandidate f body =
-      not (Rec.isRec f) andalso
-         (Cost.allwaysInline f orelse
-          Census.count f = 1 orelse
-          Cost.inlineCandidate f)
-
-   fun isInliningCandidateCont k body =
-      not (Rec.isRec k) andalso 
-         (Census.count k = 1 orelse
-          Cost.inlineCandidate k)
+   fun inliningCandidate f =
+      not (Rec.isRec f)
+      andalso Census.count#app f = 1
+      andalso Census.count#esc f = 0
 
    datatype t =
       F of Var.c * Var.v list * term
@@ -1422,13 +1428,25 @@ structure BetaContFunConservative = struct
       case t of
          LETVAL (f, FN (k, xs, K), L) =>
             let
-               val K = simplify env sigma K
                val env' = insertFun (env, f, (k, xs, K))
-               val L = simplify env' sigma L
             in
-               if usedLinearly f
-                  then L
-               else LETVAL (f, FN (k, xs, K), L)
+               if Census.count#app f = 1 andalso Census.count#esc f = 0
+                  then
+                     let
+                        val L = simplify env' sigma L
+                     in
+                        if gotInlined f
+                           then L
+                        else if Census.count#app f = 0
+                                andalso Census.count#esc f = 0
+                           then
+                              (Census.visitTerm ~1 K; L)
+                        else
+                           LETVAL (f, FN (k, xs, simplify env sigma K), L)
+                     end
+               else
+                  LETVAL (f, FN (k, xs, simplify env sigma K),
+                     simplify env' sigma L)
             end
       | LETVAL (x, v, L) =>
         LETVAL
@@ -1459,44 +1477,61 @@ structure BetaContFunConservative = struct
                foldl
                   (fn ((f, k, xs, K), env) =>
                      insertFun (env, f, (k, xs, K))) env ds
-            val env' =
-               foldl
-                  (fn ((f, k, xs, K), env) =>
-                     insertFun
-                        (env,
-                         f,
-                         (k, xs, simplify env sigma K))) env' ds
+            
             val L = simplify env' sigma L
+
+            fun visit (f, k, xs, K) =
+               if Census.count#app f = 0 andalso Census.count#esc f = 0
+                  then
+                     if gotInlined f
+                        then NONE
+                     else (Census.visitTerm ~1 K; NONE)
+               else SOME (f, k, xs, simplify env' sigma K)
          in
-            case List.filter (fn (f, _, _, _) => not (usedLinearly f)) ds of
+            case List.mapPartial visit ds of
                [] => L
-             | ds => 
-                  LETREC
-                     (map (fn (f, k, xs, _) =>
-                        (f, k, xs, #3 (lookupFun (env', f)))) ds,
-                      L)
+             | ds => LETREC (ds, L) 
          end
+      | LETCONT ([(k, xs, K)], L) =>
+            let
+               val env' = insertCont (env, k, (xs, K))
+            in
+               if Census.count#app k = 1 andalso Census.count#esc k = 0
+                  then
+                     let
+                        val L = simplify env' sigma L
+                     in
+                        if gotInlined k
+                           then L
+                        else if Census.count#app k = 0
+                                andalso Census.count#esc k = 0
+                           then
+                              (Census.visitTerm ~1 K; L)
+                        else
+                           LETCONT ([(k, xs, simplify env sigma K)], L)
+                     end
+               else
+                  LETCONT ([(k, xs, simplify env' sigma K)],
+                     simplify env' sigma L)
+            end
       | LETCONT (cs, L) =>
          let
             val env' = 
                foldl
                   (fn ((k, xs, K), env) =>
                      insertCont (env, k, (xs, K))) env cs
-            val env' =
-               foldl
-                  (fn ((k, xs, K), env') =>
-                     insertCont
-                        (env',
-                         k,
-                         (xs, simplify env' sigma K))) env' cs
-            val cs = 
-               map
-                  (fn (k, xs, _) =>
-                     (k, xs, #2 (lookupCont (env', k)))) cs
 
             val L = simplify env' sigma L
+
+            fun visit (k, xs, K) =
+               if Census.count#app k = 0 andalso Census.count#esc k = 0
+                  then
+                     if gotInlined k
+                        then NONE
+                     else (Census.visitTerm ~1 K; NONE)
+               else SOME (k, xs, simplify env' sigma K)
          in
-            case List.filter (fn (k, _, _) => not (usedLinearly k)) cs of
+            case List.mapPartial visit cs of
                [] => L
              | cs => LETCONT (cs, L)
          end
@@ -1510,18 +1545,16 @@ structure BetaContFunConservative = struct
              | SOME (xs, K) =>
                   if length xs <> length ys
                      then (* CC (k, ys) *) raise Fail "betaContFunCons.Cont"
-                  else if Census.count k <> 1 (* not (isInliningCandidateCont k K) *)
+                  else if not (inliningCandidate k)
                      then CC (k, ys)
                   else
                      let
                         val _ = click()
                         val _ = markInlined k
                         val sigma = Subst.extendAll sigma ys xs
-                        val _ = Census.removeAll ys
-                        val K =
-                           if Census.count k <> 1
-                              then Subst.renameTerm (simplify env sigma K)
-                           else Subst.renameTerm (simplify env sigma K)
+                        val _ = Census.update (Census.A ~1) k
+                        val _ = Census.extendAll ys xs
+                        val K = simplify env sigma K
                      in
                         K
                      end
@@ -1535,7 +1568,7 @@ structure BetaContFunConservative = struct
             case findFun (env, f) of
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
-                  if Census.count f <> 1 (* not (isInliningCandidate f K) *)
+                  if not (inliningCandidate f)
                      then APP (f, j, ys)
                   else if length xs = length ys
                      then 
@@ -1544,12 +1577,10 @@ structure BetaContFunConservative = struct
                            val _ = markInlined f
                            val sigma = Subst.extend sigma j k
                            val sigma = Subst.extendAll sigma ys xs
-                           val _ = Census.remove j
-                           val _ = Census.removeAll ys
-                           val K = 
-                              if Census.count f <> 1
-                                 then Subst.renameTerm (simplify env sigma K)
-                              else Subst.renameTerm (simplify env sigma K)
+                           val _ = Census.update (Census.A ~1) f
+                           val _ = Census.extend j k
+                           val _ = Census.extendAll ys xs
+                           val K = simplify env sigma K
                         in
                            K
                         end

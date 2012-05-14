@@ -81,6 +81,10 @@ structure Core = struct
                align
                   [seq [str "\\", var n, str "."],
                    indent 3 (layout e)]
+          | APP (e1, FN (n, e2)) =>
+               align
+                  [seq [layout e1, space, str "\\", var n, str "."],
+                   indent 3 (layout e2)]
           | APP (e1, e2) => seq [layout e1, space, layout e2]
           | PRI (f, xs) => seq [var f, vars xs]
           | RECORD fs => record (map field fs)

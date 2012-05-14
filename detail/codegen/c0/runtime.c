@@ -130,7 +130,7 @@ __obj __consume (__obj s) {
   return (a);
 }
 
-__obj __slice (__obj tok_, __obj offs_, __obj sz_, __obj s) {
+__obj __slice (__obj tok_, __obj offs_, __obj sz_) {
   __word tok = tok_->bv.vec;
   __int offs = offs_->z.value;
   __int sz = sz_->z.value;
@@ -139,12 +139,7 @@ __obj __slice (__obj tok_, __obj offs_, __obj sz_, __obj s) {
     __BV_BEGIN(slice,sz);
     __BV_INIT(x);
     __BV_END(slice,sz);
-  __LOCAL0(r);
-    __RECORD_BEGIN(r,2);
-    __RECORD_ADD(___1,slice);
-    __RECORD_ADD(___2,s);
-    __RECORD_END(r,2);
-  return (r);
+  return (slice);
 }
 
 __obj __halt (__obj env, __obj o) {
