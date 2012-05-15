@@ -7,7 +7,7 @@ structure DesugaredTree = struct
    structure Pat = struct
       datatype t =
          VEC of string
-       | BND of sym * int
+       | BND of sym * string
    end
 
    type value = Exp.decl
@@ -18,7 +18,10 @@ structure DesugaredTree = struct
    fun size pat =
       case pat of
          Pat.VEC str => String.size str
-       | Pat.BND (_, i) => i
+       | Pat.BND (_, str) =>
+         case String.fields (fn c => c = #"|") str of
+            [bPat] => String.size bPat
+          | _ => 0
 
    fun toWildcardPattern tokpat = let
       fun lp (pats, acc) =
@@ -27,9 +30,7 @@ structure DesugaredTree = struct
           | p::ps =>
                case p of
                   Pat.VEC str => lp (ps, acc^str)
-                | Pat.BND (_, i) =>
-                     lp (ps,
-                         acc^String.implode (List.tabulate (i, fn _ => #".")))
+                | Pat.BND (_, str) => lp (ps, acc^str)
    in
       lp (tokpat, "")
    end
@@ -118,7 +119,7 @@ structure DesugaredTree = struct
       and pat t =
          case t of
             Pat.VEC bits => str bits
-          | Pat.BND (n, i) => seq [var n, str ":", str (Int.toString i)]
+          | Pat.BND (n, pat) => seq [var n, str ":", str pat]
 
       val spec = Spec.PP.spec declarations
    end

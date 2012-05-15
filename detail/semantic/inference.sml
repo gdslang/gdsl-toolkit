@@ -617,7 +617,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          E.pushType (false, CONST (getBitpatLitLength str), env)
      | infBitpatSize (st,env) (AST.NAMEDbitpat v) = E.pushWidth (v,env)
      | infBitpatSize (st,env) (AST.BITVECbitpat (v,s)) =
-         E.pushType (false, CONST (IntInf.toInt s), env)
+         E.pushType (false, CONST (getBitpatLitLength s), env)
    and infBitpat stenv (AST.MARKbitpat m) = reportError infBitpat stenv m
      | infBitpat (st,env) (AST.BITSTRbitpat str) = (0,env)
      | infBitpat (st,env) (AST.NAMEDbitpat v) =
@@ -626,7 +626,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val env = E.pushLambdaVar (v,env)
          val envVar = E.pushSymbol (v, getSpan st, env)
-         val envWidth = E.pushType (false, VEC (CONST (IntInf.toInt s)), env)
+         val envWidth = E.pushType (false, VEC (CONST (getBitpatLitLength s)), env)
          val env = E.meet (envVar, envWidth)
          val env = E.popKappa env
       in

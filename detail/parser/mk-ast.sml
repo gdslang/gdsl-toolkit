@@ -97,7 +97,7 @@ functor MkAst (Core: AST_CORE) = struct
       MARKbitpat of bitpat mark
     | BITSTRbitpat of bitpat_lit
     | NAMEDbitpat of var_use
-    | BITVECbitpat of var_bind * IntInf.int
+    | BITVECbitpat of var_bind * bitpat_lit
 
    and tokpat =
       MARKtokpat of tokpat mark
@@ -183,7 +183,7 @@ functor MkAst (Core: AST_CORE) = struct
             MARKbitpat t' => bitpat (#tree t')
           | BITSTRbitpat s => str s
           | NAMEDbitpat n => var_use n
-          | BITVECbitpat (n, t) => seq [var_bind n, str ":", int t]
+          | BITVECbitpat (n, s) => seq [var_bind n, str ":", str s]
 
       and tokpat t =
          case t of

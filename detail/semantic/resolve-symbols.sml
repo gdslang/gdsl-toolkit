@@ -351,7 +351,7 @@ end = struct
           | PT.BITSTRbitpat str => AST.BITSTRbitpat str
           | PT.NAMEDbitpat v => AST.NAMEDbitpat (useVar (s,v))
           (*note: definition registered earlier*)   
-          | PT.BITVECbitpat (v,size) => AST.BITVECbitpat (VI.lookup (!ST.varTable, v), size)
+          | PT.BITVECbitpat (v,p) => AST.BITVECbitpat (VI.lookup (!ST.varTable, v), p)
 
       and convTokpat s p =
          case p of

@@ -132,6 +132,7 @@
 
 <BITPAT>":" => (YYBEGIN BITPATNUM; T.COLON);
 <BITPAT,BITPATNUM>"'" => (YYBEGIN INITIAL; T.TICK);
+<BITPAT>"@" => (T.WITH);
 <BITPAT>{bitstr} => (T.BITSTR yytext);
 <BITPAT>{id} => (T.ID (Atom.atom yytext));
 <BITPAT>{ws} => (skip ());

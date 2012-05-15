@@ -180,13 +180,19 @@ Specialize
 
 PrimBitPat
    : BITSTR => (mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
-   | Qid (":" POSINT)? =>
+   | Qid (BitPatOrInt)? =>
       (mark
          PT.MARKbitpat
          (FULL_SPAN,
           case SR of
              NONE => PT.NAMEDbitpat Qid
            | SOME i => PT.BITVECbitpat (#tree Qid, i)))
+   ;
+
+BitPatOrInt
+   : ":" POSINT => (let fun dup n = if n=0 then "" else "." ^ dup (n-1)
+                in dup (IntInf.toInt POSINT) end)
+   | "@" BITSTR => (BITSTR)
    ;
 
 Exp
