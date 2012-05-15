@@ -5,6 +5,7 @@ signature SymbolTableSig  = sig
 
    val noSpan : Error.span
    val compare_span : Error.span * Error.span -> order
+   val eq_span : Error.span * Error.span -> bool
    
    val compare_symid : symid * symid -> order
    val eq_symid : symid * symid -> bool
@@ -57,6 +58,9 @@ structure SymbolTable :> SymbolTableSig = struct
            EQUAL => Int.compare (Position.toInt p1e,
                                  Position.toInt p2e)
          | res => res)
+   fun eq_span ((p1s,p1e), (p2s,p2e)) =
+      Position.toInt p1s = Position.toInt p2s andalso
+      Position.toInt p1e = Position.toInt p2e
 
    fun compare_symid (SymId i1, SymId i2) = Int.compare (i1,i2)
    fun eq_symid  (SymId i1, SymId i2) = i1=i2

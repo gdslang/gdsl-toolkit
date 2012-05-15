@@ -1,6 +1,7 @@
 (*A pass that specializes decodes by instantiating the specialization
 variables in duplications of the decoder functions.
 
+- replacing specialized pattern variables with constants doesn't work yet
 *)
 structure Specialize : sig
    val run:
@@ -12,7 +13,7 @@ end = struct
 
    type symid = SymbolTable.symid
    type bitpat_set = AtomSet.set
-
+      
    structure SymSpansMap = RedBlackMapFn(struct
       type ord_key = (symid * Error.span) list
       val compare =
@@ -34,21 +35,24 @@ end = struct
    type uses = {bindings : bitpat_set SymMap.map, forwards : SymSet.set}
    type bindinfo = (uses SymSpansMap.map) SymMap.map
 
+   fun showAtomSet bps =
+      #1 (List.foldl (fn (p,(str,sep)) => (Atom.toString p ^ sep ^ str, "|"))
+         (", ","") (AtomSet.listItems bps))
+
    fun showBindinfo bs =
       let
          fun showBindings ((var, bps), str) =
             SymbolTable.getString(!SymbolTables.varTable, var) ^
-            "=" ^ #1 (
-               List.foldl (
-                  fn (p,(str,sep)) => (Atom.toString p ^ sep ^ str, "|")
-               ) (", ","") (AtomSet.listItems bps)) ^ str
+            "=" ^  showAtomSet bps ^ str
          fun showForwards (var, str) =
+            str ^
             SymbolTable.getString(!SymbolTables.varTable, var) ^
-            ", " ^ str
+            ", "
          fun showSymSpans ((decId,(p1,p2)),(str,sep)) =
-            (SymbolTable.getString(!SymbolTables.varTable, decId) ^
+            (str ^ sep ^
+            SymbolTable.getString(!SymbolTables.varTable, decId) ^
             ":" ^ Int.toString(Position.toInt p1) ^
-            "-" ^ Int.toString(Position.toInt p2) ^ sep ^ str, ",")
+            "-" ^ Int.toString(Position.toInt p2), ",")
          fun showParent ((ss, {bindings = vs, forwards = fs}), str) =
             "    at " ^ 
             #1 (List.foldl showSymSpans ("","") ss) ^
@@ -68,6 +72,20 @@ end = struct
    fun bpatToSet bp =
       AtomSet.addList (AtomSet.empty,
                        List.map Atom.atom (String.fields (fn c => c= #"|") bp))
+
+   fun bpatIsContained (s,(var,str),bPats,errs) =
+      case String.fields (fn c => c = #"|") str of
+         [bPat] => if AtomSet.member(bPats,Atom.atom(bPat)) then true else
+            if String.size bPat=(case AtomSet.find (fn _ => true) bPats of
+                  SOME a => String.size(Atom.toString(a))
+                | NONE => ~1) then false else
+            (Error.errorAt (errs, s, ["filter clause ",
+                     SymbolTable.getString(!SymbolTables.varTable, var),
+                     "='", bPat, "' and refinement '", showAtomSet bPats,
+                     "' have different lengths"]); false)
+       | _ => (Error.errorAt (errs, s, ["filter clause ",
+                     SymbolTable.getString(!SymbolTables.varTable, var),
+                     "='", str, "' must be a single constant"]); false)
 
    fun mergeUses ({bindings = bs1, forwards = fs1},
                   {bindings = bs2, forwards = fs2}) = {bindings = bs2, forwards = fs2}
@@ -95,31 +113,11 @@ end = struct
            | bitpatGB s (_,bs) = bs
          and specialVS s (MARKspecial m,vs) = specialVS (#span m) (#tree m,vs)
            | specialVS s (BINDspecial (var,bpat),vs) =
-            let
-               (*this can disappear if we fix the "shortcoming" at the beginnig*)
-               val _ = if SymMap.inDomain (vs,var) then
-                  Error.errorAt (errs, s, ["decoder ",
-                     SymbolTable.getString(!SymbolTables.varTable, v),
-                     " contains more than one call that specialises ",
-                     SymbolTable.getString(!SymbolTables.varTable, var)])
-                  else ()
-            in
                SymMap.insert (vs,var,bpatToSet bpat)
-            end
            | specialVS s (FORWARDspecial _,vs) = vs
          and specialFS s (MARKspecial m,fs) = specialFS (#span m) (#tree m,fs)
            | specialFS s (FORWARDspecial var,fs) =
-            let
-               (*this can disappear if we fix the "shortcoming" at the beginnig*)
-               val _ = if SymSet.member (fs,var) then
-                  Error.errorAt (errs, s, ["decoder ",
-                     SymbolTable.getString(!SymbolTables.varTable, v),
-                     " contains more than one call that specialises ",
-                     SymbolTable.getString(!SymbolTables.varTable, var)])
-                  else ()
-            in
                SymSet.add (fs,var)
-            end
            | specialFS s (BINDspecial _,fs) = fs
       in
          List.foldl (decodepatGB s) bs ps
@@ -145,10 +143,10 @@ end = struct
                val fs = SymSet.intersection (filter,fs)
             in
                if SymMap.inDomain (bi,caller) then 
-                  List.foldl (addFiltered (bs,fs,prefix @ postfix)) ssMap
+                  List.foldl (addFiltered (bs,fs,postfix @ prefix)) ssMap
                      (SymSpansMap.listItemsi (SymMap.lookup (bi,caller)))
                else
-                  SymSpansMap.insert (ssMap,prefix @ postfix,{bindings=bs, forwards=fs})
+                  SymSpansMap.insert (ssMap,postfix @ prefix,{bindings=bs, forwards=fs})
             end
          val parents = SymMap.lookup (bi, k)
          val parents = SymSpansMap.foldli genUse SymSpansMap.empty parents
@@ -156,32 +154,99 @@ end = struct
          SymMap.insert (bi, k, parents)
       end
    
-   fun instantiate bs (DECODEdecl (v,ps,wc,guards)::ds) =
+   fun getSymbolVariant (decId, bs) =
       let
-         fun prepend xs = DECODEdecl (v,ps,wc,guards)::xs
+         val decStr = SymbolTable.getString(!SymbolTables.varTable,decId)
+         val decSpan = SymbolTable.getSpan(!SymbolTables.varTable,decId)
+         fun genList ((var,bitstr),(str,sep)) =
+            (str ^ sep ^ SymbolTable.getString(!SymbolTables.varTable,var) ^
+            "='" ^ #1 (List.foldl (fn (atm,(str,sep)) =>
+                           (Atom.toString(atm) ^ sep, "|"))
+                        ("","") (AtomSet.listItems bitstr)) ^ "'", ",")
+         val varStr = decStr ^ "<" ^
+                      #1 (List.foldl genList ("","") (SymMap.listItemsi bs))
+                      ^ ">"
+         val varAtm = Atom.atom(varStr)
       in
-         prepend (instantiate bs ds)
+        case SymbolTable.find(!SymbolTables.varTable,varAtm) of
+               SOME varId => varId
+             | NONE => case SymbolTable.create(!SymbolTables.varTable,varAtm,decSpan) of
+                (table, varId) => (SymbolTables.varTable := table; varId)
       end
-     | instantiate bs (d::ds) = d :: instantiate bs ds
-     | instantiate bs [] = []
+
+   fun instantiate (_,errs,bi) (MARKdecl {tree=t, span=s}::ds) =
+      List.map (fn t => MARKdecl {tree=t, span=s}) (instantiate (s,errs,bi) [t]) @
+      instantiate (s,errs,bi) ds
+     | instantiate (s,errs,bi) ((d as DECODEdecl (v,ps,wc,guards))::ds) =
+      (case SymMap.find (bi,v) of
+         NONE => d::instantiate (s,errs,bi) ds
+       | SOME ssMap =>
+         let
+            fun filterMatch (_,bs) (MARKwithclause {tree=t,span=s}) =
+               filterMatch (s,bs) t
+              | filterMatch (s,bs) (WITHwithclause (var,str)) =
+               case SymMap.find (bs,var) of
+                     NONE => false
+                   | SOME bPats => bpatIsContained (s,(var,str),bPats,errs)
+            fun patchPatterns (pre,bs) (MARKdecodepat {tree=t, span=s}) =
+               MARKdecodepat {tree=patchPatterns (pre,bs) t, span=s}
+              | patchPatterns (pre,bs) (TOKENdecodepat tp) =
+               TOKENdecodepat (patchTokpat (pre,bs) tp)
+              | patchPatterns (pre,bs) (BITdecodepat bps) = BITdecodepat bps
+            and patchTokpat (pre,bs) (MARKtokpat {tree=t,span=s}) =
+                MARKtokpat {tree=patchTokpat (pre,bs) t,span=s}
+              | patchTokpat (pre,bs) (TOKtokpat i) = TOKtokpat i
+              | patchTokpat (pre,bs) (NAMEDtokpat (decId,spec)) =
+               case SymMap.find (bi,decId) of
+                  NONE => NAMEDtokpat (decId,spec)
+                | SOME localMap =>
+               let
+                  val bindingOpt = List.find
+                     (fn (ssList,_) => List.all
+                        (fn ((sy1,sp1),(sy2,sp2)) =>
+                           SymbolTable.eq_symid(sy1,sy2) andalso
+                           SymbolTable.eq_span(sp1,sp2))
+                        (ListPair.zip (pre,ssList)))
+                     (SymSpansMap.listItemsi localMap)
+               in
+                  case bindingOpt of
+                     NONE => NAMEDtokpat (decId,spec)
+                   | SOME (_,{bindings=bs, forwards}) =>
+                     NAMEDtokpat (getSymbolVariant (decId,bs),[])
+               end
+            fun gatherInstances ((prefix,{bindings=bs, forwards}),(done,out)) =
+               case getSymbolVariant (v,bs) of varId =>
+               if SymSet.member (done,varId) then (done,out) else
+               (SymSet.add (done,varId),
+                  if List.exists (filterMatch (s,bs)) wc then out else
+                     DECODEdecl (varId,
+                        List.map (patchPatterns (prefix,bs)) ps,
+                        wc, guards) :: out)
+            val (_,newInsts) = List.foldl gatherInstances (SymSet.empty,[])
+                  (SymSpansMap.listItemsi ssMap)
+         in
+            d :: newInsts @ instantiate (s,errs,bi) ds
+         end)
+     | instantiate sErrbi (d::ds) = d :: instantiate sErrbi ds
+     | instantiate sErrbi [] = []
                   
    fun specializePass (errs,{tree = decls, span = s}) =
       let
-         val bs = List.foldl
+         val bi = List.foldl
                      (gatherBindings (s,errs))
                      (SymMap.empty : bindinfo)
                      decls
-         val _ = TextIO.print ("bindings before:\n" ^ showBindinfo bs)
-         val bs = List.foldl propagateBinding bs (SymMap.listKeys bs)
-         val _ = TextIO.print ("bindungs after:\n" ^ showBindinfo bs)
+         (*val _ = TextIO.print ("bindings before:\n" ^ showBindinfo bi)*)
+         val bi = List.foldl propagateBinding bi (SymMap.listKeys bi)
+         (*val _ = TextIO.print ("bindungs after:\n" ^ showBindinfo bi)*)
       in
-         {tree = instantiate bs decls, span = s}
+         {tree = instantiate (s,errs,bi) decls, span = s}
       end
 
    val specializePass =
       BasicControl.mkKeepPass
          {passName="specialize",
-          registry=DesugarControl.registry,
+          registry=BasicControl.topRegistry,
           pass=specializePass,
           preExt="ast",
           preOutput=fn (os,(err,t)) => PP.prettyTo (os,t),
