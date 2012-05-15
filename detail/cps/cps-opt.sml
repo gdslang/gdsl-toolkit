@@ -1131,8 +1131,7 @@ structure BetaContFun = struct
        | SOME n => n
 
    fun markInlined f =
-      (Pretty.prettyTo(TextIO.stdOut, CPS.PP.var f);
-      inlined := Map.insert(!inlined, f, count0 f + 1))
+      inlined := Map.insert(!inlined, f, count0 f + 1)
 
    fun gotInlined f =
       case Map.find (!inlined, f) of

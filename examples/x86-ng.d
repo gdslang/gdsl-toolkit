@@ -1607,12 +1607,12 @@ val main [0x0f 0x5f /r] = maxps xmm128 xmm/m128
 ### MAXSD Vol. 2B 4-19
 val maxsd = binop MAXSD
 val vmaxsd = ternop VMAXSD
-val pf2 [0x0f 0x5f /r] = maxsd xmm128 xmm/m64
+val /f2 [0x0f 0x5f /r] = maxsd xmm128 xmm/m64
 
 ### MAXSS Vol. 2B 4-21
 val maxss = binop MAXSS
 val vmaxss = ternop VMAXSS
-val pf3 [0x0f 0x5f /r] = maxss xmm128 xmm/m32
+val /f3 [0x0f 0x5f /r] = maxss xmm128 xmm/m32
 
 ### MFENCE Vol. 2B 4-23
 val mfence = return MFENCE
@@ -1631,12 +1631,12 @@ val main [0x0f 0x5d /r] = minps xmm128 xmm/m128
 ### MINSD Vol. 2B 4-31
 val minsd = binop MINSD
 val vminsd = ternop VMINSD
-val pf2 [0x0f 0x5d /r] = minsd xmm128 xmm/m64
+val /f2 [0x0f 0x5d /r] = minsd xmm128 xmm/m64
 
 ### MINSS Vol. 2B 4-33
 val minss = binop MINSS
 val vminss = ternop VMINSS
-val pf3 [0x0f 0x5d /r] = minss xmm128 xmm/m32
+val /f3 [0x0f 0x5d /r] = minss xmm128 xmm/m32
 
 ### MONITOR Vol. 2B 4-35
 val monitor = return MONITOR
@@ -1718,7 +1718,7 @@ val /66 [0x0f 0x7e /r]
 ### MOVDDUP Vol. 2B 4-64
 val movddup = binop MOVDDUP
 val vmovddup = binop VMOVDDUP
-val pf2 [0x0f 0x12 /r] = movddup xmm128 xmm/m64
+val /f2 [0x0f 0x12 /r] = movddup xmm128 xmm/m64
 
 ### MOVDQA Vol. 2B 4-67
 val movdqa = binop MOVDQA
@@ -1729,12 +1729,12 @@ val /66 [0x0f 0x7f /r] = movdqa xmm/m128 xmm128
 ### MOVDQU Vol. 2B 4-70
 val movdqu = binop MOVDQU
 val vmovdqu = binop VMOVDQU
-val pf3 [0x0f 0x6f /r] = movdqu xmm128 xmm/m128
-val pf3 [0x0f 0x7f /r] = movdqu xmm/m128 xmm128
+val /f3 [0x0f 0x6f /r] = movdqu xmm128 xmm/m128
+val /f3 [0x0f 0x7f /r] = movdqu xmm/m128 xmm128
 
 ### MOVDQ2Q Vol. 2B 4-73
 val movdq2q = binop MOVDQ2Q
-val pf2 [0x0f 0xd6 /r] = movdq2q mm64 xmm128
+val /f2 [0x0f 0xd6 /r] = movdq2q mm64 xmm128
 
 ### MOVHLPS Vol. 2B 4-75
 ## CHECK collision with movlps
@@ -1832,7 +1832,7 @@ val main [0x0f 0xe7 /r] = movntq m64 mm64
 ### MOVQ Vol. 2B 4-105
 val main [0x0f 0x6f /r] = movq mm64 mm/m64
 val main [0x0f 0x7f /r] = movq mm/m64 mm64
-val pf3 [0x0f 0x7e /r] = movq xmm128 xmm/m64
+val /f3 [0x0f 0x7e /r] = movq xmm128 xmm/m64
 val /66 [0x0f 0xd6 /r] = movq xmm/m64 xmm128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
