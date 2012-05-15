@@ -674,6 +674,7 @@ structure Rec = struct
    in
       recs := #2 (visitTerm (cps, empty))
    end
+   fun layout() = Pretty.symset CPS.PP.var (!recs) 
 end
 
 structure FunInfo = struct
@@ -1130,7 +1131,8 @@ structure BetaContFun = struct
        | SOME n => n
 
    fun markInlined f =
-      inlined := Map.insert(!inlined, f, count0 f + 1)
+      (Pretty.prettyTo(TextIO.stdOut, CPS.PP.var f);
+      inlined := Map.insert(!inlined, f, count0 f + 1))
 
    fun gotInlined f =
       case Map.find (!inlined, f) of
