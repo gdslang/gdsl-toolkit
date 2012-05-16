@@ -18,7 +18,6 @@
    | KW_of ("of")
    | KW_granularity ("granularity")
    | KW_raise ("raise")
-   | KW_with ("with")
    | KW_then ("then")
    | KW_type ("type")
    | KW_and ("and")
@@ -38,8 +37,6 @@
    | CONCAT ("^")
    | PLUS ("+")
    | MINUS ("-")
-   | LESSTHAN ("<")
-   | GREATERTHAN (">")
    | TIMES ("*")
    | SLASH ("/")
    | TILDE ("~")
@@ -305,8 +302,6 @@ ConUse
 
 Sym
    : SYMBOL => (SYMBOL)
-   | "<" => (Atom.atom "<")
-   | ">" => (Atom.atom ">")
    ;
 
 Qid

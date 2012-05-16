@@ -123,8 +123,6 @@
 <INITIAL>")" => (T.RP);
 <INITIAL>"+" => (T.PLUS);
 <INITIAL>"-" => (T.MINUS);
-<INITIAL>"<" => (T.LESSTHAN);
-<INITIAL>">" => (T.GREATERTHAN);
 <INITIAL>"~" => (T.TILDE);
 <INITIAL>"'" => (YYBEGIN BITPAT; T.TICK);
 <INITIAL>"." => (T.DOT);
