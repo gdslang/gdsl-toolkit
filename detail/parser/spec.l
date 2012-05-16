@@ -145,8 +145,7 @@
 <INITIAL>{ws} => (skip ());
 <INITIAL>"(*" => (YYBEGIN COMMENT; depth := 1; skip());
 <INITIAL>"\"" => (YYBEGIN STRING; skip());
-<INITIAL>"#"[^\n]* => (skip());
-<INITIAL>"#\n" => (skip());
+<INITIAL>"#"[^\n]*"\n" => (skip());
 
 <STRING>{esc} => (addStr(valOf(String.fromString yytext)); continue());
 <STRING>{sgood}+ => (addStr yytext; continue());
