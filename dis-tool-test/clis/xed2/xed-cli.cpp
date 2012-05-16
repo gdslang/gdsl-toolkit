@@ -344,7 +344,7 @@ int main(int argc, char** argv) {
 			if (feof(stdin))
 				goto end_read;
 			char next = getc(stdin);
-			if (next >= '0' && next <= '9')
+			if (next >= '0' && next <= '9' || next >= 'a' && next <= 'f')
 				t[index++] = next;
 			if (index >= length)
 				break;
