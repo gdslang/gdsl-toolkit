@@ -408,11 +408,7 @@ datatype mnemonic =
  | MOVNTPS
  | VMOVNTPS
  | MOVNTQ
-
  | IMUL
- | IMUL_2
- | IMUL_3
-
  | PUSH
  | POP
  | JMP
@@ -511,9 +507,7 @@ datatype mnemonic =
  | CMOVS
  | CMOVZ
  | RET
- | RETFAR
- | RET_1
- | RETFAR_1
+ | RET_FAR
  | LEA
  | TEST
  | CMP
@@ -528,8 +522,6 @@ datatype mnemonic =
  | MOVSX
  | OR
  | NOP
- | NOP_1
-
  | PHADDW
  | VPHADDW
  | PHADDD
@@ -1114,15 +1106,15 @@ end
 val one = return (IMM8 '00000001')
 
 ### CALL 3-112 Vol. 2A
-val /66 [0xe8] = near-rel CALL rel16
-val main [0xe8] = near-rel CALL rel32
+val main [0xe8]
+ | opndsz? = near-rel CALL rel16
+ | otherwise = near-rel CALL rel32
 val main [0xff /2] = near-abs CALL r/m64
 
 ### LEA 3-579 Vol. 2A
-val /66 [0x8d /r]
- | addrsz? = binop LEA r16 r/m16
- | otherwise = binop LEA r16 r/m32
 val main [0x8d /r]
+ | opndsz? & addrsz? = binop LEA r16 r/m16
+ | opndsz? = binop LEA r16 r/m32
  | rexw? & addrsz? = binop LEA r64 r/m32
  | rexw? = binop LEA r64 r/m64
  | addrsz? = binop LEA r32 r/m16
@@ -1130,8 +1122,8 @@ val main [0x8d /r]
 
 ### INC 3-501 Vol. 2A
 val main [0xfe /0] = unop INC r/m8
-val /66 [0xff /0] = unop INC r/m16
 val main [0xff /0]
+ | opndsz? = unop INC r/m16
  | rexw? = unop INC r/m64
  | otherwise = unop INC r/m32
 
@@ -1140,128 +1132,128 @@ val main [0xff /0]
 val main [0xd0 /4] = binop SHL r/m8 one
 val main [0xd2 /4] = binop SHL r/m8 cl
 val main [0xc0 /4] = binop SHL r/m8 imm8
-val /66 [0xd1 /4] = binop SHL r/m16 one
-val /66 [0xd3 /4] = binop SHL r/m16 cl
-val /66 [0xc1 /4] = binop SHL r/m16 imm8
 val main [0xd1 /4]
+ | opndsz? = binop SHL r/m16 one
  | rexw? = binop SHL r/m64 one
  | otherwise = binop SHL r/m32 one
 val main [0xd3 /4]
+ | opndsz? = binop SHL r/m16 cl
  | rexw? = binop SHL r/m64 cl
  | otherwise = binop SHL r/m32 cl
 val main [0xc1 /4]
+ | opndsz? = binop SHL r/m16 imm8
  | rexw? = binop SHL r/m64 imm8
  | otherwise = binop SHL r/m32 imm8
 #### SAR
 val main [0xd0 /7] = binop SAR r/m8 one
 val main [0xd2 /7] = binop SAR r/m8 cl
 val main [0xc0 /7] = binop SAR r/m8 imm8
-val /66 [0xd1 /7] = binop SAR r/m16 one
-val /66 [0xd3 /7] = binop SAR r/m16 cl
-val /66 [0xc1 /7] = binop SAR r/m16 imm8
 val main [0xd1 /7]
+ | opndsz? = binop SAR r/m16 one
  | rexw? = binop SAR r/m64 one
  | otherwise = binop SAR r/m32 one
 val main [0xd3 /7]
+ | opndsz? = binop SAR r/m16 cl
  | rexw? = binop SAR r/m64 cl
  | otherwise = binop SAR r/m32 cl
 val main [0xc1 /7]
+ | opndsz? = binop SAR r/m16 imm8
  | rexw? = binop SAR r/m64 imm8
  | otherwise = binop SAR r/m32 imm8
 #### SHR
 val main [0xd0 /5] = binop SHR r/m8 one
 val main [0xd2 /5] = binop SHR r/m8 cl
 val main [0xc0 /5] = binop SHR r/m8 imm8
-val /66 [0xd1 /5] = binop SHR r/m16 one
-val /66 [0xd3 /5] = binop SHR r/m16 cl
-val /66 [0xc1 /5] = binop SHR r/m16 imm8
 val main [0xd1 /5]
+ | opndsz? = binop SHR r/m16 one
  | rexw? = binop SHR r/m64 one
  | otherwise = binop SHR r/m32 one
 val main [0xd3 /5]
+ | opndsz? = binop SHR r/m16 cl
  | rexw? = binop SHR r/m64 cl
  | otherwise = binop SHR r/m32 cl
-val main [0xc1 /5] 
+val main [0xc1 /5]
+ | opndsz? = binop SHR r/m16 imm8
  | rexw? = binop SHR r/m64 imm8
  | otherwise = binop SHR r/m32 imm8
 
 ### TEST 4-451 Vol. 2B
 val main [0xa8] = binop TEST al imm8
-val /66 [0xa9] = binop TEST ax imm16
 val main [0xa9]
+ | opndsz? = binop TEST ax imm16
  | rexw? = binop TEST rax imm32
  | otherwise = binop TEST eax imm32
 val main [0xf6 /0] = binop TEST r/m8 imm8
-val /66 [0xf7 /0] = binop TEST r/m16 imm16
 val main [0xf7 /0]
+ | opndsz? = binop TEST r/m16 imm16
  | rexw? = binop TEST r/m64 imm32
  | otherwise = binop TEST r/m32 imm32
 val main [0x84 /r] = binop TEST r/m8 r8
-val /66 [0x85 /r] = binop TEST r/m16 r16
 val main [0x85 /r]
+ | opndsz? = binop TEST r/m16 r16
  | rexw? = binop TEST r/m64 r64
  | otherwise = binop TEST r/m32 r32
 
 ### CMP 3-150 Vol. 2A
 val main [0x3c] = binop CMP al imm8
-val /66 [0x3d] = binop CMP ax imm16
 val main [0x3d]
+ | opndsz? = binop CMP ax imm16
  | rexw? = binop CMP rax imm32
  | otherwise = binop CMP eax imm32
 val main [0x80 /7] = binop CMP r/m8 imm8
-val /66 [0x81 /7] = binop CMP r/m16 imm16
 val main [0x81 /7]
+ | opndsz? = binop CMP r/m16 imm16
  | rexw? = binop CMP r/m64 imm32
  | otherwise = binop CMP r/m32 imm32
-val /66 [0x83 /7] = binop CMP r/m16 imm8
 val main [0x83 /7]
+ | opndsz? = binop CMP r/m16 imm8
  | rexw? = binop CMP r/m64 imm8
  | otherwise = binop CMP r/m32 imm8
 val main [0x38 /r] = binop CMP r/m8 r8
-val /66 [0x39 /r] = binop CMP r/m16 r16
 val main [0x39 /r]
+ | opndsz? = binop CMP r/m16 r16
  | rexw? = binop CMP r/m64 r64
  | otherwise = binop CMP r/m32 r32
 val main [0x3A /r] = binop CMP r8 r/m8
-val /66 [0x3B /r] = binop CMP r16 r/m16
 val main [0x3B /r]
+ | opndsz? = binop CMP r16 r/m16
  | rexw? = binop CMP r64 r/m64
  | otherwise = binop CMP r32 r/m32
 
 ### NOP 4-12 Vol. 2B
 val main [0x90] = arity0 NOP
 val /66 [0x90] = arity0 NOP
-val /66 [0x0f 0x1f /0] = unop NOP_1 r/m16
-val main [0x0f 0x1f /0] = unop NOP_1 r/m32
+val /66 [0x0f 0x1f /0] = unop NOP r/m16
+val main [0x0f 0x1f /0] = unop NOP r/m32
 
 ### RET 4-321 Vol. 2B
 val main [0xc3] = arity0 RET
-val main [0xcb] = arity0 RETFAR
-val main [0xc2] = unop RET_1 imm16
-val main [0xca] = unop RETFAR_1 imm16
+val main [0xcb] = arity0 RET_FAR
+val main [0xc2] = unop RET imm16
+val main [0xca] = unop RET_FAR imm16
 
 ### IMUL 3-494 Vol. 2A
 val main [0xf6 /5] = unop IMUL r/m8
-val /66 [0xf7 /5] = unop IMUL r/m16
 val main [0xf7 /5]
+ | opndsz? = unop IMUL r/m16
  | rexw? = unop IMUL r/m64
  | otherwise = unop IMUL r/m32
-val /66 [0x0f 0xaf /r] = binop IMUL_2 r16 r/m16
 val main [0x0f 0xaf /r]
- | rexw? = binop IMUL_2 r64 r/m64
- | otherwise = binop IMUL_2 r32 r/m32
-val /66 [0x6b /r] = ternop IMUL_3 r16 r/m16 imm8
+ | opndsz? = binop IMUL r16 r/m16
+ | rexw? = binop IMUL r64 r/m64
+ | otherwise = binop IMUL r32 r/m32
 val main [0x6b /r]
- | rexw? = ternop IMUL_3 r64 r/m64 imm8
- | otherwise = ternop IMUL_3 r32 r/m32 imm8
-val /66 [0x69 /r] = ternop IMUL_3 r16 r/m16 imm16
+ | opndsz? = ternop IMUL r16 r/m16 imm8
+ | rexw? = ternop IMUL r64 r/m64 imm8
+ | otherwise = ternop IMUL r32 r/m32 imm8
 val main [0x69 /r]
- | rexw? = ternop IMUL_3 r64 r/m64 imm32
- | otherwise = ternop IMUL_3 r32 r/m32 imm32
+ | opndsz? = ternop IMUL r16 r/m16 imm16
+ | rexw? = ternop IMUL r64 r/m64 imm32
+ | otherwise = ternop IMUL r32 r/m32 imm32
 
 ### MOVZX 3-739 Vol. 2A
-val /66 [0x0f 0xb6 /r] = binop MOVZX r16 r/m8
 val main [0x0f 0xb6 /r]
+ | opndsz? = binop MOVZX r16 r/m8
  | rexw? = binop MOVZX r64 r/m8
  | otherwise = binop MOVZX r32 r/m8
 val main [0x0f 0xb7 /r]
@@ -1269,68 +1261,68 @@ val main [0x0f 0xb7 /r]
  | otherwise = binop MOVZX r32 r/m16
 
 ### CMOVcc 3-143 Vol. 2A
-val /66 [0x0f 0x47 /r] = binop CMOVA r16 r/m16
 val main [0x0f 0x47 /r]
+ | opndsz? = binop CMOVA r16 r/m16
  | rexw? = binop CMOVA r64 r/m64
  | otherwise = binop CMOVA r32 r/m32
-val /66 [0x0f 0x43 /r] = binop CMOVAE r16 r/m16
 val main [0x0f 0x43 /r]
+ | opndsz? = binop CMOVAE r16 r/m16
  | rexw? = binop CMOVAE r64 r/m64
  | otherwise = binop CMOVAE r32 r/m32
-val /66 [0x0f 0x42 /r] = binop CMOVB r16 r/m16
 val main [0x0f 0x42 /r]
+ | opndsz? = binop CMOVB r16 r/m16
  | rexw? = binop CMOVB r64 r/m64
  | otherwise = binop CMOVB r32 r/m32
-val /66 [0x0f 0x46 /r] = binop CMOVBE r16 r/m16
 val main [0x0f 0x46 /r]
+ | opndsz? = binop CMOVBE r16 r/m16
  | rexw? = binop CMOVBE r64 r/m64
  | otherwise = binop CMOVBE r32 r/m32
-val /66 [0x0f 0x44 /r] = binop CMOVE r16 r/m16
 val main [0x0f 0x44 /r]
+ | opndsz? = binop CMOVE r16 r/m16
  | rexw? = binop CMOVE r64 r/m64
  | otherwise = binop CMOVE r32 r/m32
-val /66 [0x0f 0x4f /r] = binop CMOVG r16 r/m16
 val main [0x0f 0x4f /r]
+ | opndsz? = binop CMOVG r16 r/m16
  | rexw? = binop CMOVG r64 r/m64
  | otherwise = binop CMOVG r32 r/m32
-val /66 [0x0f 0x4d /r] = binop CMOVGE r16 r/m16
 val main [0x0f 0x4d /r]
+ | opndsz? = binop CMOVGE r16 r/m16
  | rexw? = binop CMOVGE r64 r/m64
  | otherwise = binop CMOVGE r32 r/m32
-val /66 [0x0f 0x4c /r] = binop CMOVL r16 r/m16
 val main [0x0f 0x4c /r]
+ | opndsz? = binop CMOVL r16 r/m16
  | rexw? = binop CMOVL r64 r/m64
  | otherwise = binop CMOVL r32 r/m32
-val /66 [0x0f 0x4e /r] = binop CMOVLE r16 r/m16
 val main [0x0f 0x4e /r]
+ | opndsz? = binop CMOVLE r16 r/m16
  | rexw? = binop CMOVLE r64 r/m64
  | otherwise = binop CMOVLE r32 r/m32
-val /66 [0x0f 0x45 /r] = binop CMOVNE r16 r/m16
 val main [0x0f 0x45 /r]
+ | opndsz? = binop CMOVNE r16 r/m16
  | rexw? = binop CMOVNE r64 r/m64
  | otherwise = binop CMOVNE r32 r/m32
-val /66 [0x0f 0x41 /r] = binop CMOVNO r16 r/m16
 val main [0x0f 0x41 /r]
+ | opndsz? = binop CMOVNO r16 r/m16
  | rexw? = binop CMOVNO r64 r/m64
  | otherwise = binop CMOVNO r32 r/m32
-val /66 [0x0f 0x4b /r] = binop CMOVNP r16 r/m16
 val main [0x0f 0x4b /r]
+ | opndsz? = binop CMOVNP r16 r/m16
  | rexw? = binop CMOVNP r64 r/m64
  | otherwise = binop CMOVNP r32 r/m32
-val /66 [0x0f 0x49 /r] = binop CMOVNS r16 r/m16
 val main [0x0f 0x49 /r]
+ | opndsz? = binop CMOVNS r16 r/m16
  | rexw? = binop CMOVNS r64 r/m64
  | otherwise = binop CMOVNS r32 r/m32
-val /66 [0x0f 0x40 /r] = binop CMOVO r16 r/m16
 val main [0x0f 0x40 /r]
+ | opndsz? = binop CMOVO r16 r/m16
  | rexw? = binop CMOVO r64 r/m64
  | otherwise = binop CMOVO r32 r/m32
-val /66 [0x0f 0x4a /r] = binop CMOVP r16 r/m16
 val main [0x0f 0x4a /r]
+ | opndsz? = binop CMOVP r16 r/m16
  | rexw? = binop CMOVP r64 r/m64
  | otherwise = binop CMOVP r32 r/m32
-val /66 [0x0f 0x48 /r] = binop CMOVS r16 r/m16
 val main [0x0f 0x48 /r]
+ | opndsz? = binop CMOVS r16 r/m16
  | rexw? = binop CMOVS r64 r/m64
  | otherwise = binop CMOVS r32 r/m32
 
@@ -1454,91 +1446,94 @@ val main [0x0f 0x98] = unop SETS r/m8
 
 ### SUB 4-572 Vol. 2B
 val main [0x2c] = binop SUB al imm8
-val /66 [0x2d] = binop SUB ax imm16
 val main [0x2d]
+ | opndsz? = binop SUB ax imm16
  | rexw? = binop SUB rax imm32
  | otherwise = binop SUB eax imm32
 val main [0x80 /5] = binop SUB r/m8 imm8
-val /66 [0x81 /5] = binop SUB r/m16 imm16
 val main [0x81 /5]
+ | opndsz? = binop SUB r/m16 imm16
  | rexw? = binop SUB r/m64 imm32
  | otherwise = binop SUB r/m32 imm32
-val /66 [0x83 /5] = binop SUB r/m16 imm8
 val main [0x83 /5]
+ | opndsz? = binop SUB r/m16 imm8
  | rexw? = binop SUB r/m64 imm8
  | otherwise = binop SUB r/m32 imm8
 val main [0x28 /r] = binop SUB r/m8 r8
-val /66 [0x29 /r] = binop SUB r/m16 r16
 val main [0x29 /r]
+ | opndsz? = binop SUB r/m16 r16
  | rexw? = binop SUB r/m64 r64
  | otherwise = binop SUB r/m32 r32
 val main [0x2a /r] = binop SUB r8 r/m8
-val /66 [0x2b /r] = binop SUB r16 r/m16
 val main [0x2b /r]
+ | opndsz? = binop SUB r16 r/m16
  | rexw? = binop SUB r64 r/m64
  | otherwise = binop SUB r32 r/m32
 
 ### OR 4-16 Vol. 2B
 val main [0x0c] = binop OR al imm8
-val /66 [0x0d] = binop OR ax imm16
 val main [0x0d]
+ | opndsz? = binop OR ax imm16
  | rexw? = binop OR rax imm32
  | otherwise = binop OR eax imm32
 val main [0x80 /1] = binop OR r/m8 imm8
-val /66 [0x81 /1] = binop OR r/m16 imm16
 val main [0x81 /1]
+ | opndsz? = binop OR r/m16 imm16
  | rexw? = binop OR r/m64 imm32
  | otherwise = binop OR r/m32 imm32
-val /66 [0x83 /1] = binop OR r/m16 imm8
 val main [0x83 /1]
+ | opndsz? = binop OR r/m16 imm8
  | rexw? = binop OR r/m64 imm8
  | otherwise = binop OR r/m32 imm8
 val main [0x08 /r] = binop OR r/m8 r8
-val /66 [0x09 /r] = binop OR r/m16 r16
 val main [0x09 /r]
+ | opndsz? = binop OR r/m16 r16
  | rexw? = binop OR r/m64 r64
  | otherwise = binop OR r/m32 r32
 val main [0x0a /r] = binop OR r8 r/m8
-val /66 [0x0b /r] = binop OR r16 r/m16
 val main [0x0b /r]
+ | opndsz? = binop OR r16 r/m16
  | rexw? = binop OR r64 r/m64
  | otherwise = binop OR r32 r/m32
 
 ### XOR 4-678 Vol. 2B
 val main [0x34] = binop XOR al imm8
-val /66 [0x35] = binop XOR ax imm16
 val main [0x35]
+ | opndsz? = binop XOR ax imm16
  | rexw? = binop XOR rax imm32
  | otherwise = binop XOR eax imm32
 val main [0x80 /6] = binop XOR r/m8 imm8
-val /66 [0x81 /6] = binop XOR r/m16 imm16
 val main [0x81 /6]
+ | opndsz? = binop XOR r/m16 imm16
  | rexw? = binop XOR r/m64 imm32
  | otherwise = binop XOR r/m32 imm32
-val /66 [0x83 /6] = binop XOR r/m16 imm8
 val main [0x83 /6]
+ | opndsz? = binop XOR r/m16 imm8
  | rexw? = binop XOR r/m64 imm8
  | otherwise = binop XOR r/m32 imm8
 val main [0x30 /r] = binop XOR r/m8 r8
-val /66 [0x31 /r] = binop XOR r/m16 r16
 val main [0x31 /r]
+ | opndsz? = binop XOR r/m16 r16
  | rexw? = binop XOR r/m64 r64
  | otherwise = binop XOR r/m32 r32
 val main [0x32 /r] = binop XOR r8 r/m8
-val /66 [0x33 /r] = binop XOR r16 r/m16
 val main [0x33 /r]
+ | opndsz? = binop XOR r16 r/m16
  | rexw? = binop XOR r64 r/m64
  | otherwise = binop XOR r32 r/m32
 
 ### PUSH 4-275 Vol. 2B
 #TODO: correctly implement 32bit and 64bit modes
-val /66 [0xff /6] = unop PUSH r/m16
-val main [0xff /6] = unop PUSH r/m64
-val /66 ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r16/rexb end
-val main ['01010 r:3'] = do update@{reg/opcode=r}; unop PUSH r64/rexb end
+val main [0xff /6]
+ | opndsz? = unop PUSH r/m16
+ | otherwise = unop PUSH r/m64
+val main ['01010 r:3']
+ | opndsz? = do update@{reg/opcode=r}; unop PUSH r16/rexb end
+ | otherwise = do update@{reg/opcode=r}; unop PUSH r64/rexb end
 val main [0x6a] = unop PUSH imm8
-val /66 [0x68] = unop PUSH imm16
-val main [0x68] = unop PUSH imm32
+val main [0x68]
+ | opndsz? = unop PUSH imm16
+ | otherwise = unop PUSH imm32
 val main [0x0e] = unop PUSH cs
 val main [0x16] = unop PUSH ds
 val main [0x06] = unop PUSH es
@@ -1547,37 +1542,39 @@ val main [0x0f 0xa8] = unop PUSH gs
 
 ### POP 4-188 Vol. 2B
 #TODO: correctly implement 32bit and 64bit modes
-val /66 [0x8f /0] = unop POP r/m16
-val main [0x8f /0] = unop POP r/m64
-val /66 ['01011 r:3'] = do update@{reg/opcode=r}; unop POP r16/rexb end
-val main ['01011 r:3'] = do update@{reg/opcode=r}; unop POP r64/rexb end
+val main [0x8f /0]
+ | opndsz? = unop POP r/m16
+ | otherwise = unop POP r/m64
+val main ['01011 r:3']
+ | opndsz? = do update@{reg/opcode=r}; unop POP r16/rexb end
+ | otherwise = do update@{reg/opcode=r}; unop POP r64/rexb end
 val main [0x1f] = unop POP ds
 val main [0x07] = unop POP es
 val main [0x17] = unop POP ss
 
 ### ADD Vol. 2A 3-35
 val main [0x04] = binop ADD al imm8
-val /66 [0x05] = binop ADD ax imm16
 val main [0x05]
+ | opndsz? = binop ADD ax imm16
  | rexw? = binop ADD rax imm32
  | otherwise = binop ADD eax imm32
 val main [0x80 /0] = binop ADD r/m8 imm8
-val /66 [0x81 /0] = binop ADD r/m16 imm16
 val main [0x81 /0]
+ | opndsz? = binop ADD r/m16 imm16
  | rexw? = binop ADD r/m64 imm32 
  | otherwise = binop ADD r/m32 imm32
-val /66 [0x83 /0] = binop ADD r/m16 imm8
 val main [0x83 /0]
+ | opndsz? = binop ADD r/m16 imm8
  | rexw? = binop ADD r/m64 imm8
  | otherwise = binop ADD r/m32 imm8
 val main [0x00 /r] = binop ADD r/m8 r8
-val /66 [0x01 /r] = binop ADD r/m16 r16
 val main [0x01 /r]
+ | opndsz? = binop ADD r/m16 r16
  | rexw? = binop ADD r/m64 r64
  | otherwise = binop ADD r/m32 r32
 val main [0x02 /r] = binop ADD r8 r/m8
-val /66 [0x03 /r] = binop ADD r16 r/m16
 val main [0x03 /r]
+ | opndsz? = binop ADD r16 r/m16
  | rexw? = binop ADD r64 r/m64
  | otherwise = binop ADD r32 r/m32
 
