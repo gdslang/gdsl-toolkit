@@ -53,7 +53,7 @@ end = struct
       and flattenTokPat (tokpat, exp) =
          case tokpat of
             MARKtokpat t' => flattenTokPat (#tree t', exp)
-          | NAMEDtokpat (x, []) => inline (x, exp)
+          | NAMEDtokpat x => inline (x, exp)
           | _ => [([TOKENdecodepat tokpat], exp)]
 
       and flattenBitPat (bitpat, exp) =

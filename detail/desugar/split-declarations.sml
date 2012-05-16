@@ -31,12 +31,11 @@ end = struct
       val decodedecls = ref SymMap.empty
       val exports = ref []
 
-      fun insertDecode (n, pats, wc, es) =
-         if not (null wc) then raise CM.CompilationError else
-            decodedecls :=
-               SymMap.unionWith
-                  op@
-                  (!decodedecls, SymMap.singleton (n, [(pats, es)]))
+      fun insertDecode (n, pats, es) =
+         decodedecls :=
+            SymMap.unionWith
+               op@
+               (!decodedecls, SymMap.singleton (n, [(pats, es)]))
 
       fun updateConstructors (n, cons) = let
          fun updateCons (c, optTy) =
@@ -79,7 +78,7 @@ end = struct
       open Layout Pretty
       fun dec n (pats, e) =
          AST.PP.decl
-            (AST.DECODEdecl (n, pats, [], e))
+            (AST.DECODEdecl (n, pats, e))
       fun decs (n, ds, acc) = map (dec n) ds @ acc
       fun letrec (n, pats, e) =
          AST.PP.decl

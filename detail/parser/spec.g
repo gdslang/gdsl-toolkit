@@ -114,11 +114,11 @@ Decl
       (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
    | "val" Sym Name* "=" Exp =>
       (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
-   | "val" Name "[" DecodePat* WithClauses "]" decl=
+   | "val" Name "[" DecodePat* "]" decl=
       ( "=" Exp =>
-         (PT.DECODEdecl (Name, DecodePat, WithClauses, Sum.INL Exp))
+         (PT.DECODEdecl (Name, DecodePat, Sum.INL Exp))
       | ("|" Exp "=" Exp)+ =>
-         (PT.DECODEdecl (Name, DecodePat, WithClauses, Sum.INR SR))) =>
+         (PT.DECODEdecl (Name, DecodePat, Sum.INR SR))) =>
       (markDecl (FULL_SPAN, decl))
    ; 
 
@@ -137,16 +137,6 @@ Ty
       (mark PT.MARKty (FULL_SPAN, PT.RECORDty ((Name, Ty)::SR)))
    ;
 
-WithClauses
-   : "with" WithClause ("," WithClause)* => (WithClause::SR)
-   | => ([])
-   ;
-
-WithClause
-   : Name "=" "'" BITSTR "'" =>
-      (mark PT.MARKwithclause (FULL_SPAN, PT.WITHwithclause (Name, BITSTR)))
-   ;
-
 DecodePat
    : BitPat => (BitPat)
    | TokPat => (mark PT.MARKdecodepat (FULL_SPAN, PT.TOKENdecodepat TokPat))
@@ -159,23 +149,7 @@ BitPat
 
 TokPat
    : Int => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
-   | Qid Specializes? =>
-      (mark PT.MARKtokpat
-         (FULL_SPAN,
-          case Specializes of
-            NONE => PT.NAMEDtokpat (Qid,[])
-          | SOME sps => PT.NAMEDtokpat (Qid,sps)))
-   ;
-
-Specializes
-   : "<" Specialize ("," Specialize)* ">" => (Specialize::SR)
-   ;
-
-Specialize
-   : Qid "=" "'" BITSTR "'" => (mark PT.MARKspecial
-                           (FULL_SPAN, PT.BINDspecial (Qid, BITSTR)))
-   | Qid => (mark PT.MARKspecial
-               (FULL_SPAN, PT.FORWARDspecial Qid))
+   | Qid => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Qid))
    ;
 
 PrimBitPat

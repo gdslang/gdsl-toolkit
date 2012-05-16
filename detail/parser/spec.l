@@ -85,7 +85,6 @@
 %let symid={sym}+;
 
 <INITIAL>"granularity" => (T.KW_granularity);
-<INITIAL>"with" => (T.KW_with);
 <INITIAL>"include" => (T.KW_include);
 <INITIAL>"export" => (T.KW_export);
 <INITIAL>"datatype" => (T.KW_datatype);

@@ -23,28 +23,6 @@ end = struct
 
    infix >>= >>
 
-   type specialize_map =
-      ({ uses : SymSet.set, forwards : AtomSet.set} AtomMap.map) SymMap.map
-   
-   fun smapToString sm =
-      let
-         fun showAtomMap am =
-            List.foldl (fn ((a,{uses=us, forwards=fs}), str) =>
-               "\n  var " ^ Atom.toString a ^ ": " ^
-               List.foldl (fn (sym,str) => str ^
-                  SymbolTable.getString(!SymbolTables.varTable, sym) ^ ", ")
-                  "" (SymSet.listItems us) ^
-               "forwarded by " ^
-               List.foldl (fn (a,str) => Atom.toString a ^ ", " ^ str)
-                  "" (AtomSet.listItems fs) ^
-               str
-            ) "" (AtomMap.listItemsi am)
-      in
-         List.foldl (fn ((sym,am),str) => str ^
-            "\ndecoder " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^
-            showAtomMap am) "" (SymMap.listItemsi sm)
-      end
-   
    fun resolveErr errStrm (pos, msg) = Error.errorAt(errStrm, (pos, pos), msg)
    val parseErr = Error.parseError SpecTokens.toString
    fun convMark conv {span, tree} = {span=span, tree=conv span tree}
@@ -112,10 +90,7 @@ end = struct
        *   - datatype declarations including constructors
        *   - toplevel val bindings
        *   - bitpat var binding per decoder
-       *   - uses of specializing variable in each decoder
        *)
-      val specDec = ref (SymMap.empty : specialize_map)
-      
       type patternVarMap = (SymbolTable.references SpanMap.map) SymMap.map
       
       val patternVarRef = ref (SymMap.empty : patternVarMap)
@@ -123,7 +98,7 @@ end = struct
       fun regDecl s decl =
          case decl of
             PT.MARKdecl {span, tree} => regDecl span tree
-          | PT.DECODEdecl (n, pats, wc, _) => regDecode (s, n, pats, wc)
+          | PT.DECODEdecl (n, pats, _) => ignore (newVar (s,n))
           | PT.LETRECdecl (n, _, _) => ignore (newVar (s,n))
           | PT.DATATYPEdecl (n, ds) => (regTy s n; app (regCon s) ds)
           | PT.TYPEdecl (n, _) => regTy s n 
@@ -136,73 +111,6 @@ end = struct
 
       and regCon s (c, _) = ignore (newCon (s, c))
 
-      and regDecode (s, n, pats, wc) =
-         let
-            val decSymId = case VI.find (!ST.varTable, n) of
-                  NONE => newVar (s, n)
-                | SOME id => id
-            val _ = startScope ()
-            val am = case SymMap.find (!specDec, decSymId) of
-                  SOME am => am
-                | NONE => AtomMap.empty
-            val am = List.foldl (regDecodepat s) am pats
-            val am = List.foldl (regWithclause s) am wc
-            val _ = specDec := SymMap.insert (!specDec, decSymId, am)
-            val refs = endScopeRefs ()
-            val pV = !patternVarRef
-            val sM = case SymMap.find (pV, decSymId) of
-                        SOME sM => sM
-                      | NONE => SpanMap.empty
-            val sM = SpanMap.insert (sM,s,refs)
-            val pV = SymMap.insert (pV,decSymId,sM)
-          in
-             (patternVarRef := pV; ())
-         end
-
-      and regDecodepat s (d,am) =
-         case d of
-            PT.MARKdecodepat {span, tree} => regDecodepat span (tree,am)
-          | PT.TOKENdecodepat pat => regToken s (pat,am)
-          | PT.BITdecodepat pats => List.foldl (regBitpat s) am pats
-
-      and regWithclause s (d,am) =
-         case d of
-            PT.MARKwithclause {span, tree} => regWithclause span (tree,am)
-          | PT.WITHwithclause (v,bits) =>
-               AtomMap.insert (am, v, case AtomMap.find (am,v) of
-                        SOME {uses=us, forwards=fs} =>
-                           {uses=SymSet.add (us,newVar (s,v)), forwards=fs}
-                      | NONE => {uses = SymSet.singleton (newVar (s,v)),
-                                 forwards = AtomSet.empty})
-
-      and regBitpat s (d,am) =
-         case d of
-            PT.MARKbitpat {span, tree} => regBitpat span (tree,am)
-          | PT.BITVECbitpat (v,_) =>
-               AtomMap.insert (am, v, case AtomMap.find (am,v) of
-                        SOME {uses=us, forwards=fs} =>
-                           {uses=SymSet.add (us,newVar (s,v)), forwards=fs}
-                      | NONE => {uses = SymSet.singleton (newVar (s,v)),
-                                 forwards = AtomSet.empty})
-          | _ => am
-
-      and regToken s (d,am) =
-         case d of
-            PT.MARKtokpat {span, tree} => regToken span (tree,am)
-          | PT.TOKtokpat _ => am
-          | PT.NAMEDtokpat ({span, tree=decName},sps) =>
-            let
-               fun fwds (PT.MARKspecial {span, tree}, am) = fwds (tree,am)
-                 | fwds (PT.BINDspecial _, am) = am
-                 | fwds (PT.FORWARDspecial {span, tree=v}, am) =
-                   AtomMap.insert (am, v, case AtomMap.find (am,v) of
-                            SOME {uses=us, forwards=fs} =>
-                               {uses=us, forwards=AtomSet.add (fs,decName)}
-                          | NONE => {uses = SymSet.empty,
-                                     forwards = AtomSet.singleton decName})
-             in
-               List.foldl fwds am sps
-            end
       (* define a second traversal that is a full translation of the tree *)
       fun convDecl s d =
          case d of
@@ -220,7 +128,7 @@ end = struct
 
       and convDecodeDecl s d =
          case d of
-            (v, ps, wc, Sum.INL e) =>
+            (v, ps, Sum.INL e) =>
                let
                   val vSym = VI.lookup (!ST.varTable, v)
                   val sM = SymMap.lookup (!patternVarRef, vSym)
@@ -229,13 +137,12 @@ end = struct
                   val res =
                      (vSym,
                       List.map (convDecodepat s) ps,
-                      List.map (convWithclause s) wc,
                       Sum.INL (convExp s e))
                   val _ = endScope ()
                in
                   res
                end
-         | (v, ps, wc, Sum.INR es) =>
+         | (v, ps, Sum.INR es) =>
                let
                   val vSym = VI.lookup (!ST.varTable, v)
                   val sM = SymMap.lookup (!patternVarRef, vSym)
@@ -243,7 +150,6 @@ end = struct
                   val res =
                      (vSym,
                       List.map (convDecodepat s) ps,
-                      List.map (convWithclause s) wc,
                       Sum.INR
                         (List.map
                            (fn (e1, e2) => (convExp s e1, convExp s e2))
@@ -331,14 +237,6 @@ end = struct
                   AST.BINDseqexp (lhs, rhs) :: rem
                end
 
-      and convWithclause s wc =
-         case wc of
-            PT.MARKwithclause m =>
-               AST.MARKwithclause (convMark convWithclause m)
-          | PT.WITHwithclause (v,bits) =>
-               (*note: definition registered earlier*)
-               AST.WITHwithclause (VI.lookup (!ST.varTable, v), bits)
-
       and convDecodepat s p =
          case p of
             PT.MARKdecodepat m => AST.MARKdecodepat (convMark convDecodepat m)
@@ -350,77 +248,13 @@ end = struct
             PT.MARKbitpat m => AST.MARKbitpat (convMark convBitpat m)
           | PT.BITSTRbitpat str => AST.BITSTRbitpat str
           | PT.NAMEDbitpat v => AST.NAMEDbitpat (useVar (s,v))
-          (*note: definition registered earlier*)   
-          | PT.BITVECbitpat (v,p) => AST.BITVECbitpat (VI.lookup (!ST.varTable, v), p)
+          | PT.BITVECbitpat (v,p) => AST.BITVECbitpat (newVar (s,v), p)
 
       and convTokpat s p =
          case p of
             PT.MARKtokpat m => AST.MARKtokpat (convMark convTokpat m)
           | PT.TOKtokpat i => AST.TOKtokpat i
-          | PT.NAMEDtokpat (v,sps) =>
-            let
-               val errRef = ref false
-               fun insBinding bpatOpt (sym,bindings) =
-                  if List.exists (fn (s,_) => SymbolTable.eq_symid(s,sym))
-                     bindings
-                  then
-                     (Error.errorAt
-                           (errStrm, s,
-                            ["recursive specialization with variable ",
-                            SymbolTable.getString(!SymbolTables.varTable, sym)])
-                     ;errRef := true
-                     ;bindings)
-                  else
-                     (sym,bpatOpt)::bindings
-               fun expandBindVar (s,v,am,bpatOpt,bindings) =
-                  (case AtomMap.find (am,v) of
-                     NONE => 
-                        (Error.warningAt
-                           (errStrm, s,
-                            ["specialization variable ", Atom.toString(v),
-                            " never used"])
-                        ;bindings)
-                   | SOME {uses = uf, forwards = fs} =>
-                     List.foldl (expandFwdVar (s,v,bpatOpt))
-                        (List.foldl
-                           (insBinding bpatOpt)
-                           bindings
-                           (SymSet.listItems uf)
-                        )
-                        (AtomSet.listItems fs)
-                  )
-               and expandFwdVar (s,v,bpatOpt) (decName,bindings) =
-                  let
-                     val decNameSymId = useVar(s,{tree=decName,span=s})
-                     val am = case SymMap.find (!specDec,decNameSymId) of
-                        NONE => AtomMap.empty
-                      | SOME am => am
-                  in
-                     if !errRef then bindings else
-                        expandBindVar (s,v,am,bpatOpt,bindings)
-                  end
-
-               val decSymId = useVar (s,v)
-               val am = case SymMap.find (!specDec,decSymId) of
-                     NONE => AtomMap.empty
-                   | SOME am => am
-               fun convSpecial (p,bindings) =
-                  case p of
-                     PT.MARKspecial {tree, span} => convSpecial (tree,bindings)
-                   | PT.BINDspecial ({tree=v, span=s},bpat) =>
-                     expandBindVar (s,v,am,SOME bpat,bindings)
-                   | PT.FORWARDspecial {tree=v, span=s} =>
-                     expandBindVar (s,v,am,NONE,bindings)
-               val bindings = List.foldl convSpecial [] sps
-            in
-               AST.NAMEDtokpat (decSymId,
-                  List.map
-                     (fn (sym, patOpt) => case patOpt of
-                        SOME pat => AST.BINDspecial (sym,pat)
-                      | NONE => AST.FORWARDspecial sym)
-                     bindings
-                  )
-            end
+          | PT.NAMEDtokpat v => AST.NAMEDtokpat (useVar (s,v))
       
       and convMatch s (p, e) =
          let

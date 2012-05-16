@@ -77,7 +77,7 @@ end = struct
       open Layout Pretty
       fun layout n (pats, e) =
          AST.PP.decl
-            (AST.DECODEdecl (n, pats, [], e))
+            (AST.DECODEdecl (n, pats, e))
       fun layouts (n, ds, acc) = map (layout n) ds @ acc
       val doc = align (Map.foldli layouts [] spec)
    in
@@ -88,7 +88,7 @@ end = struct
       open Layout Pretty
       fun layout n (pats, e) =
          AST.PP.decl
-            (AST.DECODEdecl (n, pats, [], Sum.INL e))
+            (AST.DECODEdecl (n, pats, Sum.INL e))
       fun layouts (n, ds, acc) = map (layout n) ds @ acc
    in
       align (Map.foldli layouts [] spec)
