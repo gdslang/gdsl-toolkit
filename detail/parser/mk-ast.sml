@@ -156,9 +156,9 @@ functor MkAst (Core: AST_CORE) = struct
 
       and decodepats ps =
          seq
-            ([str "[",
+            [str "[",
              seq (separate (map decodepat ps, " ")),
-             str "]"])
+             str "]"]
 
       and decodepat t =
          case t of
