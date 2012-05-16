@@ -50,6 +50,8 @@ functor MkCPSPass (Core: CPSCORE) = struct
    fun runCounting spec =
       let
          val (cps, cnt) = pass (Spec.get#declarations spec)
+         val () = Stats.bump (clicks, cnt)
+         (* val () = print (Int.toString cnt ^ "\n") *)
       in
          CM.return
             (Spec.upd (fn _ => cps) spec, cnt)

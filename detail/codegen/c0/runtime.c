@@ -27,10 +27,10 @@ __obj __FALSE = __WRAP(&__unwrapped_FALSE);
 
 void __fatal (char *fmt, ...) {
   va_list ap;
-  va_start(ap, fmt);
+  va_start(ap,fmt);
   fprintf(stderr,"ERROR:");
-  vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
+  vfprintf(stderr,fmt,ap);
+  fprintf(stderr,"\n");
   va_end(ap);
   abort();
 }
@@ -130,7 +130,7 @@ __obj __consume (__obj s) {
   return (a);
 }
 
-__obj __slice (__obj tok_, __obj offs_, __obj sz_, __obj s) {
+__obj __slice (__obj tok_, __obj offs_, __obj sz_) {
   __word tok = tok_->bv.vec;
   __int offs = offs_->z.value;
   __int sz = sz_->z.value;
@@ -139,12 +139,7 @@ __obj __slice (__obj tok_, __obj offs_, __obj sz_, __obj s) {
     __BV_BEGIN(slice,sz);
     __BV_INIT(x);
     __BV_END(slice,sz);
-  __LOCAL0(r);
-    __RECORD_BEGIN(r,2);
-    __RECORD_ADD(___1,slice);
-    __RECORD_ADD(___2,s);
-    __RECORD_END(r,2);
-  return (r);
+  return (slice);
 }
 
 __obj __halt (__obj env, __obj o) {
@@ -384,12 +379,16 @@ __obj prettyOpnds (__obj opnds) {
         }
         case 2: {
           __obj op1 = __RECORD_SELECT(opnds,___opnd1);
+          return (prettyOpnds(op1));
+        }
+        case 3: {
+          __obj op1 = __RECORD_SELECT(opnds,___opnd1);
           __obj op2 = __RECORD_SELECT(opnds,___opnd2);
           prettyOpnds(op1);
           printf(",");
           return (prettyOpnds(op2));
         }
-        case 3: {
+        case 4: {
           __obj op1 = __RECORD_SELECT(opnds,___opnd1);
           __obj op2 = __RECORD_SELECT(opnds,___opnd2);
           __obj op3 = __RECORD_SELECT(opnds,___opnd3);
@@ -398,6 +397,19 @@ __obj prettyOpnds (__obj opnds) {
           prettyOpnds(op2);
           printf(",");
           return (prettyOpnds(op3));
+        }
+        case 5: {
+          __obj op1 = __RECORD_SELECT(opnds,___opnd1);
+          __obj op2 = __RECORD_SELECT(opnds,___opnd2);
+          __obj op3 = __RECORD_SELECT(opnds,___opnd3);
+          __obj op4 = __RECORD_SELECT(opnds,___opnd4);
+          prettyOpnds(op1);
+          printf(",");
+          prettyOpnds(op2);
+          printf(",");
+          prettyOpnds(op3);
+          printf(",");
+          return (prettyOpnds(op4));
         }
         default:
           __fatal("unsupported amount of operands");
@@ -417,13 +429,16 @@ __obj prettyOpnds (__obj opnds) {
 __obj pretty (__obj insn) {
   switch (__TAG(insn)) {
     case __TAGGED: {
-      __word tag = insn->tagged.tag;
-      printf("%s", __tagName(tag));
-      if (!___isNil(insn->tagged.payload)) {
-        printf(" ");
-        return (prettyOpnds(insn->tagged.payload));
+      __obj payload = insn->tagged.payload;
+      __word tag = __CASETAG(__RECORD_SELECT(payload,___tag));
+      switch (__CASETAG(insn)) {
+         case __ARITY0:
+            printf("%s",__tagName(tag));
+            return (__UNIT);
+         default:
+            printf("%s ",__tagName(tag));
+            return (prettyOpnds(payload));
       }
-      return (__UNIT);
     }
     default:
       __fatal("invalid instruction object");
