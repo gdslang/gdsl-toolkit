@@ -27,10 +27,10 @@ __obj __FALSE = __WRAP(&__unwrapped_FALSE);
 
 void __fatal (char *fmt, ...) {
   va_list ap;
-  va_start(ap, fmt);
+  va_start(ap,fmt);
   fprintf(stderr,"ERROR:");
-  vfprintf(stderr, fmt, ap);
-  fprintf(stderr, "\n");
+  vfprintf(stderr,fmt,ap);
+  fprintf(stderr,"\n");
   va_end(ap);
   abort();
 }

@@ -31,7 +31,7 @@ val decode = do
         mod='00',
         reg/opcode='000',
         rm='000',
-        ptrty=32};
+        ptrty=32}; #TODO: check
    p64
 end
 
@@ -71,76 +71,91 @@ val p64 [] = main
 val p/66 [0xf2] = do set-repne; p/66/f2 end
 val p/66 [0xf3] = do set-rep; p/66/f3 end
 val p/66 [0x66] = p/66
+val p/66 [/legacy-p] = p/66
 val p/66 [] = do set-tab main; /66 end
 
 val p/f2 [0x66] = do set-opndsz; p/f2/66 end
 val p/f2 [0xf2] = p/f2
 val p/f2 [0xf3] = do set-rep; p/f2/f3 end
+val p/f2 [/legacy-p] = p/f2
 val p/f2 [] = do set-tab main; /f2 end 
 
 val p/f3 [0x66] = do set-opndsz; p/f3/66 end
 val p/f3 [0xf2] = do set-repne; p/f3/f2 end
 val p/f3 [0xf3] = p/f3
+val p/f3 [/legacy-p] = p/f3
 val p/f3 [] = do set-tab main; /f3 end 
 
 val p/f2/f3 [0x66] = do set-opndsz; p/f2/f3/66 end
 val p/f2/f3 [0xf2] = p/f3/f2
 val p/f2/f3 [0xf3] = p/f2/f3
+val p/f2/f3 [/legacy-p] = p/f2/f3
 val p/f2/f3 [] = try-f3/f2
 
 val p/f3/f2 [0x66] = do set-opndsz; p/f2/f3/66 end
 val p/f3/f2 [0xf2] = p/f3/f2
 val p/f3/f2 [0xf3] = p/f2/f3
+val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [] = try-f2/f3
 
 val p/66/f2 [0x66] = p/f2/66
 val p/66/f2 [0xf3] = do set-rep; p/66/f2/f3 end
 val p/66/f2 [0xf2] = p/66/f2
+val p/66/f2 [/legacy-p] = p/66/f2
 val p/66/f2 [] = try-f2/66
 
 val p/66/f3 [0x66] = p/f3/66
 val p/66/f3 [0xf2] = do set-repne; p/66/f3/f2 end
 val p/66/f3 [0xf3] = p/66/f3
+val p/66/f3 [/legacy-p] = p/66/f3
 val p/66/f3 [] = try-f3/66
 
 val p/f2/66 [0x66] = p/f2/66
 val p/f2/66 [0xf2] = p/66/f2
 val p/f2/66 [0xf3] = do set-rep; p/f2/66/f3 end
+val p/f2/66 [/legacy-p] = p/f2/66
 val p/f2/66 [] = try-66/f2
 
 val p/f3/66 [0x66] = p/f3/66
 val p/f3/66 [0xf2] = do set-repne; p/f3/66/f2 end
 val p/f3/66 [0xf3] = p/66/f3
+val p/f3/66 [/legacy-p] = p/f3/66
 val p/f3/66 [] = try-66/f3
 
 val p/66/f2/f3 [0x66] = p/f2/f3/66
 val p/66/f2/f3 [0xf2] = p/66/f3/f2
 val p/66/f2/f3 [0xf3] = p/66/f2/f3
+val p/66/f2/f3 [/legacy-p] = p/66/f2/f3
 val p/66/f2/f3 [] = do try-f2/66; /f3 end
 
 val p/66/f3/f2 [0x66] = p/f3/f2/66
 val p/66/f3/f2 [0xf2] = p/66/f3/f2
 val p/66/f3/f2 [0xf3] = p/66/f2/f3
+val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [] = do try-f3/66; /f2 end
 
 val p/f3/f2/66 [0x66] = p/f3/f2/66
 val p/f3/f2/66 [0xf2] = p/f3/66/f2
 val p/f3/f2/66 [0xf3] = p/f2/66/f3 
+val p/f3/f2/66 [/legacy-p] = p/f3/f2/66
 val p/f3/f2/66 [] = do try-f2/f3; /66 end
 
 val p/f2/f3/66 [0x66] = p/f2/f3/66
 val p/f2/f3/66 [0xf2] = p/f3/66/f2
 val p/f2/f3/66 [0xf3] = p/f2/66/f3
+val p/f2/f3/66 [/legacy-p] = p/f2/f3/66
 val p/f2/f3/66 [] = do try-f3/f2; /66 end
 
 val p/f3/66/f2 [0x66] = p/f3/f2/66 
 val p/f3/66/f2 [0xf2] = p/f3/66/f2 
 val p/f3/66/f2 [0xf3] = p/66/f2/f3
+val p/f3/66/f2 [/legacy-p] = p/f3/66/f2
 val p/f3/66/f2 [] = do try-66/f3; /f2 end
 
 val p/f2/66/f3 [0x66] = p/f2/f3/66 
 val p/f2/66/f3 [0xf2] = p/66/f3/f2
 val p/f2/66/f3 [0xf3] = p/f2/66/f3
+val p/f2/66/f3 [/legacy-p] = p/f2/66/f3
 val p/f2/66/f3 [] = do try-66/f2; /f3 end
 
 val /66 [] = do
