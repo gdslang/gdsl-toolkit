@@ -1656,13 +1656,13 @@ val main [0x0f 0xae 0x01 0xc8] = monitor
 
 ### MOV Vol 2A 3-643
 val main [0x88 /r] = binop MOV r/m8 r8
-val /66 [0x89 /r] = binop MOV r/m16 r16
 val main [0x89 /r]
+ | opndsz? = binop MOV r/m16 r16
  | rexw? = binop MOV r/m64 r64
  | otherwise = binop MOV r/m32 r32
 val main [0x8a /r] = binop MOV r8 r/m8
-val /66 [0x8b /r] = binop MOV r16 r/m16
 val main [0x8b /r]
+ | opndsz? = binop MOV r16 r/m16
  | rexw? = binop MOV r64 r/m32
  | otherwise = binop MOV r32 r/m32
 val main [0x8c /r] = binop MOV r/m16 (r/rexb sreg3?)
@@ -1676,13 +1676,13 @@ val main [0xa3]
  | addrsz? = binop MOV moffs16 ax
  | otherwise = binop MOV moffs32 eax
 val main ['10110 r:3'] = do update@{reg/opcode=r}; binop MOV r8/rexb imm8 end
-val /66 ['10111 r:3'] = do update@{reg/opcode=r}; binop MOV r16/rexb imm16 end
 val main ['10111 r:3']
+ | opndsz? = do update@{reg/opcode=r}; binop MOV r16/rexb imm16 end
  | rexw? = do update@{reg/opcode=r}; binop MOV r64/rexb imm64 end
  | otherwise = do update@{reg/opcode=r}; binop MOV r32/rexb imm32 end
 val main [0xc6 /0] = binop MOV r/m8 imm8
-val /66 [0xc7 /0] = binop MOV r/m16 imm16
 val main [0xc7 /0]
+ | opndsz? = binop MOV r/m16 imm16
  | rexw? = binop MOV r/m64 imm32
  | otherwise = binop MOV r/m32 imm32
 
