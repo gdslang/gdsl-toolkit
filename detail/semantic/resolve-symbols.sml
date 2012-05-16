@@ -28,9 +28,6 @@ end = struct
    fun convMark conv {span, tree} = {span=span, tree=conv span tree}
    fun startScope () = ST.varTable := VI.push (!ST.varTable)
    fun endScope () = ST.varTable := VI.pop (!ST.varTable)
-   fun startScopeRefs refs = ST.varTable := VI.pushWithReferences (!ST.varTable, refs)
-   fun endScopeRefs () = let val (st,refs) = VI.popWithReferences (!ST.varTable)
-                         in (ST.varTable := st; refs) end
 
    fun resolveSymbolPass (errStrm, ast) = let
 
@@ -91,26 +88,27 @@ end = struct
        *   - toplevel val bindings
        *   - bitpat var binding per decoder
        *)
-      type patternVarMap = (SymbolTable.references SpanMap.map) SymMap.map
-      
-      val patternVarRef = ref (SymMap.empty : patternVarMap)
-
       fun regDecl s decl =
          case decl of
             PT.MARKdecl {span, tree} => regDecl span tree
-          | PT.DECODEdecl (n, pats, _) => ignore (newVar (s,n))
+          | PT.DECODEdecl (n, pats, _) => regDec s n
           | PT.LETRECdecl (n, _, _) => ignore (newVar (s,n))
           | PT.DATATYPEdecl (n, ds) => (regTy s n; app (regCon s) ds)
           | PT.TYPEdecl (n, _) => regTy s n 
           | _ => ()
 
       and regTy s n =
-         case VI.find (!ST.typeTable, n) of
+         case TI.find (!ST.typeTable, n) of
             NONE => ignore (newType (s, n))
           | _ => ()
 
       and regCon s (c, _) = ignore (newCon (s, c))
 
+      and regDec s n =
+         case VI.find (!ST.varTable, n) of
+            NONE => ignore (newVar (s, n))
+          | _ => ()
+      
       (* define a second traversal that is a full translation of the tree *)
       fun convDecl s d =
          case d of
@@ -131,8 +129,7 @@ end = struct
             (v, ps, Sum.INL e) =>
                let
                   val vSym = VI.lookup (!ST.varTable, v)
-                  val sM = SymMap.lookup (!patternVarRef, vSym)
-                  val _ = startScopeRefs (SpanMap.lookup (sM,s))
+                  val _ = startScope ()
 
                   val res =
                      (vSym,
@@ -145,8 +142,7 @@ end = struct
          | (v, ps, Sum.INR es) =>
                let
                   val vSym = VI.lookup (!ST.varTable, v)
-                  val sM = SymMap.lookup (!patternVarRef, vSym)
-                  val _ = startScopeRefs (SpanMap.lookup (sM,s))
+                  val _ = startScope ()
                   val res =
                      (vSym,
                       List.map (convDecodepat s) ps,

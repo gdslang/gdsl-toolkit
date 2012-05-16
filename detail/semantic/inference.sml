@@ -453,7 +453,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf', env)
          val env = E.reduceToFunction env
-         val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")
+         (*val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")*)
       in
          env
       end
