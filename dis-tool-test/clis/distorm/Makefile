@@ -1,17 +1,17 @@
 CC     = gcc
-CFLAGS = -I$(DISTORM3_PATH)/include -g
-LIBS = -L$(DISTORM3_PATH) -ldistorm3
+CFLAGS = -I$(DISTORM_PATH)/include -g
+LIBS = -L$(DISTORM_PATH) -ldistorm3
 
-all: distorm3-cli
+all: distorm-cli
 
-distorm3-cli: distorm3-cli.o
+distorm-cli: distorm-cli.o
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-distorm3-cli.o: distorm3-cli.c
+distorm-cli.o: distorm-cli.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean: FRC
-	rm -f distorm3-cli distorm3-cli.o
+	rm -f distorm-cli distorm-cli.o
 
 # This pseudo target causes all targets that depend on FRC
 # to be remade even in case a file with the name of the target exists.

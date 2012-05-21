@@ -152,6 +152,61 @@ void print_flags(xed_decoded_inst_t* xedd) {
 	}
 }
 
+string print_memop_short(xed_decoded_inst_t *xedd, unsigned int i) {
+	ostringstream os;
+
+	os << "[";
+
+//	xed_bool_t r_or_w = false;
+//	cout << "  " << i << " ";
+//	if (xed_decoded_inst_mem_read(xedd, i)) {
+//		cout << "   read ";
+//		r_or_w = true;
+//	}
+//	if (xed_decoded_inst_mem_written(xedd, i)) {
+//		cout << "written ";
+//		r_or_w = true;
+//	}
+//	if (!r_or_w) {
+//		cout << "   agen "; // LEA instructions
+//	}
+//	xed_reg_enum_t seg = xed_decoded_inst_get_seg_reg(xedd, i);
+//	if (seg != XED_REG_INVALID) {
+//		cout << "SEG= " << xed_reg_enum_t2str(seg) << " ";
+//	}
+//	xed_reg_enum_t base = xed_decoded_inst_get_base_reg(xedd, i);
+
+	bool printed_sth = false;
+
+	xed_reg_enum_t base = xed_decoded_inst_get_base_reg(xedd, i);
+	if (base != XED_REG_INVALID) {
+		os <<  xed_reg_enum_t2str(base);
+		printed_sth = true;
+	}
+	xed_reg_enum_t index = xed_decoded_inst_get_index_reg(xedd, i);
+	if (i == 0 && index != XED_REG_INVALID) {
+		if(printed_sth)
+			os << " + ";
+		if(!xed_decoded_inst_get_scale(xedd, i))
+			os << xed_reg_enum_t2str(index);
+		else
+			os << xed_decoded_inst_get_scale(xedd, i) << "*" << xed_reg_enum_t2str(index);
+		printed_sth = true;
+	}
+	xed_uint_t disp_bits = xed_decoded_inst_get_memory_displacement_width(xedd,
+			i);
+	if (disp_bits) {
+		if(printed_sth)
+			os << " + ";
+		xed_int64_t disp = xed_decoded_inst_get_memory_displacement(xedd, i);
+		os << "0x" << hex << setfill('0') << setw(16) << disp;
+	}
+
+	os << "]";
+
+	return os.str();
+}
+
 void print_memops(xed_decoded_inst_t* xedd) {
 	unsigned int i, memops = xed_decoded_inst_number_of_memory_operands(xedd);
 	cout << "Memory Operands" << endl;
@@ -208,6 +263,98 @@ void print_memops(xed_decoded_inst_t* xedd) {
 			xedd, 0) << endl;
 }
 
+void print_operands_short(xed_decoded_inst_s *xedd) {
+	unsigned int i, noperands;
+	unsigned int memop = 0;
+	const xed_inst_t* xi = xed_decoded_inst_inst(xedd);
+	const xed_operand_values_t* ov = xed_decoded_inst_operands_const(xedd);
+	noperands = xed_inst_noperands(xi);
+	for (i = 0; i < noperands; i++) {
+		const xed_operand_t* op = xed_inst_operand(xi, i);
+		xed_operand_enum_t op_name = xed_operand_name(op);
+		ostringstream os;
+
+		if(i)
+			os << ", ";
+
+		switch (op_name) {
+			case XED_OPERAND_AGEN:
+			case XED_OPERAND_MEM0:
+			case XED_OPERAND_MEM1:
+				// we print memops in a different function
+				os << print_memop_short(xedd, memop++);
+				break;
+			case XED_OPERAND_PTR: // pointer (always in conjunction with a IMM0)
+			case XED_OPERAND_RELBR: { // branch displacements
+				xed_uint_t disp_bits =
+						xed_decoded_inst_get_branch_displacement_width(xedd);
+				if (disp_bits) {
+//					os << "BRANCH_DISPLACEMENT_BYTES= " << disp_bits << " ";
+					xed_int32_t disp =
+							xed_decoded_inst_get_branch_displacement(xedd);
+					os << hex << setfill('0') << setw(8) << disp
+							<< setfill(' ') << dec;
+				}
+			}
+				break;
+
+			case XED_OPERAND_IMM0: { // immediates
+				xed_uint_t bits = xed_decoded_inst_get_immediate_width_bits(
+						xedd);
+				os << hex << "0x" << setfill('0');
+				if (xed_decoded_inst_get_immediate_is_signed(xedd)) {
+					xed_uint_t swidth = bits ? (bits / 4) : 8;
+					xed_int32_t x = xed_decoded_inst_get_signed_immediate(xedd);
+					os << setw(swidth) << x;
+				} else {
+					xed_uint64_t x = xed_decoded_inst_get_unsigned_immediate(
+							xedd);
+					xed_uint_t swidth = bits ? (bits / 4) : 16;
+					os << setw(swidth) << x;
+				}
+//				os << setfill(' ') << dec << '(' << bits << "b)";
+				break;
+			}
+			case XED_OPERAND_IMM1: { // 2nd immediate is always 1 byte.
+				xed_uint8_t x = xed_decoded_inst_get_second_immediate(xedd);
+				os << hex << "0x" << setfill('0') << setw(2) << (int) x
+						<< setfill(' ') << dec;
+				break;
+			}
+
+			case XED_OPERAND_REG0:
+			case XED_OPERAND_REG1:
+			case XED_OPERAND_REG2:
+			case XED_OPERAND_REG3:
+			case XED_OPERAND_REG4:
+			case XED_OPERAND_REG5:
+			case XED_OPERAND_REG6:
+			case XED_OPERAND_REG7:
+			case XED_OPERAND_REG8:
+			case XED_OPERAND_REG9:
+			case XED_OPERAND_REG10:
+			case XED_OPERAND_REG11:
+			case XED_OPERAND_REG12:
+			case XED_OPERAND_REG13:
+			case XED_OPERAND_REG14:
+			case XED_OPERAND_REG15:
+			case XED_OPERAND_BASE0:
+			case XED_OPERAND_BASE1: {
+				xed_reg_enum_t r = xed_decoded_inst_get_reg(xedd, op_name);
+				os << xed_reg_enum_t2str(r);
+				break;
+			}
+			default: //FIXME: check the width and print the correct right value.
+				// this is for other miscellaneous immediate fields captured during decode.
+//				os << " = " << xed_operand_values_get_operand_decider(ov,
+//						op_name);
+				os << "?";
+				break;
+		}
+		cout << os.str();
+	}
+}
+
 void print_operands(xed_decoded_inst_t* xedd) {
 	unsigned int i, noperands;
 	cout << "Operands" << endl;
@@ -228,75 +375,78 @@ void print_operands(xed_decoded_inst_t* xedd) {
 		ostringstream os;
 
 		switch (op_name) {
-		case XED_OPERAND_AGEN:
-		case XED_OPERAND_MEM0:
-		case XED_OPERAND_MEM1:
-			// we print memops in a different function
-			os << "(see below)";
-			break;
-		case XED_OPERAND_PTR: // pointer (always in conjunction with a IMM0)
-		case XED_OPERAND_RELBR: { // branch displacements
-			xed_uint_t disp_bits =
-					xed_decoded_inst_get_branch_displacement_width(xedd);
-			if (disp_bits) {
-				os << "BRANCH_DISPLACEMENT_BYTES= " << disp_bits << " ";
-				xed_int32_t disp = xed_decoded_inst_get_branch_displacement(
+			case XED_OPERAND_AGEN:
+			case XED_OPERAND_MEM0:
+			case XED_OPERAND_MEM1:
+				// we print memops in a different function
+				os << "(see below)";
+				break;
+			case XED_OPERAND_PTR: // pointer (always in conjunction with a IMM0)
+			case XED_OPERAND_RELBR: { // branch displacements
+				xed_uint_t disp_bits =
+						xed_decoded_inst_get_branch_displacement_width(xedd);
+				if (disp_bits) {
+					os << "BRANCH_DISPLACEMENT_BYTES= " << disp_bits << " ";
+					xed_int32_t disp =
+							xed_decoded_inst_get_branch_displacement(xedd);
+					os << hex << setfill('0') << setw(8) << disp
+							<< setfill(' ') << dec;
+				}
+			}
+				break;
+
+			case XED_OPERAND_IMM0: { // immediates
+				xed_uint_t bits = xed_decoded_inst_get_immediate_width_bits(
 						xedd);
-				os << hex << setfill('0') << setw(8) << disp << setfill(' ')
-						<< dec;
+				os << hex << "0x" << setfill('0');
+				if (xed_decoded_inst_get_immediate_is_signed(xedd)) {
+					xed_uint_t swidth = bits ? (bits / 4) : 8;
+					xed_int32_t x = xed_decoded_inst_get_signed_immediate(xedd);
+					os << setw(swidth) << x;
+				} else {
+					xed_uint64_t x = xed_decoded_inst_get_unsigned_immediate(
+							xedd);
+					xed_uint_t swidth = bits ? (bits / 4) : 16;
+					os << setw(swidth) << x;
+				}
+				os << setfill(' ') << dec << '(' << bits << "b)";
+				break;
 			}
-		}
-			break;
-
-		case XED_OPERAND_IMM0: { // immediates
-			xed_uint_t bits = xed_decoded_inst_get_immediate_width_bits(xedd);
-			os << hex << "0x" << setfill('0');
-			if (xed_decoded_inst_get_immediate_is_signed(xedd)) {
-				xed_uint_t swidth = bits ? (bits / 4) : 8;
-				xed_int32_t x = xed_decoded_inst_get_signed_immediate(xedd);
-				os << setw(swidth) << x;
-			} else {
-				xed_uint64_t x = xed_decoded_inst_get_unsigned_immediate(xedd);
-				xed_uint_t swidth = bits ? (bits / 4) : 16;
-				os << setw(swidth) << x;
+			case XED_OPERAND_IMM1: { // 2nd immediate is always 1 byte.
+				xed_uint8_t x = xed_decoded_inst_get_second_immediate(xedd);
+				os << hex << "0x" << setfill('0') << setw(2) << (int) x
+						<< setfill(' ') << dec;
+				break;
 			}
-			os << setfill(' ') << dec << '(' << bits << "b)";
-			break;
-		}
-		case XED_OPERAND_IMM1: { // 2nd immediate is always 1 byte.
-			xed_uint8_t x = xed_decoded_inst_get_second_immediate(xedd);
-			os << hex << "0x" << setfill('0') << setw(2) << (int) x << setfill(
-					' ') << dec;
-			break;
-		}
 
-		case XED_OPERAND_REG0:
-		case XED_OPERAND_REG1:
-		case XED_OPERAND_REG2:
-		case XED_OPERAND_REG3:
-		case XED_OPERAND_REG4:
-		case XED_OPERAND_REG5:
-		case XED_OPERAND_REG6:
-		case XED_OPERAND_REG7:
-		case XED_OPERAND_REG8:
-		case XED_OPERAND_REG9:
-		case XED_OPERAND_REG10:
-		case XED_OPERAND_REG11:
-		case XED_OPERAND_REG12:
-		case XED_OPERAND_REG13:
-		case XED_OPERAND_REG14:
-		case XED_OPERAND_REG15:
-		case XED_OPERAND_BASE0:
-		case XED_OPERAND_BASE1: {
-			xed_reg_enum_t r = xed_decoded_inst_get_reg(xedd, op_name);
-			os << xed_operand_enum_t2str(op_name) << "=" << xed_reg_enum_t2str(
-					r);
-			break;
-		}
-		default: //FIXME: check the width and print the correct right value.
-			// this is for other miscellaneous immediate fields captured during decode.
-			os << " = " << xed_operand_values_get_operand_decider(ov, op_name);
-			break;
+			case XED_OPERAND_REG0:
+			case XED_OPERAND_REG1:
+			case XED_OPERAND_REG2:
+			case XED_OPERAND_REG3:
+			case XED_OPERAND_REG4:
+			case XED_OPERAND_REG5:
+			case XED_OPERAND_REG6:
+			case XED_OPERAND_REG7:
+			case XED_OPERAND_REG8:
+			case XED_OPERAND_REG9:
+			case XED_OPERAND_REG10:
+			case XED_OPERAND_REG11:
+			case XED_OPERAND_REG12:
+			case XED_OPERAND_REG13:
+			case XED_OPERAND_REG14:
+			case XED_OPERAND_REG15:
+			case XED_OPERAND_BASE0:
+			case XED_OPERAND_BASE1: {
+				xed_reg_enum_t r = xed_decoded_inst_get_reg(xedd, op_name);
+				os << xed_operand_enum_t2str(op_name) << "="
+						<< xed_reg_enum_t2str(r);
+				break;
+			}
+			default: //FIXME: check the width and print the correct right value.
+				// this is for other miscellaneous immediate fields captured during decode.
+				os << " = " << xed_operand_values_get_operand_decider(ov,
+						op_name);
+				break;
 		}
 		cout << setw(21) << os.str();
 		cout << " " << setw(10) << xed_operand_visibility_enum_t2str(
@@ -351,10 +501,10 @@ int main(int argc, char** argv) {
 		}
 		t[length] = 0;
 		unsigned int x;
-        istringstream s(t);
-        s >> hex >> x;
-        assert(bytes < XED_MAX_INSTRUCTION_BYTES);
-        itext[bytes++] = XED_STATIC_CAST(xed_uint8_t,x);
+		istringstream s(t);
+		s >> hex >> x;
+		assert(bytes < XED_MAX_INSTRUCTION_BYTES);
+		itext[bytes++] = XED_STATIC_CAST(xed_uint8_t,x);
 	}
 	end_read: ;
 
@@ -371,22 +521,33 @@ int main(int argc, char** argv) {
 	xed_error_enum_t xed_error = xed_decode(&xedd,
 			XED_REINTERPRET_CAST(const xed_uint8_t*,itext), bytes);
 	switch (xed_error) {
-	case XED_ERROR_NONE:
-		break;
-	case XED_ERROR_BUFFER_TOO_SHORT:
-		cout << "Not enough bytes provided" << endl;
-		exit(1);
-	case XED_ERROR_INVALID_FOR_CHIP:
-		cout << "The instruction was not valid for the specified chip." << endl;
-		exit(1);
-	case XED_ERROR_GENERAL_ERROR:
-		cout << "Could not decode given input." << endl;
-		exit(1);
-	default:
-		cout << "Unhandled error code " << xed_error_enum_t2str(xed_error)
-				<< endl;
-		exit(1);
+		case XED_ERROR_NONE:
+			break;
+		case XED_ERROR_BUFFER_TOO_SHORT:
+			cout << "Not enough bytes provided" << endl;
+			exit(1);
+		case XED_ERROR_INVALID_FOR_CHIP:
+			cout << "The instruction was not valid for the specified chip."
+					<< endl;
+			exit(1);
+		case XED_ERROR_GENERAL_ERROR:
+			cout << "Could not decode given input." << endl;
+			exit(1);
+		default:
+			cout << "Unhandled error code " << xed_error_enum_t2str(xed_error)
+					<< endl;
+			exit(1);
 	}
+
+	cout << "---\n";
+
+	cout << xed_iclass_enum_t2str(xed_decoded_inst_get_iclass(&xedd)) << "\t";
+
+	print_operands_short(&xedd);
+
+	cout << "\n";
+
+	cout << "---\n";
 
 	cout << "iclass " << xed_iclass_enum_t2str(xed_decoded_inst_get_iclass(
 			&xedd)) << "\t";

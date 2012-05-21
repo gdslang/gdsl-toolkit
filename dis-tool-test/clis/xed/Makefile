@@ -1,6 +1,6 @@
 CC     = g++
-CFLAGS = -I$(XED2_PATH)/include -g
-LIBS = -L$(XED2_PATH)/lib -lxed
+CFLAGS = -I$(XED_PATH)/include -g
+LIBS = -L$(XED_PATH)/lib -lxed
 
 all: xed-cli
 
