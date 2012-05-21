@@ -170,9 +170,9 @@ STRING | COMMENT | BITPATNUM | BITPAT | INITIAL
 (0w123,0w123,71),
 (0w124,0w124,72),
 (0w125,0w125,73),
-(0w126,0w126,74)], []), ([], [65]), ([(0w32,0w33,14),
+(0w126,0w126,74)], []), ([], [64]), ([(0w32,0w33,14),
 (0w35,0w91,14),
-(0w93,0w126,14)], [62, 65]), ([], [63, 65]), ([(0w0,0w33,9),
+(0w93,0w126,14)], [61, 64]), ([], [62, 64]), ([(0w0,0w33,9),
 (0w35,0w47,9),
 (0w58,0w91,9),
 (0w93,0w96,9),
@@ -190,7 +190,7 @@ STRING | COMMENT | BITPATNUM | BITPAT | INITIAL
 (0w114,0w114,10),
 (0w116,0w116,10),
 (0w118,0w118,10),
-(0w48,0w57,11)], [65]), ([], [64]), ([], [61, 64]), ([(0w48,0w57,12)], [64]), ([(0w48,0w57,13)], []), ([], [61]), ([(0w32,0w33,14),
+(0w48,0w57,11)], [64]), ([], [63]), ([], [60, 63]), ([(0w48,0w57,12)], [63]), ([(0w48,0w57,13)], []), ([], [60]), ([(0w32,0w33,14),
 (0w35,0w91,14),
 (0w93,0w126,14)], [62]), ([], [68]), ([(0w42,0w42,19)], [68]), ([(0w41,0w41,18)], [68]), ([], [67]), ([], [66]), ([], [69]), ([], [48, 69]), ([], [43, 69]), ([(0w48,0w57,24)], [52, 69]), ([(0w48,0w57,24)], [52]), ([], [47, 69]), ([(0w46,0w46,31),
 (0w48,0w49,31),
@@ -396,7 +396,7 @@ STRING | COMMENT | BITPATNUM | BITPAT | INITIAL
 (0w63,0w63,82),
 (0w65,0w90,82),
 (0w95,0w95,82),
-(0w97,0w122,82)], [50, 69]), ([(0w39,0w39,82),
+(0w97,0w122,82)], [50, 68]), ([(0w39,0w39,82),
 (0w45,0w45,82),
 (0w47,0w57,82),
 (0w63,0w63,82),
@@ -479,7 +479,7 @@ STRING | COMMENT | BITPATNUM | BITPAT | INITIAL
 (0w105,0w120,82),
 (0w122,0w122,82),
 (0w104,0w104,85),
-(0w121,0w121,86)], [50, 69]), ([(0w39,0w39,82),
+(0w121,0w121,86)], [50, 68]), ([(0w39,0w39,82),
 (0w45,0w45,82),
 (0w47,0w57,82),
 (0w63,0w63,82),
@@ -1278,20 +1278,19 @@ fun yyAction57 (strm, lastMatch : yymatch) = (yystrm := strm;
 fun yyAction58 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN STRING; skip())
 fun yyAction59 (strm, lastMatch : yymatch) = (yystrm := strm;  skip())
-fun yyAction60 (strm, lastMatch : yymatch) = (yystrm := strm;  skip())
-fun yyAction61 (strm, lastMatch : yymatch) = let
+fun yyAction60 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  addStr(valOf(String.fromString yytext)); continue()
       end
-fun yyAction62 (strm, lastMatch : yymatch) = let
+fun yyAction61 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;  addStr yytext; continue()
       end
-fun yyAction63 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction62 (strm, lastMatch : yymatch) = (yystrm := strm;
        YYBEGIN INITIAL; mkString())
-fun yyAction64 (strm, lastMatch : yymatch) = let
+fun yyAction63 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1302,7 +1301,7 @@ fun yyAction64 (strm, lastMatch : yymatch) = let
 		  "' in string literal"])
    ;continue()
       end
-fun yyAction65 (strm, lastMatch : yymatch) = let
+fun yyAction64 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1313,17 +1312,17 @@ fun yyAction65 (strm, lastMatch : yymatch) = let
 		  "' in string literal"])
    ;continue()
       end
-fun yyAction66 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction65 (strm, lastMatch : yymatch) = (yystrm := strm;
       
    depth := !depth + 1
 	;skip())
-fun yyAction67 (strm, lastMatch : yymatch) = (yystrm := strm;
+fun yyAction66 (strm, lastMatch : yymatch) = (yystrm := strm;
       
    depth := !depth - 1
    ;if (!depth = 0) then YYBEGIN INITIAL else ()
 	;skip ())
-fun yyAction68 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
-fun yyAction69 (strm, lastMatch : yymatch) = let
+fun yyAction67 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
+fun yyAction68 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
         yystrm := strm;
@@ -1344,7 +1343,7 @@ val yyactTable = Vector.fromList([yyAction0, yyAction1, yyAction2, yyAction3,
   yyAction47, yyAction48, yyAction49, yyAction50, yyAction51, yyAction52,
   yyAction53, yyAction54, yyAction55, yyAction56, yyAction57, yyAction58,
   yyAction59, yyAction60, yyAction61, yyAction62, yyAction63, yyAction64,
-  yyAction65, yyAction66, yyAction67, yyAction68, yyAction69])
+  yyAction65, yyAction66, yyAction67, yyAction68])
 in
   if ULexBuffer.eof(!(yystrm))
     then let

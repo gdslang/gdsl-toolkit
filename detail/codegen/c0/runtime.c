@@ -62,7 +62,9 @@ __obj __concat (__obj a_, __obj b_) {
 __obj __equal (__obj a_, __obj b_) {
   __word a = a_->bv.vec;
   __word b = b_->bv.vec;
-  __LOCAL(x, a == b ? __TRUE : __FALSE); 
+  __word szOfA = a_->bv.sz;
+  __word szOfB = b_->bv.sz;
+  __LOCAL(x, (a == b && szOfA == szOfB) ? __TRUE : __FALSE); 
   return (x);
 }
 
