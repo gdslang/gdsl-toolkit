@@ -318,17 +318,8 @@ end = struct
             let
                val (t2, ei) = applySubstToExp subst (t2, !eiRef)
                val _ = eiRef := ei
-               val vs = texpVarset (t2, TVar.empty)
-   
             in
-               if TVar.member(vs,v2) then
-                  let
-                     val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
-                     val (tStr,si) = showTypeSI (t2,si)
-                  in
-                     raise UnificationFailure ("infinite type " ^ vStr ^ " = " ^ tStr)
-                  end
-               else (v2, WITH_TYPE t2)
+               occursCheck (v2, WITH_TYPE t2)
             end
            | doSubst (v2, WITH_FIELD (fs, v3, bv3)) =
             let
@@ -336,18 +327,29 @@ end = struct
                val (t2,ei) = applySubstToExp subst (t2,!eiRef)
                val _ = eiRef := ei
                val RECORD (v3,bv3,fs) = t2
-               val vs = texpVarset (t2, TVar.empty)
             in
-               if TVar.member(vs,v2) then
-                  let
-                     val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
-                     val (tStr,si) = showTypeSI (t2,si)
-                  in
-                     raise UnificationFailure ("infinite record " ^ vStr ^ " = " ^ tStr)
-                  end
-               else (v2, WITH_FIELD (fs, v3, bv3))
+               occursCheck (v2, WITH_FIELD (fs, v3, bv3))
             end
-            
+         
+         and occursCheck (v2, WITH_TYPE t2) =
+            if TVar.member(texpVarset (t2, TVar.empty),v2) then
+               let
+                  val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
+                  val (tStr,si) = showTypeSI (t2,si)
+               in
+                  raise UnificationFailure ("infinite type " ^ vStr ^ " = " ^ tStr)
+               end
+            else (v2, WITH_TYPE t2)
+           | occursCheck (v2, WITH_FIELD (fs, v3, bv3)) =
+            if TVar.member(texpVarset (RECORD (v3,bv3,fs), TVar.empty),v2) then
+               let
+                  val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
+                  val (tStr,si) = showTypeSI (RECORD (v3,bv3,fs),si)
+               in
+                  raise UnificationFailure ("infinite record " ^ vStr ^ " = " ^ tStr)
+               end
+            else (v2, WITH_FIELD (fs, v3, bv3))
+
          (*val (v,repl) = subst
          val (vStr,si) = TVar.varToString (v,TVar.emptyShowInfo)
          val (tStr,si) = case repl of
@@ -359,7 +361,7 @@ end = struct
          val _ = TextIO.print ("adding " ^ vStr ^ "/" ^ tStr ^ " to " ^ sStr ^
                   " yielding " ^ rStr ^ "\n")*)
       in
-         (Substs (subst::List.map doSubst l), !eiRef)
+         (Substs (occursCheck subst::List.map doSubst l), !eiRef)
       end
 
    fun findSubstForVar (v, Substs l) =

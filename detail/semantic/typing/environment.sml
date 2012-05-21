@@ -984,9 +984,19 @@ end = struct
                in
                   (GROUP (List.map substB bs), !eiRef)
                end
-         fun genImpl ((contra1,f1), (contra2,f2),bFun) =
-            if contra1<>contra2 then (TextIO.print ("cannot gen impl flow from\n" ^ topToString env1 ^ "to\n" ^ topToString env2); raise InferenceBug) else
-            if BD.eq(f1,f2) then bFun else
+         fun genImpl (t1,t2) ((contra1,f1), (contra2,f2),bFun) =
+            if contra1<>contra2 then
+               let
+                  val (e1Str, si) = kappaToStringSI (env1,TVar.emptyShowInfo)
+                  val (e2Str, si) = kappaToStringSI (env2,si)
+                  val (t1Str, si) = showTypeSI (t1,si)
+                  val (t2Str, si) = showTypeSI (t2,si)
+                  val (mStr, si) = showSubstsSI (mgu (t1,t2,emptySubsts), si)
+                  val _ = TextIO.print ("cannot gen impl flow from\n" ^ e1Str ^ "to\n" ^ e2Str ^ "with types\n" ^ t1Str ^ "\nand\n" ^ t2Str ^ "\nsince mgu = " ^ mStr ^ "\n")
+               in
+                  raise InferenceBug
+               end
+            else if BD.eq(f1,f2) then bFun else
             let
                (*val _ = TextIO.print ("add directed flow: " ^ BD.showVar f1 ^
                   (if contra1 then "<-" else "->") ^ BD.showVar f2 ^ "\n")*)
@@ -997,7 +1007,7 @@ end = struct
          fun flowForType (t1,t2,bFun) =
             if directed then
                (t1,
-                ListPair.foldlEq genImpl bFun
+                ListPair.foldlEq (genImpl (t1,t2)) bFun
                   (texpBVarset (op ::) (t1, []), texpBVarset (op ::) (t2, []))
                   handle (BD.Unsatisfiable bVar) =>
                      flowError (bVar, affectedField (bVar, env1), [env1,env2]))

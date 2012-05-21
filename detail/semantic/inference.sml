@@ -555,7 +555,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.meetFlow (envArgRes, envFun)
             handle S.UnificationFailure str =>
                refineError (str,
-                            " passing on the result of",
+                            " when passing on the result of",
                             envFun, "statement " ^ showProg (20, PP.exp, e),
                             envArg, "to the following statments    ")
          val env = E.reduceToResult env
@@ -691,7 +691,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)
