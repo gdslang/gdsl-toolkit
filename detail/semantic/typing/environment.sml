@@ -53,8 +53,10 @@ structure Environment : sig
    val getContextOfUsage : VarInfo.symid * Error.span * environment ->
                            VarInfo.symid list
 
-   (*stack: [...,t] -> [...] and type of f for call-site s is set to t*)
-   val popToUsage : VarInfo.symid * Error.span * environment ->
+   val getCtxt : environment -> VarInfo.symid list
+
+      (*stack: [...,t] -> [...] and type of f for call-site s is set to t*)
+   val popToUsage : VarInfo.symid * Error.span * VarInfo.symid list * environment ->
                     VarInfo.symid list * environment
 
    (*stack: [...] -> [...,t] where t is type of usage of f at call-site s,
@@ -681,7 +683,6 @@ end = struct
                        else bFun
          val state = Scope.setFlow bFunRem state
          val env = Scope.update (sym, setType (t,bFun), (scs, state))
-         (*val _ = TextIO.print ("*** popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ", containing bVars " ^ BD.setToString funBVars ^ ", mono bVars " ^ BD.setToString monoBVars ^ ":\nbefore " ^ BD.showBFun bFunOrig ^ "\nafter " ^ BD.showBFun bFun ^ "\nenvironment:\n" ^ topToString env)*)
       in
          env
       end
@@ -848,7 +849,9 @@ end = struct
             end
          )
 
-   fun popToUsage (sym, span, env) = (case Scope.unwrap env of
+   fun getCtxt (scs, state) = Scope.getCtxt state
+   
+   fun popToUsage (sym, span, oldCtxt, env) = (case Scope.unwrap env of
         (KAPPA {ty = tUse}, env) =>
          let
             val changedFuns = ref ([] : ST.symid list)
@@ -881,7 +884,7 @@ end = struct
                      reduceBooleanFormula (f,t,setType,List.null fs,env))
                | _ => raise InferenceBug
             val (scs, state) = env
-            val env = (scs, Scope.setCtxt [] state)
+            val env = (scs, Scope.setCtxt oldCtxt state)
          in
             (changedFuns, project (changedFuns, env))
          end
@@ -1118,6 +1121,7 @@ end = struct
 
    fun popToFunction (sym, env) =
       let
+         (*val _ = TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env)*)
          fun setType t (COMPOUND {ty = NONE, width = NONE, uses}, cons) =
                (COMPOUND {ty = SOME t, width = NONE, uses = uses},
                 cons)

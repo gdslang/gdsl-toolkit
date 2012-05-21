@@ -116,6 +116,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun checkUsage (s, (unstable, env)) =
             let
                val fs = E.getContextOfUsage (sym, s, env)
+               val oldCtxt = E.getCtxt env
                val env = List.foldl E.pushFunction env fs
                
                val envFun = E.pushSymbol (sym, s, env)
@@ -165,7 +166,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                                          E.meetFlow (envCall, envFun))
                   handle (S.UnificationFailure str) =>
                      (raiseError str; (S.emptySubsts, envCall))
-               val (changed, env) = E.popToUsage (sym, s, env)
+               val (changed, env) = E.popToUsage (sym, s, oldCtxt, env)
                val _ = sm := List.foldl
                      (fn (sym,sm) => (sym, E.getFunctionInfo (sym, env)) ::
                         List.filter (fn (s,_) =>
@@ -256,9 +257,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.popToFunction (sym, env)
          val fInfo = E.getFunctionInfo (sym, env)
          val _ = sm := (sym, fInfo) :: !sm
-         val env = checkUsages false (sym, env)
+         val (unstable, env) = checkUsages false (sym, env)
       in
-         env
+         (unstable, env)
       end
 
    and infDecl stenv (AST.MARKdecl m) = reportError infDecl stenv m
@@ -691,7 +692,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (#tree (ast : SpecAbstractTree.specification))
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)
