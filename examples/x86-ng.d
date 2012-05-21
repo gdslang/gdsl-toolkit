@@ -97,84 +97,84 @@ val p/f2/f3 [0xf2] = do set-repne; p/f3/f2 end
 val p/f2/f3 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2/f3 [/legacy-p] = p/f2/f3
 val p/f2/f3 [/rex-p] = p/f2/f3
-val p/f2/f3 [] = try-f3/f2
+val p/f2/f3 [] = do set-tab p/f2; /f3 end
 
 val p/f3/f2 [0x66] = do set-opndsz; p/f2/f3/66 end
 val p/f3/f2 [0xf2] = do set-repne; p/f3/f2 end
 val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [/rex-p] = p/f3/f2
-val p/f3/f2 [] = try-f2/f3
+val p/f3/f2 [] = do set-tab p/f3; /f2 end
 
 val p/66/f2 [0x66] = do set-opndsz; p/f2/66 end
 val p/66/f2 [0xf2] = do set-repne; p/66/f2 end
 val p/66/f2 [0xf3] = do set-rep; p/66/f2/f3 end
 val p/66/f2 [/legacy-p] = p/66/f2
 val p/66/f2 [/rex-p] = p/66/f2
-val p/66/f2 [] = try-f2/66
+val p/66/f2 [] = do set-tab p/66; /f2 end
 
 val p/66/f3 [0x66] = do set-opndsz; p/f3/66 end
 val p/66/f3 [0xf2] = do set-repne; p/66/f3/f2 end
 val p/66/f3 [0xf3] = do set-rep; p/66/f3 end
 val p/66/f3 [/legacy-p] = p/66/f3
 val p/66/f3 [/rex-p] = p/66/f3
-val p/66/f3 [] = try-f3/66
+val p/66/f3 [] = do set-tab p/66; /f3 end
 
 val p/f2/66 [0x66] = do set-opndsz; p/f2/66 end
 val p/f2/66 [0xf2] = do set-repne; p/66/f2 end
 val p/f2/66 [0xf3] = do set-rep; p/f2/66/f3 end
 val p/f2/66 [/legacy-p] = p/f2/66
 val p/f2/66 [/rex-p] = p/f2/66
-val p/f2/66 [] = try-66/f2
+val p/f2/66 [] = do set-tab p/f2; /66 end
 
 val p/f3/66 [0x66] = do set-opndsz; p/f3/66 end
 val p/f3/66 [0xf2] = do set-repne; p/f3/66/f2 end
 val p/f3/66 [0xf3] = do set-rep; p/66/f3 end
 val p/f3/66 [/legacy-p] = p/f3/66
 val p/f3/66 [/rex-p] = p/f3/66
-val p/f3/66 [] = try-66/f3
+val p/f3/66 [] = do set-tab p/f3; /66 end
 
 val p/66/f2/f3 [0x66] = do clear-rex; p/f2/f3/66 end
 val p/66/f2/f3 [0xf2] = do clear-rex; p/66/f3/f2 end
 val p/66/f2/f3 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f2/f3 [/legacy-p] = p/66/f2/f3
 val p/66/f2/f3 [/rex-p] = p/66/f2/f3
-val p/66/f2/f3 [] = do try-f2/66; /f3 end
+val p/66/f2/f3 [] = do set-tab p/66/f2; /f3 end
 
 val p/66/f3/f2 [0x66] = do clear-rex; p/f3/f2/66 end
 val p/66/f3/f2 [0xf2] = do clear-rex; p/66/f3/f2 end
 val p/66/f3/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [/rex-p] = p/66/f3/f2
-val p/66/f3/f2 [] = do try-f3/66; /f2 end
+val p/66/f3/f2 [] = do set-tab p/66/f3; /f2 end
 
 val p/f3/f2/66 [0x66] = do clear-rex; p/f3/f2/66 end
 val p/f3/f2/66 [0xf2] = do clear-rex; p/f3/66/f2 end
 val p/f3/f2/66 [0xf3] = do clear-rex; p/f2/66/f3 end
 val p/f3/f2/66 [/legacy-p] = p/f3/f2/66
 val p/f3/f2/66 [/rex-p] = p/f3/f2/66
-val p/f3/f2/66 [] = do try-f2/f3; /66 end
+val p/f3/f2/66 [] = do set-tab p/f3/f2; /66 end
 
 val p/f2/f3/66 [0x66] = do clear-rex; p/f2/f3/66 end
 val p/f2/f3/66 [0xf2] = do clear-rex; p/f3/66/f2 end
 val p/f2/f3/66 [0xf3] = do clear-rex; p/f2/66/f3 end
 val p/f2/f3/66 [/legacy-p] = p/f2/f3/66
 val p/f2/f3/66 [/rex-p] = p/f2/f3/66
-val p/f2/f3/66 [] = do try-f3/f2; /66 end
+val p/f2/f3/66 [] = do set-tab p/f2/f3; /66 end
 
 val p/f3/66/f2 [0x66] = do clear-rex; p/f3/f2/66 end
 val p/f3/66/f2 [0xf2] = do clear-rex; p/f3/66/f2 end
 val p/f3/66/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/f3/66/f2 [/legacy-p] = p/f3/66/f2
 val p/f3/66/f2 [/rex-p] = p/f3/66/f2
-val p/f3/66/f2 [] = do try-66/f3; /f2 end
+val p/f3/66/f2 [] = do set-tab p/f3/66; /f2 end
 
 val p/f2/66/f3 [0x66] = do clear-rex; p/f2/f3/66 end
 val p/f2/66/f3 [0xf2] = do clear-rex; p/66/f3/f2 end
 val p/f2/66/f3 [0xf3] = do clear-rex; p/f2/66/f3 end
 val p/f2/66/f3 [/legacy-p] = p/f2/66/f3
 val p/f2/66/f3 [/rex-p] = p/f2/66/f3
-val p/f2/66/f3 [] = do try-66/f2; /f3 end
+val p/f2/66/f3 [] = do set-tab p/f2/66; /f3 end
 
 val /66 [] = do
    tab <- get-tab;
@@ -189,36 +189,6 @@ end
 val /f3 [] = do
    tab <- get-tab;
    tab
-end
-
-val try-f3/f2 = do
-   set-tab /f2;
-   /f3
-end
-
-val try-f2/f3 = do
-   set-tab /f3;
-   /f2
-end
-
-val try-f3/66 = do
-   set-tab /66;
-   /f3
-end
-
-val try-66/f3 = do
-   set-tab /f3;
-   /66
-end
-
-val try-f2/66 = do
-   set-tab /66;
-   /f2
-end
-
-val try-66/f2 = do
-   set-tab /f2;
-   /66
 end
 
 val set-tab tab = update@{tab=tab}
@@ -1158,7 +1128,7 @@ end
 
 val near-abs cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=NEARABS {opnd1=op}})
+   return (FLOW1 {tag=cons,opnd1=NEARABS {opnd=op}})
 end
 
 val near-rel cons giveOp = do
@@ -1168,7 +1138,7 @@ end
 
 val far-abs cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=FARABS {opnd1=op}})
+   return (FLOW1 {tag=cons,opnd1=FARABS {opnd=op}})
 end
 
 val one = return (IMM8 '00000001')
@@ -1205,6 +1175,7 @@ val / [0xff /1]
 ### SAL/SAR/SHL/SHR 4-353 Vol. 2B
 #### SAL/SHL
 val / [0xd0 /4] = binop SHL r/m8 one
+val / [0xd0 /6] = binop SHL r/m8 one
 val / [0xd2 /4] = binop SHL r/m8 cl
 val / [0xc0 /4] = binop SHL r/m8 imm8
 val / [0xd1 /4]

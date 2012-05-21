@@ -15,83 +15,166 @@ export = main decode
 # limit = 120
 # recursion-depth = main = 4
 
-val p [0x66] = do update@{opndsz='1'}; p/66 end
-val p [0xf2] = do update@{repne='1'}; p end
-val p [0xf3] = do update@{rep='1'}; p end
-val p [] = main
+val set-opndsz = update@{opndsz='1'}
+val set-repne = update@{repne='1'}
+val set-rep = update@{rep='1'}
 
-val p/66 [0xf2] = do update@{repne='1'}; p/66/f2 end
-val p/66 [0xf3] = do update@{rep='1'}; p/66/f3 end
-val p/66 [0x66] = p/66
-val p/66 [] = do setTab main; /66 end
+val set-CS = update@{segment='1'}
+val set-DS = update@{segment='1'}
+val set-ES = update@{segment='1'}
+val set-FS = update@{segment='1'}
+val set-GS = update@{segment='1'}
+val set-SS = update@{segment='1'}
+val set-lock = update@{lock='1'}
+val set-addrsz = update@{addrsz='1'}
 
-#val p/66/f2 [0x66] = p/f2/66
-val p/66/f2 [0xf3] = do update@{rep='1'}; p/66/f2/f3 end
-val p/66/f2 [0xf2] = p/66/f2
-val p/66/f2 [] = do setTab p/66; /f2 end
+## Decoding prefixes
 
-#val p/66/f3 [0x66] = p/f2/66
-val p/66/f3 [0xf2] = do update@{repne='1'}; p/66/f3/f2 end
-val p/66/f3 [0xf3] = p/66/f3
-val p/66/f3 [] = do setTab p/66; /f3 end
+val /legacy-p [0x2e] = do clear-rex; set-CS end
+val /legacy-p [0x36] = do clear-rex; set-SS end
+val /legacy-p [0x3e] = do clear-rex; set-DS end
+val /legacy-p [0x26] = do clear-rex; set-ES end
+val /legacy-p [0x64] = do clear-rex; set-FS end
+val /legacy-p [0x65] = do clear-rex; set-GS end
+val /legacy-p [0x67] = do clear-rex; set-addrsz end
+val /legacy-p [0xf0] = do clear-rex; set-lock end
 
-#val p/66/f2/f3 [0x66] = p/f2/f3/66
-val p/66/f2/f3 [0xf2] = p/66/f3/f2
-val p/66/f2/f3 [0xf3] = p/66/f2/f3
-val p/66/f2/f3 [] = do try-f2/66; /f3 end
+val /rex-p ['0100 w:1 r:1 x:1 b:1'] =
+   update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
+val clear-rex = update @{rexw='0',rexb='0',rexr='0',rexx='0'}
 
-#val p/66/f3/f2 [0x66] = p/f3/f2/66
-val p/66/f3/f2 [0xf2] = p/66/f3/f2
-val p/66/f3/f2 [0xf3] = p/66/f2/f3
-val p/66/f3/f2 [] = do try-f3/66; /f2 end
+val p64 [0x66] = do set-opndsz; p/66 end
+val p64 [0xf2] = do set-repne; p/f2 end
+val p64 [0xf3] = do set-rep; p/f3 end
+val p64 [/legacy-p] = p64
+val p64 [/rex-p] = p64
+val p64 [] = /
+
+val p/66 [0xf2] = do set-repne; p/66/f2 end
+val p/66 [0xf3] = do set-rep; p/66/f3 end
+val p/66 [0x66] = do set-opndsz; p/66 end
+val p/66 [/legacy-p] = p/66
+val p/66 [/rex-p] = p/66
+val p/66 [] = do set-tab /; /66 end
+
+val p/f2 [0x66] = do set-opndsz; p/f2/66 end
+val p/f2 [0xf2] = do set-repne; p/f2 end
+val p/f2 [0xf3] = do set-rep; p/f2/f3 end
+val p/f2 [/legacy-p] = p/f2
+val p/f2 [/rex-p] = p/f2
+val p/f2 [] = do set-tab /; /f2 end 
+
+val p/f3 [0x66] = do set-opndsz; p/f3/66 end
+val p/f3 [0xf2] = do set-repne; p/f3/f2 end
+val p/f3 [0xf3] = do set-rep; p/f3 end
+val p/f3 [/legacy-p] = p/f3
+val p/f3 [/rex-p] = p/f3
+val p/f3 [] = do set-tab /; /f3 end 
+
+val p/f2/f3 [0x66] = do set-opndsz; p/f2/f3/66 end
+val p/f2/f3 [0xf2] = do set-repne; p/f3/f2 end
+val p/f2/f3 [0xf3] = do set-rep; p/f2/f3 end
+val p/f2/f3 [/legacy-p] = p/f2/f3
+val p/f2/f3 [/rex-p] = p/f2/f3
+val p/f2/f3 [] = do set-tab p/f2; /f3 end
+
+val p/f3/f2 [0x66] = do set-opndsz; p/f2/f3/66 end
+val p/f3/f2 [0xf2] = do set-repne; p/f3/f2 end
+val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
+val p/f3/f2 [/legacy-p] = p/f3/f2
+val p/f3/f2 [/rex-p] = p/f3/f2
+val p/f3/f2 [] = do set-tab p/f3; /f2 end
+
+val p/66/f2 [0x66] = do set-opndsz; p/f2/66 end
+val p/66/f2 [0xf2] = do set-repne; p/66/f2 end
+val p/66/f2 [0xf3] = do set-rep; p/66/f2/f3 end
+val p/66/f2 [/legacy-p] = p/66/f2
+val p/66/f2 [/rex-p] = p/66/f2
+val p/66/f2 [] = do set-tab p/66; /f2 end
+
+val p/66/f3 [0x66] = do set-opndsz; p/f3/66 end
+val p/66/f3 [0xf2] = do set-repne; p/66/f3/f2 end
+val p/66/f3 [0xf3] = do set-rep; p/66/f3 end
+val p/66/f3 [/legacy-p] = p/66/f3
+val p/66/f3 [/rex-p] = p/66/f3
+val p/66/f3 [] = do set-tab p/66; /f3 end
+
+val p/f2/66 [0x66] = do set-opndsz; p/f2/66 end
+val p/f2/66 [0xf2] = do set-repne; p/66/f2 end
+val p/f2/66 [0xf3] = do set-rep; p/f2/66/f3 end
+val p/f2/66 [/legacy-p] = p/f2/66
+val p/f2/66 [/rex-p] = p/f2/66
+val p/f2/66 [] = do set-tab p/f2; /66 end
+
+val p/f3/66 [0x66] = do set-opndsz; p/f3/66 end
+val p/f3/66 [0xf2] = do set-repne; p/f3/66/f2 end
+val p/f3/66 [0xf3] = do set-rep; p/66/f3 end
+val p/f3/66 [/legacy-p] = p/f3/66
+val p/f3/66 [/rex-p] = p/f3/66
+val p/f3/66 [] = do set-tab p/f3; /66 end
+
+val p/66/f2/f3 [0x66] = do clear-rex; p/f2/f3/66 end
+val p/66/f2/f3 [0xf2] = do clear-rex; p/66/f3/f2 end
+val p/66/f2/f3 [0xf3] = do clear-rex; p/66/f2/f3 end
+val p/66/f2/f3 [/legacy-p] = p/66/f2/f3
+val p/66/f2/f3 [/rex-p] = p/66/f2/f3
+val p/66/f2/f3 [] = do set-tab p/66/f2; /f3 end
+
+val p/66/f3/f2 [0x66] = do clear-rex; p/f3/f2/66 end
+val p/66/f3/f2 [0xf2] = do clear-rex; p/66/f3/f2 end
+val p/66/f3/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
+val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
+val p/66/f3/f2 [/rex-p] = p/66/f3/f2
+val p/66/f3/f2 [] = do set-tab p/66/f3; /f2 end
+
+val p/f3/f2/66 [0x66] = do clear-rex; p/f3/f2/66 end
+val p/f3/f2/66 [0xf2] = do clear-rex; p/f3/66/f2 end
+val p/f3/f2/66 [0xf3] = do clear-rex; p/f2/66/f3 end
+val p/f3/f2/66 [/legacy-p] = p/f3/f2/66
+val p/f3/f2/66 [/rex-p] = p/f3/f2/66
+val p/f3/f2/66 [] = do set-tab p/f3/f2; /66 end
+
+val p/f2/f3/66 [0x66] = do clear-rex; p/f2/f3/66 end
+val p/f2/f3/66 [0xf2] = do clear-rex; p/f3/66/f2 end
+val p/f2/f3/66 [0xf3] = do clear-rex; p/f2/66/f3 end
+val p/f2/f3/66 [/legacy-p] = p/f2/f3/66
+val p/f2/f3/66 [/rex-p] = p/f2/f3/66
+val p/f2/f3/66 [] = do set-tab p/f2/f3; /66 end
+
+val p/f3/66/f2 [0x66] = do clear-rex; p/f3/f2/66 end
+val p/f3/66/f2 [0xf2] = do clear-rex; p/f3/66/f2 end
+val p/f3/66/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
+val p/f3/66/f2 [/legacy-p] = p/f3/66/f2
+val p/f3/66/f2 [/rex-p] = p/f3/66/f2
+val p/f3/66/f2 [] = do set-tab p/f3/66; /f2 end
+
+val p/f2/66/f3 [0x66] = do clear-rex; p/f2/f3/66 end
+val p/f2/66/f3 [0xf2] = do clear-rex; p/66/f3/f2 end
+val p/f2/66/f3 [0xf3] = do clear-rex; p/f2/66/f3 end
+val p/f2/66/f3 [/legacy-p] = p/f2/66/f3
+val p/f2/66/f3 [/rex-p] = p/f2/66/f3
+val p/f2/66/f3 [] = do set-tab p/f2/66; /f3 end
 
 val /66 [] = do
-   tab <- getTab;
+   tab <- get-tab;
    tab
 end
 
 val /f2 [] = do
-   tab <- getTab;
+   tab <- get-tab;
    tab
 end
 
 val /f3 [] = do
-   tab <- getTab;
+   tab <- get-tab;
    tab
 end
 
-val try-f3/f2 = do
-   setTab /f2;
-   /f3
-end
-
-val try-f2/f3 = do
-   setTab /f3;
-   /f2
-end
-
-val try-f3/66 = do
-   setTab /66;
-   /f3
-end
-
-val try-66/f3 = do
-   setTab /f3;
-   /66
-end
-
-val try-f2/66 = do
-   setTab /66;
-   /f2
-end
-
-val try-66/f2 = do
-   setTab /f2;
-   /66
-end
+val set-tab tab = update@{tab=tab}
+val get-tab = query$tab
 
 ### MOV
-val main [0x51]
+val / [0x51]
  | opndsz? = return MOV_66
  | otherwise = return MOV
 val /f2 [0x50] = return MOV_F2
@@ -113,7 +196,7 @@ val decode = do
         repne='0',
         rep='0',
         opndsz='0'};
-   p
+   p64
 end
 
 val setTab tab = update@{tab=tab}
@@ -123,11 +206,6 @@ val & giveA giveB = do
    a <- giveA;
    b <- giveB;
    return (a andalso b)
-end
-
-val / act = do
-   res <- act;
-   return (not res)
 end
 
 val otherwise = return '1'

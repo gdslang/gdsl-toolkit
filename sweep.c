@@ -1,7 +1,15 @@
 
 #include <bfd.h>
-#include <udis86.h>
+#include <xed-interface.h>
 #include "dis.h"
+
+void hexlify (unsigned char* in, size_t len, char* out) {
+  int i;
+  for (i=0;i<len;i++) {
+    sprintf(out,"%02x",in[i]&0xff);
+    out+=2;
+  }
+}
 
 int main (int argc, char** argv) {
   if (argc < 2)
@@ -36,26 +44,39 @@ int main (int argc, char** argv) {
   if(!bfd_malloc_and_get_section(bfd,s,&blob))
     __fatal("bfd_malloc_and_get_section");
 
-  ud_t udisObj;
-  ud_t* udis = &udisObj;
-  ud_init(udis);
-  ud_set_mode(udis,64);
-  ud_set_syntax(udis,UD_SYN_INTEL);
-  ud_set_input_buffer(udis,blob,sz);
-  /*ud_set_pc(udis,pc)*/
-
+  xed_state_t state;
+  xed_decoded_inst_t insnObj;
+  xed_decoded_inst_t* insn = &insnObj;
+  xed_tables_init();
+  xed_state_zero(&state);
+  state.mmode = XED_MACHINE_MODE_LONG_64;
+  state.stack_addr_width = XED_ADDRESS_WIDTH_32b;
+  xed_decoded_inst_zero_set_mode(insn, &state);
+  xed_decoded_inst_set_input_chip(insn, XED_CHIP_INVALID);
+  char insnstr[128];
+  char opcodestr[128];
   unsigned int len;
-  __char* blobb = blob;
+  unsigned char* blobb = blob;
+  unsigned int invalid = 0;
+  unsigned int n = 0;
+  xed_error_enum_t r;
   do {
-    len = ud_disassemble(udis);
-    char* hex1;
-    hex1 = ud_insn_hex(udis);
-    printf("%-30s %-27s",hex1,ud_insn_asm(udis));
-    printf(": ");
-    fflush(stdout);
-    decode(blobb,sz);
+    xed_decoded_inst_zero_set_mode(insn, &state);
+    xed_decoded_inst_set_input_chip(insn, XED_CHIP_INVALID);
+    r = xed_decode(insn, blobb, sz);
+    if (r==XED_ERROR_NONE) {
+       len = xed_decoded_inst_get_length(insn);
+       xed_decoded_inst_dump_intel_format(insn,insnstr,128,0);
+       hexlify(blobb,len,opcodestr);
+       printf("%-30s %-27s: ",opcodestr,insnstr); fflush(stdout);
+       decode(blobb,sz);
+    } else {
+       invalid++;
+       len = 1;
+    }
     blobb += len;
     sz-=len;
+    n++;
   } while(len > 0 && sz > 0);
 
   return (1);
