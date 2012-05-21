@@ -42,6 +42,7 @@ end = struct
          val == = get "=="
          val not = get "not"
          val raisee = get "raise"
+         val return = get "return"
 
          (* val and a b = %and(a,b) *)
          val andd =
@@ -77,10 +78,7 @@ end = struct
                (not, [a], body)
             end
 
-         (* val ^ k a b =
-          *    letval x = %concat(a,b) in
-          *       k x
-          *)
+         (* val ^ k a b = %concat(a,b) *)
          val concat =
             let
                val a = fresh "a"
@@ -91,39 +89,26 @@ end = struct
                (concat, [a, b], body)
             end
 
-         (* val raise a  = %raise(a) *)
+         (* val raise a = return(%raise(a)) *)
          val raisee =
             let
                val a = fresh "a"
                val primRaise = get "%raise"
-               val body = PRI (primRaise, [a])
+               val body = APP (ID return, PRI (primRaise, [a]))
             in
                (raisee, [a], body)
             end
 
-         (* TODO: fix definition, `%slice` should not take 
-          * the state as argument (is not monadic).
-          *
-          * val slice k tok offs sz s =
-          *    letval x = %slice(tok,offs,sz,s) in
-          *       k x
-          *
-          * should be
-          *
-          * val slice k tok offs sz =
-          *    letval x = %slice(tok,offs,sz) in
-          *       return k x
-          *)
+         (* val slice tok offs sz = return (%slice(tok,offs,sz) *)
          val slice =
             let
                val tok = fresh "tok"
                val offs = fresh "offs"
                val sz = fresh "sz"
-               val s = fresh "s"
                val primSlice = get "%slice"
-               val body = PRI (primSlice, [tok, offs, sz, s])
+               val body = APP (ID return, PRI (primSlice, [tok, offs, sz]))
             in
-               (slice, [tok, offs, sz, s], body) 
+               (slice, [tok, offs, sz], body) 
             end
 
          (* val consume s = %consume(s) *)

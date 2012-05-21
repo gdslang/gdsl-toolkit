@@ -364,7 +364,7 @@ static inline void __resetHeap() {
 }
 
 __obj __consume (__obj);
-__obj __slice (__obj,__obj,__obj,__obj);
+__obj __slice (__obj,__obj,__obj);
 __obj __unconsume (__obj);
 __obj __concat (__obj,__obj);
 __obj __equal (__obj,__obj);

@@ -1,0 +1,6 @@
+64bit:
+
+0f8700000000 ja ...
+660f870000 ja ... <= should be unsupported
+xed2: both are the same
+seems that jumps are note decoded correlty in 64bit mode
