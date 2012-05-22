@@ -692,6 +692,7 @@ val mod-mem? = do
     | otherwise: return '0'
    end
 end
+
 val mode64? = query $mode64
 
 ## Convert a bit-vectors to registers
@@ -716,9 +717,7 @@ val reg8 n =
     | '1111': REG R15B
    end
 
-val reg8-lower n = reg8 ('0' ^ n)
-val reg8-higher n = reg8 ('1' ^ n)
-val reg8-rex rex = if rex then reg8-higher else reg8-lower
+val reg8-rex rex reg-idx = reg8 (rex ^ reg-idx)
 
 val reg16 n =
    case n of
@@ -740,9 +739,7 @@ val reg16 n =
     | '1111': REG R15L
    end
 
-val reg16-lower n = reg16 ('0' ^ n)
-val reg16-higher n = reg16 ('1' ^ n)
-val reg16-rex rex = if rex then reg16-higher else reg16-lower
+val reg16-rex rex reg-idx = reg16 (rex ^ reg-idx)
 
 val reg32 n =
    case n of
@@ -764,9 +761,7 @@ val reg32 n =
     | '1111': REG R15D
    end
 
-val reg32-lower n = reg32 ('0' ^ n)
-val reg32-higher n = reg32 ('1' ^ n)
-val reg32-rex rex = if rex then reg32-higher else reg32-lower
+val reg32-rex rex reg-idx = reg32 (rex ^ reg-idx)
 
 val reg64 n =
    case n of
@@ -788,9 +783,7 @@ val reg64 n =
     | '1111': REG R15
    end
 
-val reg64-lower n = reg64 ('0' ^ n)
-val reg64-higher n = reg64 ('1' ^ n)
-val reg64-rex rex = if rex then reg64-higher else reg64-lower
+val reg64-rex rex reg-idx = reg64 (rex ^ reg-idx)
 
 val sreg3 n =
    case n of
@@ -826,9 +819,7 @@ val mm n =
     | '1111': REG MM15
    end
 
-val mm-lower n = mm ('0' ^ n)
-val mm-higher n = mm ('1' ^ n)
-val mm-rex rex = if rex then mm-higher else mm-lower
+val mm-rex rex reg-idx = mm (rex ^ reg-idx)
 
 val xmm n =
    case n of
@@ -850,9 +841,7 @@ val xmm n =
     | '1111': REG XMM15
    end
 
-val xmm-lower n = xmm ('0' ^ n)
-val xmm-higher n = xmm ('1' ^ n)
-val xmm-rex rex = if rex then xmm-higher else xmm-lower
+val xmm-rex rex reg-idx = xmm (rex ^ reg-idx)
 
 val ymm n =
    case n of
@@ -874,9 +863,7 @@ val ymm n =
     | '1111': REG YMM15
    end
 
-val ymm-lower n = ymm ('0' ^ n)
-val ymm-higher n = ymm ('1' ^ n)
-val ymm-rex rex = if rex then ymm-higher else ymm-lower
+val ymm-rex rex reg-idx = ymm (rex ^ reg-idx)
 
 # Deslice the mod/rm byte and put it into the the state
 
@@ -1128,7 +1115,7 @@ end
 
 val near-abs cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=NEARABS {opnd=op}})
+   return (FLOW1 {tag=cons,opnd1=NEARABS op})
 end
 
 val near-rel cons giveOp = do
@@ -1138,7 +1125,7 @@ end
 
 val far-abs cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=FARABS {opnd=op}})
+   return (FLOW1 {tag=cons,opnd1=FARABS op})
 end
 
 val one = return (IMM8 '00000001')
@@ -1281,11 +1268,17 @@ val / [0x0f '11001 r:3']
  | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end 
  | otherwise = do update@{reg/opcode=r}; unop BSWAP r32/rexb end
 
+### NOP 4-12 Vol. 2B
+#val / [0x90] = arity0 NOP
+#val /66 [0x90] = arity0 NOP
+val /66 [0x0f 0x1f /0] = unop NOP r/m16
+val / [0x0f 0x1f /0] = unop NOP r/m32
+
 ### XCHG Vol. 2A 4-510
-val / ['10010 r:2 1']
- | opndsz? = do update@{reg/opcode=r^'1'}; binop XCHG ax r16/rexb end 
- | rexw? = do update@{reg/opcode=r^'1'}; binop XCHG rax r64/rexb end 
- | otherwise = do update@{reg/opcode=r^'1'}; binop XCHG eax r32/rexb end
+val / ['10010 r:3']
+ | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end 
+ | rexw? = do update@{reg/opcode=r}; binop XCHG rax r64/rexb end 
+ | otherwise = do update@{reg/opcode=r}; binop XCHG eax r32/rexb end
 val / [0x86 /r] = binop XCHG r8 r/m8
 val / [0x87 /r]
  | opndsz? = binop XCHG r/m16 r16
@@ -1307,12 +1300,6 @@ val / [0x0f 0x01 0xf9] = arity0 RDTSCP
 
 ### SYSCALL Vol. 2B 4-438
 val / [0x0f 0x05] = arity0 SYSCALL
-
-### NOP 4-12 Vol. 2B
-val / [0x90] = arity0 NOP
-val /66 [0x90] = arity0 NOP
-val /66 [0x0f 0x1f /0] = unop NOP r/m16
-val / [0x0f 0x1f /0] = unop NOP r/m32
 
 ### RET 4-321 Vol. 2B
 val / [0xc3] = arity0 RET
@@ -1859,8 +1846,7 @@ val vmaxss = ternop VMAXSS
 val /f3 [0x0f 0x5f /r] = maxss xmm128 xmm/m32
 
 ### MFENCE Vol. 2B 4-23
-val mfence = return MFENCE
-val / [0x0f 0xae /6] = mfence
+val / [0x0f 0xae /6] = arity0 MFENCE
 
 ### MINPD Vol. 2B 4-25
 val minpd = binop MINPD

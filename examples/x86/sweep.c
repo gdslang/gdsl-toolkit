@@ -1,7 +1,8 @@
 
 #include <bfd.h>
 #include <xed-interface.h>
-#include "dis.h"
+#include <dis.h>
+#include <pretty.h>
 
 void hexlify (unsigned char* in, size_t len, char* out) {
   int i;
@@ -60,19 +61,25 @@ int main (int argc, char** argv) {
   unsigned int invalid = 0;
   unsigned int n = 0;
   xed_error_enum_t r;
+  __obj decoded;
   do {
     xed_decoded_inst_zero_set_mode(insn, &state);
     xed_decoded_inst_set_input_chip(insn, XED_CHIP_INVALID);
     r = xed_decode(insn, blobb, sz);
     if (r==XED_ERROR_NONE) {
-       len = xed_decoded_inst_get_length(insn);
-       xed_decoded_inst_dump_intel_format(insn,insnstr,128,0);
-       hexlify(blobb,len,opcodestr);
-       printf("%-30s %-27s: ",opcodestr,insnstr); fflush(stdout);
-       decode(blobb,sz);
+      len = xed_decoded_inst_get_length(insn);
+      xed_decoded_inst_dump_intel_format(insn,insnstr,128,0);
+      hexlify(blobb,len,opcodestr);
+      printf("%-30s %-33s: ",opcodestr,insnstr); fflush(stdout);
+      __decode(__decode__,blobb,sz,&decoded);
+      if(___isNil(decoded))
+         printf("\n");
+      else
+         prettyln(decoded);
+      __resetHeap();
     } else {
-       invalid++;
-       len = 1;
+      invalid++;
+      len = 1;
     }
     blobb += len;
     sz-=len;
@@ -81,3 +88,8 @@ int main (int argc, char** argv) {
 
   return (1);
 }
+
+/* vim:cindent
+ * vim:ts=2
+ * vim:sw=2
+ * vim:expandtab */

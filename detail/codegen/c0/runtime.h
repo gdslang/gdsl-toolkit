@@ -364,18 +364,22 @@ static inline void __resetHeap() {
 }
 
 __obj __consume (__obj);
-__obj __slice (__obj,__obj,__obj);
-__obj __unconsume (__obj);
-__obj __concat (__obj,__obj);
-__obj __equal (__obj,__obj);
-__obj __and (__obj,__obj);
-__obj __raise (__obj);
-__obj __not (__obj);
-__obj __isNil (__obj);
+__obj __slice(__obj,__obj,__obj);
+__obj __unconsume(__obj);
+__obj __concat(__obj,__obj);
+__obj __equal(__obj,__obj);
+__obj __and(__obj,__obj);
+__obj __raise(__obj);
+__obj __not(__obj);
+__obj __isNil(__obj);
+__obj __printState();
 
-__obj decode (__char*,__word);
-__obj prettyln (__obj);
-__obj __printState ();
+/* ## API helpers */
+
+int ___isNil(__obj);
+__obj __runWithState(__obj(*)(__obj,__obj,__obj),__obj);
+__obj __eval(__obj(*)(__obj,__obj,__obj),__char*, __word);
+__word __decode(__obj(*)(__obj,__obj,__obj),__char*,__word,__obj*);
 
 #endif /* __RUNTIME_H */
 

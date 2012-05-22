@@ -1,9 +1,11 @@
 
-#include "dis.h"
+#include <dis.h>
+#include <pretty.h>
 
 int main (int argc, char** argv) {
   __char blob[15];
   __word sz = 15;
+  __obj insn;
   int i,c;
   for (i=0;i<sz;i++) {
      int x = fscanf(stdin,"%x",&c);
@@ -15,6 +17,13 @@ int main (int argc, char** argv) {
      }
      blob[i] = c & 0xff;
   }
-  decode(blob,i);
+  __decode(__decode__,blob,i,&insn);
+  if (___isNil(insn))
+    prettyln(insn);
   return (1);
 }
+
+/* vim:cindent
+ * vim:ts=2
+ * vim:sw=2
+ * vim:expandtab */
