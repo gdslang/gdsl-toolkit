@@ -40,11 +40,12 @@ functor MkAst (Core: AST_CORE) = struct
    type field_use = Core.field_use
    type op_id = Core.op_id
 
+   type bitpat_lit = string
+
    datatype decl =
       MARKdecl of decl mark
     | INCLUDEdecl of string
     | GRANULARITYdecl of IntInf.int
-    | STATEdecl of (var_bind * ty * exp) list
     | TYPEdecl of syn_bind * ty
     | DATATYPEdecl of con_bind * (con_bind * ty option) list
     | DECODEdecl of var_bind * decodepat list * (exp, (exp * exp) list) Sum.t
@@ -89,9 +90,9 @@ functor MkAst (Core: AST_CORE) = struct
 
    and bitpat =
       MARKbitpat of bitpat mark
-    | BITSTRbitpat of string
+    | BITSTRbitpat of bitpat_lit
     | NAMEDbitpat of var_use
-    | BITVECbitpat of var_bind * IntInf.int
+    | BITVECbitpat of var_bind * bitpat_lit
 
    and tokpat =
       MARKtokpat of tokpat mark
@@ -109,7 +110,7 @@ functor MkAst (Core: AST_CORE) = struct
       INTlit of IntInf.int
     | FLTlit of FloatLit.float
     | STRlit of string
-    | VEClit of string
+    | VEClit of bitpat_lit
 
    type specification = decl list mark
 
@@ -129,15 +130,6 @@ functor MkAst (Core: AST_CORE) = struct
                seq
                   [str "export", is, space,
                    seq (separate (map var_use es, " "))]
-          | STATEdecl fs =>
-               let
-                  fun field (n, t, e) =
-                     seq [var_bind n, str ":", ty t, str "=", exp e]
-               in
-                  align
-                     [seq [str "state", is],
-                      indent 3 (listex "{" "}" "," (map field fs))]
-               end
           | TYPEdecl (t, tyexp) =>
                seq [str "type", space, syn_bind t, space, ty tyexp]
           | DATATYPEdecl (t, decls) =>
@@ -167,6 +159,7 @@ functor MkAst (Core: AST_CORE) = struct
             [str "[",
              seq (separate (map decodepat ps, " ")),
              str "]"]
+
       and decodepat t =
          case t of
             MARKdecodepat t' => decodepat (#tree t')
@@ -178,7 +171,7 @@ functor MkAst (Core: AST_CORE) = struct
             MARKbitpat t' => bitpat (#tree t')
           | BITSTRbitpat s => str s
           | NAMEDbitpat n => var_use n
-          | BITVECbitpat (n, t) => seq [var_bind n, str ":", int t]
+          | BITVECbitpat (n, s) => seq [var_bind n, str ":", str s]
 
       and tokpat t =
          case t of

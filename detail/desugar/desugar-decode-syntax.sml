@@ -145,16 +145,12 @@ structure DesugarDecode = struct
                 | pat::ps =>
                      case pat of
                         VEC _ => grab (ps, offs + size pat, acc)
-                      | BND (n, i) =>
+                      | BND (n, _) =>
                            grab
                               (ps,
                                offs + size pat,
                                Exp.BIND
-                                 (n,
-                                  (* FIXME: this is token size dependent!! *)
-                                  if offs = 0 andalso i = 8 
-                                     then returnExp tok
-                                  else sliceExp (tok, offs, i))::acc)
+                                 (n, sliceExp (tok, offs, size pat))::acc)
          in
             if VS.length toks = 0
                then acc

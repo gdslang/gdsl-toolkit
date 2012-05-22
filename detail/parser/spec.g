@@ -18,11 +18,10 @@
    | KW_of ("of")
    | KW_granularity ("granularity")
    | KW_raise ("raise")
-   | KW_state ("state")
    | KW_then ("then")
    | KW_type ("type")
-   | KW_andalso ("andalso")
-   | KW_orelse ("orelse")
+   | KW_and ("and")
+   | KW_or ("or")
    | WITH ("@")
    | SELECT ("$")
    | BIND ("<-")
@@ -105,7 +104,6 @@ Decl
    : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
    | "export" "=" Qid* => (markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
    | "include" STRING => (markDecl (FULL_SPAN, PT.INCLUDEdecl STRING))
-   | "state" "=" StateTy => (markDecl (FULL_SPAN, PT.STATEdecl StateTy))
    | "datatype" Name "=" ConDecls =>
       (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
@@ -120,11 +118,6 @@ Decl
          (PT.DECODEdecl (Name, DecodePat, Sum.INR SR))) =>
       (markDecl (FULL_SPAN, decl))
    ; 
-
-StateTy
-   : "{" Name ":" Ty "=" Exp ("," Name ":" Ty "=" Exp)* "}" =>
-      ((Name, Ty, Exp)::SR)
-   ;
 
 ConDecls
    : ConDecl ("|" ConDecl)* => (ConDecl::SR)
@@ -158,13 +151,19 @@ TokPat
 
 PrimBitPat
    : BITSTR => (mark PT.MARKbitpat (FULL_SPAN, PT.BITSTRbitpat BITSTR))
-   | Qid (":" POSINT)? =>
+   | Qid (BitPatOrInt)? =>
       (mark
          PT.MARKbitpat
          (FULL_SPAN,
           case SR of
              NONE => PT.NAMEDbitpat Qid
            | SOME i => PT.BITVECbitpat (#tree Qid, i)))
+   ;
+
+BitPatOrInt
+   : ":" POSINT => (let fun dup n = if n=0 then "" else "." ^ dup (n-1)
+                in dup (IntInf.toInt POSINT) end)
+   | "@" BITSTR => (BITSTR)
    ;
 
 Exp
@@ -208,7 +207,7 @@ OrElseExp
    ;
 
 OrElse
-   : "orelse" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.orElse))
+   : "or" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.orElse))
    ;
 
 AndAlsoExp
@@ -217,7 +216,7 @@ AndAlsoExp
    ;
 
 AndAlso
-   : "andalso" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.andAlso))
+   : "and" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.andAlso))
    ;
 
 RExp
@@ -265,7 +264,6 @@ AtomicExp
    | "@" "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
       (mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp ((Name, Exp)::SR)))
    | "$" Qid => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp Qid))
-   | "{" "}" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "(" Exp ")" => (Exp)
    | "{" "}" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
