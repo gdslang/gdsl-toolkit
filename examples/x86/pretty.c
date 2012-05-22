@@ -21,7 +21,10 @@ static __obj prettyMem (__obj mem) {
       printf("QWORD PTR ");
       break;
     case 128:
-      printf("DQWORD PTR ");
+      printf("XMMWORD PTR ");
+      break;
+    case 256:
+      printf("YMMWORD PTR ");
       break;
     default:
       printf("PTR(%ld) ", sz);

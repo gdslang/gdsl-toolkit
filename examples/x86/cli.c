@@ -19,6 +19,8 @@ int main (int argc, char** argv) {
   }
   __decode(__decode__,blob,i,&insn);
   if (___isNil(insn))
+    __fatal("decode failed");
+  else
     prettyln(insn);
   return (1);
 }
