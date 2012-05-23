@@ -112,7 +112,7 @@ structure DesugarDecode = struct
    and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
       fun grabExp () = 
          if VS.length decls <> 1 
-            then raise CM.CompilationError
+            then raise Fail "overlapping patterns detected, guess where!"
          else #2 (VS.sub (decls, 0))
       fun isEmpty (vs, _) = VS.length vs = 0
       val bottom = VS.all isEmpty decls
@@ -132,7 +132,7 @@ structure DesugarDecode = struct
    end
 
    and desugarMatches tok decls = let
-      val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls)
+      (* val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
       val equiv = buildEquivClass decls
       
       fun genBindSlices indices = let

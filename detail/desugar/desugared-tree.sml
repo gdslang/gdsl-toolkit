@@ -37,7 +37,7 @@ structure DesugaredTree = struct
                                List.concat
                                  (map (fn a => map (fn b => a^b) bs) acc))
    in
-      lp (tokpat, [])
+      lp (tokpat, [""])
    end
 
    fun toVec xs = VectorSlice.full (Vector.fromList xs)
@@ -128,4 +128,15 @@ structure DesugaredTree = struct
 
       val spec = Spec.PP.spec declarations
    end
+
+   val toWildcardPattern = fn tokpat =>
+      let
+         val pat = toWildcardPattern tokpat
+      in
+         Pretty.prettyTo(TextIO.stdOut,PP.tokpat tokpat)
+        ;print " -> "
+        ;print pat
+        ;print "\n"
+        ;pat
+      end
 end
