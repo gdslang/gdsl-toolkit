@@ -31,7 +31,7 @@ structure DesugaredTree = struct
                case p of
                   Pat.VEC str => lp (ps, map (fn a => a^str) acc)
                 | Pat.BND (_, str) =>
-                     case String.fields (fn c => c = #"|") str of
+                     case String.tokens (fn c => c = #"|") str of
                         bs =>
                            lp (ps,
                                List.concat

@@ -58,24 +58,24 @@ val set-addrsz = update@{addrsz='1'}
 val failOver first second = do
    update@{tab=second};
    r <- first;
-   update@{tab=42};  # make the type checker happy
+   # make the type checker happy
+   update@{tab=42};
    return r
 end
 
 val continue = do
    t <- query$tab;
-   update@{tab=42};  # make the type checker happy
+   # make the type checker happy
+   update@{tab=42};  
+   # make the type checker happy
    r <- t;
-   update@{tab=t};  # make the type checker happy
+   update@{tab=t};
    return r
 end
 
 val /66 [] = continue
-
 val /f2 [] = continue
-
 val /f3 [] = continue
-
 
 val /legacy-p [0x2e] = do clear-rex; set-CS end
 val /legacy-p [0x36] = do clear-rex; set-SS end
@@ -1181,6 +1181,22 @@ val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='101'}
 val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='110'}
 val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='111'}
 val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
+val /0-mem ['mod@00|01|10 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='000'}
+val /1-mem ['mod@00|01|10 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='001'}
+val /2-mem ['mod@00|01|10 010 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='010'}
+val /3-mem ['mod@00|01|10 011 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='011'}
+val /4-mem ['mod@00|01|10 100 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='100'}
+val /5-mem ['mod@00|01|10 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='101'}
+val /6-mem ['mod@00|01|10 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='110'}
+val /7-mem ['mod@00|01|10 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='111'}
+val /0-nomem ['11 000 rm:3'] = update @{mod='11', rm=rm, reg/opcode='000'}
+val /1-nomem ['11 001 rm:3'] = update @{mod='11', rm=rm, reg/opcode='001'}
+val /2-nomem ['11 010 rm:3'] = update @{mod='11', rm=rm, reg/opcode='010'}
+val /3-nomem ['11 011 rm:3'] = update @{mod='11', rm=rm, reg/opcode='011'}
+val /4-nomem ['11 100 rm:3'] = update @{mod='11', rm=rm, reg/opcode='100'}
+val /5-nomem ['11 101 rm:3'] = update @{mod='11', rm=rm, reg/opcode='101'}
+val /6-nomem ['11 110 rm:3'] = update @{mod='11', rm=rm, reg/opcode='110'}
+val /7-nomem ['11 111 rm:3'] = update @{mod='11', rm=rm, reg/opcode='111'}
 
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
@@ -1525,11 +1541,11 @@ val / [0xdb '10011 i:3'] = binop FCMOVNU st0 (st/i i)
 
 ### FLD
 val / [0xd9 /0] = unop FLD st/m32
-val / [0xdd /0] = unop FLD m64
-val / [0xdb /5] = unop FLD m80fp
+val / [0xdd /0-mem] = unop FLD m64
+val / [0xdb /5-mem] = unop FLD m80fp
 
 ### FLDCW
-val / [0xd9 /5] = unop FLDCW m2byte 
+val / [0xd9 /5-mem] = unop FLDCW m2byte 
 
 val m14/28byte = m80fp #TODO: fix
 val m2byte = m16 #TODO: check
@@ -1544,18 +1560,18 @@ val / [0xd9 0xed] = arity0 FLDLN2
 val / [0xd9 0xee] = arity0 FLDZ
 
 ### FLDENV
-val / [0xd9 /4] = unop FLDENV m14/28byte
+val / [0xd9 /4-mem] = unop FLDENV m14/28byte
 
 ### FSTCW/FNSTCW
-val / [0x9b 0xd9 /7] = unop FSTCW m2byte
-val / [0xd9 /7] = unop FNSTCW m2byte
+val / [0x9b 0xd9 /7-mem] = unop FSTCW m2byte
+val / [0xd9 /7-mem] = unop FNSTCW m2byte
 
 ### FSTP
-val / [0xd9 /2] = unop FST m32
+val / [0xd9 /2-mem] = unop FST m32
 val / [0xdd /2] = unop FST st/m64
-val / [0xd9 /3] = unop FSTP m32
+val / [0xd9 /3-mem] = unop FSTP m32
 val / [0xdd /3] = unop FSTP st/m64
-val / [0xdb /7] = unop FSTP m80fp
+val / [0xdb /7-mem] = unop FSTP m80fp
 
 ### CALL 3-112 Vol. 2A
 val / [0xe8]
@@ -2510,10 +2526,10 @@ val phaddw = binop PHADDW
 val vphaddw = ternop VPHADDW
 val phaddd = binop PHADDD
 val vphaddd = ternop VPHADDD
-val /66 [0x0f 0x38 01 /r] = phaddw xmm128 xmm/m128
-val / [0x0f 0x38 01 /r] = phaddw mm64 mm/m64
-val /66 [0x0f 0x38 02 /r] = phaddd xmm128 xmm/m128
-val / [0x0f 0x38 02 /r] = phaddd mm64 mm/m64
+val /66 [0x0f 0x38 0x01 /r] = phaddw xmm128 xmm/m128
+val / [0x0f 0x38 0x01 /r] = phaddw mm64 mm/m64
+val /66 [0x0f 0x38 0x02 /r] = phaddd xmm128 xmm/m128
+val / [0x0f 0x38 0x02 /r] = phaddd mm64 mm/m64
 
 ### XADD Vol. 2B 4-667
 val / [0x0f 0xc0 /r] = binop XADD r/m8 r8
