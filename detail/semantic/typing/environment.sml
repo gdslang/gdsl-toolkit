@@ -445,14 +445,14 @@ end = struct
                       "-" ^ Int.toString(Position.toInt p2) ^
                       "@" ^ #2 (List.foldl showSym ("","") ctxt) ^
                       ":" ^ tStr
-                     ,", ", si)
+                     ,"\n\tuse at ", si)
                   end
                fun printB ({name,ty,width,uses}, (str, si)) =
                   let
                      val (tStr, si) = prBTyOpt (ty, " : ", si)
                      val (wStr, si) = prTyOpt (width, ", width = ", si)
                      val (uStr, _, si) = 
-                           List.foldl printU ("", "\n  uses: ", si)
+                           List.foldl printU ("", "\n\tuse at ", si)
                                       (SpanMap.listItemsi uses)
                   in
                     (str ^
@@ -1080,20 +1080,11 @@ end = struct
       in
          if isEmpty substs then (ei, bFun, env1) else
             let
-               (*val (sStr, si) = showSubstsSI (substs, TVar.emptyShowInfo)
-               val (eStr, si) = topToStringSI (env, si)
-               val _ = TextIO.print ("applySubst " ^ sStr ^ " to\n" ^ eStr)*)
                val (b1, env1) = Scope.unwrap env1
                val (b2, env2) = Scope.unwrap env2
-               val (b1, ei) = substBinding (b1, ei)
-               val (b2, ei) = substBinding (b2, ei)
-               val _ = case (b1,b2) of
-                  (KAPPA {ty=t1}, KAPPA {ty=t2}) =>
-                     if TVar.isEmpty (TVar.difference (texpVarset (t1,TVar.empty), texpVarset (t2,TVar.empty))) then () else
-                     (TextIO.print ("t1=" ^ showType t1 ^ "\nt2=" ^ showType t2 ^ "\nexpand info:\n" ^ #1 (showExpandInfoSI (ei,TVar.emptyShowInfo)) ^ "\n")
-                     ;raise InferenceBug)
-                  | _ => ()
-               val (b,bFun) = uniteFlowInfo (b1, b2, bFun)
+               val (b1', ei) = substBinding (b1, ei)
+               val (b2', ei) = substBinding (b2, ei)
+               val (b,bFun) = uniteFlowInfo (b1', b2', bFun)
                val (ei, bFun, env) =
                      applySubsts (substs, ei, bFun, false, env1, env2)
             in
@@ -1154,7 +1145,7 @@ end = struct
       Scope.update (sym, fn x => x,
          (scs, Scope.setCtxt (sym :: Scope.getCtxt state) state))
    
-   fun pushFunctionOrTop (sym, env) =
+   (*fun pushFunctionOrTop (sym, env) =
       let
          val tyRef = ref UNIT
          val bFunRef = ref BD.empty
@@ -1173,6 +1164,20 @@ end = struct
          val env = pushFunction (sym,env)
       in
          Scope.wrap (KAPPA {ty = !tyRef}, env)
+      end*)
+
+   fun pushFunctionOrTop (sym, env) =
+      let
+         fun setType (COMPOUND {ty = SOME (t,bFun), width, uses}, cons) =
+               (COMPOUND {ty = SOME (t,bFun), width = width, uses = uses}, cons)
+           | setType (COMPOUND {ty = NONE, width, uses}, cons) =
+               (COMPOUND {ty = SOME (freshVar (),BD.empty), width = width, uses = uses}, cons)
+           | setType _ = raise InferenceBug
+         val env = Scope.update (sym, setType, env)
+         val env = pushSymbol (sym, SymbolTable.noSpan, env)
+         val env = pushFunction (sym,env)
+      in
+         env
       end
 
    fun unify (env1, env2, substs) =

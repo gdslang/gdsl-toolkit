@@ -1,5 +1,5 @@
 granularity = 8
-export = main decode
+export = / decode
 
 # Optional arguments
 #
@@ -30,6 +30,27 @@ val set-addrsz = update@{addrsz='1'}
 
 ## Decoding prefixes
 
+val failOver first second = do
+   update@{tab=second};
+   r <- first;
+   update@{tab=42};
+   return r
+end
+
+val continue = do
+   t <- query$tab;
+   update@{tab=42};
+   r <- t;
+   update@{tab=t};
+   return r
+end
+
+val /66 [] = continue
+
+val /f2 [] = continue
+
+val /f3 [] = continue
+
 val /legacy-p [0x2e] = do clear-rex; set-CS end
 val /legacy-p [0x36] = do clear-rex; set-SS end
 val /legacy-p [0x3e] = do clear-rex; set-DS end
@@ -55,123 +76,105 @@ val p/66 [0xf3] = do set-rep; p/66/f3 end
 val p/66 [0x66] = do set-opndsz; p/66 end
 val p/66 [/legacy-p] = p/66
 val p/66 [/rex-p] = p/66
-val p/66 [] = do set-tab /; /66 end
+val p/66 [] = failOver /66 /
 
 val p/f2 [0x66] = do set-opndsz; p/f2/66 end
 val p/f2 [0xf2] = do set-repne; p/f2 end
 val p/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2 [/legacy-p] = p/f2
 val p/f2 [/rex-p] = p/f2
-val p/f2 [] = do set-tab /; /f2 end 
+val p/f2 [] = failOver /f2 / 
 
 val p/f3 [0x66] = do set-opndsz; p/f3/66 end
 val p/f3 [0xf2] = do set-repne; p/f3/f2 end
 val p/f3 [0xf3] = do set-rep; p/f3 end
 val p/f3 [/legacy-p] = p/f3
 val p/f3 [/rex-p] = p/f3
-val p/f3 [] = do set-tab /; /f3 end 
+val p/f3 [] = failOver /f3 / 
 
 val p/f2/f3 [0x66] = do set-opndsz; p/f2/f3/66 end
 val p/f2/f3 [0xf2] = do set-repne; p/f3/f2 end
 val p/f2/f3 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2/f3 [/legacy-p] = p/f2/f3
 val p/f2/f3 [/rex-p] = p/f2/f3
-val p/f2/f3 [] = do set-tab p/f2; /f3 end
+val p/f2/f3 [] = failOver /f3 p/f2
 
 val p/f3/f2 [0x66] = do set-opndsz; p/f2/f3/66 end
 val p/f3/f2 [0xf2] = do set-repne; p/f3/f2 end
 val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [/rex-p] = p/f3/f2
-val p/f3/f2 [] = do set-tab p/f3; /f2 end
+val p/f3/f2 [] = failOver /f2 p/f3
 
 val p/66/f2 [0x66] = do set-opndsz; p/f2/66 end
 val p/66/f2 [0xf2] = do set-repne; p/66/f2 end
 val p/66/f2 [0xf3] = do set-rep; p/66/f2/f3 end
 val p/66/f2 [/legacy-p] = p/66/f2
 val p/66/f2 [/rex-p] = p/66/f2
-val p/66/f2 [] = do set-tab p/66; /f2 end
+val p/66/f2 [] = failOver /f2 p/66
 
 val p/66/f3 [0x66] = do set-opndsz; p/f3/66 end
 val p/66/f3 [0xf2] = do set-repne; p/66/f3/f2 end
 val p/66/f3 [0xf3] = do set-rep; p/66/f3 end
 val p/66/f3 [/legacy-p] = p/66/f3
 val p/66/f3 [/rex-p] = p/66/f3
-val p/66/f3 [] = do set-tab p/66; /f3 end
+val p/66/f3 [] = failOver /f3 p/66
 
 val p/f2/66 [0x66] = do set-opndsz; p/f2/66 end
 val p/f2/66 [0xf2] = do set-repne; p/66/f2 end
 val p/f2/66 [0xf3] = do set-rep; p/f2/66/f3 end
 val p/f2/66 [/legacy-p] = p/f2/66
 val p/f2/66 [/rex-p] = p/f2/66
-val p/f2/66 [] = do set-tab p/f2; /66 end
+val p/f2/66 [] = failOver /66 p/f2
 
 val p/f3/66 [0x66] = do set-opndsz; p/f3/66 end
 val p/f3/66 [0xf2] = do set-repne; p/f3/66/f2 end
 val p/f3/66 [0xf3] = do set-rep; p/66/f3 end
 val p/f3/66 [/legacy-p] = p/f3/66
 val p/f3/66 [/rex-p] = p/f3/66
-val p/f3/66 [] = do set-tab p/f3; /66 end
+val p/f3/66 [] = failOver /66 p/f3
 
 val p/66/f2/f3 [0x66] = do clear-rex; p/f2/f3/66 end
 val p/66/f2/f3 [0xf2] = do clear-rex; p/66/f3/f2 end
 val p/66/f2/f3 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f2/f3 [/legacy-p] = p/66/f2/f3
 val p/66/f2/f3 [/rex-p] = p/66/f2/f3
-val p/66/f2/f3 [] = do set-tab p/66/f2; /f3 end
+val p/66/f2/f3 [] = failOver /f3 p/66/f2
 
 val p/66/f3/f2 [0x66] = do clear-rex; p/f3/f2/66 end
 val p/66/f3/f2 [0xf2] = do clear-rex; p/66/f3/f2 end
 val p/66/f3/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [/rex-p] = p/66/f3/f2
-val p/66/f3/f2 [] = do set-tab p/66/f3; /f2 end
+val p/66/f3/f2 [] = failOver /f2 p/66/f3
 
 val p/f3/f2/66 [0x66] = do clear-rex; p/f3/f2/66 end
 val p/f3/f2/66 [0xf2] = do clear-rex; p/f3/66/f2 end
 val p/f3/f2/66 [0xf3] = do clear-rex; p/f2/66/f3 end
 val p/f3/f2/66 [/legacy-p] = p/f3/f2/66
 val p/f3/f2/66 [/rex-p] = p/f3/f2/66
-val p/f3/f2/66 [] = do set-tab p/f3/f2; /66 end
+val p/f3/f2/66 [] = failOver /66 p/f3/f2
 
 val p/f2/f3/66 [0x66] = do clear-rex; p/f2/f3/66 end
 val p/f2/f3/66 [0xf2] = do clear-rex; p/f3/66/f2 end
 val p/f2/f3/66 [0xf3] = do clear-rex; p/f2/66/f3 end
 val p/f2/f3/66 [/legacy-p] = p/f2/f3/66
 val p/f2/f3/66 [/rex-p] = p/f2/f3/66
-val p/f2/f3/66 [] = do set-tab p/f2/f3; /66 end
+val p/f2/f3/66 [] = failOver /66 p/f2/f3
 
 val p/f3/66/f2 [0x66] = do clear-rex; p/f3/f2/66 end
 val p/f3/66/f2 [0xf2] = do clear-rex; p/f3/66/f2 end
 val p/f3/66/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/f3/66/f2 [/legacy-p] = p/f3/66/f2
 val p/f3/66/f2 [/rex-p] = p/f3/66/f2
-val p/f3/66/f2 [] = do set-tab p/f3/66; /f2 end
+val p/f3/66/f2 [] = failOver /f2 p/f3/66
 
 val p/f2/66/f3 [0x66] = do clear-rex; p/f2/f3/66 end
 val p/f2/66/f3 [0xf2] = do clear-rex; p/66/f3/f2 end
 val p/f2/66/f3 [0xf3] = do clear-rex; p/f2/66/f3 end
 val p/f2/66/f3 [/legacy-p] = p/f2/66/f3
 val p/f2/66/f3 [/rex-p] = p/f2/66/f3
-val p/f2/66/f3 [] = do set-tab p/f2/66; /f3 end
-
-val /66 [] = do
-   tab <- get-tab;
-   tab
-end
-
-val /f2 [] = do
-   tab <- get-tab;
-   tab
-end
-
-val /f3 [] = do
-   tab <- get-tab;
-   tab
-end
-
-val set-tab tab = update@{tab=tab}
-val get-tab = query$tab
+val p/f2/66/f3 [] = failOver /f3 p/f2/66
 
 ### MOV
 val / [0x51]
@@ -198,9 +201,6 @@ val decode = do
         opndsz='0'};
    p64
 end
-
-val setTab tab = update@{tab=tab}
-val getTab = query$tab
 
 val & giveA giveB = do
    a <- giveA;

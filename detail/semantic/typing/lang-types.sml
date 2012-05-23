@@ -217,7 +217,7 @@ structure Types = struct
                                    (if concisePrint then "" else BD.showVar b)
                                    ^ ":...}"
       | sT (p, MONAD (r,f,t)) = br (p, p_tyn, "S " ^ sT (p_tyn+1, r)) ^
-         " <" ^ sT (p_app+1, f) ^ " -> " ^ sT (p_app, t) ^ ">"
+         " <" ^ sT (p_app+1, f) ^ " => " ^ sT (p_app, t) ^ ">"
       | sT (p, VAR (v,b)) = showVar v ^ 
             (if concisePrint then "" else BD.showVar b)
    and showVar var = let 

@@ -272,24 +272,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          (E.SymbolSet.empty, env)
       end
-     (*| infDecl (st,env) (AST.STATEdecl l) =
-      let
-         val envState = E.pushSymbol (stateSymId, SymbolTable.noSpan, env)
-         val extBVar = BD.freshBVar ()
-         val extVar = VAR (TVar.freshTVar (), extBVar) 
-         val env = E.meetBoolean (BD.meetVarZero extBVar, env)
-         val env = E.pushType (false, extVar, env)
-         val fieldBVar = BD.freshBVar ()
-         val env = E.meetBoolean (BD.meetVarOne fieldBVar, env)
-         val env = List.foldl (fn ((_,_,e), env) => infExp (st,env) e) env l
-         val fieldList = List.rev (List.map (fn (v,_,_) => (fieldBVar,v)) l)
-         val env = E.reduceToRecord (fieldList, env)
-         val env = E.meet (envState, env)
-         val env = E.clearFunction (stateSymId, env)
-         val env = E.popToFunction (stateSymId, env)
-      in
-         checkUsages false (stateSymId, env)
-      end*)
      | infDecl stenv (AST.DECODEdecl dd) = infDecodedecl stenv dd
      | infDecl (st,env) (AST.LETRECdecl (v,l,e)) =
          infBinding (st,env) (v, l, e)
@@ -308,7 +290,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val _ = sm := (v, fInfo) :: List.filter (fn (s,_) =>
                                        not (SymbolTable.eq_symid(s,v))) (!sm)
       in
-         checkUsages false (v,env)
+         (E.SymbolSet.singleton v, env)
       end
      | infDecodedecl (st,env) (v, l, Sum.INR el) =
       let
@@ -326,7 +308,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val _ = sm := (v, fInfo) :: List.filter (fn (s,_) =>
                                        not (SymbolTable.eq_symid(s,v))) (!sm)
       in
-         checkUsages false (v,env)
+         (E.SymbolSet.singleton v, env)
       end
 
    and infExp stenv (AST.MARKexp m) = reportError infExp stenv m

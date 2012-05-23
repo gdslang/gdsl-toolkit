@@ -259,18 +259,19 @@ end = struct
         | aS (CONST c) = CONST c
         | aS (ALG (ty, l)) = ALG (ty, List.map aS l)
         | aS (RECORD (var, b, fs)) =
+         let
+            val (fs, ei) = applySubstToRFields subst (fs, !eiRef)
+         in
             if TVar.eq (var, v) then
-              case addToExpandInfo (var, b, target, !eiRef) of
+              case addToExpandInfo (var, b, target, ei) of
                  (target,ei) => (eiRef := ei; case target of
                       WITH_FIELD (newFs, newVar, newBVar) =>
                        RECORD (newVar, newBVar, List.foldl insertField fs newFs)
                     | WITH_TYPE _ => raise SubstitutionBug
                  )
-            else let
-               val (fs, ei) = applySubstToRFields subst (fs, !eiRef)
-            in
+            else 
                (eiRef := ei; RECORD (var, b, fs))
-            end
+         end
         | aS (MONAD (r,f,t)) = MONAD (aS r,aS f,aS t)
         | aS (VAR (var,b)) = if TVar.eq (var, v) then
               case addToExpandInfo (var, b, target, !eiRef) of
@@ -331,7 +332,10 @@ end = struct
                occursCheck (v2, WITH_FIELD (fs, v3, bv3))
             end
          
-         and occursCheck (v2, WITH_TYPE t2) =
+         and occursCheck (v2, WITH_TYPE (t2 as (VAR _))) = (v2, WITH_TYPE t2)
+            (* the previous case ensures that we don't get annoying error
+            messages like a/a is an infinite substitution *)
+           | occursCheck (v2, WITH_TYPE t2) =
             if TVar.member(texpVarset (t2, TVar.empty),v2) then
                let
                   val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
