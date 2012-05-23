@@ -986,19 +986,21 @@ val mode64? = query $mode64
 
 ## Convert a bit-vectors to registers
 
-val st n = 
+val st-reg n = 
    case n of
-      '000': REG ST0
-    | '001': REG ST1
-    | '010': REG ST2
-    | '011': REG ST3
-    | '100': REG ST4
-    | '101': REG ST5
-    | '110': REG ST6
-    | '111': REG ST7
+      '0000': REG ST0
+    | '0001': REG ST1
+    | '0010': REG ST2
+    | '0011': REG ST3
+    | '0100': REG ST4
+    | '0101': REG ST5
+    | '0110': REG ST6
+    | '0111': REG ST7
   end
 
-val sti extension n = return (st n)
+val sti extension n = st-reg (extension ^ n)
+val st n = return (st-reg n)
+val st/i n = return (st-reg ('0' ^ n))
 
 val reg8 n =
    case n of
@@ -1359,7 +1361,7 @@ val m32 = m r/m32
 val m64 = m r/m64
 val m128 = m xmm/m128
 val m256 = m ymm/m256
-val m80fp = m r/m 80 reg64-rex #TODO: check
+val m80fp = m (r/m 80 reg64-rex) #TODO: check
 
 val st/m16 = r/m 16 sti
 val st/m32 = r/m 32 sti
@@ -1512,14 +1514,14 @@ val / [0x0f 0xa2] = arity0 CPUID
 val / [0xd9 0xe0] = arity0 FCHS
 
 ### FCMOVcc
-val / [0xda '11000 i:3'] = binop FCMOVB st0 (sti '0' i)
-val / [0xda '11001 i:3'] = binop FCMOVE st0 (sti '0' i)
-val / [0xda '11010 i:3'] = binop FCMOVBE st0 (sti '0' i)
-val / [0xda '10011 i:3'] = binop FCMOVU st0 (sti '0' i)
-val / [0xdb '11000 i:3'] = binop FCMOVNB st0 (sti '0' i)
-val / [0xdb '11001 i:3'] = binop FCMOVNE st0 (sti '0' i)
-val / [0xdb '11010 i:3'] = binop FCMOVNBE st0 (sti '0' i)
-val / [0xdb '10011 i:3'] = binop FCMOVNU st0 (sti '0' i)
+val / [0xda '11000 i:3'] = binop FCMOVB st0 (st/i i)
+val / [0xda '11001 i:3'] = binop FCMOVE st0 (st/i i)
+val / [0xda '11010 i:3'] = binop FCMOVBE st0 (st/i i)
+val / [0xda '10011 i:3'] = binop FCMOVU st0 (st/i i)
+val / [0xdb '11000 i:3'] = binop FCMOVNB st0 (st/i i)
+val / [0xdb '11001 i:3'] = binop FCMOVNE st0 (st/i i)
+val / [0xdb '11010 i:3'] = binop FCMOVNBE st0 (st/i i)
+val / [0xdb '10011 i:3'] = binop FCMOVNU st0 (st/i i)
 
 ### FLD
 val / [0xd9 /0] = unop FLD st/m32
@@ -2294,7 +2296,7 @@ val vminss = ternop VMINSS
 val /f3 [0x0f 0x5d /r] = minss xmm128 xmm/m32
 
 ### PCMPEQQ
-val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm xmm/m128
+val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
 val / [/vex/66/0f/38 0x29 /r] | vex128? = ternop VPCMPEQQ xmm128 v/xmm xmm/m128 
 
 ### PMOVMSKB
@@ -2303,8 +2305,7 @@ val /66 [0x0f 0xd7 /r] = binop PMOVMSKB reg xmm/nomem128
 val / [/vex/66/0f 0xd7 /r] | vex128? = binop VPMOVMSKB vreg xmm/nomem128
 
 ### MONITOR Vol. 2B 4-35
-val monitor = return MONITOR
-val / [0x0f 0xae 0x01 0xc8] = monitor
+val / [0x0f 0xae 0x01 0xc8] = arity0 MONITOR
 
 ### MOV Vol 2A 3-643
 val / [0x88 /r] = binop MOV r/m8 r8

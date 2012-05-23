@@ -146,11 +146,22 @@ structure DesugarDecode = struct
                      case pat of
                         VEC _ => grab (ps, offs + size pat, acc)
                       | BND (n, _) =>
-                           grab
-                              (ps,
-                               offs + size pat,
-                               Exp.BIND
-                                 (n, sliceExp (tok, offs, size pat))::acc)
+                           let
+                              val sz = size pat
+                           in
+                              (* TODO: this is granularity dependent *)
+                              if offs = 0 andalso sz = 8
+                                 then
+                                    grab (ps, offs + sz,
+                                       Exp.BIND (n, returnExp tok)::acc)
+                              else
+                                 grab
+                                    (ps,
+                                     offs + sz,
+                                     Exp.BIND
+                                       (n,
+                                        sliceExp (tok, offs, sz))::acc)
+                           end
          in
             if VS.length toks = 0
                then acc

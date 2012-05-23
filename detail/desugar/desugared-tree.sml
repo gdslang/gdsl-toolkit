@@ -20,19 +20,24 @@ structure DesugaredTree = struct
          Pat.VEC str => String.size str
        | Pat.BND (_, str) =>
          case String.fields (fn c => c = #"|") str of
-            [bPat] => String.size bPat
-          | _ => 0
+            p::_ => String.size p
+          | _ => raise Fail "pat.size.bug"
 
    fun toWildcardPattern tokpat = let
       fun lp (pats, acc) =
          case pats of
-            [] => acc
+            [] => String.concatWith "|" acc
           | p::ps =>
                case p of
-                  Pat.VEC str => lp (ps, acc^str)
-                | Pat.BND (_, str) => lp (ps, acc^str)
+                  Pat.VEC str => lp (ps, map (fn a => a^str) acc)
+                | Pat.BND (_, str) =>
+                     case String.fields (fn c => c = #"|") str of
+                        bs =>
+                           lp (ps,
+                               List.concat
+                                 (map (fn a => map (fn b => a^b) bs) acc))
    in
-      lp (tokpat, "")
+      lp (tokpat, [])
    end
 
    fun toVec xs = VectorSlice.full (Vector.fromList xs)
