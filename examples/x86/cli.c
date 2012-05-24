@@ -13,7 +13,7 @@ int main (int argc, char** argv) {
         case EOF:
            break;
         case 0:
-           __fatal("invalid input, should be in hex form '0f 0b ..'");
+           __fatal("invalid input, should be in hex form: '0f 0b ..'");
      }
      blob[i] = c & 0xff;
   }

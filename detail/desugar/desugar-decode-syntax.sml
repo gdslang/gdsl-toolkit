@@ -86,7 +86,7 @@ structure DesugarDecode = struct
       VS.foldli buildEquiv StringMap.empty decls
    end
 
-   fun isWildcardPattern p = String.size p = 0
+   fun isBacktrackPattern p = String.size p = 0
 
    fun layoutDecls (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
       open Layout Pretty
@@ -171,22 +171,49 @@ structure DesugarDecode = struct
          rev (Set.foldl grabSlices [] indices)
       end
 
-      fun stepDown indices wildcard = let
+      fun backtrack () =
+         case StringMap.find (equiv, "") of
+            NONE => raise Fail "desugarCases.bug.unboundBacktrackPattern"
+          | SOME ix =>
+               (case Set.listItems ix of
+                  [i] => 
+                     let
+                        val (_,e) = VS.sub (decls,i)
+                     in
+                        Exp.SEQ [unconsumeTok(),Exp.ACTION e]
+                     end
+                | _ => raise Fail "desugarCases.bug.overlappingBacktrackPattern")
+
+      fun extendBacktrackPath ds =
+         case StringMap.find (equiv, "") of
+            NONE => ds
+          | SOME ix =>
+               (case Set.listItems ix of
+                  [i] => 
+                     let
+                        val (tok,e) = VS.sub (decls,i)
+                     in
+                        (tok, Exp.SEQ [unconsumeTok(), Exp.ACTION e])::ds
+                     end
+                | _ => raise Fail "desugarCases.bug.overlappingBacktrackPattern")
+
+      fun stepDown indices = let
          fun nextIdx (i, acc) = let
             val (toks, e) = VS.sub (decls, i)
-            val e =
-               if wildcard
-                  then
-                     Exp.SEQ
-                        [unconsumeTok (),
-                         Exp.ACTION e]
-               else e
          in
             if VS.length toks = 0
                then (toVec [], e)::acc
             else (VS.subslice (toks, 1, NONE), e)::acc
          end
-         val decls = toVec (rev (Set.foldl nextIdx [] indices))
+         val decls = Set.foldl nextIdx [] indices
+         val decls = 
+            case decls of
+               [(toks,e)] =>
+                  if VS.length toks = 0
+                     then decls
+                  else extendBacktrackPath decls
+             | _ => extendBacktrackPath decls
+         val decls = toVec (rev decls)
          val slices = genBindSlices indices
       in
          if null slices
@@ -195,7 +222,9 @@ structure DesugarDecode = struct
       end
 
       fun buildMatch (pat, indices, pats) =
-         (Core.Pat.BIT pat, stepDown indices (isWildcardPattern pat))::pats
+         if isBacktrackPattern pat
+            then (Core.Pat.BIT pat, backtrack())::pats
+         else (Core.Pat.BIT pat, stepDown indices)::pats
    in
       StringMap.foldli buildMatch [] equiv
    end

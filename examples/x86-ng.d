@@ -1711,7 +1711,7 @@ val / [/vex/66/0f 0x75 /r] | vnds? = ternop VCMPEQW xmm128 v/xmm xmm/m128
 val / [/vex/66/0f 0x76 /r] | vnds? = ternop VCMPEQD xmm128 v/xmm xmm/m128
 
 ### PCMPESTRI
-val /66 [0x0f 0x3a /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
+val /66 [0x0f 0x3a 0x61 /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
 val / [/vex/66/0f/3a 0x61 /r] = ternop VCMPESTRI xmm128 xmm/m128 imm8
 
 ### PCMPGTB/PCMPGTW/PCMPGTD
@@ -1726,7 +1726,7 @@ val / [/vex/66/0f 0x65 /r] | vnds? & vex128? = ternop VPCMPGTW xmm128 v/xmm xmm/
 val / [/vex/66/0f 0x66 /r] | vnds? & vex128? = ternop VPCMPGTD xmm128 v/xmm xmm/m128
 
 ### PCMPISTRI
-val /66 [0x0f 0x3a /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
+val /66 [0x0f 0x3a 0x63 /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
 val / [/vex/66/0f/3a 0x63 /r] | vex128? = ternop VPCMPISTRI xmm128 xmm/m128 imm8
 
 ### PINSRB/PINSRD/PINSRQ
@@ -1735,20 +1735,20 @@ val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop PINSRD xmm128 r/m32 imm8
 val / [/vex/66/0f/3a 0x20 /r] | vex128? & vexw0? = quaternop VPINSRB xmm128 v/xmm r/m8 imm8
-val / [/vex/66/0f/3a 0x20 /r] 
+val / [/vex/66/0f/3a 0x22 /r] 
  | vex128? & vexw1? = quaternop VPINSRQ xmm128 v/xmm r/m64 imm8
  | vex128? = quaternop VPINSRD xmm128 v/xmm r/m32 imm8
 
 ### POR
 val / [0x0f 0xeb /r] = binop POR mm64 mm/m64
 val /66 [0x0f 0xeb /r] = binop POR xmm128 xmm/m128
-val / [/vex/66/0f 0xdb /r] | vnds? & vex128? = ternop VPOR xmm128 v/xmm xmm/m128
+val / [/vex/66/0f 0xeb /r] | vnds? & vex128? = ternop VPOR xmm128 v/xmm xmm/m128
 
 ### PREFETCHh
-val / [0x0f 18 /1-mem] = unop PREFETCH0 m8
-val / [0x0f 18 /2-mem] = unop PREFETCH1 m8
-val / [0x0f 18 /3-mem] = unop PREFETCH2 m8
-val / [0x0f 18 /0-mem] = unop PREFETCHNTA m8
+val / [0x0f 0x18 /1-mem] = unop PREFETCH0 m8
+val / [0x0f 0x18 /2-mem] = unop PREFETCH1 m8
+val / [0x0f 0x18 /3-mem] = unop PREFETCH2 m8
+val / [0x0f 0x18 /0-mem] = unop PREFETCHNTA m8
 
 ### PSHUFB
 val / [0x0f 0x38 0x00 /r] = binop PSHUFB mm64 mm/m64
@@ -2039,8 +2039,10 @@ val / [0x0f '11001 r:3']
 ### NOP 4-12 Vol. 2B
 #val / [0x90] = arity0 NOP
 #val /66 [0x90] = arity0 NOP
-val /66 [0x0f 0x1f /0] = unop NOP r/m16
-val / [0x0f 0x1f /0] = unop NOP r/m32
+val /66 [0x0f 0x1f /0] = binop NOP r/m16 r16
+val / [0x0f 0x1f /0]
+ | rexw? = binop NOP r/m64 r64
+ | otherwise = binop NOP r/m32 r32
 
 ### XCHG Vol. 2A 4-510
 val / ['10010 r:3']
