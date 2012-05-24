@@ -197,6 +197,13 @@ structure DesugarDecode = struct
                      end
                 | _ => raise Fail "desugarCases.bug.overlappingBacktrackPattern")
 
+      fun isFullWildcard toks =
+         let
+            val tok = VS.sub(toks,0)
+         in
+            CharVector.all (fn c => c = #".") (toWildcardPattern tok)
+         end
+
       fun stepDown indices = let
          fun nextIdx (i, acc) = let
             val (toks, e) = VS.sub (decls, i)
@@ -209,7 +216,7 @@ structure DesugarDecode = struct
          val decls = 
             case decls of
                [(toks,e)] =>
-                  if VS.length toks = 0
+                  if VS.length toks = 0 orelse isFullWildcard toks
                      then decls
                   else extendBacktrackPath decls
              | _ => extendBacktrackPath decls

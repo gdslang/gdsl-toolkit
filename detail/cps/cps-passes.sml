@@ -57,7 +57,7 @@ end = struct
           pass=pass,
           preExt="ast",
           preOutput=dumpPre,
-          postExt="ast",
+          postExt="cps",
           postOutput=dumpPost}
 
    fun run spec =

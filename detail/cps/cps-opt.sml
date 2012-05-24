@@ -1355,12 +1355,12 @@ structure BetaContFunConservative = struct
                      let
                         val L = simplify env' sigma L
                      in
-                        if gotInlined f
-                           then L
-                        else if Census.count#app f = 0
+                        if Census.count#app f = 0
                                 andalso Census.count#esc f = 0
                            then
-                              (Census.visitTerm ~1 K; L)
+                              if gotInlined f
+                                 then L
+                              else (Census.visitTerm ~1 K; L)
                         else
                            LETVAL (f, FN (k, xs, simplify env sigma K), L)
                      end
@@ -1421,12 +1421,12 @@ structure BetaContFunConservative = struct
                      let
                         val L = simplify env' sigma L
                      in
-                        if gotInlined k
-                           then L
-                        else if Census.count#app k = 0
+                        if Census.count#app k = 0
                                 andalso Census.count#esc k = 0
                            then
-                              (Census.visitTerm ~1 K; L)
+                              if gotInlined k
+                                 then L
+                              else (Census.visitTerm ~1 K; L)
                         else
                            LETCONT ([(k, xs, simplify env sigma K)], L)
                      end
@@ -1488,7 +1488,7 @@ structure BetaContFunConservative = struct
             case findFun (env, f) of
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
-                  if length xs = length ys and (inlineCandidate f)
+                  if length xs = length ys andalso (inliningCandidate f)
                      then 
                         let
                            val _ = click()

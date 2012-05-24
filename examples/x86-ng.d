@@ -1053,13 +1053,6 @@ val rep? = query $rep
 val rexw? = query $rexw
 val vexw? = query $rexw
 val rex? = query $rex
-val mod-mem? = do
-   mod <- query $mod;
-   case mod of
-      '11': return '1'
-    | otherwise: return '0'
-   end
-end
 
 val mode64? = query $mode64
 
@@ -2763,13 +2756,8 @@ val /66 [0x0f 0x16 /r] = movhpd xmm128 m64
 val /66 [0x0f 0x17 /r] = movhpd m64 xmm128
 
 ### MOVHPS Vol. 2B 4-79
-val movhps = binop MOVHPS
-val vmovhps = ternop VMOVHPS
-val vbmovhps = binop VBMOVHPS
-val / [0x0f 0x16 /r]
- | mod-mem? = movhps xmm128 m64
-val / [0x0f 0x17 /r]
- | mod-mem? = movhps m64 xmm128
+val / [0x0f 0x16 /r-mem] = binop MOVHPS xmm128 m64
+val / [0x0f 0x17 /r-mem] = binop MOVHPS m64 xmm128
 
 ### MOVLHPS Vol. 2B 4-81
 ## CHECK collision with movhps
