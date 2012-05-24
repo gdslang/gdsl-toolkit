@@ -749,12 +749,11 @@ datatype mnemonic =
  | PMOVMSKB
  | POP
  | POR
- | PREFETCH0
- | PREFETCH1
- | PREFETCH2
- | PREFETCHNTA
  | PREFETCHT0
- | PREFETCH_MODIFIED
+ | PREFETCHT1
+ | PREFETCHT2
+ | PREFETCHNTA
+ | PREFETCHW
  | PSHUFB
  | PSHUFD
  | PSLLDQ
@@ -1738,10 +1737,14 @@ val /66 [0x0f 0xeb /r] = binop POR xmm128 xmm/m128
 val / [/vex/66/0f 0xeb /r] | vnds? & vex128? = ternop VPOR xmm128 v/xmm xmm/m128
 
 ### PREFETCHh
-val / [0x0f 0x18 /1-mem] = unop PREFETCH0 m8
-val / [0x0f 0x18 /2-mem] = unop PREFETCH1 m8
-val / [0x0f 0x18 /3-mem] = unop PREFETCH2 m8
+val / [0x0f 0x18 /1-mem] = unop PREFETCHT0 m8
+val / [0x0f 0x18 /2-mem] = unop PREFETCHT1 m8
+val / [0x0f 0x18 /3-mem] = unop PREFETCHT2 m8
 val / [0x0f 0x18 /0-mem] = unop PREFETCHNTA m8
+
+### PREFETCHW
+###   - this instruction is not part of the intel manual
+val / [0x0f 0x0d /r-mem] = unop PREFETCHW m8
 
 ### PSHUFB
 val / [0x0f 0x38 0x00 /r] = binop PSHUFB mm64 mm/m64
@@ -2726,7 +2729,10 @@ val /66 [0x0f 0x6f /r] = binop MOVDQA xmm128 xmm/m128
 val /66 [0x0f 0x7f /r] = binop MOVDQA xmm/m128 xmm128
 val / [/vex/66/0f 0x6f /r]
  | vex128? = binop VMOVDQA xmm128 xmm/m128
- | otherwise = binop VMOVDQA xmm/m128 xmm128
+ | otherwise = binop VMOVDQA ymm256 ymm/m256
+val / [/vex/66/0f 0x7f /r]
+ | vex128? = binop VMOVDQA xmm/m128 xmm128
+ | otherwise = binop VMOVDQA ymm/m256 ymm256
 
 ### MOVDQU Vol. 2B 4-70
 val /f3 [0x0f 0x6f /r] = binop MOVDQU xmm128 xmm/m128
@@ -2770,15 +2776,15 @@ val / [0x0f 0x17 /r-mem] = binop MOVHPS m64 xmm128
 val movlpd = binop MOVLPD
 val vmovlpd = ternop VMOVLPD
 val vbmovlpd = binop VBMOVLPD
-val /66 [0x0f 0x12 /r] = movlpd xmm128 m64
-val /66 [0x0f 0x13 /r] = movlpd m64 xmm128
+val /66 [0x0f 0x12 /r-mem] = movlpd xmm128 m64
+val /66 [0x0f 0x13 /r-mem] = movlpd m64 xmm128
 
 ### MOVLPS Vol. 2B 4-85
 val movlps = binop MOVLPD
 val vmovlps = ternop VMOVLPD
 val vbmovlps = binop VBMOVLPD
-val / [0x0f 0x12 /r] = movlps xmm128 m64
-val / [0x0f 0x13 /r] = movlps m64 xmm128
+val / [0x0f 0x12 /r-mem] = movlps xmm128 m64
+val / [0x0f 0x13 /r-mem] = movlps m64 xmm128
 
 ### MOVMSKPD Vol. 2B 4-87
 val movmskpd = binop MOVMSKPD
