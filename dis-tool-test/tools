@@ -158,6 +158,8 @@ disasm -b64 FILE
 0000000000000000 (03) 0f1211                   MOVLPS XMM2, [RCX]
 0000000000000003 (03) 0f12d1                   MOVHLPS XMM2, XMM1
 
+---
+
 12:
 0000000000000000 (04) f20f59ff                 MULSD XMM7, XMM7
 
@@ -217,6 +219,20 @@ entrypoint_0    db 66h, 0c4h, 0e1h, 0f9h, 7eh, 0c8h ; @0
     movlps oword ptr [rcx], xmm2                 ; @0  0f1211  
     movhlps xmm2, xmm1                           ; @3  0f12d1
 
+---
+
+12:
+    mulsd xmm7, xmm7                             ; @0  f20f59ff  
+
+13:
+    mulss xmm7, xmm7                             ; @0  f30f59ff  
+
+14:
+    mulsd xmm7, xmm7                             ; @0  f2f30f59ff
+
+15:
+    mulsd xmm7, xmm7                             ; @0  f3f20f59ff
+
 SUMMARY: Correct: 3-7, Wrong: 7-3 (30%-70%)
 
 BeaEngine (LookInside):
@@ -268,5 +284,19 @@ movq xmm10, qword ptr ds:[r9d] (AddressSize=InUsePrefix)
 11: (Correct decoding)
 movlps xmm2, qword ptr ds:[rcx]
 movlps xmm2, xmm1
+
+---
+
+12:
+mulsd xmm7, xmm7
+
+13:
+mulss xmm7, xmm7
+
+14:
+mulsd xmm7, xmm7
+
+15:
+mulsd xmm7, xmm7
 
 SUMMARY: Correct: 3, Wrong: 7 (30%)
