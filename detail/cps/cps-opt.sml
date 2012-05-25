@@ -743,20 +743,25 @@ structure Cost = struct
    
    val env = ref Set.empty
    val allwaysInline = ref Set.empty
+   val neverInline = ref Set.empty
    fun reset () =
       (env:=Set.empty
-      ;allwaysInline:=Set.fromList
-         [Aux.get ">>",
-          Aux.get "return",
-          Aux.get ">>=",
-          Aux.get "consume",
-          Aux.get "unconsume",
-          Aux.get "slice",
-          Aux.get "update",
-          Aux.get "raise",
-          Aux.get "query",
-          Aux.get "and",
-          Aux.get "^"])
+      ;allwaysInline:=Set.fromList (map Aux.get
+         [">>",
+          "return",
+          ">>=",
+          "consume",
+          "unconsume",
+          "slice",
+          "update",
+          "raise",
+          "query",
+          "and",
+          "^",
+          "binop",
+          "ternop",
+          "quaternop"])
+       ;neverInline:=Set.fromList (map Aux.get []))
 
    val allwaysInline = fn f => Set.member (!allwaysInline, f)
 
@@ -793,7 +798,7 @@ structure Cost = struct
                if isInliningCandidate body
                   then env := Set.add (!env, k)
                else ())
-   fun inlineCandidate f = Set.member (!env, f)
+   fun inlineCandidate f = not (Set.member (!neverInline, f)) andalso Set.member (!env, f)
    fun run () = (reset();mark()) 
 end
 
