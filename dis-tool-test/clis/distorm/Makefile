@@ -1,6 +1,8 @@
 CC     = gcc
-CFLAGS = -I$(DISTORM_PATH)/include -g
-LIBS = -L$(DISTORM_PATH) -ldistorm3
+CFLAGS = -I$(DISTORM_PATH)/include -I../readhex/include -g
+
+LDFLAGS = -L$(DISTORM_PATH) -L../readhex
+LIBS = -ldistorm3 -lreadhex
 
 all: distorm-cli
 

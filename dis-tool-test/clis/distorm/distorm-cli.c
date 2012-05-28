@@ -11,6 +11,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include <readhex.h>
+
 // For the compilers who don't have sysexits.h, which is not an ISO/ANSI include!
 #define EX_OK           0
 #define EX_USAGE       64
@@ -134,30 +136,8 @@ int main(int argc, char **argv)
 //
 //	fclose(f);
 
-	size_t current_size = 32;
-	buf2 = buf = malloc(current_size);
-	bytesread = 0;
-	while (1) {
-		size_t length = 2;
-		char t[length];
-		size_t index = 0;
-		while (1) {
-			if (feof(stdin))
-				goto end_read;
-			char next = getc(stdin);
-			if (next >= '0' && next <= '9' || next >= 'a' && next <= 'f')
-				t[index++] = next;
-			if (index >= length)
-				break;
-		}
-		if(bytesread + 1 > current_size) {
-			current_size *= 2;
-			buf2 = buf = realloc(buf, current_size);
-		}
-        buf[bytesread++] = (t[0] - '0')*16 + (t[1] - '0');
-	}
-	end_read: ;
-	filesize = bytesread;
+	bytesread = filesize = readhex_hex_read(stdin, (char**)&buf);
+	buf2 = buf;
 
 #ifdef SUPPORT_64BIT_OFFSET
 	if (dt != Decode64Bits) printf("%08llx\n", offset);
