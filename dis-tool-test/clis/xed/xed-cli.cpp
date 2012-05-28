@@ -31,6 +31,7 @@
 
 extern "C" {
 #include "xed-interface.h"
+#include <readhex.h>
 }
 #include "xed-examples-ostreams.H"
 #include <iostream>
@@ -486,27 +487,10 @@ int main(int argc, char** argv) {
 	xed_decoded_inst_zero_set_mode(&xedd, &dstate);
 	xed_decoded_inst_set_input_chip(&xedd, chip);
 
-	while (1) {
-		size_t length = 2;
-		char t[length + 1];
-		size_t index = 0;
-		while (1) {
-			if (feof(stdin))
-				goto end_read;
-			char next = getc(stdin);
-			if (next >= '0' && next <= '9' || next >= 'a' && next <= 'f')
-				t[index++] = next;
-			if (index >= length)
-				break;
-		}
-		t[length] = 0;
-		unsigned int x;
-		istringstream s(t);
-		s >> hex >> x;
-		assert(bytes < XED_MAX_INSTRUCTION_BYTES);
-		itext[bytes++] = XED_STATIC_CAST(xed_uint8_t,x);
-	}
-	end_read: ;
+	char *buffer;
+	bytes = readhex_hex_read(stdin, &buffer);
+	assert(bytes < XED_MAX_INSTRUCTION_BYTES);
+	memcpy(itext, buffer, bytes > XED_MAX_INSTRUCTION_BYTES ? XED_MAX_INSTRUCTION_BYTES : bytes);
 
 	if (bytes == 0) {
 		cout << "Must supply some hex bytes" << endl;

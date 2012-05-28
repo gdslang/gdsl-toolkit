@@ -1,11 +1,13 @@
 CC     = g++
-CFLAGS = -I$(XED_PATH)/include -g
-LIBS = -L$(XED_PATH)/lib -lxed
+CFLAGS = -I$(XED_PATH)/include -I../readhex/include -g
+
+LDFLAGS = -L$(XED_PATH)/lib -L../readhex
+LIBS = -lxed -lreadhex
 
 all: xed-cli
 
 xed-cli: xed-cli.o
-	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
+	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS) 
 
 xed-cli.o: xed-cli.cpp
 	$(CC) $(CFLAGS) -c -o $@ $<
