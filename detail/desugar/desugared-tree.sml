@@ -7,7 +7,7 @@ structure DesugaredTree = struct
    structure Pat = struct
       datatype t =
          VEC of string
-       | BND of sym * int
+       | BND of sym * string
    end
 
    type value = Exp.decl
@@ -18,20 +18,26 @@ structure DesugaredTree = struct
    fun size pat =
       case pat of
          Pat.VEC str => String.size str
-       | Pat.BND (_, i) => i
+       | Pat.BND (_, str) =>
+         case String.fields (fn c => c = #"|") str of
+            p::_ => String.size p
+          | _ => raise Fail "pat.size.bug"
 
    fun toWildcardPattern tokpat = let
       fun lp (pats, acc) =
          case pats of
-            [] => acc
+            [] => String.concatWith "|" acc
           | p::ps =>
                case p of
-                  Pat.VEC str => lp (ps, acc^str)
-                | Pat.BND (_, i) =>
-                     lp (ps,
-                         acc^String.implode (List.tabulate (i, fn _ => #".")))
+                  Pat.VEC str => lp (ps, map (fn a => a^str) acc)
+                | Pat.BND (_, str) =>
+                     case String.tokens (fn c => c = #"|") str of
+                        bs =>
+                           lp (ps,
+                               List.concat
+                                 (map (fn a => map (fn b => a^b) bs) acc))
    in
-      lp (tokpat, "")
+      lp (tokpat, [""])
    end
 
    fun toVec xs = VectorSlice.full (Vector.fromList xs)
@@ -118,8 +124,19 @@ structure DesugaredTree = struct
       and pat t =
          case t of
             Pat.VEC bits => str bits
-          | Pat.BND (n, i) => seq [var n, str ":", str (Int.toString i)]
+          | Pat.BND (n, pat) => seq [var n, str ":", str pat]
 
       val spec = Spec.PP.spec declarations
    end
+
+   val toWildcardPattern = fn tokpat =>
+      let
+         val pat = toWildcardPattern tokpat
+      in
+         Pretty.prettyTo(TextIO.stdOut,PP.tokpat tokpat)
+        ;print " -> "
+        ;print pat
+        ;print "\n"
+        ;pat
+      end
 end

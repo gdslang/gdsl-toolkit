@@ -112,7 +112,7 @@ structure DesugarDecode = struct
    and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
       fun grabExp () = 
          if VS.length decls <> 1 
-            then raise CM.CompilationError
+            then raise Fail "overlapping patterns detected, guess where!"
          else #2 (VS.sub (decls, 0))
       fun isEmpty (vs, _) = VS.length vs = 0
       val bottom = VS.all isEmpty decls
@@ -145,16 +145,23 @@ structure DesugarDecode = struct
                 | pat::ps =>
                      case pat of
                         VEC _ => grab (ps, offs + size pat, acc)
-                      | BND (n, i) =>
-                           grab
-                              (ps,
-                               offs + size pat,
-                               Exp.BIND
-                                 (n,
-                                  (* FIXME: this is token size dependent!! *)
-                                  if offs = 0 andalso i = 8 
-                                     then returnExp tok
-                                  else sliceExp (tok, offs, i))::acc)
+                      | BND (n, _) =>
+                           let
+                              val sz = size pat
+                           in
+                              (* TODO: this is granularity dependent *)
+                              if offs = 0 andalso sz = 8
+                                 then
+                                    grab (ps, offs + sz,
+                                       Exp.BIND (n, returnExp tok)::acc)
+                              else
+                                 grab
+                                    (ps,
+                                     offs + sz,
+                                     Exp.BIND
+                                       (n,
+                                        sliceExp (tok, offs, sz))::acc)
+                           end
          in
             if VS.length toks = 0
                then acc

@@ -46,7 +46,7 @@ end = struct
       case pat of
          MARKbitpat t => detokBitPat (#tree t)
        | BITSTRbitpat pat => Pat.VEC pat
-       | BITVECbitpat (n, i) => Pat.BND (n, IntInf.toInt i)
+       | BITVECbitpat (n, str) => Pat.BND (n, str)
        | _ => raise CM.CompilationError
 
    fun dumpPre (os, ds) = Pretty.prettyTo (os, Layout.str "<..>")

@@ -4,7 +4,9 @@ signature SymbolTableSig  = sig
    type table
 
    val noSpan : Error.span
-
+   val compare_span : Error.span * Error.span -> order
+   val eq_span : Error.span * Error.span -> bool
+   
    val compare_symid : symid * symid -> order
    val eq_symid : symid * symid -> bool
 
@@ -21,6 +23,12 @@ signature SymbolTableSig  = sig
 
    val push : table -> table
    val pop : table -> table
+
+   (*allow creating scopes whose definitions can later be reconstructed*)
+   type references
+   
+   val pushWithReferences : table * references -> table
+   val popWithReferences : table -> table * references
 
    val listItems: table -> symid list
 
@@ -43,6 +51,16 @@ structure SymbolTable :> SymbolTableSig = struct
 
    fun toInt (SymId i) = i
    val noSpan = (Position.fromInt ~1, Position.fromInt ~1)
+
+   fun compare_span ((p1s,p1e), (p2s,p2e)) =
+      (case Int.compare (Position.toInt p1s,
+                         Position.toInt p2s) of
+           EQUAL => Int.compare (Position.toInt p1e,
+                                 Position.toInt p2e)
+         | res => res)
+   fun eq_span ((p1s,p1e), (p2s,p2e)) =
+      Position.toInt p1s = Position.toInt p2s andalso
+      Position.toInt p1e = Position.toInt p2e
 
    fun compare_symid (SymId i1, SymId i2) = Int.compare (i1,i2)
    fun eq_symid  (SymId i1, SymId i2) = i1=i2
@@ -94,8 +112,17 @@ structure SymbolTable :> SymbolTableSig = struct
       ((st, revs), id)
    end
 
+   exception NoMoreScopes
+   
    fun push (st, r) = (st, Reverse.empty :: r)
-   fun pop ts = let val (st, _ :: r) = ts in (st, r) end
+   fun pop (st, _ :: r) = (st, r)
+     | pop _ = raise NoMoreScopes
+
+   type references = symid Reverse.map
+   
+   fun pushWithReferences ((st, r), refs) = (st, refs :: r)
+   fun popWithReferences (st, refs :: r) = ((st, r), refs)
+     | popWithReferences _ = raise NoMoreScopes
 
    exception InvalidSymbolId
 
@@ -141,3 +168,8 @@ end
 
 structure SymMap = RedBlackMapFn(ord_symid)
 structure SymSet = RedBlackSetFn(ord_symid)
+
+structure SpanMap = RedBlackMapFn(struct
+   type ord_key = Error.span
+   val compare = SymbolTable.compare_span
+end)           

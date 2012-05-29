@@ -383,7 +383,12 @@ end = struct
          if CharVector.all (fn c => c = #".") str then [] else
          case str of
             "" => []
-          | _ => lp (S.full str, [])
+          | _ =>
+               case String.tokens (fn c => c = #"|") str of
+                  strs =>
+                     List.concat
+                        (map (fn str =>
+                           lp (S.full str, [])) strs)
       end
 
    and transPat p k ks =
