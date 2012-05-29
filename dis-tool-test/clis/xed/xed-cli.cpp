@@ -575,5 +575,8 @@ int main(int argc, char** argv) {
 
 	// misc
 	print_misc(&xedd);
+
+	free(buffer);
+
 	return 0;
 }
