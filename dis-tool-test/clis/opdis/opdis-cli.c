@@ -5,6 +5,7 @@
  *      Author: jucs
  */
 
+#include <stdlib.h>
 #include <opdis/opdis.h>
 #include <opdis/types.h>
 #include <bfd.h>
@@ -23,6 +24,9 @@ void disassemble_mem(void * src, size_t length) {
 	opdis_set_arch(o, bfd_arch_i386, bfd_mach_x86_64, print_insn_i386_att);
 
 	opdis_disasm_linear(o, buf, (opdis_vma_t)src, length);
+	
+	opdis_buf_free(buf);
+
 	opdis_term(o);
 }
 
@@ -31,6 +35,8 @@ int main(int argc, char **argv) {
 	size_t length = readhex_hex_read(stdin, &buffer);
 
 	disassemble_mem(buffer, length);
+
+	free(buffer);
 
 	return 0;
 }
