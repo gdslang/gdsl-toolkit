@@ -88,7 +88,7 @@ val /legacy-p [0xf0] = do clear-rex; set-lock end
 
 val /rex-p ['0100 w:1 r:1 x:1 b:1'] =
    update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
-val clear-rex = update @{rexw='0',rexb='0',rexr='0',rexx='0'}
+val clear-rex = update @{rex='0',rexw='0',rexb='0',rexr='0',rexx='0'}
 
 val /vex/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 00'] = do
    update
@@ -1038,12 +1038,7 @@ val vexw1? = do
    return (w == '1')
 end
 
-val complement v =
-   case v of
-      '1111': '1111'
-    | '0000': '0000'
-    | _: not v
-   end
+val complement v = not v
 
 val opndsz? = query $opndsz
 val addrsz? = query $addrsz
