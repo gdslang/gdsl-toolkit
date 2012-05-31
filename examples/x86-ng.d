@@ -2588,6 +2588,7 @@ val /66 [0x0f 0x2d /r] = cvtpdf2pi mm64 xmm/m128
 val maskmovdqu = binop MASKMOVDQU
 val vmaskmovdqu = binop VMASKMOVDQU
 val /66 [0x0f 0xf7 /r] = maskmovdqu xmm128 xmm/nomem128
+val /vex/66/0f [0xf7 /r] | vex128? = binop VMASKMOVDQU
 
 ### MASKMOVQ Vol. 2B 4-11
 val maskmovq = binop MASKMOVQ
@@ -2597,11 +2598,17 @@ val / [0x0f 0xf7 /r] = maskmovq mm64 mm/nomem64
 val maxpd = binop MAXPD
 val vmaxpd = ternop VMAXPD
 val /66 [0x0f 0x5f /r] = maxpd xmm128 xmm/m128
+val /vex/66/0f [0x5f /r]
+ | vex128? = ternop VMAXPD xmm128 vex/xmm xmm/m128
+ | vex256? = ternop VMAXPD ymm256 vex/ymm ymm/m256
 
 ### MAXPS 4-16 Vol. 2B
 val maxps = binop MAXPS
 val vmaxps = ternop VMAXPS
 val / [0x0f 0x5f /r] = maxps xmm128 xmm/m128
+val vex/0f [0x5f /r]
+ | vex128? = ternop VMAXPS xmm128 vex/xmm xmm/m128
+ | vex256? = ternop VMAXPS ymm256 vex/ymm ymm/m256
 
 ### MAXSD Vol. 2B 4-19
 val maxsd = binop MAXSD
