@@ -1,5 +1,5 @@
 
-all: udis86 libopcode distorm xed dcc
+all: udis86 libopcode distorm xed beaengine dcc
 
 udis86:
 	gcc -O2 -Wall -static -Wfatal-errors sweep-udis86.c -lbfd -liberty -ldl -lz -ludis86 -o sweep-udis86
@@ -15,3 +15,6 @@ xed:
 
 dcc:
 	gcc -O2 -Wall -static -I. -I../.. -I../../examples/x86 -Wfatal-errors sweep-dcc.c ../../dis.c ../../examples/x86/pretty.c -DRELAXEDFATAL -lbfd -liberty -ldl -lz -o sweep-dcc
+
+beaengine:
+	gcc -O2 -Wall -static -I../../resources/beaengine/include -L../../resources/beaengine/lib/Linux.gnu.release.64 -Wfatal-errors sweep-beaengine.c -lbfd -liberty -ldl -lz -lBeaEngine_s_64 -o sweep-beaengine
