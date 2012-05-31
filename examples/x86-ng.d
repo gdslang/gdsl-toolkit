@@ -2607,11 +2607,13 @@ val vex/0f [0x5f /r]
 val maxsd = binop MAXSD
 val vmaxsd = ternop VMAXSD
 val /f2 [0x0f 0x5f /r] = maxsd xmm128 xmm/m64
+val /vex/f2/0f [0x5f /r] = ternop VMAXSD xmm128 vex/xmm xmm/m64
 
 ### MAXSS Vol. 2B 4-21
 val maxss = binop MAXSS
 val vmaxss = ternop VMAXSS
 val /f3 [0x0f 0x5f /r] = maxss xmm128 xmm/m32
+val /vex/f3/0f [0x5f /r] = ternop VMAXSS xmm128 vex/xmm xmm/m32
 
 ### MFENCE Vol. 2B 4-23
 val / [0x0f 0xae /6] = arity0 MFENCE
@@ -2620,21 +2622,29 @@ val / [0x0f 0xae /6] = arity0 MFENCE
 val minpd = binop MINPD
 val vminpd = ternop VMINPD
 val /66 [0x0f 0x5d /r] = minpd xmm128 xmm/m128
+val /vex/66/0f [0x5d /r]
+ | vex128? = ternop VMINPD xmm128 vex/xmm xmm/m128
+ | vex256? = ternop VMINPD ymm256 vex/ymm ymm/m256
 
 ### MINPS Vol. 2B 4-28
 val minps = binop MINPS
 val vminps = ternop VMINPS
 val / [0x0f 0x5d /r] = minps xmm128 xmm/m128
+val /vex/0f [0x5d /r]
+ | vex128? = ternop VMINPS xmm128 vex/xmm xmm/m128
+ | vex256? = ternop VMINPS ymm256 vex/ymm ymm/m256
 
 ### MINSD Vol. 2B 4-31
 val minsd = binop MINSD
 val vminsd = ternop VMINSD
 val /f2 [0x0f 0x5d /r] = minsd xmm128 xmm/m64
+val /vex/f2/0f [0x5d /r] = ternop VMINSD xmm128 vex/xmm xmm/m64
 
 ### MINSS Vol. 2B 4-33
 val minss = binop MINSS
 val vminss = ternop VMINSS
 val /f3 [0x0f 0x5d /r] = minss xmm128 xmm/m32
+val /vex/f3/0f [0x5d /r] = ternop VMINSS xmm128 vex/xmm xmm/m32
 
 ### PCMPEQQ
 val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
