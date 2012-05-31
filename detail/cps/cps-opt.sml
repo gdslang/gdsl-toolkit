@@ -743,20 +743,25 @@ structure Cost = struct
    
    val env = ref Set.empty
    val allwaysInline = ref Set.empty
+   val neverInline = ref Set.empty
    fun reset () =
       (env:=Set.empty
-      ;allwaysInline:=Set.fromList
-         [Aux.get ">>",
-          Aux.get "return",
-          Aux.get ">>=",
-          Aux.get "consume",
-          Aux.get "unconsume",
-          Aux.get "slice",
-          Aux.get "update",
-          Aux.get "raise",
-          Aux.get "query",
-          Aux.get "and",
-          Aux.get "^"])
+      ;allwaysInline:=Set.fromList (map Aux.get
+         [">>",
+          "return",
+          ">>=",
+          "consume",
+          "unconsume",
+          "slice",
+          "update",
+          "raise",
+          "query",
+          "and",
+          "^",
+          "binop",
+          "ternop",
+          "quaternop"])
+       ;neverInline:=Set.fromList (map Aux.get []))
 
    val allwaysInline = fn f => Set.member (!allwaysInline, f)
 
@@ -793,7 +798,7 @@ structure Cost = struct
                if isInliningCandidate body
                   then env := Set.add (!env, k)
                else ())
-   fun inlineCandidate f = Set.member (!env, f)
+   fun inlineCandidate f = not (Set.member (!neverInline, f)) andalso Set.member (!env, f)
    fun run () = (reset();mark()) 
 end
 
@@ -1133,25 +1138,14 @@ structure BetaContFun = struct
    fun markInlined f =
       inlined := Map.insert(!inlined, f, count0 f + 1)
 
-   fun gotInlined f =
-      case Map.find (!inlined, f) of
-         NONE => false
-       | SOME i => i > 0
-
-   fun usedLinearly f =
-      Census.count#app f <= 1
-      andalso Census.count#esc f = 0
-
    fun isInliningCandidate f body =
       not (Rec.isRec f) andalso
          (Cost.allwaysInline f orelse
-          usedLinearly f orelse
-          Cost.inlineCandidate f)
+          (Census.count#app f > 1 andalso Cost.inlineCandidate f))
 
    fun isInliningCandidateCont k body =
-      not (Rec.isRec k) andalso 
-         (usedLinearly k orelse
-          Cost.inlineCandidate k)
+      not (Rec.isRec k) andalso
+         (Census.count#app k > 1 (* andalso Cost.inlineCandidate k*))
 
    datatype t =
       F of Var.c * Var.v list * term
@@ -1173,8 +1167,6 @@ structure BetaContFun = struct
    val findFun = find getFun
    val findCont = find getCont
 
-   fun drop f = usedLinearly f andalso gotInlined f
-
    fun simplify env sigma t =
       case t of
          LETVAL (f, FN (k, xs, K), L) =>
@@ -1183,9 +1175,7 @@ structure BetaContFun = struct
                val env' = insertFun (env, f, (k, xs, K))
                val L = simplify env' sigma L
             in
-               if drop f
-                  then L
-               else LETVAL (f, FN (k, xs, K), L)
+               LETVAL (f, FN (k, xs, K), L)
             end
       | LETVAL (x, v, L) =>
         LETVAL
@@ -1216,22 +1206,12 @@ structure BetaContFun = struct
                foldl
                   (fn ((f, k, xs, K), env) =>
                      insertFun (env, f, (k, xs, K))) env ds
-            val env' =
-               foldl
-                  (fn ((f, k, xs, K), env) =>
-                     insertFun
-                        (env,
-                         f,
-                         (k, xs, simplify env sigma K))) env' ds
             val L = simplify env' sigma L
          in
-            case List.filter (fn (f, _, _, _) => not (drop f)) ds of
-               [] => L
-             | ds => 
-                  LETREC
-                     (map (fn (f, k, xs, _) =>
-                        (f, k, xs, #3 (lookupFun (env', f)))) ds,
-                      L)
+            LETREC
+               (map (fn (f, k, xs, K) =>
+                  (f, k, xs, simplify env' sigma K)) ds,
+                L)
          end
       | LETCONT (cs, L) =>
          let
@@ -1239,23 +1219,12 @@ structure BetaContFun = struct
                foldl
                   (fn ((k, xs, K), env) =>
                      insertCont (env, k, (xs, K))) env cs
-            val env' =
-               foldl
-                  (fn ((k, xs, K), env') =>
-                     insertCont
-                        (env',
-                         k,
-                         (xs, simplify env' sigma K))) env' cs
-            val cs = 
-               map
-                  (fn (k, xs, _) =>
-                     (k, xs, #2 (lookupCont (env', k)))) cs
-
             val L = simplify env' sigma L
          in
-            case List.filter (fn (k, _, _) => not (drop k)) cs of
-               [] => L
-             | cs => LETCONT (cs, L)
+             LETCONT
+               (map (fn (k, xs, K) =>
+                  (k, xs, simplify env' sigma K)) cs,
+                L)
          end
       | CC (k, ys) =>
          let
@@ -1291,54 +1260,9 @@ structure BetaContFun = struct
              | SOME (k, xs, K) =>
                   if length xs > length ys
                      then raise Fail "betaContFun.partialapplication" 
-                        (* let
-                           val _ = click()
-                           val ly = length ys
-                           val lx = length xs
-                           val f' = Aux.fresh Aux.function
-                           val j' = Aux.fresh Aux.continuation
-                           val k' = Aux.fresh Aux.continuation
-                           val c' = Aux.fresh Aux.continuation
-                           val g' = Aux.fresh Aux.function
-                           val h' = Aux.fresh Aux.function
-                           val applied = List.take(xs, ly)
-                           val missing = List.drop(xs, ly)
-                           val (_, applied) = Subst.renameAll sigma applied
-                           val (_, missing) = Subst.renameAll sigma missing
-                        in
-                           LETCONT ([(j', [f'], APP (f', j, ys))],
-                              LETVAL (g', FN (k', applied,
-                                 LETVAL (h', FN (c', missing,
-                                    APP (f, c', applied@missing)),
-                                 CC (k', [h']))),
-                              CC (j', [g'])))
-                        end *) 
                   else if length xs < length ys
                      then APP (f, j, ys)
-                        (* let 
-                           val _ = click()
-                           val ly = length ys
-                           val lx = length xs
-                           val g = Aux.fresh Aux.function
-                           val kg = Aux.fresh Aux.continuation
-                           val g' = Aux.fresh Aux.function
-                           val kg' = Aux.fresh Aux.continuation
-                           val h = Aux.fresh Aux.function
-                           val kh = Aux.fresh Aux.continuation
-                           val app = List.take(ys,lx)
-                           val overapp = List.drop(ys,lx)
-                           val (_, app) = Subst.renameAll sigma app
-                           val (_, overapp) = Subst.renameAll sigma overapp
-                        in
-                           LETCONT ([(kg', [g'], APP (g', j, ys))],
-                              LETVAL (g, FN (kg, app@overapp,
-                                 LETCONT ([(kh, [h], APP (h, kg, overapp))],
-                                    APP (f, kh, app))),
-                                 CC (kg', [g])))
-                        end *)
-                  else if not (isInliningCandidate f K)
-                     then APP (f, j, ys)
-                  else if length xs = length ys
+                  else if length xs = length ys andalso isInliningCandidate f K
                      then 
                         let
                            val _ = click()
@@ -1436,12 +1360,12 @@ structure BetaContFunConservative = struct
                      let
                         val L = simplify env' sigma L
                      in
-                        if gotInlined f
-                           then L
-                        else if Census.count#app f = 0
+                        if Census.count#app f = 0
                                 andalso Census.count#esc f = 0
                            then
-                              (Census.visitTerm ~1 K; L)
+                              if gotInlined f
+                                 then L
+                              else (Census.visitTerm ~1 K; L)
                         else
                            LETVAL (f, FN (k, xs, simplify env sigma K), L)
                      end
@@ -1502,12 +1426,12 @@ structure BetaContFunConservative = struct
                      let
                         val L = simplify env' sigma L
                      in
-                        if gotInlined k
-                           then L
-                        else if Census.count#app k = 0
+                        if Census.count#app k = 0
                                 andalso Census.count#esc k = 0
                            then
-                              (Census.visitTerm ~1 K; L)
+                              if gotInlined k
+                                 then L
+                              else (Census.visitTerm ~1 K; L)
                         else
                            LETCONT ([(k, xs, simplify env sigma K)], L)
                      end
@@ -1569,9 +1493,7 @@ structure BetaContFunConservative = struct
             case findFun (env, f) of
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
-                  if not (inliningCandidate f)
-                     then APP (f, j, ys)
-                  else if length xs = length ys
+                  if length xs = length ys andalso (inliningCandidate f)
                      then 
                         let
                            val _ = click()

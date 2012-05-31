@@ -171,10 +171,10 @@ __obj __runWithState (__obj (*f)(__obj,__obj,__obj), __obj s) {
 __obj __eval (__obj (*f)(__obj,__obj,__obj), __char* blob, __word sz) {
   __LOCAL0(b);
     __BLOB_BEGIN(b);
-    __BLOB_INIT(blob, sz);
+    __BLOB_INIT(blob,sz);
     __BLOB_END(b);
   __LOCAL0(s);
-    __RECORD_BEGIN(r,1);
+    __RECORD_BEGIN(s,1);
     __RECORD_ADD(___blob,b);
     __RECORD_END(s,1);
   return (__runWithState(f,s));
@@ -190,7 +190,7 @@ __word __decode (__obj (*f)(__obj,__obj,__obj), __char* blob, __word sz, __obj* 
     __obj i = __RECORD_SELECT(o,___1);
     __obj s = __RECORD_SELECT(o,___2);
     __obj blobb = __RECORD_SELECT(s,___blob);
-    __word consumed = sz-blobb->bv.sz;
+    __word consumed = sz - blobb->blob.sz;
     *insn = i;
     return (consumed);
   }

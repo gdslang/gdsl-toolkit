@@ -1,6 +1,5 @@
 
 #include <dis.h>
-#include <pretty.h>
 
 int main (int argc, char** argv) {
   __char blob[15];
@@ -21,7 +20,7 @@ int main (int argc, char** argv) {
   if (___isNil(insn))
     __fatal("decode failed");
   else
-    prettyln(insn);
+    __println(insn);
   return (1);
 }
 

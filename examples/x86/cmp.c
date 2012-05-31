@@ -15,33 +15,26 @@ void hexlify (unsigned char* in, size_t len, char* out) {
 int main (int argc, char** argv) {
   if (argc < 2)
     __fatal("args");
-
   const char* fn=argv[1];
+  printf("file: %s\n",fn);
 
-  printf("fn: %s\n",fn);
   bfd_init();
-
   const char **targets = bfd_target_list();
   int i;
   for (i=0;targets[i]!=NULL;i++) {
     printf("target: %s\n", targets[i]);
   }
-
   bfd* bfd = bfd_openr(fn, NULL);
   if (bfd==NULL)
     __fatal("bfd_openr");
-
   if (!bfd_check_format(bfd,bfd_object))
     __fatal("bfd_check_format");
-
   asection* s = bfd_get_section_by_name(bfd, ".text");
   if (s==NULL)
     __fatal("bfd_get_section_by_name");
-
   __char* blob;
   bfd_size_type sz = s->size;
   printf(".text is %zu bytes\n",sz);
-
   if(!bfd_malloc_and_get_section(bfd,s,&blob))
     __fatal("bfd_malloc_and_get_section");
 
@@ -63,26 +56,27 @@ int main (int argc, char** argv) {
   xed_error_enum_t r;
   __obj decoded;
   do {
-    xed_decoded_inst_zero_set_mode(insn, &state);
-    xed_decoded_inst_set_input_chip(insn, XED_CHIP_INVALID);
-    r = xed_decode(insn, blobb, sz);
-    if (r==XED_ERROR_NONE) {
+    xed_decoded_inst_zero_set_mode(insn,&state);
+    xed_decoded_inst_set_input_chip(insn,XED_CHIP_INVALID);
+    r = xed_decode(insn,blobb,sz);
+    if (r == XED_ERROR_NONE) {
       len = xed_decoded_inst_get_length(insn);
       xed_decoded_inst_dump_intel_format(insn,insnstr,128,0);
       hexlify(blobb,len,opcodestr);
-      printf("%-30s %-33s: ",opcodestr,insnstr); fflush(stdout);
-      __decode(__decode__,blobb,sz,&decoded);
-      if(___isNil(decoded))
-         printf("\n");
-      else
-         prettyln(decoded);
+      printf("%-30s: %-42s: ",opcodestr,insnstr); fflush(stdout);
+      __word decodedlen = __decode(__decode__,blobb,sz,&decoded);
+      if (len != decodedlen)
+         printf("#opcode-length-missmatch: %d<>%zu ",len,decodedlen);
+      if(!___isNil(decoded))
+         pretty(decoded);
+      printf("\n");
       __resetHeap();
     } else {
       invalid++;
       len = 1;
     }
     blobb += len;
-    sz-=len;
+    sz -= len;
     n++;
   } while(len > 0 && sz > 0);
 

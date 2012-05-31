@@ -88,7 +88,7 @@ val /legacy-p [0xf0] = do clear-rex; set-lock end
 
 val /rex-p ['0100 w:1 r:1 x:1 b:1'] =
    update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
-val clear-rex = update @{rexw='0',rexb='0',rexr='0',rexx='0'}
+val clear-rex = update @{rex='0',rexw='0',rexb='0',rexr='0',rexx='0'}
 
 val /vex/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 00'] = do
    update
@@ -749,12 +749,11 @@ datatype mnemonic =
  | PMOVMSKB
  | POP
  | POR
- | PREFETCH0
- | PREFETCH1
- | PREFETCH2
- | PREFETCHNTA
  | PREFETCHT0
- | PREFETCH_MODIFIED
+ | PREFETCHT1
+ | PREFETCHT2
+ | PREFETCHNTA
+ | PREFETCHW
  | PSHUFB
  | PSHUFD
  | PSLLDQ
@@ -1039,12 +1038,7 @@ val vexw1? = do
    return (w == '1')
 end
 
-val complement v =
-   case v of
-      '1111': '1111'
-    | '0000': '0000'
-    | _: not v
-   end
+val complement v = not v
 
 val opndsz? = query $opndsz
 val addrsz? = query $addrsz
@@ -1053,13 +1047,6 @@ val rep? = query $rep
 val rexw? = query $rexw
 val vexw? = query $rexw
 val rex? = query $rex
-val mod-mem? = do
-   mod <- query $mod;
-   case mod of
-      '11': return '1'
-    | otherwise: return '0'
-   end
-end
 
 val mode64? = query $mode64
 
@@ -1711,7 +1698,7 @@ val / [/vex/66/0f 0x75 /r] | vnds? = ternop VCMPEQW xmm128 v/xmm xmm/m128
 val / [/vex/66/0f 0x76 /r] | vnds? = ternop VCMPEQD xmm128 v/xmm xmm/m128
 
 ### PCMPESTRI
-val /66 [0x0f 0x3a /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
+val /66 [0x0f 0x3a 0x61 /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
 val / [/vex/66/0f/3a 0x61 /r] = ternop VCMPESTRI xmm128 xmm/m128 imm8
 
 ### PCMPGTB/PCMPGTW/PCMPGTD
@@ -1726,7 +1713,7 @@ val / [/vex/66/0f 0x65 /r] | vnds? & vex128? = ternop VPCMPGTW xmm128 v/xmm xmm/
 val / [/vex/66/0f 0x66 /r] | vnds? & vex128? = ternop VPCMPGTD xmm128 v/xmm xmm/m128
 
 ### PCMPISTRI
-val /66 [0x0f 0x3a /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
+val /66 [0x0f 0x3a 0x63 /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
 val / [/vex/66/0f/3a 0x63 /r] | vex128? = ternop VPCMPISTRI xmm128 xmm/m128 imm8
 
 ### PINSRB/PINSRD/PINSRQ
@@ -1735,20 +1722,24 @@ val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop PINSRD xmm128 r/m32 imm8
 val / [/vex/66/0f/3a 0x20 /r] | vex128? & vexw0? = quaternop VPINSRB xmm128 v/xmm r/m8 imm8
-val / [/vex/66/0f/3a 0x20 /r] 
+val / [/vex/66/0f/3a 0x22 /r] 
  | vex128? & vexw1? = quaternop VPINSRQ xmm128 v/xmm r/m64 imm8
  | vex128? = quaternop VPINSRD xmm128 v/xmm r/m32 imm8
 
 ### POR
 val / [0x0f 0xeb /r] = binop POR mm64 mm/m64
 val /66 [0x0f 0xeb /r] = binop POR xmm128 xmm/m128
-val / [/vex/66/0f 0xdb /r] | vnds? & vex128? = ternop VPOR xmm128 v/xmm xmm/m128
+val / [/vex/66/0f 0xeb /r] | vnds? & vex128? = ternop VPOR xmm128 v/xmm xmm/m128
 
 ### PREFETCHh
-val / [0x0f 18 /1-mem] = unop PREFETCH0 m8
-val / [0x0f 18 /2-mem] = unop PREFETCH1 m8
-val / [0x0f 18 /3-mem] = unop PREFETCH2 m8
-val / [0x0f 18 /0-mem] = unop PREFETCHNTA m8
+val / [0x0f 0x18 /1-mem] = unop PREFETCHT0 m8
+val / [0x0f 0x18 /2-mem] = unop PREFETCHT1 m8
+val / [0x0f 0x18 /3-mem] = unop PREFETCHT2 m8
+val / [0x0f 0x18 /0-mem] = unop PREFETCHNTA m8
+
+### PREFETCHW
+###   - this instruction is not part of the intel manual
+val / [0x0f 0x0d /r-mem] = unop PREFETCHW m8
 
 ### PSHUFB
 val / [0x0f 0x38 0x00 /r] = binop PSHUFB mm64 mm/m64
@@ -2039,8 +2030,10 @@ val / [0x0f '11001 r:3']
 ### NOP 4-12 Vol. 2B
 #val / [0x90] = arity0 NOP
 #val /66 [0x90] = arity0 NOP
-val /66 [0x0f 0x1f /0] = unop NOP r/m16
-val / [0x0f 0x1f /0] = unop NOP r/m32
+val /66 [0x0f 0x1f /0] = binop NOP r/m16 r16
+val / [0x0f 0x1f /0]
+ | rexw? = binop NOP r/m64 r64
+ | otherwise = binop NOP r/m32 r32
 
 ### XCHG Vol. 2A 4-510
 val / ['10010 r:3']
@@ -2738,7 +2731,10 @@ val /66 [0x0f 0x6f /r] = binop MOVDQA xmm128 xmm/m128
 val /66 [0x0f 0x7f /r] = binop MOVDQA xmm/m128 xmm128
 val / [/vex/66/0f 0x6f /r]
  | vex128? = binop VMOVDQA xmm128 xmm/m128
- | otherwise = binop VMOVDQA xmm/m128 xmm128
+ | otherwise = binop VMOVDQA ymm256 ymm/m256
+val / [/vex/66/0f 0x7f /r]
+ | vex128? = binop VMOVDQA xmm/m128 xmm128
+ | otherwise = binop VMOVDQA ymm/m256 ymm256
 
 ### MOVDQU Vol. 2B 4-70
 val /f3 [0x0f 0x6f /r] = binop MOVDQU xmm128 xmm/m128
@@ -2768,13 +2764,8 @@ val /66 [0x0f 0x16 /r] = movhpd xmm128 m64
 val /66 [0x0f 0x17 /r] = movhpd m64 xmm128
 
 ### MOVHPS Vol. 2B 4-79
-val movhps = binop MOVHPS
-val vmovhps = ternop VMOVHPS
-val vbmovhps = binop VBMOVHPS
-val / [0x0f 0x16 /r]
- | mod-mem? = movhps xmm128 m64
-val / [0x0f 0x17 /r]
- | mod-mem? = movhps m64 xmm128
+val / [0x0f 0x16 /r-mem] = binop MOVHPS xmm128 m64
+val / [0x0f 0x17 /r-mem] = binop MOVHPS m64 xmm128
 
 ### MOVLHPS Vol. 2B 4-81
 ## CHECK collision with movhps
@@ -2787,15 +2778,15 @@ val / [0x0f 0x17 /r]
 val movlpd = binop MOVLPD
 val vmovlpd = ternop VMOVLPD
 val vbmovlpd = binop VBMOVLPD
-val /66 [0x0f 0x12 /r] = movlpd xmm128 m64
-val /66 [0x0f 0x13 /r] = movlpd m64 xmm128
+val /66 [0x0f 0x12 /r-mem] = movlpd xmm128 m64
+val /66 [0x0f 0x13 /r-mem] = movlpd m64 xmm128
 
 ### MOVLPS Vol. 2B 4-85
 val movlps = binop MOVLPD
 val vmovlps = ternop VMOVLPD
 val vbmovlps = binop VBMOVLPD
-val / [0x0f 0x12 /r] = movlps xmm128 m64
-val / [0x0f 0x13 /r] = movlps m64 xmm128
+val / [0x0f 0x12 /r-mem] = movlps xmm128 m64
+val / [0x0f 0x13 /r-mem] = movlps m64 xmm128
 
 ### MOVMSKPD Vol. 2B 4-87
 val movmskpd = binop MOVMSKPD
