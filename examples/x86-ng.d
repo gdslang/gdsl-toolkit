@@ -2800,6 +2800,8 @@ val /vex/66/0f [0x17 /r] = binop VMOVHPD m64 xmm128
 ### MOVHPS Vol. 2B 4-79
 val / [0x0f 0x16 /r-mem] = binop MOVHPS xmm128 m64
 val / [0x0f 0x17 /r-mem] = binop MOVHPS m64 xmm128
+val /vex/0f/vexv [0x16 /r-mem] | vex128? = ternop VMOVHPS xmm128 vex/xmm m64
+val /vex/0f [0x17 /r-mem] | vex128? = binop VMOVHPS m64 xmm128
 
 ### MOVLHPS Vol. 2B 4-81
 ## CHECK collision with movhps
@@ -2807,6 +2809,7 @@ val / [0x0f 0x17 /r-mem] = binop MOVHPS m64 xmm128
 #val vmovlhps = ternop VMOVLHPS
 #val / [0x0f 0x16 /r]
 # | mod-reg? = movlhps xmm128 xmm/nomem128
+val /vex/0f/vexv [0x16 /r-nomem] | vex128? = ternop VMOVLHPS xmm128 vex/xmm xmm/nomem128
 
 ### MOVLPD Vol. 2B 4-83
 val movlpd = binop MOVLPD
@@ -2814,6 +2817,8 @@ val vmovlpd = ternop VMOVLPD
 val vbmovlpd = binop VBMOVLPD
 val /66 [0x0f 0x12 /r-mem] = movlpd xmm128 m64
 val /66 [0x0f 0x13 /r-mem] = movlpd m64 xmm128
+val /vex/66/0f/vexv [0x12 /r] | vex128? = ternop VMOVLPD xmm128 vex/xmm m64
+val /vex/66/0f [0x13 /r] | vex128? = binop VMOVLPD m64 xmm128
 
 ### MOVLPS Vol. 2B 4-85
 val movlps = binop MOVLPD
@@ -2821,6 +2826,8 @@ val vmovlps = ternop VMOVLPD
 val vbmovlps = binop VBMOVLPD
 val / [0x0f 0x12 /r-mem] = movlps xmm128 m64
 val / [0x0f 0x13 /r-mem] = movlps m64 xmm128
+val /vex/0f/vexv [0x12 /r-mem] | vex128? = ternop VMOVLPS_3 xmm128 vex/xmm m64
+val /vex/0f [0x13 /r-mem] | vex128? = binop VMOVLPS_2 m64 xmm128
 
 ### MOVMSKPD Vol. 2B 4-87
 val movmskpd = binop MOVMSKPD
