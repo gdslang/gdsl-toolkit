@@ -332,6 +332,15 @@ structure Subst = struct
          x'
       end
 
+   fun copyWithSuffix s x =
+      let
+         val name = Aux.atomOf x
+         val name = Atom.toString name
+         val x' = Aux.fresh (Atom.atom (name ^ "#" ^ s))
+      in
+         x'
+      end
+
    fun copyAll xs = map copy xs
 
    fun renameAll sigma xs =

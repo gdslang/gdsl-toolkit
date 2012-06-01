@@ -148,7 +148,7 @@ __obj __halt (__obj env, __obj o) {
   return (o);
 }
 
-__obj __runWithState (__obj (*f)(__obj,__obj,__obj), __obj s) {
+__obj __runWithState (__obj (*f)(__obj,__obj), __obj s) {
   __LOCAL0(k);
     __LABEL_BEGIN(k);
     __LABEL_INIT(__halt);
@@ -157,18 +157,10 @@ __obj __runWithState (__obj (*f)(__obj,__obj,__obj), __obj s) {
     __CLOSURE_BEGIN(envK,1)
     __CLOSURE_ADD(k);
     __CLOSURE_END(envK,1);
-  __LOCAL0(m);
-    __LABEL_BEGIN(m);
-    __LABEL_INIT(f);
-    __LABEL_END(m);
-  __LOCAL0(envM);
-    __CLOSURE_BEGIN(envM,1)
-    __CLOSURE_ADD(m);
-    __CLOSURE_END(envM,1);
-  return (__INVOKE3(m,envM,envK,s));
+  return (__CALL2(f,envK,s));
 }
 
-__obj __eval (__obj (*f)(__obj,__obj,__obj), __char* blob, __word sz) {
+__obj __eval (__obj (*f)(__obj,__obj), __char* blob, __word sz) {
   __LOCAL0(b);
     __BLOB_BEGIN(b);
     __BLOB_INIT(blob,sz);
@@ -181,7 +173,7 @@ __obj __eval (__obj (*f)(__obj,__obj,__obj), __char* blob, __word sz) {
 }
 
 /* Caller needs to reset the heap with `__resetHeap()` */
-__word __decode (__obj (*f)(__obj,__obj,__obj), __char* blob, __word sz, __obj* insn) {
+__word __decode (__obj (*f)(__obj,__obj), __char* blob, __word sz, __obj* insn) {
   __obj o = __eval(f,blob,sz);
   if (___isNil(o)) {
     *insn = o;
