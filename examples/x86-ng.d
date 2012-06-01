@@ -2835,6 +2835,12 @@ val vmovmskpd = binop VMOVMSKPD
 val /66 [0x0f 0x50 /r]
  | mode64? = movmskpd r64 xmm128
  | otherwise = movmskpd r32 xmm128
+val /vex/66/0f [0x50 /r]
+ | vex128? & mode64? = binop VMOVMSKPD r64 xmm128
+ | vex128? = binop VMOVMSKPD r64 xmm128
+val /vex/66/0f [0x50 /r]
+ | vex256? & mode64? = binop VMOVMSKPD r64 ymm256
+ | vex256? = binop VMOVMSKPD r64 ymm256
 (*#########################
 ##### ~~ VERIFY! ~~ #####
 #########################*)
@@ -2845,6 +2851,12 @@ val vmovmskps = binop VMOVMSKPS
 val / [0x0f 0x50 /r]
  | mode64? = movmskpd r64 xmm128
  | otherwise = movmskpd r32 xmm128
+val /vex/0f [0x50 /r]
+ | vex128? & mode64? = binop VMOVMSKPS r64 xmm128
+ | vex128? = binop VMOVMSKPS r64 xmm128
+val /vex/0f [0x50 /r]
+ | vex256? & mode64? = binop VMOVMSKPS r64 ymm256
+ | vex256? = binop VMOVMSKPS r64 ymm256
 (*#########################
 ##### ~~ VERIFY! ~~ #####
 #########################*)
@@ -2853,11 +2865,14 @@ val / [0x0f 0x50 /r]
 val movntdqa = binop MOVNTDQA
 val vmovntdqa = binop VMOVNTDQA
 val /66 [0x0f 0x38 0x2a /r] = movntdqa xmm128 m128
+val /vex/66/0f/38 [0x2a /r] | vex128? = binop VMOVNTDQA xmm128 m128
 
 ### MOVNTDQ Vol. 2B 4-95
 val movntdq = binop MOVNTDQ
 val vmovntdq = binop VMOVNTDQ
 val /66 [0x0f 0xe7 /r] = movntdq m128 xmm128
+val /vex/66/0f [0xe7 /r] | vex128? = binop VMOVNTDQ m128 xmm128
+val /vex/66/0f [0xe7 /r] | vex256? = binop VMOVNTDQ m256 ymm256
 
 ### MOVNTI Vol. 2B 4-97
 val movnti = binop MOVNTI
