@@ -64,7 +64,7 @@ functor MkAst (Core: AST_CORE) = struct
     | IFexp of exp * exp * exp
     | CASEexp of exp * (pat * exp) list
     | BINARYexp of exp * infixop * exp 
-    | APPLYexp of exp * exp
+    | APPLYexp of exp * exp list
     | RECORDexp of (field_bind * exp) list
     | SELECTexp of field_use 
     | UPDATEexp of (field_bind * exp) list (* functional record update "@{a=a'} *)
@@ -228,7 +228,7 @@ functor MkAst (Core: AST_CORE) = struct
                    indent 3 (alignPrefix (map casee cs, "| "))]
           | BINARYexp (e1, opid, e2) =>
                seq [infixop opid, space, exp e1, space, exp e2]
-          | APPLYexp (e1, e2) => seq [exp e1, space, exp e2]
+          | APPLYexp (e1, es) => seq [exp e1, list (map exp es)]
           | RECORDexp fs => listex "{" "}" "," (map field fs)
           | SELECTexp f => seq [str "$", field_use f]
           | UPDATEexp fs => seq [str "@", listex "{" "}" "," (map field fs)]

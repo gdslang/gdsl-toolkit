@@ -55,13 +55,8 @@ structure DesugaredTree = struct
           | LETRECexp (vs, e) => Exp.LETREC (map recdecl vs, exp e)
           | IFexp (iff, thenn, elsee) => Exp.IF (exp iff, exp thenn, exp elsee)
           | CASEexp (e, cases) => Exp.CASE (exp e, map match cases)
-          | BINARYexp (l, i, r) =>
-               Exp.APP
-                  (Exp.APP
-                     (infixop i,
-                      exp l),
-                   exp r)
-          | APPLYexp (e1, e2) => Exp.APP (exp e1, exp e2)
+          | BINARYexp (l, i, r) => Exp.APP (infixop i, [exp l, exp r])
+          | APPLYexp (e1, es) => Exp.APP (exp e1, map exp es)
           | RECORDexp fs => Exp.RECORD (fields fs)
           | SELECTexp f => Exp.SELECT f
           | UPDATEexp fs => Exp.UPDATE (fields fs)

@@ -15,6 +15,9 @@ structure Aux = struct
 
    fun atomOf x = VarInfo.getAtom (!variables, x)
    fun get s = VarInfo.lookup (!variables, Atom.atom s)
+   fun failWithSymbol msg sym =
+      msg ^ ": " ^ Layout.tostring (CPS.PP.var sym)
+      
 end
 
 structure Census = struct
@@ -1268,7 +1271,7 @@ structure BetaContFun = struct
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
                   if length xs > length ys
-                     then raise Fail "betaContFun.partialapplication" 
+                     then raise Fail (Aux.failWithSymbol "betaContFun.partialapplication" f)
                   else if length xs < length ys
                      then APP (f, j, ys)
                   else if length xs = length ys andalso isInliningCandidate f K

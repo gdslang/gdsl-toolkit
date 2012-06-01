@@ -26,7 +26,7 @@ structure Core = struct
        | LETREC of decl list * t
        | IF of t * t * t
        | CASE of t * (Pat.t * t) list
-       | APP of t * t
+       | APP of t * t list
        | PRI of sym * sym list
        | FN of sym * t
        | RECORD of (sym * t) list
@@ -81,11 +81,11 @@ structure Core = struct
                align
                   [seq [str "\\", var n, str "."],
                    indent 3 (layout e)]
-          | APP (e1, FN (n, e2)) =>
+          | APP (e1, [FN (n, e2)]) =>
                align
                   [seq [layout e1, space, str "\\", var n, str "."],
                    indent 3 (layout e2)]
-          | APP (e1, e2) => seq [layout e1, space, layout e2]
+          | APP (e1, es) => seq [layout e1, list (map layout es)]
           | PRI (f, xs) => seq [var f, vars xs]
           | RECORD fs => record (map field fs)
           | UPDATE fs => seq [str "@", record (map field fs)]

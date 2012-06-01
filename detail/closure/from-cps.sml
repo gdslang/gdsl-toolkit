@@ -100,8 +100,6 @@ end = struct
                   raise Fail ("closureConversion.arity: " ^ f)
                end
 
-      val checkArityAll = app checkArity
-
       (* Assuming the corresponding function `f` is not part of `xs` *)
       fun unfoldEnv xs env {stmts, flow} =
          {stmts=mapi (fn (x, i) => Clos.LETREF (x, env, i+1)) xs@stmts,
@@ -354,7 +352,7 @@ end = struct
                      if escapes x
                         then
                            let
-                              val _ = checkArity x
+                              (* val _ = checkArity x *)
                               val fs = freeUse sigma x
                               val x = escapingVariantOf x
                               val l = fresh label
@@ -379,7 +377,7 @@ end = struct
             if escapes x
                then
                   let
-                     val _ = checkArity x
+                     (* val _ = checkArity x *)
                      val fs = freeUse sigma x
                      val x = escapingVariantOf x
                      val l = fresh label

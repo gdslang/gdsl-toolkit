@@ -197,8 +197,8 @@ end = struct
           | PT.BINARYexp (e1, opid, e2) =>
                AST.BINARYexp
                   (convExp s e1, convInfixop s opid, convExp s e2)
-          | PT.APPLYexp (e1,e2) =>
-               AST.APPLYexp (convExp s e1, convExp s e2)
+          | PT.APPLYexp (e1,es) =>
+               AST.APPLYexp (convExp s e1, map (convExp s) es)
           | PT.RECORDexp l =>
                AST.RECORDexp
                   (List.map (fn (f,e) => (newField (s,f), convExp s e)) l)
