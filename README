@@ -7,7 +7,7 @@ which makes an ugly hack necessary after grammar regeneration.
 
 ## Repository checkout
 
-    $ hg clone ssh://hg@bitbucket.org/mb0/mltk
+    $ hg clone ssh://hg@bitbucket.org/mb0/gdsl
 
 
 ## Compiling with `MLTON`
@@ -15,7 +15,7 @@ which makes an ugly hack necessary after grammar regeneration.
 - Install `MLTON` see: http://www.mlton.org
 
     $ cd $CLONE
-    $ mlton mltk.mlb
+    $ mlton gdsl.mlb
     # show usage
     $ /.mltk -h
     $ ./mltk -Ckeep-parseFile=true -Ckeep-inlineDecodePatterns=true examples/x86.spec
@@ -30,7 +30,7 @@ which makes an ugly hack necessary after grammar regeneration.
 
     $ cd $CLONE
     $ rlwrap sml
-    - CM.make "mltk.cm";
+    - CM.make "gdsl.cm";
     - Main.run "examples/x86.spec";
 
 -- h4ppy h4ck1n9

@@ -17,25 +17,44 @@
 #define __ALLOCN(n) hp-=n /* TODO: check for heap-overflow */
 
 #define __INVOKE1(o, closure)\
-   ((__obj(*)(__obj))((o)->label.f))(closure)
+  ((__obj(*)(__obj))((o)->label.f))(closure)
 
 #define __INVOKE2(o, closure, x)\
-   ((__obj(*)(__obj,__obj))((o)->label.f))(closure, x)
+  ((__obj(*)(__obj,__obj))((o)->label.f))(closure, x)
 
 #define __INVOKE3(o, closure, x, y)\
-   ((__obj(*)(__obj,__obj,__obj))((o)->label.f))(closure, x, y)
+  ((__obj(*)(__obj,__obj,__obj))((o)->label.f))(closure, x, y)
 
 #define __INVOKE4(o, closure, x, y, z)\
-   ((__obj(*)(__obj,__obj,__obj,__obj))((o)->label.f))(closure, x, y, z)
+  ((__obj(*)(__obj,__obj,__obj,__obj))((o)->label.f))(closure, x, y, z)
 
 #define __INVOKE5(o, closure, w, x, y, z)\
-   ((__obj(*)(__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, w, x, y, z)
+  ((__obj(*)(__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, w, x, y, z)
 
 #define __INVOKE6(o, closure, v, w, x, y, z)\
-   ((__obj(*)(__obj,__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, v, w, x, y, z)
+  ((__obj(*)(__obj,__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, v, w, x, y, z)
 
 #define __INVOKE7(o, closure, u, v, w, x, y, z)\
-   ((__obj(*)(__obj,__obj,__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, u, v, w, x, y, z)
+  ((__obj(*)(__obj,__obj,__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, u, v, w, x, y, z)
+
+#define __CALL1(f,x)\
+  f(x)
+#define __CALL2(f,x,y)\
+  f(x,y)
+#define __CALL3(f,x,y,z)\
+  f(x,y,z)
+#define __CALL4(f,w,x,y,z)\
+  f(w,x,y,z)
+#define __CALL5(f,v,w,x,y,z)\
+  f(v,w,x,y,z)
+#define __CALL6(f,u,v,w,x,y,z)\
+  f(u,v,w,x,y,z)
+#define __CALL7(f,t,u,v,w,x,y,z)\
+  f(t,u,v,w,x,y,z)
+#define __CALL8(f,s,t,u,v,w,x,y,z)\
+  f(s,t,u,v,w,x,y,z)
+#define __CALL9(f,r,s,t,u,v,w,x,y,z)\
+  f(r,s,t,u,v,w,x,y,z)
 
 /** ## Integers */
 
@@ -377,9 +396,9 @@ __obj __printState();
 /* ## API helpers */
 
 int ___isNil(__obj);
-__obj __runWithState(__obj(*)(__obj,__obj,__obj),__obj);
-__obj __eval(__obj(*)(__obj,__obj,__obj),__char*, __word);
-__word __decode(__obj(*)(__obj,__obj,__obj),__char*,__word,__obj*);
+__obj __runWithState(__obj(*)(__obj,__obj),__obj);
+__obj __eval(__obj(*)(__obj,__obj),__char*, __word);
+__word __decode(__obj(*)(__obj,__obj),__char*,__word,__obj*);
 
 #endif /* __RUNTIME_H */
 

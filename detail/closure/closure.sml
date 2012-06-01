@@ -17,9 +17,16 @@ structure Closure = struct
              k: Var.c,
              closure: Var.k,
              xs: Var.v list}
+       | FASTAPP of
+            {f: Var.v,
+             k: Var.c,
+             xs: Var.v list}
        | CC of
             {k: Var.c,
              closure: Var.k,
+             xs: Var.v list}
+       | FASTCC of
+            {k: Var.c,
              xs: Var.v list}
        | CASE of Var.v * (tag list * block) list
 
@@ -62,9 +69,18 @@ structure Closure = struct
              closure: Var.k,
              xs: Var.v list,
              body: Block.t}
+       | FASTFUN of
+            {f: Var.v,
+             k: Var.c,
+             xs: Var.v list,
+             body: Block.t}
        | CONT of
             {k: Var.c,
              closure: Var.k,
+             xs: Var.v list,
+             body: Block.t}
+       | FASTCONT of
+            {k: Var.c,
              xs: Var.v list,
              body: Block.t}
    end
@@ -90,8 +106,12 @@ structure Closure = struct
          case t of
             APP {f, k, closure, xs} =>
                seq [var f, vars (closure::k::xs)]
+          | FASTAPP {f, k, xs} =>
+               seq [var f, vars (k::xs)]
           | CC {k, closure, xs} => 
                seq [var k, vars (closure::k::xs)]
+          | FASTCC {k, xs} => 
+               seq [var k, vars (k::xs)]
           | CASE (x, ks) =>
                align
                   [seq [str "case", space, var x, space, str "of"],
@@ -145,10 +165,20 @@ structure Closure = struct
                   [seq
                      [str "val", space, var f, space, vars (closure::k::xs), is],
                    indent 3 (block body)]
+          | Fun.FASTFUN {f, k, xs, body} =>
+               align
+                  [seq
+                     [str "val", space, var f, space, vars (k::xs), is],
+                   indent 3 (block body)]
           | Fun.CONT {k, closure, xs, body} =>
                align
                   [seq
                      [str "val", space, var k, space, vars (closure::xs), is],
+                   indent 3 (block body)]
+          | Fun.FASTCONT {k, xs, body} =>
+               align
+                  [seq
+                     [str "val", space, var k, space, vars xs, is],
                    indent 3 (block body)]
 
       val spec = Spec.PP.spec functions

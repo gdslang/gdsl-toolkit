@@ -21,6 +21,7 @@ end = struct
    fun conv spec = let
      
       val bindings = ref Map.empty
+      val escapingvariants = ref Map.empty
 
       fun bindFun (f, closure, k, xs, body) =
          bindings :=
@@ -34,6 +35,17 @@ end = struct
                    xs=xs,
                    body=body})
 
+      fun bindFastFun (f, k, xs, body) =
+         bindings :=
+            Map.insert
+               (!bindings,
+                f,
+                Closure.Fun.FASTFUN
+                  {f=f,
+                   k=k,
+                   xs=xs,
+                   body=body})
+
       fun bindCont (k, closure, xs, body) =
          bindings :=
             Map.insert
@@ -44,6 +56,27 @@ end = struct
                    closure=closure,
                    xs=xs,
                    body=body})
+
+      fun bindFastCont (k, xs, body) =
+         bindings :=
+            Map.insert
+               (!bindings,
+                k,
+                Closure.Fun.FASTCONT
+                  {k=k,
+                   xs=xs,
+                   body=body})
+
+      fun bindEscaping f fesc =
+         escapingvariants := Map.insert (!escapingvariants, f, fesc)
+
+      val toStr = Layout.tostring o CPS.PP.var
+
+      fun escapingVariantOf f = 
+         case Map.find (!escapingvariants, f) of
+            NONE => 
+               raise Fail ("closureConversion.escapingVariantOf: " ^ toStr f)
+          | SOME f' => f'
 
       fun boundFn f = FI.member f
 
@@ -85,15 +118,60 @@ end = struct
          List.filter
             (not o boundFn)
             (Subst.applyAll sigma (Set.listItems (FV.get f)))
-   
+  
+      fun convEscaping () =
+         let
+            fun mkEscapingVariant f =
+               case f of
+                  FI.F (f,k,xs,body) =>
+                     if Census.count#esc f = 0 then () else
+                     let
+                        val fs = freeUse Subst.empty f
+                        val f' = Subst.copyWithSuffix "esc" f
+                        val k' = Subst.copy k
+                        val fs' = Subst.copyAll fs
+                        val xs' = Subst.copyAll xs
+                        val env = fresh closure
+                        val body =
+                           unfoldEnv
+                              fs'
+                              env
+                              {stmts=[],
+                               flow=Clos.FASTAPP {f=f,k=k',xs=fs'@xs'}}
+                     in
+                        bindEscaping f f'
+                       ;bindFun (f', env, k', xs', Clos.BLOCK body)
+                     end
+                | FI.C (k,xs,body) =>
+                     if Census.count#esc k = 0 then () else
+                     let
+                        val fs = freeUse Subst.empty k
+                        val k' = Subst.copyWithSuffix "esc" k
+                        val fs' = Subst.copyAll fs
+                        val xs' = Subst.copyAll xs
+                        val env = fresh closure
+                        val body =
+                           unfoldEnv
+                              fs'
+                              env
+                              {stmts=[],
+                               flow=Clos.FASTCC {k=k,xs=fs'@xs'}}
+                     in
+                        bindEscaping k k'
+                       ;bindCont (k', env, xs', Clos.BLOCK body)
+                     end
+         in
+            FI.app mkEscapingVariant
+         end
+
       fun convTerm sigma cps = 
          case cps of
             LETVAL (f, FN (k, xs, K), L) =>
                let
                   val () =
                      convFun sigma f K
-                        (fn {env, body} =>
-                           bindFun (f, env, k, xs, Clos.BLOCK body))
+                        (fn {fs, body} =>
+                           bindFastFun (f, k, fs@xs, Clos.BLOCK body))
                   val {stmts, flow} = convTerm sigma L
                in
                   {stmts=stmts,
@@ -147,16 +225,16 @@ end = struct
                   then
                      let   
                         val f = Subst.apply sigma f
-                        val {label, env, body} = buildEnv sigma f
+                        val fs = freeUse sigma f
                         val k' = ref k
                         val xs' = ref xs
                         val stmts = 
                            use sigma k (fn k =>
                               useAll sigma xs (fn xs =>
-                                 (k' := k; xs' := xs; body)))
+                                 (k' := k; xs' := xs; [])))
                      in
                         {stmts=stmts,
-                         flow=Clos.APP {f=label, closure=env, k= !k', xs= !xs'}}
+                         flow=Clos.FASTAPP {f=f, k= !k', xs=fs @ !xs'}}
                      end               
                else
                   let
@@ -179,15 +257,13 @@ end = struct
                   then
                      let
                         val k = Subst.apply sigma k
-                        val {label, env, body} = buildEnv sigma k
+                        val fs = freeUse sigma k
                         val xs' = ref xs
                         val stmts =
-                           useAll sigma xs (fn xs =>
-                              (xs' := xs
-                              ;body))
+                           useAll sigma xs (fn xs => (xs' := xs;[]))
                      in
                         {stmts=stmts,
-                         flow=Clos.CC {k=label, closure=env, xs= !xs'}}
+                         flow=Clos.FASTCC {k=k, xs=fs @ !xs'}}
                      end
                else
                   let
@@ -212,14 +288,14 @@ end = struct
       and convConts sigma ds = app (convCont sigma) ds
       and convCont sigma (k, xs, body) =
          convFun sigma k body
-            (fn {env, body} =>
-               bindCont (k, env, xs, Clos.BLOCK body))
+            (fn {fs, body} =>
+               bindFastCont (k, fs@xs, Clos.BLOCK body))
 
       and convRecs sigma ds = app (convRec sigma) ds
       and convRec sigma (f, k, xs, body) =
          convFun sigma f body
-            (fn {env, body} =>
-               bindFun (f, env, k, xs, Clos.BLOCK body))
+            (fn {fs, body} =>
+               bindFastFun (f, k, fs@xs, Clos.BLOCK body))
 
       and buildEnv sigma f =
          let
@@ -239,9 +315,8 @@ end = struct
             val ys = Subst.copyAll fs
             val sigma = Subst.extendAll sigma ys fs
             val body = convTerm sigma body
-            val env = fresh closure
          in
-            k {env=env, body=unfoldEnv ys env body}
+            k {fs=ys, body=body}
          end
 
       and convCVal sigma x v =
@@ -281,6 +356,7 @@ end = struct
                            let
                               val _ = checkArity x
                               val fs = freeUse sigma x
+                              val x = escapingVariantOf x
                               val l = fresh label
                               val closure = fresh closure
                            in
@@ -305,6 +381,7 @@ end = struct
                   let
                      val _ = checkArity x
                      val fs = freeUse sigma x
+                     val x = escapingVariantOf x
                      val l = fresh label
                      val closure = fresh closure
                   in
@@ -320,8 +397,10 @@ end = struct
          (fn cps =>
             (FV.run cps
             ;FI.run cps
+            ;Census.run cps
             (* ;FV.dump() *)
             (* ;FI.dump() *)
+            ;convEscaping()
             ;ignore(convTerm Subst.empty cps)
             ;Map.listItems (!bindings))) spec : Closure.Spec.t
    end

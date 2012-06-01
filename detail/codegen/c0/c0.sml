@@ -211,6 +211,13 @@ structure PrettyC = struct
       in
          seq [str "__INVOKE", i n, args (f::xs)]
       end
+   fun fastinvoke (f, xs) =
+      let
+         val n = List.length xs
+         val i = str o Int.toString
+      in
+         seq [str "__CALL", i n, args (f::xs)]
+      end
 end
 
 structure C0Templates = struct
@@ -399,8 +406,12 @@ structure C = struct
             case f of
                APP {f, closure, k, xs} =>
                   PrettyC.return (PrettyC.invoke (f, closure::k::xs))
+             | FASTAPP {f, k, xs} =>
+                  PrettyC.return (PrettyC.fastinvoke (f, k::xs))
              | CC {k, closure, xs} =>
                   PrettyC.return (PrettyC.invoke (k, closure::xs))
+             | FASTCC {k, xs} =>
+                  PrettyC.return (PrettyC.fastinvoke (k, xs))
              | CASE (x, cs) =>
                   let
                      val cs' = List.filter (fn (cs, _) => not (null cs)) cs
@@ -418,33 +429,49 @@ structure C = struct
          and emitCase (cs, block) = PrettyC.casee (cs, emitBlock block)
                   
          and emitBlock (BLOCK {stmts, flow}) =
-            PrettyC.cseq [emitStmts stmts, emitFlow flow]
+            case stmts of
+               [] => emitFlow flow
+             | stmts => PrettyC.cseq [emitStmts stmts, emitFlow flow]
 
          fun emitPrototype f =
             case f of
                FUN {f, closure, k, xs, body} =>
                   PrettyC.prototype (f, closure::k::xs)
+             | FASTFUN {f, k, xs, body} =>
+                  PrettyC.prototype (f, k::xs)
              | CONT {k, closure, xs, body} =>
                   PrettyC.prototype (k, closure::xs)
+             | FASTCONT {k, xs, body} =>
+                  PrettyC.prototype (k, xs)
 
          fun emitStaticPrototype f =
             case f of
                FUN {f, closure, k, xs, body} =>
                   PrettyC.staticPrototype (f, closure::k::xs)
+             | FASTFUN {f, k, xs, body} =>
+                  PrettyC.staticPrototype (f, k::xs)
              | CONT {k, closure, xs, body} =>
                   PrettyC.staticPrototype (k, closure::xs)
+             | FASTCONT {k, xs, body} =>
+                  PrettyC.staticPrototype (k, xs)
             
          fun emitFun f =
             case f of
                FUN {f, k, closure, xs, body} =>
                   PrettyC.function (f, closure::k::xs, emitBlock body)
+             | FASTFUN {f, k, xs, body} =>
+                  PrettyC.function (f, k::xs, emitBlock body)
              | CONT {k, closure, xs, body} =>
                   PrettyC.function (k, closure::xs, emitBlock body)
+             | FASTCONT {k, xs, body} =>
+                  PrettyC.function (k, xs, emitBlock body)
 
          fun getSym f =
             case f of
                FUN {f,...} => f
+             | FASTFUN {f,...} => f
              | CONT {k,...} => k
+             | FASTCONT {k,...} => k
 
          (* TODO: use `List.partition` instead of 2 calls to `filter` *)
          val exportedFn = List.filter (exported o getSym) clos
