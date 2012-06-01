@@ -2884,11 +2884,15 @@ val / [0x0f 0xc3 /r]
 val movntpd = binop MOVNTPD
 val vmovntpd = binop VMOVNTPD
 val /66 [0x0f 0x2b /r] = movntpd m128 xmm128
+val /vex/66/0f [0x2b /r] | vex128? = binop VMOVNTPD m128 xmm128
+val /vex/66/0f [0x2b /r] | vex256? = binop VMOVNTPD m256 ymm256
 
 ### MOVNTPS Vol. 2B 4-99
 val movntps = binop MOVNTPD
 val vmovntps = binop VMOVNTPD
 val / [0x0f 0x2b /r] = movntps m128 xmm128
+val /vex/0f [0x2b /r] | vex128? = binop VMOVNTPS m128 xmm128
+val /vex/0f [0x2b /r] | vex256? = binop VMOVNTPS m256 ymm256
 
 ### MOVNTQ Vol. 2B 4-103
 val movntq = binop MOVNTQ
@@ -2899,6 +2903,31 @@ val / [0x0f 0x6f /r] = movq mm64 mm/m64
 val / [0x0f 0x7f /r] = movq mm/m64 mm64
 val /f3 [0x0f 0x7e /r] = movq xmm128 xmm/m64
 val /66 [0x0f 0xd6 /r] = movq xmm/m64 xmm128
+
+### MOVQ2DQ Vol. 2B 4-107
+val /f3 [0x0f 0xd6 /r-nomem] = binop MOVQ2DQ xmm128 mm/nomem64
+
+### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ Vol. 2B 4-109
+# Todo: Fix
+val / [0xa4] =
+ | mode64? = binop MOVSB (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = binop MOVSB (mem (REG EDI)) (mem (REG ESI))
+val / [0xa5] =
+ | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+ | mode64? & !rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = binop MODSD (mem (REG EDI)) (mem (REG ESI))
+val / [0xa5] =
+ | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+ | mode64? & !rexw? = binop MOVSW (mem (REG RDI)) (mem (REG RSI))
+ | otherwise = binop MODSW (mem (REG EDI)) (mem (REG ESI))
+
+### MOVSD Vol. 2B 4-114
+val /f2 [0x0f 0x10 /r] = binop MOVSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x10 /r-nomem] = ternop VMOVSD xmm128 vex/xmm xmm/nomem128
+val /vex/f2/0f [0x10 /r-mem] = binop VMOVSD xmm128 m64
+val /f2 [0x0f 0x11 /r] = binop MOVSD xmm/m64 xmm128
+val /vex/f2/0f [0x11 /r-nomem] = ternop VMOVSD xmm/nomem128 vex/xmm xmm128
+val /vex/f2/0f [0x11 /r-mem] = binop VMOVSD m64 xmm128
 
 ### PHADDW/PHADDD Vol. 2B 4-253
 val phaddw = binop PHADDW
