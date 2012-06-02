@@ -1635,7 +1635,10 @@ structure BetaContract = struct
        | CASE (x, cs) =>
             let
                val x = Subst.apply sigma x
-               fun matchh tag = isSome (lookup (env, VEC (Word.toString tag)))
+               fun matchh tag =
+                  case lookup (env, VEC (Word.toString tag)) of
+                     NONE => false
+                   | SOME y => SymbolTable.eq_symid (x, y)
                fun boundTag (tags, _) = List.exists matchh tags
             in
                case List.find boundTag cs of
