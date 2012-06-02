@@ -90,7 +90,7 @@ val /rex-p ['0100 w:1 r:1 x:1 b:1'] =
    update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
 val clear-rex = update @{rex='0',rexw='0',rexb='0',rexr='0',rexx='0'}
 
-val /vex/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 00'] = do
+val p/vex/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 00'] = do
    update
       @{rex='1',
         rexw=w,
@@ -103,7 +103,7 @@ val /vex/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 00'] = do
         vexm='00001'}
 end
 
-val /vex/0f [0xc5 'r:1 v:4 l:1 00'] = do
+val p/vex/0f [0xc5 'r:1 v:4 l:1 00'] = do
    update
       @{rex='1',
         rexw='0',
@@ -114,7 +114,7 @@ val /vex/0f [0xc5 'r:1 v:4 l:1 00'] = do
         vexm='00001'} #TODO: sane default value for vexm,rexw,rexb,..
 end
 
-val /vex/66/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 01'] = do
+val p/vex/66/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 01'] = do
    update
       @{rex='1',
         rexw=w,
@@ -127,7 +127,7 @@ val /vex/66/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 01'] = do
         vexm='00001'}
 end
 
-val /vex/66/0f [0xc5 'r:1 v:4 l:1 01'] = do
+val p/vex/66/0f [0xc5 'r:1 v:4 l:1 01'] = do
    update
       @{rex='1',
         rexw='0',
@@ -138,7 +138,7 @@ val /vex/66/0f [0xc5 'r:1 v:4 l:1 01'] = do
         vexm='00001'} #TODO: sane default value for vexm,rexw,rexb,..
 end
 
-val /vex/f3/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 10'] = do
+val p/vex/f3/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 10'] = do
    update
       @{rex='1',
         rexw=w,
@@ -151,7 +151,7 @@ val /vex/f3/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 10'] = do
         vexm='00001'}
 end
 
-val /vex/f3/0f [0xc5 'r:1 v:4 l:1 10'] = do
+val p/vex/f3/0f [0xc5 'r:1 v:4 l:1 10'] = do
    update
       @{rex='1',
         rexw='0',
@@ -162,7 +162,7 @@ val /vex/f3/0f [0xc5 'r:1 v:4 l:1 10'] = do
         vexm='00001'} #TODO: sane default value for vexm,rexw,rexb,..
 end
 
-val /vex/f2/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 11'] = do
+val p/vex/f2/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 11'] = do
    update
       @{rex='1',
         rexw=w,
@@ -175,7 +175,7 @@ val /vex/f2/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 11'] = do
         vexm='00001'}
 end
 
-val /vex/f2/0f [0xc5 'r:1 v:4 l:1 11'] = do
+val p/vex/f2/0f [0xc5 'r:1 v:4 l:1 11'] = do
    update
       @{rex='1',
         rexw='0',
@@ -186,7 +186,7 @@ val /vex/f2/0f [0xc5 'r:1 v:4 l:1 11'] = do
         vexm='00001'} #TODO: sane default value for vexm,rexw,rexb,..
 end
 
-val /vex/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 00'] = do
+val p/vex/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 00'] = do
    update
       @{rex='1',
         rexw=w,
@@ -199,7 +199,7 @@ val /vex/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 00'] = do
         vexm='00010'}
 end
 
-val /vex/66/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 01'] = do
+val p/vex/66/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 01'] = do
    update
       @{rex='1',
         rexw=w,
@@ -212,7 +212,7 @@ val /vex/66/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 01'] = do
         vexm='00010'}
 end
 
-val /vex/f2/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 11'] = do
+val p/vex/f2/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 11'] = do
    update
       @{rex='1',
         rexw=w,
@@ -225,7 +225,7 @@ val /vex/f2/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 11'] = do
         vexm='00010'}
 end
 
-val /vex/f3/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 10'] = do
+val p/vex/f3/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 10'] = do
    update
       @{rex='1',
         rexw=w,
@@ -238,7 +238,7 @@ val /vex/f3/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 10'] = do
         vexm='00010'}
 end
 
-val /vex/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 00'] = do
+val p/vex/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 00'] = do
    update
       @{rex='1',
         rexw=w,
@@ -251,7 +251,7 @@ val /vex/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 00'] = do
         vexm='00011'}
 end
 
-val /vex/66/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 01'] = do
+val p/vex/66/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 01'] = do
    update
       @{rex='1',
         rexw=w,
@@ -264,7 +264,7 @@ val /vex/66/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 01'] = do
         vexm='00011'}
 end
 
-val /vex/f2/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 11'] = do
+val p/vex/f2/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 11'] = do
    update
       @{rex='1',
         rexw=w,
@@ -277,7 +277,7 @@ val /vex/f2/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 11'] = do
         vexm='00011'}
 end
 
-val /vex/f3/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 10'] = do
+val p/vex/f3/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 10'] = do
    update
       @{rex='1',
         rexw=w,
@@ -295,6 +295,12 @@ val p64 [0xf2] = do set-repne; p/f2 end
 val p64 [0xf3] = do set-rep; p/f3 end
 val p64 [/legacy-p] = p64
 val p64 [/rex-p] = p64
+#val p64 [p/vex/0f] = /vex/0f
+val p64 [p/vex/f2/0f] = /vex/f2/0f
+val p64 [p/vex/f3/0f] = /vex/f3/0f
+val p64 [p/vex/66/0f] = /vex/66/0f
+#val p64 [p/vex/66/f2/0f] = /vex/66/f2/0f
+#val p64 [p/vex/66/f3/0f] = /vex/66/f3/0f
 val p64 [] = /
 
 val p/66 [0xf2] = do set-repne; p/66/f2 end
@@ -1618,7 +1624,7 @@ val / [0xdf '11101 i:3'] = binop FUCOMIP st0 (st/i i)
 
 ### LDDQU
 val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
-val / [/vex/f2/0f 0xf0 /r-mem]
+val /vex/f2/0f [0xf0 /r-mem]
  | vex128? = binop VLDDQU xmm128 m128
  | otherwise = binop VLDDQU ymm256 m256
 
@@ -1627,23 +1633,23 @@ val / [0x0f 0xae /5] = arity0 LFENCE
 
 ### MOVSS
 val /f3 [0x0f 0x10 /r] = binop MOVSS xmm128 xmm/m32
-val / [/vex/f3/0f /r]
+val /vex/f3/0f [0x10 /r]
  | vnds? = ternop VMOVSS xmm128 v/xmm xmm/nomem128 
  | otherwise = binop VMOVSS xmm128 m32
 val /f3 [0x0f 0x11 /r] = binop MOVSS xmm/m32 xmm128
-val / [/vex/f2/0f 0x11 /r]
+val /vex/f2/0f [0x11 /r]
  | vnds? = ternop VMOVSS xmm128 v/xmm xmm/nomem128
  | otherwise = binop VMOVSS m32 xmm128
 
 ### PALIGNR
 val / [0x0f 0x3a 0x0f /r] = ternop PALIGNR mm64 mm/m64 imm8
 val /66 [0x0f 0x3a 0x0f /r] = ternop PALIGNR xmm128 xmm/m128 imm8
-val / [/vex/66/0f/3a 0x0f /r] | vex128? = quaternop VPALIGNR xmm128 v/xmm xmm/m128 imm8
+val /vex/66/0f/3a [0x0f /r] | vex128? = quaternop VPALIGNR xmm128 v/xmm xmm/m128 imm8
 
 ### PAND
 val / [0x0f 0xdb /r] = binop PAND mm64 mm/m64
 val /66 [0x0f 0xdb /r] = binop PAND xmm128 xmm/m128
-val / [/vex/66/0f 0xdb /r] | vnds? & vex128? = ternop VPAND xmm128 v/xmm xmm/m128
+val /vex/66/0f [0xdb /r] | vnds? & vex128? = ternop VPAND xmm128 v/xmm xmm/m128
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 val / [0x0f 0x74 /r] = binop PCMPEQB mm64 mm/m64
@@ -1652,13 +1658,13 @@ val / [0x0f 0x75 /r] = binop PCMPEQW mm64 mm/m64
 val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
 val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
 val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
-val / [/vex/66/0f 0x74 /r] | vnds? = ternop VCMPEQB xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0x75 /r] | vnds? = ternop VCMPEQW xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0x76 /r] | vnds? = ternop VCMPEQD xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x74 /r] | vnds? = ternop VCMPEQB xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x75 /r] | vnds? = ternop VCMPEQW xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x76 /r] | vnds? = ternop VCMPEQD xmm128 v/xmm xmm/m128
 
 ### PCMPESTRI
 val /66 [0x0f 0x3a 0x61 /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
-val / [/vex/66/0f/3a 0x61 /r] = ternop VCMPESTRI xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x61 /r] = ternop VCMPESTRI xmm128 xmm/m128 imm8
 
 ### PCMPGTB/PCMPGTW/PCMPGTD
 val / [0x0f 0x64 /r] = binop PCMPGTB mm64 mm/m64
@@ -1667,28 +1673,28 @@ val / [0x0f 0x65 /r] = binop PCMPGTW mm64 mm/m64
 val /66 [0x0f 0x65 /r] = binop PCMPGTW xmm128 xmm/m128
 val / [0x0f 0x66 /r] = binop PCMPGTD mm64 mm/m64
 val /66 [0x0f 0x66 /r] = binop PCMPGRD xmm128 xmm/m128
-val / [/vex/66/0f 0x64 /r] | vnds? & vex128? = ternop VPCMPGTB xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0x65 /r] | vnds? & vex128? = ternop VPCMPGTW xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0x66 /r] | vnds? & vex128? = ternop VPCMPGTD xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x64 /r] | vnds? & vex128? = ternop VPCMPGTB xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x65 /r] | vnds? & vex128? = ternop VPCMPGTW xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x66 /r] | vnds? & vex128? = ternop VPCMPGTD xmm128 v/xmm xmm/m128
 
 ### PCMPISTRI
 val /66 [0x0f 0x3a 0x63 /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
-val / [/vex/66/0f/3a 0x63 /r] | vex128? = ternop VPCMPISTRI xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x63 /r] | vex128? = ternop VPCMPISTRI xmm128 xmm/m128 imm8
 
 ### PINSRB/PINSRD/PINSRQ
 val /66 [0x0f 0x3a 0x20 /r] = ternop PINSRB xmm128 r/m8 imm8
 val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop PINSRD xmm128 r/m32 imm8
-val / [/vex/66/0f/3a 0x20 /r] | vex128? & vexw0? = quaternop VPINSRB xmm128 v/xmm r/m8 imm8
-val / [/vex/66/0f/3a 0x22 /r] 
+val /vex/66/0f/3a [0x20 /r] | vex128? & vexw0? = quaternop VPINSRB xmm128 v/xmm r/m8 imm8
+val /vex/66/0f/3a [0x22 /r] 
  | vex128? & vexw1? = quaternop VPINSRQ xmm128 v/xmm r/m64 imm8
  | vex128? = quaternop VPINSRD xmm128 v/xmm r/m32 imm8
 
 ### POR
 val / [0x0f 0xeb /r] = binop POR mm64 mm/m64
 val /66 [0x0f 0xeb /r] = binop POR xmm128 xmm/m128
-val / [/vex/66/0f 0xeb /r] | vnds? & vex128? = ternop VPOR xmm128 v/xmm xmm/m128
+val /vex/66/0f [0xeb /r] | vnds? & vex128? = ternop VPOR xmm128 v/xmm xmm/m128
 
 ### PREFETCHh
 val / [0x0f 0x18 /1-mem] = unop PREFETCHT0 m8
@@ -1703,19 +1709,19 @@ val / [0x0f 0x0d /r-mem] = unop PREFETCHW m8
 ### PSHUFB
 val / [0x0f 0x38 0x00 /r] = binop PSHUFB mm64 mm/m64
 val /66 [0x0f 0x38 0x00 /r] = binop PSHUFB xmm128 xmm/m128
-val / [/vex/66/0f/38 0x00 /r] | vnds? & vex128? = ternop VPSHUFB xmm128 v/xmm xmm/m128
+val /vex/66/0f/38 [0x00 /r] | vnds? & vex128? = ternop VPSHUFB xmm128 v/xmm xmm/m128
 
 ### PSHUFD
 val /66 [0x0f 0x70 /r] = ternop PSHUFD xmm128 xmm/m128 imm8
-val / [/vex/66/0f 0x70 /r] | vex128? = ternop VPSHUFD xmm128 xmm/m128 imm8
+val /vex/66/0f [0x70 /r] | vex128? = ternop VPSHUFD xmm128 xmm/m128 imm8
 
 ### PSLLDQ
 val /66 [0x0f 0x73 /7-nomem] = binop PSLLDQ xmm128 imm8
-val / [/vex/66/0f 0x73 /7-nomem] | vndd? & vex128? = ternop VPSLLDQ xmm128 v/xmm imm8
+val /vex/66/0f [0x73 /7-nomem] | vndd? & vex128? = ternop VPSLLDQ xmm128 v/xmm imm8
 
 ### PSLRDQ
 val /66 [0x0f 0x73 /3-nomem] = binop PSLRDQ xmm128 imm8
-val / [/vex/66/0f 0x73 /3-nomem] | vndd? & vex128? = ternop VPSLRDQ xmm128 v/xmm imm8
+val /vex/66/0f [0x73 /3-nomem] | vndd? & vex128? = ternop VPSLRDQ xmm128 v/xmm imm8
 
 ### PSUBB/PSUBW/PSUBD
 val / [0x0f 0xf8 /r] = binop PSUBB mm64 mm/m64
@@ -1724,9 +1730,9 @@ val / [0x0f 0xf9 /r] = binop PSUBW mm64 mm/m64
 val /66 [0x0f 0xf9 /r] = binop PSUBW xmm128 xmm/m128
 val / [0x0f 0xfa /r] = binop PSUBD mm64 mm/m64
 val /66 [0x0f 0xfa /r] = binop PSUBD xmm128 xmm/m128
-val / [/vex/66/0f 0xf8 /r] | vnds? & vex128? = ternop VPSUBB xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0xf9 /r] | vnds? & vex128? = ternop VPSUBW xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0xfa /r] | vnds? & vex128? = ternop VPSUBD xmm128 v/xmm xmm/m128
+val /vex/66/0f [0xf8 /r] | vnds? & vex128? = ternop VPSUBB xmm128 v/xmm xmm/m128
+val /vex/66/0f [0xf9 /r] | vnds? & vex128? = ternop VPSUBW xmm128 v/xmm xmm/m128
+val /vex/66/0f [0xfa /r] | vnds? & vex128? = ternop VPSUBD xmm128 v/xmm xmm/m128
 
 ### PTEST
 val /66 [0x0f 0x38 0x17 /r] = binop PTEST xmm128 xmm/m128
@@ -1742,10 +1748,10 @@ val /66 [0x0f 0x61 /r] = binop PUNPACKLWD xmm128 xmm/m128
 val / [0x0f 0x62 /r] = binop PUNPACKLDQ mm64 mm/m32
 val /66 [0x0f 0x62 /r] = binop PUNPACKLDQ xmm128 xmm/m128
 val /66 [0x0f 0x6c /r] = binop PUNPACKLQDQ xmm128 xmm/m128
-val / [/vex/66/0f 0x60 /r] | vnds? & vex128? = ternop VPUNPACKLBW xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0x61 /r] | vnds? & vex128? = ternop VPUNPACKLWD xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0x62 /r] | vnds? & vex128? = ternop VPUNPACKLDQ xmm128 v/xmm xmm/m128
-val / [/vex/66/0f 0x6c /r] | vnds? & vex128? = ternop VPUNPACKLQDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x60 /r] | vnds? & vex128? = ternop VPUNPACKLBW xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x61 /r] | vnds? & vex128? = ternop VPUNPACKLWD xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x62 /r] | vnds? & vex128? = ternop VPUNPACKLDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f [0x6c /r] | vnds? & vex128? = ternop VPUNPACKLQDQ xmm128 v/xmm xmm/m128
 
 ### RCL/RCR/ROL/ROR
 val / [0xd0 /2] = binop RCL r/m8 one
@@ -1834,7 +1840,7 @@ val / [0x0f 0xad /r]
 
 ### UCOMISD
 val /66 [0x0f 0x2e /r] = binop UCOMISD xmm128 xmm/m64
-val / [/vex/66/0f 0x2e /r] = binop VUCOMISD xmm128 xmm/m64
+val /vex/66/0f [0x2e /r] = binop VUCOMISD xmm128 xmm/m64
 
 ### UD2
 val / [0x0f 0x0b] = arity0 UD2
@@ -1844,7 +1850,7 @@ val / [0x0f 0x01 0xd0] = arity0 XGETBV
 
 ### XORPS
 val / [0x0f 0x57 /r] = binop XORPS xmm128 xmm/m128
-val / [/vex/66/0f 0x57 /r]
+val /vex/66/0f [0x57 /r]
  | vnds? & vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
  | vnds? = ternop VXORPS ymm256 v/ymm ymm/m256
 
@@ -2570,12 +2576,12 @@ val /f3 [0x0f 0x5d /r] = binop MINSS xmm128 xmm/m32
 
 ### PCMPEQQ
 val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
-val / [/vex/66/0f/38 0x29 /r] | vex128? = ternop VPCMPEQQ xmm128 v/xmm xmm/m128 
+val /vex/66/0f/38 [0x29 /r] | vex128? = ternop VPCMPEQQ xmm128 v/xmm xmm/m128 
 
 ### PMOVMSKB
 val / [0x0f 0xd7 /r] = binop PMOVMSKB reg mm64
 val /66 [0x0f 0xd7 /r] = binop PMOVMSKB reg xmm/nomem128
-val / [/vex/66/0f 0xd7 /r] | vex128? = binop VPMOVMSKB vreg xmm/nomem128
+val /vex/66/0f [0xd7 /r] | vex128? = binop VPMOVMSKB vreg xmm/nomem128
 
 ### MONITOR Vol. 2B 4-35
 val / [0x0f 0xae 0x01 0xc8] = arity0 MONITOR
@@ -2650,20 +2656,20 @@ val /f2 [0x0f 0x12 /r] = binop MOVDDUP xmm128 xmm/m64
 ### MOVDQA Vol. 2B 4-67
 val /66 [0x0f 0x6f /r] = binop MOVDQA xmm128 xmm/m128
 val /66 [0x0f 0x7f /r] = binop MOVDQA xmm/m128 xmm128
-val / [/vex/66/0f 0x6f /r]
+val /vex/66/0f [0x6f /r]
  | vex128? = binop VMOVDQA xmm128 xmm/m128
  | otherwise = binop VMOVDQA ymm256 ymm/m256
-val / [/vex/66/0f 0x7f /r]
+val /vex/66/0f [0x7f /r]
  | vex128? = binop VMOVDQA xmm/m128 xmm128
  | otherwise = binop VMOVDQA ymm/m256 ymm256
 
 ### MOVDQU Vol. 2B 4-70
 val /f3 [0x0f 0x6f /r] = binop MOVDQU xmm128 xmm/m128
 val /f3 [0x0f 0x7f /r] = binop MOVDQU xmm/m128 xmm128
-val / [/vex/f3/0f 0x6f /r]
+val /vex/f3/0f [0x6f /r]
  | vex128? = binop VMOVDQU xmm128 xmm/m128
  | otherwise = binop VMOVDQU ymm256 ymm/m256
-val / [/vex/f3/0f 0x7f /r]
+val /vex/f3/0f [0x7f /r]
  | vex128? = binop VMOVDQU xmm/m128 xmm128
  | otherwise = binop VMOVDQU ymm/m256 ymm256
 
