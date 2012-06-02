@@ -1312,7 +1312,7 @@ structure BetaContFun = struct
       end
 end
 
-structure BetaContFunConservative = struct
+structure BetaContFunShrink = struct
    structure FI = FunInfo
    structure Map = SymMap
    structure Set = SymSet
@@ -1530,7 +1530,7 @@ structure BetaContFunConservative = struct
        | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
        | otherwise => otherwise
   
-   val name = "betaContFunConservative"
+   val name = "betaContFunShrink"
    fun run t =
       let
          val _ = reset ()
@@ -1544,3 +1544,157 @@ structure BetaContFunConservative = struct
       end
 end
 
+structure BetaContract = struct
+   structure FI = FunInfo
+   structure Map = SymMap
+   structure Set = SymSet
+   open CPS CPS.Exp
+
+   structure Avail = struct
+      datatype t = datatype cval
+      type ord_key = t
+      fun toInt v =
+         case v of
+            FN _ => 0
+          | PRI _ => 1
+          | INJ _ => 2
+          | REC _ => 3
+          | INT _ => 4
+          | FLT _ => 5
+          | STR _ => 6
+          | VEC _ => 7
+          | UNT => 8
+
+      fun compareSym (a, b) = SymbolTable.compare_symid (a, b)
+      fun compare2 ((a, b), (c, d)) =
+         case compareSym (a, c) of
+            EQUAL => compareSym (b, d)
+          | cmp => cmp
+      fun compareMany (xs, ys) =
+         case (xs, ys) of
+            ([], []) => EQUAL
+          | ([], _) => LESS
+          | (_, []) => GREATER
+          | (x::xs, y::ys) =>
+               case compareSym (x, y) of
+                  EQUAL => compareMany (xs, ys)
+                | cmp => cmp
+      fun comparePayload (a, b) =
+         case (a, b) of
+            (PRI (a,xs), PRI (b,ys)) =>
+               (case compareSym (a, b) of
+                  EQUAL => compareMany (xs, ys)
+                | cmp => cmp)
+          | (INT a, INT b) => IntInf.compare (a, b)
+          | (STR a, STR b) => String.compare (a, b)
+          | (VEC a, VEC b) => String.compare (a, b)
+          | (INJ a, INJ b) => compare2 (a, b)
+          | (UNT, UNT) => EQUAL
+          | _ => LESS
+      fun compare (a, b) = 
+         case Int.compare (toInt a, toInt b) of
+            EQUAL => comparePayload (a, b)
+          | cmp => cmp
+   end
+   structure Map = RedBlackMapFn(Avail)
+
+   val clicks = ref 0
+   fun click () = clicks := !clicks + 1
+   fun reset () = clicks := 0
+
+   val empty = Map.empty
+   fun bind (env, v, x) = Map.insert (env, v, x)
+   fun lookup (env, v) = Map.find (env, v) 
+
+   fun simplify env sigma t =
+      case t of
+         LETVAL (x, v, L) =>
+            let
+               val v = simplifyVal env sigma v
+            in
+               case lookup (env, v) of
+                  NONE => 
+                     LETVAL (x, v,
+                        simplify (bind (env,v,x)) sigma L)
+                | SOME y =>
+                     (click()
+                     ;simplify env (Subst.extend sigma y x) L)
+            end
+       | LETPRJ (x, f, y, t) =>
+            LETPRJ
+               (x,
+                f,
+                Subst.apply sigma y,
+                simplify env sigma t)
+       | LETUPD (x, y, fs, t) =>
+            LETUPD
+               (x,
+                Subst.apply sigma y,
+                map (fn (f, z) => (f, Subst.apply sigma z)) fs,
+                simplify env sigma t)
+       | CASE (x, cs) =>
+            let
+               val x = Subst.apply sigma x
+               fun matchh tag = isSome (lookup (env, VEC (Word.toString tag)))
+               fun boundTag (tags, _) = List.exists matchh tags
+            in
+               case List.find boundTag cs of
+                  NONE =>
+                     CASE
+                        (x,
+                         map
+                           (fn (tags,(k,xs)) =>
+                              (tags,
+                               (Subst.apply sigma k,
+                                Subst.applyAll sigma xs))) cs)
+                | SOME (tags,(k,xs)) =>
+                     (click()
+                     ;CC (Subst.apply sigma k, Subst.applyAll sigma xs))
+            end
+       | LETREC (ds, L) =>
+            let
+               fun visit (f, k, xs, K) =
+                  (f, k, xs, simplify empty sigma K)
+            in
+               LETREC (map visit ds, simplify env sigma L) 
+            end
+       | LETCONT (ds, L) =>
+            let
+               fun visit (k, xs, K) =
+                  (k, xs, simplify empty sigma K)
+            in
+               LETCONT (map visit ds, simplify env sigma L) 
+            end
+       | CC (k, ys) =>
+            let
+               val k = Subst.apply sigma k
+               val ys = Subst.applyAll sigma ys
+            in
+               CC (k, ys)
+            end
+       | APP (f, j, ys) =>
+            let
+               val f = Subst.apply sigma f
+               val j = Subst.apply sigma j
+               val ys = Subst.applyAll sigma ys
+            in
+               APP (f, j, ys)
+            end
+   
+   and simplifyVal env sigma v =
+      case v of
+         FN (k, x, t) => FN (k, x, simplify empty sigma t)
+       | INJ (t, x) => INJ (t, Subst.apply sigma x)
+       | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
+       | otherwise => otherwise
+  
+   val name = "betaContract"
+   fun run t =
+      let
+         val _ = reset ()
+         val t' = simplify empty Subst.empty t
+      in
+         (t', !clicks)
+      end
+end
