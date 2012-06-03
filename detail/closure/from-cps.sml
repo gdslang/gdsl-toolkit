@@ -404,6 +404,7 @@ end = struct
             (FV.run cps
             ;FI.run cps
             ;Census.run cps
+            ;CheckDefUse.run cps
             (* ;FV.dump() *)
             (* ;FI.dump() *)
             ;convEscaping()

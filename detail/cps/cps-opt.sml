@@ -84,6 +84,9 @@ structure CheckDefUse = struct
          visitTerm 1 t
         ;census := Set.empty
       end
+   val run = fn t =>
+      run t
+         handle (Fail s) => print ("Fail [" ^ s ^ "]\n")
 end
 
 structure Census = struct
@@ -1229,18 +1232,8 @@ structure BetaContFun = struct
       F of Var.c * Var.v list * term
     | C of Var.v list * term
 
-   fun insertFun (env, f, body) =
-      if Map.inDomain (env, f)
-         then
-            raise Fail
-               (Aux.failWithSymbol "betaContFun.bug.duplicatefundef" f)
-      else Map.insert (env, f, F body)
-   fun insertCont (env, k, body) =
-      if Map.inDomain (env, k)
-         then
-            raise Fail
-               (Aux.failWithSymbol "betaContFun.bug.duplicatecontdef" k)
-      else Map.insert (env, k, C body)
+   fun insertFun (env, f, body) = Map.insert (env, f, F body)
+   fun insertCont (env, k, body) = Map.insert (env, k, C body)
 
    fun lookup s (env, f) = s (Map.lookup (env, f))
    fun find s (env, f) = Option.map s (Map.find (env, f))
@@ -1448,12 +1441,12 @@ structure BetaContFunShrink = struct
                      let
                         val L = simplify env' sigma L
                      in
-                        if Census.count#app f = 0
+                        if gotInlined f
+                           then L
+                        else if Census.count#app f = 0
                                 andalso Census.count#esc f = 0
                            then
-                              if gotInlined f
-                                 then L
-                              else (Census.visitTerm ~1 K; L)
+                               (Census.visitTerm ~1 K; L)
                         else
                            LETVAL (f, FN (k, xs, simplify env sigma K), L)
                      end
@@ -1486,6 +1479,14 @@ structure BetaContFunShrink = struct
                   (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
       | LETREC (ds, L) =>
          let
+            val L = simplify env sigma L
+            fun visit (f, k, xs, K) = (f, k, xs, simplify env sigma K)
+         in
+            LETREC (map visit ds, L)
+         end
+      (*
+      | LETREC (ds, L) =>
+         let
             val env' = 
                foldl
                   (fn ((f, k, xs, K), env) =>
@@ -1505,6 +1506,7 @@ structure BetaContFunShrink = struct
                [] => L
              | ds => LETREC (ds, L) 
          end
+      *)
       | LETCONT ([(k, xs, K)], L) =>
             let
                val env' = insertCont (env, k, (xs, K))
@@ -1514,19 +1516,27 @@ structure BetaContFunShrink = struct
                      let
                         val L = simplify env' sigma L
                      in
-                        if Census.count#app k = 0
+                        if gotInlined k
+                           then L
+                        else if Census.count#app k = 0
                                 andalso Census.count#esc k = 0
                            then
-                              if gotInlined k
-                                 then L
-                              else (Census.visitTerm ~1 K; L)
+                              (Census.visitTerm ~1 K; L)
                         else
-                           LETCONT ([(k, xs, simplify env sigma K)], L)
+                           LETCONT ([(k, xs, simplify env' sigma K)], L)
                      end
                else
                   LETCONT ([(k, xs, simplify env' sigma K)],
                      simplify env' sigma L)
             end
+      | LETCONT (ds, L) =>
+            let
+               val L = simplify env sigma L
+               fun visit (k, xs, body) = (k, xs, simplify env sigma body)
+            in
+                LETCONT (map visit ds, L)
+            end
+      (*      
       | LETCONT (cs, L) =>
          let
             val env' = 
@@ -1548,6 +1558,7 @@ structure BetaContFunShrink = struct
                [] => L
              | cs => LETCONT (cs, L)
          end
+      *)
       | CC (k, ys) =>
          let
             val k = Subst.apply sigma k

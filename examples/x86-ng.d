@@ -2727,11 +2727,9 @@ val / [0x0f 0xc3 /r]
  | otherwise = binop MOVNTI m32 r32
 
 ### MOVNTPD Vol. 2B 4-99
-val movntpd = binop MOVNTPD
 val /66 [0x0f 0x2b /r] = binop MOVNTPD m128 xmm128
 
 ### MOVNTPS Vol. 2B 4-99
-val movntps = binop MOVNTPD
 val / [0x0f 0x2b /r] = binop MOVNTPS m128 xmm128
 
 ### MOVNTQ Vol. 2B 4-103
