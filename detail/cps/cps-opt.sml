@@ -1635,6 +1635,9 @@ structure BetaContract = struct
        | CASE (x, cs) =>
             let
                val x = Subst.apply sigma x
+               val cs =
+                  map (fn (tags,(k,xs)) =>
+                     (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs
                fun matchh tag =
                   case lookup (env, VEC (Word.toString tag)) of
                      NONE => false
@@ -1642,17 +1645,8 @@ structure BetaContract = struct
                fun boundTag (tags, _) = List.exists matchh tags
             in
                case List.find boundTag cs of
-                  NONE =>
-                     CASE
-                        (x,
-                         map
-                           (fn (tags,(k,xs)) =>
-                              (tags,
-                               (Subst.apply sigma k,
-                                Subst.applyAll sigma xs))) cs)
-                | SOME (tags,(k,xs)) =>
-                     (click()
-                     ;CC (Subst.apply sigma k, Subst.applyAll sigma xs))
+                  NONE => CASE (x, cs)
+                | SOME (_,(k,xs)) => (click();CC (k, xs))
             end
        | LETREC (ds, L) =>
             let
