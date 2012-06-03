@@ -219,69 +219,77 @@ end = struct
                    stmts=env@stmts}
                end
           | APP (f, k, xs) =>
-               if isBound f
-                  then
-                     let   
-                        val f = Subst.apply sigma f
-                        val fs = freeUse sigma f
+               let
+                  val f = Subst.apply sigma f
+               in
+                  if isBound f
+                     then
+                        let   
+                           val fs = freeUse sigma f
+                           val k' = ref k
+                           val xs' = ref xs
+                           val stmts = 
+                              use sigma k (fn k =>
+                                 useAll sigma xs (fn xs =>
+                                    (k' := k; xs' := xs; [])))
+                        in
+                           {stmts=stmts,
+                            flow=Clos.FASTAPP {f=f, k= !k', xs=fs @ !xs'}}
+                        end               
+                  else
+                     let
                         val k' = ref k
                         val xs' = ref xs
-                        val stmts = 
+                        val f' = Subst.copy f
+                        val stmts =
                            use sigma k (fn k =>
                               useAll sigma xs (fn xs =>
-                                 (k' := k; xs' := xs; [])))
-                     in
-                        {stmts=stmts,
-                         flow=Clos.FASTAPP {f=f, k= !k', xs=fs @ !xs'}}
-                     end               
-               else
-                  let
-                     val f = Subst.apply sigma f
-                     val k' = ref k
-                     val xs' = ref xs
-                     val f' = Subst.copy f
-                     val stmts =
-                        use sigma k (fn k =>
-                           useAll sigma xs (fn xs =>
-                              (k' := k
-                              ;xs' := xs
-                              ;[Clos.LETREF (f', f, 0)])))
-                     in
-                        {stmts=stmts,
-                         flow=Clos.APP {f=f', closure=f, k= !k', xs= !xs'}}
-                     end
+                                 (k' := k
+                                 ;xs' := xs
+                                 ;[Clos.LETREF (f', f, 0)])))
+                        in
+                           {stmts=stmts,
+                            flow=Clos.APP {f=f', closure=f, k= !k', xs= !xs'}}
+                        end
+               end
           | CC (k, xs) =>
-               if isBound k
-                  then
+               let
+                  val k = Subst.apply sigma k
+               in
+                  if isBound k
+                     then
+                        let
+                           val fs = freeUse sigma k
+                           val xs' = ref xs
+                           val stmts =
+                              useAll sigma xs (fn xs => (xs' := xs;[]))
+                        in
+                           {stmts=stmts,
+                            flow=Clos.FASTCC {k=k, xs=fs @ !xs'}}
+                        end
+                  else
                      let
-                        val k = Subst.apply sigma k
-                        val fs = freeUse sigma k
+                        val k' = Subst.copy k
                         val xs' = ref xs
                         val stmts =
-                           useAll sigma xs (fn xs => (xs' := xs;[]))
+                           useAll sigma xs (fn xs =>
+                              (xs' := xs
+                              ;[Clos.LETREF (k', k, 0)]))
                      in
                         {stmts=stmts,
-                         flow=Clos.FASTCC {k=k, xs=fs @ !xs'}}
+                         flow=Clos.CC {k=k', closure=k, xs= !xs'}}
                      end
-               else
-                  let
-                     val k = Subst.apply sigma k
-                     val k' = Subst.copy k
-                     val xs' = ref xs
-                     val stmts =
-                        useAll sigma xs (fn xs =>
-                           (xs' := xs
-                           ;[Clos.LETREF (k', k, 0)]))
-                  in
-                     {stmts=stmts,
-                      flow=Clos.CC {k=k', closure=k, xs= !xs'}}
-                  end
+               end
           | CASE (x, ks) =>
                {stmts=[],
                 flow=Clos.CASE (Subst.apply sigma x, convCases sigma ks)}
 
       and convCases sigma ks = map (fn (tag, c) => (tag, convCase sigma c)) ks
-      and convCase sigma (k, xs) = Clos.BLOCK (convTerm sigma (CC (k, xs)))
+      and convCase sigma (k, xs) =
+         Clos.BLOCK
+            (convTerm
+               sigma
+               (CC (Subst.apply sigma k, Subst.applyAll sigma xs)))
 
       and convConts sigma ds = app (convCont sigma) ds
       and convCont sigma (k, xs, body) =
