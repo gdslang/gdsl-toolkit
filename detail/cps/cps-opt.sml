@@ -20,6 +20,72 @@ structure Aux = struct
       
 end
 
+structure CheckDefUse = struct
+   structure Set = SymSet
+   open CPS.Exp
+   infix ++
+   type t = Set.set
+
+   val census = ref Set.empty : t ref
+
+   fun def x =
+      if Set.member (!census, x)
+         then raise Fail
+               (Aux.failWithSymbol "checkDefUse.duplicateDefiniton" x)
+      else census := Set.add (!census, x)
+
+   fun use x = ()
+
+   fun visitTerm n cps =
+      case cps of
+         LETVAL (x, v, t) => (def x; visitCVal n v; visitTerm n t)
+       | LETREC (ds, t) => (app (visitDecl n) ds; visitTerm n t)
+       | LETPRJ (x, _, y, t) => (def x; use y; visitTerm n t)
+       | LETUPD (x, y, fs, t) =>
+            (def x
+            ;use y
+            ;app (visitField n) fs
+            ;visitTerm n t)
+       | LETCONT (ds, t) => (app (visitCont n) ds; visitTerm n t)
+       | APP (x, k, ys) =>
+            (use x
+            ;use k
+            ;app use ys)
+       | CC (k, xs) => (use k; app use xs)
+       | CASE (x, ks) => (use x; app (visitMatch n) ks)
+
+   and visitMatch n (_, (k, xs)) = (use k; app use xs)
+
+   and visitField n (_, v) = use v
+
+   and visitDecl n (f, k, xs, t) =
+      (def f
+      ;def k
+      ;app def xs
+      ;visitTerm n t)
+
+   and visitCont n (k, xs, t) =
+      (def k
+      ;app def xs
+      ;visitTerm n t)
+
+   and visitCVal n cval = 
+      case cval of
+         FN (k, xs, t) => (def k; app def xs; visitTerm n t)
+       | PRI (f, xs) => (use f; app use xs)
+       | INJ (_, x) => use x
+       | REC fs => app (visitField n) fs
+       | _ => () 
+         
+   fun run t =
+      let
+         val _ = census := Set.empty
+      in
+         visitTerm 1 t
+        ;census := Set.empty
+      end
+end
+
 structure Census = struct
    open CPS.Exp
    infix ++
@@ -49,7 +115,7 @@ structure Census = struct
          SOME i => census := SymMap.insert (!census, dst, i)
        | _ => ()
 
-   fun touch x =
+   fun def x =
       case SymMap.find (!census, x) of
          NONE => census := SymMap.insert (!census, x, {esc=0,app=0})
        | _ => ()
@@ -86,11 +152,11 @@ structure Census = struct
 
    fun visitTerm n cps =
       case cps of
-         LETVAL (x, v, t) => (touch x; visitCVal n v; visitTerm n t)
+         LETVAL (x, v, t) => (def x; visitCVal n v; visitTerm n t)
        | LETREC (ds, t) => (app (visitDecl n) ds; visitTerm n t)
-       | LETPRJ (x, _, y, t) => (touch x; update (E n) y; visitTerm n t)
+       | LETPRJ (x, _, y, t) => (def x; update (E n) y; visitTerm n t)
        | LETUPD (x, y, fs, t) =>
-            (touch x
+            (def x
             ;update (E n) y
             ;app (visitField n) fs
             ;visitTerm n t)
@@ -107,19 +173,19 @@ structure Census = struct
    and visitField n (_, v) = update (E n) v
 
    and visitDecl n (f, k, xs, t) =
-      (touch f
-      ;touch k
-      ;app touch xs
+      (def f
+      ;def k
+      ;app def xs
       ;visitTerm n t)
 
    and visitCont n (k, xs, t) =
-      (touch k
-      ;app touch xs
+      (def k
+      ;app def xs
       ;visitTerm n t)
 
    and visitCVal n cval = 
       case cval of
-         FN (k, xs, t) => (touch k; app touch xs; visitTerm n t)
+         FN (k, xs, t) => (def k; app def xs; visitTerm n t)
        | PRI (f, xs) => (update (A n) f; app (update (E n)) xs)
        | INJ (_, x) => update (E n) x
        | REC fs => app (visitField n) fs
@@ -1163,8 +1229,18 @@ structure BetaContFun = struct
       F of Var.c * Var.v list * term
     | C of Var.v list * term
 
-   fun insertFun (env, f, body) = Map.insert (env, f, F body)
-   fun insertCont (env, k, body) = Map.insert (env, k, C body)
+   fun insertFun (env, f, body) =
+      if Map.inDomain (env, f)
+         then
+            raise Fail
+               (Aux.failWithSymbol "betaContFun.bug.duplicatefundef" f)
+      else Map.insert (env, f, F body)
+   fun insertCont (env, k, body) =
+      if Map.inDomain (env, k)
+         then
+            raise Fail
+               (Aux.failWithSymbol "betaContFun.bug.duplicatecontdef" k)
+      else Map.insert (env, k, C body)
 
    fun lookup s (env, f) = s (Map.lookup (env, f))
    fun find s (env, f) = Option.map s (Map.find (env, f))
@@ -1539,6 +1615,14 @@ structure BetaContFunShrink = struct
          val _ = Census.run t
          val _ = Cost.run()
          val t' = simplify Map.empty Subst.empty t
+         val _ =
+            Map.appi (fn (f, n) =>
+               if n <> 1
+                  then raise Fail
+                     (Aux.failWithSymbol
+                        "betaContFunShrink.bug.inlinedmorethanonce" f)
+               else ())
+               (!inlined)
       in
          (t', !clicks)
       end
