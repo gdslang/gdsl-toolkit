@@ -1736,7 +1736,7 @@ val /vex/66/0f [0xfa /r] | vnds? & vex128? = ternop VPSUBD xmm128 v/xmm xmm/m128
 
 ### PTEST
 val /66 [0x0f 0x38 0x17 /r] = binop PTEST xmm128 xmm/m128
-val / [/vex/66/0f/38 0x17 /r]
+val /vex/66/0f/38 [0x17 /r]
  | vex128? = binop VPTEST xmm128 xmm/m128
  | otherwise = binop VPTEST ymm256 ymm/m256
 

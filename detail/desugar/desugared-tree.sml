@@ -123,15 +123,4 @@ structure DesugaredTree = struct
 
       val spec = Spec.PP.spec declarations
    end
-
-   val toWildcardPattern = fn tokpat =>
-      let
-         val pat = toWildcardPattern tokpat
-      in
-         Pretty.prettyTo(TextIO.stdOut,PP.tokpat tokpat)
-        ;print " -> "
-        ;print pat
-        ;print "\n"
-        ;pat
-      end
 end
