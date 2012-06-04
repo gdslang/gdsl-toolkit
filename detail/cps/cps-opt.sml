@@ -130,14 +130,14 @@ structure Census = struct
 
    fun E n {esc,app} = {esc=esc+n,app=app}
    fun A n {esc,app} = {esc=esc,app=app+n}
-   fun {esc=n,app=m} ++ {esc=p,app=q} = {esc=n+p-1,app=m+q-1}
+   fun {esc=n,app=m} ++ {esc=_,app=q} = {esc=n,app=m+q-1}
 
    fun remove x =
       if SymMap.inDomain (!census, x)
          then #1 (SymMap.remove (!census, x))
       else !census
 
-   fun extend x y =
+   fun extendApp x y =
       case SymMap.find (!census, y) of
          NONE => census := remove x
        | SOME n =>
@@ -146,8 +146,8 @@ structure Census = struct
                   NONE => !census
                 | SOME m => SymMap.insert (!census, x, m++n))
 
-   fun extendAll sigma xs ys =
-      app (fn (y, x) => extend y x)
+   fun extendAppAll sigma xs ys =
+      app (fn (y, x) => extendApp y x)
           (ListPair.zip (xs, ys))
 
    val remove = fn x => census := remove x
@@ -1443,10 +1443,9 @@ structure BetaContFunShrink = struct
                      in
                         if gotInlined f
                            then L
-                        else if Census.count#app f = 0
-                                andalso Census.count#esc f = 0
-                           then
-                               (Census.visitTerm ~1 K; L)
+                        else if Census.count#app k = 0
+                                    andalso Census.count#esc k = 0
+                           then (Census.visitTerm ~1 K;L)
                         else
                            LETVAL (f, FN (k, xs, simplify env sigma K), L)
                      end
@@ -1519,9 +1518,8 @@ structure BetaContFunShrink = struct
                         if gotInlined k
                            then L
                         else if Census.count#app k = 0
-                                andalso Census.count#esc k = 0
-                           then
-                              (Census.visitTerm ~1 K; L)
+                                    andalso Census.count#esc k = 0
+                           then (Census.visitTerm ~1 K;L)
                         else
                            LETCONT ([(k, xs, simplify env' sigma K)], L)
                      end
@@ -1577,7 +1575,7 @@ structure BetaContFunShrink = struct
                         val _ = markInlined k
                         val sigma = Subst.extendAll sigma ys xs
                         val _ = Census.update (Census.A ~1) k
-                        val _ = Census.extendAll ys xs
+                        val _ = Census.extendAppAll ys xs
                         val K = simplify env sigma K
                      in
                         K
@@ -1600,8 +1598,8 @@ structure BetaContFunShrink = struct
                            val sigma = Subst.extend sigma j k
                            val sigma = Subst.extendAll sigma ys xs
                            val _ = Census.update (Census.A ~1) f
-                           val _ = Census.extend j k
-                           val _ = Census.extendAll ys xs
+                           val _ = Census.extendApp j k
+                           val _ = Census.extendAppAll ys xs
                            val K = simplify env sigma K
                         in
                            K
