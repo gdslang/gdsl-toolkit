@@ -45,7 +45,7 @@ int main (int argc, char** argv) {
     len = ud_disassemble(udis);
     if (udis->mnemonic==UD_Iinvalid)
        invalid++;
-    printf("%-27s\n",ud_insn_asm(udis));
+    //printf("%-27s\n",ud_insn_asm(udis));
     blobb += len;
     sz-=len;
     n++;

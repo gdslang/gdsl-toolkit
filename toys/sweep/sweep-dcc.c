@@ -45,7 +45,7 @@ int main (int argc, char** argv) {
       invalid++;
       len = 1;
     } else {
-      prettyln(insn);
+      //prettyln(insn);
       __resetHeap();
     }
     blobb += len;
