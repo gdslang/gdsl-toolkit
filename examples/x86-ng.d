@@ -1408,23 +1408,13 @@ end
 val xmm/nomem128 = reg/nomem xmm-rex
 val mm/nomem64 = reg/nomem mm-rex
 
-val m r/m = do
-   mod <- query $mod;
-   case mod of
-      '00': r/m
-    | '01': r/m
-    | '10': r/m
-   end
-#   if (unsigned (not mod)) > 0 then r/m else r/m
-end
-
-val m8 = m r/m8
-val m16 = m r/m16
-val m32 = m r/m32
-val m64 = m r/m64
-val m128 = m xmm/m128
-val m256 = m ymm/m256
-val m80fp = m (r/m 80 reg64-rex) #TODO: check
+val m8 = r/m8
+val m16 = r/m16
+val m32 = r/m32
+val m64 = r/m64
+val m128 = xmm/m128
+val m256 = ymm/m256
+val m80fp = r/m 80 reg64-rex #TODO: check
 
 val st/m16 = r/m 16 sti
 val st/m32 = r/m 32 sti

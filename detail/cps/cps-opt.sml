@@ -884,7 +884,7 @@ structure Cost = struct
          val ZERO = {cases=0,conts=0,recs=0,apps=0,ccs=0}
          val {cases,recs,...} = lp (t, ZERO)
       in
-         cases = 0 andalso recs = 0
+         cases <= 2 andalso recs = 0
       end
    fun mark () =
       FI.app

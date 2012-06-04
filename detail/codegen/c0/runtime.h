@@ -13,7 +13,7 @@
 
 #define __CHECK_HEAP(n) /* TODO: check for heap-overflow */
 #define __ALLOC1() --hp /* TODO: check for heap-overflow */
-#define __ALLOC0() hp /* TODO: check for heap-overfl(4*1024)
+#define __ALLOC0() hp /* TODO: check for heap-overfl(4*1024) */
 #define __ALLOCN(n) hp-=n /* TODO: check for heap-overflow */
 
 #define __INVOKE1(o, closure)\
@@ -206,7 +206,7 @@ enum __tag {
 union __header {
   enum __tag tag;
   __obj ignored;
-} __attribute__((packed,aligned(16)));
+} __attribute__((aligned(8)));
 
 union __unwrapped_obj {
   struct __unwrapped_immediate {
@@ -245,7 +245,7 @@ union __unwrapped_obj {
     __header header;
     __int value;
   } z;
-} __attribute__((packed,aligned(16)));
+} __attribute__((aligned(8)));
 
 union __wrapped_obj {
   struct __tagged {
@@ -274,7 +274,7 @@ union __wrapped_obj {
   struct __int {
     __int value;
   } z;
-} __attribute__((packed,aligned(16)));
+} __attribute__((aligned(8)));
 
 #define __WRAP(x) ((__obj)(((__header*)x)+1))
 #define __UNWRAP(x) ((__objref)(((__header*)x)-1))
@@ -289,7 +289,7 @@ union __wrapped_obj {
 #endif
 
 void __fatal(char*,...) __attribute__((noreturn));
-__unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(16)));
+__unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
 __objref hp;
 __obj __UNIT;
 __obj __TRUE;
