@@ -838,7 +838,11 @@ structure Cost = struct
           "raise",
           "query",
           "and",
+          "==",
+          "not",
           "^",
+          "arity0",
+          "unop",
           "binop",
           "ternop",
           "quaternop"])
@@ -848,6 +852,17 @@ structure Cost = struct
 
    fun isInliningCandidate t =
       let
+         fun CASES f {cases,conts,recs,apps,ccs} = 
+            {cases=f cases,conts=conts,recs=recs,apps=apps,ccs=ccs}
+         fun CONTS f {cases,conts,recs,apps,ccs} = 
+            {cases=cases,conts=f conts,recs=recs,apps=apps,ccs=ccs}
+         fun RECS f {cases,conts,recs,apps,ccs} = 
+            {cases=cases,conts=conts,recs=f recs,apps=apps,ccs=ccs}
+         fun APPS f {cases,conts,recs,apps,ccs} = 
+            {cases=cases,conts=conts,recs=recs,apps=f apps,ccs=ccs}
+         fun CCS f {cases,conts,recs,apps,ccs} = 
+            {cases=cases,conts=conts,recs=recs,apps=apps,ccs=f ccs}
+         fun inc t f n = f (fn m => n+m) t
          fun lp (t, n) =
             case t of
                LETVAL (_, FN (k, xs, K), L) => lp (K, lp (L, n))
@@ -858,16 +873,18 @@ structure Cost = struct
              | LETCONT (cs, body) =>
                foldl
                   (fn ((_, _, body), n) =>
-                     lp (body, n)) (lp (body, n)+1) cs
+                     lp (body, n)) (lp (body, inc n CONTS (length cs))) cs
              | LETREC (ds, body) =>
                foldl
                   (fn ((_, _, _, body), n) =>
-                     lp (body, n)) (lp (body, n)+5) ds
-             | CASE (_, cs) => n+List.length cs
-             | APP _ => n
-             | _ => n
+                     lp (body, n)) (lp (body, inc n RECS (length ds))) ds
+             | CASE (_, cs) => inc n CASES (length cs)
+             | APP _ => inc n APPS 1
+             | CC _ => inc n CCS 1
+         val ZERO = {cases=0,conts=0,recs=0,apps=0,ccs=0}
+         val {cases,recs,...} = lp (t, ZERO)
       in
-         lp (t, 0) <= 3
+         cases = 0 andalso recs = 0
       end
    fun mark () =
       FI.app
@@ -1550,7 +1567,7 @@ structure BetaContFunShrink = struct
                NONE => CC (k, ys)
              | SOME (xs, K) =>
                   if length xs <> length ys
-                     then (* CC (k, ys) *) raise Fail "betaContFunCons.Cont"
+                     then (* CC (k, ys) *) raise Fail "betaContFunShrink.arity"
                   else if not (inliningCandidate k)
                      then CC (k, ys)
                   else
