@@ -26,11 +26,13 @@ functor MkCPSPass (Core: CPSCORE) = struct
      Pretty.prettyTo (os, prettyPass t)
    end
 
+   fun runPass t = (CheckDefUse.run t; Core.run t)
+
    val pass =
       BasicControl.mkKeepPass
          {passName=Core.name,
           registry=CPSControl.registry,
-          pass=Core.run,
+          pass=runPass,
           preExt="cps",
           preOutput=dumpPre,
           postExt="cps",

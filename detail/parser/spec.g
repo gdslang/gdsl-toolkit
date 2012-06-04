@@ -89,10 +89,10 @@
      | mkRBinExp (e, [(id, e')]) = mkBinApp(e, id, e')
      | mkRBinExp (e, (id, e')::r) = mkBinApp(e, id, mkRBinExp(e', r))
 
-   (* turn a list of expressions into a tree of applications; remember that
-    * application associates to the left. *)
-   fun mkApply (e, []) = e
-     | mkApply (e, e'::r) = mkApply (PT.APPLYexp(e, e'), r)
+   fun mkApply (e, es) =
+      case es of
+         [] => e
+       | es => PT.APPLYexp(e, es)
 );
 
 Program
@@ -254,7 +254,7 @@ ApplyExp
       ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))) =>
          (mark PT.MARKexp (FULL_SPAN, exp))
    | "~" AtomicExp =>
-      (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, AtomicExp)))
+      (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, [AtomicExp])))
    ;
 
 AtomicExp

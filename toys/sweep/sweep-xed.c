@@ -51,8 +51,8 @@ int main (int argc, char** argv) {
     r = xed_decode(insn, blobb, sz);
     if (r==XED_ERROR_NONE) {
        len = xed_decoded_inst_get_length(insn);
-       xed_decoded_inst_dump_intel_format(insn,insnstr,128,0);
-       printf("%-27s\n",insnstr);
+       //xed_decoded_inst_dump_intel_format(insn,insnstr,128,0);
+       //printf("%-27s\n",insnstr);
     } else {
        invalid++;
        len = 1;

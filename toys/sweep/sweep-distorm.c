@@ -46,7 +46,7 @@ int main (int argc, char** argv) {
        invalid++;
        len = 1;
     }
-    printf("%s%s%s\n", (char*)insn.mnemonic.p, insn.operands.length != 0 ? " " : "", insn.operands.p);
+    //printf("%s%s%s\n", (char*)insn.mnemonic.p, insn.operands.length != 0 ? " " : "", insn.operands.p);
     blobb += len;
     sz-=len;
     offset += len;

@@ -57,11 +57,7 @@ structure DesugarDecode = struct
             (VarInfo.lookup
                (!SymbolTables.varTable, slice))
    in
-      APP
-         (APP
-            (APP (slice, ID tok),
-             INT offs),
-          INT sz) 
+      APP (slice, [ID tok, INT offs, INT sz])
    end
 
    fun returnExp tok = let
@@ -71,7 +67,7 @@ structure DesugarDecode = struct
             (VarInfo.lookup
                (!SymbolTables.varTable, return))
    in
-      APP (return, ID tok) 
+      APP (return, [ID tok]) 
    end
 
    fun buildEquivClass decls = let

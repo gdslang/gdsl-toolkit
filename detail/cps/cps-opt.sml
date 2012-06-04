@@ -15,6 +15,78 @@ structure Aux = struct
 
    fun atomOf x = VarInfo.getAtom (!variables, x)
    fun get s = VarInfo.lookup (!variables, Atom.atom s)
+   fun failWithSymbol msg sym =
+      msg ^ ": " ^ Layout.tostring (CPS.PP.var sym)
+      
+end
+
+structure CheckDefUse = struct
+   structure Set = SymSet
+   open CPS.Exp
+   infix ++
+   type t = Set.set
+
+   val census = ref Set.empty : t ref
+
+   fun def x =
+      if Set.member (!census, x)
+         then raise Fail
+               (Aux.failWithSymbol "checkDefUse.duplicateDefiniton" x)
+      else census := Set.add (!census, x)
+
+   fun use x = ()
+
+   fun visitTerm n cps =
+      case cps of
+         LETVAL (x, v, t) => (def x; visitCVal n v; visitTerm n t)
+       | LETREC (ds, t) => (app (visitDecl n) ds; visitTerm n t)
+       | LETPRJ (x, _, y, t) => (def x; use y; visitTerm n t)
+       | LETUPD (x, y, fs, t) =>
+            (def x
+            ;use y
+            ;app (visitField n) fs
+            ;visitTerm n t)
+       | LETCONT (ds, t) => (app (visitCont n) ds; visitTerm n t)
+       | APP (x, k, ys) =>
+            (use x
+            ;use k
+            ;app use ys)
+       | CC (k, xs) => (use k; app use xs)
+       | CASE (x, ks) => (use x; app (visitMatch n) ks)
+
+   and visitMatch n (_, (k, xs)) = (use k; app use xs)
+
+   and visitField n (_, v) = use v
+
+   and visitDecl n (f, k, xs, t) =
+      (def f
+      ;def k
+      ;app def xs
+      ;visitTerm n t)
+
+   and visitCont n (k, xs, t) =
+      (def k
+      ;app def xs
+      ;visitTerm n t)
+
+   and visitCVal n cval = 
+      case cval of
+         FN (k, xs, t) => (def k; app def xs; visitTerm n t)
+       | PRI (f, xs) => (use f; app use xs)
+       | INJ (_, x) => use x
+       | REC fs => app (visitField n) fs
+       | _ => () 
+         
+   fun run t =
+      let
+         val _ = census := Set.empty
+      in
+         visitTerm 1 t
+        ;census := Set.empty
+      end
+   val run = fn t =>
+      run t
+         handle (Fail s) => print ("Fail [" ^ s ^ "]\n")
 end
 
 structure Census = struct
@@ -46,7 +118,7 @@ structure Census = struct
          SOME i => census := SymMap.insert (!census, dst, i)
        | _ => ()
 
-   fun touch x =
+   fun def x =
       case SymMap.find (!census, x) of
          NONE => census := SymMap.insert (!census, x, {esc=0,app=0})
        | _ => ()
@@ -58,14 +130,14 @@ structure Census = struct
 
    fun E n {esc,app} = {esc=esc+n,app=app}
    fun A n {esc,app} = {esc=esc,app=app+n}
-   fun {esc=n,app=m} ++ {esc=p,app=q} = {esc=n+p-1,app=m+q-1}
+   fun {esc=n,app=m} ++ {esc=_,app=q} = {esc=n,app=m+q-1}
 
    fun remove x =
       if SymMap.inDomain (!census, x)
          then #1 (SymMap.remove (!census, x))
       else !census
 
-   fun extend x y =
+   fun extendApp x y =
       case SymMap.find (!census, y) of
          NONE => census := remove x
        | SOME n =>
@@ -74,8 +146,8 @@ structure Census = struct
                   NONE => !census
                 | SOME m => SymMap.insert (!census, x, m++n))
 
-   fun extendAll sigma xs ys =
-      app (fn (y, x) => extend y x)
+   fun extendAppAll sigma xs ys =
+      app (fn (y, x) => extendApp y x)
           (ListPair.zip (xs, ys))
 
    val remove = fn x => census := remove x
@@ -83,11 +155,11 @@ structure Census = struct
 
    fun visitTerm n cps =
       case cps of
-         LETVAL (x, v, t) => (touch x; visitCVal n v; visitTerm n t)
+         LETVAL (x, v, t) => (def x; visitCVal n v; visitTerm n t)
        | LETREC (ds, t) => (app (visitDecl n) ds; visitTerm n t)
-       | LETPRJ (x, _, y, t) => (touch x; update (E n) y; visitTerm n t)
+       | LETPRJ (x, _, y, t) => (def x; update (E n) y; visitTerm n t)
        | LETUPD (x, y, fs, t) =>
-            (touch x
+            (def x
             ;update (E n) y
             ;app (visitField n) fs
             ;visitTerm n t)
@@ -104,19 +176,19 @@ structure Census = struct
    and visitField n (_, v) = update (E n) v
 
    and visitDecl n (f, k, xs, t) =
-      (touch f
-      ;touch k
-      ;app touch xs
+      (def f
+      ;def k
+      ;app def xs
       ;visitTerm n t)
 
    and visitCont n (k, xs, t) =
-      (touch k
-      ;app touch xs
+      (def k
+      ;app def xs
       ;visitTerm n t)
 
    and visitCVal n cval = 
       case cval of
-         FN (k, xs, t) => (touch k; app touch xs; visitTerm n t)
+         FN (k, xs, t) => (def k; app def xs; visitTerm n t)
        | PRI (f, xs) => (update (A n) f; app (update (E n)) xs)
        | INJ (_, x) => update (E n) x
        | REC fs => app (visitField n) fs
@@ -766,7 +838,11 @@ structure Cost = struct
           "raise",
           "query",
           "and",
+          "==",
+          "not",
           "^",
+          "arity0",
+          "unop",
           "binop",
           "ternop",
           "quaternop"])
@@ -776,6 +852,17 @@ structure Cost = struct
 
    fun isInliningCandidate t =
       let
+         fun CASES f {cases,conts,recs,apps,ccs} = 
+            {cases=f cases,conts=conts,recs=recs,apps=apps,ccs=ccs}
+         fun CONTS f {cases,conts,recs,apps,ccs} = 
+            {cases=cases,conts=f conts,recs=recs,apps=apps,ccs=ccs}
+         fun RECS f {cases,conts,recs,apps,ccs} = 
+            {cases=cases,conts=conts,recs=f recs,apps=apps,ccs=ccs}
+         fun APPS f {cases,conts,recs,apps,ccs} = 
+            {cases=cases,conts=conts,recs=recs,apps=f apps,ccs=ccs}
+         fun CCS f {cases,conts,recs,apps,ccs} = 
+            {cases=cases,conts=conts,recs=recs,apps=apps,ccs=f ccs}
+         fun inc t f n = f (fn m => n+m) t
          fun lp (t, n) =
             case t of
                LETVAL (_, FN (k, xs, K), L) => lp (K, lp (L, n))
@@ -786,16 +873,18 @@ structure Cost = struct
              | LETCONT (cs, body) =>
                foldl
                   (fn ((_, _, body), n) =>
-                     lp (body, n)) (lp (body, n)+1) cs
+                     lp (body, n)) (lp (body, inc n CONTS (length cs))) cs
              | LETREC (ds, body) =>
                foldl
                   (fn ((_, _, _, body), n) =>
-                     lp (body, n)) (lp (body, n)+5) ds
-             | CASE (_, cs) => n+List.length cs
-             | APP _ => n
-             | _ => n
+                     lp (body, n)) (lp (body, inc n RECS (length ds))) ds
+             | CASE (_, cs) => inc n CASES (length cs)
+             | APP _ => inc n APPS 1
+             | CC _ => inc n CCS 1
+         val ZERO = {cases=0,conts=0,recs=0,apps=0,ccs=0}
+         val {cases,recs,...} = lp (t, ZERO)
       in
-         lp (t, 0) <= 3
+         cases <= 2 andalso recs = 0
       end
    fun mark () =
       FI.app
@@ -1268,7 +1357,7 @@ structure BetaContFun = struct
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
                   if length xs > length ys
-                     then raise Fail "betaContFun.partialapplication" 
+                     then raise Fail (Aux.failWithSymbol "betaContFun.partialapplication" f)
                   else if length xs < length ys
                      then APP (f, j, ys)
                   else if length xs = length ys andalso isInliningCandidate f K
@@ -1309,7 +1398,7 @@ structure BetaContFun = struct
       end
 end
 
-structure BetaContFunConservative = struct
+structure BetaContFunShrink = struct
    structure FI = FunInfo
    structure Map = SymMap
    structure Set = SymSet
@@ -1369,12 +1458,11 @@ structure BetaContFunConservative = struct
                      let
                         val L = simplify env' sigma L
                      in
-                        if Census.count#app f = 0
-                                andalso Census.count#esc f = 0
-                           then
-                              if gotInlined f
-                                 then L
-                              else (Census.visitTerm ~1 K; L)
+                        if gotInlined f
+                           then L
+                        else if Census.count#app k = 0
+                                    andalso Census.count#esc k = 0
+                           then (Census.visitTerm ~1 K; L)
                         else
                            LETVAL (f, FN (k, xs, simplify env sigma K), L)
                      end
@@ -1414,15 +1502,16 @@ structure BetaContFunConservative = struct
             
             val L = simplify env' sigma L
 
-            fun visit (f, k, xs, K) =
-               if Census.count#app f = 0 andalso Census.count#esc f = 0
-                  then
-                     if gotInlined f
-                        then NONE
-                     else (Census.visitTerm ~1 K; NONE)
-               else SOME (f, k, xs, simplify env' sigma K)
+            fun simplify0 (f, k, xs, K) = (f, k, xs, simplify env' sigma K)
+            fun filter (f, k, xs, K) =
+               if gotInlined f
+                  then NONE
+               else if Census.count#app f = 0
+                        andalso Census.count#esc f = 0
+                  then (Census.visitTerm ~1 K; NONE)
+               else SOME (f, k, xs, K)
          in
-            case List.mapPartial visit ds of
+            case List.mapPartial filter (List.map simplify0 ds) of
                [] => L
              | ds => LETREC (ds, L) 
          end
@@ -1435,40 +1524,40 @@ structure BetaContFunConservative = struct
                      let
                         val L = simplify env' sigma L
                      in
-                        if Census.count#app k = 0
-                                andalso Census.count#esc k = 0
-                           then
-                              if gotInlined k
-                                 then L
-                              else (Census.visitTerm ~1 K; L)
+                        if gotInlined k
+                           then L
+                        else if Census.count#app k = 0
+                                    andalso Census.count#esc k = 0
+                           then (Census.visitTerm ~1 K; L)
                         else
-                           LETCONT ([(k, xs, simplify env sigma K)], L)
+                           LETCONT ([(k, xs, simplify env' sigma K)], L)
                      end
                else
                   LETCONT ([(k, xs, simplify env' sigma K)],
                      simplify env' sigma L)
             end
-      | LETCONT (cs, L) =>
-         let
-            val env' = 
-               foldl
-                  (fn ((k, xs, K), env) =>
-                     insertCont (env, k, (xs, K))) env cs
+      | LETCONT (ds, L) =>
+            let
+               val env' = 
+                  foldl
+                     (fn ((k, xs, K), env) =>
+                        insertCont (env, k, (xs, K))) env ds
+            
+               val L = simplify env' sigma L
 
-            val L = simplify env' sigma L
-
-            fun visit (k, xs, K) =
-               if Census.count#app k = 0 andalso Census.count#esc k = 0
-                  then
-                     if gotInlined k
-                        then NONE
-                     else (Census.visitTerm ~1 K; NONE)
-               else SOME (k, xs, simplify env' sigma K)
-         in
-            case List.mapPartial visit cs of
-               [] => L
-             | cs => LETCONT (cs, L)
-         end
+               fun simplify0 (k, xs, K) = (k, xs, simplify env' sigma K)
+               fun filter (k, xs, K) =
+                  if gotInlined k
+                     then NONE
+                  else if Census.count#app k = 0
+                           andalso Census.count#esc k = 0
+                     then (Census.visitTerm ~1 K; NONE)
+                  else SOME (k, xs, K)
+            in
+               case List.mapPartial filter (List.map simplify0 ds) of
+                  [] => L
+                | ds => LETCONT (ds, L) 
+            end
       | CC (k, ys) =>
          let
             val k = Subst.apply sigma k
@@ -1478,7 +1567,7 @@ structure BetaContFunConservative = struct
                NONE => CC (k, ys)
              | SOME (xs, K) =>
                   if length xs <> length ys
-                     then (* CC (k, ys) *) raise Fail "betaContFunCons.Cont"
+                     then (* CC (k, ys) *) raise Fail "betaContFunShrink.arity"
                   else if not (inliningCandidate k)
                      then CC (k, ys)
                   else
@@ -1487,7 +1576,7 @@ structure BetaContFunConservative = struct
                         val _ = markInlined k
                         val sigma = Subst.extendAll sigma ys xs
                         val _ = Census.update (Census.A ~1) k
-                        val _ = Census.extendAll ys xs
+                        val _ = Census.extendAppAll ys xs
                         val K = simplify env sigma K
                      in
                         K
@@ -1510,8 +1599,8 @@ structure BetaContFunConservative = struct
                            val sigma = Subst.extend sigma j k
                            val sigma = Subst.extendAll sigma ys xs
                            val _ = Census.update (Census.A ~1) f
-                           val _ = Census.extend j k
-                           val _ = Census.extendAll ys xs
+                           val _ = Census.extendApp j k
+                           val _ = Census.extendAppAll ys xs
                            val K = simplify env sigma K
                         in
                            K
@@ -1527,7 +1616,7 @@ structure BetaContFunConservative = struct
        | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
        | otherwise => otherwise
   
-   val name = "betaContFunConservative"
+   val name = "betaContFunShrink"
    fun run t =
       let
          val _ = reset ()
@@ -1536,8 +1625,182 @@ structure BetaContFunConservative = struct
          val _ = Census.run t
          val _ = Cost.run()
          val t' = simplify Map.empty Subst.empty t
+         val _ =
+            Map.appi (fn (f, n) =>
+               if n <> 1
+                  then raise Fail
+                     (Aux.failWithSymbol
+                        "betaContFunShrink.bug.inlinedMoreThanOnce" f)
+               else ())
+               (!inlined)
+      in
+         (t', !clicks)
+      end
+   fun fix t = 
+      let
+         fun lp (t, acc) =
+            let
+               val (t, clicks) = run t
+               val _ = CheckDefUse.run t
+            in
+               if clicks = 0
+                  then (t, acc)
+               else lp (t, clicks+acc)
+            end
+      in
+         lp (t, 0)
+      end
+   val run = fix
+end
+
+structure BetaContract = struct
+   structure FI = FunInfo
+   structure Map = SymMap
+   structure Set = SymSet
+   open CPS CPS.Exp
+
+   structure Avail = struct
+      datatype t = datatype cval
+      type ord_key = t
+      fun toInt v =
+         case v of
+            FN _ => 0
+          | PRI _ => 1
+          | INJ _ => 2
+          | REC _ => 3
+          | INT _ => 4
+          | FLT _ => 5
+          | STR _ => 6
+          | VEC _ => 7
+          | UNT => 8
+
+      fun compareSym (a, b) = SymbolTable.compare_symid (a, b)
+      fun compare2 ((a, b), (c, d)) =
+         case compareSym (a, c) of
+            EQUAL => compareSym (b, d)
+          | cmp => cmp
+      fun compareMany (xs, ys) =
+         case (xs, ys) of
+            ([], []) => EQUAL
+          | ([], _) => LESS
+          | (_, []) => GREATER
+          | (x::xs, y::ys) =>
+               case compareSym (x, y) of
+                  EQUAL => compareMany (xs, ys)
+                | cmp => cmp
+      fun comparePayload (a, b) =
+         case (a, b) of
+            (PRI (a,xs), PRI (b,ys)) =>
+               (case compareSym (a, b) of
+                  EQUAL => compareMany (xs, ys)
+                | cmp => cmp)
+          | (INT a, INT b) => IntInf.compare (a, b)
+          | (STR a, STR b) => String.compare (a, b)
+          | (VEC a, VEC b) => String.compare (a, b)
+          | (INJ a, INJ b) => compare2 (a, b)
+          | (UNT, UNT) => EQUAL
+          | _ => LESS
+      fun compare (a, b) = 
+         case Int.compare (toInt a, toInt b) of
+            EQUAL => comparePayload (a, b)
+          | cmp => cmp
+   end
+   structure Map = RedBlackMapFn(Avail)
+
+   val clicks = ref 0
+   fun click () = clicks := !clicks + 1
+   fun reset () = clicks := 0
+
+   val empty = Map.empty
+   fun bind (env, v, x) = Map.insert (env, v, x)
+   fun lookup (env, v) = Map.find (env, v) 
+
+   fun simplify env sigma t =
+      case t of
+         LETVAL (x, v, L) =>
+            let
+               val v = simplifyVal env sigma v
+            in
+               case lookup (env, v) of
+                  NONE => 
+                     LETVAL (x, v,
+                        simplify (bind (env,v,x)) sigma L)
+                | SOME y =>
+                     (click()
+                     ;simplify env (Subst.extend sigma y x) L)
+            end
+       | LETPRJ (x, f, y, t) =>
+            LETPRJ
+               (x,
+                f,
+                Subst.apply sigma y,
+                simplify env sigma t)
+       | LETUPD (x, y, fs, t) =>
+            LETUPD
+               (x,
+                Subst.apply sigma y,
+                map (fn (f, z) => (f, Subst.apply sigma z)) fs,
+                simplify env sigma t)
+       | CASE (x, cs) =>
+            let
+               val x = Subst.apply sigma x
+               val cs =
+                  map (fn (tags,(k,xs)) =>
+                     (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs
+               fun matchh tag =
+                  case lookup (env, VEC (Word.toString tag)) of
+                     NONE => false
+                   | SOME y => SymbolTable.eq_symid (x, y)
+               fun boundTag (tags, _) = List.exists matchh tags
+            in
+               case List.find boundTag cs of
+                  NONE => CASE (x, cs)
+                | SOME (_,(k,xs)) => (click();CC (k, xs))
+            end
+       | LETREC (ds, L) =>
+            let
+               fun visit (f, k, xs, K) =
+                  (f, k, xs, simplify empty sigma K)
+            in
+               LETREC (map visit ds, simplify env sigma L) 
+            end
+       | LETCONT (ds, L) =>
+            let
+               fun visit (k, xs, K) =
+                  (k, xs, simplify empty sigma K)
+            in
+               LETCONT (map visit ds, simplify env sigma L) 
+            end
+       | CC (k, ys) =>
+            let
+               val k = Subst.apply sigma k
+               val ys = Subst.applyAll sigma ys
+            in
+               CC (k, ys)
+            end
+       | APP (f, j, ys) =>
+            let
+               val f = Subst.apply sigma f
+               val j = Subst.apply sigma j
+               val ys = Subst.applyAll sigma ys
+            in
+               APP (f, j, ys)
+            end
+   
+   and simplifyVal env sigma v =
+      case v of
+         FN (k, x, t) => FN (k, x, simplify empty sigma t)
+       | INJ (t, x) => INJ (t, Subst.apply sigma x)
+       | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
+       | otherwise => otherwise
+  
+   val name = "betaContract"
+   fun run t =
+      let
+         val _ = reset ()
+         val t' = simplify empty Subst.empty t
       in
          (t', !clicks)
       end
 end
-

@@ -36,10 +36,10 @@ end = struct
          val slice = get "slice"
          val answer = field (Atom.atom "1")
          val state = field (Atom.atom "2")
-         fun select (f, e) = APP (SELECT f, e)
+         fun select (f, e) = APP (SELECT f, [e])
          val fresh = fresh o Atom.atom
 
-         (* val >>= aM a2bM s =
+         (* val >>= aM a2bM =
           *    letval a = aM s in
           *    letval m = a2bM (#1 a) in
           *       m (#2 a)
@@ -53,11 +53,11 @@ end = struct
                val a = fresh "a"
                val m = fresh "m"
                val body =
-                   LETVAL (a, APP (ID aM, ID s),
-                   LETVAL (m, APP (ID a2bM, select (answer, ID a)),
-                      APP (ID m, select (state, ID a))))
+                   LETVAL (a, APP (ID aM, [ID s]),
+                   LETVAL (m, APP (ID a2bM, [select (answer, ID a)]),
+                      APP (ID m, [select (state, ID a)])))
             in
-               (>>=, [aM, a2bM, s], body)
+               (>>=, [aM, a2bM], FN (s, body))
             end
 
          (* val >> aM bM s =
@@ -72,10 +72,10 @@ end = struct
                val a = fresh "a"
                val s = fresh "s"
                val body = 
-                  LETVAL (a, APP (ID aM, ID s),
-                     APP (ID bM, select (state, ID a)))
+                  LETVAL (a, APP (ID aM, [ID s]),
+                     APP (ID bM, [select (state, ID a)]))
             in
-               (>>, [aM, bM, s], body)
+               (>>, [aM, bM], FN (s, body))
             end
 
          (* val query f s = {1=f s, 2=s} *)
@@ -85,10 +85,10 @@ end = struct
                val s = fresh "s"
                val e =
                   RECORD
-                     [(answer, APP (ID f, ID s)),
+                     [(answer, APP (ID f, [ID s])),
                       (state, ID s)]
             in
-               (query, [f, s], e)
+               (query, [f], FN (s, e))
             end
 
          (* val update u s = {1={}, 2=u s} *)
@@ -99,9 +99,9 @@ end = struct
                val e =
                   RECORD
                      [(answer, RECORD []),
-                      (state, APP (ID u, ID s))]
+                      (state, APP (ID u, [ID s]))]
             in
-               (update, [u, s], e)
+               (update, [u], FN (s, e))
             end
 
          (* val return a s = {1=a, 2=s} *)
@@ -114,7 +114,7 @@ end = struct
                      [(answer, ID a),
                       (state, ID s)]
             in
-               (return, [a, s], e)
+               (return, [a], FN (s, e))
             end
       in
          [>>=, >>, return, update, query]
@@ -130,7 +130,7 @@ end = struct
        | LETREC (ds, body) => LETREC (map desugarDecl ds, desugar body)
        | IF (iff, thenn, elsee) => IF (desugar iff, desugar thenn, desugar elsee)
        | CASE (e, ps) => CASE (desugar e, map desugarCase ps)
-       | APP (e1, e2) => APP (desugar e1, desugar e2)
+       | APP (e1, es) => APP (desugar e1, map desugar es)
        | FN (n, e) => FN (n, desugar e)
        | RECORD fs => RECORD (map desugarField fs)
        | UPDATE fs => UPDATE (map desugarField fs)
@@ -153,8 +153,8 @@ end = struct
       fun lp ss =
          case ss of
             [ACTION a] => desugar a
-          | BIND (n, a)::ss => APP (APP (ID >>=, desugar a), FN (n, lp ss))
-          | ACTION a::ss => APP (APP (ID >>, desugar a), lp ss)
+          | BIND (n, a)::ss => APP (ID >>=, [desugar a, FN (n, lp ss)])
+          | ACTION a::ss => APP (ID >>, [desugar a, lp ss])
           | _ => raise CM.CompilationError
    in
       lp (flattenSeq ss)

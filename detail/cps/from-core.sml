@@ -94,7 +94,7 @@ end = struct
             let
                val a = fresh "a"
                val primRaise = get "%raise"
-               val body = APP (ID return, PRI (primRaise, [a]))
+               val body = APP (ID return, [PRI (primRaise, [a])])
             in
                (raisee, [a], body)
             end
@@ -106,7 +106,7 @@ end = struct
                val offs = fresh "offs"
                val sz = fresh "sz"
                val primSlice = get "%slice"
-               val body = APP (ID return, PRI (primSlice, [tok, offs, sz]))
+               val body = APP (ID return, [PRI (primSlice, [tok, offs, sz])])
             in
                (slice, [tok, offs, sz], body) 
             end
@@ -245,14 +245,22 @@ end = struct
             in
                trans0 e (fn z => trans z ps [] [])
             end
-       | APP (e1, e2) =>
+       | APP (e1, es) =>
             let
                val k = fresh continuation
                val x = fresh variable
+               fun trans es xs k =
+                  case es of
+                     e::es => trans0 e (fn x => trans es (x::xs) k)
+                   | [] => k (rev xs)
             in
-               trans0 e1 (fn x1 =>
+               (* trans0 e1 (fn x1 =>
                   trans0 e2 (fn x2 =>
                      Exp.LETCONT ([(k, [x], kappa x)], Exp.APP (x1, k, [x2]))))
+               *)
+               trans0 e1 (fn x1 =>
+                  trans es [] (fn xs =>
+                     Exp.LETCONT ([(k, [x], kappa x)], Exp.APP (x1, k, xs))))
             end
        | PRI (f, xs) =>
             let
@@ -409,10 +417,6 @@ end = struct
    and trans0rec (n, args, e) =
       let
          val k = fresh continuation
-         fun unfold (xs, e) =
-            case xs of
-               [] => e
-             | x::xs => FN (x, unfold (xs, e))
       in
          case args of
             [] =>
@@ -420,10 +424,9 @@ end = struct
                   val x = fresh variable
                in
                   (* TODO *)
-                  (n, k, [x], trans1 (APP (e, ID x)) k)
+                  (n, k, [x], trans1 (APP (e, [ID x])) k)
                end
-          | [x] => (n, k, args, trans1 e k)
-          | x::xs => (n, k, [x], trans1 (unfold (xs, e)) k)
+          | args => (n, k, args, trans1 e k)
       end
 
    and trans1 e kont =
@@ -463,10 +466,21 @@ end = struct
             in
                trans0 e (fn z => trans z ps [] [])
             end
-       | APP (e1, e2) =>
-            trans0 e1 (fn x1 =>
+       | APP (e1, es) =>
+            let
+               fun trans es xs k =
+                  case es of
+                     e::es => trans0 e (fn x => trans es (x::xs) k)
+                   | [] => k (rev xs)
+            in
+            (* trans0 e1 (fn x1 =>
                trans0 e2 (fn x2 =>
                   Exp.APP (x1, kont, [x2])))
+            *)
+               trans0 e1 (fn x1 =>
+                  trans es [] (fn xs =>
+                     Exp.APP (x1, kont, xs)))
+            end
        | PRI (f, xs) =>
             let
                val x = fresh variable

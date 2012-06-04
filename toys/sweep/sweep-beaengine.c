@@ -1,22 +1,15 @@
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <bfd.h>
-#include <dis.h>
-#include <pretty.h>
-
-void hexlify (unsigned char* in, size_t len, char* out) {
-  int i;
-  for (i=0;i<len;i++) {
-    sprintf(out,"%02x",in[i]&0xff);
-    out+=2;
-  }
-}
+#include <beaengine/BeaEngine.h>
 
 int main (int argc, char** argv) {
   if (argc < 2)
     exit(1);
   const char* fn=argv[1];
   fprintf(stderr,"file is %s\n",fn);
-
   bfd_init();
   bfd* bfd = bfd_openr(fn, NULL);
   if (bfd==NULL)
@@ -28,35 +21,36 @@ int main (int argc, char** argv) {
     exit(1);
   unsigned char* blob;
   bfd_size_type sz = s->size;
-
   fprintf(stderr,".text is %zu bytes\n",sz);
-
   if(!bfd_malloc_and_get_section(bfd,s,&blob))
     exit(1);
 
-  __word len;
+  DISASM disObj;
+  DISASM* dis = &disObj;
+  memset(dis,0,sizeof(DISASM));
+
+  unsigned int len;
   unsigned char* blobb = blob;
   unsigned int invalid = 0;
   unsigned int n = 0;
-  __obj insn;
+  dis->Archi = 64;
   do {
-    len = __decode(__decode__,blobb,sz,&insn);
-    if (___isNil(insn)) {
+    dis->EIP = (UIntPtr)blobb;
+    dis->SecurityBlock = sz; 
+    len = Disasm(dis);
+    if (len==OUT_OF_BLOCK) {
+      fprintf(stderr,"out-of-block-error");
+      exit(1);
+    } else if (len==UNKNOWN_OPCODE) {
       invalid++;
       len = 1;
-    } else {
-      //prettyln(insn);
-      __resetHeap();
-    }
+    } //else {
+      //puts(dis->CompleteInstr);
+    //}
     blobb += len;
-    sz -= len;
+    sz-=len;
     n++;
   } while(len > 0 && sz > 0);
   fprintf(stderr,"decoded %u opcode sequences (%u invalid/unknown)\n", n, invalid);
   return (0);
 }
-
-/* vim:cindent
- * vim:ts=2
- * vim:sw=2
- * vim:expandtab */

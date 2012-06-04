@@ -1,11 +1,76 @@
 
 (**
  * ## Inlining of decode patterns.
- *
- *   - Inlining in presence of guarded decode declarations
- *     might lead to code size explosion. We might tackle this
- *     when the need arises.
  *)
+
+structure ASTSubst = struct
+   val empty = SymMap.empty
+   fun apply sigma x =
+      case SymMap.find (sigma, x) of
+         NONE => x
+       | SOME y => y
+   fun applyAll sigma xs = map (apply sigma) xs
+   fun extend sigma x y = SymMap.insert (sigma, y, x)
+   fun extendAll sigma xs ys =
+      foldl
+         (fn ((y, x), sigma) =>
+            extend sigma y x)
+         sigma (ListPair.zip (xs, ys))
+
+   fun copy x =
+      let
+         val name = Aux.atomOf x
+         val x' = Aux.fresh name
+      in
+         x'
+      end
+
+   fun singleton y x = extend empty y x
+
+   local open SpecAbstractTree in
+
+   fun run sigma t = visitExp sigma t
+
+   and visitExp sigma t =
+      case t of
+         MARKexp t => visitExp sigma (#tree t)
+       | LETRECexp (ds, e) =>
+            LETRECexp (map (visitRec sigma) ds, visitExp sigma e)
+       | IFexp (iff, thenn, elsee) =>
+            IFexp
+               (visitExp sigma iff,
+                visitExp sigma thenn,
+                visitExp sigma elsee)
+       | CASEexp (e, cs) =>
+            CASEexp (visitExp sigma e, map (visitCase sigma) cs)
+       | BINARYexp (e1, binop, e2) =>
+            BINARYexp (visitExp sigma e1, binop, visitExp sigma e2)
+       | APPLYexp (e, es) =>
+            APPLYexp (visitExp sigma e, map (visitExp sigma) es)
+       | RECORDexp fs =>
+            RECORDexp (map (visitField sigma) fs)
+       | UPDATEexp fs => 
+            UPDATEexp (map (visitField sigma) fs)
+       | SEQexp es =>
+            SEQexp (map (visitSeqexp sigma) es)
+       | FNexp (x, e) =>
+            FNexp (x, visitExp sigma e)
+       | IDexp sym =>
+            IDexp (apply sigma sym)
+       | otherwise => otherwise
+
+   and visitRec sigma (f, xs, e) = (f, xs, visitExp sigma e)
+   and visitCase sigma (pat, e) = (pat, visitExp sigma e)
+   and visitField sigma (f, e) = (f, visitExp sigma e)
+   and visitSeqexp sigma t =
+      case t of
+         MARKseqexp t => visitSeqexp sigma (#tree t)
+       | ACTIONseqexp e => ACTIONseqexp (visitExp sigma e)
+       | BINDseqexp (x, e) => BINDseqexp (x, visitExp sigma e)
+
+   end
+end
+ 
 structure InlineDecodePatterns : sig
    val run: DesugarGuards.o -> DesugarGuards.o CompilationMonad.t
 end = struct
@@ -56,11 +121,27 @@ end = struct
           | NAMEDtokpat x => inline (x, exp)
           | _ => [([TOKENdecodepat tokpat], exp)]
 
+      and renamePatternBinding (pat, exp) =
+         case pat of
+            BITVECbitpat (x, lit) =>
+               let
+                  val y = ASTSubst.copy x
+                  val exp = ASTSubst.run (ASTSubst.singleton y x) exp
+               in
+                  (BITVECbitpat (y, lit), exp)
+               end
+          | otherwise => (otherwise, exp)
+
       and flattenBitPat (bitpat, exp) =
          case bitpat of
             MARKbitpat t' => flattenBitPat (#tree t', exp)
           | NAMEDbitpat x => inline (x, exp)
-          | _ => [([BITdecodepat [bitpat]], exp)]
+          | _ =>
+            let
+               val (bitpat, exp) = renamePatternBinding (bitpat, exp)
+            in
+               [([BITdecodepat [bitpat]], exp)]
+            end
 
       and flattenDecodePat (decodepat, exp) =
          case decodepat of

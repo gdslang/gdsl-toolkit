@@ -375,9 +375,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                AST.MARKexp ({tree = infixToExp t, span = s})
            | infixToExp (AST.OPinfixop opid) = AST.IDexp opid
       in
-         infExp stenv (AST.APPLYexp (AST.APPLYexp (infixToExp binop, e1), e2))
+         infExp stenv (AST.APPLYexp (AST.APPLYexp (infixToExp binop, [e1]),
+         [e2]))
       end
-     | infExp (st,env) (AST.APPLYexp (e1,e2)) =
+     | infExp (st,env) (AST.APPLYexp (e1,[e2])) =
       let                                      
          val envFun = infExp (st,env) e1
          val envArg = infExp (st,env) e2

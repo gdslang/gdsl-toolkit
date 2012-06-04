@@ -1,7 +1,12 @@
 
 #include <stdlib.h>
+#include <stdarg.h>
 #include <bfd.h>
 #include <dis-asm.h>
+
+int myfprintf (void* unused, char* fmt, ...) {
+  return (0);
+}
 
 int main (int argc, char** argv) {
   if (argc < 2)
@@ -33,7 +38,7 @@ int main (int argc, char** argv) {
   struct disassemble_info* di = &diObj;
   disassembler_ftype dis = disassembler(bfd);
   if (dis == NULL) exit(1);
-  init_disassemble_info(di, stdout, (fprintf_ftype)fprintf);
+  init_disassemble_info(di, stdout, (fprintf_ftype)myfprintf);
   //di->print_address_func = override_print_address;
   di->arch = bfd_get_arch(bfd);
   di->mach = bfd_get_mach(bfd);
@@ -48,7 +53,7 @@ int main (int argc, char** argv) {
   unsigned int pc = s->vma;
   do {
     len = dis(pc,di);
-    printf("\n");
+    //printf("\n");
     //if (udis->mnemonic==UD_Iinvalid)
     //   invalid++;
     blobb += len;

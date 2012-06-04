@@ -218,9 +218,10 @@ SpecTokens
      | mkRBinExp (e, [(id, e')]) = mkBinApp(e, id, e')
      | mkRBinExp (e, (id, e')::r) = mkBinApp(e, id, mkRBinExp(e', r))
 
-   
-   fun mkApply (e, []) = e
-     | mkApply (e, e'::r) = mkApply (PT.APPLYexp(e, e'), r)
+   fun mkApply (e, es) =
+      case es of
+         [] => e
+       | es => PT.APPLYexp(e, es)
 
 
 fun Program_PROD_1_ACT (SR, Decl, SR_SPAN : (Lex.pos * Lex.pos), Decl_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -366,7 +367,7 @@ fun ApplyExp_PROD_1_ACT (exp, AtomicExp, exp_SPAN : (Lex.pos * Lex.pos), AtomicE
          mark PT.MARKexp (FULL_SPAN, exp))
 fun ApplyExp_PROD_2_ACT (TILDE, AtomicExp, TILDE_SPAN : (Lex.pos * Lex.pos), AtomicExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-      mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, AtomicExp)))
+      mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, [AtomicExp])))
 fun AtomicExp_PROD_1_ACT (Lit, Lit_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
 fun AtomicExp_PROD_2_ACT (Qid, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
