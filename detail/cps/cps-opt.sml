@@ -1445,7 +1445,7 @@ structure BetaContFunShrink = struct
                            then L
                         else if Census.count#app k = 0
                                     andalso Census.count#esc k = 0
-                           then (Census.visitTerm ~1 K;L)
+                           then (Census.visitTerm ~1 K; L)
                         else
                            LETVAL (f, FN (k, xs, simplify env sigma K), L)
                      end
@@ -1478,14 +1478,6 @@ structure BetaContFunShrink = struct
                   (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
       | LETREC (ds, L) =>
          let
-            val L = simplify env sigma L
-            fun visit (f, k, xs, K) = (f, k, xs, simplify env sigma K)
-         in
-            LETREC (map visit ds, L)
-         end
-      (*
-      | LETREC (ds, L) =>
-         let
             val env' = 
                foldl
                   (fn ((f, k, xs, K), env) =>
@@ -1493,19 +1485,19 @@ structure BetaContFunShrink = struct
             
             val L = simplify env' sigma L
 
-            fun visit (f, k, xs, K) =
-               if Census.count#app f = 0 andalso Census.count#esc f = 0
-                  then
-                     if gotInlined f
-                        then NONE
-                     else (Census.visitTerm ~1 K; NONE)
-               else SOME (f, k, xs, simplify env' sigma K)
+            fun simplify0 (f, k, xs, K) = (f, k, xs, simplify env' sigma K)
+            fun filter (f, k, xs, K) =
+               if gotInlined f
+                  then NONE
+               else if Census.count#app f = 0
+                        andalso Census.count#esc f = 0
+                  then (Census.visitTerm ~1 K; NONE)
+               else SOME (f, k, xs, K)
          in
-            case List.mapPartial visit ds of
+            case List.mapPartial filter (List.map simplify0 ds) of
                [] => L
              | ds => LETREC (ds, L) 
          end
-      *)
       | LETCONT ([(k, xs, K)], L) =>
             let
                val env' = insertCont (env, k, (xs, K))
@@ -1519,7 +1511,7 @@ structure BetaContFunShrink = struct
                            then L
                         else if Census.count#app k = 0
                                     andalso Census.count#esc k = 0
-                           then (Census.visitTerm ~1 K;L)
+                           then (Census.visitTerm ~1 K; L)
                         else
                            LETCONT ([(k, xs, simplify env' sigma K)], L)
                      end
@@ -1529,34 +1521,26 @@ structure BetaContFunShrink = struct
             end
       | LETCONT (ds, L) =>
             let
-               val L = simplify env sigma L
-               fun visit (k, xs, body) = (k, xs, simplify env sigma body)
+               val env' = 
+                  foldl
+                     (fn ((k, xs, K), env) =>
+                        insertCont (env, k, (xs, K))) env ds
+            
+               val L = simplify env' sigma L
+
+               fun simplify0 (k, xs, K) = (k, xs, simplify env' sigma K)
+               fun filter (k, xs, K) =
+                  if gotInlined k
+                     then NONE
+                  else if Census.count#app k = 0
+                           andalso Census.count#esc k = 0
+                     then (Census.visitTerm ~1 K; NONE)
+                  else SOME (k, xs, K)
             in
-                LETCONT (map visit ds, L)
+               case List.mapPartial filter (List.map simplify0 ds) of
+                  [] => L
+                | ds => LETCONT (ds, L) 
             end
-      (*      
-      | LETCONT (cs, L) =>
-         let
-            val env' = 
-               foldl
-                  (fn ((k, xs, K), env) =>
-                     insertCont (env, k, (xs, K))) env cs
-
-            val L = simplify env' sigma L
-
-            fun visit (k, xs, K) =
-               if Census.count#app k = 0 andalso Census.count#esc k = 0
-                  then
-                     if gotInlined k
-                        then NONE
-                     else (Census.visitTerm ~1 K; NONE)
-               else SOME (k, xs, simplify env' sigma K)
-         in
-            case List.mapPartial visit cs of
-               [] => L
-             | cs => LETCONT (cs, L)
-         end
-      *)
       | CC (k, ys) =>
          let
             val k = Subst.apply sigma k
@@ -1629,12 +1613,27 @@ structure BetaContFunShrink = struct
                if n <> 1
                   then raise Fail
                      (Aux.failWithSymbol
-                        "betaContFunShrink.bug.inlinedmorethanonce" f)
+                        "betaContFunShrink.bug.inlinedMoreThanOnce" f)
                else ())
                (!inlined)
       in
          (t', !clicks)
       end
+   fun fix t = 
+      let
+         fun lp (t, acc) =
+            let
+               val (t, clicks) = run t
+               val _ = CheckDefUse.run t
+            in
+               if clicks = 0
+                  then (t, acc)
+               else lp (t, clicks+acc)
+            end
+      in
+         lp (t, 0)
+      end
+   val run = fix
 end
 
 structure BetaContract = struct
