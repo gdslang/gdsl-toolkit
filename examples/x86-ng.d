@@ -377,7 +377,6 @@ val p/66/f3/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [/rex-p] = p/66/f3/f2
 val p/66/f3/f2 [] = after /f2 (after /f3 (after /66 /))
-
 datatype register =
    AL
  | AH
@@ -1994,14 +1993,6 @@ val / [0x0f '11001 r:3']
  | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end 
  | otherwise = do update@{reg/opcode=r}; unop BSWAP r32/rexb end
 
-### NOP 4-12 Vol. 2B
-#val / [0x90] = arity0 NOP
-#val /66 [0x90] = arity0 NOP
-val /66 [0x0f 0x1f /0] = binop NOP r/m16 r16
-val / [0x0f 0x1f /0]
- | rexw? = binop NOP r/m64 r64
- | otherwise = binop NOP r/m32 r32
-
 ### XCHG Vol. 2A 4-510
 val / ['10010 r:3']
  | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end 
@@ -2101,20 +2092,6 @@ val / [0xf7 /7]
 
 ### DIVSD Vol. 2A 3-309
 val /f2 [0x0f 0x5e /r] = binop DIVSD xmm128 xmm/m64
-
-### MUL 3-746 Vol. 2A
-val / [0xf6 /4] = unop MUL r/m8
-val / [0xf7 /4]
- | opndsz? = unop MUL r/m16
- | rexw? = unop MUL r/m64
- | otherwise = unop MUL r/m32
-
-### NEG 4-9 Vol. 2B
-val / [0xf6 /3] = unop NEG r/m8
-val / [0xf7 /3]
- | opndsz? = unop NEG r/m16
- | rexw? = unop NEG r/m64
- | otherwise = unop NEG r/m32
 
 ### CMPS/CMPSB/CMPSW/CMPSD/CMPSQ 3-170 Vol. 2A
 val / [0xa6] = arity0 CMPSB
@@ -2384,32 +2361,6 @@ val / [0x1b /r]
  | rexw? = binop SBB r64 r/m64
  | otherwise = binop SBB r32 r/m32
 
-### OR 4-16 Vol. 2B
-val / [0x0c] = binop OR al imm8
-val / [0x0d]
- | opndsz? = binop OR ax imm16
- | rexw? = binop OR rax imm32
- | otherwise = binop OR eax imm32
-val / [0x80 /1] = binop OR r/m8 imm8
-val / [0x81 /1]
- | opndsz? = binop OR r/m16 imm16
- | rexw? = binop OR r/m64 imm32
- | otherwise = binop OR r/m32 imm32
-val / [0x83 /1]
- | opndsz? = binop OR r/m16 imm8
- | rexw? = binop OR r/m64 imm8
- | otherwise = binop OR r/m32 imm8
-val / [0x08 /r] = binop OR r/m8 r8
-val / [0x09 /r]
- | opndsz? = binop OR r/m16 r16
- | rexw? = binop OR r/m64 r64
- | otherwise = binop OR r/m32 r32
-val / [0x0a /r] = binop OR r8 r/m8
-val / [0x0b /r]
- | opndsz? = binop OR r16 r/m16
- | rexw? = binop OR r64 r/m64
- | otherwise = binop OR r32 r/m32
-
 ### AND 3-64 Vol. 2A
 val / [0x24] = binop AND al imm8
 val / [0x25]
@@ -2435,13 +2386,6 @@ val / [0x23 /r]
  | opndsz? = binop AND r16 r/m16
  | rexw? = binop AND r64 r/m64
  | otherwise = binop AND r32 r/m32
-
-### NOT 4-14 Vol. 2B
-val / [0xf6 /2] = unop NOT r/m8
-val / [0xf7 /2]
- | opndsz? = unop NOT r/m16
- | rexw? = unop NOT r/m64
- | otherwise = unop NOT r/m32
 
 ### HLT 3-481 Vol. 2A
 val / [0xf4] = arity0 HLT
@@ -2853,11 +2797,155 @@ val /f3 [0x0f 0x11 /r] = binop MOVSS xmm/m32 xmm128
 val /vex/f3/0f/vexv [0x11 /r-nomem] = ternop VMOVSS xmm/nomem128 vex/xmm xmm128
 val /vex/f3/0f [0x11 /r-mem] = binop VMOVSS m32 xmm128
 
+### MOVSX/MOVSXD Vol. 2B 4-126
+val /66 [0x0f 0xbe /r] = binop MOVSX r16 r/m8
+val / [0x0f 0xbe /r]
+ | rexw? = binop MOVSX r64 r/m8
+ | otherwise = binop MOVSX r32 r/m8
+val / [0x0f 0xbf /r]
+ | rexw? = binop MOVSX r64 r/m16
+ | otherwise = binop MOVSX r32 r/m16
+val / [0x63 /r]
+ | rexw? = binop MOVSXD r64 r/m32
+
+### MOVUPD Vol. 2B 4-129
+val /66 [0x0f 0x10 /r] = binop MOVUPD xmm128 xmm/m128
+val /vex/66/0f [0x10 /r]
+ | vex128? = binop VMOVUPD xmm128 xmm/m128
+ | vex256? = binop VMOVUPD ymm256 ymm/m256
+val /66 [0x0f 0x11 /r] = binop MOVUPD xmm/m128 xmm128
+val /vex/66/0f [0x11 /r]
+ | vex128? = binop VMOVUPD xmm/m128 xmm128
+ | vex256? = binop VMOVUPD ymm/m256 ymm256
+
+### MOVUPS Vol. 2B 4-132
+val / [0x0f 0x10 /r] = binop MOVUPS xmm128 xmm/m128
+val /vex/0f [0x10 /r]
+ | vex128? = binop VMOVUPS xmm128 xmm/m128
+ | vex256? = binop VMOVUPS ymm256 ymm/m256
+val / [0x0f 0x11 /r] = binop MOVUPD xmm/m128 xmm128
+val /vex/66/0f [0x11 /r]
+ | vex128? = binop VMOVUPS xmm/m128 xmm128
+ | vex256? = binop VMOVUPS ymm/m256 ymm256
+
+### MOVZX Vol. 2B 4-135
+val / [0x0f 0xb6 /r] = binop MOVZX r16 r/m8
+val / [0x0f 0xb6 /r]
+ | rexw? = binop MOVZX r64 r/m8
+ | otherwise = binop MOVZX r32 r/m8
+val / [0x0f 0xb7 /r]
+ | rexw? = binop MOVZX r64 r/m16
+ | otherwise = binop MOVZX r32 r/m16
+
+### MPSADBW Vol. 2B 4-137
+val /66 [0x0f 0x3a 0x42 /r] = ternop MPSADBW xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x42 /r] | vex128? = quaternop VMPSADBW xmm128 vex/xmm xmm/m128 imm8
+
+### MUL 3-746 Vol. 2A
+val / [0xf6 /4] = unop MUL r/m8
+val / [0xf7 /4]
+ | opndsz? = unop MUL r/m16
+ | rexw? = unop MUL r/m64
+ | otherwise = unop MUL r/m32
+
+### MULPD Vol. 2B 4-145
+val /66 [0x0f 0x59 /r] = binop MULPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x59 /r]
+ | vex128? = ternop VMULPD xmm128 vex/xmm xmm/m128
+ | vex256? = ternop VMULPD ymm256 vex/xmm ymm/m256
+
+### MULPS Vol. 2B 4-147
+val / [0x0f 0x59 /r] = binop MULPS xmm128 xmm/m128
+val /vex/0f/vexv [0x59 /r]
+ | vex128? = ternop VMULPS xmm128 vex/xmm xmm/m128
+ | vex256? = ternop VMULPS ymm256 vex/xmm ymm/m256
+
+### MULSD Vol. 2B 4-149
+val /f2 [0x0f 0x59 /r] = binop MULSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x59 /r] = ternop VMULSD xmm128 vex/xmm xmm/m64
+
+### MULSS Vol. 2B 4-151
+val /f3 [0x0f 0x59 /r] = binop MULSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x59 /r] = ternop VMULSS xmm128 vex/xmm xmm/m32
+
+### MWAIT Vol. 2B 4-153
+val / [0x0f 0x01 0xc9] = nullop MWAIT
+
+### NEG 4-9 Vol. 2B
+val / [0xf6 /3] = unop NEG r/m8
+val / [0xf7 /3]
+ | opndsz? = unop NEG r/m16
+ | rexw? = unop NEG r/m64
+ | otherwise = unop NEG r/m32
+
+### NOP 4-12 Vol. 2B
+#val / [0x90] = arity0 NOP
+#val /66 [0x90] = arity0 NOP
+val /66 [0x0f 0x1f /0] = binop NOP r/m16 r16
+val / [0x0f 0x1f /0]
+ | rexw? = binop NOP r/m64 r64
+ | otherwise = binop NOP r/m32 r32
+
+### NOT 4-14 Vol. 2B
+val / [0xf6 /2] = unop NOT r/m8
+val / [0xf7 /2]
+ | opndsz? = unop NOT r/m16
+ | rexw? = unop NOT r/m64
+ | otherwise = unop NOT r/m32
+
+### OR 4-16 Vol. 2B
+val / [0x0c] = binop OR al imm8
+val / [0x0d]
+ | opndsz? = binop OR ax imm16
+ | rexw? = binop OR rax imm32
+ | otherwise = binop OR eax imm32
+val / [0x80 /1] = binop OR r/m8 imm8
+val / [0x81 /1]
+ | opndsz? = binop OR r/m16 imm16
+ | rexw? = binop OR r/m64 imm32
+ | otherwise = binop OR r/m32 imm32
+val / [0x83 /1]
+ | opndsz? = binop OR r/m16 imm8
+ | rexw? = binop OR r/m64 imm8
+ | otherwise = binop OR r/m32 imm8
+val / [0x08 /r] = binop OR r/m8 r8
+val / [0x09 /r]
+ | opndsz? = binop OR r/m16 r16
+ | rexw? = binop OR r/m64 r64
+ | otherwise = binop OR r/m32 r32
+val / [0x0a /r] = binop OR r8 r/m8
+val / [0x0b /r]
+ | opndsz? = binop OR r16 r/m16
+ | rexw? = binop OR r64 r/m64
+ | otherwise = binop OR r32 r/m32
+
+### ORPD Vol. 2B 4-164
+val /66 [0x0f 0x56 /r] = binop ORPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x56 /r]
+ | vex128? = ternop VORPD xmm128 vex/xmm xmm/m128
+ | vex256? = ternop VORPD ymm256 vex/xmm ymm/m256
+
+### ORPS Vol. 2B 4-169
+val main [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
+val /vex/0f/vexv [0x56 /r]
+ | vex128? = ternop VORPS xmm128 vex/xmm xmm/m128
+ | vex256? = ternop VORPS ymm256 vex/xmm ymm/m256
+
+### OUT Vol. 2B 4-171
+val / [0xe6] = binop OUT imm8 al
+val /66 [0xe7] = binop OUT imm8 ax
+val / [0xe7] = binop OUT imm8 eax
+val / [0xee] = binop OUT dx al
+val /66 [0xef] = binop OUT dx ax
+val / [0xef] = binop OUT dx eax
+
 ### PHADDW/PHADDD Vol. 2B 4-253
 val /66 [0x0f 0x38 0x01 /r] = binop PHADDW xmm128 xmm/m128
 val / [0x0f 0x38 0x01 /r] = binop PHADDW mm64 mm/m64
 val /66 [0x0f 0x38 0x02 /r] = binop PHADDD xmm128 xmm/m128
 val / [0x0f 0x38 0x02 /r] = binop PHADDD mm64 mm/m64
+val /vex/66/0f/38/vexv [0x01 /r] | vex128? = ternop VPHADDW xmm128 vex/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x02 /r] | vex128? = ternop VPHADDD xmm128 vex/xmm xmm/m128
 
 ### XADD Vol. 2B 4-667
 val / [0x0f 0xc0 /r] = binop XADD r/m8 r8
