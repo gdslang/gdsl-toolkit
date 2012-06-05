@@ -846,9 +846,11 @@ structure Cost = struct
           "binop",
           "ternop",
           "quaternop"])
-       ;neverInline:=Set.fromList (map Aux.get []))
+       ;neverInline:=Set.union (!neverInline, Set.fromList (map Aux.get [])))
 
    val allwaysInline = fn f => Set.member (!allwaysInline, f)
+   fun dontInline f = neverInline := Set.add (!neverInline, f)
+   val neverInline = fn f => Set.member (!neverInline, f)
 
    fun isInliningCandidate t =
       let
@@ -896,7 +898,7 @@ structure Cost = struct
                if isInliningCandidate body
                   then env := Set.add (!env, k)
                else ())
-   fun inlineCandidate f = not (Set.member (!neverInline, f)) andalso Set.member (!env, f)
+   fun inlineCandidate f = not (neverInline f) andalso Set.member (!env, f)
    fun run () = (reset();mark()) 
 end
 
@@ -1039,20 +1041,18 @@ structure HoistFun = struct
                 FN (k, xs, simplify env sigma K),
                 simplify env sigma L)
        | LETVAL (x, v, K) =>
-            (case simplify env sigma K of
-               K as LETVAL (f, FN (k, xs, L), M as CC (_,[g])) => 
-                  if not (VarInfo.eq_symid (g, f))
-                     then LETVAL (x, v, K)
-                  else 
-                     (click();
-                      LETVAL
-                        (f,
-                         FN
-                           (k,
-                            xs,
-                            LETVAL (x, simplifyVal env sigma v, L)),
-                         M))
-             | K => LETVAL (x, v, K))
+            let
+               val v = simplifyVal env sigma v
+            in
+               case simplify env sigma K of
+                  K as LETVAL (f, FN (k, xs, L), M as CC (_,[g])) => 
+                     if not (VarInfo.eq_symid (g, f))
+                        then LETVAL (x, v, K)
+                     else 
+                        (click();
+                         LETVAL (f, FN (k, xs, LETVAL (x, v, L)), M))
+                | K => LETVAL (x, v, K)
+            end
        | LETREC (ds, L) =>
             LETREC
                (simplifyRecs env sigma ds,
@@ -1090,8 +1090,8 @@ structure HoistFun = struct
                APP (f, j, ys)
             end
 
-   and simplifyRecs env sigma ds = map (simplifyRec env sigma) ds
-  
+   and simplifyRecs env sigma ds = List.concat (map (simplifyRec env sigma) ds)
+ 
    and simplifyRec env sigma (f, k, [], K) =
       (case simplify env sigma K of
          K as LETVAL (g, FN (l, [x], L), M) =>
@@ -1099,11 +1099,41 @@ structure HoistFun = struct
                CC (j, [h]) =>
                   if VarInfo.eq_symid (j, k)
                      andalso VarInfo.eq_symid (g, h)
-                     then (click(); (f, l, [x], L))
-                  else (f, k, [], K)
-             | _ => (f, k, [], K))
-       | K => (f, k, [], K))
-     | simplifyRec env sigma (f, k, xs, K) = (f, k, xs, simplify env sigma K)
+                     then (click(); [(f, l, [x], L)])
+                  else [(f, k, [], K)]
+             | _ => [(f, k, [], K)])
+       | K => [(f, k, [], K)])
+
+     | simplifyRec env sigma (f, k, xs, K) =
+      (case simplify env sigma K of
+         K as LETVAL (g, FN (l, [x], APP _), M) => [(f, k, xs, K)]
+       | K as LETVAL (g, FN (l, [x], L), M) =>
+            (case M of
+               CC (j, [h]) =>
+                  if VarInfo.eq_symid (j, k)
+                     andalso VarInfo.eq_symid (g, h)
+                     then
+                        let
+                           val _ = click()
+                           val xsx = xs@[x]
+                           val f' = Subst.copyWithSuffix "uncurried" f
+                           (* mark `f'` as not inlinable, otherwise
+                            * beta-reduction would undo this transformation *)
+                           val _ = Cost.dontInline f'
+                           val k' = Subst.copy l
+                           val xs' = Subst.copyAll xsx
+                           val sigma = Subst.extend sigma f' f
+                           val sigma = Subst.extend sigma k' l
+                           val sigma = Subst.extendAll sigma xs' xsx
+                        in
+                          [(f', k', xs', simplify env sigma L),
+                           (f, k, xs,
+                              LETVAL (g, FN (l, [x], APP (f', l, xsx)),
+                                 CC (k, [g])))]
+                        end
+                  else [(f, k, xs, K)]
+             | _ => [(f, k, xs, K)])
+        | K => [(f, k, xs, K)])
 
    and simplifyVal env sigma v =
       case v of
@@ -1357,7 +1387,7 @@ structure BetaContFun = struct
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
                   if length xs > length ys
-                     then raise Fail (Aux.failWithSymbol "betaContFun.partialapplication" f)
+                     then raise Fail (Aux.failWithSymbol "betaContFun.partialApplication" f)
                   else if length xs < length ys
                      then APP (f, j, ys)
                   else if length xs = length ys andalso isInliningCandidate f K
@@ -1592,6 +1622,7 @@ structure BetaContFunShrink = struct
                NONE => APP (f, j, ys)
              | SOME (k, xs, K) =>
                   if length xs = length ys andalso (inliningCandidate f)
+                        andalso not (Cost.neverInline f)
                      then 
                         let
                            val _ = click()
