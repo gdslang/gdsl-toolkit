@@ -693,17 +693,30 @@ datatype mnemonic =
  | MOVQ
  | MOVSB
  | MOVSD
+ | MOVSHDUP
+ | MOVSLDUP
  | MOVSQ
  | MOVSS
  | MOVSW
  | MOVSX
  | MOVSXD
+ | MOVUPD
+ | MOVUPS
  | MOVZX
+ | MPSADBW
  | MUL
+ | MULPD
+ | MULPS
+ | MULSD
+ | MULSS
+ | MWAIT
  | NEG
  | NOP
  | NOT
  | OR
+ | ORPD
+ | ORPS
+ | OUT
  | PALIGNR
  | PAND
  | PCMPEQB
@@ -805,10 +818,6 @@ datatype mnemonic =
  | TEST
  | UCOMISD
  | UD2
- | VBMOVHPD
- | VBMOVHPS
- | VBMOVLPD
- | VBMOVLPS
  | VCMPEQB
  | VCMPEQD
  | VCMPEQW
@@ -842,7 +851,19 @@ datatype mnemonic =
  | VMOVNTPD
  | VMOVNTPS
  | VMOVQ
+ | VMOVSD
+ | VMOVSHDUP
+ | VMOVSLDUP
  | VMOVSS
+ | VMOVUPD
+ | VMOVUPS
+ | VMPSADBW
+ | VMULPD
+ | VMULPS
+ | VMULSD
+ | VMULSS
+ | VORPD
+ | VORPS
  | VPALIGNR
  | VPAND
  | VPCMPEQQ
