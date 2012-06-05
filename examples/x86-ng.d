@@ -2518,22 +2518,22 @@ val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/nomem64
 ### MAXPD Vol. 2B 4-13
 val /66 [0x0f 0x5f /r] = binop MAXPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x5f /r]
- | vex128? = ternop VMAXPD xmm128 vex/xmm xmm/m128
- | vex256? = ternop VMAXPD ymm256 vex/ymm ymm/m256
+ | vex128? = ternop VMAXPD xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMAXPD ymm256 v/ymm ymm/m256
 
 ### MAXPS 4-16 Vol. 2B
 val / [0x0f 0x5f /r] = binop MAXPS xmm128 xmm/m128
 val vex/0f/vexv [0x5f /r]
- | vex128? = ternop VMAXPS xmm128 vex/xmm xmm/m128
- | vex256? = ternop VMAXPS ymm256 vex/ymm ymm/m256
+ | vex128? = ternop VMAXPS xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMAXPS ymm256 v/ymm ymm/m256
 
 ### MAXSD Vol. 2B 4-19
 val /f2 [0x0f 0x5f /r] = binop MAXSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x5f /r] = ternop VMAXSD xmm128 vex/xmm xmm/m64
+val /vex/f2/0f/vexv [0x5f /r] = ternop VMAXSD xmm128 v/xmm xmm/m64
 
 ### MAXSS Vol. 2B 4-21
 val /f3 [0x0f 0x5f /r] = binop MAXSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x5f /r] = ternop VMAXSS xmm128 vex/xmm xmm/m32
+val /vex/f3/0f/vexv [0x5f /r] = ternop VMAXSS xmm128 v/xmm xmm/m32
 
 ### MFENCE Vol. 2B 4-23
 val / [0x0f 0xae /6] = arity0 MFENCE
@@ -2541,22 +2541,22 @@ val / [0x0f 0xae /6] = arity0 MFENCE
 ### MINPD Vol. 2B 4-25
 val /66 [0x0f 0x5d /r] = binop MINPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x5d /r]
- | vex128? = ternop VMINPD xmm128 vex/xmm xmm/m128
- | vex256? = ternop VMINPD ymm256 vex/ymm ymm/m256
+ | vex128? = ternop VMINPD xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMINPD ymm256 v/ymm ymm/m256
 
 ### MINPS Vol. 2B 4-28
 val / [0x0f 0x5d /r] = binop MINPS xmm128 xmm/m128
 val /vex/0f/vexv [0x5d /r]
- | vex128? = ternop VMINPS xmm128 vex/xmm xmm/m128
- | vex256? = ternop VMINPS ymm256 vex/ymm ymm/m256
+ | vex128? = ternop VMINPS xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMINPS ymm256 v/ymm ymm/m256
 
 ### MINSD Vol. 2B 4-31
 val /f2 [0x0f 0x5d /r] = binop MINSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x5d /r] = ternop VMINSD xmm128 vex/xmm xmm/m64
+val /vex/f2/0f/vexv [0x5d /r] = ternop VMINSD xmm128 v/xmm xmm/m64
 
 ### MINSS Vol. 2B 4-33
 val /f3 [0x0f 0x5d /r] = binop MINSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x5d /r] = ternop VMINSS xmm128 vex/xmm xmm/m32
+val /vex/f3/0f/vexv [0x5d /r] = ternop VMINSS xmm128 v/xmm xmm/m32
 
 ### PCMPEQQ
 val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
@@ -2686,18 +2686,18 @@ val /f2 [0x0f 0xd6 /r] = binop MOVDQ2Q mm64 xmm128
 #val movhlps = binop MOVHLPS
 #val vmovhlps = ternop VMOVHLPS
 #val / [0x0f 0x12 /r] = movhlps xmm128 xmm/nomem128
-#val /vex/0f/vexv [0x12 /r-nomem] | vex128? = ternop VMOVHLPS xmm128 vex/xmm xmm/nomem128
+#val /vex/0f/vexv [0x12 /r-nomem] | vex128? = ternop VMOVHLPS xmm128 v/xmm xmm/nomem128
 
 ### MOVHPD Vol. 2B 4-77
 val /66 [0x0f 0x16 /r] = binop MOVHPD xmm128 m64
 val /66 [0x0f 0x17 /r] = binop MOVHPD m64 xmm128
-val /vex/66/0f/vexv [0x16 /r] = ternop VMOVHPD xmm128 vex/xmm m64
+val /vex/66/0f/vexv [0x16 /r] = ternop VMOVHPD xmm128 v/xmm m64
 val /vex/66/0f [0x17 /r] = binop VMOVHPD m64 xmm128
 
 ### MOVHPS Vol. 2B 4-79
 val / [0x0f 0x16 /r-mem] = binop MOVHPS xmm128 m64
 val / [0x0f 0x17 /r-mem] = binop MOVHPS m64 xmm128
-val /vex/0f/vexv [0x16 /r-mem] | vex128? = ternop VMOVHPS xmm128 vex/xmm m64
+val /vex/0f/vexv [0x16 /r-mem] | vex128? = ternop VMOVHPS xmm128 v/xmm m64
 val /vex/0f [0x17 /r-mem] | vex128? = binop VMOVHPS m64 xmm128
 
 ### MOVLHPS Vol. 2B 4-81
@@ -2706,18 +2706,18 @@ val /vex/0f [0x17 /r-mem] | vex128? = binop VMOVHPS m64 xmm128
 #val vmovlhps = ternop VMOVLHPS
 #val / [0x0f 0x16 /r]
 # | mod-reg? = movlhps xmm128 xmm/nomem128
-val /vex/0f/vexv [0x16 /r-nomem] | vex128? = ternop VMOVLHPS xmm128 vex/xmm xmm/nomem128
+val /vex/0f/vexv [0x16 /r-nomem] | vex128? = ternop VMOVLHPS xmm128 v/xmm xmm/nomem128
 
 ### MOVLPD Vol. 2B 4-83
 val /66 [0x0f 0x12 /r-mem] = binop MOVLPD xmm128 m64
 val /66 [0x0f 0x13 /r-mem] = binop MOVLPD m64 xmm128
-val /vex/66/0f/vexv [0x12 /r] | vex128? = ternop VMOVLPD xmm128 vex/xmm m64
+val /vex/66/0f/vexv [0x12 /r] | vex128? = ternop VMOVLPD xmm128 v/xmm m64
 val /vex/66/0f [0x13 /r] | vex128? = binop VMOVLPD m64 xmm128
 
 ### MOVLPS Vol. 2B 4-85
 val / [0x0f 0x12 /r-mem] = binop MOVLPS xmm128 m64
 val / [0x0f 0x13 /r-mem] = binop MOVLPS m64 xmm128
-val /vex/0f/vexv [0x12 /r-mem] | vex128? = ternop VMOVLPS_3 xmm128 vex/xmm m64
+val /vex/0f/vexv [0x12 /r-mem] | vex128? = ternop VMOVLPS_3 xmm128 v/xmm m64
 val /vex/0f [0x13 /r-mem] | vex128? = binop VMOVLPS_2 m64 xmm128
 
 ### MOVMSKPD Vol. 2B 4-87
@@ -2780,24 +2780,24 @@ val /f3 [0x0f 0xd6 /r-nomem] = binop MOVQ2DQ xmm128 mm/nomem64
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ Vol. 2B 4-109
 # Todo: Fix
-val / [0xa4] =
- | mode64? = binop MOVSB (mem (REG RDI)) (mem (REG RSI))
- | otherwise = binop MOVSB (mem (REG EDI)) (mem (REG ESI))
-val / [0xa5] =
- | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
- | mode64? & !rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
- | otherwise = binop MODSD (mem (REG EDI)) (mem (REG ESI))
-val / [0xa5] =
- | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
- | mode64? & !rexw? = binop MOVSW (mem (REG RDI)) (mem (REG RSI))
- | otherwise = binop MODSW (mem (REG EDI)) (mem (REG ESI))
+#val / [0xa4] =
+# | mode64? = binop MOVSB (mem (REG RDI)) (mem (REG RSI))
+# | otherwise = binop MOVSB (mem (REG EDI)) (mem (REG ESI))
+#val / [0xa5] =
+# | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+# | mode64? & !rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+# | otherwise = binop MODSD (mem (REG EDI)) (mem (REG ESI))
+#val / [0xa5] =
+# | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+# | mode64? & !rexw? = binop MOVSW (mem (REG RDI)) (mem (REG RSI))
+# | otherwise = binop MODSW (mem (REG EDI)) (mem (REG ESI))
 
 ### MOVSD Vol. 2B 4-114
 val /f2 [0x0f 0x10 /r] = binop MOVSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x10 /r-nomem] = ternop VMOVSD xmm128 vex/xmm xmm/nomem128
+val /vex/f2/0f/vexv [0x10 /r-nomem] = ternop VMOVSD xmm128 v/xmm xmm/nomem128
 val /vex/f2/0f [0x10 /r-mem] = binop VMOVSD xmm128 m64
 val /f2 [0x0f 0x11 /r] = binop MOVSD xmm/m64 xmm128
-val /vex/f2/0f [0x11 /r-nomem] = ternop VMOVSD xmm/nomem128 vex/xmm xmm128
+val /vex/f2/0f [0x11 /r-nomem] = ternop VMOVSD xmm/nomem128 v/xmm xmm128
 val /vex/f2/0f [0x11 /r-mem] = binop VMOVSD m64 xmm128
 
 ### MOVSHDUP Vol. 2B 4-117
@@ -2812,10 +2812,10 @@ val /vex/f3/0f [0x12 /r] | vex256? = binop VMOVSLDUP ymm256 xmm/mem256
 
 ### MOVSS Vol. 2B 4-123
 val /f3 [0x0f 0x10 /r] = binop MOVSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x10 /r-nomem] = ternop VMOVSS xmm128 vex/xmm xmm/nomem128
+val /vex/f3/0f/vexv [0x10 /r-nomem] = ternop VMOVSS xmm128 v/xmm xmm/nomem128
 val /vex/f3/0f [0x10 /r-mem] = binop VMOVSS xmm128 m32
 val /f3 [0x0f 0x11 /r] = binop MOVSS xmm/m32 xmm128
-val /vex/f3/0f/vexv [0x11 /r-nomem] = ternop VMOVSS xmm/nomem128 vex/xmm xmm128
+val /vex/f3/0f/vexv [0x11 /r-nomem] = ternop VMOVSS xmm/nomem128 v/xmm xmm128
 val /vex/f3/0f [0x11 /r-mem] = binop VMOVSS m32 xmm128
 
 ### MOVSX/MOVSXD Vol. 2B 4-126
@@ -2860,7 +2860,7 @@ val / [0x0f 0xb7 /r]
 
 ### MPSADBW Vol. 2B 4-137
 val /66 [0x0f 0x3a 0x42 /r] = ternop MPSADBW xmm128 xmm/m128 imm8
-val /vex/66/0f/3a/vexv [0x42 /r] | vex128? = quaternop VMPSADBW xmm128 vex/xmm xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x42 /r] | vex128? = quaternop VMPSADBW xmm128 v/xmm xmm/m128 imm8
 
 ### MUL 3-746 Vol. 2A
 val / [0xf6 /4] = unop MUL r/m8
@@ -2872,22 +2872,22 @@ val / [0xf7 /4]
 ### MULPD Vol. 2B 4-145
 val /66 [0x0f 0x59 /r] = binop MULPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x59 /r]
- | vex128? = ternop VMULPD xmm128 vex/xmm xmm/m128
- | vex256? = ternop VMULPD ymm256 vex/xmm ymm/m256
+ | vex128? = ternop VMULPD xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMULPD ymm256 v/ymm ymm/m256
 
 ### MULPS Vol. 2B 4-147
 val / [0x0f 0x59 /r] = binop MULPS xmm128 xmm/m128
 val /vex/0f/vexv [0x59 /r]
- | vex128? = ternop VMULPS xmm128 vex/xmm xmm/m128
- | vex256? = ternop VMULPS ymm256 vex/xmm ymm/m256
+ | vex128? = ternop VMULPS xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMULPS ymm256 v/ymm ymm/m256
 
 ### MULSD Vol. 2B 4-149
 val /f2 [0x0f 0x59 /r] = binop MULSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x59 /r] = ternop VMULSD xmm128 vex/xmm xmm/m64
+val /vex/f2/0f/vexv [0x59 /r] = ternop VMULSD xmm128 v/xmm xmm/m64
 
 ### MULSS Vol. 2B 4-151
 val /f3 [0x0f 0x59 /r] = binop MULSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x59 /r] = ternop VMULSS xmm128 vex/xmm xmm/m32
+val /vex/f3/0f/vexv [0x59 /r] = ternop VMULSS xmm128 v/xmm xmm/m32
 
 ### MWAIT Vol. 2B 4-153
 val / [0x0f 0x01 0xc9] = nullop MWAIT
@@ -2943,14 +2943,14 @@ val / [0x0b /r]
 ### ORPD Vol. 2B 4-164
 val /66 [0x0f 0x56 /r] = binop ORPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x56 /r]
- | vex128? = ternop VORPD xmm128 vex/xmm xmm/m128
- | vex256? = ternop VORPD ymm256 vex/xmm ymm/m256
+ | vex128? = ternop VORPD xmm128 v/xmm xmm/m128
+ | vex256? = ternop VORPD ymm256 v/ymm ymm/m256
 
 ### ORPS Vol. 2B 4-169
 val main [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
 val /vex/0f/vexv [0x56 /r]
- | vex128? = ternop VORPS xmm128 vex/xmm xmm/m128
- | vex256? = ternop VORPS ymm256 vex/xmm ymm/m256
+ | vex128? = ternop VORPS xmm128 v/xmm xmm/m128
+ | vex256? = ternop VORPS ymm256 v/ymm ymm/m256
 
 ### OUT Vol. 2B 4-171
 val / [0xe6] = binop OUT imm8 al
@@ -2965,8 +2965,8 @@ val /66 [0x0f 0x38 0x01 /r] = binop PHADDW xmm128 xmm/m128
 val / [0x0f 0x38 0x01 /r] = binop PHADDW mm64 mm/m64
 val /66 [0x0f 0x38 0x02 /r] = binop PHADDD xmm128 xmm/m128
 val / [0x0f 0x38 0x02 /r] = binop PHADDD mm64 mm/m64
-val /vex/66/0f/38/vexv [0x01 /r] | vex128? = ternop VPHADDW xmm128 vex/xmm xmm/m128
-val /vex/66/0f/38/vexv [0x02 /r] | vex128? = ternop VPHADDD xmm128 vex/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x01 /r] | vex128? = ternop VPHADDW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x02 /r] | vex128? = ternop VPHADDD xmm128 v/xmm xmm/m128
 
 ### XADD Vol. 2B 4-667
 val / [0x0f 0xc0 /r] = binop XADD r/m8 r8
