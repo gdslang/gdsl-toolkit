@@ -1549,6 +1549,7 @@ end
 val one = return (IMM8 '00000001')
 
 ### ADC 
+###  - Add with Carry
 val / [0x14] = binop ADC al imm8
 val / [0x15]
  | opndsz? = binop ADC ax imm16
@@ -1575,27 +1576,33 @@ val / [0x13 /r]
  | otherwise = binop ADC r32 r/m32 
 
 ### BSF
+###  - Bit Scan Forward
 val / [0x0f 0xbc /r]
  | opndsz? = binop BSF r16 r/m16
  | rexw? = binop BSF r64 r/m64
  | otherwise = binop BSF r32 r/m32
 
 ### BSR
+###  - Bit Scan Reverse
 val / [0x0f 0xbd /r]
  | opndsz? = binop BSR r16 r/m16
  | rexw? = binop BSR r64 r/m64
  | otherwise = binop BSR r32 r/m32
 
 ### CLD
+###  - Clear Direction Flag
 val / [0xfc] = arity0 CLD
 
 ### CPUID
+###  - CPU Identification
 val / [0x0f 0xa2] = arity0 CPUID
 
 ### FCHS
+###  - Change Sign
 val / [0xd9 0xe0] = arity0 FCHS
 
 ### FCMOVcc
+###  - Floating-Point Conditional Move
 val / [0xda '11000 i:3'] = binop FCMOVB st0 (st/i i)
 val / [0xda '11001 i:3'] = binop FCMOVE st0 (st/i i)
 val / [0xda '11010 i:3'] = binop FCMOVBE st0 (st/i i)
@@ -1605,18 +1612,24 @@ val / [0xdb '11001 i:3'] = binop FCMOVNE st0 (st/i i)
 val / [0xdb '11010 i:3'] = binop FCMOVNBE st0 (st/i i)
 val / [0xdb '10011 i:3'] = binop FCMOVNU st0 (st/i i)
 
+### FCOMI/FCOMIP/FUCOMI/FUCOMIP
+###  - Compare Floating Point Values and Set EFLAGS
+val / [0xdb '11110 i:3'] = binop FCOMI st0 (st/i i)
+val / [0xdf '11110 i:3'] = binop FCOMIP st0 (st/i i)
+val / [0xdb '11101 i:3'] = binop FUCOMI st0 (st/i i)
+val / [0xdf '11101 i:3'] = binop FUCOMIP st0 (st/i i)
+
 ### FLD
+###  - Load Floating Point Value
 val / [0xd9 /0] = unop FLD st/m32
 val / [0xdd /0-mem] = unop FLD m64
 val / [0xdb /5-mem] = unop FLD m80fp
-
-### FLDCW
-val / [0xd9 /5-mem] = unop FLDCW m2byte 
 
 val m14/28byte = m80fp #TODO: fix
 val m2byte = m16 #TODO: check
 
 ### FLD1/FLDL2T/FLDL2E/FLDPI/FLDLG2/FLDLN2/FLDZ
+###  - Load Constant
 val / [0xd9 0xe8] = arity0 FLD1
 val / [0xd9 0xe9] = arity0 FLDL2T
 val / [0xd9 0xea] = arity0 FLDL2E
@@ -1625,25 +1638,26 @@ val / [0xd9 0xec] = arity0 FLDLG2
 val / [0xd9 0xed] = arity0 FLDLN2
 val / [0xd9 0xee] = arity0 FLDZ
 
+### FLDCW
+###  - Load x87 FPU Control Word
+val / [0xd9 /5-mem] = unop FLDCW m2byte 
+
 ### FLDENV
+###  - Load x87 FPU Environment
 val / [0xd9 /4-mem] = unop FLDENV m14/28byte
 
 ### FSTCW/FNSTCW
+###  - Store x87 FPU Control Word
 val / [0x9b 0xd9 /7-mem] = unop FSTCW m2byte
 val / [0xd9 /7-mem] = unop FNSTCW m2byte
 
-### FSTP
+### FST/FSTP
+###  - Store Floating Point Value
 val / [0xd9 /2-mem] = unop FST m32
 val / [0xdd /2] = unop FST st/m64
 val / [0xd9 /3-mem] = unop FSTP m32
 val / [0xdd /3] = unop FSTP st/m64
 val / [0xdb /7-mem] = unop FSTP m80fp
-
-### FCOMI/FCOMIP/FUCOMI/FUCOMIP
-val / [0xdb '11110 i:3'] = binop FCOMI st0 (st/i i)
-val / [0xdf '11110 i:3'] = binop FCOMIP st0 (st/i i)
-val / [0xdb '11101 i:3'] = binop FUCOMI st0 (st/i i)
-val / [0xdf '11101 i:3'] = binop FUCOMIP st0 (st/i i)
 
 ### LDDQU
 val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
