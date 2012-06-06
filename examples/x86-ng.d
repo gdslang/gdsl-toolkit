@@ -188,7 +188,9 @@ end
 val p/vex/f2/0f [0xc5 'r:1 v:4 l:1 11'] = do
    update
       @{rex='1',
-        rexw='0',
+        rexw='0',X86 Example Specification
+
+- Started to clean up instruction names and descriptions
         vexw='0',
         rexr=not r,
         vexl=l,
@@ -309,7 +311,9 @@ val p64 [/rex-p] = p64
 val p64 [p/vex/f2/0f] = /vex/f2/0f
 val p64 [p/vex/f3/0f] = /vex/f3/0f
 val p64 [p/vex/66/0f] = /vex/66/0f
-val p64 [p/vex/66/0f/38] = /vex/66/0f/38
+val p64 [p/vex/66/0f/38] = /vex/66/0f/38X86 Example Specification
+
+- Started to clean up instruction names and descriptions
 val p64 [p/vex/66/0f/3a] = /vex/66/0f/3a
 #val p64 [p/vex/66/f2/0f] = /vex/66/f2/0f
 #val p64 [p/vex/66/f3/0f] = /vex/66/f3/0f
@@ -1056,7 +1060,9 @@ val st-reg n =
     | '0010': REG ST2
     | '0011': REG ST3
     | '0100': REG ST4
-    | '0101': REG ST5
+    | '0101': REG ST5X86 Example Specification
+
+- Started to clean up instruction names and descriptions
     | '0110': REG ST6
     | '0111': REG ST7
   end
@@ -1589,6 +1595,17 @@ val / [0x0f 0xbd /r]
  | rexw? = binop BSR r64 r/m64
  | otherwise = binop BSR r32 r/m32
 
+### BT
+###  - Bit Test
+val / [0x0f 0xa3 /r]
+ | opndsz? = binop BT r/m16 r16
+ | rexw? = binop BT r/m64 r64
+ | otherwise = binop BT r/m32 r32
+val / [0x0f 0xba /4]
+ | opndsz? = binop BT r/m16 imm8
+ | rexw? = binop BT r/m64 imm8
+ | otherwise = binop BT r/m32 imm8
+
 ### CALL
 ###  - Call Procedure
 val / [0xe8]
@@ -1596,9 +1613,51 @@ val / [0xe8]
  | otherwise = near-rel CALL rel32
 val / [0xff /2] = near-abs CALL r/m64
 
+### CBW/CWDE/CDQE
+###  - Convert Byte to Word/Convert Word to Doubleword/Convert Doubleword to Quadword
+val / [0x98] 
+ | opndsz? = arity0 CBW
+ | rexw? = arity0 CDQE
+ | otherwise = arity0 CWDE
+
 ### CLD
 ###  - Clear Direction Flag
 val / [0xfc] = arity0 CLD
+
+### CMP
+###  - Compare Two Operands
+val / [0x3c] = binop CMP al imm8
+val / [0x3d]
+ | opndsz? = binop CMP ax imm16
+ | rexw? = binop CMP rax imm32
+ | otherwise = binop CMP eax imm32
+val / [0x80 /7] = binop CMP r/m8 imm8
+val / [0x81 /7]
+ | opndsz? = binop CMP r/m16 imm16
+ | rexw? = binop CMP r/m64 imm32
+ | otherwise = binop CMP r/m32 imm32
+val / [0x83 /7]
+ | opndsz? = binop CMP r/m16 imm8
+ | rexw? = binop CMP r/m64 imm8
+ | otherwise = binop CMP r/m32 imm8
+val / [0x38 /r] = binop CMP r/m8 r8
+val / [0x39 /r]
+ | opndsz? = binop CMP r/m16 r16
+ | rexw? = binop CMP r/m64 r64
+ | otherwise = binop CMP r/m32 r32
+val / [0x3a /r] = binop CMP r8 r/m8
+val / [0x3b /r]
+ | opndsz? = binop CMP r16 r/m16
+ | rexw? = binop CMP r64 r/m64
+ | otherwise = binop CMP r32 r/m32
+
+### CMPXCHG
+###  - Compare and Exchange
+val / [0x0f 0xb0 /r] = binop CMPXCHG r/m8 r8
+val / [0x0f 0xb1 /r]
+ | opndsz? = binop CMPXCHG r/m16 r16
+ | rexw? = binop CMPXCHG r/m64 r64
+ | otherwise = binop CMPXCHG r/m32 r32
 
 ### CPUID
 ###  - CPU Identification
@@ -1674,6 +1733,26 @@ val / [0xd9 /3-mem] = unop FSTP m32
 val / [0xdd /3] = unop FSTP st/m64
 val / [0xdb /7-mem] = unop FSTP m80fp
 
+### IMUL
+###  - Signed Multiply
+val / [0xf6 /5] = unop IMUL r/m8
+val / [0xf7 /5]
+ | opndsz? = unop IMUL r/m16
+ | rexw? = unop IMUL r/m64
+ | otherwise = unop IMUL r/m32
+val / [0x0f 0xaf /r]
+ | opndsz? = binop IMUL r16 r/m16
+ | rexw? = binop IMUL r64 r/m64
+ | otherwise = binop IMUL r32 r/m32
+val / [0x6b /r]
+ | opndsz? = ternop IMUL r16 r/m16 imm8
+ | rexw? = ternop IMUL r64 r/m64 imm8
+ | otherwise = ternop IMUL r32 r/m32 imm8
+val / [0x69 /r]
+ | opndsz? = ternop IMUL r16 r/m16 imm16
+ | rexw? = ternop IMUL r64 r/m64 imm32
+ | otherwise = ternop IMUL r32 r/m32 imm32
+
 ### INC
 ###  - Increment by 1
 val / [0xfe /0] = unop INC r/m8
@@ -1699,9 +1778,37 @@ val / [0x8d /r]
  | addrsz? = binop LEA r32 r/m16
  | otherwise = binop LEA r32 r/m32
 
+### LEAVE
+###  - High Level Procedure Exit
+#TODO: handle different effects to BP/EBP/RBP
+val / [0xc9] = arity0 LEAVE
+
 ### LFENCE
 ###  - Load Fence
 val / [0x0f 0xae /5] = arity0 LFENCE
+
+### MOVSX/MOVSXD
+###  - Move with Sign-Extension
+val / [0x0f 0xbe /r]
+ | opndsz? = binop MOVSX r16 r/m8
+ | rexw? = binop MOVSX r64 r/m64
+ | otherwise = binop MOVSX r32 r/m32
+val / [0x0f 0xbf /r]
+ | rexw? = binop MOVSX r64 r/m16
+ | otherwise = binop MOVSX r32 r/m16
+val / [0x63 /r]
+ | rexw? = binop MOVSXD r64 r/m32
+ | otherwise = binop MOVSXD r32 r/m32 #TODO: check
+
+### MOVZX
+###  - Move with Zero-Extend
+val / [0x0f 0xb6 /r]
+ | opndsz? = binop MOVZX r16 r/m8
+ | rexw? = binop MOVZX r64 r/m8
+ | otherwise = binop MOVZX r32 r/m8
+val / [0x0f 0xb7 /r]
+ | rexw? = binop MOVZX r64 r/m16
+ | otherwise = binop MOVZX r32 r/m16
 
 ### PALIGNR
 ###  - Packed Align Right
@@ -1894,6 +2001,21 @@ val / [0xc1 /1]
  | rexw? = binop ROR r/m64 imm8
  | otherwise = binop ROR r/m32 imm8
 
+### RDTSC
+###  - Read Time-Stamp Counter
+val / [0x0f 0x31] = arity0 RDTSC
+
+### RDTSCP
+###  - Read Time-Stamp Counter and Processor ID
+val / [0x0f 0x01 0xf9] = arity0 RDTSCP
+
+### RET 4-321 Vol. 2B
+###  - Return from Procedure
+val / [0xc3] = arity0 RET
+val / [0xcb] = arity0 RET_FAR
+val / [0xc2] = unop RET imm16
+val / [0xca] = unop RET_FAR imm16
+
 ### SFENCE
 ###  - Store Fence
 val / [0x0f 0xae /7] = arity0 SFENCE
@@ -1972,6 +2094,28 @@ val / [0x0f 0xad /r]
  | rexw? = ternop SHLD r/m64 r64 cl
  | otherwise = ternop SHLD r/m32 r32 cl
 
+### SYSCALL
+###  - Fast System Call
+val / [0x0f 0x05] = arity0 SYSCALL
+
+### TEST
+###  - Logical Compare
+val / [0xa8] = binop TEST al imm8
+val / [0xa9]
+ | opndsz? = binop TEST ax imm16
+ | rexw? = binop TEST rax imm32
+ | otherwise = binop TEST eax imm32
+val / [0xf6 /0] = binop TEST r/m8 imm8
+val / [0xf7 /0]
+ | opndsz? = binop TEST r/m16 imm16
+ | rexw? = binop TEST r/m64 imm32
+ | otherwise = binop TEST r/m32 imm32
+val / [0x84 /r] = binop TEST r/m8 r8
+val / [0x85 /r]
+ | opndsz? = binop TEST r/m16 r16
+ | rexw? = binop TEST r/m64 r64
+ | otherwise = binop TEST r/m32 r32
+
 ### UCOMISD
 ###  - Unordered Compare Scalar Double-Precision Floating-Point Values and Set EFLAGS
 val /66 [0x0f 0x2e /r] = binop UCOMISD xmm128 xmm/m64
@@ -1992,59 +2136,6 @@ val /vex/66/0f [0x57 /r]
  | vnds? & vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
  | vnds? = ternop VXORPS ymm256 v/ymm ymm/m256
 
-### TEST 4-451 Vol. 2B
-val / [0xa8] = binop TEST al imm8
-val / [0xa9]
- | opndsz? = binop TEST ax imm16
- | rexw? = binop TEST rax imm32
- | otherwise = binop TEST eax imm32
-val / [0xf6 /0] = binop TEST r/m8 imm8
-val / [0xf7 /0]
- | opndsz? = binop TEST r/m16 imm16
- | rexw? = binop TEST r/m64 imm32
- | otherwise = binop TEST r/m32 imm32
-val / [0x84 /r] = binop TEST r/m8 r8
-val / [0x85 /r]
- | opndsz? = binop TEST r/m16 r16
- | rexw? = binop TEST r/m64 r64
- | otherwise = binop TEST r/m32 r32
-
-### BT Vol. 2A 3-100
-val / [0x0f 0xa3 /r]
- | opndsz? = binop BT r/m16 r16
- | rexw? = binop BT r/m64 r64
- | otherwise = binop BT r/m32 r32
-val / [0x0f 0xba /4]
- | opndsz? = binop BT r/m16 imm8
- | rexw? = binop BT r/m64 imm8
- | otherwise = binop BT r/m32 imm8
-
-### CMP 3-150 Vol. 2A
-val / [0x3c] = binop CMP al imm8
-val / [0x3d]
- | opndsz? = binop CMP ax imm16
- | rexw? = binop CMP rax imm32
- | otherwise = binop CMP eax imm32
-val / [0x80 /7] = binop CMP r/m8 imm8
-val / [0x81 /7]
- | opndsz? = binop CMP r/m16 imm16
- | rexw? = binop CMP r/m64 imm32
- | otherwise = binop CMP r/m32 imm32
-val / [0x83 /7]
- | opndsz? = binop CMP r/m16 imm8
- | rexw? = binop CMP r/m64 imm8
- | otherwise = binop CMP r/m32 imm8
-val / [0x38 /r] = binop CMP r/m8 r8
-val / [0x39 /r]
- | opndsz? = binop CMP r/m16 r16
- | rexw? = binop CMP r/m64 r64
- | otherwise = binop CMP r/m32 r32
-val / [0x3a /r] = binop CMP r8 r/m8
-val / [0x3b /r]
- | opndsz? = binop CMP r16 r/m16
- | rexw? = binop CMP r64 r/m64
- | otherwise = binop CMP r32 r/m32
-
 ### BSWAP Vol. 2A 3-98
 val / [0x0f '11001 r:3']
  | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end 
@@ -2060,78 +2151,6 @@ val / [0x87 /r]
  | opndsz? = binop XCHG r/m16 r16
  | rexw? = binop XCHG r/m64 r64
  | otherwise = binop XCHG r/m32 r32
-
-### CMPXCHG Vol. 2A 3-188
-val / [0x0f 0xb0 /r] = binop CMPXCHG r/m8 r8
-val / [0x0f 0xb1 /r]
- | opndsz? = binop CMPXCHG r/m16 r16
- | rexw? = binop CMPXCHG r/m64 r64
- | otherwise = binop CMPXCHG r/m32 r32
-
-### RDTSC Vol. 2B 4-312
-val / [0x0f 0x31] = arity0 RDTSC
-
-### RDTSCP Vol. 2B 4-313
-val / [0x0f 0x01 0xf9] = arity0 RDTSCP
-
-### SYSCALL Vol. 2B 4-438
-val / [0x0f 0x05] = arity0 SYSCALL
-
-### RET 4-321 Vol. 2B
-val / [0xc3] = arity0 RET
-val / [0xcb] = arity0 RET_FAR
-val / [0xc2] = unop RET imm16
-val / [0xca] = unop RET_FAR imm16
-
-### LEAVE Vol. 2A 
-#TODO: handle different effects to BP/EBP/RBP
-val / [0xc9] = arity0 LEAVE
-
-### IMUL 3-494 Vol. 2A
-val / [0xf6 /5] = unop IMUL r/m8
-val / [0xf7 /5]
- | opndsz? = unop IMUL r/m16
- | rexw? = unop IMUL r/m64
- | otherwise = unop IMUL r/m32
-val / [0x0f 0xaf /r]
- | opndsz? = binop IMUL r16 r/m16
- | rexw? = binop IMUL r64 r/m64
- | otherwise = binop IMUL r32 r/m32
-val / [0x6b /r]
- | opndsz? = ternop IMUL r16 r/m16 imm8
- | rexw? = ternop IMUL r64 r/m64 imm8
- | otherwise = ternop IMUL r32 r/m32 imm8
-val / [0x69 /r]
- | opndsz? = ternop IMUL r16 r/m16 imm16
- | rexw? = ternop IMUL r64 r/m64 imm32
- | otherwise = ternop IMUL r32 r/m32 imm32
-
-### CBW/CWDE/CDQE 3-131 Vol. 2A
-val / [0x98] 
- | opndsz? = arity0 CBW
- | rexw? = arity0 CDQE
- | otherwise = arity0 CWDE
-
-### MOVZX 3-739 Vol. 2A
-val / [0x0f 0xb6 /r]
- | opndsz? = binop MOVZX r16 r/m8
- | rexw? = binop MOVZX r64 r/m8
- | otherwise = binop MOVZX r32 r/m8
-val / [0x0f 0xb7 /r]
- | rexw? = binop MOVZX r64 r/m16
- | otherwise = binop MOVZX r32 r/m16
-
-### MOVSX/MOVSXD 3-730 Vol. 2A
-val / [0x0f 0xbe /r]
- | opndsz? = binop MOVSX r16 r/m8
- | rexw? = binop MOVSX r64 r/m64
- | otherwise = binop MOVSX r32 r/m32
-val / [0x0f 0xbf /r]
- | rexw? = binop MOVSX r64 r/m16
- | otherwise = binop MOVSX r32 r/m16
-val / [0x63 /r]
- | rexw? = binop MOVSXD r64 r/m32
- | otherwise = binop MOVSXD r32 r/m32 #TODO: check
 
 ### DIV 3-299 Vol. 2A
 val / [0xf6 /6] = unop DIV r/m8

@@ -128,7 +128,7 @@ structure DesugarDecode = struct
    end
 
    and desugarMatches tok decls = let
-      (* val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
+      val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls)
       val equiv = buildEquivClass decls
       
       fun genBindSlices indices = let
