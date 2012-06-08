@@ -72,7 +72,7 @@ functor MkAst (Core: AST_CORE) = struct
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use 
     | CONexp of con_use (* constructor *)
-    | FNexp of var_bind * exp 
+    | FNexp of var_bind list * exp 
 
    and infixop =
       MARKinfixop of infixop mark
@@ -241,7 +241,8 @@ functor MkAst (Core: AST_CORE) = struct
                    str "end"]
           | IDexp id => var_use id
           | CONexp con => seq [str "`", con_use con]
-          | FNexp (x, e) => seq [str "\\", var_bind x, str ".", exp e]
+          | FNexp (xs, e) => seq [str "\\", listex "" "" " " (map var_bind xs),
+                                  str ".", exp e]
 
       and infixop t =
          case t of

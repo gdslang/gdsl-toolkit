@@ -75,9 +75,9 @@ end = struct
    fun genTypes () = let
       val (t, f1) = SymbolTable.create(!SymbolTables.fieldTable, Atom.atom "f1", SymbolTable.noSpan)
       val (t, f2) = SymbolTable.create(t,  Atom.atom "f2", SymbolTable.noSpan)
-      val t1 = FUN(VAR (a,BD.freshBVar ()), RECORD (b, BD.freshBVar (), [RField { name=f1, fty = VEC (VAR (e,BD.freshBVar ())), exists = BD.freshBVar ()},
+      val t1 = FUN([VAR (a,BD.freshBVar ())], RECORD (b, BD.freshBVar (), [RField { name=f1, fty = VEC (VAR (e,BD.freshBVar ())), exists = BD.freshBVar ()},
       RField { name=f2, fty = VEC (VAR (e,BD.freshBVar ())), exists = BD.freshBVar ()}]))
-      val t2 = FUN(RECORD (c, BD.freshBVar (), [RField { name=f1, fty = VEC (VAR (d,BD.freshBVar ())), exists = BD.freshBVar ()}]), VAR (a,BD.freshBVar ()))
+      val t2 = FUN([RECORD (c, BD.freshBVar (), [RField { name=f1, fty = VEC (VAR (d,BD.freshBVar ())), exists = BD.freshBVar ()}])], VAR (a,BD.freshBVar ()))
    in (SymbolTables.fieldTable := t; (f1,f2,t1,t2)) end
       
    fun showSubstTargetSI (WITH_TYPE t, si) = showTypeSI (t, si)
@@ -250,7 +250,7 @@ end = struct
 
    fun applySubstToExp (subst as (v, target)) (exp, ei) = let
       val eiRef = ref (ei : expand_info)
-      fun aS (FUN (f1, f2)) = FUN (aS f1, aS f2)
+      fun aS (FUN (f1, f2)) = FUN (List.map aS f1, aS f2)
         | aS (SYN (syn, t)) = SYN (syn, aS t)
         | aS (ZENO) = ZENO
         | aS (FLOAT) = FLOAT
@@ -429,7 +429,13 @@ end = struct
          (tNew, bFunNew, mergedSCons)
       end
 
-   fun mgu (FUN (f1, f2), FUN (g1, g2), s) = mgu (f2, g2, mgu (f1, g1, s))
+   fun mgu (FUN (f1, f2), FUN (g1, g2), s) = if List.length f1<>List.length g1
+      then raise UnificationFailure (
+            "function with different number of arguments (" ^
+            Int.toString (List.length f1) ^ " and " ^
+            Int.toString (List.length g1) ^ ")"
+         )
+      else mgu (f2, g2, ListPair.foldlEq mgu s (f1,g1))
      | mgu (SYN (_, t1), t2, s) = mgu (t1, t2, s)
      | mgu (t1, SYN (_, t2), s) = mgu (t1, t2, s)
      | mgu (ZENO, ZENO, s) = s
