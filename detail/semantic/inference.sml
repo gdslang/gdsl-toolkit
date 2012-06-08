@@ -52,15 +52,19 @@ end = struct
          String.substring (str,0,max-3) ^ "..."
       end
 
-   fun refineError (str, msg, env1, str1, env2, str2) =
+   fun refineError (str, msg, envStrs) =
       let
-         val (eStr1, si) = E.kappaToStringSI (env1, TVar.emptyShowInfo)
-         val (eStr2, si) = E.kappaToStringSI (env2, si)
+         fun genRow ((env,str),(acc,si)) =
+            let
+               val (eStr,si) = E.kappaToStringSI (env,si)
+            in
+               (acc ^ "\n\t" ^ str ^ ": " ^ eStr,si)
+            end
+         val (str, si) = List.foldl
+                           genRow
+                           (str ^ msg, TVar.emptyShowInfo) envStrs
       in
-         raise S.UnificationFailure
-          (str ^ msg ^
-           "\n\t" ^ str1 ^ ": " ^ eStr1 ^
-           "\n\t" ^ str2 ^ ": " ^ eStr2)
+         raise S.UnificationFailure str
       end
 
    fun getBitpatLitLength bp =
@@ -232,8 +236,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking guards",
-                            envRef, "required guard type        ",
-                            envGua, "guard " ^ showProg (20, PP.exp, g))
+                            [(envRef, "required guard type        "),
+                             (envGua, "guard " ^ showProg (20, PP.exp, g))])
             in
                E.popKappa env
             end
@@ -359,8 +363,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   handle S.UnificationFailure str =>
                      refineError (str,
                                   " while checking right-hand-side of branches",
-                                  nEnv, "branches so far               ",
-                                  expEnv, showProg (30, PP.exp, exp))
+                                  [(nEnv, "branches so far               "),
+                                   (expEnv, showProg (30, PP.exp, exp))])
             in
                env
             end
@@ -393,8 +397,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " while passing",
-                            envArg, "argument    " ^ showProg (20, PP.exp, List.hd es2),
-                            envFun, "to function " ^ showProg (20, PP.exp, e1))
+                            List.map (fn e2 => (envArg, "argument    " ^ showProg (20, PP.exp, e2))) es2 @
+                            [(envFun, "to function " ^ showProg (20, PP.exp, e1))])
          (*val _ = TextIO.print ("**** app fun,res unified:\n" ^ E.topToString env)*)
          val env = E.reduceToResult env
       in
@@ -544,8 +548,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when passing on the result of",
-                            envFun, "statement " ^ showProg (20, PP.exp, e),
-                            envArg, "to the following statments    ")
+                            [(envFun, "statement " ^ showProg (20, PP.exp, e)),
+                             (envArg, "to the following statments    ")])
          val env = E.reduceToResult env
       in
          env
@@ -561,8 +565,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking decoder",
-                            envGra, "granularity                     ",
-                            envDec, "token " ^ showProg (20, PP.tokpat, t))
+                            [(envGra, "granularity                     "),
+                             (envDec, "token " ^ showProg (20, PP.tokpat, t))])
             val env = E.popKappa env
          in
             infTokpat (st, env) t
@@ -580,8 +584,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking bits in token",
-                            envGra, "granularity                     ",
-                            envPat, "pattern " ^ showProg (20, PP.decodepat, (AST.BITdecodepat l)))
+                            [(envGra, "granularity                     "),
+                             (envPat, "pattern " ^ showProg (20, PP.decodepat, (AST.BITdecodepat l)))])
          val env = E.popKappa env
       in
          List.foldl (fn (b,(n,env)) => case infBitpat (st,env) b of
@@ -622,8 +626,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking case scrutinee",
-                            envScru, "scrutinee and patterns so far ",
-                            env,     "pattern " ^ showProg (22, PP.pat, p))
+                            [(envScru, "scrutinee and patterns so far "),
+                             (env,     "pattern " ^ showProg (22, PP.pat, p))])
          (*val _ = TextIO.print ("**** after mgu:\n" ^ E.toString env)*)
          val env = E.popKappa env
          val env = infExp (st,env) e

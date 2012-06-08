@@ -51,6 +51,9 @@ val /f2 [] = continue
 
 val /f3 [] = continue
 
+
+val /f3_noCont = do update @{tab=return MOV}; /f3 end
+
 val /legacy-p [0x2e] = do clear-rex; set-CS end
 val /legacy-p [0x36] = do clear-rex; set-SS end
 val /legacy-p [0x3e] = do clear-rex; set-DS end
@@ -97,14 +100,14 @@ val p/f2/f3 [0xf2] = do set-repne; p/f3/f2 end
 val p/f2/f3 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2/f3 [/legacy-p] = p/f2/f3
 val p/f2/f3 [/rex-p] = p/f2/f3
-val p/f2/f3 [] = failOver /f3 p/f2
+val p/f2/f3 [] = failOver /f3 (failOver /f2 /) #p/f2
 
 val p/f3/f2 [0x66] = do set-opndsz; p/f2/f3/66 end
 val p/f3/f2 [0xf2] = do set-repne; p/f3/f2 end
 val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [/rex-p] = p/f3/f2
-val p/f3/f2 [] = failOver /f2 p/f3
+val p/f3/f2 [] = failOver /f2 /f3_noCont
 
 val p/66/f2 [0x66] = do set-opndsz; p/f2/66 end
 val p/66/f2 [0xf2] = do set-repne; p/66/f2 end
