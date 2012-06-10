@@ -2583,7 +2583,7 @@ val /vex/66/0f/3a [0x0f /r] | vex128? = quaternop VPALIGNR xmm128 v/xmm xmm/m128
 ###  - Logical AND
 val / [0x0f 0xdb /r] = binop PAND mm64 mm/m64
 val /66 [0x0f 0xdb /r] = binop PAND xmm128 xmm/m128
-val /vex/66/0f [0xdb /r] | vnds? & vex128? = ternop VPAND xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xdb /r] | vex128? = ternop VPAND xmm128 v/xmm xmm/m128
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
@@ -2593,9 +2593,9 @@ val / [0x0f 0x75 /r] = binop PCMPEQW mm64 mm/m64
 val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
 val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
 val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
-val /vex/66/0f [0x74 /r] | vnds? = ternop VCMPEQB xmm128 v/xmm xmm/m128
-val /vex/66/0f [0x75 /r] | vnds? = ternop VCMPEQW xmm128 v/xmm xmm/m128
-val /vex/66/0f [0x76 /r] | vnds? = ternop VCMPEQD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x74 /r] = ternop VCMPEQB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x75 /r] = ternop VCMPEQW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x76 /r] = ternop VCMPEQD xmm128 v/xmm xmm/m128
 
 ### PCMPEQQ
 ###  - Compare Packed Qword Data for Equal
@@ -2615,9 +2615,9 @@ val / [0x0f 0x65 /r] = binop PCMPGTW mm64 mm/m64
 val /66 [0x0f 0x65 /r] = binop PCMPGTW xmm128 xmm/m128
 val / [0x0f 0x66 /r] = binop PCMPGTD mm64 mm/m64
 val /66 [0x0f 0x66 /r] = binop PCMPGRD xmm128 xmm/m128
-val /vex/66/0f [0x64 /r] | vnds? & vex128? = ternop VPCMPGTB xmm128 v/xmm xmm/m128
-val /vex/66/0f [0x65 /r] | vnds? & vex128? = ternop VPCMPGTW xmm128 v/xmm xmm/m128
-val /vex/66/0f [0x66 /r] | vnds? & vex128? = ternop VPCMPGTD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x64 /r] | vex128? = ternop VPCMPGTB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x65 /r] | vex128? = ternop VPCMPGTW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x66 /r] | vex128? = ternop VPCMPGTD xmm128 v/xmm xmm/m128
 
 ### PCMPISTRI
 ###  - Packed Compare Implicit Length Strings, Return Index
@@ -2667,7 +2667,7 @@ val / [0x17] = unop POP ss
 ###  - Bitwise Logical OR
 val / [0x0f 0xeb /r] = binop POR mm64 mm/m64
 val /66 [0x0f 0xeb /r] = binop POR xmm128 xmm/m128
-val /vex/66/0f [0xeb /r] | vnds? & vex128? = ternop VPOR xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xeb /r] | vex128? = ternop VPOR xmm128 v/xmm xmm/m128
 
 ### PREFETCHh
 ###  - Prefetch Data Into Caches
@@ -2684,7 +2684,7 @@ val / [0x0f 0x0d /r-mem] = unop PREFETCHW m8
 ###  - Packed Shuffle Bytes
 val / [0x0f 0x38 0x00 /r] = binop PSHUFB mm64 mm/m64
 val /66 [0x0f 0x38 0x00 /r] = binop PSHUFB xmm128 xmm/m128
-val /vex/66/0f/38 [0x00 /r] | vnds? & vex128? = ternop VPSHUFB xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x00 /r] | vex128? = ternop VPSHUFB xmm128 v/xmm xmm/m128
 
 ### PSHUFD
 ###  - Shuffle Packed Doublewords
@@ -2709,9 +2709,9 @@ val / [0x0f 0xf9 /r] = binop PSUBW mm64 mm/m64
 val /66 [0x0f 0xf9 /r] = binop PSUBW xmm128 xmm/m128
 val / [0x0f 0xfa /r] = binop PSUBD mm64 mm/m64
 val /66 [0x0f 0xfa /r] = binop PSUBD xmm128 xmm/m128
-val /vex/66/0f [0xf8 /r] | vnds? & vex128? = ternop VPSUBB xmm128 v/xmm xmm/m128
-val /vex/66/0f [0xf9 /r] | vnds? & vex128? = ternop VPSUBW xmm128 v/xmm xmm/m128
-val /vex/66/0f [0xfa /r] | vnds? & vex128? = ternop VPSUBD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xf8 /r] | vex128? = ternop VPSUBB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xf9 /r] | vex128? = ternop VPSUBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xfa /r] | vex128? = ternop VPSUBD xmm128 v/xmm xmm/m128
 
 ### PTEST
 ###  - Logical Compare
@@ -2729,10 +2729,10 @@ val /66 [0x0f 0x61 /r] = binop PUNPCKLWD xmm128 xmm/m128
 val / [0x0f 0x62 /r] = binop PUNPCKLDQ mm64 mm/m32
 val /66 [0x0f 0x62 /r] = binop PUNPCKLDQ xmm128 xmm/m128
 val /66 [0x0f 0x6c /r] = binop PUNPCKLQDQ xmm128 xmm/m128
-val /vex/66/0f [0x60 /r] | vnds? & vex128? = ternop VPUNPCKLBW xmm128 v/xmm xmm/m128
-val /vex/66/0f [0x61 /r] | vnds? & vex128? = ternop VPUNPCKLWD xmm128 v/xmm xmm/m128
-val /vex/66/0f [0x62 /r] | vnds? & vex128? = ternop VPUNPCKLDQ xmm128 v/xmm xmm/m128
-val /vex/66/0f [0x6c /r] | vnds? & vex128? = ternop VPUNPCKLQDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x60 /r] | vex128? = ternop VPUNPCKLBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x61 /r] | vex128? = ternop VPUNPCKLWD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x62 /r] | vex128? = ternop VPUNPCKLDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6c /r] | vex128? = ternop VPUNPCKLQDQ xmm128 v/xmm xmm/m128
 
 ### PUSH
 ###  - Push Word, Doubleword or Quadword Onto the Stack
@@ -3096,7 +3096,7 @@ val /66 [0x0f 0x57 /r] = binop XORPD xmm128 xmm/m128
 ### XORPS
 ###  - Bitwise Logical XOR for Single-Precision Floating-Point Values
 val / [0x0f 0x57 /r] = binop XORPS xmm128 xmm/m128
-val /vex/66/0f [0x57 /r]
- | vnds? & vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
- | vnds? = ternop VXORPS ymm256 v/ymm ymm/m256
+val /vex/66/0f/vexv [0x57 /r]
+ | vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
+ | otherwise = ternop VXORPS ymm256 v/ymm ymm/m256
 
