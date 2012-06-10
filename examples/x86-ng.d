@@ -1798,6 +1798,10 @@ val / [0x0f 0xb1 /r]
 ###  - CPU Identification
 val / [0x0f 0xa2] = arity0 CPUID
 
+### CVTPD2PI
+###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
+val /66 [0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128
+
 ### CVTSI2SD
 ###  - Convert Dword Integer to Scalar Double-Precision FP Value
 val /f2 [0x0f 0x2a /r]
@@ -2053,6 +2057,11 @@ val / [0xc9] = arity0 LEAVE
 ### LFENCE
 ###  - Load Fence
 val / [0x0f 0xae /5] = arity0 LFENCE
+
+### MASKMOVDQU
+###  - Store Selected Bytes of Double Quadword
+val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/nomem128
+val /vex/66/0f/vexv [0xf7 /r] | vex128? = binop VMASKMOVDQU
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
 ###  - Move Data from String to String
@@ -2583,14 +2592,8 @@ val /vex/66/0f [0x57 /r]
  | vnds? & vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
  | vnds? = ternop VXORPS ymm256 v/ymm ymm/m256
 
-### CVTPD2PI Vol. 2A 3-248
-val /66 [0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128
-
-### MASKMOVDQU Vol. 2B 4-9
-val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/nomem128
-val /vex/66/0f/vexv [0xf7 /r] | vex128? = binop VMASKMOVDQU
-
-### MASKMOVQ Vol. 2B 4-11
+### MASKMOVQ
+###  - Store Selected Bytes of Quadword
 val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/nomem64
 
 ### MAXPD Vol. 2B 4-13
