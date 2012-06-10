@@ -1554,6 +1554,33 @@ end
 
 val one = return (IMM8 '00000001')
 
+### ADD
+###  - Add
+val / [0x04] = binop ADD al imm8
+val / [0x05]
+ | opndsz? = binop ADD ax imm16
+ | rexw? = binop ADD rax imm32
+ | otherwise = binop ADD eax imm32
+val / [0x80 /0] = binop ADD r/m8 imm8
+val / [0x81 /0]
+ | opndsz? = binop ADD r/m16 imm16
+ | rexw? = binop ADD r/m64 imm32 
+ | otherwise = binop ADD r/m32 imm32
+val / [0x83 /0]
+ | opndsz? = binop ADD r/m16 imm8
+ | rexw? = binop ADD r/m64 imm8
+ | otherwise = binop ADD r/m32 imm8
+val / [0x00 /r] = binop ADD r/m8 r8
+val / [0x01 /r]
+ | opndsz? = binop ADD r/m16 r16
+ | rexw? = binop ADD r/m64 r64
+ | otherwise = binop ADD r/m32 r32
+val / [0x02 /r] = binop ADD r8 r/m8
+val / [0x03 /r]
+ | opndsz? = binop ADD r16 r/m16
+ | rexw? = binop ADD r64 r/m64
+ | otherwise = binop ADD r32 r/m32
+
 ### ADC 
 ###  - Add with Carry
 val / [0x14] = binop ADC al imm8
@@ -1580,6 +1607,33 @@ val / [0x13 /r]
  | opndsz? = binop ADC r16 r/m16
  | rexw? = binop ADC r64 r/m64
  | otherwise = binop ADC r32 r/m32 
+
+### AND
+###  - Logical AND
+val / [0x24] = binop AND al imm8
+val / [0x25]
+ | opndsz? = binop AND ax imm16
+ | rexw? = binop AND rax imm32
+ | otherwise = binop AND eax imm32
+val / [0x80 /4] = binop AND r/m8 imm8
+val / [0x81 /4]
+ | opndsz? = binop AND r/m16 imm16
+ | rexw? = binop AND r/m64 imm32
+ | otherwise = binop AND r/m32 imm32
+val / [0x83 /4]
+ | opndsz? = binop AND r/m16 imm8
+ | rexw? = binop AND r/m64 imm8
+ | otherwise = binop AND r/m32 imm8
+val / [0x20 /r] = binop AND r/m8 r8
+val / [0x21 /r]
+ | opndsz? = binop AND r/m16 r16
+ | rexw? = binop AND r/m64 r64
+ | otherwise = binop AND r/m32 r32
+val / [0x22 /r] = binop AND r8 r/m8
+val / [0x23 /r]
+ | opndsz? = binop AND r16 r/m16
+ | rexw? = binop AND r64 r/m64
+ | otherwise = binop AND r32 r/m32
 
 ### BSF
 ###  - Bit Scan Forward
@@ -1744,6 +1798,12 @@ val / [0x0f 0xb1 /r]
 ###  - CPU Identification
 val / [0x0f 0xa2] = arity0 CPUID
 
+### CVTSI2SD
+###  - Convert Dword Integer to Scalar Double-Precision FP Value
+val /f2 [0x0f 0x2a /r]
+ | rexw? = binop CVTSI2SD xmm128 r/m64
+ | otherwise = binop CVTSI2SD xmm128 r/m32
+
 ### DEC
 ###  - Decrement by 1
 val / [0xfe /1] = unop DEC r/m8
@@ -1825,6 +1885,10 @@ val / [0xdd /2] = unop FST st/m64
 val / [0xd9 /3-mem] = unop FSTP m32
 val / [0xdd /3] = unop FSTP st/m64
 val / [0xdb /7-mem] = unop FSTP m80fp
+
+### HLT
+###  - Halt
+val / [0xf4] = arity0 HLT
 
 ### IDIV
 ###  - Signed Divide
@@ -1949,6 +2013,21 @@ val /66 [0x0f 0x88]
  | otherwise = near-rel JS rel16
 val / [0x0f 0x88] = near-rel JS rel32
 
+### JMP
+###  - Jump
+#TODO: jmp far
+val / [0xeb] = near-rel JMP rel8
+val /66 [0xe9]
+ | mode64? = near-rel JMP rel32
+ | otherwise = near-rel JMP rel16
+val / [0xe9] = near-rel JMP rel32
+val /66 [0xff /4]
+ | mode64? = near-abs JMP r/m64
+ | otherwise = near-abs JMP r/m16
+val / [0xff /4]
+ | mode64? = near-abs JMP r/m64
+ | otherwise = near-abs JMP r/m32
+
 ### LDDQU
 ###  - Load Unaligned Integer 128 Bits
 val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
@@ -2063,6 +2142,19 @@ val /vex/66/0f/3a [0x22 /r]
  | vex128? & vexw1? = quaternop VPINSRQ xmm128 v/xmm r/m64 imm8
  | vex128? = quaternop VPINSRD xmm128 v/xmm r/m32 imm8
 
+### POP
+###  - Pop a Value from the Stack
+#TODO: correctly implement 32bit and 64bit modes
+val / [0x8f /0]
+ | opndsz? = unop POP r/m16
+ | otherwise = unop POP r/m64
+val / ['01011 r:3']
+ | opndsz? = do update@{reg/opcode=r}; unop POP r16/rexb end
+ | otherwise = do update@{reg/opcode=r}; unop POP r64/rexb end
+val / [0x1f] = unop POP ds
+val / [0x07] = unop POP es
+val / [0x17] = unop POP ss
+
 ### POR
 ###  - Bitwise Logical OR
 val / [0x0f 0xeb /r] = binop POR mm64 mm/m64
@@ -2133,6 +2225,30 @@ val /vex/66/0f [0x60 /r] | vnds? & vex128? = ternop VPUNPCKLBW xmm128 v/xmm xmm/
 val /vex/66/0f [0x61 /r] | vnds? & vex128? = ternop VPUNPCKLWD xmm128 v/xmm xmm/m128
 val /vex/66/0f [0x62 /r] | vnds? & vex128? = ternop VPUNPCKLDQ xmm128 v/xmm xmm/m128
 val /vex/66/0f [0x6c /r] | vnds? & vex128? = ternop VPUNPCKLQDQ xmm128 v/xmm xmm/m128
+
+### PUSH
+###  - Push Word, Doubleword or Quadword Onto the Stack
+#TODO: correctly implement 32bit and 64bit modes
+val / [0xff /6]
+ | opndsz? = unop PUSH r/m16
+ | otherwise = unop PUSH r/m64
+val / ['01010 r:3']
+ | opndsz? = do update@{reg/opcode=r}; unop PUSH r16/rexb end
+ | otherwise = do update@{reg/opcode=r}; unop PUSH r64/rexb end
+val / [0x6a] = unop PUSH imm8
+val / [0x68]
+ | opndsz? = unop PUSH imm16
+ | otherwise = unop PUSH imm32
+val / [0x0e] = unop PUSH cs
+val / [0x16] = unop PUSH ds
+val / [0x06] = unop PUSH es
+val / [0x0f 0xa0] = unop PUSH fs
+val / [0x0f 0xa8] = unop PUSH gs
+
+### PXOR
+###  - Logical Exclusive OR
+val / [0x0f 0xef /r] = binop PXOR mm64 mm/m64
+val /66 [0x0f 0xef /r] = binop PXOR xmm128 xmm/m128
 
 ### RCL/RCR/ROL/ROR
 ###  - Rotate
@@ -2212,6 +2328,79 @@ val / [0xc3] = arity0 RET
 val / [0xcb] = arity0 RET_FAR
 val / [0xc2] = unop RET imm16
 val / [0xca] = unop RET_FAR imm16
+
+### SETcc
+###  - Set Byte on Condition
+val / [0x0f 0x97 /r] = unop SETA r/m8
+val / [0x0f 0x93 /r] = unop SETAE r/m8
+val / [0x0f 0x92 /r] = unop SETB r/m8
+val / [0x0f 0x96 /r] = unop SETBE r/m8
+val / [0x0f 0x94 /r] = unop SETE r/m8
+val / [0x0f 0x9f /r] = unop SETG r/m8
+val / [0x0f 0x9d /r] = unop SETGE r/m8
+val / [0x0f 0x9c /r] = unop SETL r/m8
+val / [0x0f 0x9e /r] = unop SETLE r/m8
+val / [0x0f 0x95 /r] = unop SETNE r/m8
+val / [0x0f 0x91 /r] = unop SETNO r/m8
+val / [0x0f 0x9b /r] = unop SETNP r/m8
+val / [0x0f 0x99 /r] = unop SETNS r/m8
+val / [0x0f 0x90 /r] = unop SETO r/m8
+val / [0x0f 0x9a /r] = unop SETP r/m8
+val / [0x0f 0x98 /r] = unop SETS r/m8
+
+### SBB
+###  - Integer Subtraction with Borrow
+val / [0x1c] = binop SBB al imm8
+val / [0x1d]
+ | opndsz? = binop SBB ax imm16
+ | rexw? = binop SBB rax imm32
+ | otherwise = binop SBB eax imm32
+val / [0x80 /3] = binop SBB r/m8 imm8
+val / [0x81 /3]
+ | opndsz? = binop SBB r/m16 imm16
+ | rexw? = binop SBB r/m64 imm32
+ | otherwise = binop SBB r/m32 imm32
+val / [0x83 /3]
+ | opndsz? = binop SBB r/m16 imm8
+ | rexw? = binop SBB r/m64 imm8
+ | otherwise = binop SBB r/m32 imm8
+val / [0x18 /r] = binop SBB r/m8 r8
+val / [0x19 /r]
+ | opndsz? = binop SBB r/m16 r16
+ | rexw? = binop SBB r/m64 r64
+ | otherwise = binop SBB r/m32 r32
+val / [0x1a /r] = binop SBB r8 r/m8
+val / [0x1b /r]
+ | opndsz? = binop SBB r16 r/m16
+ | rexw? = binop SBB r64 r/m64
+ | otherwise = binop SBB r32 r/m32
+
+### SUB
+###  - Subtract
+val / [0x2c] = binop SUB al imm8
+val / [0x2d]
+ | opndsz? = binop SUB ax imm16
+ | rexw? = binop SUB rax imm32
+ | otherwise = binop SUB eax imm32
+val / [0x80 /5] = binop SUB r/m8 imm8
+val / [0x81 /5]
+ | opndsz? = binop SUB r/m16 imm16
+ | rexw? = binop SUB r/m64 imm32
+ | otherwise = binop SUB r/m32 imm32
+val / [0x83 /5]
+ | opndsz? = binop SUB r/m16 imm8
+ | rexw? = binop SUB r/m64 imm8
+ | otherwise = binop SUB r/m32 imm8
+val / [0x28 /r] = binop SUB r/m8 r8
+val / [0x29 /r]
+ | opndsz? = binop SUB r/m16 r16
+ | rexw? = binop SUB r/m64 r64
+ | otherwise = binop SUB r/m32 r32
+val / [0x2a /r] = binop SUB r8 r/m8
+val / [0x2b /r]
+ | opndsz? = binop SUB r16 r/m16
+ | rexw? = binop SUB r64 r/m64
+ | otherwise = binop SUB r32 r/m32
 
 ### SFENCE
 ###  - Store Fence
@@ -2340,18 +2529,8 @@ val /vex/66/0f [0x2e /r] = binop VUCOMISD xmm128 xmm/m64
 ###  - Undefined Instruction
 val / [0x0f 0x0b] = arity0 UD2
 
-### XGETBV
-###  - Get Value of Extended Control Register
-val / [0x0f 0x01 0xd0] = arity0 XGETBV
-
-### XORPS
-###  - Bitwise Logical XOR for Single-Precision Floating-Point Values
-val / [0x0f 0x57 /r] = binop XORPS xmm128 xmm/m128
-val /vex/66/0f [0x57 /r]
- | vnds? & vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
- | vnds? = ternop VXORPS ymm256 v/ymm ymm/m256
-
-### XCHG Vol. 2A 4-510
+### XCHG
+###  - Exchange Register/Memory with Register
 val / ['10010 r:3']
  | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end 
  | rexw? = do update@{reg/opcode=r}; binop XCHG rax r64/rexb end 
@@ -2362,120 +2541,12 @@ val / [0x87 /r]
  | rexw? = binop XCHG r/m64 r64
  | otherwise = binop XCHG r/m32 r32
 
-### JMP 3-552 Vol. 2A
-#TODO: jmp far
-val / [0xeb] = near-rel JMP rel8
-val /66 [0xe9]
- | mode64? = near-rel JMP rel32
- | otherwise = near-rel JMP rel16
-val / [0xe9] = near-rel JMP rel32
-val /66 [0xff /4]
- | mode64? = near-abs JMP r/m64
- | otherwise = near-abs JMP r/m16
-val / [0xff /4]
- | mode64? = near-abs JMP r/m64
- | otherwise = near-abs JMP r/m32
+### XGETBV
+###  - Get Value of Extended Control Register
+val / [0x0f 0x01 0xd0] = arity0 XGETBV
 
-### SETcc 4-372 Vol. 2B
-val / [0x0f 0x97 /r] = unop SETA r/m8
-val / [0x0f 0x93 /r] = unop SETAE r/m8
-val / [0x0f 0x92 /r] = unop SETB r/m8
-val / [0x0f 0x96 /r] = unop SETBE r/m8
-val / [0x0f 0x94 /r] = unop SETE r/m8
-val / [0x0f 0x9f /r] = unop SETG r/m8
-val / [0x0f 0x9d /r] = unop SETGE r/m8
-val / [0x0f 0x9c /r] = unop SETL r/m8
-val / [0x0f 0x9e /r] = unop SETLE r/m8
-val / [0x0f 0x95 /r] = unop SETNE r/m8
-val / [0x0f 0x91 /r] = unop SETNO r/m8
-val / [0x0f 0x9b /r] = unop SETNP r/m8
-val / [0x0f 0x99 /r] = unop SETNS r/m8
-val / [0x0f 0x90 /r] = unop SETO r/m8
-val / [0x0f 0x9a /r] = unop SETP r/m8
-val / [0x0f 0x98 /r] = unop SETS r/m8
-
-### SUB 4-572 Vol. 2B
-val / [0x2c] = binop SUB al imm8
-val / [0x2d]
- | opndsz? = binop SUB ax imm16
- | rexw? = binop SUB rax imm32
- | otherwise = binop SUB eax imm32
-val / [0x80 /5] = binop SUB r/m8 imm8
-val / [0x81 /5]
- | opndsz? = binop SUB r/m16 imm16
- | rexw? = binop SUB r/m64 imm32
- | otherwise = binop SUB r/m32 imm32
-val / [0x83 /5]
- | opndsz? = binop SUB r/m16 imm8
- | rexw? = binop SUB r/m64 imm8
- | otherwise = binop SUB r/m32 imm8
-val / [0x28 /r] = binop SUB r/m8 r8
-val / [0x29 /r]
- | opndsz? = binop SUB r/m16 r16
- | rexw? = binop SUB r/m64 r64
- | otherwise = binop SUB r/m32 r32
-val / [0x2a /r] = binop SUB r8 r/m8
-val / [0x2b /r]
- | opndsz? = binop SUB r16 r/m16
- | rexw? = binop SUB r64 r/m64
- | otherwise = binop SUB r32 r/m32
-
-### SBB 4-361 Vol. 2B
-val / [0x1c] = binop SBB al imm8
-val / [0x1d]
- | opndsz? = binop SBB ax imm16
- | rexw? = binop SBB rax imm32
- | otherwise = binop SBB eax imm32
-val / [0x80 /3] = binop SBB r/m8 imm8
-val / [0x81 /3]
- | opndsz? = binop SBB r/m16 imm16
- | rexw? = binop SBB r/m64 imm32
- | otherwise = binop SBB r/m32 imm32
-val / [0x83 /3]
- | opndsz? = binop SBB r/m16 imm8
- | rexw? = binop SBB r/m64 imm8
- | otherwise = binop SBB r/m32 imm8
-val / [0x18 /r] = binop SBB r/m8 r8
-val / [0x19 /r]
- | opndsz? = binop SBB r/m16 r16
- | rexw? = binop SBB r/m64 r64
- | otherwise = binop SBB r/m32 r32
-val / [0x1a /r] = binop SBB r8 r/m8
-val / [0x1b /r]
- | opndsz? = binop SBB r16 r/m16
- | rexw? = binop SBB r64 r/m64
- | otherwise = binop SBB r32 r/m32
-
-### AND 3-64 Vol. 2A
-val / [0x24] = binop AND al imm8
-val / [0x25]
- | opndsz? = binop AND ax imm16
- | rexw? = binop AND rax imm32
- | otherwise = binop AND eax imm32
-val / [0x80 /4] = binop AND r/m8 imm8
-val / [0x81 /4]
- | opndsz? = binop AND r/m16 imm16
- | rexw? = binop AND r/m64 imm32
- | otherwise = binop AND r/m32 imm32
-val / [0x83 /4]
- | opndsz? = binop AND r/m16 imm8
- | rexw? = binop AND r/m64 imm8
- | otherwise = binop AND r/m32 imm8
-val / [0x20 /r] = binop AND r/m8 r8
-val / [0x21 /r]
- | opndsz? = binop AND r/m16 r16
- | rexw? = binop AND r/m64 r64
- | otherwise = binop AND r/m32 r32
-val / [0x22 /r] = binop AND r8 r/m8
-val / [0x23 /r]
- | opndsz? = binop AND r16 r/m16
- | rexw? = binop AND r64 r/m64
- | otherwise = binop AND r32 r/m32
-
-### HLT 3-481 Vol. 2A
-val / [0xf4] = arity0 HLT
-
-### XOR 4-678 Vol. 2B
+### XOR
+###  - Logical Exclusive OR
 val / [0x34] = binop XOR al imm8
 val / [0x35]
  | opndsz? = binop XOR ax imm16
@@ -2501,73 +2572,16 @@ val / [0x33 /r]
  | rexw? = binop XOR r64 r/m64
  | otherwise = binop XOR r32 r/m32
 
-### PUSH 4-275 Vol. 2B
-#TODO: correctly implement 32bit and 64bit modes
-val / [0xff /6]
- | opndsz? = unop PUSH r/m16
- | otherwise = unop PUSH r/m64
-val / ['01010 r:3']
- | opndsz? = do update@{reg/opcode=r}; unop PUSH r16/rexb end
- | otherwise = do update@{reg/opcode=r}; unop PUSH r64/rexb end
-val / [0x6a] = unop PUSH imm8
-val / [0x68]
- | opndsz? = unop PUSH imm16
- | otherwise = unop PUSH imm32
-val / [0x0e] = unop PUSH cs
-val / [0x16] = unop PUSH ds
-val / [0x06] = unop PUSH es
-val / [0x0f 0xa0] = unop PUSH fs
-val / [0x0f 0xa8] = unop PUSH gs
-
-### POP 4-188 Vol. 2B
-#TODO: correctly implement 32bit and 64bit modes
-val / [0x8f /0]
- | opndsz? = unop POP r/m16
- | otherwise = unop POP r/m64
-val / ['01011 r:3']
- | opndsz? = do update@{reg/opcode=r}; unop POP r16/rexb end
- | otherwise = do update@{reg/opcode=r}; unop POP r64/rexb end
-val / [0x1f] = unop POP ds
-val / [0x07] = unop POP es
-val / [0x17] = unop POP ss
-
-### ADD Vol. 2A 3-35
-val / [0x04] = binop ADD al imm8
-val / [0x05]
- | opndsz? = binop ADD ax imm16
- | rexw? = binop ADD rax imm32
- | otherwise = binop ADD eax imm32
-val / [0x80 /0] = binop ADD r/m8 imm8
-val / [0x81 /0]
- | opndsz? = binop ADD r/m16 imm16
- | rexw? = binop ADD r/m64 imm32 
- | otherwise = binop ADD r/m32 imm32
-val / [0x83 /0]
- | opndsz? = binop ADD r/m16 imm8
- | rexw? = binop ADD r/m64 imm8
- | otherwise = binop ADD r/m32 imm8
-val / [0x00 /r] = binop ADD r/m8 r8
-val / [0x01 /r]
- | opndsz? = binop ADD r/m16 r16
- | rexw? = binop ADD r/m64 r64
- | otherwise = binop ADD r/m32 r32
-val / [0x02 /r] = binop ADD r8 r/m8
-val / [0x03 /r]
- | opndsz? = binop ADD r16 r/m16
- | rexw? = binop ADD r64 r/m64
- | otherwise = binop ADD r32 r/m32
-
-### CVTSI2SD Vol. 2A 3-268
-val /f2 [0x0f 0x2a /r]
- | rexw? = binop CVTSI2SD xmm128 r/m64
- | otherwise = binop CVTSI2SD xmm128 r/m32
-
-### XORPD Vol. 2B 4-521
+### XORPD
+###  - Bitwise Logical XOR for Double-Precision Floating-Point Values
 val /66 [0x0f 0x57 /r] = binop XORPD xmm128 xmm/m128
 
-### PXOR Vol. 2B 4-286
-val / [0x0f 0xef /r] = binop PXOR mm64 mm/m64
-val /66 [0x0f 0xef /r] = binop PXOR xmm128 xmm/m128
+### XORPS
+###  - Bitwise Logical XOR for Single-Precision Floating-Point Values
+val / [0x0f 0x57 /r] = binop XORPS xmm128 xmm/m128
+val /vex/66/0f [0x57 /r]
+ | vnds? & vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
+ | vnds? = ternop VXORPS ymm256 v/ymm ymm/m256
 
 ### CVTPD2PI Vol. 2A 3-248
 val /66 [0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128
