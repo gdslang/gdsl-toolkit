@@ -1595,6 +1595,12 @@ val / [0x0f 0xbd /r]
  | rexw? = binop BSR r64 r/m64
  | otherwise = binop BSR r32 r/m32
 
+### BSWAP
+###  - Byte Swap
+val / [0x0f '11001 r:3']
+ | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end 
+ | otherwise = do update@{reg/opcode=r}; unop BSWAP r32/rexb end
+
 ### BT
 ###  - Bit Test
 val / [0x0f 0xa3 /r]
@@ -1624,6 +1630,73 @@ val / [0x98]
 ###  - Clear Direction Flag
 val / [0xfc] = arity0 CLD
 
+### CMOVcc
+###  - Conditional Move
+val / [0x0f 0x47 /r]
+ | opndsz? = binop CMOVA r16 r/m16
+ | rexw? = binop CMOVA r64 r/m64
+ | otherwise = binop CMOVA r32 r/m32
+val / [0x0f 0x43 /r]
+ | opndsz? = binop CMOVAE r16 r/m16
+ | rexw? = binop CMOVAE r64 r/m64
+ | otherwise = binop CMOVAE r32 r/m32
+val / [0x0f 0x42 /r]
+ | opndsz? = binop CMOVB r16 r/m16
+ | rexw? = binop CMOVB r64 r/m64
+ | otherwise = binop CMOVB r32 r/m32
+val / [0x0f 0x46 /r]
+ | opndsz? = binop CMOVBE r16 r/m16
+ | rexw? = binop CMOVBE r64 r/m64
+ | otherwise = binop CMOVBE r32 r/m32
+val / [0x0f 0x44 /r]
+ | opndsz? = binop CMOVE r16 r/m16
+ | rexw? = binop CMOVE r64 r/m64
+ | otherwise = binop CMOVE r32 r/m32
+val / [0x0f 0x4f /r]
+ | opndsz? = binop CMOVG r16 r/m16
+ | rexw? = binop CMOVG r64 r/m64
+ | otherwise = binop CMOVG r32 r/m32
+val / [0x0f 0x4d /r]
+ | opndsz? = binop CMOVGE r16 r/m16
+ | rexw? = binop CMOVGE r64 r/m64
+ | otherwise = binop CMOVGE r32 r/m32
+val / [0x0f 0x4c /r]
+ | opndsz? = binop CMOVL r16 r/m16
+ | rexw? = binop CMOVL r64 r/m64
+ | otherwise = binop CMOVL r32 r/m32
+val / [0x0f 0x4e /r]
+ | opndsz? = binop CMOVLE r16 r/m16
+ | rexw? = binop CMOVLE r64 r/m64
+ | otherwise = binop CMOVLE r32 r/m32
+val / [0x0f 0x45 /r]
+ | opndsz? = binop CMOVNE r16 r/m16
+ | rexw? = binop CMOVNE r64 r/m64
+ | otherwise = binop CMOVNE r32 r/m32
+val / [0x0f 0x41 /r]
+ | opndsz? = binop CMOVNO r16 r/m16
+ | rexw? = binop CMOVNO r64 r/m64
+ | otherwise = binop CMOVNO r32 r/m32
+val / [0x0f 0x4b /r]
+ | opndsz? = binop CMOVNP r16 r/m16
+ | rexw? = binop CMOVNP r64 r/m64
+ | otherwise = binop CMOVNP r32 r/m32
+val / [0x0f 0x49 /r]
+ | opndsz? = binop CMOVNS r16 r/m16
+ | rexw? = binop CMOVNS r64 r/m64
+ | otherwise = binop CMOVNS r32 r/m32
+val / [0x0f 0x40 /r]
+ | opndsz? = binop CMOVO r16 r/m16
+ | rexw? = binop CMOVO r64 r/m64
+ | otherwise = binop CMOVO r32 r/m32
+val / [0x0f 0x4a /r]
+ | opndsz? = binop CMOVP r16 r/m16
+ | rexw? = binop CMOVP r64 r/m64
+ | otherwise = binop CMOVP r32 r/m32
+val / [0x0f 0x48 /r]
+ | opndsz? = binop CMOVS r16 r/m16
+ | rexw? = binop CMOVS r64 r/m64
+ | otherwise = binop CMOVS r32 r/m32
+
 ### CMP
 ###  - Compare Two Operands
 val / [0x3c] = binop CMP al imm8
@@ -1651,6 +1724,14 @@ val / [0x3b /r]
  | rexw? = binop CMP r64 r/m64
  | otherwise = binop CMP r32 r/m32
 
+### CMPS/CMPSB/CMPSW/CMPSD/CMPSQ
+###  - Compare String Operands
+val / [0xa6] = arity0 CMPSB
+val / [0xa7]
+ | opndsz? = arity0 CMPSB
+ | rexw? = arity0 CMPSQ
+ | otherwise = arity0 CMPSD
+
 ### CMPXCHG
 ###  - Compare and Exchange
 val / [0x0f 0xb0 /r] = binop CMPXCHG r/m8 r8
@@ -1670,6 +1751,18 @@ val / [0xff /1]
  | opndsz? = unop DEC r/m16
  | rexw? = unop DEC r/m64
  | otherwise = unop DEC r/m32
+
+### DIV
+###  - Unsigned Divide
+val / [0xf6 /6] = unop DIV r/m8
+val / [0xf7 /6]
+ | opndsz? = unop DIV r/m16
+ | rexw? = unop DIV r/m64
+ | otherwise = unop DIV r/m32
+
+### DIVSD
+###  - Divide Scalar Double-Precision Floating-Point Values
+val /f2 [0x0f 0x5e /r] = binop DIVSD xmm128 xmm/m64
 
 ### FCHS
 ###  - Change Sign
@@ -1733,6 +1826,14 @@ val / [0xd9 /3-mem] = unop FSTP m32
 val / [0xdd /3] = unop FSTP st/m64
 val / [0xdb /7-mem] = unop FSTP m80fp
 
+### IDIV
+###  - Signed Divide
+val / [0xf6 /7] = unop IDIV r/m8
+val / [0xf7 /7]
+ | opndsz? = unop IDIV r/m16
+ | rexw? = unop IDIV r/m32
+ | otherwise = unop IDIV r/m64
+
 ### IMUL
 ###  - Signed Multiply
 val / [0xf6 /5] = unop IMUL r/m8
@@ -1761,6 +1862,93 @@ val / [0xff /0]
  | rexw? = unop INC r/m64
  | otherwise = unop INC r/m32
 
+### Jcc
+###  - Jump if Condition Is Met
+val / [0x77] = near-rel JA rel8  # JNBE
+val / [0x73] = near-rel JAE rel8 # JNB, JNC
+val / [0x72] = near-rel JC rel8  # JB,JNAE
+val / [0x76] = near-rel JBE rel8 # JNA
+val /66 [0xe3] = near-rel JCXZ rel8
+val / [0xe3]
+ | rexw? = near-rel JRCXZ rel8
+ | otherwise = near-rel JECXZ rel8 
+val / [0x74] = near-rel JE rel8  # JZ
+val / [0x7f] = near-rel JG rel8  # JNLE
+val / [0x7d] = near-rel JGE rel8 # JNL
+val / [0x7c] = near-rel JL rel8  # JNGE
+val / [0x7e] = near-rel JLE rel8 # JNG
+val / [0x75] = near-rel JNE rel8 # JNZ
+val / [0x71] = near-rel JNO rel8
+val / [0x7b] = near-rel JNP rel8 # JPO
+val / [0x79] = near-rel JNS rel8
+val / [0x70] = near-rel JO rel8
+val / [0x7a] = near-rel JP rel8  # JPE
+val / [0x78] = near-rel JS rel8
+val /66 [0x0f 0x87]
+ | mode64? = near-rel JA rel32
+ | otherwise = near-rel JA rel16
+val / [0x0f 0x87] = near-rel JA rel32
+val /66 [0x0f 0x83]
+ | mode64? = near-rel JAE rel32
+ | otherwise = near-rel JAE rel16
+val / [0x0f 0x83] = near-rel JAE rel32
+val /66 [0x0f 0x82]
+ | mode64? = near-rel JB rel32
+ | otherwise = near-rel JB rel16
+val / [0x0f 0x82] = near-rel JB rel32
+val /66 [0x0f 0x86]
+ | mode64? = near-rel JBE rel32
+ | otherwise = near-rel JBE rel16
+val / [0x0f 0x86] = near-rel JBE rel32
+val /66 [0x0f 0x84]
+ | mode64? = near-rel JE rel32
+ | otherwise = near-rel JE rel16
+val / [0x0f 0x84] = near-rel JE rel32
+val /66 [0x0f 0x8f]
+ | mode64? = near-rel JG rel32
+ | otherwise = near-rel JG rel16
+val / [0x0f 0x8f] = near-rel JG rel32
+val /66 [0x0f 0x8d]
+ | mode64? = near-rel JGE rel32
+ | otherwise = near-rel JGE rel16
+val / [0x0f 0x8d] = near-rel JGE rel32
+val /66 [0x0f 0x8c]
+ | mode64? = near-rel JL rel32
+ | otherwise = near-rel JL rel16
+val / [0x0f 0x8c] = near-rel JL rel32
+val /66 [0x0f 0x8e]
+ | mode64? = near-rel JLE rel32
+ | otherwise = near-rel JLE rel16
+val / [0x0f 0x8e] = near-rel JLE rel32
+val /66 [0x0f 0x85]
+ | mode64? = near-rel JNE rel32
+ | otherwise = near-rel JNE rel16
+val / [0x0f 0x85] = near-rel JNE rel32
+val /66 [0x0f 0x81]
+ | mode64? = near-rel JNO rel32
+ | otherwise = near-rel JNO rel16
+val / [0x0f 0x81] = near-rel JNO rel32
+val /66 [0x0f 0x8b]
+ | mode64? = near-rel JNP rel32
+ | otherwise = near-rel JNP rel16
+val / [0x0f 0x8b] = near-rel JNP rel32
+val /66 [0x0f 0x89]
+ | mode64? = near-rel JNS rel32
+ | otherwise = near-rel JNS rel16
+val / [0x0f 0x89] = near-rel JNS rel32
+val /66 [0x0f 0x80]
+ | mode64? = near-rel JO rel32
+ | otherwise = near-rel JO rel16
+val / [0x0f 0x80] = near-rel JO rel32
+val /66 [0x0f 0x8a]
+ | mode64? = near-rel JP rel32
+ | otherwise = near-rel JP rel16
+val / [0x0f 0x8a] = near-rel JP rel32
+val /66 [0x0f 0x88]
+ | mode64? = near-rel JS rel32
+ | otherwise = near-rel JS rel16
+val / [0x0f 0x88] = near-rel JS rel32
+
 ### LDDQU
 ###  - Load Unaligned Integer 128 Bits
 val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
@@ -1786,6 +1974,14 @@ val / [0xc9] = arity0 LEAVE
 ### LFENCE
 ###  - Load Fence
 val / [0x0f 0xae /5] = arity0 LFENCE
+
+### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
+###  - Move Data from String to String
+val / [0xa4] = arity0 MOVSB
+val / [0xa5]
+ | opndsz? = arity0 MOVSB
+ | rexw? = arity0 MOVSQ
+ | otherwise = arity0 MOVSD
 
 ### MOVSX/MOVSXD
 ###  - Move with Sign-Extension
@@ -2000,6 +2196,7 @@ val / [0xc1 /1]
  | opndsz? = binop ROR r/m16 imm8
  | rexw? = binop ROR r/m64 imm8
  | otherwise = binop ROR r/m32 imm8
+val / [0xda '10011 i:3'] = binop FCMOVU st0 (st/i i)
 
 ### RDTSC
 ###  - Read Time-Stamp Counter
@@ -2059,6 +2256,7 @@ val / [0xc1 /7]
 val / [0xd0 /5] = binop SHR r/m8 one
 val / [0xd2 /5] = binop SHR r/m8 cl
 val / [0xc0 /5] = binop SHR r/m8 imm8
+val / [0xda '10011 i:3'] = binop FCMOVU st0 (st/i i)
 val / [0xd1 /5]
  | opndsz? = binop SHR r/m16 one
  | rexw? = binop SHR r/m64 one
@@ -2071,6 +2269,14 @@ val / [0xc1 /5]
  | opndsz? = binop SHR r/m16 imm8
  | rexw? = binop SHR r/m64 imm8
  | otherwise = binop SHR r/m32 imm8
+
+### SCAS/SCASB/SCASW/SCASD/SCASQ
+###  - Scan String
+val / [0xae] = arity0 SCASB
+val / [0xaf]
+ | opndsz? = arity0 SCASW
+ | rexw? = arity0 SCASQ
+ | otherwise = arity0 SCASD
 
 ### SHLD
 ###  - Double Precision Shift Left
@@ -2088,11 +2294,20 @@ val / [0x0f 0xa5 /r]
 val / [0x0f 0xac /r]
  | opndsz? = ternop SHLD r/m16 r16 imm8
  | rexw? = ternop SHLD r/m64 r64 imm8
+val / [0xda '10011 i:3'] = binop FCMOVU st0 (st/i i)
  | otherwise = ternop SHLD r/m32 r32 imm8
 val / [0x0f 0xad /r]
  | opndsz? = ternop SHLD r/m16 r16 cl
  | rexw? = ternop SHLD r/m64 r64 cl
  | otherwise = ternop SHLD r/m32 r32 cl
+
+### STOS/STOSB/STOSW/STOSD/STOSQ
+###  - Store String
+val / [0xaa] = arity0 STOSB
+val / [0xab]
+ | opndsz? = arity0 STOSW
+ | rexw? = arity0 STOSQ
+ | otherwise = arity0 STOSD
 
 ### SYSCALL
 ###  - Fast System Call
@@ -2136,11 +2351,6 @@ val /vex/66/0f [0x57 /r]
  | vnds? & vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
  | vnds? = ternop VXORPS ymm256 v/ymm ymm/m256
 
-### BSWAP Vol. 2A 3-98
-val / [0x0f '11001 r:3']
- | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end 
- | otherwise = do update@{reg/opcode=r}; unop BSWAP r32/rexb end
-
 ### XCHG Vol. 2A 4-510
 val / ['10010 r:3']
  | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end 
@@ -2151,203 +2361,6 @@ val / [0x87 /r]
  | opndsz? = binop XCHG r/m16 r16
  | rexw? = binop XCHG r/m64 r64
  | otherwise = binop XCHG r/m32 r32
-
-### DIV 3-299 Vol. 2A
-val / [0xf6 /6] = unop DIV r/m8
-val / [0xf7 /6]
- | opndsz? = unop DIV r/m16
- | rexw? = unop DIV r/m64
- | otherwise = unop DIV r/m32
-
-### IDIV Vol. 2A 3-490
-val / [0xf6 /7] = unop IDIV r/m8
-val / [0xf7 /7]
- | opndsz? = unop IDIV r/m16
- | rexw? = unop IDIV r/m32
- | otherwise = unop IDIV r/m64
-
-### DIVSD Vol. 2A 3-309
-val /f2 [0x0f 0x5e /r] = binop DIVSD xmm128 xmm/m64
-
-### CMPS/CMPSB/CMPSW/CMPSD/CMPSQ 3-170 Vol. 2A
-val / [0xa6] = arity0 CMPSB
-val / [0xa7]
- | opndsz? = arity0 CMPSB
- | rexw? = arity0 CMPSQ
- | otherwise = arity0 CMPSD
-
-### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ  3-713 Vol. 2A
-val / [0xa4] = arity0 MOVSB
-val / [0xa5]
- | opndsz? = arity0 MOVSB
- | rexw? = arity0 MOVSQ
- | otherwise = arity0 MOVSD
-
-### STOS/STOSB/STOSW/STOSD/STOSQ 4-417 Vol. 2B
-val / [0xaa] = arity0 STOSB
-val / [0xab]
- | opndsz? = arity0 STOSW
- | rexw? = arity0 STOSQ
- | otherwise = arity0 STOSD
-
-### SCAS/SCASB/SCASW/SCASD/SCASQ 4-365 Vol. 2B
-val / [0xae] = arity0 SCASB
-val / [0xaf]
- | opndsz? = arity0 SCASW
- | rexw? = arity0 SCASQ
- | otherwise = arity0 SCASD
-
-### CMOVcc 3-143 Vol. 2A
-val / [0x0f 0x47 /r]
- | opndsz? = binop CMOVA r16 r/m16
- | rexw? = binop CMOVA r64 r/m64
- | otherwise = binop CMOVA r32 r/m32
-val / [0x0f 0x43 /r]
- | opndsz? = binop CMOVAE r16 r/m16
- | rexw? = binop CMOVAE r64 r/m64
- | otherwise = binop CMOVAE r32 r/m32
-val / [0x0f 0x42 /r]
- | opndsz? = binop CMOVB r16 r/m16
- | rexw? = binop CMOVB r64 r/m64
- | otherwise = binop CMOVB r32 r/m32
-val / [0x0f 0x46 /r]
- | opndsz? = binop CMOVBE r16 r/m16
- | rexw? = binop CMOVBE r64 r/m64
- | otherwise = binop CMOVBE r32 r/m32
-val / [0x0f 0x44 /r]
- | opndsz? = binop CMOVE r16 r/m16
- | rexw? = binop CMOVE r64 r/m64
- | otherwise = binop CMOVE r32 r/m32
-val / [0x0f 0x4f /r]
- | opndsz? = binop CMOVG r16 r/m16
- | rexw? = binop CMOVG r64 r/m64
- | otherwise = binop CMOVG r32 r/m32
-val / [0x0f 0x4d /r]
- | opndsz? = binop CMOVGE r16 r/m16
- | rexw? = binop CMOVGE r64 r/m64
- | otherwise = binop CMOVGE r32 r/m32
-val / [0x0f 0x4c /r]
- | opndsz? = binop CMOVL r16 r/m16
- | rexw? = binop CMOVL r64 r/m64
- | otherwise = binop CMOVL r32 r/m32
-val / [0x0f 0x4e /r]
- | opndsz? = binop CMOVLE r16 r/m16
- | rexw? = binop CMOVLE r64 r/m64
- | otherwise = binop CMOVLE r32 r/m32
-val / [0x0f 0x45 /r]
- | opndsz? = binop CMOVNE r16 r/m16
- | rexw? = binop CMOVNE r64 r/m64
- | otherwise = binop CMOVNE r32 r/m32
-val / [0x0f 0x41 /r]
- | opndsz? = binop CMOVNO r16 r/m16
- | rexw? = binop CMOVNO r64 r/m64
- | otherwise = binop CMOVNO r32 r/m32
-val / [0x0f 0x4b /r]
- | opndsz? = binop CMOVNP r16 r/m16
- | rexw? = binop CMOVNP r64 r/m64
- | otherwise = binop CMOVNP r32 r/m32
-val / [0x0f 0x49 /r]
- | opndsz? = binop CMOVNS r16 r/m16
- | rexw? = binop CMOVNS r64 r/m64
- | otherwise = binop CMOVNS r32 r/m32
-val / [0x0f 0x40 /r]
- | opndsz? = binop CMOVO r16 r/m16
- | rexw? = binop CMOVO r64 r/m64
- | otherwise = binop CMOVO r32 r/m32
-val / [0x0f 0x4a /r]
- | opndsz? = binop CMOVP r16 r/m16
- | rexw? = binop CMOVP r64 r/m64
- | otherwise = binop CMOVP r32 r/m32
-val / [0x0f 0x48 /r]
- | opndsz? = binop CMOVS r16 r/m16
- | rexw? = binop CMOVS r64 r/m64
- | otherwise = binop CMOVS r32 r/m32
-
-### Jcc 3-544 Vol. 2A
-val / [0x77] = near-rel JA rel8  # JNBE
-val / [0x73] = near-rel JAE rel8 # JNB, JNC
-val / [0x72] = near-rel JC rel8  # JB,JNAE
-val / [0x76] = near-rel JBE rel8 # JNA
-val /66 [0xe3] = near-rel JCXZ rel8
-val / [0xe3]
- | rexw? = near-rel JRCXZ rel8
- | otherwise = near-rel JECXZ rel8 
-val / [0x74] = near-rel JE rel8  # JZ
-val / [0x7f] = near-rel JG rel8  # JNLE
-val / [0x7d] = near-rel JGE rel8 # JNL
-val / [0x7c] = near-rel JL rel8  # JNGE
-val / [0x7e] = near-rel JLE rel8 # JNG
-val / [0x75] = near-rel JNE rel8 # JNZ
-val / [0x71] = near-rel JNO rel8
-val / [0x7b] = near-rel JNP rel8 # JPO
-val / [0x79] = near-rel JNS rel8
-val / [0x70] = near-rel JO rel8
-val / [0x7a] = near-rel JP rel8  # JPE
-val / [0x78] = near-rel JS rel8
-val /66 [0x0f 0x87]
- | mode64? = near-rel JA rel32
- | otherwise = near-rel JA rel16
-val / [0x0f 0x87] = near-rel JA rel32
-val /66 [0x0f 0x83]
- | mode64? = near-rel JAE rel32
- | otherwise = near-rel JAE rel16
-val / [0x0f 0x83] = near-rel JAE rel32
-val /66 [0x0f 0x82]
- | mode64? = near-rel JB rel32
- | otherwise = near-rel JB rel16
-val / [0x0f 0x82] = near-rel JB rel32
-val /66 [0x0f 0x86]
- | mode64? = near-rel JBE rel32
- | otherwise = near-rel JBE rel16
-val / [0x0f 0x86] = near-rel JBE rel32
-val /66 [0x0f 0x84]
- | mode64? = near-rel JE rel32
- | otherwise = near-rel JE rel16
-val / [0x0f 0x84] = near-rel JE rel32
-val /66 [0x0f 0x8f]
- | mode64? = near-rel JG rel32
- | otherwise = near-rel JG rel16
-val / [0x0f 0x8f] = near-rel JG rel32
-val /66 [0x0f 0x8d]
- | mode64? = near-rel JGE rel32
- | otherwise = near-rel JGE rel16
-val / [0x0f 0x8d] = near-rel JGE rel32
-val /66 [0x0f 0x8c]
- | mode64? = near-rel JL rel32
- | otherwise = near-rel JL rel16
-val / [0x0f 0x8c] = near-rel JL rel32
-val /66 [0x0f 0x8e]
- | mode64? = near-rel JLE rel32
- | otherwise = near-rel JLE rel16
-val / [0x0f 0x8e] = near-rel JLE rel32
-val /66 [0x0f 0x85]
- | mode64? = near-rel JNE rel32
- | otherwise = near-rel JNE rel16
-val / [0x0f 0x85] = near-rel JNE rel32
-val /66 [0x0f 0x81]
- | mode64? = near-rel JNO rel32
- | otherwise = near-rel JNO rel16
-val / [0x0f 0x81] = near-rel JNO rel32
-val /66 [0x0f 0x8b]
- | mode64? = near-rel JNP rel32
- | otherwise = near-rel JNP rel16
-val / [0x0f 0x8b] = near-rel JNP rel32
-val /66 [0x0f 0x89]
- | mode64? = near-rel JNS rel32
- | otherwise = near-rel JNS rel16
-val / [0x0f 0x89] = near-rel JNS rel32
-val /66 [0x0f 0x80]
- | mode64? = near-rel JO rel32
- | otherwise = near-rel JO rel16
-val / [0x0f 0x80] = near-rel JO rel32
-val /66 [0x0f 0x8a]
- | mode64? = near-rel JP rel32
- | otherwise = near-rel JP rel16
-val / [0x0f 0x8a] = near-rel JP rel32
-val /66 [0x0f 0x88]
- | mode64? = near-rel JS rel32
- | otherwise = near-rel JS rel16
-val / [0x0f 0x88] = near-rel JS rel32
 
 ### JMP 3-552 Vol. 2A
 #TODO: jmp far
