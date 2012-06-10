@@ -826,7 +826,6 @@ datatype mnemonic =
  | VCMPEQB
  | VCMPEQD
  | VCMPEQW
- | VCMPESTRI
  | VLDDQU
  | VMASKMOVDQU
  | VMAXPD
@@ -875,9 +874,10 @@ datatype mnemonic =
  | VPCMPGTB
  | VPCMPGTD
  | VPCMPGTW
- | VPCMPISTRI
+ | VPCMPESTRI
  | VPHADDD
  | VPHADDW
+ | VPCMPISTRI
  | VPINSRB
  | VPINSRD
  | VPINSRQ
@@ -1554,33 +1554,6 @@ end
 
 val one = return (IMM8 '00000001')
 
-### ADD
-###  - Add
-val / [0x04] = binop ADD al imm8
-val / [0x05]
- | opndsz? = binop ADD ax imm16
- | rexw? = binop ADD rax imm32
- | otherwise = binop ADD eax imm32
-val / [0x80 /0] = binop ADD r/m8 imm8
-val / [0x81 /0]
- | opndsz? = binop ADD r/m16 imm16
- | rexw? = binop ADD r/m64 imm32 
- | otherwise = binop ADD r/m32 imm32
-val / [0x83 /0]
- | opndsz? = binop ADD r/m16 imm8
- | rexw? = binop ADD r/m64 imm8
- | otherwise = binop ADD r/m32 imm8
-val / [0x00 /r] = binop ADD r/m8 r8
-val / [0x01 /r]
- | opndsz? = binop ADD r/m16 r16
- | rexw? = binop ADD r/m64 r64
- | otherwise = binop ADD r/m32 r32
-val / [0x02 /r] = binop ADD r8 r/m8
-val / [0x03 /r]
- | opndsz? = binop ADD r16 r/m16
- | rexw? = binop ADD r64 r/m64
- | otherwise = binop ADD r32 r/m32
-
 ### ADC 
 ###  - Add with Carry
 val / [0x14] = binop ADC al imm8
@@ -1607,6 +1580,33 @@ val / [0x13 /r]
  | opndsz? = binop ADC r16 r/m16
  | rexw? = binop ADC r64 r/m64
  | otherwise = binop ADC r32 r/m32 
+
+### ADD
+###  - Add
+val / [0x04] = binop ADD al imm8
+val / [0x05]
+ | opndsz? = binop ADD ax imm16
+ | rexw? = binop ADD rax imm32
+ | otherwise = binop ADD eax imm32
+val / [0x80 /0] = binop ADD r/m8 imm8
+val / [0x81 /0]
+ | opndsz? = binop ADD r/m16 imm16
+ | rexw? = binop ADD r/m64 imm32 
+ | otherwise = binop ADD r/m32 imm32
+val / [0x83 /0]
+ | opndsz? = binop ADD r/m16 imm8
+ | rexw? = binop ADD r/m64 imm8
+ | otherwise = binop ADD r/m32 imm8
+val / [0x00 /r] = binop ADD r/m8 r8
+val / [0x01 /r]
+ | opndsz? = binop ADD r/m16 r16
+ | rexw? = binop ADD r/m64 r64
+ | otherwise = binop ADD r/m32 r32
+val / [0x02 /r] = binop ADD r8 r/m8
+val / [0x03 /r]
+ | opndsz? = binop ADD r16 r/m16
+ | rexw? = binop ADD r64 r/m64
+ | otherwise = binop ADD r32 r/m32
 
 ### AND
 ###  - Logical AND
@@ -2310,17 +2310,17 @@ val /vex/0f [0x50 /r]
  | vex256? & mode64? = binop VMOVMSKPS r64 ymm256
  | vex256? = binop VMOVMSKPS r64 ymm256
 
-### MOVNTDQA
-###  - Load Double Quadword Non-Temporal Aligned Hint
-val /66 [0x0f 0x38 0x2a /r] = binop MOVNTDQA xmm128 m128
-val /vex/66/0f/38 [0x2a /r] | vex128? = binop VMOVNTDQA xmm128 m128
-
 ### MOVNTDQ
 ###  - Store Double Quadword Using Non-Temporal Hint
 val /66 [0x0f 0xe7 /r] = binop MOVNTDQ m128 xmm128
 val /vex/66/0f [0xe7 /r]
  | vex128? = binop VMOVNTDQ m128 xmm128
  | vex256? = binop VMOVNTDQ m256 ymm256
+
+### MOVNTDQA
+###  - Load Double Quadword Non-Temporal Aligned Hint
+val /66 [0x0f 0x38 0x2a /r] = binop MOVNTDQA xmm128 m128
+val /vex/66/0f/38 [0x2a /r] | vex128? = binop VMOVNTDQA xmm128 m128
 
 ### MOVNTI
 ###  - Store Doubleword Using Non-Temporal Hint
@@ -2605,7 +2605,7 @@ val /vex/66/0f/38 [0x29 /r] | vex128? = ternop VPCMPEQQ xmm128 v/xmm xmm/m128
 ### PCMPESTRI
 ###  - Packed Compare Explicit Length Strings, Return Index
 val /66 [0x0f 0x3a 0x61 /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
-val /vex/66/0f/3a [0x61 /r] = ternop VCMPESTRI xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x61 /r] = ternop VPCMPESTRI xmm128 xmm/m128 imm8
 
 ### PCMPGTB/PCMPGTW/PCMPGTD
 ###  - Compare Packed Signed Integers for Greater Than
