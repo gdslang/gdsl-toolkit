@@ -188,9 +188,7 @@ end
 val p/vex/f2/0f [0xc5 'r:1 v:4 l:1 11'] = do
    update
       @{rex='1',
-        rexw='0',X86 Example Specification
-
-- Started to clean up instruction names and descriptions
+        rexw='0',
         vexw='0',
         rexr=not r,
         vexl=l,
@@ -311,9 +309,7 @@ val p64 [/rex-p] = p64
 val p64 [p/vex/f2/0f] = /vex/f2/0f
 val p64 [p/vex/f3/0f] = /vex/f3/0f
 val p64 [p/vex/66/0f] = /vex/66/0f
-val p64 [p/vex/66/0f/38] = /vex/66/0f/38X86 Example Specification
-
-- Started to clean up instruction names and descriptions
+val p64 [p/vex/66/0f/38] = /vex/66/0f/38
 val p64 [p/vex/66/0f/3a] = /vex/66/0f/3a
 #val p64 [p/vex/66/f2/0f] = /vex/66/f2/0f
 #val p64 [p/vex/66/f3/0f] = /vex/66/f3/0f
@@ -756,9 +752,7 @@ datatype mnemonic =
  | PSUBD
  | PSUBW
  | PTEST
- | PUNPCKLBW
  | PUNPCKLDQ
- | PUNPCKLQDQ
  | PUNPCKLWD
  | PUNPCKLBW
  | PUNPCKLQDQ
@@ -1060,9 +1054,7 @@ val st-reg n =
     | '0010': REG ST2
     | '0011': REG ST3
     | '0100': REG ST4
-    | '0101': REG ST5X86 Example Specification
-
-- Started to clean up instruction names and descriptions
+    | '0101': REG ST5
     | '0110': REG ST6
     | '0111': REG ST7
   end
@@ -2991,7 +2983,6 @@ val / [0x0f 0xa5 /r]
 val / [0x0f 0xac /r]
  | opndsz? = ternop SHLD r/m16 r16 imm8
  | rexw? = ternop SHLD r/m64 r64 imm8
-val / [0xda '10011 i:3'] = binop FCMOVU st0 (st/i i)
  | otherwise = ternop SHLD r/m32 r32 imm8
 val / [0x0f 0xad /r]
  | opndsz? = ternop SHLD r/m16 r16 cl
@@ -3009,7 +3000,6 @@ val / [0xab]
 ### SYSCALL
 ###  - Fast System Call
 val / [0x0f 0x05] = arity0 SYSCALL
-Packed Horizontal Add
 
 ### TEST
 ###  - Logical Compare
