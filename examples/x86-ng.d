@@ -2063,6 +2063,62 @@ val / [0x0f 0xae /5] = arity0 LFENCE
 val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/nomem128
 val /vex/66/0f/vexv [0xf7 /r] | vex128? = binop VMASKMOVDQU
 
+### MASKMOVQ
+###  - Store Selected Bytes of Quadword
+val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/nomem64
+
+### MAXPD
+###  - Return Maximum Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x5f /r] = binop MAXPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5f /r]
+ | vex128? = ternop VMAXPD xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMAXPD ymm256 v/ymm ymm/m256
+
+### MAXPS
+###  - Return Maximum Packed Single-Precision Floating-Point Values
+val / [0x0f 0x5f /r] = binop MAXPS xmm128 xmm/m128
+val vex/0f/vexv [0x5f /r]
+ | vex128? = ternop VMAXPS xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMAXPS ymm256 v/ymm ymm/m256
+
+### MAXSD
+###  - Return Maximum Scalar Double-Precision Floating-Point Value
+val /f2 [0x0f 0x5f /r] = binop MAXSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5f /r] = ternop VMAXSD xmm128 v/xmm xmm/m64
+
+### MAXSS
+###  - Return Maximum Scalar Single-Precision Floating-Point Value
+val /f3 [0x0f 0x5f /r] = binop MAXSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5f /r] = ternop VMAXSS xmm128 v/xmm xmm/m32
+
+### MFENCE
+###  - Memory Fence
+val / [0x0f 0xae /6] = arity0 MFENCE
+
+### MINPD
+###  - Return Minimum Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x5d /r] = binop MINPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5d /r]
+ | vex128? = ternop VMINPD xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMINPD ymm256 v/ymm ymm/m256
+
+### MINPS
+###  - Return Minimum Packed Single-Precision Floating-Point Values
+val / [0x0f 0x5d /r] = binop MINPS xmm128 xmm/m128
+val /vex/0f/vexv [0x5d /r]
+ | vex128? = ternop VMINPS xmm128 v/xmm xmm/m128
+ | vex256? = ternop VMINPS ymm256 v/ymm ymm/m256
+
+### MINSD
+###  - Return Minimum Scalar Double-Precision Floating-Point Value
+val /f2 [0x0f 0x5d /r] = binop MINSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5d /r] = ternop VMINSD xmm128 v/xmm xmm/m64
+
+### MINSS
+###  - Return Minimum Scalar Single-Precision Floating-Point Value
+val /f3 [0x0f 0x5d /r] = binop MINSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5d /r] = ternop VMINSS xmm128 v/xmm xmm/m32
+
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
 ###  - Move Data from String to String
 val / [0xa4] = arity0 MOVSB
@@ -2591,53 +2647,6 @@ val / [0x0f 0x57 /r] = binop XORPS xmm128 xmm/m128
 val /vex/66/0f [0x57 /r]
  | vnds? & vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
  | vnds? = ternop VXORPS ymm256 v/ymm ymm/m256
-
-### MASKMOVQ
-###  - Store Selected Bytes of Quadword
-val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/nomem64
-
-### MAXPD Vol. 2B 4-13
-val /66 [0x0f 0x5f /r] = binop MAXPD xmm128 xmm/m128
-val /vex/66/0f/vexv [0x5f /r]
- | vex128? = ternop VMAXPD xmm128 v/xmm xmm/m128
- | vex256? = ternop VMAXPD ymm256 v/ymm ymm/m256
-
-### MAXPS 4-16 Vol. 2B
-val / [0x0f 0x5f /r] = binop MAXPS xmm128 xmm/m128
-val vex/0f/vexv [0x5f /r]
- | vex128? = ternop VMAXPS xmm128 v/xmm xmm/m128
- | vex256? = ternop VMAXPS ymm256 v/ymm ymm/m256
-
-### MAXSD Vol. 2B 4-19
-val /f2 [0x0f 0x5f /r] = binop MAXSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x5f /r] = ternop VMAXSD xmm128 v/xmm xmm/m64
-
-### MAXSS Vol. 2B 4-21
-val /f3 [0x0f 0x5f /r] = binop MAXSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x5f /r] = ternop VMAXSS xmm128 v/xmm xmm/m32
-
-### MFENCE Vol. 2B 4-23
-val / [0x0f 0xae /6] = arity0 MFENCE
-
-### MINPD Vol. 2B 4-25
-val /66 [0x0f 0x5d /r] = binop MINPD xmm128 xmm/m128
-val /vex/66/0f/vexv [0x5d /r]
- | vex128? = ternop VMINPD xmm128 v/xmm xmm/m128
- | vex256? = ternop VMINPD ymm256 v/ymm ymm/m256
-
-### MINPS Vol. 2B 4-28
-val / [0x0f 0x5d /r] = binop MINPS xmm128 xmm/m128
-val /vex/0f/vexv [0x5d /r]
- | vex128? = ternop VMINPS xmm128 v/xmm xmm/m128
- | vex256? = ternop VMINPS ymm256 v/ymm ymm/m256
-
-### MINSD Vol. 2B 4-31
-val /f2 [0x0f 0x5d /r] = binop MINSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x5d /r] = ternop VMINSD xmm128 v/xmm xmm/m64
-
-### MINSS Vol. 2B 4-33
-val /f3 [0x0f 0x5d /r] = binop MINSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x5d /r] = ternop VMINSS xmm128 v/xmm xmm/m32
 
 ### PCMPEQQ
 val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
