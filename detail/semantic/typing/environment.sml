@@ -1307,6 +1307,8 @@ end = struct
             handle (BD.Unsatisfiable bVar) =>
                flowError (bVar, NONE, [env,env1,env2])
          val bFun = BD.meet (bFunFlow, bFun)
+            handle (BD.Unsatisfiable bVar) =>
+               flowError (bVar, NONE, [env,env1,env2])
          val (scs,state) = env
          val env = (scs,Scope.setSize sCons (Scope.setFlow bFun state))
 

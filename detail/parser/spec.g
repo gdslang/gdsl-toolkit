@@ -261,8 +261,8 @@ AtomicExp
    : Lit => (mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
    | Qid => (mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
    | ConUse => (mark PT.MARKexp (FULL_SPAN, PT.CONexp ConUse))
-   | "@" "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
-      (mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp ((Name, Exp)::SR)))
+   | "@" "{" Field ("," Field)* "}" =>
+      (mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp (Field::SR)))
    | "$" Qid => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp Qid))
    | "(" Exp ")" => (mark PT.MARKexp (FULL_SPAN, Exp))
    | "{" "}" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
@@ -270,6 +270,11 @@ AtomicExp
       (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp ((Name, Exp)::SR)))
    | "let" ValueDecl+ "in" Exp "end" =>
       (mark PT.MARKexp (FULL_SPAN, PT.LETRECexp (ValueDecl, Exp)))
+   ;
+
+Field
+   : Name "=" Exp => ((Name, SOME Exp))
+   | "~" Name => ((Name, NONE))
    ;
 
 ValueDecl

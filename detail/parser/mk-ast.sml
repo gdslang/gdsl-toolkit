@@ -67,7 +67,7 @@ functor MkAst (Core: AST_CORE) = struct
     | APPLYexp of exp * exp list
     | RECORDexp of (field_bind * exp) list
     | SELECTexp of field_use 
-    | UPDATEexp of (field_bind * exp) list (* functional record update "@{a=a'} *)
+    | UPDATEexp of (field_bind * exp option) list (* functional record update "@{a=a'} *)
     | LITexp of lit
     | SEQexp of seqexp list (* monadic sequence *)
     | IDexp of var_use 
@@ -231,7 +231,7 @@ functor MkAst (Core: AST_CORE) = struct
           | APPLYexp (e1, es) => seq [exp e1, list (map exp es)]
           | RECORDexp fs => listex "{" "}" "," (map field fs)
           | SELECTexp f => seq [str "$", field_use f]
-          | UPDATEexp fs => seq [str "@", listex "{" "}" "," (map field fs)]
+          | UPDATEexp fs => seq [str "@", listex "{" "}" "," (map fieldOpt fs)]
           | LITexp l => lit l
           | SEQexp ss =>
                align
@@ -265,6 +265,9 @@ functor MkAst (Core: AST_CORE) = struct
                seq [var_bind n, space, str "<-", space, exp e]
 
       and field (n, e) = seq [field_bind n, str "=", exp e]
+
+      and fieldOpt (n, SOME e) = seq [field_bind n, str "=", exp e]
+        | fieldOpt (n, NONE) = seq [str "~", field_bind n]
 
       and casee (p, e) =
          align

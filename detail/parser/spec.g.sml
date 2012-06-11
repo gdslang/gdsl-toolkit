@@ -374,9 +374,9 @@ fun AtomicExp_PROD_2_ACT (Qid, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.
   ( mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
 fun AtomicExp_PROD_3_ACT (ConUse, ConUse_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKexp (FULL_SPAN, PT.CONexp ConUse))
-fun AtomicExp_PROD_4_ACT (EQ, SR, Exp, LCB, RCB, Name, WITH, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), WITH_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun AtomicExp_PROD_4_ACT (SR, LCB, RCB, WITH, Field, SR_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), WITH_SPAN : (Lex.pos * Lex.pos), Field_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-      mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp ((Name, Exp)::SR)))
+      mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp (Field::SR)))
 fun AtomicExp_PROD_5_ACT (Qid, SELECT, Qid_SPAN : (Lex.pos * Lex.pos), SELECT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKexp (FULL_SPAN, PT.SELECTexp Qid))
 fun AtomicExp_PROD_6_ACT (LP, RP, Exp, LP_SPAN : (Lex.pos * Lex.pos), RP_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -389,6 +389,10 @@ fun AtomicExp_PROD_8_ACT (EQ, SR, Exp, LCB, RCB, Name, EQ_SPAN : (Lex.pos * Lex.
 fun AtomicExp_PROD_9_ACT (Exp, ValueDecl, KW_in, KW_end, KW_let, Exp_SPAN : (Lex.pos * Lex.pos), ValueDecl_SPAN : (Lex.pos * Lex.pos), KW_in_SPAN : (Lex.pos * Lex.pos), KW_end_SPAN : (Lex.pos * Lex.pos), KW_let_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
       mark PT.MARKexp (FULL_SPAN, PT.LETRECexp (ValueDecl, Exp)))
+fun Field_PROD_1_ACT (EQ, Exp, Name, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( (Name, SOME Exp))
+fun Field_PROD_2_ACT (Name, TILDE, Name_SPAN : (Lex.pos * Lex.pos), TILDE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( (Name, NONE))
 fun ValueDecl_PROD_1_ACT (EQ, Exp, Name1, Name2, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Name1, Name2, Exp)
 fun Lit_PROD_1_ACT (Int, Int_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -1251,17 +1255,13 @@ and AtomicExp_NT (strm) = let
       fun AtomicExp_PROD_4 (strm) = let
             val (WITH_RES, WITH_SPAN, strm') = matchWITH(strm)
             val (LCB_RES, LCB_SPAN, strm') = matchLCB(strm')
-            val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
-            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
-            val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
+            val (Field_RES, Field_SPAN, strm') = Field_NT(strm')
             fun AtomicExp_PROD_4_SUBRULE_1_NT (strm) = let
                   val (COMMA_RES, COMMA_SPAN, strm') = matchCOMMA(strm)
-                  val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
-                  val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
-                  val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
-                  val FULL_SPAN = (#1(COMMA_SPAN), #2(Exp_SPAN))
+                  val (Field_RES, Field_SPAN, strm') = Field_NT(strm')
+                  val FULL_SPAN = (#1(COMMA_SPAN), #2(Field_SPAN))
                   in
-                    ((Name_RES, Exp_RES), FULL_SPAN, strm')
+                    ((Field_RES), FULL_SPAN, strm')
                   end
             fun AtomicExp_PROD_4_SUBRULE_1_PRED (strm) = (case (lex(strm))
                    of (Tok.COMMA, _, strm') => true
@@ -1271,7 +1271,7 @@ and AtomicExp_NT (strm) = let
             val (RCB_RES, RCB_SPAN, strm') = matchRCB(strm')
             val FULL_SPAN = (#1(WITH_SPAN), #2(RCB_SPAN))
             in
-              (UserCode.AtomicExp_PROD_4_ACT (EQ_RES, SR_RES, Exp_RES, LCB_RES, RCB_RES, Name_RES, WITH_RES, EQ_SPAN : (Lex.pos * Lex.pos), SR_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), WITH_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.AtomicExp_PROD_4_ACT (SR_RES, LCB_RES, RCB_RES, WITH_RES, Field_RES, SR_SPAN : (Lex.pos * Lex.pos), LCB_SPAN : (Lex.pos * Lex.pos), RCB_SPAN : (Lex.pos * Lex.pos), WITH_SPAN : (Lex.pos * Lex.pos), Field_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       fun AtomicExp_PROD_5 (strm) = let
@@ -1386,6 +1386,31 @@ and ValueDecl_NT (strm) = let
       in
         (UserCode.ValueDecl_PROD_1_ACT (EQ_RES, Exp_RES, Name1_RES, Name2_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
+      end
+and Field_NT (strm) = let
+      fun Field_PROD_1 (strm) = let
+            val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
+            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
+            val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
+            val FULL_SPAN = (#1(Name_SPAN), #2(Exp_SPAN))
+            in
+              (UserCode.Field_PROD_1_ACT (EQ_RES, Exp_RES, Name_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun Field_PROD_2 (strm) = let
+            val (TILDE_RES, TILDE_SPAN, strm') = matchTILDE(strm)
+            val (Name_RES, Name_SPAN, strm') = Name_NT(strm')
+            val FULL_SPAN = (#1(TILDE_SPAN), #2(Name_SPAN))
+            in
+              (UserCode.Field_PROD_2_ACT (Name_RES, TILDE_RES, Name_SPAN : (Lex.pos * Lex.pos), TILDE_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      in
+        (case (lex(strm))
+         of (Tok.TILDE, _, strm') => Field_PROD_2(strm)
+          | (Tok.ID(_), _, strm') => Field_PROD_1(strm)
+          | _ => fail()
+        (* end case *))
       end
 and SelectExp_NT (strm) = let
       val (ApplyExp_RES, ApplyExp_SPAN, strm') = ApplyExp_NT(strm)

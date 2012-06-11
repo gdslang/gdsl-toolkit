@@ -33,13 +33,13 @@ val set-addrsz = update@{addrsz='1'}
 val failOver first second = do
    update@{tab=second};
    r <- first;
-   update@{tab=42};
+   update@{~tab};
    return r
 end
 
 val continue = do
    t <- query$tab;
-   update@{tab=42};
+   update@{~tab};
    r <- t;
    update@{tab=t};
    return r
@@ -51,8 +51,6 @@ val /f2 [] = continue
 
 val /f3 [] = continue
 
-
-val /f3_noCont = do update @{tab=return MOV}; /f3 end
 
 val /legacy-p [0x2e] = do clear-rex; set-CS end
 val /legacy-p [0x36] = do clear-rex; set-SS end
@@ -107,7 +105,7 @@ val p/f3/f2 [0xf2] = do set-repne; p/f3/f2 end
 val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [/rex-p] = p/f3/f2
-val p/f3/f2 [] = failOver /f2 /f3_noCont
+val p/f3/f2 [] = failOver /f2 (failOver /f3 /)
 
 val p/66/f2 [0x66] = do set-opndsz; p/f2/66 end
 val p/66/f2 [0xf2] = do set-repne; p/66/f2 end

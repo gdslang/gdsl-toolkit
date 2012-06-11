@@ -49,8 +49,8 @@ structure ASTSubst = struct
             APPLYexp (visitExp sigma e, map (visitExp sigma) es)
        | RECORDexp fs =>
             RECORDexp (map (visitField sigma) fs)
-       | UPDATEexp fs => 
-            UPDATEexp (map (visitField sigma) fs)
+       | UPDATEexp fs =>
+            UPDATEexp (map (visitFieldOpt sigma) fs)
        | SEQexp es =>
             SEQexp (map (visitSeqexp sigma) es)
        | FNexp (x, e) =>
@@ -62,6 +62,7 @@ structure ASTSubst = struct
    and visitRec sigma (f, xs, e) = (f, xs, visitExp sigma e)
    and visitCase sigma (pat, e) = (pat, visitExp sigma e)
    and visitField sigma (f, e) = (f, visitExp sigma e)
+   and visitFieldOpt sigma (f, eOpt) = (f, Option.map (visitExp sigma) eOpt)
    and visitSeqexp sigma t =
       case t of
          MARKseqexp t => visitSeqexp sigma (#tree t)

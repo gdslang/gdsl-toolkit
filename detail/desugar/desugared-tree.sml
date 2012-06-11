@@ -59,7 +59,7 @@ structure DesugaredTree = struct
           | APPLYexp (e1, es) => Exp.APP (exp e1, map exp es)
           | RECORDexp fs => Exp.RECORD (fields fs)
           | SELECTexp f => Exp.SELECT f
-          | UPDATEexp fs => Exp.UPDATE (fields fs)
+          | UPDATEexp fs => Exp.UPDATE (fieldsOpt fs)
           | LITexp l => Exp.LIT l
           | CONexp c => Exp.CON c
           | SEQexp seq => Exp.SEQ (map seqexp seq)
@@ -72,6 +72,15 @@ structure DesugaredTree = struct
           | OPinfixop binop => Exp.ID binop
 
       and fields fs = map (fn (f, e) => (f, exp e)) fs
+      
+      and fieldsOpt fs =
+         let
+            fun mapUpdates ((f, SOME e) :: fes) = (f, exp e) :: mapUpdates fes
+              | mapUpdates ((f, NONE) :: fes) = mapUpdates fes
+              | mapUpdates [] = []
+         in
+            mapUpdates fs
+         end
 
       and match (p, e) = (pat p, exp e)
 

@@ -461,12 +461,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val fieldsVar' = newFlow fieldsVar
          val env = E.meetBoolean (BD.meetVarImpliesVar (bvar fieldsVar', bvar fieldsVar), env)
          val env = E.pushType (false, fieldsVar', env)
-         fun pushOutField ((fid,e), (nts, env)) =
+         fun pushOutField ((fid,eOpt), (nts, env)) =
             let
                (*val _ = TextIO.print ("**** rec update: pushing field " ^ SymbolTable.getString(!SymbolTables.fieldTable, fid) ^ ".\n")*)
-               val env = infExp (st,env) e
                val bVar = BD.freshBVar ()
-               val env = E.meetBoolean (BD.meetVarOne bVar, env)
+               val env = case eOpt of
+                           SOME e => E.meetBoolean (BD.meetVarOne bVar, 
+                                       infExp (st,env) e)
+                         | NONE => E.meetBoolean (BD.meetVarZero bVar,
+                                       E.pushTop env)
             in
                ((bVar, fid) :: nts, env)
             end

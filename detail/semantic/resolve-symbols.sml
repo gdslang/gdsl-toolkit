@@ -82,6 +82,23 @@ end = struct
          handle SymbolAlreadyDefined =>
             FI.lookup (!ST.fieldTable, atom)
 
+      (*check if a field name is used several time in record constructions or
+      record updates*)
+      fun checkDupFields span fs =
+         let
+            fun gather ((f,_),set) = 
+               if SymSet.member (set,f) then
+               (Error.errorAt
+                  (errStrm,
+                   span,
+                   ["field ", FI.getString (!ST.fieldTable, f),
+                    " cannot be updated more than once"]); set)
+               else
+                  SymSet.add (set,f)
+         in
+            (List.foldl gather SymSet.empty fs; fs)
+         end
+
       (* define a first traversal that registers:
        *   - type synonyms
        *   - datatype declarations including constructors
@@ -174,8 +191,8 @@ end = struct
           | PT.BITty i => AST.BITty i
           | PT.NAMEDty n => AST.NAMEDty (useType (s,n))
           | PT.RECORDty fs =>
-               AST.RECORDty
-                  (List.map (fn (f,t) => (newField (s,f), convTy s t)) fs)
+               AST.RECORDty (checkDupFields s
+                  (List.map (fn (f,t) => (newField (s,f), convTy s t)) fs))
 
       and convExp s e =
          case e of
@@ -200,12 +217,15 @@ end = struct
           | PT.APPLYexp (e1,es) =>
                AST.APPLYexp (convExp s e1, map (convExp s) es)
           | PT.RECORDexp l =>
-               AST.RECORDexp
-                  (List.map (fn (f,e) => (newField (s,f), convExp s e)) l)
+               AST.RECORDexp (checkDupFields s
+                  (List.map (fn (f,e) => (newField (s,f), convExp s e)) l))
           | PT.SELECTexp f => AST.SELECTexp (useField (s,f))
           | PT.UPDATEexp fs =>
-               AST.UPDATEexp
-                  (List.map (fn (f,e) => (newField (s,f), convExp s e)) fs)
+               AST.UPDATEexp (checkDupFields s
+                  (List.map (fn (f,eOpt) => (newField (s,f),
+                     case eOpt of
+                        SOME e => SOME (convExp s e)
+                      | NONE => NONE)) fs))
           | PT.LITexp lit => AST.LITexp (convLit s lit)
           | PT.SEQexp l => AST.SEQexp (convSeqexp s l)
           | PT.IDexp v => AST.IDexp (useVar (s,v))
