@@ -377,6 +377,7 @@ val p/66/f3/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [/rex-p] = p/66/f3/f2
 val p/66/f3/f2 [] = after /f2 (after /f3 (after /66 /))
+
 datatype register =
    AL
  | AH
@@ -530,6 +531,19 @@ datatype insn =
  | ARITY3 of {tag:mnemonic,opnd1:opnd,opnd2:opnd,opnd3:opnd}
  | ARITY4 of {tag:mnemonic,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
  | FLOW1 of {tag:mnemonic,opnd1:flowopnd}
+
+datatype varity =
+   VA0
+ | VA1 of arity1
+ | VA2 of arity2
+ | VA3 of arity3
+ | VA4 of arity4
+
+type flow1 = {opnd1:flowopnd}
+type arity1 = {opnd1:opnd}
+type arity2 = {opnd1:opnd,opnd2:opnd} 
+type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd} 
+type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd} 
 
 datatype mnemonic =
    ADC
@@ -1501,6 +1515,34 @@ val moffs64 = do
    mem i
 end
 
+val varity0 cons = return (cons VA0)
+
+val varity1 cons giveOp1 = do
+   op1 <- giveOp1;
+   return (cons (VA1 {opnd1=op1}))
+end
+
+val varity2 cons giveOp1 giveOp2 = do
+   op1 <- giveOp1;
+   op2 <- giveOp2;
+   return (cons (VA2 {opnd1=op1,opnd2=op2}))
+end
+
+val varity3 cons giveOp1 giveOp2 giveOp3 = do
+   op1 <- giveOp1;
+   op2 <- giveOp2;
+   op3 <- giveOp3;
+   return (cons (VA3 {opnd1=op1,opnd2=op2,opnd3=op3}))
+end
+
+val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
+   op1 <- giveOp1;
+   op2 <- giveOp2;
+   op3 <- giveOp3;
+   op4 <- giveOp4;
+   return (cons (VA4 {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+end
+
 val arity0 cons = return (ARITY0 {tag=cons})
 
 val unop cons giveOp1 = do
@@ -2053,7 +2095,7 @@ val / [0x0f 0xae /5] = arity0 LFENCE
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
 val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/nomem128
-val /vex/66/0f/vexv [0xf7 /r] | vex128? = binop VMASKMOVDQU
+val /vex/66/0f/vexv [0xf7 /r-nomem] | vex128? = binop VMASKMOVDQU xmm128 xmm/m128
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
@@ -2488,7 +2530,7 @@ val /vex/f3/0f/vexv [0x59 /r] = ternop VMULSS xmm128 v/xmm xmm/m32
 
 ### MWAIT
 ###  - Monitor Wait
-val / [0x0f 0x01 0xc9] = return MWAIT
+val / [0x0f 0x01 0xc9] = arity0 MWAIT
 
 ### NEG
 ###  - Two's Complement Negation
