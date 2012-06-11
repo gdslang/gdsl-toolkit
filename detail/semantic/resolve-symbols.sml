@@ -210,7 +210,8 @@ end = struct
           | PT.SEQexp l => AST.SEQexp (convSeqexp s l)
           | PT.IDexp v => AST.IDexp (useVar (s,v))
           | PT.CONexp c => AST.CONexp (useCon (s,c))
-          | PT.FNexp (v, e) => AST.FNexp (newVar (s,v), convExp s e)
+          | PT.FNexp (vs, e) =>
+            AST.FNexp (List.map (fn v => newVar (s,v)) vs, convExp s e)
 
       and convInfixop s e =
          case e of

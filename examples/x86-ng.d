@@ -55,33 +55,33 @@ val set-addrsz = update@{addrsz='1'}
 # in sequence. The first function takes two arguments and runs the first
 # one until it calls 'continue', at which point the second decoder is run.
 
-#val after fst snd = do
-#   update@{tab=snd};
-#   r <- fst;
-#   # make the type checker happy
-#   update@{tab=42};
-#   return r
-#end
-#
-#val continue = do
-#   t <- query$tab;
-#   # make the type checker happy
-#   update@{tab=42};  
-#   # make the type checker happy
-#   r <- t;
-#   update@{tab=t};
-#   return r
-#end
-
 val after fst snd = do
-   update@{tab=snd};
-   fst
+  update@{tab=snd};
+  r <- fst;
+  # make the type checker happy
+  update@{tab=42};
+  return r
 end
 
 val continue = do
-   t <- query$tab;
-   t
+  t <- query$tab;
+  # make the type checker happy
+  update@{tab=42};  
+  # make the type checker happy
+  r <- t;
+  update@{tab=t};
+  return r
 end
+
+# val after fst snd = do
+#    update@{tab=snd};
+#    fst
+# end
+# 
+# val continue = do
+#    t <- query$tab;
+#    t
+# end
 
 val /66 [] = continue
 val /f2 [] = continue

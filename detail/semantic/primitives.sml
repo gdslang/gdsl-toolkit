@@ -74,9 +74,10 @@ structure Primitives = struct
    val s19 = freshVar ()
 
    (*create a type from two vectors to one vector, all of size s*)
-   fun vvv s = FUN (VEC s, FUN (VEC s, VEC s))
-   fun vv  s = FUN (VEC s, VEC s)
-   fun vvb s = FUN (VEC s, FUN (VEC s, VEC (CONST 1)))
+   fun func (a,b) = FUN ([a],b)
+   fun vvv s = FUN ([VEC s, VEC s], VEC s)
+   fun vv  s = FUN ([VEC s], VEC s)
+   fun vvb s = FUN ([VEC s, VEC s], VEC (CONST 1))
 
    val granularity : string = "stream granularity"
    val globalState : string = "global state"
@@ -109,8 +110,8 @@ structure Primitives = struct
        {name=granularity, ty=UNIT,
         flow = noFlow},
        (* 'a M -> ('a -> 'b M) -> 'b M *)
-       {name=">>=", ty=FUN (MONAD (a, stateE, stateE'),
-            FUN (FUN (a', MONAD (b,stateE'', stateE''')),
+       {name=">>=", ty=func (MONAD (a, stateE, stateE'),
+            func (func (a', MONAD (b,stateE'', stateE''')),
                MONAD (b', stateE'''', stateE'''''))),
         flow = BD.meetVarImpliesVar (bvar a', bvar a) o
                BD.meetVarImpliesVar (bvar b', bvar b) o
@@ -118,21 +119,21 @@ structure Primitives = struct
                BD.meetVarImpliesVar (bvar stateE'', bvar stateE') o
                BD.meetVarImpliesVar (bvar stateE''''', bvar stateE''') },
        (* 'f M -> 'g M -> 'g M *)
-       {name=">>", ty=FUN (MONAD (c, stateF, stateF'),
-            FUN (MONAD (d,stateF'', stateF'''),
+       {name=">>", ty=func (MONAD (c, stateF, stateF'),
+            func (MONAD (d,stateF'', stateF'''),
                MONAD (d', stateF'''', stateF'''''))),
         flow = BD.meetVarImpliesVar (bvar d', bvar d) o
                BD.meetVarImpliesVar (bvar stateF, bvar stateF'''') o
                BD.meetVarImpliesVar (bvar stateF'', bvar stateF') o
                BD.meetVarImpliesVar (bvar stateF''''', bvar stateF''') },
-       {name="return", ty=FUN (e, MONAD (e',stateG,stateG')),
+       {name="return", ty=func (e, MONAD (e',stateG,stateG')),
         flow = BD.meetVarImpliesVar (bvar e', bvar e) o
                BD.meetVarImpliesVar (bvar stateG', bvar stateG) },
-       {name="update", ty=FUN (FUN (stateH, stateH'),
+       {name="update", ty=func (func (stateH, stateH'),
                                MONAD (UNIT,stateH'',stateH''')),
         flow = BD.meetVarImpliesVar (bvar stateH, bvar stateH'') o
                BD.meetVarImpliesVar (bvar stateH''', bvar stateH') },
-       {name="query", ty=FUN (FUN (stateI', g), MONAD (g',stateI,stateI'')),
+       {name="query", ty=func (func (stateI', g), MONAD (g',stateI,stateI'')),
         flow = BD.meetVarImpliesVar (bvar g', bvar g) o
                BD.meetVarImpliesVar (bvar stateI', bvar stateI) o
                BD.meetVarImpliesVar (bvar stateI'', bvar stateI) },
@@ -142,11 +143,11 @@ structure Primitives = struct
         flow = BD.meetVarZero (bvar s2)},
        {name="*", ty=vvv s3,
         flow = BD.meetVarZero (bvar s3)},
-       {name="^", ty=FUN (VEC s4, FUN (VEC s5, VEC s6)),
+       {name="^", ty=FUN ([VEC s4, VEC s5], VEC s6),
         flow = BD.meetVarZero (bvar s4) o
                BD.meetVarZero (bvar s5) o
                BD.meetVarZero (bvar s6)},
-       {name="bits8", ty=FUN (ZENO, VEC (CONST 8)),
+       {name="bits8", ty=func (ZENO, VEC (CONST 8)),
         flow = noFlow},
        {name=Atom.toString Op.orElse, ty = vvv s7,
         flow = BD.meetVarZero (bvar s7)},
@@ -158,15 +159,15 @@ structure Primitives = struct
         flow = BD.meetVarZero (bvar s10)},
        {name="not", ty = vv s11,
         flow = BD.meetVarZero (bvar s11)},
-       {name="signed", ty=FUN (VEC s12, ZENO),
+       {name="signed", ty=func (VEC s12, ZENO),
         flow = BD.meetVarZero (bvar s12)},
-       {name="unsigned", ty=FUN (VEC s13, ZENO),
+       {name="unsigned", ty=func (VEC s13, ZENO),
         flow = BD.meetVarZero (bvar s13)},
-       {name="prefix", ty=FUN (VEC s14, VEC s15),
+       {name="prefix", ty=func (VEC s14, VEC s15),
         flow = BD.meetVarZero (bvar s14) o
                BD.meetVarZero (bvar s15) o
                BD.meetVarZero (bvar s16)},
-       {name="suffix", ty=FUN (VEC s17, VEC s18),
+       {name="suffix", ty=func (VEC s17, VEC s18),
         flow = BD.meetVarZero (bvar s17) o
                BD.meetVarZero (bvar s18) o
                BD.meetVarZero (bvar s19)},

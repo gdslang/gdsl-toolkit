@@ -77,8 +77,8 @@ structure Environment : sig
    (*stack: [..., tn, ..., t2, t1, t0] -> [..., SUM (tn,..t0)]*)
    val reduceToSum : int * environment -> environment
    
-   (*stack: [...,t1,t2] -> [...,t1 -> t2]*)
-   val reduceToFunction : environment -> environment
+   (*stack: [...,t1,t2,...,tn] -> [...,(t1, ... t n-1) -> t2]*)
+   val reduceToFunction : environment * int -> environment
    
    (*stack: [...,t1 -> t2] -> [...t2]*)
    val reduceToResult : environment -> environment
@@ -938,18 +938,21 @@ end = struct
          rTS (n, [], 0, env)
       end
 
-   fun reduceToFunction env =
+   fun reduceToFunction (env,nArgs) =
+      if nArgs=0 then env else
       let
-         val (t2, env) = case Scope.unwrap env of
+         val (tRes, env) = case Scope.unwrap env of
                              (KAPPA {ty = t}, env) => (t,env)
                            | (SINGLE {name, ty = t}, env) => (t,env)
                            | _ => raise InferenceBug
-         val (t1, env) = case Scope.unwrap env of
-                             (KAPPA {ty = t}, env) => (t,env)
-                           | (SINGLE {name, ty = t}, env) => (t,env)
-                           | _ => raise InferenceBug
+         fun getArgs (tys,n,env) = if n=0 then (tys,env) else
+            case Scope.unwrap env of
+                 (KAPPA {ty = t}, env) => getArgs (t :: tys,n-1,env)
+               | (SINGLE {name, ty = t}, env) => getArgs (t :: tys,n-1,env)
+               | _ => raise InferenceBug
+         val (tArgs,env) = getArgs ([],nArgs,env)
       in
-         Scope.wrap (KAPPA {ty = FUN (t1,t2)}, env)
+         Scope.wrap (KAPPA {ty = FUN (tArgs,tRes)}, env)
       end
 
    fun reduceToResult env = case Scope.unwrap env of

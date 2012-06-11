@@ -9,8 +9,8 @@ structure Types = struct
    val concisePrint = true
 
    datatype texp =
-      (* a function *)
-      FUN of (texp * texp)
+      (* a function taking at least one argument *)
+      FUN of (texp list * texp)
       (* a type synoym with its expanded type *)
     | SYN of (TypeInfo.symid * texp)
       (* an whole number *)
@@ -49,7 +49,7 @@ structure Types = struct
      | tvar _ = raise LangTypesBug      
 
    fun texpVarset (e, vs) = let
-      fun tV (FUN (f1, f2), vs) = tV (f2, tV (f1, vs))
+      fun tV (FUN (f1, f2), vs) = tV (f2, List.foldl tV vs f1)
         | tV (SYN (syn, t), vs) = tV (t, vs)
         | tV (ZENO, vs) = vs
         | tV (FLOAT, vs) = vs
@@ -67,7 +67,7 @@ structure Types = struct
    (*gather Boolean flags, the collection function is generic and is passed a
    bool that is true if the flag is in a contra-variant position*)
    fun texpBVarset cons (e, bs) = let
-      fun tV co (FUN (f1, f2), bs) = tV co (f2, tV (not co) (f1, bs))
+      fun tV co (FUN (f1, f2), bs) = tV co (f2, List.foldl (tV (not co)) bs f1)
         | tV co (SYN (syn, t), bs) = tV co (t, bs)
         | tV co (ZENO, bs) = bs
         | tV co (FLOAT, bs) = bs
@@ -86,7 +86,7 @@ structure Types = struct
    end
 
    fun fieldBVarsets (e, pn) = let
-      fun tV pn (FUN (f1, f2)) = tV (tV pn f2) f1
+      fun tV pn (FUN (f1, f2)) = tV (List.foldl (fn (t,pn) => tV pn t) pn f1) f2
         | tV pn (SYN (syn, t)) = tV pn t
         | tV pn (ZENO) = pn
         | tV pn (FLOAT) = pn
@@ -105,7 +105,10 @@ structure Types = struct
 
    fun fieldOfBVar (v, e) = let
       fun takeIfSome (t,fo) = case ff t of SOME f => SOME f | NONE => fo
-      and ff (FUN (f1, f2)) = takeIfSome (f1, ff f2)
+      and ff (FUN (f1, f2)) = takeIfSome (f2,
+            case List.mapPartial ff f1 of
+               (f :: _) => SOME f
+             | [] => NONE)
         | ff (SYN (syn, t)) = ff t
         | ff (ZENO) = NONE
         | ff (FLOAT) = NONE
@@ -123,7 +126,7 @@ structure Types = struct
       in ff e
    end
 
-   fun setFlagsToTop (FUN (f1, f2)) = FUN (setFlagsToTop f1, setFlagsToTop f2)
+   fun setFlagsToTop (FUN (f1, f2)) = FUN (List.map setFlagsToTop f1, setFlagsToTop f2)
      | setFlagsToTop (SYN (syn, t)) = SYN (syn, setFlagsToTop t)
      | setFlagsToTop (ZENO) = ZENO
      | setFlagsToTop (FLOAT) = FLOAT
@@ -144,7 +147,7 @@ structure Types = struct
       fun chg v = case List.find (fn (v1,_) => TVar.eq(v,v1)) vs of
            NONE => v
          | SOME (v1,v2) => v2
-      fun repl (FUN (f1, f2)) = FUN (repl f1, repl f2)
+      fun repl (FUN (f1, f2)) = FUN (List.map repl f1, repl f2)
         | repl (SYN (syn, t)) = SYN (syn, repl t)
         | repl (ZENO) = ZENO
         | repl (FLOAT) = FLOAT
@@ -164,7 +167,7 @@ structure Types = struct
       fun chg v = case List.find (fn (v1,_) => BD.eq(v,v1)) vs of
            NONE => v
          | SOME (v1,v2) => v2
-      fun repl (FUN (f1, f2)) = FUN (repl f1, repl f2)
+      fun repl (FUN (f1, f2)) = FUN (List.map repl f1, repl f2)
         | repl (SYN (syn, t)) = SYN (syn, repl t)
         | repl (ZENO) = ZENO
         | repl (FLOAT) = FLOAT
@@ -197,8 +200,11 @@ structure Types = struct
       if curPrec>existsPrec then "(" ^ str ^ ")" else str
     val p_app = 9
     val p_tyn = 10
-    fun sT (p, FUN (f1, f2)) =
+    fun sT (p, FUN ([f1], f2)) =
           br (p, p_app, sT (p_app+1, f1) ^ " -> " ^ sT (p_app, f2))
+      | sT (p, FUN (f1, f2)) =
+          br (p, p_app, "(" ^ sep ", " (List.map (fn f => sT (0, f)) f1) ^
+                        ") -> " ^ sT (p_app, f2))
       | sT (p, SYN (syn, t)) = 
           br (p, p_tyn, SymbolTable.getString(!SymbolTables.typeTable, syn))
       | sT (p, ZENO) = "int"

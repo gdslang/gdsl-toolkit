@@ -52,15 +52,19 @@ end = struct
          String.substring (str,0,max-3) ^ "..."
       end
 
-   fun refineError (str, msg, env1, str1, env2, str2) =
+   fun refineError (str, msg, envStrs) =
       let
-         val (eStr1, si) = E.kappaToStringSI (env1, TVar.emptyShowInfo)
-         val (eStr2, si) = E.kappaToStringSI (env2, si)
+         fun genRow ((env,str),(acc,si)) =
+            let
+               val (eStr,si) = E.kappaToStringSI (env,si)
+            in
+               (acc ^ "\n\t" ^ str ^ ": " ^ eStr,si)
+            end
+         val (str, si) = List.foldl
+                           genRow
+                           (str ^ msg, TVar.emptyShowInfo) envStrs
       in
-         raise S.UnificationFailure
-          (str ^ msg ^
-           "\n\t" ^ str1 ^ ": " ^ eStr1 ^
-           "\n\t" ^ str2 ^ ": " ^ eStr2)
+         raise S.UnificationFailure str
       end
 
    fun getBitpatLitLength bp =
@@ -232,8 +236,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking guards",
-                            envRef, "required guard type        ",
-                            envGua, "guard " ^ showProg (20, PP.exp, g))
+                            [(envRef, "required guard type        "),
+                             (envGua, "guard " ^ showProg (20, PP.exp, g))])
             in
                E.popKappa env
             end
@@ -244,7 +248,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (n,env) = List.foldl pushDecoderBindings (0,env) dec
          val env = List.foldl E.pushLambdaVar env args
          val env = infExp (st,env) rhs
-         val env = List.foldr (fn (_,env) => E.reduceToFunction env) env args
+         val env = E.reduceToFunction (env, List.length args)
          val env = E.return (n,env)
          (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
       in
@@ -359,8 +363,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   handle S.UnificationFailure str =>
                      refineError (str,
                                   " while checking right-hand-side of branches",
-                                  nEnv, "branches so far               ",
-                                  expEnv, showProg (30, PP.exp, exp))
+                                  [(nEnv, "branches so far               "),
+                                   (expEnv, showProg (30, PP.exp, exp))])
             in
                env
             end
@@ -375,17 +379,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                AST.MARKexp ({tree = infixToExp t, span = s})
            | infixToExp (AST.OPinfixop opid) = AST.IDexp opid
       in
-         infExp stenv (AST.APPLYexp (AST.APPLYexp (infixToExp binop, [e1]),
-         [e2]))
+         infExp stenv (AST.APPLYexp (infixToExp binop, [e1, e2]))
       end
-     | infExp (st,env) (AST.APPLYexp (e1,[e2])) =
+     | infExp (st,env) (AST.APPLYexp (e1,es2)) =
       let                                      
          val envFun = infExp (st,env) e1
-         val envArg = infExp (st,env) e2
+         val envArg = List.foldl (fn (e2,env) => infExp (st,env) e2) env es2
          (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)*)
          (*val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
          val envArgRes = E.pushTop envArg
-         val envArgRes = E.reduceToFunction envArgRes
+         val envArgRes = E.reduceToFunction (envArgRes, List.length es2)
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)*)
          (* make the result of the call-site depend on the result of the
          function; the flow expressing that formal parameters depend on actual
@@ -394,8 +397,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " while passing",
-                            envArg, "argument    " ^ showProg (20, PP.exp, e2),
-                            envFun, "to function " ^ showProg (20, PP.exp, e1))
+                            List.map (fn e2 => (envArg, "argument    " ^ showProg (20, PP.exp, e2))) es2 @
+                            [(envFun, "to function " ^ showProg (20, PP.exp, e1))])
          (*val _ = TextIO.print ("**** app fun,res unified:\n" ^ E.topToString env)*)
          val env = E.reduceToResult env
       in
@@ -436,7 +439,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                                   BD.meetVarOne exists, env)
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.pushType (false, tf', env)
-         val env = E.reduceToFunction env
+         val env = E.reduceToFunction (env,1)
          (*val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")*)
       in
          env
@@ -469,7 +472,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             end
          val (nts, env) = List.foldl pushOutField ([], env) fs
          val env = E.reduceToRecord (nts, env)
-         val env = E.reduceToFunction env
+         val env = E.reduceToFunction (env,1)
          (*val _ = TextIO.print ("**** rec update: function is:\n" ^ E.topToString env ^ "\n")*)
       in
          env
@@ -497,7 +500,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   fieldBVarsets (t,(BD.emptySet, BD.emptySet))
                val env = E.meetBoolean (BD.meetVarSetOne posFlags o
                                         BD.meetVarSetZero negFlags, env)
-               val env = E.pushType (true, FUN (t,ALG (dcon, List.map VAR vs)), env)
+               val env = E.pushType (true, FUN ([t],ALG (dcon, List.map VAR vs)), env)
             in
                env
             end
@@ -505,8 +508,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          env
       end
-     | infExp (st,env) (AST.FNexp (v, e)) =
-         E.reduceToFunction (infExp (st, E.pushLambdaVar (v,env)) e)
+     | infExp (st,env) (AST.FNexp (vs, e)) =
+      let
+         val env = List.foldl E.pushLambdaVar env vs
+         val env = infExp (st, env) e
+      in
+         E.reduceToFunction (env, List.length vs)
+      end
          
    and infSeqexp stenv [] = raise
          (S.UnificationFailure "last statement in a sequence may not bind a variable")
@@ -522,7 +530,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envFun = E.pushSymbol (bind, getSpan st, env)
          val envArg = infExp (st,env) e
          val envArgRes = E.pushTop envArg
-         val envArgRes = E.reduceToFunction envArgRes
+         val envArgRes = E.reduceToFunction (envArgRes,1)
          (*val _ = TextIO.print ("function to unify with bind: " ^ E.topToString envArgRes ^ "\n")*)
          val env = E.meetFlow (envArgRes, envFun)
             handle S.UnificationFailure str =>
@@ -532,16 +540,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envFun = E.reduceToResult env
          val env = E.popKappa envFun
          val envArg = case vOpt of
-                 SOME v => E.reduceToFunction (infSeqexp (st, E.pushLambdaVar (v,env)) l)
+                 SOME v => E.reduceToFunction (infSeqexp (st, E.pushLambdaVar (v,env)) l,1)
                | NONE => infSeqexp (st, env) l
          val envArgRes = E.pushTop envArg
-         val envArgRes = E.reduceToFunction envArgRes
+         val envArgRes = E.reduceToFunction (envArgRes,1)
          val env = E.meetFlow (envArgRes, envFun)
             handle S.UnificationFailure str =>
                refineError (str,
                             " when passing on the result of",
-                            envFun, "statement " ^ showProg (20, PP.exp, e),
-                            envArg, "to the following statments    ")
+                            [(envFun, "statement " ^ showProg (20, PP.exp, e)),
+                             (envArg, "to the following statments    ")])
          val env = E.reduceToResult env
       in
          env
@@ -557,8 +565,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking decoder",
-                            envGra, "granularity                     ",
-                            envDec, "token " ^ showProg (20, PP.tokpat, t))
+                            [(envGra, "granularity                     "),
+                             (envDec, "token " ^ showProg (20, PP.tokpat, t))])
             val env = E.popKappa env
          in
             infTokpat (st, env) t
@@ -576,8 +584,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking bits in token",
-                            envGra, "granularity                     ",
-                            envPat, "pattern " ^ showProg (20, PP.decodepat, (AST.BITdecodepat l)))
+                            [(envGra, "granularity                     "),
+                             (envPat, "pattern " ^ showProg (20, PP.decodepat, (AST.BITdecodepat l)))])
          val env = E.popKappa env
       in
          List.foldl (fn (b,(n,env)) => case infBitpat (st,env) b of
@@ -618,8 +626,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking case scrutinee",
-                            envScru, "scrutinee and patterns so far ",
-                            env,     "pattern " ^ showProg (22, PP.pat, p))
+                            [(envScru, "scrutinee and patterns so far "),
+                             (env,     "pattern " ^ showProg (22, PP.pat, p))])
          (*val _ = TextIO.print ("**** after mgu:\n" ^ E.toString env)*)
          val env = E.popKappa env
          val env = infExp (st,env) e
@@ -640,7 +648,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val (n,envPat) = infPat (st,env) p
          val envPat = E.pushTop envPat
-         val envPat = E.reduceToFunction envPat
+         val envPat = E.reduceToFunction (envPat,1)
          val envCon = E.popKappa envPat
          val envCon = infExp (st,envCon) (AST.CONexp c)
          val env = E.meetFlow (envCon,envPat)
