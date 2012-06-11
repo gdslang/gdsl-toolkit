@@ -43,6 +43,20 @@ objdump -b binary -m k1om -D FILE
    0:	0f 12 11             	movlps (%rcx),%xmm2
    3:	0f 12 d1             	movhlps %xmm1,%xmm2
 
+---
+
+12:
+   0:	f2 0f 59 ff          	mulsd  %xmm7,%xmm7
+
+13:
+   0:	f3 0f 59 ff          	mulss  %xmm7,%xmm7
+
+14:
+   0:	f2 f3 0f 59 ff       	repnz mulss %xmm7,%xmm7
+
+15:
+   0:	f3 f2 0f 59 ff       	repnz mulss %xmm7,%xmm7
+
 SUMMARY: Correct: 5, Wrong: 5 (50%)
 
 xed2:
@@ -81,6 +95,20 @@ XDIS 0: DATAXFER  SSE2   6745F30F7E11             movq xmm2, qword ptr [ecx]
 11: (Correct decoding)
 XDIS 0: DATAXFER  SSE    0F1211                   movlps xmm2, qword ptr [rcx]
 XDIS 3: DATAXFER  SSE    0F12D1                   movhlps xmm2, xmm1
+
+---
+
+12:
+XDIS 0: SSE       SSE2   F20F59FF                 mulsd xmm7, xmm7
+
+13:
+XDIS 0: SSE       SSE    F30F59FF                 mulss xmm7, xmm7
+
+14:
+XDIS 0: SSE       SSE    F2F30F59FF               mulss xmm7, xmm7
+
+15:
+XDIS 0: SSE       SSE2   F3F20F59FF               mulsd xmm7, xmm7
 
 SUMMARY: Correct: 10, Wrong: 0 (100%)
 
@@ -130,6 +158,28 @@ disasm -b64 FILE
 0000000000000000 (03) 0f1211                   MOVLPS XMM2, [RCX]
 0000000000000003 (03) 0f12d1                   MOVHLPS XMM2, XMM1
 
+---
+
+12:
+0000000000000000 (04) f20f59ff                 MULSD XMM7, XMM7
+
+13:
+0000000000000000 (04) f30f59ff                 MULSS XMM7, XMM7
+
+14:
+0000000000000000 (01) f2                       DB 0xf2
+0000000000000001 (01) f3                       DB 0xf3
+0000000000000002 (01) 0f                       DB 0xf
+0000000000000003 (01) 59                       POP RCX
+0000000000000004 (01) ff                       DB 0xff
+
+15:
+0000000000000000 (01) f3                       DB 0xf3
+0000000000000001 (01) f2                       DB 0xf2
+0000000000000002 (01) 0f                       DB 0xf
+0000000000000003 (01) 59                       POP RCX
+0000000000000004 (01) ff                       DB 0xff
+
 SUMMARY: Correct: 3-6, Wrong: 7-4 (30%-60%)
 
 Metasm:
@@ -168,6 +218,20 @@ entrypoint_0    db 66h, 0c4h, 0e1h, 0f9h, 7eh, 0c8h ; @0
 11: (Correct decoding)
     movlps oword ptr [rcx], xmm2                 ; @0  0f1211  
     movhlps xmm2, xmm1                           ; @3  0f12d1
+
+---
+
+12:
+    mulsd xmm7, xmm7                             ; @0  f20f59ff  
+
+13:
+    mulss xmm7, xmm7                             ; @0  f30f59ff  
+
+14:
+    mulsd xmm7, xmm7                             ; @0  f2f30f59ff
+
+15:
+    mulsd xmm7, xmm7                             ; @0  f3f20f59ff
 
 SUMMARY: Correct: 3-7, Wrong: 7-3 (30%-70%)
 
@@ -220,5 +284,19 @@ movq xmm10, qword ptr ds:[r9d] (AddressSize=InUsePrefix)
 11: (Correct decoding)
 movlps xmm2, qword ptr ds:[rcx]
 movlps xmm2, xmm1
+
+---
+
+12:
+mulsd xmm7, xmm7
+
+13:
+mulss xmm7, xmm7
+
+14:
+mulsd xmm7, xmm7
+
+15:
+mulsd xmm7, xmm7
 
 SUMMARY: Correct: 3, Wrong: 7 (30%)
