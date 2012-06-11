@@ -55,18 +55,20 @@ val set-addrsz = update@{addrsz='1'}
 # in sequence. The first function takes two arguments and runs the first
 # one until it calls 'continue', at which point the second decoder is run.
 
+val giveNop = return (ARITY0 {tag=NOP})
+
 val after fst snd = do
   update@{tab=snd};
   r <- fst;
   # make the type checker happy
-  update@{tab=42};
+  update@{tab=giveNop};
   return r
 end
 
 val continue = do
   t <- query$tab;
   # make the type checker happy
-  update@{tab=42};  
+  update@{tab=giveNop};  
   # make the type checker happy
   r <- t;
   update@{tab=t};
