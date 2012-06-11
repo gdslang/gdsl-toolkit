@@ -64,6 +64,10 @@ group is
    ../../closure/from-cps.sml
    ../../closure/closure-passes.sml
    ../../codegen/codegen-control.sml
+   ../../codegen/codegen-mangle.sml
    ../../codegen/c0/c0.sml
+   ../../codegen/js0/javascript-sig.sml
+   ../../codegen/js0/javascript.sml
+   ../../codegen/js0/js0.sml
    ../../codegen/codegen-passes.sml
    ../../driver/main.sml

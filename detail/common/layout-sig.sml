@@ -11,6 +11,7 @@ signature LAYOUT =
    sig
 
       type layout
+      type t = layout
 
       (* layout the objects on separate lines*)
       val align: layout list -> layout

@@ -22,6 +22,7 @@ structure BooleanDomain = BooleanDomain
 structure Environment = Environment
 structure TVar = TVar
 structure Main = Main
+structure Javascript = Javascript
 
 (** ## Exported functors *)
 

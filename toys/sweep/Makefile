@@ -14,7 +14,7 @@ xed:
 	gcc -O2 -Wall -static -I../../resources/xed/xed2-intel64/include -L../../resources/xed/xed2-intel64/lib -Wfatal-errors sweep-xed.c -lbfd -liberty -ldl -lz -lxed -o sweep-xed
 
 dcc:
-	gcc-4.7 -O2 -ftree-vectorize -ftree-slp-vectorize -mfpmath=sse -msse4 -Wall -static -I. -I../.. -I../../examples/x86 -Wfatal-errors sweep-dcc.c ../../dis.c ../../examples/x86/pretty.c -DRELAXEDFATAL -lbfd -liberty -ldl -lz -o sweep-dcc
+	gcc-4.7 -m64 -O2 -ftree-vectorize -ftree-slp-vectorize -mfpmath=sse -msse4 -Wall -static -I. -I../.. -I../../examples/x86 -Wfatal-errors sweep-dcc.c ../../dis.c ../../examples/x86/pretty.c -DRELAXEDFATAL -lbfd -liberty -ldl -lz -o sweep-dcc
 
 beaengine:
 	gcc -O2 -Wall -static -I../../resources/beaengine/include -L../../resources/beaengine/lib/Linux.gnu.release.64 -Wfatal-errors sweep-beaengine.c -lbfd -liberty -ldl -lz -lBeaEngine_s_64 -o sweep-beaengine

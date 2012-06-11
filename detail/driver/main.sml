@@ -10,7 +10,6 @@ structure Main = struct
          ResolveSymbols.run >>=
          Desugar.run >>=
          CPSPasses.run >>=
-         ClosurePasses.run >>=
          CodegenPasses.run 
 
       fun run fp = let
