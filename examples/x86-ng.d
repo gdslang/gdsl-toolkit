@@ -736,6 +736,9 @@ datatype mnemonic =
  | OUTSB
  | OUTSW
  | OUTSD
+ | PABSB
+ | PABSW
+ | PABSD
  | PALIGNR
  | PAND
  | PCMPEQB
@@ -880,6 +883,9 @@ datatype mnemonic =
  | VMULSS
  | VORPD
  | VORPS
+ | VPABSB
+ | VPABSW
+ | VPABSD
  | VPALIGNR
  | VPAND
  | VPCMPEQQ
@@ -2623,7 +2629,17 @@ val / [0x6f]
  | opndsz? = arity0 OUTSW
  | otherwise = arity0 OUTSD
 
-
+### PABSB/PABSW/PABSD
+###  - Packed Absolute Value
+val / [0x0f 0x38 0x1c /r] = binop PABSB mm64 mm/m64
+val /66 [0x0f 0x38 0x1c /r] = binop PABSB xmm128 xmm/m128
+val / [0x0f 0x38 0x1d /r] = binop PABSW mm64 mm/m64
+val /66 [0x0f 0x38 0x1d /r] = binop PABSW xmm128 xmm/m128
+val / [0x0f 0x38 0x1e /r] = binop PABSD mm64 mm/m64
+val /66 [0x0f 0x38 0x1e /r] = binop PABSD xmm128 xmm/m128
+val /vex/66/0f/38 [0x1c /r] | vex128? = binop VPABSB xmm128 xmm/m128
+val /vex/66/0f/38 [0x1d /r] | vex128? = binop VPABSW xmm128 xmm/m128
+val /vex/66/0f/38 [0x1e /r] | vex128? = binop VPABSD xmm128 xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
