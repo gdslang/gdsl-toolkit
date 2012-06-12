@@ -532,18 +532,18 @@ datatype insn =
  | ARITY4 of {tag:mnemonic,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
  | FLOW1 of {tag:mnemonic,opnd1:flowopnd}
 
+type flow1 = {opnd1:flowopnd}
+type arity1 = {opnd1:opnd}
+type arity2 = {opnd1:opnd,opnd2:opnd} 
+type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd} 
+type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd} 
+
 datatype varity =
    VA0
  | VA1 of arity1
  | VA2 of arity2
  | VA3 of arity3
  | VA4 of arity4
-
-type flow1 = {opnd1:flowopnd}
-type arity1 = {opnd1:opnd}
-type arity2 = {opnd1:opnd,opnd2:opnd} 
-type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd} 
-type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd} 
 
 datatype mnemonic =
    ADC
