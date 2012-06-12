@@ -2607,6 +2607,9 @@ val / [0xee] = binop OUT dx al
 val /66 [0xef] = binop OUT dx ax
 val / [0xef] = binop OUT dx eax
 
+### OUTS/OUTSB/OUTSW/OUTSD
+###  - Output String to Port
+
 ### PALIGNR
 ###  - Packed Align Right
 val / [0x0f 0x3a 0x0f /r] = ternop PALIGNR mm64 mm/m64 imm8
@@ -2854,7 +2857,6 @@ val / [0xc1 /1]
  | opndsz? = binop ROR r/m16 imm8
  | rexw? = binop ROR r/m64 imm8
  | otherwise = binop ROR r/m32 imm8
-val / [0xda '10011 i:3'] = binop FCMOVU st0 (st/i i)
 
 ### RDTSC
 ###  - Read Time-Stamp Counter
@@ -2987,7 +2989,6 @@ val / [0xc1 /7]
 val / [0xd0 /5] = binop SHR r/m8 one
 val / [0xd2 /5] = binop SHR r/m8 cl
 val / [0xc0 /5] = binop SHR r/m8 imm8
-val / [0xda '10011 i:3'] = binop FCMOVU st0 (st/i i)
 val / [0xd1 /5]
  | opndsz? = binop SHR r/m16 one
  | rexw? = binop SHR r/m64 one
