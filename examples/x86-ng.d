@@ -739,6 +739,8 @@ datatype mnemonic =
  | PABSB
  | PABSW
  | PABSD
+ | PACKSSWB
+ | PACKSSDW
  | PALIGNR
  | PAND
  | PCMPEQB
@@ -886,6 +888,8 @@ datatype mnemonic =
  | VPABSB
  | VPABSW
  | VPABSD
+ | VPACKSSWB
+ | VPACKSSDW
  | VPALIGNR
  | VPAND
  | VPCMPEQQ
@@ -2640,6 +2644,15 @@ val /66 [0x0f 0x38 0x1e /r] = binop PABSD xmm128 xmm/m128
 val /vex/66/0f/38 [0x1c /r] | vex128? = binop VPABSB xmm128 xmm/m128
 val /vex/66/0f/38 [0x1d /r] | vex128? = binop VPABSW xmm128 xmm/m128
 val /vex/66/0f/38 [0x1e /r] | vex128? = binop VPABSD xmm128 xmm/m128
+
+### PACKSSWB/PACKSSDW
+###  - Pack with Signed Saturation
+val / [0x0f 0x63 /r] = binop PACKSSWB mm64 mm/m64
+val /66 [0x0f 0x63 /r] = binop PACKSSWB xmm128 xmm/m128
+val / [0x0f 0x6b /r] = binop PACKSSDW mm64 mm/m64
+val /66 [0x0f 0x6b /r] = binop PACKSSDW xmm128 xmm/m128
+val /vex/66/0f/vexv [0x63 /r] | vex128? = binop VPACKSSWB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6b /r] | vex128? = binop VPACKSSDW xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
