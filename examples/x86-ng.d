@@ -524,14 +524,6 @@ datatype flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-datatype insn =
-   ARITY0 of {tag:mnemonic}
- | ARITY1 of {tag:mnemonic,opnd1:opnd}
- | ARITY2 of {tag:mnemonic,opnd1:opnd,opnd2:opnd}
- | ARITY3 of {tag:mnemonic,opnd1:opnd,opnd2:opnd,opnd3:opnd}
- | ARITY4 of {tag:mnemonic,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
- | FLOW1 of {tag:mnemonic,opnd1:flowopnd}
-
 datatype varity =
    VA0
  | VA1 of arity1
@@ -545,372 +537,372 @@ type arity2 = {opnd1:opnd,opnd2:opnd}
 type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd} 
 type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd} 
 
-datatype mnemonic =
-   ADC
- | ADD
- | AND
- | BSF
- | BSR
- | BSWAP
- | BT
- | CALL
+datatype insn =
+   ADC of arity2
+ | ADD of arity2
+ | AND of arity2
+ | BSF of arity2
+ | BSR of arity2
+ | BSWAP of arity2
+ | BT of arity2
+ | CALL of flow1
  | CBW
  | CDQE
  | CLD
- | CMOVA
- | CMOVAE
- | CMOVB
- | CMOVBE
- | CMOVC
- | CMOVE
- | CMOVG
- | CMOVGE
- | CMOVL
- | CMOVLE
- | CMOVNA
- | CMOVNAE
- | CMOVNB
- | CMOVNBE
- | CMOVNC
- | CMOVNE
- | CMOVNG
- | CMOVNGE
- | CMOVNL
- | CMOVNLE
- | CMOVNO
- | CMOVNP
- | CMOVNS
- | CMOVNZ
- | CMOVO
- | CMOVP
- | CMOVPE
- | CMOVPO
- | CMOVS
- | CMOVZ
- | CMP
+ | CMOVA of arity2
+ | CMOVAE of arity2
+ | CMOVB of arity2
+ | CMOVBE of arity2
+ | CMOVC of arity2
+ | CMOVE of arity2
+ | CMOVG of arity2
+ | CMOVGE of arity2
+ | CMOVL of arity2
+ | CMOVLE of arity2
+ | CMOVNA of arity2
+ | CMOVNAE of arity2
+ | CMOVNB of arity2
+ | CMOVNBE of arity2
+ | CMOVNC of arity2
+ | CMOVNE of arity2
+ | CMOVNG of arity2
+ | CMOVNGE of arity2
+ | CMOVNL of arity2
+ | CMOVNLE of arity2
+ | CMOVNO of arity2
+ | CMOVNP of arity2
+ | CMOVNS of arity2
+ | CMOVNZ of arity2
+ | CMOVO of arity2
+ | CMOVP of arity2
+ | CMOVPE of arity2
+ | CMOVPO of arity2
+ | CMOVS of arity2
+ | CMOVZ of arity2
+ | CMP of arity2
  | CMPSB
  | CMPSD
  | CMPSQ
  | CMPSW
- | CMPXCHG
+ | CMPXCHG of arity2
  | CPUID
- | CVTPD2PI
- | CVTSI2SD
+ | CVTPD2PI of arity2
+ | CVTSI2SD of arity2
  | CWDE
- | DEC
- | DIV
- | DIVSD
+ | DEC of arity1
+ | DIV of arity1
+ | DIVSD of arity1
  | FCHS
- | FCMOVB
- | FCMOVBE
- | FCMOVE
- | FCMOVNB
- | FCMOVNBE
- | FCMOVNE
- | FCMOVNU
- | FCMOVU
- | FCOMI
- | FCOMIP
- | FLD
+ | FCMOVB of arity2
+ | FCMOVBE of arity2
+ | FCMOVE of arity2
+ | FCMOVNB of arity2
+ | FCMOVNBE of arity2
+ | FCMOVNE of arity2
+ | FCMOVNU of arity2
+ | FCMOVU of arity2
+ | FCOMI of arity2
+ | FCOMIP of arity2
+ | FLD of arity1
  | FLD1
- | FLDCW
- | FLDENV
+ | FLDCW of arity1
+ | FLDENV of arity1
  | FLDL2E
  | FLDL2T
  | FLDLG2
  | FLDLN2
  | FLDPI
  | FLDZ
- | FNSTCW
- | FST
- | FSTCW
- | FSTP
- | FUCOMI
- | FUCOMIP
+ | FNSTCW of arity1
+ | FST of arity1
+ | FSTCW of arity1
+ | FSTP of arity1
+ | FUCOMI of arity1
+ | FUCOMIP of arity1
  | HLT
- | IDIV
- | IMUL
- | INC
- | JA
- | JAE
- | JB
- | JBE
- | JC
- | JCXZ
- | JE
- | JECXZ
- | JG
- | JGE
- | JL
- | JLE
- | JMP
- | JNA
- | JNAE
- | JNB
- | JNBE
- | JNC
- | JNE
- | JNG
- | JNGE
- | JNL
- | JNLE
- | JNO
- | JNP
- | JNS
- | JNZ
- | JO
- | JP
- | JPE
- | JPO
- | JRCXZ
- | JS
- | JZ
- | LDDQU
- | LEA
+ | IDIV of arity1
+ | IMUL of arity1
+ | INC of arity1
+ | JA of flow1
+ | JAE of flow1
+ | JB of flow1
+ | JBE of flow1
+ | JC of flow1
+ | JCXZ of flow1
+ | JE of flow1
+ | JECXZ of flow1
+ | JG of flow1
+ | JGE of flow1
+ | JL of flow1
+ | JLE of flow1
+ | JMP of flow1
+ | JNA of flow1
+ | JNAE of flow1
+ | JNB of flow1
+ | JNBE of flow1
+ | JNC of flow1
+ | JNE of flow1
+ | JNG of flow1
+ | JNGE of flow1
+ | JNL of flow1
+ | JNLE of flow1
+ | JNO of flow1
+ | JNP of flow1
+ | JNS of flow1
+ | JNZ of flow1
+ | JO of flow1
+ | JP of flow1
+ | JPE of flow1
+ | JPO of flow1
+ | JRCXZ of flow1
+ | JS of flow1
+ | JZ of flow1
+ | LDDQU of arity2
+ | LEA of arity2
  | LEAVE
  | LFENCE
- | MASKMOVDQU
- | MASKMOVQ
- | MAXPD
- | MAXPS
- | MAXSD
- | MAXSS
- | MFENCE
- | MINPD
- | MINPS
- | MINSD
- | MINSS
+ | MASKMOVDQU of arity2
+ | MASKMOVQ of arity2
+ | MAXPD of arity2
+ | MAXPS of arity2
+ | MAXSD of arity2
+ | MAXSS of arity2
+ | MFENCE of arity2
+ | MINPD of arity2
+ | MINPS of arity2
+ | MINSD of arity2
+ | MINSS of arity2
  | MONITOR
- | MOV
- | MOVAPD
- | MOVAPS
- | MOVBE
- | MOVD
- | MOVDDUP
- | MOVDQ2Q
- | MOVDQA
- | MOVDQU
- | MOVHLPS
- | MOVHPD
- | MOVHPS
- | MOVLHPS
- | MOVLPD
- | MOVLPS
- | MOVMSKPD
- | MOVMSKPS
- | MOVNTDQ
- | MOVNTDQA
- | MOVNTI
- | MOVNTPD
- | MOVNTPS
- | MOVNTQ
- | MOVQ
- | MOVQ2DQ
+ | MOV of arity2
+ | MOVAPD of arity2
+ | MOVAPS of arity2
+ | MOVBE of arity2
+ | MOVD of arity2
+ | MOVDDUP of arity2
+ | MOVDQ2Q of arity2
+ | MOVDQA of arity2
+ | MOVDQU of arity2
+ | MOVHLPS of arity2
+ | MOVHPD of arity2
+ | MOVHPS of arity2
+ | MOVLHPS of arity2
+ | MOVLPD of arity2
+ | MOVLPS of arity2
+ | MOVMSKPD of arity2
+ | MOVMSKPS of arity2
+ | MOVNTDQ of arity2
+ | MOVNTDQA of arity2
+ | MOVNTI of arity2
+ | MOVNTPD of arity2
+ | MOVNTPS of arity2
+ | MOVNTQ of arity2
+ | MOVQ of arity2
+ | MOVQ2DQ of arity2
  | MOVSB
  | MOVSD
- | MOVSHDUP
- | MOVSLDUP
+ | MOVSHDUP of arity2
+ | MOVSLDUP of arity2
  | MOVSQ
- | MOVSS
- | MOVSW
- | MOVSX
- | MOVSXD
- | MOVUPD
- | MOVUPS
- | MOVZX
- | MPSADBW
- | MUL
- | MULPD
- | MULPS
- | MULSD
- | MULSS
+ | MOVSS of arity2
+ | MOVSW of arity2
+ | MOVSX of arity2
+ | MOVSXD of arity2
+ | MOVUPD of arity2
+ | MOVUPS of arity2
+ | MOVZX of arity2
+ | MPSADBW of arity3
+ | MUL of arity1
+ | MULPD of arity2
+ | MULPS of arity2
+ | MULSD of arity2
+ | MULSS of arity2
  | MWAIT
- | NEG
- | NOP
- | NOT
- | OR
- | ORPD
- | ORPS
- | OUT
- | PALIGNR
- | PAND
- | PCMPEQB
- | PCMPEQD
- | PCMPEQQ
- | PCMPEQW
- | PCMPESTRI
- | PCMPGRD
- | PCMPGTB
- | PCMPGTD
- | PCMPGTW
- | PCMPISTRI
- | PHADDD
- | PHADDW
- | PINSRB
- | PINSRD
- | PINSRQ
- | PMOVMSKB
- | POP
- | POR
- | PREFETCHNTA
- | PREFETCHT0
- | PREFETCHT1
- | PREFETCHT2
- | PREFETCHW
- | PSHUFB
- | PSHUFD
- | PSLLDQ
- | PSLRDQ
- | PSRLDQ
- | PSUBB
- | PSUBD
- | PSUBW
- | PTEST
- | PUNPCKLDQ
- | PUNPCKLWD
- | PUNPCKLBW
- | PUNPCKLQDQ
- | PUSH
- | PXOR
- | RCL
- | RCR
+ | NEG of arity1
+ | NOP of varity
+ | NOT of arity1
+ | OR of arity2
+ | ORPD of arity2
+ | ORPS of arity2
+ | OUT of arity2
+ | PALIGNR of arity3
+ | PAND of arity2
+ | PCMPEQB of arity2
+ | PCMPEQD of arity2
+ | PCMPEQQ of arity2
+ | PCMPEQW of arity2
+ | PCMPESTRI of arity3
+ | PCMPGRD of arity2
+ | PCMPGTB of arity2
+ | PCMPGTD of arity2
+ | PCMPGTW of arity2
+ | PCMPISTRI of arity3
+ | PHADDD of arity2
+ | PHADDW of arity2
+ | PINSRB of arity3
+ | PINSRD of arity3
+ | PINSRQ of arity3
+ | PMOVMSKB of arity2
+ | POP of arity1
+ | POR of arity2
+ | PREFETCHNTA of arity1
+ | PREFETCHT0 of arity1
+ | PREFETCHT1 of arity1
+ | PREFETCHT2 of arity1
+ | PREFETCHW of arity1
+ | PSHUFB of arity2
+ | PSHUFD of arity3
+ | PSLLDQ of arity2
+ | PSLRDQ of arity2
+ | PSRLDQ of arity2
+ | PSUBB of arity2
+ | PSUBD of arity2
+ | PSUBW of arity2
+ | PTEST of arity2
+ | PUNPCKLDQ of arity2
+ | PUNPCKLWD of arity2
+ | PUNPCKLBW of arity2
+ | PUNPCKLQDQ of arity2
+ | PUSH of arity1
+ | PXOR of arity2
+ | RCL of arity2
+ | RCR of arity2
  | RDTSC
  | RDTSCP
- | RET
- | RET_FAR
- | ROL
- | ROR
- | SAL
- | SAR
- | SBB
+ | RET of varity
+ | RET_FAR of varity
+ | ROL of arity2
+ | ROR of arity2
+ | SAL of arity2
+ | SAR of arity2
+ | SBB of arity2
  | SCASB
  | SCASD
  | SCASQ
  | SCASW
- | SETA
- | SETAE
- | SETB
- | SETBE
- | SETC
- | SETE
- | SETG
- | SETGE
- | SETL
- | SETLE
- | SETNA
- | SETNAE
- | SETNB
- | SETNBE
- | SETNC
- | SETNE
- | SETNG
- | SETNGE
- | SETNL
- | SETNLE
- | SETNO
- | SETNP
- | SETNS
- | SETNZ
- | SETO
- | SETP
- | SETPE
- | SETPO
- | SETS
- | SETZ
+ | SETA of arity1
+ | SETAE of arity1
+ | SETB of arity1
+ | SETBE of arity1
+ | SETC of arity1
+ | SETE of arity1
+ | SETG of arity1
+ | SETGE of arity1
+ | SETL of arity1
+ | SETLE of arity1
+ | SETNA of arity1
+ | SETNAE of arity1
+ | SETNB of arity1
+ | SETNBE of arity1
+ | SETNC of arity1
+ | SETNE of arity1
+ | SETNG of arity1
+ | SETNGE of arity1
+ | SETNL of arity1
+ | SETNLE of arity1
+ | SETNO of arity1
+ | SETNP of arity1
+ | SETNS of arity1
+ | SETNZ of arity1
+ | SETO of arity1
+ | SETP of arity1
+ | SETPE of arity1
+ | SETPO of arity1
+ | SETS of arity1
+ | SETZ of arity1
  | SFENCE
- | SHL
- | SHLD
- | SHR
- | SHRD
+ | SHL of arity2
+ | SHLD of arity3
+ | SHR of arity2
+ | SHRD of arity3
  | STOSB
  | STOSD
  | STOSQ
  | STOSW
- | SUB
+ | SUB of arity2
  | SYSCALL
- | TEST
- | UCOMISD
+ | TEST of arity2
+ | UCOMISD of arity2
  | UD2
- | VCMPEQB
- | VCMPEQD
- | VCMPEQW
- | VLDDQU
- | VMASKMOVDQU
- | VMAXPD
- | VMAXPS
- | VMAXSD
- | VMAXSS
- | VMINPD
- | VMINPS
- | VMINSD
- | VMINSS
- | VMOVAPD
- | VMOVAPS
- | VMOVD
- | VMOVDDUP
- | VMOVDQA
- | VMOVDQU
- | VMOVHLPS
- | VMOVHPD
- | VMOVHPS
- | VMOVLHPS
- | VMOVLPD
- | VMOVLPS
- | VMOVMSKPD
- | VMOVMSKPS
- | VMOVNTDQ
- | VMOVNTDQA
- | VMOVNTPD
- | VMOVNTPS
- | VMOVQ
- | VMOVSD
- | VMOVSHDUP
- | VMOVSLDUP
- | VMOVSS
- | VMOVUPD
- | VMOVUPS
- | VMPSADBW
- | VMULPD
- | VMULPS
- | VMULSD
- | VMULSS
- | VORPD
- | VORPS
- | VPALIGNR
- | VPAND
- | VPCMPEQQ
- | VPCMPGTB
- | VPCMPGTD
- | VPCMPGTW
- | VPCMPESTRI
- | VPHADDD
- | VPHADDW
- | VPCMPISTRI
- | VPINSRB
- | VPINSRD
- | VPINSRQ
- | VPMOVMSKB
- | VPOR
- | VPSHUFB
- | VPSHUFD
- | VPSLLDQ
- | VPSLRDQ
- | VPSUBB
- | VPSUBD
- | VPSUBW
- | VPTEST
- | VPUNPCKLBW
- | VPUNPCKLDQ
- | VPUNPCKLQDQ
- | VPUNPCKLWD
- | VUCOMISD
- | VXORPS
- | XADD
- | XCHG
- | XGETBV
- | XOR
- | XORPD
- | XORPS
+ | VCMPEQB of varity
+ | VCMPEQD of varity
+ | VCMPEQW of varity
+ | VLDDQU of varity
+ | VMASKMOVDQU of varity
+ | VMAXPD of varity
+ | VMAXPS of varity
+ | VMAXSD of varity
+ | VMAXSS of varity
+ | VMINPD of varity
+ | VMINPS of varity
+ | VMINSD of varity
+ | VMINSS of varity
+ | VMOVAPD of varity
+ | VMOVAPS of varity
+ | VMOVD of varity
+ | VMOVDDUP of varity
+ | VMOVDQA of varity
+ | VMOVDQU of varity
+ | VMOVHLPS of varity
+ | VMOVHPD of varity
+ | VMOVHPS of varity
+ | VMOVLHPS of varity
+ | VMOVLPD of varity
+ | VMOVLPS of varity
+ | VMOVMSKPD of varity
+ | VMOVMSKPS of varity
+ | VMOVNTDQ of varity
+ | VMOVNTDQA of varity
+ | VMOVNTPD of varity
+ | VMOVNTPS of varity
+ | VMOVQ of varity
+ | VMOVSD of varity
+ | VMOVSHDUP of varity
+ | VMOVSLDUP of varity
+ | VMOVSS of varity
+ | VMOVUPD of varity
+ | VMOVUPS of varity
+ | VMPSADBW of varity
+ | VMULPD of varity
+ | VMULPS of varity
+ | VMULSD of varity
+ | VMULSS of varity
+ | VORPD of varity
+ | VORPS of varity
+ | VPALIGNR of varity
+ | VPAND of varity
+ | VPCMPEQQ of varity
+ | VPCMPGTB of varity
+ | VPCMPGTD of varity
+ | VPCMPGTW of varity
+ | VPCMPESTRI of varity
+ | VPHADDD of varity
+ | VPHADDW of varity
+ | VPCMPISTRI of varity
+ | VPINSRB of varity
+ | VPINSRD of varity
+ | VPINSRQ of varity
+ | VPMOVMSKB of varity
+ | VPOR of varity
+ | VPSHUFB of varity
+ | VPSHUFD of varity
+ | VPSLLDQ of varity
+ | VPSLRDQ of varity
+ | VPSUBB of varity
+ | VPSUBD of varity
+ | VPSUBW of varity
+ | VPTEST of varity
+ | VPUNPCKLBW of varity
+ | VPUNPCKLDQ of varity
+ | VPUNPCKLQDQ of varity
+ | VPUNPCKLWD of varity
+ | VUCOMISD of varity
+ | VXORPS of varity
+ | XADD of arity2
+ | XCHG of arity2
+ | XGETBV of arity2
+ | XOR of arity2
+ | XORPD of arity2
+ | XORPS of arity2
 
 val al = return (REG AL)
 val ah = return (REG AH)
@@ -1543,24 +1535,24 @@ val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
    return (cons (VA4 {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
 end
 
-val arity0 cons = return (ARITY0 {tag=cons})
+val arity0 cons = return (cons)
 
 val unop cons giveOp1 = do
   op1 <- giveOp1;
-  return (ARITY1 {tag=cons,opnd1=op1})
+  return (cons {opnd1=op1})
 end
 
 val binop cons giveOp1 giveOp2 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
-   return (ARITY2 {tag=cons,opnd1=op1,opnd2=op2})
+   return (cons {opnd1=op1,opnd2=op2})
 end
 
 val ternop cons giveOp1 giveOp2 giveOp3 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
    op3 <- giveOp3;
-   return (ARITY3 {tag=cons,opnd1=op1,opnd2=op2,opnd3=op3})
+   return (cons {opnd1=op1,opnd2=op2,opnd3=op3})
 end
 
 val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
@@ -1568,22 +1560,22 @@ val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
    op2 <- giveOp2;
    op3 <- giveOp3;
    op4 <- giveOp4;
-   return (ARITY4 {tag=cons,opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
+   return (cons {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
 end
 
 val near-abs cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=NEARABS op})
+   return (cons {opnd1=NEARABS op})
 end
 
 val near-rel cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=op})
+   return (cons {opnd1=op})
 end
 
 val far-abs cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=FARABS op})
+   return (cons {opnd1=FARABS op})
 end
 
 val one = return (IMM8 '00000001')
@@ -2276,14 +2268,6 @@ val /vex/f3/0f [0x7f /r]
 ### MOVDQ2Q
 ###  - Move Quadword from XMM to MMX Technology Register
 val /f2 [0x0f 0xd6 /r] = binop MOVDQ2Q mm64 xmm128
-
-### MOVHLPS
-###  - Move Packed Single-Precision Floating-Point Values High to Low
-## CHECK collision with movlps
-#val movhlps = binop MOVHLPS
-#val vmovhlps = ternop VMOVHLPS
-#val / [0x0f 0x12 /r] = movhlps xmm128 xmm/nomem128
-#val /vex/0f/vexv [0x12 /r-nomem] | vex128? = ternop VMOVHLPS xmm128 v/xmm xmm/nomem128
 
 ### MOVHPD
 ###  - Move High Packed Double-Precision Floating-Point Value
