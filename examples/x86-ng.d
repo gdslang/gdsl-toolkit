@@ -732,6 +732,10 @@ datatype mnemonic =
  | ORPD
  | ORPS
  | OUT
+ | OUTS
+ | OUTSB
+ | OUTSW
+ | OUTSD
  | PALIGNR
  | PAND
  | PCMPEQB
@@ -2609,6 +2613,17 @@ val / [0xef] = binop OUT dx eax
 
 ### OUTS/OUTSB/OUTSW/OUTSD
 ###  - Output String to Port
+# Fix: SI ~ m8?
+#val / [0x6e] = binop OUTS dx (mem (REG SI))
+#val / [0x6f]
+# | opndsz? = binop OUTS dx (mem (REG SI))
+# | otherwise = binop OUTS dx (mem (REG ESI))
+val / [0x6e] = arity0 OUTSB
+val / [0x6f]
+ | opndsz? = arity0 OUTSW
+ | otherwise = arity0 OUTSD
+
+
 
 ### PALIGNR
 ###  - Packed Align Right
