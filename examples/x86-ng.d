@@ -2660,7 +2660,9 @@ val /vex/66/0f/38/vexv [0x2b /r] = varity3 VPACKUSDW xmm128 v/xmm xmm/m128
 
 ### PACKUSWB
 ###  - Pack with Unsigned Saturation
-val / [0x0f 0x67] = binop PACKUSWB mm64 mm/m64
+val / [0x0f 0x67 /r] = binop PACKUSWB mm64 mm/m64
+val /66 [0x0f 0x67 /r] = binop PACKUSWB xmm128 xmm/m128
+val /vex/66/0f/vexv [0x67 /r] = varity3 xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
