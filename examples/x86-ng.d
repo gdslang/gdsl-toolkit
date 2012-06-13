@@ -738,6 +738,7 @@ datatype insn =
  | PADDB of arity2
  | PADDD of arity2
  | PADDW of arity2
+ | PADDQ of arity2
  | PALIGNR of arity3
  | PAND of arity2
  | PCMPEQB of arity2
@@ -892,6 +893,7 @@ datatype insn =
  | VPADDB of varity
  | VPADDD of varity
  | VPADDW of varity
+ | VPADDQ of varity
  | VPALIGNR of varity
  | VPAND of varity
  | VPCMPEQQ of varity
@@ -2681,6 +2683,12 @@ val /66 [0x0f 0xfe /r] = binop PADDD xmm128 xmm/m128
 val /vex/66/0f/vexv [0xfc /r] | vex128? = varity3 VPADDB xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0xfd /r] | vex128? = varity3 VPADDW xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0xfe /r] | vex128? = varity3 VPADDD xmm128 v/xmm xmm/m128
+
+### PADDQ
+###  - Add Packed Quadword Integers
+val / [0x0f 0xd4 /r] = binop PADDQ mm64 mm/m64
+val /66 [0x0f 0xd4 /r] = binop PADDQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd4 /r] | vex128? = varity3 VPADDQ xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
