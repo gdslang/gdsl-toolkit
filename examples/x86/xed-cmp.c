@@ -12,12 +12,79 @@ void hexlify (unsigned char* in, size_t len, char* out) {
   }
 }
 
-void* explode (__obj di) {
-  return NULL;
+struct insn {
+  #define MAXFIELDS 7
+  #define MAXSTRINGLENGTH 128
+  __word nfields;
+  char fields[MAXFIELDS][MAXSTRINGLENGTH];
+};
+
+__word getNumberOfOperands(__obj di) {
+  __obj payload = di->tagged.payload;
+  int n;
+  if (__TAG(payload) == __TAGGED) {
+    switch (__CASETAG(payload)) {
+      case __VA0: n = 0;break;
+      case __VA1: n = 1;break;
+      case __VA2: n = 2;break;
+      case __VA3: n = 3;break;
+      case __VA4: n = 4;break;
+      default: __fatal("Invalid instruction object");
+    }
+  } else {
+    n = payload->record.sz;
+  }
+  return (n);
+}
+
+void fmtOperand(__obj di, __word field, char* buf, __word sz) {
+  __obj payload = di->tagged.payload;
+  buf[0] = '\0'; 
+  switch (__CASETAG(payload)) {
+    case __TAGGED:
+      prettyOpnd(__RECORD_SELECT(payload->tagged.payload,field),buf,sz);
+      break;
+    case __RECORD:
+      prettyOpnd(__RECORD_SELECT(payload,field),buf,sz);
+      break;
+    default:
+      __fatal("Invalid instruction object");
+  }
+}
+
+void fmtMnemonic(__obj di, char* buf, __word sz) {
+  buf[0] = '\0'; 
+  prettyMnemonic(di,buf,sz);
+}
+
+void explode (__obj di, struct insn* i) {
+  int n = getNumberOfOperands(di);
+  i->nfields = n+1;
+  fmtMnemonic(di,i->fields[0],MAXSTRINGLENGTH);
+  switch (n) {
+    case 4: fmtOperand(di,___opnd4,i->fields[4],MAXSTRINGLENGTH);
+    case 3: fmtOperand(di,___opnd3,i->fields[3],MAXSTRINGLENGTH);
+    case 2: fmtOperand(di,___opnd2,i->fields[2],MAXSTRINGLENGTH);
+    case 1: fmtOperand(di,___opnd1,i->fields[1],MAXSTRINGLENGTH);
+    case 0: break;
+    default: __fatal("Invalid number of operands");
+  }
+}
+
+void explodeXed (xed_decoded_inst_t* xi, struct insn* i) {
+  
+}
+
+int compare (struct insn* a, struct insn* b) {
+  return (1);
 }
 
 int match (xed_decoded_inst_t* xi, __obj di) {
-  return (1);
+  struct insn xii;
+  struct insn dii;
+  explode(di,&dii);
+  explodeXed(xi,&xii);
+  return (compare(&xii,&dii));
 }
 
 int main (int argc, char** argv) {
@@ -54,6 +121,7 @@ int main (int argc, char** argv) {
   state.mmode = XED_MACHINE_MODE_LONG_64;
   state.stack_addr_width = XED_ADDRESS_WIDTH_32b;
   char insnstr[128];
+  char decodedinsnstr[128];
   char opcodestr[128];
   unsigned int len;
   unsigned char* blobb = blob;
@@ -70,24 +138,23 @@ int main (int argc, char** argv) {
       xed_decoded_inst_dump_intel_format(insn,insnstr,128,0);
       hexlify(blobb,len,opcodestr);
       __word decodedlen = __decode(__decode__,blobb,sz,&decoded);
-
       if (match(insn,decoded) && len == decodedlen) {
-        printf("%-30s: %-42s: ok",opcodestr,insnstr);
+        printf("%-30s: %-42s: ok\n",opcodestr,insnstr);
       } else {
-        printf("%-30s: %-42s: failed: ",opcodestr,insnstr);
+        printf("%-30s: failed\n",opcodestr);
+        printf("  should be: %s\n",insnstr);
         if (!___isNil(decoded)) {
-          pretty(decoded);
+          pretty(decoded,decodedinsnstr,128);
+          printf("  is:        %s\n",decodedinsnstr);
         } else {
-          printf("decode error");
+          printf("  is:        decode error\n");
         }
       }
-      printf("\n");
-
-      __resetHeap();
     } else {
       invalid++;
       len = 1;
     }
+    __resetHeap();
     blobb += len;
     sz -= len;
     n++;

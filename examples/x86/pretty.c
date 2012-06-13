@@ -1,8 +1,6 @@
 
 #include "pretty.h"
 
-static char* prettyOpnd(__obj,char*,__word);
-
 static char* append (char* buf, __word sz, const char* str) {
   return (strncat(buf,str,sz));
 }
@@ -75,7 +73,7 @@ static char* prettyScale (__obj scale, char* buf, __word sz) {
   return (buf);
 }
 
-static char* prettyOpnd (__obj opnd, char* buf, __word sz) {
+char* prettyOpnd (__obj opnd, char* buf, __word sz) {
   char* s = buf;
   switch (__TAG(opnd)) {
     case __TAGGED: {
@@ -204,18 +202,29 @@ static char* prettyOpnds (__obj opnds, char* buf, __word sz) {
   }
 }
 
-__char* pretty (__obj insn, __char* buf, __word sz) {
+char* prettyMnemonic (__obj insn, char* buf, __word sz) {
+  switch (__TAG(insn)) {
+    case __TAGGED: {
+      append(buf,sz,(char*)__tagName(__CASETAG(insn)));
+    }
+    default:
+      __fatal("Invalid instruction object");
+  }
+  return (buf);
+}
+
+char* pretty (__obj insn, char* buf, __word sz) {
   buf[0] = '\0';
   switch (__TAG(insn)) {
     case __TAGGED: {
       __obj payload = insn->tagged.payload;
       __word tag = __CASETAG(insn);
       if (___isNil(payload)) {
-            return ((__char*)append((char*)buf,sz,(const char*)__tagName(tag)));
+            return (append(buf,sz,(char*)__tagName(tag)));
       } else {
-          append((char*)buf,sz,(const char*)__tagName(tag));
-          append((char*)buf,sz," ");
-          prettyOpnds(payload,((char*)buf),sz);
+          append(buf,sz,(char*)__tagName(tag));
+          append(buf,sz," ");
+          prettyOpnds(payload,buf,sz);
           return (buf);
       }
     }
@@ -224,9 +233,9 @@ __char* pretty (__obj insn, __char* buf, __word sz) {
   }
 }
 
-__char* prettyln (__obj insn, __char* buf, __word sz) {
+char* prettyln (__obj insn, char* buf, __word sz) {
   pretty(insn,buf,sz);
-  append((char*)buf,sz,"\n");
+  append(buf,sz,"\n");
   return (buf);
 }
 
