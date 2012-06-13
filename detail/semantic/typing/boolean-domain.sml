@@ -136,11 +136,6 @@ end = struct
             (* v=v1 orelse v=v2 *) units
             )
          val units = CS.foldl calcUnits vs withV
-         val _ = if List.exists (fn u => u= ~160) units then
-                  TextIO.print ("solving by asserting " ^ i v ^
-                               ", giving units " ^ showUS (US.fromList units) ^
-                               "due to" ^ showBFun (US.empty, withV) ^ ".\n")
-                 else ()
       in
          addUnits (units, (US.add' (v,us), withoutV))
       end
@@ -154,6 +149,13 @@ end = struct
          if v1=v2 then addUnits ([v1], f) else f
       ) else (us, CS.add' (if v1<v2 then (v1,v2) else (v2,v1), cs))
    
+   (*fun meetVarImpliesVar (BVAR v1, BVAR v2) f = f
+   fun meetNotBoth (BVAR v1, BVAR v2, f) = f
+   fun meetEither (BVAR v1, BVAR v2, f) = f
+   fun meetEqual  (BVAR v1, BVAR v2, f) = f
+   fun meetVarOne (BVAR v) f = f
+   fun meetVarZero (BVAR v) f = f*)
+
    fun meetVarImpliesVar (BVAR v1, BVAR v2) f = (
       (*TextIO.print ("meet with " ^ i v1 ^ " -> " ^ i v2 ^ "\n");*)
       if v1=v2 then f else addClause ((~v1,v2), f)
@@ -202,7 +204,8 @@ end = struct
    val emptySet = IS.empty
    val union = IS.union
 
-   fun addToSet (BVAR v, set) = IS.add' (v,set)
+   fun addToSet (BVAR v, set) =
+      if IS.member (set,v) then set else IS.add' (v,set)
 
    fun setToString set =
       let
