@@ -733,6 +733,7 @@ datatype insn =
  | PABSD of arity2
  | PACKSSWB of arity2
  | PACKSSDW of arity2
+ | PACKUSDW of arity2
  | PALIGNR of arity3
  | PAND of arity2
  | PCMPEQB of arity2
@@ -882,6 +883,7 @@ datatype insn =
  | VPABSD of varity
  | VPACKSSWB of varity
  | VPACKSSDW of varity
+ | VPACKUSDW of varity
  | VPALIGNR of varity
  | VPAND of varity
  | VPCMPEQQ of varity
@@ -2648,6 +2650,11 @@ val / [0x0f 0x6b /r] = binop PACKSSDW mm64 mm/m64
 val /66 [0x0f 0x6b /r] = binop PACKSSDW xmm128 xmm/m128
 val /vex/66/0f/vexv [0x63 /r] | vex128? = varity2 VPACKSSWB xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x6b /r] | vex128? = varity2 VPACKSSDW xmm128 v/xmm xmm/m128
+
+### PACKUSDW
+###  - Pack with Unsigned Saturation
+val /66 [0x0f 0x38 0x2b /r] = binop PACKUSDW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x2b /r] = varity3 xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
