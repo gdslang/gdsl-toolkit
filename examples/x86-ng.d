@@ -741,6 +741,8 @@ datatype insn =
  | PADDQ of arity2
  | PADDSB of arity2
  | PADDSW of arity2
+ | PADDUSB of arity2
+ | PADDUSW of arity2
  | PALIGNR of arity3
  | PAND of arity2
  | PCMPEQB of arity2
@@ -898,6 +900,8 @@ datatype insn =
  | VPADDQ of varity
  | VPADDSB of varity
  | VPADDSW of varity
+ | VPADDUSB of varity
+ | VPADDUSW of varity
  | VPALIGNR of varity
  | VPAND of varity
  | VPCMPEQQ of varity
@@ -2702,6 +2706,15 @@ val / [0x0f 0xed /r] = binop PADDSW mm64 mm/m64
 val /66 [0x0f 0xed /r] = binop PADDSW xmm128 xmm/m128
 val /vex/66/0f/vexv [0xec /r] | vex128? = varity3 VPADDSB xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0xed /r] | vex128? = varity3 VPADDSW xmm128 v/xmm xmm/m128
+
+### PADDUSB/PADDUSW
+###  - Add Packed Unsigned Integers with Unsigned Saturation
+val / [0x0f 0xdc /r] = binop PADDUSB mm64 mm/m64
+val /66 [0x0f 0xdc /r] = binop PADDUSB xmm128 xmm/m128
+val / [0x0f 0xdd /r] = binop PADDUSW mm64 mm/m64
+val /66 [0x0f 0xdd /r] = binop PADDUSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xdc /r] | vex128? = VPADDUSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xdd /r] | vex128? = VPADDUSW xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
