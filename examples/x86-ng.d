@@ -724,6 +724,15 @@ datatype insn =
  | ORPD of arity2
  | ORPS of arity2
  | OUT of arity2
+ | OUTS
+ | OUTSB
+ | OUTSW
+ | OUTSD
+ | PABSB
+ | PABSW
+ | PABSD
+ | PACKSSWB
+ | PACKSSDW
  | PALIGNR of arity3
  | PAND of arity2
  | PCMPEQB of arity2
@@ -868,6 +877,11 @@ datatype insn =
  | VMULSS of varity
  | VORPD of varity
  | VORPS of varity
+ | VPABSB of varity
+ | VPABSW of varity
+ | VPABSD of varity
+ | VPACKSSWB of varity
+ | VPACKSSDW of varity
  | VPALIGNR of varity
  | VPAND of varity
  | VPCMPEQQ of varity
@@ -2269,6 +2283,14 @@ val /vex/f3/0f [0x7f /r]
 ###  - Move Quadword from XMM to MMX Technology Register
 val /f2 [0x0f 0xd6 /r] = binop MOVDQ2Q mm64 xmm128
 
+### MOVHLPS
+###  - Move Packed Single-Precision Floating-Point Values High to Low
+## CHECK collision with movlps
+#val movhlps = binop MOVHLPS
+#val vmovhlps = ternop VMOVHLPS
+#val / [0x0f 0x12 /r] = movhlps xmm128 xmm/nomem128
+#val /vex/0f/vexv [0x12 /r-nomem] | vex128? = ternop VMOVHLPS xmm128 v/xmm xmm/nomem128
+
 ### MOVHPD
 ###  - Move High Packed Double-Precision Floating-Point Value
 val /66 [0x0f 0x16 /r] = binop MOVHPD xmm128 m64
@@ -2374,6 +2396,21 @@ val /66 [0x0f 0xd6 /r] = binop MOVQ xmm/m64 xmm128
 ### MOVQ2DQ
 ###  - Move Quadword from MMX Technology to XMM Register
 val /f3 [0x0f 0xd6 /r-nomem] = binop MOVQ2DQ xmm128 mm/nomem64
+
+### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
+###  - Move Data from String to String
+# Todo: Fix
+#val / [0xa4] =
+# | mode64? = binop MOVSB (mem (REG RDI)) (mem (REG RSI))
+# | otherwise = binop MOVSB (mem (REG EDI)) (mem (REG ESI))
+#val / [0xa5] =
+# | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+# | mode64? & !rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+# | otherwise = binop MODSD (mem (REG EDI)) (mem (REG ESI))
+#val / [0xa5] =
+# | mode64? & rexw? = binop MOVSQ (mem (REG RDI)) (mem (REG RSI))
+# | mode64? & !rexw? = binop MOVSW (mem (REG RDI)) (mem (REG RSI))
+# | otherwise = binop MODSW (mem (REG EDI)) (mem (REG ESI))
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
 ###  - Move Data from String to String
@@ -2578,6 +2615,39 @@ val / [0xe7] = binop OUT imm8 eax
 val / [0xee] = binop OUT dx al
 val /66 [0xef] = binop OUT dx ax
 val / [0xef] = binop OUT dx eax
+
+### OUTS/OUTSB/OUTSW/OUTSD
+###  - Output String to Port
+# Fix: SI ~ m8?
+#val / [0x6e] = binop OUTS dx (mem (REG SI))
+#val / [0x6f]
+# | opndsz? = binop OUTS dx (mem (REG SI))
+# | otherwise = binop OUTS dx (mem (REG ESI))
+val / [0x6e] = arity0 OUTSB
+val / [0x6f]
+ | opndsz? = arity0 OUTSW
+ | otherwise = arity0 OUTSD
+
+### PABSB/PABSW/PABSD
+###  - Packed Absolute Value
+val / [0x0f 0x38 0x1c /r] = binop PABSB mm64 mm/m64
+val /66 [0x0f 0x38 0x1c /r] = binop PABSB xmm128 xmm/m128
+val / [0x0f 0x38 0x1d /r] = binop PABSW mm64 mm/m64
+val /66 [0x0f 0x38 0x1d /r] = binop PABSW xmm128 xmm/m128
+val / [0x0f 0x38 0x1e /r] = binop PABSD mm64 mm/m64
+val /66 [0x0f 0x38 0x1e /r] = binop PABSD xmm128 xmm/m128
+val /vex/66/0f/38 [0x1c /r] | vex128? = varity2 VPABSB xmm128 xmm/m128
+val /vex/66/0f/38 [0x1d /r] | vex128? = varity2 VPABSW xmm128 xmm/m128
+val /vex/66/0f/38 [0x1e /r] | vex128? = varity2 VPABSD xmm128 xmm/m128
+
+### PACKSSWB/PACKSSDW
+###  - Pack with Signed Saturation
+val / [0x0f 0x63 /r] = binop PACKSSWB mm64 mm/m64
+val /66 [0x0f 0x63 /r] = binop PACKSSWB xmm128 xmm/m128
+val / [0x0f 0x6b /r] = binop PACKSSDW mm64 mm/m64
+val /66 [0x0f 0x6b /r] = binop PACKSSDW xmm128 xmm/m128
+val /vex/66/0f/vexv [0x63 /r] | vex128? = varity2 VPACKSSWB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6b /r] | vex128? = varity2 VPACKSSDW xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
