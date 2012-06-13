@@ -524,13 +524,11 @@ datatype flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-datatype insn =
-   ARITY0 of {tag:mnemonic}
- | ARITY1 of {tag:mnemonic,opnd1:opnd}
- | ARITY2 of {tag:mnemonic,opnd1:opnd,opnd2:opnd}
- | ARITY3 of {tag:mnemonic,opnd1:opnd,opnd2:opnd,opnd3:opnd}
- | ARITY4 of {tag:mnemonic,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
- | FLOW1 of {tag:mnemonic,opnd1:flowopnd}
+type flow1 = {opnd1:flowopnd}
+type arity1 = {opnd1:opnd}
+type arity2 = {opnd1:opnd,opnd2:opnd} 
+type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd} 
+type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd} 
 
 datatype varity =
    VA0
@@ -539,199 +537,193 @@ datatype varity =
  | VA3 of arity3
  | VA4 of arity4
 
-type flow1 = {opnd1:flowopnd}
-type arity1 = {opnd1:opnd}
-type arity2 = {opnd1:opnd,opnd2:opnd} 
-type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd} 
-type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd} 
-
-datatype mnemonic =
-   ADC
- | ADD
- | AND
- | BSF
- | BSR
- | BSWAP
- | BT
- | CALL
+datatype insn =
+   ADC of arity2
+ | ADD of arity2
+ | AND of arity2
+ | BSF of arity2
+ | BSR of arity2
+ | BSWAP of arity1
+ | BT of arity2
+ | CALL of flow1
  | CBW
  | CDQE
  | CLD
- | CMOVA
- | CMOVAE
- | CMOVB
- | CMOVBE
- | CMOVC
- | CMOVE
- | CMOVG
- | CMOVGE
- | CMOVL
- | CMOVLE
- | CMOVNA
- | CMOVNAE
- | CMOVNB
- | CMOVNBE
- | CMOVNC
- | CMOVNE
- | CMOVNG
- | CMOVNGE
- | CMOVNL
- | CMOVNLE
- | CMOVNO
- | CMOVNP
- | CMOVNS
- | CMOVNZ
- | CMOVO
- | CMOVP
- | CMOVPE
- | CMOVPO
- | CMOVS
- | CMOVZ
- | CMP
+ | CMOVA of arity2
+ | CMOVAE of arity2
+ | CMOVB of arity2
+ | CMOVBE of arity2
+ | CMOVC of arity2
+ | CMOVE of arity2
+ | CMOVG of arity2
+ | CMOVGE of arity2
+ | CMOVL of arity2
+ | CMOVLE of arity2
+ | CMOVNA of arity2
+ | CMOVNAE of arity2
+ | CMOVNB of arity2
+ | CMOVNBE of arity2
+ | CMOVNC of arity2
+ | CMOVNE of arity2
+ | CMOVNG of arity2
+ | CMOVNGE of arity2
+ | CMOVNL of arity2
+ | CMOVNLE of arity2
+ | CMOVNO of arity2
+ | CMOVNP of arity2
+ | CMOVNS of arity2
+ | CMOVNZ of arity2
+ | CMOVO of arity2
+ | CMOVP of arity2
+ | CMOVPE of arity2
+ | CMOVPO of arity2
+ | CMOVS of arity2
+ | CMOVZ of arity2
+ | CMP of arity2
  | CMPSB
  | CMPSD
  | CMPSQ
  | CMPSW
- | CMPXCHG
+ | CMPXCHG of arity2
  | CPUID
- | CVTPD2PI
- | CVTSI2SD
+ | CVTPD2PI of arity2
+ | CVTSI2SD of arity2
  | CWDE
- | DEC
- | DIV
- | DIVSD
+ | DEC of arity1
+ | DIV of arity1
+ | DIVSD of arity1
  | FCHS
- | FCMOVB
- | FCMOVBE
- | FCMOVE
- | FCMOVNB
- | FCMOVNBE
- | FCMOVNE
- | FCMOVNU
- | FCMOVU
- | FCOMI
- | FCOMIP
- | FLD
+ | FCMOVB of arity2
+ | FCMOVBE of arity2
+ | FCMOVE of arity2
+ | FCMOVNB of arity2
+ | FCMOVNBE of arity2
+ | FCMOVNE of arity2
+ | FCMOVNU of arity2
+ | FCMOVU of arity2
+ | FCOMI of arity2
+ | FCOMIP of arity2
+ | FLD of arity1
  | FLD1
- | FLDCW
- | FLDENV
+ | FLDCW of arity1
+ | FLDENV of arity1
  | FLDL2E
  | FLDL2T
  | FLDLG2
  | FLDLN2
  | FLDPI
  | FLDZ
- | FNSTCW
- | FST
- | FSTCW
- | FSTP
- | FUCOMI
- | FUCOMIP
+ | FNSTCW of arity1
+ | FST of arity1
+ | FSTCW of arity1
+ | FSTP of arity1
+ | FUCOMI of arity1
+ | FUCOMIP of arity1
  | HLT
- | IDIV
- | IMUL
- | INC
- | JA
- | JAE
- | JB
- | JBE
- | JC
- | JCXZ
- | JE
- | JECXZ
- | JG
- | JGE
- | JL
- | JLE
- | JMP
- | JNA
- | JNAE
- | JNB
- | JNBE
- | JNC
- | JNE
- | JNG
- | JNGE
- | JNL
- | JNLE
- | JNO
- | JNP
- | JNS
- | JNZ
- | JO
- | JP
- | JPE
- | JPO
- | JRCXZ
- | JS
- | JZ
- | LDDQU
- | LEA
+ | IDIV of arity1
+ | IMUL of arity1
+ | INC of arity1
+ | JA of flow1
+ | JAE of flow1
+ | JB of flow1
+ | JBE of flow1
+ | JC of flow1
+ | JCXZ of flow1
+ | JE of flow1
+ | JECXZ of flow1
+ | JG of flow1
+ | JGE of flow1
+ | JL of flow1
+ | JLE of flow1
+ | JMP of flow1
+ | JNA of flow1
+ | JNAE of flow1
+ | JNB of flow1
+ | JNBE of flow1
+ | JNC of flow1
+ | JNE of flow1
+ | JNG of flow1
+ | JNGE of flow1
+ | JNL of flow1
+ | JNLE of flow1
+ | JNO of flow1
+ | JNP of flow1
+ | JNS of flow1
+ | JNZ of flow1
+ | JO of flow1
+ | JP of flow1
+ | JPE of flow1
+ | JPO of flow1
+ | JRCXZ of flow1
+ | JS of flow1
+ | JZ of flow1
+ | LDDQU of arity2
+ | LEA of arity2
  | LEAVE
  | LFENCE
- | MASKMOVDQU
- | MASKMOVQ
- | MAXPD
- | MAXPS
- | MAXSD
- | MAXSS
+ | MASKMOVDQU of arity2
+ | MASKMOVQ of arity2
+ | MAXPD of arity2
+ | MAXPS of arity2
+ | MAXSD of arity2
+ | MAXSS of arity2
  | MFENCE
- | MINPD
- | MINPS
- | MINSD
- | MINSS
+ | MINPD of arity2
+ | MINPS of arity2
+ | MINSD of arity2
+ | MINSS of arity2
  | MONITOR
- | MOV
- | MOVAPD
- | MOVAPS
- | MOVBE
- | MOVD
- | MOVDDUP
- | MOVDQ2Q
- | MOVDQA
- | MOVDQU
- | MOVHLPS
- | MOVHPD
- | MOVHPS
- | MOVLHPS
- | MOVLPD
- | MOVLPS
- | MOVMSKPD
- | MOVMSKPS
- | MOVNTDQ
- | MOVNTDQA
- | MOVNTI
- | MOVNTPD
- | MOVNTPS
- | MOVNTQ
- | MOVQ
- | MOVQ2DQ
+ | MOV of arity2
+ | MOVAPD of arity2
+ | MOVAPS of arity2
+ | MOVBE of arity2
+ | MOVD of arity2
+ | MOVDDUP of arity2
+ | MOVDQ2Q of arity2
+ | MOVDQA of arity2
+ | MOVDQU of arity2
+ | MOVHLPS of arity2
+ | MOVHPD of arity2
+ | MOVHPS of arity2
+ | MOVLHPS of arity2
+ | MOVLPD of arity2
+ | MOVLPS of arity2
+ | MOVMSKPD of arity2
+ | MOVMSKPS of arity2
+ | MOVNTDQ of arity2
+ | MOVNTDQA of arity2
+ | MOVNTI of arity2
+ | MOVNTPD of arity2
+ | MOVNTPS of arity2
+ | MOVNTQ of arity2
+ | MOVQ of arity2
+ | MOVQ2DQ of arity2
  | MOVSB
- | MOVSD
- | MOVSHDUP
- | MOVSLDUP
+ | MOVSD of varity
+ | MOVSHDUP of arity2
+ | MOVSLDUP of arity2
  | MOVSQ
- | MOVSS
- | MOVSW
- | MOVSX
- | MOVSXD
- | MOVUPD
- | MOVUPS
- | MOVZX
- | MPSADBW
- | MUL
- | MULPD
- | MULPS
- | MULSD
- | MULSS
+ | MOVSS of arity2
+ | MOVSW of arity2
+ | MOVSX of arity2
+ | MOVSXD of arity2
+ | MOVUPD of arity2
+ | MOVUPS of arity2
+ | MOVZX of arity2
+ | MPSADBW of arity3
+ | MUL of arity1
+ | MULPD of arity2
+ | MULPS of arity2
+ | MULSD of arity2
+ | MULSS of arity2
  | MWAIT
- | NEG
- | NOP
- | NOT
- | OR
- | ORPD
- | ORPS
- | OUT
+ | NEG of arity1
+ | NOP of varity
+ | NOT of arity1
+ | OR of arity2
+ | ORPD of arity2
+ | ORPS of arity2
+ | OUT of arity2
  | OUTS
  | OUTSB
  | OUTSW
@@ -741,190 +733,190 @@ datatype mnemonic =
  | PABSD
  | PACKSSWB
  | PACKSSDW
- | PALIGNR
- | PAND
- | PCMPEQB
- | PCMPEQD
- | PCMPEQQ
- | PCMPEQW
- | PCMPESTRI
- | PCMPGRD
- | PCMPGTB
- | PCMPGTD
- | PCMPGTW
- | PCMPISTRI
- | PHADDD
- | PHADDW
- | PINSRB
- | PINSRD
- | PINSRQ
- | PMOVMSKB
- | POP
- | POR
- | PREFETCHNTA
- | PREFETCHT0
- | PREFETCHT1
- | PREFETCHT2
- | PREFETCHW
- | PSHUFB
- | PSHUFD
- | PSLLDQ
- | PSLRDQ
- | PSRLDQ
- | PSUBB
- | PSUBD
- | PSUBW
- | PTEST
- | PUNPCKLDQ
- | PUNPCKLWD
- | PUNPCKLBW
- | PUNPCKLQDQ
- | PUSH
- | PXOR
- | RCL
- | RCR
+ | PALIGNR of arity3
+ | PAND of arity2
+ | PCMPEQB of arity2
+ | PCMPEQD of arity2
+ | PCMPEQQ of arity2
+ | PCMPEQW of arity2
+ | PCMPESTRI of arity3
+ | PCMPGRD of arity2
+ | PCMPGTB of arity2
+ | PCMPGTD of arity2
+ | PCMPGTW of arity2
+ | PCMPISTRI of arity3
+ | PHADDD of arity2
+ | PHADDW of arity2
+ | PINSRB of arity3
+ | PINSRD of arity3
+ | PINSRQ of arity3
+ | PMOVMSKB of arity2
+ | POP of arity1
+ | POR of arity2
+ | PREFETCHNTA of arity1
+ | PREFETCHT0 of arity1
+ | PREFETCHT1 of arity1
+ | PREFETCHT2 of arity1
+ | PREFETCHW of arity1
+ | PSHUFB of arity2
+ | PSHUFD of arity3
+ | PSLLDQ of arity2
+ | PSLRDQ of arity2
+ | PSRLDQ of arity2
+ | PSUBB of arity2
+ | PSUBD of arity2
+ | PSUBW of arity2
+ | PTEST of arity2
+ | PUNPCKLDQ of arity2
+ | PUNPCKLWD of arity2
+ | PUNPCKLBW of arity2
+ | PUNPCKLQDQ of arity2
+ | PUSH of arity1
+ | PXOR of arity2
+ | RCL of arity2
+ | RCR of arity2
  | RDTSC
  | RDTSCP
- | RET
- | RET_FAR
- | ROL
- | ROR
- | SAL
- | SAR
- | SBB
+ | RET of varity
+ | RET_FAR of varity
+ | ROL of arity2
+ | ROR of arity2
+ | SAL of arity2
+ | SAR of arity2
+ | SBB of arity2
  | SCASB
  | SCASD
  | SCASQ
  | SCASW
- | SETA
- | SETAE
- | SETB
- | SETBE
- | SETC
- | SETE
- | SETG
- | SETGE
- | SETL
- | SETLE
- | SETNA
- | SETNAE
- | SETNB
- | SETNBE
- | SETNC
- | SETNE
- | SETNG
- | SETNGE
- | SETNL
- | SETNLE
- | SETNO
- | SETNP
- | SETNS
- | SETNZ
- | SETO
- | SETP
- | SETPE
- | SETPO
- | SETS
- | SETZ
+ | SETA of arity1
+ | SETAE of arity1
+ | SETB of arity1
+ | SETBE of arity1
+ | SETC of arity1
+ | SETE of arity1
+ | SETG of arity1
+ | SETGE of arity1
+ | SETL of arity1
+ | SETLE of arity1
+ | SETNA of arity1
+ | SETNAE of arity1
+ | SETNB of arity1
+ | SETNBE of arity1
+ | SETNC of arity1
+ | SETNE of arity1
+ | SETNG of arity1
+ | SETNGE of arity1
+ | SETNL of arity1
+ | SETNLE of arity1
+ | SETNO of arity1
+ | SETNP of arity1
+ | SETNS of arity1
+ | SETNZ of arity1
+ | SETO of arity1
+ | SETP of arity1
+ | SETPE of arity1
+ | SETPO of arity1
+ | SETS of arity1
+ | SETZ of arity1
  | SFENCE
- | SHL
- | SHLD
- | SHR
- | SHRD
+ | SHL of arity2
+ | SHLD of arity3
+ | SHR of arity2
+ | SHRD of arity3
  | STOSB
  | STOSD
  | STOSQ
  | STOSW
- | SUB
+ | SUB of arity2
  | SYSCALL
- | TEST
- | UCOMISD
+ | TEST of arity2
+ | UCOMISD of arity2
  | UD2
- | VCMPEQB
- | VCMPEQD
- | VCMPEQW
- | VLDDQU
- | VMASKMOVDQU
- | VMAXPD
- | VMAXPS
- | VMAXSD
- | VMAXSS
- | VMINPD
- | VMINPS
- | VMINSD
- | VMINSS
- | VMOVAPD
- | VMOVAPS
- | VMOVD
- | VMOVDDUP
- | VMOVDQA
- | VMOVDQU
- | VMOVHLPS
- | VMOVHPD
- | VMOVHPS
- | VMOVLHPS
- | VMOVLPD
- | VMOVLPS
- | VMOVMSKPD
- | VMOVMSKPS
- | VMOVNTDQ
- | VMOVNTDQA
- | VMOVNTPD
- | VMOVNTPS
- | VMOVQ
- | VMOVSD
- | VMOVSHDUP
- | VMOVSLDUP
- | VMOVSS
- | VMOVUPD
- | VMOVUPS
- | VMPSADBW
- | VMULPD
- | VMULPS
- | VMULSD
- | VMULSS
- | VORPD
- | VORPS
- | VPABSB
- | VPABSW
- | VPABSD
- | VPACKSSWB
- | VPACKSSDW
- | VPALIGNR
- | VPAND
- | VPCMPEQQ
- | VPCMPGTB
- | VPCMPGTD
- | VPCMPGTW
- | VPCMPESTRI
- | VPHADDD
- | VPHADDW
- | VPCMPISTRI
- | VPINSRB
- | VPINSRD
- | VPINSRQ
- | VPMOVMSKB
- | VPOR
- | VPSHUFB
- | VPSHUFD
- | VPSLLDQ
- | VPSLRDQ
- | VPSUBB
- | VPSUBD
- | VPSUBW
- | VPTEST
- | VPUNPCKLBW
- | VPUNPCKLDQ
- | VPUNPCKLQDQ
- | VPUNPCKLWD
- | VUCOMISD
- | VXORPS
- | XADD
- | XCHG
+ | VCMPEQB of varity
+ | VCMPEQD of varity
+ | VCMPEQW of varity
+ | VLDDQU of varity
+ | VMASKMOVDQU of varity
+ | VMAXPD of varity
+ | VMAXPS of varity
+ | VMAXSD of varity
+ | VMAXSS of varity
+ | VMINPD of varity
+ | VMINPS of varity
+ | VMINSD of varity
+ | VMINSS of varity
+ | VMOVAPD of varity
+ | VMOVAPS of varity
+ | VMOVD of varity
+ | VMOVDDUP of varity
+ | VMOVDQA of varity
+ | VMOVDQU of varity
+ | VMOVHLPS of varity
+ | VMOVHPD of varity
+ | VMOVHPS of varity
+ | VMOVLHPS of varity
+ | VMOVLPD of varity
+ | VMOVLPS of varity
+ | VMOVMSKPD of varity
+ | VMOVMSKPS of varity
+ | VMOVNTDQ of varity
+ | VMOVNTDQA of varity
+ | VMOVNTPD of varity
+ | VMOVNTPS of varity
+ | VMOVQ of varity
+ | VMOVSD of varity
+ | VMOVSHDUP of varity
+ | VMOVSLDUP of varity
+ | VMOVSS of varity
+ | VMOVUPD of varity
+ | VMOVUPS of varity
+ | VMPSADBW of varity
+ | VMULPD of varity
+ | VMULPS of varity
+ | VMULSD of varity
+ | VMULSS of varity
+ | VORPD of varity
+ | VORPS of varity
+ | VPABSB of varity
+ | VPABSW of varity
+ | VPABSD of varity
+ | VPACKSSWB of varity
+ | VPACKSSDW of varity
+ | VPALIGNR of varity
+ | VPAND of varity
+ | VPCMPEQQ of varity
+ | VPCMPGTB of varity
+ | VPCMPGTD of varity
+ | VPCMPGTW of varity
+ | VPCMPESTRI of varity
+ | VPHADDD of varity
+ | VPHADDW of varity
+ | VPCMPISTRI of varity
+ | VPINSRB of varity
+ | VPINSRD of varity
+ | VPINSRQ of varity
+ | VPMOVMSKB of varity
+ | VPOR of varity
+ | VPSHUFB of varity
+ | VPSHUFD of varity
+ | VPSLLDQ of varity
+ | VPSLRDQ of varity
+ | VPSUBB of varity
+ | VPSUBD of varity
+ | VPSUBW of varity
+ | VPTEST of varity
+ | VPUNPCKLBW of varity
+ | VPUNPCKLDQ of varity
+ | VPUNPCKLQDQ of varity
+ | VPUNPCKLWD of varity
+ | VUCOMISD of varity
+ | VXORPS of varity
+ | XADD of arity2
+ | XCHG of arity2
  | XGETBV
- | XOR
- | XORPD
- | XORPS
+ | XOR of arity2
+ | XORPD of arity2
+ | XORPS of arity2
 
 val al = return (REG AL)
 val ah = return (REG AH)
@@ -1557,24 +1549,24 @@ val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
    return (cons (VA4 {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
 end
 
-val arity0 cons = return (ARITY0 {tag=cons})
+val arity0 cons = return (cons)
 
 val unop cons giveOp1 = do
   op1 <- giveOp1;
-  return (ARITY1 {tag=cons,opnd1=op1})
+  return (cons {opnd1=op1})
 end
 
 val binop cons giveOp1 giveOp2 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
-   return (ARITY2 {tag=cons,opnd1=op1,opnd2=op2})
+   return (cons {opnd1=op1,opnd2=op2})
 end
 
 val ternop cons giveOp1 giveOp2 giveOp3 = do
    op1 <- giveOp1;
    op2 <- giveOp2;
    op3 <- giveOp3;
-   return (ARITY3 {tag=cons,opnd1=op1,opnd2=op2,opnd3=op3})
+   return (cons {opnd1=op1,opnd2=op2,opnd3=op3})
 end
 
 val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
@@ -1582,22 +1574,22 @@ val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
    op2 <- giveOp2;
    op3 <- giveOp3;
    op4 <- giveOp4;
-   return (ARITY4 {tag=cons,opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
+   return (cons {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
 end
 
 val near-abs cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=NEARABS op})
+   return (cons {opnd1=NEARABS op})
 end
 
 val near-rel cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=op})
+   return (cons {opnd1=op})
 end
 
 val far-abs cons giveOp = do
    op <- giveOp;
-   return (FLOW1 {tag=cons,opnd1=FARABS op})
+   return (cons {opnd1=FARABS op})
 end
 
 val one = return (IMM8 '00000001')
@@ -2084,8 +2076,8 @@ val / [0xff /4]
 ###  - Load Unaligned Integer 128 Bits
 val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
 val /vex/f2/0f [0xf0 /r-mem]
- | vex128? = binop VLDDQU xmm128 m128
- | otherwise = binop VLDDQU ymm256 m256
+ | vex128? = varity2 VLDDQU xmm128 m128
+ | otherwise = varity2 VLDDQU ymm256 m256
 
 ### LEA
 ###  - Load Effective Address
@@ -2109,7 +2101,7 @@ val / [0x0f 0xae /5] = arity0 LFENCE
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
 val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/nomem128
-val /vex/66/0f/vexv [0xf7 /r-nomem] | vex128? = binop VMASKMOVDQU xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf7 /r-nomem] | vex128? = varity2 VMASKMOVDQU xmm128 xmm/m128
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
@@ -2119,25 +2111,25 @@ val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/nomem64
 ###  - Return Maximum Packed Double-Precision Floating-Point Values
 val /66 [0x0f 0x5f /r] = binop MAXPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x5f /r]
- | vex128? = ternop VMAXPD xmm128 v/xmm xmm/m128
- | vex256? = ternop VMAXPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VMAXPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VMAXPD ymm256 v/ymm ymm/m256
 
 ### MAXPS
 ###  - Return Maximum Packed Single-Precision Floating-Point Values
 val / [0x0f 0x5f /r] = binop MAXPS xmm128 xmm/m128
 val vex/0f/vexv [0x5f /r]
- | vex128? = ternop VMAXPS xmm128 v/xmm xmm/m128
- | vex256? = ternop VMAXPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VMAXPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VMAXPS ymm256 v/ymm ymm/m256
 
 ### MAXSD
 ###  - Return Maximum Scalar Double-Precision Floating-Point Value
 val /f2 [0x0f 0x5f /r] = binop MAXSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x5f /r] = ternop VMAXSD xmm128 v/xmm xmm/m64
+val /vex/f2/0f/vexv [0x5f /r] = varity3 VMAXSD xmm128 v/xmm xmm/m64
 
 ### MAXSS
 ###  - Return Maximum Scalar Single-Precision Floating-Point Value
 val /f3 [0x0f 0x5f /r] = binop MAXSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x5f /r] = ternop VMAXSS xmm128 v/xmm xmm/m32
+val /vex/f3/0f/vexv [0x5f /r] = varity3 VMAXSS xmm128 v/xmm xmm/m32
 
 ### MFENCE
 ###  - Memory Fence
@@ -2147,25 +2139,25 @@ val / [0x0f 0xae /6] = arity0 MFENCE
 ###  - Return Minimum Packed Double-Precision Floating-Point Values
 val /66 [0x0f 0x5d /r] = binop MINPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x5d /r]
- | vex128? = ternop VMINPD xmm128 v/xmm xmm/m128
- | vex256? = ternop VMINPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VMINPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VMINPD ymm256 v/ymm ymm/m256
 
 ### MINPS
 ###  - Return Minimum Packed Single-Precision Floating-Point Values
 val / [0x0f 0x5d /r] = binop MINPS xmm128 xmm/m128
 val /vex/0f/vexv [0x5d /r]
- | vex128? = ternop VMINPS xmm128 v/xmm xmm/m128
- | vex256? = ternop VMINPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VMINPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VMINPS ymm256 v/ymm ymm/m256
 
 ### MINSD
 ###  - Return Minimum Scalar Double-Precision Floating-Point Value
 val /f2 [0x0f 0x5d /r] = binop MINSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x5d /r] = ternop VMINSD xmm128 v/xmm xmm/m64
+val /vex/f2/0f/vexv [0x5d /r] = varity3 VMINSD xmm128 v/xmm xmm/m64
 
 ### MINSS
 ###  - Return Minimum Scalar Single-Precision Floating-Point Value
 val /f3 [0x0f 0x5d /r] = binop MINSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x5d /r] = ternop VMINSS xmm128 v/xmm xmm/m32
+val /vex/f3/0f/vexv [0x5d /r] = varity3 VMINSS xmm128 v/xmm xmm/m32
 
 ### MONITOR
 ###  - Set Up Monitor Address
@@ -2209,22 +2201,22 @@ val / [0xc7 /0]
 val /66 [0x0f 0x28 /r] = binop MOVAPD xmm128 xmm/m128
 val /66 [0x0f 0x29 /r] = binop MOVAPD xmm/m128 xmm128
 val /vex/66/0f [0x28 /r]
- | vex128? = binop VMOVAPD xmm128 xmm/m128
- | vex256? = binop VMOVAPD ymm256 ymm/m256
+ | vex128? = varity2 VMOVAPD xmm128 xmm/m128
+ | vex256? = varity2 VMOVAPD ymm256 ymm/m256
 val /vex/66/0f [0x29 /r]
- | vex128? = binop VMOVAPD xmm/m128 xmm128
- | vex256? = binop VMOVAPD ymm/m256 ymm256
+ | vex128? = varity2 VMOVAPD xmm/m128 xmm128
+ | vex256? = varity2 VMOVAPD ymm/m256 ymm256
 
 ### MOVAPS
 ###  - Move Aligned Packed Single-Precision Floating-Point Values
 val / [0x0f 0x28 /r] = binop MOVAPS xmm128 xmm/m128
 val / [0x0f 0x29 /r] = binop MOVAPS xmm/m128 xmm128
 val /vex/0f [0x28 /r]
- | vex128? = binop VMOVAPS xmm128 xmm/m128
- | vex256? = binop VMOVAPS ymm256 ymm/m256
+ | vex128? = varity2 VMOVAPS xmm128 xmm/m128
+ | vex256? = varity2 VMOVAPS ymm256 ymm/m256
 val /vex/0f [0x29 /r]
- | vex128? = binop VMOVAPS xmm/m128 xmm128
- | vex256? = binop VMOVAPS ymm/m256 ymm256
+ | vex128? = varity2 VMOVAPS xmm/m128 xmm128
+ | vex256? = varity2 VMOVAPS ymm/m256 ymm256
 
 ### MOVBE
 ###  - Move Data After Swapping Bytes
@@ -2246,8 +2238,8 @@ val / [0x0f 0x7e /r]
  | rexw? = binop MOVQ r/m64 mm64
  | otherwise = binop MOVD r/m32 mm64
 val /vex/66/0f [0x6e /r]
- | vex128? & rexw? = binop VMOVD xmm128 r/m64
- | vex128? = binop VMOVD xmm128 r/m32
+ | vex128? & rexw? = varity2 VMOVD xmm128 r/m64
+ | vex128? = varity2 VMOVD xmm128 r/m32
 val /66 [0x0f 0x6e /r]
  | rexw? = binop MOVQ xmm128 r/m64
  | otherwise = binop MOVD xmm128 r/m32
@@ -2255,37 +2247,37 @@ val /66 [0x0f 0x7e /r]
  | rexw? = binop MOVQ r/m64 xmm128
  | otherwise = binop MOVD r/m32 xmm128
 val /vex/66/0f [0x7e /r]
- | vex128? & rexw? = binop VMOVD r/m64 xmm128
- | vex128? = binop VMOVD r/m32 xmm128
+ | vex128? & rexw? = varity2 VMOVD r/m64 xmm128
+ | vex128? = varity2 VMOVD r/m32 xmm128
 
 ### MOVDDUP
 ###  - Move One Double-FP and Duplicate
 val /f2 [0x0f 0x12 /r] = binop MOVDDUP xmm128 xmm/m64
 val /vex/f2/0f [0x12 /r]
- | vex128? = binop VMOVDDUP xmm128 xmm/m64
- | vex256? = binop VMOVDDUP ymm256 ymm/m256
+ | vex128? = varity2 VMOVDDUP xmm128 xmm/m64
+ | vex256? = varity2 VMOVDDUP ymm256 ymm/m256
 
 ### MOVDQA
 ###  - Move Aligned Double Quadword
 val /66 [0x0f 0x6f /r] = binop MOVDQA xmm128 xmm/m128
 val /66 [0x0f 0x7f /r] = binop MOVDQA xmm/m128 xmm128
 val /vex/66/0f [0x6f /r]
- | vex128? = binop VMOVDQA xmm128 xmm/m128
- | otherwise = binop VMOVDQA ymm256 ymm/m256
+ | vex128? = varity2 VMOVDQA xmm128 xmm/m128
+ | otherwise = varity2 VMOVDQA ymm256 ymm/m256
 val /vex/66/0f [0x7f /r]
- | vex128? = binop VMOVDQA xmm/m128 xmm128
- | otherwise = binop VMOVDQA ymm/m256 ymm256
+ | vex128? = varity2 VMOVDQA xmm/m128 xmm128
+ | otherwise = varity2 VMOVDQA ymm/m256 ymm256
 
 ### MOVDQU
 ###  - Move Unaligned Double Quadword
 val /f3 [0x0f 0x6f /r] = binop MOVDQU xmm128 xmm/m128
 val /f3 [0x0f 0x7f /r] = binop MOVDQU xmm/m128 xmm128
 val /vex/f3/0f [0x6f /r]
- | vex128? = binop VMOVDQU xmm128 xmm/m128
- | otherwise = binop VMOVDQU ymm256 ymm/m256
+ | vex128? = varity2 VMOVDQU xmm128 xmm/m128
+ | otherwise = varity2 VMOVDQU ymm256 ymm/m256
 val /vex/f3/0f [0x7f /r]
- | vex128? = binop VMOVDQU xmm/m128 xmm128
- | otherwise = binop VMOVDQU ymm/m256 ymm256
+ | vex128? = varity2 VMOVDQU xmm/m128 xmm128
+ | otherwise = varity2 VMOVDQU ymm/m256 ymm256
 
 ### MOVDQ2Q
 ###  - Move Quadword from XMM to MMX Technology Register
@@ -2303,15 +2295,15 @@ val /f2 [0x0f 0xd6 /r] = binop MOVDQ2Q mm64 xmm128
 ###  - Move High Packed Double-Precision Floating-Point Value
 val /66 [0x0f 0x16 /r] = binop MOVHPD xmm128 m64
 val /66 [0x0f 0x17 /r] = binop MOVHPD m64 xmm128
-val /vex/66/0f/vexv [0x16 /r] = ternop VMOVHPD xmm128 v/xmm m64
-val /vex/66/0f [0x17 /r] = binop VMOVHPD m64 xmm128
+val /vex/66/0f/vexv [0x16 /r] = varity3 VMOVHPD xmm128 v/xmm m64
+val /vex/66/0f [0x17 /r] = varity2 VMOVHPD m64 xmm128
 
 ### MOVHPS
 ###  - Move High Packed Single-Precision Floating-Point Values
 val / [0x0f 0x16 /r-mem] = binop MOVHPS xmm128 m64
 val / [0x0f 0x17 /r-mem] = binop MOVHPS m64 xmm128
-val /vex/0f/vexv [0x16 /r-mem] | vex128? = ternop VMOVHPS xmm128 v/xmm m64
-val /vex/0f [0x17 /r-mem] | vex128? = binop VMOVHPS m64 xmm128
+val /vex/0f/vexv [0x16 /r-mem] | vex128? = varity3 VMOVHPS xmm128 v/xmm m64
+val /vex/0f [0x17 /r-mem] | vex128? = varity2 VMOVHPS m64 xmm128
 
 ### MOVLHPS
 ###  - Move Packed Single-Precision Floating-Point Values Low to High
@@ -2320,21 +2312,21 @@ val /vex/0f [0x17 /r-mem] | vex128? = binop VMOVHPS m64 xmm128
 #val vmovlhps = ternop VMOVLHPS
 #val / [0x0f 0x16 /r]
 # | mod-reg? = movlhps xmm128 xmm/nomem128
-val /vex/0f/vexv [0x16 /r-nomem] | vex128? = ternop VMOVLHPS xmm128 v/xmm xmm/nomem128
+val /vex/0f/vexv [0x16 /r-nomem] | vex128? = varity3 VMOVLHPS xmm128 v/xmm xmm/nomem128
 
 ### MOVLPD
 ###  - Move Low Packed Double-Precision Floating-Point Value
 val /66 [0x0f 0x12 /r-mem] = binop MOVLPD xmm128 m64
 val /66 [0x0f 0x13 /r-mem] = binop MOVLPD m64 xmm128
-val /vex/66/0f/vexv [0x12 /r] | vex128? = ternop VMOVLPD xmm128 v/xmm m64
-val /vex/66/0f [0x13 /r] | vex128? = binop VMOVLPD m64 xmm128
+val /vex/66/0f/vexv [0x12 /r] | vex128? = varity3 VMOVLPD xmm128 v/xmm m64
+val /vex/66/0f [0x13 /r] | vex128? = varity2 VMOVLPD m64 xmm128
 
 ### MOVLPS
 ###  - Move Low Packed Single-Precision Floating-Point Values
 val / [0x0f 0x12 /r-mem] = binop MOVLPS xmm128 m64
 val / [0x0f 0x13 /r-mem] = binop MOVLPS m64 xmm128
-val /vex/0f/vexv [0x12 /r-mem] | vex128? = ternop VMOVLPS xmm128 v/xmm m64
-val /vex/0f [0x13 /r-mem] | vex128? = binop VMOVLPS m64 xmm128
+val /vex/0f/vexv [0x12 /r-mem] | vex128? = varity3 VMOVLPS xmm128 v/xmm m64
+val /vex/0f [0x13 /r-mem] | vex128? = varity2 VMOVLPS m64 xmm128
 
 ### MOVMSKPD
 ###  - Extract Packed Double-Precision Floating-Point Sign Mask
@@ -2342,10 +2334,10 @@ val /66 [0x0f 0x50 /r]
  | mode64? = binop MOVMSKPD r64 xmm128
  | otherwise = binop MOVMSKPD r32 xmm128
 val /vex/66/0f [0x50 /r]
- | vex128? & mode64? = binop VMOVMSKPD r64 xmm128
- | vex128? = binop VMOVMSKPD r64 xmm128
- | vex256? & mode64? = binop VMOVMSKPD r64 ymm256
- | vex256? = binop VMOVMSKPD r64 ymm256
+ | vex128? & mode64? = varity2 VMOVMSKPD r64 xmm128
+ | vex128? = varity2 VMOVMSKPD r64 xmm128
+ | vex256? & mode64? = varity2 VMOVMSKPD r64 ymm256
+ | vex256? = varity2 VMOVMSKPD r64 ymm256
 
 ### MOVMSKPS
 ###  - Extract Packed Single-Precision Floating-Point Sign Mask
@@ -2353,22 +2345,22 @@ val / [0x0f 0x50 /r]
  | mode64? = binop MOVMSKPD r64 xmm128
  | otherwise = binop MOVMSKPD r32 xmm128
 val /vex/0f [0x50 /r]
- | vex128? & mode64? = binop VMOVMSKPS r64 xmm128
- | vex128? = binop VMOVMSKPS r64 xmm128
- | vex256? & mode64? = binop VMOVMSKPS r64 ymm256
- | vex256? = binop VMOVMSKPS r64 ymm256
+ | vex128? & mode64? = varity2 VMOVMSKPS r64 xmm128
+ | vex128? = varity2 VMOVMSKPS r64 xmm128
+ | vex256? & mode64? = varity2 VMOVMSKPS r64 ymm256
+ | vex256? = varity2 VMOVMSKPS r64 ymm256
 
 ### MOVNTDQ
 ###  - Store Double Quadword Using Non-Temporal Hint
 val /66 [0x0f 0xe7 /r] = binop MOVNTDQ m128 xmm128
 val /vex/66/0f [0xe7 /r]
- | vex128? = binop VMOVNTDQ m128 xmm128
- | vex256? = binop VMOVNTDQ m256 ymm256
+ | vex128? = varity2 VMOVNTDQ m128 xmm128
+ | vex256? = varity2 VMOVNTDQ m256 ymm256
 
 ### MOVNTDQA
 ###  - Load Double Quadword Non-Temporal Aligned Hint
 val /66 [0x0f 0x38 0x2a /r] = binop MOVNTDQA xmm128 m128
-val /vex/66/0f/38 [0x2a /r] | vex128? = binop VMOVNTDQA xmm128 m128
+val /vex/66/0f/38 [0x2a /r] | vex128? = varity2 VMOVNTDQA xmm128 m128
 
 ### MOVNTI
 ###  - Store Doubleword Using Non-Temporal Hint
@@ -2380,15 +2372,15 @@ val / [0x0f 0xc3 /r]
 ###  - Store Packed Double-Precision Floating-Point Values Using Non-Temporal Hint
 val /66 [0x0f 0x2b /r] = binop MOVNTPD m128 xmm128
 val /vex/66/0f [0x2b /r]
- | vex128? = binop VMOVNTPD m128 xmm128
- | vex256? = binop VMOVNTPD m256 ymm256
+ | vex128? = varity2 VMOVNTPD m128 xmm128
+ | vex256? = varity2 VMOVNTPD m256 ymm256
 
 ### MOVNTPS
 ###  - Store Packed Single-Precision Floating-Point Values Using Non-Temporal Hint
 val / [0x0f 0x2b /r] = binop MOVNTPS m128 xmm128
 val /vex/0f [0x2b /r]
- | vex128? = binop VMOVNTPS m128 xmm128
- | vex256? = binop VMOVNTPS m256 ymm256
+ | vex128? = varity2 VMOVNTPS m128 xmm128
+ | vex256? = varity2 VMOVNTPS m256 ymm256
 
 ### MOVNTQ
 ###  - Store of Quadword Using Non-Temporal Hint
@@ -2426,39 +2418,39 @@ val / [0xa4] = arity0 MOVSB
 val / [0xa5]
  | opndsz? = arity0 MOVSB
  | rexw? = arity0 MOVSQ
- | otherwise = arity0 MOVSD
+ | otherwise = varity0 MOVSD
 
 ### MOVSD
 ###  - Move Scalar Double-Precision Floating-Point Value
-val /f2 [0x0f 0x10 /r] = binop MOVSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x10 /r-nomem] = ternop VMOVSD xmm128 v/xmm xmm/nomem128
-val /vex/f2/0f [0x10 /r-mem] = binop VMOVSD xmm128 m64
-val /f2 [0x0f 0x11 /r] = binop MOVSD xmm/m64 xmm128
-val /vex/f2/0f [0x11 /r-nomem] = ternop VMOVSD xmm/nomem128 v/xmm xmm128
-val /vex/f2/0f [0x11 /r-mem] = binop VMOVSD m64 xmm128
+val /f2 [0x0f 0x10 /r] = varity2 MOVSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x10 /r-nomem] = varity3 VMOVSD xmm128 v/xmm xmm/nomem128
+val /vex/f2/0f [0x10 /r-mem] = varity2 VMOVSD xmm128 m64
+val /f2 [0x0f 0x11 /r] = varity2 MOVSD xmm/m64 xmm128
+val /vex/f2/0f [0x11 /r-nomem] = varity3 VMOVSD xmm/nomem128 v/xmm xmm128
+val /vex/f2/0f [0x11 /r-mem] = varity2 VMOVSD m64 xmm128
 
 ### MOVSHDUP
 ###  - Move Packed Single-FP High and Duplicate
 val /f3 [0x0f 0x16 /r] = binop MOVSHDUP xmm128 xmm/m128
 val /vex/f3/0f [0x16 /r]
- | vex128? = binop VMOVSHDUP xmm128 xmm/m128
- | vex256? = binop VMOVSHDUP ymm256 ymm/m256
+ | vex128? = varity2 VMOVSHDUP xmm128 xmm/m128
+ | vex256? = varity2 VMOVSHDUP ymm256 ymm/m256
 
 ### MOVSLDUP
 ###  - Move Packed Single-FP Low and Duplicate
 val /f3 [0x0f 0x12 /r] = binop MOVSLDUP xmm128 xmm/m128
 val /vex/f3/0f [0x12 /r]
- | vex128? = binop VMOVSLDUP xmm128 xmm/m128
- | vex256? = binop VMOVSLDUP ymm256 ymm/m256
+ | vex128? = varity2 VMOVSLDUP xmm128 xmm/m128
+ | vex256? = varity2 VMOVSLDUP ymm256 ymm/m256
 
 ### MOVSS
 ###  - Move Scalar Single-Precision Floating-Point Values
 val /f3 [0x0f 0x10 /r] = binop MOVSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x10 /r-nomem] = ternop VMOVSS xmm128 v/xmm xmm/nomem128
-val /vex/f3/0f [0x10 /r-mem] = binop VMOVSS xmm128 m32
+val /vex/f3/0f/vexv [0x10 /r-nomem] = varity3 VMOVSS xmm128 v/xmm xmm/nomem128
+val /vex/f3/0f [0x10 /r-mem] = varity2 VMOVSS xmm128 m32
 val /f3 [0x0f 0x11 /r] = binop MOVSS xmm/m32 xmm128
-val /vex/f3/0f/vexv [0x11 /r-nomem] = ternop VMOVSS xmm/nomem128 v/xmm xmm128
-val /vex/f3/0f [0x11 /r-mem] = binop VMOVSS m32 xmm128
+val /vex/f3/0f/vexv [0x11 /r-nomem] = varity3 VMOVSS xmm/nomem128 v/xmm xmm128
+val /vex/f3/0f [0x11 /r-mem] = varity2 VMOVSS m32 xmm128
 
 ### MOVSX/MOVSXD
 ###  - Move with Sign-Extension
@@ -2477,23 +2469,23 @@ val / [0x63 /r]
 ###  - Move Unaligned Packed Double-Precision Floating-Point Values
 val /66 [0x0f 0x10 /r] = binop MOVUPD xmm128 xmm/m128
 val /vex/66/0f [0x10 /r]
- | vex128? = binop VMOVUPD xmm128 xmm/m128
- | vex256? = binop VMOVUPD ymm256 ymm/m256
+ | vex128? = varity2 VMOVUPD xmm128 xmm/m128
+ | vex256? = varity2 VMOVUPD ymm256 ymm/m256
 val /66 [0x0f 0x11 /r] = binop MOVUPD xmm/m128 xmm128
 val /vex/66/0f [0x11 /r]
- | vex128? = binop VMOVUPD xmm/m128 xmm128
- | vex256? = binop VMOVUPD ymm/m256 ymm256
+ | vex128? = varity2 VMOVUPD xmm/m128 xmm128
+ | vex256? = varity2 VMOVUPD ymm/m256 ymm256
 
 ### MOVUPS
 ###  - Move Unaligned Packed Single-Precision Floating-Point Values
 val / [0x0f 0x10 /r] = binop MOVUPS xmm128 xmm/m128
 val /vex/0f [0x10 /r]
- | vex128? = binop VMOVUPS xmm128 xmm/m128
- | vex256? = binop VMOVUPS ymm256 ymm/m256
+ | vex128? = varity2 VMOVUPS xmm128 xmm/m128
+ | vex256? = varity2 VMOVUPS ymm256 ymm/m256
 val / [0x0f 0x11 /r] = binop MOVUPD xmm/m128 xmm128
 val /vex/0f [0x11 /r]
- | vex128? = binop VMOVUPS xmm/m128 xmm128
- | vex256? = binop VMOVUPS ymm/m256 ymm256
+ | vex128? = varity2 VMOVUPS xmm/m128 xmm128
+ | vex256? = varity2 VMOVUPS ymm/m256 ymm256
 
 ### MOVZX
 ###  - Move with Zero-Extend
@@ -2508,7 +2500,7 @@ val / [0x0f 0xb7 /r]
 ### MPSADBW
 ###  - Compute Multiple Packed Sums of Absolute Difference
 val /66 [0x0f 0x3a 0x42 /r] = ternop MPSADBW xmm128 xmm/m128 imm8
-val /vex/66/0f/3a/vexv [0x42 /r] | vex128? = quaternop VMPSADBW xmm128 v/xmm xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x42 /r] | vex128? = varity4 VMPSADBW xmm128 v/xmm xmm/m128 imm8
 
 ### MUL
 ###  - Unsigned Multiply
@@ -2522,25 +2514,25 @@ val / [0xf7 /4]
 ###  - Multiply Packed Double-Precision Floating-Point Values
 val /66 [0x0f 0x59 /r] = binop MULPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x59 /r]
- | vex128? = ternop VMULPD xmm128 v/xmm xmm/m128
- | vex256? = ternop VMULPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VMULPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VMULPD ymm256 v/ymm ymm/m256
 
 ### MULPS
 ###  - Multiply Packed Single-Precision Floating-Point Values
 val / [0x0f 0x59 /r] = binop MULPS xmm128 xmm/m128
 val /vex/0f/vexv [0x59 /r]
- | vex128? = ternop VMULPS xmm128 v/xmm xmm/m128
- | vex256? = ternop VMULPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VMULPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VMULPS ymm256 v/ymm ymm/m256
 
 ### MULSD
 ###  - Multiply Scalar Double-Precision Floating-Point Values
 val /f2 [0x0f 0x59 /r] = binop MULSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x59 /r] = ternop VMULSD xmm128 v/xmm xmm/m64
+val /vex/f2/0f/vexv [0x59 /r] = varity3 VMULSD xmm128 v/xmm xmm/m64
 
 ### MULSS
 ###  - Multiply Scalar Single-Precision Floating-Point Values
 val /f3 [0x0f 0x59 /r] = binop MULSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x59 /r] = ternop VMULSS xmm128 v/xmm xmm/m32
+val /vex/f3/0f/vexv [0x59 /r] = varity3 VMULSS xmm128 v/xmm xmm/m32
 
 ### MWAIT
 ###  - Monitor Wait
@@ -2556,12 +2548,15 @@ val / [0xf7 /3]
 
 ### NOP
 ###  - No Operation
+# The opcode `0x90` overlapps with `xchg` since
+# 90 = xchg eax, eax; but consider 664590 = xchg ax,r8l!
+# so we deocde 0x90 always as `xchg`
 #val / [0x90] = arity0 NOP
 #val /66 [0x90] = arity0 NOP
-val /66 [0x0f 0x1f /0] = binop NOP r/m16 r16
+val /66 [0x0f 0x1f /0] = varity2 NOP r/m16 r16
 val / [0x0f 0x1f /0]
- | rexw? = binop NOP r/m64 r64
- | otherwise = binop NOP r/m32 r32
+ | rexw? = varity2 NOP r/m64 r64
+ | otherwise = varity2 NOP r/m32 r32
 
 ### NOT
 ###  - One's Complement Negation
@@ -2602,15 +2597,15 @@ val / [0x0b /r]
 ###  - Bitwise Logical OR of Double-Precision Floating-Point Values
 val /66 [0x0f 0x56 /r] = binop ORPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x56 /r]
- | vex128? = ternop VORPD xmm128 v/xmm xmm/m128
- | vex256? = ternop VORPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VORPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VORPD ymm256 v/ymm ymm/m256
 
 ### ORPS
 ###  - Bitwise Logical OR of Single-Precision Floating-Point Values
 val main [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
 val /vex/0f/vexv [0x56 /r]
- | vex128? = ternop VORPS xmm128 v/xmm xmm/m128
- | vex256? = ternop VORPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VORPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VORPS ymm256 v/ymm ymm/m256
 
 ### OUT
 ###  - Output to Port
@@ -2641,9 +2636,9 @@ val / [0x0f 0x38 0x1d /r] = binop PABSW mm64 mm/m64
 val /66 [0x0f 0x38 0x1d /r] = binop PABSW xmm128 xmm/m128
 val / [0x0f 0x38 0x1e /r] = binop PABSD mm64 mm/m64
 val /66 [0x0f 0x38 0x1e /r] = binop PABSD xmm128 xmm/m128
-val /vex/66/0f/38 [0x1c /r] | vex128? = binop VPABSB xmm128 xmm/m128
-val /vex/66/0f/38 [0x1d /r] | vex128? = binop VPABSW xmm128 xmm/m128
-val /vex/66/0f/38 [0x1e /r] | vex128? = binop VPABSD xmm128 xmm/m128
+val /vex/66/0f/38 [0x1c /r] | vex128? = varity2 VPABSB xmm128 xmm/m128
+val /vex/66/0f/38 [0x1d /r] | vex128? = varity2 VPABSW xmm128 xmm/m128
+val /vex/66/0f/38 [0x1e /r] | vex128? = varity2 VPABSD xmm128 xmm/m128
 
 ### PACKSSWB/PACKSSDW
 ###  - Pack with Signed Saturation
@@ -2651,20 +2646,20 @@ val / [0x0f 0x63 /r] = binop PACKSSWB mm64 mm/m64
 val /66 [0x0f 0x63 /r] = binop PACKSSWB xmm128 xmm/m128
 val / [0x0f 0x6b /r] = binop PACKSSDW mm64 mm/m64
 val /66 [0x0f 0x6b /r] = binop PACKSSDW xmm128 xmm/m128
-val /vex/66/0f/vexv [0x63 /r] | vex128? = binop VPACKSSWB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x6b /r] | vex128? = binop VPACKSSDW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x63 /r] | vex128? = varity2 VPACKSSWB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6b /r] | vex128? = varity2 VPACKSSDW xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
 val / [0x0f 0x3a 0x0f /r] = ternop PALIGNR mm64 mm/m64 imm8
 val /66 [0x0f 0x3a 0x0f /r] = ternop PALIGNR xmm128 xmm/m128 imm8
-val /vex/66/0f/3a [0x0f /r] | vex128? = quaternop VPALIGNR xmm128 v/xmm xmm/m128 imm8
+val /vex/66/0f/3a [0x0f /r] | vex128? = varity4 VPALIGNR xmm128 v/xmm xmm/m128 imm8
 
 ### PAND
 ###  - Logical AND
 val / [0x0f 0xdb /r] = binop PAND mm64 mm/m64
 val /66 [0x0f 0xdb /r] = binop PAND xmm128 xmm/m128
-val /vex/66/0f/vexv [0xdb /r] | vex128? = ternop VPAND xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xdb /r] | vex128? = varity3 VPAND xmm128 v/xmm xmm/m128
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
@@ -2674,19 +2669,19 @@ val / [0x0f 0x75 /r] = binop PCMPEQW mm64 mm/m64
 val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
 val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
 val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
-val /vex/66/0f/vexv [0x74 /r] = ternop VCMPEQB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x75 /r] = ternop VCMPEQW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x76 /r] = ternop VCMPEQD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x74 /r] = varity3 VCMPEQB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x75 /r] = varity3 VCMPEQW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x76 /r] = varity3 VCMPEQD xmm128 v/xmm xmm/m128
 
 ### PCMPEQQ
 ###  - Compare Packed Qword Data for Equal
 val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
-val /vex/66/0f/38 [0x29 /r] | vex128? = ternop VPCMPEQQ xmm128 v/xmm xmm/m128 
+val /vex/66/0f/38 [0x29 /r] | vex128? = varity3 VPCMPEQQ xmm128 v/xmm xmm/m128 
 
 ### PCMPESTRI
 ###  - Packed Compare Explicit Length Strings, Return Index
 val /66 [0x0f 0x3a 0x61 /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
-val /vex/66/0f/3a [0x61 /r] = ternop VPCMPESTRI xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x61 /r] = varity3 VPCMPESTRI xmm128 xmm/m128 imm8
 
 ### PCMPGTB/PCMPGTW/PCMPGTD
 ###  - Compare Packed Signed Integers for Greater Than
@@ -2696,14 +2691,14 @@ val / [0x0f 0x65 /r] = binop PCMPGTW mm64 mm/m64
 val /66 [0x0f 0x65 /r] = binop PCMPGTW xmm128 xmm/m128
 val / [0x0f 0x66 /r] = binop PCMPGTD mm64 mm/m64
 val /66 [0x0f 0x66 /r] = binop PCMPGRD xmm128 xmm/m128
-val /vex/66/0f/vexv [0x64 /r] | vex128? = ternop VPCMPGTB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x65 /r] | vex128? = ternop VPCMPGTW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x66 /r] | vex128? = ternop VPCMPGTD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x64 /r] | vex128? = varity3 VPCMPGTB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x65 /r] | vex128? = varity3 VPCMPGTW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x66 /r] | vex128? = varity3 VPCMPGTD xmm128 v/xmm xmm/m128
 
 ### PCMPISTRI
 ###  - Packed Compare Implicit Length Strings, Return Index
 val /66 [0x0f 0x3a 0x63 /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
-val /vex/66/0f/3a [0x63 /r] | vex128? = ternop VPCMPISTRI xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x63 /r] | vex128? = varity3 VPCMPISTRI xmm128 xmm/m128 imm8
 
 ### PHADDW/PHADDD
 ###  - Packed Horizontal Add
@@ -2711,8 +2706,8 @@ val /66 [0x0f 0x38 0x01 /r] = binop PHADDW xmm128 xmm/m128
 val / [0x0f 0x38 0x01 /r] = binop PHADDW mm64 mm/m64
 val /66 [0x0f 0x38 0x02 /r] = binop PHADDD xmm128 xmm/m128
 val / [0x0f 0x38 0x02 /r] = binop PHADDD mm64 mm/m64
-val /vex/66/0f/38/vexv [0x01 /r] | vex128? = ternop VPHADDW xmm128 v/xmm xmm/m128
-val /vex/66/0f/38/vexv [0x02 /r] | vex128? = ternop VPHADDD xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x01 /r] | vex128? = varity3 VPHADDW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x02 /r] | vex128? = varity3 VPHADDD xmm128 v/xmm xmm/m128
 
 ### PINSRB/PINSRD/PINSRQ
 ###  - Insert Byte/Dword/Qword
@@ -2720,16 +2715,16 @@ val /66 [0x0f 0x3a 0x20 /r] = ternop PINSRB xmm128 r/m8 imm8
 val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop PINSRD xmm128 r/m32 imm8
-val /vex/66/0f/3a [0x20 /r] | vex128? & vexw0? = quaternop VPINSRB xmm128 v/xmm r/m8 imm8
+val /vex/66/0f/3a [0x20 /r] | vex128? & vexw0? = varity4 VPINSRB xmm128 v/xmm r/m8 imm8
 val /vex/66/0f/3a [0x22 /r] 
- | vex128? & vexw1? = quaternop VPINSRQ xmm128 v/xmm r/m64 imm8
- | vex128? = quaternop VPINSRD xmm128 v/xmm r/m32 imm8
+ | vex128? & vexw1? = varity4 VPINSRQ xmm128 v/xmm r/m64 imm8
+ | vex128? = varity4 VPINSRD xmm128 v/xmm r/m32 imm8
 
 ### PMOVMSKB
 ###  - Move Byte Mask
 val / [0x0f 0xd7 /r] = binop PMOVMSKB reg mm64
 val /66 [0x0f 0xd7 /r] = binop PMOVMSKB reg xmm/nomem128
-val /vex/66/0f [0xd7 /r] | vex128? = binop VPMOVMSKB vreg xmm/nomem128
+val /vex/66/0f [0xd7 /r] | vex128? = varity2 VPMOVMSKB vreg xmm/nomem128
 
 ### POP
 ###  - Pop a Value from the Stack
@@ -2748,7 +2743,7 @@ val / [0x17] = unop POP ss
 ###  - Bitwise Logical OR
 val / [0x0f 0xeb /r] = binop POR mm64 mm/m64
 val /66 [0x0f 0xeb /r] = binop POR xmm128 xmm/m128
-val /vex/66/0f/vexv [0xeb /r] | vex128? = ternop VPOR xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xeb /r] | vex128? = varity3 VPOR xmm128 v/xmm xmm/m128
 
 ### PREFETCHh
 ###  - Prefetch Data Into Caches
@@ -2765,22 +2760,22 @@ val / [0x0f 0x0d /r-mem] = unop PREFETCHW m8
 ###  - Packed Shuffle Bytes
 val / [0x0f 0x38 0x00 /r] = binop PSHUFB mm64 mm/m64
 val /66 [0x0f 0x38 0x00 /r] = binop PSHUFB xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0x00 /r] | vex128? = ternop VPSHUFB xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x00 /r] | vex128? = varity3 VPSHUFB xmm128 v/xmm xmm/m128
 
 ### PSHUFD
 ###  - Shuffle Packed Doublewords
 val /66 [0x0f 0x70 /r] = ternop PSHUFD xmm128 xmm/m128 imm8
-val /vex/66/0f [0x70 /r] | vex128? = ternop VPSHUFD xmm128 xmm/m128 imm8
+val /vex/66/0f [0x70 /r] | vex128? = varity3 VPSHUFD xmm128 xmm/m128 imm8
 
 ### PSLLDQ
 ###  - Shift Double Quadword Left Logical
 val /66 [0x0f 0x73 /7-nomem] = binop PSLLDQ xmm128 imm8
-val /vex/66/0f [0x73 /7-nomem] | vndd? & vex128? = ternop VPSLLDQ xmm128 v/xmm imm8
+val /vex/66/0f [0x73 /7-nomem] | vndd? & vex128? = varity3 VPSLLDQ xmm128 v/xmm imm8
 
 ### PSLRDQ
 ###  - Shift Double Quadword Right Logical
 val /66 [0x0f 0x73 /3-nomem] = binop PSLRDQ xmm128 imm8
-val /vex/66/0f [0x73 /3-nomem] | vndd? & vex128? = ternop VPSLRDQ xmm128 v/xmm imm8
+val /vex/66/0f [0x73 /3-nomem] | vndd? & vex128? = varity3 VPSLRDQ xmm128 v/xmm imm8
 
 ### PSUBB/PSUBW/PSUBD
 ###  - Subtract Packed Integers
@@ -2790,16 +2785,16 @@ val / [0x0f 0xf9 /r] = binop PSUBW mm64 mm/m64
 val /66 [0x0f 0xf9 /r] = binop PSUBW xmm128 xmm/m128
 val / [0x0f 0xfa /r] = binop PSUBD mm64 mm/m64
 val /66 [0x0f 0xfa /r] = binop PSUBD xmm128 xmm/m128
-val /vex/66/0f/vexv [0xf8 /r] | vex128? = ternop VPSUBB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0xf9 /r] | vex128? = ternop VPSUBW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0xfa /r] | vex128? = ternop VPSUBD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xf8 /r] | vex128? = varity3 VPSUBB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xf9 /r] | vex128? = varity3 VPSUBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xfa /r] | vex128? = varity3 VPSUBD xmm128 v/xmm xmm/m128
 
 ### PTEST
 ###  - Logical Compare
 val /66 [0x0f 0x38 0x17 /r] = binop PTEST xmm128 xmm/m128
 val /vex/66/0f/38 [0x17 /r]
- | vex128? = binop VPTEST xmm128 xmm/m128
- | otherwise = binop VPTEST ymm256 ymm/m256
+ | vex128? = varity2 VPTEST xmm128 xmm/m128
+ | otherwise = varity2 VPTEST ymm256 ymm/m256
 
 ### PUNPCKLBW/PUNPCKLWD/PUNPCKLDQ/PUNPCKLQDQ
 ###  - Unpack Low Data
@@ -2810,10 +2805,10 @@ val /66 [0x0f 0x61 /r] = binop PUNPCKLWD xmm128 xmm/m128
 val / [0x0f 0x62 /r] = binop PUNPCKLDQ mm64 mm/m32
 val /66 [0x0f 0x62 /r] = binop PUNPCKLDQ xmm128 xmm/m128
 val /66 [0x0f 0x6c /r] = binop PUNPCKLQDQ xmm128 xmm/m128
-val /vex/66/0f/vexv [0x60 /r] | vex128? = ternop VPUNPCKLBW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x61 /r] | vex128? = ternop VPUNPCKLWD xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x62 /r] | vex128? = ternop VPUNPCKLDQ xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x6c /r] | vex128? = ternop VPUNPCKLQDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x60 /r] | vex128? = varity3 VPUNPCKLBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x61 /r] | vex128? = varity3 VPUNPCKLWD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x62 /r] | vex128? = varity3 VPUNPCKLDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6c /r] | vex128? = varity3 VPUNPCKLQDQ xmm128 v/xmm xmm/m128
 
 ### PUSH
 ###  - Push Word, Doubleword or Quadword Onto the Stack
@@ -2912,10 +2907,10 @@ val / [0x0f 0x01 0xf9] = arity0 RDTSCP
 
 ### RET
 ###  - Return from Procedure
-val / [0xc3] = arity0 RET
-val / [0xcb] = arity0 RET_FAR
-val / [0xc2] = unop RET imm16
-val / [0xca] = unop RET_FAR imm16
+val / [0xc3] = varity0 RET
+val / [0xcb] = varity0 RET_FAR
+val / [0xc2] = varity1 RET imm16
+val / [0xca] = varity1 RET_FAR imm16
 
 ### SETcc
 ###  - Set Byte on Condition
@@ -3109,7 +3104,7 @@ val / [0x85 /r]
 ### UCOMISD
 ###  - Unordered Compare Scalar Double-Precision Floating-Point Values and Set EFLAGS
 val /66 [0x0f 0x2e /r] = binop UCOMISD xmm128 xmm/m64
-val /vex/66/0f [0x2e /r] = binop VUCOMISD xmm128 xmm/m64
+val /vex/66/0f [0x2e /r] = varity2 VUCOMISD xmm128 xmm/m64
 
 ### UD2
 ###  - Undefined Instruction
@@ -3174,6 +3169,6 @@ val /66 [0x0f 0x57 /r] = binop XORPD xmm128 xmm/m128
 ###  - Bitwise Logical XOR for Single-Precision Floating-Point Values
 val / [0x0f 0x57 /r] = binop XORPS xmm128 xmm/m128
 val /vex/66/0f/vexv [0x57 /r]
- | vex128? = ternop VXORPS xmm128 v/xmm xmm/m128
- | otherwise = ternop VXORPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 VXORPS xmm128 v/xmm xmm/m128
+ | otherwise = varity3 VXORPS ymm256 v/ymm ymm/m256
 

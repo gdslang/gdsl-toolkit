@@ -128,6 +128,7 @@ structure DesugarDecode = struct
    end
 
    and desugarMatches tok decls = let
+      (* +DEBUG:overlapping-patterns *)
       (* val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
       val equiv = buildEquivClass decls
       
@@ -169,7 +170,7 @@ structure DesugarDecode = struct
 
       fun backtrack () =
          case StringMap.find (equiv, "") of
-            NONE => raise Fail "desugarCases.bug.unboundBacktrackPattern"
+            NONE => raise Fail "desugarCases.bug.unboundedBacktrackPattern"
           | SOME ix =>
                (case Set.listItems ix of
                   [i] => 

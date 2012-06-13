@@ -48,16 +48,26 @@ end = struct
 
       fun convMark conv {span, tree} = {span=span, tree=conv span tree}
     
-      fun vDecl (s, d) =
+      fun fwdDecl (s, d) =
          case d of
-            AST.MARKdecl {span, tree} => vDecl (span, tree)
-          | AST.TYPEdecl (v, t) => synTable := S.insert (!synTable, v, vType (s,t))
+            AST.MARKdecl {span, tree} => fwdDecl (span, tree)
           | AST.DATATYPEdecl (d,l) =>
                (dtyTable :=
                   D.insert
                      (!dtyTable,
                       d,
-                      {tdVars=[], tdCons=vCondecl (s,d,l)}))
+                      {tdVars=[], tdCons=D.empty}))
+          | _ => ()
+      
+      fun vDecl (s, d) =
+         case d of
+            AST.MARKdecl {span, tree} => vDecl (span, tree)
+          | AST.TYPEdecl (v, t) => synTable := S.insert (!synTable, v, vType (s,t))
+          | AST.DATATYPEdecl (d,l) =>
+            (case D.lookup (!dtyTable,d) of
+               {tdVars=_, tdCons=cons} =>
+                  (dtyTable := D.insert (!dtyTable, d,
+                     {tdVars = [], tdCons = vCondecl cons (s,d,l)})))
           | _ => ()
 
       and vType (s, t) =
@@ -67,7 +77,13 @@ end = struct
           | AST.NAMEDty n =>
                (case S.find (!synTable, n) of
                   SOME t => T.SYN (n, T.setFlagsToTop t)
-                | NONE => T.ALG (n, []))
+                | NONE => (case D.find (!dtyTable, n) of
+                     SOME {tdVars=vs,tdCons=_} => T.ALG (n, map Types.VAR vs)
+                   | NONE => (Error.errorAt
+                        (errStrm, s,
+                         ["type synonym or data type ",
+                          TypeInfo.getString (types, n),
+                          " not declared "]); T.UNIT)))
           | AST.RECORDty l =>
                T.RECORD
                   (Types.freshTVar (), BD.freshBVar (),
@@ -77,9 +93,9 @@ end = struct
       and vField s (n, ty) =
          T.RField {name=n, fty=vType (s, ty), exists=BD.freshBVar ()}
 
-      and vCondecl (s,d,l) =
+      and vCondecl sm (s,d,l) =
          case l of
-            [] => SymMap.empty : Types.condescr
+            [] => sm
           | (c, arg)::l =>
                (case C.find (!conTable, c) of
                   SOME d =>
@@ -92,14 +108,15 @@ end = struct
                 | NONE =>
                      (conTable := C.insert (!conTable, c, d))
                      ;D.insert
-                        (vCondecl (s,d,l),
+                        (vCondecl sm (s,d,l),
                          c,
                          Option.map (fn t => vType (s, t)) arg))
 
        val {span=s, tree=declList} = ast
 
    in
-      (app (fn d => vDecl (s,d)) declList
+      (app (fn d => fwdDecl (s,d)) declList
+      ;app (fn d => vDecl (s,d)) declList
       ;{tsynDefs= !synTable, typeDefs= !dtyTable, conParents= !conTable} : type_info)
    end
 

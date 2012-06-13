@@ -48,6 +48,7 @@ int main (int argc, char** argv) {
   xed_decoded_inst_zero_set_mode(insn, &state);
   xed_decoded_inst_set_input_chip(insn, XED_CHIP_INVALID);
   char insnstr[128];
+  char decodedinsnstr[128];
   char opcodestr[128];
   unsigned int len;
   unsigned char* blobb = blob;
@@ -63,13 +64,17 @@ int main (int argc, char** argv) {
       len = xed_decoded_inst_get_length(insn);
       xed_decoded_inst_dump_intel_format(insn,insnstr,128,0);
       hexlify(blobb,len,opcodestr);
-      printf("%-30s: %-42s: ",opcodestr,insnstr); fflush(stdout);
       __word decodedlen = __decode(__decode__,blobb,sz,&decoded);
-      if (len != decodedlen)
-         printf("#opcode-length-missmatch: %d<>%zu ",len,decodedlen);
-      if(!___isNil(decoded))
-         pretty(decoded);
-      printf("\n");
+      if (___isNil(decoded))
+        printf("%-30s: %-42s: failed\n",opcodestr,insnstr);
+      else if (len != decodedlen) {
+        pretty(decoded,(__char*)decodedinsnstr,128);
+        printf("%-30s: %-42s: wrong: %s\n",opcodestr,insnstr,decodedinsnstr);
+      } else {
+        pretty(decoded,(__char*)decodedinsnstr,128);
+        printf("%-30s: %-42s: %s\n",opcodestr,insnstr,decodedinsnstr);
+      }
+      fflush(stdout);
       __resetHeap();
     } else {
       invalid++;
