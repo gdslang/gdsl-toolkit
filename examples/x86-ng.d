@@ -728,11 +728,11 @@ datatype insn =
  | OUTSB
  | OUTSW
  | OUTSD
- | PABSB
- | PABSW
- | PABSD
- | PACKSSWB
- | PACKSSDW
+ | PABSB of arity2
+ | PABSW of arity2
+ | PABSD of arity2
+ | PACKSSWB of arity2
+ | PACKSSDW of arity2
  | PALIGNR of arity3
  | PAND of arity2
  | PCMPEQB of arity2
