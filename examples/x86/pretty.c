@@ -93,18 +93,18 @@ char* prettyOpnd (__obj opnd, char* buf, __word sz) {
           s = prettyScale(payload,buf,sz);
           break;
         case __NEARABS:
-          s = append(buf,sz,"NEAR ");
+          //s = append(buf,sz,"NEAR ");
           s = prettyOpnd(payload,buf,sz);
           break;
         case __FARABS: 
-          s = append(buf,sz,"FAR ");
+          //s = append(buf,sz,"FAR ");
           s = prettyOpnd(payload,buf,sz);
           break;
         case __REL8:
         case __REL16:
         case __REL32:
         case __REL64:
-          s = append(buf,sz,"RELATIVE ");
+          //s = append(buf,sz,"RELATIVE ");
           s = prettyOpnd(payload,buf,sz);
           break;
         case __IMM8:

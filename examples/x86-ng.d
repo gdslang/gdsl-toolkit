@@ -505,6 +505,7 @@ datatype register =
  | ST5
  | ST6
  | ST7
+ | RIP
 
 datatype opnd =
    IMM8 of 8
@@ -1375,8 +1376,11 @@ val r/m-without-sib = do
          case rm of
             '101':
                do
+                  mode <- query $mode64;
                   i <- imm32;
-                  mem i
+                  if mode
+                     then mem (SUM{a=REG RIP,b=i})
+                  else mem i
                end
           | _ : mem (addr-reg rexb rm)
          end

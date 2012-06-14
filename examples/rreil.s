@@ -1,5 +1,5 @@
 
-datatype sem_register =
+datatype sem_id =
    ARCH_RAX
  | ARCH_RBX
  | ARCH_RCX
@@ -18,23 +18,31 @@ datatype sem_register =
  | VIRT_LTS
  | VIRT_LTU
 
-datatype sem_id =
-   SEM_REG of {r:sem_register, offset:int, size:int}
- | SEM_INT of {size:int, value:int}
+datatype sem_var =
+   SEM_REG of {id:sem_id, offset:int}
 
 datatype sem_linear =
-   SEM_X of {id:id}
- | SEM_S of {scale:int, x:linear} 
- | SEM_P of {opnd1:sem_linear, opnd2:sem_linear}
+   SEM_X of {var:sem_var, scale:int, offset:int, tail:sem_linear}
+ | SEM_I of {c:int}
+
+type sem_arity1 = {opnd1:sem_linear}
+type sem_arity2 = {opnd1:sem_linear, opnd2:sem_linear}
+
+datatype sem_op =
+   SEM_MUL of sem_arity2
+ | SEM_DIV of sem_arity2
+ | SEM_BSWAP of sem_arity1 
+
+datatype sem_rhs =
+   SEM_LIN of {linear:sem_linear}
+ | SEM_OP of {op:sem_op}
 
 datatype sem_stmt = 
-   SEM_MOV of {lhs:sem_id, rhs:sem_linear}
- | SEM_MUL of {lhs:sem_id, opnd1:sem_linear, opnd2:sem_linear}
- | SEM_BSWAP of {lhs:sem_id, rhs:sem_linear}
- | SEM_LOAD of {lhs:sem_id, size:int, rhs:sem_linear}
- | SEM_STORE of {lhs:sem_linear, size:int, rhs:sem_linear}
+   SEM_ASSIGN of {lhs:sem_var, size:int, rhs:sem_rhs}
+ | SEM_LOAD of {lhs:sem_var, size:int, addressSize:int, address:sem_rhs}
+ | SEM_STORE of {address:sem_linear, addressSize:int, size:int, rhs:sem_linear}
  | SEM_LABEL of {id:int}
- | SEM_BRANCH_TO_LABEL of {id:int}
+ | SEM_BRANCH_TO_LABEL of {target:int}
  | SEM_BRANCH of {cond:sem_id, target:sem_id}
  | SEM_CALL of {target:sem_id}
 
@@ -59,12 +67,12 @@ val toSemantic insn = do
                   o2 <- loadOperand y;
                   mov o1 o2 #writeBack
                end
-          | {opnd1=REG x, opnd2=MEM ptr}
+          | {opnd1=REG x, opnd2=MEM ptr}:
                do o1 <- loadOperand ptr;
                   o2 <- loadRegister ptr;
                   load o1 o2 #writeBack
                end
-          | {opnd1=MEM ptr, opnd2=REG x}
+          | {opnd1=MEM ptr, opnd2=REG x}:
                do o1 <- loadOperand ptr;
                   o2 <- loadRegister x;
                   store o1 o2
