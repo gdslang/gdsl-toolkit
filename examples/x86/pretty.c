@@ -206,6 +206,7 @@ char* prettyMnemonic (__obj insn, char* buf, __word sz) {
   switch (__TAG(insn)) {
     case __TAGGED: {
       append(buf,sz,(char*)__tagName(__CASETAG(insn)));
+      break;
     }
     default:
       __fatal("Invalid instruction object");
