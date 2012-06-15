@@ -751,6 +751,7 @@ datatype insn =
  | PAVGW of arity2
  | PBLENDVB of arity2
  | PBLENDW of arity3
+ | PCLMULQDQ of arity3
  | PCMPEQB of arity2
  | PCMPEQD of arity2
  | PCMPEQQ of arity2
@@ -915,6 +916,7 @@ datatype insn =
  | VPAVGW of varity
  | VPBLENDVB of varity
  | VPBLENDW of varity
+ | VPCLMULQDQ of varity
  | VPCMPEQQ of varity
  | VPCMPGTB of varity
  | VPCMPGTD of varity
@@ -2768,6 +2770,11 @@ val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? & vex128? = varity4 VPBLENDVB xmm128 v
 ###  - Blend Packed Words
 val /66 [0x0f 0x3a 0x0e /r] = ternop PBLENDW xmm128 xmm/m128 imm8
 val /vex/66/0f/3a/vexv [0x0e /r] | vex128? = varity4 VPBLENDW xmm128 v/xmm xmm/m128 imm8
+
+### PCLMULQDQ
+###  - Carry-Less Multiplication Quadword
+val /66 [0x0f 0x3a 0x44 /r] = ternop PCLMULQDQ xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x44 /r] | vex128? = varity4 VPCLMULQDQ xmm128 v/xmm xmm/m128 imm8
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
