@@ -747,6 +747,8 @@ datatype insn =
  | PAND of arity2
  | PANDN of arity2
  | PAUSE
+ | PAVGB of arity2
+ | PAVGW of arity2
  | PCMPEQB of arity2
  | PCMPEQD of arity2
  | PCMPEQQ of arity2
@@ -907,6 +909,8 @@ datatype insn =
  | VPALIGNR of varity
  | VPAND of varity
  | VPANDN of varity
+ | VPAVGB of varity
+ | VPAVGW of varity
  | VPCMPEQQ of varity
  | VPCMPGTB of varity
  | VPCMPGTD of varity
@@ -2740,6 +2744,15 @@ val /vex/66/0f/vexv [0xdf /r] | vex128? = varity3 VPANDN xmm128 v/xmm xmm/m128
 ### PAUSE
 ###  - Spin Loop Hint
 val / [0xf3 0x90] = arity0 PAUSE
+
+### PAVGB/PAVGW
+###  - Average Packed Integers
+val / [0x0f 0xe0 /r] = binop PAVGB mm64 mm/m64
+val /66 [0x0f 0xe0 /r] = binop PAVGB xmm128 xmm/m128
+val / [0x0f 0xe3 /r] = binop PAVGW mm64 mm/m64
+val /66 [0x0f 0xe3 /r] = binop PAVGW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe0 /r] | vex128? = varity3 VPAVGB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xe3 /r] | vex128? = varity3 VPAVGW xmm128 v/xmm xmm/m128
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
