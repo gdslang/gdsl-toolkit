@@ -2789,9 +2789,9 @@ val / [0x0f 0x75 /r] = binop PCMPEQW mm64 mm/m64
 val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
 val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
 val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
-val /vex/66/0f/vexv [0x74 /r] | vex128? = ternop VPCMPEQB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x75 /r] | vex128? = ternop VPCMPEQW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x76 /r] | vex128? = ternop VPCMPEQD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x74 /r] | vex128? = varity3 VPCMPEQB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x75 /r] | vex128? = varity3 VPCMPEQW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x76 /r] | vex128? = varity3 VPCMPEQD xmm128 v/xmm xmm/m128
 
 ### PCMPEQQ
 ###  - Compare Packed Qword Data for Equal
