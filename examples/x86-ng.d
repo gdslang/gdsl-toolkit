@@ -750,6 +750,7 @@ datatype insn =
  | PAVGB of arity2
  | PAVGW of arity2
  | PBLENDVB of arity2
+ | PBLENDW of arity3
  | PCMPEQB of arity2
  | PCMPEQD of arity2
  | PCMPEQQ of arity2
@@ -913,6 +914,7 @@ datatype insn =
  | VPAVGB of varity
  | VPAVGW of varity
  | VPBLENDVB of varity
+ | VPBLENDW of varity
  | VPCMPEQQ of varity
  | VPCMPGTB of varity
  | VPCMPGTD of varity
@@ -2761,6 +2763,11 @@ val /vex/66/0f/vexv [0xe3 /r] | vex128? = varity3 VPAVGW xmm128 v/xmm xmm/m128
 # Todo: /is4?
 val /66 [0x0f 0x38 0x10 /r] = binop PBLENDVB xmm128 xmm/m128
 val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? & vex128? = varity4 VPBLENDVB xmm128 v/xmm xmm/m128 xmm128
+
+### PBLENDW
+###  - Blend Packed Words
+val /66 [0x0f 0x3a 0x0e /r] = ternop PBLENDW xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0e /r] | vex128? = varity4 VPBLENDW xmm128 v/xmm xmm/m128 imm8
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
