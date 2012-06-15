@@ -757,6 +757,7 @@ datatype insn =
  | PCMPEQQ of arity2
  | PCMPEQW of arity2
  | PCMPESTRI of arity3
+ | PCMPESTRM of arity3
  | PCMPGRD of arity2
  | PCMPGTB of arity2
  | PCMPGTD of arity2
@@ -925,6 +926,7 @@ datatype insn =
  | VPCMPGTD of varity
  | VPCMPGTW of varity
  | VPCMPESTRI of varity
+ | VPCMPESTRM of varity
  | VPHADDD of varity
  | VPHADDW of varity
  | VPCMPISTRI of varity
@@ -2800,6 +2802,11 @@ val /vex/66/0f/38 [0x29 /r] | vex128? = varity3 VPCMPEQQ xmm128 v/xmm xmm/m128
 ###  - Packed Compare Explicit Length Strings, Return Index
 val /66 [0x0f 0x3a 0x61 /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
 val /vex/66/0f/3a [0x61 /r] = varity3 VPCMPESTRI xmm128 xmm/m128 imm8
+
+### PCMPESTRM
+###  - Packed Compare Explicit Length Strings, Return Mask
+val /66 [0x0f 0x3a 0x60 /r] = ternop PCMPESTRM xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x60 /r] | vex128? = varity3 VPCMPESTRM xmm128 xmm/m128 imm8
 
 ### PCMPGTB/PCMPGTW/PCMPGTD
 ###  - Compare Packed Signed Integers for Greater Than
