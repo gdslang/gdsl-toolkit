@@ -762,6 +762,7 @@ datatype insn =
  | PCMPGTB of arity2
  | PCMPGTD of arity2
  | PCMPGTW of arity2
+ | PCMPGTQ of arity2
  | PCMPISTRI of arity3
  | PHADDD of arity2
  | PHADDW of arity2
@@ -922,11 +923,12 @@ datatype insn =
  | VPCMPEQW of varity
  | VPCMPEQD of varity
  | VPCMPEQQ of varity
+ | VPCMPESTRI of varity
+ | VPCMPESTRM of varity
  | VPCMPGTB of varity
  | VPCMPGTD of varity
  | VPCMPGTW of varity
- | VPCMPESTRI of varity
- | VPCMPESTRM of varity
+ | VPCMPGTQ of varity
  | VPHADDD of varity
  | VPHADDW of varity
  | VPCMPISTRI of varity
@@ -2819,6 +2821,11 @@ val /66 [0x0f 0x66 /r] = binop PCMPGRD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x64 /r] | vex128? = varity3 VPCMPGTB xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x65 /r] | vex128? = varity3 VPCMPGTW xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x66 /r] | vex128? = varity3 VPCMPGTD xmm128 v/xmm xmm/m128
+
+### PCMPGTQ
+###  - Compare Packed Data for Greater Than
+val /66 [0x0f 0x38 0x37 /r] = binop PCMPGTQ xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x37 /r] | vex128? = varity3 VPCMPGTQ xmm128 v/xmm xmm/m128
 
 ### PCMPISTRI
 ###  - Packed Compare Implicit Length Strings, Return Index
