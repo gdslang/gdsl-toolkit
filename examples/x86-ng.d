@@ -917,6 +917,9 @@ datatype insn =
  | VPBLENDVB of varity
  | VPBLENDW of varity
  | VPCLMULQDQ of varity
+ | VPCMPEQB of varity
+ | VPCMPEQW of varity
+ | VPCMPEQD of varity
  | VPCMPEQQ of varity
  | VPCMPGTB of varity
  | VPCMPGTD of varity
@@ -2787,19 +2790,6 @@ val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x74 /r] | vex128? = ternop VPCMPEQB xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x75 /r] | vex128? = ternop VPCMPEQW xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x76 /r] | vex128? = ternop VPCMPEQD xmm128 v/xmm xmm/m128
-
-
-### PCMPEQB/PCMPEQW/PCMPEQD
-###  - Compare Packed Data for Equal
-val / [0x0f 0x74 /r] = binop PCMPEQB mm64 mm/m64
-val /66 [0x0f 0x74 /r] = binop PCMPEQB xmm128 xmm/m128
-val / [0x0f 0x75 /r] = binop PCMPEQW mm64 mm/m64
-val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
-val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
-val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
-val /vex/66/0f/vexv [0x74 /r] = varity3 VCMPEQB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x75 /r] = varity3 VCMPEQW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x76 /r] = varity3 VCMPEQD xmm128 v/xmm xmm/m128
 
 ### PCMPEQQ
 ###  - Compare Packed Qword Data for Equal
