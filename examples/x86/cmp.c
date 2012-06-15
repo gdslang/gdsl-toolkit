@@ -68,10 +68,10 @@ int main (int argc, char** argv) {
       if (___isNil(decoded))
         printf("%-30s: %-42s: failed\n",opcodestr,insnstr);
       else if (len != decodedlen) {
-        pretty(decoded,(__char*)decodedinsnstr,128);
+        pretty(decoded,decodedinsnstr,128);
         printf("%-30s: %-42s: wrong: %s\n",opcodestr,insnstr,decodedinsnstr);
       } else {
-        pretty(decoded,(__char*)decodedinsnstr,128);
+        pretty(decoded,decodedinsnstr,128);
         printf("%-30s: %-42s: %s\n",opcodestr,insnstr,decodedinsnstr);
       }
       fflush(stdout);

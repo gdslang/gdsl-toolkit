@@ -2193,7 +2193,7 @@ val / [0x89 /r]
 val / [0x8a /r] = binop MOV r8 r/m8
 val / [0x8b /r]
  | opndsz? = binop MOV r16 r/m16
- | rexw? = binop MOV r64 r/m32
+ | rexw? = binop MOV r64 r/m64
  | otherwise = binop MOV r32 r/m32
 val / [0x8c /r] = binop MOV r/m16 (r/rexb sreg3?)
 val / [0x8e /r] = binop MOV (r/rexb sreg3?) r/m16
