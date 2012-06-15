@@ -745,6 +745,7 @@ datatype insn =
  | PADDUSW of arity2
  | PALIGNR of arity3
  | PAND of arity2
+ | PANDN of arity2
  | PCMPEQB of arity2
  | PCMPEQD of arity2
  | PCMPEQQ of arity2
@@ -904,6 +905,7 @@ datatype insn =
  | VPADDUSW of varity
  | VPALIGNR of varity
  | VPAND of varity
+ | VPANDN of varity
  | VPCMPEQQ of varity
  | VPCMPGTB of varity
  | VPCMPGTD of varity
@@ -2727,6 +2729,12 @@ val /vex/66/0f/3a [0x0f /r] | vex128? = varity4 VPALIGNR xmm128 v/xmm xmm/m128 i
 val / [0x0f 0xdb /r] = binop PAND mm64 mm/m64
 val /66 [0x0f 0xdb /r] = binop PAND xmm128 xmm/m128
 val /vex/66/0f/vexv [0xdb /r] | vex128? = varity3 VPAND xmm128 v/xmm xmm/m128
+
+### PANDN
+###  - Logical AND NOT
+val / [0x0f 0xdf /r] = binop PANDN mm64 mm/m64
+val /66 [0x0f 0xdf /r] = binop PANDN xmm128 xmm/m128
+val /vex/66/0f/vexv [0xdf /r] | vex128? = varity3 VPANDN xmm128 v/xmm xmm/m128
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
