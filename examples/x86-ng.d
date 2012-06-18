@@ -768,6 +768,7 @@ datatype insn =
  | PEXTRB of arity3
  | PEXTRD of arity3
  | PEXTRQ of arity3
+ | PEXTRW of arity3
  | PHADDD of arity2
  | PHADDW of arity2
  | PINSRB of arity3
@@ -938,6 +939,7 @@ datatype insn =
  | VPEXTRB of varity
  | VPEXTRD of varity
  | VPEXTRQ of varity
+ | VPEXTRW of varity
  | VPHADDD of varity
  | VPHADDW of varity
  | VPINSRB of varity
@@ -2856,6 +2858,22 @@ val /vex/66/0f/3a [0x16 /r]
  | vex128? & vexw0? = varity3 VPEXTRD r/m32 xmm128 imm8
  | vex128? & vexw1? = varity3 VPEXTRQ r/m64 xmm128 imm8
 
+### PEXTRW
+###  - Extract Word
+val / [0x0f 0xc5 /r-nomem]
+ | mode64? = ternop PEXTRW r64 mm/nomem64 imm8
+ | otherwise = ternop PEXTRW r32 mm/nomem64 imm8
+val /66 [0x0f 0xc5 /r-nomem]
+ | mode64? = ternop PEXTRW r64 xmm/nomem128 imm8
+ | otherwise = ternop PEXTRW r32 xmm/nomem128 imm8
+val /66 [0x0f 0x3a 0x15 /r]
+ | mode64? = ternop PEXTRW r/m64 xmm128 imm8
+val /vex/66/0f [0xc5 /r-nomem]
+ | mode64? & vex128? = varity3 VPEXTRW r64 xmm/nomem128 imm8
+ | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r32 xmm/nomem128 imm8
+val /vex/66/0f [0x15 /r]
+ | mode64? & vex128? = varity3 VPEXTRW r/m64 xmm128 imm8
+ | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r/m32 xmm128 imm8
 
 ### PHADDW/PHADDD
 ###  - Packed Horizontal Add
