@@ -765,6 +765,9 @@ datatype insn =
  | PCMPGTQ of arity2
  | PCMPISTRI of arity3
  | PCMPISTRM of arity3
+ | PEXTRB of arity3
+ | PEXTRD of arity3
+ | PEXTRQ of arity3
  | PHADDD of arity2
  | PHADDW of arity2
  | PINSRB of arity3
@@ -932,6 +935,9 @@ datatype insn =
  | VPCMPGTQ of varity
  | VPCMPISTRI of varity
  | VPCMPISTRM of varity
+ | VPEXTRB of varity
+ | VPEXTRD of varity
+ | VPEXTRQ of varity
  | VPHADDD of varity
  | VPHADDW of varity
  | VPINSRB of varity
@@ -2838,6 +2844,18 @@ val /vex/66/0f/3a [0x63 /r] | vex128? = varity3 VPCMPISTRI xmm128 xmm/m128 imm8
 ###  - Packed Compare Implicit Length Strings, Return Mask
 val /66 [0x0f 0x3a 0x62 /r] = ternop PCMPISTRM xmm128 xmm/m128 imm8
 val /vex/66/0f/3a [0x62 /r] | vex128? = varity3 VPCMPISTRM xmm128 xmm/m128 imm8
+
+### PEXTRB/PEXTRD/PEXTRQ
+###  - Extract Byte/Dword/Qword
+val /66 [0x0f 0x3a 0x14 /r] = ternop PEXTRB r/m8 xmm128 imm8
+val /66 [0x0f 0x3a 0x16 /r]
+ | rexw? = ternop PEXTRQ r/m32 xmm128 imm8
+ | otherwise = ternop PEXTRD r/m32 xmm128 imm8
+val /vex/66/0f/3a [0x14 /r] | vex128? & vexw0? = varity3 VPEXTRB r/m8 xmm128 imm8
+val /vex/66/0f/3a [0x16 /r]
+ | vex128? & vexw0? = varity3 VPEXTRD r/m32 xmm128 imm8
+ | vex128? & vexw1? = varity3 VPEXTRQ r/m64 xmm128 imm8
+
 
 ### PHADDW/PHADDD
 ###  - Packed Horizontal Add
