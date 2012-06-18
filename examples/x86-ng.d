@@ -764,6 +764,7 @@ datatype insn =
  | PCMPGTW of arity2
  | PCMPGTQ of arity2
  | PCMPISTRI of arity3
+ | PCMPISTRM of arity3
  | PHADDD of arity2
  | PHADDW of arity2
  | PINSRB of arity3
@@ -929,9 +930,10 @@ datatype insn =
  | VPCMPGTD of varity
  | VPCMPGTW of varity
  | VPCMPGTQ of varity
+ | VPCMPISTRI of varity
+ | VPCMPISTRM of varity
  | VPHADDD of varity
  | VPHADDW of varity
- | VPCMPISTRI of varity
  | VPINSRB of varity
  | VPINSRD of varity
  | VPINSRQ of varity
@@ -2831,6 +2833,11 @@ val /vex/66/0f/38/vexv [0x37 /r] | vex128? = varity3 VPCMPGTQ xmm128 v/xmm xmm/m
 ###  - Packed Compare Implicit Length Strings, Return Index
 val /66 [0x0f 0x3a 0x63 /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
 val /vex/66/0f/3a [0x63 /r] | vex128? = varity3 VPCMPISTRI xmm128 xmm/m128 imm8
+
+### PCMPISTRM
+###  - Packed Compare Implicit Length Strings, Return Mask
+val /66 [0x0f 0x3a 0x62 /r] = ternop PCMPISTRM xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x62 /r] | vex128? = varity3 VPCMPISTRM xmm128 xmm/m128 imm8
 
 ### PHADDW/PHADDD
 ###  - Packed Horizontal Add
