@@ -781,6 +781,8 @@ datatype insn =
  | PINSRQ of arity3
  | PINSRW of arity3
  | PMADDUBSW of arity2
+ | PMADDWD of arity2
+ | PMAXSB of arity2
  | PMOVMSKB of arity2
  | POP of arity1
  | POR of arity2
@@ -959,6 +961,8 @@ datatype insn =
  | VPINSRQ of varity
  | VPINSRW of varity
  | VPMADDUBSW of varity
+ | VPMADDWD of varity
+ | VPMAXSB of varity
  | VPMOVMSKB of varity
  | VPOR of varity
  | VPSHUFB of varity
@@ -2946,6 +2950,17 @@ val /vex/66/0f/vexv [0xc4 /r] | vex128? & vexw0? = varity4 VPINSRW xmm128 v/xmm 
 val / [0x0f 0x38 0x04 /r] = binop PMADDUBSW mm64 mm/m64
 val /66 [0x0f 0x38 0x04 /r] = binop PMADDUBSW xmm128 xmm/m128
 val /vex/66/0f/38/vexv [0x04 /r] | vex128? = varity3 VPMADDUBSW xmm128 v/xmm xmm/m128
+
+### PMADDWD
+###  - Multiply and Add Packed Integers
+val / [0x0f 0xf5 /r] = binop PMADDWD mm64 mm/m64
+val /66 [0x0f 0xf5 /r] = binop PMADDWD xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf5 /r] | vex128? = varity3 VPMADDWD xmm128 v/xmm xmm/m128
+
+### PMAXSB
+###  - Maximum of Packed Signed Byte Integers
+val /66 [0x0f 0x38 0x3c /r] = binop PMAXSB xmm xmm/m128
+val /vex/66/0f/38/vexv [0x3c /r] | vex128? = varity3 VPMAXSB xmm128 v/xmm xmm/m128
 
 ### PMOVMSKB
 ###  - Move Byte Mask
