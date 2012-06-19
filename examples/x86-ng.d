@@ -773,6 +773,8 @@ datatype insn =
  | PHADDW of arity2
  | PHADDSW of arity2
  | PHMINPOSUW of arity2
+ | PHSUBW of arity2
+ | PHSUBD of arity2
  | PINSRB of arity3
  | PINSRD of arity3
  | PINSRQ of arity3
@@ -946,6 +948,8 @@ datatype insn =
  | VPHADDW of varity
  | VPHADDSW of varity
  | VPHMINPOSUW of varity
+ | VPHSUBW of varity
+ | VPHSUBD of varity
  | VPINSRB of varity
  | VPINSRD of varity
  | VPINSRQ of varity
@@ -2898,6 +2902,15 @@ val /vex/66/0f/38/vexv [0x03 /r] | vex128? = varity3 VPHADDSW xmm128 v/xmm xmm/m
 ###  - Packed Horizontal Word Minimum
 val /66 [0x0f 0x38 0x41 /r] = binop PHMINPOSUW xmm128 xmm/m128
 val /vex/66/0f/38 [0x41 /r] | vex128? = varity2 VPHMINPOSUW xmm128 xmm/m128
+
+### PHSUBW/PHSUBD
+###  - Packed Horizontal Subtract
+val / [0x0f 0x38 0x05 /r] = binop PHSUBW mm64 mm/m64
+val /66 [0x0f 0x38 0x05 /r] = binop PHSUBW xmm128 xmm/m128
+val / [0x0f 0x38 0x06 /r] = binop PHSUBD mm64 mm/m64
+val /66 [0x0f 0x38 0x06 /r] = binop PHSUBD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x05 /r] | vex128? = varity3 VPHSUBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x06 /r] | vex128? = varity3 VPHSUBD xmm128 v/xmm xmm/m128
 
 ### PINSRB/PINSRD/PINSRQ
 ###  - Insert Byte/Dword/Qword
