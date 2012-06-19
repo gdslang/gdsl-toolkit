@@ -780,6 +780,7 @@ datatype insn =
  | PINSRD of arity3
  | PINSRQ of arity3
  | PINSRW of arity3
+ | PMADDUBSW of arity2
  | PMOVMSKB of arity2
  | POP of arity1
  | POR of arity2
@@ -957,6 +958,7 @@ datatype insn =
  | VPINSRD of varity
  | VPINSRQ of varity
  | VPINSRW of varity
+ | VPMADDUBSW of varity
  | VPMOVMSKB of varity
  | VPOR of varity
  | VPSHUFB of varity
@@ -2938,6 +2940,12 @@ val /vex/66/0f/3a [0x22 /r]
 val / [0x0f 0xc4] = ternop PINSRW mm64 r/m32 imm8
 val /66 [0x0f 0xc4] = ternop PINSRW xmm128 r/m32 imm8
 val /vex/66/0f/vexv [0xc4 /r] | vex128? & vexw0? = varity4 VPINSRW xmm128 v/xmm r/m32 imm8
+
+### PMADDUBSW
+###  - Multiply and Add Packed Signed and Unsigned Bytes
+val / [0x0f 0x38 0x04 /r] = binop PMADDUBSW mm64 mm/m64
+val /66 [0x0f 0x38 0x04 /r] = binop PMADDUBSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x04 /r] | vex128? = varity3 VPMADDUBSW xmm128 v/xmm xmm/m128
 
 ### PMOVMSKB
 ###  - Move Byte Mask
