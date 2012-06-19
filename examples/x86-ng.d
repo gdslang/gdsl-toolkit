@@ -779,6 +779,7 @@ datatype insn =
  | PINSRB of arity3
  | PINSRD of arity3
  | PINSRQ of arity3
+ | PINSRW of arity3
  | PMOVMSKB of arity2
  | POP of arity1
  | POR of arity2
@@ -955,6 +956,7 @@ datatype insn =
  | VPINSRB of varity
  | VPINSRD of varity
  | VPINSRQ of varity
+ | VPINSRW of varity
  | VPMOVMSKB of varity
  | VPOR of varity
  | VPSHUFB of varity
@@ -2918,7 +2920,7 @@ val /vex/66/0f/38/vexv [0x06 /r] | vex128? = varity3 VPHSUBD xmm128 v/xmm xmm/m1
 ###  - Packed Horizontal Subtract and Saturate
 val / [0x0f 0x38 0x07 /r] = binop PHSUBSW mm64 mm/m64
 val /66 [0x0f 0x38 0x07 /r] = binop PHSUBSW xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0x07 /r] = varity3 VPHSUBSW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x07 /r] | vex128? = varity3 VPHSUBSW xmm128 v/xmm xmm/m128
 
 ### PINSRB/PINSRD/PINSRQ
 ###  - Insert Byte/Dword/Qword
@@ -2930,6 +2932,12 @@ val /vex/66/0f/3a [0x20 /r] | vex128? & vexw0? = varity4 VPINSRB xmm128 v/xmm r/
 val /vex/66/0f/3a [0x22 /r] 
  | vex128? & vexw1? = varity4 VPINSRQ xmm128 v/xmm r/m64 imm8
  | vex128? = varity4 VPINSRD xmm128 v/xmm r/m32 imm8
+
+### PINSRW
+###  - Insert Word
+val / [0x0f 0xc4] = ternop PINSRW mm64 r/m32 imm8
+val /66 [0x0f 0xc4] = ternop PINSRW xmm128 r/m32 imm8
+val /vex/66/0f/vexv [0xc4 /r] | vex128? & vexw0? = varity4 VPINSRW xmm128 v/xmm r/m32 imm8
 
 ### PMOVMSKB
 ###  - Move Byte Mask
