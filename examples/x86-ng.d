@@ -775,6 +775,7 @@ datatype insn =
  | PHMINPOSUW of arity2
  | PHSUBW of arity2
  | PHSUBD of arity2
+ | PHSUBSW of arity2
  | PINSRB of arity3
  | PINSRD of arity3
  | PINSRQ of arity3
@@ -950,6 +951,7 @@ datatype insn =
  | VPHMINPOSUW of varity
  | VPHSUBW of varity
  | VPHSUBD of varity
+ | VPHSUBSW of varity
  | VPINSRB of varity
  | VPINSRD of varity
  | VPINSRQ of varity
@@ -2911,6 +2913,12 @@ val / [0x0f 0x38 0x06 /r] = binop PHSUBD mm64 mm/m64
 val /66 [0x0f 0x38 0x06 /r] = binop PHSUBD xmm128 xmm/m128
 val /vex/66/0f/38/vexv [0x05 /r] | vex128? = varity3 VPHSUBW xmm128 v/xmm xmm/m128
 val /vex/66/0f/38/vexv [0x06 /r] | vex128? = varity3 VPHSUBD xmm128 v/xmm xmm/m128
+
+### PHSUBSW
+###  - Packed Horizontal Subtract and Saturate
+val / [0x0f 0x38 0x07 /r] = binop PHSUBSW mm64 mm/m64
+val /66 [0x0f 0x38 0x07 /r] = binop PHSUBSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x07 /r] = varity3 VPHSUBSW xmm128 v/xmm xmm/m128
 
 ### PINSRB/PINSRD/PINSRQ
 ###  - Insert Byte/Dword/Qword
