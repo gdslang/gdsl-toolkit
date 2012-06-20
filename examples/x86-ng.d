@@ -790,6 +790,8 @@ datatype insn =
  | PMAXUW of arity2
  | PMINSB of arity2
  | PMINSD of arity2
+ | PMINSW of arity2
+ | PMINUB of arity2
 
  | PMOVMSKB of arity2
  | POP of arity1
@@ -978,6 +980,8 @@ datatype insn =
  | VPMAXUW of varity
  | VPMINSB of varity
  | VPMINSD of varity
+ | VPMINSW of varity
+ | VPMINUB of varity
 
  | VPMOVMSKB of varity
  | VPOR of varity
@@ -3014,6 +3018,18 @@ val /vex/66/0f/38/vexv [0x38 /r] | vex128? = varity3 VPMINSB xmm128 v/xmm xmm/m1
 ###  - Minimum of Packed Dword Integers
 val /66 [0x0f 0x38 0x39 /r] = binop PMINSD xmm128 xmm/m128
 val /vex/66/0f/38/vexv [0x39 /r] | vex128? = varity3 VPMINSD xmm128 v/xmm xmm/m128
+
+### PMINSW
+###  - Minimum of Packed Signed Word Integers
+val / [0x0f 0xea /r] = binop PMINSW mm64 mm/m64
+val /66 [0x0f 0xea /r] = binop PMINSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xea /r] | vex128? = varity3 VPMINSW xmm128 v/xmm xmm/m128
+
+### PMINUB
+###  - Minimum of Packed Unsigned Byte Integers
+val / [0x0f 0xda /r] = binop PMINUB mm64 mm/m64
+val /66 [0x0f 0xda /r] = binop PMINUB xmm128 xmm/m128
+val /vex/66/0f/vexv [0xda /r] | vex128? = varity3 VPMINUB xmm128 v/xmm xmm/m128
 
 ### PMOVMSKB
 ###  - Move Byte Mask
