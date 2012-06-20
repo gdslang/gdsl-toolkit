@@ -22,59 +22,99 @@ datatype sem_var =
    SEM_REG of {id:sem_id, offset:int}
 
 datatype sem_linear =
-   SEM_X of {var:sem_var, scale:int, offset:int, tail:sem_linear}
+   SEM_X of {var:sem_var, scale:int, tail:sem_linear}
  | SEM_I of {c:int}
 
-type sem_arity1 = {opnd1:sem_linear}
-type sem_arity2 = {opnd1:sem_linear, opnd2:sem_linear}
+type sem_lin = {size:int, opnd1:sem_linear}
+type sem_arity1 = {size:int, opnd1:sem_linear}
+type sem_arity2 = {size:int, opnd1:sem_linear, opnd2:sem_linear}
 
 datatype sem_op =
    SEM_MUL of sem_arity2
  | SEM_DIV of sem_arity2
  | SEM_BSWAP of sem_arity1 
+ | SEM_CMPLES of sem_arity2
 
 datatype sem_rhs =
-   SEM_LIN of {linear:sem_linear}
+   SEM_LIN of {op:sem_lin}
  | SEM_OP of {op:sem_op}
 
 datatype sem_stmt = 
-   SEM_ASSIGN of {lhs:sem_var, size:int, rhs:sem_rhs}
- | SEM_LOAD of {lhs:sem_var, size:int, addressSize:int, address:sem_rhs}
- | SEM_STORE of {address:sem_linear, addressSize:int, size:int, rhs:sem_linear}
+   SEM_ASSIGN of {lhs:sem_var, rhs:sem_rhs}
+ | SEM_LOAD of {lhs:sem_var, size:int, address:sem_rhs}
+ | SEM_STORE of {address:sem_linear, size:int, rhs:sem_linear}
  | SEM_LABEL of {id:int}
  | SEM_BRANCH_TO_LABEL of {target:int}
- | SEM_BRANCH of {cond:sem_id, target:sem_id}
- | SEM_CALL of {target:sem_id}
+ | SEM_BRANCH of {cond:sem_lin, target:sem_lin}
+ | SEM_CALL of {target:sem_lin}
+ | SEM_RETURN of {target:sem_lin}
 
-val toSemanticRegister r =
-   case r of
-      RAX: SEM_REG {r:ARCH_RAX,offset=0,size=64}
-    | RBX: SEM_REG {r:ARCH_RBX,offset=0,size=64}
+datatype sem_stmts = 
+     SEM_CONS of {stmt:sem_stmt, tail:sem_stmts}
+   | SEM_NIL
+
+val resultSize op =
+   case op of
+      SEM_CMPLES x : 1
+    | SEM_MUL x : $size x
    end
 
-val loadOperand p = 
-val loadRegister r = return (toSemanticRegister r)
+val operandSize op =
+   case op of
+      SEM_CMPLES x : $size x
+    | x : resultSize op
+   end
 
-val mov a b = return (SEM_MOV {lhs=a,rhs=b})
-val mul a b c = return (SEM_MUL {lhs=a, opnd1=b, opnd2=c})
+val translateRegister r = SEM_REG (toSemanticRegister r)
 
-val toSemantic insn = do
+val toSemanticRegister r = 
+   case r of
+      RAX: {r:ARCH_RAX,offset=0,size=64}
+    | RBX: {r:ARCH_RBX,offset=0,size=64}
+   end
+
+val sizeOf x = 
+   case x of
+      REG r: return ($size (toSemanticRegister r))
+    # ...
+   end
+
+val mov = do
+   opnd1 <- query$opnd1;
+   opnd3 <- query$opnd3;
+   sz <- query$size;
+   push (SEM_ASSIGN {lhs=opnd1,rhs=SEM_LIN {op={size=sz,opnd1=opnd3}}})
+end
+
+val lin1 x tl = SEM_X{scale=1, var=x, tail=tl}
+val lin2 x y tl = lin1 x (lin1 y tl)
+
+val /assign a b = SEM_ASSIGN{lhs=a,rhs=b}
+val /add sz a b = SEM_ADD{size=sz,opnd1=a,opnd2=b}
+
+val add = do
+   opnd1 <- query$opnd1;
+   opnd3 <- query$opnd3;
+   sz <- query$size;
+   t0 <- temp;
+   udpate@{opnd3=t0};
+   push (/assign t0 (/add sz opnd1 opnd3));
+   mov
+end
+
+val translate insn = do
    case insn of
-      MOV x:
-         case x of 
-            {opnd1=REG x, opnd2=REG y}:
-               do o1 <- loadRegister x;
-                  o2 <- loadOperand y;
-                  mov o1 o2 #writeBack
-               end
-          | {opnd1=REG x, opnd2=MEM ptr}:
-               do o1 <- loadOperand ptr;
-                  o2 <- loadRegister ptr;
-                  load o1 o2 #writeBack
-               end
-          | {opnd1=MEM ptr, opnd2=REG x}:
-               do o1 <- loadOperand ptr;
-                  o2 <- loadRegister x;
-                  store o1 o2
-               end
-      
+      MOV x: 
+         translateArity2 x {onAssign=mov}
+    | ADD x:
+         translateArity2 x
+            {onAssign=
+               do
+                  opnd1 <- query$opnd1;
+                  opnd3 <- query$opnd3;
+                  sz <- query$size;
+                  t0 <- temp;
+                  update@{writeBack=t0};
+                  push (/assign t0 (/add sz opnd1 opnd3));
+               end}
+   end

@@ -204,6 +204,14 @@ end = struct
                   {flow=flow,
                    stmts=Clos.LETPRJ (y, f, x)::stmts}
                end
+          | LETDECON (y, x, body) =>
+               let
+                  val x = Subst.apply sigma x
+                  val {stmts, flow} = convTerm sigma body
+               in
+                  {flow=flow,
+                   stmts=Clos.LETDECON (y, x)::stmts}
+               end
           | LETUPD (y, x, ds, body) =>
                let
                   val x = Subst.apply sigma x

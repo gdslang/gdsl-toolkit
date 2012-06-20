@@ -1322,7 +1322,7 @@ val sib-with-index-and-base reg s i b = do
     | _:
          case b of
             '101': sib-without-base reg s i
-          | _: return (SUM{a=SCALE{imm=s, opnd=reg rexx i}, b=reg rexb b})
+          | _: return (SUM{b=SCALE{imm=s, opnd=reg rexx i}, a=reg rexb b})
          end
    end
 end

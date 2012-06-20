@@ -49,17 +49,19 @@ static char* prettySum (__obj sum, char* buf, __word sz) {
   __obj a = __RECORD_SELECT(sum,___a);
   __obj b = __RECORD_SELECT(sum,___b);
   buf = prettyOpnd(a,buf,sz);
-  buf = append(buf,sz,"+");
+  __word tag = __CASETAG(b);
+  if (!(tag == __IMM8 || tag == __IMM16 || tag == __IMM32 || tag == __IMM64))
+    buf = append(buf,sz,"+");
   buf = prettyOpnd(b,buf,sz);
   return (buf);
 }
 
 static char* prettyFac (__obj imm, char* buf, __word sz) {
   switch (__CASETAG(imm)) {
-    case 0: buf = append(buf,sz,"1*");break;
-    case 1: buf = append(buf,sz,"2*");break;
-    case 2: buf = append(buf,sz,"4*");break;
-    case 3: buf = append(buf,sz,"8*");break;
+    case 0: buf = append(buf,sz,"*1");break;
+    case 1: buf = append(buf,sz,"*2");break;
+    case 2: buf = append(buf,sz,"*4");break;
+    case 3: buf = append(buf,sz,"*8");break;
     default: __fatal("Invalid scaling factor");
   }
   return (buf);
@@ -68,8 +70,36 @@ static char* prettyFac (__obj imm, char* buf, __word sz) {
 static char* prettyScale (__obj scale, char* buf, __word sz) {
   __obj imm = __RECORD_SELECT(scale,___imm);
   __obj op = __RECORD_SELECT(scale,___opnd);
-  buf = prettyFac(imm,buf,sz);
   buf = prettyOpnd(op,buf,sz);
+  buf = prettyFac(imm,buf,sz);
+  return (buf);
+}
+
+char* prettyImm(__obj imm, __word immSz, char* buf, __word sz) {
+  if (index(buf,'[') == NULL) //FIXME: Need to count `[` and `]`
+    return (prettyOpnd(imm,buf,sz));
+  __word l = strlen(buf);
+  __int x;
+  switch (immSz) {
+    case 8:
+      x = ((int8_t)imm->bv.vec);
+      break;  
+    case 16:
+      x = ((int16_t)imm->bv.vec);
+      break;  
+    case 32:
+      x = ((int32_t)imm->bv.vec);
+      break;  
+    case 64:
+      x = ((int64_t)imm->bv.vec);
+      break;  
+    default:
+      __fatal("Invalid immidate size");
+  }
+  if (x < 0)
+    snprintf(buf+l,sz-l,"-0x%zx",-x);
+  else
+    snprintf(buf+l,sz-l,"+0x%zx",x);
   return (buf);
 }
 
@@ -111,7 +141,7 @@ char* prettyOpnd (__obj opnd, char* buf, __word sz) {
         case __IMM16:
         case __IMM32:
         case __IMM64:
-          s = prettyOpnd(payload,buf,sz);
+          s = prettyImm(payload,payload->bv.sz,buf,sz);
           break;
         default: {
           s = append(buf,sz,(const char*)__tagName(tag));

@@ -191,7 +191,6 @@ end = struct
                   end
                val cps =
                   trans0 
-                     (* TODO: "export" exported symbols as record *)
                      (LETREC (Builtin.mk()@cs, RECORD (exports spec)))
                      (fn z => Exp.APP (main, kont, [z]))
             in
@@ -254,10 +253,6 @@ end = struct
                      e::es => trans0 e (fn x => trans es (x::xs) k)
                    | [] => k (rev xs)
             in
-               (* trans0 e1 (fn x1 =>
-                  trans0 e2 (fn x2 =>
-                     Exp.LETCONT ([(k, [x], kappa x)], Exp.APP (x1, k, [x2]))))
-               *)
                trans0 e1 (fn x1 =>
                   trans es [] (fn xs =>
                      Exp.LETCONT ([(k, [x], kappa x)], Exp.APP (x1, k, xs))))
@@ -319,11 +314,6 @@ end = struct
                val x = fresh variable
                val z = fresh variable
             in
-               
-               (* Exp.LETREC
-                  ([(f, k, [x],
-                     Exp.LETPRJ (z, fld, x, Exp.CC (k, z)))],
-                   kappa f) *)
                Exp.LETVAL
                   (f,
                    Exp.FN
@@ -351,10 +341,6 @@ end = struct
                   val j = fresh continuation
                   val z = fresh variable
                in
-                  (* Exp.LETREC
-                     ([(f, k, [x],
-                       Exp.LETVAL (y, Exp.INJ (c, x), Exp.CC (k, y)))],
-                      kappa f) *)
                   Exp.LETVAL
                      (f,
                       Exp.FN
@@ -423,7 +409,7 @@ end = struct
                let
                   val x = fresh variable
                in
-                  (* TODO *)
+                  (* TODO: value vs (rec) fun *)
                   (n, k, [x], trans1 (APP (e, [ID x])) k)
                end
           | args => (n, k, args, trans1 e k)
@@ -473,10 +459,6 @@ end = struct
                      e::es => trans0 e (fn x => trans es (x::xs) k)
                    | [] => k (rev xs)
             in
-            (* trans0 e1 (fn x1 =>
-               trans0 e2 (fn x2 =>
-                  Exp.APP (x1, kont, [x2])))
-            *)
                trans0 e1 (fn x1 =>
                   trans es [] (fn xs =>
                      Exp.APP (x1, kont, xs)))
@@ -528,7 +510,6 @@ end = struct
                         trans0 e (fn z =>
                            trans y fs ((f, z)::fvs))
             in
-               (* TODO: letval f = \k x. ... *)
                Exp.LETVAL
                   (f,
                    Exp.FN (k, [x], trans x fs []),
@@ -541,7 +522,6 @@ end = struct
                val x = fresh variable
                val z = fresh variable
             in
-               (* TODO: letval f = \k x. ... *)
                Exp.LETVAL
                   (f,
                    Exp.FN (k, [x], Exp.LETPRJ (z, fld, x, Exp.CC (k, [z]))),
@@ -564,7 +544,6 @@ end = struct
                   val x = fresh variable
                   val y = fresh variable
                in
-                  (* TODO: letval f = \k x. ... *)
                   Exp.LETVAL
                      (f,
                       Exp.FN

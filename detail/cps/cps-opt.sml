@@ -41,6 +41,7 @@ structure CheckDefUse = struct
          LETVAL (x, v, t) => (def x; visitCVal n v; visitTerm n t)
        | LETREC (ds, t) => (app (visitDecl n) ds; visitTerm n t)
        | LETPRJ (x, _, y, t) => (def x; use y; visitTerm n t)
+       | LETDECON (x, y, t) => (def x; use y; visitTerm n t)
        | LETUPD (x, y, fs, t) =>
             (def x
             ;use y
@@ -158,6 +159,7 @@ structure Census = struct
          LETVAL (x, v, t) => (def x; visitCVal n v; visitTerm n t)
        | LETREC (ds, t) => (app (visitDecl n) ds; visitTerm n t)
        | LETPRJ (x, _, y, t) => (def x; update (E n) y; visitTerm n t)
+       | LETDECON (x, y, t) => (def x; update (E n) y; visitTerm n t)
        | LETUPD (x, y, fs, t) =>
             (def x
             ;update (E n) y
@@ -313,6 +315,14 @@ structure FreeVars = struct
                in
                   env
                end
+          | LETDECON (y, x, body) =>
+               let
+                  val env = visitTerm (env, body)
+                  val env = use env x
+                  val env = def env y
+               in
+                  env
+               end
           | LETUPD (y, x, fs, body) =>
                let
                   val env = visitTerm (env, body)
@@ -456,6 +466,14 @@ structure Subst = struct
                val sigma = extend sigma x' x
             in
                LETPRJ (x', f, y', rename sigma t)
+            end
+       | LETDECON (x, y, t) =>
+            let
+               val x' = copy x
+               val y' = apply sigma y
+               val sigma = extend sigma x' x
+            in
+               LETDECON (x', y', rename sigma t)
             end
        | LETUPD (x, y, fs, t) =>
             let
@@ -607,6 +625,7 @@ structure Rec = struct
                   env
                end
            | LETPRJ (y, _, x, t) => unuse (use (visitTerm (t, env)) x) y
+           | LETDECON (y, x, t) => unuse (use (visitTerm (t, env)) x) y
            | LETUPD (y, x, fs, t) =>
                let
                   val env = visitTerm (t, env)
@@ -871,6 +890,7 @@ structure Cost = struct
              | LETVAL (_, PRI _, body) => lp (body, n)
              | LETVAL (_, _, body) => lp (body, n)
              | LETPRJ (_, _, _, body) => lp (body, n)
+             | LETDECON (_, _, body) => lp (body, n)
              | LETUPD (_, _, _, body) => lp (body, n)
              | LETCONT (cs, body) =>
                foldl
@@ -969,6 +989,11 @@ end = struct
                               click(); simplify env sigma K
                            end)
             end
+       | LETDECON (x, y, L) =>
+            LETDECON
+               (x,
+                Subst.apply sigma y,
+                simplify env sigma L)
        | LETUPD (x, y, fs, K) =>
             let
                val y = Subst.apply sigma y
@@ -1061,6 +1086,11 @@ structure HoistFun = struct
             LETPRJ
                (x,
                 f,
+                Subst.apply sigma y,
+                simplify env sigma t)
+       | LETDECON (x, y, t) =>
+            LETDECON
+               (x,
                 Subst.apply sigma y,
                 simplify env sigma t)
        | LETUPD (x, y, fs, t) =>
@@ -1316,6 +1346,11 @@ structure BetaContFun = struct
              f,
              Subst.apply sigma y,
              simplify env sigma t)
+      | LETDECON (x, y, t) =>
+         LETDECON
+            (x,
+             Subst.apply sigma y,
+             simplify env sigma t)
       | LETUPD (x, y, fs, t) =>
          LETUPD
             (x,
@@ -1509,6 +1544,11 @@ structure BetaContFunShrink = struct
          LETPRJ
             (x,
              f,
+             Subst.apply sigma y,
+             simplify env sigma t)
+      | LETDECON (x, y, t) =>
+         LETDECON
+            (x,
              Subst.apply sigma y,
              simplify env sigma t)
       | LETUPD (x, y, fs, t) =>
@@ -1764,6 +1804,11 @@ structure BetaContract = struct
             LETPRJ
                (x,
                 f,
+                Subst.apply sigma y,
+                simplify env sigma t)
+       | LETDECON (x, y, t) =>
+            LETDECON
+               (x,
                 Subst.apply sigma y,
                 simplify env sigma t)
        | LETUPD (x, y, fs, t) =>
