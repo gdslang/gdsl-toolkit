@@ -385,11 +385,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let                                      
          val envFun = infExp (st,env) e1
          val envArg = List.foldl (fn (e2,env) => infExp (st,env) e2) env es2
-         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)*)
-         (*val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
+         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)
+         val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction (envArgRes, List.length es2)
-         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)*)
+         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.toString envArgRes)*)
          (* make the result of the call-site depend on the result of the
          function; the flow expressing that formal parameters depend on actual
          parameters follows from contra-variance*)
