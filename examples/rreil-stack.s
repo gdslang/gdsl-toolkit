@@ -1,4 +1,6 @@
 
+export = translate
+
 datatype sem_id =
    ARCH_RAX
  | ARCH_RBX
@@ -31,6 +33,7 @@ type sem_arity2 = {size:int, opnd1:sem_linear, opnd2:sem_linear}
 datatype sem_op =
    SEM_MUL of sem_arity2
  | SEM_DIV of sem_arity2
+ | SEM_ADD of sem_arity2
  | SEM_BSWAP of sem_arity1 
  | SEM_CMPEQ of sem_arity2
  | SEM_CMPLES of sem_arity2
@@ -68,17 +71,17 @@ val operandSize op =
     | x : resultSize op
    end
 
-val translateRegister r = SEM_REG (toSemanticRegister r)
+val translateRegister r = SEM_VAR (semanticRegisterOf r)
 
-val toSemanticRegister r = 
+val semanticRegisterOf r = 
    case r of
-      RAX: {r:ARCH_RAX,offset=0,size=64}
-    | RBX: {r:ARCH_RBX,offset=0,size=64}
+      RAX: {r=ARCH_RAX,offset=0,size=64}
+    | RBX: {r=ARCH_RBX,offset=0,size=64}
    end
 
 val sizeOf x = 
    case x of
-      REG r: return ($size (toSemanticRegister r))
+      REG r: return ($size (semanticRegisterOf r))
     # ...
    end
 
@@ -86,7 +89,7 @@ val lin1/0 x = SEM_X{scale=1, var=x, tail=SEM_I{c=0}}
 val lin1 x tl = SEM_X{scale=1, var=x, tail=tl}
 val lin2 x y tl = lin1 x (lin1 y tl)
 
-val var//0 x = SEM_VAR{id:x,offset=0}
+val var//0 x = SEM_VAR{id=x,offset=0}
 val t0 = return (var//0 VIRT_T0)
 val t1 = return (var//0 VIRT_T1)
 val t2 = return (var//0 VIRT_T2)
@@ -97,20 +100,28 @@ val t6 = return (var//0 VIRT_T6)
 val t7 = return (var//0 VIRT_T6)
 
 val /ASSIGN a b = SEM_ASSIGN{lhs=a,rhs=b}
-val /ADD sz a b = SEM_ADD{size=sz,opnd1=a,opnd2=b}
+val /ADD sz a b = SEM_OP{op=SEM_ADD{size=sz,opnd1=a,opnd2=b}}
+val /LIN sz a = SEM_LIN{op={size=sz, op=a}}
 
-val /mov a b = push (/ASSIGN a b)
-val /add a b c = push (/ASSIGN a (/ADD sz (lin1/0 b) (lin1/0 c)))
+val push insn = do
+   tail <- query $stack;
+   update @{stack=SEM_CONS{stmt=insn,tail=tail}}
+end
+
+val /mov sz a b = push (/ASSIGN a (/LIN sz (lin1/0 b)))
+val /add sz a b c = push (/ASSIGN a (/ADD sz (lin1/0 b) (lin1/0 c)))
 
 val // a offs =
-   case s of
-      SEM_VAR x: @{offset=$offset x + offs} x
+   case a of
+      SEM_VAR x: @{offset = $offset x + offs} x
+   end
 
+val writeBack sz a t = /mov sz a t
 val read x = x
 val write x = x
 val intro t = t
 
-val translate insn = do
+val translate insn =
    case insn of
       ADD x:
          do a <- write ($opnd1 x);
@@ -121,6 +132,6 @@ val translate insn = do
             /add sz t b c;
 
             # addFlags sz t a b;
-            writeBack a t
+            writeBack sz a t
          end
    end

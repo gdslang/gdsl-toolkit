@@ -24,9 +24,7 @@ end = struct
 	in
 	   case SpecParser.parse lexer ins of
          (SOME pt, _, []) => SOME pt
-	    | (_, _, errs) =>
-            (List.app (parseErr errStrm) errs
-		      ;NONE)
+       | _ => NONE
 	end
 
    val parseFile =
@@ -50,7 +48,10 @@ end = struct
          in
             parseFile (ers, ins)
                before
-                  (TextIO.closeIn ins; Error.report (TextIO.stdErr, ers))
+                  (TextIO.closeIn ins;
+                   if Error.anyErrors ers
+                      then raise CompilationMonad.CompilationError
+                   else ())
          end
    in
       List.concat (List.mapPartial process fps)

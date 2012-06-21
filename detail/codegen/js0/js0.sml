@@ -91,7 +91,7 @@ structure JS0 = struct
                      fun branch (k,xs) = Vector.fromList [JSStmt.return (JSExp.call (id k, map id xs))]
                      val cs' = List.filter (fn (cs, _) => not (null cs)) cs
                      val dflt = List.find (fn (cs, _) => null cs) cs
-                     val fatalDflt = Vector.fromList [JSStmt.throw (JSExp.string "Match")]
+                     val fatalDflt = Vector.fromList [JSStmt.throw (JSExp.string "[Match]")]
                      val dflt =
                         case dflt of
                            NONE => fatalDflt
