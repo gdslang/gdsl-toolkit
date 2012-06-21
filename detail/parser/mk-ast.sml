@@ -112,14 +112,14 @@ functor MkAst (Core: AST_CORE) = struct
     | STRlit of string
     | VEClit of bitpat_lit
 
-   type specification = decl list mark
+   type specification = decl list
 
    structure PP = struct
       open Layout Pretty Core
 
       val is = seq [space, str "="]
 
-      fun spec (ss:specification) = align (map decl (#tree ss))
+      fun spec (ss:specification) = align (map decl ss)
 
       and decl t =
          case t of

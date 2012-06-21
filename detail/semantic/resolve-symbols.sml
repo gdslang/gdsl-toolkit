@@ -299,9 +299,9 @@ end = struct
 
    in
       (Primitives.registerPrimitives ()
-      ;convMark (fn s => List.map (regDecl s)) ast
+      ;List.map (regDecl SymbolTable.noSpan) ast
       (*;TextIO.print (smapToString (!specDec))*)
-      ;convMark (fn s => List.map (convDecl s)) ast)
+      ;List.map (convDecl SymbolTable.noSpan) ast)
    end
 
    val resolveSymbolPass =

@@ -21,7 +21,7 @@ end = struct
    type decode = pat list * (exp, (exp * exp) list) Sum.t
    type o = (value list * decode list SymMap.map) Spec.t
 
-   fun split {span, tree} = let
+   fun split tree = let
       open AST
       val granularity = ref (~1: IntInf.int)
       val typealias = ref []

@@ -3,8 +3,8 @@ structure Parser : sig
 
    (* parse a file; return NONE if there are syntax errors *)
    val parseFile: (Error.err_stream * TextIO.instream) -> SpecParseTree.specification option
-   val parse: string -> SpecParseTree.specification option
-   val run: TextIO.instream -> SpecParseTree.specification CompilationMonad.t
+   val parse: string list -> SpecParseTree.specification
+   val run: string list -> SpecParseTree.specification CompilationMonad.t
    val trace: TextIO.outstream * SpecParseTree.specification -> SpecParseTree.specification CompilationMonad.t
 
 end = struct
@@ -42,14 +42,27 @@ end = struct
                NONE => ()
              | SOME x => SpecParseTree.PP.prettyTo (os, x)}
 
-   fun run ins = let
+   fun parse fps = let
+      fun process fp = 
+         let
+            val ins = TextIO.openIn fp
+            val ers = Error.mkErrStream fp
+         in
+            parseFile (ers, ins)
+               before
+                  (TextIO.closeIn ins; Error.report (TextIO.stdErr, ers))
+         end
+   in
+      List.concat (List.mapPartial process fps)
+   end
+
+   fun run fps = let
       open CompilationMonad
       infix >>=
    in
-      getErrorStream >>= (fn errs =>
-      case parseFile (errs, ins) of
-         NONE => fail
-       | SOME spec => return spec)
+      case parse fps of
+         [] => fail
+       | spec => return spec
    end
 
    fun trace (os, spec) = let
@@ -59,13 +72,4 @@ end = struct
      ;return spec
    end
 
-   fun parse fp = let
-      val ins = TextIO.openIn fp
-      val ers = Error.mkErrStream fp
-      val () = Controls.set (BasicControl.verbose, 1)
-   in
-      parseFile (ers, ins)
-         before
-            (TextIO.closeIn ins; Error.report (TextIO.stdErr, ers))
-   end
 end

@@ -98,8 +98,7 @@
 );
 
 Program
-   : Decl (";"? Decl)* =>
-      ({span={file= !sourcemap, span=FULL_SPAN}, tree=Decl::SR})
+   : Decl (";"? Decl)* => (Decl::SR)
    ;
 
 Decl

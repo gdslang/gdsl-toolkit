@@ -20,6 +20,7 @@ structure Error :> sig
 
   (* make an error stream. *)
     val mkErrStream : string -> err_stream
+    val mkErrStream' : unit -> err_stream
 
     val anyErrors : err_stream -> bool
     val sourceFile : err_stream -> string
@@ -88,6 +89,14 @@ structure Error :> sig
     fun mkErrStream filename = ES{
 	    srcFile = filename,
 	    sm = SP.mkSourcemap' filename,
+	    errors = ref [],
+	    numErrors = ref 0,
+	    numWarnings = ref 0
+	  }
+
+    fun mkErrStream' filename = ES{
+	    srcFile = "<unkown>",
+	    sm = SP.mkSourcemap (),
 	    errors = ref [],
 	    numErrors = ref 0,
 	    numWarnings = ref 0
