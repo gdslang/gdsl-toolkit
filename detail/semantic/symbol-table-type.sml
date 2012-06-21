@@ -50,17 +50,23 @@ structure SymbolTable :> SymbolTableSig = struct
    datatype symid = SymId of int
 
    fun toInt (SymId i) = i
-   val noSpan = (Position.fromInt ~1, Position.fromInt ~1)
+   val noSpan =
+      {file=AntlrStreamPos.mkSourcemap(),
+       span=(Position.fromInt ~1, Position.fromInt ~1)}
 
-   fun compare_span ((p1s,p1e), (p2s,p2e)) =
-      (case Int.compare (Position.toInt p1s,
-                         Position.toInt p2s) of
-           EQUAL => Int.compare (Position.toInt p1e,
-                                 Position.toInt p2e)
-         | res => res)
-   fun eq_span ((p1s,p1e), (p2s,p2e)) =
-      Position.toInt p1s = Position.toInt p2s andalso
-      Position.toInt p1e = Position.toInt p2e
+   fun compare_span ({file=f1,span=(p1s,p1e)}, {file=f2,span=(p2s,p2e)}) =
+      let
+         fun fname f = Option.getOpt (AntlrStreamPos.fileName f 0,"")
+      in
+         case String.compare (fname f1, fname f2) of
+            EQUAL =>
+               (case Int.compare (Position.toInt p1s, Position.toInt p2s) of
+                  EQUAL =>
+                     Int.compare (Position.toInt p1e, Position.toInt p2e)
+                | res => res)
+          | res => res
+      end
+   fun eq_span (a, b) = compare_span (a, b) = EQUAL
 
    fun compare_symid (SymId i1, SymId i2) = Int.compare (i1,i2)
    fun eq_symid  (SymId i1, SymId i2) = i1=i2

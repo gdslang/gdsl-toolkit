@@ -23,7 +23,6 @@ end = struct
 
    infix >>= >>
 
-   fun resolveErr errStrm (pos, msg) = Error.errorAt(errStrm, (pos, pos), msg)
    val parseErr = Error.parseError SpecTokens.toString
    fun convMark conv {span, tree} = {span=span, tree=conv span tree}
    fun startScope () = ST.varTable := VI.push (!ST.varTable)

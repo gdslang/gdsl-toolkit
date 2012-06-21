@@ -93,8 +93,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val bindSymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>")
    val bindASymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>=")
 
-   fun reportError conv ({span = _}, env) {span=s as (p,_), tree=t} =
-      conv ({span = s},env) t
+   fun reportError conv (_, env) {span=s, tree=t} =
+      conv ({span=s},env) t
       handle (S.UnificationFailure str) =>
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))

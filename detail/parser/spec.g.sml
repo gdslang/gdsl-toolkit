@@ -188,8 +188,10 @@ SpecTokens
  
    structure PT = SpecParseTree
 
+   val sourcemap = CurrentSourcemap.sourcemap
+
    
-   fun mark cons (span : AntlrStreamPos.span, tr) = cons{span = span, tree = tr}
+   fun mark cons (span : AntlrStreamPos.span, tr) = cons{span = {file = !sourcemap, span = span}, tree = tr}
 
    
    val markDecl = mark PT.MARKdecl
@@ -226,7 +228,7 @@ SpecTokens
 
 fun Program_PROD_1_ACT (SR, Decl, SR_SPAN : (Lex.pos * Lex.pos), Decl_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-      {span=FULL_SPAN, tree=Decl::SR})
+      {span={file= !sourcemap, span=FULL_SPAN}, tree=Decl::SR})
 fun Decl_PROD_1_ACT (EQ, Int, KW_granularity, EQ_SPAN : (Lex.pos * Lex.pos), Int_SPAN : (Lex.pos * Lex.pos), KW_granularity_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
 fun Decl_PROD_2_ACT (EQ, Qid, KW_export, EQ_SPAN : (Lex.pos * Lex.pos), Qid_SPAN : (Lex.pos * Lex.pos), KW_export_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -367,7 +369,7 @@ fun ApplyExp_PROD_1_ACT (exp, AtomicExp, exp_SPAN : (Lex.pos * Lex.pos), AtomicE
          mark PT.MARKexp (FULL_SPAN, exp))
 fun ApplyExp_PROD_2_ACT (TILDE, AtomicExp, TILDE_SPAN : (Lex.pos * Lex.pos), AtomicExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-      mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, [AtomicExp])))
+      mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Op.uminus}, [AtomicExp])))
 fun AtomicExp_PROD_1_ACT (Lit, Lit_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
 fun AtomicExp_PROD_2_ACT (Qid, Qid_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -410,11 +412,11 @@ fun Name_PROD_1_ACT (ID, ID_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * L
 fun ConBind_PROD_1_ACT (CONS, CONS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( CONS)
 fun ConUse_PROD_1_ACT (CONS, CONS_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( {span=FULL_SPAN, tree=CONS})
+  ( {span={file= !sourcemap, span=FULL_SPAN}, tree=CONS})
 fun Sym_PROD_1_ACT (SYMBOL, SYMBOL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( SYMBOL)
 fun Qid_PROD_1_ACT (ID, ID_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( {span=FULL_SPAN, tree=ID})
+  ( {span={file= !sourcemap, span=FULL_SPAN}, tree=ID})
 
     end
 

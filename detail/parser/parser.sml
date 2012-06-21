@@ -11,12 +11,15 @@ end = struct
 
    structure SpecParser = SpecParseFn(SpecLex)
 
-   fun lexErr errStrm (pos, msg) = Error.errorAt(errStrm, (pos, pos), msg)
+   fun lexErr errStrm (pos, msg) =
+      Error.errorAt(errStrm, {file= !CurrentSourcemap.sourcemap, span=(pos, pos)}, msg)
 
    val parseErr = Error.parseError SpecTokens.toString
 
    fun parseFile (errStrm, file) = let
-	   val lexer = SpecLex.lex (Error.sourceMap errStrm) (lexErr errStrm)
+      val sm = Error.sourceMap errStrm
+      val _ = CurrentSourcemap.sourcemap := sm
+	   val lexer = SpecLex.lex sm (lexErr errStrm)
       val ins = SpecLex.streamifyInstream file
 	in
 	   case SpecParser.parse lexer ins of
