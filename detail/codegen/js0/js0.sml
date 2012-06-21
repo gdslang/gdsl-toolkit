@@ -1,5 +1,4 @@
 
-
 structure JS0Templates = struct
    val runtime = ExpandFile.mkTemplateFromFile "detail/codegen/js0/runtime.js"
 
@@ -70,6 +69,7 @@ structure JS0 = struct
              | LETREC (ds,t) => visitExp (t, foldl visitRec acc ds)
              | LETCONT (ds,t) => visitExp (t, foldl visitCont acc ds)
              | LETPRJ (x,f,y,t) => visitExp (t, JSStmt.const (id x, JSExp.select (fieldId f, JSExp.id (id y)))::acc)
+             | LETDECON (x,y,t) => visitExp (t, JSStmt.const (id x, JSExp.select (Id.fromString "payload", JSExp.id (id y)))::acc)
              | LETUPD (x,y,fs,t) =>
                   (* FIXME: destructive update! *)
                   let
