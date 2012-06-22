@@ -2742,8 +2742,8 @@ val / [0x0f 0x63 /r] = binop PACKSSWB mm64 mm/m64
 val /66 [0x0f 0x63 /r] = binop PACKSSWB xmm128 xmm/m128
 val / [0x0f 0x6b /r] = binop PACKSSDW mm64 mm/m64
 val /66 [0x0f 0x6b /r] = binop PACKSSDW xmm128 xmm/m128
-val /vex/66/0f/vexv [0x63 /r] | vex128? = varity2 VPACKSSWB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x6b /r] | vex128? = varity2 VPACKSSDW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x63 /r] | vex128? = varity3 VPACKSSWB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6b /r] | vex128? = varity3 VPACKSSDW xmm128 v/xmm xmm/m128
 
 ### PACKUSDW
 ###  - Pack with Unsigned Saturation
@@ -2754,7 +2754,7 @@ val /vex/66/0f/38/vexv [0x2b /r] | vex128? = varity3 VPACKUSDW xmm128 v/xmm xmm/
 ###  - Pack with Unsigned Saturation
 val / [0x0f 0x67 /r] = binop PACKUSWB mm64 mm/m64
 val /66 [0x0f 0x67 /r] = binop PACKUSWB xmm128 xmm/m128
-val /vex/66/0f/vexv [0x67 /r] | vex128? = varity3 xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x67 /r] | vex128? = varity3 VPACKUSWB xmm128 v/xmm xmm/m128
 
 ### PADDB/PADDW/PADDD
 ###  - Add Packed Integers
@@ -2789,8 +2789,8 @@ val / [0x0f 0xdc /r] = binop PADDUSB mm64 mm/m64
 val /66 [0x0f 0xdc /r] = binop PADDUSB xmm128 xmm/m128
 val / [0x0f 0xdd /r] = binop PADDUSW mm64 mm/m64
 val /66 [0x0f 0xdd /r] = binop PADDUSW xmm128 xmm/m128
-val /vex/66/0f/vexv [0xdc /r] | vex128? = VPADDUSB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0xdd /r] | vex128? = VPADDUSW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xdc /r] | vex128? = varity3 VPADDUSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xdd /r] | vex128? = varity3 VPADDUSW xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
@@ -2916,10 +2916,10 @@ val /66 [0x0f 0x3a 0x15 /r]
  | mode64? = ternop PEXTRW r/m64 xmm128 imm8
 val /vex/66/0f [0xc5 /r-nomem]
  | mode64? & vex128? = varity3 VPEXTRW r64 xmm/nomem128 imm8
- | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r32 xmm/nomem128 imm8
+#TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r32 xmm/nomem128 imm8
 val /vex/66/0f [0x15 /r]
  | mode64? & vex128? = varity3 VPEXTRW r/m64 xmm128 imm8
- | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r/m32 xmm128 imm8
+#TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r/m32 xmm128 imm8
 
 ### PHADDW/PHADDD
 ###  - Packed Horizontal Add
@@ -2987,13 +2987,13 @@ val /vex/66/0f/vexv [0xf5 /r] | vex128? = varity3 VPMADDWD xmm128 v/xmm xmm/m128
 
 ### PMAXSB
 ###  - Maximum of Packed Signed Byte Integers
-val /66 [0x0f 0x38 0x3c /r] = binop PMAXSB xmm xmm/m128
+val /66 [0x0f 0x38 0x3c /r] = binop PMAXSB xmm128 xmm/m128
 val /vex/66/0f/38/vexv [0x3c /r] | vex128? = varity3 VPMAXSB xmm128 v/xmm xmm/m128
 
 ### PMAXSD
 ###  - Maximum of Packed Signed Dword Integers
 val /66 [0x0f 0x38 0x3d /r] = binop PMAXSD xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0x3d /r] | vex128? = varity3 PMAXSD xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x3d /r] | vex128? = varity3 VPMAXSD xmm128 v/xmm xmm/m128
 
 ### PMAXSW
 ###  - Maximum of Packed Signed Word Integers
@@ -3015,7 +3015,7 @@ val /vex/66/0f/38/vexv [0x3f /r] | vex128? = varity3 VPMAXUD xmm128 v/xmm xmm/m1
 ### PMAXUW
 ###  - Maximum of Packed Word Integers
 val /66 [0x0f 0x38 0x3e /r] = binop PMAXUW xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0x3e /r] | vex128? = varity3 PMAXUW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x3e /r] | vex128? = varity3 VPMAXUW xmm128 v/xmm xmm/m128
 
 ### PMINSB
 ###  - Minimum of Packed Signed Byte Integers
