@@ -47,7 +47,37 @@ datatype register =
 val register-from-bits bits =
  case bits of
     '00000': R0
-  | '00000': R1
+  | '00001': R1
+  | '00010': R2
+  | '00011': R3
+  | '00100': R4
+  | '00101': R5
+  | '00110': R6
+  | '00111': R7
+  | '01000': R8
+  | '01001': R9
+  | '01010': R10
+  | '01011': R11
+  | '01100': R12
+  | '01101': R13
+  | '01110': R14
+  | '01111': R15
+  | '10000': R16
+  | '10001': R17
+  | '10010': R18
+  | '10011': R19
+  | '10100': R20
+  | '10101': R21
+  | '10110': R22
+  | '10111': R23
+  | '11000': R24
+  | '11001': R25
+  | '11010': R26
+  | '11011': R27
+  | '11100': R28
+  | '11101': R29
+  | '11110': R30
+  | '11111': R31
 
 val d bit = do
  rd <- query $rd;
@@ -62,7 +92,14 @@ val r bit = do
 end
 
 val rd = do
+ rd <- query $rd;
+ return (register-from-bits rd)
+end
  
+val rr = do
+ rr <- query $rd;
+ return (register-from-bits rr)
+end
 
 val binop cons left right = do
  _left <- left;
