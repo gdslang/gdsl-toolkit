@@ -172,6 +172,17 @@ structure ord_symid = struct
   val compare = SymbolTable.compare_symid
 end
 
+structure SymTab = struct
+   structure Key = struct
+      type hash_key = SymbolTable.symid
+      val hashVal = Word.fromInt o SymbolTable.toInt
+      val sameKey = SymbolTable.eq_symid
+   end
+   structure Tab = HashTableFn(Key)
+   open Tab
+   fun new () = mkTable(1000,Fail"Invalid symbol")
+end
+
 structure SymMap = RedBlackMapFn(ord_symid)
 structure SymSet = RedBlackSetFn(ord_symid)
 

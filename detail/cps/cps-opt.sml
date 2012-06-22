@@ -779,26 +779,24 @@ structure Rec = struct
 end
 
 structure FunInfo = struct
-   structure Map = SymMap
+   structure Map = SymTab
    open CPS CPS.Exp
    datatype t =
       F of Var.v * Var.c * Var.v list * term
     | C of Var.c * Var.v list * term
 
-   val env = ref Map.empty : t SymMap.map ref
-   fun reset () = env := Map.empty
-   fun bindFun (f, (k, xs, K)) =
-      env := Map.insert (!env, f, F (f, k, xs, K))
-   fun bindCont (k, (xs, K)) =
-      env := Map.insert (!env, k, C (k, xs, K))
-   fun lookup s f = s (Map.lookup (!env, f))
-   fun find s f = Option.map s (Map.find (!env, f))
+   val env = Map.new() : t Map.hash_table
+   fun reset () = Map.clear env
+   fun bindFun (f, (k, xs, K)) = Map.insert env (f, F (f, k, xs, K))
+   fun bindCont (k, (xs, K)) = Map.insert env (k, C (k, xs, K))
+   fun lookup s f = s (Map.lookup env f)
+   fun find s f = Option.map s (Map.find env f)
    fun getFun (F x) = x
      | getFun _ = raise Match
    fun getCont (C x) = x
      | getCont _ = raise Match
 
-   fun member k = Map.inDomain (!env, k)
+   fun member k = Map.inDomain env k
 
    val lookupFun = lookup getFun
    val lookupCont = lookup getCont
@@ -826,16 +824,17 @@ structure FunInfo = struct
                ;bindFun (f, (k, xs, K)))) ds
             ;visitTerm body)
        | _ => ()
+
    fun run t = (reset();visitTerm t)
 
-   fun app f = Map.app f (!env)
+   fun app f = Map.app f env
 
    fun dump () =
       Pretty.prettyTo
          (TextIO.stdOut,
-          Pretty.symmap
+          Pretty.symtab
             {key=CPS.PP.var,
-             item=fn _ => Pretty.empty} (!env))
+             item=fn _ => Pretty.empty} env)
 end
 
 structure Cost = struct
@@ -1408,7 +1407,7 @@ structure BetaContFun = struct
                NONE => CC (k, ys)
              | SOME (xs, K) =>
                   if length xs <> length ys
-                     then (* CC (k, ys) *) raise Fail "betaContFun.CC"
+                     then (* CC (k, ys) *) raise Fail "betaContFun.arity"
                   else if not (isInliningCandidateCont k K)
                      then CC (k, ys)
                   else
@@ -1471,270 +1470,6 @@ structure BetaContFun = struct
       in
          (t', !clicks)
       end
-end
-
-structure BetaContFunShrink = struct
-   structure FI = FunInfo
-   structure Map = SymMap
-   structure Set = SymSet
-   open CPS CPS.Exp
-
-   val clicks = ref 0
-   val inlined = ref Map.empty : int Map.map ref
-   fun click () = clicks := !clicks + 1
-   fun reset () = (clicks := 0; inlined := Map.empty)
-
-   fun count0 x =
-      case Map.find (!inlined, x) of
-         NONE => 0
-       | SOME n => n
-
-   fun markInlined f =
-      (if SymbolTable.toInt f < 1000
-         then (print (Aux.failWithSymbol "inline" f);print"\n")
-       else ()
-      ;inlined := Map.insert(!inlined, f, count0 f + 1))
-
-   fun gotInlined f = count0 f > 0
-
-   fun inliningCandidate f =
-      not (Rec.isRec f)
-      andalso Census.count#app f = 1
-      andalso Census.count#esc f = 0
-
-   datatype t =
-      F of Var.c * Var.v list * term
-    | C of Var.v list * term
-
-   fun insertFun (env, f, body) = Map.insert (env, f, F body)
-   fun insertCont (env, k, body) = Map.insert (env, k, C body)
-
-   fun lookup s (env, f) = s (Map.lookup (env, f))
-   fun find s (env, f) = Option.map s (Map.find (env, f))
-
-   fun getFun (F x) = x
-     | getFun _ = raise Match
-   fun getCont (C x) = x
-     | getCont _ = raise Match
-
-   val lookupFun = lookup getFun
-   val lookupCont = lookup getCont
-   val findFun = find getFun
-   val findCont = find getCont
-
-   fun simplify env sigma t =
-      case t of
-         LETVAL (f, FN (k, xs, K), L) =>
-            let
-               val env' = insertFun (env, f, (k, xs, K))
-            in
-               if Census.count#app f = 1 andalso Census.count#esc f = 0
-                  then
-                     let
-                        val L = simplify env' sigma L
-                     in
-                        if gotInlined f
-                           then L
-                        else if Census.count#app k = 0
-                                    andalso Census.count#esc k = 0
-                           then (Census.visitTerm ~1 K; L)
-                        else
-                           LETVAL (f, FN (k, xs, simplify env sigma K), L)
-                     end
-               else
-                  LETVAL (f, FN (k, xs, simplify env sigma K),
-                     simplify env' sigma L)
-            end
-      | LETVAL (x, v, L) =>
-        LETVAL
-            (x,
-             simplifyVal env sigma v,
-             simplify env sigma L)
-      | LETPRJ (x, f, y, t) =>
-         LETPRJ
-            (x,
-             f,
-             Subst.apply sigma y,
-             simplify env sigma t)
-      | LETDECON (x, y, t) =>
-         LETDECON
-            (x,
-             Subst.apply sigma y,
-             simplify env sigma t)
-      | LETUPD (x, y, fs, t) =>
-         LETUPD
-            (x,
-             Subst.apply sigma y,
-             map (fn (f, z) => (f, Subst.apply sigma z)) fs,
-             simplify env sigma t)
-      | CASE (x, cs) =>
-         CASE
-            (Subst.apply sigma x,
-             map
-               (fn (tags,(k,xs)) =>
-                  (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
-      | LETREC (ds, L) =>
-         let
-            val env' = 
-               foldl
-                  (fn ((f, k, xs, K), env) =>
-                     insertFun (env, f, (k, xs, K))) env ds
-            
-            val L = simplify env' sigma L
-
-            fun simplify0 (f, k, xs, K) = (f, k, xs, simplify env' sigma K)
-            val ds = List.map simplify0 ds
-            fun filter (f, k, xs, K) =
-               if Census.count#app f = 0
-                        andalso Census.count#esc f = 0
-                  then
-                     if gotInlined f
-                        then NONE
-                     else (Census.visitTerm ~1 K; NONE)
-               else SOME (f, k, xs, K)
-         in
-            case List.mapPartial filter ds of
-               [] => L
-             | ds => LETREC (ds, L) 
-         end
-      | LETCONT ([(k, xs, K)], L) =>
-            let
-               val env' = insertCont (env, k, (xs, K))
-            in
-               if Census.count#app k = 1 andalso Census.count#esc k = 0
-                  then
-                     let
-                        val L = simplify env' sigma L
-                     in
-                        if gotInlined k
-                           then L
-                        else if Census.count#app k = 0
-                                    andalso Census.count#esc k = 0
-                           then (Census.visitTerm ~1 K; L)
-                        else
-                           LETCONT ([(k, xs, simplify env' sigma K)], L)
-                     end
-               else
-                  LETCONT ([(k, xs, simplify env' sigma K)],
-                     simplify env' sigma L)
-            end
-      | LETCONT (ds, L) =>
-            let
-               val env' = 
-                  foldl
-                     (fn ((k, xs, K), env) =>
-                        insertCont (env, k, (xs, K))) env ds
-            
-               val L = simplify env' sigma L
-
-               fun simplify0 (k, xs, K) = (k, xs, simplify env' sigma K)
-               fun filter (k, xs, K) =
-                  if Census.count#app k = 0
-                        andalso Census.count#esc k = 0
-                     then
-                        if gotInlined k
-                           then NONE
-                        else (Census.visitTerm ~1 K; NONE)
-                  else SOME (k, xs, K)
-            in
-               case List.mapPartial filter (List.map simplify0 ds) of
-                  [] => L
-                | ds => LETCONT (ds, L) 
-            end
-      | CC (k, ys) =>
-         let
-            val k = Subst.apply sigma k
-            val ys = Subst.applyAll sigma ys
-         in
-            case findCont (env, k) of
-               NONE => CC (k, ys)
-             | SOME (xs, K) =>
-                  if length xs <> length ys
-                     then (* CC (k, ys) *) raise Fail "betaContFunShrink.arity"
-                  else if not (inliningCandidate k)
-                     then CC (k, ys)
-                  else
-                     let
-                        val _ = click()
-                        val _ = markInlined k
-                        val sigma = Subst.extendAll sigma ys xs
-                        val _ = Census.update (Census.A ~1) k
-                        val _ = Census.extendAppAll ys xs
-                        val K = simplify env sigma K
-                     in
-                        K
-                     end
-         end
-      | APP (f, j, ys) =>
-         let
-            val f = Subst.apply sigma f
-            val j = Subst.apply sigma j
-            val ys = Subst.applyAll sigma ys
-         in
-            case findFun (env, f) of
-               NONE => APP (f, j, ys)
-             | SOME (k, xs, K) =>
-                  if length xs = length ys andalso (inliningCandidate f)
-                        andalso not (Cost.neverInline f)
-                     then 
-                        let
-                           val _ = click()
-                           val _ = markInlined f
-                           val sigma = Subst.extend sigma j k
-                           val sigma = Subst.extendAll sigma ys xs
-                           val _ = Census.update (Census.A ~1) f
-                           val _ = Census.extendApp j k
-                           val _ = Census.extendAppAll ys xs
-                           val K = simplify env sigma K
-                        in
-                           K
-                        end
-                  else APP (f, j, ys)
-         end
-   
-   and simplifyVal env sigma v =
-      case v of
-         FN (k, x, t) => FN (k, x, simplify env sigma t)
-       | INJ (t, x) => INJ (t, Subst.apply sigma x)
-       | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
-       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
-       | otherwise => otherwise
-  
-   val name = "betaContFunShrink"
-   fun run t =
-      let
-         val _ = reset ()
-         val _ = Rec.run t
-         val _ = FI.run t
-         val _ = Census.run t
-         val _ = Cost.run()
-         val t' = simplify Map.empty Subst.empty t
-         val _ =
-            Map.appi (fn (f, n) =>
-               if n <> 1
-                  then raise Fail
-                     (Aux.failWithSymbol
-                        "betaContFunShrink.bug.inlinedMoreThanOnce" f)
-               else ())
-               (!inlined)
-      in
-         (t', !clicks)
-      end
-   fun fix t = 
-      let
-         fun lp (t, acc) =
-            let
-               val (t, clicks) = run t
-               val _ = CheckDefUse.run t
-            in
-               if clicks = 0
-                  then (t, acc)
-               else lp (t, clicks+acc)
-            end
-      in
-         lp (t, 0)
-      end
-   val run = fix
 end
 
 structure BetaContract = struct
@@ -1892,4 +1627,258 @@ structure BetaContract = struct
       in
          (t', !clicks)
       end
+end
+
+structure BetaContFunShrink = struct
+   structure FI = FunInfo
+   structure Map = SymMap
+   structure Set = SymSet
+   open CPS CPS.Exp
+
+   val clicks = ref 0
+   val inlined = ref Map.empty : int Map.map ref
+   fun click () = clicks := !clicks + 1
+   fun reset () = (clicks := 0; inlined := Map.empty)
+
+   fun count0 x =
+      case Map.find (!inlined, x) of
+         NONE => 0
+       | SOME n => n
+
+   fun markInlined f = inlined := Map.insert(!inlined, f, count0 f + 1)
+
+   fun gotInlined f = count0 f > 0
+
+   fun inliningCandidate f =
+      not (Rec.isRec f)
+      andalso Census.count#app f = 1
+      andalso Census.count#esc f = 0
+
+   fun simplify sigma t =
+      case t of
+         LETVAL (f, FN (k, xs, K), L) =>
+               if Census.count#app f = 1 andalso Census.count#esc f = 0
+                  then
+                     let
+                        val L = simplify sigma L
+                     in
+                        if gotInlined f
+                           then L
+                        else if Census.count#app k = 0
+                                    andalso Census.count#esc k = 0
+                           then (Census.visitTerm ~1 K; L)
+                        else
+                           let
+                              val K = simplify sigma K
+                              val _ = FI.bindFun (f,(k,xs,K))
+                           in
+                              LETVAL (f, FN (k, xs, K), L)
+                           end
+                     end
+               else
+                  let
+                     val K = simplify sigma K
+                     val _ = FI.bindFun (f,(k,xs,K))
+                  in
+                     LETVAL (f, FN (k, xs, K), simplify sigma L)
+                  end
+      | LETVAL (x, v, L) =>
+        LETVAL
+            (x,
+             simplifyVal sigma v,
+             simplify sigma L)
+      | LETPRJ (x, f, y, t) =>
+         LETPRJ
+            (x,
+             f,
+             Subst.apply sigma y,
+             simplify sigma t)
+      | LETDECON (x, y, t) =>
+         LETDECON
+            (x,
+             Subst.apply sigma y,
+             simplify sigma t)
+      | LETUPD (x, y, fs, t) =>
+         LETUPD
+            (x,
+             Subst.apply sigma y,
+             map (fn (f, z) => (f, Subst.apply sigma z)) fs,
+             simplify sigma t)
+      | CASE (x, cs) =>
+         CASE
+            (Subst.apply sigma x,
+             map
+               (fn (tags,(k,xs)) =>
+                  (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
+      | LETREC (ds, L) =>
+         let
+            val L = simplify sigma L
+
+            fun simplify0 (f, k, xs, K) =
+               let
+                  val K = simplify sigma K
+                  val _ = FI.bindFun (f,(k,xs,K))
+               in
+                  (f,k,xs,K)
+               end
+
+            val ds = List.map simplify0 ds
+
+            fun filter (f, k, xs, K) =
+               if Census.count#app f = 0
+                        andalso Census.count#esc f = 0
+                  then
+                     if gotInlined f
+                        then NONE
+                     else (Census.visitTerm ~1 K; NONE)
+               else SOME (f, k, xs, K)
+         in
+            case List.mapPartial filter ds of
+               [] => L
+             | ds => LETREC (ds, L) 
+         end
+      | LETCONT ([(k, xs, K)], L) =>
+               if Census.count#app k = 1 andalso Census.count#esc k = 0
+                  then
+                     let
+                        val L = simplify sigma L
+                     in
+                        if gotInlined k
+                           then L
+                        else if Census.count#app k = 0
+                                    andalso Census.count#esc k = 0
+                           then (Census.visitTerm ~1 K; L)
+                        else
+                           let
+                              val K = simplify sigma K
+                              val _ = FI.bindCont (k,(xs,K))
+                           in
+                              LETCONT ([(k, xs, K)], L)
+                           end
+                     end
+               else
+                 let
+                     val K = simplify sigma K
+                     val _ = FI.bindCont (k,(xs,K))
+                  in
+                     LETCONT ([(k, xs, K)], simplify sigma L)
+                  end
+      | LETCONT (ds, L) =>
+            let
+               val L = simplify sigma L
+
+               fun simplify0 (k, xs, K) =
+                  let
+                     val K = simplify sigma K
+                     val _ = FI.bindCont (k,(xs,K))
+                  in
+                     (k,xs,K)
+                  end
+               fun filter (k, xs, K) =
+                  if Census.count#app k = 0
+                        andalso Census.count#esc k = 0
+                     then
+                        if gotInlined k
+                           then NONE
+                        else (Census.visitTerm ~1 K; NONE)
+                  else SOME (k, xs, K)
+            in
+               case List.mapPartial filter (List.map simplify0 ds) of
+                  [] => L
+                | ds => LETCONT (ds, L) 
+            end
+      | CC (k, ys) =>
+         let
+            val k = Subst.apply sigma k
+            val ys = Subst.applyAll sigma ys
+         in
+            case FI.findCont k of
+               NONE => CC (k, ys)
+             | SOME (_, xs, K) =>
+                  if length xs <> length ys
+                     then (* CC (k, ys) *) raise Fail "betaContFunShrink.arity"
+                  else if not (inliningCandidate k)
+                     then CC (k, ys)
+                  else
+                     let
+                        val _ = click()
+                        val _ = markInlined k
+                        val sigma = Subst.extendAll sigma ys xs
+                        val _ = Census.update (Census.A ~1) k
+                        val _ = Census.extendAppAll ys xs
+                        val K = simplify sigma K
+                     in
+                        K
+                     end
+         end
+      | APP (f, j, ys) =>
+         let
+            val f = Subst.apply sigma f
+            val j = Subst.apply sigma j
+            val ys = Subst.applyAll sigma ys
+         in
+            case FI.findFun f of
+               NONE => APP (f, j, ys)
+             | SOME (_, k, xs, K) =>
+                  if length xs = length ys andalso (inliningCandidate f)
+                        andalso not (Cost.neverInline f)
+                     then 
+                        let
+                           val _ = click()
+                           val _ = markInlined f
+                           val sigma = Subst.extend sigma j k
+                           val sigma = Subst.extendAll sigma ys xs
+                           val _ = Census.update (Census.A ~1) f
+                           val _ = Census.extendApp j k
+                           val _ = Census.extendAppAll ys xs
+                           val K = simplify sigma K
+                        in
+                           K
+                        end
+                  else APP (f, j, ys)
+         end
+   
+   and simplifyVal sigma v =
+      case v of
+         FN (k, x, t) => FN (k, x, simplify sigma t)
+       | INJ (t, x) => INJ (t, Subst.apply sigma x)
+       | REC fs => REC (map (fn (f, x) => (f, Subst.apply sigma x)) fs)
+       | PRI (f, xs) => PRI (Subst.apply sigma f, Subst.applyAll sigma xs)
+       | otherwise => otherwise
+  
+   val name = "betaContFunShrink"
+   fun run t =
+      let
+         val _ = reset ()
+         val _ = Rec.run t
+         val _ = FI.run t
+         val _ = Census.run t
+         val _ = Cost.run()
+         val t' = simplify Subst.empty t
+         val _ =
+            Map.appi (fn (f, n) =>
+               if n <> 1
+                  then raise Fail
+                     (Aux.failWithSymbol
+                        "betaContFunShrink.bug.inlinedMoreThanOnce" f)
+               else ())
+               (!inlined)
+      in
+         (t', !clicks)
+      end
+   fun fix t = 
+      let
+         fun lp (t, acc) =
+            let
+               val (t, clicks) = run t
+               val _ = CheckDefUse.run t
+            in
+               if clicks = 0
+                  then (t, acc)
+               else lp (t, clicks+acc)
+            end
+      in
+         lp (t, 0)
+      end
+   val run = fix
 end
