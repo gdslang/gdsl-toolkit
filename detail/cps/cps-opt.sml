@@ -15,6 +15,7 @@ structure Aux = struct
 
    fun atomOf x = VarInfo.getAtom (!variables, x)
    fun get s = VarInfo.lookup (!variables, Atom.atom s)
+   fun toString sym = Layout.tostring (CPS.PP.var sym)
    fun failWithSymbol msg sym =
       msg ^ ": " ^ Layout.tostring (CPS.PP.var sym)
       
@@ -148,7 +149,7 @@ structure Census = struct
                 | SOME m => SymMap.insert (!census, x, m++n))
 
    fun extendAppAll sigma xs ys =
-      app (fn (y, x) => extendApp y x)
+      app (fn (x, y) => extendApp x y)
           (ListPair.zip (xs, ys))
 
    val remove = fn x => census := remove x
@@ -158,8 +159,8 @@ structure Census = struct
       case cps of
          LETVAL (x, v, t) => (def x; visitCVal n v; visitTerm n t)
        | LETREC (ds, t) => (app (visitDecl n) ds; visitTerm n t)
-       | LETPRJ (x, _, y, t) => (def x; update (E n) y; visitTerm n t)
-       | LETDECON (x, y, t) => (def x; update (E n) y; visitTerm n t)
+       | LETPRJ (x, _, y, t) => (def x; (* TODO: does `y` really escape here? *) update (E n) y; visitTerm n t)
+       | LETDECON (x, y, t) => (def x; (* TODO: does `y` really escape here? *)update (E n) y; visitTerm n t)
        | LETUPD (x, y, fs, t) =>
             (def x
             ;update (E n) y
@@ -812,6 +813,7 @@ structure FunInfo = struct
             ;visitTerm L)
        | LETVAL (x, v, L) => visitTerm L
        | LETPRJ (_, _, _, body) => visitTerm body
+       | LETDECON (_, _, body) => visitTerm body
        | LETUPD (_, _, _, body) => visitTerm body
        | LETCONT (cs, body) =>
             (app (fn (k, xs, K) =>
@@ -1214,6 +1216,14 @@ structure DeadVal = struct
                 f,
                 y,
                 simplify K)
+      | LETDECON (x, y, K) =>
+         if Census.countAll x = 0
+            then (click(); simplify K)
+         else
+            LETDECON
+               (x,
+                y,
+                simplify K)
       | LETUPD (x, y, fs, K) =>
          if Census.countAll x = 0
             then (click(); simplify K)
@@ -1480,12 +1490,12 @@ structure BetaContFunShrink = struct
        | SOME n => n
 
    fun markInlined f =
-      inlined := Map.insert(!inlined, f, count0 f + 1)
+      (if SymbolTable.toInt f < 1000
+         then (print (Aux.failWithSymbol "inline" f);print"\n")
+       else ()
+      ;inlined := Map.insert(!inlined, f, count0 f + 1))
 
-   fun gotInlined f =
-      case Map.find (!inlined, f) of
-         NONE => false
-       | SOME i => i > 0
+   fun gotInlined f = count0 f > 0
 
    fun inliningCandidate f =
       not (Rec.isRec f)
@@ -1573,15 +1583,17 @@ structure BetaContFunShrink = struct
             val L = simplify env' sigma L
 
             fun simplify0 (f, k, xs, K) = (f, k, xs, simplify env' sigma K)
+            val ds = List.map simplify0 ds
             fun filter (f, k, xs, K) =
-               if gotInlined f
-                  then NONE
-               else if Census.count#app f = 0
+               if Census.count#app f = 0
                         andalso Census.count#esc f = 0
-                  then (Census.visitTerm ~1 K; NONE)
+                  then
+                     if gotInlined f
+                        then NONE
+                     else (Census.visitTerm ~1 K; NONE)
                else SOME (f, k, xs, K)
          in
-            case List.mapPartial filter (List.map simplify0 ds) of
+            case List.mapPartial filter ds of
                [] => L
              | ds => LETREC (ds, L) 
          end
@@ -1617,11 +1629,12 @@ structure BetaContFunShrink = struct
 
                fun simplify0 (k, xs, K) = (k, xs, simplify env' sigma K)
                fun filter (k, xs, K) =
-                  if gotInlined k
-                     then NONE
-                  else if Census.count#app k = 0
-                           andalso Census.count#esc k = 0
-                     then (Census.visitTerm ~1 K; NONE)
+                  if Census.count#app k = 0
+                        andalso Census.count#esc k = 0
+                     then
+                        if gotInlined k
+                           then NONE
+                        else (Census.visitTerm ~1 K; NONE)
                   else SOME (k, xs, K)
             in
                case List.mapPartial filter (List.map simplify0 ds) of

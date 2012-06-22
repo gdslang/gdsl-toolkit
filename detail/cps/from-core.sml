@@ -237,9 +237,13 @@ end = struct
                    | (p, e)::ps =>
                         let
                            val k = fresh continuation
-                           val (xs, ks) = transPat p k ks
+                           val (x, ks) = transPat p k ks
+                           fun bindTrans x =
+                              case x of
+                                 SOME x => Exp.LETDECON (x, z, trans1 e j)
+                               | _ => trans1 e j
                         in
-                           trans z ps ((k, xs, trans1 e j)::cps) ks
+                           trans z ps ((k, [], bindTrans x)::cps) ks
                         end
             in
                trans0 e (fn z => trans z ps [] [])
@@ -394,10 +398,17 @@ end = struct
             case p of
                BIT str => explodePat str
              | INT i => [Word.fromLargeInt (IntInf.toLarge i)]
-             | CON (s, NONE) => [Word.fromInt (SymbolTable.toInt s)]
-             | _ => []
+             | CON (tag, _) => [Word.fromInt (SymbolTable.toInt tag)]
+             | ID _ => []
+             | WILD => []
+
+         fun bndVars p =
+            case p of
+               CON (_,SOME x) => SOME x
+             | ID x => SOME x
+             | _ => NONE
       in
-         ([], (toIdx p, (k, [](*TODO*)))::ks)
+         (bndVars p, (toIdx p, (k, []))::ks)
       end
 
    and trans0rec (n, args, e) =
@@ -439,9 +450,13 @@ end = struct
                      (p, e)::ps =>
                         let
                            val k = fresh continuation
-                           val (xs, ks) = transPat p k ks
+                           val (x, ks) = transPat p k ks
+                           fun bindTrans x =
+                              case x of
+                                 SOME x => Exp.LETDECON (x, z, trans1 e kont)
+                               | _ => trans1 e kont
                         in
-                           trans z ps ((k, xs, trans1 e kont)::cps) ks
+                           trans z ps ((k, [], bindTrans x)::cps) ks
                         end
                    | [] =>
                         case ks of

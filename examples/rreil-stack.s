@@ -108,15 +108,15 @@ val push insn = do
    update @{stack=SEM_CONS{stmt=insn,tail=tail}}
 end
 
-val /mov sz a b = push (/ASSIGN a (/LIN sz (lin1/0 b)))
-val /add sz a b c = push (/ASSIGN a (/ADD sz (lin1/0 b) (lin1/0 c)))
+val mov sz a b = push (/ASSIGN a (/LIN sz (lin1/0 b)))
+val add sz a b c = push (/ASSIGN a (/ADD sz (lin1/0 b) (lin1/0 c)))
 
 val // a offs =
    case a of
       SEM_VAR x: @{offset = $offset x + offs} x
    end
 
-val writeBack sz a t = /mov sz a t
+val writeBack sz a t = mov sz a t
 val read x = x
 val write x = x
 val intro t = t
@@ -129,9 +129,14 @@ val translate insn =
             c <- read ($opnd2 x);
             sz <- sizeOf ($opnd2 x);
             t <- intro t0;
-            /add sz t b c;
+            add sz t b c;
 
             # addFlags sz t a b;
             writeBack sz a t
          end
    end
+
+# vim:filetype=sml
+# vim:ts=3
+# vim:sw=3
+# vim:expandtab
