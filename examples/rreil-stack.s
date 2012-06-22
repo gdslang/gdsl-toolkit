@@ -116,7 +116,7 @@ val // a offs =
       SEM_VAR x: @{offset = $offset x + offs} x
    end
 
-val writeBack sz a t = mov sz a t
+val commit sz a t = mov sz a t
 val read x = x
 val write x = x
 val intro t = t
@@ -132,7 +132,7 @@ val translate insn =
             add sz t b c;
 
             # addFlags sz t a b;
-            writeBack sz a t
+            commit sz a t
          end
    end
 
