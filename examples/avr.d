@@ -4,7 +4,8 @@ export = decode
 val decode = do
  update@{
   rd='',
-  rr=''
+  rr='',
+  k=''
  };
  /
 end
@@ -12,6 +13,7 @@ end
 datatype operand =
    REG of register
  | REGHL of {regh:register,regl:register}
+ | IMM6 of 6
 
 type binop = {left:operand,right:operand}
 
@@ -88,15 +90,18 @@ val register-from-bits bits =
   | '11110':REG R30
   | '11111':REG R31
 
-val d bit = do
- rd <- query $rd;
- rd <- rd ^ bit;
+val d ['bit:1'] = do
+ rd <- (query $rd) ^ bit;
  update@{rd=rd};
 end
 
-val r bit = do
- rr <- query $rr;
- rr <- rr ^ bit;
+val r ['bit:1'] = do
+ rr <- (query $rr) ^ bit;
+ update@{rr=rr};
+end
+
+val K ['bit:1'] = do
+ k <- (query $rr) ^ bit;
  update@{rr=rr};
 end
 
@@ -108,6 +113,11 @@ end
 val rr5 = do
  rr <- query $rd;
  return (register-from-bits rr)
+end
+
+val k = do
+ kk <- query $k;
+ return (IMM6 kk)
 end
 
 val rd5h-rd5l = do
@@ -133,4 +143,4 @@ val / ['000011' r d d d d d r r r r] = binop ADD rd5 rr5
 
 ### ADIW
 ###  - Add Immediate to Word
-val / ['10010110' K K d d K K K K] = binop ADIW rd5h-rd5l K
+val / ['10010110' K K d d K K K K] = binop ADIW rd5h-rd5l k
