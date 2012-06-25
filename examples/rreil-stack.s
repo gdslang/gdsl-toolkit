@@ -97,7 +97,7 @@ val t3 = return (var//0 VIRT_T3)
 val t4 = return (var//0 VIRT_T4)
 val t5 = return (var//0 VIRT_T5)
 val t6 = return (var//0 VIRT_T6)
-val t7 = return (var//0 VIRT_T6)
+val t7 = return (var//0 VIRT_T7)
 
 val /ASSIGN a b = SEM_ASSIGN{lhs=a,rhs=b}
 val /ADD sz a b = SEM_OP{op=SEM_ADD{size=sz,opnd1=a,opnd2=b}}
