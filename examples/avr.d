@@ -2,13 +2,14 @@ granularity = 8
 export = decode
 
 val decode = do
- update@{rd='',rr='',ck='',cs=''};
+ update@{rd='',rr='',ck='',cs='',cb=''};
  /
 end
 
 datatype imm =
    IMM3 of 3
  | IMM6 of 6
+ | IMM7 of 7
  | IMM8 of 8
 
 datatype operand =
@@ -26,6 +27,7 @@ datatype instruction =
  | ANDI of binop
  | ASR of unop
  | BCLR of unop
+ | BLD of binop
 
 datatype register =
    R0
@@ -146,6 +148,11 @@ val ck6 = do
  return (IMM (IMM6 ck))
 end
 
+val ck7 = do
+ ck <- query $ck;
+ return (IMM (IMM7 ck))
+end
+
 val ck8 = do
  ck <- query $ck;
  return (IMM (IMM8 ck))
@@ -154,6 +161,11 @@ end
 val cs3 = do
  cs <- query $cs;
  return (IMM (IMM3 cs))
+end
+
+val cb3 = do
+ cb <- query $cb;
+ return (IMM (IMM3 cb))
 end
 
 val rd5h-rd5l = do
@@ -192,12 +204,20 @@ val / ['001000' r d d d d d r r r r] = binop AND rd5 rr5
 
 ### ANDI
 ###  - Logical AND with Immediate
-val / ['0111' k k k k d d d d k k k k]= binop ANDI rd4 ck8
+val / ['0111' k k k k d d d d k k k k] = binop ANDI rd4 ck8
 
 ### ASR
 ###  - Arithmetic Shift Right
-val / ['1001010' d d d d d '0101']= unop ASR rd5
+val / ['1001010' d d d d d '0101'] = unop ASR rd5
 
 ### BCLR
 ###  - Bit Clear in SREG
-val / ['100101001' s s s '1000']= unop BCLR cs3
+val / ['100101001' s s s '1000'] = unop BCLR cs3
+
+### BLD
+###  - Bit Load from the T Flag in SREG to a Bit in Register
+val / ['1111100' d d d d d '0' b b b] = binop BLD rd5 cb3
+
+### BRBC
+###  - Branch if Bit in SREG is Cleared
+val / ['111101' k k k k k k k s s s] = binop BRBC cs3 ck7
