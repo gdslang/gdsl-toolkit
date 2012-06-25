@@ -2,11 +2,7 @@ granularity = 8
 export = decode
 
 val decode = do
- update@{
-  rd='',
-  rr='',
-  k=''
- };
+ update@{rd='', rr='', k=''};
  /
 end
 
@@ -20,6 +16,7 @@ type binop = {left:operand,right:operand}
 datatype instruction =
    ADC of binop
  | ADD of binop
+ | ADIW of binop
 
 datatype register =
    R0
@@ -89,20 +86,21 @@ val register-from-bits bits =
   | '11101':REG R29
   | '11110':REG R30
   | '11111':REG R31
+ end
 
 val d ['bit:1'] = do
  rd <- (query $rd) ^ bit;
- update@{rd=rd};
+ update@{rd=rd}
 end
 
 val r ['bit:1'] = do
  rr <- (query $rr) ^ bit;
- update@{rr=rr};
+ update@{rr=rr}
 end
 
-val K ['bit:1'] = do
- k <- (query $rr) ^ bit;
- update@{rr=rr};
+val k ['bit:1'] = do
+ k <- (query $k) ^ bit;
+ update@{rr=k}
 end
 
 val rd5 = do
@@ -115,7 +113,7 @@ val rr5 = do
  return (register-from-bits rr)
 end
 
-val k = do
+val kk = do
  kk <- query $k;
  return (IMM6 kk)
 end
@@ -124,18 +122,18 @@ val rd5h-rd5l = do
  rd <- query $rd;
  rd-regl <- register-from-bits ('11' ^ rd ^ '0');
  rd-regh <- register-from-bits ('11' ^ rd ^ '1');
- return REGHL {regh=rd-regh,regl=rd-regl};
+ return (REGHL {regh=rd-regh,regl=rd-regl})
 end
 
 val binop cons left right = do
- _left <- left;
- _right <- right;
- return (cons {left=_left, right=_right});
+ left <- left;
+ right <- right;
+ return (cons {left=left, right=right})
 end
 
 ### ADC
 ###  - Add with Carry
-val / ['000111 r d d d d d r r r r'] = binop ADC rd5 rr5
+val / ['000111' r d d d d d r r r r] = binop ADC rd5 rr5
 
 ### ADD
 ###  - Add without Carry
@@ -143,4 +141,4 @@ val / ['000011' r d d d d d r r r r] = binop ADD rd5 rr5
 
 ### ADIW
 ###  - Add Immediate to Word
-val / ['10010110' K K d d K K K K] = binop ADIW rd5h-rd5l k
+val / ['10010110' k k d d k k k k] = binop ADIW rd5h-rd5l kk

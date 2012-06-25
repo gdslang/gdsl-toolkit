@@ -395,7 +395,9 @@ fun Lit_PROD_1_ACT (Int, Int_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * 
   ( PT.INTlit Int)
 fun Lit_PROD_2_ACT (STRING, STRING_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( PT.STRlit STRING)
-fun Lit_PROD_3_ACT (TICK1, TICK2, BITSTR, TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun Lit_PROD_3_ACT (TICK1, TICK2, TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( PT.VEClit "")
+fun Lit_PROD_4_ACT (TICK1, TICK2, BITSTR, TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( PT.VEClit BITSTR)
 fun Int_PROD_1_ACT (POSINT, POSINT_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( POSINT)
@@ -698,19 +700,32 @@ fun Lit_NT (strm) = let
             end
       fun Lit_PROD_3 (strm) = let
             val (TICK1_RES, TICK1_SPAN, strm') = matchTICK(strm)
+            val (TICK2_RES, TICK2_SPAN, strm') = matchTICK(strm')
+            val FULL_SPAN = (#1(TICK1_SPAN), #2(TICK2_SPAN))
+            in
+              (UserCode.Lit_PROD_3_ACT (TICK1_RES, TICK2_RES, TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
+      fun Lit_PROD_4 (strm) = let
+            val (TICK1_RES, TICK1_SPAN, strm') = matchTICK(strm)
             val (BITSTR_RES, BITSTR_SPAN, strm') = matchBITSTR(strm')
             val (TICK2_RES, TICK2_SPAN, strm') = matchTICK(strm')
             val FULL_SPAN = (#1(TICK1_SPAN), #2(TICK2_SPAN))
             in
-              (UserCode.Lit_PROD_3_ACT (TICK1_RES, TICK2_RES, BITSTR_RES, TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+              (UserCode.Lit_PROD_4_ACT (TICK1_RES, TICK2_RES, BITSTR_RES, TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), BITSTR_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                 FULL_SPAN, strm')
             end
       in
         (case (lex(strm))
-         of (Tok.TICK, _, strm') => Lit_PROD_3(strm)
+         of (Tok.STRING(_), _, strm') => Lit_PROD_2(strm)
           | (Tok.POSINT(_), _, strm') => Lit_PROD_1(strm)
           | (Tok.NEGINT(_), _, strm') => Lit_PROD_1(strm)
-          | (Tok.STRING(_), _, strm') => Lit_PROD_2(strm)
+          | (Tok.TICK, _, strm') =>
+              (case (lex(strm'))
+               of (Tok.TICK, _, strm') => Lit_PROD_3(strm)
+                | (Tok.BITSTR(_), _, strm') => Lit_PROD_4(strm)
+                | _ => fail()
+              (* end case *))
           | _ => fail()
         (* end case *))
       end

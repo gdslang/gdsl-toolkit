@@ -283,6 +283,7 @@ ValueDecl
 Lit
    : Int => (PT.INTlit Int)
    | STRING => (PT.STRlit STRING)
+   | "'" "'" => (PT.VEClit "")
    | "'" BITSTR "'" => (PT.VEClit BITSTR)
    ;                   
 
