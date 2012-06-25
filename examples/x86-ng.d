@@ -513,9 +513,9 @@ datatype opnd =
  | IMM32 of 32
  | IMM64 of 64
  | REG of register
- | MEM of {sz: int, segment: register, opnd: opnd}
- | SUM of {a:opnd, b:opnd}
- | SCALE of {imm:2, opnd:opnd}
+ | MEM of {sz:int,segment:register,opnd:opnd}
+ | SUM of {a:opnd,b:opnd}
+ | SCALE of {imm:2,opnd:opnd}
 
 datatype flowopnd =
    REL8 of 8

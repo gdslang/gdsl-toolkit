@@ -5,19 +5,12 @@ datatype sem_id =
    ARCH_RAX
  | ARCH_RBX
  | ARCH_RCX
- | VIRT_T0
- | VIRT_T1
- | VIRT_T2
- | VIRT_T3
- | VIRT_T4
- | VIRT_T5
- | VIRT_T6
- | VIRT_T7
  | VIRT_EQ
  | VIRT_LES
  | VIRT_LEU
  | VIRT_LTS
  | VIRT_LTU
+ | VIRT_T of 8
 
 datatype sem_var =
    SEM_VAR of {id:sem_id, offset:int}
@@ -90,14 +83,13 @@ val lin1 x tl = SEM_X{scale=1, var=x, tail=tl}
 val lin2 x y tl = lin1 x (lin1 y tl)
 
 val var//0 x = SEM_VAR{id=x,offset=0}
-val t0 = return (var//0 VIRT_T0)
-val t1 = return (var//0 VIRT_T1)
-val t2 = return (var//0 VIRT_T2)
-val t3 = return (var//0 VIRT_T3)
-val t4 = return (var//0 VIRT_T4)
-val t5 = return (var//0 VIRT_T5)
-val t6 = return (var//0 VIRT_T6)
-val t7 = return (var//0 VIRT_T7)
+
+val temp = do
+   t <- query $tmp;
+   t' <- return (t ++ '00000001');
+   update @{tmp=t'};
+   return (SEM_VAR{id=VIRT_T t,offset=0})
+end
 
 val /ASSIGN a b = SEM_ASSIGN{lhs=a,rhs=b}
 val /ADD sz a b = SEM_OP{op=SEM_ADD{size=sz,opnd1=a,opnd2=b}}
@@ -119,7 +111,6 @@ val // a offs =
 val commit sz a t = mov sz a t
 val read x = x
 val write x = x
-val intro t = t
 
 val translate insn =
    case insn of
@@ -128,7 +119,7 @@ val translate insn =
             b <- read ($opnd1 x);
             c <- read ($opnd2 x);
             sz <- sizeOf ($opnd2 x);
-            t <- intro t0;
+            t <- temp;
             add sz t b c;
 
             # addFlags sz t a b;
