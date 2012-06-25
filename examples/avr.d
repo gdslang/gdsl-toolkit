@@ -2,23 +2,30 @@ granularity = 8
 export = decode
 
 val decode = do
- update@{rd='',rr='',ck=''};
+ update@{rd='',rr='',ck='',cs=''};
  /
 end
+
+datatype imm =
+   IMM3 of 3
+ | IMM6 of 6
+ | IMM8 of 8
 
 datatype operand =
    REG of register
  | REGHL of {regh:register,regl:register}
- | IMM6 of 6
- | IMM8 of 8
+ | IMM of imm
 
 type binop = {first:operand,second:operand}
+type unop = {operand:operand}
 
 datatype instruction =
    ADC of binop
  | ADD of binop
  | AND of binop
  | ANDI of binop
+ | ASR of unop
+ | BCLR of unop
 
 datatype register =
    R0
@@ -56,38 +63,39 @@ datatype register =
 
 val register-from-bits bits =
  case bits of
-    '00000': REG R0
-  | '00001': REG R1
-  | '00010': REG R2
-  | '00011': REG R3
-  | '00100': REG R4
-  | '00101': REG R5
-  | '00110': REG R6
-  | '00111': REG R7
-  | '01000': REG R8
-  | '01001': REG R9
-  | '01010': REG R10
-  | '01011': REG R11
-  | '01100': REG R12
-  | '01101': REG R13
-  | '01110': REG R14
-  | '01111': REG R15
-  | '10000': REG R16
-  | '10001': REG R17
-  | '10010': REG R18
-  | '10011': REG R19
-  | '10100': REG R20
-  | '10101': REG R21
-  | '10110': REG R22
-  | '10111': REG R23
-  | '11000': REG R24
-  | '11001': REG R25
-  | '11010': REG R26
-  | '11011': REG R27
-  | '11100': REG R28
-  | '11101': REG R29
-  | '11110': REG R30
-  | '11111': REG R31
+    '00000': R0
+  | '00001': R1
+  | '00010': R2
+  | '00011': R3
+  | '00100': R4
+  | '00101': R5
+  | '00110': R6
+  | '00111': R7
+  | '01000': R8
+  | '01001': R9
+  | '01010': R10
+  | '01011': R11
+  | '01100': R12
+  | '01101': R13
+  | '01110': R14
+  | '01111': R15
+  | '10000': R16
+  | '10001': R17
+  | '10010': R18
+  | '10011': R19
+  | '10100': R20
+  | '10101': R21
+  | '10110': R22
+  | '10111': R23
+  | '11000': R24
+  | '11001': R25
+  | '11010': R26
+  | '11011': R27
+  | '11100': R28
+  | '11101': R29
+  | '11110': R30
+  | '11111': R31
+ end
 
 val X = REGHL {regh=REG R27,regl=REG R26}
 val Y = REGHL {regh=REG R29,regl=REG R28}
@@ -108,34 +116,44 @@ val k ['bit:1'] = do
  update@{ck=ck}
 end
 
+val s ['bit:1'] = do
+ cs <- (query $cs) ^ bit;
+ update@{cs=cs}
+end
+
 val rd5 = do
  rd <- query $rd;
- return (register-from-bits rd)
+ return (REG (register-from-bits rd))
 end
 
 val rd4 = do
  rd <- query $rd;
- return (register-from-bits ('1' ^ rd))
+ return (REG (register-from-bits ('1' ^ rd)))
 end
  
 val rr5 = do
  rr <- query $rd;
- return (register-from-bits rr)
+ return (REG (register-from-bits rr))
 end
  
 val rr4 = do
  rr <- query $rd;
- return (register-from-bits ('1' ^ rr))
+ return (REG (register-from-bits ('1' ^ rr)))
 end
 
 val ck6 = do
  ck <- query $ck;
- return (IMM6 ck)
+ return (IMM (IMM6 ck))
 end
 
 val ck8 = do
  ck <- query $ck;
- return (IMM8 ck)
+ return (IMM (IMM8 ck))
+end
+
+val cs3 = do
+ cs <- query $cs;
+ return (IMM (IMM3 cs))
 end
 
 val rd5h-rd5l = do
@@ -149,6 +167,11 @@ val binop cons first second = do
  first <- first;
  second <- second;
  return (cons {first=first, second=second});
+end
+
+val unop cons operand = do
+ operand <- operand;
+ return (cons {operand=operand});
 end
 
 ### ADC
@@ -170,3 +193,11 @@ val / ['001000' r d d d d d r r r r] = binop AND rd5 rr5
 ### ANDI
 ###  - Logical AND with Immediate
 val / ['0111' k k k k d d d d k k k k]= binop ANDI rd4 ck8
+
+### ASR
+###  - Arithmetic Shift Right
+val / ['1001010' d d d d d '0101']= unop ASR rd5
+
+### BCLR
+###  - Bit Clear in SREG
+val / ['100101001' s s s '1000']= unop BCLR cs3
