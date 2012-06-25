@@ -135,7 +135,7 @@ end
 
 ### ADC
 ###  - Add with Carry
-val / ['000111' r d d d d d r r r r] = binop ADC rd5 rr5
+val / ['000111 r d d d d d r r r r'] = binop ADC rd5 rr5
 
 ### ADD
 ###  - Add without Carry

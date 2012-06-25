@@ -12,12 +12,12 @@ datatype sem_id =
  | VIRT_LTU
  | VIRT_T of 8
 
-datatype sem_var =
-   SEM_VAR of {id:sem_id, offset:int}
+datatype sem_var = SEM_VAR of {id:sem_id, offset:int}
 
 datatype sem_linear =
-   SEM_X of {var:sem_var, scale:int, tail:sem_linear}
- | SEM_I of {c:int}
+   SEM_LIN_VAR of {var:sem_var, scale:int, tail:sem_linear}
+ | SEM_LIN_IMM of {c:int, tail:sem_linear}
+ | SEM_LIN_NIL
 
 type sem_lin = {size:int, opnd1:sem_linear}
 type sem_arity1 = {size:int, opnd1:sem_linear}
@@ -72,8 +72,8 @@ val semanticRegisterOf r =
     | RBX: {r=ARCH_RBX,offset=0,size=64}
    end
 
-val sizeOf x = 
-   case x of
+val guessSizeOf dst/src1 src2 = 
+   case dst/src1 of
       REG r: return ($size (semanticRegisterOf r))
     # ...
    end
@@ -112,13 +112,23 @@ val commit sz a t = mov sz a t
 val read x = x
 val write x = x
 
+val read x = 
+   let
+      val readImmSx sz szImm x =
+         if sz == szImm
+            then 
+   in
+      case x of
+         IMM8 x: 
+   end
+
 val translate insn =
    case insn of
       ADD x:
          do a <- write ($opnd1 x);
             b <- read ($opnd1 x);
             c <- read ($opnd2 x);
-            sz <- sizeOf ($opnd2 x);
+            sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
             t <- temp;
             add sz t b c;
 

@@ -44,7 +44,6 @@ functor MkAst (Core: AST_CORE) = struct
 
    datatype decl =
       MARKdecl of decl mark
-    | INCLUDEdecl of string
     | GRANULARITYdecl of IntInf.int
     | TYPEdecl of syn_bind * ty
     | DATATYPEdecl of con_bind * (con_bind * ty option) list
@@ -124,7 +123,6 @@ functor MkAst (Core: AST_CORE) = struct
       and decl t =
          case t of
             MARKdecl t' => decl (#tree t')
-          | INCLUDEdecl inc => seq [str "include", space, str inc]
           | GRANULARITYdecl i => seq [str "granularity", is, space, int i]
           | EXPORTdecl es =>
                seq

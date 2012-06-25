@@ -51,7 +51,6 @@ end = struct
       fun splitToplevel spec =
          case spec of
             MARKdecl t => splitToplevel (#tree t)
-          | INCLUDEdecl _ => raise CM.CompilationError 
           | GRANULARITYdecl i => granularity := i
           | TYPEdecl d => typealias := d::(!typealias)
           | DECODEdecl d => insertDecode d

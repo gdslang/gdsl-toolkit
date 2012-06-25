@@ -129,7 +129,6 @@ end = struct
       fun convDecl s d =
          case d of
             PT.MARKdecl m => AST.MARKdecl (convMark convDecl m)
-          | PT.INCLUDEdecl str => AST.INCLUDEdecl str
           | PT.EXPORTdecl es => AST.EXPORTdecl (map (fn v => useVar (s, v)) es)
           | PT.GRANULARITYdecl i => AST.GRANULARITYdecl i
           | PT.TYPEdecl (tb, t) =>

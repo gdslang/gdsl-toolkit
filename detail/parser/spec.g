@@ -6,7 +6,6 @@
    | KW_in ("in")
    | KW_do ("do")
    | KW_datatype ("datatype")
-   | KW_include ("include")
    | KW_export ("export")
    | KW_div ("div")
    | KW_else ("else")
@@ -104,7 +103,6 @@ Program
 Decl
    : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
    | "export" "=" Qid* => (markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
-   | "include" STRING => (markDecl (FULL_SPAN, PT.INCLUDEdecl STRING))
    | "datatype" Name "=" ConDecls =>
       (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
