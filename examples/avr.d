@@ -10,12 +10,15 @@ datatype operand =
    REG of register
  | REGHL of {regh:register,regl:register}
  | IMM6 of 6
+ | IMM8 of 8
 
 type binop = {first:operand,second:operand}
 
 datatype instruction =
    ADC of binop
  | ADD of binop
+ | AND of binop
+ | ANDI of binop
 
 datatype register =
    R0
@@ -109,15 +112,30 @@ val rd5 = do
  rd <- query $rd;
  return (register-from-bits rd)
 end
+
+val rd4 = do
+ rd <- query $rd;
+ return (register-from-bits ('1' ^ rd))
+end
  
 val rr5 = do
  rr <- query $rd;
  return (register-from-bits rr)
 end
+ 
+val rr4 = do
+ rr <- query $rd;
+ return (register-from-bits ('1' ^ rr))
+end
 
-val ck = do
+val ck6 = do
  ck <- query $ck;
  return (IMM6 ck)
+end
+
+val ck8 = do
+ ck <- query $ck;
+ return (IMM8 ck)
 end
 
 val rd5h-rd5l = do
@@ -143,4 +161,12 @@ val / ['000011' r d d d d d r r r r] = binop ADD rd5 rr5
 
 ### ADIW
 ###  - Add Immediate to Word
-val / ['10010110' k k d d k k k k] = binop ADIW rd5h-rd5l ck
+val / ['10010110' k k d d k k k k] = binop ADIW rd5h-rd5l ck6
+
+### AND
+###  - Logical AND
+val / ['001000' r d d d d d r r r r] = binop AND rd5 rr5
+
+### ANDI
+###  - Logical AND with Immediate
+val / ['0111' k k k k d d d d k k k k]= binop ANDI rd4 ck8
