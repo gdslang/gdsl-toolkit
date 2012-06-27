@@ -99,10 +99,13 @@ structure Environment : sig
 
    (*as above, additionally push a function type if it is set, otherwise push
    top*)
-    val pushFunctionOrTop : VarInfo.symid * environment -> environment
+   val pushFunctionOrTop : VarInfo.symid * environment -> environment
    
-    (*apply the Boolean function*) val meetBoolean : (BooleanDomain.bfun ->
-   BooleanDomain.bfun) * environment -> environment
+   val forceNoInputs : VarInfo.symid * environment -> FieldInfo.symid list
+
+    (*apply the Boolean function*)
+   val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
+         environment -> environment
 
    val meetSizeConstraint : (SizeConstraint.size_constraint_set ->
                              SizeConstraint.size_constraint_set) *
@@ -1182,6 +1185,22 @@ end = struct
       in
          env
       end
+
+   fun forceNoInputs (sym, env) = case Scope.lookup (sym,env) of
+         (_,COMPOUND {ty = SOME (t,bFun), width, uses}) =>
+         let
+            fun onlyInputs ((true,v),vs) = v :: vs
+              | onlyInputs ((false,v),vs) = vs
+            val bVars = texpBVarset onlyInputs (t,[])
+            fun checkField bVar =
+               (case BD.meetVarZero bVar bFun of _ => NONE)
+               handle (BD.Unsatisfiable _) => fieldOfBVar (bVar,t)
+         in
+            List.foldl (fn (bVar,fs) => case checkField bVar of
+                          SOME f => f :: fs
+                        | NONE => fs) [] bVars
+         end
+       | _ => raise InferenceBug
 
    fun unify (env1, env2, substs) =
       (case Scope.unwrapDifferent (env1, env2) of
