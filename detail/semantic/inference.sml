@@ -703,7 +703,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    fun checkExports _ (AST.MARKdecl {span=s, tree=t}) = checkExports s t
      | checkExports s (AST.EXPORTdecl vs) = List.app (checkDecoder s) vs
      | checkExports s _ = ()
-   val _ = List.app (checkExports (#span ast)) (#tree ast)
+   val _ = List.app (checkExports SymbolTable.noSpan) ast
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
