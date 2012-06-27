@@ -2,7 +2,7 @@ granularity = 8
 export = decode
 
 val decode = do
- update@{rd='',rr='',ck='',cs='',cb=''};
+ update@{rd='',rr='',ck='',cs='',cb='',io=''};
  /
 end
 
@@ -11,14 +11,17 @@ datatype imm =
  | IMM6 of 6
  | IMM7 of 7
  | IMM8 of 8
+ | IMM22 of 22
 
 datatype operand =
    REG of register
  | REGHL of {regh:register,regl:register}
+ | IOREG of io-register
  | IMM of imm
 
 type binop = {first:operand,second:operand}
 type unop = {operand:operand}
+type nullop = {}
 
 datatype instruction =
    ADC of binop
@@ -28,6 +31,13 @@ datatype instruction =
  | ASR of unop
  | BCLR of unop
  | BLD of binop
+ | BRBC of binop
+ | BRBS of binop
+ | BREAK of nullop
+ | BSET of unop
+ | CALL of unop
+ | CBI of binop
+ | CLC of nullop
 
 datatype register =
    R0
@@ -62,6 +72,40 @@ datatype register =
  | R29
  | R30
  | R31
+
+datatype io-register =
+   IO0
+ | IO1
+ | IO2
+ | IO3
+ | IO4
+ | IO5
+ | IO6
+ | IO7
+ | IO8
+ | IO9
+ | IO10
+ | IO11
+ | IO12
+ | IO13
+ | IO14
+ | IO15
+ | IO16
+ | IO17
+ | IO18
+ | IO19
+ | IO20
+ | IO21
+ | IO22
+ | IO23
+ | IO24
+ | IO25
+ | IO26
+ | IO27
+ | IO28
+ | IO29
+ | IO30
+ | IO31
 
 val register-from-bits bits =
  case bits of
@@ -103,6 +147,42 @@ val X = REGHL {regh=REG R27,regl=REG R26}
 val Y = REGHL {regh=REG R29,regl=REG R28}
 val Z = REGHL {regh=REG R31,regl=REG R30}
 
+val io-register-from-bits bits =
+ case bits of
+    '00000': IO0
+  | '00001': IO1
+  | '00010': IO2
+  | '00011': IO3
+  | '00100': IO4
+  | '00101': IO5
+  | '00110': IO6
+  | '00111': IO7
+  | '01000': IO8
+  | '01001': IO9
+  | '01010': IO10
+  | '01011': IO11
+  | '01100': IO12
+  | '01101': IO13
+  | '01110': IO14
+  | '01111': IO15
+  | '10000': IO16
+  | '10001': IO17
+  | '10010': IO18
+  | '10011': IO19
+  | '10100': IO20
+  | '10101': IO21
+  | '10110': IO22
+  | '10111': IO23
+  | '11000': IO24
+  | '11001': IO25
+  | '11010': IO26
+  | '11011': IO27
+  | '11100': IO28
+  | '11101': IO29
+  | '11110': IO30
+  | '11111': IO31
+ end
+
 val d ['bit:1'] = do
  rd <- (query $rd) ^ bit;
  update@{rd=rd}
@@ -121,6 +201,11 @@ end
 val s ['bit:1'] = do
  cs <- (query $cs) ^ bit;
  update@{cs=cs}
+end
+
+val a ['bit:1'] = do
+ io <- (query $io) ^ bit;
+ update@{io=io}
 end
 
 val rd5 = do
@@ -158,6 +243,11 @@ val ck8 = do
  return (IMM (IMM8 ck))
 end
 
+val ck22 = do
+ ck <- query $ck;
+ return (IMM (IMM22 ck))
+end
+
 val cs3 = do
  cs <- query $cs;
  return (IMM (IMM3 cs))
@@ -166,6 +256,11 @@ end
 val cb3 = do
  cb <- query $cb;
  return (IMM (IMM3 cb))
+end
+
+val io = do
+ io <- query $io;
+ return (IOREG (io-register-from-bits io))
 end
 
 val rd5h-rd5l = do
@@ -184,6 +279,10 @@ end
 val unop cons operand = do
  operand <- operand;
  return (cons {operand=operand});
+end
+
+val nullop cons = do
+ return (cons {});
 end
 
 ### ADC
@@ -221,3 +320,31 @@ val / ['1111100' d d d d d '0' b b b] = binop BLD rd5 cb3
 ### BRBC
 ###  - Branch if Bit in SREG is Cleared
 val / ['111101' k k k k k k k s s s] = binop BRBC cs3 ck7
+
+### BRBS
+###  - Branch if Bit in SREG is Set
+val / ['111100' k k k k k k k s s s] = binop BRBS cs3 ck7
+
+### BREAK
+###  - Break
+val / ['1001010110011000'] = nullop BREAK
+
+### BSET
+###  - Bit Set in SREG
+val / ['100101000' s s s '1000'] = unop BSET cs3
+
+### BST
+###  - Bit Store from Bit in Register to T Flag in SREG
+val / ['1111101' d d d d d '0' b b b] = binop BST rd5 cb3
+
+### CALL
+###  - Long Call to a Subroutine
+val / ['1001010' k k k k k '111' k k k k k k k k k k k k k k k k k] = unop CALL ck22
+
+### CBI
+###  - Clear Bit in I/O Register
+val / ['10011000' a a a a a b b b] = binop CBI io cb3
+
+### CLC
+###  - Clear Carry Flag
+val / ['1001010010001000'] = nullop CLC
