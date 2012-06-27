@@ -15,7 +15,7 @@ structure Core = struct
       datatype t =
          BIT of string
        | INT of IntInf.int
-       | CON of sym * t option
+       | CON of sym * sym option
        | ID of sym
        | WILD
    end
@@ -97,7 +97,7 @@ structure Core = struct
                       indent 3 (align (separateRight (map seqexp ss, ";")))],
                    str "end"]
           | LIT l => SpecAbstractTree.PP.lit l
-          | CON c => seq [str "`", con c]
+          | CON c => con c
           | ID id => var id
       end
       and field (s, e) =
@@ -123,9 +123,9 @@ structure Core = struct
          case p of
             BIT s => seq [str "'", str s, str "'"]
           | INT i => int i
-          | CON (c, SOME p) => seq [str "`", con c, space, pat p]
-          | CON (c, NONE) => seq [str "`", con c]
-          | ID id => var id
+          | CON (c, SOME x) => seq [con c, space, var x]
+          | CON (c, NONE) => con c
+          | ID x => var x
           | WILD => str "_"
       val spec = Spec.PP.spec recdecls
    end

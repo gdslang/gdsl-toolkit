@@ -22,6 +22,7 @@ structure CPS = struct
        | LETREC of recdecl list * term
        | LETCONT of contdecl list * term
        | LETPRJ of Var.v * field * Var.v * term
+       | LETDECON of Var.v * Var.v * term
        | LETUPD of Var.v * Var.v * (field * Var.v) list * term
        | APP of Var.v * Var.c * Var.v list
        | CC of Var.c * Var.v list
@@ -70,6 +71,7 @@ structure CPS = struct
              | LETREC (ds, t) => lpTerm (t, visitterm (t, lpRec (ds, seed)))
              | LETUPD (_, _, _, t) => lpTerm (t, visitterm (t, seed))
              | LETPRJ (_, _, _, t) => lpTerm (t, visitterm (t, seed))
+             | LETDECON (_, _, t) => lpTerm (t, visitterm (t, seed))
              | LETCONT (ds, t) => lpTerm (t, visitterm (t, lpCC (ds, seed)))
              | _ => seed
          end
@@ -105,6 +107,7 @@ structure CPS = struct
          case body of
             LETVAL _ => true
           | LETPRJ _ => true
+          | LETDECON _ => true
           | LETUPD _ => true
           | _ => false
       fun term t = 
@@ -132,6 +135,14 @@ structure CPS = struct
                   [seq
                      [str "letval", space, var x, is,
                       str "$", fld f, space, var v, inn],
+                   if isLetvalLike body
+                      then term body
+                   else indent 3 (term body)]
+          | LETDECON (x, v, body) =>
+               align
+                  [seq
+                     [str "letval", space, var x, is,
+                      str "$$", var v, inn],
                    if isLetvalLike body
                       then term body
                    else indent 3 (term body)]

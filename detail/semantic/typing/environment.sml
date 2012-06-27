@@ -437,7 +437,7 @@ end = struct
                  in
                      (str ^ tStr ^ ", flow:" ^ BD.showBFun bFun, si)
                  end
-               fun printU (((p1,p2), (ctxt, t)), (str, sep, si)) =
+               fun printU (({span=(p1,p2),file=_}, (ctxt, t)), (str, sep, si)) =
                   let
                      val (tStr, si) = showTypeSI (t, si)
                      fun showSym (s,(sep,str)) = (",", str ^ sep ^

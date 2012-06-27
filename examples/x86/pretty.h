@@ -4,7 +4,9 @@
 
 #include <dis.h>
 
-__obj pretty (__obj);
-__obj prettyln (__obj);
+char* pretty (__obj,char*,__word);
+char* prettyln (__obj,char*,__word);
+char* prettyOpnd(__obj,char*,__word);
+char* prettyMnemonic(__obj,char*,__word);
 
 #endif /* __PRETTY_H */

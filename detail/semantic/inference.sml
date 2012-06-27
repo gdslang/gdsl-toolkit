@@ -93,8 +93,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val bindSymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>")
    val bindASymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>=")
 
-   fun reportError conv ({span = _}, env) {span=s as (p,_), tree=t} =
-      conv ({span = s},env) t
+   fun reportError conv (_, env) {span=s, tree=t} =
+      conv ({span=s},env) t
       handle (S.UnificationFailure str) =>
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
@@ -672,7 +672,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    val toplevelEnv = E.pushGroup
       (List.concat
-         (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))
+         (List.map topDecl (ast : SpecAbstractTree.specification))
       , primEnv)
    (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val (unstable, toplevelEnv) = List.foldl (fn (d,(unstable, env)) =>
@@ -681,7 +681,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   (E.SymbolSet.union (newUnstable, unstable), env))
                handle TypeError => (unstable, env)
          ) (E.SymbolSet.empty, toplevelEnv)
-         (#tree (ast : SpecAbstractTree.specification))
+         (ast : SpecAbstractTree.specification)
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
    val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)

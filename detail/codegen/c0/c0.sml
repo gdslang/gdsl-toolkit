@@ -114,7 +114,9 @@ structure C = struct
          fun emitField f =
             seq [str (Int.toString (VarInfo.toInt f)),
                  PrettyC.comment (CPS.PP.fld f)]
-         
+        
+         fun emitDecon x = seq [str "__DECON",lp,PrettyC.var x,rp]
+
          fun emitRecordSelect (f, x) =
             seq
                [str "__RECORD_SELECT", lp,
@@ -150,6 +152,8 @@ structure C = struct
                LETVAL (x, cval) => emitCVal x cval
              | LETPRJ (y, f, x) =>
                   PrettyC.local1(y, emitRecordSelect (f, x)) 
+             | LETDECON (y, x) =>
+                  PrettyC.local1(y, emitDecon x) 
              | LETREF (y, x, i) =>
                   PrettyC.local1(y, emitEnvRef (x, i))
              | LETUPD (y, x, fs) =>

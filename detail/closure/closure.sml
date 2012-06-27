@@ -33,6 +33,7 @@ structure Closure = struct
       and stmt = 
          LETVAL of Var.v * cval
        | LETPRJ of Var.v * field * Var.v
+       | LETDECON of Var.v * Var.v
        | LETUPD of Var.v * Var.v * (field * Var.v) list
        | LETREF of Var.v * Var.k * int
        | LETENV of Var.k * Var.v list
@@ -124,6 +125,10 @@ structure Closure = struct
                seq
                   [str "letval", space, var y, is,
                    str "$", fld f, space, var x]
+          | LETDECON (y, x) =>
+               seq
+                  [str "letval", space, var y, is,
+                   str "$$", space, var x]
           | LETUPD (y, x, fs) =>
                seq
                   [str "letval", space, var y, is, var x,
