@@ -56,18 +56,23 @@ end = struct
                                      (str, VarMap.insert(tab, var, str))
                                   end                              
 
-   type set = IntRedBlackSet.set
+   structure IntSet = SplaySetFn(struct
+      type ord_key = int
+      val compare = Int.compare
+   end)           
 
-   val empty = IntRedBlackSet.empty
-   fun singleton (TVAR v) = IntRedBlackSet.singleton v
-   fun fromList l = IntRedBlackSet.fromList (List.map (fn (TVAR v) => v) l)
-   fun listItems vs = List.map (fn v => (TVAR v)) (IntRedBlackSet.listItems vs)
-   fun add (TVAR v, l) = IntRedBlackSet.add' (v, l)
-   val union = IntRedBlackSet.union
-   val intersection = IntRedBlackSet.intersection
-   val difference = IntRedBlackSet.difference
-   fun member (l,TVAR v) = IntRedBlackSet.member (l,v)
-   val isEmpty = IntRedBlackSet.isEmpty
+   type set = IntSet.set
+
+   val empty = IntSet.empty
+   fun singleton (TVAR v) = IntSet.singleton v
+   fun fromList l = IntSet.fromList (List.map (fn (TVAR v) => v) l)
+   fun listItems vs = List.map (fn v => (TVAR v)) (IntSet.listItems vs)
+   fun add (TVAR v, l) = IntSet.add' (v, l)
+   val union = IntSet.union
+   val intersection = IntSet.intersection
+   val difference = IntSet.difference
+   fun member (l,TVAR v) = IntSet.member (l,v)
+   val isEmpty = IntSet.isEmpty
    fun setToString (set, si) =
       let
          fun show (v, (str, sep, si)) =
@@ -77,7 +82,7 @@ end = struct
                (str ^ sep ^ vStr, ", ", si)
             end
          val (res, _, si) =
-            List.foldl show ("", "{", si) (IntRedBlackSet.listItems set)
+            List.foldl show ("", "{", si) (IntSet.listItems set)
       in
          (res  ^ "}", si)
       end                               

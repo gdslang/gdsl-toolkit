@@ -93,8 +93,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val bindSymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>")
    val bindASymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>=")
 
-   fun reportError conv ({span = _}, env) {span=s as (p,_), tree=t} =
-      conv ({span = s},env) t
+   fun reportError conv (_, env) {span=s, tree=t} =
+      conv ({span=s},env) t
       handle (S.UnificationFailure str) =>
          (Error.errorAt (errStrm, s, [str]); raise TypeError)
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
@@ -105,9 +105,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | topDecl (AST.DECODEdecl dd) = topDecodeDecl dd
      | topDecl (AST.LETRECdecl vd) = topLetrecDecl vd
      | topDecl _ = []
-
    and topDecodeDecl (v, _, _) = [(v, true)]
-
    and topLetrecDecl (v, _, _) = [(v,false)]
    
    (* define a second traversal that is a full inference of the tree *)
@@ -674,7 +672,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    val toplevelEnv = E.pushGroup
       (List.concat
-         (List.map topDecl (#tree (ast : SpecAbstractTree.specification)))
+         (List.map topDecl (ast : SpecAbstractTree.specification))
       , primEnv)
    (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val (unstable, toplevelEnv) = List.foldl (fn (d,(unstable, env)) =>
@@ -683,10 +681,30 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   (E.SymbolSet.union (newUnstable, unstable), env))
                handle TypeError => (unstable, env)
          ) (E.SymbolSet.empty, toplevelEnv)
-         (#tree (ast : SpecAbstractTree.specification))
+         (ast : SpecAbstractTree.specification)
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+
+   (* check if all exported functions can be run with an empty state *)
+   fun checkDecoder s sym = case E.forceNoInputs (sym,toplevelEnv) of
+        [] => ()
+      | fs =>
+         let
+            val decStr = SymbolTable.getString(!SymbolTables.varTable, sym)
+            fun genFieldStr (f,(sep,str)) = (", ", str ^ sep ^
+                  SymbolTable.getString(!SymbolTables.fieldTable, f))
+            val (_,fsStr) = List.foldl genFieldStr ("", "") fs
+         in
+            Error.errorAt (errStrm, s,
+               [decStr," cannot be exported due to lacking fields: ", fsStr]
+            )
+         end
+   fun checkExports _ (AST.MARKdecl {span=s, tree=t}) = checkExports s t
+     | checkExports s (AST.EXPORTdecl vs) = List.app (checkDecoder s) vs
+     | checkExports s _ = ()
+   val _ = List.app (checkExports SymbolTable.noSpan) ast
+
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)

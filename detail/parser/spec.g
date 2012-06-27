@@ -6,7 +6,6 @@
    | KW_in ("in")
    | KW_do ("do")
    | KW_datatype ("datatype")
-   | KW_include ("include")
    | KW_export ("export")
    | KW_div ("div")
    | KW_else ("else")
@@ -59,8 +58,10 @@
 %defs (
    structure PT = SpecParseTree
 
+   val sourcemap = CurrentSourcemap.sourcemap
+
    (* apply a mark constructor to a span and a tree *)
-   fun mark cons (span : AntlrStreamPos.span, tr) = cons{span = span, tree = tr}
+   fun mark cons (span : AntlrStreamPos.span, tr) = cons{span = {file = !sourcemap, span = span}, tree = tr}
 
    (* specialize mark functions for common node types *)
    val markDecl = mark PT.MARKdecl
@@ -96,14 +97,12 @@
 );
 
 Program
-   : Decl (";"? Decl)* =>
-      ({span=FULL_SPAN, tree=Decl::SR})
+   : Decl (";"? Decl)* => (Decl::SR)
    ;
 
 Decl
    : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
    | "export" "=" Qid* => (markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
-   | "include" STRING => (markDecl (FULL_SPAN, PT.INCLUDEdecl STRING))
    | "datatype" Name "=" ConDecls =>
       (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
@@ -254,7 +253,7 @@ ApplyExp
       ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))) =>
          (mark PT.MARKexp (FULL_SPAN, exp))
    | "~" AtomicExp =>
-      (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span=FULL_SPAN, tree=Op.uminus}, [AtomicExp])))
+      (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Op.uminus}, [AtomicExp])))
    ;
 
 AtomicExp
@@ -302,7 +301,7 @@ ConBind
    ;
 
 ConUse
-   : CONS => ({span=FULL_SPAN, tree=CONS})
+   : CONS => ({span={file= !sourcemap, span=FULL_SPAN}, tree=CONS})
    ;
 
 Sym
@@ -310,5 +309,5 @@ Sym
    ;
 
 Qid
-   : ID => ({span=FULL_SPAN, tree=ID})
+   : ID => ({span={file= !sourcemap, span=FULL_SPAN}, tree=ID})
    ;

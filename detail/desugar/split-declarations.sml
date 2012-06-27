@@ -21,7 +21,7 @@ end = struct
    type decode = pat list * (exp, (exp * exp) list) Sum.t
    type o = (value list * decode list SymMap.map) Spec.t
 
-   fun split {span, tree} = let
+   fun split tree = let
       open AST
       val granularity = ref (~1: IntInf.int)
       val typealias = ref []
@@ -51,7 +51,6 @@ end = struct
       fun splitToplevel spec =
          case spec of
             MARKdecl t => splitToplevel (#tree t)
-          | INCLUDEdecl _ => raise CM.CompilationError 
           | GRANULARITYdecl i => granularity := i
           | TYPEdecl d => typealias := d::(!typealias)
           | DECODEdecl d => insertDecode d

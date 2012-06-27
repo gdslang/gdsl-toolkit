@@ -18,6 +18,11 @@ structure Pretty = struct
          (List.map
             (fn (k, i) =>
                L.seq [key k, is, item i]) (rev (SymMap.listItemsi t)))
+   fun symtab {key, item} t =
+      L.listex "{" "}" ";"
+         (List.map
+            (fn (k, i) =>
+               L.seq [key k, is, item i]) (rev (SymTab.listItemsi t)))
    fun symset item t =
       L.listex "{" "}" ";"
          (List.map item (SymSet.listItems t))

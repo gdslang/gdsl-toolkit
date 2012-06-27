@@ -6,16 +6,21 @@
  * Common infrastructure for error reporting in the Manticore compiler.
  *)
 
+structure CurrentSourcemap = struct
+   val sourcemap = ref (AntlrStreamPos.mkSourcemap())
+end
+
 structure Error :> sig
 
   (* logical positions in the input stream *)
     type pos = AntlrStreamPos.pos
-    type span = AntlrStreamPos.span
+    type span = {file: AntlrStreamPos.sourcemap, span: AntlrStreamPos.span}
 
     type err_stream
 
   (* make an error stream. *)
     val mkErrStream : string -> err_stream
+    val mkErrStream' : unit -> err_stream
 
     val anyErrors : err_stream -> bool
     val sourceFile : err_stream -> string
@@ -58,7 +63,7 @@ structure Error :> sig
     structure F = Format
 
     type pos = SP.pos
-    type span = SP.span
+    type span = {file: SP.sourcemap, span: SP.span}
 
     datatype severity = WARN | ERR
 
@@ -89,6 +94,14 @@ structure Error :> sig
 	    numWarnings = ref 0
 	  }
 
+    fun mkErrStream' filename = ES{
+	    srcFile = "<unkown>",
+	    sm = SP.mkSourcemap (),
+	    errors = ref [],
+	    numErrors = ref 0,
+	    numWarnings = ref 0
+	  }
+
     fun anyErrors (ES{numErrors, ...}) = (!numErrors > 0)
     fun sourceFile (ES{srcFile, ...}) = srcFile
     fun sourceMap (ES{sm, ...}) = sm
@@ -113,7 +126,7 @@ structure Error :> sig
 		  | Repair.FailureAt tok => ["syntax error at ", tok2str tok]
 		(* end case *))
 	  in
-	    addErr (es, SOME(pos, pos), String.concat msg)
+	    addErr (es, SOME{file=sourceMap es,span=(pos,pos)}, String.concat msg)
 	  end
 
   (* add error messages to the error stream *)
@@ -126,14 +139,19 @@ structure Error :> sig
 
   (* sort a list of errors by position in the source file *)
     val sort = let
+          fun fname sm = Option.getOpt (SP.fileName sm 0, "")
 	  fun lt (NONE, NONE) = false
 	    | lt (NONE, _) = true
 	    | lt (_, NONE) = false
-	    | lt (SOME(l1, r1), SOME(l2, r2)) = (case Position.compare(l1, l2)
-		 of LESS => true
-		  | EQUAL => (Position.compare(r1, r2) = LESS)
-		  | GREATER => false
-		(* end case *))
+	    | lt (SOME{file=f1,span=(l1, r1)}, SOME{file=f2,span=(l2, r2)}) =
+               (case String.compare (fname f1, fname f2)
+                 of LESS => true
+                  | GREATER => false
+                  | EQUAL =>
+                     (case Position.compare(l1, l2)
+		       of LESS => true
+		        | EQUAL => (Position.compare(r1, r2) = LESS)
+		        | GREATER => false))
 	  fun cmp (e1 : error, e2 : error) = lt(#pos e1, #pos e2)
 	  in
 	    ListMergeSort.sort cmp
@@ -144,7 +162,8 @@ structure Error :> sig
       = UNKNOWN
       | LOC of {file : string, l1 : int, c1 : int, l2 : int, c2 : int}
 
-    fun location (ES{sm, ...}, (p1, p2) : span) =
+   (* FIXME *)
+    fun location (ES{sm, ...}, {span=(p1, p2),...}: span) =
 	  if (p1 = p2)
 	    then let
 	      val {fileName=SOME f, lineNo, colNo} = SP.sourceLoc sm p1
@@ -160,6 +179,7 @@ structure Error :> sig
 		  else LOC{file=f1, l1=l1, c1=c1, l2=l2, c2=c2}
 	      end
 
+    (* FIXME *)
     fun position (ES{sm, ...}, p : pos) = let
 	  val {fileName=SOME f, lineNo, colNo} = SP.sourceLoc sm p
 	  in
@@ -176,11 +196,11 @@ structure Error :> sig
 		F.STR file, F.INT l1, F.INT c1, F.INT l2, F.INT c2
 	      ]
 
-    fun printError (outStrm, ES{sm, ...}) = let
+    fun printError (outStrm, _) = let
 	  fun pr {kind, pos, msg} = let
 		val kind = (case kind of ERR => "Error" | Warn => "Warning")
 		val pos = (case pos
-		       of SOME(p1, p2) => if (p1 = p2)
+		       of SOME{file=sm,span=(p1, p2)} => if (p1 = p2)
 			    then let
 			      val {fileName=SOME f, lineNo, colNo} = SP.sourceLoc sm p1
 			      in

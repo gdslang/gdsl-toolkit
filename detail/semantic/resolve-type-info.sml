@@ -112,7 +112,8 @@ end = struct
                          c,
                          Option.map (fn t => vType (s, t)) arg))
 
-       val {span=s, tree=declList} = ast
+       val declList = ast
+       val s = SymbolTable.noSpan
 
    in
       (app (fn d => fwdDecl (s,d)) declList

@@ -44,7 +44,6 @@ functor MkAst (Core: AST_CORE) = struct
 
    datatype decl =
       MARKdecl of decl mark
-    | INCLUDEdecl of string
     | GRANULARITYdecl of IntInf.int
     | TYPEdecl of syn_bind * ty
     | DATATYPEdecl of con_bind * (con_bind * ty option) list
@@ -112,19 +111,18 @@ functor MkAst (Core: AST_CORE) = struct
     | STRlit of string
     | VEClit of bitpat_lit
 
-   type specification = decl list mark
+   type specification = decl list
 
    structure PP = struct
       open Layout Pretty Core
 
       val is = seq [space, str "="]
 
-      fun spec (ss:specification) = align (map decl (#tree ss))
+      fun spec (ss:specification) = align (map decl ss)
 
       and decl t =
          case t of
             MARKdecl t' => decl (#tree t')
-          | INCLUDEdecl inc => seq [str "include", space, str inc]
           | GRANULARITYdecl i => seq [str "granularity", is, space, int i]
           | EXPORTdecl es =>
                seq

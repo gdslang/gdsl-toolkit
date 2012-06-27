@@ -84,10 +84,23 @@ structure DesugaredTree = struct
 
       and match (p, e) = (pat p, exp e)
 
+      and stripMarkPat p =
+         case p of
+            MARKpat t => stripMarkPat (#tree t)
+          | p => p
+
       and pat p =
          case p of
             MARKpat t => pat (#tree t)
-          | CONpat (s, p) => Pat.CON (s, Option.map pat p)
+          | CONpat (s, SOME p) =>
+               let
+                  val p = stripMarkPat p
+               in
+                  case p of
+                     IDpat x => Pat.CON (s, SOME x)
+                   | _ => raise Fail "Invalid pattern (too complex...)"
+               end
+          | CONpat (s, NONE) => Pat.CON (s, NONE)
           | LITpat (INTlit i) => Pat.INT i
           | LITpat (VEClit i) => Pat.BIT i
           | LITpat _ => raise CM.CompilationError

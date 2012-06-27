@@ -12,15 +12,14 @@ structure Main = struct
          CPSPasses.run >>=
          CodegenPasses.run 
 
-      fun run fp = let
-         val ins = TextIO.openIn fp
-         val ers = Error.mkErrStream fp
+      fun run fps = let
+         val ers = Error.mkErrStream'()
          val () = Controls.set (BasicControl.verbose, 1)
          val () = Stats.resetAll()
       in
-         CompilationMonad.run ers (all ins >> return ())
+         CompilationMonad.run ers (all fps >> return ())
             before
-               (TextIO.closeIn ins; Stats.report())
+               Stats.report()
       end
 
       fun allTc ins = 
@@ -31,14 +30,14 @@ structure Main = struct
          return () (*(TextIO.print (TypeInference.showTable tys))*)
          )))
 
-      fun runTc fp = let
-         val ins = TextIO.openIn fp
-         val ers = Error.mkErrStream fp
+      fun runTc fps = let
+         val ers = Error.mkErrStream'()
          val () = Controls.set (BasicControl.verbose, 1)
+         val () = Stats.resetAll()
       in
-         CompilationMonad.run ers (allTc ins >> return ())
+         CompilationMonad.run ers (allTc fps >> return ())
             before
-               TextIO.closeIn ins
+               Stats.report()
       end
    end
 
@@ -95,10 +94,7 @@ structure Main = struct
             else processFile (arg, args)
        | _ => usage ()
 
-   and processFile (arg, args) =
-      case (arg, args) of
-         (file, []) => run file
-       | _ => usage ()
+   and processFile (file, files) = run (file::files)
 
    and processOption (arg, args) = let
       fun badopt () = bad (concat ["!* ill-formed option: '", arg, "'\n"])

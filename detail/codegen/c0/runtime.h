@@ -166,6 +166,8 @@
 #define __TAGGED_BEGIN(Cname)\
   __CHECK_HEAP(1)
 
+#define __DECON(o) (o)->tagged.payload
+
 /** ## Blobs */
 
 #define __BLOB_BEGIN(Cname)\

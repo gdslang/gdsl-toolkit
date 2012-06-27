@@ -505,6 +505,7 @@ datatype register =
  | ST5
  | ST6
  | ST7
+ | RIP
 
 datatype opnd =
    IMM8 of 8
@@ -512,9 +513,9 @@ datatype opnd =
  | IMM32 of 32
  | IMM64 of 64
  | REG of register
- | MEM of {sz: int, segment: register, opnd: opnd}
- | SUM of {a:opnd, b:opnd}
- | SCALE of {imm:2, opnd:opnd}
+ | MEM of {sz:int,segment:register,opnd:opnd}
+ | SUM of {a:opnd,b:opnd}
+ | SCALE of {imm:2,opnd:opnd}
 
 datatype flowopnd =
    REL8 of 8
@@ -728,28 +729,73 @@ datatype insn =
  | OUTSB
  | OUTSW
  | OUTSD
- | PABSB
- | PABSW
- | PABSD
- | PACKSSWB
- | PACKSSDW
+ | PABSB of arity2
+ | PABSW of arity2
+ | PABSD of arity2
+ | PACKSSWB of arity2
+ | PACKSSDW of arity2
+ | PACKUSDW of arity2
+ | PACKUSWB of arity2
+ | PADDB of arity2
+ | PADDD of arity2
+ | PADDW of arity2
+ | PADDQ of arity2
+ | PADDSB of arity2
+ | PADDSW of arity2
+ | PADDUSB of arity2
+ | PADDUSW of arity2
  | PALIGNR of arity3
  | PAND of arity2
+ | PANDN of arity2
+ | PAUSE
+ | PAVGB of arity2
+ | PAVGW of arity2
+ | PBLENDVB of arity2
+ | PBLENDW of arity3
+ | PCLMULQDQ of arity3
  | PCMPEQB of arity2
  | PCMPEQD of arity2
  | PCMPEQQ of arity2
  | PCMPEQW of arity2
  | PCMPESTRI of arity3
+ | PCMPESTRM of arity3
  | PCMPGRD of arity2
  | PCMPGTB of arity2
  | PCMPGTD of arity2
  | PCMPGTW of arity2
+ | PCMPGTQ of arity2
  | PCMPISTRI of arity3
+ | PCMPISTRM of arity3
+ | PEXTRB of arity3
+ | PEXTRD of arity3
+ | PEXTRQ of arity3
+ | PEXTRW of arity3
  | PHADDD of arity2
  | PHADDW of arity2
+ | PHADDSW of arity2
+ | PHMINPOSUW of arity2
+ | PHSUBW of arity2
+ | PHSUBD of arity2
+ | PHSUBSW of arity2
  | PINSRB of arity3
  | PINSRD of arity3
  | PINSRQ of arity3
+ | PINSRW of arity3
+ | PMADDUBSW of arity2
+ | PMADDWD of arity2
+ | PMAXSB of arity2
+ | PMAXSD of arity2
+ | PMAXSW of arity2
+ | PMAXUB of arity2
+ | PMAXUD of arity2
+ | PMAXUW of arity2
+ | PMINSB of arity2
+ | PMINSD of arity2
+ | PMINSW of arity2
+ | PMINUB of arity2
+ | PMINUD of arity2
+ | PMINUW of arity2
+
  | PMOVMSKB of arity2
  | POP of arity1
  | POR of arity2
@@ -882,19 +928,66 @@ datatype insn =
  | VPABSD of varity
  | VPACKSSWB of varity
  | VPACKSSDW of varity
+ | VPACKUSDW of varity
+ | VPACKUSWB of varity
+ | VPADDB of varity
+ | VPADDD of varity
+ | VPADDW of varity
+ | VPADDQ of varity
+ | VPADDSB of varity
+ | VPADDSW of varity
+ | VPADDUSB of varity
+ | VPADDUSW of varity
  | VPALIGNR of varity
  | VPAND of varity
+ | VPANDN of varity
+ | VPAVGB of varity
+ | VPAVGW of varity
+ | VPBLENDVB of varity
+ | VPBLENDW of varity
+ | VPCLMULQDQ of varity
+ | VPCMPEQB of varity
+ | VPCMPEQW of varity
+ | VPCMPEQD of varity
  | VPCMPEQQ of varity
+ | VPCMPESTRI of varity
+ | VPCMPESTRM of varity
  | VPCMPGTB of varity
  | VPCMPGTD of varity
  | VPCMPGTW of varity
- | VPCMPESTRI of varity
+ | VPCMPGTQ of varity
+ | VPCMPISTRI of varity
+ | VPCMPISTRM of varity
+ | VPEXTRB of varity
+ | VPEXTRD of varity
+ | VPEXTRQ of varity
+ | VPEXTRW of varity
  | VPHADDD of varity
  | VPHADDW of varity
- | VPCMPISTRI of varity
+ | VPHADDSW of varity
+ | VPHMINPOSUW of varity
+ | VPHSUBW of varity
+ | VPHSUBD of varity
+ | VPHSUBSW of varity
  | VPINSRB of varity
  | VPINSRD of varity
  | VPINSRQ of varity
+ | VPINSRW of varity
+ | VPMADDUBSW of varity
+ | VPMADDWD of varity
+ | VPMAXSB of varity
+ | VPMAXSD of varity
+ | VPMAXSW of varity
+ | VPMAXUB of varity
+ | VPMAXUD of varity
+ | VPMAXUW of varity
+ | VPMINSB of varity
+ | VPMINSD of varity
+ | VPMINSW of varity
+ | VPMINUB of varity
+ | VPMINUD of varity
+ | VPMINUW of varity
+
  | VPMOVMSKB of varity
  | VPOR of varity
  | VPSHUFB of varity
@@ -1321,7 +1414,7 @@ val sib-with-index-and-base reg s i b = do
     | _:
          case b of
             '101': sib-without-base reg s i
-          | _: return (SUM{a=SCALE{imm=s, opnd=reg rexx i}, b=reg rexb b})
+          | _: return (SUM{b=SCALE{imm=s, opnd=reg rexx i}, a=reg rexb b})
          end
    end
 end
@@ -1375,8 +1468,11 @@ val r/m-without-sib = do
          case rm of
             '101':
                do
+                  mode <- query $mode64;
                   i <- imm32;
-                  mem i
+                  if mode
+                     then mem (SUM{a=REG RIP,b=i})
+                  else mem i
                end
           | _ : mem (addr-reg rexb rm)
          end
@@ -2646,8 +2742,55 @@ val / [0x0f 0x63 /r] = binop PACKSSWB mm64 mm/m64
 val /66 [0x0f 0x63 /r] = binop PACKSSWB xmm128 xmm/m128
 val / [0x0f 0x6b /r] = binop PACKSSDW mm64 mm/m64
 val /66 [0x0f 0x6b /r] = binop PACKSSDW xmm128 xmm/m128
-val /vex/66/0f/vexv [0x63 /r] | vex128? = varity2 VPACKSSWB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x6b /r] | vex128? = varity2 VPACKSSDW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x63 /r] | vex128? = varity3 VPACKSSWB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6b /r] | vex128? = varity3 VPACKSSDW xmm128 v/xmm xmm/m128
+
+### PACKUSDW
+###  - Pack with Unsigned Saturation
+val /66 [0x0f 0x38 0x2b /r] = binop PACKUSDW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x2b /r] | vex128? = varity3 VPACKUSDW xmm128 v/xmm xmm/m128
+
+### PACKUSWB
+###  - Pack with Unsigned Saturation
+val / [0x0f 0x67 /r] = binop PACKUSWB mm64 mm/m64
+val /66 [0x0f 0x67 /r] = binop PACKUSWB xmm128 xmm/m128
+val /vex/66/0f/vexv [0x67 /r] | vex128? = varity3 VPACKUSWB xmm128 v/xmm xmm/m128
+
+### PADDB/PADDW/PADDD
+###  - Add Packed Integers
+val / [0x0f 0xfc /r] = binop PADDB mm64 mm/m64
+val /66 [0x0f 0xfc /r] = binop PADDB xmm128 xmm/m128
+val / [0x0f 0xfd /r] = binop PADDW mm64 mm/m64
+val /66 [0x0f 0xfd /r] = binop PADDW xmm128 xmm/m128
+val / [0x0f 0xfe /r] = binop PADDD mm64 mm/m64
+val /66 [0x0f 0xfe /r] = binop PADDD xmm128 xmm/m128
+val /vex/66/0f/vexv [0xfc /r] | vex128? = varity3 VPADDB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xfd /r] | vex128? = varity3 VPADDW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xfe /r] | vex128? = varity3 VPADDD xmm128 v/xmm xmm/m128
+
+### PADDQ
+###  - Add Packed Quadword Integers
+val / [0x0f 0xd4 /r] = binop PADDQ mm64 mm/m64
+val /66 [0x0f 0xd4 /r] = binop PADDQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd4 /r] | vex128? = varity3 VPADDQ xmm128 v/xmm xmm/m128
+
+### PADDSB/PADDSW
+###  - Add Packed Signed Integers with Signed Saturation
+val / [0x0f 0xec /r] = binop PADDSB mm64 mm/m64
+val /66 [0x0f 0xec /r] = binop PADDSB xmm128 xmm/m128
+val / [0x0f 0xed /r] = binop PADDSW mm64 mm/m64
+val /66 [0x0f 0xed /r] = binop PADDSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xec /r] | vex128? = varity3 VPADDSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xed /r] | vex128? = varity3 VPADDSW xmm128 v/xmm xmm/m128
+
+### PADDUSB/PADDUSW
+###  - Add Packed Unsigned Integers with Unsigned Saturation
+val / [0x0f 0xdc /r] = binop PADDUSB mm64 mm/m64
+val /66 [0x0f 0xdc /r] = binop PADDUSB xmm128 xmm/m128
+val / [0x0f 0xdd /r] = binop PADDUSW mm64 mm/m64
+val /66 [0x0f 0xdd /r] = binop PADDUSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xdc /r] | vex128? = varity3 VPADDUSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xdd /r] | vex128? = varity3 VPADDUSW xmm128 v/xmm xmm/m128
 
 ### PALIGNR
 ###  - Packed Align Right
@@ -2661,6 +2804,41 @@ val / [0x0f 0xdb /r] = binop PAND mm64 mm/m64
 val /66 [0x0f 0xdb /r] = binop PAND xmm128 xmm/m128
 val /vex/66/0f/vexv [0xdb /r] | vex128? = varity3 VPAND xmm128 v/xmm xmm/m128
 
+### PANDN
+###  - Logical AND NOT
+val / [0x0f 0xdf /r] = binop PANDN mm64 mm/m64
+val /66 [0x0f 0xdf /r] = binop PANDN xmm128 xmm/m128
+val /vex/66/0f/vexv [0xdf /r] | vex128? = varity3 VPANDN xmm128 v/xmm xmm/m128
+
+### PAUSE
+###  - Spin Loop Hint
+val / [0xf3 0x90] = arity0 PAUSE
+
+### PAVGB/PAVGW
+###  - Average Packed Integers
+val / [0x0f 0xe0 /r] = binop PAVGB mm64 mm/m64
+val /66 [0x0f 0xe0 /r] = binop PAVGB xmm128 xmm/m128
+val / [0x0f 0xe3 /r] = binop PAVGW mm64 mm/m64
+val /66 [0x0f 0xe3 /r] = binop PAVGW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe0 /r] | vex128? = varity3 VPAVGB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xe3 /r] | vex128? = varity3 VPAVGW xmm128 v/xmm xmm/m128
+
+### PBLENDVB
+###  - Variable Blend Packed Bytes
+# Todo: /is4?
+val /66 [0x0f 0x38 0x10 /r] = binop PBLENDVB xmm128 xmm/m128
+val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? & vex128? = varity4 VPBLENDVB xmm128 v/xmm xmm/m128 xmm128
+
+### PBLENDW
+###  - Blend Packed Words
+val /66 [0x0f 0x3a 0x0e /r] = ternop PBLENDW xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0e /r] | vex128? = varity4 VPBLENDW xmm128 v/xmm xmm/m128 imm8
+
+### PCLMULQDQ
+###  - Carry-Less Multiplication Quadword
+val /66 [0x0f 0x3a 0x44 /r] = ternop PCLMULQDQ xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x44 /r] | vex128? = varity4 VPCLMULQDQ xmm128 v/xmm xmm/m128 imm8
+
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
 val / [0x0f 0x74 /r] = binop PCMPEQB mm64 mm/m64
@@ -2669,9 +2847,9 @@ val / [0x0f 0x75 /r] = binop PCMPEQW mm64 mm/m64
 val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
 val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
 val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
-val /vex/66/0f/vexv [0x74 /r] = varity3 VCMPEQB xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x75 /r] = varity3 VCMPEQW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x76 /r] = varity3 VCMPEQD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x74 /r] | vex128? = varity3 VPCMPEQB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x75 /r] | vex128? = varity3 VPCMPEQW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x76 /r] | vex128? = varity3 VPCMPEQD xmm128 v/xmm xmm/m128
 
 ### PCMPEQQ
 ###  - Compare Packed Qword Data for Equal
@@ -2682,6 +2860,11 @@ val /vex/66/0f/38 [0x29 /r] | vex128? = varity3 VPCMPEQQ xmm128 v/xmm xmm/m128
 ###  - Packed Compare Explicit Length Strings, Return Index
 val /66 [0x0f 0x3a 0x61 /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
 val /vex/66/0f/3a [0x61 /r] = varity3 VPCMPESTRI xmm128 xmm/m128 imm8
+
+### PCMPESTRM
+###  - Packed Compare Explicit Length Strings, Return Mask
+val /66 [0x0f 0x3a 0x60 /r] = ternop PCMPESTRM xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x60 /r] | vex128? = varity3 VPCMPESTRM xmm128 xmm/m128 imm8
 
 ### PCMPGTB/PCMPGTW/PCMPGTD
 ###  - Compare Packed Signed Integers for Greater Than
@@ -2695,10 +2878,48 @@ val /vex/66/0f/vexv [0x64 /r] | vex128? = varity3 VPCMPGTB xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x65 /r] | vex128? = varity3 VPCMPGTW xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x66 /r] | vex128? = varity3 VPCMPGTD xmm128 v/xmm xmm/m128
 
+### PCMPGTQ
+###  - Compare Packed Data for Greater Than
+val /66 [0x0f 0x38 0x37 /r] = binop PCMPGTQ xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x37 /r] | vex128? = varity3 VPCMPGTQ xmm128 v/xmm xmm/m128
+
 ### PCMPISTRI
 ###  - Packed Compare Implicit Length Strings, Return Index
 val /66 [0x0f 0x3a 0x63 /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
 val /vex/66/0f/3a [0x63 /r] | vex128? = varity3 VPCMPISTRI xmm128 xmm/m128 imm8
+
+### PCMPISTRM
+###  - Packed Compare Implicit Length Strings, Return Mask
+val /66 [0x0f 0x3a 0x62 /r] = ternop PCMPISTRM xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x62 /r] | vex128? = varity3 VPCMPISTRM xmm128 xmm/m128 imm8
+
+### PEXTRB/PEXTRD/PEXTRQ
+###  - Extract Byte/Dword/Qword
+val /66 [0x0f 0x3a 0x14 /r] = ternop PEXTRB r/m8 xmm128 imm8
+val /66 [0x0f 0x3a 0x16 /r]
+ | rexw? = ternop PEXTRQ r/m32 xmm128 imm8
+ | otherwise = ternop PEXTRD r/m32 xmm128 imm8
+val /vex/66/0f/3a [0x14 /r] | vex128? & vexw0? = varity3 VPEXTRB r/m8 xmm128 imm8
+val /vex/66/0f/3a [0x16 /r]
+ | vex128? & vexw0? = varity3 VPEXTRD r/m32 xmm128 imm8
+ | vex128? & vexw1? = varity3 VPEXTRQ r/m64 xmm128 imm8
+
+### PEXTRW
+###  - Extract Word
+val / [0x0f 0xc5 /r-nomem]
+ | mode64? = ternop PEXTRW r64 mm/nomem64 imm8
+ | otherwise = ternop PEXTRW r32 mm/nomem64 imm8
+val /66 [0x0f 0xc5 /r-nomem]
+ | mode64? = ternop PEXTRW r64 xmm/nomem128 imm8
+ | otherwise = ternop PEXTRW r32 xmm/nomem128 imm8
+val /66 [0x0f 0x3a 0x15 /r]
+ | mode64? = ternop PEXTRW r/m64 xmm128 imm8
+val /vex/66/0f [0xc5 /r-nomem]
+ | mode64? & vex128? = varity3 VPEXTRW r64 xmm/nomem128 imm8
+#TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r32 xmm/nomem128 imm8
+val /vex/66/0f [0x15 /r]
+ | mode64? & vex128? = varity3 VPEXTRW r/m64 xmm128 imm8
+#TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r/m32 xmm128 imm8
 
 ### PHADDW/PHADDD
 ###  - Packed Horizontal Add
@@ -2708,6 +2929,32 @@ val /66 [0x0f 0x38 0x02 /r] = binop PHADDD xmm128 xmm/m128
 val / [0x0f 0x38 0x02 /r] = binop PHADDD mm64 mm/m64
 val /vex/66/0f/38/vexv [0x01 /r] | vex128? = varity3 VPHADDW xmm128 v/xmm xmm/m128
 val /vex/66/0f/38/vexv [0x02 /r] | vex128? = varity3 VPHADDD xmm128 v/xmm xmm/m128
+
+### PHADDSW
+###  - Packed Horizontal Add and Saturate
+val / [0x0f 0x38 0x03 /r] = binop PHADDSW mm64 mm/m64
+val /66 [0x0f 0x38 0x03 /r] = binop PHADDSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x03 /r] | vex128? = varity3 VPHADDSW xmm128 v/xmm xmm/m128
+
+### PHMINPOSUW
+###  - Packed Horizontal Word Minimum
+val /66 [0x0f 0x38 0x41 /r] = binop PHMINPOSUW xmm128 xmm/m128
+val /vex/66/0f/38 [0x41 /r] | vex128? = varity2 VPHMINPOSUW xmm128 xmm/m128
+
+### PHSUBW/PHSUBD
+###  - Packed Horizontal Subtract
+val / [0x0f 0x38 0x05 /r] = binop PHSUBW mm64 mm/m64
+val /66 [0x0f 0x38 0x05 /r] = binop PHSUBW xmm128 xmm/m128
+val / [0x0f 0x38 0x06 /r] = binop PHSUBD mm64 mm/m64
+val /66 [0x0f 0x38 0x06 /r] = binop PHSUBD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x05 /r] | vex128? = varity3 VPHSUBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x06 /r] | vex128? = varity3 VPHSUBD xmm128 v/xmm xmm/m128
+
+### PHSUBSW
+###  - Packed Horizontal Subtract and Saturate
+val / [0x0f 0x38 0x07 /r] = binop PHSUBSW mm64 mm/m64
+val /66 [0x0f 0x38 0x07 /r] = binop PHSUBSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x07 /r] | vex128? = varity3 VPHSUBSW xmm128 v/xmm xmm/m128
 
 ### PINSRB/PINSRD/PINSRQ
 ###  - Insert Byte/Dword/Qword
@@ -2719,6 +2966,88 @@ val /vex/66/0f/3a [0x20 /r] | vex128? & vexw0? = varity4 VPINSRB xmm128 v/xmm r/
 val /vex/66/0f/3a [0x22 /r] 
  | vex128? & vexw1? = varity4 VPINSRQ xmm128 v/xmm r/m64 imm8
  | vex128? = varity4 VPINSRD xmm128 v/xmm r/m32 imm8
+
+### PINSRW
+###  - Insert Word
+val / [0x0f 0xc4] = ternop PINSRW mm64 r/m32 imm8
+val /66 [0x0f 0xc4] = ternop PINSRW xmm128 r/m32 imm8
+val /vex/66/0f/vexv [0xc4 /r] | vex128? & vexw0? = varity4 VPINSRW xmm128 v/xmm r/m32 imm8
+
+### PMADDUBSW
+###  - Multiply and Add Packed Signed and Unsigned Bytes
+val / [0x0f 0x38 0x04 /r] = binop PMADDUBSW mm64 mm/m64
+val /66 [0x0f 0x38 0x04 /r] = binop PMADDUBSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x04 /r] | vex128? = varity3 VPMADDUBSW xmm128 v/xmm xmm/m128
+
+### PMADDWD
+###  - Multiply and Add Packed Integers
+val / [0x0f 0xf5 /r] = binop PMADDWD mm64 mm/m64
+val /66 [0x0f 0xf5 /r] = binop PMADDWD xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf5 /r] | vex128? = varity3 VPMADDWD xmm128 v/xmm xmm/m128
+
+### PMAXSB
+###  - Maximum of Packed Signed Byte Integers
+val /66 [0x0f 0x38 0x3c /r] = binop PMAXSB xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3c /r] | vex128? = varity3 VPMAXSB xmm128 v/xmm xmm/m128
+
+### PMAXSD
+###  - Maximum of Packed Signed Dword Integers
+val /66 [0x0f 0x38 0x3d /r] = binop PMAXSD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3d /r] | vex128? = varity3 VPMAXSD xmm128 v/xmm xmm/m128
+
+### PMAXSW
+###  - Maximum of Packed Signed Word Integers
+val / [0x0f 0xee /r] = binop PMAXSW mm64 mm/m64
+val /66 [0x0f 0xee /r] = binop PMAXSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xee /r] | vex128? = varity3 VPMAXSW xmm128 v/xmm xmm/m128
+
+### PMAXUB
+###  - Maximum of Packed Unsigned Byte Integers
+val / [0x0f 0xde /r] = binop PMAXUB mm64 mm/m64
+val /66 [0x0f 0xde /r] = binop PMAXUB xmm128 xmm/m128
+val /vex/66/0f/vexv [0xde /r] | vex128? = varity3 VPMAXUB xmm128 v/xmm xmm/m128
+
+### PMAXUD
+###  - Maximum of Packed Unsigned Dword Integers
+val /66 [0x0f 0x38 0x3f /r] = binop PMAXUD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3f /r] | vex128? = varity3 VPMAXUD xmm128 v/xmm xmm/m128
+
+### PMAXUW
+###  - Maximum of Packed Word Integers
+val /66 [0x0f 0x38 0x3e /r] = binop PMAXUW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3e /r] | vex128? = varity3 VPMAXUW xmm128 v/xmm xmm/m128
+
+### PMINSB
+###  - Minimum of Packed Signed Byte Integers
+val /66 [0x0f 0x38 0x38 /r] = binop PMINSB xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x38 /r] | vex128? = varity3 VPMINSB xmm128 v/xmm xmm/m128
+
+### PMINSD
+###  - Minimum of Packed Dword Integers
+val /66 [0x0f 0x38 0x39 /r] = binop PMINSD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x39 /r] | vex128? = varity3 VPMINSD xmm128 v/xmm xmm/m128
+
+### PMINSW
+###  - Minimum of Packed Signed Word Integers
+val / [0x0f 0xea /r] = binop PMINSW mm64 mm/m64
+val /66 [0x0f 0xea /r] = binop PMINSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xea /r] | vex128? = varity3 VPMINSW xmm128 v/xmm xmm/m128
+
+### PMINUB
+###  - Minimum of Packed Unsigned Byte Integers
+val / [0x0f 0xda /r] = binop PMINUB mm64 mm/m64
+val /66 [0x0f 0xda /r] = binop PMINUB xmm128 xmm/m128
+val /vex/66/0f/vexv [0xda /r] | vex128? = varity3 VPMINUB xmm128 v/xmm xmm/m128
+
+### PMINUD
+###  - Minimum of Packed Dword Integers
+val /66 [0x0f 0x38 0x3b /r] = binop PMINUD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3b /r] | vex128? = varity3 VPMINUD xmm128 v/xmm xmm/m128
+
+### PMINUW
+###  - Minimum of Packed Word Integers
+val /66 [0x0f 0x38 0x3a /r] = binop PMINUW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3a /r] | vex128? = varity3 VPMINUW xmm128 v/xmm xmm/m128
 
 ### PMOVMSKB
 ###  - Move Byte Mask

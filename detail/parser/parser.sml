@@ -3,27 +3,28 @@ structure Parser : sig
 
    (* parse a file; return NONE if there are syntax errors *)
    val parseFile: (Error.err_stream * TextIO.instream) -> SpecParseTree.specification option
-   val parse: string -> SpecParseTree.specification option
-   val run: TextIO.instream -> SpecParseTree.specification CompilationMonad.t
+   val parse: string list -> SpecParseTree.specification
+   val run: string list -> SpecParseTree.specification CompilationMonad.t
    val trace: TextIO.outstream * SpecParseTree.specification -> SpecParseTree.specification CompilationMonad.t
 
 end = struct
 
    structure SpecParser = SpecParseFn(SpecLex)
 
-   fun lexErr errStrm (pos, msg) = Error.errorAt(errStrm, (pos, pos), msg)
+   fun lexErr errStrm (pos, msg) =
+      Error.errorAt(errStrm, {file= !CurrentSourcemap.sourcemap, span=(pos, pos)}, msg)
 
    val parseErr = Error.parseError SpecTokens.toString
 
    fun parseFile (errStrm, file) = let
-	   val lexer = SpecLex.lex (Error.sourceMap errStrm) (lexErr errStrm)
+      val sm = Error.sourceMap errStrm
+      val _ = CurrentSourcemap.sourcemap := sm
+	   val lexer = SpecLex.lex sm (lexErr errStrm)
       val ins = SpecLex.streamifyInstream file
 	in
 	   case SpecParser.parse lexer ins of
          (SOME pt, _, []) => SOME pt
-	    | (_, _, errs) =>
-            (List.app (parseErr errStrm) errs
-		      ;NONE)
+       | _ => NONE
 	end
 
    val parseFile =
@@ -39,14 +40,30 @@ end = struct
                NONE => ()
              | SOME x => SpecParseTree.PP.prettyTo (os, x)}
 
-   fun run ins = let
+   fun parse fps = let
+      fun process fp = 
+         let
+            val ins = TextIO.openIn fp
+            val ers = Error.mkErrStream fp
+         in
+            parseFile (ers, ins)
+               before
+                  (TextIO.closeIn ins;
+                   if Error.anyErrors ers
+                      then raise CompilationMonad.CompilationError
+                   else ())
+         end
+   in
+      List.concat (List.mapPartial process fps)
+   end
+
+   fun run fps = let
       open CompilationMonad
       infix >>=
    in
-      getErrorStream >>= (fn errs =>
-      case parseFile (errs, ins) of
-         NONE => fail
-       | SOME spec => return spec)
+      case parse fps of
+         [] => fail
+       | spec => return spec
    end
 
    fun trace (os, spec) = let
@@ -56,13 +73,4 @@ end = struct
      ;return spec
    end
 
-   fun parse fp = let
-      val ins = TextIO.openIn fp
-      val ers = Error.mkErrStream fp
-      val () = Controls.set (BasicControl.verbose, 1)
-   in
-      parseFile (ers, ins)
-         before
-            (TextIO.closeIn ins; Error.report (TextIO.stdErr, ers))
-   end
 end
