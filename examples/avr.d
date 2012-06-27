@@ -8,6 +8,7 @@ end
 
 datatype imm =
    IMM3 of 3
+ | IMM4 of 4
  | IMM6 of 6
  | IMM7 of 7
  | IMM8 of 8
@@ -38,6 +39,23 @@ datatype instruction =
  | CALL of unop
  | CBI of binop
  | CLC of nullop
+ | CLH of nullop
+ | CLI of nullop
+ | CLN of nullop
+ | CLS of nullop
+ | CLT of nullop
+ | CLV of nullop
+ | CLZ of nullop
+ | COM of unop
+ | CP of binop
+ | CPC of binop
+ | CPI of binop
+ | CPSE of binop
+ | DEC of unop
+ | DES of unop
+ | EICALL of nullop
+ | EIJMP of nullop
+ | ELPM of nullop
 
 datatype register =
    R0
@@ -228,6 +246,11 @@ val rr4 = do
  return (REG (register-from-bits ('1' ^ rr)))
 end
 
+val ck4 = do
+ ck <- query $ck;
+ return (IMM (IMM4 ck))
+end
+
 val ck6 = do
  ck <- query $ck;
  return (IMM (IMM6 ck))
@@ -348,3 +371,72 @@ val / ['10011000' a a a a a b b b] = binop CBI io cb3
 ### CLC
 ###  - Clear Carry Flag
 val / ['1001010010001000'] = nullop CLC
+
+### CLH
+###  - Clear Half Carry Flag
+val / ['1001010011011000'] = nullop CLH
+
+### CLI
+###  - Clear Global Interrupt Flag
+val / ['1001010011111000'] = nullop CLI
+
+### CLN
+###  - Clear Negative Flag
+val / ['1001010010101000'] = nullop CLN
+
+### CLS
+###  - Clear Signed Flag
+val / ['1001010011001000'] = nullop CLS
+
+### CLT
+###  - Clear T Flag
+val / ['1001010011101000'] = nullop CLT
+
+### CLV
+###  - Clear Overflow Flag
+val / ['1001010010111000'] = nullop CLV
+
+### CLZ
+###  - Clear Zero Flag
+val / ['1001010010011000'] = nullop CLZ
+
+### COM
+###  - One’s Complement
+val / ['1001010' d d d d d '0000'] = unop COM rd5
+
+### CP
+###  - Compare
+val / ['000101' r d d d d d r r r r] = binop CP rd5 rr5
+
+### CPC
+###  - Compare with Carry
+val / ['000001' r d d d d d r r r r] = binop CPC rd5 rr5
+
+### CPI
+###  - Compare with Immediate
+val / ['0011' k k k k d d d d k k k k] = binop CPI rd4 ck8
+
+### CPSE
+###  - Compare Skip if Equal
+val / ['000100' r d d d d d r r r r] = binop CPSE rd5 rr5
+
+### DEC
+###  - Decrement
+val / ['1001010' d d d d d '1010'] = unop DEC rd5
+
+### DES
+###  - Data Encryption Standard
+val / ['10010100' k k k k '1011'] = unop DES ck4
+
+### EICALL
+###  - Extended Indirect Call to Subroutine
+val / ['1001010100011001'] = nullop EICALL
+
+### EIJMP
+###  - Extended Indirect Jump
+val / ['1001010000011001'] = nullop EIJMP
+
+### ELPM
+###  - Extended Load Program Memory
+val / ['1001010111011000'] = nullop ELPM
+# ...
