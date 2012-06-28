@@ -67,12 +67,19 @@ val semanticRegisterOf r =
    case r of
       RAX: {id=ARCH_RAX,offset=0,size=64}
     | RBX: {id=ARCH_RBX,offset=0,size=64}
+    | EAX: {id=ARCH_RAX,offset=0,size=32}
+    | EBX: {id=ARCH_RBX,offset=0,size=32}
    end
 
 val guessSizeOf dst/src1 src2 = 
    case dst/src1 of
       REG r: return ($size (semanticRegisterOf r))
-    # ...
+    | MEM x: return ($sz x)
+    | _:
+         case src2 of
+            REG r: return ($size (semanticRegisterOf r))
+          | MEM x: return ($sz x)
+         end
    end
 
 val var//0 x = SEM_LIN_VAR{id=x,offset=0}
