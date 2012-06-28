@@ -152,7 +152,7 @@ structure Error :> sig
 		       of LESS => true
 		        | EQUAL => (Position.compare(r1, r2) = LESS)
 		        | GREATER => false))
-	  fun cmp (e1 : error, e2 : error) = lt(#pos e1, #pos e2)
+	  fun cmp (e1 : error, e2 : error) = not (lt(#pos e1, #pos e2))
 	  in
 	    ListMergeSort.sort cmp
 	  end
