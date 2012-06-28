@@ -79,7 +79,27 @@ end = struct
             [] => 0
           | (f::fs) => List.foldl checkWidth (String.size f) fs
       end
-         
+   
+   (*convert calls in a decoder pattern into a list of monadic actions*)
+   fun decsToSeq e [] = e
+     | decsToSeq e ds = AST.SEQexp
+         (List.concat (List.map decToSeqDecodepat ds) @ [AST.ACTIONseqexp e])
+   and decToSeqDecodepat (AST.MARKdecodepat {tree=t, span=s}) =
+         List.map (fn a => AST.MARKseqexp {tree=a, span=s})
+            (decToSeqDecodepat t)
+     | decToSeqDecodepat (AST.TOKENdecodepat tp) =
+         List.map AST.ACTIONseqexp (decToSeqToken tp)
+     | decToSeqDecodepat (AST.BITdecodepat bps) =
+         List.map AST.ACTIONseqexp (List.concat (List.map decToSeqBitpat bps))
+   and decToSeqToken (AST.MARKtokpat {tree=t, span=s}) =
+         List.map (fn e => AST.MARKexp {tree=e, span=s}) (decToSeqToken t)
+     | decToSeqToken (AST.NAMEDtokpat sym) = [AST.IDexp sym]
+     | decToSeqToken _ = []
+   and decToSeqBitpat (AST.MARKbitpat {tree=t, span=s}) =
+         List.map (fn e => AST.MARKexp {tree=e, span=s}) (decToSeqBitpat t)
+     | decToSeqBitpat (AST.NAMEDbitpat sym) = [AST.IDexp sym]
+     | decToSeqBitpat _ = []
+    
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val sm = ref ([] : symbol_types)
    val { tsynDefs, typeDefs, conParents} = ti
@@ -174,7 +194,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                         List.filter (fn (s,_) =>
                            not (SymbolTable.eq_symid(s,sym))) sm)
                      (!sm) changed
-               val affectedSyms = E.affectedFunctions (substs,env)
+               val affectedSyms = E.affectedFunctions (substs,envCall)
                val _ = raiseWarning (substs, affectedSyms)
             in
                (E.SymbolSet.union (unstable, affectedSyms), env)
@@ -245,6 +265,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             case infDecodepat sym (st,env) d of (nArgs, env) => (n+nArgs, env)
          val (n,env) = List.foldl pushDecoderBindings (0,env) dec
          val env = List.foldl E.pushLambdaVar env args
+         val rhs = decsToSeq rhs dec
          val env = infExp (st,env) rhs
          val env = E.reduceToFunction (env, List.length args)
          val env = E.return (n,env)
@@ -684,7 +705,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (ast : SpecAbstractTree.specification)
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
 
    (* check if all exported functions can be run with an empty state *)
    fun checkDecoder s sym = case E.forceNoInputs (sym,toplevelEnv) of
