@@ -199,8 +199,9 @@ structure Error :> sig
     fun printError (outStrm, _) = let
 	  fun pr {kind, pos, msg} = let
 		val kind = (case kind of ERR => "Error" | Warn => "Warning")
-		val pos = (case pos
-		       of SOME{file=sm,span=(p1, p2)} => if (p1 = p2)
+		val pos = (case pos of
+		     NONE => "[no position] "
+		   | SOME{file=sm,span=(p1, p2)} => if (p1 = p2)
 			    then let
 			      val {fileName=SOME f, lineNo, colNo} = SP.sourceLoc sm p1
 			      in
@@ -234,7 +235,7 @@ structure Error :> sig
 	    pr
 	  end
 
-    fun report (outStrm, es as ES{errors, ...}) =
+    fun report (outStrm, es as ES{errors, numErrors, ...}) =
 	  List.app (printError (outStrm, es)) (sort (!errors))
 
   (* a term marked with a source-map span *)
