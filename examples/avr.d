@@ -6,6 +6,11 @@ granularity = 16
 #  /
 # end
 
+type side-effect =
+   NONE
+ | INCR
+ | DECR
+
 type imm =
    IMM3 of 3
  | IMM4 of 4
@@ -19,6 +24,7 @@ type operand =
  | REGHL of {regh:register,regl:register}
  | IOREG of io-register
  | IMM of imm
+ | OPSE of {op:operand,se:side-effect}
 
 type binop = {first:operand,second:operand}
 type unop = {operand:operand}
@@ -56,7 +62,14 @@ type instruction =
  | DES of unop
  | EICALL
  | EIJMP
- | ELPM
+ | ELPM of binop
+ | EOR of binop
+ | FMUL of binop
+ | FMULS of binop
+ | FMULSU of binop
+ | ICALL
+ | IJMP
+ | IN of binop
 
 type register =
    R0
@@ -125,6 +138,39 @@ type io-register =
  | IO29
  | IO30
  | IO31
+ | IO32
+ | IO33
+ | IO34
+ | IO35
+ | IO36
+ | IO37
+ | IO38
+ | IO39
+ | IO40
+ | IO41
+ | IO42
+ | IO43
+ | IO44
+ | IO45
+ | IO46
+ | IO47
+ | IO48
+ | IO49
+ | IO50
+ | IO51
+ | IO52
+ | IO53
+ | IO54
+ | IO55
+ | IO56
+ | IO57
+ | IO58
+ | IO59
+ | IO60
+ | IO61
+ | IO62
+ | IO63
+
 
 val register-from-bits bits =
  case bits of
@@ -162,45 +208,81 @@ val register-from-bits bits =
   | '11111': R31
  end
 
-val /X = REGHL {regh=R27,regl=R26}
-val /Y = REGHL {regh=R29,regl=R28}
-val /Z = REGHL {regh=R31,regl=R30}
-
 val io-register-from-bits bits =
  case bits of
-    '00000': IO0
-  | '00001': IO1
-  | '00010': IO2
-  | '00011': IO3
-  | '00100': IO4
-  | '00101': IO5
-  | '00110': IO6
-  | '00111': IO7
-  | '01000': IO8
-  | '01001': IO9
-  | '01010': IO10
-  | '01011': IO11
-  | '01100': IO12
-  | '01101': IO13
-  | '01110': IO14
-  | '01111': IO15
-  | '10000': IO16
-  | '10001': IO17
-  | '10010': IO18
-  | '10011': IO19
-  | '10100': IO20
-  | '10101': IO21
-  | '10110': IO22
-  | '10111': IO23
-  | '11000': IO24
-  | '11001': IO25
-  | '11010': IO26
-  | '11011': IO27
-  | '11100': IO28
-  | '11101': IO29
-  | '11110': IO30
-  | '11111': IO31
+    '000000': IO0
+  | '000001': IO1
+  | '000010': IO2
+  | '000011': IO3
+  | '000100': IO4
+  | '000101': IO5
+  | '000110': IO6
+  | '000111': IO7
+  | '001000': IO8
+  | '001001': IO9
+  | '001010': IO10
+  | '001011': IO11
+  | '001100': IO12
+  | '001101': IO13
+  | '001110': IO14
+  | '001111': IO15
+  | '010000': IO16
+  | '010001': IO17
+  | '010010': IO18
+  | '010011': IO19
+  | '010100': IO20
+  | '010101': IO21
+  | '010110': IO22
+  | '010111': IO23
+  | '011000': IO24
+  | '011001': IO25
+  | '011010': IO26
+  | '011011': IO27
+  | '011100': IO28
+  | '011101': IO29
+  | '011110': IO30
+  | '011111': IO31
+  | '100000': IO32
+  | '100001': IO33
+  | '100010': IO34
+  | '100011': IO35
+  | '100100': IO36
+  | '100101': IO37
+  | '100110': IO38
+  | '100111': IO39
+  | '101000': IO40
+  | '101001': IO41
+  | '101010': IO42
+  | '101011': IO43
+  | '101100': IO44
+  | '101101': IO45
+  | '101110': IO46
+  | '101111': IO47
+  | '110000': IO48
+  | '110001': IO49
+  | '110010': IO50
+  | '110011': IO51
+  | '110100': IO52
+  | '110101': IO53
+  | '110110': IO54
+  | '110111': IO55
+  | '111000': IO56
+  | '111001': IO57
+  | '111010': IO58
+  | '111011': IO59
+  | '111100': IO60
+  | '111101': IO61
+  | '111110': IO62
+  | '111111': IO63
  end
+
+val x-hl = REGHL {regh=R27,regl=R26}
+val y-hl = REGHL {regh=R29,regl=R28}
+val z-hl = REGHL {regh=R31,regl=R30}
+
+val r0 = return (REG R0)
+
+val /Z se = return (OPSE {op=z-hl,se=se})
 
 val d ['bit:1'] = do
  rd <- query $rd;
@@ -243,6 +325,12 @@ val rd4 = do
  update @{rd=''};
  return (REG (register-from-bits ('1' ^ rd)))
 end
+
+val rd3 = do
+ rd <- query $rd;
+ update @{rd=''};
+ return (REG (register-from-bits ('10' ^ rd)))
+end
  
 val rr5 = do
  rr <- query $rr;
@@ -254,6 +342,12 @@ val rr4 = do
  rr <- query $rr;
  update @{rr=''};
  return (REG (register-from-bits ('1' ^ rr)))
+end
+ 
+val rr3 = do
+ rr <- query $rr;
+ update @{rr=''};
+ return (REG (register-from-bits ('10' ^ rr)))
 end
 
 val ck4 = do
@@ -298,7 +392,13 @@ val cb3 = do
  return (IMM (IMM3 cb))
 end
 
-val io = do
+val io5 = do
+ io <- query $io;
+ update @{io=''};
+ return (IOREG (io-register-from-bits ('0' ^ io)))
+end
+
+val io6 = do
  io <- query $io;
  update @{io=''};
  return (IOREG (io-register-from-bits io))
@@ -385,7 +485,7 @@ val / ['1001010 k k k k k 111 k ' 'k k k k k k k k k k k k k k k k '] = unop CAL
 
 ### CBI
 ###  - Clear Bit in I/O Register
-val / ['10011000 a a a a a b b b '] = binop CBI io cb3
+val / ['10011000 a a a a a b b b '] = binop CBI io5 cb3
 
 ### CLC
 ###  - Clear Carry Flag
@@ -457,5 +557,34 @@ val / ['1001010000011001'] = nullop EIJMP
 
 ### ELPM
 ###  - Extended Load Program Memory
-val / ['1001010111011000'] = nullop ELPM
-# ...
+val / ['1001010111011000'] = binop ELPM r0 (/Z NONE)
+val / ['1001000 d d d d d 0110'] = binop ELPM rd5 (/Z NONE)
+val / ['1001000 d d d d d 0111'] = binop ELPM rd5 (/Z INCR)
+
+### EOR
+###  - Exclusive OR
+val / ['001001 r d d d d d r r r r '] = binop EOR rd5 rr5
+
+### FMUL
+###  - Fractional Multiply Unsigned
+val / ['000000110 d d d 1 r r r '] = binop FMUL rd3 rr3
+
+### FMULS
+###  - Fractional Multiply Signed
+val / ['000000111 d d d 0 r r r '] = binop FMULS rd3 rr3
+
+### FMULSU
+###  - Fractional Multiply Signed with Unsigned
+val / ['000000111 d d d 1 r r r '] = binop FMULSU rd3 rr3
+
+### ICALL
+###  - Indirect Call to Subroutine
+val / ['1001010100001001'] = nullop ICALL
+
+### IJMP
+###  - Indirect Jump
+val / ['1001010000001001'] = nullop IJMP
+
+### IN
+###  - Load an I/O Location to Register
+val / ['10110 a a d d d d d a a a a '] = binop IN rd5 io6
