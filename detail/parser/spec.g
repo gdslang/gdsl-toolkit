@@ -5,7 +5,6 @@
    : KW_case ("case")
    | KW_in ("in")
    | KW_do ("do")
-   | KW_datatype ("datatype")
    | KW_export ("export")
    | KW_div ("div")
    | KW_else ("else")
@@ -103,13 +102,10 @@ Program
 Decl
    : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
    | "export" "=" Qid* => (markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
-   | "datatype" Name "=" ConDecls =>
-      (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
+   | "type" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
-   | "val" Name Name* "=" Exp =>
-      (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
-   | "val" Sym Name* "=" Exp =>
-      (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
+   | "val" Name Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
+   | "val" Sym Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
    | "val" Name "[" DecodePat* "]" decl=
       ( "=" Exp =>
          (PT.DECODEdecl (Name, DecodePat, Sum.INL Exp))

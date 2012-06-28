@@ -6,19 +6,19 @@ val decode = do
  /
 end
 
-datatype operand =
+type operand =
    REG of register
  | REGHL of {regh:register,regl:register}
  | IMM6 of 6
 
 type binop = {left:operand,right:operand}
 
-datatype instruction =
+type instruction =
    ADC of binop
  | ADD of binop
  | ADIW of binop
 
-datatype register =
+type register =
    R0
  | R1
  | R2
