@@ -58,11 +58,11 @@ end = struct
             let
                val (eStr,si) = E.kappaToStringSI (env,si)
             in
-               (acc ^ "\n\t" ^ str ^ ": " ^ eStr,si)
+               (acc ^ "\t" ^ str ^ ": " ^ eStr,si)
             end
          val (str, si) = List.foldl
                            genRow
-                           (str ^ msg, TVar.emptyShowInfo) envStrs
+                           (str ^ msg ^ "\n", TVar.emptyShowInfo) envStrs
       in
          raise S.UnificationFailure str
       end
@@ -416,7 +416,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (str,
                             " while passing",
-                            List.map (fn e2 => (envArg, "argument    " ^ showProg (20, PP.exp, e2))) es2 @
+                            (#1 (List.foldr
+                            (fn (e2,(res,env)) => 
+                              ((env, "argument    " ^ showProg (20, PP.exp, e2))::res,
+                               E.popKappa env)
+                            ) ([], envArg) es2)) @
                             [(envFun, "to function " ^ showProg (20, PP.exp, e1))])
          (*val _ = TextIO.print ("**** app fun,res unified:\n" ^ E.topToString env)*)
          val env = E.reduceToResult env
