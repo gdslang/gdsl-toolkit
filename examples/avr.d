@@ -23,7 +23,7 @@ type binop = {first:operand,second:operand}
 type unop = {operand:operand}
 type nullop = {}
 
-datatype instruction =
+type instruction =
    ADC of binop
  | ADD of binop
  | AND of binop
@@ -39,7 +39,7 @@ datatype instruction =
  | CBI of binop
  | CLC of nullop
 
-datatype register =
+type register =
    R0
  | R1
  | R2

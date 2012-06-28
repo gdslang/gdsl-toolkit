@@ -46,6 +46,34 @@ __obj __and (__obj a_, __obj b_) {
   return (x);
 }
 
+__obj __add (__obj A, __obj B) {
+  __word a = A->z.value;
+  __word b = B->z.value;
+  __LOCAL0(x);
+    __INT_BEGIN(x);
+    __INT_INIT(a + b);
+    __INT_END(x);
+  return (x);
+}
+
+/* FIXME */
+__obj __sx (__obj x) {
+  __LOCAL0(y);
+    __INT_BEGIN(y);
+    __INT_INIT(x->bv.vec);
+    __INT_END(y);
+  return (y);
+}
+
+/* FIXME */
+__obj __zx (__obj x) {
+  __LOCAL0(y);
+    __INT_BEGIN(y);
+    __INT_INIT(x->bv.vec);
+    __INT_END(y);
+  return (y);
+}
+
 __obj __concat (__obj a_, __obj b_) {
   __word a = a_->bv.vec;
   __word b = b_->bv.vec;
@@ -186,6 +214,35 @@ __word __decode (__obj (*f)(__obj,__obj), __char* blob, __word sz, __obj* insn) 
     *insn = i;
     return (consumed);
   }
+}
+
+__obj __cont (__obj env, __obj f) {
+  __LOCAL(s,__CLOSURE_REF(env,1));
+  __LOCAL0(k);
+    __LABEL_BEGIN(k);
+    __LABEL_INIT(__halt);
+    __LABEL_END(k);
+  __LOCAL0(envK);
+    __CLOSURE_BEGIN(envK,1)
+    __CLOSURE_ADD(k);
+    __CLOSURE_END(envK,1);
+  return (__INVOKE2(f,envK,s));
+}
+
+__obj __translate (__obj (*f)(__obj,__obj), __obj insn) {
+  __LOCAL0(s);
+    __RECORD_BEGIN(s,0);
+    __RECORD_END(s,0);
+  __LOCAL0(k);
+    __LABEL_BEGIN(k);
+    __LABEL_INIT(__cont);
+    __LABEL_END(k);
+  __LOCAL0(envK);
+    __CLOSURE_BEGIN(envK,2)
+    __CLOSURE_ADD(k);
+    __CLOSURE_ADD(s);
+    __CLOSURE_END(envK,2);
+  return (__CALL2(f,envK,insn));
 }
 
 const __char* __fieldName (__word i) {

@@ -378,7 +378,7 @@ val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [/rex-p] = p/66/f3/f2
 val p/66/f3/f2 [] = after /f2 (after /f3 (after /66 /))
 
-datatype register =
+type register =
    AL
  | AH
  | AX
@@ -507,17 +507,17 @@ datatype register =
  | ST7
  | RIP
 
-datatype opnd =
+type opnd =
    IMM8 of 8
  | IMM16 of 16
  | IMM32 of 32
  | IMM64 of 64
  | REG of register
- | MEM of {sz:int,segment:register,opnd:opnd}
+ | MEM of {sz:int,psz:int,segment:register,opnd:opnd}
  | SUM of {a:opnd,b:opnd}
  | SCALE of {imm:2,opnd:opnd}
 
-datatype flowopnd =
+type flowopnd =
    REL8 of 8
  | REL16 of 16
  | REL32 of 32
@@ -531,14 +531,14 @@ type arity2 = {opnd1:opnd,opnd2:opnd}
 type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd} 
 type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd} 
 
-datatype varity =
+type varity =
    VA0
  | VA1 of arity1
  | VA2 of arity2
  | VA3 of arity3
  | VA4 of arity4
 
-datatype insn =
+type insn =
    ADC of arity2
  | ADD of arity2
  | AND of arity2
@@ -1402,7 +1402,8 @@ val sib-without-base reg scale index = do
    end
 end
 
-val sib-with-index-and-base reg s i b = do
+val sib-with-index-and-base psz reg s i b = do
+   update@{ptrsz=psz};
    rexx <- query $rexx;
    rexb <- query $rexb;
    case i of
@@ -1420,9 +1421,9 @@ val sib-with-index-and-base reg s i b = do
 end
 
 val sib ['scale:2 index:3 base:3']
- | addrsz? = sib-with-index-and-base reg16-rex scale index base
- | mode64? = sib-with-index-and-base reg64-rex scale index base
- | otherwise = sib-with-index-and-base reg32-rex scale index base
+ | addrsz? = sib-with-index-and-base 16 reg16-rex scale index base
+ | mode64? = sib-with-index-and-base 64 reg64-rex scale index base
+ | otherwise = sib-with-index-and-base 32 reg32-rex scale index base
 
 ## Decoding the mod/rm byte
 
@@ -1436,8 +1437,9 @@ end
 
 val mem op = do
    sz <- query $ptrty;
+   psz <- query $ptrsz;
    seg <- query $segment;
-   return (MEM {sz=sz, segment=seg, opnd=op})
+   return (MEM {sz=sz,psz=psz,segment=seg,opnd=op})
 end
 
 val r/m-with-sib = do
@@ -1492,8 +1494,8 @@ end
 val addrReg = do
    addrsz <- query $addrsz;
    case addrsz of
-      '0': return reg64-rex
-    | '1': return reg32-rex
+      '0': do update@{ptrsz=64};return reg64-rex end
+    | '1': do update@{ptrsz=32};return reg32-rex end
    end
 end
 

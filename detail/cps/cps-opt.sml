@@ -15,6 +15,7 @@ structure Aux = struct
 
    fun atomOf x = VarInfo.getAtom (!variables, x)
    fun get s = VarInfo.lookup (!variables, Atom.atom s)
+   fun find s = VarInfo.find (!variables, Atom.atom s)
    fun toString sym = Layout.tostring (CPS.PP.var sym)
    fun failWithSymbol msg sym =
       msg ^ ": " ^ Layout.tostring (CPS.PP.var sym)
@@ -866,7 +867,12 @@ structure Cost = struct
           "binop",
           "ternop",
           "quaternop"])
-       ;neverInline:=Set.union (!neverInline, Set.fromList (map Aux.get [])))
+       ;neverInline:=
+         Set.union
+            (!neverInline,
+             Set.fromList
+               (List.mapPartial (fn x=>x) 
+               (List.map Aux.find []))))
 
    val allwaysInline = fn f => Set.member (!allwaysInline, f)
    fun dontInline f = neverInline := Set.add (!neverInline, f)

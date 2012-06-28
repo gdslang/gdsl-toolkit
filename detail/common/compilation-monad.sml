@@ -14,7 +14,6 @@ structure CompilationMonad : sig
    val getState: state t
    val setState: state -> unit t
    val getErrorStream: Error.err_stream t
-   val setErrorStream: Error.err_stream -> unit t
 
    (* add error messages to the error stream *)
    val error: string list -> unit t
@@ -37,12 +36,6 @@ end = struct
    fun getState s = (s, s)
    fun setState s _ = ((), s)
    val getErrorStream: Error.err_stream t = getState
-   fun setErrorStream ers s =
-      if Error.anyErrors s
-            then (TextIO.print ("setErrorStream"); (Error.report (TextIO.stdErr, s), ers)
-               )
-      else ((), ers)
-
    fun fail s = raise Fail s
 
    fun aT >>= a2bT = fn s =>
