@@ -105,9 +105,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | topDecl (AST.DECODEdecl dd) = topDecodeDecl dd
      | topDecl (AST.LETRECdecl vd) = topLetrecDecl vd
      | topDecl _ = []
-
    and topDecodeDecl (v, _, _) = [(v, true)]
-
    and topLetrecDecl (v, _, _) = [(v,false)]
    
    (* define a second traversal that is a full inference of the tree *)
@@ -385,11 +383,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let                                      
          val envFun = infExp (st,env) e1
          val envArg = List.foldl (fn (e2,env) => infExp (st,env) e2) env es2
-         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)*)
-         (*val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
+         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)
+         val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction (envArgRes, List.length es2)
-         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString envArgRes)*)
+         (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.toString envArgRes)*)
          (* make the result of the call-site depend on the result of the
          function; the flow expressing that formal parameters depend on actual
          parameters follows from contra-variance*)
@@ -686,7 +684,27 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (ast : SpecAbstractTree.specification)
    val toplevelEnv = calcFixpoint (unstable, toplevelEnv)
                         handle TypeError => toplevelEnv
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+
+   (* check if all exported functions can be run with an empty state *)
+   fun checkDecoder s sym = case E.forceNoInputs (sym,toplevelEnv) of
+        [] => ()
+      | fs =>
+         let
+            val decStr = SymbolTable.getString(!SymbolTables.varTable, sym)
+            fun genFieldStr (f,(sep,str)) = (", ", str ^ sep ^
+                  SymbolTable.getString(!SymbolTables.fieldTable, f))
+            val (_,fsStr) = List.foldl genFieldStr ("", "") fs
+         in
+            Error.errorAt (errStrm, s,
+               [decStr," cannot be exported due to lacking fields: ", fsStr]
+            )
+         end
+   fun checkExports _ (AST.MARKdecl {span=s, tree=t}) = checkExports s t
+     | checkExports s (AST.EXPORTdecl vs) = List.app (checkDecoder s) vs
+     | checkExports s _ = ()
+   val _ = List.app (checkExports SymbolTable.noSpan) ast
+
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)

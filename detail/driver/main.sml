@@ -36,6 +36,8 @@ structure Main = struct
          val () = Stats.resetAll()
       in
          CompilationMonad.run ers (allTc fps >> return ())
+            before
+               Stats.report()
       end
    end
 
