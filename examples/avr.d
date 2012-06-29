@@ -2,7 +2,7 @@ granularity = 16
 # export = decode
 # 
 # val decode = do
-#  update@{rd='',rr='',ck='',cs='',cb='',io=''};
+#  update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
 #  /
 # end
 
@@ -25,6 +25,7 @@ type operand =
  | IOREG of io-register
  | IMM of imm
  | OPSE of {op:operand,se:side-effect}
+ | OPDI of {op:operand,imm:imm}
 
 type binop = {first:operand,second:operand}
 type unop = {operand:operand}
@@ -70,6 +71,12 @@ type instruction =
  | ICALL
  | IJMP
  | IN of binop
+ | INC of unop
+ | JMP of unop
+ | LAC of binop
+ | LAS of binop
+ | LAT of binop
+ | LD of binop
 
 type register =
    R0
@@ -276,13 +283,28 @@ val io-register-from-bits bits =
   | '111111': IO63
  end
 
-val x-hl = REGHL {regh=R27,regl=R26}
-val y-hl = REGHL {regh=R29,regl=R28}
-val z-hl = REGHL {regh=R31,regl=R30}
+val /X = REGHL {regh=R27,regl=R26}
+val /Y = REGHL {regh=R29,regl=R28}
+val /Z = REGHL {regh=R31,regl=R30}
 
 val r0 = return (REG R0)
 
-val /Z se = return (OPSE {op=z-hl,se=se})
+val //X se = return (OPSE {op=(/X),se=se})
+val //Y se = return (OPSE {op=(/Y),se=se})
+val //Z se = return (OPSE {op=(/Z),se=se})
+
+val ///X imm = do
+ imm <- imm;
+ return (OPDI {op=(/X),imm=imm})
+end
+val ///Y imm = do
+ imm <- imm;
+ return (OPDI {op=(/Y),imm=imm})
+end
+val ///Z imm = do
+ imm <- imm;
+ return (OPDI {op=(/Z),imm=imm})
+end
 
 val d ['bit:1'] = do
  rd <- query $rd;
@@ -312,6 +334,11 @@ end
 val b ['bit:1'] = do
  cb <- query $cb;
  update@{cb=cb ^ bit}
+end
+
+val q ['bit:1'] = do
+ dq <- query $dq;
+ update@{dq=dq ^ bit}
 end
 
 val rd5 = do
@@ -402,6 +429,12 @@ val io6 = do
  io <- query $io;
  update @{io=''};
  return (IOREG (io-register-from-bits io))
+end
+
+val dq6 = do
+ dq <- query $dq;
+ update @{dq=''};
+ return (IMM6 dq)
 end
 
 val rd5h-rd5l = do
@@ -557,9 +590,9 @@ val / ['1001010000011001'] = nullop EIJMP
 
 ### ELPM
 ###  - Extended Load Program Memory
-val / ['1001010111011000'] = binop ELPM r0 (/Z NONE)
-val / ['1001000 d d d d d 0110'] = binop ELPM rd5 (/Z NONE)
-val / ['1001000 d d d d d 0111'] = binop ELPM rd5 (/Z INCR)
+val / ['1001010111011000'] = binop ELPM r0 (//Z NONE)
+val / ['1001000 d d d d d 0110'] = binop ELPM rd5 (//Z NONE)
+val / ['1001000 d d d d d 0111'] = binop ELPM rd5 (//Z INCR)
 
 ### EOR
 ###  - Exclusive OR
@@ -588,3 +621,43 @@ val / ['1001010000001001'] = nullop IJMP
 ### IN
 ###  - Load an I/O Location to Register
 val / ['10110 a a d d d d d a a a a '] = binop IN rd5 io6
+
+### INC
+###  - Increment
+val / ['1001010 d d d d d 0011'] = unop INC rd5
+
+### JMP
+###  - Jump
+val / ['1001 010 k k k k k 110 k ' 'k k k k k k k k k k k k k k k k '] = unop JMP ck22
+
+### LAC
+###  - Load And Clear
+val / ['1001001 r r r r r 0110'] = binop LAC /Z rd5
+
+### LAS
+###  - Load And Set
+val / ['1001001 r r r r r 0101'] = binop LAS /Z rd5
+
+### LAT
+###  - Load And Toggle
+val / ['1001001 r r r r r 0111'] = binop LAT /Z rd5
+
+### LD
+###  - Load Indirect from Data Space to Register using Index X
+val / ['1001000 d d d d d 1100'] = binop rd5 (//X NONE)
+val / ['1001000 d d d d d 1101'] = binop rd5 (//X INCR)
+val / ['1001000 d d d d d 1110'] = binop rd5 (//X DECR)
+
+### LD
+###  - Load Indirect from Data Space to Register using Index Y
+val / ['1000000 d d d d d 1000'] = binop rd5 (//Y NONE)
+val / ['1001000 d d d d d 1001'] = binop rd5 (//Y INCR)
+val / ['1001000 d d d d d 1010'] = binop rd5 (//Y DECR)
+val / ['10 q 0 q q 0 d d d d d 1 q q q '] = binop rd5 (///Y dq6)
+
+### LD
+###  - Load Indirect from Data Space to Register using Index Z
+val / ['1000000 d d d d d 0000'] = binop rd5 (//Z NONE)
+val / ['1001000 d d d d d 0001'] = binop rd5 (//Z INCR)
+val / ['1001000 d d d d d 0010'] = binop rd5 (//Z DECR)
+val / ['10 q 0 q q 0 d d d d d 0 q q q '] = binop rd5 (///Z dq6)
