@@ -43,6 +43,39 @@ end = struct
          val not = get "not"
          val raisee = get "raise"
          val return = get "return"
+         val add = get "+"
+         val sx = get "sx"
+         val zx = get "zx"
+
+         val sx = 
+            let
+               val x = fresh "x"
+               val primSx = get "%sx"
+               val body = PRI (primSx, [x])
+            in
+               (sx, [x], body)
+            end
+
+         val zx = 
+            let
+               val x = fresh "x"
+               val primZx = get "%zx"
+               val body = PRI (primZx, [x])
+            in
+               (zx, [x], body)
+            end
+
+         (* val + a b = %add(a,b) *)
+         val add =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val primAdd = get "%add"
+               val body = PRI (primAdd, [a, b])
+                     
+            in
+               (add, [a, b], body)
+            end
 
          (* val and a b = %and(a,b) *)
          val andd =
@@ -131,7 +164,7 @@ end = struct
                (unconsume, [s], body)
             end
       in
-         [slice, consume, unconsume, andd, not, ==, concat, raisee]
+         [slice, consume, unconsume, andd, not, ==, concat, raisee, add, sx, zx]
       end
 
    end

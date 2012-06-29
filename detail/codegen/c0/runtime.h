@@ -390,6 +390,9 @@ __obj __unconsume(__obj);
 __obj __concat(__obj,__obj);
 __obj __equal(__obj,__obj);
 __obj __and(__obj,__obj);
+__obj __sx(__obj);
+__obj __zx(__obj);
+__obj __add(__obj,__obj);
 __obj __raise(__obj);
 __obj __not(__obj);
 __obj __isNil(__obj);
@@ -401,6 +404,7 @@ int ___isNil(__obj);
 __obj __runWithState(__obj(*)(__obj,__obj),__obj);
 __obj __eval(__obj(*)(__obj,__obj),__char*, __word);
 __word __decode(__obj(*)(__obj,__obj),__char*,__word,__obj*);
+__obj __translate(__obj(*)(__obj,__obj),__obj);
 
 #endif /* __RUNTIME_H */
 

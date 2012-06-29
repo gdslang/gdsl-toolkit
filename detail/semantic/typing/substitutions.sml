@@ -381,10 +381,12 @@ end = struct
       let
          val vs = SC.getVarset sCons
          val (Substs ss) = substsFilter (substs, vs)
+
          fun updateSubsts ((v,WITH_TYPE (CONST c)), (sCons, substs)) =
             (case SC.add (SC.equality (v,[],c), sCons) of
                 SC.RESULT (is,sCons) =>
-                  (sCons, List.foldl (fn ((v,c), substs) =>
+                  (sCons,
+                   List.foldl (fn ((v,c), substs) =>
                      #1 (addSubst (v,WITH_TYPE (CONST c)) (substs, emptyExpandInfo))
                      ) substs is)
                | SC.UNSATISFIABLE => raise UnificationFailure
@@ -397,6 +399,7 @@ end = struct
            | updateSubsts ((v1,WITH_TYPE (VAR (v2,_))), (sCons, substs)) =
                (SC.rename (v1,v2,sCons), substs)
            | updateSubsts _ = raise SubstitutionBug
+
       in
          List.foldl updateSubsts (sCons, substs) ss
       end

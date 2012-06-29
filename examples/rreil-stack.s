@@ -1,7 +1,7 @@
 
 export = translate
 
-datatype sem_id =
+type sem_id =
    ARCH_RAX
  | ARCH_RBX
  | ARCH_RCX
@@ -10,23 +10,25 @@ datatype sem_id =
  | VIRT_LEU
  | VIRT_LTS
  | VIRT_LTU
- | VIRT_T of 8
+ | VIRT_T of int
 
-datatype sem_var = SEM_VAR of {id:sem_id, offset:int}
+type sem_arity1 = {size: int, opnd1: sem_linear}
+type sem_arity2 = {size: int, opnd1: sem_linear, opnd2: sem_linear}
 
-datatype sem_linear =
-   SEM_LIN_VAR of {var:sem_var, scale:int, tail:sem_linear}
- | SEM_LIN_IMM of {c:int, tail:sem_linear}
- | SEM_LIN_NIL
+type sem_address = {size: int, address: sem_linear}
+type sem_var = {id:sem_id, offset:int}
 
-type sem_lin = {size:int, opnd1:sem_linear}
-type sem_arity1 = {size:int, opnd1:sem_linear}
-type sem_arity2 = {size:int, opnd1:sem_linear, opnd2:sem_linear}
+type sem_linear =
+   SEM_LIN_VAR of sem_var
+ | SEM_LIN_IMM of {imm:int}
+ | SEM_LIN_ADD of {opnd1:sem_linear, opnd2:sem_linear}
+ | SEM_LIN_SUB of {opnd1:sem_linear, opnd2:sem_linear}
+ | SEM_LIN_SCALE of {imm:int, opnd:sem_linear}
 
-datatype sem_op =
-   SEM_MUL of sem_arity2
+type sem_op =
+   SEM_LIN of sem_arity1
+ | SEM_MUL of sem_arity2
  | SEM_DIV of sem_arity2
- | SEM_ADD of sem_arity2
  | SEM_BSWAP of sem_arity1 
  | SEM_CMPEQ of sem_arity2
  | SEM_CMPLES of sem_arity2
@@ -34,22 +36,19 @@ datatype sem_op =
  | SEM_CMPLTS of sem_arity2
  | SEM_CMPLTU of sem_arity2
 
-datatype sem_rhs =
-   SEM_LIN of {op:sem_lin}
- | SEM_OP of {op:sem_op}
 
-datatype sem_stmt = 
-   SEM_ASSIGN of {lhs:sem_var, rhs:sem_rhs}
- | SEM_LOAD of {lhs:sem_var, size:int, address:sem_rhs}
- | SEM_STORE of {address:sem_linear, size:int, rhs:sem_linear}
- | SEM_LABEL of {id:int}
- | SEM_BRANCH_TO_LABEL of {target:int}
- | SEM_BRANCH of {cond:sem_lin, target:sem_lin}
- | SEM_CALL of {target:sem_lin}
- | SEM_RETURN of {target:sem_lin}
+type sem_stmt = 
+   SEM_ASSIGN of {lhs: sem_var, rhs: sem_op}
+ | SEM_LOAD of {lhs: sem_var, size: int, address: sem_address}
+ | SEM_STORE of {address: sem_address, size: int, rhs: sem_linear}
+ | SEM_LABEL of {id: int}
+ | SEM_BRANCH_TO_LABEL of {target: int}
+ | SEM_BRANCH of {cond: sem_linear, size:int, target: sem_address}
+ | SEM_CALL of {cond: sem_linear, size:int, target: sem_address}
+ | SEM_RETURN of {cond: sem_linear, size:int, target: sem_address}
 
-datatype sem_stmts = 
-   SEM_CONS of {stmt:sem_stmt, tail:sem_stmts}
+type sem_stmts = 
+   SEM_CONS of {hd:sem_stmt, tl:sem_stmts}
  | SEM_NIL
 
 val resultSize op =
@@ -64,77 +63,143 @@ val operandSize op =
     | x : resultSize op
    end
 
-val translateRegister r = SEM_VAR (semanticRegisterOf r)
-
 val semanticRegisterOf r = 
    case r of
-      RAX: {r=ARCH_RAX,offset=0,size=64}
-    | RBX: {r=ARCH_RBX,offset=0,size=64}
+      RAX: {id=ARCH_RAX,offset=0,size=64}
+    | RBX: {id=ARCH_RBX,offset=0,size=64}
+    | EAX: {id=ARCH_RAX,offset=0,size=32}
+    | EBX: {id=ARCH_RBX,offset=0,size=32}
    end
 
 val guessSizeOf dst/src1 src2 = 
    case dst/src1 of
       REG r: return ($size (semanticRegisterOf r))
-    # ...
+    | MEM x: return ($sz x)
+    | _:
+         case src2 of
+            REG r: return ($size (semanticRegisterOf r))
+          | MEM x: return ($sz x)
+         end
    end
 
-val lin1/0 x = SEM_X{scale=1, var=x, tail=SEM_I{c=0}}
-val lin1 x tl = SEM_X{scale=1, var=x, tail=tl}
-val lin2 x y tl = lin1 x (lin1 y tl)
-
-val var//0 x = SEM_VAR{id=x,offset=0}
+val var//0 x = SEM_LIN_VAR{id=x,offset=0}
 
 val temp = do
    t <- query $tmp;
-   t' <- return (t ++ '00000001');
+   t' <- return (t + 1);
    update @{tmp=t'};
-   return (SEM_VAR{id=VIRT_T t,offset=0})
+   return {id=VIRT_T t,offset=0}
 end
 
 val /ASSIGN a b = SEM_ASSIGN{lhs=a,rhs=b}
-val /ADD sz a b = SEM_OP{op=SEM_ADD{size=sz,opnd1=a,opnd2=b}}
-val /LIN sz a = SEM_LIN{op={size=sz, op=a}}
+val /LOAD sz a b = SEM_LOAD{lhs=a,size=sz,address=b}
+val /ADD a b = SEM_LIN_ADD{opnd1=a,opnd2=b}
 
 val push insn = do
-   tail <- query $stack;
-   update @{stack=SEM_CONS{stmt=insn,tail=tail}}
+   tl <- query $stack;
+   update @{stack=SEM_CONS{hd=insn,tl=tl}}
 end
 
-val mov sz a b = push (/ASSIGN a (/LIN sz (lin1/0 b)))
-val add sz a b c = push (/ASSIGN a (/ADD sz (lin1/0 b) (lin1/0 c)))
+val mov sz a b = push (/ASSIGN a (SEM_LIN{size=sz,opnd1=b}))
+val load sz a psz b = push (/LOAD sz a {size=psz,address=b})
+val add sz a b c = push (/ASSIGN a (SEM_LIN{size=sz,opnd1= /ADD b c}))
 
-val // a offs =
-   case a of
-      SEM_VAR x: @{offset = $offset x + offs} x
-   end
+#val // a offs =
+#   case a of
+#      SEM_VAR x: @{offset = $offset x + offs} x
+#   end
 
-val commit sz a t = mov sz a t
-val read x = x
-val write x = x
+val commit sz a t = mov sz ({id=ARCH_RAX,offset=0}) t
+val write sz x = read sz x
 
-val read x = 
+val convWith conv sz x = 
    let
-      val readImmSx sz szImm x =
-         if sz == szImm
-            then 
+      val convImm conv x = return (SEM_LIN_IMM{imm=conv x})
+      
+      val convReg x = return (SEM_LIN_VAR(semanticRegisterOf x))
+
+      val convSum conv sz x = 
+         do op1 <- convWith conv sz ($a x);
+            op2 <- convWith conv sz ($b x);
+            return
+               (SEM_LIN_ADD
+                  {opnd1=op1,
+                   opnd2=op2})
+         end
+
+      val convScale conv sz x =
+         do op <- convWith conv sz ($opnd x);
+            return
+               (SEM_LIN_SCALE
+                  {opnd=op,
+                   imm=
+                     case $imm x of
+                        '00': 1
+                      | '01': 2
+                      | '10': 4
+                      | '11': 8
+                     end})
+         end
+
+      val convMem x = convWith sx ($psz x) ($opnd x)
    in
       case x of
-         IMM8 x: 
+         IMM8 x: convImm conv x
+       | IMM16 x: convImm conv x
+       | IMM32 x: convImm conv x
+       | IMM64 x: convImm conv x
+       | REG x: convReg x
+       | SUM x: convSum conv sz x
+       | SCALE x: convScale conv sz x
+       | MEM x:
+            do t <- temp;
+               address <- convMem x;
+               load sz t ($psz x) address
+            end
+      end
    end
 
-val translate insn =
-   case insn of
+val read sz x = convWith zx sz x
+
+val semantics insn =
+  case insn of
       ADD x:
-         do a <- write ($opnd1 x);
-            b <- read ($opnd1 x);
-            c <- read ($opnd2 x);
-            sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
+         do sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
+            a <- write sz ($opnd1 x);
+            b <- read sz ($opnd1 x);
+            c <- read sz ($opnd2 x);
             t <- temp;
-            add sz t b c;
+            add sz t b c
 
             # addFlags sz t a b;
-            commit sz a t
+            #commit sz a (SEM_LIN_VAR t)
          end
+    | SUB x:
+         do sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
+            a <- write sz ($opnd1 x);
+            b <- read sz ($opnd1 x);
+            c <- read sz ($opnd2 x);
+            t <- temp;
+            add sz t b c
+
+            # addFlags sz t a b;
+            #commit sz a (SEM_LIN_VAR t)
+         end
+    | MOV x:   
+         do sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
+            a <- write sz ($opnd1 x);
+            b <- read sz ($opnd1 x);
+            mov sz a b
+            # addFlags sz t a b;
+            #commit sz a (SEM_LIN_VAR t)
+         end
+   end
+
+val translate insn = 
+   do update@{stack=SEM_NIL};
+      semantics insn;
+      stack <- query $stack;
+      return stack
    end
 
 # vim:filetype=sml

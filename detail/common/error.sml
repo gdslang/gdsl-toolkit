@@ -152,7 +152,7 @@ structure Error :> sig
 		       of LESS => true
 		        | EQUAL => (Position.compare(r1, r2) = LESS)
 		        | GREATER => false))
-	  fun cmp (e1 : error, e2 : error) = lt(#pos e1, #pos e2)
+	  fun cmp (e1 : error, e2 : error) = not (lt(#pos e1, #pos e2))
 	  in
 	    ListMergeSort.sort cmp
 	  end
@@ -199,8 +199,9 @@ structure Error :> sig
     fun printError (outStrm, _) = let
 	  fun pr {kind, pos, msg} = let
 		val kind = (case kind of ERR => "Error" | Warn => "Warning")
-		val pos = (case pos
-		       of SOME{file=sm,span=(p1, p2)} => if (p1 = p2)
+		val pos = (case pos of
+		     NONE => "[no position] "
+		   | SOME{file=sm,span=(p1, p2)} => if (p1 = p2)
 			    then let
 			      val {fileName=SOME f, lineNo, colNo} = SP.sourceLoc sm p1
 			      in
@@ -234,7 +235,7 @@ structure Error :> sig
 	    pr
 	  end
 
-    fun report (outStrm, es as ES{errors, ...}) =
+    fun report (outStrm, es as ES{errors, numErrors, ...}) =
 	  List.app (printError (outStrm, es)) (sort (!errors))
 
   (* a term marked with a source-map span *)

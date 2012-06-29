@@ -86,7 +86,6 @@
 
 <INITIAL>"granularity" => (T.KW_granularity);
 <INITIAL>"export" => (T.KW_export);
-<INITIAL>"datatype" => (T.KW_datatype);
 <INITIAL>"type" => (T.KW_type);
 <INITIAL>"raise" => (T.KW_raise);
 <INITIAL>"if" => (T.KW_if);
