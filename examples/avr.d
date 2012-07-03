@@ -17,6 +17,7 @@ type imm =
  | IMM6 of 6
  | IMM7 of 7
  | IMM8 of 8
+ | IMM12 of 12
  | IMM16 of 16
  | IMM22 of 22
 
@@ -82,6 +83,28 @@ type instruction =
  | LDS of binop
  | LPM of binop
  | LSR of unop
+ | MOV of binop
+ | MOVW of binop
+ | MUL of binop
+ | MULS of binop
+ | MULSU of binop
+ | NEG of unop
+ | NOP
+ | OR of binop
+ | ORI of binop
+ | OUT of binop
+ | POP of unop
+ | PUSH of unop
+ | RCALL of unop
+ | RET
+ | RETI
+ | RJMP of unop
+ | ROR of unop
+ | SBC of binop
+ | SBCI of binop
+ | SBI of binop
+ | SBIC of binop
+ | SBIS of binop
 
 type register =
    R0
@@ -418,6 +441,12 @@ val ck8 = do
  return (IMM (IMM8 ck))
 end
 
+val ck12 = do
+ ck <- query $ck;
+ update @{ck=''};
+ return (IMM (IMM12 ck))
+end
+
 val ck16 = do
  ck <- query $ck;
  update @{ck=''};
@@ -460,12 +489,28 @@ val dq6 = do
  return (IMM6 dq)
 end
 
-val rd5h-rd5l = do
+val rd2h-rd2l = do
  rd <- query $rd;
  rd-regl <- return (register-from-bits ('11' ^ rd ^ '0'));
  rd-regh <- return (register-from-bits ('11' ^ rd ^ '1'));
  update @{rd=''};
  return (REGHL {regh=rd-regh,regl=rd-regl})
+end
+
+val rd4h-rd4l = do
+ rd <- query $rd;
+ rd-regl <- return (register-from-bits (rd ^ '0'));
+ rd-regh <- return (register-from-bits (rd ^ '1'));
+ update @{rd=''};
+ return (REGHL {regh=rd-regh,regl=rd-regl})
+end
+
+val rr4h-rr4l = do
+ rr <- query $rr;
+ rr-regl <- return (register-from-bits (rr ^ '0'));
+ rr-regh <- return (register-from-bits (rr ^ '1'));
+ update @{rr=''};
+ return (REGHL {regh=rr-regh,regl=rr-regl})
 end
 
 val binop cons first second = do
@@ -493,7 +538,7 @@ val / ['000011 r d d d d d r r r r '] = binop ADD rd5 rr5
 
 ### ADIW
 ###  - Add Immediate to Word
-val / ['10010110 k k d d k k k k '] = binop ADIW rd5h-rd5l ck6
+val / ['10010110 k k d d k k k k '] = binop ADIW rd2h-rd2l ck6
 
 ### AND
 ###  - Logical AND
@@ -703,3 +748,91 @@ val / ['1001000 d d d d d 0101'] = binop LPM rd5 (//Z INCR)
 ### LSR
 ###  - Logical Shift Right
 val / ['1001010 d d d d d 0110'] = unop LSR rd5
+
+### MOV
+###  - Copy Register
+val / ['001011 r d d d d d r r r r '] = binop MOV rd5 rr5
+
+### MOVW
+###  - Copy Register Word
+val / ['00000001 d d d d r r r r '] = binop MOVW rd4h-rd4l rr4h-rr4l
+
+### MUL
+###  - Multiply Unsigned
+val / ['100111 r d d d d d r r r r '] = binop MUL rd5 rr5
+
+### MULS
+###  - Multiply Signed
+val / ['00000010 d d d d r r r r '] = binop MULS rd4 rr4
+
+### MULSU
+###  - MULSU – Multiply Signed with Unsigned
+val / ['000000110 d d d 0 r r r '] = binop MULSU rd3 rr3
+
+### NEG
+###  - Two’s Complement
+val / ['1001010 d d d d d 0001'] = unop NEG rd5
+
+### NOP
+###  - No Operation
+val / ['0000000000000000'] = nullop NOP
+
+### OR
+###  - Logical OR
+val / ['001010 r d d d d d r r r r '] = binop OR rd5 rr5
+
+### ORI
+###  - Logical OR with Immediate
+val / ['0110 k k k k d d d d k k k k '] = binop ORI rd4 ck8
+
+### OUT
+###  - Store Register to I/O Location
+val / ['10111 a a r r r r r a a a a '] = binop OUT io6 rr5
+
+### POP
+###  - Pop Register from Stack
+val / ['1001000 d d d d d 1111'] = unop POP rd5
+
+### PUSH
+###  - Push Register on Stack
+val / ['1001001 r r r r r 1111'] = unop PUSH rr5
+
+### RCALL
+###  - Relative Call to Subroutine
+val / ['1101 k k k k k k k k k k k k '] = unop RCALL ck12
+
+### RET
+###  - Return from Subroutine
+val / ['1001010100001000'] = nullop RET
+
+### RETI
+###  - Return from Interrupt
+val / ['1001010100011000'] = nullop RETI
+
+### RJMP
+###  - Relative Jump
+val / ['1100 k k k k k k k k k k k k '] = unop RJMP ck12
+
+### ROR
+###  - Rotate Right through Carry
+val / ['1001010 d d d d d 0111'] = unop ROR rd5
+
+### SBC
+###  - Subtract with Carry
+val / ['000010 r d d d d d r r r r '] = binop SBC rd5 rr5
+
+### SBCI
+###  - Subtract Immediate with Carry
+val / ['0100 k k k k d d d d k k k k '] = binop SBCI rd4 ck8
+
+### SBI
+###  - Set Bit in I/O Register
+val / ['10011010 a a a a a b b b '] = binop SBI io5 cb3
+
+### SBIC
+###  - Skip if Bit in I/O Register is Cleared
+val / ['10011001 a a a a a b b b '] = binop SBIC io5 cb3
+
+### SBIS
+###  - Skip if Bit in I/O Register is Set
+val / ['10011011 a a a a a b b b '] = binop SBIS io5 cb3
