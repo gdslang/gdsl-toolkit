@@ -17,6 +17,7 @@ type imm =
  | IMM6 of 6
  | IMM7 of 7
  | IMM8 of 8
+ | IMM16 of 16
  | IMM22 of 22
 
 type operand =
@@ -77,6 +78,10 @@ type instruction =
  | LAS of binop
  | LAT of binop
  | LD of binop
+ | LDI of binop
+ | LDS of binop
+ | LPM of binop
+ | LSR of unop
 
 type register =
    R0
@@ -283,25 +288,37 @@ val io-register-from-bits bits =
   | '111111': IO63
  end
 
-val /X = REGHL {regh=R27,regl=R26}
-val /Y = REGHL {regh=R29,regl=R28}
-val /Z = REGHL {regh=R31,regl=R30}
+val /X = return (REGHL {regh=R27,regl=R26})
+val /Y = return (REGHL {regh=R29,regl=R28})
+val /Z = return (REGHL {regh=R31,regl=R30})
 
 val r0 = return (REG R0)
 
-val //X se = return (OPSE {op=(/X),se=se})
-val //Y se = return (OPSE {op=(/Y),se=se})
-val //Z se = return (OPSE {op=(/Z),se=se})
+val //X se = do
+ /X <- /X;
+ return (OPSE {op=(/X),se=se})
+end
+val //Y se = do
+ /Y <- /Y;
+ return (OPSE {op=(/Y),se=se})
+end
+val //Z se = do
+ /Z <- /Z;
+ return (OPSE {op=(/Z),se=se})
+end
 
 val ///X imm = do
+ /X <- /X;
  imm <- imm;
  return (OPDI {op=(/X),imm=imm})
 end
 val ///Y imm = do
+ /Y <- /Y;
  imm <- imm;
  return (OPDI {op=(/Y),imm=imm})
 end
 val ///Z imm = do
+ /Z <- /Z;
  imm <- imm;
  return (OPDI {op=(/Z),imm=imm})
 end
@@ -399,6 +416,12 @@ val ck8 = do
  ck <- query $ck;
  update @{ck=''};
  return (IMM (IMM8 ck))
+end
+
+val ck16 = do
+ ck <- query $ck;
+ update @{ck=''};
+ return (IMM (IMM16 ck))
 end
 
 val ck22 = do
@@ -632,32 +655,51 @@ val / ['1001 010 k k k k k 110 k ' 'k k k k k k k k k k k k k k k k '] = unop JM
 
 ### LAC
 ###  - Load And Clear
-val / ['1001001 r r r r r 0110'] = binop LAC /Z rd5
+val / ['1001001 d d d d d 0110'] = binop LAC /Z rd5
 
 ### LAS
 ###  - Load And Set
-val / ['1001001 r r r r r 0101'] = binop LAS /Z rd5
+val / ['1001001 d d d d d 0101'] = binop LAS /Z rd5
 
 ### LAT
 ###  - Load And Toggle
-val / ['1001001 r r r r r 0111'] = binop LAT /Z rd5
+val / ['1001001 d d d d d 0111'] = binop LAT /Z rd5
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index X
-val / ['1001000 d d d d d 1100'] = binop rd5 (//X NONE)
-val / ['1001000 d d d d d 1101'] = binop rd5 (//X INCR)
-val / ['1001000 d d d d d 1110'] = binop rd5 (//X DECR)
+val / ['1001000 d d d d d 1100'] = binop LD rd5 (//X NONE)
+val / ['1001000 d d d d d 1101'] = binop LD rd5 (//X INCR)
+val / ['1001000 d d d d d 1110'] = binop LD rd5 (//X DECR)
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index Y
-val / ['1000000 d d d d d 1000'] = binop rd5 (//Y NONE)
-val / ['1001000 d d d d d 1001'] = binop rd5 (//Y INCR)
-val / ['1001000 d d d d d 1010'] = binop rd5 (//Y DECR)
-val / ['10 q 0 q q 0 d d d d d 1 q q q '] = binop rd5 (///Y dq6)
+val / ['1000000 d d d d d 1000'] = binop LD rd5 (//Y NONE)
+val / ['1001000 d d d d d 1001'] = binop LD rd5 (//Y INCR)
+val / ['1001000 d d d d d 1010'] = binop LD rd5 (//Y DECR)
+val / ['10 q 0 q q 0 d d d d d 1 q q q '] = binop LD rd5 (///Y dq6)
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index Z
-val / ['1000000 d d d d d 0000'] = binop rd5 (//Z NONE)
-val / ['1001000 d d d d d 0001'] = binop rd5 (//Z INCR)
-val / ['1001000 d d d d d 0010'] = binop rd5 (//Z DECR)
-val / ['10 q 0 q q 0 d d d d d 0 q q q '] = binop rd5 (///Z dq6)
+val / ['1000000 d d d d d 0000'] = binop LD rd5 (//Z NONE)
+val / ['1001000 d d d d d 0001'] = binop LD rd5 (//Z INCR)
+val / ['1001000 d d d d d 0010'] = binop LD rd5 (//Z DECR)
+val / ['10 q 0 q q 0 d d d d d 0 q q q '] = binop LD rd5 (///Z dq6)
+
+### LDI
+###  - Load Immediate
+val / ['1110 k k k k d d d d k k k k '] = binop LDI rd4 ck8
+
+### LDS
+###  - Load Direct from Data Space
+val / ['1001000 d d d d d 0000' 'k k k k k k k k k k k k k k k k '] = binop LDS rd5 ck16
+val / ['10100 k k k d d d d k k k k '] = binop LDS rd4 ck7
+
+### LPM
+###  - Load Program Memory
+val / ['1001010111001000'] = binop LPM r0 (//Z NONE)
+val / ['1001000 d d d d d 0100'] = binop LPM rd5 (//Z NONE)
+val / ['1001000 d d d d d 0101'] = binop LPM rd5 (//Z INCR)
+
+### LSR
+###  - Logical Shift Right
+val / ['1001010 d d d d d 0110'] = unop LSR rd5
