@@ -105,6 +105,22 @@ type instruction =
  | SBI of binop
  | SBIC of binop
  | SBIS of binop
+ | SBIW of binop
+ | SBR of binop
+ | SBRC of binop
+ | SBRS of binop
+ | SEC
+ | SEH
+ | SEI
+ | SEN
+ | SER of unop
+ | SES
+ | SET
+ | SEV
+ | SEZ
+ | SLEEP
+ | SPM of unop
+ | ST of binop
 
 type register =
    R0
@@ -397,6 +413,12 @@ val rd3 = do
  rd <- query $rd;
  update @{rd=''};
  return (REG (register-from-bits ('10' ^ rd)))
+end
+
+val rd2 = do
+ rd <- query $rd;
+ update @{rd=''};
+ return (REG (register-from-bits ('11' ^ rd ^ '0')))
 end
  
 val rr5 = do
@@ -836,3 +858,83 @@ val / ['10011001 a a a a a b b b '] = binop SBIC io5 cb3
 ### SBIS
 ###  - Skip if Bit in I/O Register is Set
 val / ['10011011 a a a a a b b b '] = binop SBIS io5 cb3
+
+### SBIW
+###  - Subtract Immediate from Word
+val / ['10010111 k k d d k k k k '] = binop SBIW rd2 ck6
+
+### SBR
+###  - Set Bits in Register
+val / ['0110 k k k k d d d d k k k k '] = binop SBR rd4 ck8
+
+### SBRC
+###  - Skip if Bit in Register is Cleared
+val / ['1111110 r r r r r 0 b b b '] = binop SBRC rr5 cb3
+
+### SBRS
+###  - Skip if Bit in Register is Set
+val / ['1111111 r r r r r 0 b b b '] = binop SBRS rr5 cb3
+
+### SEC
+###  - Set Carry Flag
+val / ['1001010000001000'] = nullop SEC
+
+### SEH
+###  - Set Half Carry Flag
+val / ['1001010001011000'] = nullop SEH
+
+### SEI
+###  - Set Global Interrupt Flag
+val / ['1001010001111000'] = nullop SEI
+
+### SEN
+###  - Set Negative Flag
+val / ['1001010000101000'] = nullop SEN
+
+### SER
+###  - Set all Bits in Register
+val / ['11101111 d d d d 1111'] = unop SER rd4
+
+### SES
+###  - Set Signed Flag
+val / ['1001010001001000'] = nullop SES
+
+### SET
+###  - Set T Flag
+val / ['1001010001101000'] = nullop SET
+
+### SEV
+###  - Set Overflow Flag
+val / ['1001010000111000'] = nullop SEV
+
+### SEZ
+###  - Set Zero Flag
+val / ['1001010000011000'] = nullop SEZ
+
+### SLEEP
+val / ['1001010110001000'] = nullop SLEEP
+
+### SPM
+###  - Store Program Memory
+val / ['1001010111101000'] = unop SPM (//Z INCR)
+val / ['1001010111111000'] = unop SPM (//Z INCR)
+
+### ST
+###  - Store Indirect From Register to Data Space using Index X
+val / ['1001001 r r r r r 1100'] = binop ST (//X NONE) rr5
+val / ['1001001 r r r r r 1101'] = binop ST (//X INCR) rr5
+val / ['1001001 r r r r r 1110'] = binop ST (//X DECR) rr5
+
+### ST
+###  - Store Indirect From Register to Data Space using Index Y
+val / ['1000001 r r r r r 1000'] = binop ST (//Y NONE) rr5
+val / ['1001001 r r r r r 1001'] = binop ST (//Y INCR) rr5
+val / ['1001001 r r r r r 1010'] = binop ST (//Y DECR) rr5
+val / ['10 q 0 q q 1 r r r r r 1 q q q '] = binop ST (///Y dq6) rr5
+
+### ST
+###  - Store Indirect From Register to Data Space using Index Z
+val / ['1000001 r r r r r 0000'] = binop ST (//Z NONE) rr5
+val / ['1001001 r r r r r 0001'] = binop ST (//Z INCR) rr5
+val / ['1001001 r r r r r 0010'] = binop ST (//Z DECR) rr5
+val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
