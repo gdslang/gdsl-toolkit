@@ -43,15 +43,35 @@ type instruction =
  | BLD of binop
  | BRBC of binop
  | BRBS of binop
+ | BRCC of unop
+ | BRCS of unop
  | BREAK
+ | BREQ of unop
+ | BRGE of unop
+ | BRHC of unop
+ | BRHS of unop
+ | BRID of unop
+ | BRIE of unop
+ | BRLO of unop
+ | BRLT of unop
+ | BRMI of unop
+ | BRNE of unop
+ | BRPL of unop
+ | BRSH of unop
+ | BRTC of unop
+ | BRTS of unop
+ | BRVC of unop
+ | BRVS of unop
  | BSET of unop
  | BST of binop
  | CALL of unop
  | CBI of binop
+ | CBR of binop
  | CLC
  | CLH
  | CLI
  | CLN
+ | CLR of unop
  | CLS
  | CLT
  | CLV
@@ -82,6 +102,7 @@ type instruction =
  | LDI of binop
  | LDS of binop
  | LPM of binop
+ | LSL of unop
  | LSR of unop
  | MOV of binop
  | MOVW of binop
@@ -99,6 +120,7 @@ type instruction =
  | RET
  | RETI
  | RJMP of unop
+ | ROL of unop
  | ROR of unop
  | SBC of binop
  | SBCI of binop
@@ -125,6 +147,7 @@ type instruction =
  | SUB of binop
  | SUBI of binop
  | SWAP of unop
+ | TST of unop
  | WDR
  | XCH of binop
 
@@ -590,15 +613,91 @@ val / ['1111100 d d d d d 0 b b b '] = binop BLD rd5 cb3
 
 ### BRBC
 ###  - Branch if Bit in SREG is Cleared
-val / ['111101 k k k k k k k s s s '] = binop BRBC cs3 ck7
+###  => see below
+#val / ['111101 k k k k k k k s s s '] = binop BRBC cs3 ck7
 
 ### BRBS
 ###  - Branch if Bit in SREG is Set
-val / ['111100 k k k k k k k s s s '] = binop BRBS cs3 ck7
+###  => see below
+#val / ['111100 k k k k k k k s s s '] = binop BRBS cs3 ck7
+
+### BRCC
+###  - Branch if Carry Cleared
+###  => see BRSH
+#val / ['111101 k k k k k k k 000'] = unop BRCC ck7
+
+### BRCS
+###  - Branch if Carry Set
+###  => see BRLO
+#val / ['111100 k k k k k k k 000'] = unop BRCS ck7
 
 ### BREAK
 ###  - Break
 val / ['1001010110011000'] = nullop BREAK
+
+### BREQ
+###  - Branch if Equal
+val / ['111100 k k k k k k k 001'] = unop BREQ ck7
+
+### BRGE
+###  - Branch if Greater or Equal (Signed)
+val / ['111101 k k k k k k k 100'] = unop BRGE ck7
+
+### BRHC
+###  - Branch if Half Carry Flag is Cleared
+val / ['111101 k k k k k k k 101'] = unop BRHC ck7
+
+### BRHS
+###  - Branch if Half Carry Flag is Set
+val / ['111100 k k k k k k k 101'] = unop BRHS ck7
+
+### BRID
+###  - Branch if Global Interrupt is Disabled
+val / ['111101 k k k k k k k 111'] = unop BRID ck7
+
+### BRIE
+###  - Branch if Global Interrupt is Enabled
+val / ['111100 k k k k k k k 111'] = unop BRIE ck7
+
+### BRLO
+###  - Branch if Lower (Unsigned)
+val / ['111100 k k k k k k k 000'] = unop BRLO ck7
+
+### BRLT
+###  - Branch if Less Than (Signed)
+val / ['111100 k k k k k k k 100'] = unop BRLT ck7
+
+### BRMI
+###  - Branch if Minus
+val / ['111100 k k k k k k k 010'] = unop BRMI ck7
+
+### BRNE
+###  - Branch if Not Equal
+val / ['111101 k k k k k k k 001'] = unop BRNE ck7
+
+### BRPL
+###  - Branch if Plus
+val / ['111101 k k k k k k k 010'] = unop BRPL ck7
+
+### BRSH
+###  - Branch if Same or Higher (Unsigned)
+val / ['111101 k k k k k k k 000'] = unop BRSH ck7
+
+### BRTC
+###  - Branch if the T Flag is Cleared
+val / ['111101 k k k k k k k 110'] = unop BRTC ck7
+
+### BRTS
+###  - Branch if the T Flag is Set
+val / ['111100 k k k k k k k 110'] = unop BRTS ck7
+
+### BRVC
+###  - Branch if Overflow Cleared
+val / ['111101 k k k k k k k 011'] = unop BRVC ck7
+
+### BRVS
+###  - Branch if Overflow Set
+val / ['111100 k k k k k k k 011'] = unop BRVS ck7
 
 ### BSET
 ###  - Bit Set in SREG
@@ -616,6 +715,10 @@ val / ['1001010 k k k k k 111 k ' 'k k k k k k k k k k k k k k k k '] = unop CAL
 ###  - Clear Bit in I/O Register
 val / ['10011000 a a a a a b b b '] = binop CBI io5 cb3
 
+### CBR
+###  - Clear Bit in I/O Register
+###  => see ANDI with K complemented
+
 ### CLC
 ###  - Clear Carry Flag
 val / ['1001010010001000'] = nullop CLC
@@ -631,6 +734,10 @@ val / ['1001010011111000'] = nullop CLI
 ### CLN
 ###  - Clear Negative Flag
 val / ['1001010010101000'] = nullop CLN
+
+### CLR
+###  - Clear Negative Flag
+###  => see EOR Rd, Rd
 
 ### CLS
 ###  - Clear Signed Flag
@@ -773,6 +880,10 @@ val / ['1001010111001000'] = binop LPM r0 (//Z NONE)
 val / ['1001000 d d d d d 0100'] = binop LPM rd5 (//Z NONE)
 val / ['1001000 d d d d d 0101'] = binop LPM rd5 (//Z INCR)
 
+### LSL
+###  - Logical Shift Left
+###  => see ADD Rd, Rd
+
 ### LSR
 ###  - Logical Shift Right
 val / ['1001010 d d d d d 0110'] = unop LSR rd5
@@ -840,6 +951,10 @@ val / ['1001010100011000'] = nullop RETI
 ### RJMP
 ###  - Relative Jump
 val / ['1100 k k k k k k k k k k k k '] = unop RJMP ck12
+
+### ROL
+###  - Rotate Left trough Carry
+###  => see ADC Rd, Rd
 
 ### ROR
 ###  - Rotate Right through Carry
@@ -947,8 +1062,8 @@ val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
 
 ### STS
 ###  - Store Direct to Data Space
-val / ['1001 001 r r r r r 0000' 'k k k k k k k k k k k k k k k k '] = binop STS ck16 rr5
-val / ['10101 k k k d d d d k k k k '] = binop STS ck7 rr4
+val / ['1001001 r r r r r 0000' 'k k k k k k k k k k k k k k k k '] = binop STS ck16 rr5
+val / ['10101 k k k r r r r k k k k '] = binop STS ck7 rr4
 
 ### SUB
 ###  - Subtract without Carry
@@ -964,7 +1079,7 @@ val / ['1001010 d d d d d 0010'] = unop SWAP rd5
 
 ### TST
 ###  - Test for Zero or Minus
-### => See AND Rd, Rd
+###  => see AND Rd, Rd
 
 ### WDR
 ###  - Watchdog Reset
