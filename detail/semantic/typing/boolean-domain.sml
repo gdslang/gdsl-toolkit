@@ -88,11 +88,11 @@ end = struct
          val compare = compare_clause
       end)
       
-   type clauses = Clauses.set
    structure CS = Clauses
+   type clauses = CS.set
 
-   type units = IntListSet.set
    structure US = IntListSet
+   type units = US.set
 
    type bfun = units * clauses
    
@@ -261,8 +261,13 @@ end = struct
          List.foldl addClause (addUnits (newUnits, (us, cs))) newClauses
       end
    
-   fun meet ((us, cs), f) =
-      CS.foldl addClause (addUnits (US.listItems us,f)) cs
+   fun meet ((us1, cs1), (us2, cs2)) =
+      let
+         val us1 = US.difference (us1,us2)
+         val cs1 = CS.difference (cs1,cs2)
+      in
+         CS.foldl addClause (addUnits (US.listItems us1,(us2, cs2))) cs1
+      end
    
    (*val b1 = freshBVar ()
    val b2 = freshBVar ()
