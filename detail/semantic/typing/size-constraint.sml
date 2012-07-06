@@ -152,7 +152,7 @@ end = struct
                       (str ^ " " ^ vStr ^ "=" ^ Int.toString(f), si)
                    end) ("", si) is
               in
-                 "result : " ^ scsStr ^ " and " ^ vsStr ^ "instantiated\n"
+                 "result : " ^ scsStr ^ " and" ^ vsStr ^ " instantiated\n"
               end
             | UNSATISFIABLE => "unsatisfiabilitiy"
             | FRACTIONAL => "non-integrality"
@@ -189,15 +189,18 @@ end = struct
       
    fun merge (scs1, scs2) =
       let
-         (*val (sStr1, si) = toStringSI (scs1, NONE, TVar.emptyShowInfo)
-         val (sStr2, si) = toStringSI (scs2, NONE, si)
-         val _ = TextIO.print ("merging " ^ sStr1 ^ " with " ^ sStr2 ^ "\n")*)
          fun m ([], scs) = scs
            | m (eq :: eqs, scs) = case add (eq, scs) of
                 RESULT (_, scs) => m (eqs, scs)
               | _ => raise SizeConstraintBug
+         val scs = m (scs1, scs2)
+         (*val (sStr1, si) = toStringSI (scs1, NONE, TVar.emptyShowInfo)
+         val (sStr2, si) = toStringSI (scs2, NONE, si)
+         val (sStr3, si) = toStringSI (scs, NONE, si)
+         val _ = TextIO.print ("merging " ^ sStr1 ^ " with " ^ sStr2 ^ 
+                               " resulting in " ^ sStr3 ^ "\n")*)
       in
-         m (scs1, scs2)
+         scs
       end
 
    fun rename (v1,v2,scs) =

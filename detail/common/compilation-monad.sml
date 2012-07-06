@@ -8,6 +8,8 @@ structure CompilationMonad : sig
    val >> : 'a t * 'b t -> 'b t
    val return: 'a -> 'a t
    val run: state -> 'a t -> 'a
+   val mapM : ('a -> 'b t) -> 'a list -> ('b list) t
+   
    val fail: 'a t
    val getState: state t
    val setState: state -> unit t
@@ -28,28 +30,31 @@ end = struct
    type 'answer t = state -> 'answer * state
 
    exception CompilationError
+   exception Fail of state
 
    fun return v s = (v, s)
    fun getState s = (s, s)
    fun setState s _ = ((), s)
    val getErrorStream: Error.err_stream t = getState
-   fun fail s = raise CompilationError
+   fun fail s = raise Fail s
 
    fun aT >>= a2bT = fn s =>
       let
          val (a, s) =
             aT s
-               handle CompilationError =>
-                  (Error.report (TextIO.stdErr, s)
-                  ;raise CompilationError)
-         val () = Error.report (TextIO.stdErr, s)
       in
          if Error.anyErrors s
-            then raise CompilationError
+            then raise Fail s
          else a2bT a s
       end
    fun const x _ = x
    fun aM >> bM = aM >>= const bM
+   fun mapM f xs = case xs of
+        [] => return []
+      | (x :: xs) =>
+         f x >>= (fn r =>
+         mapM f xs >>= (fn rs =>
+         return (r :: rs)))
 
    fun liftErr f a =
       getErrorStream >>= (fn errs =>
@@ -64,8 +69,14 @@ end = struct
    val warningAt = liftErr2 Error.warningAt
 
    fun run state action = let
-      val (b, _) = action state
+      val (b, s) = action state
+         handle Fail s =>
+            (Error.report (TextIO.stdErr, s)
+            ;raise CompilationError)
    in
-      b
+      if Error.anyErrors s
+            then (Error.report (TextIO.stdErr, s)
+                 ;raise CompilationError)
+      else b
    end
 end

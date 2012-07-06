@@ -1298,6 +1298,12 @@ end = struct
          val env1 = (scs,cons)*)
       
          val (env1,env2) = mergeUses (env1, env2)
+
+         val (_, state1) = env1
+         val (_, state2) = env2
+         val sCons = SC.merge (Scope.getSize state1,Scope.getSize state2)
+         val (sCons, substs) = applySizeConstraints (sCons, substs)
+
          val (ei, bFunFlow, env) =
             applySubsts (substs, emptyExpandInfo, BD.empty, directed, env1, env2)
          
@@ -1306,8 +1312,6 @@ end = struct
          val (sStr,si) = showSubstsSI (substs,si)
          val kind = if directed then "directed" else "equalizing"
          val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str' ^ "++++ intersected with\n" ^ e2Str')*)
-         val (_, state1) = env1
-         val (_, state2) = env2
 
          val bVars1 = Scope.getBVars env1
          val bVars2 = Scope.getBVars env2
@@ -1318,8 +1322,6 @@ end = struct
                               "\nand\n" ^ BD.showBFun (Scope.getFlow state2) ^ 
                               "\nis\n" ^ BD.showBFun bFun ^ "\n")*)
 
-         val sCons = SC.merge (Scope.getSize state1,Scope.getSize state2)
-         val (sCons, substs) = applySizeConstraints (sCons, substs)
 
          val bFun = BD.projectOnto (bVars, bFun)
          val bFun = applyExpandInfo ei bFun
