@@ -9,7 +9,7 @@ end = struct
    structure FV = FreeVars
    structure FI = FunInfo
    structure Map = SymMap
-   structure Set = SymSet
+   structure Set = FreeVars.Set
    structure Clos = Closure.Stmt
 
    val closure = Atom.atom "env"

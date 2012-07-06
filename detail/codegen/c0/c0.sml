@@ -53,13 +53,7 @@ structure PrettyC = struct
       in
          seq [str "__INVOKE", i n, args (f::xs)]
       end
-   fun fastinvoke (f, xs) =
-      let
-         val n = List.length xs
-         val i = str o Int.toString
-      in
-         seq [str "__CALL", i n, args (f::xs)]
-      end
+   fun fastinvoke (f, xs) = seq [str "__FCALL", args (f::xs)]
 end
 
 structure C0Templates = struct
@@ -100,6 +94,7 @@ structure C = struct
    fun codegen spec =
       let
          open Layout Pretty
+         val () = Mangle.reset()
          val clos = Spec.get#declarations spec
          val exports = Spec.get#exports spec
          fun exported f =

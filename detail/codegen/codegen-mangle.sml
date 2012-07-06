@@ -8,9 +8,14 @@ structure Mangle = struct
    val variables = SymbolTables.varTable
    val fields = SymbolTables.fieldTable
    val constructors = SymbolTables.conTable
+
    val names = ref Map.empty : string Map.map ref
    val revnames = ref Map.empty : string Map.map ref
    val stamp = ref 0
+   fun reset () =
+      (names := Map.empty
+      ;revnames := Map.empty
+      ;stamp := 0)
 
    fun getStringOfPrim sym = Atom.toString (VI.getAtom(!variables, sym))
 

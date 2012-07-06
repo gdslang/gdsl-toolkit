@@ -47,13 +47,12 @@ SpecTokens = struct
       | KW_if
       | KW_end
       | KW_else
-      | KW_div
       | KW_export
       | KW_do
       | KW_in
       | KW_case
 
-    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_or, KW_and, KW_type, KW_then, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_div, KW_export, KW_do, KW_in, KW_case]
+    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_or, KW_and, KW_type, KW_then, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_export, KW_do, KW_in, KW_case]
 
     fun toString tok =
 (case (tok)
@@ -103,7 +102,6 @@ SpecTokens = struct
   | (KW_if) => "if"
   | (KW_end) => "end"
   | (KW_else) => "else"
-  | (KW_div) => "div"
   | (KW_export) => "export"
   | (KW_do) => "do"
   | (KW_in) => "in"
@@ -157,7 +155,6 @@ SpecTokens = struct
   | (KW_if) => false
   | (KW_end) => false
   | (KW_else) => false
-  | (KW_div) => false
   | (KW_export) => false
   | (KW_do) => false
   | (KW_in) => false
@@ -333,9 +330,7 @@ fun AExp_PROD_1_ACT (SR, MExp, SR_SPAN : (Lex.pos * Lex.pos), MExp_SPAN : (Lex.p
       mark PT.MARKexp (FULL_SPAN, mkLBinExp (MExp, SR)))
 fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1_ACT (TIMES, SelectExp, TIMES_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.times))
-fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp, KW_div, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
-  ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.div))
-fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (SelectExp, KW_mod, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp, KW_mod, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.mod))
 fun MExp_PROD_1_SUBRULE_1_PROD_1_ACT (SR, SelectExp, ApplyExp, SR_SPAN : (Lex.pos * Lex.pos), SelectExp_SPAN : (Lex.pos * Lex.pos), ApplyExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
@@ -612,10 +607,6 @@ fun matchKW_end strm = (case (lex(strm))
 (* end case *))
 fun matchKW_else strm = (case (lex(strm))
  of (Tok.KW_else, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchKW_div strm = (case (lex(strm))
- of (Tok.KW_div, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchKW_export strm = (case (lex(strm))
@@ -947,8 +938,7 @@ and MonadicExp_NT (strm) = let
         (case (lex(strm))
          of (Tok.ID(_), _, strm') =>
               (case (lex(strm'))
-               of (Tok.KW_div, _, strm') => MonadicExp_PROD_1(strm)
-                | (Tok.KW_end, _, strm') => MonadicExp_PROD_1(strm)
+               of (Tok.KW_end, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_let, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_mod, _, strm') => MonadicExp_PROD_1(strm)
                 | (Tok.KW_and, _, strm') => MonadicExp_PROD_1(strm)
@@ -1117,27 +1107,18 @@ and MExp_NT (strm) = let
                             FULL_SPAN, strm')
                         end
                   fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2 (strm) = let
-                        val (KW_div_RES, KW_div_SPAN, strm') = matchKW_div(strm)
-                        val FULL_SPAN = (#1(KW_div_SPAN), #2(KW_div_SPAN))
-                        in
-                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp_RES, KW_div_RES, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_div_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-                            FULL_SPAN, strm')
-                        end
-                  fun MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3 (strm) = let
                         val (KW_mod_RES, KW_mod_SPAN, strm') = matchKW_mod(strm)
                         val FULL_SPAN = (#1(KW_mod_SPAN), #2(KW_mod_SPAN))
                         in
-                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3_ACT (SelectExp_RES, KW_mod_RES, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                          (UserCode.MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2_ACT (SelectExp_RES, KW_mod_RES, SelectExp_SPAN : (Lex.pos * Lex.pos), KW_mod_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
                             FULL_SPAN, strm')
                         end
                   in
                     (case (lex(strm))
                      of (Tok.KW_mod, _, strm') =>
-                          MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_3(strm)
+                          MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2(strm)
                       | (Tok.TIMES, _, strm') =>
                           MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_1(strm)
-                      | (Tok.KW_div, _, strm') =>
-                          MExp_PROD_1_SUBRULE_1_PROD_1_SUBRULE_1_PROD_2(strm)
                       | _ => fail()
                     (* end case *))
                   end
@@ -1151,8 +1132,7 @@ and MExp_NT (strm) = let
                 FULL_SPAN, strm')
             end
       fun MExp_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.KW_div, _, strm') => true
-              | (Tok.KW_mod, _, strm') => true
+             of (Tok.KW_mod, _, strm') => true
               | (Tok.TIMES, _, strm') => true
               | _ => false
             (* end case *))

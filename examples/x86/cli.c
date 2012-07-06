@@ -4,7 +4,7 @@
 
 int main (int argc, char** argv) {
   __char blob[15];
-  char fmt[128];
+  char fmt[1024];
   __word sz = 15;
   __obj insn,semantics;
   int i,c;
@@ -22,10 +22,11 @@ int main (int argc, char** argv) {
   if (___isNil(insn))
     __fatal("decode failed");
   else {
-    prettyln(insn,fmt,128);
+    prettyln(insn,fmt,1024);
     puts(fmt);
     semantics = __translate(__translate__,insn);
-    __println(semantics);
+    prettyln(semantics,fmt,1024);
+    puts(fmt);
   }
   return (1);
 }

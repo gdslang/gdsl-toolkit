@@ -44,6 +44,7 @@ end = struct
          val raisee = get "raise"
          val return = get "return"
          val add = get "+"
+         val sub = get "-"
          val sx = get "sx"
          val zx = get "zx"
 
@@ -75,6 +76,18 @@ end = struct
                      
             in
                (add, [a, b], body)
+            end
+
+         (* val - a b = %sub(a,b) *)
+         val sub =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val primSub = get "%sub"
+               val body = PRI (primSub, [a, b])
+                     
+            in
+               (sub, [a, b], body)
             end
 
          (* val and a b = %and(a,b) *)
@@ -164,7 +177,18 @@ end = struct
                (unconsume, [s], body)
             end
       in
-         [slice, consume, unconsume, andd, not, ==, concat, raisee, add, sx, zx]
+         [slice,
+          consume,
+          unconsume,
+          andd,
+          not,
+          ==,
+          concat,
+          raisee,
+          add,
+          sx,
+          zx,
+          sub]
       end
 
    end

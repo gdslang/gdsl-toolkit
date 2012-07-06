@@ -37,24 +37,7 @@
 #define __INVOKE7(o, closure, u, v, w, x, y, z)\
   ((__obj(*)(__obj,__obj,__obj,__obj,__obj,__obj,__obj))((o)->label.f))(closure, u, v, w, x, y, z)
 
-#define __CALL1(f,x)\
-  f(x)
-#define __CALL2(f,x,y)\
-  f(x,y)
-#define __CALL3(f,x,y,z)\
-  f(x,y,z)
-#define __CALL4(f,w,x,y,z)\
-  f(w,x,y,z)
-#define __CALL5(f,v,w,x,y,z)\
-  f(v,w,x,y,z)
-#define __CALL6(f,u,v,w,x,y,z)\
-  f(u,v,w,x,y,z)
-#define __CALL7(f,t,u,v,w,x,y,z)\
-  f(t,u,v,w,x,y,z)
-#define __CALL8(f,s,t,u,v,w,x,y,z)\
-  f(s,t,u,v,w,x,y,z)
-#define __CALL9(f,r,s,t,u,v,w,x,y,z)\
-  f(r,s,t,u,v,w,x,y,z)
+#define __FCALL(f,...) f(__VA_ARGS__)
 
 /** ## Integers */
 
@@ -393,6 +376,7 @@ __obj __and(__obj,__obj);
 __obj __sx(__obj);
 __obj __zx(__obj);
 __obj __add(__obj,__obj);
+__obj __sub(__obj,__obj);
 __obj __raise(__obj);
 __obj __not(__obj);
 __obj __isNil(__obj);
