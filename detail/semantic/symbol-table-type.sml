@@ -42,7 +42,7 @@ end
 
 structure SymbolTable :> SymbolTableSig = struct
 
-   val concisePrint : bool = true
+   val concisePrint : bool = false
 
    structure SymbolTable = IntRedBlackMap
    structure Reverse = AtomRedBlackMap
@@ -185,6 +185,7 @@ end
 
 structure SymMap = RedBlackMapFn(ord_symid)
 structure SymSet = RedBlackSetFn(ord_symid)
+structure SymListSet = ListSetFn(ord_symid)
 
 structure SpanMap = RedBlackMapFn(struct
    type ord_key = Error.span

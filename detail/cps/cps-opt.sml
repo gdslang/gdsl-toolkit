@@ -216,7 +216,7 @@ end
 (* Currently `FreeVars` is br0k3n considering mutually recursive functions *)
 structure FreeVars = struct
    structure Map = SymMap
-   structure Set = SymSet
+   structure Set = SymListSet
    type t = Set.set Map.map
 
    val freevars = ref Map.empty : t ref
@@ -386,7 +386,7 @@ structure FreeVars = struct
    fun layout () =
       Pretty.symmap
          {key=CPS.PP.var,
-          item=Pretty.symset CPS.PP.var} (!freevars)
+          item=Pretty.symlistset CPS.PP.var} (!freevars)
       
    fun dump () = Pretty.prettyTo(TextIO.stdOut, layout())
 end

@@ -2,6 +2,18 @@
 (**
  * ## Inlining of decode patterns.
  *)
+structure VarAux = struct
+   val variables = SymbolTables.varTable
+   fun atomOf x = VarInfo.getAtom (!variables, x)
+   fun get s = VarInfo.lookup (!variables, Atom.atom s)
+   fun find s = VarInfo.find (!variables, Atom.atom s)
+   fun fresh variable = let
+      val (tab, sym) =
+         VarInfo.fresh (!variables, variable)
+   in
+      sym before SymbolTables.varTable := tab
+   end
+end
 
 structure ASTSubst = struct
    val empty = SymMap.empty
@@ -19,8 +31,8 @@ structure ASTSubst = struct
 
    fun copy x =
       let
-         val name = Aux.atomOf x
-         val x' = Aux.fresh name
+         val name = VarAux.atomOf x
+         val x' = VarAux.fresh name
       in
          x'
       end

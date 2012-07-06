@@ -56,6 +56,16 @@ __obj __add (__obj A, __obj B) {
   return (x);
 }
 
+__obj __sub (__obj A, __obj B) {
+  __word a = A->z.value;
+  __word b = B->z.value;
+  __LOCAL0(x);
+    __INT_BEGIN(x);
+    __INT_INIT(a - b);
+    __INT_END(x);
+  return (x);
+}
+
 /* FIXME */
 __obj __sx (__obj x) {
   __LOCAL0(y);
@@ -185,7 +195,7 @@ __obj __runWithState (__obj (*f)(__obj,__obj), __obj s) {
     __CLOSURE_BEGIN(envK,1)
     __CLOSURE_ADD(k);
     __CLOSURE_END(envK,1);
-  return (__CALL2(f,envK,s));
+  return (__FCALL(f,envK,s));
 }
 
 __obj __eval (__obj (*f)(__obj,__obj), __char* blob, __word sz) {
@@ -226,7 +236,8 @@ __obj __cont (__obj env, __obj f) {
     __CLOSURE_BEGIN(envK,1)
     __CLOSURE_ADD(k);
     __CLOSURE_END(envK,1);
-  return (__INVOKE2(f,envK,s));
+  __LOCAL(ff,__CLOSURE_REF(f,0));
+  return (__INVOKE3(ff,f,envK,s));
 }
 
 __obj __translate (__obj (*f)(__obj,__obj), __obj insn) {
@@ -239,10 +250,11 @@ __obj __translate (__obj (*f)(__obj,__obj), __obj insn) {
     __LABEL_END(k);
   __LOCAL0(envK);
     __CLOSURE_BEGIN(envK,2)
-    __CLOSURE_ADD(k);
     __CLOSURE_ADD(s);
+    __CLOSURE_ADD(k);
     __CLOSURE_END(envK,2);
-  return (__CALL2(f,envK,insn));
+  __LOCAL(ss, __FCALL(f,envK,insn));
+  return (__RECORD_SELECT(ss,___1));
 }
 
 const __char* __fieldName (__word i) {

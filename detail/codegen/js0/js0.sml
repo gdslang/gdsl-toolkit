@@ -57,6 +57,7 @@ structure JS0 = struct
 
    fun codegen cpsSpec =
       let
+         val () = Mangle.reset()
          fun id s = Id.fromString (Mangle.apply s)
          fun field f = PropertyName.fromString (Mangle.applyField f)
          fun fieldId f = Id.fromString (Mangle.applyField f)

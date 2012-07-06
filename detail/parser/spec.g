@@ -6,7 +6,6 @@
    | KW_in ("in")
    | KW_do ("do")
    | KW_export ("export")
-   | KW_div ("div")
    | KW_else ("else")
    | KW_end ("end")
    | KW_if ("if")
@@ -230,7 +229,6 @@ AExp
 MExp
    : SelectExp
       (( "*" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.times))
-       | "div" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.div))
        | "%" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.mod))
        ) ApplyExp =>
       (SR, SelectExp))* =>

@@ -1,5 +1,5 @@
 granularity = 8
-export = / decode
+export = decode
 
 # Optional arguments
 #

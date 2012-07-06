@@ -26,6 +26,9 @@ structure Pretty = struct
    fun symset item t =
       L.listex "{" "}" ";"
          (List.map item (SymSet.listItems t))
+   fun symlistset item t =
+      L.listex "{" "}" ";"
+         (List.map item (SymListSet.listItems t))
    fun pretty layout = Layout.print (layout, print)
    fun prettyTo (os, layout) = Layout.print (layout, fn s => TextIO.output (os, s))
 end
