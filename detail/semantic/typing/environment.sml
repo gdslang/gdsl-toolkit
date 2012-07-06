@@ -1189,6 +1189,8 @@ end = struct
    fun forceNoInputs (sym, env) = case Scope.lookup (sym,env) of
          (_,COMPOUND {ty = SOME (t,bFun), width, uses}) =>
          let
+            val t = case t of (MONAD (r,inp,out)) => inp
+                            | t => t
             fun onlyInputs ((true,v),vs) = v :: vs
               | onlyInputs ((false,v),vs) = vs
             val bVars = texpBVarset onlyInputs (t,[])
@@ -1283,8 +1285,6 @@ end = struct
 
    fun meetGeneral (env1, env2, directed) =
       let
-         (*val (e1Str', si) = topToStringSI (env1,TVar.emptyShowInfo)
-         val (e2Str', si) = topToStringSI (env2,si)*)
 
          val substs = unify (env1, env2, emptySubsts)
          (*val (scs, cons) = env1
@@ -1299,6 +1299,12 @@ end = struct
       
          val (env1,env2) = mergeUses (env1, env2)
 
+         (*val (e1Str,si) = kappaToStringSI (env1, TVar.emptyShowInfo)
+         val (e2Str,si) = kappaToStringSI (env2, si)
+         val (sStr,si) = showSubstsSI (substs,si)
+         val kind = if directed then "directed" else "equalizing"
+         val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str ^ "++++ intersected with\n" ^ e2Str)*)
+
          val (_, state1) = env1
          val (_, state2) = env2
          val sCons = SC.merge (Scope.getSize state1,Scope.getSize state2)
@@ -1307,12 +1313,6 @@ end = struct
          val (ei, bFunFlow, env) =
             applySubsts (substs, emptyExpandInfo, BD.empty, directed, env1, env2)
          
-         (*val (e1Str,si) = kappaToStringSI (env1, si)
-         val (e2Str,si) = kappaToStringSI (env2, si)
-         val (sStr,si) = showSubstsSI (substs,si)
-         val kind = if directed then "directed" else "equalizing"
-         val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str' ^ "++++ intersected with\n" ^ e2Str')*)
-
          val bVars1 = Scope.getBVars env1
          val bVars2 = Scope.getBVars env2
          val bVars = BD.union (bVars1,bVars2)
