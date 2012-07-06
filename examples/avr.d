@@ -121,6 +121,12 @@ type instruction =
  | SLEEP
  | SPM of unop
  | ST of binop
+ | STS of binop
+ | SUB of binop
+ | SUBI of binop
+ | SWAP of unop
+ | WDR
+ | XCH of binop
 
 type register =
    R0
@@ -938,3 +944,32 @@ val / ['1000001 r r r r r 0000'] = binop ST (//Z NONE) rr5
 val / ['1001001 r r r r r 0001'] = binop ST (//Z INCR) rr5
 val / ['1001001 r r r r r 0010'] = binop ST (//Z DECR) rr5
 val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
+
+### STS
+###  - Store Direct to Data Space
+val / ['1001 001 r r r r r 0000' 'k k k k k k k k k k k k k k k k '] = binop STS ck16 rr5
+val / ['10101 k k k d d d d k k k k '] = binop STS ck7 rr4
+
+### SUB
+###  - Subtract without Carry
+val / ['000110 r d d d d d r r r r '] = binop SUB rd5 rr5
+
+### SUBI
+###  - Subtract Immediate
+val / ['0101 k k k k d d d d k k k k '] = binop SUB rd4 ck8
+
+### SWAP
+###  - Swap Nibbles
+val / ['1001010 d d d d d 0010'] = unop SWAP rd5
+
+### TST
+###  - Test for Zero or Minus
+### => See AND Rd, Rd
+
+### WDR
+###  - Watchdog Reset
+val / ['1001010110101000'] = nullop WDR
+
+### XCH
+###  - Exchange
+val / ['1001001 d d d d d 0100'] = binop XCH /Z rd5
