@@ -436,7 +436,4 @@ val translate insn =
       return (revSeq stack)
    end
 
-# vim:filetype=sml
-# vim:ts=3
-# vim:sw=3
-# vim:expandtab
+# vim:filetype=sml:ts=3:sw=3:expandtab

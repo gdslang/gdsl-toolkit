@@ -44,7 +44,7 @@ structure SymbolTable :> SymbolTableSig = struct
 
    val concisePrint : bool = false
 
-   structure SymbolTable = IntRedBlackMap
+   structure SymbolTable = IntBinaryMap
    structure Reverse = AtomRedBlackMap
 
    datatype symid = SymId of int
@@ -183,9 +183,9 @@ structure SymTab = struct
    fun new () = mkTable(1000,Fail"Invalid symbol")
 end
 
-structure SymMap = RedBlackMapFn(ord_symid)
-structure SymSet = RedBlackSetFn(ord_symid)
-structure SymListSet = ListSetFn(ord_symid)
+structure SymMap = BinaryMapFn(ord_symid)
+structure SymSet = BinarySetFn(ord_symid)
+structure SymListSet = SymSet
 
 structure SpanMap = RedBlackMapFn(struct
    type ord_key = Error.span
