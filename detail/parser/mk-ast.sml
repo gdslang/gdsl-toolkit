@@ -135,12 +135,12 @@ functor MkAst (Core: AST_CORE) = struct
                   [seq [str "type", space, con_bind t],
                    indent 3 (alignPrefix (map condecl decls, "| "))]
           | DECODEdecl (n, ps, Sum.INL e) =>
-               align [seq [var_bind n, space, decodepats ps],
+               align [seq [str "fn ", var_bind n, space, decodepats ps],
                            indent 1 (block e)]
           | DECODEdecl (n, ps, Sum.INR ges) =>
                align
                   [seq
-                     [var_bind n, space, decodepats ps],
+                     [str "fn ", var_bind n, space, decodepats ps],
                    indent 1
                      (align
                         (map
@@ -225,6 +225,8 @@ functor MkAst (Core: AST_CORE) = struct
                                      rb]))]
           | BINARYexp (e1, opid, e2) =>
                seq [exp e1, space, infixop opid, space, exp e2]
+          | APPLYexp (e1, [e2 as APPLYexp _]) =>
+               seq [exp e1, space, lp, exp e2, rp]
           | APPLYexp (e1, es) => seq [exp e1, args (map exp es)]
           | RECORDexp fs => listex "{" "}" "," (map field fs)
           | SELECTexp f => seq [str "$", field_use f]
@@ -235,7 +237,7 @@ functor MkAst (Core: AST_CORE) = struct
           | CONexp con => con_use con
           | FNexp (xs, e) => seq [args (map var_bind xs), indent 1 (block e)]
 
-      and args x = listex "(" ")" "," x
+      and args x = seq [space, listex "" "" "," x]
 
       and infixop t =
          case t of
@@ -245,8 +247,8 @@ functor MkAst (Core: AST_CORE) = struct
       and recdecl (n, args, e) =
          align
             [seq
-               [var_bind n, space, lp,
-                seq (separate (map var_bind args, " ")), rp],
+               [str "fn ", var_bind n, space,
+                seq (separate (map var_bind args, ", "))],
              indent 1 (block e)]  
 
       and seqexp t =
