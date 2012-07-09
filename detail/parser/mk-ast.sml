@@ -132,24 +132,22 @@ functor MkAst (Core: AST_CORE) = struct
                seq [str "type", space, syn_bind t, space, ty tyexp]
           | DATATYPEdecl (t, decls) =>
                align
-                  [seq [str "datatype", space, con_bind t],
+                  [seq [str "type", space, con_bind t],
                    indent 3 (alignPrefix (map condecl decls, "| "))]
           | DECODEdecl (n, ps, Sum.INL e) =>
-               align
-                  [seq
-                     [str "val", space, var_bind n, space, decodepats ps, is],
-                   indent 3 (exp e)]
+               align [seq [var_bind n, space, decodepats ps],
+                           indent 1 (block e)]
           | DECODEdecl (n, ps, Sum.INR ges) =>
                align
                   [seq
-                     [str "val", space, var_bind n, space, decodepats ps, is],
-                   indent 3
-                     (alignPrefix
+                     [var_bind n, space, decodepats ps],
+                   indent 1
+                     (align
                         (map
                            (fn (e1, e2) =>
-                              seq [exp e1, is, space, exp e2])
-                           ges,
-                         "| "))]
+                              align [seq [exp e1, str ":"],
+                                     indent 1 (block e2)])
+                           ges))]
           | LETRECdecl d => recdecl d
 
       and decodepats ps =
@@ -207,40 +205,37 @@ functor MkAst (Core: AST_CORE) = struct
           | STRlit s => str s
           | VEClit s => seq [str "'", str s, str "'"]
 
+      and block t = align [seq [lb, exp t], rb]
+
       and exp t =
          case t of
             MARKexp t' => exp (#tree t')
           | LETRECexp (ds, e) =>
-               align
-                  [align [str "let", indent 3 (align (map recdecl ds))],
-                   align [str "in", indent 3 (exp e)]]
+               align [align (map recdecl ds),
+                      exp e]
           | IFexp (iff, thenn, elsee) =>
-               align
-                  [align
-                     [seq [str "if", space, exp iff],
-                      indent 3 (align [str "then", indent 3 (exp thenn)])],
-                   align [str "else", indent 3 (exp elsee)]]
+               align [seq [str "if", space, lp, exp iff, rp],
+                      indent 1 (block thenn),
+                      str "else",
+                      indent 1 (block elsee)]
           | CASEexp (e, cs) =>
                align
-                  [seq [str "case", space, exp e, str "of"],
-                   indent 3 (alignPrefix (map casee cs, "| "))]
+                  [seq [str "case", space, lp, exp e, rp],
+                   (indent 1 (align [seq [lb, align (map casee cs)],
+                                     rb]))]
           | BINARYexp (e1, opid, e2) =>
-               seq [infixop opid, space, exp e1, space, exp e2]
-          | APPLYexp (e1, es) => seq [exp e1, list (map exp es)]
+               seq [exp e1, space, infixop opid, space, exp e2]
+          | APPLYexp (e1, es) => seq [exp e1, args (map exp es)]
           | RECORDexp fs => listex "{" "}" "," (map field fs)
           | SELECTexp f => seq [str "$", field_use f]
           | UPDATEexp fs => seq [str "@", listex "{" "}" "," (map fieldOpt fs)]
           | LITexp l => lit l
-          | SEQexp ss =>
-               align
-                  [align
-                     [str "do",
-                      indent 3 (align (separateRight (map seqexp ss, ";")))],
-                   str "end"]
+          | SEQexp ss => align (separateRight (map seqexp ss, ";"))
           | IDexp id => var_use id
-          | CONexp con => seq [str "`", con_use con]
-          | FNexp (xs, e) => seq [str "\\", listex "" "" " " (map var_bind xs),
-                                  str ".", exp e]
+          | CONexp con => con_use con
+          | FNexp (xs, e) => seq [args (map var_bind xs), indent 1 (block e)]
+
+      and args x = listex "(" ")" "," x
 
       and infixop t =
          case t of
@@ -250,10 +245,9 @@ functor MkAst (Core: AST_CORE) = struct
       and recdecl (n, args, e) =
          align
             [seq
-               [str "rec", space,
-                var_bind n,
-                seq (separate (map var_bind args, " ")), space, str "="],
-             indent 3 (exp e)]  
+               [var_bind n, space, lp,
+                seq (separate (map var_bind args, " ")), rp],
+             indent 1 (block e)]  
 
       and seqexp t =
          case t of
@@ -269,8 +263,8 @@ functor MkAst (Core: AST_CORE) = struct
 
       and casee (p, e) =
          align
-            [seq [pat p, space, str ":"],
-             indent 3 (exp e)]
+            [seq [pat p, str ":"],
+             indent 1 (block e)]
 
       and def (nameAndArgs, body) = align [nameAndArgs, indent 2 body]
 
