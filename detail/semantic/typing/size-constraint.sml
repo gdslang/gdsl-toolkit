@@ -186,9 +186,26 @@ end = struct
       in
          List.foldl gV TVar.empty scs
       end
-      
+   
+   fun diff (scs1, scs2) =
+      let
+         fun cmp ({terms=(_,v1)::_, const=_},{terms=(_,v2)::_, const=_}) =
+                  TVar.compare (v1,v2)
+           | cmp _ = raise SizeConstraintBug
+         fun genDiff (sc1 :: scs1, sc2 :: scs2) =
+            (case cmp (sc1,sc2) of
+                 LESS => sc1 :: genDiff (scs1, sc2 :: scs2)
+               | GREATER => genDiff (sc1 :: scs1, scs2)
+               | EQUAL => genDiff (scs1, scs2)
+            )
+           | genDiff (scs1, _) = scs1
+      in
+         genDiff (scs1, scs2)
+      end
+
    fun merge (scs1, scs2) =
       let
+         val scs1 = diff (scs1,scs2)
          fun m ([], scs) = scs
            | m (eq :: eqs, scs) = case add (eq, scs) of
                 RESULT (_, scs) => m (eqs, scs)
@@ -215,6 +232,8 @@ end = struct
          fun renameVar sc = case lookupVarSC (v1,sc) of f1 =>
                addTermToSC (f1,v2, addTermToSC (~f1,v1, sc))
          val renamed = List.map renameVar withVar
+         val renamed = List.filter
+               (fn {terms=ts,const} => not (List.null ts)) renamed
       in
          merge (renamed, retained)
       end

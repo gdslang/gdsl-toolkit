@@ -131,7 +131,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
-   val maxIter = 1
+   val maxIter = 2
    fun checkUsages printWarn (sym, env) =
       let
          (*val _ = TextIO.print ("***** usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)

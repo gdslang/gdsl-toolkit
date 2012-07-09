@@ -2,7 +2,7 @@
 
 export = decode
 
-datatype register
+type register
   = PC
   | SP
   | R2
@@ -20,12 +20,12 @@ datatype register
   | R14
   | R15
   
-datatype expr
+type expr
   = Register of { reg: register, incr: 1 }
   | Indexed of { reg: register, offset: 16 }
   | Const of 16
   
-datatype arg
+type arg
   = Direct of expr
   | Indirect of expr
   | Void
@@ -104,7 +104,7 @@ type unop = {
 
 type target = int
 
-datatype instr
+type instr
   = RRC   of unop
   | SWPB  of arg
   | RRA   of unop
@@ -204,7 +204,7 @@ val decode ['000100 110   0 as sReg '] = return RETI
   
 val decode ['001 cond offset:10'] = do
   m <- query $jump;
-  return (m (signed (offset^'0')))
+  return (m (sx (offset^'0')))
 end
 
 val decode ['opcode sReg ad b/w as dReg '] = do
