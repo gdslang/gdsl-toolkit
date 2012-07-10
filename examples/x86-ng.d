@@ -545,6 +545,7 @@ type insn =
  | AAS
  | ADC of arity2
  | ADD of arity2
+ | ADDPD of arity2
  | AND of arity2
  | BSF of arity2
  | BSR of arity2
@@ -882,6 +883,7 @@ type insn =
  | TEST of arity2
  | UCOMISD of arity2
  | UD2
+ | VADDPD of varity
  | VCMPEQB of varity
  | VCMPEQD of varity
  | VCMPEQW of varity
@@ -1770,6 +1772,13 @@ val / [0x03 /r]
  | opndsz? = binop ADD r16 r/m16
  | rexw? = binop ADD r64 r/m64
  | otherwise = binop ADD r32 r/m32
+
+### ADDPD
+###  - Add Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x58 /r] = binop ADDPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x58 /r]
+ | vex128? = varity3 VADDPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VADDPD ymm256 v/ymm ymm/m256
 
 ### AND
 ###  - Logical AND
