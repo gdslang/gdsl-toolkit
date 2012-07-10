@@ -62,7 +62,11 @@ structure JS0 = struct
          fun field f = PropertyName.fromString (Mangle.applyField f)
          fun fieldId f = Id.fromString (Mangle.applyField f)
          fun tagName tag = Mangle.getStringOfTag tag
-         fun veclit v = valOf (StringCvt.scanString (Int.scan StringCvt.BIN) v)
+         fun veclit v = 
+            (* We need to handle empty bit-vector patterns here *)
+            case v of
+               "" => 0
+             | _ => valOf (StringCvt.scanString (Int.scan StringCvt.BIN) v)
          val empty = []
          fun visitExp (e,acc) =
             case e of

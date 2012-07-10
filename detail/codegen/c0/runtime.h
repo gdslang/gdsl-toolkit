@@ -1,3 +1,4 @@
+/* vim:cindent:ts=2:sw=2:expandtab */
 
 #ifndef __RUNTIME_H
 #define __RUNTIME_H
@@ -392,7 +393,3 @@ __obj __translate(__obj(*)(__obj,__obj),__obj);
 
 #endif /* __RUNTIME_H */
 
-/* vim:cindent
- * vim:ts=2
- * vim:sw=2
- * vim:expandtab */
