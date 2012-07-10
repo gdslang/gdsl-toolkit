@@ -539,7 +539,8 @@ type varity =
  | VA4 of arity4
 
 type insn =
-   ADC of arity2
+   AAA of arity0
+ | ADC of arity2
  | ADD of arity2
  | AND of arity2
  | BSF of arity2
@@ -1691,6 +1692,10 @@ val far-abs cons giveOp = do
 end
 
 val one = return (IMM8 '00000001')
+
+### AAA
+###  - ASCII Adjust After Addition
+val / [0x37] = arity0 AAA 
 
 ### ADC 
 ###  - Add with Carry
