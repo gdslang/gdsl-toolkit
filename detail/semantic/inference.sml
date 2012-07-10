@@ -131,7 +131,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
-   val maxIter = 5
+   val maxIter = 3
    fun calcSubset printWarn env =
       let
          fun checkUsage sym (s, unstable) =
@@ -171,16 +171,23 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      symsStr]))
                   end
                val substs = E.subseteq (envCall, envFun)
-                  handle (S.UnificationFailure str) => S.emptySubsts
-               val affectedSyms = E.affectedFunctions (substs,envCall)
+               val affectedSyms = E.affectedFunctions (substs,env)
+               
+               (*val (sStr, si) = S.showSubstsSI (substs, TVar.emptyShowInfo)
+               val _ = TextIO.print ("subset: subst=:" ^ sStr ^ ", unstable: " ^
+                  List.foldl (fn (sym, res) => res ^ ", " ^ SymbolTable.getString
+                   (!SymbolTables.varTable, sym)) "" (E.SymbolSet.listItems affectedSyms) ^ "\n")*)
                val _ = raiseWarning (substs, affectedSyms)
             in
-               E.SymbolSet.union (unstable, affectedSyms)
+               if E.SymbolSet.isEmpty affectedSyms then unstable else
+                  E.SymbolSet.add (unstable, sym)
             end
+               handle (S.UnificationFailure str) =>
+                  E.SymbolSet.add (unstable, sym)
          fun checkUsages (sym, unstable) =
             let
                val usages = E.getUsages (sym, env)
-               val _ = TextIO.print ("***** checking subset of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+               (*val _ = TextIO.print ("***** checking subset of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
                val unstable = List.foldl (checkUsage sym) unstable usages
             in
                unstable
@@ -230,7 +237,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun calcUsages (sym, env) =
             let
                val usages = E.getUsages (sym, env)
-               val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+               (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
                val env = List.foldl (checkUsage sym) env usages
             in
                env
@@ -240,7 +247,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
 
    fun calcFixpoint curIter env =
-         case calcSubset (curIter=maxIter) env of unstable =>
+         case calcSubset (curIter>0) env of unstable =>
          if E.SymbolSet.isEmpty unstable then env else
          if curIter<maxIter then
             calcFixpoint (curIter+1) (calcIteration (unstable,env))
@@ -264,7 +271,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             (Error.errorAt (errStrm, s, [
             "no typing found for ",
             symsStr,
-            "\n\tpass --inference-iterations=",
+            "\tpass --inference-iterations=",
             Int.toString (maxIter+1),
             " to try a little harder"]); env)
          end
