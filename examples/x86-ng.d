@@ -541,6 +541,8 @@ type varity =
 type insn =
    AAA
  | AAD of arity1
+ | AAM of arity1
+ | AAS
  | ADC of arity2
  | ADD of arity2
  | AND of arity2
@@ -1694,13 +1696,26 @@ end
 
 val one = return (IMM8 '00000001')
 
+val // a = 
+   do b <- a;
+      return (not b)
+   end
+
 ### AAA
 ###  - ASCII Adjust After Addition
-val / [0x37] | / mode64? = arity0 AAA 
+val / [0x37] | // mode64? = arity0 AAA 
 
 ### AAD
 ###  - ASCII Adjust AX Before Division
-val / [0xd5] | / mode64? = unop AAD imm8 
+val / [0xd5] | // mode64? = unop AAD imm8 
+
+### AAM
+###  - ASCII Adjust AX After Multiply
+val / [0xd4] | // mode64? = unop AAM imm8 
+
+### AAS
+###  - ASCII Adjust AL After Subtraction
+val / [0x3f] | // mode64? = arity0 AAS
 
 ### ADC 
 ###  - Add with Carry
