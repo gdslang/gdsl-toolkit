@@ -30,6 +30,10 @@ structure Environment : sig
    group*)
    val popGroup : environment * bool ->
                   (Error.span * string) list * environment
+   
+   (*ask for all the symbols in the binding group               *)
+   val getGroupSyms : environment -> VarInfo.symid list
+   
    val pushTop : environment -> environment
    
    (*pushes the given type onto the stack, if the flag is true, type variables
@@ -551,6 +555,10 @@ end = struct
          in
             (badSizes, (scs, Scope.setSize sCons state))
          end
+      | _ => raise InferenceBug
+
+   fun getGroupSyms env = case Scope.unwrap env of
+        (GROUP bs, env) => List.map #name bs
       | _ => raise InferenceBug
 
    fun pushTop env = 
