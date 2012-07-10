@@ -986,7 +986,8 @@ val / ['10010111 k k d d k k k k '] = binop SBIW rd2 ck6
 
 ### SBR
 ###  - Set Bits in Register
-val / ['0110 k k k k d d d d k k k k '] = binop SBR rd4 ck8
+### => see ORI
+#val / ['0110 k k k k d d d d k k k k '] = binop SBR rd4 ck8
 
 ### SBRC
 ###  - Skip if Bit in Register is Cleared

@@ -21,7 +21,7 @@ structure DesugaredTree = struct
        | Pat.BND (_, str) =>
          case String.fields (fn c => c = #"|") str of
             p::_ => String.size p
-          | _ => raise Fail "pat.size.bug"
+          | _ => raise Fail "DesugaredTree.size.bug"
 
    fun toWildcardPattern tokpat = let
       fun lp (pats, acc) =

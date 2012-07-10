@@ -3,11 +3,13 @@ structure DesugarDecode = struct
    structure VS = VectorSlice
    structure CM = CompilationMonad
    structure DT = DesugaredTree
-   structure Set = IntRedBlackSet
+   structure Set = IntBinarySet
    structure Pat = DesugaredTree.Pat
 
    open DT 
 
+   val granularity: int ref = ref 8
+   
    fun insert (map, k, i) = let
       val s =
          case StringMap.find (map, k) of
@@ -131,6 +133,11 @@ structure DesugarDecode = struct
       (* +DEBUG:overlapping-patterns *)
       (* val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
       val equiv = buildEquivClass decls
+      (* +DEBUG:overlapping-patterns *)
+      (* val () =
+         Pretty.prettyTo
+            (TextIO.stdOut,
+             Pretty.stringtab Pretty.intset equiv) *)
       
       fun genBindSlices indices = let
          open DT.Pat
@@ -146,8 +153,7 @@ structure DesugarDecode = struct
                            let
                               val sz = size pat
                            in
-                              (* TODO: this is granularity dependent *)
-                              if offs = 0 andalso sz = 8
+                              if offs = 0 andalso sz = !granularity
                                  then
                                     grab (ps, offs + sz,
                                        Exp.BIND (n, returnExp tok)::acc)
@@ -256,6 +262,9 @@ end = struct
       Spec.upd
          (fn (vs, ds) =>
             let
+               val _ =
+                  DesugarDecode.granularity := 
+                     IntInf.toInt (Spec.get#granularity t)
                val vss = desugar ds
             in
                vs@vss
