@@ -539,7 +539,8 @@ type varity =
  | VA4 of arity4
 
 type insn =
-   AAA of arity0
+   AAA
+ | AAD of arity1
  | ADC of arity2
  | ADD of arity2
  | AND of arity2
@@ -1695,7 +1696,11 @@ val one = return (IMM8 '00000001')
 
 ### AAA
 ###  - ASCII Adjust After Addition
-val / [0x37] = arity0 AAA 
+val / [0x37] | / mode64? = arity0 AAA 
+
+### AAD
+###  - ASCII Adjust AX Before Division
+val / [0xd5] | / mode64? = unop AAD imm8 
 
 ### ADC 
 ###  - Add with Carry
