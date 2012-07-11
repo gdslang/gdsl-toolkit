@@ -16,7 +16,8 @@ structure JS0Factory = struct
    structure JS = Javascript
    open JS
    structure JSStmt = struct
-      fun const (x,e) = Joint.Const (Vector.fromList [(x,e)])
+      fun var (x,e) = Joint.Var (Vector.fromList [(x,SOME e)])
+      fun const (x,e) = var (x,e)(* Joint.Const (Vector.fromList [(x,e)]) *)
       fun function (f,xs,body) = Joint.FunctionDec {args=Vector.fromList xs, name=f,body=Vector.fromList body}
       fun seq xs = Joint.Block (Vector.fromList xs)
       fun call (f,xs) = Joint.Exp (Joint.Call {args=Vector.fromList(map Joint.Id xs),func=Joint.Id f})
