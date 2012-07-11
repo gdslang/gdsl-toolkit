@@ -29,9 +29,9 @@ __obj __FALSE = __WRAP(&__unwrapped_FALSE);
 void __fatal (char *fmt, ...) {
   va_list ap;
   va_start(ap,fmt);
-  fprintf(stderr,"ERROR:");
+  fprintf(stderr,"FATAL:[");
   vfprintf(stderr,fmt,ap);
-  fprintf(stderr,"\n");
+  fprintf(stderr,"]\n");
   va_end(ap);
   abort();
 }
@@ -120,11 +120,38 @@ __obj __not (__obj a_) {
 __obj __raise (__obj o) {
   printf("raising: ");
   __println(o);
-  __fatal("<error>");
+  __fatal("Unhandled exception");
   return (o);
 }
 
-__obj __unconsume (__obj s) {
+__obj __consume8 (__obj s) {
+  __LOCAL(blob, __RECORD_SELECT(s,___blob));
+  __char* buf = blob->blob.blob;
+  __word sz = blob->blob.sz;
+  if (sz == 0)
+    __fatal("end-of-blob");
+  __char x = *buf;
+  __LOCAL0(v);
+    __BV_BEGIN(v,8);
+    __BV_INIT(x);
+    __BV_END(v,8);
+  __LOCAL0(blobb);
+    __BLOB_BEGIN(blobb);
+    __BLOB_INIT(buf+1,sz-1);
+    __BLOB_END(blobb);
+  __LOCAL0(ss);
+    __RECORD_BEGIN_UPDATE(ss,s);
+    __RECORD_UPDATE(___blob,blobb);
+    __RECORD_END_UPDATE(ss);
+  __LOCAL0(a);
+    __RECORD_BEGIN(a,2);
+    __RECORD_ADD(___1,v);
+    __RECORD_ADD(___2,ss);
+    __RECORD_END(a,2);
+  return (a);
+}
+
+__obj __unconsume8 (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __char* buf = blob->blob.blob;
   __word sz = blob->blob.sz;
@@ -144,20 +171,21 @@ __obj __unconsume (__obj s) {
   return (a);
 }
 
-__obj __consume (__obj s) {
+__obj __consume16 (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __char* buf = blob->blob.blob;
   __word sz = blob->blob.sz;
-  if (sz == 0)
-    __fatal("<end-of-blob>");
-  __char x = *buf;
+  if (sz < 2)
+    __fatal("end-of-blob");
+  uint16_t x1 = buf[0];
+  uint16_t x2 = buf[1]<<8;
   __LOCAL0(v);
-    __BV_BEGIN(v,8);
-    __BV_INIT(x);
-    __BV_END(v,8);
+    __BV_BEGIN(v,16);
+    __BV_INIT((x1|x2)&0xffff);
+    __BV_END(v,16);
   __LOCAL0(blobb);
     __BLOB_BEGIN(blobb);
-    __BLOB_INIT(buf+1,sz-1);
+    __BLOB_INIT(buf+2,sz-2);
     __BLOB_END(blobb);
   __LOCAL0(ss);
     __RECORD_BEGIN_UPDATE(ss,s);
@@ -166,6 +194,76 @@ __obj __consume (__obj s) {
   __LOCAL0(a);
     __RECORD_BEGIN(a,2);
     __RECORD_ADD(___1,v);
+    __RECORD_ADD(___2,ss);
+    __RECORD_END(a,2);
+  return (a);
+}
+
+__obj __unconsume16 (__obj s) {
+  __LOCAL(blob, __RECORD_SELECT(s,___blob));
+  __char* buf = blob->blob.blob;
+  __word sz = blob->blob.sz;
+  __LOCAL0(blobb);
+    __BLOB_BEGIN(blobb);
+    __BLOB_INIT(buf-2,sz+2);
+    __BLOB_END(blobb);
+  __LOCAL0(ss);
+    __RECORD_BEGIN_UPDATE(ss,s);
+    __RECORD_UPDATE(___blob,blobb);
+    __RECORD_END_UPDATE(ss);
+  __LOCAL0(a);
+    __RECORD_BEGIN(a,2);
+    __RECORD_ADD(___1,__UNIT);
+    __RECORD_ADD(___2,ss);
+    __RECORD_END(a,2);
+  return (a);
+}
+
+__obj __consume32 (__obj s) {
+  __LOCAL(blob, __RECORD_SELECT(s,___blob));
+  __char* buf = blob->blob.blob;
+  __word sz = blob->blob.sz;
+  if (sz < 4)
+    __fatal("end-of-blob");
+  uint32_t x1 = buf[0];
+  uint32_t x2 = buf[1]<<8;
+  uint32_t x3 = buf[2]<<16;
+  uint32_t x4 = buf[3]<<24;
+  __LOCAL0(v);
+    __BV_BEGIN(v,32);
+    __BV_INIT((x1|x2|x3|x4)&0xffffffff);
+    __BV_END(v,32);
+  __LOCAL0(blobb);
+    __BLOB_BEGIN(blobb);
+    __BLOB_INIT(buf+2,sz-2);
+    __BLOB_END(blobb);
+  __LOCAL0(ss);
+    __RECORD_BEGIN_UPDATE(ss,s);
+    __RECORD_UPDATE(___blob,blobb);
+    __RECORD_END_UPDATE(ss);
+  __LOCAL0(a);
+    __RECORD_BEGIN(a,2);
+    __RECORD_ADD(___1,v);
+    __RECORD_ADD(___2,ss);
+    __RECORD_END(a,2);
+  return (a);
+}
+
+__obj __unconsume32 (__obj s) {
+  __LOCAL(blob, __RECORD_SELECT(s,___blob));
+  __char* buf = blob->blob.blob;
+  __word sz = blob->blob.sz;
+  __LOCAL0(blobb);
+    __BLOB_BEGIN(blobb);
+    __BLOB_INIT(buf-4,sz+4);
+    __BLOB_END(blobb);
+  __LOCAL0(ss);
+    __RECORD_BEGIN_UPDATE(ss,s);
+    __RECORD_UPDATE(___blob,blobb);
+    __RECORD_END_UPDATE(ss);
+  __LOCAL0(a);
+    __RECORD_BEGIN(a,2);
+    __RECORD_ADD(___1,__UNIT);
     __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
   return (a);

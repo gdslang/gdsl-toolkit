@@ -35,8 +35,12 @@ end = struct
       fun mk () = let
          open Core.Exp
          val slice = get "slice"
-         val consume = get "consume"
-         val unconsume = get "unconsume"
+         val consume8 = get "consume8"
+         val unconsume8 = get "unconsume8"
+         val consume16 = get "consume16"
+         val unconsume16 = get "unconsume16"
+         val consume32 = get "consume32"
+         val unconsume32 = get "unconsume32"
          val andd = get "and"
          val concat = get "^"
          val == = get "=="
@@ -157,29 +161,73 @@ end = struct
                (slice, [tok, offs, sz], body) 
             end
 
-         (* val consume s = %consume(s) *)
-         val consume =
+         (* val consume8 s = %consume8(s) *)
+         val consume8 =
             let
                val s = fresh "s"
-               val primConsume = get "%consume"
-               val body = PRI (primConsume, [s])
+               val primconsume8 = get "%consume8"
+               val body = PRI (primconsume8, [s])
             in
-               (consume, [s], body)
+               (consume8, [s], body)
             end
 
-         (* val unconsume s = %unconsume(s) *)
-         val unconsume =
+         (* val unconsume8 s = %unconsume8(s) *)
+         val unconsume8 =
             let
                val s = fresh "s"
-               val primUnconsume = get "%unconsume"
-               val body = PRI (primUnconsume, [s])
+               val primUnconsume8 = get "%unconsume8"
+               val body = PRI (primUnconsume8, [s])
             in
-               (unconsume, [s], body)
+               (unconsume8, [s], body)
+            end
+
+         (* val consume16 s = %consume16(s) *)
+         val consume16 =
+            let
+               val s = fresh "s"
+               val primconsume16 = get "%consume16"
+               val body = PRI (primconsume16, [s])
+            in
+               (consume16, [s], body)
+            end
+
+         (* val unconsume16 s = %unconsume16(s) *)
+         val unconsume16 =
+            let
+               val s = fresh "s"
+               val primUnconsume16 = get "%unconsume16"
+               val body = PRI (primUnconsume16, [s])
+            in
+               (unconsume16, [s], body)
+            end
+
+         (* val consume32 s = %consume32(s) *)
+         val consume32 =
+            let
+               val s = fresh "s"
+               val primconsume32 = get "%consume32"
+               val body = PRI (primconsume32, [s])
+            in
+               (consume32, [s], body)
+            end
+
+         (* val unconsume32 s = %unconsume32(s) *)
+         val unconsume32 =
+            let
+               val s = fresh "s"
+               val primUnconsume32 = get "%unconsume32"
+               val body = PRI (primUnconsume32, [s])
+            in
+               (unconsume32, [s], body)
             end
       in
          [slice,
-          consume,
-          unconsume,
+          consume8,
+          unconsume8,
+          consume16,
+          unconsume16,
+          consume32,
+          unconsume32,
           andd,
           not,
           ==,

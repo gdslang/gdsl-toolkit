@@ -20,8 +20,6 @@ structure DesugarDecode = struct
    end
 
    val tok = Atom.atom "tok"
-   val consume = Atom.atom "consume"
-   val unconsume = Atom.atom "unconsume"
    val slice = Atom.atom "slice"
    val return = Atom.atom "return"
 
@@ -34,6 +32,8 @@ structure DesugarDecode = struct
 
    fun consumeTok () = let
       val tok = freshTok ()
+      val tokSz = Int.toString(!granularity)
+      val consume = Atom.atom("consume"^tokSz)
       val consume =
          Exp.ID
             (VarInfo.lookup
@@ -43,6 +43,8 @@ structure DesugarDecode = struct
    end
 
    fun unconsumeTok () = let
+      val tokSz = Int.toString(!granularity)
+      val unconsume = Atom.atom("unconsume"^tokSz)
       val unconsume =
          Exp.ID
             (VarInfo.lookup

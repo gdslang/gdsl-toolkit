@@ -115,7 +115,33 @@ structure ASTSubst = struct
                 map (renameExp sigma) es)
        | RECORDexp fs => RECORDexp (map (renameField sigma) fs)
        | UPDATEexp fs => UPDATEexp (map (renameFieldOpt sigma) fs)
-       | SEQexp es => SEQexp (map (renameSeqexp sigma) es)
+       | SEQexp es =>
+            let
+               fun visitSeqexp sigma e =
+                  case e of
+                     MARKseqexp e => visitSeqexp sigma (#tree e)
+                   | ACTIONseqexp e => ACTIONseqexp (renameExp sigma e)
+                   | BINDseqexp (x, e) =>
+                        (* {x} was renamed so we just have to
+                         * substitute it here *)
+                        BINDseqexp (Subst.apply sigma x, renameExp sigma e)
+
+               fun previsit (t, sigma) =
+                  case t of
+                     MARKseqexp t => previsit (#tree t,sigma)
+                   | BINDseqexp (x, e) => 
+                        let
+                           val x' = copy x
+                           val sigma = extend sigma x' x
+                        in
+                           sigma
+                        end
+                   | _ => sigma
+                  
+               val sigma = foldl previsit sigma es
+            in
+               SEQexp (map (visitSeqexp sigma) es)
+            end
        | FNexp (xs, e) =>
             let
                val xs' = copyAll xs
@@ -152,17 +178,6 @@ structure ASTSubst = struct
    and renameCase sigma (pat, e) = (pat, renameExp sigma e)
    and renameField sigma (f, e) = (f, renameExp sigma e)
    and renameFieldOpt sigma (f, eOpt) = (f, Option.map (renameExp sigma) eOpt)
-   and renameSeqexp sigma t =
-      case t of
-         MARKseqexp t => renameSeqexp sigma (#tree t)
-       | ACTIONseqexp e => ACTIONseqexp (renameExp sigma e)
-       | BINDseqexp (x, e) => 
-            let
-               val x' = copy x
-               val sigma = extend sigma x' x
-            in
-               BINDseqexp (x', renameExp sigma e)
-            end
    end
 end
  
@@ -180,7 +195,6 @@ end = struct
       open T
       val map = ref ds
       val varmap = !SymbolTables.varTable
-
       fun inline (x, exp) =
          case Map.find (!map, x) of
             NONE =>

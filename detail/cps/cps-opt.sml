@@ -298,7 +298,7 @@ structure FreeVars = struct
                            in
                               set k env
                            end) ds
-                  val _ = merge'()
+                  (* XXX: val _ = merge'() *)
                   val _ = merge'()
                   val env = visitTerm (env, body)
                   val env =

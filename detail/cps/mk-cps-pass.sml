@@ -10,9 +10,22 @@ functor MkCPSPass (Core: CPSCORE) = struct
 
    structure CM = CompilationMonad
 
+   val dumpFreeVars = ref false
    val clicks = Stats.newCounter ("cps." ^ Core.name ^ ".clicks")
 
-   fun dumpPre (os, cps) = Pretty.prettyTo (os, CPS.PP.term cps)
+   val dumpFreeVars = fn cps =>
+      if !dumpFreeVars
+         then
+            let
+               open Layout Pretty
+            in
+               FreeVars.run cps
+              ;align [str "freevars=",indent 2 (FreeVars.layout())]
+            end
+      else Layout.str""
+
+   fun dumpPre (os, cps) =
+      Pretty.prettyTo (os, Layout.align [CPS.PP.term cps,dumpFreeVars cps])
    fun dumpPost (os, t) = let
       open Layout Pretty
       fun prettyPass (cps, clicks) = 
@@ -21,7 +34,8 @@ functor MkCPSPass (Core: CPSCORE) = struct
                [str "cps.", str Core.name, str ".clicks", str "=",
                 str (Int.toString clicks)],
              CPS.PP.term cps,
-             align [str "census=", indent 2 (Census.layout())]]
+             align [str "census=", indent 2 (Census.layout())],
+             dumpFreeVars cps]
    in
      Pretty.prettyTo (os, prettyPass t)
    end

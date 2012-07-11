@@ -1,4 +1,6 @@
 
+/* vim:cindent:ts=2:sw=2:expandtab */
+
 #include <dis.h>
 
 int main (int argc, char** argv) {
@@ -10,12 +12,13 @@ int main (int argc, char** argv) {
      int x = fscanf(stdin,"%x",&c);
      switch (x) {
         case EOF:
-           break;
+           goto done;
         case 0:
            __fatal("invalid input, should be in hex form: '0f 0b ..'");
      }
      blob[i] = c & 0xff;
   }
+done:
   __decode(__decode__,blob,i,&insn);
   if (___isNil(insn))
     __fatal("decode failed");
@@ -24,7 +27,3 @@ int main (int argc, char** argv) {
   return (1);
 }
 
-/* vim:cindent
- * vim:ts=2
- * vim:sw=2
- * vim:expandtab */
