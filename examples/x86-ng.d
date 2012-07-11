@@ -539,8 +539,13 @@ type varity =
  | VA4 of arity4
 
 type insn =
-   ADC of arity2
+   AAA
+ | AAD of arity1
+ | AAM of arity1
+ | AAS
+ | ADC of arity2
  | ADD of arity2
+ | ADDPD of arity2
  | AND of arity2
  | BSF of arity2
  | BSR of arity2
@@ -878,6 +883,7 @@ type insn =
  | TEST of arity2
  | UCOMISD of arity2
  | UD2
+ | VADDPD of varity
  | VCMPEQB of varity
  | VCMPEQD of varity
  | VCMPEQW of varity
@@ -1692,6 +1698,27 @@ end
 
 val one = return (IMM8 '00000001')
 
+val // a = 
+   do b <- a;
+      return (not b)
+   end
+
+### AAA
+###  - ASCII Adjust After Addition
+val / [0x37] | // mode64? = arity0 AAA 
+
+### AAD
+###  - ASCII Adjust AX Before Division
+val / [0xd5] | // mode64? = unop AAD imm8 
+
+### AAM
+###  - ASCII Adjust AX After Multiply
+val / [0xd4] | // mode64? = unop AAM imm8 
+
+### AAS
+###  - ASCII Adjust AL After Subtraction
+val / [0x3f] | // mode64? = arity0 AAS
+
 ### ADC 
 ###  - Add with Carry
 val / [0x14] = binop ADC al imm8
@@ -1745,6 +1772,13 @@ val / [0x03 /r]
  | opndsz? = binop ADD r16 r/m16
  | rexw? = binop ADD r64 r/m64
  | otherwise = binop ADD r32 r/m32
+
+### ADDPD
+###  - Add Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x58 /r] = binop ADDPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x58 /r]
+ | vex128? = varity3 VADDPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VADDPD ymm256 v/ymm ymm/m256
 
 ### AND
 ###  - Logical AND
