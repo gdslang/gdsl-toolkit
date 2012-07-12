@@ -1,3 +1,4 @@
+/* vim:cindent:ts=2:sw=2:expandtab */
 
 #ifndef __RUNTIME_H
 #define __RUNTIME_H
@@ -367,9 +368,13 @@ static inline void __resetHeap() {
   hp = &heap[__RT_HEAP_SIZE];
 }
 
-__obj __consume (__obj);
+__obj __consume8(__obj);
+__obj __unconsume8(__obj);
+__obj __consume16(__obj);
+__obj __unconsume16(__obj);
+__obj __consume32(__obj);
+__obj __unconsume32(__obj);
 __obj __slice(__obj,__obj,__obj);
-__obj __unconsume(__obj);
 __obj __concat(__obj,__obj);
 __obj __equal(__obj,__obj);
 __obj __and(__obj,__obj);
@@ -392,7 +397,3 @@ __obj __translate(__obj(*)(__obj,__obj),__obj);
 
 #endif /* __RUNTIME_H */
 
-/* vim:cindent
- * vim:ts=2
- * vim:sw=2
- * vim:expandtab */

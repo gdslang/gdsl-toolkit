@@ -1,10 +1,10 @@
 granularity = 16
-# export = decode
-# 
-# val decode = do
-#  update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
-#  /
-# end
+export = decode
+
+val decode =
+  do update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
+     /
+  end
 
 type side-effect =
    NONE
@@ -605,7 +605,8 @@ val / ['1001010 d d d d d 0101'] = unop ASR rd5
 
 ### BCLR
 ###  - Bit Clear in SREG
-val / ['100101001 s s s 1000'] = unop BCLR cs3
+### => see CLC,CLZ,...
+#val / ['100101001 s s s 1000'] = unop BCLR cs3
 
 ### BLD
 ###  - Bit Load from the T Flag in SREG to a Bit in Register
@@ -701,7 +702,8 @@ val / ['111100 k k k k k k k 011'] = unop BRVS ck7
 
 ### BSET
 ###  - Bit Set in SREG
-val / ['100101000 s s s 1000'] = unop BSET cs3
+### => see SEC,SEZ,...
+#val / ['100101000 s s s 1000'] = unop BSET cs3
 
 ### BST
 ###  - Bit Store from Bit in Register to T Flag in SREG
@@ -853,14 +855,14 @@ val / ['1001000 d d d d d 1110'] = binop LD rd5 (//X DECR)
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index Y
-val / ['1000000 d d d d d 1000'] = binop LD rd5 (//Y NONE)
+#val / ['1000000 d d d d d 1000'] = binop LD rd5 (//Y NONE)
 val / ['1001000 d d d d d 1001'] = binop LD rd5 (//Y INCR)
 val / ['1001000 d d d d d 1010'] = binop LD rd5 (//Y DECR)
 val / ['10 q 0 q q 0 d d d d d 1 q q q '] = binop LD rd5 (///Y dq6)
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index Z
-val / ['1000000 d d d d d 0000'] = binop LD rd5 (//Z NONE)
+#val / ['1000000 d d d d d 0000'] = binop LD rd5 (//Z NONE)
 val / ['1001000 d d d d d 0001'] = binop LD rd5 (//Z INCR)
 val / ['1001000 d d d d d 0010'] = binop LD rd5 (//Z DECR)
 val / ['10 q 0 q q 0 d d d d d 0 q q q '] = binop LD rd5 (///Z dq6)
@@ -872,7 +874,7 @@ val / ['1110 k k k k d d d d k k k k '] = binop LDI rd4 ck8
 ### LDS
 ###  - Load Direct from Data Space
 val / ['1001000 d d d d d 0000' 'k k k k k k k k k k k k k k k k '] = binop LDS rd5 ck16
-val / ['10100 k k k d d d d k k k k '] = binop LDS rd4 ck7
+#val / ['10100 k k k d d d d k k k k '] = binop LDS rd4 ck7
 
 ### LPM
 ###  - Load Program Memory
@@ -999,6 +1001,7 @@ val / ['1111111 r r r r r 0 b b b '] = binop SBRS rr5 cb3
 
 ### SEC
 ###  - Set Carry Flag
+### <=> BSET 0
 val / ['1001010000001000'] = nullop SEC
 
 ### SEH
@@ -1015,7 +1018,8 @@ val / ['1001010000101000'] = nullop SEN
 
 ### SER
 ###  - Set all Bits in Register
-val / ['11101111 d d d d 1111'] = unop SER rd4
+### => see LDS Rd,K
+#val / ['11101111 d d d d 1111'] = unop SER rd4
 
 ### SES
 ###  - Set Signed Flag
@@ -1049,14 +1053,14 @@ val / ['1001001 r r r r r 1110'] = binop ST (//X DECR) rr5
 
 ### ST
 ###  - Store Indirect From Register to Data Space using Index Y
-val / ['1000001 r r r r r 1000'] = binop ST (//Y NONE) rr5
+#val / ['1000001 r r r r r 1000'] = binop ST (//Y NONE) rr5
 val / ['1001001 r r r r r 1001'] = binop ST (//Y INCR) rr5
 val / ['1001001 r r r r r 1010'] = binop ST (//Y DECR) rr5
 val / ['10 q 0 q q 1 r r r r r 1 q q q '] = binop ST (///Y dq6) rr5
 
 ### ST
 ###  - Store Indirect From Register to Data Space using Index Z
-val / ['1000001 r r r r r 0000'] = binop ST (//Z NONE) rr5
+#val / ['1000001 r r r r r 0000'] = binop ST (//Z NONE) rr5
 val / ['1001001 r r r r r 0001'] = binop ST (//Z INCR) rr5
 val / ['1001001 r r r r r 0010'] = binop ST (//Z DECR) rr5
 val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
@@ -1064,7 +1068,7 @@ val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
 ### STS
 ###  - Store Direct to Data Space
 val / ['1001001 r r r r r 0000' 'k k k k k k k k k k k k k k k k '] = binop STS ck16 rr5
-val / ['10101 k k k r r r r k k k k '] = binop STS ck7 rr4
+#val / ['10101 k k k r r r r k k k k '] = binop STS ck7 rr4
 
 ### SUB
 ###  - Subtract without Carry

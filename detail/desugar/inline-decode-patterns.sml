@@ -36,6 +36,7 @@ structure ASTSubst = struct
       in
          x'
       end
+   fun copyAll xs = map copy xs
 
    fun singleton y x = extend empty y x
 
@@ -54,21 +55,23 @@ structure ASTSubst = struct
                 visitExp sigma thenn,
                 visitExp sigma elsee)
        | CASEexp (e, cs) =>
-            CASEexp (visitExp sigma e, map (visitCase sigma) cs)
+            CASEexp
+               (visitExp sigma e,
+                map (visitCase sigma) cs)
        | BINARYexp (e1, binop, e2) =>
-            BINARYexp (visitExp sigma e1, binop, visitExp sigma e2)
+            BINARYexp
+               (visitExp sigma e1,
+                binop,
+                visitExp sigma e2)
        | APPLYexp (e, es) =>
-            APPLYexp (visitExp sigma e, map (visitExp sigma) es)
-       | RECORDexp fs =>
-            RECORDexp (map (visitField sigma) fs)
-       | UPDATEexp fs =>
-            UPDATEexp (map (visitFieldOpt sigma) fs)
-       | SEQexp es =>
-            SEQexp (map (visitSeqexp sigma) es)
-       | FNexp (x, e) =>
-            FNexp (x, visitExp sigma e)
-       | IDexp sym =>
-            IDexp (apply sigma sym)
+            APPLYexp 
+               (visitExp sigma e,
+                map (visitExp sigma) es)
+       | RECORDexp fs => RECORDexp (map (visitField sigma) fs)
+       | UPDATEexp fs => UPDATEexp (map (visitFieldOpt sigma) fs)
+       | SEQexp es => SEQexp (map (visitSeqexp sigma) es)
+       | FNexp (x, e) => FNexp (x, visitExp sigma e)
+       | IDexp sym => IDexp (apply sigma sym)
        | otherwise => otherwise
 
    and visitRec sigma (f, xs, e) = (f, xs, visitExp sigma e)
@@ -81,6 +84,100 @@ structure ASTSubst = struct
        | ACTIONseqexp e => ACTIONseqexp (visitExp sigma e)
        | BINDseqexp (x, e) => BINDseqexp (x, visitExp sigma e)
 
+   fun rename t = renameExp empty t
+
+   and renameExp sigma t =
+      case t of
+         MARKexp t => renameExp sigma (#tree t)
+       | LETRECexp (ds, e) =>
+            let
+               val (sigma,ds) = renameRecs sigma ds
+            in
+               LETRECexp (ds, renameExp sigma e)
+            end
+       | IFexp (iff, thenn, elsee) =>
+            IFexp
+               (renameExp sigma iff,
+                renameExp sigma thenn,
+                renameExp sigma elsee)
+       | CASEexp (e, cs) =>
+            CASEexp
+               (renameExp sigma e,
+                map (renameCase sigma) cs)
+       | BINARYexp (e1, binop, e2) =>
+            BINARYexp
+               (renameExp sigma e1,
+                binop,
+                renameExp sigma e2)
+       | APPLYexp (e, es) =>
+            APPLYexp
+               (renameExp sigma e,
+                map (renameExp sigma) es)
+       | RECORDexp fs => RECORDexp (map (renameField sigma) fs)
+       | UPDATEexp fs => UPDATEexp (map (renameFieldOpt sigma) fs)
+       | SEQexp es =>
+            let
+               fun visitSeqexp sigma e =
+                  case e of
+                     MARKseqexp e => visitSeqexp sigma (#tree e)
+                   | ACTIONseqexp e => ACTIONseqexp (renameExp sigma e)
+                   | BINDseqexp (x, e) =>
+                        (* {x} was renamed so we just have to
+                         * substitute it here *)
+                        BINDseqexp (Subst.apply sigma x, renameExp sigma e)
+
+               fun previsit (t, sigma) =
+                  case t of
+                     MARKseqexp t => previsit (#tree t,sigma)
+                   | BINDseqexp (x, e) => 
+                        let
+                           val x' = copy x
+                           val sigma = extend sigma x' x
+                        in
+                           sigma
+                        end
+                   | _ => sigma
+                  
+               val sigma = foldl previsit sigma es
+            in
+               SEQexp (map (visitSeqexp sigma) es)
+            end
+       | FNexp (xs, e) =>
+            let
+               val xs' = copyAll xs
+               val sigma = extendAll sigma xs' xs
+            in
+               FNexp (xs', renameExp sigma e)
+            end
+       | IDexp sym => IDexp (apply sigma sym)
+       | otherwise => otherwise
+
+   and renameRecs sigma ds =
+      let
+         fun renameFn ((f,xs,_),sigma) =
+            let
+               val f' = copy f
+               val xs' = copyAll xs
+               val sigma = extend sigma f' f
+               val sigma = extendAll sigma xs' xs
+            in
+               sigma
+            end
+         val sigma = List.foldl renameFn sigma ds
+      in
+         (sigma, map (renameRec sigma) ds)
+      end
+   and renameRec sigma (f, xs, e) =
+      let
+         val f' = apply sigma f
+         val xs' = applyAll sigma xs
+         val e' = renameExp sigma e
+      in
+         (f', xs', e')
+      end
+   and renameCase sigma (pat, e) = (pat, renameExp sigma e)
+   and renameField sigma (f, e) = (f, renameExp sigma e)
+   and renameFieldOpt sigma (f, eOpt) = (f, Option.map (renameExp sigma) eOpt)
    end
 end
  
@@ -98,7 +195,6 @@ end = struct
       open T
       val map = ref ds
       val varmap = !SymbolTables.varTable
-
       fun inline (x, exp) =
          case Map.find (!map, x) of
             NONE =>
@@ -120,7 +216,7 @@ end = struct
                            flattenDecodePats
                               (pats,
                                SEQexp
-                                 [ACTIONseqexp exp',
+                                 [ACTIONseqexp (ASTSubst.rename exp'),
                                   ACTIONseqexp exp]))
                          ds)
                in

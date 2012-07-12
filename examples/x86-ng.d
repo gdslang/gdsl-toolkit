@@ -36,6 +36,8 @@ val decode = do
    p64
 end
 
+val complement v = not v
+
 val set-opndsz = update@{opndsz='1'}
 val set-repne = update@{repne='1'}
 val set-rep = update@{rep='1'}
@@ -87,6 +89,10 @@ val /66 [] = continue
 val /f2 [] = continue
 val /f3 [] = continue
 
+val /rex-p ['0100 w:1 r:1 x:1 b:1'] =
+   update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
+val clear-rex = update @{rex='0',rexw='0',rexb='0',rexr='0',rexx='0'}
+
 val /legacy-p [0x2e] = do clear-rex; set-CS end
 val /legacy-p [0x36] = do clear-rex; set-SS end
 val /legacy-p [0x3e] = do clear-rex; set-DS end
@@ -95,10 +101,6 @@ val /legacy-p [0x64] = do clear-rex; set-FS end
 val /legacy-p [0x65] = do clear-rex; set-GS end
 val /legacy-p [0x67] = do clear-rex; set-addrsz end
 val /legacy-p [0xf0] = do clear-rex; set-lock end
-
-val /rex-p ['0100 w:1 r:1 x:1 b:1'] =
-   update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
-val clear-rex = update @{rex='0',rexw='0',rexb='0',rexr='0',rexx='0'}
 
 val p/vex/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 00'] = do
    update
@@ -1151,8 +1153,6 @@ val vexw1? = do
    w <- query $vexw;
    return (w == '1')
 end
-
-val complement v = not v
 
 val opndsz? = query $opndsz
 val addrsz? = query $addrsz

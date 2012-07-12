@@ -1,46 +1,46 @@
 
-const __TRUE = {sz:1, vec:1}
-const __FALSE = {sz:1, vec:0}
-const __UNIT = {}
+var __TRUE = {sz:1, vec:1}
+var __FALSE = {sz:1, vec:0}
+var __UNIT = {}
 
 function __halt (o) { return o; }
 
 function __raise (o) { throw o; }
 
 function __consume (s) {
-  const blob = s.___blob;
-  const i = s.___idx;
-  const v = blob[i];
-  const ss = s; // FIXME: destructive update!
+  var blob = s.___blob;
+  var i = s.___idx;
+  var v = blob[i];
+  var ss = s; // FIXME: destructive update!
   ss.___idx = i+1; 
   return {___1:{vec:v,sz:8}, ___2:ss}
 }
 
 function __unconsume (s) {
-  const ss = s; // FIXME: destructive update!
+  var ss = s; // FIXME: destructive update!
   ss.___idx = s.___idx-1;
   return {___1:__UNIT, ___2:ss};
 }
 
 function __slice (tok, offs, sz) {
-  const tokk = tok.vec;
-  const x = ((tokk>>offs) & ((1<<sz)-1));
+  var tokk = tok.vec;
+  var x = ((tokk>>offs) & ((1<<sz)-1));
   return {sz:sz, vec:x};
 }
 
 function __concat (a, b) {
-  const aa = a.vec;
-  const bb = b.vec;
-  const szOfA = a.sz;
-  const szOfB = b.sz;
+  var aa = a.vec;
+  var bb = b.vec;
+  var szOfA = a.sz;
+  var szOfB = b.sz;
   return {sz:szOfA+szOfB, vec:aa << szOfB | bb};
 }
 
 function __equal (a, b) {
-  const aa = a.vec;
-  const bb = b.vec;
-  const szOfA = a.sz;
-  const szOfB = b.sz;
+  var aa = a.vec;
+  var bb = b.vec;
+  var szOfA = a.sz;
+  var szOfB = b.sz;
   return ((a == b && szOfA == szOfB) ? __TRUE : __FALSE);
 }
 
@@ -49,9 +49,9 @@ function __not (a) {
 }
 
 function __and (a, b) {
-  const aa = a.vec;
-  const bb = b.vec;
-  const sz = a.sz;
+  var aa = a.vec;
+  var bb = b.vec;
+  var sz = a.sz;
   return {sz:sz, vec:a & b};
 }
 
@@ -67,7 +67,7 @@ function __casetag (obj) {
 }
 
 function __eval (f, blob) {
-  const s = {___blob:blob, ___idx:0};
+  var s = {___blob:blob, ___idx:0};
   return f(__halt,s);
 }
 
@@ -108,8 +108,8 @@ function prettyJSON (o) {
 }
 
 function decode64 (str) {
-  const blob = toBytes(str);
-  const s = __eval(__decode__,blob);
+  var blob = toBytes(str);
+  var s = __eval(__decode__,blob);
   return(s.___1);
 }
 

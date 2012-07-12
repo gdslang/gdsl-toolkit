@@ -33,7 +33,7 @@ structure CheckDefUse = struct
    fun def x =
       if Set.member (!census, x)
          then raise Fail
-               (Aux.failWithSymbol "checkDefUse.duplicateDefiniton" x)
+               (Aux.failWithSymbol "CheckDefUse.duplicateDefiniton" x)
       else census := Set.add (!census, x)
 
    fun use x = ()
@@ -298,7 +298,7 @@ structure FreeVars = struct
                            in
                               set k env
                            end) ds
-                  val _ = merge'()
+                  (* XXX: val _ = merge'() *)
                   val _ = merge'()
                   val env = visitTerm (env, body)
                   val env =
@@ -507,6 +507,7 @@ structure Subst = struct
 
    and renameRecs sigma ds =
       let
+         (* TODO: fix renaming of "parallel" declarations *)
          val sigma = foldl renameRec sigma ds
       in
          (sigma,
@@ -848,7 +849,7 @@ structure Cost = struct
    val neverInline = ref Set.empty
    fun reset () =
       (env:=Set.empty
-      ;allwaysInline:=Set.fromList (map Aux.get
+      ;allwaysInline:=Set.fromList (List.mapPartial Aux.find
          [">>",
           "return",
           ">>=",
@@ -862,6 +863,8 @@ structure Cost = struct
           "==",
           "not",
           "^",
+          "+",
+          "-",
           "arity0",
           "unop",
           "binop",

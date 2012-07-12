@@ -135,11 +135,12 @@ structure C = struct
          fun emitEnvAdd x = PrettyC.call' ("__CLOSURE_ADD", PrettyC.args [x])
 
          fun emitVecLit v =
-            let
-               val i = StringCvt.scanString (Int.scan StringCvt.BIN) v
-            in
-               str (Int.toString (valOf i))
-            end
+            case v of
+               "" => str "0"
+             | _ =>
+               str
+                  (Int.toString
+                     (valOf (StringCvt.scanString (Int.scan StringCvt.BIN) v)))
 
          fun emitStmts stmts = PrettyC.cseq (map emitStmt stmts)
          and emitStmt stmt =

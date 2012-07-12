@@ -19,8 +19,9 @@ end = struct
             [] =>
                if len <> 0 orelse List.length tok <> 0
                   then
-                     (print "Retokenize: SKIPPING DECODE DECLARAATION\n"
-                     ;NONE) (* TODO: emit warning! *)
+                     (* TODO: Make this a proper warning *)
+                     (print "Retokenize: SKIPPING DECODE DECLARATION\n"
+                     ;NONE) 
                else SOME (rev pats) 
           | p::ps =>
                (case p of
