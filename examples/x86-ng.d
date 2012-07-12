@@ -557,6 +557,8 @@ type insn =
  | AESDECLAST of arity2
  | AESENC of arity2
  | AESENCLAST of arity2
+ | AESIMC of arity2
+ | AESKEYGENASSIST of arity3
 
  | AND of arity2
  | BSF of arity2
@@ -905,6 +907,8 @@ type insn =
  | VAESDECLAST of varity
  | VAESENC of varity
  | VAESENCLAST of varity
+ | VAESIMC of varity
+ | VAESKEYGENASSIST of varity
  
  | VCMPEQB of varity
  | VCMPEQD of varity
@@ -1834,22 +1838,32 @@ val /vex/f2/0f/vexv [0xd0 /r]
 ### AESDEC
 ###  - Perform One Round of an AES Decryption Flow
 val /66 [0x0f 0x38 0xde /r] = binop AESDEC xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xde] | vex128? = varity3 VAESDEC xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xde /r] | vex128? = varity3 VAESDEC xmm128 v/xmm xmm/m128
 
 ### AESDECLAST
 ###  - Perform Last Round of an AES Decryption Flow
 val /66 [0x0f 0x38 0xdf /r] = binop AESDECLAST xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdf] | vex128? = varity3 VAESDECLAST xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdf /r] | vex128? = varity3 VAESDECLAST xmm128 v/xmm xmm/m128
 
 ### AESENC
 ###  - Perform One Round of an AES Encryption Flow
 val /66 [0x0f 0x38 0xdc /r] = binop AESENC xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdc] | vex128? = varity3 VAESENC xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdc /r] | vex128? = varity3 VAESENC xmm128 v/xmm xmm/m128
 
 ### AESENCLAST
 ###  - Perform Last Round of an AES Encryption Flow
 val /66 [0x0f 0x38 0xdd /r] = binop AESENCLAST xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdd] | vex128? = varity3 VAESENCLAST xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdd /r] | vex128? = varity3 VAESENCLAST xmm128 v/xmm xmm/m128
+
+### AESIMC
+###  - Perform the AES InvMixColumn Transformation
+val /66 [0x0f 0x38 0xdb /r] = binop AESIMC xmm128 xmm/m128
+val /vex/66/0f/38 [0xdb /r] | vex128? = varity2 VAESIMC xmm128 xmm/m128
+
+### AESKEYGENASSIST
+###  - AES Round Key Generation Assist
+val /66 [0x0f 0x3a 0xdf /r] = ternop AESKEYGENASSIST xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0xdf /r] | vex128? = varity3 VAESKEYGENASSIST xmm128 xmm/m128 imm8
 
 ### AND
 ###  - Logical AND
