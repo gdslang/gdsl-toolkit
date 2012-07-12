@@ -548,6 +548,10 @@ type insn =
  | ADC of arity2
  | ADD of arity2
  | ADDPD of arity2
+ | ADDPS of arity2
+ | ADDSD of arity2
+ | ADDSS of arity2
+ | ADDSUBPD of arity2
  | AND of arity2
  | BSF of arity2
  | BSR of arity2
@@ -886,6 +890,10 @@ type insn =
  | UCOMISD of arity2
  | UD2
  | VADDPD of varity
+ | VADDPS of varity
+ | VADDSD of varity
+ | VADDSS of varity
+ | VADDSUBPD of varity
  | VCMPEQB of varity
  | VCMPEQD of varity
  | VCMPEQW of varity
