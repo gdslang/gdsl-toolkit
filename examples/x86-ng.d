@@ -552,6 +552,12 @@ type insn =
  | ADDSD of arity2
  | ADDSS of arity2
  | ADDSUBPD of arity2
+ | ADDSUBPS of arity2
+ | AESDEC of arity2
+ | AESDECLAST of arity2
+ | AESENC of arity2
+ | AESENCLAST of arity2
+
  | AND of arity2
  | BSF of arity2
  | BSR of arity2
@@ -894,6 +900,12 @@ type insn =
  | VADDSD of varity
  | VADDSS of varity
  | VADDSUBPD of varity
+ | VADDSUBPS of varity
+ | VAESDEC of varity
+ | VAESDECLAST of varity
+ | VAESENC of varity
+ | VAESENCLAST of varity
+ 
  | VCMPEQB of varity
  | VCMPEQD of varity
  | VCMPEQW of varity
@@ -1811,6 +1823,33 @@ val /66 [0x0f 0xd0 /r] = binop ADDSUBPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0xd0 /r]
  | vex128? = varity3 VADDSUBPD xmm128 v/xmm xmm/m128
  | vex256? = varity3 VADDSUBPD ymm256 v/ymm ymm/m256
+
+### ADDSUBPS
+###  - Packed Single-FP Add/Subtract
+val /f2 [0x0f 0xd0 /r] = binop ADDSUBPS xmm128 xmm/m128
+val /vex/f2/0f/vexv [0xd0 /r]
+ | vex128? = varity3 VADDSUBPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VADDSUBPS ymm256 v/ymm ymm/m256
+
+### AESDEC
+###  - Perform One Round of an AES Decryption Flow
+val /66 [0x0f 0x38 0xde /r] = binop AESDEC xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xde] | vex128? = varity3 VAESDEC xmm128 v/xmm xmm/m128
+
+### AESDECLAST
+###  - Perform Last Round of an AES Decryption Flow
+val /66 [0x0f 0x38 0xdf /r] = binop AESDECLAST xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdf] | vex128? = varity3 VAESDECLAST xmm128 v/xmm xmm/m128
+
+### AESENC
+###  - Perform One Round of an AES Encryption Flow
+val /66 [0x0f 0x38 0xdc /r] = binop AESENC xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdc] | vex128? = varity3 VAESENC xmm128 v/xmm xmm/m128
+
+### AESENCLAST
+###  - Perform Last Round of an AES Encryption Flow
+val /66 [0x0f 0x38 0xdd /r] = binop AESENCLAST xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdd] | vex128? = varity3 VAESENCLAST xmm128 v/xmm xmm/m128
 
 ### AND
 ###  - Logical AND
