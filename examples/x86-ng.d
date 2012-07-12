@@ -1780,6 +1780,30 @@ val /vex/66/0f/vexv [0x58 /r]
  | vex128? = varity3 VADDPD xmm128 v/xmm xmm/m128
  | vex256? = varity3 VADDPD ymm256 v/ymm ymm/m256
 
+### ADDPS
+###  - Add Packed Single-Precision Floating-Point Values
+val / [0x0f 0x58 /r] = binop ADDPS xmm128 xmm/m128
+val /vex/0f/vexv [0x58 /r]
+ | vex128? = varity3 VADDPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VADDPS ymm256 v/ymm ymm/m256
+
+### ADDSD
+###  - Add Scalar Double-Precision Floating-Point Values
+val /f2 [0x0f 0x58 /r] = binop ADDSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x58 /r] = varity3 VADDSD xmm128 v/xmm xmm/m64
+
+### ADDSS
+###  - Add Scalar Single-Precision Floating-Point Values
+val /f3 [0x0f 0x58 /r] = binop ADDSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x58 /r] = varity3 VADDSS xmm128 v/xmm xmm/m32
+
+### ADDSUBPD
+###  - Packed Double-FP Add/Subtract
+val /66 [0x0f 0xd0 /r] = binop ADDSUBPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd0 /r]
+ | vex128? = varity3 VADDSUBPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VADDSUBPD ymm256 v/ymm ymm/m256
+
 ### AND
 ###  - Logical AND
 val / [0x24] = binop AND al imm8
