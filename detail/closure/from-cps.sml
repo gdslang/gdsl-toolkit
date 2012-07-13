@@ -288,9 +288,9 @@ end = struct
                          flow=Clos.CC {k=k', closure=k, xs= !xs'}}
                      end
                end
-          | CASE (x, ks) =>
+          | CASE (ty, x, ks) =>
                {stmts=[],
-                flow=Clos.CASE (Subst.apply sigma x, convCases sigma ks)}
+                flow=Clos.CASE (ty, Subst.apply sigma x, convCases sigma ks)}
 
       and convCases sigma ks = map (fn (tag, c) => (tag, convCase sigma c)) ks
       and convCase sigma (k, xs) =

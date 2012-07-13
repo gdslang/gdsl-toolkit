@@ -61,7 +61,9 @@
    fun eof () = T.EOF
 
    (* count the nesting depth of "(" inside primcode blocks *)
-   fun mkString() = T.STRING (String.concat(List.rev (!buf)))
+   fun mkString() =
+      T.STRING (String.concat(List.rev (!buf)))
+         before buf := []
 );
 
 %states INITIAL BITPAT BITPATNUM STRING COMMENT;
@@ -71,11 +73,13 @@
 %let num = {dig}+;
 %let hexdigit = [0-9a-fA-F];
 %let hexnum = "0x"{hexdigit}+;
-%let idchar = {letter}|{dig}|"_"|"-"|"?"|"\'";
+%let idchar = {letter}|{dig}|"_"|"-"|"?"|"\'"|"!";
+%let bitstridchar = {letter}|{dig}|"_"|"-"|"?"|"!";
 (* Constructors start with upper case letters *)
 %let constart = [A-Z];
 %let cons = {constart}{idchar}*;
 %let id = {letter}{idchar}*;
+%let bitstrid = {letter}{bitstridchar}*;
 %let esc = "\\"[abfnrtv\\\"]|"\\"{dig}{dig}{dig};
 %let sgood = [\032-\126]&[^\"\\];
 %let ws = " "|[\t\n\v\f\r];
@@ -128,7 +132,7 @@
 <BITPAT,BITPATNUM>"'" => (YYBEGIN INITIAL; T.TICK);
 <BITPAT>"@" => (T.WITH);
 <BITPAT>{bitstr} => (T.BITSTR yytext);
-<BITPAT>{id} => (T.ID (Atom.atom yytext));
+<BITPAT>{bitstrid} => (T.ID (Atom.atom yytext));
 <BITPAT>{ws} => (skip ());
 <BITPATNUM>{ws} => (YYBEGIN BITPAT; skip());
 

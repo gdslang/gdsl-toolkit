@@ -92,7 +92,7 @@ structure JS0 = struct
                   end
              | APP (f,k,xs) => rev (JSStmt.return (JSExp.call (id f, map id (k::xs)))::acc)
              | CC (c,xs) => rev (JSStmt.return (JSExp.call (id c, map id xs))::acc)
-             | CASE (x,cs) =>
+             | CASE (ty,x,cs) =>
                   let
                      fun branch (k,xs) = Vector.fromList [JSStmt.return (JSExp.call (id k, map id xs))]
                      val cs' = List.filter (fn (cs, _) => not (null cs)) cs
@@ -102,11 +102,22 @@ structure JS0 = struct
                         case dflt of
                            NONE => fatalDflt
                          | SOME (_, t) => branch t
+                     val casetag = 
+                        case ty of
+                           CPS.Exp.CASETYCON => "__casetagcon"
+                         | CPS.Exp.CASETYVEC => "__casetagvec"
+                         | CPS.Exp.CASETYINT => "__casetagint"
+                     val giveExp =
+                        case ty of
+                           CPS.Exp.CASETYCON => JSExp.string o tagName o ConInfo.unsafeFromWord
+                         | CPS.Exp.CASETYVEC => JSExp.word
+                         | CPS.Exp.CASETYINT => JSExp.word
+                        
                   in
                      rev (JSStmt.switch
-                        (JSExp.call (Id.fromString "__casetag", [id x]),
+                        (JSExp.call (Id.fromString casetag, [id x]),
                          map (fn (cs, t) =>
-                           (map JSExp.word cs, branch t)) cs',
+                           (map giveExp cs, branch t)) cs',
                          dflt)::acc)
                   end
          

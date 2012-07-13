@@ -38,6 +38,8 @@ signature SymbolTableSig  = sig
 
    val toString : table -> string
    val toInt: symid -> int
+   val unsafeFromWord: word -> symid
+   val unsafeFromInt: int -> symid
 end
 
 structure SymbolTable :> SymbolTableSig = struct
@@ -50,6 +52,9 @@ structure SymbolTable :> SymbolTableSig = struct
    datatype symid = SymId of int
 
    fun toInt (SymId i) = i
+   val unsafeFromInt = SymId
+   val unsafeFromWord = unsafeFromInt o Word.toInt
+
    val noSpan =
       {file=AntlrStreamPos.mkSourcemap(),
        span=(Position.fromInt ~1, Position.fromInt ~1)}

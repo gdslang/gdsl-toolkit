@@ -28,7 +28,16 @@ structure PrettyC = struct
    fun call (f, xs) = seq [var f, args xs]
    fun comment t = seq [str "/*", t, str "*/"]
    fun define (x, v) = seq [str "#define", space, x, space, v]
-   fun caseTag x = seq [str "__CASETAG", args [x]]
+   fun caseTag ty x =
+      let
+         val casetag = 
+            case ty of
+               CPS.Exp.CASETYCON => "__CASETAGCON"
+             | CPS.Exp.CASETYVEC => "__CASETAGVEC"
+             | CPS.Exp.CASETYINT => "__CASETAGINT"
+      in
+         seq [str casetag, args [x]]
+      end
    fun return x = seq [str "return", space, lp, x, rp, str ";"]
    fun switch (x, cases, dflt) =
       align
@@ -254,7 +263,7 @@ structure C = struct
                   PrettyC.return (PrettyC.invoke (k, closure::xs))
              | FASTCC {k, xs} =>
                   PrettyC.return (PrettyC.fastinvoke (k, xs))
-             | CASE (x, cs) =>
+             | CASE (ty, x, cs) =>
                   let
                      val cs' = List.filter (fn (cs, _) => not (null cs)) cs
                      val dflt = List.find (fn (cs, _) => null cs) cs
@@ -265,7 +274,7 @@ structure C = struct
                          | SOME (_, block) => emitBlock block
                   in
                      PrettyC.switch
-                        (PrettyC.caseTag x, map emitCase cs', dflt)
+                        (PrettyC.caseTag ty x, map emitCase cs', dflt)
                   end
 
          and emitCase (cs, block) = PrettyC.casee (cs, emitBlock block)

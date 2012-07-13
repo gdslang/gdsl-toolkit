@@ -70,6 +70,7 @@ structure Mangle = struct
              | #"!" => "_ex_"
              | #"*" => "_star_"
              | #"-" => "_minus_"
+             | #"+" => "_plus_"
              | #"^" => "_concat_"
              | #"/" => "_slash_"
              | #"?" => "_q_"

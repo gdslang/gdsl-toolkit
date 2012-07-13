@@ -26,7 +26,7 @@ structure CPS = struct
        | LETUPD of Var.v * Var.v * (field * Var.v) list * term
        | APP of Var.v * Var.c * Var.v list
        | CC of Var.c * Var.v list
-       | CASE of Var.v * (tag list * branch) list
+       | CASE of casety * Var.v * (tag list * branch) list
 
       and cval =
          FN of Var.c * Var.v list * term
@@ -39,6 +39,11 @@ structure CPS = struct
        | VEC of string
        | UNT
       
+      and casety =
+         CASETYCON
+       | CASETYVEC
+       | CASETYINT
+
       withtype recdecl = Var.v * Var.c * Var.v list * term
       and contdecl = Var.c * Var.v list * term
       and branch = Var.c * Var.v list
@@ -158,10 +163,17 @@ structure CPS = struct
                align 
                   [align [str "letcont", indent 3 (contdecls cs)],
                    align [str "in", indent 3 (term body)]]
-          | CASE (v, ks) =>
-               align
-                  [seq [str "case", space, var v, space, str "of"],
-                   cases ks]
+          | CASE (ty, v, ks) =>
+               let
+                  val casee =
+                     case ty of
+                        CASETYCON => "con case"
+                      | CASETYVEC => "vec case"
+                      | CASETYINT => "int case"
+               in
+                  align [seq [str casee, space, var v, space, str "of"],
+                         cases ks]
+               end
           | APP (f, c, xs) => seq [var f, vars (c::xs)]
           | CC (c, vs) => seq [cvar c, vars vs]
       and vars xs = seq [lp, seq (separate (map var xs, ",")), rp]

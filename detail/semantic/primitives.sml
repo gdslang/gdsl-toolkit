@@ -72,6 +72,7 @@ structure Primitives = struct
    val s17 = freshVar ()
    val s18 = freshVar ()
    val s19 = freshVar ()
+   val anyToString = freshVar()
 
    (*create a type from two vectors to one vector, all of size s*)
    fun func (a,b) = FUN ([a],b)
@@ -117,6 +118,10 @@ structure Primitives = struct
        {name="%not", ty=UNIT, flow = noFlow},
        {name="%equal", ty=UNIT, flow = noFlow},
        {name="%concat", ty=UNIT, flow = noFlow},
+       {name="showint", ty=FUN([ZENO],STRING), flow = noFlow},
+       {name="showbitvec", ty=FUN([VEC (anyToString)], STRING), flow = noFlow},
+       {name="%showint", ty=FUN([ZENO],STRING), flow = noFlow},
+       {name="%showbitvec", ty=UNIT, flow = noFlow},
        {name=caseExpression, ty=UNIT,
         flow = noFlow},
        (*{name=globalState, ty=state,
@@ -159,6 +164,8 @@ structure Primitives = struct
         flow = BD.meetVarZero (bvar s2)},
        {name="**", ty=vvv s3,
         flow = BD.meetVarZero (bvar s3)},
+       {name="+++", ty=FUN([STRING,STRING], STRING), flow = noFlow},
+       {name="%concatstring", ty=FUN([STRING,STRING], STRING), flow = noFlow},
        {name="^", ty=FUN ([VEC s4, VEC s5], VEC s6),
         flow = BD.meetVarZero (bvar s4) o
                BD.meetVarZero (bvar s5) o
@@ -220,7 +227,9 @@ structure Primitives = struct
 
    val primitiveTypes =
       [{name="int", ty=ZENO, flow=noFlow},
-       {name="string", ty=FLOAT, flow=noFlow}]
+       {name="float", ty=FLOAT, flow=noFlow},
+       {name="unit", ty=UNIT, flow=noFlow},
+       {name="string", ty=STRING, flow=noFlow}]
 
    fun addPrim table {name, ty, flow} = let
       val (newTable, _) =

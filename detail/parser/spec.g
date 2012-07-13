@@ -253,11 +253,18 @@ ApplyExp
 AtomicExp
    : Lit => (mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
    | Qid => (mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
+   (* | path=("." Qid)+ => (foldl (fn (fld,e) => PT.APPLYexp (PT.SELECTexp fld, [e])) AtomicExp path) *)
+   | Qid ("." Qid)+ => (foldl (fn (fld,e) => PT.APPLYexp (PT.SELECTexp fld, [e])) (PT.IDexp Qid) SR) 
    | ConUse => (mark PT.MARKexp (FULL_SPAN, PT.CONexp ConUse))
    | "@" "{" Field ("," Field)* "}" =>
       (mark PT.MARKexp (FULL_SPAN, PT.UPDATEexp (Field::SR)))
    | "$" Qid => (mark PT.MARKexp (FULL_SPAN, PT.SELECTexp Qid))
-   | "(" Exp ")" => (mark PT.MARKexp (FULL_SPAN, Exp))
+   | "(" Exp ")" ("." Qid)* =>
+        (case SR of
+           [] => mark PT.MARKexp (FULL_SPAN, Exp)
+         | ids => mark PT.MARKexp (FULL_SPAN,
+            foldl (fn (fld,e) =>
+              PT.APPLYexp (PT.SELECTexp fld, [e])) Exp ids))
    | "{" "}" => (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp []))
    | "{" Name "=" Exp ("," Name "=" Exp)* "}" =>
       (mark PT.MARKexp (FULL_SPAN, PT.RECORDexp ((Name, Exp)::SR)))

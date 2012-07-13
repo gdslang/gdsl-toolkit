@@ -356,6 +356,12 @@ static inline __word __CASETAG (__obj o) {
   }
 }
 
+static inline __word __CASETAGCON (__obj o) { return o->tagged.tag; }
+
+static inline __word __CASETAGVEC (__obj o) { return o->bv.vec; }
+
+static inline __word __CASETAGINT (__obj o) { return o->z.value; }
+
 static inline int __isTrue (__obj o) {
    return (o == __TRUE); /* TODO: or isBitVec(o)&&value='1' */
 }
@@ -391,6 +397,7 @@ __obj __printState();
 
 int ___isNil(__obj);
 __obj __runWithState(__obj(*)(__obj,__obj),__obj);
+__obj __evalPure(__obj(*)(__obj,__obj),__obj);
 __obj __eval(__obj(*)(__obj,__obj),__char*, __word);
 __word __decode(__obj(*)(__obj,__obj),__char*,__word,__obj*);
 __obj __translate(__obj(*)(__obj,__obj),__obj);

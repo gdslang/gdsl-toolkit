@@ -719,7 +719,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infPat (st,env) (AST.WILDpat) = (0, E.pushTop env)
    and infLit (st,env) (AST.INTlit i) = E.pushType (false, ZENO, env)
      | infLit (st,env) (AST.FLTlit f) = E.pushType (false, FLOAT, env)
-     | infLit (st,env) (AST.STRlit str) = E.pushType (false, UNIT, env)
+     | infLit (st,env) (AST.STRlit str) = E.pushType (false, STRING, env)
      | infLit (st,env) (AST.VEClit str) =
          E.pushType (false, VEC (CONST (String.size str)), env)
 

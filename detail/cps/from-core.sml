@@ -48,9 +48,40 @@ end = struct
          val raisee = get "raise"
          val return = get "return"
          val add = get "+"
+         val concatstring = get "+++"
+         val showbitvec = get "showbitvec"
+         val showint = get "showint"
          val sub = get "-"
          val sx = get "sx"
          val zx = get "zx"
+
+         val concatstring = 
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%concatstring"
+               val body = PRI (prim, [a, b])
+            in
+               (concatstring, [a,b], body)
+            end
+
+         val showbitvec = 
+            let
+               val x = fresh "x"
+               val prim = get "%showbitvec"
+               val body = PRI (prim, [x])
+            in
+               (showbitvec, [x], body)
+            end
+
+         val showint = 
+            let
+               val x = fresh "x"
+               val prim = get "%showint"
+               val body = PRI (prim, [x])
+            in
+               (showint, [x], body)
+            end
 
          val sx = 
             let
@@ -228,6 +259,9 @@ end = struct
           unconsume16,
           consume32,
           unconsume32,
+          concatstring,
+          showbitvec,
+          showint,
           andd,
           not,
           ==,
@@ -321,6 +355,7 @@ end = struct
                kappa
        | CASE (e, ps) =>
             let
+               val ty = guessPatTy e ps
                val j = fresh continuation
                fun trans z ps cps ks =
                   case ps of
@@ -337,7 +372,7 @@ end = struct
                             | _ =>
                                  Exp.LETCONT
                                     ((j, [x], kappa x)::cps,
-                                     Exp.CASE (z, ks))
+                                     Exp.CASE (ty, z, ks))
                         end
                    | (p, e)::ps =>
                         let
@@ -494,6 +529,17 @@ end = struct
                            lp (S.full str, [])) strs)
       end
 
+   and guessPatTy e ps =
+      let
+         open Core.Pat
+      in
+         case #1 (hd ps) of
+            CON _ => Exp.CASETYCON
+          | BIT _ => Exp.CASETYVEC
+          | INT _ => Exp.CASETYINT
+          | _ => Exp.CASETYINT (* FIXME *)
+      end
+
    and transPat p k ks =
       let (* TODO: apply arguments to the branches *)
           (* TODO: check size of generated patterns and bail out if to large *)
@@ -550,6 +596,7 @@ end = struct
                kont
        | CASE (e, ps) =>
             let
+               val ty = guessPatTy e ps
                fun trans z ps cps ks =
                   case ps of
                      (p, e)::ps =>
@@ -568,7 +615,7 @@ end = struct
                            [([],body)] =>
                               Exp.LETCONT (cps, Exp.CC body)
                          | _ =>
-                              Exp.LETCONT (cps, Exp.CASE (z, ks))
+                              Exp.LETCONT (cps, Exp.CASE (ty, z, ks))
             in
                trans0 e (fn z => trans z ps [] [])
             end

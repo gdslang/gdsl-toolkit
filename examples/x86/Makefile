@@ -11,7 +11,10 @@ ccli:
 	gcc -pipe -O2 -Wall -static -I. -I../.. -Wfatal-errors cli.c pretty.c ../../dis.c -DRELAXEDFATAL -o cli
 
 cmusl-cli:
-	/usr/musl/bin/musl-gcc -pipe -O2 -Wall -static -I. -I../.. -Wfatal-errors cli.c pretty.c ../../dis.c -DRELAXEDFATAL -o musl-cli
+	/usr/musl/bin/musl-gcc -pipe -O3 -Wall -static -I. -I../.. -Wfatal-errors cli.c pretty.c ../../dis.c -DRELAXEDFATAL -o musl-cli
+
+cmusl-cli-println:
+	/usr/musl/bin/musl-gcc -pipe -O3 -Wall -static -I. -I../.. -Wfatal-errors cli-println.c ../../dis.c -DRELAXEDFATAL -o musl-cli-println
 
 ccli-println:
 	gcc -O2 -Wall -static -I. -I../.. -Wfatal-errors cli-println.c ../../dis.c -DRELAXEDFATAL -o cli-println

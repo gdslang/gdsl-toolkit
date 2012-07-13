@@ -309,6 +309,10 @@ __obj __eval (__obj (*f)(__obj,__obj), __char* blob, __word sz) {
   return (__runWithState(f,s));
 }
 
+__obj __evalPure (__obj (*f)(__obj,__obj), __obj x) {
+  return (__runWithState(f,x));
+}
+
 /* Caller needs to reset the heap with `__resetHeap()` */
 __word __decode (__obj (*f)(__obj,__obj), __char* blob, __word sz, __obj* insn) {
   __obj o = __eval(f,blob,sz);
