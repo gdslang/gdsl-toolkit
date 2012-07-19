@@ -86,6 +86,9 @@
 
 /** ## Records */
 
+/* PERF: A more efficient data-structure for records is needed.
+ * maybe versioned arrays or some kind of list/stack with the
+ * most recently added fields on-top. */
 #define __RECORD_BEGIN(Cname, n)\
   __CHECK_HEAP(n+1)
 
@@ -118,7 +121,31 @@
 
 #define __RECORD_SELECT(Cname, field)\
   __recordLookup(((struct __record*)Cname), field)->tagged.payload
-   
+
+/** ## Ropes/Strings */
+
+#define __ROPE_BEGIN(Cname) /* TODO: CHECK HEAP */
+
+#define __ROPE_CONCAT(a,b)\
+  {__objref o = __ALLOC1();\
+   o->ropebranch.header.tag = __ROPEBRANCH;\
+   o->ropebranch.left = a;\
+   o->ropebranch.right = b;
+
+#define __ROPE_FROMCSTRING(s)\
+  {__objref o = __ALLOC1();\
+   __int len = strlen(s);\
+   __int n = len/sizeof(__unwrapped_obj);\
+   n = ((len % sizeof(__unwrapped_obj)) == 0) ? n : n + 1;\
+   o->ropeleaf.header.tag = __ROPELEAF;\
+   o->ropeleaf.sz = len;\
+   __objref p = __ALLOCN(n);\
+   memcpy(p,s,len);\
+   o->ropeleaf.blob = (__char*)p;
+
+#define __ROPE_END(Cname)\
+   Cname = __WRAP(o);}
+
 /** ## Bitvectors */
 
 #define __BV_BEGIN(Cname, n)\
@@ -186,6 +213,8 @@ enum __tag {
   __RECORD,
   __NIL,
   __BLOB,
+  __ROPELEAF,
+  __ROPEBRANCH,
   __LABEL
 };
 
@@ -227,6 +256,16 @@ union __unwrapped_obj {
     __char* blob;
     __word sz;
   } blob;
+  struct __unwrapped_ropeleaf {
+    __header header;
+    __char* blob;
+    __word sz;
+  } ropeleaf;
+  struct __unwrapped_ropebranch {
+    __header header;
+    __obj left;
+    __obj right;
+  } ropebranch;
   struct __unwrapped_int {
     __header header;
     __int value;
@@ -257,6 +296,14 @@ union __wrapped_obj {
     __char* blob;
     __word sz;
   } blob;
+  struct __ropeleaf {
+    __char* blob;
+    __word sz;
+  } ropeleaf;
+  struct __ropebranch {
+    __obj left;
+    __obj right;
+  } ropebranch;
   struct __int {
     __int value;
   } z;
@@ -392,14 +439,19 @@ __obj __raise(__obj);
 __obj __not(__obj);
 __obj __isNil(__obj);
 __obj __printState();
+__obj __concatstring(__obj,__obj);
+__obj __showbitvec(__obj);
+__obj __showint(__obj);
+__obj __flattenstring(__obj,char*,__word);
 
 /* ## API helpers */
 
 int ___isNil(__obj);
 __obj __runWithState(__obj(*)(__obj,__obj),__obj);
 __obj __evalPure(__obj(*)(__obj,__obj),__obj);
-__obj __eval(__obj(*)(__obj,__obj),__char*, __word);
+__obj __eval(__obj(*)(__obj,__obj),__char*,__word);
 __word __decode(__obj(*)(__obj,__obj),__char*,__word,__obj*);
+__obj __pretty(__obj(*)(__obj,__obj),__obj,char*,__word);
 __obj __translate(__obj(*)(__obj,__obj),__obj);
 
 #endif /* __RUNTIME_H */
