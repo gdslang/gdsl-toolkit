@@ -45,12 +45,17 @@ structure Environment : sig
    (* push the width of a decode onto the stack*)
    val pushWidth : VarInfo.symid * environment -> environment
 
-   (*given an occurrence of a symbol at a position, push its type onto the
+   (* For a function from a type containing several type variables to an
+   algoebraic data type, generate implications from the arguments of the
+   algebraic data type to the argument of this function. *)
+   val genConstructorFlow : environment -> environment
+   
+    (*given an occurrence of a symbol at a position, push its type onto the
    stack and return if an instance of this type must be used; arguments are
    the symbol to look up, the position it occurred and a list of symbols that
    denote the current context/function (the latter is ignored if the symbol
-   already has a type) *)
-   val pushSymbol : VarInfo.symid * Error.span * environment -> environment
+   already has a type) *) val pushSymbol : VarInfo.symid * Error.span *
+   environment -> environment
 
    val getUsages : VarInfo.symid * environment -> Error.span list
    
@@ -783,11 +788,32 @@ end = struct
       end
 
    fun meetBoolean (update, env as (scs, state)) =
-         (scs, Scope.setFlow (update (Scope.getFlow state)) state)
-            handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env])
+      (scs, Scope.setFlow (update (Scope.getFlow state)) state)
+         handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env])
 
    fun meetSizeConstraint (update, (scs, state)) =
       (scs, Scope.setSize (update (Scope.getSize state)) state)
+
+   fun genConstructorFlow env = case Scope.unwrap env of
+        (KAPPA {ty=FUN ([t], ALG (_,vs))}, env) =>
+         let
+            val dtVars = List.map (fn v => case v of
+                             VAR p => p
+                           | _ => raise InferenceBug) vs
+            val (posFlags, negFlags) =
+               fieldBVarsets (t,(BD.emptySet, BD.emptySet))
+            val env = meetBoolean (BD.meetVarSetOne posFlags o
+                                   BD.meetVarSetZero negFlags, env)
+            val env = List.foldl (fn ((v,f),env) =>
+                  List.foldl (fn ((co,fv),env) => if co
+                     then meetBoolean (BD.meetVarImpliesVar (f,fv), env)
+                     else meetBoolean (BD.meetVarImpliesVar (fv,f), env))
+                     env (Types.texpBVarsetFor v t)
+                  ) env dtVars
+         in
+            env
+         end
+      | _ => raise InferenceBug
 
    fun pushSymbol (sym, span, env) =
       (case Scope.lookup (sym,env) of

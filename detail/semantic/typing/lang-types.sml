@@ -89,6 +89,27 @@ structure Types = struct
       in (tV false (e, bs))
    end
 
+   fun texpBVarsetFor var e = let
+      fun tV co (FUN (f1, f2), bs) = tV co (f2, List.foldl (tV (not co)) bs f1)
+        | tV co (SYN (syn, t), bs) = tV co (t, bs)
+        | tV co (ZENO, bs) = bs
+        | tV co (FLOAT, bs) = bs
+        | tV co (STRING, bs) = bs
+        | tV co (UNIT, bs) = bs
+        | tV co (VEC t, bs) = tV co (t, bs)
+        | tV co (CONST c, bs) = bs
+        | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
+        | tV co (RECORD (v,b,l), bs) =
+            (co,b) :: List.foldl (tVF co) bs l
+        | tV co (MONAD (r,f,t), bs) =
+         tV co (r, tV (not co) (f, tV co (t, bs)))
+        | tV co (VAR (v,b), bs) =
+            if TVar.eq (v,var) then ((co,b) :: bs) else bs
+      and tVF co (RField {name = n, fty = t, exists = b}, bs) =
+         (co,b) :: tV co (t, bs)
+      in (tV false (e, []))
+   end
+
    fun fieldBVarsets (e, pn) = let
       fun tV pn (FUN (f1, f2)) = tV (List.foldl (fn (t,pn) => tV pn t) pn f1) f2
         | tV pn (SYN (syn, t)) = tV pn t
@@ -197,7 +218,7 @@ structure Types = struct
 
    type condescr = texp option SymMap.map
 
-   type typedescr = { tdVars : (tvar * BD.bvar) list,
+   type typedescr = { tdVars : (TVar.tvar * BD.bvar) SymMap.map,
                      tdCons : condescr }
 
    fun showTypeSI (ty, showInfo) = let
@@ -220,13 +241,14 @@ structure Types = struct
       | sT (p, FLOAT) = "float"
       | sT (p, STRING) = "string"
       | sT (p, UNIT) = "()"
-      | sT (p, VEC t) = "[" ^ sT (0, t) ^ "]"
+      | sT (p, VEC t) = "|" ^ sT (0, t) ^ "|"
       | sT (p, CONST c) = Int.toString(c)
       | sT (p, ALG (ty, l)) = let
           val conStr = SymbolTable.getString(!SymbolTables.typeTable, ty)
-          in if List.null l then conStr else br (p, p_tyn,
-            List.foldl (fn (s1,s2) => s1 ^ " " ^ s2) conStr (
-              List.map (fn e => sT (p_tyn+1, e)) l))
+          in if List.null l then conStr else conStr ^ "[" ^ #2 (
+             List.foldl (fn (t,(sep,str)) => (",",sT (0, t) ^ sep ^ str))
+               ("","") l
+            ) ^ "]"
           end
       | sT (p, RECORD (v,b,l)) = "{" ^ List.foldl (op ^) "" (List.map sTF l) ^
                                    showVar v ^ 

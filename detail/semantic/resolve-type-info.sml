@@ -18,6 +18,7 @@ end = struct
    structure S = SymMap
    structure D = SymMap
    structure C = SymMap
+   structure V = SymMap
    structure T = Types
    structure BD = BooleanDomain
 
@@ -31,6 +32,38 @@ end = struct
       {tsynDefs: synonym_map,
        typeDefs: datatype_map,
        conParents: constructor_map}
+
+   fun typeInfoToString ({tsynDefs,typeDefs = tdm,conParents = cm} : type_info) =
+      let
+         fun showTd (d, {tdVars = varMap, tdCons = cons}) =
+            let
+               val dStr = TypeInfo.getString (!SymbolTables.typeTable, d)
+               val (args,_,si) = List.foldl (fn ((v,tVar),(str,sep,si)) =>
+                  let
+                     val vStr = TypeInfo.getString (!SymbolTables.typeTable,v)
+                     val (tStr, si) = T.showTypeSI (T.VAR tVar, si)
+                  in
+                     (vStr ^ "=" ^ tStr ^ sep ^ str, ",", si)
+                  end) ("", "", TVar.emptyShowInfo) (V.listItemsi varMap)
+               fun conInfo ((c,tOpt),(sep,si,str)) = 
+                  let
+                     val cStr = ConInfo.getString (!SymbolTables.conTable, c)
+                     val (tStr,si) = case tOpt of
+                           NONE => ("",si)
+                         | SOME t => T.showTypeSI (t,si)
+                  in
+                     ("\n  | ", si, str ^ sep ^
+                     cStr ^ (if isSome tOpt then " of " else "") ^ tStr)
+                  end
+               val (_,_,consStr) = List.foldl conInfo ("\n  = ",si,"")
+                                    (SymMap.listItemsi cons)
+            in
+               "type " ^ dStr ^ "[" ^ args ^ "]" ^ consStr
+            end
+      in
+         List.foldl (fn ((td,str)) => str ^ showTd td ^ "\n")
+            "" (D.listItemsi tdm)
+      end
 
    fun resolveTypeInfoPass (errStrm, ast) = let
       val vars = !SymbolTables.varTable
@@ -51,66 +84,86 @@ end = struct
       fun fwdDecl (s, d) =
          case d of
             AST.MARKdecl {span, tree} => fwdDecl (span, tree)
-          | AST.DATATYPEdecl (d,l) =>
-               (dtyTable :=
-                  D.insert
-                     (!dtyTable,
-                      d,
-                      {tdVars=[], tdCons=D.empty}))
+          | AST.DATATYPEdecl (d, tvars, l) =>
+            let
+               fun addTVar (tv, varMap) = case V.find (varMap,tv) of
+                    NONE => V.insert (varMap, tv, (T.freshTVar (), BD.freshBVar ()))
+                  | SOME _ => varMap
+               val varMap = List.foldl addTVar (case D.find (!dtyTable,d) of
+                    NONE => V.empty
+                  | SOME {tdVars=varMap, tdCons} => varMap) tvars
+            in
+               (dtyTable := D.insert (!dtyTable, d,
+                                     {tdVars=varMap, tdCons=C.empty}))
+            end
           | _ => ()
       
       fun vDecl (s, d) =
          case d of
             AST.MARKdecl {span, tree} => vDecl (span, tree)
-          | AST.TYPEdecl (v, t) => synTable := S.insert (!synTable, v, vType (s,t))
-          | AST.DATATYPEdecl (d,l) =>
+          | AST.TYPEdecl (v, t) =>
+            synTable := S.insert (!synTable, v, vType V.empty (s,t))
+          | AST.DATATYPEdecl (d, tvars, l) =>
             (case D.lookup (!dtyTable,d) of
-               {tdVars=_, tdCons=cons} =>
-                  (dtyTable := D.insert (!dtyTable, d,
-                     {tdVars = [], tdCons = vCondecl cons (s,d,l)})))
+               {tdVars=tvs, tdCons=cons} =>
+                     (dtyTable := D.insert (!dtyTable, d,
+                        {tdVars = tvs, tdCons = vCondecl cons (s,d,tvs,l)}))
+            )
           | _ => ()
 
-      and vType (s, t) =
+      and vType tvs (s, t) =
          case t of
-            AST.MARKty {span, tree} => vType (span,tree)
+            AST.MARKty {span, tree} => vType tvs (span,tree)
           | AST.BITty i => T.VEC (T.CONST (IntInf.toInt i))
-          | AST.NAMEDty n =>
+          | AST.NAMEDty (n, args) =>
                (case S.find (!synTable, n) of
-                  SOME t => T.SYN (n, T.setFlagsToTop t)
+                  SOME t => T.SYN (n, t)
                 | NONE => (case D.find (!dtyTable, n) of
-                     SOME {tdVars=vs,tdCons=_} => T.ALG (n, map Types.VAR vs)
-                   | NONE => (Error.errorAt
-                        (errStrm, s,
-                         ["type synonym or data type ",
-                          TypeInfo.getString (types, n),
-                          " not declared "]); T.UNIT)))
+                     SOME {tdVars=varMap,tdCons=_} =>
+                        let
+                           val argMap =
+                              List.foldl SymMap.insert' SymMap.empty args
+                           fun findType v = case SymMap.find (argMap,v) of
+                                SOME t => vType tvs (s, t)
+                              | NONE => case V.find (tvs,v) of
+                                   SOME varPair => T.VAR varPair
+                                 | NONE => (Error.errorAt
+                                    (errStrm, s,
+                                     ["unknown type variable ",
+                                      TypeInfo.getString (types, v),
+                                      " in argument "]); T.UNIT)
+                        in
+                           T.ALG (n, List.map findType (V.listKeys varMap))
+                        end
+                   | NONE => (case V.find (tvs,n) of
+                        SOME varPair => T.VAR varPair
+                      | NONE => (Error.errorAt
+                           (errStrm, s,
+                            ["type synonym or data type ",
+                             TypeInfo.getString (types, n),
+                             " not declared "]); T.UNIT))))
           | AST.RECORDty l =>
                T.RECORD
                   (Types.freshTVar (), BD.freshBVar (),
                   List.foldl Substitutions.insertField []
-                     (List.map (vField s) l))
+                     (List.map (vField s tvs) l))
 
-      and vField s (n, ty) =
-         T.RField {name=n, fty=vType (s, ty), exists=BD.freshBVar ()}
+      and vField s tvs (n, ty) =
+         T.RField {name=n, fty=vType tvs (s, ty), exists=BD.freshBVar ()}
 
-      and vCondecl sm (s,d,l) =
-         case l of
-            [] => sm
-          | (c, arg)::l =>
-               (case C.find (!conTable, c) of
-                  SOME d =>
-                     Error.errorAt
-                        (errStrm, s,
-                         ["constructor ",
-                          Atom.toString (ConInfo.getAtom (cons,c)),
-                          " already used in ",
-                          Atom.toString (TypeInfo.getAtom (types,d))])
-                | NONE =>
-                     (conTable := C.insert (!conTable, c, d))
-                     ;D.insert
-                        (vCondecl sm (s,d,l),
-                         c,
-                         Option.map (fn t => vType (s, t)) arg))
+      and vCondecl sm (s,d,tvs,l) = List.foldl (fn ((c, arg), sm) =>
+            (case C.find (!conTable, c) of
+               SOME d =>
+                  Error.errorAt
+                     (errStrm, s,
+                      ["constructor ",
+                       Atom.toString (ConInfo.getAtom (cons,c)),
+                       " already used in ",
+                       Atom.toString (TypeInfo.getAtom (types,d))])
+             | NONE =>
+                  (conTable := C.insert (!conTable, c, d))
+            ;D.insert (sm, c, Option.map (fn t => vType tvs (s, t)) arg))
+         ) sm l
 
        val declList = ast
        val s = SymbolTable.noSpan
@@ -118,7 +171,14 @@ end = struct
    in
       (app (fn d => fwdDecl (s,d)) declList
       ;app (fn d => vDecl (s,d)) declList
-      ;{tsynDefs= !synTable, typeDefs= !dtyTable, conParents= !conTable} : type_info)
+      ;let
+         val res = {tsynDefs= !synTable,
+                    typeDefs= !dtyTable,
+                    conParents= !conTable} : type_info
+         (*val _ = TextIO.print (typeInfoToString res)*)
+       in
+          res
+       end)
    end
 
    val resolveTypeInfoPass =

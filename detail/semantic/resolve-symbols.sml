@@ -109,7 +109,7 @@ end = struct
             PT.MARKdecl {span, tree} => regDecl span tree
           | PT.DECODEdecl (n, pats, _) => regDec s n
           | PT.LETRECdecl (n, _, _) => ignore (newVar (s,n))
-          | PT.DATATYPEdecl (n, ds) => (regTy s n; app (regCon s) ds)
+          | PT.DATATYPEdecl (n, tvars, ds) => (regTy s n; app (regCon s) ds)
           | PT.TYPEdecl (n, _) => regTy s n 
           | _ => ()
 
@@ -133,9 +133,15 @@ end = struct
           | PT.GRANULARITYdecl i => AST.GRANULARITYdecl i
           | PT.TYPEdecl (tb, t) =>
                AST.TYPEdecl (useType (s,{span=s, tree=tb}), convTy s t)
-          | PT.DATATYPEdecl (tb, l) =>
-               AST.DATATYPEdecl
-                  (useType (s, {span=s, tree=tb}), List.map (convCondecl s) l)
+          | PT.DATATYPEdecl (tb, tvars, l) =>
+            let
+               val _ = ST.typeTable := VI.push (!ST.typeTable)
+               val tvSyms = List.map (fn t => newType (s,t)) tvars
+               val rhs = List.map (convCondecl s) l
+               val _ = ST.typeTable := VI.pop (!ST.typeTable)
+            in
+               AST.DATATYPEdecl (useType (s, {span=s, tree=tb}), tvSyms, rhs)
+            end
           | PT.DECODEdecl dd => AST.DECODEdecl (convDecodeDecl s dd)
           | PT.LETRECdecl vd => AST.LETRECdecl (convLetrecDecl s vd)
 
@@ -187,7 +193,12 @@ end = struct
          case t of
             PT.MARKty m => AST.MARKty (convMark convTy m)
           | PT.BITty i => AST.BITty i
-          | PT.NAMEDty n => AST.NAMEDty (useType (s,n))
+          | PT.NAMEDty (n, args) =>
+            let
+               fun convPair (var,ty) = (useType (s,var), convTy s ty)
+            in
+               AST.NAMEDty (useType (s,n), List.map convPair args)
+            end
           | PT.RECORDty fs =>
                AST.RECORDty (checkDupFields s
                   (List.map (fn (f,t) => (newField (s,f), convTy s t)) fs))

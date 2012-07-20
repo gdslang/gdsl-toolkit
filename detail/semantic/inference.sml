@@ -131,7 +131,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
-   val maxIter = 3
+   val maxIter = 1
    fun calcSubset printWarn env =
       let
          fun checkUsage sym (s, unstable) =
@@ -548,17 +548,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val dcon = SymMap.lookup (conParents, c)
          val { tdVars = vs, tdCons = cs } = SymMap.lookup (typeDefs, dcon)
+         val vs = SymMap.listItems vs
          val tArgOpt = SymMap.lookup (cs, c)
          val env =
             case tArgOpt of
                  NONE => E.pushType (true, ALG (dcon, List.map VAR vs), env)
                | SOME t =>
             let
-               val (posFlags, negFlags) =
-                  fieldBVarsets (t,(BD.emptySet, BD.emptySet))
-               val env = E.meetBoolean (BD.meetVarSetOne posFlags o
-                                        BD.meetVarSetZero negFlags, env)
                val env = E.pushType (true, FUN ([t],ALG (dcon, List.map VAR vs)), env)
+               val env = E.genConstructorFlow env
             in
                env
             end
