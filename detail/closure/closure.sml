@@ -28,7 +28,7 @@ structure Closure = struct
        | FASTCC of
             {k: Var.c,
              xs: Var.v list}
-       | CASE of Var.v * (tag list * block) list
+       | CASE of casety * Var.v * (tag list * block) list
 
       and stmt = 
          LETVAL of Var.v * cval
@@ -55,6 +55,7 @@ structure Closure = struct
              flow: term}
 
       withtype branch = Var.c * Var.v list
+      and casety = CPS.Exp.casety
    end
 
    structure Block = struct
@@ -113,10 +114,17 @@ structure Closure = struct
                seq [var k, vars (closure::k::xs)]
           | FASTCC {k, xs} => 
                seq [var k, vars (k::xs)]
-          | CASE (x, ks) =>
-               align
-                  [seq [str "case", space, var x, space, str "of"],
-                   cases ks]
+          | CASE (ty, x, ks) =>
+               let
+                  val casee =
+                     case ty of
+                        CPS.Exp.CASETYCON => "con case"
+                      | CPS.Exp.CASETYVEC => "vec case"
+                      | CPS.Exp.CASETYINT => "int case"
+               in
+                  align [seq [str "case", space, var x, space, str "of"],
+                         cases ks]
+               end
 
       and stmt s =
          case s of

@@ -17,6 +17,8 @@ structure Types = struct
     | ZENO
       (* a floating point number *)
     | FLOAT
+      (* a character sequence *)
+    | STRING
       (* a value containing no information *)
     | UNIT
       (* a bit vector of a fixed size *)
@@ -53,6 +55,7 @@ structure Types = struct
         | tV (SYN (syn, t), vs) = tV (t, vs)
         | tV (ZENO, vs) = vs
         | tV (FLOAT, vs) = vs
+        | tV (STRING, vs) = vs
         | tV (UNIT, vs) = vs
         | tV (VEC t, vs) = tV (t, vs)
         | tV (CONST c, vs) = vs
@@ -71,6 +74,7 @@ structure Types = struct
         | tV co (SYN (syn, t), bs) = tV co (t, bs)
         | tV co (ZENO, bs) = bs
         | tV co (FLOAT, bs) = bs
+        | tV co (STRING, bs) = bs
         | tV co (UNIT, bs) = bs
         | tV co (VEC t, bs) = tV co (t, bs)
         | tV co (CONST c, bs) = bs
@@ -90,6 +94,7 @@ structure Types = struct
         | tV pn (SYN (syn, t)) = tV pn t
         | tV pn (ZENO) = pn
         | tV pn (FLOAT) = pn
+        | tV pn (STRING) = pn
         | tV pn (UNIT) = pn
         | tV pn (VEC t) = tV pn t
         | tV pn (CONST c) = pn
@@ -112,6 +117,7 @@ structure Types = struct
         | ff (SYN (syn, t)) = ff t
         | ff (ZENO) = NONE
         | ff (FLOAT) = NONE
+        | ff (STRING) = NONE
         | ff (UNIT) = NONE
         | ff (VEC t) = ff t
         | ff (CONST c) = NONE
@@ -130,6 +136,7 @@ structure Types = struct
      | setFlagsToTop (SYN (syn, t)) = SYN (syn, setFlagsToTop t)
      | setFlagsToTop (ZENO) = ZENO
      | setFlagsToTop (FLOAT) = FLOAT
+     | setFlagsToTop (STRING) = STRING
      | setFlagsToTop (UNIT) = UNIT
      | setFlagsToTop (VEC t) = VEC (setFlagsToTop t)
      | setFlagsToTop (CONST c) = CONST c
@@ -151,6 +158,7 @@ structure Types = struct
         | repl (SYN (syn, t)) = SYN (syn, repl t)
         | repl (ZENO) = ZENO
         | repl (FLOAT) = FLOAT
+        | repl (STRING) = STRING
         | repl (UNIT) = UNIT
         | repl (VEC t) = VEC (repl t)
         | repl (CONST c) = CONST c
@@ -171,6 +179,7 @@ structure Types = struct
         | repl (SYN (syn, t)) = SYN (syn, repl t)
         | repl (ZENO) = ZENO
         | repl (FLOAT) = FLOAT
+        | repl (STRING) = STRING
         | repl (UNIT) = UNIT
         | repl (VEC t) = VEC (repl t)
         | repl (CONST c) = CONST c
@@ -209,6 +218,7 @@ structure Types = struct
           br (p, p_tyn, SymbolTable.getString(!SymbolTables.typeTable, syn))
       | sT (p, ZENO) = "int"
       | sT (p, FLOAT) = "float"
+      | sT (p, STRING) = "string"
       | sT (p, UNIT) = "()"
       | sT (p, VEC t) = "[" ^ sT (0, t) ^ "]"
       | sT (p, CONST c) = Int.toString(c)

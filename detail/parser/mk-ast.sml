@@ -132,7 +132,7 @@ functor MkAst (Core: AST_CORE) = struct
                seq [str "type", space, syn_bind t, space, ty tyexp]
           | DATATYPEdecl (t, decls) =>
                align
-                  [seq [str "datatype", space, con_bind t],
+                  [seq [str "type", space, con_bind t],
                    indent 3 (alignPrefix (map condecl decls, "| "))]
           | DECODEdecl (n, ps, Sum.INL e) =>
                align
@@ -204,7 +204,7 @@ functor MkAst (Core: AST_CORE) = struct
          case t of
             INTlit i => int i
           | FLTlit f => str (FloatLit.toString f)
-          | STRlit s => str s
+          | STRlit s => seq [str "\"", str s, str "\""]
           | VEClit s => seq [str "'", str s, str "'"]
 
       and exp t =
@@ -225,7 +225,7 @@ functor MkAst (Core: AST_CORE) = struct
                   [seq [str "case", space, exp e, str "of"],
                    indent 3 (alignPrefix (map casee cs, "| "))]
           | BINARYexp (e1, opid, e2) =>
-               seq [infixop opid, space, exp e1, space, exp e2]
+               seq [exp e1, space, infixop opid, space, exp e2]
           | APPLYexp (e1, es) => seq [exp e1, space, seq (separate (map exp es," "))]
           | RECORDexp fs => listex "{" "}" "," (map field fs)
           | SELECTexp f => seq [str "$", field_use f]

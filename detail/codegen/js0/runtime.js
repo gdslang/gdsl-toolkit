@@ -3,11 +3,9 @@ var __TRUE = {sz:1, vec:1}
 var __FALSE = {sz:1, vec:0}
 var __UNIT = {}
 
-function __halt (o) { return o; }
-
 function __raise (o) { throw o; }
 
-function __consume (s) {
+function __consume8 (s) {
   var blob = s.___blob;
   var i = s.___idx;
   var v = blob[i];
@@ -16,9 +14,43 @@ function __consume (s) {
   return {___1:{vec:v,sz:8}, ___2:ss}
 }
 
-function __unconsume (s) {
+function __unconsume8 (s) {
   var ss = s; // FIXME: destructive update!
   ss.___idx = s.___idx-1;
+  return {___1:__UNIT, ___2:ss};
+}
+
+function __consume16 (s) {
+  var blob = s.___blob;
+  var i = s.___idx;
+  var v1 = blob[i];
+  var v2 = blob[i+1]<<8;
+  var ss = s; // FIXME: destructive update!
+  ss.___idx = i+1; 
+  return {___1:{vec:(v1|v2)&0xffff,sz:8}, ___2:ss}
+}
+
+function __unconsume16 (s) {
+  var ss = s; // FIXME: destructive update!
+  ss.___idx = s.___idx-2;
+  return {___1:__UNIT, ___2:ss};
+}
+
+function __consume32 (s) {
+  var blob = s.___blob;
+  var i = s.___idx;
+  var v1 = blob[i];
+  var v2 = blob[i+1]<<8;
+  var v3 = blob[i+2]<<16;
+  var v4 = blob[i+3]<<24;
+  var ss = s; // FIXME: destructive update!
+  ss.___idx = i+1; 
+  return {___1:{vec:(v1|v2|v3|v4)&0xffffffff,sz:8}, ___2:ss}
+}
+
+function __unconsume32 (s) {
+  var ss = s; // FIXME: destructive update!
+  ss.___idx = s.___idx-4;
   return {___1:__UNIT, ___2:ss};
 }
 
@@ -34,6 +66,18 @@ function __concat (a, b) {
   var szOfA = a.sz;
   var szOfB = b.sz;
   return {sz:szOfA+szOfB, vec:aa << szOfB | bb};
+}
+
+function __concatstring (a, b) {
+  return a + b;
+}
+
+function __showbitvec (x) {
+  return '0x' + x.vec.toString(16);
+}
+
+function __showint (x) {
+  return x.toString();
 }
 
 function __equal (a, b) {
@@ -66,9 +110,26 @@ function __casetag (obj) {
   throw '__CASETAG() applied to non-tagged object'
 }
 
+function __casetagcon (obj) { return obj.tag };
+
+function __casetagvec (obj) { return obj.vec };
+
+function __casetagint (obj) { return obj };
+
+function __halt (o) { return o; }
+
 function __eval (f, blob) {
   var s = {___blob:blob, ___idx:0};
   return f(__halt,s);
+}
+
+function __evalPure (f, x) {
+  return f(__halt,x);
+}
+
+function __eval2 (f, x, state) {
+  function k (kk) { kk(state) };
+  return f(k,x);
 }
 
 function toBytes (str) {
@@ -104,17 +165,17 @@ function toBytes (str) {
 }
 
 function prettyJSON (o) {
-  print(JSON.stringify(o));
+  return JSON.stringify(o);
 }
 
-function decode64 (str) {
+function pretty (i) {
+  return __evalPure(__pretty__,i);
+}
+
+function decode (str) {
   var blob = toBytes(str);
   var s = __eval(__decode__,blob);
-  return(s.___1);
-}
-
-function decodeAndPrint (str) {
-  prettyJSON(decode64(str));
+  return s.___1;
 }
 
 @functions@

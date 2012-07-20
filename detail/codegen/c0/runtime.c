@@ -85,11 +85,11 @@ __obj __zx (__obj x) {
   return (y);
 }
 
-__obj __concat (__obj a_, __obj b_) {
-  __word a = a_->bv.vec;
-  __word b = b_->bv.vec;
-  __word szOfA = a_->bv.sz;
-  __word szOfB = b_->bv.sz;
+__obj __concat (__obj A, __obj B) {
+  __word a = A->bv.vec;
+  __word b = B->bv.vec;
+  __word szOfA = A->bv.sz;
+  __word szOfB = B->bv.sz;
   __word sz = szOfA + szOfB;
   __LOCAL0(x);
     __BV_BEGIN(x,sz);
@@ -98,18 +98,50 @@ __obj __concat (__obj a_, __obj b_) {
   return (x);
 }
 
-__obj __equal (__obj a_, __obj b_) {
-  __word a = a_->bv.vec;
-  __word b = b_->bv.vec;
-  __word szOfA = a_->bv.sz;
-  __word szOfB = b_->bv.sz;
+__obj __concatstring (__obj A, __obj B) {
+  __LOCAL0(R);
+    __ROPE_BEGIN(R);
+    __ROPE_CONCAT(A,B);
+    __ROPE_END(R);
+  return (R);
+}
+
+__obj __flattenstring(__obj o, char* buf, __word sz) {
+  switch (__TAG(o)) {
+    case __ROPELEAF: {
+      __word l = strlen(buf);
+      sz = sz - l;
+      if (sz == 0) return (__UNIT);
+      __word szz = o->ropeleaf.sz;
+      __word len = szz >= sz ? sz-1 : szz;
+      memcpy(buf+l,o->ropeleaf.blob,len);
+      buf[l+len] = '\0';
+      return (__UNIT);
+      break;
+    }
+    case __ROPEBRANCH: {
+      __flattenstring(o->ropebranch.left,buf,sz);
+      __flattenstring(o->ropebranch.right,buf,sz);
+      return (__UNIT);
+      break;
+    }
+    default:
+      __fatal("Object not of type {ROPE}");
+  };
+}
+
+__obj __equal (__obj A, __obj B) {
+  __word a = A->bv.vec;
+  __word b = B->bv.vec;
+  __word szOfA = A->bv.sz;
+  __word szOfB = B->bv.sz;
   __LOCAL(x, (a == b && szOfA == szOfB) ? __TRUE : __FALSE); 
   return (x);
 }
 
-__obj __not (__obj a_) {
-  __word a = a_->bv.vec;
-  __word sz = a_->bv.sz;
+__obj __not (__obj A) {
+  __word a = A->bv.vec;
+  __word sz = A->bv.sz;
   __LOCAL0(x);
     __BV_BEGIN(x,sz);
     __BV_INIT(~a & ((1 << sz)-1));
@@ -309,6 +341,21 @@ __obj __eval (__obj (*f)(__obj,__obj), __char* blob, __word sz) {
   return (__runWithState(f,s));
 }
 
+__obj __evalPure (__obj (*f)(__obj,__obj), __obj x) {
+  return (__runWithState(f,x));
+}
+
+__obj __pretty (__obj (*f)(__obj,__obj), __obj insn, char* buf, __word sz) {
+  __obj str = __evalPure(f,insn);
+  if (___isNil(str) || sz == 0) {
+    return (str);
+  } else {
+    buf[0] = '\0';
+    __flattenstring(str,buf,sz);
+    return (str);
+  }
+}
+
 /* Caller needs to reset the heap with `__resetHeap()` */
 __word __decode (__obj (*f)(__obj,__obj), __char* blob, __word sz, __obj* insn) {
   __obj o = __eval(f,blob,sz);
@@ -370,6 +417,26 @@ const __char* __tagName (__word i) {
   return (unknown);
 }
 
+__obj __showbitvec (__obj o) {
+  char fmt[16];
+  snprintf(fmt,16,"0x%zx",o->bv.vec);
+  __LOCAL0(R);
+    __ROPE_BEGIN(R);
+    __ROPE_FROMCSTRING(fmt);
+    __ROPE_END(R);
+  return (R);
+}
+
+__obj __showint (__obj o) {
+  char fmt[64];
+  snprintf(fmt,64,"0x%ld",o->z.value);
+  __LOCAL0(R);
+    __ROPE_BEGIN(R);
+    __ROPE_FROMCSTRING(fmt);
+    __ROPE_END(R);
+  return (R);
+}
+
 __obj __print (__obj o) {
   switch (__TAG(o)) {
     case __CLOSURE:
@@ -404,6 +471,23 @@ __obj __print (__obj o) {
         if (i < o->record.sz-1)
           printf(",");
       }
+      printf("}");
+      break;
+    }
+    case __ROPELEAF: {
+      char buf[7+1];
+      __word sz = o->ropeleaf.sz;
+      __word len = sz > 7 ? 7 : sz;
+      memcpy(buf,o->ropeleaf.blob,len);
+      buf[len] = '\0';
+      printf("{tag=__ROPELEAF,sz=%lu,blob=%s..}",sz,buf);
+      break;
+    }
+    case __ROPEBRANCH: {
+      printf("{tag=__ROPEBRANCH,left=");
+      __print(o->ropebranch.left);
+      printf(",right=");
+      __print(o->ropebranch.right);
       printf("}");
       break;
     }

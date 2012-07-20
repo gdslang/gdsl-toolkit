@@ -344,7 +344,7 @@ end = struct
 
       fun lookup (sym, (scs, cons)) =
          let
-            fun l [] = (TextIO.print ("urk, tried to lookup non-exitent symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+            fun l [] = (TextIO.print ("urk, tried to lookup non-existent symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                        ;raise InferenceBug)
               | l ({bindInfo = KAPPA _, typeVars, boolVars, version}::scs) = l scs
               | l ({bindInfo = SINGLE {name, ty}, typeVars, boolVars, version}::scs) =

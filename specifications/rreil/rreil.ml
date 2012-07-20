@@ -1,17 +1,9 @@
+# vim:filetype=sml:ts=3:sw=3:expandtab
 
 export = translate
 
 type sem_id =
-   ARCH_RAX
- | ARCH_RBX
- | ARCH_RCX
- | ARCH_RBP
- | ARCH_ZF
- | ARCH_CF
- | ARCH_SF 
- | ARCH_OF
- | ARCH_PF
- | ARCH_AF
+   ARCH_R of int
  | VIRT_EQ  # ==
  | VIRT_NEQ # /=
  | VIRT_LES # <=s
@@ -80,7 +72,7 @@ val revSeq stmts =
       val lp stmt acc =
          case stmt of
             SEM_NIL: acc
-          | SEM_CONS x: lp ($tl x) (SEM_CONS{hd= $hd x, tl=acc})
+          | SEM_CONS x: lp x.tl (SEM_CONS{hd=x.hd, tl=acc})
          end
    in
       lp stmts SEM_NIL
@@ -89,40 +81,30 @@ val revSeq stmts =
 val resultSize op =
    case op of
       SEM_CMPLES x : 1
-    | SEM_MUL x : $size x
+    | SEM_MUL x : x.size
    end
 
 val operandSize op =
    case op of
-      SEM_CMPLES x : $size x
+      SEM_CMPLES x : x.size
     | x : resultSize op
-   end
-
-val semanticRegisterOf r = 
-   case r of
-      RAX: {id=ARCH_RAX,offset=0,size=64}
-    | RBX: {id=ARCH_RBX,offset=0,size=64}
-    | RBP: {id=ARCH_RBP,offset=0,size=64}
-    | EAX: {id=ARCH_RAX,offset=0,size=32}
-    | EBX: {id=ARCH_RBX,offset=0,size=32}
-    | EBP: {id=ARCH_RBP,offset=0,size=32}
    end
 
 val guessSizeOf dst/src1 src2 = 
    case dst/src1 of
       REG r: return ($size (semanticRegisterOf r))
-    | MEM x: return ($sz x)
+    | MEM x: return x.sz
     | _:
          case src2 of
             REG r: return ($size (semanticRegisterOf r))
-          | MEM x: return ($sz x)
+          | MEM x: return x.sz
          end
    end
 
 val sizeOf op =
    case op of
       REG r: return ($size (semanticRegisterOf r))
-    | MEM x: return ($sz x)
+    | MEM x: return x.sz
     | IMM8 i: return (8)
     | IMM16 i: return (16)
     | IMM32 i: return (32)
@@ -191,8 +173,8 @@ val gotolabel l = push (/GOTOLABEL l)
 
 val const i = return (SEM_LIN_IMM{imm=i})
 
-val // x offs = @{offset=offs} x
-val /// x offs = @{offset= $offset x + offs} x
+val /+ x offs = @{offset=offs} x
+val /++ x offs = @{offset= $offset x + offs} x
 
 val convWith conv sz x = 
    let
@@ -201,8 +183,8 @@ val convWith conv sz x =
       val convReg x = return (SEM_LIN_VAR(semanticRegisterOf x))
 
       val convSum conv sz x = 
-         do op1 <- convWith conv sz ($a x);
-            op2 <- convWith conv sz ($b x);
+         do op1 <- convWith conv sz x.a;
+            op2 <- convWith conv sz x.b;
             return
                (SEM_LIN_ADD
                   {opnd1=op1,
@@ -210,7 +192,7 @@ val convWith conv sz x =
          end
 
       val convScale conv sz x =
-         do op <- convWith conv sz ($opnd x);
+         do op <- convWith conv sz x.opnd;
             return
                (SEM_LIN_SCALE
                   {opnd=op,
@@ -223,7 +205,7 @@ val convWith conv sz x =
                      end})
          end
 
-      val convMem x = convWith sx ($psz x) ($opnd x)
+      val convMem x = convWith sx x.psz x.opnd
    in
       case x of
          IMM8 x: convImm conv x
@@ -236,7 +218,7 @@ val convWith conv sz x =
        | MEM x:
             do t <- mktemp;
                address <- convMem x;
-               load sz t ($psz x) address;
+               load sz t x.psz address;
                return (var t)
             end
       end
@@ -247,10 +229,10 @@ val read sz x = convWith zx sz x
 val write sz x =
    case x of
       MEM x:
-         do address <- convWith sx ($psz x) ($opnd x);
+         do address <- convWith sx x.psz x.opnd;
             return
                (SEM_WRITE_MEM
-                  {size= $psz x,
+                  {size= x.psz,
                    address=address})
          end
     | REG x:
@@ -270,15 +252,15 @@ val commit sz a b =
          #TODO: no zero extension when not in 64bit mode
          case sz of
             32:
-               case $offset ($id x) of
+               case x.id.offset of
                   0:
-                     do mov 32 ($id x) b;
+                     do mov 32 x.id b;
                         # Zero the upper half of the given register/variable
-                        mov 32 (@{offset=32} ($id x)) (SEM_LIN_IMM {imm=0})
+                        mov 32 (@{offset=32} x.id) (SEM_LIN_IMM {imm=0})
                      end
-                | _: mov sz ($id x) b
+                | _: mov sz x.id b
                end
-          | _: mov sz ($id x) b 
+          | _: mov sz x.id b 
          end
    end
 
@@ -288,9 +270,11 @@ val fLES = return (var//0 VIRT_LES)
 val fLEU = return (var//0 VIRT_LEU)
 val fLTS = return (var//0 VIRT_LTS)
 val fCF = return (var//0 VIRT_LTU)
-val fOF = return (var//0 ARCH_OF)
-val fSF = return (var//0 ARCH_SF)
-val fAF = return (var//0 ARCH_AF)
+
+val fOF = return (var//0 ARCH_R ~1) # OF
+val fSF = return (var//0 ARCH_R ~2) # SF
+val fAF = return (var//0 ARCH_R ~3) # AF
+
 val zero = return (SEM_LIN_IMM{imm=0})
 
 val emitAddFlags sz a b c =
@@ -343,10 +327,10 @@ val emitSubFlags sz a b c =
 val semantics insn =
   case insn of
       ADD x:
-         do sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
-            a <- write sz ($opnd1 x);
-            b <- read sz ($opnd1 x);
-            c <- read sz ($opnd2 x);
+         do sz <- guessSizeOf x.opnd1 x.opnd2;
+            a <- write sz x.opnd1;
+            b <- read sz x.opnd1;
+            c <- read sz x.opnd2;
             t <- mktemp;
             add sz t b c;
             emitAddFlags sz (var t) b c;
@@ -354,28 +338,28 @@ val semantics insn =
          end
 
     | CMP x:
-         do sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
-            a <- write sz ($opnd1 x);
-            b <- read sz ($opnd1 x);
-            c <- read sz ($opnd2 x);
+         do sz <- guessSizeOf x.opnd1 x.opnd2;
+            a <- write sz x.opnd1;
+            b <- read sz x.opnd1;
+            c <- read sz x.opnd2;
             t <- mktemp;
             sub sz t b c;
             emitSubFlags sz (var t) b c
          end
 
     | MOV x:   
-         do sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
-            a <- write sz ($opnd1 x);
-            b <- read sz ($opnd1 x);
+         do sz <- guessSizeOf x.opnd1 x.opnd2;
+            a <- write sz x.opnd1;
+            b <- read sz x.opnd1;
             commit sz a b
          end
 
     | SHL x:
-         do sz <- sizeOf ($opnd1 x);
-            szOp2 <- sizeOf ($opnd2 x);
-            a <- write sz ($opnd1 x);
-            b <- read sz ($opnd1 x);
-            c <- read szOp2 ($opnd2 x);
+         do sz <- sizeOf x.opnd1;
+            szOp2 <- sizeOf x.opnd2;
+            a <- write sz x.opnd1;
+            b <- read sz x.opnd1;
+            c <- read szOp2 x.opnd2;
 
             ## Temporary variables:
             t1 <- mktemp;
@@ -404,24 +388,24 @@ val semantics insn =
             cmpeq sz cntIsZero (var cnt) zer0;
             ifgotolabel (var cntIsZero) exit; 
             shl sz t1 b (/SUB (var cnt) one);
-            mov 1 cf (var (// t1 (sz - 1)));
+            mov 1 cf (var (t1 /+ (sz - 1)));
             shl sz t2 b (var cnt);
             cmpeq sz cntIsOne (var cnt) one;
             ifgotolabel (var cntIsOne) setflag;
             undef 1 ov; 
             gotolabel exit;
             label setflag;
-            xorb 1 ov (var cf) (var (// t2 (sz - 1)));
+            xorb 1 ov (var cf) (var (t2 /+ (sz - 1)));
             label exit;
             undef 1 af;
             commit sz a (var t2)
          end
 
     | SUB x:
-         do sz <- guessSizeOf ($opnd1 x) ($opnd2 x);
-            a <- write sz ($opnd1 x);
-            b <- read sz ($opnd1 x);
-            c <- read sz ($opnd2 x);
+         do sz <- guessSizeOf x.opnd1 x.opnd2;
+            a <- write sz x.opnd1;
+            b <- read sz x.opnd1;
+            c <- read sz x.opnd2;
             t <- mktemp;
             sub sz t b c;
             emitSubFlags sz (var t) b c;
@@ -436,4 +420,3 @@ val translate insn =
       return (revSeq stack)
    end
 
-# vim:filetype=sml:ts=3:sw=3:expandtab
