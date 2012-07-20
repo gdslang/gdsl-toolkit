@@ -559,8 +559,18 @@ type insn =
  | AESENCLAST of arity2
  | AESIMC of arity2
  | AESKEYGENASSIST of arity3
-
  | AND of arity2
+ | ANDPD of arity2
+ | ANDPS of arity2
+ | ANDNPD of arity2
+ | ANDNPS of arity2
+ | ARPL of arity2
+ | BLENDPD of arity3
+ | BLENDPS of arity3
+ | BLENDVPD of arity2
+ | BLENDVPS of arity2
+ | BOUND of arity2
+
  | BSF of arity2
  | BSR of arity2
  | BSWAP of arity1
@@ -909,6 +919,14 @@ type insn =
  | VAESENCLAST of varity
  | VAESIMC of varity
  | VAESKEYGENASSIST of varity
+ | VANDPD of varity
+ | VANDPS of varity
+ | VANDNPD of varity
+ | VANDNPS of varity
+ | VBLENDPD of varity
+ | VBLENDPS of varity
+ | VBLENDVPD of varity
+ | VBLENDVPS of varity
  
  | VCMPEQB of varity
  | VCMPEQD of varity
@@ -1891,6 +1909,70 @@ val / [0x23 /r]
  | opndsz? = binop AND r16 r/m16
  | rexw? = binop AND r64 r/m64
  | otherwise = binop AND r32 r/m32
+
+### ANDPD
+###  - Bitwise Logical AND of Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x54 /r] = binop ANDPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x54 /r]
+ | vex128? = varity3 VANDPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VANDPD ymm256 v/ymm ymm/m256
+
+### ANDPS
+###  - Bitwise Logical AND of Packed Single-Precision Floating-Point Values
+val / [0x0f 0x54 /r] = binop ANDPS xmm128 xmm/m128
+val /vex/0f/vexv [0x54 /r]
+ | vex128? = varity3 VANDPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VANDPS ymm256 v/ymm ymm/m256
+
+### ANDNPD
+###  - Bitwise Logical AND NOT of Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x55 /r] = binop ANDNPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x55 /r]
+ | vex128? = varity3 VANDNPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VANDNPD ymm256 v/ymm ymm/m256
+
+### ANDNPS
+###  - Bitwise Logical AND NOT of Packed Single-Precision Floating-Point Values
+val / [0x0f 0x55 /r] = binop ANDNPS xmm128 xmm/m128
+val /vex/0f/vexv [0x55 /r]
+ | vex128? = varity3 VANDNPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VANDNPS ymm256 v/ymm ymm/m256
+
+### ARPL
+###  - Adjust RPL Field of Segment Selector
+val / [0x63 /r] | // mode64? = binop ARPL r/m16 r16
+
+### BLENDPD
+###  - Blend Packed Double Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x0d /r] = ternop BLENDPD xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0d /r]
+ | vex128? = varity4 VBLENDPD xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VBLENDPD ymm256 v/ymm ymm/m256 imm8
+
+### BLENDPS
+###  - Blend Packed Single Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x0c /r] = ternop BLENDPS xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0c /r]
+ | vex128? = varity4 VBLENDPS xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VBLENDPS ymm256 v/ymm ymm/m256 imm8
+
+### BLENDVPD
+###  - Variable Blend Packed Double Precision Floating-Point Values
+### TODO: /is4?
+val /66 [0x0f 0x38 0x15 /r] = binop BLENDVPD xmm128 xmm/m128
+### TODO: VEX -  Register encoded using an immediate?
+
+### BLENDVPS
+###  - Variable Blend Packed Single Precision Floating-Point Values
+### TODO: /is4?
+val /66 [0x0f 0x38 0x14 /r] = binop BLENDVPS xmm128 xmm/m128
+### TODO: VEX -  Register encoded using an immediate?
+
+### BOUND
+###  - Check Array Index Against Bounds
+val / [0x62 /r-mem]
+ | opndsz? & // mode64? = binop BOUND r16 r/m16
+ | // mode64? = binop BOUND r32 r/m32
 
 ### BSF
 ###  - Bit Scan Forward
