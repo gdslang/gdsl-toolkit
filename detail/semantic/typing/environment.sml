@@ -48,7 +48,7 @@ structure Environment : sig
    (* For a function from a type containing several type variables to an
    algoebraic data type, generate implications from the arguments of the
    algebraic data type to the argument of this function. *)
-   val genConstructorFlow : environment -> environment
+   val genConstructorFlow : (bool * environment) -> environment
    
     (*given an occurrence of a symbol at a position, push its type onto the
    stack and return if an instance of this type must be used; arguments are
@@ -86,7 +86,7 @@ structure Environment : sig
    (*stack: [..., tn, ..., t2, t1, t0] -> [..., SUM (tn,..t0)]*)
    val reduceToSum : int * environment -> environment
    
-   (*stack: [...,t1,t2,...,tn] -> [...,(t1, ... t n-1) -> t2]*)
+   (*stack: [...,t1,t2,...,tn] -> [...,(t1, ... t n-1) -> tn]*)
    val reduceToFunction : environment * int -> environment
    
    (*stack: [...,t1 -> t2] -> [...t2]*)
@@ -706,14 +706,14 @@ end = struct
 
          val (monoTVars, monoBVars) = Scope.getMonoVars env
          val (usesTVars, usesBVars) = Scope.getVarsUses (sym, env)
-         val funBVars = texpBVarset (t,usesBVars)
-         val funBVars = BD.union (monoBVars, usesBVars)
+         val funBVars = BD.union (texpBVarset (t,usesBVars),
+                           BD.union (monoBVars, usesBVars))
                            
          val (scs, state) = env
          val bFun = BD.projectOnto (funBVars,Scope.getFlow state)
          val bFunRem = if reduceToMono then BD.projectOnto (monoBVars,bFun)
                        else bFun
-         
+         (*val _ = TextIO.print ("projecting for " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showType t ^ " onto " ^ BD.setToString funBVars ^ ", mono " ^ BD.setToString monoBVars ^"\n")*)
          val groupTVars = texpVarset (t,Scope.getVars env)
          val sCons = SC.filter (groupTVars, Scope.getSize state)
          val state = Scope.setSize sCons (Scope.setFlow bFunRem state)
@@ -794,22 +794,14 @@ end = struct
    fun meetSizeConstraint (update, (scs, state)) =
       (scs, Scope.setSize (update (Scope.getSize state)) state)
 
-   fun genConstructorFlow env = case Scope.unwrap env of
-        (KAPPA {ty=FUN ([t], ALG (_,vs))}, env) =>
+   fun genConstructorFlow (contra, env) = case Scope.unwrap env of
+        (KAPPA {ty=FUN ([t], ALG (_,vs))}, _) =>
          let
             val dtVars = List.map (fn v => case v of
                              VAR p => p
                            | _ => raise InferenceBug) vs
-            val (posFlags, negFlags) =
-               fieldBVarsets (t,(BD.emptySet, BD.emptySet))
-            val env = meetBoolean (BD.meetVarSetOne posFlags o
-                                   BD.meetVarSetZero negFlags, env)
-            val env = List.foldl (fn ((v,f),env) =>
-                  List.foldl (fn ((co,fv),env) => if co
-                     then meetBoolean (BD.meetVarImpliesVar (f,fv), env)
-                     else meetBoolean (BD.meetVarImpliesVar (fv,f), env))
-                     env (Types.texpBVarsetFor v t)
-                  ) env dtVars
+            val flow = texpConstructorFlow dtVars contra t
+            val env = meetBoolean (fn bFun => BD.meet (flow,bFun), env)
          in
             env
          end

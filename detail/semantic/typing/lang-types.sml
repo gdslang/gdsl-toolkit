@@ -89,45 +89,37 @@ structure Types = struct
       in (tV false (e, bs))
    end
 
-   fun texpBVarsetFor var e = let
-      fun tV co (FUN (f1, f2), bs) = tV co (f2, List.foldl (tV (not co)) bs f1)
-        | tV co (SYN (syn, t), bs) = tV co (t, bs)
-        | tV co (ZENO, bs) = bs
-        | tV co (FLOAT, bs) = bs
-        | tV co (STRING, bs) = bs
-        | tV co (UNIT, bs) = bs
-        | tV co (VEC t, bs) = tV co (t, bs)
-        | tV co (CONST c, bs) = bs
-        | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
-        | tV co (RECORD (v,b,l), bs) =
-            (co,b) :: List.foldl (tVF co) bs l
-        | tV co (MONAD (r,f,t), bs) =
-         tV co (r, tV (not co) (f, tV co (t, bs)))
-        | tV co (VAR (v,b), bs) =
-            if TVar.eq (v,var) then ((co,b) :: bs) else bs
-      and tVF co (RField {name = n, fty = t, exists = b}, bs) =
-         (co,b) :: tV co (t, bs)
-      in (tV false (e, []))
-   end
-
-   fun fieldBVarsets (e, pn) = let
-      fun tV pn (FUN (f1, f2)) = tV (List.foldl (fn (t,pn) => tV pn t) pn f1) f2
-        | tV pn (SYN (syn, t)) = tV pn t
-        | tV pn (ZENO) = pn
-        | tV pn (FLOAT) = pn
-        | tV pn (STRING) = pn
-        | tV pn (UNIT) = pn
-        | tV pn (VEC t) = tV pn t
-        | tV pn (CONST c) = pn
-        | tV pn (ALG (ty, l)) = List.foldl (fn (t,pn) => tV pn t) pn l
-        | tV (p,n) (RECORD (_,b,l)) = 
-            List.foldl (fn (f,pn) => tVF pn f) (p, BD.addToSet (b,n)) l
-        | tV pn (MONAD (r,f,t)) = tV (tV (tV pn r) f) t
-        | tV (p,n) (VAR (_,b)) = (p, BD.addToSet(b,n))
-      and tVF (p,n) (RField {name, fty = t, exists = b}) =
-         tV (BD.addToSet (b,p), n) t
-      in (tV pn e)
-   end
+   (* Generate a Boolean function that describes the flow between the type
+   variables of an algebraic data type, e.g. tree[a.1], and its constructors,
+   e.g. Node {l.4:tree[a.2], key.5:int, r.6:tree[a.3], b.7}. When the Boolean
+   flag is False, the generated flow is 1->2 and 1->3 for turning an
+   expression to a datatype. If the flag is True, the flow is revered, which
+   is used when dissecting a data type. In every case, record fields are all
+   required and no other fields are allowed, e.g. 4 and 5 and 6 and not 7. *)
+   fun texpConstructorFlow vars co e = let
+      fun tCF co (FUN (f1, f2), bFun) = tCF co (f2, List.foldl (tCF (not co)) bFun f1)
+        | tCF co (SYN (syn, t), bFun) = tCF co (t, bFun)
+        | tCF co (ZENO, bFun) = bFun
+        | tCF co (FLOAT, bFun) = bFun
+        | tCF co (STRING, bFun) = bFun
+        | tCF co (UNIT, bFun) = bFun
+        | tCF co (VEC t, bFun) = tCF co (t, bFun)
+        | tCF co (CONST c, bFun) = bFun
+        | tCF co (ALG (ty, l), bFun) = List.foldl (tCF co) bFun l
+        | tCF co (RECORD (v,b,l), bFun) =
+            BD.meetVarZero b (List.foldl (tCFF co) bFun l)
+        | tCF co (MONAD (r,f,t), bFun) =
+         tCF co (r, tCF (not co) (f, tCF co (t, bFun)))
+        | tCF co (VAR (v,b), bFun) =
+            case List.find (fn (var,_) => TVar.eq(var,v)) vars of
+                 NONE => raise LangTypesBug
+               | SOME (_,bVar) => if co
+                  then BD.meetVarImpliesVar (b,bVar) bFun
+                  else BD.meetVarImpliesVar (bVar,b) bFun
+      and tCFF co (RField {name = n, fty = t, exists = b}, bFun) =
+        BD.meetVarOne b (tCF co (t, bFun))
+      in (tCF co (e, BD.empty))
+   end                   
 
    fun fieldOfBVar (v, e) = let
       fun takeIfSome (t,fo) = case ff t of SOME f => SOME f | NONE => fo
