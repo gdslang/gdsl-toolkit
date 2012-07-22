@@ -29,6 +29,9 @@ val decode = do
         addrsz='0',
         lock='0',
         segment=DS,
+        mod='00',
+        reg/opcode='000',
+        rm='000',
         ptrty=32}; #TODO: check
    p64
 end

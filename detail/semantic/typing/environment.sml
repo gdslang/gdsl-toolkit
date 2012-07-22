@@ -54,8 +54,8 @@ structure Environment : sig
    stack and return if an instance of this type must be used; arguments are
    the symbol to look up, the position it occurred and a list of symbols that
    denote the current context/function (the latter is ignored if the symbol
-   already has a type) *) val pushSymbol : VarInfo.symid * Error.span *
-   environment -> environment
+   already has a type) *)
+   val pushSymbol : VarInfo.symid * Error.span * environment -> environment
 
    val getUsages : VarInfo.symid * environment -> Error.span list
    
