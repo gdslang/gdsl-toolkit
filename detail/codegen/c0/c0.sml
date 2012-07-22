@@ -250,8 +250,22 @@ structure C = struct
                                PrettyC.call' ("__RECORD_END", args)])]
                   end
              | UNT => PrettyC.local1(x, str "__UNIT")
-             | STR s => (* TODO *) PrettyC.local1(x, str "__UNIT")
-             | _ => (* TODO *) raise Fail "unimplemented letval binding"
+             | STR s => 
+                  let
+                     val args = seq [lp, PrettyC.var x, rp]
+                  in
+                     PrettyC.cseq
+                        [PrettyC.local0 x,
+                         indent 2
+                           (PrettyC.cseq
+                              [PrettyC.call' ("__ROPE_BEGIN", args),
+                               PrettyC.call'
+                                 ("__ROPE_FROMCSTRING",
+                                  seq [lp,str"\"",str s,str"\"",rp]),
+                               PrettyC.call' ("__ROPE_END", args)])]
+                  end
+                  
+             | _ => (* TODO *) raise Fail "Unimplemented literal"
 
          fun emitFlow f =
             case f of

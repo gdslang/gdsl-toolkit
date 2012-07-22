@@ -253,7 +253,9 @@ structure Number =
 
       fun equals (T r, T r') = Real.== (r, r')
 
-      fun fromReal r = if r < 0.0 then raise Fail "Number.fromReal" else T r
+      (* fun fromReal r = if r < 0.0 then raise Fail "Number.fromReal" else T r *)
+
+      fun fromReal r = T r
 
       val toReal = fn T r => r
 
