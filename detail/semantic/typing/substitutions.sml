@@ -12,6 +12,8 @@ structure Substitutions : sig
 
    val substsFilter : Substs * TVar.set -> Substs
    
+   val applySubstsToVarset : Substs * TVar.set -> TVar.set
+   
    val isEmpty : Substs -> bool
 
    val showSubstsSI : Substs * TVar.varmap -> string * TVar.varmap
@@ -63,6 +65,21 @@ end = struct
 
    fun substsFilter (Substs ss, set) =
      Substs (List.filter (fn (v,_) => TVar.member (set,v)) ss)
+
+   fun applySubstsToVarset (Substs ss, set) =
+      let
+         fun getTargetVars (WITH_TYPE t, set) = texpVarset (t,set)
+           | getTargetVars (WITH_FIELD (fs,var,_), set) =
+            List.foldl
+               (fn (RField {name = n, fty = t, exists = b},set) =>
+                  texpVarset (t,set))
+               (TVar.add (var,set)) fs
+      in
+         List.foldl (fn ((v, st),set) =>
+                     if TVar.member (set,v)
+                        then getTargetVars (st,TVar.del (v,set))
+                        else set) set ss
+      end
 
    fun isEmpty (Substs ss) = List.null ss
 
@@ -164,13 +181,6 @@ end = struct
 
    val emptyExpandInfo = TVMap.empty : expand_info
 
-   fun getTargetVars (WITH_TYPE t) = texpBVarset (op ::) (t,[])
-     | getTargetVars (WITH_FIELD (fs,var,bvar)) =
-      List.foldl
-         (fn (RField {name = n, fty = t, exists = b},bs) =>
-            texpBVarset (op ::) (t,(false,b)::bs))
-         [(false,bvar)] fs
-
    fun addToExpandInfo (tvar, bvar, target, ei) =
       let
          val detail = case TVMap.find (ei, tvar) of
@@ -211,6 +221,12 @@ end = struct
                     NONE => bFun
                   | SOME (inst, insts) =>
                      expandTVar (insts, BD.expand (tvarInfo, inst, bFun))
+               fun getTargetVars (WITH_TYPE t) = texpBVarset (op ::) (t,[])
+                 | getTargetVars (WITH_FIELD (fs,var,bvar)) =
+                  List.foldl
+                     (fn (RField {name = n, fty = t, exists = b},bs) =>
+                        texpBVarset (op ::) (t,(false,b)::bs))
+                     [(false,bvar)] fs
             in
                expandTVar (List.map getTargetVars insts, bFun)
             end

@@ -20,6 +20,7 @@ structure TVar : sig
    val fromList : tvar list -> set
    val listItems : set -> tvar list
    val add : tvar * set -> set
+   val del : tvar * set -> set
    val union : set * set -> set
    val intersection : set * set -> set
    val difference : set * set -> set
@@ -68,6 +69,7 @@ end = struct
    fun fromList l = IntSet.fromList (List.map (fn (TVAR v) => v) l)
    fun listItems vs = List.map (fn v => (TVAR v)) (IntSet.listItems vs)
    fun add (TVAR v, l) = IntSet.add' (v, l)
+   fun del (TVAR v, l) = IntSet.delete (l, v)
    val union = IntSet.union
    val intersection = IntSet.intersection
    val difference = IntSet.difference

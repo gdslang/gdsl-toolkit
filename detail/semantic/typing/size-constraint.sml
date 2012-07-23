@@ -28,6 +28,8 @@ structure SizeConstraint : sig
 
 end = struct
 
+   exception SizeConstraintBug
+
    type size_constraint = {
       terms : (int * TVar.tvar) list,
       const : int
@@ -40,10 +42,14 @@ end = struct
       | FRACTIONAL
       | NEGATIVE
 
-   fun filter (vs, scs) = List.filter
-      (fn {terms = ts, const} =>
-         List.exists (fn (_,v) => TVar.member (vs,v)) ts)
-      scs
+   fun filter (vs, scs) =
+      let
+         fun hasDeadLeading {terms = (_,v)::_, const} = TVar.member (vs,v)
+           | hasDeadLeading _ = raise SizeConstraintBug 
+         val scs = List.filter hasDeadLeading scs
+      in
+         scs
+      end
 
    fun toStringSI (scs, filterSet, si) =
       let
@@ -69,8 +75,6 @@ end = struct
       end
          
    val empty = []
-
-   exception SizeConstraintBug
 
    fun addTermToSC (f,v,{terms = ts, const = c}) =
       let
@@ -108,8 +112,17 @@ end = struct
            | m ((f1,v1)::ts1, []) = (mul1*f1,v1) :: m (ts1, [])
            | m ([], (f2,v2)::ts2) = (mul2*f2,v2) :: m ([], ts2)
            | m ([], []) = []
+         val ts = m (ts1,ts2)
+         val c = mul1*n1+mul2*n2
+         fun gcd (m,n) = if m=n then n else
+                           if m>n then gcd(m-n,n) else gcd(m,n-m)
+         val d = List.foldl (fn ((f,_),d) => if d=0 then Int.abs f else
+                                             gcd (Int.abs f,d))
+                            (Int.abs c) ts
       in
-         {terms = m (ts1,ts2), const = mul1*n1+mul2*n2}
+         if d<=1 then {terms = ts, const = c} else
+          {terms = List.map (fn (f,v) => (Int.quot (f,d),v)) ts,
+           const = Int.quot (c,d)}
       end
 
    fun add (eq,scs) =
