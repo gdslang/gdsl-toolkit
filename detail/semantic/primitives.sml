@@ -167,6 +167,7 @@ structure Primitives = struct
        {name=">", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
        {name="<=", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
        {name=">=", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
+       {name="===", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
        {name="++", ty=vvv s1,
         flow = BD.meetVarZero (bvar s1)},
        {name="--", ty=vvv s2,

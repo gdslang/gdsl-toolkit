@@ -67,6 +67,31 @@ type sem_writeback =
    SEM_WRITE_VAR of {size: int, id: sem_var}
  | SEM_WRITE_MEM of {size: int, address: sem_linear}
 
+val rreil-sizeOf op =
+   case op of
+      SEM_LIN x: x.size
+    | SEM_BSWAP x: x.size 
+    | SEM_MUL x: x.size
+    | SEM_DIV x: x.size
+    | SEM_DIVS x: x.size
+    | SEM_MOD x: x.size
+    | SEM_SHL x: x.size
+    | SEM_SHR x: x.size
+    | SEM_SHRS x: x.size
+    | SEM_AND x: x.size
+    | SEM_OR x: x.size
+    | SEM_XOR x: x.size
+    | SEM_SX x: x.size
+    | SEM_ZX x: x.size
+    | SEM_CMPEQ x: 1
+    | SEM_CMPNEQ x: 1
+    | SEM_CMPLES x: 1
+    | SEM_CMPLEU x: 1
+    | SEM_CMPLTS x: 1
+    | SEM_CMPLTU x: 1
+    | SEM_ARB x: x.size
+   end
+
 val revSeq stmts =
    let
       val lp stmt acc =

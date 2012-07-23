@@ -1,3 +1,4 @@
+# vim:filetype=sml:ts=3:sw=3:expandtab
 
 # This is a modified version of the original implementation for SML.
 #
@@ -17,13 +18,19 @@ export =
    bbtree-empty
    bbtree-singleton
    bbtree-add
+   bbtree-addWith
    bbtree-intersection
    bbtree-difference
    bbtree-contains?
    bbtree-simpleUnion
+   bbtree-splitLessThan
+   bbtree-splitGreaterThan
    bbtree-union
    bbtree-remove
    bbtree-removeMin
+   bbtree-get
+   bbtree-getOrElse
+   bbtree-fold
 
    intset-size
    intset-empty
@@ -35,8 +42,23 @@ export =
    intset-union
    intset-remove
    intset-removeMin
+   intset-fold
+
+   fitree-lt?
+   fitree-size
+   fitree-empty
+   fitree-singleton
+   fitree-add
+   fitree-intersection
+   fitree-difference
+   fitree-contains?
+   fitree-union
+   fitree-remove
+   fitree-removeMin
+   fitree-fold
 
 #type intset = bbtree [a=int]
+#type fitree = bbtree [a={lo:int,hi:int}]
 
 type bbtree = 
    Lf
@@ -162,6 +184,17 @@ val bbtree-add lt? bt x =
          else if lt? t.payload x
             then mkT t.payload t.left (bbtree-add lt? t.right x)
          else mkBr x t.size t.left t.right
+   end
+
+val bbtree-addWith lt? f bt x =
+   case bt of
+      Lf: mkBr x 1 bt bt
+    | Br t:
+         if lt? x t.payload
+            then mkT t.payload (bbtree-addWith lt? f t.left x) t.right
+         else if lt? t.payload x
+            then mkT t.payload t.left (bbtree-addWith lt? f t.right x)
+         else mkBr (f t.payload x) t.size t.left t.right
    end
 
 val bbtree-remove lt? bt x =
@@ -307,6 +340,17 @@ val bbtree-get lt? bt x =
          else t.payload
    end
 
+val bbtree-getOrElse lt? bt x y =
+   case bt of
+      Lf: y
+    | Br t: 
+         if lt? x t.payload
+            then bbtree-get lt? t.left x
+         else if lt? t.payload x 
+            then bbtree-get lt? t.right x 
+         else t.payload
+   end
+
 val bbtree-intersection lt? btl btr =
    case btl of
       Lf: btl
@@ -363,21 +407,50 @@ val bbtree-simpleUnion lt? btl btr =
 
 val bbtree-union lt? btl btr = bbtree-simpleUnion lt? btl btr
 
-## Integer sets
+val bbtree-fold f s bt =
+   case bt of
+      Lf: s
+    | Br t: bbtree-fold f (f (bbtree-fold f s t.right) t.payload) t.left
+   end
 
-val intset-lti? a b = a < b
-val intset-add s x = bbtree-add intset-lti? s x
-val intset-remove s x = bbtree-remove intset-lti? s x
+## Integer Sets
+
+val intset-lt? a b = a < b
+val intset-add s x = bbtree-add intset-lt? s x
+val intset-remove s x = bbtree-remove intset-lt? s x
 val intset-removeMin s = bbtree-removeMin s
-val intset-union a b = bbtree-union intset-lti? a b
-val intset-intersection a b = bbtree-intersection intset-lti? a b
-val intset-difference a b = bbtree-difference intset-lti? a b
-val intset-contains? s x = bbtree-contains? intset-lti? s x
+val intset-union a b = bbtree-union intset-lt? a b
+val intset-intersection a b = bbtree-intersection intset-lt? a b
+val intset-difference a b = bbtree-difference intset-lt? a b
+val intset-contains? s x = bbtree-contains? intset-lt? s x
 val intset-empty x = bbtree-empty x
 val intset-singleton x = bbtree-singleton x
 val intset-size s = bbtree-size s
+val intset-fold f s t = bbtree-fold f s t
 
-#
+## (Finite) Interval Trees
+
+val fitree-lt? a b =
+   if a.lo < b.lo
+      then '1'
+   else if a.lo > b.lo
+      then '0'
+   else a.hi < b.hi
+
+val fitree-add s x = bbtree-add fitree-lt? s x
+val fitree-remove s x = bbtree-remove fitree-lt? s x
+val fitree-removeMin s = bbtree-removeMin s
+val fitree-union a b = bbtree-union fitree-lt? a b
+val fitree-intersection a b = bbtree-intersection fitree-lt? a b
+val fitree-difference a b = bbtree-difference fitree-lt? a b
+val fitree-contains? s x = bbtree-contains? fitree-lt? s x
+val fitree-empty x = bbtree-empty x
+val fitree-singleton x = bbtree-singleton x
+val fitree-size s = bbtree-size s
+val fitree-fold f s t = bbtree-fold f s t
+
+# TODO: Port the following {hedge union} sml code to GDSL
+
 #local
 #fun trim (lo,hi,E) = E
 #| trim (lo,hi,s as T(v,_,l,r)) =

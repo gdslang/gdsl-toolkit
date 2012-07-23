@@ -48,6 +48,7 @@ end = struct
          val raisee = get "raise"
          val return = get "return"
          val add = get "+"
+         val eqi = get "==="
          val muli = get "*"
          val lti = get "<"
          val lei = get "<="
@@ -115,6 +116,17 @@ end = struct
                      
             in
                (muli, [a, b], body)
+            end
+
+         val eqi =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%eqi"
+               val body = PRI (prim, [a, b])
+                     
+            in
+               (eqi, [a, b], body)
             end
 
          val lei =
@@ -334,6 +346,7 @@ end = struct
           muli,
           lei,
           lti,
+          eqi,
           gei,
           gti]
       end
