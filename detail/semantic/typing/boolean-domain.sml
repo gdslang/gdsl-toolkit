@@ -40,6 +40,8 @@ structure BooleanDomain : sig
    
    val addToSet : bvar * bvarset -> bvarset
    
+   val isRelated : bvar * bfun -> bvar -> bool
+
    val setToString : bvarset -> string
 
    val projectOnto : bvarset * bfun -> bfun
@@ -47,6 +49,7 @@ structure BooleanDomain : sig
    val expand : bvar list * (bool * bvar) list * bfun -> bfun
    
    val meet : bfun * bfun -> bfun
+   
    
    (*val b1 : bvar
    val b2 : bvar
@@ -204,16 +207,27 @@ end = struct
    val emptySet = IS.empty
    val union = IS.union
 
-   fun addToSet (BVAR v, set) =
-      if IS.member (set,v) then set else IS.add' (v,set)
+   fun addToSet (BVAR v, set) = IS.add' (v,set)
 
    fun setToString set =
       let
          fun show (v, (str, sep)) = (str ^ sep ^ i v, ", ")
       in
-         #1 (List.foldl show ("", "{") (IS.listItems set)) ^ "}"
+         #1 (List.foldl show ("{", "") (IS.listItems set)) ^ "}"
       end                               
    
+   fun isRelated (BVAR v, (us, cs)) =
+      let
+         val set = CS.foldl (fn ((v1,v2),vs) =>
+            if IS.member(vs,Int.abs v1) then IS.add' (Int.abs v2, vs) else
+            if IS.member(vs,Int.abs v2) then IS.add' (Int.abs v1, vs) else vs)
+            (IS.singleton v) cs
+         (*val _ = TextIO.print ("bVar " ^ i v ^ " is related to " ^ setToString set ^ 
+                              " in " ^ showBFun (us, cs) ^ "\n")*)
+      in
+         fn (BVAR var) => IS.member(set,var)
+      end
+
    fun projectOnto (keep, (us, cs)) =
       let
          fun addBad (v,set) = if IS.member (keep,Int.abs v) then set

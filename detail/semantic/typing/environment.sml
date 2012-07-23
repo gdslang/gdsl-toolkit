@@ -754,22 +754,24 @@ end = struct
          aF (SymbolSet.empty, substs, env)
       end
 
-   fun affectedField (bVar, env) =
+   fun affectedField (bVar, env as (scs,state)) =
       let
+         val pred = BD.isRelated(bVar,Scope.getFlow state)
          fun aF (_, SOME f) = SOME f
            | aF (([],_), NONE) = NONE
            | aF (env, NONE) = case Scope.unwrap env of
-              (KAPPA {ty = t}, env) => aF (env, fieldOfBVar (bVar, t))
-            | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (bVar, t))
+              (KAPPA {ty = t}, env) =>
+               aF (env, fieldOfBVar (pred, t))
+            | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (pred, t))
             | (GROUP l, env) =>
             let
                fun findField ((_,t), SOME f) = SOME f
-                 | findField ((_,t), NONE) = fieldOfBVar (bVar, t)
+                 | findField ((_,t), NONE) = fieldOfBVar (pred, t)
                fun aFL {name, ty = tOpt, width, uses} =
                   List.foldl findField
                      (case tOpt of
                           NONE => NONE
-                        | SOME (t,_) => fieldOfBVar (bVar, t))
+                        | SOME (t,_) => fieldOfBVar (pred, t))
                      (SpanMap.listItems uses)
             in
                aF (env, case List.mapPartial aFL l of
@@ -1274,7 +1276,8 @@ end = struct
             val bVars = texpBVarset onlyInputs (t,[])
             fun checkField bVar =
                (case BD.meetVarZero bVar bFun of _ => NONE)
-               handle (BD.Unsatisfiable _) => fieldOfBVar (bVar,t)
+               handle (BD.Unsatisfiable _) =>
+                  fieldOfBVar (BD.isRelated (bVar,bFun),t)
          in
             List.foldl (fn (bVar,fs) => case checkField bVar of
                           SOME f => f :: fs
