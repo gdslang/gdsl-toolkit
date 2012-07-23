@@ -433,8 +433,6 @@ __obj __equal(__obj,__obj);
 __obj __and(__obj,__obj);
 __obj __sx(__obj);
 __obj __zx(__obj);
-__obj __add(__obj,__obj);
-__obj __sub(__obj,__obj);
 __obj __raise(__obj);
 __obj __not(__obj);
 __obj __isNil(__obj);
@@ -443,6 +441,15 @@ __obj __concatstring(__obj,__obj);
 __obj __showbitvec(__obj);
 __obj __showint(__obj);
 __obj __flattenstring(__obj,char*,__word);
+
+/** ## Operations on integers */
+
+__obj __eqi(__obj,__obj);
+__obj __lti(__obj,__obj);
+__obj __lei(__obj,__obj);
+__obj __addi(__obj,__obj);
+__obj __subi(__obj,__obj);
+__obj __muli(__obj,__obj);
 
 /* ## API helpers */
 
