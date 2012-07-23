@@ -44,7 +44,7 @@ end
 
 structure SymbolTable :> SymbolTableSig = struct
 
-   val concisePrint : bool = false
+   val concisePrint : bool = true
 
    structure SymbolTable = IntBinaryMap
    structure Reverse = AtomRedBlackMap

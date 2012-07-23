@@ -735,10 +735,16 @@ end = struct
             let
                fun aFL (ss, []) =
                    aF (ss, substsFilter (substs, Scope.getVars env), env)
-                 | aFL (ss, {name, ty = NONE, width, uses} :: l) = aFL (ss, l)
+                 (*| aFL (ss, {name, ty = NONE, width, uses} :: l) = aFL (ss, l)
                  | aFL (ss, {name = n, ty = SOME (t,_), width, uses} :: l) =
                      if isEmpty (substsFilter (substs,
                         texpVarset (t,TVar.empty)))
+                     then aFL (ss, l)
+                     else aFL (SymbolSet.add' (n, ss), l)*)
+                 | aFL (ss, {name = n, ty, width, uses = us} :: l) =
+                     if List.all (fn (_,t) => isEmpty
+                              (substsFilter (substs, texpVarset (t,TVar.empty))))
+                           (SpanMap.listItems us)
                      then aFL (ss, l)
                      else aFL (SymbolSet.add' (n, ss), l)
             in
@@ -780,7 +786,7 @@ end = struct
                        SOME f => SOME f
                      | NONE => affectedField (bVar, env)) fOpt envs
          val fStr = case fOpt of
-                 NONE => "some other field" (*" with var " ^ BD.showVar bVar*)
+                 NONE => "some field" (*" with var " ^ BD.showVar bVar*)
                | SOME f => "field " ^
                   SymbolTable.getString(!SymbolTables.fieldTable, f)
       in
@@ -1024,14 +1030,15 @@ end = struct
                                                         Scope.getVars env2))
          fun substBinding (KAPPA {ty=t}, newUses, ei) =
             (case applySubstsToExp substs (t,ei) of (t,ei) =>
-               (KAPPA {ty = t}, TVar.empty, ei))
+               (KAPPA {ty = t}, TVar.empty, newUses, ei))
            | substBinding (SINGLE {name = n, ty = t}, newUses, ei) =
             (case applySubstsToExp substs (t,ei) of (t,ei) =>
-               (SINGLE {name = n, ty = t}, TVar.empty, ei))
+               (SINGLE {name = n, ty = t}, TVar.empty, newUses, ei))
            | substBinding (GROUP bs, newUses, ei) =
                let
                   val eiRef = ref ei
                   val varSet = ref TVar.empty
+                  val usesRef = ref newUses
                   fun optSubst (SOME t) =
                      (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
                         (eiRef := ei; SOME t))
@@ -1050,6 +1057,7 @@ end = struct
                           NONE => us
                         | SOME nUs =>
                            let
+                              val _ = usesRef := #1 (SymMap.remove (!usesRef,n))
                               val _ = varSet :=
                                  List.foldl (fn ((_,(_,t)),set) =>
                                              texpVarset (t,set)) (!varSet) nUs
@@ -1057,7 +1065,7 @@ end = struct
                               List.foldl SpanMap.insert' us nUs
                            end)}
                in
-                  (GROUP (List.map substB bs), !varSet, !eiRef)
+                  (GROUP (List.map substB bs), !varSet, !usesRef, !eiRef)
                end
          fun genImpl (t1,t2) ((contra1,f1), (contra2,f2),bFun) =
             if contra1<>contra2 then
@@ -1150,13 +1158,14 @@ end = struct
                end
            | uniteFlowInfo _ = raise InferenceBug
       in
-         if isEmpty substs then (ei, bFun, env1) else
+         if isEmpty substs andalso SymMap.isEmpty newUses1 andalso
+            SymMap.isEmpty newUses2 then (ei, bFun, env1) else
             let
                val curVars = Scope.getVars env1
                val (b1, env1) = Scope.unwrap env1
                val (b2, env2) = Scope.unwrap env2
-               val (b1', extraVars, ei) = substBinding (b1, newUses1, ei)
-               val (b2', _,         ei) = substBinding (b2, newUses2, ei)
+               val (b1', extraVars, newUses1, ei) = substBinding (b1, newUses1, ei)
+               val (b2', _,         newUses2, ei) = substBinding (b2, newUses2, ei)
                val (b,bFun) = uniteFlowInfo (b1', b2', bFun)
                val (ei, bFun, env) =
                      applySubsts (substs, ei, bFun, false, newUses1, newUses2, env1, env2)
