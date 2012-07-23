@@ -345,9 +345,9 @@ val bbtree-getOrElse lt? bt x y =
       Lf: y
     | Br t: 
          if lt? x t.payload
-            then bbtree-get lt? t.left x
+            then bbtree-getOrElse lt? t.left x y
          else if lt? t.payload x 
-            then bbtree-get lt? t.right x 
+            then bbtree-getOrElse lt? t.right x y
          else t.payload
    end
 
