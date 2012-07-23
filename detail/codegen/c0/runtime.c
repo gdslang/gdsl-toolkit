@@ -47,9 +47,11 @@ __obj __and (__obj a_, __obj b_) {
   return (x);
 }
 
-__obj __add (__obj A, __obj B) {
-  __word a = A->z.value;
-  __word b = B->z.value;
+/** ## Operations on integers */
+
+__obj __addi (__obj A, __obj B) {
+  __int a = A->z.value;
+  __int b = B->z.value;
   __LOCAL0(x);
     __INT_BEGIN(x);
     __INT_INIT(a + b);
@@ -57,14 +59,42 @@ __obj __add (__obj A, __obj B) {
   return (x);
 }
 
-__obj __sub (__obj A, __obj B) {
-  __word a = A->z.value;
-  __word b = B->z.value;
+__obj __subi (__obj A, __obj B) {
+  __int a = A->z.value;
+  __int b = B->z.value;
   __LOCAL0(x);
     __INT_BEGIN(x);
     __INT_INIT(a - b);
     __INT_END(x);
   return (x);
+}
+
+__obj __muli (__obj A, __obj B) {
+  __int a = A->z.value;
+  __int b = B->z.value;
+  __LOCAL0(x);
+    __INT_BEGIN(x);
+    __INT_INIT(a + b);
+    __INT_END(x);
+  return (x);
+}
+
+__obj __eqi (__obj A, __obj B) {
+  __int a = A->z.value;
+  __int b = B->z.value;
+  return (a==b?__TRUE:__FALSE);
+}
+
+__obj __lti (__obj A, __obj B) {
+  __int a = A->z.value;
+  __int b = B->z.value;
+  return (a<b?__TRUE:__FALSE);
+}
+
+__obj __lei (__obj A, __obj B) {
+  __int a = A->z.value;
+  __int b = B->z.value;
+  return (a<=b?__TRUE:__FALSE);
 }
 
 /* FIXME */

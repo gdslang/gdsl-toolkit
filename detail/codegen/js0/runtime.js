@@ -99,6 +99,33 @@ function __and (a, b) {
   return {sz:sz, vec:a & b};
 }
 
+// ## Operations on integers
+
+function __eqi (a, b) {
+  return a==b?__TRUE:__FALSE;
+}
+
+function __lti (a, b) {
+  return a<b?__TRUE:__FALSE;
+}
+
+function __lei (a, b) {
+  return a<=b?__TRUE:__FALSE;
+}
+
+function __addi (a, b) {
+  return a + b;
+}
+
+function __subi (a, b) {
+  return a - b;
+}
+
+function __muli (a, b) {
+  return a * b;
+}
+
+// DEPRECATED
 function __casetag (obj) {
   if (typeof obj == "number") {
     return obj;
