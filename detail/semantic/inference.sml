@@ -220,7 +220,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      " when checking call to ",
                      SymbolTable.getString(!SymbolTables.varTable, sym),
                      "\n\tcall provides type  " ^ sCall,
-                     "\n\tdefinition has type " ^ sFun]))
+                     "\tdefinition has type " ^ sFun]))
                   end
                val env = E.meetFlow (envCall, envFun)
                   handle (S.UnificationFailure str) =>

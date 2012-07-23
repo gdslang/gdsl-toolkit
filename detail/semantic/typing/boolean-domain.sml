@@ -10,11 +10,13 @@ structure BooleanDomain : sig
    
    val empty : bfun
 
+   type bvarset
+   
    val showVar : bvar -> string
    
    val showBFun : bfun -> string
 
-   exception Unsatisfiable of bvar
+   exception Unsatisfiable of bvarset
    
    val meetVarImpliesVar : bvar * bvar -> bfun -> bfun
 
@@ -28,8 +30,6 @@ structure BooleanDomain : sig
 
    val meetVarOne : bvar -> bfun -> bfun
 
-   type bvarset
-   
    val meetVarSetZero : bvarset -> bfun -> bfun
 
    val meetVarSetOne : bvarset -> bfun -> bfun
@@ -39,9 +39,9 @@ structure BooleanDomain : sig
    val union : bvarset * bvarset -> bvarset
    
    val addToSet : bvar * bvarset -> bvarset
-   
-   val isRelated : bvar * bfun -> bvar -> bool
 
+   val member : bvarset * bvar -> bool
+   
    val setToString : bvarset -> string
 
    val projectOnto : bvarset * bfun -> bfun
@@ -99,6 +99,9 @@ end = struct
 
    type bfun = units * clauses
    
+   structure IS = IntBinarySet
+   type bvarset = IS.set
+   
    val empty = (US.empty, CS.empty)
 
    fun i v = Int.toString v
@@ -117,12 +120,12 @@ end = struct
          ) ""
    fun showBFun (us, cs) = showUS us ^ showCS cs
 
-   exception Unsatisfiable of bvar
+   exception Unsatisfiable of bvarset
    
    fun addUnits ([], f) = f
      | addUnits (v :: vs, f as (us, cs)) = (
      (*TextIO.print ("asserting " ^ i v ^ " in:" ^ showBFun f ^ "\n"); *)
-      if US.member (us,~v) then raise (Unsatisfiable (BVAR (abs v))) else
+      if US.member (us,~v) then raise (Unsatisfiable (IS.singleton (abs v))) else
       if US.member (us, v) then addUnits (vs, f) else
       let
          fun hasV (v1,v2) = v1=v orelse v1= ~v orelse v2=v orelse v2= ~v
@@ -130,7 +133,7 @@ end = struct
          fun ins v vs =
             if List.exists (fn v' => v'=v) vs then vs else
             if List.exists (fn v' => v'= ~v) vs then
-               raise Unsatisfiable (BVAR (abs v)) 
+               raise Unsatisfiable (IS.singleton (abs v)) 
             else v :: vs
          fun calcUnits ((v1,v2), units) = (
             (*TextIO.print ("\nlooking at " ^ i v1 ^ " v " ^ i v2);*)
@@ -152,6 +155,16 @@ end = struct
          if v1=v2 then addUnits ([v1], f) else f
       ) else (us, CS.add' (if v1<v2 then (v1,v2) else (v2,v1), cs))
    
+   fun getRelated (vs, (us, cs)) =
+      let
+         val set = CS.foldl (fn ((v1,v2),set) =>
+            if IS.member(set,Int.abs v1) then IS.add' (Int.abs v2, set) else
+            if IS.member(set,Int.abs v2) then IS.add' (Int.abs v1, set) else set)
+            vs cs
+      in
+         set
+      end
+
    (*fun meetVarImpliesVar (BVAR v1, BVAR v2) f = f
    fun meetNotBoth (BVAR v1, BVAR v2, f) = f
    fun meetEither (BVAR v1, BVAR v2, f) = f
@@ -162,19 +175,33 @@ end = struct
    fun meetVarImpliesVar (BVAR v1, BVAR v2) f = (
       (*TextIO.print ("meet with " ^ i v1 ^ " -> " ^ i v2 ^ "\n");*)
       if v1=v2 then f else addClause ((~v1,v2), f)
+         handle Unsatisfiable set =>
+            raise Unsatisfiable (getRelated (IS.add' (v1,IS.add'(v2,set)),f))
       )
-   fun meetNotBoth (BVAR v1, BVAR v2, f) = addClause ((~v1,~v2),f)
-   fun meetEither (BVAR v1, BVAR v2, f) = addClause ((v1,v2),f)
+   fun meetNotBoth (BVAR v1, BVAR v2, f) =
+      addClause ((~v1,~v2),f)
+         handle Unsatisfiable set =>
+            raise Unsatisfiable (getRelated (IS.add' (v1,IS.add'(v2,set)),f))
+   fun meetEither (BVAR v1, BVAR v2, f) =
+      addClause ((v1,v2),f)
+         handle Unsatisfiable set =>
+            raise Unsatisfiable (getRelated (IS.add' (v1,IS.add'(v2,set)),f))
    fun meetEqual  (BVAR v1, BVAR v2, f) =
       if v1=v2 then f else addClause ((~v1,v2), addClause ((~v2,v1),f))
+         handle Unsatisfiable set =>
+            raise Unsatisfiable (getRelated (IS.add' (v1,IS.add'(v2,set)),f))
 
    fun meetVarOne (BVAR v) f = (
          (*TextIO.print ("\nmeet with " ^ i v ^ " = t\n");*)
          addUnits ([v], f)
+         handle Unsatisfiable set =>
+            raise Unsatisfiable (getRelated (IS.add' (v,set),f))
          )
    fun meetVarZero (BVAR v) f = (
          (*TextIO.print ("\nmeet with " ^ i v ^ " = f\n");*)
          addUnits ([~v], f)
+         handle Unsatisfiable set =>
+            raise Unsatisfiable (getRelated (IS.add' (v,set),f))
          )
 
    fun resolve ([], (us, cs)) = (us, cs)
@@ -193,9 +220,6 @@ end = struct
         resolve (vs, comb (us, cs) (posVars, negVars))
      end
      
-   structure IS = IntBinarySet
-   type bvarset = IS.set
-   
    fun meetVarSetOne is f = (
          addUnits (IS.listItems is, f)
          )
@@ -209,6 +233,8 @@ end = struct
 
    fun addToSet (BVAR v, set) = IS.add' (v,set)
 
+   fun member (set, BVAR v) = IS.member(set, v)
+
    fun setToString set =
       let
          fun show (v, (str, sep)) = (str ^ sep ^ i v, ", ")
@@ -216,18 +242,6 @@ end = struct
          #1 (List.foldl show ("{", "") (IS.listItems set)) ^ "}"
       end                               
    
-   fun isRelated (BVAR v, (us, cs)) =
-      let
-         val set = CS.foldl (fn ((v1,v2),vs) =>
-            if IS.member(vs,Int.abs v1) then IS.add' (Int.abs v2, vs) else
-            if IS.member(vs,Int.abs v2) then IS.add' (Int.abs v1, vs) else vs)
-            (IS.singleton v) cs
-         (*val _ = TextIO.print ("bVar " ^ i v ^ " is related to " ^ setToString set ^ 
-                              " in " ^ showBFun (us, cs) ^ "\n")*)
-      in
-         fn (BVAR var) => IS.member(set,var)
-      end
-
    fun projectOnto (keep, (us, cs)) =
       let
          fun addBad (v,set) = if IS.member (keep,Int.abs v) then set
@@ -273,6 +287,8 @@ end = struct
                      ^ "\n")*)
       in
          List.foldl addClause (addUnits (newUnits, (us, cs))) newClauses
+         handle Unsatisfiable set =>
+            raise Unsatisfiable (getRelated (set,(us,cs)))
       end
    
    fun meet ((us1, cs1), (us2, cs2)) =
@@ -281,6 +297,8 @@ end = struct
          val cs1 = CS.difference (cs1,cs2)
       in
          CS.foldl addClause (addUnits (US.listItems us1,(us2, cs2))) cs1
+         handle Unsatisfiable set =>
+            raise Unsatisfiable (getRelated (getRelated (set,(us1,cs1)),(us1,cs1)))
       end
    
    (*val b1 = freshBVar ()

@@ -754,24 +754,23 @@ end = struct
          aF (SymbolSet.empty, substs, env)
       end
 
-   fun affectedField (bVar, env as (scs,state)) =
+   fun affectedField (bVars, env as (scs,state)) =
       let
-         val pred = BD.isRelated(bVar,Scope.getFlow state)
          fun aF (_, SOME f) = SOME f
            | aF (([],_), NONE) = NONE
            | aF (env, NONE) = case Scope.unwrap env of
               (KAPPA {ty = t}, env) =>
-               aF (env, fieldOfBVar (pred, t))
-            | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (pred, t))
+               aF (env, fieldOfBVar (bVars, t))
+            | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (bVars, t))
             | (GROUP l, env) =>
             let
                fun findField ((_,t), SOME f) = SOME f
-                 | findField ((_,t), NONE) = fieldOfBVar (pred, t)
+                 | findField ((_,t), NONE) = fieldOfBVar (bVars, t)
                fun aFL {name, ty = tOpt, width, uses} =
                   List.foldl findField
                      (case tOpt of
                           NONE => NONE
-                        | SOME (t,_) => fieldOfBVar (pred, t))
+                        | SOME (t,_) => fieldOfBVar (bVars, t))
                      (SpanMap.listItems uses)
             in
                aF (env, case List.mapPartial aFL l of
@@ -1094,8 +1093,7 @@ end = struct
                (t1,
                 ListPair.foldlEq (genImpl (t1,t2)) bFun
                   (texpBVarset (op ::) (t1, []), texpBVarset (op ::) (t2, []))
-                  handle (BD.Unsatisfiable bVar) =>
-                     flowError (bVar, affectedField (bVar, env1), [env1,env2]))
+                  handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2]))
             else
             let
                (*val _ = TextIO.print ("forcing bVars to be equal:" ^
@@ -1276,8 +1274,7 @@ end = struct
             val bVars = texpBVarset onlyInputs (t,[])
             fun checkField bVar =
                (case BD.meetVarZero bVar bFun of _ => NONE)
-               handle (BD.Unsatisfiable _) =>
-                  fieldOfBVar (BD.isRelated (bVar,bFun),t)
+               handle (BD.Unsatisfiable bVars) => fieldOfBVar (bVars,t)
          in
             List.foldl (fn (bVar,fs) => case checkField bVar of
                           SOME f => f :: fs
