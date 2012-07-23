@@ -224,7 +224,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   end
                val env = E.meetFlow (envCall, envFun)
                   handle (S.UnificationFailure str) =>
-                     (raiseError str; envCall)
+                     (raiseError str; envFun)
                val (changed, env) = E.popToUsage (sym, s, oldCtxt, env)
                val _ = sm := List.foldl
                      (fn (sym,sm) => (sym, E.getFunctionInfo (sym, env)) ::
@@ -389,13 +389,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envHave = infExp (st,env) e1
          val env = E.meet (envWant, envHave)
          val env = E.popKappa env
+         val envM = E.pushTop env
          val envT = infExp (st,env) e2
          (*val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)*)
+         val envM = E.meetFlow (envM,envT)
          val envE = infExp (st,env) e3
          (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)*)
-         val env = E.meet (envE,envT)
+         val envM = E.meetFlow (envM,envE)
+         (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString envM)*)
       in
-         env
+         envM
       end
      | infExp (st,env) (AST.CASEexp (e,l)) =
       let
