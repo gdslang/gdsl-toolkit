@@ -240,7 +240,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
                val env = List.foldl (checkUsage sym) env usages
             in
-               env
+               (* Two usage sites might influence each other's type. Since we
+               don't know which influences which, we check every usage site
+               twice if there is more than one usage site. This is a bit more
+               than one iteration since an earlier use site could refine a
+               later use site twice but it's close. We maintain the point of
+               view that recursion *between* two functions is always an error.
+               *)
+               if List.length usages<=1 then env else
+                  List.foldl (checkUsage sym) env usages
             end
       in
          List.foldl calcUsages env (E.SymbolSet.listItems unstable)
