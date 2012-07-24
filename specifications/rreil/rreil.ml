@@ -1,7 +1,5 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate
-
 type sem_id =
    ARCH_R of int
  | VIRT_EQ  # ==
@@ -113,27 +111,6 @@ val operandSize op =
    case op of
       SEM_CMPLES x : x.size
     | x : resultSize op
-   end
-
-val guessSizeOf dst/src1 src2 = 
-   case dst/src1 of
-      REG r: return ($size (semanticRegisterOf r))
-    | MEM x: return x.sz
-    | _:
-         case src2 of
-            REG r: return ($size (semanticRegisterOf r))
-          | MEM x: return x.sz
-         end
-   end
-
-val sizeOf op =
-   case op of
-      REG r: return ($size (semanticRegisterOf r))
-    | MEM x: return x.sz
-    | IMM8 i: return (8)
-    | IMM16 i: return (16)
-    | IMM32 i: return (32)
-    | IMM64 i: return (64)
    end
 
 val var//0 x = {id=x,offset=0}

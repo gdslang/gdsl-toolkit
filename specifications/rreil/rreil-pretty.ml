@@ -73,7 +73,7 @@ val showrreil/linear lin =
          case x.imm of
             0: ""
           | 1: showrreil/linear x.opnd
-          | s: showint s +++ "*" +++ showrreil/linear lin
+          | s: showint s +++ "*" +++ showrreil/linear x.opnd
          end
    end
 

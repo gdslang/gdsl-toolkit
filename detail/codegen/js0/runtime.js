@@ -92,6 +92,16 @@ function __not (a) {
   return {sz:a.sz, vec:~a.vec & ((1<<sz)-1)};
 }
 
+// FIXME:
+function __sx (x) {
+  return x.vec
+}
+
+// FIXME:
+function __zx (x) {
+  return x.vec
+}
+
 function __and (a, b) {
   var aa = a.vec;
   var bb = b.vec;
@@ -137,6 +147,13 @@ function __casetag (obj) {
   throw '__CASETAG() applied to non-tagged object'
 }
 
+function __decon (obj) {
+  if (typeof obj == 'number')
+    return obj;
+  else
+    return 'payload' in obj ? obj.payload : obj;
+}
+
 function __casetagcon (obj) { return obj.tag };
 
 function __casetagvec (obj) { return obj.vec };
@@ -154,8 +171,8 @@ function __evalPure (f, x) {
   return f(__halt,x);
 }
 
-function __eval2 (f, x, state) {
-  function k (kk) { kk(state) };
+function __eval2 (f, x, y) {
+  function k (g) { return g(__halt,y); }
   return f(k,x);
 }
 

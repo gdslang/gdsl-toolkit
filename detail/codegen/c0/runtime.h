@@ -177,8 +177,6 @@
 #define __TAGGED_BEGIN(Cname)\
   __CHECK_HEAP(1)
 
-#define __DECON(o) (o)->tagged.payload
-
 /** ## Blobs */
 
 #define __BLOB_BEGIN(Cname)\
@@ -388,6 +386,15 @@ static inline void __recordCloneFields (struct __record* record) {
   __word sz = record->sz;
   __objref fields = __ALLOCN(sz);
   memcpy(fields, record->fields, sz*sizeof(__unwrapped_obj));
+}
+
+/* #define __DECON(o) (o)->tagged.payload */
+/* PERF */
+static inline __obj __DECON (__obj o) {
+  switch (__TAG(o)) {
+    case __TAGGED: return (o->tagged.payload);
+    default: return o;
+  }
 }
 
 static inline __word __CASETAG (__obj o) {

@@ -31,6 +31,7 @@ export =
    bbtree-get
    bbtree-getOrElse
    bbtree-fold
+   bbtree-pretty
 
    intset-size
    intset-empty
@@ -56,6 +57,8 @@ export =
    fitree-remove
    fitree-removeMin
    fitree-fold
+   fitree-pretty
+   fitree-mk
 
 #type intset = bbtree [a=int]
 #type fitree = bbtree [a={lo:int,hi:int}]
@@ -172,8 +175,6 @@ val mkT v lt rt =
                else mkBr v (l.size+r.size+1) lt rt
          end
    end
-
-#val lt? a b = a < b
 
 val bbtree-add lt? bt x =
    case bt of
@@ -413,6 +414,13 @@ val bbtree-fold f s bt =
     | Br t: bbtree-fold f (f (bbtree-fold f s t.right) t.payload) t.left
    end
 
+val bbtree-pretty f bt =
+   let
+      val prettyKey s x = s +++ f x +++ ","
+   in
+      "{" +++ bbtree-fold prettyKey "" bt +++ "}"
+   end
+
 ## Integer Sets
 
 val intset-lt? a b = a < b
@@ -437,6 +445,7 @@ val fitree-lt? a b =
       then '0'
    else a.hi < b.hi
 
+val fitree-mk l h = {lo=l, hi=h}
 val fitree-add s x = bbtree-add fitree-lt? s x
 val fitree-remove s x = bbtree-remove fitree-lt? s x
 val fitree-removeMin s = bbtree-removeMin s
@@ -448,6 +457,13 @@ val fitree-empty x = bbtree-empty x
 val fitree-singleton x = bbtree-singleton x
 val fitree-size s = bbtree-size s
 val fitree-fold f s t = bbtree-fold f s t
+val fitree-pretty t =
+   let
+      val prettyInterval x =
+         "[" +++ showint x.lo +++ "," +++ showint x.hi +++ "]"
+   in
+      bbtree-pretty prettyInterval t
+   end
 
 # TODO: Port the following {hedge union} sml code to GDSL
 
