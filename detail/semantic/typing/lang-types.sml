@@ -6,7 +6,7 @@ structure Types = struct
    type varset = TVar.set
    val freshTVar = TVar.freshTVar
 
-   val concisePrint = false
+   val concisePrint = true
 
    datatype texp =
       (* a function taking at least one argument *)
@@ -121,7 +121,7 @@ structure Types = struct
       in (tCF co (e, BD.empty))
    end                   
 
-   fun fieldOfBVar (v, e) = let
+   fun fieldOfBVar (bVars, e) = let
       fun takeIfSome (t,fo) = case ff t of SOME f => SOME f | NONE => fo
       and ff (FUN (f1, f2)) = takeIfSome (f2,
             case List.mapPartial ff f1 of
@@ -141,7 +141,7 @@ structure Types = struct
         | ff (MONAD (r,f,t)) = takeIfSome (r, (takeIfSome (f,ff t)))
         | ff (VAR (b,_)) = NONE
       and ffF (RField {name = n, fty = t, exists = b}) =
-         if BD.eq(v,b) then SOME n else ff t
+         if BD.member(bVars,b) then SOME n else ff t
       in ff e
    end
 

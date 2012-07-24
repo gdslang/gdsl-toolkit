@@ -171,20 +171,19 @@ end = struct
    in
       (app (fn d => fwdDecl (s,d)) declList
       ;app (fn d => vDecl (s,d)) declList
-      ;let
-         val res = {tsynDefs= !synTable,
-                    typeDefs= !dtyTable,
-                    conParents= !conTable} : type_info
-         (*val _ = TextIO.print (typeInfoToString res)*)
-       in
-          res
-       end)
+      ;{tsynDefs= !synTable, typeDefs= !dtyTable, conParents= !conTable} : type_info
+      )
    end
 
    val resolveTypeInfoPass =
-      BasicControl.mkTracePassSimple
+      BasicControl.mkKeepPass
          {passName="resolveTypeInfoPass",
-          pass=resolveTypeInfoPass}
+          registry=BasicControl.topRegistry,
+          pass=resolveTypeInfoPass,
+          preExt="ast",
+          preOutput=fn (os,(err,t)) => AST.PP.prettyTo(os, t),
+          postExt="decl",
+          postOutput=fn (os,ti) => TextIO.output (os,typeInfoToString ti)}
 
    fun run spec = let
       open CompilationMonad

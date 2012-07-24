@@ -754,22 +754,23 @@ end = struct
          aF (SymbolSet.empty, substs, env)
       end
 
-   fun affectedField (bVar, env) =
+   fun affectedField (bVars, env as (scs,state)) =
       let
          fun aF (_, SOME f) = SOME f
            | aF (([],_), NONE) = NONE
            | aF (env, NONE) = case Scope.unwrap env of
-              (KAPPA {ty = t}, env) => aF (env, fieldOfBVar (bVar, t))
-            | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (bVar, t))
+              (KAPPA {ty = t}, env) =>
+               aF (env, fieldOfBVar (bVars, t))
+            | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (bVars, t))
             | (GROUP l, env) =>
             let
                fun findField ((_,t), SOME f) = SOME f
-                 | findField ((_,t), NONE) = fieldOfBVar (bVar, t)
+                 | findField ((_,t), NONE) = fieldOfBVar (bVars, t)
                fun aFL {name, ty = tOpt, width, uses} =
                   List.foldl findField
                      (case tOpt of
                           NONE => NONE
-                        | SOME (t,_) => fieldOfBVar (bVar, t))
+                        | SOME (t,_) => fieldOfBVar (bVars, t))
                      (SpanMap.listItems uses)
             in
                aF (env, case List.mapPartial aFL l of
@@ -1092,8 +1093,7 @@ end = struct
                (t1,
                 ListPair.foldlEq (genImpl (t1,t2)) bFun
                   (texpBVarset (op ::) (t1, []), texpBVarset (op ::) (t2, []))
-                  handle (BD.Unsatisfiable bVar) =>
-                     flowError (bVar, affectedField (bVar, env1), [env1,env2]))
+                  handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2]))
             else
             let
                (*val _ = TextIO.print ("forcing bVars to be equal:" ^
@@ -1274,21 +1274,21 @@ end = struct
             val bVars = texpBVarset onlyInputs (t,[])
             fun checkField bVar =
                (case BD.meetVarZero bVar bFun of _ => NONE)
-               handle (BD.Unsatisfiable _) => fieldOfBVar (bVar,t)
+               handle (BD.Unsatisfiable bVars) => fieldOfBVar (bVars,t)
          in
             List.foldl (fn (bVar,fs) => case checkField bVar of
                           SOME f => f :: fs
                         | NONE => fs) [] bVars
          end
+       | (_,COMPOUND {ty = NONE, width, uses}) => []  (*allow type errors*)
        | _ => raise InferenceBug
 
    fun unify (env1, env2, newUses1, newUses2, substs) =
       (case Scope.unwrapDifferent (env1, env2) of
-           (SOME (KAPPA {ty = ty1}, KAPPA {ty = ty2}), env1, env2) =>
-               unify (env1, env2, newUses1, newUses2, mgu(ty1, ty2, substs))
-         | (SOME (SINGLE {name = _, ty = ty1},
-                  SINGLE {name = _, ty = ty2}), env1, env2) =>
-               unify (env1, env2, newUses1, newUses2, mgu(ty1, ty2, substs))
+           (SOME (KAPPA {ty = t1}, KAPPA {ty = t2}), env1, env2) =>
+            unify (env1, env2, newUses1, newUses2, mgu (t1,t2,substs))
+         | (SOME (SINGLE {ty = t1, ...}, SINGLE {ty = t2, ...}), env1, env2) =>
+            unify (env1, env2, newUses1, newUses2, mgu (t1,t2,substs))
          | (SOME (GROUP bs1, GROUP bs2), env1, env2) =>
             let
                fun mguOpt (SOME t1, SOME t2, substs) = mgu (t1,t2,substs)
@@ -1337,6 +1337,11 @@ end = struct
    fun meetGeneral (env1, env2, directed) =
       let
 
+         (*val (e1Str,si) = topToStringSI (env1, TVar.emptyShowInfo)
+         val (e2Str,si) = topToStringSI (env2, si)
+         val kind = if directed then "directed" else "equalizing"
+         val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str ^ "++++ intersected with\n" ^ e2Str)*)
+
          val (newUses1, newUses2, substs) =
             unify (env1, env2, SymMap.empty, SymMap.empty, emptySubsts)
          (*val (scs, cons) = env1
@@ -1349,12 +1354,6 @@ end = struct
          val _ = cons := (bFun, sCons)
          val env1 = (scs,cons)*)
       
-         (*val (e1Str,si) = kappaToStringSI (env1, TVar.emptyShowInfo)
-         val (e2Str,si) = kappaToStringSI (env2, si)
-         val (sStr,si) = showSubstsSI (substs,si)
-         val kind = if directed then "directed" else "equalizing"
-         val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str ^ "++++ intersected with\n" ^ e2Str)*)
-
          val (_, state1) = env1
          val (_, state2) = env2
          val sCons = SC.merge (Scope.getSize state1,Scope.getSize state2)
@@ -1386,6 +1385,7 @@ end = struct
 
          (*val (envStr,si) = topToStringSI (env, si)
          val (eStr, si) = showExpandInfoSI (ei,si)
+         val (sStr,si) = showSubstsSI (substs,si)
          val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str ^ 
                   "resulting in\n" ^ envStr ^ 
                   "thereby projecting onto " ^ BD.setToString bVars ^
