@@ -205,9 +205,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val env = List.foldl E.pushFunction env fs
                
                val envFun = E.pushSymbol (sym, s, env)
-               (*val _ = TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)*)
+               (*val _ = TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.kappaToString envFun)*)
                val envCall = E.pushUsage (sym, s, !sm, env)
-               (*val _ = TextIO.print ("pushed usage:\n" ^ E.topToString envCall)*)
+               (*val _ = TextIO.print ("pushed usage:\n" ^ E.kappaToString envCall)*)
                (*inform about a unification failure when checking call site
                with definition*)
                fun raiseError str =
@@ -774,8 +774,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   SymbolTable.getString(!SymbolTables.fieldTable, f))
             val (_,fsStr) = List.foldl genFieldStr ("", "") fs
          in
-            Error.errorAt (errStrm, s,
-               [decStr," cannot be exported due to lacking fields: ", fsStr]
+            Error.warningAt (errStrm, s,
+               [decStr," is exported but requires fields: ", fsStr]
             )
          end
    fun checkExports _ (AST.MARKdecl {span=s, tree=t}) = checkExports s t

@@ -137,6 +137,7 @@ structure Environment : sig
    val toStringSI : environment * TVar.varmap -> string * TVar.varmap
    val topToString : environment -> string
    val topToStringSI : environment * TVar.varmap -> string * TVar.varmap
+   val kappaToString : environment -> string
    val kappaToStringSI : environment * TVar.varmap -> string * TVar.varmap
    val funTypeToStringSI  : environment * VarInfo.symid * TVar.varmap ->
                             string * TVar.varmap
@@ -372,7 +373,7 @@ end = struct
                   let fun lG other [] = l scs
                         | lG other ((b as {name, ty, width, uses})::bs) =
                            if ST.eq_symid (sym,name) then
-                              (varsOfBinding (GROUP (other @ bs), prevTVars scs),
+                              ((*varsOfBinding (GROUP (other @ bs), *)prevTVars scs,
                               COMPOUND { ty = ty, width = width, uses = uses })
                            else lG (b :: other) bs
                   in
@@ -455,8 +456,10 @@ end = struct
                fun prBTyOpt (NONE, str, si) = ("", si)
                  | prBTyOpt (SOME (t,bFun), str, si) = let
                     val (tStr, si) = showTypeSI (t, si)
+                    val bStr = if concisePrint then "" else
+                               ", flow:" ^ BD.showBFun bFun
                  in
-                     (str ^ tStr ^ ", flow:" ^ BD.showBFun bFun, si)
+                     (str ^ tStr ^ bStr, si)
                  end
                fun printU (({span=(p1,p2),file=_}, (ctxt, t)), (str, sep, si)) =
                   let
@@ -682,6 +685,13 @@ end = struct
          end
       | _ => raise InferenceBug
    )
+
+   fun kappaToString env =
+      let
+         val (str, _) = kappaToStringSI (env,TVar.emptyShowInfo)
+      in
+         str
+      end
 
    fun funTypeToStringSI (env, f, si) = (case Scope.lookup (f,env) of
         (_, COMPOUND { ty = SOME (t,_), width, uses }) => showTypeSI (t,si)
