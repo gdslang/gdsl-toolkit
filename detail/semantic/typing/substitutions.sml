@@ -329,21 +329,18 @@ end = struct
    (*any substitution that is being added must not mention any variable that
    already exists in the domain of the current set of substitutions; if this
    holds, the resulting substitutions remain fully applied*)
-   fun addSubst subst (Substs l, ei) =
+   fun addSubst subst (Substs l) =
       let
-         val eiRef = ref ei
          fun doSubst (v2, WITH_TYPE t2) =
             let
-               val (t2, ei) = applySubstToExp subst (t2, !eiRef)
-               val _ = eiRef := ei
+               val (t2, ei) = applySubstToExp subst (t2, emptyExpandInfo)
             in
                occursCheck (v2, WITH_TYPE t2)
             end
            | doSubst (v2, WITH_FIELD (fs, v3, bv3)) =
             let
                val t2 = RECORD (v3,bv3,fs)
-               val (t2,ei) = applySubstToExp subst (t2,!eiRef)
-               val _ = eiRef := ei
+               val (t2,ei) = applySubstToExp subst (t2, emptyExpandInfo)
                val RECORD (v3,bv3,fs) = t2
             in
                occursCheck (v2, WITH_FIELD (fs, v3, bv3))
@@ -375,14 +372,19 @@ end = struct
          val (vStr,si) = TVar.varToString (v,TVar.emptyShowInfo)
          val (tStr,si) = case repl of
               WITH_TYPE t2 => showTypeSI (t2,si)
-            | WITH_FIELD (fs, v3) => showTypeSI (
-                        RECORD (v3,BooleanDomain.freshBVar (),fs),si)
+            | WITH_FIELD (fs, v3, bv3) => showTypeSI (
+                        RECORD (v3,bv3,fs),si)
          val (sStr,si) = showSubstsSI (Substs l, si)
-         val (rStr,_ ) = showSubstsSI (Substs (subst::List.map doSubst l),si)
-         val _ = TextIO.print ("adding " ^ vStr ^ "/" ^ tStr ^ " to " ^ sStr ^
-                  " yielding " ^ rStr ^ "\n")*)
+         val _ = TextIO.print ("adding " ^ vStr ^ "/" ^ tStr ^ " to " ^ sStr ^ "\n")*)
+                  
+         val substIsIdentity = (case subst of
+               (tv, WITH_TYPE (VAR (tv',_))) => TVar.eq (tv,tv')
+             | (tv, WITH_FIELD (_,tv',_)) => TVar.eq (tv,tv')
+             | _ => false
+            )
       in
-         (Substs (occursCheck subst::List.map doSubst l), !eiRef)
+         if substIsIdentity then Substs l else
+            Substs (occursCheck subst::List.map doSubst l)
       end
 
    fun findSubstForVar (v, Substs l) =
@@ -404,7 +406,7 @@ end = struct
                 SC.RESULT (is,sCons) =>
                   (sCons,
                    List.foldl (fn ((v,c), substs) =>
-                     #1 (addSubst (v,WITH_TYPE (CONST c)) (substs, emptyExpandInfo))
+                     addSubst (v,WITH_TYPE (CONST c)) substs
                      ) substs is)
                | SC.UNSATISFIABLE => raise UnificationFailure
                   "size constraints over vectors are unsatisfiable"
@@ -477,8 +479,8 @@ end = struct
          val (v1,b1,l1) = applySubsts (v1,b1,l1)
          val (v2,b2,l2) = applySubsts (v2,b2,l2)
 
-         fun unify (v1, v2, [], [], s) = if TVar.eq (v1,v2) then s else
-            #1 (addSubst (v2, WITH_FIELD ([], v1, b1)) (s,emptyExpandInfo))
+         fun unify (v1, v2, [], [], s) =
+            addSubst (v2, WITH_FIELD ([], v1, b1)) s
            | unify (v1, v2, (f1 as RField e1) :: fs1,
                     (f2 as RField e2) :: fs2, s) =
             (case compare_rfield (f1,f2) of
@@ -493,7 +495,7 @@ end = struct
                   val newVar = freshTVar ()
                   val newBVar = BD.freshBVar ()
                   val (f1,ei) = applySubstsToRField s (f1,emptyExpandInfo)
-                  val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) (s,ei)
+                  val s = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) s
                in
                   unify (v1, newVar, fs1, f2 :: fs2, s)
                end
@@ -502,7 +504,7 @@ end = struct
                   val newVar = freshTVar ()
                   val newBVar = BD.freshBVar ()
                   val (f2,ei) = applySubstsToRField s (f2,emptyExpandInfo)
-                  val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) (s,ei)
+                  val s = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) s
                in
                   unify (newVar, v2, f1 :: fs1, fs2, s)
                end
@@ -512,7 +514,7 @@ end = struct
                val newVar = freshTVar ()
                val newBVar = BD.freshBVar ()
                val (f1,ei) = applySubstsToRField s (f1,emptyExpandInfo)
-               val (s,ei) = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) (s,ei)
+               val s = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) s
             in
                unify (v1, newVar, fs1, [], s)
             end
@@ -521,7 +523,7 @@ end = struct
                val newVar = freshTVar ()
                val newBVar = BD.freshBVar ()
                val (f2,ei) = applySubstsToRField s (f2,emptyExpandInfo)
-               val (s,ei) = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) (s,ei)
+               val s = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) s
             in
                unify (newVar, v2, [], fs2, s)
             end
@@ -531,7 +533,8 @@ end = struct
      | mgu (MONAD (r1,f1,t1), MONAD (r2,f2,t2), s) =
          mgu (r1, r2, mgu (f1, f2, mgu (t1, t2, s)))
      | mgu (ALG (ty1, l1), ALG (ty2, l2), s) =
-      let fun incompat () = raise UnificationFailure (
+      let 
+         fun incompat () = raise UnificationFailure (
             "cannot match constructor " ^
             SymbolTable.getString(!SymbolTables.typeTable, ty1) ^
             " with " ^
@@ -546,33 +549,27 @@ end = struct
       that the resulting substitution never modifies the lhs if that is
       avoidable*)
      | mgu (e, VAR (v,b), s) =
-      let
-         fun unifyVars (v,b,e,s) =
-               case findSubstForVar (v,s) of
-                    NONE => 
-                     let
-                       val (e, ei) = applySubstsToExp s (e, emptyExpandInfo)
-                       val (s, ei) = addSubst (v,WITH_TYPE e) (s,ei)
-                     in
-                        s
-                     end
-                  | SOME (WITH_TYPE t) => mgu (e, t, s)
-                  | _ => raise SubstitutionBug
-      in
-        case e of
-           VAR (v',b') => if TVar.eq (v',v) then s else unifyVars (v,b,e,s)
-         | _ => unifyVars (v,b,e,s)
-      end
+         (case findSubstForVar (v,s) of
+              NONE => 
+               let
+                 val (e, ei) = applySubstsToExp s (e, emptyExpandInfo)
+                 val s = addSubst (v,WITH_TYPE e) s
+               in
+                  s
+               end
+            | SOME (WITH_TYPE t) => mgu (e, t, s)
+            | _ => raise SubstitutionBug
+         )
      | mgu (VAR (v,b), e, s) =
          (case findSubstForVar (v,s) of
               NONE =>
                let
                  val (e, ei) = applySubstsToExp s (e, emptyExpandInfo)
-                 val (s,ei) = addSubst (v,WITH_TYPE e) (s,ei)
+                 val s = addSubst (v,WITH_TYPE e) s
                in
                   s
                end
-            | SOME (WITH_TYPE t) => mgu (e, t, s)
+            | SOME (WITH_TYPE t) => mgu (t, e, s)
             | _ => raise SubstitutionBug
          )
       | mgu (t1,t2,s) =

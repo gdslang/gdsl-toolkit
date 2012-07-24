@@ -404,9 +404,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val (t,env) = E.pushLambdaVar' (caseExpSymId, env)
          val envExp = infExp (st,env) e
-         (*val _ = TextIO.print ("**** after case exp:\n" ^ E.toString envExp)*)
+         (*val _ = TextIO.print ("**** after case exp:\n" ^ E.topToString envExp)*)
          val envVar = E.pushType (false, t, env)
-         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.toString envVar)*)
+         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.topToString envVar)*)
          val env = E.meetFlow (envVar, envExp)
          val env = E.popKappa env
          val envNeutral = E.pushTop env
@@ -677,20 +677,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infMatch (st,env) (p,e) =
       let
          val (n,env) = infPat (st,env) p
-         (*val _ = TextIO.print ("**** after pat:\n" ^ E.toString env)*)
+         (*val _ = TextIO.print ("**** after pat:\n" ^ E.topToString env)*)
          val envScru = E.popKappa env
          val envScru = E.pushSymbol (caseExpSymId, SymbolTable.noSpan, envScru)
-         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.toString envScru)*)
+         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.topToString envScru)*)
          val env = E.meetFlow (env, envScru)
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking case scrutinee",
                             [(envScru, "scrutinee and patterns so far "),
                              (env,     "pattern " ^ showProg (22, PP.pat, p))])
-         (*val _ = TextIO.print ("**** after mgu:\n" ^ E.toString env)*)
+         (*val _ = TextIO.print ("**** after mgu:\n" ^ E.topToString env)*)
          val env = E.popKappa env
          val env = infExp (st,env) e
-         (*val _ = TextIO.print ("**** after expr:\n" ^ E.toString env)*)
+         (*val _ = TextIO.print ("**** after expr:\n" ^ E.topToString env)*)
       in
          E.return (n,env)
       end
@@ -720,7 +720,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                  NONE => raise S.UnificationFailure (
                   "pattern with constructor " ^
                   SymbolTable.getString(!SymbolTables.conTable, c) ^ 
-                  " requires an argument")
+                  " may not have an argument")
                | SOME t => t
          val envCon = E.pushType (true, FUN ([t],ALG (dcon, List.map VAR vs)), envCon)
          val envCon = E.genConstructorFlow (true,envCon)

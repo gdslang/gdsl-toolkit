@@ -57,12 +57,12 @@ export =
    fitree-removeMin
    fitree-fold
 
-#type intset = bbtree [a=int]
-#type fitree = bbtree [a={lo:int,hi:int}]
+#type intset = bbtree [elem=int]
+#type fitree = bbtree [elem={lo:int,hi:int}]
 
-type bbtree = 
+type bbtree[elem] = 
    Lf
- | Br of {size: int, left: bbtree, right: bbtree, payload: int}
+ | Br of {size: int, left: bbtree, right: bbtree, payload: elem}
 
 val bbtree-size t =
    case t of
