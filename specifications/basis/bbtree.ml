@@ -18,18 +18,18 @@ export =
    bbtree-empty
    bbtree-singleton
    bbtree-add
-   bbtree-addWith
+   bbtree-add-with
    bbtree-intersection
    bbtree-difference
    bbtree-contains?
-   bbtree-simpleUnion
-   bbtree-splitLessThan
-   bbtree-splitGreaterThan
+   bbtree-simple-union
+   bbtree-split-less-than
+   bbtree-split-greater-than
    bbtree-union
    bbtree-remove
-   bbtree-removeMin
+   bbtree-remove-min
    bbtree-get
-   bbtree-getOrElse
+   bbtree-get-orelse
    bbtree-fold
    bbtree-pretty
 
@@ -42,7 +42,7 @@ export =
    intset-contains?
    intset-union
    intset-remove
-   intset-removeMin
+   intset-remove-min
    intset-fold
 
    fitree-lt?
@@ -52,10 +52,11 @@ export =
    fitree-add
    fitree-intersection
    fitree-difference
+   fitree-interval-difference
    fitree-contains?
    fitree-union
-   fitree-remove
-   fitree-removeMin
+   #fitree-remove
+   fitree-remove-min
    fitree-fold
    fitree-pretty
    fitree-mk
@@ -63,9 +64,9 @@ export =
 #type intset = bbtree [a=int]
 #type fitree = bbtree [a={lo:int,hi:int}]
 
-type bbtree = 
+type bbtree [a] = 
    Lf
- | Br of {size: int, left: bbtree, right: bbtree, payload: int}
+ | Br of {size: int, left: bbtree, right: bbtree, payload: a}
 
 val bbtree-size t =
    case t of
@@ -187,14 +188,14 @@ val bbtree-add lt? bt x =
          else mkBr x t.size t.left t.right
    end
 
-val bbtree-addWith lt? f bt x =
+val bbtree-add-with lt? f bt x =
    case bt of
       Lf: mkBr x 1 bt bt
     | Br t:
          if lt? x t.payload
-            then mkT t.payload (bbtree-addWith lt? f t.left x) t.right
+            then mkT t.payload (bbtree-add-with lt? f t.left x) t.right
          else if lt? t.payload x
-            then mkT t.payload t.left (bbtree-addWith lt? f t.right x)
+            then mkT t.payload t.left (bbtree-add-with lt? f t.right x)
          else mkBr (f t.payload x) t.size t.left t.right
    end
 
@@ -215,16 +216,16 @@ val bbtree-remove2 btl btr =
     | Br l:
          case btr of
             Lf: btl
-          | Br r: mkT (bbtree-min btr) btl (bbtree-removeMin btr)
+          | Br r: mkT (bbtree-min btr) btl (bbtree-remove-min btr)
          end
    end
 
-val bbtree-removeMin bt =
+val bbtree-remove-min bt =
    case bt of
       Br t: 
          case t.left of
             Lf: t.right
-          | Br l: mkT t.payload (bbtree-removeMin t.left) t.right
+          | Br l: mkT t.payload (bbtree-remove-min t.left) t.right
          end
    end
 
@@ -264,25 +265,25 @@ val bbtree-concat3 lt? btl x btr =
       end
    end
 
-val bbtree-splitLessThan lt? bt x =
+val bbtree-split-less-than lt? bt x =
    case bt of
       Lf: bt
     | Br t:
          if lt? x t.payload
-            then bbtree-splitLessThan lt? t.left x
+            then bbtree-split-less-than lt? t.left x
          else if lt? t.payload x
-            then bbtree-concat3 lt? t.left t.payload (bbtree-splitLessThan lt? t.right x)
+            then bbtree-concat3 lt? t.left t.payload (bbtree-split-less-than lt? t.right x)
          else t.left
    end
 
-val bbtree-splitGreaterThan lt? bt x =
+val bbtree-split-greater-than lt? bt x =
    case bt of
       Lf: bt
     | Br t:
          if lt? t.payload x
-            then bbtree-splitGreaterThan lt? t.right x
+            then bbtree-split-greater-than lt? t.right x
          else if lt? x t.payload
-            then bbtree-concat3 lt? (bbtree-splitGreaterThan lt? t.left x) t.payload t.right
+            then bbtree-concat3 lt? (bbtree-split-greater-than lt? t.left x) t.payload t.right
          else t.right
    end
 
@@ -296,11 +297,11 @@ val bbtree-difference lt? btl btr =
                bbtree-concat
                   (bbtree-difference
                      lt?
-                     (bbtree-splitLessThan lt? btl r.payload)
+                     (bbtree-split-less-than lt? btl r.payload)
                      r.left)
                   (bbtree-difference
                      lt?
-                     (bbtree-splitGreaterThan lt? btl r.payload)
+                     (bbtree-split-greater-than lt? btl r.payload)
                      r.right)
          end
    end
@@ -316,7 +317,7 @@ val bbtree-concat btl btr =
                then mkT r.payload (bbtree-concat btl r.left) r.right
             else if r.size * 3 < l.size
                then mkT l.payload l.left (bbtree-concat l.right btr)
-            else mkT (bbtree-min btr) btl (bbtree-removeMin btr)
+            else mkT (bbtree-min btr) btl (bbtree-remove-min btr)
       end
    end
 
@@ -341,14 +342,14 @@ val bbtree-get lt? bt x =
          else t.payload
    end
 
-val bbtree-getOrElse lt? bt x y =
+val bbtree-get-orelse lt? bt x =
    case bt of
-      Lf: y
+      Lf: x
     | Br t: 
          if lt? x t.payload
-            then bbtree-getOrElse lt? t.left x y
+            then bbtree-get-orelse lt? t.left x
          else if lt? t.payload x 
-            then bbtree-getOrElse lt? t.right x y
+            then bbtree-get-orelse lt? t.right x
          else t.payload
    end
 
@@ -365,27 +366,27 @@ val bbtree-intersection lt? btl btr =
                         lt?
                         (bbtree-intersection
                            lt?
-                           (bbtree-splitLessThan lt? btl r.payload)
+                           (bbtree-split-less-than lt? btl r.payload)
                            r.left)
                         r.payload
                         (bbtree-intersection
                            lt?
-                           (bbtree-splitGreaterThan lt? btl r.payload)
+                           (bbtree-split-greater-than lt? btl r.payload)
                            r.right)
                else
                   bbtree-concat
                      (bbtree-intersection
                         lt?
-                        (bbtree-splitLessThan lt? btl r.payload)
+                        (bbtree-split-less-than lt? btl r.payload)
                         r.left)
                      (bbtree-intersection
                         lt?
-                        (bbtree-splitGreaterThan lt? btl r.payload)
+                        (bbtree-split-greater-than lt? btl r.payload)
                         r.right)
          end
    end
 
-val bbtree-simpleUnion lt? btl btr =
+val bbtree-simple-union lt? btl btr =
    case btl of
       Lf: btr
     | Br l:
@@ -394,19 +395,19 @@ val bbtree-simpleUnion lt? btl btr =
           | Br r:
                bbtree-concat3
                   lt?
-                  (bbtree-simpleUnion
+                  (bbtree-simple-union
                      lt?
                      l.left
-                     (bbtree-splitLessThan lt? btr l.payload))
+                     (bbtree-split-less-than lt? btr l.payload))
                   l.payload
-                  (bbtree-simpleUnion
+                  (bbtree-simple-union
                      lt?
                      l.right
-                     (bbtree-splitGreaterThan lt? btr l.payload))
+                     (bbtree-split-greater-than lt? btr l.payload))
          end
    end
 
-val bbtree-union lt? btl btr = bbtree-simpleUnion lt? btl btr
+val bbtree-union lt? btl btr = bbtree-simple-union lt? btl btr
 
 val bbtree-fold f s bt =
    case bt of
@@ -426,7 +427,7 @@ val bbtree-pretty f bt =
 val intset-lt? a b = a < b
 val intset-add s x = bbtree-add intset-lt? s x
 val intset-remove s x = bbtree-remove intset-lt? s x
-val intset-removeMin s = bbtree-removeMin s
+val intset-remove-min s = bbtree-remove-min s
 val intset-union a b = bbtree-union intset-lt? a b
 val intset-intersection a b = bbtree-intersection intset-lt? a b
 val intset-difference a b = bbtree-difference intset-lt? a b
@@ -445,10 +446,93 @@ val fitree-lt? a b =
       then '0'
    else a.hi < b.hi
 
+val interval-overlaps? x y = x.lo <= y.hi and y.lo <= x.hi
+val interval-contains? x y = x.lo <= y.lo and y.hi <= x.hi
+   
+val fitree-search p? it x =
+   let
+      val maybe-search-left it acc =
+         case it of
+            Lf: acc
+          | _ :
+               if x.lo <= (bbtree-max it).hi
+                  then search it acc
+               else acc
+         end
+      val maybe-search-right it acc =
+         case it of
+            Lf: acc
+          | _ :
+               if x.hi >= (bbtree-min it).lo
+                  then search it acc
+               else acc
+         end
+      val search it acc =
+         case it of
+            Lf: acc
+          | Br t:
+               maybe-search-left
+                  t.left
+                  (maybe-search-right
+                     t.right 
+                     (if p? x t.payload
+                         then fitree-add acc t.payload
+                      else acc))
+         end
+   in
+      search it (fitree-empty {})
+   end
+
+val fitree-any p? it x =
+   let
+      val maybe-search-left it =
+         case it of
+            Lf: '0'
+          | _ :
+               if x.lo <= (bbtree-max it).hi
+                  then search it
+               else '0'
+         end
+      val maybe-search-right it =
+         case it of
+            Lf: '0'
+          | _ :
+               if x.hi >= (bbtree-min it).lo
+                  then search it
+               else '0'
+         end
+      val search it =
+         case it of
+            Lf: '0'
+          | Br t:
+               if p? x t.payload
+                  then '1'
+               else
+                  maybe-search-left t.left
+                  or maybe-search-right t.right
+         end
+   in
+      search it
+   end
+
+val fitree-any-overlapping? t x = fitree-any interval-overlaps? t x
+val fitree-search-contained t x = fitree-search interval-contains? t x
+val fitree-search-overlapping t x = fitree-search interval-overlaps? t x
+
+# TODO:
+#   Real interval difference supporting interval splitting, cutting and 
+#   full interval containing 
+val fitree-interval-difference a b =
+   let
+      val remove-contained it x = fitree-difference it (fitree-search-contained it x)
+   in
+      fitree-fold remove-contained a b
+   end
+
 val fitree-mk l h = {lo=l, hi=h}
 val fitree-add s x = bbtree-add fitree-lt? s x
-val fitree-remove s x = bbtree-remove fitree-lt? s x
-val fitree-removeMin s = bbtree-removeMin s
+#val fitree-remove s x = bbtree-remove fitree-lt? s x
+val fitree-remove-min s = bbtree-remove-min s
 val fitree-union a b = bbtree-union fitree-lt? a b
 val fitree-intersection a b = bbtree-intersection fitree-lt? a b
 val fitree-difference a b = bbtree-difference fitree-lt? a b

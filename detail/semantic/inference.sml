@@ -131,7 +131,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
-   val maxIter = 1
+   val maxIter = 2
    fun calcSubset printWarn env =
       let
          fun checkUsage sym (s, unstable) =
@@ -762,7 +762,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      ) toplevelEnv (ast : SpecAbstractTree.specification)
    val toplevelEnv = calcFixpoint toplevelEnv
                         handle TypeError => toplevelEnv
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
 
    (* check if all exported functions can be run with an empty state *)
    fun checkDecoder s sym = case E.forceNoInputs (sym,toplevelEnv) of

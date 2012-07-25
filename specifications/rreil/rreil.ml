@@ -53,7 +53,7 @@ type sem_stmt =
  | SEM_STORE of {address: sem_address, rhs: sem_op}
  | SEM_LABEL of {id: int}
  | SEM_IF_GOTO_LABEL of {cond:sem_linear, label: int}
- | SEM_IF_GOTO of {cond: sem_linear, size:int, target: sem_address}
+ | SEM_IF_GOTO of {cond: sem_linear, size:int, target: sem_linear}
  | SEM_CALL of {cond: sem_linear, size:int, target: sem_address}
  | SEM_RETURN of {cond: sem_linear, size:int, target: sem_address}
 
@@ -90,7 +90,7 @@ val rreil-sizeOf op =
     | SEM_ARB x: x.size
    end
 
-val revSeq stmts =
+val rreil-stmts-rev stmts =
    let
       val lp stmt acc =
          case stmt of
@@ -99,18 +99,6 @@ val revSeq stmts =
          end
    in
       lp stmts SEM_NIL
-   end
-
-val resultSize op =
-   case op of
-      SEM_CMPLES x : 1
-    | SEM_MUL x : x.size
-   end
-
-val operandSize op =
-   case op of
-      SEM_CMPLES x : x.size
-    | x : resultSize op
    end
 
 val var//0 x = {id=x,offset=0}
@@ -127,7 +115,7 @@ val mklabel = do
    l <- query $lab;
    l' <- return (l + 1);
    update @{lab=l'};
-   return (l)
+   return l
 end
 
 val /ASSIGN a b = SEM_ASSIGN{lhs=a,rhs=b}
@@ -137,6 +125,7 @@ val /ADD a b = SEM_LIN_ADD{opnd1=a,opnd2=b}
 val /SUB a b = SEM_LIN_SUB{opnd1=a,opnd2=b}
 val /LABEL l = SEM_LABEL{id=l}
 val /IFGOTOLABEL c l = SEM_IF_GOTO_LABEL{cond=c,label=l}
+val /IFGOTO c sz t = SEM_IF_GOTO{cond=c,size=sz,target=t}
 val /GOTOLABEL l = SEM_IF_GOTO_LABEL{cond=SEM_LIN_IMM{imm=1},label=l}
 
 val push insn = do
@@ -172,6 +161,7 @@ val cmpltu sz f a b = push (/ASSIGN f (SEM_CMPLTU{size=sz,opnd1=a,opnd2=b}))
 val label l = push (/LABEL l)
 val ifgotolabel c l = push (/IFGOTOLABEL c l)
 val gotolabel l = push (/GOTOLABEL l)
+val ifgoto c sz addr = push (/IFGOTO c sz addr)
 
 val const i = return (SEM_LIN_IMM{imm=i})
 
