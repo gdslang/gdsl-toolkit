@@ -131,10 +131,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
-   val maxIter = 1
-   fun calcSubset printWarn env =
+   val maxIter = 2
+   
+   fun calcSubset (printWarn,sym,env) =
       let
-         fun checkUsage sym (s, unstable) =
+         fun checkUsage sym s =
             let
                val fs = E.getContextOfUsage (sym, s, env)
                val oldCtxt = E.getCtxt env
@@ -179,35 +180,36 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                    (!SymbolTables.varTable, sym)) "" (E.SymbolSet.listItems affectedSyms) ^ "\n")*)
                val _ = raiseWarning (substs, affectedSyms)
             in
-               if E.SymbolSet.isEmpty affectedSyms then unstable else
-                  E.SymbolSet.add (unstable, sym)
+               E.SymbolSet.isEmpty affectedSyms 
             end
-               handle (S.UnificationFailure str) =>
-                  E.SymbolSet.add (unstable, sym)
-         fun checkUsages (sym, unstable) =
-            let
-               val usages = E.getUsages (sym, env)
-               (*val _ = TextIO.print ("***** checking subset of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
-               val unstable = List.foldl (checkUsage sym) unstable usages
-            in
-               unstable
-            end
+         val usages = E.getUsages (sym, env)
+         (*val _ = TextIO.print ("***** checking subset of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
       in
-         List.foldl checkUsages E.SymbolSet.empty (E.getGroupSyms env)
+         List.all (checkUsage sym) usages
       end
 
-   fun calcIteration (unstable, env) =
+   fun calcSubsets printWarn env =
+         List.foldl (fn (sym,unstable) =>
+               (if calcSubset (printWarn,sym,env) then unstable else
+                  E.SymbolSet.add (unstable, sym))
+               handle (S.UnificationFailure str) =>
+                  E.SymbolSet.add (unstable, sym)
+            ) E.SymbolSet.empty (E.getGroupSyms env)
+
+   fun calcIteration (sym, env) =
       let
-         fun checkUsage sym (s, env) =
+         fun checkUsage (s, env) =
             let
                val fs = E.getContextOfUsage (sym, s, env)
                val oldCtxt = E.getCtxt env
                val env = List.foldl E.pushFunction env fs
                
                val envFun = E.pushSymbol (sym, s, env)
-               (*val _ = TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.kappaToString envFun)*)
+               (*val _ = if SymbolTable.toInt sym = 95 then TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.kappaToString envFun)
+                     else ()*)
                val envCall = E.pushUsage (sym, s, !sm, env)
-               (*val _ = TextIO.print ("pushed usage:\n" ^ E.kappaToString envCall)*)
+               (*val _ = if SymbolTable.toInt sym = 95 then TextIO.print ("pushed usage:\n" ^ E.kappaToString envCall)
+                     else ()*)
                (*inform about a unification failure when checking call site
                with definition*)
                fun raiseError str =
@@ -225,6 +227,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val env = E.meetFlow (envCall, envFun)
                   handle (S.UnificationFailure str) =>
                      (raiseError str; envFun)
+               (*val _ = if SymbolTable.toInt sym = 95 then TextIO.print ("popping to usage of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)
+                     else ()*)
                val (changed, env) = E.popToUsage (sym, s, oldCtxt, env)
                val _ = sm := List.foldl
                      (fn (sym,sm) => (sym, E.getFunctionInfo (sym, env)) ::
@@ -234,31 +238,19 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             in
                env
             end
-         fun calcUsages (sym, env) =
-            let
-               val usages = E.getUsages (sym, env)
-               (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
-               val env = List.foldl (checkUsage sym) env usages
-            in
-               (* Two usage sites might influence each other's type. Since we
-               don't know which influences which, we check every usage site
-               twice if there is more than one usage site. This is a bit more
-               than one iteration since an earlier use site could refine a
-               later use site twice but it's close. We maintain the point of
-               view that recursion *between* two functions is always an error.
-               *)
-               if List.length usages<=1 then env else
-                  List.foldl (checkUsage sym) env usages
-            end
+         val usages = E.getUsages (sym, env)
+         (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
       in
-         List.foldl calcUsages env (E.SymbolSet.listItems unstable)
+         List.foldl checkUsage env usages
       end
 
-   fun calcFixpoint curIter env =
-         case calcSubset (curIter>0) env of unstable =>
+   fun calcFixpoints curIter env =
+         case calcSubsets (curIter>0) env of unstable =>
          if E.SymbolSet.isEmpty unstable then env else
          if curIter<maxIter then
-            calcFixpoint (curIter+1) (calcIteration (unstable,env))
+            calcFixpoints (curIter+1) (
+               List.foldl calcIteration env (E.SymbolSet.listItems unstable)
+            )
          else
          let
             val si = TVar.emptyShowInfo
@@ -279,6 +271,26 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             (Error.errorAt (errStrm, s, [
             "no typing found for ",
             symsStr,
+            "\tpass --inference-iterations=",
+            Int.toString (maxIter+1),
+            " to try a little harder"]); env)
+         end
+   val calcFixpoints = calcFixpoints 0
+
+   fun calcFixpoint curIter (sym,env) =
+         if calcSubset (curIter>0, sym, env) then env else
+         if curIter<maxIter then
+            calcFixpoint (curIter+1) (sym,calcIteration (sym,env))
+         else
+         let
+            val sStr = SymbolTable.getString (!SymbolTables.varTable, sym)
+            val s = SymbolTable.getSpan(!SymbolTables.varTable, sym)
+            val envT = E.pushSymbol (sym, SymbolTable.noSpan, env)
+            val sType = E.kappaToString envT
+         in 
+            (Error.errorAt (errStrm, s, [
+            "no typing found for ",
+            sStr ^ " : " ^ sType,
             "\tpass --inference-iterations=",
             Int.toString (maxIter+1),
             " to try a little harder"]); env)
@@ -314,6 +326,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.reduceToFunction (env, List.length args)
          val env = E.return (n,env)
          (*val _ = TextIO.print ("after popping args:\n" ^ E.topToString env)*)
+         
       in
          env
       end
@@ -322,6 +335,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.pushFunction (sym,env)
          val env = infRhs (st,env) (sym, [], NONE, args, rhs)
          val env = E.popToFunction (sym, env)
+         val env = calcFixpoint (sym,env)
          val fInfo = E.getFunctionInfo (sym, env)
          val _ = sm := (sym, fInfo) :: !sm
       in
@@ -351,6 +365,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val _ = TextIO.print ("**** decoder rhs:\n" ^ E.topToString envRhs)*)
          val env = E.meet (env, envRhs)
          val env = E.popToFunction (v, env)
+         val env = calcFixpoint (v,env)
          val fInfo = E.getFunctionInfo (v, env)
          val _ = sm := (v, fInfo) :: List.filter (fn (s,_) =>
                                        not (SymbolTable.eq_symid(s,v))) (!sm)
@@ -369,6 +384,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                env
             end) env el
          val env = E.popToFunction (v, env)
+         val env = calcFixpoint (v,env)
          val fInfo = E.getFunctionInfo (v, env)
          val _ = sm := (v, fInfo) :: List.filter (fn (s,_) =>
                                        not (SymbolTable.eq_symid(s,v))) (!sm)
@@ -382,9 +398,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val names = List.map topLetrecDecl l
          val env = E.pushGroup (List.concat names, env)
          val env = List.foldl (fn ((v,l,e), env) =>
-                        infBinding (st, env) (v, l, e)
+                        calcFixpoint (v, infBinding (st, env) (v, l, e))
                      ) env l
-         val env = calcFixpoint env
          val env = infExp (st,env) e
          val (badSizes, env) = E.popGroup (env, true)
          val _ = reportBadSizes badSizes
@@ -763,33 +778,23 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       (List.concat
          (List.map topDecl (ast : SpecAbstractTree.specification))
       , primEnv)
+      
+   (*add usage sites for all exported functions*)
+   fun checkExports _ (AST.MARKdecl {span=s, tree=t},env) = checkExports s (t,env)
+     | checkExports s (AST.EXPORTdecl vs,env) =
+         List.foldl (fn (sym, env) => E.forceInputs (s, sym, [], env)) env vs
+     | checkExports s (_,env) = env
+   val toplevelEnv = List.foldl (checkExports SymbolTable.noSpan) toplevelEnv ast
+   
+   
    (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val toplevelEnv = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan},env) d
                         handle TypeError => env
                      ) toplevelEnv (ast : SpecAbstractTree.specification)
-   val toplevelEnv = calcFixpoint toplevelEnv
-                        handle TypeError => toplevelEnv
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
-
-   (* check if all exported functions can be run with an empty state *)
-   fun checkDecoder s sym = case E.forceNoInputs (sym,toplevelEnv) of
-        [] => ()
-      | fs =>
-         let
-            val decStr = SymbolTable.getString(!SymbolTables.varTable, sym)
-            fun genFieldStr (f,(sep,str)) = (", ", str ^ sep ^
-                  SymbolTable.getString(!SymbolTables.fieldTable, f))
-            val (_,fsStr) = List.foldl genFieldStr ("", "") fs
-         in
-            Error.warningAt (errStrm, s,
-               [decStr," is exported but requires fields: ", fsStr]
-            )
-         end
-   fun checkExports _ (AST.MARKdecl {span=s, tree=t}) = checkExports s t
-     | checkExports s (AST.EXPORTdecl vs) = List.app (checkDecoder s) vs
-     | checkExports s _ = ()
-   val _ = List.app (checkExports SymbolTable.noSpan) ast
+   (*val toplevelEnv = calcFixpoints toplevelEnv
+                        handle TypeError => toplevelEnv*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.topToString toplevelEnv)
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes

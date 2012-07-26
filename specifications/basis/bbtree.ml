@@ -63,9 +63,9 @@ export =
 #type intset = bbtree [a=int]
 #type fitree = bbtree [a={lo:int,hi:int}]
 
-type bbtree = 
+type bbtree[a] = 
    Lf
- | Br of {size: int, left: bbtree, right: bbtree, payload: int}
+ | Br of {size: int, left: bbtree, right: bbtree, payload: a}
 
 val bbtree-size t =
    case t of
