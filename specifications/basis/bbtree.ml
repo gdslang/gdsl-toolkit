@@ -16,6 +16,7 @@
 export =
    bbtree-size
    bbtree-empty
+   bbtree-empty?
    bbtree-singleton
    bbtree-add
    bbtree-add-with
@@ -449,7 +450,7 @@ val fitree-lt? a b =
 val interval-overlaps? x y = x.lo <= y.hi and y.lo <= x.hi
 val interval-contains? x y = x.lo <= y.lo and y.hi <= x.hi
    
-val fitree-search p? it x =
+val fitree-collect p? it x =
    let
       val maybe-search-left it acc =
          case it of
@@ -516,15 +517,15 @@ val fitree-any p? it x =
    end
 
 val fitree-any-overlapping? t x = fitree-any interval-overlaps? t x
-val fitree-search-contained t x = fitree-search interval-contains? t x
-val fitree-search-overlapping t x = fitree-search interval-overlaps? t x
+val fitree-collect-contained t x = fitree-collect interval-contains? t x
+val fitree-collect-overlapping t x = fitree-collect interval-overlaps? t x
 
 # TODO:
 #   Real interval difference supporting interval splitting, cutting and 
 #   full interval containing 
 val fitree-interval-difference a b =
    let
-      val remove-contained it x = fitree-difference it (fitree-search-contained it x)
+      val remove-contained t x = fitree-difference t (fitree-collect-contained t x)
    in
       fitree-fold remove-contained a b
    end
@@ -543,10 +544,10 @@ val fitree-size s = bbtree-size s
 val fitree-fold f s t = bbtree-fold f s t
 val fitree-pretty t =
    let
-      val prettyInterval x =
+      val pretty-interval x =
          "[" +++ showint x.lo +++ "," +++ showint x.hi +++ "]"
    in
-      bbtree-pretty prettyInterval t
+      bbtree-pretty pretty-interval t
    end
 
 # TODO: Port the following {hedge union} sml code to GDSL

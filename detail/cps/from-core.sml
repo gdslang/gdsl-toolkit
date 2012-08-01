@@ -42,6 +42,7 @@ end = struct
          val consume32 = get "consume32"
          val unconsume32 = get "unconsume32"
          val andd = get "and"
+         val orr = get "or"
          val concat = get "^"
          val == = get "=="
          val not = get "not"
@@ -209,6 +210,19 @@ end = struct
                (andd, [a, b], body)
             end
 
+         (* val or a b = %or(a,b) *)
+         val orr =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%or"
+               val body = PRI (prim, [a, b])
+                     
+            in
+               (orr, [a, b], body)
+            end
+
+
          (* val == a b = %equal(a,b) *)
          val == =
             let
@@ -335,6 +349,7 @@ end = struct
           showbitvec,
           showint,
           andd,
+          orr,
           not,
           ==,
           concat,

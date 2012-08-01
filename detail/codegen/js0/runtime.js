@@ -85,7 +85,7 @@ function __equal (a, b) {
   var bb = b.vec;
   var szOfA = a.sz;
   var szOfB = b.sz;
-  return ((a == b && szOfA == szOfB) ? __TRUE : __FALSE);
+  return ((aa == ab && szOfA == szOfB) ? __TRUE : __FALSE);
 }
 
 function __not (a) {
@@ -106,7 +106,14 @@ function __and (a, b) {
   var aa = a.vec;
   var bb = b.vec;
   var sz = a.sz;
-  return {sz:sz, vec:a & b};
+  return {sz:sz, vec:aa & bb};
+}
+
+function __or (a, b) {
+  var aa = a.vec;
+  var bb = b.vec;
+  var sz = a.sz;
+  return {sz:sz, vec:aa | bb};
 }
 
 // ## Operations on integers
@@ -210,6 +217,10 @@ function toBytes (str) {
 
 function prettyJSON (o) {
   return JSON.stringify(o);
+}
+
+function __prettyln(f,s,x) {
+  print(s+":"+__evalPure(f,x));
 }
 
 function pretty (i) {

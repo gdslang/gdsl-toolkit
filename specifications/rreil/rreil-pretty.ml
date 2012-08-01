@@ -3,9 +3,10 @@
 # The following functions need to be defined elsewhere:
 #   - arch-show-id
 
-export = rreil-pretty
+export = rreil-pretty rreil-pretty-rev
 
 val rreil-pretty ss = rreil-show-stmts ss
+val rreil-pretty-rev ss = rreil-show-stmts (rreil-stmts-rev ss)
 
 val rreil-show-stmts ss =
    case ss of  
@@ -49,7 +50,7 @@ val rreil-show-op op =
     | SEM_CMPLEU x: "<=u" +++ rreil-show-cmp x
     | SEM_CMPLTS x: "<s" +++ rreil-show-cmp x
     | SEM_CMPLTU x: "<u" +++ rreil-show-cmp x
-    | SEM_ARB x: "arbitrary[" +++ showint x +++ "]"
+    | SEM_ARB x: "arbitrary[" +++ showint x.size +++ "]"
    end
 
 val rreil-show-arity1 x = "[" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"

@@ -54,8 +54,8 @@ type sem_stmt =
  | SEM_LABEL of {id: int}
  | SEM_IF_GOTO_LABEL of {cond:sem_linear, label: int}
  | SEM_IF_GOTO of {cond: sem_linear, size:int, target: sem_linear}
- | SEM_CALL of {cond: sem_linear, size:int, target: sem_address}
- | SEM_RETURN of {cond: sem_linear, size:int, target: sem_address}
+ | SEM_CALL of {cond: sem_linear, size:int, target: sem_linear}
+ | SEM_RETURN of {cond: sem_linear, size:int, target: sem_linear}
 
 type sem_stmts = 
    SEM_CONS of {hd:sem_stmt, tl:sem_stmts}

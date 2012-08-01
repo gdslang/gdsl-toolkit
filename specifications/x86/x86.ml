@@ -1119,7 +1119,7 @@ val rel64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
 val & giveA giveB = do
    a <- giveA;
    b <- giveB;
-   return (a andalso b)
+   return (a and b)
 end
 
 val otherwise = return '1'

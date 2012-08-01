@@ -111,6 +111,7 @@ structure Primitives = struct
         flow = noFlow},
        {name="%raise", ty=UNIT, flow = noFlow},
        {name="%and", ty=UNIT, flow = noFlow},
+       {name="%or", ty=UNIT, flow = noFlow},
        {name="%sx", ty=UNIT, flow = noFlow},
        {name="%zx", ty=UNIT, flow = noFlow},
        {name="%addi", ty=UNIT, flow = noFlow},

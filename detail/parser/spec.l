@@ -101,8 +101,8 @@
 <INITIAL>"end" => (T.KW_end);
 <INITIAL>"do" => (T.KW_do);
 <INITIAL>"in" => (T.KW_in);
-<INITIAL>"andalso" => (T.KW_and);
-<INITIAL>"orelse" => (T.KW_or);
+<INITIAL>"and" => (T.KW_and);
+<INITIAL>"or" => (T.KW_or);
 <INITIAL>"<-" => (T.BIND);
 <INITIAL>"%" => (T.KW_mod);
 <INITIAL>"of" => (T.KW_of);
