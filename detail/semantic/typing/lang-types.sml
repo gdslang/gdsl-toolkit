@@ -6,7 +6,7 @@ structure Types = struct
    type varset = TVar.set
    val freshTVar = TVar.freshTVar
 
-   val concisePrint = true
+   val concisePrint = false
 
    datatype texp =
       (* a function taking at least one argument *)
@@ -242,10 +242,12 @@ structure Types = struct
                ("","") l
             ) ^ "]"
           end
-      | sT (p, RECORD (v,b,l)) = "{" ^ List.foldl (op ^) "" (List.map sTF l) ^
-                                   showVar v ^ 
-                                   (if concisePrint then "" else BD.showVar b)
-                                   ^ ":...}"
+      | sT (p, RECORD (v,b,l)) =
+         "{" ^ (
+            (*if List.length l>4
+            then " <" ^ Int.toString (List.length l) ^ " fields> " else*)
+            List.foldl (op ^) "" (List.map sTF l)) ^
+            showVar v ^ (if concisePrint then "" else BD.showVar b) ^ ":...}"
       | sT (p, MONAD (r,f,t)) = br (p, p_tyn, "S " ^ sT (p_tyn+1, r)) ^
          " <" ^ sT (p_app+1, f) ^ " => " ^ sT (p_app, t) ^ ">"
       | sT (p, VAR (v,b)) = showVar v ^ 

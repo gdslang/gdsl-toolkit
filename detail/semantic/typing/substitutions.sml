@@ -101,11 +101,11 @@ end = struct
      | showSubstTargetSI (WITH_FIELD (fs,vNew,bNew), si) =
          let
             val (vNewStr, si) = TVar.varToString (vNew, si)
-            val bNewStr = BD.showVar bNew
+            val bNewStr = if concisePrint then "" else BD.showVar bNew
             fun genfStr (RField {name = n, fty = t, exists = b}, (str, si)) =
                let
                   val (tStr, si) = showTypeSI (t, si)
-                  val fStr = BD.showVar b
+                  val fStr = if concisePrint then "" else BD.showVar b
                   val name = SymbolTable.getString(!SymbolTables.fieldTable, n)
                in
                   (str ^ name ^ fStr ^ ": " ^ tStr ^ ", ", si)

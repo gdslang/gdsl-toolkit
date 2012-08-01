@@ -110,7 +110,8 @@ structure Environment : sig
    top*)
    val pushFunctionOrTop : VarInfo.symid * environment -> environment
    
-   val forceNoInputs : VarInfo.symid * environment -> FieldInfo.symid list
+   val forceInputs : Error.span * VarInfo.symid * VarInfo.symid list *
+                     environment -> environment
 
     (*apply the Boolean function*)
    val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
@@ -137,6 +138,7 @@ structure Environment : sig
    val toStringSI : environment * TVar.varmap -> string * TVar.varmap
    val topToString : environment -> string
    val topToStringSI : environment * TVar.varmap -> string * TVar.varmap
+   val kappaToString : environment -> string
    val kappaToStringSI : environment * TVar.varmap -> string * TVar.varmap
    val funTypeToStringSI  : environment * VarInfo.symid * TVar.varmap ->
                             string * TVar.varmap
@@ -372,7 +374,7 @@ end = struct
                   let fun lG other [] = l scs
                         | lG other ((b as {name, ty, width, uses})::bs) =
                            if ST.eq_symid (sym,name) then
-                              (varsOfBinding (GROUP (other @ bs), prevTVars scs),
+                              ((*varsOfBinding (GROUP (other @ bs), *)prevTVars scs,
                               COMPOUND { ty = ty, width = width, uses = uses })
                            else lG (b :: other) bs
                   in
@@ -455,8 +457,10 @@ end = struct
                fun prBTyOpt (NONE, str, si) = ("", si)
                  | prBTyOpt (SOME (t,bFun), str, si) = let
                     val (tStr, si) = showTypeSI (t, si)
+                    val bStr = if concisePrint then "" else
+                               ", flow:" ^ BD.showBFun bFun
                  in
-                     (str ^ tStr ^ ", flow:" ^ BD.showBFun bFun, si)
+                     (str ^ tStr ^ bStr, si)
                  end
                fun printU (({span=(p1,p2),file=_}, (ctxt, t)), (str, sep, si)) =
                   let
@@ -683,6 +687,13 @@ end = struct
       | _ => raise InferenceBug
    )
 
+   fun kappaToString env =
+      let
+         val (str, _) = kappaToStringSI (env,TVar.emptyShowInfo)
+      in
+         str
+      end
+
    fun funTypeToStringSI (env, f, si) = (case Scope.lookup (f,env) of
         (_, COMPOUND { ty = SOME (t,_), width, uses }) => showTypeSI (t,si)
       | _ => raise InferenceBug
@@ -787,7 +798,7 @@ end = struct
                        SOME f => SOME f
                      | NONE => affectedField (bVar, env)) fOpt envs
          val fStr = case fOpt of
-                 NONE => "some field" (*" with var " ^ BD.showVar bVar*)
+                 NONE => "some field" ^ " with vars " ^ BD.setToString bVar
                | SOME f => "field " ^
                   SymbolTable.getString(!SymbolTables.fieldTable, f)
       in
@@ -1264,24 +1275,24 @@ end = struct
          env
       end
 
-   fun forceNoInputs (sym, env) = case Scope.lookup (sym,env) of
-         (_,COMPOUND {ty = SOME (t,bFun), width, uses}) =>
-         let
-            val t = case t of (MONAD (r,inp,out)) => inp
-                            | t => t
-            fun onlyInputs ((true,v),vs) = v :: vs
-              | onlyInputs ((false,v),vs) = vs
-            val bVars = texpBVarset onlyInputs (t,[])
-            fun checkField bVar =
-               (case BD.meetVarZero bVar bFun of _ => NONE)
-               handle (BD.Unsatisfiable bVars) => fieldOfBVar (bVars,t)
-         in
-            List.foldl (fn (bVar,fs) => case checkField bVar of
-                          SOME f => f :: fs
-                        | NONE => fs) [] bVars
-         end
-       | (_,COMPOUND {ty = NONE, width, uses}) => []  (*allow type errors*)
-       | _ => raise InferenceBug
+   fun forceInputs (span, sym, fields, env) = env(*case Scope.lookup (sym,env) of
+            (_,COMPOUND {ty = SOME (t,bFun), width, uses}) =>
+            let
+               val t = case t of (MONAD (r,inp,out)) => inp
+                               | t => t
+               fun onlyInputs ((true,v),vs) = v :: vs
+                 | onlyInputs ((false,v),vs) = vs
+               val bVars = texpBVarset onlyInputs (t,[])
+               fun checkField bVar =
+                  (case BD.meetVarZero bVar bFun of _ => NONE)
+                  handle (BD.Unsatisfiable bVars) => fieldOfBVar (bVars,t)
+            in
+               List.foldl (fn (bVar,fs) => case checkField bVar of
+                             SOME f => f :: fs
+                           | NONE => fs) [] bVars
+            end
+          | (_,COMPOUND {ty = NONE, width, uses}) => []  (*allow type errors*)
+          | _ => raise InferenceBug*)
 
    fun unify (env1, env2, newUses1, newUses2, substs) =
       (case Scope.unwrapDifferent (env1, env2) of
