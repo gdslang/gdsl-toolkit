@@ -579,6 +579,11 @@ type insn =
  | CDQE
  | CLC
  | CLD
+ | CLFLUSH of arity1
+ | CLI
+ | CLTS
+ | CMC
+
  | CMOVA of arity2
  | CMOVAE of arity2
  | CMOVB of arity2
@@ -2060,6 +2065,23 @@ val / [0xf8] = arity0 CLC
 ### CLD
 ###  - Clear Direction Flag
 val / [0xfc] = arity0 CLD
+
+### CLFLUSH
+###  - Flush Cache Line
+val / [0x0f 0xae /7-mem] = unop CLFLUSH r/m8
+
+### CLI
+###  - Clear Interrupt Flag
+val / [0xfa] = arity0 CLI
+
+### CLTS
+###  - Clear Task-Switched Flag in CR0
+val / [0x0f 0x06] = arity0 CLTS
+
+### CMC
+###  - Complement Carry Flag
+val / [0xf5] = arity0 CMC
+
 
 ### CMOVcc
 ###  - Conditional Move
