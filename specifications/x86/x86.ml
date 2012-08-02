@@ -583,6 +583,8 @@ type insn =
  | CLI
  | CLTS
  | CMC
+ | CMPPD of arity3
+ | CMPPS of arity3
 
  | CMOVA of arity2
  | CMOVAE of arity2
@@ -933,6 +935,8 @@ type insn =
  | VBLENDPS of varity
  | VBLENDVPD of varity
  | VBLENDVPS of varity
+ | VCMPPD of varity
+ | VCMPPS of varity
  
  | VCMPEQB of varity
  | VCMPEQD of varity
@@ -2082,7 +2086,6 @@ val / [0x0f 0x06] = arity0 CLTS
 ###  - Complement Carry Flag
 val / [0xf5] = arity0 CMC
 
-
 ### CMOVcc
 ###  - Conditional Move
 val / [0x0f 0x47 /r]
@@ -2176,6 +2179,20 @@ val / [0x3b /r]
  | opndsz? = binop CMP r16 r/m16
  | rexw? = binop CMP r64 r/m64
  | otherwise = binop CMP r32 r/m32
+
+### CMPPD
+###  - Compare Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0xc2 /r] = ternop CMPPD xmm128 xmm/m128 imm8
+val /vex/66/0f/vexv [0xc2 /r]
+ | vex128? = varity4 VCMPPD xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VCMPPD ymm256 v/ymm ymm/m256 imm8
+
+### CMPPS
+###  - Compare Packed Single-Precision Floating-Point Values
+val / [0x0f 0xc2 /r] = ternop CMPPS xmm128 xmm/m128 imm8
+val /vex/0f/vexv [0xc2 /r]
+ | vex128? = varity4 VCMPPS xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VCMPPS ymm256 v/ymm ymm/m256 imm8
 
 ### CMPS/CMPSB/CMPSW/CMPSD/CMPSQ
 ###  - Compare String Operands
