@@ -101,7 +101,8 @@ Program
 Decl
    : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
    | "export" "=" Qid* => (markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
-   | "type" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, ConDecls)))
+   | "type" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, [], ConDecls)))
+   | "type" Name "[" Name ("," Name)* "]" "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name1, Name2 :: SR, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
    | "val" Name Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
    | "val" Sym Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
@@ -123,9 +124,18 @@ ConDecl
 
 Ty
    : Int => (mark PT.MARKty (FULL_SPAN, PT.BITty Int))
-   | Qid => (mark PT.MARKty (FULL_SPAN, PT.NAMEDty Qid))
+   | "|" Int "|" => (mark PT.MARKty (FULL_SPAN, PT.BITty Int))
+   | Qid =>
+         (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,[])))
+   | Qid "[" TyBind ("," TyBind)* "]"=>
+         (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,TyBind :: SR)))
    | "{" Name ":" Ty ("," Name ":" Ty)* "}" =>
       (mark PT.MARKty (FULL_SPAN, PT.RECORDty ((Name, Ty)::SR)))
+   ;
+
+TyBind
+   : Qid "=" Ty => ((Qid,Ty))
+   | Qid => ((Qid,PT.NAMEDty (Qid,[])))
    ;
 
 DecodePat

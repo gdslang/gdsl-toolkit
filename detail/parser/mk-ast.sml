@@ -46,7 +46,7 @@ functor MkAst (Core: AST_CORE) = struct
       MARKdecl of decl mark
     | GRANULARITYdecl of IntInf.int
     | TYPEdecl of syn_bind * ty
-    | DATATYPEdecl of con_bind * (con_bind * ty option) list
+    | DATATYPEdecl of con_bind * ty_bind list * (con_bind * ty option) list
     | DECODEdecl of var_bind * decodepat list * (exp, (exp * exp) list) Sum.t
     | LETRECdecl of var_bind * var_bind list * exp
     | EXPORTdecl of var_use list
@@ -54,7 +54,7 @@ functor MkAst (Core: AST_CORE) = struct
    and ty =
       MARKty of ty mark
     | BITty of IntInf.int
-    | NAMEDty of syn_use
+    | NAMEDty of syn_use * (ty_use * ty) list
     | RECORDty of (field_bind * ty) list
 
    and exp =
@@ -130,9 +130,11 @@ functor MkAst (Core: AST_CORE) = struct
                    seq (separate (map var_use es, " "))]
           | TYPEdecl (t, tyexp) =>
                seq [str "type", space, syn_bind t, space, ty tyexp]
-          | DATATYPEdecl (t, decls) =>
+          | DATATYPEdecl (t, tvars, decls) =>
                align
-                  [seq [str "type", space, con_bind t],
+                  [seq ([str "type", space, con_bind t] @
+                     (if List.null tvars then [] else [str "[",
+                        seq (separate (map ty_bind tvars, ",")), str "]"])),
                    indent 3 (alignPrefix (map condecl decls, "| "))]
           | DECODEdecl (n, ps, Sum.INL e) =>
                align
@@ -188,8 +190,13 @@ functor MkAst (Core: AST_CORE) = struct
          case t of
             MARKty t' => ty (#tree t')
           | BITty i => int i
-          | NAMEDty alias => Core.syn_use alias
+          | NAMEDty (alias, args) =>
+            seq (Core.syn_use alias ::
+               (if List.null args then [] else [str "[",
+                        seq (separate (map tyArgs args, ",")), str "]"]))
           | RECORDty fields => list (map (tuple2 (field_bind, ty)) fields)
+
+      and tyArgs (tvName, t) = seq [Core.ty_use tvName, str "=", ty t]
 
       and pat t =
          case t of

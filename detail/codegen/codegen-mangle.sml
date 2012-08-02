@@ -69,9 +69,9 @@ structure Mangle = struct
              | #"=" => "_eq_"
              | #"!" => "_ex_"
              | #"*" => "_star_"
-             | #"-" => "_minus_"
+             | #"-" => "_"
              | #"+" => "_plus_"
-             | #"^" => "_concat_"
+             | #"^" => "_hat_"
              | #"/" => "_slash_"
              | #"?" => "_q_"
              | _ => String.str c

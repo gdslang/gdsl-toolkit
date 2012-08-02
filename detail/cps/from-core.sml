@@ -48,6 +48,12 @@ end = struct
          val raisee = get "raise"
          val return = get "return"
          val add = get "+"
+         val eqi = get "==="
+         val muli = get "*"
+         val lti = get "<"
+         val lei = get "<="
+         val gti = get ">"
+         val gei = get ">="
          val concatstring = get "+++"
          val showbitvec = get "showbitvec"
          val showint = get "showint"
@@ -101,12 +107,78 @@ end = struct
                (zx, [x], body)
             end
 
+         val muli =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%muli"
+               val body = PRI (prim, [a, b])
+                     
+            in
+               (muli, [a, b], body)
+            end
+
+         val eqi =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%eqi"
+               val body = PRI (prim, [a, b])
+                     
+            in
+               (eqi, [a, b], body)
+            end
+
+         val lei =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%lei"
+               val body = PRI (prim, [a, b])
+                     
+            in
+               (lei, [a, b], body)
+            end
+
+         val lti =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%lti"
+               val body = PRI (prim, [a, b])
+                     
+            in
+               (lti, [a, b], body)
+            end
+
+         val gei =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%lei"
+               val body = PRI (prim, [a, b])
+                     
+            in
+               (gei, [b, a], body)
+            end
+
+         val gti =
+            let
+               val a = fresh "a"
+               val b = fresh "b"
+               val prim = get "%lti"
+               val body = PRI (prim, [a, b])
+                     
+            in
+               (gti, [b, a], body)
+            end
+
          (* val + a b = %add(a,b) *)
          val add =
             let
                val a = fresh "a"
                val b = fresh "b"
-               val primAdd = get "%add"
+               val primAdd = get "%addi"
                val body = PRI (primAdd, [a, b])
                      
             in
@@ -118,7 +190,7 @@ end = struct
             let
                val a = fresh "a"
                val b = fresh "b"
-               val primSub = get "%sub"
+               val primSub = get "%subi"
                val body = PRI (primSub, [a, b])
                      
             in
@@ -270,7 +342,13 @@ end = struct
           add,
           sx,
           zx,
-          sub]
+          sub,
+          muli,
+          lei,
+          lti,
+          eqi,
+          gei,
+          gti]
       end
 
    end

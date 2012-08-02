@@ -131,7 +131,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (* define a second traversal that is a full inference of the tree *)
    
    (*local helper function to infer types for a binding group*)
-   val maxIter = 3
+   val maxIter = 2
    fun calcSubset printWarn env =
       let
          fun checkUsage sym (s, unstable) =
@@ -220,11 +220,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      " when checking call to ",
                      SymbolTable.getString(!SymbolTables.varTable, sym),
                      "\n\tcall provides type  " ^ sCall,
-                     "\n\tdefinition has type " ^ sFun]))
+                     "\tdefinition has type " ^ sFun]))
                   end
                val env = E.meetFlow (envCall, envFun)
                   handle (S.UnificationFailure str) =>
-                     (raiseError str; envCall)
+                     (raiseError str; envFun)
                val (changed, env) = E.popToUsage (sym, s, oldCtxt, env)
                val _ = sm := List.foldl
                      (fn (sym,sm) => (sym, E.getFunctionInfo (sym, env)) ::
@@ -389,21 +389,24 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envHave = infExp (st,env) e1
          val env = E.meet (envWant, envHave)
          val env = E.popKappa env
+         val envM = E.pushTop env
          val envT = infExp (st,env) e2
          (*val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)*)
+         val envM = E.meetFlow (envM,envT)
          val envE = infExp (st,env) e3
          (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)*)
-         val env = E.meet (envE,envT)
+         val envM = E.meetFlow (envM,envE)
+         (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString envM)*)
       in
-         env
+         envM
       end
      | infExp (st,env) (AST.CASEexp (e,l)) =
       let
          val (t,env) = E.pushLambdaVar' (caseExpSymId, env)
          val envExp = infExp (st,env) e
-         (*val _ = TextIO.print ("**** after case exp:\n" ^ E.toString envExp)*)
+         (*val _ = TextIO.print ("**** after case exp:\n" ^ E.topToString envExp)*)
          val envVar = E.pushType (false, t, env)
-         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.toString envVar)*)
+         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.topToString envVar)*)
          val env = E.meetFlow (envVar, envExp)
          val env = E.popKappa env
          val envNeutral = E.pushTop env
@@ -420,7 +423,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                env
             end
          val env = List.foldl genFlow envNeutral l
-         (*val _ = TextIO.print ("**** all envs:\n" ^ E.toString env)*)
+         (*val _ = TextIO.print ("**** all envs:\n" ^ E.topToString env)*)
       in
          E.return (1,env)
       end
@@ -476,7 +479,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val (nts, env) = List.foldl pushField ([], env) l
          (*val _ = TextIO.print ("**** rec exp, single fields:\n" ^ E.toString env ^ "\n")*)
          val env = E.reduceToRecord (nts, env)
-         (*val _ = TextIO.print ("**** rec exp, combined:\n" ^ E.toString env ^ "\n")*)
+         (*val _ = TextIO.print ("**** rec exp, combined:\n" ^ E.topToString env ^ "\n")*)
       in
          env
       end
@@ -548,17 +551,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val dcon = SymMap.lookup (conParents, c)
          val { tdVars = vs, tdCons = cs } = SymMap.lookup (typeDefs, dcon)
+         val vs = SymMap.listItems vs
          val tArgOpt = SymMap.lookup (cs, c)
          val env =
             case tArgOpt of
                  NONE => E.pushType (true, ALG (dcon, List.map VAR vs), env)
                | SOME t =>
             let
-               val (posFlags, negFlags) =
-                  fieldBVarsets (t,(BD.emptySet, BD.emptySet))
-               val env = E.meetBoolean (BD.meetVarSetOne posFlags o
-                                        BD.meetVarSetZero negFlags, env)
                val env = E.pushType (true, FUN ([t],ALG (dcon, List.map VAR vs)), env)
+               val env = E.genConstructorFlow (false,env)
             in
                env
             end
@@ -676,20 +677,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infMatch (st,env) (p,e) =
       let
          val (n,env) = infPat (st,env) p
-         (*val _ = TextIO.print ("**** after pat:\n" ^ E.toString env)*)
+         (*val _ = TextIO.print ("**** after pat:\n" ^ E.topToString env)*)
          val envScru = E.popKappa env
          val envScru = E.pushSymbol (caseExpSymId, SymbolTable.noSpan, envScru)
-         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.toString envScru)*)
+         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.topToString envScru)*)
          val env = E.meetFlow (env, envScru)
             handle S.UnificationFailure str =>
                refineError (str,
                             " when checking case scrutinee",
                             [(envScru, "scrutinee and patterns so far "),
                              (env,     "pattern " ^ showProg (22, PP.pat, p))])
-         (*val _ = TextIO.print ("**** after mgu:\n" ^ E.toString env)*)
+         (*val _ = TextIO.print ("**** after mgu:\n" ^ E.topToString env)*)
          val env = E.popKappa env
          val env = infExp (st,env) e
-         (*val _ = TextIO.print ("**** after expr:\n" ^ E.toString env)*)
+         (*val _ = TextIO.print ("**** after expr:\n" ^ E.topToString env)*)
       in
          E.return (n,env)
       end
@@ -699,17 +700,40 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infPat (st,env) (AST.IDpat v) =
       let
          val (t, env) = E.pushLambdaVar' (v,env)
+         val t' = newFlow t
+         val env = E.meetBoolean (BD.meetVarImpliesVar (bvar t, bvar t'), env)
       in
-         (1, E.pushType (false, t, env))
+         (1, E.pushType (false, t', env))
       end
      | infPat (st,env) (AST.CONpat (c, SOME p)) =
       let
          val (n,envPat) = infPat (st,env) p
          val envPat = E.pushTop envPat
          val envPat = E.reduceToFunction (envPat,1)
+
          val envCon = E.popKappa envPat
-         val envCon = infExp (st,envCon) (AST.CONexp c)
+         val dcon = SymMap.lookup (conParents, c)
+         val { tdVars = vs, tdCons = cs } = SymMap.lookup (typeDefs, dcon)
+         val vs = SymMap.listItems vs
+         val t =
+            case SymMap.lookup (cs, c) of
+                 NONE => raise S.UnificationFailure (
+                  "pattern with constructor " ^
+                  SymbolTable.getString(!SymbolTables.conTable, c) ^ 
+                  " may not have an argument")
+               | SOME t => t
+         val envCon = E.pushType (true, FUN ([t],ALG (dcon, List.map VAR vs)), envCon)
+         val envCon = E.genConstructorFlow (true,envCon)
+
          val env = E.meetFlow (envCon,envPat)
+
+         (*val (pStr, si) = E.topToStringSI (envPat, TVar.emptyShowInfo)
+         val (cStr, si) = E.topToStringSI (envCon, si)
+         val (rStr, si) = E.topToStringSI (env, si)
+         val _ = TextIO.print ("**** pattern: payload to type is:\n" ^ pStr)
+         val _ = TextIO.print ("**** pattern: constructor type is:\n" ^ cStr)
+         val _ = TextIO.print ("**** pattern: resulting type is:\n" ^ rStr)*)
+
          val env = E.reduceToResult env
       in
          (n, env)
@@ -721,7 +745,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infLit (st,env) (AST.FLTlit f) = E.pushType (false, FLOAT, env)
      | infLit (st,env) (AST.STRlit str) = E.pushType (false, STRING, env)
      | infLit (st,env) (AST.VEClit str) =
-         E.pushType (false, VEC (CONST (String.size str)), env)
+         E.pushType (false, VEC (CONST (getBitpatLitLength str)), env)
 
    (*enforce the size constraints of the primitives*)
    val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes (),
@@ -738,7 +762,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      ) toplevelEnv (ast : SpecAbstractTree.specification)
    val toplevelEnv = calcFixpoint toplevelEnv
                         handle TypeError => toplevelEnv
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
 
    (* check if all exported functions can be run with an empty state *)
    fun checkDecoder s sym = case E.forceNoInputs (sym,toplevelEnv) of

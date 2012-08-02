@@ -56,7 +56,7 @@ end = struct
           | DECODEdecl d => insertDecode d
           | LETRECdecl d => valuedecls := d::(!valuedecls)
           | EXPORTdecl es => exports := !exports@es
-          | DATATYPEdecl (n, cons) =>
+          | DATATYPEdecl (n, tvars, cons) =>
                (datatypes := (n, cons)::(!datatypes)
                ;updateConstructors (n, cons))
                   

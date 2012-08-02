@@ -75,9 +75,9 @@ structure JS0 = struct
              | LETREC (ds,t) => visitExp (t, foldl visitRec acc ds)
              | LETCONT (ds,t) => visitExp (t, foldl visitCont acc ds)
              | LETPRJ (x,f,y,t) => visitExp (t, JSStmt.const (id x, JSExp.select (fieldId f, JSExp.id (id y)))::acc)
-             | LETDECON (x,y,t) => visitExp (t, JSStmt.const (id x, JSExp.select (Id.fromString "payload", JSExp.id (id y)))::acc)
+             (* | LETDECON (x,y,t) => visitExp (t, JSStmt.const (id x, JSExp.select (Id.fromString "payload", JSExp.id (id y)))::acc) *)
+             | LETDECON (x,y,t) => visitExp (t, JSStmt.const (id x, JSExp.call (Id.fromString "__decon", [id y]))::acc)
              | LETUPD (x,y,fs,t) =>
-                  (* FIXME: destructive update! *)
                   let
                      val x = id x
                      val y = id y
@@ -86,9 +86,10 @@ structure JS0 = struct
                            JSStmt.assign
                               (JSExp.select (fieldId f, JSExp.id x),
                                JSExp.id (id z))) fs
+                     fun clone y = JSExp.call (Id.fromString "Object.create", [y])
                   in
                      visitExp (t, (upds@
-                        [JSStmt.const (x, JSExp.id y)])@acc)
+                        [JSStmt.const (x, clone y)])@acc)
                   end
              | APP (f,k,xs) => rev (JSStmt.return (JSExp.call (id f, map id (k::xs)))::acc)
              | CC (c,xs) => rev (JSStmt.return (JSExp.call (id c, map id xs))::acc)
