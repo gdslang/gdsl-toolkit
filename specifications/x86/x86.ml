@@ -569,11 +569,14 @@ type insn =
  | BOUND of arity2
  | BSF of arity2
  | BSR of arity2
-
  | BSF of arity2
  | BSR of arity2
  | BSWAP of arity1
  | BT of arity2
+ | BTC of arity2
+ | BTR of arity2
+ | BTS of arity2
+
  | CALL of flow1
  | CBW
  | CDQE
@@ -2018,6 +2021,39 @@ val / [0x0f 0xba /4]
  | opndsz? = binop BT r/m16 imm8
  | rexw? = binop BT r/m64 imm8
  | otherwise = binop BT r/m32 imm8
+
+### BTC
+###  - Bit Test and Complement
+val / [0x0f 0xbb /r]
+ | opndsz? = binop BTC r/m16 r16
+ | rexw? = binop BTC r/m64 r64
+ | otherwise = binop BTC r/m32 r32
+val / [0x0f 0xba /7]
+ | opndsz? = binop BTC r/m16 imm8
+ | rexw? = binop BTC r/m64 imm8
+ | otherwise = binop BTC r/m32 imm8
+
+### BTR
+###  - Bit Test and Reset
+val / [0x0f 0xb3 /r]
+ | opndsz? = binop BTR r/m16 r16
+ | rexw? = binop BTR r/m64 r64
+ | otherwise = binop BTR r/m32 r32
+val / [0x0f 0xba /6]
+ | opndsz? = binop BTR r/m16 imm8
+ | rexw? = binop BTR r/m64 imm8
+ | otherwise = binop BTR r/m32 imm8
+
+### BTS
+###  - Bit Test and Set
+val / [0x0f 0xab /r]
+ | opndsz? = binop BTS r/m16 r16
+ | rexw? = binop BTS r/m64 r64
+ | otherwise = binop BTS r/m32 r32
+val / [0x0f 0xba /5]
+ | opndsz? = binop BTS r/m16 imm8
+ | rexw? = binop BTS r/m64 imm8
+ | otherwise = binop BTS r/m32 imm8
 
 ### CALL
 ###  - Call Procedure
