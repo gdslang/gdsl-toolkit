@@ -627,6 +627,7 @@ type insn =
  | CMPXCHG16B of arity1
  | COMISD of arity2
  | COMISS of arity2
+ | CRC32 of arity2
 
  | CPUID
  | CVTPD2PI of arity2
@@ -948,8 +949,8 @@ type insn =
  | VCMPPS of varity
  | VCMPSD of varity
  | VCMPSS of varity
- | VCOMISD of arity2
- | VCOMISS of arity2
+ | VCOMISD of varity
+ | VCOMISS of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -2249,6 +2250,16 @@ val /vex/0f [0x2f /r] = varity2 VCOMISS xmm128 xmm/m32
 ### CPUID
 ###  - CPU Identification
 val / [0x0f 0xa2] = arity0 CPUID
+
+### CRC32
+###  - Accumulate CRC32 Value
+val /f2 [0x0f 0x38 0xf0 /r]
+ | rexw? = binop CRC32 r64 r/m8
+ | otherwise = binop CRC32 r32 r/m8
+val /f2 [0x0f 0x38 0xf1 /r]
+ | opndsz? = binop CRC32 r32 r/m16
+ | rexw? = binop CRC32 r64 r/m64
+ | otherwise = binop CRC32 r32 r/m32
 
 ### CVTPD2PI
 ###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
