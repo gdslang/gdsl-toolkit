@@ -622,8 +622,12 @@ type insn =
  | CMPSQ
  | CMPSW
  | CMPSS of arity3
-
  | CMPXCHG of arity2
+ | CMPXCHG8B of arity1
+ | CMPXCHG16B of arity1
+ | COMISD of arity2
+ | COMISS of arity2
+
  | CPUID
  | CVTPD2PI of arity2
  | CVTSI2SD of arity2
@@ -944,6 +948,8 @@ type insn =
  | VCMPPS of varity
  | VCMPSD of varity
  | VCMPSS of varity
+ | VCOMISD of arity2
+ | VCOMISS of arity2
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -2223,6 +2229,22 @@ val / [0x0f 0xb1 /r]
  | opndsz? = binop CMPXCHG r/m16 r16
  | rexw? = binop CMPXCHG r/m64 r64
  | otherwise = binop CMPXCHG r/m32 r32
+
+### CMPXCHG8B/CMPXCHG16B
+###  - Compare and Exchange Bytes
+val / [0x0f 0xc7 /1-mem]
+ | rexw? = unop CMPXCHG8B r/m64
+ | otherwise = unop CMPXCHG16B xmm/m128
+
+### COMISD
+###  - Compare Scalar Ordered Double-Precision Floating-Point Values and Set EFLAGS
+val /66 [0x0f 0x2f /r] = binop COMISD xmm128 xmm/m64
+val /vex/66/0f [0x2f /r] = varity2 VCOMISD xmm128 xmm/m64
+
+### COMISS
+###  - Compare Scalar Ordered Single-Precision Floating-Point Values and Set EFLAGS
+val / [0x0f 0x2f /r] = binop COMISS xmm128 xmm/m32
+val /vex/0f [0x2f /r] = varity2 VCOMISS xmm128 xmm/m32
 
 ### CPUID
 ###  - CPU Identification
