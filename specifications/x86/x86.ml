@@ -583,8 +583,6 @@ type insn =
  | CLI
  | CLTS
  | CMC
- | CMPPD of arity3
- | CMPPS of arity3
 
  | CMOVA of arity2
  | CMOVAE of arity2
@@ -617,10 +615,14 @@ type insn =
  | CMOVS of arity2
  | CMOVZ of arity2
  | CMP of arity2
+ | CMPPD of arity3
+ | CMPPS of arity3
  | CMPSB
  | CMPSD
  | CMPSQ
  | CMPSW
+ | CMPSS
+
  | CMPXCHG of arity2
  | CPUID
  | CVTPD2PI of arity2
@@ -935,12 +937,14 @@ type insn =
  | VBLENDPS of varity
  | VBLENDVPD of varity
  | VBLENDVPS of varity
- | VCMPPD of varity
- | VCMPPS of varity
- 
  | VCMPEQB of varity
  | VCMPEQD of varity
  | VCMPEQW of varity
+ | VCMPPD of varity
+ | VCMPPS of varity
+ | VCMPSD of varity
+ | VCMPSS of varity
+
  | VLDDQU of varity
  | VMASKMOVDQU of varity
  | VMAXPD of varity
@@ -2201,6 +2205,16 @@ val / [0xa7]
  | opndsz? = arity0 CMPSB
  | rexw? = arity0 CMPSQ
  | otherwise = arity0 CMPSD
+
+### CMPSD
+###  - Compare Scalar Double-Precision Floating-Point Values
+val /f2 [0x0f 0xc2 /r] = ternop CMPSD xmm128 xmm/m64 imm8
+val /vex/f2/0f/vexv [0xc2 /r] = varity4 VCMPSD xmm128 v/xmm xmm/m64 imm8
+
+### CMPSS
+###  - Compare Scalar Single-Precision Floating-Point Values
+val /f3 [0x0f 0xc2 /r] = ternop CMPSS xmm128 xmm/m32 imm8
+val /vex/f3/0f/vexv [0xc2 /r] = varity4 VCMPSS xmm128 v/xmm xmm/m32 imm8
 
 ### CMPXCHG
 ###  - Compare and Exchange
