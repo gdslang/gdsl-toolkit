@@ -569,8 +569,6 @@ type insn =
  | BOUND of arity2
  | BSF of arity2
  | BSR of arity2
- | BSF of arity2
- | BSR of arity2
  | BSWAP of arity1
  | BT of arity2
  | BTC of arity2
@@ -1976,20 +1974,6 @@ val /66 [0x0f 0x38 0x14 /r] = binop BLENDVPS xmm128 xmm/m128
 val / [0x62 /r-mem]
  | opndsz? & // mode64? = binop BOUND r16 r/m16
  | // mode64? = binop BOUND r32 r/m32
-
-### BSF
-###  - Bit Scan Forward
-val / [0x0f 0xbc /r]
- | opndsz? = binop BSF r16 r/m16
- | rexw? = binop BSF r64 r/m64
- | otherwise = binop BSF r32 r/m32
-
-### BSR
-###  - Bit Scan Reverse
-val / [0x0f 0xbd /r]
- | opndsz? = binop BSR r16 r/m16
- | rexw? = binop BSR r64 r/m64
- | otherwise = binop BSR r32 r/m32
 
 ### BSF
 ###  - Bit Scan Forward
