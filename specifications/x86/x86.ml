@@ -574,10 +574,10 @@ type insn =
  | BTC of arity2
  | BTR of arity2
  | BTS of arity2
-
  | CALL of flow1
  | CBW
  | CDQE
+ | CLC
  | CLD
  | CMOVA of arity2
  | CMOVAE of arity2
@@ -2052,6 +2052,10 @@ val / [0x98]
  | opndsz? = arity0 CBW
  | rexw? = arity0 CDQE
  | otherwise = arity0 CWDE
+
+### CLC
+###  - Clear Carry Flag
+val / [0xf8] = arity0 CLC
 
 ### CLD
 ###  - Clear Direction Flag
