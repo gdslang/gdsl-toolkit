@@ -618,10 +618,10 @@ type insn =
  | CMPPD of arity3
  | CMPPS of arity3
  | CMPSB
- | CMPSD
+ | CMPSD of varity
  | CMPSQ
  | CMPSW
- | CMPSS
+ | CMPSS of arity3
 
  | CMPXCHG of arity2
  | CPUID
@@ -2204,11 +2204,11 @@ val / [0xa6] = arity0 CMPSB
 val / [0xa7]
  | opndsz? = arity0 CMPSB
  | rexw? = arity0 CMPSQ
- | otherwise = arity0 CMPSD
+ | otherwise = varity0 CMPSD
 
 ### CMPSD
 ###  - Compare Scalar Double-Precision Floating-Point Values
-val /f2 [0x0f 0xc2 /r] = ternop CMPSD xmm128 xmm/m64 imm8
+val /f2 [0x0f 0xc2 /r] = varity3 CMPSD xmm128 xmm/m64 imm8
 val /vex/f2/0f/vexv [0xc2 /r] = varity4 VCMPSD xmm128 v/xmm xmm/m64 imm8
 
 ### CMPSS
