@@ -626,13 +626,21 @@ type insn =
  | CMPXCHG16B of arity1
  | COMISD of arity2
  | COMISS of arity2
+ | CPUID
  | CRC32 of arity2
  | CVTDQ2PD of arity2
  | CVTDQ2PS of arity2
  | CVTPD2DQ of arity2
-
- | CPUID
  | CVTPD2PI of arity2
+ | CVTPD2PS of arity2
+ | CVTPI2PD of arity2
+ | CVTPI2PS of arity2
+ | CVTPS2DQ of arity2
+ | CVTPS2PD of arity2
+ | CVTPS2PI of arity2
+ | CVTSD2SI of arity2
+ | CVTSD2SS of arity2
+
  | CVTSI2SD of arity2
  | CWDE
  | DEC of arity1
@@ -956,6 +964,11 @@ type insn =
  | VCVTDQ2PD of varity
  | VCVTDQ2PS of varity
  | VCVTPD2DQ of varity
+ | VCVTPD2PS of varity
+ | VCVTPS2DQ of varity
+ | VCVTPS2PD of varity
+ | VCVTSD2SI of varity
+ | VCVTSD2SS of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -2293,11 +2306,56 @@ val /vex/f2/0f [0xe6 /r]
  | vex128? = varity2 VCVTPD2DQ xmm128 xmm/m128
  | vex256? = varity2 VCVTPD2DQ ymm256 ymm/m256
 
-
-
 ### CVTPD2PI
 ###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
 val /66 [0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128
+
+### CVTPD2PS
+###  - Convert Packed Double-Precision FP Values to Packed Single-Precision FP Values
+val /66 [0x0f 0x5a /r] = binop CVTPD2PS xmm128 xmm/m128
+val /vex/66/0f [0x5a /r]
+ | vex128? = varity2 VCVTPD2PS xmm128 xmm/m128
+ | vex256? = varity2 VCVTPD2PS ymm256 ymm/m256
+
+### CVTPI2PD
+###  - Convert Packed Dword Integers to Packed Double-Precision FP Values
+val /66 [0x0f 0x2a /r] = binop CVTPI2PD xmm128 mm/m64
+
+### CVTPI2PS
+###  - Convert Packed Dword Integers to Packed Single-Precision FP Values
+val / [0x0f 0x2a /r] = binop CVTPI2PS xmm128 mm/m64
+
+### CVTPS2DQ
+###  - Convert Packed Single-Precision FP Values to Packed Dword Integers
+val /66 [0x0f 0x5b /r] = binop CVTPS2DQ xmm128 xmm/m128
+val /vex/66/0f [0x5b /r]
+ | vex128? = varity2 VCVTPS2DQ xmm128 xmm/m128
+ | vex256? = varity2 VCVTPS2DQ ymm256 ymm/m256
+
+### CVTPS2PD
+###  - Convert Packed Single-Precision FP Values to Packed Double-Precision FP Values
+val / [0x0f 0x5a /r] = binop CVTPS2PD xmm128 xmm/m64
+val /vex/0f [0x5a /r]
+ | vex128? = varity2 VCVTPS2PD xmm128 xmm/m64
+ | vex256? = varity2 VCVTPS2PD ymm256 xmm/m128
+
+### CVTPS2PI
+###  - Convert Packed Single-Precision FP Values to Packed Dword Integers
+val / [0x0f 0x2d /r] = binop CVTPS2PI mm64 xmm/m64
+
+### CVTSD2SI
+###  - Convert Scalar Double-Precision FP Value to Integer
+val /f2 [0x0f 0x2d /r]
+ | rexw? = binop CVTSD2SI r64 xmm/m64
+ | otherwise = binop CVTSD2SI r32 xmm/m64
+val /vex/f2/0f [0x2d /r]
+ | vexw0? = varity2 VCVTSD2SI r32 xmm/m64
+ | vexw1? = varity2 VCVTSD2SI r64 xmm/m64
+
+### CVTSD2SS
+###  - Convert Scalar Double-Precision FP Value to Scalar Single-Precision FP Value
+val /f2 [0x0f 0x5a /r] = binop CVTSD2SS xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5a /r] = varity3 VCVTSD2SS xmm128 v/xmm xmm/m64
 
 ### CVTSI2SD
 ###  - Convert Dword Integer to Scalar Double-Precision FP Value
