@@ -207,6 +207,7 @@ function toBytes (str) {
     }
   }
   var blob = new Uint8Array(str.length/2);
+  str = str.replace(/ /g,"");
   for (var i=0;i<str.length/2;i++) {
     var a = toByte(str[i*2]);
     var b = toByte(str[i*2+1]);

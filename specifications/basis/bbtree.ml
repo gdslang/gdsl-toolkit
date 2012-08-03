@@ -293,7 +293,7 @@ val bbtree-difference lt? btl btr =
       Lf: btl
     | Br l:
          case btr of
-            Lf: btr
+            Lf: btl
           | Br r:
                bbtree-concat
                   (bbtree-difference
@@ -520,14 +520,47 @@ val fitree-any-overlapping? t x = fitree-any interval-overlaps? t x
 val fitree-collect-contained t x = fitree-collect interval-contains? t x
 val fitree-collect-overlapping t x = fitree-collect interval-overlaps? t x
 
-# TODO:
-#   Real interval difference supporting interval splitting, cutting and 
-#   full interval containing 
+val fitree-interval-split t x =
+   let
+      val split acc x y = 
+         # x is contained in y but not equal
+         if interval-contains? y x
+            then
+               if y.hi === x.hi
+                  then fitree-add acc {lo=y.lo, hi=x.lo - 1}
+               else
+                  fitree-add
+                     (if y.lo === x.lo
+                         then acc
+                      else fitree-add acc {lo=y.lo, hi=x.lo - 1})
+                     {lo=x.hi + 1,hi=y.hi}
+         else
+            if x.lo < y.lo
+               then fitree-add acc {lo=x.hi + 1, hi=y.hi}
+            # x.lo > y.lo, {===} is not possible
+            else fitree-add acc {lo=y.lo, hi=x.lo - 1}
+
+      val interval-split acc y =
+         if interval-contains? x y
+            then acc
+         else if interval-overlaps? x y
+            then split acc x y
+         else fitree-add acc y
+   in
+      fitree-fold interval-split (fitree-empty {}) t
+   end
+
 val fitree-interval-difference a b =
    let
-      val remove-contained t x = fitree-difference t (fitree-collect-contained t x)
+      val rebuild t overlapping x =
+         fitree-union
+            (fitree-difference t overlapping)
+            (fitree-interval-split overlapping x)
+
+      val rebuild-overlapping t x =
+         rebuild t (fitree-collect-overlapping t x) x
    in
-      fitree-fold remove-contained a b
+      fitree-fold rebuild-overlapping a b
    end
 
 val fitree-mk l h = {lo=l, hi=h}

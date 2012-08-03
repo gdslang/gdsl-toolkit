@@ -51,7 +51,7 @@ type sem_stmt =
    SEM_ASSIGN of {lhs: sem_var, rhs: sem_op}
  | SEM_LOAD of {lhs: sem_var, size: int, address: sem_address}
  | SEM_STORE of {address: sem_address, rhs: sem_op}
- | SEM_LABEL of {id: int}
+ | SEM_LABEL of {label: int}
  | SEM_IF_GOTO_LABEL of {cond:sem_linear, label: int}
  | SEM_IF_GOTO of {cond: sem_linear, size:int, target: sem_linear}
  | SEM_CALL of {cond: sem_linear, size:int, target: sem_linear}
@@ -123,7 +123,7 @@ val /LOAD sz a b = SEM_LOAD{lhs=a,size=sz,address=b}
 val /STORE a b = SEM_STORE{address=a,rhs=b}
 val /ADD a b = SEM_LIN_ADD{opnd1=a,opnd2=b}
 val /SUB a b = SEM_LIN_SUB{opnd1=a,opnd2=b}
-val /LABEL l = SEM_LABEL{id=l}
+val /LABEL l = SEM_LABEL{label=l}
 val /IFGOTOLABEL c l = SEM_IF_GOTO_LABEL{cond=c,label=l}
 val /IFGOTO c sz t = SEM_IF_GOTO{cond=c,size=sz,target=t}
 val /GOTOLABEL l = SEM_IF_GOTO_LABEL{cond=SEM_LIN_IMM{imm=1},label=l}

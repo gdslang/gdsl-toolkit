@@ -26,7 +26,7 @@ structure CPS = struct
        | LETUPD of Var.v * Var.v * (field * Var.v) list * term
        | APP of Var.v * Var.c * Var.v list
        | CC of Var.c * Var.v list
-       | CASE of casety * Var.v * (tag list * branch) list
+       | CASE of casety * Var.v * (tag list * term) list
 
       and cval =
          FN of Var.c * Var.v list * term
@@ -46,7 +46,6 @@ structure CPS = struct
 
       withtype recdecl = Var.v * Var.c * Var.v list * term
       and contdecl = Var.c * Var.v list * term
-      and branch = Var.c * Var.v list
       type t = term
    end
 
@@ -197,11 +196,9 @@ structure CPS = struct
           | UNT => str "()"
       and updFld (f, v) = seq [fld f, is, var v]
       and cases cs = indent 3 (alignPrefix (map casee cs, "| "))
-      and casee (tags, branch) =
-         seq [list (map caseTag tags), str ":", space, caseBranch branch]
+      and casee (tags, body) =
+         seq [list (map caseTag tags), str ":", space, term body]
       and caseTag tag = word tag
-      and caseBranch (k, []) = seq [cvar k]
-        | caseBranch (k, xs) = seq [cvar k, space, vars xs]
       and contdecls cs = align (map contdecl cs)
       and contdecl (c, vs, body) = 
          align

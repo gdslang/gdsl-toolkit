@@ -1,4 +1,4 @@
-/* vim:cindent:ts=2:sw=2:expandtab */
+/* vim:ts=2:sw=2:expandtab */
 
 #include "dis.h"
 
@@ -29,22 +29,33 @@ __obj __FALSE = __WRAP(&__unwrapped_FALSE);
 void __fatal (char *fmt, ...) {
   va_list ap;
   va_start(ap,fmt);
-  fprintf(stderr,"FATAL:[");
+  fprintf(stderr,"[FATAL:");
   vfprintf(stderr,fmt,ap);
   fprintf(stderr,"]\n");
   va_end(ap);
   abort();
 }
 
-__obj __and (__obj a_, __obj b_) {
-  __word a = a_->bv.vec;
-  __word b = b_->bv.vec;
-  __word sz = a_->bv.sz;
-  __LOCAL0(x);
-    __BV_BEGIN(x,sz);
-    __BV_INIT(a & b);
-    __BV_END(x,sz);
-  return (x);
+__obj __and (__obj A, __obj B) {
+  __word a = A->bv.vec;
+  __word b = B->bv.vec;
+  __word sz = A->bv.sz;
+  __LOCAL0(c);
+    __BV_BEGIN(c,sz);
+    __BV_INIT(a & b)
+    __BV_END(c,sz);
+  return (c);
+}
+
+__obj __or (__obj A, __obj B) {
+  __word a = A->bv.vec;
+  __word b = B->bv.vec;
+  __word sz = A->bv.sz;
+  __LOCAL0(c);
+    __BV_BEGIN(c,sz);
+    __BV_INIT(a | b);
+    __BV_END(c,sz);
+  return (c);
 }
 
 /** ## Operations on integers */
@@ -74,7 +85,7 @@ __obj __muli (__obj A, __obj B) {
   __int b = B->z.value;
   __LOCAL0(x);
     __INT_BEGIN(x);
-    __INT_INIT(a + b);
+    __INT_INIT(a * b);
     __INT_END(x);
   return (x);
 }
@@ -459,7 +470,7 @@ __obj __showbitvec (__obj o) {
 
 __obj __showint (__obj o) {
   char fmt[64];
-  snprintf(fmt,64,"0x%ld",o->z.value);
+  snprintf(fmt,64,"%ld",o->z.value);
   __LOCAL0(R);
     __ROPE_BEGIN(R);
     __ROPE_FROMCSTRING(fmt);
@@ -545,9 +556,11 @@ __obj __println (__obj o) {
   return (__UNIT);
 }
 
-__obj __traceln (const char* s, __obj o) {
-  printf("TRACE:%s:",s);
-  return (__println(o));
+__obj __traceln (__obj (*f)(__obj,__obj), const char* s, __obj o) {
+  char fmt[4096];
+  __pretty(f,o,fmt,4096);
+  printf("[%s:%s]\n",s,fmt);
+  return (__UNIT);
 }
 
 __obj __isNil (__obj o) {

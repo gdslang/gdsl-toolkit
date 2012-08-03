@@ -14,7 +14,7 @@ xed:
 	gcc -O2 -Wall -static -I../../resources/xed/xed2-intel64/include -L../../resources/xed/xed2-intel64/lib -Wfatal-errors sweep-xed.c -lbfd -liberty -ldl -lz -lxed -o sweep-xed
 
 dcc:
-	gcc -m64 -O2 -ftree-vectorize -ftree-slp-vectorize -mfpmath=sse -msse4 -Wall -static -I. -I../.. -I../../examples/x86 -Wfatal-errors sweep-dcc.c ../../dis.c -DRELAXEDFATAL -lbfd -liberty -ldl -lz -o sweep-dcc
+	gcc -m64 -O3 -ftree-vectorize -ftree-slp-vectorize -mfpmath=sse -msse4 -Wall -static -I. -I../.. -I../../examples/x86 -Wfatal-errors sweep-dcc.c ../../dis.c -DRELAXEDFATAL -lbfd -liberty -ldl -lz -o sweep-dcc
 
 musl-dcc:
 	/usr/musl/bin/musl-gcc\

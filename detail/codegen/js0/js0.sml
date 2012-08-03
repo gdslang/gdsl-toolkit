@@ -95,10 +95,10 @@ structure JS0 = struct
              | CC (c,xs) => rev (JSStmt.return (JSExp.call (id c, map id xs))::acc)
              | CASE (ty,x,cs) =>
                   let
-                     fun branch (k,xs) = Vector.fromList [JSStmt.return (JSExp.call (id k, map id xs))]
+                     fun branch body = Vector.fromList (visitExp (body, []))
                      val cs' = List.filter (fn (cs, _) => not (null cs)) cs
                      val dflt = List.find (fn (cs, _) => null cs) cs
-                     val fatalDflt = Vector.fromList [JSStmt.throw (JSExp.string "[Match]")]
+                     val fatalDflt = Vector.fromList [JSStmt.throw (JSExp.string "[MATCH]")]
                      val dflt =
                         case dflt of
                            NONE => fatalDflt

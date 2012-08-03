@@ -1,4 +1,4 @@
-/* vim:cindent:ts=2:sw=2:expandtab */
+/* vim:ts=2:sw=2:expandtab */
 
 #ifndef __RUNTIME_H
 #define __RUNTIME_H
@@ -10,7 +10,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#define __RT_HEAP_SIZE (4*1024)
+#define __RT_HEAP_SIZE (4*1024*1024)
 
 #define __CHECK_HEAP(n) /* TODO: check for heap-overflow */
 #define __ALLOC1() --hp /* TODO: check for heap-overflow */
@@ -342,13 +342,13 @@ __obj __FALSE;
 
 /* ## Primitive runtime functions */
 
-const __char* __tagName (__word i);
-const __char* __fieldName (__word i);
+const __char* __tagName(__word);
+const __char* __fieldName(__word);
 
-__obj __halt (__obj,__obj);
-__obj __print (__obj);
-__obj __println (__obj);
-__obj __traceln (const char*,__obj);
+__obj __halt(__obj,__obj);
+__obj __print(__obj);
+__obj __println(__obj);
+__obj __traceln(__obj(*)(__obj,__obj),const char*,__obj);
 
 static inline __objref __recordLookup (struct __record* record, __word field) {
   __word i, sz = record->sz;
@@ -438,6 +438,7 @@ __obj __slice(__obj,__obj,__obj);
 __obj __concat(__obj,__obj);
 __obj __equal(__obj,__obj);
 __obj __and(__obj,__obj);
+__obj __or(__obj,__obj);
 __obj __sx(__obj);
 __obj __zx(__obj);
 __obj __raise(__obj);

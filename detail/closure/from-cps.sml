@@ -293,11 +293,7 @@ end = struct
                 flow=Clos.CASE (ty, Subst.apply sigma x, convCases sigma ks)}
 
       and convCases sigma ks = map (fn (tag, c) => (tag, convCase sigma c)) ks
-      and convCase sigma (k, xs) =
-         Clos.BLOCK
-            (convTerm
-               sigma
-               (CC (Subst.apply sigma k, Subst.applyAll sigma xs)))
+      and convCase sigma body = Clos.BLOCK (convTerm sigma body)
 
       and convConts sigma ds = app (convCont sigma) ds
       and convCont sigma (k, xs, body) =

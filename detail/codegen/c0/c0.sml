@@ -253,6 +253,12 @@ structure C = struct
              | STR s => 
                   let
                      val args = seq [lp, PrettyC.var x, rp]
+                     fun escape s = 
+                        String.translate
+                           (fn c =>
+                              case c of
+                                 #"\n" => "\\n"
+                               | _ => String.str c) s
                   in
                      PrettyC.cseq
                         [PrettyC.local0 x,
@@ -261,7 +267,7 @@ structure C = struct
                               [PrettyC.call' ("__ROPE_BEGIN", args),
                                PrettyC.call'
                                  ("__ROPE_FROMCSTRING",
-                                  seq [lp,str"\"",str s,str"\"",rp]),
+                                  seq [lp,str"\"",str (escape s),str"\"",rp]),
                                PrettyC.call' ("__ROPE_END", args)])]
                   end
                   

@@ -459,9 +459,7 @@ end = struct
                            case ks of
                               [([],body)] =>
                                  Exp.LETCONT
-                                    ((j, [x], kappa x)::cps,
-                                     Exp.CC body)
-
+                                    ((j, [x], kappa x)::cps, body)
                             | _ =>
                                  Exp.LETCONT
                                     ((j, [x], kappa x)::cps,
@@ -652,7 +650,7 @@ end = struct
              | ID x => SOME x
              | _ => NONE
       in
-         (bndVars p, (toIdx p, (k, []))::ks)
+         (bndVars p, (toIdx p, Exp.CC (k, []))::ks)
       end
 
    and trans0rec (n, args, e) =
@@ -705,10 +703,8 @@ end = struct
                         end
                    | [] =>
                         case ks of
-                           [([],body)] =>
-                              Exp.LETCONT (cps, Exp.CC body)
-                         | _ =>
-                              Exp.LETCONT (cps, Exp.CASE (ty, z, ks))
+                           [([],body)] => Exp.LETCONT (cps, body)
+                         | _ => Exp.LETCONT (cps, Exp.CASE (ty, z, ks))
             in
                trans0 e (fn z => trans z ps [] [])
             end

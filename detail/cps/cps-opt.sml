@@ -57,7 +57,7 @@ structure CheckDefUse = struct
        | CC (k, xs) => (use k; app use xs)
        | CASE (_, x, ks) => (use x; app (visitMatch n) ks)
 
-   and visitMatch n (_, (k, xs)) = (use k; app use xs)
+   and visitMatch n (_, body) = visitTerm n body
 
    and visitField n (_, v) = use v
 
@@ -175,7 +175,7 @@ structure Census = struct
        | CC (k, xs) => (update (A n) k; app (update (E n)) xs)
        | CASE (_, x, ks) => (update (E n) x; app (visitMatch n) ks)
 
-   and visitMatch n (_, (k, xs)) = (update (A n) k; app (update (E n)) xs)
+   and visitMatch n (_, body) = visitTerm n body
 
    and visitField n (_, v) = update (E n) v
 
@@ -354,10 +354,9 @@ structure FreeVars = struct
                   val env = use env x
                   val env =
                      foldl
-                        (fn ((_,(k,xs)), env) =>
+                        (fn ((_, body), env) =>
                            let
-                              val env = use env k
-                              val env = useAll env xs
+                              val env = visitTerm (env, body)
                            in
                               env
                            end) env ks
@@ -503,8 +502,8 @@ structure Subst = struct
                (ty,
                 apply sigma x,
                 map
-                  (fn (tags, (k, xs)) =>
-                     (tags, (apply sigma k, applyAll sigma xs))) ks)
+                  (fn (tags, body) =>
+                     (tags, rename sigma body)) ks)
 
    and renameRecs sigma ds =
       let
@@ -663,10 +662,9 @@ structure Rec = struct
 
       and visitCases (ks, env) = 
          foldl
-            (fn ((_,(k,xs)), env) =>
+            (fn ((_, body), env) =>
                let
-                  val env = use env k
-                  val env = uses env xs
+                  val env = visitTerm (body, env)
                in
                   env
                end) env ks
@@ -826,6 +824,7 @@ structure FunInfo = struct
                (visitTerm K
                ;bindFun (f, (k, xs, K)))) ds
             ;visitTerm body)
+       | CASE (_, _, ks) => app (fn (_,body) => visitTerm body) ks
        | _ => ()
 
    fun run t = (reset();visitTerm t)
@@ -911,7 +910,10 @@ structure Cost = struct
                foldl
                   (fn ((_, _, _, body), n) =>
                      lp (body, n)) (lp (body, inc n RECS (length ds))) ds
-             | CASE (_, _, cs) => inc n CASES (length cs)
+             | CASE (_, _, cs) =>
+                  foldl
+                     (fn ((_, body), n) =>
+                        lp (body, n)) (inc n CASES (length cs)) cs
              | APP _ => inc n APPS 1
              | CC _ => inc n CCS 1
          val ZERO = {cases=0,conts=0,recs=0,apps=0,ccs=0}
@@ -1028,8 +1030,8 @@ end = struct
                (ty,
                 Subst.apply sigma x,
                 map
-                  (fn (tags,(k,xs)) =>
-                     (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
+                  (fn (tags, body) =>
+                     (tags, simplify env sigma body)) cs)
        | APP (f, j, ys) =>
             let
                val f = Subst.apply sigma f
@@ -1122,8 +1124,8 @@ structure HoistFun = struct
                (ty,
                 Subst.apply sigma x,
                 map
-                  (fn (tags,(k,xs)) =>
-                     (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
+                  (fn (tags, body) =>
+                     (tags, simplify env sigma body)) cs)
        | APP (f, j, ys) =>
             let
                val f = Subst.apply sigma f
@@ -1248,6 +1250,8 @@ structure DeadVal = struct
          (case simplifyCCs cs of
             [] => (click(); simplify K)
           | cs => LETCONT (cs, simplify K))
+      | CASE (ty, x, ks) =>
+         CASE (ty, x, map (fn (tags, body) => (tags, simplify body)) ks)
       | otherwise => otherwise
    
    and simplifyRecs ds =
@@ -1383,8 +1387,8 @@ structure BetaContFun = struct
             (ty,
              Subst.apply sigma x,
              map
-               (fn (tags,(k,xs)) =>
-                  (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
+               (fn (tags, body) =>
+                  (tags, simplify env sigma body)) cs)
       | LETREC (ds, L) =>
          let
             val env' = 
@@ -1582,8 +1586,8 @@ structure BetaContract = struct
             let
                val x = Subst.apply sigma x
                val cs =
-                  map (fn (tags,(k,xs)) =>
-                     (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs
+                  map (fn (tags, body) =>
+                     (tags, simplify env sigma body)) cs
                fun matchh tag =
                   case lookup (env, VEC (Word.toString tag)) of
                      NONE => false
@@ -1592,7 +1596,7 @@ structure BetaContract = struct
             in
                case List.find boundTag cs of
                   NONE => CASE (ty, x, cs)
-                | SOME (_,(k,xs)) => (click();CC (k, xs))
+                | SOME (_, body) => (click(); body)
             end
        | LETREC (ds, L) =>
             let
@@ -1722,8 +1726,8 @@ structure BetaContFunShrink = struct
             (ty,
              Subst.apply sigma x,
              map
-               (fn (tags,(k,xs)) =>
-                  (tags,(Subst.apply sigma k, Subst.applyAll sigma xs))) cs)
+               (fn (tags, body) =>
+                  (tags, simplify sigma body)) cs)
       | LETREC (ds, L) =>
          let
             val L = simplify sigma L
