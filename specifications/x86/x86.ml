@@ -564,7 +564,7 @@ type insn =
  | ARPL of arity2
  | BLENDPD of arity3
  | BLENDPS of arity3
- | BLENDVPD of arity2
+ | BLENDVPD of arity3
  | BLENDVPS of arity2
  | BOUND of arity2
  | BSF of arity2
@@ -1181,6 +1181,9 @@ val rel16 ['b1:8' 'b2:8'] = return (REL16 (b2 ^ b1))
 val rel32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (REL32 (b4 ^ b3 ^ b2 ^ b1))
 val rel64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
    return (REL64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
+
+val imm/xmm ['r:4 b:4'] = return (xmm r)
+val imm/ymm ['r:4 b:4'] = return (ymm r)
 
 val & giveA giveB = do
    a <- giveA;
@@ -1980,8 +1983,10 @@ val /vex/66/0f/3a/vexv [0x0c /r]
 ### BLENDVPD
 ###  - Variable Blend Packed Double Precision Floating-Point Values
 ### TODO: /is4?
-val /66 [0x0f 0x38 0x15 /r] = binop BLENDVPD xmm128 xmm/m128
-### TODO: VEX -  Register encoded using an immediate?
+val /66 [0x0f 0x38 0x15 /r] = ternop BLENDVPD xmm128 xmm/m128 xmm0
+val /vex/66/0f/3a/vexv [0x4b /r]
+ | vex128? & vexw0? = varity4 VBLENDVPD xmm128 v/xmm xmm/m128 imm/xmm
+ | vex256? & vexw0? = varity4 VBLENDVPD ymm256 v/ymm ymm/m256 imm/ymm
 
 ### BLENDVPS
 ###  - Variable Blend Packed Single Precision Floating-Point Values
