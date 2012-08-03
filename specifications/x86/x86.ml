@@ -583,7 +583,6 @@ type insn =
  | CLI
  | CLTS
  | CMC
-
  | CMOVA of arity2
  | CMOVAE of arity2
  | CMOVB of arity2
@@ -628,6 +627,9 @@ type insn =
  | COMISD of arity2
  | COMISS of arity2
  | CRC32 of arity2
+ | CVTDQ2PD of arity2
+ | CVTDQ2PS of arity2
+ | CVTPD2DQ of arity2
 
  | CPUID
  | CVTPD2PI of arity2
@@ -951,6 +953,9 @@ type insn =
  | VCMPSS of varity
  | VCOMISD of varity
  | VCOMISS of varity
+ | VCVTDQ2PD of varity
+ | VCVTDQ2PS of varity
+ | VCVTPD2DQ of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -1596,6 +1601,7 @@ val xmm/m128 = r/m 128 xmm-rex
 val xmm/m64 = r/m 64 xmm-rex
 val xmm/m32 = r/m 32 xmm-rex
 val ymm/m256 = r/m 256 ymm-rex
+val ymm/m128 = r/m 128 ymm-rex
 
 val v/xmm = do
    v <- query $vexv;
@@ -2265,6 +2271,29 @@ val /f2 [0x0f 0x38 0xf1 /r]
  | opndsz? = binop CRC32 r32 r/m16
  | rexw? = binop CRC32 r64 r/m64
  | otherwise = binop CRC32 r32 r/m32
+
+### CVTDQ2PD
+###  - Convert Packed Dword Integers to Packed Double-Precision FP Values
+val /f3 [0x0f 0xe6] = binop CVTDQ2PD xmm128 xmm/m64
+val /vex/f3/0f [0xe6 /r]
+ | vex128? = varity2 VCVTDQ2PD xmm128 xmm/m64
+ | vex256? = varity2 VCVTDQ2PD ymm256 ymm/m128
+
+### CVTDQ2PS
+###  - Convert Packed Dword Integers to Packed Single-Precision FP Values
+val / [0x0f 0x5b /r] = binop CVTDQ2PS xmm128 xmm/m128
+val /vex/0f [0x5b /r]
+ | vex128? = varity2 VCVTDQ2PS xmm128 xmm/m128
+ | vex256? = varity2 VCVTDQ2PS ymm256 ymm/m256
+
+### CVTPD2DQ
+###  - Convert Packed Double-Precision FP Values to Packed Dword Integers
+val /f2 [0x0f 0xe6] = binop CVTPD2DQ xmm128 xmm/m128
+val /vex/f2/0f [0xe6 /r]
+ | vex128? = varity2 VCVTPD2DQ xmm128 xmm/m128
+ | vex256? = varity2 VCVTPD2DQ ymm256 ymm/m256
+
+
 
 ### CVTPD2PI
 ###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
