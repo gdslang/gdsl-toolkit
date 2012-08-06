@@ -2473,6 +2473,9 @@ val / [0xff /1]
  | opndsz? = unop DEC r/m16
  | rexw? = unop DEC r/m64
  | otherwise = unop DEC r/m32
+val / ['01001 r:3']
+ | opndsz? & // mode64? = do update@{reg/opcode=r}; unop DEC r16 end 
+ | otherwise & // mode64? = do update@{reg/opcode=r}; unop DEC r32 end
 
 ### DIV
 ###  - Unsigned Divide
