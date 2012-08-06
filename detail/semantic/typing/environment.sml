@@ -51,11 +51,10 @@ structure Environment : sig
    val genConstructorFlow : (bool * environment) -> environment
    
     (*given an occurrence of a symbol at a position, push its type onto the
-   stack and return if an instance of this type must be used; arguments are
-   the symbol to look up, the position it occurred and a list of symbols that
-   denote the current context/function (the latter is ignored if the symbol
-   already has a type) *)
-   val pushSymbol : VarInfo.symid * Error.span * environment -> environment
+    stack; arguments are the symbol to look up, the position it occurred and a
+    Boolean flag indicating if this usage should be recorded (True) or if an
+    existing type should be used (False) *)
+   val pushSymbol : VarInfo.symid * Error.span * bool * environment -> environment
 
    val getUsages : VarInfo.symid * environment -> Error.span list
    
@@ -100,8 +99,8 @@ structure Environment : sig
    (*stack: [...,t] -> [...] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
 
-   (*the type of function f is unset*)
-   val clearFunction : VarInfo.symid * environment -> environment
+   (*unset the type of function f, returns false if the type was already unset*)
+   val clearFunction : VarInfo.symid * environment -> (bool * environment)
    
    (*add the given function symbol to the current context*)
    val pushFunction : VarInfo.symid * environment -> environment
@@ -825,7 +824,7 @@ end = struct
          end
       | _ => raise InferenceBug
 
-   fun pushSymbol (sym, span, env) =
+   fun pushSymbol (sym, span, recordUsage, env) =
       (case Scope.lookup (sym,env) of
           (_, SIMPLE {ty = t}) =>
          let
@@ -861,13 +860,17 @@ end = struct
                 uses = SpanMap.insert (uses, span, (ctxt, t))}, cons)
               | action _ = raise InferenceBug
             val env =
-               if TVar.isEmpty (TVar.intersection (decVars, SC.getVarset (Scope.getSize state)))
+               if not recordUsage andalso TVar.isEmpty (TVar.intersection (decVars, SC.getVarset (Scope.getSize state)))
                then env
                else Scope.update (sym, action, env)
          in
             Scope.wrap (KAPPA {ty = t}, env)
          end
         | (_, COMPOUND {ty = NONE, width, uses}) =>
+         if not recordUsage then 
+                  (TextIO.print ("need to push usage for " ^
+                     SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n");
+                  raise InferenceBug) else
           (case SpanMap.find (uses, span) of
                SOME (_,t) => Scope.wrap (KAPPA {ty = t}, env)
              | NONE =>
@@ -1229,11 +1232,15 @@ end = struct
 
    fun clearFunction (sym, env) =
       let
+         val unsetRef = ref false
          fun resetType (COMPOUND {ty = SOME _, width, uses}, cons) =
+               (unsetRef := true;
+               (COMPOUND {ty = NONE, width = width, uses = uses}, cons))
+           | resetType (COMPOUND {ty = NONE, width, uses}, cons) =
                (COMPOUND {ty = NONE, width = width, uses = uses}, cons)
            | resetType _ = raise InferenceBug
       in
-         Scope.update (sym, resetType, env)
+         (!unsetRef, Scope.update (sym, resetType, env))
       end
 
    fun pushFunction (sym, (scs,state)) =
@@ -1269,7 +1276,7 @@ end = struct
                (COMPOUND {ty = SOME (freshVar (),BD.empty), width = width, uses = uses}, cons)
            | setType _ = raise InferenceBug
          val env = Scope.update (sym, setType, env)
-         val env = pushSymbol (sym, SymbolTable.noSpan, env)
+         val env = pushSymbol (sym, SymbolTable.noSpan, false, env)
          val env = pushFunction (sym,env)
       in
          env
