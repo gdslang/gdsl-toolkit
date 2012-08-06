@@ -640,8 +640,22 @@ type insn =
  | CVTPS2PI of arity2
  | CVTSD2SI of arity2
  | CVTSD2SS of arity2
-
  | CVTSI2SD of arity2
+ | CVTSI2SS of arity2
+ | CVTSS2SD of arity2
+ | CVTSS2SI of arity2
+ | CVTTPD2DQ of arity2
+ | CVTTPD2PI of arity2
+ | CVTTPS2DQ of arity2
+ | CVTTPS2PI of arity2
+ | CVTTSD2SI of arity2
+ | CVTTSS2SI of arity2
+ | CWD
+ | CDQ 
+ | CQO
+ | DAA
+ | DAS
+
  | CWDE
  | DEC of arity1
  | DIV of arity1
@@ -969,6 +983,14 @@ type insn =
  | VCVTPS2PD of varity
  | VCVTSD2SI of varity
  | VCVTSD2SS of varity
+ | VCVTSI2SD of varity
+ | VCVTSI2SS of varity
+ | VCVTSS2SD of varity
+ | VCVTSS2SI of varity
+ | VCVTTPD2DQ of varity
+ | VCVTTPS2DQ of varity
+ | VCVTTSD2SI of varity
+ | VCVTTSS2SI of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -2362,6 +2384,87 @@ val /vex/f2/0f/vexv [0x5a /r] = varity3 VCVTSD2SS xmm128 v/xmm xmm/m64
 val /f2 [0x0f 0x2a /r]
  | rexw? = binop CVTSI2SD xmm128 r/m64
  | otherwise = binop CVTSI2SD xmm128 r/m32
+val /vex/f2/0f/vexv [0x2a /r]
+ | vexw0? = varity3 VCVTSI2SD xmm128 v/xmm r/m32
+ | vexw1? = varity3 VCVTSI2SD xmm128 v/xmm r/m64
+
+### CVTSI2SS
+###  - Convert Dword Integer to Scalar Single-Precision FP Value
+val /f3 [0x0f 0x2a /r]
+ | rexw? = binop CVTSI2SS xmm128 r/m64
+ | otherwise = binop CVTSI2SS xmm128 r/m32
+val /vex/f3/0f/vexv [0x2a /r]
+ | vexw0? = varity3 VCVTSI2SS xmm128 v/xmm r/m32
+ | vexw1? = varity3 VCVTSI2SS xmm128 v/xmm r/m64
+
+### CVTSS2SD
+###  - Convert Scalar Single-Precision FP Value to Scalar Double-Precision FP Value
+val /f3 [0x0f 0x5a /r] = binop CVTSS2SD xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5a /r] = varity3 VCVTSS2SD xmm128 v/xmm xmm/m32
+
+### CVTSS2SI
+###  - Convert Scalar Single-Precision FP Value to Dword Integer
+val /f3 [0x0f 0x2d /r]
+ | rexw? = binop CVTSS2SI r64 xmm/m32
+ | otherwise = binop CVTSS2SI r32 xmm/m32
+val /vex/f3/0f [0x2d /r]
+ | vexw0? = varity2 VCVTSS2SI r32 xmm/m32
+ | vexw1? = varity2 VCVTSS2SI r64 xmm/m32
+
+### CVTTPD2DQ
+###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
+val /66 [0x0f 0xe6 /r] = binop CVTTPD2DQ xmm128 xmm/m128
+val /vex/66/0f [0xe6 /r]
+ | vex128? = varity2 VCVTTPD2DQ xmm128 xmm/m128
+ | vex256? = varity2 VCVTTPD2DQ ymm256 ymm/m256
+
+### CVTTPD2PI
+###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
+val /66 [0x0f 0x2c /r] = binop CVTTPD2PI mm64 xmm/m128
+
+### CVTTPS2DQ
+###  - Convert with Truncation Packed Single-Precision FP Values to Packed Dword Integers
+val /f3 [0x0f 0x5b /r] = binop CVTTPS2DQ xmm128 xmm/m128
+val /vex/f3/0f [0x5b /r]
+ | vex128? = varity2 VCVTTPS2DQ xmm128 xmm/m128
+ | vex256? = varity2 VCVTTPS2DQ ymm256 ymm/m256
+
+### CVTTPS2PI
+###  - Convert with Truncation Packed Single-Precision FP Values to Packed Dword Integers
+val / [0x0f 0x2c /r] = binop CVTTPS2PI mm64 xmm/m64
+
+### CVTTSD2SI
+###  - Convert with Truncation Scalar Double-Precision FP Value to Signed Integer
+val /f2 [0x0f 0x2c /r]
+ | rexw? = binop CVTTSD2SI r64 xmm/m64
+ | otherwise = binop CVTTSD2SI r32 xmm/m64
+val /vex/f2/0f [0x2c /r]
+ | vexw0? = varity2 VCVTTSD2SI r32 xmm/m64
+ | vexw1? = varity2 VCVTTSD2SI r64 xmm/m64
+
+### CVTTSS2SI
+###  - Convert with Truncation Scalar Single-Precision FP Value to Dword Integer
+val /f3 [0x0f 0x2c /r]
+ | rexw? = binop CVTTSS2SI r64 xmm/m32
+ | otherwise = binop CVTTSS2SI r32 xmm/m32
+val /vex/f3/0f [0x2c /r]
+ | vexw0? = varity2 VCVTTSS2SI r32 xmm/m32
+ | vexw1? = varity2 VCVTTSS2SI r64 xmm/m32
+
+### CWD/CDQ/CQO
+###  - Convert Word to Doubleword/Convert Doubleword to Quadword
+val / [0x99]
+ | opndsz? = arity0 CWD
+ | rexw? = arity0 CQO
+ | otherwise = arity0 CDQ
+
+### DAA
+###  - Decimal Adjust AL after Addition
+val / [0x27] = arity0 DAA
+
+### DAS
+###  - Decimal Adjust AL after Subtraction
+val / [0x2f] = arity0 DAS
 
 ### DEC
 ###  - Decrement by 1
