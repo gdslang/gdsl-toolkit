@@ -594,7 +594,6 @@ end = struct
                                    " against " ^ descr t2)
       end
 
-
     fun dbgMgu (t1, t2) =
       let
          val (t1Str, si) = showTypeSI (t1, TVar.emptyShowInfo)

@@ -99,18 +99,16 @@ structure Environment : sig
    (*stack: [...,t] -> [...] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
 
-   (*unset the type of function f, returns false if the type was already unset*)
-   val clearFunction : VarInfo.symid * environment -> (bool * environment)
-   
-   (*add the given function symbol to the current context*)
+   (*push the type of the given function onto the current environment stack*)
    val pushFunction : VarInfo.symid * environment -> environment
 
-   (*as above, additionally push a function type if it is set, otherwise push
-   top*)
-   val pushFunctionOrTop : VarInfo.symid * environment -> environment
+   (*unset the type of function f, if the function type was set, return an
+   environment in which the function type was pushed*)
+   val clearFunction : VarInfo.symid * environment ->
+         environment option * environment
    
-   val forceInputs : Error.span * VarInfo.symid * VarInfo.symid list *
-                     environment -> environment
+   val forceNoInputs : VarInfo.symid * VarInfo.symid list *
+                     environment -> VarInfo.symid list
 
     (*apply the Boolean function*)
    val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
@@ -867,10 +865,6 @@ end = struct
             Scope.wrap (KAPPA {ty = t}, env)
          end
         | (_, COMPOUND {ty = NONE, width, uses}) =>
-         if not recordUsage then 
-                  (TextIO.print ("need to push usage for " ^
-                     SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n");
-                  raise InferenceBug) else
           (case SpanMap.find (uses, span) of
                SOME (_,t) => Scope.wrap (KAPPA {ty = t}, env)
              | NONE =>
@@ -1214,7 +1208,7 @@ end = struct
          fun setType t (COMPOUND {ty = NONE, width = NONE, uses}, cons) =
                (COMPOUND {ty = SOME t, width = NONE, uses = uses},
                 cons)
-           | setType t (COMPOUND {ty = SOME _, width = SOME w, uses}, cons) =
+           | setType t (COMPOUND {ty = NONE, width = SOME w, uses}, cons) =
                (COMPOUND {ty = SOME t, width = SOME w, uses = uses},
                 cons)
            | setType t _ = (TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
@@ -1230,76 +1224,52 @@ end = struct
             | _ => raise InferenceBug
       end
 
-   fun clearFunction (sym, env) =
-      let
-         val unsetRef = ref false
-         fun resetType (COMPOUND {ty = SOME _, width, uses}, cons) =
-               (unsetRef := true;
-               (COMPOUND {ty = NONE, width = width, uses = uses}, cons))
-           | resetType (COMPOUND {ty = NONE, width, uses}, cons) =
-               (COMPOUND {ty = NONE, width = width, uses = uses}, cons)
-           | resetType _ = raise InferenceBug
-      in
-         (!unsetRef, Scope.update (sym, resetType, env))
-      end
-
    fun pushFunction (sym, (scs,state)) =
       Scope.update (sym, fn x => x,
          (scs, Scope.setCtxt (sym :: Scope.getCtxt state) state))
-   
-   (*fun pushFunctionOrTop (sym, env) =
-      let
-         val tyRef = ref UNIT
-         val bFunRef = ref BD.empty
-         fun setType (COMPOUND {ty = SOME (t,bFun), width, uses}, cons) =
-               (tyRef := t
-               ;bFunRef := bFun
-               ;(COMPOUND {ty = SOME (t,bFun), width = width, uses = uses}, cons))
-           | setType (COMPOUND {ty = NONE, width, uses}, cons) =
-               (tyRef := freshVar ()
-               ;(COMPOUND {ty = SOME (!tyRef,BD.empty), width = width, uses = uses}, cons))
-           | setType _ = raise InferenceBug
-         val env = Scope.update (sym, setType, env)
-         val (scs,state) = env
-         val state = Scope.setFlow (BD.meet (!bFunRef,Scope.getFlow state)) state
-         val env = (scs, state)
-         val env = pushFunction (sym,env)
-      in
-         Scope.wrap (KAPPA {ty = !tyRef}, env)
-      end*)
 
-   fun pushFunctionOrTop (sym, env) =
+   fun clearFunction (sym, env) =
       let
-         fun setType (COMPOUND {ty = SOME (t,bFun), width, uses}, cons) =
-               (COMPOUND {ty = SOME (t,bFun), width = width, uses = uses}, cons)
-           | setType (COMPOUND {ty = NONE, width, uses}, cons) =
-               (COMPOUND {ty = SOME (freshVar (),BD.empty), width = width, uses = uses}, cons)
-           | setType _ = raise InferenceBug
-         val env = Scope.update (sym, setType, env)
-         val env = pushSymbol (sym, SymbolTable.noSpan, false, env)
-         val env = pushFunction (sym,env)
+         val tOptRef = ref (NONE : (texp * BD.bfun) option)
+         fun resetType (COMPOUND {ty = tOpt, width, uses}, cons) =
+               (tOptRef := tOpt
+               ;(COMPOUND {ty = NONE, width = width, uses = uses}, cons))
+           | resetType _ = raise InferenceBug
+         val (scs,state) = Scope.update (sym, resetType, env)
+         val state = Scope.setCtxt (sym :: Scope.getCtxt state) state
+         val env = (scs,state)
+         val envOpt = case !tOptRef of
+              NONE => NONE
+            | SOME (ty,flow) =>
+               SOME (meetBoolean (
+                     fn bFun => BD.meet (flow,bFun),
+                     Scope.wrap (KAPPA { ty = ty },env)))
       in
-         env
+         (envOpt, env)
       end
-
-   fun forceInputs (span, sym, fields, env) = env(*case Scope.lookup (sym,env) of
-            (_,COMPOUND {ty = SOME (t,bFun), width, uses}) =>
-            let
-               val t = case t of (MONAD (r,inp,out)) => inp
-                               | t => t
-               fun onlyInputs ((true,v),vs) = v :: vs
-                 | onlyInputs ((false,v),vs) = vs
-               val bVars = texpBVarset onlyInputs (t,[])
-               fun checkField bVar =
-                  (case BD.meetVarZero bVar bFun of _ => NONE)
-                  handle (BD.Unsatisfiable bVars) => fieldOfBVar (bVars,t)
-            in
-               List.foldl (fn (bVar,fs) => case checkField bVar of
-                             SOME f => f :: fs
-                           | NONE => fs) [] bVars
-            end
-          | (_,COMPOUND {ty = NONE, width, uses}) => []  (*allow type errors*)
-          | _ => raise InferenceBug*)
+   
+   fun forceNoInputs (sym, fields, env) = case Scope.lookup (sym,env) of
+               (_,COMPOUND {ty = SOME (t,bFun), width, uses}) =>
+               let
+                  val fs = case t of
+                       (MONAD (r,RECORD (_,_,fs),out)) => fs
+                     | FUN (args,_) =>
+                        List.foldl (fn (arg,fs) => case arg of
+                             RECORD (_,_,fs') => fs' @ fs
+                           | _ => fs) [] args
+                     | _ => []
+                  fun checkField bVar =
+                     (case BD.meetVarZero bVar bFun of _ => true)
+                     handle (BD.Unsatisfiable bVars) => false
+               in
+                  List.foldl (fn (RField { name = f, fty, exists = bVar},fs) =>
+                     if List.exists (fn s => SymbolTable.eq_symid(s,f)) fields
+                     then fs
+                     else if checkField bVar then fs else f :: fs)
+                  [] fs
+               end
+             | (_,COMPOUND {ty = NONE, width, uses}) => []  (*allow type errors*)
+             | _ => raise InferenceBug
 
    fun unify (env1, env2, newUses1, newUses2, substs) =
       (case Scope.unwrapDifferent (env1, env2) of
