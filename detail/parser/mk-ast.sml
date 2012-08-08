@@ -49,7 +49,7 @@ functor MkAst (Core: AST_CORE) = struct
     | DATATYPEdecl of con_bind * ty_bind list * (con_bind * ty option) list
     | DECODEdecl of var_bind * decodepat list * (exp, (exp * exp) list) Sum.t
     | LETRECdecl of var_bind * var_bind list * exp
-    | EXPORTdecl of var_use list
+    | EXPORTdecl of (var_use * field_bind list) list (* exported symbol with record fields that are supplied by caller *)
 
    and ty =
       MARKty of ty mark
@@ -125,9 +125,15 @@ functor MkAst (Core: AST_CORE) = struct
             MARKdecl t' => decl (#tree t')
           | GRANULARITYdecl i => seq [str "granularity", is, space, int i]
           | EXPORTdecl es =>
+            let
+               fun export_decl (v,[]) = var_use v
+                 | export_decl (v,fs) = seq ([var_use v, str "{"] @
+                     separate (map field_bind fs, ",") @ [str "}"])
+            in
                seq
                   [str "export", is, space,
-                   seq (separate (map var_use es, " "))]
+                   seq (separate (map export_decl es, " "))]
+            end
           | TYPEdecl (t, tyexp) =>
                seq [str "type", space, syn_bind t, space, ty tyexp]
           | DATATYPEdecl (t, tvars, decls) =>

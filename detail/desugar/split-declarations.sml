@@ -55,7 +55,7 @@ end = struct
           | TYPEdecl d => typealias := d::(!typealias)
           | DECODEdecl d => insertDecode d
           | LETRECdecl d => valuedecls := d::(!valuedecls)
-          | EXPORTdecl es => exports := !exports@es
+          | EXPORTdecl es => exports := !exports@map #1 es
           | DATATYPEdecl (n, tvars, cons) =>
                (datatypes := (n, cons)::(!datatypes)
                ;updateConstructors (n, cons))

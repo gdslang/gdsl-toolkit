@@ -24,6 +24,7 @@ end = struct
    structure TI = ResolveTypeInfo
    structure S = Substitutions
    structure PP = SpecAbstractTree.PP
+   structure SCC = GraphSCCFn(ord_symid)
    
    type symbol_types = (SymbolTable.symid * E.symbol_type) list
 
@@ -51,6 +52,13 @@ end = struct
          if len<=max then str ^ rep (max-len) else
          String.substring (str,0,max-3) ^ "..."
       end
+
+   fun prComp (SCC.SIMPLE s) =
+         SymbolTable.getString(!SymbolTables.varTable, s) ^ "\n"
+     | prComp (SCC.RECURSIVE ss) = "(" ^ #1 (List.foldl (fn (s,(str,sep)) =>
+            (str ^ sep ^
+             SymbolTable.getString(!SymbolTables.varTable, s), ","))
+         ("","") ss) ^ ")\n"
 
    fun refineError (str, msg, envStrs) =
       let
@@ -112,8 +120,6 @@ end = struct
          (List.map topDecl (ast : SpecAbstractTree.specification))
    
    (*calculate gather all identifiers of a binding group in order to calculate SCCs*)
-   structure SCC = GraphSCCFn(ord_symid)
-
    fun sccsSpecification ast =
       let
          val dom = SymSet.fromList (List.map #1 (toplevelDecls ast))
@@ -355,7 +361,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
 
    fun calcFixpoints curIter (syms,env) =
-         case calcSubsets (curIter+1>=maxIter) (syms,env) of unstable =>
+         case calcSubsets (curIter=maxIter) (syms,env) of unstable =>
          if E.SymbolSet.isEmpty unstable then env else
          if curIter<maxIter then
             calcFixpoints (curIter+1) (syms,
@@ -490,12 +496,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val names = List.map topLetrecDecl l
          val env = E.pushGroup (List.concat names, env)
          val sccs = List.rev (sccsLetrec l)
-   
+         (*val _ = TextIO.print ("SCCs:\n" ^ List.foldl (fn (c,str) => str ^ prComp c) "" sccs)*)
+
          val env = List.foldl (fn (comp,env) =>
             let
                (*val _ = TextIO.print ("checking component " ^ prComp comp)*)
                val env = List.foldl (fn ((v,l,e),env) =>
-                              infBinding (st, env) (v, l, e)
+                              (if not (hasSymbol (st,v)) then env else
+                                 infBinding (st, env) (v, l, e))
                               handle TypeError => env) env l
                val env = case comp of
                     SCC.SIMPLE _ => env
@@ -884,13 +892,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    
    val sccs = List.rev (sccsSpecification ast)
    
-   (*fun prComp (SCC.SIMPLE s) =
-         SymbolTable.getString(!SymbolTables.varTable, s) ^ "\n"
-     | prComp (SCC.RECURSIVE ss) = "(" ^ #1 (List.foldl (fn (s,(str,sep)) =>
-            (str ^ sep ^
-             SymbolTable.getString(!SymbolTables.varTable, s), ","))
-         ("","") ss) ^ ")\n"
-   val _ = TextIO.print ("SCCs:\n" ^ List.foldl (fn (c,str) => str ^ prComp c) "" sccs)*)
+   (*val _ = TextIO.print ("SCCs:\n" ^ List.foldl (fn (c,str) => str ^ prComp c) "" sccs)*)
 
    
    (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
@@ -911,7 +913,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       ) toplevelEnv sccs
 
    (* check if all exported functions can be run with the specified fields *)
-   fun checkDecoder s sym = case E.forceNoInputs (sym,[],toplevelEnv) of
+   fun checkDecoder s (sym,fs) =
+      case E.forceNoInputs (sym,fs,toplevelEnv) of
         [] => ()
       | fs =>
          let
@@ -925,7 +928,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             )
          end
    fun checkExports _ (AST.MARKdecl {span=s, tree=t}) = checkExports s t
-     | checkExports s (AST.EXPORTdecl vs) = List.app (checkDecoder s) vs
+     | checkExports s (AST.EXPORTdecl es) = List.app (checkDecoder s) es
      | checkExports s _ = ()
    val _ = List.app (checkExports SymbolTable.noSpan) ast
    

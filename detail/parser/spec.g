@@ -100,7 +100,7 @@ Program
 
 Decl
    : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
-   | "export" "=" Qid* => (markDecl (FULL_SPAN, PT.EXPORTdecl Qid))
+   | "export" "=" Export* => (markDecl (FULL_SPAN, PT.EXPORTdecl Export))
    | "type" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, [], ConDecls)))
    | "type" Name "[" Name ("," Name)* "]" "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name1, Name2 :: SR, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
@@ -113,6 +113,11 @@ Decl
          (PT.DECODEdecl (Name, DecodePat, Sum.INR SR))) =>
       (markDecl (FULL_SPAN, decl))
    ; 
+
+Export
+   : Qid => ((Qid,[]))
+   | Qid "{" Name ("," Name)* "}" => ((Qid,Name :: SR))
+   ;
 
 ConDecls
    : ConDecl ("|" ConDecl)* => (ConDecl::SR)
