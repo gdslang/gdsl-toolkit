@@ -1603,21 +1603,25 @@ end
 #TODO: set correct `ptrty` for `moffs*`
 
 val moffs8 = do
+   update @{ptrsz=8};
    i <- imm8;
    mem i
 end
 
 val moffs16 = do
+   update @{ptrsz=16};
    i <- imm16;
    mem i
 end
 
 val moffs32 = do
+   update @{ptrsz=32};
    i <- imm32;
    mem i
 end
 
 val moffs64 = do
+   update @{ptrsz=64};
    i <- imm64;
    mem i
 end
@@ -3002,8 +3006,8 @@ val /vex/66/0f/3a [0x22 /r]
 
 ### PINSRW
 ###  - Insert Word
-val / [0x0f 0xc4] = ternop PINSRW mm64 r/m32 imm8
-val /66 [0x0f 0xc4] = ternop PINSRW xmm128 r/m32 imm8
+val / [0x0f 0xc4 /r] = ternop PINSRW mm64 r/m32 imm8
+val /66 [0x0f 0xc4 /r] = ternop PINSRW xmm128 r/m32 imm8
 val /vex/66/0f/vexv [0xc4 /r] | vex128? & vexw0? = varity4 VPINSRW xmm128 v/xmm r/m32 imm8
 
 ### PMADDUBSW
