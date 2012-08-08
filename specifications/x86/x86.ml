@@ -672,16 +672,21 @@ type insn =
  | FABS
  | FADD_m32fp
  | FADD_m64fp
- | FADD_st0_sti of arity1
- | FADD_sti_st0 of arity1
- | FADDP_sti_st0 of arity1
- | FADDP
+ | FADD of arity2
+ | FADDP of varity
  | FIADD_m32int
  | FIADD_m16int
  | FBLD_m80_dec
  | FBSTP_m80bcd
  | FCLEX
  | FNCLEX
+ | FCOM_m32fp
+ | FCOM_m64fp
+ | FCOM of varity
+ | FCOMP_m32fp
+ | FCOMP_m64fp
+ | FCOMP of varity
+ | FCOMPP
 
  | FCHS
  | FCMOVB of arity2
@@ -2580,10 +2585,10 @@ val / [0xd9 0xe1] = arity0 FABS
 ###  - Add
 val / [0xd8 /0] = arity0 FADD_m32fp 
 val / [0xdc /0] = arity0 FADD_m64fp 
-val / [0xd8 '1100 i:4'] = unop FADD_st0_sti (return (IMM8 ('0000' ^ i)))
-val / [0xdc '1100 i:4'] = unop FADD_sti_st0 (return (IMM8 ('0000' ^ i)))
-val / [0xde '1100 i:4'] = unop FADDP_sti_st0 (return (IMM8 ('0000' ^ i)))
-val / [0xde 0xc1] = arity0 FADDP
+val / [0xd8 '11000 i:3'] = binop FADD st0 (st/i i)
+val / [0xdc '11000 i:3'] = binop FADD (st/i i) st0
+val / [0xde '11000 i:3'] = varity2 FADDP (st/i i) st0
+val / [0xde 0xc1] = varity0 FADDP
 val / [0xda /0] = arity0 FIADD_m32int
 val / [0xde /0] = arity0 FIADD_m16int
 
@@ -2614,6 +2619,18 @@ val / [0xdb '11000 i:3'] = binop FCMOVNB st0 (st/i i)
 val / [0xdb '11001 i:3'] = binop FCMOVNE st0 (st/i i)
 val / [0xdb '11010 i:3'] = binop FCMOVNBE st0 (st/i i)
 val / [0xdb '10011 i:3'] = binop FCMOVNU st0 (st/i i)
+
+### FCOM/FCOMP/FCOMPP
+###  - Compare Floating Point Values
+val / [0xd8 /2] = arity0 FCOM_m32fp 
+val / [0xdc /2] = arity0 FCOM_m64fp 
+val / [0xd8 '11010 i:3'] = varity1 FCOM (st/i i)
+val / [0xd8 0xd1] = varity0 FCOM
+val / [0xd8 /3] = arity0 FCOMP_m32fp
+val / [0xdc /3] = arity0 FCOMP_m64fp 
+val / [0xd8 '11011 i:3'] = varity1 FCOMP (st/i i)
+val / [0xd8 0xd9] = varity0 FCOMP 
+val / [0xde 0xd9] = arity0 FCOMPP
 
 ### FCOMI/FCOMIP/FUCOMI/FUCOMIP
 ###  - Compare Floating Point Values and Set EFLAGS
