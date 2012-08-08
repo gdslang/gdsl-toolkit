@@ -1215,7 +1215,22 @@ end = struct
       in
          case Scope.unwrap env of
               (KAPPA {ty=t}, (scs,state)) =>
-              (case Scope.getCtxt state of
+              ((*let
+                                fun checkField bVar =
+                                   (case BD.meetVarZero bVar (Scope.getFlow state) of _ => true)
+                                   handle (BD.Unsatisfiable bVars) => false
+                                val _ = if SymbolTable.toInt sym <> 84 then () else
+                                   case t of
+                                      MONAD (_,RECORD (_,_,fs),_) =>
+                                         (case List.find (fn (RField { name = fid, ...}) => SymbolTable.toInt fid = 30) fs of
+                                           NONE => ()
+                                         | SOME (RField { exists = bVar, ... }) =>
+                                          if checkField bVar then () else
+                                          TextIO.print ("HERE!\n")
+                                         )
+                                    | _ => ()
+                             in () end;
+                             *)case Scope.getCtxt state of
                    (_ :: ctxt) =>
                      reduceBooleanFormula (sym,t,setType,true,
                         (scs, Scope.setCtxt ctxt state))

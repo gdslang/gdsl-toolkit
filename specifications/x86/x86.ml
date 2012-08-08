@@ -2313,7 +2313,7 @@ val /f2 [0x0f 0x38 0xf1 /r]
 
 ### CVTDQ2PD
 ###  - Convert Packed Dword Integers to Packed Double-Precision FP Values
-val /f3 [0x0f 0xe6] = binop CVTDQ2PD xmm128 xmm/m64
+val /f3 [0x0f 0xe6 /r] = binop CVTDQ2PD xmm128 xmm/m64 # bug in Intel manual: /r is missing
 val /vex/f3/0f [0xe6 /r]
  | vex128? = varity2 VCVTDQ2PD xmm128 xmm/m64
  | vex256? = varity2 VCVTDQ2PD ymm256 ymm/m128
@@ -2327,7 +2327,7 @@ val /vex/0f [0x5b /r]
 
 ### CVTPD2DQ
 ###  - Convert Packed Double-Precision FP Values to Packed Dword Integers
-val /f2 [0x0f 0xe6] = binop CVTPD2DQ xmm128 xmm/m128
+val /f2 [0x0f 0xe6 /r] = binop CVTPD2DQ xmm128 xmm/m128 # bug in Intel manual: /r is missing
 val /vex/f2/0f [0xe6 /r]
  | vex128? = varity2 VCVTPD2DQ xmm128 xmm/m128
  | vex256? = varity2 VCVTPD2DQ ymm256 ymm/m256
