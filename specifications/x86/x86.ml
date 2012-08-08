@@ -133,6 +133,7 @@ val p/vex/66/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 01'] = do
         rexx=not x,
         vexl=l,
         vexv=complement v,
+
         vexm='00001'}
 end
 
@@ -651,15 +652,23 @@ type insn =
  | CVTTSD2SI of arity2
  | CVTTSS2SI of arity2
  | CWD
+ | CWDE
  | CDQ 
  | CQO
  | DAA
  | DAS
-
- | CWDE
  | DEC of arity1
  | DIV of arity1
- | DIVSD of arity1
+ | DIVPD of arity2
+ | DIVPS of arity2
+ | DIVSD of arity2
+ | DIVSS of arity2
+ | DPPD of arity3
+ | DPPS of arity3
+ | EMMS
+ | ENTER of arity2
+ | EXTRACTPS of arity3
+
  | FCHS
  | FCMOVB of arity2
  | FCMOVBE of arity2
@@ -991,6 +1000,13 @@ type insn =
  | VCVTTPS2DQ of varity
  | VCVTTSD2SI of varity
  | VCVTTSS2SI of varity
+ | VDIVPD of varity
+ | VDIVPS of varity
+ | VDIVSD of varity
+ | VDIVSS of varity
+ | VDPPD of varity
+ | VDPPS of varity
+ | VEXTRACTPS of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -2489,9 +2505,54 @@ val / [0xf7 /6]
  | rexw? = unop DIV r/m64
  | otherwise = unop DIV r/m32
 
+### DIVPD
+###  - Divide Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x5e /r] = binop DIVPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5e /r]
+ | vex128? = varity3 VDIVPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VDIVPD xmm128 v/xmm xmm/m128
+
+### DIVPS
+###  - Divide Packed Single-Precision Floating-Point Values
+val / [0x0f 0x5e /r] = binop DIVPS xmm128 xmm/m128
+val /vex/0f/vexv [0x5e /r]
+ | vex128? = varity3 VDIVPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VDIVPS xmm128 v/xmm xmm/m128
+
 ### DIVSD
 ###  - Divide Scalar Double-Precision Floating-Point Values
 val /f2 [0x0f 0x5e /r] = binop DIVSD xmm128 xmm/m64
+val /vex/0f/f2/vexv [0x5e /r] = varity3 VDIVSD xmm128 v/xmm xmm/m64
+
+### DIVSS
+###  - Divide Scalar Single-Precision Floating-Point Values
+val /f3 [0x0f 0x5e /r] = binop DIVSS xmm128 xmm/m32
+val /vex/0f/f3/vexv [0x5e /r] = varity3 VDIVSS xmm128 v/xmm xmm/m32
+
+### DPPD
+###  - Dot Product of Packed Double Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x41 /r] = ternop DPPD xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x41 /r] | vex128? = varity4 VDPPD xmm128 v/xmm xmm/m128 imm8
+
+### DPPS
+###  - Dot Product of Packed Single Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x40 /r] = ternop DPPS xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x40 /r]
+ | vex128? = varity4 VDPPS xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VDPPS xmm128 v/xmm xmm/m128 imm8
+
+### EMMS
+###  - Empty MMX Technology State
+val / [0x0f 0x77] = arity0 EMMS
+
+### ENTER
+###  - Make Stack Frame for Procedure Parameters
+val / [0xc8] = binop ENTER imm16 imm8
+
+### EXTRACTPS
+###  - Extract Packed Single Precision Floating-Point Value
+val /66 [0x0f 0x3a 0x17 /r] = ternop EXTRACTPS r/m32 xmm128 imm8
+val /vex/66/0f/3a [0x17 /r] | vex128? = varity3 VEXTRACTPS r/m32 xmm128 imm8
 
 ### FCHS
 ###  - Change Sign
