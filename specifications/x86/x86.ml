@@ -680,6 +680,8 @@ type insn =
  | FIADD_m16int
  | FBLD_m80_dec
  | FBSTP_m80bcd
+ | FCLEX
+ | FNCLEX
 
  | FCHS
  | FCMOVB of arity2
@@ -2596,6 +2598,11 @@ val / [0xdf /6] = arity0 FBSTP_m80bcd
 ### FCHS
 ###  - Change Sign
 val / [0xd9 0xe0] = arity0 FCHS
+
+### FCLEX/FNCLEX
+###  - Clear Exceptions
+val / [0x9b 0xdb 0xe2] = arity0 FCLEX
+val / [0xdb 0xe2] = arity0 FNCLEX
 
 ### FCMOVcc
 ###  - Floating-Point Conditional Move
