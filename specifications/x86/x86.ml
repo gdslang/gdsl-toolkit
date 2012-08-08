@@ -668,6 +668,18 @@ type insn =
  | EMMS
  | ENTER of arity2
  | EXTRACTPS of arity3
+ | F2XM1
+ | FABS
+ | FADD_m32fp
+ | FADD_m64fp
+ | FADD_st0_sti of arity1
+ | FADD_sti_st0 of arity1
+ | FADDP_sti_st0 of arity1
+ | FADDP
+ | FIADD_m32int
+ | FIADD_m16int
+ | FBLD_m80_dec
+ | FBSTP_m80bcd
 
  | FCHS
  | FCMOVB of arity2
@@ -2553,6 +2565,33 @@ val / [0xc8] = binop ENTER imm16 imm8
 ###  - Extract Packed Single Precision Floating-Point Value
 val /66 [0x0f 0x3a 0x17 /r] = ternop EXTRACTPS r/m32 xmm128 imm8
 val /vex/66/0f/3a [0x17 /r] | vex128? = varity3 VEXTRACTPS r/m32 xmm128 imm8
+
+### F2XM1
+###  - Compute 2^x-1
+val / [0xd9 0xf0] = arity0 F2XM1
+
+### FABS
+###  - Absolute Value
+val / [0xd9 0xe1] = arity0 FABS
+
+### FADD/FADDP/FIADD
+###  - Add
+val / [0xd8 /0] = arity0 FADD_m32fp 
+val / [0xdc /0] = arity0 FADD_m64fp 
+val / [0xd8 '1100 i:4'] = unop FADD_st0_sti (return (IMM8 ('0000' ^ i)))
+val / [0xdc '1100 i:4'] = unop FADD_sti_st0 (return (IMM8 ('0000' ^ i)))
+val / [0xde '1100 i:4'] = unop FADDP_sti_st0 (return (IMM8 ('0000' ^ i)))
+val / [0xde 0xc1] = arity0 FADDP
+val / [0xda /0] = arity0 FIADD_m32int
+val / [0xde /0] = arity0 FIADD_m16int
+
+### FBLD
+###  - Load Binary Coded Decimal
+val / [0xdf /4] = arity0 FBLD_m80_dec 
+
+### FBSTP
+###  - Store BCD Integer and Pop
+val / [0xdf /6] = arity0 FBSTP_m80bcd
 
 ### FCHS
 ###  - Change Sign
