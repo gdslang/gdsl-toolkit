@@ -219,7 +219,29 @@ end = struct
      | calleesTokpat (AST.NAMEDtokpat v) = SymSet.singleton v
      | calleesTokpat _ = SymSet.empty
 
-   
+   fun streamSymId () = SymbolTable.lookup(!SymbolTables.fieldTable,
+                                           Atom.atom Primitives.streamField)
+
+   fun clearDecoder (sym,env) =
+      let
+         val (envOpt,env) = E.clearFunction (sym,env)
+         fun genInitial env =
+            let
+               val bVar = BD.freshBVar ()
+               val env = E.meetBoolean (BD.meetVarOne bVar, env)
+            in
+               E.pushType (false,
+                  MONAD (freshVar (),
+                              RECORD (freshTVar (), BD.freshBVar (),
+                                 [RField {name=streamSymId (),fty=UNIT,exists=bVar}]),
+                              freshVar ()),
+                  env)
+            end
+      in
+         case envOpt of
+              SOME envCleared => (envCleared, env)
+            | NONE => (genInitial env, env)
+      end
 
 
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
@@ -227,8 +249,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val { tsynDefs, typeDefs, conParents} = ti
    val caseExpSymId = SymbolTable.lookup(!SymbolTables.varTable,
                                          Atom.atom Primitives.caseExpression)
-   (*val stateSymId = SymbolTable.lookup(!SymbolTables.varTable,
-                                       Atom.atom Primitives.globalState)*)
    val granularitySymId = SymbolTable.lookup(!SymbolTables.varTable,
                                              Atom.atom Primitives.granularity)
    
@@ -458,13 +478,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infDecodedecl (st,env) (v, l, Sum.INL e) =
       if not (hasSymbol (st,v)) then env else
       let
-         (*val _ = TextIO.print ("**** prev type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
-         val (envOpt,env) = E.clearFunction (v,env)
+         val (envPrev, env) = clearDecoder (v,env)
+         (*val _ = TextIO.print ("**** prev type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString envPrev)*)
          val env = infRhs (st,env) (v, l, NONE, [], e)
          (*val _ = TextIO.print ("**** new type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
-         val env = case envOpt of
-                 NONE => env
-               | SOME envPrev => E.meet (envPrev, env)
+         val env = E.meet (envPrev, env)
+            handle S.UnificationFailure str =>
+               refineError (str,
+                            " while merging decoder rule",
+                            [(envPrev, "rules so far "),
+                             (env,     "next rule    ")])
          val env = E.popToFunction (v, env)
          val fInfo = E.getFunctionInfo (v, env)
          val _ = sm := (v, fInfo) :: List.filter (fn (s,_) =>
@@ -477,11 +500,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val env = List.foldl
             (fn ((guard, rhs), env) => let
-               val (envOpt,env) = E.clearFunction (v,env)
+               val (envPrev, env) = clearDecoder (v,env)
                val env = infRhs (st,env) (v, l, SOME guard, [], rhs)
-               val env = case envOpt of
-                       NONE => env
-                     | SOME envPrev => E.meet (envPrev, env)
+               val env = E.meet (envPrev, env)
                val env = E.popToFunction (v, env)
             in
                env
@@ -536,6 +557,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envE = infExp (st,env) e3
          (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)*)
          val envM = E.meetFlow (envM,envE)
+                  handle S.UnificationFailure str =>
+                     refineError (str,
+                                  " in the branches of if-statment",
+                                  [(envM, "then-branch "),
+                                   (envT, "else-branch ")])
          (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString envM)*)
       in
          envM
@@ -916,7 +942,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    (* check if all exported functions can be run with the specified fields *)
    fun checkDecoder s (sym,fs) =
-      case E.forceNoInputs (sym,fs,toplevelEnv) of
+      case E.forceNoInputs (sym,streamSymId () :: fs,toplevelEnv) of
         [] => ()
       | fs =>
          let
