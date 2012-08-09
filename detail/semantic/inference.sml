@@ -89,23 +89,22 @@ end = struct
       end
    
    (*convert calls in a decoder pattern into a list of monadic actions*)
-   fun decsToSeq e [] = e
-     | decsToSeq e ds = AST.SEQexp
-         (List.concat (List.map decToSeqDecodepat ds) @ [AST.ACTIONseqexp e])
+   fun decsToSeq e ds = case List.concat (List.map decToSeqDecodepat ds) of
+        [] => e
+      | es => AST.SEQexp (es @ [AST.ACTIONseqexp e])
    and decToSeqDecodepat (AST.MARKdecodepat {tree=t, span=s}) =
          List.map (fn a => AST.MARKseqexp {tree=a, span=s})
             (decToSeqDecodepat t)
-     | decToSeqDecodepat (AST.TOKENdecodepat tp) =
-         List.map AST.ACTIONseqexp (decToSeqToken tp)
+     | decToSeqDecodepat (AST.TOKENdecodepat tp) = decToSeqToken tp
      | decToSeqDecodepat (AST.BITdecodepat bps) =
-         List.map AST.ACTIONseqexp (List.concat (List.map decToSeqBitpat bps))
+         List.concat (List.map decToSeqBitpat bps)
    and decToSeqToken (AST.MARKtokpat {tree=t, span=s}) =
-         List.map (fn e => AST.MARKexp {tree=e, span=s}) (decToSeqToken t)
-     | decToSeqToken (AST.NAMEDtokpat sym) = [AST.IDexp sym]
+         List.map (fn e => AST.MARKseqexp {tree=e, span=s}) (decToSeqToken t)
+     | decToSeqToken (AST.NAMEDtokpat sym) = [AST.ACTIONseqexp (AST.IDexp sym)]
      | decToSeqToken _ = []
    and decToSeqBitpat (AST.MARKbitpat {tree=t, span=s}) =
-         List.map (fn e => AST.MARKexp {tree=e, span=s}) (decToSeqBitpat t)
-     | decToSeqBitpat (AST.NAMEDbitpat sym) = [AST.IDexp sym]
+         List.map (fn e => AST.MARKseqexp {tree=e, span=s}) (decToSeqBitpat t)
+     | decToSeqBitpat (AST.NAMEDbitpat sym) = [AST.ACTIONseqexp (AST.IDexp sym)]
      | decToSeqBitpat _ = []
 
    (* define a traversal that returns a list of all top-level decls *)
@@ -418,7 +417,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             case infDecodepat sym (st,env) d of (nArgs, env) => (n+nArgs, env)
          val (n,env) = List.foldl pushDecoderBindings (0,env) dec
          val env = List.foldl E.pushLambdaVar env args
+         (*val _ = if List.null dec then () else
+               (TextIO.print "rhs before:\n"; Pretty.pretty (AST.PP.exp rhs); TextIO.print "\n")*)
          val rhs = decsToSeq rhs dec
+         (*val _ = if List.null dec then () else
+               (TextIO.print "rhs after:\n"; Pretty.pretty (AST.PP.exp rhs); TextIO.print "\n")*)
          val env = infExp (st,env) rhs
          val env = E.reduceToFunction (env, List.length args)
          val env = E.return (n,env)
@@ -700,7 +703,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             in
                env
             end
-         (*val _ = TextIO.print ("**** looking for " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n" ^ E.topToString env)*)
+         (*val _ = TextIO.print ("**** looking for " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n" (*^ E.topToString env*))*)
       in
          env
       end
@@ -723,7 +726,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                AST.ACTIONseqexp e => (bindSymId, NONE, e)
              | AST.BINDseqexp (v,e) => (bindASymId, SOME v, e)
              | _ => raise TypeError
-         val envFun = E.pushSymbol (bind, getSpan st, hasSymbol (st,bind), env)
+         val envFun = E.pushSymbol (bind, getSpan st, false, env)
          val envArg = infExp (st,env) e
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction (envArgRes,1)
@@ -743,9 +746,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.meetFlow (envArgRes, envFun)
             handle S.UnificationFailure str =>
                refineError (str,
-                            " when passing on the result of",
-                            [(envFun, "statement " ^ showProg (20, PP.exp, e)),
-                             (envArg, "to the following statments    ")])
+                            " when merging the requirements gathered after",
+                            [(envFun, "statement " ^ showProg (21, PP.exp, e)),
+                             (envArgRes, "with the following transformer ")])
          val env = E.reduceToResult env
       in
          env
@@ -796,8 +799,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          E.pushType (false, CONST (getBitpatLitLength s), env)
    and infBitpat stenv (AST.MARKbitpat m) = reportError infBitpat stenv m
      | infBitpat (st,env) (AST.BITSTRbitpat str) = (0,env)
-     | infBitpat (st,env) (AST.NAMEDbitpat v) =
-         (1, E.pushSymbol (v, getSpan st, hasSymbol (st,v), env))
+     | infBitpat (st,env) (AST.NAMEDbitpat v) = (0,env)
      | infBitpat (st,env) (AST.BITVECbitpat (v,s)) =
       let
          val env = E.pushLambdaVar (v,env)
@@ -810,7 +812,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
    and infTokpat stenv (AST.MARKtokpat m) = reportError infTokpat stenv m
      | infTokpat (st,env) (AST.TOKtokpat i) = (0, env)
-     | infTokpat (st,env) (AST.NAMEDtokpat v) = (1, E.pushLambdaVar (v,env))
+     | infTokpat (st,env) (AST.NAMEDtokpat v) = (0, env)
    and infMatch (st,env) (p,e) =
       let
          val (n,env) = infPat (st,env) p
