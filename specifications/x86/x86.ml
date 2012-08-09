@@ -670,23 +670,21 @@ type insn =
  | EXTRACTPS of arity3
  | F2XM1
  | FABS
- | FADD_m32fp
- | FADD_m64fp
  | FADD of arity2
- | FADDP of varity
- | FIADD_m32int
- | FIADD_m16int
+ | FADDP of arity2
+ | FIADD of arity1
  | FBLD_m80_dec
  | FBSTP_m80bcd
  | FCLEX
  | FNCLEX
- | FCOM_m32fp
- | FCOM_m64fp
- | FCOM of varity
- | FCOMP_m32fp
- | FCOMP_m64fp
- | FCOMP of varity
+ | FCOM of arity1
+ | FCOMP of arity1
  | FCOMPP
+ | FCOS
+ | FDECSTP
+ | FDIV of arity2
+ | FDIVP of arity2
+ | FIDIV of arity2
 
  | FCHS
  | FCMOVB of arity2
@@ -2583,20 +2581,20 @@ val / [0xd9 0xe1] = arity0 FABS
 
 ### FADD/FADDP/FIADD
 ###  - Add
-val / [0xd8 /0] = arity0 FADD_m32fp 
-val / [0xdc /0] = arity0 FADD_m64fp 
-val / [0xd8 '11000 i:3'] = binop FADD st0 (st/i i)
+val / [0xd8 /0] = binop FADD st0 st/m32
+val / [0xdc /0-mem] = binop FADD st0 m64
 val / [0xdc '11000 i:3'] = binop FADD (st/i i) st0
-val / [0xde '11000 i:3'] = varity2 FADDP (st/i i) st0
-val / [0xde 0xc1] = varity0 FADDP
-val / [0xda /0] = arity0 FIADD_m32int
-val / [0xde /0] = arity0 FIADD_m16int
+val / [0xda /0-mem] = unop FIADD m32
+val / [0xde '11000 i:3'] = binop FADDP (st/i i) st0
+val / [0xde /0-mem] = unop FIADD m16
 
 ### FBLD
 ###  - Load Binary Coded Decimal
+# Todo: fix
 val / [0xdf /4] = arity0 FBLD_m80_dec 
 
 ### FBSTP
+# Todo: fix
 ###  - Store BCD Integer and Pop
 val / [0xdf /6] = arity0 FBSTP_m80bcd
 
@@ -2622,14 +2620,11 @@ val / [0xdb '10011 i:3'] = binop FCMOVNU st0 (st/i i)
 
 ### FCOM/FCOMP/FCOMPP
 ###  - Compare Floating Point Values
-val / [0xd8 /2] = arity0 FCOM_m32fp 
-val / [0xdc /2] = arity0 FCOM_m64fp 
-val / [0xd8 '11010 i:3'] = varity1 FCOM (st/i i)
-val / [0xd8 0xd1] = varity0 FCOM
-val / [0xd8 /3] = arity0 FCOMP_m32fp
-val / [0xdc /3] = arity0 FCOMP_m64fp 
-val / [0xd8 '11011 i:3'] = varity1 FCOMP (st/i i)
-val / [0xd8 0xd9] = varity0 FCOMP 
+val / [0xd8 /2] = unop FCOM st/m32 
+val / [0xdc /2-mem] = unop FCOM m64
+val / [0xd8 /3] = unop FCOMP st/m32
+val / [0xdc /3-mem] = unop FCOMP m64
+val / [0xd8 '11011 i:3'] = unop FCOMP (st/i i)
 val / [0xde 0xd9] = arity0 FCOMPP
 
 ### FCOMI/FCOMIP/FUCOMI/FUCOMIP
@@ -2638,6 +2633,23 @@ val / [0xdb '11110 i:3'] = binop FCOMI st0 (st/i i)
 val / [0xdf '11110 i:3'] = binop FCOMIP st0 (st/i i)
 val / [0xdb '11101 i:3'] = binop FUCOMI st0 (st/i i)
 val / [0xdf '11101 i:3'] = binop FUCOMIP st0 (st/i i)
+
+### FCOS
+###  - Cosine
+val / [0xd9 0xff] = arity0 FCOS
+
+### FDECSTP
+###  - Decrement Stack-Top Pointer
+val / [0xd9 0xf6] = arity0 FDECSTP
+
+### FDIV/FDIVP/FIDIV
+###  - Divide
+val / [0xd8 /6] = binop FDIV st0 st/m32
+val / [0xdc /6-mem] = binop FDIV st0 m64
+val / [0xdc '11110 i:3'] = binop FDIV (st/i i) st0
+val / [0xde '11110 i:3'] = binop FDIVP (st/i i) st0
+val / [0xda /6-mem] = binop FIDIV st0 m32
+val / [0xde /6-mem] = binop FIDIV st0 m16
 
 ### FLD
 ###  - Load Floating Point Value
