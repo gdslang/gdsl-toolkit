@@ -83,6 +83,8 @@ structure Primitives = struct
    val granularity : string = "stream granularity"
    val globalState : string = "global state"
    val caseExpression : string = "case expression"
+   val streamField : string = "input stream"
+
    fun noFlow bFun = bFun
 
    val primitiveValues =
@@ -242,6 +244,9 @@ structure Primitives = struct
        {name="unit", ty=UNIT, flow=noFlow},
        {name="string", ty=STRING, flow=noFlow}]
 
+   val primitiveFields =
+      [{name=streamField, ty=UNIT, flow=noFlow}]
+      
    fun addPrim table {name, ty, flow} = let
       val (newTable, _) =
          SymbolTable.create
@@ -257,6 +262,7 @@ structure Primitives = struct
       ;ST.conTable := ConInfo.empty
       ;ST.typeTable := TypeInfo.empty
       ;ST.fieldTable := FieldInfo.empty
+      ;List.map (addPrim ST.fieldTable) primitiveFields
       ;List.map (addPrim ST.varTable) primitiveValues
       ;List.map (addPrim ST.typeTable) primitiveTypes)
    

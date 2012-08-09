@@ -1493,33 +1493,33 @@ val ymm-rex rex reg-idx = ymm (rex ^ reg-idx)
 
 # Deslice the mod/rm byte and put it into the the state
 
-val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='000'}
-val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='001'}
-val /2 ['mod:2 010 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='010'}
-val /3 ['mod:2 011 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='011'}
-val /4 ['mod:2 100 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='100'}
-val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='101'}
-val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='110'}
-val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='111'}
+val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm}
+val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm}
+val /2 ['mod:2 010 rm:3'] = update @{mod=mod, rm=rm}
+val /3 ['mod:2 011 rm:3'] = update @{mod=mod, rm=rm}
+val /4 ['mod:2 100 rm:3'] = update @{mod=mod, rm=rm}
+val /5 ['mod:2 101 rm:3'] = update @{mod=mod, rm=rm}
+val /6 ['mod:2 110 rm:3'] = update @{mod=mod, rm=rm}
+val /7 ['mod:2 111 rm:3'] = update @{mod=mod, rm=rm}
 val /r ['mod:2 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
 val /r-mem ['mod@00|01|10 reg/opcode:3 rm:3'] = update @{mod=mod, reg/opcode=reg/opcode, rm=rm}
 val /r-nomem ['11 reg/opcode:3 rm:3'] = update @{mod='11', reg/opcode=reg/opcode, rm=rm}
-val /0-mem ['mod@00|01|10 000 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='000'}
-val /1-mem ['mod@00|01|10 001 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='001'}
-val /2-mem ['mod@00|01|10 010 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='010'}
-val /3-mem ['mod@00|01|10 011 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='011'}
-val /4-mem ['mod@00|01|10 100 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='100'}
-val /5-mem ['mod@00|01|10 101 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='101'}
-val /6-mem ['mod@00|01|10 110 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='110'}
-val /7-mem ['mod@00|01|10 111 rm:3'] = update @{mod=mod, rm=rm, reg/opcode='111'}
-val /0-nomem ['11 000 rm:3'] = update @{mod='11', rm=rm, reg/opcode='000'}
-val /1-nomem ['11 001 rm:3'] = update @{mod='11', rm=rm, reg/opcode='001'}
-val /2-nomem ['11 010 rm:3'] = update @{mod='11', rm=rm, reg/opcode='010'}
-val /3-nomem ['11 011 rm:3'] = update @{mod='11', rm=rm, reg/opcode='011'}
-val /4-nomem ['11 100 rm:3'] = update @{mod='11', rm=rm, reg/opcode='100'}
-val /5-nomem ['11 101 rm:3'] = update @{mod='11', rm=rm, reg/opcode='101'}
-val /6-nomem ['11 110 rm:3'] = update @{mod='11', rm=rm, reg/opcode='110'}
-val /7-nomem ['11 111 rm:3'] = update @{mod='11', rm=rm, reg/opcode='111'}
+val /0-mem ['mod@00|01|10 000 rm:3'] = update @{mod=mod, rm=rm}
+val /1-mem ['mod@00|01|10 001 rm:3'] = update @{mod=mod, rm=rm}
+val /2-mem ['mod@00|01|10 010 rm:3'] = update @{mod=mod, rm=rm}
+val /3-mem ['mod@00|01|10 011 rm:3'] = update @{mod=mod, rm=rm}
+val /4-mem ['mod@00|01|10 100 rm:3'] = update @{mod=mod, rm=rm}
+val /5-mem ['mod@00|01|10 101 rm:3'] = update @{mod=mod, rm=rm}
+val /6-mem ['mod@00|01|10 110 rm:3'] = update @{mod=mod, rm=rm}
+val /7-mem ['mod@00|01|10 111 rm:3'] = update @{mod=mod, rm=rm}
+val /0-nomem ['11 000 rm:3'] = update @{mod='11', rm=rm}
+val /1-nomem ['11 001 rm:3'] = update @{mod='11', rm=rm}
+val /2-nomem ['11 010 rm:3'] = update @{mod='11', rm=rm}
+val /3-nomem ['11 011 rm:3'] = update @{mod='11', rm=rm}
+val /4-nomem ['11 100 rm:3'] = update @{mod='11', rm=rm}
+val /5-nomem ['11 101 rm:3'] = update @{mod='11', rm=rm}
+val /6-nomem ['11 110 rm:3'] = update @{mod='11', rm=rm}
+val /7-nomem ['11 111 rm:3'] = update @{mod='11', rm=rm}
 
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
@@ -3302,10 +3302,10 @@ val / [0xf7 /3]
 # so we deocde 0x90 always as `xchg`
 #val / [0x90] = arity0 NOP
 #val /66 [0x90] = arity0 NOP
-val /66 [0x0f 0x1f /0] = varity2 NOP r/m16 r16
+val /66 [0x0f 0x1f /0] = varity2 NOP r/m16 (do update @{reg/opcode='000'}; r16 end)
 val / [0x0f 0x1f /0]
- | rexw? = varity2 NOP r/m64 r64
- | otherwise = varity2 NOP r/m32 r32
+ | rexw? = varity2 NOP r/m64 (do update @{reg/opcode='000'}; r64 end)
+ | otherwise = varity2 NOP r/m32 (do update @{reg/opcode='000'}; r32 end)
 
 ### NOT
 ###  - One's Complement Negation
@@ -3751,13 +3751,13 @@ val /vex/66/0f [0x70 /r] | vex128? = varity3 VPSHUFD xmm128 xmm/m128 imm8
 
 ### PSLLDQ
 ###  - Shift Double Quadword Left Logical
-val /66 [0x0f 0x73 /7-nomem] = binop PSLLDQ xmm128 imm8
-val /vex/66/0f [0x73 /7-nomem] | vndd? & vex128? = varity3 VPSLLDQ xmm128 v/xmm imm8
+val /66 [0x0f 0x73 /r-nomem] = binop PSLLDQ xmm128 imm8 # bug in Intel manual: /r is /7
+val /vex/66/0f [0x73 /r-nomem] | vndd? & vex128? = varity3 VPSLLDQ xmm128 v/xmm imm8 # bug in Intel manual: /r is /7
 
 ### PSLRDQ
 ###  - Shift Double Quadword Right Logical
-val /66 [0x0f 0x73 /3-nomem] = binop PSLRDQ xmm128 imm8
-val /vex/66/0f [0x73 /3-nomem] | vndd? & vex128? = varity3 VPSLRDQ xmm128 v/xmm imm8
+val /66 [0x0f 0x73 /r-nomem] = binop PSLRDQ xmm128 imm8 # bug in Intel manual: /r is /3
+val /vex/66/0f [0x73 /r-nomem] | vndd? & vex128? = varity3 VPSLRDQ xmm128 v/xmm imm8 # bug in Intel manual: /r is /3
 
 ### PSUBB/PSUBW/PSUBD
 ###  - Subtract Packed Integers

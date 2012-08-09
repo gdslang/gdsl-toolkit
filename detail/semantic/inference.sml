@@ -89,23 +89,22 @@ end = struct
       end
    
    (*convert calls in a decoder pattern into a list of monadic actions*)
-   fun decsToSeq e [] = e
-     | decsToSeq e ds = AST.SEQexp
-         (List.concat (List.map decToSeqDecodepat ds) @ [AST.ACTIONseqexp e])
+   fun decsToSeq e ds = case List.concat (List.map decToSeqDecodepat ds) of
+        [] => e
+      | es => AST.SEQexp (es @ [AST.ACTIONseqexp e])
    and decToSeqDecodepat (AST.MARKdecodepat {tree=t, span=s}) =
          List.map (fn a => AST.MARKseqexp {tree=a, span=s})
             (decToSeqDecodepat t)
-     | decToSeqDecodepat (AST.TOKENdecodepat tp) =
-         List.map AST.ACTIONseqexp (decToSeqToken tp)
+     | decToSeqDecodepat (AST.TOKENdecodepat tp) = decToSeqToken tp
      | decToSeqDecodepat (AST.BITdecodepat bps) =
-         List.map AST.ACTIONseqexp (List.concat (List.map decToSeqBitpat bps))
+         List.concat (List.map decToSeqBitpat bps)
    and decToSeqToken (AST.MARKtokpat {tree=t, span=s}) =
-         List.map (fn e => AST.MARKexp {tree=e, span=s}) (decToSeqToken t)
-     | decToSeqToken (AST.NAMEDtokpat sym) = [AST.IDexp sym]
+         List.map (fn e => AST.MARKseqexp {tree=e, span=s}) (decToSeqToken t)
+     | decToSeqToken (AST.NAMEDtokpat sym) = [AST.ACTIONseqexp (AST.IDexp sym)]
      | decToSeqToken _ = []
    and decToSeqBitpat (AST.MARKbitpat {tree=t, span=s}) =
-         List.map (fn e => AST.MARKexp {tree=e, span=s}) (decToSeqBitpat t)
-     | decToSeqBitpat (AST.NAMEDbitpat sym) = [AST.IDexp sym]
+         List.map (fn e => AST.MARKseqexp {tree=e, span=s}) (decToSeqBitpat t)
+     | decToSeqBitpat (AST.NAMEDbitpat sym) = [AST.ACTIONseqexp (AST.IDexp sym)]
      | decToSeqBitpat _ = []
 
    (* define a traversal that returns a list of all top-level decls *)
@@ -220,7 +219,29 @@ end = struct
      | calleesTokpat (AST.NAMEDtokpat v) = SymSet.singleton v
      | calleesTokpat _ = SymSet.empty
 
-   
+   fun streamSymId () = SymbolTable.lookup(!SymbolTables.fieldTable,
+                                           Atom.atom Primitives.streamField)
+
+   fun clearDecoder (sym,env) =
+      let
+         val (envOpt,env) = E.clearFunction (sym,env)
+         fun genInitial env =
+            let
+               val bVar = BD.freshBVar ()
+               val env = E.meetBoolean (BD.meetVarOne bVar, env)
+            in
+               E.pushType (false,
+                  MONAD (freshVar (),
+                              RECORD (freshTVar (), BD.freshBVar (),
+                                 [RField {name=streamSymId (),fty=UNIT,exists=bVar}]),
+                              freshVar ()),
+                  env)
+            end
+      in
+         case envOpt of
+              SOME envCleared => (envCleared, env)
+            | NONE => (genInitial env, env)
+      end
 
 
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
@@ -228,8 +249,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val { tsynDefs, typeDefs, conParents} = ti
    val caseExpSymId = SymbolTable.lookup(!SymbolTables.varTable,
                                          Atom.atom Primitives.caseExpression)
-   (*val stateSymId = SymbolTable.lookup(!SymbolTables.varTable,
-                                       Atom.atom Primitives.globalState)*)
    val granularitySymId = SymbolTable.lookup(!SymbolTables.varTable,
                                              Atom.atom Primitives.granularity)
    
@@ -418,7 +437,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             case infDecodepat sym (st,env) d of (nArgs, env) => (n+nArgs, env)
          val (n,env) = List.foldl pushDecoderBindings (0,env) dec
          val env = List.foldl E.pushLambdaVar env args
+         (*val _ = if List.null dec then () else
+               (TextIO.print "rhs before:\n"; Pretty.pretty (AST.PP.exp rhs); TextIO.print "\n")*)
          val rhs = decsToSeq rhs dec
+         (*val _ = if List.null dec then () else
+               (TextIO.print "rhs after:\n"; Pretty.pretty (AST.PP.exp rhs); TextIO.print "\n")*)
          val env = infExp (st,env) rhs
          val env = E.reduceToFunction (env, List.length args)
          val env = E.return (n,env)
@@ -455,13 +478,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infDecodedecl (st,env) (v, l, Sum.INL e) =
       if not (hasSymbol (st,v)) then env else
       let
-         (*val _ = TextIO.print ("**** prev type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
-         val (envOpt,env) = E.clearFunction (v,env)
+         val (envPrev, env) = clearDecoder (v,env)
+         (*val _ = TextIO.print ("**** prev type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString envPrev)*)
          val env = infRhs (st,env) (v, l, NONE, [], e)
          (*val _ = TextIO.print ("**** new type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
-         val env = case envOpt of
-                 NONE => env
-               | SOME envPrev => E.meet (envPrev, env)
+         val env = E.meet (envPrev, env)
+            handle S.UnificationFailure str =>
+               refineError (str,
+                            " while merging decoder rule",
+                            [(envPrev, "rules so far "),
+                             (env,     "next rule    ")])
          val env = E.popToFunction (v, env)
          val fInfo = E.getFunctionInfo (v, env)
          val _ = sm := (v, fInfo) :: List.filter (fn (s,_) =>
@@ -474,11 +500,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val env = List.foldl
             (fn ((guard, rhs), env) => let
-               val (envOpt,env) = E.clearFunction (v,env)
+               val (envPrev, env) = clearDecoder (v,env)
                val env = infRhs (st,env) (v, l, SOME guard, [], rhs)
-               val env = case envOpt of
-                       NONE => env
-                     | SOME envPrev => E.meet (envPrev, env)
+               val env = E.meet (envPrev, env)
                val env = E.popToFunction (v, env)
             in
                env
@@ -533,6 +557,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envE = infExp (st,env) e3
          (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)*)
          val envM = E.meetFlow (envM,envE)
+                  handle S.UnificationFailure str =>
+                     refineError (str,
+                                  " in the branches of if-statment",
+                                  [(envM, "then-branch "),
+                                   (envT, "else-branch ")])
          (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString envM)*)
       in
          envM
@@ -700,7 +729,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             in
                env
             end
-         (*val _ = TextIO.print ("**** looking for " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n" ^ E.topToString env)*)
+         (*val _ = TextIO.print ("**** looking for " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n" (*^ E.topToString env*))*)
       in
          env
       end
@@ -723,7 +752,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                AST.ACTIONseqexp e => (bindSymId, NONE, e)
              | AST.BINDseqexp (v,e) => (bindASymId, SOME v, e)
              | _ => raise TypeError
-         val envFun = E.pushSymbol (bind, getSpan st, hasSymbol (st,bind), env)
+         val envFun = E.pushSymbol (bind, getSpan st, false, env)
          val envArg = infExp (st,env) e
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction (envArgRes,1)
@@ -743,9 +772,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.meetFlow (envArgRes, envFun)
             handle S.UnificationFailure str =>
                refineError (str,
-                            " when passing on the result of",
-                            [(envFun, "statement " ^ showProg (20, PP.exp, e)),
-                             (envArg, "to the following statments    ")])
+                            " when merging the requirements gathered after",
+                            [(envFun, "statement " ^ showProg (21, PP.exp, e)),
+                             (envArgRes, "with the following transformer ")])
          val env = E.reduceToResult env
       in
          env
@@ -796,8 +825,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          E.pushType (false, CONST (getBitpatLitLength s), env)
    and infBitpat stenv (AST.MARKbitpat m) = reportError infBitpat stenv m
      | infBitpat (st,env) (AST.BITSTRbitpat str) = (0,env)
-     | infBitpat (st,env) (AST.NAMEDbitpat v) =
-         (1, E.pushSymbol (v, getSpan st, hasSymbol (st,v), env))
+     | infBitpat (st,env) (AST.NAMEDbitpat v) = (0,env)
      | infBitpat (st,env) (AST.BITVECbitpat (v,s)) =
       let
          val env = E.pushLambdaVar (v,env)
@@ -810,7 +838,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
    and infTokpat stenv (AST.MARKtokpat m) = reportError infTokpat stenv m
      | infTokpat (st,env) (AST.TOKtokpat i) = (0, env)
-     | infTokpat (st,env) (AST.NAMEDtokpat v) = (1, E.pushLambdaVar (v,env))
+     | infTokpat (st,env) (AST.NAMEDtokpat v) = (0, env)
    and infMatch (st,env) (p,e) =
       let
          val (n,env) = infPat (st,env) p
@@ -914,7 +942,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    (* check if all exported functions can be run with the specified fields *)
    fun checkDecoder s (sym,fs) =
-      case E.forceNoInputs (sym,fs,toplevelEnv) of
+      case E.forceNoInputs (sym,streamSymId () :: fs,toplevelEnv) of
         [] => ()
       | fs =>
          let
