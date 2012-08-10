@@ -675,18 +675,9 @@ type insn =
  | FIADD of arity1
  | FBLD_m80_dec
  | FBSTP_m80bcd
+ | FCHS
  | FCLEX
  | FNCLEX
- | FCOM of arity1
- | FCOMP of arity1
- | FCOMPP
- | FCOS
- | FDECSTP
- | FDIV of arity2
- | FDIVP of arity2
- | FIDIV of arity2
-
- | FCHS
  | FCMOVB of arity2
  | FCMOVBE of arity2
  | FCMOVE of arity2
@@ -695,8 +686,30 @@ type insn =
  | FCMOVNE of arity2
  | FCMOVNU of arity2
  | FCMOVU of arity2
+ | FCOM of arity1
+ | FCOMP of arity1
+ | FCOMPP
  | FCOMI of arity2
  | FCOMIP of arity2
+ | FCOS
+ | FDECSTP
+ | FDIV of arity2
+ | FDIVP of arity2
+ | FIDIV of arity2
+ | FDIVR of arity2
+ | FDIVRP of arity2
+ | FIDIVR of arity1
+ | FFREE of arity1
+ | FICOM of arity1
+ | FICOMP of arity1
+ | FILD of arity1
+ | FINCSTP
+ | FINIT
+ | FNINIT
+ | FIST of arity1
+ | FISTP of arity1
+ | FISTTP of arity1
+
  | FLD of arity1
  | FLD1
  | FLDCW of arity1
@@ -2650,6 +2663,55 @@ val / [0xdc '11110 i:3'] = binop FDIV (st/i i) st0
 val / [0xde '11110 i:3'] = binop FDIVP (st/i i) st0
 val / [0xda /6-mem] = binop FIDIV st0 m32
 val / [0xde /6-mem] = binop FIDIV st0 m16
+
+### FDIVR/FDIVRP/FIDIVR
+###  - Reverse Divide
+val / [0xd8 /7] = binop FDIVR st0 st/m32
+val / [0xdc /7-mem] = binop FDIVR st0 m64
+val / [0xdc '11110 i:3'] = binop FDIVR (st/i i) st0
+val / [0xde '11110 i:3'] = binop FDIVRP (st/i i) st0
+val / [0xda /7-mem] = unop FIDIVR m32
+val / [0xde /7-mem] = unop FIDIVR m16
+
+### FFREE
+###  - Free Floating-Point Register
+val / [0xdd '11000 i:3'] = unop FFREE (st/i i)
+
+### FICOM/FICOMP
+###  - Compare Integer
+val / [0xde /2-mem] = unop FICOM m16
+val / [0xda /2-mem] = unop FICOM m32
+val / [0xde /3-mem] = unop FICOMP m16
+val / [0xda /3-mem] = unop FICOMP m32
+
+### FILD
+###  - Load Integer
+val / [0xdf /0-mem] = unop FILD m16
+val / [0xdb /0-mem] = unop FILD m32
+val / [0xdf /5-mem] = unop FILD m64
+
+### FINCSTP
+###  - Increment Stack-Top Pointer
+val / [0xd9 0xf7] = arity0 FINCSTP
+
+### FINIT/FNINIT
+###  - Initialize Floating-Point Unit
+val / [0x9b 0xdb 0xe3] = arity0 FINIT
+val / [0xdb 0xe3] = arity0 FNINIT
+
+### FIST/FISTP
+###  - Store Integer
+val / [0xdf /2-mem] = unop FIST m16
+val / [0xdb /2-mem] = unop FIST m32
+val / [0xdf /3-mem] = unop FISTP m16
+val / [0xdb /3-mem] = unop FISTP m32
+val / [0xdf /7-mem] = unop FISTP m64
+
+### FISTTP
+###  - Store Integer with Truncation
+val / [0xdf /1-mem] = unop FISTTP m16
+val / [0xdb /1-mem] = unop FISTTP m32
+val / [0xdd /1-mem] = unop FISTTP m64
 
 ### FLD
 ###  - Load Floating Point Value
