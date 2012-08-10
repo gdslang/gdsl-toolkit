@@ -709,11 +709,27 @@ type insn =
  | FIST of arity1
  | FISTP of arity1
  | FISTTP of arity1
-
  | FLD of arity1
  | FLD1
  | FLDCW of arity1
  | FLDENV of arity1
+ | FMUL of arity2
+ | FMULP of arity2
+ | FIMUL of arity1
+ | FNOP
+ | FPATAN
+ | FPREM
+ | FPREM1
+ | FPTAN
+ | FRNDINT
+ | FRSTOR_m94/108byte
+ | FSAVE_m94/108byte
+ | FNSAVE_m94/108byte
+ | FSCALE
+ | FSIN
+ | FSINCOS
+ | FSQRT
+
  | FLDL2E
  | FLDL2T
  | FLDLG2
@@ -2739,6 +2755,64 @@ val / [0xd9 /5-mem] = unop FLDCW m2byte
 ### FLDENV
 ###  - Load x87 FPU Environment
 val / [0xd9 /4-mem] = unop FLDENV m14/28byte
+
+### FMUL/FMULP/FIMUL
+###  - Multiply
+val / [0xd8 /1-mem] = binop FMUL st0 st/m32
+val / [0xdc /1-mem] = binop FMUL st0 m64
+val / [0xdc '11001 i:3'] = binop FMUL (st/i i) st0
+val / [0xde '11001 i:3'] = binop FMULP (st/i i) st0
+val / [0xda /1-mem] = unop FIMUL m32
+val / [0xde /1-mem] = unop FIMUL m16
+
+### FNOP
+###  - No Operation
+val / [0xd9 0xd0] = arity0 FNOP
+
+### FPATAN
+###  - Partial Arctangent
+val / [0xd9 0xf3] = arity0 FPATAN
+
+### FPREM
+###  - Partial Remainder
+val / [0xd9 0xf8] = arity0 FPREM
+
+### FPREM1
+###  - Partial Remainder
+val / [0xd9 0xf5] = arity0 FPREM1 
+
+### FPTAN
+###  - Partial Tangent
+val / [0xd9 0xf2] = arity0 FPTAN
+
+### FRNDINT
+###  - Round to Integer
+val / [0xd9 0xfc] = arity0 FRNDINT 
+
+### FRSTOR
+###  - Restore x87 FPU State
+val / [0xdd /4] = arity0 FRSTOR_m94/108byte
+
+### FSAVE/FNSAVE
+###  - Store x87 FPU State
+val / [0x9b 0xdd /6] = arity0 FSAVE_m94/108byte
+val / [0xdd /6] = arity0 FNSAVE_m94/108byte
+
+### FSCALE
+###  - Scale
+val / [0xd9 0xfd] = arity0 FSCALE
+
+### FSIN
+###  - Sine
+val / [0xd9 0xfe] = arity0 FSIN
+
+### FSINCOS
+###  - Sine and Cosine
+val / [0xd9 0xfb] = arity0 FSINCOS
+
+### FSQRT
+###  - Square Root
+val / [0xd9 0xfa] = arity0 FSQRT
 
 ### FSTCW/FNSTCW
 ###  - Store x87 FPU Control Word
