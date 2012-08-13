@@ -739,6 +739,31 @@ type insn =
  | FSTP of arity1
  | FSTCW of arity1
  | FNSTCW of arity1
+ | FSTENV of arity1
+ | FNSTENV of arity1
+ | FSTSW of arity1
+ | FNSTSW of arity1
+ | FSUB of arity2
+ | FSUBP of arity2
+ | FISUB of arity1
+ | FSUBR of arity2
+ | FSUBRP of arity2
+ | FISUBR of arity1
+ | FTST
+ | FUCOM of arity1
+ | FUCOMP of arity1
+ | FUCOMPP
+ | FXAM
+ | FXCH of arity1
+ | FXRSTOR64_m512byte
+ | FXRSTOR_m512byte
+ | FXSAVE64_m512byte
+ | FXSAVE_m512byte
+ | FXTRACT
+ | FYL2X
+ | FYL2XP1
+ | HADDPD of arity2
+ | HADDPS of arity2
 
  | FUCOMI of arity1
  | FUCOMIP of arity1
@@ -930,7 +955,6 @@ type insn =
  | PSHUFB of arity2
  | PSHUFD of arity3
  | PSLLDQ of arity2
- | PSLRDQ of arity2
  | PSRLDQ of arity2
  | PSUBB of arity2
  | PSUBD of arity2
@@ -1053,6 +1077,8 @@ type insn =
  | VDPPD of varity
  | VDPPS of varity
  | VEXTRACTPS of varity
+ | VHADDPD of varity
+ | VHADDPS of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -1166,7 +1192,7 @@ type insn =
  | VPSHUFB of varity
  | VPSHUFD of varity
  | VPSLLDQ of varity
- | VPSLRDQ of varity
+ | VPSRLDQ of varity
  | VPSUBB of varity
  | VPSUBD of varity
  | VPSUBW of varity
@@ -2791,10 +2817,12 @@ val / [0xd9 0xfc] = arity0 FRNDINT
 
 ### FRSTOR
 ###  - Restore x87 FPU State
+# Todo: fix
 val / [0xdd /4] = arity0 FRSTOR_m94/108byte
 
 ### FSAVE/FNSAVE
 ###  - Store x87 FPU State
+# Todo: fix
 val / [0x9b 0xdd /6] = arity0 FSAVE_m94/108byte
 val / [0xdd /6] = arity0 FNSAVE_m94/108byte
 
@@ -2826,6 +2854,94 @@ val / [0xdb /7-mem] = unop FSTP m80fp
 ###  - Store x87 FPU Control Word
 val / [0x9b 0xd9 /7-mem] = unop FSTCW m2byte
 val / [0xd9 /7-mem] = unop FNSTCW m2byte
+
+### FSTENV/FNSTENV
+###  - Store x87 FPU Environment
+val / [0x9b 0xd9 /6-mem] = unop FSTENV m14/28byte
+val / [0xd9 /6-mem] = unop FNSTENV m14/28byte
+
+### FSTSW/FNSTSW
+###  - Store x87 FPU Status Word
+val / [0x9b 0xdd /7-mem] = unop FSTSW m2byte
+val / [0x9b 0xdf 0xe0] = unop FSTSW ax
+val / [0xdd /7-mem] = unop FNSTSW m2byte
+val / [0xdf 0xe0] = unop FNSTSW ax
+
+### FSUB/FSUBP/FISUB
+###  - Subtract
+val / [0xd8 /4] = binop FSUB st0 st/m32
+val / [0xdc /4-mem] = binop FSUB st0 m64
+val / [0xdc '11101 i:3'] = binop FSUB (st/i i) st0
+val / [0xde '11101 i:3'] = binop FSUBP (st/i i) st0
+val / [0xda /4-mem] = unop FISUB m32
+val / [0xde /4-mem] = unop FISUB m16
+
+### FSUBR/FSUBRP/FISUBR
+###  - Reverse Subtract
+val / [0xd8 /5] = binop FSUBR st0 st/m32
+val / [0xdc /5-mem] = binop FSUBR st0 m64
+val / [0xdc '11100 i:3'] = binop FSUBR (st/i i) st0
+val / [0xde '11100 i:3'] = binop FSUBRP (st/i i) st0
+val / [0xda /5-mem] = unop FISUBR m32
+val / [0xde /5-mem] = unop FISUBR m16
+
+### FTST
+###  - TEST
+val / [0xd9 0xe4] = arity0 FTST
+
+### FUCOM/FUCOMP/FUCOMPP
+###  - Unordered Compare Floating Point Values
+val / [0xdd '11100 i:3'] = unop FUCOM (st/i i)
+val / [0xdd '11101 i:3'] = unop FUCOMP (st/i i)
+val / [0xda 0xe9] = arity0 FUCOMPP
+
+### FXAM
+###  - Examine ModR/M
+val / [0xd9 0xe5] = arity0 FXAM
+
+### FXCH
+###  - Exchange Register Contents
+val / [0xd9 '11000 i:3'] = unop FXCH (st/i i)
+
+### FXRSTOR
+###  - Restore x87 FPU, MMX , XMM, and MXCSR State
+# Todo: fix
+val / [0x0f 0xae /1-mem]
+ | rexw? = arity0 FXRSTOR64_m512byte
+ | otherwise = arity0 FXRSTOR_m512byte
+
+### FXSAVE
+###  - Save x87 FPU, MMX Technology, and SSE State
+# Todo: fix
+val / [0x0f 0xae /0-mem]
+ | rexw? = arity0 FXSAVE64_m512byte
+ | otherwise = arity0 FXSAVE_m512byte
+
+### FXTRACT
+###  - Extract Exponent and Significand
+val / [0xd9 0xf4] = arity0 FXTRACT
+
+### FYL2X
+###  - Compute y*log_2(x)
+val / [0xd9 0xf1] = arity0 FYL2X
+
+### FYL2XP1
+###  - Compute y*log_2(x +1)
+val / [0xd9 0xf9] = arity0 FYL2XP1
+
+### HADDPD
+###  - Packed Double-FP Horizontal Add
+val /66 [0x0f 0x7c /r] = binop HADDPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x7c /r]
+ | vex128? = varity3 VHADDPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VHADDPD ymm256 v/ymm ymm/m256
+
+### HADDPS
+###  - Packed Single-FP Horizontal Add
+val /f2 [0x0f 0x7c /r] = binop HADDPS xmm128 xmm/m128
+val /vex/f2/0f/vexv [0x7c /r]
+ | vex128? = varity3 VHADDPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VHADDPS ymm256 v/ymm ymm/m256
 
 ### HLT
 ###  - Halt
@@ -3899,13 +4015,13 @@ val /vex/66/0f [0x70 /r] | vex128? = varity3 VPSHUFD xmm128 xmm/m128 imm8
 
 ### PSLLDQ
 ###  - Shift Double Quadword Left Logical
-val /66 [0x0f 0x73 /r-nomem] = binop PSLLDQ xmm128 imm8 # bug in Intel manual: /r is /7
-val /vex/66/0f [0x73 /r-nomem] | vndd? & vex128? = varity3 VPSLLDQ xmm128 v/xmm imm8 # bug in Intel manual: /r is /7
+val /66 [0x0f 0x73 /7-nomem] = binop PSLLDQ xmm/m128 imm8
+val /vex/66/0f [0x73 /7-nomem] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/m128 imm8
 
-### PSLRDQ
+### PSRLDQ
 ###  - Shift Double Quadword Right Logical
-val /66 [0x0f 0x73 /r-nomem] = binop PSLRDQ xmm128 imm8 # bug in Intel manual: /r is /3
-val /vex/66/0f [0x73 /r-nomem] | vndd? & vex128? = varity3 VPSLRDQ xmm128 v/xmm imm8 # bug in Intel manual: /r is /3
+val /66 [0x0f 0x73 /3-nomem] = binop PSRLDQ xmm/m128 imm8
+val /vex/66/0f [0x73 /3-nomem] | vndd? & vex128? = varity3 VPSRLDQ v/xmm xmm/m128 imm8
 
 ### PSUBB/PSUBW/PSUBD
 ###  - Subtract Packed Integers
