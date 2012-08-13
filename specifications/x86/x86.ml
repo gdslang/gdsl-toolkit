@@ -710,6 +710,12 @@ type insn =
  | FISTP of arity1
  | FISTTP of arity1
  | FLD of arity1
+ | FLDL2E
+ | FLDL2T
+ | FLDLG2
+ | FLDLN2
+ | FLDPI
+ | FLDZ
  | FLD1
  | FLDCW of arity1
  | FLDENV of arity1
@@ -729,17 +735,11 @@ type insn =
  | FSIN
  | FSINCOS
  | FSQRT
-
- | FLDL2E
- | FLDL2T
- | FLDLG2
- | FLDLN2
- | FLDPI
- | FLDZ
- | FNSTCW of arity1
  | FST of arity1
- | FSTCW of arity1
  | FSTP of arity1
+ | FSTCW of arity1
+ | FNSTCW of arity1
+
  | FUCOMI of arity1
  | FUCOMIP of arity1
  | HLT
@@ -2814,11 +2814,6 @@ val / [0xd9 0xfb] = arity0 FSINCOS
 ###  - Square Root
 val / [0xd9 0xfa] = arity0 FSQRT
 
-### FSTCW/FNSTCW
-###  - Store x87 FPU Control Word
-val / [0x9b 0xd9 /7-mem] = unop FSTCW m2byte
-val / [0xd9 /7-mem] = unop FNSTCW m2byte
-
 ### FST/FSTP
 ###  - Store Floating Point Value
 val / [0xd9 /2-mem] = unop FST m32
@@ -2826,6 +2821,11 @@ val / [0xdd /2] = unop FST st/m64
 val / [0xd9 /3-mem] = unop FSTP m32
 val / [0xdd /3] = unop FSTP st/m64
 val / [0xdb /7-mem] = unop FSTP m80fp
+
+### FSTCW/FNSTCW
+###  - Store x87 FPU Control Word
+val / [0x9b 0xd9 /7-mem] = unop FSTCW m2byte
+val / [0xd9 /7-mem] = unop FNSTCW m2byte
 
 ### HLT
 ###  - Halt
