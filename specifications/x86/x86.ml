@@ -875,7 +875,6 @@ type insn =
  | PSHUFB of arity2
  | PSHUFD of arity3
  | PSLLDQ of arity2
- | PSLRDQ of arity2
  | PSRLDQ of arity2
  | PSUBB of arity2
  | PSUBD of arity2
@@ -1104,7 +1103,7 @@ type insn =
  | VPSHUFB of varity
  | VPSHUFD of varity
  | VPSLLDQ of varity
- | VPSLRDQ of varity
+ | VPSRLDQ of varity
  | VPSUBB of varity
  | VPSUBD of varity
  | VPSUBW of varity
@@ -3627,13 +3626,13 @@ val /vex/66/0f [0x70 /r] | vex128? = varity3 VPSHUFD xmm128 xmm/m128 imm8
 
 ### PSLLDQ
 ###  - Shift Double Quadword Left Logical
-val /66 [0x0f 0x73 /r-nomem] = binop PSLLDQ xmm128 imm8 # bug in Intel manual: /r is /7
-val /vex/66/0f [0x73 /r-nomem] | vndd? & vex128? = varity3 VPSLLDQ xmm128 v/xmm imm8 # bug in Intel manual: /r is /7
+val /66 [0x0f 0x73 /7-nomem] = binop PSLLDQ xmm/m128 imm8
+val /vex/66/0f [0x73 /7-nomem] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/m128 imm8
 
-### PSLRDQ
+### PSRLDQ
 ###  - Shift Double Quadword Right Logical
-val /66 [0x0f 0x73 /r-nomem] = binop PSLRDQ xmm128 imm8 # bug in Intel manual: /r is /3
-val /vex/66/0f [0x73 /r-nomem] | vndd? & vex128? = varity3 VPSLRDQ xmm128 v/xmm imm8 # bug in Intel manual: /r is /3
+val /66 [0x0f 0x73 /3-nomem] = binop PSRLDQ xmm/m128 imm8
+val /vex/66/0f [0x73 /3-nomem] | vndd? & vex128? = varity3 VPSRLDQ v/xmm xmm/m128 imm8
 
 ### PSUBB/PSUBW/PSUBD
 ###  - Subtract Packed Integers
