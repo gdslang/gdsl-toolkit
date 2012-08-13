@@ -73,6 +73,13 @@ structure Primitives = struct
    val s18 = freshVar ()
    val s19 = freshVar ()
    val anyToString = freshVar()
+   val content = freshVar ()
+   val content' = newFlow content
+   val content'' = newFlow content
+   val content''' = newFlow content
+   val content'''' = newFlow content
+   val inp = freshVar ()
+   val out = freshVar ()
 
    (*create a type from two vectors to one vector, all of size s*)
    fun func (a,b) = FUN ([a],b)
@@ -223,13 +230,19 @@ structure Primitives = struct
        {name="%unconsume32", ty=MONAD (UNIT,stateK, stateK'),
         flow = BD.meetVarImpliesVar (bvar stateK', bvar stateK)}, 
        {name="%slice", ty=MONAD (freshVar (),stateL, stateL'),
-        flow = BD.meetVarImpliesVar (bvar stateL', bvar stateL)}
+        flow = BD.meetVarImpliesVar (bvar stateL', bvar stateL)},
+       {name="vcase", ty=FUN ([VEC inp, content',
+         FUN ([content'', VEC out], content''')], content''''),
+         flow = BD.meetVarImpliesVar (bvar content'''', bvar content') o
+                BD.meetVarImpliesVar (bvar content'''', bvar content''') o
+                BD.meetVarImpliesVar (bvar content'', bvar content')}
        ]
 
    val primitiveSizeConstraints =
       [SC.equality (tvar s6, [tvar s4,tvar s5], 0),
        SC.equality (tvar s14, [tvar s15,tvar s16], 0),
-       SC.equality (tvar s17, [tvar s18,tvar s19], 0)
+       SC.equality (tvar s17, [tvar s18,tvar s19], 0),
+       SC.equality (tvar out, [tvar inp], 1)
       ]
 
    val primitiveDecoders =
