@@ -773,6 +773,12 @@ type insn =
  | IMUL of varity
  | IN of arity2
  | INC of arity1
+ | INSERTPS of arity3
+ | INT3
+ | INT of arity1
+ | INT0
+ | INVD
+ | INVLPG of arity1
 
  | JA of flow1
  | JAE of flow1
@@ -1084,6 +1090,7 @@ type insn =
  | VHADDPS of varity
  | VHSUBPD of varity
  | VHSUBPS of varity
+ | VINSERTPS of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -1719,6 +1726,7 @@ val r/m ptrTy reg = do
    end
 end
 
+val r/m0 = r/m 0 reg8-rex
 val r/m8 = r/m 8 reg8-rex
 val r/m16 = r/m 16 reg16-rex
 val r/m32 = r/m 32 reg32-rex
@@ -1751,6 +1759,7 @@ end
 val xmm/nomem128 = reg/nomem xmm-rex
 val mm/nomem64 = reg/nomem mm-rex
 
+val m0 = r/m0
 val m8 = r/m8
 val m16 = r/m16
 val m32 = r/m32
@@ -3032,6 +3041,29 @@ val / [0xff /0]
  | opndsz? = unop INC r/m16
  | rexw? = unop INC r/m64
  | otherwise = unop INC r/m32
+
+### INS/INSB/INSW/INSD
+###  - Input from Port to String
+#Todo
+
+### INSERTPS
+###  - Insert Packed Single Precision Floating-Point Value
+val /66 [0x0f 0x3a 0x21 /r] = ternop INSERTPS xmm128 xmm/m32 imm8
+val /vex/66/0f/3a/vexv [0x21 /r] = varity4 VINSERTPS xmm128 v/xmm xmm/m32 imm8
+
+### INT n/INTO/INT 3
+###  - Call to Interrupt Procedure
+val / [0xcc] = arity0 INT3
+val / [0xcd] = unop INT imm8
+val / [0xce] = arity0 INT0
+
+### INVD
+###  - Invalidate Internal Caches
+val / [0x0f 0x08] = arity0 INVD
+
+### INVLPG
+###  - Invalidate TLB Entry
+val / [0x0f 0x01 /7-mem] = unop INVLPG m0
 
 ### Jcc
 ###  - Jump if Condition Is Met
