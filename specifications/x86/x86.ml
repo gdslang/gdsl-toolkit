@@ -764,6 +764,7 @@ type insn =
  | FYL2XP1
  | HADDPD of arity2
  | HADDPS of arity2
+ | HSUBPD of arity2
 
  | FUCOMI of arity1
  | FUCOMIP of arity1
@@ -1079,6 +1080,7 @@ type insn =
  | VEXTRACTPS of varity
  | VHADDPD of varity
  | VHADDPS of varity
+ | VHSUBPD of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -2946,6 +2948,13 @@ val /vex/f2/0f/vexv [0x7c /r]
 ### HLT
 ###  - Halt
 val / [0xf4] = arity0 HLT
+
+### HSUBPD
+###  - Packed Double-FP Horizontal Subtract
+val /66 [0x0f 0x7d /r] = binop HSUBPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x7d /r]
+ | vex128? = varity3 VHSUBPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VHSUBPD ymm256 v/ymm ymm/m256
 
 ### IDIV
 ###  - Signed Divide
