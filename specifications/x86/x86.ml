@@ -765,6 +765,10 @@ type insn =
  | HADDPD of arity2
  | HADDPS of arity2
  | HSUBPD of arity2
+ | HSUBPS of arity2
+ | IDIV of arity1
+ | IMUL of varity
+ | IN of arity2
 
  | FUCOMI of arity1
  | FUCOMIP of arity1
@@ -1081,6 +1085,7 @@ type insn =
  | VHADDPD of varity
  | VHADDPS of varity
  | VHSUBPD of varity
+ | VHSUBPS of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -2955,6 +2960,57 @@ val /66 [0x0f 0x7d /r] = binop HSUBPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x7d /r]
  | vex128? = varity3 VHSUBPD xmm128 v/xmm xmm/m128
  | vex256? = varity3 VHSUBPD ymm256 v/ymm ymm/m256
+
+### HSUBPS
+###  - Packed Single-FP Horizontal Subtract
+val /f2 [0x0f 0x7d /r] = binop HSUBPS xmm128 xmm/m128
+val /vex/f2/0f/vexv [0x7d /r]
+ | vex128? = varity3 VHSUBPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VHSUBPS ymm256 v/ymm ymm/m256
+
+### IDIV
+###  - Signed Divide
+val / [0xf6 /7] = unop IDIV r/m8
+val / [0xf7 /7]
+ | opndsz? = unop IDIV r/m16
+ | rexw? = unop IDIV r/m64
+ | otherwise = unop IDIV r/m32
+
+### IMUL
+###  - Signed Multiply
+val / [0xf6 /5] = varity1 IMUL r/m8
+val / [0xf7 /5]
+ | opndsz? = varity1 IMUL r/m16
+ | rexw? = varity1 IMUL r/m64
+ | otherwise = varity1 IMUL r/m32
+val / [0x0f 0xaf /r]
+ | opndsz? = varity2 IMUL r16 r/m16
+ | rexw? = varity2 IMUL r64 r/m64
+ | otherwise = varity2 IMUL r32 r/m32
+val / [0x6b /r]
+ | opndsz? = varity2 IMUL r16 r/m16 imm8
+ | rexw? = varity2 IMUL r64 r/m64 imm8
+ | otherwise = varity2 IMUL r32 r/m32 imm8
+val / [0x69 /r]
+ | opndsz? = varity2 IMUL r16 r/m16 imm16
+ | rexw? = varity2 IMUL r64 r/m64 imm32
+ | otherwise = varity2 IMUL r32 r/m32 imm32
+
+### IN
+###  - Input from Port
+val / [0xe4] = binop IN al imm8
+val / [0xe5]
+ | opndsz? = binop IN ax imm8
+ | otherwise = binop IN eax imm8
+val / [0xec] = binop IN al dx
+val / [0xed]
+ | opndsz? = binop IN ax dx
+ | otherwise = binop IN eax dx
+
+### INC
+###  - Increment by 1
+val / [0xfe /0] = unop INC r/m8
+val / [0xfe /0] = unop INC r/m8
 
 ### IDIV
 ###  - Signed Divide
