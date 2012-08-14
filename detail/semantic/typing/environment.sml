@@ -154,14 +154,14 @@ end = struct
          (*this is SOME (CONST w) if this is a decode function with pattern width w*)
          width : texp option,
          uses : (ST.symid * texp) SpanMap.map,
-         nested : binding list
+         nested : (binding list) list
       } list
    
    datatype bind_info
       = SIMPLE of { ty : texp }
       | COMPOUND of { ty : (texp * BD.bfun) option, width : texp option,
                       uses : (ST.symid * texp) SpanMap.map,
-                      nested : binding list }
+                      nested : (binding list) list }
 
    (*a scope contains one of the bindings above and some additional
    information that make substitution and join cheaper*)
@@ -411,28 +411,32 @@ end = struct
             val (vsStr, si) = TVar.setToString (typeVars,si)
             val bsStr = BD.setToString boolVars
          in
-            (", ver=" ^ Int.toString(ver) ^
-             (*", bvars = " ^ bsStr ^ *) ", vars=" ^ vsStr, si)
+            ("ver=" ^ Int.toString(ver) ^
+             (*", bvars = " ^ bsStr ^ *) ", vars=" ^ vsStr ^ "\n", si)
          end
 
-      fun toString ({bindInfo = KAPPA {ty}, typeVars, boolVars, version}, si) =
+      fun toString ({bindInfo = bi, typeVars, boolVars, version}, si) =
             let
                val (scStr, si) = showVarsVer (typeVars, boolVars, version, si)
+               val (biStr, si) = showBindInfoSI (bi,si)
+            in
+               (scStr ^ biStr, si)
+            end
+      and showBindInfoSI (KAPPA {ty}, si) =
+            let
                val (tStr, si) = showTypeSI (ty,si)
             in
-               ("KAPPA : " ^ tStr ^ scStr, si)
+               ("KAPPA : " ^ tStr, si)
             end
-        | toString ({bindInfo = SINGLE {name, ty}, typeVars, boolVars, version}, si) =
+        | showBindInfoSI (SINGLE {name, ty}, si) =
             let
-               val (scStr, si) = showVarsVer (typeVars, boolVars, version, si)
                val (tStr, si) = showTypeSI (ty,si)
             in
                ("SYMBOL " ^ ST.getString(!SymbolTables.varTable, name) ^
-                " : " ^ tStr ^ scStr, si)
+                " : " ^ tStr, si)
             end
-        | toString ({bindInfo = GROUP bs, typeVars, boolVars, version}, si) =
+        | showBindInfoSI (GROUP bs, si) =
             let
-               val (scStr, si) = showVarsVer (typeVars, boolVars, version, si)
                fun prTyOpt (NONE, str, si) = ("", si)
                  | prTyOpt (SOME t, str, si) = let
                     val (tStr, si) = showTypeSI (t, si)
@@ -465,15 +469,35 @@ end = struct
                      val (uStr, _, si) = 
                            List.foldl printU ("", "\n\tuse at ", si)
                                       (SpanMap.listItemsi uses)
+                     fun showBindInfosSI n (b :: bs,si) =
+                        let
+                           val (bStr, si) = showBindInfoSI (b,si)
+                           fun spaces n = if n<=0 then "" else "  " ^ spaces (n-1)
+                           val sStr = spaces n
+                           val (bsStr, si) = showBindInfosSI (n+1) (bs, si)
+                           val fs1 = Substring.fields (fn c => c= #"\n") (Substring.full bStr)
+                           val fs2 = Substring.fields (fn c => c= #"\n") (Substring.full bsStr)
+                        in
+                           (List.foldl
+                              (fn (f,str) => str ^ sStr ^ Substring.string f ^ "\n")
+                              "\n" (fs1 @ fs2),
+                            si)
+                        end
+                       | showBindInfosSI n ([], si) = ("", si)
+                     val (nStr, si) = List.foldl
+                           (fn (bs,(str,si)) =>
+                              case showBindInfosSI 1 (bs,si) of
+                                 (bStr, si) => (str ^ bStr, si))
+                           ("", si) nested
                   in
                     (str ^
                      "\n  " ^ ST.getString(!SymbolTables.varTable, name) ^
-                     tStr ^ wStr ^ uStr
+                     tStr ^ wStr ^ nStr ^ uStr
                     ,si)
                   end
                 val (bsStr, si) = List.foldr printB ("", si) bs
             in
-               ("GROUP" ^ scStr ^ bsStr, si)
+               ("GROUP" ^ bsStr, si)
             end
                
    end
@@ -557,8 +581,28 @@ end = struct
             (*project out variables from the size and Boolean domains that are
             no longer needed*)
             val sCons = SC.filter (remVars, Scope.getSize state)
+            val env = (scs, Scope.setSize sCons state)
+            
+            (*in case we are inside a function, store this group in the nested
+            field of the function entry*)
+            val inScope = SymSet.fromList (Scope.getCtxt state)
+            val bs = List.filter
+                        (fn {name, ty, width, uses = us, nested} =>
+                           List.exists (fn (f,_) => SymSet.member (inScope,f))
+                              (SpanMap.listItems us)
+                        ) bs
+            fun action ns (COMPOUND {ty, width, uses, nested},cons) =
+               (COMPOUND {ty = ty, width = width,
+                uses = uses, nested = ns :: nested}, cons)
+              | action ns _ = raise InferenceBug
+            fun unravel (acc,env) = case Scope.unwrap env of
+                 (GROUP _,_) => acc
+               | (b, env) => unravel (b :: acc, env)
+            val env = if List.null bs then env else
+               Scope.update (Scope.getCurFun state,
+                             action (unravel ([GROUP bs],env)), env)
          in
-            (badSizes, (scs, Scope.setSize sCons state))
+            (badSizes, env)
          end
       | _ => raise InferenceBug
 
@@ -734,7 +778,7 @@ end = struct
                            (SpanMap.listItems us)
                      then aFL (ss, l)
                      else aFL (SymbolSet.add' (n, ss), l)
-                     ) ns
+                     ) (List.concat ns)
             in
                aFL (ss, l)
             end
@@ -1051,12 +1095,12 @@ end = struct
                            in
                               List.foldl SpanMap.insert' us nUs
                            end),
-                      nested = List.map (fn b =>
+                      nested = List.map (List.map (fn b =>
                         case substBinding (b, !usesRef, !eiRef) of
                            (b, _, us, ei) => (*ns1 and ns2 have same set of uses, varset is empty*)
                               (usesRef := us
                               ;eiRef := ei
-                              ;b)) ns
+                              ;b))) ns
                      }
                in
                   (GROUP (List.map substB bs), !varSet, !usesRef, !eiRef)
@@ -1135,23 +1179,27 @@ end = struct
                      in
                         (SpanMap.insert (sm, span, (ctxt,t)), bFun)
                      end
-                  fun genBindFlow ({name = n1, ty=t1, width=w1, uses = us1, nested = ns1},
-                                   {name = n2, ty=t2, width=w2, uses = us2, nested = ns2},(bs,bFun)) =
+                  fun genBindFlow ({name = n1, ty=t1, width=w1, uses = us1, nested = nss1},
+                                   {name = n2, ty=t2, width=w2, uses = us2, nested = nss2},(bs,bFun)) =
                      let
                         val (t,bFun) = bflowOpt (t1,t2,bFun)
                         val (w,bFun) = flowOpt (w1,w2,bFun)
                         val (us,bFun) = ListPair.foldr genUsesFlow (SpanMap.empty,bFun)
                                  (SpanMap.listItemsi us1,SpanMap.listItemsi us2)
-                        fun foldAcc bFun (b1::bs1,b2::bs2) =
+                        fun foldAcc f (x::xs,acc) =
                            let
-                              val (bs,bFun) = foldAcc bFun (bs1,bs2)
-                              val (b,bFun) = uniteFlowInfo (b1,b2,bFun)
+                              val (x,acc) = f (x,acc)
+                              val (xs,acc) = foldAcc f (xs, acc)
                            in
-                              (b::bs,bFun)
+                              (x::xs,acc)
                            end
-                           | foldAcc bFun ([],[]) = ([],bFun)
-                           | foldAcc bFun _ = raise InferenceBug
-                        val (ns,bFun) = foldAcc bFun (ns1,ns2)
+                           | foldAcc f ([], acc) = ([],acc)
+                        val (ns,bFun) =
+                           foldAcc (fn ((ns1,ns2),bFun) =>
+                              foldAcc (fn ((b1,b2),bFun) =>
+                                       uniteFlowInfo (b1,b2,bFun))
+                                 (ListPair.zip (ns1,ns2),bFun)
+                              ) (ListPair.zip (nss1,nss2),bFun)
                      in
                         ({name = n1, ty = t, width = w, uses = us, nested = ns} :: bs, bFun)
                      end

@@ -263,7 +263,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    fun hasSymbol ({span, component = SCC.SIMPLE n},s) = SymbolTable.eq_symid (s,n)
      | hasSymbol ({span, component = SCC.RECURSIVE ns},s) =
          List.exists (fn n => SymbolTable.eq_symid (s,n)) ns
-   
+   fun addComponent (comp,{span, component = c}) =
+      let
+         fun sccToList scc = case scc of 
+              SCC.SIMPLE s => [s]
+            | SCC.RECURSIVE ss => ss
+         val comps = sccToList c @ sccToList comp
+      in
+         {span = span, component = SCC.RECURSIVE comps}
+      end
+
    (* define a traversal that is a full inference of the tree *)
    
    val maxIter = 2
@@ -514,11 +523,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
          val env = List.foldl (fn (comp,env) =>
             let
-               (*val _ = TextIO.print ("checking component " ^ prComp comp)*)
+               val st = addComponent (comp,st)
                val env = List.foldl (fn ((v,l,e),env) =>
                               (if not (hasSymbol (st,v)) then env else
                                  infBinding (st, env) (v, l, e))
                               handle TypeError => env) env l
+               val _ = TextIO.print ("after checking local components " ^ prComp comp ^ E.topToString env)
                val env = case comp of
                     SCC.SIMPLE _ => env
                   | SCC.RECURSIVE syms => calcFixpoints (syms, env)
@@ -527,8 +537,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   env
                end
             ) env sccs
-         
-         val env = infExp (st,env) e
+         (*any local definition that has called a symbol in st must be added
+         to st when checking the body; we are lazy and add them all*)
+         val st' = List.foldl addComponent st sccs
+         val env = infExp (st',env) e
          val (badSizes, env) = E.popGroup (env, true)
          val _ = reportBadSizes badSizes
       in
@@ -912,15 +924,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    
    (*val _ = TextIO.print ("SCCs:\n" ^ List.foldl (fn (c,str) => str ^ prComp c) "" sccs)*)
 
-   
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    val toplevelEnv = List.foldl (fn (comp,env) =>
       let
-         (*val _ = TextIO.print ("checking component " ^ prComp comp)*)
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
                                   component = comp},env) d
                         handle TypeError => env) env ast
+         val _ = TextIO.print ("after checking component " ^ prComp comp ^  E.topToString env)
          val env = case comp of
               SCC.SIMPLE _ => env
             | SCC.RECURSIVE syms => calcFixpoints (syms, env)
