@@ -691,6 +691,8 @@ type insn =
  | FCOMPP
  | FCOMI of arity2
  | FCOMIP of arity2
+ | FUCOMI of arity1
+ | FUCOMIP of arity1
  | FCOS
  | FDECSTP
  | FDIV of arity2
@@ -764,18 +766,14 @@ type insn =
  | FYL2XP1
  | HADDPD of arity2
  | HADDPS of arity2
+ | HLT
  | HSUBPD of arity2
  | HSUBPS of arity2
  | IDIV of arity1
  | IMUL of varity
  | IN of arity2
-
- | FUCOMI of arity1
- | FUCOMIP of arity1
- | HLT
- | IDIV of arity1
- | IMUL of arity1
  | INC of arity1
+
  | JA of flow1
  | JAE of flow1
  | JB of flow1
@@ -2973,8 +2971,28 @@ val /vex/f2/0f/vexv [0x7d /r]
 val / [0xf6 /7] = unop IDIV r/m8
 val / [0xf7 /7]
  | opndsz? = unop IDIV r/m16
- | rexw? = unop IDIV r/m64
- | otherwise = unop IDIV r/m32
+ | rexw? = unop IDIV r/m32
+ | otherwise = unop IDIV r/m64
+
+### IMUL
+###  - Signed Multiply
+#val / [0xf6 /5] = unop IMUL r/m8
+#val / [0xf7 /5]
+# | opndsz? = unop IMUL r/m16
+# | rexw? = unop IMUL r/m64
+# | otherwise = unop IMUL r/m32
+#val / [0x0f 0xaf /r]
+# | opndsz? = binop IMUL r16 r/m16
+# | rexw? = binop IMUL r64 r/m64
+# | otherwise = binop IMUL r32 r/m32
+#val / [0x6b /r]
+# | opndsz? = ternop IMUL r16 r/m16 imm8
+# | rexw? = ternop IMUL r64 r/m64 imm8
+# | otherwise = ternop IMUL r32 r/m32 imm8
+#val / [0x69 /r]
+# | opndsz? = ternop IMUL r16 r/m16 imm16
+# | rexw? = ternop IMUL r64 r/m64 imm32
+# | otherwise = ternop IMUL r32 r/m32 imm32
 
 ### IMUL
 ###  - Signed Multiply
@@ -2988,13 +3006,13 @@ val / [0x0f 0xaf /r]
  | rexw? = varity2 IMUL r64 r/m64
  | otherwise = varity2 IMUL r32 r/m32
 val / [0x6b /r]
- | opndsz? = varity2 IMUL r16 r/m16 imm8
- | rexw? = varity2 IMUL r64 r/m64 imm8
- | otherwise = varity2 IMUL r32 r/m32 imm8
+ | opndsz? = varity3 IMUL r16 r/m16 imm8
+ | rexw? = varity3 IMUL r64 r/m64 imm8
+ | otherwise = varity3 IMUL r32 r/m32 imm8
 val / [0x69 /r]
- | opndsz? = varity2 IMUL r16 r/m16 imm16
- | rexw? = varity2 IMUL r64 r/m64 imm32
- | otherwise = varity2 IMUL r32 r/m32 imm32
+ | opndsz? = varity3 IMUL r16 r/m16 imm16
+ | rexw? = varity3 IMUL r64 r/m64 imm32
+ | otherwise = varity3 IMUL r32 r/m32 imm32
 
 ### IN
 ###  - Input from Port
@@ -3006,39 +3024,6 @@ val / [0xec] = binop IN al dx
 val / [0xed]
  | opndsz? = binop IN ax dx
  | otherwise = binop IN eax dx
-
-### INC
-###  - Increment by 1
-val / [0xfe /0] = unop INC r/m8
-val / [0xfe /0] = unop INC r/m8
-
-### IDIV
-###  - Signed Divide
-val / [0xf6 /7] = unop IDIV r/m8
-val / [0xf7 /7]
- | opndsz? = unop IDIV r/m16
- | rexw? = unop IDIV r/m32
- | otherwise = unop IDIV r/m64
-
-### IMUL
-###  - Signed Multiply
-val / [0xf6 /5] = unop IMUL r/m8
-val / [0xf7 /5]
- | opndsz? = unop IMUL r/m16
- | rexw? = unop IMUL r/m64
- | otherwise = unop IMUL r/m32
-val / [0x0f 0xaf /r]
- | opndsz? = binop IMUL r16 r/m16
- | rexw? = binop IMUL r64 r/m64
- | otherwise = binop IMUL r32 r/m32
-val / [0x6b /r]
- | opndsz? = ternop IMUL r16 r/m16 imm8
- | rexw? = ternop IMUL r64 r/m64 imm8
- | otherwise = ternop IMUL r32 r/m32 imm8
-val / [0x69 /r]
- | opndsz? = ternop IMUL r16 r/m16 imm16
- | rexw? = ternop IMUL r64 r/m64 imm32
- | otherwise = ternop IMUL r32 r/m32 imm32
 
 ### INC
 ###  - Increment by 1
