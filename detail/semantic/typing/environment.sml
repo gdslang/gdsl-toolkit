@@ -50,6 +50,12 @@ structure Environment : sig
     existing type should be used (False) *)
    val pushSymbol : VarInfo.symid * Error.span * bool * environment -> environment
 
+   (*like pushSymbol, but also checks nested definitions that have already
+   been type checked, a usage is never recorded; returns the number of
+   frames that have been pushed before the symbol was pushed*)
+   val pushSymbolNested : VarInfo.symid * Error.span * environment ->
+      (int * environment)
+
    val getUsages : VarInfo.symid * environment -> Error.span list
    
    val getContextOfUsage : VarInfo.symid * Error.span * environment ->
@@ -154,14 +160,15 @@ end = struct
          (*this is SOME (CONST w) if this is a decode function with pattern width w*)
          width : texp option,
          uses : (ST.symid * texp) SpanMap.map,
-         nested : (binding list) list
+         (*a tree of nested binding groups*)
+         nested : binding list
       } list
    
    datatype bind_info
       = SIMPLE of { ty : texp }
       | COMPOUND of { ty : (texp * BD.bfun) option, width : texp option,
                       uses : (ST.symid * texp) SpanMap.map,
-                      nested : (binding list) list }
+                      nested : binding list }
 
    (*a scope contains one of the bindings above and some additional
    information that make substitution and join cheaper*)
@@ -406,6 +413,7 @@ end = struct
          in
             unravel ([], env)
          end
+
       fun showVarsVer (typeVars,boolVars,ver,si) =
          let
             val (vsStr, si) = TVar.setToString (typeVars,si)
@@ -484,11 +492,7 @@ end = struct
                             si)
                         end
                        | showBindInfosSI n ([], si) = ("", si)
-                     val (nStr, si) = List.foldl
-                           (fn (bs,(str,si)) =>
-                              case showBindInfosSI 1 (bs,si) of
-                                 (bStr, si) => (str ^ bStr, si))
-                           ("", si) nested
+                     val (nStr, si) = showBindInfosSI 1 (nested,si)
                   in
                     (str ^
                      "\n  " ^ ST.getString(!SymbolTables.varTable, name) ^
@@ -591,16 +595,12 @@ end = struct
                            List.exists (fn (f,_) => SymSet.member (inScope,f))
                               (SpanMap.listItems us)
                         ) bs
-            fun action ns (COMPOUND {ty, width, uses, nested},cons) =
+            fun action group (COMPOUND {ty, width, uses, nested},cons) =
                (COMPOUND {ty = ty, width = width,
-                uses = uses, nested = ns :: nested}, cons)
+                uses = uses, nested = group :: nested}, cons)
               | action ns _ = raise InferenceBug
-            fun unravel (acc,env) = case Scope.unwrap env of
-                 (GROUP _,_) => acc
-               | (b, env) => unravel (b :: acc, env)
             val env = if List.null bs then env else
-               Scope.update (Scope.getCurFun state,
-                             action (unravel ([GROUP bs],env)), env)
+               Scope.update (Scope.getCurFun state, action (GROUP bs), env)
          in
             (badSizes, env)
          end
@@ -778,7 +778,7 @@ end = struct
                            (SpanMap.listItems us)
                      then aFL (ss, l)
                      else aFL (SymbolSet.add' (n, ss), l)
-                     ) (List.concat ns)
+                     ) ns
             in
                aFL (ss, l)
             end
@@ -909,6 +909,37 @@ end = struct
              end
           )
       )
+
+   fun pushSymbolNested (sym, span, env as (scs, state)) =
+      case Scope.getCtxt state of
+           [] => (0,pushSymbol (sym, span, false, env))
+         | (curFun :: _) =>
+      let
+         val nested = case Scope.lookup (curFun, env) of
+              (_, COMPOUND {ty, width, uses, nested}) => nested
+            | _ => raise InferenceBug
+         val _ = TextIO.print ("checking " ^ Int.toString (List.length nested) ^ " nested groups\n")
+         fun findSymInGroups (n, ns, env) =
+            List.foldl
+               (fn (g,res) => case res of
+                    SOME r => SOME r
+                  | NONE => findSymInGroup (n+1,g,Scope.wrap (g, env)))
+               NONE ns
+         and findSymInGroup (n,GROUP bs,env) =
+            if List.exists (fn {name, ty, width, uses, nested} =>
+                           SymbolTable.eq_symid (sym,name)) bs
+               then SOME
+                  (n, pushSymbol (sym, span, false, env))
+               else List.foldl (fn (b,res) => case res of
+                    SOME r => SOME r
+                  | NONE => findSymInGroups (n, #nested b, env)
+               ) NONE bs
+           | findSymInGroup (n,_,env) = raise InferenceBug
+      in
+         case findSymInGroups (0, nested, env) of
+              NONE => (0,pushSymbol (sym, span, false, env))
+            | SOME r => r
+      end
 
    fun getUsages (sym, env) = (case Scope.lookup (sym, env) of
            (_, SIMPLE {ty}) => []
@@ -1095,12 +1126,12 @@ end = struct
                            in
                               List.foldl SpanMap.insert' us nUs
                            end),
-                      nested = List.map (List.map (fn b =>
+                      nested = List.map (fn b =>
                         case substBinding (b, !usesRef, !eiRef) of
                            (b, _, us, ei) => (*ns1 and ns2 have same set of uses, varset is empty*)
                               (usesRef := us
                               ;eiRef := ei
-                              ;b))) ns
+                              ;b)) ns
                      }
                in
                   (GROUP (List.map substB bs), !varSet, !usesRef, !eiRef)
@@ -1179,8 +1210,8 @@ end = struct
                      in
                         (SpanMap.insert (sm, span, (ctxt,t)), bFun)
                      end
-                  fun genBindFlow ({name = n1, ty=t1, width=w1, uses = us1, nested = nss1},
-                                   {name = n2, ty=t2, width=w2, uses = us2, nested = nss2},(bs,bFun)) =
+                  fun genBindFlow ({name = n1, ty=t1, width=w1, uses = us1, nested = ns1},
+                                   {name = n2, ty=t2, width=w2, uses = us2, nested = ns2},(bs,bFun)) =
                      let
                         val (t,bFun) = bflowOpt (t1,t2,bFun)
                         val (w,bFun) = flowOpt (w1,w2,bFun)
@@ -1194,12 +1225,9 @@ end = struct
                               (x::xs,acc)
                            end
                            | foldAcc f ([], acc) = ([],acc)
-                        val (ns,bFun) =
-                           foldAcc (fn ((ns1,ns2),bFun) =>
-                              foldAcc (fn ((b1,b2),bFun) =>
-                                       uniteFlowInfo (b1,b2,bFun))
-                                 (ListPair.zip (ns1,ns2),bFun)
-                              ) (ListPair.zip (nss1,nss2),bFun)
+                        val (ns,bFun) = foldAcc (fn ((b1,b2),bFun) =>
+                                                 uniteFlowInfo (b1,b2,bFun))
+                                           (ListPair.zip (ns1,ns2),bFun)
                      in
                         ({name = n1, ty = t, width = w, uses = us, nested = ns} :: bs, bFun)
                      end

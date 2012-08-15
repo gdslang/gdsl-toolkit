@@ -283,11 +283,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             let
                val fid = E.getContextOfUsage (sym, s, env)
                val env = E.enterFunction (fid,env)
+
+               val _ = TextIO.print ("subset, about to push " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                
-               val envFun = E.pushSymbol (sym, s, false, env)
-               (*val _ = TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)*)
+               val (n,envFun) = E.pushSymbolNested (sym, s, env)
+               val env = E.popKappa envFun
+               val _ = TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)
                val envCall = E.pushUsage (sym, s, env)
-               (*val _ = TextIO.print ("pushed usage:\n" ^ E.topToString envCall)*)
+               val _ = TextIO.print ("pushed usage:\n" ^ E.topToString envCall)
 
                (*warn about refinement of the definition due to a call site*)
                fun raiseWarning (substs, syms) =
@@ -326,7 +329,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                E.SymbolSet.isEmpty affectedSyms 
             end
          val usages = E.getUsages (sym, env)
-         (*val _ = TextIO.print ("***** checking subset of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         val _ = TextIO.print ("***** checking subset of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
       in
          List.all (checkUsage sym) usages
       end
@@ -346,7 +349,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val fid = E.getContextOfUsage (sym, s, env)
                val env = E.enterFunction (fid,env)
                
-               val envFun = E.pushSymbol (sym, s, false, env)
+               val (n,envFun) = E.pushSymbolNested (sym, s, env)
+               val env = E.popKappa envFun
                (*val _ = if SymbolTable.toInt sym = 95 then TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.kappaToString envFun)
                      else ()*)
                val envCall = E.pushUsage (sym, s, env)
@@ -371,6 +375,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      (raiseError str; envFun)
                (*val _ = TextIO.print ("popping to usage of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)*)
                val env = E.popToUsage (sym, s, env)
+               val env = E.return (n,env)
                val env = E.leaveFunction (fid,env)
             in
                env
