@@ -2682,11 +2682,11 @@ val / [0xdb 0xe2] = arity0 FNCLEX
 val / [0xda '11000 i:3'] = binop FCMOVB st0 (st/i i)
 val / [0xda '11001 i:3'] = binop FCMOVE st0 (st/i i)
 val / [0xda '11010 i:3'] = binop FCMOVBE st0 (st/i i)
-val / [0xda '10011 i:3'] = binop FCMOVU st0 (st/i i)
+val / [0xda '11011 i:3'] = binop FCMOVU st0 (st/i i)
 val / [0xdb '11000 i:3'] = binop FCMOVNB st0 (st/i i)
 val / [0xdb '11001 i:3'] = binop FCMOVNE st0 (st/i i)
 val / [0xdb '11010 i:3'] = binop FCMOVNBE st0 (st/i i)
-val / [0xdb '10011 i:3'] = binop FCMOVNU st0 (st/i i)
+val / [0xdb '11011 i:3'] = binop FCMOVNU st0 (st/i i)
 
 ### FCOM/FCOMP/FCOMPP
 ###  - Compare Floating Point Values
