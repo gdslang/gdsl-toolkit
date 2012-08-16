@@ -2008,7 +2008,8 @@ val /vex/0f/vexv [0x55 /r]
 
 ### ARPL
 ###  - Adjust RPL Field of Segment Selector
-val / [0x63 /r] | // mode64? = binop ARPL r/m16 r16
+### TODO: Not encodable in 64bit mode
+#val / [0x63 /r] | // mode64? = binop ARPL r/m16 r16
 
 ### BLENDPD
 ###  - Blend Packed Double Precision Floating-Point Values
@@ -3844,7 +3845,7 @@ val / [0x2b /r]
 
 ### SFENCE
 ###  - Store Fence
-val / [0x0f 0xae /7] = arity0 SFENCE
+val / [0x0f 0xae /7-nomem] = arity0 SFENCE
 
 ### SAL/SAR/SHL/SHR
 ### - Shift

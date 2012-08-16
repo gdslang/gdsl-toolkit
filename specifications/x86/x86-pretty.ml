@@ -473,7 +473,7 @@ val show/instruction insn =
     | PSHUFB x: "PSHUFB" -++ show/arity2 x
     | PSHUFD x: "PSHUFD" -++ show/arity3 x
     | PSLLDQ x: "PSLLDQ" -++ show/arity2 x
-    | PSLRDQ x: "PSLRDQ" -++ show/arity2 x
+    #| PSLRDQ x: "PSLRDQ" -++ show/arity2 x
     | PSRLDQ x: "PSRLDQ" -++ show/arity2 x
     | PSUBB x: "PSUBB" -++ show/arity2 x
     | PSUBD x: "PSUBD" -++ show/arity2 x
@@ -660,7 +660,7 @@ val show/instruction insn =
     | VPSHUFB x: "VPSHUFB" -++ show/varity x
     | VPSHUFD x: "VPSHUFD" -++ show/varity x
     | VPSLLDQ x: "VPSLLDQ" -++ show/varity x
-    | VPSLRDQ x: "VPSLRDQ" -++ show/varity x
+    #| VPSLRDQ x: "VPSLRDQ" -++ show/varity x
     | VPSUBB x: "VPSUBB" -++ show/varity x
     | VPSUBD x: "VPSUBD" -++ show/varity x
     | VPSUBW x: "VPSUBW" -++ show/varity x

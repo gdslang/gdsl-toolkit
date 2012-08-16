@@ -38,7 +38,7 @@ end = struct
       APPLYexp
          (IDexp raisee,
           [LITexp
-            (STRlit "UnsatifsfiableGuardCombination")])
+            (STRlit "UnsatisfiableGuardCombination")])
    end
 
    fun iff (guard, thenn, elsee) = let
