@@ -673,8 +673,8 @@ type insn =
  | FADD of arity2
  | FADDP of arity2
  | FIADD of arity1
- | FBLD_m80_dec
- | FBSTP_m80bcd
+ | FBLD of arity1
+ | FBSTP of arity1
  | FCHS
  | FCLEX
  | FNCLEX
@@ -730,9 +730,9 @@ type insn =
  | FPREM1
  | FPTAN
  | FRNDINT
- | FRSTOR_m94/108byte
- | FSAVE_m94/108byte
- | FNSAVE_m94/108byte
+ | FRSTOR of arity1
+ | FSAVE of arity1
+ | FNSAVE of arity1
  | FSCALE
  | FSIN
  | FSINCOS
@@ -1768,6 +1768,11 @@ val m128 = xmm/m128
 val m256 = ymm/m256
 val m80fp = r/m 80 reg64-rex #TODO: check
 
+val m80 = r/m 80 reg64-rex #TODO: check
+val m94byte = r/m 752 reg64-rex #TODO: check
+val m108byte = r/m 864 reg64-rex #TODO: check
+val m512byte = r/m 4096 reg64-rex #TODO: check
+
 val st/m16 = r/m 16 sti
 val st/m32 = r/m 32 sti
 val st/m64 = r/m 64 sti
@@ -2130,7 +2135,6 @@ val /vex/66/0f/3a/vexv [0x0c /r]
 
 ### BLENDVPD
 ###  - Variable Blend Packed Double Precision Floating-Point Values
-### TODO: /is4?
 val /66 [0x0f 0x38 0x15 /r] = ternop BLENDVPD xmm128 xmm/m128 xmm0
 val /vex/66/0f/3a/vexv [0x4b /r]
  | vex128? & vexw0? = varity4 VBLENDVPD xmm128 v/xmm xmm/m128 imm/xmm
@@ -2138,9 +2142,10 @@ val /vex/66/0f/3a/vexv [0x4b /r]
 
 ### BLENDVPS
 ###  - Variable Blend Packed Single Precision Floating-Point Values
-### TODO: /is4?
 val /66 [0x0f 0x38 0x14 /r] = binop BLENDVPS xmm128 xmm/m128
-### TODO: VEX -  Register encoded using an immediate?
+val /vex/66/0f/3a/vexv [0x4a /r]
+ | vex128? & vexw0? = varity4 VBLENDVPS xmm128 v/xmm xmm/m128 imm/xmm
+ | vex256? & vexw0? = varity4 VBLENDVPS ymm256 v/ymm ymm/m256 imm/ymm
 
 ### BOUND
 ###  - Check Array Index Against Bounds
@@ -2660,13 +2665,11 @@ val / [0xde /0-mem] = unop FIADD m16
 
 ### FBLD
 ###  - Load Binary Coded Decimal
-# Todo: fix
-val / [0xdf /4] = arity0 FBLD_m80_dec 
+val / [0xdf /4-mem] = unop FBLD m80 
 
 ### FBSTP
-# Todo: fix
 ###  - Store BCD Integer and Pop
-val / [0xdf /6] = arity0 FBSTP_m80bcd
+val / [0xdf /6-mem] = unop FBSTP m80
 
 ### FCHS
 ###  - Change Sign
@@ -2832,14 +2835,18 @@ val / [0xd9 0xfc] = arity0 FRNDINT
 
 ### FRSTOR
 ###  - Restore x87 FPU State
-# Todo: fix
-val / [0xdd /4] = arity0 FRSTOR_m94/108byte
+val / [0xdd /4]
+ | mode64? = unop FRSTOR m108byte
+ | otherwise = unop FRSTOR m94byte
 
 ### FSAVE/FNSAVE
 ###  - Store x87 FPU State
-# Todo: fix
-val / [0x9b 0xdd /6] = arity0 FSAVE_m94/108byte
-val / [0xdd /6] = arity0 FNSAVE_m94/108byte
+val / [0x9b 0xdd /6]
+ | mode64? = unop FSAVE m108byte
+ | otherwise = unop FSAVE m94byte
+val / [0xdd /6]
+ | mode64? = unop FNSAVE m108byte
+ | otherwise = unop FNSAVE m94byte
 
 ### FSCALE
 ###  - Scale
