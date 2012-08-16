@@ -133,6 +133,7 @@ val p/vex/66/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 01'] = do
         rexx=not x,
         vexl=l,
         vexv=complement v,
+
         vexm='00001'}
 end
 
@@ -651,16 +652,32 @@ type insn =
  | CVTTSD2SI of arity2
  | CVTTSS2SI of arity2
  | CWD
+ | CWDE
  | CDQ 
  | CQO
  | DAA
  | DAS
-
- | CWDE
  | DEC of arity1
  | DIV of arity1
- | DIVSD of arity1
+ | DIVPD of arity2
+ | DIVPS of arity2
+ | DIVSD of arity2
+ | DIVSS of arity2
+ | DPPD of arity3
+ | DPPS of arity3
+ | EMMS
+ | ENTER of arity2
+ | EXTRACTPS of arity3
+ | F2XM1
+ | FABS
+ | FADD of arity2
+ | FADDP of arity2
+ | FIADD of arity1
+ | FBLD_m80_dec
+ | FBSTP_m80bcd
  | FCHS
+ | FCLEX
+ | FNCLEX
  | FCMOVB of arity2
  | FCMOVBE of arity2
  | FCMOVE of arity2
@@ -669,28 +686,100 @@ type insn =
  | FCMOVNE of arity2
  | FCMOVNU of arity2
  | FCMOVU of arity2
+ | FCOM of arity1
+ | FCOMP of arity1
+ | FCOMPP
  | FCOMI of arity2
  | FCOMIP of arity2
+ | FUCOMI of arity1
+ | FUCOMIP of arity1
+ | FCOS
+ | FDECSTP
+ | FDIV of arity2
+ | FDIVP of arity2
+ | FIDIV of arity2
+ | FDIVR of arity2
+ | FDIVRP of arity2
+ | FIDIVR of arity1
+ | FFREE of arity1
+ | FICOM of arity1
+ | FICOMP of arity1
+ | FILD of arity1
+ | FINCSTP
+ | FINIT
+ | FNINIT
+ | FIST of arity1
+ | FISTP of arity1
+ | FISTTP of arity1
  | FLD of arity1
- | FLD1
- | FLDCW of arity1
- | FLDENV of arity1
  | FLDL2E
  | FLDL2T
  | FLDLG2
  | FLDLN2
  | FLDPI
  | FLDZ
- | FNSTCW of arity1
+ | FLD1
+ | FLDCW of arity1
+ | FLDENV of arity1
+ | FMUL of arity2
+ | FMULP of arity2
+ | FIMUL of arity1
+ | FNOP
+ | FPATAN
+ | FPREM
+ | FPREM1
+ | FPTAN
+ | FRNDINT
+ | FRSTOR_m94/108byte
+ | FSAVE_m94/108byte
+ | FNSAVE_m94/108byte
+ | FSCALE
+ | FSIN
+ | FSINCOS
+ | FSQRT
  | FST of arity1
- | FSTCW of arity1
  | FSTP of arity1
- | FUCOMI of arity1
- | FUCOMIP of arity1
+ | FSTCW of arity1
+ | FNSTCW of arity1
+ | FSTENV of arity1
+ | FNSTENV of arity1
+ | FSTSW of arity1
+ | FNSTSW of arity1
+ | FSUB of arity2
+ | FSUBP of arity2
+ | FISUB of arity1
+ | FSUBR of arity2
+ | FSUBRP of arity2
+ | FISUBR of arity1
+ | FTST
+ | FUCOM of arity1
+ | FUCOMP of arity1
+ | FUCOMPP
+ | FXAM
+ | FXCH of arity1
+ | FXRSTOR64_m512byte
+ | FXRSTOR_m512byte
+ | FXSAVE64_m512byte
+ | FXSAVE_m512byte
+ | FXTRACT
+ | FYL2X
+ | FYL2XP1
+ | HADDPD of arity2
+ | HADDPS of arity2
  | HLT
+ | HSUBPD of arity2
+ | HSUBPS of arity2
  | IDIV of arity1
- | IMUL of arity1
+ | IMUL of varity
+ | IN of arity2
  | INC of arity1
+ | INSERTPS of arity3
+ | INT3
+ | INT of arity1
+ | INT0
+ | INVD
+ | INVLPG of arity1
+
  | JA of flow1
  | JAE of flow1
  | JB of flow1
@@ -990,6 +1079,18 @@ type insn =
  | VCVTTPS2DQ of varity
  | VCVTTSD2SI of varity
  | VCVTTSS2SI of varity
+ | VDIVPD of varity
+ | VDIVPS of varity
+ | VDIVSD of varity
+ | VDIVSS of varity
+ | VDPPD of varity
+ | VDPPS of varity
+ | VEXTRACTPS of varity
+ | VHADDPD of varity
+ | VHADDPS of varity
+ | VHSUBPD of varity
+ | VHSUBPS of varity
+ | VINSERTPS of varity
 
  | VLDDQU of varity
  | VMASKMOVDQU of varity
@@ -1625,6 +1726,7 @@ val r/m ptrTy reg = do
    end
 end
 
+val r/m0 = r/m 0 reg8-rex
 val r/m8 = r/m 8 reg8-rex
 val r/m16 = r/m 16 reg16-rex
 val r/m32 = r/m 32 reg32-rex
@@ -1657,6 +1759,7 @@ end
 val xmm/nomem128 = reg/nomem xmm-rex
 val mm/nomem64 = reg/nomem mm-rex
 
+val m0 = r/m0
 val m8 = r/m8
 val m16 = r/m16
 val m32 = r/m32
@@ -2489,13 +2592,90 @@ val / [0xf7 /6]
  | rexw? = unop DIV r/m64
  | otherwise = unop DIV r/m32
 
+### DIVPD
+###  - Divide Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x5e /r] = binop DIVPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5e /r]
+ | vex128? = varity3 VDIVPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VDIVPD xmm128 v/xmm xmm/m128
+
+### DIVPS
+###  - Divide Packed Single-Precision Floating-Point Values
+val / [0x0f 0x5e /r] = binop DIVPS xmm128 xmm/m128
+val /vex/0f/vexv [0x5e /r]
+ | vex128? = varity3 VDIVPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VDIVPS xmm128 v/xmm xmm/m128
+
 ### DIVSD
 ###  - Divide Scalar Double-Precision Floating-Point Values
 val /f2 [0x0f 0x5e /r] = binop DIVSD xmm128 xmm/m64
+val /vex/0f/f2/vexv [0x5e /r] = varity3 VDIVSD xmm128 v/xmm xmm/m64
+
+### DIVSS
+###  - Divide Scalar Single-Precision Floating-Point Values
+val /f3 [0x0f 0x5e /r] = binop DIVSS xmm128 xmm/m32
+val /vex/0f/f3/vexv [0x5e /r] = varity3 VDIVSS xmm128 v/xmm xmm/m32
+
+### DPPD
+###  - Dot Product of Packed Double Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x41 /r] = ternop DPPD xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x41 /r] | vex128? = varity4 VDPPD xmm128 v/xmm xmm/m128 imm8
+
+### DPPS
+###  - Dot Product of Packed Single Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x40 /r] = ternop DPPS xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x40 /r]
+ | vex128? = varity4 VDPPS xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VDPPS xmm128 v/xmm xmm/m128 imm8
+
+### EMMS
+###  - Empty MMX Technology State
+val / [0x0f 0x77] = arity0 EMMS
+
+### ENTER
+###  - Make Stack Frame for Procedure Parameters
+val / [0xc8] = binop ENTER imm16 imm8
+
+### EXTRACTPS
+###  - Extract Packed Single Precision Floating-Point Value
+val /66 [0x0f 0x3a 0x17 /r] = ternop EXTRACTPS r/m32 xmm128 imm8
+val /vex/66/0f/3a [0x17 /r] | vex128? = varity3 VEXTRACTPS r/m32 xmm128 imm8
+
+### F2XM1
+###  - Compute 2^x-1
+val / [0xd9 0xf0] = arity0 F2XM1
+
+### FABS
+###  - Absolute Value
+val / [0xd9 0xe1] = arity0 FABS
+
+### FADD/FADDP/FIADD
+###  - Add
+val / [0xd8 /0] = binop FADD st0 st/m32
+val / [0xdc /0-mem] = binop FADD st0 m64
+val / [0xdc '11000 i:3'] = binop FADD (st/i i) st0
+val / [0xda /0-mem] = unop FIADD m32
+val / [0xde '11000 i:3'] = binop FADDP (st/i i) st0
+val / [0xde /0-mem] = unop FIADD m16
+
+### FBLD
+###  - Load Binary Coded Decimal
+# Todo: fix
+val / [0xdf /4] = arity0 FBLD_m80_dec 
+
+### FBSTP
+# Todo: fix
+###  - Store BCD Integer and Pop
+val / [0xdf /6] = arity0 FBSTP_m80bcd
 
 ### FCHS
 ###  - Change Sign
 val / [0xd9 0xe0] = arity0 FCHS
+
+### FCLEX/FNCLEX
+###  - Clear Exceptions
+val / [0x9b 0xdb 0xe2] = arity0 FCLEX
+val / [0xdb 0xe2] = arity0 FNCLEX
 
 ### FCMOVcc
 ###  - Floating-Point Conditional Move
@@ -2508,12 +2688,87 @@ val / [0xdb '11001 i:3'] = binop FCMOVNE st0 (st/i i)
 val / [0xdb '11010 i:3'] = binop FCMOVNBE st0 (st/i i)
 val / [0xdb '10011 i:3'] = binop FCMOVNU st0 (st/i i)
 
+### FCOM/FCOMP/FCOMPP
+###  - Compare Floating Point Values
+val / [0xd8 /2] = unop FCOM st/m32 
+val / [0xdc /2-mem] = unop FCOM m64
+val / [0xd8 /3] = unop FCOMP st/m32
+val / [0xdc /3-mem] = unop FCOMP m64
+val / [0xd8 '11011 i:3'] = unop FCOMP (st/i i)
+val / [0xde 0xd9] = arity0 FCOMPP
+
 ### FCOMI/FCOMIP/FUCOMI/FUCOMIP
 ###  - Compare Floating Point Values and Set EFLAGS
 val / [0xdb '11110 i:3'] = binop FCOMI st0 (st/i i)
 val / [0xdf '11110 i:3'] = binop FCOMIP st0 (st/i i)
 val / [0xdb '11101 i:3'] = binop FUCOMI st0 (st/i i)
 val / [0xdf '11101 i:3'] = binop FUCOMIP st0 (st/i i)
+
+### FCOS
+###  - Cosine
+val / [0xd9 0xff] = arity0 FCOS
+
+### FDECSTP
+###  - Decrement Stack-Top Pointer
+val / [0xd9 0xf6] = arity0 FDECSTP
+
+### FDIV/FDIVP/FIDIV
+###  - Divide
+val / [0xd8 /6] = binop FDIV st0 st/m32
+val / [0xdc /6-mem] = binop FDIV st0 m64
+val / [0xdc '11110 i:3'] = binop FDIV (st/i i) st0
+val / [0xde '11110 i:3'] = binop FDIVP (st/i i) st0
+val / [0xda /6-mem] = binop FIDIV st0 m32
+val / [0xde /6-mem] = binop FIDIV st0 m16
+
+### FDIVR/FDIVRP/FIDIVR
+###  - Reverse Divide
+val / [0xd8 /7] = binop FDIVR st0 st/m32
+val / [0xdc /7-mem] = binop FDIVR st0 m64
+val / [0xdc '11110 i:3'] = binop FDIVR (st/i i) st0
+val / [0xde '11110 i:3'] = binop FDIVRP (st/i i) st0
+val / [0xda /7-mem] = unop FIDIVR m32
+val / [0xde /7-mem] = unop FIDIVR m16
+
+### FFREE
+###  - Free Floating-Point Register
+val / [0xdd '11000 i:3'] = unop FFREE (st/i i)
+
+### FICOM/FICOMP
+###  - Compare Integer
+val / [0xde /2-mem] = unop FICOM m16
+val / [0xda /2-mem] = unop FICOM m32
+val / [0xde /3-mem] = unop FICOMP m16
+val / [0xda /3-mem] = unop FICOMP m32
+
+### FILD
+###  - Load Integer
+val / [0xdf /0-mem] = unop FILD m16
+val / [0xdb /0-mem] = unop FILD m32
+val / [0xdf /5-mem] = unop FILD m64
+
+### FINCSTP
+###  - Increment Stack-Top Pointer
+val / [0xd9 0xf7] = arity0 FINCSTP
+
+### FINIT/FNINIT
+###  - Initialize Floating-Point Unit
+val / [0x9b 0xdb 0xe3] = arity0 FINIT
+val / [0xdb 0xe3] = arity0 FNINIT
+
+### FIST/FISTP
+###  - Store Integer
+val / [0xdf /2-mem] = unop FIST m16
+val / [0xdb /2-mem] = unop FIST m32
+val / [0xdf /3-mem] = unop FISTP m16
+val / [0xdb /3-mem] = unop FISTP m32
+val / [0xdf /7-mem] = unop FISTP m64
+
+### FISTTP
+###  - Store Integer with Truncation
+val / [0xdf /1-mem] = unop FISTTP m16
+val / [0xdb /1-mem] = unop FISTTP m32
+val / [0xdd /1-mem] = unop FISTTP m64
 
 ### FLD
 ###  - Load Floating Point Value
@@ -2542,10 +2797,65 @@ val / [0xd9 /5-mem] = unop FLDCW m2byte
 ###  - Load x87 FPU Environment
 val / [0xd9 /4-mem] = unop FLDENV m14/28byte
 
-### FSTCW/FNSTCW
-###  - Store x87 FPU Control Word
-val / [0x9b 0xd9 /7-mem] = unop FSTCW m2byte
-val / [0xd9 /7-mem] = unop FNSTCW m2byte
+### FMUL/FMULP/FIMUL
+###  - Multiply
+val / [0xd8 /1-mem] = binop FMUL st0 st/m32
+val / [0xdc /1-mem] = binop FMUL st0 m64
+val / [0xdc '11001 i:3'] = binop FMUL (st/i i) st0
+val / [0xde '11001 i:3'] = binop FMULP (st/i i) st0
+val / [0xda /1-mem] = unop FIMUL m32
+val / [0xde /1-mem] = unop FIMUL m16
+
+### FNOP
+###  - No Operation
+val / [0xd9 0xd0] = arity0 FNOP
+
+### FPATAN
+###  - Partial Arctangent
+val / [0xd9 0xf3] = arity0 FPATAN
+
+### FPREM
+###  - Partial Remainder
+val / [0xd9 0xf8] = arity0 FPREM
+
+### FPREM1
+###  - Partial Remainder
+val / [0xd9 0xf5] = arity0 FPREM1 
+
+### FPTAN
+###  - Partial Tangent
+val / [0xd9 0xf2] = arity0 FPTAN
+
+### FRNDINT
+###  - Round to Integer
+val / [0xd9 0xfc] = arity0 FRNDINT 
+
+### FRSTOR
+###  - Restore x87 FPU State
+# Todo: fix
+val / [0xdd /4] = arity0 FRSTOR_m94/108byte
+
+### FSAVE/FNSAVE
+###  - Store x87 FPU State
+# Todo: fix
+val / [0x9b 0xdd /6] = arity0 FSAVE_m94/108byte
+val / [0xdd /6] = arity0 FNSAVE_m94/108byte
+
+### FSCALE
+###  - Scale
+val / [0xd9 0xfd] = arity0 FSCALE
+
+### FSIN
+###  - Sine
+val / [0xd9 0xfe] = arity0 FSIN
+
+### FSINCOS
+###  - Sine and Cosine
+val / [0xd9 0xfb] = arity0 FSINCOS
+
+### FSQRT
+###  - Square Root
+val / [0xd9 0xfa] = arity0 FSQRT
 
 ### FST/FSTP
 ###  - Store Floating Point Value
@@ -2555,9 +2865,116 @@ val / [0xd9 /3-mem] = unop FSTP m32
 val / [0xdd /3] = unop FSTP st/m64
 val / [0xdb /7-mem] = unop FSTP m80fp
 
+### FSTCW/FNSTCW
+###  - Store x87 FPU Control Word
+val / [0x9b 0xd9 /7-mem] = unop FSTCW m2byte
+val / [0xd9 /7-mem] = unop FNSTCW m2byte
+
+### FSTENV/FNSTENV
+###  - Store x87 FPU Environment
+val / [0x9b 0xd9 /6-mem] = unop FSTENV m14/28byte
+val / [0xd9 /6-mem] = unop FNSTENV m14/28byte
+
+### FSTSW/FNSTSW
+###  - Store x87 FPU Status Word
+val / [0x9b 0xdd /7-mem] = unop FSTSW m2byte
+val / [0x9b 0xdf 0xe0] = unop FSTSW ax
+val / [0xdd /7-mem] = unop FNSTSW m2byte
+val / [0xdf 0xe0] = unop FNSTSW ax
+
+### FSUB/FSUBP/FISUB
+###  - Subtract
+val / [0xd8 /4] = binop FSUB st0 st/m32
+val / [0xdc /4-mem] = binop FSUB st0 m64
+val / [0xdc '11101 i:3'] = binop FSUB (st/i i) st0
+val / [0xde '11101 i:3'] = binop FSUBP (st/i i) st0
+val / [0xda /4-mem] = unop FISUB m32
+val / [0xde /4-mem] = unop FISUB m16
+
+### FSUBR/FSUBRP/FISUBR
+###  - Reverse Subtract
+val / [0xd8 /5] = binop FSUBR st0 st/m32
+val / [0xdc /5-mem] = binop FSUBR st0 m64
+val / [0xdc '11100 i:3'] = binop FSUBR (st/i i) st0
+val / [0xde '11100 i:3'] = binop FSUBRP (st/i i) st0
+val / [0xda /5-mem] = unop FISUBR m32
+val / [0xde /5-mem] = unop FISUBR m16
+
+### FTST
+###  - TEST
+val / [0xd9 0xe4] = arity0 FTST
+
+### FUCOM/FUCOMP/FUCOMPP
+###  - Unordered Compare Floating Point Values
+val / [0xdd '11100 i:3'] = unop FUCOM (st/i i)
+val / [0xdd '11101 i:3'] = unop FUCOMP (st/i i)
+val / [0xda 0xe9] = arity0 FUCOMPP
+
+### FXAM
+###  - Examine ModR/M
+val / [0xd9 0xe5] = arity0 FXAM
+
+### FXCH
+###  - Exchange Register Contents
+val / [0xd9 '11000 i:3'] = unop FXCH (st/i i)
+
+### FXRSTOR
+###  - Restore x87 FPU, MMX , XMM, and MXCSR State
+# Todo: fix
+val / [0x0f 0xae /1-mem]
+ | rexw? = arity0 FXRSTOR64_m512byte
+ | otherwise = arity0 FXRSTOR_m512byte
+
+### FXSAVE
+###  - Save x87 FPU, MMX Technology, and SSE State
+# Todo: fix
+val / [0x0f 0xae /0-mem]
+ | rexw? = arity0 FXSAVE64_m512byte
+ | otherwise = arity0 FXSAVE_m512byte
+
+### FXTRACT
+###  - Extract Exponent and Significand
+val / [0xd9 0xf4] = arity0 FXTRACT
+
+### FYL2X
+###  - Compute y*log_2(x)
+val / [0xd9 0xf1] = arity0 FYL2X
+
+### FYL2XP1
+###  - Compute y*log_2(x +1)
+val / [0xd9 0xf9] = arity0 FYL2XP1
+
+### HADDPD
+###  - Packed Double-FP Horizontal Add
+val /66 [0x0f 0x7c /r] = binop HADDPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x7c /r]
+ | vex128? = varity3 VHADDPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VHADDPD ymm256 v/ymm ymm/m256
+
+### HADDPS
+###  - Packed Single-FP Horizontal Add
+val /f2 [0x0f 0x7c /r] = binop HADDPS xmm128 xmm/m128
+val /vex/f2/0f/vexv [0x7c /r]
+ | vex128? = varity3 VHADDPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VHADDPS ymm256 v/ymm ymm/m256
+
 ### HLT
 ###  - Halt
 val / [0xf4] = arity0 HLT
+
+### HSUBPD
+###  - Packed Double-FP Horizontal Subtract
+val /66 [0x0f 0x7d /r] = binop HSUBPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x7d /r]
+ | vex128? = varity3 VHSUBPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VHSUBPD ymm256 v/ymm ymm/m256
+
+### HSUBPS
+###  - Packed Single-FP Horizontal Subtract
+val /f2 [0x0f 0x7d /r] = binop HSUBPS xmm128 xmm/m128
+val /vex/f2/0f/vexv [0x7d /r]
+ | vex128? = varity3 VHSUBPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VHSUBPS ymm256 v/ymm ymm/m256
 
 ### IDIV
 ###  - Signed Divide
@@ -2569,23 +2986,54 @@ val / [0xf7 /7]
 
 ### IMUL
 ###  - Signed Multiply
-val / [0xf6 /5] = unop IMUL r/m8
+#val / [0xf6 /5] = unop IMUL r/m8
+#val / [0xf7 /5]
+# | opndsz? = unop IMUL r/m16
+# | rexw? = unop IMUL r/m64
+# | otherwise = unop IMUL r/m32
+#val / [0x0f 0xaf /r]
+# | opndsz? = binop IMUL r16 r/m16
+# | rexw? = binop IMUL r64 r/m64
+# | otherwise = binop IMUL r32 r/m32
+#val / [0x6b /r]
+# | opndsz? = ternop IMUL r16 r/m16 imm8
+# | rexw? = ternop IMUL r64 r/m64 imm8
+# | otherwise = ternop IMUL r32 r/m32 imm8
+#val / [0x69 /r]
+# | opndsz? = ternop IMUL r16 r/m16 imm16
+# | rexw? = ternop IMUL r64 r/m64 imm32
+# | otherwise = ternop IMUL r32 r/m32 imm32
+
+### IMUL
+###  - Signed Multiply
+val / [0xf6 /5] = varity1 IMUL r/m8
 val / [0xf7 /5]
- | opndsz? = unop IMUL r/m16
- | rexw? = unop IMUL r/m64
- | otherwise = unop IMUL r/m32
+ | opndsz? = varity1 IMUL r/m16
+ | rexw? = varity1 IMUL r/m64
+ | otherwise = varity1 IMUL r/m32
 val / [0x0f 0xaf /r]
- | opndsz? = binop IMUL r16 r/m16
- | rexw? = binop IMUL r64 r/m64
- | otherwise = binop IMUL r32 r/m32
+ | opndsz? = varity2 IMUL r16 r/m16
+ | rexw? = varity2 IMUL r64 r/m64
+ | otherwise = varity2 IMUL r32 r/m32
 val / [0x6b /r]
- | opndsz? = ternop IMUL r16 r/m16 imm8
- | rexw? = ternop IMUL r64 r/m64 imm8
- | otherwise = ternop IMUL r32 r/m32 imm8
+ | opndsz? = varity3 IMUL r16 r/m16 imm8
+ | rexw? = varity3 IMUL r64 r/m64 imm8
+ | otherwise = varity3 IMUL r32 r/m32 imm8
 val / [0x69 /r]
- | opndsz? = ternop IMUL r16 r/m16 imm16
- | rexw? = ternop IMUL r64 r/m64 imm32
- | otherwise = ternop IMUL r32 r/m32 imm32
+ | opndsz? = varity3 IMUL r16 r/m16 imm16
+ | rexw? = varity3 IMUL r64 r/m64 imm32
+ | otherwise = varity3 IMUL r32 r/m32 imm32
+
+### IN
+###  - Input from Port
+val / [0xe4] = binop IN al imm8
+val / [0xe5]
+ | opndsz? = binop IN ax imm8
+ | otherwise = binop IN eax imm8
+val / [0xec] = binop IN al dx
+val / [0xed]
+ | opndsz? = binop IN ax dx
+ | otherwise = binop IN eax dx
 
 ### INC
 ###  - Increment by 1
@@ -2594,6 +3042,29 @@ val / [0xff /0]
  | opndsz? = unop INC r/m16
  | rexw? = unop INC r/m64
  | otherwise = unop INC r/m32
+
+### INS/INSB/INSW/INSD
+###  - Input from Port to String
+#Todo
+
+### INSERTPS
+###  - Insert Packed Single Precision Floating-Point Value
+val /66 [0x0f 0x3a 0x21 /r] = ternop INSERTPS xmm128 xmm/m32 imm8
+val /vex/66/0f/3a/vexv [0x21 /r] = varity4 VINSERTPS xmm128 v/xmm xmm/m32 imm8
+
+### INT n/INTO/INT 3
+###  - Call to Interrupt Procedure
+val / [0xcc] = arity0 INT3
+val / [0xcd] = unop INT imm8
+val / [0xce] = arity0 INT0
+
+### INVD
+###  - Invalidate Internal Caches
+val / [0x0f 0x08] = arity0 INVD
+
+### INVLPG
+###  - Invalidate TLB Entry
+val / [0x0f 0x01 /7-mem] = unop INVLPG m0
 
 ### Jcc
 ###  - Jump if Condition Is Met
