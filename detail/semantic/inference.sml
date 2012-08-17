@@ -282,12 +282,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun checkUsage sym s =
             let
                val fid = E.getContextOfUsage (sym, s, env)
-               val env = E.enterFunction (fid,env)
+               val (n1,env) = E.pushNested (sym, env)
+               val (n2,env) = E.pushNested (fid, env)
 
-               val _ = TextIO.print ("subset, about to push " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+               val _ = TextIO.print ("subset, in context of " ^ SymbolTable.getString(!SymbolTables.varTable, fid) ^ ":\n" ^ E.toString env ^ "\n")
                
-               val (n,envFun) = E.pushSymbolNested (sym, s, env)
-               val env = E.popKappa envFun
+               val envFun = E.pushSymbol (sym, s, false, env)
                val _ = TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString envFun)
                val envCall = E.pushUsage (sym, s, env)
                val _ = TextIO.print ("pushed usage:\n" ^ E.topToString envCall)
@@ -347,15 +347,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun checkUsage (s, env) =
             let
                val fid = E.getContextOfUsage (sym, s, env)
-               val env = E.enterFunction (fid,env)
+               val (n1,env) = E.pushNested (sym, env)
+               val (n2,env) = E.pushNested (fid, env)
                
-               val (n,envFun) = E.pushSymbolNested (sym, s, env)
-               val env = E.popKappa envFun
-               (*val _ = if SymbolTable.toInt sym = 95 then TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.kappaToString envFun)
-                     else ()*)
+               val envFun = E.pushSymbol (sym, s, false, env)
+               val _ = TextIO.print ("pushed instance " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.kappaToString envFun)
                val envCall = E.pushUsage (sym, s, env)
-               (*val _ = if SymbolTable.toInt sym = 95 then TextIO.print ("pushed usage:\n" ^ E.kappaToString envCall)
-                     else ()*)
+               val _ = TextIO.print ("pushed usage:\n" ^ E.kappaToString envCall)
                (*inform about a unification failure when checking call site
                with definition*)
                fun raiseError str =
@@ -373,15 +371,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val env = E.meetFlow (envCall, envFun)
                   handle (S.UnificationFailure str) =>
                      (raiseError str; envFun)
-               (*val _ = TextIO.print ("popping to usage of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)*)
                val env = E.popToUsage (sym, s, env)
-               val env = E.return (n,env)
-               val env = E.leaveFunction (fid,env)
+               val _ = TextIO.print ("popping to usage of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.toString env)
+               val env = E.popNested (n1+n2,env)
             in
                env
             end
          val usages = E.getUsages (sym, env)
-         (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
       in
          List.foldl checkUsage env usages
       end
