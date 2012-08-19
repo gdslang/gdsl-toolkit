@@ -1331,24 +1331,28 @@ in () end;*)
             | SOME r => r
       end
    
-   fun popNested (n, env) =
-      if n<=0 then env else case Scope.unwrap env of
-        (GROUP bs, env) =>
-         let
-            fun replGroup (GROUP bs' :: gs) =
-               if List.all (fn (b,b') =>
-                     SymbolTable.eq_symid (#name b, #name b'))
-                  (ListPair.zip (bs,bs'))
-               then GROUP bs :: gs else GROUP bs' :: replGroup gs
-              | replGroup _ = raise InferenceBug
-            fun action (COMPOUND {ty, width, uses, nested},cons) =
-               (COMPOUND {ty = ty, width = width,
-                uses = uses, nested = replGroup nested}, cons)
-              | action _ = raise InferenceBug
-            val env = Scope.update (Scope.getCurFun (#2 env), action, env)
-         in
-            popNested (n-1,env)
-         end
+   fun popNested (n, env) = if n<=0 then env else
+      case Scope.unwrap env of
+        (GROUP bs, env) => (case Scope.unwrap env of
+             (GROUP bsPrev, env) =>
+               let
+                  fun replGroup (GROUP bs' :: gs) =
+                     if List.all (fn (b,b') =>
+                           SymbolTable.eq_symid (#name b, #name b'))
+                        (ListPair.zip (bs,bs'))
+                     then GROUP bs :: gs else GROUP bs' :: replGroup gs
+                    | replGroup [] = []
+                    | replGroup _ = raise InferenceBug
+                  
+                  fun replBs ({name, ty, width, uses, nested}) =
+                     {name = name, ty = ty, width = width,
+                      uses = uses, nested = replGroup nested}
+                  val bsPrev = List.map replBs bsPrev
+               in
+                  popNested (n-1,Scope.wrap (GROUP bsPrev,env))
+               end
+            | _ => raise InferenceBug
+          )
       | (_, env) => raise InferenceBug
 
    fun clearFunction (sym, env) =

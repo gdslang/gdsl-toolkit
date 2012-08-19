@@ -375,7 +375,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val env = E.popToUsage (sym, s, env)
                val env = E.popNested (n1+n2,env)
                val env = E.leaveFunction (fid,env)
-
             in
                env
             end
@@ -965,7 +964,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | checkExports s _ = ()
    val _ = List.app (checkExports SymbolTable.noSpan) ast
    
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.topToString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
