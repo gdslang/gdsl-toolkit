@@ -783,6 +783,8 @@ type insn =
  | IRET
  | IRETD
  | IRETQ
+ | LAHF
+ | LAR of arity2
 
  | JA of flow1
  | JAE of flow1
@@ -1734,6 +1736,7 @@ val r/m0 = r/m 0 reg8-rex
 val r/m8 = r/m 8 reg8-rex
 val r/m16 = r/m 16 reg16-rex
 val r/m32 = r/m 32 reg32-rex
+val r32/m16 = r/m 16 reg32-rex
 val r/m64 = r/m 64 reg64-rex
 val mm/m64 = r/m 64 mm-rex
 val mm/m32 = r/m 32 mm-rex
@@ -3193,6 +3196,17 @@ val /66 [0xff /4]
 val / [0xff /4]
  | mode64? = near-abs JMP r/m64
  | otherwise = near-abs JMP r/m32
+
+### LAHF
+###  - Load Status Flags into AH Register
+val / [0x9f] = arity0 LAHF
+
+### LAR
+###  - Load Access Rights Byte
+val / [0x0f 0x02 /r]
+ | opndsz? = binop LAR r16 r/m16
+ | rexw? = binop LAR r64 r32/m16
+ | otherwise = binop LAR r32 r32/m16
 
 ### LDDQU
 ###  - Load Unaligned Integer 128 Bits
