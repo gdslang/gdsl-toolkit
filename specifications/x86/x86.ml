@@ -826,10 +826,12 @@ type insn =
  | LFS of arity2
  | LGS of arity2
  | LSS of arity2
-
  | LEA of arity2
  | LEAVE
  | LFENCE
+ | LGDT of arity1
+ | LIDT of arity1
+
  | MASKMOVDQU of arity2
  | MASKMOVQ of arity2
  | MAXPD of arity2
@@ -3271,6 +3273,15 @@ val / [0xc9] = arity0 LEAVE
 ### LFENCE
 ###  - Load Fence
 val / [0x0f 0xae /5] = arity0 LFENCE
+
+### LGDT/LIDT
+###  - Load Global/Interrupt Descriptor Table Register
+val / [0x0f 0x01 /2-mem]
+ | mode64? = unop LGDT m16/64
+ | otherwise = unop LGDT m16/32
+val / [0x0f 0x01 /3-mem]
+ | mode64? = unop LIDT m16/64
+ | otherwise = unop LIDT m16/32
 
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
