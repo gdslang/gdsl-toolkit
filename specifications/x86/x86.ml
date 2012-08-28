@@ -783,9 +783,6 @@ type insn =
  | IRET
  | IRETD
  | IRETQ
- | LAHF
- | LAR of arity2
-
  | JA of flow1
  | JAE of flow1
  | JB of flow1
@@ -820,7 +817,16 @@ type insn =
  | JRCXZ of flow1
  | JS of flow1
  | JZ of flow1
+ | LAHF
+ | LAR of arity2
  | LDDQU of arity2
+ | LDMXCSR of arity1
+ | LDS of arity2
+ | LES of arity2
+ | LFS of arity2
+ | LGS of arity2
+ | LSS of arity2
+
  | LEA of arity2
  | LEAVE
  | LFENCE
@@ -1097,8 +1103,9 @@ type insn =
  | VHSUBPD of varity
  | VHSUBPS of varity
  | VINSERTPS of varity
-
  | VLDDQU of varity
+ | VLDMXCSR of varity
+
  | VMASKMOVDQU of varity
  | VMAXPD of varity
  | VMAXPS of varity
@@ -1745,6 +1752,10 @@ val xmm/m64 = r/m 64 xmm-rex
 val xmm/m32 = r/m 32 xmm-rex
 val ymm/m256 = r/m 256 ymm-rex
 val ymm/m128 = r/m 128 ymm-rex
+
+val m16/16 = r/m 32 reg16-rex
+val m16/32 = r/m 48 reg32-rex
+val m16/64 = r/m 80 reg64-rex
 
 val v/xmm = do
    v <- query $vexv;
@@ -3214,6 +3225,33 @@ val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
 val /vex/f2/0f [0xf0 /r-mem]
  | vex128? = varity2 VLDDQU xmm128 m128
  | otherwise = varity2 VLDDQU ymm256 m256
+
+### LDMXCSR
+###  - Load MXCSR Register
+val / [0x0f 0xae /2-mem] = unop LDMXCSR m32
+val /vex/0f [0xae /2-mem]
+ | vex128? = varity1 VLDMXCSR m32
+
+### LDS/LES/LFS/LGS/LSS
+###  - Load Far Pointer
+val / [0xc5 /r-mem]
+ | opndsz? = binop LDS r16 m16/16
+ | otherwise = binop LDS r32 m16/32
+val / [0x0f 0xb2 /r-mem]
+ | opndsz? = binop LSS r16 m16/16
+ | rexw? = binop LSS r64 m16/64
+ | otherwise = binop LSS r32 m16/32
+val / [0xc4 /r-mem]
+ | opndsz? = binop LES r16 m16/16
+ | otherwise = binop LES r32 m16/32
+val / [0x0f 0xb4 /r-mem]
+ | opndsz? = binop LFS r16 m16/16
+ | rexw? = binop LFS r64 m16/64
+ | otherwise = binop LFS r32 m16/32
+val / [0x0f 0xb4 /r-mem]
+ | opndsz? = binop LGS r16 m16/16
+ | rexw? = binop LGS r64 m16/64
+ | otherwise = binop LGS r32 m16/32
 
 ### LEA
 ###  - Load Effective Address
