@@ -779,6 +779,10 @@ type insn =
  | INT0
  | INVD
  | INVLPG of arity1
+ | INVPCID of arity2
+ | IRET
+ | IRETD
+ | IRETQ
 
  | JA of flow1
  | JAE of flow1
@@ -3074,6 +3078,19 @@ val / [0x0f 0x08] = arity0 INVD
 ### INVLPG
 ###  - Invalidate TLB Entry
 val / [0x0f 0x01 /7-mem] = unop INVLPG m0
+
+### INVPCID
+###  - Invalidate Process-Context Identifier
+val /66 [0x0f 0x38 0x82 /r-mem]
+ | mode64? = binop INVPCID r64 m128
+ | otherwise = binop INVPCID r32 m128
+
+### IRET/IRETD
+###  - Interrupt Return
+val / [0xcf]
+ | opndsz? = arity0 IRET
+ | rexw? = arity0 IRETQ
+ | otherwise = arity0 IRETD
 
 ### Jcc
 ###  - Jump if Condition Is Met
