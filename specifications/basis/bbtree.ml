@@ -46,15 +46,15 @@ export =
    intset-remove-min
    intset-fold
 
-   fitree-lt? { hi, lo }
+   fitree-lt?
    fitree-size
    fitree-empty
    fitree-singleton
-   fitree-add { hi, lo }
+   fitree-add
    fitree-intersection
    fitree-difference
    fitree-interval-difference
-   fitree-contains? { hi, lo }
+   fitree-contains?
    fitree-union
    #fitree-remove
    fitree-remove-min
