@@ -2716,8 +2716,9 @@ val / [0xd9 0xf6] = arity0 FDECSTP
 ###  - Divide
 val / [0xd8 /6] = binop FDIV st0 st/m32
 val / [0xdc /6-mem] = binop FDIV st0 m64
-val / [0xdc '11110 i:3'] = binop FDIV (st/i i) st0
-val / [0xde '11110 i:3'] = binop FDIVP (st/i i) st0
+val / [0xd8 '11110 i:3'] = binop FDIV st0 (st/i i)
+val / [0xdc '11111 i:3'] = binop FDIV (st/i i) st0
+val / [0xde '11111 i:3'] = binop FDIVP (st/i i) st0
 val / [0xda /6-mem] = binop FIDIV st0 m32
 val / [0xde /6-mem] = binop FIDIV st0 m16
 
@@ -2725,6 +2726,7 @@ val / [0xde /6-mem] = binop FIDIV st0 m16
 ###  - Reverse Divide
 val / [0xd8 /7] = binop FDIVR st0 st/m32
 val / [0xdc /7-mem] = binop FDIVR st0 m64
+val / [0xd8 '11111 i:3'] = binop FDIVR st0 (st/i i)
 val / [0xdc '11110 i:3'] = binop FDIVR (st/i i) st0
 val / [0xde '11110 i:3'] = binop FDIVRP (st/i i) st0
 val / [0xda /7-mem] = unop FIDIVR m32
