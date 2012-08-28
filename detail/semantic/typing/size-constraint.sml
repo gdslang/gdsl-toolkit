@@ -44,7 +44,8 @@ end = struct
 
    fun filter (vs, scs) =
       let
-         fun hasDeadLeading {terms = (_,v)::_, const} = TVar.member (vs,v)
+         fun hasDeadLeading {terms = ts as (_::_), const} =
+            List.exists (fn (_,v) => TVar.member (vs,v)) ts
            | hasDeadLeading _ = raise SizeConstraintBug 
          val scs = List.filter hasDeadLeading scs
       in
