@@ -50,11 +50,13 @@ structure Environment : sig
     existing type should be used (False) *)
    val pushSymbol : VarInfo.symid * Error.span * bool * environment -> environment
 
-   (*like pushSymbol, but also checks nested definitions that have already
-   been type checked, a usage is never recorded; returns the number of
-   frames that have been pushed before the symbol was pushed*)
-   val pushSymbolNested : VarInfo.symid * Error.span * environment ->
-      (int * environment)
+   (*search in the current stack for the symbol and, if unsuccessful, in the
+   nested definitions and push all nested groups onto the stack, returns the
+   new stack and the number of nested groups that had to be pushed*)
+   val pushNested : VarInfo.symid * environment -> (int * environment)
+
+   (*pops the nested groups that were pushed by pushNested*)
+   val popNested : int * environment -> environment
 
    val getUsages : VarInfo.symid * environment -> Error.span list
    
@@ -98,7 +100,7 @@ structure Environment : sig
    determines in which function calls to unknown functions are recorded)*)
    val enterFunction : VarInfo.symid * environment -> environment
 
-   (*pop the name of the given function from the current context*)
+   (*pop the last function from the current context*)
    val leaveFunction : VarInfo.symid * environment -> environment
    
    (*unset the type of function f, if the function type was set, return an
@@ -405,7 +407,8 @@ end = struct
                in
                   upd ([],bs)
                end
-            fun unravel (bs, env) = case unwrap env of
+            fun unravel (bs, ([],_)) = raise InferenceBug
+              | unravel (bs, env) = case unwrap env of
                (b, env as (scs, cons)) =>
                   (case tryUpdate (b, cons) of
                        NONE => unravel (b::bs, env)
@@ -566,14 +569,21 @@ end = struct
                   val (cStr, si) = SC.toStringSI (Scope.getSize state, SOME vs, si)
                in
                   (siRef := si
-                  ; nStr ^ " : " ^ tStr ^ " has ambiguous vector sizes" ^
+                  ; nStr ^ " : call to " ^ tStr ^ " has ambiguous vector sizes" ^
                      (if String.size cStr=0 then "" else " where " ^ cStr))
                end
-            val unbounded = List.foldl (fn
-                  ({name,ty=SOME (t,_),width,uses,nested},vs) =>
-                     TVar.difference (vs, texpVarset (t,TVar.empty))
-                  | (_,vs) => vs)
-                  unbounded bs
+            fun remBoundVars ({name,ty=SOME (t,_),width,uses,nested=ns},vs) =
+                  List.foldl remBoundVars 
+                     (TVar.difference (vs, texpVarset (t,TVar.empty)))
+                     (List.concat (List.map (fn g => case g of
+                          GROUP bs => bs
+                        | _ => raise InferenceBug) ns))
+              | remBoundVars (_,vs) = vs
+            val unbounded = List.foldl remBoundVars unbounded bs
+            (*TODO: we should also descend into the nested definitions,
+            since the letrec expression cannot report ambigueties since
+            when letrec groups are popped, the fixpoint has not been
+            calculated yet*)
             val badSizes = List.concat (
                List.map (fn {name = n,ty,width,uses = us,nested} =>
                   List.map (fn (sp,t) => (sp, showUse (n, t))) (
@@ -909,37 +919,6 @@ end = struct
              end
           )
       )
-
-   fun pushSymbolNested (sym, span, env as (scs, state)) =
-      case Scope.getCtxt state of
-           [] => (0,pushSymbol (sym, span, false, env))
-         | (curFun :: _) =>
-      let
-         val nested = case Scope.lookup (curFun, env) of
-              (_, COMPOUND {ty, width, uses, nested}) => nested
-            | _ => raise InferenceBug
-         val _ = TextIO.print ("checking " ^ Int.toString (List.length nested) ^ " nested groups\n")
-         fun findSymInGroups (n, ns, env) =
-            List.foldl
-               (fn (g,res) => case res of
-                    SOME r => SOME r
-                  | NONE => findSymInGroup (n+1,g,Scope.wrap (g, env)))
-               NONE ns
-         and findSymInGroup (n,GROUP bs,env) =
-            if List.exists (fn {name, ty, width, uses, nested} =>
-                           SymbolTable.eq_symid (sym,name)) bs
-               then SOME
-                  (n, pushSymbol (sym, span, false, env))
-               else List.foldl (fn (b,res) => case res of
-                    SOME r => SOME r
-                  | NONE => findSymInGroups (n, #nested b, env)
-               ) NONE bs
-           | findSymInGroup (n,_,env) = raise InferenceBug
-      in
-         case findSymInGroups (0, nested, env) of
-              NONE => (0,pushSymbol (sym, span, false, env))
-            | SOME r => r
-      end
 
    fun getUsages (sym, env) = (case Scope.lookup (sym, env) of
            (_, SIMPLE {ty}) => []
@@ -1313,6 +1292,68 @@ in () end;*)
             if SymbolTable.eq_symid(fid,sym) then (scs, Scope.setCtxt fids state)
             else raise InferenceBug
          | [] => raise InferenceBug
+
+
+   fun inScope (sym,([],_)) = false
+     | inScope (sym,env) = case Scope.unwrap env of
+        (GROUP bs,env) =>
+         if List.exists (fn {name, ty, width, uses, nested} =>
+                           SymbolTable.eq_symid (sym,name)) bs then true
+         else inScope (sym,env)
+      | (_,env) => inScope (sym,env)
+      
+   fun pushNested (sym, env) =
+      if inScope (sym,env) then (0,env) else
+      let
+         val (sc,_) = Scope.unwrap env
+         fun findSymInGroups (n, ns, env) =
+            List.foldl
+               (fn (g,res) => case res of
+                    SOME r => SOME r
+                  | NONE => findSymInGroup (n+1,g,Scope.wrap (g, env))
+               ) NONE ns
+         and findSymInGroup (n,GROUP bs,env) =
+            (case List.find (fn {name, ty, width, uses, nested} =>
+                              SymbolTable.eq_symid (sym,name)) bs of
+               SOME {name, ty, width, uses, nested} =>
+                  SOME (n, env)
+             | NONE =>
+               List.foldl (fn ({name, ty, width, uses, nested=ns},res) =>
+                  case res of
+                     SOME r => SOME r
+                   | NONE => findSymInGroups (n, ns, env)
+               ) NONE bs
+            )
+           | findSymInGroup (n,_,env) = raise InferenceBug
+      in
+         case findSymInGroup (0, sc, env) of
+              NONE => (0,env)
+            | SOME r => r
+      end
+   
+   fun popNested (n, env) = if n<=0 then env else
+      case Scope.unwrap env of
+        (GROUP bs, env) => (case Scope.unwrap env of
+             (GROUP bsPrev, env) =>
+               let
+                  fun replGroup (GROUP bs' :: gs) =
+                     if List.all (fn (b,b') =>
+                           SymbolTable.eq_symid (#name b, #name b'))
+                        (ListPair.zip (bs,bs'))
+                     then GROUP bs :: gs else GROUP bs' :: replGroup gs
+                    | replGroup [] = []
+                    | replGroup _ = raise InferenceBug
+                  
+                  fun replBs ({name, ty, width, uses, nested}) =
+                     {name = name, ty = ty, width = width,
+                      uses = uses, nested = replGroup nested}
+                  val bsPrev = List.map replBs bsPrev
+               in
+                  popNested (n-1,Scope.wrap (GROUP bsPrev,env))
+               end
+            | _ => raise InferenceBug
+          )
+      | (_, env) => raise InferenceBug
 
    fun clearFunction (sym, env) =
       let
