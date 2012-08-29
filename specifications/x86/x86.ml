@@ -831,7 +831,18 @@ type insn =
  | LFENCE
  | LGDT of arity1
  | LIDT of arity1
-
+ | LLDT of arity1
+ | LMSW of arity1
+ | LOCK
+ | LODSB
+ | LODSW
+ | LODSD
+ | LODSQ
+ | LOOP of flow1
+ | LOOPE of flow1
+ | LOOPNE of flow1
+ | LSL of arity2
+ | LTR of arity1
  | MASKMOVDQU of arity2
  | MASKMOVQ of arity2
  | MAXPD of arity2
@@ -966,8 +977,8 @@ type insn =
  | PMINUB of arity2
  | PMINUD of arity2
  | PMINUW of arity2
-
  | PMOVMSKB of arity2
+
  | POP of arity1
  | POR of arity2
  | PREFETCHNTA of arity1
@@ -1744,8 +1755,9 @@ end
 val r/m0 = r/m 0 reg8-rex
 val r/m8 = r/m 8 reg8-rex
 val r/m16 = r/m 16 reg16-rex
-val r/m32 = r/m 32 reg32-rex
+val r16/m16 = r/m16
 val r32/m16 = r/m 16 reg32-rex
+val r/m32 = r/m 32 reg32-rex
 val r/m64 = r/m 64 reg64-rex
 val mm/m64 = r/m 64 mm-rex
 val mm/m32 = r/m 32 mm-rex
@@ -3217,7 +3229,7 @@ val / [0x9f] = arity0 LAHF
 ### LAR
 ###  - Load Access Rights Byte
 val / [0x0f 0x02 /r]
- | opndsz? = binop LAR r16 r/m16
+ | opndsz? = binop LAR r16 r16/m16
  | rexw? = binop LAR r64 r32/m16
  | otherwise = binop LAR r32 r32/m16
 
@@ -3282,6 +3294,44 @@ val / [0x0f 0x01 /2-mem]
 val / [0x0f 0x01 /3-mem]
  | mode64? = unop LIDT m16/64
  | otherwise = unop LIDT m16/32
+
+### LLDT
+###  - Load Local Descriptor Table Register
+val / [0x0f 0x00 /2] = unop LLDT r/m16
+
+### LMSW
+###  - Load Machine Status Word
+val / [0x0f 0x01 /6] = unop LMSW r/m16
+
+### LOCK
+###  - Assert LOCK# Signal Prefix
+val / [0xf0] = arity0 LOCK
+
+### LODS/LODSB/LODSW/LODSD/LODSQ
+###  - Load String
+val / [0xac] = arity0 LODSB
+val / [0xad]
+ | opndsz? = arity0 LODSW
+ | rexw? = arity0 LODSQ
+ | otherwise = arity0 LODSD
+
+### LOOP/LOOPcc
+###  - Loop According to ECX Counter
+# Todo: correct?
+val / [0xe2] = near-rel LOOP rel8
+val / [0xe1] = near-rel LOOPE rel8
+val / [0xe0] = near-rel LOOPNE rel8
+
+### LSL
+###  - Load Segment Limit
+val / [0x0f 0x03 /r]
+ | opndsz? = binop LSL r16 r16/m16
+ | rexw? = binop LSL r64 r32/m16
+ | otherwise = binop LSL r32 r32/m16
+
+### LTR
+###  - Load Task Register
+val / [0x0f 0x00 /3] = unop LTR r/m16
 
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
@@ -3535,17 +3585,17 @@ val /vex/0f [0x50 /r]
  | vex256? & mode64? = varity2 VMOVMSKPS r64 ymm256
  | vex256? = varity2 VMOVMSKPS r64 ymm256
 
+### MOVNTDQA
+###  - Load Double Quadword Non-Temporal Aligned Hint
+val /66 [0x0f 0x38 0x2a /r] = binop MOVNTDQA xmm128 m128
+val /vex/66/0f/38 [0x2a /r] | vex128? = varity2 VMOVNTDQA xmm128 m128
+
 ### MOVNTDQ
 ###  - Store Double Quadword Using Non-Temporal Hint
 val /66 [0x0f 0xe7 /r] = binop MOVNTDQ m128 xmm128
 val /vex/66/0f [0xe7 /r]
  | vex128? = varity2 VMOVNTDQ m128 xmm128
  | vex256? = varity2 VMOVNTDQ m256 ymm256
-
-### MOVNTDQA
-###  - Load Double Quadword Non-Temporal Aligned Hint
-val /66 [0x0f 0x38 0x2a /r] = binop MOVNTDQA xmm128 m128
-val /vex/66/0f/38 [0x2a /r] | vex128? = varity2 VMOVNTDQA xmm128 m128
 
 ### MOVNTI
 ###  - Store Doubleword Using Non-Temporal Hint
