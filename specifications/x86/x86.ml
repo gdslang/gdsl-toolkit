@@ -978,6 +978,24 @@ type insn =
  | PMINUD of arity2
  | PMINUW of arity2
  | PMOVMSKB of arity2
+ | PMOVSXBW of arity2
+ | PMOVSXBD of arity2
+ | PMOVSXBQ of arity2
+ | PMOVSXWD of arity2
+ | PMOVSXWQ of arity2
+ | PMOVSXDQ of arity2
+ | PMOVZXBW of arity2
+ | PMOVZXBD of arity2
+ | PMOVZXBQ of arity2
+ | PMOVZXWD of arity2
+ | PMOVZXWQ of arity2
+ | PMOVZXDQ of arity2
+ | PMULDQ of arity2
+ | PMULHRSW of arity2
+ | PMULHUW of arity2
+ | PMULHW of arity2
+ | PMULLD of arity2
+ | PMULLW of arity2
 
  | POP of arity1
  | POR of arity2
@@ -1118,7 +1136,6 @@ type insn =
  | VINSERTPS of varity
  | VLDDQU of varity
  | VLDMXCSR of varity
-
  | VMASKMOVDQU of varity
  | VMAXPD of varity
  | VMAXPS of varity
@@ -1224,8 +1241,26 @@ type insn =
  | VPMINUB of varity
  | VPMINUD of varity
  | VPMINUW of varity
-
  | VPMOVMSKB of varity
+ | VPMOVSXBW of varity
+ | VPMOVSXBD of varity
+ | VPMOVSXBQ of varity
+ | VPMOVSXWD of varity
+ | VPMOVSXWQ of varity
+ | VPMOVSXDQ of varity
+ | VPMOVZXBW of varity
+ | VPMOVZXBD of varity
+ | VPMOVZXBQ of varity
+ | VPMOVZXWD of varity
+ | VPMOVZXWQ of varity
+ | VPMOVZXDQ of varity
+ | VPMULDQ of varity
+ | VPMULHRSW of varity
+ | VPMULHUW of varity
+ | VPMULHW of varity
+ | VPMULLD of varity
+ | VPMULLW of varity
+
  | VPOR of varity
  | VPSHUFB of varity
  | VPSHUFD of varity
@@ -1764,6 +1799,7 @@ val mm/m32 = r/m 32 mm-rex
 val xmm/m128 = r/m 128 xmm-rex
 val xmm/m64 = r/m 64 xmm-rex
 val xmm/m32 = r/m 32 xmm-rex
+val xmm/m16 = r/m 16 xmm-rex
 val ymm/m256 = r/m 256 ymm-rex
 val ymm/m128 = r/m 128 ymm-rex
 
@@ -4191,6 +4227,70 @@ val /vex/66/0f/38/vexv [0x3a /r] | vex128? = varity3 VPMINUW xmm128 v/xmm xmm/m1
 val / [0x0f 0xd7 /r] = binop PMOVMSKB reg mm64
 val /66 [0x0f 0xd7 /r] = binop PMOVMSKB reg xmm/nomem128
 val /vex/66/0f [0xd7 /r] | vex128? = varity2 VPMOVMSKB vreg xmm/nomem128
+
+### PMOVSX
+###  - Packed Move with Sign Extend
+val /66 [0x0f 0x38 0x20 /r] = binop PMOVSXBW xmm128 xmm/m64
+val /66 [0x0f 0x38 0x21 /r] = binop PMOVSXBD xmm128 xmm/m32
+val /66 [0x0f 0x38 0x22 /r] = binop PMOVSXBQ xmm128 xmm/m16
+val /66 [0x0f 0x38 0x23 /r] = binop PMOVSXWD xmm128 xmm/m64
+val /66 [0x0f 0x38 0x24 /r] = binop PMOVSXWQ xmm128 xmm/m32
+val /66 [0x0f 0x38 0x25 /r] = binop PMOVSXDQ xmm128 xmm/m64
+val /vex/66/0f/38 [0x20 /r] | vex128? = varity2 VPMOVSXBW xmm128 xmm/m64
+val /vex/66/0f/38 [0x21 /r] | vex128? = varity2 VPMOVSXBD xmm128 xmm/m32
+val /vex/66/0f/38 [0x22 /r] | vex128? = varity2 VPMOVSXBQ xmm128 xmm/m16
+val /vex/66/0f/38 [0x23 /r] | vex128? = varity2 VPMOVSXWD xmm128 xmm/m64
+val /vex/66/0f/38 [0x24 /r] | vex128? = varity2 VPMOVSXWQ xmm128 xmm/m32
+val /vex/66/0f/38 [0x25 /r] | vex128? = varity2 VPMOVSXDQ xmm128 xmm/m64
+
+### PMOVZX
+###  - Packed Move with Zero Extend
+val /66 [0x0f 0x38 0x30 /r] = binop PMOVZXBW xmm128 xmm/m64
+val /66 [0x0f 0x38 0x31 /r] = binop PMOVZXBD xmm128 xmm/m32
+val /66 [0x0f 0x38 0x32 /r] = binop PMOVZXBQ xmm128 xmm/m16
+val /66 [0x0f 0x38 0x33 /r] = binop PMOVZXWD xmm128 xmm/m64
+val /66 [0x0f 0x38 0x34 /r] = binop PMOVZXWQ xmm128 xmm/m32
+val /66 [0x0f 0x38 0x35 /r] = binop PMOVZXDQ xmm128 xmm/m64
+val /vex/66/0f/38 [0x30 /r] | vex128? = varity2 VPMOVZXBW xmm128 xmm/m64
+val /vex/66/0f/38 [0x31 /r] | vex128? = varity2 VPMOVZXBD xmm128 xmm/m32
+val /vex/66/0f/38 [0x32 /r] | vex128? = varity2 VPMOVZXBQ xmm128 xmm/m16
+val /vex/66/0f/38 [0x33 /r] | vex128? = varity2 VPMOVZXWD xmm128 xmm/m64
+val /vex/66/0f/38 [0x34 /r] | vex128? = varity2 VPMOVZXWQ xmm128 xmm/m32
+val /vex/66/0f/38 [0x35 /r] | vex128? = varity2 VPMOVZXDQ xmm128 xmm/m64
+
+### PMULDQ
+###  - Multiply Packed Signed Dword Integers
+val /66 [0x0f 0x38 0x28 /r] = binop PMULDQ xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x28 /r] | vex128? = varity3 VPMULDQ xmm128 v/xmm xmm/m128
+
+### PMULHRSW
+###  - Packed Multiply High with Round and Scale
+val / [0x0f 0x38 0x0b /r] = binop PMULHRSW mm64 mm/m64
+val /66 [0x0f 0x38 0x0b /r] = binop PMULHRSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x0b /r] | vex128? = varity3 VPMULHRSW xmm128 v/xmm xmm/m128
+
+### PMULHUW
+###  - Multiply Packed Unsigned Integers and Store High Result
+val / [0x0f 0xe4 /r] = binop PMULHUW mm64 mm/m64
+val /66 [0x0f 0xe4 /r] = binop PMULHUW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe4 /r] | vex128? = varity3 VPMULHUW xmm128 v/xmm xmm/m128
+
+### PMULHW
+###  - Multiply Packed Signed Integers and Store High Result
+val / [0x0f 0xe5 /r] = binop PMULHW mm64 mm/m64
+val /66 [0x0f 0xe5 /r] = binop PMULHW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe5 /r] | vex128? = varity3 VPMULHW xmm128 v/xmm xmm/m128
+
+### PMULLD
+###  - Multiply Packed Signed Dword Integers and Store Low Result
+val /66 [0x0f 0x38 0x40 /r] = binop PMULLD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x40 /r] = varity3 VPMULLD xmm128 v/xmm xmm/m128
+
+### PMULLW
+###  - Multiply Packed Signed Integers and Store Low Result
+val / [0x0f 0xd5 /r] = binop PMULLW mm64 mm/m64
+val /66 [0x0f 0xd5 /r] = binop PMULLW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd5 /r] = varity3 VPMULLW xmm128 v/xmm xmm/m128
 
 ### POP
 ###  - Pop a Value from the Stack
