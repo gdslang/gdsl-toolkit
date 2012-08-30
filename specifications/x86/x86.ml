@@ -996,20 +996,21 @@ type insn =
  | PMULLD of arity2
  | PMULLW of arity2
  | PMULUDQ of arity2
+ | POP of arity1
  | POPA
  | POPAD
  | POPCNT of arity2
  | POPF
  | POPFD
  | POPFQ
-
- | POP of arity1
  | POR of arity2
  | PREFETCHNTA of arity1
  | PREFETCHT0 of arity1
  | PREFETCHT1 of arity1
  | PREFETCHT2 of arity1
  | PREFETCHW of arity1
+ | PSADBW of arity2
+
  | PSHUFB of arity2
  | PSHUFD of arity3
  | PSLLDQ of arity2
@@ -1267,8 +1268,9 @@ type insn =
  | VPMULLD of varity
  | VPMULLW of varity
  | VPMULUDQ of varity
-
  | VPOR of varity
+ | VPSADBW of varity
+
  | VPSHUFB of varity
  | VPSHUFD of varity
  | VPSLLDQ of varity
@@ -4358,6 +4360,12 @@ val / [0x0f 0x18 /0-mem] = unop PREFETCHNTA m8
 ### PREFETCHW
 ###  - this instruction is not part of the intel manual
 val / [0x0f 0x0d /r-mem] = unop PREFETCHW m8
+
+### PSADBW
+###  - Compute Sum of Absolute Differences
+val / [0x0f 0xf6 /r] = binop PSADBW mm64 mm/m64
+val /66 [0x0f 0xf6 /r] = binop PSADBW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf6 /r] | vex128? = varity3 VPSADBW xmm128 v/xmm xmm/m128
 
 ### PSHUFB
 ###  - Packed Shuffle Bytes
