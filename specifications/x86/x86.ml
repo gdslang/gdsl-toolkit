@@ -1036,8 +1036,12 @@ type insn =
  | PSUBSW of arity2
  | PSUBUSB of arity2
  | PSUBUSW of arity2
-
  | PTEST of arity2
+ | PUNPCKHBW of arity2
+ | PUNPCKHWD of arity2
+ | PUNPCKHDQ of arity2
+ | PUNPCKHQDQ of arity2
+
  | PUNPCKLDQ of arity2
  | PUNPCKLWD of arity2
  | PUNPCKLBW of arity2
@@ -1314,8 +1318,12 @@ type insn =
  | VPSUBSW of varity
  | VPSUBUSB of varity
  | VPSUBUSW of varity
-
  | VPTEST of varity
+ | VPUNPCKHBW of varity
+ | VPUNPCKHWD of varity
+ | VPUNPCKHDQ of varity
+ | VPUNPCKHQDQ of varity
+ 
  | VPUNPCKLBW of varity
  | VPUNPCKLDQ of varity
  | VPUNPCKLQDQ of varity
@@ -4550,6 +4558,20 @@ val /66 [0x0f 0x38 0x17 /r] = binop PTEST xmm128 xmm/m128
 val /vex/66/0f/38 [0x17 /r]
  | vex128? = varity2 VPTEST xmm128 xmm/m128
  | otherwise = varity2 VPTEST ymm256 ymm/m256
+
+### PUNPCKHBW/PUNPCKHWD/PUNPCKHDQ/PUNPCKHQDQ
+###  - Unpack High Data
+val / [0x0f 0x68 /r] = binop PUNPCKHBW mm64 mm/m64
+val /66 [0x0f 0x68 /r] = binop PUNPCKHBW xmm128 xmm/m128
+val / [0x0f 0x69 /r] = binop PUNPCKHWD mm64 mm/m64
+val /66 [0x0f 0x69 /r] = binop PUNPCKHWD xmm128 xmm/m128
+val / [0x0f 0x6a /r] = binop PUNPCKHDQ mm64 mm/m64
+val /66 [0x0f 0x6a /r] = binop PUNPCKHDQ xmm128 xmm/m128
+val /66 [0x0f 0x6d /r] = binop PUNPCKHQDQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0x68 /r] | vex128? = varity3 VPUNPCKHBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x69 /r] | vex128? = varity3 VPUNPCKHWD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6a /r] | vex128? = varity3 VPUNPCKHDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6d /r] | vex128? = varity3 VPUNPCKHQDQ xmm128 v/xmm xmm/m128
 
 ### PUNPCKLBW/PUNPCKLWD/PUNPCKLDQ/PUNPCKLQDQ
 ###  - Unpack Low Data
