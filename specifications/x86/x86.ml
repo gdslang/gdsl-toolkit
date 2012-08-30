@@ -1018,8 +1018,13 @@ type insn =
  | PSIGNB of arity2
  | PSIGNW of arity2
  | PSIGND of arity2
-
  | PSLLDQ of arity2
+ | PSLLW of arity2
+ | PSLLD of arity2
+ | PSLLQ of arity2
+ | PSRAW of arity2
+ | PSRAD of arity2
+ 
  | PSRLDQ of arity2
  | PSUBB of arity2
  | PSUBD of arity2
@@ -1283,8 +1288,13 @@ type insn =
  | VPSIGNB of varity
  | VPSIGNW of varity
  | VPSIGND of varity
-
  | VPSLLDQ of varity
+ | VPSLLW of varity
+ | VPSLLD of varity
+ | VPSLLQ of varity
+ | VPSRAW of varity
+ | VPSRAD of varity
+ 
  | VPSRLDQ of varity
  | VPSUBB of varity
  | VPSUBD of varity
@@ -4419,6 +4429,42 @@ val /vex/66/0f/38/vexv [0x0a /r] | vex128? = varity3 VPSIGND xmm128 v/xmm xmm/m1
 ###  - Shift Double Quadword Left Logical
 val /66 [0x0f 0x73 /7-nomem] = binop PSLLDQ xmm/m128 imm8
 val /vex/66/0f [0x73 /7-nomem] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/m128 imm8
+
+### PSLLW/PSLLD/PSLLQ
+###  - Shift Packed Data Left Logical
+val / [0x0f 0xf1 /r] = binop PSLLW mm64 mm/m64
+val /66 [0x0f 0xf1 /r] = binop PSLLW xmm128 xmm/m128
+val / [0x0f 0x71 /6] = binop PSLLW mm/m64 imm8
+val /66 [0x0f 0x71 /6] = binop PSLLW xmm/m128 imm8
+val / [0x0f 0xf2 /r] = binop PSLLD mm64 mm/m64
+val /66 [0x0f 0xf2 /r] = binop PSLLD xmm128 xmm/m128
+val / [0x0f 0x72 /6] = binop PSLLD mm/m64 imm8
+val /66 [0x0f 0x72 /6] = binop PSLLD xmm/m128 imm8
+val / [0x0f 0xf3 /r] = binop PSLLQ mm64 mm/m64
+val /66 [0x0f 0xf3 /r] = binop PSLLQ xmm128 xmm/m128
+val / [0x0f 0x73 /6] = binop PSLLQ mm/m64 imm8
+val /66 [0x0f 0x73 /6] = binop PSLLQ xmm/m128 imm8
+val /vex/66/0f/vexv [0xf1 /r] | vex128? = varity3 VPSLLW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x71 /6] | vex128? = varity3 VPSLLW v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0xf2 /r] | vex128? = varity3 VPSLLD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x72 /6] | vex128? = varity3 VPSLLD v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0xf3 /r] | vex128? = varity3 VPSLLQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x73 /6] | vex128? = varity3 VPSLLQ v/xmm xmm/m128 imm8
+
+### PSRAW/PSRAD
+###  - Shift Packed Data Right Arithmetic
+val / [0x0f 0xe1 /r] = binop PSRAW mm64 mm/m64
+val /66 [0x0f 0xe1 /r] = binop PSRAW xmm128 xmm/m128
+val / [0x0f 0x71 /4] = binop PSRAW mm/m64 imm8
+val /66 [0x0f 0x71 /4] = binop PSRAW xmm/m128 imm8
+val / [0x0f 0xe2 /r] = binop PSRAD mm64 mm/m64
+val /66 [0x0f 0xe2 /r] = binop PSRAD xmm128 xmm/m128
+val / [0x0f 0x72 /4] = binop PSRAD mm/m64 imm8
+val /66 [0x0f 0x72 /4] = binop PSRAD xmm/m128 imm8
+val /vex/66/0f/vexv [0xe1 /r] | vex128? = varity3 VPSRAW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x71 /4] | vex128? = varity3 VPSRAW v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0xe2 /r] | vex128? = varity3 VPSRAD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x72 /4] | vex128? = varity3 VPSRAD v/xmm xmm/m128 imm8
 
 ### PSRLDQ
 ###  - Shift Double Quadword Right Logical
