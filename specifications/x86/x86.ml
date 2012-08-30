@@ -1031,6 +1031,12 @@ type insn =
  | PSUBB of arity2
  | PSUBD of arity2
  | PSUBW of arity2
+ | PSUBQ of arity2
+ | PSUBSB of arity2
+ | PSUBSW of arity2
+ | PSUBUSB of arity2
+ | PSUBUSW of arity2
+
  | PTEST of arity2
  | PUNPCKLDQ of arity2
  | PUNPCKLWD of arity2
@@ -1303,6 +1309,12 @@ type insn =
  | VPSUBB of varity
  | VPSUBD of varity
  | VPSUBW of varity
+ | VPSUBQ of varity
+ | VPSUBSB of varity
+ | VPSUBSW of varity
+ | VPSUBUSB of varity
+ | VPSUBUSW of varity
+
  | VPTEST of varity
  | VPUNPCKLBW of varity
  | VPUNPCKLDQ of varity
@@ -4507,6 +4519,30 @@ val /66 [0x0f 0xfa /r] = binop PSUBD xmm128 xmm/m128
 val /vex/66/0f/vexv [0xf8 /r] | vex128? = varity3 VPSUBB xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0xf9 /r] | vex128? = varity3 VPSUBW xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0xfa /r] | vex128? = varity3 VPSUBD xmm128 v/xmm xmm/m128
+
+### PSUBQ
+###  - Subtract Packed Quadword Integers
+val / [0x0f 0xfb /r] = binop PSUBQ mm64 mm/m64
+val /66 [0x0f 0xfb /r] = binop PSUBQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0xfb /r] | vex128? = varity3 VPSUBQ xmm128 v/xmm xmm/m128
+
+### PSUBSB/PSUBSW
+###  - Subtract Packed Signed Integers with Signed Saturation
+val / [0x0f 0xe8 /r] = binop PSUBSB mm64 mm/m64
+val /66 [0x0f 0xe8 /r] = binop PSUBSB xmm128 xmm/m128
+val / [0x0f 0xe9 /r] = binop PSUBSW mm64 mm/m64
+val /66 [0x0f 0xe9 /r] = binop PSUBSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe8 /r] | vex128? = varity3 VPSUBSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xe9 /r] | vex128? = varity3 VPSUBSW xmm128 v/xmm xmm/m128
+
+### PSUBUSB/PSUBUSW
+###  - Subtract Packed Unsigned Integers with Unsigned Saturation
+val / [0x0f 0xd8 /r] = binop PSUBUSB mm64 mm/m64
+val /66 [0x0f 0xd8 /r] = binop PSUBUSB xmm128 xmm/m128
+val / [0x0f 0xd9 /r] = binop PSUBUSW mm64 mm/m64
+val /66 [0x0f 0xd9 /r] = binop PSUBUSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd8 /r] | vex128? = varity3 VPSUBUSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xd9 /r] | vex128? = varity3 VPSUBUSW xmm128 v/xmm xmm/m128
 
 ### PTEST
 ###  - Logical Compare
