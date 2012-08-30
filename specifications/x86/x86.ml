@@ -1010,9 +1010,15 @@ type insn =
  | PREFETCHT2 of arity1
  | PREFETCHW of arity1
  | PSADBW of arity2
-
  | PSHUFB of arity2
  | PSHUFD of arity3
+ | PSHUFHW of arity3
+ | PSHUFLW of arity3
+ | PSHUFW of arity3
+ | PSIGNB of arity2
+ | PSIGNW of arity2
+ | PSIGND of arity2
+
  | PSLLDQ of arity2
  | PSRLDQ of arity2
  | PSUBB of arity2
@@ -1270,9 +1276,14 @@ type insn =
  | VPMULUDQ of varity
  | VPOR of varity
  | VPSADBW of varity
-
  | VPSHUFB of varity
  | VPSHUFD of varity
+ | VPSHUFHW of varity
+ | VPSHUFLW of varity
+ | VPSIGNB of varity
+ | VPSIGNW of varity
+ | VPSIGND of varity
+
  | VPSLLDQ of varity
  | VPSRLDQ of varity
  | VPSUBB of varity
@@ -4377,6 +4388,32 @@ val /vex/66/0f/38/vexv [0x00 /r] | vex128? = varity3 VPSHUFB xmm128 v/xmm xmm/m1
 ###  - Shuffle Packed Doublewords
 val /66 [0x0f 0x70 /r] = ternop PSHUFD xmm128 xmm/m128 imm8
 val /vex/66/0f [0x70 /r] | vex128? = varity3 VPSHUFD xmm128 xmm/m128 imm8
+
+### PSHUFHW
+###  - Shuffle Packed High Words
+val /f3 [0x0f 0x70 /r] = ternop PSHUFHW xmm128 xmm/m128 imm8
+val /vex/f3/0f [0x70 /r] | vex128? = varity3 VPSHUFHW xmm128 xmm/m128 imm8
+
+### PSHUFLW
+###  - Shuffle Packed Low Words
+val /f2 [0x0f 0x70 /r] = ternop PSHUFLW xmm128 xmm/m128 imm8
+val /vex/f2/0f [0x70 /r] | vex128? = varity3 VPSHUFLW xmm128 xmm/m128 imm8
+
+### PSHUFW
+###  - Shuffle Packed Words
+val / [0x0f 0x70 /r] = ternop PSHUFW mm64 mm/m64 imm8
+
+### PSIGNB/PSIGNW/PSIGND
+###  - Packed SIGN
+val / [0x0f 0x38 0x08 /r] = binop PSIGNB mm64 mm/m64
+val /66 [0x0f 0x38 0x08 /r] = binop PSIGNB xmm128 xmm/m128
+val / [0x0f 0x38 0x09 /r] = binop PSIGNW mm64 mm/m64
+val /66 [0x0f 0x38 0x09 /r] = binop PSIGNW xmm128 xmm/m128
+val / [0x0f 0x38 0x0a /r] = binop PSIGND mm64 mm/m64
+val /66 [0x0f 0x38 0x0a /r] = binop PSIGND xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x08 /r] | vex128? = varity3 VPSIGNB xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x09 /r] | vex128? = varity3 VPSIGNW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x0a /r] | vex128? = varity3 VPSIGND xmm128 v/xmm xmm/m128
 
 ### PSLLDQ
 ###  - Shift Double Quadword Left Logical
