@@ -996,6 +996,12 @@ type insn =
  | PMULLD of arity2
  | PMULLW of arity2
  | PMULUDQ of arity2
+ | POPA
+ | POPAD
+ | POPCNT of arity2
+ | POPF
+ | POPFD
+ | POPFQ
 
  | POP of arity1
  | POR of arity2
@@ -1431,6 +1437,10 @@ val vexw? = query $rexw
 val rex? = query $rex
 
 val mode64? = query $mode64
+val mode32? = do
+ a <- query $mode64;
+ return (not a)
+end
 
 ## Convert a bit-vectors to registers
 
@@ -4311,6 +4321,26 @@ val / ['01011 r:3']
 val / [0x1f] = unop POP ds
 val / [0x07] = unop POP es
 val / [0x17] = unop POP ss
+
+### POPA/POPAD
+###  - Pop All General-Purpose Registers
+val / [0x61]
+ | opndsz? = arity0 POPA
+ | otherwise = arity0 POPAD
+
+### POPCNT
+###  - Return the Count of Number of Bits Set to 1
+val /f3 [0x0f 0xb8 /r]
+ | opndsz? = binop POPCNT r16 r/m16
+ | rexw? = binop POPCNT r64 r/m64
+ | otherwise = binop POPCNT r32 r/m32
+
+### POPF/POPFD/POPFQ
+###  - Pop Stack into EFLAGS Register
+val / [0x9d]
+ | opndsz? = arity0 POPF
+ | rexw? = arity0 POPFD
+ | mode32? = arity0 POPFQ
 
 ### POR
 ###  - Bitwise Logical OR
