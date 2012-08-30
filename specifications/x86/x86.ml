@@ -948,7 +948,6 @@ type insn =
  | PCMPISTRI of arity3
  | PCMPISTRM of arity3
  | PEXTRB of arity3
-
  | PEXTRD of arity3
  | PEXTRQ of arity3
  | PEXTRW of arity3
@@ -996,6 +995,7 @@ type insn =
  | PMULHW of arity2
  | PMULLD of arity2
  | PMULLW of arity2
+ | PMULUDQ of arity2
 
  | POP of arity1
  | POR of arity2
@@ -1260,6 +1260,7 @@ type insn =
  | VPMULHW of varity
  | VPMULLD of varity
  | VPMULLW of varity
+ | VPMULUDQ of varity
 
  | VPOR of varity
  | VPSHUFB of varity
@@ -4291,6 +4292,12 @@ val /vex/66/0f/38/vexv [0x40 /r] = varity3 VPMULLD xmm128 v/xmm xmm/m128
 val / [0x0f 0xd5 /r] = binop PMULLW mm64 mm/m64
 val /66 [0x0f 0xd5 /r] = binop PMULLW xmm128 xmm/m128
 val /vex/66/0f/vexv [0xd5 /r] = varity3 VPMULLW xmm128 v/xmm xmm/m128
+
+### PMULUDQ
+###  - Multiply Packed Unsigned Doubleword Integers
+val / [0x0f 0xf4 /r] = binop PMULUDQ mm64 mm/m64
+val /66 [0x0f 0xf4 /r] = binop PMULUDQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf4 /r] = varity3 VPMULUDQ xmm128 v/xmm xmm/m128
 
 ### POP
 ###  - Pop a Value from the Stack
