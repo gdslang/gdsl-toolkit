@@ -1024,8 +1024,10 @@ type insn =
  | PSLLQ of arity2
  | PSRAW of arity2
  | PSRAD of arity2
- 
  | PSRLDQ of arity2
+ | PSRLW of arity2
+ | PSRLD of arity2
+ | PSRLQ of arity2
  | PSUBB of arity2
  | PSUBD of arity2
  | PSUBW of arity2
@@ -1294,8 +1296,10 @@ type insn =
  | VPSLLQ of varity
  | VPSRAW of varity
  | VPSRAD of varity
- 
  | VPSRLDQ of varity
+ | VPSRLW of varity
+ | VPSRLD of varity
+ | VPSRLQ of varity
  | VPSUBB of varity
  | VPSUBD of varity
  | VPSUBW of varity
@@ -4434,42 +4438,63 @@ val /vex/66/0f [0x73 /7-nomem] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/m12
 ###  - Shift Packed Data Left Logical
 val / [0x0f 0xf1 /r] = binop PSLLW mm64 mm/m64
 val /66 [0x0f 0xf1 /r] = binop PSLLW xmm128 xmm/m128
-val / [0x0f 0x71 /6] = binop PSLLW mm/m64 imm8
-val /66 [0x0f 0x71 /6] = binop PSLLW xmm/m128 imm8
+val / [0x0f 0x71 /6-nomem] = binop PSLLW mm/m64 imm8
+val /66 [0x0f 0x71 /6-nomem] = binop PSLLW xmm/m128 imm8
 val / [0x0f 0xf2 /r] = binop PSLLD mm64 mm/m64
 val /66 [0x0f 0xf2 /r] = binop PSLLD xmm128 xmm/m128
-val / [0x0f 0x72 /6] = binop PSLLD mm/m64 imm8
-val /66 [0x0f 0x72 /6] = binop PSLLD xmm/m128 imm8
+val / [0x0f 0x72 /6-nomem] = binop PSLLD mm/m64 imm8
+val /66 [0x0f 0x72 /6-nomem] = binop PSLLD xmm/m128 imm8
 val / [0x0f 0xf3 /r] = binop PSLLQ mm64 mm/m64
 val /66 [0x0f 0xf3 /r] = binop PSLLQ xmm128 xmm/m128
-val / [0x0f 0x73 /6] = binop PSLLQ mm/m64 imm8
-val /66 [0x0f 0x73 /6] = binop PSLLQ xmm/m128 imm8
+val / [0x0f 0x73 /6-nomem] = binop PSLLQ mm/m64 imm8
+val /66 [0x0f 0x73 /6-nomem] = binop PSLLQ xmm/m128 imm8
 val /vex/66/0f/vexv [0xf1 /r] | vex128? = varity3 VPSLLW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x71 /6] | vex128? = varity3 VPSLLW v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0x71 /6-nomem] | vex128? = varity3 VPSLLW v/xmm xmm/m128 imm8
 val /vex/66/0f/vexv [0xf2 /r] | vex128? = varity3 VPSLLD xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x72 /6] | vex128? = varity3 VPSLLD v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0x72 /6-nomem] | vex128? = varity3 VPSLLD v/xmm xmm/m128 imm8
 val /vex/66/0f/vexv [0xf3 /r] | vex128? = varity3 VPSLLQ xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x73 /6] | vex128? = varity3 VPSLLQ v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0x73 /6-nomem] | vex128? = varity3 VPSLLQ v/xmm xmm/m128 imm8
 
 ### PSRAW/PSRAD
 ###  - Shift Packed Data Right Arithmetic
 val / [0x0f 0xe1 /r] = binop PSRAW mm64 mm/m64
 val /66 [0x0f 0xe1 /r] = binop PSRAW xmm128 xmm/m128
-val / [0x0f 0x71 /4] = binop PSRAW mm/m64 imm8
-val /66 [0x0f 0x71 /4] = binop PSRAW xmm/m128 imm8
+val / [0x0f 0x71 /4-nomem] = binop PSRAW mm/m64 imm8
+val /66 [0x0f 0x71 /4-nomem] = binop PSRAW xmm/m128 imm8
 val / [0x0f 0xe2 /r] = binop PSRAD mm64 mm/m64
 val /66 [0x0f 0xe2 /r] = binop PSRAD xmm128 xmm/m128
-val / [0x0f 0x72 /4] = binop PSRAD mm/m64 imm8
-val /66 [0x0f 0x72 /4] = binop PSRAD xmm/m128 imm8
+val / [0x0f 0x72 /4-nomem] = binop PSRAD mm/m64 imm8
+val /66 [0x0f 0x72 /4-nomem] = binop PSRAD xmm/m128 imm8
 val /vex/66/0f/vexv [0xe1 /r] | vex128? = varity3 VPSRAW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x71 /4] | vex128? = varity3 VPSRAW v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0x71 /4-nomem] | vex128? = varity3 VPSRAW v/xmm xmm/m128 imm8
 val /vex/66/0f/vexv [0xe2 /r] | vex128? = varity3 VPSRAD xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x72 /4] | vex128? = varity3 VPSRAD v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0x72 /4-nomem] | vex128? = varity3 VPSRAD v/xmm xmm/m128 imm8
 
 ### PSRLDQ
 ###  - Shift Double Quadword Right Logical
 val /66 [0x0f 0x73 /3-nomem] = binop PSRLDQ xmm/m128 imm8
 val /vex/66/0f [0x73 /3-nomem] | vndd? & vex128? = varity3 VPSRLDQ v/xmm xmm/m128 imm8
+
+### PSRLW/PSRLD/PSRLQ
+###  - Shift Packed Data Right Logical
+val / [0x0f 0xd1 /r] = binop PSRLW mm64 mm/m64
+val /66 [0x0f 0xd1 /r] = binop PSRLW xmm128 xmm/m128
+val / [0x0f 0x71 /2-nomem] = binop PSRLW mm/m64 imm8
+val /66 [0x0f 0x71 /2-nomem] = binop PSRLW xmm/m128 imm8
+val / [0x0f 0xd2 /r] = binop PSRLD mm64 mm/m64
+val /66 [0x0f 0xd2 /r] = binop PSRLD xmm128 xmm/m128
+val / [0x0f 0x72 /2-nomem] = binop PSRLD mm/m64 imm8
+val /66 [0x0f 0x72 /2-nomem] = binop PSRLD xmm/m128 imm8
+val / [0x0f 0xd3 /r] = binop PSRLQ mm64 mm/m64
+val /66 [0x0f 0xd3 /r] = binop PSRLQ xmm128 xmm/m128
+val / [0x0f 0x73 /2-nomem] = binop PSRLQ mm/m64 imm8
+val /66 [0x0f 0x73 /2-nomem] = binop PSRLQ xmm/m128 imm8
+val /vex/66/0f/vexv [0xd1 /r] | vex128? = varity3 VPSRLW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x71 /2-nomem] | vex128? = varity3 VPSRLW v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0xd2 /r] | vex128? = varity3 VPSRLD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x72 /2-nomem] | vex128? = varity3 VPSRLD v/xmm xmm/m128 imm8
+val /vex/66/0f/vexv [0xd3 /r] | vex128? = varity3 VPSRLQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x73 /2-nomem] | vex128? = varity3 VPSRLQ v/xmm xmm/m128 imm8
 
 ### PSUBB/PSUBW/PSUBD
 ###  - Subtract Packed Integers
