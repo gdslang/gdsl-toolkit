@@ -1124,6 +1124,7 @@ type insn =
  | SLDT of arity1
  | SMSW of arity1
  | SQRTPD of arity2
+ | SQRTPS of arity2
 
  | STOSB
  | STOSD
@@ -1366,6 +1367,7 @@ type insn =
  | VSHUFPD of varity
  | VSHUFPS of varity
  | VSQRTPD of varity
+ | VSQRTPS of varity
 
  | VUCOMISD of varity
  | VXORPS of varity
@@ -5008,6 +5010,13 @@ val /66 [0x0f 0x51 /r] = binop SQRTPD xmm128 xmm/m128
 val /vex/66/0f [0x51 /r]
  | vex128? = varity2 VSQRTPD xmm128 xmm/m128
  | vex256? = varity2 VSQRTPD ymm256 ymm/m256
+
+### SQRTPS
+###  - Compute Square Roots of Packed Single-Precision Floating-Point Values
+val / [0x0f 0x51 /r] = binop SQRTPS xmm128 xmm/m128
+val /vex/0f [0x51 /r]
+ | vex128? = varity2 VSQRTPS xmm128 xmm/m128
+ | vex256? = varity2 VSQRTPS ymm256 ymm/m256
 
 ### STOS/STOSB/STOSW/STOSD/STOSQ
 ###  - Store String
