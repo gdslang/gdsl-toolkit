@@ -1063,13 +1063,22 @@ type insn =
  | RDMSR
  | RDPMC
  | RDRAND of arity1
-
  | RDTSC
  | RDTSCP
  | RET of varity
  | RET_FAR of varity
+ | ROUNDPD of arity3
+ | ROUNDPS of arity3
+ | ROUNDSD of arity3
+ | ROUNDSS of arity3
+ | RSM
+ | RSQRTPS of arity2
+ | RSQRTSS of arity2
+ | SAHF
  | SAL of arity2
  | SAR of arity2
+ | SHL of arity2
+ | SHR of arity2
  | SBB of arity2
  | SCASB
  | SCASD
@@ -1106,9 +1115,8 @@ type insn =
  | SETS of arity1
  | SETZ of arity1
  | SFENCE
- | SHL of arity2
+ | SGDT of arity1
  | SHLD of arity3
- | SHR of arity2
  | SHRD of arity3
  | STOSB
  | STOSD
@@ -1342,6 +1350,12 @@ type insn =
  | VPXOR of varity
  | VRCPPS of varity
  | VRCPSS of varity
+ | VROUNDPD of varity
+ | VROUNDPS of varity
+ | VROUNDSD of varity
+ | VROUNDSS of varity
+ | VRSQRTPS of varity
+ | VRSQRTSS of varity
 
  | VUCOMISD of varity
  | VXORPS of varity
@@ -1912,6 +1926,7 @@ val m128 = xmm/m128
 val m256 = ymm/m256
 val m80fp = r/m 80 reg64-rex #TODO: check
 
+val m48 = r/m 48 reg64-rex #TODO: check
 val m80 = r/m 80 reg64-rex #TODO: check
 val m94byte = r/m 752 reg64-rex #TODO: check
 val m108byte = r/m 864 reg64-rex #TODO: check
@@ -4750,6 +4765,10 @@ val / [0x0f 0x31] = arity0 RDTSC
 ###  - Read Time-Stamp Counter and Processor ID
 val / [0x0f 0x01 0xf9] = arity0 RDTSCP
 
+### REP/REPE/REPZ/REPNE/REPNZ
+###  - Repeat String Operation Prefix
+# Todo
+
 ### RET
 ###  - Return from Procedure
 val / [0xc3] = varity0 RET
@@ -4757,82 +4776,49 @@ val / [0xcb] = varity0 RET_FAR
 val / [0xc2] = varity1 RET imm16
 val / [0xca] = varity1 RET_FAR imm16
 
-### SETcc
-###  - Set Byte on Condition
-val / [0x0f 0x97 /r] = unop SETA r/m8
-val / [0x0f 0x93 /r] = unop SETAE r/m8
-val / [0x0f 0x92 /r] = unop SETB r/m8
-val / [0x0f 0x96 /r] = unop SETBE r/m8
-val / [0x0f 0x94 /r] = unop SETE r/m8
-val / [0x0f 0x9f /r] = unop SETG r/m8
-val / [0x0f 0x9d /r] = unop SETGE r/m8
-val / [0x0f 0x9c /r] = unop SETL r/m8
-val / [0x0f 0x9e /r] = unop SETLE r/m8
-val / [0x0f 0x95 /r] = unop SETNE r/m8
-val / [0x0f 0x91 /r] = unop SETNO r/m8
-val / [0x0f 0x9b /r] = unop SETNP r/m8
-val / [0x0f 0x99 /r] = unop SETNS r/m8
-val / [0x0f 0x90 /r] = unop SETO r/m8
-val / [0x0f 0x9a /r] = unop SETP r/m8
-val / [0x0f 0x98 /r] = unop SETS r/m8
+### ROUNDPD
+###  - Round Packed Double Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x09 /r] = ternop ROUNDPD xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x09 /r]
+ | vex128? = varity3 VROUNDPD xmm128 xmm/m128 imm8
+ | vex256? = varity3 VROUNDPD ymm256 ymm/m256 imm8
 
-### SBB
-###  - Integer Subtraction with Borrow
-val / [0x1c] = binop SBB al imm8
-val / [0x1d]
- | opndsz? = binop SBB ax imm16
- | rexw? = binop SBB rax imm32
- | otherwise = binop SBB eax imm32
-val / [0x80 /3] = binop SBB r/m8 imm8
-val / [0x81 /3]
- | opndsz? = binop SBB r/m16 imm16
- | rexw? = binop SBB r/m64 imm32
- | otherwise = binop SBB r/m32 imm32
-val / [0x83 /3]
- | opndsz? = binop SBB r/m16 imm8
- | rexw? = binop SBB r/m64 imm8
- | otherwise = binop SBB r/m32 imm8
-val / [0x18 /r] = binop SBB r/m8 r8
-val / [0x19 /r]
- | opndsz? = binop SBB r/m16 r16
- | rexw? = binop SBB r/m64 r64
- | otherwise = binop SBB r/m32 r32
-val / [0x1a /r] = binop SBB r8 r/m8
-val / [0x1b /r]
- | opndsz? = binop SBB r16 r/m16
- | rexw? = binop SBB r64 r/m64
- | otherwise = binop SBB r32 r/m32
+### ROUNDPS
+###  - Round Packed Single Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x08 /r] = ternop ROUNDPS xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x08 /r]
+ | vex128? = varity3 VROUNDPS xmm128 xmm/m128 imm8
+ | vex256? = varity3 VROUNDPS ymm256 ymm/m256 imm8
 
-### SUB
-###  - Subtract
-val / [0x2c] = binop SUB al imm8
-val / [0x2d]
- | opndsz? = binop SUB ax imm16
- | rexw? = binop SUB rax imm32
- | otherwise = binop SUB eax imm32
-val / [0x80 /5] = binop SUB r/m8 imm8
-val / [0x81 /5]
- | opndsz? = binop SUB r/m16 imm16
- | rexw? = binop SUB r/m64 imm32
- | otherwise = binop SUB r/m32 imm32
-val / [0x83 /5]
- | opndsz? = binop SUB r/m16 imm8
- | rexw? = binop SUB r/m64 imm8
- | otherwise = binop SUB r/m32 imm8
-val / [0x28 /r] = binop SUB r/m8 r8
-val / [0x29 /r]
- | opndsz? = binop SUB r/m16 r16
- | rexw? = binop SUB r/m64 r64
- | otherwise = binop SUB r/m32 r32
-val / [0x2a /r] = binop SUB r8 r/m8
-val / [0x2b /r]
- | opndsz? = binop SUB r16 r/m16
- | rexw? = binop SUB r64 r/m64
- | otherwise = binop SUB r32 r/m32
+### ROUNDSD
+###  - Round Scalar Double Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x0b /r] = ternop ROUNDSD xmm128 xmm/m64 imm8
+val /vex/66/0f/3a/vexv [0x0b /r] = varity4 VROUNDSD xmm128 v/xmm xmm/m64 imm8
 
-### SFENCE
-###  - Store Fence
-val / [0x0f 0xae /7-nomem] = arity0 SFENCE
+### ROUNDSS
+###  - Round Scalar Single Precision Floating-Point Values
+val /66 [0x0f 0x3a 0x0a /r] = ternop ROUNDSS xmm128 xmm/m32 imm8
+val /vex/66/0f/3a/vexv [0x0a /r] = varity4 VROUNDSS xmm128 v/xmm xmm/m32 imm8
+
+### RSM
+###  - Resume from System Management Mode
+val / [0x0f 0xaa] | mode32? = arity0 RSM
+
+### RSQRTPS
+###  - Compute Reciprocals of Square Roots of Packed Single-Precision Floating-Point Values
+val / [0x0f 0x52 /r] = binop RSQRTPS xmm128 xmm/m128
+val /vex/0f [0x52 /r]
+ | vex128? = varity2 VRSQRTPS xmm128 xmm/m128
+ | vex256? = varity2 VRSQRTPS ymm256 ymm/m256
+
+### RSQRTSS
+###  - Compute Reciprocal of Square Root of Scalar Single-Precision Floating-Point Value
+val /f3 [0x0f 0x52 /r] = binop RSQRTSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x52 /r] = varity3 VRSQRTSS xmm128 v/xmm xmm/m32
+
+### SAHF
+###  - Store AH into Flags
+val / [0x9e] = arity0 SAHF
 
 ### SAL/SAR/SHL/SHR
 ### - Shift
@@ -4886,6 +4872,33 @@ val / [0xc1 /5]
  | rexw? = binop SHR r/m64 imm8
  | otherwise = binop SHR r/m32 imm8
 
+### SBB
+###  - Integer Subtraction with Borrow
+val / [0x1c] = binop SBB al imm8
+val / [0x1d]
+ | opndsz? = binop SBB ax imm16
+ | rexw? = binop SBB rax imm32
+ | otherwise = binop SBB eax imm32
+val / [0x80 /3] = binop SBB r/m8 imm8
+val / [0x81 /3]
+ | opndsz? = binop SBB r/m16 imm16
+ | rexw? = binop SBB r/m64 imm32
+ | otherwise = binop SBB r/m32 imm32
+val / [0x83 /3]
+ | opndsz? = binop SBB r/m16 imm8
+ | rexw? = binop SBB r/m64 imm8
+ | otherwise = binop SBB r/m32 imm8
+val / [0x18 /r] = binop SBB r/m8 r8
+val / [0x19 /r]
+ | opndsz? = binop SBB r/m16 r16
+ | rexw? = binop SBB r/m64 r64
+ | otherwise = binop SBB r/m32 r32
+val / [0x1a /r] = binop SBB r8 r/m8
+val / [0x1b /r]
+ | opndsz? = binop SBB r16 r/m16
+ | rexw? = binop SBB r64 r/m64
+ | otherwise = binop SBB r32 r/m32
+
 ### SCAS/SCASB/SCASW/SCASD/SCASQ
 ###  - Scan String
 val / [0xae] = arity0 SCASB
@@ -4893,6 +4906,35 @@ val / [0xaf]
  | opndsz? = arity0 SCASW
  | rexw? = arity0 SCASQ
  | otherwise = arity0 SCASD
+
+### SETcc
+###  - Set Byte on Condition
+val / [0x0f 0x97 /r] = unop SETA r/m8
+val / [0x0f 0x93 /r] = unop SETAE r/m8
+val / [0x0f 0x92 /r] = unop SETB r/m8
+val / [0x0f 0x96 /r] = unop SETBE r/m8
+val / [0x0f 0x94 /r] = unop SETE r/m8
+val / [0x0f 0x9f /r] = unop SETG r/m8
+val / [0x0f 0x9d /r] = unop SETGE r/m8
+val / [0x0f 0x9c /r] = unop SETL r/m8
+val / [0x0f 0x9e /r] = unop SETLE r/m8
+val / [0x0f 0x95 /r] = unop SETNE r/m8
+val / [0x0f 0x91 /r] = unop SETNO r/m8
+val / [0x0f 0x9b /r] = unop SETNP r/m8
+val / [0x0f 0x99 /r] = unop SETNS r/m8
+val / [0x0f 0x90 /r] = unop SETO r/m8
+val / [0x0f 0x9a /r] = unop SETP r/m8
+val / [0x0f 0x98 /r] = unop SETS r/m8
+
+### SFENCE
+###  - Store Fence
+val / [0x0f 0xae /7-nomem] = arity0 SFENCE
+
+### SGDT
+###  - Store Global Descriptor Table Register
+val / [0x0f 0x01 /0-mem]
+ | mode32? = unop SGDT m48
+ | mode64? = unop SGDT m80
 
 ### SHLD
 ###  - Double Precision Shift Left
@@ -4923,6 +4965,33 @@ val / [0xab]
  | opndsz? = arity0 STOSW
  | rexw? = arity0 STOSQ
  | otherwise = arity0 STOSD
+
+### SUB
+###  - Subtract
+val / [0x2c] = binop SUB al imm8
+val / [0x2d]
+ | opndsz? = binop SUB ax imm16
+ | rexw? = binop SUB rax imm32
+ | otherwise = binop SUB eax imm32
+val / [0x80 /5] = binop SUB r/m8 imm8
+val / [0x81 /5]
+ | opndsz? = binop SUB r/m16 imm16
+ | rexw? = binop SUB r/m64 imm32
+ | otherwise = binop SUB r/m32 imm32
+val / [0x83 /5]
+ | opndsz? = binop SUB r/m16 imm8
+ | rexw? = binop SUB r/m64 imm8
+ | otherwise = binop SUB r/m32 imm8
+val / [0x28 /r] = binop SUB r/m8 r8
+val / [0x29 /r]
+ | opndsz? = binop SUB r/m16 r16
+ | rexw? = binop SUB r/m64 r64
+ | otherwise = binop SUB r/m32 r32
+val / [0x2a /r] = binop SUB r8 r/m8
+val / [0x2b /r]
+ | opndsz? = binop SUB r16 r/m16
+ | rexw? = binop SUB r64 r/m64
+ | otherwise = binop SUB r32 r/m32
 
 ### SYSCALL
 ###  - Fast System Call
