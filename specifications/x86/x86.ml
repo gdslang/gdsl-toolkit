@@ -1118,6 +1118,13 @@ type insn =
  | SGDT of arity1
  | SHLD of arity3
  | SHRD of arity3
+ | SHUFPD of arity3
+ | SHUFPS of arity3
+ | SIDT of arity1
+ | SLDT of arity1
+ | SMSW of arity1
+ | SQRTPD of arity2
+
  | STOSB
  | STOSD
  | STOSQ
@@ -1356,6 +1363,9 @@ type insn =
  | VROUNDSS of varity
  | VRSQRTPS of varity
  | VRSQRTSS of varity
+ | VSHUFPD of varity
+ | VSHUFPS of varity
+ | VSQRTPD of varity
 
  | VUCOMISD of varity
  | VXORPS of varity
@@ -1879,6 +1889,7 @@ val r/m8 = r/m 8 reg8-rex
 val r/m16 = r/m 16 reg16-rex
 val r16/m16 = r/m16
 val r32/m16 = r/m 16 reg32-rex
+val r64/m16 = r/m 16 reg64-rex
 val r/m32 = r/m 32 reg32-rex
 val r/m64 = r/m 64 reg64-rex
 val mm/m64 = r/m 64 mm-rex
@@ -4957,6 +4968,46 @@ val / [0x0f 0xad /r]
  | opndsz? = ternop SHLD r/m16 r16 cl
  | rexw? = ternop SHLD r/m64 r64 cl
  | otherwise = ternop SHLD r/m32 r32 cl
+
+### SHUFPD
+###  - Shuffle Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0xc6 /r] = ternop SHUFPD xmm128 xmm/m128 imm8
+val /vex/66/0f/vexv [0xc6 /r]
+ | vex128? = varity4 VSHUFPD xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VSHUFPD ymm256 v/ymm ymm/m256 imm8
+
+### SHUFPS
+###  - Shuffle Packed Single-Precision Floating-Point Values
+val / [0x0f 0xc6 /r] = ternop SHUFPS xmm128 xmm/m128 imm8
+val /vex/0f/vexv [0xc6 /r]
+ | vex128? = varity4 VSHUFPS xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VSHUFPS ymm256 v/ymm ymm/m256 imm8
+
+### SIDT
+###  - Store Interrupt Descriptor Table Register
+val / [0x0f 0x01 /1-mem]
+ | mode32? = unop SIDT m48
+ | mode64? = unop SIDT m80
+
+### SLDT
+###  - Store Local Descriptor Table Register
+val / [0x0f 0x00 /0]
+ | rexw? = unop SLDT r64/m16
+ | otherwise = unop SLDT r/m16
+
+### SMSW
+###  - Store Machine Status Word
+val / [0x0f 0x01 /4]
+ | opndsz? = unop SMSW r/m16
+ | rexw? = unop SMSW r64/m16
+ | otherwise = unop SMSW r32/m16
+
+### SQRTPD
+###  - Compute Square Roots of Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x51 /r] = binop SQRTPD xmm128 xmm/m128
+val /vex/66/0f [0x51 /r]
+ | vex128? = varity2 VSQRTPD xmm128 xmm/m128
+ | vex256? = varity2 VSQRTPD ymm256 ymm/m256
 
 ### STOS/STOSB/STOSW/STOSD/STOSQ
 ###  - Store String
