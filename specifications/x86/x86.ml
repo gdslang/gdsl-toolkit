@@ -1061,6 +1061,8 @@ type insn =
  | RDFSBASE of arity1
  | RDGSBASE of arity1
  | RDMSR
+ | RDPMC
+ | RDRAND of arity1
 
  | RDTSC
  | RDTSCP
@@ -1895,6 +1897,7 @@ val reg/nomem reg = do
    end
 end
 
+val r/nomem16 = reg/nomem reg16-rex
 val r/nomem32 = reg/nomem reg32-rex
 val r/nomem64 = reg/nomem reg64-rex
 val xmm/nomem128 = reg/nomem xmm-rex
@@ -4727,6 +4730,17 @@ val /f3 [0x0f 0xae /1-nomem]
 ### RDMSR
 ###  - Read from Model Specific Register
 val / [0x0f 0x32] = arity0 RDMSR
+
+### RDPMC
+###  - Read Performance-Monitoring Counters
+val / [0x0f 0x33] = arity0 RDPMC
+
+### RDRAND
+###  - Read Random Number
+val / [0x0f 0xc7 /6-nomem]
+ | opndsz? = unop RDRAND r/nomem16
+ | rexw? = unop RDRAND r/nomem64
+ | otherwise = unop RDRAND r/nomem32
 
 ### RDTSC
 ###  - Read Time-Stamp Counter
