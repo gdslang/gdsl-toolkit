@@ -1041,12 +1041,17 @@ type insn =
  | PUNPCKHWD of arity2
  | PUNPCKHDQ of arity2
  | PUNPCKHQDQ of arity2
-
  | PUNPCKLDQ of arity2
  | PUNPCKLWD of arity2
  | PUNPCKLBW of arity2
  | PUNPCKLQDQ of arity2
  | PUSH of arity1
+ | PUSHA
+ | PUSHAD
+ | PUSHF
+ | PUSHFD
+ | PUSHFQ
+
  | PXOR of arity2
  | RCL of arity2
  | RCR of arity2
@@ -1323,11 +1328,11 @@ type insn =
  | VPUNPCKHWD of varity
  | VPUNPCKHDQ of varity
  | VPUNPCKHQDQ of varity
- 
  | VPUNPCKLBW of varity
  | VPUNPCKLDQ of varity
  | VPUNPCKLQDQ of varity
  | VPUNPCKLWD of varity
+
  | VUCOMISD of varity
  | VXORPS of varity
  | XADD of arity2
@@ -4605,6 +4610,19 @@ val / [0x16] = unop PUSH ds
 val / [0x06] = unop PUSH es
 val / [0x0f 0xa0] = unop PUSH fs
 val / [0x0f 0xa8] = unop PUSH gs
+
+### PUSHA/PUSHAD
+###  - Push All General-Purpose Registers
+val / [0x60]
+ | mode32? & opndsz? = arity0 PUSHA
+ | mode32? = arity0 PUSHAD
+
+### PUSHF/PUSHFD
+###  - Push EFLAGS Register onto the Stack
+val / [0x9c]
+ | opndsz? = arity0 PUSHF
+ | mode32? = arity0 PUSHFD
+ | mode64? = arity0 PUSHFQ
 
 ### PXOR
 ###  - Logical Exclusive OR
