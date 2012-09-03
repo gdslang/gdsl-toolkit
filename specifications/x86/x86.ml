@@ -1131,11 +1131,12 @@ type insn =
  | STD
  | STI
  | STMXCSR of arity1
-
  | STOSB
  | STOSD
  | STOSQ
  | STOSW
+ | STR of arity1
+
  | SUB of arity2
  | SYSCALL
  | TEST of arity2
@@ -5061,6 +5062,10 @@ val / [0xab]
  | opndsz? = arity0 STOSW
  | rexw? = arity0 STOSQ
  | otherwise = arity0 STOSD
+
+### STR
+###  - Store Task Register
+val / [0x0f 0x00 /1] = unop STR r/m16
 
 ### SUB
 ###  - Subtract
