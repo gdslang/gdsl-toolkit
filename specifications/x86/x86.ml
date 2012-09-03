@@ -1136,19 +1136,20 @@ type insn =
  | STOSQ
  | STOSW
  | STR of arity1
+ | SUB of arity2
  | SUBPD of arity2
  | SUBPS of arity2
  | SUBSD of arity2
  | SUBSS of arity2
  | SWAPGS
+ | SYSCALL
  | SYSENTER
  | SYSEXIT
  | SYSRET
-
- | SUB of arity2
- | SYSCALL
  | TEST of arity2
  | UCOMISD of arity2
+ | UCOMISS of arity2
+
  | UD2
  | VADDPD of varity
  | VADDPS of varity
@@ -1390,8 +1391,9 @@ type insn =
  | VSUBPS of varity
  | VSUBSD of varity
  | VSUBSS of varity
-
  | VUCOMISD of varity
+ | VUCOMISS of varity
+
  | VXORPS of varity
  | XADD of arity2
  | XCHG of arity2
@@ -5176,6 +5178,11 @@ val / [0x85 /r]
 ###  - Unordered Compare Scalar Double-Precision Floating-Point Values and Set EFLAGS
 val /66 [0x0f 0x2e /r] = binop UCOMISD xmm128 xmm/m64
 val /vex/66/0f [0x2e /r] = varity2 VUCOMISD xmm128 xmm/m64
+
+### UCOMISS
+###  - Unordered Compare Scalar Single-Precision Floating-Point Values and Set EFLAGS
+val / [0x0f 0x2e /r] = binop UCOMISS xmm128 xmm/m32
+val /vex/0f [0x2e /r] = varity2 VUCOMISS xmm128 xmm/m32
 
 ### UD2
 ###  - Undefined Instruction
