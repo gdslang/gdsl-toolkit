@@ -1141,6 +1141,9 @@ type insn =
  | SUBSD of arity2
  | SUBSS of arity2
  | SWAPGS
+ | SYSENTER
+ | SYSEXIT
+ | SYSRET
 
  | SUB of arity2
  | SYSCALL
@@ -5135,7 +5138,21 @@ val / [0x0f 0x01 /7] = arity0 SWAPGS
 ###  - Fast System Call
 val / [0x0f 0x05] = arity0 SYSCALL
 
-### 
+### SYSENTER
+###  - Fast System Call
+val / [0x0f 0x34] = arity0 SYSENTER
+
+### SYSEXIT
+###  - Fast Return from Fast System Call
+val / [0x0f 0x35]
+ | rexw? = arity0 SYSEXIT
+ | otherwise = arity0 SYSEXIT
+
+### SYSRET
+###  - Return From Fast System Call
+val / [0x0f 0x07]
+ | rexw? = arity0 SYSRET
+ | otherwise = arity0 SYSRET
 
 ### TEST
 ###  - Logical Compare
