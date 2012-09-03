@@ -1125,6 +1125,12 @@ type insn =
  | SMSW of arity1
  | SQRTPD of arity2
  | SQRTPS of arity2
+ | SQRTSD of arity2
+ | SQRTSS of arity2
+ | STC
+ | STD
+ | STI
+ | STMXCSR of arity1
 
  | STOSB
  | STOSD
@@ -1368,6 +1374,9 @@ type insn =
  | VSHUFPS of varity
  | VSQRTPD of varity
  | VSQRTPS of varity
+ | VSQRTSD of varity
+ | VSQRTSS of varity
+ | VSTMXCSR of varity
 
  | VUCOMISD of varity
  | VXORPS of varity
@@ -5017,6 +5026,33 @@ val / [0x0f 0x51 /r] = binop SQRTPS xmm128 xmm/m128
 val /vex/0f [0x51 /r]
  | vex128? = varity2 VSQRTPS xmm128 xmm/m128
  | vex256? = varity2 VSQRTPS ymm256 ymm/m256
+
+### SQRTSD
+###  - Compute Square Root of Scalar Double-Precision Floating-Point Value
+val /f2 [0x0f 0x51 /r] = binop SQRTSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x51 /r] = varity3 VSQRTSD xmm128 v/xmm xmm/m64
+
+### SQRTSS
+###  - Compute Square Root of Scalar Single-Precision Floating-Point Value
+val /f3 [0x0f 0x51 /r] = binop SQRTSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x51 /r] = varity3 VSQRTSS xmm128 v/xmm xmm/m32
+
+### STC
+###  - Set Carry Flag
+val / [0xf9] = arity0 STC
+
+### STD
+###  - Set Direction Flag
+val / [0xfd] = arity0 STD
+
+### STI
+###  - Set Interrupt Flag
+val / [0xfb] = arity0 STI
+
+### STMXCSR
+###  - Store MXCSR Register State
+val / [0x0f 0xae /3-mem] = unop STMXCSR m32
+val /vex/0f [0xae /3-mem] | vex128? = varity1 VSTMXCSR m32
 
 ### STOS/STOSB/STOSW/STOSD/STOSQ
 ###  - Store String
