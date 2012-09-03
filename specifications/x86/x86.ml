@@ -1149,8 +1149,11 @@ type insn =
  | TEST of arity2
  | UCOMISD of arity2
  | UCOMISS of arity2
-
  | UD2
+ | UNPCKHPD of arity2
+ | UNPCKHPS of arity2
+ | UNPCKLPD of arity2
+ | UNPCKLPS of arity2 
  | VADDPD of varity
  | VADDPS of varity
  | VADDSD of varity
@@ -1202,7 +1205,10 @@ type insn =
  | VDIVSS of varity
  | VDPPD of varity
  | VDPPS of varity
+ | VERR of arity1
+ | VERW of arity1
  | VEXTRACTPS of varity
+ | VEXTRACTF128 of varity
  | VHADDPD of varity
  | VHADDPS of varity
  | VHSUBPD of varity
@@ -1393,6 +1399,15 @@ type insn =
  | VSUBSS of varity
  | VUCOMISD of varity
  | VUCOMISS of varity
+ | VUNPCKHPD of varity
+ | VUNPCKHPS of varity
+ | VUNPCKLPD of varity
+ | VUNPCKLPS of varity
+ | VBROADCASTSS of varity
+ | VBROADCASTSD of varity
+ | VBROADCASTF128 of varity
+ | VCVTPH2PS of varity
+ | VCVTPS2PH of varity
 
  | VXORPS of varity
  | XADD of arity2
@@ -5187,6 +5202,62 @@ val /vex/0f [0x2e /r] = varity2 VUCOMISS xmm128 xmm/m32
 ### UD2
 ###  - Undefined Instruction
 val / [0x0f 0x0b] = arity0 UD2
+
+### UNPCKHPD
+###  - Unpack and Interleave High Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x15 /r] = binop UNPCKHPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x15 /r]
+ | vex128? = varity3 VUNPCKHPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VUNPCKHPD ymm256 v/ymm ymm/m256
+
+### UNPCKHPS
+###  - Unpack and Interleave High Packed Single-Precision Floating-Point Values
+val / [0x0f 0x15 /r] = binop UNPCKHPS xmm128 xmm/m128
+val /vex/0f/vexv [0x15 /r]
+ | vex128? = varity3 VUNPCKHPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VUNPCKHPS ymm256 v/ymm ymm/m256
+
+### UNPCKLPD
+###  - Unpack and Interleave Low Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x14 /r] = binop UNPCKLPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x14 /r]
+ | vex128? = varity3 VUNPCKLPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VUNPCKLPD ymm256 v/ymm ymm/m256
+
+### UNPCKLPS
+###  - Unpack and Interleave Low Packed Single-Precision Floating-Point Values
+val / [0x0f 0x14 /r] = binop UNPCKLPS xmm128 xmm/m128
+val /vex/0f/vexv [0x14 /r]
+ | vex128? = varity3 VUNPCKLPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VUNPCKLPS ymm256 v/ymm ymm/m256
+
+### VBROADCAST
+###  - Load with Broadcast
+val /vex/66/0f/38 [0x18 /r-mem]
+ | vex128? & vexw0? = varity2 VBROADCASTSS xmm128 m32
+ | vex256? & vexw0? = varity2 VBROADCASTSS ymm256 m32
+val /vex/66/0f/38 [0x19 /r-mem] | vex256? & vexw0? = varity2 VBROADCASTSD ymm256 m64
+val /vex/66/0f/38 [0x1a /r-mem] | vex256? & vexw0? = varity2 VBROADCASTF128 ymm256 m128
+
+### VCVTPH2PS
+###  - Convert 16-bit FP Values to Single-Precision FP Values
+val /vex/66/0f/38 [0x13 /r]
+ | vex256? & vexw0? = varity2 VCVTPH2PS ymm256 xmm/m128
+ | vex128? & vexw0? = varity2 VCVTPH2PS xmm128 xmm/m64
+
+### VCVTPS2PH
+val /vex/66/0f/3a [0x1d /r]
+ | vex256? & vexw0? = varity3 VCVTPS2PH xmm/m128 ymm256 imm8
+ | vex128? & vexw0? = varity3 VCVTPS2PH xmm/m64 xmm128 imm8
+
+### VERR/VERW
+###  - Verify a Segment for Reading or Writing
+val / [0x0f 0x00 /4] = unop VERR r/m16
+val / [0x0f 0x00 /5] = unop VERW r/m16
+
+### VEXTRACTF128
+###  - Extract Packed Floating-Point Values
+val /vex/66/0f/3a [0x19 /r] | vex256? & vexw0? = varity3 VEXTRACTF128 xmm/m128 ymm256 imm8
 
 ### XADD
 ###  - Exchange and Add
