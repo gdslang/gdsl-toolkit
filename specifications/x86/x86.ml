@@ -1140,6 +1140,7 @@ type insn =
  | SUBPS of arity2
  | SUBSD of arity2
  | SUBSS of arity2
+ | SWAPGS
 
  | SUB of arity2
  | SYSCALL
@@ -5133,6 +5134,8 @@ val / [0x0f 0x01 /7] = arity0 SWAPGS
 ### SYSCALL
 ###  - Fast System Call
 val / [0x0f 0x05] = arity0 SYSCALL
+
+### 
 
 ### TEST
 ###  - Logical Compare
