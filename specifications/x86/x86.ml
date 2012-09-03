@@ -1136,6 +1136,10 @@ type insn =
  | STOSQ
  | STOSW
  | STR of arity1
+ | SUBPD of arity2
+ | SUBPS of arity2
+ | SUBSD of arity2
+ | SUBSS of arity2
 
  | SUB of arity2
  | SYSCALL
@@ -1378,6 +1382,10 @@ type insn =
  | VSQRTSD of varity
  | VSQRTSS of varity
  | VSTMXCSR of varity
+ | VSUBPD of varity
+ | VSUBPS of varity
+ | VSUBSD of varity
+ | VSUBSS of varity
 
  | VUCOMISD of varity
  | VXORPS of varity
@@ -5093,6 +5101,34 @@ val / [0x2b /r]
  | opndsz? = binop SUB r16 r/m16
  | rexw? = binop SUB r64 r/m64
  | otherwise = binop SUB r32 r/m32
+
+### SUBPD
+###  - Subtract Packed Double-Precision Floating-Point Values
+val /66 [0x0f 0x5c /r] = binop SUBPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5c /r]
+ | vex128? = varity3 VSUBPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VSUBPD ymm256 v/ymm ymm/m256
+
+### SUBPS
+###  - Subtract Packed Single-Precision Floating-Point Values
+val / [0x0f 0x5c /r] = binop SUBPS xmm128 xmm/m128
+val /vex/0f/vexv [0x5c /r]
+ | vex128? = varity3 VSUBPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VSUBPS ymm256 v/ymm ymm/m256
+
+### SUBSD
+###  - Subtract Scalar Double-Precision Floating-Point Values
+val /f2 [0x0f 0x5c /r] = binop SUBSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5c /r] = varity3 VSUBSD xmm128 v/xmm xmm/m64
+
+### SUBSS
+###  - Subtract Scalar Single-Precision Floating-Point Values
+val /f3 [0x0f 0x5c /r] = binop SUBSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5c /r] = varity3 VSUBSS xmm128 v/xmm xmm/m32
+
+### SWAPGS
+###  - Swap GS Base Register
+val / [0x0f 0x01 /7] = arity0 SWAPGS
 
 ### SYSCALL
 ###  - Fast System Call
