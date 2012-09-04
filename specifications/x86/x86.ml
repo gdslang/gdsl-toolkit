@@ -1429,10 +1429,16 @@ type insn =
  | XGETBV
  | XLAT
  | XLATB
-
  | XOR of arity2
  | XORPD of arity2
  | XORPS of arity2
+ | XRSTOR of arity1
+ | XRSTOR64 of arity1
+ | XSAVE of arity1
+ | XSAVE64 of arity1
+ | XSAVEOPT of arity1
+ | XSAVEOPT64 of arity1
+ | XSETBV
 
 val al = return (REG AL)
 val ah = return (REG AH)
@@ -1987,6 +1993,7 @@ val xmm/nomem128 = reg/nomem xmm-rex
 val mm/nomem64 = reg/nomem mm-rex
 
 val m0 = r/m0
+val mX = m0
 val m8 = r/m8
 val m16 = r/m16
 val m32 = r/m32
@@ -5425,3 +5432,24 @@ val /vex/66/0f/vexv [0x57 /r]
  | vex128? = varity3 VXORPS xmm128 v/xmm xmm/m128
  | otherwise = varity3 VXORPS ymm256 v/ymm ymm/m256
 
+### XRSTOR
+###  - Restore Processor Extended States
+val / [0x0f 0xae /5-mem]
+ | rexw? = unop XRSTOR64 mX
+ | otherwise = unop XRSTOR mX
+
+### XSAVE
+###  - Save Processor Extended States
+val / [0x0f 0xae /4-mem]
+ | rexw? = unop XSAVE64 mX
+ | otherwise = unop XSAVE mX
+
+### XSAVEOPT
+###  - Save Processor Extended States Optimized
+val / [0x0f 0xae /6-mem]
+ | rexw? = unop XSAVEOPT64 mX
+ | otherwise = unop XSAVEOPT mX
+
+### XSETBV
+###  - Set Extended Control Register
+val / [0x0f 0x01 0xd1] = arity0 XSETBV
