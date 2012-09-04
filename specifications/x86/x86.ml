@@ -277,7 +277,7 @@ end
 val p/vex/f2/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 11'] = do
    update
       @{rex='1',
-		rexw=w,
+	rexw=w,
         vexw=w,
         rexr=not r,
         rexb=not b,
@@ -5344,11 +5344,11 @@ val / [0x0f 0x09] = arity0 WBINVD
 ### WRFSBASE/WRGSBASE
 ###  - Write FS/GS Segment Base
 val /f3 [0x0f 0xae /2-nomem]
- | mode64? & rexw? = unop WRFSBASE r64
- | mode64? = unop WRFSBASE r32
+ | mode64? & rexw? = unop WRFSBASE r/nomem64
+ | mode64? = unop WRFSBASE r/nomem32
 val /f3 [0x0f 0xae /3-nomem]
- | mode64? & rexw? = unop WRGSBASE r64
- | mode64? = unop WRGSBASE r32
+ | mode64? & rexw? = unop WRGSBASE r/nomem64
+ | mode64? = unop WRGSBASE r/nomem32
 
 ### WRMSR
 ###  - Write to Model Specific Register
