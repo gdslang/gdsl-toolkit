@@ -1424,10 +1424,12 @@ type insn =
  | WRFSBASE of arity1
  | WRGSBASE of arity1
  | WRMSR
-
  | XADD of arity2
  | XCHG of arity2
  | XGETBV
+ | XLAT
+ | XLATB
+
  | XOR of arity2
  | XORPD of arity2
  | XORPS of arity2
@@ -5377,6 +5379,13 @@ val / [0x87 /r]
 ### XGETBV
 ###  - Get Value of Extended Control Register
 val / [0x0f 0x01 0xd0] = arity0 XGETBV
+
+### XLAT/XLATB
+###  - Table Look-up Translation
+val / [0xd7]
+ | opndsz? = arity0 XLAT
+ | rexw? = arity0 XLATB
+ | otherwise = arity0 XLATB
 
 ### XOR
 ###  - Logical Exclusive OR
