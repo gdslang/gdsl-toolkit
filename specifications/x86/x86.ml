@@ -277,7 +277,7 @@ end
 val p/vex/f2/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 11'] = do
    update
       @{rex='1',
-        rexw=w,
+		rexw=w,
         vexw=w,
         rexr=not r,
         rexb=not b,
@@ -1408,8 +1408,23 @@ type insn =
  | VBROADCASTF128 of varity
  | VCVTPH2PS of varity
  | VCVTPS2PH of varity
-
+ | VINSERTF128 of varity
+ | VMASKMOVPS of varity
+ | VMASKMOVPD of varity
+ | VPERMILPD of varity
+ | VPERMILPS of varity
+ | VPERM2F128 of varity
+ | VTESTPS of varity
+ | VTESTPD of varity
+ | VZEROALL of varity
+ | VZEROUPPER of varity
  | VXORPS of varity
+ | WAIT
+ | WBINVD
+ | WRFSBASE of arity1
+ | WRGSBASE of arity1
+ | WRMSR
+
  | XADD of arity2
  | XCHG of arity2
  | XGETBV
@@ -5258,6 +5273,86 @@ val / [0x0f 0x00 /5] = unop VERW r/m16
 ### VEXTRACTF128
 ###  - Extract Packed Floating-Point Values
 val /vex/66/0f/3a [0x19 /r] | vex256? & vexw0? = varity3 VEXTRACTF128 xmm/m128 ymm256 imm8
+
+### VINSERTF128
+###  - Insert Packed Floating-Point Values
+val /vex/66/0f/3a/vexv [0x18 /r] | vex256? & vexw0? = varity4 VINSERTF128 ymm256 v/ymm xmm/m128 imm8
+
+### VMASKMOV
+###  - Conditional SIMD Packed Loads and Stores
+val /vex/66/0f/38/vexv [0x2c /r-mem]
+ | vex128? & vexw0? = varity3 VMASKMOVPS xmm128 v/xmm m128
+ | vex256? & vexw0? = varity3 VMASKMOVPS ymm256 v/ymm m256
+val /vex/66/0f/38/vexv [0x2d /r-mem]
+ | vex128? & vexw0? = varity3 VMASKMOVPD xmm128 v/xmm m128
+ | vex256? & vexw0? = varity3 VMASKMOVPD ymm256 v/ymm m256
+val /vex/66/0f/38/vexv [0x2e /r-mem]
+ | vex128? & vexw0? = varity3 VMASKMOVPS m128 v/xmm xmm128
+ | vex256? & vexw0? = varity3 VMASKMOVPS m256 v/ymm ymm256
+val /vex/66/0f/38/vexv [0x2f /r-mem]
+ | vex128? & vexw0? = varity3 VMASKMOVPD m128 v/xmm xmm128
+ | vex256? & vexw0? = varity3 VMASKMOVPD m256 v/ymm ymm256
+
+### VPERMILPD
+###  - Permute Double-Precision Floating-Point Values
+val /vex/66/0f/38/vexv [0x0d /r]
+ | vex128? & vexw0? = varity3 VPERMILPD xmm128 v/xmm xmm/m128
+ | vex256? & vexw0? = varity3 VPERMILPD ymm256 v/ymm ymm/m256
+val /vex/66/0f/3a [0x05 /r]
+ | vex128? & vexw0? = varity3 VPERMILPD xmm128 xmm/m128 imm8
+ | vex256? & vexw0? = varity3 VPERMILPD ymm256 ymm/m256 imm8
+
+### VPERMILPS
+###  - Permute Single-Precision Floating-Point Values
+val /vex/66/0f/38/vexv [0x0c /r]
+ | vex128? & vexw0? = varity3 VPERMILPS xmm128 v/xmm xmm/m128
+ | vex256? & vexw0? = varity3 VPERMILPS ymm256 v/ymm ymm/m256
+val /vex/66/0f/3a [0x04 /r]
+ | vex128? & vexw0? = varity3 VPERMILPS xmm128 xmm/m128 imm8
+ | vex256? & vexw0? = varity3 VPERMILPS ymm256 ymm/m256 imm8
+
+### VPERM2F128
+###  - Permute Floating-Point Values
+val /vex/66/0f/3a/vexv [0x06 /r] | vex256? & vexw0? = varity4 VPERM2F128 ymm256 v/ymm ymm/m256 imm8
+
+### VTESTPD/VTESTPS
+###  - Packed Bit Test
+val /vex/66/0f/38 [0x0e /r]
+ | vex128? & vexw0? = varity2 VTESTPS xmm128 xmm/m128
+ | vex256? & vexw0? = varity2 VTESTPS ymm256 ymm/m256
+val /vex/66/0f/38 [0x0f /r]
+ | vex128? & vexw0? = varity2 VTESTPD xmm128 xmm/m128
+ | vex256? & vexw0? = varity2 VTESTPD ymm256 ymm/m256
+
+### VZEROALL
+###  - Zero All YMM Registers
+val /vex/0f [0x77]
+ | vex256? = varity0 VZEROALL
+
+### VZEROUPPER
+###  - Zero Upper Bits of YMM Registers
+ | vex128? = varity0 VZEROUPPER
+
+### WAIT/FWAIT
+###  - Wait
+val / [0x9b] = arity0 WAIT
+
+### WBINVD
+###  - Write Back and Invalidate Cache
+val / [0x0f 0x09] = arity0 WBINVD
+
+### WRFSBASE/WRGSBASE
+###  - Write FS/GS Segment Base
+val /f3 [0x0f 0xae /2-nomem]
+ | mode64? & rexw? = unop WRFSBASE r64
+ | mode64? = unop WRFSBASE r32
+val /f3 [0x0f 0xae /3-nomem]
+ | mode64? & rexw? = unop WRGSBASE r64
+ | mode64? = unop WRGSBASE r32
+
+### WRMSR
+###  - Write to Model Specific Register
+val / [0x0f 0x30] = arity0 WRMSR
 
 ### XADD
 ###  - Exchange and Add
