@@ -1949,27 +1949,6 @@ val r/m ptrTy reg = do
    end
 end
 
-val r/m0 = r/m 0 reg8-rex
-val r/m8 = r/m 8 reg8-rex
-val r/m16 = r/m 16 reg16-rex
-val r16/m16 = r/m16
-val r32/m16 = r/m 16 reg32-rex
-val r64/m16 = r/m 16 reg64-rex
-val r/m32 = r/m 32 reg32-rex
-val r/m64 = r/m 64 reg64-rex
-val mm/m64 = r/m 64 mm-rex
-val mm/m32 = r/m 32 mm-rex
-val xmm/m128 = r/m 128 xmm-rex
-val xmm/m64 = r/m 64 xmm-rex
-val xmm/m32 = r/m 32 xmm-rex
-val xmm/m16 = r/m 16 xmm-rex
-val ymm/m256 = r/m 256 ymm-rex
-val ymm/m128 = r/m 128 ymm-rex
-
-val m16/16 = r/m 32 reg16-rex
-val m16/32 = r/m 48 reg32-rex
-val m16/64 = r/m 80 reg64-rex
-
 val v/xmm = do
    v <- query $vexv;
    return (xmm v)
@@ -1987,6 +1966,42 @@ val reg/reg reg = do
    end
 end
 
+val r/rexb reg = do
+   mod <- query $rexb;
+   r <- query $reg/opcode;
+   return (reg mod r)
+end
+
+val r/rexr reg = do
+   mod <- query $rexr;
+   r <- query $reg/opcode;
+   return (reg mod r)
+end
+
+val r/m0 = r/m 0 reg8-rex
+val r/m8 = r/m 8 reg8-rex
+val r/m16 = r/m 16 reg16-rex
+val r16/m16 = r/m16
+val r32/m16 = r/m 16 reg32-rex
+val r64/m16 = r/m 16 reg64-rex
+val r/m32 = r/m 32 reg32-rex
+val r/m64 = r/m 64 reg64-rex
+val mm/m64 = r/m 64 mm-rex
+val mm/m32 = r/m 32 mm-rex
+val xmm/m128 = r/m 128 xmm-rex
+val xmm/m64 = r/m 64 xmm-rex
+val xmm/m32 = r/m 32 xmm-rex
+val xmm/m16 = r/m 16 xmm-rex
+val ymm/m256 = r/m 256 ymm-rex
+val ymm/m128 = r/m 128 ymm-rex
+val st/m16 = r/m 16 sti
+val st/m32 = r/m 32 sti
+val st/m64 = r/m 64 sti
+
+val m16/16 = r/m 32 reg16-rex
+val m16/32 = r/m 48 reg32-rex
+val m16/64 = r/m 80 reg64-rex
+
 val r/reg16 = reg/reg reg16-rex
 val r/reg32 = reg/reg reg32-rex
 val r/reg64 = reg/reg reg64-rex
@@ -2002,29 +2017,15 @@ val m32 = r/m32
 val m64 = r/m64
 val m128 = xmm/m128
 val m256 = ymm/m256
-val m80fp = r/m 80 reg64-rex #TODO: check
 
 val m48 = r/m 48 reg64-rex #TODO: check
 val m80 = r/m 80 reg64-rex #TODO: check
+val m80fp = r/m 80 reg64-rex #TODO: check
+val m14/28byte = m80fp #TODO: fix
+val m2byte = m16 #TODO: check
 val m94byte = r/m 752 reg64-rex #TODO: check
 val m108byte = r/m 864 reg64-rex #TODO: check
 val m512byte = r/m 4096 reg64-rex #TODO: check
-
-val st/m16 = r/m 16 sti
-val st/m32 = r/m 32 sti
-val st/m64 = r/m 64 sti
-
-val r/rexb reg = do
-   mod <- query $rexb;
-   r <- query $reg/opcode;
-   return (reg mod r)
-end
-
-val r/rexr reg = do
-   mod <- query $rexr;
-   r <- query $reg/opcode;
-   return (reg mod r)
-end
 
 val r8 = r/rexr reg8-rex
 val r16 = r/rexr reg16-rex
@@ -3015,9 +3016,6 @@ val / [0xdd /1-mem] = unop FISTTP m64
 val / [0xd9 /0] = unop FLD st/m32
 val / [0xdd /0-mem] = unop FLD m64
 val / [0xdb /5-mem] = unop FLD m80fp
-
-val m14/28byte = m80fp #TODO: fix
-val m2byte = m16 #TODO: check
 
 ### FLD1/FLDL2T/FLDL2E/FLDPI/FLDLG2/FLDLN2/FLDZ
 ###  - Load Constant
