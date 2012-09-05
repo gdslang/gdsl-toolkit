@@ -1608,7 +1608,7 @@ val st-reg n =
 
 val sti extension n = st-reg (extension ^ n)
 val st n = return (st-reg n)
-val st/i n = return (st-reg ('0' ^ n))
+#val st/i n = return (st-reg ('0' ^ n))
 val st-rex rex i = st-reg ('0' ^ i)
 
 val reg8 n =
@@ -2895,9 +2895,9 @@ val / [0xd9 0xe1] = arity0 FABS
 ###  - Add
 val / [0xd8 /0] = binop FADD st0 st/m32
 val / [0xdc /0-mem] = binop FADD st0 m64
-val / [0xdc '11000 i:3'] = binop FADD (st/i i) st0
+val / [0xdc /0-reg] = binop FADD st/nomem st0
 val / [0xda /0-mem] = unop FIADD m32
-val / [0xde '11000 i:3'] = binop FADDP (st/i i) st0
+val / [0xde /0-reg] = binop FADDP st/nomem st0
 val / [0xde /0-mem] = unop FIADD m16
 
 ### FBLD
@@ -2919,14 +2919,14 @@ val / [0xdb 0xe2] = arity0 FNCLEX
 
 ### FCMOVcc
 ###  - Floating-Point Conditional Move
-val / [0xda '11000 i:3'] = binop FCMOVB st0 (st/i i)
-val / [0xda '11001 i:3'] = binop FCMOVE st0 (st/i i)
-val / [0xda '11010 i:3'] = binop FCMOVBE st0 (st/i i)
-val / [0xda '11011 i:3'] = binop FCMOVU st0 (st/i i)
-val / [0xdb '11000 i:3'] = binop FCMOVNB st0 (st/i i)
-val / [0xdb '11001 i:3'] = binop FCMOVNE st0 (st/i i)
-val / [0xdb '11010 i:3'] = binop FCMOVNBE st0 (st/i i)
-val / [0xdb '11011 i:3'] = binop FCMOVNU st0 (st/i i)
+val / [0xda /0-reg] = binop FCMOVB st0 st/nomem
+val / [0xda /1-reg] = binop FCMOVE st0 st/nomem
+val / [0xda /2-reg] = binop FCMOVBE st0 st/nomem
+val / [0xda /3-reg] = binop FCMOVU st0 st/nomem
+val / [0xdb /0-reg] = binop FCMOVNB st0 st/nomem
+val / [0xdb /1-reg] = binop FCMOVNE st0 st/nomem
+val / [0xdb /2-reg] = binop FCMOVNBE st0 st/nomem
+val / [0xdb /3-reg] = binop FCMOVNU st0 st/nomem
 
 ### FCOM/FCOMP/FCOMPP
 ###  - Compare Floating Point Values
@@ -2934,15 +2934,15 @@ val / [0xd8 /2] = unop FCOM st/m32
 val / [0xdc /2-mem] = unop FCOM m64
 val / [0xd8 /3] = unop FCOMP st/m32
 val / [0xdc /3-mem] = unop FCOMP m64
-val / [0xd8 '11011 i:3'] = unop FCOMP (st/i i)
+val / [0xd8 /3-reg] = unop FCOMP st/nomem
 val / [0xde 0xd9] = arity0 FCOMPP
 
 ### FCOMI/FCOMIP/FUCOMI/FUCOMIP
 ###  - Compare Floating Point Values and Set EFLAGS
-val / [0xdb '11110 i:3'] = binop FCOMI st0 (st/i i)
-val / [0xdf '11110 i:3'] = binop FCOMIP st0 (st/i i)
-val / [0xdb '11101 i:3'] = binop FUCOMI st0 (st/i i)
-val / [0xdf '11101 i:3'] = binop FUCOMIP st0 (st/i i)
+val / [0xdb /6-reg] = binop FCOMI st0 st/nomem
+val / [0xdf /6-reg] = binop FCOMIP st0 st/nomem
+val / [0xdb /5-reg] = binop FUCOMI st0 st/nomem
+val / [0xdf /5-reg] = binop FUCOMIP st0 st/nomem
 
 ### FCOS
 ###  - Cosine
@@ -2956,8 +2956,8 @@ val / [0xd9 0xf6] = arity0 FDECSTP
 ###  - Divide
 val / [0xd8 /6] = binop FDIV st0 st/m32
 val / [0xdc /6-mem] = binop FDIV st0 m64
-val / [0xdc '11111 i:3'] = binop FDIV (st/i i) st0
-val / [0xde '11111 i:3'] = binop FDIVP (st/i i) st0
+val / [0xdc /7-reg] = binop FDIV st/nomem st0
+val / [0xde /7-reg] = binop FDIVP st/nomem st0
 val / [0xda /6-mem] = binop FIDIV st0 m32
 val / [0xde /6-mem] = binop FIDIV st0 m16
 
@@ -2965,14 +2965,14 @@ val / [0xde /6-mem] = binop FIDIV st0 m16
 ###  - Reverse Divide
 val / [0xd8 /7] = binop FDIVR st0 st/m32
 val / [0xdc /7-mem] = binop FDIVR st0 m64
-val / [0xdc '11110 i:3'] = binop FDIVR (st/i i) st0
-val / [0xde '11110 i:3'] = binop FDIVRP (st/i i) st0
+val / [0xdc /6-reg] = binop FDIVR st/nomem st0
+val / [0xde /6-reg] = binop FDIVRP st/nomem st0
 val / [0xda /7-mem] = unop FIDIVR m32
 val / [0xde /7-mem] = unop FIDIVR m16
 
 ### FFREE
 ###  - Free Floating-Point Register
-val / [0xdd '11000 i:3'] = unop FFREE (st/i i)
+val / [0xdd /0-reg] = unop FFREE st/nomem
 
 ### FICOM/FICOMP
 ###  - Compare Integer
@@ -3041,8 +3041,8 @@ val / [0xd9 /4-mem] = unop FLDENV m14/28byte
 ###  - Multiply
 val / [0xd8 /1-mem] = binop FMUL st0 st/m32
 val / [0xdc /1-mem] = binop FMUL st0 m64
-val / [0xdc '11001 i:3'] = binop FMUL (st/i i) st0
-val / [0xde '11001 i:3'] = binop FMULP (st/i i) st0
+val / [0xdc /1-reg] = binop FMUL st/nomem st0
+val / [0xde /1-reg] = binop FMULP st/nomem st0
 val / [0xda /1-mem] = unop FIMUL m32
 val / [0xde /1-mem] = unop FIMUL m16
 
@@ -3130,8 +3130,8 @@ val / [0xdf 0xe0] = unop FNSTSW ax
 ###  - Subtract
 val / [0xd8 /4] = binop FSUB st0 st/m32
 val / [0xdc /4-mem] = binop FSUB st0 m64
-val / [0xdc '11101 i:3'] = binop FSUB (st/i i) st0
-val / [0xde '11101 i:3'] = binop FSUBP (st/i i) st0
+val / [0xdc /5-reg] = binop FSUB st/nomem st0
+val / [0xde /5-reg] = binop FSUBP st/nomem st0
 val / [0xda /4-mem] = unop FISUB m32
 val / [0xde /4-mem] = unop FISUB m16
 
@@ -3139,8 +3139,8 @@ val / [0xde /4-mem] = unop FISUB m16
 ###  - Reverse Subtract
 val / [0xd8 /5] = binop FSUBR st0 st/m32
 val / [0xdc /5-mem] = binop FSUBR st0 m64
-val / [0xdc '11100 i:3'] = binop FSUBR (st/i i) st0
-val / [0xde '11100 i:3'] = binop FSUBRP (st/i i) st0
+val / [0xdc /4-reg] = binop FSUBR st/nomem st0
+val / [0xde /4-reg] = binop FSUBRP st/nomem st0
 val / [0xda /5-mem] = unop FISUBR m32
 val / [0xde /5-mem] = unop FISUBR m16
 
@@ -3150,8 +3150,8 @@ val / [0xd9 0xe4] = arity0 FTST
 
 ### FUCOM/FUCOMP/FUCOMPP
 ###  - Unordered Compare Floating Point Values
-val / [0xdd '11100 i:3'] = unop FUCOM (st/i i)
-val / [0xdd '11101 i:3'] = unop FUCOMP (st/i i)
+val / [0xdd /4-reg] = unop FUCOM st/nomem
+val / [0xdd /5-reg] = unop FUCOMP st/nomem
 val / [0xda 0xe9] = arity0 FUCOMPP
 
 ### FXAM
@@ -3160,7 +3160,7 @@ val / [0xd9 0xe5] = arity0 FXAM
 
 ### FXCH
 ###  - Exchange Register Contents
-val / [0xd9 '11000 i:3'] = unop FXCH (st/i i)
+val / [0xd9 /0-reg] = unop FXCH st/nomem
 
 ### FXRSTOR
 ###  - Restore x87 FPU, MMX , XMM, and MXCSR State
