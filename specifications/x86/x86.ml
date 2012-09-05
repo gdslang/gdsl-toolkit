@@ -1980,19 +1980,19 @@ val v/ymm = do
    return (ymm v)
 end
 
-val reg/nomem reg = do
+val reg/reg reg = do
    mod <- query $mod;
    case mod of
       '11': r/m 0 reg
    end
 end
 
-val r/nomem16 = reg/nomem reg16-rex
-val r/nomem32 = reg/nomem reg32-rex
-val r/nomem64 = reg/nomem reg64-rex
-val xmm/nomem128 = reg/nomem xmm-rex
-val mm/nomem64 = reg/nomem mm-rex
-val st/nomem = reg/nomem st-rex
+val r/reg16 = reg/reg reg16-rex
+val r/reg32 = reg/reg reg32-rex
+val r/reg64 = reg/reg reg64-rex
+val xmm/reg128 = reg/reg xmm-rex
+val mm/reg64 = reg/reg mm-rex
+val st/reg = reg/reg st-rex
 
 val m0 = r/m0
 val mX = m0
@@ -2895,9 +2895,9 @@ val / [0xd9 0xe1] = arity0 FABS
 ###  - Add
 val / [0xd8 /0] = binop FADD st0 st/m32
 val / [0xdc /0-mem] = binop FADD st0 m64
-val / [0xdc /0-reg] = binop FADD st/nomem st0
+val / [0xdc /0-reg] = binop FADD st/reg st0
 val / [0xda /0-mem] = unop FIADD m32
-val / [0xde /0-reg] = binop FADDP st/nomem st0
+val / [0xde /0-reg] = binop FADDP st/reg st0
 val / [0xde /0-mem] = unop FIADD m16
 
 ### FBLD
@@ -2919,14 +2919,14 @@ val / [0xdb 0xe2] = arity0 FNCLEX
 
 ### FCMOVcc
 ###  - Floating-Point Conditional Move
-val / [0xda /0-reg] = binop FCMOVB st0 st/nomem
-val / [0xda /1-reg] = binop FCMOVE st0 st/nomem
-val / [0xda /2-reg] = binop FCMOVBE st0 st/nomem
-val / [0xda /3-reg] = binop FCMOVU st0 st/nomem
-val / [0xdb /0-reg] = binop FCMOVNB st0 st/nomem
-val / [0xdb /1-reg] = binop FCMOVNE st0 st/nomem
-val / [0xdb /2-reg] = binop FCMOVNBE st0 st/nomem
-val / [0xdb /3-reg] = binop FCMOVNU st0 st/nomem
+val / [0xda /0-reg] = binop FCMOVB st0 st/reg
+val / [0xda /1-reg] = binop FCMOVE st0 st/reg
+val / [0xda /2-reg] = binop FCMOVBE st0 st/reg
+val / [0xda /3-reg] = binop FCMOVU st0 st/reg
+val / [0xdb /0-reg] = binop FCMOVNB st0 st/reg
+val / [0xdb /1-reg] = binop FCMOVNE st0 st/reg
+val / [0xdb /2-reg] = binop FCMOVNBE st0 st/reg
+val / [0xdb /3-reg] = binop FCMOVNU st0 st/reg
 
 ### FCOM/FCOMP/FCOMPP
 ###  - Compare Floating Point Values
@@ -2934,15 +2934,15 @@ val / [0xd8 /2] = unop FCOM st/m32
 val / [0xdc /2-mem] = unop FCOM m64
 val / [0xd8 /3] = unop FCOMP st/m32
 val / [0xdc /3-mem] = unop FCOMP m64
-val / [0xd8 /3-reg] = unop FCOMP st/nomem
+val / [0xd8 /3-reg] = unop FCOMP st/reg
 val / [0xde 0xd9] = arity0 FCOMPP
 
 ### FCOMI/FCOMIP/FUCOMI/FUCOMIP
 ###  - Compare Floating Point Values and Set EFLAGS
-val / [0xdb /6-reg] = binop FCOMI st0 st/nomem
-val / [0xdf /6-reg] = binop FCOMIP st0 st/nomem
-val / [0xdb /5-reg] = binop FUCOMI st0 st/nomem
-val / [0xdf /5-reg] = binop FUCOMIP st0 st/nomem
+val / [0xdb /6-reg] = binop FCOMI st0 st/reg
+val / [0xdf /6-reg] = binop FCOMIP st0 st/reg
+val / [0xdb /5-reg] = binop FUCOMI st0 st/reg
+val / [0xdf /5-reg] = binop FUCOMIP st0 st/reg
 
 ### FCOS
 ###  - Cosine
@@ -2956,8 +2956,8 @@ val / [0xd9 0xf6] = arity0 FDECSTP
 ###  - Divide
 val / [0xd8 /6] = binop FDIV st0 st/m32
 val / [0xdc /6-mem] = binop FDIV st0 m64
-val / [0xdc /7-reg] = binop FDIV st/nomem st0
-val / [0xde /7-reg] = binop FDIVP st/nomem st0
+val / [0xdc /7-reg] = binop FDIV st/reg st0
+val / [0xde /7-reg] = binop FDIVP st/reg st0
 val / [0xda /6-mem] = binop FIDIV st0 m32
 val / [0xde /6-mem] = binop FIDIV st0 m16
 
@@ -2965,14 +2965,14 @@ val / [0xde /6-mem] = binop FIDIV st0 m16
 ###  - Reverse Divide
 val / [0xd8 /7] = binop FDIVR st0 st/m32
 val / [0xdc /7-mem] = binop FDIVR st0 m64
-val / [0xdc /6-reg] = binop FDIVR st/nomem st0
-val / [0xde /6-reg] = binop FDIVRP st/nomem st0
+val / [0xdc /6-reg] = binop FDIVR st/reg st0
+val / [0xde /6-reg] = binop FDIVRP st/reg st0
 val / [0xda /7-mem] = unop FIDIVR m32
 val / [0xde /7-mem] = unop FIDIVR m16
 
 ### FFREE
 ###  - Free Floating-Point Register
-val / [0xdd /0-reg] = unop FFREE st/nomem
+val / [0xdd /0-reg] = unop FFREE st/reg
 
 ### FICOM/FICOMP
 ###  - Compare Integer
@@ -3041,8 +3041,8 @@ val / [0xd9 /4-mem] = unop FLDENV m14/28byte
 ###  - Multiply
 val / [0xd8 /1-mem] = binop FMUL st0 st/m32
 val / [0xdc /1-mem] = binop FMUL st0 m64
-val / [0xdc /1-reg] = binop FMUL st/nomem st0
-val / [0xde /1-reg] = binop FMULP st/nomem st0
+val / [0xdc /1-reg] = binop FMUL st/reg st0
+val / [0xde /1-reg] = binop FMULP st/reg st0
 val / [0xda /1-mem] = unop FIMUL m32
 val / [0xde /1-mem] = unop FIMUL m16
 
@@ -3130,8 +3130,8 @@ val / [0xdf 0xe0] = unop FNSTSW ax
 ###  - Subtract
 val / [0xd8 /4] = binop FSUB st0 st/m32
 val / [0xdc /4-mem] = binop FSUB st0 m64
-val / [0xdc /5-reg] = binop FSUB st/nomem st0
-val / [0xde /5-reg] = binop FSUBP st/nomem st0
+val / [0xdc /5-reg] = binop FSUB st/reg st0
+val / [0xde /5-reg] = binop FSUBP st/reg st0
 val / [0xda /4-mem] = unop FISUB m32
 val / [0xde /4-mem] = unop FISUB m16
 
@@ -3139,8 +3139,8 @@ val / [0xde /4-mem] = unop FISUB m16
 ###  - Reverse Subtract
 val / [0xd8 /5] = binop FSUBR st0 st/m32
 val / [0xdc /5-mem] = binop FSUBR st0 m64
-val / [0xdc /4-reg] = binop FSUBR st/nomem st0
-val / [0xde /4-reg] = binop FSUBRP st/nomem st0
+val / [0xdc /4-reg] = binop FSUBR st/reg st0
+val / [0xde /4-reg] = binop FSUBRP st/reg st0
 val / [0xda /5-mem] = unop FISUBR m32
 val / [0xde /5-mem] = unop FISUBR m16
 
@@ -3150,8 +3150,8 @@ val / [0xd9 0xe4] = arity0 FTST
 
 ### FUCOM/FUCOMP/FUCOMPP
 ###  - Unordered Compare Floating Point Values
-val / [0xdd /4-reg] = unop FUCOM st/nomem
-val / [0xdd /5-reg] = unop FUCOMP st/nomem
+val / [0xdd /4-reg] = unop FUCOM st/reg
+val / [0xdd /5-reg] = unop FUCOMP st/reg
 val / [0xda 0xe9] = arity0 FUCOMPP
 
 ### FXAM
@@ -3160,7 +3160,7 @@ val / [0xd9 0xe5] = arity0 FXAM
 
 ### FXCH
 ###  - Exchange Register Contents
-val / [0xd9 /0-reg] = unop FXCH st/nomem
+val / [0xd9 /0-reg] = unop FXCH st/reg
 
 ### FXRSTOR
 ###  - Restore x87 FPU, MMX , XMM, and MXCSR State
@@ -3538,12 +3538,12 @@ val / [0x0f 0x00 /3] = unop LTR r/m16
 
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
-val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/nomem128
+val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/reg128
 val /vex/66/0f/vexv [0xf7 /r-reg] | vex128? = varity2 VMASKMOVDQU xmm128 xmm/m128
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
-val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/nomem64
+val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/reg64
 
 ### MAXPD
 ###  - Return Maximum Packed Double-Precision Floating-Point Values
@@ -3726,8 +3726,8 @@ val /f2 [0x0f 0xd6 /r] = binop MOVDQ2Q mm64 xmm128
 ## CHECK collision with movlps
 #val movhlps = binop MOVHLPS
 #val vmovhlps = ternop VMOVHLPS
-#val / [0x0f 0x12 /r] = movhlps xmm128 xmm/nomem128
-#val /vex/0f/vexv [0x12 /r-reg] | vex128? = ternop VMOVHLPS xmm128 v/xmm xmm/nomem128
+#val / [0x0f 0x12 /r] = movhlps xmm128 xmm/reg128
+#val /vex/0f/vexv [0x12 /r-reg] | vex128? = ternop VMOVHLPS xmm128 v/xmm xmm/reg128
 
 ### MOVHPD
 ###  - Move High Packed Double-Precision Floating-Point Value
@@ -3749,8 +3749,8 @@ val /vex/0f [0x17 /r-mem] | vex128? = varity2 VMOVHPS m64 xmm128
 #val movlhps = binop MOVLHPS
 #val vmovlhps = ternop VMOVLHPS
 #val / [0x0f 0x16 /r]
-# | mod-reg? = movlhps xmm128 xmm/nomem128
-val /vex/0f/vexv [0x16 /r-reg] | vex128? = varity3 VMOVLHPS xmm128 v/xmm xmm/nomem128
+# | mod-reg? = movlhps xmm128 xmm/reg128
+val /vex/0f/vexv [0x16 /r-reg] | vex128? = varity3 VMOVLHPS xmm128 v/xmm xmm/reg128
 
 ### MOVLPD
 ###  - Move Low Packed Double-Precision Floating-Point Value
@@ -3833,7 +3833,7 @@ val /66 [0x0f 0xd6 /r] = binop MOVQ xmm/m64 xmm128
 
 ### MOVQ2DQ
 ###  - Move Quadword from MMX Technology to XMM Register
-val /f3 [0x0f 0xd6 /r-reg] = binop MOVQ2DQ xmm128 mm/nomem64
+val /f3 [0x0f 0xd6 /r-reg] = binop MOVQ2DQ xmm128 mm/reg64
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
 ###  - Move Data from String to String
@@ -3861,10 +3861,10 @@ val / [0xa5]
 ### MOVSD
 ###  - Move Scalar Double-Precision Floating-Point Value
 val /f2 [0x0f 0x10 /r] = varity2 MOVSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x10 /r-reg] = varity3 VMOVSD xmm128 v/xmm xmm/nomem128
+val /vex/f2/0f/vexv [0x10 /r-reg] = varity3 VMOVSD xmm128 v/xmm xmm/reg128
 val /vex/f2/0f [0x10 /r-mem] = varity2 VMOVSD xmm128 m64
 val /f2 [0x0f 0x11 /r] = varity2 MOVSD xmm/m64 xmm128
-val /vex/f2/0f [0x11 /r-reg] = varity3 VMOVSD xmm/nomem128 v/xmm xmm128
+val /vex/f2/0f [0x11 /r-reg] = varity3 VMOVSD xmm/reg128 v/xmm xmm128
 val /vex/f2/0f [0x11 /r-mem] = varity2 VMOVSD m64 xmm128
 
 ### MOVSHDUP
@@ -3884,10 +3884,10 @@ val /vex/f3/0f [0x12 /r]
 ### MOVSS
 ###  - Move Scalar Single-Precision Floating-Point Values
 val /f3 [0x0f 0x10 /r] = binop MOVSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x10 /r-reg] = varity3 VMOVSS xmm128 v/xmm xmm/nomem128
+val /vex/f3/0f/vexv [0x10 /r-reg] = varity3 VMOVSS xmm128 v/xmm xmm/reg128
 val /vex/f3/0f [0x10 /r-mem] = varity2 VMOVSS xmm128 m32
 val /f3 [0x0f 0x11 /r] = binop MOVSS xmm/m32 xmm128
-val /vex/f3/0f/vexv [0x11 /r-reg] = varity3 VMOVSS xmm/nomem128 v/xmm xmm128
+val /vex/f3/0f/vexv [0x11 /r-reg] = varity3 VMOVSS xmm/reg128 v/xmm xmm128
 val /vex/f3/0f [0x11 /r-mem] = varity2 VMOVSS m32 xmm128
 
 ### MOVSX/MOVSXD
@@ -4249,16 +4249,16 @@ val /vex/66/0f/3a [0x16 /r]
 ### PEXTRW
 ###  - Extract Word
 val / [0x0f 0xc5 /r-reg]
- | mode64? = ternop PEXTRW r64 mm/nomem64 imm8
- | otherwise = ternop PEXTRW r32 mm/nomem64 imm8
+ | mode64? = ternop PEXTRW r64 mm/reg64 imm8
+ | otherwise = ternop PEXTRW r32 mm/reg64 imm8
 val /66 [0x0f 0xc5 /r-reg]
- | mode64? = ternop PEXTRW r64 xmm/nomem128 imm8
- | otherwise = ternop PEXTRW r32 xmm/nomem128 imm8
+ | mode64? = ternop PEXTRW r64 xmm/reg128 imm8
+ | otherwise = ternop PEXTRW r32 xmm/reg128 imm8
 val /66 [0x0f 0x3a 0x15 /r]
  | mode64? = ternop PEXTRW r/m64 xmm128 imm8
 val /vex/66/0f [0xc5 /r-reg]
- | mode64? & vex128? = varity3 VPEXTRW r64 xmm/nomem128 imm8
-#TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r32 xmm/nomem128 imm8
+ | mode64? & vex128? = varity3 VPEXTRW r64 xmm/reg128 imm8
+#TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r32 xmm/reg128 imm8
 val /vex/66/0f [0x15 /r]
  | mode64? & vex128? = varity3 VPEXTRW r/m64 xmm128 imm8
 #TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r/m32 xmm128 imm8
@@ -4394,8 +4394,8 @@ val /vex/66/0f/38/vexv [0x3a /r] | vex128? = varity3 VPMINUW xmm128 v/xmm xmm/m1
 ### PMOVMSKB
 ###  - Move Byte Mask
 val / [0x0f 0xd7 /r] = binop PMOVMSKB reg mm64
-val /66 [0x0f 0xd7 /r] = binop PMOVMSKB reg xmm/nomem128
-val /vex/66/0f [0xd7 /r] | vex128? = varity2 VPMOVMSKB vreg xmm/nomem128
+val /66 [0x0f 0xd7 /r] = binop PMOVMSKB reg xmm/reg128
+val /vex/66/0f [0xd7 /r] | vex128? = varity2 VPMOVMSKB vreg xmm/reg128
 
 ### PMOVSX
 ###  - Packed Move with Sign Extend
@@ -4562,70 +4562,70 @@ val /vex/66/0f/38/vexv [0x0a /r] | vex128? = varity3 VPSIGND xmm128 v/xmm xmm/m1
 
 ### PSLLDQ
 ###  - Shift Double Quadword Left Logical
-val /66 [0x0f 0x73 /7-reg] = binop PSLLDQ xmm/nomem128 imm8
-val /vex/66/0f [0x73 /7-reg] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/nomem128 imm8
+val /66 [0x0f 0x73 /7-reg] = binop PSLLDQ xmm/reg128 imm8
+val /vex/66/0f [0x73 /7-reg] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/reg128 imm8
 
 ### PSLLW/PSLLD/PSLLQ
 ###  - Shift Packed Data Left Logical
 val / [0x0f 0xf1 /r] = binop PSLLW mm64 mm/m64
 val /66 [0x0f 0xf1 /r] = binop PSLLW xmm128 xmm/m128
-val / [0x0f 0x71 /6-reg] = binop PSLLW mm/nomem64 imm8
-val /66 [0x0f 0x71 /6-reg] = binop PSLLW xmm/nomem128 imm8
+val / [0x0f 0x71 /6-reg] = binop PSLLW mm/reg64 imm8
+val /66 [0x0f 0x71 /6-reg] = binop PSLLW xmm/reg128 imm8
 val / [0x0f 0xf2 /r] = binop PSLLD mm64 mm/m64
 val /66 [0x0f 0xf2 /r] = binop PSLLD xmm128 xmm/m128
-val / [0x0f 0x72 /6-reg] = binop PSLLD mm/nomem64 imm8
-val /66 [0x0f 0x72 /6-reg] = binop PSLLD xmm/nomem128 imm8
+val / [0x0f 0x72 /6-reg] = binop PSLLD mm/reg64 imm8
+val /66 [0x0f 0x72 /6-reg] = binop PSLLD xmm/reg128 imm8
 val / [0x0f 0xf3 /r] = binop PSLLQ mm64 mm/m64
 val /66 [0x0f 0xf3 /r] = binop PSLLQ xmm128 xmm/m128
-val / [0x0f 0x73 /6-reg] = binop PSLLQ mm/nomem64 imm8
-val /66 [0x0f 0x73 /6-reg] = binop PSLLQ xmm/nomem128 imm8
+val / [0x0f 0x73 /6-reg] = binop PSLLQ mm/reg64 imm8
+val /66 [0x0f 0x73 /6-reg] = binop PSLLQ xmm/reg128 imm8
 val /vex/66/0f/vexv [0xf1 /r] | vex128? = varity3 VPSLLW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x71 /6-reg] | vex128? = varity3 VPSLLW v/xmm xmm/nomem128 imm8
+val /vex/66/0f/vexv [0x71 /6-reg] | vex128? = varity3 VPSLLW v/xmm xmm/reg128 imm8
 val /vex/66/0f/vexv [0xf2 /r] | vex128? = varity3 VPSLLD xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x72 /6-reg] | vex128? = varity3 VPSLLD v/xmm xmm/nomem128 imm8
+val /vex/66/0f/vexv [0x72 /6-reg] | vex128? = varity3 VPSLLD v/xmm xmm/reg128 imm8
 val /vex/66/0f/vexv [0xf3 /r] | vex128? = varity3 VPSLLQ xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x73 /6-reg] | vex128? = varity3 VPSLLQ v/xmm xmm/nomem128 imm8
+val /vex/66/0f/vexv [0x73 /6-reg] | vex128? = varity3 VPSLLQ v/xmm xmm/reg128 imm8
 
 ### PSRAW/PSRAD
 ###  - Shift Packed Data Right Arithmetic
 val / [0x0f 0xe1 /r] = binop PSRAW mm64 mm/m64
 val /66 [0x0f 0xe1 /r] = binop PSRAW xmm128 xmm/m128
-val / [0x0f 0x71 /4-reg] = binop PSRAW mm/nomem64 imm8
-val /66 [0x0f 0x71 /4-reg] = binop PSRAW xmm/nomem128 imm8
+val / [0x0f 0x71 /4-reg] = binop PSRAW mm/reg64 imm8
+val /66 [0x0f 0x71 /4-reg] = binop PSRAW xmm/reg128 imm8
 val / [0x0f 0xe2 /r] = binop PSRAD mm64 mm/m64
 val /66 [0x0f 0xe2 /r] = binop PSRAD xmm128 xmm/m128
-val / [0x0f 0x72 /4-reg] = binop PSRAD mm/nomem64 imm8
-val /66 [0x0f 0x72 /4-reg] = binop PSRAD xmm/nomem128 imm8
+val / [0x0f 0x72 /4-reg] = binop PSRAD mm/reg64 imm8
+val /66 [0x0f 0x72 /4-reg] = binop PSRAD xmm/reg128 imm8
 val /vex/66/0f/vexv [0xe1 /r] | vex128? = varity3 VPSRAW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x71 /4-reg] | vex128? = varity3 VPSRAW v/xmm xmm/nomem128 imm8
+val /vex/66/0f/vexv [0x71 /4-reg] | vex128? = varity3 VPSRAW v/xmm xmm/reg128 imm8
 val /vex/66/0f/vexv [0xe2 /r] | vex128? = varity3 VPSRAD xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x72 /4-reg] | vex128? = varity3 VPSRAD v/xmm xmm/nomem128 imm8
+val /vex/66/0f/vexv [0x72 /4-reg] | vex128? = varity3 VPSRAD v/xmm xmm/reg128 imm8
 
 ### PSRLDQ
 ###  - Shift Double Quadword Right Logical
-val /66 [0x0f 0x73 /3-reg] = binop PSRLDQ xmm/nomem128 imm8
-val /vex/66/0f [0x73 /3-reg] | vndd? & vex128? = varity3 VPSRLDQ v/xmm xmm/nomem128 imm8
+val /66 [0x0f 0x73 /3-reg] = binop PSRLDQ xmm/reg128 imm8
+val /vex/66/0f [0x73 /3-reg] | vndd? & vex128? = varity3 VPSRLDQ v/xmm xmm/reg128 imm8
 
 ### PSRLW/PSRLD/PSRLQ
 ###  - Shift Packed Data Right Logical
 val / [0x0f 0xd1 /r] = binop PSRLW mm64 mm/m64
 val /66 [0x0f 0xd1 /r] = binop PSRLW xmm128 xmm/m128
-val / [0x0f 0x71 /2-reg] = binop PSRLW mm/nomem64 imm8
-val /66 [0x0f 0x71 /2-reg] = binop PSRLW xmm/nomem128 imm8
+val / [0x0f 0x71 /2-reg] = binop PSRLW mm/reg64 imm8
+val /66 [0x0f 0x71 /2-reg] = binop PSRLW xmm/reg128 imm8
 val / [0x0f 0xd2 /r] = binop PSRLD mm64 mm/m64
 val /66 [0x0f 0xd2 /r] = binop PSRLD xmm128 xmm/m128
-val / [0x0f 0x72 /2-reg] = binop PSRLD mm/nomem64 imm8
-val /66 [0x0f 0x72 /2-reg] = binop PSRLD xmm/nomem128 imm8
+val / [0x0f 0x72 /2-reg] = binop PSRLD mm/reg64 imm8
+val /66 [0x0f 0x72 /2-reg] = binop PSRLD xmm/reg128 imm8
 val / [0x0f 0xd3 /r] = binop PSRLQ mm64 mm/m64
 val /66 [0x0f 0xd3 /r] = binop PSRLQ xmm128 xmm/m128
-val / [0x0f 0x73 /2-reg] = binop PSRLQ mm/nomem64 imm8
-val /66 [0x0f 0x73 /2-reg] = binop PSRLQ xmm/nomem128 imm8
+val / [0x0f 0x73 /2-reg] = binop PSRLQ mm/reg64 imm8
+val /66 [0x0f 0x73 /2-reg] = binop PSRLQ xmm/reg128 imm8
 val /vex/66/0f/vexv [0xd1 /r] | vex128? = varity3 VPSRLW xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x71 /2-reg] | vex128? = varity3 VPSRLW v/xmm xmm/nomem128 imm8
+val /vex/66/0f/vexv [0x71 /2-reg] | vex128? = varity3 VPSRLW v/xmm xmm/reg128 imm8
 val /vex/66/0f/vexv [0xd2 /r] | vex128? = varity3 VPSRLD xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x72 /2-reg] | vex128? = varity3 VPSRLD v/xmm xmm/nomem128 imm8
+val /vex/66/0f/vexv [0x72 /2-reg] | vex128? = varity3 VPSRLD v/xmm xmm/reg128 imm8
 val /vex/66/0f/vexv [0xd3 /r] | vex128? = varity3 VPSRLQ xmm128 v/xmm xmm/m128
-val /vex/66/0f/vexv [0x73 /2-reg] | vex128? = varity3 VPSRLQ v/xmm xmm/nomem128 imm8
+val /vex/66/0f/vexv [0x73 /2-reg] | vex128? = varity3 VPSRLQ v/xmm xmm/reg128 imm8
 
 ### PSUBB/PSUBW/PSUBD
 ###  - Subtract Packed Integers
@@ -4814,11 +4814,11 @@ val /vex/f3/0f/vexv [0x53 /r] = varity3 VRCPSS xmm128 v/xmm xmm/m32
 ### RDFSBASE/RDGSBASE
 ###  - Read FS/GS Segment Base
 val /f3 [0x0f 0xae /0-reg]
- | rexw? = unop RDFSBASE r/nomem64
- | otherwise = unop RDFSBASE r/nomem32
+ | rexw? = unop RDFSBASE r/reg64
+ | otherwise = unop RDFSBASE r/reg32
 val /f3 [0x0f 0xae /1-reg]
- | rexw? = unop RDGSBASE r/nomem64
- | otherwise = unop RDGSBASE r/nomem32
+ | rexw? = unop RDGSBASE r/reg64
+ | otherwise = unop RDGSBASE r/reg32
 
 ### RDMSR
 ###  - Read from Model Specific Register
@@ -4831,9 +4831,9 @@ val / [0x0f 0x33] = arity0 RDPMC
 ### RDRAND
 ###  - Read Random Number
 val / [0x0f 0xc7 /6-reg]
- | opndsz? = unop RDRAND r/nomem16
- | rexw? = unop RDRAND r/nomem64
- | otherwise = unop RDRAND r/nomem32
+ | opndsz? = unop RDRAND r/reg16
+ | rexw? = unop RDRAND r/reg64
+ | otherwise = unop RDRAND r/reg32
 
 ### RDTSC
 ###  - Read Time-Stamp Counter
@@ -5355,11 +5355,11 @@ val / [0x0f 0x09] = arity0 WBINVD
 ### WRFSBASE/WRGSBASE
 ###  - Write FS/GS Segment Base
 val /f3 [0x0f 0xae /2-reg]
- | mode64? & rexw? = unop WRFSBASE r/nomem64
- | mode64? = unop WRFSBASE r/nomem32
+ | mode64? & rexw? = unop WRFSBASE r/reg64
+ | mode64? = unop WRFSBASE r/reg32
 val /f3 [0x0f 0xae /3-reg]
- | mode64? & rexw? = unop WRGSBASE r/nomem64
- | mode64? = unop WRGSBASE r/nomem32
+ | mode64? & rexw? = unop WRGSBASE r/reg64
+ | mode64? = unop WRGSBASE r/reg32
 
 ### WRMSR
 ###  - Write to Model Specific Register
