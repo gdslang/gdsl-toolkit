@@ -558,10 +558,10 @@ type insn =
  | AESIMC of arity2
  | AESKEYGENASSIST of arity3
  | AND of arity2
- | ANDPD of arity2
- | ANDPS of arity2
  | ANDNPD of arity2
  | ANDNPS of arity2
+ | ANDPD of arity2
+ | ANDPS of arity2
  | ARPL of arity2
  | BLENDPD of arity3
  | BLENDPS of arity3
@@ -577,6 +577,7 @@ type insn =
  | BTS of arity2
  | CALL of flow1
  | CBW
+ | CDQ 
  | CDQE
  | CLC
  | CLD
@@ -620,14 +621,15 @@ type insn =
  | CMPSB
  | CMPSD of varity
  | CMPSQ
- | CMPSW
  | CMPSS of arity3
+ | CMPSW
  | CMPXCHG of arity2
- | CMPXCHG8B of arity1
  | CMPXCHG16B of arity1
+ | CMPXCHG8B of arity1
  | COMISD of arity2
  | COMISS of arity2
  | CPUID
+ | CQO
  | CRC32 of arity2
  | CVTDQ2PD of arity2
  | CVTDQ2PS of arity2
@@ -653,8 +655,6 @@ type insn =
  | CVTTSS2SI of arity2
  | CWD
  | CWDE
- | CDQ 
- | CQO
  | DAA
  | DAS
  | DEC of arity1
@@ -672,12 +672,10 @@ type insn =
  | FABS
  | FADD of arity2
  | FADDP of arity2
- | FIADD of arity1
  | FBLD of arity1
  | FBSTP of arity1
  | FCHS
  | FCLEX
- | FNCLEX
  | FCMOVB of arity2
  | FCMOVBE of arity2
  | FCMOVE of arity2
@@ -687,44 +685,50 @@ type insn =
  | FCMOVNU of arity2
  | FCMOVU of arity2
  | FCOM of arity1
- | FCOMP of arity1
- | FCOMPP
  | FCOMI of arity2
  | FCOMIP of arity2
- | FUCOMI of arity1
- | FUCOMIP of arity1
+ | FCOMP of arity1
+ | FCOMPP
  | FCOS
  | FDECSTP
  | FDIV of arity2
  | FDIVP of arity2
- | FIDIV of arity2
  | FDIVR of arity2
  | FDIVRP of arity2
- | FIDIVR of arity1
  | FFREE of arity1
+ | FIADD of arity1
  | FICOM of arity1
  | FICOMP of arity1
+ | FIDIV of arity2
+ | FIDIVR of arity1
  | FILD of arity1
+ | FIMUL of arity1
  | FINCSTP
  | FINIT
- | FNINIT
  | FIST of arity1
  | FISTP of arity1
  | FISTTP of arity1
+ | FISUB of arity1
+ | FISUBR of arity1
  | FLD of arity1
+ | FLD1
+ | FLDCW of arity1
+ | FLDENV of arity1
  | FLDL2E
  | FLDL2T
  | FLDLG2
  | FLDLN2
  | FLDPI
  | FLDZ
- | FLD1
- | FLDCW of arity1
- | FLDENV of arity1
  | FMUL of arity2
  | FMULP of arity2
- | FIMUL of arity1
+ | FNCLEX
+ | FNINIT
  | FNOP
+ | FNSAVE of arity1
+ | FNSTCW of arity1
+ | FNSTENV of arity1
+ | FNSTSW of arity1
  | FPATAN
  | FPREM
  | FPREM1
@@ -732,27 +736,23 @@ type insn =
  | FRNDINT
  | FRSTOR of arity1
  | FSAVE of arity1
- | FNSAVE of arity1
  | FSCALE
  | FSIN
  | FSINCOS
  | FSQRT
  | FST of arity1
- | FSTP of arity1
  | FSTCW of arity1
- | FNSTCW of arity1
  | FSTENV of arity1
- | FNSTENV of arity1
+ | FSTP of arity1
  | FSTSW of arity1
- | FNSTSW of arity1
  | FSUB of arity2
  | FSUBP of arity2
- | FISUB of arity1
  | FSUBR of arity2
  | FSUBRP of arity2
- | FISUBR of arity1
  | FTST
  | FUCOM of arity1
+ | FUCOMI of arity1
+ | FUCOMIP of arity1
  | FUCOMP of arity1
  | FUCOMPP
  | FXAM
@@ -774,9 +774,9 @@ type insn =
  | IN of arity2
  | INC of arity1
  | INSERTPS of arity3
- | INT3
  | INT of arity1
  | INT0
+ | INT3
  | INVD
  | INVLPG of arity1
  | INVPCID of arity2
@@ -822,26 +822,26 @@ type insn =
  | LDDQU of arity2
  | LDMXCSR of arity1
  | LDS of arity2
- | LES of arity2
- | LFS of arity2
- | LGS of arity2
- | LSS of arity2
  | LEA of arity2
  | LEAVE
+ | LES of arity2
  | LFENCE
+ | LFS of arity2
  | LGDT of arity1
+ | LGS of arity2
  | LIDT of arity1
  | LLDT of arity1
  | LMSW of arity1
  | LOCK
  | LODSB
- | LODSW
  | LODSD
  | LODSQ
+ | LODSW
  | LOOP of flow1
  | LOOPE of flow1
  | LOOPNE of flow1
  | LSL of arity2
+ | LSS of arity2
  | LTR of arity1
  | MASKMOVDQU of arity2
  | MASKMOVQ of arity2
@@ -908,23 +908,23 @@ type insn =
  | OUT of arity2
  | OUTS
  | OUTSB
- | OUTSW
  | OUTSD
+ | OUTSW
  | PABSB of arity2
- | PABSW of arity2
  | PABSD of arity2
- | PACKSSWB of arity2
+ | PABSW of arity2
  | PACKSSDW of arity2
+ | PACKSSWB of arity2
  | PACKUSDW of arity2
  | PACKUSWB of arity2
  | PADDB of arity2
  | PADDD of arity2
- | PADDW of arity2
  | PADDQ of arity2
  | PADDSB of arity2
  | PADDSW of arity2
  | PADDUSB of arity2
  | PADDUSW of arity2
+ | PADDW of arity2
  | PALIGNR of arity3
  | PAND of arity2
  | PANDN of arity2
@@ -943,8 +943,8 @@ type insn =
  | PCMPGRD of arity2
  | PCMPGTB of arity2
  | PCMPGTD of arity2
- | PCMPGTW of arity2
  | PCMPGTQ of arity2
+ | PCMPGTW of arity2
  | PCMPISTRI of arity3
  | PCMPISTRM of arity3
  | PEXTRB of arity3
@@ -952,12 +952,12 @@ type insn =
  | PEXTRQ of arity3
  | PEXTRW of arity3
  | PHADDD of arity2
- | PHADDW of arity2
  | PHADDSW of arity2
+ | PHADDW of arity2
  | PHMINPOSUW of arity2
- | PHSUBW of arity2
  | PHSUBD of arity2
  | PHSUBSW of arity2
+ | PHSUBW of arity2
  | PINSRB of arity3
  | PINSRD of arity3
  | PINSRQ of arity3
@@ -977,18 +977,18 @@ type insn =
  | PMINUD of arity2
  | PMINUW of arity2
  | PMOVMSKB of arity2
- | PMOVSXBW of arity2
  | PMOVSXBD of arity2
  | PMOVSXBQ of arity2
+ | PMOVSXBW of arity2
+ | PMOVSXDQ of arity2
  | PMOVSXWD of arity2
  | PMOVSXWQ of arity2
- | PMOVSXDQ of arity2
- | PMOVZXBW of arity2
  | PMOVZXBD of arity2
  | PMOVZXBQ of arity2
+ | PMOVZXBW of arity2
+ | PMOVZXDQ of arity2
  | PMOVZXWD of arity2
  | PMOVZXWQ of arity2
- | PMOVZXDQ of arity2
  | PMULDQ of arity2
  | PMULHRSW of arity2
  | PMULHUW of arity2
@@ -1016,35 +1016,35 @@ type insn =
  | PSHUFLW of arity3
  | PSHUFW of arity3
  | PSIGNB of arity2
- | PSIGNW of arity2
  | PSIGND of arity2
- | PSLLDQ of arity2
- | PSLLW of arity2
+ | PSIGNW of arity2
  | PSLLD of arity2
+ | PSLLDQ of arity2
  | PSLLQ of arity2
- | PSRAW of arity2
+ | PSLLW of arity2
  | PSRAD of arity2
- | PSRLDQ of arity2
- | PSRLW of arity2
+ | PSRAW of arity2
  | PSRLD of arity2
+ | PSRLDQ of arity2
  | PSRLQ of arity2
+ | PSRLW of arity2
  | PSUBB of arity2
  | PSUBD of arity2
- | PSUBW of arity2
  | PSUBQ of arity2
  | PSUBSB of arity2
  | PSUBSW of arity2
  | PSUBUSB of arity2
  | PSUBUSW of arity2
+ | PSUBW of arity2
  | PTEST of arity2
  | PUNPCKHBW of arity2
- | PUNPCKHWD of arity2
  | PUNPCKHDQ of arity2
  | PUNPCKHQDQ of arity2
- | PUNPCKLDQ of arity2
- | PUNPCKLWD of arity2
+ | PUNPCKHWD of arity2
  | PUNPCKLBW of arity2
+ | PUNPCKLDQ of arity2
  | PUNPCKLQDQ of arity2
+ | PUNPCKLWD of arity2
  | PUSH of arity1
  | PUSHA
  | PUSHAD
@@ -1053,11 +1053,9 @@ type insn =
  | PUSHFQ
  | PXOR of arity2
  | RCL of arity2
- | RCR of arity2
- | ROL of arity2
- | ROR of arity2
  | RCPPS of arity2
  | RCPSS of arity2
+ | RCR of arity2
  | RDFSBASE of arity1
  | RDGSBASE of arity1
  | RDMSR
@@ -1067,6 +1065,8 @@ type insn =
  | RDTSCP
  | RET of varity
  | RET_FAR of varity
+ | ROL of arity2
+ | ROR of arity2
  | ROUNDPD of arity3
  | ROUNDPS of arity3
  | ROUNDSD of arity3
@@ -1077,8 +1077,6 @@ type insn =
  | SAHF
  | SAL of arity2
  | SAR of arity2
- | SHL of arity2
- | SHR of arity2
  | SBB of arity2
  | SCASB
  | SCASD
@@ -1116,7 +1114,9 @@ type insn =
  | SETZ of arity1
  | SFENCE
  | SGDT of arity1
+ | SHL of arity2
  | SHLD of arity3
+ | SHR of arity2
  | SHRD of arity3
  | SHUFPD of arity3
  | SHUFPS of arity3
@@ -1166,14 +1166,17 @@ type insn =
  | VAESENCLAST of varity
  | VAESIMC of varity
  | VAESKEYGENASSIST of varity
- | VANDPD of varity
- | VANDPS of varity
  | VANDNPD of varity
  | VANDNPS of varity
+ | VANDPD of varity
+ | VANDPS of varity
  | VBLENDPD of varity
  | VBLENDPS of varity
  | VBLENDVPD of varity
  | VBLENDVPS of varity
+ | VBROADCASTF128 of varity
+ | VBROADCASTSD of varity
+ | VBROADCASTSS of varity
  | VCMPEQB of varity
  | VCMPEQD of varity
  | VCMPEQW of varity
@@ -1187,8 +1190,10 @@ type insn =
  | VCVTDQ2PS of varity
  | VCVTPD2DQ of varity
  | VCVTPD2PS of varity
+ | VCVTPH2PS of varity
  | VCVTPS2DQ of varity
  | VCVTPS2PD of varity
+ | VCVTPS2PH of varity
  | VCVTSD2SI of varity
  | VCVTSD2SS of varity
  | VCVTSI2SD of varity
@@ -1207,16 +1212,19 @@ type insn =
  | VDPPS of varity
  | VERR of arity1
  | VERW of arity1
- | VEXTRACTPS of varity
  | VEXTRACTF128 of varity
+ | VEXTRACTPS of varity
  | VHADDPD of varity
  | VHADDPS of varity
  | VHSUBPD of varity
  | VHSUBPS of varity
+ | VINSERTF128 of varity
  | VINSERTPS of varity
  | VLDDQU of varity
  | VLDMXCSR of varity
  | VMASKMOVDQU of varity
+ | VMASKMOVPD of varity
+ | VMASKMOVPS of varity
  | VMAXPD of varity
  | VMAXPS of varity
  | VMAXSD of varity
@@ -1258,20 +1266,20 @@ type insn =
  | VORPD of varity
  | VORPS of varity
  | VPABSB of varity
- | VPABSW of varity
  | VPABSD of varity
- | VPACKSSWB of varity
+ | VPABSW of varity
  | VPACKSSDW of varity
+ | VPACKSSWB of varity
  | VPACKUSDW of varity
  | VPACKUSWB of varity
  | VPADDB of varity
  | VPADDD of varity
- | VPADDW of varity
  | VPADDQ of varity
  | VPADDSB of varity
  | VPADDSW of varity
  | VPADDUSB of varity
  | VPADDUSW of varity
+ | VPADDW of varity
  | VPALIGNR of varity
  | VPAND of varity
  | VPANDN of varity
@@ -1281,28 +1289,31 @@ type insn =
  | VPBLENDW of varity
  | VPCLMULQDQ of varity
  | VPCMPEQB of varity
- | VPCMPEQW of varity
  | VPCMPEQD of varity
  | VPCMPEQQ of varity
+ | VPCMPEQW of varity
  | VPCMPESTRI of varity
  | VPCMPESTRM of varity
  | VPCMPGTB of varity
  | VPCMPGTD of varity
- | VPCMPGTW of varity
  | VPCMPGTQ of varity
+ | VPCMPGTW of varity
  | VPCMPISTRI of varity
  | VPCMPISTRM of varity
+ | VPERM2F128 of varity
+ | VPERMILPD of varity
+ | VPERMILPS of varity
  | VPEXTRB of varity
  | VPEXTRD of varity
  | VPEXTRQ of varity
  | VPEXTRW of varity
  | VPHADDD of varity
- | VPHADDW of varity
  | VPHADDSW of varity
+ | VPHADDW of varity
  | VPHMINPOSUW of varity
- | VPHSUBW of varity
  | VPHSUBD of varity
  | VPHSUBSW of varity
+ | VPHSUBW of varity
  | VPINSRB of varity
  | VPINSRD of varity
  | VPINSRQ of varity
@@ -1322,18 +1333,18 @@ type insn =
  | VPMINUD of varity
  | VPMINUW of varity
  | VPMOVMSKB of varity
- | VPMOVSXBW of varity
  | VPMOVSXBD of varity
  | VPMOVSXBQ of varity
+ | VPMOVSXBW of varity
+ | VPMOVSXDQ of varity
  | VPMOVSXWD of varity
  | VPMOVSXWQ of varity
- | VPMOVSXDQ of varity
- | VPMOVZXBW of varity
  | VPMOVZXBD of varity
  | VPMOVZXBQ of varity
+ | VPMOVZXBW of varity
+ | VPMOVZXDQ of varity
  | VPMOVZXWD of varity
  | VPMOVZXWQ of varity
- | VPMOVZXDQ of varity
  | VPMULDQ of varity
  | VPMULHRSW of varity
  | VPMULHUW of varity
@@ -1348,31 +1359,31 @@ type insn =
  | VPSHUFHW of varity
  | VPSHUFLW of varity
  | VPSIGNB of varity
- | VPSIGNW of varity
  | VPSIGND of varity
- | VPSLLDQ of varity
- | VPSLLW of varity
+ | VPSIGNW of varity
  | VPSLLD of varity
+ | VPSLLDQ of varity
  | VPSLLQ of varity
- | VPSRAW of varity
+ | VPSLLW of varity
  | VPSRAD of varity
- | VPSRLDQ of varity
- | VPSRLW of varity
+ | VPSRAW of varity
  | VPSRLD of varity
+ | VPSRLDQ of varity
  | VPSRLQ of varity
+ | VPSRLW of varity
  | VPSUBB of varity
  | VPSUBD of varity
- | VPSUBW of varity
  | VPSUBQ of varity
  | VPSUBSB of varity
  | VPSUBSW of varity
  | VPSUBUSB of varity
  | VPSUBUSW of varity
+ | VPSUBW of varity
  | VPTEST of varity
  | VPUNPCKHBW of varity
- | VPUNPCKHWD of varity
  | VPUNPCKHDQ of varity
  | VPUNPCKHQDQ of varity
+ | VPUNPCKHWD of varity
  | VPUNPCKLBW of varity
  | VPUNPCKLDQ of varity
  | VPUNPCKLQDQ of varity
@@ -1397,28 +1408,17 @@ type insn =
  | VSUBPS of varity
  | VSUBSD of varity
  | VSUBSS of varity
+ | VTESTPD of varity
+ | VTESTPS of varity
  | VUCOMISD of varity
  | VUCOMISS of varity
  | VUNPCKHPD of varity
  | VUNPCKHPS of varity
  | VUNPCKLPD of varity
  | VUNPCKLPS of varity
- | VBROADCASTSS of varity
- | VBROADCASTSD of varity
- | VBROADCASTF128 of varity
- | VCVTPH2PS of varity
- | VCVTPS2PH of varity
- | VINSERTF128 of varity
- | VMASKMOVPS of varity
- | VMASKMOVPD of varity
- | VPERMILPD of varity
- | VPERMILPS of varity
- | VPERM2F128 of varity
- | VTESTPS of varity
- | VTESTPD of varity
+ | VXORPS of varity
  | VZEROALL of varity
  | VZEROUPPER of varity
- | VXORPS of varity
  | WAIT
  | WBINVD
  | WRFSBASE of arity1
