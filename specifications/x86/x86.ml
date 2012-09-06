@@ -522,6 +522,8 @@ type flowopnd =
  | REL16 of 16
  | REL32 of 32
  | REL64 of 64
+ | PTR16/16 of 32
+ | PTR16/32 of 48
  | NEARABS of opnd
  | FARABS of opnd
 
@@ -566,7 +568,7 @@ type insn =
  | BLENDPD of arity3
  | BLENDPS of arity3
  | BLENDVPD of arity3
- | BLENDVPS of arity2
+ | BLENDVPS of arity3
  | BOUND of arity2
  | BSF of arity2
  | BSR of arity2
@@ -1540,6 +1542,9 @@ val rel32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (REL32 (b4 ^ b3 ^ b2 ^ b1))
 val rel64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
    return (REL64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
 
+val ptr16/16 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (PTR16/16 (b4 ^ b3 ^ b2 ^ b1))
+val ptr16/32 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8'] = return (PTR16/32 (b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
+
 val imm/xmm ['r:4 b:4'] = return (xmm r)
 val imm/ymm ['r:4 b:4'] = return (ymm r)
 
@@ -2001,6 +2006,7 @@ val st/m64 = r/m 64 sti
 val m16/16 = r/m 32 reg16-rex
 val m16/32 = r/m 48 reg32-rex
 val m16/64 = r/m 80 reg64-rex
+val m32/32 = r/m 64 reg32-rex
 
 val r/reg16 = reg/reg reg16-rex
 val r/reg32 = reg/reg reg32-rex
@@ -2147,7 +2153,12 @@ val near-rel cons giveOp = do
    return (cons {opnd1=op})
 end
 
-val far-abs cons giveOp = do
+val far-dir cons giveOp = do
+   op <- giveOp;
+   return (cons {opnd1=op})
+end
+
+val far-ind cons giveOp = do
    op <- giveOp;
    return (cons {opnd1=FARABS op})
 end
@@ -2157,23 +2168,23 @@ val one = return (IMM8 '00000001')
 val // a = 
    do b <- a;
       return (not b)
-   end
+end
 
 ### AAA
 ###  - ASCII Adjust After Addition
-val / [0x37] | // mode64? = arity0 AAA 
+val / [0x37] | mode32? = arity0 AAA 
 
 ### AAD
 ###  - ASCII Adjust AX Before Division
-val / [0xd5] | // mode64? = unop AAD imm8 
+val / [0xd5] | mode32? = unop AAD imm8 
 
 ### AAM
 ###  - ASCII Adjust AX After Multiply
-val / [0xd4] | // mode64? = unop AAM imm8 
+val / [0xd4] | mode32? = unop AAM imm8 
 
 ### AAS
 ###  - ASCII Adjust AL After Subtraction
-val / [0x3f] | // mode64? = arity0 AAS
+val / [0x3f] | mode32? = arity0 AAS
 
 ### ADC 
 ###  - Add with Carry
@@ -2354,8 +2365,7 @@ val /vex/0f/vexv [0x55 /r]
 
 ### ARPL
 ###  - Adjust RPL Field of Segment Selector
-### TODO: Not encodable in 64bit mode
-#val / [0x63 /r] | // mode64? = binop ARPL r/m16 r16
+val / [0x63 /r] | mode32? = binop ARPL r/m16 r16
 
 ### BLENDPD
 ###  - Blend Packed Double Precision Floating-Point Values
@@ -2380,7 +2390,7 @@ val /vex/66/0f/3a/vexv [0x4b /r]
 
 ### BLENDVPS
 ###  - Variable Blend Packed Single Precision Floating-Point Values
-val /66 [0x0f 0x38 0x14 /r] = binop BLENDVPS xmm128 xmm/m128
+val /66 [0x0f 0x38 0x14 /r] = ternop BLENDVPS xmm128 xmm/m128 xmm0
 val /vex/66/0f/3a/vexv [0x4a /r]
  | vex128? & vexw0? = varity4 VBLENDVPS xmm128 v/xmm xmm/m128 imm/xmm
  | vex256? & vexw0? = varity4 VBLENDVPS ymm256 v/ymm ymm/m256 imm/ymm
@@ -2388,8 +2398,8 @@ val /vex/66/0f/3a/vexv [0x4a /r]
 ### BOUND
 ###  - Check Array Index Against Bounds
 val / [0x62 /r-mem]
- | opndsz? & // mode64? = binop BOUND r16 r/m16
- | // mode64? = binop BOUND r32 r/m32
+ | opndsz? & mode32? = binop BOUND r16 m16/16
+ | mode32? = binop BOUND r32 m32/32
 
 ### BSF
 ###  - Bit Scan Forward
@@ -2407,9 +2417,12 @@ val / [0x0f 0xbd /r]
 
 ### BSWAP
 ###  - Byte Swap
-val / [0x0f '11001 r:3']
- | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end 
- | otherwise = do update@{reg/opcode=r}; unop BSWAP r32/rexb end
+val / [0x0f /1-reg]
+ | rexw? = unop BSWAP r/reg64
+ | otherwise = unop BSWAP r/reg32
+#val / [0x0f '11001 r:3']
+# | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end 
+# | otherwise = do update@{reg/opcode=r}; unop BSWAP r32/rexb end
 
 ### BT
 ###  - Bit Test
@@ -2460,7 +2473,17 @@ val / [0x0f 0xba /5]
 val / [0xe8]
  | opndsz? = near-rel CALL rel16
  | otherwise = near-rel CALL rel32
-val / [0xff /2] = near-abs CALL r/m64
+val / [0xff /2]
+ | mode64? = near-abs CALL r/m64
+ | opndsz? = near-abs CALL r/m16
+ | otherwise = near-abs CALL r/m32
+val / [0x9a]
+ | opndsz? = far-dir CALL ptr16/16
+ | otherwise = far-dir CALL ptr16/32
+val / [0xff /3-mem]
+ | opndsz? = far-ind CALL m16/16
+ | rexw? = far-ind CALL m16/64
+ | otherwise = far-ind CALL m16/32
 
 ### CBW/CWDE/CDQE
 ###  - Convert Byte to Word/Convert Word to Doubleword/Convert Doubleword to Quadword
@@ -2479,11 +2502,13 @@ val / [0xfc] = arity0 CLD
 
 ### CLFLUSH
 ###  - Flush Cache Line
-val / [0x0f 0xae /7-mem] = unop CLFLUSH r/m8
+val / [0x0f 0xae /7-mem] = unop CLFLUSH m8
 
 ### CLI
 ###  - Clear Interrupt Flag
 val / [0xfa] = arity0 CLI
+
+### =><=
 
 ### CLTS
 ###  - Clear Task-Switched Flag in CR0

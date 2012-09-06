@@ -227,7 +227,7 @@ val show/instruction insn =
     | BLENDPD x: "BLENDPD" -++ show/arity3 x
     | BLENDPS x: "BLENDPS" -++ show/arity3 x
     | BLENDVPD x: "BLENDVPD" -++ show/arity3 x
-    | BLENDVPS x: "BLENDVPS" -++ show/arity2 x
+    | BLENDVPS x: "BLENDVPS" -++ show/arity3 x
     | BOUND x: "BOUND" -++ show/arity2 x
     | BSF x: "BSF" -++ show/arity2 x
     | BSR x: "BSR" -++ show/arity2 x
