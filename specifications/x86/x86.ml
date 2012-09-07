@@ -2508,8 +2508,6 @@ val / [0x0f 0xae /7-mem] = unop CLFLUSH m8
 ###  - Clear Interrupt Flag
 val / [0xfa] = arity0 CLI
 
-### =><=
-
 ### CLTS
 ###  - Clear Task-Switched Flag in CR0
 val / [0x0f 0x06] = arity0 CLTS
@@ -2630,7 +2628,7 @@ val /vex/0f/vexv [0xc2 /r]
 ###  - Compare String Operands
 val / [0xa6] = arity0 CMPSB
 val / [0xa7]
- | opndsz? = arity0 CMPSB
+ | opndsz? = arity0 CMPSW
  | rexw? = arity0 CMPSQ
  | otherwise = varity0 CMPSD
 
@@ -2655,8 +2653,8 @@ val / [0x0f 0xb1 /r]
 ### CMPXCHG8B/CMPXCHG16B
 ###  - Compare and Exchange Bytes
 val / [0x0f 0xc7 /1-mem]
- | rexw? = unop CMPXCHG8B r/m64
- | otherwise = unop CMPXCHG16B xmm/m128
+ | rexw? = unop CMPXCHG8B m64
+ | otherwise = unop CMPXCHG16B m128
 
 ### COMISD
 ###  - Compare Scalar Ordered Double-Precision Floating-Point Values and Set EFLAGS
@@ -2701,7 +2699,7 @@ val /vex/0f [0x5b /r]
 val /f2 [0x0f 0xe6 /r] = binop CVTPD2DQ xmm128 xmm/m128 # bug in Intel manual: /r is missing
 val /vex/f2/0f [0xe6 /r]
  | vex128? = varity2 VCVTPD2DQ xmm128 xmm/m128
- | vex256? = varity2 VCVTPD2DQ ymm256 ymm/m256
+ | vex256? = varity2 VCVTPD2DQ xmm128 ymm/m256
 
 ### CVTPD2PI
 ###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
@@ -2712,7 +2710,7 @@ val /66 [0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128
 val /66 [0x0f 0x5a /r] = binop CVTPD2PS xmm128 xmm/m128
 val /vex/66/0f [0x5a /r]
  | vex128? = varity2 VCVTPD2PS xmm128 xmm/m128
- | vex256? = varity2 VCVTPD2PS ymm256 ymm/m256
+ | vex256? = varity2 VCVTPD2PS xmm128 ymm/m256
 
 ### CVTPI2PD
 ###  - Convert Packed Dword Integers to Packed Double-Precision FP Values
@@ -2747,7 +2745,7 @@ val /f2 [0x0f 0x2d /r]
  | otherwise = binop CVTSD2SI r32 xmm/m64
 val /vex/f2/0f [0x2d /r]
  | vexw0? = varity2 VCVTSD2SI r32 xmm/m64
- | vexw1? = varity2 VCVTSD2SI r64 xmm/m64
+ | vexw1? & mode64? = varity2 VCVTSD2SI r64 xmm/m64
 
 ### CVTSD2SS
 ###  - Convert Scalar Double-Precision FP Value to Scalar Single-Precision FP Value
@@ -2761,7 +2759,7 @@ val /f2 [0x0f 0x2a /r]
  | otherwise = binop CVTSI2SD xmm128 r/m32
 val /vex/f2/0f/vexv [0x2a /r]
  | vexw0? = varity3 VCVTSI2SD xmm128 v/xmm r/m32
- | vexw1? = varity3 VCVTSI2SD xmm128 v/xmm r/m64
+ | vexw1? & mode64? = varity3 VCVTSI2SD xmm128 v/xmm r/m64
 
 ### CVTSI2SS
 ###  - Convert Dword Integer to Scalar Single-Precision FP Value
@@ -2770,7 +2768,7 @@ val /f3 [0x0f 0x2a /r]
  | otherwise = binop CVTSI2SS xmm128 r/m32
 val /vex/f3/0f/vexv [0x2a /r]
  | vexw0? = varity3 VCVTSI2SS xmm128 v/xmm r/m32
- | vexw1? = varity3 VCVTSI2SS xmm128 v/xmm r/m64
+ | vexw1? & mode64? = varity3 VCVTSI2SS xmm128 v/xmm r/m64
 
 ### CVTSS2SD
 ###  - Convert Scalar Single-Precision FP Value to Scalar Double-Precision FP Value
@@ -2784,14 +2782,14 @@ val /f3 [0x0f 0x2d /r]
  | otherwise = binop CVTSS2SI r32 xmm/m32
 val /vex/f3/0f [0x2d /r]
  | vexw0? = varity2 VCVTSS2SI r32 xmm/m32
- | vexw1? = varity2 VCVTSS2SI r64 xmm/m32
+ | vexw1? & mode64? = varity2 VCVTSS2SI r64 xmm/m32
 
 ### CVTTPD2DQ
 ###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
 val /66 [0x0f 0xe6 /r] = binop CVTTPD2DQ xmm128 xmm/m128
 val /vex/66/0f [0xe6 /r]
  | vex128? = varity2 VCVTTPD2DQ xmm128 xmm/m128
- | vex256? = varity2 VCVTTPD2DQ ymm256 ymm/m256
+ | vex256? = varity2 VCVTTPD2DQ xmm128 ymm/m256
 
 ### CVTTPD2PI
 ###  - Convert with Truncation Packed Double-Precision FP Values to Packed Dword Integers
@@ -2815,7 +2813,7 @@ val /f2 [0x0f 0x2c /r]
  | otherwise = binop CVTTSD2SI r32 xmm/m64
 val /vex/f2/0f [0x2c /r]
  | vexw0? = varity2 VCVTTSD2SI r32 xmm/m64
- | vexw1? = varity2 VCVTTSD2SI r64 xmm/m64
+ | vexw1? & mode64? = varity2 VCVTTSD2SI r64 xmm/m64
 
 ### CVTTSS2SI
 ###  - Convert with Truncation Scalar Single-Precision FP Value to Dword Integer
@@ -2824,7 +2822,7 @@ val /f3 [0x0f 0x2c /r]
  | otherwise = binop CVTTSS2SI r32 xmm/m32
 val /vex/f3/0f [0x2c /r]
  | vexw0? = varity2 VCVTTSS2SI r32 xmm/m32
- | vexw1? = varity2 VCVTTSS2SI r64 xmm/m32
+ | vexw1? & mode64? = varity2 VCVTTSS2SI r64 xmm/m32
 
 ### CWD/CDQ/CQO
 ###  - Convert Word to Doubleword/Convert Doubleword to Quadword
@@ -2835,11 +2833,11 @@ val / [0x99]
 
 ### DAA
 ###  - Decimal Adjust AL after Addition
-val / [0x27] = arity0 DAA
+val / [0x27] | mode32? = arity0 DAA
 
 ### DAS
 ###  - Decimal Adjust AL after Subtraction
-val / [0x2f] = arity0 DAS
+val / [0x2f] | mode32? = arity0 DAS
 
 ### DEC
 ###  - Decrement by 1
@@ -2849,8 +2847,8 @@ val / [0xff /1]
  | rexw? = unop DEC r/m64
  | otherwise = unop DEC r/m32
 val / ['01001 r:3']
- | opndsz? & // mode64? = do update@{reg/opcode=r}; unop DEC r16 end 
- | otherwise & // mode64? = do update@{reg/opcode=r}; unop DEC r32 end
+ | opndsz? & mode32? = do update@{reg/opcode=r}; unop DEC r16 end 
+ | mode32? = do update@{reg/opcode=r}; unop DEC r32 end
 
 ### DIV
 ###  - Unsigned Divide
@@ -2865,24 +2863,24 @@ val / [0xf7 /6]
 val /66 [0x0f 0x5e /r] = binop DIVPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x5e /r]
  | vex128? = varity3 VDIVPD xmm128 v/xmm xmm/m128
- | vex256? = varity3 VDIVPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VDIVPD ymm256 v/ymm ymm/m256
 
 ### DIVPS
 ###  - Divide Packed Single-Precision Floating-Point Values
 val / [0x0f 0x5e /r] = binop DIVPS xmm128 xmm/m128
 val /vex/0f/vexv [0x5e /r]
  | vex128? = varity3 VDIVPS xmm128 v/xmm xmm/m128
- | vex256? = varity3 VDIVPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VDIVPS ymm256 v/ymm ymm/m256
 
 ### DIVSD
 ###  - Divide Scalar Double-Precision Floating-Point Values
 val /f2 [0x0f 0x5e /r] = binop DIVSD xmm128 xmm/m64
-val /vex/0f/f2/vexv [0x5e /r] = varity3 VDIVSD xmm128 v/xmm xmm/m64
+val /vex/f2/0f/vexv [0x5e /r] = varity3 VDIVSD xmm128 v/xmm xmm/m64
 
 ### DIVSS
 ###  - Divide Scalar Single-Precision Floating-Point Values
 val /f3 [0x0f 0x5e /r] = binop DIVSS xmm128 xmm/m32
-val /vex/0f/f3/vexv [0x5e /r] = varity3 VDIVSS xmm128 v/xmm xmm/m32
+val /vex/f3/0f/vexv [0x5e /r] = varity3 VDIVSS xmm128 v/xmm xmm/m32
 
 ### DPPD
 ###  - Dot Product of Packed Double Precision Floating-Point Values
@@ -2894,7 +2892,7 @@ val /vex/66/0f/3a/vexv [0x41 /r] | vex128? = varity4 VDPPD xmm128 v/xmm xmm/m128
 val /66 [0x0f 0x3a 0x40 /r] = ternop DPPS xmm128 xmm/m128 imm8
 val /vex/66/0f/3a/vexv [0x40 /r]
  | vex128? = varity4 VDPPS xmm128 v/xmm xmm/m128 imm8
- | vex256? = varity4 VDPPS xmm128 v/xmm xmm/m128 imm8
+ | vex256? = varity4 VDPPS ymm256 v/ymm ymm/m256 imm8
 
 ### EMMS
 ###  - Empty MMX Technology State
@@ -2922,8 +2920,8 @@ val / [0xd9 0xe1] = arity0 FABS
 val / [0xd8 /0] = binop FADD st0 st/m32
 val / [0xdc /0-mem] = binop FADD st0 m64
 val / [0xdc /0-reg] = binop FADD st/reg st0
-val / [0xda /0-mem] = unop FIADD m32
 val / [0xde /0-reg] = binop FADDP st/reg st0
+val / [0xda /0-mem] = unop FIADD m32
 val / [0xde /0-mem] = unop FIADD m16
 
 ### FBLD
@@ -2953,6 +2951,8 @@ val / [0xdb /0-reg] = binop FCMOVNB st0 st/reg
 val / [0xdb /1-reg] = binop FCMOVNE st0 st/reg
 val / [0xdb /2-reg] = binop FCMOVNBE st0 st/reg
 val / [0xdb /3-reg] = binop FCMOVNU st0 st/reg
+
+### =><=
 
 ### FCOM/FCOMP/FCOMPP
 ###  - Compare Floating Point Values
