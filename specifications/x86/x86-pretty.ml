@@ -418,10 +418,10 @@ val show/instruction insn =
     | FUCOMPP: "FUCOMPP"
     | FXAM: "FXAM"
     | FXCH x: "FXCH" -++ show/arity1 x
-    | FXRSTOR64_m512byte
-    | FXRSTOR_m512byte
-    | FXSAVE64_m512byte
-    | FXSAVE_m512byte
+    | FXRSTOR64 x: "FXRSTOR64" -++ show/arity1 x
+    | FXRSTOR x: "FXRSTOR" -++ show/arity1 x
+    | FXSAVE64 x: "FXSAVE64" -++ show/arity1 x
+    | FXSAVE x: "FXSAVE" -++ show/arity1 x
     | FXTRACT: "FXTRACT"
     | FYL2X
     | FYL2XP1

@@ -759,10 +759,10 @@ type insn =
  | FUCOMPP
  | FXAM
  | FXCH of arity1
- | FXRSTOR64_m512byte
- | FXRSTOR_m512byte
- | FXSAVE64_m512byte
- | FXSAVE_m512byte
+ | FXRSTOR64 of arity1
+ | FXRSTOR of arity1
+ | FXSAVE64 of arity1
+ | FXSAVE of arity1
  | FXTRACT
  | FYL2X
  | FYL2XP1
@@ -2026,8 +2026,10 @@ val m256 = ymm/m256
 
 val m48 = r/m 48 reg64-rex #TODO: check
 val m80 = r/m 80 reg64-rex #TODO: check
-val m80fp = r/m 80 reg64-rex #TODO: check
-val m14/28byte = m80fp #TODO: fix
+#val m80fp = r/m 80 reg64-rex #TODO: check
+#val m14/28byte = m80fp #TODO: fix
+val m14byte = r/m 112 reg64-rex #TODO: fix
+val m28byte = r/m 224 reg64-rex #TODO: fix
 val m2byte = m16 #TODO: check
 val m94byte = r/m 752 reg64-rex #TODO: check
 val m108byte = r/m 864 reg64-rex #TODO: check
@@ -2960,7 +2962,6 @@ val / [0xd8 /2] = unop FCOM st/m32
 val / [0xdc /2-mem] = unop FCOM m64
 val / [0xd8 /3] = unop FCOMP st/m32
 val / [0xdc /3-mem] = unop FCOMP m64
-val / [0xd8 /3-reg] = unop FCOMP st/reg
 val / [0xde 0xd9] = arity0 FCOMPP
 
 ### FCOMI/FCOMIP/FUCOMI/FUCOMIP
@@ -3040,7 +3041,7 @@ val / [0xdd /1-mem] = unop FISTTP m64
 ###  - Load Floating Point Value
 val / [0xd9 /0] = unop FLD st/m32
 val / [0xdd /0-mem] = unop FLD m64
-val / [0xdb /5-mem] = unop FLD m80fp
+val / [0xdb /5-mem] = unop FLD m80
 
 ### FLD1/FLDL2T/FLDL2E/FLDPI/FLDLG2/FLDLN2/FLDZ
 ###  - Load Constant
@@ -3058,11 +3059,16 @@ val / [0xd9 /5-mem] = unop FLDCW m2byte
 
 ### FLDENV
 ###  - Load x87 FPU Environment
-val / [0xd9 /4-mem] = unop FLDENV m14/28byte
+### Todo: fix
+### http://lxr.free-electrons.com/source/arch/x86/math-emu/reg_ld_str.c#L1026
+val / [0xd9 /4-mem]
+ | mode64? = unop FLDENV m28byte
+ | mode32? = unop FLDENV m14byte
+
 
 ### FMUL/FMULP/FIMUL
 ###  - Multiply
-val / [0xd8 /1-mem] = binop FMUL st0 st/m32
+val / [0xd8 /1] = binop FMUL st0 st/m32
 val / [0xdc /1-mem] = binop FMUL st0 m64
 val / [0xdc /1-reg] = binop FMUL st/reg st0
 val / [0xde /1-reg] = binop FMULP st/reg st0
@@ -3095,18 +3101,20 @@ val / [0xd9 0xfc] = arity0 FRNDINT
 
 ### FRSTOR
 ###  - Restore x87 FPU State
-val / [0xdd /4]
+### Todo: fix
+val / [0xdd /4-mem]
  | mode64? = unop FRSTOR m108byte
  | otherwise = unop FRSTOR m94byte
 
 ### FSAVE/FNSAVE
 ###  - Store x87 FPU State
-val / [0x9b 0xdd /6]
+### Todo: fix
+val / [0x9b 0xdd /6-mem]
  | mode64? = unop FSAVE m108byte
- | otherwise = unop FSAVE m94byte
-val / [0xdd /6]
+ | mode32? = unop FSAVE m94byte
+val / [0xdd /6-mem]
  | mode64? = unop FNSAVE m108byte
- | otherwise = unop FNSAVE m94byte
+ | mode32? = unop FNSAVE m94byte
 
 ### FSCALE
 ###  - Scale
@@ -3130,7 +3138,7 @@ val / [0xd9 /2-mem] = unop FST m32
 val / [0xdd /2] = unop FST st/m64
 val / [0xd9 /3-mem] = unop FSTP m32
 val / [0xdd /3] = unop FSTP st/m64
-val / [0xdb /7-mem] = unop FSTP m80fp
+val / [0xdb /7-mem] = unop FSTP m80
 
 ### FSTCW/FNSTCW
 ###  - Store x87 FPU Control Word
@@ -3139,8 +3147,13 @@ val / [0xd9 /7-mem] = unop FNSTCW m2byte
 
 ### FSTENV/FNSTENV
 ###  - Store x87 FPU Environment
-val / [0x9b 0xd9 /6-mem] = unop FSTENV m14/28byte
-val / [0xd9 /6-mem] = unop FNSTENV m14/28byte
+### Todo: fix
+val / [0x9b 0xd9 /6-mem]
+ | mode64? = unop FSTENV m28byte
+ | mode32? = unop FSTENV m14byte
+val / [0xd9 /6-mem]
+ | mode64? = unop FNSTENV m28byte
+ | mode32? = unop FNSTENV m14byte
 
 ### FSTSW/FNSTSW
 ###  - Store x87 FPU Status Word
@@ -3183,21 +3196,21 @@ val / [0xd9 0xe5] = arity0 FXAM
 
 ### FXCH
 ###  - Exchange Register Contents
-val / [0xd9 /0-reg] = unop FXCH st/reg
+val / [0xd9 /1-reg] = unop FXCH st/reg
 
 ### FXRSTOR
 ###  - Restore x87 FPU, MMX , XMM, and MXCSR State
-# Todo: fix
+### Todo: fix
 val / [0x0f 0xae /1-mem]
- | rexw? = arity0 FXRSTOR64_m512byte
- | otherwise = arity0 FXRSTOR_m512byte
+ | rexw? = unop FXRSTOR64 m512byte
+ | otherwise = unop FXRSTOR m512byte
 
 ### FXSAVE
 ###  - Save x87 FPU, MMX Technology, and SSE State
-# Todo: fix
+### Todo: fix
 val / [0x0f 0xae /0-mem]
- | rexw? = arity0 FXSAVE64_m512byte
- | otherwise = arity0 FXSAVE_m512byte
+ | rexw? = unop FXSAVE64 m512byte
+ | otherwise = unop FXSAVE m512byte
 
 ### FXTRACT
 ###  - Extract Exponent and Significand
