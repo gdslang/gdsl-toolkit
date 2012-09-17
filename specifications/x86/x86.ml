@@ -2367,7 +2367,7 @@ val /vex/0f/vexv [0x55 /r]
 
 ### ARPL
 ###  - Adjust RPL Field of Segment Selector
-val / [0x63 /r] | mode32? = binop ARPL r/m16 r16
+### See MOVSX/MOVSDX
 
 ### BLENDPD
 ###  - Blend Packed Double Precision Floating-Point Values
@@ -3501,7 +3501,7 @@ val / [0x0f 0xb4 /r-mem]
  | opndsz? = binop LFS r16 m16/16
  | rexw? = binop LFS r64 m16/64
  | otherwise = binop LFS r32 m16/32
-val / [0x0f 0xb4 /r-mem]
+val / [0x0f 0xb5 /r-mem]
  | opndsz? = binop LGS r16 m16/16
  | rexw? = binop LGS r64 m16/64
  | otherwise = binop LGS r32 m16/32
@@ -3936,8 +3936,9 @@ val / [0x0f 0xbf /r]
  | rexw? = binop MOVSX r64 r/m16
  | otherwise = binop MOVSX r32 r/m16
 val / [0x63 /r]
- | rexw? = binop MOVSXD r64 r/m32
- | otherwise = binop MOVSXD r32 r/m32 #TODO: check
+ | mode64? & rexw? = binop MOVSXD r64 r/m32
+ | mode64? = binop MOVSXD r32 r/m32 #TODO: check
+ | mode32? = binop ARPL r/m16 r16
 
 ### MOVUPD
 ###  - Move Unaligned Packed Double-Precision Floating-Point Values

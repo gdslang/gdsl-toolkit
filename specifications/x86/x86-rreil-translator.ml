@@ -140,21 +140,27 @@ val fAF = return (var//0 (ARCH_R ~3)) # AF
 val zero = return (SEM_LIN_IMM{imm=0})
 
 val sem-undef-arity0 x = do
+	0
 end
 
 val sem-undef-arity1 x = do
+	0
 end
 
 val sem-undef-arity2 x = do
+	0
 end
 
 val sem-undef-arity3 x = do
+	0
 end
 
 val sem-undef-varity x = do
+	0
 end
 
 val sem-undef-flow1 x = do
+	0
 end
 
 val emit-add-flags sz a b c =
