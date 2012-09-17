@@ -304,7 +304,9 @@ val p64 [0x66] = do set-opndsz; p/66 end
 val p64 [0xf2] = do set-repne; p/f2 end
 val p64 [0xf3] = do set-rep; p/f3 end
 val p64 [/legacy-p] = p64
-val p64 [/rex-p] = p64
+val p64 [/rex-p]
+ | mode64? = p64
+ | mode32? = unop INC rex/reg32
 #val p64 [p/vex/0f] = /vex/0f
 val p64 [p/vex/f2/0f] = /vex/f2/0f
 val p64 [p/vex/f3/0f] = /vex/f3/0f
@@ -319,63 +321,81 @@ val p/66 [0xf2] = do set-repne; p/66/f2 end
 val p/66 [0xf3] = do set-rep; p/66/f3 end
 val p/66 [0x66] = do set-opndsz; p/66 end
 val p/66 [/legacy-p] = p/66
-val p/66 [/rex-p] = p/66
+val p/66 [/rex-p]
+ | mode64? = p/66
+ | mode32? = unop INC rex/reg16
 val p/66 [] = after /66 /
 
 val p/f2 [0x66] = do set-opndsz; p/66/f2 end
 val p/f2 [0xf2] = do set-repne; p/f2 end
 val p/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2 [/legacy-p] = p/f2
-val p/f2 [/rex-p] = p/f2
+val p/f2 [/rex-p]
+ | mode64? = p/f2
+ | mode32? = unop INC rex/reg32
 val p/f2 [] = after /f2 / 
 
 val p/f3 [0x66] = do set-opndsz; p/66/f3 end
 val p/f3 [0xf2] = do set-repne; p/f3/f2 end
 val p/f3 [0xf3] = do set-rep; p/f3 end
 val p/f3 [/legacy-p] = p/f3
-val p/f3 [/rex-p] = p/f3
+val p/f3 [/rex-p]
+ | mode64? = p/f3
+ | mode32? = unop INC rex/reg32
 val p/f3 [] = after /f3 / 
 
 val p/f2/f3 [0x66] = do set-opndsz; p/66/f2/f3 end
 val p/f2/f3 [0xf2] = do set-repne; p/f3/f2 end
 val p/f2/f3 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2/f3 [/legacy-p] = p/f2/f3
-val p/f2/f3 [/rex-p] = p/f2/f3
+val p/f2/f3 [/rex-p]
+ | mode64? = p/f2/f3
+ | mode32? = unop INC rex/reg32
 val p/f2/f3 [] = after /f3 (after /f2 /)
 
 val p/f3/f2 [0x66] = do set-opndsz; p/66/f2/f3 end
 val p/f3/f2 [0xf2] = do set-repne; p/f3/f2 end
 val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f3/f2 [/legacy-p] = p/f3/f2
-val p/f3/f2 [/rex-p] = p/f3/f2
+val p/f3/f2 [/rex-p]
+ | mode64? = p/f3/f2
+ | mode32? = unop INC rex/reg32
 val p/f3/f2 [] = after /f2 (after /f3 /)
 
 val p/66/f2 [0x66] = do set-opndsz; p/66/f2 end
 val p/66/f2 [0xf2] = do set-repne; p/66/f2 end
 val p/66/f2 [0xf3] = do set-rep; p/66/f2/f3 end
 val p/66/f2 [/legacy-p] = p/66/f2
-val p/66/f2 [/rex-p] = p/66/f2
+val p/66/f2 [/rex-p]
+ | mode64? = p/66/f2
+ | mode32? = unop INC rex/reg16
 val p/66/f2 [] = after /f2 (after /66 /)
 
 val p/66/f3 [0x66] = do set-opndsz; p/66/f3 end
 val p/66/f3 [0xf2] = do set-repne; p/66/f3/f2 end
 val p/66/f3 [0xf3] = do set-rep; p/66/f3 end
 val p/66/f3 [/legacy-p] = p/66/f3
-val p/66/f3 [/rex-p] = p/66/f3
+val p/66/f3 [/rex-p]
+ | mode64? = p/66/f3
+ | mode32? = unop INC rex/reg16
 val p/66/f3 [] = after /f3 (after /66 /)
 
 val p/66/f2/f3 [0x66] = do clear-rex; p/66/f2/f3 end
 val p/66/f2/f3 [0xf2] = do clear-rex; p/66/f3/f2 end
 val p/66/f2/f3 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f2/f3 [/legacy-p] = p/66/f2/f3
-val p/66/f2/f3 [/rex-p] = p/66/f2/f3
+val p/66/f2/f3 [/rex-p]
+ | mode64? = p/66/f2/f3
+ | mode32? = unop INC rex/reg16
 val p/66/f2/f3 [] = after /f3 (after /f2 (after /66 /))
 
 val p/66/f3/f2 [0x66] = do clear-rex; p/66/f3/f2 end
 val p/66/f3/f2 [0xf2] = do clear-rex; p/66/f3/f2 end
 val p/66/f3/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
-val p/66/f3/f2 [/rex-p] = p/66/f3/f2
+val p/66/f3/f2 [/rex-p]
+ | mode64? = p/66/f3/f2
+ | mode32? = unop INC rex/reg16
 val p/66/f3/f2 [] = after /f2 (after /f3 (after /66 /))
 
 type register =
@@ -1547,6 +1567,20 @@ val ptr16/32 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8'] = return (PTR16/32 (b6 
 
 val imm/xmm ['r:4 b:4'] = return (xmm r)
 val imm/ymm ['r:4 b:4'] = return (ymm r)
+
+val rex/reg16 = do
+  rexr <- query $rexr;
+  rexx <- query $rexx;
+  rexb <- query $rexb;
+  return (reg16 ('0' ^ rexr ^ rexx ^ rexb))
+end
+
+val rex/reg32 = do
+  rexr <- query $rexr;
+  rexx <- query $rexx;
+  rexb <- query $rexb;
+  return (reg32 ('0' ^ rexr ^ rexx ^ rexb))
+end
 
 val & giveA giveB = do
    a <- giveA;
@@ -3261,8 +3295,8 @@ val /vex/f2/0f/vexv [0x7d /r]
 val / [0xf6 /7] = unop IDIV r/m8
 val / [0xf7 /7]
  | opndsz? = unop IDIV r/m16
- | rexw? = unop IDIV r/m32
- | otherwise = unop IDIV r/m64
+ | rexw? = unop IDIV r/m64
+ | otherwise = unop IDIV r/m32
 
 ### IMUL
 ###  - Signed Multiply
