@@ -391,8 +391,8 @@ val show/instruction insn =
     | FNSTENV x: "FNSTENV" -++ show/arity1 x
     | FNSTSW x: "FNSTSW" -++ show/arity1 x
     | FPATAN: "FPATAN"
-    | FPREM: "FPREM"
     | FPREM1: "FPREM1"
+    | FPREM: "FPREM"
     | FPTAN: "FPTAN"
     | FRNDINT: "FRNDINT"
     | FRSTOR x: "FRSTOR" -++ show/arity1 x
@@ -418,10 +418,10 @@ val show/instruction insn =
     | FUCOMPP: "FUCOMPP"
     | FXAM: "FXAM"
     | FXCH x: "FXCH" -++ show/arity1 x
-    | FXRSTOR64 x: "FXRSTOR64" -++ show/arity1 x
     | FXRSTOR x: "FXRSTOR" -++ show/arity1 x
-    | FXSAVE64 x: "FXSAVE64" -++ show/arity1 x
+    | FXRSTOR64 x: "FXRSTOR64" -++ show/arity1 x
     | FXSAVE x: "FXSAVE" -++ show/arity1 x
+    | FXSAVE64 x: "FXSAVE64" -++ show/arity1 x
     | FXTRACT: "FXTRACT"
     | FYL2X: "FYL2X"
     | FYL2XP1: "FYL2XP1"
@@ -434,7 +434,10 @@ val show/instruction insn =
     | IMUL x: "IMUL" -++ show/varity x
     | IN x: "IN" -++ show/arity2 x
     | INC x: "INC" -++ show/arity1 x
+    | INSB: "INSB"
+    | INSD: "INSD"
     | INSERTPS x: "INSERTPS" -++ show/arity3 x
+    | INSW: "INSW"
     | INT x: "INT" -++ show/arity1 x
     | INT0: "INT0"
     | INT3: "INT3"

@@ -559,8 +559,8 @@ val semantics insn =
     | FNSTENV x: sem-undef-arity1 x
     | FNSTSW x: sem-undef-arity1 x
     | FPATAN: sem-undef-arity0
-    | FPREM: sem-undef-arity0
     | FPREM1: sem-undef-arity0
+    | FPREM: sem-undef-arity0
     | FPTAN: sem-undef-arity0
     | FRNDINT: sem-undef-arity0
     | FRSTOR x: sem-undef-arity1 x
@@ -586,10 +586,10 @@ val semantics insn =
     | FUCOMPP: sem-undef-arity0
     | FXAM: sem-undef-arity0
     | FXCH x: sem-undef-arity1 x
-    | FXRSTOR64 x: sem-undef-arity1 x
     | FXRSTOR x: sem-undef-arity1 x
-    | FXSAVE64 x: sem-undef-arity1 x
+    | FXRSTOR64 x: sem-undef-arity1 x
     | FXSAVE x: sem-undef-arity1 x
+    | FXSAVE64 x: sem-undef-arity1 x
     | FXTRACT: sem-undef-arity0
     | FYL2X: sem-undef-arity0
     | FYL2XP1: sem-undef-arity0
@@ -602,7 +602,10 @@ val semantics insn =
     | IMUL x: sem-undef-varity x
     | IN x: sem-undef-arity2 x
     | INC x: sem-undef-arity1 x
+    | INSB: sem-undef-arity0
+    | INSD: sem-undef-arity0
     | INSERTPS x: sem-undef-arity3 x
+    | INSW: sem-undef-arity0
     | INT x: sem-undef-arity1 x
     | INT0: sem-undef-arity0
     | INT3: sem-undef-arity0

@@ -779,10 +779,10 @@ type insn =
  | FUCOMPP
  | FXAM
  | FXCH of arity1
- | FXRSTOR64 of arity1
  | FXRSTOR of arity1
- | FXSAVE64 of arity1
+ | FXRSTOR64 of arity1
  | FXSAVE of arity1
+ | FXSAVE64 of arity1
  | FXTRACT
  | FYL2X
  | FYL2XP1
@@ -795,7 +795,10 @@ type insn =
  | IMUL of varity
  | IN of arity2
  | INC of arity1
+ | INSB
+ | INSD
  | INSERTPS of arity3
+ | INSW
  | INT of arity1
  | INT0
  | INT3
@@ -3359,7 +3362,10 @@ val / [0xff /0]
 
 ### INS/INSB/INSW/INSD
 ###  - Input from Port to String
-#Todo
+val / [0x6c] = arity0 INSB
+val / [0x6d]
+ | opndsz? = arity0 INSW
+ | otherwise = arity0 INSD
 
 ### INSERTPS
 ###  - Insert Packed Single Precision Floating-Point Value
