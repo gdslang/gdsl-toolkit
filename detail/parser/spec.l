@@ -47,7 +47,7 @@
 
    (* scan a number from a hexidecimal string *)
    val fromHexString = valOf o (StringCvt.scanString (IntInf.scan StringCvt.HEX))
-   (* FIXME: the above code doesn't work in SML/NJ; here is a work around *)
+   (* FIXME: the above code does not work in SML/NJ; here is a work around *)
    fun fromHexString s = let
       val SOME(n, _) =
          IntInf.scan
@@ -87,6 +87,7 @@
 %let bitstr = {binary}+;
 %let sym=[-!%&$+/:<=>?@~`\^|#*\\];
 %let symid={sym}+;
+%let mixid=_{idchar}*;
 
 <INITIAL>"granularity" => (T.KW_granularity);
 <INITIAL>"export" => (T.KW_export);
@@ -138,6 +139,7 @@
 
 <INITIAL>{cons} => (T.CONS (Atom.atom yytext));
 <INITIAL>{id} => (T.ID (Atom.atom yytext));
+<INITIAL>{mixid} => (T.MID (Atom.atom yytext));
 <INITIAL>{symid} => (T.SYMBOL (Atom.atom yytext));
 <INITIAL,BITPATNUM>{num} => (T.POSINT(valOf (IntInf.fromString yytext)));
 <INITIAL>"~"{num} => (T.NEGINT(valOf (IntInf.fromString yytext)));

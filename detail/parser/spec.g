@@ -45,6 +45,7 @@
    | BITSTR of string
    | TYVAR of Atom.atom
    | ID of Atom.atom
+   | MID of Atom.atom
    | CONS of Atom.atom
    | POSINT of IntInf.int (* positive integer *)
    | NEGINT of IntInf.int (* negative integer *)
@@ -92,6 +93,7 @@
       case es of
          [] => e
        | es => PT.APPLYexp(e, es)
+   
 );
 
 Program
@@ -106,6 +108,13 @@ Decl
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
    | "val" Name Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
    | "val" Sym Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
+   | "val" (MID Name => ((MID,Name)))* "=" Exp => (
+       let
+         val (names,args) = ListPair.unzip SR
+         val name = Atom.atom (String.concat (List.map Atom.toString names))
+      in
+         markDecl (FULL_SPAN, PT.LETRECdecl (name, args, Exp))
+      end)
    | "val" Name "[" DecodePat* "]" decl=
       ( "=" Exp =>
          (PT.DECODEdecl (Name, DecodePat, Sum.INL Exp))
@@ -176,6 +185,18 @@ BitPatOrInt
    ;
 
 Exp
+   : CaseExp => (CaseExp)
+   | MID CaseExp (MID CaseExp)* => (
+      let
+         val (names, exps) = ListPair.unzip SR
+         val name = {span={file= !sourcemap, span=MID_SPAN}, tree= MID :: names}
+      in
+         mark PT.MARKexp (FULL_SPAN, mkApply (CaseExp, exps))
+      end
+   )
+   ;
+
+CaseExp
    : ClosedExp => (ClosedExp)
    | "case" ClosedExp "of" Cases "end" =>
       (mark PT.MARKexp (FULL_SPAN, PT.CASEexp (ClosedExp, Cases)))
@@ -183,8 +204,8 @@ Exp
 
 ClosedExp
    : OrElseExp
-   | "if" Exp "then" Exp "else" Exp =>
-      (mark PT.MARKexp (FULL_SPAN, PT.IFexp (Exp1, Exp2, Exp3)))
+   | "if" CaseExp "then" CaseExp "else" CaseExp =>
+      (mark PT.MARKexp (FULL_SPAN, PT.IFexp (CaseExp1, CaseExp2, CaseExp3)))
 (* | "raise" Exp =>
        (mark PT.MARKexp (FULL_SPAN, PT.RAISEexp Exp))
 *)
