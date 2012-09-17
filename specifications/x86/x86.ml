@@ -65,7 +65,7 @@ end
 val continue = do
   t <- query$tab;
   # make the type checker happy
-  update@{~tab};  
+  update@{~tab};
   # make the type checker happy
   r <- t;
   update@{~tab};
@@ -76,7 +76,7 @@ end
 #    update@{tab=snd};
 #    fst
 # end
-# 
+#
 # val continue = do
 #    t <- query$tab;
 #    t
@@ -333,7 +333,7 @@ val p/f2 [/legacy-p] = p/f2
 val p/f2 [/rex-p]
  | mode64? = p/f2
  | mode32? = unop INC rex/reg32
-val p/f2 [] = after /f2 / 
+val p/f2 [] = after /f2 /
 
 val p/f3 [0x66] = do set-opndsz; p/66/f3 end
 val p/f3 [0xf2] = do set-repne; p/f3/f2 end
@@ -342,7 +342,7 @@ val p/f3 [/legacy-p] = p/f3
 val p/f3 [/rex-p]
  | mode64? = p/f3
  | mode32? = unop INC rex/reg32
-val p/f3 [] = after /f3 / 
+val p/f3 [] = after /f3 /
 
 val p/f2/f3 [0x66] = do set-opndsz; p/66/f2/f3 end
 val p/f2/f3 [0xf2] = do set-repne; p/f3/f2 end
@@ -422,35 +422,35 @@ type register =
  | R8B
  | R8L
  | R8D
- | R8 
+ | R8
  | R9B
  | R9L
  | R9D
- | R9 
+ | R9
  | R10B
  | R10L
  | R10D
- | R10 
+ | R10
  | R11B
  | R11L
  | R11D
- | R11 
+ | R11
  | R12B
  | R12L
  | R12D
- | R12 
+ | R12
  | R13B
  | R13L
  | R13D
- | R13 
+ | R13
  | R14B
  | R14L
  | R14D
- | R14 
+ | R14
  | R15B
  | R15L
  | R15D
- | R15 
+ | R15
  | SP
  | ESP
  | RSP
@@ -549,9 +549,9 @@ type flowopnd =
 
 type flow1 = {opnd1:flowopnd}
 type arity1 = {opnd1:opnd}
-type arity2 = {opnd1:opnd,opnd2:opnd} 
-type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd} 
-type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd} 
+type arity2 = {opnd1:opnd,opnd2:opnd}
+type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
+type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
 type varity =
    VA0
@@ -599,7 +599,7 @@ type insn =
  | BTS of arity2
  | CALL of flow1
  | CBW
- | CDQ 
+ | CDQ
  | CDQE
  | CLC
  | CLD
@@ -1178,7 +1178,7 @@ type insn =
  | UNPCKHPD of arity2
  | UNPCKHPS of arity2
  | UNPCKLPD of arity2
- | UNPCKLPS of arity2 
+ | UNPCKLPS of arity2
  | VADDPD of varity
  | VADDPS of varity
  | VADDSD of varity
@@ -1636,7 +1636,7 @@ end
 
 ## Convert a bit-vectors to registers
 
-val st-reg n = 
+val st-reg n =
    case n of
       '0000': REG ST0
     | '0001': REG ST1
@@ -1870,7 +1870,7 @@ val sib-without-base reg scale index = do
    mod <- query $mod;
    rexb <- query $rexb;
    case mod of
-      '00': 
+      '00':
          do
             i <- imm32;
             return (SUM{a=scaled, b=i})
@@ -2204,28 +2204,28 @@ end
 
 val one = return (IMM8 '00000001')
 
-val // a = 
+val // a =
    do b <- a;
       return (not b)
 end
 
 ### AAA
 ###  - ASCII Adjust After Addition
-val / [0x37] | mode32? = arity0 AAA 
+val / [0x37] | mode32? = arity0 AAA
 
 ### AAD
 ###  - ASCII Adjust AX Before Division
-val / [0xd5] | mode32? = unop AAD imm8 
+val / [0xd5] | mode32? = unop AAD imm8
 
 ### AAM
 ###  - ASCII Adjust AX After Multiply
-val / [0xd4] | mode32? = unop AAM imm8 
+val / [0xd4] | mode32? = unop AAM imm8
 
 ### AAS
 ###  - ASCII Adjust AL After Subtraction
 val / [0x3f] | mode32? = arity0 AAS
 
-### ADC 
+### ADC
 ###  - Add with Carry
 val / [0x14] = binop ADC al imm8
 val / [0x15]
@@ -2250,7 +2250,7 @@ val / [0x12 /r] = binop ADC r8 r/m8
 val / [0x13 /r]
  | opndsz? = binop ADC r16 r/m16
  | rexw? = binop ADC r64 r/m64
- | otherwise = binop ADC r32 r/m32 
+ | otherwise = binop ADC r32 r/m32
 
 ### ADD
 ###  - Add
@@ -2262,7 +2262,7 @@ val / [0x05]
 val / [0x80 /0] = binop ADD r/m8 imm8
 val / [0x81 /0]
  | opndsz? = binop ADD r/m16 imm16
- | rexw? = binop ADD r/m64 imm32 
+ | rexw? = binop ADD r/m64 imm32
  | otherwise = binop ADD r/m32 imm32
 val / [0x83 /0]
  | opndsz? = binop ADD r/m16 imm8
@@ -2460,7 +2460,7 @@ val / [0x0f /1-reg]
  | rexw? = unop BSWAP r/reg64
  | otherwise = unop BSWAP r/reg32
 #val / [0x0f '11001 r:3']
-# | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end 
+# | rexw? = do update@{reg/opcode=r}; unop BSWAP r64/rexb end
 # | otherwise = do update@{reg/opcode=r}; unop BSWAP r32/rexb end
 
 ### BT
@@ -2526,7 +2526,7 @@ val / [0xff /3-mem]
 
 ### CBW/CWDE/CDQE
 ###  - Convert Byte to Word/Convert Word to Doubleword/Convert Doubleword to Quadword
-val / [0x98] 
+val / [0x98]
  | opndsz? = arity0 CBW
  | rexw? = arity0 CDQE
  | otherwise = arity0 CWDE
@@ -2886,7 +2886,7 @@ val / [0xff /1]
  | rexw? = unop DEC r/m64
  | otherwise = unop DEC r/m32
 val / ['01001 r:3']
- | opndsz? & mode32? = do update@{reg/opcode=r}; unop DEC r16 end 
+ | opndsz? & mode32? = do update@{reg/opcode=r}; unop DEC r16 end
  | mode32? = do update@{reg/opcode=r}; unop DEC r32 end
 
 ### DIV
@@ -2965,7 +2965,7 @@ val / [0xde /0-mem] = unop FIADD m16
 
 ### FBLD
 ###  - Load Binary Coded Decimal
-val / [0xdf /4-mem] = unop FBLD m80 
+val / [0xdf /4-mem] = unop FBLD m80
 
 ### FBSTP
 ###  - Store BCD Integer and Pop
@@ -2993,7 +2993,7 @@ val / [0xdb /3-reg] = binop FCMOVNU st0 st/reg
 
 ### FCOM/FCOMP/FCOMPP
 ###  - Compare Floating Point Values
-val / [0xd8 /2] = unop FCOM st/m32 
+val / [0xd8 /2] = unop FCOM st/m32
 val / [0xdc /2-mem] = unop FCOM m64
 val / [0xd8 /3] = unop FCOMP st/m32
 val / [0xdc /3-mem] = unop FCOMP m64
@@ -3090,7 +3090,7 @@ val / [0xd9 0xee] = arity0 FLDZ
 
 ### FLDCW
 ###  - Load x87 FPU Control Word
-val / [0xd9 /5-mem] = unop FLDCW m2byte 
+val / [0xd9 /5-mem] = unop FLDCW m2byte
 
 ### FLDENV
 ###  - Load x87 FPU Environment
@@ -3124,7 +3124,7 @@ val / [0xd9 0xf8] = arity0 FPREM
 
 ### FPREM1
 ###  - Partial Remainder
-val / [0xd9 0xf5] = arity0 FPREM1 
+val / [0xd9 0xf5] = arity0 FPREM1
 
 ### FPTAN
 ###  - Partial Tangent
@@ -3132,7 +3132,7 @@ val / [0xd9 0xf2] = arity0 FPTAN
 
 ### FRNDINT
 ###  - Round to Integer
-val / [0xd9 0xfc] = arity0 FRNDINT 
+val / [0xd9 0xfc] = arity0 FRNDINT
 
 ### FRSTOR
 ###  - Restore x87 FPU State
@@ -3259,8 +3259,6 @@ val / [0xd9 0xf1] = arity0 FYL2X
 ###  - Compute y*log_2(x +1)
 val / [0xd9 0xf9] = arity0 FYL2XP1
 
-### =><=
-
 ### HADDPD
 ###  - Packed Double-FP Horizontal Add
 val /66 [0x0f 0x7c /r] = binop HADDPD xmm128 xmm/m128
@@ -3376,7 +3374,7 @@ val /vex/66/0f/3a/vexv [0x21 /r] = varity4 VINSERTPS xmm128 v/xmm xmm/m32 imm8
 ###  - Call to Interrupt Procedure
 val / [0xcc] = arity0 INT3
 val / [0xcd] = unop INT imm8
-val / [0xce] = arity0 INT0
+val / [0xce] | mode32? = arity0 INT0
 
 ### INVD
 ###  - Invalidate Internal Caches
@@ -3390,7 +3388,9 @@ val / [0x0f 0x01 /7-mem] = unop INVLPG m0
 ###  - Invalidate Process-Context Identifier
 val /66 [0x0f 0x38 0x82 /r-mem]
  | mode64? = binop INVPCID r64 m128
- | otherwise = binop INVPCID r32 m128
+ | mode32? = binop INVPCID r32 m128
+
+### =><=
 
 ### IRET/IRETD
 ###  - Interrupt Return
@@ -3403,12 +3403,13 @@ val / [0xcf]
 ###  - Jump if Condition Is Met
 val / [0x77] = near-rel JA rel8  # JNBE
 val / [0x73] = near-rel JAE rel8 # JNB, JNC
-val / [0x72] = near-rel JC rel8  # JB,JNAE
+val / [0x72] = near-rel JC rel8  # JB, JNAE
 val / [0x76] = near-rel JBE rel8 # JNA
 val /66 [0xe3] = near-rel JCXZ rel8
 val / [0xe3]
- | rexw? = near-rel JRCXZ rel8
- | otherwise = near-rel JECXZ rel8 
+# | opndsz? = near-rel JCXZ rel8
+ | mode64? = near-rel JRCXZ rel8
+ | mode32? = near-rel JECXZ rel8
 val / [0x74] = near-rel JE rel8  # JZ
 val / [0x7f] = near-rel JG rel8  # JNLE
 val / [0x7d] = near-rel JGE rel8 # JNL
@@ -3421,70 +3422,54 @@ val / [0x79] = near-rel JNS rel8
 val / [0x70] = near-rel JO rel8
 val / [0x7a] = near-rel JP rel8  # JPE
 val / [0x78] = near-rel JS rel8
-val /66 [0x0f 0x87]
- | mode64? = near-rel JA rel32
- | otherwise = near-rel JA rel16
-val / [0x0f 0x87] = near-rel JA rel32
-val /66 [0x0f 0x83]
- | mode64? = near-rel JAE rel32
- | otherwise = near-rel JAE rel16
-val / [0x0f 0x83] = near-rel JAE rel32
-val /66 [0x0f 0x82]
- | mode64? = near-rel JB rel32
- | otherwise = near-rel JB rel16
-val / [0x0f 0x82] = near-rel JB rel32
-val /66 [0x0f 0x86]
- | mode64? = near-rel JBE rel32
- | otherwise = near-rel JBE rel16
-val / [0x0f 0x86] = near-rel JBE rel32
-val /66 [0x0f 0x84]
- | mode64? = near-rel JE rel32
- | otherwise = near-rel JE rel16
-val / [0x0f 0x84] = near-rel JE rel32
-val /66 [0x0f 0x8f]
- | mode64? = near-rel JG rel32
- | otherwise = near-rel JG rel16
-val / [0x0f 0x8f] = near-rel JG rel32
-val /66 [0x0f 0x8d]
- | mode64? = near-rel JGE rel32
- | otherwise = near-rel JGE rel16
-val / [0x0f 0x8d] = near-rel JGE rel32
-val /66 [0x0f 0x8c]
- | mode64? = near-rel JL rel32
- | otherwise = near-rel JL rel16
-val / [0x0f 0x8c] = near-rel JL rel32
-val /66 [0x0f 0x8e]
- | mode64? = near-rel JLE rel32
- | otherwise = near-rel JLE rel16
-val / [0x0f 0x8e] = near-rel JLE rel32
-val /66 [0x0f 0x85]
- | mode64? = near-rel JNE rel32
- | otherwise = near-rel JNE rel16
-val / [0x0f 0x85] = near-rel JNE rel32
-val /66 [0x0f 0x81]
- | mode64? = near-rel JNO rel32
- | otherwise = near-rel JNO rel16
-val / [0x0f 0x81] = near-rel JNO rel32
-val /66 [0x0f 0x8b]
- | mode64? = near-rel JNP rel32
- | otherwise = near-rel JNP rel16
-val / [0x0f 0x8b] = near-rel JNP rel32
-val /66 [0x0f 0x89]
- | mode64? = near-rel JNS rel32
- | otherwise = near-rel JNS rel16
-val / [0x0f 0x89] = near-rel JNS rel32
-val /66 [0x0f 0x80]
- | mode64? = near-rel JO rel32
- | otherwise = near-rel JO rel16
-val / [0x0f 0x80] = near-rel JO rel32
-val /66 [0x0f 0x8a]
- | mode64? = near-rel JP rel32
- | otherwise = near-rel JP rel16
-val / [0x0f 0x8a] = near-rel JP rel32
-val /66 [0x0f 0x88]
- | mode64? = near-rel JS rel32
- | otherwise = near-rel JS rel16
-val / [0x0f 0x88] = near-rel JS rel32
+val / [0x0f 0x87] # JNBE
+ | mode32? & opndsz? = near-rel JA rel16
+ | otherwise = near-rel JA rel32
+val / [0x0f 0x83] # JNB, JNC
+ | mode32? & opndsz? = near-rel JAE rel16
+ | otherwise = near-rel JAE rel32
+val / [0x0f 0x82] # JC, JNAE
+ | mode32? & opndsz? = near-rel JB rel16
+ | otherwise = near-rel JB rel32
+val / [0x0f 0x86] # JNA
+ | mode32? & opndsz? = near-rel JBE rel16
+ | otherwise = near-rel JBE rel32
+val / [0x0f 0x84] # JZ
+ | mode32? & opndsz? = near-rel JE rel16
+ | otherwise = near-rel JE rel32
+val / [0x0f 0x8f] # JNLE
+ | mode32? & opndsz? = near-rel JG rel16
+ | otherwise = near-rel JG rel32
+val / [0x0f 0x8d] # JNL
+ | mode32? & opndsz? = near-rel JGE rel16
+ | otherwise = near-rel JGE rel32
+val / [0x0f 0x8c] # JNGE
+ | mode32? & opndsz? = near-rel JL rel16
+ | otherwise = near-rel JL rel32
+val / [0x0f 0x8e] # JNG
+ | mode32? & opndsz? = near-rel JLE rel16
+ | otherwise = near-rel JLE rel32
+val / [0x0f 0x85] # JNZ
+ | mode32? & opndsz? = near-rel JNE rel16
+ | otherwise = near-rel JNE rel32
+val / [0x0f 0x81]
+ | mode32? & opndsz? = near-rel JNO rel16
+ | otherwise = near-rel JNO rel32
+val / [0x0f 0x8b] # JPO
+ | mode32? & opndsz? = near-rel JNP rel16
+ | otherwise = near-rel JNP rel32
+val / [0x0f 0x89]
+ | mode32? & opndsz? = near-rel JNS rel16
+ | otherwise = near-rel JNS rel32
+val / [0x0f 0x80]
+ | mode32? & opndsz? = near-rel JO rel16
+ | otherwise = near-rel JO rel32
+val / [0x0f 0x8a] # JPE
+ | mode32? & opndsz? = near-rel JP rel16
+ | otherwise = near-rel JP rel32
+val / [0x0f 0x88] # JS
+ | mode32? & opndsz? = near-rel JS rel16
+ | otherwise = near-rel JS rel32
 
 ### JMP
 ###  - Jump
@@ -3691,7 +3676,7 @@ val / [0x8b /r]
  | otherwise = binop MOV r32 r/m32
 val / [0x8c /r] = binop MOV r/m16 (r/rexb sreg3?)
 val / [0x8e /r] = binop MOV (r/rexb sreg3?) r/m16
-val / [0xa0] = binop MOV al moffs8 
+val / [0xa0] = binop MOV al moffs8
 val / [0xa1]
  | addrsz? = binop MOV ax moffs16
  | otherwise = binop MOV eax moffs32
@@ -4273,7 +4258,7 @@ val /vex/66/0f/vexv [0x76 /r] | vex128? = varity3 VPCMPEQD xmm128 v/xmm xmm/m128
 ### PCMPEQQ
 ###  - Compare Packed Qword Data for Equal
 val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
-val /vex/66/0f/38 [0x29 /r] | vex128? = varity3 VPCMPEQQ xmm128 v/xmm xmm/m128 
+val /vex/66/0f/38 [0x29 /r] | vex128? = varity3 VPCMPEQQ xmm128 v/xmm xmm/m128
 
 ### PCMPESTRI
 ###  - Packed Compare Explicit Length Strings, Return Index
@@ -4382,7 +4367,7 @@ val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop PINSRD xmm128 r/m32 imm8
 val /vex/66/0f/3a [0x20 /r] | vex128? & vexw0? = varity4 VPINSRB xmm128 v/xmm r/m8 imm8
-val /vex/66/0f/3a [0x22 /r] 
+val /vex/66/0f/3a [0x22 /r]
  | vex128? & vexw1? = varity4 VPINSRQ xmm128 v/xmm r/m64 imm8
  | vex128? = varity4 VPINSRD xmm128 v/xmm r/m32 imm8
 
@@ -5453,8 +5438,8 @@ val / [0x0f 0xc1 /r]
 ### XCHG
 ###  - Exchange Register/Memory with Register
 val / ['10010 r:3']
- | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end 
- | rexw? = do update@{reg/opcode=r}; binop XCHG rax r64/rexb end 
+ | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end
+ | rexw? = do update@{reg/opcode=r}; binop XCHG rax r64/rexb end
  | otherwise = do update@{reg/opcode=r}; binop XCHG eax r32/rexb end
 val / [0x86 /r] = binop XCHG r8 r/m8
 val / [0x87 /r]
