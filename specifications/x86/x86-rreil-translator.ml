@@ -139,28 +139,51 @@ val fAF = return (var//0 (ARCH_R ~3)) # AF
 
 val zero = return (SEM_LIN_IMM{imm=0})
 
+val undef-opnd opnd = do
+  sz <- guess-sizeof1 opnd;
+  a <- write sz opnd;
+  t <- mktemp;
+  commit sz a t
+end
+
+val sem-undef-arity-ge1 x = do
+  case x.opnd1 of
+     REG r: undef-opnd x.opnd1
+   | MEM x: undef-opnd x.opnd1
+  end
+end
+
 val sem-undef-arity0 x = do
-	0
+  0
 end
 
 val sem-undef-arity1 x = do
-	0
+  sem-undef-arity-ge1
 end
 
 val sem-undef-arity2 x = do
-	0
+  sem-undef-arity-ge1
 end
 
 val sem-undef-arity3 x = do
-	0
+  sem-undef-arity-ge1
+end
+
+val sem-undef-arity4 x = do
+  sem-undef-arity-ge1
 end
 
 val sem-undef-varity x = do
-	0
+  case x of
+     VA1 x: sem-undef-arity1 x
+   | VA2 x: sem-undef-arity2 x
+   | VA3 x: sem-undef-arity3 x
+   | VA4 x: sem-undef-arity4 x
+  end
 end
 
 val sem-undef-flow1 x = do
-	0
+  0
 end
 
 val emit-add-flags sz a b c =
