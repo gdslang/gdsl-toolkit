@@ -2,7 +2,7 @@
 
 export = translate
 
-val guess-sizeof dst/src1 src2 = 
+val guess-sizeof dst/src1 src2 =
    case dst/src1 of
       REG r: return ($size (semantic-register-of r))
     | MEM x: return x.sz
@@ -25,13 +25,13 @@ val guess-sizeof1 op =
     | IMM64 i: return 64
    end
 
-val conv-with conv sz x = 
+val conv-with conv sz x =
    let
       val conv-imm conv x = return (SEM_LIN_IMM{imm=conv x})
-     
+
       val conv-reg r = return (SEM_LIN_VAR (semantic-register-of r))
 
-      val conv-sum conv sz x = 
+      val conv-sum conv sz x =
          do op1 <- conv-with conv sz x.a;
             op2 <- conv-with conv sz x.b;
             return
@@ -122,7 +122,7 @@ val commit sz a b =
                      end
                 | _: mov sz x.id b
                end
-          | _: mov sz x.id b 
+          | _: mov sz x.id b
          end
    end
 
@@ -198,7 +198,7 @@ val emit-add-flags sz a b c =
       t2 <- mktemp;
       t3 <- mktemp;
       zer0 <- zero;
-      # HACKERS-DELIGHT p27 
+      # HACKERS-DELIGHT p27
       # TODO: Compute {ltu} flag
       undef 1 ltu;
       xorb sz t1 a b;
@@ -212,7 +212,7 @@ val emit-add-flags sz a b c =
       orb 1 les (var lts) (var eq)
    end
 
-val emit-sub-flags sz a b c = 
+val emit-sub-flags sz a b c =
    do eq <- fEQ;
       les <- fLES;
       leu <- fLEU;
@@ -295,13 +295,13 @@ val sem-shl x = do
   convert sz cnt szOp2 c;
   andb sz cnt (var cnt) mask;
   cmpeq sz cntIsZero (var cnt) zer0;
-  ifgotolabel (var cntIsZero) nop; 
+  ifgotolabel (var cntIsZero) nop;
   shl sz t1 b (/SUB (var cnt) one);
   mov 1 cf (var (t1 /+ (sz - 1)));
   shl sz t2 b (var cnt);
   cmpeq sz cntIsOne (var cnt) one;
   ifgotolabel (var cntIsOne) setflag;
-  undef 1 ov; 
+  undef 1 ov;
   gotolabel exit;
   label setflag;
   xorb 1 ov (var cf) (var (t2 /+ (sz - 1)));
@@ -327,7 +327,7 @@ val sem-je x = do
   sz <- guess-sizeof-flow x.opnd1;
   target <- read-flow sz x.opnd1;
   eq <- fEQ;
-  ifgoto (var eq) sz target 
+  ifgoto (var eq) sz target
 end
 
 val sem-jb x = do
@@ -1276,14 +1276,14 @@ val semantics insn =
 #s/^ | \([^\s]*\) of varity\s*/ | \1 x: sem-undef-varity x/g
 #s/^ | \(\S*\)\s*$/ | \1: sem-undef-arity0/g
 
-val translate insn = 
+val translate insn =
    do update@{stack=SEM_NIL,tmp=0,lab=0};
       semantics insn;
       stack <- query $stack;
       return (rreil-stmts-rev stack)
    end
 
-val translate-bottom-up insn = 
+val translate-bottom-up insn =
    do update@{stack=SEM_NIL,tmp=0,lab=0};
       semantics insn;
       stack <- query $stack;

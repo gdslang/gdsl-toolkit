@@ -3390,8 +3390,6 @@ val /66 [0x0f 0x38 0x82 /r-mem]
  | mode64? = binop INVPCID r64 m128
  | mode32? = binop INVPCID r32 m128
 
-### =><=
-
 ### IRET/IRETD
 ###  - Interrupt Return
 val / [0xcf]
@@ -3473,18 +3471,21 @@ val / [0x0f 0x88] # JS
 
 ### JMP
 ###  - Jump
-#TODO: jmp far
 val / [0xeb] = near-rel JMP rel8
-val /66 [0xe9]
- | mode64? = near-rel JMP rel32
- | otherwise = near-rel JMP rel16
-val / [0xe9] = near-rel JMP rel32
-val /66 [0xff /4]
- | mode64? = near-abs JMP r/m64
- | otherwise = near-abs JMP r/m16
+val / [0xe9]
+ | mode32? & opndsz? = near-rel JMP rel16
+ | otherwise = near-rel JMP rel32
 val / [0xff /4]
+ | mode32? & opndsz? = near-abs JMP r/m16
+ | mode32? = near-abs JMP r/m32
  | mode64? = near-abs JMP r/m64
- | otherwise = near-abs JMP r/m32
+val / [0xea]
+ | mode32? & opndsz? = far-dir JMP ptr16/16
+ | mode32? = far-dir JMP ptr16/32
+val / [0xff /5]
+ | opndsz? = far-ind JMP m16/16
+ | rexw? = far-ind JMP m16/64
+ | otherwise = far-ind JMP m16/32
 
 ### LAHF
 ###  - Load Status Flags into AH Register
@@ -3502,13 +3503,15 @@ val / [0x0f 0x02 /r]
 val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
 val /vex/f2/0f [0xf0 /r-mem]
  | vex128? = varity2 VLDDQU xmm128 m128
- | otherwise = varity2 VLDDQU ymm256 m256
+ | vex256? = varity2 VLDDQU ymm256 m256
 
 ### LDMXCSR
 ###  - Load MXCSR Register
 val / [0x0f 0xae /2-mem] = unop LDMXCSR m32
 val /vex/0f [0xae /2-mem]
  | vex128? = varity1 VLDMXCSR m32
+
+### =><=
 
 ### LDS/LES/LFS/LGS/LSS
 ###  - Load Far Pointer
