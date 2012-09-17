@@ -2954,8 +2954,6 @@ val / [0xdb /1-reg] = binop FCMOVNE st0 st/reg
 val / [0xdb /2-reg] = binop FCMOVNBE st0 st/reg
 val / [0xdb /3-reg] = binop FCMOVNU st0 st/reg
 
-### =><=
-
 ### FCOM/FCOMP/FCOMPP
 ###  - Compare Floating Point Values
 val / [0xd8 /2] = unop FCOM st/m32 
@@ -3223,6 +3221,8 @@ val / [0xd9 0xf1] = arity0 FYL2X
 ### FYL2XP1
 ###  - Compute y*log_2(x +1)
 val / [0xd9 0xf9] = arity0 FYL2XP1
+
+### =><=
 
 ### HADDPD
 ###  - Packed Double-FP Horizontal Add

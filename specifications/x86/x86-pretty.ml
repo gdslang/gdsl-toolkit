@@ -238,7 +238,7 @@ val show/instruction insn =
     | BTS x: "BTS" -++ show/arity2 x
     | CALL x: "CALL" -++ show/flow1 x
     | CBW: "CBW"
-    | CDQ 
+    | CDQ: "CDQ"
     | CDQE: "CDQE"
     | CLC: "CLC"
     | CLD: "CLD"
@@ -329,7 +329,7 @@ val show/instruction insn =
     | EMMS: "EMMS"
     | ENTER x: "ENTER" -++ show/arity2 x
     | EXTRACTPS x: "EXTRACTPS" -++ show/arity3 x
-    | F2XM1
+    | F2XM1: "F2XM1"
     | FABS: "FABS"
     | FADD x: "FADD" -++ show/arity2 x
     | FADDP x: "FADDP" -++ show/arity2 x
@@ -372,13 +372,13 @@ val show/instruction insn =
     | FISUB x: "FISUB" -++ show/arity1 x
     | FISUBR x: "FISUBR" -++ show/arity1 x
     | FLD x: "FLD" -++ show/arity1 x
-    | FLD1
+    | FLD1: "FLD1"
     | FLDCW x: "FLDCW" -++ show/arity1 x
     | FLDENV x: "FLDENV" -++ show/arity1 x
-    | FLDL2E
-    | FLDL2T
-    | FLDLG2
-    | FLDLN2
+    | FLDL2E: "FLDL2E"
+    | FLDL2T: "FLDL2T"
+    | FLDLG2: "FLDLG2"
+    | FLDLN2: "FLDLN2"
     | FLDPI: "FLDPI"
     | FLDZ: "FLDZ"
     | FMUL x: "FMUL" -++ show/arity2 x
@@ -392,7 +392,7 @@ val show/instruction insn =
     | FNSTSW x: "FNSTSW" -++ show/arity1 x
     | FPATAN: "FPATAN"
     | FPREM: "FPREM"
-    | FPREM1
+    | FPREM1: "FPREM1"
     | FPTAN: "FPTAN"
     | FRNDINT: "FRNDINT"
     | FRSTOR x: "FRSTOR" -++ show/arity1 x
@@ -423,8 +423,8 @@ val show/instruction insn =
     | FXSAVE64 x: "FXSAVE64" -++ show/arity1 x
     | FXSAVE x: "FXSAVE" -++ show/arity1 x
     | FXTRACT: "FXTRACT"
-    | FYL2X
-    | FYL2XP1
+    | FYL2X: "FYL2X"
+    | FYL2XP1: "FYL2XP1"
     | HADDPD x: "HADDPD" -++ show/arity2 x
     | HADDPS x: "HADDPS" -++ show/arity2 x
     | HLT: "HLT"
@@ -436,8 +436,8 @@ val show/instruction insn =
     | INC x: "INC" -++ show/arity1 x
     | INSERTPS x: "INSERTPS" -++ show/arity3 x
     | INT x: "INT" -++ show/arity1 x
-    | INT0
-    | INT3
+    | INT0: "INT0"
+    | INT3: "INT3"
     | INVD: "INVD"
     | INVLPG x: "INVLPG" -++ show/arity1 x
     | INVPCID x: "INVPCID" -++ show/arity2 x
@@ -699,7 +699,7 @@ val show/instruction insn =
     | PSUBW x: "PSUBW" -++ show/arity2 x
     | PTEST x: "PTEST" -++ show/arity2 x
     | PUNPCKHBW x: "PUNPCKHBW" -++ show/arity2 x
-    | PUNPCKHDQ x: "PUNPCKHDQ" -++ show/arity3 x
+    | PUNPCKHDQ x: "PUNPCKHDQ" -++ show/arity2 x
     | PUNPCKHQDQ x: "PUNPCKHQDQ" -++ show/arity2 x
     | PUNPCKHWD x: "PUNPCKHWD" -++ show/arity2 x
     | PUNPCKLBW x: "PUNPCKLBW" -++ show/arity2 x
@@ -810,11 +810,11 @@ val show/instruction insn =
     | TEST x: "TEST" -++ show/arity2 x
     | UCOMISD x: "UCOMISD" -++ show/arity2 x
     | UCOMISS x: "UCOMISS" -++ show/arity2 x
-    | UD2
+    | UD2: "UD2"
     | UNPCKHPD x: "UNPCKHPD" -++ show/arity2 x
     | UNPCKHPS x: "UNPCKHPS" -++ show/arity2 x
     | UNPCKLPD x: "UNPCKLPD" -++ show/arity2 x
-    | UNPCKLPS x: "UNPCKLPS" -++ show/arity2  x
+    | UNPCKLPS x: "UNPCKLPS" -++ show/arity2 x
     | VADDPD x: "VADDPD" -++ show/varity x
     | VADDPS x: "VADDPS" -++ show/varity x
     | VADDSD x: "VADDSD" -++ show/varity x
@@ -1103,5 +1103,5 @@ val show/instruction insn =
     #| PSLRDQ x: "PSLRDQ" -++ show/arity2 x
     #| VPSLRDQ x: "VPSLRDQ" -++ show/varity x
    end
-#%s/^\(...\)\([^\s]*\)$/\1\2: "\2"/
-#%s/^\(...\)\([^\s]*\) of \(.*\)/\1\2 x: "\2" -++ show\/\3 x/
+#s/^\(...\)\(\S*\)\s*$/\1\2: "\2"/
+#s/^\(...\)\(\S*\) of \(\S*\)\s*$/\1\2 x: "\2" -++ show\/\3 x/
