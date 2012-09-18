@@ -26,7 +26,7 @@ type sem_linear =
 
 type sem_op =
    SEM_LIN of sem_arity1
- | SEM_BSWAP of sem_arity1 
+ | SEM_BSWAP of sem_arity1
  | SEM_MUL of sem_arity2
  | SEM_DIV of sem_arity2
  | SEM_DIVS of sem_arity2
@@ -47,7 +47,7 @@ type sem_op =
  | SEM_CMPLTU of sem_cmp
  | SEM_ARB of {size: int}
 
-type sem_stmt = 
+type sem_stmt =
    SEM_ASSIGN of {lhs: sem_var, rhs: sem_op}
  | SEM_LOAD of {lhs: sem_var, size: int, address: sem_address}
  | SEM_STORE of {address: sem_address, rhs: sem_op}
@@ -57,7 +57,7 @@ type sem_stmt =
  | SEM_CALL of {cond: sem_linear, size:int, target: sem_linear}
  | SEM_RETURN of {cond: sem_linear, size:int, target: sem_linear}
 
-type sem_stmts = 
+type sem_stmts =
    SEM_CONS of {hd:sem_stmt, tl:sem_stmts}
  | SEM_NIL
 
@@ -68,7 +68,7 @@ type sem_writeback =
 val rreil-sizeOf op =
    case op of
       SEM_LIN x: x.size
-    | SEM_BSWAP x: x.size 
+    | SEM_BSWAP x: x.size
     | SEM_MUL x: x.size
     | SEM_DIV x: x.size
     | SEM_DIVS x: x.size
