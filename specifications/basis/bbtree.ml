@@ -46,15 +46,15 @@ export =
    intset-remove-min
    intset-fold
 
-   fitree-lt?
+   fitree-lt? { lo, hi }
    fitree-size
    fitree-empty
    fitree-singleton
-   fitree-add
+   fitree-add { lo, hi }
    fitree-intersection
    fitree-difference
    fitree-interval-difference
-   fitree-contains?
+   fitree-contains? { lo, hi }
    fitree-union
    #fitree-remove
    fitree-remove-min
@@ -550,8 +550,7 @@ val fitree-interval-split t x =
       fitree-fold interval-split (fitree-empty {}) t
    end
 
-val fitree-interval-difference a b =
-   let
+
       val rebuild t overlapping x =
          fitree-union
             (fitree-difference t overlapping)
@@ -559,9 +558,9 @@ val fitree-interval-difference a b =
 
       val rebuild-overlapping t x =
          rebuild t (fitree-collect-overlapping t x) x
-   in
+
+val fitree-interval-difference a b =
       fitree-fold rebuild-overlapping a b
-   end
 
 val fitree-mk l h = {lo=l, hi=h}
 val fitree-add s x = bbtree-add fitree-lt? s x

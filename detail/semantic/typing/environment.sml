@@ -423,7 +423,7 @@ end = struct
             val bsStr = BD.setToString boolVars
          in
             ("ver=" ^ Int.toString(ver) ^
-             (*", bvars = " ^ bsStr ^ *) ", vars=" ^ vsStr ^ "\n", si)
+             (*", bvars = " ^ bsStr ^  ", vars=" ^ vsStr ^ *)"\n", si)
          end
 
       fun toString ({bindInfo = bi, typeVars, boolVars, version}, si) =
@@ -701,7 +701,7 @@ end = struct
       let
          fun tts acc (sc :: scs, state) =
             (case Scope.unwrap (sc :: scs, state) of
-                 (GROUP _, (_, state)) => toStringSI ((acc @ [sc], state), si)
+                 (GROUP _, (_, state)) => toStringSI ((acc, state), si)
                | (_, env) => tts (acc @ [sc]) env) 
            | tts acc ([], state) = toStringSI ((acc, state), si)
       in
@@ -878,6 +878,9 @@ end = struct
         | (tvs, COMPOUND {ty = SOME (t,bFunFun), width = w, uses, nested}) =>
          let
             val (scs,state) = env
+            val bFunFun = BD.projectOnto (
+                  texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (t, BD.emptySet),
+                  bFunFun)
             val bFun = BD.meet (bFunFun, Scope.getFlow state)
             val decVars = case w of
                  SOME t => texpVarset (t,TVar.empty)
@@ -1254,7 +1257,9 @@ end = struct
 
    fun popToFunction (sym, env) =
       let
-         (*val _ = TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env)*)
+         (*val ctxt = getCtxt env
+         val _ = if List.all (fn x => SymbolTable.toInt x<>128) ctxt then () else
+                 TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env)*)
          fun setType t (COMPOUND {ty = NONE, width, uses, nested}, cons) =
                (COMPOUND {ty = SOME t, width = width, uses = uses, nested = nested},
                 cons)

@@ -18,6 +18,8 @@ structure TypeInference : sig
    
 end = struct
 
+   (*val debugSymbol = 128*)
+   
    structure AST = SpecAbstractTree
    structure E = Environment
    structure BD = BooleanDomain
@@ -611,8 +613,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let                                      
          val envFun = infExp (st,env) e1
          val envArg = List.foldl (fn (e2,env) => infExp (st,env) e2) env es2
-         (*val _ = TextIO.print ("**** app func:\n" ^ E.topToString envFun)
-         val _ = TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
+
+         (*val ctxt = E.getCtxt env
+         val _ = if List.all (fn x => SymbolTable.toInt x<>debugSymbol) ctxt then () else
+                 TextIO.print ("**** app func:\n" ^ E.topToString envFun)
+         val _ = if List.all (fn x => SymbolTable.toInt x<>debugSymbol) ctxt then () else
+                 TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
+
          val envArgRes = E.pushTop envArg
          val envArgRes = E.reduceToFunction (envArgRes, List.length es2)
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.toString envArgRes)*)
@@ -715,7 +722,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp (st,env) (AST.IDexp v) =
       let
          val env = E.pushSymbol (v, getSpan st, hasSymbol (st,v), env)
-         (*val _ = TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
+
+         (*val ctxt = E.getCtxt env
+         val _ = if List.all (fn x => SymbolTable.toInt x<>debugSymbol) ctxt then () else
+                 TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
       in
          env
       end
