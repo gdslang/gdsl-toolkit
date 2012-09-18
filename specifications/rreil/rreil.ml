@@ -199,6 +199,7 @@ val ite c t e = push (/ITE c t e)
 val while c b = push (/WHILE c b)
 
 val const i = return (SEM_LIN_IMM{imm=i})
+val imm i = SEM_LIN_IMM{imm=i}
 
 val /+ x offs = @{offset=offs} x
 val /++ x offs = @{offset= $offset x + offs} x

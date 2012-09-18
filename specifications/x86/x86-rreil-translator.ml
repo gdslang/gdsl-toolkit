@@ -144,6 +144,7 @@ val fCF = return (var//0 VIRT_LTU)
 val fOF = return (var//0 (ARCH_R ~1)) # OF
 val fSF = return (var//0 (ARCH_R ~2)) # SF
 val fAF = return (var//0 (ARCH_R ~3)) # AF
+val fPF = return (var//0 (ARCH_R ~3)) # AF
 
 val zero = return (SEM_LIN_IMM{imm=0})
 
@@ -212,31 +213,54 @@ val sem-undef-flow1 x = do
   0
 end
 
-val emit-add-flags sz a b c =
-   do eq <- fEQ;
-      les <- fLES;
-      leu <- fLEU;
-      lts <- fLTS;
-      ltu <- fCF;
-      sf <- fSF;
-      ov <- fOF;
-      t1 <- mktemp;
-      t2 <- mktemp;
-      t3 <- mktemp;
-      zer0 <- zero;
-      # HACKERS-DELIGHT p27
-      # TODO: Compute {ltu} flag
-      undef 1 ltu;
-      xorb sz t1 a b;
-      xorb sz t2 a c;
-      andb sz t3 (var t1) (var t2);
-      cmplts sz ov (var t3) zer0;
-      cmplts sz sf a zer0;
-      cmpeq sz eq a zer0;
-      xorb 1 lts (var sf) (var ov);
-      orb 1 leu (var ltu) (var eq);
-      orb 1 les (var lts) (var eq)
-   end
+val emit-parity-flag sz r = do
+  low-byte <- mktemp;
+  movzx 8 low-byte sz r;
+
+  counter <- mktemp;
+  mov 8 counter (imm 0);
+
+  cond <- mktemp;
+  mov 1 cond (imm 1);
+  _while (var cond) __ do
+    t <- mktemp;
+    andb 8 t (var low-byte) (imm 1);
+    add 8 counter (var counter) (var t);
+    shr 8 low-byte (var low-byte) (imm 1);
+    cmpneq 8 cond (var low-byte) (imm 0)
+  end;
+
+  pf <- fPF;
+  cmpeq pf (var counter) (imm 4)
+end
+
+val emit-add-flags sz a b c = do
+  eq <- fEQ;
+  les <- fLES;
+  leu <- fLEU;
+  lts <- fLTS;
+  ltu <- fCF;
+  sf <- fSF;
+  ov <- fOF;
+  t1 <- mktemp;
+  t2 <- mktemp;
+  t3 <- mktemp;
+  zer0 <- zero;
+  # HACKERS-DELIGHT p27
+  # TODO: Compute {ltu} flag
+  undef 1 ltu;
+  xorb sz t1 a b;
+  xorb sz t2 a c;
+  andb sz t3 (var t1) (var t2);
+  cmplts sz ov (var t3) zer0;
+  cmplts sz sf a zer0;
+  cmpeq sz eq a zer0;
+  xorb 1 lts (var sf) (var ov);
+  orb 1 leu (var ltu) (var eq);
+  orb 1 les (var lts) (var eq);
+
+  emit-parity-flag sz a
+end
 
 val emit-sub-flags sz a b c =
    do eq <- fEQ;
@@ -258,6 +282,24 @@ val emit-sub-flags sz a b c =
       cmplts sz sf a zer0;
       xorb 1 ov (var lts) (var sf)
    end
+
+val sem-adc x = do
+  sz <- guess-sizeof x.opnd1 x.opnd2;
+  a <- write sz x.opnd1;
+  b <- read sz x.opnd1;
+  c <- read sz x.opnd2;
+
+  t <- mktemp;
+  add sz t b c;
+
+  cf <- fCF;
+  tc <- mktemp;
+  movzx sz tc 1 (var cf);
+  add sz t (var t) (var tc);
+
+  emit-add-flags sz (var t) b c;
+  commit sz a (var t)
+end
 
 val sem-add x = do
   sz <- guess-sizeof x.opnd1 x.opnd2;
