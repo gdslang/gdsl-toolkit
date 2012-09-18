@@ -25,9 +25,17 @@ val guess-sizeof1 op =
     | IMM64 i: return 64
    end
 
+type signedness =
+   Signed
+ | Unsigned
+
 val conv-with conv sz x =
    let
-      val conv-imm conv x = return (SEM_LIN_IMM{imm=conv x})
+      val conv-imm conv x = case conv of
+      	  Signed: return (SEM_LIN_IMM{imm=sx x})
+	| Unsigned: return (SEM_LIN_IMM{imm=zx x})
+      end
+
 
       val conv-reg r = return (SEM_LIN_VAR (semantic-register-of r))
 
@@ -54,7 +62,7 @@ val conv-with conv sz x =
                      end})
          end
 
-      val conv-mem x = conv-with sx x.psz x.opnd
+      val conv-mem x = conv-with Signed x.psz x.opnd
    in
       case x of
          IMM8 x: conv-imm conv x
@@ -73,7 +81,7 @@ val conv-with conv sz x =
       end
    end
 
-val read sz x = conv-with zx sz x
+val read sz x = conv-with Unsigned sz x
 val read-flow sz x =
    let
       val conv-bv v = return (SEM_LIN_IMM{imm=sx v})
@@ -91,7 +99,7 @@ val read-flow sz x =
 val write sz x =
    case x of
       MEM x:
-         do address <- conv-with sx x.psz x.opnd;
+         do address <- conv-with Signed x.psz x.opnd;
             return
                (SEM_WRITE_MEM
                   {size= x.psz,
@@ -139,17 +147,35 @@ val fAF = return (var//0 (ARCH_R ~3)) # AF
 
 val zero = return (SEM_LIN_IMM{imm=0})
 
+val _if c _then a _else b = do
+  stack <- pop-all;
+  a;
+  t <- pop-all;
+  b;
+  e <- pop-all;
+  stack-set stack;
+  ite c t e
+end
+
+val _while c __ b = do
+  stack <- pop-all;
+  b;
+  body <- pop-all;
+  stack-set stack;
+  while c body
+end
+
 val undef-opnd opnd = do
   sz <- guess-sizeof1 opnd;
   a <- write sz opnd;
   t <- mktemp;
-  commit sz a t
+  commit sz a (var t)
 end
 
 val sem-undef-arity-ge1 x = do
   case x.opnd1 of
      REG r: undef-opnd x.opnd1
-   | MEM x: undef-opnd x.opnd1
+   | MEM m: undef-opnd x.opnd1
   end
 end
 

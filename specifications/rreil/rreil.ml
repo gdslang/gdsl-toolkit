@@ -57,6 +57,16 @@ type sem_stmt =
  | SEM_CALL of {cond: sem_linear, size:int, target: sem_linear}
  | SEM_RETURN of {cond: sem_linear, size:int, target: sem_linear}
 
+ | SEM_ITE of {cond: sem_linear, then_branch: sem_stmts, else_branch: sem_stmts}
+ | SEM_WHILE of {cond: sem_linear, body: sem_stmts}
+ | SEM_CBRANCH of {cond: sem_linear, target_true: sem_address, target_false: sem_address}
+ | SEM_BRANCH of {hint: branch_hint, target: sem_address}
+
+ type branch_hint =
+    HINT_JUMP
+  | HINT_CALL
+  | HINT_RET
+
 type sem_stmts =
    SEM_CONS of {hd:sem_stmt, tl:sem_stmts}
  | SEM_NIL
@@ -127,10 +137,33 @@ val /LABEL l = SEM_LABEL{label=l}
 val /IFGOTOLABEL c l = SEM_IF_GOTO_LABEL{cond=c,label=l}
 val /IFGOTO c sz t = SEM_IF_GOTO{cond=c,size=sz,target=t}
 val /GOTOLABEL l = SEM_IF_GOTO_LABEL{cond=SEM_LIN_IMM{imm=1},label=l}
+val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
+val /WHILE c b = SEM_WHILE{cond=c,body=b}
 
 val push insn = do
    tl <- query $stack;
    update @{stack=SEM_CONS{hd=insn,tl=tl}}
+end
+
+val pop-all = do
+  head <- query $stack;
+  update @{stack=SEM_NIL};
+  head
+end
+
+#val connect-tail stmt tail =
+#  case stmt of
+#     SEM_NIL: tail
+#   | SEM_CONS x: SEM_CONS{hd=x.hd,tl=(connect-tail x.tl tail)}
+#  end
+
+#val concat stmt = do
+#  tail <- query $stack;
+#  update @{stack=(connect-tail stmt tail)}
+#end
+
+val stack-set stmt = do
+   update @{stack=stmt}
 end
 
 val mov sz a b = push (/ASSIGN a (SEM_LIN{size=sz,opnd1=b}))
@@ -162,6 +195,8 @@ val label l = push (/LABEL l)
 val ifgotolabel c l = push (/IFGOTOLABEL c l)
 val gotolabel l = push (/GOTOLABEL l)
 val ifgoto c sz addr = push (/IFGOTO c sz addr)
+val ite c t e = push (/ITE c t e)
+val while c b = push (/WHILE c b)
 
 val const i = return (SEM_LIN_IMM{imm=i})
 
