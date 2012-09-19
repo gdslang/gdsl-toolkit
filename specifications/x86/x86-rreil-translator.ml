@@ -139,12 +139,14 @@ val fNEQ = return (var//0 VIRT_NEQ)
 val fLES = return (var//0 VIRT_LES)
 val fLEU = return (var//0 VIRT_LEU)
 val fLTS = return (var//0 VIRT_LTS)
-val fCF = return (var//0 VIRT_LTU)
+val fLTU = return (var//0 VIRT_LTU)
 
 val fOF = return (var//0 (ARCH_R ~1)) # OF
 val fSF = return (var//0 (ARCH_R ~2)) # SF
-val fAF = return (var//0 (ARCH_R ~3)) # AF
-val fPF = return (var//0 (ARCH_R ~3)) # AF
+val fZF = return (var//0 (ARCH_R ~3)) # ZF
+val fAF = return (var//0 (ARCH_R ~4)) # AF
+val fPF = return (var//0 (ARCH_R ~5)) # PF
+val fCF = return (var//0 (ARCH_R ~6)) # CF
 
 val zero = return (SEM_LIN_IMM{imm=0})
 
@@ -180,24 +182,24 @@ val sem-undef-arity-ge1 x = do
   end
 end
 
-val sem-undef-arity0 x = do
+val sem-undef-arity0 = do
   return void
 end
 
 val sem-undef-arity1 x = do
-  sem-undef-arity-ge1
+  sem-undef-arity-ge1 x
 end
 
 val sem-undef-arity2 x = do
-  sem-undef-arity-ge1
+  sem-undef-arity-ge1 x
 end
 
 val sem-undef-arity3 x = do
-  sem-undef-arity-ge1
+  sem-undef-arity-ge1 x
 end
 
 val sem-undef-arity4 x = do
-  sem-undef-arity-ge1
+  sem-undef-arity-ge1 x
 end
 
 val sem-undef-varity x = do
@@ -222,6 +224,7 @@ val emit-parity-flag sz r = do
   counter <- mktemp;
   mov byte-size counter (imm 0);
 
+  #Todo: Hacker's Delight - Bit counting => eliminate while
   cond <- mktemp;
   mov 1 cond (imm 1);
   _while (var cond) __ do
@@ -233,46 +236,56 @@ val emit-parity-flag sz r = do
   end;
 
   pf <- fPF;
-  cmpeq byte-size pf (var counter) (imm 4)
+  xorb 1 pf (var counter) (imm 1)
 end
 
-val emit-arithmetic-adjust-flag sz r a b = do
+val emit-arithmetic-adjust-flag sz r op0 op1 = do
   # Hacker's Delight - How the Computer Sets Overflow for Signed Add/Subtract
   t <- mktemp;
-  xorb sz t r a;
-  xorb sz t (var t) b;
+  xorb sz t r op0;
+  xorb sz t (var t) op1;
 
   andb sz t (var t) (imm 0x10);
   af <- fAF;
   cmpneq sz af (var t) (imm 0)
 end
 
-val emit-add-flags sz a b c = do
+val emit-add-adc-flags sz sum s0 s1 carry = do
   eq <- fEQ;
   les <- fLES;
   leu <- fLEU;
   lts <- fLTS;
-  ltu <- fCF;
+  ltu <- fLTU;
   sf <- fSF;
   ov <- fOF;
+  z <- fZF;
+  cf <- fCF;
   t1 <- mktemp;
   t2 <- mktemp;
   t3 <- mktemp;
   zer0 <- zero;
-  # HACKERS-DELIGHT p27
-  # TODO: Compute {ltu} flag
-  undef 1 ltu;
-  xorb sz t1 a b;
-  xorb sz t2 a c;
+
+  cmpltu sz ltu s0 s1;
+  xorb sz t1 sum s0;
+  xorb sz t2 sum s1;
   andb sz t3 (var t1) (var t2);
   cmplts sz ov (var t3) zer0;
-  cmplts sz sf a zer0;
-  cmpeq sz eq a zer0;
+  cmplts sz sf sum zer0;
+  cmpeq sz eq sum zer0;
   xorb 1 lts (var sf) (var ov);
   orb 1 leu (var ltu) (var eq);
   orb 1 les (var lts) (var eq);
+  cmpeq sz z sum zer0;
 
-  emit-parity-flag sz a
+  # Hacker's Delight - Unsigned Add/Subtract
+  _if carry _then do
+    cmpleu sz cf sum s0
+  end _else do
+    cmpltu sz cf sum s0
+  end;
+
+  emit-parity-flag sz sum;
+  emit-arithmetic-adjust-flag sz sum s0 s1
 end
 
 val emit-sub-flags sz a b c =
@@ -310,7 +323,7 @@ val sem-adc x = do
   movzx sz tc 1 (var cf);
   add sz t (var t) (var tc);
 
-  emit-add-flags sz (var t) b c;
+  emit-add-adc-flags sz (var t) b c (var cf);
   commit sz a (var t)
 end
 
@@ -321,7 +334,7 @@ val sem-add x = do
   c <- read sz x.opnd2;
   t <- mktemp;
   add sz t b c;
-  emit-add-flags sz (var t) b c;
+  emit-add-adc-flags sz (var t) b c (imm 0);
   commit sz a (var t)
 end
 
@@ -432,7 +445,7 @@ val sem-jmp x = do
   ifgoto on3 sz target
 end
 
-val sem-cdqe x = do
+val sem-cdqe = do
   a <- return (semantic-register-of RAX);
   movsx 64 a 32 (var a)
 end
@@ -444,7 +457,7 @@ val sem-push x = do
   sp <- return (semantic-register-of RSP);
   eight <- const 8;
   sub 64 sp (var sp) eight;
-  store {size=64,address=var sp} a
+  store {size=64,address=var sp} (lin sz a)
 end
 
 val semantics insn =
@@ -453,7 +466,7 @@ val semantics insn =
     | AAD x: sem-undef-arity1 x
     | AAM x: sem-undef-arity1 x
     | AAS: sem-undef-arity0
-    | ADC x: sem-undef-arity2 x
+    | ADC x: sem-adc x
     | ADD x: sem-add x
     | ADDPD x: sem-undef-arity2 x
     | ADDPS x: sem-undef-arity2 x
@@ -488,7 +501,7 @@ val semantics insn =
     | CALL x: sem-undef-flow1 x
     | CBW: sem-undef-arity0
     | CDQ: sem-undef-arity0
-    | CDQE x: sem-cdqe x
+    | CDQE: sem-cdqe
     | CLC: sem-undef-arity0
     | CLD: sem-undef-arity0
     | CLFLUSH x: sem-undef-arity1 x
