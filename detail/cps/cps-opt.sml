@@ -869,7 +869,8 @@ structure Cost = struct
           "unop",
           "binop",
           "ternop",
-          "quaternop"])
+          "quaternop",
+          "void"])
        ;neverInline:=
          Set.union
             (!neverInline,

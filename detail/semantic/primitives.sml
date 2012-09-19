@@ -235,7 +235,8 @@ structure Primitives = struct
          FUN ([content'', VEC out], content''')], content''''),
          flow = BD.meetVarImpliesVar (bvar content'''', bvar content') o
                 BD.meetVarImpliesVar (bvar content'''', bvar content''') o
-                BD.meetVarImpliesVar (bvar content'', bvar content')}
+                BD.meetVarImpliesVar (bvar content'', bvar content')},
+       {name="void", ty=UNIT, flow = noFlow}
        ]
 
    val primitiveSizeConstraints =
