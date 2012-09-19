@@ -234,6 +234,8 @@ val emit-parity-flag sz r = do
   cmpeq pf (var counter) (imm 4)
 end
 
+#val emit-arithmetic-adjust-flag sz r a b
+
 val emit-add-flags sz a b c = do
   eq <- fEQ;
   les <- fLES;
