@@ -313,9 +313,11 @@ fun Exp_PROD_2_ACT (SR, MID, CaseExp, SR_SPAN : (Lex.pos * Lex.pos), MID_SPAN : 
   ( 
       let
          val (names, exps) = ListPair.unzip SR
-         val name = {span={file= !sourcemap, span=MID_SPAN}, tree= MID :: names}
+         val name = Atom.atom (String.concat (List.map Atom.toString (MID :: names)))
+         val qid = {span={file= !sourcemap, span=MID_SPAN}, tree= name}
+         val id = mark PT.MARKexp (MID_SPAN, PT.IDexp qid)
       in
-         mark PT.MARKexp (FULL_SPAN, mkApply (CaseExp, exps))
+         mark PT.MARKexp (FULL_SPAN, mkApply (id, CaseExp :: exps))
       end
    )
 fun CaseExp_PROD_1_ACT (ClosedExp, ClosedExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
