@@ -214,27 +214,34 @@ val sem-undef-flow1 x = do
 end
 
 val emit-parity-flag sz r = do
+  byte-size <- return 8;
+
   low-byte <- mktemp;
-  movzx 8 low-byte sz r;
+  movzx byte-size low-byte sz r;
 
   counter <- mktemp;
-  mov 8 counter (imm 0);
+  mov byte-size counter (imm 0);
 
   cond <- mktemp;
   mov 1 cond (imm 1);
   _while (var cond) __ do
     t <- mktemp;
-    andb 8 t (var low-byte) (imm 1);
-    add 8 counter (var counter) (var t);
-    shr 8 low-byte (var low-byte) (imm 1);
-    cmpneq 8 cond (var low-byte) (imm 0)
+    andb byte-size t (var low-byte) (imm 1);
+    add byte-size counter (var counter) (var t);
+    shr byte-size low-byte (var low-byte) (imm 1);
+    cmpneq byte-size cond (var low-byte) (imm 0)
   end;
 
   pf <- fPF;
-  cmpeq pf (var counter) (imm 4)
+  cmpeq byte-size pf (var counter) (imm 4)
 end
 
-#val emit-arithmetic-adjust-flag sz r a b
+val emit-arithmetic-adjust-flag sz r a b = do
+  # Hacker's Delight - How the Computer Sets Overflow for Signed Add/Subtract
+  t <- mktemp;
+  xorb sz t r a;
+  xorb sz t t b;
+end
 
 val emit-add-flags sz a b c = do
   eq <- fEQ;

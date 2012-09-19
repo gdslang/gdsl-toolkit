@@ -148,7 +148,7 @@ end
 val pop-all = do
   head <- query $stack;
   update @{stack=SEM_NIL};
-  head
+  return head
 end
 
 #val connect-tail stmt tail =
