@@ -181,7 +181,7 @@ val sem-undef-arity-ge1 x = do
 end
 
 val sem-undef-arity0 x = do
-  0
+  return void
 end
 
 val sem-undef-arity1 x = do
@@ -210,7 +210,7 @@ val sem-undef-varity x = do
 end
 
 val sem-undef-flow1 x = do
-  0
+  return void
 end
 
 val emit-parity-flag sz r = do
@@ -240,7 +240,11 @@ val emit-arithmetic-adjust-flag sz r a b = do
   # Hacker's Delight - How the Computer Sets Overflow for Signed Add/Subtract
   t <- mktemp;
   xorb sz t r a;
-  xorb sz t t b;
+  xorb sz t (var t) b;
+
+  andb sz t (var t) (imm 0x10);
+  af <- fAF;
+  cmpneq sz af (var t) (imm 0)
 end
 
 val emit-add-flags sz a b c = do

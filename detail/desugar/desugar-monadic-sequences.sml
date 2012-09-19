@@ -34,6 +34,7 @@ end = struct
          val update =  get "update"
          val query = get "query"
          val slice = get "slice"
+         val void = get "void"
          val answer = field (Atom.atom "1")
          val state = field (Atom.atom "2")
          fun select (f, e) = APP (SELECT f, [e])
@@ -116,8 +117,10 @@ end = struct
             in
                (return, [a], FN (s, e))
             end
+         
+         val void = (void, [], RECORD [])
       in
-         [>>=, >>, return, update, query]
+         [>>=, >>, return, update, query, void]
       end
 
    end
