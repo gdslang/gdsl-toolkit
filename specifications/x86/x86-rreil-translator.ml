@@ -2,6 +2,29 @@
 
 export = translate
 
+val t-mode64? = do
+  mode64 <- query $mode64;
+  return mode64
+end
+
+val runtime-opnd-sz = do
+  return 32
+end
+
+val runtime-stack-address-size = do
+  return 32
+end
+
+val segment-register? x =
+  case x of
+     CS: '1'
+   | SS: '1'
+   | DS: '1'
+   | ES: '1'
+   | FS: '1'
+   | GS: '1'
+  end
+
 val guess-sizeof dst/src1 src2 =
    case dst/src1 of
       REG r: return ($size (semantic-register-of r))
@@ -484,12 +507,56 @@ end
 
 val sem-push x = do
   #FIXME: This ignores many details of {PUSH}
-  sz <- guess-sizeof1 x.opnd1;
-  a <- read sz x.opnd1;
-  sp <- return (semantic-register-of RSP);
-  eight <- const 8;
-  sub 64 sp (var sp) eight;
-  store {size=64,address=var sp} (lin sz a)
+  opnd-sz <- runtime-opnd-sz;
+       
+  src-size <- guess-sizeof1 x.opnd1;
+  src <- read src-size x.opnd1;
+
+  temp <- mktemp;
+  case x.opnd1 of
+     REG r: 
+       if segment-register? r then
+         movzx opnd-sz temp src-size src
+       else
+         mov opnd-sz temp src
+   | MEM m:
+       mov opnd-sz temp src
+   | IMM8 i:
+       movsx opnd-sz temp src-size src
+   | IMM16 i:
+       mov opnd-sz temp src
+   | IMM32 i:
+       movsx opnd-sz temp src-size src
+  end;
+
+  mode64 <- t-mode64?;
+  stack-address-size <- runtime-stack-address-size;
+  if mode64 then
+    do
+      sp-reg <- return RSP;
+      sp <- return (semantic-register-of sp-reg);
+      sp-size <- guess-sizeof1 (REG sp-reg);
+      if opnd-sz === 64 then
+        sub sp-size sp (var sp) (imm 8)
+      else
+        sub sp-size sp (var sp) (imm 2)
+      ;
+      store (address sp-size (var sp)) (lin opnd-sz (var temp))
+    end
+  else
+    if stack-address-size === 32 then
+      do
+        return void
+      end
+    else
+      do
+        return void
+      end
+
+  #sp <- return (semantic-register-of RSP);
+  #eight <- const 8;
+  #sub 64 sp (var sp) eight;
+  #store {size=64,address=var sp} (lin opnd-sz src)
 end
 
 val semantics insn =
@@ -1403,7 +1470,7 @@ val semantics insn =
 #s/^ | \(\S*\)\s*$/ | \1: sem-undef-arity0/g
 
 val translate insn =
-   do update@{stack=SEM_NIL,tmp=0,lab=0};
+   do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
       semantics insn;
       stack <- query $stack;
       return (rreil-stmts-rev stack)
