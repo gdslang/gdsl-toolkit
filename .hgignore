@@ -5,3 +5,7 @@ resources/
 \.clos
 \.cps
 \.core
+STATS
+dis.c
+dis.h
+dis.js

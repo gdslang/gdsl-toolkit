@@ -288,26 +288,40 @@ val emit-add-adc-flags sz sum s0 s1 carry = do
   emit-arithmetic-adjust-flag sz sum s0 s1
 end
 
-val emit-sub-flags sz a b c =
-   do eq <- fEQ;
-      les <- fLES;
-      leu <- fLEU;
-      lts <- fLTS;
-      ltu <- fCF;
-      sf <- fSF;
-      ov <- fOF;
-      t1 <- mktemp;
-      t2 <- mktemp;
-      t3 <- mktemp;
-      zer0 <- zero;
-      cmpltu sz ltu b c;
-      cmpleu sz leu b c;
-      cmplts sz lts b c;
-      cmples sz les b c;
-      cmpeq sz eq b c;
-      cmplts sz sf a zer0;
-      xorb 1 ov (var lts) (var sf)
-   end
+val emit-sub-sbb-flags sz difference minuend subtrahend carry = do
+  eq <- fEQ;
+  les <- fLES;
+  leu <- fLEU;
+  lts <- fLTS;
+  ltu <- fLTU;
+  sf <- fSF;
+  ov <- fOF;
+  cf <- fCF;
+  z <- fZF;
+  t1 <- mktemp;
+  t2 <- mktemp;
+  t3 <- mktemp;
+  zer0 <- zero;
+
+  cmpltu sz ltu minuend subtrahend;
+  cmpleu sz leu minuend subtrahend;
+  cmplts sz lts minuend subtrahend;
+  cmples sz les minuend subtrahend;
+  cmpeq sz eq minuend subtrahend;
+  cmplts sz sf difference zer0;
+  xorb 1 ov (var lts) (var sf);
+  cmpeq sz z difference zer0;
+
+  # Hacker's Delight - Unsigned Add/Subtract
+  _if carry _then do
+    cmpleu sz cf minuend subtrahend
+  end _else do
+    cmpltu sz cf minuend subtrahend
+  end;
+
+  emit-parity-flag sz difference;
+  emit-arithmetic-adjust-flag sz difference minuend subtrahend
+end
 
 val sem-adc x = do
   sz <- guess-sizeof x.opnd1 x.opnd2;
@@ -345,7 +359,7 @@ val sem-cmp x = do
   c <- read sz x.opnd2;
   t <- mktemp;
   sub sz t b c;
-  emit-sub-flags sz (var t) b c
+  emit-sub-sbb-flags sz (var t) b c (imm 0)
 end
 
 val sem-mov x = do
@@ -408,13 +422,31 @@ end
 
 val sem-sub x = do
   sz <- guess-sizeof x.opnd1 x.opnd2;
-  a <- write sz x.opnd1;
-  b <- read sz x.opnd1;
-  c <- read sz x.opnd2;
+  difference <- write sz x.opnd1;
+  minuend <- read sz x.opnd1;
+  subtrahend <- read sz x.opnd2;
+
   t <- mktemp;
-  sub sz t b c;
-  emit-sub-flags sz (var t) b c;
-  commit sz a (var t)
+  sub sz t minuend subtrahend;
+
+  emit-sub-sbb-flags sz (var t) minuend subtrahend (imm 0);
+  commit sz difference (var t)
+end
+
+val sem-sbb x = do
+  sz <- guess-sizeof x.opnd1 x.opnd2;
+  difference <- write sz x.opnd1;
+  minuend <- read sz x.opnd1;
+  subtrahend <- read sz x.opnd2;
+
+  t <- mktemp;
+  cf <- fCF;
+  movzx sz t 1 (var cf);
+  add sz t (var t) subtrahend;
+  sub sz t minuend subtrahend;
+
+  emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf);
+  commit sz difference (var t)
 end
 
 val sem-je x = do
@@ -1003,7 +1035,7 @@ val semantics insn =
     | SAHF: sem-undef-arity0
     | SAL x: sem-undef-arity2 x
     | SAR x: sem-undef-arity2 x
-    | SBB x: sem-undef-arity2 x
+    | SBB x: sem-sbb x
     | SCASB: sem-undef-arity0
     | SCASD: sem-undef-arity0
     | SCASQ: sem-undef-arity0
