@@ -15,6 +15,13 @@ val runtime-stack-address-size = do
   return 32
 end
 
+val segmentation-offset-ss-add sz reg = do
+  ss <- sdt-ss;
+  t <- mktemp;
+  add sz t (var t) (var ss);
+  return t
+end
+
 val segment-register? x =
   case x of
      CS: '1'
@@ -163,6 +170,8 @@ val fLES = return (var//0 VIRT_LES)
 val fLEU = return (var//0 VIRT_LEU)
 val fLTS = return (var//0 VIRT_LTS)
 val fLTU = return (var//0 VIRT_LTU)
+
+val sdt-ss = return (var//0 (VIRT_T ~100))
 
 val fOF = return (var//0 (ARCH_R ~1)) # OF
 val fSF = return (var//0 (ARCH_R ~2)) # SF
@@ -506,7 +515,6 @@ val sem-cdqe = do
 end
 
 val sem-push x = do
-  #FIXME: This ignores many details of {PUSH}
   opnd-sz <- runtime-opnd-sz;
        
   src-size <- guess-sizeof1 x.opnd1;
@@ -544,19 +552,23 @@ val sem-push x = do
       store (address sp-size (var sp)) (lin opnd-sz (var temp))
     end
   else
-    if stack-address-size === 32 then
-      do
-        return void
-      end
-    else
-      do
-        return void
-      end
-
-  #sp <- return (semantic-register-of RSP);
-  #eight <- const 8;
-  #sub 64 sp (var sp) eight;
-  #store {size=64,address=var sp} (lin opnd-sz src)
+    do
+      sp-reg <-
+        if stack-address-size === 32 then
+          return ESP
+        else
+          return SP
+      ;
+      sp <- return (semantic-register-of sp-reg);
+      sp-size <- guess-sizeof1 (REG sp-reg);
+      sp-seg <- segmentation-offset-ss-add sp-size sp;
+      if opnd-sz === 32 then
+        sub sp-size sp (var sp) (imm 4)
+      else
+        sub sp-size sp (var sp) (imm 2)
+      ;
+      store (address sp-size (var sp-seg)) (lin opnd-sz (var temp))
+    end
 end
 
 val semantics insn =
