@@ -183,13 +183,32 @@ val fCF = return (var//0 (ARCH_R ~6)) # CF
 val zero = return (SEM_LIN_IMM{imm=0})
 
 val _if c _then a _else b = do
+  cond <- c;
   stack <- pop-all;
   a;
   t <- pop-all;
   b;
   e <- pop-all;
   stack-set stack;
-  ite c t e
+  ite cond t e
+end
+
+val _if c _then a = do
+  _if c _then a _else (return void)
+end
+
+val /d cond = return cond
+
+val /eq sz a b = do
+  t <- mktemp;
+  cmpeq sz t a b;
+  return (var t)
+end
+
+val /neq sz a b = do
+  t <- mktemp;
+  cmpneq sz t a b;
+  return (var t)
 end
 
 val _while c __ b = do
@@ -310,7 +329,7 @@ val emit-add-adc-flags sz sum s0 s1 carry = do
   cmpeq sz z sum zer0;
 
   # Hacker's Delight - Unsigned Add/Subtract
-  _if carry _then do
+  _if (/d carry) _then do
     cmpleu sz cf sum s0
   end _else do
     cmpltu sz cf sum s0
@@ -345,7 +364,7 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry = do
   cmpeq sz z difference zer0;
 
   # Hacker's Delight - Unsigned Add/Subtract
-  _if carry _then do
+  _if (/d carry) _then do
     cmpleu sz cf minuend subtrahend
   end _else do
     cmpltu sz cf minuend subtrahend
@@ -401,55 +420,92 @@ val sem-mov x = do
   commit sz a b
 end
 
-val sem-shl x = do
+val sem-sal-shl x = do
   sz <- guess-sizeof1 x.opnd1;
   szOp2 <- guess-sizeof1 x.opnd2;
-  a <- write sz x.opnd1;
-  b <- read sz x.opnd1;
-  c <- read szOp2 x.opnd2;
+  dst <- write sz x.opnd1;
+  src <- read sz x.opnd1;
+  count <- read szOp2 x.opnd2;
 
-  ## Temporary variables:
-  t1 <- mktemp;
-  t2 <- mktemp;
-  cnt <- mktemp;
-  cntIsZero <- mktemp;
-  cntIsOne <- mktemp;
-  af <- fAF;
-  ov <- fOF;
-  cf <- fCF;
-  eq <- fEQ;
-  mask <- const
+  count-mask-int <- return
      (case sz of
          8: 31
        | 16: 31
        | 32: 31
        | 64: 63
       end);
-  zer0 <- const 0;
-  one <- const 1;
+  count-mask <- const count-mask-int;
+  temp-count <- mktemp;
+  andb sz temp-count count count-mask;
 
-  ## Instruction semantics:
-  setflag <- mklabel;
-  exit <- mklabel;
-  nop <- mklabel;
-  convert sz cnt szOp2 c;
-  andb sz cnt (var cnt) mask;
-  cmpeq sz cntIsZero (var cnt) zer0;
-  ifgotolabel (var cntIsZero) nop;
-  shl sz t1 b (/SUB (var cnt) one);
-  mov 1 cf (var (t1 /+ (sz - 1)));
-  shl sz t2 b (var cnt);
-  cmpeq sz cntIsOne (var cnt) one;
-  ifgotolabel (var cntIsOne) setflag;
-  undef 1 ov;
-  gotolabel exit;
-  label setflag;
-  xorb 1 ov (var cf) (var (t2 /+ (sz - 1)));
-  label exit;
-  undef 1 af;
-  commit sz a (var t2);
-  label nop;
-  cmpeq sz eq b zer0
+  tdst <- mktemp;
+  shl sz tdst src (var temp-count);
+
+  cf <- fCF;
+  mov 1 cf (var (at-offset tdst (count-mask-int + 1)));
+ 
+  ov <- fOF;
+  cond-not-0 <- mktemp;
+  cmpneq sz cond-not-0 (var temp-count) (imm 0);
+  _if (/eq sz (var temp-count) (imm 1)) _then
+    xorb 1 ov (var (at-offset tdst count-mask-int)) (var cf)
+  _else (_if (/neq sz (var temp-count) (imm 0)) _then
+    undef 1 ov)
+  ;
+
+  sf <- fSF;
+  cmplts sz sf (var tdst) (imm 0);
+
+  zf <- fZF;
+  cmpeq sz zf (var tdst) (imm 0);
+
+  emit-parity-flag sz (var tdst);
+
+  commit sz dst (var tdst)
+
+#  # dst => a, src => b, amount => c
+#  ## Temporary variables:
+#  t1 <- mktemp;
+#  t2 <- mktemp;
+#  cnt <- mktemp;
+#  cntIsZero <- mktemp;
+#  cntIsOne <- mktemp;
+#  af <- fAF;
+#  ov <- fOF;
+#  cf <- fCF;
+#  eq <- fEQ;
+#  mask <- const
+#     (case sz of
+#         8: 31
+#       | 16: 31
+#       | 32: 31
+#       | 64: 63
+#      end);
+#  zer0 <- const 0;
+#  one <- const 1;
+#
+#  ## Instruction semantics:
+#  setflag <- mklabel;
+#  exit <- mklabel;
+#  nop <- mklabel;
+#  convert sz cnt szOp2 c;
+#  andb sz cnt (var cnt) mask;
+#  cmpeq sz cntIsZero (var cnt) zer0;
+#  ifgotolabel (var cntIsZero) nop;
+#  shl sz t1 b (/SUB (var cnt) one);
+#  mov 1 cf (var (t1 /+ (sz - 1)));
+#  shl sz t2 b (var cnt);
+#  cmpeq sz cntIsOne (var cnt) one;
+#  ifgotolabel (var cntIsOne) setflag;
+#  undef 1 ov;
+#  gotolabel exit;
+#  label setflag;
+#  xorb 1 ov (var cf) (var (t2 /+ (sz - 1)));
+#  label exit;
+#  undef 1 af;
+#  commit sz a (var t2);
+#  label nop;
+#  cmpeq sz eq b zer0
 end
 
 val sem-sub x = do
@@ -1112,7 +1168,7 @@ val semantics insn =
     | RSQRTPS x: sem-undef-arity2 x
     | RSQRTSS x: sem-undef-arity2 x
     | SAHF: sem-undef-arity0
-    | SAL x: sem-undef-arity2 x
+    | SAL x: sem-sal-shl x
     | SAR x: sem-undef-arity2 x
     | SBB x: sem-sbb x
     | SCASB: sem-undef-arity0
@@ -1151,7 +1207,7 @@ val semantics insn =
     | SETZ x: sem-undef-arity1 x
     | SFENCE: sem-undef-arity0
     | SGDT x: sem-undef-arity1 x
-    | SHL x: sem-shl x
+    | SHL x: sem-sal-shl x
     | SHLD x: sem-undef-arity3 x
     | SHR x: sem-undef-arity2 x
     | SHRD x: sem-undef-arity3 x

@@ -112,6 +112,7 @@ val rreil-stmts-rev stmts =
    end
 
 val var//0 x = {id=x,offset=0}
+val at-offset x offset = {id=x.id,offset=offset}
 val var x = SEM_LIN_VAR x
 val lin sz l = SEM_LIN {size=sz, opnd1=l}
 val address sz addr = {size=sz, address=addr}
