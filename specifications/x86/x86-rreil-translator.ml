@@ -737,13 +737,45 @@ val sem-test x = do
   zf <- fZF;
   cmpeq sz zf (var temp) (imm 0);
   
-  emit-parity-flag temp;
+  emit-parity-flag (var temp);
 
   cf <- fCF;
   mov 1 cf (imm 0);
   
   ov <- fOF;
-  mov 1 ov (imm 0)
+  mov 1 ov (imm 0);
+
+  af <- fAF;
+  undef 1 af
+end
+
+val sem-xor x = do
+  sz <- guess-sizeof x.opnd1 x.opnd2;
+  dst <- write sz x.opnd1;
+  src0 <- read sz x.opnd1;
+  src1 <- read sz x.opnd2;
+
+  temp <- mktemp;
+  xorb sz temp src0 src1;
+
+  sf <- fSF;
+  cmplts sz sf (var temp) (imm 0);
+
+  zf <- fZF;
+  cmpeq sz zf (var temp) (imm 0);
+  
+  emit-parity-flag (var temp);
+
+  cf <- fCF;
+  mov 1 cf (imm 0);
+  
+  ov <- fOF;
+  mov 1 ov (imm 0);
+
+  af <- fAF;
+  undef 1 af;
+
+  commit sz dst (var temp)
 end
 
 val semantics insn =
@@ -1641,7 +1673,7 @@ val semantics insn =
     | XGETBV: sem-undef-arity0
     | XLAT: sem-undef-arity0
     | XLATB: sem-undef-arity0
-    | XOR x: sem-undef-arity2 x
+    | XOR x: sem-xor x
     | XORPD x: sem-undef-arity2 x
     | XORPS x: sem-undef-arity2 x
     | XRSTOR x: sem-undef-arity1 x
