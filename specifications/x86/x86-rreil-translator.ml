@@ -211,6 +211,13 @@ val /neq sz a b = do
   return (var t)
 end
 
+val /gtu sz a b = do
+  t <- mktemp;
+  cmpleu sz t a b;
+  xorb 1 t (var t) (imm 1);
+  return (var t)
+end
+
 val _while c __ b = do
   stack <- pop-all;
   b;
@@ -420,6 +427,102 @@ val sem-mov x = do
   commit sz a b
 end
 
+val sem-shr x = do
+  sz <- guess-sizeof1 x.opnd1;
+  szOp2 <- guess-sizeof1 x.opnd2;
+  dst <- write sz x.opnd1;
+  src <- read sz x.opnd1;
+  count <- read szOp2 x.opnd2;
+
+  count-mask <- const
+     (case sz of
+         8: 31
+       | 16: 31
+       | 32: 31
+       | 64: 63
+      end);
+  temp-count <- mktemp;
+  andb sz temp-count count count-mask;
+
+  tdst <- mktemp;
+  cf <- fCF;
+
+  _if (/gtu sz (var temp-count) (imm 0)) _then do
+    sub sz temp-count (var temp-count) (imm 1);
+    shr sz tdst src (var temp-count);
+
+    mov 1 cf (var tdst);
+
+    shr sz tdst (var tdst) (imm 1)
+  end;
+ 
+  ov <- fOF;
+  _if (/eq sz (var temp-count) (imm 1)) _then do
+    t <- mktemp;
+    mov sz t src;
+    mov 1 ov (var (at-offset t (sz - 1)))
+  end _else (_if (/neq sz (var temp-count) (imm 0)) _then
+    undef 1 ov)
+  ;
+
+  sf <- fSF;
+  cmplts sz sf (var tdst) (imm 0);
+
+  zf <- fZF;
+  cmpeq sz zf (var tdst) (imm 0);
+
+  emit-parity-flag sz (var tdst);
+
+  commit sz dst (var tdst)
+end
+
+val sem-sar x = do
+  sz <- guess-sizeof1 x.opnd1;
+  szOp2 <- guess-sizeof1 x.opnd2;
+  dst <- write sz x.opnd1;
+  src <- read sz x.opnd1;
+  count <- read szOp2 x.opnd2;
+
+  count-mask <- const
+     (case sz of
+         8: 31
+       | 16: 31
+       | 32: 31
+       | 64: 63
+      end);
+  temp-count <- mktemp;
+  andb sz temp-count count count-mask;
+
+  tdst <- mktemp;
+  cf <- fCF;
+
+  _if (/gtu sz (var temp-count) (imm 0)) _then do
+    sub sz temp-count (var temp-count) (imm 1);
+    shrs sz tdst src (var temp-count);
+
+    mov 1 cf (var tdst);
+
+    shrs sz tdst (var tdst) (imm 1)
+  end;
+ 
+  ov <- fOF;
+  _if (/eq sz (var temp-count) (imm 1)) _then
+    mov 1 ov (imm 0)
+  _else (_if (/neq sz (var temp-count) (imm 0)) _then
+    undef 1 ov)
+  ;
+
+  sf <- fSF;
+  cmplts sz sf (var tdst) (imm 0);
+
+  zf <- fZF;
+  cmpeq sz zf (var tdst) (imm 0);
+
+  emit-parity-flag sz (var tdst);
+
+  commit sz dst (var tdst)
+end
+
 val sem-sal-shl x = do
   sz <- guess-sizeof1 x.opnd1;
   szOp2 <- guess-sizeof1 x.opnd2;
@@ -427,28 +530,28 @@ val sem-sal-shl x = do
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
 
-  count-mask-int <- return
+  count-mask <- const
      (case sz of
          8: 31
        | 16: 31
        | 32: 31
        | 64: 63
       end);
-  count-mask <- const count-mask-int;
   temp-count <- mktemp;
   andb sz temp-count count count-mask;
-
-  tdst <- mktemp;
-  shl sz tdst src (var temp-count);
-
-  cf <- fCF;
-  mov 1 cf (var (at-offset tdst (count-mask-int + 1)));
  
+  tdst <- mktemp;
+  cf <- fCF;
+
+  _if (/gtu sz (var temp-count) (imm 0)) _then do
+    shl sz tdst src (var temp-count);
+
+    mov 1 cf (var (at-offset tdst (sz - 1)))
+  end;
+
   ov <- fOF;
-  cond-not-0 <- mktemp;
-  cmpneq sz cond-not-0 (var temp-count) (imm 0);
   _if (/eq sz (var temp-count) (imm 1)) _then
-    xorb 1 ov (var (at-offset tdst count-mask-int)) (var cf)
+    xorb 1 ov (var (at-offset tdst (sz - 1))) (var cf)
   _else (_if (/neq sz (var temp-count) (imm 0)) _then
     undef 1 ov)
   ;
@@ -1169,7 +1272,7 @@ val semantics insn =
     | RSQRTSS x: sem-undef-arity2 x
     | SAHF: sem-undef-arity0
     | SAL x: sem-sal-shl x
-    | SAR x: sem-undef-arity2 x
+    | SAR x: sem-sar x
     | SBB x: sem-sbb x
     | SCASB: sem-undef-arity0
     | SCASD: sem-undef-arity0
@@ -1209,7 +1312,7 @@ val semantics insn =
     | SGDT x: sem-undef-arity1 x
     | SHL x: sem-sal-shl x
     | SHLD x: sem-undef-arity3 x
-    | SHR x: sem-undef-arity2 x
+    | SHR x: sem-shr x
     | SHRD x: sem-undef-arity3 x
     | SHUFPD x: sem-undef-arity3 x
     | SHUFPS x: sem-undef-arity3 x
