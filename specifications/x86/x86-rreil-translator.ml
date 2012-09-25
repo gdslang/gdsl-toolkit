@@ -273,28 +273,21 @@ val sem-undef-flow1 x = do
   return void
 end
 
-val emit-parity-flag sz r = do
+val emit-parity-flag r = do
   byte-size <- return 8;
 
   low-byte <- mktemp;
-  movzx byte-size low-byte sz r;
-
-  counter <- mktemp;
-  mov byte-size counter (imm 0);
-
-  #Todo: Hacker's Delight - Bit counting => eliminate while
-  cond <- mktemp;
-  mov 1 cond (imm 1);
-  _while (var cond) __ do
-    t <- mktemp;
-    andb byte-size t (var low-byte) (imm 1);
-    add byte-size counter (var counter) (var t);
-    shr byte-size low-byte (var low-byte) (imm 1);
-    cmpneq byte-size cond (var low-byte) (imm 0)
-  end;
+  mov byte-size low-byte r;
 
   pf <- fPF;
-  xorb 1 pf (var counter) (imm 1)
+  # Bitwise XNOR
+  cmpeq 1 pf (var (at-offset low-byte 7)) (var (at-offset low-byte 6));
+  cmpeq 1 pf (var pf) (var (at-offset low-byte 5));
+  cmpeq 1 pf (var pf) (var (at-offset low-byte 4));
+  cmpeq 1 pf (var pf) (var (at-offset low-byte 3));
+  cmpeq 1 pf (var pf) (var (at-offset low-byte 2));
+  cmpeq 1 pf (var pf) (var (at-offset low-byte 1));
+  cmpeq 1 pf (var pf) (var (at-offset low-byte 0))
 end
 
 val emit-arithmetic-adjust-flag sz r op0 op1 = do
@@ -342,7 +335,7 @@ val emit-add-adc-flags sz sum s0 s1 carry = do
     cmpltu sz cf sum s0
   end;
 
-  emit-parity-flag sz sum;
+  emit-parity-flag sum;
   emit-arithmetic-adjust-flag sz sum s0 s1
 end
 
@@ -377,7 +370,7 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry = do
     cmpltu sz cf minuend subtrahend
   end;
 
-  emit-parity-flag sz difference;
+  emit-parity-flag difference;
   emit-arithmetic-adjust-flag sz difference minuend subtrahend
 end
 
@@ -410,6 +403,11 @@ val sem-add x = do
   commit sz a (var t)
 end
 
+val sem-cdqe = do
+  a <- return (semantic-register-of RAX);
+  movsx 64 a 32 (var a)
+end
+
 val sem-cmp x = do
   sz <- guess-sizeof x.opnd1 x.opnd2;
   a <- write sz x.opnd1;
@@ -418,233 +416,6 @@ val sem-cmp x = do
   t <- mktemp;
   sub sz t b c;
   emit-sub-sbb-flags sz (var t) b c (imm 0)
-end
-
-val sem-mov x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
-  a <- write sz x.opnd1;
-  b <- read sz x.opnd1;
-  commit sz a b
-end
-
-val sem-shr x = do
-  sz <- guess-sizeof1 x.opnd1;
-  szOp2 <- guess-sizeof1 x.opnd2;
-  dst <- write sz x.opnd1;
-  src <- read sz x.opnd1;
-  count <- read szOp2 x.opnd2;
-
-  count-mask <- const
-     (case sz of
-         8: 31
-       | 16: 31
-       | 32: 31
-       | 64: 63
-      end);
-  temp-count <- mktemp;
-  andb sz temp-count count count-mask;
-
-  tdst <- mktemp;
-  cf <- fCF;
-
-  _if (/gtu sz (var temp-count) (imm 0)) _then do
-    sub sz temp-count (var temp-count) (imm 1);
-    shr sz tdst src (var temp-count);
-
-    mov 1 cf (var tdst);
-
-    shr sz tdst (var tdst) (imm 1)
-  end;
- 
-  ov <- fOF;
-  _if (/eq sz (var temp-count) (imm 1)) _then do
-    t <- mktemp;
-    mov sz t src;
-    mov 1 ov (var (at-offset t (sz - 1)))
-  end _else (_if (/neq sz (var temp-count) (imm 0)) _then
-    undef 1 ov)
-  ;
-
-  sf <- fSF;
-  cmplts sz sf (var tdst) (imm 0);
-
-  zf <- fZF;
-  cmpeq sz zf (var tdst) (imm 0);
-
-  emit-parity-flag sz (var tdst);
-
-  commit sz dst (var tdst)
-end
-
-val sem-sar x = do
-  sz <- guess-sizeof1 x.opnd1;
-  szOp2 <- guess-sizeof1 x.opnd2;
-  dst <- write sz x.opnd1;
-  src <- read sz x.opnd1;
-  count <- read szOp2 x.opnd2;
-
-  count-mask <- const
-     (case sz of
-         8: 31
-       | 16: 31
-       | 32: 31
-       | 64: 63
-      end);
-  temp-count <- mktemp;
-  andb sz temp-count count count-mask;
-
-  tdst <- mktemp;
-  cf <- fCF;
-
-  _if (/gtu sz (var temp-count) (imm 0)) _then do
-    sub sz temp-count (var temp-count) (imm 1);
-    shrs sz tdst src (var temp-count);
-
-    mov 1 cf (var tdst);
-
-    shrs sz tdst (var tdst) (imm 1)
-  end;
- 
-  ov <- fOF;
-  _if (/eq sz (var temp-count) (imm 1)) _then
-    mov 1 ov (imm 0)
-  _else (_if (/neq sz (var temp-count) (imm 0)) _then
-    undef 1 ov)
-  ;
-
-  sf <- fSF;
-  cmplts sz sf (var tdst) (imm 0);
-
-  zf <- fZF;
-  cmpeq sz zf (var tdst) (imm 0);
-
-  emit-parity-flag sz (var tdst);
-
-  commit sz dst (var tdst)
-end
-
-val sem-sal-shl x = do
-  sz <- guess-sizeof1 x.opnd1;
-  szOp2 <- guess-sizeof1 x.opnd2;
-  dst <- write sz x.opnd1;
-  src <- read sz x.opnd1;
-  count <- read szOp2 x.opnd2;
-
-  count-mask <- const
-     (case sz of
-         8: 31
-       | 16: 31
-       | 32: 31
-       | 64: 63
-      end);
-  temp-count <- mktemp;
-  andb sz temp-count count count-mask;
- 
-  tdst <- mktemp;
-  cf <- fCF;
-
-  _if (/gtu sz (var temp-count) (imm 0)) _then do
-    shl sz tdst src (var temp-count);
-
-    mov 1 cf (var (at-offset tdst (sz - 1)))
-  end;
-
-  ov <- fOF;
-  _if (/eq sz (var temp-count) (imm 1)) _then
-    xorb 1 ov (var (at-offset tdst (sz - 1))) (var cf)
-  _else (_if (/neq sz (var temp-count) (imm 0)) _then
-    undef 1 ov)
-  ;
-
-  sf <- fSF;
-  cmplts sz sf (var tdst) (imm 0);
-
-  zf <- fZF;
-  cmpeq sz zf (var tdst) (imm 0);
-
-  emit-parity-flag sz (var tdst);
-
-  commit sz dst (var tdst)
-
-#  # dst => a, src => b, amount => c
-#  ## Temporary variables:
-#  t1 <- mktemp;
-#  t2 <- mktemp;
-#  cnt <- mktemp;
-#  cntIsZero <- mktemp;
-#  cntIsOne <- mktemp;
-#  af <- fAF;
-#  ov <- fOF;
-#  cf <- fCF;
-#  eq <- fEQ;
-#  mask <- const
-#     (case sz of
-#         8: 31
-#       | 16: 31
-#       | 32: 31
-#       | 64: 63
-#      end);
-#  zer0 <- const 0;
-#  one <- const 1;
-#
-#  ## Instruction semantics:
-#  setflag <- mklabel;
-#  exit <- mklabel;
-#  nop <- mklabel;
-#  convert sz cnt szOp2 c;
-#  andb sz cnt (var cnt) mask;
-#  cmpeq sz cntIsZero (var cnt) zer0;
-#  ifgotolabel (var cntIsZero) nop;
-#  shl sz t1 b (/SUB (var cnt) one);
-#  mov 1 cf (var (t1 /+ (sz - 1)));
-#  shl sz t2 b (var cnt);
-#  cmpeq sz cntIsOne (var cnt) one;
-#  ifgotolabel (var cntIsOne) setflag;
-#  undef 1 ov;
-#  gotolabel exit;
-#  label setflag;
-#  xorb 1 ov (var cf) (var (t2 /+ (sz - 1)));
-#  label exit;
-#  undef 1 af;
-#  commit sz a (var t2);
-#  label nop;
-#  cmpeq sz eq b zer0
-end
-
-val sem-sub x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
-  difference <- write sz x.opnd1;
-  minuend <- read sz x.opnd1;
-  subtrahend <- read sz x.opnd2;
-
-  t <- mktemp;
-  sub sz t minuend subtrahend;
-
-  emit-sub-sbb-flags sz (var t) minuend subtrahend (imm 0);
-  commit sz difference (var t)
-end
-
-val sem-sbb x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
-  difference <- write sz x.opnd1;
-  minuend <- read sz x.opnd1;
-  subtrahend <- read sz x.opnd2;
-
-  t <- mktemp;
-  cf <- fCF;
-  movzx sz t 1 (var cf);
-  add sz t (var t) subtrahend;
-  sub sz t minuend subtrahend;
-
-  emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf);
-  commit sz difference (var t)
-end
-
-val sem-je x = do
-  sz <- guess-sizeof-flow x.opnd1;
-  target <- read-flow sz x.opnd1;
-  eq <- fEQ;
-  ifgoto (var eq) sz target
 end
 
 val sem-jb x = do
@@ -661,6 +432,13 @@ val sem-jc x = do
   ifgoto (var cf) sz target
 end
 
+val sem-je x = do
+  sz <- guess-sizeof-flow x.opnd1;
+  target <- read-flow sz x.opnd1;
+  eq <- fEQ;
+  ifgoto (var eq) sz target
+end
+
 val sem-jmp x = do
   sz <- guess-sizeof-flow x.opnd1;
   target <- read-flow sz x.opnd1;
@@ -668,9 +446,11 @@ val sem-jmp x = do
   ifgoto on3 sz target
 end
 
-val sem-cdqe = do
-  a <- return (semantic-register-of RAX);
-  movsx 64 a 32 (var a)
+val sem-mov x = do
+  sz <- guess-sizeof x.opnd1 x.opnd2;
+  a <- write sz x.opnd1;
+  b <- read sz x.opnd1;
+  commit sz a b
 end
 
 val sem-push x = do
@@ -728,6 +508,242 @@ val sem-push x = do
       ;
       store (address sp-size (var sp-seg)) (lin opnd-sz (var temp))
     end
+end
+
+val sem-sal-shl x = do
+  sz <- guess-sizeof1 x.opnd1;
+  szOp2 <- guess-sizeof1 x.opnd2;
+  dst <- write sz x.opnd1;
+  src <- read sz x.opnd1;
+  count <- read szOp2 x.opnd2;
+
+  count-mask <- const
+     (case sz of
+         8: 31
+       | 16: 31
+       | 32: 31
+       | 64: 63
+      end);
+  temp-count <- mktemp;
+  andb sz temp-count count count-mask;
+ 
+  tdst <- mktemp;
+  cf <- fCF;
+
+  _if (/gtu sz (var temp-count) (imm 0)) _then do
+    shl sz tdst src (var temp-count);
+
+    mov 1 cf (var (at-offset tdst (sz - 1)))
+  end;
+
+  ov <- fOF;
+  _if (/eq sz (var temp-count) (imm 1)) _then
+    xorb 1 ov (var (at-offset tdst (sz - 1))) (var cf)
+  _else (_if (/neq sz (var temp-count) (imm 0)) _then
+    undef 1 ov)
+  ;
+
+  sf <- fSF;
+  cmplts sz sf (var tdst) (imm 0);
+
+  zf <- fZF;
+  cmpeq sz zf (var tdst) (imm 0);
+
+  emit-parity-flag (var tdst);
+
+  commit sz dst (var tdst)
+
+#  # dst => a, src => b, amount => c
+#  ## Temporary variables:
+#  t1 <- mktemp;
+#  t2 <- mktemp;
+#  cnt <- mktemp;
+#  cntIsZero <- mktemp;
+#  cntIsOne <- mktemp;
+#  af <- fAF;
+#  ov <- fOF;
+#  cf <- fCF;
+#  eq <- fEQ;
+#  mask <- const
+#     (case sz of
+#         8: 31
+#       | 16: 31
+#       | 32: 31
+#       | 64: 63
+#      end);
+#  zer0 <- const 0;
+#  one <- const 1;
+#
+#  ## Instruction semantics:
+#  setflag <- mklabel;
+#  exit <- mklabel;
+#  nop <- mklabel;
+#  convert sz cnt szOp2 c;
+#  andb sz cnt (var cnt) mask;
+#  cmpeq sz cntIsZero (var cnt) zer0;
+#  ifgotolabel (var cntIsZero) nop;
+#  shl sz t1 b (/SUB (var cnt) one);
+#  mov 1 cf (var (t1 /+ (sz - 1)));
+#  shl sz t2 b (var cnt);
+#  cmpeq sz cntIsOne (var cnt) one;
+#  ifgotolabel (var cntIsOne) setflag;
+#  undef 1 ov;
+#  gotolabel exit;
+#  label setflag;
+#  xorb 1 ov (var cf) (var (t2 /+ (sz - 1)));
+#  label exit;
+#  undef 1 af;
+#  commit sz a (var t2);
+#  label nop;
+#  cmpeq sz eq b zer0
+end
+
+val sem-sar x = do
+  sz <- guess-sizeof1 x.opnd1;
+  szOp2 <- guess-sizeof1 x.opnd2;
+  dst <- write sz x.opnd1;
+  src <- read sz x.opnd1;
+  count <- read szOp2 x.opnd2;
+
+  count-mask <- const
+     (case sz of
+         8: 31
+       | 16: 31
+       | 32: 31
+       | 64: 63
+      end);
+  temp-count <- mktemp;
+  andb sz temp-count count count-mask;
+
+  tdst <- mktemp;
+  cf <- fCF;
+
+  _if (/gtu sz (var temp-count) (imm 0)) _then do
+    sub sz temp-count (var temp-count) (imm 1);
+    shrs sz tdst src (var temp-count);
+
+    mov 1 cf (var tdst);
+
+    shrs sz tdst (var tdst) (imm 1)
+  end;
+ 
+  ov <- fOF;
+  _if (/eq sz (var temp-count) (imm 1)) _then
+    mov 1 ov (imm 0)
+  _else (_if (/neq sz (var temp-count) (imm 0)) _then
+    undef 1 ov)
+  ;
+
+  sf <- fSF;
+  cmplts sz sf (var tdst) (imm 0);
+
+  zf <- fZF;
+  cmpeq sz zf (var tdst) (imm 0);
+
+  emit-parity-flag (var tdst);
+
+  commit sz dst (var tdst)
+end
+
+val sem-sbb x = do
+  sz <- guess-sizeof x.opnd1 x.opnd2;
+  difference <- write sz x.opnd1;
+  minuend <- read sz x.opnd1;
+  subtrahend <- read sz x.opnd2;
+
+  t <- mktemp;
+  cf <- fCF;
+  movzx sz t 1 (var cf);
+  add sz t (var t) subtrahend;
+  sub sz t minuend subtrahend;
+
+  emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf);
+  commit sz difference (var t)
+end
+
+val sem-shr x = do
+  sz <- guess-sizeof1 x.opnd1;
+  szOp2 <- guess-sizeof1 x.opnd2;
+  dst <- write sz x.opnd1;
+  src <- read sz x.opnd1;
+  count <- read szOp2 x.opnd2;
+
+  count-mask <- const
+     (case sz of
+         8: 31
+       | 16: 31
+       | 32: 31
+       | 64: 63
+      end);
+  temp-count <- mktemp;
+  andb sz temp-count count count-mask;
+
+  tdst <- mktemp;
+  cf <- fCF;
+
+  _if (/gtu sz (var temp-count) (imm 0)) _then do
+    sub sz temp-count (var temp-count) (imm 1);
+    shr sz tdst src (var temp-count);
+
+    mov 1 cf (var tdst);
+
+    shr sz tdst (var tdst) (imm 1)
+  end;
+ 
+  ov <- fOF;
+  _if (/eq sz (var temp-count) (imm 1)) _then do
+    t <- mktemp;
+    mov sz t src;
+    mov 1 ov (var (at-offset t (sz - 1)))
+  end _else (_if (/neq sz (var temp-count) (imm 0)) _then
+    undef 1 ov)
+  ;
+
+  sf <- fSF;
+  cmplts sz sf (var tdst) (imm 0);
+
+  zf <- fZF;
+  cmpeq sz zf (var tdst) (imm 0);
+
+  emit-parity-flag (var tdst);
+
+  commit sz dst (var tdst)
+end
+
+val sem-sub x = do
+  sz <- guess-sizeof x.opnd1 x.opnd2;
+  difference <- write sz x.opnd1;
+  minuend <- read sz x.opnd1;
+  subtrahend <- read sz x.opnd2;
+
+  t <- mktemp;
+  sub sz t minuend subtrahend;
+
+  emit-sub-sbb-flags sz (var t) minuend subtrahend (imm 0);
+  commit sz difference (var t)
+end
+
+val sem-test x = do
+  sz <- guess-sizeof x.opnd1 x.opnd2;
+  a <- read sz x.opnd1;
+  b <- read sz x.opnd2;
+  
+  temp <- mktemp;
+  andb sz temp a b;
+
+  sf <- fSF;
+  cmplts sz sf (var temp) (imm 0);
+
+  zf <- fZF;
+  cmpeq sz zf (var temp) (imm 0);
+  
+  emit-parity-flag temp;
+
+  cf <- fCF;
+  mov 1 cf (imm 0);
+  
+  ov <- fOF;
+  mov 1 ov (imm 0)
 end
 
 val semantics insn =
@@ -1342,7 +1358,7 @@ val semantics insn =
     | SYSENTER: sem-undef-arity0
     | SYSEXIT: sem-undef-arity0
     | SYSRET: sem-undef-arity0
-    | TEST x: sem-undef-arity2 x
+    | TEST x: sem-test x
     | UCOMISD x: sem-undef-arity2 x
     | UCOMISS x: sem-undef-arity2 x
     | UD2: sem-undef-arity0
