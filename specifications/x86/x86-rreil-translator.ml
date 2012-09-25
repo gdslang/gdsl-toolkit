@@ -11,6 +11,10 @@ val runtime-opnd-sz = do
   return 32
 end
 
+val address-size = do
+  return 32
+end
+
 val runtime-stack-address-size = do
   return 32
 end
@@ -444,6 +448,23 @@ val sem-jmp x = do
   target <- read-flow sz x.opnd1;
   on3 <- const 1;
   ifgoto on3 sz target
+end
+
+val sem-lea x = do
+  opnd-sz <- guess-sizeof1 x.opnd1;
+  dst <- write opnd-sz x.opnd1;
+  src <-
+    case x.opnd2 of
+      MEM m: return m
+    end
+  ;
+  addr-sz <- return src.psz;
+  address <- conv-with Signed src.psz src.opnd;
+
+  temp <- mktemp;
+  movzx opnd-sz temp addr-sz address;
+
+  commit opnd-sz dst (var temp)
 end
 
 val sem-mov x = do
@@ -1078,7 +1099,7 @@ val semantics insn =
     | LDDQU x: sem-undef-arity2 x
     | LDMXCSR x: sem-undef-arity1 x
     | LDS x: sem-undef-arity2 x
-    | LEA x: sem-undef-arity2 x
+    | LEA x: sem-lea x
     | LEAVE: sem-undef-arity0
     | LES x: sem-undef-arity2 x
     | LFENCE: sem-undef-arity0
