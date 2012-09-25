@@ -449,8 +449,20 @@ end
 val sem-mov x = do
   sz <- guess-sizeof x.opnd1 x.opnd2;
   a <- write sz x.opnd1;
-  b <- read sz x.opnd1;
+  b <- read sz x.opnd2;
   commit sz a b
+end
+
+val sem-movzx x = do
+  sz-dst <- guess-sizeof1 x.opnd1;
+  sz-src <- guess-sizeof1 x.opnd2;
+  dst <- write sz-dst x.opnd1;
+  src <- read sz-src x.opnd2;
+
+  temp <- mktemp;
+  movzx sz-dst temp sz-src src;
+
+  commit sz-dst dst src
 end
 
 val sem-push x = do
@@ -1135,7 +1147,7 @@ val semantics insn =
     | MOVSXD x: sem-undef-arity2 x
     | MOVUPD x: sem-undef-arity2 x
     | MOVUPS x: sem-undef-arity2 x
-    | MOVZX x: sem-undef-arity2 x
+    | MOVZX x: sem-movzx x
     | MPSADBW x: sem-undef-arity3 x
     | MUL x: sem-undef-arity1 x
     | MULPD x: sem-undef-arity2 x
