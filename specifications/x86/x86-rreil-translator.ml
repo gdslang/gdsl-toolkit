@@ -486,6 +486,14 @@ val sem-movzx x = do
   commit sz-dst dst src
 end
 
+val sem-nop x = do
+  return void
+end
+
+val sem-pop x = do
+  return void
+end
+
 val sem-push x = do
   opnd-sz <- runtime-opnd-sz;
        
@@ -1177,7 +1185,7 @@ val semantics insn =
     | MULSS x: sem-undef-arity2 x
     | MWAIT: sem-undef-arity0
     | NEG x: sem-undef-arity1 x
-    | NOP x: sem-undef-varity x
+    | NOP x: sem-nop x
     | NOT x: sem-undef-arity1 x
     | OR x: sem-undef-arity2 x
     | ORPD x: sem-undef-arity2 x
@@ -1273,7 +1281,7 @@ val semantics insn =
     | PMULLD x: sem-undef-arity2 x
     | PMULLW x: sem-undef-arity2 x
     | PMULUDQ x: sem-undef-arity2 x
-    | POP x: sem-undef-arity1 x
+    | POP x: sem-pop x
     | POPA: sem-undef-arity0
     | POPAD: sem-undef-arity0
     | POPCNT x: sem-undef-arity2 x
