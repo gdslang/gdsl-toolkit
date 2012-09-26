@@ -142,6 +142,7 @@ val /IFGOTO c sz t = SEM_IF_GOTO{cond=c,size=sz,target=t}
 val /GOTOLABEL l = SEM_IF_GOTO_LABEL{cond=SEM_LIN_IMM{imm=1},label=l}
 val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
+val /CALL address = SEM_BRANCH{hint=HINT_CALL,target=address}
 
 val push insn = do
    tl <- query $stack;
@@ -200,6 +201,7 @@ val gotolabel l = push (/GOTOLABEL l)
 val ifgoto c sz addr = push (/IFGOTO c sz addr)
 val ite c t e = push (/ITE c t e)
 val while c b = push (/WHILE c b)
+val call address = push (/CALL address)
 
 val const i = return (SEM_LIN_IMM{imm=i})
 val imm i = SEM_LIN_IMM{imm=i}

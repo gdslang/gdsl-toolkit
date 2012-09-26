@@ -8,8 +8,13 @@ val t-mode64? = do
 end
 
 val runtime-opnd-sz x = do
-  sz <- guess-sizeof1 x;
+  sz <- sizeof1 x;
   return sz
+end
+
+#Todo: Fix!!
+val static-flow-opnd-sz x = do
+  return 64
 end
 
 val address-size = do
@@ -27,6 +32,10 @@ val segmentation-ss-map sz reg = do
   return t
 end
 
+val ip-get = do
+  return (imm 0)
+end
+
 val segment-register? x =
   case x of
      CS: '1'
@@ -37,7 +46,7 @@ val segment-register? x =
    | GS: '1'
   end
 
-val guess-sizeof dst/src1 src2 =
+val sizeof2 dst/src1 src2 =
    case dst/src1 of
       REG r: return ($size (semantic-register-of r))
     | MEM x: return x.sz
@@ -48,9 +57,17 @@ val guess-sizeof dst/src1 src2 =
          end
    end
 
-val guess-sizeof-flow target = return 64
+val sizeof-flow target =
+  case target of
+     REL8 x: return 8
+   | REL16 x: return 16
+   | REL32 x: return 32
+   | REL64 x: return 64
+   | NEARABS x: sizeof1 x
+   | FARABS x: sizeof1 x
+  end
 
-val guess-sizeof1 op =
+val sizeof1 op =
    case op of
       REG r: return (semantic-register-of r).size
     | MEM x: return x.sz
@@ -70,7 +87,6 @@ val conv-with conv sz x =
       	  Signed: return (SEM_LIN_IMM{imm=sx x})
 	| Unsigned: return (SEM_LIN_IMM{imm=zx x})
       end
-
 
       val conv-reg r = return (SEM_LIN_VAR (semantic-register-of r))
 
@@ -130,6 +146,29 @@ val read-flow sz x =
        | FARABS x: read sz x
       end
    end
+
+val near target =
+  case target of
+     REL8 x: '1'
+   | REL16 x: '1'
+   | REL32 x: '1'
+   | REL64 x: '1'
+   | NEARABS x: '1'
+   | _: '0'
+  end
+
+val far target = not (near target)
+
+val relative target =
+  case target of
+     REL8 x: '1'
+   | REL16 x: '1'
+   | REL32 x: '1'
+   | REL64 x: '1'
+   | _: '0'
+  end
+
+val absolute target = not (relative target)
 
 val write sz x =
    case x of
@@ -232,7 +271,7 @@ val _while c __ b = do
 end
 
 val undef-opnd opnd = do
-  sz <- guess-sizeof1 opnd;
+  sz <- sizeof1 opnd;
   a <- write sz opnd;
   t <- mktemp;
   commit sz a (var t)
@@ -380,7 +419,7 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry = do
 end
 
 val sem-adc x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
+  sz <- sizeof2 x.opnd1 x.opnd2;
   a <- write sz x.opnd1;
   b <- read sz x.opnd1;
   c <- read sz x.opnd2;
@@ -398,7 +437,7 @@ val sem-adc x = do
 end
 
 val sem-add x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
+  sz <- sizeof2 x.opnd1 x.opnd2;
   a <- write sz x.opnd1;
   b <- read sz x.opnd1;
   c <- read sz x.opnd2;
@@ -408,13 +447,17 @@ val sem-add x = do
   commit sz a (var t)
 end
 
+val sem-call x = do
+ return void
+end
+
 val sem-cdqe = do
   a <- return (semantic-register-of RAX);
   movsx 64 a 32 (var a)
 end
 
 val sem-cmp x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
+  sz <- sizeof2 x.opnd1 x.opnd2;
   a <- write sz x.opnd1;
   b <- read sz x.opnd1;
   c <- read sz x.opnd2;
@@ -424,35 +467,68 @@ val sem-cmp x = do
 end
 
 val sem-jb x = do
-  sz <- guess-sizeof-flow x.opnd1;
+  sz <- sizeof-flow x.opnd1;
   target <- read-flow sz x.opnd1;
   cf <- fCF;
   ifgoto (var cf) sz target
 end
 
 val sem-jc x = do
-  sz <- guess-sizeof-flow x.opnd1;
+  sz <- sizeof-flow x.opnd1;
   target <- read-flow sz x.opnd1;
   cf <- fCF;
   ifgoto (var cf) sz target
 end
 
 val sem-je x = do
-  sz <- guess-sizeof-flow x.opnd1;
+  sz <- sizeof-flow x.opnd1;
   target <- read-flow sz x.opnd1;
   eq <- fEQ;
   ifgoto (var eq) sz target
 end
 
 val sem-jmp x = do
-  sz <- guess-sizeof-flow x.opnd1;
-  target <- read-flow sz x.opnd1;
-  on3 <- const 1;
-  ifgoto on3 sz target
+  target-sz <- sizeof-flow x.opnd1;
+  target <- read-flow target-sz x.opnd1;
+
+  opnd-sz <- static-flow-opnd-sz x.opnd1;
+  
+  mode64 <- t-mode64?;
+
+  ip-sz <-
+    if mode64 then
+      return 64
+    else
+      return 32
+  ;
+
+  temp-ip <- mktemp;
+  if (near x.opnd1) then
+    do
+      if (relative x.opnd1) then
+        do
+          ip <- ip-get;
+          add ip-sz temp-ip ip target
+        end
+      else
+        mov ip-sz temp-ip target
+      ;
+      if (opnd-sz === 16) then
+        andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
+      else
+        return void
+    end
+  else
+    return void
+  ;
+
+#  on3 <- const 1;
+#  ifgoto on3 sz target
+  call (address ip-sz (var temp-ip))
 end
 
 val sem-lea x = do
-  opnd-sz <- guess-sizeof1 x.opnd1;
+  opnd-sz <- sizeof1 x.opnd1;
   dst <- write opnd-sz x.opnd1;
   src <-
     case x.opnd2 of
@@ -469,15 +545,15 @@ val sem-lea x = do
 end
 
 val sem-mov x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
+  sz <- sizeof2 x.opnd1 x.opnd2;
   a <- write sz x.opnd1;
   b <- read sz x.opnd2;
   commit sz a b
 end
 
 val sem-movzx x = do
-  sz-dst <- guess-sizeof1 x.opnd1;
-  sz-src <- guess-sizeof1 x.opnd2;
+  sz-dst <- sizeof1 x.opnd1;
+  sz-src <- sizeof1 x.opnd2;
   dst <- write sz-dst x.opnd1;
   src <- read sz-src x.opnd2;
 
@@ -508,7 +584,7 @@ val sem-pop x = do
   ;
   
   sp <- return (semantic-register-of sp-reg);
-  sp-size <- guess-sizeof1 (REG sp-reg);
+  sp-size <- sizeof1 (REG sp-reg);
   sp-seg <- segmentation-ss-map sp-size sp;
   load opnd-sz temp-dest stack-addr-sz (var sp-seg);
 
@@ -534,7 +610,7 @@ end
 val sem-push x = do
   opnd-sz <- runtime-opnd-sz x.opnd1;
        
-  src-size <- guess-sizeof1 x.opnd1;
+  src-size <- sizeof1 x.opnd1;
   src <- read src-size x.opnd1;
 
   temp <- mktemp;
@@ -560,7 +636,7 @@ val sem-push x = do
     do
       sp-reg <- return RSP;
       sp <- return (semantic-register-of sp-reg);
-      sp-size <- guess-sizeof1 (REG sp-reg);
+      sp-size <- sizeof1 (REG sp-reg);
       if opnd-sz === 64 then
         sub sp-size sp (var sp) (imm 8)
       else
@@ -577,7 +653,7 @@ val sem-push x = do
           return SP
       ;
       sp <- return (semantic-register-of sp-reg);
-      sp-size <- guess-sizeof1 (REG sp-reg);
+      sp-size <- sizeof1 (REG sp-reg);
       sp-seg <- segmentation-ss-map sp-size sp;
       if opnd-sz === 32 then
         sub sp-size sp (var sp) (imm 4)
@@ -589,8 +665,8 @@ val sem-push x = do
 end
 
 val sem-sal-shl x = do
-  sz <- guess-sizeof1 x.opnd1;
-  szOp2 <- guess-sizeof1 x.opnd2;
+  sz <- sizeof1 x.opnd1;
+  szOp2 <- sizeof1 x.opnd2;
   dst <- write sz x.opnd1;
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
@@ -677,8 +753,8 @@ val sem-sal-shl x = do
 end
 
 val sem-sar x = do
-  sz <- guess-sizeof1 x.opnd1;
-  szOp2 <- guess-sizeof1 x.opnd2;
+  sz <- sizeof1 x.opnd1;
+  szOp2 <- sizeof1 x.opnd2;
   dst <- write sz x.opnd1;
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
@@ -724,7 +800,7 @@ val sem-sar x = do
 end
 
 val sem-sbb x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
+  sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- write sz x.opnd1;
   minuend <- read sz x.opnd1;
   subtrahend <- read sz x.opnd2;
@@ -740,8 +816,8 @@ val sem-sbb x = do
 end
 
 val sem-shr x = do
-  sz <- guess-sizeof1 x.opnd1;
-  szOp2 <- guess-sizeof1 x.opnd2;
+  sz <- sizeof1 x.opnd1;
+  szOp2 <- sizeof1 x.opnd2;
   dst <- write sz x.opnd1;
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
@@ -789,7 +865,7 @@ val sem-shr x = do
 end
 
 val sem-sub x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
+  sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- write sz x.opnd1;
   minuend <- read sz x.opnd1;
   subtrahend <- read sz x.opnd2;
@@ -802,7 +878,7 @@ val sem-sub x = do
 end
 
 val sem-test x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
+  sz <- sizeof2 x.opnd1 x.opnd2;
   a <- read sz x.opnd1;
   b <- read sz x.opnd2;
   
@@ -828,7 +904,7 @@ val sem-test x = do
 end
 
 val sem-xor x = do
-  sz <- guess-sizeof x.opnd1 x.opnd2;
+  sz <- sizeof2 x.opnd1 x.opnd2;
   dst <- write sz x.opnd1;
   src0 <- read sz x.opnd1;
   src1 <- read sz x.opnd2;
