@@ -7,8 +7,9 @@ val t-mode64? = do
   return mode64
 end
 
-val runtime-opnd-sz = do
-  return 32
+val runtime-opnd-sz x = do
+  sz <- guess-sizeof1 x;
+  return sz
 end
 
 val address-size = do
@@ -19,7 +20,7 @@ val runtime-stack-address-size = do
   return 32
 end
 
-val segmentation-offset-ss-add sz reg = do
+val segmentation-ss-map sz reg = do
   ss <- sdt-ss;
   t <- mktemp;
   add sz t (var t) (var ss);
@@ -491,11 +492,47 @@ val sem-nop x = do
 end
 
 val sem-pop x = do
-  return void
+  opnd-sz <- runtime-opnd-sz x.opnd1;
+  stack-addr-sz <- runtime-stack-address-size;
+
+  dst <- write opnd-sz x.opnd1;
+
+  temp-dest <- mktemp;
+  sp-reg <-
+    if stack-addr-sz === 32 then
+      return ESP
+    else if stack-addr-sz === 64 then
+      return RSP
+    else
+      return SP
+  ;
+  
+  sp <- return (semantic-register-of sp-reg);
+  sp-size <- guess-sizeof1 (REG sp-reg);
+  sp-seg <- segmentation-ss-map sp-size sp;
+  load opnd-sz temp-dest stack-addr-sz (var sp-seg);
+
+  if stack-addr-sz === 32 then
+    if opnd-sz === 32 then
+      add sp-size sp (var sp) (imm 4)
+    else
+      add sp-size sp (var sp) (imm 2)
+  else if stack-addr-sz === 64 then
+    if opnd-sz === 64 then
+      add sp-size sp (var sp) (imm 8)
+    else
+      add sp-size sp (var sp) (imm 2)
+  else
+    if opnd-sz === 16 then
+      add sp-size sp (var sp) (imm 2)
+    else
+      add sp-size sp (var sp) (imm 4)
+
+  #Todo: Special actions in protected mode
 end
 
 val sem-push x = do
-  opnd-sz <- runtime-opnd-sz;
+  opnd-sz <- runtime-opnd-sz x.opnd1;
        
   src-size <- guess-sizeof1 x.opnd1;
   src <- read src-size x.opnd1;
@@ -518,7 +555,7 @@ val sem-push x = do
   end;
 
   mode64 <- t-mode64?;
-  stack-address-size <- runtime-stack-address-size;
+  stack-addr-sz <- runtime-stack-address-size;
   if mode64 then
     do
       sp-reg <- return RSP;
@@ -534,14 +571,14 @@ val sem-push x = do
   else
     do
       sp-reg <-
-        if stack-address-size === 32 then
+        if stack-addr-sz === 32 then
           return ESP
         else
           return SP
       ;
       sp <- return (semantic-register-of sp-reg);
       sp-size <- guess-sizeof1 (REG sp-reg);
-      sp-seg <- segmentation-offset-ss-add sp-size sp;
+      sp-seg <- segmentation-ss-map sp-size sp;
       if opnd-sz === 32 then
         sub sp-size sp (var sp) (imm 4)
       else
