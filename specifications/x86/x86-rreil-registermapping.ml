@@ -33,6 +33,7 @@ val semantic-register-of r =
      | EBP: {id=ARCH_R 13,offset=0,size=32}
      | ESI: {id=ARCH_R 14,offset=0,size=32}
      | EDI: {id=ARCH_R 15,offset=0,size=32}
+     | CS: {id=ARCH_R 16,offset=0,size=16}
    end
 
 val arch-show-id r =

@@ -518,13 +518,28 @@ val sem-jmp x = do
       else
         return void
     end
+  else if (not mode64) then
+    do
+      mov ip-sz temp-ip target;
+      if (opnd-sz === 16) then
+        andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
+      else
+        return void
+      ;
+      temp-target <- mktemp;
+      mov target-sz temp-target target;
+      reg <- return CS;
+      reg-sem <- return (semantic-register-of reg);
+      reg-size <- sizeof1 (REG reg);
+      mov reg-size reg-sem (var (at-offset temp-target ip-sz));
+      
+      mov ip-sz temp-ip target
+    end
   else
     return void
   ;
 
-#  on3 <- const 1;
-#  ifgoto on3 sz target
-  call (address ip-sz (var temp-ip))
+  jump (address ip-sz (var temp-ip))
 end
 
 val sem-lea x = do
