@@ -465,18 +465,22 @@ val sem-call x = do
   temp-dest <- mktemp;
   temp-ip <- mktemp;
   if (near x.opnd1) then
-    if (relative x.opnd1) then
-      if (opnd-sz === 64) then
+    do
+      ip <- ip-get;
+      if (relative x.opnd1) then
         do
           movsx ip-sz temp-dest target-sz target;
-	  ip <- ip-get;
-	  add ip-sz temp-ip ip (var temp-dest);
-	  ps-push ip-sz ip
-	end
+          add ip-sz temp-ip ip (var temp-dest);
+          if (opnd-sz === 16) then
+              mov (ip-sz - opnd-sz) (at-offset temp-ip opnd-sz) (imm 0)
+          else
+             return void
+        end
       else
-        return void
-    else
-      return void
+        movzx ip-sz temp-ip target-sz target
+      ;
+      ps-push ip-sz ip
+    end
   else
     return void
   ;
