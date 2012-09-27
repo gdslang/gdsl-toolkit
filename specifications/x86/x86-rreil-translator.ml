@@ -448,7 +448,40 @@ val sem-add x = do
 end
 
 val sem-call x = do
- return void
+  target-sz <- sizeof-flow x.opnd1;
+  target <- read-flow target-sz x.opnd1;
+
+  opnd-sz <- static-flow-opnd-sz x.opnd1;
+
+  ip-sz <-
+    if (opnd-sz === 64) then
+      return 64
+    else
+      return 32
+  ;
+  
+  mode64 <- t-mode64?;
+  
+  temp-dest <- mktemp;
+  temp-ip <- mktemp;
+  if (near x.opnd1) then
+    if (relative x.opnd1) then
+      if (opnd-sz === 64) then
+        do
+          movsx ip-sz temp-dest target-sz target;
+	  ip <- ip-get;
+	  add ip-sz temp-ip ip (var temp-dest);
+	  ps-push ip-sz ip
+	end
+      else
+        return void
+    else
+      return void
+  else
+    return void
+  ;
+
+  call (address ip-sz (var temp-ip))
 end
 
 val sem-cdqe = do
@@ -514,7 +547,8 @@ val sem-jmp x = do
         mov ip-sz temp-ip target
       ;
       if (opnd-sz === 16) then
-        andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
+        #andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
+	mov (ip-sz - opnd-sz) (at-offset temp-ip opnd-sz) (imm 0)
       else
         return void
     end
@@ -522,7 +556,8 @@ val sem-jmp x = do
     do
       mov ip-sz temp-ip target;
       if (opnd-sz === 16) then
-        andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
+        #andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
+	mov (ip-sz - opnd-sz) (at-offset temp-ip opnd-sz) (imm 0)
       else
         return void
       ;
@@ -622,6 +657,41 @@ val sem-pop x = do
   #Todo: Special actions in protected mode
 end
 
+val ps-push opnd-sz opnd = do
+  mode64 <- t-mode64?;
+  stack-addr-sz <- runtime-stack-address-size;
+  if mode64 then
+    do
+      sp-reg <- return RSP;
+      sp <- return (semantic-register-of sp-reg);
+      sp-size <- sizeof1 (REG sp-reg);
+      if opnd-sz === 64 then
+        sub sp-size sp (var sp) (imm 8)
+      else
+        sub sp-size sp (var sp) (imm 2)
+      ;
+      store (address sp-size (var sp)) (lin opnd-sz (var opnd))
+    end
+  else
+    do
+      sp-reg <-
+        if stack-addr-sz === 32 then
+          return ESP
+        else
+          return SP
+      ;
+      sp <- return (semantic-register-of sp-reg);
+      sp-size <- sizeof1 (REG sp-reg);
+      sp-seg <- segmentation-ss-map sp-size sp;
+      if opnd-sz === 32 then
+        sub sp-size sp (var sp) (imm 4)
+      else
+        sub sp-size sp (var sp) (imm 2)
+      ;
+      store (address sp-size (var sp-seg)) (lin opnd-sz (var opnd))
+    end
+end
+
 val sem-push x = do
   opnd-sz <- runtime-opnd-sz x.opnd1;
        
@@ -645,38 +715,7 @@ val sem-push x = do
        movsx opnd-sz temp src-size src
   end;
 
-  mode64 <- t-mode64?;
-  stack-addr-sz <- runtime-stack-address-size;
-  if mode64 then
-    do
-      sp-reg <- return RSP;
-      sp <- return (semantic-register-of sp-reg);
-      sp-size <- sizeof1 (REG sp-reg);
-      if opnd-sz === 64 then
-        sub sp-size sp (var sp) (imm 8)
-      else
-        sub sp-size sp (var sp) (imm 2)
-      ;
-      store (address sp-size (var sp)) (lin opnd-sz (var temp))
-    end
-  else
-    do
-      sp-reg <-
-        if stack-addr-sz === 32 then
-          return ESP
-        else
-          return SP
-      ;
-      sp <- return (semantic-register-of sp-reg);
-      sp-size <- sizeof1 (REG sp-reg);
-      sp-seg <- segmentation-ss-map sp-size sp;
-      if opnd-sz === 32 then
-        sub sp-size sp (var sp) (imm 4)
-      else
-        sub sp-size sp (var sp) (imm 2)
-      ;
-      store (address sp-size (var sp-seg)) (lin opnd-sz (var temp))
-    end
+  ps-push opnd-sz temp
 end
 
 val sem-sal-shl x = do
@@ -985,7 +1024,7 @@ val semantics insn =
     | BTC x: sem-undef-arity2 x
     | BTR x: sem-undef-arity2 x
     | BTS x: sem-undef-arity2 x
-    | CALL x: sem-undef-flow1 x
+    | CALL x: sem-call x
     | CBW: sem-undef-arity0
     | CDQ: sem-undef-arity0
     | CDQE: sem-cdqe
