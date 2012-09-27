@@ -670,7 +670,7 @@ val ps-push opnd-sz opnd = do
       else
         sub sp-size sp (var sp) (imm 2)
       ;
-      store (address sp-size (var sp)) (lin opnd-sz (var opnd))
+      store (address sp-size (var sp)) (lin opnd-sz opnd)
     end
   else
     do
@@ -688,7 +688,7 @@ val ps-push opnd-sz opnd = do
       else
         sub sp-size sp (var sp) (imm 2)
       ;
-      store (address sp-size (var sp-seg)) (lin opnd-sz (var opnd))
+      store (address sp-size (var sp-seg)) (lin opnd-sz opnd)
     end
 end
 
@@ -715,7 +715,7 @@ val sem-push x = do
        movsx opnd-sz temp src-size src
   end;
 
-  ps-push opnd-sz temp
+  ps-push opnd-sz (var temp)
 end
 
 val sem-sal-shl x = do
@@ -725,23 +725,38 @@ val sem-sal-shl x = do
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
 
-  count-mask <- const
-     (case sz of
-         8: 31
-       | 16: 31
-       | 32: 31
-       | 64: 63
-      end);
-  temp-count <- mktemp;
-  andb sz temp-count count count-mask;
+  #count-mask <- const
+  #   (case sz of
+  #       8: 31
+  #     | 16: 31
+  #     | 32: 31
+  #     | 64: 63
+  #    end);
+  #temp-count <- mktemp;
+  #andb sz temp-count count count-mask;
  
+  real-shift-count-size <-
+    case sz of
+       8: return 5
+     | 16: return 5
+     | 32: return 5
+     | 64: return 6
+    end
+  ;
+  temp-count <- mktemp;
+  mov real-shift-count-size temp-count count;
+  mov (sz - real-shift-count-size) (at-offset temp-count real-shift-count-size) (imm 0);
+
   tdst <- mktemp;
   cf <- fCF;
 
   _if (/gtu sz (var temp-count) (imm 0)) _then do
     shl sz tdst src (var temp-count);
 
-    mov 1 cf (var (at-offset tdst (sz - 1)))
+    temp-c <- mktemp;
+    sub sz temp-c (imm sz) (var temp-count);
+    shr sz temp-c src (var temp-c);
+    mov 1 cf (var temp-c)
   end;
 
   ov <- fOF;
@@ -813,15 +828,27 @@ val sem-sar x = do
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
 
-  count-mask <- const
-     (case sz of
-         8: 31
-       | 16: 31
-       | 32: 31
-       | 64: 63
-      end);
+  #count-mask <- const
+  #   (case sz of
+  #       8: 31
+  #     | 16: 31
+  #     | 32: 31
+  #     | 64: 63
+  #    end);
+  #temp-count <- mktemp;
+  #andb sz temp-count count count-mask;
+ 
+  real-shift-count-size <-
+    case sz of
+       8: return 5
+     | 16: return 5
+     | 32: return 5
+     | 64: return 6
+    end
+  ;
   temp-count <- mktemp;
-  andb sz temp-count count count-mask;
+  mov real-shift-count-size temp-count count;
+  mov (sz - real-shift-count-size) (at-offset temp-count real-shift-count-size) (imm 0);
 
   tdst <- mktemp;
   cf <- fCF;
@@ -876,15 +903,27 @@ val sem-shr x = do
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
 
-  count-mask <- const
-     (case sz of
-         8: 31
-       | 16: 31
-       | 32: 31
-       | 64: 63
-      end);
+  #count-mask <- const
+  #   (case sz of
+  #       8: 31
+  #     | 16: 31
+  #     | 32: 31
+  #     | 64: 63
+  #    end);
+  #temp-count <- mktemp;
+  #andb sz temp-count count count-mask;
+
+  real-shift-count-size <-
+    case sz of
+       8: return 5
+     | 16: return 5
+     | 32: return 5
+     | 64: return 6
+    end
+  ;
   temp-count <- mktemp;
-  andb sz temp-count count count-mask;
+  mov real-shift-count-size temp-count count;
+  mov (sz - real-shift-count-size) (at-offset temp-count real-shift-count-size) (imm 0);
 
   tdst <- mktemp;
   cf <- fCF;
