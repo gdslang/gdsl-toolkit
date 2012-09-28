@@ -464,9 +464,9 @@ val sem-call x = do
   
   temp-dest <- mktemp;
   temp-ip <- mktemp;
+  ip <- ip-get;
   if (near x.opnd1) then
     do
-      ip <- ip-get;
       if (relative x.opnd1) then
         do
           movsx ip-sz temp-dest target-sz target;
@@ -482,7 +482,20 @@ val sem-call x = do
       ps-push ip-sz ip
     end
   else
-    return void
+    do
+      movzx ip-sz temp-ip opnd-sz target;
+      sec-reg <- return CS;
+      sec-reg-sem <- return (semantic-register-of sec-reg);
+      reg-size <- sizeof1 (REG sec-reg);
+      sec-reg-extended <- mktemp;
+      movzx opnd-sz sec-reg-extended reg-size (var sec-reg-sem);
+      ps-push opnd-sz (var sec-reg-extended);
+      
+      ps-push ip-sz ip;
+
+      mov target-sz temp-dest target;
+      mov reg-size sec-reg-sem (var (at-offset temp-dest opnd-sz))
+    end
   ;
 
   call (address ip-sz (var temp-ip))
