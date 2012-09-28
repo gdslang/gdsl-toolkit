@@ -634,13 +634,9 @@ val sem-nop x = do
   return void
 end
 
-val sem-pop x = do
-  opnd-sz <- runtime-opnd-sz x.opnd1;
+val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
-  dst <- write opnd-sz x.opnd1;
-
-  temp-dest <- mktemp;
   sp-reg <-
     if stack-addr-sz === 32 then
       return ESP
@@ -653,7 +649,7 @@ val sem-pop x = do
   sp <- return (semantic-register-of sp-reg);
   sp-size <- sizeof1 (REG sp-reg);
   sp-seg <- segmentation-ss-map sp-size sp;
-  load opnd-sz temp-dest stack-addr-sz (var sp-seg);
+  load opnd-sz opnd stack-addr-sz (var sp-seg);
 
   if stack-addr-sz === 32 then
     if opnd-sz === 32 then
@@ -672,6 +668,14 @@ val sem-pop x = do
       add sp-size sp (var sp) (imm 4)
 
   #Todo: Special actions in protected mode
+end
+
+val sem-pop x = do
+  opnd-sz <- runtime-opnd-sz x.opnd1;
+  dst <- write opnd-sz x.opnd1;
+  temp-dest <- mktemp;
+  ps-pop opnd-sz temp-dest;
+  commit opnd-sz dst (var temp-dest)
 end
 
 val ps-push opnd-sz opnd = do
@@ -733,6 +737,65 @@ val sem-push x = do
   end;
 
   ps-push opnd-sz (var temp)
+end
+
+val sem-ret x =
+  case x of
+     VA0: sem-ret-without-operand
+   | VA1 x:
+       do
+         sem-ret-release-from-stack x;
+	 sem-ret-without-operand
+       end
+  end
+
+val sem-ret-without-operand = do
+  #Todo: fix
+  mode64 <- t-mode64?;
+  opnd-sz <-
+    if mode64 then
+      return 64
+    else
+      return 32
+  ;
+
+  ip-sz <-
+    if (opnd-sz === 64) then
+      return 64
+    else
+      return 32
+  ;
+
+  temp-ip <- mktemp;
+  ps-pop ip-sz temp-ip;
+  mov (ip-sz - opnd-sz) (at-offset temp-ip opnd-sz) (imm 0);
+
+  ret (address opnd-sz (var temp-ip))
+end
+
+val sem-ret-release-from-stack x = do
+  x-sz <- sizeof1 x.opnd1;
+  src <- read x-sz x.opnd1;
+
+  stack-addr-sz <- runtime-stack-address-size;
+
+  sp-reg <-
+    if stack-addr-sz === 32 then
+      return ESP
+    else if stack-addr-sz === 64 then
+      return RSP
+    else
+      return SP
+  ;
+  
+  sp <- return (semantic-register-of sp-reg);
+  sp-size <- sizeof1 (REG sp-reg);
+
+  add sp-size sp (var sp) src
+end
+
+val sem-ret-far x = do
+  return void
 end
 
 val sem-sal-shl x = do
@@ -1571,8 +1634,8 @@ val semantics insn =
     | RDRAND x: sem-undef-arity1 x
     | RDTSC: sem-undef-arity0
     | RDTSCP: sem-undef-arity0
-    | RET x: sem-undef-varity x
-    | RET_FAR x: sem-undef-varity x
+    | RET x: sem-ret x
+    | RET_FAR x: sem-ret-far x
     | ROL x: sem-undef-arity2 x
     | ROR x: sem-undef-arity2 x
     | ROUNDPD x: sem-undef-arity3 x
