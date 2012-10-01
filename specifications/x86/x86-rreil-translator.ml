@@ -744,12 +744,22 @@ val sem-ret x =
      VA0: sem-ret-without-operand
    | VA1 x:
        do
-         sem-ret-release-from-stack x;
+         release-from-stack x;
 	 sem-ret-without-operand
        end
   end
 
-val sem-ret-without-operand = do
+val sem-ret-far x =
+  case x of
+     VA0: sem-ret-far-without-operand
+   | VA1 x:
+       do
+         release-from-stack x;
+         sem-ret-far-without-operand
+       end
+  end
+
+val pop-ip = do
   #Todo: fix
   mode64 <- t-mode64?;
   opnd-sz <-
@@ -770,10 +780,39 @@ val sem-ret-without-operand = do
   ps-pop ip-sz temp-ip;
   mov (ip-sz - opnd-sz) (at-offset temp-ip opnd-sz) (imm 0);
 
-  ret (address opnd-sz (var temp-ip))
+  return (address opnd-sz (var temp-ip))
 end
 
-val sem-ret-release-from-stack x = do
+val sem-ret-without-operand = do
+  address <- pop-ip;
+  ret address
+end
+
+val sem-ret-far-without-operand = do
+  address <- pop-ip;
+
+  #Todo: fix
+  mode64 <- t-mode64?;
+  opnd-sz <-
+    if mode64 then
+      return 64
+    else
+      return 32
+  ;
+
+  temp-cs <- mktemp;
+  ps-pop opnd-sz temp-cs;
+  
+  sec-reg <- return CS;
+  sec-reg-sem <- return (semantic-register-of sec-reg);
+  reg-size <- sizeof1 (REG sec-reg);
+
+  mov reg-size sec-reg-sem (var temp-cs);
+
+  ret address
+end
+
+val release-from-stack x = do
   x-sz <- sizeof1 x.opnd1;
   src <- read x-sz x.opnd1;
 
@@ -787,15 +826,14 @@ val sem-ret-release-from-stack x = do
     else
       return SP
   ;
-  
+
   sp <- return (semantic-register-of sp-reg);
   sp-size <- sizeof1 (REG sp-reg);
 
-  add sp-size sp (var sp) src
-end
+  src-ext <- mktemp;
+  movzx sp-size src-ext x-sz src;
 
-val sem-ret-far x = do
-  return void
+  add sp-size sp (var sp) (var src-ext)
 end
 
 val sem-sal-shl x = do
