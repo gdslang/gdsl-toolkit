@@ -227,14 +227,14 @@ val fCF = return (var//0 (ARCH_R ~6)) # CF
 val zero = return (SEM_LIN_IMM{imm=0})
 
 val _if c _then a _else b = do
-  cond <- c;
+  c <- c;
   stack <- pop-all;
   a;
   t <- pop-all;
   b;
   e <- pop-all;
   stack-set stack;
-  ite cond t e
+  ite c t e
 end
 
 val _if c _then a = do
@@ -242,6 +242,28 @@ val _if c _then a = do
 end
 
 val /d cond = return cond
+
+val /and a b = do
+  a <- a;
+  b <- b;
+  t <- mktemp;
+  andb 1 t a b;
+  return (var t)
+end
+
+val /or a b = do
+  a <- a;
+  b <- b;
+  t <- mktemp;
+  orb 1 t a b;
+  return (var t)
+end
+
+val /not a = do
+  t <- mktemp;
+  xorb 1 t a (imm 1);
+  return (var t)
+end
 
 val /eq sz a b = do
   t <- mktemp;
@@ -516,25 +538,147 @@ val sem-cmp x = do
   emit-sub-sbb-flags sz (var t) b c (imm 0)
 end
 
-val sem-jb x = do
-  sz <- sizeof-flow x.opnd1;
-  target <- read-flow sz x.opnd1;
-  cf <- fCF;
-  ifgoto (var cf) sz target
+val sem-jcc x cond = do
+  target-sz <- sizeof-flow x.opnd1;
+  target <- read-flow target-sz x.opnd1;
+
+  #Todo: fix
+  mode64 <- t-mode64?;
+  opnd-sz <-
+    if mode64 then
+      return 64
+    else
+      return 32
+  ;
+
+  ip-sz <-
+    if (opnd-sz === 64) then
+      return 64
+    else
+      return 32
+  ;
+  
+  ip <- ip-get;
+
+  target-ext <- mktemp;
+  movsx ip-sz target-ext target-sz target;
+
+  temp-ip <- mktemp;
+  add ip-sz temp-ip (var target-ext) ip;
+
+  _if cond _then jump (address ip-sz (var temp-ip))
 end
+
+val sem-ja x = do
+  cf <- fCF;
+  zf <- fZF;
+  sem-jcc x (/and (/not (var cf)) (/not (var zf)))
+end
+val sem-jnbe x = sem-ja x
+val sem-jnc x = sem-ja x
+
+val sem-jae x = do
+  cf <- fCF;
+  sem-jcc x (/not (var cf))
+end
+val sem-jnb x = sem-jae x
 
 val sem-jc x = do
-  sz <- sizeof-flow x.opnd1;
-  target <- read-flow sz x.opnd1;
   cf <- fCF;
-  ifgoto (var cf) sz target
+  sem-jcc x (/d (var cf))
+end
+val sem-jb x = sem-jc x
+val sem-jnae x = sem-jnae x
+
+val sem-jbe x = do
+  cf <- fCF;
+  zf <- fZF;
+  sem-jcc x (/or (/d (var cf)) (/d (var zf)))
+end
+val sem-jna x = sem-jbe x
+
+val sem-jregz x reg = do
+  reg-sem <- return (semantic-register-of reg);
+  reg-size <- sizeof1 (REG reg);
+  sem-jcc x (/eq reg-size (var reg-sem) (imm 0))
 end
 
+val sem-jcxz x = sem-jregz x CX
+val sem-jecxz x = sem-jregz x ECX
+val sem-jrcxz x = sem-jregz x RCX
+
 val sem-je x = do
-  sz <- sizeof-flow x.opnd1;
-  target <- read-flow sz x.opnd1;
-  eq <- fEQ;
-  ifgoto (var eq) sz target
+  zf <- fZF;
+  sem-jcc x (/d (var zf))
+end
+val sem-jz x = sem-je x
+
+val sem-jg x = do
+  zf <- fZF;
+  sf <- fSF;
+  ov <- fOF;
+  sem-jcc x (/and (/not (var zf)) (/eq 1 (var sf) (var ov)))
+end
+val sem-jnle x = sem-jg x
+
+val sem-jge x = do
+  sf <- fSF;
+  ov <- fOF;
+  sem-jcc x (/eq 1 (var sf) (var ov))
+end
+val sem-nl x = sem-jge x
+
+val sem-jl x = do
+  sf <- fSF;
+  ov <- fOF;
+  sem-jcc x (/neq 1 (var sf) (var ov))
+end
+val sem-jnge x = sem-jl x
+
+val sem-jle x = do
+  zf <- fZF;
+  sf <- fSF;
+  ov <- fOF;
+  sem-jcc x (/or (/d (var zf)) (/neq 1 (var sf) (var ov)))
+end
+val sem-jng x = sem-jle x
+
+val sem-jne x = do
+  zf <- fZF;
+  sem-jcc x (/not (var zf))
+end
+val sem-jnz x = sem-jne x
+
+val sem-jno x = do
+  ov <- fOF;
+  sem-jcc x (/not (var ov))
+end
+
+val sem-jnp x = do
+  pf <- fPF;
+  sem-jcc x (/not (var pf))
+end
+val sem-jpo x = sem-jnp x
+
+val sem-jns x = do
+  sf <- fSF;
+  sem-jcc x (/not (var sf))
+end
+
+val sem-jo x = do
+  ov <- fOF;
+  sem-jcc x (/d (var ov))
+end
+
+val sem-jp x = do
+  pf <- fPF;
+  sem-jcc x (/d (var pf))
+end
+val sem-jpe x = sem-jp x
+
+val sem-js x = do
+  sf <- fSF;
+  sem-jcc x (/d (var sf))
 end
 
 val sem-jmp x = do
@@ -1392,40 +1536,40 @@ val semantics insn =
     | IRET: sem-undef-arity0
     | IRETD: sem-undef-arity0
     | IRETQ: sem-undef-arity0
-    | JA x: sem-undef-flow1 x
-    | JAE x: sem-undef-flow1 x
+    | JA x: sem-ja x
+    | JAE x: sem-jae x
     | JB x: sem-jb x
-    | JBE x: sem-undef-flow1 x
+    | JBE x: sem-jbe x
     | JC x: sem-jc x
-    | JCXZ x: sem-undef-flow1 x
+    | JCXZ x: sem-jcxz x
     | JE x: sem-je x
-    | JECXZ x: sem-undef-flow1 x
-    | JG x: sem-undef-flow1 x
-    | JGE x: sem-undef-flow1 x
-    | JL x: sem-undef-flow1 x
-    | JLE x: sem-undef-flow1 x
+    | JECXZ x: sem-jecxz x
+    | JG x: sem-jg x
+    | JGE x: sem-jge x
+    | JL x: sem-jl x
+    | JLE x: sem-jle x
     | JMP x: sem-jmp x
-    | JNA x: sem-undef-flow1 x
-    | JNAE x: sem-undef-flow1 x
-    | JNB x: sem-undef-flow1 x
-    | JNBE x: sem-undef-flow1 x
-    | JNC x: sem-undef-flow1 x
-    | JNE x: sem-undef-flow1 x
-    | JNG x: sem-undef-flow1 x
-    | JNGE x: sem-undef-flow1 x
-    | JNL x: sem-undef-flow1 x
-    | JNLE x: sem-undef-flow1 x
-    | JNO x: sem-undef-flow1 x
-    | JNP x: sem-undef-flow1 x
-    | JNS x: sem-undef-flow1 x
-    | JNZ x: sem-undef-flow1 x
-    | JO x: sem-undef-flow1 x
-    | JP x: sem-undef-flow1 x
-    | JPE x: sem-undef-flow1 x
-    | JPO x: sem-undef-flow1 x
-    | JRCXZ x: sem-undef-flow1 x
-    | JS x: sem-undef-flow1 x
-    | JZ x: sem-undef-flow1 x
+    | JNA x: sem-jna x
+    | JNAE x: sem-jnae x
+    | JNB x: sem-jnb x
+    | JNBE x: sem-jnbe x
+    | JNC x: sem-jnc x
+    | JNE x: sem-jne x
+    | JNG x: sem-jng x
+    | JNGE x: sem-jnge x
+    | JNL x: sem-nl x
+    | JNLE x: sem-jnle x
+    | JNO x: sem-jno x
+    | JNP x: sem-jnp x
+    | JNS x: sem-jns x
+    | JNZ x: sem-jnz x
+    | JO x: sem-jo x
+    | JP x: sem-jp x
+    | JPE x: sem-jpe x
+    | JPO x: sem-jpo x
+    | JRCXZ x: sem-jrcxz x
+    | JS x: sem-js x
+    | JZ x: sem-jz x
     | LAHF: sem-undef-arity0
     | LAR x: sem-undef-arity2 x
     | LDDQU x: sem-undef-arity2 x
