@@ -792,6 +792,18 @@ val sem-mov x = do
   commit sz a b
 end
 
+val sem-movsx x = do
+  sz-dst <- sizeof1 x.opnd1;
+  sz-src <- sizeof1 x.opnd2;
+  dst <- write sz-dst x.opnd1;
+  src <- read sz-src x.opnd2;
+
+  temp <- mktemp;
+  movsx sz-dst temp sz-src src;
+
+  commit sz-dst dst src
+end
+
 val sem-movzx x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
@@ -1299,6 +1311,20 @@ val sem-test x = do
   undef 1 af
 end
 
+val sem-xchg x = do
+  sz <- sizeof1 x.opnd1;
+  a-r <- read sz x.opnd1;
+  b-r <- read sz x.opnd2;
+  a-w <- write sz x.opnd1;
+  b-w <- write sz x.opnd2;
+
+  temp <- mktemp;
+  
+  mov sz temp a-r;
+  commit sz a-w b-r;
+  commit sz b-w (var temp)
+end
+
 val sem-xor x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   dst <- write sz x.opnd1;
@@ -1681,8 +1707,8 @@ val semantics insn =
     | MOVSQ: sem-undef-arity0
     | MOVSS x: sem-undef-arity2 x
     | MOVSW x: sem-undef-arity2 x
-    | MOVSX x: sem-undef-arity2 x
-    | MOVSXD x: sem-undef-arity2 x
+    | MOVSX x: sem-movsx x
+    | MOVSXD x: sem-movsx x
     | MOVUPD x: sem-undef-arity2 x
     | MOVUPS x: sem-undef-arity2 x
     | MOVZX x: sem-movzx x
@@ -2219,7 +2245,7 @@ val semantics insn =
     | WRGSBASE x: sem-undef-arity1 x
     | WRMSR: sem-undef-arity0
     | XADD x: sem-undef-arity2 x
-    | XCHG x: sem-undef-arity2 x
+    | XCHG x: sem-xchg x
     | XGETBV: sem-undef-arity0
     | XLAT: sem-undef-arity0
     | XLATB: sem-undef-arity0
