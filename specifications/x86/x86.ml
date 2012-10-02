@@ -2557,43 +2557,43 @@ val / [0xf5] = arity0 CMC
 
 ### CMOVcc
 ###  - Conditional Move
-val / [0x0f 0x47 /r]
+val / [0x0f 0x47 /r] # CMOVNBE
  | opndsz? = binop CMOVA r16 r/m16
  | rexw? = binop CMOVA r64 r/m64
  | otherwise = binop CMOVA r32 r/m32
-val / [0x0f 0x43 /r]
+val / [0x0f 0x43 /r] # CMOVNB, CMOVNC
  | opndsz? = binop CMOVAE r16 r/m16
  | rexw? = binop CMOVAE r64 r/m64
  | otherwise = binop CMOVAE r32 r/m32
-val / [0x0f 0x42 /r]
+val / [0x0f 0x42 /r] # CMOVC, CMOVNAE
  | opndsz? = binop CMOVB r16 r/m16
  | rexw? = binop CMOVB r64 r/m64
  | otherwise = binop CMOVB r32 r/m32
-val / [0x0f 0x46 /r]
+val / [0x0f 0x46 /r] # CMOVNA
  | opndsz? = binop CMOVBE r16 r/m16
  | rexw? = binop CMOVBE r64 r/m64
  | otherwise = binop CMOVBE r32 r/m32
-val / [0x0f 0x44 /r]
+val / [0x0f 0x44 /r] # CMOVZ
  | opndsz? = binop CMOVE r16 r/m16
  | rexw? = binop CMOVE r64 r/m64
  | otherwise = binop CMOVE r32 r/m32
-val / [0x0f 0x4f /r]
+val / [0x0f 0x4f /r] # CMOVNLE
  | opndsz? = binop CMOVG r16 r/m16
  | rexw? = binop CMOVG r64 r/m64
  | otherwise = binop CMOVG r32 r/m32
-val / [0x0f 0x4d /r]
+val / [0x0f 0x4d /r] # CMOVNL
  | opndsz? = binop CMOVGE r16 r/m16
  | rexw? = binop CMOVGE r64 r/m64
  | otherwise = binop CMOVGE r32 r/m32
-val / [0x0f 0x4c /r]
+val / [0x0f 0x4c /r] # CMOVNGE
  | opndsz? = binop CMOVL r16 r/m16
  | rexw? = binop CMOVL r64 r/m64
  | otherwise = binop CMOVL r32 r/m32
-val / [0x0f 0x4e /r]
+val / [0x0f 0x4e /r] # CMOVNG
  | opndsz? = binop CMOVLE r16 r/m16
  | rexw? = binop CMOVLE r64 r/m64
  | otherwise = binop CMOVLE r32 r/m32
-val / [0x0f 0x45 /r]
+val / [0x0f 0x45 /r] # CMOVNZ
  | opndsz? = binop CMOVNE r16 r/m16
  | rexw? = binop CMOVNE r64 r/m64
  | otherwise = binop CMOVNE r32 r/m32
@@ -2601,7 +2601,7 @@ val / [0x0f 0x41 /r]
  | opndsz? = binop CMOVNO r16 r/m16
  | rexw? = binop CMOVNO r64 r/m64
  | otherwise = binop CMOVNO r32 r/m32
-val / [0x0f 0x4b /r]
+val / [0x0f 0x4b /r] # CMOVPO
  | opndsz? = binop CMOVNP r16 r/m16
  | rexw? = binop CMOVNP r64 r/m64
  | otherwise = binop CMOVNP r32 r/m32
@@ -2613,7 +2613,7 @@ val / [0x0f 0x40 /r]
  | opndsz? = binop CMOVO r16 r/m16
  | rexw? = binop CMOVO r64 r/m64
  | otherwise = binop CMOVO r32 r/m32
-val / [0x0f 0x4a /r]
+val / [0x0f 0x4a /r] # CMOVPE
  | opndsz? = binop CMOVP r16 r/m16
  | rexw? = binop CMOVP r64 r/m64
  | otherwise = binop CMOVP r32 r/m32
