@@ -571,6 +571,31 @@ val sem-add x = do
   commit sz a (var t)
 end
 
+val sem-bt x = do
+  base-sz <- sizeof1 x.opnd1;
+  base <- read base-sz x.opnd1;
+  offset-sz <- sizeof1 x.opnd2;
+  offset <- read offset-sz x.opnd2;
+
+  offset-real-sz <-
+    case base-sz of
+       16: return 4
+     | 32: return 5
+     | 64: return 6
+    end
+  ;
+
+  offset-ext <- mktemp;
+  mov offset-real-sz offset-ext offset;
+  mov (base-sz - offset-real-sz) (at-offset offset-ext offset-real-sz) (imm 0);
+  
+  shifted <- mktemp;
+  shr base-sz shifted base (var offset-ext);
+  
+  cf <- fCF;
+  mov 1 cf (var shifted)
+end
+
 val sem-call x = do
   target-sz <- sizeof-flow x.opnd1;
   target <- read-flow target-sz x.opnd1;
@@ -1337,7 +1362,7 @@ val semantics insn =
     | BSF x: sem-undef-arity2 x
     | BSR x: sem-undef-arity2 x
     | BSWAP x: sem-undef-arity1 x
-    | BT x: sem-undef-arity2 x
+    | BT x: sem-bt x
     | BTC x: sem-undef-arity2 x
     | BTR x: sem-undef-arity2 x
     | BTS x: sem-undef-arity2 x
