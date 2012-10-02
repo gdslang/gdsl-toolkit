@@ -59,7 +59,7 @@ type sem_stmt =
 
  | SEM_ITE of {cond: sem_linear, then_branch: sem_stmts, else_branch: sem_stmts}
  | SEM_WHILE of {cond: sem_linear, body: sem_stmts}
- | SEM_CBRANCH of {cond: sem_linear, target_true: sem_address, target_false: sem_address}
+ | SEM_CBRANCH of {cond: sem_linear, target-true: sem_address, target-false: sem_address}
  | SEM_BRANCH of {hint: branch_hint, target: sem_address}
 
  type branch_hint =
@@ -143,6 +143,7 @@ val /GOTOLABEL l = SEM_IF_GOTO_LABEL{cond=SEM_LIN_IMM{imm=1},label=l}
 val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
 val /BRANCH hint address = SEM_BRANCH{hint=hint,target=address}
+val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
 
 val push insn = do
    tl <- query $stack;
@@ -204,6 +205,7 @@ val while c b = push (/WHILE c b)
 val jump address = push (/BRANCH HINT_JUMP address)
 val call address = push (/BRANCH HINT_CALL address)
 val ret address = push (/BRANCH HINT_RET address)
+val cbranch cond target-true target-false = push (/CBRANCH cond target-true target-false)
 
 val const i = return (SEM_LIN_IMM{imm=i})
 val imm i = SEM_LIN_IMM{imm=i}

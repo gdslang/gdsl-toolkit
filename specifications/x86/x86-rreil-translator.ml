@@ -292,6 +292,108 @@ val _while c __ b = do
   while c body
 end
 
+val sem-a sem-cc x = do
+  cf <- fCF;
+  zf <- fZF;
+  sem-cc x (/and (/not (var cf)) (/not (var zf)))
+end
+val sem-nbe sem-cc x = sem-a sem-cc x
+
+val sem-ae sem-cc x = do
+  cf <- fCF;
+  sem-cc x (/not (var cf))
+end
+val sem-nb sem-cc x = sem-ae sem-cc x
+val sem-nc sem-cc x = sem-ae sem-cc x
+
+val sem-c sem-cc x = do
+  cf <- fCF;
+  sem-cc x (/d (var cf))
+end
+val sem-b sem-cc x = sem-c sem-cc x
+val sem-nae sem-cc x = sem-nae sem-cc x
+
+val sem-be sem-cc x = do
+  cf <- fCF;
+  zf <- fZF;
+  sem-cc x (/or (/d (var cf)) (/d (var zf)))
+end
+val sem-na sem-cc x = sem-be sem-cc x
+
+val sem-e sem-cc x = do
+  zf <- fZF;
+  sem-cc x (/d (var zf))
+end
+val sem-z sem-cc x = sem-e sem-cc x
+
+val sem-g sem-cc x = do
+  zf <- fZF;
+  sf <- fSF;
+  ov <- fOF;
+  sem-cc x (/and (/not (var zf)) (/eq 1 (var sf) (var ov)))
+end
+val sem-nle sem-cc x = sem-g sem-cc x
+
+val sem-ge sem-cc x = do
+  sf <- fSF;
+  ov <- fOF;
+  sem-cc x (/eq 1 (var sf) (var ov))
+end
+val sem-nl sem-cc x = sem-ge sem-cc x
+
+val sem-l sem-cc x = do
+  sf <- fSF;
+  ov <- fOF;
+  sem-cc x (/neq 1 (var sf) (var ov))
+end
+val sem-nge sem-cc x = sem-l sem-cc x
+
+val sem-le sem-cc x = do
+  zf <- fZF;
+  sf <- fSF;
+  ov <- fOF;
+  sem-cc x (/or (/d (var zf)) (/neq 1 (var sf) (var ov)))
+end
+val sem-ng sem-cc x = sem-le sem-cc x
+
+val sem-ne sem-cc x = do
+  zf <- fZF;
+  sem-cc x (/not (var zf))
+end
+val sem-nz sem-cc x = sem-ne sem-cc x
+
+val sem-no sem-cc x = do
+  ov <- fOF;
+  sem-cc x (/not (var ov))
+end
+
+val sem-np sem-cc x = do
+  pf <- fPF;
+  sem-cc x (/not (var pf))
+end
+val sem-po sem-cc x = sem-np sem-cc x
+
+val sem-ns sem-cc x = do
+  sf <- fSF;
+  sem-cc x (/not (var sf))
+end
+
+val sem-o sem-cc x = do
+  ov <- fOF;
+  sem-cc x (/d (var ov))
+end
+
+val sem-p sem-cc x = do
+  pf <- fPF;
+  sem-cc x (/d (var pf))
+end
+val sem-pe sem-cc x = sem-p sem-cc x
+
+val sem-s sem-cc x = do
+  sf <- fSF;
+  sem-cc x (/d (var sf))
+end
+
 val undef-opnd opnd = do
   sz <- sizeof1 opnd;
   a <- write sz opnd;
@@ -538,6 +640,10 @@ val sem-cmp x = do
   emit-sub-sbb-flags sz (var t) b c (imm 0)
 end
 
+val sem-hlt = do
+  return void
+end
+
 val sem-jcc x cond = do
   target-sz <- sizeof-flow x.opnd1;
   target <- read-flow target-sz x.opnd1;
@@ -566,36 +672,9 @@ val sem-jcc x cond = do
   temp-ip <- mktemp;
   add ip-sz temp-ip (var target-ext) ip;
 
-  _if cond _then jump (address ip-sz (var temp-ip))
+  cond <- cond;
+  cbranch cond (address ip-sz (var temp-ip)) (address ip-sz ip)
 end
-
-val sem-ja x = do
-  cf <- fCF;
-  zf <- fZF;
-  sem-jcc x (/and (/not (var cf)) (/not (var zf)))
-end
-val sem-jnbe x = sem-ja x
-val sem-jnc x = sem-ja x
-
-val sem-jae x = do
-  cf <- fCF;
-  sem-jcc x (/not (var cf))
-end
-val sem-jnb x = sem-jae x
-
-val sem-jc x = do
-  cf <- fCF;
-  sem-jcc x (/d (var cf))
-end
-val sem-jb x = sem-jc x
-val sem-jnae x = sem-jnae x
-
-val sem-jbe x = do
-  cf <- fCF;
-  zf <- fZF;
-  sem-jcc x (/or (/d (var cf)) (/d (var zf)))
-end
-val sem-jna x = sem-jbe x
 
 val sem-jregz x reg = do
   reg-sem <- return (semantic-register-of reg);
@@ -606,80 +685,6 @@ end
 val sem-jcxz x = sem-jregz x CX
 val sem-jecxz x = sem-jregz x ECX
 val sem-jrcxz x = sem-jregz x RCX
-
-val sem-je x = do
-  zf <- fZF;
-  sem-jcc x (/d (var zf))
-end
-val sem-jz x = sem-je x
-
-val sem-jg x = do
-  zf <- fZF;
-  sf <- fSF;
-  ov <- fOF;
-  sem-jcc x (/and (/not (var zf)) (/eq 1 (var sf) (var ov)))
-end
-val sem-jnle x = sem-jg x
-
-val sem-jge x = do
-  sf <- fSF;
-  ov <- fOF;
-  sem-jcc x (/eq 1 (var sf) (var ov))
-end
-val sem-nl x = sem-jge x
-
-val sem-jl x = do
-  sf <- fSF;
-  ov <- fOF;
-  sem-jcc x (/neq 1 (var sf) (var ov))
-end
-val sem-jnge x = sem-jl x
-
-val sem-jle x = do
-  zf <- fZF;
-  sf <- fSF;
-  ov <- fOF;
-  sem-jcc x (/or (/d (var zf)) (/neq 1 (var sf) (var ov)))
-end
-val sem-jng x = sem-jle x
-
-val sem-jne x = do
-  zf <- fZF;
-  sem-jcc x (/not (var zf))
-end
-val sem-jnz x = sem-jne x
-
-val sem-jno x = do
-  ov <- fOF;
-  sem-jcc x (/not (var ov))
-end
-
-val sem-jnp x = do
-  pf <- fPF;
-  sem-jcc x (/not (var pf))
-end
-val sem-jpo x = sem-jnp x
-
-val sem-jns x = do
-  sf <- fSF;
-  sem-jcc x (/not (var sf))
-end
-
-val sem-jo x = do
-  ov <- fOF;
-  sem-jcc x (/d (var ov))
-end
-
-val sem-jp x = do
-  pf <- fPF;
-  sem-jcc x (/d (var pf))
-end
-val sem-jpe x = sem-jp x
-
-val sem-js x = do
-  sf <- fSF;
-  sem-jcc x (/d (var sf))
-end
 
 val sem-jmp x = do
   target-sz <- sizeof-flow x.opnd1;
@@ -1158,6 +1163,17 @@ val sem-sbb x = do
   commit sz difference (var t)
 end
 
+val sem-setcc x cond = do
+  dst-sz <- sizeof1 x.opnd1;
+  dst <- write dst-sz x.opnd1;
+
+  cond <- cond;
+  temp <- mktemp;
+  movzx dst-sz temp 1 cond;
+
+  commit dst-sz dst (var temp)
+end
+
 val sem-shr x = do
   sz <- sizeof1 x.opnd1;
   szOp2 <- sizeof1 x.opnd2;
@@ -1516,7 +1532,7 @@ val semantics insn =
     | FYL2XP1: sem-undef-arity0
     | HADDPD x: sem-undef-arity2 x
     | HADDPS x: sem-undef-arity2 x
-    | HLT: sem-undef-arity0
+    | HLT: sem-hlt
     | HSUBPD x: sem-undef-arity2 x
     | HSUBPS x: sem-undef-arity2 x
     | IDIV x: sem-undef-arity1 x
@@ -1536,40 +1552,40 @@ val semantics insn =
     | IRET: sem-undef-arity0
     | IRETD: sem-undef-arity0
     | IRETQ: sem-undef-arity0
-    | JA x: sem-ja x
-    | JAE x: sem-jae x
-    | JB x: sem-jb x
-    | JBE x: sem-jbe x
-    | JC x: sem-jc x
+    | JA x: sem-a sem-jcc x
+    | JAE x: sem-ae sem-jcc x
+    | JB x: sem-b sem-jcc x
+    | JBE x: sem-be sem-jcc x
+    | JC x: sem-c sem-jcc x
     | JCXZ x: sem-jcxz x
-    | JE x: sem-je x
+    | JE x: sem-e sem-jcc x
     | JECXZ x: sem-jecxz x
-    | JG x: sem-jg x
-    | JGE x: sem-jge x
-    | JL x: sem-jl x
-    | JLE x: sem-jle x
+    | JG x: sem-g sem-jcc x
+    | JGE x: sem-ge sem-jcc x
+    | JL x: sem-l sem-jcc x
+    | JLE x: sem-le sem-jcc x
     | JMP x: sem-jmp x
-    | JNA x: sem-jna x
-    | JNAE x: sem-jnae x
-    | JNB x: sem-jnb x
-    | JNBE x: sem-jnbe x
-    | JNC x: sem-jnc x
-    | JNE x: sem-jne x
-    | JNG x: sem-jng x
-    | JNGE x: sem-jnge x
-    | JNL x: sem-nl x
-    | JNLE x: sem-jnle x
-    | JNO x: sem-jno x
-    | JNP x: sem-jnp x
-    | JNS x: sem-jns x
-    | JNZ x: sem-jnz x
-    | JO x: sem-jo x
-    | JP x: sem-jp x
-    | JPE x: sem-jpe x
-    | JPO x: sem-jpo x
+    | JNA x: sem-na sem-jcc x
+    | JNAE x: sem-nae sem-jcc x
+    | JNB x: sem-nb sem-jcc x
+    | JNBE x: sem-nbe sem-jcc x
+    | JNC x: sem-nc sem-jcc x
+    | JNE x: sem-ne sem-jcc x
+    | JNG x: sem-ng sem-jcc x
+    | JNGE x: sem-nge sem-jcc x
+    | JNL x: sem-nl sem-jcc x
+    | JNLE x: sem-nle sem-jcc x
+    | JNO x: sem-no sem-jcc x
+    | JNP x: sem-np sem-jcc x
+    | JNS x: sem-ns sem-jcc x
+    | JNZ x: sem-nz sem-jcc x
+    | JO x: sem-o sem-jcc x
+    | JP x: sem-p sem-jcc x
+    | JPE x: sem-pe sem-jcc x
+    | JPO x: sem-po sem-jcc x
     | JRCXZ x: sem-jrcxz x
-    | JS x: sem-js x
-    | JZ x: sem-jz x
+    | JS x: sem-s sem-jcc x
+    | JZ x: sem-z sem-jcc x
     | LAHF: sem-undef-arity0
     | LAR x: sem-undef-arity2 x
     | LDDQU x: sem-undef-arity2 x
@@ -1835,36 +1851,36 @@ val semantics insn =
     | SCASD: sem-undef-arity0
     | SCASQ: sem-undef-arity0
     | SCASW: sem-undef-arity0
-    | SETA x: sem-undef-arity1 x
-    | SETAE x: sem-undef-arity1 x
-    | SETB x: sem-undef-arity1 x
-    | SETBE x: sem-undef-arity1 x
-    | SETC x: sem-undef-arity1 x
-    | SETE x: sem-undef-arity1 x
-    | SETG x: sem-undef-arity1 x
-    | SETGE x: sem-undef-arity1 x
-    | SETL x: sem-undef-arity1 x
-    | SETLE x: sem-undef-arity1 x
-    | SETNA x: sem-undef-arity1 x
-    | SETNAE x: sem-undef-arity1 x
-    | SETNB x: sem-undef-arity1 x
-    | SETNBE x: sem-undef-arity1 x
-    | SETNC x: sem-undef-arity1 x
-    | SETNE x: sem-undef-arity1 x
-    | SETNG x: sem-undef-arity1 x
-    | SETNGE x: sem-undef-arity1 x
-    | SETNL x: sem-undef-arity1 x
-    | SETNLE x: sem-undef-arity1 x
-    | SETNO x: sem-undef-arity1 x
-    | SETNP x: sem-undef-arity1 x
-    | SETNS x: sem-undef-arity1 x
-    | SETNZ x: sem-undef-arity1 x
-    | SETO x: sem-undef-arity1 x
-    | SETP x: sem-undef-arity1 x
-    | SETPE x: sem-undef-arity1 x
-    | SETPO x: sem-undef-arity1 x
-    | SETS x: sem-undef-arity1 x
-    | SETZ x: sem-undef-arity1 x
+    | SETA x: sem-a sem-setcc x
+    | SETAE x: sem-ae sem-setcc x
+    | SETB x: sem-b sem-setcc x
+    | SETBE x: sem-be sem-setcc x
+    | SETC x: sem-c sem-setcc x
+    | SETE x: sem-e sem-setcc x
+    | SETG x: sem-g sem-setcc x
+    | SETGE x: sem-ge sem-setcc x
+    | SETL x: sem-l sem-setcc x
+    | SETLE x: sem-le sem-setcc x
+    | SETNA x: sem-na sem-setcc x
+    | SETNAE x: sem-nae sem-setcc x
+    | SETNB x: sem-nb sem-setcc x
+    | SETNBE x: sem-nbe sem-setcc x
+    | SETNC x: sem-nc sem-setcc x
+    | SETNE x: sem-ne sem-setcc x
+    | SETNG x: sem-ng sem-setcc x
+    | SETNGE x: sem-nge sem-setcc x
+    | SETNL x: sem-nl sem-setcc x
+    | SETNLE x: sem-nle sem-setcc x
+    | SETNO x: sem-no sem-setcc x
+    | SETNP x: sem-np sem-setcc x
+    | SETNS x: sem-ns sem-setcc x
+    | SETNZ x: sem-nz sem-setcc x
+    | SETO x: sem-o sem-setcc x
+    | SETP x: sem-p sem-setcc x
+    | SETPE x: sem-pe sem-setcc x
+    | SETPO x: sem-po sem-setcc x
+    | SETS x: sem-s sem-setcc x
+    | SETZ x: sem-z sem-setcc x
     | SFENCE: sem-undef-arity0
     | SGDT x: sem-undef-arity1 x
     | SHL x: sem-sal-shl x

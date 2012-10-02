@@ -5052,21 +5052,21 @@ val / [0xaf]
 
 ### SETcc
 ###  - Set Byte on Condition
-val / [0x0f 0x97 /r] = unop SETA r/m8
-val / [0x0f 0x93 /r] = unop SETAE r/m8
-val / [0x0f 0x92 /r] = unop SETB r/m8
-val / [0x0f 0x96 /r] = unop SETBE r/m8
-val / [0x0f 0x94 /r] = unop SETE r/m8
-val / [0x0f 0x9f /r] = unop SETG r/m8
-val / [0x0f 0x9d /r] = unop SETGE r/m8
-val / [0x0f 0x9c /r] = unop SETL r/m8
-val / [0x0f 0x9e /r] = unop SETLE r/m8
-val / [0x0f 0x95 /r] = unop SETNE r/m8
+val / [0x0f 0x97 /r] = unop SETA r/m8 # SETNBE
+val / [0x0f 0x93 /r] = unop SETAE r/m8 # SETNB, SETNC
+val / [0x0f 0x92 /r] = unop SETB r/m8 # SETC, SETNAE
+val / [0x0f 0x96 /r] = unop SETBE r/m8 # SETNA
+val / [0x0f 0x94 /r] = unop SETE r/m8 # SETZ
+val / [0x0f 0x9f /r] = unop SETG r/m8 # SETNLE
+val / [0x0f 0x9d /r] = unop SETGE r/m8 # SETNL
+val / [0x0f 0x9c /r] = unop SETL r/m8 # SETNGE
+val / [0x0f 0x9e /r] = unop SETLE r/m8 # SETNG
+val / [0x0f 0x95 /r] = unop SETNE r/m8 # SETNZ
 val / [0x0f 0x91 /r] = unop SETNO r/m8
-val / [0x0f 0x9b /r] = unop SETNP r/m8
+val / [0x0f 0x9b /r] = unop SETNP r/m8 # SETPO
 val / [0x0f 0x99 /r] = unop SETNS r/m8
 val / [0x0f 0x90 /r] = unop SETO r/m8
-val / [0x0f 0x9a /r] = unop SETP r/m8
+val / [0x0f 0x9a /r] = unop SETP r/m8 # SETPE
 val / [0x0f 0x98 /r] = unop SETS r/m8
 
 ### SFENCE
