@@ -593,7 +593,16 @@ val sem-bt x = do
   shr base-sz shifted base (var offset-ext);
   
   cf <- fCF;
-  mov 1 cf (var shifted)
+  mov 1 cf (var shifted);
+
+  ov <- fOF;
+  sf <- fSF;
+  af <- fAF;
+  pf <- fPF;
+  undef 1 ov;
+  undef 1 sf;
+  undef 1 af;
+  undef 1 pf
 end
 
 val sem-call x = do
@@ -801,7 +810,7 @@ val sem-movsx x = do
   temp <- mktemp;
   movsx sz-dst temp sz-src src;
 
-  commit sz-dst dst src
+  commit sz-dst dst (var temp)
 end
 
 val sem-movzx x = do
@@ -813,11 +822,34 @@ val sem-movzx x = do
   temp <- mktemp;
   movzx sz-dst temp sz-src src;
 
-  commit sz-dst dst src
+  commit sz-dst dst (var temp)
 end
 
 val sem-nop x = do
   return void
+end
+
+val sem-or x = do
+  sz <- sizeof2 x.opnd1 x.opnd2;
+  dst <- write sz x.opnd1;
+  src0 <- read sz x.opnd1;
+  src1 <- read sz x.opnd2;
+  temp <- mktemp;
+  orb sz temp src0 src1;
+
+  ov <- fOF;
+  mov 1 ov (imm 0);
+  cf <- fCF;
+  mov 1 cf (imm 0);
+  sf <- fSF;
+  cmplts sz sf (var temp) (imm 0);
+  zf <- fZF;
+  cmpeq sz zf (var temp) (imm 0);
+  emit-parity-flag (var temp);
+  af <- fAF;
+  undef 1 af;
+
+  commit sz dst (var temp)
 end
 
 val ps-pop opnd-sz opnd = do
@@ -1722,7 +1754,7 @@ val semantics insn =
     | NEG x: sem-undef-arity1 x
     | NOP x: sem-nop x
     | NOT x: sem-undef-arity1 x
-    | OR x: sem-undef-arity2 x
+    | OR x: sem-or x
     | ORPD x: sem-undef-arity2 x
     | ORPS x: sem-undef-arity2 x
     | OUT x: sem-undef-arity2 x
