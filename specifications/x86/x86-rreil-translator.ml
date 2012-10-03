@@ -836,6 +836,25 @@ val sem-movaps x = do
   commit sz dst (var temp)
 end
 
+val sem-vmovaps x = do
+  sz <- sizeof1 x.opnd1;
+  dst <- write sz x.opnd1;
+  src <- read sz x.opnd2;
+
+  if sz === 128 then
+    do
+      dst-upper <- write-upper sz x.opnd1;
+      commit sz dst-upper (imm 0)
+    end
+  else
+    return void
+  ;
+
+  temp <- mktemp;
+  mov sz temp src;
+  commit sz dst (var temp)
+end
+
 val sem-movsx x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
@@ -2121,7 +2140,7 @@ val semantics insn =
     | VMINSD x: sem-undef-varity x
     | VMINSS x: sem-undef-varity x
     | VMOVAPD x: sem-undef-varity x
-    | VMOVAPS x: sem-undef-varity x
+    | VMOVAPS x: sem-vmovaps x
     | VMOVD x: sem-undef-varity x
     | VMOVDDUP x: sem-undef-varity x
     | VMOVDQA x: sem-undef-varity x
