@@ -664,6 +664,33 @@ val sem-cdqe = do
   movsx 64 a 32 (var a)
 end
 
+val sem-cmovcc x cond = do
+  dst-sz <- sizeof1 x.opnd1;
+  dst <- write dst-sz x.opnd1;
+  dst-read <- read dst-sz x.opnd1;
+
+  src-sz <- sizeof1 x.opnd2;
+  src <- read src-sz x.opnd2;
+
+  # o.O?!
+  dst-sz <-
+    if dst-sz === 32 then
+      return 64
+    else
+      return dst-sz
+  ;
+
+  temp <- mktemp;
+  mov dst-sz temp dst-read;
+  mov (dst-sz - src-sz) temp (imm 0);
+
+  _if cond _then
+    mov src-sz temp src
+  ;
+
+  commit dst-sz dst (var temp)
+end
+
 val sem-cmp x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- write sz x.opnd1;
@@ -1434,36 +1461,36 @@ val semantics insn =
     | CLI: sem-undef-arity0
     | CLTS: sem-undef-arity0
     | CMC: sem-undef-arity0
-    | CMOVA x: sem-undef-arity2 x
-    | CMOVAE x: sem-undef-arity2 x
-    | CMOVB x: sem-undef-arity2 x
-    | CMOVBE x: sem-undef-arity2 x
-    | CMOVC x: sem-undef-arity2 x
-    | CMOVE x: sem-undef-arity2 x
-    | CMOVG x: sem-undef-arity2 x
-    | CMOVGE x: sem-undef-arity2 x
-    | CMOVL x: sem-undef-arity2 x
-    | CMOVLE x: sem-undef-arity2 x
-    | CMOVNA x: sem-undef-arity2 x
-    | CMOVNAE x: sem-undef-arity2 x
-    | CMOVNB x: sem-undef-arity2 x
-    | CMOVNBE x: sem-undef-arity2 x
-    | CMOVNC x: sem-undef-arity2 x
-    | CMOVNE x: sem-undef-arity2 x
-    | CMOVNG x: sem-undef-arity2 x
-    | CMOVNGE x: sem-undef-arity2 x
-    | CMOVNL x: sem-undef-arity2 x
-    | CMOVNLE x: sem-undef-arity2 x
-    | CMOVNO x: sem-undef-arity2 x
-    | CMOVNP x: sem-undef-arity2 x
-    | CMOVNS x: sem-undef-arity2 x
-    | CMOVNZ x: sem-undef-arity2 x
-    | CMOVO x: sem-undef-arity2 x
-    | CMOVP x: sem-undef-arity2 x
-    | CMOVPE x: sem-undef-arity2 x
-    | CMOVPO x: sem-undef-arity2 x
-    | CMOVS x: sem-undef-arity2 x
-    | CMOVZ x: sem-undef-arity2 x
+    | CMOVA x: sem-a sem-cmovcc x
+    | CMOVAE x: sem-ae sem-cmovcc x
+    | CMOVB x: sem-b sem-cmovcc x
+    | CMOVBE x: sem-be sem-cmovcc x
+    | CMOVC x: sem-c sem-cmovcc x
+    | CMOVE x: sem-e sem-cmovcc x
+    | CMOVG x: sem-g sem-cmovcc x
+    | CMOVGE x: sem-ge sem-cmovcc x
+    | CMOVL x: sem-l sem-cmovcc x
+    | CMOVLE x: sem-le sem-cmovcc x
+    | CMOVNA x: sem-na sem-cmovcc x
+    | CMOVNAE x: sem-nae sem-cmovcc x
+    | CMOVNB x: sem-nb sem-cmovcc x
+    | CMOVNBE x: sem-nbe sem-cmovcc x
+    | CMOVNC x: sem-nc sem-cmovcc x
+    | CMOVNE x: sem-ne sem-cmovcc x
+    | CMOVNG x: sem-ng sem-cmovcc x
+    | CMOVNGE x: sem-nge sem-cmovcc x
+    | CMOVNL x: sem-nl sem-cmovcc x
+    | CMOVNLE x: sem-nle sem-cmovcc x
+    | CMOVNO x: sem-no sem-cmovcc x
+    | CMOVNP x: sem-np sem-cmovcc x
+    | CMOVNS x: sem-ns sem-cmovcc x
+    | CMOVNZ x: sem-nz sem-cmovcc x
+    | CMOVO x: sem-o sem-cmovcc x
+    | CMOVP x: sem-p sem-cmovcc x
+    | CMOVPE x: sem-pe sem-cmovcc x
+    | CMOVPO x: sem-po sem-cmovcc x
+    | CMOVS x: sem-s sem-cmovcc x
+    | CMOVZ x: sem-z sem-cmovcc x
     | CMP x: sem-cmp x
     | CMPPD x: sem-undef-arity3 x
     | CMPPS x: sem-undef-arity3 x
