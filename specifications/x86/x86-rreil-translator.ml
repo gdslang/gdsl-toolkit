@@ -825,7 +825,7 @@ val sem-mov x = do
   commit sz a b
 end
 
-val sem-movaps x = do
+val sem-movap x = do
   sz <- sizeof1 x.opnd1;
   dst <- write sz x.opnd1;
   src <- read sz x.opnd2;
@@ -836,7 +836,9 @@ val sem-movaps x = do
   commit sz dst (var temp)
 end
 
-val sem-vmovaps x = do
+val sem-vmovap x = do
+  x <- case x of VA2 x: return x end;
+
   sz <- sizeof1 x.opnd1;
   dst <- write sz x.opnd1;
   src <- read sz x.opnd2;
@@ -1762,8 +1764,8 @@ val semantics insn =
     | MINSS x: sem-undef-arity2 x
     | MONITOR: sem-undef-arity0
     | MOV x: sem-mov x
-    | MOVAPD x: sem-undef-arity2 x
-    | MOVAPS x: sem-movaps x
+    | MOVAPD x: sem-movap x
+    | MOVAPS x: sem-movap x
     | MOVBE x: sem-undef-arity2 x
     | MOVD x: sem-undef-arity2 x
     | MOVDDUP x: sem-undef-arity2 x
@@ -2139,8 +2141,8 @@ val semantics insn =
     | VMINPS x: sem-undef-varity x
     | VMINSD x: sem-undef-varity x
     | VMINSS x: sem-undef-varity x
-    | VMOVAPD x: sem-undef-varity x
-    | VMOVAPS x: sem-vmovaps x
+    | VMOVAPD x: sem-vmovap x
+    | VMOVAPS x: sem-vmovap x
     | VMOVD x: sem-undef-varity x
     | VMOVDDUP x: sem-undef-varity x
     | VMOVDQA x: sem-undef-varity x
