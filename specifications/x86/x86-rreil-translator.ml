@@ -31,6 +31,7 @@ val segmentation-ss-map sz reg = do
   add sz t (var t) (var ss);
   return t
 end
+val segmentation-ds-map sz reg = segmentation-ss-map sz reg
 
 val ip-get = do
   return (imm 0)
@@ -230,6 +231,7 @@ val fZF = return (var//0 (ARCH_R ~3)) # ZF
 val fAF = return (var//0 (ARCH_R ~4)) # AF
 val fPF = return (var//0 (ARCH_R ~5)) # PF
 val fCF = return (var//0 (ARCH_R ~6)) # CF
+val fDF = return (var//0 (ARCH_R ~7)) # DF
 
 val zero = return (SEM_LIN_IMM{imm=0})
 
@@ -549,6 +551,8 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry = do
   emit-arithmetic-adjust-flag sz difference minuend subtrahend
 end
 
+## A>>
+
 val sem-adc x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- write sz x.opnd1;
@@ -577,6 +581,8 @@ val sem-add x = do
   emit-add-adc-flags sz (var t) b c (imm 0);
   commit sz a (var t)
 end
+
+## B>>
 
 val sem-bt x = do
   base-sz <- sizeof1 x.opnd1;
@@ -611,6 +617,8 @@ val sem-bt x = do
   undef 1 af;
   undef 1 pf
 end
+
+## C>>
 
 val sem-call x = do
   target-sz <- sizeof-flow x.opnd1;
@@ -671,6 +679,21 @@ val sem-cdqe = do
   movsx 64 a 32 (var a)
 end
 
+val sem-clc = do
+  cf <- fCF;
+  mov 1 cf (imm 0)
+end
+
+val sem-cld = do
+  df <- fDF;
+  mov 1 df (imm 0)
+end
+
+val sem-cmc = do
+  cf <- fCF;
+  xorb 1 cf (var cf) (imm 1)
+end
+
 val sem-cmovcc x cond = do
   sz <- sizeof1 x.opnd1;
   dst <- write sz x.opnd1;
@@ -697,6 +720,69 @@ val sem-cmp x = do
   sub sz t b c;
   emit-sub-sbb-flags sz (var t) b c (imm 0)
 end
+
+val sem-cmps sz = do
+  addr-sz <- address-size;
+
+  reg0 <-
+    case addr-sz of
+       16: return SI
+     | 32: return ESI
+     | 64: return RSI
+    end
+  ;
+  reg0-sem <- return (semantic-register-of reg0);
+  reg0-sz <- sizeof1 (REG reg0);
+  reg0-seg <-
+    if not(addr-sz === 64) then
+      segmentation-ds-map reg0-sz reg0-sem
+    else
+      return reg0-sem
+  ;
+
+  reg1 <-
+    case addr-sz of
+       16: return SI
+     | 32: return ESI
+     | 64: return RSI
+    end
+  ;
+  reg1-sem <- return (semantic-register-of reg1);
+  reg1-sz <- sizeof1 (REG reg1);
+  reg1-seg <-
+    if not(addr-sz === 64) then
+      segmentation-ds-map reg1-sz reg1-sem
+    else
+      return reg1-sem
+  ;
+
+  temp <- mktemp;
+  sub sz temp (var reg0-seg) (var reg1-seg);
+  emit-sub-sbb-flags sz (var temp) (var reg0-seg) (var reg1-seg) (imm 0);
+
+  amount <-
+    case sz of
+       8: return 1
+     | 16: return 2
+     | 32: return 4
+     | 64: return 8
+    end
+  ;
+
+  df <- fDF;
+  _if (/not (var df)) _then do
+    add reg0-sz reg0-sem (var reg0-sem) (imm amount); 
+    add reg1-sz reg1-sem (var reg1-sem) (imm amount)  
+  end _else do
+    sub reg0-sz reg0-sem (var reg0-sem) (imm amount);  
+    sub reg1-sz reg1-sem (var reg1-sem) (imm amount)  
+  end
+end
+val sem-cmpsb = sem-cmps 8
+val sem-cmpsw = sem-cmps 16
+val sem-cmpsd = sem-cmps 32
+val sem-cmpsq = sem-cmps 64
+
 
 val sem-hlt = do
   return void
@@ -1484,8 +1570,8 @@ val semantics insn =
     | CBW: sem-undef-arity0
     | CDQ: sem-undef-arity0
     | CDQE: sem-cdqe
-    | CLC: sem-undef-arity0
-    | CLD: sem-undef-arity0
+    | CLC: sem-clc
+    | CLD: sem-cld
     | CLFLUSH x: sem-undef-arity1 x
     | CLI: sem-undef-arity0
     | CLTS: sem-undef-arity0
@@ -1523,11 +1609,15 @@ val semantics insn =
     | CMP x: sem-cmp x
     | CMPPD x: sem-undef-arity3 x
     | CMPPS x: sem-undef-arity3 x
-    | CMPSB: sem-undef-arity0
-    | CMPSD x: sem-undef-varity x
-    | CMPSQ: sem-undef-arity0
+    | CMPSB: sem-cmpsb
+    | CMPSD x:
+        case x of
+	   VA0: sem-cmpsd
+	 | _: sem-undef-varity x
+	end
+    | CMPSQ: sem-cmpsq
     | CMPSS x: sem-undef-arity3 x
-    | CMPSW: sem-undef-arity0
+    | CMPSW: sem-cmpsw
     | CMPXCHG x: sem-undef-arity2 x
     | CMPXCHG16B x: sem-undef-arity1 x
     | CMPXCHG8B x: sem-undef-arity1 x
