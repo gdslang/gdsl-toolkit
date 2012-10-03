@@ -665,30 +665,20 @@ val sem-cdqe = do
 end
 
 val sem-cmovcc x cond = do
-  dst-sz <- sizeof1 x.opnd1;
-  dst <- write dst-sz x.opnd1;
-  dst-read <- read dst-sz x.opnd1;
+  sz <- sizeof1 x.opnd1;
+  dst <- write sz x.opnd1;
+  dst-read <- read sz x.opnd1;
 
-  src-sz <- sizeof1 x.opnd2;
-  src <- read src-sz x.opnd2;
-
-  # o.O?!
-  dst-sz <-
-    if dst-sz === 32 then
-      return 64
-    else
-      return dst-sz
-  ;
+  src <- read sz x.opnd2;
 
   temp <- mktemp;
-  mov dst-sz temp dst-read;
-  mov (dst-sz - src-sz) temp (imm 0);
+  mov sz temp dst-read;
 
   _if cond _then
-    mov src-sz temp src
+    mov sz temp src
   ;
 
-  commit dst-sz dst (var temp)
+  commit sz dst (var temp)
 end
 
 val sem-cmp x = do
