@@ -170,23 +170,30 @@ val relative target =
 
 val absolute target = not (relative target)
 
-val write sz x =
+val write-offset sz x offset =
    case x of
-      MEM x:
-         do address <- conv-with Signed x.psz x.opnd;
-            return
-               (SEM_WRITE_MEM
-                  {size= x.psz,
-                   address=address})
-         end
+     MEM x:
+       do
+         #Todo: Offset for memory operands?
+         address <- conv-with Signed x.psz x.opnd;
+         return (SEM_WRITE_MEM{size= x.psz,address=address})
+       end
     | REG x:
-         do id <- return (semantic-register-of x);
-            return
-               (SEM_WRITE_VAR
-                  {size= $size id,
-                   id=id})
-         end
+       do 
+         id <- return (semantic-register-of x);
+	 id <- return (@{offset=id.offset + offset} id);
+         return (SEM_WRITE_VAR{size= $size id,id=id})
+       end
    end
+
+val write sz x = write-offset sz x 0
+val write-upper sz x = write-offset sz x sz
+
+val register? x =
+  case x of
+      REG: '1'
+    | _: '0'
+  end
 
 val commit sz a b =
    case a of
@@ -816,6 +823,17 @@ val sem-mov x = do
   a <- write sz x.opnd1;
   b <- read sz x.opnd2;
   commit sz a b
+end
+
+val sem-movaps x = do
+  sz <- sizeof1 x.opnd1;
+  dst <- write sz x.opnd1;
+  src <- read sz x.opnd2;
+
+  temp <- mktemp;
+  mov sz temp src;
+
+  commit sz dst (var temp)
 end
 
 val sem-movsx x = do
@@ -1726,7 +1744,7 @@ val semantics insn =
     | MONITOR: sem-undef-arity0
     | MOV x: sem-mov x
     | MOVAPD x: sem-undef-arity2 x
-    | MOVAPS x: sem-undef-arity2 x
+    | MOVAPS x: sem-movaps x
     | MOVBE x: sem-undef-arity2 x
     | MOVD x: sem-undef-arity2 x
     | MOVDDUP x: sem-undef-arity2 x
