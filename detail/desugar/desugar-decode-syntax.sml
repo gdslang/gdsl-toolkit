@@ -133,7 +133,7 @@ structure DesugarDecode = struct
 
    and desugarMatches tok decls = let
       (* +DEBUG:overlapping-patterns *)
-       val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) 
+       (*val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
       val equiv = buildEquivClass decls
       (* +DEBUG:overlapping-patterns *)
       (* val () =

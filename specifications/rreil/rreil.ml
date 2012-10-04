@@ -111,8 +111,9 @@ val rreil-stmts-rev stmts =
       lp stmts SEM_NIL
    end
 
-val var//0 x = {id=x,offset=0}
-val at-offset x offset = {id=x.id,offset=offset}
+val _var x = {id=x,offset=0}
+val _var x _offset o = {id=x, offset=o}
+val at-offset v o = {id=v.id, offset=o}
 val var x = SEM_LIN_VAR x
 val lin sz l = SEM_LIN {size=sz, opnd1=l}
 val address sz addr = {size=sz, address=addr}
@@ -142,7 +143,7 @@ val /IFGOTO c sz t = SEM_IF_GOTO{cond=c,size=sz,target=t}
 val /GOTOLABEL l = SEM_IF_GOTO_LABEL{cond=SEM_LIN_IMM{imm=1},label=l}
 val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
-val /BRANCH hint address = SEM_BRANCH{hint=hint,target=address}
+val /BRANCH hint address =SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
 
 val push insn = do
@@ -202,10 +203,22 @@ val gotolabel l = push (/GOTOLABEL l)
 val ifgoto c sz addr = push (/IFGOTO c sz addr)
 val ite c t e = push (/ITE c t e)
 val while c b = push (/WHILE c b)
-val jump address = push (/BRANCH HINT_JUMP address)
-val call address = push (/BRANCH HINT_CALL address)
-val ret address = push (/BRANCH HINT_RET address)
-val cbranch cond target-true target-false = push (/CBRANCH cond target-true target-false)
+val jump address = do
+   update @{foundJump = '1'};
+   push (/BRANCH HINT_JUMP address)
+end
+val call address = do
+   update @{foundJump = '1'};
+   push (/BRANCH HINT_CALL address)
+end
+val ret address = do
+   update @{foundJump = '1'};
+   push (/BRANCH HINT_RET address)
+end
+val cbranch cond target-true target-false = do
+   update @{foundJump = '1'};
+   push (/CBRANCH cond target-true target-false)
+end
 
 val const i = return (SEM_LIN_IMM{imm=i})
 val imm i = SEM_LIN_IMM{imm=i}

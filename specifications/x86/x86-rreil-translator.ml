@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate
+export = translate translateBlock
 
 val t-mode64? = do
   mode64 <- query $mode64;
@@ -208,21 +208,12 @@ val commit sz a b =
          end
    end
 
-val fEQ = return (var//0 VIRT_EQ)
-val fNEQ = return (var//0 VIRT_NEQ)
-val fLES = return (var//0 VIRT_LES)
-val fLEU = return (var//0 VIRT_LEU)
-val fLTS = return (var//0 VIRT_LTS)
-val fLTU = return (var//0 VIRT_LTU)
-
-val sdt-ss = return (var//0 (VIRT_T ~100))
-
-val fOF = return (var//0 (ARCH_R ~1)) # OF
-val fSF = return (var//0 (ARCH_R ~2)) # SF
-val fZF = return (var//0 (ARCH_R ~3)) # ZF
-val fAF = return (var//0 (ARCH_R ~4)) # AF
-val fPF = return (var//0 (ARCH_R ~5)) # PF
-val fCF = return (var//0 (ARCH_R ~6)) # CF
+val fEQ = return (_var VIRT_EQ)
+val fNEQ = return (_var VIRT_NEQ)
+val fLES = return (_var VIRT_LES)
+val fLEU = return (_var VIRT_LEU)
+val fLTS = return (_var VIRT_LTS)
+val fLTU = return (_var VIRT_LTU)
 
 val zero = return (SEM_LIN_IMM{imm=0})
 
@@ -2309,3 +2300,28 @@ val translate-bottom-up insn =
       stack <- query $stack;
       return stack
    end
+
+val transInstr = do
+   ic <- query $ins_count;
+   update@{tmp=0,ins_count=ic+1};
+   insn <- decode;
+   semantics insn
+end
+
+val transBlock = do
+   update@{stack=SEM_NIL,foundJump='0'};
+   transInstr;
+   jmp <- query $foundJump;
+   ic <- query $ins_count;
+   if jmp or ic>10 then query $stack else transBlock
+end
+
+val translateBlock = do
+   update @{ins_count=0,mode64='1'};
+   # the type checker is seriously broken when it comes to infinite recursion,
+   # I cannot as of yet reproduce this bug
+   update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
+   transBlock
+end
+
+  
