@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate translateBlock
+export = translate #translateBlock
 
 val t-mode64? = do
   mode64 <- query $mode64;
@@ -222,16 +222,6 @@ val fLES = return (_var VIRT_LES)
 val fLEU = return (_var VIRT_LEU)
 val fLTS = return (_var VIRT_LTS)
 val fLTU = return (_var VIRT_LTU)
-
-val sdt-ss = return (var//0 (VIRT_T ~100))
-
-val fOF = return (var//0 (ARCH_R ~1)) # OF
-val fSF = return (var//0 (ARCH_R ~2)) # SF
-val fZF = return (var//0 (ARCH_R ~3)) # ZF
-val fAF = return (var//0 (ARCH_R ~4)) # AF
-val fPF = return (var//0 (ARCH_R ~5)) # PF
-val fCF = return (var//0 (ARCH_R ~6)) # CF
-val fDF = return (var//0 (ARCH_R ~7)) # DF
 
 val zero = return (SEM_LIN_IMM{imm=0})
 

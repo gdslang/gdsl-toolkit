@@ -81,7 +81,7 @@ val rreil-show-linear lin =
 
 val rreil-show-id id =
    case id of
-    | VIRT_EQ: "EQ"
+      VIRT_EQ: "EQ"
     | VIRT_NEQ: "NEQ"
     | VIRT_LES: "LES"
     | VIRT_LEU: "LEU"
