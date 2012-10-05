@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate #translateBlock
+export = translate translateBlock
 
 val t-mode64? = do
   mode64 <- query $mode64;
@@ -2445,3 +2445,26 @@ val translate-bottom-up insn =
       stack <- query $stack;
       return stack
    end
+
+val transInstr = do
+   ic <- query $ins_count;
+   update@{tmp=0,ins_count=ic+1};
+   insn <- decode;
+   semantics insn
+end
+
+val transBlock = do
+   update@{stack=SEM_NIL,foundJump='0'};
+   transInstr;
+   jmp <- query $foundJump;
+   ic <- query $ins_count;
+   if jmp or ic>10 then query $stack else transBlock
+end
+
+val translateBlock = do
+   update @{ins_count=0,mode64='1'};
+   # the type checker is seriously broken when it comes to infinite recursion,
+   # I cannot as of yet reproduce this bug
+   update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
+   transBlock
+end

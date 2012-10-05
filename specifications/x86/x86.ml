@@ -53,7 +53,6 @@ type seg_override =
      SEG_DEFAULT
    | SEG_OVERRIDE of register
 
-
 val set-CS = do
    m <- query $mode64;
    if m then
@@ -566,7 +565,7 @@ type opnd =
  | IMM32 of 32
  | IMM64 of 64
  | REG of register
- | MEM of {sz:int,psz:int,segment:seg_override,opnd:opnd}
+ | MEM of {sz:int,psz:int,segment:register,opnd:opnd}
  | SUM of {a:opnd,b:opnd}
  | SCALE of {imm:2,opnd:opnd}
 
@@ -1871,13 +1870,46 @@ val /7-reg ['11 111 rm:3'] = update @{mod='11', rm=rm}
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
 
+val segmentation-set-for-base base =
+  let
+    val override-ss = do
+      segment <- query $segment;
+      case segment of
+         SEG_DEFAULT: update@{segment=SEG_OVERRIDE SS}
+        | _: return void
+      end
+    end
+  in
+    do
+      mode64 <- mode64?;
+      if not(mode64) then
+        case base of
+           REG ESP: override-ss
+	 | REG EBP: override-ss
+	 | _: return void
+    	end
+      else
+        return void
+    end
+  end
+
 val sib-without-index reg = do
    mod <- query $mod;
    rexb <- query $rexb;
    case mod of
       '00': imm32
-    | '01': return (reg rexb '101') # rBP
-    | '10': return (reg rexb '101') # rBP
+    | '01':
+      do
+        rBP <- return (reg rexb '101'); # rBP
+	segmentation-set-for-base rBP;
+        return rBP
+      end
+    | '10':
+      do
+        rBP <- return (reg rexb '101'); # rBP
+	segmentation-set-for-base rBP;
+        return rBP
+      end
    end
 end
 
@@ -1892,7 +1924,11 @@ val sib-without-base reg scale index = do
             i <- imm32;
             return (SUM{a=scaled, b=i})
          end
-    | _ : return (SUM{a=scaled, b=reg rexb '101'}) # rBP
+    | _:
+      do
+        base <- return (reg rexb '101'); # rBP
+        return (SUM{a=scaled, b=base})
+      end
    end
 end
 
@@ -1902,14 +1938,26 @@ val sib-with-index-and-base psz reg s i b = do
    rexb <- query $rexb;
    case i of
       '100':
-         case b of
-            '101': sib-without-index reg
-          | _: return (reg rexb b)
-         end
+        do
+          case b of
+             '101': sib-without-index reg
+           | _:
+	     do
+	       reg-b <- return (reg rexb b);
+	       segmentation-set-for-base reg-b;
+	       return reg-b
+	     end
+          end
+	end
     | _:
          case b of
             '101': sib-without-base reg s i
-          | _: return (SUM{b=SCALE{imm=s, opnd=reg rexx i}, a=reg rexb b})
+          | _:
+	    do
+	      base <- return (reg rexb b);
+	      segmentation-set-for-base base;
+              return (SUM{b=SCALE{imm=s, opnd=reg rexx i}, a=base})
+	    end
          end
    end
 end
@@ -1932,7 +1980,15 @@ end
 val mem op = do
    sz <- query $ptrty;
    psz <- query $ptrsz;
-   seg <- query $segment;
+   seg <-
+     do
+       seg <- query $segment;
+       case seg of
+          SEG_DEFAULT: return DS
+	| SEG_OVERRIDE r: return r
+       end
+     end
+   ;
    return (MEM {sz=sz,psz=psz,segment=seg,opnd=op})
 end
 
@@ -1970,17 +2026,26 @@ val r/m-without-sib = do
                      then mem (SUM{a=REG RIP,b=i})
                   else mem i
                end
-          | _ : mem (addr-reg rexb rm)
+          | _ :
+	      do
+	        base <- return (addr-reg rexb rm);
+                segmentation-set-for-base base;
+		mem base
+	      end
          end
     | '01':
          do
             i <- imm8;
-            mem (SUM{a=addr-reg rexb rm, b=i})
+	    base <- return (addr-reg rexb rm);
+            segmentation-set-for-base base;
+            mem (SUM{a=base, b=i})
          end
     | '10':
          do
             i <- imm32;
-            mem (SUM{a=addr-reg rexb rm, b=i})
+	    base <- return (addr-reg rexb rm);
+            segmentation-set-for-base base;
+            mem (SUM{a=base, b=i})
          end
    end
 end
