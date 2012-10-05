@@ -831,9 +831,11 @@ end = struct
                        SOME f => SOME f
                      | NONE => affectedField (bVar, env)) fOpt envs
          val fStr = case fOpt of
-                 NONE => "some field" ^ " with vars " ^ BD.setToString bVar
+                 NONE => "some field"
                | SOME f => "field " ^
                   SymbolTable.getString(!SymbolTables.fieldTable, f)
+         val fStr = if Types.concisePrint then fStr else
+                    fStr ^ " with vars " ^ BD.setToString bVar
       in
          raise UnificationFailure (fStr ^ " cannot flow here")
       end

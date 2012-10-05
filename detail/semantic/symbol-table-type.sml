@@ -33,6 +33,7 @@ signature SymbolTableSig  = sig
    val listItems: table -> symid list
 
    val getAtom : (table * symid) -> Atom.atom
+   val getInternalString : (table * symid) -> string
    val getString : (table * symid) -> string
    val getSpan : (table * symid) -> Error.span
 
@@ -143,6 +144,8 @@ structure SymbolTable :> SymbolTableSig = struct
           | (NONE) => raise InvalidSymbolId
 
    fun getAtom ti = let val (atom,_,_) = getSymbolInfo ti in atom end
+   fun getInternalString (ti as (_, SymId i)) =
+      Atom.toString (getAtom ti) ^ Int.toString i
    fun getString (ti as (_, SymId i)) =
       Atom.toString (getAtom ti) ^ 
          (if concisePrint then "" else "#" ^ Int.toString i)

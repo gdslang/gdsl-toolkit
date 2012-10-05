@@ -16,6 +16,12 @@ export = decode
 # recursion-depth = p64 = 4
 
 val decode = do
+   update @{tab=void};
+   main
+end
+
+val main = do
+   t <- query $tab;
    update
       @{mode64='1',
         repne='0',
@@ -28,9 +34,12 @@ val decode = do
         opndsz='0',
         addrsz='0',
         lock='0',
-        segment=DS,
-        ptrty=32}; #TODO: check
-   p64
+        segment=SEG_DEFAULT,
+        ptrty=32, #TODO: check
+        ~tab};
+   instr <- p64;
+   update @{tab=t};
+   return instr
 end
 
 val complement v = not v
@@ -39,12 +48,44 @@ val set-opndsz = update@{opndsz='1'}
 val set-repne = update@{repne='1'}
 val set-rep = update@{rep='1'}
 
-val set-CS = update@{segment=CS}
-val set-DS = update@{segment=DS}
-val set-ES = update@{segment=ES}
-val set-FS = update@{segment=FS}
-val set-GS = update@{segment=GS}
-val set-SS = update@{segment=SS}
+# Segment prefix handling
+type seg_override =
+     SEG_DEFAULT
+   | SEG_OVERRIDE of register
+
+
+val set-CS = do
+   m <- query $mode64;
+   if m then
+      return void
+   else
+      update@{segment=SEG_OVERRIDE CS}
+end
+
+val set-DS = do
+   m <- query $mode64;
+   if m then
+      return void
+   else
+      update@{segment=SEG_OVERRIDE DS}
+end
+val set-ES = do
+   m <- query $mode64;
+   if m then
+      return void
+   else
+      update@{segment=SEG_OVERRIDE ES}
+end
+val set-FS = update@{segment=SEG_OVERRIDE FS}
+val set-GS = update@{segment=SEG_OVERRIDE GS}
+val set-SS = do
+   m <- query $mode64;
+   if m then
+      return void
+   else
+      update@{segment=SEG_OVERRIDE SS}
+end
+
 val set-lock = update@{lock='1'}
 val set-addrsz = update@{addrsz='1'}
 
@@ -503,14 +544,6 @@ type register =
  | MM5
  | MM6
  | MM7
- | MM8
- | MM9
- | MM10
- | MM11
- | MM12
- | MM13
- | MM14
- | MM15
  | ES
  | SS
  | DS
@@ -533,7 +566,7 @@ type opnd =
  | IMM32 of 32
  | IMM64 of 64
  | REG of register
- | MEM of {sz:int,psz:int,segment:register,opnd:opnd}
+ | MEM of {sz:int,psz:int,segment:seg_override,opnd:opnd}
  | SUM of {a:opnd,b:opnd}
  | SCALE of {imm:2,opnd:opnd}
 
@@ -1511,14 +1544,6 @@ val mm4 = return (REG MM4)
 val mm5 = return (REG MM5)
 val mm6 = return (REG MM6)
 val mm7 = return (REG MM7)
-val mm8 = return (REG MM8)
-val mm9 = return (REG MM9)
-val mm10 = return (REG MM10)
-val mm11 = return (REG MM11)
-val mm12 = return (REG MM12)
-val mm13 = return (REG MM13)
-val mm14 = return (REG MM14)
-val mm15 = return (REG MM15)
 val xmm0 = return (REG XMM0)
 val xmm1 = return (REG XMM1)
 val xmm2 = return (REG XMM2)
@@ -1757,25 +1782,17 @@ val sreg3? rex n = sreg3 n
 
 val mm n =
    case n of
-      '0000': REG MM0
-    | '0001': REG MM1
-    | '0010': REG MM2
-    | '0011': REG MM3
-    | '0100': REG MM4
-    | '0101': REG MM5
-    | '0110': REG MM6
-    | '0111': REG MM7
-    | '1000': REG MM8
-    | '1001': REG MM9
-    | '1010': REG MM10
-    | '1011': REG MM11
-    | '1100': REG MM12
-    | '1101': REG MM13
-    | '1110': REG MM14
-    | '1111': REG MM15
+      '000': REG MM0
+    | '001': REG MM1
+    | '010': REG MM2
+    | '011': REG MM3
+    | '100': REG MM4
+    | '101': REG MM5
+    | '110': REG MM6
+    | '111': REG MM7
    end
 
-val mm-rex rex reg-idx = mm (rex ^ reg-idx)
+val mm-rex rex reg-idx = mm reg-idx
 
 val xmm n =
    case n of
@@ -4105,7 +4122,7 @@ val /vex/66/0f/vexv [0x56 /r]
 
 ### ORPS
 ###  - Bitwise Logical OR of Single-Precision Floating-Point Values
-val main [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
+val / [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
 val /vex/0f/vexv [0x56 /r]
  | vex128? = varity3 VORPS xmm128 v/xmm xmm/m128
  | vex256? = varity3 VORPS ymm256 v/ymm ymm/m256

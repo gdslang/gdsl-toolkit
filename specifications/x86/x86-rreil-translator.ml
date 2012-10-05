@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate
+export = translate translateBlock
 
 val t-mode64? = do
   mode64 <- query $mode64;
@@ -216,12 +216,12 @@ val commit sz a b =
          end
    end
 
-val fEQ = return (var//0 VIRT_EQ)
-val fNEQ = return (var//0 VIRT_NEQ)
-val fLES = return (var//0 VIRT_LES)
-val fLEU = return (var//0 VIRT_LEU)
-val fLTS = return (var//0 VIRT_LTS)
-val fLTU = return (var//0 VIRT_LTU)
+val fEQ = return (_var VIRT_EQ)
+val fNEQ = return (_var VIRT_NEQ)
+val fLES = return (_var VIRT_LES)
+val fLEU = return (_var VIRT_LEU)
+val fLTS = return (_var VIRT_LTS)
+val fLTU = return (_var VIRT_LTU)
 
 val sdt-ss = return (var//0 (VIRT_T ~100))
 
