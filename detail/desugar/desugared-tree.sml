@@ -1,6 +1,8 @@
 
 structure DesugaredTree = struct
 
+   exception DesugarTreeException of (Error.span * string)
+   
    structure Exp = Core.Exp
    type sym = Core.sym
 
@@ -82,28 +84,30 @@ structure DesugaredTree = struct
             mapUpdates fs
          end
 
-      and match (p, e) = (pat p, exp e)
+      and match (p, e) = (pat SymbolTable.noSpan p, exp e)
 
-      and stripMarkPat p =
+      and stripMarkPat sp p =
          case p of
-            MARKpat t => stripMarkPat (#tree t)
-          | p => p
+            MARKpat t => stripMarkPat (#span t) (#tree t)
+          | p => (sp,p)
 
-      and pat p =
+      and pat sp p =
          case p of
-            MARKpat t => pat (#tree t)
+            MARKpat t => pat (#span t) (#tree t)
           | CONpat (s, SOME p) =>
                let
-                  val p = stripMarkPat p
+                  val (sp,p) = stripMarkPat sp p
                in
                   case p of
                      IDpat x => Pat.CON (s, SOME x)
-                   | _ => raise Fail "Invalid pattern (too complex...)"
+                   | _ => raise DesugarException
+                     (sp, "expect variable as argument in constructor pattern")
                end
           | CONpat (s, NONE) => Pat.CON (s, NONE)
           | LITpat (INTlit i) => Pat.INT i
           | LITpat (VEClit i) => Pat.BIT i
-          | LITpat _ => raise CM.CompilationError
+          | LITpat _ => raise DesugarException
+                     (sp, "cannot pattern match against this literal")
           | IDpat id => Pat.ID id
           | WILDpat => Pat.WILD
 

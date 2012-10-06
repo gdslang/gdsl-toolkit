@@ -1882,14 +1882,19 @@ val segmentation-set-for-base base =
   in
     do
       mode64 <- mode64?;
-      if not(mode64) then
+      if not(mode64) then return void else
         case base of
-           REG ESP: override-ss
-	 | REG EBP: override-ss
-	 | _: return void
-    	end
-      else
-        return void
+           REG r: case r of
+               SP : override-ss
+             | ESP: override-ss
+             | RSP: override-ss
+             | BP : override-ss
+             | EBP: override-ss
+             | RBP: override-ss
+             | _  : return void
+           end
+         | _  : return void
+        end
     end
   end
 
