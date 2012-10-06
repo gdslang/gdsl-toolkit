@@ -100,13 +100,13 @@ structure DesugaredTree = struct
                in
                   case p of
                      IDpat x => Pat.CON (s, SOME x)
-                   | _ => raise DesugarException
+                   | _ => raise DesugarTreeException
                      (sp, "expect variable as argument in constructor pattern")
                end
           | CONpat (s, NONE) => Pat.CON (s, NONE)
           | LITpat (INTlit i) => Pat.INT i
           | LITpat (VEClit i) => Pat.BIT i
-          | LITpat _ => raise DesugarException
+          | LITpat _ => raise DesugarTreeException
                      (sp, "cannot pattern match against this literal")
           | IDpat id => Pat.ID id
           | WILDpat => Pat.WILD
