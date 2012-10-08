@@ -258,8 +258,12 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    fun reportError conv ({span,component=comp}, env) {span=s, tree=t} =
       conv ({span=s,component=comp},env) t
-      handle (S.UnificationFailure str) =>
-         (Error.errorAt (errStrm, s, [str]); raise TypeError)
+      handle
+         (S.UnificationFailure str) =>
+            (Error.errorAt (errStrm, s, [str]); raise TypeError)
+       | ListPair.UnequalLengths =>
+            (Error.warningAt (errStrm, s, ["supressed follow-up error"]); raise TypeError)
+
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
    fun getSpan {span = s,component} = s
    fun hasSymbol ({span, component = SCC.SIMPLE n},s) = SymbolTable.eq_symid (s,n)
