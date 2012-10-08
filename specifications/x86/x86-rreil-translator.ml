@@ -82,6 +82,14 @@ type signedness =
    Signed
  | Unsigned
 
+#val segment-add address seg = do
+#  addr-with-segment <- mktemp;
+#  seg-sem <- return (semantic-register-of seg);
+#
+#end
+
+#Todo: Für alle Größen automatische Erweiterung (Konfigurierbar auch bei read?)
+#Todo: Segmentation, siehe oben und unten...
 val conv-with conv sz x =
    let
       val conv-imm conv x = case conv of
@@ -822,8 +830,10 @@ val sem-jrcxz x = sem-jregz x RCX
 
 val sem-jmp x = do
   target-sz <- sizeof-flow x.opnd1;
+  #Todo: Richtig Größe an der richtigen Stelle (unten) [=> auch bei call/jcc?]
   target <- read-flow target-sz x.opnd1;
-
+ 
+  #Todo: Jetzt in Instruktion => x.opndsz
   opnd-sz <- static-flow-opnd-sz x.opnd1;
   
   mode64 <- t-mode64?;

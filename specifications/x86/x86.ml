@@ -53,37 +53,12 @@ type seg_override =
      SEG_DEFAULT
    | SEG_OVERRIDE of register
 
-val set-CS = do
-   m <- query $mode64;
-   if m then
-      return void
-   else
-      update@{segment=SEG_OVERRIDE CS}
-end
-
-val set-DS = do
-   m <- query $mode64;
-   if m then
-      return void
-   else
-      update@{segment=SEG_OVERRIDE DS}
-end
-val set-ES = do
-   m <- query $mode64;
-   if m then
-      return void
-   else
-      update@{segment=SEG_OVERRIDE ES}
-end
+val set-CS = update@{segment=SEG_OVERRIDE CS}
+val set-DS = update@{segment=SEG_OVERRIDE DS}
+val set-ES = update@{segment=SEG_OVERRIDE ES}
 val set-FS = update@{segment=SEG_OVERRIDE FS}
 val set-GS = update@{segment=SEG_OVERRIDE GS}
-val set-SS = do
-   m <- query $mode64;
-   if m then
-      return void
-   else
-      update@{segment=SEG_OVERRIDE SS}
-end
+val set-SS = update@{segment=SEG_OVERRIDE SS}
 
 val set-lock = update@{lock='1'}
 val set-addrsz = update@{addrsz='1'}
@@ -1880,21 +1855,17 @@ val segmentation-set-for-base base =
       end
     end
   in
-    do
-      mode64 <- mode64?;
-      if not(mode64) then return void else
-        case base of
-           REG r: case r of
-               SP : override-ss
-             | ESP: override-ss
-             | RSP: override-ss
-             | BP : override-ss
-             | EBP: override-ss
-             | RBP: override-ss
-             | _  : return void
-           end
+    case base of
+       REG r: case r of
+           SP : override-ss
+         | ESP: override-ss
+         | RSP: override-ss
+         | BP : override-ss
+         | EBP: override-ss
+         | RBP: override-ss
          | _  : return void
-        end
+       end
+     | _  : return void
     end
   end
 
@@ -1990,7 +1961,18 @@ val mem op = do
        seg <- query $segment;
        case seg of
           SEG_DEFAULT: return DS
-	| SEG_OVERRIDE r: return r
+	| SEG_OVERRIDE r:
+	    do
+	      mode64 <- mode64?;
+	      if mode64 then
+	        case r of
+		   FS: return r
+		 | GS: return r
+		 | _: return DS
+                end
+	      else
+	        return r	    
+	    end
        end
      end
    ;
