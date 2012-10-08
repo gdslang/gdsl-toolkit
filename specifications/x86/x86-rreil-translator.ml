@@ -2,11 +2,6 @@
 
 export = translate translateBlock
 
-val t-mode64? = do
-  mode64 <- query $mode64;
-  return mode64
-end
-
 val runtime-opnd-sz x = do
   sz <- sizeof1 x;
   return sz
@@ -82,14 +77,13 @@ type signedness =
    Signed
  | Unsigned
 
-#val segment-add address seg = do
-#  addr-with-segment <- mktemp;
-#  seg-sem <- return (semantic-register-of seg);
-#
-#end
+val segment-add address seg = let
+  val seg-sem = SEM_LIN_VAR(semantic-register-of seg)
+in
+  SEM_LIN_ADD{opnd1=seg-sem,opnd2=address}
+end
 
 #Todo: Für alle Größen automatische Erweiterung (Konfigurierbar auch bei read?)
-#Todo: Segmentation, siehe oben und unten...
 val conv-with conv sz x =
    let
       val conv-imm conv x = case conv of
@@ -135,7 +129,7 @@ val conv-with conv sz x =
        | MEM x:
             do t <- mktemp;
                address <- conv-mem x;
-               load sz t x.psz address;
+               load sz t x.psz (segment-add address x.segment);
                return (var t)
             end
       end
@@ -631,7 +625,7 @@ val sem-call x = do
       return 32
   ;
   
-  mode64 <- t-mode64?;
+  mode64 <- mode64?;
   
   temp-dest <- mktemp;
   temp-ip <- mktemp;
@@ -791,7 +785,7 @@ val sem-jcc x cond = do
   target <- read-flow target-sz x.opnd1;
 
   #Todo: fix
-  mode64 <- t-mode64?;
+  mode64 <- mode64?;
   opnd-sz <-
     if mode64 then
       return 64
@@ -836,7 +830,7 @@ val sem-jmp x = do
   #Todo: Jetzt in Instruktion => x.opndsz
   opnd-sz <- static-flow-opnd-sz x.opnd1;
   
-  mode64 <- t-mode64?;
+  mode64 <- mode64?;
 
   ip-sz <-
     if mode64 then
@@ -1008,8 +1002,16 @@ val ps-pop opnd-sz opnd = do
   
   sp <- return (semantic-register-of sp-reg);
   sp-size <- sizeof1 (REG sp-reg);
-  sp-seg <- segmentation-ss-map sp-size sp;
-  load opnd-sz opnd stack-addr-sz (var sp-seg);
+
+  mode64 <- mode64?;
+  segment <-
+    if mode64 then
+      return DS
+    else
+      return SS
+  ;
+  load opnd-sz opnd stack-addr-sz (segment-add (var sp) segment);
+
 
   if stack-addr-sz === 32 then
     if opnd-sz === 32 then
@@ -1039,7 +1041,7 @@ val sem-pop x = do
 end
 
 val ps-push opnd-sz opnd = do
-  mode64 <- t-mode64?;
+  mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;
   if mode64 then
     do
@@ -1051,7 +1053,7 @@ val ps-push opnd-sz opnd = do
       else
         sub sp-size sp (var sp) (imm 2)
       ;
-      store (address sp-size (var sp)) (lin opnd-sz opnd)
+      store (address sp-size (segment-add (var sp) DS)) (lin opnd-sz opnd)
     end
   else
     do
@@ -1063,13 +1065,12 @@ val ps-push opnd-sz opnd = do
       ;
       sp <- return (semantic-register-of sp-reg);
       sp-size <- sizeof1 (REG sp-reg);
-      sp-seg <- segmentation-ss-map sp-size sp;
       if opnd-sz === 32 then
         sub sp-size sp (var sp) (imm 4)
       else
         sub sp-size sp (var sp) (imm 2)
       ;
-      store (address sp-size (var sp-seg)) (lin opnd-sz opnd)
+      store (address sp-size (segment-add (var sp) SS)) (lin opnd-sz opnd)
     end
 end
 
@@ -1121,7 +1122,7 @@ val sem-ret-far x =
 
 val pop-ip = do
   #Todo: fix
-  mode64 <- t-mode64?;
+  mode64 <- mode64?;
   opnd-sz <-
     if mode64 then
       return 64
@@ -1152,7 +1153,7 @@ val sem-ret-far-without-operand = do
   address <- pop-ip;
 
   #Todo: fix
-  mode64 <- t-mode64?;
+  mode64 <- mode64?;
   opnd-sz <-
     if mode64 then
       return 64
