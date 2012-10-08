@@ -20,14 +20,6 @@ val runtime-stack-address-size = do
   return 32
 end
 
-val segmentation-ss-map sz reg = do
-  ss <- sdt-ss;
-  t <- mktemp;
-  add sz t (var t) (var ss);
-  return t
-end
-val segmentation-ds-map sz reg = segmentation-ss-map sz reg
-
 val ip-get = do
   return (imm 0)
 end
@@ -81,6 +73,18 @@ val segment-add address seg = let
   val seg-sem = SEM_LIN_VAR(semantic-register-of seg)
 in
   SEM_LIN_ADD{opnd1=seg-sem,opnd2=address}
+end
+
+val segment segment = do
+  mode64 <- mode64?;
+  if mode64 then
+    case segment of
+       FS: return segment
+     | GS: return segment
+     | _: return DS
+    end
+  else
+    return segment
 end
 
 #Todo: Für alle Größen automatische Erweiterung (Konfigurierbar auch bei read?)
@@ -725,32 +729,26 @@ val sem-cmps sz = do
   ;
   reg0-sem <- return (semantic-register-of reg0);
   reg0-sz <- sizeof1 (REG reg0);
-  reg0-seg <-
-    if not(addr-sz === 64) then
-      segmentation-ds-map reg0-sz reg0-sem
-    else
-      return reg0-sem
-  ;
+  
+  #Todo: Fix, use specified segment
+  reg0-segment <- segment DS;
+  src0 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg0-segment,opnd=REG reg0});
 
   reg1 <-
     case addr-sz of
-       16: return SI
-     | 32: return ESI
-     | 64: return RSI
+       16: return DI
+     | 32: return EDI
+     | 64: return RDI
     end
   ;
   reg1-sem <- return (semantic-register-of reg1);
   reg1-sz <- sizeof1 (REG reg1);
-  reg1-seg <-
-    if not(addr-sz === 64) then
-      segmentation-ds-map reg1-sz reg1-sem
-    else
-      return reg1-sem
-  ;
+  reg1-segment <- segment ES;
+  src1 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg1-segment,opnd=REG reg1});
 
   temp <- mktemp;
-  sub sz temp (var reg0-seg) (var reg1-seg);
-  emit-sub-sbb-flags sz (var temp) (var reg0-seg) (var reg1-seg) (imm 0);
+  sub sz temp src0 src1;
+  emit-sub-sbb-flags sz (var temp) src0 src1 (imm 0);
 
   amount <-
     case sz of
@@ -1043,35 +1041,31 @@ end
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;
+  
+  sp-reg <-
+    if mode64 then
+      return RSP
+    else if stack-addr-sz === 32 then
+      return ESP
+    else
+      return SP
+  ;
+  sp <- return (semantic-register-of sp-reg);
+
   if mode64 then
-    do
-      sp-reg <- return RSP;
-      sp <- return (semantic-register-of sp-reg);
-      sp-size <- sizeof1 (REG sp-reg);
-      if opnd-sz === 64 then
-        sub sp-size sp (var sp) (imm 8)
-      else
-        sub sp-size sp (var sp) (imm 2)
-      ;
-      store (address sp-size (segment-add (var sp) DS)) (lin opnd-sz opnd)
-    end
+    if opnd-sz === 64 then
+      sub sp.size sp (var sp) (imm 8)
+    else
+      sub sp.size sp (var sp) (imm 2)
   else
-    do
-      sp-reg <-
-        if stack-addr-sz === 32 then
-          return ESP
-        else
-          return SP
-      ;
-      sp <- return (semantic-register-of sp-reg);
-      sp-size <- sizeof1 (REG sp-reg);
-      if opnd-sz === 32 then
-        sub sp-size sp (var sp) (imm 4)
-      else
-        sub sp-size sp (var sp) (imm 2)
-      ;
-      store (address sp-size (segment-add (var sp) SS)) (lin opnd-sz opnd)
-    end
+    if opnd-sz === 32 then
+      sub sp.size sp (var sp) (imm 4)
+    else
+      sub sp.size sp (var sp) (imm 2)
+   ;
+
+   segment <- segment SS;
+   store (address sp.size (segment-add (var sp) segment)) (lin opnd-sz opnd)
 end
 
 val sem-push x = do

@@ -554,11 +554,11 @@ type flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-type flow1 = {opnd1:flowopnd}
-type arity1 = {opnd1:opnd}
-type arity2 = {opnd1:opnd,opnd2:opnd}
-type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+type flow1 = {opnd-sz:int,addr-sz:int,opnd1:flowopnd}
+type arity1 = {opnd-sz:int,addr-sz:int,opnd1:opnd}
+type arity2 = {opnd-sz:int,addr-sz:int,opnd1:opnd,opnd2:opnd}
+type arity3 = {opnd-sz:int,addr-sz:int,opnd1:opnd,opnd2:opnd,opnd3:opnd}
+type arity4 = {opnd-sz:int,addr-sz:int,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
 type varity =
    VA0
