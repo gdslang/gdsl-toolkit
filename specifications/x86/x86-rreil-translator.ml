@@ -69,22 +69,79 @@ type signedness =
    Signed
  | Unsigned
 
-val segment-add address seg = let
-  val seg-sem = SEM_LIN_VAR(semantic-register-of seg)
+val expand conv lin from-sz to-sz = do
+  if from-sz === to-sz then
+    return lin
+  else
+    do
+      expanded <- mktemp;
+      case conv of
+         Signed: movsx to-sz expanded from-sz lin
+       | Unsigned: movzx to-sz expanded from-sz lin
+      end;
+      return (var expanded)
+    end
+end
+
+val segment-add mode64 address segment = let
+  val seg-sem seg-reg = SEM_LIN_VAR(semantic-register-of seg-reg)
 in
-  SEM_LIN_ADD{opnd1=seg-sem,opnd2=address}
+  case segment of
+     SEG_NONE:
+       if mode64 then
+         address
+       else
+         SEM_LIN_ADD {opnd1=seg-sem DS,opnd2=address}
+   | SEG_OVERRIDE s:
+       if mode64 then
+         case s of
+            FS: SEM_LIN_ADD {opnd1=seg-sem s,opnd2=address}
+  	  | GS: SEM_LIN_ADD {opnd1=seg-sem s,opnd2=address}
+	  | _: address
+	 end
+       else
+         SEM_LIN_ADD {opnd1=seg-sem s,opnd2=address}
+  end
+end
+
+#IA-32e => 64 bit real addresses
+val real-addr-sz = return 64
+
+val segmented-lin lin sz segment = do
+  real-addr-sz <- real-addr-sz;
+  mode64 <- mode64?;
+
+  expanded <- expand Unsigned (var lin) sz real-addr-sz;
+  return (segment-add mode64 expanded segment)
+end
+val segmented-reg reg segment = segmented-lin reg reg.size segment
+
+val segmented-load dst-sz dst addr-sz address segment = do
+  address-segmented <- segmented-lin address addr-sz segment;
+  addr-sz <- real-addr-sz;
+  load dst-sz dst addr-sz address-segmented
+end
+
+val segmented-store addr rhs segment = do
+  address-segmented <- segmented-lin addr.address addr.size segment;
+  addr-sz <- real-addr-sz;
+  store (address addr-sz address-segmented) rhs
 end
 
 val segment segment = do
-  mode64 <- mode64?;
-  if mode64 then
-    case segment of
-       FS: return segment
-     | GS: return segment
-     | _: return DS
-    end
-  else
-    return segment
+#  mode64 <- mode64?;
+#  if mode64 then
+#    case segment of
+#       SEG_NONE: return 
+#
+#    case segment of
+#       FS: return segment
+#     | GS: return segment
+#     | _: return DS
+#    end
+#  else
+#    return segment
+  return DS
 end
 
 #Todo: Für alle Größen automatische Erweiterung (Konfigurierbar auch bei read?)
@@ -95,7 +152,10 @@ val conv-with conv sz x =
 	| Unsigned: return (SEM_LIN_IMM{imm=zx x})
       end
 
-      val conv-reg r = return (SEM_LIN_VAR (semantic-register-of r))
+      val conv-reg conv sz r = do
+        reg <- return (semantic-register-of r);
+	expand conv (var reg) reg.size sz
+      end
 
       val conv-sum conv sz x =
          do op1 <- conv-with conv sz x.a;
@@ -127,13 +187,13 @@ val conv-with conv sz x =
        | IMM16 x: conv-imm conv x
        | IMM32 x: conv-imm conv x
        | IMM64 x: conv-imm conv x
-       | REG x: conv-reg x
+       | REG x: conv-reg conv sz x
        | SUM x: conv-sum conv sz x
        | SCALE x: conv-scale conv sz x
        | MEM x:
             do t <- mktemp;
                address <- conv-mem x;
-               load sz t x.psz (segment-add address x.segment);
+               segmented-load sz t x.psz address x.segment;
                return (var t)
             end
       end
@@ -205,7 +265,9 @@ val register? x =
 val commit sz a b =
    case a of
       SEM_WRITE_MEM x:
-         store x (SEM_LIN{size=sz,opnd1=b})
+         #store x (SEM_LIN{size=sz,opnd1=b})
+	 #Todo: fix segment
+	 segmented-store x (SEM_LIN{size=sz,opnd1=b}) SEG_NONE
     | SEM_WRITE_VAR x:
          #TODO: no zero extension when not in 64bit mode
          case sz of
@@ -718,55 +780,56 @@ val sem-cmp x = do
 end
 
 val sem-cmps sz = do
-  addr-sz <- address-size;
-
-  reg0 <-
-    case addr-sz of
-       16: return SI
-     | 32: return ESI
-     | 64: return RSI
-    end
-  ;
-  reg0-sem <- return (semantic-register-of reg0);
-  reg0-sz <- sizeof1 (REG reg0);
-  
-  #Todo: Fix, use specified segment
-  reg0-segment <- segment DS;
-  src0 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg0-segment,opnd=REG reg0});
-
-  reg1 <-
-    case addr-sz of
-       16: return DI
-     | 32: return EDI
-     | 64: return RDI
-    end
-  ;
-  reg1-sem <- return (semantic-register-of reg1);
-  reg1-sz <- sizeof1 (REG reg1);
-  reg1-segment <- segment ES;
-  src1 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg1-segment,opnd=REG reg1});
-
-  temp <- mktemp;
-  sub sz temp src0 src1;
-  emit-sub-sbb-flags sz (var temp) src0 src1 (imm 0);
-
-  amount <-
-    case sz of
-       8: return 1
-     | 16: return 2
-     | 32: return 4
-     | 64: return 8
-    end
-  ;
-
-  df <- fDF;
-  _if (/not (var df)) _then do
-    add reg0-sz reg0-sem (var reg0-sem) (imm amount); 
-    add reg1-sz reg1-sem (var reg1-sem) (imm amount)  
-  end _else do
-    sub reg0-sz reg0-sem (var reg0-sem) (imm amount);  
-    sub reg1-sz reg1-sem (var reg1-sem) (imm amount)  
-  end
+  return void
+#  addr-sz <- address-size;
+#
+#  reg0 <-
+#    case addr-sz of
+#       16: return SI
+#     | 32: return ESI
+#     | 64: return RSI
+#    end
+#  ;
+#  reg0-sem <- return (semantic-register-of reg0);
+#  reg0-sz <- sizeof1 (REG reg0);
+#  
+#  #Todo: Fix, use specified segment
+#  reg0-segment <- segment DS;
+#  src0 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg0-segment,opnd=REG reg0});
+#
+#  reg1 <-
+#    case addr-sz of
+#       16: return DI
+#     | 32: return EDI
+#     | 64: return RDI
+#    end
+#  ;
+#  reg1-sem <- return (semantic-register-of reg1);
+#  reg1-sz <- sizeof1 (REG reg1);
+#  reg1-segment <- segment ES;
+#  src1 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg1-segment,opnd=REG reg1});
+#
+#  temp <- mktemp;
+#  sub sz temp src0 src1;
+#  emit-sub-sbb-flags sz (var temp) src0 src1 (imm 0);
+#
+#  amount <-
+#    case sz of
+#       8: return 1
+#     | 16: return 2
+#     | 32: return 4
+#     | 64: return 8
+#    end
+#  ;
+#
+#  df <- fDF;
+#  _if (/not (var df)) _then do
+#    add reg0-sz reg0-sem (var reg0-sem) (imm amount); 
+#    add reg1-sz reg1-sem (var reg1-sem) (imm amount)  
+#  end _else do
+#    sub reg0-sz reg0-sem (var reg0-sem) (imm amount);  
+#    sub reg1-sz reg1-sem (var reg1-sem) (imm amount)  
+#  end
 end
 val sem-cmpsb = sem-cmps 8
 val sem-cmpsw = sem-cmps 16
@@ -1001,15 +1064,7 @@ val ps-pop opnd-sz opnd = do
   sp <- return (semantic-register-of sp-reg);
   sp-size <- sizeof1 (REG sp-reg);
 
-  mode64 <- mode64?;
-  segment <-
-    if mode64 then
-      return DS
-    else
-      return SS
-  ;
-  load opnd-sz opnd stack-addr-sz (segment-add (var sp) segment);
-
+  segmented-load opnd-sz opnd stack-addr-sz (var sp) (SEG_OVERRIDE SS);
 
   if stack-addr-sz === 32 then
     if opnd-sz === 32 then
@@ -1062,10 +1117,11 @@ val ps-push opnd-sz opnd = do
       sub sp.size sp (var sp) (imm 4)
     else
       sub sp.size sp (var sp) (imm 2)
-   ;
+  ;
 
-   segment <- segment SS;
-   store (address sp.size (segment-add (var sp) segment)) (lin opnd-sz opnd)
+  segmented-store (address sp.size (var sp)) (lin opnd-sz opnd) (SEG_OVERRIDE SS)
+
+  #store (address sp.size (segment-add (var sp) segment)) (lin opnd-sz opnd)
 end
 
 val sem-push x = do

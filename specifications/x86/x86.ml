@@ -34,7 +34,7 @@ val main = do
         opndsz='0',
         addrsz='0',
         lock='0',
-        segment=SEG_DEFAULT,
+        segment=SEG_NONE,
         ptrty=32, #TODO: check
         ~tab};
    instr <- p64;
@@ -50,7 +50,7 @@ val set-rep = update@{rep='1'}
 
 # Segment prefix handling
 type seg_override =
-     SEG_DEFAULT
+     SEG_NONE
    | SEG_OVERRIDE of register
 
 val set-CS = update@{segment=SEG_OVERRIDE CS}
@@ -540,7 +540,7 @@ type opnd =
  | IMM32 of 32
  | IMM64 of 64
  | REG of register
- | MEM of {sz:int,psz:int,segment:register,opnd:opnd}
+ | MEM of {sz:int,psz:int,segment:seg_override,opnd:opnd}
  | SUM of {a:opnd,b:opnd}
  | SCALE of {imm:2,opnd:opnd}
 
@@ -1850,7 +1850,7 @@ val segmentation-set-for-base base =
     val override-ss = do
       segment <- query $segment;
       case segment of
-         SEG_DEFAULT: update@{segment=SEG_OVERRIDE SS}
+         SEG_NONE: update@{segment=SEG_OVERRIDE SS}
         | _: return void
       end
     end
@@ -1960,18 +1960,18 @@ val mem op = do
      do
        seg <- query $segment;
        case seg of
-          SEG_DEFAULT: return DS
+          SEG_NONE: return SEG_NONE
 	| SEG_OVERRIDE r:
 	    do
 	      mode64 <- mode64?;
 	      if mode64 then
 	        case r of
-		   FS: return r
-		 | GS: return r
-		 | _: return DS
+		   FS: return SEG_OVERRIDE r
+		 | GS: return SEG_OVERRIDE r
+		 | _: return SEG_NONE
                 end
 	      else
-	        return r	    
+	        return SEG_OVERRIDE r
 	    end
        end
      end
