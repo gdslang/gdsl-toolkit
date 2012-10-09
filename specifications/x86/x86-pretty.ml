@@ -279,11 +279,9 @@ val show/instruction insn =
     | CMP x: "CMP" -++ show/arity2 x
     | CMPPD x: "CMPPD" -++ show/arity3 x
     | CMPPS x: "CMPPS" -++ show/arity3 x
-    | CMPSB: "CMPSB"
-    | CMPSD x: "CMPSD" -++ show/varity x
-    | CMPSQ: "CMPSQ"
+    | CMPS x: "CMPS" -++ show/arity2
+    | CMPSD x: "CMPSD" -++ show/arity3 x
     | CMPSS x: "CMPSS" -++ show/arity3 x
-    | CMPSW: "CMPSW"
     | CMPXCHG x: "CMPXCHG" -++ show/arity2 x
     | CMPXCHG16B x: "CMPXCHG16B" -++ show/arity1 x
     | CMPXCHG8B x: "CMPXCHG8B" -++ show/arity1 x

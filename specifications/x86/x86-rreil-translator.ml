@@ -12,10 +12,6 @@ val static-flow-opnd-sz x = do
   return 64
 end
 
-val address-size = do
-  return 32
-end
-
 val runtime-stack-address-size = do
   return 32
 end
@@ -200,6 +196,15 @@ val conv-with conv sz x =
    end
 
 val read sz x = conv-with Unsigned sz x
+
+val read-addr-reg x =
+  case x of
+     MEM m:
+       case m.opnd of
+          REG r: r
+       end
+  end
+
 val read-flow sz x =
    let
       val conv-bv v = return (SEM_LIN_IMM{imm=sx v})
@@ -252,6 +257,7 @@ val write-offset sz x offset =
          return (SEM_WRITE_VAR{size= $size id,id=id})
        end
    end
+
 
 val write sz x = write-offset sz x 0
 val write-upper sz x = write-offset sz x sz
@@ -779,18 +785,17 @@ val sem-cmp x = do
 end
 
 val sem-cmps x = do
-  src0-sz <- sizeof1 x.opnd1;
-  src0 <- read src0-sz x.opnd1;
+  opnd-sz <- return x.opnd-sz;
+  src0 <- read opnd-sz x.opnd1;
   src1-sz <- sizeof1 x.opnd2;
-  src1 <- read src1-sz x.opnd2;
-
+  src1 <- read opnd-sz x.opnd2;
 
   temp <- mktemp;
-  sub sz temp src0 src1;
-  emit-sub-sbb-flags sz (var temp) src0 src1 (imm 0);
+  sub opnd-sz temp src0 src1;
+  emit-sub-sbb-flags opnd-sz (var temp) src0 src1 (imm 0);
 
   amount <-
-    case sz of
+    case opnd-sz of
        8: return 1
      | 16: return 2
      | 32: return 4
@@ -798,16 +803,18 @@ val sem-cmps x = do
     end
   ;
 
+  reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
+  reg1-sem <- return (semantic-register-of (read-addr-reg x.opnd2));
+  addr-sz <- return x.addr-sz;
+
   df <- fDF;
   _if (/not (var df)) _then do
-    add reg0-sz reg0-sem (var reg0-sem) (imm amount); 
-    add reg1-sz reg1-sem (var reg1-sem) (imm amount)  
+    add addr-sz reg0-sem (var reg0-sem) (imm amount); 
+    add addr-sz reg1-sem (var reg1-sem) (imm amount)  
   end _else do
-    sub reg0-sz reg0-sem (var reg0-sem) (imm amount);  
-    sub reg1-sz reg1-sem (var reg1-sem) (imm amount)  
+    sub addr-sz reg0-sem (var reg0-sem) (imm amount);  
+    sub addr-sz reg1-sem (var reg1-sem) (imm amount)  
   end
-
-  return void
 
 #  addr-sz <- address-size;
 #

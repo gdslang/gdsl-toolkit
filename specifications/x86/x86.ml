@@ -1635,7 +1635,7 @@ val operand-size = do
   #Todo: D flag
   mode64 <- mode64?;
   opndsz <- opndsz?;
-  rexw <- rexw?
+  rexw <- rexw?;
   if mode64 then
     if rexw then
       return 64
