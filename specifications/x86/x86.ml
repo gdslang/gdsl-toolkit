@@ -648,7 +648,7 @@ type insn =
  | CMPPD of arity3
  | CMPPS of arity3
  | CMPS of arity2
- | CMPSD of varity
+ | CMPSD of arity3
  | CMPSS of arity3
  | CMPXCHG of arity2
  | CMPXCHG16B of arity1
@@ -1631,6 +1631,41 @@ val mode32? = do
  return (not a)
 end
 
+val operand-size = do
+  #Todo: D flag
+  mode64 <- mode64?;
+  opndsz <- opndsz?;
+  rexw <- rexw?
+  if mode64 then
+    if rexw then
+      return 64
+    else if opndsz then
+      return 16
+    else
+      return 32
+  else
+    if opndsz then
+      return 16
+    else
+      return 32
+end
+
+val address-size = do
+  #Todo: D flag
+  mode64 <- mode64?;
+  addrsz <- addrsz?;
+  if mode64 then
+    if addrsz then
+      return 32
+    else
+      return 64
+  else
+    if addrsz then
+      return 16
+    else
+      return 32
+end
+
 ## Convert a bit-vectors to registers
 
 val st-reg n =
@@ -2150,6 +2185,31 @@ val r64/rexb = r/rexb reg64-rex
 val mm64 = r/rexb mm-rex
 val xmm128 = r/rexr xmm-rex
 val ymm256 = r/rexr ymm-rex
+
+val m/default/si/esi/rsi = do
+  opndsz <- operand-size;
+  update@{ptrty=opndsz};
+  addrsz <- address-size;
+  update@{ptrsz=addrsz};
+  case addrsz of
+     16: mem (REG SI)
+   | 32: mem (REG ESI)
+   | 64: mem (REG RSI)
+  end
+end
+
+val m/es/si/esi/rsi = do
+  update @{segment=SEG_OVERRIDE ES};
+  opndsz <- operand-size;
+  update@{ptrty=opndsz};
+  addrsz <- address-size;
+  update@{ptrsz=addrsz};
+  case addrsz of
+     16: mem (REG SI)
+   | 32: mem (REG ESI)
+   | 64: mem (REG RSI)
+  end
+end
 
 val reg = do
    r <- query$rexw;
@@ -2732,15 +2792,15 @@ val /vex/0f/vexv [0xc2 /r]
 
 ### CMPS/CMPSB/CMPSW/CMPSD/CMPSQ
 ###  - Compare String Operands
-val / [0xa6] = arity0 CMPSB
+val / [0xa6] = binop CMPS m/default/si/esi/rsi m/es/si/esi/rsi
 val / [0xa7]
- | opndsz? = arity0 CMPSW
- | rexw? = arity0 CMPSQ
- | otherwise = varity0 CMPSD
+ | opndsz? = binop CMPS m/default/si/esi/rsi m/es/si/esi/rsi
+ | rexw? = binop CMPS m/default/si/esi/rsi m/es/si/esi/rsi
+ | otherwise = binop CMPS m/default/si/esi/rsi m/es/si/esi/rsi
 
 ### CMPSD
 ###  - Compare Scalar Double-Precision Floating-Point Values
-val /f2 [0x0f 0xc2 /r] = varity3 CMPSD xmm128 xmm/m64 imm8
+val /f2 [0x0f 0xc2 /r] = ternop CMPSD xmm128 xmm/m64 imm8
 val /vex/f2/0f/vexv [0xc2 /r] = varity4 VCMPSD xmm128 v/xmm xmm/m64 imm8
 
 ### CMPSS

@@ -778,8 +778,37 @@ val sem-cmp x = do
   emit-sub-sbb-flags sz (var t) b c (imm 0)
 end
 
-val sem-cmps sz = do
+val sem-cmps x = do
+  src0-sz <- sizeof1 x.opnd1;
+  src0 <- read src0-sz x.opnd1;
+  src1-sz <- sizeof1 x.opnd2;
+  src1 <- read src1-sz x.opnd2;
+
+
+  temp <- mktemp;
+  sub sz temp src0 src1;
+  emit-sub-sbb-flags sz (var temp) src0 src1 (imm 0);
+
+  amount <-
+    case sz of
+       8: return 1
+     | 16: return 2
+     | 32: return 4
+     | 64: return 8
+    end
+  ;
+
+  df <- fDF;
+  _if (/not (var df)) _then do
+    add reg0-sz reg0-sem (var reg0-sem) (imm amount); 
+    add reg1-sz reg1-sem (var reg1-sem) (imm amount)  
+  end _else do
+    sub reg0-sz reg0-sem (var reg0-sem) (imm amount);  
+    sub reg1-sz reg1-sem (var reg1-sem) (imm amount)  
+  end
+
   return void
+
 #  addr-sz <- address-size;
 #
 #  reg0 <-
@@ -808,32 +837,11 @@ val sem-cmps sz = do
 #  reg1-segment <- segment ES;
 #  src1 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg1-segment,opnd=REG reg1});
 #
-#  temp <- mktemp;
-#  sub sz temp src0 src1;
-#  emit-sub-sbb-flags sz (var temp) src0 src1 (imm 0);
-#
-#  amount <-
-#    case sz of
-#       8: return 1
-#     | 16: return 2
-#     | 32: return 4
-#     | 64: return 8
-#    end
-#  ;
-#
-#  df <- fDF;
-#  _if (/not (var df)) _then do
-#    add reg0-sz reg0-sem (var reg0-sem) (imm amount); 
-#    add reg1-sz reg1-sem (var reg1-sem) (imm amount)  
-#  end _else do
-#    sub reg0-sz reg0-sem (var reg0-sem) (imm amount);  
-#    sub reg1-sz reg1-sem (var reg1-sem) (imm amount)  
-#  end
 end
-val sem-cmpsb = sem-cmps 8
-val sem-cmpsw = sem-cmps 16
-val sem-cmpsd = sem-cmps 32
-val sem-cmpsq = sem-cmps 64
+#val sem-cmpsb = sem-cmps 8
+#val sem-cmpsw = sem-cmps 16
+#val sem-cmpsd = sem-cmps 32
+#val sem-cmpsq = sem-cmps 64
 
 
 val sem-hlt = do
@@ -1659,15 +1667,15 @@ val semantics insn =
     | CMP x: sem-cmp x
     | CMPPD x: sem-undef-arity3 x
     | CMPPS x: sem-undef-arity3 x
-    | CMPSB: sem-cmpsb
-    | CMPSD x:
-        case x of
-	   VA0: sem-cmpsd
-	 | _: sem-undef-varity x
-	end
-    | CMPSQ: sem-cmpsq
+    | CMPS x: sem-cmps x
+    | CMPSD x: sem-undef-arity3 x
+#    | CMPSD x:
+#        case x of
+#	   VA0: sem-cmpsd
+#	 | _: sem-undef-varity x
+#	end
+#    | CMPSQ: sem-cmpsq
     | CMPSS x: sem-undef-arity3 x
-    | CMPSW: sem-cmpsw
     | CMPXCHG x: sem-undef-arity2 x
     | CMPXCHG16B x: sem-undef-arity1 x
     | CMPXCHG8B x: sem-undef-arity1 x
