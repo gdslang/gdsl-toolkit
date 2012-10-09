@@ -647,11 +647,9 @@ type insn =
  | CMP of arity2
  | CMPPD of arity3
  | CMPPS of arity3
- | CMPSB
+ | CMPS of arity2
  | CMPSD of varity
- | CMPSQ
  | CMPSS of arity3
- | CMPSW
  | CMPXCHG of arity2
  | CMPXCHG16B of arity1
  | CMPXCHG8B of arity1
@@ -1966,12 +1964,12 @@ val mem op = do
 	      mode64 <- mode64?;
 	      if mode64 then
 	        case r of
-		   FS: return SEG_OVERRIDE r
-		 | GS: return SEG_OVERRIDE r
+		   FS: return (SEG_OVERRIDE r)
+		 | GS: return (SEG_OVERRIDE r)
 		 | _: return SEG_NONE
                 end
 	      else
-	        return SEG_OVERRIDE r
+	        return (SEG_OVERRIDE r)
 	    end
        end
      end

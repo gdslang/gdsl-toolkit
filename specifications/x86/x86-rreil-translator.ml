@@ -111,10 +111,10 @@ val segmented-lin lin sz segment = do
   real-addr-sz <- real-addr-sz;
   mode64 <- mode64?;
 
-  expanded <- expand Unsigned (var lin) sz real-addr-sz;
+  expanded <- expand Unsigned lin sz real-addr-sz;
   return (segment-add mode64 expanded segment)
 end
-val segmented-reg reg segment = segmented-lin reg reg.size segment
+val segmented-reg reg segment = segmented-lin (var reg) reg.size segment
 
 val segmented-load dst-sz dst addr-sz address segment = do
   address-segmented <- segmented-lin address addr-sz segment;
@@ -144,7 +144,6 @@ val segment segment = do
   return DS
 end
 
-#Todo: Für alle Größen automatische Erweiterung (Konfigurierbar auch bei read?)
 val conv-with conv sz x =
    let
       val conv-imm conv x = case conv of
@@ -191,11 +190,12 @@ val conv-with conv sz x =
        | SUM x: conv-sum conv sz x
        | SCALE x: conv-scale conv sz x
        | MEM x:
-            do t <- mktemp;
-               address <- conv-mem x;
-               segmented-load sz t x.psz address x.segment;
-               return (var t)
-            end
+           do 
+	     t <- mktemp;
+             address <- conv-mem x;
+             segmented-load sz t x.psz address x.segment;
+             return (var t)
+           end
       end
    end
 
@@ -243,7 +243,7 @@ val write-offset sz x offset =
        do
          #Todo: Offset for memory operands?
          address <- conv-with Signed x.psz x.opnd;
-         return (SEM_WRITE_MEM{size= x.psz,address=address})
+         return (SEM_WRITE_MEM{size=x.psz,address=address,segment=x.segment})
        end
     | REG x:
        do 
@@ -266,8 +266,7 @@ val commit sz a b =
    case a of
       SEM_WRITE_MEM x:
          #store x (SEM_LIN{size=sz,opnd1=b})
-	 #Todo: fix segment
-	 segmented-store x (SEM_LIN{size=sz,opnd1=b}) SEG_NONE
+	 segmented-store x (SEM_LIN{size=sz,opnd1=b}) x.segment
     | SEM_WRITE_VAR x:
          #TODO: no zero extension when not in 64bit mode
          case sz of
