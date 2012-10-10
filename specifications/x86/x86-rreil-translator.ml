@@ -2,18 +2,13 @@
 
 export = translate translateBlock
 
-val runtime-opnd-sz x = do
-  sz <- sizeof1 x;
-  return sz
-end
-
-#Todo: Fix!!
-val static-flow-opnd-sz x = do
-  return 64
-end
-
+#Todo: fix
 val runtime-stack-address-size = do
-  return 32
+  mode64 <- mode64?;
+  if mode64 then
+    return 64
+  else
+    return 32
 end
 
 val ip-get = do
@@ -480,7 +475,7 @@ val sem-undef-arity-ge1 x = do
   end
 end
 
-val sem-undef-arity0 = do
+val sem-undef-arity0 x = do
   return void
 end
 
@@ -848,32 +843,18 @@ val sem-hlt = do
 end
 
 val sem-jcc x cond = do
-  target-sz <- sizeof-flow x.opnd1;
-  target <- read-flow target-sz x.opnd1;
-
-  #Todo: fix
-  mode64 <- mode64?;
-  opnd-sz <-
-    if mode64 then
-      return 64
-    else
-      return 32
-  ;
-
   ip-sz <-
-    if (opnd-sz === 64) then
+    if (x.opnd-sz === 64) then
       return 64
     else
       return 32
   ;
-  
   ip <- ip-get;
 
-  target-ext <- mktemp;
-  movsx ip-sz target-ext target-sz target;
+  target <- read-flow ip-sz x.opnd1;
 
   temp-ip <- mktemp;
-  add ip-sz temp-ip (var target-ext) ip;
+  add ip-sz temp-ip target ip;
 
   cond <- cond;
   cbranch cond (address ip-sz (var temp-ip)) (address ip-sz ip)
@@ -890,58 +871,46 @@ val sem-jecxz x = sem-jregz x ECX
 val sem-jrcxz x = sem-jregz x RCX
 
 val sem-jmp x = do
-  target-sz <- sizeof-flow x.opnd1;
-  #Todo: Richtig Größe an der richtigen Stelle (unten) [=> auch bei call/jcc?]
-  target <- read-flow target-sz x.opnd1;
- 
-  #Todo: Jetzt in Instruktion => x.opndsz
-  opnd-sz <- static-flow-opnd-sz x.opnd1;
-  
   mode64 <- mode64?;
-
   ip-sz <-
     if mode64 then
       return 64
     else
       return 32
   ;
-
   temp-ip <- mktemp;
-  if (near x.opnd1) then
-    do
-      if (relative x.opnd1) then
-        do
-          ip <- ip-get;
-          add ip-sz temp-ip ip target
-        end
-      else
-        mov ip-sz temp-ip target
-      ;
-      if (opnd-sz === 16) then
-        #andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
-	mov (ip-sz - opnd-sz) (at-offset temp-ip opnd-sz) (imm 0)
-      else
-        return void
-    end
-  else if (not mode64) then
-    do
-      mov ip-sz temp-ip target;
-      if (opnd-sz === 16) then
-        #andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
-	mov (ip-sz - opnd-sz) (at-offset temp-ip opnd-sz) (imm 0)
-      else
-        return void
-      ;
-      temp-target <- mktemp;
-      mov target-sz temp-target target;
-      reg <- return CS;
-      reg-sem <- return (semantic-register-of reg);
-      reg-size <- sizeof1 (REG reg);
-      mov reg-size reg-sem (var (at-offset temp-target ip-sz));
-      
+
+  if (near x.opnd1) then do
+    target <- read-flow ip-sz x.opnd1;
+    if (relative x.opnd1) then do
+      ip <- ip-get;
+      add ip-sz temp-ip ip target
+    end else
       mov ip-sz temp-ip target
+    ;
+    if (x.opnd-sz === 16) then
+      #andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
+      mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0)
+    else
+      return void
     end
-  else
+  else if (not mode64) then do
+    target-sz <- sizeof-flow x.opnd1;
+    target <- read-flow target-sz x.opnd1;
+    movzx ip-sz temp-ip x.opnd-sz target;
+    #if (opnd-sz === 16) then
+    #  #andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
+    #  mov (ip-sz - opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0)
+    #else
+    #  return void
+    #;
+    reg <- return CS;
+    reg-sem <- return (semantic-register-of reg);
+    reg-size <- sizeof1 (REG reg);
+    temp-target <- mktemp;
+    mov target-sz temp-target target;
+    mov reg-size reg-sem (var (at-offset temp-target x.opnd-sz))
+  end else
     return void
   ;
 
@@ -1092,11 +1061,10 @@ val ps-pop opnd-sz opnd = do
 end
 
 val sem-pop x = do
-  opnd-sz <- runtime-opnd-sz x.opnd1;
-  dst <- write opnd-sz x.opnd1;
+  dst <- write x.opnd-sz x.opnd1;
   temp-dest <- mktemp;
-  ps-pop opnd-sz temp-dest;
-  commit opnd-sz dst (var temp-dest)
+  ps-pop x.opnd-sz temp-dest;
+  commit x.opnd-sz dst (var temp-dest)
 end
 
 val ps-push opnd-sz opnd = do
@@ -1131,8 +1099,6 @@ val ps-push opnd-sz opnd = do
 end
 
 val sem-push x = do
-  opnd-sz <- runtime-opnd-sz x.opnd1;
-       
   src-size <- sizeof1 x.opnd1;
   src <- read src-size x.opnd1;
 
@@ -1140,52 +1106,43 @@ val sem-push x = do
   case x.opnd1 of
      REG r: 
        if segment-register? r then
-         movzx opnd-sz temp src-size src
+         movzx x.opnd-sz temp src-size src
        else
-         mov opnd-sz temp src
+         mov x.opnd-sz temp src
    | MEM m:
-       mov opnd-sz temp src
+       mov x.opnd-sz temp src
    | IMM8 i:
-       movsx opnd-sz temp src-size src
+       movsx x.opnd-sz temp src-size src
    | IMM16 i:
-       mov opnd-sz temp src
+       mov x.opnd-sz temp src
    | IMM32 i:
-       movsx opnd-sz temp src-size src
+       movsx x.opnd-sz temp src-size src
   end;
 
-  ps-push opnd-sz (var temp)
+  ps-push x.opnd-sz (var temp)
 end
 
 val sem-ret x =
   case x of
-     VA0: sem-ret-without-operand
+     VA0 x: sem-ret-without-operand x
    | VA1 x:
        do
          release-from-stack x;
-	 sem-ret-without-operand
+	 sem-ret-without-operand x
        end
   end
 
 val sem-ret-far x =
   case x of
-     VA0: sem-ret-far-without-operand
+     VA0 x: sem-ret-far-without-operand x
    | VA1 x:
        do
          release-from-stack x;
-         sem-ret-far-without-operand
+         sem-ret-far-without-operand x
        end
   end
 
-val pop-ip = do
-  #Todo: fix
-  mode64 <- mode64?;
-  opnd-sz <-
-    if mode64 then
-      return 64
-    else
-      return 32
-  ;
-
+val pop-ip opnd-sz = do
   ip-sz <-
     if (opnd-sz === 64) then
       return 64
@@ -1200,13 +1157,13 @@ val pop-ip = do
   return (address opnd-sz (var temp-ip))
 end
 
-val sem-ret-without-operand = do
-  address <- pop-ip;
+val sem-ret-without-operand x = do
+  address <- pop-ip x.opnd-sz;
   ret address
 end
 
-val sem-ret-far-without-operand = do
-  address <- pop-ip;
+val sem-ret-far-without-operand x = do
+  address <- pop-ip x.opnd-sz;
 
   #Todo: fix
   mode64 <- mode64?;
@@ -1587,917 +1544,918 @@ end
 
 val semantics insn =
   case insn of
-      AAA: sem-undef-arity0
-    | AAD x: sem-undef-arity1 x
-    | AAM x: sem-undef-arity1 x
-    | AAS: sem-undef-arity0
-    | ADC x: sem-adc x
-    | ADD x: sem-add x
-    | ADDPD x: sem-undef-arity2 x
-    | ADDPS x: sem-undef-arity2 x
-    | ADDSD x: sem-undef-arity2 x
-    | ADDSS x: sem-undef-arity2 x
-    | ADDSUBPD x: sem-undef-arity2 x
-    | ADDSUBPS x: sem-undef-arity2 x
-    | AESDEC x: sem-undef-arity2 x
-    | AESDECLAST x: sem-undef-arity2 x
-    | AESENC x: sem-undef-arity2 x
-    | AESENCLAST x: sem-undef-arity2 x
-    | AESIMC x: sem-undef-arity2 x
-    | AESKEYGENASSIST x: sem-undef-arity3 x
-    | AND x: sem-undef-arity2 x
-    | ANDNPD x: sem-undef-arity2 x
-    | ANDNPS x: sem-undef-arity2 x
-    | ANDPD x: sem-undef-arity2 x
-    | ANDPS x: sem-undef-arity2 x
-    | ARPL x: sem-undef-arity2 x
-    | BLENDPD x: sem-undef-arity3 x
-    | BLENDPS x: sem-undef-arity3 x
-    | BLENDVPD x: sem-undef-arity3 x
-    | BLENDVPS x: sem-undef-arity3 x
-    | BOUND x: sem-undef-arity2 x
-    | BSF x: sem-undef-arity2 x
-    | BSR x: sem-undef-arity2 x
-    | BSWAP x: sem-undef-arity1 x
-    | BT x: sem-bt x
-    | BTC x: sem-undef-arity2 x
-    | BTR x: sem-undef-arity2 x
-    | BTS x: sem-undef-arity2 x
-    | CALL x: sem-call x
-    | CBW: sem-undef-arity0
-    | CDQ: sem-undef-arity0
-    | CDQE: sem-cdqe
-    | CLC: sem-clc
-    | CLD: sem-cld
-    | CLFLUSH x: sem-undef-arity1 x
-    | CLI: sem-undef-arity0
-    | CLTS: sem-undef-arity0
-    | CMC: sem-undef-arity0
-    | CMOVA x: sem-a sem-cmovcc x
-    | CMOVAE x: sem-ae sem-cmovcc x
-    | CMOVB x: sem-b sem-cmovcc x
-    | CMOVBE x: sem-be sem-cmovcc x
-    | CMOVC x: sem-c sem-cmovcc x
-    | CMOVE x: sem-e sem-cmovcc x
-    | CMOVG x: sem-g sem-cmovcc x
-    | CMOVGE x: sem-ge sem-cmovcc x
-    | CMOVL x: sem-l sem-cmovcc x
-    | CMOVLE x: sem-le sem-cmovcc x
-    | CMOVNA x: sem-na sem-cmovcc x
-    | CMOVNAE x: sem-nae sem-cmovcc x
-    | CMOVNB x: sem-nb sem-cmovcc x
-    | CMOVNBE x: sem-nbe sem-cmovcc x
-    | CMOVNC x: sem-nc sem-cmovcc x
-    | CMOVNE x: sem-ne sem-cmovcc x
-    | CMOVNG x: sem-ng sem-cmovcc x
-    | CMOVNGE x: sem-nge sem-cmovcc x
-    | CMOVNL x: sem-nl sem-cmovcc x
-    | CMOVNLE x: sem-nle sem-cmovcc x
-    | CMOVNO x: sem-no sem-cmovcc x
-    | CMOVNP x: sem-np sem-cmovcc x
-    | CMOVNS x: sem-ns sem-cmovcc x
-    | CMOVNZ x: sem-nz sem-cmovcc x
-    | CMOVO x: sem-o sem-cmovcc x
-    | CMOVP x: sem-p sem-cmovcc x
-    | CMOVPE x: sem-pe sem-cmovcc x
-    | CMOVPO x: sem-po sem-cmovcc x
-    | CMOVS x: sem-s sem-cmovcc x
-    | CMOVZ x: sem-z sem-cmovcc x
-    | CMP x: sem-cmp x
-    | CMPPD x: sem-undef-arity3 x
-    | CMPPS x: sem-undef-arity3 x
-    | CMPS x: sem-cmps x
-    | CMPSD x: sem-undef-arity3 x
-#    | CMPSD x:
-#        case x of
-#	   VA0: sem-cmpsd
-#	 | _: sem-undef-varity x
-#	end
-#    | CMPSQ: sem-cmpsq
-    | CMPSS x: sem-undef-arity3 x
-    | CMPXCHG x: sem-undef-arity2 x
-    | CMPXCHG16B x: sem-undef-arity1 x
-    | CMPXCHG8B x: sem-undef-arity1 x
-    | COMISD x: sem-undef-arity2 x
-    | COMISS x: sem-undef-arity2 x
-    | CPUID: sem-undef-arity0
-    | CQO: sem-undef-arity0
-    | CRC32 x: sem-undef-arity2 x
-    | CVTDQ2PD x: sem-undef-arity2 x
-    | CVTDQ2PS x: sem-undef-arity2 x
-    | CVTPD2DQ x: sem-undef-arity2 x
-    | CVTPD2PI x: sem-undef-arity2 x
-    | CVTPD2PS x: sem-undef-arity2 x
-    | CVTPI2PD x: sem-undef-arity2 x
-    | CVTPI2PS x: sem-undef-arity2 x
-    | CVTPS2DQ x: sem-undef-arity2 x
-    | CVTPS2PD x: sem-undef-arity2 x
-    | CVTPS2PI x: sem-undef-arity2 x
-    | CVTSD2SI x: sem-undef-arity2 x
-    | CVTSD2SS x: sem-undef-arity2 x
-    | CVTSI2SD x: sem-undef-arity2 x
-    | CVTSI2SS x: sem-undef-arity2 x
-    | CVTSS2SD x: sem-undef-arity2 x
-    | CVTSS2SI x: sem-undef-arity2 x
-    | CVTTPD2DQ x: sem-undef-arity2 x
-    | CVTTPD2PI x: sem-undef-arity2 x
-    | CVTTPS2DQ x: sem-undef-arity2 x
-    | CVTTPS2PI x: sem-undef-arity2 x
-    | CVTTSD2SI x: sem-undef-arity2 x
-    | CVTTSS2SI x: sem-undef-arity2 x
-    | CWD: sem-undef-arity0
-    | CWDE: sem-undef-arity0
-    | DAA: sem-undef-arity0
-    | DAS: sem-undef-arity0
-    | DEC x: sem-undef-arity1 x
-    | DIV x: sem-undef-arity1 x
-    | DIVPD x: sem-undef-arity2 x
-    | DIVPS x: sem-undef-arity2 x
-    | DIVSD x: sem-undef-arity2 x
-    | DIVSS x: sem-undef-arity2 x
-    | DPPD x: sem-undef-arity3 x
-    | DPPS x: sem-undef-arity3 x
-    | EMMS: sem-undef-arity0
-    | ENTER x: sem-undef-arity2 x
-    | EXTRACTPS x: sem-undef-arity3 x
-    | F2XM1: sem-undef-arity0
-    | FABS: sem-undef-arity0
-    | FADD x: sem-undef-arity2 x
-    | FADDP x: sem-undef-arity2 x
-    | FBLD x: sem-undef-arity1 x
-    | FBSTP x: sem-undef-arity1 x
-    | FCHS: sem-undef-arity0
-    | FCLEX: sem-undef-arity0
-    | FCMOVB x: sem-undef-arity2 x
-    | FCMOVBE x: sem-undef-arity2 x
-    | FCMOVE x: sem-undef-arity2 x
-    | FCMOVNB x: sem-undef-arity2 x
-    | FCMOVNBE x: sem-undef-arity2 x
-    | FCMOVNE x: sem-undef-arity2 x
-    | FCMOVNU x: sem-undef-arity2 x
-    | FCMOVU x: sem-undef-arity2 x
-    | FCOM x: sem-undef-arity1 x
-    | FCOMI x: sem-undef-arity2 x
-    | FCOMIP x: sem-undef-arity2 x
-    | FCOMP x: sem-undef-arity1 x
-    | FCOMPP: sem-undef-arity0
-    | FCOS: sem-undef-arity0
-    | FDECSTP: sem-undef-arity0
-    | FDIV x: sem-undef-arity2 x
-    | FDIVP x: sem-undef-arity2 x
-    | FDIVR x: sem-undef-arity2 x
-    | FDIVRP x: sem-undef-arity2 x
-    | FFREE x: sem-undef-arity1 x
-    | FIADD x: sem-undef-arity1 x
-    | FICOM x: sem-undef-arity1 x
-    | FICOMP x: sem-undef-arity1 x
-    | FIDIV x: sem-undef-arity2 x
-    | FIDIVR x: sem-undef-arity1 x
-    | FILD x: sem-undef-arity1 x
-    | FIMUL x: sem-undef-arity1 x
-    | FINCSTP: sem-undef-arity0
-    | FINIT: sem-undef-arity0
-    | FIST x: sem-undef-arity1 x
-    | FISTP x: sem-undef-arity1 x
-    | FISTTP x: sem-undef-arity1 x
-    | FISUB x: sem-undef-arity1 x
-    | FISUBR x: sem-undef-arity1 x
-    | FLD x: sem-undef-arity1 x
-    | FLD1: sem-undef-arity0
-    | FLDCW x: sem-undef-arity1 x
-    | FLDENV x: sem-undef-arity1 x
-    | FLDL2E: sem-undef-arity0
-    | FLDL2T: sem-undef-arity0
-    | FLDLG2: sem-undef-arity0
-    | FLDLN2: sem-undef-arity0
-    | FLDPI: sem-undef-arity0
-    | FLDZ: sem-undef-arity0
-    | FMUL x: sem-undef-arity2 x
-    | FMULP x: sem-undef-arity2 x
-    | FNCLEX: sem-undef-arity0
-    | FNINIT: sem-undef-arity0
-    | FNOP: sem-undef-arity0
-    | FNSAVE x: sem-undef-arity1 x
-    | FNSTCW x: sem-undef-arity1 x
-    | FNSTENV x: sem-undef-arity1 x
-    | FNSTSW x: sem-undef-arity1 x
-    | FPATAN: sem-undef-arity0
-    | FPREM1: sem-undef-arity0
-    | FPREM: sem-undef-arity0
-    | FPTAN: sem-undef-arity0
-    | FRNDINT: sem-undef-arity0
-    | FRSTOR x: sem-undef-arity1 x
-    | FSAVE x: sem-undef-arity1 x
-    | FSCALE: sem-undef-arity0
-    | FSIN: sem-undef-arity0
-    | FSINCOS: sem-undef-arity0
-    | FSQRT: sem-undef-arity0
-    | FST x: sem-undef-arity1 x
-    | FSTCW x: sem-undef-arity1 x
-    | FSTENV x: sem-undef-arity1 x
-    | FSTP x: sem-undef-arity1 x
-    | FSTSW x: sem-undef-arity1 x
-    | FSUB x: sem-undef-arity2 x
-    | FSUBP x: sem-undef-arity2 x
-    | FSUBR x: sem-undef-arity2 x
-    | FSUBRP x: sem-undef-arity2 x
-    | FTST: sem-undef-arity0
-    | FUCOM x: sem-undef-arity1 x
-    | FUCOMI x: sem-undef-arity1 x
-    | FUCOMIP x: sem-undef-arity1 x
-    | FUCOMP x: sem-undef-arity1 x
-    | FUCOMPP: sem-undef-arity0
-    | FXAM: sem-undef-arity0
-    | FXCH x: sem-undef-arity1 x
-    | FXRSTOR x: sem-undef-arity1 x
-    | FXRSTOR64 x: sem-undef-arity1 x
-    | FXSAVE x: sem-undef-arity1 x
-    | FXSAVE64 x: sem-undef-arity1 x
-    | FXTRACT: sem-undef-arity0
-    | FYL2X: sem-undef-arity0
-    | FYL2XP1: sem-undef-arity0
-    | HADDPD x: sem-undef-arity2 x
-    | HADDPS x: sem-undef-arity2 x
-    | HLT: sem-hlt
-    | HSUBPD x: sem-undef-arity2 x
-    | HSUBPS x: sem-undef-arity2 x
-    | IDIV x: sem-undef-arity1 x
-    | IMUL x: sem-undef-varity x
-    | IN x: sem-undef-arity2 x
-    | INC x: sem-undef-arity1 x
-    | INSB: sem-undef-arity0
-    | INSD: sem-undef-arity0
-    | INSERTPS x: sem-undef-arity3 x
-    | INSW: sem-undef-arity0
-    | INT x: sem-undef-arity1 x
-    | INT0: sem-undef-arity0
-    | INT3: sem-undef-arity0
-    | INVD: sem-undef-arity0
-    | INVLPG x: sem-undef-arity1 x
-    | INVPCID x: sem-undef-arity2 x
-    | IRET: sem-undef-arity0
-    | IRETD: sem-undef-arity0
-    | IRETQ: sem-undef-arity0
-    | JA x: sem-a sem-jcc x
-    | JAE x: sem-ae sem-jcc x
-    | JB x: sem-b sem-jcc x
-    | JBE x: sem-be sem-jcc x
-    | JC x: sem-c sem-jcc x
-    | JCXZ x: sem-jcxz x
-    | JE x: sem-e sem-jcc x
-    | JECXZ x: sem-jecxz x
-    | JG x: sem-g sem-jcc x
-    | JGE x: sem-ge sem-jcc x
-    | JL x: sem-l sem-jcc x
-    | JLE x: sem-le sem-jcc x
-    | JMP x: sem-jmp x
-    | JNA x: sem-na sem-jcc x
-    | JNAE x: sem-nae sem-jcc x
-    | JNB x: sem-nb sem-jcc x
-    | JNBE x: sem-nbe sem-jcc x
-    | JNC x: sem-nc sem-jcc x
-    | JNE x: sem-ne sem-jcc x
-    | JNG x: sem-ng sem-jcc x
-    | JNGE x: sem-nge sem-jcc x
-    | JNL x: sem-nl sem-jcc x
-    | JNLE x: sem-nle sem-jcc x
-    | JNO x: sem-no sem-jcc x
-    | JNP x: sem-np sem-jcc x
-    | JNS x: sem-ns sem-jcc x
-    | JNZ x: sem-nz sem-jcc x
-    | JO x: sem-o sem-jcc x
-    | JP x: sem-p sem-jcc x
-    | JPE x: sem-pe sem-jcc x
-    | JPO x: sem-po sem-jcc x
-    | JRCXZ x: sem-jrcxz x
-    | JS x: sem-s sem-jcc x
-    | JZ x: sem-z sem-jcc x
-    | LAHF: sem-undef-arity0
-    | LAR x: sem-undef-arity2 x
-    | LDDQU x: sem-undef-arity2 x
-    | LDMXCSR x: sem-undef-arity1 x
-    | LDS x: sem-undef-arity2 x
-    | LEA x: sem-lea x
-    | LEAVE: sem-undef-arity0
-    | LES x: sem-undef-arity2 x
-    | LFENCE: sem-undef-arity0
-    | LFS x: sem-undef-arity2 x
-    | LGDT x: sem-undef-arity1 x
-    | LGS x: sem-undef-arity2 x
-    | LIDT x: sem-undef-arity1 x
-    | LLDT x: sem-undef-arity1 x
-    | LMSW x: sem-undef-arity1 x
-    | LOCK: sem-undef-arity0
-    | LODSB: sem-undef-arity0
-    | LODSD: sem-undef-arity0
-    | LODSQ: sem-undef-arity0
-    | LODSW: sem-undef-arity0
-    | LOOP x: sem-undef-flow1 x
-    | LOOPE x: sem-undef-flow1 x
-    | LOOPNE x: sem-undef-flow1 x
-    | LSL x: sem-undef-arity2 x
-    | LSS x: sem-undef-arity2 x
-    | LTR x: sem-undef-arity1 x
-    | MASKMOVDQU x: sem-undef-arity2 x
-    | MASKMOVQ x: sem-undef-arity2 x
-    | MAXPD x: sem-undef-arity2 x
-    | MAXPS x: sem-undef-arity2 x
-    | MAXSD x: sem-undef-arity2 x
-    | MAXSS x: sem-undef-arity2 x
-    | MFENCE: sem-undef-arity0
-    | MINPD x: sem-undef-arity2 x
-    | MINPS x: sem-undef-arity2 x
-    | MINSD x: sem-undef-arity2 x
-    | MINSS x: sem-undef-arity2 x
-    | MONITOR: sem-undef-arity0
-    | MOV x: sem-mov x
-    | MOVAPD x: sem-movap x
-    | MOVAPS x: sem-movap x
-    | MOVBE x: sem-undef-arity2 x
-    | MOVD x: sem-undef-arity2 x
-    | MOVDDUP x: sem-undef-arity2 x
-    | MOVDQ2Q x: sem-undef-arity2 x
-    | MOVDQA x: sem-undef-arity2 x
-    | MOVDQU x: sem-undef-arity2 x
-    | MOVHLPS x: sem-undef-arity2 x
-    | MOVHPD x: sem-undef-arity2 x
-    | MOVHPS x: sem-undef-arity2 x
-    | MOVLHPS x: sem-undef-arity2 x
-    | MOVLPD x: sem-undef-arity2 x
-    | MOVLPS x: sem-undef-arity2 x
-    | MOVMSKPD x: sem-undef-arity2 x
-    | MOVMSKPS x: sem-undef-arity2 x
-    | MOVNTDQ x: sem-undef-arity2 x
-    | MOVNTDQA x: sem-undef-arity2 x
-    | MOVNTI x: sem-undef-arity2 x
-    | MOVNTPD x: sem-undef-arity2 x
-    | MOVNTPS x: sem-undef-arity2 x
-    | MOVNTQ x: sem-undef-arity2 x
-    | MOVQ x: sem-undef-arity2 x
-    | MOVQ2DQ x: sem-undef-arity2 x
-    | MOVSB: sem-undef-arity0
-    | MOVSD x: sem-undef-varity x
-    | MOVSHDUP x: sem-undef-arity2 x
-    | MOVSLDUP x: sem-undef-arity2 x
-    | MOVSQ: sem-undef-arity0
-    | MOVSS x: sem-undef-arity2 x
-    | MOVSW x: sem-undef-arity2 x
-    | MOVSX x: sem-movsx x
-    | MOVSXD x: sem-movsx x
-    | MOVUPD x: sem-undef-arity2 x
-    | MOVUPS x: sem-undef-arity2 x
-    | MOVZX x: sem-movzx x
-    | MPSADBW x: sem-undef-arity3 x
-    | MUL x: sem-undef-arity1 x
-    | MULPD x: sem-undef-arity2 x
-    | MULPS x: sem-undef-arity2 x
-    | MULSD x: sem-undef-arity2 x
-    | MULSS x: sem-undef-arity2 x
-    | MWAIT: sem-undef-arity0
-    | NEG x: sem-undef-arity1 x
-    | NOP x: sem-nop x
-    | NOT x: sem-undef-arity1 x
-    | OR x: sem-or x
-    | ORPD x: sem-undef-arity2 x
-    | ORPS x: sem-undef-arity2 x
-    | OUT x: sem-undef-arity2 x
-    | OUTS: sem-undef-arity0
-    | OUTSB: sem-undef-arity0
-    | OUTSD: sem-undef-arity0
-    | OUTSW: sem-undef-arity0
-    | PABSB x: sem-undef-arity2 x
-    | PABSD x: sem-undef-arity2 x
-    | PABSW x: sem-undef-arity2 x
-    | PACKSSDW x: sem-undef-arity2 x
-    | PACKSSWB x: sem-undef-arity2 x
-    | PACKUSDW x: sem-undef-arity2 x
-    | PACKUSWB x: sem-undef-arity2 x
-    | PADDB x: sem-undef-arity2 x
-    | PADDD x: sem-undef-arity2 x
-    | PADDQ x: sem-undef-arity2 x
-    | PADDSB x: sem-undef-arity2 x
-    | PADDSW x: sem-undef-arity2 x
-    | PADDUSB x: sem-undef-arity2 x
-    | PADDUSW x: sem-undef-arity2 x
-    | PADDW x: sem-undef-arity2 x
-    | PALIGNR x: sem-undef-arity3 x
-    | PAND x: sem-undef-arity2 x
-    | PANDN x: sem-undef-arity2 x
-    | PAUSE: sem-undef-arity0
-    | PAVGB x: sem-undef-arity2 x
-    | PAVGW x: sem-undef-arity2 x
-    | PBLENDVB x: sem-undef-arity2 x
-    | PBLENDW x: sem-undef-arity3 x
-    | PCLMULQDQ x: sem-undef-arity3 x
-    | PCMPEQB x: sem-undef-arity2 x
-    | PCMPEQD x: sem-undef-arity2 x
-    | PCMPEQQ x: sem-undef-arity2 x
-    | PCMPEQW x: sem-undef-arity2 x
-    | PCMPESTRI x: sem-undef-arity3 x
-    | PCMPESTRM x: sem-undef-arity3 x
-    | PCMPGRD x: sem-undef-arity2 x
-    | PCMPGTB x: sem-undef-arity2 x
-    | PCMPGTD x: sem-undef-arity2 x
-    | PCMPGTQ x: sem-undef-arity2 x
-    | PCMPGTW x: sem-undef-arity2 x
-    | PCMPISTRI x: sem-undef-arity3 x
-    | PCMPISTRM x: sem-undef-arity3 x
-    | PEXTRB x: sem-undef-arity3 x
-    | PEXTRD x: sem-undef-arity3 x
-    | PEXTRQ x: sem-undef-arity3 x
-    | PEXTRW x: sem-undef-arity3 x
-    | PHADDD x: sem-undef-arity2 x
-    | PHADDSW x: sem-undef-arity2 x
-    | PHADDW x: sem-undef-arity2 x
-    | PHMINPOSUW x: sem-undef-arity2 x
-    | PHSUBD x: sem-undef-arity2 x
-    | PHSUBSW x: sem-undef-arity2 x
-    | PHSUBW x: sem-undef-arity2 x
-    | PINSRB x: sem-undef-arity3 x
-    | PINSRD x: sem-undef-arity3 x
-    | PINSRQ x: sem-undef-arity3 x
-    | PINSRW x: sem-undef-arity3 x
-    | PMADDUBSW x: sem-undef-arity2 x
-    | PMADDWD x: sem-undef-arity2 x
-    | PMAXSB x: sem-undef-arity2 x
-    | PMAXSD x: sem-undef-arity2 x
-    | PMAXSW x: sem-undef-arity2 x
-    | PMAXUB x: sem-undef-arity2 x
-    | PMAXUD x: sem-undef-arity2 x
-    | PMAXUW x: sem-undef-arity2 x
-    | PMINSB x: sem-undef-arity2 x
-    | PMINSD x: sem-undef-arity2 x
-    | PMINSW x: sem-undef-arity2 x
-    | PMINUB x: sem-undef-arity2 x
-    | PMINUD x: sem-undef-arity2 x
-    | PMINUW x: sem-undef-arity2 x
-    | PMOVMSKB x: sem-undef-arity2 x
-    | PMOVSXBD x: sem-undef-arity2 x
-    | PMOVSXBQ x: sem-undef-arity2 x
-    | PMOVSXBW x: sem-undef-arity2 x
-    | PMOVSXDQ x: sem-undef-arity2 x
-    | PMOVSXWD x: sem-undef-arity2 x
-    | PMOVSXWQ x: sem-undef-arity2 x
-    | PMOVZXBD x: sem-undef-arity2 x
-    | PMOVZXBQ x: sem-undef-arity2 x
-    | PMOVZXBW x: sem-undef-arity2 x
-    | PMOVZXDQ x: sem-undef-arity2 x
-    | PMOVZXWD x: sem-undef-arity2 x
-    | PMOVZXWQ x: sem-undef-arity2 x
-    | PMULDQ x: sem-undef-arity2 x
-    | PMULHRSW x: sem-undef-arity2 x
-    | PMULHUW x: sem-undef-arity2 x
-    | PMULHW x: sem-undef-arity2 x
-    | PMULLD x: sem-undef-arity2 x
-    | PMULLW x: sem-undef-arity2 x
-    | PMULUDQ x: sem-undef-arity2 x
-    | POP x: sem-pop x
-    | POPA: sem-undef-arity0
-    | POPAD: sem-undef-arity0
-    | POPCNT x: sem-undef-arity2 x
-    | POPF: sem-undef-arity0
-    | POPFD: sem-undef-arity0
-    | POPFQ: sem-undef-arity0
-    | POR x: sem-undef-arity2 x
-    | PREFETCHNTA x: sem-undef-arity1 x
-    | PREFETCHT0 x: sem-undef-arity1 x
-    | PREFETCHT1 x: sem-undef-arity1 x
-    | PREFETCHT2 x: sem-undef-arity1 x
-    | PREFETCHW x: sem-undef-arity1 x
-    | PSADBW x: sem-undef-arity2 x
-    | PSHUFB x: sem-undef-arity2 x
-    | PSHUFD x: sem-undef-arity3 x
-    | PSHUFHW x: sem-undef-arity3 x
-    | PSHUFLW x: sem-undef-arity3 x
-    | PSHUFW x: sem-undef-arity3 x
-    | PSIGNB x: sem-undef-arity2 x
-    | PSIGND x: sem-undef-arity2 x
-    | PSIGNW x: sem-undef-arity2 x
-    | PSLLD x: sem-undef-arity2 x
-    | PSLLDQ x: sem-undef-arity2 x
-    | PSLLQ x: sem-undef-arity2 x
-    | PSLLW x: sem-undef-arity2 x
-    | PSRAD x: sem-undef-arity2 x
-    | PSRAW x: sem-undef-arity2 x
-    | PSRLD x: sem-undef-arity2 x
-    | PSRLDQ x: sem-undef-arity2 x
-    | PSRLQ x: sem-undef-arity2 x
-    | PSRLW x: sem-undef-arity2 x
-    | PSUBB x: sem-undef-arity2 x
-    | PSUBD x: sem-undef-arity2 x
-    | PSUBQ x: sem-undef-arity2 x
-    | PSUBSB x: sem-undef-arity2 x
-    | PSUBSW x: sem-undef-arity2 x
-    | PSUBUSB x: sem-undef-arity2 x
-    | PSUBUSW x: sem-undef-arity2 x
-    | PSUBW x: sem-undef-arity2 x
-    | PTEST x: sem-undef-arity2 x
-    | PUNPCKHBW x: sem-undef-arity2 x
-    | PUNPCKHDQ x: sem-undef-arity2 x
-    | PUNPCKHQDQ x: sem-undef-arity2 x
-    | PUNPCKHWD x: sem-undef-arity2 x
-    | PUNPCKLBW x: sem-undef-arity2 x
-    | PUNPCKLDQ x: sem-undef-arity2 x
-    | PUNPCKLQDQ x: sem-undef-arity2 x
-    | PUNPCKLWD x: sem-undef-arity2 x
-    | PUSH x: sem-push x
-    | PUSHA: sem-undef-arity0
-    | PUSHAD: sem-undef-arity0
-    | PUSHF: sem-undef-arity0
-    | PUSHFD: sem-undef-arity0
-    | PUSHFQ: sem-undef-arity0
-    | PXOR x: sem-undef-arity2 x
-    | RCL x: sem-undef-arity2 x
-    | RCPPS x: sem-undef-arity2 x
-    | RCPSS x: sem-undef-arity2 x
-    | RCR x: sem-undef-arity2 x
-    | RDFSBASE x: sem-undef-arity1 x
-    | RDGSBASE x: sem-undef-arity1 x
-    | RDMSR: sem-undef-arity0
-    | RDPMC: sem-undef-arity0
-    | RDRAND x: sem-undef-arity1 x
-    | RDTSC: sem-undef-arity0
-    | RDTSCP: sem-undef-arity0
-    | RET x: sem-ret x
-    | RET_FAR x: sem-ret-far x
-    | ROL x: sem-undef-arity2 x
-    | ROR x: sem-undef-arity2 x
-    | ROUNDPD x: sem-undef-arity3 x
-    | ROUNDPS x: sem-undef-arity3 x
-    | ROUNDSD x: sem-undef-arity3 x
-    | ROUNDSS x: sem-undef-arity3 x
-    | RSM: sem-undef-arity0
-    | RSQRTPS x: sem-undef-arity2 x
-    | RSQRTSS x: sem-undef-arity2 x
-    | SAHF: sem-undef-arity0
-    | SAL x: sem-sal-shl x
-    | SAR x: sem-sar x
-    | SBB x: sem-sbb x
-    | SCASB: sem-undef-arity0
-    | SCASD: sem-undef-arity0
-    | SCASQ: sem-undef-arity0
-    | SCASW: sem-undef-arity0
-    | SETA x: sem-a sem-setcc x
-    | SETAE x: sem-ae sem-setcc x
-    | SETB x: sem-b sem-setcc x
-    | SETBE x: sem-be sem-setcc x
-    | SETC x: sem-c sem-setcc x
-    | SETE x: sem-e sem-setcc x
-    | SETG x: sem-g sem-setcc x
-    | SETGE x: sem-ge sem-setcc x
-    | SETL x: sem-l sem-setcc x
-    | SETLE x: sem-le sem-setcc x
-    | SETNA x: sem-na sem-setcc x
-    | SETNAE x: sem-nae sem-setcc x
-    | SETNB x: sem-nb sem-setcc x
-    | SETNBE x: sem-nbe sem-setcc x
-    | SETNC x: sem-nc sem-setcc x
-    | SETNE x: sem-ne sem-setcc x
-    | SETNG x: sem-ng sem-setcc x
-    | SETNGE x: sem-nge sem-setcc x
-    | SETNL x: sem-nl sem-setcc x
-    | SETNLE x: sem-nle sem-setcc x
-    | SETNO x: sem-no sem-setcc x
-    | SETNP x: sem-np sem-setcc x
-    | SETNS x: sem-ns sem-setcc x
-    | SETNZ x: sem-nz sem-setcc x
-    | SETO x: sem-o sem-setcc x
-    | SETP x: sem-p sem-setcc x
-    | SETPE x: sem-pe sem-setcc x
-    | SETPO x: sem-po sem-setcc x
-    | SETS x: sem-s sem-setcc x
-    | SETZ x: sem-z sem-setcc x
-    | SFENCE: sem-undef-arity0
-    | SGDT x: sem-undef-arity1 x
-    | SHL x: sem-sal-shl x
-    | SHLD x: sem-undef-arity3 x
-    | SHR x: sem-shr x
-    | SHRD x: sem-undef-arity3 x
-    | SHUFPD x: sem-undef-arity3 x
-    | SHUFPS x: sem-undef-arity3 x
-    | SIDT x: sem-undef-arity1 x
-    | SLDT x: sem-undef-arity1 x
-    | SMSW x: sem-undef-arity1 x
-    | SQRTPD x: sem-undef-arity2 x
-    | SQRTPS x: sem-undef-arity2 x
-    | SQRTSD x: sem-undef-arity2 x
-    | SQRTSS x: sem-undef-arity2 x
-    | STC: sem-undef-arity0
-    | STD: sem-undef-arity0
-    | STI: sem-undef-arity0
-    | STMXCSR x: sem-undef-arity1 x
-    | STOSB: sem-undef-arity0
-    | STOSD: sem-undef-arity0
-    | STOSQ: sem-undef-arity0
-    | STOSW: sem-undef-arity0
-    | STR x: sem-undef-arity1 x
-    | SUB x: sem-sub x
-    | SUBPD x: sem-undef-arity2 x
-    | SUBPS x: sem-undef-arity2 x
-    | SUBSD x: sem-undef-arity2 x
-    | SUBSS x: sem-undef-arity2 x
-    | SWAPGS: sem-undef-arity0
-    | SYSCALL: sem-undef-arity0
-    | SYSENTER: sem-undef-arity0
-    | SYSEXIT: sem-undef-arity0
-    | SYSRET: sem-undef-arity0
-    | TEST x: sem-test x
-    | UCOMISD x: sem-undef-arity2 x
-    | UCOMISS x: sem-undef-arity2 x
-    | UD2: sem-undef-arity0
-    | UNPCKHPD x: sem-undef-arity2 x
-    | UNPCKHPS x: sem-undef-arity2 x
-    | UNPCKLPD x: sem-undef-arity2 x
-    | UNPCKLPS x: sem-undef-arity2 x
-    | VADDPD x: sem-undef-varity x
-    | VADDPS x: sem-undef-varity x
-    | VADDSD x: sem-undef-varity x
-    | VADDSS x: sem-undef-varity x
-    | VADDSUBPD x: sem-undef-varity x
-    | VADDSUBPS x: sem-undef-varity x
-    | VAESDEC x: sem-undef-varity x
-    | VAESDECLAST x: sem-undef-varity x
-    | VAESENC x: sem-undef-varity x
-    | VAESENCLAST x: sem-undef-varity x
-    | VAESIMC x: sem-undef-varity x
-    | VAESKEYGENASSIST x: sem-undef-varity x
-    | VANDNPD x: sem-undef-varity x
-    | VANDNPS x: sem-undef-varity x
-    | VANDPD x: sem-undef-varity x
-    | VANDPS x: sem-undef-varity x
-    | VBLENDPD x: sem-undef-varity x
-    | VBLENDPS x: sem-undef-varity x
-    | VBLENDVPD x: sem-undef-varity x
-    | VBLENDVPS x: sem-undef-varity x
-    | VBROADCASTF128 x: sem-undef-varity x
-    | VBROADCASTSD x: sem-undef-varity x
-    | VBROADCASTSS x: sem-undef-varity x
-    | VCMPEQB x: sem-undef-varity x
-    | VCMPEQD x: sem-undef-varity x
-    | VCMPEQW x: sem-undef-varity x
-    | VCMPPD x: sem-undef-varity x
-    | VCMPPS x: sem-undef-varity x
-    | VCMPSD x: sem-undef-varity x
-    | VCMPSS x: sem-undef-varity x
-    | VCOMISD x: sem-undef-varity x
-    | VCOMISS x: sem-undef-varity x
-    | VCVTDQ2PD x: sem-undef-varity x
-    | VCVTDQ2PS x: sem-undef-varity x
-    | VCVTPD2DQ x: sem-undef-varity x
-    | VCVTPD2PS x: sem-undef-varity x
-    | VCVTPH2PS x: sem-undef-varity x
-    | VCVTPS2DQ x: sem-undef-varity x
-    | VCVTPS2PD x: sem-undef-varity x
-    | VCVTPS2PH x: sem-undef-varity x
-    | VCVTSD2SI x: sem-undef-varity x
-    | VCVTSD2SS x: sem-undef-varity x
-    | VCVTSI2SD x: sem-undef-varity x
-    | VCVTSI2SS x: sem-undef-varity x
-    | VCVTSS2SD x: sem-undef-varity x
-    | VCVTSS2SI x: sem-undef-varity x
-    | VCVTTPD2DQ x: sem-undef-varity x
-    | VCVTTPS2DQ x: sem-undef-varity x
-    | VCVTTSD2SI x: sem-undef-varity x
-    | VCVTTSS2SI x: sem-undef-varity x
-    | VDIVPD x: sem-undef-varity x
-    | VDIVPS x: sem-undef-varity x
-    | VDIVSD x: sem-undef-varity x
-    | VDIVSS x: sem-undef-varity x
-    | VDPPD x: sem-undef-varity x
-    | VDPPS x: sem-undef-varity x
-    | VERR x: sem-undef-arity1 x
-    | VERW x: sem-undef-arity1 x
-    | VEXTRACTF128 x: sem-undef-varity x
-    | VEXTRACTPS x: sem-undef-varity x
-    | VHADDPD x: sem-undef-varity x
-    | VHADDPS x: sem-undef-varity x
-    | VHSUBPD x: sem-undef-varity x
-    | VHSUBPS x: sem-undef-varity x
-    | VINSERTF128 x: sem-undef-varity x
-    | VINSERTPS x: sem-undef-varity x
-    | VLDDQU x: sem-undef-varity x
-    | VLDMXCSR x: sem-undef-varity x
-    | VMASKMOVDQU x: sem-undef-varity x
-    | VMASKMOVPD x: sem-undef-varity x
-    | VMASKMOVPS x: sem-undef-varity x
-    | VMAXPD x: sem-undef-varity x
-    | VMAXPS x: sem-undef-varity x
-    | VMAXSD x: sem-undef-varity x
-    | VMAXSS x: sem-undef-varity x
-    | VMINPD x: sem-undef-varity x
-    | VMINPS x: sem-undef-varity x
-    | VMINSD x: sem-undef-varity x
-    | VMINSS x: sem-undef-varity x
-    | VMOVAPD x: sem-vmovap x
-    | VMOVAPS x: sem-vmovap x
-    | VMOVD x: sem-undef-varity x
-    | VMOVDDUP x: sem-undef-varity x
-    | VMOVDQA x: sem-undef-varity x
-    | VMOVDQU x: sem-undef-varity x
-    | VMOVHLPS x: sem-undef-varity x
-    | VMOVHPD x: sem-undef-varity x
-    | VMOVHPS x: sem-undef-varity x
-    | VMOVLHPS x: sem-undef-varity x
-    | VMOVLPD x: sem-undef-varity x
-    | VMOVLPS x: sem-undef-varity x
-    | VMOVMSKPD x: sem-undef-varity x
-    | VMOVMSKPS x: sem-undef-varity x
-    | VMOVNTDQ x: sem-undef-varity x
-    | VMOVNTDQA x: sem-undef-varity x
-    | VMOVNTPD x: sem-undef-varity x
-    | VMOVNTPS x: sem-undef-varity x
-    | VMOVQ x: sem-undef-varity x
-    | VMOVSD x: sem-undef-varity x
-    | VMOVSHDUP x: sem-undef-varity x
-    | VMOVSLDUP x: sem-undef-varity x
-    | VMOVSS x: sem-undef-varity x
-    | VMOVUPD x: sem-undef-varity x
-    | VMOVUPS x: sem-undef-varity x
-    | VMPSADBW x: sem-undef-varity x
-    | VMULPD x: sem-undef-varity x
-    | VMULPS x: sem-undef-varity x
-    | VMULSD x: sem-undef-varity x
-    | VMULSS x: sem-undef-varity x
-    | VORPD x: sem-undef-varity x
-    | VORPS x: sem-undef-varity x
-    | VPABSB x: sem-undef-varity x
-    | VPABSD x: sem-undef-varity x
-    | VPABSW x: sem-undef-varity x
-    | VPACKSSDW x: sem-undef-varity x
-    | VPACKSSWB x: sem-undef-varity x
-    | VPACKUSDW x: sem-undef-varity x
-    | VPACKUSWB x: sem-undef-varity x
-    | VPADDB x: sem-undef-varity x
-    | VPADDD x: sem-undef-varity x
-    | VPADDQ x: sem-undef-varity x
-    | VPADDSB x: sem-undef-varity x
-    | VPADDSW x: sem-undef-varity x
-    | VPADDUSB x: sem-undef-varity x
-    | VPADDUSW x: sem-undef-varity x
-    | VPADDW x: sem-undef-varity x
-    | VPALIGNR x: sem-undef-varity x
-    | VPAND x: sem-undef-varity x
-    | VPANDN x: sem-undef-varity x
-    | VPAVGB x: sem-undef-varity x
-    | VPAVGW x: sem-undef-varity x
-    | VPBLENDVB x: sem-undef-varity x
-    | VPBLENDW x: sem-undef-varity x
-    | VPCLMULQDQ x: sem-undef-varity x
-    | VPCMPEQB x: sem-undef-varity x
-    | VPCMPEQD x: sem-undef-varity x
-    | VPCMPEQQ x: sem-undef-varity x
-    | VPCMPEQW x: sem-undef-varity x
-    | VPCMPESTRI x: sem-undef-varity x
-    | VPCMPESTRM x: sem-undef-varity x
-    | VPCMPGTB x: sem-undef-varity x
-    | VPCMPGTD x: sem-undef-varity x
-    | VPCMPGTQ x: sem-undef-varity x
-    | VPCMPGTW x: sem-undef-varity x
-    | VPCMPISTRI x: sem-undef-varity x
-    | VPCMPISTRM x: sem-undef-varity x
-    | VPERM2F128 x: sem-undef-varity x
-    | VPERMILPD x: sem-undef-varity x
-    | VPERMILPS x: sem-undef-varity x
-    | VPEXTRB x: sem-undef-varity x
-    | VPEXTRD x: sem-undef-varity x
-    | VPEXTRQ x: sem-undef-varity x
-    | VPEXTRW x: sem-undef-varity x
-    | VPHADDD x: sem-undef-varity x
-    | VPHADDSW x: sem-undef-varity x
-    | VPHADDW x: sem-undef-varity x
-    | VPHMINPOSUW x: sem-undef-varity x
-    | VPHSUBD x: sem-undef-varity x
-    | VPHSUBSW x: sem-undef-varity x
-    | VPHSUBW x: sem-undef-varity x
-    | VPINSRB x: sem-undef-varity x
-    | VPINSRD x: sem-undef-varity x
-    | VPINSRQ x: sem-undef-varity x
-    | VPINSRW x: sem-undef-varity x
-    | VPMADDUBSW x: sem-undef-varity x
-    | VPMADDWD x: sem-undef-varity x
-    | VPMAXSB x: sem-undef-varity x
-    | VPMAXSD x: sem-undef-varity x
-    | VPMAXSW x: sem-undef-varity x
-    | VPMAXUB x: sem-undef-varity x
-    | VPMAXUD x: sem-undef-varity x
-    | VPMAXUW x: sem-undef-varity x
-    | VPMINSB x: sem-undef-varity x
-    | VPMINSD x: sem-undef-varity x
-    | VPMINSW x: sem-undef-varity x
-    | VPMINUB x: sem-undef-varity x
-    | VPMINUD x: sem-undef-varity x
-    | VPMINUW x: sem-undef-varity x
-    | VPMOVMSKB x: sem-undef-varity x
-    | VPMOVSXBD x: sem-undef-varity x
-    | VPMOVSXBQ x: sem-undef-varity x
-    | VPMOVSXBW x: sem-undef-varity x
-    | VPMOVSXDQ x: sem-undef-varity x
-    | VPMOVSXWD x: sem-undef-varity x
-    | VPMOVSXWQ x: sem-undef-varity x
-    | VPMOVZXBD x: sem-undef-varity x
-    | VPMOVZXBQ x: sem-undef-varity x
-    | VPMOVZXBW x: sem-undef-varity x
-    | VPMOVZXDQ x: sem-undef-varity x
-    | VPMOVZXWD x: sem-undef-varity x
-    | VPMOVZXWQ x: sem-undef-varity x
-    | VPMULDQ x: sem-undef-varity x
-    | VPMULHRSW x: sem-undef-varity x
-    | VPMULHUW x: sem-undef-varity x
-    | VPMULHW x: sem-undef-varity x
-    | VPMULLD x: sem-undef-varity x
-    | VPMULLW x: sem-undef-varity x
-    | VPMULUDQ x: sem-undef-varity x
-    | VPOR x: sem-undef-varity x
-    | VPSADBW x: sem-undef-varity x
-    | VPSHUFB x: sem-undef-varity x
-    | VPSHUFD x: sem-undef-varity x
-    | VPSHUFHW x: sem-undef-varity x
-    | VPSHUFLW x: sem-undef-varity x
-    | VPSIGNB x: sem-undef-varity x
-    | VPSIGND x: sem-undef-varity x
-    | VPSIGNW x: sem-undef-varity x
-    | VPSLLD x: sem-undef-varity x
-    | VPSLLDQ x: sem-undef-varity x
-    | VPSLLQ x: sem-undef-varity x
-    | VPSLLW x: sem-undef-varity x
-    | VPSRAD x: sem-undef-varity x
-    | VPSRAW x: sem-undef-varity x
-    | VPSRLD x: sem-undef-varity x
-    | VPSRLDQ x: sem-undef-varity x
-    | VPSRLQ x: sem-undef-varity x
-    | VPSRLW x: sem-undef-varity x
-    | VPSUBB x: sem-undef-varity x
-    | VPSUBD x: sem-undef-varity x
-    | VPSUBQ x: sem-undef-varity x
-    | VPSUBSB x: sem-undef-varity x
-    | VPSUBSW x: sem-undef-varity x
-    | VPSUBUSB x: sem-undef-varity x
-    | VPSUBUSW x: sem-undef-varity x
-    | VPSUBW x: sem-undef-varity x
-    | VPTEST x: sem-undef-varity x
-    | VPUNPCKHBW x: sem-undef-varity x
-    | VPUNPCKHDQ x: sem-undef-varity x
-    | VPUNPCKHQDQ x: sem-undef-varity x
-    | VPUNPCKHWD x: sem-undef-varity x
-    | VPUNPCKLBW x: sem-undef-varity x
-    | VPUNPCKLDQ x: sem-undef-varity x
-    | VPUNPCKLQDQ x: sem-undef-varity x
-    | VPUNPCKLWD x: sem-undef-varity x
-    | VPXOR x: sem-undef-varity x
-    | VRCPPS x: sem-undef-varity x
-    | VRCPSS x: sem-undef-varity x
-    | VROUNDPD x: sem-undef-varity x
-    | VROUNDPS x: sem-undef-varity x
-    | VROUNDSD x: sem-undef-varity x
-    | VROUNDSS x: sem-undef-varity x
-    | VRSQRTPS x: sem-undef-varity x
-    | VRSQRTSS x: sem-undef-varity x
-    | VSHUFPD x: sem-undef-varity x
-    | VSHUFPS x: sem-undef-varity x
-    | VSQRTPD x: sem-undef-varity x
-    | VSQRTPS x: sem-undef-varity x
-    | VSQRTSD x: sem-undef-varity x
-    | VSQRTSS x: sem-undef-varity x
-    | VSTMXCSR x: sem-undef-varity x
-    | VSUBPD x: sem-undef-varity x
-    | VSUBPS x: sem-undef-varity x
-    | VSUBSD x: sem-undef-varity x
-    | VSUBSS x: sem-undef-varity x
-    | VTESTPD x: sem-undef-varity x
-    | VTESTPS x: sem-undef-varity x
-    | VUCOMISD x: sem-undef-varity x
-    | VUCOMISS x: sem-undef-varity x
-    | VUNPCKHPD x: sem-undef-varity x
-    | VUNPCKHPS x: sem-undef-varity x
-    | VUNPCKLPD x: sem-undef-varity x
-    | VUNPCKLPS x: sem-undef-varity x
-    | VXORPS x: sem-undef-varity x
-    | VZEROALL x: sem-undef-varity x
-    | VZEROUPPER x: sem-undef-varity x
-    | WAIT: sem-undef-arity0
-    | WBINVD: sem-undef-arity0
-    | WRFSBASE x: sem-undef-arity1 x
-    | WRGSBASE x: sem-undef-arity1 x
-    | WRMSR: sem-undef-arity0
-    | XADD x: sem-undef-arity2 x
-    | XCHG x: sem-xchg x
-    | XGETBV: sem-undef-arity0
-    | XLAT: sem-undef-arity0
-    | XLATB: sem-undef-arity0
-    | XOR x: sem-xor x
-    | XORPD x: sem-undef-arity2 x
-    | XORPS x: sem-undef-arity2 x
-    | XRSTOR x: sem-undef-arity1 x
-    | XRSTOR64 x: sem-undef-arity1 x
-    | XSAVE x: sem-undef-arity1 x
-    | XSAVE64 x: sem-undef-arity1 x
-    | XSAVEOPT x: sem-undef-arity1 x
-    | XSAVEOPT64 x: sem-undef-arity1 x
-    | XSETBV: sem-undef-arity0
+     AAA x: sem-undef-arity0 x
+   | AAD x: sem-undef-arity1 x
+   | AAM x: sem-undef-arity1 x
+   | AAS x: sem-undef-arity0 x
+   | ADC x: sem-adc x
+   | ADD x: sem-add x
+   | ADDPD x: sem-undef-arity2 x
+   | ADDPS x: sem-undef-arity2 x
+   | ADDSD x: sem-undef-arity2 x
+   | ADDSS x: sem-undef-arity2 x
+   | ADDSUBPD x: sem-undef-arity2 x
+   | ADDSUBPS x: sem-undef-arity2 x
+   | AESDEC x: sem-undef-arity2 x
+   | AESDECLAST x: sem-undef-arity2 x
+   | AESENC x: sem-undef-arity2 x
+   | AESENCLAST x: sem-undef-arity2 x
+   | AESIMC x: sem-undef-arity2 x
+   | AESKEYGENASSIST x: sem-undef-arity3 x
+   | AND x: sem-undef-arity2 x
+   | ANDNPD x: sem-undef-arity2 x
+   | ANDNPS x: sem-undef-arity2 x
+   | ANDPD x: sem-undef-arity2 x
+   | ANDPS x: sem-undef-arity2 x
+   | ARPL x: sem-undef-arity2 x
+   | BLENDPD x: sem-undef-arity3 x
+   | BLENDPS x: sem-undef-arity3 x
+   | BLENDVPD x: sem-undef-arity3 x
+   | BLENDVPS x: sem-undef-arity3 x
+   | BOUND x: sem-undef-arity2 x
+   | BSF x: sem-undef-arity2 x
+   | BSR x: sem-undef-arity2 x
+   | BSWAP x: sem-undef-arity1 x
+   | BT x: sem-bt x
+   | BTC x: sem-undef-arity2 x
+   | BTR x: sem-undef-arity2 x
+   | BTS x: sem-undef-arity2 x
+   | CALL x: sem-call x
+   | CBW x: sem-undef-arity0 x
+   | CDQ x: sem-undef-arity0 x
+   | CDQE x: sem-undef-arity0 x
+   | CLC x: sem-undef-arity0 x
+   | CLD x: sem-undef-arity0 x
+   | CLFLUSH x: sem-undef-arity1 x
+   | CLI x: sem-undef-arity0 x
+   | CLTS x: sem-undef-arity0 x
+   | CMC x: sem-undef-arity0 x
+   | CMOVA x: sem-a sem-cmovcc x
+   | CMOVAE x: sem-ae sem-cmovcc x
+   | CMOVB x: sem-b sem-cmovcc x
+   | CMOVBE x: sem-be sem-cmovcc x
+   | CMOVC x: sem-c sem-cmovcc x
+   | CMOVE x: sem-e sem-cmovcc x
+   | CMOVG x: sem-g sem-cmovcc x
+   | CMOVGE x: sem-ge sem-cmovcc x
+   | CMOVL x: sem-l sem-cmovcc x
+   | CMOVLE x: sem-le sem-cmovcc x
+   | CMOVNA x: sem-na sem-cmovcc x
+   | CMOVNAE x: sem-nae sem-cmovcc x
+   | CMOVNB x: sem-nb sem-cmovcc x
+   | CMOVNBE x: sem-nbe sem-cmovcc x
+   | CMOVNC x: sem-nc sem-cmovcc x
+   | CMOVNE x: sem-ne sem-cmovcc x
+   | CMOVNG x: sem-ng sem-cmovcc x
+   | CMOVNGE x: sem-nge sem-cmovcc x
+   | CMOVNL x: sem-nl sem-cmovcc x
+   | CMOVNLE x: sem-nle sem-cmovcc x
+   | CMOVNO x: sem-no sem-cmovcc x
+   | CMOVNP x: sem-np sem-cmovcc x
+   | CMOVNS x: sem-ns sem-cmovcc x
+   | CMOVNZ x: sem-nz sem-cmovcc x
+   | CMOVO x: sem-o sem-cmovcc x
+   | CMOVP x: sem-p sem-cmovcc x
+   | CMOVPE x: sem-pe sem-cmovcc x
+   | CMOVPO x: sem-po sem-cmovcc x
+   | CMOVS x: sem-s sem-cmovcc x
+   | CMOVZ x: sem-z sem-cmovcc x
+   | CMP x: sem-cmp x
+   | CMPPD x: sem-undef-arity3 x
+   | CMPPS x: sem-undef-arity3 x
+   | CMPS x: sem-cmps x
+   | CMPSD x: sem-undef-arity3 x
+#   | CMPSD x:
+#       case x of
+#         VA0: sem-cmpsd
+#       | _ x: sem-undef-arity0 x
+#      end
+#   | CMPSQ x: sem-undef-arity0 x
+   | CMPSS x: sem-undef-arity3 x
+   | CMPXCHG x: sem-undef-arity2 x
+   | CMPXCHG16B x: sem-undef-arity1 x
+   | CMPXCHG8B x: sem-undef-arity1 x
+   | COMISD x: sem-undef-arity2 x
+   | COMISS x: sem-undef-arity2 x
+   | CPUID x: sem-undef-arity0 x
+   | CQO x: sem-undef-arity0 x
+   | CRC32 x: sem-undef-arity2 x
+   | CVTDQ2PD x: sem-undef-arity2 x
+   | CVTDQ2PS x: sem-undef-arity2 x
+   | CVTPD2DQ x: sem-undef-arity2 x
+   | CVTPD2PI x: sem-undef-arity2 x
+   | CVTPD2PS x: sem-undef-arity2 x
+   | CVTPI2PD x: sem-undef-arity2 x
+   | CVTPI2PS x: sem-undef-arity2 x
+   | CVTPS2DQ x: sem-undef-arity2 x
+   | CVTPS2PD x: sem-undef-arity2 x
+   | CVTPS2PI x: sem-undef-arity2 x
+   | CVTSD2SI x: sem-undef-arity2 x
+   | CVTSD2SS x: sem-undef-arity2 x
+   | CVTSI2SD x: sem-undef-arity2 x
+   | CVTSI2SS x: sem-undef-arity2 x
+   | CVTSS2SD x: sem-undef-arity2 x
+   | CVTSS2SI x: sem-undef-arity2 x
+   | CVTTPD2DQ x: sem-undef-arity2 x
+   | CVTTPD2PI x: sem-undef-arity2 x
+   | CVTTPS2DQ x: sem-undef-arity2 x
+   | CVTTPS2PI x: sem-undef-arity2 x
+   | CVTTSD2SI x: sem-undef-arity2 x
+   | CVTTSS2SI x: sem-undef-arity2 x
+   | CWD x: sem-undef-arity0 x
+   | CWDE x: sem-undef-arity0 x
+   | DAA x: sem-undef-arity0 x
+   | DAS x: sem-undef-arity0 x
+   | DEC x: sem-undef-arity1 x
+   | DIV x: sem-undef-arity1 x
+   | DIVPD x: sem-undef-arity2 x
+   | DIVPS x: sem-undef-arity2 x
+   | DIVSD x: sem-undef-arity2 x
+   | DIVSS x: sem-undef-arity2 x
+   | DPPD x: sem-undef-arity3 x
+   | DPPS x: sem-undef-arity3 x
+   | EMMS x: sem-undef-arity0 x
+   | ENTER x: sem-undef-arity2 x
+   | EXTRACTPS x: sem-undef-arity3 x
+   | F2XM1 x: sem-undef-arity0 x
+   | FABS x: sem-undef-arity0 x
+   | FADD x: sem-undef-arity2 x
+   | FADDP x: sem-undef-arity2 x
+   | FBLD x: sem-undef-arity1 x
+   | FBSTP x: sem-undef-arity1 x
+   | FCHS x: sem-undef-arity0 x
+   | FCLEX x: sem-undef-arity0 x
+   | FCMOVB x: sem-undef-arity2 x
+   | FCMOVBE x: sem-undef-arity2 x
+   | FCMOVE x: sem-undef-arity2 x
+   | FCMOVNB x: sem-undef-arity2 x
+   | FCMOVNBE x: sem-undef-arity2 x
+   | FCMOVNE x: sem-undef-arity2 x
+   | FCMOVNU x: sem-undef-arity2 x
+   | FCMOVU x: sem-undef-arity2 x
+   | FCOM x: sem-undef-arity1 x
+   | FCOMI x: sem-undef-arity2 x
+   | FCOMIP x: sem-undef-arity2 x
+   | FCOMP x: sem-undef-arity1 x
+   | FCOMPP x: sem-undef-arity0 x
+   | FCOS x: sem-undef-arity0 x
+   | FDECSTP x: sem-undef-arity0 x
+   | FDIV x: sem-undef-arity2 x
+   | FDIVP x: sem-undef-arity2 x
+   | FDIVR x: sem-undef-arity2 x
+   | FDIVRP x: sem-undef-arity2 x
+   | FFREE x: sem-undef-arity1 x
+   | FIADD x: sem-undef-arity1 x
+   | FICOM x: sem-undef-arity1 x
+   | FICOMP x: sem-undef-arity1 x
+   | FIDIV x: sem-undef-arity2 x
+   | FIDIVR x: sem-undef-arity1 x
+   | FILD x: sem-undef-arity1 x
+   | FIMUL x: sem-undef-arity1 x
+   | FINCSTP x: sem-undef-arity0 x
+   | FINIT x: sem-undef-arity0 x
+   | FIST x: sem-undef-arity1 x
+   | FISTP x: sem-undef-arity1 x
+   | FISTTP x: sem-undef-arity1 x
+   | FISUB x: sem-undef-arity1 x
+   | FISUBR x: sem-undef-arity1 x
+   | FLD x: sem-undef-arity1 x
+   | FLD1 x: sem-undef-arity0 x
+   | FLDCW x: sem-undef-arity1 x
+   | FLDENV x: sem-undef-arity1 x
+   | FLDL2E x: sem-undef-arity0 x
+   | FLDL2T x: sem-undef-arity0 x
+   | FLDLG2 x: sem-undef-arity0 x
+   | FLDLN2 x: sem-undef-arity0 x
+   | FLDPI x: sem-undef-arity0 x
+   | FLDZ x: sem-undef-arity0 x
+   | FMUL x: sem-undef-arity2 x
+   | FMULP x: sem-undef-arity2 x
+   | FNCLEX x: sem-undef-arity0 x
+   | FNINIT x: sem-undef-arity0 x
+   | FNOP x: sem-undef-arity0 x
+   | FNSAVE x: sem-undef-arity1 x
+   | FNSTCW x: sem-undef-arity1 x
+   | FNSTENV x: sem-undef-arity1 x
+   | FNSTSW x: sem-undef-arity1 x
+   | FPATAN x: sem-undef-arity0 x
+   | FPREM1 x: sem-undef-arity0 x
+   | FPREM x: sem-undef-arity0 x
+   | FPTAN x: sem-undef-arity0 x
+   | FRNDINT x: sem-undef-arity0 x
+   | FRSTOR x: sem-undef-arity1 x
+   | FSAVE x: sem-undef-arity1 x
+   | FSCALE x: sem-undef-arity0 x
+   | FSIN x: sem-undef-arity0 x
+   | FSINCOS x: sem-undef-arity0 x
+   | FSQRT x: sem-undef-arity0 x
+   | FST x: sem-undef-arity1 x
+   | FSTCW x: sem-undef-arity1 x
+   | FSTENV x: sem-undef-arity1 x
+   | FSTP x: sem-undef-arity1 x
+   | FSTSW x: sem-undef-arity1 x
+   | FSUB x: sem-undef-arity2 x
+   | FSUBP x: sem-undef-arity2 x
+   | FSUBR x: sem-undef-arity2 x
+   | FSUBRP x: sem-undef-arity2 x
+   | FTST x: sem-undef-arity0 x
+   | FUCOM x: sem-undef-arity1 x
+   | FUCOMI x: sem-undef-arity1 x
+   | FUCOMIP x: sem-undef-arity1 x
+   | FUCOMP x: sem-undef-arity1 x
+   | FUCOMPP x: sem-undef-arity0 x
+   | FXAM x: sem-undef-arity0 x
+   | FXCH x: sem-undef-arity1 x
+   | FXRSTOR x: sem-undef-arity1 x
+   | FXRSTOR64 x: sem-undef-arity1 x
+   | FXSAVE x: sem-undef-arity1 x
+   | FXSAVE64 x: sem-undef-arity1 x
+   | FXTRACT x: sem-undef-arity0 x
+   | FYL2X x: sem-undef-arity0 x
+   | FYL2XP1 x: sem-undef-arity0 x
+   | HADDPD x: sem-undef-arity2 x
+   | HADDPS x: sem-undef-arity2 x
+   | HLT x: sem-undef-arity0 x
+   | HSUBPD x: sem-undef-arity2 x
+   | HSUBPS x: sem-undef-arity2 x
+   | IDIV x: sem-undef-arity1 x
+   | IMUL x: sem-undef-varity x
+   | IN x: sem-undef-arity2 x
+   | INC x: sem-undef-arity1 x
+   | INSB x: sem-undef-arity0 x
+   | INSD x: sem-undef-arity0 x
+   | INSERTPS x: sem-undef-arity3 x
+   | INSW x: sem-undef-arity0 x
+   | INT x: sem-undef-arity1 x
+   | INT0 x: sem-undef-arity0 x
+   | INT3 x: sem-undef-arity0 x
+   | INVD x: sem-undef-arity0 x
+   | INVLPG x: sem-undef-arity1 x
+   | INVPCID x: sem-undef-arity2 x
+   | IRET x: sem-undef-arity0 x
+   | IRETD x: sem-undef-arity0 x
+   | IRETQ x: sem-undef-arity0 x
+   | JA x: sem-a sem-jcc x
+   | JAE x: sem-ae sem-jcc x
+   | JB x: sem-b sem-jcc x
+   | JBE x: sem-be sem-jcc x
+   | JC x: sem-c sem-jcc x
+   | JCXZ x: sem-jcxz x
+   | JE x: sem-e sem-jcc x
+   | JECXZ x: sem-jecxz x
+   | JG x: sem-g sem-jcc x
+   | JGE x: sem-ge sem-jcc x
+   | JL x: sem-l sem-jcc x
+   | JLE x: sem-le sem-jcc x
+   | JMP x: sem-jmp x
+   | JNA x: sem-na sem-jcc x
+   | JNAE x: sem-nae sem-jcc x
+   | JNB x: sem-nb sem-jcc x
+   | JNBE x: sem-nbe sem-jcc x
+   | JNC x: sem-nc sem-jcc x
+   | JNE x: sem-ne sem-jcc x
+   | JNG x: sem-ng sem-jcc x
+   | JNGE x: sem-nge sem-jcc x
+   | JNL x: sem-nl sem-jcc x
+   | JNLE x: sem-nle sem-jcc x
+   | JNO x: sem-no sem-jcc x
+   | JNP x: sem-np sem-jcc x
+   | JNS x: sem-ns sem-jcc x
+   | JNZ x: sem-nz sem-jcc x
+   | JO x: sem-o sem-jcc x
+   | JP x: sem-p sem-jcc x
+   | JPE x: sem-pe sem-jcc x
+   | JPO x: sem-po sem-jcc x
+   | JRCXZ x: sem-jrcxz x
+   | JS x: sem-s sem-jcc x
+   | JZ x: sem-z sem-jcc x
+   | LAHF x: sem-undef-arity0 x
+   | LAR x: sem-undef-arity2 x
+   | LDDQU x: sem-undef-arity2 x
+   | LDMXCSR x: sem-undef-arity1 x
+   | LDS x: sem-undef-arity2 x
+   | LEA x: sem-lea x
+   | LEAVE x: sem-undef-arity0 x
+   | LES x: sem-undef-arity2 x
+   | LFENCE x: sem-undef-arity0 x
+   | LFS x: sem-undef-arity2 x
+   | LGDT x: sem-undef-arity1 x
+   | LGS x: sem-undef-arity2 x
+   | LIDT x: sem-undef-arity1 x
+   | LLDT x: sem-undef-arity1 x
+   | LMSW x: sem-undef-arity1 x
+   | LOCK x: sem-undef-arity0 x
+   | LODSB x: sem-undef-arity0 x
+   | LODSD x: sem-undef-arity0 x
+   | LODSQ x: sem-undef-arity0 x
+   | LODSW x: sem-undef-arity0 x
+   | LOOP x: sem-undef-flow1 x
+   | LOOPE x: sem-undef-flow1 x
+   | LOOPNE x: sem-undef-flow1 x
+   | LSL x: sem-undef-arity2 x
+   | LSS x: sem-undef-arity2 x
+   | LTR x: sem-undef-arity1 x
+   | MASKMOVDQU x: sem-undef-arity2 x
+   | MASKMOVQ x: sem-undef-arity2 x
+   | MAXPD x: sem-undef-arity2 x
+   | MAXPS x: sem-undef-arity2 x
+   | MAXSD x: sem-undef-arity2 x
+   | MAXSS x: sem-undef-arity2 x
+   | MFENCE x: sem-undef-arity0 x
+   | MINPD x: sem-undef-arity2 x
+   | MINPS x: sem-undef-arity2 x
+   | MINSD x: sem-undef-arity2 x
+   | MINSS x: sem-undef-arity2 x
+   | MONITOR x: sem-undef-arity0 x
+   | MOV x: sem-mov x
+   | MOVAPD x: sem-movap x
+   | MOVAPS x: sem-movap x
+   | MOVBE x: sem-undef-arity2 x
+   | MOVD x: sem-undef-arity2 x
+   | MOVDDUP x: sem-undef-arity2 x
+   | MOVDQ2Q x: sem-undef-arity2 x
+   | MOVDQA x: sem-undef-arity2 x
+   | MOVDQU x: sem-undef-arity2 x
+   | MOVHLPS x: sem-undef-arity2 x
+   | MOVHPD x: sem-undef-arity2 x
+   | MOVHPS x: sem-undef-arity2 x
+   | MOVLHPS x: sem-undef-arity2 x
+   | MOVLPD x: sem-undef-arity2 x
+   | MOVLPS x: sem-undef-arity2 x
+   | MOVMSKPD x: sem-undef-arity2 x
+   | MOVMSKPS x: sem-undef-arity2 x
+   | MOVNTDQ x: sem-undef-arity2 x
+   | MOVNTDQA x: sem-undef-arity2 x
+   | MOVNTI x: sem-undef-arity2 x
+   | MOVNTPD x: sem-undef-arity2 x
+   | MOVNTPS x: sem-undef-arity2 x
+   | MOVNTQ x: sem-undef-arity2 x
+   | MOVQ x: sem-undef-arity2 x
+   | MOVQ2DQ x: sem-undef-arity2 x
+   | MOVSB x: sem-undef-arity0 x
+   | MOVSD x: sem-undef-varity x
+   | MOVSHDUP x: sem-undef-arity2 x
+   | MOVSLDUP x: sem-undef-arity2 x
+   | MOVSQ x: sem-undef-arity0 x
+   | MOVSS x: sem-undef-arity2 x
+   | MOVSW x: sem-undef-arity2 x
+   | MOVSX x: sem-movsx x
+   | MOVSXD x: sem-movsx x
+   | MOVUPD x: sem-undef-arity2 x
+   | MOVUPS x: sem-undef-arity2 x
+   | MOVZX x: sem-movzx x
+   | MPSADBW x: sem-undef-arity3 x
+   | MUL x: sem-undef-arity1 x
+   | MULPD x: sem-undef-arity2 x
+   | MULPS x: sem-undef-arity2 x
+   | MULSD x: sem-undef-arity2 x
+   | MULSS x: sem-undef-arity2 x
+   | MWAIT x: sem-undef-arity0 x
+   | NEG x: sem-undef-arity1 x
+   | NOP x: sem-nop x
+   | NOT x: sem-undef-arity1 x
+   | OR x: sem-or x
+   | ORPD x: sem-undef-arity2 x
+   | ORPS x: sem-undef-arity2 x
+   | OUT x: sem-undef-arity2 x
+   | OUTS x: sem-undef-arity0 x
+   | OUTSB x: sem-undef-arity0 x
+   | OUTSD x: sem-undef-arity0 x
+   | OUTSW x: sem-undef-arity0 x
+   | PABSB x: sem-undef-arity2 x
+   | PABSD x: sem-undef-arity2 x
+   | PABSW x: sem-undef-arity2 x
+   | PACKSSDW x: sem-undef-arity2 x
+   | PACKSSWB x: sem-undef-arity2 x
+   | PACKUSDW x: sem-undef-arity2 x
+   | PACKUSWB x: sem-undef-arity2 x
+   | PADDB x: sem-undef-arity2 x
+   | PADDD x: sem-undef-arity2 x
+   | PADDQ x: sem-undef-arity2 x
+   | PADDSB x: sem-undef-arity2 x
+   | PADDSW x: sem-undef-arity2 x
+   | PADDUSB x: sem-undef-arity2 x
+   | PADDUSW x: sem-undef-arity2 x
+   | PADDW x: sem-undef-arity2 x
+   | PALIGNR x: sem-undef-arity3 x
+   | PAND x: sem-undef-arity2 x
+   | PANDN x: sem-undef-arity2 x
+   | PAUSE x: sem-undef-arity0 x
+   | PAVGB x: sem-undef-arity2 x
+   | PAVGW x: sem-undef-arity2 x
+   | PBLENDVB x: sem-undef-arity2 x
+   | PBLENDW x: sem-undef-arity3 x
+   | PCLMULQDQ x: sem-undef-arity3 x
+   | PCMPEQB x: sem-undef-arity2 x
+   | PCMPEQD x: sem-undef-arity2 x
+   | PCMPEQQ x: sem-undef-arity2 x
+   | PCMPEQW x: sem-undef-arity2 x
+   | PCMPESTRI x: sem-undef-arity3 x
+   | PCMPESTRM x: sem-undef-arity3 x
+   | PCMPGRD x: sem-undef-arity2 x
+   | PCMPGTB x: sem-undef-arity2 x
+   | PCMPGTD x: sem-undef-arity2 x
+   | PCMPGTQ x: sem-undef-arity2 x
+   | PCMPGTW x: sem-undef-arity2 x
+   | PCMPISTRI x: sem-undef-arity3 x
+   | PCMPISTRM x: sem-undef-arity3 x
+   | PEXTRB x: sem-undef-arity3 x
+   | PEXTRD x: sem-undef-arity3 x
+   | PEXTRQ x: sem-undef-arity3 x
+   | PEXTRW x: sem-undef-arity3 x
+   | PHADDD x: sem-undef-arity2 x
+   | PHADDSW x: sem-undef-arity2 x
+   | PHADDW x: sem-undef-arity2 x
+   | PHMINPOSUW x: sem-undef-arity2 x
+   | PHSUBD x: sem-undef-arity2 x
+   | PHSUBSW x: sem-undef-arity2 x
+   | PHSUBW x: sem-undef-arity2 x
+   | PINSRB x: sem-undef-arity3 x
+   | PINSRD x: sem-undef-arity3 x
+   | PINSRQ x: sem-undef-arity3 x
+   | PINSRW x: sem-undef-arity3 x
+   | PMADDUBSW x: sem-undef-arity2 x
+   | PMADDWD x: sem-undef-arity2 x
+   | PMAXSB x: sem-undef-arity2 x
+   | PMAXSD x: sem-undef-arity2 x
+   | PMAXSW x: sem-undef-arity2 x
+   | PMAXUB x: sem-undef-arity2 x
+   | PMAXUD x: sem-undef-arity2 x
+   | PMAXUW x: sem-undef-arity2 x
+   | PMINSB x: sem-undef-arity2 x
+   | PMINSD x: sem-undef-arity2 x
+   | PMINSW x: sem-undef-arity2 x
+   | PMINUB x: sem-undef-arity2 x
+   | PMINUD x: sem-undef-arity2 x
+   | PMINUW x: sem-undef-arity2 x
+   | PMOVMSKB x: sem-undef-arity2 x
+   | PMOVSXBD x: sem-undef-arity2 x
+   | PMOVSXBQ x: sem-undef-arity2 x
+   | PMOVSXBW x: sem-undef-arity2 x
+   | PMOVSXDQ x: sem-undef-arity2 x
+   | PMOVSXWD x: sem-undef-arity2 x
+   | PMOVSXWQ x: sem-undef-arity2 x
+   | PMOVZXBD x: sem-undef-arity2 x
+   | PMOVZXBQ x: sem-undef-arity2 x
+   | PMOVZXBW x: sem-undef-arity2 x
+   | PMOVZXDQ x: sem-undef-arity2 x
+   | PMOVZXWD x: sem-undef-arity2 x
+   | PMOVZXWQ x: sem-undef-arity2 x
+   | PMULDQ x: sem-undef-arity2 x
+   | PMULHRSW x: sem-undef-arity2 x
+   | PMULHUW x: sem-undef-arity2 x
+   | PMULHW x: sem-undef-arity2 x
+   | PMULLD x: sem-undef-arity2 x
+   | PMULLW x: sem-undef-arity2 x
+   | PMULUDQ x: sem-undef-arity2 x
+   | POP x: sem-pop x
+   | POPA x: sem-undef-arity0 x
+   | POPAD x: sem-undef-arity0 x
+   | POPCNT x: sem-undef-arity2 x
+   | POPF x: sem-undef-arity0 x
+   | POPFD x: sem-undef-arity0 x
+   | POPFQ x: sem-undef-arity0 x
+   | POR x: sem-undef-arity2 x
+   | PREFETCHNTA x: sem-undef-arity1 x
+   | PREFETCHT0 x: sem-undef-arity1 x
+   | PREFETCHT1 x: sem-undef-arity1 x
+   | PREFETCHT2 x: sem-undef-arity1 x
+   | PREFETCHW x: sem-undef-arity1 x
+   | PSADBW x: sem-undef-arity2 x
+   | PSHUFB x: sem-undef-arity2 x
+   | PSHUFD x: sem-undef-arity3 x
+   | PSHUFHW x: sem-undef-arity3 x
+   | PSHUFLW x: sem-undef-arity3 x
+   | PSHUFW x: sem-undef-arity3 x
+   | PSIGNB x: sem-undef-arity2 x
+   | PSIGND x: sem-undef-arity2 x
+   | PSIGNW x: sem-undef-arity2 x
+   | PSLLD x: sem-undef-arity2 x
+   | PSLLDQ x: sem-undef-arity2 x
+   | PSLLQ x: sem-undef-arity2 x
+   | PSLLW x: sem-undef-arity2 x
+   | PSRAD x: sem-undef-arity2 x
+   | PSRAW x: sem-undef-arity2 x
+   | PSRLD x: sem-undef-arity2 x
+   | PSRLDQ x: sem-undef-arity2 x
+   | PSRLQ x: sem-undef-arity2 x
+   | PSRLW x: sem-undef-arity2 x
+   | PSUBB x: sem-undef-arity2 x
+   | PSUBD x: sem-undef-arity2 x
+   | PSUBQ x: sem-undef-arity2 x
+   | PSUBSB x: sem-undef-arity2 x
+   | PSUBSW x: sem-undef-arity2 x
+   | PSUBUSB x: sem-undef-arity2 x
+   | PSUBUSW x: sem-undef-arity2 x
+   | PSUBW x: sem-undef-arity2 x
+   | PTEST x: sem-undef-arity2 x
+   | PUNPCKHBW x: sem-undef-arity2 x
+   | PUNPCKHDQ x: sem-undef-arity2 x
+   | PUNPCKHQDQ x: sem-undef-arity2 x
+   | PUNPCKHWD x: sem-undef-arity2 x
+   | PUNPCKLBW x: sem-undef-arity2 x
+   | PUNPCKLDQ x: sem-undef-arity2 x
+   | PUNPCKLQDQ x: sem-undef-arity2 x
+   | PUNPCKLWD x: sem-undef-arity2 x
+   | PUSH x: sem-push x
+   | PUSHA x: sem-undef-arity0 x
+   | PUSHAD x: sem-undef-arity0 x
+   | PUSHF x: sem-undef-arity0 x
+   | PUSHFD x: sem-undef-arity0 x
+   | PUSHFQ x: sem-undef-arity0 x
+   | PXOR x: sem-undef-arity2 x
+   | RCL x: sem-undef-arity2 x
+   | RCPPS x: sem-undef-arity2 x
+   | RCPSS x: sem-undef-arity2 x
+   | RCR x: sem-undef-arity2 x
+   | RDFSBASE x: sem-undef-arity1 x
+   | RDGSBASE x: sem-undef-arity1 x
+   | RDMSR x: sem-undef-arity0 x
+   | RDPMC x: sem-undef-arity0 x
+   | RDRAND x: sem-undef-arity1 x
+   | RDTSC x: sem-undef-arity0 x
+   | RDTSCP x: sem-undef-arity0 x
+   | RET x: sem-ret x
+   | RET_FAR x: sem-ret-far x
+   | ROL x: sem-undef-arity2 x
+   | ROR x: sem-undef-arity2 x
+   | ROUNDPD x: sem-undef-arity3 x
+   | ROUNDPS x: sem-undef-arity3 x
+   | ROUNDSD x: sem-undef-arity3 x
+   | ROUNDSS x: sem-undef-arity3 x
+   | RSM x: sem-undef-arity0 x
+   | RSQRTPS x: sem-undef-arity2 x
+   | RSQRTSS x: sem-undef-arity2 x
+   | SAHF x: sem-undef-arity0 x
+   | SAL x: sem-sal-shl x
+   | SAR x: sem-sar x
+   | SBB x: sem-sbb x
+   | SCASB x: sem-undef-arity0 x
+   | SCASD x: sem-undef-arity0 x
+   | SCASQ x: sem-undef-arity0 x
+   | SCASW x: sem-undef-arity0 x
+   | SETA x: sem-a sem-setcc x
+   | SETAE x: sem-ae sem-setcc x
+   | SETB x: sem-b sem-setcc x
+   | SETBE x: sem-be sem-setcc x
+   | SETC x: sem-c sem-setcc x
+   | SETE x: sem-e sem-setcc x
+   | SETG x: sem-g sem-setcc x
+   | SETGE x: sem-ge sem-setcc x
+   | SETL x: sem-l sem-setcc x
+   | SETLE x: sem-le sem-setcc x
+   | SETNA x: sem-na sem-setcc x
+   | SETNAE x: sem-nae sem-setcc x
+   | SETNB x: sem-nb sem-setcc x
+   | SETNBE x: sem-nbe sem-setcc x
+   | SETNC x: sem-nc sem-setcc x
+   | SETNE x: sem-ne sem-setcc x
+   | SETNG x: sem-ng sem-setcc x
+   | SETNGE x: sem-nge sem-setcc x
+   | SETNL x: sem-nl sem-setcc x
+   | SETNLE x: sem-nle sem-setcc x
+   | SETNO x: sem-no sem-setcc x
+   | SETNP x: sem-np sem-setcc x
+   | SETNS x: sem-ns sem-setcc x
+   | SETNZ x: sem-nz sem-setcc x
+   | SETO x: sem-o sem-setcc x
+   | SETP x: sem-p sem-setcc x
+   | SETPE x: sem-pe sem-setcc x
+   | SETPO x: sem-po sem-setcc x
+   | SETS x: sem-s sem-setcc x
+   | SETZ x: sem-z sem-setcc x
+   | SFENCE x: sem-undef-arity0 x
+   | SGDT x: sem-undef-arity1 x
+   | SHL x: sem-sal-shl x
+   | SHLD x: sem-undef-arity3 x
+   | SHR x: sem-shr x
+   | SHRD x: sem-undef-arity3 x
+   | SHUFPD x: sem-undef-arity3 x
+   | SHUFPS x: sem-undef-arity3 x
+   | SIDT x: sem-undef-arity1 x
+   | SLDT x: sem-undef-arity1 x
+   | SMSW x: sem-undef-arity1 x
+   | SQRTPD x: sem-undef-arity2 x
+   | SQRTPS x: sem-undef-arity2 x
+   | SQRTSD x: sem-undef-arity2 x
+   | SQRTSS x: sem-undef-arity2 x
+   | STC x: sem-undef-arity0 x
+   | STD x: sem-undef-arity0 x
+   | STI x: sem-undef-arity0 x
+   | STMXCSR x: sem-undef-arity1 x
+   | STOSB x: sem-undef-arity0 x
+   | STOSD x: sem-undef-arity0 x
+   | STOSQ x: sem-undef-arity0 x
+   | STOSW x: sem-undef-arity0 x
+   | STR x: sem-undef-arity1 x
+   | SUB x: sem-sub x
+   | SUBPD x: sem-undef-arity2 x
+   | SUBPS x: sem-undef-arity2 x
+   | SUBSD x: sem-undef-arity2 x
+   | SUBSS x: sem-undef-arity2 x
+   | SWAPGS x: sem-undef-arity0 x
+   | SYSCALL x: sem-undef-arity0 x
+   | SYSENTER x: sem-undef-arity0 x
+   | SYSEXIT x: sem-undef-arity0 x
+   | SYSRET x: sem-undef-arity0 x
+   | TEST x: sem-test x
+   | UCOMISD x: sem-undef-arity2 x
+   | UCOMISS x: sem-undef-arity2 x
+   | UD2 x: sem-undef-arity0 x
+   | UNPCKHPD x: sem-undef-arity2 x
+   | UNPCKHPS x: sem-undef-arity2 x
+   | UNPCKLPD x: sem-undef-arity2 x
+   | UNPCKLPS x: sem-undef-arity2 x
+   | VADDPD x: sem-undef-varity x
+   | VADDPS x: sem-undef-varity x
+   | VADDSD x: sem-undef-varity x
+   | VADDSS x: sem-undef-varity x
+   | VADDSUBPD x: sem-undef-varity x
+   | VADDSUBPS x: sem-undef-varity x
+   | VAESDEC x: sem-undef-varity x
+   | VAESDECLAST x: sem-undef-varity x
+   | VAESENC x: sem-undef-varity x
+   | VAESENCLAST x: sem-undef-varity x
+   | VAESIMC x: sem-undef-varity x
+   | VAESKEYGENASSIST x: sem-undef-varity x
+   | VANDNPD x: sem-undef-varity x
+   | VANDNPS x: sem-undef-varity x
+   | VANDPD x: sem-undef-varity x
+   | VANDPS x: sem-undef-varity x
+   | VBLENDPD x: sem-undef-varity x
+   | VBLENDPS x: sem-undef-varity x
+   | VBLENDVPD x: sem-undef-varity x
+   | VBLENDVPS x: sem-undef-varity x
+   | VBROADCASTF128 x: sem-undef-varity x
+   | VBROADCASTSD x: sem-undef-varity x
+   | VBROADCASTSS x: sem-undef-varity x
+   | VCMPEQB x: sem-undef-varity x
+   | VCMPEQD x: sem-undef-varity x
+   | VCMPEQW x: sem-undef-varity x
+   | VCMPPD x: sem-undef-varity x
+   | VCMPPS x: sem-undef-varity x
+   | VCMPSD x: sem-undef-varity x
+   | VCMPSS x: sem-undef-varity x
+   | VCOMISD x: sem-undef-varity x
+   | VCOMISS x: sem-undef-varity x
+   | VCVTDQ2PD x: sem-undef-varity x
+   | VCVTDQ2PS x: sem-undef-varity x
+   | VCVTPD2DQ x: sem-undef-varity x
+   | VCVTPD2PS x: sem-undef-varity x
+   | VCVTPH2PS x: sem-undef-varity x
+   | VCVTPS2DQ x: sem-undef-varity x
+   | VCVTPS2PD x: sem-undef-varity x
+   | VCVTPS2PH x: sem-undef-varity x
+   | VCVTSD2SI x: sem-undef-varity x
+   | VCVTSD2SS x: sem-undef-varity x
+   | VCVTSI2SD x: sem-undef-varity x
+   | VCVTSI2SS x: sem-undef-varity x
+   | VCVTSS2SD x: sem-undef-varity x
+   | VCVTSS2SI x: sem-undef-varity x
+   | VCVTTPD2DQ x: sem-undef-varity x
+   | VCVTTPS2DQ x: sem-undef-varity x
+   | VCVTTSD2SI x: sem-undef-varity x
+   | VCVTTSS2SI x: sem-undef-varity x
+   | VDIVPD x: sem-undef-varity x
+   | VDIVPS x: sem-undef-varity x
+   | VDIVSD x: sem-undef-varity x
+   | VDIVSS x: sem-undef-varity x
+   | VDPPD x: sem-undef-varity x
+   | VDPPS x: sem-undef-varity x
+   | VERR x: sem-undef-arity1 x
+   | VERW x: sem-undef-arity1 x
+   | VEXTRACTF128 x: sem-undef-varity x
+   | VEXTRACTPS x: sem-undef-varity x
+   | VHADDPD x: sem-undef-varity x
+   | VHADDPS x: sem-undef-varity x
+   | VHSUBPD x: sem-undef-varity x
+   | VHSUBPS x: sem-undef-varity x
+   | VINSERTF128 x: sem-undef-varity x
+   | VINSERTPS x: sem-undef-varity x
+   | VLDDQU x: sem-undef-varity x
+   | VLDMXCSR x: sem-undef-varity x
+   | VMASKMOVDQU x: sem-undef-varity x
+   | VMASKMOVPD x: sem-undef-varity x
+   | VMASKMOVPS x: sem-undef-varity x
+   | VMAXPD x: sem-undef-varity x
+   | VMAXPS x: sem-undef-varity x
+   | VMAXSD x: sem-undef-varity x
+   | VMAXSS x: sem-undef-varity x
+   | VMINPD x: sem-undef-varity x
+   | VMINPS x: sem-undef-varity x
+   | VMINSD x: sem-undef-varity x
+   | VMINSS x: sem-undef-varity x
+   | VMOVAPD x: sem-vmovap x
+   | VMOVAPS x: sem-vmovap x
+   | VMOVD x: sem-undef-varity x
+   | VMOVDDUP x: sem-undef-varity x
+   | VMOVDQA x: sem-undef-varity x
+   | VMOVDQU x: sem-undef-varity x
+   | VMOVHLPS x: sem-undef-varity x
+   | VMOVHPD x: sem-undef-varity x
+   | VMOVHPS x: sem-undef-varity x
+   | VMOVLHPS x: sem-undef-varity x
+   | VMOVLPD x: sem-undef-varity x
+   | VMOVLPS x: sem-undef-varity x
+   | VMOVMSKPD x: sem-undef-varity x
+   | VMOVMSKPS x: sem-undef-varity x
+   | VMOVNTDQ x: sem-undef-varity x
+   | VMOVNTDQA x: sem-undef-varity x
+   | VMOVNTPD x: sem-undef-varity x
+   | VMOVNTPS x: sem-undef-varity x
+   | VMOVQ x: sem-undef-varity x
+   | VMOVSD x: sem-undef-varity x
+   | VMOVSHDUP x: sem-undef-varity x
+   | VMOVSLDUP x: sem-undef-varity x
+   | VMOVSS x: sem-undef-varity x
+   | VMOVUPD x: sem-undef-varity x
+   | VMOVUPS x: sem-undef-varity x
+   | VMPSADBW x: sem-undef-varity x
+   | VMULPD x: sem-undef-varity x
+   | VMULPS x: sem-undef-varity x
+   | VMULSD x: sem-undef-varity x
+   | VMULSS x: sem-undef-varity x
+   | VORPD x: sem-undef-varity x
+   | VORPS x: sem-undef-varity x
+   | VPABSB x: sem-undef-varity x
+   | VPABSD x: sem-undef-varity x
+   | VPABSW x: sem-undef-varity x
+   | VPACKSSDW x: sem-undef-varity x
+   | VPACKSSWB x: sem-undef-varity x
+   | VPACKUSDW x: sem-undef-varity x
+   | VPACKUSWB x: sem-undef-varity x
+   | VPADDB x: sem-undef-varity x
+   | VPADDD x: sem-undef-varity x
+   | VPADDQ x: sem-undef-varity x
+   | VPADDSB x: sem-undef-varity x
+   | VPADDSW x: sem-undef-varity x
+   | VPADDUSB x: sem-undef-varity x
+   | VPADDUSW x: sem-undef-varity x
+   | VPADDW x: sem-undef-varity x
+   | VPALIGNR x: sem-undef-varity x
+   | VPAND x: sem-undef-varity x
+   | VPANDN x: sem-undef-varity x
+   | VPAVGB x: sem-undef-varity x
+   | VPAVGW x: sem-undef-varity x
+   | VPBLENDVB x: sem-undef-varity x
+   | VPBLENDW x: sem-undef-varity x
+   | VPCLMULQDQ x: sem-undef-varity x
+   | VPCMPEQB x: sem-undef-varity x
+   | VPCMPEQD x: sem-undef-varity x
+   | VPCMPEQQ x: sem-undef-varity x
+   | VPCMPEQW x: sem-undef-varity x
+   | VPCMPESTRI x: sem-undef-varity x
+   | VPCMPESTRM x: sem-undef-varity x
+   | VPCMPGTB x: sem-undef-varity x
+   | VPCMPGTD x: sem-undef-varity x
+   | VPCMPGTQ x: sem-undef-varity x
+   | VPCMPGTW x: sem-undef-varity x
+   | VPCMPISTRI x: sem-undef-varity x
+   | VPCMPISTRM x: sem-undef-varity x
+   | VPERM2F128 x: sem-undef-varity x
+   | VPERMILPD x: sem-undef-varity x
+   | VPERMILPS x: sem-undef-varity x
+   | VPEXTRB x: sem-undef-varity x
+   | VPEXTRD x: sem-undef-varity x
+   | VPEXTRQ x: sem-undef-varity x
+   | VPEXTRW x: sem-undef-varity x
+   | VPHADDD x: sem-undef-varity x
+   | VPHADDSW x: sem-undef-varity x
+   | VPHADDW x: sem-undef-varity x
+   | VPHMINPOSUW x: sem-undef-varity x
+   | VPHSUBD x: sem-undef-varity x
+   | VPHSUBSW x: sem-undef-varity x
+   | VPHSUBW x: sem-undef-varity x
+   | VPINSRB x: sem-undef-varity x
+   | VPINSRD x: sem-undef-varity x
+   | VPINSRQ x: sem-undef-varity x
+   | VPINSRW x: sem-undef-varity x
+   | VPMADDUBSW x: sem-undef-varity x
+   | VPMADDWD x: sem-undef-varity x
+   | VPMAXSB x: sem-undef-varity x
+   | VPMAXSD x: sem-undef-varity x
+   | VPMAXSW x: sem-undef-varity x
+   | VPMAXUB x: sem-undef-varity x
+   | VPMAXUD x: sem-undef-varity x
+   | VPMAXUW x: sem-undef-varity x
+   | VPMINSB x: sem-undef-varity x
+   | VPMINSD x: sem-undef-varity x
+   | VPMINSW x: sem-undef-varity x
+   | VPMINUB x: sem-undef-varity x
+   | VPMINUD x: sem-undef-varity x
+   | VPMINUW x: sem-undef-varity x
+   | VPMOVMSKB x: sem-undef-varity x
+   | VPMOVSXBD x: sem-undef-varity x
+   | VPMOVSXBQ x: sem-undef-varity x
+   | VPMOVSXBW x: sem-undef-varity x
+   | VPMOVSXDQ x: sem-undef-varity x
+   | VPMOVSXWD x: sem-undef-varity x
+   | VPMOVSXWQ x: sem-undef-varity x
+   | VPMOVZXBD x: sem-undef-varity x
+   | VPMOVZXBQ x: sem-undef-varity x
+   | VPMOVZXBW x: sem-undef-varity x
+   | VPMOVZXDQ x: sem-undef-varity x
+   | VPMOVZXWD x: sem-undef-varity x
+   | VPMOVZXWQ x: sem-undef-varity x
+   | VPMULDQ x: sem-undef-varity x
+   | VPMULHRSW x: sem-undef-varity x
+   | VPMULHUW x: sem-undef-varity x
+   | VPMULHW x: sem-undef-varity x
+   | VPMULLD x: sem-undef-varity x
+   | VPMULLW x: sem-undef-varity x
+   | VPMULUDQ x: sem-undef-varity x
+   | VPOR x: sem-undef-varity x
+   | VPSADBW x: sem-undef-varity x
+   | VPSHUFB x: sem-undef-varity x
+   | VPSHUFD x: sem-undef-varity x
+   | VPSHUFHW x: sem-undef-varity x
+   | VPSHUFLW x: sem-undef-varity x
+   | VPSIGNB x: sem-undef-varity x
+   | VPSIGND x: sem-undef-varity x
+   | VPSIGNW x: sem-undef-varity x
+   | VPSLLD x: sem-undef-varity x
+   | VPSLLDQ x: sem-undef-varity x
+   | VPSLLQ x: sem-undef-varity x
+   | VPSLLW x: sem-undef-varity x
+   | VPSRAD x: sem-undef-varity x
+   | VPSRAW x: sem-undef-varity x
+   | VPSRLD x: sem-undef-varity x
+   | VPSRLDQ x: sem-undef-varity x
+   | VPSRLQ x: sem-undef-varity x
+   | VPSRLW x: sem-undef-varity x
+   | VPSUBB x: sem-undef-varity x
+   | VPSUBD x: sem-undef-varity x
+   | VPSUBQ x: sem-undef-varity x
+   | VPSUBSB x: sem-undef-varity x
+   | VPSUBSW x: sem-undef-varity x
+   | VPSUBUSB x: sem-undef-varity x
+   | VPSUBUSW x: sem-undef-varity x
+   | VPSUBW x: sem-undef-varity x
+   | VPTEST x: sem-undef-varity x
+   | VPUNPCKHBW x: sem-undef-varity x
+   | VPUNPCKHDQ x: sem-undef-varity x
+   | VPUNPCKHQDQ x: sem-undef-varity x
+   | VPUNPCKHWD x: sem-undef-varity x
+   | VPUNPCKLBW x: sem-undef-varity x
+   | VPUNPCKLDQ x: sem-undef-varity x
+   | VPUNPCKLQDQ x: sem-undef-varity x
+   | VPUNPCKLWD x: sem-undef-varity x
+   | VPXOR x: sem-undef-varity x
+   | VRCPPS x: sem-undef-varity x
+   | VRCPSS x: sem-undef-varity x
+   | VROUNDPD x: sem-undef-varity x
+   | VROUNDPS x: sem-undef-varity x
+   | VROUNDSD x: sem-undef-varity x
+   | VROUNDSS x: sem-undef-varity x
+   | VRSQRTPS x: sem-undef-varity x
+   | VRSQRTSS x: sem-undef-varity x
+   | VSHUFPD x: sem-undef-varity x
+   | VSHUFPS x: sem-undef-varity x
+   | VSQRTPD x: sem-undef-varity x
+   | VSQRTPS x: sem-undef-varity x
+   | VSQRTSD x: sem-undef-varity x
+   | VSQRTSS x: sem-undef-varity x
+   | VSTMXCSR x: sem-undef-varity x
+   | VSUBPD x: sem-undef-varity x
+   | VSUBPS x: sem-undef-varity x
+   | VSUBSD x: sem-undef-varity x
+   | VSUBSS x: sem-undef-varity x
+   | VTESTPD x: sem-undef-varity x
+   | VTESTPS x: sem-undef-varity x
+   | VUCOMISD x: sem-undef-varity x
+   | VUCOMISS x: sem-undef-varity x
+   | VUNPCKHPD x: sem-undef-varity x
+   | VUNPCKHPS x: sem-undef-varity x
+   | VUNPCKLPD x: sem-undef-varity x
+   | VUNPCKLPS x: sem-undef-varity x
+   | VXORPS x: sem-undef-varity x
+   | VZEROALL x: sem-undef-varity x
+   | VZEROUPPER x: sem-undef-varity x
+   | WAIT x: sem-undef-arity0 x
+   | WBINVD x: sem-undef-arity0 x
+   | WRFSBASE x: sem-undef-arity1 x
+   | WRGSBASE x: sem-undef-arity1 x
+   | WRMSR x: sem-undef-arity0 x
+   | XADD x: sem-undef-arity2 x
+   | XCHG x: sem-xchg x
+   | XGETBV x: sem-undef-arity0 x
+   | XLAT x: sem-undef-arity0 x
+   | XLATB x: sem-undef-arity0 x
+   | XOR x: sem-xor x
+   | XORPD x: sem-undef-arity2 x
+   | XORPS x: sem-undef-arity2 x
+   | XRSTOR x: sem-undef-arity1 x
+   | XRSTOR64 x: sem-undef-arity1 x
+   | XSAVE x: sem-undef-arity1 x
+   | XSAVE64 x: sem-undef-arity1 x
+   | XSAVEOPT x: sem-undef-arity1 x
+   | XSAVEOPT64 x: sem-undef-arity1 x
+   | XSETBV x: sem-undef-arity0 x
   end
 #s/^ | \([^\s]*\) of \(arity\|flow\)\(.\)\s*/ | \1 x: sem-undef-\2\3 x/g
 #s/^ | \([^\s]*\) of varity\s*/ | \1 x: sem-undef-varity x/g
 #s/^ | \(\S*\)\s*$/ | \1: sem-undef-arity0/g
+#s/\(.*\)| \(\S*\):.*/\1| \2 x: sem-undef-arity0 x/g
 
 val translate insn =
    do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
