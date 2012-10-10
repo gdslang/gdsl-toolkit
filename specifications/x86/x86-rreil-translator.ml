@@ -124,7 +124,7 @@ val segmented-store addr rhs segment = do
   store (address addr-sz address-segmented) rhs
 end
 
-val segment segment = do
+#val segment segment = do
 #  mode64 <- mode64?;
 #  if mode64 then
 #    case segment of
@@ -137,8 +137,8 @@ val segment segment = do
 #    end
 #  else
 #    return segment
-  return DS
-end
+#  return DS
+#end
 
 val conv-with conv sz x =
    let
@@ -186,7 +186,7 @@ val conv-with conv sz x =
        | SUM x: conv-sum conv sz x
        | SCALE x: conv-scale conv sz x
        | MEM x:
-           do 
+           do
 	     t <- mktemp;
              address <- conv-mem x;
              segmented-load sz t x.psz address x.segment;
@@ -684,56 +684,48 @@ end
 ## C>>
 
 val sem-call x = do
-  target-sz <- sizeof-flow x.opnd1;
-  target <- read-flow target-sz x.opnd1;
-
-  opnd-sz <- static-flow-opnd-sz x.opnd1;
-
   ip-sz <-
-    if (opnd-sz === 64) then
+    if (x.opnd-sz === 64) then
       return 64
     else
       return 32
   ;
+  temp-ip <- mktemp;
   
   mode64 <- mode64?;
-  
-  temp-dest <- mktemp;
-  temp-ip <- mktemp;
   ip <- ip-get;
-  if (near x.opnd1) then
-    do
-      if (relative x.opnd1) then
-        do
-          movsx ip-sz temp-dest target-sz target;
-          add ip-sz temp-ip ip (var temp-dest);
-          if (opnd-sz === 16) then
-              mov (ip-sz - opnd-sz) (at-offset temp-ip opnd-sz) (imm 0)
-          else
-             return void
-        end
+  if (near x.opnd1) then do
+    target <- read-flow ip-sz x.opnd1;
+    if (relative x.opnd1) then do
+      add ip-sz temp-ip ip target;
+      if (x.opnd-sz === 16) then
+          mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0)
       else
-        movzx ip-sz temp-ip target-sz target
-      ;
-      ps-push ip-sz ip
-    end
-  else
-    do
-      movzx ip-sz temp-ip opnd-sz target;
-      sec-reg <- return CS;
-      sec-reg-sem <- return (semantic-register-of sec-reg);
-      reg-size <- sizeof1 (REG sec-reg);
-      sec-reg-extended <- mktemp;
-      movzx opnd-sz sec-reg-extended reg-size (var sec-reg-sem);
-      ps-push opnd-sz (var sec-reg-extended);
-      
-      ps-push ip-sz ip;
+         return void
+    end else
+      mov ip-sz temp-ip target
+    ;
+    ps-push ip-sz ip
+  end else do
+    sec-reg <- return CS;
+    sec-reg-sem <- return (semantic-register-of sec-reg);
+    reg-size <- sizeof1 (REG sec-reg);
+    sec-reg-extended <- mktemp;
+    movzx x.opnd-sz sec-reg-extended reg-size (var sec-reg-sem);
+    ps-push x.opnd-sz (var sec-reg-extended);
+    ps-push ip-sz ip;
+  
+    target-sz <- sizeof-flow x.opnd1;
+    target <- read-flow target-sz x.opnd1;
 
-      mov target-sz temp-dest target;
-      mov reg-size sec-reg-sem (var (at-offset temp-dest opnd-sz))
-    end
-  ;
+    temp-target <- mktemp;
+    mov target-sz temp-target target;
+    mov reg-size sec-reg-sem (var (at-offset temp-target x.opnd-sz));
 
+    temp-ip <- mktemp;
+    movzx ip-sz temp-ip x.opnd-sz target
+  end;
+    
   call (address ip-sz (var temp-ip))
 end
 
