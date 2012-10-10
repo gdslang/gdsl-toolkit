@@ -837,6 +837,36 @@ end
 #val sem-cmpsd = sem-cmps 32
 #val sem-cmpsq = sem-cmps 64
 
+val sem-cwd-cdq-cqo x = do
+  src <-
+    case x.opnd-sz of
+       16: return AX
+     | 32: return EAX
+     | 64: return RAX
+    end
+  ;
+  src-sem <- return (semantic-register-of src);
+  
+  temp <- mktemp;
+  movsx (src-sem.size + src-sem.size) temp src-sem.size (var src-sem);
+
+  dst-high <-
+    case x.opnd-sz of
+       16: return DX
+     | 32: return EDX
+     | 64: return RDX
+    end
+  ;
+  
+  dst-high-sem <- return (semantic-register-of dst-high);
+  mov dst-high-sem.size dst-high-sem (var (at-offset temp src-sem.size))
+end
+
+## D>>
+## E>>
+## F>>
+## G>>
+## H>>
 
 val sem-hlt = do
   return void
@@ -1165,17 +1195,8 @@ end
 val sem-ret-far-without-operand x = do
   address <- pop-ip x.opnd-sz;
 
-  #Todo: fix
-  mode64 <- mode64?;
-  opnd-sz <-
-    if mode64 then
-      return 64
-    else
-      return 32
-  ;
-
   temp-cs <- mktemp;
-  ps-pop opnd-sz temp-cs;
+  ps-pop x.opnd-sz temp-cs;
   
   sec-reg <- return CS;
   sec-reg-sem <- return (semantic-register-of sec-reg);
@@ -1582,7 +1603,7 @@ val semantics insn =
    | BTS x: sem-undef-arity2 x
    | CALL x: sem-call x
    | CBW x: sem-undef-arity0 x
-   | CDQ x: sem-undef-arity0 x
+   | CDQ x: sem-cwd-cdq-cqo x
    | CDQE x: sem-undef-arity0 x
    | CLC x: sem-undef-arity0 x
    | CLD x: sem-undef-arity0 x
@@ -1638,7 +1659,7 @@ val semantics insn =
    | COMISD x: sem-undef-arity2 x
    | COMISS x: sem-undef-arity2 x
    | CPUID x: sem-undef-arity0 x
-   | CQO x: sem-undef-arity0 x
+   | CQO x: sem-cwd-cdq-cqo x
    | CRC32 x: sem-undef-arity2 x
    | CVTDQ2PD x: sem-undef-arity2 x
    | CVTDQ2PS x: sem-undef-arity2 x
@@ -1662,7 +1683,7 @@ val semantics insn =
    | CVTTPS2PI x: sem-undef-arity2 x
    | CVTTSD2SI x: sem-undef-arity2 x
    | CVTTSS2SI x: sem-undef-arity2 x
-   | CWD x: sem-undef-arity0 x
+   | CWD x: sem-cwd-cdq-cqo x
    | CWDE x: sem-undef-arity0 x
    | DAA x: sem-undef-arity0 x
    | DAS x: sem-undef-arity0 x
