@@ -3671,8 +3671,6 @@ val / [0x0f 0xae /2-mem] = unop LDMXCSR m32
 val /vex/0f [0xae /2-mem]
  | vex128? = varity1 VLDMXCSR m32
 
-### =><=
-
 ### LDS/LES/LFS/LGS/LSS
 ###  - Load Far Pointer
 val / [0xc5 /r-mem]
@@ -3696,17 +3694,18 @@ val / [0x0f 0xb5 /r-mem]
 
 ### LEA
 ###  - Load Effective Address
-val / [0x8d /r]
- | opndsz? & addrsz? = binop LEA r16 r/m16
- | opndsz? = binop LEA r16 r/m32
- | rexw? & addrsz? = binop LEA r64 r/m32
- | rexw? = binop LEA r64 r/m64
- | addrsz? = binop LEA r32 r/m16
- | otherwise = binop LEA r32 r/m32
+val / [0x8d /r-mem]
+ | (// mode64?) & opndsz? = binop LEA r16 mX
+ | (// mode64?) & (// opndsz?) = binop LEA r32 mX
+ | mode64? & (// rexw?) & opndsz? = binop LEA r16 mX
+ | mode64? & (// rexw?) & (// opndsz?) = binop LEA r32 mX
+ | mode64? & rexw? & (// opndsz?) = binop LEA r64 mX
+
+### =><=
 
 ### LEAVE
 ###  - High Level Procedure Exit
-#TODO: handle different effects to BP/EBP/RBP
+#Todo: handle different effects to BP/EBP/RBP
 val / [0xc9] = arity0 LEAVE
 
 ### LFENCE
