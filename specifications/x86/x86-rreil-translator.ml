@@ -881,7 +881,7 @@ val sem-dec x = do
   commit sz dst (var temp)
 end
 
-val sem-div x = do
+val sem-div signedness x = do
   sz <- sizeof1 x.opnd1;
   divisor <- read (sz + sz) x.opnd1;
 
@@ -914,7 +914,11 @@ val sem-div x = do
   ;
 
   quotient <- mktemp;
-  div (sz + sz) quotient (var dividend) divisor;
+  #Todo: Handle exception
+  case signedness of
+     Unsigned: div (sz + sz) quotient (var dividend) divisor
+   | Signed: divs (sz + sz) quotient (var dividend) divisor
+  end;
   quotient-sem <-
     case sz of
        8: return (semantic-register-of AL)
@@ -960,6 +964,12 @@ end
 val sem-hlt = do
   return void
 end
+
+## I>>
+
+val sem-idiv x = sem-div Signed x
+
+## J>>
 
 val sem-jcc x cond = do
   ip-sz <-
@@ -1777,7 +1787,7 @@ val semantics insn =
    | DAA x: sem-undef-arity0 x
    | DAS x: sem-undef-arity0 x
    | DEC x: sem-dec x
-   | DIV x: sem-undef-arity1 x
+   | DIV x: sem-div Unsigned x
    | DIVPD x: sem-undef-arity2 x
    | DIVPS x: sem-undef-arity2 x
    | DIVSD x: sem-undef-arity2 x
@@ -1888,7 +1898,7 @@ val semantics insn =
    | HLT x: sem-undef-arity0 x
    | HSUBPD x: sem-undef-arity2 x
    | HSUBPS x: sem-undef-arity2 x
-   | IDIV x: sem-undef-arity1 x
+   | IDIV x: sem-idiv x
    | IMUL x: sem-undef-varity x
    | IN x: sem-undef-arity2 x
    | INC x: sem-undef-arity1 x
