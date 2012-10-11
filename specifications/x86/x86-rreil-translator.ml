@@ -1046,6 +1046,9 @@ val sem-jmp x = do
   jump (address ip-sz (var temp-ip))
 end
 
+## K>>
+## L>>
+
 val sem-lea x = do
   opnd-sz <- sizeof1 x.opnd1;
   dst <- write opnd-sz x.opnd1;
@@ -1062,6 +1065,8 @@ val sem-lea x = do
 
   commit opnd-sz dst (var temp)
 end
+
+## M>>
 
 val sem-mov x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
@@ -1126,9 +1131,55 @@ val sem-movzx x = do
   commit sz-dst dst (var temp)
 end
 
+val sem-mul x = do
+  sz <- sizeof1 x.opnd1;
+
+  factor0-sem <- return (semantic-register-of (register-by-size low A sz));
+  factor0 <- expand Unsigned (var factor0-sem) sz (sz + sz);
+
+  #Remark: Also expands unsigned
+  factor1 <- read (sz + sz) x.opnd1;
+
+  product <- mktemp;
+  mul (sz + sz) product factor0 factor1;
+
+  case sz of
+     8: do
+       ax <- return (semantic-register-of AX);
+       mov sz ax (var product)
+     end
+   | _: do
+       high <- return (semantic-register-of (register-by-size low D sz));
+       low <- return (semantic-register-of (register-by-size low A sz));
+
+       mov sz high (var (at-offset product sz));
+       mov sz low (var product)
+   end
+  end;
+
+  ov <- fOF;
+  cf <- fCF;
+  sf <- fSF;
+  zf <- fZF;
+  af <- fAF;
+  pf <- fPF;
+
+  cmpneq sz ov (var (at-offset product sz)) (imm 0);
+  mov 1 cf (var ov);
+
+  undef 1 sf;
+  undef 1 zf;
+  undef 1 af;
+  undef 1 pf
+end
+
+## N>>
+
 val sem-nop x = do
   return void
 end
+
+## O>>
 
 val sem-or x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
@@ -1152,6 +1203,8 @@ val sem-or x = do
 
   commit sz dst (var temp)
 end
+
+## P>>
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
@@ -2025,7 +2078,7 @@ val semantics insn =
    | MOVUPS x: sem-undef-arity2 x
    | MOVZX x: sem-movzx x
    | MPSADBW x: sem-undef-arity3 x
-   | MUL x: sem-undef-arity1 x
+   | MUL x: sem-mul x
    | MULPD x: sem-undef-arity2 x
    | MULPS x: sem-undef-arity2 x
    | MULSD x: sem-undef-arity2 x

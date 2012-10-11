@@ -253,3 +253,72 @@ val arch-show-id r = case r of
    | Sem_XMM14 : "XMM14"
    | Sem_XMM15 : "XMM15"
 end
+
+type register-without-size =
+   A
+ | B
+ | C
+ | D
+ | SI_
+ | DI_
+
+val high reg =
+  case reg of
+     A: AH
+   | B: BH
+   | C: CH
+   | D: DH
+  end
+
+val low reg =
+  case reg of
+     A: AL
+   | B: BL
+   | C: CL
+   | D: DL
+  end
+ 
+
+val register-by-size modifier reg-unsized size =
+  case reg-unsized of
+     A:
+       case size of
+          8: modifier A
+        | 16: AX
+        | 32: EAX
+        | 64: RAX
+       end
+   | B:
+       case size of
+          8: modifier B
+        | 16: BX
+        | 32: EBX
+        | 64: RBX
+       end
+   | C:
+       case size of
+          8: modifier C
+        | 16: CX
+        | 32: ECX
+        | 64: RCX
+       end
+   | D:
+       case size of
+          8: modifier D
+        | 16: DX
+        | 32: EDX
+        | 64: RDX
+       end
+   | SI_:
+       case size of
+          16: SI
+        | 32: ESI
+        | 64: RSI
+       end
+   | DI_:
+       case size of
+          16: DI
+        | 32: EDI
+        | 64: RDI
+       end
+  end
