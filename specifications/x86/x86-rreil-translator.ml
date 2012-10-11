@@ -574,7 +574,7 @@ val emit-add-adc-flags sz sum s0 s1 carry = do
   emit-arithmetic-adjust-flag sz sum s0 s1
 end
 
-val emit-sub-sbb-flags sz difference minuend subtrahend carry = do
+val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = do
   eq <- fEQ;
   les <- fLES;
   leu <- fLEU;
@@ -598,12 +598,16 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry = do
   xorb 1 ov (var lts) (var sf);
   cmpeq sz z difference zer0;
 
-  # Hacker's Delight - Unsigned Add/Subtract
-  _if (/d carry) _then do
-    cmpleu sz cf minuend subtrahend
-  end _else do
-    cmpltu sz cf minuend subtrahend
-  end;
+  if set-carry then (
+    # Hacker's Delight - Unsigned Add/Subtract
+    _if (/d carry) _then do
+      cmpleu sz cf minuend subtrahend
+    end _else do
+      cmpltu sz cf minuend subtrahend
+    end
+  ) else
+    return void
+  ;
 
   emit-parity-flag difference;
   emit-arithmetic-adjust-flag sz difference minuend subtrahend
@@ -768,7 +772,7 @@ val sem-cmp x = do
   c <- read sz x.opnd2;
   t <- mktemp;
   sub sz t b c;
-  emit-sub-sbb-flags sz (var t) b c (imm 0)
+  emit-sub-sbb-flags sz (var t) b c (imm 0) '1'
 end
 
 val sem-cmps x = do
@@ -779,7 +783,7 @@ val sem-cmps x = do
 
   temp <- mktemp;
   sub opnd-sz temp src0 src1;
-  emit-sub-sbb-flags opnd-sz (var temp) src0 src1 (imm 0);
+  emit-sub-sbb-flags opnd-sz (var temp) src0 src1 (imm 0) '1';
 
   amount <-
     case opnd-sz of
@@ -863,6 +867,91 @@ val sem-cwd-cdq-cqo x = do
 end
 
 ## D>>
+
+val sem-dec x = do
+  sz <- sizeof1 x.opnd1;
+  src <- read sz x.opnd1;
+  dst <- write sz x.opnd1;
+
+  temp <- mktemp;
+  sub sz temp src (imm 1);
+  
+  emit-sub-sbb-flags sz (var temp) src (imm 1) (imm 0) '0';
+
+  commit sz dst (var temp)
+end
+
+val sem-div x = do
+  sz <- sizeof1 x.opnd1;
+  divisor <- read (sz + sz) x.opnd1;
+
+  combine <-
+    let
+      val c high low = do
+         high <- return (semantic-register-of high);
+         low <- return (semantic-register-of low);
+
+	 sz <- return high.size;
+
+	 combined <- mktemp;
+	 mov sz combined (var (at-offset high sz));
+	 mov sz combined (var low);
+
+	 return combined
+      end
+    in
+      return c
+    end
+  ;
+
+  dividend <-
+    case sz of
+       8: return (semantic-register-of AX)
+     | 16: combine DX AX
+     | 32: combine EDX EAX
+     | 64: combine RDX RAX
+    end
+  ;
+
+  quotient <- mktemp;
+  div (sz + sz) quotient (var dividend) divisor;
+  quotient-sem <-
+    case sz of
+       8: return (semantic-register-of AL)
+     | 16: return (semantic-register-of AX)
+     | 32: return (semantic-register-of EAX)
+     | 64: return (semantic-register-of RAX)
+    end
+  ;
+  mov sz quotient-sem (var quotient);
+
+  remainder <- mktemp;
+  modulo (sz + sz) remainder (var dividend) divisor;
+  remainder-sem <-
+    case sz of
+       8: return (semantic-register-of AH)
+     | 16: return (semantic-register-of DX)
+     | 32: return (semantic-register-of EDX)
+     | 64: return (semantic-register-of RDX)
+    end
+  ;
+  mov sz remainder-sem (var remainder);
+
+  cf <- fCF;
+  ov <- fOF;
+  sf <- fSF;
+  zf <- fZF;
+  af <- fAF;
+  pf <- fPF;
+
+  undef 1 cf;
+  undef 1 ov;
+  undef 1 sf;
+  undef 1 zf;
+  undef 1 af;
+  undef 1 pf
+end
+
 ## E>>
 ## F>>
 ## G>>
@@ -1405,7 +1494,7 @@ val sem-sbb x = do
   add sz t (var t) subtrahend;
   sub sz t minuend subtrahend;
 
-  emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf);
+  emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf) '1';
   commit sz difference (var t)
 end
 
@@ -1490,7 +1579,7 @@ val sem-sub x = do
   t <- mktemp;
   sub sz t minuend subtrahend;
 
-  emit-sub-sbb-flags sz (var t) minuend subtrahend (imm 0);
+  emit-sub-sbb-flags sz (var t) minuend subtrahend (imm 0) '1';
   commit sz difference (var t)
 end
 
@@ -1687,7 +1776,7 @@ val semantics insn =
    | CWDE x: sem-undef-arity0 x
    | DAA x: sem-undef-arity0 x
    | DAS x: sem-undef-arity0 x
-   | DEC x: sem-undef-arity1 x
+   | DEC x: sem-dec x
    | DIV x: sem-undef-arity1 x
    | DIVPD x: sem-undef-arity2 x
    | DIVPS x: sem-undef-arity2 x
