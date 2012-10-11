@@ -928,9 +928,7 @@ val sem-div signedness x = do
   dividend <-
     case sz of
        8: return (semantic-register-of AX)
-     | 16: combine DX AX
-     | 32: combine EDX EAX
-     | 64: combine RDX RAX
+     | _: combine (register-by-size low D sz) (register-by-size low A sz)
     end
   ;
 
@@ -940,14 +938,7 @@ val sem-div signedness x = do
      Unsigned: div (sz + sz) quotient (var dividend) divisor
    | Signed: divs (sz + sz) quotient (var dividend) divisor
   end;
-  quotient-sem <-
-    case sz of
-       8: return (semantic-register-of AL)
-     | 16: return (semantic-register-of AX)
-     | 32: return (semantic-register-of EAX)
-     | 64: return (semantic-register-of RAX)
-    end
-  ;
+  quotient-sem <- return (semantic-register-of (register-by-size low A sz));
   mov sz quotient-sem (var quotient);
 
   remainder <- mktemp;
@@ -955,9 +946,7 @@ val sem-div signedness x = do
   remainder-sem <-
     case sz of
        8: return (semantic-register-of AH)
-     | 16: return (semantic-register-of DX)
-     | 32: return (semantic-register-of EDX)
-     | 64: return (semantic-register-of RDX)
+     | _: return (semantic-register-of (register-by-size high D sz))
     end
   ;
   mov sz remainder-sem (var remainder);
