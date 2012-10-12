@@ -1209,6 +1209,13 @@ val sem-vmovap x = do
   commit sz dst (var temp)
 end
 
+val sem-movs x = do
+  sz <- sizeof1 x.opnd1;
+  src <- read sz x.opnd2;
+  dst <- write sz x.opnd1;
+  commit sz dst src
+end
+
 val sem-movsx x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
@@ -2170,11 +2177,10 @@ val semantics insn =
    | MOVNTQ x: sem-undef-arity2 x
    | MOVQ x: sem-undef-arity2 x
    | MOVQ2DQ x: sem-undef-arity2 x
-   | MOVSB x: sem-undef-arity0 x
-   | MOVSD x: sem-undef-varity x
+   | MOVS x: sem-movs x
+   | MOVSD x: sem-undef-arity2 x
    | MOVSHDUP x: sem-undef-arity2 x
    | MOVSLDUP x: sem-undef-arity2 x
-   | MOVSQ x: sem-undef-arity0 x
    | MOVSS x: sem-undef-arity2 x
    | MOVSW x: sem-undef-arity2 x
    | MOVSX x: sem-movsx x

@@ -539,11 +539,10 @@ val show/instruction insn =
     | MOVNTQ x: "MOVNTQ" -++ show/arity2 x
     | MOVQ x: "MOVQ" -++ show/arity2 x
     | MOVQ2DQ x: "MOVQ2DQ" -++ show/arity2 x
-    | MOVSB: "MOVSB"
-    | MOVSD x: "MOVSD" -++ show/varity x
+    | MOVS x: "MOVS" -++ show/arity2 x
+    | MOVSD x: "MOVSD" -++ show/arity2 x
     | MOVSHDUP x: "MOVSHDUP" -++ show/arity2 x
     | MOVSLDUP x: "MOVSLDUP" -++ show/arity2 x
-    | MOVSQ: "MOVSQ"
     | MOVSS x: "MOVSS" -++ show/arity2 x
     | MOVSW x: "MOVSW" -++ show/arity2 x
     | MOVSX x: "MOVSX" -++ show/arity2 x

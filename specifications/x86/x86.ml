@@ -908,11 +908,10 @@ type insn =
  | MOVNTQ of arity2
  | MOVQ of arity2
  | MOVQ2DQ of arity2
- | MOVSB of arity0
- | MOVSD of varity
+ | MOVS of arity2
+ | MOVSD of arity2
  | MOVSHDUP of arity2
  | MOVSLDUP of arity2
- | MOVSQ of arity0
  | MOVSS of arity2
  | MOVSW of arity2
  | MOVSX of arity2
@@ -4072,18 +4071,18 @@ val /f3 [0x0f 0xd6 /r-reg] = binop MOVQ2DQ xmm128 mm/reg64
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
 ###  - Move Data from String to String
-val / [0xa4] = arity0 MOVSB
+val / [0xa4] = binop MOVS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
 val / [0xa5]
- | opndsz? = arity0 MOVSB
- | rexw? = arity0 MOVSQ
- | otherwise = varity0 MOVSD
+ | opndsz? = binop MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | rexw? = binop MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | otherwise = binop MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
 
 ### MOVSD
 ###  - Move Scalar Double-Precision Floating-Point Value
-val /f2 [0x0f 0x10 /r] = varity2 MOVSD xmm128 xmm/m64
+val /f2 [0x0f 0x10 /r] = binop MOVSD xmm128 xmm/m64
 val /vex/f2/0f/vexv [0x10 /r-reg] = varity3 VMOVSD xmm128 v/xmm xmm/reg128
 val /vex/f2/0f [0x10 /r-mem] = varity2 VMOVSD xmm128 m64
-val /f2 [0x0f 0x11 /r] = varity2 MOVSD xmm/m64 xmm128
+val /f2 [0x0f 0x11 /r] = binop MOVSD xmm/m64 xmm128
 val /vex/f2/0f [0x11 /r-reg] = varity3 VMOVSD xmm/reg128 v/xmm xmm128
 val /vex/f2/0f [0x11 /r-mem] = varity2 VMOVSD m64 xmm128
 
