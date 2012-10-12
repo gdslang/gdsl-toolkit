@@ -1036,8 +1036,7 @@ end
 
 val sem-jregz x reg = do
   reg-sem <- return (semantic-register-of reg);
-  reg-size <- sizeof1 (REG reg);
-  sem-jcc x (/eq reg-size (var reg-sem) (imm 0))
+  sem-jcc x (/eq reg-sem.size (var reg-sem) (imm 0))
 end
 
 val sem-jcxz x = sem-jregz x CX
@@ -1126,7 +1125,7 @@ val sem-lods x = do
   sz <- sizeof1 x.opnd1;
   src <- read sz x.opnd1;
 
-  dst <- return (semantic-register-of(
+  dst <- return (semantic-register-of (
     case sz of
        8: AL
      | 16: AX
@@ -1136,6 +1135,37 @@ val sem-lods x = do
   ));
 
   mov dst.size dst src
+end
+
+val sem-loop-loop x = do
+  reg <- return (semantic-register-of (
+    case x.addr-sz of
+       32: ECX
+     | 64: RCX
+     | _: CX
+    end
+  ));
+
+  sub reg.size reg (var reg) (imm 1);
+
+  return reg
+end
+
+val sem-loop x = do
+  reg <- sem-loop-loop x;
+  sem-jcc x (/neq reg.size (var reg) (imm 0))
+end
+
+val sem-loope x = do
+  reg <- sem-loop-loop x;
+  zf <- fZF;
+  sem-jcc x (/and (/d (var zf)) (/neq reg.size (var reg) (imm 0)))
+end
+
+val sem-loopne x = do
+  reg <- sem-loop-loop x;
+  zf <- fZF;
+  sem-jcc x (/and (/not (var zf)) (/neq reg.size (var reg) (imm 0)))
 end
 
 ## M>>
@@ -2097,9 +2127,9 @@ val semantics insn =
    | LMSW x: sem-undef-arity1 x
    | LOCK x: sem-undef-arity0 x
    | LODS x: sem-lods x
-   | LOOP x: sem-undef-flow1 x
-   | LOOPE x: sem-undef-flow1 x
-   | LOOPNE x: sem-undef-flow1 x
+   | LOOP x: sem-loop x
+   | LOOPE x: sem-loope x
+   | LOOPNE x: sem-loopne x
    | LSL x: sem-undef-arity2 x
    | LSS x: sem-undef-arity2 x
    | LTR x: sem-undef-arity1 x
