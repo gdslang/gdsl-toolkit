@@ -537,7 +537,7 @@ val emit-arithmetic-adjust-flag sz r op0 op1 = do
   cmpneq sz af (var t) (imm 0)
 end
 
-val emit-add-adc-flags sz sum s0 s1 carry = do
+val emit-add-adc-flags sz sum s0 s1 carry set-carry = do
   eq <- fEQ;
   les <- fLES;
   leu <- fLEU;
@@ -565,11 +565,15 @@ val emit-add-adc-flags sz sum s0 s1 carry = do
   cmpeq sz z sum zer0;
 
   # Hacker's Delight - Unsigned Add/Subtract
-  _if (/d carry) _then do
-    cmpleu sz cf sum s0
-  end _else do
-    cmpltu sz cf sum s0
-  end;
+  if set-carry then (
+    _if (/d carry) _then do
+      cmpleu sz cf sum s0
+    end _else do
+      cmpltu sz cf sum s0
+    end
+  ) else
+    return void
+  ;
 
   emit-parity-flag sum;
   emit-arithmetic-adjust-flag sz sum s0 s1
@@ -650,7 +654,7 @@ val sem-adc x = do
   movzx sz tc 1 (var cf);
   add sz t (var t) (var tc);
 
-  emit-add-adc-flags sz (var t) b c (var cf);
+  emit-add-adc-flags sz (var t) b c (var cf) '1';
   commit sz a (var t)
 end
 
@@ -661,7 +665,7 @@ val sem-add x = do
   c <- read sz x.opnd2;
   t <- mktemp;
   add sz t b c;
-  emit-add-adc-flags sz (var t) b c (imm 0);
+  emit-add-adc-flags sz (var t) b c (imm 0) '1';
   commit sz a (var t)
 end
 
@@ -997,6 +1001,19 @@ end
 val sem-imul-2 x = sem-imul-2-3 x.opnd1 x.opnd1 x.opnd2
 val sem-imul-3 x = sem-imul-2-3 x.opnd1 x.opnd2 x.opnd3
 
+val sem-inc x = do
+  sz <- sizeof1 x.opnd1;
+  src <- read sz x.opnd1;
+  dst <- write sz x.opnd1;
+
+  temp <- mktemp;
+  add sz temp src (imm 1);
+  
+  emit-sub-sbb-flags sz (var temp) src (imm 1) (imm 0) '0';
+
+  commit sz dst (var temp)
+end
+
 ## J>>
 
 val sem-jcc x cond = do
@@ -1076,6 +1093,13 @@ end
 
 ## K>>
 ## L>>
+
+val sem-lahf = do
+  ah <- return (semantic-register-of AH);
+  flags <- eflags-low;
+
+  mov ah.size ah (var flags)
+end
 
 val sem-lea x = do
   opnd-sz <- sizeof1 x.opnd1;
@@ -1318,6 +1342,9 @@ val sem-push x = do
   ps-push x.opnd-sz (var temp)
 end
 
+## Q>>
+## R>>
+
 val sem-ret x =
   case x of
      VA0 x: sem-ret-without-operand x
@@ -1396,6 +1423,8 @@ val release-from-stack x = do
 
   add sp-size sp (var sp) (var src-ext)
 end
+
+## S>>
 
 val sem-sal-shl x = do
   sz <- sizeof1 x.opnd1;
@@ -1660,6 +1689,8 @@ val sem-sub x = do
   commit sz difference (var t)
 end
 
+## T>>
+
 val sem-test x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- read sz x.opnd1;
@@ -1685,6 +1716,11 @@ val sem-test x = do
   af <- fAF;
   undef 1 af
 end
+
+## U>>
+## V>>
+## W>>
+## X>>
 
 val sem-xchg x = do
   sz <- sizeof1 x.opnd1;
@@ -1728,6 +1764,9 @@ val sem-xor x = do
 
   commit sz dst (var temp)
 end
+
+## Y>>
+## Z>>
 
 val semantics insn =
   case insn of
@@ -1973,7 +2012,7 @@ val semantics insn =
         | VA2 x: sem-imul-3 x
        end
    | IN x: sem-undef-arity2 x
-   | INC x: sem-undef-arity1 x
+   | INC x: sem-inc x
    | INSB x: sem-undef-arity0 x
    | INSD x: sem-undef-arity0 x
    | INSERTPS x: sem-undef-arity3 x
@@ -2021,7 +2060,7 @@ val semantics insn =
    | JRCXZ x: sem-jrcxz x
    | JS x: sem-s sem-jcc x
    | JZ x: sem-z sem-jcc x
-   | LAHF x: sem-undef-arity0 x
+   | LAHF x: sem-lahf
    | LAR x: sem-undef-arity2 x
    | LDDQU x: sem-undef-arity2 x
    | LDMXCSR x: sem-undef-arity1 x

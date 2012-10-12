@@ -1,7 +1,5 @@
 # This file maps syntactic registers to semantic registers used in RREIL.
 
-val sdt-ss = return (_var (VIRT_T ~100))
-
 # define functions that generate EFLAGS variables
 val fCF = return (_var Sem_FLAGS _offset 0)
 val fPF = return (_var Sem_FLAGS _offset 2)
@@ -10,6 +8,17 @@ val fZF = return (_var Sem_FLAGS _offset 6)
 val fSF = return (_var Sem_FLAGS _offset 7)
 val fDF = return (_var Sem_FLAGS _offset 10)
 val fOF = return (_var Sem_FLAGS _offset 11)
+
+val eflags-low = do
+  flags <- return {id=Sem_FLAGS,offset=0,size=8};
+
+  #Set missing bits according to manual
+  mov 1 (at-offset flags 1) (imm 1);
+  mov 1 (at-offset flags 3) (imm 0);
+  mov 1 (at-offset flags 5) (imm 0);
+
+  return flags
+end
 
 type sem_id
    = Sem_IP
