@@ -864,10 +864,7 @@ type insn =
  | LLDT of arity1
  | LMSW of arity1
  | LOCK of arity0
- | LODSB of arity0
- | LODSD of arity0
- | LODSQ of arity0
- | LODSW of arity0
+ | LODS of arity1
  | LOOP of flow1
  | LOOPE of flow1
  | LOOPNE of flow1
@@ -2187,9 +2184,9 @@ val mm64 = r/rexb mm-rex
 val xmm128 = r/rexr xmm-rex
 val ymm256 = r/rexr ymm-rex
 
-val m/default/si/esi/rsi = do
-  opndsz <- operand-size;
-  update@{ptrty=opndsz};
+val m/default/si/esi/rsi size = do
+  size <- size;
+  update@{ptrty=size};
   addrsz <- address-size;
   update@{ptrsz=addrsz};
   case addrsz of
@@ -2199,16 +2196,16 @@ val m/default/si/esi/rsi = do
   end
 end
 
-val m/es/si/esi/rsi = do
+val m/es/di/edi/rdi size = do
   update @{segment=SEG_OVERRIDE ES};
-  opndsz <- operand-size;
-  update@{ptrty=opndsz};
+  size <- size;
+  update@{ptrty=size};
   addrsz <- address-size;
   update@{ptrsz=addrsz};
   case addrsz of
-     16: mem (REG SI)
-   | 32: mem (REG ESI)
-   | 64: mem (REG RSI)
+     16: mem (REG DI)
+   | 32: mem (REG EDI)
+   | 64: mem (REG RDI)
   end
 end
 
@@ -2825,11 +2822,11 @@ val /vex/0f/vexv [0xc2 /r]
 
 ### CMPS/CMPSB/CMPSW/CMPSD/CMPSQ
 ###  - Compare String Operands
-val / [0xa6] = binop CMPS m/default/si/esi/rsi m/es/si/esi/rsi
+val / [0xa6] = binop CMPS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
 val / [0xa7]
- | opndsz? = binop CMPS m/default/si/esi/rsi m/es/si/esi/rsi
- | rexw? = binop CMPS m/default/si/esi/rsi m/es/si/esi/rsi
- | otherwise = binop CMPS m/default/si/esi/rsi m/es/si/esi/rsi
+ | opndsz? = binop CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | rexw? = binop CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size) 
+ | otherwise = binop CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
 
 ### CMPSD
 ###  - Compare Scalar Double-Precision Floating-Point Values
@@ -3735,11 +3732,11 @@ val / [0xf0] = arity0 LOCK
 
 ### LODS/LODSB/LODSW/LODSD/LODSQ
 ###  - Load String
-val / [0xac] = arity0 LODSB
+val / [0xac] = unop LODS (m/default/si/esi/rsi (return 8))
 val / [0xad]
- | opndsz? = arity0 LODSW
- | rexw? = arity0 LODSQ
- | otherwise = arity0 LODSD
+ | opndsz? = unop LODS (m/default/si/esi/rsi (return 8))
+ | rexw? = unop LODS (m/default/si/esi/rsi (return 8))
+ | otherwise = unop LODS (m/default/si/esi/rsi (return 8))
 
 ### LOOP/LOOPcc
 ###  - Loop According to ECX Counter

@@ -184,8 +184,8 @@ val conv-with conv sz x =
            do
 	     t <- mktemp;
              address <- conv-mem x;
-             segmented-load sz t x.psz address x.segment;
-             return (var t)
+             segmented-load x.sz t x.psz address x.segment;
+             expand conv (var t) x.sz sz
            end
       end
    end
@@ -1101,6 +1101,10 @@ val sem-lahf = do
   mov ah.size ah (var flags)
 end
 
+val sem-lar x = do
+  sem-undef-arity2
+end
+
 val sem-lea x = do
   opnd-sz <- sizeof1 x.opnd1;
   dst <- write opnd-sz x.opnd1;
@@ -1116,6 +1120,22 @@ val sem-lea x = do
   movzx opnd-sz temp addr-sz address;
 
   commit opnd-sz dst (var temp)
+end
+
+val sem-lods x = do
+  sz <- sizeof1 x.opnd1;
+  src <- read sz x.opnd1;
+
+  dst <- return (semantic-register-of(
+    case sz of
+       8: AL
+     | 16: AX
+     | 32: EAX
+     | 64: RAX
+    end
+  ));
+
+  mov dst.size dst src
 end
 
 ## M>>
@@ -2076,10 +2096,7 @@ val semantics insn =
    | LLDT x: sem-undef-arity1 x
    | LMSW x: sem-undef-arity1 x
    | LOCK x: sem-undef-arity0 x
-   | LODSB x: sem-undef-arity0 x
-   | LODSD x: sem-undef-arity0 x
-   | LODSQ x: sem-undef-arity0 x
-   | LODSW x: sem-undef-arity0 x
+   | LODS x: sem-lods x
    | LOOP x: sem-undef-flow1 x
    | LOOPE x: sem-undef-flow1 x
    | LOOPNE x: sem-undef-flow1 x
