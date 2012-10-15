@@ -1681,22 +1681,6 @@ val sem-sar x = do
   commit sz dst (var tdst)
 end
 
-val sem-scas size x = do
-  mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
-
-  mem-val <- mktemp;
-  segmented-load size mem-val x.addr-sz (var mem-sem) (SEG_OVERRIDE ES);
-
-  a <- return (semantic-register-of (register-by-size low A size));
-
-  temp <- mktemp;
-  sub size temp (var a) (var mem-val);
-
-  emit-sub-sbb-flags size (var temp) (var a) (var mem-val) (imm 0) '1';
-
-  direction-adjust mem-sem.size mem-sem size
-end
-
 val sem-sbb x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- write sz x.opnd1;
@@ -1722,6 +1706,22 @@ val sem-setcc x cond = do
   movzx dst-sz temp 1 cond;
 
   commit dst-sz dst (var temp)
+end
+
+val sem-scas size x = do
+  mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
+
+  mem-val <- mktemp;
+  segmented-load size mem-val x.addr-sz (var mem-sem) (SEG_OVERRIDE ES);
+
+  a <- return (semantic-register-of (register-by-size low A size));
+
+  temp <- mktemp;
+  sub size temp (var a) (var mem-val);
+
+  emit-sub-sbb-flags size (var temp) (var a) (var mem-val) (imm 0) '1';
+
+  direction-adjust mem-sem.size mem-sem size
 end
 
 val sem-shr x = do
@@ -1783,6 +1783,25 @@ val sem-shr x = do
   emit-parity-flag (var tdst);
 
   commit sz dst (var tdst)
+end
+
+val sem-stc = do
+  cf <- fCF;
+  mov 1 cf (imm 1)
+end
+
+val sem-std = do
+  df <- fDF;
+  mov 1 df (imm 1)
+end
+
+val sem-stos size x = do
+  mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
+  a <- return (semantic-register-of (register-by-size low A size));
+
+  segmented-store (address x.addr-sz (var mem-sem)) (lin a.size (var a)) (SEG_OVERRIDE ES);
+
+  direction-adjust mem-sem.size mem-sem size
 end
 
 val sem-sub x = do
@@ -2475,14 +2494,14 @@ val semantics insn =
    | SQRTPS x: sem-undef-arity2 x
    | SQRTSD x: sem-undef-arity2 x
    | SQRTSS x: sem-undef-arity2 x
-   | STC x: sem-undef-arity0 x
-   | STD x: sem-undef-arity0 x
+   | STC x: sem-stc
+   | STD x: sem-std
    | STI x: sem-undef-arity0 x
    | STMXCSR x: sem-undef-arity1 x
-   | STOSB x: sem-undef-arity0 x
-   | STOSD x: sem-undef-arity0 x
-   | STOSQ x: sem-undef-arity0 x
-   | STOSW x: sem-undef-arity0 x
+   | STOSB x: sem-stos 8 x
+   | STOSD x: sem-stos 32 x
+   | STOSQ x: sem-stos 64 x
+   | STOSW x: sem-stos 16 x
    | STR x: sem-undef-arity1 x
    | SUB x: sem-sub x
    | SUBPD x: sem-undef-arity2 x
