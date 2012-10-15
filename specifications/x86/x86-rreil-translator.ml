@@ -650,6 +650,23 @@ val move-to-rflags size lin = do
   orb size flags (var flags) (var temp)
 end
 
+val direction-adjust reg-size reg-sem for-size = do
+  amount <-
+    case for-size of
+       8: return 1
+     | 16: return 2
+     | 32: return 4
+     | 64: return 8
+    end
+  ;
+
+  df <- fDF;
+  _if (/not (var df)) _then
+    add reg-size reg-sem (var reg-sem) (imm amount)  
+  _else
+    sub reg-size reg-sem (var reg-sem) (imm amount)
+end
+
 ## A>>
 
 val sem-adc x = do
@@ -813,36 +830,19 @@ val sem-cmp x = do
 end
 
 val sem-cmps x = do
-  opnd-sz <- return x.opnd-sz;
-  src0 <- read opnd-sz x.opnd1;
+  src0 <- read x.opnd-sz x.opnd1;
   src1-sz <- sizeof1 x.opnd2;
-  src1 <- read opnd-sz x.opnd2;
+  src1 <- read x.opnd-sz x.opnd2;
 
   temp <- mktemp;
-  sub opnd-sz temp src0 src1;
-  emit-sub-sbb-flags opnd-sz (var temp) src0 src1 (imm 0) '1';
-
-  amount <-
-    case opnd-sz of
-       8: return 1
-     | 16: return 2
-     | 32: return 4
-     | 64: return 8
-    end
-  ;
+  sub x.opnd-sz temp src0 src1;
+  emit-sub-sbb-flags x.opnd-sz (var temp) src0 src1 (imm 0) '1';
 
   reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
   reg1-sem <- return (semantic-register-of (read-addr-reg x.opnd2));
-  addr-sz <- return x.addr-sz;
 
-  df <- fDF;
-  _if (/not (var df)) _then do
-    add addr-sz reg0-sem (var reg0-sem) (imm amount); 
-    add addr-sz reg1-sem (var reg1-sem) (imm amount)  
-  end _else do
-    sub addr-sz reg0-sem (var reg0-sem) (imm amount);  
-    sub addr-sz reg1-sem (var reg1-sem) (imm amount)  
-  end
+  direction-adjust x.addr-sz reg0-sem x.opnd-sz;
+  direction-adjust x.addr-sz reg1-sem x.opnd-sz
 
 #  addr-sz <- address-size;
 #
@@ -1681,6 +1681,22 @@ val sem-sar x = do
   commit sz dst (var tdst)
 end
 
+val sem-scas size x = do
+  mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
+
+  mem-val <- mktemp;
+  segmented-load size mem-val x.addr-sz (var mem-sem) (SEG_OVERRIDE ES);
+
+  a <- return (semantic-register-of (register-by-size low A size));
+
+  temp <- mktemp;
+  sub size temp (var a) (var mem-val);
+
+  emit-sub-sbb-flags size (var temp) (var a) (var mem-val) (imm 0) '1';
+
+  direction-adjust mem-sem.size mem-sem size
+end
+
 val sem-sbb x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- write sz x.opnd1;
@@ -2410,10 +2426,10 @@ val semantics insn =
    | SAL x: sem-sal-shl x
    | SAR x: sem-sar x
    | SBB x: sem-sbb x
-   | SCASB x: sem-undef-arity0 x
-   | SCASD x: sem-undef-arity0 x
-   | SCASQ x: sem-undef-arity0 x
-   | SCASW x: sem-undef-arity0 x
+   | SCASB x: sem-scas 8 x
+   | SCASD x: sem-scas 32 x
+   | SCASQ x: sem-scas 64 x
+   | SCASW x: sem-scas 16 x
    | SETA x: sem-a sem-setcc x
    | SETAE x: sem-ae sem-setcc x
    | SETB x: sem-b sem-setcc x
