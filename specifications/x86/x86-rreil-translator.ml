@@ -638,6 +638,18 @@ val emit-mul-flags sz product = do
   undef 1 pf
 end
 
+val move-to-rflags size lin = do
+  flags <- rflags;
+
+  in-mask <- return 0x0000000000245fd5;
+  out-mask <- return 0xffffffffffc3a02a;
+
+  temp <- mktemp;
+  andb size temp lin (imm in-mask);
+  andb size flags (var flags) (imm out-mask);
+  orb size flags (var flags) (var temp)
+end
+
 ## A>>
 
 val sem-adc x = do
@@ -1347,14 +1359,8 @@ end
 val sem-popf x = do
   popped <- mktemp;
   ps-pop x.opnd-sz popped;
-  flags <- rflags;
 
-  in-mask <- return 0x0000000000245fd5;
-  out-mask <- return 0xffffffffffc3a02a;
-
-  andb x.opndsz popped (var popped) (imm in-mask);
-  andb x.opndsz flags (var flags) (imm out-mask);
-  orb x.opndsz flags (var flags) (var popped)
+  move-to-rflags x.opnd-sz (var popped)
 end
 
 val ps-push opnd-sz opnd = do
@@ -1505,6 +1511,13 @@ val release-from-stack x = do
 end
 
 ## S>>
+
+val sem-sahf x = do
+  ah <- return (semantic-register-of AH);
+  flags <- rflags;
+
+  move-to-rflags ah.size (var ah)
+end
 
 val sem-sal-shl x = do
   sz <- sizeof1 x.opnd1;
@@ -2393,7 +2406,7 @@ val semantics insn =
    | RSM x: sem-undef-arity0 x
    | RSQRTPS x: sem-undef-arity2 x
    | RSQRTSS x: sem-undef-arity2 x
-   | SAHF x: sem-undef-arity0 x
+   | SAHF x: sem-sahf x
    | SAL x: sem-sal-shl x
    | SAR x: sem-sar x
    | SBB x: sem-sbb x
