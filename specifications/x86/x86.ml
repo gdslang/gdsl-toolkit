@@ -2300,7 +2300,7 @@ val unop cons giveOp1 = do
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd1=op1})
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1})
 end
 
 val binop cons giveOp1 giveOp2 = do

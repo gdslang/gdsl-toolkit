@@ -698,6 +698,39 @@ val sem-add x = do
   commit sz a (var t)
 end
 
+#val sem-addpd x = do
+#  size <- return 128;
+#
+#end
+
+val sem-andpd x = do
+  size <- return 128;
+
+  src0 <- read size x.opnd1;
+  src1 <- read size x.opnd2;
+
+  temp <- mktemp;
+  andb size temp src0 src1;
+
+  dst <- write size x.opnd1;
+  commit size dst (var temp)
+end
+
+val sem-vandpd x = do
+  size <- sizeof1 x.opnd1;
+  src0 <- read size x.opnd2;
+  src1 <- read size x.opnd3;
+  out-size <- return 256;
+  
+  temp <- mktemp;
+  andb size temp src0 src1;
+
+  mov (out-size - size) (at-offset temp size) (imm 0);
+
+  dst <- return (semantic-register-of-operand-with-size x.opnd1 out-size);
+  mov out-size dst (var temp)
+end
+
 ## B>>
 
 val sem-bt x = do
@@ -1137,14 +1170,7 @@ val sem-lods x = do
   sz <- sizeof1 x.opnd1;
   src <- read sz x.opnd1;
 
-  dst <- return (semantic-register-of (
-    case sz of
-       8: AL
-     | 16: AX
-     | 32: EAX
-     | 64: RAX
-    end
-  ));
+  dst <- return (semantic-register-of (register-by-size low A sz));
 
   mov dst.size dst src
 end
@@ -1917,7 +1943,7 @@ val semantics insn =
    | AESIMC x: sem-undef-arity2 x
    | AESKEYGENASSIST x: sem-undef-arity3 x
    | AND x: sem-undef-arity2 x
-   | ANDNPD x: sem-undef-arity2 x
+   | ANDNPD x: sem-andpd x
    | ANDNPS x: sem-undef-arity2 x
    | ANDPD x: sem-undef-arity2 x
    | ANDPS x: sem-undef-arity2 x
@@ -1943,7 +1969,7 @@ val semantics insn =
    | CLFLUSH x: sem-undef-arity1 x
    | CLI x: sem-undef-arity0 x
    | CLTS x: sem-undef-arity0 x
-   | CMC x: sem-undef-arity0 x
+   | CMC x: sem-cmc
    | CMOVA x: sem-a sem-cmovcc x
    | CMOVAE x: sem-ae sem-cmovcc x
    | CMOVB x: sem-b sem-cmovcc x
@@ -2135,9 +2161,9 @@ val semantics insn =
    | IDIV x: sem-idiv x
    | IMUL v:
        case v of
-          VA0 x: sem-imul-1 x
-        | VA1 x: sem-imul-2 x
-        | VA2 x: sem-imul-3 x
+          VA1 x: sem-imul-1 x
+        | VA2 x: sem-imul-2 x
+        | VA3 x: sem-imul-3 x
        end
    | IN x: sem-undef-arity2 x
    | INC x: sem-inc x
@@ -2533,9 +2559,12 @@ val semantics insn =
    | VAESENCLAST x: sem-undef-varity x
    | VAESIMC x: sem-undef-varity x
    | VAESKEYGENASSIST x: sem-undef-varity x
-   | VANDNPD x: sem-undef-varity x
+   | VANDNPD v: sem-undef-varity v
    | VANDNPS x: sem-undef-varity x
-   | VANDPD x: sem-undef-varity x
+   | VANDPD v:
+       case v of
+          VA3 x: sem-vandpd x
+       end
    | VANDPS x: sem-undef-varity x
    | VBLENDPD x: sem-undef-varity x
    | VBLENDPS x: sem-undef-varity x
