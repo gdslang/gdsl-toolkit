@@ -1353,7 +1353,7 @@ val sem-popf x = do
   out-mask <- return 0xffffffffffc3a02a;
 
   andb x.opndsz popped (var popped) (imm in-mask);
-  andb flags.size flags (var flags) (imm out-mask);
+  andb x.opndsz flags (var flags) (imm out-mask);
   orb x.opndsz flags (var flags) (var popped)
 end
 
@@ -1408,6 +1408,16 @@ val sem-push x = do
    | IMM32 i:
        movsx x.opnd-sz temp src-size src
   end;
+
+  ps-push x.opnd-sz (var temp)
+end
+
+val sem-pushf x = do
+  mask <- return 0x0000000000fcffff;
+  flags <- rflags;
+
+  temp <- mktemp;
+  andb flags.size temp (var flags) (imm mask);
 
   ps-push x.opnd-sz (var temp)
 end
@@ -2357,9 +2367,9 @@ val semantics insn =
    | PUSH x: sem-push x
    | PUSHA x: sem-undef-arity0 x
    | PUSHAD x: sem-undef-arity0 x
-   | PUSHF x: sem-undef-arity0 x
-   | PUSHFD x: sem-undef-arity0 x
-   | PUSHFQ x: sem-undef-arity0 x
+   | PUSHF x: sem-pushf x
+   | PUSHFD x: sem-pushf x
+   | PUSHFQ x: sem-pushf x
    | PXOR x: sem-undef-arity2 x
    | RCL x: sem-undef-arity2 x
    | RCPPS x: sem-undef-arity2 x
