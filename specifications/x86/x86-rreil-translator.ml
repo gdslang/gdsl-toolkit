@@ -1095,7 +1095,7 @@ end
 
 val sem-lahf = do
   ah <- return (semantic-register-of AH);
-  flags <- eflags-low;
+  flags <- rflags;
 
   mov ah.size ah (var flags)
 end
@@ -1342,6 +1342,19 @@ val sem-pop x = do
   temp-dest <- mktemp;
   ps-pop x.opnd-sz temp-dest;
   commit x.opnd-sz dst (var temp-dest)
+end
+
+val sem-popf x = do
+  popped <- mktemp;
+  ps-pop x.opnd-sz popped;
+  flags <- rflags;
+
+  in-mask <- return 0x0000000000245fd5;
+  out-mask <- return 0xffffffffffc3a02a;
+
+  andb x.opndsz popped (var popped) (imm in-mask);
+  andb flags.size flags (var flags) (imm out-mask);
+  orb x.opndsz flags (var flags) (var popped)
 end
 
 val ps-push opnd-sz opnd = do
@@ -2296,9 +2309,9 @@ val semantics insn =
    | POPA x: sem-undef-arity0 x
    | POPAD x: sem-undef-arity0 x
    | POPCNT x: sem-undef-arity2 x
-   | POPF x: sem-undef-arity0 x
-   | POPFD x: sem-undef-arity0 x
-   | POPFQ x: sem-undef-arity0 x
+   | POPF x: sem-popf x
+   | POPFD x: sem-popf x
+   | POPFQ x: sem-popf x
    | POR x: sem-undef-arity2 x
    | PREFETCHNTA x: sem-undef-arity1 x
    | PREFETCHT0 x: sem-undef-arity1 x

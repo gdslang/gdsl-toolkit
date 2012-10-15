@@ -9,8 +9,8 @@ val fSF = return (_var Sem_FLAGS _offset 7)
 val fDF = return (_var Sem_FLAGS _offset 10)
 val fOF = return (_var Sem_FLAGS _offset 11)
 
-val eflags-low = do
-  flags <- return {id=Sem_FLAGS,offset=0,size=8};
+val rflags = do
+  flags <- return {id=Sem_FLAGS,offset=0,size=64};
 
   #Set missing bits according to manual
   mov 1 (at-offset flags 1) (imm 1);
