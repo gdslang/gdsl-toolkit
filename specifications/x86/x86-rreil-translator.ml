@@ -353,6 +353,7 @@ val /gtu sz a b = do
 end
 
 val _while c __ b = do
+  c <- c;
   stack <- pop-all;
   b;
   body <- pop-all;
@@ -1457,6 +1458,46 @@ end
 ## Q>>
 ## R>>
 
+val sem-rep-repe-repne size sem fc = do
+  count-reg <- return (semantic-register-of (register-by-size low DI_ size));
+
+  cond-creg <- let
+    val v = /neq size (var count-reg) (imm 0)
+  in
+    return v
+  end;
+
+  cond <- mktemp;
+  c <- cond-creg;
+  mov 1 cond c;
+  _while (/d (var cond)) __ do
+    sem;
+
+    c <- /and cond-creg fc;
+    mov 1 cond c
+  end
+end
+
+val sem-rep size sem = sem-rep-repe-repne size sem (return (imm 1))
+
+val sem-repe size sem = let
+  val fc = do
+    zf <- fZF;
+    /not (var zf)
+  end
+in
+  sem-rep-repe-repne size sem fc
+end
+
+val sem-repne size sem = let
+  val fc = do
+    zf <- fZF;
+    /d (var zf)
+  end
+in
+  sem-rep-repe-repne size sem fc
+end
+
 val sem-ret x =
   case x of
      VA0 x: sem-ret-without-operand x
@@ -1734,20 +1775,29 @@ val sem-setcc x cond = do
   commit dst-sz dst (var temp)
 end
 
-val sem-scas size x = do
-  mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
+val sem-scas size x = let
+  val sem = do
+    mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
 
-  mem-val <- mktemp;
-  segmented-load size mem-val x.addr-sz (var mem-sem) (SEG_OVERRIDE ES);
+    mem-val <- mktemp;
+    segmented-load size mem-val x.addr-sz (var mem-sem) (SEG_OVERRIDE ES);
 
-  a <- return (semantic-register-of (register-by-size low A size));
+    a <- return (semantic-register-of (register-by-size low A size));
 
-  temp <- mktemp;
-  sub size temp (var a) (var mem-val);
+    temp <- mktemp;
+    sub size temp (var a) (var mem-val);
 
-  emit-sub-sbb-flags size (var temp) (var a) (var mem-val) (imm 0) '1';
+    emit-sub-sbb-flags size (var temp) (var a) (var mem-val) (imm 0) '1';
 
-  direction-adjust mem-sem.size mem-sem size
+    direction-adjust mem-sem.size mem-sem size
+  end
+in
+  if x.rep then
+    sem-repe x.addr-sz sem
+  else if x.repne then
+    sem-repne x.addr-sz sem
+  else
+    sem
 end
 
 val sem-shr x = do

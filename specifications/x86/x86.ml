@@ -554,12 +554,12 @@ type flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-type flow1 = {opnd-sz:int,addr-sz:int,opnd1:flowopnd}
-type arity0 = {opnd-sz:int,addr-sz:int}
-type arity1 = {opnd-sz:int,addr-sz:int,opnd1:opnd}
-type arity2 = {opnd-sz:int,addr-sz:int,opnd1:opnd,opnd2:opnd}
-type arity3 = {opnd-sz:int,addr-sz:int,opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {opnd-sz:int,addr-sz:int,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+type flow1 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
+type arity0 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
+type arity1 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
+type arity2 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
+type arity3 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
+type arity4 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
 type varity =
    VA0 of arity0
@@ -2251,111 +2251,175 @@ val moffs64 = do
 end
 
 val varity0 cons = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA0 {opnd-sz=opnd-sz,addr-sz=addr-sz}))
+  return (cons (VA0 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
 end
 
 val varity1 cons giveOp1 = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA1 {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1}))
+  return (cons (VA1 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
 end
 
 val varity2 cons giveOp1 giveOp2 = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op1 <- giveOp1;
   op2 <- giveOp2;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA2 {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1,opnd2=op2}))
+  return (cons (VA2 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
 end
 
 val varity3 cons giveOp1 giveOp2 giveOp3 = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA3 {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1,opnd2=op2,opnd3=op3}))
+  return (cons (VA3 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
 end
 
 val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
   op4 <- giveOp4;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA4 {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+  return (cons (VA4 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+end
+
+val arity0-all cons = do
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  rep <- query $rep;
+  repne <- query $repne;
+  lock <- query $lock;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
+end
+
+val arity0-r cons = do
+  #Todo: Throw exception in case a LOCK prefix is present
+  arity0-all cons
+end
+
+val arity0-l cons = do
+  #Todo: Throw exception in case a REP/REPNE prefix is present
+  arity0-all cons
 end
 
 val arity0 cons = do
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz})
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
+  arity0-all cons
 end
 
-val unop cons giveOp1 = do
+val unop-all cons giveOp1 = do
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1})
+  rep <- query $rep;
+  repne <- query $repne;
+  lock <- query $lock;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
 end
 
-val binop cons giveOp1 giveOp2 = do
+val unop-r cons giveOp1 = do
+  #Todo: Throw exception in case a LOCK prefix is present
+  unop-all cons giveOp1
+end
+
+val unop-l cons giveOp1 = do
+  #Todo: Throw exception in case a REP/REPNE prefix is present
+  unop-all cons giveOp1
+end
+
+val unop cons giveOp1 = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
+  unop-all cons giveOp1
+end
+
+val binop-all cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1,opnd2=op2})
+  rep <- query $rep;
+  repne <- query $repne;
+  lock <- query $lock;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
+end
+
+val binop-r cons giveOp1 giveOp2 = do
+  #Todo: Throw exception in case a LOCK prefix is present
+  binop-all cons giveOp1 giveOp2
+end
+
+val binop-l cons giveOp1 giveOp2 = do
+  #Todo: Throw exception in case a REP/REPNE prefix is present
+  binop-all cons giveOp1 giveOp2
+end
+
+val binop cons giveOp1 giveOp2 = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
+  binop-all cons giveOp1 giveOp2
 end
 
 val ternop cons giveOp1 giveOp2 giveOp3 = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1,opnd2=op2,opnd3=op3})
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
 end
 
 val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
   op4 <- giveOp4;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
 end
 
 val near-abs cons giveOp = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=NEARABS op})
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
 end
 
 val near-rel cons giveOp = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op})
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end
 
 val far-dir cons giveOp = do
+  #Todo: Throw exception in case a REP/REPNE/LOCK prefix is present
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=op})
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end
 
 val far-ind cons giveOp = do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,opnd1=FARABS op})
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
 end
 
 val one = return (IMM8 '00000001')
@@ -2821,11 +2885,11 @@ val /vex/0f/vexv [0xc2 /r]
 
 ### CMPS/CMPSB/CMPSW/CMPSD/CMPSQ
 ###  - Compare String Operands
-val / [0xa6] = binop CMPS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
+val / [0xa6] = binop-r CMPS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
 val / [0xa7]
- | opndsz? = binop CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
- | rexw? = binop CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size) 
- | otherwise = binop CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | opndsz? = binop-r CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | rexw? = binop-r CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size) 
+ | otherwise = binop-r CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
 
 ### CMPSD
 ###  - Compare Scalar Double-Precision Floating-Point Values
@@ -3516,10 +3580,10 @@ val / [0xff /0]
 
 ### INS/INSB/INSW/INSD
 ###  - Input from Port to String
-val / [0x6c] = arity0 INSB
+val / [0x6c] = arity0-r INSB
 val / [0x6d]
- | opndsz? = arity0 INSW
- | otherwise = arity0 INSD
+ | opndsz? = arity0-r INSW
+ | otherwise = arity0-r INSD
 
 ### INSERTPS
 ###  - Insert Packed Single Precision Floating-Point Value
@@ -3731,11 +3795,11 @@ val / [0xf0] = arity0 LOCK
 
 ### LODS/LODSB/LODSW/LODSD/LODSQ
 ###  - Load String
-val / [0xac] = unop LODS (m/default/si/esi/rsi (return 8))
+val / [0xac] = unop-r LODS (m/default/si/esi/rsi (return 8))
 val / [0xad]
- | opndsz? = unop LODS (m/default/si/esi/rsi (return 8))
- | rexw? = unop LODS (m/default/si/esi/rsi (return 8))
- | otherwise = unop LODS (m/default/si/esi/rsi (return 8))
+ | opndsz? = unop-r LODS (m/default/si/esi/rsi (return 8))
+ | rexw? = unop-r LODS (m/default/si/esi/rsi (return 8))
+ | otherwise = unop-r LODS (m/default/si/esi/rsi (return 8))
 
 ### LOOP/LOOPcc
 ###  - Loop According to ECX Counter
@@ -4071,11 +4135,11 @@ val /f3 [0x0f 0xd6 /r-reg] = binop MOVQ2DQ xmm128 mm/reg64
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
 ###  - Move Data from String to String
-val / [0xa4] = binop MOVS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
+val / [0xa4] = binop-r MOVS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
 val / [0xa5]
- | opndsz? = binop MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
- | rexw? = binop MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
- | otherwise = binop MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | opndsz? = binop-r MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | rexw? = binop-r MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | otherwise = binop-r MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
 
 ### MOVSD
 ###  - Move Scalar Double-Precision Floating-Point Value
@@ -4277,14 +4341,14 @@ val / [0xef] = binop OUT dx eax
 ### OUTS/OUTSB/OUTSW/OUTSD
 ###  - Output String to Port
 # Fix: SI ~ m8?
-#val / [0x6e] = binop OUTS dx (mem (REG SI))
+#val / [0x6e] = binop-r OUTS dx (mem (REG SI))
 #val / [0x6f]
-# | opndsz? = binop OUTS dx (mem (REG SI))
-# | otherwise = binop OUTS dx (mem (REG ESI))
-val / [0x6e] = arity0 OUTSB
+# | opndsz? = binop-r OUTS dx (mem (REG SI))
+# | otherwise = binop-r OUTS dx (mem (REG ESI))
+val / [0x6e] = arity0-r OUTSB
 val / [0x6f]
- | opndsz? = arity0 OUTSW
- | otherwise = arity0 OUTSD
+ | opndsz? = arity0-r OUTSW
+ | otherwise = arity0-r OUTSD
 
 ### PABSB/PABSW/PABSD
 ###  - Packed Absolute Value
@@ -5199,11 +5263,11 @@ val / [0x1b /r]
 
 ### SCAS/SCASB/SCASW/SCASD/SCASQ
 ###  - Scan String
-val / [0xae] = arity0 SCASB
+val / [0xae] = arity0-r SCASB
 val / [0xaf]
- | opndsz? = arity0 SCASW
- | rexw? = arity0 SCASQ
- | otherwise = arity0 SCASD
+ | opndsz? = arity0-r SCASW
+ | rexw? = arity0-r SCASQ
+ | otherwise = arity0-r SCASD
 
 ### SETcc
 ###  - Set Byte on Condition
@@ -5332,11 +5396,11 @@ val /vex/0f [0xae /3-mem] | vex128? = varity1 VSTMXCSR m32
 
 ### STOS/STOSB/STOSW/STOSD/STOSQ
 ###  - Store String
-val / [0xaa] = arity0 STOSB
+val / [0xaa] = arity0-r STOSB
 val / [0xab]
- | opndsz? = arity0 STOSW
- | rexw? = arity0 STOSQ
- | otherwise = arity0 STOSD
+ | opndsz? = arity0-r STOSW
+ | rexw? = arity0-r STOSQ
+ | otherwise = arity0-r STOSD
 
 ### STR
 ###  - Store Task Register
