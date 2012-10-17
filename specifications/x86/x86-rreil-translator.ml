@@ -1498,6 +1498,20 @@ in
   sem-rep-repe-repne size sem fc
 end
 
+val sem-repe-repne-insn x sem =
+  if x.rep then
+    sem-repe x.addr-sz (sem x)
+  else if x.repne then
+    sem-repne x.addr-sz (sem x)
+  else
+     sem x
+
+val sem-rep-insn x sem =
+  if x.rep then
+    sem-rep x.addr-sz (sem x)
+  else
+     sem x
+
 val sem-ret x =
   case x of
      VA0 x: sem-ret-without-operand x
@@ -1776,7 +1790,7 @@ val sem-setcc x cond = do
 end
 
 val sem-scas size x = let
-  val sem = do
+  val sem x = do
     mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
 
     mem-val <- mktemp;
@@ -1792,12 +1806,7 @@ val sem-scas size x = let
     direction-adjust mem-sem.size mem-sem size
   end
 in
-  if x.rep then
-    sem-repe x.addr-sz sem
-  else if x.repne then
-    sem-repne x.addr-sz sem
-  else
-    sem
+  sem-repe-repne-insn x sem
 end
 
 val sem-shr x = do
@@ -1871,13 +1880,17 @@ val sem-std = do
   mov 1 df (imm 1)
 end
 
-val sem-stos size x = do
-  mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
-  a <- return (semantic-register-of (register-by-size low A size));
+val sem-stos size x = let
+  val sem x = do
+    mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
+    a <- return (semantic-register-of (register-by-size low A size));
 
-  segmented-store (address x.addr-sz (var mem-sem)) (lin a.size (var a)) (SEG_OVERRIDE ES);
+    segmented-store (address x.addr-sz (var mem-sem)) (lin a.size (var a)) (SEG_OVERRIDE ES);
 
-  direction-adjust mem-sem.size mem-sem size
+    direction-adjust mem-sem.size mem-sem size
+  end
+in
+  sem-rep-insn x sem
 end
 
 val sem-sub x = do
@@ -2280,7 +2293,7 @@ val semantics insn =
    | LLDT x: sem-undef-arity1 x
    | LMSW x: sem-undef-arity1 x
    | LOCK x: sem-undef-arity0 x
-   | LODS x: sem-lods x
+   | LODS x: sem-rep-insn x sem-lods
    | LOOP x: sem-loop x
    | LOOPE x: sem-loope x
    | LOOPNE x: sem-loopne x
@@ -2324,7 +2337,7 @@ val semantics insn =
    | MOVNTQ x: sem-undef-arity2 x
    | MOVQ x: sem-undef-arity2 x
    | MOVQ2DQ x: sem-undef-arity2 x
-   | MOVS x: sem-movs x
+   | MOVS x: sem-rep-insn x sem-movs
    | MOVSD x: sem-undef-arity2 x
    | MOVSHDUP x: sem-undef-arity2 x
    | MOVSLDUP x: sem-undef-arity2 x
