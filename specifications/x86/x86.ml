@@ -92,15 +92,15 @@ val continue = do
   return r
 end
 
-# val after fst snd = do
-#    update@{tab=snd};
-#    fst
-# end
+#val after fst snd = do
+#   update@{tab=snd};
+#   fst
+#end
 #
-# val continue = do
-#    t <- query$tab;
-#    t
-# end
+#val continue = do
+#   t <- query$tab;
+#   t
+#end
 
 val /66 [] = continue
 val /f2 [] = continue
@@ -326,7 +326,8 @@ val p64 [0xf3] = do set-rep; p/f3 end
 val p64 [/legacy-p] = p64
 val p64 [/rex-p]
  | mode64? = p64
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 #val p64 [p/vex/0f] = /vex/0f
 val p64 [p/vex/f2/0f] = /vex/f2/0f
 val p64 [p/vex/f3/0f] = /vex/f3/0f
@@ -343,7 +344,8 @@ val p/66 [0x66] = do set-opndsz; p/66 end
 val p/66 [/legacy-p] = p/66
 val p/66 [/rex-p]
  | mode64? = p/66
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66 [] = after /66 /
 
 val p/f2 [0x66] = do set-opndsz; p/66/f2 end
@@ -352,7 +354,8 @@ val p/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2 [/legacy-p] = p/f2
 val p/f2 [/rex-p]
  | mode64? = p/f2
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 val p/f2 [] = after /f2 /
 
 val p/f3 [0x66] = do set-opndsz; p/66/f3 end
@@ -361,7 +364,8 @@ val p/f3 [0xf3] = do set-rep; p/f3 end
 val p/f3 [/legacy-p] = p/f3
 val p/f3 [/rex-p]
  | mode64? = p/f3
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 val p/f3 [] = after /f3 /
 
 val p/f2/f3 [0x66] = do set-opndsz; p/66/f2/f3 end
@@ -370,7 +374,8 @@ val p/f2/f3 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2/f3 [/legacy-p] = p/f2/f3
 val p/f2/f3 [/rex-p]
  | mode64? = p/f2/f3
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 val p/f2/f3 [] = after /f3 (after /f2 /)
 
 val p/f3/f2 [0x66] = do set-opndsz; p/66/f2/f3 end
@@ -379,7 +384,8 @@ val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [/rex-p]
  | mode64? = p/f3/f2
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 val p/f3/f2 [] = after /f2 (after /f3 /)
 
 val p/66/f2 [0x66] = do set-opndsz; p/66/f2 end
@@ -388,7 +394,8 @@ val p/66/f2 [0xf3] = do set-rep; p/66/f2/f3 end
 val p/66/f2 [/legacy-p] = p/66/f2
 val p/66/f2 [/rex-p]
  | mode64? = p/66/f2
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66/f2 [] = after /f2 (after /66 /)
 
 val p/66/f3 [0x66] = do set-opndsz; p/66/f3 end
@@ -397,7 +404,8 @@ val p/66/f3 [0xf3] = do set-rep; p/66/f3 end
 val p/66/f3 [/legacy-p] = p/66/f3
 val p/66/f3 [/rex-p]
  | mode64? = p/66/f3
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66/f3 [] = after /f3 (after /66 /)
 
 val p/66/f2/f3 [0x66] = do clear-rex; p/66/f2/f3 end
@@ -406,7 +414,8 @@ val p/66/f2/f3 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f2/f3 [/legacy-p] = p/66/f2/f3
 val p/66/f2/f3 [/rex-p]
  | mode64? = p/66/f2/f3
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66/f2/f3 [] = after /f3 (after /f2 (after /66 /))
 
 val p/66/f3/f2 [0x66] = do clear-rex; p/66/f3/f2 end
@@ -415,7 +424,8 @@ val p/66/f3/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [/rex-p]
  | mode64? = p/66/f3/f2
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66/f3/f2 [] = after /f2 (after /f3 (after /66 /))
 
 type register =
