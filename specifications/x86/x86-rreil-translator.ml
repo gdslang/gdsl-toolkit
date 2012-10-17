@@ -2292,7 +2292,6 @@ val semantics insn =
    | LIDT x: sem-undef-arity1 x
    | LLDT x: sem-undef-arity1 x
    | LMSW x: sem-undef-arity1 x
-   | LOCK x: sem-undef-arity0 x
    | LODS x: sem-rep-insn x sem-lods
    | LOOP x: sem-loop x
    | LOOPE x: sem-loope x

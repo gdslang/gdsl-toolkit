@@ -494,7 +494,6 @@ val show/instruction insn =
     | LIDT x: "LIDT" -++ show/arity1 x
     | LLDT x: "LLDT" -++ show/arity1 x
     | LMSW x: "LMSW" -++ show/arity1 x
-    | LOCK: "LOCK"
     | LODS x: "LODS" -++ show/arity1 x
     | LOOP x: "LOOP" -++ show/flow1 x
     | LOOPE x: "LOOPE" -++ show/flow1 x

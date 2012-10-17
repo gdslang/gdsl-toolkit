@@ -868,7 +868,6 @@ type insn =
  | LIDT of arity1
  | LLDT of arity1
  | LMSW of arity1
- | LOCK of arity0
  | LODS of arity1
  | LOOP of flow1
  | LOOPE of flow1
@@ -3865,7 +3864,6 @@ val / [0x0f 0x01 /6] = unop LMSW r/m16
 
 ### LOCK
 ###  - Assert LOCK# Signal Prefix
-val / [0xf0] = arity0 LOCK
 
 ### LODS/LODSB/LODSW/LODSD/LODSQ
 ###  - Load String
@@ -5203,7 +5201,6 @@ val / [0x0f 0x01 0xf9] = arity0 RDTSCP
 
 ### REP/REPE/REPZ/REPNE/REPNZ
 ###  - Repeat String Operation Prefix
-# Todo
 
 ### RET
 ###  - Return from Procedure
