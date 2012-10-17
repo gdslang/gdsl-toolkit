@@ -2066,7 +2066,7 @@ val semantics insn =
    | CMP x: sem-cmp x
    | CMPPD x: sem-undef-arity3 x
    | CMPPS x: sem-undef-arity3 x
-   | CMPS x: sem-cmps x
+   | CMPS x: sem-repe-repne-insn x sem-cmps
    | CMPSD x: sem-undef-arity3 x
 #   | CMPSD x:
 #       case x of
