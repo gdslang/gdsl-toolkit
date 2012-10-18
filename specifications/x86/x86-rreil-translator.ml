@@ -752,8 +752,6 @@ val sem-bsf x = do
   end _else
     return void
   ;
-  dst <- write x.opnd-sz x.opnd1;
-  commit x.opnd-sz dst (var counter);
 
   zf <- fZF;
   cmpeq x.opnd-sz zf src (imm 0);
@@ -767,7 +765,10 @@ val sem-bsf x = do
   undef 1 ov;
   undef 1 sf;
   undef 1 af;
-  undef 1 pf
+  undef 1 pf;
+
+  dst <- write x.opnd-sz x.opnd1;
+  commit x.opnd-sz dst (var counter)
 end
 
 val sem-bsr x = do
@@ -788,8 +789,6 @@ val sem-bsr x = do
   end _else
     return void
   ;
-  dst <- write x.opnd-sz x.opnd1;
-  commit x.opnd-sz dst (var counter);
 
   zf <- fZF;
   cmpeq x.opnd-sz zf src (imm 0);
@@ -803,7 +802,10 @@ val sem-bsr x = do
   undef 1 ov;
   undef 1 sf;
   undef 1 af;
-  undef 1 pf
+  undef 1 pf;
+
+  dst <- write x.opnd-sz x.opnd1;
+  commit x.opnd-sz dst (var counter)
 end
 
 val sem-bswap x = do
@@ -834,7 +836,7 @@ val sem-bswap x = do
   commit size dst (var temp)
 end
 
-val sem-bt x = do
+val sem-bt-btc x complement = do
   base-sz <- sizeof1 x.opnd1;
   base <- read base-sz x.opnd1;
   offset-sz <- sizeof1 x.opnd2;
@@ -857,6 +859,17 @@ val sem-bt x = do
   
   cf <- fCF;
   mov 1 cf (var shifted);
+
+  if complement then do
+    output <- mktemp;
+    andb base-sz output (var shifted) (imm 1);
+    shl base-sz output (var output) (var offset-ext);
+    xorb base-sz output (var output) base;
+    dst <- write base-sz x.opnd1;
+    commit base-sz dst (var output)
+  end else
+    return void
+  ;
 
   ov <- fOF;
   sf <- fSF;
@@ -2039,6 +2052,22 @@ end
 ## W>>
 ## X>>
 
+val sem-xadd x = do
+  size <- sizeof1 x.opnd1;
+  src0 <- read size x.opnd1;
+  src1 <- read size x.opnd2;
+  dst0 <- write size x.opnd1;
+  dst1 <- write size x.opnd2;
+
+  sum <- mktemp;
+  add size sum src0 src1;
+
+  emit-add-adc-flags size (var sum) src0 src1 (imm 0) '1';
+
+  commit size dst0 (var sum);
+  commit size dst1 src0
+end
+
 val sem-xchg x = do
   sz <- sizeof1 x.opnd1;
   a-r <- read sz x.opnd1;
@@ -2119,8 +2148,8 @@ val semantics insn =
    | BSF x: sem-bsf x
    | BSR x: sem-bsr x
    | BSWAP x: sem-bswap x
-   | BT x: sem-bt x
-   | BTC x: sem-undef-arity2 x
+   | BT x: sem-bt-btc x '0'
+   | BTC x: sem-bt-btc x '1'
    | BTR x: sem-undef-arity2 x
    | BTS x: sem-undef-arity2 x
    | CALL x: sem-call x
@@ -2982,7 +3011,7 @@ val semantics insn =
    | WRFSBASE x: sem-undef-arity1 x
    | WRGSBASE x: sem-undef-arity1 x
    | WRMSR x: sem-undef-arity0 x
-   | XADD x: sem-undef-arity2 x
+   | XADD x: sem-xadd x
    | XCHG x: sem-xchg x
    | XGETBV x: sem-undef-arity0 x
    | XLAT x: sem-undef-arity0 x
