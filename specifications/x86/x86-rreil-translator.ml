@@ -770,6 +770,70 @@ val sem-bsf x = do
   undef 1 pf
 end
 
+val sem-bsr x = do
+  src <- read x.opnd-sz x.opnd2;
+
+  counter <- mktemp;
+  _if (/neq x.opnd-sz src (imm 0)) _then do
+    mov x.opnd-sz counter (imm (x.opnd-sz - 1));
+
+    temp <- mktemp;
+    mov x.opnd-sz temp src;
+
+    _while (/neq 1 (var (at-offset temp (x.opnd-sz - 1))) (imm 1)) __ do
+      sub x.opnd-sz counter (var counter) (imm 1);
+      shl x.opnd-sz temp (var temp) (imm 1)
+    end
+
+  end _else
+    return void
+  ;
+  dst <- write x.opnd-sz x.opnd1;
+  commit x.opnd-sz dst (var counter);
+
+  zf <- fZF;
+  cmpeq x.opnd-sz zf src (imm 0);
+
+  cf <- fCF;
+  ov <- fOF;
+  sf <- fSF;
+  af <- fAF;
+  pf <- fPF;
+  undef 1 cf;
+  undef 1 ov;
+  undef 1 sf;
+  undef 1 af;
+  undef 1 pf
+end
+
+val sem-bswap x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd1;
+
+  src-temp <- mktemp;
+  mov size src-temp src;
+
+  temp <- mktemp;
+  if size === 32 then do
+    mov 8 (at-offset temp 0) (var (at-offset src-temp 24));
+    mov 8 (at-offset temp 8) (var (at-offset src-temp 16));
+    mov 8 (at-offset temp 16) (var (at-offset src-temp 8));
+    mov 8 (at-offset temp 24) (var (at-offset src-temp 0))
+  end else do
+    mov 8 (at-offset temp 0) (var (at-offset src-temp 56));
+    mov 8 (at-offset temp 8) (var (at-offset src-temp 48));
+    mov 8 (at-offset temp 16) (var (at-offset src-temp 40));
+    mov 8 (at-offset temp 24) (var (at-offset src-temp 32));
+    mov 8 (at-offset temp 32) (var (at-offset src-temp 24));
+    mov 8 (at-offset temp 40) (var (at-offset src-temp 16));
+    mov 8 (at-offset temp 48) (var (at-offset src-temp 8));
+    mov 8 (at-offset temp 56) (var (at-offset src-temp 0))
+  end;
+
+  dst <- write size x.opnd1;
+  commit size dst (var temp)
+end
+
 val sem-bt x = do
   base-sz <- sizeof1 x.opnd1;
   base <- read base-sz x.opnd1;
@@ -2053,8 +2117,8 @@ val semantics insn =
    | BLENDVPS x: sem-undef-arity3 x
    | BOUND x: sem-undef-arity2 x
    | BSF x: sem-bsf x
-   | BSR x: sem-undef-arity2 x
-   | BSWAP x: sem-undef-arity1 x
+   | BSR x: sem-bsr x
+   | BSWAP x: sem-bswap x
    | BT x: sem-bt x
    | BTC x: sem-undef-arity2 x
    | BTR x: sem-undef-arity2 x
