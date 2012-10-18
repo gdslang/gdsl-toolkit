@@ -948,6 +948,13 @@ val sem-call x = do
   call (address ip-sz (var temp-ip))
 end
 
+val sem-convert size = do
+  src <- return (semantic-register-of (register-by-size low A size));
+  dst <- return (semantic-register-of (register-by-size low A (2*size)));
+
+  movsx dst.size dst src.size (var src)
+end
+
 val sem-cdqe = do
   a <- return (semantic-register-of RAX);
   movsx 64 a 32 (var a)
@@ -2172,9 +2179,9 @@ val semantics insn =
    | BTR x: sem-bt x sem-bt-reset
    | BTS x: sem-bt x sem-bt-set
    | CALL x: sem-call x
-   | CBW x: sem-undef-arity0 x
+   | CBW x: sem-convert 8
    | CDQ x: sem-cwd-cdq-cqo x
-   | CDQE x: sem-undef-arity0 x
+   | CDQE x: sem-convert 32
    | CLC x: sem-undef-arity0 x
    | CLD x: sem-undef-arity0 x
    | CLFLUSH x: sem-undef-arity1 x
@@ -2254,7 +2261,7 @@ val semantics insn =
    | CVTTSD2SI x: sem-undef-arity2 x
    | CVTTSS2SI x: sem-undef-arity2 x
    | CWD x: sem-cwd-cdq-cqo x
-   | CWDE x: sem-undef-arity0 x
+   | CWDE x: sem-convert 16
    | DAA x: sem-undef-arity0 x
    | DAS x: sem-undef-arity0 x
    | DEC x: sem-dec x
