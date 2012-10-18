@@ -836,7 +836,35 @@ val sem-bswap x = do
   commit size dst (var temp)
 end
 
-val sem-bt-btc x complement = do
+val sem-bt-complement base-sz base base-opnd shifted offset-ext = do
+  output <- mktemp;
+  andb base-sz output (var shifted) (imm 1);
+  shl base-sz output (var output) (var offset-ext);
+  xorb base-sz output (var output) base;
+  dst <- write base-sz base-opnd;
+  commit base-sz dst (var output)
+end
+
+val sem-bt-reset base-sz base base-opnd shifted offset-ext = do
+  output <- mktemp;
+  xorb base-sz output (imm (0-1)) (imm 1);
+  shl base-sz output (var output) (var offset-ext);
+  andb base-sz output (var output) base;
+  dst <- write base-sz base-opnd;
+  commit base-sz dst (var output)
+end
+
+val sem-bt-set base-sz base base-opnd shifted offset-ext = do
+  output <- mktemp;
+  shl base-sz output (imm 1) (var offset-ext);
+  orb base-sz output (var output) base;
+  dst <- write base-sz base-opnd;
+  commit base-sz dst (var output)
+end
+
+val sem-bt-none base-sz base base-opnd shifted offset-ext = return void
+
+val sem-bt x modifier = do
   base-sz <- sizeof1 x.opnd1;
   base <- read base-sz x.opnd1;
   offset-sz <- sizeof1 x.opnd2;
@@ -860,16 +888,7 @@ val sem-bt-btc x complement = do
   cf <- fCF;
   mov 1 cf (var shifted);
 
-  if complement then do
-    output <- mktemp;
-    andb base-sz output (var shifted) (imm 1);
-    shl base-sz output (var output) (var offset-ext);
-    xorb base-sz output (var output) base;
-    dst <- write base-sz x.opnd1;
-    commit base-sz dst (var output)
-  end else
-    return void
-  ;
+  modifier base-sz base x.opnd1 shifted offset-ext;
 
   ov <- fOF;
   sf <- fSF;
@@ -2148,10 +2167,10 @@ val semantics insn =
    | BSF x: sem-bsf x
    | BSR x: sem-bsr x
    | BSWAP x: sem-bswap x
-   | BT x: sem-bt-btc x '0'
-   | BTC x: sem-bt-btc x '1'
-   | BTR x: sem-undef-arity2 x
-   | BTS x: sem-undef-arity2 x
+   | BT x: sem-bt x sem-bt-none
+   | BTC x: sem-bt x sem-bt-complement
+   | BTR x: sem-bt x sem-bt-reset
+   | BTS x: sem-bt x sem-bt-set
    | CALL x: sem-call x
    | CBW x: sem-undef-arity0 x
    | CDQ x: sem-cwd-cdq-cqo x
