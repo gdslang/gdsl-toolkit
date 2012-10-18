@@ -734,6 +734,42 @@ end
 
 ## B>>
 
+val sem-bsf x = do
+  src <- read x.opnd-sz x.opnd2;
+
+  counter <- mktemp;
+  _if (/neq x.opnd-sz src (imm 0)) _then do
+    mov x.opnd-sz counter (imm 0);
+
+    temp <- mktemp;
+    mov x.opnd-sz temp src;
+
+    _while (/neq 1 (var temp) (imm 1)) __ do
+      add x.opnd-sz counter (var counter) (imm 1);
+      shr x.opnd-sz temp (var temp) (imm 1)
+    end
+
+  end _else
+    return void
+  ;
+  dst <- write x.opnd-sz x.opnd1;
+  commit x.opnd-sz dst (var counter);
+
+  zf <- fZF;
+  cmpeq x.opnd-sz zf src (imm 0);
+
+  cf <- fCF;
+  ov <- fOF;
+  sf <- fSF;
+  af <- fAF;
+  pf <- fPF;
+  undef 1 cf;
+  undef 1 ov;
+  undef 1 sf;
+  undef 1 af;
+  undef 1 pf
+end
+
 val sem-bt x = do
   base-sz <- sizeof1 x.opnd1;
   base <- read base-sz x.opnd1;
@@ -2016,7 +2052,7 @@ val semantics insn =
    | BLENDVPD x: sem-undef-arity3 x
    | BLENDVPS x: sem-undef-arity3 x
    | BOUND x: sem-undef-arity2 x
-   | BSF x: sem-undef-arity2 x
+   | BSF x: sem-bsf x
    | BSR x: sem-undef-arity2 x
    | BSWAP x: sem-undef-arity1 x
    | BT x: sem-bt x
