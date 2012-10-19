@@ -285,6 +285,19 @@ val commit sz a b =
          end
    end
 
+val combine high low = do
+  high <- return (semantic-register-of high);
+  low <- return (semantic-register-of low);
+ 
+  sz <- return high.size;
+ 
+  combined <- mktemp;
+  mov sz (at-offset combined sz) (var high);
+  mov sz combined (var low);
+ 
+  return combined
+end
+
 val fEQ = return (_var VIRT_EQ)
 val fNEQ = return (_var VIRT_NEQ)
 val fLES = return (_var VIRT_LES)
@@ -1051,6 +1064,48 @@ end
 #val sem-cmpsd = sem-cmps 32
 #val sem-cmpsq = sem-cmps 64
 
+val sem-cmpxchg x = do
+  size <- sizeof1 x.opnd1;
+
+  subtrahend <- read size x.opnd1;
+  minuend <- return (semantic-register-of (register-by-size low A size)); #accumulator
+
+  difference <- mktemp;
+  sub size difference (var minuend) subtrahend;
+
+  emit-sub-sbb-flags size (var difference) (var minuend) subtrahend (imm 0) '1';
+  
+  zf <- fZF;
+  _if (/d (var zf)) _then do
+    dst <- write size x.opnd1;
+    src <- read size x.opnd2;
+    commit size dst src
+  end _else do
+    dst <- read size x.opnd1;
+    mov size minuend dst
+  end
+end
+
+val sem-cmpxchg16b-cmpxchg8b x = do
+  subtrahend <- read (2*x.opnd-sz) x.opnd1;
+
+  minuend <- combine (register-by-size low C x.opnd-sz) (register-by-size low B x.opnd-sz);
+
+  difference <- mktemp;
+  sub (2*x.opnd-sz) difference (var minuend) subtrahend;
+
+  emit-sub-sbb-flags (2*x.opnd-sz) (var difference) (var minuend) subtrahend (imm 0) '1';
+
+  zf <- fZF;
+  _if (/d (var zf)) _then do
+    dst <- write (2*x.opnd-sz) x.opnd1;
+    commit (2*x.opnd-sz) dst (var minuend)
+  end _else do
+    dst <- combine (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz);
+    mov (2*x.opnd-sz) dst subtrahend
+  end
+end
+
 val sem-cwd-cdq-cqo x = do
   src <-
     case x.opnd-sz of
@@ -1094,25 +1149,6 @@ end
 val sem-div signedness x = do
   sz <- sizeof1 x.opnd1;
   divisor <- read (sz + sz) x.opnd1;
-
-  combine <-
-    let
-      val c high low = do
-         high <- return (semantic-register-of high);
-         low <- return (semantic-register-of low);
-
-	 sz <- return high.size;
-
-	 combined <- mktemp;
-	 mov sz combined (var (at-offset high sz));
-	 mov sz combined (var low);
-
-	 return combined
-      end
-    in
-      return c
-    end
-  ;
 
   dividend <-
     case sz of
@@ -2231,8 +2267,8 @@ val semantics insn =
 #   | CMPSQ x: sem-undef-arity0 x
    | CMPSS x: sem-undef-arity3 x
    | CMPXCHG x: sem-undef-arity2 x
-   | CMPXCHG16B x: sem-undef-arity1 x
-   | CMPXCHG8B x: sem-undef-arity1 x
+   | CMPXCHG16B x: sem-cmpxchg16b-cmpxchg8b x
+   | CMPXCHG8B x: sem-cmpxchg16b-cmpxchg8b x
    | COMISD x: sem-undef-arity2 x
    | COMISS x: sem-undef-arity2 x
    | CPUID x: sem-undef-arity0 x
