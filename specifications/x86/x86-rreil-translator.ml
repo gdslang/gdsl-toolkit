@@ -1119,7 +1119,6 @@ val sem-cpuid x = do
   undef edx.size edx
 end
 
-
 val sem-cwd-cdq-cqo x = do
   src <-
     case x.opnd-sz of
@@ -1248,6 +1247,8 @@ val sem-inc x = do
 
   commit sz dst (var temp)
 end
+
+val sem-invd = return void
 
 ## J>>
 
@@ -2442,7 +2443,7 @@ val semantics insn =
    | INT x: sem-undef-arity1 x
    | INT0 x: sem-undef-arity0 x
    | INT3 x: sem-undef-arity0 x
-   | INVD x: sem-undef-arity0 x
+   | INVD x: sem-invd
    | INVLPG x: sem-undef-arity1 x
    | INVPCID x: sem-undef-arity2 x
    | IRET x: sem-undef-arity0 x
