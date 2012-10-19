@@ -1106,6 +1106,20 @@ val sem-cmpxchg16b-cmpxchg8b x = do
   end
 end
 
+val sem-cpuid x = do
+  #Todo: ;-)
+  eax <- return (semantic-register-of EAX);
+  ebx <- return (semantic-register-of EBX);
+  ecx <- return (semantic-register-of ECX);
+  edx <- return (semantic-register-of EDX);
+  
+  undef eax.size eax;
+  undef ebx.size ebx;
+  undef ecx.size ecx;
+  undef edx.size edx
+end
+
+
 val sem-cwd-cdq-cqo x = do
   src <-
     case x.opnd-sz of
@@ -2266,12 +2280,12 @@ val semantics insn =
 #      end
 #   | CMPSQ x: sem-undef-arity0 x
    | CMPSS x: sem-undef-arity3 x
-   | CMPXCHG x: sem-undef-arity2 x
+   | CMPXCHG x: sem-cmpxchg x
    | CMPXCHG16B x: sem-cmpxchg16b-cmpxchg8b x
    | CMPXCHG8B x: sem-cmpxchg16b-cmpxchg8b x
    | COMISD x: sem-undef-arity2 x
    | COMISS x: sem-undef-arity2 x
-   | CPUID x: sem-undef-arity0 x
+   | CPUID x: sem-cpuid x
    | CQO x: sem-cwd-cdq-cqo x
    | CRC32 x: sem-undef-arity2 x
    | CVTDQ2PD x: sem-undef-arity2 x
