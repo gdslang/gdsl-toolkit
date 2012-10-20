@@ -15,11 +15,6 @@ export = decode
 # limit = 120
 # recursion-depth = p64 = 4
 
-val exception =
-  case '0' of
-     '1': void
-  end
-
 val decode = do
    update @{tab=void};
    main
@@ -2264,81 +2259,64 @@ val moffs64 = do
    mem i
 end
 
-val exception-rep = do
-  rep <- query $rep;
-  if rep then
-    return exception
-  else
-    return void
+val exception-rep arg = do
+  v <- query $rep;
+  case v of '0': arg end
 end
 
-val exception-repne = do
-  repne <- query $repne;
-  if repne then
-    return exception
-  else
-    return void
+val exception-repne arg = do
+  v <- query $repne;
+  case v of '0': arg end
 end
 
-val exception-lock = do
-  lock <- query $lock;
-  if lock then
-    return exception
-  else
-    return void
+val exception-lock arg = do
+  v <- query $lock;
+  case v of '0': arg end
 end
 
-val exception-rep-repne = do
-  exception-rep;
-  exception-repne
+val exception-lock-reg giveOp = do
+  v <- query $lock;
+  if v then do
+    op <- giveOp;
+    case op of MEM x: return op end
+  end else giveOp
 end
+      
+val exception-rep-repne arg = exception-rep (exception-repne arg)
+val exception-repne-lock arg = exception-repne (exception-lock arg)
+val exception-rep-repne-lock arg = exception-rep-repne (exception-lock arg)
 
-val exception-repne-lock = do
-  exception-repne;
-  exception-lock
-end
-
-val exception-rep-repne-lock = do
-  exception-rep-repne;
-  exception-lock
-end
-
-val varity0 cons = do
-  exception-rep-repne-lock;
+val varity0 cons = exception-rep-repne-lock (do
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA0 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
-end
+end)
 
-val varity1 cons giveOp1 = do
-  exception-rep-repne-lock;
+val varity1 cons giveOp1 = exception-rep-repne-lock (do
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA1 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
-end
+end)
 
-val varity2 cons giveOp1 giveOp2 = do
-  exception-rep-repne-lock;
+val varity2 cons giveOp1 giveOp2 = exception-rep-repne-lock (do
   op1 <- giveOp1;
   op2 <- giveOp2;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA2 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
-end
+end)
 
-val varity3 cons giveOp1 giveOp2 giveOp3 = do
-  exception-rep-repne-lock;
+val varity3 cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA3 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
-end
+end)
 
-val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  exception-rep-repne-lock;
+val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2346,7 +2324,7 @@ val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA4 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
-end
+end)
 
 val arity0-all cons = do
   opnd-sz <- operand-size;
@@ -2357,25 +2335,10 @@ val arity0-all cons = do
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
 end
 
-val arity0-rep-repne cons = do
-  exception-lock;
-  arity0-all cons
-end
-
-val arity0-rep cons = do
-  exception-repne-lock;
-  arity0-all cons
-end
-
-val arity0-lock cons = do
-  exception-rep-repne;
-  arity0-all cons
-end
-
-val arity0 cons = do
-  exception-rep-repne-lock;
-  arity0-all cons
-end
+val arity0-rep-repne cons = exception-lock (arity0-all cons)
+val arity0-rep cons = exception-repne-lock (arity0-all cons)
+val arity0-lock cons = exception-rep-repne (arity0-all cons)
+val arity0 cons = exception-rep-repne-lock (arity0-all cons)
 
 val unop-all cons giveOp1 = do
   op1 <- giveOp1;
@@ -2387,29 +2350,10 @@ val unop-all cons giveOp1 = do
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
 end
 
-val unop-rep-repne cons giveOp1 = do
-  exception-lock;
-  unop-all cons giveOp1
-end
-
-val unop-rep cons giveOp1 = do
-  exception-repne-lock;
-  unop-all cons giveOp1
-end
-
-val unop-lock cons giveOp1 = do
-  exception-rep-repne;
-  op1 <- giveOp1;
-  case op1 of
-     MEM x: return void
-  end;
-  unop-all cons giveOp1
-end
-
-val unop cons giveOp1 = do
-  exception-rep-repne-lock;
-  unop-all cons giveOp1
-end
+val unop-rep-repne cons giveOp1 = exception-lock (unop-all cons giveOp1)
+val unop-rep cons giveOp1 = exception-repne-lock (unop-all cons giveOp1)
+val unop-lock cons giveOp1 = exception-rep-repne (unop-all cons (exception-lock-reg giveOp1))
+val unop cons giveOp1 = exception-rep-repne-lock (unop-all cons giveOp1)
 
 val binop-all cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
@@ -2422,48 +2366,21 @@ val binop-all cons giveOp1 giveOp2 = do
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
 end
 
-val binop-rep-repne cons giveOp1 giveOp2 = do
-  exception-lock;
-  binop-all cons giveOp1 giveOp2
-end
+val binop-rep-repne cons giveOp1 giveOp2 = exception-lock (binop-all cons giveOp1 giveOp2)
+val binop-rep cons giveOp1 giveOp2 = exception-repne-lock (binop-all cons giveOp1 giveOp2)
+val binop-lock cons giveOp1 giveOp2 = exception-rep-repne (binop-all cons (exception-lock-reg giveOp1) giveOp2)
+val binop cons giveOp1 giveOp2 = exception-rep-repne-lock (binop-all cons giveOp1 giveOp2)
 
-val binop-rep cons giveOp1 giveOp2 = do
-  exception-repne-lock;
-  binop-all cons giveOp1 giveOp2
-end
-
-val binop-lock cons giveOp1 giveOp2 = do
-  exception-rep-repne;
-  op1 <- giveOp1;
-  case op1 of
-     MEM x: return void
-   | _: do
-       op2 <- giveOp2;
-       case op2 of
-          MEM x: return void
-       end
-     end
-  end;
-  binop-all cons giveOp1 giveOp2
-end
-
-val binop cons giveOp1 giveOp2 = do
-  exception-rep-repne-lock;
-  binop-all cons giveOp1 giveOp2
-end
-
-val ternop cons giveOp1 giveOp2 giveOp3 = do
-  exception-rep-repne-lock;
+val ternop cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
-end
+end)
 
-val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  exception-rep-repne-lock;
+val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2471,39 +2388,35 @@ val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
-end
+end)
 
-val near-abs cons giveOp = do
-  exception-rep-repne-lock;
+val near-abs cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
-end
+end)
 
-val near-rel cons giveOp = do
-  exception-rep-repne-lock;
+val near-rel cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
-end
+end)
 
-val far-dir cons giveOp = do
-  exception-rep-repne-lock;
+val far-dir cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
-end
+end)
 
-val far-ind cons giveOp = do
-  exception-rep-repne-lock;
+val far-ind cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
-end
+end)
 
 val one = return (IMM8 '00000001')
 
@@ -3853,7 +3766,7 @@ val / [0xc9] = arity0 LEAVE
 
 ### LFENCE
 ###  - Load Fence
-val / [0x0f 0xae /5] = arity0 LFENCE
+val / [0x0f 0xae /5-reg] = arity0 LFENCE
 
 ### LGDT/LIDT
 ###  - Load Global/Interrupt Descriptor Table Register
@@ -3870,7 +3783,7 @@ val / [0x0f 0x00 /2] = unop LLDT r/m16
 
 ### LMSW
 ###  - Load Machine Status Word
-val / [0x0f 0x01 /6] = unop LMSW r/m16
+val / [0x0f 0x01 /6-mem] = unop LMSW r/m16
 
 ### LOCK
 ###  - Assert LOCK# Signal Prefix
@@ -3936,7 +3849,7 @@ val /vex/f3/0f/vexv [0x5f /r] = varity3 VMAXSS xmm128 v/xmm xmm/m32
 
 ### MFENCE
 ###  - Memory Fence
-val / [0x0f 0xae /6] = arity0 MFENCE
+val / [0x0f 0xae /6-reg] = arity0 MFENCE
 
 ### MINPD
 ###  - Return Minimum Packed Double-Precision Floating-Point Values
@@ -3964,7 +3877,7 @@ val /vex/f3/0f/vexv [0x5d /r] = varity3 VMINSS xmm128 v/xmm xmm/m32
 
 ### MONITOR
 ###  - Set Up Monitor Address
-val / [0x0f 0xae 0x01 0xc8] = arity0 MONITOR
+val / [0x0f 0x01 0xc8] = arity0 MONITOR
 
 ### MOV
 ###  - Move
@@ -5429,7 +5342,7 @@ val / [0x0f 0x00 /0]
 
 ### SMSW
 ###  - Store Machine Status Word
-val / [0x0f 0x01 /4]
+val / [0x0f 0x01 /4-mem]
  | opndsz? = unop SMSW r/m16
  | rexw? = unop SMSW r64/m16
  | otherwise = unop SMSW r32/m16
@@ -5540,7 +5453,7 @@ val /vex/f3/0f/vexv [0x5c /r] = varity3 VSUBSS xmm128 v/xmm xmm/m32
 
 ### SWAPGS
 ###  - Swap GS Base Register
-val / [0x0f 0x01 /7] = arity0 SWAPGS
+val / [0x0f 0x01 0xf8] = arity0 SWAPGS
 
 ### SYSCALL
 ###  - Fast System Call

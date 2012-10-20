@@ -1,8 +1,7 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
 type sem_id =
-   ARCH_R of int
- | VIRT_EQ  # ==
+   VIRT_EQ  # ==
  | VIRT_NEQ # /=
  | VIRT_LES # <=s
  | VIRT_LEU # <=u
@@ -51,12 +50,6 @@ type sem_stmt =
    SEM_ASSIGN of {lhs: sem_var, rhs: sem_op}
  | SEM_LOAD of {lhs: sem_var, size: int, address: sem_address}
  | SEM_STORE of {address: sem_address, rhs: sem_op}
- | SEM_LABEL of {label: int}
- | SEM_IF_GOTO_LABEL of {cond:sem_linear, label: int}
- | SEM_IF_GOTO of {cond: sem_linear, size:int, target: sem_linear}
- | SEM_CALL of {cond: sem_linear, size:int, target: sem_linear}
- | SEM_RETURN of {cond: sem_linear, size:int, target: sem_linear}
-
  | SEM_ITE of {cond: sem_linear, then_branch: sem_stmts, else_branch: sem_stmts}
  | SEM_WHILE of {cond: sem_linear, body: sem_stmts}
  | SEM_CBRANCH of {cond: sem_linear, target-true: sem_address, target-false: sem_address}
@@ -137,10 +130,6 @@ val /LOAD sz a b = SEM_LOAD{lhs=a,size=sz,address=b}
 val /STORE a b = SEM_STORE{address=a,rhs=b}
 val /ADD a b = SEM_LIN_ADD{opnd1=a,opnd2=b}
 val /SUB a b = SEM_LIN_SUB{opnd1=a,opnd2=b}
-val /LABEL l = SEM_LABEL{label=l}
-val /IFGOTOLABEL c l = SEM_IF_GOTO_LABEL{cond=c,label=l}
-val /IFGOTO c sz t = SEM_IF_GOTO{cond=c,size=sz,target=t}
-val /GOTOLABEL l = SEM_IF_GOTO_LABEL{cond=SEM_LIN_IMM{imm=1},label=l}
 val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
 val /BRANCH hint address =SEM_BRANCH{hint=hint,target=address}
@@ -198,10 +187,6 @@ val cmples sz f a b = push (/ASSIGN f (SEM_CMPLES{size=sz,opnd1=a,opnd2=b}))
 val cmpleu sz f a b = push (/ASSIGN f (SEM_CMPLEU{size=sz,opnd1=a,opnd2=b}))
 val cmplts sz f a b = push (/ASSIGN f (SEM_CMPLTS{size=sz,opnd1=a,opnd2=b}))
 val cmpltu sz f a b = push (/ASSIGN f (SEM_CMPLTU{size=sz,opnd1=a,opnd2=b}))
-val label l = push (/LABEL l)
-val ifgotolabel c l = push (/IFGOTOLABEL c l)
-val gotolabel l = push (/GOTOLABEL l)
-val ifgoto c sz addr = push (/IFGOTO c sz addr)
 val ite c t e = push (/ITE c t e)
 val while c b = push (/WHILE c b)
 val jump address = do
