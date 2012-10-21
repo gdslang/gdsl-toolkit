@@ -23,6 +23,7 @@ val segment-register? x =
    | ES: '1'
    | FS: '1'
    | GS: '1'
+   | _ : '0'
   end
 
 val sizeof2 dst/src1 src2 =

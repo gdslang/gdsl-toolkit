@@ -32,7 +32,6 @@ val rreil-show-label l = "l" +++ showint l +++ ":"
 val rreil-show-op op =
    case op of
       SEM_LIN x: rreil-show-arity1 x
-    | SEM_BSWAP x: "bswap" +++ rreil-show-arity1 x
     | SEM_MUL x: "mul" +++ rreil-show-arity2 x
     | SEM_DIV x: "div" +++ rreil-show-arity2 x
     | SEM_DIVS x: "divs" +++ rreil-show-arity2 x

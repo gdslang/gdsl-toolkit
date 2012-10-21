@@ -25,7 +25,6 @@ type sem_linear =
 
 type sem_op =
    SEM_LIN of sem_arity1
- | SEM_BSWAP of sem_arity1
  | SEM_MUL of sem_arity2
  | SEM_DIV of sem_arity2
  | SEM_DIVS of sem_arity2
@@ -71,7 +70,6 @@ type sem_writeback =
 val rreil-sizeOf op =
    case op of
       SEM_LIN x: x.size
-    | SEM_BSWAP x: x.size
     | SEM_MUL x: x.size
     | SEM_DIV x: x.size
     | SEM_DIVS x: x.size

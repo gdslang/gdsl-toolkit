@@ -11,13 +11,13 @@ __objref hp = &heap[__RT_HEAP_SIZE];
 
 @prototypes@
 
-struct __unwrapped_immediate __unwrapped_UNIT =
+struct __s_unwrapped_immediate __unwrapped_UNIT =
    {.header.tag = __NIL};
-struct __unwrapped_bv __unwrapped_TRUE =
+struct __s_unwrapped_bv __unwrapped_TRUE =
    {.header.tag = __BV,
     .sz = 1,
     .vec = 1};
-struct __unwrapped_bv __unwrapped_FALSE =
+struct __s_unwrapped_bv __unwrapped_FALSE =
    {.header.tag = __BV,
     .sz = 1,
     .vec = 0};
@@ -460,7 +460,7 @@ const __char* __tagName (__word i) {
 
 __obj __showbitvec (__obj o) {
   char fmt[16];
-  snprintf(fmt,16,"0x%zx",o->bv.vec);
+  snprintf(fmt,16,"0x%zx",(unsigned long) o->bv.vec);
   __LOCAL0(R);
     __ROPE_BEGIN(R);
     __ROPE_FROMCSTRING(fmt);
@@ -470,7 +470,7 @@ __obj __showbitvec (__obj o) {
 
 __obj __showint (__obj o) {
   char fmt[64];
-  snprintf(fmt,64,"%ld",o->z.value);
+  snprintf(fmt,64,"%ld",(long) o->z.value);
   __LOCAL0(R);
     __ROPE_BEGIN(R);
     __ROPE_FROMCSTRING(fmt);
@@ -481,24 +481,24 @@ __obj __showint (__obj o) {
 __obj __print (__obj o) {
   switch (__TAG(o)) {
     case __CLOSURE:
-      printf("{tag=__CLOSURE,sz=%zu,env=..}",o->closure.sz);
+      printf("{tag=__CLOSURE,sz=%zu,env=..}",(unsigned long) o->closure.sz);
       break;
-    case __INT:
-      printf("{tag=__INT,value=%ld}", o->z.value);
+    case __INTEGER:
+      printf("{tag=__INTEGER,value=%ld}",(long) o->z.value);
       break;
     case __TAGGED: {
       __word tag = o->tagged.tag;
       if (tag < __NTAGS)
         printf("{tag=%s,",__tagName(tag));
       else
-        printf("{tag=<unknown:%lu>,",tag);
+        printf("{tag=<unknown:%lu>,",(unsigned long) tag);
       printf("payload=");
       __print(o->tagged.payload);
       printf("}");
       break;
     }
     case __RECORD: {
-      printf("{tag=__RECORD,sz=%lu,", o->record.sz);
+      printf("{tag=__RECORD,sz=%lu,",(unsigned long) o->record.sz);
       int i;
       for (i=0;i<o->record.sz;i++) {
         __objref tagged = &o->record.fields[i];
@@ -507,7 +507,7 @@ __obj __print (__obj o) {
         if (tag < __NFIELDS)
           printf("%s=",__fieldName(tag));
         else
-          printf("<unknown:%lu>=",tag);
+          printf("<unknown:%lu>=",(unsigned long) tag);
         __print(payload);
         if (i < o->record.sz-1)
           printf(",");
@@ -521,7 +521,7 @@ __obj __print (__obj o) {
       __word len = sz > 7 ? 7 : sz;
       memcpy(buf,o->ropeleaf.blob,len);
       buf[len] = '\0';
-      printf("{tag=__ROPELEAF,sz=%lu,blob=%s..}",sz,buf);
+      printf("{tag=__ROPELEAF,sz=%lu,blob=%s..}",(unsigned long) sz,buf);
       break;
     }
     case __ROPEBRANCH: {
@@ -536,10 +536,10 @@ __obj __print (__obj o) {
       printf("{tag=__LABEL,f=%p}",o->label.f);
       break;
     case __BLOB:
-      printf("{tag=__BLOB,sz=%lu,blob=%p}",o->blob.sz, o->blob.blob);
+      printf("{tag=__BLOB,sz=%lu,blob=%p}",(unsigned long) o->blob.sz, o->blob.blob);
       break;
     case __BV:
-      printf("{tag=__BV,sz=%lu,vec=%zx}", o->bv.sz, o->bv.vec);
+      printf("{tag=__BV,sz=%lu,vec=%zx}",(unsigned long) o->bv.sz,(unsigned long) o->bv.vec);
       break;
     case __NIL:
       printf("{tag=__NIL}");

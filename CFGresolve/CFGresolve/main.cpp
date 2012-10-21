@@ -10,6 +10,7 @@
 #include <fstream>
 #include <mach-o/loader.h>
 #include "Segment.h"
+#include "RReil.h"
 #include <vector>
 #include <fcntl.h>
 
@@ -82,6 +83,8 @@ int main(int argc, const char * argv[]) {
   char* limit;
   char* addr = segments.resolve(start, &limit);
   std::cout << "first byte of text segment is " << std::hex << start << ": " << std::hex << (uint8_t) (*addr) << std::endl;
+  RReilBB* b = translate(addr,limit);
+  if (b!=NULL) std::cout << "basic block:" << std::endl << *b << std::endl;
   return 0;
 }
 
