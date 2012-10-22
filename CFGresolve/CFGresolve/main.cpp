@@ -72,7 +72,7 @@ int main(int argc, const char * argv[]) {
     std::cout << "Cannot map segment sections." << std::endl;
     return 1;
   }
-  std::cout << segments;
+  //std::cout << segments;
   
   Segment* text = segments.findByName("text");
   if (text==NULL) {
@@ -82,7 +82,7 @@ int main(int argc, const char * argv[]) {
   uint64_t start = text->getBase();
   char* limit;
   char* addr = segments.resolve(start, &limit);
-  std::cout << "first byte of text segment is " << std::hex << start << ": " << std::hex << (uint8_t) (*addr) << std::endl;
+  //std::cout << "first byte of text segment is " << std::hex << start << ": " << std::hex << (uint8_t) (*addr) << std::dec << std::endl;
   RReilBB* b = translate(addr,limit);
   if (b!=NULL) std::cout << "basic block:" << std::endl << *b << std::endl;
   return 0;

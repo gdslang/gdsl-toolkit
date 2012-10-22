@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <vector>
+#include <inttypes.h>
 
 class RReilBB;
 typedef char* RReilAddress;
@@ -121,21 +122,26 @@ public:
 };
 
 class Assign : public Stmt {
-  const Var* lhs;
-  const Op* rhs;
+  Var* lhs;
+  Op* rhs;
   Assign(Var* l, Op* r) : lhs(l), rhs(r) {};
 public:
   static Assign* build(Var* lhs, Op* rhs) { return new Assign(lhs, rhs); };
+  Var& getLhs() const { return *lhs; };
+  Op& getRhs() const { return *rhs; };
   void visit(StmtVisitor& v) const { v.accept(*this); };
 };
 
 class Load : public Stmt {
-  int bitSize;
   Var* lhs;
+  int bitSize;
   Address* rhs;
-  Load(int bitSize, Var* lhs, Address* rhs) : bitSize(bitSize), lhs(lhs), rhs(rhs) {};
+  Load(Var* lhs, int bitSize, Address* rhs) : lhs(lhs),  bitSize(bitSize),rhs(rhs) {};
 public:
-  static Load* build(int bitSize, Var* lhs, Address* rhs) { return new Load(bitSize, lhs, rhs); };
+  static Load* build(Var* lhs, int bitSize, Address* rhs) { return new Load(lhs, bitSize, rhs); };
+  Var& getLhs() const { return *lhs; };
+  int getBitSize() const { return bitSize; };
+  Address& getRhs() const { return *rhs; };
   void visit(StmtVisitor& v) const { v.accept(*this); };
 };
 
@@ -145,6 +151,8 @@ class Store : public Stmt {
   Store(Address* lhs, Op* rhs) : lhs(lhs), rhs(rhs) {};
 public:
   static Store* build(Address* lhs, Op* rhs) { return new Store(lhs, rhs); };
+  Address& getLhs() const { return *lhs; };
+  Op& getRhs() const { return *rhs; };
   void visit(StmtVisitor& v) const { v.accept(*this); };
 };
 
@@ -158,6 +166,9 @@ public:
   static IfThenElse* build(Lin* cond, RReilBB* thenBranch, RReilBB* elseBranch) {
     return new IfThenElse(cond, thenBranch, elseBranch);
   };
+  Lin& getCond() const { return *cond; };
+  RReilBB& getThenBranch() const { return *thenBranch; };
+  RReilBB& getElseBranch() const { return *elseBranch; };
   void visit(StmtVisitor& v) const { v.accept(*this); };
 };
 
@@ -167,6 +178,8 @@ class While : public Stmt {
   While(Lin* cond, RReilBB* body) : cond(cond), body(body) {};
 public:
   static While* build(Lin* cond, RReilBB* body) { return new While(cond, body); };
+  Lin& getCond() const { return *cond; };
+  RReilBB& getBody() const { return *body; };
   void visit(StmtVisitor& v) const { v.accept(*this); };
 };
 
@@ -177,6 +190,9 @@ class CBranch : public Stmt {
   CBranch(Lin* cond, Address* targetT, Address* targetF) : cond(cond), targetT(targetT), targetF(targetF) {};
 public:
   static CBranch* build(Lin* cond, Address* targetT, Address* targetF) { return new CBranch(cond, targetT, targetF); };
+  Lin& getCond() const { return *cond; };
+  Address& getTargetT() const { return *targetT; };
+  Address& getTargetF() const { return *targetF; };
   void visit(StmtVisitor& v) const { v.accept(*this); };
 };
 
@@ -186,18 +202,22 @@ class Branch : public Stmt {
   Branch(BranchHint hint, Address* target) : hint(hint), target(target) {};
 public:
   static Branch* build(BranchHint hint, Address* target) { return new Branch(hint, target); };
+  BranchHint getBranchHint() const { return hint; };
+  Address& getTarget() const { return *target; };
   void visit(StmtVisitor& v) const { v.accept(*this); };
 };
 
 /* variables */
 class Var {
   int variable;
-  int bitsize;
+  int offset;
 private:
-  Var(int i, int s) : variable(i), bitsize(s) {};
+  Var(int i, int o) : variable(i), offset(o) {};
 public:
-  static Var* temp(int i, int s);
-  static Var* build(int i, int s);
+  inline static Var* temp(int i, int offset);
+  inline static Var* build(int i, int offset);
+  int getOffset() const { return offset; };
+  friend std::ostream& operator<<(std::ostream& o, const Var& v);
 };
 
 /* operators */
@@ -223,7 +243,9 @@ class Linear : public Op {
   Lin* lin;
   Linear(int bitSize, Lin* l) : bitSize(bitSize), lin(l) {};
 public:
-  Linear* build(int bitSize, Lin* l) { return new Linear(bitSize, l); }
+  static Linear* build(int bitSize, Lin* l) { return new Linear(bitSize, l); };
+  int getBitSize() const { return bitSize; };
+  Lin& getLin() const { return *lin; };
   void visit(OpVisitor& v) const { v.accept(*this); };
 };
 
@@ -234,33 +256,42 @@ class Binary : public Op {
   Lin* rhs;
   Binary(int bitSize, Lin* lhs, BinOp op, Lin* rhs) : bitSize(bitSize), lhs(lhs), op(op), rhs(rhs) {};
 public:
-  Binary* build(int bitSize, Lin* lhs, BinOp op, Lin* rhs) { return new Binary(bitSize, lhs, op, rhs); };
+  static Binary* build(int bitSize, Lin* lhs, BinOp op, Lin* rhs) { return new Binary(bitSize, lhs, op, rhs); };
+  Lin& getLhs() const { return *lhs; };
+  BinOp getOp() const { return op; };
+  Lin& getRhs() const { return *rhs; };
   void visit(OpVisitor& v) const { v.accept(*this); };
 };
 
 class SignExtend : public Op {
   int fromSize;
   int toSize;
-  Lin* arg;
-  SignExtend(int fromSize, int toSize, Lin* arg) : fromSize(fromSize),
-  toSize(toSize), arg(arg) {};
+  Lin* lin;
+  SignExtend(int fromSize, int toSize, Lin* lin) : fromSize(fromSize),
+  toSize(toSize), lin(lin) {};
 public:
-  SignExtend* build(int fromSize, int toSize, Lin* arg) {
-    return new SignExtend(fromSize, toSize, arg);
+  static SignExtend* build(int fromSize, int toSize, Lin* lin) {
+    return new SignExtend(fromSize, toSize, lin);
   };
+  int getFromSize() const { return fromSize; };
+  int getToSize() const { return toSize; };
+  Lin& getLin() const { return *lin; };
   void visit(OpVisitor& v) const { v.accept(*this); };
 };
 
 class ZeroExtend : public Op {
   int fromSize;
   int toSize;
-  Lin* arg;
-  ZeroExtend(int fromSize, int toSize, Lin* arg) : fromSize(fromSize),
-  toSize(toSize), arg(arg) {};
+  Lin* lin;
+  ZeroExtend(int fromSize, int toSize, Lin* lin) : fromSize(fromSize),
+  toSize(toSize), lin(lin) {};
 public:
-  ZeroExtend* build(int fromSize, int toSize, Lin* arg) {
-    return new ZeroExtend(fromSize, toSize, arg);
+  static ZeroExtend* build(int fromSize, int toSize, Lin* lin) {
+    return new ZeroExtend(fromSize, toSize, lin);
   };
+  int getFromSize() const { return fromSize; };
+  int getToSize() const { return toSize; };
+  Lin& getLin() const { return *lin; };
   void visit(OpVisitor& v) const { v.accept(*this); };
 };
 
@@ -271,7 +302,10 @@ class Cmp : public Op {
   Lin* rhs;
   Cmp(int bitSize, Lin* lhs, CmpOp op, Lin* rhs) : bitSize(bitSize), lhs(lhs), op(op), rhs(rhs) {};
 public:
-  Cmp* build(int bitSize, Lin* lhs, CmpOp op, Lin* rhs) { return new Cmp(bitSize, lhs, op, rhs); };
+  static Cmp* build(int bitSize, Lin* lhs, CmpOp op, Lin* rhs) { return new Cmp(bitSize, lhs, op, rhs); };
+  Lin& getLhs() const { return *lhs; };
+  CmpOp getOp() const { return op; };
+  Lin& getRhs() const { return *rhs; };
   void visit(OpVisitor& v) const { v.accept(*this); };
 };
 
@@ -279,9 +313,92 @@ class Arbitrary : public Op {
   int bitSize;
   Arbitrary(int bitSize) : bitSize(bitSize) {};
 public:
-  Arbitrary* build(int bitSize) { return new Arbitrary(bitSize); };
+  static Arbitrary* build(int bitSize) { return new Arbitrary(bitSize); };
+  int getBitSize() const { return bitSize; };
   void visit(OpVisitor& v) const { v.accept(*this); };
 };
 
+/* linear expressions */
+
+class LinVisitor {
+public:
+  virtual void accept(const LinVar& l) = 0;
+  virtual void accept(const LinImm& l) = 0;
+  virtual void accept(const LinAdd& l) = 0;
+  virtual void accept(const LinSub& l) = 0;
+  virtual void accept(const LinScale& l) = 0;
+  virtual void accept(const Address& a) = 0;
+};
+
+class Lin {
+public:
+  virtual void visit(LinVisitor& v) const = 0;
+  friend std::ostream& operator<<(std::ostream& o, const Lin& s);
+};
+
+class LinVar : public Lin {
+  Var* var;
+  LinVar(Var* var) : var(var) {};
+public:
+  static LinVar* build(Var* var) { return new LinVar(var); };
+  Var& getVar() const { return *var; };
+  void visit(LinVisitor& v) const { v.accept(*this); };
+};
+
+class LinImm : public Lin  {
+  int64_t imm;
+  LinImm(int64_t imm) : imm(imm) {};
+public:
+  static LinImm* build(int64_t imm) { return new LinImm(imm); };
+  int64_t getImm() const { return imm; };
+  void visit(LinVisitor& v) const { v.accept(*this); };
+};
+
+class LinAdd : public Lin  {
+  Lin* lhs;
+  Lin* rhs;
+  LinAdd(Lin* lhs, Lin* rhs) : lhs(lhs), rhs(rhs) {};
+public:
+  static LinAdd* build(Lin* lhs, Lin* rhs) { return new LinAdd(lhs, rhs); };
+  Lin& getLhs() const { return *lhs; };
+  Lin& getRhs() const { return *rhs; };
+  void visit(LinVisitor& v) const { v.accept(*this); };
+};
+
+class LinSub : public Lin  {
+  Lin* lhs;
+  Lin* rhs;
+  LinSub(Lin* lhs, Lin* rhs) : lhs(lhs), rhs(rhs) {};
+public:
+  static LinSub* build(Lin* lhs, Lin* rhs) { return new LinSub(lhs, rhs); };
+  Lin& getLhs() const { return *lhs; };
+  Lin& getRhs() const { return *rhs; };
+  void visit(LinVisitor& v) const { v.accept(*this); };
+};
+
+class LinScale : public Lin  {
+  int64_t fac;
+  Lin* lin;
+  LinScale(int64_t fac, Lin* lin) : fac(fac), lin(lin) {};
+public:
+  static LinScale* build(int64_t fac, Lin* lin) { return new LinScale(fac, lin); };
+  int64_t getFac() const { return fac; };
+  Lin& getLin() const { return *lin; };
+  void visit(LinVisitor& v) const { v.accept(*this); };
+};
+
+/* addresses */
+
+class Address {
+  int bitSize;
+  Lin* lin;
+  Address(int bitSize, Lin* lin) : bitSize(bitSize), lin(lin) {};
+public:
+  static Address* build(int bitSize, Lin* lin) { return new Address(bitSize,lin); };
+  int getBitSize() const { return bitSize; };
+  void visit(LinVisitor& v) const { v.accept(*this); };
+  Lin& getLin() const { return *lin; };
+  friend std::ostream& operator<<(std::ostream& o, const Address& s);
+};
 
 #endif

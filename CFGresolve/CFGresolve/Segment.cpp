@@ -77,7 +77,7 @@ std::ostream& Segment::dump(std::ostream& o, uint64_t addr, uint64_t len) {
     }
     o << "  " << &(txt[0]) << std::endl;
   }
-  return o << std::setw(0);
+  return o << std::setw(0) << std::dec;
 }
 
 std::ostream& operator<<(std::ostream& o, const SegmentSet& s) {
