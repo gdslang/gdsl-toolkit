@@ -9,6 +9,7 @@
 //  Copyright (c) 2012 Axel Simon. All rights reserved.
 //
 
+#include <strings.h>
 #include "Segment.h"
 #include <sys/mman.h>
 #include <unistd.h>

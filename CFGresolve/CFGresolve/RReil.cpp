@@ -289,9 +289,9 @@ std::ostream& operator<<(std::ostream& o, const Op& s) {
 
 class PrintLinVisitor : public LinVisitor {
   std::ostream& o;
-  int comp = 0;
+  int comp;
 public:
-  PrintLinVisitor(std::ostream& o) : o(o) {};
+  PrintLinVisitor(std::ostream& o) : o(o), comp(0) {};
   void accept(const LinVar& l) {
     o << l.getVar();
   };
