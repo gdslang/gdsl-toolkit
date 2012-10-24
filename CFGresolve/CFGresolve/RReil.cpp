@@ -264,7 +264,19 @@ public:
     o << "(" << op.getBitSize() << ")" << op.getLin();
   };
   void accept(const Binary& op) {
-    o << op.getLhs() << " " << op.getOp() << " " << op.getRhs();
+    const std::string opNames[] = {
+      "*",
+      "/u",
+      "/s",
+      "%",
+      "<<",
+      ">>u",
+      ">>s",
+      "&",
+      "|",
+      "^"
+    };
+    o << op.getLhs() << " " << opNames[op.getOp()] << " " << op.getRhs();
   };
   void accept(const SignExtend& op) {
     o << "(" << op.getToSize() << ") (signed " << op.getFromSize() << ") " << op.getLin();
@@ -273,7 +285,15 @@ public:
     o << "(" << op.getToSize() << ") (unsigned " << op.getFromSize() << ") " << op.getLin();
   };
   void accept(const Cmp& op) {
-    o << op.getLhs() << " " << op.getOp() << " " << op.getRhs();
+    const std::string opNames[] = {
+      "==",
+      "!=",
+      "<=s",
+      "<=u",
+      "<s",
+      "<u"
+    };
+    o << op.getLhs() << " " << opNames[op.getOp()] << " " << op.getRhs();
   };
   void accept(const Arbitrary& op) {
     o << "(" << op.getBitSize() << ") [-oo,oo]";
