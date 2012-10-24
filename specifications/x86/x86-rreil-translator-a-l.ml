@@ -667,6 +667,11 @@ end
 val sem-lddqu x = sem-lddqu-vlddqu 128 x;
 val sem-vlddqu x = sem-lddqu-vlddqu 256 x;
 
+val sem-lds x = do
+
+return void
+end
+
 val sem-lea x = do
   opnd-sz <- sizeof1 x.opnd1;
   dst <- write opnd-sz x.opnd1;

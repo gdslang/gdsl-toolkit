@@ -978,7 +978,7 @@ val semantics insn =
    | LAR x: sem-undef-arity2 x
    | LDDQU x: sem-lddqu x
    | LDMXCSR x: sem-undef-arity1 x
-   | LDS x: sem-undef-arity2 x
+   | LDS x: sem-lds x
    | LEA x: sem-lea x
    | LEAVE x: sem-undef-arity0 x
    | LES x: sem-undef-arity2 x
