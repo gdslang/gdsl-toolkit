@@ -23,14 +23,15 @@ val rreil-show-stmt s =
     | SEM_ITE x: "if (" +++ rreil-show-linear x.cond +++ ") {" +++ rreil-show-stmts x.then_branch +++ "} else {" +++ rreil-show-stmts x.else_branch +++ "}"
     | SEM_WHILE x: "while (" +++ rreil-show-linear x.cond +++ ") {" +++ rreil-show-stmts x.body +++ "}"
     | SEM_CBRANCH x: "if (" +++ rreil-show-linear x.cond +++ ") goto" +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
-    | SEM_BRANCH x: "goto [hint: " +++ rreil-show-hint x.hint +++ rreil-show-address x.target
-
-    | SEM_LABEL x: rreil-show-label x.label
-    | SEM_IF_GOTO_LABEL x: "if (" +++ rreil-show-linear x.cond +++ ") goto label " +++ rreil-show-label x.label
-    | SEM_IF_GOTO x: "if (" +++ rreil-show-linear x.cond +++ ") goto " +++ rreil-show-linear x.target
-    | SEM_CALL x: "if (" +++ rreil-show-linear x.cond +++ ") call " +++ rreil-show-address x.target
-    | SEM_RETURN x: "if (" +++ rreil-show-linear x.cond +++ ") return " +++ rreil-show-address x.target
+    | SEM_BRANCH x: "goto [" +++ rreil-show-hint x.hint +++ "] " +++ rreil-show-address x.target
    end
+
+val rreil-show-hint x =
+  case x of
+     HINT_JUMP: "JUMP"
+   | HINT_CALL: "CALL"
+   | HINT_RET: "RET"
+  end
 
 val rreil-show-label l = "l" +++ showint l +++ ":"
 
