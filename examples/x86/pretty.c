@@ -581,7 +581,7 @@ char* prettySemStmt (__obj x, char* buf, __word sz) {
       prettySemOp(rhs,buf,sz);
       break;
     }
-    case __SEM_LABEL: {
+/*    case __SEM_LABEL: {
       __obj id = __RECORD_SELECT(payload,___id);
       strncat(buf,"l",sz);
       prettySemInt(id,buf,sz);
@@ -604,7 +604,7 @@ char* prettySemStmt (__obj x, char* buf, __word sz) {
     case __SEM_RETURN:
       break;
     default:
-      __fatal("Invalid RREIL statement");
+      __fatal("Invalid RREIL statement");*/
   }
   return (buf);
 }
