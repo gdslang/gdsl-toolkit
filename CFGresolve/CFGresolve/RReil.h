@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include <inttypes.h>
+#include <algorithm>
 
 class RReilBB;
 typedef char* RReilAddress;
