@@ -667,9 +667,18 @@ end
 val sem-lddqu x = sem-lddqu-vlddqu 128 x;
 val sem-vlddqu x = sem-lddqu-vlddqu 256 x;
 
-val sem-lds x = do
+val sem-lds-les-lfs-lgs-lss x segment = do
+  src-size <- sizeof1 x.opnd1;
+  src <- read src-size x.opnd1;
 
-return void
+  src-temp <- mktemp;
+  mov src-size src-temp src;
+
+  ds <- return (semantic-register-of segment);
+  mov ds.size ds (var (at-offset src-temp 0));
+
+  dst <- write x.opnd-sz x.opnd2;
+  commit x.opnd-sz dst (var (at-offset src-temp ds.size))
 end
 
 val sem-lea x = do

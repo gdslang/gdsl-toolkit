@@ -978,14 +978,14 @@ val semantics insn =
    | LAR x: sem-undef-arity2 x
    | LDDQU x: sem-lddqu x
    | LDMXCSR x: sem-undef-arity1 x
-   | LDS x: sem-lds x
+   | LDS x: sem-lds-les-lfs-lgs-lss x DS
    | LEA x: sem-lea x
    | LEAVE x: sem-undef-arity0 x
-   | LES x: sem-undef-arity2 x
+   | LES x: sem-lds-les-lfs-lgs-lss x ES
    | LFENCE x: sem-undef-arity0 x
-   | LFS x: sem-undef-arity2 x
+   | LFS x: sem-lds-les-lfs-lgs-lss x FS
    | LGDT x: sem-undef-arity1 x
-   | LGS x: sem-undef-arity2 x
+   | LGS x: sem-lds-les-lfs-lgs-lss x GS
    | LIDT x: sem-undef-arity1 x
    | LLDT x: sem-undef-arity1 x
    | LMSW x: sem-undef-arity1 x
@@ -994,7 +994,7 @@ val semantics insn =
    | LOOPE x: sem-loope x
    | LOOPNE x: sem-loopne x
    | LSL x: sem-undef-arity2 x
-   | LSS x: sem-undef-arity2 x
+   | LSS x: sem-lds-les-lfs-lgs-lss x SS
    | LTR x: sem-undef-arity1 x
    | MASKMOVDQU x: sem-undef-arity2 x
    | MASKMOVQ x: sem-undef-arity2 x
