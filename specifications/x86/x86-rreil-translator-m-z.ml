@@ -1,7 +1,6 @@
 ## M>>
 
-val sem-maskmovdqu-vmaskmovdqu x = do
-  size <- return 128;
+val sem-maskmov x size = do
   src <- read size x.opnd1;
   mask <- read size x.opnd2;
   
@@ -11,15 +10,21 @@ val sem-maskmovdqu-vmaskmovdqu x = do
   mask-temp <- mktemp;
   mov size mask-temp mask;
 
-  byte-size <- return 8;
+  limit <- return
+    (case size of
+       64: 7
+     | 128: 15
+    end)
+  ;
 
+  byte-size <- return 8;
   let
     val f i = do
       _if (/d (var (at-offset mask-temp ((i + 1)*8 - 1)))) _then do
         dst <- write-offset byte-size x.opnd3 i;
         commit byte-size dst (var (at-offset src-temp (i*8)))
       end;
-      if (i < 15) then
+      if (i < limit) then
         f (i + 1)
       else
         return void
@@ -93,6 +98,10 @@ val sem-maskmovdqu-vmaskmovdqu x = do
 #    commit byte-size dst (var (at-offset src-temp 120))
 #  end
 end
+
+val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov x 128
+
+val sem-maskmovq x = sem-maskmov x 64
 
 val sem-mov x = do
   sz <- sizeof2 x.opnd1 x.opnd2;

@@ -999,7 +999,7 @@ val semantics insn =
    | LSS x: sem-lds-les-lfs-lgs-lss x SS
    | LTR x: sem-undef-arity1 x
    | MASKMOVDQU x: sem-maskmovdqu-vmaskmovdqu x
-   | MASKMOVQ x: sem-undef-arity2 x
+   | MASKMOVQ x: sem-maskmovq x
    | MAXPD x: sem-undef-arity2 x
    | MAXPS x: sem-undef-arity2 x
    | MAXSD x: sem-undef-arity2 x

@@ -881,7 +881,7 @@ type insn =
  | LSS of arity2
  | LTR of arity1
  | MASKMOVDQU of arity3
- | MASKMOVQ of arity2
+ | MASKMOVQ of arity3
  | MAXPD of arity2
  | MAXPS of arity2
  | MAXSD of arity2
@@ -3834,7 +3834,7 @@ val /vex/66/0f/vexv [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU xmm128 xmm/m12
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
-val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/reg64
+val / [0x0f 0xf7 /r] = ternop MASKMOVQ mm64 mm/reg64 (m/default/di/edi/rdi (return 8))
 
 ### MAXPD
 ###  - Return Maximum Packed Double-Precision Floating-Point Values
