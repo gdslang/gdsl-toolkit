@@ -176,6 +176,34 @@ val sem-movbe x = do
   commit x.opnd-sz dst (var dst-temp)
 end
 
+val sem-movd-movq-vmovd-vmovq x dst-size = do
+  src-size <- sizeof1 x.opnd2;
+  src <- read src-size x.opnd2;
+
+  dst <- write dst-size x.opnd1;
+
+  temp <- mktemp;
+  mov dst-size temp (imm 0);
+  mov src-size temp src;
+
+  commit dst-size dst (var temp)
+end
+
+val sem-movd-movq x = do
+  dst-size <- sizeof1 x.opnd1;
+  sem-movd-movq-vmovd-vmovq x dst-size
+end
+
+val sem-vmovd-vmovq x = do
+  dst-size <- 
+    case x.opnd1 of
+       MEM m: sizeof1 x.opnd1
+     | REG r: return 256
+    end
+  ;
+  sem-movd-movq-vmovd-vmovq x dst-size
+end
+
 val sem-movs x = do
   sz <- sizeof1 x.opnd1;
   src <- read sz x.opnd2;

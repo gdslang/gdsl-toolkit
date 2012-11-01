@@ -249,9 +249,9 @@ val write-offset sz x offset =
 	 combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {imm=offset}});
          return (SEM_WRITE_MEM{size=x.psz,address=combined,segment=x.segment})
        end
-    | REG x:
+    | REG r:
        do 
-         id <- return (semantic-register-of x);
+         id <- return (semantic-register-of-operand-with-size x sz);
 	 id <- return (@{offset=id.offset + offset} id);
          return (SEM_WRITE_VAR{size= $size id,id=id})
        end
@@ -1013,8 +1013,8 @@ val semantics insn =
    | MOV x: sem-mov x
    | MOVAPD x: sem-movap x
    | MOVAPS x: sem-movap x
-   | MOVBE x: sem-undef-arity2 x
-   | MOVD x: sem-undef-arity2 x
+   | MOVBE x: sem-movbe x
+   | MOVD x: sem-movd-movq x
    | MOVDDUP x: sem-undef-arity2 x
    | MOVDQ2Q x: sem-undef-arity2 x
    | MOVDQA x: sem-undef-arity2 x
@@ -1033,7 +1033,7 @@ val semantics insn =
    | MOVNTPD x: sem-undef-arity2 x
    | MOVNTPS x: sem-undef-arity2 x
    | MOVNTQ x: sem-undef-arity2 x
-   | MOVQ x: sem-undef-arity2 x
+   | MOVQ x: sem-movd-movq x
    | MOVQ2DQ x: sem-undef-arity2 x
    | MOVS x: sem-rep-insn x sem-movs
    | MOVSD x: sem-undef-arity2 x
@@ -1395,7 +1395,10 @@ val semantics insn =
    | VMINSS x: sem-undef-varity x
    | VMOVAPD x: sem-vmovap x
    | VMOVAPS x: sem-vmovap x
-   | VMOVD x: sem-undef-varity x
+   | VMOVD v:
+       case v of
+          VA2 x: sem-vmovd-vmovq x
+       end
    | VMOVDDUP x: sem-undef-varity x
    | VMOVDQA x: sem-undef-varity x
    | VMOVDQU x: sem-undef-varity x
@@ -1411,7 +1414,10 @@ val semantics insn =
    | VMOVNTDQA x: sem-undef-varity x
    | VMOVNTPD x: sem-undef-varity x
    | VMOVNTPS x: sem-undef-varity x
-   | VMOVQ x: sem-undef-varity x
+   | VMOVQ v:
+       case v of
+          VA2 x: sem-vmovd-vmovq x
+       end
    | VMOVSD x: sem-undef-varity x
    | VMOVSHDUP x: sem-undef-varity x
    | VMOVSLDUP x: sem-undef-varity x
