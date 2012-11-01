@@ -142,6 +142,40 @@ val sem-vmovap x = do
   commit sz dst (var temp)
 end
 
+val sem-movbe x = do
+  src <- read x.opnd-sz x.opnd2;
+  dst <- write x.opnd-sz x.opnd1;
+
+  src-temp <- mktemp;
+  mov x.opnd-sz src-temp src;
+
+  dst-temp <- mktemp;
+
+  limit <- return
+    (case x.opnd-sz of
+        16: 2
+      | 32: 4
+      | 64: 8
+     end)
+  ;
+
+  byte-size <- return 8;
+  let
+    val f i = do
+      mov byte-size (at-offset dst-temp (i*8)) (var (at-offset src-temp ((limit - i - 1)*8)));
+
+      if (i < (limit - 1)) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 0
+  end;
+
+  commit x.opnd-sz dst (var dst-temp)
+end
+
 val sem-movs x = do
   sz <- sizeof1 x.opnd1;
   src <- read sz x.opnd2;
