@@ -3769,8 +3769,6 @@ val / [0x8d /r-mem]
  | mode64? & (// rexw?) & (// opndsz?) = binop LEA r32 mX
  | mode64? & rexw? & (// opndsz?) = binop LEA r64 mX
 
-### =><=
-
 ### LEAVE
 ###  - High Level Procedure Exit
 #Todo: handle different effects to BP/EBP/RBP
@@ -3778,6 +3776,7 @@ val / [0xc9] = arity0 LEAVE
 
 ### LFENCE
 ###  - Load Fence
+#Todo: -reg?
 val / [0x0f 0xae /5-reg] = arity0 LFENCE
 
 ### LGDT/LIDT
@@ -3804,13 +3803,12 @@ val / [0x0f 0x01 /6-mem] = unop LMSW r/m16
 ###  - Load String
 val / [0xac] = unop-rep LODS (m/default/si/esi/rsi (return 8))
 val / [0xad]
- | opndsz? = unop-rep LODS (m/default/si/esi/rsi (return 8))
- | rexw? = unop-rep LODS (m/default/si/esi/rsi (return 8))
- | otherwise = unop-rep LODS (m/default/si/esi/rsi (return 8))
+ | opndsz? = unop-rep LODS (m/default/si/esi/rsi operand-size)
+ | rexw? = unop-rep LODS (m/default/si/esi/rsi operand-size)
+ | otherwise = unop-rep LODS (m/default/si/esi/rsi operand-size)
 
 ### LOOP/LOOPcc
 ###  - Loop According to ECX Counter
-# Todo: correct?
 val / [0xe2] = near-rel LOOP rel8
 val / [0xe1] = near-rel LOOPE rel8
 val / [0xe0] = near-rel LOOPNE rel8
@@ -3828,13 +3826,12 @@ val / [0x0f 0x00 /3] = unop LTR r/m16
 
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
-val /66 [0x0f 0xf7 /r] = ternop MASKMOVDQU xmm128 xmm/reg128 (m/default/di/edi/rdi (return 8))
-val /vex/66/0f/vexv [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU xmm128 xmm/m128 (m/default/di/edi/rdi (return 8))
-
+val /66 [0x0f 0xf7 /r-reg] = ternop MASKMOVDQU xmm128 xmm/reg128 (m/default/di/edi/rdi (return 8))
+val /vex/66/0f [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU xmm128 xmm/m128 (m/default/di/edi/rdi (return 8))
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
-val / [0x0f 0xf7 /r] = ternop MASKMOVQ mm64 mm/reg64 (m/default/di/edi/rdi (return 8))
+val / [0x0f 0xf7 /r-reg] = ternop MASKMOVQ mm64 mm/reg64 (m/default/di/edi/rdi (return 8))
 
 ### MAXPD
 ###  - Return Maximum Packed Double-Precision Floating-Point Values
@@ -3862,7 +3859,10 @@ val /vex/f3/0f/vexv [0x5f /r] = varity3 VMAXSS xmm128 v/xmm xmm/m32
 
 ### MFENCE
 ###  - Memory Fence
+#Todo: -reg?
 val / [0x0f 0xae /6-reg] = arity0 MFENCE
+
+### =><=
 
 ### MINPD
 ###  - Return Minimum Packed Double-Precision Floating-Point Values
