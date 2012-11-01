@@ -1,5 +1,99 @@
 ## M>>
 
+val sem-maskmovdqu-vmaskmovdqu x = do
+  size <- return 128;
+  src <- read size x.opnd1;
+  mask <- read size x.opnd2;
+  
+  src-temp <- mktemp;
+  mov size src-temp src;
+
+  mask-temp <- mktemp;
+  mov size mask-temp mask;
+
+  byte-size <- return 8;
+
+  let
+    val f i = do
+      _if (/d (var (at-offset mask-temp ((i + 1)*8 - 1)))) _then do
+        dst <- write-offset byte-size x.opnd3 i;
+        commit byte-size dst (var (at-offset src-temp (i*8)))
+      end;
+      if (i < 15) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 0
+  end
+
+#  _if (/d (var (at-offset mask-temp 7))) _then do
+#    dst <- write-offset byte-size x.opnd3 0;
+#    commit byte-size dst (var (at-offset src-temp 0))
+#  end;
+#  _if (/d (var (at-offset mask-temp 15))) _then do
+#    dst <- write-offset byte-size x.opnd3 1;
+#    commit byte-size dst (var (at-offset src-temp 8))
+#  end;
+#  _if (/d (var (at-offset mask-temp 23))) _then do
+#    dst <- write-offset byte-size x.opnd3 2;
+#    commit byte-size dst (var (at-offset src-temp 16))
+#  end;
+#  _if (/d (var (at-offset mask-temp 31))) _then do
+#    dst <- write-offset byte-size x.opnd3 3;
+#    commit byte-size dst (var (at-offset src-temp 24))
+#  end;
+#  _if (/d (var (at-offset mask-temp 39))) _then do
+#    dst <- write-offset byte-size x.opnd3 4;
+#    commit byte-size dst (var (at-offset src-temp 32))
+#  end;
+#  _if (/d (var (at-offset mask-temp 47))) _then do
+#    dst <- write-offset byte-size x.opnd3 5;
+#    commit byte-size dst (var (at-offset src-temp 40))
+#  end;
+#  _if (/d (var (at-offset mask-temp 55))) _then do
+#    dst <- write-offset byte-size x.opnd3 6;
+#    commit byte-size dst (var (at-offset src-temp 48))
+#  end;
+#  _if (/d (var (at-offset mask-temp 63))) _then do
+#    dst <- write-offset byte-size x.opnd3 7;
+#    commit byte-size dst (var (at-offset src-temp 56))
+#  end;
+#  _if (/d (var (at-offset mask-temp 71))) _then do
+#    dst <- write-offset byte-size x.opnd3 8;
+#    commit byte-size dst (var (at-offset src-temp 64))
+#  end;
+#  _if (/d (var (at-offset mask-temp 79))) _then do
+#    dst <- write-offset byte-size x.opnd3 9;
+#    commit byte-size dst (var (at-offset src-temp 72))
+#  end;
+#  _if (/d (var (at-offset mask-temp 87))) _then do
+#    dst <- write-offset byte-size x.opnd3 10;
+#    commit byte-size dst (var (at-offset src-temp 80))
+#  end;
+#  _if (/d (var (at-offset mask-temp 95))) _then do
+#    dst <- write-offset byte-size x.opnd3 11;
+#    commit byte-size dst (var (at-offset src-temp 88))
+#  end;
+#  _if (/d (var (at-offset mask-temp 103))) _then do
+#    dst <- write-offset byte-size x.opnd3 12;
+#    commit byte-size dst (var (at-offset src-temp 96))
+#  end;
+#  _if (/d (var (at-offset mask-temp 111))) _then do
+#    dst <- write-offset byte-size x.opnd3 13;
+#    commit byte-size dst (var (at-offset src-temp 104))
+#  end;
+#  _if (/d (var (at-offset mask-temp 119))) _then do
+#    dst <- write-offset byte-size x.opnd3 14;
+#    commit byte-size dst (var (at-offset src-temp 112))
+#  end;
+#  _if (/d (var (at-offset mask-temp 127))) _then do
+#    dst <- write-offset byte-size x.opnd3 15;
+#    commit byte-size dst (var (at-offset src-temp 120))
+#  end
+end
+
 val sem-mov x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- write sz x.opnd1;

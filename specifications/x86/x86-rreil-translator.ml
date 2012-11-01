@@ -239,13 +239,15 @@ val relative target =
 
 val absolute target = not (relative target)
 
+#Todo: MEM => byte offset, REG => bit offset... confusing (division?)
 val write-offset sz x offset =
    case x of
      MEM x:
        do
-         #Todo: Offset for memory operands?
+         #Offset for memory operands? => Add offset to pointer
          address <- conv-with Signed x.psz x.opnd;
-         return (SEM_WRITE_MEM{size=x.psz,address=address,segment=x.segment})
+	 combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {imm=offset}});
+         return (SEM_WRITE_MEM{size=x.psz,address=combined,segment=x.segment})
        end
     | REG x:
        do 
@@ -996,7 +998,7 @@ val semantics insn =
    | LSL x: sem-undef-arity2 x
    | LSS x: sem-lds-les-lfs-lgs-lss x SS
    | LTR x: sem-undef-arity1 x
-   | MASKMOVDQU x: sem-undef-arity2 x
+   | MASKMOVDQU x: sem-maskmovdqu-vmaskmovdqu x
    | MASKMOVQ x: sem-undef-arity2 x
    | MAXPD x: sem-undef-arity2 x
    | MAXPS x: sem-undef-arity2 x
@@ -1377,7 +1379,10 @@ val semantics insn =
    | VINSERTPS x: sem-undef-varity x
    | VLDDQU x: sem-undef-varity x
    | VLDMXCSR x: sem-undef-varity x
-   | VMASKMOVDQU x: sem-undef-varity x
+   | VMASKMOVDQU v:
+       case v of
+          VA3 x: sem-maskmovdqu-vmaskmovdqu x
+       end
    | VMASKMOVPD x: sem-undef-varity x
    | VMASKMOVPS x: sem-undef-varity x
    | VMAXPD x: sem-undef-varity x

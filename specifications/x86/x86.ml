@@ -880,7 +880,7 @@ type insn =
  | LSL of arity2
  | LSS of arity2
  | LTR of arity1
- | MASKMOVDQU of arity2
+ | MASKMOVDQU of arity3
  | MASKMOVQ of arity2
  | MAXPD of arity2
  | MAXPS of arity2
@@ -2201,6 +2201,18 @@ val m/default/si/esi/rsi size = do
      16: mem (REG SI)
    | 32: mem (REG ESI)
    | 64: mem (REG RSI)
+  end
+end
+
+val m/default/di/edi/rdi size = do
+  size <- size;
+  update@{ptrty=size};
+  addrsz <- address-size;
+  update@{ptrsz=addrsz};
+  case addrsz of
+     16: mem (REG DI)
+   | 32: mem (REG EDI)
+   | 64: mem (REG RDI)
   end
 end
 
@@ -3816,8 +3828,9 @@ val / [0x0f 0x00 /3] = unop LTR r/m16
 
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
-val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/reg128
-val /vex/66/0f/vexv [0xf7 /r-reg] | vex128? = varity2 VMASKMOVDQU xmm128 xmm/m128
+val /66 [0x0f 0xf7 /r] = ternop MASKMOVDQU xmm128 xmm/reg128 (m/default/di/edi/rdi (return 8))
+val /vex/66/0f/vexv [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU xmm128 xmm/m128 (m/default/di/edi/rdi (return 8))
+
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
