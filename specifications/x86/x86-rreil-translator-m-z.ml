@@ -204,7 +204,7 @@ val sem-vmovd-vmovq x = do
   sem-movd-movq-vmovd-vmovq x dst-size
 end
 
-val sem-movdqa-vmovdqa-movdqu-vmovdqu x size out-size = do
+val sem-mov-sse-avx x size out-size = do
   src <- read size x.opnd2;
   dst <- write out-size x.opnd1;
 
@@ -215,14 +215,14 @@ val sem-movdqa-vmovdqa-movdqu-vmovdqu x size out-size = do
   commit out-size dst (var temp)
 end
 
-val sem-movdqa-movdqu x = do
+val sem-mov-sse x = do
   size <- sizeof1 x.opnd1;
-  sem-movdqa-vmovdqa-movdqu-vmovdqu x size size
+  sem-mov-sse-avx x size size
 end
 
-val sem-vmovdqa-vmovdqu x = do
+val sem-mov-avx x = do
   size <- sizeof1 x.opnd1;
-  sem-movdqa-vmovdqa-movdqu-vmovdqu x size 256
+  sem-mov-sse-avx x size 256
 end
 
 val sem-movdq2q x = do
