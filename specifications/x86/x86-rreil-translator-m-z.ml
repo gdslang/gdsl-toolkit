@@ -176,41 +176,40 @@ val sem-movbe x = do
   commit x.opnd-sz dst (var dst-temp)
 end
 
-val sem-movd-movq-vmovd-vmovq x dst-size = do
-  src-size <- sizeof1 x.opnd2;
-  src <- read src-size x.opnd2;
-
-  dst <- write dst-size x.opnd1;
-
-  temp <- mktemp;
-  mov dst-size temp (imm 0);
-  mov src-size temp src;
-
-  commit dst-size dst (var temp)
-end
-
-val sem-movd-movq x = do
-  dst-size <- sizeof1 x.opnd1;
-  sem-movd-movq-vmovd-vmovq x dst-size
-end
-
-val sem-vmovd-vmovq x = do
-  dst-size <- 
-    case x.opnd1 of
-       MEM m: sizeof1 x.opnd1
-     | REG r: return 256
-    end
-  ;
-  sem-movd-movq-vmovd-vmovq x dst-size
-end
+#val sem-movd-movq-vmovd-vmovq x dst-size = do
+#  src-size <- sizeof1 x.opnd2;
+#  src <- read src-size x.opnd2;
+#
+#  dst <- write dst-size x.opnd1;
+#
+#  temp <- mktemp;
+#  mov dst-size temp (imm 0);
+#  mov src-size temp src;
+#
+#  commit dst-size dst (var temp)
+#end
+#
+#val sem-movd-movq x = do
+#  dst-size <- sizeof1 x.opnd1;
+#  sem-movd-movq-vmovd-vmovq x dst-size
+#end
+#
+#val sem-vmovd-vmovq x = do
+#  dst-size <- 
+#    case x.opnd1 of
+#       MEM m: sizeof1 x.opnd1
+#     | REG r: return 256
+#    end
+#  ;
+#  sem-movd-movq-vmovd-vmovq x dst-size
+#end
 
 val sem-mov-sse-avx x size out-size = do
   src <- read size x.opnd2;
   dst <- write out-size x.opnd1;
 
   temp <- mktemp;
-  mov out-size temp (imm 0);
-  mov size temp src;
+  movzx out-size temp size src;
 
   commit out-size dst (var temp)
 end
@@ -222,7 +221,13 @@ end
 
 val sem-mov-avx x = do
   size <- sizeof1 x.opnd1;
-  sem-mov-sse-avx x size 256
+  out-size <- return
+    (case x.opnd1 of
+        MEM m: size
+      | REG r: 256
+    end)
+  ;
+  sem-mov-sse-avx x size out-size
 end
 
 val sem-movdq2q x = do
