@@ -299,6 +299,32 @@ end
 
 ## N>>
 
+val sem-neg x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd1;
+  dst <- write size x.opnd1;
+
+  temp <- mktemp;
+  sub size temp (imm 0) src;
+
+  cf <- fCF;
+  ov <- fOF;
+  sf <- fSF;
+  zf <- fZF;
+
+  cmpneq size cf src (imm 0);
+
+  src-temp <- mktemp;
+  mov size src-temp src;
+  cmpeq 1 ov (var (at-offset temp (size - 1))) (var (at-offset src-temp (size - 1)));
+  cmplts size sf (var temp) (imm 0);
+
+  emit-parity-flag (var temp);
+  emit-arithmetic-adjust-flag size (var temp) (imm 0) src; #Todo: Correct?
+
+  commit size dst (var temp)
+end
+
 val sem-nop x = do
   return void
 end
