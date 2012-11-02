@@ -1017,8 +1017,8 @@ val semantics insn =
    | MOVD x: sem-movd-movq x
    | MOVDDUP x: sem-undef-arity2 x
    | MOVDQ2Q x: sem-undef-arity2 x
-   | MOVDQA x: sem-movdqa x
-   | MOVDQU x: sem-undef-arity2 x
+   | MOVDQA x: sem-movdqa-movdqu x
+   | MOVDQU x: sem-movdqa-movdqu x
    | MOVHLPS x: sem-undef-arity2 x
    | MOVHPD x: sem-undef-arity2 x
    | MOVHPS x: sem-undef-arity2 x
@@ -1402,9 +1402,12 @@ val semantics insn =
    | VMOVDDUP x: sem-undef-varity x
    | VMOVDQA v:
        case v of
-          VA2 x: sem-vmovdqa x
+          VA2 x: sem-vmovdqa-vmovdqu x
        end
-   | VMOVDQU x: sem-undef-varity x
+   | VMOVDQU v:
+       case v of
+          VA2 x: sem-vmovdqa-vmovdqu x
+       end
    | VMOVHLPS x: sem-undef-varity x
    | VMOVHPD x: sem-undef-varity x
    | VMOVHPS x: sem-undef-varity x
