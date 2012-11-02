@@ -1016,7 +1016,7 @@ val semantics insn =
    | MOVBE x: sem-movbe x
    | MOVD x: sem-movd-movq x
    | MOVDDUP x: sem-undef-arity2 x
-   | MOVDQ2Q x: sem-undef-arity2 x
+   | MOVDQ2Q x: sem-movdq2q x
    | MOVDQA x: sem-movdqa-movdqu x
    | MOVDQU x: sem-movdqa-movdqu x
    | MOVHLPS x: sem-undef-arity2 x

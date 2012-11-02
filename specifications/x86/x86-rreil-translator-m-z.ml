@@ -225,6 +225,14 @@ val sem-vmovdqa-vmovdqu x = do
   sem-movdqa-vmovdqa-movdqu-vmovdqu x size 256
 end
 
+val sem-movdq2q x = do
+  size <- sizeof1 x.opnd1; #Important: Destination size!
+  src <- read size x.opnd2;
+  dst <- write size x.opnd1;
+
+  commit size dst src
+end
+
 val sem-movs x = do
   sz <- sizeof1 x.opnd1;
   src <- read sz x.opnd2;
