@@ -368,6 +368,12 @@ val /gtu sz a b = do
   return (var t)
 end
 
+val /lts sz a b = do
+  t <- mktemp;
+  cmplts sz t a b;
+  return (var t)
+end
+
 val _while c __ b = do
   c <- c;
   stack <- pop-all;
@@ -1064,7 +1070,7 @@ val semantics insn =
    | OUTSB x: sem-undef-arity0 x
    | OUTSD x: sem-undef-arity0 x
    | OUTSW x: sem-undef-arity0 x
-   | PABSB x: sem-undef-arity2 x
+   | PABSB x: sem-pabsb x
    | PABSD x: sem-undef-arity2 x
    | PABSW x: sem-undef-arity2 x
    | PACKSSDW x: sem-undef-arity2 x

@@ -367,6 +367,43 @@ end
 
 ## P>>
 
+val sem-pabsb x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd2;
+  dst <- write size x.opnd1;
+
+  limit <- return
+    (case x.opnd-sz of
+        64: 8
+      | 128: 16
+     end)
+  ;
+
+  temp-src <- mktemp;
+  mov size temp-src src;
+
+  temp-dst <- mktemp;
+
+  byte-size <- return 8;
+  let
+    val f i = do
+      _if (/lts byte-size (var (at-offset temp-src (8*i))) (imm 0)) _then do
+        xorb size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i))) (imm (0-1));
+	add size (at-offset temp-dst (8*i)) (var (at-offset temp-dst (8*i))) (imm 1)
+      end _else do
+        mov size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i)))
+      end;
+
+      if (i < (limit - 1)) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 0
+  end
+end
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
