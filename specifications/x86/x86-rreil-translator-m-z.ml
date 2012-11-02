@@ -329,6 +329,17 @@ val sem-nop x = do
   return void
 end
 
+val sem-not x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd1;
+  dst <- write size x.opnd1;
+
+  temp <- mktemp;
+  xorb size temp src (imm (0-1));
+
+  commit size dst (var temp)
+end
+
 ## O>>
 
 val sem-or x = do

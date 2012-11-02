@@ -1055,7 +1055,7 @@ val semantics insn =
    | MWAIT x: sem-nop x
    | NEG x: sem-neg x
    | NOP x: sem-nop x
-   | NOT x: sem-undef-arity1 x
+   | NOT x: sem-not x
    | OR x: sem-or x
    | ORPD x: sem-undef-arity2 x
    | ORPS x: sem-undef-arity2 x
