@@ -4770,16 +4770,19 @@ val /vex/66/0f/vexv [0xf4 /r] = varity3 VPMULUDQ xmm128 v/xmm xmm/m128
 
 ### POP
 ###  - Pop a Value from the Stack
-#TODO: correctly implement 32bit and 64bit modes
+#Todo: correctly implement 32bit and 64bit modes
 val / [0x8f /0]
- | opndsz? = unop POP r/m16
- | otherwise = unop POP r/m64
+ | opndsz? = do opndsz-set-from-d; unop POP r/m16 end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop POP r/m64 end
+ | otherwise = do opndsz-set-from-d; unop POP r/m32 end
 val / ['01011 r:3']
- | opndsz? = do update@{reg/opcode=r}; unop POP r16/rexb end
- | otherwise = do update@{reg/opcode=r}; unop POP r64/rexb end
-val / [0x1f] = unop POP ds
-val / [0x07] = unop POP es
-val / [0x17] = unop POP ss
+ | opndsz? = do opndsz-set-from-d; update@{reg/opcode=r}; unop POP r16/rexb end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; update@{reg/opcode=r}; unop POP r64/rexb end
+ | otherwise = do update@{reg/opcode=r}; unop POP r32/rexb end
+val / [0x1f] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ds end
+val / [0x07] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP es end
+val / [0x17] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ss end
+#Todo: Rest
 
 ### POPA/POPAD
 ###  - Pop All General-Purpose Registers
