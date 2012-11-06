@@ -1,6 +1,8 @@
 
 /* vim:cindent:ts=2:sw=2:expandtab */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <dis.h>
 
 int main (int argc, char** argv) {
@@ -26,7 +28,18 @@ done:
   else {
     __pretty(__pretty__,insn,fmt,1024);
     puts(fmt);
+
+    printf("---------------------------\n");
+   
+    __obj r = __translate(__translate__,insn);
+    if(___isNil(r))
+      __fatal("translate failed");
+    else {
+      __pretty(__rreil_pretty__,r,fmt,1024);
+      puts(fmt);
+    }
   }
+  
   return (1);
 }
 

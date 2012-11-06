@@ -263,7 +263,7 @@ val sem-call x = do
     movzx x.opnd-sz sec-reg-extended reg-size (var sec-reg-sem);
     ps-push x.opnd-sz (var sec-reg-extended);
     ps-push ip-sz ip;
-  
+
     target-sz <- sizeof-flow x.opnd1;
     target <- read-flow target-sz x.opnd1;
 

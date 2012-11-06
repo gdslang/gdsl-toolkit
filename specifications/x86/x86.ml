@@ -35,6 +35,7 @@ val main = do
         addrsz='0',
         lock='0',
         segment=SEG_NONE,
+	default-operand-size=32,
         ptrty=32, #TODO: check
         ~tab};
    instr <- p64;
@@ -62,6 +63,8 @@ val set-SS = update@{segment=SEG_OVERRIDE SS}
 
 val set-lock = update@{lock='1'}
 val set-addrsz = update@{addrsz='1'}
+
+val opndsz-set-from-d = return void
 
 ## Decoding prefixes
 
@@ -1637,6 +1640,12 @@ val mode32? = do
  return (not a)
 end
 
+val default-operand-size = do
+  #return 32
+  opnd-sz <- query $default-operand-size;
+  return opnd-sz
+end
+
 val operand-size = do
   #Todo: D flag
   mode64 <- mode64?;
@@ -1648,12 +1657,12 @@ val operand-size = do
     else if opndsz then
       return 16
     else
-      return 32
+      default-operand-size
   else
     if opndsz then
       return 16
     else
-      return 32
+      default-operand-size
 end
 
 val address-size = do
@@ -4992,22 +5001,24 @@ val /vex/66/0f/vexv [0x6c /r] | vex128? = varity3 VPUNPCKLQDQ xmm128 v/xmm xmm/m
 
 ### PUSH
 ###  - Push Word, Doubleword or Quadword Onto the Stack
-#TODO: correctly implement 32bit and 64bit modes
+#Todo: correctly implement 32bit and 64bit modes
 val / [0xff /6]
- | opndsz? = unop PUSH r/m16
- | otherwise = unop PUSH r/m64
+ | opndsz? = do opndsz-set-from-d; unop PUSH r/m16 end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop PUSH r/m64 end
+ | otherwise = do opndsz-set-from-d; unop PUSH r/m32 end
 val / ['01010 r:3']
- | opndsz? = do update@{reg/opcode=r}; unop PUSH r16/rexb end
- | otherwise = do update@{reg/opcode=r}; unop PUSH r64/rexb end
-val / [0x6a] = unop PUSH imm8
+ | opndsz? = do opndsz-set-from-d; update@{reg/opcode=r}; unop PUSH r16/rexb end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; update@{reg/opcode=r}; unop PUSH r64/rexb end
+ | otherwise = do opndsz-set-from-d; update@{reg/opcode=r}; unop PUSH r32/rexb end
+val / [0x6a] = do opndsz-set-from-d; unop PUSH imm8 end
 val / [0x68]
- | opndsz? = unop PUSH imm16
- | otherwise = unop PUSH imm32
-val / [0x0e] = unop PUSH cs
-val / [0x16] = unop PUSH ds
-val / [0x06] = unop PUSH es
-val / [0x0f 0xa0] = unop PUSH fs
-val / [0x0f 0xa8] = unop PUSH gs
+ | opndsz? = do opndsz-set-from-d; unop PUSH imm16 end
+ | otherwise = do opndsz-set-from-d; unop PUSH imm32 end
+val / [0x0e] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH cs end
+val / [0x16] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH ds end
+val / [0x06] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH es end
+val / [0x0f 0xa0] = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH fs end
+val / [0x0f 0xa8] = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH gs end
 
 ### PUSHA/PUSHAD
 ###  - Push All General-Purpose Registers
