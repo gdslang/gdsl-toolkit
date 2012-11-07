@@ -240,7 +240,7 @@ val relative target =
 val absolute target = not (relative target)
 
 #Todo: MEM => byte offset, REG => bit offset... confusing (division?)
-val write-offset sz x offset =
+val lval-offset sz x offset =
    case x of
      MEM x:
        do
@@ -258,8 +258,8 @@ val write-offset sz x offset =
    end
 
 
-val write sz x = write-offset sz x 0
-val write-upper sz x = write-offset sz x sz
+val lval sz x = lval-offset sz x 0
+val lval-upper sz x = lval-offset sz x sz
 
 val register? x =
   case x of
@@ -267,7 +267,7 @@ val register? x =
     | _: '0'
   end
 
-val commit sz a b =
+val write sz a b =
    case a of
       SEM_WRITE_MEM x:
          #store x (SEM_LIN{size=sz,opnd1=b})
@@ -487,9 +487,9 @@ end
 
 val undef-opnd opnd = do
   sz <- sizeof1 opnd;
-  a <- write sz opnd;
+  a <- lval sz opnd;
   t <- mktemp;
-  commit sz a (var t)
+  write sz a (var t)
 end
 
 val sem-undef-arity-ge1 x = do
