@@ -2425,6 +2425,16 @@ val near-rel cons giveOp = exception-rep-repne-lock (do
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end)
 
+val near-rel-opndsz-64-fixed cons giveOp = do
+  mode64 <- mode64?;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
+  near-rel cons giveOp
+end
+
 val far-dir cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
@@ -3636,75 +3646,75 @@ val / [0xcf]
 
 ### Jcc
 ###  - Jump if Condition Is Met
-val / [0x77] = near-rel JA rel8  # JNBE
-val / [0x73] = near-rel JAE rel8 # JNB, JNC
-val / [0x72] = near-rel JC rel8  # JB, JNAE
-val / [0x76] = near-rel JBE rel8 # JNA
-val /66 [0xe3] = near-rel JCXZ rel8
+val / [0x77] = near-rel-opndsz-64-fixed JA rel8  # JNBE
+val / [0x73] = near-rel-opndsz-64-fixed JAE rel8 # JNB, JNC
+val / [0x72] = near-rel-opndsz-64-fixed JC rel8  # JB, JNAE
+val / [0x76] = near-rel-opndsz-64-fixed JBE rel8 # JNA
+val /66 [0xe3] = near-rel-opndsz-64-fixed JCXZ rel8
 val / [0xe3]
-# | opndsz? = near-rel JCXZ rel8
- | mode64? = near-rel JRCXZ rel8
- | mode32? = near-rel JECXZ rel8
-val / [0x74] = near-rel JE rel8  # JZ
-val / [0x7f] = near-rel JG rel8  # JNLE
-val / [0x7d] = near-rel JGE rel8 # JNL
-val / [0x7c] = near-rel JL rel8  # JNGE
-val / [0x7e] = near-rel JLE rel8 # JNG
-val / [0x75] = near-rel JNE rel8 # JNZ
-val / [0x71] = near-rel JNO rel8
-val / [0x7b] = near-rel JNP rel8 # JPO
-val / [0x79] = near-rel JNS rel8
-val / [0x70] = near-rel JO rel8
-val / [0x7a] = near-rel JP rel8  # JPE
-val / [0x78] = near-rel JS rel8
+# | opndsz? = near-rel-opndsz-64-fixed JCXZ rel8
+ | mode64? = near-rel-opndsz-64-fixed JRCXZ rel8
+ | mode32? = near-rel-opndsz-64-fixed JECXZ rel8
+val / [0x74] = near-rel-opndsz-64-fixed JE rel8  # JZ
+val / [0x7f] = near-rel-opndsz-64-fixed JG rel8  # JNLE
+val / [0x7d] = near-rel-opndsz-64-fixed JGE rel8 # JNL
+val / [0x7c] = near-rel-opndsz-64-fixed JL rel8  # JNGE
+val / [0x7e] = near-rel-opndsz-64-fixed JLE rel8 # JNG
+val / [0x75] = near-rel-opndsz-64-fixed JNE rel8 # JNZ
+val / [0x71] = near-rel-opndsz-64-fixed JNO rel8
+val / [0x7b] = near-rel-opndsz-64-fixed JNP rel8 # JPO
+val / [0x79] = near-rel-opndsz-64-fixed JNS rel8
+val / [0x70] = near-rel-opndsz-64-fixed JO rel8
+val / [0x7a] = near-rel-opndsz-64-fixed JP rel8  # JPE
+val / [0x78] = near-rel-opndsz-64-fixed JS rel8
 val / [0x0f 0x87] # JNBE
- | mode32? & opndsz? = near-rel JA rel16
- | otherwise = near-rel JA rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JA rel16
+ | otherwise = near-rel-opndsz-64-fixed JA rel32
 val / [0x0f 0x83] # JNB, JNC
- | mode32? & opndsz? = near-rel JAE rel16
- | otherwise = near-rel JAE rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JAE rel16
+ | otherwise = near-rel-opndsz-64-fixed JAE rel32
 val / [0x0f 0x82] # JC, JNAE
- | mode32? & opndsz? = near-rel JB rel16
- | otherwise = near-rel JB rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JB rel16
+ | otherwise = near-rel-opndsz-64-fixed JB rel32
 val / [0x0f 0x86] # JNA
- | mode32? & opndsz? = near-rel JBE rel16
- | otherwise = near-rel JBE rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JBE rel16
+ | otherwise = near-rel-opndsz-64-fixed JBE rel32
 val / [0x0f 0x84] # JZ
- | mode32? & opndsz? = near-rel JE rel16
- | otherwise = near-rel JE rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JE rel16
+ | otherwise = near-rel-opndsz-64-fixed JE rel32
 val / [0x0f 0x8f] # JNLE
- | mode32? & opndsz? = near-rel JG rel16
- | otherwise = near-rel JG rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JG rel16
+ | otherwise = near-rel-opndsz-64-fixed JG rel32
 val / [0x0f 0x8d] # JNL
- | mode32? & opndsz? = near-rel JGE rel16
- | otherwise = near-rel JGE rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JGE rel16
+ | otherwise = near-rel-opndsz-64-fixed JGE rel32
 val / [0x0f 0x8c] # JNGE
- | mode32? & opndsz? = near-rel JL rel16
- | otherwise = near-rel JL rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JL rel16
+ | otherwise = near-rel-opndsz-64-fixed JL rel32
 val / [0x0f 0x8e] # JNG
- | mode32? & opndsz? = near-rel JLE rel16
- | otherwise = near-rel JLE rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JLE rel16
+ | otherwise = near-rel-opndsz-64-fixed JLE rel32
 val / [0x0f 0x85] # JNZ
- | mode32? & opndsz? = near-rel JNE rel16
- | otherwise = near-rel JNE rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JNE rel16
+ | otherwise = near-rel-opndsz-64-fixed JNE rel32
 val / [0x0f 0x81]
- | mode32? & opndsz? = near-rel JNO rel16
- | otherwise = near-rel JNO rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JNO rel16
+ | otherwise = near-rel-opndsz-64-fixed JNO rel32
 val / [0x0f 0x8b] # JPO
- | mode32? & opndsz? = near-rel JNP rel16
- | otherwise = near-rel JNP rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JNP rel16
+ | otherwise = near-rel-opndsz-64-fixed JNP rel32
 val / [0x0f 0x89]
- | mode32? & opndsz? = near-rel JNS rel16
- | otherwise = near-rel JNS rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JNS rel16
+ | otherwise = near-rel-opndsz-64-fixed JNS rel32
 val / [0x0f 0x80]
- | mode32? & opndsz? = near-rel JO rel16
- | otherwise = near-rel JO rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JO rel16
+ | otherwise = near-rel-opndsz-64-fixed JO rel32
 val / [0x0f 0x8a] # JPE
- | mode32? & opndsz? = near-rel JP rel16
- | otherwise = near-rel JP rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JP rel16
+ | otherwise = near-rel-opndsz-64-fixed JP rel32
 val / [0x0f 0x88] # JS
- | mode32? & opndsz? = near-rel JS rel16
- | otherwise = near-rel JS rel32
+ | mode32? & opndsz? = near-rel-opndsz-64-fixed JS rel16
+ | otherwise = near-rel-opndsz-64-fixed JS rel32
 
 ### JMP
 ###  - Jump

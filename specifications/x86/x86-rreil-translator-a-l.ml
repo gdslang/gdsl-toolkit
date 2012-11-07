@@ -233,15 +233,17 @@ end
 ## C>>
 
 val sem-call x = do
+  mode64 <- mode64?;
   ip-sz <-
-    if (x.opnd-sz === 64) then
+    #mode64 => RIP?
+    #x.opnd-sz === 64 => RIP?
+    if mode64 then 
       return 64
     else
       return 32
   ;
   temp-ip <- mktemp;
   
-  mode64 <- mode64?;
   ip <- ip-get;
   if (near x.opnd1) then do
     target <- read-flow ip-sz x.opnd1;
@@ -256,6 +258,7 @@ val sem-call x = do
     ;
     ps-push ip-sz ip
   end else do
+    #Todo: Fix FF/3 (Call far, absolute, indirect...)
     sec-reg <- return CS;
     sec-reg-sem <- return (semantic-register-of sec-reg);
     reg-size <- sizeof1 (REG sec-reg);
