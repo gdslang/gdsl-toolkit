@@ -235,9 +235,9 @@ end
 val sem-call x = do
   mode64 <- mode64?;
   ip-sz <-
-    #mode64 => RIP?
-    #x.opnd-sz === 64 => RIP?
-    if mode64 then 
+    #Todo: mode64 => RIP?
+    #Todo: x.opnd-sz === 64 => RIP?
+    if x.opnd-sz === 64 then 
       return 64
     else
       return 32
