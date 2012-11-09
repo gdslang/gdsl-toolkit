@@ -269,7 +269,7 @@ MExp
       (( "*" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.times))
        | "%" => (mark PT.MARKinfixop (FULL_SPAN, PT.OPinfixop Op.mod))
        ) ApplyExp =>
-      (SR, SelectExp))* =>
+      (SR, ApplyExp))* =>
          (mark PT.MARKexp (FULL_SPAN, mkLBinExp (SelectExp, SR)))
    ;
 
