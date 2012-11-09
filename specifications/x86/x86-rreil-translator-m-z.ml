@@ -387,11 +387,11 @@ val sem-pabsb x = do
   byte-size <- return 8;
   let
     val f i = do
-      _if (/lts byte-size (var (at-offset temp-src (i*8))) (imm 0)) _then do
-        xorb size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i))) (imm (0-1));
-	add size (at-offset temp-dst (8*i)) (var (at-offset temp-dst (8*i))) (imm 1)
+      _if (/lts byte-size (var (at-offset temp-src (8*i))) (imm 0)) _then do
+        xorb byte-size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i))) (imm (0-1));
+	add byte-size (at-offset temp-dst (8*i)) (var (at-offset temp-dst (8*i))) (imm 1)
       end _else do
-        mov size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i)))
+        mov byte-size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i)))
       end;
 
       if (i < (limit - 1)) then

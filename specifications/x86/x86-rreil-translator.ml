@@ -315,8 +315,10 @@ val _if c _then a _else b = do
   stack <- pop-all;
   a;
   t <- pop-all;
+  t <- return (rreil-stmts-rev t);
   b;
   e <- pop-all;
+  e <- return (rreil-stmts-rev e);
   stack-set stack;
   ite c t e
 end
@@ -379,6 +381,7 @@ val _while c __ b = do
   stack <- pop-all;
   b;
   body <- pop-all;
+  body <- return (rreil-stmts-rev body);
   stack-set stack;
   while c body
 end
