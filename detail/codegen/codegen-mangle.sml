@@ -21,7 +21,7 @@ structure Mangle = struct
 
    fun getString sym =
       let
-         val s = VI.getString (!variables, sym)
+         val s = VI.getInternalString (!variables, sym)
       in
          if String.isPrefix "%" s then getStringOfPrim sym
          else s

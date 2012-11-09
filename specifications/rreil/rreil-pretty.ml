@@ -32,7 +32,6 @@ val rreil-show-label l = "l" +++ showint l +++ ":"
 val rreil-show-op op =
    case op of
       SEM_LIN x: rreil-show-arity1 x
-    | SEM_BSWAP x: "bswap" +++ rreil-show-arity1 x
     | SEM_MUL x: "mul" +++ rreil-show-arity2 x
     | SEM_DIV x: "div" +++ rreil-show-arity2 x
     | SEM_DIVS x: "divs" +++ rreil-show-arity2 x
@@ -81,12 +80,12 @@ val rreil-show-linear lin =
 
 val rreil-show-id id =
    case id of
-      ARCH_R x: arch-show-id x
-    | VIRT_EQ: "EQ"
+      VIRT_EQ: "EQ"
     | VIRT_NEQ: "NEQ"
     | VIRT_LES: "LES"
     | VIRT_LEU: "LEU"
     | VIRT_LTS: "LTS"
     | VIRT_LTU: "LTU"
     | VIRT_T x: "T" +++ showint x
+    | _: arch-show-id id
    end

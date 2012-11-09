@@ -11,7 +11,7 @@ end = struct
    infix >>
 
    fun all cps =
-      JS0.run cps >>
+      (*JS0.run cps >>*)
       ClosurePasses.run cps >>=
       C.run
 

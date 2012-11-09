@@ -124,7 +124,7 @@ structure ASTSubst = struct
                    | BINDseqexp (x, e) =>
                         (* {x} was renamed so we just have to
                          * substitute it here *)
-                        BINDseqexp (Subst.apply sigma x, renameExp sigma e)
+                        BINDseqexp (apply sigma x, renameExp sigma e)
 
                fun previsit (t, sigma) =
                   case t of

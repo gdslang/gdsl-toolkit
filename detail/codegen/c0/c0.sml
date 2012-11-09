@@ -206,7 +206,7 @@ structure C = struct
                            [PrettyC.call' ("__INT_BEGIN", PrettyC.args [x]),
                             PrettyC.call'
                               ("__INT_INIT",
-                               seq [lp, str (IntInf.toString i), rp]),
+                               seq [lp, str (IntInf.toString i ^ "u"), rp]),
                             PrettyC.call' ("__INT_END", PrettyC.args [x])])]
              | INJ (t, y) =>
                   PrettyC.cseq

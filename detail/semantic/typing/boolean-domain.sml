@@ -165,13 +165,13 @@ end = struct
          set
       end
 
-   (*fun meetVarImpliesVar (BVAR v1, BVAR v2) f = f
+(*   fun meetVarImpliesVar (BVAR v1, BVAR v2) f = f
    fun meetNotBoth (BVAR v1, BVAR v2, f) = f
    fun meetEither (BVAR v1, BVAR v2, f) = f
    fun meetEqual  (BVAR v1, BVAR v2, f) = f
    fun meetVarOne (BVAR v) f = f
-   fun meetVarZero (BVAR v) f = f*)
-
+   fun meetVarZero (BVAR v) f = f
+*)
    fun meetVarImpliesVar (BVAR v1, BVAR v2) f = (
       (*TextIO.print ("meet with " ^ i v1 ^ " -> " ^ i v2 ^ "\n");*)
       if v1=v2 then f else addClause ((~v1,v2), f)

@@ -16,6 +16,12 @@ export = decode
 # recursion-depth = p64 = 4
 
 val decode = do
+   update @{tab=void};
+   main
+end
+
+val main = do
+   t <- query $tab;
    update
       @{mode64='1',
         repne='0',
@@ -28,9 +34,12 @@ val decode = do
         opndsz='0',
         addrsz='0',
         lock='0',
-        segment=DS,
-        ptrty=32}; #TODO: check
-   p64
+        segment=SEG_NONE,
+        ptrty=32, #TODO: check
+        ~tab};
+   instr <- p64;
+   update @{tab=t};
+   return instr
 end
 
 val complement v = not v
@@ -39,12 +48,18 @@ val set-opndsz = update@{opndsz='1'}
 val set-repne = update@{repne='1'}
 val set-rep = update@{rep='1'}
 
-val set-CS = update@{segment=CS}
-val set-DS = update@{segment=DS}
-val set-ES = update@{segment=ES}
-val set-FS = update@{segment=FS}
-val set-GS = update@{segment=GS}
-val set-SS = update@{segment=SS}
+# Segment prefix handling
+type seg_override =
+     SEG_NONE
+   | SEG_OVERRIDE of register
+
+val set-CS = update@{segment=SEG_OVERRIDE CS}
+val set-DS = update@{segment=SEG_OVERRIDE DS}
+val set-ES = update@{segment=SEG_OVERRIDE ES}
+val set-FS = update@{segment=SEG_OVERRIDE FS}
+val set-GS = update@{segment=SEG_OVERRIDE GS}
+val set-SS = update@{segment=SEG_OVERRIDE SS}
+
 val set-lock = update@{lock='1'}
 val set-addrsz = update@{addrsz='1'}
 
@@ -72,15 +87,15 @@ val continue = do
   return r
 end
 
-# val after fst snd = do
-#    update@{tab=snd};
-#    fst
-# end
+#val after fst snd = do
+#   update@{tab=snd};
+#   fst
+#end
 #
-# val continue = do
-#    t <- query$tab;
-#    t
-# end
+#val continue = do
+#   t <- query$tab;
+#   t
+#end
 
 val /66 [] = continue
 val /f2 [] = continue
@@ -306,7 +321,8 @@ val p64 [0xf3] = do set-rep; p/f3 end
 val p64 [/legacy-p] = p64
 val p64 [/rex-p]
  | mode64? = p64
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 #val p64 [p/vex/0f] = /vex/0f
 val p64 [p/vex/f2/0f] = /vex/f2/0f
 val p64 [p/vex/f3/0f] = /vex/f3/0f
@@ -323,7 +339,8 @@ val p/66 [0x66] = do set-opndsz; p/66 end
 val p/66 [/legacy-p] = p/66
 val p/66 [/rex-p]
  | mode64? = p/66
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66 [] = after /66 /
 
 val p/f2 [0x66] = do set-opndsz; p/66/f2 end
@@ -332,7 +349,8 @@ val p/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2 [/legacy-p] = p/f2
 val p/f2 [/rex-p]
  | mode64? = p/f2
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 val p/f2 [] = after /f2 /
 
 val p/f3 [0x66] = do set-opndsz; p/66/f3 end
@@ -341,7 +359,8 @@ val p/f3 [0xf3] = do set-rep; p/f3 end
 val p/f3 [/legacy-p] = p/f3
 val p/f3 [/rex-p]
  | mode64? = p/f3
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 val p/f3 [] = after /f3 /
 
 val p/f2/f3 [0x66] = do set-opndsz; p/66/f2/f3 end
@@ -350,7 +369,8 @@ val p/f2/f3 [0xf3] = do set-rep; p/f2/f3 end
 val p/f2/f3 [/legacy-p] = p/f2/f3
 val p/f2/f3 [/rex-p]
  | mode64? = p/f2/f3
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 val p/f2/f3 [] = after /f3 (after /f2 /)
 
 val p/f3/f2 [0x66] = do set-opndsz; p/66/f2/f3 end
@@ -359,7 +379,8 @@ val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
 val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [/rex-p]
  | mode64? = p/f3/f2
- | mode32? = unop INC rex/reg32
+ | mode32? & rexw? = unop DEC rex/reg32
+ | mode32? & // rexw? = unop INC rex/reg32
 val p/f3/f2 [] = after /f2 (after /f3 /)
 
 val p/66/f2 [0x66] = do set-opndsz; p/66/f2 end
@@ -368,7 +389,8 @@ val p/66/f2 [0xf3] = do set-rep; p/66/f2/f3 end
 val p/66/f2 [/legacy-p] = p/66/f2
 val p/66/f2 [/rex-p]
  | mode64? = p/66/f2
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66/f2 [] = after /f2 (after /66 /)
 
 val p/66/f3 [0x66] = do set-opndsz; p/66/f3 end
@@ -377,7 +399,8 @@ val p/66/f3 [0xf3] = do set-rep; p/66/f3 end
 val p/66/f3 [/legacy-p] = p/66/f3
 val p/66/f3 [/rex-p]
  | mode64? = p/66/f3
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66/f3 [] = after /f3 (after /66 /)
 
 val p/66/f2/f3 [0x66] = do clear-rex; p/66/f2/f3 end
@@ -386,7 +409,8 @@ val p/66/f2/f3 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f2/f3 [/legacy-p] = p/66/f2/f3
 val p/66/f2/f3 [/rex-p]
  | mode64? = p/66/f2/f3
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66/f2/f3 [] = after /f3 (after /f2 (after /66 /))
 
 val p/66/f3/f2 [0x66] = do clear-rex; p/66/f3/f2 end
@@ -395,7 +419,8 @@ val p/66/f3/f2 [0xf3] = do clear-rex; p/66/f2/f3 end
 val p/66/f3/f2 [/legacy-p] = p/66/f3/f2
 val p/66/f3/f2 [/rex-p]
  | mode64? = p/66/f3/f2
- | mode32? = unop INC rex/reg16
+ | mode32? & rexw? = unop DEC rex/reg16
+ | mode32? & // rexw? = unop INC rex/reg16
 val p/66/f3/f2 [] = after /f2 (after /f3 (after /66 /))
 
 type register =
@@ -503,14 +528,6 @@ type register =
  | MM5
  | MM6
  | MM7
- | MM8
- | MM9
- | MM10
- | MM11
- | MM12
- | MM13
- | MM14
- | MM15
  | ES
  | SS
  | DS
@@ -533,7 +550,7 @@ type opnd =
  | IMM32 of 32
  | IMM64 of 64
  | REG of register
- | MEM of {sz:int,psz:int,segment:register,opnd:opnd}
+ | MEM of {sz:int,psz:int,segment:seg_override,opnd:opnd}
  | SUM of {a:opnd,b:opnd}
  | SCALE of {imm:2,opnd:opnd}
 
@@ -547,24 +564,25 @@ type flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-type flow1 = {opnd1:flowopnd}
-type arity1 = {opnd1:opnd}
-type arity2 = {opnd1:opnd,opnd2:opnd}
-type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+type flow1 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
+type arity0 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
+type arity1 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
+type arity2 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
+type arity3 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
+type arity4 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
 type varity =
-   VA0
+   VA0 of arity0
  | VA1 of arity1
  | VA2 of arity2
  | VA3 of arity3
  | VA4 of arity4
 
 type insn =
-   AAA
+   AAA of arity0
  | AAD of arity1
  | AAM of arity1
- | AAS
+ | AAS of arity0
  | ADC of arity2
  | ADD of arity2
  | ADDPD of arity2
@@ -598,15 +616,15 @@ type insn =
  | BTR of arity2
  | BTS of arity2
  | CALL of flow1
- | CBW
- | CDQ
- | CDQE
- | CLC
- | CLD
+ | CBW of arity0
+ | CDQ of arity0
+ | CDQE of arity0
+ | CLC of arity0
+ | CLD of arity0
  | CLFLUSH of arity1
- | CLI
- | CLTS
- | CMC
+ | CLI of arity0
+ | CLTS of arity0
+ | CMC of arity0
  | CMOVA of arity2
  | CMOVAE of arity2
  | CMOVB of arity2
@@ -640,18 +658,16 @@ type insn =
  | CMP of arity2
  | CMPPD of arity3
  | CMPPS of arity3
- | CMPSB
- | CMPSD of varity
- | CMPSQ
+ | CMPS of arity2
+ | CMPSD of arity3
  | CMPSS of arity3
- | CMPSW
  | CMPXCHG of arity2
  | CMPXCHG16B of arity1
  | CMPXCHG8B of arity1
  | COMISD of arity2
  | COMISS of arity2
- | CPUID
- | CQO
+ | CPUID of arity0
+ | CQO of arity0
  | CRC32 of arity2
  | CVTDQ2PD of arity2
  | CVTDQ2PS of arity2
@@ -675,10 +691,10 @@ type insn =
  | CVTTPS2PI of arity2
  | CVTTSD2SI of arity2
  | CVTTSS2SI of arity2
- | CWD
- | CWDE
- | DAA
- | DAS
+ | CWD of arity0
+ | CWDE of arity0
+ | DAA of arity0
+ | DAS of arity0
  | DEC of arity1
  | DIV of arity1
  | DIVPD of arity2
@@ -687,17 +703,17 @@ type insn =
  | DIVSS of arity2
  | DPPD of arity3
  | DPPS of arity3
- | EMMS
+ | EMMS of arity0
  | ENTER of arity2
  | EXTRACTPS of arity3
- | F2XM1
- | FABS
+ | F2XM1 of arity0
+ | FABS of arity0
  | FADD of arity2
  | FADDP of arity2
  | FBLD of arity1
  | FBSTP of arity1
- | FCHS
- | FCLEX
+ | FCHS of arity0
+ | FCLEX of arity0
  | FCMOVB of arity2
  | FCMOVBE of arity2
  | FCMOVE of arity2
@@ -710,9 +726,9 @@ type insn =
  | FCOMI of arity2
  | FCOMIP of arity2
  | FCOMP of arity1
- | FCOMPP
- | FCOS
- | FDECSTP
+ | FCOMPP of arity0
+ | FCOS of arity0
+ | FDECSTP of arity0
  | FDIV of arity2
  | FDIVP of arity2
  | FDIVR of arity2
@@ -725,43 +741,43 @@ type insn =
  | FIDIVR of arity1
  | FILD of arity1
  | FIMUL of arity1
- | FINCSTP
- | FINIT
+ | FINCSTP of arity0
+ | FINIT of arity0
  | FIST of arity1
  | FISTP of arity1
  | FISTTP of arity1
  | FISUB of arity1
  | FISUBR of arity1
  | FLD of arity1
- | FLD1
+ | FLD1 of arity0
  | FLDCW of arity1
  | FLDENV of arity1
- | FLDL2E
- | FLDL2T
- | FLDLG2
- | FLDLN2
- | FLDPI
- | FLDZ
+ | FLDL2E of arity0
+ | FLDL2T of arity0
+ | FLDLG2 of arity0
+ | FLDLN2 of arity0
+ | FLDPI of arity0
+ | FLDZ of arity0
  | FMUL of arity2
  | FMULP of arity2
- | FNCLEX
- | FNINIT
- | FNOP
+ | FNCLEX of arity0
+ | FNINIT of arity0
+ | FNOP of arity0
  | FNSAVE of arity1
  | FNSTCW of arity1
  | FNSTENV of arity1
  | FNSTSW of arity1
- | FPATAN
- | FPREM
- | FPREM1
- | FPTAN
- | FRNDINT
+ | FPATAN of arity0
+ | FPREM of arity0
+ | FPREM1 of arity0
+ | FPTAN of arity0
+ | FRNDINT of arity0
  | FRSTOR of arity1
  | FSAVE of arity1
- | FSCALE
- | FSIN
- | FSINCOS
- | FSQRT
+ | FSCALE of arity0
+ | FSIN of arity0
+ | FSINCOS of arity0
+ | FSQRT of arity0
  | FST of arity1
  | FSTCW of arity1
  | FSTENV of arity1
@@ -771,43 +787,43 @@ type insn =
  | FSUBP of arity2
  | FSUBR of arity2
  | FSUBRP of arity2
- | FTST
+ | FTST of arity0
  | FUCOM of arity1
  | FUCOMI of arity1
  | FUCOMIP of arity1
  | FUCOMP of arity1
- | FUCOMPP
- | FXAM
+ | FUCOMPP of arity0
+ | FXAM of arity0
  | FXCH of arity1
  | FXRSTOR of arity1
  | FXRSTOR64 of arity1
  | FXSAVE of arity1
  | FXSAVE64 of arity1
- | FXTRACT
- | FYL2X
- | FYL2XP1
+ | FXTRACT of arity0
+ | FYL2X of arity0
+ | FYL2XP1 of arity0
  | HADDPD of arity2
  | HADDPS of arity2
- | HLT
+ | HLT of arity0
  | HSUBPD of arity2
  | HSUBPS of arity2
  | IDIV of arity1
  | IMUL of varity
  | IN of arity2
  | INC of arity1
- | INSB
- | INSD
+ | INSB of arity0
+ | INSD of arity0
  | INSERTPS of arity3
- | INSW
+ | INSW of arity0
  | INT of arity1
- | INT0
- | INT3
- | INVD
+ | INT0 of arity0
+ | INT3 of arity0
+ | INVD of arity0
  | INVLPG of arity1
  | INVPCID of arity2
- | IRET
- | IRETD
- | IRETQ
+ | IRET of arity0
+ | IRETD of arity0
+ | IRETQ of arity0
  | JA of flow1
  | JAE of flow1
  | JB of flow1
@@ -842,26 +858,22 @@ type insn =
  | JRCXZ of flow1
  | JS of flow1
  | JZ of flow1
- | LAHF
+ | LAHF of arity0
  | LAR of arity2
  | LDDQU of arity2
  | LDMXCSR of arity1
  | LDS of arity2
  | LEA of arity2
- | LEAVE
+ | LEAVE of arity0
  | LES of arity2
- | LFENCE
+ | LFENCE of arity0
  | LFS of arity2
  | LGDT of arity1
  | LGS of arity2
  | LIDT of arity1
  | LLDT of arity1
  | LMSW of arity1
- | LOCK
- | LODSB
- | LODSD
- | LODSQ
- | LODSW
+ | LODS of arity1
  | LOOP of flow1
  | LOOPE of flow1
  | LOOPNE of flow1
@@ -874,12 +886,12 @@ type insn =
  | MAXPS of arity2
  | MAXSD of arity2
  | MAXSS of arity2
- | MFENCE
+ | MFENCE of arity0
  | MINPD of arity2
  | MINPS of arity2
  | MINSD of arity2
  | MINSS of arity2
- | MONITOR
+ | MONITOR of arity0
  | MOV of arity2
  | MOVAPD of arity2
  | MOVAPS of arity2
@@ -905,11 +917,10 @@ type insn =
  | MOVNTQ of arity2
  | MOVQ of arity2
  | MOVQ2DQ of arity2
- | MOVSB
- | MOVSD of varity
+ | MOVS of arity2
+ | MOVSD of arity2
  | MOVSHDUP of arity2
  | MOVSLDUP of arity2
- | MOVSQ
  | MOVSS of arity2
  | MOVSW of arity2
  | MOVSX of arity2
@@ -923,7 +934,7 @@ type insn =
  | MULPS of arity2
  | MULSD of arity2
  | MULSS of arity2
- | MWAIT
+ | MWAIT of arity0
  | NEG of arity1
  | NOP of varity
  | NOT of arity1
@@ -931,10 +942,10 @@ type insn =
  | ORPD of arity2
  | ORPS of arity2
  | OUT of arity2
- | OUTS
- | OUTSB
- | OUTSD
- | OUTSW
+ | OUTS of arity0
+ | OUTSB of arity0
+ | OUTSD of arity0
+ | OUTSW of arity0
  | PABSB of arity2
  | PABSD of arity2
  | PABSW of arity2
@@ -953,7 +964,7 @@ type insn =
  | PALIGNR of arity3
  | PAND of arity2
  | PANDN of arity2
- | PAUSE
+ | PAUSE of arity0
  | PAVGB of arity2
  | PAVGW of arity2
  | PBLENDVB of arity2
@@ -1022,12 +1033,12 @@ type insn =
  | PMULLW of arity2
  | PMULUDQ of arity2
  | POP of arity1
- | POPA
- | POPAD
+ | POPA of arity0
+ | POPAD of arity0
  | POPCNT of arity2
- | POPF
- | POPFD
- | POPFQ
+ | POPF of arity0
+ | POPFD of arity0
+ | POPFQ of arity0
  | POR of arity2
  | PREFETCHNTA of arity1
  | PREFETCHT0 of arity1
@@ -1071,11 +1082,11 @@ type insn =
  | PUNPCKLQDQ of arity2
  | PUNPCKLWD of arity2
  | PUSH of arity1
- | PUSHA
- | PUSHAD
- | PUSHF
- | PUSHFD
- | PUSHFQ
+ | PUSHA of arity0
+ | PUSHAD of arity0
+ | PUSHF of arity0
+ | PUSHFD of arity0
+ | PUSHFQ of arity0
  | PXOR of arity2
  | RCL of arity2
  | RCPPS of arity2
@@ -1083,11 +1094,11 @@ type insn =
  | RCR of arity2
  | RDFSBASE of arity1
  | RDGSBASE of arity1
- | RDMSR
- | RDPMC
+ | RDMSR of arity0
+ | RDPMC of arity0
  | RDRAND of arity1
- | RDTSC
- | RDTSCP
+ | RDTSC of arity0
+ | RDTSCP of arity0
  | RET of varity
  | RET_FAR of varity
  | ROL of arity2
@@ -1096,17 +1107,17 @@ type insn =
  | ROUNDPS of arity3
  | ROUNDSD of arity3
  | ROUNDSS of arity3
- | RSM
+ | RSM of arity0
  | RSQRTPS of arity2
  | RSQRTSS of arity2
- | SAHF
+ | SAHF of arity0
  | SAL of arity2
  | SAR of arity2
  | SBB of arity2
- | SCASB
- | SCASD
- | SCASQ
- | SCASW
+ | SCASB of arity0
+ | SCASD of arity0
+ | SCASQ of arity0
+ | SCASW of arity0
  | SETA of arity1
  | SETAE of arity1
  | SETB of arity1
@@ -1137,7 +1148,7 @@ type insn =
  | SETPO of arity1
  | SETS of arity1
  | SETZ of arity1
- | SFENCE
+ | SFENCE of arity0
  | SGDT of arity1
  | SHL of arity2
  | SHLD of arity3
@@ -1152,29 +1163,29 @@ type insn =
  | SQRTPS of arity2
  | SQRTSD of arity2
  | SQRTSS of arity2
- | STC
- | STD
- | STI
+ | STC of arity0
+ | STD of arity0
+ | STI of arity0
  | STMXCSR of arity1
- | STOSB
- | STOSD
- | STOSQ
- | STOSW
+ | STOSB of arity0
+ | STOSD of arity0
+ | STOSQ of arity0
+ | STOSW of arity0
  | STR of arity1
  | SUB of arity2
  | SUBPD of arity2
  | SUBPS of arity2
  | SUBSD of arity2
  | SUBSS of arity2
- | SWAPGS
- | SYSCALL
- | SYSENTER
- | SYSEXIT
- | SYSRET
+ | SWAPGS of arity0
+ | SYSCALL of arity0
+ | SYSENTER of arity0
+ | SYSEXIT of arity0
+ | SYSRET of arity0
  | TEST of arity2
  | UCOMISD of arity2
  | UCOMISS of arity2
- | UD2
+ | UD2 of arity0
  | UNPCKHPD of arity2
  | UNPCKHPS of arity2
  | UNPCKLPD of arity2
@@ -1444,16 +1455,16 @@ type insn =
  | VXORPS of varity
  | VZEROALL of varity
  | VZEROUPPER of varity
- | WAIT
- | WBINVD
+ | WAIT of arity0
+ | WBINVD of arity0
  | WRFSBASE of arity1
  | WRGSBASE of arity1
- | WRMSR
+ | WRMSR of arity0
  | XADD of arity2
  | XCHG of arity2
- | XGETBV
- | XLAT
- | XLATB
+ | XGETBV of arity0
+ | XLAT of arity0
+ | XLATB of arity0
  | XOR of arity2
  | XORPD of arity2
  | XORPS of arity2
@@ -1463,7 +1474,7 @@ type insn =
  | XSAVE64 of arity1
  | XSAVEOPT of arity1
  | XSAVEOPT64 of arity1
- | XSETBV
+ | XSETBV of arity0
 
 val al = return (REG AL)
 val ah = return (REG AH)
@@ -1511,14 +1522,6 @@ val mm4 = return (REG MM4)
 val mm5 = return (REG MM5)
 val mm6 = return (REG MM6)
 val mm7 = return (REG MM7)
-val mm8 = return (REG MM8)
-val mm9 = return (REG MM9)
-val mm10 = return (REG MM10)
-val mm11 = return (REG MM11)
-val mm12 = return (REG MM12)
-val mm13 = return (REG MM13)
-val mm14 = return (REG MM14)
-val mm15 = return (REG MM15)
 val xmm0 = return (REG XMM0)
 val xmm1 = return (REG XMM1)
 val xmm2 = return (REG XMM2)
@@ -1632,6 +1635,41 @@ val mode64? = query $mode64
 val mode32? = do
  a <- query $mode64;
  return (not a)
+end
+
+val operand-size = do
+  #Todo: D flag
+  mode64 <- mode64?;
+  opndsz <- opndsz?;
+  rexw <- rexw?;
+  if mode64 then
+    if rexw then
+      return 64
+    else if opndsz then
+      return 16
+    else
+      return 32
+  else
+    if opndsz then
+      return 16
+    else
+      return 32
+end
+
+val address-size = do
+  #Todo: D flag
+  mode64 <- mode64?;
+  addrsz <- addrsz?;
+  if mode64 then
+    if addrsz then
+      return 32
+    else
+      return 64
+  else
+    if addrsz then
+      return 16
+    else
+      return 32
 end
 
 ## Convert a bit-vectors to registers
@@ -1757,25 +1795,17 @@ val sreg3? rex n = sreg3 n
 
 val mm n =
    case n of
-      '0000': REG MM0
-    | '0001': REG MM1
-    | '0010': REG MM2
-    | '0011': REG MM3
-    | '0100': REG MM4
-    | '0101': REG MM5
-    | '0110': REG MM6
-    | '0111': REG MM7
-    | '1000': REG MM8
-    | '1001': REG MM9
-    | '1010': REG MM10
-    | '1011': REG MM11
-    | '1100': REG MM12
-    | '1101': REG MM13
-    | '1110': REG MM14
-    | '1111': REG MM15
+      '000': REG MM0
+    | '001': REG MM1
+    | '010': REG MM2
+    | '011': REG MM3
+    | '100': REG MM4
+    | '101': REG MM5
+    | '110': REG MM6
+    | '111': REG MM7
    end
 
-val mm-rex rex reg-idx = mm (rex ^ reg-idx)
+val mm-rex rex reg-idx = mm reg-idx
 
 val xmm n =
    case n of
@@ -1854,13 +1884,47 @@ val /7-reg ['11 111 rm:3'] = update @{mod='11', rm=rm}
 ## Decoding the SIB byte
 #    TODO: this is only for 32bit addressing
 
+val segmentation-set-for-base base =
+  let
+    val override-ss = do
+      segment <- query $segment;
+      case segment of
+         SEG_NONE: update@{segment=SEG_OVERRIDE SS}
+        | _: return void
+      end
+    end
+  in
+    case base of
+       REG r: case r of
+           SP : override-ss
+         | ESP: override-ss
+         | RSP: override-ss
+         | BP : override-ss
+         | EBP: override-ss
+         | RBP: override-ss
+         | _  : return void
+       end
+     | _  : return void
+    end
+  end
+
 val sib-without-index reg = do
    mod <- query $mod;
    rexb <- query $rexb;
    case mod of
       '00': imm32
-    | '01': return (reg rexb '101') # rBP
-    | '10': return (reg rexb '101') # rBP
+    | '01':
+      do
+        rBP <- return (reg rexb '101'); # rBP
+	segmentation-set-for-base rBP;
+        return rBP
+      end
+    | '10':
+      do
+        rBP <- return (reg rexb '101'); # rBP
+	segmentation-set-for-base rBP;
+        return rBP
+      end
    end
 end
 
@@ -1875,7 +1939,11 @@ val sib-without-base reg scale index = do
             i <- imm32;
             return (SUM{a=scaled, b=i})
          end
-    | _ : return (SUM{a=scaled, b=reg rexb '101'}) # rBP
+    | _:
+      do
+        base <- return (reg rexb '101'); # rBP
+        return (SUM{a=scaled, b=base})
+      end
    end
 end
 
@@ -1885,14 +1953,26 @@ val sib-with-index-and-base psz reg s i b = do
    rexb <- query $rexb;
    case i of
       '100':
-         case b of
-            '101': sib-without-index reg
-          | _: return (reg rexb b)
-         end
+        do
+          case b of
+             '101': sib-without-index reg
+           | _:
+	     do
+	       reg-b <- return (reg rexb b);
+	       segmentation-set-for-base reg-b;
+	       return reg-b
+	     end
+          end
+	end
     | _:
          case b of
             '101': sib-without-base reg s i
-          | _: return (SUM{b=SCALE{imm=s, opnd=reg rexx i}, a=reg rexb b})
+          | _:
+	    do
+	      base <- return (reg rexb b);
+	      segmentation-set-for-base base;
+              return (SUM{b=SCALE{imm=s, opnd=reg rexx i}, a=base})
+	    end
          end
    end
 end
@@ -1915,7 +1995,26 @@ end
 val mem op = do
    sz <- query $ptrty;
    psz <- query $ptrsz;
-   seg <- query $segment;
+   seg <-
+     do
+       seg <- query $segment;
+       case seg of
+          SEG_NONE: return SEG_NONE
+	| SEG_OVERRIDE r:
+	    do
+	      mode64 <- mode64?;
+	      if mode64 then
+	        case r of
+		   FS: return (SEG_OVERRIDE r)
+		 | GS: return (SEG_OVERRIDE r)
+		 | _: return SEG_NONE
+                end
+	      else
+	        return (SEG_OVERRIDE r)
+	    end
+       end
+     end
+   ;
    return (MEM {sz=sz,psz=psz,segment=seg,opnd=op})
 end
 
@@ -1953,17 +2052,26 @@ val r/m-without-sib = do
                      then mem (SUM{a=REG RIP,b=i})
                   else mem i
                end
-          | _ : mem (addr-reg rexb rm)
+          | _ :
+	      do
+	        base <- return (addr-reg rexb rm);
+                segmentation-set-for-base base;
+		mem base
+	      end
          end
     | '01':
          do
             i <- imm8;
-            mem (SUM{a=addr-reg rexb rm, b=i})
+	    base <- return (addr-reg rexb rm);
+            segmentation-set-for-base base;
+            mem (SUM{a=base, b=i})
          end
     | '10':
          do
             i <- imm32;
-            mem (SUM{a=addr-reg rexb rm, b=i})
+	    base <- return (addr-reg rexb rm);
+            segmentation-set-for-base base;
+            mem (SUM{a=base, b=i})
          end
    end
 end
@@ -2084,6 +2192,31 @@ val mm64 = r/rexb mm-rex
 val xmm128 = r/rexr xmm-rex
 val ymm256 = r/rexr ymm-rex
 
+val m/default/si/esi/rsi size = do
+  size <- size;
+  update@{ptrty=size};
+  addrsz <- address-size;
+  update@{ptrsz=addrsz};
+  case addrsz of
+     16: mem (REG SI)
+   | 32: mem (REG ESI)
+   | 64: mem (REG RSI)
+  end
+end
+
+val m/es/di/edi/rdi size = do
+  update @{segment=SEG_OVERRIDE ES};
+  size <- size;
+  update@{ptrty=size};
+  addrsz <- address-size;
+  update@{ptrsz=addrsz};
+  case addrsz of
+     16: mem (REG DI)
+   | 32: mem (REG EDI)
+   | 64: mem (REG RDI)
+  end
+end
+
 val reg = do
    r <- query$rexw;
    case r of
@@ -2126,81 +2259,164 @@ val moffs64 = do
    mem i
 end
 
-val varity0 cons = return (cons VA0)
-
-val varity1 cons giveOp1 = do
-   op1 <- giveOp1;
-   return (cons (VA1 {opnd1=op1}))
+val exception-rep arg = do
+  v <- query $rep;
+  case v of '0': arg end
 end
 
-val varity2 cons giveOp1 giveOp2 = do
-   op1 <- giveOp1;
-   op2 <- giveOp2;
-   return (cons (VA2 {opnd1=op1,opnd2=op2}))
+val exception-repne arg = do
+  v <- query $repne;
+  case v of '0': arg end
 end
 
-val varity3 cons giveOp1 giveOp2 giveOp3 = do
-   op1 <- giveOp1;
-   op2 <- giveOp2;
-   op3 <- giveOp3;
-   return (cons (VA3 {opnd1=op1,opnd2=op2,opnd3=op3}))
+val exception-lock arg = do
+  v <- query $lock;
+  case v of '0': arg end
 end
 
-val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-   op1 <- giveOp1;
-   op2 <- giveOp2;
-   op3 <- giveOp3;
-   op4 <- giveOp4;
-   return (cons (VA4 {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+val exception-lock-reg giveOp = do
+  v <- query $lock;
+  if v then do
+    op <- giveOp;
+    case op of MEM x: return op end
+  end else giveOp
 end
+      
+val exception-rep-repne arg = exception-rep (exception-repne arg)
+val exception-repne-lock arg = exception-repne (exception-lock arg)
+val exception-rep-repne-lock arg = exception-rep-repne (exception-lock arg)
 
-val arity0 cons = return (cons)
+val varity0 cons = exception-rep-repne-lock (do
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons (VA0 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
+end)
 
-val unop cons giveOp1 = do
+val varity1 cons giveOp1 = exception-rep-repne-lock (do
   op1 <- giveOp1;
-  return (cons {opnd1=op1})
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons (VA1 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
+end)
+
+val varity2 cons giveOp1 giveOp2 = exception-rep-repne-lock (do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons (VA2 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
+end)
+
+val varity3 cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
+  op3 <- giveOp3;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons (VA3 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
+end)
+
+val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
+  op3 <- giveOp3;
+  op4 <- giveOp4;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons (VA4 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+end)
+
+val arity0-all cons = do
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  rep <- query $rep;
+  repne <- query $repne;
+  lock <- query $lock;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
 end
 
-val binop cons giveOp1 giveOp2 = do
-   op1 <- giveOp1;
-   op2 <- giveOp2;
-   return (cons {opnd1=op1,opnd2=op2})
+val arity0-rep-repne cons = exception-lock (arity0-all cons)
+val arity0-rep cons = exception-repne-lock (arity0-all cons)
+val arity0-lock cons = exception-rep-repne (arity0-all cons)
+val arity0 cons = exception-rep-repne-lock (arity0-all cons)
+
+val unop-all cons giveOp1 = do
+  op1 <- giveOp1;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  rep <- query $rep;
+  repne <- query $repne;
+  lock <- query $lock;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
 end
 
-val ternop cons giveOp1 giveOp2 giveOp3 = do
-   op1 <- giveOp1;
-   op2 <- giveOp2;
-   op3 <- giveOp3;
-   return (cons {opnd1=op1,opnd2=op2,opnd3=op3})
+val unop-rep-repne cons giveOp1 = exception-lock (unop-all cons giveOp1)
+val unop-rep cons giveOp1 = exception-repne-lock (unop-all cons giveOp1)
+val unop-lock cons giveOp1 = exception-rep-repne (unop-all cons (exception-lock-reg giveOp1))
+val unop cons giveOp1 = exception-rep-repne-lock (unop-all cons giveOp1)
+
+val binop-all cons giveOp1 giveOp2 = do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  rep <- query $rep;
+  repne <- query $repne;
+  lock <- query $lock;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
 end
 
-val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-   op1 <- giveOp1;
-   op2 <- giveOp2;
-   op3 <- giveOp3;
-   op4 <- giveOp4;
-   return (cons {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
-end
+val binop-rep-repne cons giveOp1 giveOp2 = exception-lock (binop-all cons giveOp1 giveOp2)
+val binop-rep cons giveOp1 giveOp2 = exception-repne-lock (binop-all cons giveOp1 giveOp2)
+val binop-lock cons giveOp1 giveOp2 = exception-rep-repne (binop-all cons (exception-lock-reg giveOp1) giveOp2)
+val binop cons giveOp1 giveOp2 = exception-rep-repne-lock (binop-all cons giveOp1 giveOp2)
 
-val near-abs cons giveOp = do
-   op <- giveOp;
-   return (cons {opnd1=NEARABS op})
-end
+val ternop cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
+  op3 <- giveOp3;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
+end)
 
-val near-rel cons giveOp = do
-   op <- giveOp;
-   return (cons {opnd1=op})
-end
+val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
+  op3 <- giveOp3;
+  op4 <- giveOp4;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
+end)
 
-val far-dir cons giveOp = do
-   op <- giveOp;
-   return (cons {opnd1=op})
-end
+val near-abs cons giveOp = exception-rep-repne-lock (do
+  op <- giveOp;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
+end)
 
-val far-ind cons giveOp = do
-   op <- giveOp;
-   return (cons {opnd1=FARABS op})
-end
+val near-rel cons giveOp = exception-rep-repne-lock (do
+  op <- giveOp;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+end)
+
+val far-dir cons giveOp = exception-rep-repne-lock (do
+  op <- giveOp;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+end)
+
+val far-ind cons giveOp = exception-rep-repne-lock (do
+  op <- giveOp;
+  opnd-sz <- operand-size;
+  addr-sz <- address-size;
+  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
+end)
 
 val one = return (IMM8 '00000001')
 
@@ -2232,20 +2448,20 @@ val / [0x15]
  | opndsz? = binop ADC ax imm16
  | rexw? = binop ADC rax imm32
  | otherwise = binop ADC eax imm32
-val / [0x80 /2] = binop ADC r/m8 imm8
+val / [0x80 /2] = binop-lock ADC r/m8 imm8
 val / [0x81 /2]
- | opndsz? = binop ADC r/m16 imm16
- | rexw? = binop ADC r/m64 imm32
- | otherwise = binop ADC r/m32 imm32
+ | opndsz? = binop-lock ADC r/m16 imm16
+ | rexw? = binop-lock ADC r/m64 imm32
+ | otherwise = binop-lock ADC r/m32 imm32
 val / [0x83 /2]
- | opndsz? = binop ADC r/m16 imm8
- | rexw? = binop ADC r/m64 imm8
- | otherwise = binop ADC r/m32 imm8
-val / [0x10 /r] = binop ADC r/m8 r8
+ | opndsz? = binop-lock ADC r/m16 imm8
+ | rexw? = binop-lock ADC r/m64 imm8
+ | otherwise = binop-lock ADC r/m32 imm8
+val / [0x10 /r] = binop-lock ADC r/m8 r8
 val / [0x11 /r]
- | opndsz? = binop ADC r/m16 r16
- | rexw? = binop ADC r/m64 r64
- | otherwise = binop ADC r/m32 r32
+ | opndsz? = binop-lock ADC r/m16 r16
+ | rexw? = binop-lock ADC r/m64 r64
+ | otherwise = binop-lock ADC r/m32 r32
 val / [0x12 /r] = binop ADC r8 r/m8
 val / [0x13 /r]
  | opndsz? = binop ADC r16 r/m16
@@ -2259,20 +2475,20 @@ val / [0x05]
  | opndsz? = binop ADD ax imm16
  | rexw? = binop ADD rax imm32
  | otherwise = binop ADD eax imm32
-val / [0x80 /0] = binop ADD r/m8 imm8
+val / [0x80 /0] = binop-lock ADD r/m8 imm8
 val / [0x81 /0]
- | opndsz? = binop ADD r/m16 imm16
- | rexw? = binop ADD r/m64 imm32
- | otherwise = binop ADD r/m32 imm32
+ | opndsz? = binop-lock ADD r/m16 imm16
+ | rexw? = binop-lock ADD r/m64 imm32
+ | otherwise = binop-lock ADD r/m32 imm32
 val / [0x83 /0]
- | opndsz? = binop ADD r/m16 imm8
- | rexw? = binop ADD r/m64 imm8
- | otherwise = binop ADD r/m32 imm8
-val / [0x00 /r] = binop ADD r/m8 r8
+ | opndsz? = binop-lock ADD r/m16 imm8
+ | rexw? = binop-lock ADD r/m64 imm8
+ | otherwise = binop-lock ADD r/m32 imm8
+val / [0x00 /r] = binop-lock ADD r/m8 r8
 val / [0x01 /r]
- | opndsz? = binop ADD r/m16 r16
- | rexw? = binop ADD r/m64 r64
- | otherwise = binop ADD r/m32 r32
+ | opndsz? = binop-lock ADD r/m16 r16
+ | rexw? = binop-lock ADD r/m64 r64
+ | otherwise = binop-lock ADD r/m32 r32
 val / [0x02 /r] = binop ADD r8 r/m8
 val / [0x03 /r]
  | opndsz? = binop ADD r16 r/m16
@@ -2354,20 +2570,20 @@ val / [0x25]
  | opndsz? = binop AND ax imm16
  | rexw? = binop AND rax imm32
  | otherwise = binop AND eax imm32
-val / [0x80 /4] = binop AND r/m8 imm8
+val / [0x80 /4] = binop-lock AND r/m8 imm8
 val / [0x81 /4]
- | opndsz? = binop AND r/m16 imm16
- | rexw? = binop AND r/m64 imm32
- | otherwise = binop AND r/m32 imm32
+ | opndsz? = binop-lock AND r/m16 imm16
+ | rexw? = binop-lock AND r/m64 imm32
+ | otherwise = binop-lock AND r/m32 imm32
 val / [0x83 /4]
- | opndsz? = binop AND r/m16 imm8
- | rexw? = binop AND r/m64 imm8
- | otherwise = binop AND r/m32 imm8
-val / [0x20 /r] = binop AND r/m8 r8
+ | opndsz? = binop-lock AND r/m16 imm8
+ | rexw? = binop-lock AND r/m64 imm8
+ | otherwise = binop-lock AND r/m32 imm8
+val / [0x20 /r] = binop-lock AND r/m8 r8
 val / [0x21 /r]
- | opndsz? = binop AND r/m16 r16
- | rexw? = binop AND r/m64 r64
- | otherwise = binop AND r/m32 r32
+ | opndsz? = binop-lock AND r/m16 r16
+ | rexw? = binop-lock AND r/m64 r64
+ | otherwise = binop-lock AND r/m32 r32
 val / [0x22 /r] = binop AND r8 r/m8
 val / [0x23 /r]
  | opndsz? = binop AND r16 r/m16
@@ -2477,35 +2693,35 @@ val / [0x0f 0xba /4]
 ### BTC
 ###  - Bit Test and Complement
 val / [0x0f 0xbb /r]
- | opndsz? = binop BTC r/m16 r16
- | rexw? = binop BTC r/m64 r64
- | otherwise = binop BTC r/m32 r32
+ | opndsz? = binop-lock BTC r/m16 r16
+ | rexw? = binop-lock BTC r/m64 r64
+ | otherwise = binop-lock BTC r/m32 r32
 val / [0x0f 0xba /7]
- | opndsz? = binop BTC r/m16 imm8
- | rexw? = binop BTC r/m64 imm8
- | otherwise = binop BTC r/m32 imm8
+ | opndsz? = binop-lock BTC r/m16 imm8
+ | rexw? = binop-lock BTC r/m64 imm8
+ | otherwise = binop-lock BTC r/m32 imm8
 
 ### BTR
 ###  - Bit Test and Reset
 val / [0x0f 0xb3 /r]
- | opndsz? = binop BTR r/m16 r16
- | rexw? = binop BTR r/m64 r64
- | otherwise = binop BTR r/m32 r32
+ | opndsz? = binop-lock BTR r/m16 r16
+ | rexw? = binop-lock BTR r/m64 r64
+ | otherwise = binop-lock BTR r/m32 r32
 val / [0x0f 0xba /6]
- | opndsz? = binop BTR r/m16 imm8
- | rexw? = binop BTR r/m64 imm8
- | otherwise = binop BTR r/m32 imm8
+ | opndsz? = binop-lock BTR r/m16 imm8
+ | rexw? = binop-lock BTR r/m64 imm8
+ | otherwise = binop-lock BTR r/m32 imm8
 
 ### BTS
 ###  - Bit Test and Set
 val / [0x0f 0xab /r]
- | opndsz? = binop BTS r/m16 r16
- | rexw? = binop BTS r/m64 r64
- | otherwise = binop BTS r/m32 r32
+ | opndsz? = binop-lock BTS r/m16 r16
+ | rexw? = binop-lock BTS r/m64 r64
+ | otherwise = binop-lock BTS r/m32 r32
 val / [0x0f 0xba /5]
- | opndsz? = binop BTS r/m16 imm8
- | rexw? = binop BTS r/m64 imm8
- | otherwise = binop BTS r/m32 imm8
+ | opndsz? = binop-lock BTS r/m16 imm8
+ | rexw? = binop-lock BTS r/m64 imm8
+ | otherwise = binop-lock BTS r/m32 imm8
 
 ### CALL
 ###  - Call Procedure
@@ -2557,43 +2773,43 @@ val / [0xf5] = arity0 CMC
 
 ### CMOVcc
 ###  - Conditional Move
-val / [0x0f 0x47 /r]
+val / [0x0f 0x47 /r] # CMOVNBE
  | opndsz? = binop CMOVA r16 r/m16
  | rexw? = binop CMOVA r64 r/m64
  | otherwise = binop CMOVA r32 r/m32
-val / [0x0f 0x43 /r]
+val / [0x0f 0x43 /r] # CMOVNB, CMOVNC
  | opndsz? = binop CMOVAE r16 r/m16
  | rexw? = binop CMOVAE r64 r/m64
  | otherwise = binop CMOVAE r32 r/m32
-val / [0x0f 0x42 /r]
+val / [0x0f 0x42 /r] # CMOVC, CMOVNAE
  | opndsz? = binop CMOVB r16 r/m16
  | rexw? = binop CMOVB r64 r/m64
  | otherwise = binop CMOVB r32 r/m32
-val / [0x0f 0x46 /r]
+val / [0x0f 0x46 /r] # CMOVNA
  | opndsz? = binop CMOVBE r16 r/m16
  | rexw? = binop CMOVBE r64 r/m64
  | otherwise = binop CMOVBE r32 r/m32
-val / [0x0f 0x44 /r]
+val / [0x0f 0x44 /r] # CMOVZ
  | opndsz? = binop CMOVE r16 r/m16
  | rexw? = binop CMOVE r64 r/m64
  | otherwise = binop CMOVE r32 r/m32
-val / [0x0f 0x4f /r]
+val / [0x0f 0x4f /r] # CMOVNLE
  | opndsz? = binop CMOVG r16 r/m16
  | rexw? = binop CMOVG r64 r/m64
  | otherwise = binop CMOVG r32 r/m32
-val / [0x0f 0x4d /r]
+val / [0x0f 0x4d /r] # CMOVNL
  | opndsz? = binop CMOVGE r16 r/m16
  | rexw? = binop CMOVGE r64 r/m64
  | otherwise = binop CMOVGE r32 r/m32
-val / [0x0f 0x4c /r]
+val / [0x0f 0x4c /r] # CMOVNGE
  | opndsz? = binop CMOVL r16 r/m16
  | rexw? = binop CMOVL r64 r/m64
  | otherwise = binop CMOVL r32 r/m32
-val / [0x0f 0x4e /r]
+val / [0x0f 0x4e /r] # CMOVNG
  | opndsz? = binop CMOVLE r16 r/m16
  | rexw? = binop CMOVLE r64 r/m64
  | otherwise = binop CMOVLE r32 r/m32
-val / [0x0f 0x45 /r]
+val / [0x0f 0x45 /r] # CMOVNZ
  | opndsz? = binop CMOVNE r16 r/m16
  | rexw? = binop CMOVNE r64 r/m64
  | otherwise = binop CMOVNE r32 r/m32
@@ -2601,7 +2817,7 @@ val / [0x0f 0x41 /r]
  | opndsz? = binop CMOVNO r16 r/m16
  | rexw? = binop CMOVNO r64 r/m64
  | otherwise = binop CMOVNO r32 r/m32
-val / [0x0f 0x4b /r]
+val / [0x0f 0x4b /r] # CMOVPO
  | opndsz? = binop CMOVNP r16 r/m16
  | rexw? = binop CMOVNP r64 r/m64
  | otherwise = binop CMOVNP r32 r/m32
@@ -2613,7 +2829,7 @@ val / [0x0f 0x40 /r]
  | opndsz? = binop CMOVO r16 r/m16
  | rexw? = binop CMOVO r64 r/m64
  | otherwise = binop CMOVO r32 r/m32
-val / [0x0f 0x4a /r]
+val / [0x0f 0x4a /r] # CMOVPE
  | opndsz? = binop CMOVP r16 r/m16
  | rexw? = binop CMOVP r64 r/m64
  | otherwise = binop CMOVP r32 r/m32
@@ -2665,15 +2881,15 @@ val /vex/0f/vexv [0xc2 /r]
 
 ### CMPS/CMPSB/CMPSW/CMPSD/CMPSQ
 ###  - Compare String Operands
-val / [0xa6] = arity0 CMPSB
+val / [0xa6] = binop-rep-repne CMPS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
 val / [0xa7]
- | opndsz? = arity0 CMPSW
- | rexw? = arity0 CMPSQ
- | otherwise = varity0 CMPSD
+ | opndsz? = binop-rep-repne CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | rexw? = binop-rep-repne CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size) 
+ | otherwise = binop-rep-repne CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
 
 ### CMPSD
 ###  - Compare Scalar Double-Precision Floating-Point Values
-val /f2 [0x0f 0xc2 /r] = varity3 CMPSD xmm128 xmm/m64 imm8
+val /f2 [0x0f 0xc2 /r] = ternop CMPSD xmm128 xmm/m64 imm8
 val /vex/f2/0f/vexv [0xc2 /r] = varity4 VCMPSD xmm128 v/xmm xmm/m64 imm8
 
 ### CMPSS
@@ -2683,17 +2899,17 @@ val /vex/f3/0f/vexv [0xc2 /r] = varity4 VCMPSS xmm128 v/xmm xmm/m32 imm8
 
 ### CMPXCHG
 ###  - Compare and Exchange
-val / [0x0f 0xb0 /r] = binop CMPXCHG r/m8 r8
+val / [0x0f 0xb0 /r] = binop-lock CMPXCHG r/m8 r8
 val / [0x0f 0xb1 /r]
- | opndsz? = binop CMPXCHG r/m16 r16
- | rexw? = binop CMPXCHG r/m64 r64
- | otherwise = binop CMPXCHG r/m32 r32
+ | opndsz? = binop-lock CMPXCHG r/m16 r16
+ | rexw? = binop-lock CMPXCHG r/m64 r64
+ | otherwise = binop-lock CMPXCHG r/m32 r32
 
 ### CMPXCHG8B/CMPXCHG16B
 ###  - Compare and Exchange Bytes
 val / [0x0f 0xc7 /1-mem]
- | rexw? = unop CMPXCHG8B m64
- | otherwise = unop CMPXCHG16B m128
+ | rexw? = unop-lock CMPXCHG8B m64
+ | otherwise = unop-lock CMPXCHG16B m128
 
 ### COMISD
 ###  - Compare Scalar Ordered Double-Precision Floating-Point Values and Set EFLAGS
@@ -2880,14 +3096,14 @@ val / [0x2f] | mode32? = arity0 DAS
 
 ### DEC
 ###  - Decrement by 1
-val / [0xfe /1] = unop DEC r/m8
+val / [0xfe /1] = unop-lock DEC r/m8
 val / [0xff /1]
- | opndsz? = unop DEC r/m16
- | rexw? = unop DEC r/m64
- | otherwise = unop DEC r/m32
+ | opndsz? = unop-lock DEC r/m16
+ | rexw? = unop-lock DEC r/m64
+ | otherwise = unop-lock DEC r/m32
 val / ['01001 r:3']
- | opndsz? & mode32? = do update@{reg/opcode=r}; unop DEC r16 end
- | mode32? = do update@{reg/opcode=r}; unop DEC r32 end
+ | opndsz? & mode32? = do update@{reg/opcode=r}; unop-lock DEC r16 end
+ | mode32? = do update@{reg/opcode=r}; unop-lock DEC r32 end
 
 ### DIV
 ###  - Unsigned Divide
@@ -3352,18 +3568,18 @@ val / [0xed]
 
 ### INC
 ###  - Increment by 1
-val / [0xfe /0] = unop INC r/m8
+val / [0xfe /0] = unop-lock INC r/m8
 val / [0xff /0]
- | opndsz? = unop INC r/m16
- | rexw? = unop INC r/m64
- | otherwise = unop INC r/m32
+ | opndsz? = unop-lock INC r/m16
+ | rexw? = unop-lock INC r/m64
+ | otherwise = unop-lock INC r/m32
 
 ### INS/INSB/INSW/INSD
 ###  - Input from Port to String
-val / [0x6c] = arity0 INSB
+val / [0x6c] = arity0-rep INSB
 val / [0x6d]
- | opndsz? = arity0 INSW
- | otherwise = arity0 INSD
+ | opndsz? = arity0-rep INSW
+ | otherwise = arity0-rep INSD
 
 ### INSERTPS
 ###  - Insert Packed Single Precision Floating-Point Value
@@ -3511,8 +3727,6 @@ val / [0x0f 0xae /2-mem] = unop LDMXCSR m32
 val /vex/0f [0xae /2-mem]
  | vex128? = varity1 VLDMXCSR m32
 
-### =><=
-
 ### LDS/LES/LFS/LGS/LSS
 ###  - Load Far Pointer
 val / [0xc5 /r-mem]
@@ -3536,22 +3750,23 @@ val / [0x0f 0xb5 /r-mem]
 
 ### LEA
 ###  - Load Effective Address
-val / [0x8d /r]
- | opndsz? & addrsz? = binop LEA r16 r/m16
- | opndsz? = binop LEA r16 r/m32
- | rexw? & addrsz? = binop LEA r64 r/m32
- | rexw? = binop LEA r64 r/m64
- | addrsz? = binop LEA r32 r/m16
- | otherwise = binop LEA r32 r/m32
+val / [0x8d /r-mem]
+ | (// mode64?) & opndsz? = binop LEA r16 mX
+ | (// mode64?) & (// opndsz?) = binop LEA r32 mX
+ | mode64? & (// rexw?) & opndsz? = binop LEA r16 mX
+ | mode64? & (// rexw?) & (// opndsz?) = binop LEA r32 mX
+ | mode64? & rexw? & (// opndsz?) = binop LEA r64 mX
+
+### =><=
 
 ### LEAVE
 ###  - High Level Procedure Exit
-#TODO: handle different effects to BP/EBP/RBP
+#Todo: handle different effects to BP/EBP/RBP
 val / [0xc9] = arity0 LEAVE
 
 ### LFENCE
 ###  - Load Fence
-val / [0x0f 0xae /5] = arity0 LFENCE
+val / [0x0f 0xae /5-reg] = arity0 LFENCE
 
 ### LGDT/LIDT
 ###  - Load Global/Interrupt Descriptor Table Register
@@ -3568,19 +3783,18 @@ val / [0x0f 0x00 /2] = unop LLDT r/m16
 
 ### LMSW
 ###  - Load Machine Status Word
-val / [0x0f 0x01 /6] = unop LMSW r/m16
+val / [0x0f 0x01 /6-mem] = unop LMSW r/m16
 
 ### LOCK
 ###  - Assert LOCK# Signal Prefix
-val / [0xf0] = arity0 LOCK
 
 ### LODS/LODSB/LODSW/LODSD/LODSQ
 ###  - Load String
-val / [0xac] = arity0 LODSB
+val / [0xac] = unop-rep LODS (m/default/si/esi/rsi (return 8))
 val / [0xad]
- | opndsz? = arity0 LODSW
- | rexw? = arity0 LODSQ
- | otherwise = arity0 LODSD
+ | opndsz? = unop-rep LODS (m/default/si/esi/rsi (return 8))
+ | rexw? = unop-rep LODS (m/default/si/esi/rsi (return 8))
+ | otherwise = unop-rep LODS (m/default/si/esi/rsi (return 8))
 
 ### LOOP/LOOPcc
 ###  - Loop According to ECX Counter
@@ -3635,7 +3849,7 @@ val /vex/f3/0f/vexv [0x5f /r] = varity3 VMAXSS xmm128 v/xmm xmm/m32
 
 ### MFENCE
 ###  - Memory Fence
-val / [0x0f 0xae /6] = arity0 MFENCE
+val / [0x0f 0xae /6-reg] = arity0 MFENCE
 
 ### MINPD
 ###  - Return Minimum Packed Double-Precision Floating-Point Values
@@ -3663,7 +3877,7 @@ val /vex/f3/0f/vexv [0x5d /r] = varity3 VMINSS xmm128 v/xmm xmm/m32
 
 ### MONITOR
 ###  - Set Up Monitor Address
-val / [0x0f 0xae 0x01 0xc8] = arity0 MONITOR
+val / [0x0f 0x01 0xc8] = arity0 MONITOR
 
 ### MOV
 ###  - Move
@@ -3916,18 +4130,18 @@ val /f3 [0x0f 0xd6 /r-reg] = binop MOVQ2DQ xmm128 mm/reg64
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
 ###  - Move Data from String to String
-val / [0xa4] = arity0 MOVSB
+val / [0xa4] = binop-rep MOVS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
 val / [0xa5]
- | opndsz? = arity0 MOVSB
- | rexw? = arity0 MOVSQ
- | otherwise = varity0 MOVSD
+ | opndsz? = binop-rep MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | rexw? = binop-rep MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | otherwise = binop-rep MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
 
 ### MOVSD
 ###  - Move Scalar Double-Precision Floating-Point Value
-val /f2 [0x0f 0x10 /r] = varity2 MOVSD xmm128 xmm/m64
+val /f2 [0x0f 0x10 /r] = binop MOVSD xmm128 xmm/m64
 val /vex/f2/0f/vexv [0x10 /r-reg] = varity3 VMOVSD xmm128 v/xmm xmm/reg128
 val /vex/f2/0f [0x10 /r-mem] = varity2 VMOVSD xmm128 m64
-val /f2 [0x0f 0x11 /r] = varity2 MOVSD xmm/m64 xmm128
+val /f2 [0x0f 0x11 /r] = binop MOVSD xmm/m64 xmm128
 val /vex/f2/0f [0x11 /r-reg] = varity3 VMOVSD xmm/reg128 v/xmm xmm128
 val /vex/f2/0f [0x11 /r-mem] = varity2 VMOVSD m64 xmm128
 
@@ -4043,11 +4257,11 @@ val / [0x0f 0x01 0xc9] = arity0 MWAIT
 
 ### NEG
 ###  - Two's Complement Negation
-val / [0xf6 /3] = unop NEG r/m8
+val / [0xf6 /3] = unop-lock NEG r/m8
 val / [0xf7 /3]
- | opndsz? = unop NEG r/m16
- | rexw? = unop NEG r/m64
- | otherwise = unop NEG r/m32
+ | opndsz? = unop-lock NEG r/m16
+ | rexw? = unop-lock NEG r/m64
+ | otherwise = unop-lock NEG r/m32
 
 ### NOP
 ###  - No Operation
@@ -4063,11 +4277,11 @@ val / [0x0f 0x1f /0]
 
 ### NOT
 ###  - One's Complement Negation
-val / [0xf6 /2] = unop NOT r/m8
+val / [0xf6 /2] = unop-lock NOT r/m8
 val / [0xf7 /2]
- | opndsz? = unop NOT r/m16
- | rexw? = unop NOT r/m64
- | otherwise = unop NOT r/m32
+ | opndsz? = unop-lock NOT r/m16
+ | rexw? = unop-lock NOT r/m64
+ | otherwise = unop-lock NOT r/m32
 
 ### OR
 ###  - Logical Inclusive OR
@@ -4076,20 +4290,20 @@ val / [0x0d]
  | opndsz? = binop OR ax imm16
  | rexw? = binop OR rax imm32
  | otherwise = binop OR eax imm32
-val / [0x80 /1] = binop OR r/m8 imm8
+val / [0x80 /1] = binop-lock OR r/m8 imm8
 val / [0x81 /1]
- | opndsz? = binop OR r/m16 imm16
- | rexw? = binop OR r/m64 imm32
- | otherwise = binop OR r/m32 imm32
+ | opndsz? = binop-lock OR r/m16 imm16
+ | rexw? = binop-lock OR r/m64 imm32
+ | otherwise = binop-lock OR r/m32 imm32
 val / [0x83 /1]
- | opndsz? = binop OR r/m16 imm8
- | rexw? = binop OR r/m64 imm8
- | otherwise = binop OR r/m32 imm8
-val / [0x08 /r] = binop OR r/m8 r8
+ | opndsz? = binop-lock OR r/m16 imm8
+ | rexw? = binop-lock OR r/m64 imm8
+ | otherwise = binop-lock OR r/m32 imm8
+val / [0x08 /r] = binop-lock OR r/m8 r8
 val / [0x09 /r]
- | opndsz? = binop OR r/m16 r16
- | rexw? = binop OR r/m64 r64
- | otherwise = binop OR r/m32 r32
+ | opndsz? = binop-lock OR r/m16 r16
+ | rexw? = binop-lock OR r/m64 r64
+ | otherwise = binop-lock OR r/m32 r32
 val / [0x0a /r] = binop OR r8 r/m8
 val / [0x0b /r]
  | opndsz? = binop OR r16 r/m16
@@ -4105,7 +4319,7 @@ val /vex/66/0f/vexv [0x56 /r]
 
 ### ORPS
 ###  - Bitwise Logical OR of Single-Precision Floating-Point Values
-val main [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
+val / [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
 val /vex/0f/vexv [0x56 /r]
  | vex128? = varity3 VORPS xmm128 v/xmm xmm/m128
  | vex256? = varity3 VORPS ymm256 v/ymm ymm/m256
@@ -4122,14 +4336,14 @@ val / [0xef] = binop OUT dx eax
 ### OUTS/OUTSB/OUTSW/OUTSD
 ###  - Output String to Port
 # Fix: SI ~ m8?
-#val / [0x6e] = binop OUTS dx (mem (REG SI))
+#val / [0x6e] = binop-rep OUTS dx (mem (REG SI))
 #val / [0x6f]
-# | opndsz? = binop OUTS dx (mem (REG SI))
-# | otherwise = binop OUTS dx (mem (REG ESI))
-val / [0x6e] = arity0 OUTSB
+# | opndsz? = binop-rep OUTS dx (mem (REG SI))
+# | otherwise = binop-rep OUTS dx (mem (REG ESI))
+val / [0x6e] = arity0-rep OUTSB
 val / [0x6f]
- | opndsz? = arity0 OUTSW
- | otherwise = arity0 OUTSD
+ | opndsz? = arity0-rep OUTSW
+ | otherwise = arity0-rep OUTSD
 
 ### PABSB/PABSW/PABSD
 ###  - Packed Absolute Value
@@ -4910,7 +5124,6 @@ val / [0x0f 0x01 0xf9] = arity0 RDTSCP
 
 ### REP/REPE/REPZ/REPNE/REPNZ
 ###  - Repeat String Operation Prefix
-# Todo
 
 ### RET
 ###  - Return from Procedure
@@ -5022,20 +5235,20 @@ val / [0x1d]
  | opndsz? = binop SBB ax imm16
  | rexw? = binop SBB rax imm32
  | otherwise = binop SBB eax imm32
-val / [0x80 /3] = binop SBB r/m8 imm8
+val / [0x80 /3] = binop-lock SBB r/m8 imm8
 val / [0x81 /3]
- | opndsz? = binop SBB r/m16 imm16
- | rexw? = binop SBB r/m64 imm32
- | otherwise = binop SBB r/m32 imm32
+ | opndsz? = binop-lock SBB r/m16 imm16
+ | rexw? = binop-lock SBB r/m64 imm32
+ | otherwise = binop-lock SBB r/m32 imm32
 val / [0x83 /3]
- | opndsz? = binop SBB r/m16 imm8
- | rexw? = binop SBB r/m64 imm8
- | otherwise = binop SBB r/m32 imm8
-val / [0x18 /r] = binop SBB r/m8 r8
+ | opndsz? = binop-lock SBB r/m16 imm8
+ | rexw? = binop-lock SBB r/m64 imm8
+ | otherwise = binop-lock SBB r/m32 imm8
+val / [0x18 /r] = binop-lock SBB r/m8 r8
 val / [0x19 /r]
- | opndsz? = binop SBB r/m16 r16
- | rexw? = binop SBB r/m64 r64
- | otherwise = binop SBB r/m32 r32
+ | opndsz? = binop-lock SBB r/m16 r16
+ | rexw? = binop-lock SBB r/m64 r64
+ | otherwise = binop-lock SBB r/m32 r32
 val / [0x1a /r] = binop SBB r8 r/m8
 val / [0x1b /r]
  | opndsz? = binop SBB r16 r/m16
@@ -5044,29 +5257,29 @@ val / [0x1b /r]
 
 ### SCAS/SCASB/SCASW/SCASD/SCASQ
 ###  - Scan String
-val / [0xae] = arity0 SCASB
+val / [0xae] = arity0-rep-repne SCASB
 val / [0xaf]
- | opndsz? = arity0 SCASW
- | rexw? = arity0 SCASQ
- | otherwise = arity0 SCASD
+ | opndsz? = arity0-rep-repne SCASW
+ | rexw? = arity0-rep-repne SCASQ
+ | otherwise = arity0-rep-repne SCASD
 
 ### SETcc
 ###  - Set Byte on Condition
-val / [0x0f 0x97 /r] = unop SETA r/m8
-val / [0x0f 0x93 /r] = unop SETAE r/m8
-val / [0x0f 0x92 /r] = unop SETB r/m8
-val / [0x0f 0x96 /r] = unop SETBE r/m8
-val / [0x0f 0x94 /r] = unop SETE r/m8
-val / [0x0f 0x9f /r] = unop SETG r/m8
-val / [0x0f 0x9d /r] = unop SETGE r/m8
-val / [0x0f 0x9c /r] = unop SETL r/m8
-val / [0x0f 0x9e /r] = unop SETLE r/m8
-val / [0x0f 0x95 /r] = unop SETNE r/m8
+val / [0x0f 0x97 /r] = unop SETA r/m8 # SETNBE
+val / [0x0f 0x93 /r] = unop SETAE r/m8 # SETNB, SETNC
+val / [0x0f 0x92 /r] = unop SETB r/m8 # SETC, SETNAE
+val / [0x0f 0x96 /r] = unop SETBE r/m8 # SETNA
+val / [0x0f 0x94 /r] = unop SETE r/m8 # SETZ
+val / [0x0f 0x9f /r] = unop SETG r/m8 # SETNLE
+val / [0x0f 0x9d /r] = unop SETGE r/m8 # SETNL
+val / [0x0f 0x9c /r] = unop SETL r/m8 # SETNGE
+val / [0x0f 0x9e /r] = unop SETLE r/m8 # SETNG
+val / [0x0f 0x95 /r] = unop SETNE r/m8 # SETNZ
 val / [0x0f 0x91 /r] = unop SETNO r/m8
-val / [0x0f 0x9b /r] = unop SETNP r/m8
+val / [0x0f 0x9b /r] = unop SETNP r/m8 # SETPO
 val / [0x0f 0x99 /r] = unop SETNS r/m8
 val / [0x0f 0x90 /r] = unop SETO r/m8
-val / [0x0f 0x9a /r] = unop SETP r/m8
+val / [0x0f 0x9a /r] = unop SETP r/m8 # SETPE
 val / [0x0f 0x98 /r] = unop SETS r/m8
 
 ### SFENCE
@@ -5129,7 +5342,7 @@ val / [0x0f 0x00 /0]
 
 ### SMSW
 ###  - Store Machine Status Word
-val / [0x0f 0x01 /4]
+val / [0x0f 0x01 /4-mem]
  | opndsz? = unop SMSW r/m16
  | rexw? = unop SMSW r64/m16
  | otherwise = unop SMSW r32/m16
@@ -5177,11 +5390,11 @@ val /vex/0f [0xae /3-mem] | vex128? = varity1 VSTMXCSR m32
 
 ### STOS/STOSB/STOSW/STOSD/STOSQ
 ###  - Store String
-val / [0xaa] = arity0 STOSB
+val / [0xaa] = arity0-rep STOSB
 val / [0xab]
- | opndsz? = arity0 STOSW
- | rexw? = arity0 STOSQ
- | otherwise = arity0 STOSD
+ | opndsz? = arity0-rep STOSW
+ | rexw? = arity0-rep STOSQ
+ | otherwise = arity0-rep STOSD
 
 ### STR
 ###  - Store Task Register
@@ -5194,20 +5407,20 @@ val / [0x2d]
  | opndsz? = binop SUB ax imm16
  | rexw? = binop SUB rax imm32
  | otherwise = binop SUB eax imm32
-val / [0x80 /5] = binop SUB r/m8 imm8
+val / [0x80 /5] = binop-lock SUB r/m8 imm8
 val / [0x81 /5]
- | opndsz? = binop SUB r/m16 imm16
- | rexw? = binop SUB r/m64 imm32
- | otherwise = binop SUB r/m32 imm32
+ | opndsz? = binop-lock SUB r/m16 imm16
+ | rexw? = binop-lock SUB r/m64 imm32
+ | otherwise = binop-lock SUB r/m32 imm32
 val / [0x83 /5]
- | opndsz? = binop SUB r/m16 imm8
- | rexw? = binop SUB r/m64 imm8
- | otherwise = binop SUB r/m32 imm8
-val / [0x28 /r] = binop SUB r/m8 r8
+ | opndsz? = binop-lock SUB r/m16 imm8
+ | rexw? = binop-lock SUB r/m64 imm8
+ | otherwise = binop-lock SUB r/m32 imm8
+val / [0x28 /r] = binop-lock SUB r/m8 r8
 val / [0x29 /r]
- | opndsz? = binop SUB r/m16 r16
- | rexw? = binop SUB r/m64 r64
- | otherwise = binop SUB r/m32 r32
+ | opndsz? = binop-lock SUB r/m16 r16
+ | rexw? = binop-lock SUB r/m64 r64
+ | otherwise = binop-lock SUB r/m32 r32
 val / [0x2a /r] = binop SUB r8 r/m8
 val / [0x2b /r]
  | opndsz? = binop SUB r16 r/m16
@@ -5240,7 +5453,7 @@ val /vex/f3/0f/vexv [0x5c /r] = varity3 VSUBSS xmm128 v/xmm xmm/m32
 
 ### SWAPGS
 ###  - Swap GS Base Register
-val / [0x0f 0x01 /7] = arity0 SWAPGS
+val / [0x0f 0x01 0xf8] = arity0 SWAPGS
 
 ### SYSCALL
 ###  - Fast System Call
@@ -5432,23 +5645,23 @@ val / [0x0f 0x30] = arity0 WRMSR
 
 ### XADD
 ###  - Exchange and Add
-val / [0x0f 0xc0 /r] = binop XADD r/m8 r8
+val / [0x0f 0xc0 /r] = binop-lock XADD r/m8 r8
 val / [0x0f 0xc1 /r]
- | opndsz? = binop MOV r/m16 r16
- | rexw? = binop XADD r/m64 r64
- | otherwise = binop MOV r/m32 r32
+ | opndsz? = binop-lock MOV r/m16 r16
+ | rexw? = binop-lock XADD r/m64 r64
+ | otherwise = binop-lock MOV r/m32 r32
 
 ### XCHG
 ###  - Exchange Register/Memory with Register
 val / ['10010 r:3']
- | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end
- | rexw? = do update@{reg/opcode=r}; binop XCHG rax r64/rexb end
- | otherwise = do update@{reg/opcode=r}; binop XCHG eax r32/rexb end
-val / [0x86 /r] = binop XCHG r8 r/m8
+ | opndsz? = do update@{reg/opcode=r,lock='1'}; binop XCHG ax r16/rexb end
+ | rexw? = do update@{reg/opcode=r,lock='1'}; binop XCHG rax r64/rexb end
+ | otherwise = do update@{reg/opcode=r,lock='1'}; binop XCHG eax r32/rexb end
+val / [0x86 /r] = do update@{lock='1'}; binop XCHG r8 r/m8 end
 val / [0x87 /r]
- | opndsz? = binop XCHG r/m16 r16
- | rexw? = binop XCHG r/m64 r64
- | otherwise = binop XCHG r/m32 r32
+ | opndsz? = do update@{lock='1'}; binop XCHG r/m16 r16 end
+ | rexw? = do update@{lock='1'}; binop XCHG r/m64 r64 end
+ | otherwise = do update@{lock='1'}; binop XCHG r/m32 r32 end
 
 ### XGETBV
 ###  - Get Value of Extended Control Register
@@ -5468,20 +5681,20 @@ val / [0x35]
  | opndsz? = binop XOR ax imm16
  | rexw? = binop XOR rax imm32
  | otherwise = binop XOR eax imm32
-val / [0x80 /6] = binop XOR r/m8 imm8
+val / [0x80 /6] = binop-lock XOR r/m8 imm8
 val / [0x81 /6]
- | opndsz? = binop XOR r/m16 imm16
- | rexw? = binop XOR r/m64 imm32
- | otherwise = binop XOR r/m32 imm32
+ | opndsz? = binop-lock XOR r/m16 imm16
+ | rexw? = binop-lock XOR r/m64 imm32
+ | otherwise = binop-lock XOR r/m32 imm32
 val / [0x83 /6]
- | opndsz? = binop XOR r/m16 imm8
- | rexw? = binop XOR r/m64 imm8
- | otherwise = binop XOR r/m32 imm8
-val / [0x30 /r] = binop XOR r/m8 r8
+ | opndsz? = binop-lock XOR r/m16 imm8
+ | rexw? = binop-lock XOR r/m64 imm8
+ | otherwise = binop-lock XOR r/m32 imm8
+val / [0x30 /r] = binop-lock XOR r/m8 r8
 val / [0x31 /r]
- | opndsz? = binop XOR r/m16 r16
- | rexw? = binop XOR r/m64 r64
- | otherwise = binop XOR r/m32 r32
+ | opndsz? = binop-lock XOR r/m16 r16
+ | rexw? = binop-lock XOR r/m64 r64
+ | otherwise = binop-lock XOR r/m32 r32
 val / [0x32 /r] = binop XOR r8 r/m8
 val / [0x33 /r]
  | opndsz? = binop XOR r16 r/m16

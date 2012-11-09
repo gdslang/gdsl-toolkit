@@ -126,14 +126,14 @@ val show/register r =
     | MM5  : "MM5"
     | MM6  : "MM6"
     | MM7  : "MM7"
-    | MM8  : "MM8"
-    | MM9  : "MM9"
-    | MM10 : "MM10"
-    | MM11 : "MM11"
-    | MM12 : "MM12"
-    | MM13 : "MM13"
-    | MM14 : "MM14"
-    | MM15 : "MM15"
+#    | MM8  : "MM8"
+#    | MM9  : "MM9"
+#    | MM10 : "MM10"
+#    | MM11 : "MM11"
+#    | MM12 : "MM12"
+#    | MM13 : "MM13"
+#    | MM14 : "MM14"
+#    | MM15 : "MM15"
     | ES   : "ES"
     | SS   : "SS"
     | DS   : "DS"
@@ -279,11 +279,9 @@ val show/instruction insn =
     | CMP x: "CMP" -++ show/arity2 x
     | CMPPD x: "CMPPD" -++ show/arity3 x
     | CMPPS x: "CMPPS" -++ show/arity3 x
-    | CMPSB: "CMPSB"
-    | CMPSD x: "CMPSD" -++ show/varity x
-    | CMPSQ: "CMPSQ"
+    | CMPS x: "CMPS" -++ show/arity2
+    | CMPSD x: "CMPSD" -++ show/arity3 x
     | CMPSS x: "CMPSS" -++ show/arity3 x
-    | CMPSW: "CMPSW"
     | CMPXCHG x: "CMPXCHG" -++ show/arity2 x
     | CMPXCHG16B x: "CMPXCHG16B" -++ show/arity1 x
     | CMPXCHG8B x: "CMPXCHG8B" -++ show/arity1 x
@@ -496,11 +494,7 @@ val show/instruction insn =
     | LIDT x: "LIDT" -++ show/arity1 x
     | LLDT x: "LLDT" -++ show/arity1 x
     | LMSW x: "LMSW" -++ show/arity1 x
-    | LOCK: "LOCK"
-    | LODSB: "LODSB"
-    | LODSD: "LODSD"
-    | LODSQ: "LODSQ"
-    | LODSW: "LODSW"
+    | LODS x: "LODS" -++ show/arity1 x
     | LOOP x: "LOOP" -++ show/flow1 x
     | LOOPE x: "LOOPE" -++ show/flow1 x
     | LOOPNE x: "LOOPNE" -++ show/flow1 x
@@ -544,11 +538,10 @@ val show/instruction insn =
     | MOVNTQ x: "MOVNTQ" -++ show/arity2 x
     | MOVQ x: "MOVQ" -++ show/arity2 x
     | MOVQ2DQ x: "MOVQ2DQ" -++ show/arity2 x
-    | MOVSB: "MOVSB"
-    | MOVSD x: "MOVSD" -++ show/varity x
+    | MOVS x: "MOVS" -++ show/arity2 x
+    | MOVSD x: "MOVSD" -++ show/arity2 x
     | MOVSHDUP x: "MOVSHDUP" -++ show/arity2 x
     | MOVSLDUP x: "MOVSLDUP" -++ show/arity2 x
-    | MOVSQ: "MOVSQ"
     | MOVSS x: "MOVSS" -++ show/arity2 x
     | MOVSW x: "MOVSW" -++ show/arity2 x
     | MOVSX x: "MOVSX" -++ show/arity2 x

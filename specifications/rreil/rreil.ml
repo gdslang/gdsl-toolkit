@@ -1,8 +1,7 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
 type sem_id =
-   ARCH_R of int
- | VIRT_EQ  # ==
+   VIRT_EQ  # ==
  | VIRT_NEQ # /=
  | VIRT_LES # <=s
  | VIRT_LEU # <=u
@@ -26,7 +25,6 @@ type sem_linear =
 
 type sem_op =
    SEM_LIN of sem_arity1
- | SEM_BSWAP of sem_arity1
  | SEM_MUL of sem_arity2
  | SEM_DIV of sem_arity2
  | SEM_DIVS of sem_arity2
@@ -51,15 +49,9 @@ type sem_stmt =
    SEM_ASSIGN of {lhs: sem_var, rhs: sem_op}
  | SEM_LOAD of {lhs: sem_var, size: int, address: sem_address}
  | SEM_STORE of {address: sem_address, rhs: sem_op}
- | SEM_LABEL of {label: int}
- | SEM_IF_GOTO_LABEL of {cond:sem_linear, label: int}
- | SEM_IF_GOTO of {cond: sem_linear, size:int, target: sem_linear}
- | SEM_CALL of {cond: sem_linear, size:int, target: sem_linear}
- | SEM_RETURN of {cond: sem_linear, size:int, target: sem_linear}
-
  | SEM_ITE of {cond: sem_linear, then_branch: sem_stmts, else_branch: sem_stmts}
  | SEM_WHILE of {cond: sem_linear, body: sem_stmts}
- | SEM_CBRANCH of {cond: sem_linear, target_true: sem_address, target_false: sem_address}
+ | SEM_CBRANCH of {cond: sem_linear, target-true: sem_address, target-false: sem_address}
  | SEM_BRANCH of {hint: branch_hint, target: sem_address}
 
  type branch_hint =
@@ -73,12 +65,11 @@ type sem_stmts =
 
 type sem_writeback =
    SEM_WRITE_VAR of {size: int, id: sem_var}
- | SEM_WRITE_MEM of {size: int, address: sem_linear}
+ | SEM_WRITE_MEM of {size: int, address: sem_linear, segment:seg_override}
 
 val rreil-sizeOf op =
    case op of
       SEM_LIN x: x.size
-    | SEM_BSWAP x: x.size
     | SEM_MUL x: x.size
     | SEM_DIV x: x.size
     | SEM_DIVS x: x.size
@@ -111,8 +102,9 @@ val rreil-stmts-rev stmts =
       lp stmts SEM_NIL
    end
 
-val var//0 x = {id=x,offset=0}
-val at-offset x offset = {id=x.id,offset=offset}
+val _var x = {id=x,offset=0}
+val _var x _offset o = {id=x, offset=o}
+val at-offset v o = {id=v.id, offset=o}
 val var x = SEM_LIN_VAR x
 val lin sz l = SEM_LIN {size=sz, opnd1=l}
 val address sz addr = {size=sz, address=addr}
@@ -136,13 +128,10 @@ val /LOAD sz a b = SEM_LOAD{lhs=a,size=sz,address=b}
 val /STORE a b = SEM_STORE{address=a,rhs=b}
 val /ADD a b = SEM_LIN_ADD{opnd1=a,opnd2=b}
 val /SUB a b = SEM_LIN_SUB{opnd1=a,opnd2=b}
-val /LABEL l = SEM_LABEL{label=l}
-val /IFGOTOLABEL c l = SEM_IF_GOTO_LABEL{cond=c,label=l}
-val /IFGOTO c sz t = SEM_IF_GOTO{cond=c,size=sz,target=t}
-val /GOTOLABEL l = SEM_IF_GOTO_LABEL{cond=SEM_LIN_IMM{imm=1},label=l}
 val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
-val /BRANCH hint address = SEM_BRANCH{hint=hint,target=address}
+val /BRANCH hint address =SEM_BRANCH{hint=hint,target=address}
+val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
 
 val push insn = do
    tl <- query $stack;
@@ -186,6 +175,7 @@ val shl sz a b c = push (/ASSIGN a (SEM_SHL{size=sz,opnd1=b,opnd2=c}))
 val shr sz a b c = push (/ASSIGN a (SEM_SHR{size=sz,opnd1=b,opnd2=c}))
 val shrs sz a b c = push (/ASSIGN a (SEM_SHRS{size=sz,opnd1=b,opnd2=c}))
 val bswap sz a b = push (/ASSIGN a (SEM_BSWAP{size=sz,opnd1=b}))
+val modulo sz a b c = push (/ASSIGN a (SEM_MOD{size=sz,opnd1=b,opnd2=c}))
 val movsx szA a szB b = push (/ASSIGN a (SEM_SX{size=szA,fromsize=szB,opnd1=b}))
 val movzx szA a szB b = push (/ASSIGN a (SEM_ZX{size=szA,fromsize=szB,opnd1=b}))
 val convert szA a szB b = push (/ASSIGN a (SEM_ZX{size=szA,fromsize=szB,opnd1=b}))
@@ -195,15 +185,24 @@ val cmples sz f a b = push (/ASSIGN f (SEM_CMPLES{size=sz,opnd1=a,opnd2=b}))
 val cmpleu sz f a b = push (/ASSIGN f (SEM_CMPLEU{size=sz,opnd1=a,opnd2=b}))
 val cmplts sz f a b = push (/ASSIGN f (SEM_CMPLTS{size=sz,opnd1=a,opnd2=b}))
 val cmpltu sz f a b = push (/ASSIGN f (SEM_CMPLTU{size=sz,opnd1=a,opnd2=b}))
-val label l = push (/LABEL l)
-val ifgotolabel c l = push (/IFGOTOLABEL c l)
-val gotolabel l = push (/GOTOLABEL l)
-val ifgoto c sz addr = push (/IFGOTO c sz addr)
 val ite c t e = push (/ITE c t e)
 val while c b = push (/WHILE c b)
-val jump address = push (/BRANCH HINT_JUMP address)
-val call address = push (/BRANCH HINT_CALL address)
-val ret address = push (/BRANCH HINT_RET address)
+val jump address = do
+   update @{foundJump = '1'};
+   push (/BRANCH HINT_JUMP address)
+end
+val call address = do
+   update @{foundJump = '1'};
+   push (/BRANCH HINT_CALL address)
+end
+val ret address = do
+   update @{foundJump = '1'};
+   push (/BRANCH HINT_RET address)
+end
+val cbranch cond target-true target-false = do
+   update @{foundJump = '1'};
+   push (/CBRANCH cond target-true target-false)
+end
 
 val const i = return (SEM_LIN_IMM{imm=i})
 val imm i = SEM_LIN_IMM{imm=i}

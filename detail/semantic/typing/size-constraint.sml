@@ -125,7 +125,10 @@ end = struct
           {terms = List.map (fn (f,v) => (Int.quot (f,d),v)) ts,
            const = Int.quot (c,d)}
       end
-
+   
+   (*fun add (eq,scs) = RESULT ([],scs)
+   fun fromList eqs = empty*)
+   
    fun add (eq,scs) =
       let
          fun inline (sc as {terms = (f,v) :: _, const = n2}, eq) =

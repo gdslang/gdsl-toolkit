@@ -106,7 +106,7 @@
    Cname = __WRAP(o);}
 
 #define __RECORD_BEGIN_UPDATE(Cdst, Csrc)\
-  {__recordCloneFields((struct __record*)Csrc);\
+  {__recordCloneFields((struct __s_record*)Csrc);\
    __word n = Csrc->record.sz
 
 #define __RECORD_UPDATE(tag, value)\
@@ -120,7 +120,7 @@
    Cdst = __WRAP(o);}}
 
 #define __RECORD_SELECT(Cname, field)\
-  __recordLookup(((struct __record*)Cname), field)->tagged.payload
+  __recordLookup(((struct __s_record*)Cname), field)->tagged.payload
 
 /** ## Ropes/Strings */
 
@@ -206,7 +206,7 @@ typedef uint8_t __char;
 enum __tag {
   __CLOSURE,
   __BV,
-  __INT,
+  __INTEGER,
   __TAGGED,
   __RECORD,
   __NIL,
@@ -221,90 +221,111 @@ union __header {
   __obj ignored;
 } __attribute__((aligned(8)));
 
+struct __s_unwrapped_immediate {
+  __header header;
+};
+struct __s_unwrapped_tagged {
+  __header header;
+  __word tag;
+  __obj payload;
+};
+struct __s_unwrapped_closure {
+  __header header;
+  __word sz;
+  __objref env;
+};
+struct __s_unwrapped_record {
+  __header header;
+  __word sz;
+  __objref fields;
+};
+struct __s_unwrapped_bv {
+  __header header;
+  __word sz;
+  __word vec;
+};
+struct __s_unwrapped_label {
+  __header header;
+  __obj (*f)(void);
+};
+struct __s_unwrapped_blob {
+  __header header;
+  __char* blob;
+  __word sz;
+};
+struct __s_unwrapped_ropeleaf {
+  __header header;
+  __char* blob;
+  __word sz;
+};
+struct __s_unwrapped_ropebranch {
+  __header header;
+  __obj left;
+  __obj right;
+};
+struct __s_unwrapped_int {
+  __header header;
+  __int value;
+} z;
+
 union __unwrapped_obj {
-  struct __unwrapped_immediate {
-    __header header;
-  } object;
-  struct __unwrapped_tagged {
-    __header header;
-    __word tag;
-    __obj payload;
-  } tagged;
-  struct __unwrapped_closure {
-    __header header;
-    __word sz;
-    __objref env;
-  } closure;
-  struct __unwrapped_record {
-    __header header;
-    __word sz;
-    __objref fields;
-  } record;
-  struct __unwrapped_bv {
-    __header header;
-    __word sz;
-    __word vec;
-  } bv;
-  struct __unwrapped_label {
-    __header header;
-    __obj (*f)(void);
-  } label;
-  struct __unwrapped_blob {
-    __header header;
-    __char* blob;
-    __word sz;
-  } blob;
-  struct __unwrapped_ropeleaf {
-    __header header;
-    __char* blob;
-    __word sz;
-  } ropeleaf;
-  struct __unwrapped_ropebranch {
-    __header header;
-    __obj left;
-    __obj right;
-  } ropebranch;
-  struct __unwrapped_int {
-    __header header;
-    __int value;
-  } z;
+  struct __s_unwrapped_immediate object;
+  struct __s_unwrapped_tagged tagged;
+  struct __s_unwrapped_closure closure;
+  struct __s_unwrapped_record record;
+  struct __s_unwrapped_bv bv;
+  struct __s_unwrapped_label label;
+  struct __s_unwrapped_blob blob;
+  struct __s_unwrapped_ropeleaf ropeleaf;
+  struct __s_unwrapped_ropebranch ropebranch;
+  struct __s_unwrapped_int z;
 } __attribute__((aligned(8)));
 
+struct __s_tagged {
+  __word tag;
+  __obj payload;
+};
+struct __s_closure {
+  __word sz;
+  __objref env;
+};
+struct __s_record {
+  __word sz;
+  __objref fields;
+};
+struct __s_bv {
+  __word sz;
+  __word vec;
+};
+struct __s_label {
+  __obj (*f)(void);
+};
+struct __s_blob {
+  __char* blob;
+  __word sz;
+};
+struct __s_ropeleaf {
+  __char* blob;
+  __word sz;
+};
+struct __s_ropebranch {
+  __obj left;
+  __obj right;
+};
+struct __s_int {
+  __int value;
+};
+
 union __wrapped_obj {
-  struct __tagged {
-    __word tag;
-    __obj payload;
-  } tagged;
-  struct __closure {
-    __word sz;
-    __objref env;
-  } closure;
-  struct __record {
-    __word sz;
-    __objref fields;
-  } record;
-  struct __bv {
-    __word sz;
-    __word vec;
-  } bv;
-  struct __label {
-    __obj (*f)(void);
-  } label;
-  struct __blob {
-    __char* blob;
-    __word sz;
-  } blob;
-  struct __ropeleaf {
-    __char* blob;
-    __word sz;
-  } ropeleaf;
-  struct __ropebranch {
-    __obj left;
-    __obj right;
-  } ropebranch;
-  struct __int {
-    __int value;
-  } z;
+  struct __s_tagged tagged;
+  struct __s_closure closure;
+  struct __s_record record;
+  struct __s_bv bv;
+  struct __s_label label;
+  struct __s_blob blob;
+  struct __s_ropeleaf ropeleaf;
+  struct __s_ropebranch ropebranch;
+  struct __s_int z;
 } __attribute__((aligned(8)));
 
 #define __WRAP(x) ((__obj)(((__header*)x)+1))
@@ -320,11 +341,11 @@ union __wrapped_obj {
 #endif
 
 void __fatal(char*,...) __attribute__((noreturn));
-__unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
-__objref hp;
-__obj __UNIT;
-__obj __TRUE;
-__obj __FALSE;
+extern __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
+extern __objref hp;
+extern __obj __UNIT;
+extern __obj __TRUE;
+extern __obj __FALSE;
 
 /* ## Constructor tags */
 
@@ -350,7 +371,7 @@ __obj __print(__obj);
 __obj __println(__obj);
 __obj __traceln(__obj(*)(__obj,__obj),const char*,__obj);
 
-static inline __objref __recordLookup (struct __record* record, __word field) {
+static inline __objref __recordLookup (struct __s_record* record, __word field) {
   __word i, sz = record->sz;
   __objref fields = record->fields;
   for (i = 0; i < sz; i++) {
@@ -359,9 +380,9 @@ static inline __objref __recordLookup (struct __record* record, __word field) {
        return (o);
   }
   if (field < __NFIELDS)
-    __fatal("record-field '%s' not found",__fieldName(field));
+    __fatal((char*) "record-field '%s' not found",__fieldName(field));
   else
-    __fatal("record-field '%zu' not found",field);
+    __fatal((char*) "record-field '%zu' not found",field);
 }
 
 static inline __word __recordUpdate (__objref fields, __word n, __word field, __obj value) {
@@ -382,7 +403,7 @@ static inline __word __recordUpdate (__objref fields, __word n, __word field, __
   return (1);
 }
 
-static inline void __recordCloneFields (struct __record* record) {
+static inline void __recordCloneFields (struct __s_record* record) {
   __word sz = record->sz;
   __objref fields = __ALLOCN(sz);
   memcpy(fields, record->fields, sz*sizeof(__unwrapped_obj));
@@ -399,14 +420,14 @@ static inline __obj __DECON (__obj o) {
 
 static inline __word __CASETAG (__obj o) {
   switch (__TAG(o)) {
-    case __INT:
+    case __INTEGER:
       return ((__word)o->z.value);
     case __TAGGED:
       return (o->tagged.tag);
     case __BV:
       return (o->bv.vec);
     default:
-      __fatal("__CASETAG() applied to non-tagged object");
+      __fatal((char*) "__CASETAG() applied to non-tagged object");
   }
 }
 

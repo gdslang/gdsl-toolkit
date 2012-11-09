@@ -11,8 +11,9 @@ end = struct
 
    open CM
    infix >>=
+   infix >>
 
-   fun all s = 
+   fun all s =
       SplitDeclarations.run s >>=
       DesugarGuards.run >>=
       InlineDecodePatterns.run >>=
@@ -24,6 +25,8 @@ end = struct
    fun dumpPre (os, (_, spec)) = AT.PP.prettyTo (os, spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun pass (s, spec) = CM.run s (all spec)
+    handle DT.DesugarTreeException (sp,err) =>
+      CM.run s (errorAt (sp, [err]) >> fail) 
 
    val desugar =
       BasicControl.mkKeepPass
