@@ -83,6 +83,7 @@ __obj __subi (__obj A, __obj B) {
 __obj __muli (__obj A, __obj B) {
   __int a = A->z.value;
   __int b = B->z.value;
+  printf("%ld * %ld\n", a, b);
   __LOCAL0(x);
     __INT_BEGIN(x);
     __INT_INIT(a * b);

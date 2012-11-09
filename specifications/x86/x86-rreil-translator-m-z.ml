@@ -373,7 +373,7 @@ val sem-pabsb x = do
   dst <- lval size x.opnd1;
 
   limit <- return
-    (case x.opnd-sz of
+    (case size of
         64: 8
       | 128: 16
      end)
@@ -387,7 +387,7 @@ val sem-pabsb x = do
   byte-size <- return 8;
   let
     val f i = do
-      _if (/lts byte-size (var (at-offset temp-src (8*i))) (imm 0)) _then do
+      _if (/lts byte-size (var (at-offset temp-src (i*8))) (imm 0)) _then do
         xorb size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i))) (imm (0-1));
 	add size (at-offset temp-dst (8*i)) (var (at-offset temp-dst (8*i))) (imm 1)
       end _else do
