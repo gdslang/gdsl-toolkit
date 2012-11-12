@@ -738,20 +738,20 @@ val vector-apply size element-size monad = do
 end
 
 val avx-expand-dst x sem = do
-  sem x;
+  sem;
  
   size <- sizeof1 x.opnd1;
   out-size <- return
     (case x.opnd1 of
-        MEM m: size
-      | REG r: 256
+        REG r: 256
+      | _: size
     end)
   ;
 
   if out-size > size then do
     rest-size <- return (out-size - size);
     
-    src <- read out-size x.opnd1;
+    src <- read size x.opnd1;
     dst <- lval out-size x.opnd1;
 
     temp <- mktemp;
@@ -1523,30 +1523,15 @@ val semantics insn =
    | VORPS x: sem-undef-varity x
    | VPABSB v:
        case v of
-          VA2 x:
-	    let
-	      val sem x = sem-pabs 8 x
-	    in
-	      avx-expand-dst x sem
-	    end
+          VA2 x: avx-expand-dst x (sem-pabs 8 x)
        end
    | VPABSD v:
        case v of
-          VA2 x:
-	    let
-	      val sem x = sem-pabs 32 x
-	    in
-	      avx-expand-dst x sem
-	    end
+          VA2 x: avx-expand-dst x (sem-pabs 32 x)
        end
    | VPABSW v:
        case v of
-          VA2 x:
-	    let
-	      val sem x = sem-pabs 16 x
-	    in
-	      avx-expand-dst x sem
-	    end
+          VA2 x: avx-expand-dst x (sem-pabs 16 x)
        end
    | VPACKSSDW x: sem-undef-varity x
    | VPACKSSWB x: sem-undef-varity x
