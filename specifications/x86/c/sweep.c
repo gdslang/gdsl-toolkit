@@ -7,7 +7,8 @@
 #include <dis.h>
 
 int main (int argc, char** argv) {
-  char fmt[1024];
+  size_t size = 16*1024;
+  char fmt[size];
   __obj insn;
 
   if(argc != 4) {
@@ -39,7 +40,7 @@ int main (int argc, char** argv) {
     if (___isNil(insn))
       __fatal("Decode failed");
     else {
-      __pretty(__pretty__,insn,fmt,1024);
+      __pretty(__pretty__,insn,fmt,size);
       puts(fmt);
   
       printf("---------------------------\n");
@@ -48,7 +49,7 @@ int main (int argc, char** argv) {
       if(___isNil(r))
         __fatal("Translate failed");
       else {
-        __pretty(__rreil_pretty__,r,fmt,1024);
+        __pretty(__rreil_pretty__,r,fmt,size);
         puts(fmt);
       }
     }

@@ -693,6 +693,50 @@ val direction-adjust reg-size reg-sem for-size = do
     sub reg-size reg-sem (var reg-sem) (imm amount)
 end
 
+val vector-apply size element-size monad = do
+  limit <- return
+    (case size of
+        64:
+	  case element-size of
+	     8: 8
+	   | 16: 4
+	   | 32: 2
+	   | 64: 1
+	  end
+      | 128:
+	  case element-size of
+	     8: 16
+	   | 16: 8
+	   | 32: 4
+	   | 64: 2
+	   | 128: 1
+	  end
+      | 256:
+	  case element-size of
+	     8: 32
+	   | 16: 16
+	   | 32: 8
+	   | 64: 4
+	   | 128: 2
+	   | 256: 1
+	  end
+     end)
+  ;
+
+  let
+    val f i = do
+      monad i;
+
+      if (i < (limit - 1)) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 0
+  end
+end
+
 val semantics insn =
   case insn of
      AAA x: sem-undef-arity0 x
@@ -1073,9 +1117,9 @@ val semantics insn =
    | OUTSB x: sem-undef-arity0 x
    | OUTSD x: sem-undef-arity0 x
    | OUTSW x: sem-undef-arity0 x
-   | PABSB x: sem-pabsb x
-   | PABSD x: sem-undef-arity2 x
-   | PABSW x: sem-undef-arity2 x
+   | PABSB x: sem-pabs 8 x
+   | PABSD x: sem-pabs 32 x
+   | PABSW x: sem-pabs 16 x
    | PACKSSDW x: sem-undef-arity2 x
    | PACKSSWB x: sem-undef-arity2 x
    | PACKUSDW x: sem-undef-arity2 x

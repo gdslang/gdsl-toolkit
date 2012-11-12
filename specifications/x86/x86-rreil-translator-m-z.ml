@@ -367,41 +367,33 @@ end
 
 ## P>>
 
-val sem-pabsb x = do
+val sem-pabs element-size x = do
   size <- sizeof1 x.opnd1;
   src <- read size x.opnd2;
   dst <- lval size x.opnd1;
-
-  limit <- return
-    (case size of
-        64: 8
-      | 128: 16
-     end)
-  ;
 
   temp-src <- mktemp;
   mov size temp-src src;
 
   temp-dst <- mktemp;
 
-  byte-size <- return 8;
   let
-    val f i = do
-      _if (/lts byte-size (var (at-offset temp-src (8*i))) (imm 0)) _then do
-        xorb byte-size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i))) (imm (0-1));
-	add byte-size (at-offset temp-dst (8*i)) (var (at-offset temp-dst (8*i))) (imm 1)
+    val m i = do
+      offset <- return (element-size*i);
+      current-src <- return (at-offset temp-src offset);
+      current-dst <- return (at-offset temp-dst offset);
+      _if (/lts element-size (var current-src) (imm 0)) _then do
+        xorb element-size current-dst (var current-src) (imm (0-1));
+	add element-size current-dst (var current-dst) (imm 1)
       end _else do
-        mov byte-size (at-offset temp-dst (8*i)) (var (at-offset temp-src (8*i)))
-      end;
-
-      if (i < (limit - 1)) then
-        f (i + 1)
-      else
-        return void
+        mov element-size current-dst (var current-src)
+      end
     end
   in
-    f 0
-  end
+    vector-apply size element-size m
+  end;
+
+  write size dst (var temp-dst)
 end
 
 val ps-pop opnd-sz opnd = do
