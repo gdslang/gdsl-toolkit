@@ -239,25 +239,27 @@ val relative target =
 
 val absolute target = not (relative target)
 
-val write-offset sz x offset =
+#Todo: MEM => byte offset, REG => bit offset... confusing (division?)
+val lval-offset sz x offset =
    case x of
      MEM x:
        do
-         #Todo: Offset for memory operands?
+         #Offset for memory operands? => Add offset to pointer
          address <- conv-with Signed x.psz x.opnd;
-         return (SEM_WRITE_MEM{size=x.psz,address=address,segment=x.segment})
+	 combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {imm=offset}});
+         return (SEM_WRITE_MEM{size=x.psz,address=combined,segment=x.segment})
        end
-    | REG x:
+    | REG r:
        do 
-         id <- return (semantic-register-of x);
+         id <- return (semantic-register-of-operand-with-size x sz);
 	 id <- return (@{offset=id.offset + offset} id);
          return (SEM_WRITE_VAR{size= $size id,id=id})
        end
    end
 
 
-val write sz x = write-offset sz x 0
-val write-upper sz x = write-offset sz x sz
+val lval sz x = lval-offset sz x 0
+val lval-upper sz x = lval-offset sz x sz
 
 val register? x =
   case x of
@@ -265,7 +267,7 @@ val register? x =
     | _: '0'
   end
 
-val commit sz a b =
+val write sz a b =
    case a of
       SEM_WRITE_MEM x:
          #store x (SEM_LIN{size=sz,opnd1=b})
@@ -313,8 +315,10 @@ val _if c _then a _else b = do
   stack <- pop-all;
   a;
   t <- pop-all;
+  t <- return (rreil-stmts-rev t);
   b;
   e <- pop-all;
+  e <- return (rreil-stmts-rev e);
   stack-set stack;
   ite c t e
 end
@@ -366,11 +370,18 @@ val /gtu sz a b = do
   return (var t)
 end
 
+val /lts sz a b = do
+  t <- mktemp;
+  cmplts sz t a b;
+  return (var t)
+end
+
 val _while c __ b = do
   c <- c;
   stack <- pop-all;
   b;
   body <- pop-all;
+  body <- return (rreil-stmts-rev body);
   stack-set stack;
   while c body
 end
@@ -479,9 +490,9 @@ end
 
 val undef-opnd opnd = do
   sz <- sizeof1 opnd;
-  a <- write sz opnd;
+  a <- lval sz opnd;
   t <- mktemp;
-  commit sz a (var t)
+  write sz a (var t)
 end
 
 val sem-undef-arity-ge1 x = do
@@ -680,6 +691,75 @@ val direction-adjust reg-size reg-sem for-size = do
     add reg-size reg-sem (var reg-sem) (imm amount)  
   _else
     sub reg-size reg-sem (var reg-sem) (imm amount)
+end
+
+val vector-apply size element-size monad = do
+  limit <- return
+    (case size of
+        64:
+	  case element-size of
+	     8: 8
+	   | 16: 4
+	   | 32: 2
+	   | 64: 1
+	  end
+      | 128:
+	  case element-size of
+	     8: 16
+	   | 16: 8
+	   | 32: 4
+	   | 64: 2
+	   | 128: 1
+	  end
+      | 256:
+	  case element-size of
+	     8: 32
+	   | 16: 16
+	   | 32: 8
+	   | 64: 4
+	   | 128: 2
+	   | 256: 1
+	  end
+     end)
+  ;
+
+  let
+    val f i = do
+      monad i;
+
+      if (i < (limit - 1)) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 0
+  end
+end
+
+val avx-expand-dst x sem = do
+  sem;
+ 
+  size <- sizeof1 x.opnd1;
+  out-size <- return
+    (case x.opnd1 of
+        REG r: 256
+      | _: size
+    end)
+  ;
+
+  if out-size > size then do
+    rest-size <- return (out-size - size);
+    
+    src <- read size x.opnd1;
+    dst <- lval out-size x.opnd1;
+
+    temp <- mktemp;
+    movzx out-size temp size src;
+
+    write out-size dst (var temp)
+  end else
+    return void
 end
 
 val semantics insn =
@@ -978,14 +1058,14 @@ val semantics insn =
    | LAR x: sem-undef-arity2 x
    | LDDQU x: sem-lddqu x
    | LDMXCSR x: sem-undef-arity1 x
-   | LDS x: sem-lds x
+   | LDS x: sem-lds-les-lfs-lgs-lss x DS
    | LEA x: sem-lea x
    | LEAVE x: sem-undef-arity0 x
-   | LES x: sem-undef-arity2 x
+   | LES x: sem-lds-les-lfs-lgs-lss x ES
    | LFENCE x: sem-undef-arity0 x
-   | LFS x: sem-undef-arity2 x
+   | LFS x: sem-lds-les-lfs-lgs-lss x FS
    | LGDT x: sem-undef-arity1 x
-   | LGS x: sem-undef-arity2 x
+   | LGS x: sem-lds-les-lfs-lgs-lss x GS
    | LIDT x: sem-undef-arity1 x
    | LLDT x: sem-undef-arity1 x
    | LMSW x: sem-undef-arity1 x
@@ -994,10 +1074,10 @@ val semantics insn =
    | LOOPE x: sem-loope x
    | LOOPNE x: sem-loopne x
    | LSL x: sem-undef-arity2 x
-   | LSS x: sem-undef-arity2 x
+   | LSS x: sem-lds-les-lfs-lgs-lss x SS
    | LTR x: sem-undef-arity1 x
-   | MASKMOVDQU x: sem-undef-arity2 x
-   | MASKMOVQ x: sem-undef-arity2 x
+   | MASKMOVDQU x: sem-maskmovdqu-vmaskmovdqu x
+   | MASKMOVQ x: sem-maskmovq x
    | MAXPD x: sem-undef-arity2 x
    | MAXPS x: sem-undef-arity2 x
    | MAXSD x: sem-undef-arity2 x
@@ -1011,12 +1091,12 @@ val semantics insn =
    | MOV x: sem-mov x
    | MOVAPD x: sem-movap x
    | MOVAPS x: sem-movap x
-   | MOVBE x: sem-undef-arity2 x
-   | MOVD x: sem-undef-arity2 x
+   | MOVBE x: sem-movbe x
+   | MOVD x: sem-mov-sse x
    | MOVDDUP x: sem-undef-arity2 x
-   | MOVDQ2Q x: sem-undef-arity2 x
-   | MOVDQA x: sem-undef-arity2 x
-   | MOVDQU x: sem-undef-arity2 x
+   | MOVDQ2Q x: sem-movdq2q x
+   | MOVDQA x: sem-mov-sse x
+   | MOVDQU x: sem-mov-sse x
    | MOVHLPS x: sem-undef-arity2 x
    | MOVHPD x: sem-undef-arity2 x
    | MOVHPS x: sem-undef-arity2 x
@@ -1025,14 +1105,14 @@ val semantics insn =
    | MOVLPS x: sem-undef-arity2 x
    | MOVMSKPD x: sem-undef-arity2 x
    | MOVMSKPS x: sem-undef-arity2 x
-   | MOVNTDQ x: sem-undef-arity2 x
-   | MOVNTDQA x: sem-undef-arity2 x
-   | MOVNTI x: sem-undef-arity2 x
+   | MOVNTDQ x: sem-mov-sse x
+   | MOVNTDQA x: sem-mov-sse x
+   | MOVNTI x: sem-mov x
    | MOVNTPD x: sem-undef-arity2 x
    | MOVNTPS x: sem-undef-arity2 x
-   | MOVNTQ x: sem-undef-arity2 x
-   | MOVQ x: sem-undef-arity2 x
-   | MOVQ2DQ x: sem-undef-arity2 x
+   | MOVNTQ x: sem-mov-sse x
+   | MOVQ x: sem-mov-sse x
+   | MOVQ2DQ x: sem-movzx x
    | MOVS x: sem-rep-insn x sem-movs
    | MOVSD x: sem-undef-arity2 x
    | MOVSHDUP x: sem-undef-arity2 x
@@ -1050,10 +1130,10 @@ val semantics insn =
    | MULPS x: sem-undef-arity2 x
    | MULSD x: sem-undef-arity2 x
    | MULSS x: sem-undef-arity2 x
-   | MWAIT x: sem-undef-arity0 x
-   | NEG x: sem-undef-arity1 x
+   | MWAIT x: sem-nop x
+   | NEG x: sem-neg x
    | NOP x: sem-nop x
-   | NOT x: sem-undef-arity1 x
+   | NOT x: sem-not x
    | OR x: sem-or x
    | ORPD x: sem-undef-arity2 x
    | ORPS x: sem-undef-arity2 x
@@ -1062,9 +1142,9 @@ val semantics insn =
    | OUTSB x: sem-undef-arity0 x
    | OUTSD x: sem-undef-arity0 x
    | OUTSW x: sem-undef-arity0 x
-   | PABSB x: sem-undef-arity2 x
-   | PABSD x: sem-undef-arity2 x
-   | PABSW x: sem-undef-arity2 x
+   | PABSB x: sem-pabs 8 x
+   | PABSD x: sem-pabs 32 x
+   | PABSW x: sem-pabs 16 x
    | PACKSSDW x: sem-undef-arity2 x
    | PACKSSWB x: sem-undef-arity2 x
    | PACKUSDW x: sem-undef-arity2 x
@@ -1377,7 +1457,10 @@ val semantics insn =
    | VINSERTPS x: sem-undef-varity x
    | VLDDQU x: sem-undef-varity x
    | VLDMXCSR x: sem-undef-varity x
-   | VMASKMOVDQU x: sem-undef-varity x
+   | VMASKMOVDQU v:
+       case v of
+          VA3 x: sem-maskmovdqu-vmaskmovdqu x
+       end
    | VMASKMOVPD x: sem-undef-varity x
    | VMASKMOVPS x: sem-undef-varity x
    | VMAXPD x: sem-undef-varity x
@@ -1390,10 +1473,19 @@ val semantics insn =
    | VMINSS x: sem-undef-varity x
    | VMOVAPD x: sem-vmovap x
    | VMOVAPS x: sem-vmovap x
-   | VMOVD x: sem-undef-varity x
+   | VMOVD v:
+       case v of
+          VA2 x: sem-mov-avx x
+       end
    | VMOVDDUP x: sem-undef-varity x
-   | VMOVDQA x: sem-undef-varity x
-   | VMOVDQU x: sem-undef-varity x
+   | VMOVDQA v:
+       case v of
+          VA2 x: sem-mov-avx x
+       end
+   | VMOVDQU v:
+       case v of
+          VA2 x: sem-mov-avx x
+       end
    | VMOVHLPS x: sem-undef-varity x
    | VMOVHPD x: sem-undef-varity x
    | VMOVHPS x: sem-undef-varity x
@@ -1402,11 +1494,20 @@ val semantics insn =
    | VMOVLPS x: sem-undef-varity x
    | VMOVMSKPD x: sem-undef-varity x
    | VMOVMSKPS x: sem-undef-varity x
-   | VMOVNTDQ x: sem-undef-varity x
-   | VMOVNTDQA x: sem-undef-varity x
+   | VMOVNTDQ v:
+       case v of
+          VA2 x: sem-mov-avx x
+       end
+   | VMOVNTDQA v:
+       case v of
+          VA2 x: sem-mov-avx x
+       end
    | VMOVNTPD x: sem-undef-varity x
    | VMOVNTPS x: sem-undef-varity x
-   | VMOVQ x: sem-undef-varity x
+   | VMOVQ v:
+       case v of
+          VA2 x: sem-mov-avx x
+       end
    | VMOVSD x: sem-undef-varity x
    | VMOVSHDUP x: sem-undef-varity x
    | VMOVSLDUP x: sem-undef-varity x
@@ -1420,9 +1521,18 @@ val semantics insn =
    | VMULSS x: sem-undef-varity x
    | VORPD x: sem-undef-varity x
    | VORPS x: sem-undef-varity x
-   | VPABSB x: sem-undef-varity x
-   | VPABSD x: sem-undef-varity x
-   | VPABSW x: sem-undef-varity x
+   | VPABSB v:
+       case v of
+          VA2 x: avx-expand-dst x (sem-pabs 8 x)
+       end
+   | VPABSD v:
+       case v of
+          VA2 x: avx-expand-dst x (sem-pabs 32 x)
+       end
+   | VPABSW v:
+       case v of
+          VA2 x: avx-expand-dst x (sem-pabs 16 x)
+       end
    | VPACKSSDW x: sem-undef-varity x
    | VPACKSSWB x: sem-undef-varity x
    | VPACKUSDW x: sem-undef-varity x

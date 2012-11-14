@@ -35,6 +35,7 @@ val main = do
         addrsz='0',
         lock='0',
         segment=SEG_NONE,
+	default-operand-size=32,
         ptrty=32, #TODO: check
         ~tab};
    instr <- p64;
@@ -62,6 +63,8 @@ val set-SS = update@{segment=SEG_OVERRIDE SS}
 
 val set-lock = update@{lock='1'}
 val set-addrsz = update@{addrsz='1'}
+
+val opndsz-set-from-d = return void
 
 ## Decoding prefixes
 
@@ -880,8 +883,8 @@ type insn =
  | LSL of arity2
  | LSS of arity2
  | LTR of arity1
- | MASKMOVDQU of arity2
- | MASKMOVQ of arity2
+ | MASKMOVDQU of arity3
+ | MASKMOVQ of arity3
  | MAXPD of arity2
  | MAXPS of arity2
  | MAXSD of arity2
@@ -1637,6 +1640,12 @@ val mode32? = do
  return (not a)
 end
 
+val default-operand-size = do
+  #return 32
+  opnd-sz <- query $default-operand-size;
+  return opnd-sz
+end
+
 val operand-size = do
   #Todo: D flag
   mode64 <- mode64?;
@@ -1648,12 +1657,12 @@ val operand-size = do
     else if opndsz then
       return 16
     else
-      return 32
+      default-operand-size
   else
     if opndsz then
       return 16
     else
-      return 32
+      default-operand-size
 end
 
 val address-size = do
@@ -2204,6 +2213,18 @@ val m/default/si/esi/rsi size = do
   end
 end
 
+val m/default/di/edi/rdi size = do
+  size <- size;
+  update@{ptrty=size};
+  addrsz <- address-size;
+  update@{ptrsz=addrsz};
+  case addrsz of
+     16: mem (REG DI)
+   | 32: mem (REG EDI)
+   | 64: mem (REG RDI)
+  end
+end
+
 val m/es/di/edi/rdi size = do
   update @{segment=SEG_OVERRIDE ES};
   size <- size;
@@ -2391,6 +2412,12 @@ val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (d
 end)
 
 val near-abs cons giveOp = exception-rep-repne-lock (do
+  mode64 <- mode64?;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
@@ -2398,6 +2425,12 @@ val near-abs cons giveOp = exception-rep-repne-lock (do
 end)
 
 val near-rel cons giveOp = exception-rep-repne-lock (do
+  mode64 <- mode64?;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
@@ -2405,6 +2438,12 @@ val near-rel cons giveOp = exception-rep-repne-lock (do
 end)
 
 val far-dir cons giveOp = exception-rep-repne-lock (do
+  mode64 <- mode64?;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
@@ -2412,6 +2451,12 @@ val far-dir cons giveOp = exception-rep-repne-lock (do
 end)
 
 val far-ind cons giveOp = exception-rep-repne-lock (do
+  mode64 <- mode64?;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
@@ -3757,8 +3802,6 @@ val / [0x8d /r-mem]
  | mode64? & (// rexw?) & (// opndsz?) = binop LEA r32 mX
  | mode64? & rexw? & (// opndsz?) = binop LEA r64 mX
 
-### =><=
-
 ### LEAVE
 ###  - High Level Procedure Exit
 #Todo: handle different effects to BP/EBP/RBP
@@ -3766,6 +3809,7 @@ val / [0xc9] = arity0 LEAVE
 
 ### LFENCE
 ###  - Load Fence
+#Todo: -reg?
 val / [0x0f 0xae /5-reg] = arity0 LFENCE
 
 ### LGDT/LIDT
@@ -3792,13 +3836,12 @@ val / [0x0f 0x01 /6-mem] = unop LMSW r/m16
 ###  - Load String
 val / [0xac] = unop-rep LODS (m/default/si/esi/rsi (return 8))
 val / [0xad]
- | opndsz? = unop-rep LODS (m/default/si/esi/rsi (return 8))
- | rexw? = unop-rep LODS (m/default/si/esi/rsi (return 8))
- | otherwise = unop-rep LODS (m/default/si/esi/rsi (return 8))
+ | opndsz? = unop-rep LODS (m/default/si/esi/rsi operand-size)
+ | rexw? = unop-rep LODS (m/default/si/esi/rsi operand-size)
+ | otherwise = unop-rep LODS (m/default/si/esi/rsi operand-size)
 
 ### LOOP/LOOPcc
 ###  - Loop According to ECX Counter
-# Todo: correct?
 val / [0xe2] = near-rel LOOP rel8
 val / [0xe1] = near-rel LOOPE rel8
 val / [0xe0] = near-rel LOOPNE rel8
@@ -3816,12 +3859,12 @@ val / [0x0f 0x00 /3] = unop LTR r/m16
 
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
-val /66 [0x0f 0xf7 /r] = binop MASKMOVDQU xmm128 xmm/reg128
-val /vex/66/0f/vexv [0xf7 /r-reg] | vex128? = varity2 VMASKMOVDQU xmm128 xmm/m128
+val /66 [0x0f 0xf7 /r-reg] = ternop MASKMOVDQU xmm128 xmm/reg128 (m/default/di/edi/rdi (return 8))
+val /vex/66/0f [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU xmm128 xmm/m128 (m/default/di/edi/rdi (return 8))
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
-val / [0x0f 0xf7 /r] = binop MASKMOVQ mm64 mm/reg64
+val / [0x0f 0xf7 /r-reg] = ternop MASKMOVQ mm64 mm/reg64 (m/default/di/edi/rdi (return 8))
 
 ### MAXPD
 ###  - Return Maximum Packed Double-Precision Floating-Point Values
@@ -3849,7 +3892,10 @@ val /vex/f3/0f/vexv [0x5f /r] = varity3 VMAXSS xmm128 v/xmm xmm/m32
 
 ### MFENCE
 ###  - Memory Fence
+#Todo: -reg?
 val / [0x0f 0xae /6-reg] = arity0 MFENCE
+
+### =><=
 
 ### MINPD
 ###  - Return Minimum Packed Double-Precision Floating-Point Values
@@ -4748,16 +4794,19 @@ val /vex/66/0f/vexv [0xf4 /r] = varity3 VPMULUDQ xmm128 v/xmm xmm/m128
 
 ### POP
 ###  - Pop a Value from the Stack
-#TODO: correctly implement 32bit and 64bit modes
+#Todo: correctly implement 32bit and 64bit modes
 val / [0x8f /0]
- | opndsz? = unop POP r/m16
- | otherwise = unop POP r/m64
+ | opndsz? = do opndsz-set-from-d; unop POP r/m16 end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop POP r/m64 end
+ | otherwise = do opndsz-set-from-d; unop POP r/m32 end
 val / ['01011 r:3']
- | opndsz? = do update@{reg/opcode=r}; unop POP r16/rexb end
- | otherwise = do update@{reg/opcode=r}; unop POP r64/rexb end
-val / [0x1f] = unop POP ds
-val / [0x07] = unop POP es
-val / [0x17] = unop POP ss
+ | opndsz? = do opndsz-set-from-d; update@{reg/opcode=r}; unop POP r16/rexb end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; update@{reg/opcode=r}; unop POP r64/rexb end
+ | otherwise = do update@{reg/opcode=r}; unop POP r32/rexb end
+val / [0x1f] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ds end
+val / [0x07] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP es end
+val / [0x17] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ss end
+#Todo: Rest
 
 ### POPA/POPAD
 ###  - Pop All General-Purpose Registers
@@ -4979,22 +5028,24 @@ val /vex/66/0f/vexv [0x6c /r] | vex128? = varity3 VPUNPCKLQDQ xmm128 v/xmm xmm/m
 
 ### PUSH
 ###  - Push Word, Doubleword or Quadword Onto the Stack
-#TODO: correctly implement 32bit and 64bit modes
+#Todo: correctly implement 32bit and 64bit modes
 val / [0xff /6]
- | opndsz? = unop PUSH r/m16
- | otherwise = unop PUSH r/m64
+ | opndsz? = do opndsz-set-from-d; unop PUSH r/m16 end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop PUSH r/m64 end
+ | otherwise = do opndsz-set-from-d; unop PUSH r/m32 end
 val / ['01010 r:3']
- | opndsz? = do update@{reg/opcode=r}; unop PUSH r16/rexb end
- | otherwise = do update@{reg/opcode=r}; unop PUSH r64/rexb end
-val / [0x6a] = unop PUSH imm8
+ | opndsz? = do opndsz-set-from-d; update@{reg/opcode=r}; unop PUSH r16/rexb end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; update@{reg/opcode=r}; unop PUSH r64/rexb end
+ | otherwise = do opndsz-set-from-d; update@{reg/opcode=r}; unop PUSH r32/rexb end
+val / [0x6a] = do opndsz-set-from-d; unop PUSH imm8 end
 val / [0x68]
- | opndsz? = unop PUSH imm16
- | otherwise = unop PUSH imm32
-val / [0x0e] = unop PUSH cs
-val / [0x16] = unop PUSH ds
-val / [0x06] = unop PUSH es
-val / [0x0f 0xa0] = unop PUSH fs
-val / [0x0f 0xa8] = unop PUSH gs
+ | opndsz? = do opndsz-set-from-d; unop PUSH imm16 end
+ | otherwise = do opndsz-set-from-d; unop PUSH imm32 end
+val / [0x0e] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH cs end
+val / [0x16] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH ds end
+val / [0x06] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH es end
+val / [0x0f 0xa0] = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH fs end
+val / [0x0f 0xa8] = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH gs end
 
 ### PUSHA/PUSHAD
 ###  - Push All General-Purpose Registers

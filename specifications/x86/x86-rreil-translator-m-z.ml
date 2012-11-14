@@ -1,34 +1,137 @@
 ## M>>
 
+val sem-maskmov x size = do
+  src <- read size x.opnd1;
+  mask <- read size x.opnd2;
+  
+  src-temp <- mktemp;
+  mov size src-temp src;
+
+  mask-temp <- mktemp;
+  mov size mask-temp mask;
+
+  limit <- return
+    (case size of
+       64: 7
+     | 128: 15
+    end)
+  ;
+
+  byte-size <- return 8;
+  let
+    val f i = do
+      _if (/d (var (at-offset mask-temp ((i + 1)*8 - 1)))) _then do
+        dst <- lval-offset byte-size x.opnd3 i;
+        write byte-size dst (var (at-offset src-temp (i*8)))
+      end;
+      if (i < limit) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 0
+  end
+
+#  _if (/d (var (at-offset mask-temp 7))) _then do
+#    dst <- lval-offset byte-size x.opnd3 0;
+#    write byte-size dst (var (at-offset src-temp 0))
+#  end;
+#  _if (/d (var (at-offset mask-temp 15))) _then do
+#    dst <- lval-offset byte-size x.opnd3 1;
+#    write byte-size dst (var (at-offset src-temp 8))
+#  end;
+#  _if (/d (var (at-offset mask-temp 23))) _then do
+#    dst <- lval-offset byte-size x.opnd3 2;
+#    write byte-size dst (var (at-offset src-temp 16))
+#  end;
+#  _if (/d (var (at-offset mask-temp 31))) _then do
+#    dst <- lval-offset byte-size x.opnd3 3;
+#    write byte-size dst (var (at-offset src-temp 24))
+#  end;
+#  _if (/d (var (at-offset mask-temp 39))) _then do
+#    dst <- lval-offset byte-size x.opnd3 4;
+#    write byte-size dst (var (at-offset src-temp 32))
+#  end;
+#  _if (/d (var (at-offset mask-temp 47))) _then do
+#    dst <- lval-offset byte-size x.opnd3 5;
+#    write byte-size dst (var (at-offset src-temp 40))
+#  end;
+#  _if (/d (var (at-offset mask-temp 55))) _then do
+#    dst <- lval-offset byte-size x.opnd3 6;
+#    write byte-size dst (var (at-offset src-temp 48))
+#  end;
+#  _if (/d (var (at-offset mask-temp 63))) _then do
+#    dst <- lval-offset byte-size x.opnd3 7;
+#    write byte-size dst (var (at-offset src-temp 56))
+#  end;
+#  _if (/d (var (at-offset mask-temp 71))) _then do
+#    dst <- lval-offset byte-size x.opnd3 8;
+#    write byte-size dst (var (at-offset src-temp 64))
+#  end;
+#  _if (/d (var (at-offset mask-temp 79))) _then do
+#    dst <- lval-offset byte-size x.opnd3 9;
+#    write byte-size dst (var (at-offset src-temp 72))
+#  end;
+#  _if (/d (var (at-offset mask-temp 87))) _then do
+#    dst <- lval-offset byte-size x.opnd3 10;
+#    write byte-size dst (var (at-offset src-temp 80))
+#  end;
+#  _if (/d (var (at-offset mask-temp 95))) _then do
+#    dst <- lval-offset byte-size x.opnd3 11;
+#    write byte-size dst (var (at-offset src-temp 88))
+#  end;
+#  _if (/d (var (at-offset mask-temp 103))) _then do
+#    dst <- lval-offset byte-size x.opnd3 12;
+#    write byte-size dst (var (at-offset src-temp 96))
+#  end;
+#  _if (/d (var (at-offset mask-temp 111))) _then do
+#    dst <- lval-offset byte-size x.opnd3 13;
+#    write byte-size dst (var (at-offset src-temp 104))
+#  end;
+#  _if (/d (var (at-offset mask-temp 119))) _then do
+#    dst <- lval-offset byte-size x.opnd3 14;
+#    write byte-size dst (var (at-offset src-temp 112))
+#  end;
+#  _if (/d (var (at-offset mask-temp 127))) _then do
+#    dst <- lval-offset byte-size x.opnd3 15;
+#    write byte-size dst (var (at-offset src-temp 120))
+#  end
+end
+
+val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov x 128
+
+val sem-maskmovq x = sem-maskmov x 64
+
 val sem-mov x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
-  a <- write sz x.opnd1;
+  a <- lval sz x.opnd1;
   b <- read sz x.opnd2;
-  commit sz a b
+  write sz a b
 end
 
 val sem-movap x = do
   sz <- sizeof1 x.opnd1;
-  dst <- write sz x.opnd1;
+  dst <- lval sz x.opnd1;
   src <- read sz x.opnd2;
 
   temp <- mktemp;
   mov sz temp src;
 
-  commit sz dst (var temp)
+  write sz dst (var temp)
 end
 
 val sem-vmovap x = do
   x <- case x of VA2 x: return x end;
 
   sz <- sizeof1 x.opnd1;
-  dst <- write sz x.opnd1;
+  dst <- lval sz x.opnd1;
   src <- read sz x.opnd2;
 
   if sz === 128 then
     do
-      dst-upper <- write-upper sz x.opnd1;
-      commit sz dst-upper (imm 0)
+      dst-upper <- lval-upper sz x.opnd1;
+      write sz dst-upper (imm 0)
     end
   else
     return void
@@ -36,38 +139,134 @@ val sem-vmovap x = do
 
   temp <- mktemp;
   mov sz temp src;
-  commit sz dst (var temp)
+  write sz dst (var temp)
+end
+
+val sem-movbe x = do
+  src <- read x.opnd-sz x.opnd2;
+  dst <- lval x.opnd-sz x.opnd1;
+
+  src-temp <- mktemp;
+  mov x.opnd-sz src-temp src;
+
+  dst-temp <- mktemp;
+
+  limit <- return
+    (case x.opnd-sz of
+        16: 2
+      | 32: 4
+      | 64: 8
+     end)
+  ;
+
+  byte-size <- return 8;
+  let
+    val f i = do
+      mov byte-size (at-offset dst-temp (i*8)) (var (at-offset src-temp ((limit - i - 1)*8)));
+
+      if (i < (limit - 1)) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 0
+  end;
+
+  write x.opnd-sz dst (var dst-temp)
+end
+
+#val sem-movd-movq-vmovd-vmovq x dst-size = do
+#  src-size <- sizeof1 x.opnd2;
+#  src <- read src-size x.opnd2;
+#
+#  dst <- lval dst-size x.opnd1;
+#
+#  temp <- mktemp;
+#  mov dst-size temp (imm 0);
+#  mov src-size temp src;
+#
+#  write dst-size dst (var temp)
+#end
+#
+#val sem-movd-movq x = do
+#  dst-size <- sizeof1 x.opnd1;
+#  sem-movd-movq-vmovd-vmovq x dst-size
+#end
+#
+#val sem-vmovd-vmovq x = do
+#  dst-size <- 
+#    case x.opnd1 of
+#       MEM m: sizeof1 x.opnd1
+#     | REG r: return 256
+#    end
+#  ;
+#  sem-movd-movq-vmovd-vmovq x dst-size
+#end
+
+val sem-mov-sse-avx x size out-size = do
+  src <- read size x.opnd2;
+  dst <- lval out-size x.opnd1;
+
+  temp <- mktemp;
+  movzx out-size temp size src;
+
+  write out-size dst (var temp)
+end
+
+val sem-mov-sse x = do
+  size <- sizeof1 x.opnd1;
+  sem-mov-sse-avx x size size
+end
+
+val sem-mov-avx x = do
+  size <- sizeof1 x.opnd1;
+  out-size <- return
+    (case x.opnd1 of
+        MEM m: size
+      | REG r: 256
+    end)
+  ;
+  sem-mov-sse-avx x size out-size
+end
+
+val sem-movdq2q x = do
+  size <- sizeof1 x.opnd1; #Important: Destination size!
+  src <- read size x.opnd2;
+  dst <- lval size x.opnd1;
+
+  write size dst src
 end
 
 val sem-movs x = do
   sz <- sizeof1 x.opnd1;
   src <- read sz x.opnd2;
-  dst <- write sz x.opnd1;
-  commit sz dst src
+  dst <- lval sz x.opnd1;
+  write sz dst src
 end
 
 val sem-movsx x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
-  dst <- write sz-dst x.opnd1;
+  dst <- lval sz-dst x.opnd1;
   src <- read sz-src x.opnd2;
 
   temp <- mktemp;
   movsx sz-dst temp sz-src src;
 
-  commit sz-dst dst (var temp)
+  write sz-dst dst (var temp)
 end
 
 val sem-movzx x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
-  dst <- write sz-dst x.opnd1;
+  dst <- lval sz-dst x.opnd1;
   src <- read sz-src x.opnd2;
 
   temp <- mktemp;
   movzx sz-dst temp sz-src src;
 
-  commit sz-dst dst (var temp)
+  write sz-dst dst (var temp)
 end
 
 val sem-mul conv x = do
@@ -100,15 +299,52 @@ end
 
 ## N>>
 
+val sem-neg x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd1;
+  dst <- lval size x.opnd1;
+
+  temp <- mktemp;
+  sub size temp (imm 0) src;
+
+  cf <- fCF;
+  ov <- fOF;
+  sf <- fSF;
+  zf <- fZF;
+
+  cmpneq size cf src (imm 0);
+
+  src-temp <- mktemp;
+  mov size src-temp src;
+  cmpeq 1 ov (var (at-offset temp (size - 1))) (var (at-offset src-temp (size - 1)));
+  cmplts size sf (var temp) (imm 0);
+
+  emit-parity-flag (var temp);
+  emit-arithmetic-adjust-flag size (var temp) (imm 0) src; #Todo: Correct?
+
+  write size dst (var temp)
+end
+
 val sem-nop x = do
   return void
+end
+
+val sem-not x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd1;
+  dst <- lval size x.opnd1;
+
+  temp <- mktemp;
+  xorb size temp src (imm (0-1));
+
+  write size dst (var temp)
 end
 
 ## O>>
 
 val sem-or x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
-  dst <- write sz x.opnd1;
+  dst <- lval sz x.opnd1;
   src0 <- read sz x.opnd1;
   src1 <- read sz x.opnd2;
   temp <- mktemp;
@@ -126,10 +362,39 @@ val sem-or x = do
   af <- fAF;
   undef 1 af;
 
-  commit sz dst (var temp)
+  write sz dst (var temp)
 end
 
 ## P>>
+
+val sem-pabs element-size x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd2;
+  dst <- lval size x.opnd1;
+
+  temp-src <- mktemp;
+  mov size temp-src src;
+
+  temp-dst <- mktemp;
+
+  let
+    val m i = do
+      offset <- return (element-size*i);
+      current-src <- return (at-offset temp-src offset);
+      current-dst <- return (at-offset temp-dst offset);
+      _if (/lts element-size (var current-src) (imm 0)) _then do
+        xorb element-size current-dst (var current-src) (imm (0-1));
+	add element-size current-dst (var current-dst) (imm 1)
+      end _else do
+        mov element-size current-dst (var current-src)
+      end
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write size dst (var temp-dst)
+end
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
@@ -168,10 +433,10 @@ val ps-pop opnd-sz opnd = do
 end
 
 val sem-pop x = do
-  dst <- write x.opnd-sz x.opnd1;
+  dst <- lval x.opnd-sz x.opnd1;
   temp-dest <- mktemp;
   ps-pop x.opnd-sz temp-dest;
-  commit x.opnd-sz dst (var temp-dest)
+  write x.opnd-sz dst (var temp-dest)
 end
 
 val sem-popf x = do
@@ -394,7 +659,7 @@ end
 val sem-sal-shl x = do
   sz <- sizeof1 x.opnd1;
   szOp2 <- sizeof1 x.opnd2;
-  dst <- write sz x.opnd1;
+  dst <- lval sz x.opnd1;
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
 
@@ -447,7 +712,7 @@ val sem-sal-shl x = do
 
   emit-parity-flag (var tdst);
 
-  commit sz dst (var tdst)
+  write sz dst (var tdst)
 
 #  # dst => a, src => b, amount => c
 #  ## Temporary variables:
@@ -489,7 +754,7 @@ val sem-sal-shl x = do
 #  xorb 1 ov (var cf) (var (t2 /+ (sz - 1)));
 #  label exit;
 #  undef 1 af;
-#  commit sz a (var t2);
+#  write sz a (var t2);
 #  label nop;
 #  cmpeq sz eq b zer0
 end
@@ -497,7 +762,7 @@ end
 val sem-sar x = do
   sz <- sizeof1 x.opnd1;
   szOp2 <- sizeof1 x.opnd2;
-  dst <- write sz x.opnd1;
+  dst <- lval sz x.opnd1;
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
 
@@ -550,12 +815,12 @@ val sem-sar x = do
 
   emit-parity-flag (var tdst);
 
-  commit sz dst (var tdst)
+  write sz dst (var tdst)
 end
 
 val sem-sbb x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
-  difference <- write sz x.opnd1;
+  difference <- lval sz x.opnd1;
   minuend <- read sz x.opnd1;
   subtrahend <- read sz x.opnd2;
 
@@ -566,18 +831,18 @@ val sem-sbb x = do
   sub sz t minuend subtrahend;
 
   emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf) '1';
-  commit sz difference (var t)
+  write sz difference (var t)
 end
 
 val sem-setcc x cond = do
   dst-sz <- sizeof1 x.opnd1;
-  dst <- write dst-sz x.opnd1;
+  dst <- lval dst-sz x.opnd1;
 
   cond <- cond;
   temp <- mktemp;
   movzx dst-sz temp 1 cond;
 
-  commit dst-sz dst (var temp)
+  write dst-sz dst (var temp)
 end
 
 val sem-scas size x = let
@@ -603,7 +868,7 @@ end
 val sem-shr x = do
   sz <- sizeof1 x.opnd1;
   szOp2 <- sizeof1 x.opnd2;
-  dst <- write sz x.opnd1;
+  dst <- lval sz x.opnd1;
   src <- read sz x.opnd1;
   count <- read szOp2 x.opnd2;
 
@@ -658,7 +923,7 @@ val sem-shr x = do
 
   emit-parity-flag (var tdst);
 
-  commit sz dst (var tdst)
+  write sz dst (var tdst)
 end
 
 val sem-stc = do
@@ -686,7 +951,7 @@ end
 
 val sem-sub x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
-  difference <- write sz x.opnd1;
+  difference <- lval sz x.opnd1;
   minuend <- read sz x.opnd1;
   subtrahend <- read sz x.opnd2;
 
@@ -694,7 +959,7 @@ val sem-sub x = do
   sub sz t minuend subtrahend;
 
   emit-sub-sbb-flags sz (var t) minuend subtrahend (imm 0) '1';
-  commit sz difference (var t)
+  write sz difference (var t)
 end
 
 ## T>>
@@ -734,35 +999,35 @@ val sem-xadd x = do
   size <- sizeof1 x.opnd1;
   src0 <- read size x.opnd1;
   src1 <- read size x.opnd2;
-  dst0 <- write size x.opnd1;
-  dst1 <- write size x.opnd2;
+  dst0 <- lval size x.opnd1;
+  dst1 <- lval size x.opnd2;
 
   sum <- mktemp;
   add size sum src0 src1;
 
   emit-add-adc-flags size (var sum) src0 src1 (imm 0) '1';
 
-  commit size dst0 (var sum);
-  commit size dst1 src0
+  write size dst0 (var sum);
+  write size dst1 src0
 end
 
 val sem-xchg x = do
   sz <- sizeof1 x.opnd1;
   a-r <- read sz x.opnd1;
   b-r <- read sz x.opnd2;
-  a-w <- write sz x.opnd1;
-  b-w <- write sz x.opnd2;
+  a-w <- lval sz x.opnd1;
+  b-w <- lval sz x.opnd2;
 
   temp <- mktemp;
   
   mov sz temp a-r;
-  commit sz a-w b-r;
-  commit sz b-w (var temp)
+  write sz a-w b-r;
+  write sz b-w (var temp)
 end
 
 val sem-xor x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
-  dst <- write sz x.opnd1;
+  dst <- lval sz x.opnd1;
   src0 <- read sz x.opnd1;
   src1 <- read sz x.opnd2;
 
@@ -786,7 +1051,7 @@ val sem-xor x = do
   af <- fAF;
   undef 1 af;
 
-  commit sz dst (var temp)
+  write sz dst (var temp)
 end
 
 ## Y>>
