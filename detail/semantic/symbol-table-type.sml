@@ -145,7 +145,14 @@ structure SymbolTable :> SymbolTableSig = struct
 
    fun getAtom ti = let val (atom,_,_) = getSymbolInfo ti in atom end
    fun getInternalString (ti as (_, SymId i)) =
-      Atom.toString (getAtom ti) ^ Int.toString i
+      let
+         fun charMap #"&" = "_AND_"
+           | charMap #"'" = "_TICK_"
+           | charMap x = String.str x
+         
+      in
+         String.translate charMap (Atom.toString (getAtom ti)) ^ Int.toString i
+      end
    fun getString (ti as (_, SymId i)) =
       Atom.toString (getAtom ti) ^ 
          (if concisePrint then "" else "#" ^ Int.toString i)
