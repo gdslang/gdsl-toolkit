@@ -103,11 +103,11 @@ val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov x 128
 
 val sem-maskmovq x = sem-maskmov x 64
 
-val sem-mov x = do
+val sem-mov clear-avx x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- lval sz x.opnd1;
   b <- read sz x.opnd2;
-  write sz a b
+  write-extend clear-avx sz a b
 end
 
 val sem-movap x = do
@@ -203,32 +203,32 @@ end
 #  ;
 #  sem-movd-movq-vmovd-vmovq x dst-size
 #end
-
-val sem-mov-sse-avx x size out-size = do
-  src <- read size x.opnd2;
-  dst <- lval out-size x.opnd1;
-
-  temp <- mktemp;
-  movzx out-size temp size src;
-
-  write out-size dst (var temp)
-end
-
-val sem-mov-sse x = do
-  size <- sizeof1 x.opnd1;
-  sem-mov-sse-avx x size size
-end
-
-val sem-mov-avx x = do
-  size <- sizeof1 x.opnd1;
-  out-size <- return
-    (case x.opnd1 of
-        MEM m: size
-      | REG r: 256
-    end)
-  ;
-  sem-mov-sse-avx x size out-size
-end
+#
+#val sem-mov-sse-avx x size out-size = do
+#  src <- read size x.opnd2;
+#  dst <- lval out-size x.opnd1;
+#
+#  temp <- mktemp;
+#  movzx out-size temp size src;
+#
+#  write out-size dst (var temp)
+#end
+#
+#val sem-mov-sse x = do
+#  size <- sizeof1 x.opnd1;
+#  sem-mov-sse-avx x size size
+#end
+#
+#val sem-mov-avx x = do
+#  size <- sizeof1 x.opnd1;
+#  out-size <- return
+#    (case x.opnd1 of
+#        MEM m: size
+#      | REG r: 256
+#    end)
+#  ;
+#  sem-mov-sse-avx x size out-size
+#end
 
 val sem-movdq2q x = do
   size <- sizeof1 x.opnd1; #Important: Destination size!
@@ -257,7 +257,7 @@ val sem-movsx x = do
   write sz-dst dst (var temp)
 end
 
-val sem-movzx x = do
+val sem-movzx clear-avx x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
   dst <- lval sz-dst x.opnd1;
@@ -266,7 +266,7 @@ val sem-movzx x = do
   temp <- mktemp;
   movzx sz-dst temp sz-src src;
 
-  write sz-dst dst (var temp)
+  write-extend clear-avx sz-dst dst (var temp)
 end
 
 val sem-mul conv x = do

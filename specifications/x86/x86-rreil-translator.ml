@@ -267,26 +267,57 @@ val register? x =
     | _: '0'
   end
 
-val write sz a b =
+val write-extend avx-encoded sz a b =
    case a of
       SEM_WRITE_MEM x:
          #store x (SEM_LIN{size=sz,opnd1=b})
 	 segmented-store x (SEM_LIN{size=sz,opnd1=b}) x.segment
-    | SEM_WRITE_VAR x:
-         #TODO: no zero extension when not in 64bit mode
-         case sz of
-            32:
-               case x.id.offset of
-                  0:
-                     do mov 32 x.id b;
-                        # Zero the upper half of the given register/variable
-                        mov 32 (@{offset=32} x.id) (SEM_LIN_IMM {imm=0})
-                     end
-                | _: mov sz x.id b
-               end
-          | _: mov sz x.id b
-         end
+    | SEM_WRITE_VAR x: do
+	mode64 <- mode64?;
+
+        #if mode64 then
+	#  mov 32 (semantic-register-of EAX) (imm 100)
+	#else
+	#  return void
+	#;
+        #if (is-avx-sse x.id.id) then
+	#  mov 32 (semantic-register-of EAX) (imm 101)
+	#else
+	#  return void
+	#;
+        #if (avx-encoded) then
+	#  mov 32 (semantic-register-of EAX) (imm 102)
+	#else
+	#  return void
+	#;
+	#mov 32 (semantic-register-of EAX) (imm (500 + sz));
+
+	if (mode64 and (not (is-avx-sse x.id.id)) and sz < 64) then
+	  #Todo: Only if sz == 32?
+	  #Todo: Only for a subset of all registers?
+          mov (64 - sz) (at-offset x.id sz) (imm 0)
+	else if (avx-encoded and (is-avx-sse x.id.id) and sz < 256) then
+	  mov (256 - sz) (at-offset x.id sz) (imm 0)
+	else
+	  return void
+	;
+	mov sz x.id b
+#        case sz of
+#           32:
+#              case x.id.offset of
+#                 0:
+#                    do mov 32 x.id b;
+#                       # Zero the upper half of the given register/variable
+#                       mov 32 (@{offset=32} x.id) (SEM_LIN_IMM {imm=0})
+#                    end
+#               | _: mov sz x.id b
+#              end
+#         | _: mov sz x.id b
+#        end
+        end
    end
+
+val write sz a b = write-extend '0' sz a b
 
 val combine high low = do
   high <- return (semantic-register-of high);
@@ -1088,15 +1119,15 @@ val semantics insn =
    | MINSD x: sem-undef-arity2 x
    | MINSS x: sem-undef-arity2 x
    | MONITOR x: sem-undef-arity0 x
-   | MOV x: sem-mov x
+   | MOV x: sem-mov '0' x
    | MOVAPD x: sem-movap x
    | MOVAPS x: sem-movap x
    | MOVBE x: sem-movbe x
-   | MOVD x: sem-mov-sse x
+   | MOVD x: sem-movzx '0' x
    | MOVDDUP x: sem-undef-arity2 x
    | MOVDQ2Q x: sem-movdq2q x
-   | MOVDQA x: sem-mov-sse x
-   | MOVDQU x: sem-mov-sse x
+   | MOVDQA x: sem-movzx '0' x
+   | MOVDQU x: sem-movzx '0' x
    | MOVHLPS x: sem-undef-arity2 x
    | MOVHPD x: sem-undef-arity2 x
    | MOVHPS x: sem-undef-arity2 x
@@ -1105,14 +1136,14 @@ val semantics insn =
    | MOVLPS x: sem-undef-arity2 x
    | MOVMSKPD x: sem-undef-arity2 x
    | MOVMSKPS x: sem-undef-arity2 x
-   | MOVNTDQ x: sem-mov-sse x
-   | MOVNTDQA x: sem-mov-sse x
-   | MOVNTI x: sem-mov x
+   | MOVNTDQ x: sem-movzx '0' x
+   | MOVNTDQA x: sem-movzx '0' x
+   | MOVNTI x: sem-mov '0' x
    | MOVNTPD x: sem-undef-arity2 x
    | MOVNTPS x: sem-undef-arity2 x
-   | MOVNTQ x: sem-mov-sse x
-   | MOVQ x: sem-mov-sse x
-   | MOVQ2DQ x: sem-movzx x
+   | MOVNTQ x: sem-mov '0' x
+   | MOVQ x: sem-movzx '0' x
+   | MOVQ2DQ x: sem-movzx '0' x
    | MOVS x: sem-rep-insn x sem-movs
    | MOVSD x: sem-undef-arity2 x
    | MOVSHDUP x: sem-undef-arity2 x
@@ -1123,7 +1154,7 @@ val semantics insn =
    | MOVSXD x: sem-movsx x
    | MOVUPD x: sem-undef-arity2 x
    | MOVUPS x: sem-undef-arity2 x
-   | MOVZX x: sem-movzx x
+   | MOVZX x: sem-movzx '0' x
    | MPSADBW x: sem-undef-arity3 x
    | MUL x: sem-mul Unsigned x
    | MULPD x: sem-undef-arity2 x
@@ -1475,16 +1506,16 @@ val semantics insn =
    | VMOVAPS x: sem-vmovap x
    | VMOVD v:
        case v of
-          VA2 x: sem-mov-avx x
+          VA2 x: sem-movzx '1' x
        end
    | VMOVDDUP x: sem-undef-varity x
    | VMOVDQA v:
        case v of
-          VA2 x: sem-mov-avx x
+          VA2 x: sem-movzx '1' x
        end
    | VMOVDQU v:
        case v of
-          VA2 x: sem-mov-avx x
+          VA2 x: sem-movzx '1' x
        end
    | VMOVHLPS x: sem-undef-varity x
    | VMOVHPD x: sem-undef-varity x
@@ -1496,17 +1527,17 @@ val semantics insn =
    | VMOVMSKPS x: sem-undef-varity x
    | VMOVNTDQ v:
        case v of
-          VA2 x: sem-mov-avx x
+          VA2 x: sem-movzx '1' x
        end
    | VMOVNTDQA v:
        case v of
-          VA2 x: sem-mov-avx x
+          VA2 x: sem-movzx '1' x
        end
    | VMOVNTPD x: sem-undef-varity x
    | VMOVNTPS x: sem-undef-varity x
    | VMOVQ v:
        case v of
-          VA2 x: sem-mov-avx x
+          VA2 x: sem-movzx '1' x
        end
    | VMOVSD x: sem-undef-varity x
    | VMOVSHDUP x: sem-undef-varity x

@@ -270,6 +270,27 @@ val arch-show-id r = case r of
    | Sem_XMM15 : "XMM15"
 end
 
+val is-avx-sse id =
+  case id of
+     Sem_XMM0 : '1'
+   | Sem_XMM1 : '1'
+   | Sem_XMM2 : '1'
+   | Sem_XMM3 : '1'
+   | Sem_XMM4 : '1'
+   | Sem_XMM5 : '1'
+   | Sem_XMM6 : '1'
+   | Sem_XMM7 : '1'
+   | Sem_XMM8 : '1'
+   | Sem_XMM9 : '1'
+   | Sem_XMM10 : '1'
+   | Sem_XMM11 : '1'
+   | Sem_XMM12 : '1'
+   | Sem_XMM13 : '1'
+   | Sem_XMM14 : '1'
+   | Sem_XMM15 : '1'
+   | _: '0'
+end
+
 type register-without-size =
    A
  | B
