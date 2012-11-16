@@ -48,8 +48,8 @@ val rreil-show-op op =
     | SEM_AND x: "and" +++ rreil-show-arity2 x
     | SEM_OR x: "or" +++ rreil-show-arity2 x
     | SEM_XOR x: "xor" +++ rreil-show-arity2 x
-    | SEM_SX x: "sx[" +++ showint x.fromsize +++ "." +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
-    | SEM_ZX x: "zx[" +++ showint x.fromsize +++ "." +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
+    | SEM_SX x: "sx[" +++ showint x.fromsize +++ "->" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
+    | SEM_ZX x: "zx[" +++ showint x.fromsize +++ "->" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
     | SEM_CMPEQ x: "==" +++ rreil-show-cmp x
     | SEM_CMPNEQ x: "/=" +++ rreil-show-cmp x
     | SEM_CMPLES x: "<=s" +++ rreil-show-cmp x
@@ -62,7 +62,7 @@ val rreil-show-op op =
 val rreil-show-arity1 x = "[" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
 val rreil-show-arity2 x = "[" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
 val rreil-show-cmp x = "[" +++ showint x.size +++ ".1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
-val rreil-show-ptrderef sz addr = "*[" +++ showint addr.size +++ "." +++ showint sz +++ "](" +++ rreil-show-linear addr.address +++ ")"
+val rreil-show-ptrderef sz addr = "*[" +++ showint addr.size +++ "->" +++ showint sz +++ "](" +++ rreil-show-linear addr.address +++ ")"
 val rreil-show-address addr = "[" +++ showint addr.size +++ "](" +++ rreil-show-linear addr.address +++ ")"
 val rreil-show-var x =
    case x.offset of

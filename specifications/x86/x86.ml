@@ -4000,7 +4000,7 @@ val / [0x0f 0x7e /r]
  | rexw? = binop MOVQ r/m64 mm64
  | otherwise = binop MOVD r/m32 mm64
 val /vex/66/0f [0x6e /r]
- | vex128? & rexw? = varity2 VMOVD xmm128 r/m64
+ | vex128? & rexw? = varity2 VMOVQ xmm128 r/m64
  | vex128? = varity2 VMOVD xmm128 r/m32
 val /66 [0x0f 0x6e /r]
  | rexw? = binop MOVQ xmm128 r/m64
@@ -4009,7 +4009,7 @@ val /66 [0x0f 0x7e /r]
  | rexw? = binop MOVQ r/m64 xmm128
  | otherwise = binop MOVD r/m32 xmm128
 val /vex/66/0f [0x7e /r]
- | vex128? & rexw? = varity2 VMOVD r/m64 xmm128
+ | vex128? & rexw? = varity2 VMOVQ r/m64 xmm128
  | vex128? = varity2 VMOVD r/m32 xmm128
 
 ### MOVDDUP

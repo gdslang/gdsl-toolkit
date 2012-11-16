@@ -273,8 +273,6 @@ val write-extend avx-encoded sz a b =
          #store x (SEM_LIN{size=sz,opnd1=b})
 	 segmented-store x (SEM_LIN{size=sz,opnd1=b}) x.segment
     | SEM_WRITE_VAR x: do
-	mode64 <- mode64?;
-
         #if mode64 then
 	#  mov 32 (semantic-register-of EAX) (imm 100)
 	#else
@@ -292,6 +290,9 @@ val write-extend avx-encoded sz a b =
 	#;
 	#mov 32 (semantic-register-of EAX) (imm (500 + sz));
 
+	mov sz x.id b;
+
+	mode64 <- mode64?;
 	if (mode64 and (not (is-avx-sse x.id.id)) and sz < 64) then
 	  #Todo: Only if sz == 32?
 	  #Todo: Only for a subset of all registers?
@@ -300,8 +301,7 @@ val write-extend avx-encoded sz a b =
 	  mov (256 - sz) (at-offset x.id sz) (imm 0)
 	else
 	  return void
-	;
-	mov sz x.id b
+
 #        case sz of
 #           32:
 #              case x.id.offset of
