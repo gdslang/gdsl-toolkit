@@ -865,11 +865,6 @@ structure Cost = struct
           "^",
           "+",
           "-",
-          "arity0",
-          "unop",
-          "binop",
-          "ternop",
-          "quaternop",
           "void"])
        ;neverInline:=
          Set.union
@@ -918,9 +913,11 @@ structure Cost = struct
              | APP _ => inc n APPS 1
              | CC _ => inc n CCS 1
          val ZERO = {cases=0,conts=0,recs=0,apps=0,ccs=0}
-         val {cases,recs,...} = lp (t, ZERO)
+         val {apps,ccs,...} = lp (t, ZERO)
       in
-         cases <= 2 andalso recs = 0
+         (*cases <= 2 andalso recs <= 0 andalso*)
+         (*the only relevant counts seem to be these:*)
+         apps <= 2 andalso ccs <= 2
       end
    fun mark () =
       FI.app
