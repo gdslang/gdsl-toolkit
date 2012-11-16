@@ -4176,11 +4176,11 @@ val /f3 [0x0f 0xd6 /r-reg] = binop MOVQ2DQ xmm128 mm/reg64
 
 ### MOVS/MOVSB/MOVSW/MOVSD/MOVSQ
 ###  - Move Data from String to String
-val / [0xa4] = binop-rep MOVS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
+val / [0xa4] = binop-rep MOVS (m/es/di/edi/rdi (return 8)) (m/default/si/esi/rsi (return 8))
 val / [0xa5]
- | opndsz? = binop-rep MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
- | rexw? = binop-rep MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
- | otherwise = binop-rep MOVS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
+ | opndsz? = binop-rep MOVS (m/es/di/edi/rdi operand-size) (m/default/si/esi/rsi operand-size)
+ | rexw? = binop-rep MOVS (m/es/di/edi/rdi operand-size) (m/default/si/esi/rsi operand-size)
+ | otherwise = binop-rep MOVS (m/es/di/edi/rdi operand-size) (m/default/si/esi/rsi operand-size)
 
 ### MOVSD
 ###  - Move Scalar Double-Precision Floating-Point Value

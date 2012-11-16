@@ -242,6 +242,13 @@ val sem-movs x = do
   sz <- sizeof1 x.opnd1;
   src <- read sz x.opnd2;
   dst <- lval sz x.opnd1;
+  
+  reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
+  reg1-sem <- return (semantic-register-of (read-addr-reg x.opnd2));
+
+  direction-adjust x.addr-sz reg0-sem sz;
+  direction-adjust x.addr-sz reg1-sem sz;
+
   write sz dst src
 end
 
@@ -268,6 +275,8 @@ val sem-movzx clear-avx x = do
 
   write-extend clear-avx sz-dst dst (var temp)
 end
+
+# ^-
 
 val sem-mul conv x = do
   sz <- sizeof1 x.opnd1;
@@ -382,10 +391,11 @@ val sem-pabs element-size x = do
       offset <- return (element-size*i);
       current-src <- return (at-offset temp-src offset);
       current-dst <- return (at-offset temp-dst offset);
-      _if (/lts element-size (var current-src) (imm 0)) _then do
-        xorb element-size current-dst (var current-src) (imm (0-1));
-	add element-size current-dst (var current-dst) (imm 1)
-      end _else do
+      _if (/lts element-size (var current-src) (imm 0)) _then
+        #xorb element-size current-dst (var current-src) (imm (0-1));
+	#add element-size current-dst (var current-dst) (imm 1)
+        sub element-size current-dst (imm 0) (var current-src)
+      _else do
         mov element-size current-dst (var current-src)
       end
     end
@@ -395,6 +405,8 @@ val sem-pabs element-size x = do
 
   write size dst (var temp-dst)
 end
+
+# v-
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
@@ -560,13 +572,13 @@ val sem-repe-repne-insn x sem =
   else if x.repne then
     sem-repne x.addr-sz (sem x)
   else
-     sem x
+    sem x
 
 val sem-rep-insn x sem =
   if x.rep then
     sem-rep x.addr-sz (sem x)
   else
-     sem x
+    sem x
 
 val sem-ret x =
   case x of

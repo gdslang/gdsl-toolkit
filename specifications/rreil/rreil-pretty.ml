@@ -61,7 +61,7 @@ val rreil-show-op op =
 
 val rreil-show-arity1 x = "[" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
 val rreil-show-arity2 x = "[" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
-val rreil-show-cmp x = "[" +++ showint x.size +++ ".1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
+val rreil-show-cmp x = "[" +++ showint x.size +++ "->1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
 val rreil-show-ptrderef sz addr = "*[" +++ showint addr.size +++ "->" +++ showint sz +++ "](" +++ rreil-show-linear addr.address +++ ")"
 val rreil-show-address addr = "[" +++ showint addr.size +++ "](" +++ rreil-show-linear addr.address +++ ")"
 val rreil-show-var x =

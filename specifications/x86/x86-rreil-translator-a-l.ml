@@ -336,19 +336,19 @@ val sem-cmp x = do
 end
 
 val sem-cmps x = do
-  src0 <- read x.opnd-sz x.opnd1;
-  src1-sz <- sizeof1 x.opnd2;
-  src1 <- read x.opnd-sz x.opnd2;
+  sz <- sizeof1 x.opnd1;
+  src0 <- read sz x.opnd1;
+  src1 <- read sz x.opnd2;
 
   temp <- mktemp;
-  sub x.opnd-sz temp src0 src1;
-  emit-sub-sbb-flags x.opnd-sz (var temp) src0 src1 (imm 0) '1';
+  sub sz temp src0 src1;
+  emit-sub-sbb-flags sz (var temp) src0 src1 (imm 0) '1';
 
   reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
   reg1-sem <- return (semantic-register-of (read-addr-reg x.opnd2));
 
-  direction-adjust x.addr-sz reg0-sem x.opnd-sz;
-  direction-adjust x.addr-sz reg1-sem x.opnd-sz
+  direction-adjust x.addr-sz reg0-sem sz;
+  direction-adjust x.addr-sz reg1-sem sz
 
 #  addr-sz <- address-size;
 #
