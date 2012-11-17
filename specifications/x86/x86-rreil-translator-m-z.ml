@@ -103,11 +103,11 @@ val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov x 128
 
 val sem-maskmovq x = sem-maskmov x 64
 
-val sem-mov clear-avx x = do
-  sz <- sizeof2 x.opnd1 x.opnd2;
+val sem-mov avx-encoded x = do
+  sz <- sizeof1 x.opnd1;
   a <- lval sz x.opnd1;
   b <- read sz x.opnd2;
-  write-extend clear-avx sz a b
+  write-extend avx-encoded sz a b
 end
 
 val sem-movap x = do
@@ -229,14 +229,14 @@ end
 #  ;
 #  sem-mov-sse-avx x size out-size
 #end
-
-val sem-movdq2q x = do
-  size <- sizeof1 x.opnd1; #Important: Destination size!
-  src <- read size x.opnd2;
-  dst <- lval size x.opnd1;
-
-  write size dst src
-end
+#
+#val sem-movdq2q x = do
+#  size <- sizeof1 x.opnd1; #Important: Destination size!
+#  src <- read size x.opnd2;
+#  dst <- lval size x.opnd1;
+#
+#  write size dst src
+#end
 
 val sem-movs x = do
   sz <- sizeof1 x.opnd1;
@@ -527,7 +527,7 @@ end
 ## R>>
 
 val sem-rep-repe-repne size sem fc = do
-  count-reg <- return (semantic-register-of (register-by-size low DI_ size));
+  count-reg <- return (semantic-register-of (register-by-size low C size));
 
   cond-creg <- let
     val v = /neq size (var count-reg) (imm 0)
