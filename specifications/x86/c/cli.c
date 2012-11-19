@@ -29,15 +29,15 @@ done:
     __pretty(__pretty__,insn,fmt,1024);
     puts(fmt);
 
-    printf("---------------------------\n");
-   
-    __obj r = __translate(__translate__,insn);
-    if(___isNil(r))
-      __fatal("translate failed");
-    else {
-      __pretty(__rreil_pretty__,r,fmt,1024);
-      puts(fmt);
-    }
+//    printf("---------------------------\n");
+//   
+//    __obj r = __translate(__translate__,insn);
+//    if(___isNil(r))
+//      __fatal("translate failed");
+//    else {
+//      __pretty(__rreil_pretty__,r,fmt,1024);
+//      puts(fmt);
+//    }
   }
   
   return (1);

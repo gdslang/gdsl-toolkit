@@ -4043,7 +4043,7 @@ val /vex/f3/0f [0x7f /r]
 
 ### MOVDQ2Q
 ###  - Move Quadword from XMM to MMX Technology Register
-val /f2 [0x0f 0xd6 /r] = binop MOVDQ2Q mm64 xmm128
+val /f2 [0x0f 0xd6 /r-reg] = binop MOVDQ2Q mm64 xmm/reg128
 
 ### MOVHLPS
 ###  - Move Packed Single-Precision Floating-Point Values High to Low

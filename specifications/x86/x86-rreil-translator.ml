@@ -1087,7 +1087,7 @@ val semantics insn =
    | JZ x: sem-z sem-jcc x
    | LAHF x: sem-lahf
    | LAR x: sem-undef-arity2 x
-   | LDDQU x: sem-lddqu x
+   | LDDQU x: sem-mov '0' x
    | LDMXCSR x: sem-undef-arity1 x
    | LDS x: sem-lds-les-lfs-lgs-lss x DS
    | LEA x: sem-lea x
@@ -1120,8 +1120,8 @@ val semantics insn =
    | MINSS x: sem-undef-arity2 x
    | MONITOR x: sem-undef-arity0 x
    | MOV x: sem-mov '0' x
-   | MOVAPD x: sem-movap x
-   | MOVAPS x: sem-movap x
+   | MOVAPD x: sem-mov '0' x
+   | MOVAPS x: sem-mov '0' x
    | MOVBE x: sem-movbe x
    | MOVD x: sem-movzx '0' x
    | MOVDDUP x: sem-undef-arity2 x
@@ -1486,7 +1486,10 @@ val semantics insn =
    | VHSUBPS x: sem-undef-varity x
    | VINSERTF128 x: sem-undef-varity x
    | VINSERTPS x: sem-undef-varity x
-   | VLDDQU x: sem-undef-varity x
+   | VLDDQU v:
+       case v of
+         VA2 x: sem-mov '1' x
+       end
    | VLDMXCSR x: sem-undef-varity x
    | VMASKMOVDQU v:
        case v of
@@ -1502,8 +1505,14 @@ val semantics insn =
    | VMINPS x: sem-undef-varity x
    | VMINSD x: sem-undef-varity x
    | VMINSS x: sem-undef-varity x
-   | VMOVAPD x: sem-vmovap x
-   | VMOVAPS x: sem-vmovap x
+   | VMOVAPD v:
+       case v of
+          VA2 x: sem-mov '1' x
+       end
+   | VMOVAPS v:
+       case v of
+          VA2 x: sem-mov '1' x
+       end
    | VMOVD v:
        case v of
           VA2 x: sem-movzx '1' x

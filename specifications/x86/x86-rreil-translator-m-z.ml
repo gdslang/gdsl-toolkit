@@ -10,93 +10,17 @@ val sem-maskmov x size = do
   mask-temp <- mktemp;
   mov size mask-temp mask;
 
-  limit <- return
-    (case size of
-       64: 7
-     | 128: 15
-    end)
-  ;
-
   byte-size <- return 8;
   let
-    val f i = do
+    val m i = do
       _if (/d (var (at-offset mask-temp ((i + 1)*8 - 1)))) _then do
         dst <- lval-offset byte-size x.opnd3 i;
         write byte-size dst (var (at-offset src-temp (i*8)))
-      end;
-      if (i < limit) then
-        f (i + 1)
-      else
-        return void
+      end
     end
   in
-    f 0
+    vector-apply size byte-size m
   end
-
-#  _if (/d (var (at-offset mask-temp 7))) _then do
-#    dst <- lval-offset byte-size x.opnd3 0;
-#    write byte-size dst (var (at-offset src-temp 0))
-#  end;
-#  _if (/d (var (at-offset mask-temp 15))) _then do
-#    dst <- lval-offset byte-size x.opnd3 1;
-#    write byte-size dst (var (at-offset src-temp 8))
-#  end;
-#  _if (/d (var (at-offset mask-temp 23))) _then do
-#    dst <- lval-offset byte-size x.opnd3 2;
-#    write byte-size dst (var (at-offset src-temp 16))
-#  end;
-#  _if (/d (var (at-offset mask-temp 31))) _then do
-#    dst <- lval-offset byte-size x.opnd3 3;
-#    write byte-size dst (var (at-offset src-temp 24))
-#  end;
-#  _if (/d (var (at-offset mask-temp 39))) _then do
-#    dst <- lval-offset byte-size x.opnd3 4;
-#    write byte-size dst (var (at-offset src-temp 32))
-#  end;
-#  _if (/d (var (at-offset mask-temp 47))) _then do
-#    dst <- lval-offset byte-size x.opnd3 5;
-#    write byte-size dst (var (at-offset src-temp 40))
-#  end;
-#  _if (/d (var (at-offset mask-temp 55))) _then do
-#    dst <- lval-offset byte-size x.opnd3 6;
-#    write byte-size dst (var (at-offset src-temp 48))
-#  end;
-#  _if (/d (var (at-offset mask-temp 63))) _then do
-#    dst <- lval-offset byte-size x.opnd3 7;
-#    write byte-size dst (var (at-offset src-temp 56))
-#  end;
-#  _if (/d (var (at-offset mask-temp 71))) _then do
-#    dst <- lval-offset byte-size x.opnd3 8;
-#    write byte-size dst (var (at-offset src-temp 64))
-#  end;
-#  _if (/d (var (at-offset mask-temp 79))) _then do
-#    dst <- lval-offset byte-size x.opnd3 9;
-#    write byte-size dst (var (at-offset src-temp 72))
-#  end;
-#  _if (/d (var (at-offset mask-temp 87))) _then do
-#    dst <- lval-offset byte-size x.opnd3 10;
-#    write byte-size dst (var (at-offset src-temp 80))
-#  end;
-#  _if (/d (var (at-offset mask-temp 95))) _then do
-#    dst <- lval-offset byte-size x.opnd3 11;
-#    write byte-size dst (var (at-offset src-temp 88))
-#  end;
-#  _if (/d (var (at-offset mask-temp 103))) _then do
-#    dst <- lval-offset byte-size x.opnd3 12;
-#    write byte-size dst (var (at-offset src-temp 96))
-#  end;
-#  _if (/d (var (at-offset mask-temp 111))) _then do
-#    dst <- lval-offset byte-size x.opnd3 13;
-#    write byte-size dst (var (at-offset src-temp 104))
-#  end;
-#  _if (/d (var (at-offset mask-temp 119))) _then do
-#    dst <- lval-offset byte-size x.opnd3 14;
-#    write byte-size dst (var (at-offset src-temp 112))
-#  end;
-#  _if (/d (var (at-offset mask-temp 127))) _then do
-#    dst <- lval-offset byte-size x.opnd3 15;
-#    write byte-size dst (var (at-offset src-temp 120))
-#  end
 end
 
 val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov x 128
@@ -110,37 +34,37 @@ val sem-mov avx-encoded x = do
   write-extend avx-encoded sz a b
 end
 
-val sem-movap x = do
-  sz <- sizeof1 x.opnd1;
-  dst <- lval sz x.opnd1;
-  src <- read sz x.opnd2;
-
-  temp <- mktemp;
-  mov sz temp src;
-
-  write sz dst (var temp)
-end
-
-val sem-vmovap x = do
-  x <- case x of VA2 x: return x end;
-
-  sz <- sizeof1 x.opnd1;
-  dst <- lval sz x.opnd1;
-  src <- read sz x.opnd2;
-
-  if sz === 128 then
-    do
-      dst-upper <- lval-upper sz x.opnd1;
-      write sz dst-upper (imm 0)
-    end
-  else
-    return void
-  ;
-
-  temp <- mktemp;
-  mov sz temp src;
-  write sz dst (var temp)
-end
+#val sem-movap x = do
+#  sz <- sizeof1 x.opnd1;
+#  dst <- lval sz x.opnd1;
+#  src <- read sz x.opnd2;
+#
+#  temp <- mktemp;
+#  mov sz temp src;
+#
+#  write sz dst (var temp)
+#end
+#
+#val sem-vmovap x = do
+#  x <- case x of VA2 x: return x end;
+#
+#  sz <- sizeof1 x.opnd1;
+#  dst <- lval sz x.opnd1;
+#  src <- read sz x.opnd2;
+#
+#  if sz === 128 then
+#    do
+#      dst-upper <- lval-upper sz x.opnd1;
+#      write sz dst-upper (imm 0)
+#    end
+#  else
+#    return void
+#  ;
+#
+#  temp <- mktemp;
+#  mov sz temp src;
+#  write sz dst (var temp)
+#end
 
 val sem-movbe x = do
   src <- read x.opnd-sz x.opnd2;
@@ -275,8 +199,6 @@ val sem-movzx clear-avx x = do
 
   write-extend clear-avx sz-dst dst (var temp)
 end
-
-# ^-
 
 val sem-mul conv x = do
   sz <- sizeof1 x.opnd1;
@@ -540,6 +462,8 @@ val sem-rep-repe-repne size sem fc = do
   mov 1 cond c;
   _while (/d (var cond)) __ do
     sem;
+
+    sub size count-reg (var count-reg) (imm 1);
 
     c <- /and cond-creg fc;
     mov 1 cond c

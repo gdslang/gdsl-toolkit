@@ -660,15 +660,17 @@ val sem-lar x = do
   sem-undef-arity2
 end
 
-val sem-lddqu-vlddqu size x = do
-  src <- read size x.opnd2;
-  dst <- lval size x.opnd1;
+# ^-
 
-  write size dst src
-end
-
-val sem-lddqu x = sem-lddqu-vlddqu 128 x;
-val sem-vlddqu x = sem-lddqu-vlddqu 256 x;
+#val sem-lddqu-vlddqu size x = do
+#  src <- read size x.opnd2;
+#  dst <- lval size x.opnd1;
+#
+#  write size dst src
+#end
+#
+#val sem-lddqu x = sem-lddqu-vlddqu 128 x;
+#val sem-vlddqu x = sem-lddqu-vlddqu 256 x;
 
 val sem-lds-les-lfs-lgs-lss x segment = do
   src-size <- sizeof1 x.opnd1;
@@ -706,8 +708,11 @@ val sem-lods x = do
   src <- read sz x.opnd1;
 
   dst <- return (semantic-register-of (register-by-size low A sz));
+  mov dst.size dst src;
 
-  mov dst.size dst src
+  reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
+
+  direction-adjust x.addr-sz reg0-sem sz
 end
 
 val sem-loop-loop x = do
