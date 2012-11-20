@@ -22,7 +22,7 @@ val rreil-show-stmt s =
     | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " = " +++ rreil-show-op x.rhs
     | SEM_ITE x: "if (" +++ rreil-show-linear x.cond +++ ") {\n" +++ rreil-show-stmts x.then_branch +++ "} else {\n" +++ rreil-show-stmts x.else_branch +++ "}"
     | SEM_WHILE x: "while (" +++ rreil-show-linear x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
-    | SEM_CBRANCH x: "if (" +++ rreil-show-linear x.cond +++ ") goto" +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
+    | SEM_CBRANCH x: "if (" +++ rreil-show-linear x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
     | SEM_BRANCH x: "goto [" +++ rreil-show-hint x.hint +++ "] " +++ rreil-show-address x.target
    end
 

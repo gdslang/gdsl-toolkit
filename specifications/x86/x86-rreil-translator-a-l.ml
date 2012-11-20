@@ -450,7 +450,7 @@ val sem-cwd-cdq-cqo x = do
   src-sem <- return (semantic-register-of src);
   
   temp <- mktemp;
-  movsx (src-sem.size + src-sem.size) temp src-sem.size (var src-sem);
+  movsx src-sem.size temp 1 (var (at-offset src-sem (src-sem.size - 1)));
 
   dst-high <-
     case x.opnd-sz of
@@ -461,7 +461,7 @@ val sem-cwd-cdq-cqo x = do
   ;
   
   dst-high-sem <- return (semantic-register-of dst-high);
-  mov dst-high-sem.size dst-high-sem (var (at-offset temp src-sem.size))
+  mov dst-high-sem.size dst-high-sem (var temp)
 end
 
 ## D>>
@@ -563,7 +563,7 @@ val sem-inc x = do
   temp <- mktemp;
   add sz temp src (imm 1);
   
-  emit-sub-sbb-flags sz (var temp) src (imm 1) (imm 0) '0';
+  emit-add-adc-flags sz (var temp) src (imm 1) (imm 0) '0';
 
   write sz dst (var temp)
 end

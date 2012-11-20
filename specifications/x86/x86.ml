@@ -3687,8 +3687,9 @@ val / [0x72] = near-rel JC rel8  # JB, JNAE
 val / [0x76] = near-rel JBE rel8 # JNA
 val /66 [0xe3] = near-rel JCXZ rel8
 val / [0xe3]
-# | opndsz? = near-rel JCXZ rel8
+ | mode64? & addrsz? = near-rel JECXZ rel8
  | mode64? = near-rel JRCXZ rel8
+ | mode32? & addrsz? = near-rel JCXZ rel8
  | mode32? = near-rel JECXZ rel8
 val / [0x74] = near-rel JE rel8  # JZ
 val / [0x7f] = near-rel JG rel8  # JNLE
