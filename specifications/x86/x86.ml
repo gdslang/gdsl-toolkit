@@ -45,10 +45,6 @@ end
 
 val complement v = not v
 
-val set-opndsz = update@{opndsz='1'}
-val set-repne = update@{repne='1'}
-val set-rep = update@{rep='1'}
-
 # Segment prefix handling
 type seg_override =
      SEG_NONE
@@ -318,9 +314,34 @@ val p/vex/f3/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 10'] = do
         vexm='00011'}
 end
 
-val p64 [0x66] = do set-opndsz; p/66 end
-val p64 [0xf2] = do set-repne; p/f2 end
-val p64 [0xf3] = do set-rep; p/f3 end
+val set-opndsz = update@{opndsz='1'}
+val set-repne = update@{repne='1'}
+val set-rep = update@{rep='1'}
+
+val with-66 act = do
+  update@{opndsz='1'};
+  insn <- act;
+  update@{opndsz='0'};
+  return insn
+end
+
+val with-f2 act = do
+  update@{repne='1'};
+  insn <- act;
+  update@{repne='0'};
+  return insn
+end
+
+val with-f3 act = do
+  update@{rep='1'};
+  insn <- act;
+  update@{rep='0'};
+  return insn
+end
+
+val p64 [0x66] = p/66
+val p64 [0xf2] = p/f2
+val p64 [0xf3] = p/f3
 val p64 [/legacy-p] = p64
 val p64 [/rex-p]
  | mode64? = p64
@@ -336,75 +357,75 @@ val p64 [p/vex/66/0f/3a] = /vex/66/0f/3a
 #val p64 [p/vex/66/f3/0f] = /vex/66/f3/0f
 val p64 [] = /
 
-val p/66 [0xf2] = do set-repne; p/66/f2 end
-val p/66 [0xf3] = do set-rep; p/66/f3 end
-val p/66 [0x66] = do set-opndsz; p/66 end
+val p/66 [0xf2] = p/66/f2
+val p/66 [0xf3] = p/66/f3
+val p/66 [0x66] = p/66
 val p/66 [/legacy-p] = p/66
 val p/66 [/rex-p]
  | mode64? = p/66
  | mode32? & rexw? = unop DEC rex/reg16
  | mode32? & // rexw? = unop INC rex/reg16
-val p/66 [] = after /66 /
+val p/66 [] = after /66 (with-66 /)
 
-val p/f2 [0x66] = do set-opndsz; p/66/f2 end
-val p/f2 [0xf2] = do set-repne; p/f2 end
-val p/f2 [0xf3] = do set-rep; p/f2/f3 end
+val p/f2 [0x66] = p/66/f2
+val p/f2 [0xf2] = p/f2
+val p/f2 [0xf3] = p/f2/f3
 val p/f2 [/legacy-p] = p/f2
 val p/f2 [/rex-p]
  | mode64? = p/f2
  | mode32? & rexw? = unop DEC rex/reg32
  | mode32? & // rexw? = unop INC rex/reg32
-val p/f2 [] = after /f2 /
+val p/f2 [] = after /f2 (with-f2 /)
 
-val p/f3 [0x66] = do set-opndsz; p/66/f3 end
-val p/f3 [0xf2] = do set-repne; p/f3/f2 end
-val p/f3 [0xf3] = do set-rep; p/f3 end
+val p/f3 [0x66] = p/66/f3
+val p/f3 [0xf2] = p/f3/f2
+val p/f3 [0xf3] = p/f3
 val p/f3 [/legacy-p] = p/f3
 val p/f3 [/rex-p]
  | mode64? = p/f3
  | mode32? & rexw? = unop DEC rex/reg32
  | mode32? & // rexw? = unop INC rex/reg32
-val p/f3 [] = after /f3 /
+val p/f3 [] = after /f3 (with-f3 /)
 
-val p/f2/f3 [0x66] = do set-opndsz; p/66/f2/f3 end
-val p/f2/f3 [0xf2] = do set-repne; p/f3/f2 end
-val p/f2/f3 [0xf3] = do set-rep; p/f2/f3 end
+val p/f2/f3 [0x66] = p/66/f2/f3
+val p/f2/f3 [0xf2] = p/f3/f2
+val p/f2/f3 [0xf3] = p/f2/f3
 val p/f2/f3 [/legacy-p] = p/f2/f3
 val p/f2/f3 [/rex-p]
  | mode64? = p/f2/f3
  | mode32? & rexw? = unop DEC rex/reg32
  | mode32? & // rexw? = unop INC rex/reg32
-val p/f2/f3 [] = after /f3 (after /f2 /)
+val p/f2/f3 [] = after (with-f2 /f3) (after (with-f3 /f2) (with-f2 (with-f3 /)))
 
-val p/f3/f2 [0x66] = do set-opndsz; p/66/f2/f3 end
-val p/f3/f2 [0xf2] = do set-repne; p/f3/f2 end
-val p/f3/f2 [0xf3] = do set-rep; p/f2/f3 end
+val p/f3/f2 [0x66] = p/66/f2/f3
+val p/f3/f2 [0xf2] = p/f3/f2
+val p/f3/f2 [0xf3] = p/f2/f3
 val p/f3/f2 [/legacy-p] = p/f3/f2
 val p/f3/f2 [/rex-p]
  | mode64? = p/f3/f2
  | mode32? & rexw? = unop DEC rex/reg32
  | mode32? & // rexw? = unop INC rex/reg32
-val p/f3/f2 [] = after /f2 (after /f3 /)
+val p/f3/f2 [] = after (with-f3 /f2) (after (with-f2 /f3) (with-f2 (with-f3 /)))
 
-val p/66/f2 [0x66] = do set-opndsz; p/66/f2 end
-val p/66/f2 [0xf2] = do set-repne; p/66/f2 end
-val p/66/f2 [0xf3] = do set-rep; p/66/f2/f3 end
+val p/66/f2 [0x66] = p/66/f2
+val p/66/f2 [0xf2] = p/66/f2
+val p/66/f2 [0xf3] = p/66/f2/f3
 val p/66/f2 [/legacy-p] = p/66/f2
 val p/66/f2 [/rex-p]
  | mode64? = p/66/f2
  | mode32? & rexw? = unop DEC rex/reg16
  | mode32? & // rexw? = unop INC rex/reg16
-val p/66/f2 [] = after /f2 (after /66 /)
+val p/66/f2 [] = after (with-66 /f2) (after (with-f2 /66) (with-66 (with-f2 /)))
 
-val p/66/f3 [0x66] = do set-opndsz; p/66/f3 end
-val p/66/f3 [0xf2] = do set-repne; p/66/f3/f2 end
-val p/66/f3 [0xf3] = do set-rep; p/66/f3 end
+val p/66/f3 [0x66] = p/66/f3
+val p/66/f3 [0xf2] = p/66/f3/f2
+val p/66/f3 [0xf3] = p/66/f3
 val p/66/f3 [/legacy-p] = p/66/f3
 val p/66/f3 [/rex-p]
  | mode64? = p/66/f3
  | mode32? & rexw? = unop DEC rex/reg16
  | mode32? & // rexw? = unop INC rex/reg16
-val p/66/f3 [] = after /f3 (after /66 /)
+val p/66/f3 [] = after (with-66 /f3) (after (with-f3 /66) (with-66 (with-f3 /)))
 
 val p/66/f2/f3 [0x66] = do clear-rex; p/66/f2/f3 end
 val p/66/f2/f3 [0xf2] = do clear-rex; p/66/f3/f2 end
@@ -414,7 +435,7 @@ val p/66/f2/f3 [/rex-p]
  | mode64? = p/66/f2/f3
  | mode32? & rexw? = unop DEC rex/reg16
  | mode32? & // rexw? = unop INC rex/reg16
-val p/66/f2/f3 [] = after /f3 (after /f2 (after /66 /))
+val p/66/f2/f3 [] = after (with-66 (with-f2 /f3)) (after (with-66 (with-f3 /f2)) (after (with-f2 (with-f3 /66)) (with-66 (with-f2 (with-f3 /)))))
 
 val p/66/f3/f2 [0x66] = do clear-rex; p/66/f3/f2 end
 val p/66/f3/f2 [0xf2] = do clear-rex; p/66/f3/f2 end
@@ -424,7 +445,7 @@ val p/66/f3/f2 [/rex-p]
  | mode64? = p/66/f3/f2
  | mode32? & rexw? = unop DEC rex/reg16
  | mode32? & // rexw? = unop INC rex/reg16
-val p/66/f3/f2 [] = after /f2 (after /f3 (after /66 /))
+val p/66/f3/f2 [] = after (with-66 (with-f3 /f2)) (after (with-66 (with-f2 /f3)) (after (with-f2 (with-f3 /66)) (with-66 (with-f2 (with-f3 /)))))
 
 type register =
    AL
