@@ -113,7 +113,8 @@ val /legacy-p [0x65] = do clear-rex; set-GS end
 val /legacy-p [0x67] = do clear-rex; set-addrsz end
 val /legacy-p [0xf0] = do clear-rex; set-lock end
 
-val /66-p [0x66] = do clear-rex; end
+#Todo:
+#val /66-p [0x66] = do clear-rex; end
 
 val p/vex/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 00'] = do
    update
