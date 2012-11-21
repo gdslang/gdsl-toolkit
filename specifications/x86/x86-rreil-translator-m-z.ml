@@ -167,13 +167,13 @@ val sem-movs x = do
   src <- read sz x.opnd2;
   dst <- lval sz x.opnd1;
   
+  write sz dst src
+
   reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
   reg1-sem <- return (semantic-register-of (read-addr-reg x.opnd2));
 
   direction-adjust x.addr-sz reg0-sem sz;
   direction-adjust x.addr-sz reg1-sem sz;
-
-  write sz dst src
 end
 
 val sem-movsx x = do
