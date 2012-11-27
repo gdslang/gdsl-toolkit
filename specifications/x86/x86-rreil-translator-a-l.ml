@@ -230,6 +230,8 @@ val sem-bt x modifier = do
   undef 1 pf
 end
 
+# ^-
+
 ## C>>
 
 val sem-call x = do
@@ -288,10 +290,10 @@ val sem-convert size = do
   movsx dst.size dst src.size (var src)
 end
 
-val sem-cdqe = do
-  a <- return (semantic-register-of RAX);
-  movsx 64 a 32 (var a)
-end
+#val sem-cdqe = do
+#  a <- return (semantic-register-of RAX);
+#  movsx 64 a 32 (var a)
+#end
 
 val sem-clc = do
   cf <- fCF;
@@ -426,8 +428,6 @@ val sem-cmpxchg16b-cmpxchg8b x = do
     move-combined x.opnd-sz (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz) temp
   end
 end
-
-# ^-
 
 val sem-cpuid x = do
   #Todo: ;-)
