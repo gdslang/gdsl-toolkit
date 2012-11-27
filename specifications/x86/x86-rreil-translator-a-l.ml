@@ -413,15 +413,18 @@ val sem-cmpxchg16b-cmpxchg8b x = do
 
   zf <- fZF;
 
-  cmpeq (2*x.opnd-sz) zf (var minuend) (subtrahend);
+  cmpeq (2*x.opnd-sz) zf (var minuend) subtrahend;
 
   _if (/d (var zf)) _then do
     src-reg <- combine (register-by-size low C x.opnd-sz) (register-by-size low B x.opnd-sz);
     dst <- lval (2*x.opnd-sz) x.opnd1;
     write (2*x.opnd-sz) dst (var src-reg)
-  end _else
-    #Todo: Nicht Tx = blah, sondern Reg = blah
-    mov (2*x.opnd-sz) minuend subtrahend
+  end _else do
+    temp <- mktemp;
+    mov (2*x.opnd-sz) temp subtrahend;
+
+    move-combined x.opnd-sz (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz) temp
+  end
 end
 
 # ^-

@@ -332,6 +332,14 @@ val combine high low = do
   return combined
 end
 
+val move-combined size dst-high dst-low src = do
+  dst-high <- return (semantic-register-of dst-high);
+  dst-low <- return (semantic-register-of dst-low);
+ 
+  mov size dst-high (var (at-offset src size));
+  mov size dst-low (var (at-offset src 0))
+end
+
 val fEQ = return (_var VIRT_EQ)
 val fNEQ = return (_var VIRT_NEQ)
 val fLES = return (_var VIRT_LES)

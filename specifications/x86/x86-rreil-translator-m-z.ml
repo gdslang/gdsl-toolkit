@@ -218,13 +218,14 @@ val sem-mul conv x = do
        ax <- return (semantic-register-of AX);
        mov sz ax (var product)
      end
-   | _: do
-       high <- return (semantic-register-of (register-by-size low D sz));
-       low <- return (semantic-register-of (register-by-size low A sz));
-
-       mov sz high (var (at-offset product sz));
-       mov sz low (var product)
-   end
+    | _: move-combined sz (register-by-size low D sz) (register-by-size low A sz) product
+#   | _: do
+#       high <- return (semantic-register-of (register-by-size low D sz));
+#       low <- return (semantic-register-of (register-by-size low A sz));
+#
+#       mov sz high (var (at-offset product sz));
+#       mov sz low (var product)
+#   end
   end
 end
 
