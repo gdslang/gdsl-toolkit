@@ -2989,8 +2989,8 @@ val / [0x0f 0xb1 /r]
 ### CMPXCHG8B/CMPXCHG16B
 ###  - Compare and Exchange Bytes
 val / [0x0f 0xc7 /1-mem]
- | rexw? = unop-lock CMPXCHG8B m64
- | otherwise = unop-lock CMPXCHG16B m128
+ | rexw? = unop-lock CMPXCHG16B m128
+ | otherwise = unop-lock CMPXCHG8B m64
 
 ### COMISD
 ###  - Compare Scalar Ordered Double-Precision Floating-Point Values and Set EFLAGS

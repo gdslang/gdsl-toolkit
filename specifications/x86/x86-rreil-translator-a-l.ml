@@ -409,22 +409,22 @@ end
 val sem-cmpxchg16b-cmpxchg8b x = do
   subtrahend <- read (2*x.opnd-sz) x.opnd1;
 
-  minuend <- combine (register-by-size low C x.opnd-sz) (register-by-size low B x.opnd-sz);
-
-  difference <- mktemp;
-  sub (2*x.opnd-sz) difference (var minuend) subtrahend;
-
-  emit-sub-sbb-flags (2*x.opnd-sz) (var difference) (var minuend) subtrahend (imm 0) '1';
+  minuend <- combine (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz);
 
   zf <- fZF;
+
+  cmpeq (2*x.opnd-sz) zf (var minuend) (subtrahend);
+
   _if (/d (var zf)) _then do
+    src-reg <- combine (register-by-size low C x.opnd-sz) (register-by-size low B x.opnd-sz);
     dst <- lval (2*x.opnd-sz) x.opnd1;
-    write (2*x.opnd-sz) dst (var minuend)
-  end _else do
-    dst <- combine (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz);
-    mov (2*x.opnd-sz) dst subtrahend
-  end
+    write (2*x.opnd-sz) dst (var src-reg)
+  end _else
+    #Todo: Nicht Tx = blah, sondern Reg = blah
+    mov (2*x.opnd-sz) minuend subtrahend
 end
+
+# ^-
 
 val sem-cpuid x = do
   #Todo: ;-)
@@ -659,8 +659,6 @@ end
 val sem-lar x = do
   sem-undef-arity2
 end
-
-# ^-
 
 #val sem-lddqu-vlddqu size x = do
 #  src <- read size x.opnd2;
