@@ -352,13 +352,27 @@ val p64 [/rex-p]
  | mode32? & rexw? = unop DEC rex/reg32
  | mode32? & // rexw? = unop INC rex/reg32
 #val p64 [p/vex/0f] = /vex/0f
-val p64 [p/vex/f2/0f] = /vex/f2/0f
-val p64 [p/vex/f3/0f] = /vex/f3/0f
-val p64 [p/vex/66/0f] = /vex/66/0f
-val p64 [p/vex/66/0f/38] = /vex/66/0f/38
-val p64 [p/vex/66/0f/3a] = /vex/66/0f/3a
-#val p64 [p/vex/66/f2/0f] = /vex/66/f2/0f
-#val p64 [p/vex/66/f3/0f] = /vex/66/f3/0f
+val p64 [p/vex/f2/0f]
+ | vndd? = /vex/f2/0f/vexv
+ | otherwise = /vex/f2/0f
+val p64 [p/vex/f3/0f]
+ | vndd? = /vex/f3/0f/vexv
+ | otherwise =  /vex/f3/0f
+val p64 [p/vex/66/0f]
+ | vndd? = /vex/66/0f/vexv
+ | otherwise = /vex/66/0f
+val p64 [p/vex/66/0f/38]
+ | vndd? = /vex/66/0f/38/vexv
+ | otherwise = /vex/66/0f/38
+val p64 [p/vex/66/0f/3a]
+ | vndd? = /vex/66/0f/3a/vexv
+ | otherwise = /vex/66/0f/3a
+#val p64 [p/vex/66/f2/0f]
+# | vndd? = /vex/66/f2/0f/vexv
+# | otherwise = /vex/66/f2/0f
+#val p64 [p/vex/66/f3/0f]
+# | vndd? = /vex/66/f3/0f/vexv
+# | otherwise = /vex/66/f3/0f
 val p64 [] = /
 
 val p/66 [/66-p] = p/66/f2
