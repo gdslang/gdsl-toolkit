@@ -416,13 +416,19 @@ val /lts sz a b = do
 end
 
 val _while c __ b = do
-  c <- c;
+  cc <- c;
+  ct <- mktemp;
+  mov 1 ct cc;
   stack <- pop-all;
+  
   b;
+  cc <- c;
+  mov 1 ct cc;
   body <- pop-all;
   body <- return (rreil-stmts-rev body);
+
   stack-set stack;
-  while c body
+  while (var ct) body
 end
 
 val sem-a sem-cc x = do
