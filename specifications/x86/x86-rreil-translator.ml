@@ -830,7 +830,7 @@ val semantics insn =
    | AND x: sem-undef-arity2 x
    | ANDNPD x: sem-undef-arity2 x
    | ANDNPS x: sem-undef-arity2 x
-   | ANDPD x: sem-andpd '0' x
+   | ANDPD x: sem-andpd x
    | ANDPS x: sem-undef-arity2 x
    | ARPL x: sem-undef-arity2 x
    | BLENDPD x: sem-undef-arity3 x
@@ -1447,7 +1447,7 @@ val semantics insn =
    | VANDNPS x: sem-undef-varity x
    | VANDPD v:
        case v of
-          VA3 x: sem-andpd '1' x
+          VA3 x: sem-vandpd x
        end
    | VANDPS x: sem-undef-varity x
    | VBLENDPD x: sem-undef-varity x

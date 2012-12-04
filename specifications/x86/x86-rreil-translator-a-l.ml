@@ -34,19 +34,22 @@ end
 #
 #end
 
-val sem-andpd avx-encoded x = do
+val sem-andpd-opnds avx-encoded opnd1 opnd2 opnd3 = do
   #size <- return 128;
-  size <- sizeof1 x.opnd1;
+  size <- sizeof1 opnd1;
 
-  src0 <- read size x.opnd1;
-  src1 <- read size x.opnd2;
+  src0 <- read size opnd2;
+  src1 <- read size opnd3;
 
   temp <- mktemp;
   andb size temp src0 src1;
 
-  dst <- lval size x.opnd1;
+  dst <- lval size opnd1;
   write-extend avx-encoded size dst (var temp)
 end
+
+val sem-andpd x = sem-andpd-opnds '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vandpd x = sem-andpd-opnds '1' x.opnd1 x.opnd2 x.opnd3
 
 #val sem-vandpd x = do
 #  size <- sizeof1 x.opnd1;
