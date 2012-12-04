@@ -357,7 +357,7 @@ val p64 [p/vex/f2/0f]
  | otherwise = /vex/f2/0f
 val p64 [p/vex/f3/0f]
  | vndd? = /vex/f3/0f/vexv
- | otherwise =  /vex/f3/0f
+ | otherwise = /vex/f3/0f
 val p64 [p/vex/66/0f]
  | vndd? = /vex/66/0f/vexv
  | otherwise = /vex/66/0f
@@ -1658,12 +1658,12 @@ val vex256? = query $vexl
 
 val vnds? = do
    v <- query $vexv;
-   return (not (v == '1111'))
+   return (not (v == '0000')) #vexv => complement!
 end
 
 val vndd? = do
    v <- query $vexv;
-   return (not (v == '1111'))
+   return (not (v == '0000')) #vexv => complement!
 end
 
 val vexw0? = do

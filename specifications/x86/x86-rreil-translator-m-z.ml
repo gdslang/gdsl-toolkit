@@ -329,8 +329,6 @@ val sem-pabs element-size x = do
   write size dst (var temp-dst)
 end
 
-# v-
-
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
@@ -436,6 +434,8 @@ val sem-push x = do
   ps-push x.opnd-sz (var temp)
 end
 
+# v-
+
 val sem-pushf x = do
   mask <- return 0x0000000000fcffff;
   flags <- rflags;
@@ -443,7 +443,18 @@ val sem-pushf x = do
   temp <- mktemp;
   andb flags.size temp (var flags) (imm mask);
 
-  ps-push x.opnd-sz (var temp)
+  mode64 <- mode64?;
+  size <- return (
+    if mode64 then
+      if x.opnd-sz === 16 then
+        16
+      else
+        64
+    else
+      x.opnd-sz
+  );
+
+  ps-push size (var temp)
 end
 
 ## Q>>

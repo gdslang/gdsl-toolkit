@@ -51,21 +51,6 @@ end
 val sem-andpd x = sem-andpd-opnds '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vandpd x = sem-andpd-opnds '1' x.opnd1 x.opnd2 x.opnd3
 
-#val sem-vandpd x = do
-#  size <- sizeof1 x.opnd1;
-#  src0 <- read size x.opnd2;
-#  src1 <- read size x.opnd3;
-#  out-size <- return 256;
-#  
-#  temp <- mktemp;
-#  andb size temp src0 src1;
-#
-#  mov (out-size - size) (at-offset temp size) (imm 0);
-#
-#  dst <- return (semantic-register-of-operand-with-size x.opnd1 out-size);
-#  mov out-size dst (var temp)
-#end
-
 ## B>>
 
 val sem-bsf x = do
@@ -236,8 +221,6 @@ val sem-bt x modifier = do
   undef 1 af;
   undef 1 pf
 end
-
-# ^-
 
 ## C>>
 
