@@ -434,8 +434,6 @@ val sem-push x = do
   ps-push x.opnd-sz (var temp)
 end
 
-# v-
-
 val sem-pushf x = do
   mask <- return 0x0000000000fcffff;
   flags <- rflags;
@@ -515,6 +513,8 @@ val sem-rep-insn x sem =
     sem-rep x.addr-sz (sem x)
   else
     sem x
+
+# v-
 
 val sem-ret x =
   case x of
