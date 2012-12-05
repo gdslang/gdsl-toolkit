@@ -514,25 +514,33 @@ val sem-rep-insn x sem =
   else
     sem x
 
-# v-
-
 val sem-ret x =
   case x of
-     VA0 x: sem-ret-without-operand x
+     VA0 x:
+       do
+         sem-ret-without-operand x;
+	 return void
+       end
    | VA1 x:
        do
+	 address <- sem-ret-without-operand x;
          release-from-stack x;
-	 sem-ret-without-operand x
+         ret address
        end
   end
 
 val sem-ret-far x =
   case x of
-     VA0 x: sem-ret-far-without-operand x
+     VA0 x:
+       do
+         sem-ret-far-without-operand x;
+	 return void
+       end
    | VA1 x:
        do
+         address <- sem-ret-far-without-operand x;
          release-from-stack x;
-         sem-ret-far-without-operand x
+         ret address
        end
   end
 
@@ -552,8 +560,7 @@ val pop-ip opnd-sz = do
 end
 
 val sem-ret-without-operand x = do
-  address <- pop-ip x.opnd-sz;
-  ret address
+  pop-ip x.opnd-sz
 end
 
 val sem-ret-far-without-operand x = do
@@ -568,7 +575,7 @@ val sem-ret-far-without-operand x = do
 
   mov reg-size sec-reg-sem (var temp-cs);
 
-  ret address
+  return address
 end
 
 val release-from-stack x = do
@@ -596,6 +603,8 @@ val release-from-stack x = do
 end
 
 ## S>>
+
+# v-
 
 val sem-sahf x = do
   ah <- return (semantic-register-of AH);

@@ -2363,12 +2363,32 @@ val varity0 cons = exception-rep-repne-lock (do
   return (cons (VA0 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
 end)
 
+val varity0-def-opnd-sz-64 cons = do
+  mode64 <- mode64?;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
+  varity0 cons
+end
+
 val varity1 cons giveOp1 = exception-rep-repne-lock (do
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA1 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
 end)
+
+val varity1-def-opnd-sz-64 cons giveOp1 = do
+  mode64 <- mode64?;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
+  varity1 cons giveOp1
+end
 
 val varity2 cons giveOp1 giveOp2 = exception-rep-repne-lock (do
   op1 <- giveOp1;
@@ -3825,16 +3845,16 @@ val /vex/0f [0xae /2-mem]
 
 ### LDS/LES/LFS/LGS/LSS
 ###  - Load Far Pointer
-val / [0xc5 /r-mem]
- | opndsz? = binop LDS r16 m16/16
- | otherwise = binop LDS r32 m16/32
+#val / [0xc5 /r-mem]
+# | opndsz? = binop LDS r16 m16/16
+# | otherwise = binop LDS r32 m16/32
 val / [0x0f 0xb2 /r-mem]
  | opndsz? = binop LSS r16 m16/16
  | rexw? = binop LSS r64 m16/64
  | otherwise = binop LSS r32 m16/32
-val / [0xc4 /r-mem]
- | opndsz? = binop LES r16 m16/16
- | otherwise = binop LES r32 m16/32
+#val / [0xc4 /r-mem]
+# | opndsz? = binop LES r16 m16/16
+# | otherwise = binop LES r32 m16/32
 val / [0x0f 0xb4 /r-mem]
  | opndsz? = binop LFS r16 m16/16
  | rexw? = binop LFS r64 m16/64
@@ -5229,10 +5249,10 @@ val / [0x0f 0x01 0xf9] = arity0 RDTSCP
 
 ### RET
 ###  - Return from Procedure
-val / [0xc3] = varity0 RET
-val / [0xcb] = varity0 RET_FAR
-val / [0xc2] = varity1 RET imm16
-val / [0xca] = varity1 RET_FAR imm16
+val / [0xc3] = varity0-def-opnd-sz-64 RET
+val / [0xcb] = varity0-def-opnd-sz-64 RET_FAR
+val / [0xc2] = varity1-def-opnd-sz-64 RET imm16
+val / [0xca] = varity1-def-opnd-sz-64 RET_FAR imm16
 
 ### ROUNDPD
 ###  - Round Packed Double Precision Floating-Point Values
