@@ -217,7 +217,10 @@ end = struct
                               (pats,
                                SEQexp
                                  [ACTIONseqexp (ASTSubst.rename exp'),
-                                  ACTIONseqexp exp]))
+                                  ACTIONseqexp
+                                     (if List.length ds > 1
+                                         then ASTSubst.rename exp
+                                      else exp)]))
                          ds)
                in
                   map := Map.insert (!map, x, ds)
