@@ -409,6 +409,13 @@ val /gtu sz a b = do
   return (var t)
 end
 
+val /geu sz a b = do
+  t <- mktemp;
+  cmpltu sz t a b;
+  xorb 1 t (var t) (imm 1);
+  return (var t)
+end
+
 val /lts sz a b = do
   t <- mktemp;
   cmplts sz t a b;
@@ -1353,7 +1360,7 @@ val semantics insn =
    | RSQRTSS x: sem-undef-arity2 x
    | SAHF x: sem-sahf x
    | SAL x: sem-sal-shl x
-   | SAR x: sem-sar x
+   | SAR x: sem-shr-sar x '1'
    | SBB x: sem-sbb x
    | SCASB x: sem-scas 8 x
    | SCASD x: sem-scas 32 x
@@ -1393,7 +1400,7 @@ val semantics insn =
    | SGDT x: sem-undef-arity1 x
    | SHL x: sem-sal-shl x
    | SHLD x: sem-undef-arity3 x
-   | SHR x: sem-shr x
+   | SHR x: sem-shr-sar x '0'
    | SHRD x: sem-undef-arity3 x
    | SHUFPD x: sem-undef-arity3 x
    | SHUFPS x: sem-undef-arity3 x

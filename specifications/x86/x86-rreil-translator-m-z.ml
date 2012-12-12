@@ -647,7 +647,7 @@ val sem-sal-shl x = do
   _if (/gtu sz (var temp-count) (imm 0)) _then do
     shl sz tdst src (var temp-count);
 
-    _if (/eq szOp2 (var temp-count) count) _then do
+    _if (/geu szOp2 count (imm sz)) _then do
       temp-c <- mktemp;
       sub sz temp-c (imm sz) (var temp-count);
       shr sz temp-c src (var temp-c);
@@ -718,7 +718,7 @@ val sem-sal-shl x = do
 #  cmpeq sz eq b zer0
 end
 
-val sem-sar x = do
+val sem-shr-sar x signed = do
   sz <- sizeof1 x.opnd1;
   szOp2 <- sizeof1 x.opnd2;
   dst <- lval sz x.opnd1;
@@ -750,18 +750,36 @@ val sem-sar x = do
   tdst <- mktemp;
   cf <- fCF;
 
+  shifter <- return (
+    if signed then
+      shrs
+    else
+      shr
+  );
+
   _if (/gtu sz (var temp-count) (imm 0)) _then do
-    sub sz temp-count (var temp-count) (imm 1);
-    shrs sz tdst src (var temp-count);
+    temp <- mktemp;
+    sub sz temp (var temp-count) (imm 1);
+    shifter sz tdst src (var temp);
 
-    mov 1 cf (var tdst);
+    _if (/geu szOp2 count (imm sz)) _then
+      mov 1 cf (var tdst)
+    _else
+      undef 1 cf
+    ;
 
-    shrs sz tdst (var tdst) (imm 1)
+    shifter sz tdst (var tdst) (imm 1)
   end;
  
   ov <- fOF;
   _if (/eq sz (var temp-count) (imm 1)) _then
-    mov 1 ov (imm 0)
+    if signed then
+      mov 1 ov (imm 0)
+    else do
+      t <- mktemp;
+      mov sz t src;
+      mov 1 ov (var (at-offset t (sz - 1)))
+    end
   _else (_if (/neq sz (var temp-count) (imm 0)) _then
     undef 1 ov)
   ;
@@ -822,67 +840,6 @@ val sem-scas size x = let
   end
 in
   sem-repe-repne-insn x sem
-end
-
-val sem-shr x = do
-  sz <- sizeof1 x.opnd1;
-  szOp2 <- sizeof1 x.opnd2;
-  dst <- lval sz x.opnd1;
-  src <- read sz x.opnd1;
-  count <- read szOp2 x.opnd2;
-
-  #count-mask <- const
-  #   (case sz of
-  #       8: 31
-  #     | 16: 31
-  #     | 32: 31
-  #     | 64: 63
-  #    end);
-  #temp-count <- mktemp;
-  #andb sz temp-count count count-mask;
-
-  real-shift-count-size <-
-    case sz of
-       8: return 5
-     | 16: return 5
-     | 32: return 5
-     | 64: return 6
-    end
-  ;
-  temp-count <- mktemp;
-  mov real-shift-count-size temp-count count;
-  mov (sz - real-shift-count-size) (at-offset temp-count real-shift-count-size) (imm 0);
-
-  tdst <- mktemp;
-  cf <- fCF;
-
-  _if (/gtu sz (var temp-count) (imm 0)) _then do
-    sub sz temp-count (var temp-count) (imm 1);
-    shr sz tdst src (var temp-count);
-
-    mov 1 cf (var tdst);
-
-    shr sz tdst (var tdst) (imm 1)
-  end;
- 
-  ov <- fOF;
-  _if (/eq sz (var temp-count) (imm 1)) _then do
-    t <- mktemp;
-    mov sz t src;
-    mov 1 ov (var (at-offset t (sz - 1)))
-  end _else (_if (/neq sz (var temp-count) (imm 0)) _then
-    undef 1 ov)
-  ;
-
-  sf <- fSF;
-  cmplts sz sf (var tdst) (imm 0);
-
-  zf <- fZF;
-  cmpeq sz zf (var tdst) (imm 0);
-
-  emit-parity-flag (var tdst);
-
-  write sz dst (var tdst)
 end
 
 val sem-stc = do
