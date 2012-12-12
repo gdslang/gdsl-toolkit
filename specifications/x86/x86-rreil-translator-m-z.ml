@@ -647,10 +647,13 @@ val sem-sal-shl x = do
   _if (/gtu sz (var temp-count) (imm 0)) _then do
     shl sz tdst src (var temp-count);
 
-    temp-c <- mktemp;
-    sub sz temp-c (imm sz) (var temp-count);
-    shr sz temp-c src (var temp-c);
-    mov 1 cf (var temp-c)
+    _if (/eq szOp2 (var temp-count) count) _then do
+      temp-c <- mktemp;
+      sub sz temp-c (imm sz) (var temp-count);
+      shr sz temp-c src (var temp-c);
+      mov 1 cf (var temp-c)
+    end _else
+      undef 1 cf
   end;
 
   ov <- fOF;
