@@ -604,14 +604,13 @@ end
 
 ## S>>
 
-# v-
-
 val sem-sahf x = do
   ah <- return (semantic-register-of AH);
-  flags <- rflags;
 
   move-to-rflags ah.size (var ah)
 end
+
+# v-
 
 val sem-sal-shl x = do
   sz <- sizeof1 x.opnd1;
