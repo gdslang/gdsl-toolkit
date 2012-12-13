@@ -793,8 +793,6 @@ val sem-shr-sar x signed = do
   write sz dst (var tdst)
 end
 
-# v-
-
 val sem-sbb x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- lval sz x.opnd1;
@@ -810,17 +808,6 @@ val sem-sbb x = do
   emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf) '1';
 
   write sz difference (var t)
-end
-
-val sem-setcc x cond = do
-  dst-sz <- sizeof1 x.opnd1;
-  dst <- lval dst-sz x.opnd1;
-
-  cond <- cond;
-  temp <- mktemp;
-  movzx dst-sz temp 1 cond;
-
-  write dst-sz dst (var temp)
 end
 
 val sem-scas size x = let
@@ -841,6 +828,17 @@ val sem-scas size x = let
   end
 in
   sem-repe-repne-insn x sem
+end
+
+val sem-setcc x cond = do
+  dst-sz <- sizeof1 x.opnd1;
+  dst <- lval dst-sz x.opnd1;
+
+  cond <- cond;
+  temp <- mktemp;
+  movzx dst-sz temp 1 cond;
+
+  write dst-sz dst (var temp)
 end
 
 val sem-stc = do
@@ -924,8 +922,8 @@ val sem-xadd x = do
 
   emit-add-adc-flags size (var sum) src0 src1 (imm 0) '1';
 
-  write size dst0 (var sum);
-  write size dst1 src0
+  write size dst1 src0;
+  write size dst0 (var sum)
 end
 
 val sem-xchg x = do

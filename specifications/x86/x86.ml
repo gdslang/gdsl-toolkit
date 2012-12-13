@@ -5777,14 +5777,14 @@ val / [0x0f 0xc1 /r]
 ###  - Exchange Register/Memory with Register
 ### Todo: Reg => No lock?
 val / ['10010 r:3']
- | opndsz? = do update@{reg/opcode=r,lock='0'}; binop XCHG ax r16/rexb end
- | rexw? = do update@{reg/opcode=r,lock='0'}; binop XCHG rax r64/rexb end
- | otherwise = do update@{reg/opcode=r,lock='0'}; binop XCHG eax r32/rexb end
-val / [0x86 /r] = do update@{lock='0'}; binop XCHG r8 r/m8 end
+ | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end
+ | rexw? = do update@{reg/opcode=r}; binop XCHG rax r64/rexb end
+ | otherwise = do update@{reg/opcode=r}; binop XCHG eax r32/rexb end
+val / [0x86 /r] = binop XCHG r8 r/m8
 val / [0x87 /r]
- | opndsz? = do update@{lock='1'}; binop-lock XCHG r/m16 r16 end
- | rexw? = do update@{lock='1'}; binop-lock XCHG r/m64 r64 end
- | otherwise = do update@{lock='1'}; binop-lock XCHG r/m32 r32 end
+ | opndsz? = binop-lock XCHG r/m16 r16
+ | rexw? = binop-lock XCHG r/m64 r64
+ | otherwise = binop-lock XCHG r/m32 r32
 
 ### XGETBV
 ###  - Get Value of Extended Control Register
