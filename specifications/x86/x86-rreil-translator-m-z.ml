@@ -610,8 +610,6 @@ val sem-sahf x = do
   move-to-rflags ah.size (var ah)
 end
 
-# v-
-
 val sem-sal-shl x = do
   sz <- sizeof1 x.opnd1;
   szOp2 <- sizeof1 x.opnd2;
@@ -795,6 +793,8 @@ val sem-shr-sar x signed = do
   write sz dst (var tdst)
 end
 
+# v-
+
 val sem-sbb x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- lval sz x.opnd1;
@@ -808,6 +808,7 @@ val sem-sbb x = do
   sub sz t minuend subtrahend;
 
   emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf) '1';
+
   write sz difference (var t)
 end
 

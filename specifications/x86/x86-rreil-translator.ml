@@ -293,8 +293,8 @@ val write-extend avx-encoded sz a b =
 	mov sz x.id b;
 
 	mode64 <- mode64?;
-	if (mode64 and (not (is-avx-sse x.id.id)) and sz < 64) then
-	  #Todo: Only if sz == 32?
+	if (mode64 and (not (is-avx-sse x.id.id)) and sz === 32) then
+	  #Todo: Only if sz == 32? - Yes (tested)!
 	  #Todo: Only for a subset of all registers?
           mov (64 - sz) (at-offset x.id sz) (imm 0)
 	else if (avx-encoded and (is-avx-sse x.id.id) and sz < 256) then
