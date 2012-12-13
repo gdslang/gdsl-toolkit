@@ -188,7 +188,7 @@ val sem-movsx x = do
   write sz-dst dst (var temp)
 end
 
-val sem-movzx clear-avx x = do
+val sem-movzx avx-encoded x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
   dst <- lval sz-dst x.opnd1;
@@ -197,7 +197,7 @@ val sem-movzx clear-avx x = do
   temp <- mktemp;
   movzx sz-dst temp sz-src src;
 
-  write-extend clear-avx sz-dst dst (var temp)
+  write-extend avx-encoded sz-dst dst (var temp)
 end
 
 val sem-mul conv x = do

@@ -4385,7 +4385,7 @@ val / [0xf7 /3]
 # The opcode `0x90` overlapps with `xchg` since
 # 90 = xchg eax, eax; but consider 664590 = xchg ax,r8l!
 # so we deocde 0x90 always as `xchg`
-#val / [0x90] = arity0 NOP
+#val / [0x90] = arity0 NOP => See XCHG
 #val /66 [0x90] = arity0 NOP
 val /66 [0x0f 0x1f /0] = varity2 NOP r/m16 (do update @{reg/opcode='000'}; r16 end)
 val / [0x0f 0x1f /0]
@@ -5779,7 +5779,13 @@ val / [0x0f 0xc1 /r]
 val / ['10010 r:3']
  | opndsz? = do update@{reg/opcode=r}; binop XCHG ax r16/rexb end
  | rexw? = do update@{reg/opcode=r}; binop XCHG rax r64/rexb end
- | otherwise = do update@{reg/opcode=r}; binop XCHG eax r32/rexb end
+ | otherwise = #:-(
+     if r == '000' then #:-(
+       varity0 NOP
+     else do
+       update@{reg/opcode=r};
+       binop XCHG eax r32/rexb
+     end
 val / [0x86 /r] = binop XCHG r8 r/m8
 val / [0x87 /r]
  | opndsz? = binop-lock XCHG r/m16 r16
