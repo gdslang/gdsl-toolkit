@@ -1208,14 +1208,14 @@ val semantics insn =
    | PACKSSWB x: sem-packsswb-packssdw 8 x
    | PACKUSDW x: sem-packuswb-packusdw 16 x
    | PACKUSWB x: sem-packuswb-packusdw 8 x
-   | PADDB x: sem-undef-arity2 x
-   | PADDD x: sem-undef-arity2 x
-   | PADDQ x: sem-undef-arity2 x
+   | PADDB x: sem-padd 8 x
+   | PADDD x: sem-padd 32 x
+   | PADDQ x: sem-padd 64 x
    | PADDSB x: sem-undef-arity2 x
    | PADDSW x: sem-undef-arity2 x
    | PADDUSB x: sem-undef-arity2 x
    | PADDUSW x: sem-undef-arity2 x
-   | PADDW x: sem-undef-arity2 x
+   | PADDW x: sem-padd 16 x
    | PALIGNR x: sem-undef-arity3 x
    | PAND x: sem-undef-arity2 x
    | PANDN x: sem-undef-arity2 x
@@ -1617,14 +1617,26 @@ val semantics insn =
        case v of
           VA3 x: sem-vpackuswb-vpackusdw 8 x
        end
-   | VPADDB x: sem-undef-varity x
-   | VPADDD x: sem-undef-varity x
-   | VPADDQ x: sem-undef-varity x
+   | VPADDB v:
+       case v of
+          VA3 x: sem-vpadd 8 x
+       end
+   | VPADDD v:
+       case v of
+          VA3 x: sem-vpadd 32 x
+       end
+   | VPADDQ v:
+       case v of
+          VA3 x: sem-vpadd 64 x
+       end
    | VPADDSB x: sem-undef-varity x
    | VPADDSW x: sem-undef-varity x
    | VPADDUSB x: sem-undef-varity x
    | VPADDUSW x: sem-undef-varity x
-   | VPADDW x: sem-undef-varity x
+   | VPADDW v:
+       case v of
+          VA3 x: sem-vpadd 16 x
+       end
    | VPALIGNR x: sem-undef-varity x
    | VPAND x: sem-undef-varity x
    | VPANDN x: sem-undef-varity x
