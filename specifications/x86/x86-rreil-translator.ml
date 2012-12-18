@@ -796,30 +796,30 @@ val vector-apply size element-size monad = do
   end
 end
 
-val avx-expand-dst x sem = do
-  sem;
- 
-  size <- sizeof1 x.opnd1;
-  out-size <- return
-    (case x.opnd1 of
-        REG r: 256
-      | _: size
-    end)
-  ;
-
-  if out-size > size then do
-    rest-size <- return (out-size - size);
-    
-    src <- read size x.opnd1;
-    dst <- lval out-size x.opnd1;
-
-    temp <- mktemp;
-    movzx out-size temp size src;
-
-    write out-size dst (var temp)
-  end else
-    return void
-end
+#val avx-expand-dst x sem = do
+#  sem;
+# 
+#  size <- sizeof1 x.opnd1;
+#  out-size <- return
+#    (case x.opnd1 of
+#        REG r: 256
+#      | _: size
+#    end)
+#  ;
+#
+#  if out-size > size then do
+#    rest-size <- return (out-size - size);
+#    
+#    src <- read size x.opnd1;
+#    dst <- lval out-size x.opnd1;
+#
+#    temp <- mktemp;
+#    movzx out-size temp size src;
+#
+#    write out-size dst (var temp)
+#  end else
+#    return void
+#end
 
 val semantics insn =
   case insn of
@@ -1201,13 +1201,13 @@ val semantics insn =
    | OUTSB x: sem-undef-arity0 x
    | OUTSD x: sem-undef-arity0 x
    | OUTSW x: sem-undef-arity0 x
-   | PABSB x: sem-pabs 8 x
-   | PABSD x: sem-pabs 32 x
-   | PABSW x: sem-pabs 16 x
+   | PABSB x: sem-pabs '0' 8 x
+   | PABSD x: sem-pabs '0' 32 x
+   | PABSW x: sem-pabs '0' 16 x
    | PACKSSDW x: sem-packsswb-packssdw 16 x
    | PACKSSWB x: sem-packsswb-packssdw 8 x
-   | PACKUSDW x: sem-undef-arity2 x
-   | PACKUSWB x: sem-undef-arity2 x
+   | PACKUSDW x: sem-packuswb-packusdw 16 x
+   | PACKUSWB x: sem-packuswb-packusdw 8 x
    | PADDB x: sem-undef-arity2 x
    | PADDD x: sem-undef-arity2 x
    | PADDQ x: sem-undef-arity2 x
@@ -1591,15 +1591,15 @@ val semantics insn =
    | VORPS x: sem-undef-varity x
    | VPABSB v:
        case v of
-          VA2 x: avx-expand-dst x (sem-pabs 8 x)
+          VA2 x: sem-pabs '1' 8 x
        end
    | VPABSD v:
        case v of
-          VA2 x: avx-expand-dst x (sem-pabs 32 x)
+          VA2 x: sem-pabs '1' 32 x
        end
    | VPABSW v:
        case v of
-          VA2 x: avx-expand-dst x (sem-pabs 16 x)
+          VA2 x: sem-pabs '1' 16 x
        end
    | VPACKSSDW v:
        case v of
@@ -1609,8 +1609,14 @@ val semantics insn =
        case v of
           VA3 x: sem-vpacksswb-vpackssdw 8 x
        end
-   | VPACKUSDW x: sem-undef-varity x
-   | VPACKUSWB x: sem-undef-varity x
+   | VPACKUSDW v:
+       case v of
+          VA3 x: sem-vpackuswb-vpackusdw 16 x
+       end
+   | VPACKUSWB v:
+       case v of
+          VA3 x: sem-vpackuswb-vpackusdw 8 x
+       end
    | VPADDB x: sem-undef-varity x
    | VPADDD x: sem-undef-varity x
    | VPADDQ x: sem-undef-varity x
