@@ -329,11 +329,11 @@ val sem-pabs element-size x = do
   write size dst (var temp-dst)
 end
 
-val sem-packsswb-packssdw avx-encoded dst-element-size x = do
-  size <- sizeof1 x.opnd1;
-  src1 <- read size x.opnd1;
-  src2 <- read size x.opnd2;
-  dst <- lval size x.opnd1;
+val sem-packsswb-packssdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
 
   temp-src <- mktemp;
   mov size temp-src src1;
@@ -375,6 +375,9 @@ val sem-packsswb-packssdw avx-encoded dst-element-size x = do
 
   write-extend avx-encoded size dst (var temp-dst)
 end
+
+val sem-packsswb-packssdw dst-element-size x = sem-packsswb-packssdw-opnd '0' dst-element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpacksswb-vpackssdw dst-element-size x = sem-packsswb-packssdw-opnd '1' dst-element-size x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;

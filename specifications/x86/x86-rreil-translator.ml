@@ -1204,8 +1204,8 @@ val semantics insn =
    | PABSB x: sem-pabs 8 x
    | PABSD x: sem-pabs 32 x
    | PABSW x: sem-pabs 16 x
-   | PACKSSDW x: sem-packsswb-packssdw '0' 16 x
-   | PACKSSWB x: sem-packsswb-packssdw '0' 8 x
+   | PACKSSDW x: sem-packsswb-packssdw 16 x
+   | PACKSSWB x: sem-packsswb-packssdw 8 x
    | PACKUSDW x: sem-undef-arity2 x
    | PACKUSWB x: sem-undef-arity2 x
    | PADDB x: sem-undef-arity2 x
@@ -1603,11 +1603,11 @@ val semantics insn =
        end
    | VPACKSSDW v:
        case v of
-          VA2 x: sem-packsswb-packssdw '0' 16 x
+          VA3 x: sem-vpacksswb-vpackssdw 16 x
        end
    | VPACKSSWB v:
        case v of
-          VA2 x: sem-packsswb-packssdw '0' 8 x
+          VA3 x: sem-vpacksswb-vpackssdw 8 x
        end
    | VPACKUSDW x: sem-undef-varity x
    | VPACKUSWB x: sem-undef-varity x
