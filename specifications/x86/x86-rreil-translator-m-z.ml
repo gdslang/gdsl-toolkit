@@ -329,6 +329,53 @@ val sem-pabs element-size x = do
   write size dst (var temp-dst)
 end
 
+val sem-packsswb-packssdw avx-encoded dst-element-size x = do
+  size <- sizeof1 x.opnd1;
+  src1 <- read size x.opnd1;
+  src2 <- read size x.opnd2;
+  dst <- lval size x.opnd1;
+
+  temp-src <- mktemp;
+  mov size temp-src src1;
+  mov size (at-offset temp-src size) src2;
+
+  temp-dst <- mktemp;
+
+  element-size <- return (2*dst-element-size);
+
+  upper <- return (
+    if dst-element-size === 8 then
+      0x7f
+    else
+      0x7fff
+  );
+  lower <- return (
+    if dst-element-size === 8 then
+      (0-0x80)
+    else
+      (0-0x8000)
+  );
+
+  let
+    val m i = do
+      src-offset <- return (element-size*i);
+      dst-offset <- return (dst-element-size*i);
+
+      _if (/gts element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
+       mov dst-element-size (at-offset temp-dst dst-offset) (imm upper)
+     ) _else ( _if (/lts element-size (var (at-offset temp-src src-offset)) (imm lower)) _then
+       mov dst-element-size (at-offset temp-dst dst-offset) (imm lower)
+     _else
+       mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src (src-offset + dst-element-size)))
+     )
+    end
+  in
+    vector-apply (2*size) element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 

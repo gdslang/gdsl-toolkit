@@ -409,6 +409,13 @@ val /gtu sz a b = do
   return (var t)
 end
 
+val /gts sz a b = do
+  t <- mktemp;
+  cmples sz t a b;
+  xorb 1 t (var t) (imm 1);
+  return (var t)
+end
+
 val /geu sz a b = do
   t <- mktemp;
   cmpltu sz t a b;
@@ -1197,8 +1204,8 @@ val semantics insn =
    | PABSB x: sem-pabs 8 x
    | PABSD x: sem-pabs 32 x
    | PABSW x: sem-pabs 16 x
-   | PACKSSDW x: sem-undef-arity2 x
-   | PACKSSWB x: sem-undef-arity2 x
+   | PACKSSDW x: sem-packsswb-packssdw '0' 16 x
+   | PACKSSWB x: sem-packsswb-packssdw '0' 8 x
    | PACKUSDW x: sem-undef-arity2 x
    | PACKUSWB x: sem-undef-arity2 x
    | PADDB x: sem-undef-arity2 x
@@ -1594,8 +1601,14 @@ val semantics insn =
        case v of
           VA2 x: avx-expand-dst x (sem-pabs 16 x)
        end
-   | VPACKSSDW x: sem-undef-varity x
-   | VPACKSSWB x: sem-undef-varity x
+   | VPACKSSDW v:
+       case v of
+          VA2 x: sem-packsswb-packssdw '0' 16 x
+       end
+   | VPACKSSWB v:
+       case v of
+          VA2 x: sem-packsswb-packssdw '0' 8 x
+       end
    | VPACKUSDW x: sem-undef-varity x
    | VPACKUSWB x: sem-undef-varity x
    | VPADDB x: sem-undef-varity x
