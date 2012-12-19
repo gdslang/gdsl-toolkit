@@ -429,6 +429,12 @@ val /lts sz a b = do
   return (var t)
 end
 
+val /ltu sz a b = do
+  t <- mktemp;
+  cmpltu sz t a b;
+  return (var t)
+end
+
 val _while c __ b = do
   cc <- c;
   ct <- mktemp;
@@ -1213,8 +1219,8 @@ val semantics insn =
    | PADDQ x: sem-padd 64 x
    | PADDSB x: sem-padds 8 x
    | PADDSW x: sem-padds 16 x
-   | PADDUSB x: sem-undef-arity2 x
-   | PADDUSW x: sem-undef-arity2 x
+   | PADDUSB x: sem-paddus 8 x
+   | PADDUSW x: sem-paddus 16 x
    | PADDW x: sem-padd 16 x
    | PALIGNR x: sem-undef-arity3 x
    | PAND x: sem-undef-arity2 x
@@ -1637,8 +1643,14 @@ val semantics insn =
        case v of
           VA3 x: sem-vpadds 16 x
        end
-   | VPADDUSB x: sem-undef-varity x
-   | VPADDUSW x: sem-undef-varity x
+   | VPADDUSB v:
+       case v of
+          VA3 x: sem-vpaddus 8 x
+       end
+   | VPADDUSW v:
+       case v of
+          VA3 x: sem-vpaddus 16 x
+       end
    | VPADDW v:
        case v of
           VA3 x: sem-vpadd 16 x

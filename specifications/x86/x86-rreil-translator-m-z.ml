@@ -405,7 +405,7 @@ val sem-packuswb-packusdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = 
       src-offset <- return (element-size*i);
       dst-offset <- return (dst-element-size*i);
 
-      _if (/gts element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
+      _if (/gtu element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
        mov dst-element-size (at-offset temp-dst dst-offset) (imm upper)
      ) _else (
        mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src (src-offset + dst-element-size)))
@@ -505,6 +505,50 @@ end
 
 val sem-padds element-size x = sem-padds-vpadds-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpadds element-size x = sem-padds-vpadds-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
+
+val sem-paddus-vpaddus-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+  
+  dst-ex <- mktemp;
+  src1-ex <- mktemp;
+  src2-ex <- mktemp;
+
+  upper <- return (
+    if element-size === 8 then
+      0xff
+    else
+      0xffff
+  );
+
+  let
+    val m i = do
+      offset <- return (element-size*i);
+
+      add (element-size + 1) (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset));
+      
+      _if (/ltu element-size (var (at-offset temp-dst offset)) (var (at-offset temp-src1 offset))) _then (
+        mov element-size (at-offset temp-dst offset) (imm upper)
+      )
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-paddus element-size x = sem-paddus-vpaddus-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpaddus element-size x = sem-paddus-vpaddus-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
