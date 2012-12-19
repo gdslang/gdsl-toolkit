@@ -450,6 +450,62 @@ end
 val sem-padd element-size x = sem-padd-vpadd-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpadd element-size x = sem-padd-vpadd-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
+val sem-padds-vpadds-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+  
+  dst-ex <- mktemp;
+  src1-ex <- mktemp;
+  src2-ex <- mktemp;
+
+  upper <- return (
+    if element-size === 8 then
+      0x7f
+    else
+      0x7fff
+  );
+  lower <- return (
+    if element-size === 8 then
+      (0-0x80)
+    else
+      (0-0x8000)
+  );
+
+  let
+    val m i = do
+      offset <- return (element-size*i);
+
+      movsx (element-size + 1) src1-ex element-size (var (at-offset temp-src1 offset));
+      movsx (element-size + 1) src2-ex element-size (var (at-offset temp-src2 offset));
+      add (element-size + 1) dst-ex (var src1-ex) (var src2-ex);
+      
+      _if (/gts (element-size + 1) (var dst-ex) (imm upper)) _then (
+        mov element-size (at-offset temp-dst offset) (imm upper)
+      ) _else ( _if (/lts (element-size + 1) (var dst-ex) (imm lower)) _then
+        mov element-size (at-offset temp-dst offset) (imm lower)
+      _else
+        mov element-size (at-offset temp-dst offset) (var dst-ex)
+      )
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-padds element-size x = sem-padds-vpadds-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpadds element-size x = sem-padds-vpadds-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
