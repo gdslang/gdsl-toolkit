@@ -4534,7 +4534,7 @@ val /vex/66/0f/vexv [0xdd /r] | vex128? = varity3 VPADDUSW xmm128 v/xmm xmm/m128
 ###  - Packed Align Right
 val / [0x0f 0x3a 0x0f /r] = ternop PALIGNR mm64 mm/m64 imm8
 val /66 [0x0f 0x3a 0x0f /r] = ternop PALIGNR xmm128 xmm/m128 imm8
-val /vex/66/0f/3a [0x0f /r] | vex128? = varity4 VPALIGNR xmm128 v/xmm xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0f /r] | vex128? = varity4 VPALIGNR xmm128 v/xmm xmm/m128 imm8
 
 ### PAND
 ###  - Logical AND

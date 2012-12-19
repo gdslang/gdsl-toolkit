@@ -550,6 +550,29 @@ end
 val sem-paddus element-size x = sem-paddus-vpaddus-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpaddus element-size x = sem-paddus-vpaddus-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
+val sem-palignr-vpalignr-opnd opnd1 opnd2 opnd3 opnd4 = do
+  size <- sizeof1 opnd1;
+  dst <- lval size opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  imm8 <- read 8 opnd4;
+
+  shift-amount <- mktemp;
+  movzx (2*size) shift-amount 8 imm8;
+  shl (2*size) shift-amount (var shift-amount) (imm 3);
+
+  concatenated <- mktemp;
+  mov size concatenated src2;
+  mov size (at-offset concatenated size) src1;
+
+  shr (2*size) concatenated (var concatenated) (var shift-amount);
+
+  write size dst (var concatenated)
+end
+
+val sem-palignr x = sem-palignr-vpalignr-opnd x.opnd1 x.opnd1 x.opnd2 x.opnd3
+val sem-vpalignr x = sem-palignr-vpalignr-opnd x.opnd1 x.opnd2 x.opnd3 x.opnd4
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
