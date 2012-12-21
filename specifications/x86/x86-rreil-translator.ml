@@ -1223,7 +1223,7 @@ val semantics insn =
    | PADDUSW x: sem-paddus 16 x
    | PADDW x: sem-padd 16 x
    | PALIGNR x: sem-palignr x
-   | PAND x: sem-undef-arity2 x
+   | PAND x: sem-pand x
    | PANDN x: sem-undef-arity2 x
    | PAUSE x: sem-undef-arity0 x
    | PAVGB x: sem-undef-arity2 x
@@ -1659,7 +1659,10 @@ val semantics insn =
        case v of
           VA4 x: sem-vpalignr x
        end
-   | VPAND x: sem-undef-varity x
+   | VPAND v:
+       case v of
+          VA3 x: sem-vpand x
+       end
    | VPANDN x: sem-undef-varity x
    | VPAVGB x: sem-undef-varity x
    | VPAVGW x: sem-undef-varity x

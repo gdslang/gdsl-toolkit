@@ -550,7 +550,7 @@ end
 val sem-paddus element-size x = sem-paddus-vpaddus-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpaddus element-size x = sem-paddus-vpaddus-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
-val sem-palignr-vpalignr-opnd opnd1 opnd2 opnd3 opnd4 = do
+val sem-palignr-vpalignr-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   size <- sizeof1 opnd1;
   dst <- lval size opnd1;
   src1 <- read size opnd2;
@@ -567,11 +567,26 @@ val sem-palignr-vpalignr-opnd opnd1 opnd2 opnd3 opnd4 = do
 
   shr (2*size) concatenated (var concatenated) (var shift-amount);
 
-  write size dst (var concatenated)
+  write-extend avx-encoded size dst (var concatenated)
 end
 
-val sem-palignr x = sem-palignr-vpalignr-opnd x.opnd1 x.opnd1 x.opnd2 x.opnd3
-val sem-vpalignr x = sem-palignr-vpalignr-opnd x.opnd1 x.opnd2 x.opnd3 x.opnd4
+val sem-palignr x = sem-palignr-vpalignr-opnd '0' x.opnd1 x.opnd1 x.opnd2 x.opnd3
+val sem-vpalignr x = sem-palignr-vpalignr-opnd '1' x.opnd1 x.opnd2 x.opnd3 x.opnd4
+
+val sem-pand-vpand-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  dst <- lval size opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+
+  temp <- mktemp;
+  andb size temp src1 src2;
+
+  write-extend avx-encoded size dst (var temp)
+end
+
+val sem-pand x = sem-pand-vpand-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpand x = sem-pand-vpand-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
