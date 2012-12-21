@@ -588,6 +588,22 @@ end
 val sem-pand x = sem-pand-vpand-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpand x = sem-pand-vpand-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
+val sem-pandn-vpandn-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  dst <- lval size opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+
+  temp <- mktemp;
+  xorb size temp src1 (imm (0-1));
+  andb size temp (var temp) src2;
+
+  write-extend avx-encoded size dst (var temp)
+end
+
+val sem-pandn x = sem-pandn-vpandn-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpandn x = sem-pandn-vpandn-opnd '1' x.opnd1 x.opnd2 x.opnd3
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
