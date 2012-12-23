@@ -1229,7 +1229,7 @@ val semantics insn =
    | PAVGB x: sem-pavg 8 x
    | PAVGW x: sem-pavg 16 x
    | PBLENDVB x: sem-pblendvb x
-   | PBLENDW x: sem-undef-arity3 x
+   | PBLENDW x: sem-pblendw x
    | PCLMULQDQ x: sem-undef-arity3 x
    | PCMPEQB x: sem-undef-arity2 x
    | PCMPEQD x: sem-undef-arity2 x
@@ -1679,7 +1679,10 @@ val semantics insn =
        case v of
           VA4 x: sem-vpblendvb x
        end
-   | VPBLENDW x: sem-undef-varity x
+   | VPBLENDW v:
+       case v of
+          VA4 x: sem-vpblendw x
+       end
    | VPCLMULQDQ x: sem-undef-varity x
    | VPCMPEQB x: sem-undef-varity x
    | VPCMPEQD x: sem-undef-varity x

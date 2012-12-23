@@ -643,7 +643,14 @@ end
 val sem-pavg element-size x = sem-pavg-vpavg-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpavg element-size x = sem-pavg-vpavg-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
-val sem-pblendvb-vpblendvb-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4 = do
+val blend-bit-selector-register element-size index mask = do
+  offset <- return (element-size*index);
+  return (at-offset mask (offset + element-size - 1))
+end
+
+val blend-bit-selector-immediate element-size index mask = return (at-offset mask index)
+
+val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 opnd3 opnd4 = do
   size <- sizeof1 opnd1;
   src1 <- read size opnd2;
   src2 <- read size opnd3;
@@ -651,13 +658,13 @@ val sem-pblendvb-vpblendvb-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4
   mask <- read size opnd4;
 
   temp-src1 <- mktemp;
-  mov size temp-src1 src1;
-  temp-src2 <- mktemp;
   if avx-encoded then do
-    mov size temp-src2 src2
+    mov size temp-src1 src1
   end else
     return void
   ;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
   temp-mask <- mktemp;
   mov size temp-mask mask;
 
@@ -666,12 +673,13 @@ val sem-pblendvb-vpblendvb-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4
   let
     val m i = do
       offset <- return (element-size*i);
-      
-      _if (/d (var (at-offset temp-mask (offset + element-size - 1)))) _then
-        mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
+     
+      test-bit <- bit-selector element-size i temp-mask; 
+      _if (/d (var test-bit)) _then
+        mov element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset))
       _else
         if avx-encoded then
-          mov element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset))
+          mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
 	else
 	  return void
 	  
@@ -683,8 +691,11 @@ val sem-pblendvb-vpblendvb-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-pblendvb x = sem-pblendvb-vpblendvb-opnd '0' 8 x.opnd1 x.opnd2 x.opnd1 (REG XMM0)
-val sem-vpblendvb x = sem-pblendvb-vpblendvb-opnd '1' 8 x.opnd1 x.opnd2 x.opnd3 x.opnd4
+val sem-pblendvb x = sem-pblend-vpblend-opnd blend-bit-selector-register '0' 8 x.opnd1 x.opnd1 x.opnd2 (REG XMM0)
+val sem-vpblendvb x = sem-pblend-vpblend-opnd blend-bit-selector-register '1' 8 x.opnd1 x.opnd2 x.opnd3 x.opnd4
+
+val sem-pblendw x = sem-pblend-vpblend-opnd blend-bit-selector-immediate '0' 16 x.opnd1 x.opnd1 x.opnd2 x.opnd3
+val sem-vpblendw x = sem-pblend-vpblend-opnd blend-bit-selector-immediate '1' 16 x.opnd1 x.opnd2 x.opnd3 x.opnd4
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
