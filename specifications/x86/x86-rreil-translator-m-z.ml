@@ -604,6 +604,88 @@ end
 val sem-pandn x = sem-pandn-vpandn-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpandn x = sem-pandn-vpandn-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
+val sem-pavg-vpavg-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+
+  src1-ex <- mktemp;
+  src2-ex <- mktemp;
+
+  let
+    val m i = do
+      offset <- return (element-size*i);
+
+      movzx (element-size + 1) src1-ex element-size (var (at-offset temp-src1 offset));
+      movzx (element-size + 1) src2-ex element-size (var (at-offset temp-src2 offset));
+      
+      add (element-size + 1) src1-ex (var src1-ex) (var src2-ex);
+      add (element-size + 1) src1-ex (var src1-ex) (imm 1);
+      shr (element-size + 1) src1-ex (var src1-ex) (imm 1);
+
+      mov element-size (at-offset temp-dst offset) (var src1-ex)
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-pavg element-size x = sem-pavg-vpavg-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpavg element-size x = sem-pavg-vpavg-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
+
+val sem-pblendvb-vpblendvb-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+  mask <- read size opnd4;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  if avx-encoded then do
+    mov size temp-src2 src2
+  end else
+    return void
+  ;
+  temp-mask <- mktemp;
+  mov size temp-mask mask;
+
+  temp-dst <- mktemp;
+
+  let
+    val m i = do
+      offset <- return (element-size*i);
+      
+      _if (/d (var (at-offset temp-mask (offset + element-size - 1)))) _then
+        mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
+      _else
+        if avx-encoded then
+          mov element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset))
+	else
+	  return void
+	  
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-pblendvb x = sem-pblendvb-vpblendvb-opnd '0' 8 x.opnd1 x.opnd2 x.opnd1 (REG XMM0)
+val sem-vpblendvb x = sem-pblendvb-vpblendvb-opnd '1' 8 x.opnd1 x.opnd2 x.opnd3 x.opnd4
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 

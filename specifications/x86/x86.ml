@@ -1624,6 +1624,7 @@ val rel64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
 val ptr16/16 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (PTR16/16 (b4 ^ b3 ^ b2 ^ b1))
 val ptr16/32 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8'] = return (PTR16/32 (b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
 
+# Todo: Use bits 6,5,4 only if in 32 bit mode
 val imm/xmm ['r:4 b:4'] = return (xmm r)
 val imm/ymm ['r:4 b:4'] = return (ymm r)
 
@@ -4565,7 +4566,7 @@ val /vex/66/0f/vexv [0xe3 /r] | vex128? = varity3 VPAVGW xmm128 v/xmm xmm/m128
 ###  - Variable Blend Packed Bytes
 # Todo: /is4?
 val /66 [0x0f 0x38 0x10 /r] = binop PBLENDVB xmm128 xmm/m128
-val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? & vex128? = varity4 VPBLENDVB xmm128 v/xmm xmm/m128 xmm128
+val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? & vex128? = varity4 VPBLENDVB xmm128 v/xmm xmm/m128 imm/xmm
 
 ### PBLENDW
 ###  - Blend Packed Words
