@@ -697,6 +697,104 @@ val sem-vpblendvb x = sem-pblend-vpblend-opnd blend-bit-selector-register '1' 8 
 val sem-pblendw x = sem-pblend-vpblend-opnd blend-bit-selector-immediate '0' 16 x.opnd1 x.opnd1 x.opnd2 x.opnd3
 val sem-vpblendw x = sem-pblend-vpblend-opnd blend-bit-selector-immediate '1' 16 x.opnd1 x.opnd2 x.opnd3 x.opnd4
 
+val sem-pclmulqdq avx-encoded opnd1 opnd2 opnd3 opnd4 = do
+  size <- sizeof1 opnd1;
+  dst <- lval size opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  imm_ <- read 8 opnd4;
+
+  temp-imm <- mktemp;
+  mov 8 temp-imm imm_;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  part-size <- return 64;
+
+  temp1 <- mktemp;
+  _if (/not (var temp-imm)) _then
+    mov part-size temp1 (var (at-offset temp-src1 0))
+  _else
+    mov part-size temp1 (var (at-offset temp-src1 part-size))
+  ;
+
+  temp2 <- mktemp;
+  _if (/not (var (at-offset temp-imm 4))) _then
+    mov part-size temp2 (var (at-offset temp-src2 0))
+  _else
+    mov part-size temp2 (var (at-offset temp-src2 part-size))
+  ;
+
+  temp-dst <- mktemp;
+
+  tmpB <- mktemp;
+  temp-bit <- mktemp;
+  let
+    val f i = do
+      andb 1 (at-offset tmpB i) (var (at-offset temp1 0)) (var (at-offset temp2 i));
+
+      let
+        val g j = do
+          andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
+	  xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
+      
+          if (j < i) then
+            g (j + 1)
+          else
+            return void
+        end
+      in
+        g 0
+      end;
+
+      mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
+
+      if (i < 63) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 0
+  end;
+
+  let
+    val f i = do
+      mov 1 (at-offset tmpB i) (imm 0);
+
+      let
+        val g j = do
+          andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
+	  xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
+      
+          if (j < 63) then
+            g (j + 1)
+          else
+            return void
+        end
+      in
+        g (i - 63)
+      end;
+
+      mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
+
+      if (i < 126) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 64
+  end;
+
+  mov 1 (at-offset temp-dst (size - 1)) (imm 0);
+
+  write size dst (var temp-dst)
+end
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
