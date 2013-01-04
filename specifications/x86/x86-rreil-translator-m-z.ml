@@ -833,6 +833,29 @@ val sem-vpcmpeq element-size x = sem-pcmp-vpcmp-opnd '1' element-size /eq x.opnd
 val sem-pcmpgt element-size x = sem-pcmp-vpcmp-opnd '0' element-size /gts x.opnd1 x.opnd1 x.opnd2
 val sem-vpcmpgt element-size x = sem-pcmp-vpcmp-opnd '1' element-size /gts x.opnd1 x.opnd2 x.opnd3
 
+val sem-pextr-vpextr element-size x = do
+  #Todo: Handle overflow of count => AND count, 0x00FF..FF
+  dst-size <- sizeof1 x.opnd1;
+  src-size <- return 128;
+  offset-size <- return 8;
+
+  src <- read src-size x.opnd2;
+  dst <- lval dst-size x.opnd1;
+  offset <- read offset-size x.opnd3;
+
+  temp-dst <- mktemp;
+  mov dst-size temp-dst (imm 0);
+
+  temp <- mktemp;
+  movzx src-size temp offset-size offset;
+  mul src-size temp (var temp) (imm element-size);
+  shr src-size temp src (var temp);
+
+  mov element-size temp-dst (var temp);
+
+  write dst-size dst (var temp-dst)
+end
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
