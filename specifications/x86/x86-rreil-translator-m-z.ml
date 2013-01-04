@@ -798,7 +798,7 @@ end
 val sem-pclmulqdq x = sem-pclmulqdq-vpclmulqdq-opnd '0' x.opnd1 x.opnd1 x.opnd2 x.opnd3
 val sem-vpclmulqdq x = sem-pclmulqdq-vpclmulqdq-opnd '1' x.opnd1 x.opnd2 x.opnd3 x.opnd4
 
-val sem-pcmpeq-vpcmpeq-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
+val sem-pcmp-vpcmp-opnd avx-encoded element-size comparer opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
   src1 <- read size opnd2;
   src2 <- read size opnd3;
@@ -815,7 +815,7 @@ val sem-pcmpeq-vpcmpeq-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
     val m i = do
       offset <- return (element-size*i);
 
-      _if (/eq element-size (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))) _then
+      _if (comparer element-size (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))) _then
         mov element-size (at-offset temp-dst offset) (imm (0-1))
       _else
         mov element-size (at-offset temp-dst offset) (imm 0)
@@ -827,8 +827,11 @@ val sem-pcmpeq-vpcmpeq-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-pcmpeq element-size x = sem-pcmpeq-vpcmpeq-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
-val sem-vpcmpeq element-size x = sem-pcmpeq-vpcmpeq-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
+val sem-pcmpeq element-size x = sem-pcmp-vpcmp-opnd '0' element-size /eq x.opnd1 x.opnd1 x.opnd2
+val sem-vpcmpeq element-size x = sem-pcmp-vpcmp-opnd '1' element-size /eq x.opnd1 x.opnd2 x.opnd3
+
+val sem-pcmpgt element-size x = sem-pcmp-vpcmp-opnd '0' element-size /gts x.opnd1 x.opnd1 x.opnd2
+val sem-vpcmpgt element-size x = sem-pcmp-vpcmp-opnd '1' element-size /gts x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;

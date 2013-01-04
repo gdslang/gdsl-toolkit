@@ -1238,10 +1238,10 @@ val semantics insn =
    | PCMPESTRI x: sem-undef-arity3 x
    | PCMPESTRM x: sem-undef-arity3 x
    | PCMPGRD x: sem-undef-arity2 x
-   | PCMPGTB x: sem-undef-arity2 x
-   | PCMPGTD x: sem-undef-arity2 x
-   | PCMPGTQ x: sem-undef-arity2 x
-   | PCMPGTW x: sem-undef-arity2 x
+   | PCMPGTB x: sem-pcmpgt 8 x
+   | PCMPGTD x: sem-pcmpgt 32 x 
+   | PCMPGTQ x: sem-pcmpgt 64 x
+   | PCMPGTW x: sem-pcmpgt 16 x
    | PCMPISTRI x: sem-undef-arity3 x
    | PCMPISTRM x: sem-undef-arity3 x
    | PEXTRB x: sem-undef-arity3 x
@@ -1705,10 +1705,22 @@ val semantics insn =
        end
    | VPCMPESTRI x: sem-undef-varity x
    | VPCMPESTRM x: sem-undef-varity x
-   | VPCMPGTB x: sem-undef-varity x
-   | VPCMPGTD x: sem-undef-varity x
-   | VPCMPGTQ x: sem-undef-varity x
-   | VPCMPGTW x: sem-undef-varity x
+   | VPCMPGTB v:
+       case v of
+          VA3 x: sem-vpcmpgt 8 x
+       end
+   | VPCMPGTD v:
+       case v of
+          VA3 x: sem-vpcmpgt 32 x
+       end
+   | VPCMPGTQ v:
+       case v of
+          VA3 x: sem-vpcmpgt 64 x
+       end
+   | VPCMPGTW v:
+       case v of
+          VA3 x: sem-vpcmpgt 16 x
+       end
    | VPCMPISTRI x: sem-undef-varity x
    | VPCMPISTRM x: sem-undef-varity x
    | VPERM2F128 x: sem-undef-varity x
