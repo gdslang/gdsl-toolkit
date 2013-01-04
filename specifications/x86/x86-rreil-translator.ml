@@ -1230,11 +1230,11 @@ val semantics insn =
    | PAVGW x: sem-pavg 16 x
    | PBLENDVB x: sem-pblendvb x
    | PBLENDW x: sem-pblendw x
-   | PCLMULQDQ x: sem-undef-arity3 x
-   | PCMPEQB x: sem-undef-arity2 x
-   | PCMPEQD x: sem-undef-arity2 x
-   | PCMPEQQ x: sem-undef-arity2 x
-   | PCMPEQW x: sem-undef-arity2 x
+   | PCLMULQDQ x: sem-pclmulqdq x
+   | PCMPEQB x: sem-pcmpeq 8 x
+   | PCMPEQD x: sem-pcmpeq 32 x
+   | PCMPEQQ x: sem-pcmpeq 64 x
+   | PCMPEQW x: sem-pcmpeq 16 x
    | PCMPESTRI x: sem-undef-arity3 x
    | PCMPESTRM x: sem-undef-arity3 x
    | PCMPGRD x: sem-undef-arity2 x
@@ -1683,11 +1683,26 @@ val semantics insn =
        case v of
           VA4 x: sem-vpblendw x
        end
-   | VPCLMULQDQ x: sem-undef-varity x
-   | VPCMPEQB x: sem-undef-varity x
-   | VPCMPEQD x: sem-undef-varity x
-   | VPCMPEQQ x: sem-undef-varity x
-   | VPCMPEQW x: sem-undef-varity x
+   | VPCLMULQDQ v:
+       case v of
+          VA4 x: sem-vpclmulqdq x
+       end
+   | VPCMPEQB v:
+       case v of
+          VA3 x: sem-vpcmpeq 8 x
+       end
+   | VPCMPEQD v:
+       case v of
+          VA3 x: sem-vpcmpeq 32 x
+       end
+   | VPCMPEQQ v:
+       case v of
+          VA3 x: sem-vpcmpeq 64 x
+       end
+   | VPCMPEQW v:
+       case v of
+          VA3 x: sem-vpcmpeq 16 x
+       end
    | VPCMPESTRI x: sem-undef-varity x
    | VPCMPESTRM x: sem-undef-varity x
    | VPCMPGTB x: sem-undef-varity x

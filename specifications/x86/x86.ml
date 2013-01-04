@@ -4593,7 +4593,7 @@ val /vex/66/0f/vexv [0x76 /r] | vex128? = varity3 VPCMPEQD xmm128 v/xmm xmm/m128
 ### PCMPEQQ
 ###  - Compare Packed Qword Data for Equal
 val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
-val /vex/66/0f/38 [0x29 /r] | vex128? = varity3 VPCMPEQQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x29 /r] | vex128? = varity3 VPCMPEQQ xmm128 v/xmm xmm/m128
 
 ### PCMPESTRI
 ###  - Packed Compare Explicit Length Strings, Return Index

@@ -697,7 +697,7 @@ val sem-vpblendvb x = sem-pblend-vpblend-opnd blend-bit-selector-register '1' 8 
 val sem-pblendw x = sem-pblend-vpblend-opnd blend-bit-selector-immediate '0' 16 x.opnd1 x.opnd1 x.opnd2 x.opnd3
 val sem-vpblendw x = sem-pblend-vpblend-opnd blend-bit-selector-immediate '1' 16 x.opnd1 x.opnd2 x.opnd3 x.opnd4
 
-val sem-pclmulqdq avx-encoded opnd1 opnd2 opnd3 opnd4 = do
+val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   size <- sizeof1 opnd1;
   dst <- lval size opnd1;
   src1 <- read size opnd2;
@@ -738,9 +738,9 @@ val sem-pclmulqdq avx-encoded opnd1 opnd2 opnd3 opnd4 = do
 
       let
         val g j = do
-          andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
-	  xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
-      
+      #    andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
+      #    xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
+
           if (j < i) then
             g (j + 1)
           else
@@ -761,39 +761,74 @@ val sem-pclmulqdq avx-encoded opnd1 opnd2 opnd3 opnd4 = do
     f 0
   end;
 
-  let
-    val f i = do
-      mov 1 (at-offset tmpB i) (imm 0);
+  #let
+  #  val f i = do
+  #    mov 1 (at-offset tmpB i) (imm 0);
 
-      let
-        val g j = do
-          andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
-	  xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
-      
-          if (j < 63) then
-            g (j + 1)
-          else
-            return void
-        end
-      in
-        g (i - 63)
-      end;
+  #    let
+  #      val g j = do
+  #        andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
+  #        xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
+  #    
+  #        if (j < 63) then
+  #          g (j + 1)
+  #        else
+  #          return void
+  #      end
+  #    in
+  #      g (i - 63)
+  #    end;
 
-      mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
+  #    mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
 
-      if (i < 126) then
-        f (i + 1)
-      else
-        return void
-    end
-  in
-    f 64
-  end;
+  #    if (i < 126) then
+  #      f (i + 1)
+  #    else
+  #      return void
+  #  end
+  #in
+  #  f 64
+  #end;
 
-  mov 1 (at-offset temp-dst (size - 1)) (imm 0);
+  #mov 1 (at-offset temp-dst (size - 1)) (imm 0);
 
   write size dst (var temp-dst)
 end
+
+val sem-pclmulqdq x = sem-pclmulqdq-vpclmulqdq-opnd '0' x.opnd1 x.opnd1 x.opnd2 x.opnd3
+val sem-vpclmulqdq x = sem-pclmulqdq-vpclmulqdq-opnd '1' x.opnd1 x.opnd2 x.opnd3 x.opnd4
+
+val sem-pcmpeq-vpcmpeq-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+
+  let
+    val m i = do
+      offset <- return (element-size*i);
+
+      _if (/eq element-size (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))) _then
+        mov element-size (at-offset temp-dst offset) (imm (0-1))
+      _else
+        mov element-size (at-offset temp-dst offset) (imm 0)
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-pcmpeq element-size x = sem-pcmpeq-vpcmpeq-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpcmpeq element-size x = sem-pcmpeq-vpcmpeq-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
