@@ -827,6 +827,37 @@ end
 #    return void
 #end
 
+val add-signed-saturating size dst src1 src2 = do
+  dst-ex <- mktemp;
+  src1-ex <- mktemp;
+  src2-ex <- mktemp;
+
+  upper <- return (
+    if size === 8 then
+      0x7f
+    else
+      0x7fff
+  );
+  lower <- return (
+    if size === 8 then
+      (0-0x80)
+    else
+      (0-0x8000)
+  );
+
+  movsx (size + 1) src1-ex size src1;
+  movsx (size + 1) src2-ex size src2;
+  add (size + 1) dst-ex (var src1-ex) (var src2-ex);
+  
+  _if (/gts (size + 1) (var dst-ex) (imm upper)) _then (
+    mov size dst (imm upper)
+  ) _else ( _if (/lts (size + 1) (var dst-ex) (imm lower)) _then
+    mov size dst (imm lower)
+  _else
+    mov size dst (var dst-ex)
+  )
+end
+
 val semantics insn =
   case insn of
      AAA x: sem-undef-arity0 x
@@ -1249,7 +1280,7 @@ val semantics insn =
    | PEXTRQ x: sem-pextr-vpextr 64 x
    | PEXTRW x: sem-pextr-vpextr 16 x
    | PHADDD x: sem-phadd 32 x
-   | PHADDSW x: sem-undef-arity2 x
+   | PHADDSW x: sem-phaddsw x
    | PHADDW x: sem-phadd 16 x
    | PHMINPOSUW x: sem-undef-arity2 x
    | PHSUBD x: sem-undef-arity2 x
@@ -1746,7 +1777,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vphadd 32 x
        end
-   | VPHADDSW x: sem-undef-varity x
+   | VPHADDSW v:
+       case v of
+          VA3 x: sem-vphaddsw x
+       end
    | VPHADDW v:
        case v of
           VA3 x: sem-vphadd 16 x
