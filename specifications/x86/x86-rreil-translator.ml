@@ -1244,10 +1244,10 @@ val semantics insn =
    | PCMPGTW x: sem-pcmpgt 16 x
    | PCMPISTRI x: sem-undef-arity3 x
    | PCMPISTRM x: sem-undef-arity3 x
-   | PEXTRB x: sem-undef-arity3 x
-   | PEXTRD x: sem-undef-arity3 x
-   | PEXTRQ x: sem-undef-arity3 x
-   | PEXTRW x: sem-undef-arity3 x
+   | PEXTRB x: sem-pextr-vpextr 8 x
+   | PEXTRD x: sem-pextr-vpextr 32 x
+   | PEXTRQ x: sem-pextr-vpextr 64 x
+   | PEXTRW x: sem-pextr-vpextr 16 x
    | PHADDD x: sem-undef-arity2 x
    | PHADDSW x: sem-undef-arity2 x
    | PHADDW x: sem-undef-arity2 x
@@ -1726,10 +1726,22 @@ val semantics insn =
    | VPERM2F128 x: sem-undef-varity x
    | VPERMILPD x: sem-undef-varity x
    | VPERMILPS x: sem-undef-varity x
-   | VPEXTRB x: sem-undef-varity x
-   | VPEXTRD x: sem-undef-varity x
-   | VPEXTRQ x: sem-undef-varity x
-   | VPEXTRW x: sem-undef-varity x
+   | VPEXTRB v:
+       case v of
+          VA3 x: sem-pextr-vpextr 8 x
+       end
+   | VPEXTRD v:
+       case v of
+          VA3 x: sem-pextr-vpextr 32 x
+       end
+   | VPEXTRQ v:
+       case v of
+          VA3 x: sem-pextr-vpextr 64 x
+       end
+   | VPEXTRW v:
+       case v of
+          VA3 x: sem-pextr-vpextr 16 x
+       end
    | VPHADDD x: sem-undef-varity x
    | VPHADDSW x: sem-undef-varity x
    | VPHADDW x: sem-undef-varity x

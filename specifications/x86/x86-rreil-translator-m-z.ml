@@ -834,26 +834,36 @@ val sem-pcmpgt element-size x = sem-pcmp-vpcmp-opnd '0' element-size /gts x.opnd
 val sem-vpcmpgt element-size x = sem-pcmp-vpcmp-opnd '1' element-size /gts x.opnd1 x.opnd2 x.opnd3
 
 val sem-pextr-vpextr element-size x = do
-  #Todo: Handle overflow of count => AND count, 0x00FF..FF
   dst-size <- sizeof1 x.opnd1;
   src-size <- return 128;
   offset-size <- return 8;
 
   src <- read src-size x.opnd2;
   dst <- lval dst-size x.opnd1;
-  offset <- read offset-size x.opnd3;
 
-  temp-dst <- mktemp;
-  mov dst-size temp-dst (imm 0);
+  offset <- read offset-size x.opnd3;
+  offset-mask <- return (
+    case element-size of
+       8: 0xf
+     | 16: 0x7
+     | 32: 0x3
+     | 64: 0x1
+    end
+  );
 
   temp <- mktemp;
   movzx src-size temp offset-size offset;
-  mul src-size temp (var temp) (imm element-size);
+  andb offset-size temp (var temp) (imm offset-mask);
+  mul offset-size temp (var temp) (imm element-size);
   shr src-size temp src (var temp);
 
-  mov element-size temp-dst (var temp);
+  if dst-size > element-size then
+    mov (dst-size - element-size) (at-offset temp element-size) (imm 0)
+  else
+    return void
+  ;
 
-  write dst-size dst (var temp-dst)
+  write dst-size dst (var temp)
 end
 
 val ps-pop opnd-sz opnd = do

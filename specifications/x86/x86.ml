@@ -2194,6 +2194,8 @@ val r/m16 = r/m 16 reg16-rex
 val r16/m16 = r/m16
 val r32/m16 = r/m 16 reg32-rex
 val r64/m16 = r/m 16 reg64-rex
+val r32/m8 = r/m 8 reg32-rex
+val r64/m8 = r/m 8 reg64-rex
 val r/m32 = r/m 32 reg32-rex
 val r/m64 = r/m 64 reg64-rex
 val mm/m64 = r/m 64 mm-rex
@@ -4634,11 +4636,15 @@ val /vex/66/0f/3a [0x62 /r] | vex128? = varity3 VPCMPISTRM xmm128 xmm/m128 imm8
 
 ### PEXTRB/PEXTRD/PEXTRQ
 ###  - Extract Byte/Dword/Qword
-val /66 [0x0f 0x3a 0x14 /r] = ternop PEXTRB r/m8 xmm128 imm8
+val /66 [0x0f 0x3a 0x14 /r]
+ | mode64? = ternop PEXTRB r64/m8 xmm128 imm8
+ | otherwise = ternop PEXTRB r32/m8 xmm128 imm8
 val /66 [0x0f 0x3a 0x16 /r]
- | rexw? = ternop PEXTRQ r/m32 xmm128 imm8
+ | rexw? = ternop PEXTRQ r/m64 xmm128 imm8
  | otherwise = ternop PEXTRD r/m32 xmm128 imm8
-val /vex/66/0f/3a [0x14 /r] | vex128? & vexw0? = varity3 VPEXTRB r/m8 xmm128 imm8
+val /vex/66/0f/3a [0x14 /r]
+ | mode64? & vex128? & vexw0? = varity3 VPEXTRB r64/m8 xmm128 imm8
+ | vex128? & vexw0? = varity3 VPEXTRB r32/m8 xmm128 imm8
 val /vex/66/0f/3a [0x16 /r]
  | vex128? & vexw0? = varity3 VPEXTRD r/m32 xmm128 imm8
  | vex128? & vexw1? = varity3 VPEXTRQ r/m64 xmm128 imm8
@@ -4652,12 +4658,15 @@ val /66 [0x0f 0xc5 /r-reg]
  | mode64? = ternop PEXTRW r64 xmm/reg128 imm8
  | otherwise = ternop PEXTRW r32 xmm/reg128 imm8
 val /66 [0x0f 0x3a 0x15 /r]
- | mode64? = ternop PEXTRW r/m64 xmm128 imm8
+ | mode64? = ternop PEXTRW r64/m16 xmm128 imm8
+ | otherwise = ternop PEXTRW r32/m16 xmm128 imm8
 val /vex/66/0f [0xc5 /r-reg]
  | mode64? & vex128? = varity3 VPEXTRW r64 xmm/reg128 imm8
+ | vex128? = varity3 VPEXTRW r32 xmm/reg128 imm8
 #TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r32 xmm/reg128 imm8
-val /vex/66/0f [0x15 /r]
- | mode64? & vex128? = varity3 VPEXTRW r/m64 xmm128 imm8
+val /vex/66/0f/3a [0x15 /r]
+ | mode64? & vex128? & vexw0? = varity3 VPEXTRW r64/m16 xmm128 imm8
+ | vex128? & vexw0? = varity3 VPEXTRW r32/m16 xmm128 imm8
 #TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r/m32 xmm128 imm8
 
 ### PHADDW/PHADDD
