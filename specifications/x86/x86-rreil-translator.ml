@@ -1248,9 +1248,9 @@ val semantics insn =
    | PEXTRD x: sem-pextr-vpextr 32 x
    | PEXTRQ x: sem-pextr-vpextr 64 x
    | PEXTRW x: sem-pextr-vpextr 16 x
-   | PHADDD x: sem-undef-arity2 x
+   | PHADDD x: sem-phadd 32 x
    | PHADDSW x: sem-undef-arity2 x
-   | PHADDW x: sem-undef-arity2 x
+   | PHADDW x: sem-phadd 16 x
    | PHMINPOSUW x: sem-undef-arity2 x
    | PHSUBD x: sem-undef-arity2 x
    | PHSUBSW x: sem-undef-arity2 x
@@ -1742,9 +1742,15 @@ val semantics insn =
        case v of
           VA3 x: sem-pextr-vpextr 16 x
        end
-   | VPHADDD x: sem-undef-varity x
+   | VPHADDD v:
+       case v of
+          VA3 x: sem-vphadd 32 x
+       end
    | VPHADDSW x: sem-undef-varity x
-   | VPHADDW x: sem-undef-varity x
+   | VPHADDW v:
+       case v of
+          VA3 x: sem-vphadd 16 x
+       end
    | VPHMINPOSUW x: sem-undef-varity x
    | VPHSUBD x: sem-undef-varity x
    | VPHSUBSW x: sem-undef-varity x
