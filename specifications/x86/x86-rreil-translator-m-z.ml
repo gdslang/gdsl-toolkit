@@ -861,7 +861,7 @@ val sem-phminposuw-vphminposuw avx-encoded x = do
   let
     val m i = do
       offset <- return (element-size*i);
-      
+
       _if (/leu element-size (var (at-offset temp-src offset)) (var temp-dst)) _then do
         mov element-size temp-dst (var (at-offset temp-src offset));
         mov element-size (at-offset temp-dst element-size) (imm i)
@@ -876,6 +876,9 @@ end
 
 val sem-phsub element-size x = sem-phbinop-vphbinop-opnd '0' element-size sub x.opnd1 x.opnd1 x.opnd2
 val sem-vphsub element-size x = sem-phbinop-vphbinop-opnd '1' element-size sub x.opnd1 x.opnd2 x.opnd3
+
+val sem-phsubsw x = sem-phbinop-vphbinop-opnd '0' 16 sub-signed-saturating x.opnd1 x.opnd1 x.opnd2
+val sem-vphsubsw x = sem-phbinop-vphbinop-opnd '1' 16 sub-signed-saturating x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;

@@ -833,7 +833,7 @@ end
 #    return void
 #end
 
-val add-signed-saturating size dst src1 src2 = do
+val binop-signed-saturating operator size dst src1 src2 = do
   dst-ex <- mktemp;
   src1-ex <- mktemp;
   src2-ex <- mktemp;
@@ -853,7 +853,7 @@ val add-signed-saturating size dst src1 src2 = do
 
   movsx (size + 1) src1-ex size src1;
   movsx (size + 1) src2-ex size src2;
-  add (size + 1) dst-ex (var src1-ex) (var src2-ex);
+  operator (size + 1) dst-ex (var src1-ex) (var src2-ex);
   
   _if (/gts (size + 1) (var dst-ex) (imm upper)) _then (
     mov size dst (imm upper)
@@ -863,6 +863,9 @@ val add-signed-saturating size dst src1 src2 = do
     mov size dst (var dst-ex)
   )
 end
+
+val add-signed-saturating size dst src1 src2 = binop-signed-saturating add size dst src1 src2
+val sub-signed-saturating size dst src1 src2 = binop-signed-saturating sub size dst src1 src2
 
 val semantics insn =
   case insn of
@@ -1290,7 +1293,7 @@ val semantics insn =
    | PHADDW x: sem-phadd 16 x
    | PHMINPOSUW x: sem-phminposuw-vphminposuw '0' x
    | PHSUBD x: sem-phsub 32 x
-   | PHSUBSW x: sem-undef-arity2 x
+   | PHSUBSW x: sem-phsubsw x
    | PHSUBW x: sem-phsub 16 x
    | PINSRB x: sem-undef-arity3 x
    | PINSRD x: sem-undef-arity3 x
@@ -1799,7 +1802,10 @@ val semantics insn =
        case v of
           VA3 x:sem-vphsub 32 x 
        end
-   | VPHSUBSW x: sem-undef-varity x
+   | VPHSUBSW v:
+       case v of
+          VA3 x:sem-vphsubsw x 
+       end
    | VPHSUBW v:
        case v of
           VA3 x:sem-vphsub 16 x 
