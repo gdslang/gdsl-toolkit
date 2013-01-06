@@ -1289,9 +1289,9 @@ val semantics insn =
    | PHADDSW x: sem-phaddsw x
    | PHADDW x: sem-phadd 16 x
    | PHMINPOSUW x: sem-phminposuw-vphminposuw '0' x
-   | PHSUBD x: sem-undef-arity2 x
+   | PHSUBD x: sem-phsub 32 x
    | PHSUBSW x: sem-undef-arity2 x
-   | PHSUBW x: sem-undef-arity2 x
+   | PHSUBW x: sem-phsub 16 x
    | PINSRB x: sem-undef-arity3 x
    | PINSRD x: sem-undef-arity3 x
    | PINSRQ x: sem-undef-arity3 x
@@ -1795,9 +1795,15 @@ val semantics insn =
        case v of
           VA2 x: sem-phminposuw-vphminposuw '1' x
        end
-   | VPHSUBD x: sem-undef-varity x
+   | VPHSUBD v:
+       case v of
+          VA3 x:sem-vphsub 32 x 
+       end
    | VPHSUBSW x: sem-undef-varity x
-   | VPHSUBW x: sem-undef-varity x
+   | VPHSUBW v:
+       case v of
+          VA3 x:sem-vphsub 16 x 
+       end
    | VPINSRB x: sem-undef-varity x
    | VPINSRD x: sem-undef-varity x
    | VPINSRQ x: sem-undef-varity x

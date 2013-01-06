@@ -813,7 +813,7 @@ val sem-pextr-vpextr element-size x = do
   write dst-size dst (var temp)
 end
 
-val sem-phadd-vphadd-opnd avx-encoded element-size adder opnd1 opnd2 opnd3 = do
+val sem-phbinop-vphbinop-opnd avx-encoded element-size operator opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
   src1 <- read size opnd2;
   src2 <- read size opnd3;
@@ -830,7 +830,7 @@ val sem-phadd-vphadd-opnd avx-encoded element-size adder opnd1 opnd2 opnd3 = do
       dst-offset <- return (element-size*i);
       src-offset <- return (2*dst-offset);
       
-      adder element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src src-offset)) (var (at-offset temp-src (src-offset + element-size)))
+      operator element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src src-offset)) (var (at-offset temp-src (src-offset + element-size)))
     end
   in
     vector-apply size element-size m
@@ -839,11 +839,11 @@ val sem-phadd-vphadd-opnd avx-encoded element-size adder opnd1 opnd2 opnd3 = do
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-phadd element-size x = sem-phadd-vphadd-opnd '0' element-size add x.opnd1 x.opnd1 x.opnd2
-val sem-vphadd element-size x = sem-phadd-vphadd-opnd '1' element-size add x.opnd1 x.opnd2 x.opnd3
+val sem-phadd element-size x = sem-phbinop-vphbinop-opnd '0' element-size add x.opnd1 x.opnd1 x.opnd2
+val sem-vphadd element-size x = sem-phbinop-vphbinop-opnd '1' element-size add x.opnd1 x.opnd2 x.opnd3
 
-val sem-phaddsw x = sem-phadd-vphadd-opnd '0' 16 add-signed-saturating x.opnd1 x.opnd1 x.opnd2
-val sem-vphaddsw x = sem-phadd-vphadd-opnd '1' 16 add-signed-saturating x.opnd1 x.opnd2 x.opnd3
+val sem-phaddsw x = sem-phbinop-vphbinop-opnd '0' 16 add-signed-saturating x.opnd1 x.opnd1 x.opnd2
+val sem-vphaddsw x = sem-phbinop-vphbinop-opnd '1' 16 add-signed-saturating x.opnd1 x.opnd2 x.opnd3
 
 val sem-phminposuw-vphminposuw avx-encoded x = do
   element-size <- return 16;
@@ -873,6 +873,9 @@ val sem-phminposuw-vphminposuw avx-encoded x = do
 
   write-extend avx-encoded size dst (var temp-dst)
 end
+
+val sem-phsub element-size x = sem-phbinop-vphbinop-opnd '0' element-size sub x.opnd1 x.opnd1 x.opnd2
+val sem-vphsub element-size x = sem-phbinop-vphbinop-opnd '1' element-size sub x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
