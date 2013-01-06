@@ -845,6 +845,35 @@ val sem-vphadd element-size x = sem-phadd-vphadd-opnd '1' element-size add x.opn
 val sem-phaddsw x = sem-phadd-vphadd-opnd '0' 16 add-signed-saturating x.opnd1 x.opnd1 x.opnd2
 val sem-vphaddsw x = sem-phadd-vphadd-opnd '1' 16 add-signed-saturating x.opnd1 x.opnd2 x.opnd3
 
+val sem-phminposuw-vphminposuw avx-encoded x = do
+  element-size <- return 16;
+  size <- sizeof1 x.opnd1;
+  src1 <- read size x.opnd2;
+  dst <- lval size x.opnd1;
+
+  temp-src <- mktemp;
+  mov size temp-src src1;
+
+  temp-dst <- mktemp;
+  mov element-size temp-dst (var temp-src);
+  mov (size - element-size) (at-offset temp-dst element-size) (imm 0);
+
+  let
+    val m i = do
+      offset <- return (element-size*i);
+      
+      _if (/leu element-size (var (at-offset temp-src offset)) (var temp-dst)) _then do
+        mov element-size temp-dst (var (at-offset temp-src offset));
+        mov element-size (at-offset temp-dst element-size) (imm i)
+      end
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 

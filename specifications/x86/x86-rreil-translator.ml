@@ -435,6 +435,12 @@ val /ltu sz a b = do
   return (var t)
 end
 
+val /leu sz a b = do
+  t <- mktemp;
+  cmpleu sz t a b;
+  return (var t)
+end
+
 val _while c __ b = do
   cc <- c;
   ct <- mktemp;
@@ -1282,7 +1288,7 @@ val semantics insn =
    | PHADDD x: sem-phadd 32 x
    | PHADDSW x: sem-phaddsw x
    | PHADDW x: sem-phadd 16 x
-   | PHMINPOSUW x: sem-undef-arity2 x
+   | PHMINPOSUW x: sem-phminposuw-vphminposuw '0' x
    | PHSUBD x: sem-undef-arity2 x
    | PHSUBSW x: sem-undef-arity2 x
    | PHSUBW x: sem-undef-arity2 x
@@ -1785,7 +1791,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vphadd 16 x
        end
-   | VPHMINPOSUW x: sem-undef-varity x
+   | VPHMINPOSUW v:
+       case v of
+          VA2 x: sem-phminposuw-vphminposuw '1' x
+       end
    | VPHSUBD x: sem-undef-varity x
    | VPHSUBSW x: sem-undef-varity x
    | VPHSUBW x: sem-undef-varity x
