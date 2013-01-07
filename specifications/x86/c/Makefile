@@ -7,6 +7,9 @@ cmusl-cli:
 clang-cli:
 	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors cli.c ../../../dis.o -DRELAXEDFATAL -o clang-cli
 
+clang-tester:
+	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors tester.c ../../../dis.o -DRELAXEDFATAL -o tester
+
 clang-sweep:
 	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o clang-sweep
 

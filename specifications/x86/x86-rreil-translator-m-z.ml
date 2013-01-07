@@ -684,17 +684,16 @@ val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
       andb 1 (at-offset tmpB i) (var (at-offset temp1 0)) (var (at-offset temp2 i));
 
       let
-        val g j = do
-      #    andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
-      #    xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
+        val g j =
+          if (j <= i) then do
+            andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
+            xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
 
-          if (j < i) then
             g (j + 1)
-          else
+          end else
             return void
-        end
       in
-        g 0
+        g 1
       end;
 
       mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
@@ -708,36 +707,36 @@ val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
     f 0
   end;
 
-  #let
-  #  val f i = do
-  #    mov 1 (at-offset tmpB i) (imm 0);
+  let
+    val f i = do
+      mov 1 (at-offset tmpB i) (imm 0);
 
-  #    let
-  #      val g j = do
-  #        andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
-  #        xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
-  #    
-  #        if (j < 63) then
-  #          g (j + 1)
-  #        else
-  #          return void
-  #      end
-  #    in
-  #      g (i - 63)
-  #    end;
+      let
+        val g j = do
+          andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
+          xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
+      
+          if (j < 63) then
+            g (j + 1)
+          else
+            return void
+        end
+      in
+        g (i - 63)
+      end;
 
-  #    mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
+      mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
 
-  #    if (i < 126) then
-  #      f (i + 1)
-  #    else
-  #      return void
-  #  end
-  #in
-  #  f 64
-  #end;
+      if (i < 126) then
+        f (i + 1)
+      else
+        return void
+    end
+  in
+    f 64
+  end;
 
-  #mov 1 (at-offset temp-dst (size - 1)) (imm 0);
+  mov 1 (at-offset temp-dst (size - 1)) (imm 0);
 
   write size dst (var temp-dst)
 end

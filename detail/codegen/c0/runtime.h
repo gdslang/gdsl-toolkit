@@ -1,5 +1,4 @@
 /* vim:ts=2:sw=2:expandtab */
-
 #ifndef __RUNTIME_H
 #define __RUNTIME_H
 
@@ -10,7 +9,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#define __RT_HEAP_SIZE (8*1024*1024)
+#define __RT_HEAP_SIZE (16*1024*1024)
 
 #define __CHECK_HEAP(n) /* TODO: check for heap-overflow */
 #define __ALLOC1() --hp /* TODO: check for heap-overflow */
@@ -47,7 +46,7 @@
 
 #define __INT_INIT(val)\
   {__objref o = __ALLOC1();\
-   o->z.header.tag = __INT;\
+   o->z.header.tag = __INTEGER;\
    o->z.value = val
    
 #define __INT_END(Cname)\
