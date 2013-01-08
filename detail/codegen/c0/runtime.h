@@ -9,7 +9,7 @@
 #include <stddef.h>
 #include <string.h>
 
-#define __RT_HEAP_SIZE (16*1024*1024)
+#define __RT_HEAP_SIZE (8*1024*1024)
 
 #define __CHECK_HEAP(n) /* TODO: check for heap-overflow */
 #define __ALLOC1() --hp /* TODO: check for heap-overflow */

@@ -676,69 +676,83 @@ val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   ;
 
   temp-dst <- mktemp;
+  mov part-size temp-dst (imm 0);
 
-  tmpB <- mktemp;
-  temp-bit <- mktemp;
-  let
-    val f i = do
-      andb 1 (at-offset tmpB i) (var (at-offset temp1 0)) (var (at-offset temp2 i));
+  counter <- mktemp;
+  mov 7 counter (imm 0);
+  _while (/ltu 7 (var counter) (imm 64)) __ do
+    _if (/d (var temp1)) _then
+      xorb part-size temp-dst (var temp-dst) (var temp2)
+    ;
 
-      let
-        val g j =
-          if (j <= i) then do
-            andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
-            xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
+    shr part-size temp1 (var temp1) (imm 1);
+    shl part-size temp2 (var temp2) (imm 1);
 
-            g (j + 1)
-          end else
-            return void
-      in
-        g 1
-      end;
-
-      mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
-
-      if (i < 63) then
-        f (i + 1)
-      else
-        return void
-    end
-  in
-    f 0
+    add 7 counter (var counter) (imm 1)
   end;
 
-  let
-    val f i = do
-      mov 1 (at-offset tmpB i) (imm 0);
+  #tmpB <- mktemp;
+  #temp-bit <- mktemp;
+  #let
+  #  val f i = do
+  #    andb 1 (at-offset tmpB i) (var (at-offset temp1 0)) (var (at-offset temp2 i));
 
-      let
-        val g j = do
-          andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
-          xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
-      
-          if (j < 63) then
-            g (j + 1)
-          else
-            return void
-        end
-      in
-        g (i - 63)
-      end;
+  #    let
+  #      val g j =
+  #        if (j <= i) then do
+  #          andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
+  #          xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
 
-      mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
+  #          g (j + 1)
+  #        end else
+  #          return void
+  #    in
+  #      g 1
+  #    end;
 
-      if (i < 126) then
-        f (i + 1)
-      else
-        return void
-    end
-  in
-    f 64
-  end;
+  #    mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
 
-  mov 1 (at-offset temp-dst (size - 1)) (imm 0);
+  #    if (i < 63) then
+  #      f (i + 1)
+  #    else
+  #      return void
+  #  end
+  #in
+  #  f 0
+  #end;
 
-  write size dst (var temp-dst)
+  #let
+  #  val f i = do
+  #    mov 1 (at-offset tmpB i) (imm 0);
+
+  #    let
+  #      val g j = do
+  #        andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
+  #        xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
+  #    
+  #        if (j < 63) then
+  #          g (j + 1)
+  #        else
+  #          return void
+  #      end
+  #    in
+  #      g (i - 63)
+  #    end;
+
+  #    mov 1 (at-offset temp-dst i) (var (at-offset tmpB i));
+
+  #    if (i < 126) then
+  #      f (i + 1)
+  #    else
+  #      return void
+  #  end
+  #in
+  #  f 64
+  #end;
+
+  #mov 1 (at-offset temp-dst (size - 1)) (imm 0);
+
+  write-extend avx-encoded size dst (var temp-dst)
 end
 
 val sem-pclmulqdq x = sem-pclmulqdq-vpclmulqdq-opnd '0' x.opnd1 x.opnd1 x.opnd2 x.opnd3
