@@ -194,6 +194,14 @@ val conv-with conv sz x =
 val read sz x = conv-with Unsigned sz x
 val reads conv sz x = conv-with conv sz x
 
+val extract-imm-unsigned imm =
+  case imm of
+     IMM8 x: zx x
+   | IMM16 x: zx x
+   | IMM32 x: zx x
+   | IMM64 x: zx x
+ end
+
 val read-addr-reg x =
   case x of
      MEM m:
@@ -1295,10 +1303,10 @@ val semantics insn =
    | PHSUBD x: sem-phsub 32 x
    | PHSUBSW x: sem-phsubsw x
    | PHSUBW x: sem-phsub 16 x
-   | PINSRB x: sem-undef-arity3 x
-   | PINSRD x: sem-undef-arity3 x
-   | PINSRQ x: sem-undef-arity3 x
-   | PINSRW x: sem-undef-arity3 x
+   | PINSRB x: sem-pinsr 8 x
+   | PINSRD x: sem-pinsr 32 x
+   | PINSRQ x: sem-pinsr 64 x
+   | PINSRW x: sem-pinsr 16 x
    | PMADDUBSW x: sem-undef-arity2 x
    | PMADDWD x: sem-undef-arity2 x
    | PMAXSB x: sem-undef-arity2 x
@@ -1800,20 +1808,32 @@ val semantics insn =
        end
    | VPHSUBD v:
        case v of
-          VA3 x:sem-vphsub 32 x 
+          VA3 x: sem-vphsub 32 x 
        end
    | VPHSUBSW v:
        case v of
-          VA3 x:sem-vphsubsw x 
+          VA3 x: sem-vphsubsw x 
        end
    | VPHSUBW v:
        case v of
-          VA3 x:sem-vphsub 16 x 
+          VA3 x: sem-vphsub 16 x 
        end
-   | VPINSRB x: sem-undef-varity x
-   | VPINSRD x: sem-undef-varity x
-   | VPINSRQ x: sem-undef-varity x
-   | VPINSRW x: sem-undef-varity x
+   | VPINSRB v:
+       case v of
+          VA4 x: sem-vpinsr 8 x 
+       end
+   | VPINSRD v:
+       case v of
+          VA4 x: sem-vpinsr 32 x 
+       end
+   | VPINSRQ v:
+       case v of
+          VA4 x: sem-vpinsr 64 x 
+       end
+   | VPINSRW v:
+       case v of
+          VA4 x: sem-vpinsr 16 x 
+       end
    | VPMADDUBSW x: sem-undef-varity x
    | VPMADDWD x: sem-undef-varity x
    | VPMAXSB x: sem-undef-varity x

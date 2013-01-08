@@ -893,6 +893,41 @@ val sem-vphsub element-size x = sem-phbinop-vphbinop-opnd '1' element-size sub x
 val sem-phsubsw x = sem-phbinop-vphbinop-opnd '0' 16 sub-signed-saturating x.opnd1 x.opnd1 x.opnd2
 val sem-vphsubsw x = sem-phbinop-vphbinop-opnd '1' 16 sub-signed-saturating x.opnd1 x.opnd2 x.opnd3
 
+val sem-pinsr-vpinsr-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4 = do
+  offset <- return (
+    case opnd4 of
+      IMM8 x: x
+    end
+  );
+  offset-mask <- return (
+    case element-size of
+       8: '00001111'
+     | 16: '00000111'
+     | 32: '00000011'
+     | 64: '00000001'
+    end
+  );
+  offset-masked <- return (offset and offset-mask);
+  index <- return ((zx offset-masked) * element-size);
+
+  dst-size <- sizeof1 opnd1;
+  dst <- lval dst-size opnd1;
+
+  src-size <- sizeof1 opnd3;
+  src1 <- read dst-size opnd2;
+  src2 <- read src-size opnd3;
+
+  temp <- mktemp;
+  mov dst-size temp src1;
+
+  mov element-size (at-offset temp index) src2;
+
+  write-extend avx-encoded dst-size dst (var temp)
+end
+
+val sem-pinsr element-size x = sem-pinsr-vpinsr-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2 x.opnd3
+val sem-vpinsr element-size x = sem-pinsr-vpinsr-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3 x.opnd4
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 

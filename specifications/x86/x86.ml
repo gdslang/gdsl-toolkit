@@ -4706,20 +4706,20 @@ val /vex/66/0f/38/vexv [0x07 /r] | vex128? = varity3 VPHSUBSW xmm128 v/xmm xmm/m
 
 ### PINSRB/PINSRD/PINSRQ
 ###  - Insert Byte/Dword/Qword
-val /66 [0x0f 0x3a 0x20 /r] = ternop PINSRB xmm128 r/m8 imm8
+val /66 [0x0f 0x3a 0x20 /r] = ternop PINSRB xmm128 r32/m8 imm8
 val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop PINSRD xmm128 r/m32 imm8
-val /vex/66/0f/3a [0x20 /r] | vex128? & vexw0? = varity4 VPINSRB xmm128 v/xmm r/m8 imm8
-val /vex/66/0f/3a [0x22 /r]
+val /vex/66/0f/3a/vexv [0x20 /r] | vex128? & vexw0? = varity4 VPINSRB xmm128 v/xmm r32/m8 imm8
+val /vex/66/0f/3a/vexv [0x22 /r]
  | vex128? & vexw1? = varity4 VPINSRQ xmm128 v/xmm r/m64 imm8
  | vex128? = varity4 VPINSRD xmm128 v/xmm r/m32 imm8
 
 ### PINSRW
 ###  - Insert Word
-val / [0x0f 0xc4 /r] = ternop PINSRW mm64 r/m32 imm8
-val /66 [0x0f 0xc4 /r] = ternop PINSRW xmm128 r/m32 imm8
-val /vex/66/0f/vexv [0xc4 /r] | vex128? & vexw0? = varity4 VPINSRW xmm128 v/xmm r/m32 imm8
+val / [0x0f 0xc4 /r] = ternop PINSRW mm64 r32/m16 imm8
+val /66 [0x0f 0xc4 /r] = ternop PINSRW xmm128 r32/m16 imm8
+val /vex/66/0f/vexv [0xc4 /r] | vex128? & vexw0? = varity4 VPINSRW xmm128 v/xmm r32/m16 imm8
 
 ### PMADDUBSW
 ###  - Multiply and Add Packed Signed and Unsigned Bytes
