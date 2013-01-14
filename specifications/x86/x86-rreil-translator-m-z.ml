@@ -928,8 +928,7 @@ end
 val sem-pinsr element-size x = sem-pinsr-vpinsr-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2 x.opnd3
 val sem-vpinsr element-size x = sem-pinsr-vpinsr-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3 x.opnd4
 
-val sem-pmaddubsw-opnd avx-encoded opnd1 opnd2 opnd3 = do
-  element-size <- return 16;
+val sem-pmcombine-opnd avx-encoded element-size combiner mover1 mover2 opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
   src1 <- read size opnd2;
   src2 <- read size opnd3;
@@ -947,29 +946,36 @@ val sem-pmaddubsw-opnd avx-encoded opnd1 opnd2 opnd3 = do
   local-dst1 <- mktemp;
   local-dst2 <- mktemp;
 
-  byte-size <- return 8;
   let
     val m i = do
-      offset <- return (element-size*i);
+      offset <- return (2*element-size*i);
 
-      movzx element-size local-src1 byte-size (var (at-offset temp-src1 offset));
-      movsx element-size local-src2 byte-size (var (at-offset temp-src2 offset));
+      mover1 (2*element-size) local-src1 element-size (var (at-offset temp-src1 offset));
+      mover2 (2*element-size) local-src2 element-size (var (at-offset temp-src2 offset));
 
-      mul element-size local-dst1 (var local-src1) (var local-src2);
+      mul (2*element-size) local-dst1 (var local-src1) (var local-src2);
 
-      movzx element-size local-src1 byte-size (var (at-offset temp-src1 (offset + byte-size)));
-      movsx element-size local-src2 byte-size (var (at-offset temp-src2 (offset + byte-size)));
+      mover1 (2*element-size) local-src1 element-size (var (at-offset temp-src1 (offset + element-size)));
+      mover2 (2*element-size) local-src2 element-size (var (at-offset temp-src2 (offset + element-size)));
 
-      mul element-size local-dst2 (var local-src1) (var local-src2);
+      mul (2*element-size) local-dst2 (var local-src1) (var local-src2);
 
-      add element-size (at-offset temp-dst offset) (var local-dst1) (var local-dst2)
+      combiner (2*element-size) (at-offset temp-dst offset) (var local-dst1) (var local-dst2)
     end
   in
-    vector-apply size element-size m
+    vector-apply size (2*element-size) m
   end;
 
   write-extend avx-encoded size dst (var temp-dst)
 end
+
+val sem-pmaddubsw-vpmaddubsw-opnd avx-encoded opnd1 opnd2 opnd3 = sem-pmcombine-opnd avx-encoded 8 add-signed-saturating movzx movsx opnd1 opnd2 opnd3
+val sem-pmaddubsw x = sem-pmaddubsw-vpmaddubsw-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpmaddubsw x = sem-pmaddubsw-vpmaddubsw-opnd '1' x.opnd1 x.opnd2 x.opnd3
+
+val sem-pmaddwd-vpmaddwd-opnd avx-encoded opnd1 opnd2 opnd3 = sem-pmcombine-opnd avx-encoded 16 add movsx movsx opnd1 opnd2 opnd3
+val sem-pmaddwd x = sem-pmaddwd-vpmaddwd-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpmaddwd x = sem-pmaddwd-vpmaddwd-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
