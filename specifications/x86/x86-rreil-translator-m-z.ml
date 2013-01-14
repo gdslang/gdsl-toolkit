@@ -928,6 +928,49 @@ end
 val sem-pinsr element-size x = sem-pinsr-vpinsr-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2 x.opnd3
 val sem-vpinsr element-size x = sem-pinsr-vpinsr-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3 x.opnd4
 
+val sem-pmaddubsw-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  element-size <- return 16;
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+
+  local-src1 <- mktemp;
+  local-src2 <- mktemp;
+  local-dst1 <- mktemp;
+  local-dst2 <- mktemp;
+
+  byte-size <- return 8;
+  let
+    val m i = do
+      offset <- return (element-size*i);
+
+      movzx element-size local-src1 byte-size (var (at-offset temp-src1 offset));
+      movsx element-size local-src2 byte-size (var (at-offset temp-src2 offset));
+
+      muls element-size local-dst1 (var local-src1) (var local-src2);
+
+      movzx element-size local-src1 byte-size (var (at-offset temp-src1 (offset + byte-size)));
+      movsx element-size local-src2 byte-size (var (at-offset temp-src2 (offset + byte-size)));
+
+      mul element-size local-dst2 (var local-src1) (var local-src2);
+
+      add element-size (at-offset temp-dst offset) (var local-dst1) (var local-dst2)
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
