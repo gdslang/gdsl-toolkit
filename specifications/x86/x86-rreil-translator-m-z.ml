@@ -977,8 +977,7 @@ val sem-pmaddwd-vpmaddwd-opnd avx-encoded opnd1 opnd2 opnd3 = sem-pmcombine-opnd
 val sem-pmaddwd x = sem-pmaddwd-vpmaddwd-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpmaddwd x = sem-pmaddwd-vpmaddwd-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
-val sem-pmaxsb-vpmaxsb-opnd avx-encoded opnd1 opnd2 opnd3 = do
-  element-size <- return 8;
+val sem-pmax-vpmax-opnd avx-encoded comparer element-size opnd1 opnd2 opnd3 = do
 
   size <- sizeof1 opnd1;
   src1 <- read size opnd2;
@@ -996,7 +995,7 @@ val sem-pmaxsb-vpmaxsb-opnd avx-encoded opnd1 opnd2 opnd3 = do
     val m i = do
       offset <- return (element-size*i);
 
-      _if (/gts element-size (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))) _then
+      _if (comparer element-size (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))) _then
         mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
       _else
         mov element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset))
@@ -1008,8 +1007,9 @@ val sem-pmaxsb-vpmaxsb-opnd avx-encoded opnd1 opnd2 opnd3 = do
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-pmaxsb x = sem-pmaxsb-vpmaxsb-opnd '0' x.opnd1 x.opnd1 x.opnd2
-val sem-vpmaxsb x = sem-pmaxsb-vpmaxsb-opnd '1' x.opnd1 x.opnd2 x.opnd3
+val sem-pmaxs-vpmaxs-opnd avx-encoded element-size opnd1 opnd2 opnd3 = sem-pmax-vpmax-opnd avx-encoded /gts element-size opnd1 opnd2 opnd3
+val sem-pmaxs element-size x = sem-pmaxs-vpmaxs-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpmaxs element-size x = sem-pmaxs-vpmaxs-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
