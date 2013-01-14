@@ -955,7 +955,7 @@ val sem-pmaddubsw-opnd avx-encoded opnd1 opnd2 opnd3 = do
       movzx element-size local-src1 byte-size (var (at-offset temp-src1 offset));
       movsx element-size local-src2 byte-size (var (at-offset temp-src2 offset));
 
-      muls element-size local-dst1 (var local-src1) (var local-src2);
+      mul element-size local-dst1 (var local-src1) (var local-src2);
 
       movzx element-size local-src1 byte-size (var (at-offset temp-src1 (offset + byte-size)));
       movsx element-size local-src2 byte-size (var (at-offset temp-src2 (offset + byte-size)));
