@@ -1309,7 +1309,7 @@ val semantics insn =
    | PINSRW x: sem-pinsr 16 x
    | PMADDUBSW x: sem-pmaddubsw x
    | PMADDWD x: sem-pmaddwd x
-   | PMAXSB x: sem-undef-arity2 x
+   | PMAXSB x: sem-pmaxsb x
    | PMAXSD x: sem-undef-arity2 x
    | PMAXSW x: sem-undef-arity2 x
    | PMAXUB x: sem-undef-arity2 x
@@ -1842,7 +1842,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vpmaddwd x 
        end
-   | VPMAXSB x: sem-undef-varity x
+   | VPMAXSB v:
+       case v of
+          VA3 x: sem-vpmaxsb x 
+       end
    | VPMAXSD x: sem-undef-varity x
    | VPMAXSW x: sem-undef-varity x
    | VPMAXUB x: sem-undef-varity x
