@@ -977,7 +977,7 @@ val sem-pmaddwd-vpmaddwd-opnd avx-encoded opnd1 opnd2 opnd3 = sem-pmcombine-opnd
 val sem-pmaddwd x = sem-pmaddwd-vpmaddwd-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpmaddwd x = sem-pmaddwd-vpmaddwd-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
-val sem-pmax-vpmax-opnd avx-encoded comparer element-size opnd1 opnd2 opnd3 = do
+val sem-pcomp-opnd avx-encoded comparer element-size opnd1 opnd2 opnd3 = do
 
   size <- sizeof1 opnd1;
   src1 <- read size opnd2;
@@ -1007,11 +1007,11 @@ val sem-pmax-vpmax-opnd avx-encoded comparer element-size opnd1 opnd2 opnd3 = do
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-pmaxs-vpmaxs-opnd avx-encoded element-size opnd1 opnd2 opnd3 = sem-pmax-vpmax-opnd avx-encoded /gts element-size opnd1 opnd2 opnd3
+val sem-pmaxs-vpmaxs-opnd avx-encoded element-size opnd1 opnd2 opnd3 = sem-pcomp-opnd avx-encoded /gts element-size opnd1 opnd2 opnd3
 val sem-pmaxs element-size x = sem-pmaxs-vpmaxs-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpmaxs element-size x = sem-pmaxs-vpmaxs-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
-val sem-pmaxu-vpmaxu-opnd avx-encoded element-size opnd1 opnd2 opnd3 = sem-pmax-vpmax-opnd avx-encoded /gtu element-size opnd1 opnd2 opnd3
+val sem-pmaxu-vpmaxu-opnd avx-encoded element-size opnd1 opnd2 opnd3 = sem-pcomp-opnd avx-encoded /gtu element-size opnd1 opnd2 opnd3
 val sem-pmaxu element-size x = sem-pmaxu-vpmaxu-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpmaxu element-size x = sem-pmaxu-vpmaxu-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
