@@ -1312,9 +1312,9 @@ val semantics insn =
    | PMAXSB x: sem-pmaxs 8 x
    | PMAXSD x: sem-pmaxs 32 x
    | PMAXSW x: sem-pmaxs 16 x
-   | PMAXUB x: sem-undef-arity2 x
-   | PMAXUD x: sem-undef-arity2 x
-   | PMAXUW x: sem-undef-arity2 x
+   | PMAXUB x: sem-pmaxu 8 x
+   | PMAXUD x: sem-pmaxu 32 x
+   | PMAXUW x: sem-pmaxu 16 x
    | PMINSB x: sem-undef-arity2 x
    | PMINSD x: sem-undef-arity2 x
    | PMINSW x: sem-undef-arity2 x
@@ -1854,9 +1854,18 @@ val semantics insn =
        case v of
           VA3 x: sem-vpmaxs 16 x 
        end
-   | VPMAXUB x: sem-undef-varity x
-   | VPMAXUD x: sem-undef-varity x
-   | VPMAXUW x: sem-undef-varity x
+   | VPMAXUB v:
+       case v of
+          VA3 x: sem-vpmaxu 8 x 
+       end
+   | VPMAXUD v:
+       case v of
+          VA3 x: sem-vpmaxu 32 x 
+       end
+   | VPMAXUW v:
+       case v of
+          VA3 x: sem-vpmaxu 16 x 
+       end
    | VPMINSB x: sem-undef-varity x
    | VPMINSD x: sem-undef-varity x
    | VPMINSW x: sem-undef-varity x
