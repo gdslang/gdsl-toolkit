@@ -1318,9 +1318,9 @@ val semantics insn =
    | PMINSB x: sem-pmins 8 x
    | PMINSD x: sem-pmins 32 x
    | PMINSW x: sem-pmins 16 x
-   | PMINUB x: sem-undef-arity2 x
-   | PMINUD x: sem-undef-arity2 x
-   | PMINUW x: sem-undef-arity2 x
+   | PMINUB x: sem-pminu 8 x
+   | PMINUD x: sem-pminu 32 x
+   | PMINUW x: sem-pminu 16 x
    | PMOVMSKB x: sem-undef-arity2 x
    | PMOVSXBD x: sem-undef-arity2 x
    | PMOVSXBQ x: sem-undef-arity2 x
@@ -1878,9 +1878,18 @@ val semantics insn =
        case v of
           VA3 x: sem-vpmins 16 x 
        end
-   | VPMINUB x: sem-undef-varity x
-   | VPMINUD x: sem-undef-varity x
-   | VPMINUW x: sem-undef-varity x
+   | VPMINUB v:
+       case v of
+          VA3 x: sem-vpminu 8 x 
+       end
+   | VPMINUD v:
+       case v of
+          VA3 x: sem-vpminu 32 x 
+       end
+   | VPMINUW v:
+       case v of
+          VA3 x: sem-vpminu 16 x 
+       end
    | VPMOVMSKB x: sem-undef-varity x
    | VPMOVSXBD x: sem-undef-varity x
    | VPMOVSXBQ x: sem-undef-varity x
