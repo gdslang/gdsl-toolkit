@@ -772,35 +772,65 @@ val direction-adjust reg-size reg-sem for-size = do
     sub reg-size reg-sem (var reg-sem) (imm amount)
 end
 
+val divb x y =
+  case x of
+     8:
+       case y of
+          2: 4
+        | 4: 2
+        | 8: 1
+       end
+   | 16:
+       case y of
+          2: 8
+        | 4: 4
+        | 8: 2
+        | 16: 1
+       end
+   | 32:
+       case y of
+          2: 16
+        | 4: 8
+        | 8: 4
+        | 16: 2
+        | 32: 1
+       end
+   | 64:
+       case y of
+          2: 32
+        | 4: 16
+        | 8: 8
+        | 16: 4
+        | 32: 2
+        | 64: 1
+       end
+   | 128:
+       case y of
+          2: 64
+        | 4: 32
+        | 8: 16
+        | 16: 8
+        | 32: 4
+        | 64: 2
+        | 128: 1
+       end
+   | 256:
+       case y of
+          2: 128
+        | 4: 64
+        | 8: 32
+        | 16: 16
+        | 32: 8
+        | 64: 4
+        | 128: 2
+        | 256: 1
+       end
+  end
+;
+  
+
 val vector-apply size element-size monad = do
-  limit <- return
-    (case size of
-        64:
-	  case element-size of
-	     8: 8
-	   | 16: 4
-	   | 32: 2
-	   | 64: 1
-	  end
-      | 128:
-	  case element-size of
-	     8: 16
-	   | 16: 8
-	   | 32: 4
-	   | 64: 2
-	   | 128: 1
-	  end
-      | 256:
-	  case element-size of
-	     8: 32
-	   | 16: 16
-	   | 32: 8
-	   | 64: 4
-	   | 128: 2
-	   | 256: 1
-	  end
-     end)
-  ;
+  limit <- return (divb size element-size);
 
   let
     val f i = do
@@ -1322,12 +1352,12 @@ val semantics insn =
    | PMINUD x: sem-pminu 32 x
    | PMINUW x: sem-pminu 16 x
    | PMOVMSKB x: sem-pmovmskb-vpmovmskb '0' x
-   | PMOVSXBD x: sem-undef-arity2 x
-   | PMOVSXBQ x: sem-undef-arity2 x
-   | PMOVSXBW x: sem-undef-arity2 x
-   | PMOVSXDQ x: sem-undef-arity2 x
-   | PMOVSXWD x: sem-undef-arity2 x
-   | PMOVSXWQ x: sem-undef-arity2 x
+   | PMOVSXBD x: sem-pmovsx-vpmovsx '0' 8 32 x
+   | PMOVSXBQ x: sem-pmovsx-vpmovsx '0' 8 64 x
+   | PMOVSXBW x: sem-pmovsx-vpmovsx '0' 8 16 x
+   | PMOVSXDQ x: sem-pmovsx-vpmovsx '0' 32 64 x
+   | PMOVSXWD x: sem-pmovsx-vpmovsx '0' 16 32 x
+   | PMOVSXWQ x: sem-pmovsx-vpmovsx '0' 16 64 x
    | PMOVZXBD x: sem-undef-arity2 x
    | PMOVZXBQ x: sem-undef-arity2 x
    | PMOVZXBW x: sem-undef-arity2 x
@@ -1894,12 +1924,30 @@ val semantics insn =
        case v of
           VA2 x: sem-pmovmskb-vpmovmskb '1' x
        end
-   | VPMOVSXBD x: sem-undef-varity x
-   | VPMOVSXBQ x: sem-undef-varity x
-   | VPMOVSXBW x: sem-undef-varity x
-   | VPMOVSXDQ x: sem-undef-varity x
-   | VPMOVSXWD x: sem-undef-varity x
-   | VPMOVSXWQ x: sem-undef-varity x
+   | VPMOVSXBD v:
+       case v of
+          VA2 x: sem-pmovsx-vpmovsx '1' 8 32 x
+       end
+   | VPMOVSXBQ v:
+       case v of
+          VA2 x: sem-pmovsx-vpmovsx '1' 8 64 x
+       end
+   | VPMOVSXBW v:
+       case v of
+          VA2 x: sem-pmovsx-vpmovsx '1' 8 16 x
+       end
+   | VPMOVSXDQ v:
+       case v of
+          VA2 x: sem-pmovsx-vpmovsx '1' 32 64 x
+       end
+   | VPMOVSXWD v:
+       case v of
+          VA2 x: sem-pmovsx-vpmovsx '1' 16 32 x
+       end
+   | VPMOVSXWQ v:
+       case v of
+          VA2 x: sem-pmovsx-vpmovsx '1' 16 64 x
+       end
    | VPMOVZXBD x: sem-undef-varity x
    | VPMOVZXBQ x: sem-undef-varity x
    | VPMOVZXBW x: sem-undef-varity x
