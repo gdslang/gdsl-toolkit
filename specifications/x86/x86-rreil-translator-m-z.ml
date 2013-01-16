@@ -1015,6 +1015,10 @@ val sem-pmaxu-vpmaxu-opnd avx-encoded element-size opnd1 opnd2 opnd3 = sem-pcomp
 val sem-pmaxu element-size x = sem-pmaxu-vpmaxu-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpmaxu element-size x = sem-pmaxu-vpmaxu-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
+val sem-pmins-vpmins-opnd avx-encoded element-size opnd1 opnd2 opnd3 = sem-pcomp-opnd avx-encoded /lts element-size opnd1 opnd2 opnd3
+val sem-pmins element-size x = sem-pmins-vpmins-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpmins element-size x = sem-pmins-vpmins-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
