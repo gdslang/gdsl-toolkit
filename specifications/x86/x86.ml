@@ -4799,9 +4799,15 @@ val /vex/66/0f/38/vexv [0x3a /r] | vex128? = varity3 VPMINUW xmm128 v/xmm xmm/m1
 
 ### PMOVMSKB
 ###  - Move Byte Mask
-val / [0x0f 0xd7 /r] = binop PMOVMSKB reg mm64
-val /66 [0x0f 0xd7 /r] = binop PMOVMSKB reg xmm/reg128
-val /vex/66/0f [0xd7 /r] | vex128? = varity2 VPMOVMSKB vreg xmm/reg128
+val / [0x0f 0xd7 /r-reg]
+ | mode64? = binop PMOVMSKB r64 mm/reg64
+ | otherwise = binop PMOVMSKB r32 mm/reg64
+val /66 [0x0f 0xd7 /r-reg]
+ | mode64? = binop PMOVMSKB r64 xmm/reg128
+ | otherwise = binop PMOVMSKB r32 xmm/reg128
+val /vex/66/0f [0xd7 /r-reg]
+ | vex128? & mode64? = varity2 VPMOVMSKB r64 xmm/reg128
+ | vex128? = varity2 VPMOVMSKB r32 xmm/reg128
 
 ### PMOVSX
 ###  - Packed Move with Sign Extend

@@ -978,7 +978,6 @@ val sem-pmaddwd x = sem-pmaddwd-vpmaddwd-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpmaddwd x = sem-pmaddwd-vpmaddwd-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-pcomp-opnd avx-encoded comparer element-size opnd1 opnd2 opnd3 = do
-
   size <- sizeof1 opnd1;
   src1 <- read size opnd2;
   src2 <- read size opnd3;
@@ -1022,6 +1021,33 @@ val sem-vpmins element-size x = sem-pmins-vpmins-opnd '1' element-size x.opnd1 x
 val sem-pminu-vpminu-opnd avx-encoded element-size opnd1 opnd2 opnd3 = sem-pcomp-opnd avx-encoded /ltu element-size opnd1 opnd2 opnd3
 val sem-pminu element-size x = sem-pminu-vpminu-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpminu element-size x = sem-pminu-vpminu-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
+
+val sem-pmovmskb-vpmovmskb avx-encoded x = do
+  element-size <- return 8;
+
+  src-size <- sizeof1 x.opnd2;
+  src <- read src-size x.opnd2;
+  dst-size <- sizeof1 x.opnd1;
+  dst <- lval dst-size x.opnd1;
+
+  temp-src <- mktemp;
+  mov src-size temp-src src;
+
+  temp-dst <- mktemp;
+  mov dst-size temp-dst (imm 0);
+
+  let
+    val m i = do
+      offset <- return (element-size*(i + 1));
+      
+      mov 1 (at-offset temp-dst i) (var (at-offset temp-src (offset - 1)))
+    end
+  in
+    vector-apply src-size element-size m
+  end;
+
+  write-extend avx-encoded dst-size dst (var temp-dst)
+end
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
