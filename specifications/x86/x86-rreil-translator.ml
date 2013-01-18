@@ -1364,7 +1364,7 @@ val semantics insn =
    | PMOVZXDQ x: sem-pmovzx-vpmovzx '0' 32 64 x
    | PMOVZXWD x: sem-pmovzx-vpmovzx '0' 16 32 x
    | PMOVZXWQ x: sem-pmovzx-vpmovzx '0' 16 64 x
-   | PMULDQ x: sem-undef-arity2 x
+   | PMULDQ x: sem-pmuldq x
    | PMULHRSW x: sem-undef-arity2 x
    | PMULHUW x: sem-undef-arity2 x
    | PMULHW x: sem-undef-arity2 x
@@ -1972,7 +1972,10 @@ val semantics insn =
        case v of
           VA2 x: sem-pmovzx-vpmovzx '1' 16 64 x
        end
-   | VPMULDQ x: sem-undef-varity x
+   | VPMULDQ v:
+       case v of
+          VA3 x: sem-vpmuldq x
+       end
    | VPMULHRSW x: sem-undef-varity x
    | VPMULHUW x: sem-undef-varity x
    | VPMULHW x: sem-undef-varity x

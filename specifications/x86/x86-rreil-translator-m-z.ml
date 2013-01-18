@@ -1077,6 +1077,38 @@ end
 val sem-pmovsx-vpmovsx avx-encoded from-size to-size x = sem-pmovex-vpmovex avx-encoded movsx from-size to-size x
 val sem-pmovzx-vpmovzx avx-encoded from-size to-size x = sem-pmovex-vpmovex avx-encoded movzx from-size to-size x
 
+val sem-pmuldq-vpmuldq-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- return 128;
+  element-size <- return 32;
+
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+  
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+
+  let
+    val m offset = do
+      movsx (2*element-size) temp-src1 element-size (var (at-offset temp-src1 offset));
+      movsx (2*element-size) temp-src2 element-size (var (at-offset temp-src2 offset));
+      mul (2*element-size) (at-offset temp-dst offset) (var temp-src1) (var temp-src2)
+    end
+  in do
+    m 0;
+    m 64
+  end end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-pmuldq x = sem-pmuldq-vpmuldq-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpmuldq x = sem-pmuldq-vpmuldq-opnd '1' x.opnd1 x.opnd2 x.opnd3
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
