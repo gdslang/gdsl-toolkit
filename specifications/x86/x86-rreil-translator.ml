@@ -1358,12 +1358,12 @@ val semantics insn =
    | PMOVSXDQ x: sem-pmovsx-vpmovsx '0' 32 64 x
    | PMOVSXWD x: sem-pmovsx-vpmovsx '0' 16 32 x
    | PMOVSXWQ x: sem-pmovsx-vpmovsx '0' 16 64 x
-   | PMOVZXBD x: sem-undef-arity2 x
-   | PMOVZXBQ x: sem-undef-arity2 x
-   | PMOVZXBW x: sem-undef-arity2 x
-   | PMOVZXDQ x: sem-undef-arity2 x
-   | PMOVZXWD x: sem-undef-arity2 x
-   | PMOVZXWQ x: sem-undef-arity2 x
+   | PMOVZXBD x: sem-pmovzx-vpmovzx '0' 8 32 x
+   | PMOVZXBQ x: sem-pmovzx-vpmovzx '0' 8 64 x
+   | PMOVZXBW x: sem-pmovzx-vpmovzx '0' 8 16 x
+   | PMOVZXDQ x: sem-pmovzx-vpmovzx '0' 32 64 x
+   | PMOVZXWD x: sem-pmovzx-vpmovzx '0' 16 32 x
+   | PMOVZXWQ x: sem-pmovzx-vpmovzx '0' 16 64 x
    | PMULDQ x: sem-undef-arity2 x
    | PMULHRSW x: sem-undef-arity2 x
    | PMULHUW x: sem-undef-arity2 x
@@ -1948,12 +1948,30 @@ val semantics insn =
        case v of
           VA2 x: sem-pmovsx-vpmovsx '1' 16 64 x
        end
-   | VPMOVZXBD x: sem-undef-varity x
-   | VPMOVZXBQ x: sem-undef-varity x
-   | VPMOVZXBW x: sem-undef-varity x
-   | VPMOVZXDQ x: sem-undef-varity x
-   | VPMOVZXWD x: sem-undef-varity x
-   | VPMOVZXWQ x: sem-undef-varity x
+   | VPMOVZXBD v:
+       case v of
+          VA2 x: sem-pmovzx-vpmovzx '1' 8 32 x
+       end
+   | VPMOVZXBQ v:
+       case v of
+          VA2 x: sem-pmovzx-vpmovzx '1' 8 64 x
+       end
+   | VPMOVZXBW v:
+       case v of
+          VA2 x: sem-pmovzx-vpmovzx '1' 8 16 x
+       end
+   | VPMOVZXDQ v:
+       case v of
+          VA2 x: sem-pmovzx-vpmovzx '1' 32 64 x
+       end
+   | VPMOVZXWD v:
+       case v of
+          VA2 x: sem-pmovzx-vpmovzx '1' 16 32 x
+       end
+   | VPMOVZXWQ v:
+       case v of
+          VA2 x: sem-pmovzx-vpmovzx '1' 16 64 x
+       end
    | VPMULDQ x: sem-undef-varity x
    | VPMULHRSW x: sem-undef-varity x
    | VPMULHUW x: sem-undef-varity x

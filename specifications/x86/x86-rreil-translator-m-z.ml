@@ -1049,7 +1049,7 @@ val sem-pmovmskb-vpmovmskb avx-encoded x = do
   write-extend avx-encoded dst-size dst (var temp-dst)
 end
 
-val sem-pmovsx-vpmovsx avx-encoded from-size to-size x = do
+val sem-pmovex-vpmovex avx-encoded mover from-size to-size x = do
   src-size <- sizeof1 x.opnd2;
   src <- read src-size x.opnd2;
   dst-size <- sizeof1 x.opnd1;
@@ -1065,7 +1065,7 @@ val sem-pmovsx-vpmovsx avx-encoded from-size to-size x = do
       src-offset <- return (from-size*i);
       dst-offset <- return (to-size*i);
      
-      movsx to-size (at-offset temp-dst dst-offset) from-size (var (at-offset temp-src src-offset))
+      mover to-size (at-offset temp-dst dst-offset) from-size (var (at-offset temp-src src-offset))
     end
   in
     vector-apply dst-size to-size m
@@ -1073,6 +1073,9 @@ val sem-pmovsx-vpmovsx avx-encoded from-size to-size x = do
 
   write-extend avx-encoded dst-size dst (var temp-dst)
 end
+
+val sem-pmovsx-vpmovsx avx-encoded from-size to-size x = sem-pmovex-vpmovex avx-encoded movsx from-size to-size x
+val sem-pmovzx-vpmovzx avx-encoded from-size to-size x = sem-pmovex-vpmovex avx-encoded movzx from-size to-size x
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
