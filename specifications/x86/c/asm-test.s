@@ -316,8 +316,12 @@ main:
 	#vpmovzxbd %xmm1, %xmm2
 	#vpmovzxbq (%rcx), %xmm2
 
-        pmuldq %xmm1, %xmm2
-        vpmuldq %xmm1, %xmm2, %xmm3
+        #pmuldq %xmm1, %xmm2
+        #vpmuldq %xmm1, %xmm2, %xmm3
+
+	pmulhrsw %mm1, %mm2
+	pmulhrsw %xmm1, %xmm2
+	vpmulhrsw %xmm1, %xmm2, %xmm3
 
 	vmovd %xmm5, %ebx
 

@@ -1109,6 +1109,46 @@ end
 val sem-pmuldq x = sem-pmuldq-vpmuldq-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpmuldq x = sem-pmuldq-vpmuldq-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
+val sem-pmulhrsw-vpmulhrsw-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  element-size <- return 16;
+
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+
+  src1-ex <- mktemp;
+  src2-ex <- mktemp;
+  ex-size <- return (2*element-size);
+  let
+    val m i = do
+      offset <- return (element-size*i);
+
+      movsx ex-size src1-ex element-size (var (at-offset temp-src1 offset));
+      movsx ex-size src2-ex element-size (var (at-offset temp-src2 offset));
+      mul ex-size src1-ex (var src1-ex) (var src2-ex);
+      shr ex-size src1-ex (var src1-ex) (imm 14);
+      add ex-size src1-ex (var src1-ex) (imm 1);
+
+      mov element-size (at-offset temp-dst offset) (var (at-offset src1-ex 1))
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-pmulhrsw x = sem-pmulhrsw-vpmulhrsw-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpmulhrsw x = sem-pmulhrsw-vpmulhrsw-opnd '1' x.opnd1 x.opnd2 x.opnd3
+
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
 
