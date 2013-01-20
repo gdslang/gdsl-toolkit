@@ -1149,7 +1149,7 @@ end
 val sem-pmulhrsw x = sem-pmulhrsw-vpmulhrsw-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpmulhrsw x = sem-pmulhrsw-vpmulhrsw-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
-val sem-pmulhuw-vpmulhuw-opnd avx-encoded opnd1 opnd2 opnd3 = do
+val sem-pmulhxw-vpmulhxw-opnd avx-encoded mover opnd1 opnd2 opnd3 = do
   element-size <- return 16;
 
   size <- sizeof1 opnd1;
@@ -1171,8 +1171,8 @@ val sem-pmulhuw-vpmulhuw-opnd avx-encoded opnd1 opnd2 opnd3 = do
     val m i = do
       offset <- return (element-size*i);
 
-      movzx ex-size sd-ex element-size (var (at-offset temp-src1 offset));
-      movzx ex-size s2-ex element-size (var (at-offset temp-src2 offset));
+      mover ex-size sd-ex element-size (var (at-offset temp-src1 offset));
+      mover ex-size s2-ex element-size (var (at-offset temp-src2 offset));
 
       mul ex-size sd-ex (var sd-ex) (var s2-ex);
 
@@ -1185,8 +1185,11 @@ val sem-pmulhuw-vpmulhuw-opnd avx-encoded opnd1 opnd2 opnd3 = do
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-pmulhuw x = sem-pmulhuw-vpmulhuw-opnd '0' x.opnd1 x.opnd1 x.opnd2
-val sem-vpmulhuw x = sem-pmulhuw-vpmulhuw-opnd '1' x.opnd1 x.opnd2 x.opnd3
+val sem-pmulhuw x = sem-pmulhxw-vpmulhxw-opnd '0' movzx x.opnd1 x.opnd1 x.opnd2
+val sem-vpmulhuw x = sem-pmulhxw-vpmulhxw-opnd '1' movzx x.opnd1 x.opnd2 x.opnd3
+
+val sem-pmulhw x = sem-pmulhxw-vpmulhxw-opnd '0' movsx x.opnd1 x.opnd1 x.opnd2
+val sem-vpmulhw x = sem-pmulhxw-vpmulhxw-opnd '1' movsx x.opnd1 x.opnd2 x.opnd3
 
 val ps-pop opnd-sz opnd = do
   stack-addr-sz <- runtime-stack-address-size;
