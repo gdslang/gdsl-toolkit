@@ -327,9 +327,12 @@ main:
 	#pmulhuw %xmm1, %xmm2
 	#vpmulhuw %xmm1, %xmm2, %xmm3
 
-	pmulhw %mm1, %mm2
-	pmulhw %xmm1, %xmm2
-	vpmulhw %xmm1, %xmm2, %xmm3
+	#pmulhw %mm1, %mm2
+	#pmulhw %xmm1, %xmm2
+	#vpmulhw %xmm1, %xmm2, %xmm3
+
+	pmulld %xmm1, %xmm2
+	vpmulld %xmm1, %xmm2, %xmm3
 
 	vmovd %xmm5, %ebx
 
