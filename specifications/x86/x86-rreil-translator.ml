@@ -1370,7 +1370,7 @@ val semantics insn =
    | PMULHW x: sem-pmulhw x
    | PMULLD x: sem-pmull 32 x
    | PMULLW x: sem-pmull 16 x
-   | PMULUDQ x: sem-undef-arity2 x
+   | PMULUDQ x: sem-pmuludq x
    | POP x: sem-pop x
    | POPA x: sem-undef-arity0 x
    | POPAD x: sem-undef-arity0 x
@@ -1996,7 +1996,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vpmull 16 x
        end
-   | VPMULUDQ x: sem-undef-varity x
+   | VPMULUDQ v:
+       case v of
+          VA3 x: sem-vpmuludq x
+       end
    | VPOR x: sem-undef-varity x
    | VPSADBW x: sem-undef-varity x
    | VPSHUFB x: sem-undef-varity x
