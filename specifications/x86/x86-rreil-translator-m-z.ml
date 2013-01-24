@@ -1301,6 +1301,56 @@ val sem-pop x = do
   write x.opnd-sz dst (var temp-dest)
 end
 
+val sem-popa-popad x = do
+  reg-di <- return (register-by-size low DI_ x.opnd-sz);
+  reg-di-sem <- return (semantic-register-of reg-di);
+  ps-pop x.opnd-sz reg-di-sem;
+  reg-si <- return (register-by-size low SI_ x.opnd-sz);
+  reg-si-sem <- return (semantic-register-of reg-si);
+  ps-pop x.opnd-sz reg-si-sem;
+  reg-bp <- return (register-by-size low BP_ x.opnd-sz);
+  reg-bp-sem <- return (semantic-register-of reg-bp);
+  ps-pop x.opnd-sz reg-bp-sem;
+  reg-b <- return (register-by-size low B x.opnd-sz);
+  reg-b-sem <- return (semantic-register-of reg-b);
+  ps-pop x.opnd-sz reg-b-sem;
+  reg-d <- return (register-by-size low D x.opnd-sz);
+  reg-d-sem <- return (semantic-register-of reg-d);
+  ps-pop x.opnd-sz reg-d-sem;
+  reg-c <- return (register-by-size low C x.opnd-sz);
+  reg-c-sem <- return (semantic-register-of reg-c);
+  ps-pop x.opnd-sz reg-c-sem;
+  reg-a <- return (register-by-size low A x.opnd-sz);
+  reg-a-sem <- return (semantic-register-of reg-a);
+  ps-pop x.opnd-sz reg-a-sem
+end
+
+val sem-popcnt x = do
+  src <- read x.opnd-sz x.opnd2;
+  dst <- lval x.opnd-sz x.opnd1;
+
+  temp-src <- mktemp;
+  mov x.opnd-sz temp-src src;
+
+  counter <- mktemp;
+  mov x.opnd-sz counter (imm 0);
+  #i <- mktemp;
+  #mov 7 i (imm 0);
+  #_while (/ltu 7 (var i) (imm x.opnd-sz)) __ (
+  #  _if (/d (var (at-offset temp-src i))) _then
+  #    add x.opnd-sz counter (var counter) (imm 1)
+  #);
+  let
+    val m i =
+      _if (/d (var (at-offset temp-src i))) _then
+        add x.opnd-sz counter (var counter) (imm 1)
+  in
+    vector-apply x.opnd-sz 1 m
+  end;
+
+  write x.opnd-sz dst (var counter)
+end
+
 val sem-popf x = do
   popped <- mktemp;
   ps-pop x.opnd-sz popped;

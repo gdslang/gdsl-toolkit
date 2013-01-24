@@ -298,6 +298,7 @@ type register-without-size =
  | D
  | SI_
  | DI_
+ | BP_
 
 val high reg =
   case reg of
@@ -357,5 +358,11 @@ val register-by-size modifier reg-unsized size =
           16: DI
         | 32: EDI
         | 64: RDI
+       end
+   | BP_:
+       case size of
+          16: BP
+        | 32: EBP
+        | 64: RBP
        end
   end

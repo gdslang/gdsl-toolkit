@@ -776,20 +776,23 @@ val divb x y =
   case x of
      8:
        case y of
-          2: 4
+          1: 8
+        | 2: 4
         | 4: 2
         | 8: 1
        end
    | 16:
        case y of
-          2: 8
+          1: 16
+        | 2: 8
         | 4: 4
         | 8: 2
         | 16: 1
        end
    | 32:
        case y of
-          2: 16
+          1: 32
+        | 2: 16
         | 4: 8
         | 8: 4
         | 16: 2
@@ -797,7 +800,8 @@ val divb x y =
        end
    | 64:
        case y of
-          2: 32
+          1: 64
+        | 2: 32
         | 4: 16
         | 8: 8
         | 16: 4
@@ -806,7 +810,8 @@ val divb x y =
        end
    | 128:
        case y of
-          2: 64
+          1: 128
+        | 2: 64
         | 4: 32
         | 8: 16
         | 16: 8
@@ -816,7 +821,8 @@ val divb x y =
        end
    | 256:
        case y of
-          2: 128
+          1: 256
+        | 2: 128
         | 4: 64
         | 8: 32
         | 16: 16
@@ -1372,9 +1378,9 @@ val semantics insn =
    | PMULLW x: sem-pmull 16 x
    | PMULUDQ x: sem-pmuludq x
    | POP x: sem-pop x
-   | POPA x: sem-undef-arity0 x
-   | POPAD x: sem-undef-arity0 x
-   | POPCNT x: sem-undef-arity2 x
+   | POPA x: sem-popa-popad x
+   | POPAD x: sem-popa-popad x
+   | POPCNT x: sem-popcnt x
    | POPF x: sem-popf x
    | POPFD x: sem-popf x
    | POPFQ x: sem-popf x

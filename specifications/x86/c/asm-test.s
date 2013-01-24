@@ -338,76 +338,81 @@ main:
 	#pmullw %xmm1, %xmm2
 	#vpmullw %xmm1, %xmm2, %xmm3
 
-	pmuludq %mm1, %mm2
-	pmuludq %xmm1, %xmm2
-	vpmuludq %xmm1, %xmm2, %xmm3
+	#pmuludq %mm1, %mm2
+	#pmuludq %xmm1, %xmm2
+	#vpmuludq %xmm1, %xmm2, %xmm3
 
-	vmovd %xmm5, %ebx
+	#popa
 
-	movupd %xmm2, %xmm1	
-	vmovupd %ymm2, %ymm1	
-	vmovupd %xmm2, %xmm1
+	popcnt %eax, %ebx
+	popcnt %rax, %rbx
 
-	pushq %r14
-	#pushl %eax
-	pushw %ax
-	movq %rbx, %r14
-	movq %r13, %r14
-	movq %r13, %rbx
+	#vmovd %xmm5, %ebx
 
-	addb $42, %al
-	addw $4242, %ax
-	addw $4242, %bx
-	addb $42, %bl
-	nop
-	addb %al, %bl
-	addw %dx, %sp
-	addw $42, %ax
-	addl $42, %eax
-	addl $4242, %eax
-	addq $4242, %rax
-	addq $4242, %r12
-	movq $0xffffffffff, %rax
-	addb $42, 4(%rax,%rbp,2)
-	addb $42, 4(%eax,%ebp,2)
-	addb $42, 4(%eax,%ecx,2)
-	addb $42, 4(%r8,%r9,2)
-	addl $227439052, -1907495376(%r8,%r9,2)
-	movq %rax, %rcx
-	movq %r8, %r9
-	addq %rax, %rcx
-	addq %r8, %r9
-	nop
-	addb $42,(%rax)
-	phaddw %xmm1, %xmm2
-	phaddw %xmm3, %xmm5
-	addq $0xabcdef, %r12
+	#movupd %xmm2, %xmm1	
+	#vmovupd %ymm2, %ymm1	
+	#vmovupd %xmm2, %xmm1
 
-	push %gs
-	//push %al
-	pushw %ax
-	//pushl %eax
-	pushq %rax
+	#pushq %r14
+	##pushl %eax
+	#pushw %ax
+	#movq %rbx, %r14
+	#movq %r13, %r14
+	#movq %r13, %rbx
 
-	addq %rdx, %rcx
-	addq %rdx, %r10
-	addq %r10, %rcx
-	addq %rcx, -4(%rdx, %rax, 2)
-	addq %rcx, -4(%rdx, %r12, 2)
-	addq %rcx, -4(%r11, %r12, 2)
+	#addb $42, %al
+	#addw $4242, %ax
+	#addw $4242, %bx
+	#addb $42, %bl
+	#nop
+	#addb %al, %bl
+	#addw %dx, %sp
+	#addw $42, %ax
+	#addl $42, %eax
+	#addl $4242, %eax
+	#addq $4242, %rax
+	#addq $4242, %r12
+	#movq $0xffffffffff, %rax
+	#addb $42, 4(%rax,%rbp,2)
+	#addb $42, 4(%eax,%ebp,2)
+	#addb $42, 4(%eax,%ecx,2)
+	#addb $42, 4(%r8,%r9,2)
+	#addl $227439052, -1907495376(%r8,%r9,2)
+	#movq %rax, %rcx
+	#movq %r8, %r9
+	#addq %rax, %rcx
+	#addq %r8, %r9
+	#nop
+	#addb $42,(%rax)
+	#phaddw %xmm1, %xmm2
+	#phaddw %xmm3, %xmm5
+	#addq $0xabcdef, %r12
 
-	vphaddw %xmm1, %xmm2, %xmm3
+	#push %gs
+	#//push %al
+	#pushw %ax
+	#//pushl %eax
+	#pushq %rax
 
-	maskmovdqu %xmm2, %xmm1
-	vmaskmovdqu %xmm2, %xmm1
+	#addq %rdx, %rcx
+	#addq %rdx, %r10
+	#addq %r10, %rcx
+	#addq %rcx, -4(%rdx, %rax, 2)
+	#addq %rcx, -4(%rdx, %r12, 2)
+	#addq %rcx, -4(%r11, %r12, 2)
 
-	pushq	%rbp
+	#vphaddw %xmm1, %xmm2, %xmm3
+
+	#maskmovdqu %xmm2, %xmm1
+	#vmaskmovdqu %xmm2, %xmm1
+
+	#pushq	%rbp
 	.cfi_def_cfa_offset 16
 	.cfi_offset 6, -16
-	movq	%rsp, %rbp
+	#movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
 	movl	$0, %eax
-	popq	%rbp
+	#popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
