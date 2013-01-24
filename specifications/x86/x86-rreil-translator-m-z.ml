@@ -1311,6 +1311,12 @@ val sem-popa-popad x = do
   reg-bp <- return (register-by-size low BP_ x.opnd-sz);
   reg-bp-sem <- return (semantic-register-of reg-bp);
   ps-pop x.opnd-sz reg-bp-sem;
+
+  reg-sp <- return ESP;
+  reg-sp-size <- sizeof1 (REG reg-sp);
+  reg-sp-sem <- return (semantic-register-of reg-sp);
+  add reg-sp-size reg-sp-sem (var reg-sp-sem) (imm ((divb x.opnd-sz 16)*2));
+
   reg-b <- return (register-by-size low B x.opnd-sz);
   reg-b-sem <- return (semantic-register-of reg-b);
   ps-pop x.opnd-sz reg-b-sem;
