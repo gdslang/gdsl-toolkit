@@ -1393,6 +1393,65 @@ end
 val sem-por x = sem-por-vpor-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpor x = sem-por-vpor-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
+val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+
+  diff-element-size <- return 8;
+  let
+    val m i = do
+      offset <- return (diff-element-size*i);
+
+      _if (/gtu diff-element-size (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))) _then
+        sub diff-element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))
+	_else
+        sub diff-element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset)) (var (at-offset temp-src2 offset))
+    end
+  in
+    vector-apply size diff-element-size m
+  end;
+
+  sum-element-size <- return 64;
+  temp-sum <- mktemp;
+  temp-sum-ex <- mktemp;
+  ex-size <- return 16;
+  let
+    val m i = do
+      offset <- return (sum-element-size*i);
+
+      #Todo: Loop?!
+      movzx ex-size temp-sum diff-element-size (var (at-offset temp-dst offset));
+      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + diff-element-size)));
+      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (2*diff-element-size))));
+      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (3*diff-element-size))));
+      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (4*diff-element-size))));
+      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (5*diff-element-size))));
+      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (6*diff-element-size))));
+      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (7*diff-element-size))));
+      add ex-size temp-sum (var temp-sum) (var temp-sum-ex)
+    end
+  in
+    vector-apply size sum-element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;
