@@ -1378,6 +1378,21 @@ val sem-popf x = do
   move-to-rflags x.opnd-sz (var popped)
 end
 
+val sem-por-vpor-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp <- mktemp;
+  orb size temp src1 src2;
+
+  write-extend avx-encoded size dst (var temp)
+end
+
+val sem-por x = sem-por-vpor-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpor x = sem-por-vpor-opnd '1' x.opnd1 x.opnd2 x.opnd3
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;

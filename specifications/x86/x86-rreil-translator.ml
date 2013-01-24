@@ -1384,7 +1384,7 @@ val semantics insn =
    | POPF x: sem-popf x
    | POPFD x: sem-popf x
    | POPFQ x: sem-popf x
-   | POR x: sem-undef-arity2 x
+   | POR x: sem-por x
    | PREFETCHNTA x: sem-undef-arity1 x
    | PREFETCHT0 x: sem-undef-arity1 x
    | PREFETCHT1 x: sem-undef-arity1 x
@@ -2006,7 +2006,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vpmuludq x
        end
-   | VPOR x: sem-undef-varity x
+   | VPOR v:
+       case v of
+          VA3 x: sem-vpor x
+       end
    | VPSADBW x: sem-undef-varity x
    | VPSHUFB x: sem-undef-varity x
    | VPSHUFD x: sem-undef-varity x
