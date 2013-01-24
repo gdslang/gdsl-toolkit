@@ -1354,6 +1354,20 @@ val sem-popcnt x = do
     vector-apply x.opnd-sz 1 m
   end;
 
+  ov <- fOF;
+  mov 1 ov (imm 0);
+  sf <- fSF;
+  mov 1 sf (imm 0);
+  af <- fAF;
+  mov 1 af (imm 0);
+  cf <- fCF;
+  mov 1 cf (imm 0);
+  pf <- fPF;
+  mov 1 pf (imm 0);
+
+  zf <- fZF;
+  cmpeq x.opnd-sz zf src (imm 0);
+
   write x.opnd-sz dst (var counter)
 end
 
