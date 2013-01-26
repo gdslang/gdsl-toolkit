@@ -838,7 +838,19 @@ val divb x y =
        end
   end
 ;
-  
+
+val logb x =
+  case x of
+     256: 8
+   | 128: 7
+   | 64: 6
+   | 32: 5
+   | 16: 4
+   | 8: 3
+   | 4: 2
+   | 2: 1
+   | 1: 0
+  end
 
 val vector-apply size element-size monad = do
   limit <- return (divb size element-size);

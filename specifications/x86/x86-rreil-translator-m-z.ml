@@ -1466,6 +1466,22 @@ end
 val sem-psadbw x = sem-psadbw-vpsadbw-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpsadbw x = sem-psadbw-vpsadbw-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
+val sem-pshufb-vpshufb-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src <- read size opnd2;
+  shuffle-control-mask <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-scm <- mktemp;
+  #=> For each index: mov (logb (divb size 8)) temp-scm shuffle-control-mask;
+  #movzx temp-scm to some size?!
+
+  #temp-src2 <- mktemp;
+  #mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+end
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;
