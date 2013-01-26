@@ -347,9 +347,13 @@ main:
 	#popcnt %eax, %ebx
 	#popcnt %rax, %rbx
 
-	por %mm1, %mm2
-	por %xmm1, %xmm2
-	vpor %xmm1, %xmm2, %xmm3
+	#por %mm1, %mm2
+	#por %xmm1, %xmm2
+	#vpor %xmm1, %xmm2, %xmm3
+
+	psadbw %mm1, %mm2
+	psadbw %xmm1, %xmm2
+	vpsadbw %xmm1, %xmm2, %xmm3
 
 	#vmovd %xmm5, %ebx
 

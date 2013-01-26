@@ -1414,7 +1414,7 @@ val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
       _if (/gtu diff-element-size (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))) _then
         sub diff-element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))
 	_else
-        sub diff-element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset)) (var (at-offset temp-src2 offset))
+        sub diff-element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset)) (var (at-offset temp-src1 offset))
     end
   in
     vector-apply size diff-element-size m
@@ -1428,22 +1428,33 @@ val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
     val m i = do
       offset <- return (sum-element-size*i);
 
-      #Todo: Loop?!
       movzx ex-size temp-sum diff-element-size (var (at-offset temp-dst offset));
-      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + diff-element-size)));
-      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (2*diff-element-size))));
-      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (3*diff-element-size))));
-      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (4*diff-element-size))));
-      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (5*diff-element-size))));
-      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (6*diff-element-size))));
-      add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (7*diff-element-size))));
-      add ex-size temp-sum (var temp-sum) (var temp-sum-ex)
+      let
+        val n i = do
+          movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + ((i + 1)*diff-element-size))));
+          add ex-size temp-sum (var temp-sum) (var temp-sum-ex)
+	end
+      in
+        vector-apply 7 1 n
+      end;
+
+      mov sum-element-size (at-offset temp-dst offset) (var temp-sum)
+
+      #Todo: Loop?!
+      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + diff-element-size)));
+      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (2*diff-element-size))));
+      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (3*diff-element-size))));
+      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (4*diff-element-size))));
+      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (5*diff-element-size))));
+      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (6*diff-element-size))));
+      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
+      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (7*diff-element-size))));
+      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex)
     end
   in
     vector-apply size sum-element-size m
@@ -1451,6 +1462,9 @@ val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
 
   write-extend avx-encoded size dst (var temp-dst)
 end
+
+val sem-psadbw x = sem-psadbw-vpsadbw-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpsadbw x = sem-psadbw-vpsadbw-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;

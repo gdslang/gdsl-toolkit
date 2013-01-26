@@ -831,6 +831,11 @@ val divb x y =
         | 128: 2
         | 256: 1
        end
+    | k:
+       case y of
+          1: k
+	| k: 1
+       end
   end
 ;
   
@@ -1390,7 +1395,7 @@ val semantics insn =
    | PREFETCHT1 x: sem-undef-arity1 x
    | PREFETCHT2 x: sem-undef-arity1 x
    | PREFETCHW x: sem-undef-arity1 x
-   | PSADBW x: sem-undef-arity2 x
+   | PSADBW x: sem-psadbw x
    | PSHUFB x: sem-undef-arity2 x
    | PSHUFD x: sem-undef-arity3 x
    | PSHUFHW x: sem-undef-arity3 x
@@ -2010,7 +2015,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vpor x
        end
-   | VPSADBW x: sem-undef-varity x
+   | VPSADBW v:
+       case v of
+          VA3 x: sem-vpsadbw x
+       end
    | VPSHUFB x: sem-undef-varity x
    | VPSHUFD x: sem-undef-varity x
    | VPSHUFHW x: sem-undef-varity x
