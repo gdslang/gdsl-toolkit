@@ -1408,7 +1408,7 @@ val semantics insn =
    | PREFETCHT2 x: sem-undef-arity1 x
    | PREFETCHW x: sem-undef-arity1 x
    | PSADBW x: sem-psadbw x
-   | PSHUFB x: sem-undef-arity2 x
+   | PSHUFB x: sem-pshufb x
    | PSHUFD x: sem-undef-arity3 x
    | PSHUFHW x: sem-undef-arity3 x
    | PSHUFLW x: sem-undef-arity3 x
@@ -2031,7 +2031,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vpsadbw x
        end
-   | VPSHUFB x: sem-undef-varity x
+   | VPSHUFB v:
+       case v of
+          VA3 x: sem-vpshufb x
+       end
    | VPSHUFD x: sem-undef-varity x
    | VPSHUFHW x: sem-undef-varity x
    | VPSHUFLW x: sem-undef-varity x

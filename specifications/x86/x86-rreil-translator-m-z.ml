@@ -1467,21 +1467,41 @@ val sem-psadbw x = sem-psadbw-vpsadbw-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpsadbw x = sem-psadbw-vpsadbw-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-pshufb-vpshufb-opnd avx-encoded opnd1 opnd2 opnd3 = do
-  #size <- sizeof1 opnd1;
-  #src <- read size opnd2;
-  #shuffle-control-mask <- read size opnd3;
-  #dst <- lval size opnd1;
+  element-size <- return 8;
 
-  #temp-scm <- mktemp;
-  #=> For each index: mov (logb (divb size 8)) temp-scm shuffle-control-mask;
-  #movzx temp-scm to some size?!
+  size <- sizeof1 opnd1;
+  src <- read size opnd2;
+  shuffle-control-mask <- read size opnd3;
+  dst <- lval size opnd1;
 
-  #temp-src2 <- mktemp;
-  #mov size temp-src2 src2;
+  temp-scm <- mktemp;
+  mov size temp-scm shuffle-control-mask;
+  index <- mktemp;
 
-  #temp-dst <- mktemp
-  return void
+  temp-dst <- mktemp;
+  temp <- mktemp;
+  let
+    val m i = do
+      offset <- return (element-size*i);
+      
+      _if (/d (var (at-offset temp-scm (offset + 7)))) _then
+        mov element-size (at-offset temp-dst offset) (imm 0)
+      _else do
+        movzx size index (logb (divb size 8)) (var (at-offset temp-scm offset));
+	mul size index (var index) (imm 8);
+        shr size temp src (var index);
+	mov element-size (at-offset temp-dst offset) (var temp)
+      end
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
 end
+
+val sem-pshufb x = sem-pshufb-vpshufb-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpshufb x = sem-pshufb-vpshufb-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
