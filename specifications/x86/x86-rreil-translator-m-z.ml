@@ -1487,8 +1487,8 @@ val sem-pshufb-vpshufb-opnd avx-encoded opnd1 opnd2 opnd3 = do
       _if (/d (var (at-offset temp-scm (offset + 7)))) _then
         mov element-size (at-offset temp-dst offset) (imm 0)
       _else do
-        movzx size index (logb (divb size 8)) (var (at-offset temp-scm offset));
-	mul size index (var index) (imm 8);
+        movzx size index (logb (divb size element-size)) (var (at-offset temp-scm offset));
+	mul size index (var index) (imm element-size);
         shr size temp src (var index);
 	mov element-size (at-offset temp-dst offset) (var temp)
       end
@@ -1502,6 +1502,84 @@ end
 
 val sem-pshufb x = sem-pshufb-vpshufb-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpshufb x = sem-pshufb-vpshufb-opnd '1' x.opnd1 x.opnd2 x.opnd3
+
+val sem-pshufd-vpshufd avx-encoded x = do
+  element-size <- return 32;
+
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd2;
+  dst <- lval size x.opnd1;
+
+  temp-src <- mktemp;
+  mov size temp-src src;
+
+  #index <- return (zx ((
+  #  case opnd4 of
+  #    IMM8 x: x
+  #  end
+  #) and '00000011'));
+  indices <- return (
+    case x.opnd3 of
+      IMM8 x: x
+    end
+  );
+
+  temp-dst <- mktemp;
+  temp <- mktemp;
+  let
+    val m i = do
+      offset <- return (element-size*i);
+
+      mask <- return (
+        case i of
+	   0: '00000011'
+	 | 1: '00001100'
+	 | 2: '00110000'
+	 | 3: '11000000'
+	end
+      );
+
+      index <- return (element-size*(
+        case i of
+	   0:
+	     case (indices and mask) of
+	        '00000000': 0
+	      | '00000001': 1
+	      | '00000010': 2
+	      | '00000011': 3
+	     end
+	 | 1:
+	     case (indices and mask) of
+	        '00000000': 0
+	      | '00000100': 1
+	      | '00001000': 2
+	      | '00001100': 3
+	     end
+	 | 2:
+	     case (indices and mask) of
+	        '00000000': 0
+	      | '00010000': 1
+	      | '00100000': 2
+	      | '00110000': 3
+	     end
+	 | 3:
+	     case (indices and mask) of
+	        '00000000': 0
+	      | '01000000': 1
+	      | '10000000': 2
+	      | '11000000': 3
+	     end
+        end
+      ));
+
+      mov element-size (at-offset temp-dst offset) (var (at-offset temp-src index))
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;

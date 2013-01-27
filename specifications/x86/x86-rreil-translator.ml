@@ -852,6 +852,12 @@ val logb x =
    | 1: 0
   end
 
+val exp base e =
+  case e of
+     0: 1
+   | x: base * (exp base (e - 1))
+  end
+
 val vector-apply size element-size monad = do
   limit <- return (divb size element-size);
 
@@ -1409,7 +1415,7 @@ val semantics insn =
    | PREFETCHW x: sem-undef-arity1 x
    | PSADBW x: sem-psadbw x
    | PSHUFB x: sem-pshufb x
-   | PSHUFD x: sem-undef-arity3 x
+   | PSHUFD x: sem-pshufd-vpshufd '0' x
    | PSHUFHW x: sem-undef-arity3 x
    | PSHUFLW x: sem-undef-arity3 x
    | PSHUFW x: sem-undef-arity3 x
@@ -2035,7 +2041,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vpshufb x
        end
-   | VPSHUFD x: sem-undef-varity x
+   | VPSHUFD v:
+       case v of
+          VA3 x: sem-pshufd-vpshufd '1' x
+       end
    | VPSHUFHW x: sem-undef-varity x
    | VPSHUFLW x: sem-undef-varity x
    | VPSIGNB x: sem-undef-varity x

@@ -355,9 +355,13 @@ main:
 	#psadbw %xmm1, %xmm2
 	#vpsadbw %xmm1, %xmm2, %xmm3
 
-	pshufb %mm1, %mm2
+	#pshufb %mm1, %mm2
 	pshufb %xmm1, %xmm2
-	vpshufb %xmm1, %xmm2, %xmm3
+	#vpshufb %xmm1, %xmm2, %xmm3
+
+	pshufd $0x2d, %xmm1, %xmm2
+	pshufd $0xe1, %xmm1, %xmm2
+	vpshufd $0x59, %xmm1, %xmm2
 
 	#vmovd %xmm5, %ebx
 
