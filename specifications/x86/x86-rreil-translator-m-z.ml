@@ -1503,9 +1503,7 @@ end
 val sem-pshufb x = sem-pshufb-vpshufb-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpshufb x = sem-pshufb-vpshufb-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
-val sem-pshufd-vpshufd avx-encoded x = do
-  element-size <- return 32;
-
+val sem-pshuf-vdhw avx-encoded element-size base-size x = do
   size <- sizeof1 x.opnd1;
   src <- read size x.opnd2;
   dst <- lval size x.opnd1;
@@ -1513,11 +1511,6 @@ val sem-pshufd-vpshufd avx-encoded x = do
   temp-src <- mktemp;
   mov size temp-src src;
 
-  #index <- return (zx ((
-  #  case opnd4 of
-  #    IMM8 x: x
-  #  end
-  #) and '00000011'));
   indices <- return (
     case x.opnd3 of
       IMM8 x: x
@@ -1525,10 +1518,17 @@ val sem-pshufd-vpshufd avx-encoded x = do
   );
 
   temp-dst <- mktemp;
+
+  if base-size > 0 then
+    mov base-size temp-dst (var temp-src)
+  else
+    return void
+  ;
+
   temp <- mktemp;
   let
     val m i = do
-      offset <- return (element-size*i);
+      offset <- return (element-size*i + base-size);
 
       mask <- return (
         case i of
@@ -1572,14 +1572,17 @@ val sem-pshufd-vpshufd avx-encoded x = do
         end
       ));
 
-      mov element-size (at-offset temp-dst offset) (var (at-offset temp-src index))
+      mov element-size (at-offset temp-dst offset) (var (at-offset temp-src (index + base-size)))
     end
   in
-    vector-apply size element-size m
+    vector-apply (size - base-size) element-size m
   end;
 
   write-extend avx-encoded size dst (var temp-dst)
 end
+
+val sem-pshufd-vpshufd avx-encoded x = sem-pshuf-vdhw avx-encoded 32 0 x
+val sem-pshufhw-vpshufhw avx-encoded x = sem-pshuf-vdhw avx-encoded 16 64 x
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;

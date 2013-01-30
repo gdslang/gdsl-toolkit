@@ -1416,7 +1416,7 @@ val semantics insn =
    | PSADBW x: sem-psadbw x
    | PSHUFB x: sem-pshufb x
    | PSHUFD x: sem-pshufd-vpshufd '0' x
-   | PSHUFHW x: sem-undef-arity3 x
+   | PSHUFHW x: sem-pshufhw-vpshufhw '0' x
    | PSHUFLW x: sem-undef-arity3 x
    | PSHUFW x: sem-undef-arity3 x
    | PSIGNB x: sem-undef-arity2 x
@@ -2045,7 +2045,10 @@ val semantics insn =
        case v of
           VA3 x: sem-pshufd-vpshufd '1' x
        end
-   | VPSHUFHW x: sem-undef-varity x
+   | VPSHUFHW v:
+       case v of
+          VA3 x: sem-pshufhw-vpshufhw '1' x
+       end
    | VPSHUFLW x: sem-undef-varity x
    | VPSIGNB x: sem-undef-varity x
    | VPSIGND x: sem-undef-varity x
