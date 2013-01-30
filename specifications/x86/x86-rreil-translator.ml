@@ -1418,7 +1418,7 @@ val semantics insn =
    | PSHUFD x: sem-pshufd-vpshufd '0' x
    | PSHUFHW x: sem-pshufhw-vpshufhw '0' x
    | PSHUFLW x: sem-pshuflw-vpshuflw '0' x
-   | PSHUFW x: sem-undef-arity3 x
+   | PSHUFW x: sem-pshufw x
    | PSIGNB x: sem-undef-arity2 x
    | PSIGND x: sem-undef-arity2 x
    | PSIGNW x: sem-undef-arity2 x

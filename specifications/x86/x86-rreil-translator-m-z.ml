@@ -1516,7 +1516,7 @@ val sem-pshuf-vdhwlw avx-encoded element-size low-size high-size x = do
       IMM8 x: x
     end
   );
-
+  
   temp-dst <- mktemp;
 
   if low-size > 0 then
@@ -1572,6 +1572,12 @@ val sem-pshuf-vdhwlw avx-encoded element-size low-size high-size x = do
         end
       ));
 
+      #mov 42 temp (imm index);
+      #mov 42 temp (imm (zx mask));
+      #mov 42 temp (imm (zx indices));
+      #mov 42 temp (imm element-size);
+      #mov 42 temp (imm i);
+
       mov element-size (at-offset temp-dst offset) (var (at-offset temp-src (index + low-size)))
     end
   in
@@ -1590,6 +1596,7 @@ end
 val sem-pshufd-vpshufd avx-encoded x = sem-pshuf-vdhwlw avx-encoded 32 0 0 x
 val sem-pshufhw-vpshufhw avx-encoded x = sem-pshuf-vdhwlw avx-encoded 16 64 0 x
 val sem-pshuflw-vpshuflw avx-encoded x = sem-pshuf-vdhwlw avx-encoded 16 0 64 x
+val sem-pshufw x = sem-pshuf-vdhwlw '0' 16 0 0 x
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
