@@ -14,9 +14,9 @@ main:
 	#vpabsw %xmm1, %xmm2
 	#vpabsd %xmm3, %xmm4
 	#movd %ebx, %mm5
-	#movq %rax, %mm3	
+	#movq %rax, %mm3
 	#movd %mm5, %ecx
-	#movq %mm3, %rbx	
+	#movq %mm3, %rbx
 	#vmovd %ebx, %xmm3
 	#vmovq %rcx, %xmm1
 	#movd (%rcx), %xmm3
@@ -114,7 +114,7 @@ main:
 
 	#pop %rax
 	#push %rbx
-	
+
 	#pushf
 
 	#ret
@@ -233,7 +233,7 @@ main:
 
 	#phaddsw %mm2, %mm5
 	#vphaddsw %xmm1, %xmm2, %xmm5
-	
+
 	#phminposuw %xmm1, %xmm2
 	#vphminposuw %xmm1, %xmm2
 
@@ -375,8 +375,8 @@ main:
 
 	#vmovd %xmm5, %ebx
 
-	#movupd %xmm2, %xmm1	
-	#vmovupd %ymm2, %ymm1	
+	#movupd %xmm2, %xmm1
+	#vmovupd %ymm2, %ymm1
 	#vmovupd %xmm2, %xmm1
 
 	#pushq %r14

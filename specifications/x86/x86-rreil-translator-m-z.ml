@@ -3,7 +3,7 @@
 val sem-maskmov x size = do
   src <- read size x.opnd1;
   mask <- read size x.opnd2;
-  
+
   src-temp <- mktemp;
   mov size src-temp src;
 
@@ -119,7 +119,7 @@ end
 #end
 #
 #val sem-vmovd-vmovq x = do
-#  dst-size <- 
+#  dst-size <-
 #    case x.opnd1 of
 #       MEM m: sizeof1 x.opnd1
 #     | REG r: return 256
@@ -166,7 +166,7 @@ val sem-movs x = do
   sz <- sizeof1 x.opnd1;
   src <- read sz x.opnd2;
   dst <- lval sz x.opnd1;
-  
+
   write sz dst src;
 
   reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
@@ -437,7 +437,7 @@ val sem-padd-vpadd-opnd avx-encoded element-size adder opnd1 opnd2 opnd3 = do
   let
     val m i = do
       offset <- return (element-size*i);
-      
+
       adder element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))
     end
   in
@@ -465,7 +465,7 @@ val sem-paddus-vpaddus-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
   mov size temp-src2 src2;
 
   temp-dst <- mktemp;
-  
+
   dst-ex <- mktemp;
   src1-ex <- mktemp;
   src2-ex <- mktemp;
@@ -482,7 +482,7 @@ val sem-paddus-vpaddus-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
       offset <- return (element-size*i);
 
       add (element-size + 1) (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset));
-      
+
       _if (/ltu element-size (var (at-offset temp-dst offset)) (var (at-offset temp-src1 offset))) _then (
         mov element-size (at-offset temp-dst offset) (imm upper)
       )
@@ -573,7 +573,7 @@ val sem-pavg-vpavg-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
 
       movzx (element-size + 1) src1-ex element-size (var (at-offset temp-src1 offset));
       movzx (element-size + 1) src2-ex element-size (var (at-offset temp-src2 offset));
-      
+
       add (element-size + 1) src1-ex (var src1-ex) (var src2-ex);
       add (element-size + 1) src1-ex (var src1-ex) (imm 1);
       shr (element-size + 1) src1-ex (var src1-ex) (imm 1);
@@ -620,8 +620,8 @@ val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 op
   let
     val m i = do
       offset <- return (element-size*i);
-     
-      test-bit <- bit-selector element-size i temp-mask; 
+
+      test-bit <- bit-selector element-size i temp-mask;
       _if (/d (var test-bit)) _then
         mov element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset))
       _else
@@ -629,7 +629,7 @@ val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 op
           mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
 	else
 	  return void
-	  
+
     end
   in
     vector-apply size element-size m
@@ -729,7 +729,7 @@ val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   #      val g j = do
   #        andb 1 temp-bit (var (at-offset temp1 j)) (var (at-offset temp2 (i - j)));
   #        xorb 1 (at-offset tmpB i) (var (at-offset tmpB i)) (var temp-bit);
-  #    
+  #
   #        if (j < 63) then
   #          g (j + 1)
   #        else
@@ -842,7 +842,7 @@ val sem-phbinop-vphbinop-opnd avx-encoded element-size operator opnd1 opnd2 opnd
     val m i = do
       dst-offset <- return (element-size*i);
       src-offset <- return (2*dst-offset);
-      
+
       operator element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src src-offset)) (var (at-offset temp-src (src-offset + element-size)))
     end
   in
@@ -1039,7 +1039,7 @@ val sem-pmovmskb-vpmovmskb avx-encoded x = do
   let
     val m i = do
       offset <- return (element-size*(i + 1));
-      
+
       mov 1 (at-offset temp-dst i) (var (at-offset temp-src (offset - 1)))
     end
   in
@@ -1064,7 +1064,7 @@ val sem-pmovex-vpmovex avx-encoded mover from-size to-size x = do
     val m i = do
       src-offset <- return (from-size*i);
       dst-offset <- return (to-size*i);
-     
+
       mover to-size (at-offset temp-dst dst-offset) from-size (var (at-offset temp-src src-offset))
     end
   in
@@ -1084,7 +1084,7 @@ val sem-pmuldq-vpmuldq-opnd avx-encoded opnd1 opnd2 opnd3 = do
   src1 <- read size opnd2;
   src2 <- read size opnd3;
   dst <- lval size opnd1;
-  
+
   temp-src1 <- mktemp;
   mov size temp-src1 src1;
   temp-src2 <- mktemp;
@@ -1269,7 +1269,7 @@ val ps-pop opnd-sz opnd = do
     else
       return SP
   ;
-  
+
   sp <- return (semantic-register-of sp-reg);
   sp-size <- sizeof1 (REG sp-reg);
 
@@ -1483,7 +1483,7 @@ val sem-pshufb-vpshufb-opnd avx-encoded opnd1 opnd2 opnd3 = do
   let
     val m i = do
       offset <- return (element-size*i);
-      
+
       _if (/d (var (at-offset temp-scm (offset + 7)))) _then
         mov element-size (at-offset temp-dst offset) (imm 0)
       _else do
@@ -1516,7 +1516,7 @@ val sem-pshuf-vdhwlw avx-encoded element-size low-size high-size x = do
       IMM8 x: x
     end
   );
-  
+
   temp-dst <- mktemp;
 
   if low-size > 0 then
@@ -1601,7 +1601,7 @@ val sem-pshufw x = sem-pshuf-vdhwlw '0' 16 0 0 x
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;
-  
+
   sp-reg <-
     if mode64 then
       return RSP
@@ -1635,7 +1635,7 @@ val sem-push x = do
 
   temp <- mktemp;
   case x.opnd1 of
-     REG r: 
+     REG r:
        if segment-register? r then
          movzx x.opnd-sz temp src-size src
        else
@@ -1787,7 +1787,7 @@ val sem-ret-far-without-operand x = do
 
   temp-cs <- mktemp;
   ps-pop x.opnd-sz temp-cs;
-  
+
   sec-reg <- return CS;
   sec-reg-sem <- return (semantic-register-of sec-reg);
   reg-size <- sizeof1 (REG sec-reg);
@@ -1845,7 +1845,7 @@ val sem-sal-shl x = do
   #    end);
   #temp-count <- mktemp;
   #andb sz temp-count count count-mask;
- 
+
   real-shift-count-size <-
     case sz of
        8: return 5
@@ -1951,7 +1951,7 @@ val sem-shr-sar x signed = do
   #    end);
   #temp-count <- mktemp;
   #andb sz temp-count count count-mask;
- 
+
   real-shift-count-size <-
     case sz of
        8: return 5
@@ -1987,7 +1987,7 @@ val sem-shr-sar x signed = do
 
     shifter sz tdst (var tdst) (imm 1)
   end;
- 
+
   ov <- fOF;
   _if (/eq sz (var temp-count) (imm 1)) _then
     if signed then
@@ -2102,7 +2102,7 @@ val sem-test x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- read sz x.opnd1;
   b <- read sz x.opnd2;
-  
+
   temp <- mktemp;
   andb sz temp a b;
 
@@ -2111,12 +2111,12 @@ val sem-test x = do
 
   zf <- fZF;
   cmpeq sz zf (var temp) (imm 0);
-  
+
   emit-parity-flag (var temp);
 
   cf <- fCF;
   mov 1 cf (imm 0);
-  
+
   ov <- fOF;
   mov 1 ov (imm 0);
 
@@ -2153,7 +2153,7 @@ val sem-xchg x = do
   b-w <- lval sz x.opnd2;
 
   temp <- mktemp;
-  
+
   mov sz temp a-r;
   write sz a-w b-r;
   write sz b-w (var temp)
@@ -2173,12 +2173,12 @@ val sem-xor x = do
 
   zf <- fZF;
   cmpeq sz zf (var temp) (imm 0);
-  
+
   emit-parity-flag (var temp);
 
   cf <- fCF;
   mov 1 cf (imm 0);
-  
+
   ov <- fOF;
   mov 1 ov (imm 0);
 
