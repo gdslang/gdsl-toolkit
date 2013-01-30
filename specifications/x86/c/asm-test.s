@@ -364,8 +364,12 @@ main:
 	#vpshufd $0x59, %xmm1, %xmm2
 
 	pshufhw $0x2d, %xmm1, %xmm2
-	pshufhw $0xe1, %xmm1, %xmm2
-	vpshufhw $0x59, %xmm1, %xmm2
+	#pshufhw $0xe1, %xmm1, %xmm2
+	#vpshufhw $0x59, %xmm1, %xmm2
+
+	pshuflw $0x2d, %xmm1, %xmm2
+	pshuflw $0xe1, %xmm1, %xmm2
+	vpshuflw $0x59, %xmm1, %xmm2
 
 	#vmovd %xmm5, %ebx
 

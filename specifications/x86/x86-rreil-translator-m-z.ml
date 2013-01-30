@@ -1503,7 +1503,7 @@ end
 val sem-pshufb x = sem-pshufb-vpshufb-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpshufb x = sem-pshufb-vpshufb-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
-val sem-pshuf-vdhw avx-encoded element-size base-size x = do
+val sem-pshuf-vdhwlw avx-encoded element-size low-size high-size x = do
   size <- sizeof1 x.opnd1;
   src <- read size x.opnd2;
   dst <- lval size x.opnd1;
@@ -1519,8 +1519,8 @@ val sem-pshuf-vdhw avx-encoded element-size base-size x = do
 
   temp-dst <- mktemp;
 
-  if base-size > 0 then
-    mov base-size temp-dst (var temp-src)
+  if low-size > 0 then
+    mov low-size temp-dst (var temp-src)
   else
     return void
   ;
@@ -1528,7 +1528,7 @@ val sem-pshuf-vdhw avx-encoded element-size base-size x = do
   temp <- mktemp;
   let
     val m i = do
-      offset <- return (element-size*i + base-size);
+      offset <- return (element-size*i + low-size);
 
       mask <- return (
         case i of
@@ -1572,17 +1572,24 @@ val sem-pshuf-vdhw avx-encoded element-size base-size x = do
         end
       ));
 
-      mov element-size (at-offset temp-dst offset) (var (at-offset temp-src (index + base-size)))
+      mov element-size (at-offset temp-dst offset) (var (at-offset temp-src (index + low-size)))
     end
   in
-    vector-apply (size - base-size) element-size m
+    vector-apply (size - low-size - high-size) element-size m
   end;
+
+  if high-size > 0 then
+    mov high-size (at-offset temp-dst (size - high-size)) (var (at-offset temp-src (size - high-size)))
+  else
+    return void
+  ;
 
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-pshufd-vpshufd avx-encoded x = sem-pshuf-vdhw avx-encoded 32 0 x
-val sem-pshufhw-vpshufhw avx-encoded x = sem-pshuf-vdhw avx-encoded 16 64 x
+val sem-pshufd-vpshufd avx-encoded x = sem-pshuf-vdhwlw avx-encoded 32 0 0 x
+val sem-pshufhw-vpshufhw avx-encoded x = sem-pshuf-vdhwlw avx-encoded 16 64 0 x
+val sem-pshuflw-vpshuflw avx-encoded x = sem-pshuf-vdhwlw avx-encoded 16 0 64 x
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
