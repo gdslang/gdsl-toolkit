@@ -1598,6 +1598,45 @@ val sem-pshufhw-vpshufhw avx-encoded x = sem-pshuf-vdhwlw avx-encoded 16 64 0 x
 val sem-pshuflw-vpshuflw avx-encoded x = sem-pshuf-vdhwlw avx-encoded 16 0 64 x
 val sem-pshufw x = sem-pshuf-vdhwlw '0' 16 0 0 x
 
+val sem-psign-vpsign-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  temp-dst <- mktemp;
+  temp <- mktemp;
+  let
+    val m i = do
+      offset <- return (element-size*i);
+      high-bit-position <- return (offset + element-size - 1);
+
+      #movsx element-size temp 1 (var (at-offset temp-src2 high-bit-position));
+      #mul element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var temp)
+
+      _if (/d  (var (at-offset temp-src2 high-bit-position))) _then
+        mul element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (imm (0-1))
+      _else (_if (/neq element-size (var (at-offset temp-src2 offset)) (imm 0)) _then
+        mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
+      _else
+        mov element-size (at-offset temp-dst offset) (imm 0)
+      )
+    end
+  in
+    vector-apply size element-size m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-psign element-size x = sem-psign-vpsign-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpsign element-size x = sem-psign-vpsign-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;

@@ -203,10 +203,10 @@ val sem-bt x modifier = do
   offset-ext <- mktemp;
   mov offset-real-sz offset-ext offset;
   mov (base-sz - offset-real-sz) (at-offset offset-ext offset-real-sz) (imm 0);
-  
+
   shifted <- mktemp;
   shr base-sz shifted base (var offset-ext);
-  
+
   cf <- fCF;
   mov 1 cf (var shifted);
 
@@ -229,13 +229,13 @@ val sem-call x = do
   ip-sz <-
     #Todo: mode64 => RIP?
     #Todo: x.opnd-sz === 64 => RIP?
-    if x.opnd-sz === 64 then 
+    if x.opnd-sz === 64 then
       return 64
     else
       return 32
   ;
   temp-ip <- mktemp;
-  
+
   ip <- ip-get;
   if (near x.opnd1) then do
     target <- read-flow ip-sz x.opnd1;
@@ -269,7 +269,7 @@ val sem-call x = do
     temp-ip <- mktemp;
     movzx ip-sz temp-ip x.opnd-sz target
   end;
-    
+
   call (address ip-sz (var temp-ip))
 end
 
@@ -353,7 +353,7 @@ val sem-cmps x = do
 #  ;
 #  reg0-sem <- return (semantic-register-of reg0);
 #  reg0-sz <- sizeof1 (REG reg0);
-#  
+#
 #  #Todo: Fix, use specified segment
 #  reg0-segment <- segment DS;
 #  src0 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg0-segment,opnd=REG reg0});
@@ -386,7 +386,7 @@ val sem-cmpxchg x = do
   sub size difference (var minuend) subtrahend;
 
   emit-sub-sbb-flags size (var difference) (var minuend) subtrahend (imm 0) '1';
-  
+
   zf <- fZF;
   _if (/d (var zf)) _then do
     dst <- lval size x.opnd1;
@@ -425,7 +425,7 @@ val sem-cpuid x = do
   ebx <- return (semantic-register-of EBX);
   ecx <- return (semantic-register-of ECX);
   edx <- return (semantic-register-of EDX);
-  
+
   undef eax.size eax;
   undef ebx.size ebx;
   undef ecx.size ecx;
@@ -441,7 +441,7 @@ val sem-cwd-cdq-cqo x = do
     end
   ;
   src-sem <- return (semantic-register-of src);
-  
+
   temp <- mktemp;
   movsx src-sem.size temp 1 (var (at-offset src-sem (src-sem.size - 1)));
 
@@ -452,7 +452,7 @@ val sem-cwd-cdq-cqo x = do
      | 64: return RDX
     end
   ;
-  
+
   dst-high-sem <- return (semantic-register-of dst-high);
   mov dst-high-sem.size dst-high-sem (var temp)
 end
@@ -466,7 +466,7 @@ val sem-dec x = do
 
   temp <- mktemp;
   sub sz temp src (imm 1);
-  
+
   emit-sub-sbb-flags sz (var temp) src (imm 1) (imm 0) '0';
 
   write sz dst (var temp)
@@ -555,7 +555,7 @@ val sem-inc x = do
 
   temp <- mktemp;
   add sz temp src (imm 1);
-  
+
   emit-add-adc-flags sz (var temp) src (imm 1) (imm 0) '0';
 
   write sz dst (var temp)

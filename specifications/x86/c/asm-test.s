@@ -371,7 +371,15 @@ main:
 	#pshuflw $0xe1, %xmm1, %xmm2
 	#vpshuflw $0x59, %xmm1, %xmm2
 
-	pshufw $0x2d, %mm1, %mm2
+	#pshufw $0x2d, %mm1, %mm2
+
+	psignb %mm1, %mm2
+	psignb %xmm1, %xmm2
+	psignw %xmm1, %xmm2
+	psignd (%rax), %xmm2
+	vpsignb %xmm1, %xmm2, %xmm3
+	vpsignw %xmm1, %xmm2, %xmm3
+	vpsignd %xmm1, %xmm2, %xmm3
 
 	#vmovd %xmm5, %ebx
 
