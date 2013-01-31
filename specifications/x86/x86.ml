@@ -4978,7 +4978,7 @@ val /vex/66/0f/38/vexv [0x0a /r] | vex128? = varity3 VPSIGND xmm128 v/xmm xmm/m1
 ### PSLLDQ
 ###  - Shift Double Quadword Left Logical
 val /66 [0x0f 0x73 /7-reg] = binop PSLLDQ xmm/reg128 imm8
-val /vex/66/0f [0x73 /7-reg] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0x73 /7-reg] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/reg128 imm8
 
 ### PSLLW/PSLLD/PSLLQ
 ###  - Shift Packed Data Left Logical

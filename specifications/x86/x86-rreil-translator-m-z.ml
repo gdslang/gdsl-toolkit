@@ -1637,6 +1637,32 @@ end
 val sem-psign element-size x = sem-psign-vpsign-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpsign element-size x = sem-psign-vpsign-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
+val sem-pslldq-vpslldq-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src <- read size opnd2;
+  dst <- lval size opnd1;
+
+  amount <- return (zx (
+    case opnd3 of
+      IMM8 x: x
+    end
+  ));
+  amount <- return (
+    if (amount > 15) then
+      (16*8)
+    else
+      (amount*8)
+  );
+
+  temp <- mktemp;
+  shr size temp src (imm amount);
+
+  write-extend avx-encoded size dst (var temp)
+end
+
+val sem-pslldq x = sem-pslldq-vpslldq-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpslldq x = sem-pslldq-vpslldq-opnd '1' x.opnd1 x.opnd2 x.opnd3
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;

@@ -373,13 +373,16 @@ main:
 
 	#pshufw $0x2d, %mm1, %mm2
 
-	psignb %mm1, %mm2
-	psignb %xmm1, %xmm2
-	psignw %xmm1, %xmm2
-	psignd (%rax), %xmm2
-	vpsignb %xmm1, %xmm2, %xmm3
-	vpsignw %xmm1, %xmm2, %xmm3
-	vpsignd %xmm1, %xmm2, %xmm3
+	#psignb %mm1, %mm2
+	#psignb %xmm1, %xmm2
+	#psignw %xmm1, %xmm2
+	#psignd (%rax), %xmm2
+	#vpsignb %xmm1, %xmm2, %xmm3
+	#vpsignw %xmm1, %xmm2, %xmm3
+	#vpsignd %xmm1, %xmm2, %xmm3
+
+	pslldq $73, %xmm1
+	vpslldq $5, %xmm1, %xmm2
 
 	#vmovd %xmm5, %ebx
 
