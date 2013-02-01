@@ -1655,7 +1655,7 @@ val sem-pslldq-vpslldq-opnd avx-encoded opnd1 opnd2 opnd3 = do
   );
 
   temp <- mktemp;
-  shr size temp src (imm amount);
+  shl size temp src (imm amount);
 
   write-extend avx-encoded size dst (var temp)
 end
