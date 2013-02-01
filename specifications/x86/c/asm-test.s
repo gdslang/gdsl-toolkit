@@ -381,8 +381,16 @@ main:
 	#vpsignw %xmm1, %xmm2, %xmm3
 	#vpsignd %xmm1, %xmm2, %xmm3
 
-	pslldq $73, %xmm1
-	vpslldq $5, %xmm1, %xmm2
+	#pslldq $73, %xmm1
+	#vpslldq $5, %xmm1, %xmm2
+
+	psllw %mm1, %mm2
+	psllw (%rax), %xmm1
+	psllw $197, %xmm1
+	pslld $20, %mm1
+	psllq $10, %mm1
+	vpslld %xmm1, %xmm2, %xmm3
+	vpsllq $33, %xmm1, %xmm2
 
 	#vmovd %xmm5, %ebx
 
