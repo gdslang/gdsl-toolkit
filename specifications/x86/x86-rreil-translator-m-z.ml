@@ -1663,7 +1663,7 @@ end
 val sem-pslldq x = sem-pslldq-vpslldq-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpslldq x = sem-pslldq-vpslldq-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
-val sem-psll-vpsll-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
+val sem-ps-vps-opnd avx-encoded element-size shifter opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
   src <- read size opnd2;
   count <- read element-size opnd3;
@@ -1677,7 +1677,7 @@ val sem-psll-vpsll-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
     val m i = do
       offset <- return (element-size*i);
 
-      shl element-size (at-offset temp-dst offset) (var (at-offset temp-src offset)) count
+      shifter element-size (at-offset temp-dst offset) (var (at-offset temp-src offset)) count
     end
   in
     vector-apply size element-size m
@@ -1686,8 +1686,10 @@ val sem-psll-vpsll-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-psll element-size x = sem-psll-vpsll-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
-val sem-vpsll element-size x = sem-psll-vpsll-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
+val sem-psll element-size x = sem-ps-vps-opnd '0' element-size shl x.opnd1 x.opnd1 x.opnd2
+val sem-vpsll element-size x = sem-ps-vps-opnd '1' element-size shl x.opnd1 x.opnd2 x.opnd3
+val sem-psra element-size x = sem-ps-vps-opnd '0' element-size shrs x.opnd1 x.opnd1 x.opnd2
+val sem-vpsra element-size x = sem-ps-vps-opnd '1' element-size shrs x.opnd1 x.opnd2 x.opnd3
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
