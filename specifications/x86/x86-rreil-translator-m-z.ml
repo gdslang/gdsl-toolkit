@@ -421,7 +421,7 @@ end
 val sem-packuswb-packusdw dst-element-size x = sem-packuswb-packusdw-opnd '0' dst-element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpackuswb-vpackusdw dst-element-size x = sem-packuswb-packusdw-opnd '1' dst-element-size x.opnd1 x.opnd2 x.opnd3
 
-val sem-padd-vpadd-opnd avx-encoded element-size adder opnd1 opnd2 opnd3 = do
+val sem-pbinop-opnd avx-encoded element-size operator opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
   src1 <- read size opnd2;
   src2 <- read size opnd3;
@@ -433,12 +433,11 @@ val sem-padd-vpadd-opnd avx-encoded element-size adder opnd1 opnd2 opnd3 = do
   mov size temp-src2 src2;
 
   temp-dst <- mktemp;
-
   let
     val m i = do
       offset <- return (element-size*i);
 
-      adder element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))
+      operator element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))
     end
   in
     vector-apply size element-size m
@@ -447,11 +446,11 @@ val sem-padd-vpadd-opnd avx-encoded element-size adder opnd1 opnd2 opnd3 = do
   write-extend avx-encoded size dst (var temp-dst)
 end
 
-val sem-padd element-size x = sem-padd-vpadd-opnd '0' element-size add x.opnd1 x.opnd1 x.opnd2
-val sem-vpadd element-size x = sem-padd-vpadd-opnd '1' element-size add x.opnd1 x.opnd2 x.opnd3
+val sem-padd element-size x = sem-pbinop-opnd '0' element-size add x.opnd1 x.opnd1 x.opnd2
+val sem-vpadd element-size x = sem-pbinop-opnd '1' element-size add x.opnd1 x.opnd2 x.opnd3
 
-val sem-padds element-size x = sem-padd-vpadd-opnd '0' element-size add-signed-saturating x.opnd1 x.opnd1 x.opnd2
-val sem-vpadds element-size x = sem-padd-vpadd-opnd '1' element-size add-signed-saturating x.opnd1 x.opnd2 x.opnd3
+val sem-padds element-size x = sem-pbinop-opnd '0' element-size add-signed-saturating x.opnd1 x.opnd1 x.opnd2
+val sem-vpadds element-size x = sem-pbinop-opnd '1' element-size add-signed-saturating x.opnd1 x.opnd2 x.opnd3
 
 val sem-paddus-vpaddus-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
@@ -1697,6 +1696,9 @@ val sem-vpsrldq x = sem-psxldq-vpsxldq-opnd '1' shr x.opnd1 x.opnd2 x.opnd3
 
 val sem-psrl element-size x = sem-ps-vps-opnd '0' element-size shr x.opnd1 x.opnd1 x.opnd2
 val sem-vpsrl element-size x = sem-ps-vps-opnd '1' element-size shr x.opnd1 x.opnd2 x.opnd3
+
+val sem-psub element-size x = sem-pbinop-opnd '0' element-size sub x.opnd1 x.opnd1 x.opnd2
+val sem-vpsub element-size x = sem-pbinop-opnd '1' element-size sub x.opnd1 x.opnd2 x.opnd3
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;

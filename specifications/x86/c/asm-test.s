@@ -399,13 +399,18 @@ main:
 	#psrldq $73, %xmm1
 	#vpsrldq $5, %xmm1, %xmm2
 
-	psrlw %mm1, %mm2
-	psrlw (%rax), %xmm1
-	psrlw $197, %xmm1
-	psrld $20, %mm1
-	psrlq $10, %mm1
-	vpsrld %xmm1, %xmm2, %xmm3
-	vpsrlq $33, %xmm1, %xmm2
+	#psrlw %mm1, %mm2
+	#psrlw (%rax), %xmm1
+	#psrlw $197, %xmm1
+	#psrld $20, %mm1
+	#psrlq $10, %mm1
+	#vpsrld %xmm1, %xmm2, %xmm3
+	#vpsrlq $33, %xmm1, %xmm2
+
+	psubb (%rax), %mm1
+	psubw (%rax), %xmm1
+	psubd %xmm1, %xmm2
+	vpsubd (%rax), %xmm1, %xmm2
 
 	#vmovd %xmm5, %ebx
 
