@@ -396,8 +396,16 @@ main:
 	#vpsraw $22, %xmm1, %xmm2
 	#vpsrad %xmm1, %xmm2, %xmm3
 
-	psrldq $73, %xmm1
-	vpsrldq $5, %xmm1, %xmm2
+	#psrldq $73, %xmm1
+	#vpsrldq $5, %xmm1, %xmm2
+
+	psrlw %mm1, %mm2
+	psrlw (%rax), %xmm1
+	psrlw $197, %xmm1
+	psrld $20, %mm1
+	psrlq $10, %mm1
+	vpsrld %xmm1, %xmm2, %xmm3
+	vpsrlq $33, %xmm1, %xmm2
 
 	#vmovd %xmm5, %ebx
 

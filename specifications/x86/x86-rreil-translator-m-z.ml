@@ -1688,11 +1688,15 @@ end
 
 val sem-psll element-size x = sem-ps-vps-opnd '0' element-size shl x.opnd1 x.opnd1 x.opnd2
 val sem-vpsll element-size x = sem-ps-vps-opnd '1' element-size shl x.opnd1 x.opnd2 x.opnd3
+
 val sem-psra element-size x = sem-ps-vps-opnd '0' element-size shrs x.opnd1 x.opnd1 x.opnd2
 val sem-vpsra element-size x = sem-ps-vps-opnd '1' element-size shrs x.opnd1 x.opnd2 x.opnd3
 
 val sem-psrldq x = sem-psxldq-vpsxldq-opnd '0' shr x.opnd1 x.opnd1 x.opnd2
 val sem-vpsrldq x = sem-psxldq-vpsxldq-opnd '1' shr x.opnd1 x.opnd2 x.opnd3
+
+val sem-psrl element-size x = sem-ps-vps-opnd '0' element-size shr x.opnd1 x.opnd1 x.opnd2
+val sem-vpsrl element-size x = sem-ps-vps-opnd '1' element-size shr x.opnd1 x.opnd2 x.opnd3
 
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
