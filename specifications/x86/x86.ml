@@ -5019,7 +5019,7 @@ val /vex/66/0f/vexv [0x72 /4-reg] | vex128? = varity3 VPSRAD v/xmm xmm/reg128 im
 ### PSRLDQ
 ###  - Shift Double Quadword Right Logical
 val /66 [0x0f 0x73 /3-reg] = binop PSRLDQ xmm/reg128 imm8
-val /vex/66/0f [0x73 /3-reg] | vndd? & vex128? = varity3 VPSRLDQ v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0x73 /3-reg] | vndd? & vex128? = varity3 VPSRLDQ v/xmm xmm/reg128 imm8
 
 ### PSRLW/PSRLD/PSRLQ
 ###  - Shift Packed Data Right Logical

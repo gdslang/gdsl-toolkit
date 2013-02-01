@@ -1429,7 +1429,7 @@ val semantics insn =
    | PSRAD x: sem-psra 32 x
    | PSRAW x: sem-psra 16 x
    | PSRLD x: sem-undef-arity2 x
-   | PSRLDQ x: sem-undef-arity2 x
+   | PSRLDQ x: sem-psrldq x
    | PSRLQ x: sem-undef-arity2 x
    | PSRLW x: sem-undef-arity2 x
    | PSUBB x: sem-undef-arity2 x
@@ -2090,7 +2090,10 @@ val semantics insn =
           VA3 x: sem-vpsra 16 x
        end
    | VPSRLD x: sem-undef-varity x
-   | VPSRLDQ x: sem-undef-varity x
+   | VPSRLDQ v:
+       case v of
+          VA3 x: sem-vpsrldq x
+       end
    | VPSRLQ x: sem-undef-varity x
    | VPSRLW x: sem-undef-varity x
    | VPSUBB x: sem-undef-varity x
