@@ -1691,6 +1691,38 @@ val sem-ptest-vptest x = do
   mov 1 sf (imm 0)
 end
 
+val sem-punpck-vpunpck-opnd avx-encoded use-high element-size opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src1 <- mktemp;
+  mov size temp-src1 src1;
+  temp-src2 <- mktemp;
+  mov size temp-src2 src2;
+
+  source-position <- return ((divb size 2)*use-high);
+
+  temp-dst <- mktemp;
+  let
+    val m i = do
+      dst-offset <- return (2*element-size*i);
+      src-offset <- return (element-size*i + source-position);
+
+      mov element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src1 src-offset));
+      mov element-size (at-offset temp-dst (dst-offset + element-size)) (var (at-offset temp-src2 src-offset))
+    end
+  in
+    vector-apply size (2*element-size) m
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-punpckh element-size x = sem-punpck-vpunpck-opnd '0' 1 element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpunpckh element-size x = sem-punpck-vpunpck-opnd '1' 1 element-size x.opnd1 x.opnd2 x.opnd3
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;

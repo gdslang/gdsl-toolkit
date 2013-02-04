@@ -422,9 +422,18 @@ main:
 	#vpsubusb %xmm1, %xmm2, %xmm3
 	#vpsubusw %xmm1, %xmm2, %xmm3
 
-	ptest %xmm1, %xmm2
-	vptest %xmm1, %xmm2
-	vptest %ymm1, %ymm2
+	#ptest %xmm1, %xmm2
+	#vptest %xmm1, %xmm2
+	#vptest %ymm1, %ymm2
+
+	punpckhbw %mm1, %mm2
+	punpckhwd %xmm1, %xmm2
+	punpckhdq %mm1, %mm2
+	punpckhqdq %xmm1, %xmm2
+	vpunpckhbw %xmm1, %xmm2, %xmm3
+	vpunpckhwd %xmm1, %xmm2, %xmm3
+	vpunpckhdq %xmm1, %xmm2, %xmm3
+	vpunpckhqdq %xmm1, %xmm2, %xmm3
 
 	#vmovd %xmm5, %ebx
 

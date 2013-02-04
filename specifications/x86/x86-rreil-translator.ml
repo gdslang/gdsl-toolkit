@@ -1461,10 +1461,10 @@ val semantics insn =
    | PSUBUSW x: sem-psubus 16 x
    | PSUBW x: sem-psub 16 x
    | PTEST x: sem-ptest-vptest x
-   | PUNPCKHBW x: sem-undef-arity2 x
-   | PUNPCKHDQ x: sem-undef-arity2 x
-   | PUNPCKHQDQ x: sem-undef-arity2 x
-   | PUNPCKHWD x: sem-undef-arity2 x
+   | PUNPCKHBW x: sem-punpckh 8 x
+   | PUNPCKHDQ x: sem-punpckh 32 x
+   | PUNPCKHQDQ x: sem-punpckh 64 x
+   | PUNPCKHWD x: sem-punpckh 16 x
    | PUNPCKLBW x: sem-undef-arity2 x
    | PUNPCKLDQ x: sem-undef-arity2 x
    | PUNPCKLQDQ x: sem-undef-arity2 x
@@ -2161,10 +2161,22 @@ val semantics insn =
        case v of
           VA2 x: sem-ptest-vptest x
        end
-   | VPUNPCKHBW x: sem-undef-varity x
-   | VPUNPCKHDQ x: sem-undef-varity x
-   | VPUNPCKHQDQ x: sem-undef-varity x
-   | VPUNPCKHWD x: sem-undef-varity x
+   | VPUNPCKHBW v:
+       case v of
+          VA3 x: sem-vpunpckh 8 x
+       end
+   | VPUNPCKHDQ v:
+       case v of
+          VA3 x: sem-vpunpckh 32 x
+       end
+   | VPUNPCKHQDQ v:
+       case v of
+          VA3 x: sem-vpunpckh 64 x
+       end
+   | VPUNPCKHWD v:
+       case v of
+          VA3 x: sem-vpunpckh 16 x
+       end
    | VPUNPCKLBW x: sem-undef-varity x
    | VPUNPCKLDQ x: sem-undef-varity x
    | VPUNPCKLQDQ x: sem-undef-varity x
