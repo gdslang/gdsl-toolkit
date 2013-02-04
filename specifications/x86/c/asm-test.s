@@ -412,10 +412,15 @@ main:
 	#psubd %xmm1, %xmm2
 	#vpsubd (%rax), %xmm1, %xmm2
 
-	psubsb (%rax), %mm1
-	psubsw (%rax), %xmm1
-	vpsubsb %xmm1, %xmm2, %xmm3
-	vpsubsw %xmm1, %xmm2, %xmm3
+	#psubsb (%rax), %mm1
+	#psubsw (%rax), %xmm1
+	#vpsubsb %xmm1, %xmm2, %xmm3
+	#vpsubsw %xmm1, %xmm2, %xmm3
+
+	psubusb (%rax), %mm1
+	psubusw (%rax), %xmm1
+	vpsubusb %xmm1, %xmm2, %xmm3
+	vpsubusw %xmm1, %xmm2, %xmm3
 
 	#vmovd %xmm5, %ebx
 

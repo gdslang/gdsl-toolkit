@@ -906,16 +906,16 @@ val binop-signed-saturating operator size dst src1 src2 = do
   src2-ex <- mktemp;
 
   upper <- return (
-    if size === 8 then
-      0x7f
-    else
-      0x7fff
+    case size of
+       8: 0x7f
+     | 16: 0x7fff
+    end
   );
   lower <- return (
-    if size === 8 then
-      (0-0x80)
-    else
-      (0-0x8000)
+    case size of
+       8: (0-0x80)
+     | 16: (0-0x8000)
+    end
   );
 
   movsx (size + 1) src1-ex size src1;
@@ -933,6 +933,26 @@ end
 
 val add-signed-saturating size dst src1 src2 = binop-signed-saturating add size dst src1 src2
 val sub-signed-saturating size dst src1 src2 = binop-signed-saturating sub size dst src1 src2
+
+val binop-unsigned-saturating operator comparer limit size dst src1 src2 = do
+  operator size dst src1 src2;
+ 
+  _if (comparer size (var dst) src1) _then (
+    mov size dst (imm limit)
+  )
+end
+
+val add-unsigned-saturating size dst src1 src2 = do
+  limit <- return (
+    case size of
+       8: 0xff
+     | 16: 0xffff
+    end
+  );
+  binop-unsigned-saturating add /ltu limit size dst src1 src2
+end
+
+val sub-unsigned-saturating size dst src1 src2 = binop-unsigned-saturating sub /gtu 0 size dst src1 src2
 
 val semantics insn =
   case insn of
@@ -1437,8 +1457,8 @@ val semantics insn =
    | PSUBQ x: sem-psub 64 x
    | PSUBSB x: sem-psubs 8 x
    | PSUBSW x: sem-psubs 16 x
-   | PSUBUSB x: sem-undef-arity2 x
-   | PSUBUSW x: sem-undef-arity2 x
+   | PSUBUSB x: sem-psubus 8 x
+   | PSUBUSW x: sem-psubus 16 x
    | PSUBW x: sem-psub 16 x
    | PTEST x: sem-undef-arity2 x
    | PUNPCKHBW x: sem-undef-arity2 x
@@ -2125,8 +2145,14 @@ val semantics insn =
        case v of
           VA3 x: sem-vpsubs 16 x
        end
-   | VPSUBUSB x: sem-undef-varity x
-   | VPSUBUSW x: sem-undef-varity x
+   | VPSUBUSB v:
+       case v of
+          VA3 x: sem-vpsubus 8 x
+       end
+   | VPSUBUSW v:
+       case v of
+          VA3 x: sem-vpsubus 16 x
+       end
    | VPSUBW v:
        case v of
           VA3 x: sem-vpsub 16 x
