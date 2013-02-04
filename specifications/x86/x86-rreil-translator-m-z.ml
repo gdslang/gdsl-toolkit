@@ -1700,6 +1700,9 @@ val sem-vpsrl element-size x = sem-ps-vps-opnd '1' element-size shr x.opnd1 x.op
 val sem-psub element-size x = sem-pbinop-opnd '0' element-size sub x.opnd1 x.opnd1 x.opnd2
 val sem-vpsub element-size x = sem-pbinop-opnd '1' element-size sub x.opnd1 x.opnd2 x.opnd3
 
+val sem-psubs element-size x = sem-pbinop-opnd '0' element-size sub-signed-saturating x.opnd1 x.opnd1 x.opnd2
+val sem-vpsubs element-size x = sem-pbinop-opnd '1' element-size sub-signed-saturating x.opnd1 x.opnd2 x.opnd3
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;

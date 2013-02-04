@@ -1435,8 +1435,8 @@ val semantics insn =
    | PSUBB x: sem-psub 8 x
    | PSUBD x: sem-psub 32 x
    | PSUBQ x: sem-psub 64 x
-   | PSUBSB x: sem-undef-arity2 x
-   | PSUBSW x: sem-undef-arity2 x
+   | PSUBSB x: sem-psubs 8 x
+   | PSUBSW x: sem-psubs 16 x
    | PSUBUSB x: sem-undef-arity2 x
    | PSUBUSW x: sem-undef-arity2 x
    | PSUBW x: sem-psub 16 x
@@ -2117,8 +2117,14 @@ val semantics insn =
        case v of
           VA3 x: sem-vpsub 64 x
        end
-   | VPSUBSB x: sem-undef-varity x
-   | VPSUBSW x: sem-undef-varity x
+   | VPSUBSB v:
+       case v of
+          VA3 x: sem-vpsubs 8 x
+       end
+   | VPSUBSW v:
+       case v of
+          VA3 x: sem-vpsubs 16 x
+       end
    | VPSUBUSB x: sem-undef-varity x
    | VPSUBUSW x: sem-undef-varity x
    | VPSUBW v:

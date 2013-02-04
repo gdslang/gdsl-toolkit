@@ -407,10 +407,15 @@ main:
 	#vpsrld %xmm1, %xmm2, %xmm3
 	#vpsrlq $33, %xmm1, %xmm2
 
-	psubb (%rax), %mm1
-	psubw (%rax), %xmm1
-	psubd %xmm1, %xmm2
-	vpsubd (%rax), %xmm1, %xmm2
+	#psubb (%rax), %mm1
+	#psubw (%rax), %xmm1
+	#psubd %xmm1, %xmm2
+	#vpsubd (%rax), %xmm1, %xmm2
+
+	psubsb (%rax), %mm1
+	psubsw (%rax), %xmm1
+	vpsubsb %xmm1, %xmm2, %xmm3
+	vpsubsw %xmm1, %xmm2, %xmm3
 
 	#vmovd %xmm5, %ebx
 
