@@ -417,10 +417,14 @@ main:
 	#vpsubsb %xmm1, %xmm2, %xmm3
 	#vpsubsw %xmm1, %xmm2, %xmm3
 
-	psubusb (%rax), %mm1
-	psubusw (%rax), %xmm1
-	vpsubusb %xmm1, %xmm2, %xmm3
-	vpsubusw %xmm1, %xmm2, %xmm3
+	#psubusb (%rax), %mm1
+	#psubusw (%rax), %xmm1
+	#vpsubusb %xmm1, %xmm2, %xmm3
+	#vpsubusw %xmm1, %xmm2, %xmm3
+
+	ptest %xmm1, %xmm2
+	vptest %xmm1, %xmm2
+	vptest %ymm1, %ymm2
 
 	#vmovd %xmm5, %ebx
 

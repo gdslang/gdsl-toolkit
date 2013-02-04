@@ -1665,6 +1665,32 @@ val sem-vpsubs element-size x = sem-pbinop-opnd '1' element-size sub-signed-satu
 val sem-psubus element-size x = sem-pbinop-opnd '0' element-size sub-unsigned-saturating x.opnd1 x.opnd1 x.opnd2
 val sem-vpsubus element-size x = sem-pbinop-opnd '1' element-size sub-unsigned-saturating x.opnd1 x.opnd2 x.opnd3
 
+val sem-ptest-vptest x = do
+  size <- sizeof1 x.opnd1;
+  src1 <- read size x.opnd1;
+  src2 <- read size x.opnd2;
+
+  temp <- mktemp;
+
+  andb size temp src1 src2;
+  zf <- fZF;
+  cmpeq size zf (var temp) (imm 0);
+
+  xorb size temp src1 (imm (0-1));
+  andb size temp (var temp) src2;
+  cf <- fCF;
+  cmpeq size cf (var temp) (imm 0);
+
+  af <- fAF;
+  mov 1 af (imm 0);
+  ov <- fOF;
+  mov 1 ov (imm 0);
+  pf <- fPF;
+  mov 1 pf (imm 0);
+  sf <- fSF;
+  mov 1 sf (imm 0)
+end
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;
