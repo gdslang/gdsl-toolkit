@@ -1723,6 +1723,9 @@ end
 val sem-punpckh element-size x = sem-punpck-vpunpck-opnd '0' 1 element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpunpckh element-size x = sem-punpck-vpunpck-opnd '1' 1 element-size x.opnd1 x.opnd2 x.opnd3
 
+val sem-punpckl element-size x = sem-punpck-vpunpck-opnd '0' 0 element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpunpckl element-size x = sem-punpck-vpunpck-opnd '1' 0 element-size x.opnd1 x.opnd2 x.opnd3
+
 val ps-push opnd-sz opnd = do
   mode64 <- mode64?;
   stack-addr-sz <- runtime-stack-address-size;

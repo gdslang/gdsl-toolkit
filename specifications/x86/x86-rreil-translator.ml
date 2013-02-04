@@ -1465,10 +1465,10 @@ val semantics insn =
    | PUNPCKHDQ x: sem-punpckh 32 x
    | PUNPCKHQDQ x: sem-punpckh 64 x
    | PUNPCKHWD x: sem-punpckh 16 x
-   | PUNPCKLBW x: sem-undef-arity2 x
-   | PUNPCKLDQ x: sem-undef-arity2 x
-   | PUNPCKLQDQ x: sem-undef-arity2 x
-   | PUNPCKLWD x: sem-undef-arity2 x
+   | PUNPCKLBW x: sem-punpckl 8 x
+   | PUNPCKLDQ x: sem-punpckl 32 x
+   | PUNPCKLQDQ x: sem-punpckl 64 x
+   | PUNPCKLWD x: sem-punpckl 16 x
    | PUSH x: sem-push x
    | PUSHA x: sem-undef-arity0 x
    | PUSHAD x: sem-undef-arity0 x
@@ -2177,10 +2177,22 @@ val semantics insn =
        case v of
           VA3 x: sem-vpunpckh 16 x
        end
-   | VPUNPCKLBW x: sem-undef-varity x
-   | VPUNPCKLDQ x: sem-undef-varity x
-   | VPUNPCKLQDQ x: sem-undef-varity x
-   | VPUNPCKLWD x: sem-undef-varity x
+   | VPUNPCKLBW v:
+       case v of
+          VA3 x: sem-vpunpckl 8 x
+       end
+   | VPUNPCKLDQ v:
+       case v of
+          VA3 x: sem-vpunpckl 32 x
+       end
+   | VPUNPCKLQDQ v:
+       case v of
+          VA3 x: sem-vpunpckl 64 x
+       end
+   | VPUNPCKLWD v:
+       case v of
+          VA3 x: sem-vpunpckl 16 x
+       end
    | VPXOR x: sem-undef-varity x
    | VRCPPS x: sem-undef-varity x
    | VRCPSS x: sem-undef-varity x

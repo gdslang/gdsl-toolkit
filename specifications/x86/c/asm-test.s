@@ -426,14 +426,23 @@ main:
 	#vptest %xmm1, %xmm2
 	#vptest %ymm1, %ymm2
 
-	punpckhbw %mm1, %mm2
-	punpckhwd %xmm1, %xmm2
-	punpckhdq %mm1, %mm2
-	punpckhqdq %xmm1, %xmm2
-	vpunpckhbw %xmm1, %xmm2, %xmm3
-	vpunpckhwd %xmm1, %xmm2, %xmm3
-	vpunpckhdq %xmm1, %xmm2, %xmm3
-	vpunpckhqdq %xmm1, %xmm2, %xmm3
+	#punpckhbw %mm1, %mm2
+	#punpckhwd %xmm1, %xmm2
+	#punpckhdq %mm1, %mm2
+	#punpckhqdq %xmm1, %xmm2
+	#vpunpckhbw %xmm1, %xmm2, %xmm3
+	#vpunpckhwd %xmm1, %xmm2, %xmm3
+	#vpunpckhdq %xmm1, %xmm2, %xmm3
+	#vpunpckhqdq %xmm1, %xmm2, %xmm3
+
+	punpcklbw %mm1, %mm2
+	punpcklwd %xmm1, %xmm2
+	punpckldq %mm1, %mm2
+	punpcklqdq %xmm1, %xmm2
+	vpunpcklbw %xmm1, %xmm2, %xmm3
+	vpunpcklwd %xmm1, %xmm2, %xmm3
+	vpunpckldq %xmm1, %xmm2, %xmm3
+	vpunpcklqdq %xmm1, %xmm2, %xmm3
 
 	#vmovd %xmm5, %ebx
 
