@@ -435,14 +435,18 @@ main:
 	#vpunpckhdq %xmm1, %xmm2, %xmm3
 	#vpunpckhqdq %xmm1, %xmm2, %xmm3
 
-	punpcklbw %mm1, %mm2
-	punpcklwd %xmm1, %xmm2
-	punpckldq %mm1, %mm2
-	punpcklqdq %xmm1, %xmm2
-	vpunpcklbw %xmm1, %xmm2, %xmm3
-	vpunpcklwd %xmm1, %xmm2, %xmm3
-	vpunpckldq %xmm1, %xmm2, %xmm3
-	vpunpcklqdq %xmm1, %xmm2, %xmm3
+	#punpcklbw %mm1, %mm2
+	#punpcklwd %xmm1, %xmm2
+	#punpckldq %mm1, %mm2
+	#punpcklqdq %xmm1, %xmm2
+	#vpunpcklbw %xmm1, %xmm2, %xmm3
+	#vpunpcklwd %xmm1, %xmm2, %xmm3
+	#vpunpckldq %xmm1, %xmm2, %xmm3
+	#vpunpcklqdq %xmm1, %xmm2, %xmm3
+
+	pxor %mm1, %mm2
+	pxor %xmm1, %xmm2
+	vpxor %xmm1, %xmm2, %xmm3
 
 	#vmovd %xmm5, %ebx
 

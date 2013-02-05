@@ -1475,7 +1475,7 @@ val semantics insn =
    | PUSHF x: sem-pushf x
    | PUSHFD x: sem-pushf x
    | PUSHFQ x: sem-pushf x
-   | PXOR x: sem-undef-arity2 x
+   | PXOR x: sem-pxor x
    | RCL x: sem-undef-arity2 x
    | RCPPS x: sem-undef-arity2 x
    | RCPSS x: sem-undef-arity2 x
@@ -2193,7 +2193,10 @@ val semantics insn =
        case v of
           VA3 x: sem-vpunpckl 16 x
        end
-   | VPXOR x: sem-undef-varity x
+   | VPXOR v:
+       case v of
+          VA3 x: sem-vpxor x
+       end
    | VRCPPS x: sem-undef-varity x
    | VRCPSS x: sem-undef-varity x
    | VROUNDPD x: sem-undef-varity x

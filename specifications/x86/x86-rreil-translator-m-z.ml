@@ -1834,6 +1834,21 @@ val sem-pushf x = do
   ps-push size (var temp)
 end
 
+val sem-pxor-vpxor-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src1 <- read size opnd2;
+  src2 <- read size opnd3;
+  dst <- lval size opnd1;
+
+  temp <- mktemp;
+  xorb size temp src1 src2;
+
+  write-extend avx-encoded size dst (var temp)
+end
+
+val sem-pxor x = sem-pxor-vpxor-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vpxor x = sem-pxor-vpxor-opnd '1' x.opnd1 x.opnd2 x.opnd3
+
 ## Q>>
 ## R>>
 
