@@ -1852,6 +1852,39 @@ val sem-vpxor x = sem-pxor-vpxor-opnd '1' x.opnd1 x.opnd2 x.opnd3
 ## Q>>
 ## R>>
 
+val sem-rol x = do
+  size <- sizeof1 x.opnd1;
+  dst <- read size x.opnd1;
+  count <- read size x.opnd2;
+
+  count-mask <- return (
+    if x.opnd-sz === 64 then
+      0x3f
+    else
+      0x1f
+  );
+
+  count-mask-full <- return (
+    case size of
+       64: 0x3f
+     | 32: 0x1f
+     | 16: 0x0f
+     | 8: 0x07
+    end
+  );
+
+  temp-count <- mktemp;
+  andb size temp-count count (imm count-mask-full);
+  
+  temp-dst <- mktemp;
+  movzx (2*size) temp-dst size dst;
+  
+  shl (2*size) temp-dst (var temp-dst) (var temp-count);
+  orb size temp-dst (var (at-offset temp-dst size)) (var temp-dst);
+
+  return void
+end
+
 val sem-rep-repe-repne size sem fc = do
   count-reg <- return (semantic-register-of (register-by-size low C size));
 
