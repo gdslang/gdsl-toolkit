@@ -1781,6 +1781,38 @@ val sem-push x = do
   ps-push x.opnd-sz (var temp)
 end
 
+val sem-pusha-pushad x = do
+  temp <- mktemp;
+  reg-sp <- return (register-by-size low SP_ x.opnd-sz);
+  reg-sp-sem <- return (semantic-register-of reg-sp);
+  mov x.opnd-sz temp (var reg-sp-sem);
+
+  reg-a <- return (register-by-size low A x.opnd-sz);
+  reg-a-sem <- return (semantic-register-of reg-a);
+  ps-push x.opnd-sz (var reg-a-sem);
+  reg-c <- return (register-by-size low C x.opnd-sz);
+  reg-c-sem <- return (semantic-register-of reg-c);
+  ps-push x.opnd-sz (var reg-c-sem);
+  reg-d <- return (register-by-size low D x.opnd-sz);
+  reg-d-sem <- return (semantic-register-of reg-d);
+  ps-push x.opnd-sz (var reg-d-sem);
+  reg-b <- return (register-by-size low B x.opnd-sz);
+  reg-b-sem <- return (semantic-register-of reg-b);
+  ps-push x.opnd-sz (var reg-b-sem);
+
+  ps-push x.opnd-sz (var temp);
+
+  reg-bp <- return (register-by-size low BP_ x.opnd-sz);
+  reg-bp-sem <- return (semantic-register-of reg-bp);
+  ps-push x.opnd-sz (var reg-bp-sem);
+  reg-si <- return (register-by-size low SI_ x.opnd-sz);
+  reg-si-sem <- return (semantic-register-of reg-si);
+  ps-push x.opnd-sz (var reg-si-sem);
+  reg-di <- return (register-by-size low DI_ x.opnd-sz);
+  reg-di-sem <- return (semantic-register-of reg-di);
+  ps-push x.opnd-sz (var reg-di-sem)
+end
+
 val sem-pushf x = do
   mask <- return 0x0000000000fcffff;
   flags <- rflags;

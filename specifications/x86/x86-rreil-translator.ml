@@ -1470,8 +1470,8 @@ val semantics insn =
    | PUNPCKLQDQ x: sem-punpckl 64 x
    | PUNPCKLWD x: sem-punpckl 16 x
    | PUSH x: sem-push x
-   | PUSHA x: sem-undef-arity0 x
-   | PUSHAD x: sem-undef-arity0 x
+   | PUSHA x: sem-pusha-pushad x
+   | PUSHAD x: sem-pusha-pushad x
    | PUSHF x: sem-pushf x
    | PUSHFD x: sem-pushf x
    | PUSHFQ x: sem-pushf x
