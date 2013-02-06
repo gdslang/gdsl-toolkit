@@ -448,9 +448,13 @@ main:
 	#pxor %xmm1, %xmm2
 	#vpxor %xmm1, %xmm2, %xmm3
 
-	rol $42, %al
-	rol %cl, %rax
-	rol $1, %eax
+	#rol $42, %al
+	#rol %cl, %rax
+	#rol $1, %eax
+
+	ror $42, %al
+	ror %cl, %rax
+	ror $1, %eax
 
 	#vmovd %xmm5, %ebx
 

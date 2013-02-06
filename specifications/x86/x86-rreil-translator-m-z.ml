@@ -1884,16 +1884,64 @@ val sem-rol x = do
   orb size temp-dst (var (at-offset temp-dst size)) (var temp-dst);
 
   temp <- mktemp;
-  sub size temp (imm size) (var temp-count);
-  shr size temp src (var temp);
+  #sub size temp (imm size) (var temp-count);
+  #shr size temp src (var temp);
 
   cf <- fCF;
-  mov 1 cf (var temp);
+  mov 1 cf (var temp-dst);
 
   ov <- fOF;
   andb size temp count (imm count-mask);
   _if (/eq size (var temp) (imm 1)) _then
     xorb 1 ov (var (at-offset temp-dst (size - 1))) (var cf)
+  _else
+    undef 1 ov
+  ;
+
+  write size dst (var temp-dst)
+end
+
+val sem-ror x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd1;
+  dst <- lval size x.opnd1;
+  count <- read size x.opnd2;
+
+  count-mask <- return (
+    if x.opnd-sz === 64 then
+      0x3f
+    else
+      0x1f
+  );
+
+  count-mask-full <- return (
+    case size of
+       64: 0x3f
+     | 32: 0x1f
+     | 16: 0x0f
+     | 8: 0x07
+    end
+  );
+
+  temp-count <- mktemp;
+  andb size temp-count count (imm count-mask-full);
+  
+  temp-dst <- mktemp;
+  mov size (at-offset temp-dst size) src;
+  mov size temp-dst (imm 0);
+  
+  shr (2*size) temp-dst (var temp-dst) (var temp-count);
+  orb size temp-dst (var (at-offset temp-dst size)) (var temp-dst);
+
+  temp <- mktemp;
+
+  cf <- fCF;
+  mov 1 cf (var (at-offset temp-dst (size - 1)));
+
+  ov <- fOF;
+  andb size temp count (imm count-mask);
+  _if (/eq size (var temp) (imm 1)) _then
+    xorb 1 ov (var (at-offset temp-dst (size - 1))) (var (at-offset temp-dst (size - 2)))
   _else
     undef 1 ov
   ;

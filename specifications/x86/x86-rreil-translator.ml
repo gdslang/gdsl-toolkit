@@ -1490,7 +1490,7 @@ val semantics insn =
    | RET x: sem-ret x
    | RET_FAR x: sem-ret-far x
    | ROL x: sem-rol x
-   | ROR x: sem-undef-arity2 x
+   | ROR x: sem-ror x
    | ROUNDPD x: sem-undef-arity3 x
    | ROUNDPS x: sem-undef-arity3 x
    | ROUNDSD x: sem-undef-arity3 x
