@@ -1852,6 +1852,50 @@ val sem-vpxor x = sem-pxor-vpxor-opnd '1' x.opnd1 x.opnd2 x.opnd3
 ## Q>>
 ## R>>
 
+val sem-rcl x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd1;
+  dst <- lval size x.opnd1;
+  count <- read size x.opnd2;
+
+  temp-count <- mktemp;
+  case size of
+     8: do
+       andb size temp-count count (imm 0x1f);
+       modulo size temp-count (var temp-count) (imm 9)
+     end
+   | 16: do
+       andb size temp-count count (imm 0x1f);
+       modulo size temp-count (var temp-count) (imm 17)
+     end
+   | 32: andb size temp-count count (imm 0x1f)
+   | 64: andb size temp-count count (imm 0x3f)
+  end;
+
+   cf <- fCF;
+  temp-dst <- mktemp;
+  _if (/gtu size (var temp-count) (imm 0)) _then do
+    movzx (2*size + 1) temp-dst size src;
+    shl (size + 1) temp-dst (var temp-dst) (imm 1);
+    mov 1 temp-dst (var cf);
+    sub 1 temp-count (var temp-count) (imm 1);
+    shl (2*size + 1) temp-dst (var temp-dst) (var temp-count);
+    orb size temp-dst (var (at-offset temp-dst (size + 1))) (var temp-dst);
+    mov 1 cf (var (at-offset temp-dst size))
+  end _else
+    mov size temp-dst src
+  ;
+  
+  ov <- fOF;
+  _if (/eq size count (imm 1)) _then
+    xorb 1 ov (var (at-offset temp-dst (size - 1))) (var cf)
+  _else
+    undef 1 ov
+  ;
+
+  write size dst (var temp-dst)
+end
+
 val sem-rol x = do
   size <- sizeof1 x.opnd1;
   src <- read size x.opnd1;

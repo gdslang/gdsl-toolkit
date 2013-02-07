@@ -452,9 +452,13 @@ main:
 	#rol %cl, %rax
 	#rol $1, %eax
 
-	ror $42, %al
-	ror %cl, %rax
-	ror $1, %eax
+	#ror $42, %al
+	#ror %cl, %rax
+	#ror $1, %eax
+
+	rcl $42, %al
+	rcl %cl, %rax
+	rcl $1, %eax
 
 	#vmovd %xmm5, %ebx
 

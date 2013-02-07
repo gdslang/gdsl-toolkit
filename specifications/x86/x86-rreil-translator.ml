@@ -1476,7 +1476,7 @@ val semantics insn =
    | PUSHFD x: sem-pushf x
    | PUSHFQ x: sem-pushf x
    | PXOR x: sem-pxor x
-   | RCL x: sem-undef-arity2 x
+   | RCL x: sem-rcl x
    | RCPPS x: sem-undef-arity2 x
    | RCPSS x: sem-undef-arity2 x
    | RCR x: sem-undef-arity2 x
