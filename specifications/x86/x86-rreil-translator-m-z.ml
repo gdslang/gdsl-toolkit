@@ -1872,7 +1872,7 @@ val sem-rcl x = do
    | 64: andb size temp-count count (imm 0x3f)
   end;
 
-   cf <- fCF;
+  cf <- fCF;
   temp-dst <- mktemp;
   _if (/gtu size (var temp-count) (imm 0)) _then do
     movzx (2*size + 1) temp-dst size src;
@@ -1892,6 +1892,50 @@ val sem-rcl x = do
   _else
     undef 1 ov
   ;
+
+  write size dst (var temp-dst)
+end
+
+val sem-rcr x = do
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd1;
+  dst <- lval size x.opnd1;
+  count <- read size x.opnd2;
+
+  temp-count <- mktemp;
+  case size of
+     8: do
+       andb size temp-count count (imm 0x1f);
+       modulo size temp-count (var temp-count) (imm 9)
+     end
+   | 16: do
+       andb size temp-count count (imm 0x1f);
+       modulo size temp-count (var temp-count) (imm 17)
+     end
+   | 32: andb size temp-count count (imm 0x1f)
+   | 64: andb size temp-count count (imm 0x3f)
+  end;
+
+  temp-dst <- mktemp;
+  mov size temp-dst src;
+
+  cf <- fCF;
+  ov <- fOF;
+  _if (/eq size count (imm 1)) _then
+    xorb 1 ov (var (at-offset temp-dst (size - 1))) (var cf)
+  _else
+    undef 1 ov
+  ;
+
+  _if (/gtu size (var temp-count) (imm 0)) _then do
+    mov 1 (at-offset temp-dst (2*size)) (var cf);
+    mov size (at-offset temp-dst size) src;
+    mov size temp-dst (imm 0);
+    sub 1 temp-count (var temp-count) (imm 1);
+    shr (2*size + 1) temp-dst (var temp-dst) (var temp-count);
+    orb size temp-dst (var (at-offset temp-dst (size + 1))) (var temp-dst);
+    mov 1 cf (var (at-offset temp-dst size))
+  end;
 
   write size dst (var temp-dst)
 end

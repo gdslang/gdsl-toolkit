@@ -1479,7 +1479,7 @@ val semantics insn =
    | RCL x: sem-rcl x
    | RCPPS x: sem-undef-arity2 x
    | RCPSS x: sem-undef-arity2 x
-   | RCR x: sem-undef-arity2 x
+   | RCR x: sem-rcr x
    | RDFSBASE x: sem-undef-arity1 x
    | RDGSBASE x: sem-undef-arity1 x
    | RDMSR x: sem-undef-arity0 x
