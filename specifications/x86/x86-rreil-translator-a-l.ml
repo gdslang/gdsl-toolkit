@@ -34,6 +34,28 @@ end
 #
 #end
 
+val sem-and x = do
+  size <- sizeof1 x.opnd1;
+  src1 <- read size x.opnd1;
+  src2 <- read size x.opnd2;
+  dst <- lval size x.opnd1;
+
+  temp <- mktemp;
+  andb size temp src1 src2;
+
+  ov <- fOF;
+  mov 1 ov (imm 0);
+  cf <- fCF;
+  mov 1 cf (imm 0);
+  sf <- fSF;
+  mov 1 sf (var (at-offset temp (size - 1)));
+  zf <- fZF;
+  cmpeq size zf (var temp) (imm 0);
+  emit-parity-flag (var temp);
+
+  write size dst (var temp)
+end
+
 val sem-andpd-opnds avx-encoded opnd1 opnd2 opnd3 = do
   #size <- return 128;
   size <- sizeof1 opnd1;

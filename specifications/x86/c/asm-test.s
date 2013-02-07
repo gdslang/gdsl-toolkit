@@ -460,9 +460,13 @@ main:
 	#rcl %cl, %rax
 	#rcl $1, %eax
 
-	rcr $42, %al
-	rcr %cl, %rax
-	rcr $1, %eax
+	#rcr $42, %al
+	#rcr %cl, %rax
+	#rcr $1, %eax
+
+	and $12, %al
+	and (%rax), %rax
+	and %ebx, %ecx
 
 	#vmovd %xmm5, %ebx
 

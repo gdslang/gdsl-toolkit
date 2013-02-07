@@ -974,7 +974,7 @@ val semantics insn =
    | AESENCLAST x: sem-undef-arity2 x
    | AESIMC x: sem-undef-arity2 x
    | AESKEYGENASSIST x: sem-undef-arity3 x
-   | AND x: sem-undef-arity2 x
+   | AND x: sem-and x
    | ANDNPD x: sem-undef-arity2 x
    | ANDNPS x: sem-undef-arity2 x
    | ANDPD x: sem-andpd x
