@@ -2420,6 +2420,51 @@ val sem-setcc x cond = do
   write dst-sz dst (var temp)
 end
 
+val sem-shld x = do
+  size <- sizeof1 x.opnd1;
+  dst <- lval size x.opnd1;
+  src1 <- read size x.opnd1;
+  src2 <- read size x.opnd2;
+  count <- read size x.opnd3;
+  
+  mask <- return (
+    if size === 64 then
+      0x3f
+    else
+      0x1f
+  );
+
+  temp-count <- mktemp;
+  andb size temp-count count (imm mask);
+
+  cf <- fCF;
+  ov <- fOF;
+  sf <- fSF;
+  zf <- fZF;
+  af <- fAF;
+  pf <- fPF;
+
+  temp-dst <- mktemp;
+  _if (/gtu size (var temp-count) (imm size)) _then do
+    undef 1 cf;
+    undef 1 ov;
+    undef 1 sf;
+    undef 1 zf;
+    undef 1 af;
+    undef 1 pf
+  end _else do
+    shl size temp-dst src1 (var temp-count);
+
+    temp <- mktemp;
+    sub size temp (imm size) (var temp-count);
+    shr size temp src2 (var temp);
+
+    orb size temp-dst (var temp-dst) (var temp)
+  end;
+
+  write size dst (var temp-dst)
+end
+
 val sem-stc = do
   cf <- fCF;
   mov 1 cf (imm 1)

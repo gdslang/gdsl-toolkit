@@ -126,6 +126,15 @@ __obj __zx (__obj x) {
   return (y);
 }
 
+/* FIXME */
+__obj __ipget (__obj x) {
+  __LOCAL0(y);
+    __INT_BEGIN(y);
+    __INT_INIT(42);
+    __INT_END(y);
+  return (y);
+}
+
 __obj __concat (__obj A, __obj B) {
   __word a = A->bv.vec;
   __word b = B->bv.vec;

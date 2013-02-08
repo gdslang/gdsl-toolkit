@@ -12,6 +12,7 @@ val runtime-stack-address-size = do
 end
 
 val ip-get = do
+  #k <- ipget;
   return (imm 0)
 end
 
@@ -1539,7 +1540,7 @@ val semantics insn =
    | SFENCE x: sem-undef-arity0 x
    | SGDT x: sem-undef-arity1 x
    | SHL x: sem-sal-shl x
-   | SHLD x: sem-undef-arity3 x
+   | SHLD x: sem-shld x
    | SHR x: sem-shr-sar x '0'
    | SHRD x: sem-undef-arity3 x
    | SHUFPD x: sem-undef-arity3 x

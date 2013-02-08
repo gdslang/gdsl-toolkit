@@ -464,9 +464,13 @@ main:
 	#rcr %cl, %rax
 	#rcr $1, %eax
 
-	and $12, %al
-	and (%rax), %rax
-	and %ebx, %ecx
+	#and $12, %al
+	#and (%rax), %rax
+	#and %ebx, %ecx
+
+	shld $42, %ax, %bx
+	shld $99, %ecx, %edx
+	shld %cl, %rax, %rbx
 
 	#vmovd %xmm5, %ebx
 
