@@ -5444,13 +5444,13 @@ val / [0x0f 0xa5 /r]
 ### SHRD
 ###  - Double Precision Shift Right
 val / [0x0f 0xac /r]
- | opndsz? = ternop SHLD r/m16 r16 imm8
- | rexw? = ternop SHLD r/m64 r64 imm8
- | otherwise = ternop SHLD r/m32 r32 imm8
+ | opndsz? = ternop SHRD r/m16 r16 imm8
+ | rexw? = ternop SHRD r/m64 r64 imm8
+ | otherwise = ternop SHRD r/m32 r32 imm8
 val / [0x0f 0xad /r]
- | opndsz? = ternop SHLD r/m16 r16 cl
- | rexw? = ternop SHLD r/m64 r64 cl
- | otherwise = ternop SHLD r/m32 r32 cl
+ | opndsz? = ternop SHRD r/m16 r16 cl
+ | rexw? = ternop SHRD r/m64 r64 cl
+ | otherwise = ternop SHRD r/m32 r32 cl
 
 ### SHUFPD
 ###  - Shuffle Packed Double-Precision Floating-Point Values

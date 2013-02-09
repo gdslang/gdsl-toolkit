@@ -2420,7 +2420,7 @@ val sem-setcc x cond = do
   write dst-sz dst (var temp)
 end
 
-val sem-shld x = do
+val sem-shld-shrd s1-shifter s2-shifter x = do
   size <- sizeof1 x.opnd1;
   dst <- lval size x.opnd1;
   src1 <- read size x.opnd1;
@@ -2453,17 +2453,25 @@ val sem-shld x = do
     undef 1 af;
     undef 1 pf
   end _else do
-    shl size temp-dst src1 (var temp-count);
+    mov 1 (at-offset temp-dst (size + 1)) (imm 0);
+    shl (size + 1) temp-dst src1 (imm 1);
+
+    s1-shifter (size + 2) temp-dst (var temp-dst) (var temp-count);
 
     temp <- mktemp;
     sub size temp (imm size) (var temp-count);
-    shr size temp src2 (var temp);
+    s2-shifter size temp src2 (var temp);
 
-    orb size temp-dst (var temp-dst) (var temp)
+    orb size temp-dst (var (at-offset temp-dst 1)) (var temp);
+
+    orb 1 cf (var temp-dst) (var (at-offset temp-dst (size + 1)))
   end;
 
   write size dst (var temp-dst)
 end
+
+val sem-shld x = sem-shld-shrd shl shr x
+val sem-shrd x = sem-shld-shrd shr shl x
 
 val sem-stc = do
   cf <- fCF;

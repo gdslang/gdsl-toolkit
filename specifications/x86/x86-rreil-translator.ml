@@ -1542,7 +1542,7 @@ val semantics insn =
    | SHL x: sem-sal-shl x
    | SHLD x: sem-shld x
    | SHR x: sem-shr-sar x '0'
-   | SHRD x: sem-undef-arity3 x
+   | SHRD x: sem-shrd x
    | SHUFPD x: sem-undef-arity3 x
    | SHUFPS x: sem-undef-arity3 x
    | SIDT x: sem-undef-arity1 x

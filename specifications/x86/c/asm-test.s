@@ -44,7 +44,8 @@ main:
 
 	#loop main
 	#loope main
-	#loopne main
+	#loopne mainnd _else do
+    
 
 	#lodsq
 	#rep lodsq
@@ -468,9 +469,13 @@ main:
 	#and (%rax), %rax
 	#and %ebx, %ecx
 
-	shld $42, %ax, %bx
-	shld $99, %ecx, %edx
+	#shld $42, %ax, %bx
+	#shld $99, %ecx, %edx
 	shld %cl, %rax, %rbx
+
+	shrd $42, %ax, %bx
+	shrd $99, %ecx, %edx
+	shrd %cl, %rax, %rbx
 
 	#vmovd %xmm5, %ebx
 
