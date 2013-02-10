@@ -471,11 +471,16 @@ main:
 
 	#shld $42, %ax, %bx
 	#shld $99, %ecx, %edx
-	shld %cl, %rax, %rbx
+	#shld %cl, %rax, %rbx
 
-	shrd $42, %ax, %bx
-	shrd $99, %ecx, %edx
-	shrd %cl, %rax, %rbx
+	#shrd $42, %ax, %bx
+	#shrd $99, %ecx, %edx
+	#shrd %cl, %rax, %rbx
+
+	vbroadcastss (%rax), %xmm1
+	vbroadcastss (%rax), %ymm1
+	vbroadcastsd (%rax), %ymm1
+	vbroadcastf128 (%rax), %ymm1
 
 	#vmovd %xmm5, %ebx
 

@@ -1602,9 +1602,9 @@ val semantics insn =
    | VBLENDPS x: sem-undef-varity x
    | VBLENDVPD x: sem-undef-varity x
    | VBLENDVPS x: sem-undef-varity x
-   | VBROADCASTF128 x: sem-undef-varity x
-   | VBROADCASTSD x: sem-undef-varity x
-   | VBROADCASTSS x: sem-undef-varity x
+   | VBROADCASTF128 v: sem-vbroadcast v
+   | VBROADCASTSD v: sem-vbroadcast v
+   | VBROADCASTSS v: sem-vbroadcast v
    | VCMPEQB x: sem-undef-varity x
    | VCMPEQD x: sem-undef-varity x
    | VCMPEQW x: sem-undef-varity x

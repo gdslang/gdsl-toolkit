@@ -2444,7 +2444,6 @@ val sem-shld-shrd s1-shifter s2-shifter x = do
   af <- fAF;
   pf <- fPF;
 
-
   temp-dst <- mktemp;
   _if (/gtu size (var temp-count) (imm size)) _then do
     undef 1 cf;
@@ -2554,6 +2553,32 @@ end
 
 ## U>>
 ## V>>
+
+val sem-vbroadcast v = do
+  x <- return (
+    case v of
+       VA2 x: x
+    end
+  );
+
+  src-size <- sizeof1 x.opnd2;
+  src <- read src-size x.opnd2;
+  dst-size <- sizeof1 x.opnd1;
+  dst <- lval dst-size x.opnd1;
+  
+  temp-dst <- mktemp;
+  let
+    val m i = do
+      offset <- return (src-size*i);
+      mov src-size (at-offset temp-dst offset) src
+    end
+  in
+    vector-apply dst-size src-size m
+  end;
+
+  write-extend '1' dst-size dst (var temp-dst)
+end
+
 ## W>>
 ## X>>
 
