@@ -2444,6 +2444,7 @@ val sem-shld-shrd s1-shifter s2-shifter x = do
   af <- fAF;
   pf <- fPF;
 
+
   temp-dst <- mktemp;
   _if (/gtu size (var temp-count) (imm size)) _then do
     undef 1 cf;
@@ -2455,6 +2456,9 @@ val sem-shld-shrd s1-shifter s2-shifter x = do
   end _else do
     mov 1 (at-offset temp-dst (size + 1)) (imm 0);
     shl (size + 1) temp-dst src1 (imm 1);
+  
+    sign-prev <- mktemp;
+    mov 1 sign-prev (var (at-offset temp-dst size));
 
     s1-shifter (size + 2) temp-dst (var temp-dst) (var temp-count);
 
@@ -2464,9 +2468,20 @@ val sem-shld-shrd s1-shifter s2-shifter x = do
 
     orb size temp-dst (var (at-offset temp-dst 1)) (var temp);
 
-    orb 1 cf (var temp-dst) (var (at-offset temp-dst (size + 1)))
-  end;
+    _if (/gtu size (var temp-count) (imm 0)) _then do
+      orb 1 cf (var temp-dst) (var (at-offset temp-dst (size + 1)));
+      mov 1 sf (var (at-offset temp-dst (size - 1)));
+      cmpeq size zf (var temp-dst) (imm 0);
+      emit-parity-flag (var temp-dst);
+      undef 1 af;
 
+      _if (/eq size (var temp-count) (imm 1)) _then
+        xorb 1 ov (var sign-prev) (var (at-offset temp-dst (size - 1)))
+      _else
+        undef 1 ov
+    end
+  end;
+  
   write size dst (var temp-dst)
 end
 
