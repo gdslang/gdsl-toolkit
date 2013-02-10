@@ -1657,8 +1657,8 @@ val semantics insn =
        case v of
           VA3 x: sem-maskmovdqu-vmaskmovdqu x
        end
-   | VMASKMOVPD x: sem-undef-varity x
-   | VMASKMOVPS x: sem-undef-varity x
+   | VMASKMOVPD x: sem-vmaskmovp 64 x
+   | VMASKMOVPS x: sem-vmaskmovp 32 x
    | VMAXPD x: sem-undef-varity x
    | VMAXPS x: sem-undef-varity x
    | VMAXSD x: sem-undef-varity x

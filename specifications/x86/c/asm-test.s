@@ -477,10 +477,17 @@ main:
 	#shrd $99, %ecx, %edx
 	#shrd %cl, %rax, %rbx
 
-	vbroadcastss (%rax), %xmm1
-	vbroadcastss (%rax), %ymm1
-	vbroadcastsd (%rax), %ymm1
-	vbroadcastf128 (%rax), %ymm1
+	#vbroadcastss (%rax), %xmm1
+	#vbroadcastss (%rax), %ymm1
+	#vbroadcastsd (%rax), %ymm1
+	#vbroadcastf128 (%rax), %ymm1
+
+	#vmaskmovps %xmm1, %xmm2, (%rax)
+	#vmaskmovps (%rax), %xmm1, %xmm2
+	vmaskmovpd %xmm1, %xmm2, (%rax)
+	vmaskmovpd (%rax), %xmm1, %xmm2
+	vmaskmovpd %ymm1, %ymm2, (%rax)
+	vmaskmovpd (%rax), %ymm1, %ymm2
 
 	#vmovd %xmm5, %ebx
 

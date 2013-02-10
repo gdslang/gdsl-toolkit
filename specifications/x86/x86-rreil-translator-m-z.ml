@@ -1,8 +1,9 @@
 ## M>>
 
-val sem-maskmov x size = do
-  src <- read size x.opnd1;
-  mask <- read size x.opnd2;
+val sem-maskmov element-size x = do
+  size <- sizeof1 x.opnd2;
+  src <- read size x.opnd2;
+  mask <- read size x.opnd3;
 
   src-temp <- mktemp;
   mov size src-temp src;
@@ -10,22 +11,51 @@ val sem-maskmov x size = do
   mask-temp <- mktemp;
   mov size mask-temp mask;
 
-  byte-size <- return 8;
-  let
-    val m i = do
-      _if (/d (var (at-offset mask-temp ((i + 1)*8 - 1)))) _then do
-        dst <- lval-offset byte-size x.opnd3 i;
-        write byte-size dst (var (at-offset src-temp (i*8)))
-      end
+  is-load <- return (
+    case x.opnd1 of
+       MEM m: '0'
+     | REG r: '1'
     end
+  );
+
+  offset-factor <- return (
+    if is-load then
+      element-size
+    else
+      divb element-size 8
+  );
+
+  let
+    val m i =
+      let
+        val write-dst value = do
+          dst <- lval-offset element-size x.opnd1 (i*offset-factor);
+          write element-size dst value
+        end
+      in do
+        offset <- return (element-size*i);
+        _if (/d (var (at-offset mask-temp ((i + 1)*element-size - 1)))) _then
+          write-dst (var (at-offset src-temp offset))
+        _else
+          if is-load then
+  	    write-dst (imm 0)
+          else
+            return void
+      end end
   in
-    vector-apply size byte-size m
-  end
+    vector-apply size element-size m
+  end;
+
+  if is-load and size === 128 then do
+    dst <- lval-offset size x.opnd1 size;
+    write size dst (imm 0)
+  end else
+    return void
 end
 
-val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov x 128
+val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov 8 x
 
-val sem-maskmovq x = sem-maskmov x 64
+val sem-maskmovq x = sem-maskmov 8 x
 
 val sem-mov avx-encoded x = do
   sz <- sizeof1 x.opnd1;
@@ -2577,6 +2607,15 @@ val sem-vbroadcast v = do
   end;
 
   write-extend '1' dst-size dst (var temp-dst)
+end
+
+val sem-vmaskmovp element-size v = do
+  x <- return (
+    case v of
+       VA3 x: x
+    end
+  );
+  sem-maskmov element-size x
 end
 
 ## W>>

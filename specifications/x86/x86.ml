@@ -3933,12 +3933,12 @@ val / [0x0f 0x00 /3] = unop LTR r/m16
 
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
-val /66 [0x0f 0xf7 /r-reg] = ternop MASKMOVDQU xmm128 xmm/reg128 (m/default/di/edi/rdi (return 8))
-val /vex/66/0f [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU xmm128 xmm/m128 (m/default/di/edi/rdi (return 8))
+val /66 [0x0f 0xf7 /r-reg] = ternop MASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/reg128
+val /vex/66/0f [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/m128
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
-val / [0x0f 0xf7 /r-reg] = ternop MASKMOVQ mm64 mm/reg64 (m/default/di/edi/rdi (return 8))
+val / [0x0f 0xf7 /r-reg] = ternop MASKMOVQ (m/default/di/edi/rdi (return 8)) mm64 mm/reg64
 
 ### MAXPD
 ###  - Return Maximum Packed Double-Precision Floating-Point Values
