@@ -2226,7 +2226,7 @@ val semantics insn =
    | VUNPCKLPD x: sem-undef-varity x
    | VUNPCKLPS x: sem-undef-varity x
    | VXORPS x: sem-undef-varity x
-   | VZEROALL x: sem-undef-varity x
+   | VZEROALL v: sem-vzeroall
    | VZEROUPPER x: sem-undef-varity x
    | WAIT x: sem-undef-arity0 x
    | WBINVD x: sem-undef-arity0 x

@@ -93,12 +93,12 @@ main:
 
 	#cdqe
 
-        add %rax, %rax
-        inc %rax
+        #add %rax, %rax
+        #inc %rax
 
-	blah:
-	call blah
-	call blah
+	#blah:
+	#call blah
+	#call blah
 
 	#bts %rax, (%rbx)
 	#btr %rax, %rbx
@@ -551,6 +551,8 @@ main:
 
 	#maskmovdqu %xmm2, %xmm1
 	#vmaskmovdqu %xmm2, %xmm1
+
+	vzeroall
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16

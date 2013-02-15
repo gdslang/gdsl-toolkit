@@ -351,7 +351,9 @@ val p64 [/rex-p]
  | mode64? = p64
  | mode32? & rexw? = unop DEC rex/reg32
  | mode32? & // rexw? = unop INC rex/reg32
-#val p64 [p/vex/0f] = /vex/0f
+val p64 [p/vex/0f]
+ | vndd? = /vex/0f/vexv
+ | otherwise = /vex/0f
 val p64 [p/vex/f2/0f]
  | vndd? = /vex/f2/0f/vexv
  | otherwise = /vex/f2/0f

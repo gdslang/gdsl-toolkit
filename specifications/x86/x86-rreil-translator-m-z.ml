@@ -2618,6 +2618,47 @@ val sem-vmaskmovp element-size v = do
   sem-maskmov element-size x
 end
 
+val sem-vzeroall = do
+  size <- return 256;
+  mode64 <- mode64?;
+
+  xmm0 <- return (semantic-register-of XMM0);
+  mov size xmm0 (imm 0);
+  xmm1 <- return (semantic-register-of XMM1);
+  mov size xmm1 (imm 0);
+  xmm2 <- return (semantic-register-of XMM2);
+  mov size xmm2 (imm 0);
+  xmm3 <- return (semantic-register-of XMM3);
+  mov size xmm3 (imm 0);
+  xmm4 <- return (semantic-register-of XMM4);
+  mov size xmm4 (imm 0);
+  xmm5 <- return (semantic-register-of XMM5);
+  mov size xmm5 (imm 0);
+  xmm6 <- return (semantic-register-of XMM6);
+  mov size xmm6 (imm 0);
+  xmm7 <- return (semantic-register-of XMM7);
+  mov size xmm7 (imm 0);
+  if mode64 then do
+    xmm8 <- return (semantic-register-of XMM8);
+    mov size xmm8 (imm 0);
+    xmm9 <- return (semantic-register-of XMM9);
+    mov size xmm9 (imm 0);
+    xmm10 <- return (semantic-register-of XMM10);
+    mov size xmm10 (imm 0);
+    xmm11 <- return (semantic-register-of XMM11);
+    mov size xmm11 (imm 0);
+    xmm12 <- return (semantic-register-of XMM12);
+    mov size xmm12 (imm 0);
+    xmm13 <- return (semantic-register-of XMM13);
+    mov size xmm13 (imm 0);
+    xmm14 <- return (semantic-register-of XMM14);
+    mov size xmm14 (imm 0);
+    xmm15 <- return (semantic-register-of XMM15);
+    mov size xmm15 (imm 0)
+  end else
+    return void
+end
+
 ## W>>
 ## X>>
 
