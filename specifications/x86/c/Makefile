@@ -14,7 +14,7 @@ clang-sweep:
 	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o clang-sweep
 
 gcc-sweep:
-	gcc -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o gcc-sweep
+	gcc -g -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o gcc-sweep
 
 cmusl-liveness:
 	/usr/musl/bin/musl-gcc -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness.c ../../../dis.c -DRELAXEDFATAL -o musl-live

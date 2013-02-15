@@ -127,12 +127,18 @@ __obj __zx (__obj x) {
 }
 
 /* FIXME */
-__obj __ipget (__obj x) {
+__obj __ipget (__obj s) {
+  __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __LOCAL0(y);
     __INT_BEGIN(y);
-    __INT_INIT(42);
+    __INT_INIT(blob->blob.idx);
     __INT_END(y);
-  return (y);
+  __LOCAL0(a);
+    __RECORD_BEGIN(a,2);
+    __RECORD_ADD(___1,y);
+    __RECORD_ADD(___2,s);
+    __RECORD_END(a,2);
+  return (a);
 }
 
 __obj __concat (__obj A, __obj B) {
@@ -210,6 +216,7 @@ __obj __consume8 (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __char* buf = blob->blob.blob;
   __word sz = blob->blob.sz;
+  __word idx = blob->blob.idx;
   if (sz == 0)
     __fatal("end-of-blob");
   __char x = *buf;
@@ -219,7 +226,7 @@ __obj __consume8 (__obj s) {
     __BV_END(v,8);
   __LOCAL0(blobb);
     __BLOB_BEGIN(blobb);
-    __BLOB_INIT(buf+1,sz-1);
+    __BLOB_INIT(buf+1,sz-1,idx+1);
     __BLOB_END(blobb);
   __LOCAL0(ss);
     __RECORD_BEGIN_UPDATE(ss,s);
@@ -237,9 +244,10 @@ __obj __unconsume8 (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __char* buf = blob->blob.blob;
   __word sz = blob->blob.sz;
+  __word idx = blob->blob.idx;
   __LOCAL0(blobb);
     __BLOB_BEGIN(blobb);
-    __BLOB_INIT(buf-1,sz+1);
+    __BLOB_INIT(buf-1,sz+1,idx-1);
     __BLOB_END(blobb);
   __LOCAL0(ss);
     __RECORD_BEGIN_UPDATE(ss,s);
@@ -257,6 +265,7 @@ __obj __consume16 (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __char* buf = blob->blob.blob;
   __word sz = blob->blob.sz;
+  __word idx = blob->blob.idx;
   if (sz < 2)
     __fatal("end-of-blob");
   uint16_t x1 = buf[0];
@@ -267,7 +276,7 @@ __obj __consume16 (__obj s) {
     __BV_END(v,16);
   __LOCAL0(blobb);
     __BLOB_BEGIN(blobb);
-    __BLOB_INIT(buf+2,sz-2);
+    __BLOB_INIT(buf+2,sz-2,idx+2);
     __BLOB_END(blobb);
   __LOCAL0(ss);
     __RECORD_BEGIN_UPDATE(ss,s);
@@ -285,9 +294,10 @@ __obj __unconsume16 (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __char* buf = blob->blob.blob;
   __word sz = blob->blob.sz;
+  __word idx = blob->blob.idx;
   __LOCAL0(blobb);
     __BLOB_BEGIN(blobb);
-    __BLOB_INIT(buf-2,sz+2);
+    __BLOB_INIT(buf-2,sz+2,idx-2);
     __BLOB_END(blobb);
   __LOCAL0(ss);
     __RECORD_BEGIN_UPDATE(ss,s);
@@ -305,6 +315,7 @@ __obj __consume32 (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __char* buf = blob->blob.blob;
   __word sz = blob->blob.sz;
+  __word idx = blob->blob.idx;
   if (sz < 4)
     __fatal("end-of-blob");
   uint32_t x1 = buf[0];
@@ -317,7 +328,7 @@ __obj __consume32 (__obj s) {
     __BV_END(v,32);
   __LOCAL0(blobb);
     __BLOB_BEGIN(blobb);
-    __BLOB_INIT(buf+2,sz-2);
+    __BLOB_INIT(buf+4,sz-4,idx+4);
     __BLOB_END(blobb);
   __LOCAL0(ss);
     __RECORD_BEGIN_UPDATE(ss,s);
@@ -335,9 +346,10 @@ __obj __unconsume32 (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __char* buf = blob->blob.blob;
   __word sz = blob->blob.sz;
+  __word idx = blob->blob.idx;
   __LOCAL0(blobb);
     __BLOB_BEGIN(blobb);
-    __BLOB_INIT(buf-4,sz+4);
+    __BLOB_INIT(buf-4,sz+4,idx-4);
     __BLOB_END(blobb);
   __LOCAL0(ss);
     __RECORD_BEGIN_UPDATE(ss,s);
@@ -367,6 +379,77 @@ __obj __halt (__obj env, __obj o) {
   return (o);
 }
 
+__obj __cont (__obj env, __obj f) {
+  __LOCAL(s,__CLOSURE_REF(env,1));
+  __LOCAL0(k);
+    __LABEL_BEGIN(k);
+    __LABEL_INIT(__halt);
+    __LABEL_END(k);
+  __LOCAL0(envK);
+    __CLOSURE_BEGIN(envK,1)
+    __CLOSURE_ADD(k);
+    __CLOSURE_END(envK,1);
+  __LOCAL(ff,__CLOSURE_REF(f,0));
+  return (__INVOKE3(ff,f,envK,s));
+}
+
+__obj __createState(__char *blobb, __word size, __word index, __word config) {
+  __LOCAL0(b);
+    __BLOB_BEGIN(b);
+    __BLOB_INIT(blobb,size,index);
+    __BLOB_END(b);
+  __LOCAL0(s);
+    __RECORD_BEGIN(s,1);
+    __RECORD_ADD(___blob,b);
+    __RECORD_END(s,1);
+  return s;
+}
+
+__word __getBlobIndex(__obj state) {
+  union __wrapped_obj *o = __RECORD_SELECT(state,___blob);
+  return o->blob.idx;
+}
+
+__obj __runMonadicNoArg(__obj(*f)(__obj,__obj), __obj *state) {
+  __LOCAL0(k);
+    __LABEL_BEGIN(k);
+    __LABEL_INIT(__halt);
+    __LABEL_END(k);
+  __LOCAL0(envK);
+    __CLOSURE_BEGIN(envK,1)
+    __CLOSURE_ADD(k);
+    __CLOSURE_END(envK,1);
+  __LOCAL(o, __FCALL(f,envK,*state));
+  if (___isNil(o)) {
+    return NULL;
+  } else {
+    __obj i = __RECORD_SELECT(o,___1);
+    __obj s = __RECORD_SELECT(o,___2);
+    *state = s;
+    return i;
+  }
+}
+__obj __runMonadicOneArg(__obj(*f)(__obj,__obj), __obj *state, __obj arg1) {
+  __LOCAL0(k);
+    __LABEL_BEGIN(k);
+    __LABEL_INIT(__cont);
+    __LABEL_END(k);
+  __LOCAL0(envK);
+    __CLOSURE_BEGIN(envK,2)
+    __CLOSURE_ADD(*state);
+    __CLOSURE_ADD(k);
+    __CLOSURE_END(envK,2);
+  __LOCAL(o, __FCALL(f,envK,arg1));
+  if (___isNil(o)) {
+    return NULL;
+  } else {
+    __obj i = __RECORD_SELECT(o,___1);
+    __obj s = __RECORD_SELECT(o,___2);
+    *state = s;
+    return i;
+  }
+}
+
 __obj __runWithState (__obj (*f)(__obj,__obj), __obj s) {
   __LOCAL0(k);
     __LABEL_BEGIN(k);
@@ -382,7 +465,7 @@ __obj __runWithState (__obj (*f)(__obj,__obj), __obj s) {
 __obj __eval (__obj (*f)(__obj,__obj), __char* blob, __word sz) {
   __LOCAL0(b);
     __BLOB_BEGIN(b);
-    __BLOB_INIT(blob,sz);
+    __BLOB_INIT(blob,sz,0);
     __BLOB_END(b);
   __LOCAL0(s);
     __RECORD_BEGIN(s,1);
@@ -420,20 +503,6 @@ __word __decode (__obj (*f)(__obj,__obj), __char* blob, __word sz, __obj* insn) 
     *insn = i;
     return (consumed);
   }
-}
-
-__obj __cont (__obj env, __obj f) {
-  __LOCAL(s,__CLOSURE_REF(env,1));
-  __LOCAL0(k);
-    __LABEL_BEGIN(k);
-    __LABEL_INIT(__halt);
-    __LABEL_END(k);
-  __LOCAL0(envK);
-    __CLOSURE_BEGIN(envK,1)
-    __CLOSURE_ADD(k);
-    __CLOSURE_END(envK,1);
-  __LOCAL(ff,__CLOSURE_REF(f,0));
-  return (__INVOKE3(ff,f,envK,s));
 }
 
 __obj __translate (__obj (*f)(__obj,__obj), __obj insn) {
@@ -545,7 +614,7 @@ __obj __print (__obj o) {
       printf("{tag=__LABEL,f=%p}",o->label.f);
       break;
     case __BLOB:
-      printf("{tag=__BLOB,sz=%lu,blob=%p}",(unsigned long) o->blob.sz, o->blob.blob);
+      printf("{tag=__BLOB,sz=%lu,blob=%p,idx=%lu}",(unsigned long) o->blob.sz, o->blob.blob, o->blob.idx);
       break;
     case __BV:
       printf("{tag=__BV,sz=%lu,vec=%zx}",(unsigned long) o->bv.sz,(unsigned long) o->bv.vec);

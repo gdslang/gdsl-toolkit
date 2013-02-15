@@ -51,11 +51,15 @@ int main (int argc, char** argv) {
   unsigned char *buffer = (unsigned char*)malloc(buffer_size);
   size_t buffer_length = fread(buffer, 1, buffer_size, f);
 
-  uint64_t consumed = 0;
-  while(consumed + 15 < buffer_length) {
+  __obj state = __createState(buffer, buffer_length, 0, 0);
+
+  //uint64_t consumed = 0;
+  while(__getBlobIndex(state) + 15 < buffer_length) {
     printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
-    consumed += __decode(__decode__,buffer+consumed,buffer_length - consumed,&insn);
-    printf("Consumed: %lu\n", consumed);
+    insn = __runMonadicNoArg(__decode__, &state);
+    
+    //consumed += __decode(__decode__,buffer+consumed,buffer_length - consumed,&insn);
+    //printf("Consumed: %lu\n", consumed);
     if (___isNil(insn))
       __fatal("Decode failed");
     else {
@@ -64,7 +68,8 @@ int main (int argc, char** argv) {
   
       printf("---------------------------\n");
      
-      __obj r = __translate(__translate__,insn);
+      __obj r = __runMonadicOneArg(__translate__, &state, insn);
+      //__obj r = __translate(__translate__,insn);
       if(___isNil(r))
         __fatal("Translate failed");
       else {

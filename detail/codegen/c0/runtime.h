@@ -181,11 +181,12 @@
 #define __BLOB_BEGIN(Cname)\
   __CHECK_HEAP(1)
 
-#define __BLOB_INIT(buf, size)\
+#define __BLOB_INIT(buf, size, index)\
   {__objref o = __ALLOC1();\
    o->blob.header.tag = __BLOB;\
    o->blob.blob = buf;\
-   o->blob.sz = size;
+   o->blob.sz = size;\
+   o->blob.idx = index;
 
 #define __BLOB_END(Cname)\
    Cname = __WRAP(o);}
@@ -251,6 +252,7 @@ struct __s_unwrapped_blob {
   __header header;
   __char* blob;
   __word sz;
+  __word idx;
 };
 struct __s_unwrapped_ropeleaf {
   __header header;
@@ -302,6 +304,7 @@ struct __s_label {
 struct __s_blob {
   __char* blob;
   __word sz;
+  __word idx;
 };
 struct __s_ropeleaf {
   __char* blob;
@@ -488,6 +491,11 @@ __obj __eval(__obj(*)(__obj,__obj),__char*,__word);
 __word __decode(__obj(*)(__obj,__obj),__char*,__word,__obj*);
 __obj __pretty(__obj(*)(__obj,__obj),__obj,char*,__word);
 __obj __translate(__obj(*)(__obj,__obj),__obj);
+
+__obj __createState(__char* blobb, __word size, __word index, __word config);
+__word __getBlobIndex(__obj state);
+__obj __runMonadicNoArg(__obj(*f)(__obj,__obj), __obj* state);
+__obj __runMonadicOneArg(__obj(*f)(__obj,__obj), __obj* state, __obj arg1);
 
 #endif /* __RUNTIME_H */
 

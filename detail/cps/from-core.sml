@@ -47,6 +47,7 @@ end = struct
          val == = get "=="
          val not = get "not"
          val raisee = get "raise"
+         val ipget = get "ipget"
          val return = get "return"
          val add = get "+"
          val eqi = get "==="
@@ -266,6 +267,16 @@ end = struct
                (raisee, [a], body)
             end
 
+         (* val ipget s = %ipget(s) *)
+         val ipget =
+            let
+               val s = fresh "s"
+               val primipget = get "%ipget"
+               val body = PRI (primipget, [s])
+            in
+               (ipget, [s], body)
+            end
+
          (* val slice tok offs sz = return (%slice(tok,offs,sz) *)
          val slice =
             let
@@ -354,6 +365,7 @@ end = struct
           ==,
           concat,
           raisee,
+	  ipget,
           add,
           sx,
           zx,

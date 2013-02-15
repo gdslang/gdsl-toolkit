@@ -93,8 +93,12 @@ main:
 
 	#cdqe
 
-	#blah:
-	#call blah
+        add %rax, %rax
+        inc %rax
+
+	blah:
+	call blah
+	call blah
 
 	#bts %rax, (%rbx)
 	#btr %rax, %rbx
@@ -484,10 +488,10 @@ main:
 
 	#vmaskmovps %xmm1, %xmm2, (%rax)
 	#vmaskmovps (%rax), %xmm1, %xmm2
-	vmaskmovpd %xmm1, %xmm2, (%rax)
-	vmaskmovpd (%rax), %xmm1, %xmm2
-	vmaskmovpd %ymm1, %ymm2, (%rax)
-	vmaskmovpd (%rax), %ymm1, %ymm2
+	#vmaskmovpd %xmm1, %xmm2, (%rax)
+	#vmaskmovpd (%rax), %xmm1, %xmm2
+	#vmaskmovpd %ymm1, %ymm2, (%rax)
+	#vmaskmovpd (%rax), %ymm1, %ymm2
 
 	#vmovd %xmm5, %ebx
 

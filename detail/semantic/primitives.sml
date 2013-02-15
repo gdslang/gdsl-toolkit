@@ -41,8 +41,8 @@ structure Primitives = struct
    val stateK' = newFlow stateK
    val stateL = freshVar ()
    val stateL' = newFlow stateL
-   (*val stateI = freshVar ()
-   val stateI' = newFlow stateI*)
+   val stateM = freshVar ()
+   val stateM' = newFlow stateM
    val a = freshVar ()
    val a = freshVar ()
    val a' = newFlow a
@@ -121,8 +121,8 @@ structure Primitives = struct
         flow = BD.meetVarImpliesVar (bvar stateC', bvar stateC)},
        {name="raise", ty=MONAD (freshVar (),stateD, stateD'),
         flow = noFlow},
-       (*{name="ipget", ty=MONAD (ZENO, stateI, stateI'),
-        flow = BD.meetVarImpliesVar (bvar stateI', bvar stateI)},*)
+       {name="ipget", ty=MONAD (ZENO, stateM, stateM'),
+        flow = BD.meetVarImpliesVar (bvar stateM', bvar stateM)},
        {name="%raise", ty=UNIT, flow = noFlow},
        {name="%and", ty=UNIT, flow = noFlow},
        {name="%or", ty=UNIT, flow = noFlow},
@@ -239,7 +239,7 @@ structure Primitives = struct
         flow = BD.meetVarImpliesVar (bvar stateK', bvar stateK)}, 
        {name="%slice", ty=MONAD (freshVar (),stateL, stateL'),
         flow = BD.meetVarImpliesVar (bvar stateL', bvar stateL)},
-       (*{name="%ipget", ty=UNIT, flow = noFlow},*)
+       {name="%ipget", ty=UNIT, flow = noFlow},
        {name="vcase", ty=FUN ([VEC inp, content',
          FUN ([content'', VEC out], content''')], content''''),
          flow = BD.meetVarImpliesVar (bvar content'''', bvar content') o
