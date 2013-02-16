@@ -555,6 +555,10 @@ main:
 	#vzeroall
 	#vzeroupper
 
+	movhlps %xmm1, %xmm2
+	movlps (%rax), %xmm1
+	
+
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16
 	.cfi_offset 6, -16

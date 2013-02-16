@@ -3971,8 +3971,6 @@ val /vex/f3/0f/vexv [0x5f /r] = varity3 VMAXSS xmm128 v/xmm xmm/m32
 #Todo: -reg?
 val / [0x0f 0xae /6-reg] = arity0 MFENCE
 
-### =><=
-
 ### MINPD
 ###  - Return Minimum Packed Double-Precision Floating-Point Values
 val /66 [0x0f 0x5d /r] = binop MINPD xmm128 xmm/m128
@@ -4013,15 +4011,23 @@ val / [0x8b /r]
  | opndsz? = binop MOV r16 r/m16
  | rexw? = binop MOV r64 r/m64
  | otherwise = binop MOV r32 r/m32
-val / [0x8c /r] = binop MOV r/m16 (r/rexb sreg3?)
-val / [0x8e /r] = binop MOV (r/rexb sreg3?) r/m16
+val / [0x8c /r]
+ | opndsz? = binop MOV r/m32 (r/rexb sreg3?)
+ | rexw? = binop MOV r/m64 (r/rexb sreg3?)
+ | otherwise = binop MOV r/m16 (r/rexb sreg3?)
+val / [0x8e /r]
+ | opndsz? = binop MOV (r/rexb sreg3?) r/m16
+ | rexw? = binop MOV (r/rexb sreg3?) r/m64
+ | otherwise = binop MOV (r/rexb sreg3?) r/m32
 val / [0xa0] = binop MOV al moffs8
 val / [0xa1]
  | addrsz? = binop MOV ax moffs16
+ | rexw? = binop MOV rax moffs64
  | otherwise = binop MOV eax moffs32
 val / [0xa2] = binop MOV moffs8 al
 val / [0xa3]
  | addrsz? = binop MOV moffs16 ax
+ | rexw? = binop MOV moffs64 rax
  | otherwise = binop MOV moffs32 eax
 val / ['10110 r:3'] = do update@{reg/opcode=r}; binop MOV r8/rexb imm8 end
 val / ['10111 r:3']
@@ -4033,6 +4039,8 @@ val / [0xc7 /0]
  | opndsz? = binop MOV r/m16 imm16
  | rexw? = binop MOV r/m64 imm32
  | otherwise = binop MOV r/m32 imm32
+
+### Todo: Move to/from Debug/Control Registers
 
 ### MOVAPD
 ###  - Move Aligned Packed Double-Precision Floating-Point Values
@@ -4058,12 +4066,12 @@ val /vex/0f [0x29 /r]
 
 ### MOVBE
 ###  - Move Data After Swapping Bytes
-val /66 [0x0f 0x38 0xf0 /r] = binop MOVBE r16 m16
-val / [0x0f 0x38 0xf0 /r]
+val / [0x0f 0x38 0xf0 /r-mem]
+ | opndsz? = binop MOVBE r16 m16
  | rexw? = binop MOVBE r64 m64
  | otherwise = binop MOVBE r32 m32
-val /66 [0x0f 0x38 0xf1 /r] = binop MOVBE m16 r16
-val / [0x0f 0x38 0xf1 /r]
+val / [0x0f 0x38 0xf1 /r-mem]
+ | opndsz? = binop MOVBE m16 r16
  | rexw? = binop MOVBE m64 r64
  | otherwise = binop MOVBE m32 r32
 
@@ -4076,8 +4084,8 @@ val / [0x0f 0x7e /r]
  | rexw? = binop MOVQ r/m64 mm64
  | otherwise = binop MOVD r/m32 mm64
 val /vex/66/0f [0x6e /r]
- | vex128? & rexw? = varity2 VMOVQ xmm128 r/m64
- | vex128? = varity2 VMOVD xmm128 r/m32
+ | vex128? & vexw1? = varity2 VMOVQ xmm128 r/m64
+ | vex128? & vexw0? = varity2 VMOVD xmm128 r/m32
 val /66 [0x0f 0x6e /r]
  | rexw? = binop MOVQ xmm128 r/m64
  | otherwise = binop MOVD xmm128 r/m32
@@ -4085,8 +4093,8 @@ val /66 [0x0f 0x7e /r]
  | rexw? = binop MOVQ r/m64 xmm128
  | otherwise = binop MOVD r/m32 xmm128
 val /vex/66/0f [0x7e /r]
- | vex128? & rexw? = varity2 VMOVQ r/m64 xmm128
- | vex128? = varity2 VMOVD r/m32 xmm128
+ | vex128? & vexw1? = varity2 VMOVQ r/m64 xmm128
+ | vex128? & vexw0? = varity2 VMOVD r/m32 xmm128
 
 ### MOVDDUP
 ###  - Move One Double-FP and Duplicate
@@ -4120,6 +4128,8 @@ val /vex/f3/0f [0x7f /r]
 ### MOVDQ2Q
 ###  - Move Quadword from XMM to MMX Technology Register
 val /f2 [0x0f 0xd6 /r-reg] = binop MOVDQ2Q mm64 xmm/reg128
+
+### =><=
 
 ### MOVHLPS
 ###  - Move Packed Single-Precision Floating-Point Values High to Low
