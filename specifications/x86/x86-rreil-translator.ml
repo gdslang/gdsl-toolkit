@@ -604,7 +604,8 @@ end
 
 val sem-undef-varity x = do
   case x of
-     VA1 x: sem-undef-arity1 x
+     VA0 x: sem-undef-arity0 x
+   | VA1 x: sem-undef-arity1 x
    | VA2 x: sem-undef-arity2 x
    | VA3 x: sem-undef-arity3 x
    | VA4 x: sem-undef-arity4 x
@@ -2227,7 +2228,7 @@ val semantics insn =
    | VUNPCKLPS x: sem-undef-varity x
    | VXORPS x: sem-undef-varity x
    | VZEROALL v: sem-vzeroall
-   | VZEROUPPER x: sem-undef-varity x
+   | VZEROUPPER v: sem-vzeroupper
    | WAIT x: sem-undef-arity0 x
    | WBINVD x: sem-undef-arity0 x
    | WRFSBASE x: sem-undef-arity1 x

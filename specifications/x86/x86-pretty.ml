@@ -506,7 +506,7 @@ val show/instruction insn =
     | LSS x: "LSS" -++ show/arity2 x
     | LTR x: "LTR" -++ show/arity1 x
     | MASKMOVDQU x: "MASKMOVDQU" -++ show/arity3 x
-    | MASKMOVQ x: "MASKMOVQ" -++ show/arity2 x
+    | MASKMOVQ x: "MASKMOVQ" -++ show/arity3 x
     | MAXPD x: "MAXPD" -++ show/arity2 x
     | MAXPS x: "MAXPS" -++ show/arity2 x
     | MAXSD x: "MAXSD" -++ show/arity2 x

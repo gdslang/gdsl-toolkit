@@ -202,6 +202,12 @@ val semantic-register-of r = case r of
    | RIP   : {id=Sem_IP, offset=0, size=64}
 end
 
+val semantic-register-of-offset r offset = let
+  val q = semantic-register-of r
+in
+  {id=q.id,offset=offset,size=q.size}
+end
+
 val semantic-register-of-operand-with-size opnd size =
   case opnd of
      REG r: @{size=size} (semantic-register-of r)

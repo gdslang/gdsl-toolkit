@@ -2659,6 +2659,47 @@ val sem-vzeroall = do
     return void
 end
 
+val sem-vzeroupper = do
+  size <- return 128;
+  mode64 <- mode64?;
+
+  xmm0 <- return (semantic-register-of-offset XMM0 size);
+  mov size xmm0 (imm 0);
+  xmm1 <- return (semantic-register-of-offset XMM1 size);
+  mov size xmm1 (imm 0);
+  xmm2 <- return (semantic-register-of-offset XMM2 size);
+  mov size xmm2 (imm 0);
+  xmm3 <- return (semantic-register-of-offset XMM3 size);
+  mov size xmm3 (imm 0);
+  xmm4 <- return (semantic-register-of-offset XMM4 size);
+  mov size xmm4 (imm 0);
+  xmm5 <- return (semantic-register-of-offset XMM5 size);
+  mov size xmm5 (imm 0);
+  xmm6 <- return (semantic-register-of-offset XMM6 size);
+  mov size xmm6 (imm 0);
+  xmm7 <- return (semantic-register-of-offset XMM7 size);
+  mov size xmm7 (imm 0);
+  if mode64 then do
+    xmm8 <- return (semantic-register-of-offset XMM8 size);
+    mov size xmm8 (imm 0);
+    xmm9 <- return (semantic-register-of-offset XMM9 size);
+    mov size xmm9 (imm 0);
+    xmm10 <- return (semantic-register-of-offset XMM10 size);
+    mov size xmm10 (imm 0);
+    xmm11 <- return (semantic-register-of-offset XMM11 size);
+    mov size xmm11 (imm 0);
+    xmm12 <- return (semantic-register-of-offset XMM12 size);
+    mov size xmm12 (imm 0);
+    xmm13 <- return (semantic-register-of-offset XMM13 size);
+    mov size xmm13 (imm 0);
+    xmm14 <- return (semantic-register-of-offset XMM14 size);
+    mov size xmm14 (imm 0);
+    xmm15 <- return (semantic-register-of-offset XMM15 size);
+    mov size xmm15 (imm 0)
+  end else
+    return void
+end
+
 ## W>>
 ## X>>
 

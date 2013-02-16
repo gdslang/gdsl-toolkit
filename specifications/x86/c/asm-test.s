@@ -39,8 +39,8 @@ main:
 
 	#movbeq (%rax), %rbx
 
-	#maskmovq %mm3, %mm1
-	#vmaskmovdqu %xmm3, %xmm1
+	maskmovq %mm3, %mm1
+	vmaskmovdqu %xmm3, %xmm1
 
 	#loop main
 	#loope main
@@ -552,7 +552,8 @@ main:
 	#maskmovdqu %xmm2, %xmm1
 	#vmaskmovdqu %xmm2, %xmm1
 
-	vzeroall
+	#vzeroall
+	#vzeroupper
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16
