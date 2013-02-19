@@ -175,10 +175,10 @@ val conv-with conv sz x =
       val conv-mem x = conv-with Signed x.psz x.opnd
    in
       case x of
-         IMM8 x: conv-imm conv x
-       | IMM16 x: conv-imm conv x
-       | IMM32 x: conv-imm conv x
-       | IMM64 x: conv-imm conv x
+         IMM8 x: conv-imm conv x.imm
+       | IMM16 x: conv-imm conv x.imm
+       | IMM32 x: conv-imm conv x.imm
+       | IMM64 x: conv-imm conv x.imm
        | REG x: conv-reg conv sz x
        | SUM x: conv-sum conv sz x
        | SCALE x: conv-scale conv sz x
@@ -197,10 +197,10 @@ val reads conv sz x = conv-with conv sz x
 
 val extract-imm-unsigned imm =
   case imm of
-     IMM8 x: zx x
-   | IMM16 x: zx x
-   | IMM32 x: zx x
-   | IMM64 x: zx x
+     IMM8 x: zx x.imm
+   | IMM16 x: zx x.imm
+   | IMM32 x: zx x.imm
+   | IMM64 x: zx x.imm
  end
 
 val read-addr-reg x =

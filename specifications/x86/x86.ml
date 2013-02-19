@@ -600,10 +600,10 @@ type register =
  | RIP
 
 type opnd =
-   IMM8 of 8
- | IMM16 of 16
- | IMM32 of 32
- | IMM64 of 64
+   IMM8 of {imm:8,address:int}
+ | IMM16 of {imm:16,address:int}
+ | IMM32 of {imm:32,address:int}
+ | IMM64 of {imm:64,address:int}
  | REG of register
  | MEM of {sz:int,psz:int,segment:seg_override,opnd:opnd}
  | SUM of {a:opnd,b:opnd}
@@ -1611,11 +1611,15 @@ val ymm14 = return (REG YMM14)
 val ymm15 = return (REG YMM15)
 val st0 = return (REG ST0)
 
-val imm8 ['b:8'] = return (IMM8 b)
-val imm16 ['b1:8' 'b2:8'] = return (IMM16 (b2 ^ b1))
-val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = return (IMM32 (b4 ^ b3 ^ b2 ^ b1))
-val imm64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] =
-   return (IMM64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1))
+val imm-build cons b size = do
+  ip <- ipget;
+  return (cons {imm=b,address=(ip - size)})
+end
+
+val imm8 ['b:8'] = imm-build IMM8 b 1
+val imm16 ['b1:8' 'b2:8'] = imm-build IMM16 (b2 ^ b1) 2
+val imm32 ['b1:8' 'b2:8' 'b3:8' 'b4:8'] = imm-build IMM32 (b4 ^ b3 ^ b2 ^ b1) 4
+val imm64 ['b1:8' 'b2:8' 'b3:8' 'b4:8' 'b5:8' 'b6:8' 'b7:8' 'b8:8'] = imm-build IMM64 (b8 ^ b7 ^ b6 ^ b5 ^ b4 ^ b3 ^ b2 ^ b1) 8
 
 val rel8 ['b:8'] = return (REL8 b)
 val rel16 ['b1:8' 'b2:8'] = return (REL16 (b2 ^ b1))
@@ -2539,7 +2543,7 @@ val far-ind cons giveOp = exception-rep-repne-lock (do
   return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
 end)
 
-val one = return (IMM8 '00000001')
+val one = return (IMM8 {imm='00000001',address=0})
 
 val // a =
    do b <- a;

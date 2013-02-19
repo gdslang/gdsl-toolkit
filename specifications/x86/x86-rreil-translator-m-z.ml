@@ -884,7 +884,7 @@ val sem-vphsubsw x = sem-phbinop-vphbinop-opnd '1' 16 sub-signed-saturating x.op
 val sem-pinsr-vpinsr-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4 = do
   offset <- return (
     case opnd4 of
-      IMM8 x: x
+      IMM8 x: x.imm
     end
   );
   offset-mask <- return (
@@ -1501,7 +1501,7 @@ val sem-pshuf-vdhwlw avx-encoded element-size low-size high-size x = do
 
   indices <- return (
     case x.opnd3 of
-      IMM8 x: x
+      IMM8 x: x.imm
     end
   );
 
@@ -1632,7 +1632,7 @@ val sem-psxldq-vpsxldq-opnd avx-encoded shifter opnd1 opnd2 opnd3 = do
 
   amount <- return (zx (
     case opnd3 of
-      IMM8 x: x
+      IMM8 x: x.imm
     end
   ));
   amount <- return (
