@@ -555,6 +555,10 @@ main:
 	#vzeroall
 	#vzeroupper
 
+	nop %rax
+	nop %eax
+	nop %ax
+
 	#movhlps %xmm1, %xmm2
 	#movlps (%rax), %xmm1
 

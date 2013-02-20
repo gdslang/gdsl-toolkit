@@ -4340,8 +4340,6 @@ val / [0xf7 /4]
  | rexw? = unop MUL r/m64
  | otherwise = unop MUL r/m32
 
-### =><=
-
 ### MULPD
 ###  - Multiply Packed Double-Precision Floating-Point Values
 val /66 [0x0f 0x59 /r] = binop MULPD xmm128 xmm/m128
@@ -4378,6 +4376,8 @@ val / [0xf7 /3]
  | rexw? = unop-lock NEG r/m64
  | otherwise = unop-lock NEG r/m32
 
+### =><=
+
 ### NOP
 ###  - No Operation
 # The opcode `0x90` overlapps with `xchg` since
@@ -4387,8 +4387,10 @@ val / [0xf7 /3]
 #val /66 [0x90] = arity0 NOP
 val /66 [0x0f 0x1f /0] = varity2 NOP r/m16 (do update @{reg/opcode='000'}; r16 end)
 val / [0x0f 0x1f /0]
+ | opndsz? = varity2 NOP r/m16 (do update @{reg/opcode='000'}; r16 end)
  | rexw? = varity2 NOP r/m64 (do update @{reg/opcode='000'}; r64 end)
  | otherwise = varity2 NOP r/m32 (do update @{reg/opcode='000'}; r32 end)
+#Todo: update-blah nötig? ^-
 
 ### NOT
 ###  - One's Complement Negation
