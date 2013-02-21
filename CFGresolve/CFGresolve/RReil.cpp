@@ -22,11 +22,16 @@ static Lin* translateLin(__obj lin);
 static Address* translateAddr(__obj addr);
 
 
-RReilBB* translate(RReilAddress start, RReilAddress limit) {
+RReilBB* translate(RReilAddress& start, RReilAddress limit) {
+  if (start>=limit) return NULL;
   __obj semantics;
   __resetHeap();
   __word read = __decode(__translateBlock__, (__char*) start, (__word) (limit-start), &semantics);
+  start += read;
   if (read==0) return NULL;
+//  char buf[2048];
+//  __pretty(__rreil_pretty_rev__,semantics,buf,sizeof(buf));
+//  std::cout << "RReil:\n" << buf << std::endl;
   return translateRReilBB(semantics);
 };
 
