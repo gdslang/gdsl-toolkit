@@ -2663,9 +2663,8 @@ val sem-vzeroupper = do
   size <- return 128;
   mode64 <- mode64?;
 
-  blah <- return (semantic-register-of-offset XMM0 size);
-  xmm0 <- return {id=Sem_XMM0,offset=size,size=size};
-  mov (size + blah.size) xmm0 (imm 0);
+  xmm0 <- return (semantic-register-of-offset XMM0 size);
+  mov size xmm0 (imm 0);
   #xmm1 <- return (semantic-register-of-offset XMM1 size);
   #mov size xmm1 (imm 0);
   #xmm2 <- return (semantic-register-of-offset XMM2 size);

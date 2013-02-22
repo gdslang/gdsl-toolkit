@@ -20,3 +20,8 @@ specifications/x86/c/clang-sweep
 specifications/x86/c/gcc-sweep
 specifications/x86/c/tester
 
+gdrr/.cproject
+gdrr/.project
+gdrr/Debug/
+include/
+specifications/x86/c/cli-gdrr
