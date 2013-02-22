@@ -81,7 +81,7 @@ class Address;
  * has been decoded. Translate decoded instructions to RReil and return this semantic block. Returns NULL
  * if the address contains an illegal instruction or the limit is reached.
  */
-RReilBB* translate(RReilAddress start, RReilAddress limit);
+RReilBB* translate(RReilAddress& start, RReilAddress limit);
 
 class RReilBB : public std::vector<Stmt*> {
 protected:
