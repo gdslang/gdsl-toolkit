@@ -1324,9 +1324,9 @@ val semantics insn =
    | MULPS x: sem-undef-arity2 x
    | MULSD x: sem-undef-arity2 x
    | MULSS x: sem-undef-arity2 x
-   | MWAIT x: sem-nop x
+   | MWAIT x: sem-nop
    | NEG x: sem-neg x
-   | NOP x: sem-nop x
+   | NOP x: sem-nop
    | NOT x: sem-not x
    | OR x: sem-or x
    | ORPD x: sem-undef-arity2 x

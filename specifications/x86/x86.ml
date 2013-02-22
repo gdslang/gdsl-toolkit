@@ -1919,6 +1919,15 @@ val ymm-rex rex reg-idx = ymm (rex ^ reg-idx)
 
 # Deslice the mod/rm byte and put it into the the state
 
+#reg/opcode='000',
+#reg/opcode='001',
+#reg/opcode='010',
+#reg/opcode='011',
+#reg/opcode='100',
+#reg/opcode='101',
+#reg/opcode='110',
+#reg/opcode='111',
+
 val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm}
 val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm}
 val /2 ['mod:2 010 rm:3'] = update @{mod=mod, rm=rm}
@@ -4376,8 +4385,6 @@ val / [0xf7 /3]
  | rexw? = unop-lock NEG r/m64
  | otherwise = unop-lock NEG r/m32
 
-### =><=
-
 ### NOP
 ###  - No Operation
 # The opcode `0x90` overlapps with `xchg` since
@@ -4385,12 +4392,10 @@ val / [0xf7 /3]
 # so we deocde 0x90 always as `xchg`
 #val / [0x90] = arity0 NOP => See XCHG
 #val /66 [0x90] = arity0 NOP
-val /66 [0x0f 0x1f /0] = varity2 NOP r/m16 (do update @{reg/opcode='000'}; r16 end)
 val / [0x0f 0x1f /0]
- | opndsz? = varity2 NOP r/m16 (do update @{reg/opcode='000'}; r16 end)
- | rexw? = varity2 NOP r/m64 (do update @{reg/opcode='000'}; r64 end)
- | otherwise = varity2 NOP r/m32 (do update @{reg/opcode='000'}; r32 end)
-#Todo: update-blah nötig? ^-
+ | opndsz? = varity1 NOP r/m16
+ | rexw? = varity1 NOP r/m64
+ | otherwise = varity1 NOP r/m32
 
 ### NOT
 ###  - One's Complement Negation
@@ -4444,11 +4449,13 @@ val /vex/0f/vexv [0x56 /r]
 ### OUT
 ###  - Output to Port
 val / [0xe6] = binop OUT imm8 al
-val /66 [0xe7] = binop OUT imm8 ax
-val / [0xe7] = binop OUT imm8 eax
+val / [0xe7]
+ | opndsz? = binop OUT imm8 ax
+ | otherwise = binop OUT imm8 eax
 val / [0xee] = binop OUT dx al
-val /66 [0xef] = binop OUT dx ax
-val / [0xef] = binop OUT dx eax
+val / [0xef]
+ | opndsz? = binop OUT dx ax
+ | otherwise = binop OUT dx eax
 
 ### OUTS/OUTSB/OUTSW/OUTSD
 ###  - Output String to Port
@@ -4461,6 +4468,8 @@ val / [0x6e] = arity0-rep OUTSB
 val / [0x6f]
  | opndsz? = arity0-rep OUTSW
  | otherwise = arity0-rep OUTSD
+
+### =><=
 
 ### PABSB/PABSW/PABSD
 ###  - Packed Absolute Value

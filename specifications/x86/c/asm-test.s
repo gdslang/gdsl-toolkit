@@ -553,11 +553,12 @@ main:
 	#vmaskmovdqu %xmm2, %xmm1
 
 	#vzeroall
-	#vzeroupper
+	vzeroupper
 
-	nop %rax
-	nop %eax
-	nop %ax
+	#nop %rax
+	#nop %eax
+	#nop %ax
+	#nop (%rax)
 
 	#movhlps %xmm1, %xmm2
 	#movlps (%rax), %xmm1
