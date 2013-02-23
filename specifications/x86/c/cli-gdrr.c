@@ -6,6 +6,42 @@
 #include <dis.h>
 #include <gdrr.h>
 
+gdrr_sem_stmts_t *list_next(gdrr_sem_stmt_t *next, gdrr_sem_stmts_t *list) {
+  printf("next statement\n");
+
+  return NULL;
+}
+
+gdrr_sem_stmts_t *list_init() {
+  printf("init\n");
+
+  return NULL;
+}
+
+gdrr_sem_stmt_t *sem_assign(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
+  printf("assign\n");
+
+  return NULL;
+}
+
+gdrr_sem_stmt_t *sem_load(gdrr_sem_var_t *lhs, __word size, gdrr_sem_address_t *address) {
+  printf("load\n");
+
+  return NULL;
+}
+
+gdrr_sem_stmt_t *sem_store(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
+  printf("store\n");
+
+  return NULL;
+}
+
+gdrr_sem_stmt_t *sem_ite(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch) {
+  printf("ite\n");
+
+  return NULL;
+}
+
 int main (int argc, char** argv) {
   __char blob[15];
   char fmt[1024];
@@ -38,8 +74,17 @@ done:
     else {
       __pretty(__rreil_pretty__,r,fmt,1024);
       puts(fmt);
-      
-      test(r);
+
+      struct gddr_callbacks callbacks;
+      callbacks.sem_stmts_list.list_init = &list_init;
+      callbacks.sem_stmts_list.list_next = &list_next;
+
+      callbacks.sem_stmt.sem_assign = &sem_assign;
+      callbacks.sem_stmt.sem_load = &sem_load;
+      callbacks.sem_stmt.sem_store = &sem_store;
+      callbacks.sem_stmt.sem_ite = &sem_ite;
+
+      gdrr_convert(r, &callbacks);
     }
   }
 

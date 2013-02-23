@@ -30,7 +30,7 @@ main:
 
 	#notq %rcx
 
-	negq %r10
+	#negq %r10
 
 	#mulq (%ebx)
 
