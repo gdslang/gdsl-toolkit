@@ -12,25 +12,24 @@
 
 typedef void gdrr_sem_stmt_t;
 typedef void gdrr_sem_stmts_t;
-
 typedef void gdrr_sem_linear_t;
 typedef void gdrr_sem_var_t;
 typedef void gdrr_sem_op_t;
 typedef void gdrr_sem_address_t;
-
 typedef void gdrr_branch_hint;
+typedef void gdrr_sem_id;
 
-struct gddr_sem_stmts_callbacks {
+struct gdrr_sem_stmts_callbacks {
 	gdrr_sem_stmts_t *(*sem_cons)(gdrr_sem_stmt_t *hd, gdrr_sem_stmts_t *tl);
 	gdrr_sem_stmts_t *(*sem_nil)(void);
 };
 
-struct gddr_sem_stmts_list_callbacks {
-	gdrr_sem_stmts_t *(*list_init)(void);
+struct gdrr_sem_stmts_list_callbacks {
 	gdrr_sem_stmts_t *(*list_next)(gdrr_sem_stmt_t *next, gdrr_sem_stmts_t *list);
+	gdrr_sem_stmts_t *(*list_init)(void);
 };
 
-struct gddr_sem_stmt_callbacks {
+struct gdrr_sem_stmt_callbacks {
 	gdrr_sem_stmt_t *(*sem_assign)(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs);
 	gdrr_sem_stmt_t *(*sem_load)(gdrr_sem_var_t *lhs, __word size,
 			gdrr_sem_address_t *address);
@@ -44,7 +43,7 @@ struct gddr_sem_stmt_callbacks {
 			gdrr_sem_address_t *target);
 };
 
-struct gddr_sem_op_callbacks {
+struct gdrr_sem_op_callbacks {
 	gdrr_sem_op_t *(*sem_lin)(__word size, gdrr_sem_linear_t *opnd1);
 	gdrr_sem_op_t *(*sem_mul)(__word size, gdrr_sem_linear_t *opnd1,
 			gdrr_sem_linear_t *opnd2);
@@ -85,17 +84,22 @@ struct gddr_sem_op_callbacks {
 	gdrr_sem_op_t *(*sem_arb)(__word size);
 };
 
-struct gddr_callbacks {
-	union {
-		struct gddr_sem_stmts_callbacks sem_stmts;
-		struct gddr_sem_stmts_list_callbacks sem_stmts_list;
-	};
-	struct gddr_sem_stmt_callbacks sem_stmt;
-	struct gddr_sem_op_callbacks sem_op;
+struct gdrr_sem_var_callbacks {
+	gdrr_sem_var_t *(*sem_var)(gdrr_sem_id *id, __word offset);
 };
 
-gdrr_sem_stmt_t *gdrr_convert(__obj semantics, struct gddr_callbacks *callbacks);
+struct gdrr_callbacks {
+	union {
+		struct gdrr_sem_stmts_callbacks sem_stmts;
+		struct gdrr_sem_stmts_list_callbacks sem_stmts_list;
+	};
+	struct gdrr_sem_stmt_callbacks sem_stmt;
+	struct gdrr_sem_op_callbacks sem_op;
+	struct gdrr_sem_var_callbacks sem_var;
+};
+
+gdrr_sem_stmt_t *gdrr_convert(__obj semantics, struct gdrr_callbacks *callbacks);
 gdrr_sem_stmt_t *gdrr_convert_list(__obj semantics,
-		struct gddr_callbacks *callbacks);
+		struct gdrr_callbacks *callbacks);
 
 #endif /* GDRR_H_ */
