@@ -42,6 +42,26 @@ gdrr_sem_stmt_t *sem_ite(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *then_branch,
   return NULL;
 }
 
+gdrr_sem_stmt_t *sem_while(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *body) {
+  printf("while\n");
+
+  return NULL;
+}
+
+gdrr_sem_stmt_t *sem_cbranch(gdrr_sem_linear_t *cond,
+		gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false) {
+  printf("cbranch\n");
+
+  return NULL;
+}
+
+gdrr_sem_stmt_t *sem_branch(gdrr_branch_hint *branch_hint,
+			gdrr_sem_address_t *target) {
+  printf("branch\n");
+
+  return NULL;
+}
+
 int main (int argc, char** argv) {
   __char blob[15];
   char fmt[1024];
@@ -83,6 +103,9 @@ done:
       callbacks.sem_stmt.sem_load = &sem_load;
       callbacks.sem_stmt.sem_store = &sem_store;
       callbacks.sem_stmt.sem_ite = &sem_ite;
+      callbacks.sem_stmt.sem_while = &sem_while;
+      callbacks.sem_stmt.sem_cbranch = &sem_cbranch;
+      callbacks.sem_stmt.sem_branch = &sem_branch;
 
       gdrr_convert(r, &callbacks);
     }

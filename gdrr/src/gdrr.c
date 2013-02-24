@@ -11,7 +11,8 @@
 #include <dis.h>
 #include "gdrr.h"
 
-static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj, struct gddr_callbacks *callbacks) {
+static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
+		struct gddr_callbacks *callbacks) {
 	gdrr_sem_stmt_t *sem_stmt = NULL;
 
 	switch(__CASETAGCON(sem_stmt_obj)) {
@@ -27,15 +28,20 @@ static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj, struct gddr_ca
 			sem_stmt = callbacks->sem_stmt.sem_store(NULL, NULL);
 			break;
 		}
-		case __SEM_XOR: {
-			break;
-		}
 		case __SEM_ITE: {
 			sem_stmt = callbacks->sem_stmt.sem_ite(NULL, NULL, NULL);
 			break;
 		}
-		default: {
-//        	printf("%d\n", __CASETAGCON(instr));
+		case __SEM_WHILE: {
+			sem_stmt = callbacks->sem_stmt.sem_while(NULL, NULL);
+			break;
+		}
+		case __SEM_CBRANCH: {
+			sem_stmt = callbacks->sem_stmt.sem_cbranch(NULL, NULL, NULL);
+			break;
+		}
+		case __SEM_BRANCH: {
+			sem_stmt = callbacks->sem_stmt.sem_branch(NULL, NULL);
 			break;
 		}
 	}
@@ -43,7 +49,8 @@ static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj, struct gddr_ca
 	return sem_stmt;
 }
 
-static gdrr_sem_stmts_t *gdrr_convert_sem_stmts(__obj sem_stmts_obj, struct gddr_callbacks *callbacks) {
+static gdrr_sem_stmts_t *gdrr_convert_sem_stmts(__obj sem_stmts_obj,
+		struct gddr_callbacks *callbacks) {
 	gdrr_sem_stmts_t *sem_stmts = NULL;
 
 	if(__CASETAGCON(sem_stmts_obj) == __SEM_CONS) {
@@ -61,7 +68,8 @@ static gdrr_sem_stmts_t *gdrr_convert_sem_stmts(__obj sem_stmts_obj, struct gddr
 	return sem_stmts;
 }
 
-static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_list(__obj sem_stmts_obj, struct gddr_callbacks *callbacks) {
+static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_list(__obj sem_stmts_obj,
+		struct gddr_callbacks *callbacks) {
 	gdrr_sem_stmts_t *list = callbacks->sem_stmts_list.list_init();
 
 	while(__CASETAGCON(sem_stmts_obj) == __SEM_CONS) {
@@ -82,6 +90,7 @@ gdrr_sem_stmt_t *gdrr_convert(__obj semantics, struct gddr_callbacks *callbacks)
 	return gdrr_convert_sem_stmts(semantics, callbacks);
 }
 
-gdrr_sem_stmt_t *gdrr_convert_list(__obj semantics, struct gddr_callbacks *callbacks) {
+gdrr_sem_stmt_t *gdrr_convert_list(__obj semantics,
+		struct gddr_callbacks *callbacks) {
 	return gdrr_convert_sem_stmts_list(semantics, callbacks);
 }

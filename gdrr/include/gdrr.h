@@ -18,6 +18,8 @@ typedef void gdrr_sem_var_t;
 typedef void gdrr_sem_op_t;
 typedef void gdrr_sem_address_t;
 
+typedef void gdrr_branch_hint;
+
 struct gddr_sem_stmts_callbacks {
 	gdrr_sem_stmts_t *(*sem_cons)(gdrr_sem_stmt_t *hd, gdrr_sem_stmts_t *tl);
 	gdrr_sem_stmts_t *(*sem_nil)(void);
@@ -35,6 +37,11 @@ struct gddr_sem_stmt_callbacks {
 	gdrr_sem_stmt_t *(*sem_store)(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs);
 	gdrr_sem_stmt_t *(*sem_ite)(gdrr_sem_linear_t *cond,
 			gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch);
+	gdrr_sem_stmt_t *(*sem_while)(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *body);
+	gdrr_sem_stmt_t *(*sem_cbranch)(gdrr_sem_linear_t *cond,
+			gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false);
+	gdrr_sem_stmt_t *(*sem_branch)(gdrr_branch_hint *branch_hint,
+			gdrr_sem_address_t *target);
 };
 
 struct gddr_callbacks {
