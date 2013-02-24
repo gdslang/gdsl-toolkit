@@ -11,7 +11,6 @@ gdrr_sem_stmts_t *list_next(gdrr_sem_stmt_t *next, gdrr_sem_stmts_t *list) {
 
   return NULL;
 }
-
 gdrr_sem_stmts_t *list_init() {
   printf("init\n");
 
@@ -23,41 +22,154 @@ gdrr_sem_stmt_t *sem_assign(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
 
   return NULL;
 }
-
 gdrr_sem_stmt_t *sem_load(gdrr_sem_var_t *lhs, __word size, gdrr_sem_address_t *address) {
   printf("load\n");
 
   return NULL;
 }
-
 gdrr_sem_stmt_t *sem_store(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
   printf("store\n");
 
   return NULL;
 }
-
 gdrr_sem_stmt_t *sem_ite(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch) {
   printf("ite\n");
 
   return NULL;
 }
-
 gdrr_sem_stmt_t *sem_while(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *body) {
   printf("while\n");
 
   return NULL;
 }
-
 gdrr_sem_stmt_t *sem_cbranch(gdrr_sem_linear_t *cond,
 		gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false) {
   printf("cbranch\n");
 
   return NULL;
 }
-
 gdrr_sem_stmt_t *sem_branch(gdrr_branch_hint *branch_hint,
 			gdrr_sem_address_t *target) {
   printf("branch\n");
+
+  return NULL;
+}
+
+gdrr_sem_op_t *sem_lin(__word size, gdrr_sem_linear_t *opnd1) {
+  printf("=> lin\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_mul(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> mul\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_div(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> div\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_divs(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> divs\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_mod(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> mod\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_shl(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> shl\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_shr(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> shr\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_shrs(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> shrs\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_and(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> and\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_or(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> or\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_xor(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> xor\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_sx(__word size, __word fromsize,
+	       gdrr_sem_linear_t *opnd1) {
+  printf("=> sx\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_zx(__word size, __word fromsize,
+	       gdrr_sem_linear_t *opnd1) {
+  printf("=> zx\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_cmpeq(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpeq\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_cmpneq(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpneq\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_cmples(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmples\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_cmpleu(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpleu\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_cmplts(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmplts\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_cmpltu(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpltu\n");
+
+  return NULL;
+}
+gdrr_sem_op_t *sem_arb(__word size) {
+  printf("=> arb\n");
 
   return NULL;
 }
@@ -106,6 +218,26 @@ done:
       callbacks.sem_stmt.sem_while = &sem_while;
       callbacks.sem_stmt.sem_cbranch = &sem_cbranch;
       callbacks.sem_stmt.sem_branch = &sem_branch;
+
+      callbacks.sem_op.sem_lin = &sem_lin;
+      callbacks.sem_op.sem_mul = &sem_mul;
+      callbacks.sem_op.sem_div = &sem_div;
+      callbacks.sem_op.sem_divs = &sem_divs;
+      callbacks.sem_op.sem_mod = &sem_mod;
+      callbacks.sem_op.sem_shl = &sem_shl;
+      callbacks.sem_op.sem_shr = &sem_shr;
+      callbacks.sem_op.sem_shrs = &sem_shrs;
+      callbacks.sem_op.sem_and = &sem_and;
+      callbacks.sem_op.sem_or = &sem_or;
+      callbacks.sem_op.sem_xor = &sem_xor;
+      callbacks.sem_op.sem_sx = &sem_sx;
+      callbacks.sem_op.sem_zx = &sem_zx;
+      callbacks.sem_op.sem_cmpeq = &sem_cmpeq;
+      callbacks.sem_op.sem_cmpneq = &sem_cmpneq;
+      callbacks.sem_op.sem_cmples = &sem_cmpleu;
+      callbacks.sem_op.sem_cmplts = &sem_cmplts;
+      callbacks.sem_op.sem_cmpltu = &sem_cmpltu;
+      callbacks.sem_op.sem_arb = &sem_arb;
 
       gdrr_convert(r, &callbacks);
     }
