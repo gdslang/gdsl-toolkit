@@ -11,6 +11,16 @@
 #include <dis.h>
 #include "gdrr.h"
 
+static gdrr_sem_var_t *gdrr_convert_sem_var(__obj sem_var_obj,
+		struct gdrr_callbacks *callbacks) {
+	__obj rec = __DECON(sem_var_obj);
+
+	__obj id = __RECORD_SELECT(rec, ___id);
+	__obj offset = __RECORD_SELECT(rec, ___offset);
+
+	return callbacks->sem_var.sem_var(NULL, __CASETAGINT(offset));
+}
+
 static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
 		struct gdrr_callbacks *callbacks) {
 	gdrr_sem_op_t *sem_op = NULL;
@@ -108,16 +118,6 @@ static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
 	}
 
 	return sem_op;
-}
-
-static gdrr_sem_var_t *gdrr_convert_sem_var(__obj sem_var_obj,
-		struct gdrr_callbacks *callbacks) {
-	__obj rec = __DECON(sem_var_obj);
-
-	__obj id = __RECORD_SELECT(rec, ___id);
-	__obj offset = __RECORD_SELECT(rec, ___offset);
-
-	return callbacks->sem_var.sem_var(NULL, __CASETAGINT(offset));
 }
 
 static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
