@@ -10,7 +10,7 @@
 
 #include <dis.h>
 
-typedef void gdrr_sem_id;
+typedef void gdrr_sem_id_t;
 typedef void gdrr_sem_address_t;
 typedef void gdrr_sem_var_t;
 typedef void gdrr_sem_linear_t;
@@ -19,8 +19,18 @@ typedef void gdrr_sem_stmt_t;
 typedef void gdrr_branch_hint;
 typedef void gdrr_sem_stmts_t;
 
+struct gdrr_sem_id_callbacks {
+	gdrr_sem_id_t *(*virt_eq)(void);
+	gdrr_sem_id_t *(*virt_neq)(void);
+	gdrr_sem_id_t *(*virt_les)(void);
+	gdrr_sem_id_t *(*virt_leu)(void);
+	gdrr_sem_id_t *(*virt_lts)(void);
+	gdrr_sem_id_t *(*virt_ltu)(void);
+	gdrr_sem_id_t *(*virt_t)(__word t);
+};
+
 struct gdrr_sem_var_callbacks {
-	gdrr_sem_var_t *(*sem_var)(gdrr_sem_id *id, __word offset);
+	gdrr_sem_var_t *(*sem_var)(gdrr_sem_id_t *id, __word offset);
 };
 
 struct gdrr_sem_op_callbacks {
@@ -89,6 +99,7 @@ struct gdrr_sem_stmts_list_callbacks {
 };
 
 struct gdrr_callbacks {
+	struct gdrr_sem_id_callbacks sem_id;
 	struct gdrr_sem_var_callbacks sem_var;
 	struct gdrr_sem_op_callbacks sem_op;
 	struct gdrr_sem_stmt_callbacks sem_stmt;

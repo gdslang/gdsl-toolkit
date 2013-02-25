@@ -174,7 +174,43 @@ static gdrr_sem_op_t *sem_arb(__word size) {
   return NULL;
 }
 
-static gdrr_sem_var_t *sem_var(gdrr_sem_id *id, __word offset) {
+static gdrr_sem_id_t *virt_eq(void) {
+  printf("=> virt_eq\n");
+
+  return NULL;
+}
+static gdrr_sem_id_t *virt_neq(void) {
+  printf("=> virt_neq\n");
+
+  return NULL;
+}
+static gdrr_sem_id_t *virt_les(void) {
+  printf("=> virt_les\n");
+
+  return NULL;
+}
+static gdrr_sem_id_t *virt_leu(void) {
+  printf("=> virt_leu\n");
+
+  return NULL;
+}
+static gdrr_sem_id_t *virt_lts(void) {
+  printf("=> virt_lts\n");
+
+  return NULL;
+}
+static gdrr_sem_id_t *virt_ltu(void) {
+  printf("=> virt_ltu\n");
+
+  return NULL;
+}
+static gdrr_sem_id_t *virt_t(__word t) {
+  printf("=> id {t=%lu}\n", t);
+
+  return NULL;
+}
+
+static gdrr_sem_var_t *sem_var(gdrr_sem_id_t *id, __word offset) {
   printf("=> var {offset=%lu}\n", offset);
 
   return NULL;
@@ -245,6 +281,14 @@ done:
       callbacks.sem_op.sem_cmplts = &sem_cmplts;
       callbacks.sem_op.sem_cmpltu = &sem_cmpltu;
       callbacks.sem_op.sem_arb = &sem_arb;
+
+      callbacks.sem_id.virt_eq = &virt_eq;
+      callbacks.sem_id.virt_neq = &virt_neq;
+      callbacks.sem_id.virt_les = &virt_les;
+      callbacks.sem_id.virt_leu = &virt_leu;
+      callbacks.sem_id.virt_lts = &virt_lts;
+      callbacks.sem_id.virt_ltu = &virt_ltu;
+      callbacks.sem_id.virt_t = &virt_t;
 
       callbacks.sem_var.sem_var = &sem_var;
 

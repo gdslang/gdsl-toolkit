@@ -11,6 +11,45 @@
 #include <dis.h>
 #include "gdrr.h"
 
+static gdrr_sem_id_t *gdrr_convert_sem_id(__obj sem_id_obj,
+		struct gdrr_callbacks *callbacks) {
+	gdrr_sem_id_t *sem_id = NULL;
+
+	switch(__CASETAGCON(sem_id_obj)) {
+		case __VIRT_EQ: {
+			sem_id = callbacks->sem_id.virt_eq();
+			break;
+		}
+		case __VIRT_NEQ: {
+			sem_id = callbacks->sem_id.virt_neq();
+			break;
+		}
+		case __VIRT_LES: {
+			sem_id = callbacks->sem_id.virt_les();
+			break;
+		}
+		case __VIRT_LEU: {
+			sem_id = callbacks->sem_id.virt_leu();
+			break;
+		}
+		case __VIRT_LTS: {
+			sem_id = callbacks->sem_id.virt_lts();
+			break;
+		}
+		case __VIRT_LTU: {
+			sem_id = callbacks->sem_id.virt_ltu();
+			break;
+		}
+		case __VIRT_T: {
+			__obj p = __DECON(sem_id_obj);
+			sem_id = callbacks->sem_id.virt_t(__CASETAGINT(p));
+			break;
+		}
+	}
+
+	return sem_id;
+}
+
 static gdrr_sem_var_t *gdrr_convert_sem_var(__obj sem_var_obj,
 		struct gdrr_callbacks *callbacks) {
 	__obj rec = __DECON(sem_var_obj);
@@ -18,7 +57,8 @@ static gdrr_sem_var_t *gdrr_convert_sem_var(__obj sem_var_obj,
 	__obj id = __RECORD_SELECT(rec, ___id);
 	__obj offset = __RECORD_SELECT(rec, ___offset);
 
-	return callbacks->sem_var.sem_var(NULL, __CASETAGINT(offset));
+	return callbacks->sem_var.sem_var(gdrr_convert_sem_id(id, callbacks),
+			__CASETAGINT(offset));
 }
 
 static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
