@@ -26,11 +26,21 @@ struct gdrr_sem_id_callbacks {
 	gdrr_sem_id_t *(*virt_leu)(void);
 	gdrr_sem_id_t *(*virt_lts)(void);
 	gdrr_sem_id_t *(*virt_ltu)(void);
-	gdrr_sem_id_t *(*virt_t)(__word t);
+	gdrr_sem_id_t *(*virt_t)(__word this);
 };
 
 struct gdrr_sem_var_callbacks {
 	gdrr_sem_var_t *(*sem_var)(gdrr_sem_id_t *id, __word offset);
+};
+
+struct gdrr_sem_linear_callbacks {
+	gdrr_sem_linear_t *(*sem_lin_var)(gdrr_sem_var_t *this);
+	gdrr_sem_linear_t *(*sem_lin_imm)(__word imm);
+	gdrr_sem_linear_t *(*sem_lin_add)(gdrr_sem_linear_t *opnd1,
+			gdrr_sem_linear_t *opnd2);
+	gdrr_sem_linear_t *(*sem_lin_sub)(gdrr_sem_linear_t *opnd1,
+			gdrr_sem_linear_t *opnd2);
+	gdrr_sem_linear_t *(*sem_lin_scale)(__word imm, gdrr_sem_linear_t *opnd);
 };
 
 struct gdrr_sem_op_callbacks {
@@ -101,6 +111,7 @@ struct gdrr_sem_stmts_list_callbacks {
 struct gdrr_callbacks {
 	struct gdrr_sem_id_callbacks sem_id;
 	struct gdrr_sem_var_callbacks sem_var;
+	struct gdrr_sem_linear_callbacks sem_linear;
 	struct gdrr_sem_op_callbacks sem_op;
 	struct gdrr_sem_stmt_callbacks sem_stmt;
 	union {

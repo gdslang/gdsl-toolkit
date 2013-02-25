@@ -41,8 +41,8 @@ static gdrr_sem_id_t *gdrr_convert_sem_id(__obj sem_id_obj,
 			break;
 		}
 		case __VIRT_T: {
-			__obj p = __DECON(sem_id_obj);
-			sem_id = callbacks->sem_id.virt_t(__CASETAGINT(p));
+			__obj this = __DECON(sem_id_obj);
+			sem_id = callbacks->sem_id.virt_t(__CASETAGINT(this));
 			break;
 		}
 	}
@@ -61,6 +61,52 @@ static gdrr_sem_var_t *gdrr_convert_sem_var(__obj sem_var_obj,
 			__CASETAGINT(offset));
 }
 
+static gdrr_sem_id_t *gdrr_convert_sem_linear(__obj sem_linear_obj,
+		struct gdrr_callbacks *callbacks) {
+	gdrr_sem_linear_t *sem_linear = NULL;
+
+	__obj payload = __DECON(sem_linear_obj);
+
+	switch(__CASETAGCON(sem_linear_obj)) {
+		case __SEM_LIN_VAR: {
+
+			sem_linear = callbacks->sem_linear.sem_lin_var(
+					gdrr_convert_sem_var(payload, callbacks));
+			break;
+		}
+		case __SEM_LIN_IMM: {
+			__obj imm = __RECORD_SELECT(payload, ___imm);
+			sem_linear = callbacks->sem_linear.sem_lin_imm(__CASETAGINT(imm));
+			break;
+		}
+		case __SEM_LIN_ADD: {
+			__obj opnd1 = __RECORD_SELECT(payload, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(payload, ___opnd2);
+			sem_linear = callbacks->sem_linear.sem_lin_add(
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
+			break;
+		}
+		case __SEM_LIN_SUB: {
+			__obj opnd1 = __RECORD_SELECT(payload, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(payload, ___opnd2);
+			sem_linear = callbacks->sem_linear.sem_lin_sub(
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
+			break;
+		}
+		case __SEM_LIN_SCALE: {
+			__obj imm = __RECORD_SELECT(payload, ___imm);
+			__obj opnd = __RECORD_SELECT(payload, ___opnd);
+			sem_linear = callbacks->sem_linear.sem_lin_scale(__CASETAGINT(imm),
+					gdrr_convert_sem_linear(opnd, callbacks));
+			break;
+		}
+	}
+
+	return sem_linear;
+}
+
 static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
 		struct gdrr_callbacks *callbacks) {
 	gdrr_sem_op_t *sem_op = NULL;
@@ -72,87 +118,155 @@ static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
 
 	switch(__CASETAGCON(sem_op_obj)) {
 		case __SEM_LIN: {
-			sem_op = callbacks->sem_op.sem_lin(size_word, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			sem_op = callbacks->sem_op.sem_lin(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks));
 			break;
 		}
 		case __SEM_MUL: {
-			sem_op = callbacks->sem_op.sem_mul(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_mul(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_DIV: {
-			sem_op = callbacks->sem_op.sem_div(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_div(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_DIVS: {
-			sem_op = callbacks->sem_op.sem_divs(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_divs(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_MOD: {
-			sem_op = callbacks->sem_op.sem_mod(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_mod(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_SHL: {
-			sem_op = callbacks->sem_op.sem_shl(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_shl(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_SHR: {
-			sem_op = callbacks->sem_op.sem_shr(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_shr(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_SHRS: {
-			sem_op = callbacks->sem_op.sem_shrs(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_shrs(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_AND: {
-			sem_op = callbacks->sem_op.sem_and(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_and(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_OR: {
-			sem_op = callbacks->sem_op.sem_or(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_or(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_XOR: {
-			sem_op = callbacks->sem_op.sem_xor(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_xor(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_SX: {
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj fromsize = __RECORD_SELECT(rec, ___fromsize);
 			sem_op = callbacks->sem_op.sem_sx(size_word, __CASETAGINT(fromsize),
-					NULL);
+					gdrr_convert_sem_linear(opnd1, callbacks));
 			break;
 		}
 		case __SEM_ZX: {
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj fromsize = __RECORD_SELECT(rec, ___fromsize);
 			sem_op = callbacks->sem_op.sem_zx(size_word, __CASETAGINT(fromsize),
-					NULL);
+					gdrr_convert_sem_linear(opnd1, callbacks));
 			break;
 		}
 		case __SEM_CMPEQ: {
-			sem_op = callbacks->sem_op.sem_cmpeq(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_cmpeq(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_CMPNEQ: {
-			sem_op = callbacks->sem_op.sem_cmpneq(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_cmpneq(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_CMPLES: {
-			sem_op = callbacks->sem_op.sem_cmples(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_cmples(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_CMPLEU: {
-			sem_op = callbacks->sem_op.sem_cmpleu(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_cmpleu(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_CMPLTS: {
-			sem_op = callbacks->sem_op.sem_cmplts(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_cmplts(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_CMPLTU: {
-			sem_op = callbacks->sem_op.sem_cmpltu(size_word, NULL, NULL);
+			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
+			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
+			sem_op = callbacks->sem_op.sem_cmpltu(size_word,
+					gdrr_convert_sem_linear(opnd1, callbacks),
+					gdrr_convert_sem_linear(opnd2, callbacks));
 			break;
 		}
 		case __SEM_ARB: {
-			sem_op = callbacks->sem_op.sem_arb(0);
+			sem_op = callbacks->sem_op.sem_arb(size_word);
 			break;
 		}
 	}

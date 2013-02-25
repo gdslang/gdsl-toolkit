@@ -7,7 +7,7 @@
 #include <gdrr.h>
 
 static gdrr_sem_stmts_t *list_next(gdrr_sem_stmt_t *next, gdrr_sem_stmts_t *list) {
-  printf("next statement\n");
+  printf("next statement\n\n");
 
   return NULL;
 }
@@ -215,6 +215,12 @@ static gdrr_sem_var_t *sem_var(gdrr_sem_id_t *id, __word offset) {
 
   return NULL;
 }
+
+	gdrr_sem_linear_t *(*sem_lin_var)(gdrr_sem_var_t *this);
+	gdrr_sem_linear_t *(*sem_lin_imm)(__word imm);
+	gdrr_sem_linear_t *(*sem_lin_add)(gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+	gdrr_sem_linear_t *(*sem_lin_sub)(gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+	gdrr_sem_linear_t *(*sem_lin_scale)(__word imm, gdrr_sem_linear_t *opnd);
 
 int main (int argc, char** argv) {
   __char blob[15];
