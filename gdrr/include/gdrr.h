@@ -29,6 +29,10 @@ struct gdrr_sem_id_callbacks {
 	gdrr_sem_id_t *(*virt_t)(__word this);
 };
 
+struct gdrr_sem_address_callbacks {
+	gdrr_sem_address_t *(*sem_address)(__word size, gdrr_sem_linear_t *address);
+};
+
 struct gdrr_sem_var_callbacks {
 	gdrr_sem_var_t *(*sem_var)(gdrr_sem_id_t *id, __word offset);
 };
@@ -115,6 +119,7 @@ enum gdrr_config_stmts_handling {
 struct gdrr_config {
 	struct {
 		struct gdrr_sem_id_callbacks sem_id;
+		struct gdrr_sem_address_callbacks sem_address;
 		struct gdrr_sem_var_callbacks sem_var;
 		struct gdrr_sem_linear_callbacks sem_linear;
 		struct gdrr_sem_op_callbacks sem_op;
@@ -127,6 +132,6 @@ struct gdrr_config {
 	enum gdrr_config_stmts_handling gdrr_config_stmts_handling;
 };
 
-gdrr_sem_stmt_t *gdrr_convert(__obj semantics, struct gdrr_config *config);
+gdrr_sem_stmts_t *gdrr_convert(__obj semantics, struct gdrr_config *config);
 
 #endif /* GDRR_H_ */

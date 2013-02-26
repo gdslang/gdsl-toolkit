@@ -206,39 +206,37 @@ static gdrr_sem_id_t *virt_ltu(void) {
 }
 static gdrr_sem_id_t *virt_t(__word t) {
   printf("=> id {t=%lu}\n", t);
-
   return NULL;
 }
 
 static gdrr_sem_var_t *sem_var(gdrr_sem_id_t *id, __word offset) {
   printf("==> var {offset=%lu}\n", offset);
-
   return NULL;
 }
 
 static gdrr_sem_linear_t *sem_lin_var(gdrr_sem_var_t *this) {
   printf("==> sem_lin_var\n");
-
   return NULL;
 }
 static gdrr_sem_linear_t *sem_lin_imm(__word imm) {
   printf("==> sem_lin_imm {imm=%lu}\n", imm);
-
   return NULL;
 }
 static gdrr_sem_linear_t *sem_lin_add(gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
   printf("==> sem_lin_add\n");
-
   return NULL;
 }
 static gdrr_sem_linear_t *sem_lin_sub(gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
   printf("==> sem_lin_sub\n");
-
   return NULL;
 }
 static gdrr_sem_linear_t *sem_lin_scale(__word imm, gdrr_sem_linear_t *opnd) {
   printf("==> sem_lin_scale {imm=%lu}\n", imm);
+  return NULL;
+}
 
+static gdrr_sem_address_t *sem_address(__word size, gdrr_sem_linear_t *address) {
+  printf("==> sem_address {size=%lu}\n", size);
   return NULL;
 }
 
@@ -276,16 +274,24 @@ done:
       puts(fmt);
 
       struct gdrr_config config;
-      config.callbacks.sem_stmts_list.list_init = &list_init;
-      config.callbacks.sem_stmts_list.list_next = &list_next;
 
-      config.callbacks.sem_stmt.sem_assign = &sem_assign;
-      config.callbacks.sem_stmt.sem_load = &sem_load;
-      config.callbacks.sem_stmt.sem_store = &sem_store;
-      config.callbacks.sem_stmt.sem_ite = &sem_ite;
-      config.callbacks.sem_stmt.sem_while = &sem_while;
-      config.callbacks.sem_stmt.sem_cbranch = &sem_cbranch;
-      config.callbacks.sem_stmt.sem_branch = &sem_branch;
+      config.callbacks.sem_id.virt_eq = &virt_eq;
+      config.callbacks.sem_id.virt_neq = &virt_neq;
+      config.callbacks.sem_id.virt_les = &virt_les;
+      config.callbacks.sem_id.virt_leu = &virt_leu;
+      config.callbacks.sem_id.virt_lts = &virt_lts;
+      config.callbacks.sem_id.virt_ltu = &virt_ltu;
+      config.callbacks.sem_id.virt_t = &virt_t;
+
+      config.callbacks.sem_address.sem_address = &sem_address;
+
+      config.callbacks.sem_var.sem_var = &sem_var;
+
+      config.callbacks.sem_linear.sem_lin_var = &sem_lin_var;
+      config.callbacks.sem_linear.sem_lin_imm = &sem_lin_imm;
+      config.callbacks.sem_linear.sem_lin_add = &sem_lin_add;
+      config.callbacks.sem_linear.sem_lin_sub = &sem_lin_sub;
+      config.callbacks.sem_linear.sem_lin_scale = &sem_lin_scale;
 
       config.callbacks.sem_op.sem_lin = &sem_lin;
       config.callbacks.sem_op.sem_mul = &sem_mul;
@@ -308,22 +314,16 @@ done:
       config.callbacks.sem_op.sem_cmpltu = &sem_cmpltu;
       config.callbacks.sem_op.sem_arb = &sem_arb;
 
-      config.callbacks.sem_id.virt_eq = &virt_eq;
-      config.callbacks.sem_id.virt_neq = &virt_neq;
-      config.callbacks.sem_id.virt_les = &virt_les;
-      config.callbacks.sem_id.virt_leu = &virt_leu;
-      config.callbacks.sem_id.virt_lts = &virt_lts;
-      config.callbacks.sem_id.virt_ltu = &virt_ltu;
-      config.callbacks.sem_id.virt_t = &virt_t;
+      config.callbacks.sem_stmt.sem_assign = &sem_assign;
+      config.callbacks.sem_stmt.sem_load = &sem_load;
+      config.callbacks.sem_stmt.sem_store = &sem_store;
+      config.callbacks.sem_stmt.sem_ite = &sem_ite;
+      config.callbacks.sem_stmt.sem_while = &sem_while;
+      config.callbacks.sem_stmt.sem_cbranch = &sem_cbranch;
+      config.callbacks.sem_stmt.sem_branch = &sem_branch;
 
-      config.callbacks.sem_var.sem_var = &sem_var;
-
-      config.callbacks.sem_linear.sem_lin_var = &sem_lin_var;
-      config.callbacks.sem_linear.sem_lin_imm = &sem_lin_imm;
-      config.callbacks.sem_linear.sem_lin_add = &sem_lin_add;
-      config.callbacks.sem_linear.sem_lin_sub = &sem_lin_sub;
-      config.callbacks.sem_linear.sem_lin_scale = &sem_lin_scale;
-
+      config.callbacks.sem_stmts_list.list_init = &list_init;
+      config.callbacks.sem_stmts_list.list_next = &list_next;
       config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_LIST;
 
       gdrr_convert(r, &config);
