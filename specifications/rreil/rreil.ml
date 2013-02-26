@@ -54,7 +54,7 @@ type sem_stmt =
  | SEM_CBRANCH of {cond:sem_linear, target-true:sem_address, target-false:sem_address}
  | SEM_BRANCH of {hint:branch_hint, target:sem_address}
 
- type branch_hint =
+type branch_hint =
     HINT_JUMP
   | HINT_CALL
   | HINT_RET

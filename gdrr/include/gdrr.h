@@ -15,8 +15,8 @@ typedef void gdrr_sem_address_t;
 typedef void gdrr_sem_var_t;
 typedef void gdrr_sem_linear_t;
 typedef void gdrr_sem_op_t;
+typedef void gdrr_sem_branch_hint;
 typedef void gdrr_sem_stmt_t;
-typedef void gdrr_branch_hint;
 typedef void gdrr_sem_stmts_t;
 
 struct gdrr_sem_id_callbacks {
@@ -98,8 +98,14 @@ struct gdrr_sem_stmt_callbacks {
 	gdrr_sem_stmt_t *(*sem_while)(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *body);
 	gdrr_sem_stmt_t *(*sem_cbranch)(gdrr_sem_linear_t *cond,
 			gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false);
-	gdrr_sem_stmt_t *(*sem_branch)(gdrr_branch_hint *branch_hint,
+	gdrr_sem_stmt_t *(*sem_branch)(gdrr_sem_branch_hint *branch_hint,
 			gdrr_sem_address_t *target);
+};
+
+struct gdrr_sem_branch_hint_callbacks {
+	gdrr_sem_branch_hint *(*hint_jump)(void);
+	gdrr_sem_branch_hint *(*hint_call)(void);
+	gdrr_sem_branch_hint *(*hint_ret)(void);
 };
 
 struct gdrr_sem_stmts_callbacks {
@@ -124,6 +130,7 @@ struct gdrr_config {
 		struct gdrr_sem_linear_callbacks sem_linear;
 		struct gdrr_sem_op_callbacks sem_op;
 		struct gdrr_sem_stmt_callbacks sem_stmt;
+		struct gdrr_sem_branch_hint_callbacks sem_branch_hint;
 		union {
 			struct gdrr_sem_stmts_callbacks sem_stmts;
 			struct gdrr_sem_stmts_list_callbacks sem_stmts_list;

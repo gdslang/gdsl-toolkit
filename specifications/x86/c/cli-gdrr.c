@@ -6,202 +6,29 @@
 #include <dis.h>
 #include <gdrr.h>
 
-static gdrr_sem_stmts_t *list_next(gdrr_sem_stmt_t *next, gdrr_sem_stmts_t *list) {
-  printf("next statement\n\n");
-
-  return NULL;
-}
-static gdrr_sem_stmts_t *list_init() {
-  printf("init\n");
-
-  return NULL;
-}
-
-static gdrr_sem_stmt_t *sem_assign(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
-  printf("assign\n");
-
-  return NULL;
-}
-static gdrr_sem_stmt_t *sem_load(gdrr_sem_var_t *lhs, __word size, gdrr_sem_address_t *address) {
-  printf("load\n");
-
-  return NULL;
-}
-static gdrr_sem_stmt_t *sem_store(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
-  printf("store\n");
-
-  return NULL;
-}
-static gdrr_sem_stmt_t *sem_ite(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch) {
-  printf("ite\n");
-
-  return NULL;
-}
-static gdrr_sem_stmt_t *sem_while(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *body) {
-  printf("while\n");
-
-  return NULL;
-}
-static gdrr_sem_stmt_t *sem_cbranch(gdrr_sem_linear_t *cond,
-		gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false) {
-  printf("cbranch\n");
-
-  return NULL;
-}
-static gdrr_sem_stmt_t *sem_branch(gdrr_branch_hint *branch_hint,
-			gdrr_sem_address_t *target) {
-  printf("branch\n");
-
-  return NULL;
-}
-
-static gdrr_sem_op_t *sem_lin(__word size, gdrr_sem_linear_t *opnd1) {
-  printf("=> lin {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_mul(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> mul {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_div(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> div {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_divs(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> divs {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_mod(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> mod {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_shl(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> shl {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_shr(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> shr {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_shrs(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> shrs {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_and(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> and {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_or(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> or {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_xor(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> xor {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_sx(__word size, __word fromsize,
-	       gdrr_sem_linear_t *opnd1) {
-  printf("=> sx {size=%lu, fromsize=%lu}\n", size, fromsize);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_zx(__word size, __word fromsize,
-	       gdrr_sem_linear_t *opnd1) {
-  printf("=> zx {size=%lu, fromsize=%lu}\n", size, fromsize);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmpeq(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmpeq {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmpneq(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmpneq {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmples(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmples {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmpleu(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmpleu {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmplts(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmplts {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmpltu(__word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmpltu {size=%lu}\n", size);
-
-  return NULL;
-}
-static gdrr_sem_op_t *sem_arb(__word size) {
-  printf("=> arb {size=%lu}\n", size);
-
-  return NULL;
-}
-
+// sem_id
 static gdrr_sem_id_t *virt_eq(void) {
   printf("=> virt_eq\n");
-
   return NULL;
 }
 static gdrr_sem_id_t *virt_neq(void) {
   printf("=> virt_neq\n");
-
   return NULL;
 }
 static gdrr_sem_id_t *virt_les(void) {
   printf("=> virt_les\n");
-
   return NULL;
 }
 static gdrr_sem_id_t *virt_leu(void) {
   printf("=> virt_leu\n");
-
   return NULL;
 }
 static gdrr_sem_id_t *virt_lts(void) {
   printf("=> virt_lts\n");
-
   return NULL;
 }
 static gdrr_sem_id_t *virt_ltu(void) {
   printf("=> virt_ltu\n");
-
   return NULL;
 }
 static gdrr_sem_id_t *virt_t(__word t) {
@@ -209,11 +36,19 @@ static gdrr_sem_id_t *virt_t(__word t) {
   return NULL;
 }
 
+// sem_address
+static gdrr_sem_address_t *sem_address(__word size, gdrr_sem_linear_t *address) {
+  printf("==> sem_address {size=%lu}\n", size);
+  return NULL;
+}
+
+// sem_var
 static gdrr_sem_var_t *sem_var(gdrr_sem_id_t *id, __word offset) {
   printf("==> var {offset=%lu}\n", offset);
   return NULL;
 }
 
+// sem_linear
 static gdrr_sem_linear_t *sem_lin_var(gdrr_sem_var_t *this) {
   printf("==> sem_lin_var\n");
   return NULL;
@@ -235,8 +70,159 @@ static gdrr_sem_linear_t *sem_lin_scale(__word imm, gdrr_sem_linear_t *opnd) {
   return NULL;
 }
 
-static gdrr_sem_address_t *sem_address(__word size, gdrr_sem_linear_t *address) {
-  printf("==> sem_address {size=%lu}\n", size);
+// sem_op
+static gdrr_sem_op_t *sem_lin(__word size, gdrr_sem_linear_t *opnd1) {
+  printf("=> lin {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_mul(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> mul {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_div(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> div {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_divs(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> divs {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_mod(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> mod {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_shl(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> shl {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_shr(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> shr {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_shrs(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> shrs {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_and(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> and {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_or(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> or {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_xor(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> xor {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_sx(__word size, __word fromsize,
+	       gdrr_sem_linear_t *opnd1) {
+  printf("=> sx {size=%lu, fromsize=%lu}\n", size, fromsize);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_zx(__word size, __word fromsize,
+	       gdrr_sem_linear_t *opnd1) {
+  printf("=> zx {size=%lu, fromsize=%lu}\n", size, fromsize);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_cmpeq(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpeq {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_cmpneq(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpneq {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_cmples(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmples {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_cmpleu(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpleu {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_cmplts(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmplts {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_cmpltu(__word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpltu {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_t *sem_arb(__word size) {
+  printf("=> arb {size=%lu}\n", size);
+  return NULL;
+}
+
+// sem_branch_hint
+static gdrr_sem_branch_hint *hint_jump(void) {
+  printf("==> branch_hint_jump\n");
+  return NULL;
+}
+static gdrr_sem_branch_hint *hint_call(void) {
+  printf("==> branch_hint_call\n");
+  return NULL;
+}
+static gdrr_sem_branch_hint *hint_ret(void) {
+  printf("==> branch_hint_ret\n");
+  return NULL;
+}
+
+// sem_stmt
+static gdrr_sem_stmt_t *sem_assign(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
+  printf("assign\n");
+  return NULL;
+}
+static gdrr_sem_stmt_t *sem_load(gdrr_sem_var_t *lhs, __word size, gdrr_sem_address_t *address) {
+  printf("load\n");
+  return NULL;
+}
+static gdrr_sem_stmt_t *sem_store(gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
+  printf("store\n");
+  return NULL;
+}
+static gdrr_sem_stmt_t *sem_ite(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch) {
+  printf("ite\n");
+  return NULL;
+}
+static gdrr_sem_stmt_t *sem_while(gdrr_sem_linear_t *cond, gdrr_sem_stmts_t *body) {
+  printf("while\n");
+  return NULL;
+}
+static gdrr_sem_stmt_t *sem_cbranch(gdrr_sem_linear_t *cond,
+		gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false) {
+  printf("cbranch\n");
+  return NULL;
+}
+static gdrr_sem_stmt_t *sem_branch(gdrr_sem_branch_hint *branch_hint,
+			gdrr_sem_address_t *target) {
+  printf("branch\n");
+  return NULL;
+}
+
+// sem_stmts
+static gdrr_sem_stmts_t *list_next(gdrr_sem_stmt_t *next, gdrr_sem_stmts_t *list) {
+  printf("next statement\n\n");
+  return NULL;
+}
+static gdrr_sem_stmts_t *list_init() {
+  printf("init\n");
   return NULL;
 }
 
@@ -313,6 +299,10 @@ done:
       config.callbacks.sem_op.sem_cmplts = &sem_cmplts;
       config.callbacks.sem_op.sem_cmpltu = &sem_cmpltu;
       config.callbacks.sem_op.sem_arb = &sem_arb;
+
+      config.callbacks.sem_branch_hint.hint_jump = &hint_jump;
+      config.callbacks.sem_branch_hint.hint_call = &hint_call;
+      config.callbacks.sem_branch_hint.hint_ret = &hint_ret;
 
       config.callbacks.sem_stmt.sem_assign = &sem_assign;
       config.callbacks.sem_stmt.sem_load = &sem_load;

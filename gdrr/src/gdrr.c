@@ -11,6 +11,9 @@
 #include <dis.h>
 #include "gdrr.h"
 
+/*
+ * Todo: Cleanup ordering
+ */
 static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(__obj sem_stmts_obj,
 		struct gdrr_config *config);
 static gdrr_sem_id_t *gdrr_convert_sem_linear(__obj sem_linear_obj,
@@ -290,6 +293,28 @@ static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
 	return sem_op;
 }
 
+static gdrr_sem_stmt_t *gdrr_convert_sem_branch_hint(__obj sem_branch_hint_obj,
+		struct gdrr_config *config) {
+	gdrr_sem_stmt_t *sem_branch_hint = NULL;
+
+	switch(__CASETAGCON(sem_branch_hint_obj)) {
+		case __HINT_JUMP: {
+			sem_branch_hint = config->callbacks.sem_branch_hint.hint_jump();
+			break;
+		}
+		case __HINT_CALL: {
+			sem_branch_hint = config->callbacks.sem_branch_hint.hint_call();
+			break;
+		}
+		case __HINT_RET: {
+			sem_branch_hint = config->callbacks.sem_branch_hint.hint_ret();
+			break;
+		}
+	}
+
+	return sem_branch_hint;
+}
+
 static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
 		struct gdrr_config *config) {
 	gdrr_sem_stmt_t *sem_stmt = NULL;
@@ -351,7 +376,8 @@ static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
 		case __SEM_BRANCH: {
 			__obj hint = __RECORD_SELECT(rec, ___hint);
 			__obj target = __RECORD_SELECT(rec, ___target);
-			sem_stmt = config->callbacks.sem_stmt.sem_branch(NULL,
+			sem_stmt = config->callbacks.sem_stmt.sem_branch(
+					gdrr_convert_sem_branch_hint(hint, config),
 					gdrr_convert_sem_address(target, config));
 			break;
 		}
