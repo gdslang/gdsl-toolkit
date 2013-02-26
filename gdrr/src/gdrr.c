@@ -12,37 +12,37 @@
 #include "gdrr.h"
 
 static gdrr_sem_id_t *gdrr_convert_sem_id(__obj sem_id_obj,
-		struct gdrr_callbacks *callbacks) {
+		struct gdrr_config *config) {
 	gdrr_sem_id_t *sem_id = NULL;
 
 	switch(__CASETAGCON(sem_id_obj)) {
 		case __VIRT_EQ: {
-			sem_id = callbacks->sem_id.virt_eq();
+			sem_id = config->callbacks.sem_id.virt_eq();
 			break;
 		}
 		case __VIRT_NEQ: {
-			sem_id = callbacks->sem_id.virt_neq();
+			sem_id = config->callbacks.sem_id.virt_neq();
 			break;
 		}
 		case __VIRT_LES: {
-			sem_id = callbacks->sem_id.virt_les();
+			sem_id = config->callbacks.sem_id.virt_les();
 			break;
 		}
 		case __VIRT_LEU: {
-			sem_id = callbacks->sem_id.virt_leu();
+			sem_id = config->callbacks.sem_id.virt_leu();
 			break;
 		}
 		case __VIRT_LTS: {
-			sem_id = callbacks->sem_id.virt_lts();
+			sem_id = config->callbacks.sem_id.virt_lts();
 			break;
 		}
 		case __VIRT_LTU: {
-			sem_id = callbacks->sem_id.virt_ltu();
+			sem_id = config->callbacks.sem_id.virt_ltu();
 			break;
 		}
 		case __VIRT_T: {
 			__obj this = __DECON(sem_id_obj);
-			sem_id = callbacks->sem_id.virt_t(__CASETAGINT(this));
+			sem_id = config->callbacks.sem_id.virt_t(__CASETAGINT(this));
 			break;
 		}
 	}
@@ -51,18 +51,18 @@ static gdrr_sem_id_t *gdrr_convert_sem_id(__obj sem_id_obj,
 }
 
 static gdrr_sem_var_t *gdrr_convert_sem_var(__obj sem_var_obj,
-		struct gdrr_callbacks *callbacks) {
+		struct gdrr_config *config) {
 	__obj rec = __DECON(sem_var_obj);
 
 	__obj id = __RECORD_SELECT(rec, ___id);
 	__obj offset = __RECORD_SELECT(rec, ___offset);
 
-	return callbacks->sem_var.sem_var(gdrr_convert_sem_id(id, callbacks),
-			__CASETAGINT(offset));
+	return config->callbacks.sem_var.sem_var(
+			gdrr_convert_sem_id(id, config), __CASETAGINT(offset));
 }
 
 static gdrr_sem_id_t *gdrr_convert_sem_linear(__obj sem_linear_obj,
-		struct gdrr_callbacks *callbacks) {
+		struct gdrr_config *config) {
 	gdrr_sem_linear_t *sem_linear = NULL;
 
 	__obj payload = __DECON(sem_linear_obj);
@@ -70,36 +70,37 @@ static gdrr_sem_id_t *gdrr_convert_sem_linear(__obj sem_linear_obj,
 	switch(__CASETAGCON(sem_linear_obj)) {
 		case __SEM_LIN_VAR: {
 
-			sem_linear = callbacks->sem_linear.sem_lin_var(
-					gdrr_convert_sem_var(payload, callbacks));
+			sem_linear = config->callbacks.sem_linear.sem_lin_var(
+					gdrr_convert_sem_var(payload, config));
 			break;
 		}
 		case __SEM_LIN_IMM: {
 			__obj imm = __RECORD_SELECT(payload, ___imm);
-			sem_linear = callbacks->sem_linear.sem_lin_imm(__CASETAGINT(imm));
+			sem_linear = config->callbacks.sem_linear.sem_lin_imm(
+					__CASETAGINT(imm));
 			break;
 		}
 		case __SEM_LIN_ADD: {
 			__obj opnd1 = __RECORD_SELECT(payload, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(payload, ___opnd2);
-			sem_linear = callbacks->sem_linear.sem_lin_add(
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_linear = config->callbacks.sem_linear.sem_lin_add(
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_LIN_SUB: {
 			__obj opnd1 = __RECORD_SELECT(payload, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(payload, ___opnd2);
-			sem_linear = callbacks->sem_linear.sem_lin_sub(
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_linear = config->callbacks.sem_linear.sem_lin_sub(
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_LIN_SCALE: {
 			__obj imm = __RECORD_SELECT(payload, ___imm);
 			__obj opnd = __RECORD_SELECT(payload, ___opnd);
-			sem_linear = callbacks->sem_linear.sem_lin_scale(__CASETAGINT(imm),
-					gdrr_convert_sem_linear(opnd, callbacks));
+			sem_linear = config->callbacks.sem_linear.sem_lin_scale(
+					__CASETAGINT(imm), gdrr_convert_sem_linear(opnd, config));
 			break;
 		}
 	}
@@ -108,7 +109,7 @@ static gdrr_sem_id_t *gdrr_convert_sem_linear(__obj sem_linear_obj,
 }
 
 static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
-		struct gdrr_callbacks *callbacks) {
+		struct gdrr_config *config) {
 	gdrr_sem_op_t *sem_op = NULL;
 
 	__obj rec = __DECON(sem_op_obj);
@@ -119,154 +120,154 @@ static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
 	switch(__CASETAGCON(sem_op_obj)) {
 		case __SEM_LIN: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
-			sem_op = callbacks->sem_op.sem_lin(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks));
+			sem_op = config->callbacks.sem_op.sem_lin(size_word,
+					gdrr_convert_sem_linear(opnd1, config));
 			break;
 		}
 		case __SEM_MUL: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_mul(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_mul(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_DIV: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_div(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_div(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_DIVS: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_divs(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_divs(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_MOD: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_mod(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_mod(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_SHL: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_shl(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_shl(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_SHR: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_shr(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_shr(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_SHRS: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_shrs(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_shrs(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_AND: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_and(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_and(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_OR: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_or(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_or(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_XOR: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_xor(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_xor(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_SX: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj fromsize = __RECORD_SELECT(rec, ___fromsize);
-			sem_op = callbacks->sem_op.sem_sx(size_word, __CASETAGINT(fromsize),
-					gdrr_convert_sem_linear(opnd1, callbacks));
+			sem_op = config->callbacks.sem_op.sem_sx(size_word,
+					__CASETAGINT(fromsize), gdrr_convert_sem_linear(opnd1, config));
 			break;
 		}
 		case __SEM_ZX: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj fromsize = __RECORD_SELECT(rec, ___fromsize);
-			sem_op = callbacks->sem_op.sem_zx(size_word, __CASETAGINT(fromsize),
-					gdrr_convert_sem_linear(opnd1, callbacks));
+			sem_op = config->callbacks.sem_op.sem_zx(size_word,
+					__CASETAGINT(fromsize), gdrr_convert_sem_linear(opnd1, config));
 			break;
 		}
 		case __SEM_CMPEQ: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_cmpeq(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_cmpeq(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_CMPNEQ: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_cmpneq(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_cmpneq(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_CMPLES: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_cmples(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_cmples(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_CMPLEU: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_cmpleu(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_cmpleu(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_CMPLTS: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_cmplts(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_cmplts(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_CMPLTU: {
 			__obj opnd1 = __RECORD_SELECT(rec, ___opnd1);
 			__obj opnd2 = __RECORD_SELECT(rec, ___opnd2);
-			sem_op = callbacks->sem_op.sem_cmpltu(size_word,
-					gdrr_convert_sem_linear(opnd1, callbacks),
-					gdrr_convert_sem_linear(opnd2, callbacks));
+			sem_op = config->callbacks.sem_op.sem_cmpltu(size_word,
+					gdrr_convert_sem_linear(opnd1, config),
+					gdrr_convert_sem_linear(opnd2, config));
 			break;
 		}
 		case __SEM_ARB: {
-			sem_op = callbacks->sem_op.sem_arb(size_word);
+			sem_op = config->callbacks.sem_op.sem_arb(size_word);
 			break;
 		}
 	}
@@ -275,7 +276,7 @@ static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
 }
 
 static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
-		struct gdrr_callbacks *callbacks) {
+		struct gdrr_config *config) {
 	gdrr_sem_stmt_t *sem_stmt = NULL;
 
 	__obj rec = __DECON(sem_stmt_obj);
@@ -283,50 +284,52 @@ static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
 		case __SEM_ASSIGN: {
 			__obj lhs = __RECORD_SELECT(rec, ___lhs);
 			__obj rhs = __RECORD_SELECT(rec, ___rhs);
-			sem_stmt = callbacks->sem_stmt.sem_assign(
-					gdrr_convert_sem_var(lhs, callbacks),
-					gdrr_convert_sem_op(rhs, callbacks));
+			sem_stmt = config->callbacks.sem_stmt.sem_assign(
+					gdrr_convert_sem_var(lhs, config), gdrr_convert_sem_op(rhs, config));
 			break;
 		}
 		case __SEM_LOAD: {
 			__obj lhs = __RECORD_SELECT(rec, ___lhs);
 			__obj size = __RECORD_SELECT(rec, ___size);
 			__obj address = __RECORD_SELECT(rec, ___address);
-			sem_stmt = callbacks->sem_stmt.sem_load(
-					gdrr_convert_sem_var(lhs, callbacks), __CASETAGINT(size), NULL);
+			sem_stmt = config->callbacks.sem_stmt.sem_load(
+					gdrr_convert_sem_var(lhs, config), __CASETAGINT(size), NULL);
 			break;
 		}
 		case __SEM_STORE: {
 			__obj address = __RECORD_SELECT(rec, ___address);
 			__obj rhs = __RECORD_SELECT(rec, ___rhs);
-			sem_stmt = callbacks->sem_stmt.sem_store(NULL,
-					gdrr_convert_sem_op(rhs, callbacks));
+			sem_stmt = config->callbacks.sem_stmt.sem_store(NULL,
+					gdrr_convert_sem_op(rhs, config));
 			break;
 		}
 		case __SEM_ITE: {
 			__obj cond = __RECORD_SELECT(rec, ___cond);
 			__obj then_branch = __RECORD_SELECT(rec, ___then_branch);
 			__obj else_branch = __RECORD_SELECT(rec, ___else_branch);
-			sem_stmt = callbacks->sem_stmt.sem_ite(NULL, NULL, NULL);
+			sem_stmt = config->callbacks.sem_stmt.sem_ite(
+					gdrr_convert_sem_linear(cond, config), NULL, NULL);
 			break;
 		}
 		case __SEM_WHILE: {
 			__obj cond = __RECORD_SELECT(rec, ___cond);
 			__obj body = __RECORD_SELECT(rec, ___body);
-			sem_stmt = callbacks->sem_stmt.sem_while(NULL, NULL);
+			sem_stmt = config->callbacks.sem_stmt.sem_while(
+					gdrr_convert_sem_linear(cond, config), NULL);
 			break;
 		}
 		case __SEM_CBRANCH: {
 			__obj cond = __RECORD_SELECT(rec, ___cond);
 			__obj target_true = __RECORD_SELECT(rec, ___target_true);
 			__obj target_false = __RECORD_SELECT(rec, ___target_false);
-			sem_stmt = callbacks->sem_stmt.sem_cbranch(NULL, NULL, NULL);
+			sem_stmt = config->callbacks.sem_stmt.sem_cbranch(
+					gdrr_convert_sem_linear(cond, config), NULL, NULL);
 			break;
 		}
 		case __SEM_BRANCH: {
 			__obj hint = __RECORD_SELECT(rec, ___hint);
 			__obj target = __RECORD_SELECT(rec, ___target);
-			sem_stmt = callbacks->sem_stmt.sem_branch(NULL, NULL);
+			sem_stmt = config->callbacks.sem_stmt.sem_branch(NULL, NULL);
 			break;
 		}
 	}
@@ -335,7 +338,7 @@ static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
 }
 
 static gdrr_sem_stmts_t *gdrr_convert_sem_stmts(__obj sem_stmts_obj,
-		struct gdrr_callbacks *callbacks) {
+		struct gdrr_config *config) {
 	gdrr_sem_stmts_t *sem_stmts = NULL;
 
 	if(__CASETAGCON(sem_stmts_obj) == __SEM_CONS) {
@@ -343,27 +346,27 @@ static gdrr_sem_stmts_t *gdrr_convert_sem_stmts(__obj sem_stmts_obj,
 		__obj instr = __RECORD_SELECT(rec, ___hd);
 		__obj tl_obj = __RECORD_SELECT(rec, ___tl);
 
-		gdrr_sem_stmts_t *tl = gdrr_convert_sem_stmts(tl_obj, callbacks);
-		gdrr_sem_stmt_t *hd = gdrr_convert_sem_stmt(instr, callbacks);
+		gdrr_sem_stmts_t *tl = gdrr_convert_sem_stmts(tl_obj, config);
+		gdrr_sem_stmt_t *hd = gdrr_convert_sem_stmt(instr, config);
 
-		sem_stmts = callbacks->sem_stmts.sem_cons(hd, tl);
+		sem_stmts = config->callbacks.sem_stmts.sem_cons(hd, tl);
 	} else
-		sem_stmts = callbacks->sem_stmts.sem_nil();
+		sem_stmts = config->callbacks.sem_stmts.sem_nil();
 
 	return sem_stmts;
 }
 
 static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_list(__obj sem_stmts_obj,
-		struct gdrr_callbacks *callbacks) {
-	gdrr_sem_stmts_t *list = callbacks->sem_stmts_list.list_init();
+		struct gdrr_config *config) {
+	gdrr_sem_stmts_t *list = config->callbacks.sem_stmts_list.list_init();
 
 	while(__CASETAGCON(sem_stmts_obj) == __SEM_CONS) {
 		__obj rec = __DECON(sem_stmts_obj);
 		__obj instr = __RECORD_SELECT(rec, ___hd);
 		__obj tl_obj = __RECORD_SELECT(rec, ___tl);
 
-		gdrr_sem_stmt_t *next = gdrr_convert_sem_stmt(instr, callbacks);
-		list = callbacks->sem_stmts_list.list_next(next, list);
+		gdrr_sem_stmt_t *next = gdrr_convert_sem_stmt(instr, config);
+		list = config->callbacks.sem_stmts_list.list_next(next, list);
 
 		sem_stmts_obj = tl_obj;
 	}
@@ -371,11 +374,9 @@ static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_list(__obj sem_stmts_obj,
 	return list;
 }
 
-gdrr_sem_stmt_t *gdrr_convert(__obj semantics, struct gdrr_callbacks *callbacks) {
-	return gdrr_convert_sem_stmts(semantics, callbacks);
-}
-
-gdrr_sem_stmt_t *gdrr_convert_list(__obj semantics,
-		struct gdrr_callbacks *callbacks) {
-	return gdrr_convert_sem_stmts_list(semantics, callbacks);
+gdrr_sem_stmt_t *gdrr_convert(__obj semantics, struct gdrr_config *config) {
+	if(config->gdrr_config_stmts_handling == GDRR_CONFIG_STMTS_HANDLING_LIST)
+		return gdrr_convert_sem_stmts_list(semantics, config);
+	else
+		return gdrr_convert_sem_stmts(semantics, config);
 }

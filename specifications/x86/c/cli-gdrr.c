@@ -211,16 +211,36 @@ static gdrr_sem_id_t *virt_t(__word t) {
 }
 
 static gdrr_sem_var_t *sem_var(gdrr_sem_id_t *id, __word offset) {
-  printf("=> var {offset=%lu}\n", offset);
+  printf("==> var {offset=%lu}\n", offset);
 
   return NULL;
 }
 
-	gdrr_sem_linear_t *(*sem_lin_var)(gdrr_sem_var_t *this);
-	gdrr_sem_linear_t *(*sem_lin_imm)(__word imm);
-	gdrr_sem_linear_t *(*sem_lin_add)(gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
-	gdrr_sem_linear_t *(*sem_lin_sub)(gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
-	gdrr_sem_linear_t *(*sem_lin_scale)(__word imm, gdrr_sem_linear_t *opnd);
+static gdrr_sem_linear_t *sem_lin_var(gdrr_sem_var_t *this) {
+  printf("==> sem_lin_var\n");
+
+  return NULL;
+}
+static gdrr_sem_linear_t *sem_lin_imm(__word imm) {
+  printf("==> sem_lin_imm {imm=%lu}\n", imm);
+
+  return NULL;
+}
+static gdrr_sem_linear_t *sem_lin_add(gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+  printf("==> sem_lin_add\n");
+
+  return NULL;
+}
+static gdrr_sem_linear_t *sem_lin_sub(gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+  printf("==> sem_lin_sub\n");
+
+  return NULL;
+}
+static gdrr_sem_linear_t *sem_lin_scale(__word imm, gdrr_sem_linear_t *opnd) {
+  printf("==> sem_lin_scale {imm=%lu}\n", imm);
+
+  return NULL;
+}
 
 int main (int argc, char** argv) {
   __char blob[15];
@@ -255,50 +275,58 @@ done:
       __pretty(__rreil_pretty__,r,fmt,1024);
       puts(fmt);
 
-      struct gdrr_callbacks callbacks;
-      callbacks.sem_stmts_list.list_init = &list_init;
-      callbacks.sem_stmts_list.list_next = &list_next;
+      struct gdrr_config config;
+      config.callbacks.sem_stmts_list.list_init = &list_init;
+      config.callbacks.sem_stmts_list.list_next = &list_next;
 
-      callbacks.sem_stmt.sem_assign = &sem_assign;
-      callbacks.sem_stmt.sem_load = &sem_load;
-      callbacks.sem_stmt.sem_store = &sem_store;
-      callbacks.sem_stmt.sem_ite = &sem_ite;
-      callbacks.sem_stmt.sem_while = &sem_while;
-      callbacks.sem_stmt.sem_cbranch = &sem_cbranch;
-      callbacks.sem_stmt.sem_branch = &sem_branch;
+      config.callbacks.sem_stmt.sem_assign = &sem_assign;
+      config.callbacks.sem_stmt.sem_load = &sem_load;
+      config.callbacks.sem_stmt.sem_store = &sem_store;
+      config.callbacks.sem_stmt.sem_ite = &sem_ite;
+      config.callbacks.sem_stmt.sem_while = &sem_while;
+      config.callbacks.sem_stmt.sem_cbranch = &sem_cbranch;
+      config.callbacks.sem_stmt.sem_branch = &sem_branch;
 
-      callbacks.sem_op.sem_lin = &sem_lin;
-      callbacks.sem_op.sem_mul = &sem_mul;
-      callbacks.sem_op.sem_div = &sem_div;
-      callbacks.sem_op.sem_divs = &sem_divs;
-      callbacks.sem_op.sem_mod = &sem_mod;
-      callbacks.sem_op.sem_shl = &sem_shl;
-      callbacks.sem_op.sem_shr = &sem_shr;
-      callbacks.sem_op.sem_shrs = &sem_shrs;
-      callbacks.sem_op.sem_and = &sem_and;
-      callbacks.sem_op.sem_or = &sem_or;
-      callbacks.sem_op.sem_xor = &sem_xor;
-      callbacks.sem_op.sem_sx = &sem_sx;
-      callbacks.sem_op.sem_zx = &sem_zx;
-      callbacks.sem_op.sem_cmpeq = &sem_cmpeq;
-      callbacks.sem_op.sem_cmpneq = &sem_cmpneq;
-      callbacks.sem_op.sem_cmples = &sem_cmples;
-      callbacks.sem_op.sem_cmpleu = &sem_cmpleu;
-      callbacks.sem_op.sem_cmplts = &sem_cmplts;
-      callbacks.sem_op.sem_cmpltu = &sem_cmpltu;
-      callbacks.sem_op.sem_arb = &sem_arb;
+      config.callbacks.sem_op.sem_lin = &sem_lin;
+      config.callbacks.sem_op.sem_mul = &sem_mul;
+      config.callbacks.sem_op.sem_div = &sem_div;
+      config.callbacks.sem_op.sem_divs = &sem_divs;
+      config.callbacks.sem_op.sem_mod = &sem_mod;
+      config.callbacks.sem_op.sem_shl = &sem_shl;
+      config.callbacks.sem_op.sem_shr = &sem_shr;
+      config.callbacks.sem_op.sem_shrs = &sem_shrs;
+      config.callbacks.sem_op.sem_and = &sem_and;
+      config.callbacks.sem_op.sem_or = &sem_or;
+      config.callbacks.sem_op.sem_xor = &sem_xor;
+      config.callbacks.sem_op.sem_sx = &sem_sx;
+      config.callbacks.sem_op.sem_zx = &sem_zx;
+      config.callbacks.sem_op.sem_cmpeq = &sem_cmpeq;
+      config.callbacks.sem_op.sem_cmpneq = &sem_cmpneq;
+      config.callbacks.sem_op.sem_cmples = &sem_cmples;
+      config.callbacks.sem_op.sem_cmpleu = &sem_cmpleu;
+      config.callbacks.sem_op.sem_cmplts = &sem_cmplts;
+      config.callbacks.sem_op.sem_cmpltu = &sem_cmpltu;
+      config.callbacks.sem_op.sem_arb = &sem_arb;
 
-      callbacks.sem_id.virt_eq = &virt_eq;
-      callbacks.sem_id.virt_neq = &virt_neq;
-      callbacks.sem_id.virt_les = &virt_les;
-      callbacks.sem_id.virt_leu = &virt_leu;
-      callbacks.sem_id.virt_lts = &virt_lts;
-      callbacks.sem_id.virt_ltu = &virt_ltu;
-      callbacks.sem_id.virt_t = &virt_t;
+      config.callbacks.sem_id.virt_eq = &virt_eq;
+      config.callbacks.sem_id.virt_neq = &virt_neq;
+      config.callbacks.sem_id.virt_les = &virt_les;
+      config.callbacks.sem_id.virt_leu = &virt_leu;
+      config.callbacks.sem_id.virt_lts = &virt_lts;
+      config.callbacks.sem_id.virt_ltu = &virt_ltu;
+      config.callbacks.sem_id.virt_t = &virt_t;
 
-      callbacks.sem_var.sem_var = &sem_var;
+      config.callbacks.sem_var.sem_var = &sem_var;
 
-      gdrr_convert_list(r, &callbacks);
+      config.callbacks.sem_linear.sem_lin_var = &sem_lin_var;
+      config.callbacks.sem_linear.sem_lin_imm = &sem_lin_imm;
+      config.callbacks.sem_linear.sem_lin_add = &sem_lin_add;
+      config.callbacks.sem_linear.sem_lin_sub = &sem_lin_sub;
+      config.callbacks.sem_linear.sem_lin_scale = &sem_lin_scale;
+
+      config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_LIST;
+
+      gdrr_convert(r, &config);
     }
   }
 

@@ -108,20 +108,25 @@ struct gdrr_sem_stmts_list_callbacks {
 	gdrr_sem_stmts_t *(*list_init)(void);
 };
 
-struct gdrr_callbacks {
-	struct gdrr_sem_id_callbacks sem_id;
-	struct gdrr_sem_var_callbacks sem_var;
-	struct gdrr_sem_linear_callbacks sem_linear;
-	struct gdrr_sem_op_callbacks sem_op;
-	struct gdrr_sem_stmt_callbacks sem_stmt;
-	union {
-		struct gdrr_sem_stmts_callbacks sem_stmts;
-		struct gdrr_sem_stmts_list_callbacks sem_stmts_list;
-	};
+enum gdrr_config_stmts_handling {
+	GDRR_CONFIG_STMTS_HANDLING_RECURSIVE, GDRR_CONFIG_STMTS_HANDLING_LIST
 };
 
-gdrr_sem_stmt_t *gdrr_convert(__obj semantics, struct gdrr_callbacks *callbacks);
-gdrr_sem_stmt_t *gdrr_convert_list(__obj semantics,
-		struct gdrr_callbacks *callbacks);
+struct gdrr_config {
+	struct {
+		struct gdrr_sem_id_callbacks sem_id;
+		struct gdrr_sem_var_callbacks sem_var;
+		struct gdrr_sem_linear_callbacks sem_linear;
+		struct gdrr_sem_op_callbacks sem_op;
+		struct gdrr_sem_stmt_callbacks sem_stmt;
+		union {
+			struct gdrr_sem_stmts_callbacks sem_stmts;
+			struct gdrr_sem_stmts_list_callbacks sem_stmts_list;
+		};
+	} callbacks;
+	enum gdrr_config_stmts_handling gdrr_config_stmts_handling;
+};
+
+gdrr_sem_stmt_t *gdrr_convert(__obj semantics, struct gdrr_config *config);
 
 #endif /* GDRR_H_ */
