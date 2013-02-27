@@ -4469,8 +4469,6 @@ val / [0x6f]
  | opndsz? = arity0-rep OUTSW
  | otherwise = arity0-rep OUTSD
 
-### =><=
-
 ### PABSB/PABSW/PABSD
 ###  - Packed Absolute Value
 val / [0x0f 0x38 0x1c /r] = binop PABSB mm64 mm/m64
@@ -4572,7 +4570,7 @@ val /vex/66/0f/vexv [0xe3 /r] | vex128? = varity3 VPAVGW xmm128 v/xmm xmm/m128
 
 ### PBLENDVB
 ###  - Variable Blend Packed Bytes
-# Todo: /is4?
+# Todo: /is4? (possible meaning: 4 bits of the immediate are used to select register?)
 val /66 [0x0f 0x38 0x10 /r] = binop PBLENDVB xmm128 xmm/m128
 val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? & vex128? = varity4 VPBLENDVB xmm128 v/xmm xmm/m128 imm/xmm
 
@@ -4649,7 +4647,7 @@ val /66 [0x0f 0x3a 0x16 /r]
  | rexw? = ternop PEXTRQ r/m64 xmm128 imm8
  | otherwise = ternop PEXTRD r/m32 xmm128 imm8
 val /vex/66/0f/3a [0x14 /r]
- | mode64? & vex128? & vexw0? = varity3 VPEXTRB r64/m8 xmm128 imm8
+ | vex128? & mode64? = varity3 VPEXTRB r64/m8 xmm128 imm8 #Footnote: vexw1 is ignored
  | vex128? & vexw0? = varity3 VPEXTRB r32/m8 xmm128 imm8
 val /vex/66/0f/3a [0x16 /r]
  | vex128? & vexw0? = varity3 VPEXTRD r/m32 xmm128 imm8
@@ -4667,20 +4665,18 @@ val /66 [0x0f 0x3a 0x15 /r]
  | mode64? = ternop PEXTRW r64/m16 xmm128 imm8
  | otherwise = ternop PEXTRW r32/m16 xmm128 imm8
 val /vex/66/0f [0xc5 /r-reg]
- | mode64? & vex128? = varity3 VPEXTRW r64 xmm/reg128 imm8
- | vex128? = varity3 VPEXTRW r32 xmm/reg128 imm8
-#TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r32 xmm/reg128 imm8
+ | vex128? & mode64? = varity3 VPEXTRW r64 xmm/reg128 imm8 #Footnote: vexw1 is ignored
+ | vex128? & vexw0? = varity3 VPEXTRW r32 xmm/reg128 imm8
 val /vex/66/0f/3a [0x15 /r]
- | mode64? & vex128? & vexw0? = varity3 VPEXTRW r64/m16 xmm128 imm8
+ | vex128? & mode64? & vexw0? = varity3 VPEXTRW r64/m16 xmm128 imm8
  | vex128? & vexw0? = varity3 VPEXTRW r32/m16 xmm128 imm8
-#TODO: | / mode64? & vex128? & vexw0? = varity3 VPEXTRW r/m32 xmm128 imm8
 
 ### PHADDW/PHADDD
 ###  - Packed Horizontal Add
-val /66 [0x0f 0x38 0x01 /r] = binop PHADDW xmm128 xmm/m128
 val / [0x0f 0x38 0x01 /r] = binop PHADDW mm64 mm/m64
-val /66 [0x0f 0x38 0x02 /r] = binop PHADDD xmm128 xmm/m128
+val /66 [0x0f 0x38 0x01 /r] = binop PHADDW xmm128 xmm/m128
 val / [0x0f 0x38 0x02 /r] = binop PHADDD mm64 mm/m64
+val /66 [0x0f 0x38 0x02 /r] = binop PHADDD xmm128 xmm/m128
 val /vex/66/0f/38/vexv [0x01 /r] | vex128? = varity3 VPHADDW xmm128 v/xmm xmm/m128
 val /vex/66/0f/38/vexv [0x02 /r] | vex128? = varity3 VPHADDD xmm128 v/xmm xmm/m128
 
@@ -4689,6 +4685,8 @@ val /vex/66/0f/38/vexv [0x02 /r] | vex128? = varity3 VPHADDD xmm128 v/xmm xmm/m1
 val / [0x0f 0x38 0x03 /r] = binop PHADDSW mm64 mm/m64
 val /66 [0x0f 0x38 0x03 /r] = binop PHADDSW xmm128 xmm/m128
 val /vex/66/0f/38/vexv [0x03 /r] | vex128? = varity3 VPHADDSW xmm128 v/xmm xmm/m128
+
+### =><=
 
 ### PHMINPOSUW
 ###  - Packed Horizontal Word Minimum
