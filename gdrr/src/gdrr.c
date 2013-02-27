@@ -11,12 +11,25 @@
 #include <dis.h>
 #include "gdrr.h"
 
-/*
- * Todo: Cleanup ordering
- */
-static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(__obj sem_stmts_obj,
+static gdrr_sem_id_t *gdrr_convert_sem_id(__obj sem_id_obj,
+		struct gdrr_config *config);
+static gdrr_sem_var_t *gdrr_convert_sem_address(__obj sem_address_obj,
+		struct gdrr_config *config);
+static gdrr_sem_var_t *gdrr_convert_sem_var(__obj sem_var_obj,
 		struct gdrr_config *config);
 static gdrr_sem_id_t *gdrr_convert_sem_linear(__obj sem_linear_obj,
+		struct gdrr_config *config);
+static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
+		struct gdrr_config *config);
+static gdrr_sem_stmt_t *gdrr_convert_sem_branch_hint(__obj sem_branch_hint_obj,
+		struct gdrr_config *config);
+static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
+		struct gdrr_config *config);
+static gdrr_sem_stmts_t *gdrr_convert_sem_stmts(__obj sem_stmts_obj,
+		struct gdrr_config *config);
+static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_list(__obj sem_stmts_obj,
+		struct gdrr_config *config);
+static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(__obj sem_stmts_obj,
 		struct gdrr_config *config);
 
 static gdrr_sem_id_t *gdrr_convert_sem_id(__obj sem_id_obj,
