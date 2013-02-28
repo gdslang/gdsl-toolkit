@@ -1654,6 +1654,12 @@ val & giveA giveB = do
    return (a and b)
 end
 
+val monad-or giveA giveB = do
+   a <- giveA;
+   b <- giveB;
+   return (a or b)
+end
+
 val otherwise = return '1'
 
 val vex128? = do
@@ -4686,8 +4692,6 @@ val / [0x0f 0x38 0x03 /r] = binop PHADDSW mm64 mm/m64
 val /66 [0x0f 0x38 0x03 /r] = binop PHADDSW xmm128 xmm/m128
 val /vex/66/0f/38/vexv [0x03 /r] | vex128? = varity3 VPHADDSW xmm128 v/xmm xmm/m128
 
-### =><=
-
 ### PHMINPOSUW
 ###  - Packed Horizontal Word Minimum
 val /66 [0x0f 0x38 0x41 /r] = binop PHMINPOSUW xmm128 xmm/m128
@@ -4714,16 +4718,18 @@ val /66 [0x0f 0x3a 0x20 /r] = ternop PINSRB xmm128 r32/m8 imm8
 val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop PINSRD xmm128 r/m32 imm8
-val /vex/66/0f/3a/vexv [0x20 /r] | vex128? & vexw0? = varity4 VPINSRB xmm128 v/xmm r32/m8 imm8
+val /vex/66/0f/3a/vexv [0x20 /r]
+ | vex128? & (monad-or mode64? vexw0?) = varity4 VPINSRB xmm128 v/xmm r32/m8 imm8
 val /vex/66/0f/3a/vexv [0x22 /r]
+ | vex128? & vexw0? = varity4 VPINSRD xmm128 v/xmm r/m32 imm8
  | vex128? & vexw1? = varity4 VPINSRQ xmm128 v/xmm r/m64 imm8
- | vex128? = varity4 VPINSRD xmm128 v/xmm r/m32 imm8
 
 ### PINSRW
 ###  - Insert Word
 val / [0x0f 0xc4 /r] = ternop PINSRW mm64 r32/m16 imm8
 val /66 [0x0f 0xc4 /r] = ternop PINSRW xmm128 r32/m16 imm8
-val /vex/66/0f/vexv [0xc4 /r] | vex128? & vexw0? = varity4 VPINSRW xmm128 v/xmm r32/m16 imm8
+val /vex/66/0f/vexv [0xc4 /r]
+ | vex128? & (monad-or mode64? vexw0?) = varity4 VPINSRW xmm128 v/xmm r32/m16 imm8
 
 ### PMADDUBSW
 ###  - Multiply and Add Packed Signed and Unsigned Bytes
@@ -4859,6 +4865,8 @@ val /vex/66/0f/38/vexv [0x0b /r] | vex128? = varity3 VPMULHRSW xmm128 v/xmm xmm/
 val / [0x0f 0xe4 /r] = binop PMULHUW mm64 mm/m64
 val /66 [0x0f 0xe4 /r] = binop PMULHUW xmm128 xmm/m128
 val /vex/66/0f/vexv [0xe4 /r] | vex128? = varity3 VPMULHUW xmm128 v/xmm xmm/m128
+
+### =><=
 
 ### PMULHW
 ###  - Multiply Packed Signed Integers and Store High Result
