@@ -4866,13 +4866,13 @@ val / [0x0f 0xe4 /r] = binop PMULHUW mm64 mm/m64
 val /66 [0x0f 0xe4 /r] = binop PMULHUW xmm128 xmm/m128
 val /vex/66/0f/vexv [0xe4 /r] | vex128? = varity3 VPMULHUW xmm128 v/xmm xmm/m128
 
-### =><=
-
 ### PMULHW
 ###  - Multiply Packed Signed Integers and Store High Result
 val / [0x0f 0xe5 /r] = binop PMULHW mm64 mm/m64
 val /66 [0x0f 0xe5 /r] = binop PMULHW xmm128 xmm/m128
 val /vex/66/0f/vexv [0xe5 /r] | vex128? = varity3 VPMULHW xmm128 v/xmm xmm/m128
+
+### =><=
 
 ### PMULLD
 ###  - Multiply Packed Signed Dword Integers and Store Low Result
