@@ -25,3 +25,9 @@ gdrr/.project
 gdrr/Debug/
 include/
 specifications/x86/c/cli-gdrr
+
+jgdrr/.classpath
+jgdrr/bin/NativeInterface.class
+jgdrr/bin/Program.class
+jgdrr/bin/RReilStatement.class
+jgdrr/bin/libjgdrr.so
