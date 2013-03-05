@@ -6,6 +6,24 @@ public class NativeInterface {
 	public RReilStatement[] decodeAndTranslate(byte[] bytes) {
 		return (RReilStatement[]) decodeAndTranslateNative(bytes);
 	}
+	
+	/*
+	 * sem_address
+	 */
+	
+	private Object sem_address(Object size, Object address) {
+		System.out.println("(j) sem_address");
+		return null;
+	}
+	
+	/*
+	 * sem_var
+	 */
+	
+	private Object sem_var(Object id, Object offset) {
+		System.out.println("(j) sem_var");
+		return null;
+	}
 
 	/*
 	 * sem_linear

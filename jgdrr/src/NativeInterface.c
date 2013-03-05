@@ -119,14 +119,16 @@ static gdrr_sem_id_t *virt_t(void *closure, __word t) {
 // sem_address
 static gdrr_sem_address_t *sem_address(void *closure, __word size,
 		gdrr_sem_linear_t *address) {
-	printf("==> sem_address {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_address", 2,
+			java_long_create(closure, (long int)size), (jobject)address);
+	return (gdrr_sem_var_t*)ret;
 }
 
 // sem_var
 static gdrr_sem_var_t *sem_var(void *closure, gdrr_sem_id_t *id, __word offset) {
-	printf("==> var {offset=%lu}\n", offset);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_var", 2, (jobject)id,
+			java_long_create(closure, (long int)offset));
+	return (gdrr_sem_var_t*)ret;
 }
 
 // sem_linear
