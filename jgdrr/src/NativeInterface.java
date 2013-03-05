@@ -8,6 +8,35 @@ public class NativeInterface {
 	}
 
 	/*
+	 * sem_linear
+	 */
+
+	private Object sem_lin_var(Object _this) {
+		System.out.println("(j) sem_lin_var");
+		return null;
+	}
+
+	private Object sem_lin_imm(Object imm) {
+		System.out.println("(j) sem_lin_imm");
+		return null;
+	}
+
+	private Object sem_lin_add(Object opnd1, Object opnd2) {
+		System.out.println("(j) sem_lin_add");
+		return null;
+	}
+
+	private Object sem_lin_sub(Object opnd1, Object opnd2) {
+		System.out.println("(j) sem_lin_sub");
+		return null;
+	}
+
+	private Object sem_lin_scale(Object imm, Object opnd) {
+		System.out.println("(j) sem_lin_scale");
+		return null;
+	}
+
+	/*
 	 * sem_op
 	 */
 

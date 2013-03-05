@@ -131,149 +131,169 @@ static gdrr_sem_var_t *sem_var(void *closure, gdrr_sem_id_t *id, __word offset) 
 
 // sem_linear
 static gdrr_sem_linear_t *sem_lin_var(void *closure, gdrr_sem_var_t *this) {
-	printf("==> sem_lin_var\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_lin_var", 1, (jobject)this);
+	return (gdrr_sem_linear_t*)ret;
 }
 static gdrr_sem_linear_t *sem_lin_imm(void *closure, __word imm) {
-	printf("==> sem_lin_imm {imm=%lu}\n", imm);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_lin_imm", 1,
+			java_long_create(closure, (long int)imm));
+	return (gdrr_sem_linear_t*)ret;
 }
 static gdrr_sem_linear_t *sem_lin_add(void *closure, gdrr_sem_linear_t *opnd1,
 		gdrr_sem_linear_t *opnd2) {
-	printf("==> sem_lin_add\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_lin_add", 2, (jobject)opnd1,
+			(jobject)opnd2);
+	return (gdrr_sem_linear_t*)ret;
 }
 static gdrr_sem_linear_t *sem_lin_sub(void *closure, gdrr_sem_linear_t *opnd1,
 		gdrr_sem_linear_t *opnd2) {
-	printf("==> sem_lin_sub\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_lin_sub", 2, (jobject)opnd1,
+			(jobject)opnd2);
+	return (gdrr_sem_linear_t*)ret;
 }
 static gdrr_sem_linear_t *sem_lin_scale(void *closure, __word imm,
 		gdrr_sem_linear_t *opnd) {
-	printf("==> sem_lin_scale {imm=%lu}\n", imm);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_lin_scale", 2,
+			java_long_create(closure, (long int)imm), (jobject)opnd);
+	return (gdrr_sem_linear_t*)ret;
 }
 
 // sem_op
 static gdrr_sem_op_t *sem_lin(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1) {
 	jobject ret = java_method_call(closure, "sem_lin", 2,
-			java_long_create(closure, size), (jobject)opnd1);
+			java_long_create(closure, (long int)size), (jobject)opnd1);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_mul(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_mul", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_div(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_div", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_divs(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_divs", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_mod(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_mod", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_shl(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_shl", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_shr(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_shr", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_shrs(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_shrs", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_and(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_and", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_or(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_or", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_xor(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_xor", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_sx(void *closure, __word size, __word fromsize,
 		gdrr_sem_linear_t *opnd1) {
 	jobject ret = java_method_call(closure, "sem_sx", 3,
-			java_long_create(closure, size), java_long_create(closure, fromsize),
-			(jobject)opnd1);
+			java_long_create(closure, (long int)size),
+			java_long_create(closure, (long int)fromsize), (jobject)opnd1);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_zx(void *closure, __word size, __word fromsize,
 		gdrr_sem_linear_t *opnd1) {
 	jobject ret = java_method_call(closure, "sem_zx", 3,
-			java_long_create(closure, size), java_long_create(closure, fromsize),
-			(jobject)opnd1);
+			java_long_create(closure, (long int)size),
+			java_long_create(closure, (long int)fromsize), (jobject)opnd1);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmpeq(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmpeq", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmpneq(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmpneq", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmples(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmples", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmpleu(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmpleu", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmplts(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmplts", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmpltu(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmpltu", 3,
-			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+			java_long_create(closure, (long int)size), (jobject)opnd1,
+			(jobject)opnd2);
 	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_arb(void *closure, __word size) {
 	jobject ret = java_method_call(closure, "sem_arb", 1,
-			java_long_create(closure, size));
+			java_long_create(closure, (long int)size));
 	return (gdrr_sem_op_t*)ret;
 }
 
