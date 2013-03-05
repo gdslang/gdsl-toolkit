@@ -75,6 +75,17 @@ static jobject java_method_call(void *closure, char *name, int numargs, ...) {
 	return ret;
 }
 
+static jobject java_long_create(void *closure, long int x) {
+	struct closure *cls = (struct closure*)closure;
+
+	jclass class = (*cls->env)->FindClass(cls->env, "java/lang/Long");
+	jmethodID method_id = (*cls->env)->GetMethodID(cls->env, class, "<init>",
+			"(J)V");
+	jobject a = (*cls->env)->NewObject(cls->env, class, method_id, x);
+
+	return a;
+}
+
 // sem_id
 static gdrr_sem_id_t *virt_eq(void *closure) {
 	printf("=> virt_eq\n");
@@ -146,116 +157,138 @@ static gdrr_sem_linear_t *sem_lin_scale(void *closure, __word imm,
 // sem_op
 static gdrr_sem_op_t *sem_lin(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1) {
-	printf("=> lin {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_lin", 2,
+			java_long_create(closure, size), (jobject)opnd1);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_mul(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> mul {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_mul", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_div(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> div {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_div", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_divs(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> divs {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_divs", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_mod(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> mod {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_mod", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_shl(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> shl {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_shl", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_shr(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> shr {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_shr", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_shrs(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> shrs {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_shrs", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_and(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> and {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_and", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_or(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> or {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_or", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_xor(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> xor {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_xor", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_sx(void *closure, __word size, __word fromsize,
 		gdrr_sem_linear_t *opnd1) {
-	printf("=> sx {size=%lu, fromsize=%lu}\n", size, fromsize);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_sx", 3,
+			java_long_create(closure, size), java_long_create(closure, fromsize),
+			(jobject)opnd1);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_zx(void *closure, __word size, __word fromsize,
 		gdrr_sem_linear_t *opnd1) {
-	printf("=> zx {size=%lu, fromsize=%lu}\n", size, fromsize);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_zx", 3,
+			java_long_create(closure, size), java_long_create(closure, fromsize),
+			(jobject)opnd1);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmpeq(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> cmpeq {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_cmpeq", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmpneq(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> cmpneq {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_cmpneq", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmples(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> cmples {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_cmples", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmpleu(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> cmpleu {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_cmpleu", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmplts(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> cmplts {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_cmplts", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_cmpltu(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	printf("=> cmpltu {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_cmpltu", 3,
+			java_long_create(closure, size), (jobject)opnd1, (jobject)opnd2);
+	return (gdrr_sem_op_t*)ret;
 }
 static gdrr_sem_op_t *sem_arb(void *closure, __word size) {
-	printf("=> arb {size=%lu}\n", size);
-	return NULL;
+	jobject ret = java_method_call(closure, "sem_arb", 1,
+			java_long_create(closure, size));
+	return (gdrr_sem_op_t*)ret;
 }
 
 // sem_branch_hint
 static gdrr_sem_branch_hint *hint_jump(void *closure) {
-	printf("==> branch_hint_jump\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "hint_jump", 0);
+	return (gdrr_sem_branch_hint*)ret;
 }
 static gdrr_sem_branch_hint *hint_call(void *closure) {
-	printf("==> branch_hint_call\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "hint_call", 0);
+	return (gdrr_sem_branch_hint*)ret;
 }
 static gdrr_sem_branch_hint *hint_ret(void *closure) {
-	printf("==> branch_hint_ret\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "hint_ret", 0);
+	return (gdrr_sem_branch_hint*)ret;
 }
 
 // sem_stmt
@@ -313,8 +346,10 @@ static gdrr_sem_stmts_t *list_init(void *closure) {
 	return NULL;
 }
 
-JNIEXPORT jobject JNICALL Java_NativeInterface_decodeAndTranslateNative(
-		JNIEnv *env, jobject obj, jbyteArray input) {
+JNIEXPORT
+jobject
+JNICALL Java_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj,
+		jbyteArray input) {
 	__char blob[15];
 	char fmt[1024];
 	__word sz = 15;
