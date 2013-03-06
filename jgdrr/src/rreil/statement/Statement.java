@@ -1,4 +1,4 @@
-package rreil;
+package rreil.statement;
 
 public abstract class Statement {
 

@@ -1,6 +1,6 @@
 package rnati;
 
-import rreil.Statement;
+import rreil.statement.Statement;
 
 public class NativeInterface {
 	public NativeInterface() {
