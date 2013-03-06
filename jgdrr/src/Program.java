@@ -1,3 +1,4 @@
+import rnati.*;
 
 public class Program {
 
@@ -9,5 +10,4 @@ public class Program {
 
 		n.decodeAndTranslate(null);
 	}
-
 }

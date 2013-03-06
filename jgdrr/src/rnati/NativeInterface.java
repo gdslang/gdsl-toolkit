@@ -1,10 +1,53 @@
+package rnati;
+
+import rreil.Statement;
+
 public class NativeInterface {
 	public NativeInterface() {
 		System.loadLibrary("jgdrr");
 	}
 
-	public RReilStatement[] decodeAndTranslate(byte[] bytes) {
-		return (RReilStatement[]) decodeAndTranslateNative(bytes);
+	public Statement[] decodeAndTranslate(byte[] bytes) {
+		return (Statement[]) decodeAndTranslateNative(bytes);
+	}
+	
+	/*
+	 * sem_id
+	 */
+	
+	private Object virt_eq() {
+		System.out.println("(j) virt_eq");
+		return null;
+	}
+	
+	private Object virt_neq() {
+		System.out.println("(j) virt_neq");
+		return null;
+	}
+	
+	private Object virt_les() {
+		System.out.println("(j) virt_les");
+		return null;
+	}
+	
+	private Object virt_leu() {
+		System.out.println("(j) virt_leu");
+		return null;
+	}
+	
+	private Object virt_lts() {
+		System.out.println("(j) virt_lts");
+		return null;
+	}
+	
+	private Object virt_ltu() {
+		System.out.println("(j) virt_ltu");
+		return null;
+	}
+	
+	private Object virt_t(Object t) {
+		System.out.println("(j) virt_t");
+		return null;
 	}
 	
 	/*
@@ -234,6 +277,20 @@ public class NativeInterface {
 
 	private Object sem_branch(Object branch_hint, Object target) {
 		System.out.println("(j) sem_branch");
+		return null;
+	}
+	
+	/*
+	 * sem_stmts
+	 */
+	
+	private Object list_next(Object next, Object list) {
+		System.out.println("(j) list_next\n");
+		return null;
+	}
+	
+	private Object list_init() {
+		System.out.println("(j) list_init");
 		return null;
 	}
 

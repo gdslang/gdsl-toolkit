@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <dis.h>
 #include <gdrr.h>
+#include "rnati_NativeInterface.h"
 
-//gcc -std=c99 -fPIC -shared -Wl,-soname,libjgdrr.so -I/usr/lib/jvm/java-6-openjdk-amd64/include -I../.. -I../../include ../../dis.o -o ../bin/libjgdrr.so NativeInterface.c ../../gdrr/Debug/libgdrr.a
+//gcc -std=c99 -fPIC -shared -Wl,-soname,libjgdrr.so -I/usr/lib/jvm/java-6-openjdk-amd64/include -I../.. -I../../include ../../dis.o -o ../bin/libjgdrr.so rnati_NativeInterface.c ../../gdrr/Debug/libgdrr.a
 //echo "48 83 ec 08" | java -Djava.library.path=. Program
 
 struct closure {
@@ -88,32 +89,33 @@ static jobject java_long_create(void *closure, long int x) {
 
 // sem_id
 static gdrr_sem_id_t *virt_eq(void *closure) {
-	printf("=> virt_eq\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "virt_eq", 0);
+	return (gdrr_sem_id_t*)ret;
 }
 static gdrr_sem_id_t *virt_neq(void *closure) {
-	printf("=> virt_neq\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "virt_neq", 0);
+	return (gdrr_sem_id_t*)ret;
 }
 static gdrr_sem_id_t *virt_les(void *closure) {
-	printf("=> virt_les\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "virt_les", 0);
+	return (gdrr_sem_id_t*)ret;
 }
 static gdrr_sem_id_t *virt_leu(void *closure) {
-	printf("=> virt_leu\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "virt_leu", 0);
+	return (gdrr_sem_id_t*)ret;
 }
 static gdrr_sem_id_t *virt_lts(void *closure) {
-	printf("=> virt_lts\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "virt_lts", 0);
+	return (gdrr_sem_id_t*)ret;
 }
 static gdrr_sem_id_t *virt_ltu(void *closure) {
-	printf("=> virt_ltu\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "virt_ltu", 0);
+	return (gdrr_sem_id_t*)ret;
 }
 static gdrr_sem_id_t *virt_t(void *closure, __word t) {
-	printf("=> id {t=%lu}\n", t);
-	return NULL;
+	jobject ret = java_method_call(closure, "virt_t", 1,
+			java_long_create(closure, (long int)t));
+	return (gdrr_sem_id_t*)ret;
 }
 
 // sem_address
@@ -360,17 +362,18 @@ static gdrr_sem_stmt_t *sem_branch(void *closure,
 // sem_stmts
 static gdrr_sem_stmts_t *list_next(void *closure, gdrr_sem_stmt_t *next,
 		gdrr_sem_stmts_t *list) {
-	printf("next statement\n\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "list_next", 2, (jobject)next,
+			(jobject)list);
+	return (gdrr_sem_stmts_t*)ret;
 }
 static gdrr_sem_stmts_t *list_init(void *closure) {
-	printf("init\n");
-	return NULL;
+	jobject ret = java_method_call(closure, "list_init", 0);
+	return (gdrr_sem_stmts_t*)ret;
 }
 
 JNIEXPORT
 jobject
-JNICALL Java_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj,
+JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj,
 		jbyteArray input) {
 	__char blob[15];
 	char fmt[1024];
