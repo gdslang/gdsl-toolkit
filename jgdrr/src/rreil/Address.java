@@ -3,13 +3,13 @@ package rreil;
 import rreil.linear.LinearExpression;
 
 public class Address {
-	private long size;
+	protected long size;
 
 	public long getSize() {
 		return size;
 	}
 
-	private LinearExpression address;
+	protected LinearExpression address;
 
 	public LinearExpression getAddress() {
 		return address;
@@ -18,5 +18,10 @@ public class Address {
 	public Address(long size, LinearExpression address) {
 		this.size = size;
 		this.address = address;
+	}
+	
+	@Override
+	public String toString() {
+		return address + ":" + size;
 	}
 }

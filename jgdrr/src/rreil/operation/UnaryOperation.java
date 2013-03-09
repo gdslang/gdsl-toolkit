@@ -3,7 +3,7 @@ package rreil.operation;
 import rreil.linear.LinearExpression;
 
 public abstract class UnaryOperation extends Operation {
-	private LinearExpression operand1;
+	protected LinearExpression operand1;
 
 	public LinearExpression getOperand1() {
 		return operand1;

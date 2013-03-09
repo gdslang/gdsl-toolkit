@@ -1,7 +1,7 @@
 package rreil.operation;
 
 public abstract class Operation {
-	private long size;
+	protected long size;
 
 	public long getSize() {
 		return size;

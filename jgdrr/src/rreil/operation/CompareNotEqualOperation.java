@@ -8,4 +8,8 @@ public class CompareNotEqualOperation extends BinaryOperation {
 			LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}
+	
+	public String toString() {
+		return operand1 + " !=:" + size + " + operand2";
+	}
 }

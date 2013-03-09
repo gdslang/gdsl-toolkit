@@ -3,13 +3,13 @@ package rreil.operation;
 import rreil.linear.LinearExpression;
 
 public abstract class ExtendOperation extends Operation {
-	private long fromsize;
+	protected long fromsize;
 
 	public long getfromsize() {
 		return fromsize;
 	}
 
-	private LinearExpression operand1;
+	protected LinearExpression operand1;
 
 	public LinearExpression getOperand1() {
 		return operand1;
@@ -20,5 +20,11 @@ public abstract class ExtendOperation extends Operation {
 
 		this.fromsize = fromsize;
 		this.operand1 = operand1;
+	}
+	
+	public abstract String getSignedUnsignedString();
+	
+	public String toString() {
+		return getSignedUnsignedString() + "x:[" + fromsize + "=>" + size + "] " + operand1;
 	}
 }

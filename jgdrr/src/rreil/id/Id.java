@@ -1,5 +1,5 @@
 package rreil.id;
 
-public class Id {
+public abstract class Id {
 
 }

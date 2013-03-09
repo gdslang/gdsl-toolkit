@@ -1,7 +1,7 @@
 package rreil.linear;
 
 public class LinearImmediateExpression extends LinearExpression {
-	private long immediate;
+	protected long immediate;
 	
 	public long getImmediate() {
 		return immediate;
@@ -9,5 +9,10 @@ public class LinearImmediateExpression extends LinearExpression {
 	
 	public LinearImmediateExpression(long immediate) {
 		this.immediate = immediate;
+	}
+	
+	@Override
+	public String toString() {
+		return Long.toString(immediate);
 	}
 }

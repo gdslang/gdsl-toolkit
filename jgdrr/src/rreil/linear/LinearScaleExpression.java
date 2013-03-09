@@ -1,13 +1,13 @@
 package rreil.linear;
 
 public class LinearScaleExpression extends LinearExpression {
-	private long immediate;
+	protected long immediate;
 	
 	public long getImmediate() {
 		return immediate;
 	}
 	
-	private LinearExpression operand;
+	protected LinearExpression operand;
 	
 	public LinearExpression getOperand1() {
 		return operand;
@@ -16,5 +16,10 @@ public class LinearScaleExpression extends LinearExpression {
 	public LinearScaleExpression(long immediate, LinearExpression operand) {
 		this.immediate = immediate;
 		this.operand = operand;
+	}
+	
+	@Override
+	public String toString() {
+		return immediate + "*" + operand;
 	}
 }

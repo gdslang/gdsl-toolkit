@@ -8,4 +8,8 @@ public class DivisionOperation extends BinaryOperation {
 			LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}
+	
+	public String toString() {
+		return operand1 + " /u:" + size + " + operand2";
+	}
 }

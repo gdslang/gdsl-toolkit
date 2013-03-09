@@ -8,4 +8,9 @@ public class SignedDivisionOperation extends BinaryOperation {
 			LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}
+	
+	@Override
+	public String toString() {
+		return operand1 + " /s:" + size + " + operand2";
+	}
 }

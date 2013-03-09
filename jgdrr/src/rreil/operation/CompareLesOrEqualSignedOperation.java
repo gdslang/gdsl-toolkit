@@ -8,4 +8,8 @@ public class CompareLesOrEqualSignedOperation extends BinaryOperation {
 			LinearExpression operand1, LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}
+	
+	public String toString() {
+		return operand1 + " <=s:" + size + " + operand2";
+	}
 }

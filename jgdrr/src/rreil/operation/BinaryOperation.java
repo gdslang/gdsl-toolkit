@@ -3,13 +3,13 @@ package rreil.operation;
 import rreil.linear.LinearExpression;
 
 public abstract class BinaryOperation extends Operation {
-	private LinearExpression operand1;
+	protected LinearExpression operand1;
 
 	public LinearExpression getOperand1() {
 		return operand1;
 	}
 
-	private LinearExpression operand2;
+	protected LinearExpression operand2;
 
 	public LinearExpression getOperand2() {
 		return operand2;

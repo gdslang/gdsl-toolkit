@@ -1,7 +1,7 @@
 package rreil.id;
 
 public class VirtualTemporaryId extends Id {
-	private long id;
+	protected long id;
 
 	public long getId() {
 		return id;
@@ -9,5 +9,10 @@ public class VirtualTemporaryId extends Id {
 
 	public VirtualTemporaryId(long id) {
 		this.id = id;
+	}
+	
+	@Override
+	public String toString() {
+		return "t" + id;
 	}
 }

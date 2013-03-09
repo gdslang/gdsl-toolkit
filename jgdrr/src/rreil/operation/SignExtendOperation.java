@@ -8,4 +8,9 @@ public class SignExtendOperation extends ExtendOperation {
 			LinearExpression operand1) {
 		super(size, fromsize, operand1);
 	}
+
+	@Override
+	public String getSignedUnsignedString() {
+		return "s";
+	}
 }

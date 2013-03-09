@@ -6,4 +6,9 @@ public class LinearAdditionExpression extends LinearBinaryExpression {
 			LinearExpression operand2) {
 		super(operand1, operand2);
 	}
+
+	@Override
+	protected String getOperatorString() {
+		return "+";
+	}
 }

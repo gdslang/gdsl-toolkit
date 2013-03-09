@@ -7,4 +7,8 @@ public class LinearSubtractionExpression extends LinearBinaryExpression {
 		super(operand1, operand2);
 	}
 
+	@Override
+	protected String getOperatorString() {
+		return "-";
+	}
 }
