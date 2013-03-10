@@ -11,6 +11,6 @@ public class ShiftRightSignedOperation extends BinaryOperation {
 	
 	@Override
 	public String toString() {
-		return operand1 + " >>s:" + size + "  " + operand2;
+		return operand1 + " >>s:" + size + " " + operand2;
 	}
 }

@@ -117,6 +117,10 @@ static gdrr_sem_id_t *virt_t(void *closure, __word t) {
 			java_long_create(closure, (long int)t));
 	return (gdrr_sem_id_t*)ret;
 }
+static gdrr_sem_id_t *sem_sp(void *closure) {
+	jobject ret = java_method_call(closure, "sem_sp", 0);
+	return (gdrr_sem_id_t*)ret;
+}
 
 // sem_address
 static gdrr_sem_address_t *sem_address(void *closure, __word size,
@@ -373,8 +377,8 @@ static gdrr_sem_stmts_t *list_init(void *closure) {
 
 JNIEXPORT
 jobject
-JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj,
-		jbyteArray input) {
+JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
+		jobject obj, jbyteArray input) {
 	__char blob[15];
 	char fmt[1024];
 	__word sz = 15;
@@ -397,13 +401,16 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 		//__pretty(__pretty__, insn, fmt, 1024);
 		puts(fmt);
 
-		//printf("---------------------------\n");
+		printf("---------------------------\n");
 
 		__obj r = __translate(__translate__, insn);
 		if(___isNil(r))
 			__fatal("translate failed");
 		else {
-			//__pretty(__rreil_pretty__, r, fmt, 1024);
+			__pretty(__rreil_pretty__, r, fmt, 1024);
+
+			printf("---------------------------\n");
+
 			puts(fmt);
 
 			struct gdrr_config config;
@@ -415,6 +422,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			config.callbacks.sem_id.virt_lts = &virt_lts;
 			config.callbacks.sem_id.virt_ltu = &virt_ltu;
 			config.callbacks.sem_id.virt_t = &virt_t;
+			config.callbacks.arch.x86.sem_id.sem_sp = &sem_sp;
 
 			config.callbacks.sem_address.sem_address = &sem_address;
 

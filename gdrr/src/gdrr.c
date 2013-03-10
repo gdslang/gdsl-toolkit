@@ -9,7 +9,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <dis.h>
-#include "gdrr.h"
+#include <gdrr.h>
+#include <x86.h>
 
 static gdrr_sem_id_t *gdrr_convert_sem_id(__obj sem_id_obj,
 		struct gdrr_config *config);
@@ -65,6 +66,10 @@ static gdrr_sem_id_t *gdrr_convert_sem_id(__obj sem_id_obj,
 			__obj this = __DECON(sem_id_obj);
 			sem_id = config->callbacks.sem_id.virt_t(config->closure,
 					__CASETAGINT(this));
+			break;
+		}
+		default: {
+			sem_id = gdrr_convert_sem_id_x86(sem_id_obj, config);
 			break;
 		}
 	}

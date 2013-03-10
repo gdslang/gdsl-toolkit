@@ -10,6 +10,6 @@ public class DivisionOperation extends BinaryOperation {
 	}
 	
 	public String toString() {
-		return operand1 + " /u:" + size + "  " + operand2;
+		return operand1 + " /u:" + size + " " + operand2;
 	}
 }

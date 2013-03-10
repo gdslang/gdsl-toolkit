@@ -22,6 +22,6 @@ public abstract class LinearBinaryExpression extends LinearExpression {
 	
 	@Override
 	public String toString() {
-		return "(" + operand1 + " " + getOperatorString() + " " + ")";
+		return "(" + operand1 + " " + getOperatorString() + " " + operand2 + ")";
 	}
 }

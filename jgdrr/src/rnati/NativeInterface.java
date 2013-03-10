@@ -54,6 +54,10 @@ public class NativeInterface {
 	private Object virt_t(Object t) {
 		return builder.virt_t((Long) t);
 	}
+	
+	private Object sem_sp() {
+		return builder.sem_sp();
+	}
 
 	/*
 	 * sem_address

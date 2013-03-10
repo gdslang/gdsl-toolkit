@@ -9,6 +9,8 @@ import rreil.id.VirtualLessOrEqualUnsignedId;
 import rreil.id.VirtualLessSignedId;
 import rreil.id.VirtualLessUnsignedId;
 import rreil.id.VirtualTemporaryId;
+import rreil.id.x86.X86Register;
+import rreil.id.x86.X86RegisterId;
 import rreil.linear.ILinearExpression;
 import rreil.linear.LinearAdditionExpression;
 import rreil.linear.LinearExpression;
@@ -87,6 +89,11 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	@Override
 	public Id virt_t(long t) {
 		return new VirtualTemporaryId(t);
+	}
+	
+	@Override
+	public IId sem_sp() {
+		return new X86RegisterId(X86Register.SP);
 	}
 
 	/*

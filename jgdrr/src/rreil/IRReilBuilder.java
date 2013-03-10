@@ -23,6 +23,8 @@ public interface IRReilBuilder {
 	IId virt_ltu();
 
 	IId virt_t(long t);
+	
+	IId sem_sp();
 
 	/*
 	 * sem_address

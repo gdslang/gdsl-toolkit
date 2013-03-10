@@ -15,7 +15,7 @@ public class Variable implements IVariable {
 		return offset;
 	}
 
-	public Variable(Id id, long offset) {
+	public Variable(Id id, long offset) {		
 		this.id = id;
 		this.offset = offset;
 	}
