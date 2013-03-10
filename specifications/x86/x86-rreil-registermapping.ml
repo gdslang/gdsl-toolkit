@@ -257,7 +257,6 @@ val arch-show-id r = case r of
    | Sem_MM5 : "MM5"
    | Sem_MM6 : "MM6"
    | Sem_MM7 : "MM7"
-   | Sem_MM8 : "MM8"
    | Sem_XMM0 : "XMM0"
    | Sem_XMM1 : "XMM1"
    | Sem_XMM2 : "XMM2"
