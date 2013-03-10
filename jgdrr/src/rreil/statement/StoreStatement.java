@@ -20,4 +20,9 @@ public class StoreStatement extends Statement {
 		this.address = address;
 		this.rhs = rhs;
 	}
+	
+	@Override
+	public String toString() {
+		return "*" + address + " = " + rhs;
+	}
 }

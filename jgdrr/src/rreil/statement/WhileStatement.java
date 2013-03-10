@@ -20,4 +20,14 @@ public class WhileStatement extends Statement {
 	public WhileStatement(LinearExpression condition, ArrayList<Statement> body) {
 		this.body = body;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("while(" + condition + ") {\n");
+		for (int i = 0; i < body.size(); i++)
+			builder.append(body.get(i) + "\n");
+		builder.append("}");
+		return builder.toString();
+	}
 }

@@ -27,4 +27,9 @@ public class LoadStatement extends Statement {
 		this.size = size;
 		this.address = address;
 	}
+
+	@Override
+	public String toString() {
+		return lhs + " =: " + size + " *" + address;
+	}
 }

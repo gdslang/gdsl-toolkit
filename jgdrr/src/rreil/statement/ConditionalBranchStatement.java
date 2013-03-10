@@ -28,4 +28,10 @@ public class ConditionalBranchStatement extends Statement {
 		this.targetTrue = targetTrue;
 		this.targetFalse = targetFalse;
 	}
+
+	@Override
+	public String toString() {
+		return "if(" + condition + ") goto " + targetTrue + "; else goto "
+				+ targetFalse + ";";
+	}
 }
