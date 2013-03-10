@@ -10,6 +10,6 @@ public class CompareLessSignedOperation extends BinaryOperation {
 	}
 	
 	public String toString() {
-		return operand1 + " <s:" + size + " + operand2";
+		return operand1 + " <s:" + size + "  " + operand2;
 	}
 }

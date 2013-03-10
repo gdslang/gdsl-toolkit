@@ -1,71 +1,74 @@
 package rnati;
 
-import rreil.statement.Statement;
+import rreil.IAddress;
+import rreil.IBranchHint;
+import rreil.IRReilBuilder;
+import rreil.IRReilCollection;
+import rreil.IVariable;
+import rreil.id.IId;
+import rreil.linear.ILinearExpression;
+import rreil.operation.IOperation;
+import rreil.statement.IStatement;
 
 public class NativeInterface {
-	public NativeInterface() {
+	private IRReilBuilder builder;
+
+	public NativeInterface(IRReilBuilder builder) {
 		System.loadLibrary("jgdrr");
+
+		this.builder = builder;
 	}
 
-	public Statement[] decodeAndTranslate(byte[] bytes) {
-		return (Statement[]) decodeAndTranslateNative(bytes);
+	public IRReilCollection decodeAndTranslate(byte[] bytes) {
+		return (IRReilCollection)decodeAndTranslateNative(bytes);
 	}
-	
+
 	/*
 	 * sem_id
 	 */
-	
+
 	private Object virt_eq() {
-		System.out.println("(j) virt_eq");
-		return null;
+		return builder.virt_eq();
 	}
-	
+
 	private Object virt_neq() {
-		System.out.println("(j) virt_neq");
-		return null;
+		return builder.virt_neq();
 	}
-	
+
 	private Object virt_les() {
-		System.out.println("(j) virt_les");
-		return null;
+		return builder.virt_les();
 	}
-	
+
 	private Object virt_leu() {
-		System.out.println("(j) virt_leu");
-		return null;
+		return builder.virt_leu();
 	}
-	
+
 	private Object virt_lts() {
-		System.out.println("(j) virt_lts");
-		return null;
+		return builder.virt_lts();
 	}
-	
+
 	private Object virt_ltu() {
-		System.out.println("(j) virt_ltu");
-		return null;
+		return builder.virt_ltu();
 	}
-	
+
 	private Object virt_t(Object t) {
-		System.out.println("(j) virt_t");
-		return null;
+		return builder.virt_t((Long) t);
 	}
-	
+
 	/*
 	 * sem_address
 	 */
-	
+
 	private Object sem_address(Object size, Object address) {
-		System.out.println("(j) sem_address");
-		return null;
+		return builder.sem_address((Long) size, (ILinearExpression) address);
 	}
-	
+
 	/*
 	 * sem_var
 	 */
-	
+
 	private Object sem_var(Object id, Object offset) {
-		System.out.println("(j) sem_var");
-		return null;
+		return builder.sem_var((IId) id, (Long) offset);
 	}
 
 	/*
@@ -73,28 +76,25 @@ public class NativeInterface {
 	 */
 
 	private Object sem_lin_var(Object _this) {
-		System.out.println("(j) sem_lin_var");
-		return null;
+		return builder.sem_lin_var((IVariable) _this);
 	}
 
 	private Object sem_lin_imm(Object imm) {
-		System.out.println("(j) sem_lin_imm");
-		return null;
+		return builder.sem_lin_imm((Long) imm);
 	}
 
 	private Object sem_lin_add(Object opnd1, Object opnd2) {
-		System.out.println("(j) sem_lin_add");
-		return null;
+		return builder.sem_lin_add((ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_lin_sub(Object opnd1, Object opnd2) {
-		System.out.println("(j) sem_lin_sub");
-		return null;
+		return builder.sem_lin_sub((ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_lin_scale(Object imm, Object opnd) {
-		System.out.println("(j) sem_lin_scale");
-		return null;
+		return builder.sem_lin_scale((Long) imm, (ILinearExpression) opnd);
 	}
 
 	/*
@@ -102,123 +102,101 @@ public class NativeInterface {
 	 */
 
 	private Object sem_lin(Object size, Object opnd1) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_lin {size=" + longSize + "}");
-		return null;
+		return builder.sem_lin((Long) size, (ILinearExpression) opnd1);
 	}
 
 	private Object sem_mul(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_mul {size=" + longSize + "}");
-		return null;
+		return builder.sem_mul((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_div(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_div {size=" + longSize + "}");
-		return null;
+		return builder.sem_div((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_divs(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_divs {size=" + longSize + "}");
-		return null;
+		return builder.sem_divs((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_mod(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_mod {size=" + longSize + "}");
-		return null;
+		return builder.sem_mod((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_shl(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_shl {size=" + longSize + "}");
-		return null;
+		return builder.sem_shl((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_shr(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_shr {size=" + longSize + "}");
-		return null;
+		return builder.sem_shr((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_shrs(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_shrs {size=" + longSize + "}");
-		return null;
+		return builder.sem_shrs((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_and(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_and {size=" + longSize + "}");
-		return null;
+		return builder.sem_and((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_or(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_or {size=" + longSize + "}");
-		return null;
+		return builder.sem_or((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_xor(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_xor {size=" + longSize + "}");
-		return null;
+		return builder.sem_xor((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_sx(Object size, Object fromsize, Object opnd1) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_sx {size=" + longSize + "}");
-		return null;
+		return builder.sem_sx((Long) size, (Long) fromsize,
+				(ILinearExpression) opnd1);
 	}
 
 	private Object sem_zx(Object size, Object fromsize, Object opnd1) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_zx {size=" + longSize + "}");
-		return null;
+		return builder.sem_zx((Long) size, (Long) fromsize,
+				(ILinearExpression) opnd1);
 	}
 
 	private Object sem_cmpeq(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_cmpeq {size=" + longSize + "}");
-		return null;
+		return builder.sem_cmpeq((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_cmpneq(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_cmpneq {size=" + longSize + "}");
-		return null;
+		return builder.sem_cmpneq((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_cmples(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_cmples {size=" + longSize + "}");
-		return null;
+		return builder.sem_cmples((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_cmpleu(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_cmpleu {size=" + longSize + "}");
-		return null;
+		return builder.sem_cmpleu((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_cmplts(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_cmplts {size=" + longSize + "}");
-		return null;
+		return builder.sem_cmplts((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_cmpltu(Object size, Object opnd1, Object opnd2) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_cmpltu {size=" + longSize + "}");
-		return null;
+		return builder.sem_cmpltu((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
 	}
 
 	private Object sem_arb(Object size) {
-		Long longSize = (Long) size;
-		System.out.println("(j) sem_arb {size=" + longSize + "}");
-		return null;
+		return builder.sem_arb((Long) size);
 	}
 
 	/*
@@ -226,18 +204,15 @@ public class NativeInterface {
 	 */
 
 	private Object hint_jump() {
-		System.out.println("(j) hint_jump");
-		return null;
+		return builder.hint_jump();
 	}
 
 	private Object hint_call() {
-		System.out.println("(j) hint_call");
-		return null;
+		return builder.hint_call();
 	}
 
 	private Object hint_ret() {
-		System.out.println("(j) hint_ret");
-		return null;
+		return builder.hint_ret();
 	}
 
 	/*
@@ -245,53 +220,48 @@ public class NativeInterface {
 	 */
 
 	private Object sem_assign(Object lhs, Object rhs) {
-		System.out.println("(j) sem_assign");
-		return null;
+		return builder.sem_assign((IVariable) lhs, (IOperation) rhs);
 	}
 
 	private Object sem_load(Object lhs, Object size, Object address) {
-		System.out.println("(j) sem_load");
-		return null;
+		return builder.sem_load((IVariable) lhs, (Long) size,
+				(IAddress) address);
 	}
 
 	private Object sem_store(Object lhs, Object rhs) {
-		System.out.println("(j) sem_store");
-		return null;
+		return builder.sem_store((IAddress) lhs, (IOperation) rhs);
 	}
 
 	private Object sem_ite(Object cond, Object then_branch, Object else_branch) {
-		System.out.println("(j) sem_ite");
-		return null;
+		return builder.sem_ite((ILinearExpression) cond,
+				(IRReilCollection) then_branch, (IRReilCollection) else_branch);
 	}
 
 	private Object sem_while(Object cond, Object body) {
-		System.out.println("(j) sem_while");
-		return null;
+		return builder.sem_while((ILinearExpression) cond,
+				(IRReilCollection) body);
 	}
 
 	private Object sem_cbranch(Object cond, Object target_true,
 			Object target_false) {
-		System.out.println("(j) sem_cbranch");
-		return null;
+		return builder.sem_cbranch((ILinearExpression) cond,
+				(IAddress) target_true, (IAddress) target_false);
 	}
 
 	private Object sem_branch(Object branch_hint, Object target) {
-		System.out.println("(j) sem_branch");
-		return null;
+		return builder.sem_branch((IBranchHint) branch_hint, (IAddress) target);
 	}
-	
+
 	/*
 	 * sem_stmts
 	 */
-	
+
 	private Object list_next(Object next, Object list) {
-		System.out.println("(j) list_next\n");
-		return null;
+		return builder.list_next((IStatement) next, (IRReilCollection) list);
 	}
-	
+
 	private Object list_init() {
-		System.out.println("(j) list_init");
-		return null;
+		return builder.list_init();
 	}
 
 	private native Object decodeAndTranslateNative(byte[] bytes);

@@ -2,7 +2,7 @@ package rreil;
 
 import rreil.linear.LinearExpression;
 
-public class Address {
+public class Address implements IAddress {
 	protected long size;
 
 	public long getSize() {

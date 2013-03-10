@@ -1,6 +1,6 @@
 package rreil.operation;
 
-public abstract class Operation {
+public abstract class Operation implements IOperation {
 	protected long size;
 
 	public long getSize() {

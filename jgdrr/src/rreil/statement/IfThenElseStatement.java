@@ -1,7 +1,6 @@
 package rreil.statement;
 
-import java.util.ArrayList;
-
+import rreil.DefaultRReilCollection;
 import rreil.linear.LinearExpression;
 
 public class IfThenElseStatement extends Statement {
@@ -11,20 +10,20 @@ public class IfThenElseStatement extends Statement {
 		return condition;
 	}
 
-	protected ArrayList<Statement> thenBranch;
+	protected DefaultRReilCollection thenBranch;
 
-	public ArrayList<Statement> getThenBranch() {
+	public DefaultRReilCollection getThenBranch() {
 		return thenBranch;
 	}
 
-	protected ArrayList<Statement> elseBranch;
+	protected DefaultRReilCollection elseBranch;
 
-	public ArrayList<Statement> getElseBranch() {
+	public DefaultRReilCollection getElseBranch() {
 		return elseBranch;
 	}
 
 	public IfThenElseStatement(LinearExpression condition,
-			ArrayList<Statement> thenBranch, ArrayList<Statement> elseBranch) {
+			DefaultRReilCollection thenBranch, DefaultRReilCollection elseBranch) {
 		this.condition = condition;
 		this.thenBranch = thenBranch;
 		this.elseBranch = elseBranch;

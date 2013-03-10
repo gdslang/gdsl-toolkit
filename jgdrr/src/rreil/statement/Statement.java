@@ -1,5 +1,5 @@
 package rreil.statement;
 
-public abstract class Statement {
+public abstract class Statement implements IStatement {
 
 }

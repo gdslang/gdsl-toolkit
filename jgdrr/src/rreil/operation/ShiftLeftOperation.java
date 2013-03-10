@@ -11,6 +11,6 @@ public class ShiftLeftOperation extends BinaryOperation {
 	
 	@Override
 	public String toString() {
-		return operand1 + " <<:" + size + " + operand2";
+		return operand1 + " <<:" + size + "  " + operand2;
 	}
 }

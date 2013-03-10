@@ -1,5 +1,5 @@
 package rreil.linear;
 
-public abstract class LinearExpression {
+public abstract class LinearExpression implements ILinearExpression {
 
 }

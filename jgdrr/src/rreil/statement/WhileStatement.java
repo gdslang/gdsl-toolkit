@@ -1,7 +1,6 @@
 package rreil.statement;
 
-import java.util.ArrayList;
-
+import rreil.DefaultRReilCollection;
 import rreil.linear.LinearExpression;
 
 public class WhileStatement extends Statement {
@@ -11,13 +10,14 @@ public class WhileStatement extends Statement {
 		return condition;
 	}
 
-	protected ArrayList<Statement> body;
+	protected DefaultRReilCollection body;
 
-	public ArrayList<Statement> getBody() {
+	public DefaultRReilCollection getBody() {
 		return body;
 	}
 
-	public WhileStatement(LinearExpression condition, ArrayList<Statement> body) {
+	public WhileStatement(LinearExpression condition,
+			DefaultRReilCollection body) {
 		this.body = body;
 	}
 

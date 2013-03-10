@@ -1,5 +1,5 @@
 package rreil;
 
-public enum BranchHint {
+public enum BranchHint implements IBranchHint {
 	JUMP, CALL, RET
 }

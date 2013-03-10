@@ -394,16 +394,16 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 	if(___isNil(insn))
 		__fatal("decode failed");
 	else {
-		__pretty(__pretty__, insn, fmt, 1024);
+		//__pretty(__pretty__, insn, fmt, 1024);
 		puts(fmt);
 
-		printf("---------------------------\n");
+		//printf("---------------------------\n");
 
 		__obj r = __translate(__translate__, insn);
 		if(___isNil(r))
 			__fatal("translate failed");
 		else {
-			__pretty(__rreil_pretty__, r, fmt, 1024);
+			//__pretty(__rreil_pretty__, r, fmt, 1024);
 			puts(fmt);
 
 			struct gdrr_config config;
