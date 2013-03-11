@@ -90,10 +90,290 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public Id virt_t(long t) {
 		return new VirtualTemporaryId(t);
 	}
-	
+
+	@Override
+	public IId sem_ip() {
+		return new X86RegisterId(X86Register.IP);
+	}
+
+	@Override
+	public IId sem_flags() {
+		return new X86RegisterId(X86Register.FLAGS);
+	}
+
+	@Override
+	public IId sem_mxcsr() {
+		return new X86RegisterId(X86Register.MXCSR);
+	}
+
+	@Override
+	public IId sem_ax() {
+		return new X86RegisterId(X86Register.AX);
+	}
+
+	@Override
+	public IId sem_bx() {
+		return new X86RegisterId(X86Register.BX);
+	}
+
+	@Override
+	public IId sem_cx() {
+		return new X86RegisterId(X86Register.CX);
+	}
+
+	@Override
+	public IId sem_dx() {
+		return new X86RegisterId(X86Register.DX);
+	}
+
+	@Override
+	public IId sem_si() {
+		return new X86RegisterId(X86Register.SI);
+	}
+
+	@Override
+	public IId sem_di() {
+		return new X86RegisterId(X86Register.DI);
+	}
+
 	@Override
 	public IId sem_sp() {
 		return new X86RegisterId(X86Register.SP);
+	}
+
+	@Override
+	public IId sem_bp() {
+		return new X86RegisterId(X86Register.BP);
+	}
+
+	@Override
+	public IId sem_r8() {
+		return new X86RegisterId(X86Register.R8);
+	}
+
+	@Override
+	public IId sem_r9() {
+		return new X86RegisterId(X86Register.R9);
+	}
+
+	@Override
+	public IId sem_r10() {
+		return new X86RegisterId(X86Register.R10);
+	}
+
+	@Override
+	public IId sem_r11() {
+		return new X86RegisterId(X86Register.R11);
+	}
+
+	@Override
+	public IId sem_r12() {
+		return new X86RegisterId(X86Register.R12);
+	}
+
+	@Override
+	public IId sem_r13() {
+		return new X86RegisterId(X86Register.R13);
+	}
+
+	@Override
+	public IId sem_r14() {
+		return new X86RegisterId(X86Register.R14);
+	}
+
+	@Override
+	public IId sem_r15() {
+		return new X86RegisterId(X86Register.R15);
+	}
+
+	@Override
+	public IId sem_cs() {
+		return new X86RegisterId(X86Register.CS);
+	}
+
+	@Override
+	public IId sem_ds() {
+		return new X86RegisterId(X86Register.DS);
+	}
+
+	@Override
+	public IId sem_ss() {
+		return new X86RegisterId(X86Register.SS);
+	}
+
+	@Override
+	public IId sem_es() {
+		return new X86RegisterId(X86Register.ES);
+	}
+
+	@Override
+	public IId sem_fs() {
+		return new X86RegisterId(X86Register.FS);
+	}
+
+	@Override
+	public IId sem_gs() {
+		return new X86RegisterId(X86Register.GS);
+	}
+
+	@Override
+	public IId sem_st0() {
+		return new X86RegisterId(X86Register.ST0);
+	}
+
+	@Override
+	public IId sem_st1() {
+		return new X86RegisterId(X86Register.ST1);
+	}
+
+	@Override
+	public IId sem_st2() {
+		return new X86RegisterId(X86Register.ST2);
+	}
+
+	@Override
+	public IId sem_st3() {
+		return new X86RegisterId(X86Register.ST3);
+	}
+
+	@Override
+	public IId sem_st4() {
+		return new X86RegisterId(X86Register.ST4);
+	}
+
+	@Override
+	public IId sem_st5() {
+		return new X86RegisterId(X86Register.ST5);
+	}
+
+	@Override
+	public IId sem_st6() {
+		return new X86RegisterId(X86Register.ST6);
+	}
+
+	@Override
+	public IId sem_st7() {
+		return new X86RegisterId(X86Register.ST7);
+	}
+
+	@Override
+	public IId sem_mm0() {
+		return new X86RegisterId(X86Register.MM0);
+	}
+
+	@Override
+	public IId sem_mm1() {
+		return new X86RegisterId(X86Register.MM1);
+	}
+
+	@Override
+	public IId sem_mm2() {
+		return new X86RegisterId(X86Register.MM2);
+	}
+
+	@Override
+	public IId sem_mm3() {
+		return new X86RegisterId(X86Register.MM3);
+	}
+
+	@Override
+	public IId sem_mm4() {
+		return new X86RegisterId(X86Register.MM4);
+	}
+
+	@Override
+	public IId sem_mm5() {
+		return new X86RegisterId(X86Register.MM5);
+	}
+
+	@Override
+	public IId sem_mm6() {
+		return new X86RegisterId(X86Register.MM6);
+	}
+
+	@Override
+	public IId sem_mm7() {
+		return new X86RegisterId(X86Register.MM7);
+	}
+
+	@Override
+	public IId sem_xmm0() {
+		return new X86RegisterId(X86Register.XMM0);
+	}
+
+	@Override
+	public IId sem_xmm1() {
+		return new X86RegisterId(X86Register.XMM1);
+	}
+
+	@Override
+	public IId sem_xmm2() {
+		return new X86RegisterId(X86Register.XMM2);
+	}
+
+	@Override
+	public IId sem_xmm3() {
+		return new X86RegisterId(X86Register.XMM3);
+	}
+
+	@Override
+	public IId sem_xmm4() {
+		return new X86RegisterId(X86Register.XMM4);
+	}
+
+	@Override
+	public IId sem_xmm5() {
+		return new X86RegisterId(X86Register.XMM5);
+	}
+
+	@Override
+	public IId sem_xmm6() {
+		return new X86RegisterId(X86Register.XMM6);
+	}
+
+	@Override
+	public IId sem_xmm7() {
+		return new X86RegisterId(X86Register.XMM7);
+	}
+
+	@Override
+	public IId sem_xmm8() {
+		return new X86RegisterId(X86Register.XMM8);
+	}
+
+	@Override
+	public IId sem_xmm9() {
+		return new X86RegisterId(X86Register.XMM9);
+	}
+
+	@Override
+	public IId sem_xmm10() {
+		return new X86RegisterId(X86Register.XMM10);
+	}
+
+	@Override
+	public IId sem_xmm11() {
+		return new X86RegisterId(X86Register.XMM11);
+	}
+
+	@Override
+	public IId sem_xmm12() {
+		return new X86RegisterId(X86Register.XMM12);
+	}
+
+	@Override
+	public IId sem_xmm13() {
+		return new X86RegisterId(X86Register.XMM13);
+	}
+
+	@Override
+	public IId sem_xmm14() {
+		return new X86RegisterId(X86Register.XMM14);
+	}
+
+	@Override
+	public IId sem_xmm15() {
+		return new X86RegisterId(X86Register.XMM15);
 	}
 
 	/*

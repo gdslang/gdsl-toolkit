@@ -20,7 +20,7 @@ public class NativeInterface {
 	}
 
 	public IRReilCollection decodeAndTranslate(byte[] bytes) {
-		return (IRReilCollection)decodeAndTranslateNative(bytes);
+		return (IRReilCollection) decodeAndTranslateNative(bytes);
 	}
 
 	/*
@@ -54,9 +54,233 @@ public class NativeInterface {
 	private Object virt_t(Object t) {
 		return builder.virt_t((Long) t);
 	}
-	
+
+	private Object sem_ip() {
+		return builder.sem_ip();
+	}
+
+	private Object sem_flags() {
+		return builder.sem_flags();
+	}
+
+	private Object sem_mxcsr() {
+		return builder.sem_mxcsr();
+	}
+
+	private Object sem_ax() {
+		return builder.sem_ax();
+	}
+
+	private Object sem_bx() {
+		return builder.sem_bx();
+	}
+
+	private Object sem_cx() {
+		return builder.sem_cx();
+	}
+
+	private Object sem_dx() {
+		return builder.sem_dx();
+	}
+
+	private Object sem_si() {
+		return builder.sem_si();
+	}
+
+	private Object sem_di() {
+		return builder.sem_di();
+	}
+
 	private Object sem_sp() {
 		return builder.sem_sp();
+	}
+
+	private Object sem_bp() {
+		return builder.sem_bp();
+	}
+
+	private Object sem_r8() {
+		return builder.sem_r8();
+	}
+
+	private Object sem_r9() {
+		return builder.sem_r9();
+	}
+
+	private Object sem_r10() {
+		return builder.sem_r10();
+	}
+
+	private Object sem_r11() {
+		return builder.sem_r11();
+	}
+
+	private Object sem_r12() {
+		return builder.sem_r12();
+	}
+
+	private Object sem_r13() {
+		return builder.sem_r13();
+	}
+
+	private Object sem_r14() {
+		return builder.sem_r14();
+	}
+
+	private Object sem_r15() {
+		return builder.sem_r15();
+	}
+
+	private Object sem_cs() {
+		return builder.sem_cs();
+	}
+
+	private Object sem_ds() {
+		return builder.sem_ds();
+	}
+
+	private Object sem_ss() {
+		return builder.sem_ss();
+	}
+
+	private Object sem_es() {
+		return builder.sem_es();
+	}
+
+	private Object sem_fs() {
+		return builder.sem_fs();
+	}
+
+	private Object sem_gs() {
+		return builder.sem_gs();
+	}
+
+	private Object sem_st0() {
+		return builder.sem_st0();
+	}
+
+	private Object sem_st1() {
+		return builder.sem_st1();
+	}
+
+	private Object sem_st2() {
+		return builder.sem_st2();
+	}
+
+	private Object sem_st3() {
+		return builder.sem_st3();
+	}
+
+	private Object sem_st4() {
+		return builder.sem_st4();
+	}
+
+	private Object sem_st5() {
+		return builder.sem_st5();
+	}
+
+	private Object sem_st6() {
+		return builder.sem_st6();
+	}
+
+	private Object sem_st7() {
+		return builder.sem_st7();
+	}
+
+	private Object sem_mm0() {
+		return builder.sem_mm0();
+	}
+
+	private Object sem_mm1() {
+		return builder.sem_mm1();
+	}
+
+	private Object sem_mm2() {
+		return builder.sem_mm2();
+	}
+
+	private Object sem_mm3() {
+		return builder.sem_mm3();
+	}
+
+	private Object sem_mm4() {
+		return builder.sem_mm4();
+	}
+
+	private Object sem_mm5() {
+		return builder.sem_mm5();
+	}
+
+	private Object sem_mm6() {
+		return builder.sem_mm6();
+	}
+
+	private Object sem_mm7() {
+		return builder.sem_mm7();
+	}
+
+	private Object sem_xmm0() {
+		return builder.sem_xmm0();
+	}
+
+	private Object sem_xmm1() {
+		return builder.sem_xmm1();
+	}
+
+	private Object sem_xmm2() {
+		return builder.sem_xmm2();
+	}
+
+	private Object sem_xmm3() {
+		return builder.sem_xmm3();
+	}
+
+	private Object sem_xmm4() {
+		return builder.sem_xmm4();
+	}
+
+	private Object sem_xmm5() {
+		return builder.sem_xmm5();
+	}
+
+	private Object sem_xmm6() {
+		return builder.sem_xmm6();
+	}
+
+	private Object sem_xmm7() {
+		return builder.sem_xmm7();
+	}
+
+	private Object sem_xmm8() {
+		return builder.sem_xmm8();
+	}
+
+	private Object sem_xmm9() {
+		return builder.sem_xmm9();
+	}
+
+	private Object sem_xmm10() {
+		return builder.sem_xmm10();
+	}
+
+	private Object sem_xmm11() {
+		return builder.sem_xmm11();
+	}
+
+	private Object sem_xmm12() {
+		return builder.sem_xmm12();
+	}
+
+	private Object sem_xmm13() {
+		return builder.sem_xmm13();
+	}
+
+	private Object sem_xmm14() {
+		return builder.sem_xmm14();
+	}
+
+	private Object sem_xmm16() {
+		return builder.sem_xmm15();
 	}
 
 	/*

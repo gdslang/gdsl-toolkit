@@ -117,8 +117,232 @@ static gdrr_sem_id_t *virt_t(void *closure, __word t) {
 			java_long_create(closure, (long int)t));
 	return (gdrr_sem_id_t*)ret;
 }
+static gdrr_sem_id_t *sem_ip(void *closure) {
+	jobject ret = java_method_call(closure, "sem_ip", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_flags(void *closure) {
+	jobject ret = java_method_call(closure, "sem_flags", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mxcsr(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mxcsr", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_ax(void *closure) {
+	jobject ret = java_method_call(closure, "sem_ax", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_bx(void *closure) {
+	jobject ret = java_method_call(closure, "sem_bx", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_cx(void *closure) {
+	jobject ret = java_method_call(closure, "sem_cx", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_dx(void *closure) {
+	jobject ret = java_method_call(closure, "sem_dx", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_si(void *closure) {
+	jobject ret = java_method_call(closure, "sem_si", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_di(void *closure) {
+	jobject ret = java_method_call(closure, "sem_di", 0);
+	return (gdrr_sem_id_t*)ret;
+}
 static gdrr_sem_id_t *sem_sp(void *closure) {
 	jobject ret = java_method_call(closure, "sem_sp", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_bp(void *closure) {
+	jobject ret = java_method_call(closure, "sem_bp", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_r8(void *closure) {
+	jobject ret = java_method_call(closure, "sem_r8", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_r9(void *closure) {
+	jobject ret = java_method_call(closure, "sem_r9", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_r10(void *closure) {
+	jobject ret = java_method_call(closure, "sem_r10", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_r11(void *closure) {
+	jobject ret = java_method_call(closure, "sem_r11", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_r12(void *closure) {
+	jobject ret = java_method_call(closure, "sem_r12", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_r13(void *closure) {
+	jobject ret = java_method_call(closure, "sem_r13", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_r14(void *closure) {
+	jobject ret = java_method_call(closure, "sem_r14", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_r15(void *closure) {
+	jobject ret = java_method_call(closure, "sem_r15", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_cs(void *closure) {
+	jobject ret = java_method_call(closure, "sem_cs", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_ds(void *closure) {
+	jobject ret = java_method_call(closure, "sem_ds", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_ss(void *closure) {
+	jobject ret = java_method_call(closure, "sem_ss", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_es(void *closure) {
+	jobject ret = java_method_call(closure, "sem_es", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_fs(void *closure) {
+	jobject ret = java_method_call(closure, "sem_fs", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_gs(void *closure) {
+	jobject ret = java_method_call(closure, "sem_gs", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_st0(void *closure) {
+	jobject ret = java_method_call(closure, "sem_st0", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_st1(void *closure) {
+	jobject ret = java_method_call(closure, "sem_st1", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_st2(void *closure) {
+	jobject ret = java_method_call(closure, "sem_st2", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_st3(void *closure) {
+	jobject ret = java_method_call(closure, "sem_st3", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_st4(void *closure) {
+	jobject ret = java_method_call(closure, "sem_st4", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_st5(void *closure) {
+	jobject ret = java_method_call(closure, "sem_st5", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_st6(void *closure) {
+	jobject ret = java_method_call(closure, "sem_st6", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_st7(void *closure) {
+	jobject ret = java_method_call(closure, "sem_st7", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mm0(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mm0", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mm1(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mm1", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mm2(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mm2", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mm3(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mm3", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mm4(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mm4", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mm5(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mm5", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mm6(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mm6", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_mm7(void *closure) {
+	jobject ret = java_method_call(closure, "sem_mm7", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm0(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm0", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm1(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm1", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm2(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm2", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm3(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm3", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm4(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm4", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm5(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm5", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm6(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm6", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm7(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm7", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm8(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm8", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm9(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm9", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm10(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm10", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm11(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm11", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm12(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm12", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm13(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm13", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm14(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm14", 0);
+	return (gdrr_sem_id_t*)ret;
+}
+static gdrr_sem_id_t *sem_xmm15(void *closure) {
+	jobject ret = java_method_call(closure, "sem_xmm15", 0);
 	return (gdrr_sem_id_t*)ret;
 }
 

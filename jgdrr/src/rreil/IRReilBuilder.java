@@ -23,8 +23,120 @@ public interface IRReilBuilder {
 	IId virt_ltu();
 
 	IId virt_t(long t);
-	
+
+	IId sem_ip();
+
+	IId sem_flags();
+
+	IId sem_mxcsr();
+
+	IId sem_ax();
+
+	IId sem_bx();
+
+	IId sem_cx();
+
+	IId sem_dx();
+
+	IId sem_si();
+
+	IId sem_di();
+
 	IId sem_sp();
+
+	IId sem_bp();
+
+	IId sem_r8();
+
+	IId sem_r9();
+
+	IId sem_r10();
+
+	IId sem_r11();
+
+	IId sem_r12();
+
+	IId sem_r13();
+
+	IId sem_r14();
+
+	IId sem_r15();
+
+	IId sem_cs();
+
+	IId sem_ds();
+
+	IId sem_ss();
+
+	IId sem_es();
+
+	IId sem_fs();
+
+	IId sem_gs();
+
+	IId sem_st0();
+
+	IId sem_st1();
+
+	IId sem_st2();
+
+	IId sem_st3();
+
+	IId sem_st4();
+
+	IId sem_st5();
+
+	IId sem_st6();
+
+	IId sem_st7();
+
+	IId sem_mm0();
+
+	IId sem_mm1();
+
+	IId sem_mm2();
+
+	IId sem_mm3();
+
+	IId sem_mm4();
+
+	IId sem_mm5();
+
+	IId sem_mm6();
+
+	IId sem_mm7();
+
+	IId sem_xmm0();
+
+	IId sem_xmm1();
+
+	IId sem_xmm2();
+
+	IId sem_xmm3();
+
+	IId sem_xmm4();
+
+	IId sem_xmm5();
+
+	IId sem_xmm6();
+
+	IId sem_xmm7();
+
+	IId sem_xmm8();
+
+	IId sem_xmm9();
+
+	IId sem_xmm10();
+
+	IId sem_xmm11();
+
+	IId sem_xmm12();
+
+	IId sem_xmm13();
+
+	IId sem_xmm14();
+
+	IId sem_xmm15();
 
 	/*
 	 * sem_address
@@ -143,12 +255,12 @@ public interface IRReilBuilder {
 			IAddress target_false);
 
 	IStatement sem_branch(IBranchHint branch_hint, IAddress target);
-	
+
 	/*
 	 * sem_stmts
 	 */
-	
+
 	IRReilCollection list_next(IStatement next, IRReilCollection list);
-	
+
 	IRReilCollection list_init();
 }
