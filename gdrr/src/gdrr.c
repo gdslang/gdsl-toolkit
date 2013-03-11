@@ -81,8 +81,8 @@ static gdrr_sem_var_t *gdrr_convert_sem_address(__obj sem_address_obj,
 		struct gdrr_config *config) {
 	__obj rec = __DECON(sem_address_obj);
 
-	__obj size = __RECORD_SELECT(rec, ___id);
-	__obj address = __RECORD_SELECT(rec, ___offset);
+	__obj size = __RECORD_SELECT(rec, ___size);
+	__obj address = __RECORD_SELECT(rec, ___address);
 
 	return config->callbacks.sem_address.sem_address(config->closure,
 			__CASETAGINT(size), gdrr_convert_sem_linear(address, config));

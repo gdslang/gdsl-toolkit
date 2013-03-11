@@ -23,6 +23,6 @@ public class BranchStatement extends Statement {
 	
 	@Override
 	public String toString() {
-		return "goto[" + hint + "] " + target + ";";
+		return "goto[" + hint + "] " + target;
 	}
 }

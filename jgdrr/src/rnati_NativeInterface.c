@@ -553,7 +553,7 @@ static gdrr_sem_stmt_t *sem_assign(void *closure, gdrr_sem_var_t *lhs,
 static gdrr_sem_stmt_t *sem_load(void *closure, gdrr_sem_var_t *lhs,
 		__word size, gdrr_sem_address_t *address) {
 	jobject ret = java_method_call(closure, "sem_load", 3, (jobject)lhs,
-			(jobject)size, (jobject)address);
+			java_long_create(closure, (long)size), (jobject)address);
 	return (gdrr_sem_stmt_t*)ret;
 }
 static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_var_t *lhs,
@@ -618,7 +618,11 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 		}
 		blob[i] = c & 0xff;
 	}
-	done: __decode(__decode__, blob, i, &insn);
+	done:;
+
+	__obj state = __createState(blob, i, 0, 0);
+	insn = __runMonadicNoArg(__decode__, &state);
+
 	if(___isNil(insn))
 		__fatal("decode failed");
 	else {
@@ -627,7 +631,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 
 		printf("---------------------------\n");
 
-		__obj r = __translate(__translate__, insn);
+		__obj r = __runMonadicOneArg(__translate__, &state, insn);
 		if(___isNil(r))
 			__fatal("translate failed");
 		else {

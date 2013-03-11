@@ -22,6 +22,9 @@ public class Variable implements IVariable {
 
 	@Override
 	public String toString() {
-		return id + "@" + offset;
+		if(offset > 0)
+			return id + "@" + offset;
+		else
+			return id.toString();
 	}
 }

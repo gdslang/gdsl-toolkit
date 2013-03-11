@@ -30,6 +30,6 @@ public class LoadStatement extends Statement {
 
 	@Override
 	public String toString() {
-		return lhs + " =: " + size + " *" + address;
+		return lhs + " =:" + size + " *" + address;
 	}
 }
