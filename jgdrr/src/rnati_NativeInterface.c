@@ -6,7 +6,7 @@
 #include "rnati_NativeInterface.h"
 
 //gcc -std=c99 -fPIC -shared -Wl,-soname,libjgdrr.so -I/usr/lib/jvm/java-6-openjdk-amd64/include -I../.. -I../../include ../../dis.o -o ../bin/libjgdrr.so rnati_NativeInterface.c ../../gdrr/Debug/libgdrr.a
-//echo "48 83 ec 08" | java -Djava.library.path=. Program
+//echo "48 83 ec 08" | java -ss134217728 -Djava.library.path=. Program
 
 struct closure {
 	JNIEnv *env;
@@ -603,43 +603,38 @@ JNIEXPORT
 jobject
 JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 		jobject obj, jbyteArray input) {
-	__char blob[15];
-	char fmt[1024];
-	__word sz = 15;
-	__obj insn;
-	int i, c;
-	for(i = 0; i < sz; i++) {
-		int x = fscanf(stdin, "%x", &c);
-		switch(x) {
-			case EOF:
-				goto done;
-			case 0:
-				__fatal("invalid input; should be in hex form: '0f 0b ..'");
-		}
-		blob[i] = c & 0xff;
+	if(input == NULL) {
+		jclass exp = (*env)->FindClass(env, "java/lang/IllegalArgumentException");
+		(*env)->ThrowNew(env, exp, "Input must not be null.");
+		return NULL;
 	}
-	done:;
 
-	__obj state = __createState(blob, i, 0, 0);
-	insn = __runMonadicNoArg(__decode__, &state);
+	size_t length = (*env)->GetArrayLength(env, input);
+	__char *bytes = (char*)(*env)->GetByteArrayElements(env, input, 0);
 
-	if(___isNil(insn))
-		__fatal("decode failed");
-	else {
+	__obj state = __createState(bytes, length, 0, 0);
+	__obj insn = __runMonadicNoArg(__decode__, &state);
+
+	if(1 || ___isNil(insn)) {
+		jclass exp = (*env)->FindClass(env, "rnati/ReilDecodeException");
+		(*env)->ThrowNew(env, exp, "Decode failed.");
+		return NULL;
+	} else {
 		//__pretty(__pretty__, insn, fmt, 1024);
-		puts(fmt);
+//		puts(fmt);
 
 		printf("---------------------------\n");
 
 		__obj r = __runMonadicOneArg(__translate__, &state, insn);
+
 		if(___isNil(r))
 			__fatal("translate failed");
 		else {
-			__pretty(__rreil_pretty__, r, fmt, 1024);
+//			__pretty(__rreil_pretty__, r, fmt, 2048);
 
 			printf("---------------------------\n");
 
-			puts(fmt);
+//			puts(fmt);
 
 			struct gdrr_config config;
 
