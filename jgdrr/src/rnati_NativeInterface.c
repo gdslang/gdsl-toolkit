@@ -758,5 +758,4 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 			return gdrr_convert(r, &config);
 		}
 	}
-
 }
