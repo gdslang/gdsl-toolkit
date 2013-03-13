@@ -615,25 +615,24 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 	__obj state = __createState(bytes, length, 0, 0);
 	__obj insn = __runMonadicNoArg(__decode__, &state);
 
-	if(1 || ___isNil(insn)) {
+	if(___isNil(insn)) {
 		jclass exp = (*env)->FindClass(env, "rnati/ReilDecodeException");
 		(*env)->ThrowNew(env, exp, "Decode failed.");
 		return NULL;
 	} else {
 		//__pretty(__pretty__, insn, fmt, 1024);
 //		puts(fmt);
-
-		printf("---------------------------\n");
+//		printf("---------------------------\n");
 
 		__obj r = __runMonadicOneArg(__translate__, &state, insn);
 
-		if(___isNil(r))
-			__fatal("translate failed");
-		else {
+		if(___isNil(r)) {
+			jclass exp = (*env)->FindClass(env, "rnati/RReilTranslateException");
+			(*env)->ThrowNew(env, exp, "Translate failed.");
+			return NULL;
+		} else {
 //			__pretty(__rreil_pretty__, r, fmt, 2048);
-
-			printf("---------------------------\n");
-
+//			printf("---------------------------\n");
 //			puts(fmt);
 
 			struct gdrr_config config;
@@ -756,7 +755,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 			cls.obj = obj;
 			config.closure = &cls;
 
-			gdrr_convert(r, &config);
+			return gdrr_convert(r, &config);
 		}
 	}
 
