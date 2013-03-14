@@ -141,6 +141,21 @@ __obj __ipget (__obj s) {
   return (a);
 }
 
+/**
+ * Return the index of a data constructor or zero for any other object.
+ */
+__obj __index (__obj s) {
+  __word val = 0;
+  if (__TAG(s)==__TAGGED) {
+    val = s->tagged.tag;
+  };
+  __LOCAL0(v);
+    __INT_BEGIN(v);
+    __INT_INIT(val);
+    __INT_END(v);
+  return (v);
+}
+
 __obj __concat (__obj A, __obj B) {
   __word a = A->bv.vec;
   __word b = B->bv.vec;
@@ -614,7 +629,7 @@ __obj __print (__obj o) {
       printf("{tag=__LABEL,f=%p}",o->label.f);
       break;
     case __BLOB:
-      printf("{tag=__BLOB,sz=%lu,blob=%p,idx=%lu}",(unsigned long) o->blob.sz, o->blob.blob, o->blob.idx);
+      printf("{tag=__BLOB,sz=%lu,blob=%p,idx=%lu}",(unsigned long) o->blob.sz, o->blob.blob,(unsigned long) o->blob.idx);
       break;
     case __BV:
       printf("{tag=__BV,sz=%lu,vec=%zx}",(unsigned long) o->bv.sz,(unsigned long) o->bv.vec);
