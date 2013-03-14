@@ -922,6 +922,8 @@ val sem-pmcombine-opnd avx-encoded element-size combiner mover1 mover2 opnd1 opn
   src2 <- read size opnd3;
   dst <- lval size opnd1;
 
+  println mover1;
+
   temp-src1 <- mktemp;
   mov size temp-src1 src1;
   temp-src2 <- mktemp;
