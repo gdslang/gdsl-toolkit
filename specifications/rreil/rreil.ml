@@ -109,11 +109,30 @@ val var x = SEM_LIN_VAR x
 val lin sz l = SEM_LIN {size=sz, opnd1=l}
 val address sz addr = {size=sz, address=addr}
 
+type temp_list =
+   TLIST_CONS of {hd:sem_var, tl:temp_list}
+ | TLIST_NIL
+
+val temp_id x =
+  case x of
+     VIRT_T v: v
+  end
+
 val mktemp = do
-   t <- query $tmp;
-   t' <- return (t + 1);
-   update @{tmp=t'};
-   return {id=VIRT_T t,offset=0}
+   #t <- query $tmp;
+   #t' <- return (t + 1);
+   #update @{tmp=t'};
+   #return {id=VIRT_T t,offset=0}
+   l <- query $tmp;
+   t' <- return (
+     case l of
+        TLIST_CONS x: _var (VIRT_T ((temp_id x.hd.id) + 1))
+      | TLIST_NIL: _var (VIRT_T 0)
+     end
+   );
+   l' <- return (TLIST_CONS {hd=t', tl=l});
+   update @{tmp=l'};
+   return t'
 end
 
 val mklabel = do
