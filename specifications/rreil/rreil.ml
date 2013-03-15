@@ -119,20 +119,27 @@ val temp_id x =
   end
 
 val mktemp = do
-   #t <- query $tmp;
-   #t' <- return (t + 1);
-   #update @{tmp=t'};
-   #return {id=VIRT_T t,offset=0}
-   l <- query $tmp;
-   t' <- return (
-     case l of
-        TLIST_CONS x: _var (VIRT_T ((temp_id x.hd.id) + 1))
-      | TLIST_NIL: _var (VIRT_T 0)
-     end
-   );
-   l' <- return (TLIST_CONS {hd=t', tl=l});
-   update @{tmp=l'};
-   return t'
+  #t <- query $tmp;
+  #t' <- return (t + 1);
+  #update @{tmp=t'};
+  #return {id=VIRT_T t,offset=0}
+  l <- query $tmp;
+  t' <- return (
+    case l of
+       TLIST_CONS x: _var (VIRT_T ((temp_id x.hd.id) + 1))
+     | TLIST_NIL: _var (VIRT_T 0)
+    end
+  );
+  l' <- return (TLIST_CONS {hd=t', tl=l});
+  update @{tmp=l'};
+  return t'
+end
+
+val with-subscope m = do
+  l <- query $tmp;
+  ret <- m;
+  update @{tmp=l};
+  return ret
 end
 
 val mklabel = do

@@ -359,12 +359,12 @@ val fLTU = return (_var VIRT_LTU)
 val zero = return (SEM_LIN_IMM{imm=0})
 
 val _if c _then a _else b = do
-  c <- c;
+  c <- with-subscope c;
   stack <- pop-all;
-  a;
+  with-subscope a;
   t <- pop-all;
   t <- return (rreil-stmts-rev t);
-  b;
+  with-subscope b;
   e <- pop-all;
   e <- return (rreil-stmts-rev e);
   stack-set stack;
@@ -374,6 +374,26 @@ end
 val _if c _then a = do
   _if c _then a _else (return void)
 end
+
+val _while c __ b = let
+  val eval-cond ct = do
+    cc <- c;
+    mov 1 ct cc
+  end
+in do
+  ct <- mktemp;
+  with-subscope (eval-cond ct);
+  stack <- pop-all;
+  
+  with-subscope b;
+
+  with-subscope (eval-cond ct);
+  body <- pop-all;
+  body <- return (rreil-stmts-rev body);
+
+  stack-set stack;
+  while (var ct) body
+end end
 
 val /d cond = return cond
 
@@ -448,22 +468,6 @@ val /leu sz a b = do
   t <- mktemp;
   cmpleu sz t a b;
   return (var t)
-end
-
-val _while c __ b = do
-  cc <- c;
-  ct <- mktemp;
-  mov 1 ct cc;
-  stack <- pop-all;
-  
-  b;
-  cc <- c;
-  mov 1 ct cc;
-  body <- pop-all;
-  body <- return (rreil-stmts-rev body);
-
-  stack-set stack;
-  while (var ct) body
 end
 
 val sem-a sem-cc x = do
@@ -865,7 +869,7 @@ val vector-apply size element-size monad = do
 
   let
     val f i = do
-      monad i;
+      with-subscope (monad i);
 
       if (i < (limit - 1)) then
         f (i + 1)

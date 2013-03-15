@@ -201,7 +201,7 @@ main:
 	#pblendw $42, %xmm1, %xmm2
 	#vpblendw $42, %xmm1, %xmm2, %xmm3
 
-	#pclmulqdq $1, %xmm1, %xmm2
+	pclmulqdq $1, %xmm1, %xmm2
 	#vpclmulqdq $0, %xmm1, %xmm2, %xmm3
 	#pclmulqdq $17, %xmm1, %xmm2
 	#vpclmulqdq $16, %xmm1, %xmm2, %xmm3
