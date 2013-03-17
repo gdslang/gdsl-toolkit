@@ -93,7 +93,7 @@ main:
 
 	#cdqe
 
-        add %rax, %rax
+        add (%rax), %rax
         #inc %rax
 
 	#blah:
