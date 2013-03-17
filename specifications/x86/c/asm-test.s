@@ -35,7 +35,7 @@ main:
 	#mulq (%ebx)
 
 	#movsq
-	#rep movsq
+	rep movsq
 
 	#movbeq (%rax), %rbx
 
@@ -93,7 +93,7 @@ main:
 
 	#cdqe
 
-        add (%rax), %rax
+        #add (%rax), %rax
         #inc %rax
 
 	#blah:
