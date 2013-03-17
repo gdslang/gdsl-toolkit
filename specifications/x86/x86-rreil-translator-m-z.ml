@@ -234,12 +234,14 @@ val sem-mul conv x = do
   sz <- sizeof1 x.opnd1;
 
   factor0-sem <- return (semantic-register-of (register-by-size low A sz));
-  factor0 <- expand conv (var factor0-sem) sz (sz + sz);
+
+  factor0 <- mktemp;
+  expand factor0 conv (var factor0-sem) sz (sz + sz);
 
   factor1 <- reads conv (sz + sz) x.opnd1;
 
   product <- mktemp;
-  mul (sz + sz) product factor0 factor1;
+  mul (sz + sz) product (var factor0) factor1;
 
   emit-mul-flags sz product;
 

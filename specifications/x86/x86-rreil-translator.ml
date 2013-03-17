@@ -186,10 +186,12 @@ val conv-with conv sz x =
 	       t <- mktemp;
                address <- conv-mem x;
                segmented-load x.sz t x.psz address x.segment;
-	       
-               expand expanded conv (var t) x.sz sz
+               expand expanded conv (var t) x.sz sz;
+	       return (var expanded)
 	     end
-           in do
+	   in do
+             #address <- conv-mem x;
+
 	     expanded <- mktemp;
 	     with-subscope (m expanded);
 	     return (var expanded)
