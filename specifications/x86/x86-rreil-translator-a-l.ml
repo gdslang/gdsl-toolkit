@@ -177,33 +177,45 @@ val sem-bswap x = do
   write size dst (var temp)
 end
 
-val sem-bt-complement base-sz base base-opnd shifted offset-ext = do
-  output <- mktemp;
-  #andb base-sz output (var shifted) (imm 1);
-  #shl base-sz output (var output) (var offset-ext);
-  shl base-sz output (imm 1) (var offset-ext);
-  xorb base-sz output (var output) base;
-  dst <- lval base-sz base-opnd;
-  write base-sz dst (var output)
+val sem-bt-complement base-sz base base-opnd shifted offset-ext = let
+  val sem = do
+    output <- mktemp;
+    #andb base-sz output (var shifted) (imm 1);
+    #shl base-sz output (var output) (var offset-ext);
+    shl base-sz output (imm 1) (var offset-ext);
+    xorb base-sz output (var output) base;
+    dst <- lval base-sz base-opnd;
+    write base-sz dst (var output)
+  end
+in
+  with-subscope sem
 end
 
-val sem-bt-reset base-sz base base-opnd shifted offset-ext = do
-  output <- mktemp;
-  shl base-sz output (imm 1) (var offset-ext);
-  xorb base-sz output (var output) (imm (0-1));
-  #xorb base-sz output (imm (0-1)) (imm 1);
-  #shl base-sz output (var output) (var offset-ext);
-  andb base-sz output (var output) base;
-  dst <- lval base-sz base-opnd;
-  write base-sz dst (var output)
+val sem-bt-reset base-sz base base-opnd shifted offset-ext = let
+  val sem = do
+   output <- mktemp;
+   shl base-sz output (imm 1) (var offset-ext);
+   xorb base-sz output (var output) (imm (0-1));
+   #xorb base-sz output (imm (0-1)) (imm 1);
+   #shl base-sz output (var output) (var offset-ext);
+   andb base-sz output (var output) base;
+   dst <- lval base-sz base-opnd;
+   write base-sz dst (var output)
+ end
+in
+  with-subscope sem
 end
 
-val sem-bt-set base-sz base base-opnd shifted offset-ext = do
-  output <- mktemp;
-  shl base-sz output (imm 1) (var offset-ext);
-  orb base-sz output (var output) base;
-  dst <- lval base-sz base-opnd;
-  write base-sz dst (var output)
+val sem-bt-set base-sz base base-opnd shifted offset-ext = let
+  val sem = do
+    output <- mktemp;
+    shl base-sz output (imm 1) (var offset-ext);
+    orb base-sz output (var output) base;
+    dst <- lval base-sz base-opnd;
+    write base-sz dst (var output)
+  end
+in
+  with-subscope sem
 end
 
 val sem-bt-none base-sz base base-opnd shifted offset-ext = return void
@@ -545,6 +557,7 @@ end
 ## H>>
 
 val sem-hlt = do
+  #Todo: ...
   return void
 end
 

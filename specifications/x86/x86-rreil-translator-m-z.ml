@@ -392,12 +392,12 @@ val sem-packsswb-packssdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = 
       dst-offset <- return (dst-element-size*i);
 
       _if (/gts element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
-       mov dst-element-size (at-offset temp-dst dst-offset) (imm upper)
-     ) _else ( _if (/lts element-size (var (at-offset temp-src src-offset)) (imm lower)) _then
-       mov dst-element-size (at-offset temp-dst dst-offset) (imm lower)
-     _else
-       mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src (src-offset + dst-element-size)))
-     )
+        mov dst-element-size (at-offset temp-dst dst-offset) (imm upper)
+      ) _else ( _if (/lts element-size (var (at-offset temp-src src-offset)) (imm lower)) _then
+        mov dst-element-size (at-offset temp-dst dst-offset) (imm lower)
+      _else
+        mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src (src-offset + dst-element-size)))
+      )
     end
   in
     vector-apply (2*size) element-size m
@@ -519,6 +519,8 @@ val sem-pand-vpand-opnd avx-encoded opnd1 opnd2 opnd3 = do
 
   write-extend avx-encoded size dst (var temp)
 end
+
+### => Subscope <=
 
 val sem-pand x = sem-pand-vpand-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpand x = sem-pand-vpand-opnd '1' x.opnd1 x.opnd2 x.opnd3

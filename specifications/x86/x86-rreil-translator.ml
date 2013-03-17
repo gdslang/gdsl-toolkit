@@ -62,19 +62,14 @@ type signedness =
    Signed
  | Unsigned
 
-val expand conv lin from-sz to-sz = do
+val expand expanded conv lin from-sz to-sz =
   if from-sz === to-sz then
-    return lin
+    mov to-sz expanded lin
   else
-    do
-      expanded <- mktemp;
-      case conv of
-         Signed: movsx to-sz expanded from-sz lin
-       | Unsigned: movzx to-sz expanded from-sz lin
-      end;
-      return (var expanded)
+    case conv of
+       Signed: movsx to-sz expanded from-sz lin
+     | Unsigned: movzx to-sz expanded from-sz lin
     end
-end
 
 val segment-add mode64 address segment = let
   val seg-sem seg-reg = SEM_LIN_VAR(semantic-register-of seg-reg)
@@ -104,8 +99,9 @@ val segmented-lin lin sz segment = do
   real-addr-sz <- real-addr-sz;
   mode64 <- mode64?;
 
-  expanded <- expand Unsigned lin sz real-addr-sz;
-  return (segment-add mode64 expanded segment)
+  expanded <- mktemp;
+  expand expanded Unsigned lin sz real-addr-sz;
+  return (segment-add mode64 (var expanded) segment)
 end
 val segmented-reg reg segment = segmented-lin (var reg) reg.size segment
 
@@ -146,7 +142,9 @@ val conv-with conv sz x =
 
       val conv-reg conv sz r = do
         reg <- return (semantic-register-of r);
-	expand conv (var reg) reg.size sz
+	expanded <- mktemp;
+	expand expanded conv (var reg) reg.size sz;
+	return (var expanded)
       end
 
       val conv-sum conv sz x =
@@ -183,12 +181,19 @@ val conv-with conv sz x =
        | SUM x: conv-sum conv sz x
        | SCALE x: conv-scale conv sz x
        | MEM x:
-           do
-	     t <- mktemp;
-             address <- conv-mem x;
-             segmented-load x.sz t x.psz address x.segment;
-             expand conv (var t) x.sz sz
-           end
+           let
+	     val m expanded = do
+	       t <- mktemp;
+               address <- conv-mem x;
+               segmented-load x.sz t x.psz address x.segment;
+	       
+               expand expanded conv (var t) x.sz sz
+	     end
+           in do
+	     expanded <- mktemp;
+	     with-subscope (m expanded);
+	     return (var expanded)
+           end end
       end
    end
 
@@ -648,117 +653,133 @@ val emit-arithmetic-adjust-flag sz r op0 op1 = do
   cmpneq sz af (var t) (imm 0)
 end
 
-val emit-add-adc-flags sz sum s0 s1 carry set-carry = do
-  eq <- fEQ;
-  les <- fLES;
-  leu <- fLEU;
-  lts <- fLTS;
-  ltu <- fLTU;
-  sf <- fSF;
-  ov <- fOF;
-  z <- fZF;
-  cf <- fCF;
-  t1 <- mktemp;
-  t2 <- mktemp;
-  t3 <- mktemp;
-  zer0 <- zero;
-
-  cmpltu sz ltu s0 s1;
-  xorb sz t1 sum s0;
-  xorb sz t2 sum s1;
-  andb sz t3 (var t1) (var t2);
-  cmplts sz ov (var t3) zer0;
-  cmplts sz sf sum zer0;
-  cmpeq sz eq sum zer0;
-  xorb 1 lts (var sf) (var ov);
-  orb 1 leu (var ltu) (var eq);
-  orb 1 les (var lts) (var eq);
-  cmpeq sz z sum zer0;
-
-  # Hacker's Delight - Unsigned Add/Subtract
-  if set-carry then (
-    _if (/d carry) _then do
-      cmpleu sz cf sum s0
-    end _else do
-      cmpltu sz cf sum s0
-    end
-  ) else
-    return void
-  ;
-
-  emit-parity-flag sum;
-  emit-arithmetic-adjust-flag sz sum s0 s1
-end
-
-val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = do
-  eq <- fEQ;
-  les <- fLES;
-  leu <- fLEU;
-  lts <- fLTS;
-  ltu <- fLTU;
-  sf <- fSF;
-  ov <- fOF;
-  cf <- fCF;
-  z <- fZF;
-  t1 <- mktemp;
-  t2 <- mktemp;
-  t3 <- mktemp;
-  zer0 <- zero;
-
-  cmpltu sz ltu minuend subtrahend;
-  cmpleu sz leu minuend subtrahend;
-  cmplts sz lts minuend subtrahend;
-  cmples sz les minuend subtrahend;
-  cmpeq sz eq minuend subtrahend;
-  cmplts sz sf difference zer0;
-  xorb 1 ov (var lts) (var sf);
-  cmpeq sz z difference zer0;
-
-  if set-carry then (
+val emit-add-adc-flags sz sum s0 s1 carry set-carry = let
+  val emit = do
+    eq <- fEQ;
+    les <- fLES;
+    leu <- fLEU;
+    lts <- fLTS;
+    ltu <- fLTU;
+    sf <- fSF;
+    ov <- fOF;
+    z <- fZF;
+    cf <- fCF;
+    t1 <- mktemp;
+    t2 <- mktemp;
+    t3 <- mktemp;
+    zer0 <- zero;
+  
+    cmpltu sz ltu s0 s1;
+    xorb sz t1 sum s0;
+    xorb sz t2 sum s1;
+    andb sz t3 (var t1) (var t2);
+    cmplts sz ov (var t3) zer0;
+    cmplts sz sf sum zer0;
+    cmpeq sz eq sum zer0;
+    xorb 1 lts (var sf) (var ov);
+    orb 1 leu (var ltu) (var eq);
+    orb 1 les (var lts) (var eq);
+    cmpeq sz z sum zer0;
+  
     # Hacker's Delight - Unsigned Add/Subtract
-    _if (/d carry) _then do
-      cmpleu sz cf minuend subtrahend
-    end _else do
-      cmpltu sz cf minuend subtrahend
-    end
-  ) else
-    return void
-  ;
-
-  emit-parity-flag difference;
-  emit-arithmetic-adjust-flag sz difference minuend subtrahend
+    if set-carry then (
+      _if (/d carry) _then do
+        cmpleu sz cf sum s0
+      end _else do
+        cmpltu sz cf sum s0
+      end
+    ) else
+      return void
+    ;
+  
+    emit-parity-flag sum;
+    emit-arithmetic-adjust-flag sz sum s0 s1
+  end
+in
+  with-subscope emit
 end
 
-val emit-mul-flags sz product = do
-  ov <- fOF;
-  cf <- fCF;
-  sf <- fSF;
-  zf <- fZF;
-  af <- fAF;
-  pf <- fPF;
-
-  sgn-ext <- mktemp;
-  movsx sz sgn-ext 1 (var (at-offset product (sz + sz - 1)));
-
-  cmpneq sz ov (var (at-offset product sz)) (var sgn-ext);
-  mov 1 cf (var ov);
-
-  undef 1 sf;
-  undef 1 zf;
-  undef 1 af;
-  undef 1 pf
+val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
+  val emit = do
+    eq <- fEQ;
+    les <- fLES;
+    leu <- fLEU;
+    lts <- fLTS;
+    ltu <- fLTU;
+    sf <- fSF;
+    ov <- fOF;
+    cf <- fCF;
+    z <- fZF;
+    t1 <- mktemp;
+    t2 <- mktemp;
+    t3 <- mktemp;
+    zer0 <- zero;
+  
+    cmpltu sz ltu minuend subtrahend;
+    cmpleu sz leu minuend subtrahend;
+    cmplts sz lts minuend subtrahend;
+    cmples sz les minuend subtrahend;
+    cmpeq sz eq minuend subtrahend;
+    cmplts sz sf difference zer0;
+    xorb 1 ov (var lts) (var sf);
+    cmpeq sz z difference zer0;
+  
+    if set-carry then (
+      # Hacker's Delight - Unsigned Add/Subtract
+      _if (/d carry) _then do
+        cmpleu sz cf minuend subtrahend
+      end _else do
+        cmpltu sz cf minuend subtrahend
+      end
+    ) else
+      return void
+    ;
+  
+    emit-parity-flag difference;
+    emit-arithmetic-adjust-flag sz difference minuend subtrahend
+  end
+in
+  with-subscope emit
 end
 
-val move-to-rflags size lin = do
-  flags <- rflags;
+val emit-mul-flags sz product = let
+  val emit = do
+    ov <- fOF;
+    cf <- fCF;
+    sf <- fSF;
+    zf <- fZF;
+    af <- fAF;
+    pf <- fPF;
+  
+    sgn-ext <- mktemp;
+    movsx sz sgn-ext 1 (var (at-offset product (sz + sz - 1)));
+  
+    cmpneq sz ov (var (at-offset product sz)) (var sgn-ext);
+    mov 1 cf (var ov);
+  
+    undef 1 sf;
+    undef 1 zf;
+    undef 1 af;
+    undef 1 pf
+  end
+in
+  with-subscope emit
+end
 
-  in-mask <- return 0x0000000000245fd5;
-  out-mask <- return 0xffffffffffc3a02a;
-
-  temp <- mktemp;
-  andb size temp lin (imm in-mask);
-  andb size flags (var flags) (imm out-mask);
-  orb size flags (var flags) (var temp)
+val move-to-rflags size lin = let
+  val emit = do
+    flags <- rflags;
+  
+    in-mask <- return 0x0000000000245fd5;
+    out-mask <- return 0xffffffffffc3a02a;
+  
+    temp <- mktemp;
+    andb size temp lin (imm in-mask);
+    andb size flags (var flags) (imm out-mask);
+    orb size flags (var flags) (var temp)
+  end
+in
+  with-subscope emit
 end
 
 val direction-adjust reg-size reg-sem for-size = do
