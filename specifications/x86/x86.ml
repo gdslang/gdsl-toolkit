@@ -4872,8 +4872,6 @@ val / [0x0f 0xe5 /r] = binop PMULHW mm64 mm/m64
 val /66 [0x0f 0xe5 /r] = binop PMULHW xmm128 xmm/m128
 val /vex/66/0f/vexv [0xe5 /r] | vex128? = varity3 VPMULHW xmm128 v/xmm xmm/m128
 
-### =><=
-
 ### PMULLD
 ###  - Multiply Packed Signed Dword Integers and Store Low Result
 val /66 [0x0f 0x38 0x40 /r] = binop PMULLD xmm128 xmm/m128
@@ -4901,17 +4899,24 @@ val / [0x8f /0]
 val / ['01011 r:3']
  | opndsz? = do opndsz-set-from-d; update@{reg/opcode=r}; unop POP r16/rexb end
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; update@{reg/opcode=r}; unop POP r64/rexb end
- | otherwise = do update@{reg/opcode=r}; unop POP r32/rexb end
-val / [0x1f] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ds end
-val / [0x07] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP es end
-val / [0x17] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ss end
-#Todo: Rest
+ | otherwise = do opndsz-set-from-d; update@{reg/opcode=r}; unop POP r32/rexb end
+val / [0x1f] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ds end #default-opndsz correct?
+val / [0x07] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP es end #default-opndsz correct?
+val / [0x17] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ss end #default-opndsz correct?
+val / [0x0f 0xa1]
+ | opndsz? = do opndsz-set-from-d; unop POP fs end
+ | rexw? = do opndsz-set-from-d; unop POP fs end
+ | mode32? = do opndsz-set-from-d; unop POP fs end
+val / [0x0f 0xa9]
+ | opndsz? = do opndsz-set-from-d; unop POP gs end
+ | rexw? = do opndsz-set-from-d; unop POP gs end
+ | mode32? = do opndsz-set-from-d; unop POP gs end
 
 ### POPA/POPAD
 ###  - Pop All General-Purpose Registers
 val / [0x61]
- | opndsz? = arity0 POPA
- | otherwise = arity0 POPAD
+ | mode32? & opndsz? = arity0 POPA
+ | mode32? = arity0 POPAD
 
 ### POPCNT
 ###  - Return the Count of Number of Bits Set to 1
@@ -4924,8 +4929,8 @@ val /f3 [0x0f 0xb8 /r]
 ###  - Pop Stack into EFLAGS Register
 val / [0x9d]
  | opndsz? = arity0 POPF
- | rexw? = arity0 POPFD
- | mode32? = arity0 POPFQ
+ | rexw? = arity0 POPFQ
+ | mode32? = arity0 POPFD
 
 ### POR
 ###  - Bitwise Logical OR
@@ -4941,7 +4946,7 @@ val / [0x0f 0x18 /3-mem] = unop PREFETCHT2 m8
 val / [0x0f 0x18 /0-mem] = unop PREFETCHNTA m8
 
 ### PREFETCHW
-###  - this instruction is not part of the intel manual
+###  - This instruction is not part of the intel manual
 val / [0x0f 0x0d /r-mem] = unop PREFETCHW m8
 
 ### PSADBW
@@ -4990,7 +4995,7 @@ val /vex/66/0f/38/vexv [0x0a /r] | vex128? = varity3 VPSIGND xmm128 v/xmm xmm/m1
 ### PSLLDQ
 ###  - Shift Double Quadword Left Logical
 val /66 [0x0f 0x73 /7-reg] = binop PSLLDQ xmm/reg128 imm8
-val /vex/66/0f/vexv [0x73 /7-reg] | vndd? & vex128? = varity3 VPSLLDQ v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0x73 /7-reg] | vex128? = varity3 VPSLLDQ v/xmm xmm/reg128 imm8
 
 ### PSLLW/PSLLD/PSLLQ
 ###  - Shift Packed Data Left Logical
@@ -5013,6 +5018,8 @@ val /vex/66/0f/vexv [0x72 /6-reg] | vex128? = varity3 VPSLLD v/xmm xmm/reg128 im
 val /vex/66/0f/vexv [0xf3 /r] | vex128? = varity3 VPSLLQ xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x73 /6-reg] | vex128? = varity3 VPSLLQ v/xmm xmm/reg128 imm8
 
+### =><=
+
 ### PSRAW/PSRAD
 ###  - Shift Packed Data Right Arithmetic
 val / [0x0f 0xe1 /r] = binop PSRAW mm64 mm/m64
@@ -5031,7 +5038,7 @@ val /vex/66/0f/vexv [0x72 /4-reg] | vex128? = varity3 VPSRAD v/xmm xmm/reg128 im
 ### PSRLDQ
 ###  - Shift Double Quadword Right Logical
 val /66 [0x0f 0x73 /3-reg] = binop PSRLDQ xmm/reg128 imm8
-val /vex/66/0f/vexv [0x73 /3-reg] | vndd? & vex128? = varity3 VPSRLDQ v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0x73 /3-reg] | vex128? = varity3 VPSRLDQ v/xmm xmm/reg128 imm8
 
 ### PSRLW/PSRLD/PSRLQ
 ###  - Shift Packed Data Right Logical
