@@ -5018,8 +5018,6 @@ val /vex/66/0f/vexv [0x72 /6-reg] | vex128? = varity3 VPSLLD v/xmm xmm/reg128 im
 val /vex/66/0f/vexv [0xf3 /r] | vex128? = varity3 VPSLLQ xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x73 /6-reg] | vex128? = varity3 VPSLLQ v/xmm xmm/reg128 imm8
 
-### =><=
-
 ### PSRAW/PSRAD
 ###  - Shift Packed Data Right Arithmetic
 val / [0x0f 0xe1 /r] = binop PSRAW mm64 mm/m64
@@ -5102,7 +5100,7 @@ val /vex/66/0f/vexv [0xd9 /r] | vex128? = varity3 VPSUBUSW xmm128 v/xmm xmm/m128
 val /66 [0x0f 0x38 0x17 /r] = binop PTEST xmm128 xmm/m128
 val /vex/66/0f/38 [0x17 /r]
  | vex128? = varity2 VPTEST xmm128 xmm/m128
- | otherwise = varity2 VPTEST ymm256 ymm/m256
+ | vex256? = varity2 VPTEST ymm256 ymm/m256
 
 ### PUNPCKHBW/PUNPCKHWD/PUNPCKHDQ/PUNPCKHQDQ
 ###  - Unpack High Data
@@ -5132,6 +5130,8 @@ val /vex/66/0f/vexv [0x61 /r] | vex128? = varity3 VPUNPCKLWD xmm128 v/xmm xmm/m1
 val /vex/66/0f/vexv [0x62 /r] | vex128? = varity3 VPUNPCKLDQ xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x6c /r] | vex128? = varity3 VPUNPCKLQDQ xmm128 v/xmm xmm/m128
 
+### =><=
+
 ### PUSH
 ###  - Push Word, Doubleword or Quadword Onto the Stack
 #Todo: correctly implement 32bit and 64bit modes
@@ -5147,9 +5147,9 @@ val / [0x6a] = do opndsz-set-from-d; unop PUSH imm8 end
 val / [0x68]
  | opndsz? = do opndsz-set-from-d; unop PUSH imm16 end
  | otherwise = do opndsz-set-from-d; unop PUSH imm32 end
-val / [0x0e] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH cs end
-val / [0x16] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH ds end
-val / [0x06] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH es end
+val / [0x0e] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH cs end #default-opndsz correct?
+val / [0x16] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH ds end #default-opndsz correct?
+val / [0x06] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH es end #default-opndsz correct?
 val / [0x0f 0xa0] = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH fs end
 val / [0x0f 0xa8] = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH gs end
 
