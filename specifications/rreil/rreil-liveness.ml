@@ -311,20 +311,11 @@ val fmap-add-field t x f = fmap-update t {id=x, fields=fitree-singleton f}
 val fmap-add-range t x sz offs = fmap-add-field t x (to-field sz offs)
 val rreil-ltid? a b =
    let
-      val toInt a =
-         case a of
-            VIRT_EQ: 0
-          | VIRT_NEQ: 1
-          | VIRT_LES: 2
-          | VIRT_LEU: 3
-          | VIRT_LTS: 4
-          | VIRT_LTU: 5
-         end
       val ltf? a b =
          case b of
             ARCH_R x: '1'
           | VIRT_T x: '0'
-          | _ : toInt a < toInt b
+          | _ : index a < index b
          end
    in
       case a of
@@ -338,12 +329,7 @@ val rreil-ltid? a b =
                VIRT_T y: x < y
              | _ : '1'
             end
-       | VIRT_EQ: ltf? a b
-       | VIRT_NEQ: ltf? a b
-       | VIRT_LES: ltf? a b
-       | VIRT_LEU: ltf? a b
-       | VIRT_LTS: ltf? a b
-       | VIRT_LTU: ltf? a b
+       | _: ltf? a b
       end
    end 
 

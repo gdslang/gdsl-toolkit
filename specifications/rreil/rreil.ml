@@ -63,10 +63,6 @@ type sem_stmts =
    SEM_CONS of {hd:sem_stmt, tl:sem_stmts}
  | SEM_NIL
 
-type sem_writeback =
-   SEM_WRITE_VAR of {size:int, id:sem_var}
- | SEM_WRITE_MEM of {size:int, address:sem_linear, segment:seg_override}
-
 val rreil-sizeOf op =
    case op of
       SEM_LIN x: x.size

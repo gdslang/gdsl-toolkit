@@ -24,3 +24,6 @@ cmusl-liveness:
 
 cliveness:
 	gcc -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness.c ../../../dis.c -DRELAXEDFATAL -o live
+
+liveness-test:
+	gcc -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness-test.c ../../../dis.o -DRELAXEDFATAL -o liveness-test

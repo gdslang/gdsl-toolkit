@@ -2,6 +2,10 @@
 
 export = translate translateBlock
 
+type sem_writeback =
+   SEM_WRITE_VAR of {size:int, id:sem_var}
+ | SEM_WRITE_MEM of {size:int, address:sem_linear, segment:seg_override}
+
 #Todo: fix
 val runtime-stack-address-size = do
   mode64 <- mode64?;
