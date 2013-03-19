@@ -4891,26 +4891,25 @@ val /vex/66/0f/vexv [0xf4 /r] = varity3 VPMULUDQ xmm128 v/xmm xmm/m128
 
 ### POP
 ###  - Pop a Value from the Stack
-#Todo: correctly implement 32bit and 64bit modes
 val / [0x8f /0]
  | opndsz? = do opndsz-set-from-d; unop POP r/m16 end
+ | mode32? = do opndsz-set-from-d; unop POP r/m32 end
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop POP r/m64 end
- | otherwise = do opndsz-set-from-d; unop POP r/m32 end
 val / ['01011 r:3']
  | opndsz? = do opndsz-set-from-d; update@{reg/opcode=r}; unop POP r16/rexb end
+ | mode32? = do opndsz-set-from-d; update@{reg/opcode=r}; unop POP r32/rexb end
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; update@{reg/opcode=r}; unop POP r64/rexb end
- | otherwise = do opndsz-set-from-d; update@{reg/opcode=r}; unop POP r32/rexb end
-val / [0x1f] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ds end #default-opndsz correct?
-val / [0x07] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP es end #default-opndsz correct?
-val / [0x17] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop POP ss end #default-opndsz correct?
+val / [0x1f] | mode32? = do opndsz-set-from-d; unop POP ds end
+val / [0x07] | mode32? = do opndsz-set-from-d; unop POP es end
+val / [0x17] | mode32? = do opndsz-set-from-d; unop POP ss end
 val / [0x0f 0xa1]
  | opndsz? = do opndsz-set-from-d; unop POP fs end
- | rexw? = do opndsz-set-from-d; unop POP fs end
  | mode32? = do opndsz-set-from-d; unop POP fs end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop POP fs end
 val / [0x0f 0xa9]
  | opndsz? = do opndsz-set-from-d; unop POP gs end
- | rexw? = do opndsz-set-from-d; unop POP gs end
  | mode32? = do opndsz-set-from-d; unop POP gs end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop POP gs end
 
 ### POPA/POPAD
 ###  - Pop All General-Purpose Registers
@@ -5134,24 +5133,30 @@ val /vex/66/0f/vexv [0x6c /r] | vex128? = varity3 VPUNPCKLQDQ xmm128 v/xmm xmm/m
 
 ### PUSH
 ###  - Push Word, Doubleword or Quadword Onto the Stack
-#Todo: correctly implement 32bit and 64bit modes
 val / [0xff /6]
  | opndsz? = do opndsz-set-from-d; unop PUSH r/m16 end
+ | mode32? = do opndsz-set-from-d; unop PUSH r/m32 end
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop PUSH r/m64 end
- | otherwise = do opndsz-set-from-d; unop PUSH r/m32 end
 val / ['01010 r:3']
  | opndsz? = do opndsz-set-from-d; update@{reg/opcode=r}; unop PUSH r16/rexb end
+ | mode32? = do opndsz-set-from-d; update@{reg/opcode=r}; unop PUSH r32/rexb end
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; update@{reg/opcode=r}; unop PUSH r64/rexb end
- | otherwise = do opndsz-set-from-d; update@{reg/opcode=r}; unop PUSH r32/rexb end
-val / [0x6a] = do opndsz-set-from-d; unop PUSH imm8 end
+val / [0x6a]
+ | mode32? = do opndsz-set-from-d; unop PUSH imm8 end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop PUSH imm8 end
 val / [0x68]
  | opndsz? = do opndsz-set-from-d; unop PUSH imm16 end
- | otherwise = do opndsz-set-from-d; unop PUSH imm32 end
-val / [0x0e] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH cs end #default-opndsz correct?
-val / [0x16] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH ds end #default-opndsz correct?
-val / [0x06] | mode32? = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH es end #default-opndsz correct?
-val / [0x0f 0xa0] = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH fs end
-val / [0x0f 0xa8] = do opndsz-set-from-d; update@{default-operand-size=16}; unop PUSH gs end
+ | mode32? = do opndsz-set-from-d; unop PUSH imm32 end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop PUSH imm32 end
+val / [0x0e] | mode32? = do opndsz-set-from-d; unop PUSH cs end
+val / [0x16] | mode32? = do opndsz-set-from-d; unop PUSH ds end
+val / [0x06] | mode32? = do opndsz-set-from-d; unop PUSH es end
+val / [0x0f 0xa0]
+ | mode32? = do opndsz-set-from-d; unop PUSH fs end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop PUSH fs end
+val / [0x0f 0xa8]
+ | mode32? = do opndsz-set-from-d; unop PUSH gs end
+ | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop PUSH gs end
 
 ### PUSHA/PUSHAD
 ###  - Push All General-Purpose Registers
