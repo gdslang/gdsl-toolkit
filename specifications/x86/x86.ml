@@ -5129,8 +5129,6 @@ val /vex/66/0f/vexv [0x61 /r] | vex128? = varity3 VPUNPCKLWD xmm128 v/xmm xmm/m1
 val /vex/66/0f/vexv [0x62 /r] | vex128? = varity3 VPUNPCKLDQ xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x6c /r] | vex128? = varity3 VPUNPCKLQDQ xmm128 v/xmm xmm/m128
 
-### =><=
-
 ### PUSH
 ###  - Push Word, Doubleword or Quadword Onto the Stack
 val / [0xff /6]
@@ -5255,11 +5253,13 @@ val /vex/f3/0f/vexv [0x53 /r] = varity3 VRCPSS xmm128 v/xmm xmm/m32
 ### RDFSBASE/RDGSBASE
 ###  - Read FS/GS Segment Base
 val /f3 [0x0f 0xae /0-reg]
- | rexw? = unop RDFSBASE r/reg64
- | otherwise = unop RDFSBASE r/reg32
+ | mode64? & rexw? = unop RDFSBASE r/reg64
+ | mode64? = unop RDFSBASE r/reg32
 val /f3 [0x0f 0xae /1-reg]
- | rexw? = unop RDGSBASE r/reg64
- | otherwise = unop RDGSBASE r/reg32
+ | mode64? & rexw? = unop RDGSBASE r/reg64
+ | mode64? = unop RDGSBASE r/reg32
+
+### =><=
 
 ### RDMSR
 ###  - Read from Model Specific Register
