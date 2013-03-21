@@ -19,6 +19,7 @@ specifications/x86/c/clang-cli
 specifications/x86/c/clang-sweep
 specifications/x86/c/gcc-sweep
 specifications/x86/c/tester
+specifications/x86/c/liveness-test
 
 gdrr/.cproject
 gdrr/.project
