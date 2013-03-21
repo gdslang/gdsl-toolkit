@@ -235,13 +235,12 @@ val sem-mul conv x = do
 
   factor0-sem <- return (semantic-register-of (register-by-size low A sz));
 
-  factor0 <- mktemp;
-  expand factor0 conv (var factor0-sem) sz (sz + sz);
+  factor0 <- expand mktemp conv (var factor0-sem) sz (sz + sz);
 
   factor1 <- reads conv (sz + sz) x.opnd1;
 
   product <- mktemp;
-  mul (sz + sz) product (var factor0) factor1;
+  mul (sz + sz) product factor0 factor1;
 
   emit-mul-flags sz product;
 
@@ -522,8 +521,6 @@ val sem-pand-vpand-opnd avx-encoded opnd1 opnd2 opnd3 = do
   write-extend avx-encoded size dst (var temp)
 end
 
-### => Subscope <=
-
 val sem-pand x = sem-pand-vpand-opnd '0' x.opnd1 x.opnd1 x.opnd2
 val sem-vpand x = sem-pand-vpand-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
@@ -621,7 +618,6 @@ val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 op
           mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
 	else
 	  return void
-
     end
   in
     vector-apply size element-size m
@@ -829,7 +825,6 @@ val sem-phbinop-vphbinop-opnd avx-encoded element-size operator opnd1 opnd2 opnd
   mov size (at-offset temp-src size) src2;
 
   temp-dst <- mktemp;
-
   let
     val m i = do
       dst-offset <- return (element-size*i);
@@ -937,7 +932,6 @@ val sem-pmcombine-opnd avx-encoded element-size combiner mover1 mover2 opnd1 opn
   local-src2 <- mktemp;
   local-dst1 <- mktemp;
   local-dst2 <- mktemp;
-
   let
     val m i = do
       offset <- return (2*element-size*i);
@@ -981,7 +975,6 @@ val sem-pcomp-opnd avx-encoded comparer element-size opnd1 opnd2 opnd3 = do
   mov size temp-src2 src2;
 
   temp-dst <- mktemp;
-
   let
     val m i = do
       offset <- return (element-size*i);
@@ -1051,7 +1044,6 @@ val sem-pmovex-vpmovex avx-encoded mover from-size to-size x = do
   mov src-size temp-src src;
 
   temp-dst <- mktemp;
-
   let
     val m i = do
       src-offset <- return (from-size*i);
@@ -1083,7 +1075,6 @@ val sem-pmuldq-vpmuldq-opnd avx-encoded opnd1 opnd2 opnd3 = do
   mov size temp-src2 src2;
 
   temp-dst <- mktemp;
-
   let
     val m offset = do
       movsx (2*element-size) temp-src1 element-size (var (at-offset temp-src1 offset));
@@ -1397,7 +1388,6 @@ val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
   mov size temp-src2 src2;
 
   temp-dst <- mktemp;
-
   diff-element-size <- return 8;
   let
     val m i = do
@@ -1405,7 +1395,7 @@ val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
 
       _if (/gtu diff-element-size (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))) _then
         sub diff-element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset)) (var (at-offset temp-src2 offset))
-	_else
+      _else
         sub diff-element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset)) (var (at-offset temp-src1 offset))
     end
   in
@@ -1431,22 +1421,6 @@ val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
       end;
 
       mov sum-element-size (at-offset temp-dst offset) (var temp-sum)
-
-      #Todo: Loop?!
-      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + diff-element-size)));
-      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (2*diff-element-size))));
-      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (3*diff-element-size))));
-      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (4*diff-element-size))));
-      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (5*diff-element-size))));
-      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (6*diff-element-size))));
-      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex);
-      #movzx ex-size temp-sum-ex diff-element-size (var (at-offset temp-dst (offset + (7*diff-element-size))));
-      #add ex-size temp-sum (var temp-sum) (var temp-sum-ex)
     end
   in
     vector-apply size sum-element-size m
@@ -1510,7 +1484,6 @@ val sem-pshuf-vdhwlw avx-encoded element-size low-size high-size x = do
   );
 
   temp-dst <- mktemp;
-
   if low-size > 0 then
     mov low-size temp-dst (var temp-src)
   else
@@ -2074,17 +2047,13 @@ end
 val sem-rep-repe-repne size sem fc = do
   count-reg <- return (semantic-register-of (register-by-size low C size));
 
-  cond-creg <- let
-    val v = /neq size (var count-reg) (imm 0)
-  in
-    return v
-  end;
+  cond-creg <- return (/neq size (var count-reg) (imm 0));
 
   cond <- mktemp;
   c <- cond-creg;
   mov 1 cond c;
   _while (/d (var cond)) __ do
-    sem;
+    with-subscope sem;
 
     sub size count-reg (var count-reg) (imm 1);
 

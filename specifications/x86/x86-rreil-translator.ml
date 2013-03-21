@@ -62,14 +62,17 @@ type signedness =
    Signed
  | Unsigned
 
-val expand expanded conv lin from-sz to-sz =
+val expand dst-getter conv lin from-sz to-sz =
   if from-sz === to-sz then
-    mov to-sz expanded lin
-  else
+    return lin
+  else do
+    expanded <- dst-getter;
     case conv of
        Signed: movsx to-sz expanded from-sz lin
      | Unsigned: movzx to-sz expanded from-sz lin
-    end
+    end;
+    return (var expanded)
+  end
 
 val segment-add mode64 address segment = let
   val seg-sem seg-reg = SEM_LIN_VAR(semantic-register-of seg-reg)
@@ -99,9 +102,8 @@ val segmented-lin lin sz segment = do
   real-addr-sz <- real-addr-sz;
   mode64 <- mode64?;
 
-  expanded <- mktemp;
-  expand expanded Unsigned lin sz real-addr-sz;
-  return (segment-add mode64 (var expanded) segment)
+  expanded <- expand mktemp Unsigned lin sz real-addr-sz;
+  return (segment-add mode64 expanded segment)
 end
 val segmented-reg reg segment = segmented-lin (var reg) reg.size segment
 
@@ -142,9 +144,8 @@ val conv-with conv sz x =
 
       val conv-reg conv sz r = do
         reg <- return (semantic-register-of r);
-	expanded <- mktemp;
-	expand expanded conv (var reg) reg.size sz;
-	return (var expanded)
+	expanded <- expand mktemp conv (var reg) reg.size sz;
+	return expanded
       end
 
       val conv-sum conv sz x =
@@ -183,18 +184,18 @@ val conv-with conv sz x =
        | MEM x:
            let
 	     val m expanded = do
-	       t <- mktemp;
                address <- conv-mem x;
-               segmented-load x.sz t x.psz address x.segment;
-               expand expanded conv (var t) x.sz sz;
-	       return (var expanded)
+               segmented-load x.sz expanded x.psz address x.segment;
+               expanded <- expand (return expanded) conv (var expanded) x.sz sz;
+	       return expanded
 	     end
 	   in do
              #address <- conv-mem x;
+	     address <- return (conv-mem x);
 
 	     expanded <- mktemp;
-	     with-subscope (m expanded);
-	     return (var expanded)
+	     expanded <- with-subscope (m expanded);
+	     return expanded
            end end
       end
    end
