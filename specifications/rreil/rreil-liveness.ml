@@ -11,7 +11,7 @@ export =
    lv-pretty
    lv-analyze
    lvstate-pretty
-   lv-sweep-and-collect-upto-native-flow
+#   lv-sweep-and-collect-upto-native-flow
 
 val lv-kill kills stmt =
    let
@@ -56,7 +56,7 @@ val lv-gen gens stmt =
       val visit-op gens op =
          case op of
             SEM_LIN x: visit-arity1 gens x
-          | SEM_BSWAP x: visit-arity1 gens x
+#          | SEM_BSWAP x: visit-arity1 gens x
           | SEM_MUL x: visit-arity2 gens x
           | SEM_DIV x: visit-arity2 gens x
           | SEM_DIVS x: visit-arity2 gens x
@@ -90,11 +90,11 @@ val lv-gen gens stmt =
             SEM_ASSIGN x: visit-op gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
           | SEM_STORE x: visit-address gens x.address
-          | SEM_LABEL x: gens
-          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
-          | SEM_IF_GOTO x: visit-flow gens x
-          | SEM_CALL x: visit-flow gens x
-          | SEM_RETURN x: visit-flow gens x
+#          | SEM_LABEL x: gens
+#          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
+#          | SEM_IF_GOTO x: visit-flow gens x
+#          | SEM_CALL x: visit-flow gens x
+#          | SEM_RETURN x: visit-flow gens x
          end
    in
       visit-stmt gens stmt
@@ -178,54 +178,54 @@ val lv-pretty t =
       bbtree-pretty fields t
    end
 
-val lv-sweep-and-collect-upto-native-flow =
-   let
-      val sweep =
-         do insn <- decode;
-            semantics insn;
-            stack <- query $stack;
-            case stack of
-               SEM_CONS x:
-                  case x.hd of
-                     SEM_IF_GOTO x: return stack 
-                   | SEM_CALL x: return stack
-                   | SEM_RETURN x: return stack
-                   | _ : sweep
-                  end
-            end
-         end 
-   in
-      do update@{stack=SEM_NIL,tmp=0,lab=0};
-         sweep
-      end
-   end
+#val lv-sweep-and-collect-upto-native-flow =
+#   let
+#      val sweep =
+#         do insn <- decode;
+#            semantics insn;
+#            stack <- query $stack;
+#            case stack of
+#               SEM_CONS x:
+#                  case x.hd of
+#                     SEM_IF_GOTO x: return stack 
+#                   | SEM_CALL x: return stack
+#                   | SEM_RETURN x: return stack
+#                   | _ : sweep
+#                  end
+#            end
+#         end 
+#   in
+#      do update@{stack=SEM_NIL,tmp=0,lab=0};
+#         sweep
+#      end
+#   end
 
-val lv-analyze =
+val lv-analyze stack =
    let
       val sweep stack state =
          case stack of
             SEM_NIL: return state
           | SEM_CONS x:
                case x.hd of
-                  SEM_LABEL y:
-                     do lv-update-state y.label state;
-                        lv-push-live x.hd;
-                        lv-push-maybelive x.hd;
-                        sweep x.tl state
-                     end
-                | SEM_IF_GOTO_LABEL y:
-                     do lmap <- query $state;
-                        lv-push-live x.hd;
-                        lv-push-maybelive x.hd;
-                        sweep
-                           x.tl
-                           (lvstate-union
-                              (lvstate-eval state x.hd)
-                              (lmap-get-orelse
-                                 lmap
-                                 {lab=y.label,state=lvstate-empty{}}).state)
-                     end
-                | SEM_LOAD y:
+#                  SEM_LABEL y:
+#                     do lv-update-state y.label state;
+#                        lv-push-live x.hd;
+#                        lv-push-maybelive x.hd;
+#                        sweep x.tl state
+#                     end
+#                | SEM_IF_GOTO_LABEL y:
+#                     do lmap <- query $state;
+#                        lv-push-live x.hd;
+#                        lv-push-maybelive x.hd;
+#                        sweep
+#                           x.tl
+#                           (lvstate-union
+#                              (lvstate-eval state x.hd)
+#                              (lmap-get-orelse
+#                                 lmap
+#                                 {lab=y.label,state=lvstate-empty{}}).state)
+#                     end
+                  SEM_LOAD y:
                      do lv-push-live x.hd;
                         sweep x.tl (lvstate-eval state x.hd)
                      end
@@ -233,18 +233,18 @@ val lv-analyze =
                      do lv-push-live x.hd;
                         sweep x.tl (lvstate-eval state x.hd)
                      end
-                | SEM_IF_GOTO y:
-                     do lv-push-live x.hd;
-                        sweep x.tl (lvstate-eval state x.hd)
-                     end
-                | SEM_CALL y:
-                     do lv-push-live x.hd;
-                        sweep x.tl (lvstate-eval state x.hd)
-                     end
-                | SEM_RETURN y:
-                     do lv-push-live x.hd;
-                        sweep x.tl (lvstate-eval state x.hd)
-                     end
+#                | SEM_IF_GOTO y:
+#                     do lv-push-live x.hd;
+#                        sweep x.tl (lvstate-eval state x.hd)
+#                     end
+#                | SEM_CALL y:
+#                     do lv-push-live x.hd;
+#                        sweep x.tl (lvstate-eval state x.hd)
+#                     end
+#                | SEM_RETURN y:
+#                     do lv-push-live x.hd;
+#                        sweep x.tl (lvstate-eval state x.hd)
+#                     end
                 | SEM_ASSIGN y:
                      let
                         val cont kill cont-state =
@@ -264,13 +264,12 @@ val lv-analyze =
                      end
                end
          end
-   in
-      do lv-sweep-and-collect-upto-native-flow;
-         stack <- query $stack;
-         update @{live=SEM_NIL,maybelive=SEM_NIL,state=lmap-empty{}};
-         sweep stack (lvstate-empty stack)
-      end
-   end
+   in do
+#	   lv-sweep-and-collect-upto-native-flow;
+#     stack <- query $stack;
+     update @{live=SEM_NIL,maybelive=SEM_NIL,state=lmap-empty{}};
+     sweep stack (lvstate-empty stack)
+   end end
 
 val lv-update-state label lvstate =
    do state <- query $state;
@@ -313,18 +312,18 @@ val rreil-ltid? a b =
    let
       val ltf? a b =
          case b of
-            ARCH_R x: '1'
-          | VIRT_T x: '0'
+ #           ARCH_R x: '1'
+            VIRT_T x: '0'
           | _ : index a < index b
          end
    in
       case a of
-         ARCH_R x:
-            case b of
-               ARCH_R y: x < y
-             | _ : '0'
-            end
-       | VIRT_T x:
+#         ARCH_R x:
+#            case b of
+#               ARCH_R y: x < y
+#             | _ : '0'
+#            end
+         VIRT_T x:
             case b of
                VIRT_T y: x < y
              | _ : '1'
@@ -373,19 +372,19 @@ val lvstate-pretty state = lv-pretty state.greedy
 
 val lmap-lt? a b = a.lab < b.lab
 val lmap-value-merge a b = {lab=a.lab, state=lvstate-union a.state b.state}
-val lmap-add t x = bbtree-add lmap-lt? t x
+#val lmap-add t x = bbtree-add lmap-lt? t x
 val lmap-add-with f t x = bbtree-add-with lmap-lt? f t x
 val lmap-update t x = lmap-add-with lmap-value-merge t x
-val lmap-get-orelse t x = bbtree-get-orelse lmap-lt? t x
-val lmap-union a b = bbtree-union lmap-lt? a b
-val lmap-contains? t x = bbtree-contains? lmap-lt? t x
+#val lmap-get-orelse t x = bbtree-get-orelse lmap-lt? t x
+#val lmap-union a b = bbtree-union lmap-lt? a b
+#val lmap-contains? t x = bbtree-contains? lmap-lt? t x
 val lmap-empty x = bbtree-empty x
-val lmap-size t = bbtree-size t
-val lmap-fold f s t = bbtree-fold f s t
-val lmap-pretty t = 
-   let
-      val pretty kv = "l" +++ showint kv.lab +++ ":" +++ lvstate-pretty kv.state
-   in
-      bbtree-pretty pretty t
-   end
+#val lmap-size t = bbtree-size t
+#val lmap-fold f s t = bbtree-fold f s t
+#val lmap-pretty t = 
+#   let
+#      val pretty kv = "l" +++ showint kv.lab +++ ":" +++ lvstate-pretty kv.state
+#   in
+#      bbtree-pretty pretty t
+#   end
 
