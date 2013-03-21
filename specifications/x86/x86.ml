@@ -5259,8 +5259,6 @@ val /f3 [0x0f 0xae /1-reg]
  | mode64? & rexw? = unop RDGSBASE r/reg64
  | mode64? = unop RDGSBASE r/reg32
 
-### =><=
-
 ### RDMSR
 ###  - Read from Model Specific Register
 val / [0x0f 0x32] = arity0 RDMSR
@@ -5293,6 +5291,8 @@ val / [0xc3] = varity0-def-opnd-sz-64 RET
 val / [0xcb] = varity0-def-opnd-sz-64 RET_FAR
 val / [0xc2] = varity1-def-opnd-sz-64 RET imm16
 val / [0xca] = varity1-def-opnd-sz-64 RET_FAR imm16
+
+### =><=
 
 ### ROUNDPD
 ###  - Round Packed Double Precision Floating-Point Values
