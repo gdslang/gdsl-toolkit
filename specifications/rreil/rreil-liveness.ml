@@ -10,7 +10,7 @@ export =
    lv-union
    lv-pretty
    lv-analyze
-   lvstate-pretty
+#   lvstate-pretty
 #   lv-sweep-and-collect-upto-native-flow
 
 val lv-kill kills stmt =
@@ -90,6 +90,8 @@ val lv-gen gens stmt =
             SEM_ASSIGN x: visit-op gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
           | SEM_STORE x: visit-address gens x.address
+					| SEM_WHILE x: visit-lin gens 1 x.cond
+					| SEM_ITE x: visit-lin gens 1 x.cond
 #          | SEM_LABEL x: gens
 #          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
 #          | SEM_IF_GOTO x: visit-flow gens x
@@ -233,6 +235,19 @@ val lv-analyze stack =
                      do lv-push-live x.hd;
                         sweep x.tl (lvstate-eval state x.hd)
                      end
+                | SEM_WHILE y: do
+								    lv-push-live x.hd;
+										body-state <- sweep y.body (lvstate-empty y.body);
+										state-new <- return (lvstate-union state body-state);
+                    sweep x.tl (lvstate-eval state-new x.hd)
+                  end
+                | SEM_ITE y: do
+								    lv-push-live x.hd;
+										then-state <- sweep y.then_branch (lvstate-empty y.then_branch);
+										else-state <- sweep y.else_branch (lvstate-empty y.else_branch);
+										state-new <- return (lvstate-union state (lvstate-union then-state else-state));
+                    sweep x.tl (lvstate-eval state-new x.hd)
+                  end
 #                | SEM_IF_GOTO y:
 #                     do lv-push-live x.hd;
 #                        sweep x.tl (lvstate-eval state x.hd)

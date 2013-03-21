@@ -32,7 +32,8 @@ int main (int argc, char** argv) {
 
   size_t size = 256*1024;
   char fmt[size];
-  __pretty(__rreil_pretty__,r,fmt,size);
+  //__pretty(__rreil_pretty__,r,fmt,size);
+  __pretty(__lv_pretty__,r,fmt,size);
   puts(fmt);
   
   return 1;
