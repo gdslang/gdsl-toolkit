@@ -356,7 +356,7 @@ end = struct
 
       fun lookup (sym, (scs, cons)) =
          let
-            fun l [] = (TextIO.print ("urk, tried to lookup non-existent symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+            fun l [] = (TextIO.print ("urk, tried to lookup non-existent symbol " ^ Int.toString (SymbolTable.toInt sym) ^ ": " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                        ;raise InferenceBug)
               | l ({bindInfo = KAPPA _, typeVars, boolVars, version}::scs) = l scs
               | l ({bindInfo = SINGLE {name, ty}, typeVars, boolVars, version}::scs) =
@@ -373,6 +373,7 @@ end = struct
                   in
                      lG [] bs
                   end
+      
          in
             l scs
          end
@@ -511,6 +512,65 @@ end = struct
    
    type environment = Scope.environment
 
+   fun toStringSI ((scs, state),si) = 
+      let
+         fun showCons (s, (str, si)) =
+            let
+               val (bStr, si) = Scope.toString (s, si)
+            in
+               (bStr ^ "\n" ^ str, si)
+            end
+         val (sStr, si) = SC.toStringSI (Scope.getSize state, NONE, si)
+         val (envConsStr, si) =
+            List.foldr showCons ("sizes: " ^ sStr ^ "\n", si) scs
+         fun showCtxt [] = "top level"
+           | showCtxt [f] = ST.getString(!SymbolTables.varTable, f)
+           | showCtxt (f::fs) = showCtxt [f] ^ ";" ^ showCtxt fs
+      in
+         ("environment at " ^ showCtxt (Scope.getCtxt state) ^ "\n" ^
+          envConsStr ^ BD.showBFun (Scope.getFlow state) ^ "\n", si)
+      end
+
+   fun toString env =
+      let
+         val (str, _) = toStringSI (env,TVar.emptyShowInfo)
+      in
+         str
+      end
+   
+   fun topToStringSI ((scs, state), si) =
+        toStringSI (((List.rev (List.drop (List.rev scs, 2))), state), si)
+
+   fun topToString env =
+      let
+         val (str, _) = topToStringSI (env,TVar.emptyShowInfo)
+      in
+         str
+      end
+
+   fun kappaToStringSI (env, si) = (case Scope.unwrap env of
+        (KAPPA {ty = t}, _) =>
+         let
+            val (tStr, si) = showTypeSI (t,si)
+         in
+            (tStr ^ "\n", si)
+         end
+      | _ => raise InferenceBug
+   )
+
+   fun kappaToString env =
+      let
+         val (str, _) = kappaToStringSI (env,TVar.emptyShowInfo)
+      in
+         str
+      end
+
+   fun funTypeToStringSI (env, f, si) = (case Scope.lookup (f,env) of
+        (_, COMPOUND { ty = SOME (t,_), width, uses, nested }) =>
+            showTypeSI (t,si)
+      | _ => raise InferenceBug
+   )
+
    fun primitiveEnvironment (l,scs) = Scope.initial
       (GROUP (List.map (fn (s,t,bFunGen,ow) =>
          {name = s, ty = SOME (t,bFunGen BD.empty),
@@ -599,18 +659,30 @@ end = struct
             
             (*in case we are inside a function, store this group in the nested
             field of the function entry*)
-            val inScope = SymSet.fromList (Scope.getCtxt state)
+            val bs = if List.null (Scope.getCtxt state) then [] else bs
+            (* the following filters out those functions that aren't needed;
+              however, it is too aggressive as certain functions that are
+              defined in the "in" part of a let may reference a function of
+              the let body but are not visible *)
+            (*val inScope = SymSet.fromList (Scope.getCtxt state)
+            val _ = TextIO.print ("popGroup: in scope are " ^ List.foldl (fn (s,acc) => SymbolTable.getString(!SymbolTables.varTable, s) ^ ", " ^ acc) "" (Scope.getCtxt state) ^ "\n")
+            val _ = TextIO.print ("popGroup: group symbols are " ^ List.foldl (fn ({name, ty, width, uses, nested},acc) => SymbolTable.getString(!SymbolTables.varTable, name) ^ ", " ^ acc) "" bs ^ "\n")
             val bs = List.filter
                         (fn {name, ty, width, uses = us, nested} =>
+                           (if SymbolTable.toInt name=1630 then TextIO.print ("usages of conv-mem are " ^ List.foldl (fn ((name,_),acc) => SymbolTable.getString(!SymbolTables.varTable, name) ^ ", " ^ acc) "" (SpanMap.listItems us) ^ " with " ^ Int.toString (List.length nested) ^ " nested\n") else ();
                            List.exists (fn (f,_) => SymSet.member (inScope,f))
-                              (SpanMap.listItems us)
-                        ) bs
+                              (SpanMap.listItems us) )
+                        ) bs*)
             fun action group (COMPOUND {ty, width, uses, nested},cons) =
                (COMPOUND {ty = ty, width = width,
                 uses = uses, nested = group :: nested}, cons)
               | action ns _ = raise InferenceBug
             val env = if List.null bs then env else
                Scope.update (Scope.getCurFun state, action (GROUP bs), env)
+            (*val _ = if not (List.null bs) then
+                    TextIO.print ("popGroup, updating " ^ SymbolTable.getString(!SymbolTables.varTable, Scope.getCurFun state) ^
+                              " to contain group " ^ List.foldl (fn ({name, ty, width, uses, nested},acc) => SymbolTable.getString(!SymbolTables.varTable, name) ^ ", " ^ acc) "" bs ^ "\n" ^ topToString env)
+                    else ()*)
          in
             (badSizes, env)
          end
@@ -670,73 +742,6 @@ end = struct
    fun eq_span ((p1s,p1e), (p2s,p2e)) =
       Position.toInt p1s=Position.toInt p2s andalso
       Position.toInt p1e=Position.toInt p2e
-
-   fun toStringSI ((scs, state),si) = 
-      let
-         fun showCons (s, (str, si)) =
-            let
-               val (bStr, si) = Scope.toString (s, si)
-            in
-               (bStr ^ "\n" ^ str, si)
-            end
-         val (sStr, si) = SC.toStringSI (Scope.getSize state, NONE, si)
-         val (envConsStr, si) =
-            List.foldr showCons ("sizes: " ^ sStr ^ "\n", si) scs
-         fun showCtxt [] = "top level"
-           | showCtxt [f] = ST.getString(!SymbolTables.varTable, f)
-           | showCtxt (f::fs) = showCtxt [f] ^ ";" ^ showCtxt fs
-      in
-         ("environment at " ^ showCtxt (Scope.getCtxt state) ^ "\n" ^
-          envConsStr ^ BD.showBFun (Scope.getFlow state) ^ "\n", si)
-      end
-
-   fun toString env =
-      let
-         val (str, _) = toStringSI (env,TVar.emptyShowInfo)
-      in
-         str
-      end
-   
-   fun topToStringSI (env, si) =
-      let
-         fun tts acc (sc :: scs, state) =
-            (case Scope.unwrap (sc :: scs, state) of
-                 (GROUP _, (_, state)) => toStringSI ((acc, state), si)
-               | (_, env) => tts (acc @ [sc]) env) 
-           | tts acc ([], state) = toStringSI ((acc, state), si)
-      in
-         tts [] env
-      end
-
-   fun topToString env =
-      let
-         val (str, _) = topToStringSI (env,TVar.emptyShowInfo)
-      in
-         str
-      end
-
-   fun kappaToStringSI (env, si) = (case Scope.unwrap env of
-        (KAPPA {ty = t}, _) =>
-         let
-            val (tStr, si) = showTypeSI (t,si)
-         in
-            (tStr ^ "\n", si)
-         end
-      | _ => raise InferenceBug
-   )
-
-   fun kappaToString env =
-      let
-         val (str, _) = kappaToStringSI (env,TVar.emptyShowInfo)
-      in
-         str
-      end
-
-   fun funTypeToStringSI (env, f, si) = (case Scope.lookup (f,env) of
-        (_, COMPOUND { ty = SOME (t,_), width, uses, nested }) =>
-            showTypeSI (t,si)
-      | _ => raise InferenceBug
-   )
 
    fun reduceBooleanFormula (sym,t,setType,reduceToMono,env) =
       let
@@ -981,6 +986,8 @@ end = struct
             val fid = case !funRef of
                  SOME fid => fid
                | NONE => raise InferenceBug
+            (*val _ = TextIO.print ("popToUsage " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n")*)
+      
             val env = case Scope.lookup (fid,env) of
                  (_, COMPOUND { ty = SOME (t,_), width, uses, nested}) =>
                   reduceBooleanFormula (fid,t,setType,true,env)
@@ -1112,7 +1119,7 @@ end = struct
                            end),
                       nested = List.map (fn b =>
                         case substBinding (b, !usesRef, !eiRef) of
-                           (b, _, us, ei) => (*ns1 and ns2 have same set of uses, varset is empty*)
+                           (b, _, us, ei) =>
                               (usesRef := us
                               ;eiRef := ei
                               ;b)) ns
@@ -1209,9 +1216,13 @@ end = struct
                               (x::xs,acc)
                            end
                            | foldAcc f ([], acc) = ([],acc)
+                        fun mergeNested (ns1::nss1, ns2::nss2) = (ns1,ns2)::mergeNested (nss1,nss2)
+                          | mergeNested ([], nss2) = ListPair.zip (nss2,nss2)
+                          | mergeNested (nss1, []) = ListPair.zip (nss1,nss1)
+                        
                         val (ns,bFun) = foldAcc (fn ((b1,b2),bFun) =>
                                                  uniteFlowInfo (b1,b2,bFun))
-                                           (ListPair.zip (ns1,ns2),bFun)
+                                           (mergeNested (ns1,ns2),bFun)
                      in
                         ({name = n1, ty = t, width = w, uses = us, nested = ns} :: bs, bFun)
                      end
@@ -1355,8 +1366,9 @@ in () end;*)
                      {name = name, ty = ty, width = width,
                       uses = uses, nested = replGroup nested}
                   val bsPrev = List.map replBs bsPrev
+                  val env = Scope.wrap (GROUP bsPrev,env)
                in
-                  popNested (n-1,Scope.wrap (GROUP bsPrev,env))
+                  popNested (n-1,env)
                end
             | _ => raise InferenceBug
           )
@@ -1444,8 +1456,6 @@ in () end;*)
                   | (nUs1,nUs2, substs) =>
                      (SymMap.insert (newUses1,n1,nUs1),
                       SymMap.insert (newUses2,n2,nUs2), substs)
-               (*val _ = if List.length bs1=List.length bs2 then () else
-                     TextIO.print ("*************** mgu of\n" ^ topToString (Scope.wrap (GROUP bs1,env1)) ^ "\ndoes not match\n" ^ topToString (Scope.wrap (GROUP bs2,env2)))*)
                val (newUses1, newUses2, substs) =
                   List.foldl uB (newUses1, newUses2, substs) (ListPair.zipEq (bs1,bs2))
             in
