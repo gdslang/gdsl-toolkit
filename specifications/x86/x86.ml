@@ -5292,8 +5292,6 @@ val / [0xcb] = varity0-def-opnd-sz-64 RET_FAR
 val / [0xc2] = varity1-def-opnd-sz-64 RET imm16
 val / [0xca] = varity1-def-opnd-sz-64 RET_FAR imm16
 
-### =><=
-
 ### ROUNDPD
 ###  - Round Packed Double Precision Floating-Point Values
 val /66 [0x0f 0x3a 0x09 /r] = ternop ROUNDPD xmm128 xmm/m128 imm8
@@ -5342,7 +5340,7 @@ val / [0x9e] = arity0 SAHF
 ### - Shift
 #### SAL/SHL
 val / [0xd0 /4] = binop SHL r/m8 one
-val / [0xd0 /6] = binop SHL r/m8 one
+#val / [0xd0 /6] = binop SHL r/m8 one
 val / [0xd2 /4] = binop SHL r/m8 cl
 val / [0xc0 /4] = binop SHL r/m8 imm8
 val / [0xd1 /4]
@@ -5446,7 +5444,8 @@ val / [0x0f 0x98 /r] = unop SETS r/m8
 
 ### SFENCE
 ###  - Store Fence
-val / [0x0f 0xae /7-reg] = arity0 SFENCE
+#val / [0x0f 0xae /7-reg] = arity0 SFENCE
+val / [0x0f 0xae /7] = arity0 SFENCE
 
 ### SGDT
 ###  - Store Global Descriptor Table Register
@@ -5504,7 +5503,7 @@ val / [0x0f 0x00 /0]
 
 ### SMSW
 ###  - Store Machine Status Word
-val / [0x0f 0x01 /4-mem]
+val / [0x0f 0x01 /4]
  | opndsz? = unop SMSW r/m16
  | rexw? = unop SMSW r64/m16
  | otherwise = unop SMSW r32/m16
@@ -5615,11 +5614,11 @@ val /vex/f3/0f/vexv [0x5c /r] = varity3 VSUBSS xmm128 v/xmm xmm/m32
 
 ### SWAPGS
 ###  - Swap GS Base Register
-val / [0x0f 0x01 0xf8] = arity0 SWAPGS
+val / [0x0f 0x01 /7] | mode64? = arity0 SWAPGS
 
 ### SYSCALL
 ###  - Fast System Call
-val / [0x0f 0x05] = arity0 SYSCALL
+val / [0x0f 0x05] | mode64? = arity0 SYSCALL
 
 ### SYSENTER
 ###  - Fast System Call
@@ -5634,8 +5633,8 @@ val / [0x0f 0x35]
 ### SYSRET
 ###  - Return From Fast System Call
 val / [0x0f 0x07]
- | rexw? = arity0 SYSRET
- | otherwise = arity0 SYSRET
+ | mode64? & rexw? = arity0 SYSRET
+ | mode64? & otherwise = arity0 SYSRET
 
 ### TEST
 ###  - Logical Compare
@@ -5654,6 +5653,8 @@ val / [0x85 /r]
  | opndsz? = binop TEST r/m16 r16
  | rexw? = binop TEST r/m64 r64
  | otherwise = binop TEST r/m32 r32
+
+### =><=
 
 ### UCOMISD
 ###  - Unordered Compare Scalar Double-Precision Floating-Point Values and Set EFLAGS
