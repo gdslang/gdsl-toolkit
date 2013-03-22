@@ -9,10 +9,10 @@ val test-instructions-0 = do
 	t1 <- mktemp;
 	t2 <- mktemp;
 
-	mov 1 t0 (imm 3);
+	#mov 1 t0 (imm 3);
 #	mov 1 t1 (imm 4);
-	mov 8 t2 (imm 5);
-	mov 8 (at-offset t2 20) (imm 5);
+	#mov 8 t2 (imm 5);
+	#mov 8 (at-offset t2 20) (imm 5);
 
 	#_while (/d (var (at-offset t0 99))) __ do
 	#  mov 1 (at-offset t0 33) (var (at-offset t1 33));
@@ -21,18 +21,20 @@ val test-instructions-0 = do
 	#	mov 32 t2 (imm 888)
 	#end;
 
-	mov 32 t2 (imm 888);
-	_if (/d (var t0)) _then do
-    mov 1 (at-offset t0 33) (var (at-offset t1 88));
-		mov 32 t2 (imm 888)
-	end _else do
-    mov 1 (at-offset t0 33) (var (at-offset t1 107));
-		mov 32 t1 (imm 888)
-	end;
+	#mov 32 t2 (imm 888);
+	#_if (/d (var t0)) _then do
+  #  mov 1 (at-offset t0 33) (var (at-offset t1 88));
+	#	mov 32 t2 (imm 888)
+	#end _else do
+  #  mov 1 (at-offset t0 33) (var (at-offset t1 107));
+	#	mov 32 t1 (imm 888)
+	#end;
 
-  add 32 t0 (var t1) (var t2);
+  cbranch (var t0) (address 99 (var t1)) (address 88 (var t2))
 
-	mov 1 t0 (imm 42)
+  #add 32 t0 (var t1) (var t2);
+
+	#mov 1 t0 (imm 42)
 end
 
 val tinsng = do

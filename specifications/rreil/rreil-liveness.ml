@@ -82,8 +82,10 @@ val lv-gen gens stmt =
 
       val visit-flow gens x =
          lv-union
-            (visit-lin gens 1 x.cond)
-            (visit-lin gens x.size x.target)
+           (visit-lin gens 1 x.cond)
+					 (lv-union
+             (visit-address gens x.target-true)
+             (visit-address gens x.target-false))
 
       val visit-stmt gens stmt =
          case stmt of
@@ -92,6 +94,8 @@ val lv-gen gens stmt =
           | SEM_STORE x: visit-address gens x.address
 					| SEM_WHILE x: visit-lin gens 1 x.cond
 					| SEM_ITE x: visit-lin gens 1 x.cond
+					| SEM_BRANCH x: visit-address gens x.target
+					| SEM_CBRANCH x: visit-flow gens x
 #          | SEM_LABEL x: gens
 #          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
 #          | SEM_IF_GOTO x: visit-flow gens x
@@ -248,6 +252,14 @@ val lv-analyze stack =
 										state-new <- return (lvstate-union state (lvstate-union then-state else-state));
                     sweep x.tl (lvstate-eval state-new x.hd)
                   end
+								| SEM_CBRANCH y: do
+                    lv-push-live x.hd;
+                    sweep x.tl (lvstate-eval state x.hd)
+								  end
+								| SEM_BRANCH y: do
+                    lv-push-live x.hd;
+                    sweep x.tl (lvstate-eval state x.hd)
+								  end
 #                | SEM_IF_GOTO y:
 #                     do lv-push-live x.hd;
 #                        sweep x.tl (lvstate-eval state x.hd)
