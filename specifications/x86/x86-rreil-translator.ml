@@ -2146,6 +2146,7 @@ val semantics insn =
    | VUNPCKHPS x: sem-undef-varity x
    | VUNPCKLPD x: sem-undef-varity x
    | VUNPCKLPS x: sem-undef-varity x
+   | VXORPD x: sem-undef-varity x
    | VXORPS x: sem-undef-varity x
    | VZEROALL v: sem-vzeroall
    | VZEROUPPER v: sem-vzeroupper
@@ -2157,7 +2158,6 @@ val semantics insn =
    | XADD x: sem-xadd x
    | XCHG x: sem-xchg x
    | XGETBV x: sem-undef-arity0 x
-   | XLAT x: sem-undef-arity0 x
    | XLATB x: sem-undef-arity0 x
    | XOR x: sem-xor x
    | XORPD x: sem-undef-arity2 x

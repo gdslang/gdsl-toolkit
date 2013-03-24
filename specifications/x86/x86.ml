@@ -1507,6 +1507,7 @@ type insn =
  | VUNPCKHPS of varity
  | VUNPCKLPD of varity
  | VUNPCKLPS of varity
+ | VXORPD of varity
  | VXORPS of varity
  | VZEROALL of varity
  | VZEROUPPER of varity
@@ -1518,7 +1519,6 @@ type insn =
  | XADD of arity2
  | XCHG of arity2
  | XGETBV of arity0
- | XLAT of arity0
  | XLATB of arity0
  | XOR of arity2
  | XORPD of arity2
@@ -5654,8 +5654,6 @@ val / [0x85 /r]
  | rexw? = binop TEST r/m64 r64
  | otherwise = binop TEST r/m32 r32
 
-### =><=
-
 ### UCOMISD
 ###  - Unordered Compare Scalar Double-Precision Floating-Point Values and Set EFLAGS
 val /66 [0x0f 0x2e /r] = binop UCOMISD xmm128 xmm/m64
@@ -5701,7 +5699,7 @@ val /vex/0f/vexv [0x14 /r]
 ### VBROADCAST
 ###  - Load with Broadcast
 val /vex/66/0f/38 [0x18 /r-mem]
- | vex128? & vexw0? = varity2 VBROADCASTSS xmm128 m32
+ | vex128? & vexw0? & mode32? = varity2 VBROADCASTSS xmm128 m32
  | vex256? & vexw0? = varity2 VBROADCASTSS ymm256 m32
 val /vex/66/0f/38 [0x19 /r-mem] | vex256? & vexw0? = varity2 VBROADCASTSD ymm256 m64
 val /vex/66/0f/38 [0x1a /r-mem] | vex256? & vexw0? = varity2 VBROADCASTF128 ymm256 m128
@@ -5713,6 +5711,7 @@ val /vex/66/0f/38 [0x13 /r]
  | vex128? & vexw0? = varity2 VCVTPH2PS xmm128 xmm/m64
 
 ### VCVTPS2PH
+###  - Convert Single-Precision FP value to 16-bit FP value
 val /vex/66/0f/3a [0x1d /r]
  | vex256? & vexw0? = varity3 VCVTPS2PH xmm/m128 ymm256 imm8
  | vex128? & vexw0? = varity3 VCVTPS2PH xmm/m64 xmm128 imm8
@@ -5827,7 +5826,7 @@ val / ['10010 r:3']
        update@{reg/opcode=r};
        binop XCHG eax r32/rexb
      end
-val / [0x86 /r] = binop XCHG r8 r/m8
+val / [0x86 /r] = binop-lock XCHG r/m8 r8
 val / [0x87 /r]
  | opndsz? = binop-lock XCHG r/m16 r16
  | rexw? = binop-lock XCHG r/m64 r64
@@ -5840,7 +5839,7 @@ val / [0x0f 0x01 0xd0] = arity0 XGETBV
 ### XLAT/XLATB
 ###  - Table Look-up Translation
 val / [0xd7]
- | opndsz? = arity0 XLAT
+ | opndsz? = arity0 XLATB
  | rexw? = arity0 XLATB
  | otherwise = arity0 XLATB
 
@@ -5874,13 +5873,16 @@ val / [0x33 /r]
 ### XORPD
 ###  - Bitwise Logical XOR for Double-Precision Floating-Point Values
 val /66 [0x0f 0x57 /r] = binop XORPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x57 /r]
+ | vex128? = varity3 VXORPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 VXORPD ymm256 v/ymm ymm/m256
 
 ### XORPS
 ###  - Bitwise Logical XOR for Single-Precision Floating-Point Values
 val / [0x0f 0x57 /r] = binop XORPS xmm128 xmm/m128
-val /vex/66/0f/vexv [0x57 /r]
+val /vex/0f/vexv [0x57 /r]
  | vex128? = varity3 VXORPS xmm128 v/xmm xmm/m128
- | otherwise = varity3 VXORPS ymm256 v/ymm ymm/m256
+ | vex256? = varity3 VXORPS ymm256 v/ymm ymm/m256
 
 ### XRSTOR
 ###  - Restore Processor Extended States

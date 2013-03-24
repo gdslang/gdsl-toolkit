@@ -1077,6 +1077,7 @@ val show/instruction insn =
     | VUNPCKHPS x: "VUNPCKHPS" -++ show/varity x
     | VUNPCKLPD x: "VUNPCKLPD" -++ show/varity x
     | VUNPCKLPS x: "VUNPCKLPS" -++ show/varity x
+    | VXORPD x: "VXORPD" -++ show/varity x
     | VXORPS x: "VXORPS" -++ show/varity x
     | VZEROALL x: "VZEROALL" -++ show/varity x
     | VZEROUPPER x: "VZEROUPPER" -++ show/varity x
@@ -1088,7 +1089,6 @@ val show/instruction insn =
     | XADD x: "XADD" -++ show/arity2 x
     | XCHG x: "XCHG" -++ show/arity2 x
     | XGETBV x: "XGETBV"
-    | XLAT x: "XLAT"
     | XLATB x: "XLATB"
     | XOR x: "XOR" -++ show/arity2 x
     | XORPD x: "XORPD" -++ show/arity2 x
