@@ -5280,7 +5280,17 @@ val / [0x0f 0x31] = arity0 RDTSC
 
 ### RDTSCP
 ###  - Read Time-Stamp Counter and Processor ID
-val / [0x0f 0x01 0xf9] = arity0 RDTSCP
+#val / [0x0f 0x01 0xf9] = arity0 RDTSCP
+val / [0x0f 0x01 /7-reg] = do
+  rm <- query $rm;
+  mode64 <- mode64?;
+  if rm == '001' then
+    arity0 RDTSCP
+  else
+	  case mode64 of
+		   '1': arity0 SWAPGS
+		end
+end
 
 ### REP/REPE/REPZ/REPNE/REPNZ
 ###  - Repeat String Operation Prefix
@@ -5444,8 +5454,7 @@ val / [0x0f 0x98 /r] = unop SETS r/m8
 
 ### SFENCE
 ###  - Store Fence
-#val / [0x0f 0xae /7-reg] = arity0 SFENCE
-val / [0x0f 0xae /7] = arity0 SFENCE
+val / [0x0f 0xae /7-reg] = arity0 SFENCE
 
 ### SGDT
 ###  - Store Global Descriptor Table Register
@@ -5614,7 +5623,7 @@ val /vex/f3/0f/vexv [0x5c /r] = varity3 VSUBSS xmm128 v/xmm xmm/m32
 
 ### SWAPGS
 ###  - Swap GS Base Register
-val / [0x0f 0x01 /7] | mode64? = arity0 SWAPGS
+#See RDTSCP
 
 ### SYSCALL
 ###  - Fast System Call
