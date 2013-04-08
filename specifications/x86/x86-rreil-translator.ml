@@ -2176,14 +2176,14 @@ val semantics insn =
 #s/\(.*\)| \(\S*\):.*/\1| \2 x: sem-undef-arity0 x/g
 
 val translate insn =
-   do update@{stack=SEM_NIL,tmp=TLIST_NIL,lab=0,mode64='1'};
+   do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
       semantics insn;
       stack <- query $stack;
       return (rreil-stmts-rev stack)
    end
 
 val translate-bottom-up insn =
-   do update@{stack=SEM_NIL,tmp=TLIST_NIL,lab=0};
+   do update@{stack=SEM_NIL,tmp=0,lab=0};
       semantics insn;
       stack <- query $stack;
       return stack
@@ -2191,7 +2191,7 @@ val translate-bottom-up insn =
 
 val transInstr = do
    ic <- query $ins_count;
-   update@{tmp=TLIST_NIL,ins_count=ic+1};
+   update@{tmp=0,ins_count=ic+1};
    insn <- decode;
    semantics insn
 end
