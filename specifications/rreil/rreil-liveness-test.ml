@@ -1,6 +1,6 @@
 export = tinsng turner
 
-val arch-show-id x = case 0 of 1: "" end
+#val arch-show-id x = case 0 of 1: "" end
 
 val print o = update@{nothing=(println o)}
 
@@ -30,7 +30,10 @@ val test-instructions-0 = do
 	#	mov 32 t1 (imm 888)
 	#end;
 
-  cbranch (var t0) (address 99 (var t1)) (address 88 (var t2))
+  cbranch (var t0) (address 99 (var t1)) (address 88 (var t2));
+
+  xmm10 <- return (semantic-register-of XMM10);
+  mov 77 xmm10 (imm 42)
 
   #add 32 t0 (var t1) (var t2);
 
@@ -38,14 +41,16 @@ val test-instructions-0 = do
 end
 
 val tinsng = do
-  update@{stack=SEM_NIL,tmp=TLIST_NIL};
+  update@{stack=SEM_NIL,tmp=0};
   test-instructions-0;
 	stack <- query $stack;
-  lv-state <- lv-analyze stack;
+  live-registers <- registers-live-map;
+  lv-state <- lv-analyze live-registers stack;
   #print (lv-pretty lv-state.greedy);
   #return (("Hallo :-)" +++ "fasel"))
 	#return (rreil-stmts-rev stack)
   return lv-state.conservative
+  #return live-registers
 end
 
 val turner x = x

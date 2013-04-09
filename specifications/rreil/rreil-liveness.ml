@@ -206,7 +206,7 @@ val lv-pretty t =
 #      end
 #   end
 
-val lv-analyze stack =
+val lv-analyze initial-live stack =
    let
       val sweep stack state =
          case stack of
@@ -241,14 +241,14 @@ val lv-analyze stack =
                      end
                 | SEM_WHILE y: do
 								    lv-push-live x.hd;
-										body-state <- sweep y.body (lvstate-empty y.body);
+										body-state <- sweep y.body (lvstate-empty (fmap-empty {}) y.body);
 										state-new <- return (lvstate-union state body-state);
                     sweep x.tl (lvstate-eval state-new x.hd)
                   end
                 | SEM_ITE y: do
 								    lv-push-live x.hd;
-										then-state <- sweep y.then_branch (lvstate-empty y.then_branch);
-										else-state <- sweep y.else_branch (lvstate-empty y.else_branch);
+										then-state <- sweep y.then_branch (lvstate-empty (fmap-empty {}) y.then_branch);
+										else-state <- sweep y.else_branch (lvstate-empty (fmap-empty {}) y.else_branch);
 										state-new <- return (lvstate-union state (lvstate-union then-state else-state));
                     sweep x.tl (lvstate-eval state-new x.hd)
                   end
@@ -294,14 +294,14 @@ val lv-analyze stack =
    in do
 #	   lv-sweep-and-collect-upto-native-flow;
 #     stack <- query $stack;
-     update @{live=SEM_NIL,maybelive=SEM_NIL,state=lmap-empty{}};
-     sweep stack (lvstate-empty stack)
+     update @{live=SEM_NIL,maybelive=SEM_NIL};
+     sweep stack (lvstate-empty initial-live stack)
    end end
 
-val lv-update-state label lvstate =
-   do state <- query $state;
-      update @{state=lmap-update state {lab=label,state=lvstate}}
-   end
+#val lv-update-state label lvstate =
+#   do state <- query $state;
+#      update @{state=lmap-update state {lab=label,state=lvstate}}
+#   end
 
 val lv-push-maybelive stmt =
    do live <- query $maybelive;
@@ -343,9 +343,9 @@ val lvstate-eval state stmt =
       eval (lv-kill1 stmt) (lv-gen1 stmt)
    end
 
-val lvstate-empty stmts =
-   {greedy=fmap-empty {},
-    conservative=lv-kills stmts}
+val lvstate-empty initial-live stmts =
+   {greedy=initial-live,
+    conservative=lv-union (lv-kills stmts) initial-live}
 
 val lvstate-pretty state = lv-pretty state.greedy
 
