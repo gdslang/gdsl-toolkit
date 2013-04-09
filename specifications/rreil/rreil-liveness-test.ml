@@ -8,6 +8,7 @@ val test-instructions-0 = do
   t0 <- mktemp;
 	t1 <- mktemp;
 	t2 <- mktemp;
+	t3 <- mktemp;
 
 	#mov 1 t0 (imm 3);
 #	mov 1 t1 (imm 4);
@@ -30,10 +31,16 @@ val test-instructions-0 = do
 	#	mov 32 t1 (imm 888)
 	#end;
 
-  cbranch (var t0) (address 99 (var t1)) (address 88 (var t2));
+  #cbranch (var t0) (address 99 (var t1)) (address 88 (var t2));
 
   xmm10 <- return (semantic-register-of XMM10);
-  mov 77 xmm10 (imm 42)
+  #mov 32 xmm10 (var t0);
+
+  mov 17 t1 (var t2);
+  mov 16 xmm10 (var t1);
+  mov 16 t1 (imm 33);
+  mov 32 t0 (var t1);
+  mov 16 xmm10 (var t0)
 
   #add 32 t0 (var t1) (var t2);
 
@@ -49,7 +56,7 @@ val tinsng = do
   #print (lv-pretty lv-state.greedy);
   #return (("Hallo :-)" +++ "fasel"))
 	#return (rreil-stmts-rev stack)
-  return lv-state.conservative
+  return lv-state.greedy
   #return live-registers
 end
 
