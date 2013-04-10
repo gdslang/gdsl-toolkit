@@ -350,7 +350,7 @@ val lvstate-eval state stmt =
          # HACK: if a statement doesn't kill anything make the {gen} set live
          # alternative: explicitly inspect the visited statement
          if bbtree-empty? kill
-            then gen
+            then (lv-union state gen)
          else
             lv-union
                (lv-difference state kill)

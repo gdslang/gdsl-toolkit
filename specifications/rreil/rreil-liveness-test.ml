@@ -9,6 +9,8 @@ val test-instructions-0 = do
 	t1 <- mktemp;
 	t2 <- mktemp;
 	t3 <- mktemp;
+	t4 <- mktemp;
+	t5 <- mktemp;
 
 	#mov 1 t0 (imm 3);
 #	mov 1 t1 (imm 4);
@@ -39,14 +41,16 @@ val test-instructions-0 = do
   #mov 17 t1 (var t2);
   #mov 16 xmm10 (var t1);
 
-  _while (/d (var t1)) __ do
-    mov 16 t1 (imm 33);
-    mov 16 t1 (imm 99)
+  _while (/d (var t5)) __ do
+    mov 16 t0 (var t2);
+    mov 16 t2 (var t1);
+    mov 16 t1 (var t4);
+    mov 16 t1 (var t3);
 	end;
 
-  mov 32 t0 (imm 99);
-  mov 32 t1 (var t0);
-  mov 32 t1 (imm 11);
+  #mov 32 t0 (imm 99);
+  #mov 32 t1 (var t0);
+  #mov 32 t1 (imm 11);
   mov 16 xmm10 (var t0)
 
   #add 32 t0 (var t1) (var t2);

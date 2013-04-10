@@ -29,7 +29,7 @@ int main (int argc, char** argv) {
   __obj state = __createState(NULL, 0, 0, 0);
 
   __obj r = __runMonadicNoArg(__tinsng__, &state);
-  __obj insns = __RECORD_SELECT(state, ___maybelive);
+  __obj insns = __RECORD_SELECT(state, ___live);
 
   size_t size = 256*1024;
   char fmt[size];
