@@ -184,6 +184,15 @@ val lv-pretty t =
       bbtree-pretty fields t
    end
 
+val live-stack-backup-and-reset = do
+  live <- query $live;
+	maybelive <- query $live;
+  update @{live=SEM_NIL,maybelive=SEM_NIL};
+	return {live=live,maybelive=maybelive}
+end
+
+val live-stack-restore backup = update @{live=backup.live,maybelive=backup.maybelive}
+
 #val lv-sweep-and-collect-upto-native-flow =
 #   let
 #      val sweep =
@@ -240,9 +249,16 @@ val lv-analyze initial-live stack =
                         sweep x.tl (lvstate-eval state x.hd)
                      end
                 | SEM_WHILE y: do
-								    lv-push-live x.hd;
-										body-state <- sweep y.body (lvstate-empty (fmap-empty {}) y.body);
-										state-new <- return (lvstate-union state body-state);
+										backup <- live-stack-backup-and-reset;
+
+										body-rev <- return (rreil-stmts-rev y.body);
+										body-state <- sweep body-rev (lvstate-empty (fmap-empty {}) body-rev);
+										state-new <- return (lvstate-union-conservative state body-state);
+
+										maybelive <- query $maybelive;
+
+										live-stack-restore backup;
+								    lv-push-live (/WHILE y.cond maybelive);
                     sweep x.tl (lvstate-eval state-new x.hd)
                   end
                 | SEM_ITE y: do
@@ -308,16 +324,22 @@ val lv-push-maybelive stmt =
       update @{maybelive=SEM_CONS{hd=stmt,tl=live}}
    end
 
-val lv-push-live stmt = 
-   do live <- query $live;
-      update @{live=SEM_CONS{hd=stmt,tl=live}}
-   end
+val lv-push-live stmt = do
+  live <- query $live;
+  update @{live=SEM_CONS{hd=stmt,tl=live}};
+
+	lv-push-maybelive stmt
+end
 
 ## Liveness lattice operations and transfer functions 
 
 val lvstate-union a b =
    {greedy=lv-union a.greedy b.greedy,
     conservative=lv-union a.conservative b.conservative}
+
+val lvstate-union-conservative old conservative-state =
+   {greedy=lv-union old.greedy conservative-state.conservative,
+    conservative=lv-union old.conservative conservative-state.conservative}
 
 val lvstate-eval state stmt =
    let
@@ -345,7 +367,7 @@ val lvstate-eval state stmt =
 
 val lvstate-empty initial-live stmts =
    {greedy=initial-live,
-    conservative=lv-union (lv-kills stmts) initial-live}
+    conservative=lv-union (lv-kills stmts) (fmap-empty {})}
 
 val lvstate-pretty state = lv-pretty state.greedy
 

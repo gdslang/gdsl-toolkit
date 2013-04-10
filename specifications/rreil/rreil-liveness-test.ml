@@ -36,10 +36,17 @@ val test-instructions-0 = do
   xmm10 <- return (semantic-register-of XMM10);
   #mov 32 xmm10 (var t0);
 
-  mov 17 t1 (var t2);
-  mov 16 xmm10 (var t1);
-  mov 16 t1 (imm 33);
-  mov 32 t0 (var t1);
+  #mov 17 t1 (var t2);
+  #mov 16 xmm10 (var t1);
+
+  _while (/d (var t1)) __ do
+    mov 16 t1 (imm 33);
+    mov 16 t1 (imm 99)
+	end;
+
+  mov 32 t0 (imm 99);
+  mov 32 t1 (var t0);
+  mov 32 t1 (imm 11);
   mov 16 xmm10 (var t0)
 
   #add 32 t0 (var t1) (var t2);
