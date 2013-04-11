@@ -262,11 +262,45 @@ val lv-analyze initial-live stack =
                     sweep x.tl (lvstate-eval state-new x.hd)
                   end
                 | SEM_ITE y: do
-								    lv-push-live x.hd;
-										then-state <- sweep y.then_branch (lvstate-empty (fmap-empty {}) y.then_branch);
-										else-state <- sweep y.else_branch (lvstate-empty (fmap-empty {}) y.else_branch);
+								    #lv-push-live x.hd;
+
+										org-backup <- live-stack-backup-and-reset;
+
+										then-state <- sweep y.then_branch state;
+										then-backup <- live-stack-backup-and-reset;
+
+										else-state <- sweep y.else_branch state;
+										else-backup <- live-stack-backup-and-reset;
+
+										maybelive? <- let
+										  val stacks-empty a b = 
+										    case a of
+										       SEM_NIL:
+													   case b of
+													      SEM_NIL: '1'
+														  | SEM_CONS x: '0'
+														 end
+									       | SEM_CONS x: '0'
+												end
+										in
+										  if (stacks-empty then-backup.maybelive else-backup.maybelive) == '0' then do
+											  lv-push-maybelive (/ITE y.cond then-backup.maybelive else-backup.maybelive);
+										    if (stacks-empty then-backup.live else-backup.live) == '0' then
+										      lv-push-live-only (/ITE y.cond then-backup.live else-backup.live)
+												else
+												  return void
+												;
+											  return '1'
+											end else
+											  return '0'
+										end;
+
 										state-new <- return (lvstate-union state (lvstate-union then-state else-state));
-                    sweep x.tl (lvstate-eval state-new x.hd)
+
+										if maybelive? then
+                      sweep x.tl (lvstate-eval state-new x.hd)
+									  else
+										  sweep x.tl state-new
                   end
 								| SEM_CBRANCH y: do
                     lv-push-live x.hd;
@@ -324,10 +358,13 @@ val lv-push-maybelive stmt =
       update @{maybelive=SEM_CONS{hd=stmt,tl=live}}
    end
 
-val lv-push-live stmt = do
+val lv-push-live-only stmt = do
   live <- query $live;
   update @{live=SEM_CONS{hd=stmt,tl=live}};
+end
 
+val lv-push-live stmt = do
+  lv-push-live-only stmt;
 	lv-push-maybelive stmt
 end
 

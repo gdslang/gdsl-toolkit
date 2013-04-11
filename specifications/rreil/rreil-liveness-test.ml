@@ -41,12 +41,12 @@ val test-instructions-0 = do
   #mov 17 t1 (var t2);
   #mov 16 xmm10 (var t1);
 
-  _while (/d (var t5)) __ do
-    mov 16 t0 (var t2);
-    mov 16 t2 (var t1);
-    mov 16 t1 (var t4);
-    mov 16 t1 (var t3);
-	end;
+  #_while (/d (var t5)) __ do
+  #  mov 16 t0 (var t2);
+  #  mov 16 t2 (var t1);
+  #  mov 16 t1 (var t4);
+  #  mov 16 t1 (var t3);
+	#end;
 
   #mov 32 t0 (imm 99);
   #mov 32 t1 (var t0);
