@@ -262,17 +262,19 @@ val lv-analyze initial-live stack =
                     sweep x.tl (lvstate-eval state-new x.hd)
                   end
                 | SEM_ITE y: do
-								    #lv-push-live x.hd;
-
 										org-backup <- live-stack-backup-and-reset;
 
-										then-state <- sweep y.then_branch state;
+										then_branch-rev <- return (rreil-stmts-rev y.then_branch);
+										then-state <- sweep then_branch-rev state;
 										then-backup <- live-stack-backup-and-reset;
 
-										else-state <- sweep y.else_branch state;
+										else_branch-rev <- return (rreil-stmts-rev y.else_branch);
+										else-state <- sweep else_branch-rev state;
 										else-backup <- live-stack-backup-and-reset;
 
-										maybelive? <- let
+										live-stack-restore org-backup;
+
+										state-new <- let
 										  val stacks-empty a b = 
 										    case a of
 										       SEM_NIL:
@@ -285,22 +287,21 @@ val lv-analyze initial-live stack =
 										in
 										  if (stacks-empty then-backup.maybelive else-backup.maybelive) == '0' then do
 											  lv-push-maybelive (/ITE y.cond then-backup.maybelive else-backup.maybelive);
-										    if (stacks-empty then-backup.live else-backup.live) == '0' then
-										      lv-push-live-only (/ITE y.cond then-backup.live else-backup.live)
-												else
-												  return void
-												;
-											  return '1'
+										    greedy <-
+												  if (stacks-empty then-backup.live else-backup.live) == '0' then do
+										        lv-push-live-only (/ITE y.cond then-backup.live else-backup.live);
+                            return (lvstate-eval-simple-no-kill state.greedy x.hd)
+												  end else
+												    return state.greedy
+												  ;
+											  return {greedy=greedy,conservative=lvstate-eval-simple-no-kill state.conservative x.hd}
 											end else
-											  return '0'
+											  return {greedy=state.greedy,conservative=state.conservative}
 										end;
 
-										state-new <- return (lvstate-union state (lvstate-union then-state else-state));
+										state-new <- return (lvstate-union state-new (lvstate-union then-state else-state));
 
-										if maybelive? then
-                      sweep x.tl (lvstate-eval state-new x.hd)
-									  else
-										  sweep x.tl state-new
+										sweep x.tl state-new
                   end
 								| SEM_CBRANCH y: do
                     lv-push-live x.hd;
@@ -360,7 +361,7 @@ val lv-push-maybelive stmt =
 
 val lv-push-live-only stmt = do
   live <- query $live;
-  update @{live=SEM_CONS{hd=stmt,tl=live}};
+  update @{live=SEM_CONS{hd=stmt,tl=live}}
 end
 
 val lv-push-live stmt = do
@@ -377,6 +378,8 @@ val lvstate-union a b =
 val lvstate-union-conservative old conservative-state =
    {greedy=lv-union old.greedy conservative-state.conservative,
     conservative=lv-union old.conservative conservative-state.conservative}
+
+val lvstate-eval-simple-no-kill state stmt = lv-union state (lv-gen1 stmt)
 
 val lvstate-eval state stmt =
    let
