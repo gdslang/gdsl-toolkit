@@ -3,8 +3,8 @@
 # LIVENESS based on fields
 
 export =
-   lv-kill
-   lv-kills
+ #  lv-kill
+ #  lv-kills
    lv-gen
    lv-gens
    lv-union
@@ -13,19 +13,22 @@ export =
 #   lvstate-pretty
 #   lv-sweep-and-collect-upto-native-flow
 
+val lv-kills-empty = {definitely=fmap-empty{}, maybe=fmap-empty{}}
+
 val lv-kill kills stmt =
    let
-	    val wrap a = {definitely=a, maybe=a}
+	    #val wrap a = {definitely=a, maybe=a}
 
-      val visit-semvar kills sz x = fmap-add-range kills x.id sz x.offset
+      val visit-semvar kills sz x = {definitely=fmap-add-range kills.definitely x.id sz x.offset,
+			                               maybe=fmap-add-range kills.maybe x.id sz x.offset}
 
       val visit-stmt kills stmt =
          case stmt of
-            SEM_ASSIGN x: wrap (visit-semvar kills (rreil-sizeOf x.rhs) x.lhs)
-          | SEM_LOAD x: wrap (visit-semvar kills x.size x.lhs)
-					| SEM_ITE x: {definitely=lv-union kills (lv-intersection (lv-kills x.then_branch).definitely (lv-kills x.else_branch).definitely)
-					              maybe=lv-union kills (lv-union (lv-kills x.then_branch).maybe (lv-kills x.else_branch).maybe)}
-          | _ : kills
+            SEM_ASSIGN x: visit-semvar kills (rreil-sizeOf x.rhs) x.lhs
+ #         | SEM_LOAD x: visit-semvar kills x.size x.lhs
+ # 				| SEM_ITE x: {definitely=lv-union kills.definitely (lv-intersection (lv-kills x.then_branch).definitely (lv-kills x.else_branch).definitely),
+ # 				              maybe=lv-union kills.maybe (lv-union (lv-kills x.then_branch).maybe (lv-kills x.else_branch).maybe)}
+ #         | _ : kills
          end
    in
       visit-stmt kills stmt
@@ -110,8 +113,8 @@ val lv-gen gens stmt =
       visit-stmt gens stmt
    end
 
-val lv-gen1 stmt = lv-gen (fmap-empty {}) stmt
-val lv-kill1 stmt = lv-kill (fmap-empty {}) stmt
+val lv-gen1 stmt = lv-gen (fmap-empty{}) stmt
+val lv-kill1 stmt = lv-kill lv-kills-empty stmt
 
 val lv-gens stmts =
    let
@@ -132,7 +135,7 @@ val lv-kills stmts =
           | _ : kills
          end
    in
-      visit (fmap-empty {}) stmts
+      visit lv-kills-empty stmts
    end
 
 val lv-union a b =
@@ -313,7 +316,7 @@ val lv-analyze initial-live stack =
 										state-new <- return (lvstate-union state (lvstate-union then-state else-state));
 
 										#sweep x.tl state-new
-                    sweep x.tl (lvstate-eval-ite state-new ite-greedy ite-conservative)
+                    sweep x.tl (lvstate-eval state-new x.hd)
                   end
 								| SEM_CBRANCH y: do
                     lv-push-live x.hd;
@@ -350,7 +353,7 @@ val lv-analyze initial-live stack =
                                  end
                            else sweep x.tl cont-state
                      in
-                        cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
+                        cont (lv-kill1 x.hd).maybe (lvstate-eval state x.hd)
                      end
                end
          end
@@ -402,17 +405,17 @@ val lvstate-eval-simple-no-kill state stmt = lv-union state (lv-gen1 stmt)
 val lvstate-eval state stmt =
    let
       val lvstate-eval-conservative state kill gen =
-         lv-union gen (lv-difference state kill)
+         lv-union gen (lv-difference state kill.definitely)
 
       val lvstate-eval-greedy state kill gen =
          # HACK: if a statement doesn't kill anything make the {gen} set live
          # alternative: explicitly inspect the visited statement
-         if bbtree-empty? kill
+         if bbtree-empty? kill.maybe
             then (lv-union state gen) #Todo: Why gen? ;-)
          else
             lv-union
-               (lv-difference state kill)
-               (if lv-any-live? state kill
+               (lv-difference state kill.definitely)
+               (if lv-any-live? state kill.maybe
                    then gen
                 else fmap-empty {})
 
@@ -447,7 +450,7 @@ val lvstate-eval state stmt =
 
 val lvstate-empty initial-live stmts =
    {greedy=initial-live,
-    conservative=lv-union (lv-kills stmts) (fmap-empty {})}
+    conservative=lv-union (lv-kills stmts).maybe (fmap-empty {})}
 
 val lvstate-pretty state = lv-pretty state.greedy
 
