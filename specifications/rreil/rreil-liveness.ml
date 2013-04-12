@@ -307,10 +307,10 @@ val lv-analyze initial-live stack =
 										lv-push-maybelive ite-conservative;
 										lv-push-live-only ite-greedy;
 
-										state-new <- return (lvstate-union state (lvstate-union then-state else-state));
+										state-new <- return (lvstate-union then-state else-state);
 
 										#sweep x.tl state-new
-                    sweep x.tl (lvstate-eval-ite state-new ite-greedy ite-conservative)
+                    sweep x.tl (lv-eval-simple state-new x.hd)
                   end
 								| SEM_CBRANCH y: do
                     lv-push-live x.hd;
@@ -388,7 +388,11 @@ val lvstate-union-conservative old conservative-state =
    {greedy=lv-union old.greedy conservative-state.conservative,
     conservative=lv-union old.conservative conservative-state.conservative}
 
-val lvstate-eval-simple-no-kill state stmt = lv-union state (lv-gen1 stmt)
+#val lvstate-eval-simple-no-kill state stmt = lv-union state (lv-gen1 stmt)
+
+val lv-eval-simple state stmt =
+         {greedy=lv-union state.greedy (lv-gen1 stmt),
+          conservative=lv-union state.conservative (lv-gen1 stmt)}
 
 val lvstate-eval state stmt =
    let
@@ -414,32 +418,32 @@ val lvstate-eval state stmt =
       eval (lv-kill1 stmt) (lv-gen1 stmt)
    end
 
-val lvstate-eval-ite state ite-greedy ite-conservative =
-   let
-      val lvstate-eval-conservative state kill gen =
-         if bbtree-empty? kill then
-				   state
-         else
-           lv-union gen (lv-difference state kill)
-
-      val lvstate-eval-greedy state kill gen =
-         # HACK: if a statement doesn't kill anything make the {gen} set live
-         # alternative: explicitly inspect the visited statement
-         if bbtree-empty? kill then
-				   state
-         else
-            lv-union
-               (lv-difference state kill)
-               (if lv-any-live? state kill
-                   then gen
-                else fmap-empty {})
-
-      val eval =
-         {greedy=lvstate-eval-greedy state.greedy (lv-kill1 ite-greedy) (lv-gen1 ite-greedy),
-          conservative=lvstate-eval-conservative state.conservative (lv-kill1 ite-conservative) (lv-gen1 ite-conservative)}
-   in
-      eval
-   end
+#val lvstate-eval-ite state ite-greedy ite-conservative =
+#   let
+#      val lvstate-eval-conservative state kill gen =
+#         if bbtree-empty? kill then
+#				   state
+#         else
+#           lv-union gen (lv-difference state kill)
+#
+#      val lvstate-eval-greedy state kill gen =
+#         # HACK: if a statement doesn't kill anything make the {gen} set live
+#         # alternative: explicitly inspect the visited statement
+#         if bbtree-empty? kill then
+#				   state
+#         else
+#            lv-union
+#               (lv-difference state kill)
+#               (if lv-any-live? state kill
+#                   then gen
+#                else fmap-empty {})
+#
+#      val eval =
+#         {greedy=lvstate-eval-greedy state.greedy (lv-kill1 ite-greedy) (lv-gen1 ite-greedy),
+#          conservative=lvstate-eval-conservative state.conservative (lv-kill1 ite-conservative) (lv-gen1 ite-conservative)}
+#   in
+#      eval
+#   end
 
 val lvstate-empty initial-live stmts =
    {greedy=initial-live,

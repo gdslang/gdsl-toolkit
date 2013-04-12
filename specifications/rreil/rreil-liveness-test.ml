@@ -48,12 +48,16 @@ val test-instructions-0 = do
   #  mov 16 t1 (var t3);
 	#end;
 
+  mov 16 t0 (var t4);
   _if (/d (var t4)) _then do
-    #mov 16 t1 (var t1)
-		return void
+    mov 16 t1 (var t4);
+    mov 16 t1 (var t3);
+    mov 16 t0 (var t1);
+    mov 16 t2 (var t0)
   end _else do
     #mov 8 t1 (var t2)
-		return void
+    #mov 16 t0 (imm 42)
+return void
 	end;
 
   #mov 32 t0 (imm 99);
