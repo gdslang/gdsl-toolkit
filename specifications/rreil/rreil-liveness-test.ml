@@ -57,7 +57,6 @@ val test-instructions-0 = do
   end _else do
     #mov 8 t1 (var t2)
     #mov 16 t0 (imm 42)
-return void
 	end;
 
   #mov 32 t0 (imm 99);
