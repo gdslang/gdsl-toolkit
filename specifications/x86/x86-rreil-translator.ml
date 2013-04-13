@@ -2209,5 +2209,6 @@ val translateBlock = do
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-   transBlock
+	 stmts <- transBlock;
+   return (rreil-stmts-rev stmts)
 end

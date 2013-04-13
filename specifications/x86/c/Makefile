@@ -16,6 +16,9 @@ clang-tester:
 clang-sweep:
 	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o clang-sweep
 
+liveness-sweep:
+	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness-sweep.c ../../../dis.o -DRELAXEDFATAL -o liveness-sweep
+
 gcc-sweep:
 	gcc -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o gcc-sweep
 
