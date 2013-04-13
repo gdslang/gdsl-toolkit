@@ -2197,7 +2197,6 @@ val transInstr = do
 end
 
 val transBlock = do
-   update@{stack=SEM_NIL,foundJump='0'};
    transInstr;
    jmp <- query $foundJump;
    ic <- query $ins_count;
@@ -2206,6 +2205,7 @@ end
 
 val translateBlock = do
    update @{ins_count=0,mode64='1'};
+   update@{stack=SEM_NIL,foundJump='0'};
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};

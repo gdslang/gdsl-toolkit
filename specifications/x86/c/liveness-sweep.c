@@ -8,7 +8,7 @@
 #include <sys/resource.h>
 
 int main (int argc, char** argv) {
-    const rlim_t kStackSize = 64L * 1024L * 1024L;   // min stack size = 64 Mb
+    const rlim_t kStackSize = 512L * 1024L * 1024L;   // min stack size = 64 Mb
     struct rlimit rl;
     int result;
 
@@ -65,14 +65,14 @@ int main (int argc, char** argv) {
     __obj greedy = __runMonadicOneArg(__liveness__, &state, stack);
   __obj insns = __RECORD_SELECT(state, ___live);
     //__obj r = __translate(__translate__,insn);
-    if(___isNil(greedy))
-      __fatal("Translate failed");
-    else {
+//    if(___isNil(greedy))
+//      __fatal("Translate failed");
+//    else {
 			__pretty(__lv_pretty__,greedy,fmt_state,size);
-      __pretty(__rreil_pretty__,stack,fmt,size);
+      __pretty(__rreil_pretty__,insns,fmt,size);
       puts(fmt_state);
       puts(fmt);
-    }
+//    }
   }
 
   
