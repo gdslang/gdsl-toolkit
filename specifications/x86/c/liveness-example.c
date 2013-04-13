@@ -5,7 +5,8 @@ int main(void) {
 	int a;
 	int b;
 	int c;
-	
+	int d;
+
 	start:
 	a = 12;
 	b = 55;
@@ -14,6 +15,9 @@ int main(void) {
 	b = a - c;
 	c = (a + b)*(c - b);
 	a = 3 + 77*c;
+	d = 7*a + 2*(c - 3*b);
+	c = b + 2*a - 3*d - 99*(a - 27*c);
+	b = 66*(a + b + c + d);
 	__asm__ ("jmp label\nlabel:\n");
 	end:;
 

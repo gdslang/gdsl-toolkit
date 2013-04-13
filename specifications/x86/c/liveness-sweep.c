@@ -27,53 +27,87 @@ int main (int argc, char** argv) {
     }
 
   size_t size = 16*1024*1024;
-  char fmt[size];
-  char fmt_state[size];
-  __obj insn;
+	char *fmt = (char*)malloc(size);
 
-  if(argc != 4) {
-    printf("Usage: sweep file offset length\n");
+  if(argc != 2) {
+    printf("Usage: liveness-sweep file\n");
     return 1;
   }
-
-  size_t offset;
-  sscanf(argv[2], "%zu", &offset);
-  size_t length;
-  sscanf(argv[3], "%zu", &length);
 
   FILE *f = fopen(argv[1], "r");
   if(!f) {
     printf("Unable to open file.\n");
     return 1;
   }
-  fseek(f, offset, SEEK_SET);
 
-  size_t buffer_size = 16*length + 15;
-  unsigned char *buffer = (unsigned char*)malloc(buffer_size);
-  size_t buffer_length = fread(buffer, 1, buffer_size, f);
+  size_t buffer_size = 128;
+  unsigned char *buffer = NULL;
+	size_t buffer_length = 0;
+	do {
+		buffer_size *= 2;
+		buffer = (unsigned char*)realloc(buffer, buffer_size);
+  	buffer_length += fread(buffer + buffer_length, 1, buffer_size - buffer_length, f);
+	} while(!feof(f));
+
+	fclose(f);
 
   __obj state = __createState(buffer, buffer_length, 0, 0);
 
-  //uint64_t consumed = 0;
-  __obj stack = __runMonadicNoArg(__translateBlock__, &state);
+  __obj rreil_instructions = __runMonadicNoArg(__translateBlock__, &state);
+
+	if(!__isNil(rreil_instructions)) {
+    __fatal("TranslateBlock failed");
+		goto end;
+	}
   
-  //consumed += __decode(__decode__,buffer+consumed,buffer_length - consumed,&insn);
-  //printf("Consumed: %lu\n", consumed);
-  if (___isNil(stack))
-    __fatal("Translate failed");
-  else {
-    __obj greedy = __runMonadicOneArg(__liveness__, &state, stack);
-  __obj insns = __RECORD_SELECT(state, ___live);
-    //__obj r = __translate(__translate__,insn);
-//    if(___isNil(greedy))
-//      __fatal("Translate failed");
-//    else {
-			__pretty(__lv_pretty__,greedy,fmt_state,size);
-      __pretty(__rreil_pretty__,insns,fmt,size);
-      puts(fmt_state);
-      puts(fmt);
-//    }
-  }
+  __obj greedy_state = __runMonadicOneArg(__liveness__, &state, rreil_instructions);
+	if(!__isNil(greedy_state)) {
+    __fatal("Liveness failed");
+		goto end;
+	}
+
+  __obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
+	if(!__isNil(rreil_instructions_greedy)) {
+    __fatal("Liveness failed (no greedy instructions)");
+		goto end;
+	}
+
+	printf("Liveness greedy state:\n");
+	__pretty(__lv_pretty__,greedy_state,fmt,size);
+  puts(fmt);
+	printf("\n");
+  
+	printf("Initial RREIL instructions:\n");
+	__pretty(__rreil_pretty__,rreil_instructions,fmt,size);
+  puts(fmt);
+	printf("\n");
+
+	size_t lines = 0;
+	for(size_t i = 0; fmt[i]; i++)
+		if(fmt[i] == '\n')
+			lines++;
+  
+	printf("RREIL instructions after LV (greedy):\n");
+	__pretty(__rreil_pretty__,rreil_instructions_greedy,fmt,size);
+  puts(fmt);
+	printf("\n");
+
+	size_t lines_greedy = 0;
+	for(size_t i = 0; fmt[i]; i++)
+		if(fmt[i] == '\n')
+			lines_greedy++;
+
+	printf("Statistics:\n");
+	printf("Number of lines without LV analysis: %zu\n", lines);
+	printf("Number of lines with LV analysis: %zu\n", lines_greedy);
+	
+	double reduction = 1 - (lines_greedy/(double)lines);
+
+	printf("Reduction: %lf%%\n", 100*reduction);
+
+	end:
+	free(buffer);
+	free(fmt);
 
   
   return (1);

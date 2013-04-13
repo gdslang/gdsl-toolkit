@@ -30,3 +30,6 @@ cliveness:
 
 liveness-test:
 	gcc -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness-test.c ../../../dis.o -DRELAXEDFATAL -o liveness-test
+
+liveness-example:
+	gcc -m32 -std=c99 liveness-example.c -o liveness-example

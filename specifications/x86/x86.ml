@@ -598,6 +598,7 @@ type register =
  | ST6
  | ST7
  | RIP
+ | FLAGS
 
 type opnd =
    IMM8 of {imm:8,address:int}

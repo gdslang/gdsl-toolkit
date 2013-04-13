@@ -1,7 +1,7 @@
 export = liveness
 
-val liveness stack = do
+val liveness instructions = do
   live-registers <- registers-live-map;
-  lv-state <- lv-analyze live-registers stack;
+  lv-state <- lv-analyze live-registers (rreil-stmts-rev instructions);
   return lv-state.greedy 
 end

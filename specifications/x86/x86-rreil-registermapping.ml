@@ -200,6 +200,7 @@ val semantic-register-of r = case r of
    | ST6   : {id=Sem_ST6, offset=0, size=80}
    | ST7   : {id=Sem_ST7, offset=0, size=80}
    | RIP   : {id=Sem_IP, offset=0, size=64}
+   | FLAGS : {id=Sem_FLAGS,offset=0,size=64}
 end
 
 val semantic-register-of-offset r offset = let
@@ -506,6 +507,7 @@ in do
   map <- add map ST6;
   map <- add map ST7;
   map <- add map RIP;
+  map <- add map FLAGS;
 
 	return map
 end end
