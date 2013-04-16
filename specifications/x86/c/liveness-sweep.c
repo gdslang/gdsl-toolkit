@@ -79,7 +79,7 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 }
 
 int main(int argc, char** argv) {
-	const rlim_t kStackSize = 1024L * 1024L * 1024L;
+	const rlim_t kStackSize = 4096L * 1024L * 1024L;
 	struct rlimit rl;
 	int result;
 
@@ -134,55 +134,72 @@ int main(int argc, char** argv) {
 
 	fclose(f);
 
+	if(buffer_length == buffer_size) {
+		buffer_size++;
+		buffer = (unsigned char*)realloc(buffer, buffer_size);
+	}
+	buffer[buffer_length++] = 0xc3; //Last instruction should be a jump (ret) ;-).
+
 	if(buffer_length > size_max)
 		buffer_length = size_max;
 
-	__obj state = __createState(buffer, buffer_length, 0, 0);
-
-	__obj rreil_instructions = __runMonadicNoArg(__translateBlock__, &state);
-
-	if(!__isNil(rreil_instructions)) {
-		__fatal("TranslateBlock failed");
-		goto end;
-	}
-
-	__obj greedy_state = __runMonadicOneArg(__liveness__, &state,
-			rreil_instructions);
-	if(!__isNil(greedy_state)) {
-		__fatal("Liveness failed");
-		goto end;
-	}
-
-	__obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
-	if(!__isNil(rreil_instructions_greedy)) {
-		__fatal("Liveness failed (no greedy instructions)");
-		goto end;
-	}
-
-	printf("Liveness greedy state:\n");
-	__pretty(__lv_pretty__, greedy_state, fmt, size);
-	puts(fmt);
-	printf("\n");
-
-	printf("Initial RREIL instructions:\n");
-	__pretty(__rreil_pretty__, rreil_instructions, fmt, size);
-	puts(fmt);
-	printf("\n");
 
 	size_t lines = 0;
-	for(size_t i = 0; fmt[i]; i++)
-		if(fmt[i] == '\n')
-			lines++;
-
-	printf("RREIL instructions after LV (greedy):\n");
-	__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
-	puts(fmt);
-	printf("\n");
-
 	size_t lines_greedy = 0;
-	for(size_t i = 0; fmt[i]; i++)
-		if(fmt[i] == '\n')
-			lines_greedy++;
+
+	uint64_t consumed = 0;
+	while(consumed < buffer_length) {
+		__obj state = __createState(buffer + consumed, buffer_length - consumed, 0, 0);
+
+		__obj rreil_instructions = __runMonadicNoArg(__translateBlock__, &state);
+	
+		if(!__isNil(rreil_instructions)) {
+			__fatal("TranslateBlock failed");
+			goto end;
+		}
+
+		printf("%x\n", buffer[consumed]);
+	
+		printf("Initial RREIL instructions:\n");
+		__pretty(__rreil_pretty__, rreil_instructions, fmt, size);
+		puts(fmt);
+		printf("\n");
+	
+		__obj greedy_state = __runMonadicOneArg(__liveness__, &state,
+				rreil_instructions);
+		if(!__isNil(greedy_state)) {
+			__fatal("Liveness failed");
+			goto end;
+		}
+
+		__obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
+		if(!__isNil(rreil_instructions_greedy)) {
+			__fatal("Liveness failed (no greedy instructions)");
+			goto end;
+		}
+	
+		printf("Liveness greedy state:\n");
+		__pretty(__lv_pretty__, greedy_state, fmt, size);
+		puts(fmt);
+		printf("\n");
+	
+		for(size_t i = 0; fmt[i]; i++)
+			if(fmt[i] == '\n')
+				lines++;
+	
+		printf("RREIL instructions after LV (greedy):\n");
+		__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
+		puts(fmt);
+		printf("\n");
+	
+		for(size_t i = 0; fmt[i]; i++)
+			if(fmt[i] == '\n')
+				lines_greedy++;
+
+		consumed += __getBlobIndex(state);
+
+		printf("consumed: %lu\n", consumed);
+	}
 
 	printf("Statistics:\n");
 	printf("Number of lines without LV analysis: %zu\n", lines);
@@ -192,7 +209,8 @@ int main(int argc, char** argv) {
 
 	printf("Reduction: %lf%%\n", 100 * reduction);
 
-	end: free(buffer);
+	end:
+	free(buffer);
 	free(fmt);
 
 	return (1);

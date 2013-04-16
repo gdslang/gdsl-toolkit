@@ -13,6 +13,8 @@ export =
 #   lvstate-pretty
 #   lv-sweep-and-collect-upto-native-flow
 
+val print o = update@{nothing=(println o)}
+
 val lv-kill kills stmt =
    let
       val visit-semvar kills sz x = fmap-add-range kills x.id sz x.offset
@@ -223,7 +225,7 @@ val lv-analyze initial-live stack =
       val sweep stack state =
          case stack of
             SEM_NIL: return state
-          | SEM_CONS x:
+          | SEM_CONS x: do print x.hd;
                case x.hd of
 #                  SEM_LABEL y:
 #                     do lv-update-state y.label state;
@@ -307,7 +309,11 @@ val lv-analyze initial-live stack =
 										lv-push-maybelive ite-conservative;
 										lv-push-live-only ite-greedy;
 
+										print "peter";
+
 										state-new <- return (lvstate-union then-state else-state);
+
+										print "hallo";
 
 										#sweep x.tl state-new
                     sweep x.tl (lv-eval-simple state-new x.hd)
@@ -349,7 +355,7 @@ val lv-analyze initial-live stack =
                      in
                         cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
                      end
-               end
+               end end
          end
    in do
 #	   lv-sweep-and-collect-upto-native-flow;
