@@ -134,15 +134,16 @@ int main(int argc, char** argv) {
 
 	fclose(f);
 
+	//printf("size_max: %lu, buffer_length: %lu\n", size_max, buffer_length);
+
+	if(size_max && buffer_length > size_max)
+		buffer_length = size_max;
+
 	if(buffer_length == buffer_size) {
 		buffer_size++;
 		buffer = (unsigned char*)realloc(buffer, buffer_size);
 	}
 	buffer[buffer_length++] = 0xc3; //Last instruction should be a jump (ret) ;-).
-
-	if(buffer_length > size_max)
-		buffer_length = size_max;
-
 
 	size_t lines = 0;
 	size_t lines_greedy = 0;
@@ -165,6 +166,10 @@ int main(int argc, char** argv) {
 		puts(fmt);
 		printf("\n");
 	
+		for(size_t i = 0; fmt[i]; i++)
+			if(fmt[i] == '\n')
+				lines++;
+	
 		__obj greedy_state = __runMonadicOneArg(__liveness__, &state,
 				rreil_instructions);
 		if(!__isNil(greedy_state)) {
@@ -183,10 +188,6 @@ int main(int argc, char** argv) {
 		puts(fmt);
 		printf("\n");
 	
-		for(size_t i = 0; fmt[i]; i++)
-			if(fmt[i] == '\n')
-				lines++;
-	
 		printf("RREIL instructions after LV (greedy):\n");
 		__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
 		puts(fmt);
@@ -195,10 +196,11 @@ int main(int argc, char** argv) {
 		for(size_t i = 0; fmt[i]; i++)
 			if(fmt[i] == '\n')
 				lines_greedy++;
-
+	
+		__resetHeap();
 		consumed += __getBlobIndex(state);
 
-		printf("consumed: %lu\n", consumed);
+		//printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
 	}
 
 	printf("Statistics:\n");

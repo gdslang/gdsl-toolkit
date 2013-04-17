@@ -2357,26 +2357,30 @@ val moffs64 = do
 end
 
 val exception-rep arg = do
-  v <- query $rep;
-  case v of '0': arg end
+#  v <- query $rep;
+#  case v of '0': arg end
+arg
 end
 
 val exception-repne arg = do
-  v <- query $repne;
-  case v of '0': arg end
+#  v <- query $repne;
+#  case v of '0': arg end
+arg
 end
 
 val exception-lock arg = do
-  v <- query $lock;
-  case v of '0': arg end
+#  v <- query $lock;
+#  case v of '0': arg end
+arg
 end
 
 val exception-lock-reg giveOp = do
-  v <- query $lock;
-  if v then do
-    op <- giveOp;
-    case op of MEM x: return op end
-  end else giveOp
+#  v <- query $lock;
+#  if v then do
+#    op <- giveOp;
+#    case op of MEM x: return op end
+#  end else giveOp
+giveOp
 end
       
 val exception-rep-repne arg = exception-rep (exception-repne arg)
