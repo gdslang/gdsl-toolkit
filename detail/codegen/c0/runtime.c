@@ -252,7 +252,7 @@ __obj __consume8 (__obj s) {
     __RECORD_ADD(___1,v);
     __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
-	//printf("index: %lu\n", idx + 1);
+	printf("index: %lu\n", idx + 1);
   return (a);
 }
 
@@ -274,7 +274,7 @@ __obj __unconsume8 (__obj s) {
     __RECORD_ADD(___1,__UNIT);
     __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
-	//printf("index: %lu\n", idx - 1);
+	printf("index: %lu\n", idx - 1);
   return (a);
 }
 
@@ -304,7 +304,7 @@ __obj __consume16 (__obj s) {
     __RECORD_ADD(___1,v);
     __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
-	//printf("index: %lu\n", idx + 2);
+	printf("index: %lu\n", idx + 2);
   return (a);
 }
 
@@ -326,7 +326,7 @@ __obj __unconsume16 (__obj s) {
     __RECORD_ADD(___1,__UNIT);
     __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
-	//printf("index: %lu\n", idx - 2);
+	printf("index: %lu\n", idx - 2);
   return (a);
 }
 
@@ -358,7 +358,7 @@ __obj __consume32 (__obj s) {
     __RECORD_ADD(___1,v);
     __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
-	//printf("index: %lu\n", idx + 4);
+	printf("index: %lu\n", idx + 4);
   return (a);
 }
 
@@ -380,7 +380,7 @@ __obj __unconsume32 (__obj s) {
     __RECORD_ADD(___1,__UNIT);
     __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
-	//printf("index: %lu\n", idx - 4);
+	printf("index: %lu\n", idx - 4);
   return (a);
 }
 

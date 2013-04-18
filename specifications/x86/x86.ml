@@ -4604,6 +4604,8 @@ val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
 val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
 val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x74 /r] | vex128? = varity3 VPCMPEQB xmm128 v/xmm xmm/m128
+#Todo: v- is not in the Intel manual
+#val /vex/66/0f [0x74 /r] | vex128? = varity3 VPCMPEQB xmm128 xmm0 xmm/m128
 val /vex/66/0f/vexv [0x75 /r] | vex128? = varity3 VPCMPEQW xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x76 /r] | vex128? = varity3 VPCMPEQD xmm128 v/xmm xmm/m128
 
@@ -5179,6 +5181,8 @@ val / [0x9c]
 val / [0x0f 0xef /r] = binop PXOR mm64 mm/m64
 val /66 [0x0f 0xef /r] = binop PXOR xmm128 xmm/m128
 val /vex/66/0f/vexv [0xef /r] | vex128? = varity3 VPXOR xmm128 v/xmm xmm/m128
+#Todo: v- is not in the Intel manual
+#val /vex/66/0f [0xef /r] | vex128? = varity3 VPXOR xmm128 xmm0 xmm/m128
 
 ### RCL/RCR/ROL/ROR
 ###  - Rotate

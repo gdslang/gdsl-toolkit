@@ -13,6 +13,8 @@
 #include <sysexits.h>
 #include <unistd.h>
 
+#include <time.h>
+
 char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	char retval = 0;
 
@@ -148,18 +150,28 @@ int main(int argc, char** argv) {
 	size_t lines = 0;
 	size_t lines_greedy = 0;
 
+	long time_non_opt = 0;
+	long time_opt = 0;
+
+	struct timespec start;
+	struct timespec end;
+
 	uint64_t consumed = 0;
 	while(consumed < buffer_length) {
 		__obj state = __createState(buffer + consumed, buffer_length - consumed, 0, 0);
 
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		__obj rreil_instructions = __runMonadicNoArg(__translateBlock__, &state);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+		long diff = end.tv_nsec - start.tv_nsec;
+		time_non_opt += diff > 0 ? diff : 0;
 	
 		if(!__isNil(rreil_instructions)) {
 			__fatal("TranslateBlock failed");
 			goto end;
 		}
 
-		printf("%x\n", buffer[consumed]);
+		//printf("%x\n", buffer[consumed]);
 	
 		printf("Initial RREIL instructions:\n");
 		__pretty(__rreil_pretty__, rreil_instructions, fmt, size);
@@ -170,8 +182,12 @@ int main(int argc, char** argv) {
 			if(fmt[i] == '\n')
 				lines++;
 	
+		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		__obj greedy_state = __runMonadicOneArg(__liveness__, &state,
 				rreil_instructions);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+		diff = end.tv_nsec - start.tv_nsec;
+		time_opt += diff > 0 ? diff : 0;
 		if(!__isNil(greedy_state)) {
 			__fatal("Liveness failed");
 			goto end;
@@ -200,7 +216,7 @@ int main(int argc, char** argv) {
 		__resetHeap();
 		consumed += __getBlobIndex(state);
 
-		//printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
+		printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
 	}
 
 	printf("Statistics:\n");
@@ -210,6 +226,9 @@ int main(int argc, char** argv) {
 	double reduction = 1 - (lines_greedy / (double)lines);
 
 	printf("Reduction: %lf%%\n", 100 * reduction);
+
+	printf("Time needed for the decoding and the translation to RREIL: %lf seconds\n", time_non_opt/(double)(1000000000));
+	printf("Time needed for the lv analysis: %lf\n seconds", time_opt/(double)(1000000000));
 
 	end:
 	free(buffer);
