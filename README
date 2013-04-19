@@ -1,4 +1,4 @@
-In order to compile and run the x86 decoder, RREIL translator and liveness analysis program (which is called "liveness analyzer" from now on) follow the steps below.
+In order to compile and run the x86 decoder, RREIL translator, and liveness analysis program (which is called "liveness analyzer" from now on) follow the steps below.
 
 Dependencies
 
@@ -8,3 +8,33 @@ The following software packages are needed to compile the liveness analyzer:
 - clang (http://clang.llvm.org/) [>= version 3.0]
 - GNU make (http://www.gnu.org/software/make/) [any version]
 - Libelf (http://www.mr511.de/software/) [>= version 0.152]
+
+Building the Application
+
+The following steps need to be taken in order to build the application. It is assumed that the GDSL root directory is the current working directory. First one needs to compile GDSL itself using Mlton:
+
+mlton gdsl.mlb
+
+Next all related sources written in GDSL need to be translated to C; in order to be able to later compile the liveness analyzer the following command needs to be executed:
+
+./gdsl @MLton fixed-heap 6g -- "specifications/basis/bbtree.ml" "specifications/rreil/rreil.ml" "specifications/rreil/fmap.ml" "specifications/x86/x86.ml" "specifications/x86/x86-rreil-registermapping.ml" "specifications/x86/x86-pretty.ml" "specifications/rreil/rreil-pretty.ml" "specifications/x86/x86-rreil-translator.ml" "specifications/x86/x86-rreil-translator-a-l.ml" "specifications/x86/x86-rreil-translator-m-z.ml" "specifications/rreil/rreil-liveness.ml" "specifications/x86/x86-liveness.ml"
+
+The compilation run outputs the two files dis.c and dis.h. In the next step the C code has to be compiled:
+
+clang -fPIC -c dis.c -o dis.o
+
+The liveness analyzer itself is a small C program that uses the API offered by the GDSL modules. The following commands compile the liveness analyzer:
+
+cd specifications/x86/c
+make liveness-sweep
+
+The compilation outputs an executable file called "liveness-sweep". It analyzes a binary passed as command line argument:
+
+./liveness-sweep liveness-example.bin
+
+The output should be self-explanatory. The above example file only contains a bunch of instructions to be decoded, translated and optimized. In case however one wishes to analyze the ".text" section of a standard ELF executable it
+also is possible to directly pass such a file:
+
+./liveness-sweep --elf examples/ls
+
+This command analyzes the binary belonging to the well-known "ls" command.
