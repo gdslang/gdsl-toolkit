@@ -156,32 +156,38 @@ int main(int argc, char** argv) {
 	struct timespec start;
 	struct timespec end;
 
+	size_t native_instructions = 0;
+
 	uint64_t consumed = 0;
 	while(consumed < buffer_length) {
-		__obj state = __createState(buffer + consumed, buffer_length - consumed, 0, 0);
+		__obj state = __createState(buffer + consumed, buffer_length - consumed, 0,
+				0);
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		__obj rreil_instructions = __runMonadicNoArg(__translateBlock__, &state);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		long diff = end.tv_nsec - start.tv_nsec;
 		time_non_opt += diff > 0 ? diff : 0;
-	
+
 		if(!__isNil(rreil_instructions)) {
 			__fatal("TranslateBlock failed");
 			goto end;
 		}
 
+		__obj native_instruction_count = __RECORD_SELECT(state, ___ins_count);
+		native_instructions += __CASETAGINT(native_instruction_count);
+
 		//printf("%x\n", buffer[consumed]);
-	
+
 		printf("Initial RREIL instructions:\n");
 		__pretty(__rreil_pretty__, rreil_instructions, fmt, size);
 		puts(fmt);
 		printf("\n");
-	
+
 		for(size_t i = 0; fmt[i]; i++)
 			if(fmt[i] == '\n')
 				lines++;
-	
+
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		__obj greedy_state = __runMonadicOneArg(__liveness__, &state,
 				rreil_instructions);
@@ -198,28 +204,32 @@ int main(int argc, char** argv) {
 			__fatal("Liveness failed (no greedy instructions)");
 			goto end;
 		}
-	
+
 		printf("Liveness greedy state:\n");
 		__pretty(__lv_pretty__, greedy_state, fmt, size);
 		puts(fmt);
 		printf("\n");
-	
+
 		printf("RREIL instructions after LV (greedy):\n");
 		__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
 		puts(fmt);
 		printf("\n");
-	
+
 		for(size_t i = 0; fmt[i]; i++)
 			if(fmt[i] == '\n')
 				lines_greedy++;
-	
+
 		__resetHeap();
 		consumed += __getBlobIndex(state);
 
-		printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
+		//printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
 	}
 
+	if(native_instructions)
+		native_instructions--;
+
 	printf("Statistics:\n");
+	printf("Number of native instructions: %zu\n", native_instructions);
 	printf("Number of lines without LV analysis: %zu\n", lines);
 	printf("Number of lines with LV analysis: %zu\n", lines_greedy);
 
@@ -227,11 +237,13 @@ int main(int argc, char** argv) {
 
 	printf("Reduction: %lf%%\n", 100 * reduction);
 
-	printf("Time needed for the decoding and the translation to RREIL: %lf seconds\n", time_non_opt/(double)(1000000000));
-	printf("Time needed for the lv analysis: %lf\n seconds", time_opt/(double)(1000000000));
+	printf(
+			"Time needed for the decoding and the translation to RREIL: %lf seconds\n",
+			time_non_opt / (double)(1000000000));
+	printf("Time needed for the lv analysis: %lf\n seconds",
+			time_opt / (double)(1000000000));
 
-	end:
-	free(buffer);
+	end: free(buffer);
 	free(fmt);
 
 	return (1);

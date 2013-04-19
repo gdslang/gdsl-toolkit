@@ -2199,7 +2199,7 @@ end
 val transBlock = do
    transInstr;
    jmp <- query $foundJump;
-   ic <- query $ins_count;
+   #ic <- query $ins_count;
    #if jmp or ic>1000 then query $stack else transBlock
    if jmp then query $stack else transBlock
 end
