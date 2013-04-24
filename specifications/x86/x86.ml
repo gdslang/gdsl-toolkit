@@ -598,6 +598,7 @@ type register =
  | ST6
  | ST7
  | RIP
+ | FLAGS
 
 type opnd =
    IMM8 of {imm:8,address:int}
@@ -2356,26 +2357,30 @@ val moffs64 = do
 end
 
 val exception-rep arg = do
-  v <- query $rep;
-  case v of '0': arg end
+#  v <- query $rep;
+#  case v of '0': arg end
+arg
 end
 
 val exception-repne arg = do
-  v <- query $repne;
-  case v of '0': arg end
+#  v <- query $repne;
+#  case v of '0': arg end
+arg
 end
 
 val exception-lock arg = do
-  v <- query $lock;
-  case v of '0': arg end
+#  v <- query $lock;
+#  case v of '0': arg end
+arg
 end
 
 val exception-lock-reg giveOp = do
-  v <- query $lock;
-  if v then do
-    op <- giveOp;
-    case op of MEM x: return op end
-  end else giveOp
+#  v <- query $lock;
+#  if v then do
+#    op <- giveOp;
+#    case op of MEM x: return op end
+#  end else giveOp
+giveOp
 end
       
 val exception-rep-repne arg = exception-rep (exception-repne arg)
@@ -4599,6 +4604,8 @@ val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
 val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
 val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x74 /r] | vex128? = varity3 VPCMPEQB xmm128 v/xmm xmm/m128
+#Todo: v- is not in the Intel manual
+#val /vex/66/0f [0x74 /r] | vex128? = varity3 VPCMPEQB xmm128 xmm0 xmm/m128
 val /vex/66/0f/vexv [0x75 /r] | vex128? = varity3 VPCMPEQW xmm128 v/xmm xmm/m128
 val /vex/66/0f/vexv [0x76 /r] | vex128? = varity3 VPCMPEQD xmm128 v/xmm xmm/m128
 
@@ -5174,6 +5181,8 @@ val / [0x9c]
 val / [0x0f 0xef /r] = binop PXOR mm64 mm/m64
 val /66 [0x0f 0xef /r] = binop PXOR xmm128 xmm/m128
 val /vex/66/0f/vexv [0xef /r] | vex128? = varity3 VPXOR xmm128 v/xmm xmm/m128
+#Todo: v- is not in the Intel manual
+#val /vex/66/0f [0xef /r] | vex128? = varity3 VPXOR xmm128 xmm0 xmm/m128
 
 ### RCL/RCR/ROL/ROR
 ###  - Rotate

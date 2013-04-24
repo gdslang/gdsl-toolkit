@@ -20,6 +20,9 @@ specifications/x86/c/clang-sweep
 specifications/x86/c/gcc-sweep
 specifications/x86/c/tester
 specifications/x86/c/liveness-test
+specifications/x86/c/liveness-example
+specifications/x86/c/liveness-example.bin
+specifications/x86/c/liveness-sweep
 
 gdrr/.cproject
 gdrr/.project

@@ -2096,7 +2096,7 @@ val sem-rep-insn x sem =
   else
     sem x
 
-val sem-ret x =
+val sem-ret x = do
   case x of
      VA0 x:
        do
@@ -2109,9 +2109,11 @@ val sem-ret x =
          release-from-stack x;
          ret address
        end
-  end
+  end;
+  update @{foundJump='1'}
+end
 
-val sem-ret-far x =
+val sem-ret-far x = do
   case x of
      VA0 x:
        do
@@ -2124,7 +2126,9 @@ val sem-ret-far x =
          release-from-stack x;
          ret address
        end
-  end
+  end;
+  update @{foundJump='1'}
+end
 
 val pop-ip opnd-sz = do
   ip-sz <-

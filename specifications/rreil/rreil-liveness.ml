@@ -224,6 +224,7 @@ val lv-analyze initial-live stack =
          case stack of
             SEM_NIL: return state
           | SEM_CONS x:
+# do print x.hd;
                case x.hd of
 #                  SEM_LABEL y:
 #                     do lv-update-state y.label state;
@@ -349,7 +350,7 @@ val lv-analyze initial-live stack =
                      in
                         cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
                      end
-               end
+               end# end
          end
    in do
 #	   lv-sweep-and-collect-upto-native-flow;
