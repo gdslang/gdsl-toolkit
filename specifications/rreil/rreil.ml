@@ -23,6 +23,18 @@ type sem_linear =
  | SEM_LIN_SUB of {opnd1:sem_linear, opnd2:sem_linear}
  | SEM_LIN_SCALE of {imm:int, opnd:sem_linear}
 
+ type sem_sexpr =
+   SEM_SEXPR_LIN of sem_linear
+ | SEM_SEXPR_CMP of sem_op_cmp
+
+type sem_op_cmp =
+   SEM_CMPEQ of sem_cmp
+ | SEM_CMPNEQ of sem_cmp
+ | SEM_CMPLES of sem_cmp
+ | SEM_CMPLEU of sem_cmp
+ | SEM_CMPLTS of sem_cmp
+ | SEM_CMPLTU of sem_cmp
+
 type sem_op =
    SEM_LIN of sem_arity1
  | SEM_MUL of sem_arity2
@@ -37,21 +49,16 @@ type sem_op =
  | SEM_XOR of sem_arity2
  | SEM_SX of {size:int, fromsize:int, opnd1:sem_linear}
  | SEM_ZX of {size:int, fromsize:int, opnd1:sem_linear}
- | SEM_CMPEQ of sem_cmp
- | SEM_CMPNEQ of sem_cmp
- | SEM_CMPLES of sem_cmp
- | SEM_CMPLEU of sem_cmp
- | SEM_CMPLTS of sem_cmp
- | SEM_CMPLTU of sem_cmp
  | SEM_ARB of {size:int}
+ | SEM_CMP of sem_op_cmp
 
 type sem_stmt =
    SEM_ASSIGN of {lhs:sem_var, rhs:sem_op}
  | SEM_LOAD of {lhs:sem_var, size:int, address:sem_address}
  | SEM_STORE of {address:sem_address, rhs:sem_op}
- | SEM_ITE of {cond:sem_linear, then_branch:sem_stmts, else_branch:sem_stmts}
- | SEM_WHILE of {cond:sem_linear, body:sem_stmts}
- | SEM_CBRANCH of {cond:sem_linear, target-true:sem_address, target-false:sem_address}
+ | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmts, else_branch:sem_stmts}
+ | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
+ | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
  | SEM_BRANCH of {hint:branch_hint, target:sem_address}
 
 type branch_hint =
@@ -78,12 +85,7 @@ val rreil-sizeOf op =
     | SEM_XOR x: x.size
     | SEM_SX x: x.size
     | SEM_ZX x: x.size
-    | SEM_CMPEQ x: 1
-    | SEM_CMPNEQ x: 1
-    | SEM_CMPLES x: 1
-    | SEM_CMPLEU x: 1
-    | SEM_CMPLTS x: 1
-    | SEM_CMPLTU x: 1
+    | SEM_CMP x: 1
     | SEM_ARB x: x.size
    end
 
@@ -200,14 +202,14 @@ val modulo sz a b c = push (/ASSIGN a (SEM_MOD{size=sz,opnd1=b,opnd2=c}))
 val movsx szA a szB b = push (/ASSIGN a (SEM_SX{size=szA,fromsize=szB,opnd1=b}))
 val movzx szA a szB b = push (/ASSIGN a (SEM_ZX{size=szA,fromsize=szB,opnd1=b}))
 val convert szA a szB b = push (/ASSIGN a (SEM_ZX{size=szA,fromsize=szB,opnd1=b}))
-val cmpeq sz f a b = push (/ASSIGN f (SEM_CMPEQ{size=sz,opnd1=a,opnd2=b}))
-val cmpneq sz f a b = push (/ASSIGN f (SEM_CMPNEQ{size=sz,opnd1=a,opnd2=b}))
-val cmples sz f a b = push (/ASSIGN f (SEM_CMPLES{size=sz,opnd1=a,opnd2=b}))
-val cmpleu sz f a b = push (/ASSIGN f (SEM_CMPLEU{size=sz,opnd1=a,opnd2=b}))
-val cmplts sz f a b = push (/ASSIGN f (SEM_CMPLTS{size=sz,opnd1=a,opnd2=b}))
-val cmpltu sz f a b = push (/ASSIGN f (SEM_CMPLTU{size=sz,opnd1=a,opnd2=b}))
-val ite c t e = push (/ITE c t e)
-val while c b = push (/WHILE c b)
+val cmpeq sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPEQ{size=sz,opnd1=a,opnd2=b})))
+val cmpneq sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPNEQ{size=sz,opnd1=a,opnd2=b})))
+val cmples sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPLES{size=sz,opnd1=a,opnd2=b})))
+val cmpleu sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPLEU{size=sz,opnd1=a,opnd2=b})))
+val cmplts sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPLTS{size=sz,opnd1=a,opnd2=b})))
+val cmpltu sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPLTU{size=sz,opnd1=a,opnd2=b})))
+val ite c t e = push (/ITE (SEM_SEXPR_LIN c) t e)
+val while c b = push (/WHILE (SEM_SEXPR_LIN c) b)
 val jump address = do
    update @{foundJump = '1'};
    push (/BRANCH HINT_JUMP address)
@@ -222,7 +224,7 @@ val ret address = do
 end
 val cbranch cond target-true target-false = do
    update @{foundJump = '1'};
-   push (/CBRANCH cond target-true target-false)
+   push (/CBRANCH (SEM_SEXPR_LIN cond) target-true target-false)
 end
 
 val _if c _then a _else b = do
