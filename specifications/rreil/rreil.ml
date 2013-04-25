@@ -49,8 +49,8 @@ type sem_op =
  | SEM_XOR of sem_arity2
  | SEM_SX of {size:int, fromsize:int, opnd1:sem_linear}
  | SEM_ZX of {size:int, fromsize:int, opnd1:sem_linear}
- | SEM_ARB of {size:int}
  | SEM_CMP of sem_op_cmp
+ | SEM_ARB of {size:int}
 
 type sem_stmt =
    SEM_ASSIGN of {lhs:sem_var, rhs:sem_op}

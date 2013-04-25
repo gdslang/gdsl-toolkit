@@ -12,6 +12,7 @@ typedef void gdrr_sem_id_t;
 typedef void gdrr_sem_address_t;
 typedef void gdrr_sem_var_t;
 typedef void gdrr_sem_linear_t;
+typedef void gdrr_sem_op_cmp_t;
 typedef void gdrr_sem_op_t;
 typedef void gdrr_sem_branch_hint;
 typedef void gdrr_sem_stmt_t;
