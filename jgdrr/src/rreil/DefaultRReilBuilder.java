@@ -26,7 +26,9 @@ import rreil.operation.CompareLessOrEqualUnsignedOperation;
 import rreil.operation.CompareLessSignedOperation;
 import rreil.operation.CompareLessUnsignedOperation;
 import rreil.operation.CompareNotEqualOperation;
+import rreil.operation.CompareOperation;
 import rreil.operation.DivisionOperation;
+import rreil.operation.ICompareOperation;
 import rreil.operation.IOperation;
 import rreil.operation.LinearOperation;
 import rreil.operation.ModuloOperation;
@@ -426,6 +428,52 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public LinearExpression sem_lin_scale(long imm, ILinearExpression opnd) {
 		return new LinearScaleExpression(imm, (LinearExpression) opnd);
 	}
+	
+	/*
+	 * sem_op_cmp
+	 */
+	
+	@Override
+	public CompareOperation sem_cmpeq(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2) {
+		return new CompareEqualOperation(size, (LinearExpression) opnd1,
+				(LinearExpression) opnd2);
+	}
+
+	@Override
+	public CompareOperation sem_cmpneq(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2) {
+		return new CompareNotEqualOperation(size, (LinearExpression) opnd1,
+				(LinearExpression) opnd2);
+	}
+
+	@Override
+	public CompareOperation sem_cmples(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2) {
+		return new CompareLessOrEqualSignedOperation(size,
+				(LinearExpression) opnd1, (LinearExpression) opnd2);
+	}
+
+	@Override
+	public CompareOperation sem_cmpleu(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2) {
+		return new CompareLessOrEqualUnsignedOperation(size,
+				(LinearExpression) opnd1, (LinearExpression) opnd2);
+	}
+
+	@Override
+	public CompareOperation sem_cmplts(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2) {
+		return new CompareLessSignedOperation(size, (LinearExpression) opnd1,
+				(LinearExpression) opnd2);
+	}
+
+	@Override
+	public CompareOperation sem_cmpltu(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2) {
+		return new CompareLessUnsignedOperation(size, (LinearExpression) opnd1,
+				(LinearExpression) opnd2);
+	}
 
 	/*
 	 * sem_op
@@ -515,47 +563,10 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public Operation sem_zx(long size, long fromsize, ILinearExpression opnd1) {
 		return new ZeroExtendOperation(size, fromsize, (LinearExpression) opnd1);
 	}
-
+	
 	@Override
-	public Operation sem_cmpeq(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareEqualOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
-	}
-
-	@Override
-	public Operation sem_cmpneq(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareNotEqualOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
-	}
-
-	@Override
-	public Operation sem_cmples(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareLessOrEqualSignedOperation(size,
-				(LinearExpression) opnd1, (LinearExpression) opnd2);
-	}
-
-	@Override
-	public Operation sem_cmpleu(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareLessOrEqualUnsignedOperation(size,
-				(LinearExpression) opnd1, (LinearExpression) opnd2);
-	}
-
-	@Override
-	public Operation sem_cmplts(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareLessSignedOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
-	}
-
-	@Override
-	public Operation sem_cmpltu(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareLessUnsignedOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
+	public Operation sem_cmp(ICompareOperation _this) {
+		return (Operation)_this;
 	}
 
 	@Override

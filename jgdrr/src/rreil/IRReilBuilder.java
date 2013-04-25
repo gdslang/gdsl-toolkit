@@ -2,6 +2,7 @@ package rreil;
 
 import rreil.id.IId;
 import rreil.linear.ILinearExpression;
+import rreil.operation.ICompareOperation;
 import rreil.operation.IOperation;
 import rreil.statement.IStatement;
 
@@ -165,6 +166,28 @@ public interface IRReilBuilder {
 			ILinearExpression opnd2);
 
 	ILinearExpression sem_lin_scale(long imm, ILinearExpression opnd);
+	
+	/*
+	 * sem_op_cmp
+	 */
+	
+	ICompareOperation sem_cmpeq(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2);
+
+	ICompareOperation sem_cmpneq(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2);
+
+	ICompareOperation sem_cmples(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2);
+
+	ICompareOperation sem_cmpleu(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2);
+
+	ICompareOperation sem_cmplts(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2);
+
+	ICompareOperation sem_cmpltu(long size, ILinearExpression opnd1,
+			ILinearExpression opnd2);
 
 	/*
 	 * sem_op
@@ -205,25 +228,9 @@ public interface IRReilBuilder {
 	IOperation sem_sx(long size, long fromsize, ILinearExpression opnd1);
 
 	IOperation sem_zx(long size, long fromsize, ILinearExpression opnd1);
-
-	IOperation sem_cmpeq(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IOperation sem_cmpneq(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IOperation sem_cmples(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IOperation sem_cmpleu(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IOperation sem_cmplts(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IOperation sem_cmpltu(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
+	
+	IOperation sem_cmp(ICompareOperation _this);
+	
 	IOperation sem_arb(long size);
 
 	/*

@@ -7,6 +7,7 @@ import rreil.IRReilCollection;
 import rreil.IVariable;
 import rreil.id.IId;
 import rreil.linear.ILinearExpression;
+import rreil.operation.ICompareOperation;
 import rreil.operation.IOperation;
 import rreil.statement.IStatement;
 
@@ -324,6 +325,40 @@ public class NativeInterface {
 	private Object sem_lin_scale(Object imm, Object opnd) {
 		return builder.sem_lin_scale((Long) imm, (ILinearExpression) opnd);
 	}
+	
+	/*
+	 * sem_op_cmp
+	 */
+	
+	private Object sem_cmpeq(Object size, Object opnd1, Object opnd2) {
+		return builder.sem_cmpeq((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
+	}
+
+	private Object sem_cmpneq(Object size, Object opnd1, Object opnd2) {
+		return builder.sem_cmpneq((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
+	}
+
+	private Object sem_cmples(Object size, Object opnd1, Object opnd2) {
+		return builder.sem_cmples((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
+	}
+
+	private Object sem_cmpleu(Object size, Object opnd1, Object opnd2) {
+		return builder.sem_cmpleu((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
+	}
+
+	private Object sem_cmplts(Object size, Object opnd1, Object opnd2) {
+		return builder.sem_cmplts((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
+	}
+
+	private Object sem_cmpltu(Object size, Object opnd1, Object opnd2) {
+		return builder.sem_cmpltu((Long) size, (ILinearExpression) opnd1,
+				(ILinearExpression) opnd2);
+	}
 
 	/*
 	 * sem_op
@@ -392,35 +427,9 @@ public class NativeInterface {
 		return builder.sem_zx((Long) size, (Long) fromsize,
 				(ILinearExpression) opnd1);
 	}
-
-	private Object sem_cmpeq(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmpeq((Long) size, (ILinearExpression) opnd1,
-				(ILinearExpression) opnd2);
-	}
-
-	private Object sem_cmpneq(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmpneq((Long) size, (ILinearExpression) opnd1,
-				(ILinearExpression) opnd2);
-	}
-
-	private Object sem_cmples(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmples((Long) size, (ILinearExpression) opnd1,
-				(ILinearExpression) opnd2);
-	}
-
-	private Object sem_cmpleu(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmpleu((Long) size, (ILinearExpression) opnd1,
-				(ILinearExpression) opnd2);
-	}
-
-	private Object sem_cmplts(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmplts((Long) size, (ILinearExpression) opnd1,
-				(ILinearExpression) opnd2);
-	}
-
-	private Object sem_cmpltu(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmpltu((Long) size, (ILinearExpression) opnd1,
-				(ILinearExpression) opnd2);
+	
+	private Object sem_cmp(Object _this) {
+		return builder.sem_cmp((ICompareOperation)_this);
 	}
 
 	private Object sem_arb(Object size) {

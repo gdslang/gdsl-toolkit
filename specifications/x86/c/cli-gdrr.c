@@ -298,6 +298,38 @@ static gdrr_sem_linear_t *sem_lin_scale(void *closure, __word imm, gdrr_sem_line
   return NULL;
 }
 
+// sem_op_cmp
+static gdrr_sem_op_cmp_t *sem_cmpeq(void *closure, __word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpeq {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_cmp_t *sem_cmpneq(void *closure, __word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpneq {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_cmp_t *sem_cmples(void *closure, __word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmples {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_cmp_t *sem_cmpleu(void *closure, __word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpleu {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_cmp_t *sem_cmplts(void *closure, __word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmplts {size=%lu}\n", size);
+  return NULL;
+}
+static gdrr_sem_op_cmp_t *sem_cmpltu(void *closure, __word size, gdrr_sem_linear_t *opnd1,
+	       gdrr_sem_linear_t *opnd2) {
+  printf("=> cmpltu {size=%lu}\n", size);
+  return NULL;
+}
+
 // sem_op
 static gdrr_sem_op_t *sem_lin(void *closure, __word size, gdrr_sem_linear_t *opnd1) {
   printf("=> lin {size=%lu}\n", size);
@@ -363,35 +395,8 @@ static gdrr_sem_op_t *sem_zx(void *closure, __word size, __word fromsize,
   printf("=> zx {size=%lu, fromsize=%lu}\n", size, fromsize);
   return NULL;
 }
-static gdrr_sem_op_t *sem_cmpeq(void *closure, __word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmpeq {size=%lu}\n", size);
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmpneq(void *closure, __word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmpneq {size=%lu}\n", size);
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmples(void *closure, __word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmples {size=%lu}\n", size);
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmpleu(void *closure, __word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmpleu {size=%lu}\n", size);
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmplts(void *closure, __word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmplts {size=%lu}\n", size);
-  return NULL;
-}
-static gdrr_sem_op_t *sem_cmpltu(void *closure, __word size, gdrr_sem_linear_t *opnd1,
-	       gdrr_sem_linear_t *opnd2) {
-  printf("=> cmpltu {size=%lu}\n", size);
-  return NULL;
+static gdrr_sem_op_t *sem_cmp(void *closure, gdrr_sem_op_cmp_t *this) {
+	return NULL;
 }
 static gdrr_sem_op_t *sem_arb(void *closure, __word size) {
   printf("=> arb {size=%lu}\n", size);
@@ -565,6 +570,13 @@ done:;
       config.callbacks.sem_linear.sem_lin_sub = &sem_lin_sub;
       config.callbacks.sem_linear.sem_lin_scale = &sem_lin_scale;
 
+      config.callbacks.sem_op_cmp.sem_cmpeq = &sem_cmpeq;
+      config.callbacks.sem_op_cmp.sem_cmpneq = &sem_cmpneq;
+      config.callbacks.sem_op_cmp.sem_cmples = &sem_cmples;
+      config.callbacks.sem_op_cmp.sem_cmpleu = &sem_cmpleu;
+      config.callbacks.sem_op_cmp.sem_cmplts = &sem_cmplts;
+      config.callbacks.sem_op_cmp.sem_cmpltu = &sem_cmpltu;
+
       config.callbacks.sem_op.sem_lin = &sem_lin;
       config.callbacks.sem_op.sem_mul = &sem_mul;
       config.callbacks.sem_op.sem_div = &sem_div;
@@ -578,12 +590,7 @@ done:;
       config.callbacks.sem_op.sem_xor = &sem_xor;
       config.callbacks.sem_op.sem_sx = &sem_sx;
       config.callbacks.sem_op.sem_zx = &sem_zx;
-      config.callbacks.sem_op.sem_cmpeq = &sem_cmpeq;
-      config.callbacks.sem_op.sem_cmpneq = &sem_cmpneq;
-      config.callbacks.sem_op.sem_cmples = &sem_cmples;
-      config.callbacks.sem_op.sem_cmpleu = &sem_cmpleu;
-      config.callbacks.sem_op.sem_cmplts = &sem_cmplts;
-      config.callbacks.sem_op.sem_cmpltu = &sem_cmpltu;
+			config.callbacks.sem_op.sem_cmp = &sem_cmp;
       config.callbacks.sem_op.sem_arb = &sem_arb;
 
       config.callbacks.sem_branch_hint.hint_jump = &hint_jump;
@@ -607,6 +614,6 @@ done:;
   }
 
   
-  return (1);
+  return 1;
 }
 

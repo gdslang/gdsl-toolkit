@@ -2,7 +2,7 @@ package rreil.operation;
 
 import rreil.linear.LinearExpression;
 
-public class CompareLessOrEqualUnsignedOperation extends BinaryOperation {
+public class CompareLessOrEqualUnsignedOperation extends CompareOperation {
 
 	public CompareLessOrEqualUnsignedOperation(long size,
 			LinearExpression operand1, LinearExpression operand2) {
