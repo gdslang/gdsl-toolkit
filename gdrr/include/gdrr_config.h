@@ -21,6 +21,7 @@ struct gdrr_config {
 		struct gdrr_sem_address_callbacks sem_address;
 		struct gdrr_sem_var_callbacks sem_var;
 		struct gdrr_sem_linear_callbacks sem_linear;
+		struct gdrr_sem_sexpr_callbacks sem_sexpr;
 		struct gdrr_sem_op_cmp_callbacks sem_op_cmp;
 		struct gdrr_sem_op_callbacks sem_op;
 		struct gdrr_sem_stmt_callbacks sem_stmt;

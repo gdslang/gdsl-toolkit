@@ -390,48 +390,58 @@ static gdrr_sem_linear_t *sem_lin_scale(void *closure, __word imm,
 	return (gdrr_sem_linear_t*)ret;
 }
 
+// sem_sexpr
+static gdrr_sem_sexpr_t *sem_sexpr_lin(void *closure, gdrr_sem_linear_t *this) {
+	jobject ret = java_method_call(closure, "sem_sexpr_lin", 1, (jobject)this);
+	return (gdrr_sem_sexpr_t*)ret;
+}
+static gdrr_sem_sexpr_t *sem_sexpr_cmp(void *closure, gdrr_sem_op_cmp_t *this) {
+	jobject ret = java_method_call(closure, "sem_sexpr_cmp", 1, (jobject)this);
+	return (gdrr_sem_sexpr_t*)ret;
+}
+
 // sem_op_cmp
 static gdrr_sem_op_cmp_t *sem_cmpeq(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmpeq", 3,
 			java_long_create(closure, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (gdrr_sem_op_cmp_t*)ret;
 }
 static gdrr_sem_op_cmp_t *sem_cmpneq(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmpneq", 3,
 			java_long_create(closure, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (gdrr_sem_op_cmp_t*)ret;
 }
 static gdrr_sem_op_cmp_t *sem_cmples(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmples", 3,
 			java_long_create(closure, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (gdrr_sem_op_cmp_t*)ret;
 }
 static gdrr_sem_op_cmp_t *sem_cmpleu(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmpleu", 3,
 			java_long_create(closure, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (gdrr_sem_op_cmp_t*)ret;
 }
 static gdrr_sem_op_cmp_t *sem_cmplts(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmplts", 3,
 			java_long_create(closure, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (gdrr_sem_op_cmp_t*)ret;
 }
 static gdrr_sem_op_cmp_t *sem_cmpltu(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	jobject ret = java_method_call(closure, "sem_cmpltu", 3,
 			java_long_create(closure, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (gdrr_sem_op_cmp_t*)ret;
 }
 
 // sem_op
@@ -718,6 +728,9 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 			config.callbacks.sem_linear.sem_lin_add = &sem_lin_add;
 			config.callbacks.sem_linear.sem_lin_sub = &sem_lin_sub;
 			config.callbacks.sem_linear.sem_lin_scale = &sem_lin_scale;
+
+			config.callbacks.sem_sexpr.sem_sexpr_lin = &sem_sexpr_lin;
+			config.callbacks.sem_sexpr.sem_sexpr_cmp = &sem_sexpr_cmp;
 
 			config.callbacks.sem_op_cmp.sem_cmpeq = &sem_cmpeq;
 			config.callbacks.sem_op_cmp.sem_cmpneq = &sem_cmpneq;

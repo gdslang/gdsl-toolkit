@@ -20,6 +20,8 @@ static gdrr_sem_var_t *gdrr_convert_sem_var(__obj sem_var_obj,
 		struct gdrr_config *config);
 static gdrr_sem_id_t *gdrr_convert_sem_linear(__obj sem_linear_obj,
 		struct gdrr_config *config);
+static gdrr_sem_sexpr_t *gdrr_convert_sem_sexpr(__obj sem_sexpr_obj,
+		struct gdrr_config *config);
 static gdrr_sem_op_cmp_t *gdrr_convert_sem_op_cmp(__obj sem_op_obj,
 		struct gdrr_config *config);
 static gdrr_sem_op_t *gdrr_convert_sem_op(__obj sem_op_obj,
@@ -146,6 +148,28 @@ static gdrr_sem_id_t *gdrr_convert_sem_linear(__obj sem_linear_obj,
 	}
 
 	return sem_linear;
+}
+
+static gdrr_sem_sexpr_t *gdrr_convert_sem_sexpr(__obj sem_sexpr_obj,
+		struct gdrr_config *config) {
+	gdrr_sem_sexpr_t *sem_sexpr = NULL;
+
+	__obj this = __DECON(sem_sexpr_obj);
+
+	switch(__CASETAGCON(sem_sexpr_obj)) {
+		case __SEM_SEXPR_LIN: {
+			sem_sexpr = config->callbacks.sem_sexpr.sem_sexpr_lin(config->closure,
+					gdrr_convert_sem_linear(this, config));
+			break;
+		}
+		case __SEM_SEXPR_CMP: {
+			sem_sexpr = config->callbacks.sem_sexpr.sem_sexpr_cmp(config->closure,
+					gdrr_convert_sem_op_cmp(this, config));
+			break;
+		}
+	}
+
+	return sem_sexpr;
 }
 
 static gdrr_sem_op_t *gdrr_convert_sem_op_cmp(__obj sem_op_cmp_obj,
@@ -420,7 +444,7 @@ static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
 			__obj then_branch = __RECORD_SELECT(rec, ___then_branch);
 			__obj else_branch = __RECORD_SELECT(rec, ___else_branch);
 			sem_stmt = config->callbacks.sem_stmt.sem_ite(config->closure,
-					gdrr_convert_sem_linear(cond, config),
+					gdrr_convert_sem_sexpr(cond, config),
 					gdrr_convert_sem_stmts_with_config(then_branch, config),
 					gdrr_convert_sem_stmts_with_config(else_branch, config));
 			break;
@@ -429,7 +453,7 @@ static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
 			__obj cond = __RECORD_SELECT(rec, ___cond);
 			__obj body = __RECORD_SELECT(rec, ___body);
 			sem_stmt = config->callbacks.sem_stmt.sem_while(config->closure,
-					gdrr_convert_sem_linear(cond, config),
+					gdrr_convert_sem_sexpr(cond, config),
 					gdrr_convert_sem_stmts_with_config(body, config));
 			break;
 		}
@@ -438,7 +462,7 @@ static gdrr_sem_stmt_t *gdrr_convert_sem_stmt(__obj sem_stmt_obj,
 			__obj target_true = __RECORD_SELECT(rec, ___target_true);
 			__obj target_false = __RECORD_SELECT(rec, ___target_false);
 			sem_stmt = config->callbacks.sem_stmt.sem_cbranch(config->closure,
-					gdrr_convert_sem_linear(cond, config),
+					gdrr_convert_sem_sexpr(cond, config),
 					gdrr_convert_sem_address(target_true, config),
 					gdrr_convert_sem_address(target_false, config));
 			break;
