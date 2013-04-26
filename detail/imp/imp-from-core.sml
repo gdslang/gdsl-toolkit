@@ -102,6 +102,29 @@ end = struct
       in
          (eStmts, eExp)
       end
+     | trExpr s (Exp.SEQ seq) =
+      let
+         fun transSeq s acc ((Exp.ACTION e) :: seq) =
+               let
+                  val (stmts, exp) = trExpr s e
+               in
+                  transSeq s (stmts @ acc) seq
+               end
+           | transSeq s acc ((Exp.BIND (sym,e)) :: seq) =
+               let
+                  val (stmts, exp) = trExpr s e
+               in
+                  transSeq s (stmts @ acc) seq
+               end
+           | transSeq s acc [Exp.ACTION e] = (acc, e)          
+               let
+                  val (stmts, exp) = trExpr s e
+               in
+                  (stmts @ acc, exp)
+               end
+      in
+         transSeq s [] seq
+      end
      | trExpr s (Exp.LIT lit) = ([], LITexp lit)
      | trExpr s (Exp.CON sym) =
       (case SymMap.find (!constructors, sym) of
