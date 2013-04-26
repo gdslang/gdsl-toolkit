@@ -1,12 +1,12 @@
 package rreil.statement;
 
 import rreil.DefaultRReilCollection;
-import rreil.linear.LinearExpression;
+import rreil.sexpression.SimpleExpression;
 
 public class IfThenElseStatement extends Statement {
-	protected LinearExpression condition;
+	protected SimpleExpression condition;
 
-	public LinearExpression getCondition() {
+	public SimpleExpression getCondition() {
 		return condition;
 	}
 
@@ -22,7 +22,7 @@ public class IfThenElseStatement extends Statement {
 		return elseBranch;
 	}
 
-	public IfThenElseStatement(LinearExpression condition,
+	public IfThenElseStatement(SimpleExpression condition,
 			DefaultRReilCollection thenBranch, DefaultRReilCollection elseBranch) {
 		this.condition = condition;
 		this.thenBranch = thenBranch;

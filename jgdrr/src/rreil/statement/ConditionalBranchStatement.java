@@ -1,12 +1,12 @@
 package rreil.statement;
 
 import rreil.Address;
-import rreil.linear.LinearExpression;
+import rreil.sexpression.SimpleExpression;
 
 public class ConditionalBranchStatement extends Statement {
-	protected LinearExpression condition;
+	protected SimpleExpression condition;
 
-	public LinearExpression getCondition() {
+	public SimpleExpression getCondition() {
 		return condition;
 	}
 
@@ -22,7 +22,7 @@ public class ConditionalBranchStatement extends Statement {
 		return targetFalse;
 	}
 
-	public ConditionalBranchStatement(LinearExpression condition,
+	public ConditionalBranchStatement(SimpleExpression condition,
 			Address targetTrue, Address targetFalse) {
 		this.condition = condition;
 		this.targetTrue = targetTrue;

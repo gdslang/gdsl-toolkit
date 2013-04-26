@@ -9,6 +9,7 @@ import rreil.id.IId;
 import rreil.linear.ILinearExpression;
 import rreil.operation.ICompareOperation;
 import rreil.operation.IOperation;
+import rreil.sexpression.ISimpleExpression;
 import rreil.statement.IStatement;
 
 public class NativeInterface {
@@ -327,6 +328,17 @@ public class NativeInterface {
 	}
 	
 	/*
+	 * sem_sexpr
+	 */
+	
+	private Object sem_sexpr_lin(Object _this) {
+		return builder.sem_sexpr_lin((ILinearExpression)_this);
+	}
+	private Object sem_sexpr_cmp(Object _this) {
+		return builder.sem_sexpr_lin((ILinearExpression)_this);
+	}
+	
+	/*
 	 * sem_op_cmp
 	 */
 	
@@ -470,18 +482,18 @@ public class NativeInterface {
 	}
 
 	private Object sem_ite(Object cond, Object then_branch, Object else_branch) {
-		return builder.sem_ite((ILinearExpression) cond,
+		return builder.sem_ite((ISimpleExpression) cond,
 				(IRReilCollection) then_branch, (IRReilCollection) else_branch);
 	}
 
 	private Object sem_while(Object cond, Object body) {
-		return builder.sem_while((ILinearExpression) cond,
+		return builder.sem_while((ISimpleExpression) cond,
 				(IRReilCollection) body);
 	}
 
 	private Object sem_cbranch(Object cond, Object target_true,
 			Object target_false) {
-		return builder.sem_cbranch((ILinearExpression) cond,
+		return builder.sem_cbranch((ISimpleExpression) cond,
 				(IAddress) target_true, (IAddress) target_false);
 	}
 

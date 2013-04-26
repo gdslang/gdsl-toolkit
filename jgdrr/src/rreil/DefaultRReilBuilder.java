@@ -42,6 +42,10 @@ import rreil.operation.SignExtendOperation;
 import rreil.operation.SignedDivisionOperation;
 import rreil.operation.XorOperation;
 import rreil.operation.ZeroExtendOperation;
+import rreil.sexpression.ISimpleExpression;
+import rreil.sexpression.SimpleCompareExpression;
+import rreil.sexpression.SimpleExpression;
+import rreil.sexpression.SimpleLinearExpression;
 import rreil.statement.AssignStatement;
 import rreil.statement.BranchStatement;
 import rreil.statement.ConditionalBranchStatement;
@@ -430,6 +434,19 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 	
 	/*
+	 * sem_sexpr
+	 */
+	
+	@Override
+	public SimpleLinearExpression sem_sexpr_lin(ILinearExpression _this) {
+		return new SimpleLinearExpression((LinearExpression)_this);
+	}
+	@Override
+	public SimpleCompareExpression sem_sexpr_cmp(ICompareOperation _this) {
+		return new SimpleCompareExpression((CompareOperation)_this);
+	}
+	
+	/*
 	 * sem_op_cmp
 	 */
 	
@@ -613,23 +630,23 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	@Override
-	public Statement sem_ite(ILinearExpression cond,
+	public Statement sem_ite(ISimpleExpression cond,
 			IRReilCollection then_branch, IRReilCollection else_branch) {
-		return new IfThenElseStatement((LinearExpression) cond,
+		return new IfThenElseStatement((SimpleExpression) cond,
 				(DefaultRReilCollection) then_branch,
 				(DefaultRReilCollection) else_branch);
 	}
 
 	@Override
-	public Statement sem_while(ILinearExpression cond, IRReilCollection body) {
-		return new WhileStatement((LinearExpression) cond,
+	public Statement sem_while(ISimpleExpression cond, IRReilCollection body) {
+		return new WhileStatement((SimpleExpression) cond,
 				(DefaultRReilCollection) body);
 	}
 
 	@Override
-	public Statement sem_cbranch(ILinearExpression cond, IAddress target_true,
+	public Statement sem_cbranch(ISimpleExpression cond, IAddress target_true,
 			IAddress target_false) {
-		return new ConditionalBranchStatement((LinearExpression) cond,
+		return new ConditionalBranchStatement((SimpleExpression) cond,
 				(Address) target_true, (Address) target_false);
 	}
 
