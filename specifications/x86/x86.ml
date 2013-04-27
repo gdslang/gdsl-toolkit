@@ -631,12 +631,18 @@ type flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-type flow1 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
-type arity0 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
-type arity1 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
-type arity2 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
-type arity3 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+#feature vector: avx, sse, sse2, sse3, ss4_1, ss4_2, mmx, invpcid, aes, clmul, fsgsbase, rdrand, f16c, asaveopt, illegal rep, illegal repne, illegal lock
+
+val avx  = '100000000000000000'
+val sse  = '010000000000000000'
+val sse2 = '001000000000000000'
+
+type flow1 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
+type arity0 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
+type arity1 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
+type arity2 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
+type arity3 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
+type arity4 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
 type varity =
    VA0 of arity0
@@ -2401,7 +2407,7 @@ val exception-rep-repne-lock arg = exception-rep-repne (exception-lock arg)
 val varity0 cons = exception-rep-repne-lock (do
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA0 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
+  return (cons (VA0 {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
 end)
 
 val varity0-def-opnd-sz-64 cons = do
@@ -2418,7 +2424,7 @@ val varity1 cons giveOp1 = exception-rep-repne-lock (do
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA1 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
+  return (cons (VA1 {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
 end)
 
 val varity1-def-opnd-sz-64 cons giveOp1 = do
@@ -2436,7 +2442,7 @@ val varity2 cons giveOp1 giveOp2 = exception-rep-repne-lock (do
   op2 <- giveOp2;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA2 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
+  return (cons (VA2 {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
 end)
 
 val varity3 cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
@@ -2445,7 +2451,7 @@ val varity3 cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
   op3 <- giveOp3;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA3 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
+  return (cons (VA3 {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
 end)
 
 val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
@@ -2455,7 +2461,7 @@ val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
   op4 <- giveOp4;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA4 {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+  return (cons (VA4 {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
 end)
 
 val arity0-all cons = do
@@ -2464,7 +2470,7 @@ val arity0-all cons = do
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
 end
 
 val arity0-rep-repne cons = exception-lock (arity0-all cons)
@@ -2479,7 +2485,7 @@ val unop-all cons giveOp1 = do
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
 end
 
 val unop-rep-repne cons giveOp1 = exception-lock (unop-all cons giveOp1)
@@ -2495,7 +2501,7 @@ val binop-all cons giveOp1 giveOp2 = do
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
 end
 
 val binop-rep-repne cons giveOp1 giveOp2 = exception-lock (binop-all cons giveOp1 giveOp2)
@@ -2509,7 +2515,7 @@ val ternop cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
   op3 <- giveOp3;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
 end)
 
 val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
@@ -2519,7 +2525,7 @@ val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (d
   op4 <- giveOp4;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
 end)
 
 val near-abs cons giveOp = exception-rep-repne-lock (do
@@ -2532,7 +2538,7 @@ val near-abs cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
 end)
 
 val near-rel cons giveOp = exception-rep-repne-lock (do
@@ -2545,7 +2551,7 @@ val near-rel cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end)
 
 val far-dir cons giveOp = exception-rep-repne-lock (do
@@ -2558,7 +2564,7 @@ val far-dir cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end)
 
 val far-ind cons giveOp = exception-rep-repne-lock (do
@@ -2571,7 +2577,7 @@ val far-ind cons giveOp = exception-rep-repne-lock (do
   op <- giveOp;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
+  return (cons {features='00000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
 end)
 
 val one = return (IMM8 {imm='00000001',address=0})
