@@ -478,6 +478,17 @@ val p/66/f3/f2 [] = after (with-66 (with-f3 /f2)) (
 		    after (with-f2 (with-f3 /66)) (
 		           with-66 (with-f2 (with-f3 /)))))
 
+val /vex/0f [] = /vex/0f/vexv
+val /vex/66/0f [] = /vex/66/0f/vexv
+val /vex/f2/0f [] = /vex/f2/0f/vexv
+val /vex/f3/0f [] = /vex/f3/0f/vexv
+val /vex/66/0f/38 [] = /vex/66/0f/38/vexv
+#val /vex/f2/0f/38 [] = /vex/f2/0f/38/vexv
+#val /vex/f3/0f/38 [] = /vex/f3/0f/38/vexv
+val /vex/66/0f/3a [] = /vex/66/0f/3a/vexv
+#val /vex/f2/0f/3a [] = /vex/f2/0f/3a/vexv
+#val /vex/f3/0f/3a [] = /vex/f3/0f/3a/vexv
+
 type register =
    AL
  | AH
