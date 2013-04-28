@@ -1,7 +1,7 @@
 
 signature IMPCORE = sig
 
-   val run: IMP.decls -> IMP.decls
+   val run: Imp.decls -> Imp.decls
    val name: string
 
 end
