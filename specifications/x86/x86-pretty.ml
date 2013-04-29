@@ -4,18 +4,59 @@ export = pretty
 
 val pretty i = show/instruction i
 
-val show/arity1 x = show/operand x.opnd1
-val show/arity2 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2
-val show/arity3 x = show/arity2 x +++ ", " +++ show/operand x.opnd3
-val show/arity4 x = show/arity3 x +++ ", " +++ show/operand x.opnd4
-val show/flow1 x = show/flowoperand x.opnd1
+val show/features i =
+  if i.features == '000000000000000000' then
+	  ""
+	else
+	  " {" +++ (show/features/any "" i.features '1') +++ "}"
+
+val show/features/any acc features first = let
+  val append this =
+	  if first then
+		  this
+		else
+		  ", " +++ this
+
+	val next me me-str rest =
+    if (features and (me 0)) == (me 0) then
+	     show/features/any (append me-str) (features and (not (me 0))) '0'
+	  else
+	    rest
+in
+  acc +++
+  next aes_ "AES" (
+	next avx_ "AVX" (
+	next f16c_ "F16C" (
+	next invpcid_ "INVPCID" (
+	next mmx_ "MMX" (
+	next clmul_ "CLMUL" (
+	next rdrand_ "RDRAND" (
+	next fsgsbase_ "FSGSBASE" (
+	next sse_ "SSE" (
+	next sse2_ "SSE2" (
+	next sse3_ "SSE3" (
+	next sse4_1_ "SSE4_1" (
+	next sse4_2_ "SSE4_2" (
+	next ssse3_ "SSSE3" (
+	next xsaveopt_ "XSAVEOPT" (
+	next illegal-rep_ "ILLEGAL REP" (
+	next illegal-repne_ "ILLEGAL REPNE" (
+	next illegal-lock_ "ILLEGAL LOCK"
+	"")))))))))))))))))
+end
+
+val show/arity1 x = show/operand x.opnd1 +++ (show/features x)
+val show/arity2 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2 +++ (show/features x)
+val show/arity3 x = show/arity2 x +++ ", " +++ show/operand x.opnd3 +++ (show/features x)
+val show/arity4 x = show/arity3 x +++ ", " +++ show/operand x.opnd4 +++ (show/features x)
+val show/flow1 x = show/flowoperand x.opnd1 +++ (show/features x)
 val show/varity x =
    case x of
-      VA0 x: ""
-    | VA1 x: show/arity1 x
-    | VA2 x: show/arity2 x
-    | VA3 x: show/arity3 x
-    | VA4 x: show/arity4 x
+      VA0 x: show/features x
+    | VA1 x: show/arity1 x +++ (show/features x)
+    | VA2 x: show/arity2 x +++ (show/features x)
+    | VA3 x: show/arity3 x +++ (show/features x)
+    | VA4 x: show/arity4 x +++ (show/features x)
    end
 
 val -++ a b = a +++ " " +++ b
