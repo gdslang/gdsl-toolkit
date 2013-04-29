@@ -631,18 +631,33 @@ type flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-#feature vector: avx, sse, sse2, sse3, ss4_1, ss4_2, mmx, invpcid, aes, clmul, fsgsbase, rdrand, f16c, asaveopt, illegal rep, illegal repne, illegal lock
+#feature vector: aes, avx, f16c, invpcid, mmx, clmul, rdrand, fsgsbase, sse, sse2, sse3, sse4_1, sse4_2, ssse3, xsaveopt, illegal rep, illegal repne, illegal lock
 
-val avx  = '100000000000000000'
-val sse  = '010000000000000000'
-val sse2 = '001000000000000000'
+val aes           = '100000000000000000'
+val avx           = '010000000000000000'
+val f16c          = '001000000000000000'
+val invpcid       = '000100000000000000'
+val mmx           = '000010000000000000'
+val clmul         = '000001000000000000'
+val rdrand        = '000000100000000000'
+val fsgsbase      = '000000010000000000'
+val sse           = '000000001000000000'
+val sse2          = '000000000100000000'
+val sse3          = '000000000010000000'
+val sse4_1        = '000000000001000000'
+val sse4_2        = '000000000000100000'
+val ssse3         = '000000000000010000'
+val xsaveopt      = '000000000000001000'
+val illegal-rep   = '000000000000000100'
+val illegal-repne = '000000000000000010'
+val illegal-lock  = '000000000000000001'
 
-type flow1 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
-type arity0 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
-type arity1 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
-type arity2 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
-type arity3 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {features:17,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+type flow1 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
+type arity0 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
+type arity1 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
+type arity2 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
+type arity3 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
+type arity4 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
 type varity =
    VA0 of arity0
