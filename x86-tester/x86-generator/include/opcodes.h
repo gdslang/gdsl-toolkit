@@ -18,6 +18,6 @@ struct opcode_table {
 };
 
 extern struct opcode_table *opcodes_opcode_table_build();
-extern struct opcode_table opcodes_opcode_table_free(struct opcode_table *table);
+extern void opcodes_opcode_table_free(struct opcode_table *table);
 
 #endif /* OPCODES_H_ */

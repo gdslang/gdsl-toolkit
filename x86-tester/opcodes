@@ -1,0 +1,1217 @@
+val /legacy-p [0x2e] = do clear-rex; set-CS end
+val /legacy-p [0x36] = do clear-rex; set-SS end
+val /legacy-p [0x3e] = do clear-rex; set-DS end
+val /legacy-p [0x26] = do clear-rex; set-ES end
+val /legacy-p [0x64] = do clear-rex; set-FS end
+val /legacy-p [0x65] = do clear-rex; set-GS end
+val /legacy-p [0x67] = do clear-rex; set-addrsz end
+val /legacy-p [0xf0] = do clear-rex; set-lock end
+val /66-p [0x66] = clear-rex
+val /f2-p [0xf2] = clear-rex
+val /f3-p [0xf3] = clear-rex
+val p/vex/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 00'] = do
+val p/vex/0f [0xc5 'r:1 v:4 l:1 00'] = do
+val p/vex/66/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 01'] = do
+val p/vex/66/0f [0xc5 'r:1 v:4 l:1 01'] = do
+val p/vex/f3/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 10'] = do
+val p/vex/f3/0f [0xc5 'r:1 v:4 l:1 10'] = do
+val p/vex/f2/0f [0xc4 'r:1 x:1 b:1 00001' 'w:1 v:4 l:1 11'] = do
+val p/vex/f2/0f [0xc5 'r:1 v:4 l:1 11'] = do
+val p/vex/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 00'] = do
+val p/vex/66/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 01'] = do
+val p/vex/f2/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 11'] = do
+val p/vex/f3/0f/38 [0xc4 'r:1 x:1 b:1 00010' 'w:1 v:4 l:1 10'] = do
+val p/vex/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 00'] = do
+val p/vex/66/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 01'] = do
+val p/vex/f2/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 11'] = do
+val p/vex/f3/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 10'] = do
+val / [0x37] | mode32? = arity0 AAA
+val / [0xd5] | mode32? = unop AAD imm8
+val / [0xd4] | mode32? = unop AAM imm8
+val / [0x3f] | mode32? = arity0 AAS
+val / [0x14] = binop ADC al imm8
+val / [0x15]
+val / [0x80 /2] = binop-lock ADC r/m8 imm8
+val / [0x81 /2]
+val / [0x83 /2]
+val / [0x10 /r] = binop-lock ADC r/m8 r8
+val / [0x11 /r]
+val / [0x12 /r] = binop ADC r8 r/m8
+val / [0x13 /r]
+val / [0x04] = binop ADD al imm8
+val / [0x05]
+val / [0x80 /0] = binop-lock ADD r/m8 imm8
+val / [0x81 /0]
+val / [0x83 /0]
+val / [0x00 /r] = binop-lock ADD r/m8 r8
+val / [0x01 /r]
+val / [0x02 /r] = binop ADD r8 r/m8
+val / [0x03 /r]
+val /66 [0x0f 0x58 /r] = binop ADDPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x58 /r]
+val / [0x0f 0x58 /r] = binop ADDPS xmm128 xmm/m128
+val /vex/0f/vexv [0x58 /r]
+val /f2 [0x0f 0x58 /r] = binop ADDSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x58 /r] = varity3 VADDSD xmm128 v/xmm xmm/m64
+val /f3 [0x0f 0x58 /r] = binop ADDSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x58 /r] = varity3 VADDSS xmm128 v/xmm xmm/m32
+val /66 [0x0f 0xd0 /r] = binop ADDSUBPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd0 /r]
+val /f2 [0x0f 0xd0 /r] = binop ADDSUBPS xmm128 xmm/m128
+val /vex/f2/0f/vexv [0xd0 /r]
+val /66 [0x0f 0x38 0xde /r] = binop AESDEC xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xde /r] | vex128? = varity3 VAESDEC xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0xdf /r] = binop AESDECLAST xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdf /r] | vex128? = varity3 VAESDECLAST xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0xdc /r] = binop AESENC xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdc /r] | vex128? = varity3 VAESENC xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0xdd /r] = binop AESENCLAST xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdd /r] | vex128? = varity3 VAESENCLAST xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0xdb /r] = binop AESIMC xmm128 xmm/m128
+val /vex/66/0f/38 [0xdb /r] | vex128? = varity2 VAESIMC xmm128 xmm/m128
+val /66 [0x0f 0x3a 0xdf /r] = ternop AESKEYGENASSIST xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0xdf /r] | vex128? = varity3 VAESKEYGENASSIST xmm128 xmm/m128 imm8
+val / [0x24] = binop AND al imm8
+val / [0x25]
+val / [0x80 /4] = binop-lock AND r/m8 imm8
+val / [0x81 /4]
+val / [0x83 /4]
+val / [0x20 /r] = binop-lock AND r/m8 r8
+val / [0x21 /r]
+val / [0x22 /r] = binop AND r8 r/m8
+val / [0x23 /r]
+val /66 [0x0f 0x54 /r] = binop ANDPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x54 /r]
+val / [0x0f 0x54 /r] = binop ANDPS xmm128 xmm/m128
+val /vex/0f/vexv [0x54 /r]
+val /66 [0x0f 0x55 /r] = binop ANDNPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x55 /r]
+val / [0x0f 0x55 /r] = binop ANDNPS xmm128 xmm/m128
+val /vex/0f/vexv [0x55 /r]
+val /66 [0x0f 0x3a 0x0d /r] = ternop BLENDPD xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0d /r]
+val /66 [0x0f 0x3a 0x0c /r] = ternop BLENDPS xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0c /r]
+val /66 [0x0f 0x38 0x15 /r] = ternop BLENDVPD xmm128 xmm/m128 xmm0
+val /vex/66/0f/3a/vexv [0x4b /r]
+val /66 [0x0f 0x38 0x14 /r] = ternop BLENDVPS xmm128 xmm/m128 xmm0
+val /vex/66/0f/3a/vexv [0x4a /r]
+val / [0x62 /r-mem]
+val / [0x0f 0xbc /r]
+val / [0x0f 0xbd /r]
+val / [0x0f /1-reg]
+#val / [0x0f '11001 r:3']
+val / [0x0f 0xa3 /r]
+val / [0x0f 0xba /4]
+val / [0x0f 0xbb /r]
+val / [0x0f 0xba /7]
+val / [0x0f 0xb3 /r]
+val / [0x0f 0xba /6]
+val / [0x0f 0xab /r]
+val / [0x0f 0xba /5]
+val / [0xe8]
+val / [0xff /2]
+val / [0x9a]
+val / [0xff /3-mem]
+val / [0x98]
+val / [0xf8] = arity0 CLC
+val / [0xfc] = arity0 CLD
+val / [0x0f 0xae /7-mem] = unop CLFLUSH m8
+val / [0xfa] = arity0 CLI
+val / [0x0f 0x06] = arity0 CLTS
+val / [0xf5] = arity0 CMC
+val / [0x0f 0x47 /r] # CMOVNBE
+val / [0x0f 0x43 /r] # CMOVNB, CMOVNC
+val / [0x0f 0x42 /r] # CMOVC, CMOVNAE
+val / [0x0f 0x46 /r] # CMOVNA
+val / [0x0f 0x44 /r] # CMOVZ
+val / [0x0f 0x4f /r] # CMOVNLE
+val / [0x0f 0x4d /r] # CMOVNL
+val / [0x0f 0x4c /r] # CMOVNGE
+val / [0x0f 0x4e /r] # CMOVNG
+val / [0x0f 0x45 /r] # CMOVNZ
+val / [0x0f 0x41 /r]
+val / [0x0f 0x4b /r] # CMOVPO
+val / [0x0f 0x49 /r]
+val / [0x0f 0x40 /r]
+val / [0x0f 0x4a /r] # CMOVPE
+val / [0x0f 0x48 /r]
+val / [0x3c] = binop CMP al imm8
+val / [0x3d]
+val / [0x80 /7] = binop CMP r/m8 imm8
+val / [0x81 /7]
+val / [0x83 /7]
+val / [0x38 /r] = binop CMP r/m8 r8
+val / [0x39 /r]
+val / [0x3a /r] = binop CMP r8 r/m8
+val / [0x3b /r]
+val /66 [0x0f 0xc2 /r] = ternop CMPPD xmm128 xmm/m128 imm8
+val /vex/66/0f/vexv [0xc2 /r]
+val / [0x0f 0xc2 /r] = ternop CMPPS xmm128 xmm/m128 imm8
+val /vex/0f/vexv [0xc2 /r]
+val / [0xa6] = binop-rep-repne CMPS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
+val / [0xa7]
+val /f2 [0x0f 0xc2 /r] = ternop CMPSD xmm128 xmm/m64 imm8
+val /vex/f2/0f/vexv [0xc2 /r] = varity4 VCMPSD xmm128 v/xmm xmm/m64 imm8
+val /f3 [0x0f 0xc2 /r] = ternop CMPSS xmm128 xmm/m32 imm8
+val /vex/f3/0f/vexv [0xc2 /r] = varity4 VCMPSS xmm128 v/xmm xmm/m32 imm8
+val / [0x0f 0xb0 /r] = binop-lock CMPXCHG r/m8 r8
+val / [0x0f 0xb1 /r]
+val / [0x0f 0xc7 /1-mem]
+val /66 [0x0f 0x2f /r] = binop COMISD xmm128 xmm/m64
+val /vex/66/0f [0x2f /r] = varity2 VCOMISD xmm128 xmm/m64
+val / [0x0f 0x2f /r] = binop COMISS xmm128 xmm/m32
+val /vex/0f [0x2f /r] = varity2 VCOMISS xmm128 xmm/m32
+val / [0x0f 0xa2] = arity0 CPUID
+val /f2 [0x0f 0x38 0xf0 /r]
+val /f2 [0x0f 0x38 0xf1 /r]
+val /f3 [0x0f 0xe6 /r] = binop CVTDQ2PD xmm128 xmm/m64 # bug in Intel manual: /r is missing
+val /vex/f3/0f [0xe6 /r]
+val / [0x0f 0x5b /r] = binop CVTDQ2PS xmm128 xmm/m128
+val /vex/0f [0x5b /r]
+val /f2 [0x0f 0xe6 /r] = binop CVTPD2DQ xmm128 xmm/m128 # bug in Intel manual: /r is missing
+val /vex/f2/0f [0xe6 /r]
+val /66 [0x0f 0x2d /r] = binop CVTPD2PI mm64 xmm/m128
+val /66 [0x0f 0x5a /r] = binop CVTPD2PS xmm128 xmm/m128
+val /vex/66/0f [0x5a /r]
+val /66 [0x0f 0x2a /r] = binop CVTPI2PD xmm128 mm/m64
+val / [0x0f 0x2a /r] = binop CVTPI2PS xmm128 mm/m64
+val /66 [0x0f 0x5b /r] = binop CVTPS2DQ xmm128 xmm/m128
+val /vex/66/0f [0x5b /r]
+val / [0x0f 0x5a /r] = binop CVTPS2PD xmm128 xmm/m64
+val /vex/0f [0x5a /r]
+val / [0x0f 0x2d /r] = binop CVTPS2PI mm64 xmm/m64
+val /f2 [0x0f 0x2d /r]
+val /vex/f2/0f [0x2d /r]
+val /f2 [0x0f 0x5a /r] = binop CVTSD2SS xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5a /r] = varity3 VCVTSD2SS xmm128 v/xmm xmm/m64
+val /f2 [0x0f 0x2a /r]
+val /vex/f2/0f/vexv [0x2a /r]
+val /f3 [0x0f 0x2a /r]
+val /vex/f3/0f/vexv [0x2a /r]
+val /f3 [0x0f 0x5a /r] = binop CVTSS2SD xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5a /r] = varity3 VCVTSS2SD xmm128 v/xmm xmm/m32
+val /f3 [0x0f 0x2d /r]
+val /vex/f3/0f [0x2d /r]
+val /66 [0x0f 0xe6 /r] = binop CVTTPD2DQ xmm128 xmm/m128
+val /vex/66/0f [0xe6 /r]
+val /66 [0x0f 0x2c /r] = binop CVTTPD2PI mm64 xmm/m128
+val /f3 [0x0f 0x5b /r] = binop CVTTPS2DQ xmm128 xmm/m128
+val /vex/f3/0f [0x5b /r]
+val / [0x0f 0x2c /r] = binop CVTTPS2PI mm64 xmm/m64
+val /f2 [0x0f 0x2c /r]
+val /vex/f2/0f [0x2c /r]
+val /f3 [0x0f 0x2c /r]
+val /vex/f3/0f [0x2c /r]
+val / [0x99]
+val / [0x27] | mode32? = arity0 DAA
+val / [0x2f] | mode32? = arity0 DAS
+val / [0xfe /1] = unop-lock DEC r/m8
+val / [0xff /1]
+val / [0xf6 /6] = unop DIV r/m8
+val / [0xf7 /6]
+val /66 [0x0f 0x5e /r] = binop DIVPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5e /r]
+val / [0x0f 0x5e /r] = binop DIVPS xmm128 xmm/m128
+val /vex/0f/vexv [0x5e /r]
+val /f2 [0x0f 0x5e /r] = binop DIVSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5e /r] = varity3 VDIVSD xmm128 v/xmm xmm/m64
+val /f3 [0x0f 0x5e /r] = binop DIVSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5e /r] = varity3 VDIVSS xmm128 v/xmm xmm/m32
+val /66 [0x0f 0x3a 0x41 /r] = ternop DPPD xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x41 /r] | vex128? = varity4 VDPPD xmm128 v/xmm xmm/m128 imm8
+val /66 [0x0f 0x3a 0x40 /r] = ternop DPPS xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x40 /r]
+val / [0x0f 0x77] = arity0 EMMS
+val / [0xc8] = binop ENTER imm16 imm8
+val /66 [0x0f 0x3a 0x17 /r] = ternop EXTRACTPS r/m32 xmm128 imm8
+val /vex/66/0f/3a [0x17 /r] | vex128? = varity3 VEXTRACTPS r/m32 xmm128 imm8
+val / [0xd9 0xf0] = arity0 F2XM1
+val / [0xd9 0xe1] = arity0 FABS
+val / [0xd8 /0] = binop FADD st0 st/m32
+val / [0xdc /0-mem] = binop FADD st0 m64
+val / [0xdc /0-reg] = binop FADD st/reg st0
+val / [0xde /0-reg] = binop FADDP st/reg st0
+val / [0xda /0-mem] = unop FIADD m32
+val / [0xde /0-mem] = unop FIADD m16
+val / [0xdf /4-mem] = unop FBLD m80
+val / [0xdf /6-mem] = unop FBSTP m80
+val / [0xd9 0xe0] = arity0 FCHS
+val / [0x9b 0xdb 0xe2] = arity0 FCLEX
+val / [0xdb 0xe2] = arity0 FNCLEX
+val / [0xda /0-reg] = binop FCMOVB st0 st/reg
+val / [0xda /1-reg] = binop FCMOVE st0 st/reg
+val / [0xda /2-reg] = binop FCMOVBE st0 st/reg
+val / [0xda /3-reg] = binop FCMOVU st0 st/reg
+val / [0xdb /0-reg] = binop FCMOVNB st0 st/reg
+val / [0xdb /1-reg] = binop FCMOVNE st0 st/reg
+val / [0xdb /2-reg] = binop FCMOVNBE st0 st/reg
+val / [0xdb /3-reg] = binop FCMOVNU st0 st/reg
+val / [0xd8 /2] = unop FCOM st/m32
+val / [0xdc /2-mem] = unop FCOM m64
+val / [0xd8 /3] = unop FCOMP st/m32
+val / [0xdc /3-mem] = unop FCOMP m64
+val / [0xde 0xd9] = arity0 FCOMPP
+val / [0xdb /6-reg] = binop FCOMI st0 st/reg
+val / [0xdf /6-reg] = binop FCOMIP st0 st/reg
+val / [0xdb /5-reg] = binop FUCOMI st0 st/reg
+val / [0xdf /5-reg] = binop FUCOMIP st0 st/reg
+val / [0xd9 0xff] = arity0 FCOS
+val / [0xd9 0xf6] = arity0 FDECSTP
+val / [0xd8 /6] = binop FDIV st0 st/m32
+val / [0xdc /6-mem] = binop FDIV st0 m64
+val / [0xdc /7-reg] = binop FDIV st/reg st0
+val / [0xde /7-reg] = binop FDIVP st/reg st0
+val / [0xda /6-mem] = binop FIDIV st0 m32
+val / [0xde /6-mem] = binop FIDIV st0 m16
+val / [0xd8 /7] = binop FDIVR st0 st/m32
+val / [0xdc /7-mem] = binop FDIVR st0 m64
+val / [0xdc /6-reg] = binop FDIVR st/reg st0
+val / [0xde /6-reg] = binop FDIVRP st/reg st0
+val / [0xda /7-mem] = unop FIDIVR m32
+val / [0xde /7-mem] = unop FIDIVR m16
+val / [0xdd /0-reg] = unop FFREE st/reg
+val / [0xde /2-mem] = unop FICOM m16
+val / [0xda /2-mem] = unop FICOM m32
+val / [0xde /3-mem] = unop FICOMP m16
+val / [0xda /3-mem] = unop FICOMP m32
+val / [0xdf /0-mem] = unop FILD m16
+val / [0xdb /0-mem] = unop FILD m32
+val / [0xdf /5-mem] = unop FILD m64
+val / [0xd9 0xf7] = arity0 FINCSTP
+val / [0x9b 0xdb 0xe3] = arity0 FINIT
+val / [0xdb 0xe3] = arity0 FNINIT
+val / [0xdf /2-mem] = unop FIST m16
+val / [0xdb /2-mem] = unop FIST m32
+val / [0xdf /3-mem] = unop FISTP m16
+val / [0xdb /3-mem] = unop FISTP m32
+val / [0xdf /7-mem] = unop FISTP m64
+val / [0xdf /1-mem] = unop FISTTP m16
+val / [0xdb /1-mem] = unop FISTTP m32
+val / [0xdd /1-mem] = unop FISTTP m64
+val / [0xd9 /0] = unop FLD st/m32
+val / [0xdd /0-mem] = unop FLD m64
+val / [0xdb /5-mem] = unop FLD m80
+val / [0xd9 0xe8] = arity0 FLD1
+val / [0xd9 0xe9] = arity0 FLDL2T
+val / [0xd9 0xea] = arity0 FLDL2E
+val / [0xd9 0xeb] = arity0 FLDPI
+val / [0xd9 0xec] = arity0 FLDLG2
+val / [0xd9 0xed] = arity0 FLDLN2
+val / [0xd9 0xee] = arity0 FLDZ
+val / [0xd9 /5-mem] = unop FLDCW m2byte
+val / [0xd9 /4-mem]
+val / [0xd8 /1] = binop FMUL st0 st/m32
+val / [0xdc /1-mem] = binop FMUL st0 m64
+val / [0xdc /1-reg] = binop FMUL st/reg st0
+val / [0xde /1-reg] = binop FMULP st/reg st0
+val / [0xda /1-mem] = unop FIMUL m32
+val / [0xde /1-mem] = unop FIMUL m16
+val / [0xd9 0xd0] = arity0 FNOP
+val / [0xd9 0xf3] = arity0 FPATAN
+val / [0xd9 0xf8] = arity0 FPREM
+val / [0xd9 0xf5] = arity0 FPREM1
+val / [0xd9 0xf2] = arity0 FPTAN
+val / [0xd9 0xfc] = arity0 FRNDINT
+val / [0xdd /4-mem]
+val / [0x9b 0xdd /6-mem]
+val / [0xdd /6-mem]
+val / [0xd9 0xfd] = arity0 FSCALE
+val / [0xd9 0xfe] = arity0 FSIN
+val / [0xd9 0xfb] = arity0 FSINCOS
+val / [0xd9 0xfa] = arity0 FSQRT
+val / [0xd9 /2-mem] = unop FST m32
+val / [0xdd /2] = unop FST st/m64
+val / [0xd9 /3-mem] = unop FSTP m32
+val / [0xdd /3] = unop FSTP st/m64
+val / [0xdb /7-mem] = unop FSTP m80
+val / [0x9b 0xd9 /7-mem] = unop FSTCW m2byte
+val / [0xd9 /7-mem] = unop FNSTCW m2byte
+val / [0x9b 0xd9 /6-mem]
+val / [0xd9 /6-mem]
+val / [0x9b 0xdd /7-mem] = unop FSTSW m2byte
+val / [0x9b 0xdf 0xe0] = unop FSTSW ax
+val / [0xdd /7-mem] = unop FNSTSW m2byte
+val / [0xdf 0xe0] = unop FNSTSW ax
+val / [0xd8 /4] = binop FSUB st0 st/m32
+val / [0xdc /4-mem] = binop FSUB st0 m64
+val / [0xdc /5-reg] = binop FSUB st/reg st0
+val / [0xde /5-reg] = binop FSUBP st/reg st0
+val / [0xda /4-mem] = unop FISUB m32
+val / [0xde /4-mem] = unop FISUB m16
+val / [0xd8 /5] = binop FSUBR st0 st/m32
+val / [0xdc /5-mem] = binop FSUBR st0 m64
+val / [0xdc /4-reg] = binop FSUBR st/reg st0
+val / [0xde /4-reg] = binop FSUBRP st/reg st0
+val / [0xda /5-mem] = unop FISUBR m32
+val / [0xde /5-mem] = unop FISUBR m16
+val / [0xd9 0xe4] = arity0 FTST
+val / [0xdd /4-reg] = unop FUCOM st/reg
+val / [0xdd /5-reg] = unop FUCOMP st/reg
+val / [0xda 0xe9] = arity0 FUCOMPP
+val / [0xd9 0xe5] = arity0 FXAM
+val / [0xd9 /1-reg] = unop FXCH st/reg
+val / [0x0f 0xae /1-mem]
+val / [0x0f 0xae /0-mem]
+val / [0xd9 0xf4] = arity0 FXTRACT
+val / [0xd9 0xf1] = arity0 FYL2X
+val / [0xd9 0xf9] = arity0 FYL2XP1
+val /66 [0x0f 0x7c /r] = binop HADDPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x7c /r]
+val /f2 [0x0f 0x7c /r] = binop HADDPS xmm128 xmm/m128
+val /vex/f2/0f/vexv [0x7c /r]
+val / [0xf4] = arity0 HLT
+val /66 [0x0f 0x7d /r] = binop HSUBPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x7d /r]
+val /f2 [0x0f 0x7d /r] = binop HSUBPS xmm128 xmm/m128
+val /vex/f2/0f/vexv [0x7d /r]
+val / [0xf6 /7] = unop IDIV r/m8
+val / [0xf7 /7]
+#val / [0xf6 /5] = unop IMUL r/m8
+#val / [0xf7 /5]
+#val / [0x0f 0xaf /r]
+#val / [0x6b /r]
+#val / [0x69 /r]
+val / [0xf6 /5] = varity1 IMUL r/m8
+val / [0xf7 /5]
+val / [0x0f 0xaf /r]
+val / [0x6b /r]
+val / [0x69 /r]
+val / [0xe4] = binop IN al imm8
+val / [0xe5]
+val / [0xec] = binop IN al dx
+val / [0xed]
+val / [0xfe /0] = unop-lock INC r/m8
+val / [0xff /0]
+val / [0x6c] = arity0-rep INSB
+val / [0x6d]
+val /66 [0x0f 0x3a 0x21 /r] = ternop INSERTPS xmm128 xmm/m32 imm8
+val /vex/66/0f/3a/vexv [0x21 /r] = varity4 VINSERTPS xmm128 v/xmm xmm/m32 imm8
+val / [0xcc] = arity0 INT3
+val / [0xcd] = unop INT imm8
+val / [0xce] | mode32? = arity0 INT0
+val / [0x0f 0x08] = arity0 INVD
+val / [0x0f 0x01 /7-mem] = unop INVLPG m0
+val /66 [0x0f 0x38 0x82 /r-mem]
+val / [0xcf]
+val / [0x77] = near-rel JA rel8  # JNBE
+val / [0x73] = near-rel JAE rel8 # JNB, JNC
+val / [0x72] = near-rel JC rel8  # JB, JNAE
+val / [0x76] = near-rel JBE rel8 # JNA
+val /66 [0xe3] = near-rel JCXZ rel8
+val / [0xe3]
+val / [0x74] = near-rel JE rel8  # JZ
+val / [0x7f] = near-rel JG rel8  # JNLE
+val / [0x7d] = near-rel JGE rel8 # JNL
+val / [0x7c] = near-rel JL rel8  # JNGE
+val / [0x7e] = near-rel JLE rel8 # JNG
+val / [0x75] = near-rel JNE rel8 # JNZ
+val / [0x71] = near-rel JNO rel8
+val / [0x7b] = near-rel JNP rel8 # JPO
+val / [0x79] = near-rel JNS rel8
+val / [0x70] = near-rel JO rel8
+val / [0x7a] = near-rel JP rel8  # JPE
+val / [0x78] = near-rel JS rel8
+val / [0x0f 0x87] # JNBE
+val / [0x0f 0x83] # JNB, JNC
+val / [0x0f 0x82] # JC, JNAE
+val / [0x0f 0x86] # JNA
+val / [0x0f 0x84] # JZ
+val / [0x0f 0x8f] # JNLE
+val / [0x0f 0x8d] # JNL
+val / [0x0f 0x8c] # JNGE
+val / [0x0f 0x8e] # JNG
+val / [0x0f 0x85] # JNZ
+val / [0x0f 0x81]
+val / [0x0f 0x8b] # JPO
+val / [0x0f 0x89]
+val / [0x0f 0x80]
+val / [0x0f 0x8a] # JPE
+val / [0x0f 0x88] # JS
+val / [0xeb] = near-rel JMP rel8
+val / [0xe9]
+val / [0xff /4]
+val / [0xea]
+val / [0xff /5]
+val / [0x9f] = arity0 LAHF
+val / [0x0f 0x02 /r]
+val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
+val /vex/f2/0f [0xf0 /r-mem]
+val / [0x0f 0xae /2-mem] = unop LDMXCSR m32
+val /vex/0f [0xae /2-mem]
+#val / [0xc5 /r-mem]
+val / [0x0f 0xb2 /r-mem]
+#val / [0xc4 /r-mem]
+val / [0x0f 0xb4 /r-mem]
+val / [0x0f 0xb5 /r-mem]
+val / [0x8d /r-mem]
+val / [0xc9] = arity0 LEAVE
+val / [0x0f 0xae /5-reg] = arity0 LFENCE
+val / [0x0f 0x01 /2-mem]
+val / [0x0f 0x01 /3-mem]
+val / [0x0f 0x00 /2] = unop LLDT r/m16
+val / [0x0f 0x01 /6-mem] = unop LMSW r/m16
+val / [0xac] = unop-rep LODS (m/default/si/esi/rsi (return 8))
+val / [0xad]
+val / [0xe2] = near-rel LOOP rel8
+val / [0xe1] = near-rel LOOPE rel8
+val / [0xe0] = near-rel LOOPNE rel8
+val / [0x0f 0x03 /r]
+val / [0x0f 0x00 /3] = unop LTR r/m16
+val /66 [0x0f 0xf7 /r-reg] = ternop MASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/reg128
+val /vex/66/0f [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/m128
+val / [0x0f 0xf7 /r-reg] = ternop MASKMOVQ (m/default/di/edi/rdi (return 8)) mm64 mm/reg64
+val /66 [0x0f 0x5f /r] = binop MAXPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5f /r]
+val / [0x0f 0x5f /r] = binop MAXPS xmm128 xmm/m128
+val vex/0f/vexv [0x5f /r]
+val /f2 [0x0f 0x5f /r] = binop MAXSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5f /r] = varity3 VMAXSD xmm128 v/xmm xmm/m64
+val /f3 [0x0f 0x5f /r] = binop MAXSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5f /r] = varity3 VMAXSS xmm128 v/xmm xmm/m32
+val / [0x0f 0xae /6-reg] = arity0 MFENCE
+val /66 [0x0f 0x5d /r] = binop MINPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5d /r]
+val / [0x0f 0x5d /r] = binop MINPS xmm128 xmm/m128
+val /vex/0f/vexv [0x5d /r]
+val /f2 [0x0f 0x5d /r] = binop MINSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5d /r] = varity3 VMINSD xmm128 v/xmm xmm/m64
+val /f3 [0x0f 0x5d /r] = binop MINSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5d /r] = varity3 VMINSS xmm128 v/xmm xmm/m32
+val / [0x0f 0x01 0xc8] = arity0 MONITOR
+val / [0x88 /r] = binop MOV r/m8 r8
+val / [0x89 /r]
+val / [0x8a /r] = binop MOV r8 r/m8
+val / [0x8b /r]
+val / [0x8c /r]
+val / [0x8e /r]
+val / [0xa0] = binop MOV al moffs8
+val / [0xa1]
+val / [0xa2] = binop MOV moffs8 al
+val / [0xa3]
+val / [0xc6 /0] = binop MOV r/m8 imm8
+val / [0xc7 /0]
+val /66 [0x0f 0x28 /r] = binop MOVAPD xmm128 xmm/m128
+val /66 [0x0f 0x29 /r] = binop MOVAPD xmm/m128 xmm128
+val /vex/66/0f [0x28 /r]
+val /vex/66/0f [0x29 /r]
+val / [0x0f 0x28 /r] = binop MOVAPS xmm128 xmm/m128
+val / [0x0f 0x29 /r] = binop MOVAPS xmm/m128 xmm128
+val /vex/0f [0x28 /r]
+val /vex/0f [0x29 /r]
+val / [0x0f 0x38 0xf0 /r-mem]
+val / [0x0f 0x38 0xf1 /r-mem]
+val / [0x0f 0x6e /r]
+val / [0x0f 0x7e /r]
+val /vex/66/0f [0x6e /r]
+val /66 [0x0f 0x6e /r]
+val /66 [0x0f 0x7e /r]
+val /vex/66/0f [0x7e /r]
+val /f2 [0x0f 0x12 /r] = binop MOVDDUP xmm128 xmm/m64
+val /vex/f2/0f [0x12 /r]
+val /66 [0x0f 0x6f /r] = binop MOVDQA xmm128 xmm/m128
+val /66 [0x0f 0x7f /r] = binop MOVDQA xmm/m128 xmm128
+val /vex/66/0f [0x6f /r]
+val /vex/66/0f [0x7f /r]
+val /f3 [0x0f 0x6f /r] = binop MOVDQU xmm128 xmm/m128
+val /f3 [0x0f 0x7f /r] = binop MOVDQU xmm/m128 xmm128
+val /vex/f3/0f [0x6f /r]
+val /vex/f3/0f [0x7f /r]
+val /f2 [0x0f 0xd6 /r-reg] = binop MOVDQ2Q mm64 xmm/reg128
+val / [0x0f 0x12 /r-reg] = binop MOVHLPS xmm128 xmm/reg128
+val /vex/0f/vexv [0x12 /r-reg] | vex128? = varity3 VMOVHLPS xmm128 v/xmm xmm/reg128
+val /66 [0x0f 0x16 /r-mem] = binop MOVHPD xmm128 m64
+val /66 [0x0f 0x17 /r-mem] = binop MOVHPD m64 xmm128
+val /vex/66/0f/vexv [0x16 /r-mem] | vex128? = varity3 VMOVHPD xmm128 v/xmm m64
+val /vex/66/0f [0x17 /r-mem] | vex128? = varity2 VMOVHPD m64 xmm128
+val / [0x0f 0x16 /r-mem] = binop MOVHPS xmm128 m64
+val / [0x0f 0x17 /r-mem] = binop MOVHPS m64 xmm128
+val /vex/0f/vexv [0x16 /r-mem] | vex128? = varity3 VMOVHPS xmm128 v/xmm m64
+val /vex/0f [0x17 /r-mem] | vex128? = varity2 VMOVHPS m64 xmm128
+val / [0x0f 0x16 /r-reg] = binop MOVLHPS xmm128 xmm/reg128
+val /vex/0f/vexv [0x16 /r-reg] | vex128? = varity3 VMOVLHPS xmm128 v/xmm xmm/reg128
+val /66 [0x0f 0x12 /r-mem] = binop MOVLPD xmm128 m64
+val /66 [0x0f 0x13 /r-mem] = binop MOVLPD m64 xmm128
+val /vex/66/0f/vexv [0x12 /r-mem] | vex128? = varity3 VMOVLPD xmm128 v/xmm m64
+val /vex/66/0f [0x13 /r-mem] | vex128? = varity2 VMOVLPD m64 xmm128
+val / [0x0f 0x12 /r-mem] = binop MOVLPS xmm128 m64
+val / [0x0f 0x13 /r-mem] = binop MOVLPS m64 xmm128
+val /vex/0f/vexv [0x12 /r-mem] | vex128? = varity3 VMOVLPS xmm128 v/xmm m64
+val /vex/0f [0x13 /r-mem] | vex128? = varity2 VMOVLPS m64 xmm128
+val /66 [0x0f 0x50 /r-reg]
+val /vex/66/0f [0x50 /r-reg]
+val / [0x0f 0x50 /r-reg]
+val /vex/0f [0x50 /r-reg]
+val /66 [0x0f 0x38 0x2a /r-mem] = binop MOVNTDQA xmm128 m128
+val /vex/66/0f/38 [0x2a /r-mem] | vex128? = varity2 VMOVNTDQA xmm128 m128
+val /66 [0x0f 0xe7 /r-mem] = binop MOVNTDQ m128 xmm128
+val /vex/66/0f [0xe7 /r-mem]
+val / [0x0f 0xc3 /r-mem]
+val /66 [0x0f 0x2b /r-mem] = binop MOVNTPD m128 xmm128
+val /vex/66/0f [0x2b /r-mem]
+val / [0x0f 0x2b /r-mem] = binop MOVNTPS m128 xmm128
+val /vex/0f [0x2b /r-mem]
+val / [0x0f 0xe7 /r-mem] = binop MOVNTQ m64 mm64
+val / [0x0f 0x6f /r] = binop MOVQ mm64 mm/m64
+val / [0x0f 0x7f /r] = binop MOVQ mm/m64 mm64
+val /f3 [0x0f 0x7e /r] = binop MOVQ xmm128 xmm/m64
+val /66 [0x0f 0xd6 /r] = binop MOVQ xmm/m64 xmm128
+val /f3 [0x0f 0xd6 /r-reg] = binop MOVQ2DQ xmm128 mm/reg64
+val / [0xa4] = binop-rep MOVS (m/es/di/edi/rdi (return 8)) (m/default/si/esi/rsi (return 8))
+val / [0xa5]
+val /f2 [0x0f 0x10 /r] = binop MOVSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x10 /r-reg] = varity3 VMOVSD xmm128 v/xmm xmm/reg128
+val /vex/f2/0f [0x10 /r-mem] = varity2 VMOVSD xmm128 m64
+val /f2 [0x0f 0x11 /r] = binop MOVSD xmm/m64 xmm128
+val /vex/f2/0f/vexv [0x11 /r-reg] = varity3 VMOVSD xmm/reg128 v/xmm xmm128
+val /vex/f2/0f [0x11 /r-mem] = varity2 VMOVSD m64 xmm128
+val /f3 [0x0f 0x16 /r] = binop MOVSHDUP xmm128 xmm/m128
+val /vex/f3/0f [0x16 /r]
+val /f3 [0x0f 0x12 /r] = binop MOVSLDUP xmm128 xmm/m128
+val /vex/f3/0f [0x12 /r]
+val /f3 [0x0f 0x10 /r] = binop MOVSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x10 /r-reg] = varity3 VMOVSS xmm128 v/xmm xmm/reg128
+val /vex/f3/0f [0x10 /r-mem] = varity2 VMOVSS xmm128 m32
+val /f3 [0x0f 0x11 /r] = binop MOVSS xmm/m32 xmm128
+val /vex/f3/0f/vexv [0x11 /r-reg] = varity3 VMOVSS xmm/reg128 v/xmm xmm128
+val /vex/f3/0f [0x11 /r-mem] = varity2 VMOVSS m32 xmm128
+val / [0x0f 0xbe /r]
+val / [0x0f 0xbf /r]
+val / [0x63 /r]
+val /66 [0x0f 0x10 /r] = binop MOVUPD xmm128 xmm/m128
+val /vex/66/0f [0x10 /r]
+val /66 [0x0f 0x11 /r] = binop MOVUPD xmm/m128 xmm128
+val /vex/66/0f [0x11 /r]
+val / [0x0f 0x10 /r] = binop MOVUPS xmm128 xmm/m128
+val /vex/0f [0x10 /r]
+val / [0x0f 0x11 /r] = binop MOVUPS xmm/m128 xmm128
+val /vex/0f [0x11 /r]
+val / [0x0f 0xb6 /r]
+val / [0x0f 0xb7 /r]
+val /66 [0x0f 0x3a 0x42 /r] = ternop MPSADBW xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x42 /r] | vex128? = varity4 VMPSADBW xmm128 v/xmm xmm/m128 imm8
+val / [0xf6 /4] = unop MUL r/m8
+val / [0xf7 /4]
+val /66 [0x0f 0x59 /r] = binop MULPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x59 /r]
+val / [0x0f 0x59 /r] = binop MULPS xmm128 xmm/m128
+val /vex/0f/vexv [0x59 /r]
+val /f2 [0x0f 0x59 /r] = binop MULSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x59 /r] = varity3 VMULSD xmm128 v/xmm xmm/m64
+val /f3 [0x0f 0x59 /r] = binop MULSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x59 /r] = varity3 VMULSS xmm128 v/xmm xmm/m32
+val / [0x0f 0x01 0xc9] = arity0 MWAIT
+val / [0xf6 /3] = unop-lock NEG r/m8
+val / [0xf7 /3]
+# The opcode `0x90` overlapps with `xchg` since
+# so we deocde 0x90 always as `xchg`
+#val / [0x90] = arity0 NOP => See XCHG
+#val /66 [0x90] = arity0 NOP
+val / [0x0f 0x1f /0]
+val / [0xf6 /2] = unop-lock NOT r/m8
+val / [0xf7 /2]
+val / [0x0c] = binop OR al imm8
+val / [0x0d]
+val / [0x80 /1] = binop-lock OR r/m8 imm8
+val / [0x81 /1]
+val / [0x83 /1]
+val / [0x08 /r] = binop-lock OR r/m8 r8
+val / [0x09 /r]
+val / [0x0a /r] = binop OR r8 r/m8
+val / [0x0b /r]
+val /66 [0x0f 0x56 /r] = binop ORPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x56 /r]
+val / [0x0f 0x56 /r] = binop ORPS xmm128 xmm/m128
+val /vex/0f/vexv [0x56 /r]
+val / [0xe6] = binop OUT imm8 al
+val / [0xe7]
+val / [0xee] = binop OUT dx al
+val / [0xef]
+#val / [0x6e] = binop-rep OUTS dx (mem (REG SI))
+#val / [0x6f]
+val / [0x6e] = arity0-rep OUTSB
+val / [0x6f]
+val / [0x0f 0x38 0x1c /r] = binop PABSB mm64 mm/m64
+val /66 [0x0f 0x38 0x1c /r] = binop PABSB xmm128 xmm/m128
+val / [0x0f 0x38 0x1d /r] = binop PABSW mm64 mm/m64
+val /66 [0x0f 0x38 0x1d /r] = binop PABSW xmm128 xmm/m128
+val / [0x0f 0x38 0x1e /r] = binop PABSD mm64 mm/m64
+val /66 [0x0f 0x38 0x1e /r] = binop PABSD xmm128 xmm/m128
+val /vex/66/0f/38 [0x1c /r] | vex128? = varity2 VPABSB xmm128 xmm/m128
+val /vex/66/0f/38 [0x1d /r] | vex128? = varity2 VPABSW xmm128 xmm/m128
+val /vex/66/0f/38 [0x1e /r] | vex128? = varity2 VPABSD xmm128 xmm/m128
+val / [0x0f 0x63 /r] = binop PACKSSWB mm64 mm/m64
+val /66 [0x0f 0x63 /r] = binop PACKSSWB xmm128 xmm/m128
+val / [0x0f 0x6b /r] = binop PACKSSDW mm64 mm/m64
+val /66 [0x0f 0x6b /r] = binop PACKSSDW xmm128 xmm/m128
+val /vex/66/0f/vexv [0x63 /r] | vex128? = varity3 VPACKSSWB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6b /r] | vex128? = varity3 VPACKSSDW xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x2b /r] = binop PACKUSDW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x2b /r] | vex128? = varity3 VPACKUSDW xmm128 v/xmm xmm/m128
+val / [0x0f 0x67 /r] = binop PACKUSWB mm64 mm/m64
+val /66 [0x0f 0x67 /r] = binop PACKUSWB xmm128 xmm/m128
+val /vex/66/0f/vexv [0x67 /r] | vex128? = varity3 VPACKUSWB xmm128 v/xmm xmm/m128
+val / [0x0f 0xfc /r] = binop PADDB mm64 mm/m64
+val /66 [0x0f 0xfc /r] = binop PADDB xmm128 xmm/m128
+val / [0x0f 0xfd /r] = binop PADDW mm64 mm/m64
+val /66 [0x0f 0xfd /r] = binop PADDW xmm128 xmm/m128
+val / [0x0f 0xfe /r] = binop PADDD mm64 mm/m64
+val /66 [0x0f 0xfe /r] = binop PADDD xmm128 xmm/m128
+val /vex/66/0f/vexv [0xfc /r] | vex128? = varity3 VPADDB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xfd /r] | vex128? = varity3 VPADDW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xfe /r] | vex128? = varity3 VPADDD xmm128 v/xmm xmm/m128
+val / [0x0f 0xd4 /r] = binop PADDQ mm64 mm/m64
+val /66 [0x0f 0xd4 /r] = binop PADDQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd4 /r] | vex128? = varity3 VPADDQ xmm128 v/xmm xmm/m128
+val / [0x0f 0xec /r] = binop PADDSB mm64 mm/m64
+val /66 [0x0f 0xec /r] = binop PADDSB xmm128 xmm/m128
+val / [0x0f 0xed /r] = binop PADDSW mm64 mm/m64
+val /66 [0x0f 0xed /r] = binop PADDSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xec /r] | vex128? = varity3 VPADDSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xed /r] | vex128? = varity3 VPADDSW xmm128 v/xmm xmm/m128
+val / [0x0f 0xdc /r] = binop PADDUSB mm64 mm/m64
+val /66 [0x0f 0xdc /r] = binop PADDUSB xmm128 xmm/m128
+val / [0x0f 0xdd /r] = binop PADDUSW mm64 mm/m64
+val /66 [0x0f 0xdd /r] = binop PADDUSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xdc /r] | vex128? = varity3 VPADDUSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xdd /r] | vex128? = varity3 VPADDUSW xmm128 v/xmm xmm/m128
+val / [0x0f 0x3a 0x0f /r] = ternop PALIGNR mm64 mm/m64 imm8
+val /66 [0x0f 0x3a 0x0f /r] = ternop PALIGNR xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0f /r] | vex128? = varity4 VPALIGNR xmm128 v/xmm xmm/m128 imm8
+val / [0x0f 0xdb /r] = binop PAND mm64 mm/m64
+val /66 [0x0f 0xdb /r] = binop PAND xmm128 xmm/m128
+val /vex/66/0f/vexv [0xdb /r] | vex128? = varity3 VPAND xmm128 v/xmm xmm/m128
+val / [0x0f 0xdf /r] = binop PANDN mm64 mm/m64
+val /66 [0x0f 0xdf /r] = binop PANDN xmm128 xmm/m128
+val /vex/66/0f/vexv [0xdf /r] | vex128? = varity3 VPANDN xmm128 v/xmm xmm/m128
+val / [0xf3 0x90] = arity0 PAUSE
+val / [0x0f 0xe0 /r] = binop PAVGB mm64 mm/m64
+val /66 [0x0f 0xe0 /r] = binop PAVGB xmm128 xmm/m128
+val / [0x0f 0xe3 /r] = binop PAVGW mm64 mm/m64
+val /66 [0x0f 0xe3 /r] = binop PAVGW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe0 /r] | vex128? = varity3 VPAVGB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xe3 /r] | vex128? = varity3 VPAVGW xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x10 /r] = binop PBLENDVB xmm128 xmm/m128
+val /vex/66/0f/3a/vexv [0x4c /r] | vexw0? & vex128? = varity4 VPBLENDVB xmm128 v/xmm xmm/m128 imm/xmm
+val /66 [0x0f 0x3a 0x0e /r] = ternop PBLENDW xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x0e /r] | vex128? = varity4 VPBLENDW xmm128 v/xmm xmm/m128 imm8
+val /66 [0x0f 0x3a 0x44 /r] = ternop PCLMULQDQ xmm128 xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x44 /r] | vex128? = varity4 VPCLMULQDQ xmm128 v/xmm xmm/m128 imm8
+val / [0x0f 0x74 /r] = binop PCMPEQB mm64 mm/m64
+val /66 [0x0f 0x74 /r] = binop PCMPEQB xmm128 xmm/m128
+val / [0x0f 0x75 /r] = binop PCMPEQW mm64 mm/m64
+val /66 [0x0f 0x75 /r] = binop PCMPEQW xmm128 xmm/m128
+val / [0x0f 0x76 /r] = binop PCMPEQD mm64 mm/m64
+val /66 [0x0f 0x76 /r] = binop PCMPEQD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x74 /r] | vex128? = varity3 VPCMPEQB xmm128 v/xmm xmm/m128
+#val /vex/66/0f [0x74 /r] | vex128? = varity3 VPCMPEQB xmm128 xmm0 xmm/m128
+val /vex/66/0f/vexv [0x75 /r] | vex128? = varity3 VPCMPEQW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x76 /r] | vex128? = varity3 VPCMPEQD xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x29 /r] = binop PCMPEQQ xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x29 /r] | vex128? = varity3 VPCMPEQQ xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x3a 0x61 /r] = ternop PCMPESTRI xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x61 /r] = varity3 VPCMPESTRI xmm128 xmm/m128 imm8
+val /66 [0x0f 0x3a 0x60 /r] = ternop PCMPESTRM xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x60 /r] | vex128? = varity3 VPCMPESTRM xmm128 xmm/m128 imm8
+val / [0x0f 0x64 /r] = binop PCMPGTB mm64 mm/m64
+val /66 [0x0f 0x64 /r] = binop PCMPGTB xmm128 xmm/m128
+val / [0x0f 0x65 /r] = binop PCMPGTW mm64 mm/m64
+val /66 [0x0f 0x65 /r] = binop PCMPGTW xmm128 xmm/m128
+val / [0x0f 0x66 /r] = binop PCMPGTD mm64 mm/m64
+val /66 [0x0f 0x66 /r] = binop PCMPGRD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x64 /r] | vex128? = varity3 VPCMPGTB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x65 /r] | vex128? = varity3 VPCMPGTW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x66 /r] | vex128? = varity3 VPCMPGTD xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x37 /r] = binop PCMPGTQ xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x37 /r] | vex128? = varity3 VPCMPGTQ xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x3a 0x63 /r] = ternop PCMPISTRI xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x63 /r] | vex128? = varity3 VPCMPISTRI xmm128 xmm/m128 imm8
+val /66 [0x0f 0x3a 0x62 /r] = ternop PCMPISTRM xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x62 /r] | vex128? = varity3 VPCMPISTRM xmm128 xmm/m128 imm8
+val /66 [0x0f 0x3a 0x14 /r]
+val /66 [0x0f 0x3a 0x16 /r]
+val /vex/66/0f/3a [0x14 /r]
+val /vex/66/0f/3a [0x16 /r]
+val / [0x0f 0xc5 /r-reg]
+val /66 [0x0f 0xc5 /r-reg]
+val /66 [0x0f 0x3a 0x15 /r]
+val /vex/66/0f [0xc5 /r-reg]
+val /vex/66/0f/3a [0x15 /r]
+val / [0x0f 0x38 0x01 /r] = binop PHADDW mm64 mm/m64
+val /66 [0x0f 0x38 0x01 /r] = binop PHADDW xmm128 xmm/m128
+val / [0x0f 0x38 0x02 /r] = binop PHADDD mm64 mm/m64
+val /66 [0x0f 0x38 0x02 /r] = binop PHADDD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x01 /r] | vex128? = varity3 VPHADDW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x02 /r] | vex128? = varity3 VPHADDD xmm128 v/xmm xmm/m128
+val / [0x0f 0x38 0x03 /r] = binop PHADDSW mm64 mm/m64
+val /66 [0x0f 0x38 0x03 /r] = binop PHADDSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x03 /r] | vex128? = varity3 VPHADDSW xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x41 /r] = binop PHMINPOSUW xmm128 xmm/m128
+val /vex/66/0f/38 [0x41 /r] | vex128? = varity2 VPHMINPOSUW xmm128 xmm/m128
+val / [0x0f 0x38 0x05 /r] = binop PHSUBW mm64 mm/m64
+val /66 [0x0f 0x38 0x05 /r] = binop PHSUBW xmm128 xmm/m128
+val / [0x0f 0x38 0x06 /r] = binop PHSUBD mm64 mm/m64
+val /66 [0x0f 0x38 0x06 /r] = binop PHSUBD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x05 /r] | vex128? = varity3 VPHSUBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x06 /r] | vex128? = varity3 VPHSUBD xmm128 v/xmm xmm/m128
+val / [0x0f 0x38 0x07 /r] = binop PHSUBSW mm64 mm/m64
+val /66 [0x0f 0x38 0x07 /r] = binop PHSUBSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x07 /r] | vex128? = varity3 VPHSUBSW xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x3a 0x20 /r] = ternop PINSRB xmm128 r32/m8 imm8
+val /66 [0x0f 0x3a 0x22 /r]
+val /vex/66/0f/3a/vexv [0x20 /r]
+val /vex/66/0f/3a/vexv [0x22 /r]
+val / [0x0f 0xc4 /r] = ternop PINSRW mm64 r32/m16 imm8
+val /66 [0x0f 0xc4 /r] = ternop PINSRW xmm128 r32/m16 imm8
+val /vex/66/0f/vexv [0xc4 /r]
+val / [0x0f 0x38 0x04 /r] = binop PMADDUBSW mm64 mm/m64
+val /66 [0x0f 0x38 0x04 /r] = binop PMADDUBSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x04 /r] | vex128? = varity3 VPMADDUBSW xmm128 v/xmm xmm/m128
+val / [0x0f 0xf5 /r] = binop PMADDWD mm64 mm/m64
+val /66 [0x0f 0xf5 /r] = binop PMADDWD xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf5 /r] | vex128? = varity3 VPMADDWD xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x3c /r] = binop PMAXSB xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3c /r] | vex128? = varity3 VPMAXSB xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x3d /r] = binop PMAXSD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3d /r] | vex128? = varity3 VPMAXSD xmm128 v/xmm xmm/m128
+val / [0x0f 0xee /r] = binop PMAXSW mm64 mm/m64
+val /66 [0x0f 0xee /r] = binop PMAXSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xee /r] | vex128? = varity3 VPMAXSW xmm128 v/xmm xmm/m128
+val / [0x0f 0xde /r] = binop PMAXUB mm64 mm/m64
+val /66 [0x0f 0xde /r] = binop PMAXUB xmm128 xmm/m128
+val /vex/66/0f/vexv [0xde /r] | vex128? = varity3 VPMAXUB xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x3f /r] = binop PMAXUD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3f /r] | vex128? = varity3 VPMAXUD xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x3e /r] = binop PMAXUW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3e /r] | vex128? = varity3 VPMAXUW xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x38 /r] = binop PMINSB xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x38 /r] | vex128? = varity3 VPMINSB xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x39 /r] = binop PMINSD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x39 /r] | vex128? = varity3 VPMINSD xmm128 v/xmm xmm/m128
+val / [0x0f 0xea /r] = binop PMINSW mm64 mm/m64
+val /66 [0x0f 0xea /r] = binop PMINSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xea /r] | vex128? = varity3 VPMINSW xmm128 v/xmm xmm/m128
+val / [0x0f 0xda /r] = binop PMINUB mm64 mm/m64
+val /66 [0x0f 0xda /r] = binop PMINUB xmm128 xmm/m128
+val /vex/66/0f/vexv [0xda /r] | vex128? = varity3 VPMINUB xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x3b /r] = binop PMINUD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3b /r] | vex128? = varity3 VPMINUD xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x3a /r] = binop PMINUW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x3a /r] | vex128? = varity3 VPMINUW xmm128 v/xmm xmm/m128
+val / [0x0f 0xd7 /r-reg]
+val /66 [0x0f 0xd7 /r-reg]
+val /vex/66/0f [0xd7 /r-reg]
+val /66 [0x0f 0x38 0x20 /r] = binop PMOVSXBW xmm128 xmm/m64
+val /66 [0x0f 0x38 0x21 /r] = binop PMOVSXBD xmm128 xmm/m32
+val /66 [0x0f 0x38 0x22 /r] = binop PMOVSXBQ xmm128 xmm/m16
+val /66 [0x0f 0x38 0x23 /r] = binop PMOVSXWD xmm128 xmm/m64
+val /66 [0x0f 0x38 0x24 /r] = binop PMOVSXWQ xmm128 xmm/m32
+val /66 [0x0f 0x38 0x25 /r] = binop PMOVSXDQ xmm128 xmm/m64
+val /vex/66/0f/38 [0x20 /r] | vex128? = varity2 VPMOVSXBW xmm128 xmm/m64
+val /vex/66/0f/38 [0x21 /r] | vex128? = varity2 VPMOVSXBD xmm128 xmm/m32
+val /vex/66/0f/38 [0x22 /r] | vex128? = varity2 VPMOVSXBQ xmm128 xmm/m16
+val /vex/66/0f/38 [0x23 /r] | vex128? = varity2 VPMOVSXWD xmm128 xmm/m64
+val /vex/66/0f/38 [0x24 /r] | vex128? = varity2 VPMOVSXWQ xmm128 xmm/m32
+val /vex/66/0f/38 [0x25 /r] | vex128? = varity2 VPMOVSXDQ xmm128 xmm/m64
+val /66 [0x0f 0x38 0x30 /r] = binop PMOVZXBW xmm128 xmm/m64
+val /66 [0x0f 0x38 0x31 /r] = binop PMOVZXBD xmm128 xmm/m32
+val /66 [0x0f 0x38 0x32 /r] = binop PMOVZXBQ xmm128 xmm/m16
+val /66 [0x0f 0x38 0x33 /r] = binop PMOVZXWD xmm128 xmm/m64
+val /66 [0x0f 0x38 0x34 /r] = binop PMOVZXWQ xmm128 xmm/m32
+val /66 [0x0f 0x38 0x35 /r] = binop PMOVZXDQ xmm128 xmm/m64
+val /vex/66/0f/38 [0x30 /r] | vex128? = varity2 VPMOVZXBW xmm128 xmm/m64
+val /vex/66/0f/38 [0x31 /r] | vex128? = varity2 VPMOVZXBD xmm128 xmm/m32
+val /vex/66/0f/38 [0x32 /r] | vex128? = varity2 VPMOVZXBQ xmm128 xmm/m16
+val /vex/66/0f/38 [0x33 /r] | vex128? = varity2 VPMOVZXWD xmm128 xmm/m64
+val /vex/66/0f/38 [0x34 /r] | vex128? = varity2 VPMOVZXWQ xmm128 xmm/m32
+val /vex/66/0f/38 [0x35 /r] | vex128? = varity2 VPMOVZXDQ xmm128 xmm/m64
+val /66 [0x0f 0x38 0x28 /r] = binop PMULDQ xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x28 /r] | vex128? = varity3 VPMULDQ xmm128 v/xmm xmm/m128
+val / [0x0f 0x38 0x0b /r] = binop PMULHRSW mm64 mm/m64
+val /66 [0x0f 0x38 0x0b /r] = binop PMULHRSW xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x0b /r] | vex128? = varity3 VPMULHRSW xmm128 v/xmm xmm/m128
+val / [0x0f 0xe4 /r] = binop PMULHUW mm64 mm/m64
+val /66 [0x0f 0xe4 /r] = binop PMULHUW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe4 /r] | vex128? = varity3 VPMULHUW xmm128 v/xmm xmm/m128
+val / [0x0f 0xe5 /r] = binop PMULHW mm64 mm/m64
+val /66 [0x0f 0xe5 /r] = binop PMULHW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe5 /r] | vex128? = varity3 VPMULHW xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x40 /r] = binop PMULLD xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x40 /r] = varity3 VPMULLD xmm128 v/xmm xmm/m128
+val / [0x0f 0xd5 /r] = binop PMULLW mm64 mm/m64
+val /66 [0x0f 0xd5 /r] = binop PMULLW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd5 /r] = varity3 VPMULLW xmm128 v/xmm xmm/m128
+val / [0x0f 0xf4 /r] = binop PMULUDQ mm64 mm/m64
+val /66 [0x0f 0xf4 /r] = binop PMULUDQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf4 /r] = varity3 VPMULUDQ xmm128 v/xmm xmm/m128
+val / [0x8f /0]
+val / [0x1f] | mode32? = do opndsz-set-from-d; unop POP ds end
+val / [0x07] | mode32? = do opndsz-set-from-d; unop POP es end
+val / [0x17] | mode32? = do opndsz-set-from-d; unop POP ss end
+val / [0x0f 0xa1]
+val / [0x0f 0xa9]
+val / [0x61]
+val /f3 [0x0f 0xb8 /r]
+val / [0x9d]
+val / [0x0f 0xeb /r] = binop POR mm64 mm/m64
+val /66 [0x0f 0xeb /r] = binop POR xmm128 xmm/m128
+val /vex/66/0f/vexv [0xeb /r] | vex128? = varity3 VPOR xmm128 v/xmm xmm/m128
+val / [0x0f 0x18 /1-mem] = unop PREFETCHT0 m8
+val / [0x0f 0x18 /2-mem] = unop PREFETCHT1 m8
+val / [0x0f 0x18 /3-mem] = unop PREFETCHT2 m8
+val / [0x0f 0x18 /0-mem] = unop PREFETCHNTA m8
+val / [0x0f 0x0d /r-mem] = unop PREFETCHW m8
+val / [0x0f 0xf6 /r] = binop PSADBW mm64 mm/m64
+val /66 [0x0f 0xf6 /r] = binop PSADBW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf6 /r] | vex128? = varity3 VPSADBW xmm128 v/xmm xmm/m128
+val / [0x0f 0x38 0x00 /r] = binop PSHUFB mm64 mm/m64
+val /66 [0x0f 0x38 0x00 /r] = binop PSHUFB xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x00 /r] | vex128? = varity3 VPSHUFB xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x70 /r] = ternop PSHUFD xmm128 xmm/m128 imm8
+val /vex/66/0f [0x70 /r] | vex128? = varity3 VPSHUFD xmm128 xmm/m128 imm8
+val /f3 [0x0f 0x70 /r] = ternop PSHUFHW xmm128 xmm/m128 imm8
+val /vex/f3/0f [0x70 /r] | vex128? = varity3 VPSHUFHW xmm128 xmm/m128 imm8
+val /f2 [0x0f 0x70 /r] = ternop PSHUFLW xmm128 xmm/m128 imm8
+val /vex/f2/0f [0x70 /r] | vex128? = varity3 VPSHUFLW xmm128 xmm/m128 imm8
+val / [0x0f 0x70 /r] = ternop PSHUFW mm64 mm/m64 imm8
+val / [0x0f 0x38 0x08 /r] = binop PSIGNB mm64 mm/m64
+val /66 [0x0f 0x38 0x08 /r] = binop PSIGNB xmm128 xmm/m128
+val / [0x0f 0x38 0x09 /r] = binop PSIGNW mm64 mm/m64
+val /66 [0x0f 0x38 0x09 /r] = binop PSIGNW xmm128 xmm/m128
+val / [0x0f 0x38 0x0a /r] = binop PSIGND mm64 mm/m64
+val /66 [0x0f 0x38 0x0a /r] = binop PSIGND xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0x08 /r] | vex128? = varity3 VPSIGNB xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x09 /r] | vex128? = varity3 VPSIGNW xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0x0a /r] | vex128? = varity3 VPSIGND xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x73 /7-reg] = binop PSLLDQ xmm/reg128 imm8
+val /vex/66/0f/vexv [0x73 /7-reg] | vex128? = varity3 VPSLLDQ v/xmm xmm/reg128 imm8
+val / [0x0f 0xf1 /r] = binop PSLLW mm64 mm/m64
+val /66 [0x0f 0xf1 /r] = binop PSLLW xmm128 xmm/m128
+val / [0x0f 0x71 /6-reg] = binop PSLLW mm/reg64 imm8
+val /66 [0x0f 0x71 /6-reg] = binop PSLLW xmm/reg128 imm8
+val / [0x0f 0xf2 /r] = binop PSLLD mm64 mm/m64
+val /66 [0x0f 0xf2 /r] = binop PSLLD xmm128 xmm/m128
+val / [0x0f 0x72 /6-reg] = binop PSLLD mm/reg64 imm8
+val /66 [0x0f 0x72 /6-reg] = binop PSLLD xmm/reg128 imm8
+val / [0x0f 0xf3 /r] = binop PSLLQ mm64 mm/m64
+val /66 [0x0f 0xf3 /r] = binop PSLLQ xmm128 xmm/m128
+val / [0x0f 0x73 /6-reg] = binop PSLLQ mm/reg64 imm8
+val /66 [0x0f 0x73 /6-reg] = binop PSLLQ xmm/reg128 imm8
+val /vex/66/0f/vexv [0xf1 /r] | vex128? = varity3 VPSLLW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x71 /6-reg] | vex128? = varity3 VPSLLW v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0xf2 /r] | vex128? = varity3 VPSLLD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x72 /6-reg] | vex128? = varity3 VPSLLD v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0xf3 /r] | vex128? = varity3 VPSLLQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x73 /6-reg] | vex128? = varity3 VPSLLQ v/xmm xmm/reg128 imm8
+val / [0x0f 0xe1 /r] = binop PSRAW mm64 mm/m64
+val /66 [0x0f 0xe1 /r] = binop PSRAW xmm128 xmm/m128
+val / [0x0f 0x71 /4-reg] = binop PSRAW mm/reg64 imm8
+val /66 [0x0f 0x71 /4-reg] = binop PSRAW xmm/reg128 imm8
+val / [0x0f 0xe2 /r] = binop PSRAD mm64 mm/m64
+val /66 [0x0f 0xe2 /r] = binop PSRAD xmm128 xmm/m128
+val / [0x0f 0x72 /4-reg] = binop PSRAD mm/reg64 imm8
+val /66 [0x0f 0x72 /4-reg] = binop PSRAD xmm/reg128 imm8
+val /vex/66/0f/vexv [0xe1 /r] | vex128? = varity3 VPSRAW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x71 /4-reg] | vex128? = varity3 VPSRAW v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0xe2 /r] | vex128? = varity3 VPSRAD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x72 /4-reg] | vex128? = varity3 VPSRAD v/xmm xmm/reg128 imm8
+val /66 [0x0f 0x73 /3-reg] = binop PSRLDQ xmm/reg128 imm8
+val /vex/66/0f/vexv [0x73 /3-reg] | vex128? = varity3 VPSRLDQ v/xmm xmm/reg128 imm8
+val / [0x0f 0xd1 /r] = binop PSRLW mm64 mm/m64
+val /66 [0x0f 0xd1 /r] = binop PSRLW xmm128 xmm/m128
+val / [0x0f 0x71 /2-reg] = binop PSRLW mm/reg64 imm8
+val /66 [0x0f 0x71 /2-reg] = binop PSRLW xmm/reg128 imm8
+val / [0x0f 0xd2 /r] = binop PSRLD mm64 mm/m64
+val /66 [0x0f 0xd2 /r] = binop PSRLD xmm128 xmm/m128
+val / [0x0f 0x72 /2-reg] = binop PSRLD mm/reg64 imm8
+val /66 [0x0f 0x72 /2-reg] = binop PSRLD xmm/reg128 imm8
+val / [0x0f 0xd3 /r] = binop PSRLQ mm64 mm/m64
+val /66 [0x0f 0xd3 /r] = binop PSRLQ xmm128 xmm/m128
+val / [0x0f 0x73 /2-reg] = binop PSRLQ mm/reg64 imm8
+val /66 [0x0f 0x73 /2-reg] = binop PSRLQ xmm/reg128 imm8
+val /vex/66/0f/vexv [0xd1 /r] | vex128? = varity3 VPSRLW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x71 /2-reg] | vex128? = varity3 VPSRLW v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0xd2 /r] | vex128? = varity3 VPSRLD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x72 /2-reg] | vex128? = varity3 VPSRLD v/xmm xmm/reg128 imm8
+val /vex/66/0f/vexv [0xd3 /r] | vex128? = varity3 VPSRLQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x73 /2-reg] | vex128? = varity3 VPSRLQ v/xmm xmm/reg128 imm8
+val / [0x0f 0xf8 /r] = binop PSUBB mm64 mm/m64
+val /66 [0x0f 0xf8 /r] = binop PSUBB xmm128 xmm/m128
+val / [0x0f 0xf9 /r] = binop PSUBW mm64 mm/m64
+val /66 [0x0f 0xf9 /r] = binop PSUBW xmm128 xmm/m128
+val / [0x0f 0xfa /r] = binop PSUBD mm64 mm/m64
+val /66 [0x0f 0xfa /r] = binop PSUBD xmm128 xmm/m128
+val /vex/66/0f/vexv [0xf8 /r] | vex128? = varity3 VPSUBB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xf9 /r] | vex128? = varity3 VPSUBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xfa /r] | vex128? = varity3 VPSUBD xmm128 v/xmm xmm/m128
+val / [0x0f 0xfb /r] = binop PSUBQ mm64 mm/m64
+val /66 [0x0f 0xfb /r] = binop PSUBQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0xfb /r] | vex128? = varity3 VPSUBQ xmm128 v/xmm xmm/m128
+val / [0x0f 0xe8 /r] = binop PSUBSB mm64 mm/m64
+val /66 [0x0f 0xe8 /r] = binop PSUBSB xmm128 xmm/m128
+val / [0x0f 0xe9 /r] = binop PSUBSW mm64 mm/m64
+val /66 [0x0f 0xe9 /r] = binop PSUBSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xe8 /r] | vex128? = varity3 VPSUBSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xe9 /r] | vex128? = varity3 VPSUBSW xmm128 v/xmm xmm/m128
+val / [0x0f 0xd8 /r] = binop PSUBUSB mm64 mm/m64
+val /66 [0x0f 0xd8 /r] = binop PSUBUSB xmm128 xmm/m128
+val / [0x0f 0xd9 /r] = binop PSUBUSW mm64 mm/m64
+val /66 [0x0f 0xd9 /r] = binop PSUBUSW xmm128 xmm/m128
+val /vex/66/0f/vexv [0xd8 /r] | vex128? = varity3 VPSUBUSB xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0xd9 /r] | vex128? = varity3 VPSUBUSW xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0x17 /r] = binop PTEST xmm128 xmm/m128
+val /vex/66/0f/38 [0x17 /r]
+val / [0x0f 0x68 /r] = binop PUNPCKHBW mm64 mm/m64
+val /66 [0x0f 0x68 /r] = binop PUNPCKHBW xmm128 xmm/m128
+val / [0x0f 0x69 /r] = binop PUNPCKHWD mm64 mm/m64
+val /66 [0x0f 0x69 /r] = binop PUNPCKHWD xmm128 xmm/m128
+val / [0x0f 0x6a /r] = binop PUNPCKHDQ mm64 mm/m64
+val /66 [0x0f 0x6a /r] = binop PUNPCKHDQ xmm128 xmm/m128
+val /66 [0x0f 0x6d /r] = binop PUNPCKHQDQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0x68 /r] | vex128? = varity3 VPUNPCKHBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x69 /r] | vex128? = varity3 VPUNPCKHWD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6a /r] | vex128? = varity3 VPUNPCKHDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6d /r] | vex128? = varity3 VPUNPCKHQDQ xmm128 v/xmm xmm/m128
+val / [0x0f 0x60 /r] = binop PUNPCKLBW mm64 mm/m32
+val /66 [0x0f 0x60 /r] = binop PUNPCKLBW xmm128 xmm/m128
+val / [0x0f 0x61 /r] = binop PUNPCKLWD mm64 mm/m32
+val /66 [0x0f 0x61 /r] = binop PUNPCKLWD xmm128 xmm/m128
+val / [0x0f 0x62 /r] = binop PUNPCKLDQ mm64 mm/m32
+val /66 [0x0f 0x62 /r] = binop PUNPCKLDQ xmm128 xmm/m128
+val /66 [0x0f 0x6c /r] = binop PUNPCKLQDQ xmm128 xmm/m128
+val /vex/66/0f/vexv [0x60 /r] | vex128? = varity3 VPUNPCKLBW xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x61 /r] | vex128? = varity3 VPUNPCKLWD xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x62 /r] | vex128? = varity3 VPUNPCKLDQ xmm128 v/xmm xmm/m128
+val /vex/66/0f/vexv [0x6c /r] | vex128? = varity3 VPUNPCKLQDQ xmm128 v/xmm xmm/m128
+val / [0xff /6]
+val / [0x6a]
+val / [0x68]
+val / [0x0e] | mode32? = do opndsz-set-from-d; unop PUSH cs end
+val / [0x16] | mode32? = do opndsz-set-from-d; unop PUSH ds end
+val / [0x06] | mode32? = do opndsz-set-from-d; unop PUSH es end
+val / [0x0f 0xa0]
+val / [0x0f 0xa8]
+val / [0x60]
+val / [0x9c]
+val / [0x0f 0xef /r] = binop PXOR mm64 mm/m64
+val /66 [0x0f 0xef /r] = binop PXOR xmm128 xmm/m128
+val /vex/66/0f/vexv [0xef /r] | vex128? = varity3 VPXOR xmm128 v/xmm xmm/m128
+#val /vex/66/0f [0xef /r] | vex128? = varity3 VPXOR xmm128 xmm0 xmm/m128
+val / [0xd0 /2] = binop RCL r/m8 one
+val / [0xd2 /2] = binop RCL r/m8 cl
+val / [0xc0 /2] = binop RCL r/m8 imm8
+val / [0xd1 /2]
+val / [0xd3 /2]
+val / [0xc1 /2]
+val / [0xd0 /3] = binop RCR r/m8 one
+val / [0xd2 /3] = binop RCR r/m8 cl
+val / [0xc0 /3] = binop RCR r/m8 imm8
+val / [0xd1 /3]
+val / [0xd3 /3]
+val / [0xc1 /3]
+val / [0xd0 /0] = binop ROL r/m8 one
+val / [0xd2 /0] = binop ROL r/m8 cl
+val / [0xc0 /0] = binop ROL r/m8 imm8
+val / [0xd1 /0]
+val / [0xd3 /0]
+val / [0xc1 /0]
+val / [0xd0 /1] = binop ROR r/m8 one
+val / [0xd2 /1] = binop ROR r/m8 cl
+val / [0xc0 /1] = binop ROR r/m8 imm8
+val / [0xd1 /1]
+val / [0xd3 /1]
+val / [0xc1 /1]
+val / [0x0f 0x53 /r] = binop RCPPS xmm128 xmm/m128
+val /vex/0f [0x53 /r]
+val /f3 [0x0f 0x53 /r] = binop RCPSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x53 /r] = varity3 VRCPSS xmm128 v/xmm xmm/m32
+val /f3 [0x0f 0xae /0-reg]
+val /f3 [0x0f 0xae /1-reg]
+val / [0x0f 0x32] = arity0 RDMSR
+val / [0x0f 0x33] = arity0 RDPMC
+val / [0x0f 0xc7 /6-reg]
+val / [0x0f 0x31] = arity0 RDTSC
+#val / [0x0f 0x01 0xf9] = arity0 RDTSCP
+val / [0x0f 0x01 /7-reg] = do
+val / [0xc3] = varity0-def-opnd-sz-64 RET
+val / [0xcb] = varity0-def-opnd-sz-64 RET_FAR
+val / [0xc2] = varity1-def-opnd-sz-64 RET imm16
+val / [0xca] = varity1-def-opnd-sz-64 RET_FAR imm16
+val /66 [0x0f 0x3a 0x09 /r] = ternop ROUNDPD xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x09 /r]
+val /66 [0x0f 0x3a 0x08 /r] = ternop ROUNDPS xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0x08 /r]
+val /66 [0x0f 0x3a 0x0b /r] = ternop ROUNDSD xmm128 xmm/m64 imm8
+val /vex/66/0f/3a/vexv [0x0b /r] = varity4 VROUNDSD xmm128 v/xmm xmm/m64 imm8
+val /66 [0x0f 0x3a 0x0a /r] = ternop ROUNDSS xmm128 xmm/m32 imm8
+val /vex/66/0f/3a/vexv [0x0a /r] = varity4 VROUNDSS xmm128 v/xmm xmm/m32 imm8
+val / [0x0f 0xaa] | mode32? = arity0 RSM
+val / [0x0f 0x52 /r] = binop RSQRTPS xmm128 xmm/m128
+val /vex/0f [0x52 /r]
+val /f3 [0x0f 0x52 /r] = binop RSQRTSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x52 /r] = varity3 VRSQRTSS xmm128 v/xmm xmm/m32
+val / [0x9e] = arity0 SAHF
+val / [0xd0 /4] = binop SHL r/m8 one
+#val / [0xd0 /6] = binop SHL r/m8 one
+val / [0xd2 /4] = binop SHL r/m8 cl
+val / [0xc0 /4] = binop SHL r/m8 imm8
+val / [0xd1 /4]
+val / [0xd3 /4]
+val / [0xc1 /4]
+val / [0xd0 /7] = binop SAR r/m8 one
+val / [0xd2 /7] = binop SAR r/m8 cl
+val / [0xc0 /7] = binop SAR r/m8 imm8
+val / [0xd1 /7]
+val / [0xd3 /7]
+val / [0xc1 /7]
+val / [0xd0 /5] = binop SHR r/m8 one
+val / [0xd2 /5] = binop SHR r/m8 cl
+val / [0xc0 /5] = binop SHR r/m8 imm8
+val / [0xd1 /5]
+val / [0xd3 /5]
+val / [0xc1 /5]
+val / [0x1c] = binop SBB al imm8
+val / [0x1d]
+val / [0x80 /3] = binop-lock SBB r/m8 imm8
+val / [0x81 /3]
+val / [0x83 /3]
+val / [0x18 /r] = binop-lock SBB r/m8 r8
+val / [0x19 /r]
+val / [0x1a /r] = binop SBB r8 r/m8
+val / [0x1b /r]
+val / [0xae] = arity0-rep-repne SCASB
+val / [0xaf]
+val / [0x0f 0x97 /r] = unop SETA r/m8 # SETNBE
+val / [0x0f 0x93 /r] = unop SETAE r/m8 # SETNB, SETNC
+val / [0x0f 0x92 /r] = unop SETB r/m8 # SETC, SETNAE
+val / [0x0f 0x96 /r] = unop SETBE r/m8 # SETNA
+val / [0x0f 0x94 /r] = unop SETE r/m8 # SETZ
+val / [0x0f 0x9f /r] = unop SETG r/m8 # SETNLE
+val / [0x0f 0x9d /r] = unop SETGE r/m8 # SETNL
+val / [0x0f 0x9c /r] = unop SETL r/m8 # SETNGE
+val / [0x0f 0x9e /r] = unop SETLE r/m8 # SETNG
+val / [0x0f 0x95 /r] = unop SETNE r/m8 # SETNZ
+val / [0x0f 0x91 /r] = unop SETNO r/m8
+val / [0x0f 0x9b /r] = unop SETNP r/m8 # SETPO
+val / [0x0f 0x99 /r] = unop SETNS r/m8
+val / [0x0f 0x90 /r] = unop SETO r/m8
+val / [0x0f 0x9a /r] = unop SETP r/m8 # SETPE
+val / [0x0f 0x98 /r] = unop SETS r/m8
+val / [0x0f 0xae /7-reg] = arity0 SFENCE
+val / [0x0f 0x01 /0-mem]
+val / [0x0f 0xa4 /r]
+val / [0x0f 0xa5 /r]
+val / [0x0f 0xac /r]
+val / [0x0f 0xad /r]
+val /66 [0x0f 0xc6 /r] = ternop SHUFPD xmm128 xmm/m128 imm8
+val /vex/66/0f/vexv [0xc6 /r]
+val / [0x0f 0xc6 /r] = ternop SHUFPS xmm128 xmm/m128 imm8
+val /vex/0f/vexv [0xc6 /r]
+val / [0x0f 0x01 /1-mem]
+val / [0x0f 0x00 /0]
+val / [0x0f 0x01 /4]
+val /66 [0x0f 0x51 /r] = binop SQRTPD xmm128 xmm/m128
+val /vex/66/0f [0x51 /r]
+val / [0x0f 0x51 /r] = binop SQRTPS xmm128 xmm/m128
+val /vex/0f [0x51 /r]
+val /f2 [0x0f 0x51 /r] = binop SQRTSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x51 /r] = varity3 VSQRTSD xmm128 v/xmm xmm/m64
+val /f3 [0x0f 0x51 /r] = binop SQRTSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x51 /r] = varity3 VSQRTSS xmm128 v/xmm xmm/m32
+val / [0xf9] = arity0 STC
+val / [0xfd] = arity0 STD
+val / [0xfb] = arity0 STI
+val / [0x0f 0xae /3-mem] = unop STMXCSR m32
+val /vex/0f [0xae /3-mem] | vex128? = varity1 VSTMXCSR m32
+val / [0xaa] = arity0-rep STOSB
+val / [0xab]
+val / [0x0f 0x00 /1] = unop STR r/m16
+val / [0x2c] = binop SUB al imm8
+val / [0x2d]
+val / [0x80 /5] = binop-lock SUB r/m8 imm8
+val / [0x81 /5]
+val / [0x83 /5]
+val / [0x28 /r] = binop-lock SUB r/m8 r8
+val / [0x29 /r]
+val / [0x2a /r] = binop SUB r8 r/m8
+val / [0x2b /r]
+val /66 [0x0f 0x5c /r] = binop SUBPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x5c /r]
+val / [0x0f 0x5c /r] = binop SUBPS xmm128 xmm/m128
+val /vex/0f/vexv [0x5c /r]
+val /f2 [0x0f 0x5c /r] = binop SUBSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5c /r] = varity3 VSUBSD xmm128 v/xmm xmm/m64
+val /f3 [0x0f 0x5c /r] = binop SUBSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5c /r] = varity3 VSUBSS xmm128 v/xmm xmm/m32
+val / [0x0f 0x05] | mode64? = arity0 SYSCALL
+val / [0x0f 0x34] = arity0 SYSENTER
+val / [0x0f 0x35]
+val / [0x0f 0x07]
+val / [0xa8] = binop TEST al imm8
+val / [0xa9]
+val / [0xf6 /0] = binop TEST r/m8 imm8
+val / [0xf7 /0]
+val / [0x84 /r] = binop TEST r/m8 r8
+val / [0x85 /r]
+val /66 [0x0f 0x2e /r] = binop UCOMISD xmm128 xmm/m64
+val /vex/66/0f [0x2e /r] = varity2 VUCOMISD xmm128 xmm/m64
+val / [0x0f 0x2e /r] = binop UCOMISS xmm128 xmm/m32
+val /vex/0f [0x2e /r] = varity2 VUCOMISS xmm128 xmm/m32
+val / [0x0f 0x0b] = arity0 UD2
+val /66 [0x0f 0x15 /r] = binop UNPCKHPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x15 /r]
+val / [0x0f 0x15 /r] = binop UNPCKHPS xmm128 xmm/m128
+val /vex/0f/vexv [0x15 /r]
+val /66 [0x0f 0x14 /r] = binop UNPCKLPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x14 /r]
+val / [0x0f 0x14 /r] = binop UNPCKLPS xmm128 xmm/m128
+val /vex/0f/vexv [0x14 /r]
+val /vex/66/0f/38 [0x18 /r-mem]
+val /vex/66/0f/38 [0x19 /r-mem] | vex256? & vexw0? = varity2 VBROADCASTSD ymm256 m64
+val /vex/66/0f/38 [0x1a /r-mem] | vex256? & vexw0? = varity2 VBROADCASTF128 ymm256 m128
+val /vex/66/0f/38 [0x13 /r]
+val /vex/66/0f/3a [0x1d /r]
+val / [0x0f 0x00 /4] = unop VERR r/m16
+val / [0x0f 0x00 /5] = unop VERW r/m16
+val /vex/66/0f/3a [0x19 /r] | vex256? & vexw0? = varity3 VEXTRACTF128 xmm/m128 ymm256 imm8
+val /vex/66/0f/3a/vexv [0x18 /r] | vex256? & vexw0? = varity4 VINSERTF128 ymm256 v/ymm xmm/m128 imm8
+val /vex/66/0f/38/vexv [0x2c /r-mem]
+val /vex/66/0f/38/vexv [0x2d /r-mem]
+val /vex/66/0f/38/vexv [0x2e /r-mem]
+val /vex/66/0f/38/vexv [0x2f /r-mem]
+val /vex/66/0f/38/vexv [0x0d /r]
+val /vex/66/0f/3a [0x05 /r]
+val /vex/66/0f/38/vexv [0x0c /r]
+val /vex/66/0f/3a [0x04 /r]
+val /vex/66/0f/3a/vexv [0x06 /r] | vex256? & vexw0? = varity4 VPERM2F128 ymm256 v/ymm ymm/m256 imm8
+val /vex/66/0f/38 [0x0e /r]
+val /vex/66/0f/38 [0x0f /r]
+val /vex/0f [0x77]
+val / [0x9b] = arity0 WAIT
+val / [0x0f 0x09] = arity0 WBINVD
+val /f3 [0x0f 0xae /2-reg]
+val /f3 [0x0f 0xae /3-reg]
+val / [0x0f 0x30] = arity0 WRMSR
+val / [0x0f 0xc0 /r] = binop-lock XADD r/m8 r8
+val / [0x0f 0xc1 /r]
+val / [0x86 /r] = binop-lock XCHG r/m8 r8
+val / [0x87 /r]
+val / [0x0f 0x01 0xd0] = arity0 XGETBV
+val / [0xd7]
+val / [0x34] = binop XOR al imm8
+val / [0x35]
+val / [0x80 /6] = binop-lock XOR r/m8 imm8
+val / [0x81 /6]
+val / [0x83 /6]
+val / [0x30 /r] = binop-lock XOR r/m8 r8
+val / [0x31 /r]
+val / [0x32 /r] = binop XOR r8 r/m8
+val / [0x33 /r]
+val /66 [0x0f 0x57 /r] = binop XORPD xmm128 xmm/m128
+val /vex/66/0f/vexv [0x57 /r]
+val / [0x0f 0x57 /r] = binop XORPS xmm128 xmm/m128
+val /vex/0f/vexv [0x57 /r]
+val / [0x0f 0xae /5-mem]
+val / [0x0f 0xae /4-mem]
+val / [0x0f 0xae /6-mem]
+val / [0x0f 0x01 0xd1] = arity0 XSETBV

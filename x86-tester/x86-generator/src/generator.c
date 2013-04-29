@@ -23,19 +23,19 @@ size_t generator_x86_prefixes_generate(uint8_t **buffer, size_t offset, size_t *
 		int discr = rand()%4;
 		switch(discr) {
 			case 0: {
-				offset = util_append_byte(buffer, offset, size, 0x66);
+				offset = util_byte_append(buffer, offset, size, 0x66);
 				break;
 			}
 			case 1: {
-				offset = util_append_byte(buffer, offset, size, 0x67);
+				offset = util_byte_append(buffer, offset, size, 0x67);
 				break;
 			}
 			case 2: {
-				offset = util_append_byte(buffer, offset, size, 0xf2);
+				offset = util_byte_append(buffer, offset, size, 0xf2);
 				break;
 			}
 			case 3: {
-				offset = util_append_byte(buffer, offset, size, 0xf3);
+				offset = util_byte_append(buffer, offset, size, 0xf3);
 				break;
 			}
 		}
