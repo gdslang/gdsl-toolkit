@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <opcodes.h>
+#include <x86_opcodes.h>
 #include <util.h>
 
 extern struct opcode_table *opcodes_opcode_table_build() {

@@ -5,8 +5,8 @@
  *      Author: jucs
  */
 
-#ifndef OPCODES_H_
-#define OPCODES_H_
+#ifndef X86_OPCODES_H_
+#define X86_OPCODES_H_
 
 #include <stdint.h>
 
@@ -20,4 +20,4 @@ struct opcode_table {
 extern struct opcode_table *opcodes_opcode_table_build();
 extern void opcodes_opcode_table_free(struct opcode_table *table);
 
-#endif /* OPCODES_H_ */
+#endif /* X86_OPCODES_H_ */

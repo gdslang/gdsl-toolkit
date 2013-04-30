@@ -9,11 +9,11 @@
 #define GENERATOR_H_
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdint.h>
-#include <opcodes.h>
+#include <x86_opcodes.h>
 
-typedef size_t (generator_function_t)(uint8_t **buffer, size_t offset,
-		size_t size);
+typedef size_t (generator_function_t)(FILE *stream);
 
 enum generator_type {
 	GENERATOR_TYPE_PREFIXES,
@@ -25,28 +25,16 @@ enum generator_type {
 };
 
 struct generator {
+	enum generator_type type;
 	void *data;
-	generator_function_t *generate;
 };
 
 struct generator_opcodes_data {
 	struct opcode_table *table;
 };
 
-extern struct generator *generator_init(generator_function_t *generate);
+extern struct generator *generator_init(enum generator_type type);
 extern void generator_free(struct generator *generator);
-
-extern size_t generator_x86_prefixes_generate(uint8_t **buffer, size_t offset,
-		size_t *size);
-extern size_t generator_x86_opcode_generate(uint8_t **buffer, size_t offset,
-		size_t *size);
-extern size_t generator_x86_modrm_generate(uint8_t **buffer, size_t offset,
-		size_t *size);
-extern size_t generator_x86_immediate_generate(uint8_t **buffer, size_t offset,
-		size_t *size);
-extern size_t generator_x86_rex_generate(uint8_t **buffer, size_t offset,
-		size_t *size);
-extern size_t generator_x86_vex_generate(uint8_t **buffer, size_t offset,
-		size_t *size);
+extern void generator_print(struct generator *generator);
 
 #endif /* GENERATOR_H_ */
