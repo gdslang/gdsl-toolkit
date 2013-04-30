@@ -2408,21 +2408,30 @@ val moffs64 = do
 end
 
 val exception-rep features = do
-#  v <- query $rep;
-#  case v of '0': arg end
-return features
+  v <- query $rep;
+	illegal-rep <- illegal-rep;
+  case v of
+	   '0': return features
+	 | '1': return (features or illegal-rep)
+	end
 end
 
 val exception-repne features = do
-#  v <- query $repne;
-#  case v of '0': arg end
-return features
+  v <- query $repne;
+	illegal-repne <- illegal-repne;
+  case v of
+	   '0': return features
+	 | '1': return (features or illegal-repne)
+	end
 end
 
 val exception-lock features = do
-#  v <- query $lock;
-#  case v of '0': arg end
-return features
+  v <- query $lock;
+	illegal-lock <- illegal-lock;
+  case v of
+	   '0': return features
+	 | '1': return (features or illegal-lock)
+	end
 end
 
 val exception-lock-reg giveOp = do
