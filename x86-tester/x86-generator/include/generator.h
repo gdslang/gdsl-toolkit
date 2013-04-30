@@ -36,5 +36,6 @@ struct generator_opcodes_data {
 extern struct generator *generator_init(enum generator_type type);
 extern void generator_free(struct generator *generator);
 extern void generator_print(struct generator *generator);
+extern void generator_execute(struct generator *generator, FILE *stream);
 
 #endif /* GENERATOR_H_ */

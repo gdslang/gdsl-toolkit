@@ -10,13 +10,6 @@
 #include <generator.h>
 #include <util.h>
 
-extern size_t generator_x86_prefixes_generate(FILE *stream);
-extern size_t generator_x86_opcode_generate(FILE *stream);
-extern size_t generator_x86_modrm_generate(FILE *stream);
-extern size_t generator_x86_immediate_generate(FILE *stream);
-extern size_t generator_x86_rex_generate(FILE *stream);
-extern size_t generator_x86_vex_generate(FILE *stream);
-
 size_t generator_x86_prefixes_generate(FILE *stream) {
 	size_t size = 0;
 	while(rand() > RAND_MAX / 2) {
@@ -45,6 +38,26 @@ size_t generator_x86_prefixes_generate(FILE *stream) {
 		}
 	}
 	return size;
+}
+
+size_t generator_x86_opcode_generate(FILE *stream) {
+	return 0;
+}
+
+size_t generator_x86_modrm_generate(FILE *stream) {
+	return 0;
+}
+
+size_t generator_x86_immediate_generate(FILE *stream) {
+	return 0;
+}
+
+size_t generator_x86_rex_generate(FILE *stream) {
+	return 0;
+}
+
+size_t generator_x86_vex_generate(FILE *stream) {
+	return 0;
 }
 
 struct generator *generator_init(enum generator_type type) {
@@ -106,6 +119,35 @@ void generator_print(struct generator *generator) {
 		}
 		case GENERATOR_TYPE_VEX: {
 			printf("GENERATOR_TYPE_VEX");
+			break;
+		}
+	}
+}
+
+void generator_execute(struct generator *generator, FILE *stream) {
+	switch(generator->type) {
+		case GENERATOR_TYPE_PREFIXES: {
+			generator_x86_prefixes_generate(stream);
+			break;
+		}
+		case GENERATOR_TYPE_OPCODE: {
+			generator_x86_opcode_generate(stream);
+			break;
+		}
+		case GENERATOR_TYPE_MODRM: {
+			generator_x86_modrm_generate(stream);
+			break;
+		}
+		case GENERATOR_TYPE_IMMEDIATE: {
+			generator_x86_immediate_generate(stream);
+			break;
+		}
+		case GENERATOR_TYPE_REX: {
+			generator_x86_rex_generate(stream);
+			break;
+		}
+		case GENERATOR_TYPE_VEX: {
+			generator_x86_vex_generate(stream);
 			break;
 		}
 	}

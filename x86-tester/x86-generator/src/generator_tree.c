@@ -71,7 +71,7 @@ void generator_tree_print(struct generator_tree_node *root) {
 	}
 }
 
-void generator_tree_execute(struct generator_tree_node *root) {
+void generator_tree_execute(struct generator_tree_node *root, FILE *stream) {
 	if(!root)
 		return;
 	switch(root->type) {
@@ -82,14 +82,20 @@ void generator_tree_execute(struct generator_tree_node *root) {
 				weights += root->branches[i].weight;
 			int interval = RAND_MAX / weights;
 			int current = 0;
-			for(size_t i = 0; i < root->branches_length; ++i)
-				if(random >= interval * current
-						&& random < interval * (current + root->branches[i].weight)) {
-					generator_tree_execute(root->branches[i].node);
+			for(size_t i = 0; i < root->branches_length; ++i) {
+				if((random >= interval * current
+						&& random < interval * (current + root->branches[i].weight))
+						|| i == root->branches_length) {
+					generator_tree_execute(root->branches[i].node, stream);
 					break;
 				}
+				current += root->branches[i].weight;
+			}
 			break;
-
+		}
+		case GENERATOR_TREE_NODE_TYPE_GENERATOR: {
+			generator_execute(root->generator, stream);
+			break;
 		}
 	}
 }

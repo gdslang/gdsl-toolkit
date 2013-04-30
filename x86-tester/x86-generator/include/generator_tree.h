@@ -41,5 +41,6 @@ extern struct generator_tree_node *generator_tree_generator_build(
 extern struct generator_tree_node *generator_tree_branch(size_t branches_length,
 		...);
 extern void generator_tree_print(struct generator_tree_node *root);
+extern void generator_tree_execute(struct generator_tree_node *root, FILE *stream);
 
 #endif /* GENERATOR_TREE_H_ */

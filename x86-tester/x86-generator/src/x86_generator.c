@@ -16,7 +16,7 @@ struct generator_tree_node *x86_generator_tree_get() {
 
 	struct generator_tree_node *vex_op_rm_imm = generator_tree_generator_build(generator_init(GENERATOR_TYPE_VEX), op_rm_imm);
 
-	struct generator_tree_node *root = generator_tree_branch(2, pref_rex_op_rm_imm, 1, vex_op_rm_imm, 1);
+	struct generator_tree_node *root = generator_tree_branch(2, pref_rex_op_rm_imm, 3, vex_op_rm_imm, 2);
 
 	return root;
 }
