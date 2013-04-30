@@ -5,7 +5,7 @@ export = pretty
 val pretty i = show/instruction i
 
 val show/features i =
-  if i.features == '000000000000000000' then
+  if i.features == (none_ 0) then
 	  ""
 	else
 	  " {" +++ (show/features/any "" i.features '1') +++ "}"
@@ -41,8 +41,9 @@ in
 	next xsaveopt_ "XSAVEOPT" (
 	next illegal-rep_ "ILLEGAL REP" (
 	next illegal-repne_ "ILLEGAL REPNE" (
-	next illegal-lock_ "ILLEGAL LOCK"
-	"")))))))))))))))))
+	next illegal-lock_ "ILLEGAL LOCK" (
+	next illegal-lock-register_ "ILLEGAL LOCK REGISTER" 
+	""))))))))))))))))))
 end
 
 val show/arity1 x = show/operand x.opnd1 +++ (show/features x)

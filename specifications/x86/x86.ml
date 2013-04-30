@@ -631,52 +631,56 @@ type flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-#feature vector: aes, avx, f16c, invpcid, mmx, clmul, rdrand, fsgsbase, sse, sse2, sse3, sse4_1, sse4_2, ssse3, xsaveopt, illegal rep, illegal repne, illegal lock
+#feature vector: aes, avx, f16c, invpcid, mmx, clmul, rdrand, fsgsbase, sse, sse2, sse3, sse4_1, sse4_2, ssse3, xsaveopt, illegal rep, illegal repne, illegal lock, illegal lock for register
 
-val aes_ a           = '100000000000000000' 
-val avx_ a           = '010000000000000000'
-val f16c_ a          = '001000000000000000'
-val invpcid_ a       = '000100000000000000'
-val mmx_ a           = '000010000000000000'
-val clmul_ a         = '000001000000000000'
-val rdrand_ a        = '000000100000000000'
-val fsgsbase_ a      = '000000010000000000'
-val sse_ a           = '000000001000000000'
-val sse2_ a          = '000000000100000000'
-val sse3_ a          = '000000000010000000'
-val sse4_1_ a        = '000000000001000000'
-val sse4_2_ a        = '000000000000100000'
-val ssse3_ a         = '000000000000010000'
-val xsaveopt_ a      = '000000000000001000'
-val illegal-rep_ a   = '000000000000000100'
-val illegal-repne_ a = '000000000000000010'
-val illegal-lock_ a  = '000000000000000001'
+val none_ a                  = '0000000000000000000' 
+val aes_ a                   = '1000000000000000000' 
+val avx_ a                   = '0100000000000000000'
+val f16c_ a                  = '0010000000000000000'
+val invpcid_ a               = '0001000000000000000'
+val mmx_ a                   = '0000100000000000000'
+val clmul_ a                 = '0000010000000000000'
+val rdrand_ a                = '0000001000000000000'
+val fsgsbase_ a              = '0000000100000000000'
+val sse_ a                   = '0000000010000000000'
+val sse2_ a                  = '0000000001000000000'
+val sse3_ a                  = '0000000000100000000'
+val sse4_1_ a                = '0000000000010000000'
+val sse4_2_ a                = '0000000000001000000'
+val ssse3_ a                 = '0000000000000100000'
+val xsaveopt_ a              = '0000000000000010000'
+val illegal-rep_ a           = '0000000000000001000'
+val illegal-repne_ a         = '0000000000000000100'
+val illegal-lock_ a          = '0000000000000000010'
+val illegal-lock-register_ a = '0000000000000000001'
 
-val aes           = return (aes_ 0)
-val avx           = return (avx_ 0)
-val f16c          = return (f16c_ 0)
-val invpcid       = return (invpcid_ 0)
-val mmx           = return (mmx_ 0)
-val clmul         = return (clmul_ 0)
-val rdrand        = return (rdrand_ 0)
-val fsgsbase      = return (fsgsbase_ 0)
-val sse           = return (sse_ 0)
-val sse2          = return (sse2_ 0)
-val sse3          = return (sse3_ 0)
-val sse4_1        = return (sse4_1_ 0)
-val sse4_2        = return (sse4_2_ 0)
-val ssse3         = return (ssse3_ 0)
-val xsaveopt      = return (xsaveopt_ 0)
-val illegal-rep   = return (illegal-rep_ 0)
-val illegal-repne = return (illegal-repne_ 0)
-val illegal-lock  = return (illegal-lock_ 0)
+val none                  = return (none_ 0)
+val aes                   = return (aes_ 0)
+val avx                   = return (avx_ 0)
+val f16c                  = return (f16c_ 0)
+val invpcid               = return (invpcid_ 0)
+val mmx                   = return (mmx_ 0)
+val clmul                 = return (clmul_ 0)
+val rdrand                = return (rdrand_ 0)
+val fsgsbase              = return (fsgsbase_ 0)
+val sse                   = return (sse_ 0)
+val sse2                  = return (sse2_ 0)
+val sse3                  = return (sse3_ 0)
+val sse4_1                = return (sse4_1_ 0)
+val sse4_2                = return (sse4_2_ 0)
+val ssse3                 = return (ssse3_ 0)
+val xsaveopt              = return (xsaveopt_ 0)
+val illegal-rep           = return (illegal-rep_ 0)
+val illegal-repne         = return (illegal-repne_ 0)
+val illegal-lock          = return (illegal-lock_ 0)
+val illegal-lock-register = return (illegal-lock-register_ 0)
 
-type flow1 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
-type arity0 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
-type arity1 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
-type arity2 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
-type arity3 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {features:18,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+type flow1 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
+type arity0 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
+type arity1 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
+type arity2 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
+type arity3 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
+type arity4 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
 type varity =
    VA0 of arity0
@@ -2434,13 +2438,17 @@ val exception-lock features = do
 	end
 end
 
-val exception-lock-reg giveOp = do
-#  v <- query $lock;
-#  if v then do
-#    op <- giveOp;
-#    case op of MEM x: return op end
-#  end else giveOp
-giveOp
+val exception-lock-reg features giveOp = do
+  v <- query $lock;
+	illegal-lock-register <- illegal-lock-register;
+  if v then do
+    op <- giveOp;
+    case op of
+		   MEM x: return features
+		 | _: return (features or illegal-lock-register)
+		end
+  end else
+	  return features
 end
 
 val exception-both a b features = do
@@ -2453,7 +2461,7 @@ val exception-repne-lock features = exception-both exception-repne exception-loc
 val exception-rep-repne-lock features = exception-both exception-rep-repne exception-lock features
 
 val varity0 cons = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA0 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
@@ -2470,7 +2478,7 @@ val varity0-def-opnd-sz-64 cons = do
 end
 
 val varity1 cons giveOp1 = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
@@ -2488,7 +2496,7 @@ val varity1-def-opnd-sz-64 cons giveOp1 = do
 end
 
 val varity2 cons giveOp1 giveOp2 = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   op1 <- giveOp1;
   op2 <- giveOp2;
   opnd-sz <- operand-size;
@@ -2497,7 +2505,7 @@ val varity2 cons giveOp1 giveOp2 = do
 end
 
 val varity3 cons giveOp1 giveOp2 giveOp3 = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2507,7 +2515,7 @@ val varity3 cons giveOp1 giveOp2 giveOp3 = do
 end
 
 val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2527,22 +2535,22 @@ val arity0-all features cons = do
 end
 
 val arity0-rep-repne cons = do
-  features <- exception-lock '000000000000000000';
+  features <- exception-lock '0000000000000000000';
   arity0-all features cons
 end
 
 val arity0-rep cons = do
-  features <- exception-repne-lock '000000000000000000';
+  features <- exception-repne-lock '0000000000000000000';
   arity0-all features cons
 end
 
 val arity0-lock cons = do
-  features <- exception-rep-repne '000000000000000000';
+  features <- exception-rep-repne '0000000000000000000';
   arity0-all features cons
 end
 
 val arity0 cons = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   arity0-all features cons
 end
 
@@ -2557,22 +2565,23 @@ val unop-all features cons giveOp1 = do
 end
 
 val unop-rep-repne cons giveOp1 = do
-  features <- exception-lock '000000000000000000';
+  features <- exception-lock '0000000000000000000';
   unop-all features cons giveOp1
 end
 
 val unop-rep cons giveOp1 = do
-  features <- exception-repne-lock '000000000000000000';
+  features <- exception-repne-lock '0000000000000000000';
   unop-all features cons giveOp1
 end
 
 val unop-lock cons giveOp1 = do
-  features <- exception-rep-repne '000000000000000000';
-  unop-all features cons (exception-lock-reg giveOp1)
+  features <- exception-rep-repne '0000000000000000000';
+	features <- exception-lock-reg features giveOp1;
+  unop-all features cons giveOp1
 end
 
 val unop cons giveOp1 = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   unop-all features cons giveOp1
 end
 
@@ -2588,27 +2597,28 @@ val binop-all features cons giveOp1 giveOp2 = do
 end
 
 val binop-rep-repne cons giveOp1 giveOp2 = do
-  features <- exception-lock '000000000000000000';
+  features <- exception-lock '0000000000000000000';
   binop-all features cons giveOp1 giveOp2
 end
 
 val binop-rep cons giveOp1 giveOp2 = do
-  features <- exception-repne-lock '000000000000000000';
+  features <- exception-repne-lock '0000000000000000000';
   binop-all features cons giveOp1 giveOp2
 end
 
 val binop-lock cons giveOp1 giveOp2 = do
-  features <- exception-rep-repne '000000000000000000';
-  binop-all features cons (exception-lock-reg giveOp1) giveOp2
+  features <- exception-rep-repne '0000000000000000000';
+	features <- exception-lock-reg features giveOp1;
+  binop-all features cons giveOp1 giveOp2
 end
 
 val binop cons giveOp1 giveOp2 = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   binop-all features cons giveOp1 giveOp2
 end
 
 val ternop cons giveOp1 giveOp2 giveOp3 = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2618,7 +2628,7 @@ val ternop cons giveOp1 giveOp2 giveOp3 = do
 end
 
 val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2629,7 +2639,7 @@ val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
 end
 
 val near-abs cons giveOp = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
@@ -2643,7 +2653,7 @@ val near-abs cons giveOp = do
 end
 
 val near-rel cons giveOp = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
@@ -2657,7 +2667,7 @@ val near-rel cons giveOp = do
 end
 
 val far-dir cons giveOp = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
@@ -2671,7 +2681,7 @@ val far-dir cons giveOp = do
 end
 
 val far-ind cons giveOp = do
-  features <- exception-rep-repne-lock '000000000000000000';
+  features <- exception-rep-repne-lock '0000000000000000000';
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
@@ -5948,9 +5958,9 @@ val / [0x0f 0x30] = arity0 WRMSR
 ###  - Exchange and Add
 val / [0x0f 0xc0 /r] = binop-lock XADD r/m8 r8
 val / [0x0f 0xc1 /r]
- | opndsz? = binop-lock MOV r/m16 r16
+ | opndsz? = binop-lock XADD r/m16 r16
  | rexw? = binop-lock XADD r/m64 r64
- | otherwise = binop-lock MOV r/m32 r32
+ | otherwise = binop-lock XADD r/m32 r32
 
 ### XCHG
 ###  - Exchange Register/Memory with Register
