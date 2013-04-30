@@ -35,7 +35,7 @@ val main = do
         addrsz='0',
         lock='0',
         segment=SEG_NONE,
-	default-operand-size=32,
+	      default-operand-size=32,
         ptrty=32, #TODO: check
         ~tab};
    instr <- p64;
@@ -2407,19 +2407,287 @@ val moffs64 = do
    mem i
 end
 
-val exception-rep arg = do
+#val exception-rep features = do
+##  v <- query $rep;
+##  case v of '0': arg end
+#return features
+#end
+#
+#val exception-repne features = do
+##  v <- query $repne;
+##  case v of '0': arg end
+#return features
+#end
+#
+#val exception-lock features = do
+##  v <- query $lock;
+##  case v of '0': arg end
+#return features
+#end
+#
+#val exception-lock-reg giveOp = do
+##  v <- query $lock;
+##  if v then do
+##    op <- giveOp;
+##    case op of MEM x: return op end
+##  end else giveOp
+#giveOp
+#end
+#
+#val exception-both a b features = do
+#  features <- a features;
+#	b features
+#end
+#
+#val exception-rep-repne features = exception-both exception-rep exception-repne features
+#val exception-repne-lock features = exception-both exception-repne exception-lock features
+#val exception-rep-repne-lock features = exception-both exception-rep-repne exception-lock features
+#
+#val varity0 cons = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons (VA0 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
+#end
+#
+#val varity0-def-opnd-sz-64 cons = do
+#  mode64 <- mode64?;
+#  if mode64 then
+#    update@{default-operand-size=64}
+#  else
+#    return void
+#  ;
+#  varity0 cons
+#end
+#
+#val varity1 cons giveOp1 = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  op1 <- giveOp1;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons (VA1 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
+#end
+#
+#val varity1-def-opnd-sz-64 cons giveOp1 = do
+#  mode64 <- mode64?;
+#  if mode64 then
+#    update@{default-operand-size=64}
+#  else
+#    return void
+#  ;
+#  varity1 cons giveOp1
+#end
+#
+#val varity2 cons giveOp1 giveOp2 = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  op1 <- giveOp1;
+#  op2 <- giveOp2;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons (VA2 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
+#end
+#
+#val varity3 cons giveOp1 giveOp2 giveOp3 = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  op1 <- giveOp1;
+#  op2 <- giveOp2;
+#  op3 <- giveOp3;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons (VA3 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
+#end
+#
+#val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  op1 <- giveOp1;
+#  op2 <- giveOp2;
+#  op3 <- giveOp3;
+#  op4 <- giveOp4;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons (VA4 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+#end
+#
+#val arity0-all features cons = do
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  rep <- query $rep;
+#  repne <- query $repne;
+#  lock <- query $lock;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
+#end
+#
+#val arity0-rep-repne cons = do
+#  features <- exception-lock '000000000000000000';
+#  arity0-all features cons
+#end
+#
+#val arity0-rep cons = do
+#  features <- exception-repne-lock '000000000000000000';
+#  arity0-all features cons
+#end
+#
+#val arity0-lock cons = do
+#  features <- exception-rep-repne '000000000000000000';
+#  arity0-all features cons
+#end
+#
+#val arity0 cons = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  arity0-all features cons
+#end
+#
+#val unop-all features cons giveOp1 = do
+#  op1 <- giveOp1;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  rep <- query $rep;
+#  repne <- query $repne;
+#  lock <- query $lock;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
+#end
+#
+#val unop-rep-repne cons giveOp1 = do
+#  features <- exception-lock '000000000000000000';
+#  unop-all features cons giveOp1
+#end
+#
+#val unop-rep cons giveOp1 = do
+#  features <- exception-repne-lock '000000000000000000';
+#  unop-all features cons giveOp1
+#end
+#
+#val unop-lock cons giveOp1 = do
+#  features <- exception-rep-repne '000000000000000000';
+#  unop-all features cons (exception-lock-reg giveOp1)
+#end
+#
+#val unop cons giveOp1 = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  unop-all features cons giveOp1
+#end
+#
+#val binop-all features cons giveOp1 giveOp2 = do
+#  op1 <- giveOp1;
+#  op2 <- giveOp2;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  rep <- query $rep;
+#  repne <- query $repne;
+#  lock <- query $lock;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
+#end
+#
+#val binop-rep-repne cons giveOp1 giveOp2 = do
+#  features <- exception-lock '000000000000000000';
+#  binop-all features cons giveOp1 giveOp2
+#end
+#
+#val binop-rep cons giveOp1 giveOp2 = do
+#  features <- exception-repne-lock '000000000000000000';
+#  binop-all features cons giveOp1 giveOp2
+#end
+#
+#val binop-lock cons giveOp1 giveOp2 = do
+#  features <- exception-rep-repne '000000000000000000';
+#  binop-all features cons (exception-lock-reg giveOp1) giveOp2
+#end
+#
+#val binop cons giveOp1 giveOp2 = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  binop-all features cons giveOp1 giveOp2
+#end
+#
+#val ternop cons giveOp1 giveOp2 giveOp3 = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  op1 <- giveOp1;
+#  op2 <- giveOp2;
+#  op3 <- giveOp3;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
+#end
+#
+#val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  op1 <- giveOp1;
+#  op2 <- giveOp2;
+#  op3 <- giveOp3;
+#  op4 <- giveOp4;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
+#end
+#
+#val near-abs cons giveOp = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  mode64 <- mode64?;
+#  if mode64 then
+#    update@{default-operand-size=64}
+#  else
+#    return void
+#  ;
+#  op <- giveOp;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
+#end
+#
+#val near-rel cons giveOp = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  mode64 <- mode64?;
+#  if mode64 then
+#    update@{default-operand-size=64}
+#  else
+#    return void
+#  ;
+#  op <- giveOp;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+#end
+#
+#val far-dir cons giveOp = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  mode64 <- mode64?;
+#  if mode64 then
+#    update@{default-operand-size=64}
+#  else
+#    return void
+#  ;
+#  op <- giveOp;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+#end
+#
+#val far-ind cons giveOp = do
+#  features <- exception-rep-repne-lock '000000000000000000';
+#  mode64 <- mode64?;
+#  if mode64 then
+#    update@{default-operand-size=64}
+#  else
+#    return void
+#  ;
+#  op <- giveOp;
+#  opnd-sz <- operand-size;
+#  addr-sz <- address-size;
+#  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
+#end
+
+val exception-rep arg features = do
 #  v <- query $rep;
 #  case v of '0': arg end
 arg
 end
 
-val exception-repne arg = do
+val exception-repne arg features = do
 #  v <- query $repne;
 #  case v of '0': arg end
 arg
 end
 
-val exception-lock arg = do
+val exception-lock arg features = do
 #  v <- query $lock;
 #  case v of '0': arg end
 arg
@@ -2433,16 +2701,27 @@ val exception-lock-reg giveOp = do
 #  end else giveOp
 giveOp
 end
-      
-val exception-rep-repne arg = exception-rep (exception-repne arg)
-val exception-repne-lock arg = exception-repne (exception-lock arg)
-val exception-rep-repne-lock arg = exception-rep-repne (exception-lock arg)
 
-val varity0 cons = exception-rep-repne-lock (do
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons (VA0 {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
-end)
+val exception-both a b arg features = let
+  val retf features = return features
+in do
+  features <- a retf features;
+	b arg features
+end end
+
+val exception-rep-repne arg features = exception-both exception-rep exception-repne arg features
+val exception-repne-lock arg features = exception-both exception-repne exception-lock arg features
+val exception-rep-repne-lock arg features = exception-both exception-rep-repne exception-lock arg features
+
+val varity0 cons = let
+  val m features = do
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons (VA0 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
 val varity0-def-opnd-sz-64 cons = do
   mode64 <- mode64?;
@@ -2454,12 +2733,16 @@ val varity0-def-opnd-sz-64 cons = do
   varity0 cons
 end
 
-val varity1 cons giveOp1 = exception-rep-repne-lock (do
-  op1 <- giveOp1;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons (VA1 {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
-end)
+val varity1 cons giveOp1 = let
+  val m features = do
+    op1 <- giveOp1;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons (VA1 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
 val varity1-def-opnd-sz-64 cons giveOp1 = do
   mode64 <- mode64?;
@@ -2471,63 +2754,113 @@ val varity1-def-opnd-sz-64 cons giveOp1 = do
   varity1 cons giveOp1
 end
 
-val varity2 cons giveOp1 giveOp2 = exception-rep-repne-lock (do
-  op1 <- giveOp1;
-  op2 <- giveOp2;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons (VA2 {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
-end)
+val varity2 cons giveOp1 giveOp2 = let
+  val m features = do
+    op1 <- giveOp1;
+    op2 <- giveOp2;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons (VA2 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
-val varity3 cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
-  op1 <- giveOp1;
-  op2 <- giveOp2;
-  op3 <- giveOp3;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons (VA3 {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
-end)
+val varity3 cons giveOp1 giveOp2 giveOp3 = let
+  val m features = do
+    op1 <- giveOp1;
+    op2 <- giveOp2;
+    op3 <- giveOp3;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons (VA3 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
-val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
-  op1 <- giveOp1;
-  op2 <- giveOp2;
-  op3 <- giveOp3;
-  op4 <- giveOp4;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons (VA4 {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
-end)
+val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = let
+  val m features = do
+    op1 <- giveOp1;
+    op2 <- giveOp2;
+    op3 <- giveOp3;
+    op4 <- giveOp4;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons (VA4 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
-val arity0-all cons = do
+val arity0-all features cons = do
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
+  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
 end
 
-val arity0-rep-repne cons = exception-lock (arity0-all cons)
-val arity0-rep cons = exception-repne-lock (arity0-all cons)
-val arity0-lock cons = exception-rep-repne (arity0-all cons)
-val arity0 cons = exception-rep-repne-lock (arity0-all cons)
+val arity0-rep-repne cons = let
+  val m features = arity0-all features cons
+in
+  exception-lock m '000000000000000000'
+end
 
-val unop-all cons giveOp1 = do
+val arity0-rep cons = let
+  val m features = arity0-all features cons
+in
+  exception-repne-lock m '000000000000000000'
+end
+
+val arity0-lock cons = let
+  val m features = arity0-all features cons
+in
+  exception-rep-repne m '000000000000000000'
+end
+
+val arity0 cons = let
+  val m features = arity0-all features cons
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
+
+val unop-all features cons giveOp1 = do
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
+  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
 end
 
-val unop-rep-repne cons giveOp1 = exception-lock (unop-all cons giveOp1)
-val unop-rep cons giveOp1 = exception-repne-lock (unop-all cons giveOp1)
-val unop-lock cons giveOp1 = exception-rep-repne (unop-all cons (exception-lock-reg giveOp1))
-val unop cons giveOp1 = exception-rep-repne-lock (unop-all cons giveOp1)
+val unop-rep-repne cons giveOp1 = let
+  val m features = unop-all features cons giveOp1
+in
+  exception-lock m '000000000000000000'
+end
 
-val binop-all cons giveOp1 giveOp2 = do
+val unop-rep cons giveOp1 = let
+  val m features = unop-all features cons giveOp1
+in
+  exception-repne-lock m '000000000000000000'
+end
+
+val unop-lock cons giveOp1 = let
+  val m features = unop-all features cons (exception-lock-reg giveOp1)
+in
+  exception-rep-repne m '000000000000000000'
+end
+
+val unop cons giveOp1 = let
+  val m features = unop-all features cons giveOp1
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
+
+val binop-all features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
   opnd-sz <- operand-size;
@@ -2535,84 +2868,127 @@ val binop-all cons giveOp1 giveOp2 = do
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
+  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
 end
 
-val binop-rep-repne cons giveOp1 giveOp2 = exception-lock (binop-all cons giveOp1 giveOp2)
-val binop-rep cons giveOp1 giveOp2 = exception-repne-lock (binop-all cons giveOp1 giveOp2)
-val binop-lock cons giveOp1 giveOp2 = exception-rep-repne (binop-all cons (exception-lock-reg giveOp1) giveOp2)
-val binop cons giveOp1 giveOp2 = exception-rep-repne-lock (binop-all cons giveOp1 giveOp2)
+val binop-rep-repne cons giveOp1 giveOp2 = let
+  val m features = binop-all features cons giveOp1 giveOp2
+in
+  exception-lock m '000000000000000000'
+end
 
-val ternop cons giveOp1 giveOp2 giveOp3 = exception-rep-repne-lock (do
-  op1 <- giveOp1;
-  op2 <- giveOp2;
-  op3 <- giveOp3;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
-end)
+val binop-rep cons giveOp1 giveOp2 = let
+  val m features = binop-all features cons giveOp1 giveOp2
+in
+  exception-repne-lock m '000000000000000000'
+end
 
-val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = exception-rep-repne-lock (do
-  op1 <- giveOp1;
-  op2 <- giveOp2;
-  op3 <- giveOp3;
-  op4 <- giveOp4;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
-end)
+val binop-lock cons giveOp1 giveOp2 = let
+  val m features = binop-all features cons (exception-lock-reg giveOp1) giveOp2
+in
+  exception-rep-repne m '000000000000000000'
+end
 
-val near-abs cons giveOp = exception-rep-repne-lock (do
-  mode64 <- mode64?;
-  if mode64 then
-    update@{default-operand-size=64}
-  else
-    return void
-  ;
-  op <- giveOp;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
-end)
+val binop cons giveOp1 giveOp2 = let
+  val m features = binop-all features cons giveOp1 giveOp2
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
-val near-rel cons giveOp = exception-rep-repne-lock (do
-  mode64 <- mode64?;
-  if mode64 then
-    update@{default-operand-size=64}
-  else
-    return void
-  ;
-  op <- giveOp;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
-end)
+val ternop cons giveOp1 giveOp2 giveOp3 = let
+  val m features = do
+    op1 <- giveOp1;
+    op2 <- giveOp2;
+    op3 <- giveOp3;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
-val far-dir cons giveOp = exception-rep-repne-lock (do
-  mode64 <- mode64?;
-  if mode64 then
-    update@{default-operand-size=64}
-  else
-    return void
-  ;
-  op <- giveOp;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
-end)
+val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = let
+  val m features = do
+    op1 <- giveOp1;
+    op2 <- giveOp2;
+    op3 <- giveOp3;
+    op4 <- giveOp4;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
-val far-ind cons giveOp = exception-rep-repne-lock (do
-  mode64 <- mode64?;
-  if mode64 then
-    update@{default-operand-size=64}
-  else
-    return void
-  ;
-  op <- giveOp;
-  opnd-sz <- operand-size;
-  addr-sz <- address-size;
-  return (cons {features='000000000000000000',opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
-end)
+val near-abs cons giveOp = let
+  val m features = do
+    mode64 <- mode64?;
+    if mode64 then
+      update@{default-operand-size=64}
+    else
+      return void
+    ;
+    op <- giveOp;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
+
+val near-rel cons giveOp = let
+  val m features = do
+    mode64 <- mode64?;
+    if mode64 then
+      update@{default-operand-size=64}
+    else
+      return void
+    ;
+    op <- giveOp;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
+
+val far-dir cons giveOp = let
+  val m features = do
+    mode64 <- mode64?;
+    if mode64 then
+      update@{default-operand-size=64}
+    else
+      return void
+    ;
+    op <- giveOp;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
+
+val far-ind cons giveOp = let
+  val m features = do
+    mode64 <- mode64?;
+    if mode64 then
+      update@{default-operand-size=64}
+    else
+      return void
+    ;
+    op <- giveOp;
+    opnd-sz <- operand-size;
+    addr-sz <- address-size;
+    return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
+  end
+in
+  exception-rep-repne-lock m '000000000000000000'
+end
 
 val one = return (IMM8 {imm='00000001',address=0})
 
