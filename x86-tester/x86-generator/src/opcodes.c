@@ -3114,5 +3114,9 @@ extern struct opcode_table *opcodes_opcode_table_build() {
 }
 
 extern void opcodes_opcode_table_free(struct opcode_table *table) {
-
+	if(table) {
+		free(table->offsets);
+		free(table->opcodes);
+		free(table);
+	}
 }
