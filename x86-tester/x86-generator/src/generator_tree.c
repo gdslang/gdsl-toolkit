@@ -33,11 +33,38 @@ struct generator_tree_node *generator_tree_branch(size_t branches_length, ...) {
 	for(int i = 0; i < branches_length; ++i) {
 		struct generator_tree_node *node =
 				va_arg(a_list, struct generator_tree_node *);
-		uint8_t weight = va_arg(a_list, uint8_t);
+		uint8_t weight = (uint8_t)va_arg(a_list, int);
 		node->branches[i].node = node;
 		node->branches[i].weight = weight;
 	}
 	va_end(a_list);
 
 	return node;
+}
+
+void generator_tree_print(struct generator_tree_node *root) {
+	if(!root)
+		return;
+	switch (root->type) {
+		case GENERATOR_TREE_NODE_TYPE_BRANCH: {
+			printf("BRANCH (");
+			for (int i = 0; i < root->branches_length; ++i) {
+				if(i)
+					printf(", ");
+				generator_tree_print(root->branches[i].node);
+				printf(" - %u", root->branches[i].weight);
+			}
+			printf(")");
+			break;
+		}
+		case GENERATOR_TREE_NODE_TYPE_GENERATOR: {
+			printf("=> GENERATOR");
+			if(root->next) {
+				printf("=> ");
+				generator_tree_print(root->next);
+			}
+			break;
+			break;
+		}
+	}
 }
