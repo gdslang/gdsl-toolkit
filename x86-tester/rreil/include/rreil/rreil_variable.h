@@ -9,7 +9,7 @@
 #define RREIL_VARIABLE_H_
 
 #include <stdint.h>
-#include <rreil_id.h>
+#include <rreil/rreil_id.h>
 
 struct rreil_variable {
 	struct rreil_id id;

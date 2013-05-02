@@ -10,7 +10,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <rreil_x86.h>
+#include <rreil/rreil_x86.h>
 
 enum rreil_id_type {
 	RREIL_ID_TYPE_VIRTUAL,

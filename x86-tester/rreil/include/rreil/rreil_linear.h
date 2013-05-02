@@ -9,7 +9,7 @@
 #define RREIL_LINEAR_H_
 
 #include <stdint.h>
-#include <rreil_variable.h>
+#include <rreil/rreil_variable.h>
 
 enum rreil_linear_type {
 	RREIL_LINEAR_TYPE_VARIABLE,
