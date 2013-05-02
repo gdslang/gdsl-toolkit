@@ -52,8 +52,8 @@ static size_t generator_x86_opcode_generate(struct generator *this,
 	size_t start = random ? table->offsets[random - 1] : 0;
 	size_t next = table->offsets[random];
 
-	if(table->offsets[start] == 0)
-		printf("%zu\n", start);
+//	if(table->offsets[start] == 0)
+//		printf("%zu\n", start);
 
 	return fwrite(&table->opcodes[start], 1, next - start, stream);
 }
@@ -149,14 +149,14 @@ static size_t generator_x86_vex_generate(struct generator *this, FILE *stream) {
 		uint8_t vex1 = (rand() & 0xe0) + (rand() % 3) + 1;
 		written += fwrite(&vex1, 1, 1, stream);
 		uint8_t vex2 = rand() & 0xff;
-		if(rand() > RAND_MAX/2)
+		if(rand() > RAND_MAX / 2)
 			vex2 |= 0x78;
 		written += fwrite(&vex2, 1, 1, stream);
 	} else {
 		uint8_t vex0 = 0xc5;
 		written += fwrite(&vex0, 1, 1, stream);
 		uint8_t vex1 = rand() & 0xff;
-		if(rand() > RAND_MAX/2)
+		if(rand() > RAND_MAX / 2)
 			vex1 |= 0x78;
 		written += fwrite(&vex1, 1, 1, stream);
 	}
@@ -279,5 +279,28 @@ struct generator_tree_node *generator_x86_tree_get() {
 }
 
 void generator_free(struct generator *generator) {
-
+	if(generator) {
+		switch(generator->type) {
+			case GENERATOR_TYPE_PREFIXES: {
+				break;
+			}
+			case GENERATOR_TYPE_OPCODE: {
+				x86_opcodes_opcode_table_free((struct opcode_table*)generator->data);
+				break;
+			}
+			case GENERATOR_TYPE_MODRM: {
+				break;
+			}
+			case GENERATOR_TYPE_IMMEDIATE: {
+				break;
+			}
+			case GENERATOR_TYPE_REX: {
+				break;
+			}
+			case GENERATOR_TYPE_VEX: {
+				break;
+			}
+		}
+		free(generator);
+	}
 }

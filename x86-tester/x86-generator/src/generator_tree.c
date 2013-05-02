@@ -14,15 +14,19 @@ struct generator_tree_node *generator_tree_generator_build(
 		struct generator *generator, struct generator_tree_node *child) {
 	struct generator_tree_node *node = (struct generator_tree_node *)malloc(
 			sizeof(struct generator_tree_node));
+	node->ref_count = 0;
 	node->type = GENERATOR_TREE_NODE_TYPE_GENERATOR;
 	node->generator = generator;
 	node->next = child;
+	if(child)
+		child->ref_count++;
 	return node;
 }
 
 struct generator_tree_node *generator_tree_branch(size_t branches_length, ...) {
 	struct generator_tree_node *node = (struct generator_tree_node *)malloc(
 			sizeof(struct generator_tree_node));
+	node->ref_count = 0;
 	node->type = GENERATOR_TREE_NODE_TYPE_BRANCH;
 	node->branches_length = branches_length;
 	node->branches = (struct generator_tree_wbranch*)malloc(
@@ -35,6 +39,8 @@ struct generator_tree_node *generator_tree_branch(size_t branches_length, ...) {
 				va_arg(a_list, struct generator_tree_node *);
 		uint8_t weight = (uint8_t)va_arg(a_list, int);
 		node->branches[i].node = next;
+		if(next)
+			next->ref_count++;
 		node->branches[i].weight = weight;
 	}
 	va_end(a_list);
@@ -99,4 +105,31 @@ void generator_tree_execute(struct generator_tree_node *root, FILE *stream) {
 			break;
 		}
 	}
+}
+
+void generator_tree_free(struct generator_tree_node *root) {
+	if(!root)
+		return;
+	switch(root->type) {
+		case GENERATOR_TREE_NODE_TYPE_BRANCH: {
+			for(size_t i = 0; i < root->branches_length; ++i) {
+				struct generator_tree_node *next = root->branches[i].node;
+				if(next && next->ref_count > 1) {
+					next->ref_count--;
+				} else
+					generator_tree_free(next);
+			}
+			free(root->branches);
+			break;
+		}
+		case GENERATOR_TREE_NODE_TYPE_GENERATOR: {
+			generator_free(root->generator);
+			if(root->next && root->next->ref_count > 1)
+				root->next->ref_count--;
+			else
+				generator_tree_free(root->next);
+			break;
+		}
+	}
+	free(root);
 }
