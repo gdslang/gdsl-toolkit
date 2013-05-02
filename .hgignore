@@ -36,3 +36,7 @@ jgdrr/bin/
 x86-tester/x86-generator/.cproject
 x86-tester/x86-generator/.project
 x86-tester/x86-generator/Debug/
+
+x86-tester/rreil/.cproject
+x86-tester/rreil/.project
+x86-tester/rreil/Debug/
