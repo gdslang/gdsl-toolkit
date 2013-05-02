@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <x86_opcodes.h>
+#include <generator_tree.h>
 
 typedef size_t (generator_function_t)(FILE *stream);
 
@@ -37,5 +38,6 @@ extern struct generator *generator_init(enum generator_type type);
 extern void generator_free(struct generator *generator);
 extern void generator_print(struct generator *generator);
 extern void generator_execute(struct generator *generator, FILE *stream);
+extern struct generator_tree_node *generator_x86_tree_get();
 
 #endif /* GENERATOR_H_ */

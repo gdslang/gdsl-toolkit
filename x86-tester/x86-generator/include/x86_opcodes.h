@@ -17,7 +17,7 @@ struct opcode_table {
 	uint8_t *opcodes;
 };
 
-extern struct opcode_table *opcodes_opcode_table_build();
-extern void opcodes_opcode_table_free(struct opcode_table *table);
+extern struct opcode_table *x86_opcodes_opcode_table_build();
+extern void x86_opcodes_opcode_table_free(struct opcode_table *table);
 
 #endif /* X86_OPCODES_H_ */

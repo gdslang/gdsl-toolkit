@@ -22,7 +22,7 @@ int main(void) {
 
 	void add_offset() {
 		if(found)
-			printf("util_array_generic_add((void**)&table->offsets, &opcodes_size, sizeof(opcodes_size), &table->offsets_length, &offsets_size);\n");
+			printf("util_array_generic_add((void**)&table->offsets, &opcodes_offset, sizeof(opcodes_size), &table->offsets_length, &offsets_size);\n");
 	}
 
 	for (size_t i = 0; i < text_length - 3; ++i) {

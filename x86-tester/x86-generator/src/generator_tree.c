@@ -95,6 +95,7 @@ void generator_tree_execute(struct generator_tree_node *root, FILE *stream) {
 		}
 		case GENERATOR_TREE_NODE_TYPE_GENERATOR: {
 			generator_execute(root->generator, stream);
+			generator_tree_execute(root->next, stream);
 			break;
 		}
 	}
