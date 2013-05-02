@@ -1710,7 +1710,7 @@ val & giveA giveB = do
    return (a and b)
 end
 
-val monad-or giveA giveB = do
+val orm giveA giveB = do
    a <- giveA;
    b <- giveB;
    return (a or b)
@@ -2460,43 +2460,46 @@ val exception-rep-repne features = exception-both exception-rep exception-repne 
 val exception-repne-lock features = exception-both exception-repne exception-lock features
 val exception-rep-repne-lock features = exception-both exception-rep-repne exception-lock features
 
-val varity0 cons = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val varity0 features cons = do
+	features <- features;
+  features <- exception-rep-repne-lock features;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA0 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
 end
 
-val varity0-def-opnd-sz-64 cons = do
+val varity0-def-opnd-sz-64 features cons = do
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
   else
     return void
   ;
-  varity0 cons
+  varity0 features cons
 end
 
-val varity1 cons giveOp1 = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val varity1 features cons giveOp1 = do
+	features <- features;
+  features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons (VA1 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
 end
 
-val varity1-def-opnd-sz-64 cons giveOp1 = do
+val varity1-def-opnd-sz-64 features cons giveOp1 = do
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
   else
     return void
   ;
-  varity1 cons giveOp1
+  varity1 features cons giveOp1
 end
 
-val varity2 cons giveOp1 giveOp2 = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val varity2 features cons giveOp1 giveOp2 = do
+	features <- features;
+  features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
   opnd-sz <- operand-size;
@@ -2504,8 +2507,9 @@ val varity2 cons giveOp1 giveOp2 = do
   return (cons (VA2 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
 end
 
-val varity3 cons giveOp1 giveOp2 giveOp3 = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val varity3 features cons giveOp1 giveOp2 giveOp3 = do
+	features <- features;
+  features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2514,8 +2518,9 @@ val varity3 cons giveOp1 giveOp2 giveOp3 = do
   return (cons (VA3 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
 end
 
-val varity4 cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val varity4 features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
+	features <- features;
+  features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2534,23 +2539,27 @@ val arity0-all features cons = do
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
 end
 
-val arity0-rep-repne cons = do
-  features <- exception-lock '0000000000000000000';
+val arity0-rep-repne features cons = do
+	features <- features;
+  features <- exception-lock features;
   arity0-all features cons
 end
 
-val arity0-rep cons = do
-  features <- exception-repne-lock '0000000000000000000';
+val arity0-rep features cons = do
+	features <- features;
+  features <- exception-repne-lock features;
   arity0-all features cons
 end
 
-val arity0-lock cons = do
-  features <- exception-rep-repne '0000000000000000000';
+val arity0-lock features cons = do
+	features <- features;
+  features <- exception-rep-repne features;
   arity0-all features cons
 end
 
-val arity0 cons = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val arity0 features cons = do
+  features <- features;
+  features <- exception-rep-repne-lock features;
   arity0-all features cons
 end
 
@@ -2564,24 +2573,28 @@ val unop-all features cons giveOp1 = do
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
 end
 
-val unop-rep-repne cons giveOp1 = do
-  features <- exception-lock '0000000000000000000';
+val unop-rep-repne features cons giveOp1 = do
+  features <- features;
+  features <- exception-lock features;
   unop-all features cons giveOp1
 end
 
-val unop-rep cons giveOp1 = do
-  features <- exception-repne-lock '0000000000000000000';
+val unop-rep features cons giveOp1 = do
+  features <- features;
+  features <- exception-repne-lock features;
   unop-all features cons giveOp1
 end
 
-val unop-lock cons giveOp1 = do
-  features <- exception-rep-repne '0000000000000000000';
+val unop-lock features cons giveOp1 = do
+  features <- features;
+  features <- exception-rep-repne features;
 	features <- exception-lock-reg features giveOp1;
   unop-all features cons giveOp1
 end
 
-val unop cons giveOp1 = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val unop features cons giveOp1 = do
+  features <- features;
+  features <- exception-rep-repne-lock features;
   unop-all features cons giveOp1
 end
 
@@ -2596,29 +2609,34 @@ val binop-all features cons giveOp1 giveOp2 = do
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
 end
 
-val binop-rep-repne cons giveOp1 giveOp2 = do
-  features <- exception-lock '0000000000000000000';
+val binop-rep-repne features cons giveOp1 giveOp2 = do
+	features <- features;
+  features <- exception-lock features;
   binop-all features cons giveOp1 giveOp2
 end
 
-val binop-rep cons giveOp1 giveOp2 = do
-  features <- exception-repne-lock '0000000000000000000';
+val binop-rep features cons giveOp1 giveOp2 = do
+  features <- features;
+  features <- exception-repne-lock features;
   binop-all features cons giveOp1 giveOp2
 end
 
-val binop-lock cons giveOp1 giveOp2 = do
-  features <- exception-rep-repne '0000000000000000000';
+val binop-lock features cons giveOp1 giveOp2 = do
+  features <- features;
+  features <- exception-rep-repne features;
 	features <- exception-lock-reg features giveOp1;
   binop-all features cons giveOp1 giveOp2
 end
 
-val binop cons giveOp1 giveOp2 = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val binop features cons giveOp1 giveOp2 = do
+  features <- features;
+  features <- exception-rep-repne-lock features;
   binop-all features cons giveOp1 giveOp2
 end
 
-val ternop cons giveOp1 giveOp2 giveOp3 = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val ternop features cons giveOp1 giveOp2 giveOp3 = do
+	features <- features;
+  features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2627,8 +2645,9 @@ val ternop cons giveOp1 giveOp2 giveOp3 = do
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
 end
 
-val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val quaternop features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
+  features <- features;
+  features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
   op3 <- giveOp3;
@@ -2638,8 +2657,9 @@ val quaternop cons giveOp1 giveOp2 giveOp3 giveOp4 = do
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
 end
 
-val near-abs cons giveOp = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val near-abs features cons giveOp = do
+  features <- features;
+  features <- exception-rep-repne-lock features;
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
@@ -2652,8 +2672,9 @@ val near-abs cons giveOp = do
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
 end
 
-val near-rel cons giveOp = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val near-rel features cons giveOp = do
+	features <- features;
+  features <- exception-rep-repne-lock features;
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
@@ -2666,8 +2687,9 @@ val near-rel cons giveOp = do
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end
 
-val far-dir cons giveOp = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val far-dir features cons giveOp = do
+  features <- features;
+  features <- exception-rep-repne-lock features;
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
@@ -2680,8 +2702,9 @@ val far-dir cons giveOp = do
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end
 
-val far-ind cons giveOp = do
-  features <- exception-rep-repne-lock '0000000000000000000';
+val far-ind features cons giveOp = do
+  features <- features;
+  features <- exception-rep-repne-lock features;
   mode64 <- mode64?;
   if mode64 then
     update@{default-operand-size=64}
@@ -2703,131 +2726,131 @@ end
 
 ### AAA
 ###  - ASCII Adjust After Addition
-val / [0x37] | mode32? = arity0 AAA
+val / [0x37] | mode32? = arity0 none AAA
 
 ### AAD
 ###  - ASCII Adjust AX Before Division
-val / [0xd5] | mode32? = unop AAD imm8
+val / [0xd5] | mode32? = unop none AAD imm8
 
 ### AAM
 ###  - ASCII Adjust AX After Multiply
-val / [0xd4] | mode32? = unop AAM imm8
+val / [0xd4] | mode32? = unop none AAM imm8
 
 ### AAS
 ###  - ASCII Adjust AL After Subtraction
-val / [0x3f] | mode32? = arity0 AAS
+val / [0x3f] | mode32? = arity0 none AAS
 
 ### ADC
 ###  - Add with Carry
-val / [0x14] = binop ADC al imm8
+val / [0x14] = binop none ADC al imm8
 val / [0x15]
- | opndsz? = binop ADC ax imm16
- | rexw? = binop ADC rax imm32
- | otherwise = binop ADC eax imm32
-val / [0x80 /2] = binop-lock ADC r/m8 imm8
+ | opndsz? = binop none ADC ax imm16
+ | rexw? = binop none ADC rax imm32
+ | otherwise = binop none ADC eax imm32
+val / [0x80 /2] = binop-lock none ADC r/m8 imm8
 val / [0x81 /2]
- | opndsz? = binop-lock ADC r/m16 imm16
- | rexw? = binop-lock ADC r/m64 imm32
- | otherwise = binop-lock ADC r/m32 imm32
+ | opndsz? = binop-lock none ADC r/m16 imm16
+ | rexw? = binop-lock none ADC r/m64 imm32
+ | otherwise = binop-lock none ADC r/m32 imm32
 val / [0x83 /2]
- | opndsz? = binop-lock ADC r/m16 imm8
- | rexw? = binop-lock ADC r/m64 imm8
- | otherwise = binop-lock ADC r/m32 imm8
-val / [0x10 /r] = binop-lock ADC r/m8 r8
+ | opndsz? = binop-lock none ADC r/m16 imm8
+ | rexw? = binop-lock none ADC r/m64 imm8
+ | otherwise = binop-lock none ADC r/m32 imm8
+val / [0x10 /r] = binop-lock none ADC r/m8 r8
 val / [0x11 /r]
- | opndsz? = binop-lock ADC r/m16 r16
- | rexw? = binop-lock ADC r/m64 r64
- | otherwise = binop-lock ADC r/m32 r32
-val / [0x12 /r] = binop ADC r8 r/m8
+ | opndsz? = binop-lock none ADC r/m16 r16
+ | rexw? = binop-lock none ADC r/m64 r64
+ | otherwise = binop-lock none ADC r/m32 r32
+val / [0x12 /r] = binop none ADC r8 r/m8
 val / [0x13 /r]
- | opndsz? = binop ADC r16 r/m16
- | rexw? = binop ADC r64 r/m64
- | otherwise = binop ADC r32 r/m32
+ | opndsz? = binop none ADC r16 r/m16
+ | rexw? = binop none ADC r64 r/m64
+ | otherwise = binop none ADC r32 r/m32
 
 ### ADD
 ###  - Add
-val / [0x04] = binop ADD al imm8
+val / [0x04] = binop none ADD al imm8
 val / [0x05]
- | opndsz? = binop ADD ax imm16
- | rexw? = binop ADD rax imm32
- | otherwise = binop ADD eax imm32
-val / [0x80 /0] = binop-lock ADD r/m8 imm8
+ | opndsz? = binop none ADD ax imm16
+ | rexw? = binop none ADD rax imm32
+ | otherwise = binop none ADD eax imm32
+val / [0x80 /0] = binop-lock none ADD r/m8 imm8
 val / [0x81 /0]
- | opndsz? = binop-lock ADD r/m16 imm16
- | rexw? = binop-lock ADD r/m64 imm32
- | otherwise = binop-lock ADD r/m32 imm32
+ | opndsz? = binop-lock none ADD r/m16 imm16
+ | rexw? = binop-lock none ADD r/m64 imm32
+ | otherwise = binop-lock none ADD r/m32 imm32
 val / [0x83 /0]
- | opndsz? = binop-lock ADD r/m16 imm8
- | rexw? = binop-lock ADD r/m64 imm8
- | otherwise = binop-lock ADD r/m32 imm8
-val / [0x00 /r] = binop-lock ADD r/m8 r8
+ | opndsz? = binop-lock none ADD r/m16 imm8
+ | rexw? = binop-lock none ADD r/m64 imm8
+ | otherwise = binop-lock none ADD r/m32 imm8
+val / [0x00 /r] = binop-lock none ADD r/m8 r8
 val / [0x01 /r]
- | opndsz? = binop-lock ADD r/m16 r16
- | rexw? = binop-lock ADD r/m64 r64
- | otherwise = binop-lock ADD r/m32 r32
-val / [0x02 /r] = binop ADD r8 r/m8
+ | opndsz? = binop-lock none ADD r/m16 r16
+ | rexw? = binop-lock none ADD r/m64 r64
+ | otherwise = binop-lock none ADD r/m32 r32
+val / [0x02 /r] = binop none ADD r8 r/m8
 val / [0x03 /r]
- | opndsz? = binop ADD r16 r/m16
- | rexw? = binop ADD r64 r/m64
- | otherwise = binop ADD r32 r/m32
+ | opndsz? = binop none ADD r16 r/m16
+ | rexw? = binop none ADD r64 r/m64
+ | otherwise = binop none ADD r32 r/m32
 
 ### ADDPD
 ###  - Add Packed Double-Precision Floating-Point Values
-val /66 [0x0f 0x58 /r] = binop ADDPD xmm128 xmm/m128
+val /66 [0x0f 0x58 /r] = binop sse2 ADDPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x58 /r]
- | vex128? = varity3 VADDPD xmm128 v/xmm xmm/m128
- | vex256? = varity3 VADDPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VADDPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VADDPD ymm256 v/ymm ymm/m256
 
 ### ADDPS
 ###  - Add Packed Single-Precision Floating-Point Values
-val / [0x0f 0x58 /r] = binop ADDPS xmm128 xmm/m128
+val / [0x0f 0x58 /r] = binop sse ADDPS xmm128 xmm/m128
 val /vex/0f/vexv [0x58 /r]
- | vex128? = varity3 VADDPS xmm128 v/xmm xmm/m128
- | vex256? = varity3 VADDPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VADDPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VADDPS ymm256 v/ymm ymm/m256
 
 ### ADDSD
 ###  - Add Scalar Double-Precision Floating-Point Values
-val /f2 [0x0f 0x58 /r] = binop ADDSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x58 /r] = varity3 VADDSD xmm128 v/xmm xmm/m64
+val /f2 [0x0f 0x58 /r] = binop sse2 ADDSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x58 /r] = varity3 avx VADDSD xmm128 v/xmm xmm/m64
 
 ### ADDSS
 ###  - Add Scalar Single-Precision Floating-Point Values
-val /f3 [0x0f 0x58 /r] = binop ADDSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x58 /r] = varity3 VADDSS xmm128 v/xmm xmm/m32
+val /f3 [0x0f 0x58 /r] = binop sse ADDSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x58 /r] = varity3 avx VADDSS xmm128 v/xmm xmm/m32
 
 ### ADDSUBPD
 ###  - Packed Double-FP Add/Subtract
-val /66 [0x0f 0xd0 /r] = binop ADDSUBPD xmm128 xmm/m128
+val /66 [0x0f 0xd0 /r] = binop sse3 ADDSUBPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0xd0 /r]
- | vex128? = varity3 VADDSUBPD xmm128 v/xmm xmm/m128
- | vex256? = varity3 VADDSUBPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VADDSUBPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VADDSUBPD ymm256 v/ymm ymm/m256
 
 ### ADDSUBPS
 ###  - Packed Single-FP Add/Subtract
-val /f2 [0x0f 0xd0 /r] = binop ADDSUBPS xmm128 xmm/m128
+val /f2 [0x0f 0xd0 /r] = binop sse3 ADDSUBPS xmm128 xmm/m128
 val /vex/f2/0f/vexv [0xd0 /r]
- | vex128? = varity3 VADDSUBPS xmm128 v/xmm xmm/m128
- | vex256? = varity3 VADDSUBPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VADDSUBPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VADDSUBPS ymm256 v/ymm ymm/m256
 
 ### AESDEC
 ###  - Perform One Round of an AES Decryption Flow
-val /66 [0x0f 0x38 0xde /r] = binop AESDEC xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xde /r] | vex128? = varity3 VAESDEC xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0xde /r] = binop aes AESDEC xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xde /r] | vex128? = varity3 (orm aes avx) VAESDEC xmm128 v/xmm xmm/m128
 
 ### AESDECLAST
 ###  - Perform Last Round of an AES Decryption Flow
-val /66 [0x0f 0x38 0xdf /r] = binop AESDECLAST xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdf /r] | vex128? = varity3 VAESDECLAST xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0xdf /r] = binop aes AESDECLAST xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdf /r] | vex128? = varity3 (orm aes avx) VAESDECLAST xmm128 v/xmm xmm/m128
 
 ### AESENC
 ###  - Perform One Round of an AES Encryption Flow
-val /66 [0x0f 0x38 0xdc /r] = binop AESENC xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdc /r] | vex128? = varity3 VAESENC xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0xdc /r] = binop aes AESENC xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdc /r] | vex128? = varity3 (orm aes avx) VAESENC xmm128 v/xmm xmm/m128
 
 ### AESENCLAST
 ###  - Perform Last Round of an AES Encryption Flow
-val /66 [0x0f 0x38 0xdd /r] = binop AESENCLAST xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdd /r] | vex128? = varity3 VAESENCLAST xmm128 v/xmm xmm/m128
+val /66 [0x0f 0x38 0xdd /r] = binop aes AESENCLAST xmm128 xmm/m128
+val /vex/66/0f/38/vexv [0xdd /r] | vex128? = varity3 (orm aes avx) VAESENCLAST xmm128 v/xmm xmm/m128
 
 ### AESIMC
 ###  - Perform the AES InvMixColumn Transformation
@@ -4857,7 +4880,7 @@ val /66 [0x0f 0x3a 0x22 /r]
  | rexw? = ternop PINSRQ xmm128 r/m64 imm8
  | otherwise = ternop PINSRD xmm128 r/m32 imm8
 val /vex/66/0f/3a/vexv [0x20 /r]
- | vex128? & (monad-or mode64? vexw0?) = varity4 VPINSRB xmm128 v/xmm r32/m8 imm8
+ | vex128? & (orm mode64? vexw0?) = varity4 VPINSRB xmm128 v/xmm r32/m8 imm8
 val /vex/66/0f/3a/vexv [0x22 /r]
  | vex128? & vexw0? = varity4 VPINSRD xmm128 v/xmm r/m32 imm8
  | vex128? & vexw1? = varity4 VPINSRQ xmm128 v/xmm r/m64 imm8
@@ -4867,7 +4890,7 @@ val /vex/66/0f/3a/vexv [0x22 /r]
 val / [0x0f 0xc4 /r] = ternop PINSRW mm64 r32/m16 imm8
 val /66 [0x0f 0xc4 /r] = ternop PINSRW xmm128 r32/m16 imm8
 val /vex/66/0f/vexv [0xc4 /r]
- | vex128? & (monad-or mode64? vexw0?) = varity4 VPINSRW xmm128 v/xmm r32/m16 imm8
+ | vex128? & (orm mode64? vexw0?) = varity4 VPINSRW xmm128 v/xmm r32/m16 imm8
 
 ### PMADDUBSW
 ###  - Multiply and Add Packed Signed and Unsigned Bytes
