@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <rreil/rreil_linear.h>
+#include <rreil/rreil_arity.h>
 
 enum rreil_comparator_type {
 	RREIL_COMPARATOR_EQ,
@@ -22,9 +23,7 @@ enum rreil_comparator_type {
 
 struct rreil_comparator {
 	enum rreil_comparator_type type;
-	uint64_t size;
-	struct rreil_linear *opnd1;
-	struct rreil_linear *opnd2;
+	struct rreil_arity2 arity2;
 };
 
 #endif /* RREIL_COMPARATOR_H_ */
