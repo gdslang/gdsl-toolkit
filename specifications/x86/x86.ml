@@ -3776,43 +3776,43 @@ val / [0xd9 0xf9] = arity0 none FYL2XP1
 
 ### HADDPD
 ###  - Packed Double-FP Horizontal Add
-val /66 [0x0f 0x7c /r] = binop HADDPD xmm128 xmm/m128
+val /66 [0x0f 0x7c /r] = binop sse3 HADDPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x7c /r]
- | vex128? = varity3 VHADDPD xmm128 v/xmm xmm/m128
- | vex256? = varity3 VHADDPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VHADDPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VHADDPD ymm256 v/ymm ymm/m256
 
 ### HADDPS
 ###  - Packed Single-FP Horizontal Add
-val /f2 [0x0f 0x7c /r] = binop HADDPS xmm128 xmm/m128
+val /f2 [0x0f 0x7c /r] = binop sse3 HADDPS xmm128 xmm/m128
 val /vex/f2/0f/vexv [0x7c /r]
- | vex128? = varity3 VHADDPS xmm128 v/xmm xmm/m128
- | vex256? = varity3 VHADDPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VHADDPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VHADDPS ymm256 v/ymm ymm/m256
 
 ### HLT
 ###  - Halt
-val / [0xf4] = arity0 HLT
+val / [0xf4] = arity0 none HLT
 
 ### HSUBPD
 ###  - Packed Double-FP Horizontal Subtract
-val /66 [0x0f 0x7d /r] = binop HSUBPD xmm128 xmm/m128
+val /66 [0x0f 0x7d /r] = binop sse3 HSUBPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x7d /r]
- | vex128? = varity3 VHSUBPD xmm128 v/xmm xmm/m128
- | vex256? = varity3 VHSUBPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VHSUBPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VHSUBPD ymm256 v/ymm ymm/m256
 
 ### HSUBPS
 ###  - Packed Single-FP Horizontal Subtract
-val /f2 [0x0f 0x7d /r] = binop HSUBPS xmm128 xmm/m128
+val /f2 [0x0f 0x7d /r] = binop sse3 HSUBPS xmm128 xmm/m128
 val /vex/f2/0f/vexv [0x7d /r]
- | vex128? = varity3 VHSUBPS xmm128 v/xmm xmm/m128
- | vex256? = varity3 VHSUBPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VHSUBPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VHSUBPS ymm256 v/ymm ymm/m256
 
 ### IDIV
 ###  - Signed Divide
-val / [0xf6 /7] = unop IDIV r/m8
+val / [0xf6 /7] = unop none IDIV r/m8
 val / [0xf7 /7]
- | opndsz? = unop IDIV r/m16
- | rexw? = unop IDIV r/m64
- | otherwise = unop IDIV r/m32
+ | opndsz? = unop none IDIV r/m16
+ | rexw? = unop none IDIV r/m64
+ | otherwise = unop none IDIV r/m32
 
 ### IMUL
 ###  - Signed Multiply
@@ -3836,196 +3836,196 @@ val / [0xf7 /7]
 
 ### IMUL
 ###  - Signed Multiply
-val / [0xf6 /5] = varity1 IMUL r/m8
+val / [0xf6 /5] = varity1 none IMUL r/m8
 val / [0xf7 /5]
- | opndsz? = varity1 IMUL r/m16
- | rexw? = varity1 IMUL r/m64
- | otherwise = varity1 IMUL r/m32
+ | opndsz? = varity1 none IMUL r/m16
+ | rexw? = varity1 none IMUL r/m64
+ | otherwise = varity1 none IMUL r/m32
 val / [0x0f 0xaf /r]
- | opndsz? = varity2 IMUL r16 r/m16
- | rexw? = varity2 IMUL r64 r/m64
- | otherwise = varity2 IMUL r32 r/m32
+ | opndsz? = varity2 none IMUL r16 r/m16
+ | rexw? = varity2 none IMUL r64 r/m64
+ | otherwise = varity2 none IMUL r32 r/m32
 val / [0x6b /r]
- | opndsz? = varity3 IMUL r16 r/m16 imm8
- | rexw? = varity3 IMUL r64 r/m64 imm8
- | otherwise = varity3 IMUL r32 r/m32 imm8
+ | opndsz? = varity3 none IMUL r16 r/m16 imm8
+ | rexw? = varity3 none IMUL r64 r/m64 imm8
+ | otherwise = varity3 none IMUL r32 r/m32 imm8
 val / [0x69 /r]
- | opndsz? = varity3 IMUL r16 r/m16 imm16
- | rexw? = varity3 IMUL r64 r/m64 imm32
- | otherwise = varity3 IMUL r32 r/m32 imm32
+ | opndsz? = varity3 none IMUL r16 r/m16 imm16
+ | rexw? = varity3 none IMUL r64 r/m64 imm32
+ | otherwise = varity3 none IMUL r32 r/m32 imm32
 
 ### IN
 ###  - Input from Port
-val / [0xe4] = binop IN al imm8
+val / [0xe4] = binop none IN al imm8
 val / [0xe5]
- | opndsz? = binop IN ax imm8
- | otherwise = binop IN eax imm8
-val / [0xec] = binop IN al dx
+ | opndsz? = binop none IN ax imm8
+ | otherwise = binop none IN eax imm8
+val / [0xec] = binop none IN al dx
 val / [0xed]
- | opndsz? = binop IN ax dx
- | otherwise = binop IN eax dx
+ | opndsz? = binop none IN ax dx
+ | otherwise = binop none IN eax dx
 
 ### INC
 ###  - Increment by 1
-val / [0xfe /0] = unop-lock INC r/m8
+val / [0xfe /0] = unop-lock none INC r/m8
 val / [0xff /0]
- | opndsz? = unop-lock INC r/m16
- | rexw? = unop-lock INC r/m64
- | otherwise = unop-lock INC r/m32
+ | opndsz? = unop-lock none INC r/m16
+ | rexw? = unop-lock none INC r/m64
+ | otherwise = unop-lock none INC r/m32
 
 ### INS/INSB/INSW/INSD
 ###  - Input from Port to String
-val / [0x6c] = arity0-rep INSB
+val / [0x6c] = arity0-rep none INSB
 val / [0x6d]
- | opndsz? = arity0-rep INSW
- | otherwise = arity0-rep INSD
+ | opndsz? = arity0-rep none INSW
+ | otherwise = arity0-rep none INSD
 
 ### INSERTPS
 ###  - Insert Packed Single Precision Floating-Point Value
-val /66 [0x0f 0x3a 0x21 /r] = ternop INSERTPS xmm128 xmm/m32 imm8
-val /vex/66/0f/3a/vexv [0x21 /r] = varity4 VINSERTPS xmm128 v/xmm xmm/m32 imm8
+val /66 [0x0f 0x3a 0x21 /r] = ternop sse4_1 INSERTPS xmm128 xmm/m32 imm8
+val /vex/66/0f/3a/vexv [0x21 /r] = varity4 avx VINSERTPS xmm128 v/xmm xmm/m32 imm8
 
 ### INT n/INTO/INT 3
 ###  - Call to Interrupt Procedure
-val / [0xcc] = arity0 INT3
-val / [0xcd] = unop INT imm8
-val / [0xce] | mode32? = arity0 INT0
+val / [0xcc] = arity0 none INT3
+val / [0xcd] = unop none INT imm8
+val / [0xce] | mode32? = arity0 none INT0
 
 ### INVD
 ###  - Invalidate Internal Caches
-val / [0x0f 0x08] = arity0 INVD
+val / [0x0f 0x08] = arity0 none INVD
 
 ### INVLPG
 ###  - Invalidate TLB Entry
-val / [0x0f 0x01 /7-mem] = unop INVLPG m0
+val / [0x0f 0x01 /7-mem] = unop none INVLPG m0
 
 ### INVPCID
 ###  - Invalidate Process-Context Identifier
 val /66 [0x0f 0x38 0x82 /r-mem]
- | mode64? = binop INVPCID r64 m128
- | mode32? = binop INVPCID r32 m128
+ | mode64? = binop invpcid INVPCID r64 m128
+ | mode32? = binop invpcid INVPCID r32 m128
 
 ### IRET/IRETD
 ###  - Interrupt Return
 val / [0xcf]
- | opndsz? = arity0 IRET
- | rexw? = arity0 IRETQ
- | otherwise = arity0 IRETD
+ | opndsz? = arity0 none IRET
+ | rexw? = arity0 none IRETQ
+ | otherwise = arity0 none IRETD
 
 ### Jcc
 ###  - Jump if Condition Is Met
-val / [0x77] = near-rel JA rel8  # JNBE
-val / [0x73] = near-rel JAE rel8 # JNB, JNC
-val / [0x72] = near-rel JC rel8  # JB, JNAE
-val / [0x76] = near-rel JBE rel8 # JNA
-val /66 [0xe3] = near-rel JCXZ rel8
+val / [0x77] = near-rel none JA rel8  # JNBE
+val / [0x73] = near-rel none JAE rel8 # JNB, JNC
+val / [0x72] = near-rel none JC rel8  # JB, JNAE
+val / [0x76] = near-rel none JBE rel8 # JNA
+val /66 [0xe3] = near-rel none JCXZ rel8
 val / [0xe3]
- | mode64? & addrsz? = near-rel JECXZ rel8
- | mode64? = near-rel JRCXZ rel8
- | mode32? & addrsz? = near-rel JCXZ rel8
- | mode32? = near-rel JECXZ rel8
-val / [0x74] = near-rel JE rel8  # JZ
-val / [0x7f] = near-rel JG rel8  # JNLE
-val / [0x7d] = near-rel JGE rel8 # JNL
-val / [0x7c] = near-rel JL rel8  # JNGE
-val / [0x7e] = near-rel JLE rel8 # JNG
-val / [0x75] = near-rel JNE rel8 # JNZ
-val / [0x71] = near-rel JNO rel8
-val / [0x7b] = near-rel JNP rel8 # JPO
-val / [0x79] = near-rel JNS rel8
-val / [0x70] = near-rel JO rel8
-val / [0x7a] = near-rel JP rel8  # JPE
-val / [0x78] = near-rel JS rel8
+ | mode64? & addrsz? = near-rel none JECXZ rel8
+ | mode64? = near-rel none JRCXZ rel8
+ | mode32? & addrsz? = near-rel none JCXZ rel8
+ | mode32? = near-rel none JECXZ rel8
+val / [0x74] = near-rel none JE rel8  # JZ
+val / [0x7f] = near-rel none JG rel8  # JNLE
+val / [0x7d] = near-rel none JGE rel8 # JNL
+val / [0x7c] = near-rel none JL rel8  # JNGE
+val / [0x7e] = near-rel none JLE rel8 # JNG
+val / [0x75] = near-rel none JNE rel8 # JNZ
+val / [0x71] = near-rel none JNO rel8
+val / [0x7b] = near-rel none JNP rel8 # JPO
+val / [0x79] = near-rel none JNS rel8
+val / [0x70] = near-rel none JO rel8
+val / [0x7a] = near-rel none JP rel8  # JPE
+val / [0x78] = near-rel none JS rel8
 val / [0x0f 0x87] # JNBE
- | mode32? & opndsz? = near-rel JA rel16
- | otherwise = near-rel JA rel32
+ | mode32? & opndsz? = near-rel none JA rel16
+ | otherwise = near-rel none JA rel32
 val / [0x0f 0x83] # JNB, JNC
- | mode32? & opndsz? = near-rel JAE rel16
- | otherwise = near-rel JAE rel32
+ | mode32? & opndsz? = near-rel none JAE rel16
+ | otherwise = near-rel none JAE rel32
 val / [0x0f 0x82] # JC, JNAE
- | mode32? & opndsz? = near-rel JB rel16
- | otherwise = near-rel JB rel32
+ | mode32? & opndsz? = near-rel none JB rel16
+ | otherwise = near-rel none JB rel32
 val / [0x0f 0x86] # JNA
- | mode32? & opndsz? = near-rel JBE rel16
- | otherwise = near-rel JBE rel32
+ | mode32? & opndsz? = near-rel none JBE rel16
+ | otherwise = near-rel none JBE rel32
 val / [0x0f 0x84] # JZ
- | mode32? & opndsz? = near-rel JE rel16
- | otherwise = near-rel JE rel32
+ | mode32? & opndsz? = near-rel none JE rel16
+ | otherwise = near-rel none JE rel32
 val / [0x0f 0x8f] # JNLE
- | mode32? & opndsz? = near-rel JG rel16
- | otherwise = near-rel JG rel32
+ | mode32? & opndsz? = near-rel none JG rel16
+ | otherwise = near-rel none JG rel32
 val / [0x0f 0x8d] # JNL
- | mode32? & opndsz? = near-rel JGE rel16
- | otherwise = near-rel JGE rel32
+ | mode32? & opndsz? = near-rel none JGE rel16
+ | otherwise = near-rel none JGE rel32
 val / [0x0f 0x8c] # JNGE
- | mode32? & opndsz? = near-rel JL rel16
- | otherwise = near-rel JL rel32
+ | mode32? & opndsz? = near-rel none JL rel16
+ | otherwise = near-rel none JL rel32
 val / [0x0f 0x8e] # JNG
- | mode32? & opndsz? = near-rel JLE rel16
- | otherwise = near-rel JLE rel32
+ | mode32? & opndsz? = near-rel none JLE rel16
+ | otherwise = near-rel none JLE rel32
 val / [0x0f 0x85] # JNZ
- | mode32? & opndsz? = near-rel JNE rel16
- | otherwise = near-rel JNE rel32
+ | mode32? & opndsz? = near-rel none JNE rel16
+ | otherwise = near-rel none JNE rel32
 val / [0x0f 0x81]
- | mode32? & opndsz? = near-rel JNO rel16
- | otherwise = near-rel JNO rel32
+ | mode32? & opndsz? = near-rel none JNO rel16
+ | otherwise = near-rel none JNO rel32
 val / [0x0f 0x8b] # JPO
- | mode32? & opndsz? = near-rel JNP rel16
- | otherwise = near-rel JNP rel32
+ | mode32? & opndsz? = near-rel none JNP rel16
+ | otherwise = near-rel none JNP rel32
 val / [0x0f 0x89]
- | mode32? & opndsz? = near-rel JNS rel16
- | otherwise = near-rel JNS rel32
+ | mode32? & opndsz? = near-rel none JNS rel16
+ | otherwise = near-rel none JNS rel32
 val / [0x0f 0x80]
- | mode32? & opndsz? = near-rel JO rel16
- | otherwise = near-rel JO rel32
+ | mode32? & opndsz? = near-rel none JO rel16
+ | otherwise = near-rel none JO rel32
 val / [0x0f 0x8a] # JPE
- | mode32? & opndsz? = near-rel JP rel16
- | otherwise = near-rel JP rel32
+ | mode32? & opndsz? = near-rel none JP rel16
+ | otherwise = near-rel none JP rel32
 val / [0x0f 0x88] # JS
- | mode32? & opndsz? = near-rel JS rel16
- | otherwise = near-rel JS rel32
+ | mode32? & opndsz? = near-rel none JS rel16
+ | otherwise = near-rel none JS rel32
 
 ### JMP
 ###  - Jump
-val / [0xeb] = near-rel JMP rel8
+val / [0xeb] = near-rel none JMP rel8
 val / [0xe9]
- | mode32? & opndsz? = near-rel JMP rel16
- | otherwise = near-rel JMP rel32
+ | mode32? & opndsz? = near-rel none JMP rel16
+ | otherwise = near-rel none JMP rel32
 val / [0xff /4]
- | mode32? & opndsz? = near-abs JMP r/m16
- | mode32? = near-abs JMP r/m32
- | mode64? = near-abs JMP r/m64
+ | mode32? & opndsz? = near-abs none JMP r/m16
+ | mode32? = near-abs none JMP r/m32
+ | mode64? = near-abs none JMP r/m64
 val / [0xea]
- | mode32? & opndsz? = far-dir JMP ptr16/16
- | mode32? = far-dir JMP ptr16/32
+ | mode32? & opndsz? = far-dir none JMP ptr16/16
+ | mode32? = far-dir none JMP ptr16/32
 val / [0xff /5]
- | opndsz? = far-ind JMP m16/16
- | rexw? = far-ind JMP m16/64
- | otherwise = far-ind JMP m16/32
+ | opndsz? = far-ind none JMP m16/16
+ | rexw? = far-ind none JMP m16/64
+ | otherwise = far-ind none JMP m16/32
 
 ### LAHF
 ###  - Load Status Flags into AH Register
-val / [0x9f] = arity0 LAHF
+val / [0x9f] = arity0 none LAHF
 
 ### LAR
 ###  - Load Access Rights Byte
 val / [0x0f 0x02 /r]
- | opndsz? = binop LAR r16 r16/m16
- | rexw? = binop LAR r64 r32/m16
- | otherwise = binop LAR r32 r32/m16
+ | opndsz? = binop none LAR r16 r16/m16
+ | rexw? = binop none LAR r64 r32/m16
+ | otherwise = binop none LAR r32 r32/m16
 
 ### LDDQU
 ###  - Load Unaligned Integer 128 Bits
-val /f2 [0x0f 0xf0 /r-mem] = binop LDDQU xmm128 m128
+val /f2 [0x0f 0xf0 /r-mem] = binop sse3 LDDQU xmm128 m128
 val /vex/f2/0f [0xf0 /r-mem]
- | vex128? = varity2 VLDDQU xmm128 m128
- | vex256? = varity2 VLDDQU ymm256 m256
+ | vex128? = varity2 avx VLDDQU xmm128 m128
+ | vex256? = varity2 avx VLDDQU ymm256 m256
 
 ### LDMXCSR
 ###  - Load MXCSR Register
-val / [0x0f 0xae /2-mem] = unop LDMXCSR m32
+val / [0x0f 0xae /2-mem] = unop sse LDMXCSR m32
 val /vex/0f [0xae /2-mem]
- | vex128? = varity1 VLDMXCSR m32
+ | vex128? = varity1 avx VLDMXCSR m32
 
 ### LDS/LES/LFS/LGS/LSS
 ###  - Load Far Pointer
@@ -4033,122 +4033,122 @@ val /vex/0f [0xae /2-mem]
 # | opndsz? = binop LDS r16 m16/16
 # | otherwise = binop LDS r32 m16/32
 val / [0x0f 0xb2 /r-mem]
- | opndsz? = binop LSS r16 m16/16
- | rexw? = binop LSS r64 m16/64
- | otherwise = binop LSS r32 m16/32
+ | opndsz? = binop none LSS r16 m16/16
+ | rexw? = binop none LSS r64 m16/64
+ | otherwise = binop none LSS r32 m16/32
 #val / [0xc4 /r-mem]
 # | opndsz? = binop LES r16 m16/16
 # | otherwise = binop LES r32 m16/32
 val / [0x0f 0xb4 /r-mem]
- | opndsz? = binop LFS r16 m16/16
- | rexw? = binop LFS r64 m16/64
- | otherwise = binop LFS r32 m16/32
+ | opndsz? = binop none LFS r16 m16/16
+ | rexw? = binop none LFS r64 m16/64
+ | otherwise = binop none LFS r32 m16/32
 val / [0x0f 0xb5 /r-mem]
- | opndsz? = binop LGS r16 m16/16
- | rexw? = binop LGS r64 m16/64
- | otherwise = binop LGS r32 m16/32
+ | opndsz? = binop none LGS r16 m16/16
+ | rexw? = binop none LGS r64 m16/64
+ | otherwise = binop none LGS r32 m16/32
 
 ### LEA
 ###  - Load Effective Address
 val / [0x8d /r-mem]
- | (// mode64?) & opndsz? = binop LEA r16 mX
- | (// mode64?) & (// opndsz?) = binop LEA r32 mX
- | mode64? & (// rexw?) & opndsz? = binop LEA r16 mX
- | mode64? & (// rexw?) & (// opndsz?) = binop LEA r32 mX
- | mode64? & rexw? & (// opndsz?) = binop LEA r64 mX
+ | (// mode64?) & opndsz? = binop none LEA r16 mX
+ | (// mode64?) & (// opndsz?) = binop none LEA r32 mX
+ | mode64? & (// rexw?) & opndsz? = binop none LEA r16 mX
+ | mode64? & (// rexw?) & (// opndsz?) = binop none LEA r32 mX
+ | mode64? & rexw? & (// opndsz?) = binop none LEA r64 mX
 
 ### LEAVE
 ###  - High Level Procedure Exit
 #Todo: handle different effects to BP/EBP/RBP
-val / [0xc9] = arity0 LEAVE
+val / [0xc9] = arity0 none LEAVE
 
 ### LFENCE
 ###  - Load Fence
 #Todo: -reg?
-val / [0x0f 0xae /5-reg] = arity0 LFENCE
+val / [0x0f 0xae /5-reg] = arity0 none LFENCE
 
 ### LGDT/LIDT
 ###  - Load Global/Interrupt Descriptor Table Register
 val / [0x0f 0x01 /2-mem]
- | mode64? = unop LGDT m16/64
- | otherwise = unop LGDT m16/32
+ | mode64? = unop none LGDT m16/64
+ | otherwise = unop none LGDT m16/32
 val / [0x0f 0x01 /3-mem]
- | mode64? = unop LIDT m16/64
- | otherwise = unop LIDT m16/32
+ | mode64? = unop none LIDT m16/64
+ | otherwise = unop none LIDT m16/32
 
 ### LLDT
 ###  - Load Local Descriptor Table Register
-val / [0x0f 0x00 /2] = unop LLDT r/m16
+val / [0x0f 0x00 /2] = unop none LLDT r/m16
 
 ### LMSW
 ###  - Load Machine Status Word
-val / [0x0f 0x01 /6-mem] = unop LMSW r/m16
+val / [0x0f 0x01 /6-mem] = unop none LMSW r/m16
 
 ### LOCK
 ###  - Assert LOCK# Signal Prefix
 
 ### LODS/LODSB/LODSW/LODSD/LODSQ
 ###  - Load String
-val / [0xac] = unop-rep LODS (m/default/si/esi/rsi (return 8))
+val / [0xac] = unop-rep none LODS (m/default/si/esi/rsi (return 8))
 val / [0xad]
- | opndsz? = unop-rep LODS (m/default/si/esi/rsi operand-size)
- | rexw? = unop-rep LODS (m/default/si/esi/rsi operand-size)
- | otherwise = unop-rep LODS (m/default/si/esi/rsi operand-size)
+ | opndsz? = unop-rep none LODS (m/default/si/esi/rsi operand-size)
+ | rexw? = unop-rep none LODS (m/default/si/esi/rsi operand-size)
+ | otherwise = unop-rep none LODS (m/default/si/esi/rsi operand-size)
 
 ### LOOP/LOOPcc
 ###  - Loop According to ECX Counter
-val / [0xe2] = near-rel LOOP rel8
-val / [0xe1] = near-rel LOOPE rel8
-val / [0xe0] = near-rel LOOPNE rel8
+val / [0xe2] = near-rel none LOOP rel8
+val / [0xe1] = near-rel none LOOPE rel8
+val / [0xe0] = near-rel none LOOPNE rel8
 
 ### LSL
 ###  - Load Segment Limit
 val / [0x0f 0x03 /r]
- | opndsz? = binop LSL r16 r16/m16
- | rexw? = binop LSL r64 r32/m16
- | otherwise = binop LSL r32 r32/m16
+ | opndsz? = binop none LSL r16 r16/m16
+ | rexw? = binop none LSL r64 r32/m16
+ | otherwise = binop none LSL r32 r32/m16
 
 ### LTR
 ###  - Load Task Register
-val / [0x0f 0x00 /3] = unop LTR r/m16
+val / [0x0f 0x00 /3] = unop none LTR r/m16
 
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
-val /66 [0x0f 0xf7 /r-reg] = ternop MASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/reg128
-val /vex/66/0f [0xf7 /r-reg] | vex128? = varity3 VMASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/m128
+val /66 [0x0f 0xf7 /r-reg] = ternop sse2 MASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/reg128
+val /vex/66/0f [0xf7 /r-reg] | vex128? = varity3 avx VMASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/m128
 
 ### MASKMOVQ
 ###  - Store Selected Bytes of Quadword
-val / [0x0f 0xf7 /r-reg] = ternop MASKMOVQ (m/default/di/edi/rdi (return 8)) mm64 mm/reg64
+val / [0x0f 0xf7 /r-reg] = ternop none MASKMOVQ (m/default/di/edi/rdi (return 8)) mm64 mm/reg64
 
 ### MAXPD
 ###  - Return Maximum Packed Double-Precision Floating-Point Values
-val /66 [0x0f 0x5f /r] = binop MAXPD xmm128 xmm/m128
+val /66 [0x0f 0x5f /r] = binop sse2 MAXPD xmm128 xmm/m128
 val /vex/66/0f/vexv [0x5f /r]
- | vex128? = varity3 VMAXPD xmm128 v/xmm xmm/m128
- | vex256? = varity3 VMAXPD ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VMAXPD xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VMAXPD ymm256 v/ymm ymm/m256
 
 ### MAXPS
 ###  - Return Maximum Packed Single-Precision Floating-Point Values
-val / [0x0f 0x5f /r] = binop MAXPS xmm128 xmm/m128
+val / [0x0f 0x5f /r] = binop sse MAXPS xmm128 xmm/m128
 val vex/0f/vexv [0x5f /r]
- | vex128? = varity3 VMAXPS xmm128 v/xmm xmm/m128
- | vex256? = varity3 VMAXPS ymm256 v/ymm ymm/m256
+ | vex128? = varity3 avx VMAXPS xmm128 v/xmm xmm/m128
+ | vex256? = varity3 avx VMAXPS ymm256 v/ymm ymm/m256
 
 ### MAXSD
 ###  - Return Maximum Scalar Double-Precision Floating-Point Value
-val /f2 [0x0f 0x5f /r] = binop MAXSD xmm128 xmm/m64
-val /vex/f2/0f/vexv [0x5f /r] = varity3 VMAXSD xmm128 v/xmm xmm/m64
+val /f2 [0x0f 0x5f /r] = binop sse2 MAXSD xmm128 xmm/m64
+val /vex/f2/0f/vexv [0x5f /r] = varity3 avx VMAXSD xmm128 v/xmm xmm/m64
 
 ### MAXSS
 ###  - Return Maximum Scalar Single-Precision Floating-Point Value
-val /f3 [0x0f 0x5f /r] = binop MAXSS xmm128 xmm/m32
-val /vex/f3/0f/vexv [0x5f /r] = varity3 VMAXSS xmm128 v/xmm xmm/m32
+val /f3 [0x0f 0x5f /r] = binop sse MAXSS xmm128 xmm/m32
+val /vex/f3/0f/vexv [0x5f /r] = varity3 avx VMAXSS xmm128 v/xmm xmm/m32
 
 ### MFENCE
 ###  - Memory Fence
 #Todo: -reg?
-val / [0x0f 0xae /6-reg] = arity0 MFENCE
+val / [0x0f 0xae /6-reg] = arity0 none MFENCE
 
 ### MINPD
 ###  - Return Minimum Packed Double-Precision Floating-Point Values
