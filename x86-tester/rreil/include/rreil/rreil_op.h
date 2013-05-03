@@ -53,7 +53,7 @@ struct rreil_op {
 		struct rreil_arity2 xor;
 		struct rreil_size_change sx;
 		struct rreil_size_change zx;
-		struct rreil_comparator cmp;
+		struct rreil_comparator *cmp;
 		struct {
 			uint64_t size;
 		} arb;

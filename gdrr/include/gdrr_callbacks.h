@@ -9,6 +9,7 @@
 #define GDRR_CALLBACKS_H_
 
 #include <gdrr_types.h>
+#include <dis.h>
 
 struct gdrr_sem_id_callbacks {
 	gdrr_sem_id_t *(*virt_eq)(void *closure);

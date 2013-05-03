@@ -22,7 +22,7 @@ enum rreil_linear_type {
 struct rreil_linear {
 	enum rreil_linear_type type;
 	union {
-		struct rreil_variable variable;
+		struct rreil_variable *variable;
 		uint64_t immediate;
 		struct {
 			struct rreil_linear *opnd1;

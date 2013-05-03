@@ -20,7 +20,7 @@ struct rreil_sexpr {
 	enum rreil_sexpr_type type;
 	union {
 		struct rreil_linear *lin;
-		struct rreil_comparator cmp;
+		struct rreil_comparator *cmp;
 	};
 };
 
