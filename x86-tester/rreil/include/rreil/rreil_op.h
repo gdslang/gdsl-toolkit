@@ -34,7 +34,7 @@ enum rreil_op_type {
 struct rreil_size_change {
 	uint64_t size;
 	uint64_t fromsize;
-	struct rreil_linear *opnd1;
+	struct rreil_linear *opnd;
 };
 
 struct rreil_op {

@@ -546,17 +546,17 @@ static gdrr_sem_op_t *sem_arb(void *closure, __word size) {
 }
 
 // sem_branch_hint
-static gdrr_sem_branch_hint *hint_jump(void *closure) {
+static gdrr_sem_branch_hint_t *hint_jump(void *closure) {
 	jobject ret = java_method_call(closure, "hint_jump", 0);
-	return (gdrr_sem_branch_hint*)ret;
+	return (gdrr_sem_branch_hint_t*)ret;
 }
-static gdrr_sem_branch_hint *hint_call(void *closure) {
+static gdrr_sem_branch_hint_t *hint_call(void *closure) {
 	jobject ret = java_method_call(closure, "hint_call", 0);
-	return (gdrr_sem_branch_hint*)ret;
+	return (gdrr_sem_branch_hint_t*)ret;
 }
-static gdrr_sem_branch_hint *hint_ret(void *closure) {
+static gdrr_sem_branch_hint_t *hint_ret(void *closure) {
 	jobject ret = java_method_call(closure, "hint_ret", 0);
-	return (gdrr_sem_branch_hint*)ret;
+	return (gdrr_sem_branch_hint_t*)ret;
 }
 
 // sem_stmt
@@ -597,7 +597,7 @@ static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_linear_t *cond,
 	return (gdrr_sem_stmt_t*)ret;
 }
 static gdrr_sem_stmt_t *sem_branch(void *closure,
-		gdrr_sem_branch_hint *branch_hint, gdrr_sem_address_t *target) {
+		gdrr_sem_branch_hint_t *branch_hint, gdrr_sem_address_t *target) {
 	jobject ret = java_method_call(closure, "sem_branch", 2, (jobject)branch_hint,
 			(jobject)target);
 	return (gdrr_sem_stmt_t*)ret;

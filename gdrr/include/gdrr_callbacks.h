@@ -106,13 +106,13 @@ struct gdrr_sem_stmt_callbacks {
 	gdrr_sem_stmt_t *(*sem_cbranch)(void *closure, gdrr_sem_linear_t *cond,
 			gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false);
 	gdrr_sem_stmt_t *(*sem_branch)(void *closure,
-			gdrr_sem_branch_hint *branch_hint, gdrr_sem_address_t *target);
+			gdrr_sem_branch_hint_t *branch_hint, gdrr_sem_address_t *target);
 };
 
 struct gdrr_sem_branch_hint_callbacks {
-	gdrr_sem_branch_hint *(*hint_jump)(void *closure);
-	gdrr_sem_branch_hint *(*hint_call)(void *closure);
-	gdrr_sem_branch_hint *(*hint_ret)(void *closure);
+	gdrr_sem_branch_hint_t *(*hint_jump)(void *closure);
+	gdrr_sem_branch_hint_t *(*hint_call)(void *closure);
+	gdrr_sem_branch_hint_t *(*hint_ret)(void *closure);
 };
 
 struct gdrr_sem_stmts_callbacks {
