@@ -56,6 +56,12 @@ group is
    ../../desugar/desugar-monadic-sequences.sml
    ../../desugar/desugar.sml
 
+   ../../imp/imp.sml
+   ../../imp/imp-control.sml
+   ../../imp/imp-from-core.sml
+   ../../imp/mk-imp-pass.sml
+   ../../imp/imp-passes.sml
+
    ../../cps/cps.sml
    ../../cps/cps-control.sml
    ../../cps/from-core.sml
