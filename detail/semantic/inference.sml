@@ -464,7 +464,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val env = E.enterFunction (sym,env)
          val env = infRhs (st,env) (sym, [], NONE, args, rhs)
-         val env = E.popToFunction (sym, env)
+         val env = E.popToFunction (sym,env)
          val env = E.leaveFunction (sym,env)
       in
          env
@@ -938,6 +938,33 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    val toplevelEnv = E.pushGroup (toplevelDecls ast, primEnv)
    
+   (*we set functions to have type 'a whenever there was an error; otherwise the
+   function has no type and the inference will add a usage which can severely
+   slow down the inference*)
+   fun setDummyType stenv (AST.MARKdecl m) = setDummyType stenv (#tree m)
+     | setDummyType (st,env) (AST.DECODEdecl (v, l, _)) =
+      if not (hasSymbol (st,v)) then env else
+      let
+         val env = E.enterFunction (v,env)
+         val (envPrev, env) = clearDecoder (v,env)
+         val env = E.pushTop env
+         val env = E.popToFunction (v, env)
+         val env = E.leaveFunction (v,env)
+      in
+         env
+      end
+     | setDummyType (st,env) (AST.LETRECdecl (v,l,e)) = 
+      if not (hasSymbol (st,v)) then env else
+      let
+         val env = E.enterFunction (v,env)
+         val env = E.pushTop env
+         val env = E.popToFunction (v,env)
+         val env = E.leaveFunction (v,env)
+      in
+         env
+      end
+     | setDummyType (st,env) _ = env
+
    val sccs = List.rev (sccsSpecification ast)
    
    (*val _ = TextIO.print ("SCCs:\n" ^ List.foldl (fn (c,str) => str ^ prComp c) "" sccs)*)
@@ -947,7 +974,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
                                   component = comp},env) d
-                        handle TypeError => env) env ast
+                        handle TypeError =>
+                        setDummyType ({span = SymbolTable.noSpan,
+                                  component = comp},env) d
+                   ) env ast
          (*val _ = TextIO.print ("after checking component " ^ prComp comp ^  E.topToString env)*)
          val env = case comp of
               SCC.SIMPLE _ => env

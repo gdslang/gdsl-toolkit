@@ -145,6 +145,9 @@ end = struct
    structure SpanMap = SpanMap
    open Types
    open Substitutions
+   
+   (*restrict which symbols toString prints*)
+   val debugSymbol : int option = NONE
 
    (*any error that is not due to unification*)
    exception InferenceBug
@@ -299,7 +302,7 @@ end = struct
                   (vSet,bSet)
             fun getWidthVars (NONE, set) = set
               | getWidthVars (SOME w, (vSet,bSet)) = (texpVarset (w,vSet),bSet)
-            fun getBindVars ({name, ty, width = wOpt, uses, nested},set) =
+            fun getBindVars ({name=n, ty, width = wOpt, uses, nested},set) =
                List.foldl getUsesVars (getWidthVars (wOpt, set))
                   (SpanMap.listItems uses)
             fun getGroupVars ({bindInfo = bi, typeVars, boolVars, version},set) =
@@ -432,20 +435,28 @@ end = struct
                val (scStr, si) = showVarsVer (typeVars, boolVars, version, si)
                val (biStr, si) = showBindInfoSI (bi,si)
             in
-               (scStr ^ biStr, si)
+               if String.size biStr=0 then ("",si) else (scStr ^ biStr, si)
             end
       and showBindInfoSI (KAPPA {ty}, si) =
             let
                val (tStr, si) = showTypeSI (ty,si)
             in
-               ("KAPPA : " ^ tStr, si)
+               case debugSymbol of
+                  (SOME _) => ("",si)
+                | NONE => ("KAPPA : " ^ tStr, si)
             end
         | showBindInfoSI (SINGLE {name, ty}, si) =
             let
                val (tStr, si) = showTypeSI (ty,si)
+               val visible = case debugSymbol of
+                     NONE => true
+                   | (SOME sid) => sid=SymbolTable.toInt name
             in
-               ("SYMBOL " ^ ST.getString(!SymbolTables.varTable, name) ^
-                " : " ^ tStr, si)
+               if visible then
+                  ("SYMBOL " ^ ST.getString(!SymbolTables.varTable, name) ^
+                  " : " ^ tStr, si)
+               else
+                  ("",si)
             end
         | showBindInfoSI (GROUP bs, si) =
             let
@@ -476,6 +487,9 @@ end = struct
                   end
                fun printB ({name,ty,width,uses,nested}, (str, si)) =
                   let
+                     val visible = case debugSymbol of
+                           NONE => true
+                         | (SOME sid) => sid=SymbolTable.toInt name
                      val (tStr, si) = prBTyOpt (ty, " : ", si)
                      val (wStr, si) = prTyOpt (width, ", width = ", si)
                      val (uStr, _, si) = 
@@ -498,6 +512,7 @@ end = struct
                        | showBindInfosSI n ([], si) = ("", si)
                      val (nStr, si) = showBindInfosSI 1 (nested,si)
                   in
+                    if not visible then (str, si) else
                     (str ^
                      "\n  " ^ ST.getString(!SymbolTables.varTable, name) ^
                      tStr ^ wStr ^ nStr ^ uStr
@@ -761,14 +776,14 @@ end = struct
 
          val (monoTVars, monoBVars) = Scope.getMonoVars env
          val (usesTVars, usesBVars) = Scope.getVarsUses (sym, env)
-         val funBVars = BD.union (texpBVarset (t,usesBVars),
+         val funBVars = texpBVarset (t,
                            BD.union (monoBVars, usesBVars))
                            
          val (scs, state) = env
          val bFun = BD.projectOnto (funBVars,Scope.getFlow state)
          val bFunRem = if reduceToMono then BD.projectOnto (monoBVars,bFun)
                        else bFun
-         (*val _ = TextIO.print ("projecting for " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showType t ^ " onto " ^ BD.setToString funBVars ^ ", mono " ^ BD.setToString monoBVars ^"\n")*)
+         (*val _ = TextIO.print ("projecting for " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showType t ^ " where \n" ^ toString env)*)
          val groupTVars = texpVarset (t,Scope.getVars env)
          val sCons = SC.filter (groupTVars, Scope.getSize state)
          val state = Scope.setSize sCons (Scope.setFlow bFunRem state)
@@ -865,8 +880,10 @@ end = struct
          end
       | _ => raise InferenceBug
 
-   fun pushSymbol (sym, span, recordUsage, env) =
-      (case Scope.lookup (sym,env) of
+   fun pushSymbol (sym, span, recordUsage, env) = (
+      (*if SOME (SymbolTable.toInt sym)=debugSymbol then
+         TextIO.print ("pushSymbol debug symbol:\n" ^ toString env) else ();*)
+      case Scope.lookup (sym,env) of
           (_, SIMPLE {ty = t}) =>
          let
             val tNew = setFlagsToTop t
@@ -1271,7 +1288,7 @@ end = struct
    fun popToFunction (sym, env) =
       let
          (*val ctxt = getCtxt env
-         val _ = if List.all (fn x => SymbolTable.toInt x<>128) ctxt then () else
+         val _ = if List.all (fn x => SymbolTable.toInt x<>427) ctxt then () else
                  TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env)*)
          fun setType t (COMPOUND {ty = NONE, width, uses, nested}, cons) =
                (COMPOUND {ty = SOME t, width = width, uses = uses, nested = nested},
