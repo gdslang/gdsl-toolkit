@@ -53,20 +53,21 @@ struct rreil_statement {
 			struct rreil_statements *body;
 		} while_;
 		struct {
-			struct rreil_sexpr cond;
+			struct rreil_sexpr *cond;
 			struct rreil_address *target_true;
 			struct rreil_address *target_false;
 		} cbranch;
 		struct {
-			enum rreil_branch_hint hint;
-			struct rreil_address *target_false;
+			enum rreil_branch_hint *hint;
+			struct rreil_address *target;
 		} branch;
 	};
 };
 
 struct rreil_statements {
-	struct rreil_statement *statements;
+	struct rreil_statement **statements;
 	size_t statements_length;
+	size_t statements_size;
 };
 
 #endif /* RREIL_STATEMENT_H_ */

@@ -40,3 +40,9 @@ x86-tester/x86-generator/Debug/
 x86-tester/rreil/.cproject
 x86-tester/rreil/.project
 x86-tester/rreil/Debug/
+
+x86-tester/x86-tester/.cproject
+x86-tester/x86-tester/.project
+x86-tester/x86-tester/Debug/
+
+lib/

@@ -711,29 +711,55 @@ static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_sexpr_t *cond,
 }
 static gdrr_sem_stmt_t *sem_while(void *closure, gdrr_sem_linear_t *cond,
 		gdrr_sem_stmts_t *body) {
-	printf("while\n");
-	return NULL;
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_WHILE;
+	statement->while_.cond = (struct rreil_sexpr*)cond;
+	statement->while_.body = (struct rreil_statements*)body;
+	return (gdrr_sem_stmt_t*)statement;
 }
 static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_linear_t *cond,
 		gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false) {
-	printf("cbranch\n");
-	return NULL;
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_CBRANCH;
+	statement->cbranch.cond = (struct rreil_sexpr*)cond;
+	statement->cbranch.target_true = (struct rreil_address*)target_true;
+	statement->cbranch.target_false = (struct rreil_address*)target_false;
+	return (gdrr_sem_stmt_t*)statement;
 }
 static gdrr_sem_stmt_t *sem_branch(void *closure,
 		gdrr_sem_branch_hint_t *branch_hint, gdrr_sem_address_t *target) {
-	printf("branch\n");
-	return NULL;
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_BRANCH;
+	statement->branch.hint = (enum rreil_branch_hint*)branch_hint;
+	statement->branch.target = (struct rreil_address*)target;
+	return (gdrr_sem_stmt_t*)statement;
 }
 
 // sem_stmts
 static gdrr_sem_stmts_t *list_next(void *closure, gdrr_sem_stmt_t *next,
 		gdrr_sem_stmts_t *list) {
-	printf("next statement\n\n");
-	return NULL;
+	struct rreil_statements *statements = (struct rreil_statements*)list;
+	if(statements->statements_length + 1 > statements->statements_size) {
+		statements->statements_size =
+				statements->statements_size ? statements->statements_size << 1 : 4;
+		statements->statements = (struct rreil_statement**)realloc(
+				statements->statements,
+				statements->statements_size * sizeof(struct rreil_statement*));
+	}
+	statements->statements[statements->statements_length++] =
+			(struct rreil_statement*)next;
+	return (gdrr_sem_stmts_t*)statements;
 }
 static gdrr_sem_stmts_t *list_init(void *closure) {
-	printf("init\n");
-	return NULL;
+	struct rreil_statements *statements = (struct rreil_statements*)malloc(
+			sizeof(struct rreil_statements));
+	statements->statements = NULL;
+	statements->statements_length = 0;
+	statements->statements_size = 0;
+	return (gdrr_sem_stmts_t*)statements;
 }
 
 struct gdrr_config *rreil_gdrr_builder_config_get() {
