@@ -3,6 +3,9 @@ structure ImpFromCore : sig
    val run:
       Core.Spec.t ->
          Imp.Spec.t CompilationMonad.t
+
+   val prim_table : (string * (Imp.exp list -> Imp.exp)) list
+
 end = struct
 
    structure CM = CompilationMonad
@@ -12,12 +15,13 @@ end = struct
    open Core
    open Imp
 
-   fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
-   val prim_fun_table = foldl SymMap.insert' SymMap.empty
+   val prim_table =
       let
+         fun pr (prim,ty,args) = PRIexp (PUREmonkind, prim, ty, args)
          fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
          fun boxI arg = BOXexp (INTvtype, arg)
          fun boxB arg = BOXexp (BITvtype 1, arg)
+         fun boxV arg = BOXexp (VOIDvtype, arg)
          fun ftype args res = FUNvtype { result = res, closure = [], args = args }
          val iii = ftype [INTvtype, INTvtype] INTvtype
          val sv =  ftype [STRINGvtype] VOIDvtype
@@ -29,48 +33,41 @@ end = struct
          val is =  ftype [INTvtype] STRINGvtype
          val os =  ftype [OBJvtype] STRINGvtype
          val oiio = ftype [OBJvtype, INTvtype, INTvtype] OBJvtype
-      in [
-         (get "raise", fn args => PRIexp (RAISEprim,sv,args)),
-         (get (Atom.toString Op.andAlso), fn args => PRIexp (ANDprim,ooo,args)),
-         (get (Atom.toString Op.orElse), fn args => PRIexp (ORprim,ooo,args)),
-         (get "sx", fn args => PRIexp (SIGNEDprim,oi,args)),
-         (get "zx", fn args => PRIexp (UNSIGNEDprim,oi,args)),
-         (get "+", fn args => boxI (PRIexp (ADDprim,iii,unboxI args))),
-         (get "-", fn args => boxI (PRIexp (SUBprim,iii,unboxI args))),
-         (get "===", fn args => boxB (PRIexp (EQprim,iib,unboxI args))),
-         (get "*", fn args => boxI (PRIexp (MULprim,iii,unboxI args))),
-         (get "<", fn args => boxB (PRIexp (LTprim,iib,unboxI args))),
-         (get ">", fn args => boxB (PRIexp (LTprim,iib,unboxI (rev args)))),
-         (get "<=", fn args => boxB (PRIexp (LEprim,iib,unboxI args))),
-         (get ">=", fn args => boxB (PRIexp (LEprim,iib,unboxI (rev args)))),
-         (get "not", fn args => PRIexp (NOT_VECprim,oo,args)),
-         (get "==", fn args => boxB (PRIexp (EQ_VECprim,oob,args))),
-         (get "^", fn args => PRIexp (CONCAT_VECprim,ooo,args)),
-         (get "showint", fn args => PRIexp (INT_TO_STRINGprim,is,unboxI args)),
-         (get "showbitvec", fn args => PRIexp (BITVEC_TO_STRINGprim,os,args)),
-         (get "+++", fn args => PRIexp (CONCAT_STRINGprim,ooo,args)),
-         (get "slice", fn args => (case args of
-             [sz,ofs,vec] => PRIexp (SLICEprim,oiio,unboxI [sz,ofs] @ [vec])
-           | _ => raise ImpTranslationBug)),
-         (get "index", fn args => PRIexp (INDEXprim,oi,args))
-         ]
-      end
-   
-   val prim_state_table = foldl SymMap.insert' SymMap.empty
-      let
-         fun boxI arg = BOXexp (INTvtype, arg)
-         fun ftype args res = FUNvtype { result = res, closure = [], args = args }
          val ov =  ftype [OBJvtype] VOIDvtype
-         val vi = ftype [OBJvtype] INTvtype
+         val i = ftype [] INTvtype
+         val v = ftype [] VOIDvtype
       in [
-         (get "ipget", fn (res,args) => STATEstmt (res,INmonkind,IPGETprim,vi,args)),
-         (get "consume8", fn (res,args) => STATEstmt (res,INOUTmonkind,CONSUME8prim,vi,args)),
-         (get "consume16", fn (res,args) => STATEstmt (res,INOUTmonkind,CONSUME16prim,vi,args)),
-         (get "consume32", fn (res,args) => STATEstmt (res,INOUTmonkind,CONSUME32prim,vi,args)),
-         (get "unconsume8", fn (res,args) => STATEstmt (res,INOUTmonkind,UNCONSUME8prim,vi,args)),
-         (get "unconsume16", fn (res,args) => STATEstmt (res,INOUTmonkind,UNCONSUME16prim,vi,args)),
-         (get "unconsume32", fn (res,args) => STATEstmt (res,INOUTmonkind,UNCONSUME32prim,vi,args)),
-         (get "println", fn (res,args) => STATEstmt (res,INmonkind,PRINTLNprim,ov,args))
+         ("raise", fn args => pr (RAISEprim,sv,args)),
+         ((Atom.toString Op.andAlso), fn args => pr (ANDprim,ooo,args)),
+         ((Atom.toString Op.orElse), fn args => pr (ORprim,ooo,args)),
+         ("sx", fn args => pr (SIGNEDprim,oi,args)),
+         ("zx", fn args => pr (UNSIGNEDprim,oi,args)),
+         ("+", fn args => boxI (pr (ADDprim,iii,unboxI args))),
+         ("-", fn args => boxI (pr (SUBprim,iii,unboxI args))),
+         ("===", fn args => boxB (pr (EQprim,iib,unboxI args))),
+         ("*", fn args => boxI (pr (MULprim,iii,unboxI args))),
+         ("<", fn args => boxB (pr (LTprim,iib,unboxI args))),
+         (">", fn args => boxB (pr (LTprim,iib,unboxI (rev args)))),
+         ("<=", fn args => boxB (pr (LEprim,iib,unboxI args))),
+         (">=", fn args => boxB (pr (LEprim,iib,unboxI (rev args)))),
+         ("not", fn args => pr (NOT_VECprim,oo,args)),
+         ("==", fn args => boxB (pr (EQ_VECprim,oob,args))),
+         ("^", fn args => pr (CONCAT_VECprim,ooo,args)),
+         ("showint", fn args => pr (INT_TO_STRINGprim,is,unboxI args)),
+         ("showbitvec", fn args => pr (BITVEC_TO_STRINGprim,os,args)),
+         ("+++", fn args => pr (CONCAT_STRINGprim,ooo,args)),
+         ("slice", fn args => (case args of
+             [vec,ofs,sz] => pr (SLICEprim,oiio,[vec] @ unboxI [ofs,sz])
+           | _ => raise ImpTranslationBug)),
+         ("index", fn args => pr (INDEXprim,oi,args)),
+         ("ipget", fn args => boxI (PRIexp (INmonkind,IPGETprim,i,args))),
+         ("consume8", fn args => boxI (PRIexp (INOUTmonkind,CONSUME8prim,i,args))),
+         ("consume16", fn args => boxI (PRIexp (INOUTmonkind,CONSUME16prim,i,args))),
+         ("consume32", fn args => boxI (PRIexp (INOUTmonkind,CONSUME32prim,i,args))),
+         ("unconsume8", fn args => boxV (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args))),
+         ("unconsume16", fn args => boxV (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args))),
+         ("unconsume32", fn args => boxV (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args))),
+         ("println", fn args => boxV (PRIexp (INmonkind,PRINTLNprim,ov,args)))
          ]
       end
    
@@ -121,13 +118,13 @@ end = struct
      | freeVars _ = SymSet.empty
 
 
-   fun addLocalVar { globalVars = gv, localVars = lv, declVars = ds, mutables = ms } sym =
+   fun addLocalVar { globalVars = gv, localVars = lv, declVars = ds, constants = cs } sym =
       let
          val _ = ds := SymSet.add (!ds, sym)
       in
-         { globalVars = gv, localVars = SymSet.add (lv,sym), declVars = ds, mutables = ms }
+         { globalVars = gv, localVars = SymSet.add (lv,sym), declVars = ds, constants = cs }
       end
-   fun genTmpVar { globalVars = gv, localVars = lv, declVars = ds, mutables = ms } =
+   fun genTmpVar { globalVars = gv, localVars = lv, declVars = ds, constants = cs } =
       let
          val tab = !SymbolTables.varTable
          val (tab, sym) = SymbolTable.fresh (tab, Atom.atom "tmp")
@@ -136,30 +133,31 @@ end = struct
        in
          sym
       end
-   fun withNewDeclVars { globalVars = gv, localVars = lv, declVars = ds, mutables = ms } f =
+   fun withNewDeclVars { globalVars = gv, localVars = lv, declVars = ds, constants = cs } f =
       let
          val localDs = ref SymSet.empty
-         val res = f { globalVars = gv, localVars = lv, declVars = localDs, mutables = ms }
+         val res = f { globalVars = gv, localVars = lv, declVars = localDs, constants = cs }
       in
          (res, !localDs)
       end
-   fun addGlobal { globalVars = gv, localVars = lv, declVars = ds, mutables = ms } v =
-      { globalVars = SymSet.add (gv,v), localVars = lv, declVars = ds, mutables = ms }
+   fun addGlobal { globalVars = gv, localVars = lv, declVars = ds, constants = cs } v =
+      { globalVars = SymSet.add (gv,v), localVars = lv, declVars = ds, constants = cs }
    
    (* functions operating on the mutable variables *)
-   fun addFunction { globalVars = gv, localVars = lv, declVars = ds, mutables = ms } decl =
+   fun addFunction { globalVars = gv, localVars = lv, declVars = ds, constants = cs } decl =
       let
-         val { functions = fs, updates = us, queries = qs, records = rs } = ms
+         val { functions = fs, updates, queries, records, prim_map } = cs
       in
          fs := decl :: !fs
       end
    fun addUpdate s fields =
       let
-         val tab = !SymbolTables.varTable
+         val ftab = !SymbolTables.fieldTable
          val name = Atom.atom (foldl
-                     (fn ((ty,sym), str) =>
-                        str ^ "_" ^ SymbolTable.getInternalString (tab,sym))
+                     (fn (sym, str) =>
+                        str ^ "_" ^ SymbolTable.getInternalString (ftab,sym))
                      "update" fields)
+         val tab = !SymbolTables.varTable
       in
          case SymbolTable.find (tab, name) of
             NONE =>
@@ -173,15 +171,33 @@ end = struct
       end
    fun addSelect s field =
       let
-         val tab = !SymbolTables.varTable
+         val ftab = !SymbolTables.fieldTable
          val name = Atom.atom ("select_" ^ 
-                               SymbolTable.getInternalString (tab,field))
+                               SymbolTable.getInternalString (ftab,field))
+         val tab = !SymbolTables.varTable
       in
          case SymbolTable.find (tab, name) of
             NONE =>
                let
                   val (tab, sym) = SymbolTable.fresh (tab, name)
-                  val _ = SymbolTables.varTable := tab
+                  val _ = SymbolTables.varTable := tab                        
+               in
+                  sym
+               end
+          | SOME sym => sym
+      end
+   fun addConFun s con =
+      let
+         val ctab = !SymbolTables.conTable
+         val name = Atom.atom ("constructor_" ^ 
+                               SymbolTable.getInternalString (ctab,con))
+         val tab = !SymbolTables.varTable
+      in
+         case SymbolTable.find (tab, name) of
+            NONE =>
+               let
+                  val (tab, sym) = SymbolTable.fresh (tab, name)
+                  val _ = SymbolTables.varTable := tab                        
                in
                   sym
                end
@@ -193,7 +209,7 @@ end = struct
          val (bStmts, bExp) = trExpr (addLocalVar s x) b
          val (eStmts, eExp) = trExpr s e
       in
-         (bStmts @ ASSIGNstmt (x,bExp) :: eStmts, eExp)
+         (bStmts @ ASSIGNstmt (SOME x,bExp) :: eStmts, eExp)
       end
      | trExpr s (Exp.LETREC (ds, e)) =
       let
@@ -209,9 +225,9 @@ end = struct
          val res = genTmpVar s
          val (cStmts, cExp) = trExpr s c
          val (tStmts, tExp) = trExpr s t
-         val tStmts = tStmts @ [ASSIGNstmt (res, tExp)]
+         val tStmts = tStmts @ [ASSIGNstmt (SOME res, tExp)]
          val (eStmts, eExp) = trExpr s e
-         val eStmts = eStmts @ [ASSIGNstmt (res, eExp)]
+         val eStmts = eStmts @ [ASSIGNstmt (SOME res, eExp)]
       in
          (cStmts @ [IFstmt (cExp, tStmts, eStmts)], IDexp res)
       end
@@ -223,7 +239,7 @@ end = struct
             let
                val (stmts, exp) = trExpr s e
             in
-               (pat, stmts @ [ASSIGNstmt (res,exp)])
+               (pat, stmts @ [ASSIGNstmt (SOME res,exp)])
             end
          val cases = map trCase cs
       in
@@ -236,19 +252,12 @@ end = struct
             case trExpr s arg of (stmts, argExp) =>
             (stmtss @ stmts, args @ [argExp])) ([],[]) args
       in
-         (stmtss, INVOKEexp (funcExp, argExps))
+         (stmtss, STATEexp (INVOKEexp (funcExp, argExps)))
       end
      | trExpr s (Exp.PRI (name, args)) =
-         (case SymMap.find (prim_fun_table, name) of
+         (case SymMap.find (#prim_map (#constants s), name) of
             SOME gen => ([], gen (map IDexp args))
-          | NONE => (case SymMap.find (prim_state_table, name) of
-             SOME gen =>
-               let
-                  val res = genTmpVar s
-               in
-                  ([gen (res,map IDexp args)], IDexp res)
-               end
-           | NONE => raise ImpTranslationBug))
+          | NONE => raise ImpTranslationBug)
      | trExpr s (Exp.FN (var, e)) =
       let
          val tab = !SymbolTables.varTable
@@ -256,7 +265,7 @@ end = struct
          val _ = SymbolTables.varTable := tab
          val fType = trDecl (addLocalVar s var) (sym, [var], e)
       in
-         ([], CLOSUREexp (fType, sym, [(OBJvtype, var)]))
+         ([], CLOSUREexp (fType, sym, [IDexp var]))
       end
      | trExpr s (Exp.RECORD fs) =
       let
@@ -272,20 +281,19 @@ end = struct
      | trExpr s (Exp.UPDATE us) =
       let
          (* evaluate expressions in the sequence as they were specified
-            by then generate an update function with sorted arguments *)
+            by and then generate an update function with sorted arguments *)
          fun trans acc res [] = (acc,res)
            | trans acc res ((f,e) :: es) = (case trExpr s e of
               (stmts, e') => trans (acc @ stmts) (res @ [(f,e')]) es)
          val (stmts, unsortedUpdates) = trans [] [] us
          fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
-         val args = map (fn (f,_) => (OBJvtype,f)) updates
-         val updateFun = addUpdate s args
+         val updateFun = addUpdate s (map (fn (f,_) => f) updates)
          val fType = FUNvtype { result = OBJvtype,
-                                closure = map (fn (t,_) => t) args,
+                                closure = map (fn _ => OBJvtype) updates,
                                 args = [OBJvtype] }
       in
-         (stmts, CLOSUREexp (fType, updateFun, args))
+         (stmts, CLOSUREexp (fType, updateFun, map (fn (_,e) => e) updates))
       end
      | trExpr s (Exp.SELECT f) =
       let
@@ -299,29 +307,40 @@ end = struct
                let
                   val (stmts, exp) = trExpr s e
                in
-                  (stmts @ acc, exp)
+                  (acc @ stmts, exp)
                end
            | transSeq s acc ((Exp.ACTION e) :: seq) =
                let
                   val (stmts, exp) = trExpr s e
+                  val stmtss = acc @ stmts @ [ASSIGNstmt (NONE,(EXECexp exp))]
                in
-                  transSeq s (stmts @ acc) seq
+                  transSeq s stmtss seq
                end
-           | transSeq s acc ((Exp.BIND (sym,e)) :: seq) =
+           | transSeq s acc ((Exp.BIND (res,e)) :: seq) =
                let
                   val (stmts, exp) = trExpr s e
+                  val stmtss = acc @ stmts @ [ASSIGNstmt (SOME res,(EXECexp exp))]
                in
-                  transSeq s (stmts @ acc) seq
+                  transSeq s stmtss seq
                end
            | transSeq s acc _ = raise ImpTranslationBug
       in
          transSeq s [] seq
       end
-     | trExpr s (Exp.LIT lit) = ([], LITexp lit)
+     | trExpr s (Exp.LIT lit) =
+      let
+         val vtype = case lit of
+            (SpecAbstractTree.INTlit i) => INTvtype
+          | (SpecAbstractTree.FLTlit i) => VOIDvtype
+          | (SpecAbstractTree.STRlit i) => STRINGvtype
+          | (SpecAbstractTree.VEClit v) => BITvtype (String.size v)
+      in
+         ([], BOXexp (vtype, LITexp (vtype,lit)))
+      end
      | trExpr s (Exp.CON sym) =
       (case SymMap.find (!constructors, sym) of
          NONE => ([], BOXexp (INTvtype, CONexp sym))
-       | SOME _ =>  ([], CLOSUREexp (OBJvtype, sym, []))
+       | SOME _ =>  ([], CLOSUREexp (OBJvtype, addConFun s sym, []))
        )
      | trExpr s (Exp.ID sym) = ([], IDexp sym)
    and trDecl s (sym, args, body) =
@@ -354,10 +373,10 @@ end = struct
 
    fun translate spec =
       Spec.upd
-         (fn cs =>
+         (fn clauses =>
             let
                val () = constructors := Spec.get#constructors spec
-               fun exports cs =
+               fun exports clauses =
                   rev (foldl
                      (fn ((f, _, _), acc) => 
                         let
@@ -365,7 +384,7 @@ end = struct
                         in
                            (fld, Exp.ID f)::acc
                         end)
-                     [] cs)
+                     [] clauses)
                fun exports spec =
                   let 
                      val es = Spec.get#exports spec
@@ -376,19 +395,26 @@ end = struct
                val us = ref ([] : decl list)
                val qs = ref ([] : decl list)
                val rs = ref ([] : decl list)
-               val ms = { functions = fs,
+
+               fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
+               val prim_map =
+                  foldl (fn ((k,v),m) => SymMap.insert (m,get k,v))
+                     SymMap.empty prim_table
+
+               val cs = { functions = fs,
                           updates = us,
                           queries = qs,
-                          records = rs }
+                          records = rs,
+                          prim_map = prim_map }
                val initialState = { globalVars = SymSet.empty,
                                     localVars = SymSet.empty,
                                     declVars = ref SymSet.empty,
-                                    mutables = ms
+                                    constants = cs
                                    }
                val bogusExp = Exp.LIT (SpecAbstractTree.INTlit 42)
-               val _ = trExpr initialState (Exp.LETREC (cs, bogusExp))
+               val _ = trExpr initialState (Exp.LETREC (clauses, bogusExp))
             in
-               !(#functions ms) 
+               { decls = !(#functions cs) }
             end) spec
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)

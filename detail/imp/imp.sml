@@ -21,7 +21,7 @@ structure Imp = struct
 
    type arg = vtype * sym
 
-   datatype prim_state =
+   datatype prim =
          IPGETprim
        | CONSUME8prim
        | CONSUME16prim
@@ -30,9 +30,7 @@ structure Imp = struct
        | UNCONSUME16prim
        | UNCONSUME32prim
        | PRINTLNprim
-   
-   datatype prim_fun =
-         RAISEprim
+       | RAISEprim
        | ANDprim
        | ORprim
        | SIGNEDprim
@@ -53,35 +51,34 @@ structure Imp = struct
        | INDEXprim
 
    (* information on how to print primitives, the name is the C name
-      while the priority is the operator precedence, 0 if not infix *)
-   fun prim_fun_info RAISEprim = { name = "__raise", prio = 0 }
-     | prim_fun_info ANDprim = { name = "&", prio = 10 }
-     | prim_fun_info ORprim = { name = "|", prio = 12 }
-     | prim_fun_info SIGNEDprim = { name = "__sx", prio = 0 }
-     | prim_fun_info UNSIGNEDprim = { name = "__zx", prio = 0 }
-     | prim_fun_info ADDprim = { name = "+", prio = 6 }
-     | prim_fun_info SUBprim = { name = "-", prio = 6 }
-     | prim_fun_info EQprim = { name = "==", prio = 9 }
-     | prim_fun_info MULprim = { name = "*", prio = 5 }
-     | prim_fun_info LTprim = { name = "<", prio = 8 }
-     | prim_fun_info LEprim = { name = "<=", prio = 8 }
-     | prim_fun_info NOT_VECprim = { name = "__not", prio = 0 }
-     | prim_fun_info EQ_VECprim = {name = "__equal", prio = 0 }
-     | prim_fun_info CONCAT_VECprim = { name = "__concat", prio = 0 }
-     | prim_fun_info INT_TO_STRINGprim = { name = "__showint", prio = 0 }
-     | prim_fun_info BITVEC_TO_STRINGprim  = { name = "__showbitvec", prio = 0 }
-     | prim_fun_info CONCAT_STRINGprim = { name = "__concatstring", prio = 0 }
-     | prim_fun_info SLICEprim = { name = "__slice", prio = 0 }
-     | prim_fun_info INDEXprim = { name = "__index", prio = 0 }
-
-   fun prim_state_info IPGETprim = "__ipget"
-     | prim_state_info CONSUME8prim = "__consume8"
-     | prim_state_info CONSUME16prim = "__consume16"
-     | prim_state_info CONSUME32prim = "__consume32"
-     | prim_state_info UNCONSUME8prim = "__unconsume8"
-     | prim_state_info UNCONSUME16prim = "__unconsume16"
-     | prim_state_info UNCONSUME32prim = "__consume32"
-     | prim_state_info PRINTLNprim = "__println"
+      and the priority is the operator precedence, 0 if not infix *)
+   fun prim_info RAISEprim = { name = "__raise", prio = 0 }
+     | prim_info ANDprim = { name = "&", prio = 10 }
+     | prim_info ORprim = { name = "|", prio = 12 }
+     | prim_info SIGNEDprim = { name = "__sx", prio = 0 }
+     | prim_info UNSIGNEDprim = { name = "__zx", prio = 0 }
+     | prim_info ADDprim = { name = "+", prio = 6 }
+     | prim_info SUBprim = { name = "-", prio = 6 }
+     | prim_info EQprim = { name = "==", prio = 9 }
+     | prim_info MULprim = { name = "*", prio = 5 }
+     | prim_info LTprim = { name = "<", prio = 8 }
+     | prim_info LEprim = { name = "<=", prio = 8 }
+     | prim_info NOT_VECprim = { name = "__not", prio = 0 }
+     | prim_info EQ_VECprim = {name = "__equal", prio = 0 }
+     | prim_info CONCAT_VECprim = { name = "__concat", prio = 0 }
+     | prim_info INT_TO_STRINGprim = { name = "__showint", prio = 0 }
+     | prim_info BITVEC_TO_STRINGprim  = { name = "__showbitvec", prio = 0 }
+     | prim_info CONCAT_STRINGprim = { name = "__concatstring", prio = 0 }
+     | prim_info SLICEprim = { name = "__slice", prio = 0 }
+     | prim_info INDEXprim = { name = "__index", prio = 0 }
+     | prim_info IPGETprim = { name = "__ipget", prio = 0 }
+     | prim_info CONSUME8prim = { name = "__consume8", prio = 0 }
+     | prim_info CONSUME16prim = { name = "__consume16", prio = 0 }
+     | prim_info CONSUME32prim = { name = "__consume32", prio = 0 }
+     | prim_info UNCONSUME8prim = { name = "__unconsume8", prio = 0 }
+     | prim_info UNCONSUME16prim = { name = "__unconsume16", prio = 0 }
+     | prim_info UNCONSUME32prim = { name = "__consume32", prio = 0 }
+     | prim_info PRINTLNprim = { name = "__println", prio = 0 }
 
    (*
    * fun f x =
@@ -118,26 +115,30 @@ structure Imp = struct
       IDexp of sym
     | CONexp of sym (* constructor constant symbol *)
     | CONFUNexp of sym (* constructor function *)
-    | PRIexp of prim_fun * vtype * exp list
+    | PRIexp of monkind * prim * vtype * exp list
     | CALLexp of exp * exp list (* callee is unboxed *)
     | INVOKEexp of exp * exp list (* callee is a closure *)
     | RECORDexp of (sym * exp) list
-    | LITexp of lit
+    | LITexp of vtype * lit
     | BOXexp of vtype * exp
     | UNBOXexp of vtype * exp
-    | CLOSUREexp of vtype * sym * arg list
+    | CLOSUREexp of vtype * sym * exp list
+    | STATEexp of exp (* generate closure that expects a state *)
+    | EXECexp of exp (* apply the state to the closure *)
 
    and stmt =
-      ASSIGNstmt of sym * exp
+      ASSIGNstmt of sym option * exp
     | IFstmt of exp * stmt list * stmt list
     | CASEstmt of exp * (Core.Pat.t * stmt list) list
-    | STATEstmt of sym * monkind * prim_state * vtype * exp list
 
    type decls = decl list
 
+   type imp = {
+      decls : decl list
+   }
    structure Spec = struct
       open Spec
-      type t = decls Spec.t
+      type t = imp Spec.t
    end
 
    structure PP = struct
@@ -154,9 +155,9 @@ structure Imp = struct
         | vtype (FUNvtype _) = str "function"
       fun arg (t,n) = seq [vtype t, space, var n]
       fun args (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
-      fun monkind PUREmonkind = str "pure"
-        | monkind INmonkind = str "readonly"
-        | monkind INOUTmonkind = str "readwrite"
+      fun monarg PUREmonkind = ")"
+        | monarg INmonkind = ",$)"
+        | monarg INOUTmonkind = ",$$)"
       fun decl (FUNCdecl {
            funcMonadic,
            funcClosure,
@@ -168,11 +169,11 @@ structure Imp = struct
            funcRes
          }) =
             align [
-               seq ([monkind funcMonadic, space, vtype funcType, space,
+               seq ([vtype funcType, space,
                    var funcName] @
                    (if null funcClosure then [] else
                      args ("[", arg, funcClosure, "]")) @
-                   (args ("(", arg, funcArgs, ")"))
+                   (args ("(", arg, funcArgs, monarg funcMonadic))
                ),
                indent 3 (align (
                   map vardecl funcLocals @
@@ -182,21 +183,24 @@ structure Imp = struct
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
       and exp (IDexp sym) = var sym
         | exp (CONexp sym) = con sym
-        | exp (CONFUNexp sym) = con sym
-        | exp (PRIexp (p,t,es)) =
-            seq (vtype t :: space :: str (#name (prim_fun_info p)) ::
-               args ("(",exp,es,")"))
+        | exp (CONFUNexp sym) = var sym
+        | exp (PRIexp (m,p,t,es)) =
+            seq (vtype t :: space :: str "prim" :: space ::
+              str (#name (prim_info p)) :: args ("(",exp,es,monarg m))
         | exp (CALLexp (f,es)) = seq (exp f :: args ("(",exp,es,")"))
         | exp (INVOKEexp (f,es)) = seq (str "*" :: exp f :: args ("(",exp,es,")"))
         | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
-        | exp (LITexp l) = SpecAbstractTree.PP.lit l
+        | exp (LITexp (_,l)) = SpecAbstractTree.PP.lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]
         | exp (UNBOXexp (t,e)) = seq [str "unbox[", vtype t, str "](", exp e, str ")"]
         | exp (CLOSUREexp (t,s,es)) =
          seq ([vtype t, space, str "closure", space, var s] @
-              args ("[",arg,es,"]"))
+              args ("[",exp,es,"]"))
+        | exp (STATEexp e) = seq [str "(fn $ => ", exp e, str ")"]
+        | exp (EXECexp e) = seq [exp e, str "($)"]
       and stmts ss = align (map stmt ss)
-      and stmt (ASSIGNstmt (s,e)) = def (var s, exp e)
+      and stmt (ASSIGNstmt (SOME s,e)) = seq [var s, space, str "=", space, exp e]
+        | stmt (ASSIGNstmt (NONE,e)) = exp e
         | stmt (IFstmt (c,t,e)) =
             align [
                seq [str "if", space, exp c, space, str "then"],
@@ -206,10 +210,6 @@ structure Imp = struct
             ]
         | stmt (CASEstmt (e, cs)) = align
             [seq [str "case", space, exp e, space, str "of"], cases cs]
-        | stmt (STATEstmt (r,m,p,t,es)) = seq
-            ([var r, space, str "=", space, monkind m, vtype t, space,
-              str (prim_state_info p)] @
-             args ("(",exp,es,")"))
       and casee (p, ss) =
          align
             [seq [Core.PP.pat p, space, str ":"],
@@ -221,7 +221,8 @@ structure Imp = struct
       and def (intro, body) =
          align [seq [intro, space, str "="], indent 3 body]
       fun decls ds = align (map decl ds)
-      val pretty = Pretty.pretty o decls
-      val spec = Spec.PP.spec decls
+      fun imp { decls = ds } = decls ds
+      val pretty = Pretty.pretty o imp
+      val spec = Spec.PP.spec imp
    end
 end

@@ -1,7 +1,7 @@
 
 signature IMPCORE = sig
 
-   val run: Imp.decls -> Imp.decls
+   val run: Imp.imp -> Imp.imp
    val name: string
 
 end
@@ -11,13 +11,13 @@ functor MkIMPPass (Core: IMPCORE) = struct
    structure CM = CompilationMonad
 
    fun dumpPre (os, imp) =
-      Pretty.prettyTo (os, Imp.PP.decls imp)
+      Pretty.prettyTo (os, Imp.PP.imp imp)
    fun dumpPost (os, t) = let
       open Layout Pretty
       fun prettyPass imp = 
          align
             [seq [str "imp.", str Core.name],
-             Imp.PP.decls imp]
+             Imp.PP.imp imp]
    in
      Pretty.prettyTo (os, prettyPass t)
    end

@@ -60,6 +60,7 @@ group is
    ../../imp/imp-control.sml
    ../../imp/imp-from-core.sml
    ../../imp/mk-imp-pass.sml
+   ../../imp/imp-opt.sml
    ../../imp/imp-passes.sml
 
    ../../cps/cps.sml
