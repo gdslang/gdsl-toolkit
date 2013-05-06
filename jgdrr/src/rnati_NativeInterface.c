@@ -572,25 +572,25 @@ static gdrr_sem_stmt_t *sem_load(void *closure, gdrr_sem_var_t *lhs,
 			java_long_create(closure, (long)size), (jobject)address);
 	return (gdrr_sem_stmt_t*)ret;
 }
-static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_var_t *lhs,
+static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_address_t *address,
 		gdrr_sem_op_t *rhs) {
-	jobject ret = java_method_call(closure, "sem_store", 2, (jobject)lhs,
+	jobject ret = java_method_call(closure, "sem_store", 2, (jobject)address,
 			(jobject)rhs);
 	return (gdrr_sem_stmt_t*)ret;
 }
-static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch) {
 	jobject ret = java_method_call(closure, "sem_ite", 3, (jobject)cond,
 			(jobject)then_branch, (jobject)else_branch);
 	return (gdrr_sem_stmt_t*)ret;
 }
-static gdrr_sem_stmt_t *sem_while(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_while(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_stmts_t *body) {
 	jobject ret = java_method_call(closure, "sem_while", 2, (jobject)cond,
 			(jobject)body);
 	return (gdrr_sem_stmt_t*)ret;
 }
-static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false) {
 	jobject ret = java_method_call(closure, "sem_cbranch", 3, (jobject)cond,
 			(jobject)target_true, (jobject)target_false);

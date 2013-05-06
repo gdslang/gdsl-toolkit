@@ -15,6 +15,8 @@
 #include <rreil/rreil_sexpr.h>
 #include <rreil/rreil_branch_hint.h>
 
+struct rreil_statements;
+
 enum rreil_statement_type {
 	RREIL_STATEMENT_TYPE_ASSIGN,
 	RREIL_STATEMENT_TYPE_LOAD,
@@ -43,15 +45,12 @@ struct rreil_statement {
 		} store;
 		struct {
 			struct rreil_sexpr *cond;
-			struct rreil_statement *then_branch;
-			size_t then_branch_length;
-			struct rreil_statement *else_branch;
-			size_t else_branch_length;
+			struct rreil_statements *then_branch;
+			struct rreil_statements *else_branch;
 		} ite;
 		struct {
 			struct rreil_sexpr *cond;
-			struct rreil_statement *body;
-			size_t body_length;
+			struct rreil_statements *body;
 		} while_;
 		struct {
 			struct rreil_sexpr cond;
@@ -63,6 +62,11 @@ struct rreil_statement {
 			struct rreil_address *target_false;
 		} branch;
 	};
+};
+
+struct rreil_statements {
+	struct rreil_statement *statements;
+	size_t statements_length;
 };
 
 #endif /* RREIL_STATEMENT_H_ */

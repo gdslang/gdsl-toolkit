@@ -442,22 +442,22 @@ static gdrr_sem_stmt_t *sem_load(void *closure, gdrr_sem_var_t *lhs,
 	printf("load\n");
 	return NULL;
 }
-static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_var_t *lhs,
+static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_address_t *address,
 		gdrr_sem_op_t *rhs) {
 	printf("store\n");
 	return NULL;
 }
-static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch) {
 	printf("ite\n");
 	return NULL;
 }
-static gdrr_sem_stmt_t *sem_while(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_while(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_stmts_t *body) {
 	printf("while\n");
 	return NULL;
 }
-static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false) {
 	printf("cbranch\n");
 	return NULL;

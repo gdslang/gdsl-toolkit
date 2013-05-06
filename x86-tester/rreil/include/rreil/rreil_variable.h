@@ -12,7 +12,7 @@
 #include <rreil/rreil_id.h>
 
 struct rreil_variable {
-	struct rreil_id id;
+	struct rreil_id *id;
 	uint64_t offset;
 };
 

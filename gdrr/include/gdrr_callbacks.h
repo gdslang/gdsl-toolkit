@@ -97,13 +97,13 @@ struct gdrr_sem_stmt_callbacks {
 			gdrr_sem_op_t *rhs);
 	gdrr_sem_stmt_t *(*sem_load)(void *closure, gdrr_sem_var_t *lhs, __word size,
 			gdrr_sem_address_t *address);
-	gdrr_sem_stmt_t *(*sem_store)(void *closure, gdrr_sem_var_t *lhs,
+	gdrr_sem_stmt_t *(*sem_store)(void *closure, gdrr_sem_address_t *address,
 			gdrr_sem_op_t *rhs);
-	gdrr_sem_stmt_t *(*sem_ite)(void *closure, gdrr_sem_linear_t *cond,
+	gdrr_sem_stmt_t *(*sem_ite)(void *closure, gdrr_sem_sexpr_t *cond,
 			gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch);
-	gdrr_sem_stmt_t *(*sem_while)(void *closure, gdrr_sem_linear_t *cond,
+	gdrr_sem_stmt_t *(*sem_while)(void *closure, gdrr_sem_sexpr_t *cond,
 			gdrr_sem_stmts_t *body);
-	gdrr_sem_stmt_t *(*sem_cbranch)(void *closure, gdrr_sem_linear_t *cond,
+	gdrr_sem_stmt_t *(*sem_cbranch)(void *closure, gdrr_sem_sexpr_t *cond,
 			gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false);
 	gdrr_sem_stmt_t *(*sem_branch)(void *closure,
 			gdrr_sem_branch_hint_t *branch_hint, gdrr_sem_address_t *target);

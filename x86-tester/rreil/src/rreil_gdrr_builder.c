@@ -161,7 +161,7 @@ static gdrr_sem_id_t *sem_r14(void *closure) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_X86;
 	id->virtual = RREIL_ID_X86_R14;
-	return (gdrr_sem_id_t)id;
+	return (gdrr_sem_id_t*)id;
 }
 static gdrr_sem_id_t *sem_r15(void *closure) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
@@ -414,7 +414,7 @@ static gdrr_sem_var_t *sem_var(void *closure, gdrr_sem_id_t *id, __word offset) 
 			sizeof(struct rreil_variable));
 	variable->id = (struct rreil_id*)id;
 	variable->offset = offset;
-	return (gdrr_sem_var_t)variable;
+	return (gdrr_sem_var_t*)variable;
 }
 
 // sem_linear
@@ -422,7 +422,7 @@ static gdrr_sem_linear_t *sem_lin_var(void *closure, gdrr_sem_var_t *this) {
 	struct rreil_linear *linear = (struct rreil_linear*)malloc(
 			sizeof(struct rreil_linear));
 	linear->type = RREIL_LINEAR_TYPE_VARIABLE;
-	linear->variable = (struct rreil_variable)this;
+	linear->variable = (struct rreil_variable*)this;
 	return (gdrr_sem_linear_t*)linear;
 }
 static gdrr_sem_linear_t *sem_lin_imm(void *closure, __word imm) {
@@ -437,8 +437,8 @@ static gdrr_sem_linear_t *sem_lin_add(void *closure, gdrr_sem_linear_t *opnd1,
 	struct rreil_linear *linear = (struct rreil_linear*)malloc(
 			sizeof(struct rreil_linear));
 	linear->type = RREIL_LINEAR_TYPE_SUM;
-	linear->sum.opnd1 = (struct rreil_linear)opnd1;
-	linear->sum.opnd2 = (struct rreil_linear)opnd2;
+	linear->sum.opnd1 = (struct rreil_linear*)opnd1;
+	linear->sum.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_linear_t*)linear;
 }
 static gdrr_sem_linear_t *sem_lin_sub(void *closure, gdrr_sem_linear_t *opnd1,
@@ -446,8 +446,8 @@ static gdrr_sem_linear_t *sem_lin_sub(void *closure, gdrr_sem_linear_t *opnd1,
 	struct rreil_linear *linear = (struct rreil_linear*)malloc(
 			sizeof(struct rreil_linear));
 	linear->type = RREIL_LINEAR_TYPE_DIFFERENCE;
-	linear->difference.opnd1 = (struct rreil_linear)opnd1;
-	linear->difference.opnd2 = (struct rreil_linear)opnd2;
+	linear->difference.opnd1 = (struct rreil_linear*)opnd1;
+	linear->difference.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_linear_t*)linear;
 }
 static gdrr_sem_linear_t *sem_lin_scale(void *closure, __word imm,
@@ -456,7 +456,7 @@ static gdrr_sem_linear_t *sem_lin_scale(void *closure, __word imm,
 			sizeof(struct rreil_linear));
 	linear->type = RREIL_LINEAR_TYPE_SCALE;
 	linear->scale.imm = imm;
-	linear->scale.opnd = (struct rreil_linear)opnd;
+	linear->scale.opnd = (struct rreil_linear*)opnd;
 	return (gdrr_sem_linear_t*)linear;
 }
 
@@ -523,7 +523,7 @@ static gdrr_sem_op_cmp_t *sem_cmpltu(void *closure, __word size,
 // sem_op
 static gdrr_sem_op_t *sem_lin(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_LIN;
 	op->lin.size = size;
 	op->lin.opnd1 = (struct rreil_linear*)opnd1;
@@ -531,7 +531,7 @@ static gdrr_sem_op_t *sem_lin(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_mul(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_MUL;
 	op->mul.size = size;
 	op->mul.opnd1 = (struct rreil_linear*)opnd1;
@@ -540,7 +540,7 @@ static gdrr_sem_op_t *sem_mul(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_div(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_DIV;
 	op->div.size = size;
 	op->div.opnd1 = (struct rreil_linear*)opnd1;
@@ -549,7 +549,7 @@ static gdrr_sem_op_t *sem_div(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_divs(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_DIVS;
 	op->divs.size = size;
 	op->divs.opnd1 = (struct rreil_linear*)opnd1;
@@ -558,7 +558,7 @@ static gdrr_sem_op_t *sem_divs(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_mod(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_MOD;
 	op->mod.size = size;
 	op->mod.opnd1 = (struct rreil_linear*)opnd1;
@@ -567,7 +567,7 @@ static gdrr_sem_op_t *sem_mod(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_shl(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_SHL;
 	op->shl.size = size;
 	op->shl.opnd1 = (struct rreil_linear*)opnd1;
@@ -576,7 +576,7 @@ static gdrr_sem_op_t *sem_shl(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_shr(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_SHR;
 	op->shr.size = size;
 	op->shr.opnd1 = (struct rreil_linear*)opnd1;
@@ -585,7 +585,7 @@ static gdrr_sem_op_t *sem_shr(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_shrs(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_SHRS;
 	op->shrs.size = size;
 	op->shrs.opnd1 = (struct rreil_linear*)opnd1;
@@ -594,7 +594,7 @@ static gdrr_sem_op_t *sem_shrs(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_and(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_AND;
 	op->and.size = size;
 	op->and.opnd1 = (struct rreil_linear*)opnd1;
@@ -603,7 +603,7 @@ static gdrr_sem_op_t *sem_and(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_or(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_OR;
 	op->or.size = size;
 	op->or.opnd1 = (struct rreil_linear*)opnd1;
@@ -612,7 +612,7 @@ static gdrr_sem_op_t *sem_or(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_xor(void *closure, __word size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_XOR;
 	op->xor.size = size;
 	op->xor.opnd1 = (struct rreil_linear*)opnd1;
@@ -621,7 +621,7 @@ static gdrr_sem_op_t *sem_xor(void *closure, __word size,
 }
 static gdrr_sem_op_t *sem_sx(void *closure, __word size, __word fromsize,
 		gdrr_sem_linear_t *opnd1) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_SX;
 	op->sx.size = size;
 	op->sx.fromsize = fromsize;
@@ -630,7 +630,7 @@ static gdrr_sem_op_t *sem_sx(void *closure, __word size, __word fromsize,
 }
 static gdrr_sem_op_t *sem_zx(void *closure, __word size, __word fromsize,
 		gdrr_sem_linear_t *opnd1) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_ZX;
 	op->zx.size = size;
 	op->zx.fromsize = fromsize;
@@ -638,55 +638,76 @@ static gdrr_sem_op_t *sem_zx(void *closure, __word size, __word fromsize,
 	return (gdrr_sem_op_t*)op;
 }
 static gdrr_sem_op_t *sem_cmp(void *closure, gdrr_sem_op_cmp_t *this) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_CMP;
 	op->cmp = (struct rreil_comparator*)this;
 	return (gdrr_sem_op_t*)op;
 }
 static gdrr_sem_op_t *sem_arb(void *closure, __word size) {
-	struct rreil_op *op = (struct rreil_op)malloc(sizeof(struct rreil_op));
+	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_ARB;
 	op->arb.size = size;
 	return (gdrr_sem_op_t*)op;
 }
 
 // sem_branch_hint
-static gdrr_sem_branch_hint *hint_jump(void *closure) {
-	enum rreil_branch_hint *hint = (enum branch_hint*)malloc(sizeof(enum branch_hint));
+static gdrr_sem_branch_hint_t *hint_jump(void *closure) {
+	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
+			sizeof(enum rreil_branch_hint));
 	*hint = RREIL_BRANCH_HINT_JUMP;
-	return (gdrr_sem_branch_hint*)hint;
+	return (gdrr_sem_branch_hint_t*)hint;
 }
-static gdrr_sem_branch_hint *hint_call(void *closure) {
-	enum rreil_branch_hint *hint = (enum branch_hint*)malloc(sizeof(enum branch_hint));
+static gdrr_sem_branch_hint_t *hint_call(void *closure) {
+	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
+			sizeof(enum rreil_branch_hint));
 	*hint = RREIL_BRANCH_HINT_CALL;
-	return (gdrr_sem_branch_hint*)hint;
+	return (gdrr_sem_branch_hint_t*)hint;
 }
-static gdrr_sem_branch_hint *hint_ret(void *closure) {
-	enum rreil_branch_hint *hint = (enum branch_hint*)malloc(sizeof(enum branch_hint));
+static gdrr_sem_branch_hint_t *hint_ret(void *closure) {
+	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
+			sizeof(enum rreil_branch_hint));
 	*hint = RREIL_BRANCH_HINT_RET;
-	return (gdrr_sem_branch_hint*)hint;
+	return (gdrr_sem_branch_hint_t*)hint;
 }
 
 // sem_stmt
 static gdrr_sem_stmt_t *sem_assign(void *closure, gdrr_sem_var_t *lhs,
 		gdrr_sem_op_t *rhs) {
-	printf("assign\n");
-	return NULL;
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_ASSIGN;
+	statement->assign.lhs = (struct rreil_variable*)lhs;
+	statement->assign.rhs = (struct rreil_op*)rhs;
+	return (gdrr_sem_stmt_t*)statement;
 }
 static gdrr_sem_stmt_t *sem_load(void *closure, gdrr_sem_var_t *lhs,
 		__word size, gdrr_sem_address_t *address) {
-	printf("load\n");
-	return NULL;
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_LOAD;
+	statement->load.lhs = (struct rreil_variable*)lhs;
+	statement->load.size = size;
+	statement->load.address = (struct rreil_address*)address;
+	return (gdrr_sem_stmt_t*)statement;
 }
-static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_var_t *lhs,
+static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_address_t *address,
 		gdrr_sem_op_t *rhs) {
-	printf("store\n");
-	return NULL;
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_STORE;
+	statement->store.address = (struct rreil_address*)address;
+	statement->store.rhs = (struct rreil_op*)rhs;
+	return (gdrr_sem_stmt_t*)statement;
 }
-static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch) {
-	printf("ite\n");
-	return NULL;
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_ITE;
+	statement->ite.cond = (struct rreil_sexpr*)cond;
+	statement->ite.then_branch = (struct rreil_statements*)then_branch;
+	statement->ite.else_branch = (struct rreil_statements*)else_branch;
+	return (gdrr_sem_stmt_t*)statement;
 }
 static gdrr_sem_stmt_t *sem_while(void *closure, gdrr_sem_linear_t *cond,
 		gdrr_sem_stmts_t *body) {
@@ -699,7 +720,7 @@ static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_linear_t *cond,
 	return NULL;
 }
 static gdrr_sem_stmt_t *sem_branch(void *closure,
-		gdrr_sem_branch_hint *branch_hint, gdrr_sem_address_t *target) {
+		gdrr_sem_branch_hint_t *branch_hint, gdrr_sem_address_t *target) {
 	printf("branch\n");
 	return NULL;
 }
