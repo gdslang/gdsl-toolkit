@@ -57,7 +57,7 @@ int main(void) {
 
 			struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(r, config);
 
-			printf(":-)\n");
+			rreil_statements_free(statements);
 		}
 	}
 	return 0;
