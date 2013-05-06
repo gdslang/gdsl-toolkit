@@ -47,12 +47,28 @@ val lv-gen gens stmt =
           | SEM_LIN_SCALE x: visit-lin gens sz x.opnd
          end
 
+			val visit-sexpr gens sexpr =
+			  case sexpr of
+				   SEM_SEXPR_LIN l: visit-lin gens 1 l
+				 | SEM_SEXPR_CMP c: visit-op-cmp gens c
+				end
+
       val visit-arity1 gens x = visit-lin gens x.size x.opnd1
 
       val visit-arity2 gens x =
          lv-union
             (visit-lin gens x.size x.opnd1)
             (visit-lin gens x.size x.opnd2)
+
+			val visit-op-cmp gens cmp =
+			  case cmp of
+           SEM_CMPEQ x: visit-arity2 gens x
+         | SEM_CMPNEQ x: visit-arity2 gens x
+         | SEM_CMPLES x: visit-arity2 gens x
+         | SEM_CMPLEU x: visit-arity2 gens x
+         | SEM_CMPLTS x: visit-arity2 gens x
+         | SEM_CMPLTU x: visit-arity2 gens x
+			  end
 
       val visit-op gens op =
          case op of
@@ -70,12 +86,7 @@ val lv-gen gens stmt =
           | SEM_XOR x: visit-arity2 gens x
           | SEM_SX x: visit-lin gens x.fromsize x.opnd1
           | SEM_ZX x: visit-lin gens x.fromsize x.opnd1
-          | SEM_CMPEQ x: visit-arity2 gens x
-          | SEM_CMPNEQ x: visit-arity2 gens x
-          | SEM_CMPLES x: visit-arity2 gens x
-          | SEM_CMPLEU x: visit-arity2 gens x
-          | SEM_CMPLTS x: visit-arity2 gens x
-          | SEM_CMPLTU x: visit-arity2 gens x
+					| SEM_CMP c: visit-op-cmp gens c
           | SEM_ARB x: gens
          end
 
@@ -83,7 +94,7 @@ val lv-gen gens stmt =
 
       val visit-flow gens x =
          lv-union
-           (visit-lin gens 1 x.cond)
+           (visit-sexpr gens x.cond)
 					 (lv-union
              (visit-address gens x.target-true)
              (visit-address gens x.target-false))
@@ -93,8 +104,8 @@ val lv-gen gens stmt =
             SEM_ASSIGN x: visit-op gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
           | SEM_STORE x: visit-address gens x.address
-					| SEM_WHILE x: visit-lin gens 1 x.cond
-					| SEM_ITE x: visit-lin gens 1 x.cond
+					| SEM_WHILE x: visit-sexpr gens x.cond
+					| SEM_ITE x: visit-sexpr gens x.cond
 					| SEM_BRANCH x: visit-address gens x.target
 					| SEM_CBRANCH x: visit-flow gens x
 #          | SEM_LABEL x: gens

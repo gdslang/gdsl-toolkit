@@ -40,6 +40,26 @@ struct gdrr_sem_linear_callbacks {
 			gdrr_sem_linear_t *opnd);
 };
 
+struct gdrr_sem_sexpr_callbacks {
+	gdrr_sem_sexpr_t *(*sem_sexpr_lin)(void *closure, gdrr_sem_linear_t *this);
+	gdrr_sem_sexpr_t *(*sem_sexpr_cmp)(void *closure, gdrr_sem_op_cmp_t *this);
+};
+
+struct gdrr_sem_op_cmp_callbacks {
+	gdrr_sem_op_t *(*sem_cmpeq)(void *closure, __word size,
+			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+	gdrr_sem_op_t *(*sem_cmpneq)(void *closure, __word size,
+			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+	gdrr_sem_op_t *(*sem_cmples)(void *closure, __word size,
+			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+	gdrr_sem_op_t *(*sem_cmpleu)(void *closure, __word size,
+			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+	gdrr_sem_op_t *(*sem_cmplts)(void *closure, __word size,
+			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+	gdrr_sem_op_t *(*sem_cmpltu)(void *closure, __word size,
+			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+};
+
 struct gdrr_sem_op_callbacks {
 	gdrr_sem_op_t *(*sem_lin)(void *closure, __word size,
 			gdrr_sem_linear_t *opnd1);
@@ -67,18 +87,7 @@ struct gdrr_sem_op_callbacks {
 			gdrr_sem_linear_t *opnd1);
 	gdrr_sem_op_t *(*sem_zx)(void *closure, __word size, __word fromsize,
 			gdrr_sem_linear_t *opnd1);
-	gdrr_sem_op_t *(*sem_cmpeq)(void *closure, __word size,
-			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
-	gdrr_sem_op_t *(*sem_cmpneq)(void *closure, __word size,
-			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
-	gdrr_sem_op_t *(*sem_cmples)(void *closure, __word size,
-			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
-	gdrr_sem_op_t *(*sem_cmpleu)(void *closure, __word size,
-			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
-	gdrr_sem_op_t *(*sem_cmplts)(void *closure, __word size,
-			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
-	gdrr_sem_op_t *(*sem_cmpltu)(void *closure, __word size,
-			gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2);
+	gdrr_sem_op_t *(*sem_cmp)(void *closure, gdrr_sem_op_cmp_t *this);
 	gdrr_sem_op_t *(*sem_arb)(void *closure, __word size);
 };
 

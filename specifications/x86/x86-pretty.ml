@@ -4,18 +4,60 @@ export = pretty
 
 val pretty i = show/instruction i
 
-val show/arity1 x = show/operand x.opnd1
-val show/arity2 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2
-val show/arity3 x = show/arity2 x +++ ", " +++ show/operand x.opnd3
-val show/arity4 x = show/arity3 x +++ ", " +++ show/operand x.opnd4
-val show/flow1 x = show/flowoperand x.opnd1
+val show/features i =
+  if i.features == (none_ 0) then
+	  ""
+	else
+	  " {" +++ (show/features/any "" i.features '1') +++ "}"
+
+val show/features/any acc features first = let
+  val append this =
+	  if first then
+		  this
+		else
+		  ", " +++ this
+
+	val next me me-str rest =
+    if (features and (me 0)) == (me 0) then
+	     show/features/any (append me-str) (features and (not (me 0))) '0'
+	  else
+	    rest
+in
+  acc +++
+  next aes_ "AES" (
+	next avx_ "AVX" (
+	next f16c_ "F16C" (
+	next invpcid_ "INVPCID" (
+	next mmx_ "MMX" (
+	next clmul_ "CLMUL" (
+	next rdrand_ "RDRAND" (
+	next fsgsbase_ "FSGSBASE" (
+	next sse_ "SSE" (
+	next sse2_ "SSE2" (
+	next sse3_ "SSE3" (
+	next sse4_1_ "SSE4_1" (
+	next sse4_2_ "SSE4_2" (
+	next ssse3_ "SSSE3" (
+	next xsaveopt_ "XSAVEOPT" (
+	next illegal-rep_ "ILLEGAL REP" (
+	next illegal-repne_ "ILLEGAL REPNE" (
+	next illegal-lock_ "ILLEGAL LOCK" (
+	next illegal-lock-register_ "ILLEGAL LOCK REGISTER" 
+	""))))))))))))))))))
+end
+
+val show/arity1 x = show/operand x.opnd1 +++ (show/features x)
+val show/arity2 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2 +++ (show/features x)
+val show/arity3 x = show/arity2 x +++ ", " +++ show/operand x.opnd3 +++ (show/features x)
+val show/arity4 x = show/arity3 x +++ ", " +++ show/operand x.opnd4 +++ (show/features x)
+val show/flow1 x = show/flowoperand x.opnd1 +++ (show/features x)
 val show/varity x =
    case x of
-      VA0 x: ""
-    | VA1 x: show/arity1 x
-    | VA2 x: show/arity2 x
-    | VA3 x: show/arity3 x
-    | VA4 x: show/arity4 x
+      VA0 x: show/features x
+    | VA1 x: " " +++ show/arity1 x +++ (show/features x)
+    | VA2 x: " " +++ show/arity2 x +++ (show/features x)
+    | VA3 x: " " +++ show/arity3 x +++ (show/features x)
+    | VA4 x: " " +++ show/arity4 x +++ (show/features x)
    end
 
 val -++ a b = a +++ " " +++ b
@@ -433,7 +475,7 @@ val show/instruction insn =
     | HSUBPD x: "HSUBPD" -++ show/arity2 x
     | HSUBPS x: "HSUBPS" -++ show/arity2 x
     | IDIV x: "IDIV" -++ show/arity1 x
-    | IMUL x: "IMUL" -++ show/varity x
+    | IMUL x: "IMUL" +++ show/varity x
     | IN x: "IN" -++ show/arity2 x
     | INC x: "INC" -++ show/arity1 x
     | INSB x: "INSB"
@@ -561,7 +603,7 @@ val show/instruction insn =
     | MULSS x: "MULSS" -++ show/arity2 x
     | MWAIT x: "MWAIT"
     | NEG x: "NEG" -++ show/arity1 x
-    | NOP x: "NOP" -++ show/varity x
+    | NOP x: "NOP" +++ show/varity x
     | NOT x: "NOT" -++ show/arity1 x
     | OR x: "OR" -++ show/arity2 x
     | ORPD x: "ORPD" -++ show/arity2 x
@@ -724,8 +766,8 @@ val show/instruction insn =
     | RDRAND x: "RDRAND" -++ show/arity1 x
     | RDTSC x: "RDTSC"
     | RDTSCP x: "RDTSCP"
-    | RET x: "RET" -++ show/varity x
-    | RET_FAR x: "RET_FAR" -++ show/varity x
+    | RET x: "RET" +++ show/varity x
+    | RET_FAR x: "RET_FAR" +++ show/varity x
     | ROL x: "ROL" -++ show/arity2 x
     | ROR x: "ROR" -++ show/arity2 x
     | ROUNDPD x: "ROUNDPD" -++ show/arity3 x
@@ -815,272 +857,272 @@ val show/instruction insn =
     | UNPCKHPS x: "UNPCKHPS" -++ show/arity2 x
     | UNPCKLPD x: "UNPCKLPD" -++ show/arity2 x
     | UNPCKLPS x: "UNPCKLPS" -++ show/arity2 x
-    | VADDPD x: "VADDPD" -++ show/varity x
-    | VADDPS x: "VADDPS" -++ show/varity x
-    | VADDSD x: "VADDSD" -++ show/varity x
-    | VADDSS x: "VADDSS" -++ show/varity x
-    | VADDSUBPD x: "VADDSUBPD" -++ show/varity x
-    | VADDSUBPS x: "VADDSUBPS" -++ show/varity x
-    | VAESDEC x: "VAESDEC" -++ show/varity x
-    | VAESDECLAST x: "VAESDECLAST" -++ show/varity x
-    | VAESENC x: "VAESENC" -++ show/varity x
-    | VAESENCLAST x: "VAESENCLAST" -++ show/varity x
-    | VAESIMC x: "VAESIMC" -++ show/varity x
-    | VAESKEYGENASSIST x: "VAESKEYGENASSIST" -++ show/varity x
-    | VANDNPD x: "VANDNPD" -++ show/varity x
-    | VANDNPS x: "VANDNPS" -++ show/varity x
-    | VANDPD x: "VANDPD" -++ show/varity x
-    | VANDPS x: "VANDPS" -++ show/varity x
-    | VBLENDPD x: "VBLENDPD" -++ show/varity x
-    | VBLENDPS x: "VBLENDPS" -++ show/varity x
-    | VBLENDVPD x: "VBLENDVPD" -++ show/varity x
-    | VBLENDVPS x: "VBLENDVPS" -++ show/varity x
-    | VBROADCASTF128 x: "VBROADCASTF128" -++ show/varity x
-    | VBROADCASTSD x: "VBROADCASTSD" -++ show/varity x
-    | VBROADCASTSS x: "VBROADCASTSS" -++ show/varity x
-    | VCMPEQB x: "VCMPEQB" -++ show/varity x
-    | VCMPEQD x: "VCMPEQD" -++ show/varity x
-    | VCMPEQW x: "VCMPEQW" -++ show/varity x
-    | VCMPPD x: "VCMPPD" -++ show/varity x
-    | VCMPPS x: "VCMPPS" -++ show/varity x
-    | VCMPSD x: "VCMPSD" -++ show/varity x
-    | VCMPSS x: "VCMPSS" -++ show/varity x
-    | VCOMISD x: "VCOMISD" -++ show/varity x
-    | VCOMISS x: "VCOMISS" -++ show/varity x
-    | VCVTDQ2PD x: "VCVTDQ2PD" -++ show/varity x
-    | VCVTDQ2PS x: "VCVTDQ2PS" -++ show/varity x
-    | VCVTPD2DQ x: "VCVTPD2DQ" -++ show/varity x
-    | VCVTPD2PS x: "VCVTPD2PS" -++ show/varity x
-    | VCVTPH2PS x: "VCVTPH2PS" -++ show/varity x
-    | VCVTPS2DQ x: "VCVTPS2DQ" -++ show/varity x
-    | VCVTPS2PD x: "VCVTPS2PD" -++ show/varity x
-    | VCVTPS2PH x: "VCVTPS2PH" -++ show/varity x
-    | VCVTSD2SI x: "VCVTSD2SI" -++ show/varity x
-    | VCVTSD2SS x: "VCVTSD2SS" -++ show/varity x
-    | VCVTSI2SD x: "VCVTSI2SD" -++ show/varity x
-    | VCVTSI2SS x: "VCVTSI2SS" -++ show/varity x
-    | VCVTSS2SD x: "VCVTSS2SD" -++ show/varity x
-    | VCVTSS2SI x: "VCVTSS2SI" -++ show/varity x
-    | VCVTTPD2DQ x: "VCVTTPD2DQ" -++ show/varity x
-    | VCVTTPS2DQ x: "VCVTTPS2DQ" -++ show/varity x
-    | VCVTTSD2SI x: "VCVTTSD2SI" -++ show/varity x
-    | VCVTTSS2SI x: "VCVTTSS2SI" -++ show/varity x
-    | VDIVPD x: "VDIVPD" -++ show/varity x
-    | VDIVPS x: "VDIVPS" -++ show/varity x
-    | VDIVSD x: "VDIVSD" -++ show/varity x
-    | VDIVSS x: "VDIVSS" -++ show/varity x
-    | VDPPD x: "VDPPD" -++ show/varity x
-    | VDPPS x: "VDPPS" -++ show/varity x
+    | VADDPD x: "VADDPD" +++ show/varity x
+    | VADDPS x: "VADDPS" +++ show/varity x
+    | VADDSD x: "VADDSD" +++ show/varity x
+    | VADDSS x: "VADDSS" +++ show/varity x
+    | VADDSUBPD x: "VADDSUBPD" +++ show/varity x
+    | VADDSUBPS x: "VADDSUBPS" +++ show/varity x
+    | VAESDEC x: "VAESDEC" +++ show/varity x
+    | VAESDECLAST x: "VAESDECLAST" +++ show/varity x
+    | VAESENC x: "VAESENC" +++ show/varity x
+    | VAESENCLAST x: "VAESENCLAST" +++ show/varity x
+    | VAESIMC x: "VAESIMC" +++ show/varity x
+    | VAESKEYGENASSIST x: "VAESKEYGENASSIST" +++ show/varity x
+    | VANDNPD x: "VANDNPD" +++ show/varity x
+    | VANDNPS x: "VANDNPS" +++ show/varity x
+    | VANDPD x: "VANDPD" +++ show/varity x
+    | VANDPS x: "VANDPS" +++ show/varity x
+    | VBLENDPD x: "VBLENDPD" +++ show/varity x
+    | VBLENDPS x: "VBLENDPS" +++ show/varity x
+    | VBLENDVPD x: "VBLENDVPD" +++ show/varity x
+    | VBLENDVPS x: "VBLENDVPS" +++ show/varity x
+    | VBROADCASTF128 x: "VBROADCASTF128" +++ show/varity x
+    | VBROADCASTSD x: "VBROADCASTSD" +++ show/varity x
+    | VBROADCASTSS x: "VBROADCASTSS" +++ show/varity x
+    | VCMPEQB x: "VCMPEQB" +++ show/varity x
+    | VCMPEQD x: "VCMPEQD" +++ show/varity x
+    | VCMPEQW x: "VCMPEQW" +++ show/varity x
+    | VCMPPD x: "VCMPPD" +++ show/varity x
+    | VCMPPS x: "VCMPPS" +++ show/varity x
+    | VCMPSD x: "VCMPSD" +++ show/varity x
+    | VCMPSS x: "VCMPSS" +++ show/varity x
+    | VCOMISD x: "VCOMISD" +++ show/varity x
+    | VCOMISS x: "VCOMISS" +++ show/varity x
+    | VCVTDQ2PD x: "VCVTDQ2PD" +++ show/varity x
+    | VCVTDQ2PS x: "VCVTDQ2PS" +++ show/varity x
+    | VCVTPD2DQ x: "VCVTPD2DQ" +++ show/varity x
+    | VCVTPD2PS x: "VCVTPD2PS" +++ show/varity x
+    | VCVTPH2PS x: "VCVTPH2PS" +++ show/varity x
+    | VCVTPS2DQ x: "VCVTPS2DQ" +++ show/varity x
+    | VCVTPS2PD x: "VCVTPS2PD" +++ show/varity x
+    | VCVTPS2PH x: "VCVTPS2PH" +++ show/varity x
+    | VCVTSD2SI x: "VCVTSD2SI" +++ show/varity x
+    | VCVTSD2SS x: "VCVTSD2SS" +++ show/varity x
+    | VCVTSI2SD x: "VCVTSI2SD" +++ show/varity x
+    | VCVTSI2SS x: "VCVTSI2SS" +++ show/varity x
+    | VCVTSS2SD x: "VCVTSS2SD" +++ show/varity x
+    | VCVTSS2SI x: "VCVTSS2SI" +++ show/varity x
+    | VCVTTPD2DQ x: "VCVTTPD2DQ" +++ show/varity x
+    | VCVTTPS2DQ x: "VCVTTPS2DQ" +++ show/varity x
+    | VCVTTSD2SI x: "VCVTTSD2SI" +++ show/varity x
+    | VCVTTSS2SI x: "VCVTTSS2SI" +++ show/varity x
+    | VDIVPD x: "VDIVPD" +++ show/varity x
+    | VDIVPS x: "VDIVPS" +++ show/varity x
+    | VDIVSD x: "VDIVSD" +++ show/varity x
+    | VDIVSS x: "VDIVSS" +++ show/varity x
+    | VDPPD x: "VDPPD" +++ show/varity x
+    | VDPPS x: "VDPPS" +++ show/varity x
     | VERR x: "VERR" -++ show/arity1 x
     | VERW x: "VERW" -++ show/arity1 x
-    | VEXTRACTF128 x: "VEXTRACTF128" -++ show/varity x
-    | VEXTRACTPS x: "VEXTRACTPS" -++ show/varity x
-    | VHADDPD x: "VHADDPD" -++ show/varity x
-    | VHADDPS x: "VHADDPS" -++ show/varity x
-    | VHSUBPD x: "VHSUBPD" -++ show/varity x
-    | VHSUBPS x: "VHSUBPS" -++ show/varity x
-    | VINSERTF128 x: "VINSERTF128" -++ show/varity x
-    | VINSERTPS x: "VINSERTPS" -++ show/varity x
-    | VLDDQU x: "VLDDQU" -++ show/varity x
-    | VLDMXCSR x: "VLDMXCSR" -++ show/varity x
-    | VMASKMOVDQU x: "VMASKMOVDQU" -++ show/varity x
-    | VMASKMOVPD x: "VMASKMOVPD" -++ show/varity x
-    | VMASKMOVPS x: "VMASKMOVPS" -++ show/varity x
-    | VMAXPD x: "VMAXPD" -++ show/varity x
-    | VMAXPS x: "VMAXPS" -++ show/varity x
-    | VMAXSD x: "VMAXSD" -++ show/varity x
-    | VMAXSS x: "VMAXSS" -++ show/varity x
-    | VMINPD x: "VMINPD" -++ show/varity x
-    | VMINPS x: "VMINPS" -++ show/varity x
-    | VMINSD x: "VMINSD" -++ show/varity x
-    | VMINSS x: "VMINSS" -++ show/varity x
-    | VMOVAPD x: "VMOVAPD" -++ show/varity x
-    | VMOVAPS x: "VMOVAPS" -++ show/varity x
-    | VMOVD x: "VMOVD" -++ show/varity x
-    | VMOVDDUP x: "VMOVDDUP" -++ show/varity x
-    | VMOVDQA x: "VMOVDQA" -++ show/varity x
-    | VMOVDQU x: "VMOVDQU" -++ show/varity x
-    | VMOVHLPS x: "VMOVHLPS" -++ show/varity x
-    | VMOVHPD x: "VMOVHPD" -++ show/varity x
-    | VMOVHPS x: "VMOVHPS" -++ show/varity x
-    | VMOVLHPS x: "VMOVLHPS" -++ show/varity x
-    | VMOVLPD x: "VMOVLPD" -++ show/varity x
-    | VMOVLPS x: "VMOVLPS" -++ show/varity x
-    | VMOVMSKPD x: "VMOVMSKPD" -++ show/varity x
-    | VMOVMSKPS x: "VMOVMSKPS" -++ show/varity x
-    | VMOVNTDQ x: "VMOVNTDQ" -++ show/varity x
-    | VMOVNTDQA x: "VMOVNTDQA" -++ show/varity x
-    | VMOVNTPD x: "VMOVNTPD" -++ show/varity x
-    | VMOVNTPS x: "VMOVNTPS" -++ show/varity x
-    | VMOVQ x: "VMOVQ" -++ show/varity x
-    | VMOVSD x: "VMOVSD" -++ show/varity x
-    | VMOVSHDUP x: "VMOVSHDUP" -++ show/varity x
-    | VMOVSLDUP x: "VMOVSLDUP" -++ show/varity x
-    | VMOVSS x: "VMOVSS" -++ show/varity x
-    | VMOVUPD x: "VMOVUPD" -++ show/varity x
-    | VMOVUPS x: "VMOVUPS" -++ show/varity x
-    | VMPSADBW x: "VMPSADBW" -++ show/varity x
-    | VMULPD x: "VMULPD" -++ show/varity x
-    | VMULPS x: "VMULPS" -++ show/varity x
-    | VMULSD x: "VMULSD" -++ show/varity x
-    | VMULSS x: "VMULSS" -++ show/varity x
-    | VORPD x: "VORPD" -++ show/varity x
-    | VORPS x: "VORPS" -++ show/varity x
-    | VPABSB x: "VPABSB" -++ show/varity x
-    | VPABSD x: "VPABSD" -++ show/varity x
-    | VPABSW x: "VPABSW" -++ show/varity x
-    | VPACKSSDW x: "VPACKSSDW" -++ show/varity x
-    | VPACKSSWB x: "VPACKSSWB" -++ show/varity x
-    | VPACKUSDW x: "VPACKUSDW" -++ show/varity x
-    | VPACKUSWB x: "VPACKUSWB" -++ show/varity x
-    | VPADDB x: "VPADDB" -++ show/varity x
-    | VPADDD x: "VPADDD" -++ show/varity x
-    | VPADDQ x: "VPADDQ" -++ show/varity x
-    | VPADDSB x: "VPADDSB" -++ show/varity x
-    | VPADDSW x: "VPADDSW" -++ show/varity x
-    | VPADDUSB x: "VPADDUSB" -++ show/varity x
-    | VPADDUSW x: "VPADDUSW" -++ show/varity x
-    | VPADDW x: "VPADDW" -++ show/varity x
-    | VPALIGNR x: "VPALIGNR" -++ show/varity x
-    | VPAND x: "VPAND" -++ show/varity x
-    | VPANDN x: "VPANDN" -++ show/varity x
-    | VPAVGB x: "VPAVGB" -++ show/varity x
-    | VPAVGW x: "VPAVGW" -++ show/varity x
-    | VPBLENDVB x: "VPBLENDVB" -++ show/varity x
-    | VPBLENDW x: "VPBLENDW" -++ show/varity x
-    | VPCLMULQDQ x: "VPCLMULQDQ" -++ show/varity x
-    | VPCMPEQB x: "VPCMPEQB" -++ show/varity x
-    | VPCMPEQD x: "VPCMPEQD" -++ show/varity x
-    | VPCMPEQQ x: "VPCMPEQQ" -++ show/varity x
-    | VPCMPEQW x: "VPCMPEQW" -++ show/varity x
-    | VPCMPESTRI x: "VPCMPESTRI" -++ show/varity x
-    | VPCMPESTRM x: "VPCMPESTRM" -++ show/varity x
-    | VPCMPGTB x: "VPCMPGTB" -++ show/varity x
-    | VPCMPGTD x: "VPCMPGTD" -++ show/varity x
-    | VPCMPGTQ x: "VPCMPGTQ" -++ show/varity x
-    | VPCMPGTW x: "VPCMPGTW" -++ show/varity x
-    | VPCMPISTRI x: "VPCMPISTRI" -++ show/varity x
-    | VPCMPISTRM x: "VPCMPISTRM" -++ show/varity x
-    | VPERM2F128 x: "VPERM2F128" -++ show/varity x
-    | VPERMILPD x: "VPERMILPD" -++ show/varity x
-    | VPERMILPS x: "VPERMILPS" -++ show/varity x
-    | VPEXTRB x: "VPEXTRB" -++ show/varity x
-    | VPEXTRD x: "VPEXTRD" -++ show/varity x
-    | VPEXTRQ x: "VPEXTRQ" -++ show/varity x
-    | VPEXTRW x: "VPEXTRW" -++ show/varity x
-    | VPHADDD x: "VPHADDD" -++ show/varity x
-    | VPHADDSW x: "VPHADDSW" -++ show/varity x
-    | VPHADDW x: "VPHADDW" -++ show/varity x
-    | VPHMINPOSUW x: "VPHMINPOSUW" -++ show/varity x
-    | VPHSUBD x: "VPHSUBD" -++ show/varity x
-    | VPHSUBSW x: "VPHSUBSW" -++ show/varity x
-    | VPHSUBW x: "VPHSUBW" -++ show/varity x
-    | VPINSRB x: "VPINSRB" -++ show/varity x
-    | VPINSRD x: "VPINSRD" -++ show/varity x
-    | VPINSRQ x: "VPINSRQ" -++ show/varity x
-    | VPINSRW x: "VPINSRW" -++ show/varity x
-    | VPMADDUBSW x: "VPMADDUBSW" -++ show/varity x
-    | VPMADDWD x: "VPMADDWD" -++ show/varity x
-    | VPMAXSB x: "VPMAXSB" -++ show/varity x
-    | VPMAXSD x: "VPMAXSD" -++ show/varity x
-    | VPMAXSW x: "VPMAXSW" -++ show/varity x
-    | VPMAXUB x: "VPMAXUB" -++ show/varity x
-    | VPMAXUD x: "VPMAXUD" -++ show/varity x
-    | VPMAXUW x: "VPMAXUW" -++ show/varity x
-    | VPMINSB x: "VPMINSB" -++ show/varity x
-    | VPMINSD x: "VPMINSD" -++ show/varity x
-    | VPMINSW x: "VPMINSW" -++ show/varity x
-    | VPMINUB x: "VPMINUB" -++ show/varity x
-    | VPMINUD x: "VPMINUD" -++ show/varity x
-    | VPMINUW x: "VPMINUW" -++ show/varity x
-    | VPMOVMSKB x: "VPMOVMSKB" -++ show/varity x
-    | VPMOVSXBD x: "VPMOVSXBD" -++ show/varity x
-    | VPMOVSXBQ x: "VPMOVSXBQ" -++ show/varity x
-    | VPMOVSXBW x: "VPMOVSXBW" -++ show/varity x
-    | VPMOVSXDQ x: "VPMOVSXDQ" -++ show/varity x
-    | VPMOVSXWD x: "VPMOVSXWD" -++ show/varity x
-    | VPMOVSXWQ x: "VPMOVSXWQ" -++ show/varity x
-    | VPMOVZXBD x: "VPMOVZXBD" -++ show/varity x
-    | VPMOVZXBQ x: "VPMOVZXBQ" -++ show/varity x
-    | VPMOVZXBW x: "VPMOVZXBW" -++ show/varity x
-    | VPMOVZXDQ x: "VPMOVZXDQ" -++ show/varity x
-    | VPMOVZXWD x: "VPMOVZXWD" -++ show/varity x
-    | VPMOVZXWQ x: "VPMOVZXWQ" -++ show/varity x
-    | VPMULDQ x: "VPMULDQ" -++ show/varity x
-    | VPMULHRSW x: "VPMULHRSW" -++ show/varity x
-    | VPMULHUW x: "VPMULHUW" -++ show/varity x
-    | VPMULHW x: "VPMULHW" -++ show/varity x
-    | VPMULLD x: "VPMULLD" -++ show/varity x
-    | VPMULLW x: "VPMULLW" -++ show/varity x
-    | VPMULUDQ x: "VPMULUDQ" -++ show/varity x
-    | VPOR x: "VPOR" -++ show/varity x
-    | VPSADBW x: "VPSADBW" -++ show/varity x
-    | VPSHUFB x: "VPSHUFB" -++ show/varity x
-    | VPSHUFD x: "VPSHUFD" -++ show/varity x
-    | VPSHUFHW x: "VPSHUFHW" -++ show/varity x
-    | VPSHUFLW x: "VPSHUFLW" -++ show/varity x
-    | VPSIGNB x: "VPSIGNB" -++ show/varity x
-    | VPSIGND x: "VPSIGND" -++ show/varity x
-    | VPSIGNW x: "VPSIGNW" -++ show/varity x
-    | VPSLLD x: "VPSLLD" -++ show/varity x
-    | VPSLLDQ x: "VPSLLDQ" -++ show/varity x
-    | VPSLLQ x: "VPSLLQ" -++ show/varity x
-    | VPSLLW x: "VPSLLW" -++ show/varity x
-    | VPSRAD x: "VPSRAD" -++ show/varity x
-    | VPSRAW x: "VPSRAW" -++ show/varity x
-    | VPSRLD x: "VPSRLD" -++ show/varity x
-    | VPSRLDQ x: "VPSRLDQ" -++ show/varity x
-    | VPSRLQ x: "VPSRLQ" -++ show/varity x
-    | VPSRLW x: "VPSRLW" -++ show/varity x
-    | VPSUBB x: "VPSUBB" -++ show/varity x
-    | VPSUBD x: "VPSUBD" -++ show/varity x
-    | VPSUBQ x: "VPSUBQ" -++ show/varity x
-    | VPSUBSB x: "VPSUBSB" -++ show/varity x
-    | VPSUBSW x: "VPSUBSW" -++ show/varity x
-    | VPSUBUSB x: "VPSUBUSB" -++ show/varity x
-    | VPSUBUSW x: "VPSUBUSW" -++ show/varity x
-    | VPSUBW x: "VPSUBW" -++ show/varity x
-    | VPTEST x: "VPTEST" -++ show/varity x
-    | VPUNPCKHBW x: "VPUNPCKHBW" -++ show/varity x
-    | VPUNPCKHDQ x: "VPUNPCKHDQ" -++ show/varity x
-    | VPUNPCKHQDQ x: "VPUNPCKHQDQ" -++ show/varity x
-    | VPUNPCKHWD x: "VPUNPCKHWD" -++ show/varity x
-    | VPUNPCKLBW x: "VPUNPCKLBW" -++ show/varity x
-    | VPUNPCKLDQ x: "VPUNPCKLDQ" -++ show/varity x
-    | VPUNPCKLQDQ x: "VPUNPCKLQDQ" -++ show/varity x
-    | VPUNPCKLWD x: "VPUNPCKLWD" -++ show/varity x
-    | VPXOR x: "VPXOR" -++ show/varity x
-    | VRCPPS x: "VRCPPS" -++ show/varity x
-    | VRCPSS x: "VRCPSS" -++ show/varity x
-    | VROUNDPD x: "VROUNDPD" -++ show/varity x
-    | VROUNDPS x: "VROUNDPS" -++ show/varity x
-    | VROUNDSD x: "VROUNDSD" -++ show/varity x
-    | VROUNDSS x: "VROUNDSS" -++ show/varity x
-    | VRSQRTPS x: "VRSQRTPS" -++ show/varity x
-    | VRSQRTSS x: "VRSQRTSS" -++ show/varity x
-    | VSHUFPD x: "VSHUFPD" -++ show/varity x
-    | VSHUFPS x: "VSHUFPS" -++ show/varity x
-    | VSQRTPD x: "VSQRTPD" -++ show/varity x
-    | VSQRTPS x: "VSQRTPS" -++ show/varity x
-    | VSQRTSD x: "VSQRTSD" -++ show/varity x
-    | VSQRTSS x: "VSQRTSS" -++ show/varity x
-    | VSTMXCSR x: "VSTMXCSR" -++ show/varity x
-    | VSUBPD x: "VSUBPD" -++ show/varity x
-    | VSUBPS x: "VSUBPS" -++ show/varity x
-    | VSUBSD x: "VSUBSD" -++ show/varity x
-    | VSUBSS x: "VSUBSS" -++ show/varity x
-    | VTESTPD x: "VTESTPD" -++ show/varity x
-    | VTESTPS x: "VTESTPS" -++ show/varity x
-    | VUCOMISD x: "VUCOMISD" -++ show/varity x
-    | VUCOMISS x: "VUCOMISS" -++ show/varity x
-    | VUNPCKHPD x: "VUNPCKHPD" -++ show/varity x
-    | VUNPCKHPS x: "VUNPCKHPS" -++ show/varity x
-    | VUNPCKLPD x: "VUNPCKLPD" -++ show/varity x
-    | VUNPCKLPS x: "VUNPCKLPS" -++ show/varity x
-    | VXORPD x: "VXORPD" -++ show/varity x
-    | VXORPS x: "VXORPS" -++ show/varity x
-    | VZEROALL x: "VZEROALL" -++ show/varity x
-    | VZEROUPPER x: "VZEROUPPER" -++ show/varity x
+    | VEXTRACTF128 x: "VEXTRACTF128" +++ show/varity x
+    | VEXTRACTPS x: "VEXTRACTPS" +++ show/varity x
+    | VHADDPD x: "VHADDPD" +++ show/varity x
+    | VHADDPS x: "VHADDPS" +++ show/varity x
+    | VHSUBPD x: "VHSUBPD" +++ show/varity x
+    | VHSUBPS x: "VHSUBPS" +++ show/varity x
+    | VINSERTF128 x: "VINSERTF128" +++ show/varity x
+    | VINSERTPS x: "VINSERTPS" +++ show/varity x
+    | VLDDQU x: "VLDDQU" +++ show/varity x
+    | VLDMXCSR x: "VLDMXCSR" +++ show/varity x
+    | VMASKMOVDQU x: "VMASKMOVDQU" +++ show/varity x
+    | VMASKMOVPD x: "VMASKMOVPD" +++ show/varity x
+    | VMASKMOVPS x: "VMASKMOVPS" +++ show/varity x
+    | VMAXPD x: "VMAXPD" +++ show/varity x
+    | VMAXPS x: "VMAXPS" +++ show/varity x
+    | VMAXSD x: "VMAXSD" +++ show/varity x
+    | VMAXSS x: "VMAXSS" +++ show/varity x
+    | VMINPD x: "VMINPD" +++ show/varity x
+    | VMINPS x: "VMINPS" +++ show/varity x
+    | VMINSD x: "VMINSD" +++ show/varity x
+    | VMINSS x: "VMINSS" +++ show/varity x
+    | VMOVAPD x: "VMOVAPD" +++ show/varity x
+    | VMOVAPS x: "VMOVAPS" +++ show/varity x
+    | VMOVD x: "VMOVD" +++ show/varity x
+    | VMOVDDUP x: "VMOVDDUP" +++ show/varity x
+    | VMOVDQA x: "VMOVDQA" +++ show/varity x
+    | VMOVDQU x: "VMOVDQU" +++ show/varity x
+    | VMOVHLPS x: "VMOVHLPS" +++ show/varity x
+    | VMOVHPD x: "VMOVHPD" +++ show/varity x
+    | VMOVHPS x: "VMOVHPS" +++ show/varity x
+    | VMOVLHPS x: "VMOVLHPS" +++ show/varity x
+    | VMOVLPD x: "VMOVLPD" +++ show/varity x
+    | VMOVLPS x: "VMOVLPS" +++ show/varity x
+    | VMOVMSKPD x: "VMOVMSKPD" +++ show/varity x
+    | VMOVMSKPS x: "VMOVMSKPS" +++ show/varity x
+    | VMOVNTDQ x: "VMOVNTDQ" +++ show/varity x
+    | VMOVNTDQA x: "VMOVNTDQA" +++ show/varity x
+    | VMOVNTPD x: "VMOVNTPD" +++ show/varity x
+    | VMOVNTPS x: "VMOVNTPS" +++ show/varity x
+    | VMOVQ x: "VMOVQ" +++ show/varity x
+    | VMOVSD x: "VMOVSD" +++ show/varity x
+    | VMOVSHDUP x: "VMOVSHDUP" +++ show/varity x
+    | VMOVSLDUP x: "VMOVSLDUP" +++ show/varity x
+    | VMOVSS x: "VMOVSS" +++ show/varity x
+    | VMOVUPD x: "VMOVUPD" +++ show/varity x
+    | VMOVUPS x: "VMOVUPS" +++ show/varity x
+    | VMPSADBW x: "VMPSADBW" +++ show/varity x
+    | VMULPD x: "VMULPD" +++ show/varity x
+    | VMULPS x: "VMULPS" +++ show/varity x
+    | VMULSD x: "VMULSD" +++ show/varity x
+    | VMULSS x: "VMULSS" +++ show/varity x
+    | VORPD x: "VORPD" +++ show/varity x
+    | VORPS x: "VORPS" +++ show/varity x
+    | VPABSB x: "VPABSB" +++ show/varity x
+    | VPABSD x: "VPABSD" +++ show/varity x
+    | VPABSW x: "VPABSW" +++ show/varity x
+    | VPACKSSDW x: "VPACKSSDW" +++ show/varity x
+    | VPACKSSWB x: "VPACKSSWB" +++ show/varity x
+    | VPACKUSDW x: "VPACKUSDW" +++ show/varity x
+    | VPACKUSWB x: "VPACKUSWB" +++ show/varity x
+    | VPADDB x: "VPADDB" +++ show/varity x
+    | VPADDD x: "VPADDD" +++ show/varity x
+    | VPADDQ x: "VPADDQ" +++ show/varity x
+    | VPADDSB x: "VPADDSB" +++ show/varity x
+    | VPADDSW x: "VPADDSW" +++ show/varity x
+    | VPADDUSB x: "VPADDUSB" +++ show/varity x
+    | VPADDUSW x: "VPADDUSW" +++ show/varity x
+    | VPADDW x: "VPADDW" +++ show/varity x
+    | VPALIGNR x: "VPALIGNR" +++ show/varity x
+    | VPAND x: "VPAND" +++ show/varity x
+    | VPANDN x: "VPANDN" +++ show/varity x
+    | VPAVGB x: "VPAVGB" +++ show/varity x
+    | VPAVGW x: "VPAVGW" +++ show/varity x
+    | VPBLENDVB x: "VPBLENDVB" +++ show/varity x
+    | VPBLENDW x: "VPBLENDW" +++ show/varity x
+    | VPCLMULQDQ x: "VPCLMULQDQ" +++ show/varity x
+    | VPCMPEQB x: "VPCMPEQB" +++ show/varity x
+    | VPCMPEQD x: "VPCMPEQD" +++ show/varity x
+    | VPCMPEQQ x: "VPCMPEQQ" +++ show/varity x
+    | VPCMPEQW x: "VPCMPEQW" +++ show/varity x
+    | VPCMPESTRI x: "VPCMPESTRI" +++ show/varity x
+    | VPCMPESTRM x: "VPCMPESTRM" +++ show/varity x
+    | VPCMPGTB x: "VPCMPGTB" +++ show/varity x
+    | VPCMPGTD x: "VPCMPGTD" +++ show/varity x
+    | VPCMPGTQ x: "VPCMPGTQ" +++ show/varity x
+    | VPCMPGTW x: "VPCMPGTW" +++ show/varity x
+    | VPCMPISTRI x: "VPCMPISTRI" +++ show/varity x
+    | VPCMPISTRM x: "VPCMPISTRM" +++ show/varity x
+    | VPERM2F128 x: "VPERM2F128" +++ show/varity x
+    | VPERMILPD x: "VPERMILPD" +++ show/varity x
+    | VPERMILPS x: "VPERMILPS" +++ show/varity x
+    | VPEXTRB x: "VPEXTRB" +++ show/varity x
+    | VPEXTRD x: "VPEXTRD" +++ show/varity x
+    | VPEXTRQ x: "VPEXTRQ" +++ show/varity x
+    | VPEXTRW x: "VPEXTRW" +++ show/varity x
+    | VPHADDD x: "VPHADDD" +++ show/varity x
+    | VPHADDSW x: "VPHADDSW" +++ show/varity x
+    | VPHADDW x: "VPHADDW" +++ show/varity x
+    | VPHMINPOSUW x: "VPHMINPOSUW" +++ show/varity x
+    | VPHSUBD x: "VPHSUBD" +++ show/varity x
+    | VPHSUBSW x: "VPHSUBSW" +++ show/varity x
+    | VPHSUBW x: "VPHSUBW" +++ show/varity x
+    | VPINSRB x: "VPINSRB" +++ show/varity x
+    | VPINSRD x: "VPINSRD" +++ show/varity x
+    | VPINSRQ x: "VPINSRQ" +++ show/varity x
+    | VPINSRW x: "VPINSRW" +++ show/varity x
+    | VPMADDUBSW x: "VPMADDUBSW" +++ show/varity x
+    | VPMADDWD x: "VPMADDWD" +++ show/varity x
+    | VPMAXSB x: "VPMAXSB" +++ show/varity x
+    | VPMAXSD x: "VPMAXSD" +++ show/varity x
+    | VPMAXSW x: "VPMAXSW" +++ show/varity x
+    | VPMAXUB x: "VPMAXUB" +++ show/varity x
+    | VPMAXUD x: "VPMAXUD" +++ show/varity x
+    | VPMAXUW x: "VPMAXUW" +++ show/varity x
+    | VPMINSB x: "VPMINSB" +++ show/varity x
+    | VPMINSD x: "VPMINSD" +++ show/varity x
+    | VPMINSW x: "VPMINSW" +++ show/varity x
+    | VPMINUB x: "VPMINUB" +++ show/varity x
+    | VPMINUD x: "VPMINUD" +++ show/varity x
+    | VPMINUW x: "VPMINUW" +++ show/varity x
+    | VPMOVMSKB x: "VPMOVMSKB" +++ show/varity x
+    | VPMOVSXBD x: "VPMOVSXBD" +++ show/varity x
+    | VPMOVSXBQ x: "VPMOVSXBQ" +++ show/varity x
+    | VPMOVSXBW x: "VPMOVSXBW" +++ show/varity x
+    | VPMOVSXDQ x: "VPMOVSXDQ" +++ show/varity x
+    | VPMOVSXWD x: "VPMOVSXWD" +++ show/varity x
+    | VPMOVSXWQ x: "VPMOVSXWQ" +++ show/varity x
+    | VPMOVZXBD x: "VPMOVZXBD" +++ show/varity x
+    | VPMOVZXBQ x: "VPMOVZXBQ" +++ show/varity x
+    | VPMOVZXBW x: "VPMOVZXBW" +++ show/varity x
+    | VPMOVZXDQ x: "VPMOVZXDQ" +++ show/varity x
+    | VPMOVZXWD x: "VPMOVZXWD" +++ show/varity x
+    | VPMOVZXWQ x: "VPMOVZXWQ" +++ show/varity x
+    | VPMULDQ x: "VPMULDQ" +++ show/varity x
+    | VPMULHRSW x: "VPMULHRSW" +++ show/varity x
+    | VPMULHUW x: "VPMULHUW" +++ show/varity x
+    | VPMULHW x: "VPMULHW" +++ show/varity x
+    | VPMULLD x: "VPMULLD" +++ show/varity x
+    | VPMULLW x: "VPMULLW" +++ show/varity x
+    | VPMULUDQ x: "VPMULUDQ" +++ show/varity x
+    | VPOR x: "VPOR" +++ show/varity x
+    | VPSADBW x: "VPSADBW" +++ show/varity x
+    | VPSHUFB x: "VPSHUFB" +++ show/varity x
+    | VPSHUFD x: "VPSHUFD" +++ show/varity x
+    | VPSHUFHW x: "VPSHUFHW" +++ show/varity x
+    | VPSHUFLW x: "VPSHUFLW" +++ show/varity x
+    | VPSIGNB x: "VPSIGNB" +++ show/varity x
+    | VPSIGND x: "VPSIGND" +++ show/varity x
+    | VPSIGNW x: "VPSIGNW" +++ show/varity x
+    | VPSLLD x: "VPSLLD" +++ show/varity x
+    | VPSLLDQ x: "VPSLLDQ" +++ show/varity x
+    | VPSLLQ x: "VPSLLQ" +++ show/varity x
+    | VPSLLW x: "VPSLLW" +++ show/varity x
+    | VPSRAD x: "VPSRAD" +++ show/varity x
+    | VPSRAW x: "VPSRAW" +++ show/varity x
+    | VPSRLD x: "VPSRLD" +++ show/varity x
+    | VPSRLDQ x: "VPSRLDQ" +++ show/varity x
+    | VPSRLQ x: "VPSRLQ" +++ show/varity x
+    | VPSRLW x: "VPSRLW" +++ show/varity x
+    | VPSUBB x: "VPSUBB" +++ show/varity x
+    | VPSUBD x: "VPSUBD" +++ show/varity x
+    | VPSUBQ x: "VPSUBQ" +++ show/varity x
+    | VPSUBSB x: "VPSUBSB" +++ show/varity x
+    | VPSUBSW x: "VPSUBSW" +++ show/varity x
+    | VPSUBUSB x: "VPSUBUSB" +++ show/varity x
+    | VPSUBUSW x: "VPSUBUSW" +++ show/varity x
+    | VPSUBW x: "VPSUBW" +++ show/varity x
+    | VPTEST x: "VPTEST" +++ show/varity x
+    | VPUNPCKHBW x: "VPUNPCKHBW" +++ show/varity x
+    | VPUNPCKHDQ x: "VPUNPCKHDQ" +++ show/varity x
+    | VPUNPCKHQDQ x: "VPUNPCKHQDQ" +++ show/varity x
+    | VPUNPCKHWD x: "VPUNPCKHWD" +++ show/varity x
+    | VPUNPCKLBW x: "VPUNPCKLBW" +++ show/varity x
+    | VPUNPCKLDQ x: "VPUNPCKLDQ" +++ show/varity x
+    | VPUNPCKLQDQ x: "VPUNPCKLQDQ" +++ show/varity x
+    | VPUNPCKLWD x: "VPUNPCKLWD" +++ show/varity x
+    | VPXOR x: "VPXOR" +++ show/varity x
+    | VRCPPS x: "VRCPPS" +++ show/varity x
+    | VRCPSS x: "VRCPSS" +++ show/varity x
+    | VROUNDPD x: "VROUNDPD" +++ show/varity x
+    | VROUNDPS x: "VROUNDPS" +++ show/varity x
+    | VROUNDSD x: "VROUNDSD" +++ show/varity x
+    | VROUNDSS x: "VROUNDSS" +++ show/varity x
+    | VRSQRTPS x: "VRSQRTPS" +++ show/varity x
+    | VRSQRTSS x: "VRSQRTSS" +++ show/varity x
+    | VSHUFPD x: "VSHUFPD" +++ show/varity x
+    | VSHUFPS x: "VSHUFPS" +++ show/varity x
+    | VSQRTPD x: "VSQRTPD" +++ show/varity x
+    | VSQRTPS x: "VSQRTPS" +++ show/varity x
+    | VSQRTSD x: "VSQRTSD" +++ show/varity x
+    | VSQRTSS x: "VSQRTSS" +++ show/varity x
+    | VSTMXCSR x: "VSTMXCSR" +++ show/varity x
+    | VSUBPD x: "VSUBPD" +++ show/varity x
+    | VSUBPS x: "VSUBPS" +++ show/varity x
+    | VSUBSD x: "VSUBSD" +++ show/varity x
+    | VSUBSS x: "VSUBSS" +++ show/varity x
+    | VTESTPD x: "VTESTPD" +++ show/varity x
+    | VTESTPS x: "VTESTPS" +++ show/varity x
+    | VUCOMISD x: "VUCOMISD" +++ show/varity x
+    | VUCOMISS x: "VUCOMISS" +++ show/varity x
+    | VUNPCKHPD x: "VUNPCKHPD" +++ show/varity x
+    | VUNPCKHPS x: "VUNPCKHPS" +++ show/varity x
+    | VUNPCKLPD x: "VUNPCKLPD" +++ show/varity x
+    | VUNPCKLPS x: "VUNPCKLPS" +++ show/varity x
+    | VXORPD x: "VXORPD" +++ show/varity x
+    | VXORPS x: "VXORPS" +++ show/varity x
+    | VZEROALL x: "VZEROALL" +++ show/varity x
+    | VZEROUPPER x: "VZEROUPPER" +++ show/varity x
     | WAIT x: "WAIT"
     | WBINVD x: "WBINVD"
     | WRFSBASE x: "WRFSBASE" -++ show/arity1 x
@@ -1101,7 +1143,7 @@ val show/instruction insn =
     | XSAVEOPT64 x: "XSAVEOPT64" -++ show/arity1 x
     | XSETBV x: "XSETBV"
     #| PSLRDQ x: "PSLRDQ" -++ show/arity2 x
-    #| VPSLRDQ x: "VPSLRDQ" -++ show/varity x
+    #| VPSLRDQ x: "VPSLRDQ" +++ show/varity x
    end
 #s/^\(...\)\(\S*\)\s*$/\1\2: "\2"/
 #s/^\(...\)\(\S*\) of \(\S*\)\s*$/\1\2 x: "\2" -++ show\/\3 x/

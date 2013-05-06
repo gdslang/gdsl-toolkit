@@ -1,12 +1,12 @@
 package rreil.statement;
 
 import rreil.DefaultRReilCollection;
-import rreil.linear.LinearExpression;
+import rreil.sexpression.SimpleExpression;
 
 public class WhileStatement extends Statement {
-	protected LinearExpression condition;
+	protected SimpleExpression condition;
 
-	public LinearExpression getCondition() {
+	public SimpleExpression getCondition() {
 		return condition;
 	}
 
@@ -16,7 +16,7 @@ public class WhileStatement extends Statement {
 		return body;
 	}
 
-	public WhileStatement(LinearExpression condition,
+	public WhileStatement(SimpleExpression condition,
 			DefaultRReilCollection body) {
 		this.body = body;
 	}

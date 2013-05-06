@@ -1,3 +1,4 @@
 020dca84d06f508ce7c75112dbc5406a03c2dc49 big_dis.c
 cbf435b9283c831cae4225ec5d6c500ec814d73b inference_bug
 745c72e7cb287ef01cc79d862a9a10dba40cd5cd duplicate-case
+809b678db26f527e75d927ffe1fa7fd96b6ed34a typeInferencePass_hangs
