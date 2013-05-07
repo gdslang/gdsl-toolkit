@@ -36,6 +36,7 @@ end = struct
          val ov =  ftype [OBJvtype] VOIDvtype
          val i = ftype [] INTvtype
          val v = ftype [] VOIDvtype
+         val fv = ftype [ftype [OBJvtype] OBJvtype] VOIDvtype
       in [
          ("raise", fn args => pr (RAISEprim,sv,args)),
          ((Atom.toString Op.andAlso), fn args => pr (ANDprim,ooo,args)),
@@ -60,6 +61,14 @@ end = struct
              [vec,ofs,sz] => pr (SLICEprim,oiio,[vec] @ unboxI [ofs,sz])
            | _ => raise ImpTranslationBug)),
          ("index", fn args => pr (INDEXprim,oi,args)),
+         ("query", fn args => (case args of
+             [f] => INVOKEexp (f,[PRIexp (INmonkind, GETSTATEprim, oo, [])]) 
+           | _ => raise ImpTranslationBug)),
+         ("update", fn args => (case args of
+             [f] => PRIexp (INOUTmonkind, SETSTATEprim, fv, [
+                  INVOKEexp (f,[PRIexp (INmonkind, GETSTATEprim, oo, [])]) 
+               ])
+           | _ => raise ImpTranslationBug)),
          ("ipget", fn args => boxI (PRIexp (INmonkind,IPGETprim,i,args))),
          ("consume8", fn args => boxI (PRIexp (INOUTmonkind,CONSUME8prim,i,args))),
          ("consume16", fn args => boxI (PRIexp (INOUTmonkind,CONSUME16prim,i,args))),
@@ -67,7 +76,10 @@ end = struct
          ("unconsume8", fn args => boxV (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args))),
          ("unconsume16", fn args => boxV (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args))),
          ("unconsume32", fn args => boxV (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args))),
-         ("println", fn args => boxV (PRIexp (INmonkind,PRINTLNprim,ov,args)))
+         ("println", fn args => boxV (PRIexp (INmonkind,PRINTLNprim,ov,args))),
+         ("return", fn args => (case args of
+            [e] => STATEexp e
+          | _ => raise ImpTranslationBug))
          ]
       end
    
@@ -140,13 +152,13 @@ end = struct
       in
          (res, !localDs)
       end
-   fun addGlobal { globalVars = gv, localVars = lv, declVars = ds, constants = cs } v =
-      { globalVars = SymSet.add (gv,v), localVars = lv, declVars = ds, constants = cs }
+   fun addGlobal { globalVars = gvRef, localVars = lv, declVars = ds, constants = cs } v =
+         gvRef := SymSet.add (!gvRef,v)
    
    (* functions operating on the mutable variables *)
-   fun addFunction { globalVars = gv, localVars = lv, declVars = ds, constants = cs } decl =
+   fun addDecl { globalVars = gv, localVars = lv, declVars = ds, constants = cs } decl =
       let
-         val { functions = fs, updates, queries, records, prim_map } = cs
+         val { functions = fs, prim_map } = cs
       in
          fs := decl :: !fs
       end
@@ -163,6 +175,10 @@ end = struct
             NONE =>
                let
                   val (tab, sym) = SymbolTable.fresh (tab, name)
+                  val _ = addDecl s 
+                           (UPDATEdecl { updateName = sym, 
+                                         updateFields = fields })
+                  val _ = addGlobal s sym
                   val _ = SymbolTables.varTable := tab
                in
                   sym
@@ -181,6 +197,10 @@ end = struct
                let
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val _ = SymbolTables.varTable := tab                        
+                  val _ = addDecl s 
+                           (SELECTdecl { selectName = sym,
+                                         selectField = field })
+                  val _ = addGlobal s sym
                in
                   sym
                end
@@ -213,7 +233,7 @@ end = struct
       end
      | trExpr s (Exp.LETREC (ds, e)) =
       let
-         val s = foldl (fn ((f,_,_),s) => addGlobal s f) s ds
+         val _ = app (fn (f,_,_) => addGlobal s f) ds
          val ((eStmts, eExp), localDecls) =
             withNewDeclVars s (fn s => trExpr s e)
          val _ = List.map (trDecl s) ds
@@ -252,7 +272,7 @@ end = struct
             case trExpr s arg of (stmts, argExp) =>
             (stmtss @ stmts, args @ [argExp])) ([],[]) args
       in
-         (stmtss, STATEexp (INVOKEexp (funcExp, argExps)))
+         (stmtss, INVOKEexp (funcExp, argExps))
       end
      | trExpr s (Exp.PRI (name, args)) =
          (case SymMap.find (#prim_map (#constants s), name) of
@@ -347,7 +367,7 @@ end = struct
       let
          val ((stmts, exp), declVars) =
             withNewDeclVars s (fn s => trExpr s body)
-         val availInClosure = SymSet.union (#globalVars s,
+         val availInClosure = SymSet.union (!(#globalVars s),
                SymSet.addList (SymSet.singleton sym, args))
          val inClosure = SymSet.difference (freeVars body, availInClosure)
          fun setToArgs ss = map (fn s => (OBJvtype, s)) (SymSet.listItems ss)
@@ -357,7 +377,7 @@ end = struct
                                 closure = map (fn (t,_) => t) clArgs,
                                 args = map (fn (t,_) => t) stdArgs }
          val _ =
-            addFunction s (FUNCdecl {
+            addDecl s (FUNCdecl {
               funcMonadic = INOUTmonkind,
               funcClosure = clArgs,
               funcType = fType,
@@ -392,9 +412,6 @@ end = struct
                      map (fn e => (Exp.ID e)) es
                   end
                val fs = ref ([] : decl list)
-               val us = ref ([] : decl list)
-               val qs = ref ([] : decl list)
-               val rs = ref ([] : decl list)
 
                fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
                val prim_map =
@@ -402,11 +419,8 @@ end = struct
                      SymMap.empty prim_table
 
                val cs = { functions = fs,
-                          updates = us,
-                          queries = qs,
-                          records = rs,
                           prim_map = prim_map }
-               val initialState = { globalVars = SymSet.empty,
+               val initialState = { globalVars = ref SymSet.empty,
                                     localVars = SymSet.empty,
                                     declVars = ref SymSet.empty,
                                     constants = cs

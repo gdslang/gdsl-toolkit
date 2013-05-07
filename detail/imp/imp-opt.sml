@@ -51,7 +51,8 @@ structure BetaReduction = struct
         funcBody = map (visitStmt s) stmts,
         funcRes = res
       }
-   
+     | visitDecl s d = d
+
    fun run { decls = ds } =
       let
          fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)

@@ -22,7 +22,9 @@ structure Imp = struct
    type arg = vtype * sym
 
    datatype prim =
-         IPGETprim
+         GETSTATEprim
+       | SETSTATEprim
+       | IPGETprim
        | CONSUME8prim
        | CONSUME16prim
        | CONSUME32prim
@@ -52,7 +54,17 @@ structure Imp = struct
 
    (* information on how to print primitives, the name is the C name
       and the priority is the operator precedence, 0 if not infix *)
-   fun prim_info RAISEprim = { name = "__raise", prio = 0 }
+   fun prim_info GETSTATEprim = { name = "__get_state", prio = 0 }
+     | prim_info SETSTATEprim = { name = "__set_state", prio = 0 }
+     | prim_info IPGETprim = { name = "__ipget", prio = 0 }
+     | prim_info CONSUME8prim = { name = "__consume8", prio = 0 }
+     | prim_info CONSUME16prim = { name = "__consume16", prio = 0 }
+     | prim_info CONSUME32prim = { name = "__consume32", prio = 0 }
+     | prim_info UNCONSUME8prim = { name = "__unconsume8", prio = 0 }
+     | prim_info UNCONSUME16prim = { name = "__unconsume16", prio = 0 }
+     | prim_info UNCONSUME32prim = { name = "__consume32", prio = 0 }
+     | prim_info PRINTLNprim = { name = "__println", prio = 0 }
+     | prim_info RAISEprim = { name = "__raise", prio = 0 }
      | prim_info ANDprim = { name = "&", prio = 10 }
      | prim_info ORprim = { name = "|", prio = 12 }
      | prim_info SIGNEDprim = { name = "__sx", prio = 0 }
@@ -71,14 +83,6 @@ structure Imp = struct
      | prim_info CONCAT_STRINGprim = { name = "__concatstring", prio = 0 }
      | prim_info SLICEprim = { name = "__slice", prio = 0 }
      | prim_info INDEXprim = { name = "__index", prio = 0 }
-     | prim_info IPGETprim = { name = "__ipget", prio = 0 }
-     | prim_info CONSUME8prim = { name = "__consume8", prio = 0 }
-     | prim_info CONSUME16prim = { name = "__consume16", prio = 0 }
-     | prim_info CONSUME32prim = { name = "__consume32", prio = 0 }
-     | prim_info UNCONSUME8prim = { name = "__unconsume8", prio = 0 }
-     | prim_info UNCONSUME16prim = { name = "__unconsume16", prio = 0 }
-     | prim_info UNCONSUME32prim = { name = "__consume32", prio = 0 }
-     | prim_info PRINTLNprim = { name = "__println", prio = 0 }
 
    (*
    * fun f x =
@@ -110,7 +114,15 @@ structure Imp = struct
         funcBody : stmt list,
         funcRes : exp
       }
-   
+    | SELECTdecl of {
+        selectName : sym,
+        selectField : sym
+      }
+    | UPDATEdecl of {
+        updateName : sym,
+        updateFields : sym list
+      }
+
    and exp =
       IDexp of sym
     | CONexp of sym (* constructor constant symbol *)
@@ -180,6 +192,10 @@ structure Imp = struct
                   map stmt funcBody @
                   [seq [str "return ", exp funcRes]] ))
                ]
+        | decl (SELECTdecl { selectName = name, selectField = f }) =
+            seq [var name, str ";"]
+        | decl (UPDATEdecl { updateName = name, updateFields = fs }) =
+            seq [var name, str ";"]
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
       and exp (IDexp sym) = var sym
         | exp (CONexp sym) = con sym
