@@ -417,10 +417,12 @@ end = struct
                val prim_map =
                   foldl (fn ((k,v),m) => SymMap.insert (m,get k,v))
                      SymMap.empty prim_table
-
+               val globs =
+                  foldl (fn ((k,v),s) => SymSet.add (s,get k))
+                     SymSet.empty prim_table
                val cs = { functions = fs,
                           prim_map = prim_map }
-               val initialState = { globalVars = ref SymSet.empty,
+               val initialState = { globalVars = ref globs,
                                     localVars = SymSet.empty,
                                     declVars = ref SymSet.empty,
                                     constants = cs
