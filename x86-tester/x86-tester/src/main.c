@@ -12,11 +12,25 @@
 #include <gdrr.h>
 #include <rreil/rreil.h>
 #include <rreil_gdrr_builder.h>
+#include <simulator.h>
 
 int main(void) {
+//	struct register_ reg;
+//	reg.data = NULL;
+//	reg.data_length = 0;
+//	reg.data_size = 0;
+//
+//	uint8_t x = 0x42;
+//	simulator_register_generic_write(&reg, &x, 8, 0);
+//	x = 0x99;
+//	simulator_register_generic_write(&reg, &x, 8, 8);
+//
+//	x = 0b10110;
+//	simulator_register_generic_write(&reg, &x, 5, 5);
+
 	__char blob[15];
 	char fmt[1024];
-	__word sz = 15;
+//	__word sz = 15;
 //	int i, c;
 //	for(i = 0; i < sz; i++) {
 //		int x = fscanf(stdin, "%x", &c);
