@@ -122,6 +122,9 @@ structure Imp = struct
         updateName : sym,
         updateFields : sym list
       }
+    | CONdecl of {
+        conName : sym
+      }
 
    and exp =
       IDexp of sym
@@ -195,6 +198,8 @@ structure Imp = struct
         | decl (SELECTdecl { selectName = name, selectField = f }) =
             seq [var name, str ";"]
         | decl (UPDATEdecl { updateName = name, updateFields = fs }) =
+            seq [var name, str ";"]
+        | decl (CONdecl { conName = name }) =
             seq [var name, str ";"]
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
       and exp (IDexp sym) = var sym

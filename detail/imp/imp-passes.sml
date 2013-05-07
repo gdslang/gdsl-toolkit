@@ -6,6 +6,7 @@ structure BetaPairPass = MkCPSPass (BetaPair)
 structure HoistFunPass = MkCPSPass (HoistFun)
 structure DeadValPass = MkCPSPass (DeadVal)*)
 
+structure TransCallsPass = MkIMPPass (TransCalls)
 structure BetaReductionPass = MkIMPPass (BetaReduction)
 
 structure ImpPasses : sig
@@ -21,6 +22,7 @@ end = struct
 
    fun all s = 
       ImpFromCore.run s >>=
+      TransCallsPass.run >>=
       BetaReductionPass.run
 
    fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Core.PP.spec spec)

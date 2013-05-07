@@ -218,6 +218,8 @@ end = struct
                let
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val _ = SymbolTables.varTable := tab                        
+                  val _ = addDecl s (CONdecl { conName = sym })
+                  val _ = addGlobal s sym
                in
                   sym
                end
@@ -358,9 +360,9 @@ end = struct
          ([], BOXexp (vtype, LITexp (vtype,lit)))
       end
      | trExpr s (Exp.CON sym) =
-      (case SymMap.find (!constructors, sym) of
-         NONE => ([], BOXexp (INTvtype, CONexp sym))
-       | SOME _ =>  ([], CLOSUREexp (OBJvtype, addConFun s sym, []))
+      (case SymMap.lookup (!constructors, sym) of
+         (_, NONE) => ([], BOXexp (INTvtype, CONexp sym))
+       | (_, SOME _) =>  ([], CLOSUREexp (OBJvtype, addConFun s sym, []))
        )
      | trExpr s (Exp.ID sym) = ([], IDexp sym)
    and trDecl s (sym, args, body) =
@@ -378,7 +380,7 @@ end = struct
                                 args = map (fn (t,_) => t) stdArgs }
          val _ =
             addDecl s (FUNCdecl {
-              funcMonadic = INOUTmonkind,
+              funcMonadic = PUREmonkind,
               funcClosure = clArgs,
               funcType = fType,
               funcName = sym,
