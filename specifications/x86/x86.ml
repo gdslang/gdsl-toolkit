@@ -4112,6 +4112,8 @@ val / [0x0f 0x03 /r]
 ###  - Load Task Register
 val / [0x0f 0x00 /3] = unop none LTR r/m16
 
+#==> <==
+
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
 val /66 [0x0f 0xf7 /r-reg] = ternop sse2 MASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/reg128
