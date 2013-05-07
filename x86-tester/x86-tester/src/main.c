@@ -31,10 +31,17 @@ int main(void) {
 //		blob[i] = c & 0xff;
 //	}
 //	done: ;
-	int i = 3;
-	blob[0] = 0x48;
-	blob[1] = 0x8b;
-	blob[2] = 0x03;
+	int i = 4;
+//	blob[0] = 0x48;
+//	blob[1] = 0x8b;
+//	blob[2] = 0x03;
+
+		//add    $0x8,%rsp
+		blob[0] = 0x48;
+		blob[1] = 0x83;
+		blob[2] = 0xc4;
+		blob[2] = 0x08;
+
 	__obj state = __createState(blob, i, 0, 0);
 	__obj insn = __runMonadicNoArg(__decode__, &state);
 
@@ -56,6 +63,8 @@ int main(void) {
 			struct gdrr_config *config = rreil_gdrr_builder_config_get();
 
 			struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(r, config);
+
+			rreil_statements_print(statements);
 
 			rreil_statements_free(statements);
 		}

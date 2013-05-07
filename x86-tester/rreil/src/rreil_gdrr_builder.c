@@ -482,6 +482,9 @@ static gdrr_sem_op_cmp_t *sem_cmpeq(void *closure, __word size,
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_EQ;
+	comparator->arity2.size = size;
+	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
+	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
 static gdrr_sem_op_cmp_t *sem_cmpneq(void *closure, __word size,
@@ -489,6 +492,9 @@ static gdrr_sem_op_cmp_t *sem_cmpneq(void *closure, __word size,
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_NEQ;
+	comparator->arity2.size = size;
+	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
+	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
 static gdrr_sem_op_cmp_t *sem_cmples(void *closure, __word size,
@@ -496,6 +502,9 @@ static gdrr_sem_op_cmp_t *sem_cmples(void *closure, __word size,
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_LES;
+	comparator->arity2.size = size;
+	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
+	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
 static gdrr_sem_op_cmp_t *sem_cmpleu(void *closure, __word size,
@@ -503,6 +512,9 @@ static gdrr_sem_op_cmp_t *sem_cmpleu(void *closure, __word size,
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_LEU;
+	comparator->arity2.size = size;
+	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
+	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
 static gdrr_sem_op_cmp_t *sem_cmplts(void *closure, __word size,
@@ -510,6 +522,9 @@ static gdrr_sem_op_cmp_t *sem_cmplts(void *closure, __word size,
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_LTS;
+	comparator->arity2.size = size;
+	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
+	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
 static gdrr_sem_op_cmp_t *sem_cmpltu(void *closure, __word size,
@@ -517,6 +532,9 @@ static gdrr_sem_op_cmp_t *sem_cmpltu(void *closure, __word size,
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_LTU;
+	comparator->arity2.size = size;
+	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
+	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
 

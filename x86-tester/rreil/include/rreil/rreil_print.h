@@ -9,13 +9,10 @@
 #define RREIL_PRINT_H_
 
 extern void rreil_address_print(struct rreil_address *address);
-extern void rreil_arity1_clear(struct rreil_arity1 *arity1);
-extern void rreil_arity2_clear(struct rreil_arity2 *arity2);
 extern void rreil_branch_hint_print(enum rreil_branch_hint *hint);
 extern void rreil_comparator_print(struct rreil_comparator *comparator);
 extern void rreil_id_print(struct rreil_id *id);
 extern void rreil_linear_print(struct rreil_linear *linear);
-extern void rreil_size_change_clear(struct rreil_size_change *size_change);
 extern void rreil_op_print(struct rreil_op *op);
 extern void rreil_sexpr_print(struct rreil_sexpr *sexpr);
 extern void rreil_variable_print(struct rreil_variable *variable);
