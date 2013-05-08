@@ -131,8 +131,8 @@ structure Imp = struct
     | CONexp of sym (* constructor constant symbol *)
     | CONFUNexp of sym (* constructor function *)
     | PRIexp of monkind * prim * vtype * exp list
-    | CALLexp of exp * exp list (* callee is unboxed *)
-    | INVOKEexp of exp * exp list (* callee is a closure *)
+    | CALLexp of monkind * sym * exp list (* callee is unboxed *)
+    | INVOKEexp of monkind * exp * exp list (* callee is a closure *)
     | RECORDexp of (sym * exp) list
     | LITexp of vtype * lit
     | BOXexp of vtype * exp
@@ -208,8 +208,8 @@ structure Imp = struct
         | exp (PRIexp (m,p,t,es)) =
             seq (vtype t :: space :: str "prim" :: space ::
               str (#name (prim_info p)) :: args ("(",exp,es,monarg m))
-        | exp (CALLexp (f,es)) = seq (exp f :: args ("(",exp,es,")"))
-        | exp (INVOKEexp (f,es)) = seq (str "*" :: exp f :: args ("(",exp,es,")"))
+        | exp (CALLexp (m,f,es)) = seq (var f :: args ("(",exp,es,monarg m))
+        | exp (INVOKEexp (m,f,es)) = seq (str "*" :: exp f :: args ("(",exp,es,monarg m))
         | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
         | exp (LITexp (_,l)) = SpecAbstractTree.PP.lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]
