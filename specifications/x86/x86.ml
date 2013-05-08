@@ -4112,8 +4112,6 @@ val / [0x0f 0x03 /r]
 ###  - Load Task Register
 val / [0x0f 0x00 /3] = unop none LTR r/m16
 
-#==> <==
-
 ### MASKMOVDQU
 ###  - Store Selected Bytes of Double Quadword
 val /66 [0x0f 0xf7 /r-reg] = ternop sse2 MASKMOVDQU (m/default/di/edi/rdi (return 8)) xmm128 xmm/reg128
@@ -4667,6 +4665,8 @@ val /vex/66/0f/38/vexv [0x2b /r] | vex128? = varity3 avx VPACKUSDW xmm128 v/xmm 
 val / [0x0f 0x67 /r] = binop mmx PACKUSWB mm64 mm/m64
 val /66 [0x0f 0x67 /r] = binop sse2 PACKUSWB xmm128 xmm/m128
 val /vex/66/0f/vexv [0x67 /r] | vex128? = varity3 avx VPACKUSWB xmm128 v/xmm xmm/m128
+
+#==> <==
 
 ### PADDB/PADDW/PADDD
 ###  - Add Packed Integers
