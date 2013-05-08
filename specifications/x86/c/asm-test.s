@@ -201,7 +201,7 @@ main:
 	#pblendw $42, %xmm1, %xmm2
 	#vpblendw $42, %xmm1, %xmm2, %xmm3
 
-	pclmulqdq $1, %xmm1, %xmm2
+	#pclmulqdq $1, %xmm1, %xmm2
 	#vpclmulqdq $0, %xmm1, %xmm2, %xmm3
 	#pclmulqdq $17, %xmm1, %xmm2
 	#vpclmulqdq $16, %xmm1, %xmm2, %xmm3
@@ -258,7 +258,7 @@ main:
 	#vpinsrb $3, %ebx, %xmm1, %xmm2
 
 	#pmaddubsw %mm1, %mm2
-	pmaddubsw %xmm1, %xmm2
+	#pmaddubsw %xmm1, %xmm2
 	#vpmaddubsw %xmm1, %xmm2, %xmm3
 
 	#pmaddwd %mm1, %mm2
@@ -284,7 +284,7 @@ main:
 	#pminsb %xmm1, %xmm2
 	#vpminsb %xmm1, %xmm2, %xmm3
 	#pminsw %mm1, %mm2
-	pminsw %xmm1, %xmm2
+	#pminsw %xmm1, %xmm2
 	#vpminsw %xmm1, %xmm2, %xmm3
 	#pminsd %xmm1, %xmm2
 	#vpminsd %xmm1, %xmm2, %xmm3
@@ -317,7 +317,7 @@ main:
 	#pmovzxwd %xmm1, %xmm2
 	#pmovzxwq %xmm1, %xmm2
 	#pmovzxdq %xmm1, %xmm2
-	vpmovzxbw (%rax), %xmm2
+	#vpmovzxbw (%rax), %xmm2
 	#vpmovzxbd %xmm1, %xmm2
 	#vpmovzxbq (%rcx), %xmm2
 
@@ -357,7 +357,7 @@ main:
 	#vpor %xmm1, %xmm2, %xmm3
 
 	#psadbw %mm1, %mm2
-	psadbw %xmm1, %xmm2
+	#psadbw %xmm1, %xmm2
 	#vpsadbw %xmm1, %xmm2, %xmm3
 
 	#pshufb %mm1, %mm2
@@ -381,7 +381,7 @@ main:
 	#psignb %mm1, %mm2
 	#psignb %xmm1, %xmm2
 	#psignw %xmm1, %xmm2
-	psignd (%rax), %xmm2
+	#psignd (%rax), %xmm2
 	#vpsignb %xmm1, %xmm2, %xmm3
 	#vpsignw %xmm1, %xmm2, %xmm3
 	#vpsignd %xmm1, %xmm2, %xmm3
@@ -407,7 +407,7 @@ main:
 	#psrlw %mm1, %mm2
 	#psrlw (%rax), %xmm1
 	#psrlw $197, %xmm1
-	psrld $20, %mm1
+	#psrld $20, %mm1
 	#psrlq $10, %mm1
 	#vpsrld %xmm1, %xmm2, %xmm3
 	#vpsrlq $33, %xmm1, %xmm2
@@ -434,7 +434,7 @@ main:
 	#punpckhbw %mm1, %mm2
 	#punpckhwd %xmm1, %xmm2
 	#punpckhdq %mm1, %mm2
-	punpckhqdq %xmm1, %xmm2
+	#punpckhqdq %xmm1, %xmm2
 	#vpunpckhbw %xmm1, %xmm2, %xmm3
 	#vpunpckhwd %xmm1, %xmm2, %xmm3
 	#vpunpckhdq %xmm1, %xmm2, %xmm3
@@ -489,7 +489,7 @@ main:
 	#vmaskmovps %xmm1, %xmm2, (%rax)
 	#vmaskmovps (%rax), %xmm1, %xmm2
 	#vmaskmovpd %xmm1, %xmm2, (%rax)
-	vmaskmovpd (%rax), %xmm1, %xmm2
+	#vmaskmovpd (%rax), %xmm1, %xmm2
 	#vmaskmovpd %ymm1, %ymm2, (%rax)
 	#vmaskmovpd (%rax), %ymm1, %ymm2
 
@@ -523,7 +523,7 @@ main:
 	#addb $42, 4(%eax,%ebp,2)
 	#addb $42, 4(%eax,%ecx,2)
 	#addb $42, 4(%r8,%r9,2)
-	addl $227439052, -1907495376(%r8,%r9,2)
+	#addl $227439052, -1907495376(%r8,%r9,2)
 	#movq %rax, %rcx
 	#movq %r8, %r9
 	#addq %rax, %rcx
@@ -553,7 +553,7 @@ main:
 	#vmaskmovdqu %xmm2, %xmm1
 
 	#vzeroall
-	vzeroupper
+	#vzeroupper
 
 	#nop %rax
 	#nop %eax
@@ -563,10 +563,12 @@ main:
 	#movhlps %xmm1, %xmm2
 	#movlps (%rax), %xmm1
 
-	add $0x42, %rax
-	add $0x01bb, %bx
-	add $0x7abbccdd, %rax
+	#add $0x42, %rax
+	#add $0x01bb, %bx
+	#add $0x7abbccdd, %rax
 	#add $0xaabbccdd12345678, %rax
+
+	add $0x42, %rsp
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16

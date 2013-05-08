@@ -64,6 +64,9 @@ uint8_t *simulator_op_mul(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 }
 
 uint8_t *simulator_op_zx(size_t from, size_t to, uint8_t *opnd1) {
+	if(to < from)
+		from = to;
+
 	uint8_t *result = (uint8_t*)calloc(to / 8 + 1, 1);
 	memcpy(result, opnd1, from / 8);
 
@@ -77,6 +80,8 @@ uint8_t *simulator_op_zx(size_t from, size_t to, uint8_t *opnd1) {
 }
 
 uint8_t *simulator_op_sx(size_t from, size_t to, uint8_t *opnd1) {
+	if(to < from)
+		from = to;
 	uint8_t *result = (uint8_t*)calloc(to / 8 + 1, 1);
 	memcpy(result, opnd1, from / 8);
 

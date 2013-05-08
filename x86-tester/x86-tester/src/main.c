@@ -12,6 +12,7 @@
 #include <gdrr.h>
 #include <rreil/rreil.h>
 #include <rreil_gdrr_builder.h>
+#include <simulator_regacc.h>
 #include <simulator.h>
 
 int main(void) {
@@ -54,7 +55,7 @@ int main(void) {
 		blob[0] = 0x48;
 		blob[1] = 0x83;
 		blob[2] = 0xc4;
-		blob[2] = 0x08;
+		blob[3] = 0x42;
 
 	__obj state = __createState(blob, i, 0, 0);
 	__obj insn = __runMonadicNoArg(__decode__, &state);
@@ -79,6 +80,16 @@ int main(void) {
 			struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(r, config);
 
 			rreil_statements_print(statements);
+
+			struct simulator_context *context = simulator_context_init();
+
+			uint64_t value = 240;
+			struct rreil_id id;
+			id.type = RREIL_ID_TYPE_X86;
+			id.x86 = RREIL_ID_X86_SP;
+			simulator_register_write_64(context, &id, value, 0);
+
+			rreil_statements_simulate(context, statements);
 
 			rreil_statements_free(statements);
 		}

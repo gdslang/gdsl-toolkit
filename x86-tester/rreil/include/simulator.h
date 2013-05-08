@@ -24,4 +24,8 @@ struct simulator_context {
 	struct register_ *temporary_registers;
 };
 
+extern void rreil_statements_simulate(struct simulator_context *context,
+		struct rreil_statements *statements);
+extern struct simulator_context *simulator_context_init();
+
 #endif /* SIMULATOR_H_ */
