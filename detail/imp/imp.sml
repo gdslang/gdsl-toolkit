@@ -162,14 +162,17 @@ structure Imp = struct
       fun con sym = SpecAbstractTree.PP.con_use sym
       fun fld sym = SpecAbstractTree.PP.field_use sym
       fun vars xs = seq [lp, seq (separate (map var xs, ",")), rp]
+      fun args (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
       fun vtype VOIDvtype = str "void"
         | vtype OBJvtype = str "obj"
         | vtype (BITvtype s) = str ("bitvec" ^ Int.toString s)
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
-        | vtype (FUNvtype _) = str "function"
+        | vtype (FUNvtype { result = res, closure = ctys, args = atys }) =
+            seq ((if null ctys then [] else args ("[",vtype,ctys,"]")) @
+                args ("(",vtype,atys,")") @
+                [str "->", vtype res])
       fun arg (t,n) = seq [vtype t, space, var n]
-      fun args (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
       fun monarg PUREmonkind = ")"
         | monarg INmonkind = ",$)"
         | monarg INOUTmonkind = ",$$)"

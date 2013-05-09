@@ -9,6 +9,8 @@ structure DeadValPass = MkCPSPass (DeadVal)*)
 structure TransCallsPass = MkIMPPass (TransCalls)
 structure SimplifyPass = MkIMPPass (Simplify)
 structure StatePassingPass = MkIMPPass (StatePassing)
+structure TypeRefinementPass = MkIMPPass (TypeRefinement)
+
 structure ImpPasses : sig
    val run:
       Core.Spec.t ->
@@ -25,6 +27,7 @@ end = struct
       TransCallsPass.run >>=
       SimplifyPass.run >>=
       TransCallsPass.run >>=
+      TypeRefinementPass.run >>=
       StatePassingPass.run
 
    fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
