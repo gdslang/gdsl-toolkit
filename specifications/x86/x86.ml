@@ -4666,8 +4666,6 @@ val / [0x0f 0x67 /r] = binop mmx PACKUSWB mm64 mm/m64
 val /66 [0x0f 0x67 /r] = binop sse2 PACKUSWB xmm128 xmm/m128
 val /vex/66/0f/vexv [0x67 /r] | vex128? = varity3 avx VPACKUSWB xmm128 v/xmm xmm/m128
 
-#==> <==
-
 ### PADDB/PADDW/PADDD
 ###  - Add Packed Integers
 val / [0x0f 0xfc /r] = binop mmx PADDB mm64 mm/m64
@@ -5097,6 +5095,8 @@ val / [0x9d]
 val / [0x0f 0xeb /r] = binop mmx POR mm64 mm/m64
 val /66 [0x0f 0xeb /r] = binop sse2 POR xmm128 xmm/m128
 val /vex/66/0f/vexv [0xeb /r] | vex128? = varity3 avx VPOR xmm128 v/xmm xmm/m128
+
+#==> <==
 
 ### PREFETCHh
 ###  - Prefetch Data Into Caches
