@@ -75,26 +75,115 @@ void rreil_linear_simulate(struct simulator_context *context, uint8_t **buffer,
 	}
 }
 
+size_t rreil_comparator_simulate(struct simulator_context *context,
+		uint8_t **buffer, struct rreil_comparator *comparator) {
+	uint64_t size = comparator->arity2.size;
+	uint8_t *opnd1;
+	rreil_linear_simulate(context, &opnd1, comparator->arity2.opnd1, size);
+	uint8_t *opnd2;
+	rreil_linear_simulate(context, &opnd2, comparator->arity2.opnd2, size);
+	switch(comparator->type) {
+		case RREIL_COMPARATOR_TYPE_EQ: {
+			*buffer = (uint8_t*)malloc(1);
+			**buffer = simulator_op_cmp_eq(opnd1, opnd2, size);
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_NEQ: {
+			*buffer = (uint8_t*)malloc(1);
+			**buffer = simulator_op_cmp_neq(opnd1, opnd2, size);
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_LES: {
+			*buffer = (uint8_t*)malloc(1);
+			**buffer = simulator_op_cmp_les(opnd1, opnd2, size);
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_LEU: {
+			*buffer = (uint8_t*)malloc(1);
+			**buffer = simulator_op_cmp_leu(opnd1, opnd2, size);
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_LTS: {
+			*buffer = (uint8_t*)malloc(1);
+			**buffer = simulator_op_cmp_lts(opnd1, opnd2, size);
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_LTU: {
+			*buffer = (uint8_t*)malloc(1);
+			**buffer = simulator_op_cmp_ltu(opnd1, opnd2, size);
+			break;
+		}
+	}
+	free(opnd1);
+	free(opnd2);
+	return 1;
+}
+
+void rreil_sexpr_simulate(struct simulator_context *context, uint8_t **buffer,
+		struct rreil_sexpr *sexpr, size_t bit_length) {
+	switch(sexpr->type) {
+		case RREIL_SEXPR_TYPE_LIN: {
+			rreil_linear_simulate(context, buffer, sexpr->lin, bit_length);
+			break;
+		}
+		case RREIL_SEXPR_TYPE_CMP: {
+			rreil_comparator_simulate(context, buffer, sexpr->cmp);
+			break;
+		}
+	}
+}
+
 size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 		struct rreil_op *op) {
 	size_t size;
 	switch(op->type) {
 		case RREIL_OP_TYPE_LIN: {
-//			*buffer = (uint8_t*)malloc(op->lin.size / 8 + 1);
-			rreil_linear_simulate(context, buffer, op->lin.opnd1, op->lin.size);
 			size = op->lin.size;
+			rreil_linear_simulate(context, buffer, op->lin.opnd1, size);
 			break;
 		}
 		case RREIL_OP_TYPE_MUL: {
+			size = op->mul.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->mul.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->mul.opnd1, size);
+			*buffer = simulator_op_mul(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_DIV: {
+			size = op->div.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->div.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->div.opnd1, size);
+			*buffer = simulator_op_div(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_DIVS: {
+			size = op->divs.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->divs.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->divs.opnd1, size);
+			*buffer = simulator_op_divs(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_MOD: {
+			size = op->mod.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->mod.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->mod.opnd1, size);
+			*buffer = simulator_op_mod(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_SHL: {
@@ -107,12 +196,36 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			break;
 		}
 		case RREIL_OP_TYPE_AND: {
+			size = op->and.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->and.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->and.opnd2, size);
+			*buffer = simulator_op_and(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_OR: {
+			size = op->or.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->or.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->or.opnd2, size);
+			*buffer = simulator_op_or(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_XOR: {
+			size = op->xor.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->xor.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->xor.opnd2, size);
+			*buffer = simulator_op_xor(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_SX: {
@@ -122,6 +235,7 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			break;
 		}
 		case RREIL_OP_TYPE_CMP: {
+			size = rreil_comparator_simulate(context, buffer, op->cmp);
 			break;
 		}
 		case RREIL_OP_TYPE_ARB: {
@@ -150,7 +264,8 @@ void rreil_statement_simulate(struct simulator_context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
-
+			uint8_t *buffer;
+//			size_t bit_length = rreil_sexpr_simulate(context, &buffer, statement->ite->cond, size);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_WHILE: {
