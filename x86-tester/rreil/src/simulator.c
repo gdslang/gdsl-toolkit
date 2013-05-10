@@ -275,7 +275,7 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 		case RREIL_OP_TYPE_ARB: {
 			size = op->arb.size;
 			*buffer = (uint8_t*)malloc(size/8 + 1);
-			for (size_t i = 0; i <= size; ++i)
+			for (size_t i = 0; i <= size/8; ++i)
 				(*buffer)[i] = (uint8_t)rand();
 			break;
 		}

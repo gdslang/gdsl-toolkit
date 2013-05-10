@@ -61,10 +61,10 @@ int main(void) {
 //		blob[1] = 0x42;
 
 	//shl
-//	blob[0] = 0x48;
-//	blob[1] = 0xc1;
-//	blob[2] = 0xe0;
-//	blob[3] = 0x2a;
+	blob[0] = 0x48;
+	blob[1] = 0xc1;
+	blob[2] = 0xe0;
+	blob[3] = 0x2a;
 
 	//shr
 //	blob[0] = 0x48;
@@ -72,11 +72,23 @@ int main(void) {
 //	blob[2] = 0xe8;
 //	blob[3] = 0x2c;
 
-	//shr
-	blob[0] = 0x48;
-	blob[1] = 0xc1;
-	blob[2] = 0xf8;
-	blob[3] = 0x2c;
+	//shrs
+//	blob[0] = 0x48;
+//	blob[1] = 0xc1;
+//	blob[2] = 0xf8;
+//	blob[3] = 0x2c;
+
+	//movzx
+//	blob[0] = 0x48;
+//	blob[1] = 0x0f;
+//	blob[2] = 0xb7;
+//	blob[3] = 0xd8;
+
+	//movsx
+//	blob[0] = 0x48;
+//	blob[1] = 0x0f;
+//	blob[2] = 0xbf;
+//	blob[3] = 0xd8;
 
 	__obj state = __createState(blob, i, 0, 0);
 	__obj insn = __runMonadicNoArg(__decode__, &state);
@@ -93,8 +105,8 @@ int main(void) {
 		if(___isNil(r))
 			__fatal("translate failed");
 		else {
-			__pretty(__rreil_pretty__, r, fmt, 1024);
-			puts(fmt);
+//			__pretty(__rreil_pretty__, r, fmt, 1024);
+//			puts(fmt);
 
 			struct gdrr_config *config = rreil_gdrr_builder_config_get();
 			struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(r, config);
@@ -105,6 +117,7 @@ int main(void) {
 			struct simulator_context *context = simulator_context_init();
 
 			uint64_t value = 0x2b3481cfef1104ba;
+//			uint64_t value = 0x2b3481cfef1194ba;
 			struct rreil_id id;
 			id.type = RREIL_ID_TYPE_X86;
 			id.x86 = RREIL_ID_X86_AX;
