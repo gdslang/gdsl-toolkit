@@ -79,8 +79,8 @@ int main(void) {
 			puts(fmt);
 
 			struct gdrr_config *config = rreil_gdrr_builder_config_get();
-
 			struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(r, config);
+			free(config);
 
 			rreil_statements_print(statements);
 
@@ -97,6 +97,8 @@ int main(void) {
 			simulator_register_write_64(context, &id, value, 0);
 
 			rreil_statements_simulate(context, statements);
+
+			simulator_context_free(context);
 
 			rreil_statements_free(statements);
 		}

@@ -253,6 +253,7 @@ void rreil_statement_simulate(struct simulator_context *context,
 			size_t bit_length = rreil_op_simulate(context, &buffer,
 					statement->assign.rhs);
 			rreil_variable_write(context, statement->assign.lhs, bit_length, buffer);
+			free(buffer);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
@@ -265,11 +266,31 @@ void rreil_statement_simulate(struct simulator_context *context,
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
 			uint8_t *buffer;
-//			size_t bit_length = rreil_sexpr_simulate(context, &buffer, statement->ite->cond, size);
+			/*
+			 * Todo: Fix size
+			 */
+			rreil_sexpr_simulate(context, &buffer, statement->ite.cond, 1);
+			if(*buffer & 0x01)
+				rreil_statements_simulate(context, statement->ite.then_branch);
+			else
+				rreil_statements_simulate(context, statement->ite.else_branch);
+
+			free(buffer);
+
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_WHILE: {
-
+			uint8_t *buffer;
+			/*
+			 * Todo: Fix size
+			 */
+			rreil_sexpr_simulate(context, &buffer, statement->while_.cond, 1);
+			while(*buffer & 0x01) {
+				rreil_statements_simulate(context, statement->while_.body);
+				free(buffer);
+				rreil_sexpr_simulate(context, &buffer, statement->while_.cond, 1);
+			}
+			free(buffer);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_CBRANCH: {
@@ -303,4 +324,27 @@ struct simulator_context *simulator_context_init() {
 			sizeof(struct register_));
 
 	return context;
+}
+
+static void simulator_register_clear(struct register_ *register_) {
+	if(register_)
+		free(register_->data);
+}
+
+void simulator_context_free(struct simulator_context *context) {
+	if(context) {
+		/*
+		 * Todo: ...
+		 */
+		for (size_t i = 0; i < 6; ++i)
+			simulator_register_clear(&context->virtual_registers[i]);
+		free(context->virtual_registers);
+		for (size_t i = 0; i < 200; ++i)
+			simulator_register_clear(&context->x86_registers[i]);
+		free(context->x86_registers);
+		for (size_t i = 0; i < TEMPS; ++i)
+			simulator_register_clear(&context->temporary_registers[i]);
+		free(context->temporary_registers);
+		free(context);
+	}
 }
