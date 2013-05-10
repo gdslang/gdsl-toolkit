@@ -147,7 +147,7 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			uint8_t *opnd1;
 			rreil_linear_simulate(context, &opnd1, op->mul.opnd1, size);
 			uint8_t *opnd2;
-			rreil_linear_simulate(context, &opnd2, op->mul.opnd1, size);
+			rreil_linear_simulate(context, &opnd2, op->mul.opnd2, size);
 			*buffer = simulator_op_mul(opnd1, opnd2, size);
 			free(opnd1);
 			free(opnd2);
@@ -158,7 +158,7 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			uint8_t *opnd1;
 			rreil_linear_simulate(context, &opnd1, op->div.opnd1, size);
 			uint8_t *opnd2;
-			rreil_linear_simulate(context, &opnd2, op->div.opnd1, size);
+			rreil_linear_simulate(context, &opnd2, op->div.opnd2, size);
 			*buffer = simulator_op_div(opnd1, opnd2, size);
 			free(opnd1);
 			free(opnd2);
@@ -169,7 +169,7 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			uint8_t *opnd1;
 			rreil_linear_simulate(context, &opnd1, op->divs.opnd1, size);
 			uint8_t *opnd2;
-			rreil_linear_simulate(context, &opnd2, op->divs.opnd1, size);
+			rreil_linear_simulate(context, &opnd2, op->divs.opnd2, size);
 			*buffer = simulator_op_divs(opnd1, opnd2, size);
 			free(opnd1);
 			free(opnd2);
@@ -180,13 +180,22 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			uint8_t *opnd1;
 			rreil_linear_simulate(context, &opnd1, op->mod.opnd1, size);
 			uint8_t *opnd2;
-			rreil_linear_simulate(context, &opnd2, op->mod.opnd1, size);
+			rreil_linear_simulate(context, &opnd2, op->mod.opnd2, size);
 			*buffer = simulator_op_mod(opnd1, opnd2, size);
 			free(opnd1);
 			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_SHL: {
+			size = op->shl.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->shl.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->shl.opnd2, size);
+			*buffer = simulator_op_shl(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
+			break;
 			break;
 		}
 		case RREIL_OP_TYPE_SHR: {
@@ -229,9 +238,19 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			break;
 		}
 		case RREIL_OP_TYPE_SX: {
+			size = op->sx.size;
+			uint8_t *opnd;
+			rreil_linear_simulate(context, &opnd, op->sx.opnd, size);
+			*buffer = simulator_op_sx(op->sx.fromsize, size, opnd);
+			free(opnd);
 			break;
 		}
 		case RREIL_OP_TYPE_ZX: {
+			size = op->zx.size;
+			uint8_t *opnd;
+			rreil_linear_simulate(context, &opnd, op->zx.opnd, size);
+			*buffer = simulator_op_zx(op->zx.fromsize, size, opnd);
+			free(opnd);
 			break;
 		}
 		case RREIL_OP_TYPE_CMP: {
@@ -239,6 +258,10 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			break;
 		}
 		case RREIL_OP_TYPE_ARB: {
+			size = op->arb.size;
+			*buffer = (uint8_t*)malloc(size/8 + 1);
+			for (size_t i = 0; i <= size; ++i)
+				(*buffer)[i] = (uint8_t)rand();
 			break;
 		}
 	}
@@ -257,11 +280,11 @@ void rreil_statement_simulate(struct simulator_context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
-
+			fprintf(stderr, "Simulator: Unable to simulate RREIL_STATEMENT_TYPE_LOAD, not implemented.\n");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
-
+			fprintf(stderr, "Simulator: Unable to simulate RREIL_STATEMENT_TYPE_STORE, not implemented.\n");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
@@ -294,11 +317,11 @@ void rreil_statement_simulate(struct simulator_context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_CBRANCH: {
-
+			fprintf(stderr, "Simulator: Unable to simulate RREIL_STATEMENT_TYPE_CBRANCH, not implemented.\n");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-
+			fprintf(stderr, "Simulator: Unable to simulate RREIL_STATEMENT_TYPE_BRANCH, not implemented.\n");
 			break;
 		}
 	}

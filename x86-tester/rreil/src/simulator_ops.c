@@ -126,6 +126,43 @@ uint8_t *simulator_op_mod(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 		return NULL; //error
 }
 
+/*
+ * Todo: bit_length == 0
+ */
+
+uint8_t *simulator_op_shl(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
+	uint8_t *result = (uint8_t*)malloc(bit_length / 8 + 1);
+	uint8_t amount = *opnd2;
+	if(bit_length < 8) {
+		uint8_t mask = (1 << bit_length) - 1;
+		amount &= mask;
+	}
+
+	uint8_t inter = amount / 8;
+	uint8_t inner = amount % 8;
+
+	char inside(size_t i) {
+		return i < bit_length / 8 + (bit_length % 8 > 0);
+	}
+
+	for(size_t i = 0; i < inter; ++i) {
+		if(!inside(i))
+			return result;
+		result[i] = 0;
+	}
+
+	uint32_t acc = 0;
+	uint8_t *acc_ptr = (uint8_t*)&acc;
+	for (size_t i = 0; inside(inter + i); ++i) {
+		acc >>= inner + 8;
+		acc_ptr[1] = opnd1[i];
+		acc <<= inner;
+		result[inter + i] = acc_ptr[1];
+	}
+
+	return result;
+}
+
 uint8_t *simulator_op_and(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 	uint8_t *result = (uint8_t*)malloc(bit_length / 8 + 1);
 	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
@@ -229,7 +266,7 @@ uint8_t simulator_op_cmp_les(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) 
 	uint8_t *e = simulator_op_not(opnd2, bit_length);
 	uint8_t *f = simulator_op_or(opnd1, e, bit_length);
 
-	uint8_t *result = simulator_op_and(e, f, bit_length);
+	uint8_t *result = simulator_op_and(d, f, bit_length);
 
 	uint8_t top = result[bit_length / 8 - (bit_length % 8 == 0)];
 
@@ -274,7 +311,7 @@ uint8_t simulator_op_cmp_leu(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) 
 	uint8_t *e = simulator_op_not(opnd1, bit_length);
 	uint8_t *f = simulator_op_or(opnd2, e, bit_length);
 
-	uint8_t *result = simulator_op_and(e, f, bit_length);
+	uint8_t *result = simulator_op_and(d, f, bit_length);
 
 	uint8_t top = result[bit_length / 8 - (bit_length % 8 == 0)];
 

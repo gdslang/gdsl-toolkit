@@ -46,7 +46,7 @@ int main(void) {
 //		blob[i] = c & 0xff;
 //	}
 //	done: ;
-	int i = 2;
+	int i = 4;
 //	blob[0] = 0x48;
 //	blob[1] = 0x8b;
 //	blob[2] = 0x03;
@@ -57,8 +57,13 @@ int main(void) {
 //		blob[2] = 0xc4;
 //		blob[3] = 0x42;
 
-		blob[0] = 0x04;
-		blob[1] = 0x42;
+//		blob[0] = 0x04;
+//		blob[1] = 0x42;
+
+	blob[0] = 0x48;
+	blob[1] = 0xc1;
+	blob[2] = 0xe0;
+	blob[3] = 0x2a;
 
 	__obj state = __createState(blob, i, 0, 0);
 	__obj insn = __runMonadicNoArg(__decode__, &state);
@@ -86,7 +91,7 @@ int main(void) {
 
 			struct simulator_context *context = simulator_context_init();
 
-			uint64_t value = 240;
+			uint64_t value = 0xab3481cfef1104ba;
 			struct rreil_id id;
 			id.type = RREIL_ID_TYPE_X86;
 			id.x86 = RREIL_ID_X86_AX;
