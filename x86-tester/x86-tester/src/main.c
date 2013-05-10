@@ -67,9 +67,15 @@ int main(void) {
 //	blob[3] = 0x2a;
 
 	//shr
+//	blob[0] = 0x48;
+//	blob[1] = 0xc1;
+//	blob[2] = 0xe8;
+//	blob[3] = 0x2c;
+
+	//shr
 	blob[0] = 0x48;
 	blob[1] = 0xc1;
-	blob[2] = 0xe8;
+	blob[2] = 0xf8;
 	blob[3] = 0x2c;
 
 	__obj state = __createState(blob, i, 0, 0);
@@ -98,7 +104,7 @@ int main(void) {
 
 			struct simulator_context *context = simulator_context_init();
 
-			uint64_t value = 0xab3481cfef1104ba;
+			uint64_t value = 0x2b3481cfef1104ba;
 			struct rreil_id id;
 			id.type = RREIL_ID_TYPE_X86;
 			id.x86 = RREIL_ID_X86_AX;
