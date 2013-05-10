@@ -196,9 +196,16 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			free(opnd1);
 			free(opnd2);
 			break;
-			break;
 		}
 		case RREIL_OP_TYPE_SHR: {
+			size = op->shr.size;
+			uint8_t *opnd1;
+			rreil_linear_simulate(context, &opnd1, op->shr.opnd1, size);
+			uint8_t *opnd2;
+			rreil_linear_simulate(context, &opnd2, op->shr.opnd2, size);
+			*buffer = simulator_op_shr(opnd1, opnd2, size);
+			free(opnd1);
+			free(opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_SHRS: {

@@ -569,7 +569,7 @@ main:
 	#add $0xaabbccdd12345678, %rax
 
 	#add $0x42, %al
-	shl $42, %rax
+	shr $42, %rax
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16

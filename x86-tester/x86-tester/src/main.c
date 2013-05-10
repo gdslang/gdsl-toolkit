@@ -60,10 +60,17 @@ int main(void) {
 //		blob[0] = 0x04;
 //		blob[1] = 0x42;
 
+	//shl
+//	blob[0] = 0x48;
+//	blob[1] = 0xc1;
+//	blob[2] = 0xe0;
+//	blob[3] = 0x2a;
+
+	//shr
 	blob[0] = 0x48;
 	blob[1] = 0xc1;
-	blob[2] = 0xe0;
-	blob[3] = 0x2a;
+	blob[2] = 0xe8;
+	blob[3] = 0x2c;
 
 	__obj state = __createState(blob, i, 0, 0);
 	__obj insn = __runMonadicNoArg(__decode__, &state);

@@ -153,7 +153,7 @@ uint8_t *simulator_op_shl(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 
 	uint32_t acc = 0;
 	uint8_t *acc_ptr = (uint8_t*)&acc;
-	for (size_t i = 0; inside(inter + i); ++i) {
+	for(size_t i = 0; inside(inter + i); ++i) {
 		acc >>= inner + 8;
 		acc_ptr[1] = opnd1[i];
 		acc <<= inner;
@@ -161,6 +161,67 @@ uint8_t *simulator_op_shl(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 	}
 
 	return result;
+}
+
+static uint8_t *simulator_op_shr_sign(uint8_t *opnd1, uint8_t *opnd2,
+		size_t bit_length, uint8_t sign) {
+	uint8_t *result = (uint8_t*)malloc(bit_length / 8 + 1);
+	uint8_t amount = *opnd2;
+	if(bit_length < 8) {
+		uint8_t mask = (1 << bit_length) - 1;
+		amount &= mask;
+	}
+
+	uint8_t inter = amount / 8;
+	uint8_t inner = amount % 8;
+
+	size_t bytes = bit_length / 8 + (bit_length % 8 > 0);
+
+	for(size_t i = bytes - 1, j = 0; j < inter; --i, ++j) {
+		result[i] = 0xff * sign;
+		if(!i)
+			return result;
+	}
+
+	uint32_t acc = 0xffffffff * sign;
+	uint8_t *acc_ptr = (uint8_t*)&acc;
+
+	uint8_t top = opnd1[bytes - 1];
+
+	if(inter < bytes) {
+		uint8_t mask = (1 << (bit_length % 8)) - 1;
+		if(bit_length % 8) {
+			if(sign)
+				top |= ~mask;
+			else
+				top &= mask;
+		}
+		acc_ptr[1] = top;
+		acc >>= inner;
+		result[bytes - inter - 1] = acc_ptr[1];
+		for(size_t i = 1; inter + i < bytes; ++i) {
+			acc <<= inner + 8;
+			acc_ptr[1] = opnd1[bytes - i - 1];
+			acc >>= inner;
+			result[bytes - inter - i - 1] = acc_ptr[1];
+		}
+	}
+
+	return result;
+}
+
+uint8_t *simulator_op_shr(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
+	return simulator_op_shr_sign(opnd1, opnd2, bit_length, 0);
+}
+
+uint8_t *simulator_op_shrs(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
+	size_t bytes = bit_length / 8 + (bit_length % 8 > 0);
+	uint8_t top = opnd1[bytes - 1];
+	if(bit_length % 8)
+		top >>= (bit_length % 8) - 1;
+	else
+		top >>= 7;
+	return simulator_op_shr_sign(opnd1, opnd2, bit_length, top & 0x01);
 }
 
 uint8_t *simulator_op_and(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {

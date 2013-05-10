@@ -14,6 +14,9 @@ extern uint8_t *simulator_op_mul(uint8_t *opnd1, uint8_t *opnd2, size_t bit_leng
 extern uint8_t *simulator_op_div(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
 extern uint8_t *simulator_op_divs(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
 extern uint8_t *simulator_op_mod(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
+extern uint8_t *simulator_op_shl(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
+extern uint8_t *simulator_op_shr(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
+extern uint8_t *simulator_op_shrs(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
 extern uint8_t *simulator_op_and(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
 extern uint8_t *simulator_op_or(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
 extern uint8_t *simulator_op_xor(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length);
