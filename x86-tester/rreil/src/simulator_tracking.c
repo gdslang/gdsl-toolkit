@@ -19,7 +19,7 @@ enum simulator_access_type {
 
 void rreil_variable_access(struct simulator_trace *trace,
 		struct rreil_variable *variable, size_t bit_length,
-		enum simulator_access_type *type) {
+		enum simulator_access_type type) {
 	if(variable->id->type != RREIL_ID_TYPE_X86)
 		return;
 
@@ -33,7 +33,7 @@ void rreil_variable_access(struct simulator_trace *trace,
 	for(size_t i = 0; i < bit_length / 8 + 1; ++i)
 		data[i] = 0xff;
 
-	simulator_register_generic_write(&access->x86_registers[variable->id], data,
+	simulator_register_generic_write(&access->x86_registers[variable->id->x86], data,
 			bit_length, variable->offset);
 }
 
@@ -41,18 +41,24 @@ void rreil_linear_trace(struct simulator_trace *trace,
 		struct rreil_linear *linear, size_t bit_length) {
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
+			rreil_variable_access(trace, linear->variable, bit_length, SIMULATOR_ACCESS_TYPE_READ);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_IMMEDIATE: {
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SUM: {
+			rreil_linear_trace(trace, linear->sum.opnd1, bit_length);
+			rreil_linear_trace(trace, linear->sum.opnd2, bit_length);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_DIFFERENCE: {
+			rreil_linear_trace(trace, linear->difference.opnd1, bit_length);
+			rreil_linear_trace(trace, linear->difference.opnd2, bit_length);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SCALE: {
+			rreil_linear_trace(trace, linear->scale->opnd, bit_length);
 			break;
 		}
 	}
@@ -60,35 +66,20 @@ void rreil_linear_trace(struct simulator_trace *trace,
 
 size_t rreil_comparator_trace(struct simulator_trace *trace,
 		struct rreil_comparator *comparator) {
-	switch(comparator->type) {
-		case RREIL_COMPARATOR_TYPE_EQ: {
-			break;
-		}
-		case RREIL_COMPARATOR_TYPE_NEQ: {
-			break;
-		}
-		case RREIL_COMPARATOR_TYPE_LES: {
-			break;
-		}
-		case RREIL_COMPARATOR_TYPE_LEU: {
-			break;
-		}
-		case RREIL_COMPARATOR_TYPE_LTS: {
-			break;
-		}
-		case RREIL_COMPARATOR_TYPE_LTU: {
-			break;
-		}
-	}
+	rreil_linear_trace(trace, comparator->arity2.opnd1, comparator->arity2.size);
+	rreil_linear_trace(trace, comparator->arity2.opnd2, comparator->arity2.size);
+	return comparator->arity2.size;
 }
 
 void rreil_sexpr_trace(struct simulator_trace *trace, struct rreil_sexpr *sexpr,
 		size_t bit_length) {
 	switch(sexpr->type) {
 		case RREIL_SEXPR_TYPE_LIN: {
+			rreil_linear_trace(trace, sexpr->lin, bit_length);
 			break;
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
+			rreil_comparator_trace(trace, sexpr->cmp);
 			break;
 		}
 	}
@@ -218,7 +209,7 @@ void rreil_statement_trace(struct simulator_trace *trace,
 void rreil_statements_trace(struct simulator_trace *trace,
 		struct rreil_statements *statements) {
 	for(size_t i = 0; i < statements->statements_length; ++i)
-		rreil_statement_track(trace, statements->statements[i]);
+		rreil_statement_trace(trace, statements->statements[i]);
 }
 
 void simulator_register_access_register_add(struct register_access *access,
@@ -236,7 +227,7 @@ struct simulator_trace *simulator_trace_init() {
 			sizeof(struct simulator_trace));
 
 	void init_rw(struct register_access *access) {
-		access->x86_registers = (struct register_)malloc(
+		access->x86_registers = (struct register_*)malloc(
 				sizeof(struct register_) * RREIL_ID_X86_COUNT);
 		access->indices = NULL;
 		access->indices_length = 0;
@@ -244,7 +235,7 @@ struct simulator_trace *simulator_trace_init() {
 	}
 
 	init_rw(&trace->read);
-	init_rw(trace->written);
+	init_rw(&trace->written);
 
 	return trace;
 }
