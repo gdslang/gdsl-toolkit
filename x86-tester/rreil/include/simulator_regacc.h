@@ -23,6 +23,8 @@ extern void simulator_register_read_32(struct simulator_context *context,
 extern void simulator_register_read_64(struct simulator_context *context,
 		struct rreil_id *id, uint8_t *buffer, size_t bit_offset);
 
+extern void simulator_register_generic_write(struct register_ *reg,
+		uint8_t *data, size_t bit_length, size_t bit_offset);
 extern void simulator_register_write(struct simulator_context *context,
 		struct rreil_id *id, uint8_t *data, size_t bit_length, size_t bit_offset);
 extern void simulator_register_write_8(struct simulator_context *context,

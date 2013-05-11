@@ -68,4 +68,6 @@ enum rreil_id_x86 {
 	RREIL_ID_X86_XMM15
 };
 
+#define RREIL_ID_X86_COUNT (RREIL_ID_X86_XMM15 + 1)
+
 #endif /* RREIL_X86_H_ */

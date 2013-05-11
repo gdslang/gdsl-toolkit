@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdint.h>
+#include <stdint-gcc.h>
 #include <dis.h>
 #include <gdrr.h>
 #include <rreil/rreil.h>
@@ -65,6 +65,17 @@ int main(void) {
 	blob[1] = 0xc1;
 	blob[2] = 0xe0;
 	blob[3] = 0x2a;
+
+//	typedef uint8_t xmm_t __attribute__ ((vector_size (16)));
+//
+//	register xmm_t hugo asm ("xmm0");
+//
+//	hugo[0] = 0x1122334455667788;
+//	hugo[1] = 0xaabbccddeeff1122;
+//
+//	hugo = {3, 4} ;
+
+//	hugo = {0x1122334455667788, 0x1122334455667788} ;
 
 	//shr
 //	blob[0] = 0x48;

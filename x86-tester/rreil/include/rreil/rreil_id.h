@@ -27,6 +27,9 @@ enum rreil_id_virtual {
 	RREIL_ID_VIRTUAL_LTU,
 };
 
+#define RREIL_ID_VIRTUAL_COUNT (RREIL_ID_VIRTUAL_LTU + 1)
+#define RREIL_ID_TEMPORARY_COUNT 32
+
 struct rreil_id {
 	enum rreil_id_type type;
 	union {

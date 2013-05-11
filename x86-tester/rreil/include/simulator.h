@@ -10,8 +10,6 @@
 
 #include <stdint.h>
 
-#define TEMPS 32
-
 struct register_ {
 	uint8_t *data;
 	size_t data_bit_length;

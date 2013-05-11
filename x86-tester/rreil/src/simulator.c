@@ -274,8 +274,8 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 		}
 		case RREIL_OP_TYPE_ARB: {
 			size = op->arb.size;
-			*buffer = (uint8_t*)malloc(size/8 + 1);
-			for (size_t i = 0; i <= size/8; ++i)
+			*buffer = (uint8_t*)malloc(size / 8 + 1);
+			for(size_t i = 0; i <= size / 8; ++i)
 				(*buffer)[i] = (uint8_t)rand();
 			break;
 		}
@@ -295,11 +295,13 @@ void rreil_statement_simulate(struct simulator_context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
-			fprintf(stderr, "Simulator: Unable to simulate RREIL_STATEMENT_TYPE_LOAD, not implemented.\n");
+			fprintf(stderr,
+					"Simulator: Unable to simulate RREIL_STATEMENT_TYPE_LOAD, not implemented.\n");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
-			fprintf(stderr, "Simulator: Unable to simulate RREIL_STATEMENT_TYPE_STORE, not implemented.\n");
+			fprintf(stderr,
+					"Simulator: Unable to simulate RREIL_STATEMENT_TYPE_STORE, not implemented.\n");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
@@ -332,11 +334,13 @@ void rreil_statement_simulate(struct simulator_context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_CBRANCH: {
-			fprintf(stderr, "Simulator: Unable to simulate RREIL_STATEMENT_TYPE_CBRANCH, not implemented.\n");
+			fprintf(stderr,
+					"Simulator: Unable to simulate RREIL_STATEMENT_TYPE_CBRANCH, not implemented.\n");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			fprintf(stderr, "Simulator: Unable to simulate RREIL_STATEMENT_TYPE_BRANCH, not implemented.\n");
+			fprintf(stderr,
+					"Simulator: Unable to simulate RREIL_STATEMENT_TYPE_BRANCH, not implemented.\n");
 			break;
 		}
 	}
@@ -354,12 +358,12 @@ struct simulator_context *simulator_context_init() {
 	/*
 	 * Todo: ...
 	 */
-	context->virtual_registers = (struct register_*)calloc(6,
+	context->virtual_registers = (struct register_*)calloc(RREIL_ID_VIRTUAL_COUNT,
 			sizeof(struct register_));
-	context->x86_registers = (struct register_*)calloc(200,
+	context->x86_registers = (struct register_*)calloc(RREIL_ID_X86_COUNT,
 			sizeof(struct register_));
-	context->temporary_registers = (struct register_*)calloc(TEMPS,
-			sizeof(struct register_));
+	context->temporary_registers = (struct register_*)calloc(
+			RREIL_ID_TEMPORARY_COUNT, sizeof(struct register_));
 
 	return context;
 }
@@ -374,13 +378,13 @@ void simulator_context_free(struct simulator_context *context) {
 		/*
 		 * Todo: ...
 		 */
-		for (size_t i = 0; i < 6; ++i)
+		for(size_t i = 0; i < RREIL_ID_VIRTUAL_COUNT; ++i)
 			simulator_register_clear(&context->virtual_registers[i]);
 		free(context->virtual_registers);
-		for (size_t i = 0; i < 200; ++i)
+		for(size_t i = 0; i < RREIL_ID_X86_COUNT; ++i)
 			simulator_register_clear(&context->x86_registers[i]);
 		free(context->x86_registers);
-		for (size_t i = 0; i < TEMPS; ++i)
+		for(size_t i = 0; i < RREIL_ID_TEMPORARY_COUNT; ++i)
 			simulator_register_clear(&context->temporary_registers[i]);
 		free(context->temporary_registers);
 		free(context);

@@ -88,7 +88,7 @@ void simulator_register_read_64(struct simulator_context *context,
 	simulator_register_read(context, id, buffer, 64, bit_offset);
 }
 
-static void simulator_register_generic_write(struct register_ *reg,
+void simulator_register_generic_write(struct register_ *reg,
 		uint8_t *data, size_t bit_length, size_t bit_offset) {
 	if(bit_offset / 8 + 1 + bit_length / 8 + 1 > reg->data_size) {
 		reg->data_size = bit_offset / 8 + 1 + bit_length / 8 + 1;
