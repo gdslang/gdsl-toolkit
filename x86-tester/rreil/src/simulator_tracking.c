@@ -83,7 +83,7 @@ size_t rreil_comparator_trace(struct simulator_trace *trace,
 		struct rreil_comparator *comparator) {
 	rreil_linear_trace(trace, comparator->arity2.opnd1, comparator->arity2.size);
 	rreil_linear_trace(trace, comparator->arity2.opnd2, comparator->arity2.size);
-	return comparator->arity2.size;
+	return 1;
 }
 
 void rreil_sexpr_trace(struct simulator_trace *trace, struct rreil_sexpr *sexpr,
@@ -242,8 +242,20 @@ struct simulator_trace *simulator_trace_init() {
 			sizeof(struct simulator_trace));
 
 	void init_rw(struct register_access *access) {
-		access->x86_registers = (struct register_*)malloc(
-				sizeof(struct register_) * RREIL_ID_X86_COUNT);
+		access->x86_registers = (struct register_*)calloc(RREIL_ID_X86_COUNT,
+				sizeof(struct register_));
+
+		void init_register(enum rreil_id_x86 x86) {
+			size_t size = rreil_x86_amd64_sizeof(x86);
+			struct register_ *reg = &access->x86_registers[x86];
+			reg->data = (uint8_t*)calloc(size / 8, 1);
+			reg->data_bit_length = size;
+			reg->data_size = size / 8;
+		}
+
+		for(size_t i = 0; i < RREIL_ID_X86_COUNT; ++i)
+			init_register((enum rreil_id_x86)i);
+
 		access->indices = NULL;
 		access->indices_length = 0;
 		access->indices_size = 0;
@@ -253,6 +265,22 @@ struct simulator_trace *simulator_trace_init() {
 	init_rw(&trace->written);
 
 	return trace;
+}
+
+void simulator_trace_free(struct simulator_trace *trace) {
+	void access_clear(struct register_access *access) {
+		for(size_t i = 0; i < RREIL_ID_X86_COUNT; ++i) {
+			struct register_ *reg = &access->x86_registers[i];
+			free(reg->data);
+		}
+		free(access->indices);
+		free(access->x86_registers);
+	}
+
+	access_clear(&trace->read);
+	access_clear(&trace->written);
+
+	free(trace);
 }
 
 void simulator_trace_print(struct simulator_trace *trace) {
@@ -272,8 +300,8 @@ void simulator_trace_print(struct simulator_trace *trace) {
 			for(size_t i = 0; i < rest / 8; ++i)
 				printf("00");
 			if(reg->data_bit_length) {
-				if(rest % 8) {
-					uint8_t top = reg->data[reg->data_bit_length];
+				if(reg->data_bit_length % 8) {
+					uint8_t top = reg->data[reg->data_bit_length / 8];
 					uint8_t mask = (1 << (reg->data_bit_length % 8)) - 1;
 					printf("%02x", (top & mask));
 				}

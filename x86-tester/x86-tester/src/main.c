@@ -62,10 +62,10 @@ int main(void) {
 //		blob[1] = 0x42;
 
 	//shl
-	blob[0] = 0x48;
-	blob[1] = 0xc1;
-	blob[2] = 0xe0;
-	blob[3] = 0x2a;
+//	blob[0] = 0x48;
+//	blob[1] = 0xc1;
+//	blob[2] = 0xe0;
+//	blob[3] = 0x2a;
 
 //	typedef uint8_t xmm_t __attribute__ ((vector_size (16)));
 //
@@ -91,10 +91,10 @@ int main(void) {
 //	blob[3] = 0x2c;
 
 	//movzx
-//	blob[0] = 0x48;
-//	blob[1] = 0x0f;
-//	blob[2] = 0xb7;
-//	blob[3] = 0xd8;
+	blob[0] = 0x48;
+	blob[1] = 0x0f;
+	blob[2] = 0xb7;
+	blob[3] = 0xd8;
 
 	//movsx
 //	blob[0] = 0x48;
@@ -143,6 +143,8 @@ int main(void) {
 			rreil_statements_trace(trace, statements);
 
 			simulator_trace_print(trace);
+
+			simulator_trace_free(trace);
 
 //			rreil_statements_simulate(context, statements);
 
