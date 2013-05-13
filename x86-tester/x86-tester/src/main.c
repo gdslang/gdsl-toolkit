@@ -14,6 +14,7 @@
 #include <rreil_gdrr_builder.h>
 #include <simulator_regacc.h>
 #include <simulator.h>
+#include <simulator_tracking.h>
 
 int main(void) {
 //	struct register_ reg;
@@ -138,7 +139,12 @@ int main(void) {
 			id.x86 = RREIL_ID_X86_FLAGS;
 			simulator_register_write_64(context, &id, value, 0);
 
-			rreil_statements_simulate(context, statements);
+			struct simulator_trace *trace = simulator_trace_init();
+			rreil_statements_trace(trace, statements);
+
+			simulator_trace_print(trace);
+
+//			rreil_statements_simulate(context, statements);
 
 			simulator_context_free(context);
 

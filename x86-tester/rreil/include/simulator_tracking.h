@@ -23,4 +23,9 @@ struct simulator_trace {
 	struct register_access written;
 };
 
+extern struct simulator_trace *simulator_trace_init();
+extern void rreil_statements_trace(struct simulator_trace *trace,
+		struct rreil_statements *statements);
+extern void simulator_trace_print(struct simulator_trace *trace);
+
 #endif /* SIMULATOR_TRACKING_H_ */

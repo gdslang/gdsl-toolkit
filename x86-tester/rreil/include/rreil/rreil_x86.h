@@ -68,6 +68,8 @@ enum rreil_id_x86 {
 	RREIL_ID_X86_XMM15
 };
 
+extern size_t rreil_x86_amd64_sizeof(enum rreil_id_x86 x86);
+
 #define RREIL_ID_X86_COUNT (RREIL_ID_X86_XMM15 + 1)
 
 #endif /* RREIL_X86_H_ */

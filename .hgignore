@@ -45,4 +45,8 @@ x86-tester/x86-tester/.cproject
 x86-tester/x86-tester/.project
 x86-tester/x86-tester/Debug/
 
+x86-tester/util/.cproject
+x86-tester/util/.project
+x86-tester/util/Debug/
+
 lib/

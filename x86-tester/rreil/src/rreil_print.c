@@ -64,6 +64,239 @@ void rreil_comparator_print(struct rreil_comparator *comparator) {
 	rreil_linear_print(comparator->arity2.opnd2);
 }
 
+void rreil_id_x86_print(enum rreil_id_x86 x86) {
+	switch(x86) {
+		case RREIL_ID_X86_IP: {
+			printf("IP");
+			break;
+		}
+		case RREIL_ID_X86_FLAGS: {
+			printf("FLAGS");
+			break;
+		}
+		case RREIL_ID_X86_MXCSR: {
+			printf("MXCSR");
+			break;
+		}
+		case RREIL_ID_X86_AX: {
+			printf("AX");
+			break;
+		}
+		case RREIL_ID_X86_BX: {
+			printf("BX");
+			break;
+		}
+		case RREIL_ID_X86_CX: {
+			printf("CX");
+			break;
+		}
+		case RREIL_ID_X86_DX: {
+			printf("DX");
+			break;
+		}
+		case RREIL_ID_X86_SI: {
+			printf("SI");
+			break;
+		}
+		case RREIL_ID_X86_DI: {
+			printf("DI");
+			break;
+		}
+		case RREIL_ID_X86_SP: {
+			printf("SP");
+			break;
+		}
+		case RREIL_ID_X86_BP: {
+			printf("BP");
+			break;
+		}
+		case RREIL_ID_X86_R8: {
+			printf("R8");
+			break;
+		}
+		case RREIL_ID_X86_R9: {
+			printf("R9");
+			break;
+		}
+		case RREIL_ID_X86_R10: {
+			printf("R10");
+			break;
+		}
+		case RREIL_ID_X86_R11: {
+			printf("R11");
+			break;
+		}
+		case RREIL_ID_X86_R12: {
+			printf("R12");
+			break;
+		}
+		case RREIL_ID_X86_R13: {
+			printf("R13");
+			break;
+		}
+		case RREIL_ID_X86_R14: {
+			printf("R14");
+			break;
+		}
+		case RREIL_ID_X86_R15: {
+			printf("R15");
+			break;
+		}
+		case RREIL_ID_X86_CS: {
+			printf("CS");
+			break;
+		}
+		case RREIL_ID_X86_DS: {
+			printf("DS");
+			break;
+		}
+		case RREIL_ID_X86_SS: {
+			printf("SS");
+			break;
+		}
+		case RREIL_ID_X86_ES: {
+			printf("ES");
+			break;
+		}
+		case RREIL_ID_X86_FS: {
+			printf("FS");
+			break;
+		}
+		case RREIL_ID_X86_GS: {
+			printf("GS");
+			break;
+		}
+		case RREIL_ID_X86_ST0: {
+			printf("ST0");
+			break;
+		}
+		case RREIL_ID_X86_ST1: {
+			printf("ST1");
+			break;
+		}
+		case RREIL_ID_X86_ST2: {
+			printf("ST2");
+			break;
+		}
+		case RREIL_ID_X86_ST3: {
+			printf("ST3");
+			break;
+		}
+		case RREIL_ID_X86_ST4: {
+			printf("ST4");
+			break;
+		}
+		case RREIL_ID_X86_ST5: {
+			printf("ST5");
+			break;
+		}
+		case RREIL_ID_X86_ST6: {
+			printf("ST6");
+			break;
+		}
+		case RREIL_ID_X86_ST7: {
+			printf("ST7");
+			break;
+		}
+		case RREIL_ID_X86_MM0: {
+			printf("MM0");
+			break;
+		}
+		case RREIL_ID_X86_MM1: {
+			printf("MM1");
+			break;
+		}
+		case RREIL_ID_X86_MM2: {
+			printf("MM2");
+			break;
+		}
+		case RREIL_ID_X86_MM3: {
+			printf("MM3");
+			break;
+		}
+		case RREIL_ID_X86_MM4: {
+			printf("MM4");
+			break;
+		}
+		case RREIL_ID_X86_MM5: {
+			printf("MM5");
+			break;
+		}
+		case RREIL_ID_X86_MM6: {
+			printf("MM6");
+			break;
+		}
+		case RREIL_ID_X86_MM7: {
+			printf("MM7");
+			break;
+		}
+		case RREIL_ID_X86_XMM0: {
+			printf("XMM0");
+			break;
+		}
+		case RREIL_ID_X86_XMM1: {
+			printf("XMM1");
+			break;
+		}
+		case RREIL_ID_X86_XMM2: {
+			printf("XMM2");
+			break;
+		}
+		case RREIL_ID_X86_XMM3: {
+			printf("XMM3");
+			break;
+		}
+		case RREIL_ID_X86_XMM4: {
+			printf("XMM4");
+			break;
+		}
+		case RREIL_ID_X86_XMM5: {
+			printf("XMM5");
+			break;
+		}
+		case RREIL_ID_X86_XMM6: {
+			printf("XMM6");
+			break;
+		}
+		case RREIL_ID_X86_XMM7: {
+			printf("XMM7");
+			break;
+		}
+		case RREIL_ID_X86_XMM8: {
+			printf("XMM8");
+			break;
+		}
+		case RREIL_ID_X86_XMM9: {
+			printf("XMM9");
+			break;
+		}
+		case RREIL_ID_X86_XMM10: {
+			printf("XMM10");
+			break;
+		}
+		case RREIL_ID_X86_XMM11: {
+			printf("XMM11");
+			break;
+		}
+		case RREIL_ID_X86_XMM12: {
+			printf("XMM12");
+			break;
+		}
+		case RREIL_ID_X86_XMM13: {
+			printf("XMM13");
+			break;
+		}
+		case RREIL_ID_X86_XMM14: {
+			printf("XMM14");
+			break;
+		}
+		case RREIL_ID_X86_XMM15: {
+			printf("XMM15");
+			break;
+		}
+	}
+}
+
 void rreil_id_print(struct rreil_id *id) {
 	switch(id->type) {
 		case RREIL_ID_TYPE_VIRTUAL: {
@@ -100,236 +333,7 @@ void rreil_id_print(struct rreil_id *id) {
 			break;
 		}
 		case RREIL_ID_TYPE_X86: {
-			switch(id->x86) {
-				case RREIL_ID_X86_IP: {
-					printf("IP");
-					break;
-				}
-				case RREIL_ID_X86_FLAGS: {
-					printf("FLAGS");
-					break;
-				}
-				case RREIL_ID_X86_MXCSR: {
-					printf("MXCSR");
-					break;
-				}
-				case RREIL_ID_X86_AX: {
-					printf("AX");
-					break;
-				}
-				case RREIL_ID_X86_BX: {
-					printf("BX");
-					break;
-				}
-				case RREIL_ID_X86_CX: {
-					printf("CX");
-					break;
-				}
-				case RREIL_ID_X86_DX: {
-					printf("DX");
-					break;
-				}
-				case RREIL_ID_X86_SI: {
-					printf("SI");
-					break;
-				}
-				case RREIL_ID_X86_DI: {
-					printf("DI");
-					break;
-				}
-				case RREIL_ID_X86_SP: {
-					printf("SP");
-					break;
-				}
-				case RREIL_ID_X86_BP: {
-					printf("BP");
-					break;
-				}
-				case RREIL_ID_X86_R8: {
-					printf("R8");
-					break;
-				}
-				case RREIL_ID_X86_R9: {
-					printf("R9");
-					break;
-				}
-				case RREIL_ID_X86_R10: {
-					printf("R10");
-					break;
-				}
-				case RREIL_ID_X86_R11: {
-					printf("R11");
-					break;
-				}
-				case RREIL_ID_X86_R12: {
-					printf("R12");
-					break;
-				}
-				case RREIL_ID_X86_R13: {
-					printf("R13");
-					break;
-				}
-				case RREIL_ID_X86_R14: {
-					printf("R14");
-					break;
-				}
-				case RREIL_ID_X86_R15: {
-					printf("R15");
-					break;
-				}
-				case RREIL_ID_X86_CS: {
-					printf("CS");
-					break;
-				}
-				case RREIL_ID_X86_DS: {
-					printf("DS");
-					break;
-				}
-				case RREIL_ID_X86_SS: {
-					printf("SS");
-					break;
-				}
-				case RREIL_ID_X86_ES: {
-					printf("ES");
-					break;
-				}
-				case RREIL_ID_X86_FS: {
-					printf("FS");
-					break;
-				}
-				case RREIL_ID_X86_GS: {
-					printf("GS");
-					break;
-				}
-				case RREIL_ID_X86_ST0: {
-					printf("ST0");
-					break;
-				}
-				case RREIL_ID_X86_ST1: {
-					printf("ST1");
-					break;
-				}
-				case RREIL_ID_X86_ST2: {
-					printf("ST2");
-					break;
-				}
-				case RREIL_ID_X86_ST3: {
-					printf("ST3");
-					break;
-				}
-				case RREIL_ID_X86_ST4: {
-					printf("ST4");
-					break;
-				}
-				case RREIL_ID_X86_ST5: {
-					printf("ST5");
-					break;
-				}
-				case RREIL_ID_X86_ST6: {
-					printf("ST6");
-					break;
-				}
-				case RREIL_ID_X86_ST7: {
-					printf("ST7");
-					break;
-				}
-				case RREIL_ID_X86_MM0: {
-					printf("MM0");
-					break;
-				}
-				case RREIL_ID_X86_MM1: {
-					printf("MM1");
-					break;
-				}
-				case RREIL_ID_X86_MM2: {
-					printf("MM2");
-					break;
-				}
-				case RREIL_ID_X86_MM3: {
-					printf("MM3");
-					break;
-				}
-				case RREIL_ID_X86_MM4: {
-					printf("MM4");
-					break;
-				}
-				case RREIL_ID_X86_MM5: {
-					printf("MM5");
-					break;
-				}
-				case RREIL_ID_X86_MM6: {
-					printf("MM6");
-					break;
-				}
-				case RREIL_ID_X86_MM7: {
-					printf("MM7");
-					break;
-				}
-				case RREIL_ID_X86_XMM0: {
-					printf("XMM0");
-					break;
-				}
-				case RREIL_ID_X86_XMM1: {
-					printf("XMM1");
-					break;
-				}
-				case RREIL_ID_X86_XMM2: {
-					printf("XMM2");
-					break;
-				}
-				case RREIL_ID_X86_XMM3: {
-					printf("XMM3");
-					break;
-				}
-				case RREIL_ID_X86_XMM4: {
-					printf("XMM4");
-					break;
-				}
-				case RREIL_ID_X86_XMM5: {
-					printf("XMM5");
-					break;
-				}
-				case RREIL_ID_X86_XMM6: {
-					printf("XMM6");
-					break;
-				}
-				case RREIL_ID_X86_XMM7: {
-					printf("XMM7");
-					break;
-				}
-				case RREIL_ID_X86_XMM8: {
-					printf("XMM8");
-					break;
-				}
-				case RREIL_ID_X86_XMM9: {
-					printf("XMM9");
-					break;
-				}
-				case RREIL_ID_X86_XMM10: {
-					printf("XMM10");
-					break;
-				}
-				case RREIL_ID_X86_XMM11: {
-					printf("XMM11");
-					break;
-				}
-				case RREIL_ID_X86_XMM12: {
-					printf("XMM12");
-					break;
-				}
-				case RREIL_ID_X86_XMM13: {
-					printf("XMM13");
-					break;
-				}
-				case RREIL_ID_X86_XMM14: {
-					printf("XMM14");
-					break;
-				}
-				case RREIL_ID_X86_XMM15: {
-					printf("XMM15");
-					break;
-				}
-			}
+			rreil_id_x86_print(id->x86);
 			break;
 		}
 	}

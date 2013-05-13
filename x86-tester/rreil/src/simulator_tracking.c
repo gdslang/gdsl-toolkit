@@ -12,12 +12,13 @@
 #include <simulator.h>
 #include <simulator_regacc.h>
 #include <simulator_tracking.h>
+#include <util.h>
 
 enum simulator_access_type {
 	SIMULATOR_ACCESS_TYPE_READ, SIMULATOR_ACCESS_TYPE_WRITE
 };
 
-void rreil_variable_access(struct simulator_trace *trace,
+void rreil_variable_access_trace(struct simulator_trace *trace,
 		struct rreil_variable *variable, size_t bit_length,
 		enum simulator_access_type type) {
 	if(variable->id->type != RREIL_ID_TYPE_X86)
@@ -33,15 +34,29 @@ void rreil_variable_access(struct simulator_trace *trace,
 	for(size_t i = 0; i < bit_length / 8 + 1; ++i)
 		data[i] = 0xff;
 
-	simulator_register_generic_write(&access->x86_registers[variable->id->x86], data,
-			bit_length, variable->offset);
+	simulator_register_generic_write(&access->x86_registers[variable->id->x86],
+			data, bit_length, variable->offset);
+
+	free(data);
+
+	size_t index = variable->id->x86;
+	char found = 0;
+	for(size_t i = 0; i < access->indices_length; ++i)
+		if(access->indices[i] == index) {
+			found = 1;
+			break;
+		}
+	if(!found)
+		util_array_generic_add((void**)&access->indices, &index, sizeof(index),
+				&access->indices_length, &access->indices_size);
 }
 
 void rreil_linear_trace(struct simulator_trace *trace,
 		struct rreil_linear *linear, size_t bit_length) {
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
-			rreil_variable_access(trace, linear->variable, bit_length, SIMULATOR_ACCESS_TYPE_READ);
+			rreil_variable_access_trace(trace, linear->variable, bit_length,
+					SIMULATOR_ACCESS_TYPE_READ);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_IMMEDIATE: {
@@ -58,7 +73,7 @@ void rreil_linear_trace(struct simulator_trace *trace,
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SCALE: {
-			rreil_linear_trace(trace, linear->scale->opnd, bit_length);
+			rreil_linear_trace(trace, linear->scale.opnd, bit_length);
 			break;
 		}
 	}
@@ -165,7 +180,7 @@ void rreil_statement_trace(struct simulator_trace *trace,
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
 			size_t bits = rreil_op_trace(trace, statement->assign.rhs);
-			rreil_variable_access(trace, statement->assign.lhs, bits,
+			rreil_variable_access_trace(trace, statement->assign.lhs, bits,
 					SIMULATOR_ACCESS_TYPE_WRITE);
 			break;
 		}
@@ -212,15 +227,15 @@ void rreil_statements_trace(struct simulator_trace *trace,
 		rreil_statement_trace(trace, statements->statements[i]);
 }
 
-void simulator_register_access_register_add(struct register_access *access,
-		enum rreil_id_x86 id) {
-	if(access->indices_length >= access->indices_size) {
-		access->indices_size = access->indices_size ? access->indices_size << 1 : 8;
-		access->indices = (size_t*)realloc(access->indices,
-				sizeof(size_t) * access->indices_size);
-	}
-	access->indices[access->indices_length++] = id;
-}
+//void simulator_register_access_register_add(struct register_access *access,
+//		enum rreil_id_x86 id) {
+//	if(access->indices_length >= access->indices_size) {
+//		access->indices_size = access->indices_size ? access->indices_size << 1 : 8;
+//		access->indices = (size_t*)realloc(access->indices,
+//				sizeof(size_t) * access->indices_size);
+//	}
+//	access->indices[access->indices_length++] = id;
+//}
 
 struct simulator_trace *simulator_trace_init() {
 	struct simulator_trace *trace = (struct simulator_trace*)malloc(
@@ -238,4 +253,39 @@ struct simulator_trace *simulator_trace_init() {
 	init_rw(&trace->written);
 
 	return trace;
+}
+
+void simulator_trace_print(struct simulator_trace *trace) {
+	void access_print(struct register_access *access) {
+		for(size_t i = 0; i < access->indices_length; ++i) {
+			enum rreil_id_x86 id_x86 = (enum rreil_id_x86)access->indices[i];
+			struct register_ *reg = &access->x86_registers[id_x86];
+
+			printf("Register ");
+			rreil_id_x86_print(id_x86);
+			printf(": ");
+
+			size_t rest = 0;
+			size_t reg_size = rreil_x86_amd64_sizeof(id_x86);
+			if(reg_size > reg->data_bit_length)
+				rest = reg_size - reg->data_bit_length;
+			for(size_t i = 0; i < rest / 8; ++i)
+				printf("00");
+			if(reg->data_bit_length) {
+				if(rest % 8) {
+					uint8_t top = reg->data[reg->data_bit_length];
+					uint8_t mask = (1 << (reg->data_bit_length % 8)) - 1;
+					printf("%02x", (top & mask));
+				}
+				for(size_t i = reg->data_bit_length / 8; i > 0; --i)
+					printf("%02x", reg->data[i - 1]);
+			}
+			printf("\n");
+		}
+	}
+
+	printf("Read registers:\n");
+	access_print(&trace->read);
+	printf("Written registers:\n");
+	access_print(&trace->written);
 }

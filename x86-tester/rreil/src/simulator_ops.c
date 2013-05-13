@@ -132,14 +132,25 @@ uint8_t *simulator_op_mod(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 
 uint8_t *simulator_op_shl(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 	uint8_t *result = (uint8_t*)malloc(bit_length / 8 + 1);
-	uint8_t amount = *opnd2;
-	if(bit_length < 8) {
-		uint8_t mask = (1 << bit_length) - 1;
-		amount &= mask;
+//	uint8_t amount = *opnd2;
+//	if(bit_length < 8) {
+//		uint8_t mask = (1 << bit_length) - 1;
+//		amount &= mask;
+//	}
+
+	uint16_t amount = 0;
+	uint8_t *amount_ptr = (uint8_t*)&amount;
+	for (size_t i = 0; i < 2; ++i) {
+		amount_ptr[i] = opnd2[i] << (i*8);
+		if(i == bit_length / 8) {
+			uint8_t mask = (1 << (bit_length % 8)) - 1;
+			amount_ptr[i] &= mask;
+			break;
+		}
 	}
 
-	uint8_t inter = amount / 8;
-	uint8_t inner = amount % 8;
+	uint16_t inter = amount / 8;
+	uint16_t inner = amount % 8;
 
 	char inside(size_t i) {
 		return i < bit_length / 8 + (bit_length % 8 > 0);
@@ -169,7 +180,7 @@ static uint8_t *simulator_op_shr_sign(uint8_t *opnd1, uint8_t *opnd2,
 
 	uint16_t amount = 0;
 	uint8_t *amount_ptr = (uint8_t*)&amount;
-	for (size_t i = 0; i < bit_length / 8 + 1 && i < 2; ++i) {
+	for (size_t i = 0; i < 2; ++i) {
 		amount_ptr[i] = opnd2[i] << (i*8);
 		if(i == bit_length / 8) {
 			uint8_t mask = (1 << (bit_length % 8)) - 1;
