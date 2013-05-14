@@ -54,16 +54,21 @@ int main(void) {
 //	blob[1] = 0x8b;
 //	blob[2] = 0x03;
 
-		//add    $0x8,%rsp
+//add    $0x8,%rsp
 //		blob[0] = 0x48;
 //		blob[1] = 0x83;
 //		blob[2] = 0xc4;
 //		blob[3] = 0x42;
 
+//add    $0x42,%ecx
+	blob[0] = 0x83;
+	blob[1] = 0xc1;
+	blob[2] = 0x42;
+
 //		blob[0] = 0x04;
 //		blob[1] = 0x42;
 
-	//shl
+//shl
 //	blob[0] = 0x48;
 //	blob[1] = 0xc1;
 //	blob[2] = 0xe0;
@@ -80,34 +85,34 @@ int main(void) {
 
 //	hugo = {0x1122334455667788, 0x1122334455667788} ;
 
-	//shr
+//shr
 //	blob[0] = 0x48;
 //	blob[1] = 0xc1;
 //	blob[2] = 0xe8;
 //	blob[3] = 0x2c;
 
-	//shrs
+//shrs
 //	blob[0] = 0x48;
 //	blob[1] = 0xc1;
 //	blob[2] = 0xf8;
 //	blob[3] = 0x2c;
 
-	//movzx
+//movzx
 //	blob[0] = 0x48;
 //	blob[1] = 0x0f;
 //	blob[2] = 0xb7;
 //	blob[3] = 0xd8;
 
-	//movsx
+//movsx
 //	blob[0] = 0x48;
 //	blob[1] = 0x0f;
 //	blob[2] = 0xbf;
 //	blob[3] = 0xd8;
 
-	//add %rax, %rbx
-	blob[0] = 0x48;
-	blob[1] = 0x01;
-	blob[2] = 0xc3;
+//add %rax, %rbx
+//	blob[0] = 0x48;
+//	blob[1] = 0x01;
+//	blob[2] = 0xc3;
 
 	__obj state = __createState(blob, i, 0, 0);
 	__obj insn = __runMonadicNoArg(__decode__, &state);
@@ -128,7 +133,8 @@ int main(void) {
 //			puts(fmt);
 
 			struct gdrr_config *config = rreil_gdrr_builder_config_get();
-			struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(r, config);
+			struct rreil_statements *statements =
+					(struct rreil_statements*)gdrr_convert(r, config);
 			free(config);
 
 			rreil_statements_print(statements);
@@ -137,22 +143,21 @@ int main(void) {
 
 //			uint64_t value = 0x2b3481cfef1194ba;
 //			uint64_t value = 0x2b3481cfef1194ba;
-			uint64_t value = 22;
-			struct rreil_id id;
-			id.type = RREIL_ID_TYPE_X86;
-			id.x86 = RREIL_ID_X86_AX;
-			simulator_register_write_64(context, &id, value, 0);
-
-			value = 0;
-			id.x86 = RREIL_ID_X86_FLAGS;
-			simulator_register_write_64(context, &id, value, 0);
-
-			value = 99;
-			id.x86 = RREIL_ID_X86_BX;
-			simulator_register_write_64(context, &id, value, 0);
-
-			simulator_context_x86_print(context);
-
+//			uint64_t value = 22;
+//			struct rreil_id id;
+//			id.type = RREIL_ID_TYPE_X86;
+//			id.x86 = RREIL_ID_X86_AX;
+//			simulator_register_write_64(context, &id, value, 0);
+//
+//			value = 0;
+//			id.x86 = RREIL_ID_X86_FLAGS;
+//			simulator_register_write_64(context, &id, value, 0);
+//
+//			value = 0x1100000000000052;
+//			id.x86 = RREIL_ID_X86_CX;
+//			simulator_register_write_64(context, &id, value, 0);
+//
+//			simulator_context_x86_print(context);
 
 			struct simulator_trace *trace = simulator_trace_init();
 			rreil_statements_trace(trace, statements);
@@ -160,10 +165,33 @@ int main(void) {
 			printf("------------------\n");
 			simulator_trace_print(trace);
 
-			uint8_t *buffer;
-			size_t buffer_size = tester_code_generate(&buffer, blob, i, trace, context);
+			for(size_t i = 0; i < trace->read.indices_length; ++i) {
+				size_t index = trace->read.indices[i];
+				enum rreil_id_x86 reg = (enum rreil_id_x86)index;
 
-			void *mem_exec = mmap(NULL, buffer_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0,
+				size_t length = rreil_x86_amd64_sizeof(reg);
+				uint32_t *data = (uint32_t*)malloc(4 * (length / (8 * 4) + 1));
+				for(size_t i = 0; i < length / (8 * 4) + 1; ++i)
+					data[i] = rand();
+
+				simulator_register_generic_write(&context->x86_registers[reg],
+						(uint8_t*)data, length, 0);
+
+				free(data);
+			}
+
+			printf("------------------\n");
+			simulator_context_x86_print(context);
+
+			struct simulator_context *context_rreil = simulator_context_copy(context);
+			rreil_statements_simulate(context_rreil, statements);
+
+			uint8_t *buffer;
+			size_t buffer_size = tester_code_generate(&buffer, blob, i, trace,
+					context);
+
+			void *mem_exec = mmap(NULL, buffer_size,
+					PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0,
 					0);
 
 			memcpy(mem_exec, buffer, buffer_size);
@@ -175,13 +203,40 @@ int main(void) {
 			munmap(mem_exec, buffer_size);
 
 			printf("------------------\n");
+			printf("CPU:\n");
 			simulator_context_x86_print(context);
+			printf("Rreil simulator:\n");
+			simulator_context_x86_print(context_rreil);
+
+			printf("------------------\n");
+			printf("Failing Registers:\n");
+
+			char found = 0;
+			for(size_t i = 0; i < trace->written.indices_length; ++i) {
+				size_t index = trace->written.indices[i];
+				enum rreil_id_x86 reg = (enum rreil_id_x86)index;
+
+				struct register_ *reg_cpu = &context->x86_registers[index];
+				struct register_ *reg_rreil = &context_rreil->x86_registers[index];
+
+				for(size_t j = 0; j < reg_cpu->data_bit_length / 8; ++j)
+					if(reg_cpu->data[j] != reg_rreil->data[j]) {
+						if(j)
+							printf(", ");
+						rreil_id_x86_print(reg);
+						found = 1;
+						break;
+					}
+			}
+			if(!found)
+				printf("None\n");
+			else
+				printf("\n");
 
 			simulator_trace_free(trace);
 
-//			rreil_statements_simulate(context, statements);
-
 			simulator_context_free(context);
+			simulator_context_free(context_rreil);
 
 			rreil_statements_free(statements);
 		}

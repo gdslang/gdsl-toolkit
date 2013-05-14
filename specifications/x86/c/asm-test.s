@@ -568,10 +568,10 @@ main:
 	#add $0x7abbccdd, %rax
 	#add $0xaabbccdd12345678, %rax
 
-	#add $0x42, %al
+	add $0x42, %ecx
 	#sar $42, %rax
 	#movsx %ax, %rbx
-	add %rax, %rbx
+	#add %rax, %rbx
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16

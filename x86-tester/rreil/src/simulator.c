@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <rreil/rreil.h>
 #include <simulator.h>
 #include <simulator_regacc.h>
@@ -364,6 +365,38 @@ struct simulator_context *simulator_context_init() {
 			sizeof(struct register_));
 	context->temporary_registers = (struct register_*)calloc(
 			RREIL_ID_TEMPORARY_COUNT, sizeof(struct register_));
+
+	return context;
+}
+
+struct simulator_context *simulator_context_copy(
+		struct simulator_context *source) {
+	struct simulator_context *context = (struct simulator_context*)malloc(
+			sizeof(struct simulator_context));
+
+	void copy_registers(size_t count, struct register_ *registers,
+			struct register_ *registers_source) {
+		for(size_t i = 0; i < count; ++i) {
+			registers[i].data_bit_length = registers_source[i].data_bit_length;
+			registers[i].data_size = registers_source[i].data_size;
+			registers[i].data = (uint8_t*)malloc(registers[i].data_size);
+			memcpy(registers[i].data, registers_source[i].data,
+					registers[i].data_size);
+		}
+	}
+
+	context->virtual_registers = (struct register_*)malloc(
+			RREIL_ID_VIRTUAL_COUNT * sizeof(struct register_));
+	copy_registers(RREIL_ID_VIRTUAL_COUNT, context->virtual_registers,
+			source->virtual_registers);
+	context->x86_registers = (struct register_*)malloc(
+			RREIL_ID_X86_COUNT * sizeof(struct register_));
+	copy_registers(RREIL_ID_X86_COUNT, context->x86_registers,
+			source->x86_registers);
+	context->temporary_registers = (struct register_*)malloc(
+			RREIL_ID_TEMPORARY_COUNT * sizeof(struct register_));
+	copy_registers(RREIL_ID_TEMPORARY_COUNT, context->temporary_registers,
+			source->temporary_registers);
 
 	return context;
 }
