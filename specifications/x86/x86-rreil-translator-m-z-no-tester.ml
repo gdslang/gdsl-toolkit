@@ -2231,7 +2231,7 @@ val sem-sal-shl x = do
   _if (/gtu sz (var temp-count) (imm 0)) _then do
     shl sz tdst src (var temp-count);
 
-    _if (/geu szOp2 (imm sz) count) _then do
+    _if (/geu szOp2 count (imm sz)) _then do
       temp-c <- mktemp;
       sub sz temp-c (imm sz) (var temp-count);
       shr sz temp-c src (var temp-c);
@@ -2346,7 +2346,7 @@ val sem-shr-sar x signed = do
     sub sz temp (var temp-count) (imm 1);
     shifter sz tdst src (var temp);
 
-    _if (/geu szOp2 (imm sz) count) _then
+    _if (/geu szOp2 count (imm sz)) _then
       mov 1 cf (var tdst)
     _else
       undef 1 cf

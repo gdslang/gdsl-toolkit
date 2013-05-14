@@ -70,10 +70,10 @@ int main(void) {
 //		blob[1] = 0x42;
 
 //shl
-	blob[0] = 0x48;
-	blob[1] = 0xc1;
-	blob[2] = 0xe0;
-	blob[3] = 0x2a;
+//	blob[0] = 0x48;
+//	blob[1] = 0xc1;
+//	blob[2] = 0xe0;
+//	blob[3] = 0x2a;
 
 //	typedef uint8_t xmm_t __attribute__ ((vector_size (16)));
 //
@@ -93,10 +93,10 @@ int main(void) {
 //	blob[3] = 0x2c;
 
 //shrs
-//	blob[0] = 0x48;
-//	blob[1] = 0xc1;
-//	blob[2] = 0xf8;
-//	blob[3] = 0x2c;
+	blob[0] = 0x48;
+	blob[1] = 0xc1;
+	blob[2] = 0xf8;
+	blob[3] = 0x2c;
 
 //movzx
 //	blob[0] = 0x48;
@@ -176,7 +176,7 @@ int main(void) {
 					size_t length = rreil_x86_amd64_sizeof(reg);
 					uint32_t *data = (uint32_t*)malloc(4 * (length / (8 * 4) + 1));
 					for(size_t i = 0; i < length / (8 * 4) + 1; ++i)
-						data[i] = rand();
+						data[i] = rand() << 16 ^ rand();
 
 					simulator_register_generic_write(&context->x86_registers[reg],
 							(uint8_t*)data, length, 0);
