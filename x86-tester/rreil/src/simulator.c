@@ -390,3 +390,37 @@ void simulator_context_free(struct simulator_context *context) {
 		free(context);
 	}
 }
+
+void simulator_context_x86_print(struct simulator_context *context) {
+	for(size_t i = 0; i < RREIL_ID_X86_COUNT; ++i) {
+		enum rreil_id_x86 id_x86 = (enum rreil_id_x86)i;
+		struct register_ *reg = &context->x86_registers[id_x86];
+
+		if(!reg->data_bit_length)
+			continue;
+
+		/*
+		 * Todo: Extra function for printing
+		 */
+		printf("Register ");
+		rreil_id_x86_print(id_x86);
+		printf(": ");
+
+		size_t rest = 0;
+		size_t reg_size = rreil_x86_amd64_sizeof(id_x86);
+		if(reg_size > reg->data_bit_length)
+			rest = reg_size - reg->data_bit_length;
+		for(size_t i = 0; i < rest / 8; ++i)
+			printf("00");
+		if(reg->data_bit_length) {
+			if(reg->data_bit_length % 8) {
+				uint8_t top = reg->data[reg->data_bit_length / 8];
+				uint8_t mask = (1 << (reg->data_bit_length % 8)) - 1;
+				printf("%02x", (top & mask));
+			}
+			for(size_t i = reg->data_bit_length / 8; i > 0; --i)
+				printf("%02x", reg->data[i - 1]);
+		}
+		printf("\n");
+	}
+}

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint-gcc.h>
+#include <sys/mman.h>
 #include <dis.h>
 #include <gdrr.h>
 #include <rreil/rreil.h>
@@ -15,6 +16,7 @@
 #include <simulator_regacc.h>
 #include <simulator.h>
 #include <simulator_tracking.h>
+#include "tester.h"
 
 int main(void) {
 //	struct register_ reg;
@@ -47,7 +49,7 @@ int main(void) {
 //		blob[i] = c & 0xff;
 //	}
 //	done: ;
-	int i = 4;
+	int i = 3;
 //	blob[0] = 0x48;
 //	blob[1] = 0x8b;
 //	blob[2] = 0x03;
@@ -91,16 +93,21 @@ int main(void) {
 //	blob[3] = 0x2c;
 
 	//movzx
-	blob[0] = 0x48;
-	blob[1] = 0x0f;
-	blob[2] = 0xb7;
-	blob[3] = 0xd8;
+//	blob[0] = 0x48;
+//	blob[1] = 0x0f;
+//	blob[2] = 0xb7;
+//	blob[3] = 0xd8;
 
 	//movsx
 //	blob[0] = 0x48;
 //	blob[1] = 0x0f;
 //	blob[2] = 0xbf;
 //	blob[3] = 0xd8;
+
+	//add %rax, %rbx
+	blob[0] = 0x48;
+	blob[1] = 0x01;
+	blob[2] = 0xc3;
 
 	__obj state = __createState(blob, i, 0, 0);
 	__obj insn = __runMonadicNoArg(__decode__, &state);
@@ -128,8 +135,9 @@ int main(void) {
 
 			struct simulator_context *context = simulator_context_init();
 
-			uint64_t value = 0x2b3481cfef1104ba;
 //			uint64_t value = 0x2b3481cfef1194ba;
+//			uint64_t value = 0x2b3481cfef1194ba;
+			uint64_t value = 22;
 			struct rreil_id id;
 			id.type = RREIL_ID_TYPE_X86;
 			id.x86 = RREIL_ID_X86_AX;
@@ -139,10 +147,35 @@ int main(void) {
 			id.x86 = RREIL_ID_X86_FLAGS;
 			simulator_register_write_64(context, &id, value, 0);
 
+			value = 99;
+			id.x86 = RREIL_ID_X86_BX;
+			simulator_register_write_64(context, &id, value, 0);
+
+			simulator_context_x86_print(context);
+
+
 			struct simulator_trace *trace = simulator_trace_init();
 			rreil_statements_trace(trace, statements);
 
+			printf("------------------\n");
 			simulator_trace_print(trace);
+
+			uint8_t *buffer;
+			size_t buffer_size = tester_code_generate(&buffer, blob, i, trace, context);
+
+			void *mem_exec = mmap(NULL, buffer_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0,
+					0);
+
+			memcpy(mem_exec, buffer, buffer_size);
+			free(buffer);
+
+			void (*f)(void) = (void (*)(void))mem_exec;
+
+			f();
+			munmap(mem_exec, buffer_size);
+
+			printf("------------------\n");
+			simulator_context_x86_print(context);
 
 			simulator_trace_free(trace);
 

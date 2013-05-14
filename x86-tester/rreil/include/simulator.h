@@ -9,6 +9,7 @@
 #define SIMULATOR_H_
 
 #include <stdint.h>
+#include <rreil/rreil.h>
 
 struct register_ {
 	uint8_t *data;
@@ -26,5 +27,6 @@ extern void rreil_statements_simulate(struct simulator_context *context,
 		struct rreil_statements *statements);
 extern struct simulator_context *simulator_context_init();
 extern void simulator_context_free(struct simulator_context *context);
+extern void simulator_context_x86_print(struct simulator_context *context);
 
 #endif /* SIMULATOR_H_ */
