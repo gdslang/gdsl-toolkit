@@ -17,8 +17,9 @@
 
 void rreil_variable_write(struct simulator_context *context,
 		struct rreil_variable *variable, size_t bit_length, uint8_t *buffer) {
-	simulator_register_write(context, variable->id, buffer, bit_length,
-			variable->offset);
+	if(bit_length)
+		simulator_register_write(context, variable->id, buffer, bit_length,
+				variable->offset);
 }
 
 void rreil_variable_read(struct simulator_context *context,
@@ -274,10 +275,11 @@ size_t rreil_op_simulate(struct simulator_context *context, uint8_t **buffer,
 			break;
 		}
 		case RREIL_OP_TYPE_ARB: {
-			size = op->arb.size;
-			*buffer = (uint8_t*)malloc(size / 8 + 1);
-			for(size_t i = 0; i <= size / 8; ++i)
-				(*buffer)[i] = (uint8_t)rand();
+//			size = op->arb.size;
+//			*buffer = (uint8_t*)malloc(size / 8 + 1);
+//			for(size_t i = 0; i <= size / 8; ++i)
+//				(*buffer)[i] = (uint8_t)rand();
+			size = 0;
 			break;
 		}
 	}

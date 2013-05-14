@@ -2231,7 +2231,7 @@ val sem-sal-shl x = do
   _if (/gtu sz (var temp-count) (imm 0)) _then do
     shl sz tdst src (var temp-count);
 
-    _if (/geu szOp2 count (imm sz)) _then do
+    _if (/geu szOp2 (imm sz) count) _then do
       temp-c <- mktemp;
       sub sz temp-c (imm sz) (var temp-count);
       shr sz temp-c src (var temp-c);

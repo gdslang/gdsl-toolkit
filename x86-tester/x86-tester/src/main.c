@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdint-gcc.h>
 #include <sys/mman.h>
+#include <time.h>
 #include <dis.h>
 #include <gdrr.h>
 #include <rreil/rreil.h>
@@ -49,7 +50,7 @@ int main(void) {
 //		blob[i] = c & 0xff;
 //	}
 //	done: ;
-	int i = 3;
+	int i = 4;
 //	blob[0] = 0x48;
 //	blob[1] = 0x8b;
 //	blob[2] = 0x03;
@@ -61,18 +62,18 @@ int main(void) {
 //		blob[3] = 0x42;
 
 //add    $0x42,%ecx
-	blob[0] = 0x83;
-	blob[1] = 0xc1;
-	blob[2] = 0x42;
+//	blob[0] = 0x83;
+//	blob[1] = 0xc1;
+//	blob[2] = 0x42;
 
 //		blob[0] = 0x04;
 //		blob[1] = 0x42;
 
 //shl
-//	blob[0] = 0x48;
-//	blob[1] = 0xc1;
-//	blob[2] = 0xe0;
-//	blob[3] = 0x2a;
+	blob[0] = 0x48;
+	blob[1] = 0xc1;
+	blob[2] = 0xe0;
+	blob[3] = 0x2a;
 
 //	typedef uint8_t xmm_t __attribute__ ((vector_size (16)));
 //
@@ -137,6 +138,8 @@ int main(void) {
 					(struct rreil_statements*)gdrr_convert(r, config);
 			free(config);
 
+			srand(time(NULL));
+
 			rreil_statements_print(statements);
 
 			struct simulator_context *context = simulator_context_init();
@@ -165,25 +168,51 @@ int main(void) {
 			printf("------------------\n");
 			simulator_trace_print(trace);
 
-			for(size_t i = 0; i < trace->read.indices_length; ++i) {
-				size_t index = trace->read.indices[i];
-				enum rreil_id_x86 reg = (enum rreil_id_x86)index;
+			void access_init(struct register_access *access, int (*k)(void)) {
+				for(size_t i = 0; i < access->indices_length; ++i) {
+					size_t index = access->indices[i];
+					enum rreil_id_x86 reg = (enum rreil_id_x86)index;
 
-				size_t length = rreil_x86_amd64_sizeof(reg);
-				uint32_t *data = (uint32_t*)malloc(4 * (length / (8 * 4) + 1));
-				for(size_t i = 0; i < length / (8 * 4) + 1; ++i)
-					data[i] = rand();
+					size_t length = rreil_x86_amd64_sizeof(reg);
+					uint32_t *data = (uint32_t*)malloc(4 * (length / (8 * 4) + 1));
+					for(size_t i = 0; i < length / (8 * 4) + 1; ++i)
+						data[i] = rand();
 
-				simulator_register_generic_write(&context->x86_registers[reg],
-						(uint8_t*)data, length, 0);
+					simulator_register_generic_write(&context->x86_registers[reg],
+							(uint8_t*)data, length, 0);
 
-				free(data);
+					free(data);
+				}
 			}
+
+			int zero() {
+				return 0;
+			}
+
+			access_init(&trace->written, &rand);
+			access_init(&trace->read, &rand);
+
+			struct simulator_context *context_rreil = simulator_context_copy(context);
+
+			/*
+			 * Clean up RFLAGS
+			 */
+			uint64_t rflags_mask = 0x0000000000244cd5;
+			uint8_t *rflags_mask_ptr = (uint8_t*)&rflags_mask;
+			void clean_rflags(struct simulator_context *context) {
+				for(size_t i = 0;
+						i < context->x86_registers[RREIL_ID_X86_FLAGS].data_bit_length / 8;
+						++i) {
+					context->x86_registers[RREIL_ID_X86_FLAGS].data[i] &=
+							rflags_mask_ptr[i];
+				}
+			}
+			clean_rflags(context);
+			clean_rflags(context_rreil);
 
 			printf("------------------\n");
 			simulator_context_x86_print(context);
 
-			struct simulator_context *context_rreil = simulator_context_copy(context);
 			rreil_statements_simulate(context_rreil, statements);
 
 			uint8_t *buffer;
@@ -201,6 +230,8 @@ int main(void) {
 
 			f();
 			munmap(mem_exec, buffer_size);
+
+			clean_rflags(context);
 
 			printf("------------------\n");
 			printf("CPU:\n");
@@ -221,7 +252,7 @@ int main(void) {
 
 				for(size_t j = 0; j < reg_cpu->data_bit_length / 8; ++j)
 					if(reg_cpu->data[j] != reg_rreil->data[j]) {
-						if(j)
+						if(found)
 							printf(", ");
 						rreil_id_x86_print(reg);
 						found = 1;
