@@ -5,11 +5,18 @@
  *      Author: jucs
  */
 
-#ifndef TESTER_H_
-#define TESTER_H_
+#ifndef TBGEN_H_
+#define TBGEN_H_
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <context.h>
+#include <simulator/tracking.h>
+#include <x86.h>
 
 size_t tbgen_code_generate(uint8_t **buffer, uint8_t *instruction,
 		size_t instruction_length, struct simulator_trace *trace,
 		struct context *context);
 
-#endif /* TESTER_H_ */
+#endif /* TBGEN_H_ */

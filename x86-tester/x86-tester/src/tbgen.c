@@ -12,6 +12,7 @@
 #include <simulator/simulator.h>
 #include <simulator/tracking.h>
 #include <rreil/rreil.h>
+#include <util.h>
 
 static uint8_t tbgen_register_to_binary(enum x86_id register_) {
 	switch(register_) {
@@ -77,7 +78,91 @@ static void tbgen_push_generate(FILE *stream, enum x86_id register_) {
 	fwrite(push, 1, sizeof(push), stream);
 }
 
-static void tbgen_push_rflags_generate(FILE *stream) {
+static void tbgen_mov_generate(FILE *stream, enum x86_id from, enum x86_id to) {
+	uint8_t mov[] = { 0x48, 0x89, tbgen_register_to_binary(to)
+			| (tbgen_register_to_binary(from) << 3) };
+	fwrite(mov, 1, sizeof(mov), stream);
+}
+
+struct tbgen_register_allocation {
+	enum x86_id *registers;
+	size_t registers_length;
+	size_t registers_size;
+
+	char sp_allocated;
+	enum x86_id sp_backup;
+	enum x86_id sp_mirror;
+};
+
+static struct tbgen_register_allocation *tbgen_register_allocation_init() {
+	struct tbgen_register_allocation *allocation =
+			(struct tbgen_register_allocation*)malloc(
+					sizeof(struct tbgen_register_allocation));
+	allocation->registers = NULL;
+	allocation->registers_length = 0;
+	allocation->registers_size = 0;
+
+	allocation->sp_allocated = 0;
+}
+
+static void tbgen_allocate_fixed(struct tbgen_register_allocation *allocation,
+		enum x86_id reg) {
+	if(reg == X86_ID_SP) {
+		allocation->sp_allocated = 1;
+		return;
+	}
+	for(size_t i = 0; i < allocation->registers_length; ++i)
+		if(allocation->registers[i] == reg)
+			return;
+	util_array_generic_add((void**)&allocation->registers, &reg, sizeof(reg),
+			&allocation->registers_length, &allocation->registers_size);
+}
+
+static enum x86_id tbgen_allocate_dynamic(
+		struct tbgen_register_allocation *allocation, FILE *stream) {
+	enum x86_id reg = X86_ID_R8;
+	next: if(reg == X86_ID_R15)
+		return 0; //Todo: Handle error
+	for(size_t i = 0; i < allocation->registers_length; ++i)
+		if(allocation->registers[i] == reg) {
+			reg++;
+			goto next;
+		}
+	util_array_generic_add((void**)&allocation->registers, &reg, sizeof(reg),
+			&allocation->registers_length, &allocation->registers_size);
+	if(allocation->sp_allocated) {
+		tbgen_mov_generate(stream, X86_ID_SP, allocation->sp_mirror);
+		tbgen_mov_generate(stream, allocation->sp_backup, X86_ID_SP);
+	}
+	tbgen_push_generate(stream, reg);
+	if(allocation->sp_allocated) {
+		tbgen_mov_generate(stream, X86_ID_SP, allocation->sp_backup);
+		tbgen_mov_generate(stream, allocation->sp_mirror, X86_ID_SP);
+	}
+}
+
+static void tbgen_fixed_commit(struct tbgen_register_allocation *allocation,
+		FILE *stream) {
+	for(size_t i = 0; i < allocation->registers_length; ++i)
+		tbgen_push_generate(stream, allocation->registers[i]);
+	if(allocation->sp_allocated) {
+		allocation->sp_backup = tbgen_allocate_dynamic(allocation, stream);
+		allocation->sp_mirror = tbgen_allocate_dynamic(allocation, stream);
+		tbgen_mov_generate(stream, X86_ID_SP, allocation->sp_backup);
+	}
+}
+
+static void tbgen_registers_free(struct tbgen_register_allocation *allocation,
+		FILE *stream) {
+
+}
+
+static void tbgen_register_allocation_free(
+		struct tbgen_register_allocation *allocation) {
+
+}
+
+static static void tbgen_push_rflags_generate(FILE *stream) {
 	uint8_t pushfq[] = { 0x9c };
 	fwrite(pushfq, 1, sizeof(pushfq), stream);
 }
