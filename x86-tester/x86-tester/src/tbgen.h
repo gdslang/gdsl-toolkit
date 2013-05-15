@@ -10,6 +10,6 @@
 
 size_t tbgen_code_generate(uint8_t **buffer, uint8_t *instruction,
 		size_t instruction_length, struct simulator_trace *trace,
-		struct simulator_context *context);
+		struct context *context);
 
 #endif /* TESTER_H_ */

@@ -9,7 +9,7 @@
 #define SIMULATOR_TRACKING_H_
 
 #include <stdlib.h>
-#include <simulator.h>
+#include <simulator/simulator.h>
 
 struct register_access {
 	struct register_ *x86_registers;
@@ -23,10 +23,10 @@ struct simulator_trace {
 	struct register_access written;
 };
 
-extern struct simulator_trace *simulator_trace_init();
-extern void rreil_statements_trace(struct simulator_trace *trace,
+extern void tracking_statements_trace(struct simulator_trace *trace,
 		struct rreil_statements *statements);
-extern void simulator_trace_print(struct simulator_trace *trace);
-extern void simulator_trace_free(struct simulator_trace *trace);
+extern struct simulator_trace *tracking_trace_init();
+extern void tracking_trace_print(struct simulator_trace *trace);
+extern void tracking_trace_free(struct simulator_trace *trace);
 
 #endif /* SIMULATOR_TRACKING_H_ */

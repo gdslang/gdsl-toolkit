@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <simulator_ops.h>
+#include <simulator/ops.h>
 
 uint8_t *simulator_op_add(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 	uint8_t *result = (uint8_t*)malloc(bit_length / 8 + 1);

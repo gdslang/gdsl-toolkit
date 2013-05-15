@@ -9,10 +9,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <rreil/rreil.h>
-#include <simulator.h>
-#include <simulator_regacc.h>
+#include <simulator/simulator.h>
+#include <simulator/regacc.h>
 
-static void simulator_register_assign(struct simulator_context *context,
+static void simulator_register_assign(struct context *context,
 		struct rreil_id *id, uint8_t *data, size_t bit_length, size_t bit_offset,
 		void (*function)(struct register_ *, uint8_t*, size_t, size_t)) {
 	switch(id->type) {
@@ -62,28 +62,28 @@ static void simulator_register_generic_read(struct register_ *reg,
 		*(buffer++) = byte_read(bit_length);
 }
 
-void simulator_register_read(struct simulator_context *context,
+void simulator_register_read(struct context *context,
 		struct rreil_id *id, uint8_t *buffer, size_t bit_length, size_t bit_offset) {
 	simulator_register_assign(context, id, buffer, bit_length, bit_offset,
 			&simulator_register_generic_read);
 }
 
-void simulator_register_read_8(struct simulator_context *context,
+void simulator_register_read_8(struct context *context,
 		struct rreil_id *id, uint8_t *buffer, size_t bit_offset) {
 	simulator_register_read(context, id, buffer, 8, bit_offset);
 }
 
-void simulator_register_read_16(struct simulator_context *context,
+void simulator_register_read_16(struct context *context,
 		struct rreil_id *id, uint8_t *buffer, size_t bit_offset) {
 	simulator_register_read(context, id, buffer, 16, bit_offset);
 }
 
-void simulator_register_read_32(struct simulator_context *context,
+void simulator_register_read_32(struct context *context,
 		struct rreil_id *id, uint8_t *buffer, size_t bit_offset) {
 	simulator_register_read(context, id, buffer, 32, bit_offset);
 }
 
-void simulator_register_read_64(struct simulator_context *context,
+void simulator_register_read_64(struct context *context,
 		struct rreil_id *id, uint8_t *buffer, size_t bit_offset) {
 	simulator_register_read(context, id, buffer, 64, bit_offset);
 }
@@ -130,28 +130,28 @@ void simulator_register_generic_write(struct register_ *reg,
 		byte_write(*data, bit_length, bit_offset);
 }
 
-void simulator_register_write(struct simulator_context *context,
+void simulator_register_write(struct context *context,
 		struct rreil_id *id, uint8_t *data, size_t bit_length, size_t bit_offset) {
 	simulator_register_assign(context, id, data, bit_length, bit_offset,
 			&simulator_register_generic_write);
 }
 
-void simulator_register_write_8(struct simulator_context *context,
+void simulator_register_write_8(struct context *context,
 		struct rreil_id *id, uint8_t data, size_t bit_offset) {
 	simulator_register_write(context, id, &data, sizeof(data) * 8, bit_offset);
 }
 
-void simulator_register_write_16(struct simulator_context *context,
+void simulator_register_write_16(struct context *context,
 		struct rreil_id *id, uint16_t data, size_t bit_offset) {
 	simulator_register_write(context, id, (uint8_t*)&data, sizeof(data) * 8, bit_offset);
 }
 
-void simulator_register_write_32(struct simulator_context *context,
+void simulator_register_write_32(struct context *context,
 		struct rreil_id *id, uint32_t data, size_t bit_offset) {
 	simulator_register_write(context, id, (uint8_t*)&data, sizeof(data) * 8, bit_offset);
 }
 
-void simulator_register_write_64(struct simulator_context *context,
+void simulator_register_write_64(struct context *context,
 		struct rreil_id *id, uint64_t data, size_t bit_offset) {
 	simulator_register_write(context, id, (uint8_t*)&data, sizeof(data) * 8, bit_offset);
 }

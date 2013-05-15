@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <simulator.h>
-#include <simulator_tracking.h>
+#include <simulator/simulator.h>
+#include <simulator/tracking.h>
 #include <rreil/rreil.h>
 
 static uint8_t tbgen_register_to_binary(enum x86_id register_) {
@@ -190,7 +190,7 @@ void tbgen_trailer_generate(FILE *stream) {
 
 size_t tbgen_code_generate(uint8_t **buffer, uint8_t *instruction,
 		size_t instruction_length, struct simulator_trace *trace,
-		struct simulator_context *context) {
+		struct context *context) {
 	size_t size;
 
 	FILE *stream = open_memstream((char**)buffer, &size);

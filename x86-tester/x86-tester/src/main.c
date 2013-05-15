@@ -13,12 +13,13 @@
 #include <dis.h>
 #include <gdrr.h>
 #include <rreil/rreil.h>
-#include <rreil_gdrr_builder.h>
-#include <simulator_regacc.h>
-#include <simulator.h>
-#include <simulator_tracking.h>
-#include "tbgen.h"
+#include <rreil/gdrr_builder.h>
+#include <simulator/regacc.h>
+#include <simulator/simulator.h>
+#include <simulator/tracking.h>
 #include <x86.h>
+#include <context.h>
+#include "tbgen.h"
 
 int main(void) {
 //	struct register_ reg;
@@ -143,7 +144,7 @@ int main(void) {
 
 			rreil_statements_print(statements);
 
-			struct simulator_context *context = simulator_context_init();
+			struct context *context = context_init();
 
 //			uint64_t value = 0x2b3481cfef1194ba;
 //			uint64_t value = 0x2b3481cfef1194ba;
@@ -163,11 +164,11 @@ int main(void) {
 //
 //			simulator_context_x86_print(context);
 
-			struct simulator_trace *trace = simulator_trace_init();
-			rreil_statements_trace(trace, statements);
+			struct simulator_trace *trace = tracking_trace_init();
+			tracking_statements_trace(trace, statements);
 
 			printf("------------------\n");
-			simulator_trace_print(trace);
+			tracking_trace_print(trace);
 
 			void access_init(struct register_access *access, int (*k)(void)) {
 				for(size_t i = 0; i < access->indices_length; ++i) {
@@ -193,14 +194,14 @@ int main(void) {
 			access_init(&trace->written, &rand);
 			access_init(&trace->read, &rand);
 
-			struct simulator_context *context_rreil = simulator_context_copy(context);
+			struct context *context_rreil = context_copy(context);
 
 			/*
 			 * Clean up RFLAGS
 			 */
 			uint64_t rflags_mask = 0x0000000000244cd5;
 			uint8_t *rflags_mask_ptr = (uint8_t*)&rflags_mask;
-			void clean_rflags(struct simulator_context *context) {
+			void clean_rflags(struct context *context) {
 				for(size_t i = 0;
 						i < context->x86_registers[X86_ID_FLAGS].data_bit_length / 8;
 						++i) {
@@ -212,9 +213,9 @@ int main(void) {
 			clean_rflags(context_rreil);
 
 			printf("------------------\n");
-			simulator_context_x86_print(context);
+			context_x86_print(context);
 
-			rreil_statements_simulate(context_rreil, statements);
+			simulator_statements_simulate(context_rreil, statements);
 
 			uint8_t *buffer;
 			size_t buffer_size = tbgen_code_generate(&buffer, blob, i, trace,
@@ -236,9 +237,9 @@ int main(void) {
 
 			printf("------------------\n");
 			printf("CPU:\n");
-			simulator_context_x86_print(context);
+			context_x86_print(context);
 			printf("Rreil simulator:\n");
-			simulator_context_x86_print(context_rreil);
+			context_x86_print(context_rreil);
 
 			printf("------------------\n");
 			printf("Failing Registers:\n");
@@ -265,10 +266,10 @@ int main(void) {
 			else
 				printf("\n");
 
-			simulator_trace_free(trace);
+			tracking_trace_free(trace);
 
-			simulator_context_free(context);
-			simulator_context_free(context_rreil);
+			context_free(context);
+			context_free(context_rreil);
 
 			rreil_statements_free(statements);
 		}

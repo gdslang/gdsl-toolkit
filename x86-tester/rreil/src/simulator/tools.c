@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <simulator_tools.h>
+#include <simulator/tools.h>
 
 void membitcpy(uint8_t *to, uint8_t *from, size_t bits) {
 	memcpy(to, from, bits/8);
