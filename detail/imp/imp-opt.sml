@@ -133,59 +133,195 @@ structure TypeRefinement = struct
 
    open Imp
    
-   fun funType args res =
-      FUNvtype { result = res, closure = [], args = args }
+   type index = int
 
-   fun lub (VOIDvtype, t) = t
-     | lub (t, VOIDvtype) = t
-     | lub (FUNvtype { result = r1, closure = ctys1, args = atys1 },
-            FUNvtype { result = r2, closure = ctys2, args = atys2 }) =
-            FUNvtype { result = lub (r1,r2),
-                       closure = map lub (ListPair.zipEq (ctys1,ctys2)),
-                       args = map lub (ListPair.zipEq (atys1,atys2)) }
-     | lub (BITvtype s1, BITvtype s2) = if s1=s2 then BITvtype s1 else OBJvtype
-     | lub (INTvtype, INTvtype) = INTvtype
-     | lub (STRINGvtype, STRINGvtype) = STRINGvtype
-     | lub (_, _) = OBJvtype
-     
-     
-   fun doLub (s,sym,t) = (case SymMap.find (!s, sym) of
-      NONE => (s := SymMap.insert (!s, sym, t); t)
-    | SOME t' =>
-      let
-         val tRes = lub (t,t')
-         val _ = s := SymMap.insert (!s, sym, tRes)
-      in
-         tRes
-      end
-   )
-   fun getType s sym = (case SymMap.find (!s,sym) of
-      NONE => VOIDvtype
-    | SOME t => t
-   )
-   fun extractResult (FUNvtype { result = res, ...}) = res
-     | extractResult _ = VOIDvtype
-
-   fun visitStmt s (ASSIGNstmt (NONE, exp)) = ()
-     | visitStmt s (ASSIGNstmt (SOME sym, exp)) = (doLub (s, sym, visitExp s exp); ())
-     | visitStmt s (IFstmt (c,t,e)) = (app (visitStmt s) t; app (visitStmt s) e)
-     | visitStmt s (CASEstmt (e,ps)) = app (visitCase s) ps
-
-   and visitCase s (p,stmts) = app (visitStmt s) stmts
+   datatype stype
+     = VARstype of index
+     | BOXstype of stype
+     | FUNstype of (stype * stype list)
+     | BITstype of stype
+     | CONSTstype of int
+     | STRINGstype
+     | INTstype
+     | VOIDstype
    
-   and visitExp s (PRIexp (m,f,t,es)) = extractResult t
-     | visitExp s (CALLexp (m,sym,es)) = extractResult (getType s sym)
-     | visitExp s (INVOKEexp (m,e,es)) = extractResult (visitExp s e)
-     (*| visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
-     | visitExp s (BOXexp (t1,UNBOXexp (t2,e))) = visitExp s e
-     | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
-     | visitExp s (UNBOXexp (t1,BOXexp (t2,e))) = visitExp s e
-     | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
-     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+   fun vtypeToStype VOIDvtype = VOIDstype
+     | vtypeToStype (BITvtype s) = BITstype (CONSTstype s)
+     | vtypeToStype INTvtype = INTstype
+     | vtypeToStype STRINGvtype = STRINGstype
+     | vtypeToStype OBJvtype = BOXstype VOIDstype
+     | vtypeToStype (FUNvtype {
+         result = res,
+         closure = clArgs,
+         args = args
+      }) = FUNstype (vtypeToStype res, map vtypeToStype (clArgs @ args))
+
+   type state = {
+     symType : (index SymMap.map) ref,
+     typeTable : stype DynamicArray.array
+   }
+   
+   fun showSType (VARstype idx) = "#" ^ Int.toString idx
+     | showSType (BOXstype t) = showSType t ^ "*"
+     | showSType (FUNstype (res,args)) = showSType res ^ #1 (
+         foldl (fn (t,(str,sep)) => (str ^ sep ^ showSType t,","))
+            ("", "(") args
+         ) ^ ")"
+     | showSType (BITstype t) = "|" ^ showSType t ^ "|"
+     | showSType (CONSTstype s) = Int.toString s
+     | showSType (STRINGstype) = "string"
+     | showSType (INTstype) = "int"
+     | showSType (VOIDstype) = "void"
+         
+   fun showState { symType = st, typeTable = tt} =
+      let
+         fun showBinding (k,idx) =
+            let
+               val tyStr = showSType (DynamicArray.sub(tt,idx))
+               val _ = TextIO.print (SymbolTable.getString(!SymbolTables.varTable, k) ^ " : #" ^ Int.toString idx ^ " -> " ^ tyStr ^ "\n")
+            in
+               ()
+            end
+      in
+         app showBinding (SymMap.listItemsi (!st)) 
+      end
+
+   fun isECR (tt,idx) =
+      (case DynamicArray.sub (tt,idx) of
+         VARstype idx' => idx=idx'
+       | _ => false
+      )
+
+   fun find (tt,idx) =
+      (case DynamicArray.sub (tt,idx) of
+         VARstype idx' =>
+            if idx=idx' then idx else
+               let
+                  val ecr = find (tt,idx')
+                  val _ = DynamicArray.update (tt,idx,VARstype ecr)
+                  val _ = TextIO.print ("find: updating " ^ Int.toString idx ^ " -> " ^ Int.toString ecr ^ "\n")
+               in
+                  ecr
+               end
+       | t => idx
+      )
+   
+   fun findType ({ symType = s, typeTable = tt},VARstype idx) =
+      DynamicArray.sub (tt,find (tt,idx))
+     | findType ({ symType = s, typeTable = tt},t) = t
+   
+   fun lub ({ symType = s, typeTable = tt},t1,t2) =
+      let
+         fun union (x,y) =
+            let
+               val xRoot = find (tt,x)
+               val yRoot = find (tt,y)
+               val xTy = DynamicArray.sub (tt,xRoot)
+               val yTy = DynamicArray.sub (tt,yRoot)
+               val ty = case (xTy,yTy) of
+                  (VARstype xRoot, VARstype yRoot) =>
+                     VARstype (Int.min (xRoot, yRoot))
+                | (VARstype _, t) => t
+                | (t, VARstype _) => t
+                | (t1,t2) => lub (t1,t2)
+               val _ = DynamicArray.update (tt,Int.max (xRoot,yRoot),VARstype (Int.min (xRoot,yRoot)))
+               val _ = DynamicArray.update (tt,Int.min (xRoot,yRoot),ty);
+            in
+               VARstype (Int.min(xRoot,yRoot))  
+            end
+             
+
+         and lub (VARstype idx1, VARstype idx2) = union (idx1, idx2)
+           | lub (VARstype idx, t) =
+            (case DynamicArray.sub (tt,find (tt, idx)) of
+               VARstype idx => (DynamicArray.update (tt,idx,t); t)
+             | t' => (case lub (t',t) of t =>
+                  (DynamicArray.update (tt,idx,t); t)
+               )
+            )
+           | lub (t, VARstype idx) =
+            (case DynamicArray.sub (tt,find (tt, idx)) of
+               VARstype idx => (DynamicArray.update (tt,idx,t); t)
+             | t' => (case lub (t',t) of t =>
+                  (DynamicArray.update (tt,idx,t); t)
+               )
+            )
+           | lub (VOIDstype, t) = t
+           | lub (t, VOIDstype) = t
+           | lub (FUNstype (r1, args1), FUNstype (r2, args2)) =
+                FUNstype (lub (r1,r2), map lub (ListPair.zipEq (args1,args2)))
+           | lub (BITstype s1, BITstype s2) =
+            (case lub (s1,s2) of
+               CONSTstype s => CONSTstype s
+             | _ => VOIDstype
+            )
+           | lub (CONSTstype s1, CONSTstype s2) =
+            if s1=s2 then CONSTstype s1 else VOIDstype
+           | lub (INTstype, INTstype) = INTstype
+           | lub (STRINGstype, STRINGstype) = STRINGstype
+           | lub (BOXstype t1, BOXstype t2) = BOXstype (lub (t1,t2))
+           | lub (_, _) = BOXstype VOIDstype         
+      in
+         lub (t1,t2)
+      end
+   
+   fun symType { symType = s, typeTable = tt} sym =
+      (case SymMap.find (!s,sym) of
+         SOME idx => VARstype idx
+       | NONE =>
+         let
+            val idx = DynamicArray.bound tt + 1
+            val _ = TextIO.print ("symType: " ^ Int.toString idx ^ "\n")
+            val _ = DynamicArray.update (tt,idx,VARstype idx)
+            val _ = s := SymMap.insert (!s, sym, idx)
+         in
+            VARstype idx
+         end
+      )
+   
+   fun freshTVar { symType = s, typeTable = tt} =
+      let
+         val idx = DynamicArray.bound tt + 1
+         val _ = DynamicArray.update (tt,idx,VARstype idx)
+      in
+         VARstype idx
+      end
+
+   fun extractResult (FUNstype (res,_)) = res
+     | extractResult _ = BOXstype VOIDstype
+   
+   fun visitStmts s [] = VOIDstype
+     | visitStmts s (stmt :: stmts) =
+      foldl (fn (stmt,_) => visitStmt s stmt) (visitStmt s stmt) stmts
+
+   and visitStmt s (ASSIGNstmt (NONE, exp)) = visitExp s exp
+     | visitStmt s (ASSIGNstmt (SOME sym, exp)) = lub (s, symType s sym, visitExp s exp)
+     | visitStmt s (IFstmt (c,t,e)) = (visitExp s c; lub (s, visitStmts s t, visitStmts s e))
+     | visitStmt s (CASEstmt (e,[])) = VOIDstype
+     | visitStmt s (CASEstmt (e,c :: cs)) =
+      let
+         val t = visitExp s e
+      in
+         foldl (fn (c,res) => lub (s,res,visitCase s t c))
+            (visitCase s t c) cs
+      end
+
+   and visitCase s t (p,stmts) = visitStmts s stmts
+
+   and visitExp s (IDexp sym) = symType s sym
+     | visitExp s (CONexp sym) = symType s sym
+     | visitExp s (CONFUNexp sym) = symType s sym
+     | visitExp s (PRIexp (m,f,t,es)) = extractResult (vtypeToStype t)
+     | visitExp s (CALLexp (m,sym,es)) = extractResult (lub (s, symType s sym, FUNstype (freshTVar s,map (fn _ => freshTVar s) es)))
+     | visitExp s (INVOKEexp (m,e,es)) = extractResult (lub (s, visitExp s e, FUNstype (freshTVar s,map (fn _ => freshTVar s) es)))
+     | visitExp s (RECORDexp fs) = BOXstype VOIDstype
+     | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
+     (*| visitExp s (UNBOXexp (t,e)) = (case lub (s,BOXstype (freshTVar s, visitExp s e)) of
+        (BOXstype t) => t
+      | _ => BOXstype VOIDstype)
+     | visitExp s (CLOSUREexp (t,sym,es)) = BOXstype (FUNstype (freshTVar s,map () es)))
      | visitExp s (STATEexp e) = STATEexp (visitExp s e)
-     | visitExp s (EXECexp (STATEexp e)) = visitExp s e
      | visitExp s (EXECexp e) = EXECexp (visitExp s e)*)
-     | visitExp s e = VOIDvtype
    
    fun visitDecl s (FUNCdecl {
         funcMonadic = monkind,
@@ -198,39 +334,31 @@ structure TypeRefinement = struct
         funcRes = res
       }) =
       let
-         val _ = app (visitStmt s) stmts
+         val _ = visitStmts s stmts
          val t = visitExp s res
-         fun argTypes args = map (fn (_,sym) => getType s sym) args
-         val ty = FUNvtype { result = t, closure = argTypes clArgs,
-                                         args = argTypes args }
-         val _ = doLub (s, name, ty)
+         fun argTypes args = map (fn (_,sym) => symType s sym) args
+         val ty = FUNstype (t, argTypes (clArgs @ args))
       in
-         ()
+         lub (s, symType s name, ty)
       end
      | visitDecl s (SELECTdecl {
          selectName = name,
          selectField = f
-      }) = (doLub (s, name, funType [VOIDvtype] VOIDvtype); ())
+      }) = lub (s, symType s name, FUNstype (VOIDstype, [VOIDstype]))
      | visitDecl s (UPDATEdecl {
          updateName = name,
          updateFields = fs
-      }) = (doLub (s, name, funType (map (fn _ => VOIDvtype) fs) VOIDvtype); ())
-     | visitDecl s d = ()
+      }) = lub (s, symType s name, FUNstype (VOIDstype, (map (fn _ => VOIDstype) fs)))
+     | visitDecl s d = VOIDstype
 
    fun run { decls = ds } =
       let
-         val typesRef = ref (SymMap.empty : vtype SymMap.map)
-         val _ = app (visitDecl typesRef) ds
-         val types = !typesRef 
-         fun showBinding (k,t) =
-            let
-               val _ = TextIO.print (SymbolTable.getString(!SymbolTables.varTable, k) ^ " : ")
-               val _ = Pretty.pretty (Imp.PP.vtype t)
-               val _ = TextIO.print ("\n")
-            in
-               ()
-            end
-         val _ = app showBinding (SymMap.listItemsi types) 
+         val state : state = {
+            symType = ref SymMap.empty,
+            typeTable = DynamicArray.array (4000, VOIDstype)
+         }
+         val _ = map (visitDecl state) ds
+         val _ = showState state
       in
          { decls = ds }
       end

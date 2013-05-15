@@ -47,8 +47,9 @@ structure Environment : sig
     (*given an occurrence of a symbol at a position, push its type onto the
     stack; arguments are the symbol to look up, the position it occurred and a
     Boolean flag indicating if this usage should be recorded (True) or if an
-    existing type should be used (False) *)
-   val pushSymbol : VarInfo.symid * Error.span * bool * environment -> environment
+    existing type should be used (False), and a flag that indicates if
+    a fresh instance or the plain type should be pushed *)
+   val pushSymbol : VarInfo.symid * Error.span * bool * bool * environment -> environment
 
    (*search in the current stack for the symbol and, if unsuccessful, in the
    nested definitions and push all nested groups onto the stack, returns the
@@ -747,7 +748,7 @@ end = struct
       (case Scope.lookup (sym,env) of
           (_, COMPOUND {ty, width = SOME t, uses, nested}) =>
             Scope.wrap (KAPPA {ty = t}, env)
-        | _ => raise (UnificationFailure (
+        | _ => raise (UnificationFailure (Clash,
             SymbolTable.getString(!SymbolTables.varTable, sym) ^
             " is not a decoder"))
       )
@@ -857,7 +858,7 @@ end = struct
          val fStr = if Types.concisePrint then fStr else
                     fStr ^ " with vars " ^ BD.setToString bVar
       in
-         raise UnificationFailure (fStr ^ " cannot flow here")
+         raise UnificationFailure (Clash, fStr ^ " cannot flow here")
       end
 
    fun meetBoolean (update, env as (scs, state)) =
@@ -880,7 +881,7 @@ end = struct
          end
       | _ => raise InferenceBug
 
-   fun pushSymbol (sym, span, recordUsage, env) = (
+   fun pushSymbol (sym, span, recordUsage, createInstance, env) = (
       (*if SOME (SymbolTable.toInt sym)=debugSymbol then
          TextIO.print ("pushSymbol debug symbol:\n" ^ toString env) else ();*)
       case Scope.lookup (sym,env) of
@@ -909,7 +910,11 @@ end = struct
             val decVars = case w of
                  SOME t => texpVarset (t,TVar.empty)
                | NONE => TVar.empty
-            val (t,bFun,sCons) = instantiateType (tvs, t, decVars, bFun, Scope.getSize state)
+            val (t,bFun,sCons) =
+               if createInstance then
+                  instantiateType (tvs, t, decVars, bFun, Scope.getSize state)
+               else
+                  (t,bFun,Scope.getSize state)
             val env = (scs, Scope.setFlow bFun (Scope.setSize sCons state))
             (*we need to record the usage sites of all functions (primitives,
             really) that have explicit size constraints in order to be able

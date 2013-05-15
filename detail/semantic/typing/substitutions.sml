@@ -1,6 +1,10 @@
 structure Substitutions : sig
 
-   exception UnificationFailure of string
+   datatype FailureKind
+     = Clash
+     | OccursCheck
+
+   exception UnificationFailure of FailureKind * string
 
    exception SubstitutionBug
 
@@ -49,7 +53,11 @@ end = struct
    open Types
    structure SC = SizeConstraint
 
-   exception UnificationFailure of string
+   datatype FailureKind
+     = Clash
+     | OccursCheck
+
+   exception UnificationFailure of FailureKind * string
 
    exception SubstitutionBug
    
@@ -355,7 +363,7 @@ end = struct
                   val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
                   val (tStr,si) = showTypeSI (t2,si)
                in
-                  raise UnificationFailure ("infinite type " ^ vStr ^ " = " ^ tStr)
+                  raise UnificationFailure (OccursCheck, "infinite type " ^ vStr ^ " = " ^ tStr)
                end
             else (v2, WITH_TYPE t2)
            | occursCheck (v2, WITH_FIELD (fs, v3, bv3)) =
@@ -364,7 +372,7 @@ end = struct
                   val (vStr,si) = TVar.varToString (v2,TVar.emptyShowInfo)
                   val (tStr,si) = showTypeSI (RECORD (v3,bv3,fs),si)
                in
-                  raise UnificationFailure ("infinite record " ^ vStr ^ " = " ^ tStr)
+                  raise UnificationFailure (OccursCheck, "infinite record " ^ vStr ^ " = " ^ tStr)
                end
             else (v2, WITH_FIELD (fs, v3, bv3))
 
@@ -408,12 +416,12 @@ end = struct
                    List.foldl (fn ((v,c), substs) =>
                      addSubst (v,WITH_TYPE (CONST c)) substs
                      ) substs is)
-               | SC.UNSATISFIABLE => raise UnificationFailure
-                  "size constraints over vectors are unsatisfiable"
-               | SC.FRACTIONAL => raise UnificationFailure
-                  "solution to size constraint is not integral"
-               | SC.NEGATIVE => raise UnificationFailure
-                  "constraint implies that vector has non-positive size"
+               | SC.UNSATISFIABLE => raise UnificationFailure (Clash,
+                  "size constraints over vectors are unsatisfiable")
+               | SC.FRACTIONAL => raise UnificationFailure (Clash,
+                  "solution to size constraint is not integral")
+               | SC.NEGATIVE => raise UnificationFailure (Clash,
+                  "constraint implies that vector has non-positive size")
             )
            | updateSubsts ((v1,WITH_TYPE (VAR (v2,_))), (sCons, substs)) =
                (SC.rename (v1,v2,sCons), substs)
@@ -452,7 +460,7 @@ end = struct
       end
 
    fun mgu (FUN (f1, f2), FUN (g1, g2), s) = if List.length f1<>List.length g1
-      then raise UnificationFailure (
+      then raise UnificationFailure (Clash, 
             "function with different number of arguments (" ^
             Int.toString (List.length f1) ^ " and " ^
             Int.toString (List.length g1) ^ ")"
@@ -466,7 +474,7 @@ end = struct
      | mgu (UNIT, UNIT, s) = s
      | mgu (VEC t1, VEC t2, s) = mgu (t1, t2, s)
      | mgu (CONST c1, CONST c2, s) =
-        if c1=c2 then s else raise UnificationFailure (
+        if c1=c2 then s else raise UnificationFailure (Clash,
          "incompatible bit vectors sizes (" ^ Int.toString c1 ^ " and " ^
          Int.toString c2 ^ ")")
      | mgu (RECORD (v1,b1,l1), RECORD (v2,b2,l2), s) =
@@ -534,7 +542,7 @@ end = struct
          mgu (r1, r2, mgu (f1, f2, mgu (t1, t2, s)))
      | mgu (ALG (ty1, l1), ALG (ty2, l2), s) =
       let 
-         fun incompat () = raise UnificationFailure (
+         fun incompat () = raise UnificationFailure (Clash,
             "cannot match constructor " ^
             SymbolTable.getString(!SymbolTables.typeTable, ty1) ^
             " with " ^
@@ -590,7 +598,7 @@ end = struct
             | descr (MONAD _) = "an action"
             | descr _ = "something that shouldn't be here"
       in
-         raise UnificationFailure ("cannot match " ^ descr t1 ^
+         raise UnificationFailure (Clash, "cannot match " ^ descr t1 ^
                                    " against " ^ descr t2)
       end
 
