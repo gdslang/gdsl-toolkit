@@ -10,7 +10,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <rreil/rreil_x86.h>
+#include <x86.h>
 
 enum rreil_id_type {
 	RREIL_ID_TYPE_VIRTUAL,
@@ -27,11 +27,14 @@ enum rreil_id_virtual {
 	RREIL_ID_VIRTUAL_LTU,
 };
 
+#define RREIL_ID_VIRTUAL_COUNT (RREIL_ID_VIRTUAL_LTU + 1)
+#define RREIL_ID_TEMPORARY_COUNT 32
+
 struct rreil_id {
 	enum rreil_id_type type;
 	union {
 		enum rreil_id_virtual virtual;
-		enum rreil_id_x86 x86;
+		enum x86_id x86;
 		uint64_t temporary;
 	};
 };

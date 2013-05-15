@@ -9,7 +9,7 @@
 #define GDRR_CONFIG_H_
 
 #include "gdrr_callbacks.h"
-#include "x86_callbacks.h"
+#include "gdrr_x86_callbacks.h"
 
 enum gdrr_config_stmts_handling {
 	GDRR_CONFIG_STMTS_HANDLING_RECURSIVE, GDRR_CONFIG_STMTS_HANDLING_LIST

@@ -418,15 +418,15 @@ static gdrr_sem_op_t *sem_arb(void *closure, __word size) {
 }
 
 // sem_branch_hint
-static gdrr_sem_branch_hint *hint_jump(void *closure) {
+static gdrr_sem_branch_hint_t *hint_jump(void *closure) {
 	printf("==> branch_hint_jump\n");
 	return NULL;
 }
-static gdrr_sem_branch_hint *hint_call(void *closure) {
+static gdrr_sem_branch_hint_t *hint_call(void *closure) {
 	printf("==> branch_hint_call\n");
 	return NULL;
 }
-static gdrr_sem_branch_hint *hint_ret(void *closure) {
+static gdrr_sem_branch_hint_t *hint_ret(void *closure) {
 	printf("==> branch_hint_ret\n");
 	return NULL;
 }
@@ -442,28 +442,28 @@ static gdrr_sem_stmt_t *sem_load(void *closure, gdrr_sem_var_t *lhs,
 	printf("load\n");
 	return NULL;
 }
-static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_var_t *lhs,
+static gdrr_sem_stmt_t *sem_store(void *closure, gdrr_sem_address_t *address,
 		gdrr_sem_op_t *rhs) {
 	printf("store\n");
 	return NULL;
 }
-static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_ite(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_stmts_t *then_branch, gdrr_sem_stmts_t *else_branch) {
 	printf("ite\n");
 	return NULL;
 }
-static gdrr_sem_stmt_t *sem_while(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_while(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_stmts_t *body) {
 	printf("while\n");
 	return NULL;
 }
-static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_linear_t *cond,
+static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_sexpr_t *cond,
 		gdrr_sem_address_t *target_true, gdrr_sem_address_t *target_false) {
 	printf("cbranch\n");
 	return NULL;
 }
 static gdrr_sem_stmt_t *sem_branch(void *closure,
-		gdrr_sem_branch_hint *branch_hint, gdrr_sem_address_t *target) {
+		gdrr_sem_branch_hint_t *branch_hint, gdrr_sem_address_t *target) {
 	printf("branch\n");
 	return NULL;
 }

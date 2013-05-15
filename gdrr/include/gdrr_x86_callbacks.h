@@ -1,12 +1,12 @@
 /*
- * x86.h
+ * gdrr_x86_callbacks.h
  *
  *  Created on: Mar 10, 2013
  *      Author: jucs
  */
 
-#ifndef X86_CALLBACKS_H_
-#define X86_CALLBACKS_H_
+#ifndef GDRR_X86_CALLBACKS_H_
+#define GDRR_X86_CALLBACKS_H_
 
 #include <gdrr_types.h>
 
@@ -74,4 +74,4 @@ struct gdrr_x86_callbacks {
 	struct gdrr_sem_id_x86_callbacks sem_id;
 };
 
-#endif /* X86_CALLBACKS_H_ */
+#endif /* GDRR_X86_CALLBACKS_H_ */

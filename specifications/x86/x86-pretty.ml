@@ -48,16 +48,16 @@ end
 
 val show/arity1 x = show/operand x.opnd1 +++ (show/features x)
 val show/arity2 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2 +++ (show/features x)
-val show/arity3 x = show/arity2 x +++ ", " +++ show/operand x.opnd3 +++ (show/features x)
-val show/arity4 x = show/arity3 x +++ ", " +++ show/operand x.opnd4 +++ (show/features x)
+val show/arity3 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2 +++ ", " +++ show/operand x.opnd3 +++ (show/features x)
+val show/arity4 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2 +++ ", " +++ show/operand x.opnd3 +++ ", " +++ show/operand x.opnd4 +++ (show/features x)
 val show/flow1 x = show/flowoperand x.opnd1 +++ (show/features x)
 val show/varity x =
    case x of
       VA0 x: show/features x
-    | VA1 x: " " +++ show/arity1 x +++ (show/features x)
-    | VA2 x: " " +++ show/arity2 x +++ (show/features x)
-    | VA3 x: " " +++ show/arity3 x +++ (show/features x)
-    | VA4 x: " " +++ show/arity4 x +++ (show/features x)
+    | VA1 x: " " +++ show/arity1 x
+    | VA2 x: " " +++ show/arity2 x
+    | VA3 x: " " +++ show/arity3 x
+    | VA4 x: " " +++ show/arity4 x
    end
 
 val -++ a b = a +++ " " +++ b

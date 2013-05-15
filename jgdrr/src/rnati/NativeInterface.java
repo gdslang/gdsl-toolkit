@@ -477,8 +477,8 @@ public class NativeInterface {
 				(IAddress) address);
 	}
 
-	private Object sem_store(Object lhs, Object rhs) {
-		return builder.sem_store((IAddress) lhs, (IOperation) rhs);
+	private Object sem_store(Object address, Object rhs) {
+		return builder.sem_store((IAddress) address, (IOperation) rhs);
 	}
 
 	private Object sem_ite(Object cond, Object then_branch, Object else_branch) {

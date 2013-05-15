@@ -260,7 +260,7 @@ public interface IRReilBuilder {
 
 	IStatement sem_load(IVariable lhs, long size, IAddress address);
 
-	IStatement sem_store(IAddress lhs, IOperation rhs);
+	IStatement sem_store(IAddress address, IOperation rhs);
 
 	IStatement sem_ite(ISimpleExpression cond, IRReilCollection then_branch,
 			IRReilCollection else_branch);
