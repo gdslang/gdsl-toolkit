@@ -13,6 +13,7 @@
 #include <simulator_regacc.h>
 #include <simulator_tracking.h>
 #include <util.h>
+#include <x86.h>
 
 enum simulator_access_type {
 	SIMULATOR_ACCESS_TYPE_READ, SIMULATOR_ACCESS_TYPE_WRITE
@@ -242,19 +243,19 @@ struct simulator_trace *simulator_trace_init() {
 			sizeof(struct simulator_trace));
 
 	void init_rw(struct register_access *access) {
-		access->x86_registers = (struct register_*)calloc(RREIL_ID_X86_COUNT,
+		access->x86_registers = (struct register_*)calloc(X86_ID_COUNT,
 				sizeof(struct register_));
 
-		void init_register(enum rreil_id_x86 x86) {
-			size_t size = rreil_x86_amd64_sizeof(x86);
+		void init_register(enum x86_id x86) {
+			size_t size = x86_amd64_sizeof(x86);
 			struct register_ *reg = &access->x86_registers[x86];
 			reg->data = (uint8_t*)calloc(size / 8, 1);
 			reg->data_bit_length = size;
 			reg->data_size = size / 8;
 		}
 
-		for(size_t i = 0; i < RREIL_ID_X86_COUNT; ++i)
-			init_register((enum rreil_id_x86)i);
+		for(size_t i = 0; i < X86_ID_COUNT; ++i)
+			init_register((enum x86_id)i);
 
 		access->indices = NULL;
 		access->indices_length = 0;
@@ -269,7 +270,7 @@ struct simulator_trace *simulator_trace_init() {
 
 void simulator_trace_free(struct simulator_trace *trace) {
 	void access_clear(struct register_access *access) {
-		for(size_t i = 0; i < RREIL_ID_X86_COUNT; ++i) {
+		for(size_t i = 0; i < X86_ID_COUNT; ++i) {
 			struct register_ *reg = &access->x86_registers[i];
 			free(reg->data);
 		}
@@ -286,15 +287,15 @@ void simulator_trace_free(struct simulator_trace *trace) {
 void simulator_trace_print(struct simulator_trace *trace) {
 	void access_print(struct register_access *access) {
 		for(size_t i = 0; i < access->indices_length; ++i) {
-			enum rreil_id_x86 id_x86 = (enum rreil_id_x86)access->indices[i];
+			enum x86_id id_x86 = (enum x86_id)access->indices[i];
 			struct register_ *reg = &access->x86_registers[id_x86];
 
 			printf("Register ");
-			rreil_id_x86_print(id_x86);
+			x86_id_print(id_x86);
 			printf(": ");
 
 			size_t rest = 0;
-			size_t reg_size = rreil_x86_amd64_sizeof(id_x86);
+			size_t reg_size = x86_amd64_sizeof(id_x86);
 			if(reg_size > reg->data_bit_length)
 				rest = reg_size - reg->data_bit_length;
 			for(size_t i = 0; i < rest / 8; ++i)

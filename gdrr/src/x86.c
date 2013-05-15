@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <dis.h>
 #include <gdrr_config.h>
-#include <x86.h>
+#include <gdrr_x86.h>
 
 gdrr_sem_id_t *gdrr_convert_sem_id_x86(__obj sem_id_obj,
 		struct gdrr_config *config) {

@@ -17,7 +17,8 @@
 #include <simulator_regacc.h>
 #include <simulator.h>
 #include <simulator_tracking.h>
-#include "tester.h"
+#include "tbgen.h"
+#include <x86.h>
 
 int main(void) {
 //	struct register_ reg;
@@ -171,9 +172,9 @@ int main(void) {
 			void access_init(struct register_access *access, int (*k)(void)) {
 				for(size_t i = 0; i < access->indices_length; ++i) {
 					size_t index = access->indices[i];
-					enum rreil_id_x86 reg = (enum rreil_id_x86)index;
+					enum x86_id reg = (enum x86_id)index;
 
-					size_t length = rreil_x86_amd64_sizeof(reg);
+					size_t length = x86_amd64_sizeof(reg);
 					uint32_t *data = (uint32_t*)malloc(4 * (length / (8 * 4) + 1));
 					for(size_t i = 0; i < length / (8 * 4) + 1; ++i)
 						data[i] = rand() << 16 ^ rand();
@@ -201,9 +202,9 @@ int main(void) {
 			uint8_t *rflags_mask_ptr = (uint8_t*)&rflags_mask;
 			void clean_rflags(struct simulator_context *context) {
 				for(size_t i = 0;
-						i < context->x86_registers[RREIL_ID_X86_FLAGS].data_bit_length / 8;
+						i < context->x86_registers[X86_ID_FLAGS].data_bit_length / 8;
 						++i) {
-					context->x86_registers[RREIL_ID_X86_FLAGS].data[i] &=
+					context->x86_registers[X86_ID_FLAGS].data[i] &=
 							rflags_mask_ptr[i];
 				}
 			}
@@ -216,7 +217,7 @@ int main(void) {
 			rreil_statements_simulate(context_rreil, statements);
 
 			uint8_t *buffer;
-			size_t buffer_size = tester_code_generate(&buffer, blob, i, trace,
+			size_t buffer_size = tbgen_code_generate(&buffer, blob, i, trace,
 					context);
 
 			void *mem_exec = mmap(NULL, buffer_size,
@@ -245,7 +246,7 @@ int main(void) {
 			char found = 0;
 			for(size_t i = 0; i < trace->written.indices_length; ++i) {
 				size_t index = trace->written.indices[i];
-				enum rreil_id_x86 reg = (enum rreil_id_x86)index;
+				enum x86_id reg = (enum x86_id)index;
 
 				struct register_ *reg_cpu = &context->x86_registers[index];
 				struct register_ *reg_rreil = &context_rreil->x86_registers[index];
@@ -254,7 +255,7 @@ int main(void) {
 					if(reg_cpu->data[j] != reg_rreil->data[j]) {
 						if(found)
 							printf(", ");
-						rreil_id_x86_print(reg);
+						x86_id_print(reg);
 						found = 1;
 						break;
 					}

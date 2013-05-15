@@ -14,6 +14,7 @@
 #include <simulator_regacc.h>
 #include <simulator_ops.h>
 #include <simulator_tools.h>
+#include <x86.h>
 
 void rreil_variable_write(struct simulator_context *context,
 		struct rreil_variable *variable, size_t bit_length, uint8_t *buffer) {
@@ -363,7 +364,7 @@ struct simulator_context *simulator_context_init() {
 	 */
 	context->virtual_registers = (struct register_*)calloc(RREIL_ID_VIRTUAL_COUNT,
 			sizeof(struct register_));
-	context->x86_registers = (struct register_*)calloc(RREIL_ID_X86_COUNT,
+	context->x86_registers = (struct register_*)calloc(X86_ID_COUNT,
 			sizeof(struct register_));
 	context->temporary_registers = (struct register_*)calloc(
 			RREIL_ID_TEMPORARY_COUNT, sizeof(struct register_));
@@ -392,8 +393,8 @@ struct simulator_context *simulator_context_copy(
 	copy_registers(RREIL_ID_VIRTUAL_COUNT, context->virtual_registers,
 			source->virtual_registers);
 	context->x86_registers = (struct register_*)malloc(
-			RREIL_ID_X86_COUNT * sizeof(struct register_));
-	copy_registers(RREIL_ID_X86_COUNT, context->x86_registers,
+			X86_ID_COUNT * sizeof(struct register_));
+	copy_registers(X86_ID_COUNT, context->x86_registers,
 			source->x86_registers);
 	context->temporary_registers = (struct register_*)malloc(
 			RREIL_ID_TEMPORARY_COUNT * sizeof(struct register_));
@@ -416,7 +417,7 @@ void simulator_context_free(struct simulator_context *context) {
 		for(size_t i = 0; i < RREIL_ID_VIRTUAL_COUNT; ++i)
 			simulator_register_clear(&context->virtual_registers[i]);
 		free(context->virtual_registers);
-		for(size_t i = 0; i < RREIL_ID_X86_COUNT; ++i)
+		for(size_t i = 0; i < X86_ID_COUNT; ++i)
 			simulator_register_clear(&context->x86_registers[i]);
 		free(context->x86_registers);
 		for(size_t i = 0; i < RREIL_ID_TEMPORARY_COUNT; ++i)
@@ -427,8 +428,8 @@ void simulator_context_free(struct simulator_context *context) {
 }
 
 void simulator_context_x86_print(struct simulator_context *context) {
-	for(size_t i = 0; i < RREIL_ID_X86_COUNT; ++i) {
-		enum rreil_id_x86 id_x86 = (enum rreil_id_x86)i;
+	for(size_t i = 0; i < X86_ID_COUNT; ++i) {
+		enum x86_id id_x86 = (enum x86_id)i;
 		struct register_ *reg = &context->x86_registers[id_x86];
 
 		if(!reg->data_bit_length)
@@ -438,11 +439,11 @@ void simulator_context_x86_print(struct simulator_context *context) {
 		 * Todo: Extra function for printing
 		 */
 		printf("Register ");
-		rreil_id_x86_print(id_x86);
+		x86_id_print(id_x86);
 		printf(": ");
 
 		size_t rest = 0;
-		size_t reg_size = rreil_x86_amd64_sizeof(id_x86);
+		size_t reg_size = x86_amd64_sizeof(id_x86);
 		if(reg_size > reg->data_bit_length)
 			rest = reg_size - reg->data_bit_length;
 		for(size_t i = 0; i < rest / 8; ++i)

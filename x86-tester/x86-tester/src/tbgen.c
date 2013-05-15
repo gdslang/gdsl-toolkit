@@ -13,32 +13,32 @@
 #include <simulator_tracking.h>
 #include <rreil/rreil.h>
 
-static uint8_t tester_register_to_binary(enum rreil_id_x86 register_) {
+static uint8_t tbgen_register_to_binary(enum x86_id register_) {
 	switch(register_) {
-		case RREIL_ID_X86_R8:
-		case RREIL_ID_X86_AX: {
+		case X86_ID_R8:
+		case X86_ID_AX: {
 			return 0b000;
 		}
-		case RREIL_ID_X86_R9:
-		case RREIL_ID_X86_CX: {
+		case X86_ID_R9:
+		case X86_ID_CX: {
 			return 0b001;
 		}
-		case RREIL_ID_X86_DX: {
+		case X86_ID_DX: {
 			return 0b010;
 		}
-		case RREIL_ID_X86_BX: {
+		case X86_ID_BX: {
 			return 0b011;
 		}
-		case RREIL_ID_X86_SP: {
+		case X86_ID_SP: {
 			return 0b100;
 		}
-		case RREIL_ID_X86_BP: {
+		case X86_ID_BP: {
 			return 0b101;
 		}
-		case RREIL_ID_X86_SI: {
+		case X86_ID_SI: {
 			return 0b110;
 		}
-		case RREIL_ID_X86_DI: {
+		case X86_ID_DI: {
 			return 0b111;
 		}
 		default:
@@ -46,17 +46,17 @@ static uint8_t tester_register_to_binary(enum rreil_id_x86 register_) {
 	}
 }
 
-static void tester_push_pop_rex_generate(FILE *stream,
-		enum rreil_id_x86 register_) {
+static void tbgen_push_pop_rex_generate(FILE *stream,
+		enum x86_id register_) {
 	switch(register_) {
-		case RREIL_ID_X86_R8:
-		case RREIL_ID_X86_R9:
-		case RREIL_ID_X86_R10:
-		case RREIL_ID_X86_R11:
-		case RREIL_ID_X86_R12:
-		case RREIL_ID_X86_R13:
-		case RREIL_ID_X86_R14:
-		case RREIL_ID_X86_R15: {
+		case X86_ID_R8:
+		case X86_ID_R9:
+		case X86_ID_R10:
+		case X86_ID_R11:
+		case X86_ID_R12:
+		case X86_ID_R13:
+		case X86_ID_R14:
+		case X86_ID_R15: {
 			uint8_t rex = 0x41;
 			fwrite(&rex, 1, sizeof(rex), stream);
 			break;
@@ -66,42 +66,42 @@ static void tester_push_pop_rex_generate(FILE *stream,
 	}
 }
 
-static void tester_push_generate(FILE *stream, enum rreil_id_x86 register_) {
-	tester_push_pop_rex_generate(stream, register_);
-	uint8_t push[] = { 0x50 + tester_register_to_binary(register_) };
+static void tbgen_push_generate(FILE *stream, enum x86_id register_) {
+	tbgen_push_pop_rex_generate(stream, register_);
+	uint8_t push[] = { 0x50 + tbgen_register_to_binary(register_) };
 	fwrite(push, 1, sizeof(push), stream);
 }
 
-static void tester_push_rflags_generate(FILE *stream) {
+static void tbgen_push_rflags_generate(FILE *stream) {
 	uint8_t pushfq[] = { 0x9c };
 	fwrite(pushfq, 1, sizeof(pushfq), stream);
 }
 
-static void tester_pop_generate(FILE *stream, enum rreil_id_x86 register_) {
-	tester_push_pop_rex_generate(stream, register_);
-	uint8_t pop[] = { 0x58 + tester_register_to_binary(register_) };
+static void tbgen_pop_generate(FILE *stream, enum x86_id register_) {
+	tbgen_push_pop_rex_generate(stream, register_);
+	uint8_t pop[] = { 0x58 + tbgen_register_to_binary(register_) };
 	fwrite(pop, 1, sizeof(pop), stream);
 }
 
-static void tester_pop_rflags_generate(FILE *stream) {
+static void tbgen_pop_rflags_generate(FILE *stream) {
 	uint8_t popfq[] = { 0x48, 0x9d };
 	fwrite(popfq, 1, sizeof(popfq), stream);
 }
 
-static void tester_mov_memory_to_register_generate(FILE *stream,
-		enum rreil_id_x86 register_, uint64_t *address) {
+static void tbgen_mov_memory_to_register_generate(FILE *stream,
+		enum x86_id register_, uint64_t *address) {
 	// mov r8, address
 	uint8_t mov_r8_address[] = { 0x49, 0xb8 };
 	fwrite(mov_r8_address, 1, sizeof(mov_r8_address), stream);
 	fwrite(address, 8, 1, stream);
 
 	// mov register, [r8]
-	uint8_t mov_reg_dr8[] = { 0x49, 0x8b, tester_register_to_binary(register_)
+	uint8_t mov_reg_dr8[] = { 0x49, 0x8b, tbgen_register_to_binary(register_)
 			<< 3 };
 	fwrite(mov_reg_dr8, 1, sizeof(mov_reg_dr8), stream);
 }
 
-static void tester_mov_memory_to_rflags_generate(FILE *stream,
+static void tbgen_mov_memory_to_rflags_generate(FILE *stream,
 		uint64_t *address) {
 	// mov r8, address
 	uint8_t mov_r8_address[] = { 0x49, 0xb8 };
@@ -116,25 +116,25 @@ static void tester_mov_memory_to_rflags_generate(FILE *stream,
 	uint8_t push_r8[] = { 0x41, 0x50 };
 	fwrite(push_r8, 1, sizeof(push_r8), stream);
 
-	tester_pop_rflags_generate(stream);
+	tbgen_pop_rflags_generate(stream);
 }
 
-static void tester_mov_register_to_memory_generate(FILE *stream,
-		enum rreil_id_x86 register_, uint64_t *address) {
+static void tbgen_mov_register_to_memory_generate(FILE *stream,
+		enum x86_id register_, uint64_t *address) {
 	// mov r8, address
 	uint8_t mov_r8_address[] = { 0x49, 0xb8 };
 	fwrite(mov_r8_address, 1, sizeof(mov_r8_address), stream);
 	fwrite(address, 8, 1, stream);
 
 	// mov [r8], register
-	uint8_t mov_dr8_reg[] = { 0x49, 0x89, tester_register_to_binary(register_)
+	uint8_t mov_dr8_reg[] = { 0x49, 0x89, tbgen_register_to_binary(register_)
 			<< 3 };
 	fwrite(mov_dr8_reg, 1, sizeof(mov_dr8_reg), stream);
 }
 
-static void tester_mov_rflags_to_memory_generate(FILE *stream,
+static void tbgen_mov_rflags_to_memory_generate(FILE *stream,
 		uint64_t *address) {
-	tester_push_rflags_generate(stream);
+	tbgen_push_rflags_generate(stream);
 
 	// pop r9
 	uint8_t pop_r9[] = { 0x41, 0x59 };
@@ -150,13 +150,13 @@ static void tester_mov_rflags_to_memory_generate(FILE *stream,
 	fwrite(mov_dr8_r9, 1, sizeof(mov_dr8_r9), stream);
 }
 
-static void tester_registers_backup(FILE *stream, struct simulator_trace *trace) {
+static void tbgen_registers_backup(FILE *stream, struct simulator_trace *trace) {
 	void access_handle(struct register_access *access) {
 		for(size_t i = 0; i < access->indices_length; ++i) {
-			enum rreil_id_x86 reg = (enum rreil_id_x86)access->indices[i];
-			if(reg == RREIL_ID_X86_FLAGS)
+			enum x86_id reg = (enum x86_id)access->indices[i];
+			if(reg == X86_ID_FLAGS)
 				continue;
-			tester_push_generate(stream, reg);
+			tbgen_push_generate(stream, reg);
 		}
 	}
 
@@ -164,14 +164,14 @@ static void tester_registers_backup(FILE *stream, struct simulator_trace *trace)
 	access_handle(&trace->written);
 }
 
-static void tester_registers_restore(FILE *stream,
+static void tbgen_registers_restore(FILE *stream,
 		struct simulator_trace *trace) {
 	void access_handle(struct register_access *access) {
 		for(size_t i = access->indices_length; i > 0; --i) {
-			enum rreil_id_x86 reg = (enum rreil_id_x86)access->indices[i - 1];
-			if(reg == RREIL_ID_X86_FLAGS)
+			enum x86_id reg = (enum x86_id)access->indices[i - 1];
+			if(reg == X86_ID_FLAGS)
 				continue;
-			tester_pop_generate(stream, reg);
+			tbgen_pop_generate(stream, reg);
 		}
 	}
 
@@ -179,37 +179,37 @@ static void tester_registers_restore(FILE *stream,
 	access_handle(&trace->read);
 }
 
-void tester_header_generate(FILE *stream) {
+void tbgen_header_generate(FILE *stream) {
 }
 
-void tester_trailer_generate(FILE *stream) {
+void tbgen_trailer_generate(FILE *stream) {
 	uint8_t retq[] = { 0xc3 };
 
 	fwrite(retq, 1, sizeof(retq), stream);
 }
 
-size_t tester_code_generate(uint8_t **buffer, uint8_t *instruction,
+size_t tbgen_code_generate(uint8_t **buffer, uint8_t *instruction,
 		size_t instruction_length, struct simulator_trace *trace,
 		struct simulator_context *context) {
 	size_t size;
 
 	FILE *stream = open_memstream((char**)buffer, &size);
 
-	tester_header_generate(stream);
+	tbgen_header_generate(stream);
 
-	tester_registers_backup(stream, trace);
-	tester_push_generate(stream, RREIL_ID_X86_R8);
-	tester_push_generate(stream, RREIL_ID_X86_R9);
-	tester_push_rflags_generate(stream);
+	tbgen_registers_backup(stream, trace);
+	tbgen_push_generate(stream, X86_ID_R8);
+	tbgen_push_generate(stream, X86_ID_R9);
+	tbgen_push_rflags_generate(stream);
 
 	for(size_t i = 0; i < trace->read.indices_length; ++i) {
 		size_t index = trace->read.indices[i];
-		enum rreil_id_x86 reg = (enum rreil_id_x86)index;
-		if(reg == RREIL_ID_X86_FLAGS)
-			tester_mov_memory_to_rflags_generate(stream,
+		enum x86_id reg = (enum x86_id)index;
+		if(reg == X86_ID_FLAGS)
+			tbgen_mov_memory_to_rflags_generate(stream,
 					(uint64_t*)&context->x86_registers[index].data);
 		else
-			tester_mov_memory_to_register_generate(stream, reg,
+			tbgen_mov_memory_to_register_generate(stream, reg,
 					(uint64_t*)&context->x86_registers[index].data);
 	}
 
@@ -217,21 +217,21 @@ size_t tester_code_generate(uint8_t **buffer, uint8_t *instruction,
 
 	for(size_t i = 0; i < trace->written.indices_length; ++i) {
 		size_t index = trace->written.indices[i];
-		enum rreil_id_x86 reg = (enum rreil_id_x86)index;
-		if(reg == RREIL_ID_X86_FLAGS)
-			tester_mov_rflags_to_memory_generate(stream,
+		enum x86_id reg = (enum x86_id)index;
+		if(reg == X86_ID_FLAGS)
+			tbgen_mov_rflags_to_memory_generate(stream,
 					(uint64_t*)&context->x86_registers[index].data);
 		else
-			tester_mov_register_to_memory_generate(stream, reg,
+			tbgen_mov_register_to_memory_generate(stream, reg,
 					(uint64_t*)&context->x86_registers[index].data);
 	}
 
-	tester_pop_rflags_generate(stream);
-	tester_pop_generate(stream, RREIL_ID_X86_R9);
-	tester_pop_generate(stream, RREIL_ID_X86_R8);
-	tester_registers_restore(stream, trace);
+	tbgen_pop_rflags_generate(stream);
+	tbgen_pop_generate(stream, X86_ID_R9);
+	tbgen_pop_generate(stream, X86_ID_R8);
+	tbgen_registers_restore(stream, trace);
 
-	tester_trailer_generate(stream);
+	tbgen_trailer_generate(stream);
 
 	fclose(stream);
 	return size;
