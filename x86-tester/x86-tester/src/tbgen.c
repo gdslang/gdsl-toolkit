@@ -23,21 +23,27 @@ static uint8_t tbgen_register_to_binary(enum x86_id register_) {
 		case X86_ID_CX: {
 			return 0b001;
 		}
+		case X86_ID_R10:
 		case X86_ID_DX: {
 			return 0b010;
 		}
+		case X86_ID_R11:
 		case X86_ID_BX: {
 			return 0b011;
 		}
+		case X86_ID_R12:
 		case X86_ID_SP: {
 			return 0b100;
 		}
+		case X86_ID_R13:
 		case X86_ID_BP: {
 			return 0b101;
 		}
+		case X86_ID_R14:
 		case X86_ID_SI: {
 			return 0b110;
 		}
+		case X86_ID_R15:
 		case X86_ID_DI: {
 			return 0b111;
 		}
@@ -46,8 +52,7 @@ static uint8_t tbgen_register_to_binary(enum x86_id register_) {
 	}
 }
 
-static void tbgen_push_pop_rex_generate(FILE *stream,
-		enum x86_id register_) {
+static void tbgen_push_pop_rex_generate(FILE *stream, enum x86_id register_) {
 	switch(register_) {
 		case X86_ID_R8:
 		case X86_ID_R9:
@@ -96,13 +101,12 @@ static void tbgen_mov_memory_to_register_generate(FILE *stream,
 	fwrite(address, 8, 1, stream);
 
 	// mov register, [r8]
-	uint8_t mov_reg_dr8[] = { 0x49, 0x8b, tbgen_register_to_binary(register_)
-			<< 3 };
+	uint8_t mov_reg_dr8[] =
+			{ 0x49, 0x8b, tbgen_register_to_binary(register_) << 3 };
 	fwrite(mov_reg_dr8, 1, sizeof(mov_reg_dr8), stream);
 }
 
-static void tbgen_mov_memory_to_rflags_generate(FILE *stream,
-		uint64_t *address) {
+static void tbgen_mov_memory_to_rflags_generate(FILE *stream, uint64_t *address) {
 	// mov r8, address
 	uint8_t mov_r8_address[] = { 0x49, 0xb8 };
 	fwrite(mov_r8_address, 1, sizeof(mov_r8_address), stream);
@@ -127,13 +131,12 @@ static void tbgen_mov_register_to_memory_generate(FILE *stream,
 	fwrite(address, 8, 1, stream);
 
 	// mov [r8], register
-	uint8_t mov_dr8_reg[] = { 0x49, 0x89, tbgen_register_to_binary(register_)
-			<< 3 };
+	uint8_t mov_dr8_reg[] =
+			{ 0x49, 0x89, tbgen_register_to_binary(register_) << 3 };
 	fwrite(mov_dr8_reg, 1, sizeof(mov_dr8_reg), stream);
 }
 
-static void tbgen_mov_rflags_to_memory_generate(FILE *stream,
-		uint64_t *address) {
+static void tbgen_mov_rflags_to_memory_generate(FILE *stream, uint64_t *address) {
 	tbgen_push_rflags_generate(stream);
 
 	// pop r9
@@ -164,8 +167,7 @@ static void tbgen_registers_backup(FILE *stream, struct simulator_trace *trace) 
 	access_handle(&trace->written);
 }
 
-static void tbgen_registers_restore(FILE *stream,
-		struct simulator_trace *trace) {
+static void tbgen_registers_restore(FILE *stream, struct simulator_trace *trace) {
 	void access_handle(struct register_access *access) {
 		for(size_t i = access->indices_length; i > 0; --i) {
 			enum x86_id reg = (enum x86_id)access->indices[i - 1];

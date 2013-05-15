@@ -291,7 +291,7 @@ static void simulator_statement_simulate(struct context *context,
 		struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
-			uint8_t *buffer;
+			uint8_t *buffer = NULL;
 			size_t bit_length = simulator_op_simulate(context, &buffer,
 					statement->assign.rhs);
 			simulator_variable_write(context, statement->assign.lhs, bit_length, buffer);
@@ -309,7 +309,7 @@ static void simulator_statement_simulate(struct context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
-			uint8_t *buffer;
+			uint8_t *buffer = NULL;
 			/*
 			 * Todo: Fix size
 			 */
@@ -324,7 +324,7 @@ static void simulator_statement_simulate(struct context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_WHILE: {
-			uint8_t *buffer;
+			uint8_t *buffer = NULL;
 			/*
 			 * Todo: Fix size
 			 */

@@ -8,18 +8,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint-gcc.h>
-#include <sys/mman.h>
-#include <time.h>
 #include <dis.h>
 #include <gdrr.h>
 #include <rreil/rreil.h>
 #include <rreil/gdrr_builder.h>
-#include <simulator/regacc.h>
-#include <simulator/simulator.h>
-#include <simulator/tracking.h>
-#include <x86.h>
-#include <context.h>
-#include "tbgen.h"
+#include "tester.h"
 
 int main(void) {
 //	struct register_ reg;
@@ -140,136 +133,7 @@ int main(void) {
 					(struct rreil_statements*)gdrr_convert(r, config);
 			free(config);
 
-			srand(time(NULL));
-
-			rreil_statements_print(statements);
-
-			struct context *context = context_init();
-
-//			uint64_t value = 0x2b3481cfef1194ba;
-//			uint64_t value = 0x2b3481cfef1194ba;
-//			uint64_t value = 22;
-//			struct rreil_id id;
-//			id.type = RREIL_ID_TYPE_X86;
-//			id.x86 = RREIL_ID_X86_AX;
-//			simulator_register_write_64(context, &id, value, 0);
-//
-//			value = 0;
-//			id.x86 = RREIL_ID_X86_FLAGS;
-//			simulator_register_write_64(context, &id, value, 0);
-//
-//			value = 0x1100000000000052;
-//			id.x86 = RREIL_ID_X86_CX;
-//			simulator_register_write_64(context, &id, value, 0);
-//
-//			simulator_context_x86_print(context);
-
-			struct simulator_trace *trace = tracking_trace_init();
-			tracking_statements_trace(trace, statements);
-
-			printf("------------------\n");
-			tracking_trace_print(trace);
-
-			void access_init(struct register_access *access, int (*k)(void)) {
-				for(size_t i = 0; i < access->indices_length; ++i) {
-					size_t index = access->indices[i];
-					enum x86_id reg = (enum x86_id)index;
-
-					size_t length = x86_amd64_sizeof(reg);
-					uint32_t *data = (uint32_t*)malloc(4 * (length / (8 * 4) + 1));
-					for(size_t i = 0; i < length / (8 * 4) + 1; ++i)
-						data[i] = rand() << 16 ^ rand();
-
-					simulator_register_generic_write(&context->x86_registers[reg],
-							(uint8_t*)data, length, 0);
-
-					free(data);
-				}
-			}
-
-			int zero() {
-				return 0;
-			}
-
-			access_init(&trace->written, &rand);
-			access_init(&trace->read, &rand);
-
-			struct context *context_rreil = context_copy(context);
-
-			/*
-			 * Clean up RFLAGS
-			 */
-			uint64_t rflags_mask = 0x0000000000244cd5;
-			uint8_t *rflags_mask_ptr = (uint8_t*)&rflags_mask;
-			void clean_rflags(struct context *context) {
-				for(size_t i = 0;
-						i < context->x86_registers[X86_ID_FLAGS].data_bit_length / 8;
-						++i) {
-					context->x86_registers[X86_ID_FLAGS].data[i] &=
-							rflags_mask_ptr[i];
-				}
-			}
-			clean_rflags(context);
-			clean_rflags(context_rreil);
-
-			printf("------------------\n");
-			context_x86_print(context);
-
-			simulator_statements_simulate(context_rreil, statements);
-
-			uint8_t *buffer;
-			size_t buffer_size = tbgen_code_generate(&buffer, blob, i, trace,
-					context);
-
-			void *mem_exec = mmap(NULL, buffer_size,
-					PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0,
-					0);
-
-			memcpy(mem_exec, buffer, buffer_size);
-			free(buffer);
-
-			void (*f)(void) = (void (*)(void))mem_exec;
-
-			f();
-			munmap(mem_exec, buffer_size);
-
-			clean_rflags(context);
-
-			printf("------------------\n");
-			printf("CPU:\n");
-			context_x86_print(context);
-			printf("Rreil simulator:\n");
-			context_x86_print(context_rreil);
-
-			printf("------------------\n");
-			printf("Failing Registers:\n");
-
-			char found = 0;
-			for(size_t i = 0; i < trace->written.indices_length; ++i) {
-				size_t index = trace->written.indices[i];
-				enum x86_id reg = (enum x86_id)index;
-
-				struct register_ *reg_cpu = &context->x86_registers[index];
-				struct register_ *reg_rreil = &context_rreil->x86_registers[index];
-
-				for(size_t j = 0; j < reg_cpu->data_bit_length / 8; ++j)
-					if(reg_cpu->data[j] != reg_rreil->data[j]) {
-						if(found)
-							printf(", ");
-						x86_id_print(reg);
-						found = 1;
-						break;
-					}
-			}
-			if(!found)
-				printf("None\n");
-			else
-				printf("\n");
-
-			tracking_trace_free(trace);
-
-			context_free(context);
-			context_free(context_rreil);
+			tester_test(statements, blob, i);
 
 			rreil_statements_free(statements);
 		}
