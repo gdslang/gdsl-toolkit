@@ -51,10 +51,10 @@ int main(void) {
 //	blob[2] = 0x03;
 
 //add    $0x8,%rsp
-		blob[0] = 0x48;
-		blob[1] = 0x83;
-		blob[2] = 0xc4;
-		blob[3] = 0x42;
+//		blob[0] = 0x48;
+//		blob[1] = 0x83;
+//		blob[2] = 0xc4;
+//		blob[3] = 0x42;
 
 //add    $0x42,%ecx
 //	blob[0] = 0x83;
@@ -74,6 +74,12 @@ int main(void) {
 //		blob[0] = 0x0f;
 //		blob[1] = 0xdb;
 //		blob[2] = 0xc1;
+
+		// pand xmm0, xmm1
+	blob[0] = 0x66;
+			blob[1] = 0x0f;
+			blob[2] = 0xdb;
+			blob[3] = 0xc1;
 
 //		blob[0] = 0x04;
 //		blob[1] = 0x42;

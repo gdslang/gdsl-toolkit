@@ -16,41 +16,49 @@
 
 static uint8_t tbgen_register_to_binary(enum x86_id register_) {
 	switch(register_) {
+		case X86_ID_XMM0:
 		case X86_ID_MM0:
 		case X86_ID_R8:
 		case X86_ID_AX: {
 			return 0b000;
 		}
+		case X86_ID_XMM1:
 		case X86_ID_MM1:
 		case X86_ID_R9:
 		case X86_ID_CX: {
 			return 0b001;
 		}
+		case X86_ID_XMM2:
 		case X86_ID_MM2:
 		case X86_ID_R10:
 		case X86_ID_DX: {
 			return 0b010;
 		}
+		case X86_ID_XMM3:
 		case X86_ID_MM3:
 		case X86_ID_R11:
 		case X86_ID_BX: {
 			return 0b011;
 		}
+		case X86_ID_XMM4:
 		case X86_ID_MM4:
 		case X86_ID_R12:
 		case X86_ID_SP: {
 			return 0b100;
 		}
+		case X86_ID_XMM5:
 		case X86_ID_MM5:
 		case X86_ID_R13:
 		case X86_ID_BP: {
 			return 0b101;
 		}
+		case X86_ID_XMM6:
 		case X86_ID_MM6:
 		case X86_ID_R14:
 		case X86_ID_SI: {
 			return 0b110;
 		}
+		case X86_ID_XMM7:
 		case X86_ID_MM7:
 		case X86_ID_R15:
 		case X86_ID_DI: {
@@ -189,6 +197,16 @@ static void tbgen_push_generate(FILE *stream, enum x86_id register_) {
 			fwrite(movq, 1, sizeof(movq), stream);
 			break;
 		}
+		case X86_ID_TYPE_SSE: {
+			// sub rsp, 16
+			uint8_t sub[] = { 0x48, 0x83, 0xec, 0x10 };
+			fwrite(sub, 1, sizeof(sub), stream);
+
+			// movq [rsp], register
+			uint8_t movupd[] = { 0x66, 0x0f, 0x11, 0x04 | (reg_bin << 3), 0x24 };
+			fwrite(movupd, 1, sizeof(movupd), stream);
+			break;
+		}
 	}
 }
 
@@ -208,6 +226,16 @@ static void tbgen_pop_generate(FILE *stream, enum x86_id register_) {
 
 			// add rsp, 8
 			uint8_t add[] = { 0x48, 0x83, 0xc4, 0x08 };
+			fwrite(add, 1, sizeof(add), stream);
+			break;
+		}
+		case X86_ID_TYPE_SSE: {
+			// movq register, [rsp]
+			uint8_t movupd[] = { 0x66, 0x0f, 0x10, 0x04 | (reg_bin << 3), 0x24 };
+			fwrite(movupd, 1, sizeof(movupd), stream);
+
+			// add rsp, 16
+			uint8_t add[] = { 0x48, 0x83, 0xc4, 0x10 };
 			fwrite(add, 1, sizeof(add), stream);
 			break;
 		}
