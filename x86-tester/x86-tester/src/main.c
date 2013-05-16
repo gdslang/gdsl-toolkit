@@ -57,9 +57,9 @@ int main(void) {
 //		blob[3] = 0x42;
 
 //add    $0x42,%ecx
-//	blob[0] = 0x83;
-//	blob[1] = 0xc1;
-//	blob[2] = 0x42;
+	blob[0] = 0x83;
+	blob[1] = 0xc1;
+	blob[2] = 0x42;
 
 //		blob[0] = 0x04;
 //		blob[1] = 0x42;
@@ -88,10 +88,10 @@ int main(void) {
 //	blob[3] = 0x2c;
 
 //shrs
-	blob[0] = 0x48;
-	blob[1] = 0xc1;
-	blob[2] = 0xf8;
-	blob[3] = 0x2c;
+//	blob[0] = 0x48;
+//	blob[1] = 0xc1;
+//	blob[2] = 0xf8;
+//	blob[3] = 0x2c;
 
 //movzx
 //	blob[0] = 0x48;
