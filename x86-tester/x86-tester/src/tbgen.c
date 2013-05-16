@@ -1,5 +1,5 @@
 /*
- * tester.c
+ * tbgen.c
  *
  *  Created on: 13.05.2013
  *      Author: jucs
@@ -126,7 +126,7 @@ static void tbgen_rex_rb_generate(FILE *stream, enum x86_rex w, enum x86_id r,
 //		case X86_ID_R9:
 //		case X86_ID_R10:
 //		case X86_ID_R11:
-//		case X86_ID_R12:
+//		case X86_ID_R12:tester
 //		case X86_ID_R13:
 //		case X86_ID_R14:
 //		case X86_ID_R15: {
@@ -162,7 +162,8 @@ static void tbgen_pop_rflags_generate(FILE *stream) {
 }
 
 static void tbgen_mov_generate(FILE *stream, enum x86_id from, enum x86_id to) {
-	uint8_t mov[] = { 0x48, 0x89, tbgen_register_to_binary(to)
+	tbgen_rex_rb_generate(stream, X86_REX_W, from, to);
+	uint8_t mov[] = { 0x89, 0xc0 | tbgen_register_to_binary(to)
 			| (tbgen_register_to_binary(from) << 3) };
 	fwrite(mov, 1, sizeof(mov), stream);
 }
@@ -256,9 +257,14 @@ static void tbgen_fixed_commit(struct tbgen_register_allocation *allocation,
 	for(size_t i = 0; i < allocation->registers_length; ++i)
 		tbgen_push_generate(stream, allocation->registers[i]);
 	if(allocation->sp_allocated) {
+		/*
+		 * Todo: Not aesthetic :-(
+		 */
+		allocation->sp_allocated = 0;
 		allocation->sp_backup = tbgen_allocate_dynamic(allocation, stream);
 		allocation->sp_mirror = tbgen_allocate_dynamic(allocation, stream);
 		tbgen_mov_generate(stream, X86_ID_SP, allocation->sp_backup);
+		allocation->sp_allocated = 1;
 	}
 }
 
@@ -287,7 +293,7 @@ static void tbgen_mov_memory_to_register_generate(FILE *stream,
 	fwrite(address, 8, 1, stream);
 
 	// mov register, [t0]
-	tbgen_rex_generate(stream, X86_REX_W | X86_REX_B, t0);
+	tbgen_rex_rb_generate(stream, X86_REX_W, register_, t0);
 	uint8_t mov_reg_dt0[] = { 0x8b, tbgen_register_to_binary(register_) << 3
 			| tbgen_register_to_binary(t0) };
 	fwrite(mov_reg_dt0, 1, sizeof(mov_reg_dt0), stream);
@@ -323,7 +329,7 @@ static void tbgen_mov_register_to_memory_generate(FILE *stream,
 	fwrite(address, 8, 1, stream);
 
 	// mov [t0], register
-	tbgen_rex_generate(stream, X86_REX_W | X86_REX_B, t0);
+	tbgen_rex_rb_generate(stream, X86_REX_W, register_, t0);
 	uint8_t mov_dt0_reg[] = { 0x89, tbgen_register_to_binary(register_) << 3
 			| tbgen_register_to_binary(t0) };
 	fwrite(mov_dt0_reg, 1, sizeof(mov_dt0_reg), stream);
