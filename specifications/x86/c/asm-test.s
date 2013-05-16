@@ -574,9 +574,10 @@ main:
 	#add %rax, %rbx
 	#add %r8, %rsp
 	#add %rsp, %r8
-	add %edi, %esp
+	add (%rsp), %rax
 	add $8, %rsp
 	movq (%r8), %mm0
+	add %r13, %r12
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16
