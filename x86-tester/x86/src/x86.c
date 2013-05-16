@@ -419,3 +419,36 @@ size_t x86_amd64_sizeof(enum x86_id id) {
 			return 0;
 	}
 }
+
+enum x86_id_type x86_id_type_get(enum x86_id id) {
+	switch(id) {
+		case X86_ID_MM0:
+		case X86_ID_MM1:
+		case X86_ID_MM2:
+		case X86_ID_MM3:
+		case X86_ID_MM4:
+		case X86_ID_MM5:
+		case X86_ID_MM6:
+		case X86_ID_MM7:
+			return X86_ID_TYPE_MMX;
+		case X86_ID_XMM0:
+		case X86_ID_XMM1:
+		case X86_ID_XMM2:
+		case X86_ID_XMM3:
+		case X86_ID_XMM4:
+		case X86_ID_XMM5:
+		case X86_ID_XMM6:
+		case X86_ID_XMM7:
+		case X86_ID_XMM8:
+		case X86_ID_XMM9:
+		case X86_ID_XMM10:
+		case X86_ID_XMM11:
+		case X86_ID_XMM12:
+		case X86_ID_XMM13:
+		case X86_ID_XMM14:
+		case X86_ID_XMM15:
+			return X86_ID_TYPE_SSE;
+		default:
+			return X86_ID_TYPE_STANDARD;
+	}
+}

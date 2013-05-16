@@ -572,7 +572,11 @@ main:
 	#sar $42, %rax
 	#movsx %ax, %rbx
 	#add %rax, %rbx
-	add %r8, %rsp
+	#add %r8, %rsp
+	#add %rsp, %r8
+	add %edi, %esp
+	add $8, %rsp
+	movq (%r8), %mm0
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16

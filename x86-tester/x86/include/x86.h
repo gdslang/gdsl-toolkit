@@ -76,8 +76,15 @@ enum x86_rex {
 	X86_REX_NONE = 0x00
 };
 
+enum x86_id_type {
+	X86_ID_TYPE_STANDARD,
+	X86_ID_TYPE_MMX,
+	X86_ID_TYPE_SSE
+};
+
 extern void x86_id_print(enum x86_id id);
 extern size_t x86_amd64_sizeof(enum x86_id id);
+extern enum x86_id_type x86_id_type_get(enum x86_id id);
 
 #define X86_ID_COUNT (X86_ID_XMM15 + 1)
 
