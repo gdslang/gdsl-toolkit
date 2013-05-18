@@ -435,6 +435,7 @@ static struct tbgen_register_allocation *tbgen_registers_backup(FILE *stream,
 
 	access_handle(&trace->reg.read);
 	access_handle(&trace->reg.written);
+	access_handle(&trace->reg.dereferenced);
 
 	tbgen_allocation_fixed_commit(allocation, stream);
 

@@ -295,6 +295,10 @@ struct simulator_trace *tracking_trace_init() {
 	init_rw(&trace->reg.written);
 	init_rw(&trace->reg.dereferenced);
 
+	trace->mem.written.accesses = NULL;
+	trace->mem.written.accesses_length = 0;
+	trace->mem.written.accesses_size = 0;
+
 	return trace;
 }
 
@@ -313,6 +317,13 @@ void tracking_trace_free(struct simulator_trace *trace) {
 	access_clear(&trace->reg.dereferenced);
 
 	free(trace);
+}
+
+void tracking_trace_memory_write_add(struct simulator_trace *trace,
+		struct memory_access access) {
+	util_array_generic_add((void**)&trace->mem.written.accesses, &access,
+			sizeof(access), &trace->mem.written.accesses_length,
+			&trace->mem.written.accesses_size);
 }
 
 void tracking_trace_print(struct simulator_trace *trace) {

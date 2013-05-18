@@ -22,7 +22,7 @@ struct memory_allocation *memory_allocation_init(void *address) {
 	return allocation;
 }
 
-struct context *context_init(uint8_t (*byte_read)(void *address)) {
+struct context *context_init(context_load_t *load, context_store_t *store) {
 	struct context *context = (struct context*)malloc(sizeof(struct context));
 	context->virtual_registers = (struct register_*)calloc(RREIL_ID_VIRTUAL_COUNT,
 			sizeof(struct register_));
@@ -34,7 +34,8 @@ struct context *context_init(uint8_t (*byte_read)(void *address)) {
 	context->memory.allocations = NULL;
 	context->memory.allocations_length = 0;
 	context->memory.allocations_size = 0;
-	context->memory.byte_read = byte_read;
+	context->memory.load = load;
+	context->memory.store = store;
 
 	return context;
 }
@@ -78,7 +79,8 @@ struct context *context_copy(struct context *source) {
 		destination_a->data = (uint8_t*)malloc(destination_a->data_size);
 		memcpy(destination_a->data, source_a->data, source_a->data_size);
 	}
-	context->memory.byte_read = source->memory.byte_read;
+	context->memory.load = source->memory.load;
+	context->memory.store = source->memory.store;
 
 	return context;
 }
@@ -149,6 +151,9 @@ void context_x86_print(struct context *context) {
 	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
 		struct memory_allocation *allocation = &context->memory.allocations[i];
 
+		/*
+		 * Todo Combine with compare-thing
+		 */
 		printf("Memory access (@0x");
 		for(size_t i = sizeof(allocation->address); i > 0; --i) {
 			uint8_t *addr_ptr = (uint8_t*)&allocation->address;
@@ -156,8 +161,8 @@ void context_x86_print(struct context *context) {
 		}
 		printf("): ");
 
-		for(size_t i = 0; i < allocation->data_size; ++i)
-			printf("%02x", allocation->data[i]);
+		for(size_t i = allocation->data_size; i > 0; --i)
+			printf("%02x", allocation->data[i - 1]);
 
 		printf("\n");
 	}

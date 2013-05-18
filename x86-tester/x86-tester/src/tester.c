@@ -16,6 +16,7 @@
 #include <simulator/simulator.h>
 #include <simulator/regacc.h>
 #include <simulator/tracking.h>
+#include <memory.h>
 #include "tbgen.h"
 
 static void tester_access_init(struct context *context,
@@ -58,17 +59,47 @@ static void tester_instruction_execute(uint8_t *instruction,
 			MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	memcpy(mem_exec, buffer, buffer_size);
 	free(buffer);
-//	((void (*)(void))mem_exec)();
+
+	/*
+	 * Todo: Unmap
+	 */
+	void map(void *address, size_t size) {
+		void *mem_ptr = (void*)((size_t)address & 0xfffffffffffff000);
+		size_t mem_size = size
+				+ ((size_t)address & 0x0fff);
+
+		uint64_t *mem_real = mmap(mem_ptr, mem_size, PROT_READ | PROT_WRITE,
+				MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
+
+		/*
+		 * Todo: Handle error
+		 */
+	}
+
+	for (size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
+		struct memory_access *access = &trace->mem.written.accesses[i];
+		map(access->address, access->data_size);
+	}
+
+	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
+		struct memory_allocation *allocation = &context->memory.allocations[i];
+
+		map(allocation->address, allocation->data_size);
+		memcpy(allocation->address, allocation->data, allocation->data_size);
+	}
+
+	((void (*)(void))mem_exec)();
+
 	munmap(mem_exec, buffer_size);
 }
 
 static void tester_contexts_compare(struct simulator_trace *trace,
-		struct context *context, struct context *context_rreil) {
+		struct context *context_cpu, struct context *context_rreil) {
 	char found = 0;
 	for(size_t i = 0; i < trace->reg.written.indices_length; ++i) {
 		size_t index = trace->reg.written.indices[i];
 		enum x86_id reg = (enum x86_id)index;
-		struct register_ *reg_cpu = &context->x86_registers[index];
+		struct register_ *reg_cpu = &context_cpu->x86_registers[index];
 		struct register_ *reg_rreil = &context_rreil->x86_registers[index];
 		for(size_t j = 0; j < reg_cpu->data_bit_length / 8; ++j)
 			if(reg_cpu->data[j] != reg_rreil->data[j]) {
@@ -79,6 +110,53 @@ static void tester_contexts_compare(struct simulator_trace *trace,
 				found = 1;
 				break;
 			}
+	}
+
+	if(!found)
+		printf("None\n");
+	else
+		printf("\n");
+
+	found = 0;
+	printf("Memory addresses:\n");
+//	void compare_memory(struct context *from, struct context *to) {
+//		for(size_t i = 0; i < from->memory.allocations_length; ++i) {
+//			struct memory_allocation *allocation = &from->memory.allocations[i];
+//
+//			for(size_t j = 0; j < to->memory.allocations_length; ++j)
+//				if(allocation->address == to->memory.allocations[j].address)
+//					goto next;
+//
+//			printf("Memory address: 0x");
+//			for(size_t i = sizeof(allocation->address); i > 0; --i) {
+//				uint8_t *addr_ptr = (uint8_t*)&allocation->address;
+//				printf("%02x", addr_ptr[i - 1]);
+//			}
+//
+//			printf("\n");
+//
+//			found = 1;
+//
+//			next:;
+//		}
+//	}
+
+	for(size_t i = 0; i < context_rreil->memory.allocations_length; ++i) {
+		struct memory_allocation *allocation = &context_rreil->memory.allocations[i];
+
+		uint8_t *ptr = (uint8_t*)allocation->address;
+		for(size_t i = 0; i < allocation->data_size; ++i) {
+			if(ptr[i] != allocation->data[i]) {
+				printf("Memory address: 0x");
+				for(size_t j = sizeof(ptr); j > 0; --j) {
+					uint8_t *current = &ptr[i];
+					uint8_t *addr_ptr = (uint8_t*)&current;
+					printf("%02x", addr_ptr[j - 1]);
+				}
+				printf("\n");
+				found = 1;
+			}
+		}
 	}
 
 	if(!found)
@@ -108,11 +186,30 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	rreil_statements_print(statements);
 
-	uint8_t byte_read() {
-		return rand();
+	struct context *context_cpu;
+	struct context *context_rreil;
+	struct simulator_trace *trace = tracking_trace_init();
+
+	void load(uint8_t **buffer, uint8_t *address, uint64_t address_size,
+			uint64_t access_size) {
+		uint8_t *source = (uint8_t*)malloc(access_size / 8);
+		for(size_t i = 0; i < access_size / 8; ++i)
+			source[i] = rand();
+		memory_load(context_rreil, buffer, address, address_size, access_size,
+				source);
+		memory_load(context_cpu, buffer, address, address_size, access_size,
+				source);
+	}
+	void store(uint8_t *buffer, uint8_t *address, uint64_t address_size,
+			uint64_t access_size) {
+		memory_store(context_rreil, buffer, address, address_size, access_size);
+		struct memory_access access;
+		access.address = memory_ptr_get(address, address_size);
+		access.data_size = access_size / 8;
+		tracking_trace_memory_write_add(trace, access);
 	}
 
-	struct context *context = context_init(&byte_read);
+	context_rreil = context_init(&load, &store);
 
 //			uint64_t value = 0x2b3481cfef1194ba;
 //			uint64_t value = 0x2b3481cfef1194ba;
@@ -132,7 +229,6 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 //
 //			simulator_context_x86_print(context);
 
-	struct simulator_trace *trace = tracking_trace_init();
 	tracking_statements_trace(trace, statements);
 
 	printf("------------------\n");
@@ -157,36 +253,38 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 		}
 	}
 
-	tester_access_init(context, &trace->reg.written, &zero_buffer);
-	tester_access_init(context, &trace->reg.read, &rand_buffer);
-	tester_access_init(context, &trace->reg.dereferenced, &rand_address_buffer);
+	tester_access_init(context_rreil, &trace->reg.written, &zero_buffer);
+	tester_access_init(context_rreil, &trace->reg.read, &rand_buffer);
+	tester_access_init(context_rreil, &trace->reg.dereferenced,
+			&rand_address_buffer);
 
-	struct context *context_rreil = context_copy(context);
-
-	tester_rflags_clean(context);
 	tester_rflags_clean(context_rreil);
-
-	printf("------------------\n");
-	context_x86_print(context);
+	context_cpu = context_copy(context_rreil);
 
 	simulator_statements_simulate(context_rreil, statements);
 
-	tester_instruction_execute(instruction, instruction_length, trace, context);
+	tester_rflags_clean(context_rreil);
 
-	tester_rflags_clean(context);
+	printf("------------------\n");
+	context_x86_print(context_rreil);
+
+	tester_instruction_execute(instruction, instruction_length, trace,
+			context_cpu);
+
+	tester_rflags_clean(context_cpu);
 
 	printf("------------------\n");
 	printf("CPU:\n");
-	context_x86_print(context);
+	context_x86_print(context_cpu);
 	printf("Rreil simulator:\n");
 	context_x86_print(context_rreil);
 
 	printf("------------------\n");
-	printf("Failing Registers:\n");
-	tester_contexts_compare(trace, context, context_rreil);
+	printf("Failing Registers / Memory locations:\n");
+	tester_contexts_compare(trace, context_cpu, context_rreil);
 
 	tracking_trace_free(trace);
 
-	context_free(context);
+	context_free(context_cpu);
 	context_free(context_rreil);
 }
