@@ -13,12 +13,17 @@
 #include <x86.h>
 #include <context.h>
 
-struct context *context_init() {
-	struct context *context = (struct context*)malloc(
-			sizeof(struct context));
-	/*
-	 * Todo: ...
-	 */
+struct memory_allocation *memory_allocation_init(void *address) {
+	struct memory_allocation *allocation = (struct memory_allocation*)malloc(
+			sizeof(struct memory_allocation));
+	allocation->address = address;
+	allocation->data = NULL;
+	allocation->data_size = 0;
+	return allocation;
+}
+
+struct context *context_init(uint8_t (*byte_read)(void *address)) {
+	struct context *context = (struct context*)malloc(sizeof(struct context));
 	context->virtual_registers = (struct register_*)calloc(RREIL_ID_VIRTUAL_COUNT,
 			sizeof(struct register_));
 	context->x86_registers = (struct register_*)calloc(X86_ID_COUNT,
@@ -26,13 +31,16 @@ struct context *context_init() {
 	context->temporary_registers = (struct register_*)calloc(
 			RREIL_ID_TEMPORARY_COUNT, sizeof(struct register_));
 
+	context->memory.allocations = NULL;
+	context->memory.allocations_length = 0;
+	context->memory.allocations_size = 0;
+	context->memory.byte_read = byte_read;
+
 	return context;
 }
 
-struct context *context_copy(
-		struct context *source) {
-	struct context *context = (struct context*)malloc(
-			sizeof(struct context));
+struct context *context_copy(struct context *source) {
+	struct context *context = (struct context*)malloc(sizeof(struct context));
 
 	void copy_registers(size_t count, struct register_ *registers,
 			struct register_ *registers_source) {
@@ -51,12 +59,26 @@ struct context *context_copy(
 			source->virtual_registers);
 	context->x86_registers = (struct register_*)malloc(
 			X86_ID_COUNT * sizeof(struct register_));
-	copy_registers(X86_ID_COUNT, context->x86_registers,
-			source->x86_registers);
+	copy_registers(X86_ID_COUNT, context->x86_registers, source->x86_registers);
 	context->temporary_registers = (struct register_*)malloc(
 			RREIL_ID_TEMPORARY_COUNT * sizeof(struct register_));
 	copy_registers(RREIL_ID_TEMPORARY_COUNT, context->temporary_registers,
 			source->temporary_registers);
+
+	context->memory.allocations = (struct memory_allocation *)malloc(
+			source->memory.allocations_size * sizeof(struct memory_allocation));
+	context->memory.allocations_length = source->memory.allocations_length;
+	context->memory.allocations_size = source->memory.allocations_size;
+	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
+		struct memory_allocation *source_a = &source->memory.allocations[i];
+		struct memory_allocation *destination_a = &context->memory.allocations[i];
+
+		destination_a->address = source_a->address;
+		destination_a->data_size = source_a->data_size;
+		destination_a->data = (uint8_t*)malloc(destination_a->data_size);
+		memcpy(destination_a->data, source_a->data, source_a->data_size);
+	}
+	context->memory.byte_read = source->memory.byte_read;
 
 	return context;
 }
@@ -80,6 +102,14 @@ void context_free(struct context *context) {
 		for(size_t i = 0; i < RREIL_ID_TEMPORARY_COUNT; ++i)
 			register_clear(&context->temporary_registers[i]);
 		free(context->temporary_registers);
+
+		/*
+		 * Todo: Unmapping ;-)
+		 */
+		for(size_t i = 0; i < context->memory.allocations_length; ++i)
+			free(context->memory.allocations[i].data);
+		free(context->memory.allocations);
+
 		free(context);
 	}
 }
@@ -114,6 +144,21 @@ void context_x86_print(struct context *context) {
 			for(size_t i = reg->data_bit_length / 8; i > 0; --i)
 				printf("%02x", reg->data[i - 1]);
 		}
+		printf("\n");
+	}
+	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
+		struct memory_allocation *allocation = &context->memory.allocations[i];
+
+		printf("Memory access (@0x");
+		for(size_t i = sizeof(allocation->address); i > 0; --i) {
+			uint8_t *addr_ptr = (uint8_t*)&allocation->address;
+			printf("%02x", addr_ptr[i - 1]);
+		}
+		printf("): ");
+
+		for(size_t i = 0; i < allocation->data_size; ++i)
+			printf("%02x", allocation->data[i]);
+
 		printf("\n");
 	}
 }

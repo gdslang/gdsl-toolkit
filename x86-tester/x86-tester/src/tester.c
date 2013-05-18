@@ -58,7 +58,7 @@ static void tester_instruction_execute(uint8_t *instruction,
 			MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	memcpy(mem_exec, buffer, buffer_size);
 	free(buffer);
-	((void (*)(void))mem_exec)();
+//	((void (*)(void))mem_exec)();
 	munmap(mem_exec, buffer_size);
 }
 
@@ -108,7 +108,11 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	rreil_statements_print(statements);
 
-	struct context *context = context_init();
+	uint8_t byte_read() {
+		return rand();
+	}
+
+	struct context *context = context_init(&byte_read);
 
 //			uint64_t value = 0x2b3481cfef1194ba;
 //			uint64_t value = 0x2b3481cfef1194ba;
