@@ -19,18 +19,17 @@
 #include "tbgen.h"
 
 static void tester_access_init(struct context *context,
-		struct register_access *access, int (*k)(void)) {
+		struct register_access *access, void (*k)(uint8_t *, size_t)) {
 	for(size_t i = 0; i < access->indices_length; ++i) {
 		size_t index = access->indices[i];
 		enum x86_id reg = (enum x86_id)index;
 
 		size_t length = x86_amd64_sizeof(reg);
-		uint32_t *data = (uint32_t*)malloc(4 * (length / (8 * 4) + 1));
-		for(size_t i = 0; i < length / (8 * 4) + 1; ++i)
-			data[i] = rand() << 16 ^ rand();
+		uint8_t *data = (uint8_t*)malloc(length / 8 + 1);
+		k(data, length);
 
-		simulator_register_generic_write(&context->x86_registers[reg],
-				(uint8_t*)data, length, 0);
+		simulator_register_generic_write(&context->x86_registers[reg], data, length,
+				0);
 
 		free(data);
 	}
@@ -66,8 +65,8 @@ static void tester_instruction_execute(uint8_t *instruction,
 static void tester_contexts_compare(struct simulator_trace *trace,
 		struct context *context, struct context *context_rreil) {
 	char found = 0;
-	for(size_t i = 0; i < trace->written.indices_length; ++i) {
-		size_t index = trace->written.indices[i];
+	for(size_t i = 0; i < trace->reg.written.indices_length; ++i) {
+		size_t index = trace->reg.written.indices[i];
 		enum x86_id reg = (enum x86_id)index;
 		struct register_ *reg_cpu = &context->x86_registers[index];
 		struct register_ *reg_rreil = &context_rreil->x86_registers[index];
@@ -89,6 +88,22 @@ static void tester_contexts_compare(struct simulator_trace *trace,
 }
 void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 		size_t instruction_length) {
+//	for(size_t i = 0; i < 200; ++i) {
+//		uint64_t *x;
+//		for(size_t i = 0; i < 100; ++i) {
+//			x = (uint64_t)x ^ rand() << i;
+//		}
+//		void *mem = mmap(x, 10*4096, PROT_READ | PROT_WRITE,
+//				MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+////		if(mem != (x & (-1 ^ 0xfff)))
+//			printf("%lu\n", x);
+//	}
+//	uint64_t *x = 0x3FFFFFFFF000;
+//	uint64_t *mem = mmap(x, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
+////		if(mem != (x & (-1 ^ 0xfff)))
+//	*mem = 37;
+//		printf("%lu\n", *mem);
+
 	srand(time(NULL));
 
 	rreil_statements_print(statements);
@@ -119,12 +134,28 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	printf("------------------\n");
 	tracking_trace_print(trace);
 
-	int zero() {
-		return 0;
+	void zero_buffer(uint8_t *data, size_t bit_length) {
+		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+			data[i] = 0;
 	}
 
-	tester_access_init(context, &trace->written, &zero);
-	tester_access_init(context, &trace->read, &rand);
+	void rand_buffer(uint8_t *data, size_t bit_length) {
+		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+			data[i] = rand();
+	}
+
+	void rand_address_buffer(uint8_t *data, size_t bit_length) {
+		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
+			if(i < 5)
+				data[i] = rand();
+			else
+				data[i] = 0;
+		}
+	}
+
+	tester_access_init(context, &trace->reg.written, &zero_buffer);
+	tester_access_init(context, &trace->reg.read, &rand_buffer);
+	tester_access_init(context, &trace->reg.dereferenced, &rand_address_buffer);
 
 	struct context *context_rreil = context_copy(context);
 

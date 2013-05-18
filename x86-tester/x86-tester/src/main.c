@@ -45,7 +45,7 @@ int main(void) {
 //		blob[i] = c & 0xff;
 //	}
 //	done: ;
-	int i = 6;
+	int i = 2;
 //	blob[0] = 0x48;
 //	blob[1] = 0x8b;
 //	blob[2] = 0x03;
@@ -81,15 +81,15 @@ int main(void) {
 //			blob[3] = 0x10;
 //			blob[4] = 0xd3;
 
-			/*
-			 * Todo: Failing
-			 */
-			blob[0] = 0x66;
-			blob[1] = 0x0f;
-			blob[2] = 0x3a;
-			blob[3] = 0x44;
-			blob[4] = 0xd3;
-			blob[5] = 0x31;
+//			blob[0] = 0x66;
+//			blob[1] = 0x0f;
+//			blob[2] = 0x3a;
+//			blob[3] = 0x44;
+//			blob[4] = 0xd3;
+//			blob[5] = 0x31;
+
+			blob[0] = 0x00;
+			blob[1] = 0x01;
 
 //		blob[0] = 0x04;
 //		blob[1] = 0x42;

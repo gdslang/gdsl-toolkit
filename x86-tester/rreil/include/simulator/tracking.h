@@ -19,8 +19,11 @@ struct register_access {
 };
 
 struct simulator_trace {
-	struct register_access read;
-	struct register_access written;
+	struct {
+		struct register_access read;
+		struct register_access written;
+		struct register_access dereferenced;
+	} reg;
 };
 
 extern void tracking_statements_trace(struct simulator_trace *trace,
