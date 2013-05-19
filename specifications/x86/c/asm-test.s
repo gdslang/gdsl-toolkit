@@ -581,6 +581,9 @@ main:
 	movupd (%r8), %xmm0
 	pand %xmm11, %xmm14
 	mov %r13, -0x10(%rax, %rbx, 2)
+	lea -7(%rip), %r8
+
+	jmp %r8
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16

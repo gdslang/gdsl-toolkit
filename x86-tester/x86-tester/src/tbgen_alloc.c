@@ -15,32 +15,40 @@
 void tbgen_allocated_push_generate(FILE *stream,
 		struct tbgen_register_allocation *allocation, enum x86_id register_) {
 	if(allocation->sp_allocated) {
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP, allocation->sp_mirror);
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup, X86_ID_SP);
+		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+				allocation->sp_mirror);
+		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup,
+				X86_ID_SP);
 	}
 	if(register_ == X86_ID_FLAGS)
 		tbgen_push_rflags_generate(stream);
 	else
 		tbgen_push_generate(stream, register_);
 	if(allocation->sp_allocated) {
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP, allocation->sp_backup);
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_mirror, X86_ID_SP);
+		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+				allocation->sp_backup);
+		tbgen_mov_standard_old_register_generate(stream, allocation->sp_mirror,
+				X86_ID_SP);
 	}
 }
 
 void tbgen_allocated_pop_generate(FILE *stream,
 		struct tbgen_register_allocation *allocation, enum x86_id register_) {
 	if(allocation->sp_allocated) {
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP, allocation->sp_mirror);
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup, X86_ID_SP);
+		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+				allocation->sp_mirror);
+		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup,
+				X86_ID_SP);
 	}
 	if(register_ == X86_ID_FLAGS)
 		tbgen_pop_rflags_generate(stream);
 	else
 		tbgen_pop_generate(stream, register_);
 	if(allocation->sp_allocated) {
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP, allocation->sp_backup);
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_mirror, X86_ID_SP);
+		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+				allocation->sp_backup);
+		tbgen_mov_standard_old_register_generate(stream, allocation->sp_mirror,
+				X86_ID_SP);
 	}
 }
 
@@ -70,8 +78,8 @@ void tbgen_allocate_fixed(struct tbgen_register_allocation *allocation,
 			&allocation->registers_length, &allocation->registers_size);
 }
 
-enum x86_id tbgen_allocate_dynamic(
-		struct tbgen_register_allocation *allocation, FILE *stream) {
+enum x86_id tbgen_allocate_dynamic(struct tbgen_register_allocation *allocation,
+		FILE *stream) {
 	enum x86_id reg = X86_ID_R8;
 	next: if(reg == X86_ID_R15)
 		return 0; //Todo: Handle error
@@ -89,7 +97,10 @@ enum x86_id tbgen_allocate_dynamic(
 void tbgen_allocation_fixed_commit(struct tbgen_register_allocation *allocation,
 		FILE *stream) {
 	for(size_t i = 0; i < allocation->registers_length; ++i)
-		tbgen_push_generate(stream, allocation->registers[i]);
+		if(allocation->registers[i] == X86_ID_FLAGS)
+			tbgen_push_rflags_generate(stream);
+		else
+			tbgen_push_generate(stream, allocation->registers[i]);
 	if(allocation->sp_allocated) {
 		/*
 		 * Todo: Not aesthetic :-(
@@ -97,21 +108,25 @@ void tbgen_allocation_fixed_commit(struct tbgen_register_allocation *allocation,
 		allocation->sp_allocated = 0;
 		allocation->sp_backup = tbgen_allocate_dynamic(allocation, stream);
 		allocation->sp_mirror = tbgen_allocate_dynamic(allocation, stream);
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP, allocation->sp_backup);
+		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+				allocation->sp_backup);
 		allocation->sp_allocated = 1;
 	}
 }
 
-void tbgen_allocation_registers_free(struct tbgen_register_allocation *allocation,
-		FILE *stream) {
+void tbgen_allocation_registers_free(
+		struct tbgen_register_allocation *allocation, FILE *stream) {
 	if(allocation->sp_allocated)
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup, X86_ID_SP);
+		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup,
+				X86_ID_SP);
 	for(size_t i = allocation->registers_length; i > 0; --i)
-		tbgen_pop_generate(stream, allocation->registers[i - 1]);
+		if(allocation->registers[i - 1] == X86_ID_FLAGS)
+			tbgen_pop_rflags_generate(stream);
+		else
+			tbgen_pop_generate(stream, allocation->registers[i - 1]);
 }
 
-void tbgen_allocation_free(
-		struct tbgen_register_allocation *allocation) {
+void tbgen_allocation_free(struct tbgen_register_allocation *allocation) {
 	if(allocation) {
 		free(allocation->registers);
 		free(allocation);

@@ -50,19 +50,18 @@ static void tester_rflags_clean(struct context *context) {
 	}
 }
 
-static size_t tester_instruction_mapped_generate(uint8_t *instruction,
-		size_t instruction_length, struct simulator_trace *trace,
-		struct context *context, void **memory, void **next_instruction_address) {
-	uint8_t* buffer;
-	size_t instruction_offset;
-	size_t buffer_size = tbgen_code_generate(&buffer, instruction,
-			instruction_length, trace, context, &instruction_offset);
-	*memory = mmap(NULL, buffer_size, PROT_READ | PROT_WRITE | PROT_EXEC,
-			MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-	memcpy(*memory, buffer, buffer_size);
-	*next_instruction_address = *memory + instruction_offset + instruction_length;
-	free(buffer);
-	return buffer_size;
+static struct tbgen_result tester_instruction_mapped_generate(
+		uint8_t *instruction, size_t instruction_length,
+		struct simulator_trace *trace, struct context *context, void **memory,
+		void **next_instruction_address) {
+	struct tbgen_result tbgen_result = tbgen_code_generate(instruction,
+			instruction_length, trace, context);
+	*memory = mmap(NULL, tbgen_result.buffer_length,
+			PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	memcpy(*memory, tbgen_result.buffer, tbgen_result.buffer_length);
+	*next_instruction_address = *memory + tbgen_result.instruction_offset
+			+ instruction_length;
+	return tbgen_result;
 }
 
 static void tester_instruction_execute(uint8_t *instruction,
@@ -130,6 +129,7 @@ static void tester_instruction_execute(uint8_t *instruction,
 
 static void tester_contexts_compare(struct simulator_trace *trace,
 		struct context *context_cpu, struct context *context_rreil) {
+	printf("Failing Registers:\n");
 	char found = 0;
 	for(size_t i = 0; i < trace->reg.written.indices_length; ++i) {
 		size_t index = trace->reg.written.indices[i];
@@ -363,27 +363,32 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	void *code;
 	void *next_instruction_address;
-	size_t code_size = tester_instruction_mapped_generate(instruction,
+	struct tbgen_result tbgen_result = tester_instruction_mapped_generate(instruction,
 			instruction_length, trace, context_cpu, &code, &next_instruction_address);
 
 	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
-			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8, 0);
+			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8,
+			0);
 	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP],
-			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8, 0);
+			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8,
+			0);
+
+	printf("------------------\n");
+	context_x86_print(context_rreil);
 
 	simulator_statements_simulate(context_rreil, statements);
 
 	tester_rflags_clean(context_rreil);
 
-	printf("------------------\n");
-	context_x86_print(context_rreil);
-
-	tester_rflags_clean(context_cpu);
-
 	tester_instruction_execute(instruction, instruction_length, trace,
 			context_cpu, code);
 
-	munmap(code, code_size);
+	tester_rflags_clean(context_cpu);
+
+	munmap(code, tbgen_result.buffer_length);
+
+	free(tbgen_result.buffer);
+	free(tbgen_result.jump_marker);
 
 	printf("------------------\n");
 	printf("CPU:\n");
@@ -392,7 +397,6 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	context_x86_print(context_rreil);
 
 	printf("------------------\n");
-	printf("Failing Registers / Memory locations:\n");
 	tester_contexts_compare(trace, context_cpu, context_rreil);
 
 	tracking_trace_free(trace);
