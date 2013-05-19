@@ -465,9 +465,8 @@ static void tbgen_jump_marker_generate(FILE *stream,
 			(uint64_t*)&context->x86_registers[X86_ID_IP].data, t1);
 
 	tbgen_rex_generic_generate(stream, X86_REX_B, return_reg);
-	uint8_t jmp[] = { 0xff };
+	uint8_t jmp[] = { 0xff, 0xe0 | tbgen_register_to_binary(return_reg) };
 	fwrite(&jmp, 1, sizeof(jmp), stream);
-	tbgen_modrm_ra_generate(stream, 4, tbgen_register_to_binary(return_reg));
 }
 
 struct tbgen_result tbgen_code_generate(uint8_t *instruction,

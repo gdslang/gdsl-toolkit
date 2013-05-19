@@ -14,7 +14,12 @@ struct register_ {
 	size_t data_size;
 };
 
+enum memory_allocation_type {
+	MEMORY_ALLOCATION_TYPE_ACCESS, MEMORY_ALLOCATION_TYPE_JUMP
+};
+
 struct memory_allocation {
+	enum memory_allocation_type type;
 	uint8_t *data;
 	size_t data_size;
 	void *address;
@@ -38,7 +43,8 @@ struct context {
 };
 
 extern struct memory_allocation *memory_allocation_init(void *address);
-extern struct context *context_init(context_load_t *load, context_store_t *store);
+extern struct context *context_init(context_load_t *load,
+		context_store_t *store);
 extern struct context *context_copy(struct context *source);
 extern void context_free(struct context *context);
 extern void context_x86_print(struct context *context);

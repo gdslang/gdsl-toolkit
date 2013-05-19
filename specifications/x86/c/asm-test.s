@@ -584,6 +584,7 @@ main:
 	lea -7(%rip), %r8
 
 	jmp %r8
+#	mov %r8, %rip
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16

@@ -360,8 +360,23 @@ static void simulator_statement_simulate(struct context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			fprintf(stderr,
-					"Simulator: Unable to simulate RREIL_STATEMENT_TYPE_BRANCH, not implemented.\n");
+			uint8_t *address = NULL;
+			simulator_linear_simulate(context, &address,
+					statement->branch.target->address, statement->branch.target->size);
+			uint8_t *buffer = NULL;
+			/*
+			 * Todo: size...
+			 */
+			context->memory.load(&buffer, address, statement->branch.target->size,
+					64);
+			free(address);
+			struct rreil_variable ip;
+			struct rreil_id ip_id;
+			ip_id.type = RREIL_ID_TYPE_X86;
+			ip_id.x86 = X86_ID_IP;
+			ip.id = &ip_id;
+			ip.offset = 0;
+			simulator_variable_write(context, &ip, 64, address);
 			break;
 		}
 	}

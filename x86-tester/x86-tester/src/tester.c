@@ -66,7 +66,7 @@ static struct tbgen_result tester_instruction_mapped_generate(
 
 static void tester_instruction_execute(uint8_t *instruction,
 		size_t instruction_length, struct simulator_trace *trace,
-		struct context *context, void *code) {
+		struct context *context, void *code, struct tbgen_result tbgen_result) {
 
 	void for_page(void **address, size_t *size) {
 		*size = *size + ((size_t)address & 0x0fff);
@@ -82,7 +82,7 @@ static void tester_instruction_execute(uint8_t *instruction,
 	void map(void *address, size_t size) {
 		for_page(&address, &size);
 
-		uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE,
+		uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
 
 		/*
@@ -99,7 +99,9 @@ static void tester_instruction_execute(uint8_t *instruction,
 		struct memory_allocation *allocation = &context->memory.allocations[i];
 
 		map(allocation->address, allocation->data_size);
-		memcpy(allocation->address, allocation->data, allocation->data_size);
+//		memcpy(allocation->address, allocation->data, allocation->data_size);
+
+		memcpy(allocation->address, tbgen_result.jump_marker, tbgen_result.jump_marker_length);
 	}
 
 	((void (*)(void))code)();
@@ -354,7 +356,8 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	}
 
 	tester_access_init(context_rreil, &trace->reg.written, &zero_buffer);
-	tester_access_init(context_rreil, &trace->reg.read, &rand_buffer);
+//	tester_access_init(context_rreil, &trace->reg.read, &rand_buffer);
+	tester_access_init(context_rreil, &trace->reg.read, &rand_address_buffer);
 	tester_access_init(context_rreil, &trace->reg.dereferenced,
 			&rand_address_buffer);
 
@@ -363,8 +366,9 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	void *code;
 	void *next_instruction_address;
-	struct tbgen_result tbgen_result = tester_instruction_mapped_generate(instruction,
-			instruction_length, trace, context_cpu, &code, &next_instruction_address);
+	struct tbgen_result tbgen_result = tester_instruction_mapped_generate(
+			instruction, instruction_length, trace, context_cpu, &code,
+			&next_instruction_address);
 
 	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
 			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8,
@@ -381,7 +385,7 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	tester_rflags_clean(context_rreil);
 
 	tester_instruction_execute(instruction, instruction_length, trace,
-			context_cpu, code);
+			context_cpu, code, tbgen_result);
 
 	tester_rflags_clean(context_cpu);
 
