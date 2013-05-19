@@ -50,16 +50,24 @@ static void tester_rflags_clean(struct context *context) {
 	}
 }
 
+static size_t tester_instruction_mapped_generate(uint8_t *instruction,
+		size_t instruction_length, struct simulator_trace *trace,
+		struct context *context, void **memory, void **next_instruction_address) {
+	uint8_t* buffer;
+	size_t instruction_offset;
+	size_t buffer_size = tbgen_code_generate(&buffer, instruction,
+			instruction_length, trace, context, &instruction_offset);
+	*memory = mmap(NULL, buffer_size, PROT_READ | PROT_WRITE | PROT_EXEC,
+			MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	memcpy(*memory, buffer, buffer_size);
+	*next_instruction_address = *memory + instruction_offset + instruction_length;
+	free(buffer);
+	return buffer_size;
+}
+
 static void tester_instruction_execute(uint8_t *instruction,
 		size_t instruction_length, struct simulator_trace *trace,
-		struct context *context) {
-	uint8_t* buffer;
-	size_t buffer_size = tbgen_code_generate(&buffer, instruction,
-			instruction_length, trace, context);
-	void *mem_exec = mmap(NULL, buffer_size, PROT_READ | PROT_WRITE | PROT_EXEC,
-			MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-	memcpy(mem_exec, buffer, buffer_size);
-	free(buffer);
+		struct context *context, void *code) {
 
 	void for_page(void **address, size_t *size) {
 		*size = *size + ((size_t)address & 0x0fff);
@@ -95,7 +103,7 @@ static void tester_instruction_execute(uint8_t *instruction,
 		memcpy(allocation->address, allocation->data, allocation->data_size);
 	}
 
-	((void (*)(void))mem_exec)();
+	((void (*)(void))code)();
 
 	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
 		struct memory_allocation *allocation = &context->memory.allocations[i];
@@ -118,8 +126,6 @@ static void tester_instruction_execute(uint8_t *instruction,
 				sizeof(allocation), &context->memory.allocations_length,
 				&context->memory.allocations_size);
 	}
-
-	munmap(mem_exec, buffer_size);
 }
 
 static void tester_contexts_compare(struct simulator_trace *trace,
@@ -231,7 +237,7 @@ static void tester_contexts_compare(struct simulator_trace *trace,
 		}
 
 		struct memory_allocation *alloc_cpu = NULL;
-		for (;j < context_cpu->memory.allocations_length; ++j) {
+		for(; j < context_cpu->memory.allocations_length; ++j) {
 			alloc_cpu = &context_cpu->memory.allocations[j];
 			if(alloc_cpu->address >= alloc_rreil->address)
 				break;
@@ -243,7 +249,7 @@ static void tester_contexts_compare(struct simulator_trace *trace,
 			if(alloc_cpu->data_size != alloc_rreil->data_size)
 				handle_find();
 			else {
-				for (size_t k = 0; k < alloc_rreil->data_size; ++k)
+				for(size_t k = 0; k < alloc_rreil->data_size; ++k)
 					if(alloc_rreil->data[k] != alloc_cpu->data[k]) {
 						print_addr(alloc_rreil->address + k);
 						printf("\n");
@@ -355,6 +361,16 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	tester_rflags_clean(context_rreil);
 	context_cpu = context_copy(context_rreil);
 
+	void *code;
+	void *next_instruction_address;
+	size_t code_size = tester_instruction_mapped_generate(instruction,
+			instruction_length, trace, context_cpu, &code, &next_instruction_address);
+
+	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
+			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8, 0);
+	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP],
+			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8, 0);
+
 	simulator_statements_simulate(context_rreil, statements);
 
 	tester_rflags_clean(context_rreil);
@@ -362,10 +378,12 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	printf("------------------\n");
 	context_x86_print(context_rreil);
 
-	tester_instruction_execute(instruction, instruction_length, trace,
-			context_cpu);
-
 	tester_rflags_clean(context_cpu);
+
+	tester_instruction_execute(instruction, instruction_length, trace,
+			context_cpu, code);
+
+	munmap(code, code_size);
 
 	printf("------------------\n");
 	printf("CPU:\n");

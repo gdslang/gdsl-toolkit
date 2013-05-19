@@ -453,7 +453,7 @@ void tbgen_trailer_generate(FILE *stream) {
 
 size_t tbgen_code_generate(uint8_t **buffer, uint8_t *instruction,
 		size_t instruction_length, struct simulator_trace *trace,
-		struct context *context) {
+		struct context *context, size_t *instruction_offset) {
 	size_t size;
 
 	FILE *stream = open_memstream((char**)buffer, &size);
@@ -486,6 +486,8 @@ size_t tbgen_code_generate(uint8_t **buffer, uint8_t *instruction,
 				(uint64_t*)&context->x86_registers[index].data, t0);
 	}
 
+	fflush(stream);
+	*instruction_offset = size;
 	fwrite(instruction, 1, instruction_length, stream);
 
 	for(size_t i = 0; i < trace->reg.written.indices_length; ++i) {
