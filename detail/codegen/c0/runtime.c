@@ -110,9 +110,12 @@ __obj __lei (__obj A, __obj B) {
 
 /* FIXME */
 __obj __sx (__obj x) {
+	__word k = x->bv.vec;
+  if(k & (1 << (x->bv.sz - 1)))
+    k |= ~((1 << x->bv.sz) - 1);
   __LOCAL0(y);
     __INT_BEGIN(y);
-    __INT_INIT(x->bv.vec);
+    __INT_INIT(k);
     __INT_END(y);
   return (y);
 }

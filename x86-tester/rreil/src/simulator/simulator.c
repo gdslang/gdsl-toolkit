@@ -71,7 +71,7 @@ static void simulator_linear_simulate(struct context *context, uint8_t **buffer,
 			uint8_t *opnd;
 			simulator_linear_simulate(context, &opnd, linear->scale.opnd, bit_length);
 			uint8_t *scale = simulator_op_sx(sizeof(linear->scale.imm) * 8,
-					bit_length, (uint8_t*)linear->scale.imm);
+					bit_length, (uint8_t*)&linear->scale.imm);
 			*buffer = simulator_op_mul(scale, opnd, bit_length);
 			free(opnd);
 			break;

@@ -316,6 +316,8 @@ void tracking_trace_free(struct simulator_trace *trace) {
 	access_clear(&trace->reg.written);
 	access_clear(&trace->reg.dereferenced);
 
+	free(trace->mem.written.accesses);
+
 	free(trace);
 }
 

@@ -580,6 +580,7 @@ main:
 	add %r13, %r12
 	movupd (%r8), %xmm0
 	pand %xmm11, %xmm14
+	mov %r13, -0x10(%rax, %rbx, 2)
 
 	#pushq	%rbp
 	.cfi_def_cfa_offset 16

@@ -46,10 +46,10 @@ in
 	""))))))))))))))))))
 end
 
-val show/arity1 x = show/operand x.opnd1 +++ (show/features x)
-val show/arity2 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2 +++ (show/features x)
-val show/arity3 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2 +++ ", " +++ show/operand x.opnd3 +++ (show/features x)
-val show/arity4 x = show/operand x.opnd1 +++ ", " +++ show/operand x.opnd2 +++ ", " +++ show/operand x.opnd3 +++ ", " +++ show/operand x.opnd4 +++ (show/features x)
+val show/arity1 x = show/operand '0' x.opnd1 +++ (show/features x)
+val show/arity2 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ (show/features x)
+val show/arity3 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ (show/features x)
+val show/arity4 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ ", " +++ show/operand '0' x.opnd4 +++ (show/features x)
 val show/flow1 x = show/flowoperand x.opnd1 +++ (show/features x)
 val show/varity x =
    case x of
@@ -222,16 +222,16 @@ val show/scale s =
     | '11': "8*"
    end
 
-val show/operand op =
+val show/operand ext op =
    case op of
-      IMM8 x: showbitvec x.imm +++ "@" +++ showint x.address
-    | IMM16 x: showbitvec x.imm +++ "@" +++ showint x.address
-    | IMM32 x: showbitvec x.imm +++ "@" +++ showint x.address
-    | IMM64 x: showbitvec x.imm +++ "@" +++ showint x.address
+      IMM8 x: showint (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ showint x.address
+    | IMM16 x: showint (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ showint x.address
+    | IMM32 x: showint (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ showint x.address
+    | IMM64 x: showint (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ showint x.address
     | REG x: show/register x
-    | MEM x: show/memsz x.sz -++ show/segment x.segment +++ "[" +++ show/operand x.opnd +++ "]" 
-    | SUM x: show/operand x.a +++ "+" +++ show/operand x.b
-    | SCALE x: show/scale x.imm +++ show/operand x.opnd
+    | MEM x: show/memsz x.sz -++ show/segment x.segment +++ "[" +++ show/operand '1' x.opnd +++ "]" 
+    | SUM x: show/operand ext x.a +++ "+" +++ show/operand ext x.b
+    | SCALE x: show/scale x.imm +++ show/operand ext x.opnd
    end
 
 val show/flowoperand op =
@@ -240,8 +240,8 @@ val show/flowoperand op =
     | REL16 x: showint (sx x)
     | REL32 x: showint (sx x)
     | REL64 x: showint (sx x)
-    | NEARABS x: show/operand x 
-    | FARABS x: show/operand x
+    | NEARABS x: show/operand '1' x 
+    | FARABS x: show/operand '1' x
    end
 
 val show/instruction insn =

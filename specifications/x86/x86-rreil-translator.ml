@@ -142,8 +142,8 @@ end
 val conv-with conv sz x =
    let
       val conv-imm conv x = case conv of
-      	  Signed: return (SEM_LIN_IMM{imm=sx x})
-	| Unsigned: return (SEM_LIN_IMM{imm=zx x})
+                               Signed: return (SEM_LIN_IMM{imm=sx x})
+                             | Unsigned: return (SEM_LIN_IMM{imm=zx x})
       end
 
       val conv-reg conv sz r = do

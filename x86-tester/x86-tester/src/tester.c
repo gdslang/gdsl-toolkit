@@ -17,6 +17,7 @@
 #include <simulator/regacc.h>
 #include <simulator/tracking.h>
 #include <memory.h>
+#include <util.h>
 #include "tbgen.h"
 
 static void tester_access_init(struct context *context,
@@ -60,15 +61,21 @@ static void tester_instruction_execute(uint8_t *instruction,
 	memcpy(mem_exec, buffer, buffer_size);
 	free(buffer);
 
-	/*
-	 * Todo: Unmap
-	 */
-	void map(void *address, size_t size) {
-		void *mem_ptr = (void*)((size_t)address & 0xfffffffffffff000);
-		size_t mem_size = size
-				+ ((size_t)address & 0x0fff);
+	void for_page(void **address, size_t *size) {
+		*size = *size + ((size_t)address & 0x0fff);
+		*address = (void*)((size_t)*address & 0xfffffffffffff000);
+	}
 
-		uint64_t *mem_real = mmap(mem_ptr, mem_size, PROT_READ | PROT_WRITE,
+	void unmap(void *address, size_t size) {
+		for_page(&address, &size);
+
+		munmap(address, size);
+	}
+
+	void map(void *address, size_t size) {
+		for_page(&address, &size);
+
+		uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE,
 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
 
 		/*
@@ -76,7 +83,7 @@ static void tester_instruction_execute(uint8_t *instruction,
 		 */
 	}
 
-	for (size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
+	for(size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
 		struct memory_access *access = &trace->mem.written.accesses[i];
 		map(access->address, access->data_size);
 	}
@@ -89,6 +96,28 @@ static void tester_instruction_execute(uint8_t *instruction,
 	}
 
 	((void (*)(void))mem_exec)();
+
+	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
+		struct memory_allocation *allocation = &context->memory.allocations[i];
+		memcpy(allocation->data, allocation->address, allocation->data_size);
+		unmap(allocation->address, allocation->data_size);
+	}
+
+	for(size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
+		struct memory_access *access = &trace->mem.written.accesses[i];
+
+		struct memory_allocation allocation;
+		allocation.address = access->address;
+		allocation.data_size = access->data_size;
+		allocation.data = (uint8_t*)malloc(access->data_size);
+		memcpy(allocation.data, access->address, access->data_size);
+
+		unmap(access->address, access->data_size);
+
+		util_array_generic_add((void**)&context->memory.allocations, &allocation,
+				sizeof(allocation), &context->memory.allocations_length,
+				&context->memory.allocations_size);
+	}
 
 	munmap(mem_exec, buffer_size);
 }
@@ -141,20 +170,84 @@ static void tester_contexts_compare(struct simulator_trace *trace,
 //		}
 //	}
 
-	for(size_t i = 0; i < context_rreil->memory.allocations_length; ++i) {
-		struct memory_allocation *allocation = &context_rreil->memory.allocations[i];
+//	for(size_t i = 0; i < context_rreil->memory.allocations_length; ++i) {
+//		struct memory_allocation *allocation = &context_rreil->memory.allocations[i];
+//
+//		uint8_t *ptr = (uint8_t*)allocation->address;
+//		for(size_t i = 0; i < allocation->data_size; ++i) {
+//			if(ptr[i] != allocation->data[i]) {
+//				printf("Memory address: 0x");
+//				for(size_t j = sizeof(ptr); j > 0; --j) {
+//					uint8_t *current = &ptr[i];
+//					uint8_t *addr_ptr = (uint8_t*)&current;
+//					printf("%02x", addr_ptr[j - 1]);
+//				}
+//				printf("\n");
+//				found = 1;
+//			}
+//		}
+//	}
 
-		uint8_t *ptr = (uint8_t*)allocation->address;
-		for(size_t i = 0; i < allocation->data_size; ++i) {
-			if(ptr[i] != allocation->data[i]) {
-				printf("Memory address: 0x");
-				for(size_t j = sizeof(ptr); j > 0; --j) {
-					uint8_t *current = &ptr[i];
-					uint8_t *addr_ptr = (uint8_t*)&current;
-					printf("%02x", addr_ptr[j - 1]);
-				}
-				printf("\n");
-				found = 1;
+	int allocation_compare(__const void *a, __const void *b) {
+		struct memory_allocation *a_ = (struct memory_allocation*)a;
+		struct memory_allocation *b_ = (struct memory_allocation*)b;
+
+		if(a_->address < b_->address)
+			return -1;
+		else if(a_->address > b_->address)
+			return 1;
+		else
+			return 0;
+	}
+
+	qsort(context_cpu->memory.allocations, context_cpu->memory.allocations_length,
+			sizeof(struct memory_allocation), &allocation_compare);
+	qsort(context_rreil->memory.allocations,
+			context_rreil->memory.allocations_length,
+			sizeof(struct memory_allocation), &allocation_compare);
+
+	size_t j = 0;
+	for(size_t i = 0; i < context_rreil->memory.allocations_length; ++i) {
+		struct memory_allocation *alloc_rreil =
+				&context_rreil->memory.allocations[i];
+
+		void print_addr(void *addr) {
+			printf("Memory address: 0x");
+			for(size_t i = sizeof(addr); i > 0; --i) {
+				uint8_t *addr_ptr = (uint8_t*)&addr;
+				printf("%02x", addr_ptr[i - 1]);
+			}
+
+			found = 1;
+		}
+
+		void handle_find() {
+			print_addr(alloc_rreil->address);
+
+			if(alloc_rreil->data_size > 1)
+				printf(" (+ the %zu follwing)", alloc_rreil->data_size - 1);
+
+			printf("\n");
+		}
+
+		struct memory_allocation *alloc_cpu = NULL;
+		for (;j < context_cpu->memory.allocations_length; ++j) {
+			alloc_cpu = &context_cpu->memory.allocations[j];
+			if(alloc_cpu->address >= alloc_rreil->address)
+				break;
+		}
+
+		if(!alloc_cpu || alloc_cpu->address != alloc_rreil->address)
+			handle_find();
+		else {
+			if(alloc_cpu->data_size != alloc_rreil->data_size)
+				handle_find();
+			else {
+				for (size_t k = 0; k < alloc_rreil->data_size; ++k)
+					if(alloc_rreil->data[k] != alloc_cpu->data[k]) {
+						print_addr(alloc_rreil->address + k);
+						printf("\n");
+					}
 			}
 		}
 	}
@@ -164,6 +257,7 @@ static void tester_contexts_compare(struct simulator_trace *trace,
 	else
 		printf("\n");
 }
+
 void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 		size_t instruction_length) {
 //	for(size_t i = 0; i < 200; ++i) {

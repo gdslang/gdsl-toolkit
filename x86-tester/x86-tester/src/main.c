@@ -91,13 +91,11 @@ int main(void) {
 //			blob[0] = 0x00;
 //			blob[1] = 0x01;
 
-
-
 				blob[0] = 0x4c;
 				blob[1] = 0x89;
-				blob[2] = 0x64;
-				blob[3] = 0x24;
-				blob[4] = 0x70;
+				blob[2] = 0x6c;
+				blob[3] = 0x58;
+				blob[4] = 0x90;
 //				blob[5] = 0x20;
 //				blob[6] = 0x00;
 //		blob[0] = 0x04;
