@@ -16,8 +16,9 @@ val runtime-stack-address-size = do
 end
 
 val ip-get = do
-  k <- ipget;
-  return (imm k)
+  return (var (semantic-register-of RIP))
+#  k <- ipget;
+#  return (imm k)
 end
 
 val segment-register? x =

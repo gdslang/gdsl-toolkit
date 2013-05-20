@@ -35,7 +35,7 @@ main:
 	#mulq (%ebx)
 
 	#movsq
-	rep movsq
+	#rep movsq
 
 	#movbeq (%rax), %rbx
 
@@ -574,16 +574,18 @@ main:
 	#add %rax, %rbx
 	#add %r8, %rsp
 	#add %rsp, %r8
-	add (%rsp), %rax
-	add $8, %rsp
-	movq (%r8), %mm0
-	add %r13, %r12
-	movupd (%r8), %xmm0
-	pand %xmm11, %xmm14
-	mov %r13, -0x10(%rax, %rbx, 2)
-	lea -7(%rip), %r8
+	#add (%rsp), %rax
+	#add $8, %rsp
+	#movq (%r8), %mm0
+	#add %r13, %r12
+	#movupd (%r8), %xmm0
+	#pand %xmm11, %xmm14
+	#mov %r13, -0x10(%rax, %rbx, 2)
+	#lea -7(%rip), %r8
 
-	jmp %r8
+call %r8	
+
+#	jmp %r8
 #	mov %r8, %rip
 
 	#pushq	%rbp

@@ -68,7 +68,7 @@ int main(void) {
 
 		blob[0] = 0x41;
 		blob[1] = 0xff;
-		blob[2] = 0xe0;
+		blob[2] = 0xd0;
 
 //	blob[0] = 0x66;
 //	blob[1] = 0x01;

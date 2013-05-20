@@ -80,6 +80,7 @@ struct context *context_copy(struct context *source) {
 		destination_a->data_size = source_a->data_size;
 		destination_a->data = (uint8_t*)malloc(destination_a->data_size);
 		memcpy(destination_a->data, source_a->data, source_a->data_size);
+		destination_a->type = source_a->type;
 	}
 	context->memory.load = source->memory.load;
 	context->memory.store = source->memory.store;

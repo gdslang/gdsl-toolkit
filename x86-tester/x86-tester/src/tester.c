@@ -133,6 +133,7 @@ static void tester_instruction_execute(uint8_t *instruction,
 		struct memory_access *access = &trace->mem.written.accesses[i];
 
 		struct memory_allocation allocation;
+		allocation.type = MEMORY_ALLOCATION_TYPE_ACCESS;
 		allocation.address = access->address;
 		allocation.data_size = access->data_size;
 		allocation.data = (uint8_t*)malloc(access->data_size);
