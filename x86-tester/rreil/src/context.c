@@ -22,7 +22,8 @@ struct memory_allocation *memory_allocation_init(void *address) {
 	return allocation;
 }
 
-struct context *context_init(context_load_t *load, context_store_t *store) {
+struct context *context_init(context_load_t *load, context_store_t *store,
+		context_jump_t *jump) {
 	struct context *context = (struct context*)malloc(sizeof(struct context));
 	context->virtual_registers = (struct register_*)calloc(RREIL_ID_VIRTUAL_COUNT,
 			sizeof(struct register_));
@@ -36,6 +37,7 @@ struct context *context_init(context_load_t *load, context_store_t *store) {
 	context->memory.allocations_size = 0;
 	context->memory.load = load;
 	context->memory.store = store;
+	context->memory.jump = jump;
 
 	return context;
 }
@@ -81,6 +83,7 @@ struct context *context_copy(struct context *source) {
 	}
 	context->memory.load = source->memory.load;
 	context->memory.store = source->memory.store;
+	context->memory.jump = source->memory.jump;
 
 	return context;
 }
@@ -161,8 +164,11 @@ void context_x86_print(struct context *context) {
 		}
 		printf("): ");
 
-		for(size_t i = allocation->data_size; i > 0; --i)
-			printf("%02x", allocation->data[i - 1]);
+		if(allocation->type == MEMORY_ALLOCATION_TYPE_ACCESS)
+			for(size_t i = allocation->data_size; i > 0; --i)
+				printf("%02x", allocation->data[i - 1]);
+		else
+			printf("JUMP");
 
 		printf("\n");
 	}

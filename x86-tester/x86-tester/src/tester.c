@@ -98,18 +98,35 @@ static void tester_instruction_execute(uint8_t *instruction,
 	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
 		struct memory_allocation *allocation = &context->memory.allocations[i];
 
-		map(allocation->address, allocation->data_size);
-//		memcpy(allocation->address, allocation->data, allocation->data_size);
-
-		memcpy(allocation->address, tbgen_result.jump_marker, tbgen_result.jump_marker_length);
+		switch(allocation->type) {
+			case MEMORY_ALLOCATION_TYPE_ACCESS: {
+				map(allocation->address, allocation->data_size);
+				memcpy(allocation->address, allocation->data, allocation->data_size);
+				break;
+			}
+			case MEMORY_ALLOCATION_TYPE_JUMP: {
+				map(allocation->address, tbgen_result.jump_marker_length);
+				memcpy(allocation->address, tbgen_result.jump_marker,
+						tbgen_result.jump_marker_length);
+				break;
+			}
+		}
 	}
 
 	((void (*)(void))code)();
 
 	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
 		struct memory_allocation *allocation = &context->memory.allocations[i];
-		memcpy(allocation->data, allocation->address, allocation->data_size);
-		unmap(allocation->address, allocation->data_size);
+
+		switch(allocation->type) {
+			case MEMORY_ALLOCATION_TYPE_ACCESS: {
+				memcpy(allocation->data, allocation->address, allocation->data_size);
+				break;
+			}
+			case MEMORY_ALLOCATION_TYPE_JUMP: {
+				break;
+			}
+		}
 	}
 
 	for(size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
@@ -121,11 +138,29 @@ static void tester_instruction_execute(uint8_t *instruction,
 		allocation.data = (uint8_t*)malloc(access->data_size);
 		memcpy(allocation.data, access->address, access->data_size);
 
-		unmap(access->address, access->data_size);
-
 		util_array_generic_add((void**)&context->memory.allocations, &allocation,
 				sizeof(allocation), &context->memory.allocations_length,
 				&context->memory.allocations_size);
+	}
+
+	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
+		struct memory_allocation *allocation = &context->memory.allocations[i];
+
+		switch(allocation->type) {
+			case MEMORY_ALLOCATION_TYPE_ACCESS: {
+				unmap(allocation->address, allocation->data_size);
+				break;
+			}
+			case MEMORY_ALLOCATION_TYPE_JUMP: {
+				unmap(allocation->address, tbgen_result.jump_marker_length);
+				break;
+			}
+		}
+	}
+
+	for(size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
+		struct memory_access *access = &trace->mem.written.accesses[i];
+		unmap(access->address, access->data_size);
 	}
 }
 
@@ -310,8 +345,12 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 		access.data_size = access_size / 8;
 		tracking_trace_memory_write_add(trace, access);
 	}
+	void jump(uint8_t *address, uint64_t address_size) {
+		memory_jump(context_rreil, address, address_size);
+		memory_jump(context_cpu, address, address_size);
+	}
 
-	context_rreil = context_init(&load, &store);
+	context_rreil = context_init(&load, &store, &jump);
 
 //			uint64_t value = 0x2b3481cfef1194ba;
 //			uint64_t value = 0x2b3481cfef1194ba;

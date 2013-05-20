@@ -14,8 +14,11 @@
 
 extern void *memory_ptr_get(uint8_t *address, uint64_t address_size);
 extern void memory_load(struct context *context, uint8_t **buffer,
-		uint8_t *address, uint64_t address_size, uint64_t access_size, uint8_t *source);
+		uint8_t *address, uint64_t address_size, uint64_t access_size,
+		uint8_t *source);
 extern void memory_store(struct context *context, uint8_t *buffer,
 		uint8_t *address, uint64_t address_size, uint64_t access_size);
+extern void memory_jump(struct context *context, uint8_t *address,
+		uint64_t address_size);
 
 #endif /* MEMORY_H_ */

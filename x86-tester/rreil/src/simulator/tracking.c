@@ -244,8 +244,16 @@ static void tracking_statement_trace(struct simulator_trace *trace,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			fprintf(stderr,
-					"Simulator: Unable to track RREIL_STATEMENT_TYPE_BRANCH, not implemented.\n");
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_DEREFERENCE,
+					statement->branch.target->address, statement->branch.target->size);
+			struct rreil_variable ip;
+			struct rreil_id ip_id;
+			ip_id.type = RREIL_ID_TYPE_X86;
+			ip_id.x86 = X86_ID_IP;
+			ip.id = &ip_id;
+			ip.offset = 0;
+			tracking_variable_access_trace(trace, &ip, statement->branch.target->size,
+					SIMULATOR_ACCESS_TYPE_WRITE);
 			break;
 		}
 	}

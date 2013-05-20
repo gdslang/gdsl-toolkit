@@ -489,12 +489,22 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 	for(size_t i = 0; i < trace->reg.read.indices_length; ++i) {
 		size_t index = trace->reg.read.indices[i];
 		enum x86_id reg = (enum x86_id)index;
-		if(reg == X86_ID_FLAGS)
-			tbgen_mov_memory_to_rflags_generate(stream,
-					(uint64_t*)&context->x86_registers[index].data, t0, allocation);
-		else
-			tbgen_mov_memory_to_register_generate(stream, reg,
-					(uint64_t*)&context->x86_registers[index].data, t0);
+
+		switch(reg) {
+			case X86_ID_FLAGS: {
+				tbgen_mov_memory_to_rflags_generate(stream,
+						(uint64_t*)&context->x86_registers[index].data, t0, allocation);
+				break;
+			}
+			case X86_ID_IP: {
+				break;
+			}
+			default: {
+				tbgen_mov_memory_to_register_generate(stream, reg,
+						(uint64_t*)&context->x86_registers[index].data, t0);
+				break;
+			}
+		}
 	}
 
 	for(size_t i = 0; i < trace->reg.dereferenced.indices_length; ++i) {
@@ -524,12 +534,22 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 	for(size_t i = 0; i < trace->reg.written.indices_length; ++i) {
 		size_t index = trace->reg.written.indices[i];
 		enum x86_id reg = (enum x86_id)index;
-		if(reg == X86_ID_FLAGS)
-			tbgen_mov_rflags_to_memory_generate(stream,
-					(uint64_t*)&context->x86_registers[index].data, t0, t1, allocation);
-		else
-			tbgen_mov_register_to_memory_generate(stream, reg,
-					(uint64_t*)&context->x86_registers[index].data, t0);
+
+		switch(reg) {
+			case X86_ID_FLAGS: {
+				tbgen_mov_rflags_to_memory_generate(stream,
+						(uint64_t*)&context->x86_registers[index].data, t0, t1, allocation);
+				break;
+			}
+			case X86_ID_IP: {
+				break;
+			}
+			default: {
+				tbgen_mov_register_to_memory_generate(stream, reg,
+						(uint64_t*)&context->x86_registers[index].data, t0);
+				break;
+			}
+		}
 	}
 
 //	tbgen_registers_restore(stream, trace);

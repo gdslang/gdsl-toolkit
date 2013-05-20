@@ -363,20 +363,15 @@ static void simulator_statement_simulate(struct context *context,
 			uint8_t *address = NULL;
 			simulator_linear_simulate(context, &address,
 					statement->branch.target->address, statement->branch.target->size);
-			uint8_t *buffer = NULL;
-			/*
-			 * Todo: size...
-			 */
-			context->memory.load(&buffer, address, statement->branch.target->size,
-					64);
-			free(address);
+			context->memory.jump(address, statement->branch.target->size);
 			struct rreil_variable ip;
 			struct rreil_id ip_id;
 			ip_id.type = RREIL_ID_TYPE_X86;
 			ip_id.x86 = X86_ID_IP;
 			ip.id = &ip_id;
 			ip.offset = 0;
-			simulator_variable_write(context, &ip, 64, address);
+			simulator_variable_write(context, &ip, statement->branch.target->size, address);
+			free(address);
 			break;
 		}
 	}

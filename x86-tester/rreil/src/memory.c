@@ -12,8 +12,29 @@
 #include <context.h>
 #include <memory.h>
 
-static struct memory_allocation *memory_allocation_get(
-		struct context *context, void *ptr) {
+static struct memory_allocation *memory_allocation_add(struct context *context,
+		void *ptr) {
+	if(context->memory.allocations_length + 1
+			> context->memory.allocations_size) {
+		context->memory.allocations_size =
+				context->memory.allocations_size ? context->memory.allocations_size
+						<< 1 :
+						8;
+		context->memory.allocations = (struct memory_allocation*)realloc(
+				context->memory.allocations,
+				context->memory.allocations_size * sizeof(struct memory_allocation));
+	}
+	struct memory_allocation *allocation =
+			&context->memory.allocations[context->memory.allocations_length++];
+	allocation->address = ptr;
+	allocation->data = NULL;
+	allocation->data_size = 0;
+
+	return allocation;
+}
+
+static struct memory_allocation *memory_allocation_get(struct context *context,
+		void *ptr) {
 	struct memory_allocation *allocation = NULL;
 	for(size_t i = 0; i < context->memory.allocations_length; ++i)
 		if(ptr >= context->memory.allocations[i].address
@@ -23,24 +44,8 @@ static struct memory_allocation *memory_allocation_get(
 			allocation = &context->memory.allocations[i];
 			break;
 		}
-	if(!allocation) {
-		if(context->memory.allocations_length + 1
-				> context->memory.allocations_size) {
-			context->memory.allocations_size =
-					context->memory.allocations_size ? context->memory.allocations_size
-							<< 1 :
-							8;
-			context->memory.allocations = (struct memory_allocation*)realloc(
-					context->memory.allocations,
-					context->memory.allocations_size * sizeof(struct memory_allocation));
-		}
-		allocation =
-				&context->memory.allocations[context->memory.allocations_length++];
-		allocation->address = ptr;
-		allocation->data = NULL;
-		allocation->data_size = 0;
-		allocation->type = MEMORY_ALLOCATION_TYPE_ACCESS;
-	}
+	if(!allocation)
+		allocation = memory_allocation_add(context, ptr);
 	return allocation;
 }
 
@@ -63,10 +68,11 @@ static void memory_allocation_resize(struct memory_allocation *allocation,
 	}
 }
 
-void memory_load(struct context *context, uint8_t **buffer,
-		uint8_t *address, uint64_t address_size, uint64_t access_size, uint8_t *source) {
+void memory_load(struct context *context, uint8_t **buffer, uint8_t *address,
+		uint64_t address_size, uint64_t access_size, uint8_t *source) {
 	void *ptr = memory_ptr_get(address, address_size);
 	struct memory_allocation *allocation = memory_allocation_get(context, ptr);
+	allocation->type = MEMORY_ALLOCATION_TYPE_ACCESS;
 
 	size_t old_size = allocation->data_size;
 	memory_allocation_resize(allocation, access_size, ptr);
@@ -77,10 +83,11 @@ void memory_load(struct context *context, uint8_t **buffer,
 		allocation->data[old_size + i] = source[i];
 }
 
-void memory_store(struct context *context, uint8_t *buffer,
-		uint8_t *address, uint64_t address_size, uint64_t access_size) {
+void memory_store(struct context *context, uint8_t *buffer, uint8_t *address,
+		uint64_t address_size, uint64_t access_size) {
 	void *ptr = memory_ptr_get(address, address_size);
 	struct memory_allocation *allocation = memory_allocation_get(context, ptr);
+	allocation->type = MEMORY_ALLOCATION_TYPE_ACCESS;
 
 	memory_allocation_resize(allocation, access_size, ptr);
 
@@ -88,4 +95,11 @@ void memory_store(struct context *context, uint8_t *buffer,
 	uint8_t *to = &allocation->data[diff];
 
 	memcpy(to, buffer, access_size / 8);
+}
+
+void memory_jump(struct context *context, uint8_t *address,
+		uint64_t address_size) {
+	void *ptr = memory_ptr_get(address, address_size);
+	struct memory_allocation *allocation = memory_allocation_add(context, ptr);
+	allocation->type = MEMORY_ALLOCATION_TYPE_JUMP;
 }
