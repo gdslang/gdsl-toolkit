@@ -52,7 +52,7 @@ static void tester_rflags_clean(struct context *context) {
 
 static struct tbgen_result tester_instruction_mapped_generate(
 		uint8_t *instruction, size_t instruction_length,
-		struct simulator_trace *trace, struct context *context, void **memory,
+		struct tracking_trace *trace, struct context *context, void **memory,
 		void **next_instruction_address) {
 	struct tbgen_result tbgen_result = tbgen_code_generate(instruction,
 			instruction_length, trace, context);
@@ -65,7 +65,7 @@ static struct tbgen_result tester_instruction_mapped_generate(
 }
 
 static void tester_instruction_execute(uint8_t *instruction,
-		size_t instruction_length, struct simulator_trace *trace,
+		size_t instruction_length, struct tracking_trace *trace,
 		struct context *context, void *code, struct tbgen_result tbgen_result) {
 
 	void for_page(void **address, size_t *size) {
@@ -165,7 +165,7 @@ static void tester_instruction_execute(uint8_t *instruction,
 	}
 }
 
-static void tester_contexts_compare(struct simulator_trace *trace,
+static void tester_contexts_compare(struct tracking_trace *trace,
 		struct context *context_cpu, struct context *context_rreil) {
 	printf("Failing Registers:\n");
 	char found = 0;
@@ -191,7 +191,7 @@ static void tester_contexts_compare(struct simulator_trace *trace,
 		printf("\n");
 
 	found = 0;
-	printf("Memory addresses:\n");
+	printf("Failing memory addresses:\n");
 //	void compare_memory(struct context *from, struct context *to) {
 //		for(size_t i = 0; i < from->memory.allocations_length; ++i) {
 //			struct memory_allocation *allocation = &from->memory.allocations[i];
@@ -316,7 +316,9 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 //	}
 //	uint64_t *x = 0x3FFFFFFFF000;
 //	uint64_t *mem = mmap(x, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
-////		if(mem != (x & (-1 ^ 0xfff)))
+//	mem += 0x00f0000000000000;
+//	mem[1] = 42;
+//		if(mem != (x & (-1 ^ 0xfff)))
 //	*mem = 37;
 //		printf("%lu\n", *mem);
 
@@ -326,7 +328,7 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	struct context *context_cpu;
 	struct context *context_rreil;
-	struct simulator_trace *trace = tracking_trace_init();
+	struct tracking_trace *trace = tracking_trace_init();
 
 	void load(uint8_t **buffer, uint8_t *address, uint64_t address_size,
 			uint64_t access_size) {
@@ -397,9 +399,15 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	tester_access_init(context_rreil, &trace->reg.written, &zero_buffer);
 //	tester_access_init(context_rreil, &trace->reg.read, &rand_buffer);
-	tester_access_init(context_rreil, &trace->reg.read, &rand_address_buffer);
-	tester_access_init(context_rreil, &trace->reg.dereferenced,
-			&rand_address_buffer);
+
+	void (*rand)(uint8_t*, size_t);
+	if(trace->mem.used)
+		rand = &rand_address_buffer;
+	else
+		rand = &rand_buffer;
+
+	tester_access_init(context_rreil, &trace->reg.read, rand);
+	tester_access_init(context_rreil, &trace->reg.dereferenced, rand);
 
 	tester_rflags_clean(context_rreil);
 	context_cpu = context_copy(context_rreil);

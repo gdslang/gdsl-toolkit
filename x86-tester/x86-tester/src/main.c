@@ -62,13 +62,20 @@ int main(void) {
 //	blob[2] = 0x42;
 
 //	add    %r8, %rsp
-//		blob[0] = 0x4c;
-//		blob[1] = 0x01;
-//		blob[2] = 0xc4;
+		blob[0] = 0x4c;
+		blob[1] = 0x01;
+		blob[2] = 0xc4;
 
-		blob[0] = 0x41;
-		blob[1] = 0xff;
-		blob[2] = 0xd0;
+//	blob[0] = 0x41;
+//	blob[1] = 0xff;
+//	blob[2] = 0xd0;
+
+//	blob[0] = 0x0f;
+//	blob[1] = 0x84;
+//	blob[2] = 0xff;
+//	blob[3] = 0xcd;
+//	blob[4] = 0xef;
+//	blob[5] = 0x00;
 
 //	blob[0] = 0x66;
 //	blob[1] = 0x01;

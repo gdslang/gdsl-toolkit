@@ -21,7 +21,7 @@ enum simulator_access_type {
 	SIMULATOR_ACCESS_TYPE_DEREFERENCE
 };
 
-static void tracking_variable_access_trace(struct simulator_trace *trace,
+static void tracking_variable_access_trace(struct tracking_trace *trace,
 		struct rreil_variable *variable, size_t bit_length,
 		enum simulator_access_type type) {
 	if(variable->id->type != RREIL_ID_TYPE_X86)
@@ -64,7 +64,7 @@ static void tracking_variable_access_trace(struct simulator_trace *trace,
 				&access->indices_length, &access->indices_size);
 }
 
-static void tracking_linear_trace(struct simulator_trace *trace,
+static void tracking_linear_trace(struct tracking_trace *trace,
 		enum simulator_access_type access_type, struct rreil_linear *linear,
 		size_t bit_length) {
 	void linear_trace(struct rreil_linear *linear, size_t bit_length) {
@@ -97,7 +97,7 @@ static void tracking_linear_trace(struct simulator_trace *trace,
 	}
 }
 
-static size_t tracking_comparator_trace(struct simulator_trace *trace,
+static size_t tracking_comparator_trace(struct tracking_trace *trace,
 		struct rreil_comparator *comparator) {
 	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ,
 			comparator->arity2.opnd1, comparator->arity2.size);
@@ -106,7 +106,7 @@ static size_t tracking_comparator_trace(struct simulator_trace *trace,
 	return 1;
 }
 
-static void tracking_sexpr_trace(struct simulator_trace *trace,
+static void tracking_sexpr_trace(struct tracking_trace *trace,
 		struct rreil_sexpr *sexpr, size_t bit_length) {
 	switch(sexpr->type) {
 		case RREIL_SEXPR_TYPE_LIN: {
@@ -121,7 +121,7 @@ static void tracking_sexpr_trace(struct simulator_trace *trace,
 	}
 }
 
-static size_t tracking_op_trace(struct simulator_trace *trace,
+static size_t tracking_op_trace(struct tracking_trace *trace,
 		struct rreil_op *op) {
 	void linear_trace(struct rreil_linear *linear, size_t bit_length) {
 		tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, linear,
@@ -202,7 +202,21 @@ static size_t tracking_op_trace(struct simulator_trace *trace,
 	}
 }
 
-static void tracking_statement_trace(struct simulator_trace *trace,
+static void tracking_branch_trace(struct tracking_trace *trace,
+		struct rreil_address *target) {
+	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_DEREFERENCE,
+			target->address, target->size);
+	struct rreil_variable ip;
+	struct rreil_id ip_id;
+	ip_id.type = RREIL_ID_TYPE_X86;
+	ip_id.x86 = X86_ID_IP;
+	ip.id = &ip_id;
+	ip.offset = 0;
+	tracking_variable_access_trace(trace, &ip, target->size,
+			SIMULATOR_ACCESS_TYPE_WRITE);
+}
+
+static void tracking_statement_trace(struct tracking_trace *trace,
 		struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
@@ -216,12 +230,14 @@ static void tracking_statement_trace(struct simulator_trace *trace,
 					statement->load.address->address, statement->load.address->size);
 			tracking_variable_access_trace(trace, statement->load.lhs,
 					statement->load.size, SIMULATOR_ACCESS_TYPE_WRITE);
+			trace->mem.used = 1;
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
 			tracking_op_trace(trace, statement->store.rhs);
 			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_DEREFERENCE,
 					statement->store.address->address, statement->store.address->size);
+			trace->mem.used = 1;
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
@@ -239,27 +255,21 @@ static void tracking_statement_trace(struct simulator_trace *trace,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_CBRANCH: {
-			fprintf(stderr,
-					"Simulator: Unable to track RREIL_STATEMENT_TYPE_CBRANCH, not implemented.\n");
+			tracking_sexpr_trace(trace, statement->cbranch.cond, 1);
+			tracking_branch_trace(trace, statement->cbranch.target_true);
+			tracking_branch_trace(trace, statement->cbranch.target_false);
+			trace->mem.used = 1;
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_DEREFERENCE,
-					statement->branch.target->address, statement->branch.target->size);
-			struct rreil_variable ip;
-			struct rreil_id ip_id;
-			ip_id.type = RREIL_ID_TYPE_X86;
-			ip_id.x86 = X86_ID_IP;
-			ip.id = &ip_id;
-			ip.offset = 0;
-			tracking_variable_access_trace(trace, &ip, statement->branch.target->size,
-					SIMULATOR_ACCESS_TYPE_WRITE);
+			tracking_branch_trace(trace, statement->branch.target);
+			trace->mem.used = 1;
 			break;
 		}
 	}
 }
 
-void tracking_statements_trace(struct simulator_trace *trace,
+void tracking_statements_trace(struct tracking_trace *trace,
 		struct rreil_statements *statements) {
 	for(size_t i = 0; i < statements->statements_length; ++i)
 		tracking_statement_trace(trace, statements->statements[i]);
@@ -275,9 +285,9 @@ void tracking_statements_trace(struct simulator_trace *trace,
 //	access->indices[access->indices_length++] = id;
 //}
 
-struct simulator_trace *tracking_trace_init() {
-	struct simulator_trace *trace = (struct simulator_trace*)malloc(
-			sizeof(struct simulator_trace));
+struct tracking_trace *tracking_trace_init() {
+	struct tracking_trace *trace = (struct tracking_trace*)malloc(
+			sizeof(struct tracking_trace));
 
 	void init_rw(struct register_access *access) {
 		access->x86_registers = (struct register_*)calloc(X86_ID_COUNT,
@@ -307,10 +317,12 @@ struct simulator_trace *tracking_trace_init() {
 	trace->mem.written.accesses_length = 0;
 	trace->mem.written.accesses_size = 0;
 
+	trace->mem.used = 0;
+
 	return trace;
 }
 
-void tracking_trace_free(struct simulator_trace *trace) {
+void tracking_trace_free(struct tracking_trace *trace) {
 	void access_clear(struct register_access *access) {
 		for(size_t i = 0; i < X86_ID_COUNT; ++i) {
 			struct register_ *reg = &access->x86_registers[i];
@@ -329,14 +341,14 @@ void tracking_trace_free(struct simulator_trace *trace) {
 	free(trace);
 }
 
-void tracking_trace_memory_write_add(struct simulator_trace *trace,
+void tracking_trace_memory_write_add(struct tracking_trace *trace,
 		struct memory_access access) {
 	util_array_generic_add((void**)&trace->mem.written.accesses, &access,
 			sizeof(access), &trace->mem.written.accesses_length,
 			&trace->mem.written.accesses_size);
 }
 
-void tracking_trace_print(struct simulator_trace *trace) {
+void tracking_trace_print(struct tracking_trace *trace) {
 	void access_print(struct register_access *access) {
 		for(size_t i = 0; i < access->indices_length; ++i) {
 			enum x86_id id_x86 = (enum x86_id)access->indices[i];

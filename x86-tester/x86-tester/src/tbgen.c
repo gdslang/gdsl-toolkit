@@ -420,7 +420,7 @@ static void tbgen_mov_rflags_to_memory_generate(FILE *stream, uint64_t *address,
 }
 
 static struct tbgen_register_allocation *tbgen_registers_backup(FILE *stream,
-		struct simulator_trace *trace) {
+		struct tracking_trace *trace) {
 	struct tbgen_register_allocation *allocation = tbgen_allocation_init();
 
 	void access_handle(struct register_access *access) {
@@ -452,7 +452,7 @@ void tbgen_trailer_generate(FILE *stream) {
 }
 
 static void tbgen_jump_marker_generate(FILE *stream,
-		struct simulator_trace *trace, struct context *context,
+		struct tracking_trace *trace, struct context *context,
 		struct tbgen_register_allocation *allocation, enum x86_id return_reg,
 		enum x86_id t0, enum x86_id t1) {
 	uint8_t t0_bin = tbgen_register_to_binary(t0);
@@ -470,7 +470,7 @@ static void tbgen_jump_marker_generate(FILE *stream,
 }
 
 struct tbgen_result tbgen_code_generate(uint8_t *instruction,
-		size_t instruction_length, struct simulator_trace *trace,
+		size_t instruction_length, struct tracking_trace *trace,
 		struct context *context) {
 	struct tbgen_result result;
 

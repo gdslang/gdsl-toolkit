@@ -288,6 +288,30 @@ static size_t simulator_op_simulate(struct context *context, uint8_t **buffer,
 	return size;
 }
 
+static void simulator_branch_simulate(struct context *context,
+		struct rreil_address *target) {
+	uint8_t *address = NULL;
+	simulator_linear_simulate(context, &address, target->address, target->size);
+	char equal = 1;
+	for(size_t j = 0; j < target->size / 8; ++j) {
+		if(context->x86_registers[X86_ID_IP].data[j] != address[j]) {
+			equal = 0;
+			break;
+		}
+	}
+	if(!equal) {
+		context->memory.jump(address, target->size);
+		struct rreil_variable ip;
+		struct rreil_id ip_id;
+		ip_id.type = RREIL_ID_TYPE_X86;
+		ip_id.x86 = X86_ID_IP;
+		ip.id = &ip_id;
+		ip.offset = 0;
+		simulator_variable_write(context, &ip, target->size, address);
+	}
+	free(address);
+}
+
 static void simulator_statement_simulate(struct context *context,
 		struct rreil_statement *statement) {
 	switch(statement->type) {
@@ -355,23 +379,19 @@ static void simulator_statement_simulate(struct context *context,
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_CBRANCH: {
-			fprintf(stderr,
-					"Simulator: Unable to simulate RREIL_STATEMENT_TYPE_CBRANCH, not implemented.\n");
+			uint8_t *buffer = NULL;
+			/*
+			 * Todo: Fix size
+			 */
+			simulator_sexpr_simulate(context, &buffer, statement->cbranch.cond, 1);
+			if(*buffer & 0x01)
+				simulator_branch_simulate(context, statement->cbranch.target_true);
+			else
+				simulator_branch_simulate(context, statement->cbranch.target_false);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			uint8_t *address = NULL;
-			simulator_linear_simulate(context, &address,
-					statement->branch.target->address, statement->branch.target->size);
-			context->memory.jump(address, statement->branch.target->size);
-			struct rreil_variable ip;
-			struct rreil_id ip_id;
-			ip_id.type = RREIL_ID_TYPE_X86;
-			ip_id.x86 = X86_ID_IP;
-			ip.id = &ip_id;
-			ip.offset = 0;
-			simulator_variable_write(context, &ip, statement->branch.target->size, address);
-			free(address);
+			simulator_branch_simulate(context, statement->branch.target);
 			break;
 		}
 	}

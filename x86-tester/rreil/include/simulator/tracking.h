@@ -23,7 +23,7 @@ struct memory_access {
 	void *address;
 };
 
-struct simulator_trace {
+struct tracking_trace {
 	struct {
 		struct register_access read;
 		struct register_access written;
@@ -35,15 +35,16 @@ struct simulator_trace {
 			size_t accesses_length;
 			size_t accesses_size;
 		} written;
+		char used;
 	} mem;
 };
 
-extern void tracking_statements_trace(struct simulator_trace *trace,
+extern void tracking_statements_trace(struct tracking_trace *trace,
 		struct rreil_statements *statements);
-extern struct simulator_trace *tracking_trace_init();
-extern void tracking_trace_free(struct simulator_trace *trace);
-extern void tracking_trace_memory_write_add(struct simulator_trace *trace,
+extern struct tracking_trace *tracking_trace_init();
+extern void tracking_trace_free(struct tracking_trace *trace);
+extern void tracking_trace_memory_write_add(struct tracking_trace *trace,
 		struct memory_access access);
-extern void tracking_trace_print(struct simulator_trace *trace);
+extern void tracking_trace_print(struct tracking_trace *trace);
 
 #endif /* SIMULATOR_TRACKING_H_ */
