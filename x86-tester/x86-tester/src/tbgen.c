@@ -424,8 +424,8 @@ static struct tbgen_register_allocation *tbgen_registers_backup(FILE *stream,
 	struct tbgen_register_allocation *allocation = tbgen_allocation_init();
 
 	void access_handle(struct register_access *access) {
-		for(size_t i = 0; i < access->indices_length; ++i) {
-			enum x86_id reg = (enum x86_id)access->indices[i];
+		for(size_t i = 0; i < access->x86_indices_length; ++i) {
+			enum x86_id reg = (enum x86_id)access->x86_indices[i];
 //			if(reg == X86_ID_FLAGS)
 //				continue;
 //			tbgen_push_generate(stream, reg);
@@ -486,8 +486,8 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 	enum x86_id t0 = tbgen_allocate_dynamic(allocation, stream);
 	enum x86_id t1 = tbgen_allocate_dynamic(allocation, stream);
 
-	for(size_t i = 0; i < trace->reg.read.indices_length; ++i) {
-		size_t index = trace->reg.read.indices[i];
+	for(size_t i = 0; i < trace->reg.read.x86_indices_length; ++i) {
+		size_t index = trace->reg.read.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
 
 		switch(reg) {
@@ -507,8 +507,8 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 		}
 	}
 
-	for(size_t i = 0; i < trace->reg.dereferenced.indices_length; ++i) {
-		size_t index = trace->reg.dereferenced.indices[i];
+	for(size_t i = 0; i < trace->reg.dereferenced.x86_indices_length; ++i) {
+		size_t index = trace->reg.dereferenced.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
 		tbgen_mov_memory_to_register_generate(stream, reg,
 				(uint64_t*)&context->x86_registers[index].data, t0);
@@ -524,6 +524,11 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 	result.instruction_offset = result.buffer_length;
 	fwrite(instruction, 1, instruction_length, stream);
 
+	//NOPs
+	uint8_t nop[] = { 0x90 };
+	for (size_t i = 0; i < 15; ++i)
+		fwrite(nop, 1, sizeof(nop), stream);
+
 //	result.jump_marker = NULL;
 	FILE *marker_stream = open_memstream((char**)&result.jump_marker,
 			&result.jump_marker_length);
@@ -531,8 +536,8 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 			return_reg, t0, t1);
 	fclose(marker_stream);
 
-	for(size_t i = 0; i < trace->reg.written.indices_length; ++i) {
-		size_t index = trace->reg.written.indices[i];
+	for(size_t i = 0; i < trace->reg.written.x86_indices_length; ++i) {
+		size_t index = trace->reg.written.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
 
 		switch(reg) {

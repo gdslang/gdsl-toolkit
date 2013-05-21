@@ -12,10 +12,12 @@
 #include <simulator/simulator.h>
 
 struct register_access {
+//	struct register_ *virtual_registers;
+//	struct register_ *temporary_registers;
 	struct register_ *x86_registers;
-	size_t *indices;
-	size_t indices_length;
-	size_t indices_size;
+	size_t *x86_indices;
+	size_t x86_indices_length;
+	size_t x86_indices_size;
 };
 
 struct memory_access {

@@ -35,6 +35,11 @@ static void simulator_register_assign(struct context *context,
 
 static void simulator_register_generic_read(struct register_ *reg,
 		uint8_t *buffer, size_t bit_length, size_t bit_offset) {
+	if(bit_offset > reg->data_bit_length)
+		bit_length = 0;
+	else if(bit_length + bit_length > reg->data_bit_length)
+		bit_length = reg->data_bit_length - bit_offset;
+
 	uint8_t byte_read(uint8_t length) {
 		if(length == 8 && !(bit_offset % 8))
 			return reg->data[bit_offset / 8];
@@ -90,9 +95,8 @@ void simulator_register_read_64(struct context *context,
 
 void simulator_register_generic_write(struct register_ *reg,
 		uint8_t *data, size_t bit_length, size_t bit_offset) {
-	if(bit_offset / 8 + 1 + bit_length / 8 + 1 > reg->data_size) {
-		reg->data_size = bit_offset / 8 + 1 + bit_length / 8 + 1;
-		reg->data = (uint8_t*)realloc(reg->data, reg->data_size);
+	if(bit_offset + bit_length > reg->data_bit_length) {
+		reg->data = (uint8_t*)realloc(reg->data, bit_offset / 8 + 1 + bit_length / 8 + 1);
 	}
 
 	if(bit_offset + bit_length > reg->data_bit_length)

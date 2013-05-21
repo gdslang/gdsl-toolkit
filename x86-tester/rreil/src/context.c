@@ -49,10 +49,11 @@ struct context *context_copy(struct context *source) {
 			struct register_ *registers_source) {
 		for(size_t i = 0; i < count; ++i) {
 			registers[i].data_bit_length = registers_source[i].data_bit_length;
-			registers[i].data_size = registers_source[i].data_size;
-			registers[i].data = (uint8_t*)malloc(registers[i].data_size);
+//			registers[i].data_size = registers_source[i].data_size;
+			registers[i].data = (uint8_t*)malloc(
+					registers[i].data_bit_length / 8 + 1);
 			memcpy(registers[i].data, registers_source[i].data,
-					registers[i].data_size);
+					registers[i].data_bit_length / 8 + (registers[i].data_bit_length % 8 > 0));
 		}
 	}
 

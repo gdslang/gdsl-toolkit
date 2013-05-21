@@ -11,7 +11,6 @@
 struct register_ {
 	uint8_t *data;
 	size_t data_bit_length;
-	size_t data_size;
 };
 
 enum memory_allocation_type {

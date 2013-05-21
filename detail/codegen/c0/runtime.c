@@ -5,6 +5,8 @@
 __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
 __objref hp = &heap[__RT_HEAP_SIZE];
 
+static jmp_buf *exp_vec = NULL;
+
 @fieldnames@
 
 @tagnames@
@@ -26,6 +28,10 @@ __obj __UNIT = __WRAP(&__unwrapped_UNIT);
 __obj __TRUE = __WRAP(&__unwrapped_TRUE);
 __obj __FALSE = __WRAP(&__unwrapped_FALSE);
 
+void __exp_vec_set(jmp_buf *_exp_vec) {
+  exp_vec = _exp_vec;
+}
+
 void __fatal (char *fmt, ...) {
   va_list ap;
   va_start(ap,fmt);
@@ -33,7 +39,10 @@ void __fatal (char *fmt, ...) {
   vfprintf(stderr,fmt,ap);
   fprintf(stderr,"]\n");
   va_end(ap);
-  abort();
+	if(exp_vec)
+    longjmp(*exp_vec,1);
+  else
+    abort();
 }
 
 __obj __and (__obj A, __obj B) {
@@ -112,7 +121,7 @@ __obj __lei (__obj A, __obj B) {
 __obj __sx (__obj x) {
 	__word k = x->bv.vec;
   if(k & (1 << (x->bv.sz - 1)))
-    k |= ~((1 << x->bv.sz) - 1);
+    k |= ~(((__word)1 << x->bv.sz) - 1);
   __LOCAL0(y);
     __INT_BEGIN(y);
     __INT_INIT(k);

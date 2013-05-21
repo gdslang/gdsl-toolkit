@@ -68,21 +68,27 @@ static size_t generator_x86_modrm_generate(struct generator *this, FILE *stream)
 
 	void add_disp8() {
 		int random = rand();
+		if((rand() & 0xff) > 25)
+			random &= 0xf0;
 		written += fwrite(&random, 1, 1, stream);
 	}
 
 	void add_disp16() {
-		add_disp8();
-		add_disp8();
+		int random = rand();
+		if((rand() & 0xff) > 25)
+			random &= 0xfff0;
+		written += fwrite(&random, 1, 2, stream);
 	}
 
 	void add_disp32() {
-		add_disp16();
+		int random = rand();
+		written += fwrite(&random, 1, 2, stream);
 		add_disp16();
 	}
 
 	void add_sib() {
-		add_disp8();
+		int random = rand();
+		written += fwrite(&random, 1, 1, stream);
 	}
 
 	switch(mod) {

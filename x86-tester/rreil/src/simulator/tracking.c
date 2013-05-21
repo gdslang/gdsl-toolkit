@@ -54,14 +54,14 @@ static void tracking_variable_access_trace(struct tracking_trace *trace,
 
 	size_t index = variable->id->x86;
 	char found = 0;
-	for(size_t i = 0; i < access->indices_length; ++i)
-		if(access->indices[i] == index) {
+	for(size_t i = 0; i < access->x86_indices_length; ++i)
+		if(access->x86_indices[i] == index) {
 			found = 1;
 			break;
 		}
 	if(!found)
-		util_array_generic_add((void**)&access->indices, &index, sizeof(index),
-				&access->indices_length, &access->indices_size);
+		util_array_generic_add((void**)&access->x86_indices, &index, sizeof(index),
+				&access->x86_indices_length, &access->x86_indices_size);
 }
 
 static void tracking_linear_trace(struct tracking_trace *trace,
@@ -298,15 +298,15 @@ struct tracking_trace *tracking_trace_init() {
 			struct register_ *reg = &access->x86_registers[x86];
 			reg->data = (uint8_t*)calloc(size / 8, 1);
 			reg->data_bit_length = size;
-			reg->data_size = size / 8;
+//			reg->data_size = size / 8;
 		}
 
 		for(size_t i = 0; i < X86_ID_COUNT; ++i)
 			init_register((enum x86_id)i);
 
-		access->indices = NULL;
-		access->indices_length = 0;
-		access->indices_size = 0;
+		access->x86_indices = NULL;
+		access->x86_indices_length = 0;
+		access->x86_indices_size = 0;
 	}
 
 	init_rw(&trace->reg.read);
@@ -328,7 +328,7 @@ void tracking_trace_free(struct tracking_trace *trace) {
 			struct register_ *reg = &access->x86_registers[i];
 			free(reg->data);
 		}
-		free(access->indices);
+		free(access->x86_indices);
 		free(access->x86_registers);
 	}
 
@@ -350,8 +350,8 @@ void tracking_trace_memory_write_add(struct tracking_trace *trace,
 
 void tracking_trace_print(struct tracking_trace *trace) {
 	void access_print(struct register_access *access) {
-		for(size_t i = 0; i < access->indices_length; ++i) {
-			enum x86_id id_x86 = (enum x86_id)access->indices[i];
+		for(size_t i = 0; i < access->x86_indices_length; ++i) {
+			enum x86_id id_x86 = (enum x86_id)access->x86_indices[i];
 			struct register_ *reg = &access->x86_registers[id_x86];
 
 			printf("Register ");

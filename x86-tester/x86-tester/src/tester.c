@@ -10,6 +10,9 @@
 #include <string.h>
 #include <time.h>
 #include <sys/mman.h>
+#include <signal.h>
+#include <unistd.h>
+#include <setjmp.h>
 #include <rreil/rreil.h>
 #include <x86.h>
 #include <context.h>
@@ -22,8 +25,8 @@
 
 static void tester_access_init(struct context *context,
 		struct register_access *access, void (*k)(uint8_t *, size_t)) {
-	for(size_t i = 0; i < access->indices_length; ++i) {
-		size_t index = access->indices[i];
+	for(size_t i = 0; i < access->x86_indices_length; ++i) {
+		size_t index = access->x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
 
 		size_t length = x86_amd64_sizeof(reg);
@@ -64,9 +67,10 @@ static struct tbgen_result tester_instruction_mapped_generate(
 	return tbgen_result;
 }
 
-static void tester_instruction_execute(uint8_t *instruction,
+static char tester_instruction_execute(uint8_t *instruction,
 		size_t instruction_length, struct tracking_trace *trace,
 		struct context *context, void *code, struct tbgen_result tbgen_result) {
+	char retval = 0;
 
 	void for_page(void **address, size_t *size) {
 		*size = *size + ((size_t)address & 0x0fff);
@@ -85,9 +89,10 @@ static void tester_instruction_execute(uint8_t *instruction,
 		uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 				MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
 
-		/*
-		 * Todo: Handle error
-		 */
+		if(mem_real != address) {
+			printf("Unable to map address.\n");
+			retval = -3;
+		}
 	}
 
 	for(size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
@@ -113,7 +118,40 @@ static void tester_instruction_execute(uint8_t *instruction,
 		}
 	}
 
-	((void (*)(void))code)();
+	if(retval)
+		goto unmap_all;
+
+	jmp_buf jbuf;
+	void sighandler(int signum, siginfo_t *info, void *ptr) {
+		printf("Received signal ");
+		switch(signum) {
+			case SIGSEGV: {
+				printf("SIGSEGV");
+				break;
+			}
+			case SIGILL: {
+				printf("SIGILL");
+				break;
+			}
+		}
+		printf(" while executing code.\n");
+		longjmp(jbuf, 1);
+	}
+
+	struct sigaction act;
+	memset(&act, 0, sizeof(act));
+	act.sa_sigaction = sighandler;
+	act.sa_flags = SA_SIGINFO;
+
+	sigaction(SIGSEGV, &act, NULL);
+	sigaction(SIGILL, &act, NULL);
+
+	if(!setjmp(jbuf))
+		((void (*)(void))code)();
+	else
+		retval = -10;
+
+	sigaction(SIGSEGV, NULL, NULL);
 
 	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
 		struct memory_allocation *allocation = &context->memory.allocations[i];
@@ -144,6 +182,8 @@ static void tester_instruction_execute(uint8_t *instruction,
 				&context->memory.allocations_size);
 	}
 
+	unmap_all:
+
 	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
 		struct memory_allocation *allocation = &context->memory.allocations[i];
 
@@ -163,19 +203,25 @@ static void tester_instruction_execute(uint8_t *instruction,
 		struct memory_access *access = &trace->mem.written.accesses[i];
 		unmap(access->address, access->data_size);
 	}
+
+	return retval;
 }
 
-static void tester_contexts_compare(struct tracking_trace *trace,
+static char tester_contexts_compare(struct tracking_trace *trace,
 		struct context *context_cpu, struct context *context_rreil) {
+	char retval = 0;
+
 	printf("Failing Registers:\n");
 	char found = 0;
-	for(size_t i = 0; i < trace->reg.written.indices_length; ++i) {
-		size_t index = trace->reg.written.indices[i];
+	for(size_t i = 0; i < trace->reg.written.x86_indices_length; ++i) {
+		size_t index = trace->reg.written.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
 		struct register_ *reg_cpu = &context_cpu->x86_registers[index];
 		struct register_ *reg_rreil = &context_rreil->x86_registers[index];
+		struct register_ *reg_trace = &trace->reg.written.x86_registers[index];
 		for(size_t j = 0; j < reg_cpu->data_bit_length / 8; ++j)
-			if(reg_cpu->data[j] != reg_rreil->data[j]) {
+			if((reg_cpu->data[j] & reg_trace->data[j])
+					!= (reg_rreil->data[j] & reg_trace->data[j])) {
 				if(found)
 					printf(", ");
 
@@ -189,6 +235,8 @@ static void tester_contexts_compare(struct tracking_trace *trace,
 		printf("None\n");
 	else
 		printf("\n");
+
+	retval |= found;
 
 	found = 0;
 	printf("Failing memory addresses:\n");
@@ -300,9 +348,13 @@ static void tester_contexts_compare(struct tracking_trace *trace,
 		printf("None\n");
 	else
 		printf("\n");
+
+	retval |= found;
+
+	return retval;
 }
 
-void tester_test(struct rreil_statements *statements, uint8_t *instruction,
+char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 		size_t instruction_length) {
 //	for(size_t i = 0; i < 200; ++i) {
 //		uint64_t *x;
@@ -321,8 +373,6 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 //		if(mem != (x & (-1 ^ 0xfff)))
 //	*mem = 37;
 //		printf("%lu\n", *mem);
-
-	srand(time(NULL));
 
 	rreil_statements_print(statements);
 
@@ -375,6 +425,13 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	tracking_statements_trace(trace, statements);
 
+	if(!trace->reg.dereferenced.x86_indices_length
+			&& !trace->reg.read.x86_indices_length
+			&& !trace->reg.written.x86_indices_length && !trace->mem.used) {
+		printf("Instruction without any effects, aborting...\n");
+		goto end;
+	}
+
 	printf("------------------\n");
 	tracking_trace_print(trace);
 
@@ -390,7 +447,9 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	void rand_address_buffer(uint8_t *data, size_t bit_length) {
 		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
-			if(i < 5)
+			if(!i)
+				data[i] = rand() & 0xf0;
+			else if(i < 5)
 				data[i] = rand();
 			else
 				data[i] = 0;
@@ -449,10 +508,13 @@ void tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	context_x86_print(context_rreil);
 
 	printf("------------------\n");
-	tester_contexts_compare(trace, context_cpu, context_rreil);
-
-	tracking_trace_free(trace);
+	char retval = tester_contexts_compare(trace, context_cpu, context_rreil);
 
 	context_free(context_cpu);
+
+	end:
+	tracking_trace_free(trace);
 	context_free(context_rreil);
+
+	return retval;
 }

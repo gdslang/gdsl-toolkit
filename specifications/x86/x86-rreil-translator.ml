@@ -474,10 +474,13 @@ val sem-s sem-cc x = do
 end
 
 val undef-opnd opnd = do
-  sz <- sizeof1 opnd;
-  a <- lval sz opnd;
-  t <- mktemp;
-  write sz a (var t)
+#  sz <- sizeof1 opnd;
+#  a <- lval sz opnd;
+#  t <- mktemp;
+#	undef sz t;
+#  write sz a (var t)
+#Todo: ^- undef
+return void
 end
 
 val sem-undef-arity-ge1 x = do
@@ -2178,6 +2181,7 @@ val semantics insn =
 
 val translate insn =
    do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
+#case 0 of 1: return 0 end;
       semantics insn;
       stack <- query $stack;
       return (rreil-stmts-rev stack)

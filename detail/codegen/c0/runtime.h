@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <string.h>
+#include <setjmp.h>
 
 #define __RT_HEAP_SIZE (32*1024*1024)
 
@@ -342,7 +343,8 @@ union __wrapped_obj {
    return (__UNIT);}
 #endif
 
-void __fatal(char*,...) __attribute__((noreturn));
+extern void __exp_vec_set(jmp_buf *_expn_vec);
+extern void __fatal(char*,...) __attribute__((noreturn));
 extern __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
 extern __objref hp;
 extern __obj __UNIT;

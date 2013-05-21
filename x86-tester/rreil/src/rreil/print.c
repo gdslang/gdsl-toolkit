@@ -301,11 +301,11 @@ void rreil_statement_print(struct rreil_statement *statement) {
 		case RREIL_STATEMENT_TYPE_CBRANCH: {
 			printf("if(");
 			rreil_sexpr_print(statement->cbranch.cond);
-			printf(") { goto ");
+			printf(") { goto");
 			rreil_address_print(statement->cbranch.target_true);
 			printf(" } else { goto");
 			rreil_address_print(statement->cbranch.target_false);
-			printf("}");
+			printf(" }");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {

@@ -583,7 +583,8 @@ main:
 	#mov %r13, -0x10(%rax, %rbx, 2)
 	#lea -7(%rip), %r8
 
-call %r8	
+#call %r8	
+
 
 #	jmp %r8
 #	mov %r8, %rip
