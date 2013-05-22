@@ -316,12 +316,12 @@ structure TypeRefinement = struct
      | visitExp s (INVOKEexp (m,e,es)) = extractResult (lub (s, visitExp s e, FUNstype (freshTVar s,map (fn _ => freshTVar s) es)))
      | visitExp s (RECORDexp fs) = BOXstype VOIDstype
      | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
-     (*| visitExp s (UNBOXexp (t,e)) = (case lub (s,BOXstype (freshTVar s, visitExp s e)) of
+     | visitExp s (UNBOXexp (t,e)) = (case lub (s,freshTVar s, BOXstype (visitExp s e)) of
         (BOXstype t) => t
       | _ => BOXstype VOIDstype)
-     | visitExp s (CLOSUREexp (t,sym,es)) = BOXstype (FUNstype (freshTVar s,map () es)))
-     | visitExp s (STATEexp e) = STATEexp (visitExp s e)
-     | visitExp s (EXECexp e) = EXECexp (visitExp s e)*)
+     | visitExp s (CLOSUREexp (t,sym,es)) = BOXstype (FUNstype (freshTVar s,[]))
+     | visitExp s (STATEexp e) = visitExp s e
+     | visitExp s (EXECexp e) = visitExp s e
    
    fun visitDecl s (FUNCdecl {
         funcMonadic = monkind,
