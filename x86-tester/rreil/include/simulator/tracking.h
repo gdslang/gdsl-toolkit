@@ -9,11 +9,9 @@
 #define SIMULATOR_TRACKING_H_
 
 #include <stdlib.h>
-#include <simulator/simulator.h>
+#include <context.h>
 
 struct register_access {
-//	struct register_ *virtual_registers;
-//	struct register_ *temporary_registers;
 	struct register_ *x86_registers;
 	size_t *x86_indices;
 	size_t x86_indices_length;
@@ -26,6 +24,11 @@ struct memory_access {
 };
 
 struct tracking_trace {
+//	struct {
+//		struct register_ *virtual_registers;
+//		struct register_ *x86_registers;
+//		struct register_ *temporary_registers;
+//	} defined;
 	struct {
 		struct register_access read;
 		struct register_access written;

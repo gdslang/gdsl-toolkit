@@ -64,6 +64,11 @@ static void tracking_variable_access_trace(struct tracking_trace *trace,
 				&access->x86_indices_length, &access->x86_indices_size);
 }
 
+//static void tracking_variable_define(struct tracking_trace *trace,
+//		struct rreil_variable *variable, uint8_t *mask, size_t bit_length) {
+//
+//}
+
 static void tracking_linear_trace(struct tracking_trace *trace,
 		enum simulator_access_type access_type, struct rreil_linear *linear,
 		size_t bit_length) {
@@ -319,15 +324,36 @@ struct tracking_trace *tracking_trace_init() {
 
 	trace->mem.used = 0;
 
+//	trace->defined.x86_registers = (struct register_*)calloc(X86_ID_COUNT,
+//			sizeof(struct register_));
+//	for(size_t i = 0; i < X86_ID_COUNT; ++i) {
+//		enum x86_id x86_id = (enum x86_id)i;
+//		size_t size = x86_amd64_sizeof(x86_id);
+//		struct register_ *reg = &trace->defined.x86_registers[i];
+//
+//		reg->data = (uint8_t*)malloc(size / 8);
+//		for(size_t i = 0; i < size / 8; ++i)
+//			reg->data[i] = 0xff;
+//		reg->data_bit_length = size;
+//	}
+//	trace->defined.virtual_registers = (struct register_*)calloc(
+//			RREIL_ID_VIRTUAL_COUNT, sizeof(struct register_));
+//	trace->defined.temporary_registers = (struct register_*)calloc(
+//			RREIL_ID_TEMPORARY_COUNT, sizeof(struct register_));
+
 	return trace;
 }
 
 void tracking_trace_free(struct tracking_trace *trace) {
-	void access_clear(struct register_access *access) {
-		for(size_t i = 0; i < X86_ID_COUNT; ++i) {
-			struct register_ *reg = &access->x86_registers[i];
+	void registers_free(struct register_ *registers, size_t length) {
+		for(size_t i = 0; i < length; ++i) {
+			struct register_ *reg = &registers[i];
 			free(reg->data);
 		}
+	}
+
+	void access_clear(struct register_access *access) {
+		registers_free(access->x86_registers, X86_ID_COUNT);
 		free(access->x86_indices);
 		free(access->x86_registers);
 	}
@@ -335,6 +361,10 @@ void tracking_trace_free(struct tracking_trace *trace) {
 	access_clear(&trace->reg.read);
 	access_clear(&trace->reg.written);
 	access_clear(&trace->reg.dereferenced);
+
+//	registers_free(trace->defined.x86_registers, X86_ID_COUNT);
+//	registers_free(trace->defined.virtual_registers, RREIL_ID_VIRTUAL_COUNT);
+//	registers_free(trace->defined.temporary_registers, RREIL_ID_TEMPORARY_COUNT);
 
 	free(trace->mem.written.accesses);
 
