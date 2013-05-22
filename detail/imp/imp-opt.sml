@@ -133,17 +133,23 @@ structure TypeRefinement = struct
 
    open Imp
    
+   exception TypeOptBug
+   
    type index = int
 
+   (* The universe of types form a lattice with VOID being the bottom element
+      and OBJ being the top element and all other types are in-between. Types
+      are only combined using a least-upper bound operation (lub). *)
    datatype stype
-     = VARstype of index
+     = VOIDstype
+     | VARstype of index
      | BOXstype of stype
      | FUNstype of (stype * stype list)
      | BITstype of stype
      | CONSTstype of int
      | STRINGstype
      | INTstype
-     | VOIDstype
+     | OBJstype
    
    fun vtypeToStype VOIDvtype = VOIDstype
      | vtypeToStype (BITvtype s) = BITstype (CONSTstype s)
@@ -172,6 +178,7 @@ structure TypeRefinement = struct
      | showSType (STRINGstype) = "string"
      | showSType (INTstype) = "int"
      | showSType (VOIDstype) = "void"
+     | showSType (OBJstype) = "obj"
          
    fun showState { symType = st, typeTable = tt} =
       let
@@ -185,6 +192,7 @@ structure TypeRefinement = struct
       in
          app showBinding (SymMap.listItemsi (!st)) 
       end
+   fun showTable tt = DynamicArray.appi (fn (idx,ty) => TextIO.print ("#" ^ Int.toString idx ^ " -> " ^ showSType ty ^ "\n")) tt
 
    fun isECR (tt,idx) =
       (case DynamicArray.sub (tt,idx) of
@@ -194,73 +202,69 @@ structure TypeRefinement = struct
 
    fun find (tt,idx) =
       (case DynamicArray.sub (tt,idx) of
-         VARstype idx' =>
-            if idx=idx' then idx else
-               let
-                  val ecr = find (tt,idx')
-                  val _ = DynamicArray.update (tt,idx,VARstype ecr)
-                  val _ = TextIO.print ("find: updating " ^ Int.toString idx ^ " -> " ^ Int.toString ecr ^ "\n")
-               in
-                  ecr
-               end
+         VARstype idx' => (case Int.compare (idx',idx) of
+            EQUAL => idx
+          | LESS =>
+            let
+               val ecr = find (tt,idx')
+               val _ = DynamicArray.update (tt,idx,VARstype ecr)
+               val _ = TextIO.print ("find: updating " ^ Int.toString idx ^ " -> " ^ Int.toString ecr ^ "\n")
+               val _ = showTable tt
+            in
+               ecr
+            end
+          | GREATER => (showTable tt; raise TypeOptBug)
+         )
        | t => idx
       )
    
    fun findType ({ symType = s, typeTable = tt},VARstype idx) =
-      DynamicArray.sub (tt,find (tt,idx))
+         DynamicArray.sub (tt,find (tt,idx))
      | findType ({ symType = s, typeTable = tt},t) = t
    
    fun lub ({ symType = s, typeTable = tt},t1,t2) =
       let
-         fun union (x,y) =
+         fun lub (VARstype x, VARstype y) =
             let
                val xRoot = find (tt,x)
                val yRoot = find (tt,y)
                val xTy = DynamicArray.sub (tt,xRoot)
                val yTy = DynamicArray.sub (tt,yRoot)
+               val ecr = VARstype (Int.min (xRoot, yRoot))
                val ty = case (xTy,yTy) of
-                  (VARstype xRoot, VARstype yRoot) =>
-                     VARstype (Int.min (xRoot, yRoot))
+                  (VARstype xRoot, VARstype yRoot) => ecr
                 | (VARstype _, t) => t
                 | (t, VARstype _) => t
                 | (t1,t2) => lub (t1,t2)
-               val _ = DynamicArray.update (tt,Int.max (xRoot,yRoot),VARstype (Int.min (xRoot,yRoot)))
-               val _ = DynamicArray.update (tt,Int.min (xRoot,yRoot),ty);
+               val _ = DynamicArray.update (tt,Int.max (xRoot,yRoot),ecr)
+               val _ = DynamicArray.update (tt,Int.min (xRoot,yRoot),ty)
             in
-               VARstype (Int.min(xRoot,yRoot))  
+               ecr
             end
-             
-
-         and lub (VARstype idx1, VARstype idx2) = union (idx1, idx2)
-           | lub (VARstype idx, t) =
-            (case DynamicArray.sub (tt,find (tt, idx)) of
-               VARstype idx => (DynamicArray.update (tt,idx,t); t)
-             | t' => (case lub (t',t) of t =>
-                  (DynamicArray.update (tt,idx,t); t)
-               )
-            )
-           | lub (t, VARstype idx) =
-            (case DynamicArray.sub (tt,find (tt, idx)) of
-               VARstype idx => (DynamicArray.update (tt,idx,t); t)
-             | t' => (case lub (t',t) of t =>
-                  (DynamicArray.update (tt,idx,t); t)
-               )
-            )
+           | lub (VARstype x, t) =
+            let
+               val xRoot = find (tt,x)
+               val xTy = DynamicArray.sub (tt,xRoot)
+               val ecr = VARstype xRoot
+               val ty = case xTy of
+                     (VARstype _) => ecr
+                   | t' => lub (t,t')
+               val _ = DynamicArray.update (tt,xRoot,ty)
+            in
+               ecr
+            end
+           | lub (t, VARstype idx) = lub (VARstype idx, t)
            | lub (VOIDstype, t) = t
            | lub (t, VOIDstype) = t
            | lub (FUNstype (r1, args1), FUNstype (r2, args2)) =
                 FUNstype (lub (r1,r2), map lub (ListPair.zipEq (args1,args2)))
-           | lub (BITstype s1, BITstype s2) =
-            (case lub (s1,s2) of
-               CONSTstype s => CONSTstype s
-             | _ => VOIDstype
-            )
+           | lub (BITstype s1, BITstype s2) = BITstype (lub (s1,s2))
            | lub (CONSTstype s1, CONSTstype s2) =
-            if s1=s2 then CONSTstype s1 else VOIDstype
+               if s1=s2 then CONSTstype s1 else OBJstype
            | lub (INTstype, INTstype) = INTstype
            | lub (STRINGstype, STRINGstype) = STRINGstype
            | lub (BOXstype t1, BOXstype t2) = BOXstype (lub (t1,t2))
-           | lub (_, _) = BOXstype VOIDstype         
+           | lub (_, _) = OBJstype         
       in
          lub (t1,t2)
       end
@@ -315,6 +319,7 @@ structure TypeRefinement = struct
      | visitExp s (CALLexp (m,sym,es)) = extractResult (lub (s, symType s sym, FUNstype (freshTVar s,map (fn _ => freshTVar s) es)))
      | visitExp s (INVOKEexp (m,e,es)) = extractResult (lub (s, visitExp s e, FUNstype (freshTVar s,map (fn _ => freshTVar s) es)))
      | visitExp s (RECORDexp fs) = BOXstype VOIDstype
+     | visitExp s (LITexp (ty,lit)) = vtypeToStype ty
      | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = (case lub (s,freshTVar s, BOXstype (visitExp s e)) of
         (BOXstype t) => t
