@@ -10,6 +10,13 @@
 
 struct register_ {
 	uint8_t *data;
+	uint8_t *defined;
+	size_t data_bit_length;
+};
+
+struct data {
+	uint8_t *data;
+	uint8_t *defined;
 	size_t data_bit_length;
 };
 

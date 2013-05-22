@@ -10,6 +10,7 @@
 
 #include <stdlib.h>
 #include <context.h>
+#include <simulator/simulator.h>
 
 struct register_access {
 	struct register_ *x86_registers;
