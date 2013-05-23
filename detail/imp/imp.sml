@@ -4,12 +4,11 @@
 structure Imp = struct
    
    type sym = SymbolTable.symid
-   type lit = SpecAbstractTree.lit
 
    (* types of values *)
    datatype vtype =
          VOIDvtype
-       | BITvtype of int
+       | BITvtype
        | INTvtype
        | STRINGvtype
        | OBJvtype
@@ -50,7 +49,8 @@ structure Imp = struct
        | BITVEC_TO_STRINGprim
        | CONCAT_STRINGprim
        | SLICEprim
-       | INDEXprim
+       | GET_CON_IDXprim
+       | GET_CON_ARGprim
 
    (* information on how to print primitives, the name is the C name
       and the priority is the operator precedence, 0 if not infix *)
@@ -82,7 +82,8 @@ structure Imp = struct
      | prim_info BITVEC_TO_STRINGprim  = { name = "__showbitvec", prio = 0 }
      | prim_info CONCAT_STRINGprim = { name = "__concatstring", prio = 0 }
      | prim_info SLICEprim = { name = "__slice", prio = 0 }
-     | prim_info INDEXprim = { name = "__index", prio = 0 }
+     | prim_info GET_CON_IDXprim = { name = "__get_con_idx", prio = 0 }
+     | prim_info GET_CON_ARGprim = { name = "__get_con_arg", prio = 0 }
 
    (*
    * fun f x =
@@ -128,8 +129,6 @@ structure Imp = struct
 
    and exp =
       IDexp of sym
-    | CONexp of sym (* constructor constant symbol *)
-    | CONFUNexp of sym (* constructor function *)
     | PRIexp of monkind * prim * vtype * exp list
     | CALLexp of monkind * sym * exp list (* callee is unboxed *)
     | INVOKEexp of monkind * exp * exp list (* callee is a closure *)
@@ -137,6 +136,8 @@ structure Imp = struct
     | LITexp of vtype * lit
     | BOXexp of vtype * exp
     | UNBOXexp of vtype * exp
+    | VEC2INTexp of int option * exp
+    | INT2VECexp of int * exp
     | CLOSUREexp of vtype * sym * exp list
     | STATEexp of exp (* generate closure that expects a state *)
     | EXECexp of exp (* apply the state to the closure *)
@@ -144,7 +145,19 @@ structure Imp = struct
    and stmt =
       ASSIGNstmt of sym option * exp
     | IFstmt of exp * stmt list * stmt list
-    | CASEstmt of exp * (Core.Pat.t * stmt list) list
+    | CASEstmt of exp * (pat * stmt list) list
+
+   and pat =
+      VECpat of String.string
+    | CONpat of sym
+    | INTpat of IntInf.int
+    | WILDpat
+
+   and lit = 
+      VEClit of String.string
+    | STRlit of String.string
+    | INTlit of IntInf.int
+    | CONlit of sym
 
    type decls = decl list
 
@@ -165,7 +178,7 @@ structure Imp = struct
       fun args (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
       fun vtype VOIDvtype = str "void"
         | vtype OBJvtype = str "obj"
-        | vtype (BITvtype s) = str ("bitvec" ^ Int.toString s)
+        | vtype BITvtype = str "bitvec"
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
         | vtype (FUNvtype { result = res, closure = ctys, args = atys }) =
@@ -205,18 +218,23 @@ structure Imp = struct
         | decl (CONdecl { conName = name }) =
             seq [var name, str ";"]
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
+      and lit (t,VEClit s) = seq [str "0b", str s] 
+        | lit (t,STRlit s) = seq [str "\"", str s, str "\""]
+        | lit (t,INTlit i) = str (IntInf.toString i)
+        | lit (t,CONlit s) = con s
       and exp (IDexp sym) = var sym
-        | exp (CONexp sym) = con sym
-        | exp (CONFUNexp sym) = var sym
         | exp (PRIexp (m,p,t,es)) =
             seq (vtype t :: space :: str "prim" :: space ::
               str (#name (prim_info p)) :: args ("(",exp,es,monarg m))
         | exp (CALLexp (m,f,es)) = seq (var f :: args ("(",exp,es,monarg m))
         | exp (INVOKEexp (m,f,es)) = seq (str "*" :: exp f :: args ("(",exp,es,monarg m))
         | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
-        | exp (LITexp (_,l)) = SpecAbstractTree.PP.lit l
+        | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]
         | exp (UNBOXexp (t,e)) = seq [str "unbox[", vtype t, str "](", exp e, str ")"]
+        | exp (VEC2INTexp (NONE,e)) = seq [str "vec2int(", exp e, str ")"]
+        | exp (VEC2INTexp (SOME s,e)) = seq [str "vec2int[", str (Int.toString s), str "](", exp e, str ")"]
+        | exp (INT2VECexp (s,e)) = seq [str "int2vec[", str (Int.toString s), str "](", exp e, str ")"]
         | exp (CLOSUREexp (t,s,es)) =
          seq ([vtype t, space, str "closure", space, var s] @
               args ("[",exp,es,"]"))
@@ -234,9 +252,13 @@ structure Imp = struct
             ]
         | stmt (CASEstmt (e, cs)) = align
             [seq [str "case", space, exp e, space, str "of"], cases cs]
+      and pat (VECpat s) = seq [str "0b", str s]
+        | pat (CONpat s) = con s
+        | pat (INTpat i) = str (IntInf.toString i)
+        | pat WILDpat = str "_"
       and casee (p, ss) =
          align
-            [seq [Core.PP.pat p, space, str ":"],
+            [seq [pat p, space, str ":"],
              indent 3 (stmts ss)]
       and cases cs =
          case cs of [] => str "<empty>" | cs =>

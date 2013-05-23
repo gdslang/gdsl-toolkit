@@ -4,7 +4,7 @@ structure ImpFromCore : sig
       Core.Spec.t ->
          Imp.Spec.t CompilationMonad.t
 
-   val prim_table : (string * (Imp.exp list -> Imp.exp)) list
+   val prim_table : (string * (int * (Imp.exp list -> Imp.exp))) list
 
 end = struct
 
@@ -15,71 +15,82 @@ end = struct
    open Core
    open Imp
 
+   (* a table detailing how to translate primitives, for each name, returns
+      a tuple with the number of arguments and a marshaller that processes
+      these arguments *)
    val prim_table =
       let
          fun pr (prim,ty,args) = PRIexp (PUREmonkind, prim, ty, args)
          fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
+         fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (BITvtype, arg))) args
+         fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (BITvtype, arg))) args
+         fun unboxV args = map (fn arg => UNBOXexp (BITvtype, arg)) args
          fun boxI arg = BOXexp (INTvtype, arg)
-         fun boxB arg = BOXexp (BITvtype 1, arg)
-         fun boxV arg = BOXexp (VOIDvtype, arg)
+         fun boxV1 arg = BOXexp (BITvtype, INT2VECexp (1,arg))
+         fun boxV8 arg = BOXexp (BITvtype, INT2VECexp (8,arg))
+         fun boxV16 arg = BOXexp (BITvtype, INT2VECexp (16,arg))
+         fun boxV32 arg = BOXexp (BITvtype, INT2VECexp (32,arg))
+         fun boxV arg = BOXexp (BITvtype, arg)
          fun ftype args res = FUNvtype { result = res, closure = [], args = args }
          val iii = ftype [INTvtype, INTvtype] INTvtype
+         val vvv = ftype [BITvtype, BITvtype] BITvtype
          val sv =  ftype [STRINGvtype] VOIDvtype
-         val ooo = ftype [OBJvtype, OBJvtype] OBJvtype
-         val oob = ftype [OBJvtype, OBJvtype] (BITvtype 1)
-         val oi = ftype [OBJvtype] INTvtype
-         val iib = ftype [INTvtype, INTvtype] (BITvtype 1)
-         val oo = ftype [OBJvtype] OBJvtype
+         val bi = ftype [BITvtype] INTvtype
+         val iib = ftype [INTvtype, INTvtype] BITvtype
+         val bb = ftype [BITvtype] BITvtype
          val is =  ftype [INTvtype] STRINGvtype
-         val os =  ftype [OBJvtype] STRINGvtype
-         val oiio = ftype [OBJvtype, INTvtype, INTvtype] OBJvtype
+         val bs =  ftype [BITvtype] STRINGvtype
+         val iiib = ftype [INTvtype, INTvtype, INTvtype] BITvtype
          val ov =  ftype [OBJvtype] VOIDvtype
+         val oi =  ftype [OBJvtype] INTvtype
+         val oo =  ftype [OBJvtype] OBJvtype
+         val ooo =  ftype [OBJvtype, OBJvtype] OBJvtype
          val i = ftype [] INTvtype
          val v = ftype [] VOIDvtype
          val fv = ftype [ftype [OBJvtype] OBJvtype] VOIDvtype
       in [
-         ("raise", fn args => pr (RAISEprim,sv,args)),
-         ((Atom.toString Op.andAlso), fn args => pr (ANDprim,ooo,args)),
-         ((Atom.toString Op.orElse), fn args => pr (ORprim,ooo,args)),
-         ("sx", fn args => pr (SIGNEDprim,oi,args)),
-         ("zx", fn args => pr (UNSIGNEDprim,oi,args)),
-         ("+", fn args => boxI (pr (ADDprim,iii,unboxI args))),
-         ("-", fn args => boxI (pr (SUBprim,iii,unboxI args))),
-         ("===", fn args => boxB (pr (EQprim,iib,unboxI args))),
-         ("*", fn args => boxI (pr (MULprim,iii,unboxI args))),
-         ("<", fn args => boxB (pr (LTprim,iib,unboxI args))),
-         (">", fn args => boxB (pr (LTprim,iib,unboxI (rev args)))),
-         ("<=", fn args => boxB (pr (LEprim,iib,unboxI args))),
-         (">=", fn args => boxB (pr (LEprim,iib,unboxI (rev args)))),
-         ("not", fn args => pr (NOT_VECprim,oo,args)),
-         ("==", fn args => boxB (pr (EQ_VECprim,oob,args))),
-         ("^", fn args => pr (CONCAT_VECprim,ooo,args)),
-         ("showint", fn args => pr (INT_TO_STRINGprim,is,unboxI args)),
-         ("showbitvec", fn args => pr (BITVEC_TO_STRINGprim,os,args)),
-         ("+++", fn args => pr (CONCAT_STRINGprim,ooo,args)),
-         ("slice", fn args => (case args of
-             [vec,ofs,sz] => STATEexp (PRIexp (PUREmonkind, SLICEprim,oiio,[vec] @ unboxI [ofs,sz]))
-           | _ => raise ImpTranslationBug)),
-         ("index", fn args => pr (INDEXprim,oi,args)),
-         ("query", fn args => (case args of
+         ("raise", (1, fn args => pr (RAISEprim,sv,args))),
+         ((Atom.toString Op.andAlso), (2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
+         ((Atom.toString Op.orElse), (2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
+         ("sx", (1, fn args => pr (SIGNEDprim,bi,unboxV args))),
+         ("zx", (1, fn args => pr (UNSIGNEDprim,bi,unboxV args))),
+         ("+", (2, fn args => boxI (pr (ADDprim,iii,unboxI args)))),
+         ("-", (2, fn args => boxI (pr (SUBprim,iii,unboxI args)))),
+         ("===", (2, fn args => boxV1 (pr (EQprim,iii,unboxI args)))),
+         ("*", (2, fn args => boxI (pr (MULprim,iii,unboxI args)))),
+         ("<", (2, fn args => boxV1 (pr (LTprim,iii,unboxI args)))),
+         (">", (2, fn args => boxV1 (pr (LTprim,iii,unboxI (rev args))))),
+         ("<=", (2, fn args => boxV1 (pr (LEprim,iii,unboxI args)))),
+         (">=", (2, fn args => boxV1 (pr (LEprim,iii,unboxI (rev args))))),
+         ("not", (1, fn args => boxV (pr (NOT_VECprim,bb,unboxV args)))),
+         ("==", (2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
+         ("^", (2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
+         ("showint", (1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
+         ("showbitvec", (1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
+         ("+++", (2, fn args => pr (CONCAT_STRINGprim,ooo,args))),
+         ("slice", (3, fn args => (case args of
+             [vec,ofs,sz] => STATEexp (boxV (PRIexp (PUREmonkind, SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
+           | _ => raise ImpTranslationBug))),
+         ("index", (1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
+         ("query", (1, fn args => (case args of
              [f] => STATEexp (INVOKEexp (PUREmonkind, f,[PRIexp (INmonkind, GETSTATEprim, oo, [])]))
-           | _ => raise ImpTranslationBug)),
-         ("update", fn args => (case args of
+           | _ => raise ImpTranslationBug))),
+         ("update", (1, fn args => (case args of
              [f] => STATEexp (PRIexp (INOUTmonkind, SETSTATEprim, fv, [
                   INVOKEexp (PUREmonkind, f,[PRIexp (INmonkind, GETSTATEprim, oo, [])]) 
                ]))
-           | _ => raise ImpTranslationBug)),
-         ("ipget", fn args => STATEexp (boxI (PRIexp (INmonkind,IPGETprim,i,args)))),
-         ("consume8", fn args => STATEexp (boxI (PRIexp (INOUTmonkind,CONSUME8prim,i,args)))),
-         ("consume16", fn args => STATEexp (boxI (PRIexp (INOUTmonkind,CONSUME16prim,i,args)))),
-         ("consume32", fn args => STATEexp (boxI (PRIexp (INOUTmonkind,CONSUME32prim,i,args)))),
-         ("unconsume8", fn args => STATEexp (boxV (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
-         ("unconsume16", fn args => STATEexp (boxV (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
-         ("unconsume32", fn args => STATEexp (boxV (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
-         ("println", fn args => STATEexp (boxV (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
-         ("return", fn args => (case args of
+           | _ => raise ImpTranslationBug))),
+         ("ipget", (0, fn args => STATEexp (boxI (PRIexp (INmonkind,IPGETprim,i,args))))),
+         ("consume8", (0, fn args => STATEexp (boxV8 (PRIexp (INOUTmonkind,CONSUME8prim,i,args))))),
+         ("consume16", (0, fn args => STATEexp (boxV16 (PRIexp (INOUTmonkind,CONSUME16prim,i,args))))),
+         ("consume32", (0, fn args => STATEexp (boxV32 (PRIexp (INOUTmonkind,CONSUME32prim,i,args))))),
+         ("unconsume8", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
+         ("unconsume16", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
+         ("unconsume32", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
+         ("println", (1, fn args => STATEexp (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
+         ("return", (1, fn args => (case args of
             [e] => STATEexp e
-          | _ => raise ImpTranslationBug))
+          | _ => raise ImpTranslationBug)))
          ]
       end
    
@@ -226,6 +237,11 @@ end = struct
           | SOME sym => sym
       end
    
+   fun get_con_idx e = PRIexp (PUREmonkind, GET_CON_IDXprim,
+      FUNvtype { result = INTvtype, closure = [], args = [OBJvtype]}, [e])
+   fun get_con_arg e = PRIexp (PUREmonkind, GET_CON_ARGprim,
+      FUNvtype { result = INTvtype, closure = [], args = [OBJvtype]}, [e])
+      
    fun trExpr s (Exp.LETVAL (x,b,e)) =
       let
          val (bStmts, bExp) = trExpr (addLocalVar s x) b
@@ -251,21 +267,37 @@ end = struct
          val (eStmts, eExp) = trExpr s e
          val eStmts = eStmts @ [ASSIGNstmt (SOME res, eExp)]
       in
-         (cStmts @ [IFstmt (cExp, tStmts, eStmts)], IDexp res)
+         (cStmts @ [IFstmt (VEC2INTexp (SOME 1,UNBOXexp (BITvtype,cExp)), tStmts, eStmts)], IDexp res)
       end
      | trExpr s (Exp.CASE (e, cs)) =
       let
-         val (stmts, exp) = trExpr s e
+         (* extract the scrutinee as an int which requires different
+            primitives, depending on the type that is matched *)
+         fun convertScrut (e, (Core.Pat.BIT p,_) :: _) = VEC2INTexp (SOME (String.size p),UNBOXexp (BITvtype,e))
+           | convertScrut (e, (Core.Pat.INT _,_) :: _) = UNBOXexp (INTvtype,e)
+           | convertScrut (e, (Core.Pat.CON (sym,_),_) :: _) = get_con_idx e
+           | convertScrut (e, _ :: cs) = convertScrut (e, cs)
+           | convertScrut _ = raise ImpTranslationBug
+         val (stmts, scrutRaw) = trExpr s e
+         val scrut = convertScrut (scrutRaw, cs)
+         
          val res = genTmpVar s
-         fun trCase (pat,e) =
-            let
-               val (stmts, exp) = trExpr s e
-            in
-               (pat, stmts @ [ASSIGNstmt (SOME res,exp)])
-            end
-         val cases = map trCase cs
+         fun trCase (Core.Pat.BIT bStr,(stmts, exp)) =
+               (VECpat bStr, stmts @ [ASSIGNstmt (SOME res,exp)])
+           | trCase (Core.Pat.INT i,(stmts, exp)) =
+               (INTpat i, stmts @ [ASSIGNstmt (SOME res,exp)])
+           | trCase (Core.Pat.CON (sym,NONE),(stmts, exp)) =
+               (CONpat sym, stmts @ [ASSIGNstmt (SOME res,exp)])
+           | trCase (Core.Pat.CON (sym,SOME arg),(stmts, exp)) =
+               (CONpat sym, ASSIGNstmt (SOME sym,get_con_arg scrutRaw) :: stmts @ [ASSIGNstmt (SOME res,exp)])
+           | trCase (Core.Pat.ID sym,(stmts, exp)) =
+               (WILDpat, ASSIGNstmt (SOME sym,scrutRaw) :: stmts @ [ASSIGNstmt (SOME res,exp)])
+           | trCase (Core.Pat.WILD,(stmts, exp)) =
+               (WILDpat, stmts @ [ASSIGNstmt (SOME res,exp)])
+
+         val cases = map (fn (pat,e) => trCase (pat,trExpr s e)) cs
       in
-         (stmts @ [CASEstmt (exp, cases)], IDexp res)
+         (stmts @ [CASEstmt (scrut, cases)], IDexp res)
       end
      | trExpr s (Exp.APP (func, args)) =
       let
@@ -276,9 +308,11 @@ end = struct
       in
          (stmtss, INVOKEexp (PUREmonkind, funcExp, argExps))
       end
-     | trExpr s (Exp.PRI (name, args)) =
-         (case SymMap.find (#prim_map (#constants s), name) of
-            SOME gen => ([], gen (map IDexp args))
+     | trExpr s (Exp.PRI (name, args)) = (
+         (* this case is actually dead as all primitives are function calls,
+            they are replaced by proper primitives during optimization *)
+         case SymMap.find (#prim_map (#constants s), name) of
+            SOME (_, gen) => ([], gen (map IDexp args))
           | NONE => raise ImpTranslationBug)
      | trExpr s (Exp.FN (var, e)) =
       let
@@ -349,19 +383,17 @@ end = struct
       in
          transSeq s [] seq
       end
-     | trExpr s (Exp.LIT lit) =
-      let
-         val vtype = case lit of
-            (SpecAbstractTree.INTlit i) => INTvtype
-          | (SpecAbstractTree.FLTlit i) => VOIDvtype
-          | (SpecAbstractTree.STRlit i) => STRINGvtype
-          | (SpecAbstractTree.VEClit v) => BITvtype (String.size v)
-      in
-         ([], BOXexp (vtype, LITexp (vtype,lit)))
-      end
+     | trExpr s (Exp.LIT (SpecAbstractTree.INTlit i)) =
+         ([], BOXexp (INTvtype, LITexp (INTvtype, INTlit i)))
+     | trExpr s (Exp.LIT (SpecAbstractTree.STRlit str)) =
+         ([], LITexp (STRINGvtype,STRlit str))
+     | trExpr s (Exp.LIT (SpecAbstractTree.VEClit v)) =
+         ([], BOXexp (INTvtype, INT2VECexp (String.size v, LITexp (INTvtype, (VEClit v)))))
+     | trExpr s (Exp.LIT (SpecAbstractTree.FLTlit _)) =
+         raise ImpTranslationBug
      | trExpr s (Exp.CON sym) =
       (case SymMap.lookup (!constructors, sym) of
-         (_, NONE) => ([], BOXexp (INTvtype, CONexp sym))
+         (_, NONE) => ([], BOXexp (INTvtype, LITexp (INTvtype, CONlit sym)))
        | (_, SOME _) =>  ([], CLOSUREexp (OBJvtype, addConFun s sym, []))
        )
      | trExpr s (Exp.ID sym) = ([], IDexp sym)
