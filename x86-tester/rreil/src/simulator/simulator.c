@@ -19,30 +19,28 @@
 
 static void simulator_variable_write(struct context *context,
 		struct rreil_variable *variable, struct data data) {
-	if(bit_length)
+	if(data.bit_length)
 		simulator_register_write(context, variable->id, data, variable->offset);
 }
 
 static void simulator_variable_read(struct context *context,
-		struct rreil_variable *variable, size_t bit_length, uint8_t *buffer) {
-	struct data data;
-	data.data = buffer;
-	data.bit_length = bit_length;
-
+		struct rreil_variable *variable, struct data data) {
 	simulator_register_read(context, variable->id, data, variable->offset);
 }
 
-static void simulator_linear_simulate(struct context *context, uint8_t **buffer,
-		struct rreil_linear *linear, size_t bit_length) {
+static void simulator_linear_simulate(struct context *context,
+		struct rreil_linear *linear, struct data *data) {
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
-			*buffer = (uint8_t*)malloc(bit_length / 8 + 1);
-			simulator_variable_read(context, linear->variable, bit_length, *buffer);
+			data->data = (uint8_t*)malloc(data->bit_length / 8 + 1);
+			data->defined = (uint8_t*)malloc(data->bit_length / 8 + 1);
+			simulator_variable_read(context, linear->variable, data);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_IMMEDIATE: {
-			*buffer = simulator_op_sx(sizeof(linear->immediate) * 8, bit_length,
+			data->data = simulator_op_sx(sizeof(linear->immediate) * 8, data->bit_length,
 					(uint8_t*)&linear->immediate);
+			context_data_define(data);
 //			memcpy(buffer, result, bit_length / 8 + (bit_length % 8 > 0));
 //			free(result);
 			break;

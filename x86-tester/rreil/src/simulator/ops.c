@@ -11,8 +11,11 @@
 #include <string.h>
 #include <simulator/ops.h>
 
-uint8_t *simulator_op_add(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
-	uint8_t *result = (uint8_t*)malloc(bit_length / 8 + 1);
+struct data simulator_op_add(struct data opnd1, struct data opnd2,
+		size_t bit_length) {
+	struct data result;
+	result.data = (uint8_t*)malloc(bit_length / 8 + 1);
+	result.defined = (uint8_t*)malloc(bit_length / 8 + 1);
 
 	uint8_t accumulator = 0;
 	uint8_t local_add(uint8_t opnd1, uint8_t opnd2) {
@@ -23,6 +26,15 @@ uint8_t *simulator_op_add(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 
 	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
 		result[i] = local_add(opnd1[i], opnd2[i]);
+
+	uint8_t acc = 0xff;
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
+		uint8_t x = opnd1.defined[i] & opnd2.defined[i];
+		uint8_t mask = x & (~x - 1);
+		result[i] = x & mask & acc;
+		if(mask != 0xff)
+			acc = 0;
+	}
 
 	return result;
 }
@@ -140,8 +152,8 @@ uint8_t *simulator_op_shl(uint8_t *opnd1, uint8_t *opnd2, size_t bit_length) {
 
 	uint16_t amount = 0;
 	uint8_t *amount_ptr = (uint8_t*)&amount;
-	for (size_t i = 0; i < 2; ++i) {
-		amount_ptr[i] = opnd2[i] << (i*8);
+	for(size_t i = 0; i < 2; ++i) {
+		amount_ptr[i] = opnd2[i] << (i * 8);
 		if(i == bit_length / 8) {
 			uint8_t mask = (1 << (bit_length % 8)) - 1;
 			amount_ptr[i] &= mask;
@@ -180,8 +192,8 @@ static uint8_t *simulator_op_shr_sign(uint8_t *opnd1, uint8_t *opnd2,
 
 	uint16_t amount = 0;
 	uint8_t *amount_ptr = (uint8_t*)&amount;
-	for (size_t i = 0; i < 2; ++i) {
-		amount_ptr[i] = opnd2[i] << (i*8);
+	for(size_t i = 0; i < 2; ++i) {
+		amount_ptr[i] = opnd2[i] << (i * 8);
 		if(i == bit_length / 8) {
 			uint8_t mask = (1 << (bit_length % 8)) - 1;
 			amount_ptr[i] &= mask;

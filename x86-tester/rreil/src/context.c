@@ -12,6 +12,7 @@
 #include <rreil/rreil.h>
 #include <x86.h>
 #include <context.h>
+#include <simulator/tools.h>
 
 struct memory_allocation *memory_allocation_init(void *address) {
 	struct memory_allocation *allocation = (struct memory_allocation*)malloc(
@@ -40,6 +41,21 @@ struct context *context_init(context_load_t *load, context_store_t *store,
 	context->memory.jump = jump;
 
 	return context;
+}
+
+//void context_data_init(struct data *data) {
+//	data->data = (uint8_t*)malloc(bit_length / 8 + 1);
+//	data->defined = (uint8_t*)malloc(bit_length / 8 + 1);
+//}
+
+void context_data_define(struct data *data) {
+	data->defined = (uint8_t*)malloc(data->bit_length / 8 + 1);
+	membit_one_fill(data->defined, 0, data->bit_length);
+}
+
+void context_data_undefine(struct data *data) {
+	data->defined = (uint8_t*)malloc(data->bit_length / 8 + 1);
+	membit_zero_fill(data->defined, 0, data->bit_length);
 }
 
 struct context *context_copy(struct context *source) {

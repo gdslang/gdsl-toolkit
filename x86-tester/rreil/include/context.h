@@ -53,6 +53,9 @@ struct context {
 extern struct memory_allocation *memory_allocation_init(void *address);
 extern struct context *context_init(context_load_t *load,
 		context_store_t *store, context_jump_t *jump);
+//extern void context_data_init(struct data *data, size_t bit_length);
+extern void context_data_define(struct data *data);
+extern void context_data_undefine(struct data *data);
 extern struct context *context_copy(struct context *source);
 extern void context_free(struct context *context);
 extern void context_x86_print(struct context *context);
