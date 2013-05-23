@@ -30,13 +30,16 @@ static void tester_access_init(struct context *context,
 		enum x86_id reg = (enum x86_id)index;
 
 		size_t length = x86_amd64_sizeof(reg);
-		uint8_t *data = (uint8_t*)malloc(length / 8 + 1);
-		k(data, length);
+		uint8_t *buffer = (uint8_t*)malloc(length / 8 + 1);
+		k(buffer, length);
 
-		simulator_register_generic_write(&context->x86_registers[reg], data, length,
-				0);
+		struct data data;
+		data.data = buffer;
+		data.data_bit_length = length;
 
-		free(data);
+		simulator_register_generic_write(&context->x86_registers[reg], data, 0);
+
+		free(buffer);
 	}
 }
 
@@ -477,12 +480,14 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 			instruction, instruction_length, trace, context_cpu, &code,
 			&next_instruction_address);
 
+	struct data insn_address;
+	insn_address.data = (uint8_t*)&next_instruction_address;
+	insn_address.data_bit_length = sizeof(next_instruction_address) * 8;
+
 	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
-			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8,
-			0);
+			insn_address, 0);
 	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP],
-			(uint8_t*)&next_instruction_address, sizeof(next_instruction_address) * 8,
-			0);
+			insn_address, 0);
 
 	printf("------------------\n");
 	context_x86_print(context_rreil);
@@ -512,8 +517,7 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	context_free(context_cpu);
 
-	end:
-	tracking_trace_free(trace);
+	end: tracking_trace_free(trace);
 	context_free(context_rreil);
 
 	return retval;

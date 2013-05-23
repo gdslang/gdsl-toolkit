@@ -43,14 +43,18 @@ static void tracking_variable_access_trace(struct tracking_trace *trace,
 		}
 	}
 
-	uint8_t *data = (uint8_t*)malloc(bit_length / 8 + 1);
+	uint8_t *buffer = (uint8_t*)malloc(bit_length / 8 + 1);
 	for(size_t i = 0; i < bit_length / 8 + 1; ++i)
-		data[i] = 0xff;
+		buffer[i] = 0xff;
+
+	struct data data;
+	data.data = buffer;
+	data.data_bit_length = bit_length;
 
 	simulator_register_generic_write(&access->x86_registers[variable->id->x86],
-			data, bit_length, variable->offset);
+			data, variable->offset);
 
-	free(data);
+	free(buffer);
 
 	size_t index = variable->id->x86;
 	char found = 0;

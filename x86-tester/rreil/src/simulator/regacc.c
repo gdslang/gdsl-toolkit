@@ -15,7 +15,7 @@
 
 static void simulator_register_assign(struct context *context,
 		struct rreil_id *id, struct data data, size_t bit_offset,
-		void (*function)(struct register_ *, uint8_t*, size_t, size_t)) {
+		void (*function)(struct register_ *, struct data data, size_t)) {
 	switch(id->type) {
 		case RREIL_ID_TYPE_VIRTUAL: {
 			function(&context->virtual_registers[id->virtual], data, bit_offset);
@@ -135,7 +135,7 @@ void simulator_register_generic_write(struct register_ *reg, struct data data,
 	}
 
 	if(bit_length)
-		byte_write(*data, bit_length, bit_offset);
+		byte_write(*data.data, bit_length, bit_offset);
 }
 
 void simulator_register_write(struct context *context, struct rreil_id *id,
