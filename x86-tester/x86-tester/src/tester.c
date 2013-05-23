@@ -35,7 +35,7 @@ static void tester_access_init(struct context *context,
 
 		struct data data;
 		data.data = buffer;
-		data.data_bit_length = length;
+		data.bit_length = length;
 
 		simulator_register_generic_write(&context->x86_registers[reg], data, 0);
 
@@ -51,7 +51,7 @@ static void tester_rflags_clean(struct context *context) {
 	uint8_t *rflags_mask_ptr = (uint8_t*)&rflags_mask;
 
 	for(size_t i = 0;
-			i < context->x86_registers[X86_ID_FLAGS].data_bit_length / 8; ++i) {
+			i < context->x86_registers[X86_ID_FLAGS].bit_length / 8; ++i) {
 		context->x86_registers[X86_ID_FLAGS].data[i] &= rflags_mask_ptr[i];
 	}
 }
@@ -222,7 +222,7 @@ static char tester_contexts_compare(struct tracking_trace *trace,
 		struct register_ *reg_cpu = &context_cpu->x86_registers[index];
 		struct register_ *reg_rreil = &context_rreil->x86_registers[index];
 		struct register_ *reg_trace = &trace->reg.written.x86_registers[index];
-		for(size_t j = 0; j < reg_cpu->data_bit_length / 8; ++j)
+		for(size_t j = 0; j < reg_cpu->bit_length / 8; ++j)
 			if((reg_cpu->data[j] & reg_trace->data[j])
 					!= (reg_rreil->data[j] & reg_trace->data[j])) {
 				if(found)
@@ -482,7 +482,7 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	struct data insn_address;
 	insn_address.data = (uint8_t*)&next_instruction_address;
-	insn_address.data_bit_length = sizeof(next_instruction_address) * 8;
+	insn_address.bit_length = sizeof(next_instruction_address) * 8;
 
 	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
 			insn_address, 0);

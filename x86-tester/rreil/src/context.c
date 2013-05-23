@@ -48,12 +48,12 @@ struct context *context_copy(struct context *source) {
 	void copy_registers(size_t count, struct register_ *registers,
 			struct register_ *registers_source) {
 		for(size_t i = 0; i < count; ++i) {
-			registers[i].data_bit_length = registers_source[i].data_bit_length;
+			registers[i].bit_length = registers_source[i].bit_length;
 //			registers[i].data_size = registers_source[i].data_size;
 			registers[i].data = (uint8_t*)malloc(
-					registers[i].data_bit_length / 8 + 1);
+					registers[i].bit_length / 8 + 1);
 			memcpy(registers[i].data, registers_source[i].data,
-					registers[i].data_bit_length / 8 + (registers[i].data_bit_length % 8 > 0));
+					registers[i].bit_length / 8 + (registers[i].bit_length % 8 > 0));
 		}
 	}
 
@@ -91,8 +91,10 @@ struct context *context_copy(struct context *source) {
 }
 
 static void register_clear(struct register_ *register_) {
-	if(register_)
+	if(register_) {
 		free(register_->data);
+		free(register_->defined);
+	}
 }
 
 void context_free(struct context *context) {
@@ -126,7 +128,7 @@ void context_x86_print(struct context *context) {
 		enum x86_id id_x86 = (enum x86_id)i;
 		struct register_ *reg = &context->x86_registers[id_x86];
 
-		if(!reg->data_bit_length)
+		if(!reg->bit_length)
 			continue;
 
 		/*
@@ -138,17 +140,17 @@ void context_x86_print(struct context *context) {
 
 		size_t rest = 0;
 		size_t reg_size = x86_amd64_sizeof(id_x86);
-		if(reg_size > reg->data_bit_length)
-			rest = reg_size - reg->data_bit_length;
+		if(reg_size > reg->bit_length)
+			rest = reg_size - reg->bit_length;
 		for(size_t i = 0; i < rest / 8; ++i)
 			printf("00");
-		if(reg->data_bit_length) {
-			if(reg->data_bit_length % 8) {
-				uint8_t top = reg->data[reg->data_bit_length / 8];
-				uint8_t mask = (1 << (reg->data_bit_length % 8)) - 1;
+		if(reg->bit_length) {
+			if(reg->bit_length % 8) {
+				uint8_t top = reg->data[reg->bit_length / 8];
+				uint8_t mask = (1 << (reg->bit_length % 8)) - 1;
 				printf("%02x", (top & mask));
 			}
-			for(size_t i = reg->data_bit_length / 8; i > 0; --i)
+			for(size_t i = reg->bit_length / 8; i > 0; --i)
 				printf("%02x", reg->data[i - 1]);
 		}
 		printf("\n");

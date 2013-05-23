@@ -18,11 +18,7 @@
 #include <util.h>
 
 static void simulator_variable_write(struct context *context,
-		struct rreil_variable *variable, size_t bit_length, uint8_t *buffer) {
-	struct data data;
-	data.data = buffer;
-	data.data_bit_length = bit_length;
-
+		struct rreil_variable *variable, struct data data) {
 	if(bit_length)
 		simulator_register_write(context, variable->id, data, variable->offset);
 }
@@ -31,7 +27,7 @@ static void simulator_variable_read(struct context *context,
 		struct rreil_variable *variable, size_t bit_length, uint8_t *buffer) {
 	struct data data;
 	data.data = buffer;
-	data.data_bit_length = bit_length;
+	data.bit_length = bit_length;
 
 	simulator_register_read(context, variable->id, data, variable->offset);
 }

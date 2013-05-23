@@ -21,25 +21,25 @@
 #include "gdsl.h"
 
 size_t stdin_read(uint8_t *buffer, size_t size_max) {
-		size_t size_actual = 0;
-		for(size_t i = 0; i < size_max; i++) {
-			int c;
-			int x = fscanf(stdin, "%x", &c);
-			switch(x) {
-				case EOF:
-					goto done;
-				case '\n':
-					goto done;
-				case 0: {
+	size_t size_actual = 0;
+	for(size_t i = 0; i < size_max; i++) {
+		int c;
+		int x = fscanf(stdin, "%x", &c);
+		switch(x) {
+			case EOF:
+				goto done;
+			case '\n':
+				goto done;
+			case 0: {
 //					__fatal("invalid input; should be in hex form: '0f 0b ..'");
-					size_actual = 0;
-					break;
-				}
+				size_actual = 0;
+				break;
 			}
-			buffer[i] = c & 0xff;
 		}
-		done: ;
-		return size_actual;
+		buffer[i] = c & 0xff;
+	}
+	done: ;
+	return size_actual;
 }
 
 static char test(__char *data, size_t data_size) {
@@ -68,8 +68,8 @@ static char test(__char *data, size_t data_size) {
 	}
 
 	struct gdrr_config *config = rreil_gdrr_builder_config_get();
-	struct rreil_statements *statements =
-			(struct rreil_statements*)gdrr_convert(rreil, config);
+	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(
+			rreil, config);
 	free(config);
 
 	char retval = tester_test(statements, data, data_size);
@@ -82,7 +82,7 @@ static char test(__char *data, size_t data_size) {
 }
 
 static void generator() {
-	for (size_t i = 0; i < 100; ++i) {
+	for(size_t i = 0; i < 100; ++i) {
 		printf("%lu +++++++++++++++++++++\n", i);
 
 		struct generator_tree_node *root = generator_x86_tree_get();
@@ -98,11 +98,11 @@ static void generator() {
 		generator_tree_free(root);
 
 		printf("Instruction bytes:");
-		for (size_t i = 0; i < length; ++i)
+		for(size_t i = 0; i < length; ++i)
 			printf(" %02x", (int)(buffer[i]) & 0xff);
 		printf("\n");
 
-		char result = test((__char*)buffer, length);
+		char result = test((__char *)buffer, length);
 
 		if(result > 0) {
 			printf("FAILURE.\n");
@@ -120,11 +120,13 @@ static void cli() {
 	/*
 	 * SIGILL
 	 */
-	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x45, 0x0f, 0xc3, 0x57, 0x10 };
-
+//	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x45, 0x0f, 0xc3, 0x57, 0x10 };
 	/*
 	 * 4d d3 df!!!
+	 * 40 18 a9 10 b9 90 e7
 	 */
+
+	__char data[] = { 0x4c, 0x01, 0xc4 };
 
 	test(data, sizeof(data));
 }
@@ -285,8 +287,6 @@ int main(int argc, char **argv) {
 //	blob[0] = 0x48;
 //	blob[1] = 0x01;
 //	blob[2] = 0xc3;
-
-
 
 //	jmp_buf exp_vec;
 //	__exp_vec_set(&exp_vec);

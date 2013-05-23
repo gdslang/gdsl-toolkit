@@ -49,7 +49,7 @@ static void tracking_variable_access_trace(struct tracking_trace *trace,
 
 	struct data data;
 	data.data = buffer;
-	data.data_bit_length = bit_length;
+	data.bit_length = bit_length;
 
 	simulator_register_generic_write(&access->x86_registers[variable->id->x86],
 			data, variable->offset);
@@ -306,7 +306,8 @@ struct tracking_trace *tracking_trace_init() {
 			size_t size = x86_amd64_sizeof(x86);
 			struct register_ *reg = &access->x86_registers[x86];
 			reg->data = (uint8_t*)calloc(size / 8, 1);
-			reg->data_bit_length = size;
+			reg->defined = (uint8_t*)calloc(size / 8, 1);
+			reg->bit_length = size;
 //			reg->data_size = size / 8;
 		}
 
@@ -353,6 +354,7 @@ void tracking_trace_free(struct tracking_trace *trace) {
 		for(size_t i = 0; i < length; ++i) {
 			struct register_ *reg = &registers[i];
 			free(reg->data);
+			free(reg->defined);
 		}
 	}
 
@@ -394,17 +396,17 @@ void tracking_trace_print(struct tracking_trace *trace) {
 
 			size_t rest = 0;
 			size_t reg_size = x86_amd64_sizeof(id_x86);
-			if(reg_size > reg->data_bit_length)
-				rest = reg_size - reg->data_bit_length;
+			if(reg_size > reg->bit_length)
+				rest = reg_size - reg->bit_length;
 			for(size_t i = 0; i < rest / 8; ++i)
 				printf("00");
-			if(reg->data_bit_length) {
-				if(reg->data_bit_length % 8) {
-					uint8_t top = reg->data[reg->data_bit_length / 8];
-					uint8_t mask = (1 << (reg->data_bit_length % 8)) - 1;
+			if(reg->bit_length) {
+				if(reg->bit_length % 8) {
+					uint8_t top = reg->data[reg->bit_length / 8];
+					uint8_t mask = (1 << (reg->bit_length % 8)) - 1;
 					printf("%02x", (top & mask));
 				}
-				for(size_t i = reg->data_bit_length / 8; i > 0; --i)
+				for(size_t i = reg->bit_length / 8; i > 0; --i)
 					printf("%02x", reg->data[i - 1]);
 			}
 			printf("\n");

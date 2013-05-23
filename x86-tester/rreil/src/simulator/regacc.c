@@ -12,6 +12,7 @@
 #include <context.h>
 #include <simulator/simulator.h>
 #include <simulator/regacc.h>
+#include <simulator/tools.h>
 
 static void simulator_register_assign(struct context *context,
 		struct rreil_id *id, struct data data, size_t bit_offset,
@@ -34,38 +35,22 @@ static void simulator_register_assign(struct context *context,
 
 static void simulator_register_generic_read(struct register_ *reg,
 		struct data data, size_t bit_offset) {
-	size_t bit_length = data.data_bit_length;
+	size_t length;
+	size_t rest;
 
-	if(bit_offset > reg->data_bit_length)
-		bit_length = 0;
-	else if(bit_length + bit_length > reg->data_bit_length)
-		bit_length = reg->data_bit_length - bit_offset;
+	if(bit_offset > reg->bit_length)
+		length = 0;
+	else if(data.bit_length + bit_offset > reg->bit_length)
+		length = reg->bit_length - bit_offset;
+	else
+		length = data.bit_length;
+	rest = data.bit_length - length;
 
-	uint8_t byte_read(uint8_t length) {
-		if(length == 8 && !(bit_offset % 8))
-			return reg->data[bit_offset / 8];
+	membit_cpy(data.data, 0, reg->data, bit_offset, length);
+	membit_cpy(data.defined, 0, reg->defined, bit_offset, length);
 
-		uint8_t local = bit_offset % 8;
-		uint8_t low = reg->data[bit_offset / 8];
-		uint8_t high = reg->data[bit_offset / 8 + 1];
-
-		uint16_t word = (high << 8) | low;
-
-		word >>= local;
-
-		uint16_t mask = (1 << length) - 1;
-
-		return (uint8_t)(word & mask);
-	}
-
-	while(bit_length >= 8) {
-		*(data.data++) = byte_read(8);
-		bit_length -= 8;
-		bit_offset += 8;
-	}
-
-	if(bit_length)
-		*(data.data++) = byte_read(bit_length);
+	if(rest)
+		membit_zero_fill(data.defined, length, rest);
 }
 
 void simulator_register_read(struct context *context, struct rreil_id *id,
@@ -96,46 +81,47 @@ void simulator_register_read(struct context *context, struct rreil_id *id,
 
 void simulator_register_generic_write(struct register_ *reg, struct data data,
 		size_t bit_offset) {
-	size_t bit_length = data.data_bit_length;
-
-	if(bit_offset + bit_length > reg->data_bit_length) {
+	if(bit_offset + data.bit_length > reg->bit_length) {
 		reg->data = (uint8_t*)realloc(reg->data,
-				bit_offset / 8 + 1 + bit_length / 8 + 1);
+				bit_offset / 8 + 1 + data.bit_length / 8 + 1);
+		reg->defined = (uint8_t*)realloc(reg->defined,
+				bit_offset / 8 + 1 + data.bit_length / 8 + 1);
+		reg->bit_length = bit_offset + data.bit_length;
 	}
 
-	if(bit_offset + bit_length > reg->data_bit_length)
-		reg->data_bit_length = bit_offset + bit_length;
+	membit_cpy(reg->data, bit_offset, data.data, 0, data.bit_length);
+	membit_cpy(reg->defined, bit_offset, data.defined, 0, data.bit_length);
 
-	void byte_write(uint8_t data, uint8_t length, size_t offset) {
-		if(offset % 8 || length < 8) {
-			uint8_t local = offset % 8;
-			uint8_t low = reg->data[offset / 8];
-			uint8_t high = reg->data[offset / 8 + 1];
-
-			uint8_t length_mask = (1 << length) - 1;
-			data &= length_mask;
-
-//			uint8_t mask = (1 << local) - 1; => mask / ~mask
-			low &= ~(length_mask << local);
-			high &= ~(length_mask >> (8 - local));
-
-			low |= data << local;
-			high |= data >> (8 - local);
-
-			reg->data[offset / 8] = low;
-			reg->data[offset / 8 + 1] = high;
-		} else
-			reg->data[offset / 8] = data;
-	}
-
-	while(bit_length >= 8) {
-		byte_write(*(data.data++), 8, bit_offset);
-		bit_offset += 8;
-		bit_length -= 8;
-	}
-
-	if(bit_length)
-		byte_write(*data.data, bit_length, bit_offset);
+//	void byte_write(uint8_t data, uint8_t length, size_t offset) {
+//		if(offset % 8 || length < 8) {
+//			uint8_t local = offset % 8;
+//			uint8_t low = reg->data[offset / 8];
+//			uint8_t high = reg->data[offset / 8 + 1];
+//
+//			uint8_t length_mask = (1 << length) - 1;
+//			data &= length_mask;
+//
+////			uint8_t mask = (1 << local) - 1; => mask / ~mask
+//			low &= ~(length_mask << local);
+//			high &= ~(length_mask >> (8 - local));
+//
+//			low |= data << local;
+//			high |= data >> (8 - local);
+//
+//			reg->data[offset / 8] = low;
+//			reg->data[offset / 8 + 1] = high;
+//		} else
+//			reg->data[offset / 8] = data;
+//	}
+//
+//	while(bit_length >= 8) {
+//		byte_write(*(data.data++), 8, bit_offset);
+//		bit_offset += 8;
+//		bit_length -= 8;
+//	}
+//
+//	if(bit_length)
+//		byte_write(*data.data, bit_length, bit_offset);
 }
 
 void simulator_register_write(struct context *context, struct rreil_id *id,

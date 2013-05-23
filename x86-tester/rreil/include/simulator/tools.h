@@ -10,6 +10,9 @@
 
 #include <stdint.h>
 
-void membitcpy(uint8_t *to, uint8_t *from, size_t bits);
+extern void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from,
+		size_t from_offset, size_t bit_length);
+extern void membit_zero_fill(uint8_t *to, size_t to_offset, size_t bit_length);
+extern void membit_one_fill(uint8_t *to, size_t to_offset, size_t bit_length);
 
 #endif /* SIMULATOR_TOOLS_H_ */
