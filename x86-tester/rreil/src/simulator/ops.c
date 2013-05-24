@@ -542,7 +542,6 @@ struct data simulator_op_cmp_eq(struct data opnd1, struct data opnd2) {
 	/*
 	 * Todo: Use only one bit
 	 */
-	result.defined = (uint8_t*)malloc(bit_length / 8 + 1);
 	result.bit_length = 1;
 
 	for(size_t i = 0; i < bit_length / 8; ++i)
@@ -671,6 +670,9 @@ struct data simulator_op_cmp_lts(struct data opnd1, struct data opnd2) {
 	result.data[0] = a.data[0] & b.data[0];
 	result.defined[0] = a.defined[0] & b.defined[0];
 
+	context_data_clear(&a);
+	context_data_clear(&b);
+
 	return result;
 }
 
@@ -685,6 +687,9 @@ struct data simulator_op_cmp_ltu(struct data opnd1, struct data opnd2) {
 
 	result.data[0] = a.data[0] & b.data[0];
 	result.defined[0] = a.defined[0] & b.defined[0];
+
+	context_data_clear(&a);
+	context_data_clear(&b);
 
 	return result;
 }

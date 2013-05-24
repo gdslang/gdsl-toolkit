@@ -36,10 +36,11 @@ static void tester_access_init(struct context *context,
 		struct data data;
 		data.data = buffer;
 		data.bit_length = length;
+		context_data_define(&data);
 
 		simulator_register_generic_write(&context->x86_registers[reg], data, 0);
 
-		free(buffer);
+		context_data_clear(&data);
 	}
 }
 
@@ -149,10 +150,10 @@ static char tester_instruction_execute(uint8_t *instruction,
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGILL, &act, NULL);
 
-	if(!setjmp(jbuf))
-		((void (*)(void))code)();
-	else
-		retval = -10;
+//	if(!setjmp(jbuf))
+//		((void (*)(void))code)();
+//	else
+//		retval = -10;
 
 	sigaction(SIGSEGV, NULL, NULL);
 
@@ -483,11 +484,14 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	struct data insn_address;
 	insn_address.data = (uint8_t*)&next_instruction_address;
 	insn_address.bit_length = sizeof(next_instruction_address) * 8;
+	context_data_define(&insn_address);
 
 	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
 			insn_address, 0);
 	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP],
 			insn_address, 0);
+
+	free(insn_address.defined);
 
 	printf("------------------\n");
 	context_x86_print(context_rreil);

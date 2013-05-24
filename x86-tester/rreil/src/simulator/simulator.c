@@ -35,6 +35,7 @@ static struct data simulator_linear_simulate(struct context *context,
 		case RREIL_LINEAR_TYPE_VARIABLE: {
 			result.data = (uint8_t*)malloc(bit_length / 8 + 1);
 			result.defined = (uint8_t*)malloc(bit_length / 8 + 1);
+			result.bit_length = bit_length;
 			simulator_variable_read(context, linear->variable, result);
 			break;
 		}
@@ -42,7 +43,9 @@ static struct data simulator_linear_simulate(struct context *context,
 			struct data opnd;
 			opnd.bit_length = sizeof(linear->immediate) * 8;
 			opnd.data = (uint8_t*)&linear->immediate;
+			context_data_define(&opnd);
 			result = simulator_op_sx(bit_length, opnd);
+			free(opnd.defined);
 //			memcpy(buffer, result, bit_length / 8 + (bit_length % 8 > 0));
 //			free(result);
 			break;

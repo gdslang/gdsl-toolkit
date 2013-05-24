@@ -76,6 +76,7 @@ void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from, size_t from_offset
 void membit_zero_fill(uint8_t *to, size_t to_offset, size_t bit_length) {
 	uint8_t *zeros = (uint8_t*)calloc(bit_length / 8 + 1, 1);
 	membit_cpy(to, to_offset, zeros, 0, bit_length);
+	free(zeros);
 }
 
 void membit_one_fill(uint8_t *to, size_t to_offset, size_t bit_length) {
@@ -83,4 +84,5 @@ void membit_one_fill(uint8_t *to, size_t to_offset, size_t bit_length) {
 	for (size_t i = 0; i < bit_length/8 + 1; ++i)
 		ones[i] = 0xff;
 	membit_cpy(to, to_offset, ones, 0, bit_length);
+	free(ones);
 }

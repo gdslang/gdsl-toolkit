@@ -57,6 +57,7 @@ static char test(__char *data, size_t data_size) {
 
 	char *str = gdsl_x86_pretty(insn);
 	puts(str);
+	free(str);
 	printf("---------------------------\n");
 
 	__obj rreil;

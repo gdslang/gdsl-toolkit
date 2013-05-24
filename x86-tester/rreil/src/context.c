@@ -73,10 +73,13 @@ struct context *context_copy(struct context *source) {
 		for(size_t i = 0; i < count; ++i) {
 			registers[i].bit_length = registers_source[i].bit_length;
 //			registers[i].data_size = registers_source[i].data_size;
-			registers[i].data = (uint8_t*)malloc(
-					registers[i].bit_length / 8 + 1);
-			memcpy(registers[i].data, registers_source[i].data,
-					registers[i].bit_length / 8 + (registers[i].bit_length % 8 > 0));
+			void copy(uint8_t **field_to, uint8_t *field_from) {
+				*field_to = (uint8_t*)malloc(registers[i].bit_length / 8 + 1);
+				memcpy(*field_to, field_from,
+						registers[i].bit_length / 8 + (registers[i].bit_length % 8 > 0));
+			}
+			copy(&registers[i].data, registers_source[i].data);
+			copy(&registers[i].defined, registers_source[i].defined);
 		}
 	}
 

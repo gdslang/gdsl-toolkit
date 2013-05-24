@@ -50,11 +50,12 @@ static void tracking_variable_access_trace(struct tracking_trace *trace,
 	struct data data;
 	data.data = buffer;
 	data.bit_length = bit_length;
+	context_data_define(&data);
 
 	simulator_register_generic_write(&access->x86_registers[variable->id->x86],
 			data, variable->offset);
 
-	free(buffer);
+	context_data_clear(&data);
 
 	size_t index = variable->id->x86;
 	char found = 0;
