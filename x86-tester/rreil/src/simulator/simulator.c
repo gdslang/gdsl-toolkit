@@ -289,7 +289,7 @@ static struct data simulator_op_simulate(struct context *context,
 		}
 		case RREIL_OP_TYPE_ARB: {
 			size = op->arb.size;
-			result.data = (uint8_t*)malloc(size / 8 + 1);
+			result.data = (uint8_t*)calloc(size / 8 + 1, 1);
 			result.bit_length = size;
 			context_data_undefine(&result);
 			break;

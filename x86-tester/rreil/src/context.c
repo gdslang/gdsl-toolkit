@@ -171,13 +171,19 @@ void context_x86_print(struct context *context) {
 		for(size_t i = 0; i < rest / 8; ++i)
 			printf("00");
 		if(reg->bit_length) {
-			if(reg->bit_length % 8) {
-				uint8_t top = reg->data[reg->bit_length / 8];
-				uint8_t mask = (1 << (reg->bit_length % 8)) - 1;
-				printf("%02x", (top & mask));
+			void print(uint8_t *ptr) {
+				if(reg->bit_length % 8) {
+					uint8_t top = ptr[reg->bit_length / 8];
+					uint8_t mask = (1 << (reg->bit_length % 8)) - 1;
+					printf("%02x", (top & mask));
+				}
+				for(size_t i = reg->bit_length / 8; i > 0; --i)
+					printf("%02x", ptr[i - 1]);
 			}
-			for(size_t i = reg->bit_length / 8; i > 0; --i)
-				printf("%02x", reg->data[i - 1]);
+			print(reg->data);
+			printf(" [defined:");
+			print(reg->defined);
+			printf("]");
 		}
 		printf("\n");
 	}

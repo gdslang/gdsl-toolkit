@@ -128,6 +128,7 @@ static void cli() {
 	 */
 
 	__char data[] = { 0x4c, 0x01, 0xc4 };
+//	__char data[] = { 0x66, 0x0f, 0x5e, 0xff };
 
 	test(data, sizeof(data));
 }

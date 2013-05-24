@@ -474,13 +474,11 @@ val sem-s sem-cc x = do
 end
 
 val undef-opnd opnd = do
-#  sz <- sizeof1 opnd;
-#  a <- lval sz opnd;
-#  t <- mktemp;
-#	undef sz t;
-#  write sz a (var t)
-#Todo: ^- undef
-return void
+  sz <- sizeof1 opnd;
+  a <- lval sz opnd;
+  t <- mktemp;
+	undef sz t;
+  write sz a (var t)
 end
 
 val sem-undef-arity-ge1 x = do

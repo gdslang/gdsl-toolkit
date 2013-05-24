@@ -54,6 +54,7 @@ static void tester_rflags_clean(struct context *context) {
 	for(size_t i = 0;
 			i < context->x86_registers[X86_ID_FLAGS].bit_length / 8; ++i) {
 		context->x86_registers[X86_ID_FLAGS].data[i] &= rflags_mask_ptr[i];
+		context->x86_registers[X86_ID_FLAGS].defined[i] &= rflags_mask_ptr[i];
 	}
 }
 
@@ -150,10 +151,10 @@ static char tester_instruction_execute(uint8_t *instruction,
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGILL, &act, NULL);
 
-//	if(!setjmp(jbuf))
-//		((void (*)(void))code)();
-//	else
-//		retval = -10;
+	if(!setjmp(jbuf))
+		((void (*)(void))code)();
+	else
+		retval = -10;
 
 	sigaction(SIGSEGV, NULL, NULL);
 
@@ -222,10 +223,10 @@ static char tester_contexts_compare(struct tracking_trace *trace,
 		enum x86_id reg = (enum x86_id)index;
 		struct register_ *reg_cpu = &context_cpu->x86_registers[index];
 		struct register_ *reg_rreil = &context_rreil->x86_registers[index];
-		struct register_ *reg_trace = &trace->reg.written.x86_registers[index];
+//		struct register_ *reg_trace = &trace->reg.written.x86_registers[index];
 		for(size_t j = 0; j < reg_cpu->bit_length / 8; ++j)
-			if((reg_cpu->data[j] & reg_trace->data[j])
-					!= (reg_rreil->data[j] & reg_trace->data[j])) {
+			if((reg_cpu->data[j] & reg_rreil->defined[j])
+					!= (reg_rreil->data[j] & reg_rreil->defined[j])) {
 				if(found)
 					printf(", ");
 
@@ -473,6 +474,7 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	tester_access_init(context_rreil, &trace->reg.dereferenced, rand);
 
 	tester_rflags_clean(context_rreil);
+
 	context_cpu = context_copy(context_rreil);
 
 	void *code;
@@ -498,12 +500,12 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	simulator_statements_simulate(context_rreil, statements);
 
-	tester_rflags_clean(context_rreil);
+//	tester_rflags_clean(context_rreil);
 
 	tester_instruction_execute(instruction, instruction_length, trace,
 			context_cpu, code, tbgen_result);
 
-	tester_rflags_clean(context_cpu);
+//	tester_rflags_clean(context_cpu);
 
 	munmap(code, tbgen_result.buffer_length);
 
