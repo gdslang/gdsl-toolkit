@@ -31,7 +31,7 @@ end = struct
          fun boxV16 arg = BOXexp (BITvtype, INT2VECexp (16,arg))
          fun boxV32 arg = BOXexp (BITvtype, INT2VECexp (32,arg))
          fun boxV arg = BOXexp (BITvtype, arg)
-         fun ftype args res = FUNvtype { result = res, closure = [], args = args }
+         fun ftype args res = FUNvtype (res, false, args)
          val iii = ftype [INTvtype, INTvtype] INTvtype
          val vvv = ftype [BITvtype, BITvtype] BITvtype
          val sv =  ftype [STRINGvtype] VOIDvtype
@@ -220,16 +220,18 @@ end = struct
    fun addConFun s con =
       let
          val ctab = !SymbolTables.conTable
-         val name = Atom.atom ("constructor_" ^ 
-                               SymbolTable.getInternalString (ctab,con))
+         val conName = SymbolTable.getInternalString (ctab,con)
+         val name = Atom.atom ("constructor_" ^ conName)
          val tab = !SymbolTables.varTable
       in
          case SymbolTable.find (tab, name) of
             NONE =>
                let
+                  val arg = Atom.atom ("arg_of_" ^ conName) 
                   val (tab, sym) = SymbolTable.fresh (tab, name)
+                  val (tab, sym') = SymbolTable.fresh (tab, arg)
                   val _ = SymbolTables.varTable := tab                        
-                  val _ = addDecl s (CONdecl { conName = sym })
+                  val _ = addDecl s (CONdecl { conName = sym, conArg = sym' })
                   val _ = addGlobal s sym
                in
                   sym
@@ -238,9 +240,9 @@ end = struct
       end
    
    fun get_con_idx e = PRIexp (PUREmonkind, GET_CON_IDXprim,
-      FUNvtype { result = INTvtype, closure = [], args = [OBJvtype]}, [e])
+      FUNvtype (INTvtype, false, [OBJvtype]), [e])
    fun get_con_arg e = PRIexp (PUREmonkind, GET_CON_ARGprim,
-      FUNvtype { result = INTvtype, closure = [], args = [OBJvtype]}, [e])
+      FUNvtype (OBJvtype, false, [OBJvtype]), [e])
       
    fun trExpr s (Exp.LETVAL (x,b,e)) =
       let
@@ -345,9 +347,7 @@ end = struct
          fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
          val updateFun = addUpdate s (map (fn (f,_) => f) updates)
-         val fType = FUNvtype { result = OBJvtype,
-                                closure = map (fn _ => OBJvtype) updates,
-                                args = [OBJvtype] }
+         val fType = FUNvtype (OBJvtype, not (null updates), [OBJvtype])
       in
          (stmts, CLOSUREexp (fType, updateFun, map (fn (_,e) => e) updates))
       end
@@ -394,7 +394,7 @@ end = struct
      | trExpr s (Exp.CON sym) =
       (case SymMap.lookup (!constructors, sym) of
          (_, NONE) => ([], BOXexp (INTvtype, LITexp (INTvtype, CONlit sym)))
-       | (_, SOME _) =>  ([], CLOSUREexp (OBJvtype, addConFun s sym, []))
+       | (_, SOME _) =>  ([], CLOSUREexp (FUNvtype (OBJvtype,false,[OBJvtype]), addConFun s sym, []))
        )
      | trExpr s (Exp.ID sym) = ([], IDexp sym)
    and trDecl s (sym, args, body) =
@@ -407,9 +407,7 @@ end = struct
          fun setToArgs ss = map (fn s => (OBJvtype, s)) (SymSet.listItems ss)
          val clArgs = setToArgs inClosure
          val stdArgs = map (fn s => (OBJvtype, s)) args
-         val fType = FUNvtype { result = OBJvtype,
-                                closure = map (fn (t,_) => t) clArgs,
-                                args = map (fn (t,_) => t) stdArgs }
+         val fType = FUNvtype (OBJvtype, not (null clArgs), map (fn (t,_) => t) stdArgs)
          val _ =
             addDecl s (FUNCdecl {
               funcMonadic = PUREmonkind,

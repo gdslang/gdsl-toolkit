@@ -24,9 +24,9 @@ end = struct
 
    fun all s = 
       ImpFromCore.run s >>=
-      TransCallsPass.run >>=
       SimplifyPass.run >>=
       TransCallsPass.run >>=
+      SimplifyPass.run >>=
       TypeRefinementPass.run >>=
       StatePassingPass.run
 

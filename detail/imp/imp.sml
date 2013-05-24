@@ -12,11 +12,7 @@ structure Imp = struct
        | INTvtype
        | STRINGvtype
        | OBJvtype
-       | FUNvtype of {
-         result : vtype,
-         closure : vtype list,
-         args : vtype list
-       }
+       | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *) 
 
    type arg = vtype * sym
 
@@ -87,16 +83,17 @@ structure Imp = struct
 
    (*
    * fun f x =
-   *   let fun g y = x * y
+   *   let fun g y = x * y          g = closure(g_closure, [x])
    *   in
-   *     g 4
+   *     g 4                        invoke(g,[y])
    *   end
    *
    * int g_closure(x, y) {
+   *   return x * y;
    * }
    *
    * int f(int x) {
-   *   return g_closure(x, 4)
+   *   return g_closure(x, 4);
    * }
    *)
    datatype monkind =
@@ -124,7 +121,8 @@ structure Imp = struct
         updateFields : sym list
       }
     | CONdecl of {
-        conName : sym
+        conName : sym,
+        conArg : sym
       }
 
    and exp =
@@ -181,9 +179,8 @@ structure Imp = struct
         | vtype BITvtype = str "bitvec"
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
-        | vtype (FUNvtype { result = res, closure = ctys, args = atys }) =
-            seq ((if null ctys then [] else args ("[",vtype,ctys,"]")) @
-                args ("(",vtype,atys,")") @
+        | vtype (FUNvtype (res, cl, atys)) =
+            seq (args (if cl then "(...," else "(",vtype,atys,")") @
                 [str "->", vtype res])
       fun arg (t,n) = seq [vtype t, space, var n]
       fun monarg PUREmonkind = ")"
@@ -215,8 +212,8 @@ structure Imp = struct
             seq [var name, str ";"]
         | decl (UPDATEdecl { updateName = name, updateFields = fs }) =
             seq [var name, str ";"]
-        | decl (CONdecl { conName = name }) =
-            seq [var name, str ";"]
+        | decl (CONdecl { conName = name, conArg = arg }) =
+            seq [var name, str "(", var arg, str ");"]
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
       and lit (t,VEClit s) = seq [str "0b", str s] 
         | lit (t,STRlit s) = seq [str "\"", str s, str "\""]

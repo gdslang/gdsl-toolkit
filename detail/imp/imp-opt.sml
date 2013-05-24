@@ -103,8 +103,10 @@ structure Simplify = struct
    
    and visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
      | visitExp s (CALLexp (m, sym,es)) = CALLexp (m, sym, map (visitExp s) es)
-     | visitExp s (INVOKEexp (m, CLOSUREexp (t,sym,es),ess)) = CALLexp (m, sym, map (visitExp s) (es @ ess))
-     | visitExp s (INVOKEexp (m, e,es)) = INVOKEexp (m, visitExp s e, map (visitExp s) es)
+     | visitExp s (INVOKEexp (m, e,es)) = (case visitExp s e of
+        CLOSUREexp (t,sym,ess) => CALLexp (m, sym, map (visitExp s) (ess @ es))
+      | e => INVOKEexp (m, e, map (visitExp s) es)
+      )
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t1,UNBOXexp (t2,e))) = visitExp s e
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
@@ -166,7 +168,7 @@ structure TypeRefinement = struct
      = VOIDstype
      | VARstype of index
      | BOXstype of stype
-     | FUNstype of (stype * stype list)
+     | FUNstype of (stype * bool * stype list)
      | BITstype of stype
      | CONSTstype of int
      | STRINGstype
@@ -176,12 +178,13 @@ structure TypeRefinement = struct
    type state = {
      symType : (index SymMap.map) ref,
      fieldType : (index SymMap.map) ref,
-     typeTable : stype DynamicArray.array
+     typeTable : stype DynamicArray.array,
+     origDecls : decl list
    }
    
    fun showSType (VARstype idx) = "#" ^ Int.toString idx
      | showSType (BOXstype t) = "box(" ^ showSType t ^ ")"
-     | showSType (FUNstype (res,args)) = "(" ^ #1 (
+     | showSType (FUNstype (res,cl,args)) = (if cl then "(..." else "(") ^ #1 (
          foldl (fn (t,(str,sep)) => (str ^ sep ^ showSType t,","))
             ("", "") args
          ) ^ ") -> " ^ showSType res
@@ -192,17 +195,17 @@ structure TypeRefinement = struct
      | showSType (VOIDstype) = "void"
      | showSType (OBJstype) = "obj"
 
-   fun inlineSType (s as { symType = st, fieldType = ft, typeTable = tt})
+   fun inlineSType (s as { typeTable = tt, ...} : state)
                      (VARstype idx) = (case DynamicArray.sub (tt,idx) of
                         VARstype idx' => if idx=idx' then VARstype idx' else
                         inlineSType s (VARstype idx')
                       | t => inlineSType s t)
      | inlineSType s (BOXstype t) = (BOXstype (inlineSType s t))
-     | inlineSType s (FUNstype (res,args)) = (FUNstype (inlineSType s res, map (inlineSType s) args))
+     | inlineSType s (FUNstype (res,clos,args)) = (FUNstype (inlineSType s res, clos, map (inlineSType s) args))
      | inlineSType s (BITstype t) = (BITstype (inlineSType s t))
      | inlineSType s t = t
          
-   fun showState (s as { symType = st, fieldType = ft, typeTable = tt}) =
+   fun showState (s as { symType = st, fieldType = ft, typeTable = tt, ...} : state) =
       let
          fun showSymBinding (k,idx) =
             let
@@ -249,11 +252,11 @@ structure TypeRefinement = struct
        | t => idx
       )
    
-   fun findType ({ symType = st, fieldType = ft, typeTable = tt},VARstype idx) =
+   fun findType ({ typeTable = tt, ...} : state,VARstype idx) =
          DynamicArray.sub (tt,find (tt,idx))
-     | findType ({ symType = st, fieldType = ft, typeTable = tt},t) = t
+     | findType (_,t) = t
    
-   fun lub (s as { symType = st, fieldType = ft, typeTable = tt},t1,t2) =
+   fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
          fun lub (VARstype x, VARstype y) =
             let
@@ -287,8 +290,8 @@ structure TypeRefinement = struct
            | lub (t, VARstype idx) = lub (VARstype idx, t)
            | lub (VOIDstype, t) = t
            | lub (t, VOIDstype) = t
-           | lub (FUNstype (r1, args1), FUNstype (r2, args2)) =
-                FUNstype (lub (r1,r2), lubArgs (args1,args2))
+           | lub (FUNstype (r1, clos1, args1), FUNstype (r2, clos2, args2)) =
+                FUNstype (lub (r1,r2), clos1 orelse clos2, lubArgs (args1,args2))
            | lub (BITstype s1, BITstype s2) = BITstype (lub (s1,s2))
            | lub (CONSTstype s1, CONSTstype s2) =
                if s1=s2 then CONSTstype s1 else OBJstype
@@ -305,7 +308,7 @@ structure TypeRefinement = struct
          lub (t1,t2)
       end
    
-   fun symType { symType = st, fieldType = ft, typeTable = tt} sym =
+   fun symType ({ symType = st, typeTable = tt, ...} : state) sym =
       (case SymMap.find (!st,sym) of
          SOME idx => VARstype idx
        | NONE =>
@@ -319,7 +322,7 @@ structure TypeRefinement = struct
          end
       )
 
-   fun fieldType { symType = st, fieldType = ft, typeTable = tt} sym =
+   fun fieldType ({ fieldType = ft, typeTable = tt, ...} : state) sym =
       (case SymMap.find (!ft,sym) of
          SOME idx => VARstype idx
        | NONE =>
@@ -333,7 +336,7 @@ structure TypeRefinement = struct
          end
       )
    
-   fun freshTVar { symType = st, fieldType = ft, typeTable = tt} =
+   fun freshTVar ({ typeTable = tt, ...} : state) =
       let
          val idx = DynamicArray.bound tt + 1
          val _ = DynamicArray.update (tt,idx,VOIDstype)
@@ -346,11 +349,7 @@ structure TypeRefinement = struct
      | vtypeToStype s INTvtype = INTstype
      | vtypeToStype s STRINGvtype = STRINGstype
      | vtypeToStype s OBJvtype = OBJstype
-     | vtypeToStype s (FUNvtype {
-         result = res,
-         closure = clArgs,
-         args = args
-      }) = FUNstype (vtypeToStype s res, map (vtypeToStype s) (clArgs @ args))
+     | vtypeToStype s (FUNvtype (res, cl, args)) = FUNstype (vtypeToStype s res, cl, map (vtypeToStype s) args)
 
 
    fun visitStmt s (ASSIGNstmt (NONE, exp)) = ignore (visitExp s exp)
@@ -363,10 +362,10 @@ structure TypeRefinement = struct
 
    and visitExp s (IDexp sym) = symType s sym
      | visitExp s (PRIexp (PUREmonkind,SLICEprim,t,es as [vec,ofs,LITexp (INTvtype, INTlit sz)])) =
-         visitCall s (FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), [INTstype, INTstype, INTstype]), es)
+         visitCall s (FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), false, [INTstype, INTstype, INTstype]), es)
      | visitExp s (PRIexp (m,f,t,es)) = visitCall s (vtypeToStype s t, es)
      | visitExp s (CALLexp (m,sym,es)) = visitCall s (symType s sym, es)
-     | visitExp s (INVOKEexp (m,e,es)) = visitCall s (visitExp s (UNBOXexp (VOIDvtype,e)), es)
+     | visitExp s (INVOKEexp (m,e,es)) = visitCall s (visitExp s e, es)
      | visitExp s (RECORDexp fs) = BOXstype OBJstype
      | visitExp s (LITexp (ty,lit)) = vtypeToStype s ty
      | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
@@ -382,14 +381,43 @@ structure TypeRefinement = struct
      | visitExp s (VEC2INTexp (NONE, e)) = (lub (s, BITstype (freshTVar s), visitExp s e); INTstype)
      | visitExp s (VEC2INTexp (SOME sz, e)) = (lub (s, BITstype (CONSTstype sz), visitExp s e); INTstype)
      | visitExp s (INT2VECexp (sz,e)) = (lub (s, INTstype, visitExp s e); BITstype (CONSTstype sz))
-     | visitExp s (CLOSUREexp (t,sym,es)) = BOXstype (FUNstype (freshTVar s,[]))
+     | visitExp s (CLOSUREexp (t,sym,es)) =
+         let
+            fun findDecl (FUNCdecl { funcName = name,
+                                     funcClosure = clArgs,
+                                     funcArgs = args,
+                                     funcRes = res, ... } :: ds, sym) =
+                  if SymbolTable.eq_symid (name,sym)
+                  then (map (symType s o #2) clArgs,map (symType s o #2) args,visitExp s res)
+                  else findDecl (ds,sym)
+              | findDecl (SELECTdecl { selectName = name,
+                                       selectField = f } :: ds, sym) =
+                  if SymbolTable.eq_symid (name,sym)
+                  then ([fieldType s f],[],OBJstype)
+                  else findDecl (ds,sym)
+              | findDecl (UPDATEdecl { updateName = name,
+                                       updateFields = fs } :: ds, sym) =
+                  if SymbolTable.eq_symid (name,sym)
+                  then (map (fieldType s) fs,[],OBJstype)
+                  else findDecl (ds,sym)
+              | findDecl (CONdecl { conName = name, conArg = arg } :: ds, sym) =
+                  if SymbolTable.eq_symid (name,sym)
+                  then ([],[symType s arg],OBJstype)
+                  else findDecl (ds,sym)
+              | findDecl ([], sym) = (TextIO.print ("CLOSUREexp(" ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ") not found\n"); raise TypeOptBug)
+
+            val (clArgTys, argTys, resTy) = findDecl (#origDecls (s : state), sym)
+            val _ = map (fn (clTy,e) => lub (s,clTy,visitExp s e)) (ListPair.zipEq (clArgTys,es))
+         in
+           FUNstype (resTy, not (null es), argTys)
+         end
      | visitExp s (STATEexp e) = visitExp s e
      | visitExp s (EXECexp e) = visitExp s e
    
    and visitCall s (fTy,args) =
       let
          val resTy = freshTVar s
-         val _ = lub (s,FUNstype (resTy,map (visitExp s) args),fTy)
+         val _ = lub (s,FUNstype (resTy,false,map (visitExp s) args),fTy)
       in
          resTy
       end
@@ -408,28 +436,30 @@ structure TypeRefinement = struct
          val _ = app (visitStmt s) stmts
          val t = visitExp s res
          fun argTypes args = map (fn (_,sym) => symType s sym) args
-         val ty = FUNstype (t, argTypes (clArgs @ args))
+         val ty = FUNstype (t, not (null clArgs), argTypes args)
       in
          lub (s, symType s name, ty)
       end
      | visitDecl s (SELECTdecl {
          selectName = name,
          selectField = f
-      }) = lub (s, symType s name, FUNstype (fieldType s f, [freshTVar s]))
+      }) = lub (s, symType s name, FUNstype (fieldType s f, false, [freshTVar s]))
      | visitDecl s (UPDATEdecl {
          updateName = name,
          updateFields = fs
-      }) = lub (s, symType s name, FUNstype (freshTVar s, (map (fieldType s) fs)))
+      }) = lub (s, symType s name, FUNstype (freshTVar s, false, (map (fieldType s) fs)))
      | visitDecl s (CONdecl {
-         conName = name
-     }) = lub (s, symType s name, FUNstype (OBJstype, [freshTVar s]))
+         conName = name,
+         conArg = arg
+     }) = lub (s, symType s name, FUNstype (OBJstype, false, [symType s arg]))
 
    fun run { decls = ds } =
       let
          val state : state = {
             symType = ref SymMap.empty,
             fieldType = ref SymMap.empty,
-            typeTable = DynamicArray.array (4000, VOIDstype)
+            typeTable = DynamicArray.array (4000, VOIDstype),
+            origDecls = ds
          }
          val _ = map (visitDecl state) ds
          val _ = showState state
