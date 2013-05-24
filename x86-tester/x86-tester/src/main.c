@@ -105,10 +105,12 @@ static void generator() {
 
 		char result = test((__char *)buffer, length);
 
-		if(result > 0) {
-			printf("FAILURE.\n");
-			break;
-		}
+		free(buffer);
+
+//		if(result > 0) {
+//			printf("FAILURE.\n");
+//			break;
+//		}
 	}
 }
 
@@ -127,8 +129,11 @@ static void cli() {
 	 * 40 18 a9 10 b9 90 e7
 	 */
 
-	__char data[] = { 0x4c, 0x01, 0xc4 };
+//	__char data[] = { 0x4c, 0x01, 0xc4 };
 //	__char data[] = { 0x66, 0x0f, 0x5e, 0xff };
+//	__char data[] = { 0x49, 0x0f, 0x42, 0x3b };
+//	__char data[] = { 0x40, 0xd3, 0xa4, 0xae, 0xe6, 0x47, 0xd0, 0x45, 0x21, 0xe9, 0x35, 0x0a };
+	__char data[] = { 0x66, 0x48, 0xff, 0x28 };
 
 	test(data, sizeof(data));
 }

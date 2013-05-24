@@ -365,6 +365,8 @@ static struct data simulator_op_shr_sign(struct data opnd1, struct data opnd2,
 
 	end:
 
+	simulator_op_definition_simple(opnd1, opnd2, &result);
+
 	return result;
 }
 

@@ -23,6 +23,8 @@
 #include <util.h>
 #include "tbgen.h"
 
+#define DRYRUN
+
 static void tester_access_init(struct context *context,
 		struct register_access *access, void (*k)(uint8_t *, size_t)) {
 	for(size_t i = 0; i < access->x86_indices_length; ++i) {
@@ -51,8 +53,8 @@ static void tester_rflags_clean(struct context *context) {
 	uint64_t rflags_mask = 0x0000000000244cd5;
 	uint8_t *rflags_mask_ptr = (uint8_t*)&rflags_mask;
 
-	for(size_t i = 0;
-			i < context->x86_registers[X86_ID_FLAGS].bit_length / 8; ++i) {
+	for(size_t i = 0; i < context->x86_registers[X86_ID_FLAGS].bit_length / 8;
+			++i) {
 		context->x86_registers[X86_ID_FLAGS].data[i] &= rflags_mask_ptr[i];
 		context->x86_registers[X86_ID_FLAGS].defined[i] &= rflags_mask_ptr[i];
 	}
@@ -111,13 +113,15 @@ static char tester_instruction_execute(uint8_t *instruction,
 		switch(allocation->type) {
 			case MEMORY_ALLOCATION_TYPE_ACCESS: {
 				map(allocation->address, allocation->data_size);
-				memcpy(allocation->address, allocation->data, allocation->data_size);
+				if(!retval)
+					memcpy(allocation->address, allocation->data, allocation->data_size);
 				break;
 			}
 			case MEMORY_ALLOCATION_TYPE_JUMP: {
 				map(allocation->address, tbgen_result.jump_marker_length);
-				memcpy(allocation->address, tbgen_result.jump_marker,
-						tbgen_result.jump_marker_length);
+				if(!retval)
+					memcpy(allocation->address, tbgen_result.jump_marker,
+							tbgen_result.jump_marker_length);
 				break;
 			}
 		}
@@ -151,10 +155,12 @@ static char tester_instruction_execute(uint8_t *instruction,
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGILL, &act, NULL);
 
+#ifndef DRYRUN
 	if(!setjmp(jbuf))
-		((void (*)(void))code)();
+	((void (*)(void))code)();
 	else
-		retval = -10;
+	retval = -10;
+#endif
 
 	sigaction(SIGSEGV, NULL, NULL);
 
@@ -394,6 +400,7 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 				source);
 		memory_load(context_cpu, buffer, address, address_size, access_size,
 				source);
+		free(source);
 	}
 	void store(uint8_t *buffer, uint8_t *address, uint64_t address_size,
 			uint64_t access_size) {
@@ -499,6 +506,9 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	context_x86_print(context_rreil);
 
 	simulator_statements_simulate(context_rreil, statements);
+
+//	char *k = malloc(900);
+//	memcpy(k, context_cpu->memory.allocations[0].data, context_cpu->memory.allocations[0].data_size);
 
 //	tester_rflags_clean(context_rreil);
 

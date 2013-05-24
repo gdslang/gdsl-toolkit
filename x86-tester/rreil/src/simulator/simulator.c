@@ -77,12 +77,14 @@ static struct data simulator_linear_simulate(struct context *context,
 			struct data scale;
 			scale.bit_length = sizeof(linear->scale.imm) * 8;
 			scale.data = (uint8_t*)&linear->scale.imm;
+			context_data_define(&scale);
 			struct data scale_sx = simulator_op_sx(bit_length, scale);
 
 			result = simulator_op_mul(scale_sx, opnd);
 
 			context_data_clear(&opnd);
-			context_data_clear(&scale);
+			free(scale.defined);
+			context_data_clear(&scale_sx);
 
 			break;
 		}
@@ -302,23 +304,31 @@ static void simulator_branch_simulate(struct context *context,
 		struct rreil_address *target) {
 	struct data address = simulator_linear_simulate(context, target->address,
 			target->size);
-	char equal = 1;
-	for(size_t j = 0; j < target->size / 8; ++j) {
-		if(context->x86_registers[X86_ID_IP].data[j] != address.data[j]) {
-			equal = 0;
-			break;
+	char defined = 1;
+	for(size_t j = 0; j < target->size / 8; ++j)
+		if(address.defined[j] != 0xff)
+			defined = 0;
+
+	if(defined) {
+		char equal = 1;
+		for(size_t j = 0; j < target->size / 8; ++j) {
+			if(context->x86_registers[X86_ID_IP].data[j] != address.data[j]) {
+				equal = 0;
+				break;
+			}
 		}
+		if(!equal)
+			context->memory.jump(address.data, target->size);
 	}
-	if(!equal) {
-		context->memory.jump(address.data, target->size);
-		struct rreil_variable ip;
-		struct rreil_id ip_id;
-		ip_id.type = RREIL_ID_TYPE_X86;
-		ip_id.x86 = X86_ID_IP;
-		ip.id = &ip_id;
-		ip.offset = 0;
-		simulator_variable_write(context, &ip, address);
-	}
+
+	struct rreil_variable ip;
+	struct rreil_id ip_id;
+	ip_id.type = RREIL_ID_TYPE_X86;
+	ip_id.x86 = X86_ID_IP;
+	ip.id = &ip_id;
+	ip.offset = 0;
+	simulator_variable_write(context, &ip, address);
+
 	context_data_clear(&address);
 }
 
@@ -346,8 +356,10 @@ static void simulator_statement_simulate(struct context *context,
 
 			simulator_variable_write(context, statement->load.lhs, data);
 
-			context_data_clear(&address);
-			context_data_clear(&data);
+			/*
+			 * Important (and ugly): data.data is still is use by the allocation
+			 */
+			free(data.defined);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {

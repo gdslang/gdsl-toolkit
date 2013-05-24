@@ -11,8 +11,8 @@
 #include <string.h>
 #include <simulator/tools.h>
 
-void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from, size_t from_offset,
-		size_t bit_length) {
+void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from,
+		size_t from_offset, size_t bit_length) {
 	void byte_write(uint8_t data, uint8_t length, size_t offset) {
 		if(offset % 8 || length < 8) {
 			uint8_t local = offset % 8;
@@ -47,7 +47,7 @@ void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from, size_t from_offset
 		uint8_t local = offset % 8;
 		uint8_t low = from[offset / 8];
 		uint8_t high;
-		if(offset + length > 8)
+		if(offset / 8 + length > 8)
 			high = from[offset / 8 + 1];
 		else
 			high = 0;
@@ -81,7 +81,7 @@ void membit_zero_fill(uint8_t *to, size_t to_offset, size_t bit_length) {
 
 void membit_one_fill(uint8_t *to, size_t to_offset, size_t bit_length) {
 	uint8_t *ones = (uint8_t*)malloc(bit_length / 8 + 1);
-	for (size_t i = 0; i < bit_length/8 + 1; ++i)
+	for(size_t i = 0; i < bit_length / 8 + 1; ++i)
 		ones[i] = 0xff;
 	membit_cpy(to, to_offset, ones, 0, bit_length);
 	free(ones);
