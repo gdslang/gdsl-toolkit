@@ -58,6 +58,13 @@ void context_data_undefine(struct data *data) {
 	membit_zero_fill(data->defined, 0, data->bit_length);
 }
 
+void context_data_clear(struct data *data) {
+	if(data) {
+		free(data->data);
+		free(data->defined);
+	}
+}
+
 struct context *context_copy(struct context *source) {
 	struct context *context = (struct context*)malloc(sizeof(struct context));
 
