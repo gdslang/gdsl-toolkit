@@ -18,7 +18,7 @@ void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from,
 			uint8_t local = offset % 8;
 			uint8_t low = to[offset / 8];
 			uint8_t high;
-			if(offset + length > 8)
+			if(offset % 8 + length > 8)
 				high = to[offset / 8 + 1];
 			else
 				high = 0;
@@ -34,7 +34,7 @@ void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from,
 			high |= data >> (8 - local);
 
 			to[offset / 8] = low;
-			if(offset + length > 8)
+			if(offset % 8 + length > 8)
 				to[offset / 8 + 1] = high;
 		} else
 			to[offset / 8] = data;
@@ -47,7 +47,7 @@ void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from,
 		uint8_t local = offset % 8;
 		uint8_t low = from[offset / 8];
 		uint8_t high;
-		if(offset / 8 + length > 8)
+		if(offset % 8 + length > 8)
 			high = from[offset / 8 + 1];
 		else
 			high = 0;

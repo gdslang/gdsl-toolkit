@@ -419,6 +419,7 @@ static void simulator_statement_simulate(struct context *context,
 				simulator_branch_simulate(context, statement->cbranch.target_true);
 			else
 				simulator_branch_simulate(context, statement->cbranch.target_false);
+			context_data_clear(&data);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {

@@ -83,7 +83,7 @@ static char test(__char *data, size_t data_size) {
 }
 
 static void generator() {
-	for(size_t i = 0; i < 100; ++i) {
+	for(size_t i = 0; i < 100000; ++i) {
 		printf("%lu +++++++++++++++++++++\n", i);
 
 		struct generator_tree_node *root = generator_x86_tree_get();
@@ -133,7 +133,8 @@ static void cli() {
 //	__char data[] = { 0x66, 0x0f, 0x5e, 0xff };
 //	__char data[] = { 0x49, 0x0f, 0x42, 0x3b };
 //	__char data[] = { 0x40, 0xd3, 0xa4, 0xae, 0xe6, 0x47, 0xd0, 0x45, 0x21, 0xe9, 0x35, 0x0a };
-	__char data[] = { 0x66, 0x48, 0xff, 0x28 };
+//	__char data[] = { 0x66, 0x48, 0xff, 0x28 };
+	__char data[] = { 0x4f, 0x0f, 0xaf, 0x2f, 0xc7, 0x5d, 0xa6, 0x13 };
 
 	test(data, sizeof(data));
 }
@@ -337,3 +338,5 @@ int main(int argc, char **argv) {
 //	}
 	return 0;
 }
+
+//reset; /usr/bin/valgrind --vgdb=yes --vgdb-error=0  --leak-check=full ./x86-tester

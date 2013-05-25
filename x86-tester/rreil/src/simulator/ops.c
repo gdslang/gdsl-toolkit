@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <stdint-gcc.h>
 #include <string.h>
 #include <simulator/ops.h>
 #include <simulator/tools.h>
@@ -27,8 +28,9 @@ static void simulator_op_definition_propagate(struct data opnd1,
 		uint8_t x = opnd1.defined[i] & opnd2.defined[i];
 		uint8_t mask = x & (~x - 1);
 		result->defined[i] = x & mask & acc;
-		if(mask != 0xff)
-			acc = 0;
+//		if(mask != 0xff)
+//			acc = 0;
+		acc *= (mask == 0xff);
 	}
 }
 
@@ -102,11 +104,20 @@ struct data simulator_op_sub(struct data opnd1, struct data opnd2) {
 	 */
 	size_t bit_length = opnd1.bit_length;
 
+	if(!bit_length) {
+		struct data result;
+		result.data = NULL;
+		result.defined = NULL;
+		result.bit_length = 0;
+		return result;
+	}
+
 	uint8_t *complement = (uint8_t*)malloc(bit_length / 8 + 1);
-	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+	size_t length = bit_length / 8 + (bit_length % 8 > 0);
+	for(size_t i = 0; i < length; ++i)
 		complement[i] = ~opnd2.data[i];
-	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-		if(complement[i] != 0xff) {
+	for(size_t i = 0; 1; ++i)
+		if(i == length - 1 || complement[i] != 0xff) {
 			complement[i]++;
 			break;
 		} else
@@ -142,6 +153,10 @@ struct data simulator_op_mul(struct data opnd1, struct data opnd2) {
 		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
 		*result = (*((uint64_t*)opnd1.data)) * (*((uint64_t*)opnd2.data));
 		result_data.data = (uint8_t*)result;
+	} else if(bit_length <= 128) {
+		__uint128_t *result = (__uint128_t*)malloc(sizeof(__uint128_t));
+		*result = (*((__uint128_t*)opnd1.data)) * (*((__uint128_t*)opnd2.data));
+		result_data.data = (uint8_t*)result;
 	} else
 		result_data.data = NULL; //error
 
@@ -174,6 +189,10 @@ struct data simulator_op_div(struct data opnd1, struct data opnd2) {
 	} else if(bit_length <= 64) {
 		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
 		*result = (*((uint64_t*)opnd1.data)) / (*((uint64_t*)opnd2.data));
+		result_data.data = (uint8_t*)result;
+	} else if(bit_length <= 128) {
+		__uint128_t *result = (__uint128_t*)malloc(sizeof(__uint128_t));
+		*result = (*((__uint128_t*)opnd1.data)) / (*((__uint128_t*)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else
 		result_data.data = NULL; //error
@@ -208,6 +227,10 @@ struct data simulator_op_divs(struct data opnd1, struct data opnd2) {
 		int64_t *result = (int64_t*)malloc(sizeof(int64_t));
 		*result = (*((int64_t*)opnd1.data)) / (*((int64_t*)opnd2.data));
 		result_data.data = (uint8_t*)result;
+	} else if(bit_length <= 128) {
+		__int128_t *result = (__int128_t*)malloc(sizeof(__int128_t));
+		*result = (*((__int128_t*)opnd1.data)) / (*((__int128_t*)opnd2.data));
+		result_data.data = (uint8_t*)result;
 	} else
 		result_data.data = NULL; //error
 
@@ -241,8 +264,14 @@ struct data simulator_op_mod(struct data opnd1, struct data opnd2) {
 		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
 		*result = (*((uint64_t*)opnd1.data)) % (*((uint64_t*)opnd2.data));
 		result_data.data = (uint8_t*)result;
+	} else if(bit_length <= 128) {
+		__uint128_t *result = (__uint128_t*)malloc(sizeof(__uint128_t));
+		*result = (*((__uint128_t*)opnd1.data)) % (*((__uint128_t*)opnd2.data));
+		result_data.data = (uint8_t*)result;
 	} else
 		result_data.data = NULL; //error
+
+	simulator_op_definition_simple(opnd1, opnd2, &result_data);
 
 	return result_data;
 }
@@ -469,7 +498,7 @@ struct data simulator_op_zx(size_t to, struct data opnd1) {
 	 * Todo: Use membit_cpy()
 	 */
 	struct data result;
-	result.data = (uint8_t*)malloc(to / 8 + 1);
+	result.data = (uint8_t*)calloc(to / 8 + 1, 1);
 	result.defined = (uint8_t*)malloc(to / 8 + 1);
 	result.bit_length = to;
 
@@ -490,6 +519,14 @@ struct data simulator_op_zx(size_t to, struct data opnd1) {
 struct data simulator_op_sx(size_t to, struct data opnd) {
 	size_t from = opnd.bit_length;
 
+	if(!from || !to) {
+		struct data result;
+		result.data = (uint8_t*)malloc(to);
+		result.bit_length = to;
+		context_data_undefine(&result);
+		return result;
+	}
+
 	if(to < from)
 		from = to;
 
@@ -506,18 +543,23 @@ struct data simulator_op_sx(size_t to, struct data opnd) {
 			sign = opnd[from / 8 - 1] >> 7;
 		size_t next = from / 8;
 
+//		if(opnd[1] >> 7)
+//			printf("%lu\n", from/8 - 1);
+//		if(opnd[from / 8 - 1] >> 7)
+//			printf("%lu\n", from/8 - 1);
+
 		if(from % 8) {
 			uint8_t top = opnd[from / 8];
 			sign = top >> ((from % 8) - 1);
 			uint8_t mask = (1 << from % 8) - 1;
 			result[from / 8] = top & mask;
-			if(sign) {
+			if(sign & 0x01) {
 				result[from / 8] |= ~mask;
 				next++;
 			}
 		}
 
-		if(sign)
+		if(sign & 0x01)
 			for(size_t i = next; i <= to / 8; ++i)
 				result[i] = 0xff;
 
