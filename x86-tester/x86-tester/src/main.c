@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdint-gcc.h>
 #include <time.h>
+#include <unistd.h>
 #include <dis.h>
 #include <gdrr.h>
 #include <rreil/rreil.h>
@@ -21,22 +22,36 @@
 #include "gdsl.h"
 
 size_t stdin_read(uint8_t *buffer, size_t size_max) {
+	char char_to_hex(char x) {
+		if(x >= '0' && x <= '9')
+			return x - '0';
+		if(x >= 'a' && x <= 'z')
+			return x - 'a' + 10;
+		else if(x >= 'A' && x <= 'Z')
+			return x - 'A' + 10;
+		else
+			return -1;
+	}
+
 	size_t size_actual = 0;
 	for(size_t i = 0; i < size_max; i++) {
-		int c;
-		int x = fscanf(stdin, "%x", &c);
-		switch(x) {
-			case EOF:
-				goto done;
-			case '\n':
-				goto done;
-			case 0: {
-//					__fatal("invalid input; should be in hex form: '0f 0b ..'");
-				size_actual = 0;
-				break;
+		uint8_t c = 0;
+		for (int i = 0; i < 2;) {
+			int x = getc(stdin);
+			switch(x) {
+				case EOF:
+					goto done;
+				case '\n':
+					goto done;
+				default: {
+					char r = char_to_hex(x);
+					if(r >= 0)
+						c |= r << (4*(1 - i++));
+					break;
+				}
 			}
 		}
-		buffer[i] = c & 0xff;
+		buffer[size_actual++] = c;
 	}
 	done: ;
 	return size_actual;
@@ -86,7 +101,7 @@ static char test(__char *data, size_t data_size) {
 }
 
 static void generator() {
-	for(size_t i = 0; i < 100000; ++i) {
+	for(size_t i = 0; i < 1000; ++i) {
 		printf("%lu +++++++++++++++++++++\n", i);
 
 		struct generator_tree_node *root = generator_x86_tree_get();
@@ -110,44 +125,90 @@ static void generator() {
 
 		free(buffer);
 
-//		if(result > 0) {
-//			printf("FAILURE.\n");
-//			break;
-//		}
+		if(result > 0) {
+			printf("FAILURE.\n");
+			break;
+		}
 	}
 }
 
 static void cli() {
-//	__char data[15];
-//	stdin_read((uint8_t*)data, sizeof(data));
-//	__char data[] = { 0x66, 0x42, 0x0f, 0x38, 0x07, 0x61, 0x55 };
-// 66 66 66 66 41 63 4a 47 78 50 69 22
+	__char data[15];
+	stdin_read((uint8_t*)data, sizeof(data));
+	test(data, sizeof(data));
+}
+
+static void code() {
+
+	//	__char data[] = { 0x66, 0x42, 0x0f, 0x38, 0x07, 0x61, 0x55 };
+	// 66 66 66 66 41 63 4a 47 78 50 69 22
 
 	/*
 	 * SIGILL
 	 */
-//	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x45, 0x0f, 0xc3, 0x57, 0x10 };
+	//	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x45, 0x0f, 0xc3, 0x57, 0x10 };
 	/*
 	 * 4d d3 df!!!
 	 * 40 18 a9 10 b9 90 e7
 	 */
 
-//	__char data[] = { 0x4c, 0x01, 0xc4 };
-//	__char data[] = { 0x66, 0x0f, 0x5e, 0xff };
-//	__char data[] = { 0x49, 0x0f, 0x42, 0x3b };
-//	__char data[] = { 0x40, 0xd3, 0xa4, 0xae, 0xe6, 0x47, 0xd0, 0x45, 0x21, 0xe9, 0x35, 0x0a };
-//	__char data[] = { 0x66, 0x48, 0xff, 0x28 };
-
+	//	__char data[] = { 0x4c, 0x01, 0xc4 };
+	//	__char data[] = { 0x66, 0x0f, 0x5e, 0xff };
+	//	__char data[] = { 0x49, 0x0f, 0x42, 0x3b };
+	//	__char data[] = { 0x40, 0xd3, 0xa4, 0xae, 0xe6, 0x47, 0xd0, 0x45, 0x21, 0xe9, 0x35, 0x0a };
+	//	__char data[] = { 0x66, 0x48, 0xff, 0x28 };
 	/*
 	 * Todo: semantics
 	 */
-//	__char data[] = { 0x66, 0x4b, 0xd0, 0x13 };
-
-//	__char data[] = { 0x66, 0x41, 0xe0, 0xbd, 0x51, 0x24, 0xb0, 0x23 };
-//
+	//	__char data[] = { 0x66, 0x4b, 0xd0, 0x13 };
+	//	__char data[] = { 0x66, 0x41, 0xe0, 0xbd, 0x51, 0x24, 0xb0, 0x23 };
+	//
 	__char data[] = { 0x48, 0xf3, 0xac, 0x97, 0x29, 0x29, 0x60, 0x0e };
 
 	test(data, sizeof(data));
+}
+
+static void cmdline(char const *parameter) {
+
+}
+
+enum mode {
+	MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
+};
+
+struct options {
+	enum mode mode;
+	char const *parameter;
+};
+
+static char args_parse(int argc, char **argv, struct options *options) {
+	while(1) {
+		char c = getopt(argc, argv, "gcpm:");
+		if(c == -1)
+			return -1;
+		switch(c) {
+			case 'g': {
+				options->mode = MODE_GENERATOR;
+				goto end;
+			}
+			case 'c': {
+				options->mode = MODE_CLI;
+				goto end;
+			}
+			case 'p': {
+				options->mode = MODE_CODE;
+				goto end;
+			}
+			case 'm': {
+				options->mode = MODE_CMDLINE;
+				options->parameter = optarg;
+				goto end;
+			}
+		}
+	}
+	end:;
+
+	return 0;
 }
 
 int main(int argc, char **argv) {
@@ -168,22 +229,26 @@ int main(int argc, char **argv) {
 
 	srand(time(NULL));
 
-	enum mode {
-		MODE_GENERATOR, MODE_CLI
-	};
-	enum mode mode = MODE_GENERATOR;
+	struct options options;
+	char retval = args_parse(argc, argv, &options);
+	if(retval)
+		return 1;
 
-	if(argc >= 2)
-		if(!strcmp("--cli", argv[1]))
-			mode = MODE_CLI;
-
-	switch(mode) {
+	switch(options.mode) {
 		case MODE_CLI: {
 			cli();
 			break;
 		}
 		case MODE_GENERATOR: {
 			generator();
+			break;
+		}
+		case MODE_CODE: {
+			code();
+			break;
+		}
+		case MODE_CMDLINE: {
+			cmdline(options.parameter);
 			break;
 		}
 	}
