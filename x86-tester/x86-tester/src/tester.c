@@ -21,6 +21,7 @@
 #include <simulator/tracking.h>
 #include <memory.h>
 #include <util.h>
+#include <stack.h>
 #include "tbgen.h"
 
 #define DRYRUN
@@ -80,21 +81,32 @@ static char tester_instruction_execute(uint8_t *instruction,
 	char retval = 0;
 
 	void for_page(void **address, size_t *size) {
-		*size = *size + ((size_t)address & 0x0fff);
-		*address = (void*)((size_t)*address & 0xfffffffffffff000);
+		size_t page_size = 0x1000;
+		size_t page_mask = 0x0fff;
+		size_t first = page_size - ((size_t)*address & page_mask);
+		size_t pages = 1;
+		if(*size > first)
+			pages += (*size - first)/page_size + 1;
+		*size = page_size * pages;
+		*address = (void*)((size_t)*address & (~page_mask));
 	}
 
-	void unmap(void *address, size_t size) {
-		for_page(&address, &size);
-
-		munmap(address, size);
-	}
+	struct mapping {
+		void *address;
+		size_t length;
+	};
+	struct stack *mappings = stack_init();
 
 	void map(void *address, size_t size) {
 		for_page(&address, &size);
 
 		uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-				MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
+				MAP_PRIVATE | MAP_ANONYMOUS/* | MAP_FIXED*/, 0, 0);
+
+		struct mapping *mapping = (struct mapping*)malloc(sizeof(struct mapping));
+		mapping->address = mem_real;
+		mapping->length = size;
+		stack_push(mappings, mapping);
 
 		if(mem_real != address) {
 			printf("Unable to map address.\n");
@@ -162,7 +174,9 @@ static char tester_instruction_execute(uint8_t *instruction,
 	retval = -10;
 #endif
 
-	sigaction(SIGSEGV, NULL, NULL);
+	act.sa_sigaction = NULL;
+	sigaction(SIGSEGV, &act, NULL);
+	sigaction(SIGILL, &act, NULL);
 
 	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
 		struct memory_allocation *allocation = &context->memory.allocations[i];
@@ -195,25 +209,32 @@ static char tester_instruction_execute(uint8_t *instruction,
 
 	unmap_all:
 
-	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
-		struct memory_allocation *allocation = &context->memory.allocations[i];
-
-		switch(allocation->type) {
-			case MEMORY_ALLOCATION_TYPE_ACCESS: {
-				unmap(allocation->address, allocation->data_size);
-				break;
-			}
-			case MEMORY_ALLOCATION_TYPE_JUMP: {
-				unmap(allocation->address, tbgen_result.jump_marker_length);
-				break;
-			}
-		}
+	while(!stack_empty(mappings)) {
+		struct mapping *mapping = (struct mapping*)stack_pop(mappings);
+		munmap(mapping->address, mapping->length);
+		free(mapping);
 	}
+	stack_free(mappings);
 
-	for(size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
-		struct memory_access *access = &trace->mem.written.accesses[i];
-		unmap(access->address, access->data_size);
-	}
+//	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
+//		struct memory_allocation *allocation = &context->memory.allocations[i];
+//
+//		switch(allocation->type) {
+//			case MEMORY_ALLOCATION_TYPE_ACCESS: {
+//				unmap(allocation->address, allocation->data_size);
+//				break;
+//			}
+//			case MEMORY_ALLOCATION_TYPE_JUMP: {
+//				unmap(allocation->address, tbgen_result.jump_marker_length);
+//				break;
+//			}
+//		}
+//	}
+
+//	for(size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
+//		struct memory_access *access = &trace->mem.written.accesses[i];
+//		unmap(access->address, access->data_size);
+//	}
 
 	return retval;
 }

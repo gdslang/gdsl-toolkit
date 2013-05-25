@@ -112,12 +112,17 @@ struct data simulator_op_sub(struct data opnd1, struct data opnd2) {
 		return result;
 	}
 
-	uint8_t *complement = (uint8_t*)malloc(bit_length / 8 + 1);
 	size_t length = bit_length / 8 + (bit_length % 8 > 0);
+	char more(size_t i) {
+		return i < length - 1 && opnd1.defined[i] == 0xff
+				&& opnd2.defined[i] == 0xff;
+	}
+
+	uint8_t *complement = (uint8_t*)malloc(bit_length / 8 + 1);
 	for(size_t i = 0; i < length; ++i)
 		complement[i] = ~opnd2.data[i];
 	for(size_t i = 0; 1; ++i)
-		if(i == length - 1 || complement[i] != 0xff) {
+		if(!more(i) || complement[i] != 0xff) {
 			complement[i]++;
 			break;
 		} else
@@ -154,8 +159,8 @@ struct data simulator_op_mul(struct data opnd1, struct data opnd2) {
 		*result = (*((uint64_t*)opnd1.data)) * (*((uint64_t*)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else if(bit_length <= 128) {
-		__uint128_t *result = (__uint128_t*)malloc(sizeof(__uint128_t));
-		*result = (*((__uint128_t*)opnd1.data)) * (*((__uint128_t*)opnd2.data));
+		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+		*result = (*((__uint128_t *)opnd1.data)) * (*((__uint128_t *)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else
 		result_data.data = NULL; //error
@@ -191,8 +196,8 @@ struct data simulator_op_div(struct data opnd1, struct data opnd2) {
 		*result = (*((uint64_t*)opnd1.data)) / (*((uint64_t*)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else if(bit_length <= 128) {
-		__uint128_t *result = (__uint128_t*)malloc(sizeof(__uint128_t));
-		*result = (*((__uint128_t*)opnd1.data)) / (*((__uint128_t*)opnd2.data));
+		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+		*result = (*((__uint128_t *)opnd1.data)) / (*((__uint128_t *)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else
 		result_data.data = NULL; //error
@@ -228,8 +233,8 @@ struct data simulator_op_divs(struct data opnd1, struct data opnd2) {
 		*result = (*((int64_t*)opnd1.data)) / (*((int64_t*)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else if(bit_length <= 128) {
-		__int128_t *result = (__int128_t*)malloc(sizeof(__int128_t));
-		*result = (*((__int128_t*)opnd1.data)) / (*((__int128_t*)opnd2.data));
+		__int128_t *result = (__int128_t *)malloc(sizeof(__int128_t ));
+		*result = (*((__int128_t *)opnd1.data)) / (*((__int128_t *)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else
 		result_data.data = NULL; //error
@@ -265,8 +270,8 @@ struct data simulator_op_mod(struct data opnd1, struct data opnd2) {
 		*result = (*((uint64_t*)opnd1.data)) % (*((uint64_t*)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else if(bit_length <= 128) {
-		__uint128_t *result = (__uint128_t*)malloc(sizeof(__uint128_t));
-		*result = (*((__uint128_t*)opnd1.data)) % (*((__uint128_t*)opnd2.data));
+		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+		*result = (*((__uint128_t *)opnd1.data)) % (*((__uint128_t *)opnd2.data));
 		result_data.data = (uint8_t*)result;
 	} else
 		result_data.data = NULL; //error
@@ -589,7 +594,8 @@ struct data simulator_op_cmp_eq(struct data opnd1, struct data opnd2) {
 	result.bit_length = 1;
 
 	for(size_t i = 0; i < bit_length / 8; ++i)
-		if(opnd1.data[i] != opnd2.data[i]) {
+		if((opnd1.data[i] & opnd1.defined[i])
+				!= (opnd2.data[i] & opnd2.defined[i])) {
 			result.data[0] = 0;
 			goto end;
 		}

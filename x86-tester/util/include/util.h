@@ -14,7 +14,7 @@
 extern void util_array_add(void ***array, void *object, size_t *length, size_t *size);
 extern void util_array_insert(void ***array, void *object, size_t index, size_t *length,
 		size_t *size);
-extern void util_array_elements_insert(void ***array, void **elements, size_t elements_length,
+extern void util_array_elements_insert(void **array, void **elements, size_t elements_length,
 		size_t index, size_t *length, size_t *size);
 extern void util_array_generic_add(void **array, void *object, size_t object_size,
 		size_t *length, size_t *size);

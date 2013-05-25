@@ -364,12 +364,22 @@ static void simulator_statement_simulate(struct context *context,
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
 			struct data data = simulator_op_simulate(context, statement->store.rhs);
+			if(data.bit_length % 8) {
+				printf("Warning: Unable to store unaligned (8 Bit) data.\n");
+				goto end;
+			}
+			for (size_t i = 0; i < data.bit_length/8; ++i)
+				if(data.defined[i] != 0xff) {
+					printf("Warning: Aborting store because of undefined bits.\n");
+					goto end;
+				}
 			struct data address = simulator_linear_simulate(context,
 					statement->store.address->address, statement->store.address->size);
 			context->memory.store(data.data, address.data,
 					statement->store.address->size, data.bit_length);
-			context_data_clear(&data);
 			context_data_clear(&address);
+			end:
+			context_data_clear(&data);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
@@ -378,10 +388,10 @@ static void simulator_statement_simulate(struct context *context,
 			 */
 			struct data data = simulator_sexpr_simulate(context, statement->ite.cond,
 					1);
-			/*
-			 * Todo: Handle undefined value
-			 */
-			if(data.data[0] & 0x01)
+
+			if(!(data.defined[0] & 0x01))
+				printf("Warning: Undefined condition in if statement.\n");
+			if(!(data.defined[0] & 0x01) || (data.data[0] & 0x01))
 				simulator_statements_simulate(context, statement->ite.then_branch);
 			else
 				simulator_statements_simulate(context, statement->ite.else_branch);
@@ -398,10 +408,18 @@ static void simulator_statement_simulate(struct context *context,
 			/*
 			 * Todo: Handle undefined value
 			 */
+			uint16_t max = 0xff;
+			uint16_t i = 0;
 			while(data.data[0] & 0x01) {
 				simulator_statements_simulate(context, statement->while_.body);
 				context_data_clear(&data);
 				data = simulator_sexpr_simulate(context, statement->while_.cond, 1);
+
+				i++;
+				if(i == max) {
+					printf("Warning: Aborting loop after %u iterations.\n", max);
+					break;
+				}
 			}
 			context_data_clear(&data);
 			break;

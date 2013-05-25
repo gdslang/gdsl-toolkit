@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <util.h>
 
 void util_array_add(void ***array, void *object, size_t *length, size_t *size) {
 	if(*length + 1 > *size) {
