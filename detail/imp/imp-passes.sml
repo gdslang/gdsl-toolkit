@@ -25,10 +25,16 @@ end = struct
    fun all s = 
       ImpFromCore.run s >>=
       SimplifyPass.run >>=
+      StatePassingPass.run >>=
+      SimplifyPass.run >>=
+      TransCallsPass.run >>=
       TransCallsPass.run >>=
       SimplifyPass.run >>=
+      TransCallsPass.run >>=
+      StatePassingPass.run >>=
+      SimplifyPass.run >>=
       TypeRefinementPass.run >>=
-      StatePassingPass.run
+      SimplifyPass.run
 
    fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, Imp.PP.spec spec)

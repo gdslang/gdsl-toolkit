@@ -160,8 +160,10 @@ structure Imp = struct
    type decls = decl list
 
    type imp = {
-      decls : decl list
+      decls : decl list,
+      fdecls : vtype SymMap.map
    }
+
    structure Spec = struct
       open Spec
       type t = imp Spec.t
@@ -264,7 +266,7 @@ structure Imp = struct
       and def (intro, body) =
          align [seq [intro, space, str "="], indent 3 body]
       fun decls ds = align (map decl ds)
-      fun imp { decls = ds } = decls ds
+      fun imp ({ decls = ds, fdecls = fs } : imp) = decls ds
       val pretty = Pretty.pretty o imp
       val spec = Spec.PP.spec imp
    end

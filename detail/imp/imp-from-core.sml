@@ -169,9 +169,15 @@ end = struct
    (* functions operating on the mutable variables *)
    fun addDecl { globalVars = gv, localVars = lv, declVars = ds, constants = cs } decl =
       let
-         val { functions = fs, prim_map } = cs
+         val { functions = fs, fields, prim_map } = cs
       in
          fs := decl :: !fs
+      end
+   fun addField { globalVars = gv, localVars = lv, declVars = ds, constants = cs } sym =
+      let
+         val { functions, fields = fs, prim_map } = cs
+      in
+         fs := SymMap.insert (!fs,sym,OBJvtype)
       end
    fun addUpdate s fields =
       let
@@ -189,6 +195,7 @@ end = struct
                   val _ = addDecl s 
                            (UPDATEdecl { updateName = sym, 
                                          updateFields = fields })
+                  val _ = app (addField s) fields
                   val _ = addGlobal s sym
                   val _ = SymbolTables.varTable := tab
                in
@@ -211,6 +218,7 @@ end = struct
                   val _ = addDecl s 
                            (SELECTdecl { selectName = sym,
                                          selectField = field })
+                  val _ = addField s field
                   val _ = addGlobal s sym
                in
                   sym
@@ -377,7 +385,7 @@ end = struct
                   val (stmts, exp) = trExpr s e
                   val stmtss = acc @ stmts @ [ASSIGNstmt (SOME res,(EXECexp exp))]
                in
-                  transSeq s stmtss seq
+                  transSeq (addLocalVar s res) stmtss seq
                end
            | transSeq s acc _ = raise ImpTranslationBug
       in
@@ -444,7 +452,8 @@ end = struct
                      map (fn e => (Exp.ID e)) es
                   end
                val fs = ref ([] : decl list)
-
+               val fields = ref (SymMap.empty : vtype SymMap.map)
+               
                fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
                val prim_map =
                   foldl (fn ((k,v),m) => SymMap.insert (m,get k,v))
@@ -453,7 +462,8 @@ end = struct
                   foldl (fn ((k,v),s) => SymSet.add (s,get k))
                      SymSet.empty prim_table
                val cs = { functions = fs,
-                          prim_map = prim_map }
+                          prim_map = prim_map,
+                          fields = fields }
                val initialState = { globalVars = ref globs,
                                     localVars = SymSet.empty,
                                     declVars = ref SymSet.empty,
@@ -462,7 +472,8 @@ end = struct
                val bogusExp = Exp.LIT (SpecAbstractTree.INTlit 42)
                val _ = trExpr initialState (Exp.LETREC (clauses, bogusExp))
             in
-               { decls = !(#functions cs) }
+               { decls = !(#functions cs),
+                 fdecls = !(#fields cs) }
             end) spec
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)
