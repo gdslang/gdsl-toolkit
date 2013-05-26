@@ -24,7 +24,7 @@
 #include <stack.h>
 #include <tbgen.h>
 
-//#define DRYRUN
+#define DRYRUN
 
 static void tester_access_init(struct context *context,
 		struct register_access *access, void (*k)(uint8_t *, size_t)) {

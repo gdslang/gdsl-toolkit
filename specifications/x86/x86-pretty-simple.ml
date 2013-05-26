@@ -30,10 +30,10 @@ val show/segment/s s =
 
 val show/scale/s s = 
    case s of
-      '00': "SCALE"
-    | '01': "SCALE"
-    | '10': "SCALE"
-    | '11': "SCALE"
+      '00': "SCALE*"
+    | '01': "SCALE*"
+    | '10': "SCALE*"
+    | '11': "SCALE*"
    end
 
 val show/operand/s op =

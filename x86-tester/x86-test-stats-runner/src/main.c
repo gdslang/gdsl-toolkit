@@ -5,10 +5,12 @@
  *      Author: jucs
  */
 
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint-gcc.h>
+#include <search.h>
 #include <time.h>
 #include <unistd.h>
 #include <dis.h>
@@ -20,8 +22,13 @@
 #include <setjmp.h>
 #include <tester.h>
 #include <gdsl.h>
+#include "hash_array.h"
 
-static char test(__char *data, size_t data_size) {
+struct insn_data {
+	size_t count;
+};
+
+static char test(struct hash_array *ha, __char *data, size_t data_size) {
 	__obj state = gdsl_create_state(data, data_size);
 
 	__obj insn;
@@ -47,11 +54,22 @@ static char test(__char *data, size_t data_size) {
 	free(str);
 
 	str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_SIMPLE);
-	if(str)
+	if(str) {
 		puts(str);
-	else
+
+//		size_t length = strlen(str);
+//		str[--length] = 0;
+
+		ENTRY *e = hash_array_search_insert(ha, str);
+
+		struct insn_data *data;
+		if(!e->data)
+			e->data = (struct insn_data*)calloc(sizeof(struct insn_data), 1);
+		data = (struct insn_data*)e->data;
+
+		data->count++;
+	} else
 		printf("NULL\n");
-	free(str);
 
 	printf("---------------------------\n");
 
@@ -78,14 +96,15 @@ static char test(__char *data, size_t data_size) {
 }
 
 static void generator() {
-	for(size_t i = 0; i < 1000; ++i) {
-		printf("%lu +++++++++++++++++++++\n", i);
+	struct hash_array *ha = hash_array_init(8);
 
-		struct generator_tree_node *root = generator_x86_tree_get();
+	for(size_t i = 0; i < 100; ++i) {
+		printf("%lu +++++++++++++++++++++\n", i);
 
 //		generator_tree_print(root);
 //		printf("\n");
 
+		struct generator_tree_node *root = generator_x86_tree_get();
 		char *buffer;
 		size_t length;
 		FILE *stream = open_memstream(&buffer, &length);
@@ -93,15 +112,28 @@ static void generator() {
 		fclose(stream);
 		generator_tree_free(root);
 
-		char result = test((__char *)buffer, length);
+		char result = test(ha, (__char *)buffer, length);
 
 		free(buffer);
 
-		if(result > 0) {
-			printf("FAILURE.\n");
-			break;
-		}
+//		if(result > 0) {
+//			printf("FAILURE.\n");
+//			break;
+//		}
 	}
+
+	ENTRY *entries;
+	size_t entries_length = hash_array_entries_get(ha, &entries);
+	for (size_t i = 0; i < entries_length; ++i) {
+		struct insn_data *data = (struct insn_data*)entries[i].data;
+		printf("%s: %lu\n", entries[i].key, data->count);
+	}
+
+	for (size_t i = 0; i < entries_length; ++i) {
+		free(entries[i].data);
+		free(entries[i].key);
+	}
+	hash_array_free(ha);
 }
 
 enum mode {
@@ -138,12 +170,47 @@ static char args_parse(int argc, char **argv, struct options *options) {
 			}
 		}
 	}
-	end:;
+	end: ;
 
 	return 0;
 }
 
+char *data[] = { "alpha", "bravo", "charlie", "delta", "echo", "foxtrot",
+		"golf", "hotel", "india", "juliet", "kilo", "lima", "mike", "november",
+		"oscar", "papa", "quebec", "romeo", "sierra", "tango", "uniform", "victor",
+		"whisky", "x-ray", "yankee", "zulu" };
+
 int main(int argc, char **argv) {
+//	ENTRY e, *ep;
+//	int i;
+//
+//	struct hsearch_data htab;
+//	memset(&htab, 0, sizeof(htab));
+//	int x = hcreate_r(30, &htab);
+//
+//	for(i = 0; i < 24; i++) {
+//		e.key = data[i];
+//		/* data is just an integer, instead of a
+//		 pointer to something */
+//		e.data = (void *)i;
+//		hsearch_r(e, ENTER, &ep, &htab);
+//		/* there should be no failures */
+//		if(ep == NULL) {
+//			fprintf(stderr, "entry failed\n");
+//			exit(EXIT_FAILURE);
+//		}
+//	}
+//
+//	for(i = 22; i < 26; i++) {
+//		/* print two entries from the table, and
+//		 show that two are not in the table */
+//		e.key = data[i];
+//		hsearch_r(e, FIND, &ep, &htab);
+//		printf("%9.9s -> %9.9s:%d\n", e.key, ep ? ep->key : "NULL",
+//				ep ? (int)(ep->data) : 0);
+//	}
+//	hdestroy_r(&htab);
+
 //	struct register_ reg;
 //	reg.data = NULL;
 //	reg.data_length = 0;
