@@ -21,7 +21,7 @@
 #include "tester.h"
 #include "gdsl.h"
 
-size_t stdin_read(uint8_t *buffer, size_t size_max) {
+static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer, size_t size_max) {
 	char char_to_hex(char x) {
 		if(x >= '0' && x <= '9')
 			return x - '0';
@@ -37,7 +37,7 @@ size_t stdin_read(uint8_t *buffer, size_t size_max) {
 	for(size_t i = 0; i < size_max; i++) {
 		uint8_t c = 0;
 		for (int i = 0; i < 2;) {
-			int x = getc(stdin);
+			int x = getc(stream);
 			switch(x) {
 				case EOF:
 					goto done;
@@ -70,12 +70,25 @@ static char test(__char *data, size_t data_size) {
 
 	data_size = gdsl_decoded(&state);
 
-	char *str = gdsl_x86_pretty(insn);
+	printf("Instruction bytes:");
+	for(size_t i = 0; i < data_size; ++i)
+		printf(" %02x", (int)(data[i]) & 0xff);
+	printf("\n");
+
+	char *str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_FULL);
 	if(str)
 		puts(str);
 	else
 		printf("NULL\n");
 	free(str);
+
+	str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_SIMPLE);
+	if(str)
+		puts(str);
+	else
+		printf("NULL\n");
+	free(str);
+
 	printf("---------------------------\n");
 
 	__obj rreil;
@@ -100,6 +113,12 @@ static char test(__char *data, size_t data_size) {
 	return retval;
 }
 
+static void test_stream(FILE *stream) {
+	__char data[15];
+	stream_to_insn_buffer(stream, (uint8_t*)data, sizeof(data));
+	test(data, sizeof(data));
+}
+
 static void generator() {
 	for(size_t i = 0; i < 1000; ++i) {
 		printf("%lu +++++++++++++++++++++\n", i);
@@ -116,11 +135,6 @@ static void generator() {
 		fclose(stream);
 		generator_tree_free(root);
 
-		printf("Instruction bytes:");
-		for(size_t i = 0; i < length; ++i)
-			printf(" %02x", (int)(buffer[i]) & 0xff);
-		printf("\n");
-
 		char result = test((__char *)buffer, length);
 
 		free(buffer);
@@ -133,9 +147,7 @@ static void generator() {
 }
 
 static void cli() {
-	__char data[15];
-	stdin_read((uint8_t*)data, sizeof(data));
-	test(data, sizeof(data));
+	test_stream(stdin);
 }
 
 static void code() {
@@ -163,13 +175,17 @@ static void code() {
 	//	__char data[] = { 0x66, 0x4b, 0xd0, 0x13 };
 	//	__char data[] = { 0x66, 0x41, 0xe0, 0xbd, 0x51, 0x24, 0xb0, 0x23 };
 	//
-	__char data[] = { 0x48, 0xf3, 0xac, 0x97, 0x29, 0x29, 0x60, 0x0e };
+	/*
+	 * Todo: Wrong decoding
+	 */
+	__char data[] = { 0x41, 0x8a, 0xe5 };
 
 	test(data, sizeof(data));
 }
 
 static void cmdline(char const *parameter) {
-
+	FILE *stream = fmemopen((void*)parameter, strlen(parameter) + 1, "r");
+	test_stream(stream);
 }
 
 enum mode {

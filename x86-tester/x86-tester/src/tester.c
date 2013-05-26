@@ -24,7 +24,7 @@
 #include <stack.h>
 #include "tbgen.h"
 
-#define DRYRUN
+//#define DRYRUN
 
 static void tester_access_init(struct context *context,
 		struct register_access *access, void (*k)(uint8_t *, size_t)) {
@@ -86,7 +86,7 @@ static char tester_instruction_execute(uint8_t *instruction,
 		size_t first = page_size - ((size_t)*address & page_mask);
 		size_t pages = 1;
 		if(*size > first)
-			pages += (*size - first)/page_size + 1;
+			pages += (*size - first) / page_size + 1;
 		*size = page_size * pages;
 		*address = (void*)((size_t)*address & (~page_mask));
 	}
@@ -169,9 +169,9 @@ static char tester_instruction_execute(uint8_t *instruction,
 
 #ifndef DRYRUN
 	if(!setjmp(jbuf))
-	((void (*)(void))code)();
+		((void (*)(void))code)();
 	else
-	retval = -10;
+		retval = -10;
 #endif
 
 	act.sa_sigaction = NULL;
@@ -479,6 +479,11 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	}
 
 	void rand_address_buffer(uint8_t *data, size_t bit_length) {
+		if(bit_length != 64) {
+			rand_buffer(data, bit_length);
+			return;
+		}
+
 		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
 			if(!i)
 				data[i] = rand() & 0xf0;
@@ -533,8 +538,8 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 //	tester_rflags_clean(context_rreil);
 
-	tester_instruction_execute(instruction, instruction_length, trace,
-			context_cpu, code, tbgen_result);
+	char retval = tester_instruction_execute(instruction, instruction_length,
+			trace, context_cpu, code, tbgen_result);
 
 //	tester_rflags_clean(context_cpu);
 
@@ -550,7 +555,10 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	context_x86_print(context_rreil);
 
 	printf("------------------\n");
-	char retval = tester_contexts_compare(trace, context_cpu, context_rreil);
+	if(!retval)
+		retval = tester_contexts_compare(trace, context_cpu, context_rreil);
+	else
+		printf("Comparison skipped because of the failure to execute the test function.\n");
 
 	context_free(context_cpu);
 
