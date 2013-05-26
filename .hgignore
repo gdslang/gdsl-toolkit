@@ -49,6 +49,14 @@ x86-tester/x86-tester/.cproject
 x86-tester/x86-tester/.project
 x86-tester/x86-tester/Debug/
 
+x86-tester/x86-test-runner/.cproject
+x86-tester/x86-test-runner/.project
+x86-tester/x86-test-runner/Debug/
+
+x86-tester/x86-test-stats-runner/.cproject
+x86-tester/x86-test-stats-runner/.project
+x86-tester/x86-test-stats-runner/Debug/
+
 x86-tester/util/.cproject
 x86-tester/util/.project
 x86-tester/util/Debug/
