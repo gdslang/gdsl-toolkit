@@ -13,7 +13,7 @@ structure Simplify = struct
      | visitExp s (IDexp sym) = IDexp sym
      | visitExp s (CALLexp (m, sym,es)) = 
       let
-         val { prim_map = prim_map } = s
+         val { prim_map = prim_map, no_arg_funs = _ } = s
          (*val _ = TextIO.print ("checking call " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
       in
          case SymMap.find (prim_map, sym) of
@@ -39,10 +39,18 @@ structure Simplify = struct
           | e => VEC2INTexp (sz, e)
         )
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
-     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+     | visitExp s (CLOSUREexp (t,sym,es)) =
+      let
+          val { prim_map = prim_map, no_arg_funs = funs } = s
+      in
+         if List.null es andalso SymSet.member(funs,sym) then
+         CALLexp (PUREmonkind, sym, []) else
+         CLOSUREexp (t,sym,map (visitExp s) es)
+      end
      | visitExp s (STATEexp e) = STATEexp (visitExp s e)
      | visitExp s (EXECexp e) = (case visitExp s e of
             STATEexp e => e
+          | CALLexp (_,sym,es) => EXECexp (visitExp s (CALLexp (INOUTmonkind, sym, es)))
           | CLOSUREexp (t,sym,es) => visitExp s (EXECexp (CALLexp (INOUTmonkind, sym, es)))
           | e => EXECexp e
         )
@@ -68,89 +76,29 @@ structure Simplify = struct
       }
      | visitDecl s d = d
 
+   fun gatherNoArgFuns (FUNCdecl {
+        funcName = name,
+        funcArgs = [],
+        funcClosure = [],
+        ...
+      },ss) = SymSet.add (ss,name)
+     | gatherNoArgFuns (_, ss) = ss
+
    fun run ({ decls = ds, fdecls = fs } : imp) =
       let
          fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
          val prim_map =
             foldl (fn ((k,v),m) => SymMap.insert (m,get k,v))
                SymMap.empty ImpFromCore.prim_table
-         val state = { prim_map = prim_map }
+         val noArgFuns = foldl gatherNoArgFuns SymSet.empty ds
+
+         val state = { prim_map = prim_map, no_arg_funs = noArgFuns }
          val ds = map (visitDecl state) ds
       in
          { decls = ds, fdecls = fs } : imp
       end
    
 end
-
-(*structure Simplify = struct
-   val name = "simplify"
-
-   open Imp
-      
-   fun visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
-     | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, map (visitStmt s) t, map (visitStmt s) e)
-     | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
-
-   and visitCase s (p,stmts) = (p, map (visitStmt s) stmts)
-   
-   and visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
-     | visitExp s (CALLexp (m, sym,es)) = CALLexp (m, sym, map (visitExp s) es)
-     | visitExp s (INVOKEexp (m, e,es)) = (case visitExp s e of
-        CLOSUREexp (t,sym,ess) => CALLexp (m, sym, map (visitExp s) (ess @ es))
-      | e => INVOKEexp (m, e, map (visitExp s) es)
-      )
-     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
-     | visitExp s (BOXexp (t,e)) = (case visitExp s e of
-            UNBOXexp (t2,e) => e
-          | e => BOXexp (t, e)
-        )
-     | visitExp s (UNBOXexp (t,e)) =  (case visitExp s e of
-            BOXexp (t2,e) => e
-          | e => UNBOXexp (t, e)
-        )
-     | visitExp s (VEC2INTexp (sz,e)) = (case visitExp s e of
-            INT2VECexp (sz,e) => e
-          | e => VEC2INTexp (sz, e)
-        )
-     | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
-     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp e) = STATEexp (visitExp s e)
-     | visitExp s (EXECexp e) = (case visitExp s e of
-            STATEexp e => e
-          | e => EXECexp e
-        )
-     | visitExp s e = e
-   
-   fun visitDecl s (FUNCdecl {
-        funcMonadic = monkind,
-        funcClosure = clArgs,
-        funcType = vtype,
-        funcName = name,
-        funcArgs = args,
-        funcLocals = locals,
-        funcBody = stmts,
-        funcRes = res
-      }) = FUNCdecl {
-        funcMonadic = monkind,
-        funcClosure = clArgs,
-        funcType = vtype,
-        funcName = name,
-        funcArgs = args,
-        funcLocals = locals,
-        funcBody = map (visitStmt s) stmts,
-        funcRes = visitExp s res
-      }
-     | visitDecl s d = d
-
-   fun run { decls = ds, fdecls = fs } =
-      let
-         val state = {}
-         val ds = map (visitDecl state) ds
-      in
-         { decls = ds, fdecls = fs }
-      end
-   
-end*)
 
 structure TypeRefinement = struct
    val name = "typeRefinement"
@@ -277,9 +225,6 @@ structure TypeRefinement = struct
                val _ = DynamicArray.update (tt,Int.min (xRoot,yRoot),ty)
             in
                ecr
-               (*if List.exists (fn x => x=ecr) (!vars) then
-                  (TextIO.print ("occurs check via " ^ showSType ecr ^ " when unifying " ^ showSType xTy ^ " and " ^ showSType yTy ^ "\n"); raise TypeOptBug)
-               else (vars := ecr :: (!vars); ecr)*)
             end
            | lub (VARstype x, t) =
             let
@@ -292,9 +237,6 @@ structure TypeRefinement = struct
                val _ = DynamicArray.update (tt,xRoot,ty)
             in
                ecr
-               (*if List.exists (fn x => x=ecr) (!vars) then
-                  (TextIO.print "occurs check!\n"; raise TypeOptBug)
-               else (vars := ecr :: (!vars); ecr)*)
             end
            | lub (t, VARstype idx) = lub (VARstype idx, t)
            | lub (VOIDstype, t) = t
@@ -643,31 +585,31 @@ structure TypeRefinement = struct
    
    and patchArgs s (orig,new,es) =
       let
-         fun genNewArgs acc (OBJvtype, t, es) = raise TypeOptBug
-           | genNewArgs acc (FUNvtype (vRes, vCl, vType :: vs),
+         fun genNewArgs acc (FUNvtype (vRes, vCl, vType :: vs),
                              FUNstype (sRes, sCl, sType :: ss), e :: es) =
                genNewArgs (acc @ [writeWrap s (vType,sType,e)])
                   (FUNvtype (vRes, vCl, vs), FUNstype (sRes, sCl, ss), es)
            | genNewArgs acc (vs, ss, []) = (acc, vs, ss)
-           | genNewArgs acc (FUNvtype (FUNvtype (vRes, _, vType :: vs), vCl, []),
-                             FUNstype (sRes, sCl, sType :: ss), e :: es) =
-               genNewArgs (acc @ [writeWrap s (vType,sType,e)])
-                  (FUNvtype (vRes, vCl, vs), FUNstype (sRes, sCl, ss), es)
-           | genNewArgs acc (FUNvtype (vRes, vCl, vType :: vs),
-                             FUNstype (FUNstype (sRes, _, sType :: ss), sCl, []), e :: es) =
-               genNewArgs (acc @ [writeWrap s (vType,sType,e)])
-                  (FUNvtype (vRes, vCl, vs), FUNstype (sRes, sCl, ss), es)
-           | genNewArgs acc (_,_,_) = raise TypeOptBug
+           | genNewArgs acc (FUNvtype (FUNvtype (vRes, vCl1, vs), vCl2, []),
+                             FUNstype (sRes, sCl, ss), e :: es) =
+               genNewArgs acc (FUNvtype (vRes, vCl1 orelse vCl2, vs),
+                               FUNstype (sRes, sCl, ss), e :: es)
+           | genNewArgs acc (FUNvtype (vRes, vCl, vs),
+                             FUNstype (FUNstype (sRes, sCl1, ss), sCl2, []), e :: es) =
+               genNewArgs acc (FUNvtype (vRes, vCl, vs),
+                               FUNstype (sRes, sCl1 orelse sCl2, ss), e :: es)
+           | genNewArgs acc (v,s,e :: es) = (TextIO.print ("patchArgs of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ ", next argument is " ^ Layout.tostring (Imp.PP.exp e) ^ "\n"); raise TypeOptBug)
+
       in
         case genNewArgs [] (orig, inlineSType s new, es) of
            (es, FUNvtype (vRes, vCl, []), FUNstype (sRes, sCl, [])) =>
             (fn e => readWrap s (vRes, sRes, e), adjustType s (vRes, sRes), es)
-         | (es, FUNvtype (vRes, vCl, []), FUNstype (sRes, sCl, ss)) =>
+         | (es, FUNvtype (vRes, vCl, vs), FUNstype (sRes, sCl, ss)) =>
             (fn e => readWrap s (vRes, sRes, e), FUNvtype (
             adjustType s (vRes, sRes), vCl orelse sCl,
-            map (fn sType => adjustType s (OBJvtype, sType)) ss),
+            map (fn (vType,sType) => adjustType s (vType, sType)) (ListPair.zipEq (vs,ss))),
             es)
-         | (es, _, _) => raise TypeOptBug
+         | (es, v, s) => (TextIO.print ("patchArgs of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ "\n"); raise TypeOptBug)
      end
    fun run { decls = ds, fdecls = fs } =
       let
