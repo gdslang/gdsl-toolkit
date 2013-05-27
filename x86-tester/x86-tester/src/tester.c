@@ -55,27 +55,67 @@ static void tester_access_init(struct context *context,
 	}
 }
 
+static void zero_buffer(uint8_t *data, size_t bit_length) {
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+		data[i] = 0;
+}
+
+static void rand_buffer(uint8_t *data, size_t bit_length) {
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+		data[i] = rand();
+}
+
+static void rand_address_buffer(uint8_t *data, size_t bit_length) {
+	if(bit_length != 64) {
+		rand_buffer(data, bit_length);
+		return;
+	}
+
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
+		if(!i)
+			data[i] = rand() & 0xf0;
+		else if(i < 5)
+			data[i] = rand();
+		else
+			data[i] = 0;
+	}
+}
+
+static void access_rreil_init(struct context *context_rreil,
+		struct tracking_trace *trace) {
+	tester_access_init(context_rreil, &trace->reg.written, &zero_buffer);
+//	tester_access_init(context_rreil, &trace->reg.read, &rand_buffer);
+
+	void (*rand)(uint8_t*, size_t);
+	if(trace->mem.used)
+		rand = &rand_address_buffer;
+	else
+		rand = &rand_buffer;
+
+	tester_access_init(context_rreil, &trace->reg.read, rand);
+	tester_access_init(context_rreil, &trace->reg.dereferenced, rand);
+
+	executor_rflags_clean(context_rreil);
+}
+
+static void ip_set(struct context *context_rreil, struct context *context_cpu,
+		void *next_instruction_address) {
+	struct data insn_address;
+	insn_address.data = (uint8_t*)&next_instruction_address;
+	insn_address.bit_length = sizeof(next_instruction_address) * 8;
+	context_data_define(&insn_address);
+
+	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
+			insn_address, 0);
+	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP],
+			insn_address, 0);
+
+	free(insn_address.defined);
+}
+
 enum tester_result tester_test_translated(struct rreil_statements *statements,
 		uint8_t *instruction, size_t instruction_length) {
 	enum tester_result result = TESTER_RESULT_SUCCESS;
-
-//	for(size_t i = 0; i < 200; ++i) {
-//		uint64_t *x;
-//		for(size_t i = 0; i < 100; ++i) {
-//			x = (uint64_t)x ^ rand() << i;
-//		}
-//		void *mem = mmap(x, 10*4096, PROT_READ | PROT_WRITE,
-//				MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
-////		if(mem != (x & (-1 ^ 0xfff)))
-//			printf("%lu\n", x);
-//	}
-//	uint64_t *x = 0x3FFFFFFFF000;
-//	uint64_t *mem = mmap(x, 4096, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
-//	mem += 0x00f0000000000000;
-//	mem[1] = 42;
-//		if(mem != (x & (-1 ^ 0xfff)))
-//	*mem = 37;
-//		printf("%lu\n", *mem);
 
 	rreil_statements_print(statements);
 
@@ -109,24 +149,6 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 
 	context_rreil = context_init(&load, &store, &jump);
 
-//			uint64_t value = 0x2b3481cfef1194ba;
-//			uint64_t value = 0x2b3481cfef1194ba;
-//			uint64_t value = 22;
-//			struct rreil_id id;
-//			id.type = RREIL_ID_TYPE_X86;
-//			id.x86 = RREIL_ID_X86_AX;
-//			simulator_register_write_64(context, &id, value, 0);
-//
-//			value = 0;
-//			id.x86 = RREIL_ID_X86_FLAGS;
-//			simulator_register_write_64(context, &id, value, 0);
-//
-//			value = 0x1100000000000052;
-//			id.x86 = RREIL_ID_X86_CX;
-//			simulator_register_write_64(context, &id, value, 0);
-//
-//			simulator_context_x86_print(context);
-
 	tracking_statements_trace(trace, statements);
 
 	if(!trace->reg.dereferenced.x86_indices_length
@@ -139,45 +161,7 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 	printf("------------------\n");
 	tracking_trace_print(trace);
 
-	void zero_buffer(uint8_t *data, size_t bit_length) {
-		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-			data[i] = 0;
-	}
-
-	void rand_buffer(uint8_t *data, size_t bit_length) {
-		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-			data[i] = rand();
-	}
-
-	void rand_address_buffer(uint8_t *data, size_t bit_length) {
-		if(bit_length != 64) {
-			rand_buffer(data, bit_length);
-			return;
-		}
-
-		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
-			if(!i)
-				data[i] = rand() & 0xf0;
-			else if(i < 5)
-				data[i] = rand();
-			else
-				data[i] = 0;
-		}
-	}
-
-	tester_access_init(context_rreil, &trace->reg.written, &zero_buffer);
-//	tester_access_init(context_rreil, &trace->reg.read, &rand_buffer);
-
-	void (*rand)(uint8_t*, size_t);
-	if(trace->mem.used)
-		rand = &rand_address_buffer;
-	else
-		rand = &rand_buffer;
-
-	tester_access_init(context_rreil, &trace->reg.read, rand);
-	tester_access_init(context_rreil, &trace->reg.dereferenced, rand);
-
-	executor_rflags_clean(context_rreil);
+	access_rreil_init(context_rreil, trace);
 
 	context_cpu = context_copy(context_rreil);
 
@@ -187,17 +171,7 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 			instruction, instruction_length, trace, context_cpu, &code,
 			&next_instruction_address);
 
-	struct data insn_address;
-	insn_address.data = (uint8_t*)&next_instruction_address;
-	insn_address.bit_length = sizeof(next_instruction_address) * 8;
-	context_data_define(&insn_address);
-
-	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
-			insn_address, 0);
-	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP],
-			insn_address, 0);
-
-	free(insn_address.defined);
+	ip_set(context_rreil, context_cpu, next_instruction_address);
 
 	printf("------------------\n");
 	context_x86_print(context_rreil);
@@ -207,11 +181,6 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 		result = TESTER_RESULT_SIMULATION_ERROR;
 		goto cu_a;
 	}
-
-//	char *k = malloc(900);
-//	memcpy(k, context_cpu->memory.allocations[0].data, context_cpu->memory.allocations[0].data_size);
-
-//	tester_rflags_clean(context_rreil);
 
 	char retval = executor_instruction_execute(instruction, instruction_length,
 			trace, context_cpu, code, tbgen_result);
@@ -229,13 +198,13 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 	context_x86_print(context_rreil);
 
 	printf("------------------\n");
-	if(!retval) {
-		retval = context_compare(trace, context_cpu, context_rreil);
-		if(retval)
-			result = TESTER_RESULT_COMPARISON_ERROR;
-	} else
-		printf(
-				"Comparison skipped because of the failure to execute the test function.\n");
+//	if(!retval) {
+	retval = context_compare(trace, context_cpu, context_rreil);
+	if(retval)
+		result = TESTER_RESULT_COMPARISON_ERROR;
+//	} else
+//		printf(
+//				"Comparison skipped because of the failure to execute the test function.\n");
 
 	cu_a: ;
 
@@ -249,6 +218,32 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 	cu_b: ;
 	tracking_trace_free(trace);
 	context_free(context_rreil);
+
+	return result;
+}
+
+static enum tester_result tester_forked_test_translated(char fork_,
+		struct rreil_statements *statements, uint8_t *instruction,
+		size_t instruction_length) {
+	enum tester_result result;
+	if(fork_) {
+		enum tester_result *translated_result = mmap(NULL,
+				sizeof(enum tester_result), PROT_READ | PROT_WRITE,
+				MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+		*translated_result = TESTER_RESULT_CRASH;
+
+		pid_t pid = fork();
+		if(!pid) {
+			*translated_result = tester_test_translated(statements, instruction,
+					instruction_length);
+			exit(0);
+		} else
+			waitpid(pid, NULL, 0);
+		result = *translated_result;
+		munmap(translated_result, sizeof(enum tester_result));
+	} else
+		result = tester_test_translated(statements, instruction,
+				instruction_length);
 
 	return result;
 }
@@ -307,24 +302,9 @@ enum tester_result tester_test_binary(void (*name)(char *), char fork_,
 			rreil, config);
 	free(config);
 
-	if(fork_) {
-		enum tester_result *translated_result = mmap(NULL,
-				sizeof(enum tester_result), PROT_READ | PROT_WRITE,
-				MAP_SHARED | MAP_ANONYMOUS, 0, 0);
-		*translated_result = TESTER_RESULT_CRASH;
+	result = tester_forked_test_translated(fork_, statements, data, data_size);
 
-		pid_t pid = fork();
-		if(!pid) {
-			*translated_result = tester_test_translated(statements, data, data_size);
-			exit(0);
-		} else
-			waitpid(pid, NULL, 0);
-		result = *translated_result;
-		munmap(translated_result, sizeof(enum tester_result));
-	} else
-		result = tester_test_translated(statements, data, data_size);
-
-	rreil_statements_free(statements);
+	rreil_statements_free( statements);
 
 	cu: ;
 
