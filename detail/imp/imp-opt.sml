@@ -455,7 +455,7 @@ structure TypeRefinement = struct
          updateName = name,
          updateFields = fs,
          updateType = _
-      }) = lub (s, symType s name, FUNstype (freshTVar s, true, map (fieldType s) fs @ [freshTVar s]))
+      }) = lub (s, symType s name, FUNstype (FUNstype (freshTVar s,false,[freshTVar s]), true, map (fieldType s) fs))
      | visitDecl s (CONdecl {
          conName = name,
          conArg = arg,
@@ -497,8 +497,6 @@ structure TypeRefinement = struct
           (BOXstype INTstype) => BOXexp (INTvtype,e)
         | (BOXstype (BITstype (CONSTstype s))) => BOXexp (BITvtype, INT2VECexp (s,e))
         | (BOXstype (BITstype _)) => BOXexp (BITvtype, e)
-        | (BITstype (CONSTstype s)) => INT2VECexp (s,e)
-        | (BITstype _) => e
         | (VOIDstype) => RECORDexp []
         | _ => e
        )
@@ -512,8 +510,6 @@ structure TypeRefinement = struct
           (BOXstype INTstype) => UNBOXexp (INTvtype,e)
         | (BOXstype (BITstype (CONSTstype s))) => VEC2INTexp (SOME s,UNBOXexp (BITvtype, e))
         | (BOXstype (BITstype _)) => UNBOXexp (BITvtype, e)
-        | (BITstype (CONSTstype s)) => VEC2INTexp (SOME s,e)
-        | (BITstype _) => e
         | (VOIDstype) => RECORDexp []
         | _ => e
        )
@@ -647,25 +643,31 @@ structure TypeRefinement = struct
    
    and patchArgs s (orig,new,es) =
       let
-         fun genNewArgs acc (vType :: vs, sType :: ss, e :: es) =
-               genNewArgs (acc @ [readWrap s (vType,sType,e)]) (vs, ss, es)
-           | genNewArgs acc (vs, ss, []) = (acc, ss)
-           | genNewArgs acc ([], ss, es) = genNewArgs acc ([OBJvtype], ss, es)
-           | genNewArgs acc _ = raise TypeOptBug
-         val (vRes, vCl, vArgs) = case orig of
-               FUNvtype (vRes, vCl, vArgs) => (vRes, vCl, vArgs)
-             | OBJvtype => (OBJvtype, false, [])
-             | _ => raise TypeOptBug
-         val (sRes, sCl, sArgs) = case inlineSType s new of
-               FUNstype (sRes, sCl, sArgs) => (sRes, sCl, sArgs)
-             | _ => raise TypeOptBug
+         fun genNewArgs acc (OBJvtype, t, es) = raise TypeOptBug
+           | genNewArgs acc (FUNvtype (vRes, vCl, vType :: vs),
+                             FUNstype (sRes, sCl, sType :: ss), e :: es) =
+               genNewArgs (acc @ [writeWrap s (vType,sType,e)])
+                  (FUNvtype (vRes, vCl, vs), FUNstype (sRes, sCl, ss), es)
+           | genNewArgs acc (vs, ss, []) = (acc, vs, ss)
+           | genNewArgs acc (FUNvtype (FUNvtype (vRes, _, vType :: vs), vCl, []),
+                             FUNstype (sRes, sCl, sType :: ss), e :: es) =
+               genNewArgs (acc @ [writeWrap s (vType,sType,e)])
+                  (FUNvtype (vRes, vCl, vs), FUNstype (sRes, sCl, ss), es)
+           | genNewArgs acc (FUNvtype (vRes, vCl, vType :: vs),
+                             FUNstype (FUNstype (sRes, _, sType :: ss), sCl, []), e :: es) =
+               genNewArgs (acc @ [writeWrap s (vType,sType,e)])
+                  (FUNvtype (vRes, vCl, vs), FUNstype (sRes, sCl, ss), es)
+           | genNewArgs acc (_,_,_) = raise TypeOptBug
       in
-        case genNewArgs [] (vArgs, sArgs, es) of
-           (es, []) => (fn e => readWrap s (vRes, sRes, e), adjustType s (vRes, sRes), es)
-         | (es, ss) => (fn e => readWrap s (vRes, sRes, e), FUNvtype (
+        case genNewArgs [] (orig, inlineSType s new, es) of
+           (es, FUNvtype (vRes, vCl, []), FUNstype (sRes, sCl, [])) =>
+            (fn e => readWrap s (vRes, sRes, e), adjustType s (vRes, sRes), es)
+         | (es, FUNvtype (vRes, vCl, []), FUNstype (sRes, sCl, ss)) =>
+            (fn e => readWrap s (vRes, sRes, e), FUNvtype (
             adjustType s (vRes, sRes), vCl orelse sCl,
             map (fn sType => adjustType s (OBJvtype, sType)) ss),
             es)
+         | (es, _, _) => raise TypeOptBug
      end
    fun run { decls = ds, fdecls = fs } =
       let

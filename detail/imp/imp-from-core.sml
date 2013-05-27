@@ -322,8 +322,9 @@ end = struct
          val (stmtss, argExps) = foldl (fn (arg, (stmtss, args)) =>
             case trExpr s arg of (stmts, argExp) =>
             (stmtss @ stmts, args @ [argExp])) ([],[]) args
+         val ty = FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) args)
       in
-         (stmtss, INVOKEexp (PUREmonkind, FUNvtype (OBJvtype,false,[]), funcExp, argExps))
+         (stmtss, INVOKEexp (PUREmonkind, ty, funcExp, argExps))
       end
      | trExpr s (Exp.PRI (name, args)) = (
          (* this case is actually dead as all primitives are function calls,
@@ -361,11 +362,11 @@ end = struct
          val (stmts, unsortedUpdates) = trans [] [] us
          fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
-         val fType = FUNvtype (OBJvtype, false, map (fn _ => OBJvtype) updates @ [OBJvtype])
+         val resTy = FUNvtype (OBJvtype, true, [OBJvtype])
+         val fType = FUNvtype (resTy, false, map (fn _ => OBJvtype) updates)
          val updateFun = addUpdate s (map (fn (f,_) => f) updates, fType)
-         val fType = FUNvtype (OBJvtype, not (null updates), [OBJvtype])
       in
-         (stmts, CLOSUREexp (fType, updateFun, map (fn (_,e) => e) updates))
+         (stmts, CLOSUREexp (resTy, updateFun, map (fn (_,e) => e) updates))
       end
      | trExpr s (Exp.SELECT f) =
       let
@@ -405,7 +406,7 @@ end = struct
      | trExpr s (Exp.LIT (SpecAbstractTree.STRlit str)) =
          ([], LITexp (STRINGvtype,STRlit str))
      | trExpr s (Exp.LIT (SpecAbstractTree.VEClit v)) =
-         ([], BOXexp (INTvtype, INT2VECexp (String.size v, LITexp (INTvtype, (VEClit v)))))
+         ([], BOXexp (BITvtype, INT2VECexp (String.size v, LITexp (INTvtype, (VEClit v)))))
      | trExpr s (Exp.LIT (SpecAbstractTree.FLTlit _)) =
          raise ImpTranslationBug
      | trExpr s (Exp.CON sym) =
