@@ -114,22 +114,25 @@ structure Imp = struct
       }
     | SELECTdecl of {
         selectName : sym,
-        selectField : sym
+        selectField : sym,
+        selectType : vtype
       }
     | UPDATEdecl of {
         updateName : sym,
-        updateFields : sym list
+        updateFields : sym list,
+        updateType : vtype
       }
     | CONdecl of {
         conName : sym,
-        conArg : sym
+        conArg : sym,
+        conType : vtype
       }
 
    and exp =
       IDexp of sym
     | PRIexp of monkind * prim * vtype * exp list
     | CALLexp of monkind * sym * exp list (* callee is unboxed *)
-    | INVOKEexp of monkind * exp * exp list (* callee is a closure *)
+    | INVOKEexp of monkind * vtype * exp * exp list (* callee is a closure *)
     | RECORDexp of (sym * exp) list
     | LITexp of vtype * lit
     | BOXexp of vtype * exp
@@ -206,16 +209,16 @@ structure Imp = struct
                    (args ("(", arg, funcArgs, monarg funcMonadic))
                ),
                indent 3 (align (
-                  map vardecl funcLocals @
+                  seq (separate (map vardecl funcLocals, ", ")) ::
                   map stmt funcBody @
                   [seq [str "return ", exp funcRes]] ))
                ]
-        | decl (SELECTdecl { selectName = name, selectField = f }) =
-            seq [var name, str ";"]
-        | decl (UPDATEdecl { updateName = name, updateFields = fs }) =
-            seq [var name, str ";"]
-        | decl (CONdecl { conName = name, conArg = arg }) =
-            seq [var name, str "(", var arg, str ");"]
+        | decl (SELECTdecl { selectName = name, selectField = f, selectType = t }) =
+            seq [vtype t, space, var name, str ";"]
+        | decl (UPDATEdecl { updateName = name, updateFields = fs, updateType = t }) =
+            seq [vtype t, space, var name, str ";"]
+        | decl (CONdecl { conName = name, conArg = arg, conType = t }) =
+            seq [vtype t, space, var name, str "(", var arg, str ");"]
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
       and lit (t,VEClit s) = seq [str "0b", str s] 
         | lit (t,STRlit s) = seq [str "\"", str s, str "\""]
@@ -226,7 +229,7 @@ structure Imp = struct
             seq (vtype t :: space :: str "prim" :: space ::
               str (#name (prim_info p)) :: args ("(",exp,es,monarg m))
         | exp (CALLexp (m,f,es)) = seq (var f :: args ("(",exp,es,monarg m))
-        | exp (INVOKEexp (m,f,es)) = seq (str "*" :: exp f :: args ("(",exp,es,monarg m))
+        | exp (INVOKEexp (m,t,f,es)) = seq (str "*" :: vtype t :: exp f :: args ("(",exp,es,monarg m))
         | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
         | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]

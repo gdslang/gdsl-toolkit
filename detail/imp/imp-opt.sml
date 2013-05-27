@@ -1,5 +1,5 @@
-structure TransCalls = struct
-   val name = "transCalls"
+structure Simplify = struct
+   val name = "simplify"
 
    open Imp
       
@@ -10,47 +10,43 @@ structure TransCalls = struct
    and visitCase s (p,stmts) = (p, map (visitStmt s) stmts)
    
    and visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
-     | visitExp s (IDexp sym) =
-      let
-         val { prim_map = prim_map, globals = globals } = s
-         val _ = TextIO.print ("checking sym " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
-      in
-         case SymMap.find (prim_map, sym) of
-            SOME (0,gen) => visitExp s (gen [])
-          | _ => IDexp sym
-      end
+     | visitExp s (IDexp sym) = IDexp sym
      | visitExp s (CALLexp (m, sym,es)) = 
       let
-         val { prim_map = prim_map, globals = globals } = s
-         val _ = TextIO.print ("checking call " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+         val { prim_map = prim_map } = s
+         (*val _ = TextIO.print ("checking call " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
       in
          case SymMap.find (prim_map, sym) of
             SOME (_,gen) => visitExp s (gen es)
           | NONE => CALLexp (m, sym, map (visitExp s) es)
       end
-     | visitExp s (INVOKEexp (m, e, es)) = (case visitExp s e of
-        IDexp sym =>
-         let
-            val { prim_map = prim_map, globals = globals } = s
-            (*val _ = TextIO.print ("checking " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
-         in
-            case SymMap.find (prim_map, sym) of
-               SOME (_, gen) => visitExp s (gen es)
-             | NONE => if SymSet.member(globals, sym)
-               then CALLexp (m, sym, map (visitExp s) es)
-               else INVOKEexp (m, IDexp sym, map (visitExp s) es)
-         end
-      | e => INVOKEexp (m, e, map (visitExp s) es)
+     | visitExp s (INVOKEexp (m, t, e, es)) = (case visitExp s e of
+         CLOSUREexp (t,sym,ess) => visitExp s (CALLexp (m, sym, ess @ es))
+       | e => INVOKEexp (m, t, e, map (visitExp s) es)
      )
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
-     | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
-     | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
-     | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz,visitExp s e)
+     | visitExp s (LITexp l) = LITexp l
+     | visitExp s (BOXexp (t,e)) = (case visitExp s e of
+            UNBOXexp (t2,e) => e
+          | e => BOXexp (t, e)
+        )
+     | visitExp s (UNBOXexp (t,e)) =  (case visitExp s e of
+            BOXexp (t2,e) => e
+          | e => UNBOXexp (t, e)
+        )
+     | visitExp s (VEC2INTexp (sz,e)) = (case visitExp s e of
+            INT2VECexp (sz,e) => e
+          | e => VEC2INTexp (sz, e)
+        )
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (EXECexp e) = EXECexp (visitExp s e)
-     | visitExp s e = e
-   
+     | visitExp s (STATEexp e) = STATEexp (visitExp s e)
+     | visitExp s (EXECexp e) = (case visitExp s e of
+            STATEexp e => e
+          | CLOSUREexp (t,sym,es) => visitExp s (EXECexp (CALLexp (INOUTmonkind, sym, es)))
+          | e => EXECexp e
+        )
+
    fun visitDecl s (FUNCdecl {
         funcMonadic = monkind,
         funcClosure = clArgs,
@@ -78,14 +74,7 @@ structure TransCalls = struct
          val prim_map =
             foldl (fn ((k,v),m) => SymMap.insert (m,get k,v))
                SymMap.empty ImpFromCore.prim_table
-         val _ = app (fn sym => TextIO.print ("primitive " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")) (SymMap.listKeys prim_map)
-         fun getSymbol (FUNCdecl { funcName = name, ... }) = name
-           | getSymbol (SELECTdecl { selectName = name, ... }) = name
-           | getSymbol (UPDATEdecl { updateName = name, ... }) = name
-           | getSymbol (CONdecl { conName = name, ... }) = name
-         val globals = foldl (fn (d,s) => SymSet.add (s,getSymbol d))
-                        SymSet.empty ds
-         val state = { prim_map = prim_map, globals = globals }
+         val state = { prim_map = prim_map }
          val ds = map (visitDecl state) ds
       in
          { decls = ds, fdecls = fs } : imp
@@ -93,7 +82,7 @@ structure TransCalls = struct
    
 end
 
-structure Simplify = struct
+(*structure Simplify = struct
    val name = "simplify"
 
    open Imp
@@ -161,7 +150,7 @@ structure Simplify = struct
          { decls = ds, fdecls = fs }
       end
    
-end
+end*)
 
 structure TypeRefinement = struct
    val name = "typeRefinement"
@@ -200,7 +189,7 @@ structure TypeRefinement = struct
      | showSType (FUNstype (res,cl,args)) = (if cl then "(..." else "(") ^ #1 (
          foldl (fn (t,(str,sep)) => (str ^ sep ^ showSType t,","))
             ("", "") args
-         ) ^ ") -> " ^ showSType res
+         ) ^ ") -> (" ^ showSType res ^ ")"
      | showSType (BITstype t) = "|" ^ showSType t ^ "|"
      | showSType (CONSTstype s) = Int.toString s
      | showSType (STRINGstype) = "string"
@@ -271,6 +260,7 @@ structure TypeRefinement = struct
    
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
+         val vars = ref ([] : stype list)
          fun lub (VARstype x, VARstype y) =
             let
                val xRoot = find (tt,x)
@@ -287,6 +277,9 @@ structure TypeRefinement = struct
                val _ = DynamicArray.update (tt,Int.min (xRoot,yRoot),ty)
             in
                ecr
+               (*if List.exists (fn x => x=ecr) (!vars) then
+                  (TextIO.print ("occurs check via " ^ showSType ecr ^ " when unifying " ^ showSType xTy ^ " and " ^ showSType yTy ^ "\n"); raise TypeOptBug)
+               else (vars := ecr :: (!vars); ecr)*)
             end
            | lub (VARstype x, t) =
             let
@@ -299,12 +292,21 @@ structure TypeRefinement = struct
                val _ = DynamicArray.update (tt,xRoot,ty)
             in
                ecr
+               (*if List.exists (fn x => x=ecr) (!vars) then
+                  (TextIO.print "occurs check!\n"; raise TypeOptBug)
+               else (vars := ecr :: (!vars); ecr)*)
             end
            | lub (t, VARstype idx) = lub (VARstype idx, t)
            | lub (VOIDstype, t) = t
            | lub (t, VOIDstype) = t
            | lub (FUNstype (r1, clos1, args1), FUNstype (r2, clos2, args2)) =
-                FUNstype (lub (r1,r2), clos1 orelse clos2, lubArgs (args1,args2))
+            (case lubArgs [] (args1,args2) of
+                 (args,([],[])) => FUNstype (lub (r1,r2), clos1 orelse clos2, args)
+               | (args,(xs,[])) =>
+                  FUNstype (lub (FUNstype (r1,clos1,xs), r2), true, args)
+               | (args,(_,ys)) =>
+                  FUNstype (lub (r1, FUNstype (r2,clos2,ys)), true, args)
+            )
            | lub (BITstype s1, BITstype s2) = BITstype (lub (s1,s2))
            | lub (CONSTstype s1, CONSTstype s2) =
                if s1=s2 then CONSTstype s1 else OBJstype
@@ -314,9 +316,8 @@ structure TypeRefinement = struct
            | lub (OBJstype, OBJstype) = OBJstype
            | lub (t1, t2) = (TextIO.print ("lub top for " ^ showSType t1 ^ "," ^ showSType t2 ^ "\n"); OBJstype)
 
-         and lubArgs (x::xs, y::ys) = lub (x,y) :: lubArgs (xs, ys)
-           | lubArgs (xs, []) = xs
-           | lubArgs ([], ys) = ys
+         and lubArgs acc (x::xs, y::ys) = lubArgs (acc @ [lub (x,y)]) (xs, ys)
+           | lubArgs acc rem = (acc,rem)
       in
          lub (t1,t2)
       end
@@ -341,7 +342,7 @@ structure TypeRefinement = struct
        | NONE =>
          let
             val idx = DynamicArray.bound tt + 1
-            (*val _ = TextIO.print ("fieldType(" ^ (SymbolTable.getString(!SymbolTables.fieldTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")*)
+            (*val _ = TextIO.print ("fieldType(" ^ SymbolTable.getString(!SymbolTables.fieldTable, sym) ^ ")= " ^ Int.toString idx ^ "\n")*)
             val _ = DynamicArray.update (tt,idx,VOIDstype)
             val _ = ft := SymMap.insert (!ft, sym, idx)
          in
@@ -378,7 +379,7 @@ structure TypeRefinement = struct
          visitCall s (FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), false, [INTstype, INTstype, INTstype]), es)
      | visitExp s (PRIexp (m,f,t,es)) = visitCall s (vtypeToStype s t, es)
      | visitExp s (CALLexp (m,sym,es)) = visitCall s (symType s sym, es)
-     | visitExp s (INVOKEexp (m,e,es)) = visitCall s (visitExp s e, es)
+     | visitExp s (INVOKEexp (m,t,e,es)) = visitCall s (visitExp s e, es)
      | visitExp s (RECORDexp fs) = (map (fn (f,e) => lub (s,fieldType s f,visitExp s e)) fs; BOXstype OBJstype)
      | visitExp s (LITexp (ty,lit)) = vtypeToStype s ty
      | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
@@ -402,12 +403,12 @@ structure TypeRefinement = struct
                                      funcRes = res, ... }) =
                   (map (symType s o #2) clArgs,map (symType s o #2) args,visitExp s res)
               | getDecTy (SELECTdecl { selectName = name,
-                                       selectField = f }) =
-                  ([fieldType s f],[],OBJstype)
+                                       selectField = f, ... }) =
+                  ([],[OBJstype],fieldType s f)
               | getDecTy (UPDATEdecl { updateName = name,
-                                       updateFields = fs }) =
-                  (map (fieldType s) fs,[],OBJstype)
-              | getDecTy (CONdecl { conName = name, conArg = arg }) =
+                                       updateFields = fs, ... }) =
+                  (map (fieldType s) fs,[OBJstype],OBJstype)
+              | getDecTy (CONdecl { conName = name, conArg = arg, ... }) =
                   ([],[symType s arg],OBJstype)
 
             val (clArgTys, argTys, resTy) = getDecTy (SymMap.lookup (#origDecls (s : state), sym))
@@ -437,24 +438,28 @@ structure TypeRefinement = struct
         funcRes = res
       }) =
       let
+         (*val _ = TextIO.print ("visitDecl " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ "\n")*)
          val _ = app (visitStmt s) stmts
          val t = visitExp s res
          fun argTypes args = map (fn (_,sym) => symType s sym) args
-         val ty = FUNstype (t, not (null clArgs), argTypes args)
+         val ty = FUNstype (t, not (null clArgs), argTypes clArgs @ argTypes args)
       in
          lub (s, symType s name, ty)
       end
      | visitDecl s (SELECTdecl {
          selectName = name,
-         selectField = f
+         selectField = f,
+         selectType = _
       }) = lub (s, symType s name, FUNstype (fieldType s f, false, [freshTVar s]))
      | visitDecl s (UPDATEdecl {
          updateName = name,
-         updateFields = fs
-      }) = lub (s, symType s name, FUNstype (freshTVar s, false, (map (fieldType s) fs)))
+         updateFields = fs,
+         updateType = _
+      }) = lub (s, symType s name, FUNstype (freshTVar s, true, map (fieldType s) fs @ [freshTVar s]))
      | visitDecl s (CONdecl {
          conName = name,
-         conArg = arg
+         conArg = arg,
+         conType = _
      }) = lub (s, symType s name, FUNstype (OBJstype, false, [symType s arg]))
 
    (* Perform a type transformation for every symbol, based on the least
@@ -469,13 +474,10 @@ structure TypeRefinement = struct
       SOME t => t
     | NONE => (case SymMap.find (#origDecls s, sym) of
           (SOME (FUNCdecl { funcType = ty, ... })) => ty
-        | (SOME (SELECTdecl { selectField = f, ... })) =>
-            FUNvtype (origFType s f, false, [OBJvtype])
-        | (SOME (UPDATEdecl { updateFields = fs, ... })) =>
-            FUNvtype (OBJvtype, false, map (origFType s) fs)
-        | (SOME (CONdecl { conName = name, conArg = arg })) =>
-            FUNvtype (OBJvtype, false, [origType s arg])
-        | NONE => (TextIO.print ("origType: no type or " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n"); raise TypeOptBug)
+        | (SOME (SELECTdecl { selectType = ty, ... })) => ty
+        | (SOME (UPDATEdecl { updateType = ty, ... })) => ty
+        | (SOME (CONdecl { conType = ty, ... })) => ty
+        | NONE => (TextIO.print ("origType: no type of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n"); raise TypeOptBug)
       )
  
    fun getArgTypes s sym = case SymMap.lookup (#origDecls s, sym) of
@@ -483,9 +485,12 @@ structure TypeRefinement = struct
             map (fn (t,sym) => (t,symType s sym)) args
         | (SELECTdecl { selectField = f, ... }) =>
             [(origFType s f, fieldType s f)]
-        | (UPDATEdecl { updateFields = fs, ... }) =>
-            map (fn f => (origFType s f, fieldType s f)) fs
-        | (CONdecl { conName = name, conArg = arg }) =>
+        | (UPDATEdecl { updateName = sym, updateType = t, ... }) =>
+            (case (t,inlineSType s (symType s sym)) of
+                (FUNvtype (_,_,vArgs), FUNstype (_,_,sArgs)) => ListPair.zipEq (vArgs,sArgs)
+              | (v,s) => (TextIO.print ("update function " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " has unequal no of args: " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ "\n"); raise TypeOptBug)
+            )
+        | (CONdecl { conName = name, conArg = arg, ... }) =>
             [(origType s arg, symType s arg)]
 
    fun readWrap s (OBJvtype,t,e) = (case inlineSType s t of
@@ -497,10 +502,10 @@ structure TypeRefinement = struct
         | (VOIDstype) => RECORDexp []
         | _ => e
        )
-     | readWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
+     (*| readWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
           (FUNstype (rNew,_,_)) => writeWrap s (rOrig,rNew,e)
         |  t => e
-       )
+       )*)
      | readWrap s (_,_,e) = e
 
    and writeWrap s (OBJvtype,t,e) = (case inlineSType s t of
@@ -512,10 +517,10 @@ structure TypeRefinement = struct
         | (VOIDstype) => RECORDexp []
         | _ => e
        )
-     | writeWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
+     (*| writeWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
           (FUNstype (rNew,_,_)) => readWrap s (rOrig,rNew,e)
         | t => e
-       )
+       )*)
      | writeWrap s (_,_,e) = e
    
    fun adjustType s (OBJvtype,t) = (case inlineSType s t of
@@ -534,7 +539,10 @@ structure TypeRefinement = struct
       )
      | adjustType s (FUNvtype (rOrig,clOrig,argsOrig),t) = (case inlineSType s t of
           (FUNstype (r,cl,args)) =>
-            FUNvtype (adjustType s (rOrig,r), cl, map (adjustType s) (ListPair.zipEq (argsOrig, args)))
+            if List.length argsOrig = List.length args then
+            FUNvtype (adjustType s (rOrig,r), cl, map (adjustType s) (ListPair.zip (argsOrig, args)))
+            else
+            (TextIO.print ("adjustType of " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (rOrig,clOrig,argsOrig))) ^ " and " ^ showSType (FUNstype (r,cl,args)) ^ "\n"); raise TypeOptBug)
         | t => OBJvtype
       )
      | adjustType s (t,_) = t
@@ -572,24 +580,30 @@ structure TypeRefinement = struct
       end
      | patchDecl s (SELECTdecl {
          selectName = name,
-         selectField = f
+         selectField = f,
+         selectType = vtype
       }) = SELECTdecl {
          selectName = name,
-         selectField = f
+         selectField = f,
+         selectType = adjustType s (vtype, symType s name)
       }
      | patchDecl s (UPDATEdecl {
          updateName = name,
-         updateFields = fs
+         updateFields = fs,
+         updateType = vtype
       }) = UPDATEdecl {
          updateName = name,
-         updateFields = fs
+         updateFields = fs,
+         updateType = adjustType s (vtype, symType s name)
       }
      | patchDecl s (CONdecl {
          conName = name,
-         conArg = arg
+         conArg = arg,
+         conType = vtype
      }) = CONdecl {
          conName = name,
-         conArg = arg
+         conArg = arg,
+         conType = adjustType s (vtype, symType s name)
      }
 
    and patchStmt s (ASSIGNstmt (NONE,exp)) = ASSIGNstmt (NONE, patchExp s exp)
@@ -602,10 +616,19 @@ structure TypeRefinement = struct
    
    and patchExp s (IDexp sym) = readWrap s (origType s sym, symType s sym, IDexp sym)
      | patchExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (patchExp s) es)
-     | patchExp s (CALLexp (m, sym,es)) = readWrap s (origType s sym, symType s sym,
-         CALLexp (m, sym, map (fn ((orig,new),e) =>
-            writeWrap s (orig,new,patchExp s e)) (ListPair.zip (getArgTypes s sym, es))))
-     | patchExp s (INVOKEexp (m, e,es)) = INVOKEexp (m, e, map (patchExp s) es)
+     | patchExp s (CALLexp (m, sym,es)) =
+      let
+         val (wrap, tyNew, esNew) = patchArgs s (origType s sym, symType s sym, map (patchExp s) es)
+      in
+         wrap (CALLexp (m, sym, esNew))
+      end
+     | patchExp s (INVOKEexp (m, ty, e, es)) =
+      let
+         val eNew = patchExp s e
+         val (wrap, tyNew, esNew) = patchArgs s (ty, visitExp s e, map (patchExp s) es)
+      in
+         wrap (INVOKEexp (m, tyNew, eNew, esNew))
+      end
      | patchExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) =>
          (f, writeWrap s (origFType s f, fieldType s f, patchExp s e))) fs)
      | patchExp s (LITexp l) = LITexp l
@@ -613,21 +636,43 @@ structure TypeRefinement = struct
      | patchExp s (UNBOXexp (t,e)) = UNBOXexp (t, patchExp s e)
      | patchExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz,patchExp s e)
      | patchExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, patchExp s e)
-     | patchExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (patchExp s) es)
+     | patchExp s (CLOSUREexp (ty,sym,es)) =
+      let
+         val (wrap, tyNew, esNew) = patchArgs s (ty, symType s sym, map (patchExp s) es)
+      in
+         wrap (CLOSUREexp (tyNew,sym,esNew))
+      end
      | patchExp s (STATEexp e) = STATEexp (patchExp s e)
      | patchExp s (EXECexp e) = EXECexp (patchExp s e)
    
+   and patchArgs s (orig,new,es) =
+      let
+         fun genNewArgs acc (vType :: vs, sType :: ss, e :: es) =
+               genNewArgs (acc @ [readWrap s (vType,sType,e)]) (vs, ss, es)
+           | genNewArgs acc (vs, ss, []) = (acc, ss)
+           | genNewArgs acc ([], ss, es) = genNewArgs acc ([OBJvtype], ss, es)
+           | genNewArgs acc _ = raise TypeOptBug
+         val (vRes, vCl, vArgs) = case orig of
+               FUNvtype (vRes, vCl, vArgs) => (vRes, vCl, vArgs)
+             | OBJvtype => (OBJvtype, false, [])
+             | _ => raise TypeOptBug
+         val (sRes, sCl, sArgs) = case inlineSType s new of
+               FUNstype (sRes, sCl, sArgs) => (sRes, sCl, sArgs)
+             | _ => raise TypeOptBug
+      in
+        case genNewArgs [] (vArgs, sArgs, es) of
+           (es, []) => (fn e => readWrap s (vRes, sRes, e), adjustType s (vRes, sRes), es)
+         | (es, ss) => (fn e => readWrap s (vRes, sRes, e), FUNvtype (
+            adjustType s (vRes, sRes), vCl orelse sCl,
+            map (fn sType => adjustType s (OBJvtype, sType)) ss),
+            es)
+     end
    fun run { decls = ds, fdecls = fs } =
       let
-         fun getDeclName (FUNCdecl { funcName = name,
-                                     funcClosure = clArgs,
-                                     funcArgs = args,
-                                     funcRes = res, ... }) = name
-           | getDeclName (SELECTdecl { selectName = name,
-                                       selectField = f }) = name
-           | getDeclName (UPDATEdecl { updateName = name,
-                                       updateFields = fs }) = name
-           | getDeclName (CONdecl { conName = name, conArg = arg }) = name
+         fun getDeclName (FUNCdecl { funcName = name, ... }) = name
+           | getDeclName (SELECTdecl { selectName = name, ... }) = name
+           | getDeclName (UPDATEdecl { updateName = name, ... }) = name
+           | getDeclName (CONdecl { conName = name, ... }) = name
 
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
          val state : state = {
@@ -670,8 +715,8 @@ structure StatePassing = struct
    and visitCase s (p,stmts) = (p, map (visitStmt s) stmts)
    
    and visitExp s (PRIexp (m,f,t,es)) = (raiseCurrent (s,m); PRIexp (m,f,t,map (visitExp s) es))
-     | visitExp s (CALLexp (m, sym,es)) = (raiseCurrent (s,m); CALLexp (genLub (s,m,sym), sym, map (visitExp s) es))
-     | visitExp s (INVOKEexp (m, e,es)) = (raiseCurrent (s,m); INVOKEexp (m, visitExp s e, map (visitExp s) es))
+     | visitExp s (CALLexp (m,sym,es)) = (raiseCurrent (s,m); CALLexp (genLub (s,m,sym), sym, map (visitExp s) es))
+     | visitExp s (INVOKEexp (m,t,e,es)) = (raiseCurrent (s,m); INVOKEexp (m,t,visitExp s e, map (visitExp s) es))
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)

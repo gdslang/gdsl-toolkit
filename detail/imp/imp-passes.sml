@@ -6,7 +6,7 @@ structure BetaPairPass = MkCPSPass (BetaPair)
 structure HoistFunPass = MkCPSPass (HoistFun)
 structure DeadValPass = MkCPSPass (DeadVal)*)
 
-structure TransCallsPass = MkIMPPass (TransCalls)
+(*structure TransCallsPass = MkIMPPass (TransCalls)*)
 structure SimplifyPass = MkIMPPass (Simplify)
 structure StatePassingPass = MkIMPPass (StatePassing)
 structure TypeRefinementPass = MkIMPPass (TypeRefinement)
@@ -26,13 +26,6 @@ end = struct
       ImpFromCore.run s >>=
       SimplifyPass.run >>=
       StatePassingPass.run >>=
-      SimplifyPass.run >>=
-      TransCallsPass.run >>=
-      TransCallsPass.run >>=
-      SimplifyPass.run >>=
-      TransCallsPass.run >>=
-      StatePassingPass.run >>=
-      SimplifyPass.run >>=
       TypeRefinementPass.run >>=
       SimplifyPass.run
 

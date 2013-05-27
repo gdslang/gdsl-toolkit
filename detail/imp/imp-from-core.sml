@@ -38,13 +38,14 @@ end = struct
          val bi = ftype [BITvtype] INTvtype
          val iib = ftype [INTvtype, INTvtype] BITvtype
          val bb = ftype [BITvtype] BITvtype
-         val is =  ftype [INTvtype] STRINGvtype
-         val bs =  ftype [BITvtype] STRINGvtype
+         val is = ftype [INTvtype] STRINGvtype
+         val bs = ftype [BITvtype] STRINGvtype
          val iiib = ftype [INTvtype, INTvtype, INTvtype] BITvtype
-         val ov =  ftype [OBJvtype] VOIDvtype
-         val oi =  ftype [OBJvtype] INTvtype
-         val oo =  ftype [OBJvtype] OBJvtype
-         val ooo =  ftype [OBJvtype, OBJvtype] OBJvtype
+         val ov = ftype [OBJvtype] VOIDvtype
+         val oi = ftype [OBJvtype] INTvtype
+         val oo = ftype [OBJvtype] OBJvtype
+         val o_ = ftype [] OBJvtype
+         val ooo = ftype [OBJvtype, OBJvtype] OBJvtype
          val i = ftype [] INTvtype
          val v = ftype [] VOIDvtype
          val fv = ftype [ftype [OBJvtype] OBJvtype] VOIDvtype
@@ -73,11 +74,11 @@ end = struct
            | _ => raise ImpTranslationBug))),
          ("index", (1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
          ("query", (1, fn args => (case args of
-             [f] => STATEexp (INVOKEexp (PUREmonkind, f,[PRIexp (INmonkind, GETSTATEprim, oo, [])]))
+             [f] => STATEexp (INVOKEexp (PUREmonkind, oo, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]))
            | _ => raise ImpTranslationBug))),
          ("update", (1, fn args => (case args of
              [f] => STATEexp (PRIexp (INOUTmonkind, SETSTATEprim, fv, [
-                  INVOKEexp (PUREmonkind, f,[PRIexp (INmonkind, GETSTATEprim, oo, [])]) 
+                  INVOKEexp (PUREmonkind, oo, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]) 
                ]))
            | _ => raise ImpTranslationBug))),
          ("ipget", (0, fn args => STATEexp (boxI (PRIexp (INmonkind,IPGETprim,i,args))))),
@@ -141,13 +142,13 @@ end = struct
      | freeVars _ = SymSet.empty
 
 
-   fun addLocalVar { globalVars = gv, localVars = lv, declVars = ds, constants = cs } sym =
+   fun addLocalVar { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
       let
          val _ = ds := SymSet.add (!ds, sym)
       in
-         { globalVars = gv, localVars = SymSet.add (lv,sym), declVars = ds, constants = cs }
+         { functionSyms = funcs, localVars = SymSet.add (lv,sym), declVars = ds, constants = cs }
       end
-   fun genTmpVar { globalVars = gv, localVars = lv, declVars = ds, constants = cs } =
+   fun genTmpVar { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } =
       let
          val tab = !SymbolTables.varTable
          val (tab, sym) = SymbolTable.fresh (tab, Atom.atom "tmp")
@@ -156,30 +157,32 @@ end = struct
        in
          sym
       end
-   fun withNewDeclVars { globalVars = gv, localVars = lv, declVars = ds, constants = cs } f =
+   fun withNewDeclVars { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } f =
       let
          val localDs = ref SymSet.empty
-         val res = f { globalVars = gv, localVars = lv, declVars = localDs, constants = cs }
+         val res = f { functionSyms = funcs, localVars = lv, declVars = localDs, constants = cs }
       in
          (res, !localDs)
       end
-   fun addGlobal { globalVars = gvRef, localVars = lv, declVars = ds, constants = cs } v =
-         gvRef := SymSet.add (!gvRef,v)
-   
+   fun addGlobal { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } v =
+         funcs := SymSet.add (!funcs,v)
+   fun isGlobal { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } v =
+      SymSet.member (!funcs,v)
+
    (* functions operating on the mutable variables *)
-   fun addDecl { globalVars = gv, localVars = lv, declVars = ds, constants = cs } decl =
+   fun addDecl { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } decl =
       let
          val { functions = fs, fields, prim_map } = cs
       in
          fs := decl :: !fs
       end
-   fun addField { globalVars = gv, localVars = lv, declVars = ds, constants = cs } sym =
+   fun addField { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
       let
          val { functions, fields = fs, prim_map } = cs
       in
          fs := SymMap.insert (!fs,sym,OBJvtype)
       end
-   fun addUpdate s fields =
+   fun addUpdate s (fields, fType) =
       let
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom (foldl
@@ -194,7 +197,8 @@ end = struct
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val _ = addDecl s 
                            (UPDATEdecl { updateName = sym, 
-                                         updateFields = fields })
+                                         updateFields = fields,
+                                         updateType = fType })
                   val _ = app (addField s) fields
                   val _ = addGlobal s sym
                   val _ = SymbolTables.varTable := tab
@@ -203,7 +207,7 @@ end = struct
                end
           | SOME sym => sym
       end
-   fun addSelect s field =
+   fun addSelect s (field, fType) =
       let
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom ("select_" ^ 
@@ -217,7 +221,8 @@ end = struct
                   val _ = SymbolTables.varTable := tab                        
                   val _ = addDecl s 
                            (SELECTdecl { selectName = sym,
-                                         selectField = field })
+                                         selectField = field,
+                                         selectType = fType })
                   val _ = addField s field
                   val _ = addGlobal s sym
                in
@@ -225,7 +230,7 @@ end = struct
                end
           | SOME sym => sym
       end
-   fun addConFun s con =
+   fun addConFun s (con, fType) =
       let
          val ctab = !SymbolTables.conTable
          val conName = SymbolTable.getInternalString (ctab,con)
@@ -239,7 +244,9 @@ end = struct
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val (tab, sym') = SymbolTable.fresh (tab, arg)
                   val _ = SymbolTables.varTable := tab                        
-                  val _ = addDecl s (CONdecl { conName = sym, conArg = sym' })
+                  val _ = addDecl s (CONdecl { conName = sym,
+                                               conArg = sym',
+                                               conType = fType })
                   val _ = addGlobal s sym
                in
                   sym
@@ -316,7 +323,7 @@ end = struct
             case trExpr s arg of (stmts, argExp) =>
             (stmtss @ stmts, args @ [argExp])) ([],[]) args
       in
-         (stmtss, INVOKEexp (PUREmonkind, funcExp, argExps))
+         (stmtss, INVOKEexp (PUREmonkind, FUNvtype (OBJvtype,false,[]), funcExp, argExps))
       end
      | trExpr s (Exp.PRI (name, args)) = (
          (* this case is actually dead as all primitives are function calls,
@@ -354,16 +361,18 @@ end = struct
          val (stmts, unsortedUpdates) = trans [] [] us
          fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
-         val updateFun = addUpdate s (map (fn (f,_) => f) updates)
+         val fType = FUNvtype (OBJvtype, false, map (fn _ => OBJvtype) updates @ [OBJvtype])
+         val updateFun = addUpdate s (map (fn (f,_) => f) updates, fType)
          val fType = FUNvtype (OBJvtype, not (null updates), [OBJvtype])
       in
          (stmts, CLOSUREexp (fType, updateFun, map (fn (_,e) => e) updates))
       end
      | trExpr s (Exp.SELECT f) =
       let
-         val selectFun = addSelect s f
+         val fType = FUNvtype (OBJvtype, false, [OBJvtype])
+         val selectFun = addSelect s (f, fType)
       in
-         ([], (IDexp selectFun))
+         ([], CLOSUREexp (fType, selectFun, []))
       end
      | trExpr s (Exp.SEQ seq) =
       let
@@ -402,14 +411,21 @@ end = struct
      | trExpr s (Exp.CON sym) =
       (case SymMap.lookup (!constructors, sym) of
          (_, NONE) => ([], BOXexp (INTvtype, LITexp (INTvtype, CONlit sym)))
-       | (_, SOME _) =>  ([], CLOSUREexp (FUNvtype (OBJvtype,false,[OBJvtype]), addConFun s sym, []))
+       | (_, SOME _) =>
+         let
+            val fType = FUNvtype (OBJvtype,false,[OBJvtype])
+         in
+            ([], CLOSUREexp (fType, addConFun s (sym, fType), []))
+         end
        )
-     | trExpr s (Exp.ID sym) = ([], IDexp sym)
+     | trExpr s (Exp.ID sym) =
+     ([], if isGlobal s sym then CLOSUREexp (FUNvtype (OBJvtype,false,[]), sym, []) else IDexp sym)
+
    and trDecl s (sym, args, body) =
       let
          val ((stmts, exp), declVars) =
             withNewDeclVars s (fn s => trExpr s body)
-         val availInClosure = SymSet.union (!(#globalVars s),
+         val availInClosure = SymSet.union (!(#functionSyms s),
                SymSet.addList (SymSet.singleton sym, args))
          val inClosure = SymSet.difference (freeVars body, availInClosure)
          fun setToArgs ss = map (fn s => (OBJvtype, s)) (SymSet.listItems ss)
@@ -464,7 +480,7 @@ end = struct
                val cs = { functions = fs,
                           prim_map = prim_map,
                           fields = fields }
-               val initialState = { globalVars = ref globs,
+               val initialState = { functionSyms = ref globs,
                                     localVars = SymSet.empty,
                                     declVars = ref SymSet.empty,
                                     constants = cs
