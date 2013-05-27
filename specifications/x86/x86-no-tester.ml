@@ -2661,14 +2661,13 @@ val near-abs features cons giveOp = do
   features <- features;
   features <- exception-rep-repne-lock features;
   mode64 <- mode64?;
-  opnd-sz <-
-    if mode64 then do
-      update@{default-operand-size=64};
-      return 64
-    end else
-      operand-size
-    ;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
   op <- giveOp;
+  opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
 end
@@ -2677,14 +2676,13 @@ val near-rel features cons giveOp = do
 	features <- features;
   features <- exception-rep-repne-lock features;
   mode64 <- mode64?;
-  opnd-sz <-
-    if mode64 then do
-      update@{default-operand-size=64};
-      return 64
-    end else
-      operand-size
-    ;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
   op <- giveOp;
+  opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end
@@ -2693,14 +2691,13 @@ val far-dir features cons giveOp = do
   features <- features;
   features <- exception-rep-repne-lock features;
   mode64 <- mode64?;
-  opnd-sz <-
-    if mode64 then do
-      update@{default-operand-size=64};
-      return 64
-    end else
-      operand-size
-    ;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
   op <- giveOp;
+  opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
 end
@@ -2709,14 +2706,13 @@ val far-ind features cons giveOp = do
   features <- features;
   features <- exception-rep-repne-lock features;
   mode64 <- mode64?;
-  opnd-sz <-
-    if mode64 then do
-      update@{default-operand-size=64};
-      return 64
-    end else
-      operand-size
-    ;
+  if mode64 then
+    update@{default-operand-size=64}
+  else
+    return void
+  ;
   op <- giveOp;
+  opnd-sz <- operand-size;
   addr-sz <- address-size;
   return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
 end

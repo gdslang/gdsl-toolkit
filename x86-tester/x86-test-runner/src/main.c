@@ -104,7 +104,7 @@ static char test(__char *data, size_t data_size) {
 			rreil, config);
 	free(config);
 
-	char retval = tester_test(statements, data, data_size);
+	char retval = tester_test_translated(statements, data, data_size);
 
 	rreil_statements_free(statements);
 
@@ -178,7 +178,9 @@ static void code() {
 	/*
 	 * Todo: Wrong decoding
 	 */
-	__char data[] = { 0x41, 0x8a, 0xe5 };
+//	__char data[] = { 0x41, 0x8a, 0xe5 };
+
+	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x47, 0x74, 0xf0 };
 
 	test(data, sizeof(data));
 }

@@ -13,15 +13,18 @@
 #include <rreil/rreil.h>
 
 enum tester_result {
-	TESTER_RESULT_SUCCESS,
-	TESTER_RESULT_DECODING_ERROR,
-	TESTER_RESULT_TRANSLATION_ERROR,
-	TESTER_RESULT_SIMULATION_ERROR,
-	TESTER_RESULT_EXECUTION_ERROR,
-	TESTER_RESULT_COMPARISON_ERROR
+	TESTER_RESULT_SUCCESS = 0,
+	TESTER_RESULT_DECODING_ERROR = 1,
+	TESTER_RESULT_TRANSLATION_ERROR = 2,
+	TESTER_RESULT_SIMULATION_ERROR = 3,
+	TESTER_RESULT_EXECUTION_ERROR = 4,
+	TESTER_RESULT_COMPARISON_ERROR = 5,
+	TESTER_RESULT_CRASH = 6
 };
 
-char tester_test(struct rreil_statements *statements, uint8_t *instruction,
+#define TESTER_RESULTS_LENGTH (TESTER_RESULT_CRASH + 1)
+
+enum tester_result tester_test_translated(struct rreil_statements *statements, uint8_t *instruction,
 		size_t instruction_length);
 
 #endif /* TESTER_H_ */

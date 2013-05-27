@@ -12,7 +12,14 @@
 #include <rreil/rreil.h>
 #include <context.h>
 
-extern void simulator_statements_simulate(struct context *context,
+enum simulator_error {
+	SIMULATOR_ERROR_NONE = 0,
+	SIMULATOR_ERROR_UNALIGNED_STORE = 1,
+	SIMULATOR_ERROR_UNDEFINED_ADDRESS = 2,
+	SIMULATOR_ERROR_UNDEFINED_BRANCH = 4
+};
+
+extern enum simulator_error simulator_statements_simulate(struct context *context,
 		struct rreil_statements *statements);
 
 #endif /* SIMULATOR_H_ */

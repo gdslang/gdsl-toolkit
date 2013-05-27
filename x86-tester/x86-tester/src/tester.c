@@ -23,8 +23,9 @@
 #include <util.h>
 #include <stack.h>
 #include <tbgen.h>
+#include <tester.h>
 
-#define DRYRUN
+//#define DRYRUN
 
 static void tester_access_init(struct context *context,
 		struct register_access *access, void (*k)(uint8_t *, size_t)) {
@@ -78,6 +79,9 @@ static struct tbgen_result tester_instruction_mapped_generate(
 static char tester_instruction_execute(uint8_t *instruction,
 		size_t instruction_length, struct tracking_trace *trace,
 		struct context *context, void *code, struct tbgen_result tbgen_result) {
+//	int *k = (int*)0;
+//	k[0] = 42;
+
 	char retval = 0;
 
 	void for_page(void **address, size_t *size) {
@@ -107,6 +111,8 @@ static char tester_instruction_execute(uint8_t *instruction,
 		mapping->address = mem_real;
 		mapping->length = size;
 		stack_push(mappings, mapping);
+
+		printf("$$$ %lx / %lx\n", address, mem_real);
 
 		if(mem_real != address) {
 			printf("Unable to map address.\n");
@@ -154,6 +160,14 @@ static char tester_instruction_execute(uint8_t *instruction,
 				printf("SIGILL");
 				break;
 			}
+			case SIGALRM: {
+				printf("SIGALRM");
+				break;
+			}
+			case SIGBUS: {
+				printf("SIGBUS");
+				break;
+			}
 		}
 		printf(" while executing code.\n");
 		longjmp(jbuf, 1);
@@ -166,6 +180,10 @@ static char tester_instruction_execute(uint8_t *instruction,
 
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGILL, &act, NULL);
+	sigaction(SIGALRM, &act, NULL);
+	sigaction(SIGBUS, &act, NULL);
+
+	alarm(1);
 
 #ifndef DRYRUN
 	if(!setjmp(jbuf))
@@ -173,6 +191,8 @@ static char tester_instruction_execute(uint8_t *instruction,
 	else
 		retval = -10;
 #endif
+
+	alarm(0);
 
 	act.sa_sigaction = NULL;
 	sigaction(SIGSEGV, &act, NULL);
@@ -386,8 +406,10 @@ static char tester_contexts_compare(struct tracking_trace *trace,
 	return retval;
 }
 
-char tester_test(struct rreil_statements *statements, uint8_t *instruction,
-		size_t instruction_length) {
+enum tester_result tester_test_translated(struct rreil_statements *statements,
+		uint8_t *instruction, size_t instruction_length) {
+	enum tester_result result = TESTER_RESULT_SUCCESS;
+
 //	for(size_t i = 0; i < 200; ++i) {
 //		uint64_t *x;
 //		for(size_t i = 0; i < 100; ++i) {
@@ -462,7 +484,7 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 			&& !trace->reg.read.x86_indices_length
 			&& !trace->reg.written.x86_indices_length && !trace->mem.used) {
 		printf("Instruction without any effects, aborting...\n");
-		goto end;
+		goto cu_b;
 	}
 
 	printf("------------------\n");
@@ -531,7 +553,11 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	printf("------------------\n");
 	context_x86_print(context_rreil);
 
-	simulator_statements_simulate(context_rreil, statements);
+	if(simulator_statements_simulate(context_rreil, statements)
+			!= SIMULATOR_ERROR_NONE) {
+		result = TESTER_RESULT_SIMULATION_ERROR;
+		goto cu_a;
+	}
 
 //	char *k = malloc(900);
 //	memcpy(k, context_cpu->memory.allocations[0].data, context_cpu->memory.allocations[0].data_size);
@@ -540,10 +566,12 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 
 	char retval = tester_instruction_execute(instruction, instruction_length,
 			trace, context_cpu, code, tbgen_result);
+	if(retval) {
+		result = TESTER_RESULT_EXECUTION_ERROR;
+		goto cu_a;
+	}
 
 //	tester_rflags_clean(context_cpu);
-
-	munmap(code, tbgen_result.buffer_length);
 
 	free(tbgen_result.buffer);
 	free(tbgen_result.jump_marker);
@@ -555,15 +583,23 @@ char tester_test(struct rreil_statements *statements, uint8_t *instruction,
 	context_x86_print(context_rreil);
 
 	printf("------------------\n");
-	if(!retval)
+	if(!retval) {
 		retval = tester_contexts_compare(trace, context_cpu, context_rreil);
-	else
-		printf("Comparison skipped because of the failure to execute the test function.\n");
+		if(retval)
+			result = TESTER_RESULT_COMPARISON_ERROR;
+	} else
+		printf(
+				"Comparison skipped because of the failure to execute the test function.\n");
+
+	cu_a: ;
+
+	munmap(code, tbgen_result.buffer_length);
 
 	context_free(context_cpu);
 
-	end: tracking_trace_free(trace);
+	cu_b: ;
+	tracking_trace_free(trace);
 	context_free(context_rreil);
 
-	return retval;
+	return result;
 }

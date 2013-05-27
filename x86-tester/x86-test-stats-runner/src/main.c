@@ -24,11 +24,19 @@
 #include <gdsl.h>
 #include "hash_array.h"
 
+#include <sys/mman.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
 struct insn_data {
+	size_t errors[TESTER_RESULTS_LENGTH];
 	size_t count;
 };
 
-static char test(struct hash_array *ha, __char *data, size_t data_size) {
+static char test_instruction(struct hash_array *ha, __char *data,
+		size_t data_size) {
 	__obj state = gdsl_create_state(data, data_size);
 
 	__obj insn;
@@ -53,23 +61,24 @@ static char test(struct hash_array *ha, __char *data, size_t data_size) {
 		printf("NULL\n");
 	free(str);
 
+	struct insn_data *insn_data;
+
 	str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_SIMPLE);
 	if(str) {
 		puts(str);
 
-//		size_t length = strlen(str);
-//		str[--length] = 0;
-
 		ENTRY *e = hash_array_search_insert(ha, str);
 
-		struct insn_data *data;
 		if(!e->data)
 			e->data = (struct insn_data*)calloc(sizeof(struct insn_data), 1);
-		data = (struct insn_data*)e->data;
+		insn_data = (struct insn_data*)e->data;
 
-		data->count++;
-	} else
+		insn_data->count++;
+	} else {
 		printf("NULL\n");
+
+		return -3;
+	}
 
 	printf("---------------------------\n");
 
@@ -78,6 +87,7 @@ static char test(struct hash_array *ha, __char *data, size_t data_size) {
 		printf("Translate failed\n");
 		fflush(stderr);
 		fflush(stdout);
+		insn_data->errors[2]++;
 		return -2;
 	}
 
@@ -86,19 +96,40 @@ static char test(struct hash_array *ha, __char *data, size_t data_size) {
 			rreil, config);
 	free(config);
 
-	char retval = tester_test(statements, data, data_size);
+//	enum tester_result *test_result = (enum tester_result*)shmat(shmid, NULL, 0);
+//	*test_result = TESTER_RESULT_CRASH;
+
+	enum tester_result *test_result = mmap(NULL, sizeof(enum tester_result),
+			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+	*test_result = TESTER_RESULT_CRASH;
+
+	pid_t pid = fork();
+	if(!pid) {
+//		enum tester_result *test_result = (enum tester_result*)shmat(shmid, NULL, 0);
+		*test_result = tester_test_translated(statements, data, data_size);
+//		shmdt(test_result);
+//		tester_test_translated(statements, data, data_size);
+		exit(0);
+	} else
+		waitpid(pid, NULL, 0);
+
+	insn_data->errors[*test_result]++;
+
+//	shmdt(test_result);
+	munmap(test_result, sizeof(enum tester_result));
 
 	rreil_statements_free(statements);
 
 	gdsl_reset();
 
-	return retval;
+	return 0;
 }
 
 static void generator() {
-	struct hash_array *ha = hash_array_init(8);
+	struct hash_array *ha = hash_array_init(32768);
 
-	for(size_t i = 0; i < 100; ++i) {
+	size_t n = 1000000;
+	for(size_t i = 0; i < n; ++i) {
 		printf("%lu +++++++++++++++++++++\n", i);
 
 //		generator_tree_print(root);
@@ -112,24 +143,61 @@ static void generator() {
 		fclose(stream);
 		generator_tree_free(root);
 
-		char result = test(ha, (__char *)buffer, length);
+		char result = test_instruction(ha, (__char *)buffer, length);
 
 		free(buffer);
-
-//		if(result > 0) {
-//			printf("FAILURE.\n");
-//			break;
-//		}
 	}
 
 	ENTRY *entries;
 	size_t entries_length = hash_array_entries_get(ha, &entries);
-	for (size_t i = 0; i < entries_length; ++i) {
+	size_t errors[TESTER_RESULTS_LENGTH];
+	size_t executed = 0;
+	for(size_t i = 0; i < TESTER_RESULTS_LENGTH; ++i)
+		errors[i] = 0;
+	for(size_t i = 0; i < entries_length; ++i) {
 		struct insn_data *data = (struct insn_data*)entries[i].data;
-		printf("%s: %lu\n", entries[i].key, data->count);
-	}
+		printf(
+				"%s: %lu, successful tests: %lu, translation errors: %lu, simulation errors: %lu, execution errors: %lu, comparison errors: %lu, crashes: %lu\n",
+				entries[i].key, data->count,
+				data->errors[TESTER_RESULT_SUCCESS],
+				data->errors[TESTER_RESULT_TRANSLATION_ERROR],
+				data->errors[TESTER_RESULT_SIMULATION_ERROR],
+				data->errors[TESTER_RESULT_EXECUTION_ERROR],
+				data->errors[TESTER_RESULT_COMPARISON_ERROR],
+				data->errors[TESTER_RESULT_CRASH]);
 
-	for (size_t i = 0; i < entries_length; ++i) {
+		errors[TESTER_RESULT_SUCCESS] += data->errors[TESTER_RESULT_SUCCESS];
+		errors[TESTER_RESULT_TRANSLATION_ERROR] +=
+				data->errors[TESTER_RESULT_TRANSLATION_ERROR];
+		errors[TESTER_RESULT_SIMULATION_ERROR] +=
+				data->errors[TESTER_RESULT_SIMULATION_ERROR];
+		errors[TESTER_RESULT_EXECUTION_ERROR] +=
+				data->errors[TESTER_RESULT_EXECUTION_ERROR];
+		errors[TESTER_RESULT_COMPARISON_ERROR] +=
+				data->errors[TESTER_RESULT_COMPARISON_ERROR];
+		errors[TESTER_RESULT_CRASH] += data->errors[TESTER_RESULT_CRASH];
+		executed += data->count;
+	}
+	printf("Error summary:\n");
+	printf("%lu instructions executed (%lu different ones)\n", executed,
+			entries_length);
+	printf("%lu successful tests (%f%%)\n", errors[TESTER_RESULT_SUCCESS],
+			100 * errors[TESTER_RESULT_SUCCESS] / (double)executed);
+	printf("%lu translation errors (%f%%)\n",
+			errors[TESTER_RESULT_TRANSLATION_ERROR],
+			100 * errors[TESTER_RESULT_TRANSLATION_ERROR] / (double)executed);
+	printf("%lu simulation errors (%f%%)\n",
+			errors[TESTER_RESULT_SIMULATION_ERROR],
+			100 * errors[TESTER_RESULT_SIMULATION_ERROR] / (double)executed);
+	printf("%lu execution errors (%f%%)\n", errors[TESTER_RESULT_EXECUTION_ERROR],
+			100 * errors[TESTER_RESULT_EXECUTION_ERROR] / (double)executed);
+	printf("%lu comparison errors (%f%%)\n",
+			errors[TESTER_RESULT_COMPARISON_ERROR],
+			100 * errors[TESTER_RESULT_COMPARISON_ERROR] / (double)executed);
+	printf("%lu crashes (%f%%)\n", errors[TESTER_RESULT_CRASH],
+			100 * errors[TESTER_RESULT_CRASH] / (double)executed);
+
+	for(size_t i = 0; i < entries_length; ++i) {
 		free(entries[i].data);
 		free(entries[i].key);
 	}
@@ -181,6 +249,33 @@ char *data[] = { "alpha", "bravo", "charlie", "delta", "echo", "foxtrot",
 		"whisky", "x-ray", "yankee", "zulu" };
 
 int main(int argc, char **argv) {
+//	while(1) {
+//		int n = 1000000;
+//		int *k = mmap(NULL, n*sizeof(int),
+//				PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+//		for (int i = 0; i < n; ++i) {
+//			k[i] = 2*i;
+//		}
+//		usleep(10);
+//	}
+//	int shmid = shmget(IPC_PRIVATE, 1024, 0644 | IPC_CREAT);
+//
+//	pid_t p = fork();
+//	if(!p) {
+//		//child
+//		uint8_t *data = shmat(shmid, NULL, 0);
+//		data[0] = 99;
+//		int *k = 0;
+//		printf("Hallo...\n");
+//		k[0] = 77;
+//		printf("... Hugo!\n");
+//	} else
+//		waitpid(p, NULL, 0);
+//
+//	uint8_t *data = shmat(shmid, NULL, 0);
+//
+//	printf("%d", data[0]);
+
 //	ENTRY e, *ep;
 //	int i;
 //

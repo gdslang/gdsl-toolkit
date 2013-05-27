@@ -332,8 +332,9 @@ static void simulator_branch_simulate(struct context *context,
 	context_data_clear(&address);
 }
 
-static void simulator_statement_simulate(struct context *context,
+static enum simulator_error simulator_statement_simulate(struct context *context,
 		struct rreil_statement *statement) {
+	enum simulator_error error = SIMULATOR_ERROR_NONE;
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
 			struct data data = simulator_op_simulate(context, statement->assign.rhs);
@@ -366,11 +367,13 @@ static void simulator_statement_simulate(struct context *context,
 			struct data data = simulator_op_simulate(context, statement->store.rhs);
 			if(data.bit_length % 8) {
 				printf("Warning: Unable to store unaligned (8 Bit) data.\n");
+				error |= SIMULATOR_ERROR_UNALIGNED_STORE;
 				goto end;
 			}
 			for (size_t i = 0; i < data.bit_length/8; ++i)
 				if(data.defined[i] != 0xff) {
 					printf("Warning: Aborting store because of undefined bits.\n");
+					error |= SIMULATOR_ERROR_UNDEFINED_ADDRESS;
 					goto end;
 				}
 			struct data address = simulator_linear_simulate(context,
@@ -389,8 +392,10 @@ static void simulator_statement_simulate(struct context *context,
 			struct data data = simulator_sexpr_simulate(context, statement->ite.cond,
 					1);
 
-			if(!(data.defined[0] & 0x01))
+			if(!(data.defined[0] & 0x01)) {
 				printf("Warning: Undefined condition in if statement.\n");
+				error |= SIMULATOR_ERROR_UNDEFINED_BRANCH;
+			}
 			if(!(data.defined[0] & 0x01) || (data.data[0] & 0x01))
 				simulator_statements_simulate(context, statement->ite.then_branch);
 			else
@@ -410,6 +415,11 @@ static void simulator_statement_simulate(struct context *context,
 			 */
 			uint16_t max = 0xff;
 			uint16_t i = 0;
+			if(!(data.defined[0] & 0x01)) {
+				printf("Warning: Undefined condition in while statement.\n");
+				error |= SIMULATOR_ERROR_UNDEFINED_BRANCH;
+				goto error_while;
+			}
 			while(data.data[0] & 0x01) {
 				simulator_statements_simulate(context, statement->while_.body);
 				context_data_clear(&data);
@@ -421,6 +431,7 @@ static void simulator_statement_simulate(struct context *context,
 					break;
 				}
 			}
+			error_while:
 			context_data_clear(&data);
 			break;
 		}
@@ -430,10 +441,11 @@ static void simulator_statement_simulate(struct context *context,
 			 */
 			struct data data = simulator_sexpr_simulate(context,
 					statement->cbranch.cond, 1);
-			/*
-			 * Todo: Handle undefined value
-			 */
-			if(data.data[0] & 0x01)
+			if(!(data.defined[0] & 0x01)) {
+				printf("Warning: Undefined condition in cbranch statement.\n");
+				error |= SIMULATOR_ERROR_UNDEFINED_BRANCH;
+			}
+			if(!(data.defined[0] & 0x01) || (data.data[0] & 0x01))
 				simulator_branch_simulate(context, statement->cbranch.target_true);
 			else
 				simulator_branch_simulate(context, statement->cbranch.target_false);
@@ -445,10 +457,13 @@ static void simulator_statement_simulate(struct context *context,
 			break;
 		}
 	}
+	return error;
 }
 
-void simulator_statements_simulate(struct context *context,
+enum simulator_error simulator_statements_simulate(struct context *context,
 		struct rreil_statements *statements) {
+	enum simulator_error error = SIMULATOR_ERROR_NONE;
 	for(size_t i = 0; i < statements->statements_length; ++i)
-		simulator_statement_simulate(context, statements->statements[i]);
+		error |= simulator_statement_simulate(context, statements->statements[i]);
+	return error;
 }
