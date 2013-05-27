@@ -57,100 +57,107 @@ static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer, size_t size_m
 	return size_actual;
 }
 
-static char test(__char *data, size_t data_size) {
-	__obj state = gdsl_create_state(data, data_size);
+//static char test(__char *data, size_t data_size) {
+//	__obj state = gdsl_create_state(data, data_size);
+//
+//	__obj insn;
+//	if(gdsl_decode(&insn, &state)) {
+//		printf("Decode failed\n");
+//		fflush(stderr);
+//		fflush(stdout);
+//		return -1;
+//	}
+//
+//	data_size = gdsl_decoded(&state);
+//
+//	printf("Instruction bytes:");
+//	for(size_t i = 0; i < data_size; ++i)
+//		printf(" %02x", (int)(data[i]) & 0xff);
+//	printf("\n");
+//
+//	char *str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_FULL);
+//	if(str)
+//		puts(str);
+//	else
+//		printf("NULL\n");
+//	free(str);
+//
+//	str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_SIMPLE);
+//	if(str)
+//		puts(str);
+//	else
+//		printf("NULL\n");
+//	free(str);
+//
+//	printf("---------------------------\n");
+//
+//	__obj rreil;
+//	if(gdsl_translate(&rreil, insn, &state)) {
+//		printf("Translate failed\n");
+//		fflush(stderr);
+//		fflush(stdout);
+//		return -2;
+//	}
+//
+//	struct gdrr_config *config = rreil_gdrr_builder_config_get();
+//	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(
+//			rreil, config);
+//	free(config);
+//
+//	char retval = tester_test_translated(statements, data, data_size);
+//
+//	rreil_statements_free(statements);
+//
+//	gdsl_reset();
+//
+//	return retval;
+//}
 
-	__obj insn;
-	if(gdsl_decode(&insn, &state)) {
-		printf("Decode failed\n");
-		fflush(stderr);
-		fflush(stdout);
-		return -1;
-	}
-
-	data_size = gdsl_decoded(&state);
-
-	printf("Instruction bytes:");
-	for(size_t i = 0; i < data_size; ++i)
-		printf(" %02x", (int)(data[i]) & 0xff);
+static void result_print(enum tester_result result) {
+	printf("Result: ");
+	tester_result_print(result);
 	printf("\n");
-
-	char *str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_FULL);
-	if(str)
-		puts(str);
-	else
-		printf("NULL\n");
-	free(str);
-
-	str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_SIMPLE);
-	if(str)
-		puts(str);
-	else
-		printf("NULL\n");
-	free(str);
-
-	printf("---------------------------\n");
-
-	__obj rreil;
-	if(gdsl_translate(&rreil, insn, &state)) {
-		printf("Translate failed\n");
-		fflush(stderr);
-		fflush(stdout);
-		return -2;
-	}
-
-	struct gdrr_config *config = rreil_gdrr_builder_config_get();
-	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(
-			rreil, config);
-	free(config);
-
-	char retval = tester_test_translated(statements, data, data_size);
-
-	rreil_statements_free(statements);
-
-	gdsl_reset();
-
-	return retval;
 }
 
-static void test_stream(FILE *stream) {
+static void test_stream(FILE *stream, char fork_) {
 	__char data[15];
 	stream_to_insn_buffer(stream, (uint8_t*)data, sizeof(data));
-	test(data, sizeof(data));
+	enum tester_result result = tester_test_binary(NULL, fork_, data, sizeof(data));
+	result_print(result);
 }
 
-static void generator() {
-	for(size_t i = 0; i < 1000; ++i) {
-		printf("%lu +++++++++++++++++++++\n", i);
+static void generator(char fork_, unsigned long n) {
+	struct generator_tree_node *root = generator_x86_tree_get();
+	printf("Generator:\n");
+	generator_tree_print(root);
+	printf("\n");
 
-		struct generator_tree_node *root = generator_x86_tree_get();
-
-//		generator_tree_print(root);
-//		printf("\n");
+	for(size_t i = 0; i < n; ++i) {
+		printf("\nTest #%lu +++++++++++++++++++++\n", i);
 
 		char *buffer;
 		size_t length;
 		FILE *stream = open_memstream(&buffer, &length);
 		generator_tree_execute(root, stream);
 		fclose(stream);
-		generator_tree_free(root);
 
-		char result = test((__char *)buffer, length);
+		enum tester_result result = tester_test_binary(NULL, fork_, (__char *)buffer, length);
 
 		free(buffer);
 
-		if(result > 0) {
-			printf("FAILURE.\n");
+		result_print(result);
+		if(result == TESTER_RESULT_COMPARISON_ERROR)
 			break;
-		}
 	}
+
+	generator_tree_free(root);
 }
 
-static void cli() {
-	test_stream(stdin);
+static void cli(char fork_) {
+	test_stream(stdin, fork_);
 }
 
-static void code() {
+static void code(char fork_) {
 
 	//	__char data[] = { 0x66, 0x42, 0x0f, 0x38, 0x07, 0x61, 0x55 };
 	// 66 66 66 66 41 63 4a 47 78 50 69 22
@@ -182,12 +189,13 @@ static void code() {
 
 	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x47, 0x74, 0xf0 };
 
-	test(data, sizeof(data));
+	enum tester_result result = tester_test_binary(NULL, fork_, data, sizeof(data));
+	result_print(result);
 }
 
-static void cmdline(char const *parameter) {
+static void cmdline(char const *parameter, char fork_) {
 	FILE *stream = fmemopen((void*)parameter, strlen(parameter) + 1, "r");
-	test_stream(stream);
+	test_stream(stream, fork_);
 }
 
 enum mode {
@@ -197,29 +205,43 @@ enum mode {
 struct options {
 	enum mode mode;
 	char const *parameter;
+	unsigned long n;
+	char fork;
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
+	options->n = 100;
+	options->fork = 0;
+
 	while(1) {
-		char c = getopt(argc, argv, "gcpm:");
-		if(c == -1)
-			return -1;
+		char c = getopt(argc, argv, "gcpm:n:f");
 		switch(c) {
 			case 'g': {
 				options->mode = MODE_GENERATOR;
-				goto end;
+				break;
 			}
 			case 'c': {
 				options->mode = MODE_CLI;
-				goto end;
+				break;
 			}
 			case 'p': {
 				options->mode = MODE_CODE;
-				goto end;
+				break;
 			}
 			case 'm': {
 				options->mode = MODE_CMDLINE;
 				options->parameter = optarg;
+				break;
+			}
+			case 'n': {
+				sscanf(optarg, "%lu", &options->n);
+				break;
+			}
+			case 'f': {
+				options->fork = 1;
+				break;
+			}
+			default: {
 				goto end;
 			}
 		}
@@ -254,19 +276,19 @@ int main(int argc, char **argv) {
 
 	switch(options.mode) {
 		case MODE_CLI: {
-			cli();
+			cli(options.fork);
 			break;
 		}
 		case MODE_GENERATOR: {
-			generator();
+			generator(options.fork, options.n);
 			break;
 		}
 		case MODE_CODE: {
-			code();
+			code(options.fork);
 			break;
 		}
 		case MODE_CMDLINE: {
-			cmdline(options.parameter);
+			cmdline(options.parameter, options.fork);
 			break;
 		}
 	}

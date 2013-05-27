@@ -9,26 +9,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint-gcc.h>
+#include <stdint.h>
 #include <search.h>
 #include <time.h>
 #include <unistd.h>
-#include <dis.h>
-#include <gdrr.h>
-#include <rreil/rreil.h>
-#include <rreil/gdrr_builder.h>
 #include <generator.h>
 #include <generator_tree.h>
-#include <setjmp.h>
 #include <tester.h>
-#include <gdsl.h>
 #include "hash_array.h"
-
-#include <sys/mman.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 
 struct insn_data {
 	size_t errors[TESTER_RESULTS_LENGTH];
@@ -64,18 +52,16 @@ static char test_instruction(struct hash_array *ha, __char *data,
 }
 
 struct options {
-	char n_set;
 	unsigned long n;
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
-	options->n_set = 0;
+	options->n = 100;
 
 	while(1) {
 		char c = getopt(argc, argv, "n:");
 		switch(c) {
 			case 'n': {
-				options->n_set = 1;
 				sscanf(optarg, "%lu", &options->n);
 				break;
 			}
@@ -171,32 +157,28 @@ int main(int argc, char **argv) {
 
 	struct hash_array *ha = hash_array_init(32768);
 
-	size_t n;
-	if(options.n_set)
-		n = options.n;
-	else
-		n = 100;
-
 	size_t decode_errors = 0;
 
-	for(size_t i = 0; i < n; ++i) {
-		printf("%lu +++++++++++++++++++++\n", i);
+	struct generator_tree_node *root = generator_x86_tree_get();
+	printf("Generator:\n");
+	generator_tree_print(root);
+	printf("\n");
 
-//		generator_tree_print(root);
-//		printf("\n");
+	for(size_t i = 0; i < options.n; ++i) {
+		printf("\nTest #%lu +++++++++++++++++++++\n", i);
 
-		struct generator_tree_node *root = generator_x86_tree_get();
 		char *buffer;
 		size_t length;
 		FILE *stream = open_memstream(&buffer, &length);
 		generator_tree_execute(root, stream);
 		fclose(stream);
-		generator_tree_free(root);
 
 		decode_errors += test_instruction(ha, (__char *)buffer, length);
 
 		free(buffer);
 	}
+
+	generator_tree_free(root);
 
 	ENTRY *entries;
 	size_t entries_length = hash_array_entries_get(ha, &entries);
@@ -228,8 +210,9 @@ int main(int argc, char **argv) {
 		executed += data->count;
 	}
 	printf("Summary:\n");
-	printf("%lu instructions generated (%lu decodable ones, %f%%)\n", n,
-			n - decode_errors, 100 * (n - decode_errors) / (double)n);
+	printf("%lu instructions generated (%lu decodable ones, %f%%)\n", options.n,
+			options.n - decode_errors,
+			100 * (options.n - decode_errors) / (double)options.n);
 	printf("%lu instruction tests (%lu different instruction types)\n", executed,
 			entries_length);
 	printf("%lu successful tests (%f%%)\n", errors[TESTER_RESULT_SUCCESS],

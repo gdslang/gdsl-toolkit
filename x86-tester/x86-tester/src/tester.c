@@ -579,9 +579,6 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 
 //	tester_rflags_clean(context_cpu);
 
-	free(tbgen_result.buffer);
-	free(tbgen_result.jump_marker);
-
 	printf("------------------\n");
 	printf("CPU:\n");
 	context_x86_print(context_cpu);
@@ -598,6 +595,9 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 				"Comparison skipped because of the failure to execute the test function.\n");
 
 	cu_a: ;
+
+	free(tbgen_result.buffer);
+	free(tbgen_result.jump_marker);
 
 	munmap(code, tbgen_result.buffer_length);
 
@@ -688,4 +688,37 @@ enum tester_result tester_test_binary(void (*name)(char *), char fork_,
 	gdsl_reset();
 
 	return result;
+}
+
+void tester_result_print(enum tester_result result) {
+	switch(result) {
+		case TESTER_RESULT_SUCCESS: {
+			printf("TESTER_RESULT_SUCCESS");
+			break;
+		}
+		case TESTER_RESULT_DECODING_ERROR: {
+			printf("TESTER_RESULT_DECODING_ERROR");
+			break;
+		}
+		case TESTER_RESULT_TRANSLATION_ERROR: {
+			printf("TESTER_RESULT_TRANSLATION_ERROR");
+			break;
+		}
+		case TESTER_RESULT_SIMULATION_ERROR: {
+			printf("TESTER_RESULT_SIMULATION_ERROR");
+			break;
+		}
+		case TESTER_RESULT_EXECUTION_ERROR: {
+			printf("TESTER_RESULT_EXECUTION_ERROR");
+			break;
+		}
+		case TESTER_RESULT_COMPARISON_ERROR: {
+			printf("TESTER_RESULT_COMPARISON_ERROR");
+			break;
+		}
+		case TESTER_RESULT_CRASH: {
+			printf("TESTER_RESULT_CRASH");
+			break;
+		}
+	}
 }

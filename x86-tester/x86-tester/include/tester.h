@@ -29,5 +29,6 @@ extern enum tester_result tester_test_translated(struct rreil_statements *statem
 		size_t instruction_length);
 extern enum tester_result tester_test_binary(void (*name)(char *), char fork_, __char *data,
 		size_t data_size);
+extern void tester_result_print(enum tester_result result);
 
 #endif /* TESTER_H_ */
