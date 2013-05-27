@@ -9,8 +9,8 @@
 #define SIMULATOR_TRACKING_H_
 
 #include <stdlib.h>
-#include <context.h>
-#include <simulator/simulator.h>
+#include <simulator/register.h>
+#include <rreil/rreil.h>
 
 struct register_access {
 	struct register_ *x86_registers;

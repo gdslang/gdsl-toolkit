@@ -8,11 +8,10 @@
 #ifndef CONTEXT_H_
 #define CONTEXT_H_
 
-struct register_ {
-	uint8_t *data;
-	uint8_t *defined;
-	size_t bit_length;
-};
+#include <stdlib.h>
+#include <stdint.h>
+#include <simulator/tracking.h>
+#include <simulator/register.h>
 
 struct data {
 	uint8_t *data;
@@ -60,5 +59,7 @@ extern void context_data_clear(struct data *data);
 extern struct context *context_copy(struct context *source);
 extern void context_free(struct context *context);
 extern void context_x86_print(struct context *context);
+extern char context_compare(struct tracking_trace *trace,
+		struct context *context_cpu, struct context *context_rreil);
 
 #endif /* CONTEXT_H_ */
