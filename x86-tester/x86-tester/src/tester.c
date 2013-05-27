@@ -10,10 +10,13 @@
 #include <string.h>
 #include <time.h>
 #include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <signal.h>
 #include <unistd.h>
 #include <setjmp.h>
 #include <rreil/rreil.h>
+#include <rreil/gdrr_builder.h>
 #include <x86.h>
 #include <context.h>
 #include <simulator/simulator.h>
@@ -24,6 +27,9 @@
 #include <stack.h>
 #include <tbgen.h>
 #include <tester.h>
+#include <gdsl.h>
+#include <dis.h>
+#include <gdrr.h>
 
 //#define DRYRUN
 
@@ -112,7 +118,7 @@ static char tester_instruction_execute(uint8_t *instruction,
 		mapping->length = size;
 		stack_push(mappings, mapping);
 
-		printf("$$$ %lx / %lx\n", address, mem_real);
+//		printf("$$$ %lx / %lx\n", address, mem_real);
 
 		if(mem_real != address) {
 			printf("Unable to map address.\n");
@@ -600,6 +606,86 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 	cu_b: ;
 	tracking_trace_free(trace);
 	context_free(context_rreil);
+
+	return result;
+}
+
+enum tester_result tester_test_binary(void (*name)(char *), char fork_,
+		__char *data, size_t data_size) {
+	enum tester_result result = TESTER_RESULT_SUCCESS;
+
+	__obj state = gdsl_create_state(data, data_size);
+
+	__obj insn;
+	if(gdsl_decode(&insn, &state)) {
+		printf("Decode failed\n");
+		fflush(stderr);
+		fflush(stdout);
+		result = TESTER_RESULT_DECODING_ERROR;
+		goto cu;
+	}
+
+	data_size = gdsl_decoded(&state);
+
+	printf("Instruction bytes:");
+	for(size_t i = 0; i < data_size; ++i)
+		printf(" %02x", (int)(data[i]) & 0xff);
+	printf("\n");
+
+	char *str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_FULL);
+	if(str)
+		puts(str);
+	else
+		printf("NULL\n");
+	free(str);
+
+	str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_SIMPLE);
+	if(str) {
+		puts(str);
+		if(name)
+			name(str);
+	} else
+		printf("NULL\n");
+	free(str);
+
+	printf("---------------------------\n");
+
+	__obj rreil;
+	if(gdsl_translate(&rreil, insn, &state)) {
+		printf("Translate failed\n");
+		fflush(stderr);
+		fflush(stdout);
+		result = TESTER_RESULT_TRANSLATION_ERROR;
+		goto cu;
+	}
+
+	struct gdrr_config *config = rreil_gdrr_builder_config_get();
+	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(
+			rreil, config);
+	free(config);
+
+	if(fork_) {
+		enum tester_result *translated_result = mmap(NULL,
+				sizeof(enum tester_result), PROT_READ | PROT_WRITE,
+				MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+		*translated_result = TESTER_RESULT_CRASH;
+
+		pid_t pid = fork();
+		if(!pid) {
+			*translated_result = tester_test_translated(statements, data, data_size);
+			exit(0);
+		} else
+			waitpid(pid, NULL, 0);
+		result = *translated_result;
+		munmap(translated_result, sizeof(enum tester_result));
+	} else
+		result = tester_test_translated(statements, data, data_size);
+
+	rreil_statements_free(statements);
+
+	cu: ;
+
+	gdsl_reset();
 
 	return result;
 }

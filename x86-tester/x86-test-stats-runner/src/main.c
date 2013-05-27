@@ -37,203 +37,49 @@ struct insn_data {
 
 static char test_instruction(struct hash_array *ha, __char *data,
 		size_t data_size) {
-	__obj state = gdsl_create_state(data, data_size);
+	struct insn_data *insn_data = NULL;
 
-	__obj insn;
-	if(gdsl_decode(&insn, &state)) {
-		printf("Decode failed\n");
-		fflush(stderr);
-		fflush(stdout);
-		return -1;
-	}
+	void for_name(char *name) {
+		size_t name_length = strlen(name);
+		char *copy = (char*)malloc(name_length + 1);
+		memcpy(copy, name, name_length + 1);
 
-	data_size = gdsl_decoded(&state);
-
-	printf("Instruction bytes:");
-	for(size_t i = 0; i < data_size; ++i)
-		printf(" %02x", (int)(data[i]) & 0xff);
-	printf("\n");
-
-	char *str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_FULL);
-	if(str)
-		puts(str);
-	else
-		printf("NULL\n");
-	free(str);
-
-	struct insn_data *insn_data;
-
-	str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_SIMPLE);
-	if(str) {
-		puts(str);
-
-		ENTRY *e = hash_array_search_insert(ha, str);
+		ENTRY *e = hash_array_search_insert(ha, copy);
 
 		if(!e->data)
 			e->data = (struct insn_data*)calloc(sizeof(struct insn_data), 1);
+		else
+			free(copy);
 		insn_data = (struct insn_data*)e->data;
+	}
 
+	enum tester_result result = tester_test_binary(&for_name, 1, data, data_size);
+
+	if(insn_data) {
 		insn_data->count++;
-	} else {
-		printf("NULL\n");
-
-		return -3;
-	}
-
-	printf("---------------------------\n");
-
-	__obj rreil;
-	if(gdsl_translate(&rreil, insn, &state)) {
-		printf("Translate failed\n");
-		fflush(stderr);
-		fflush(stdout);
-		insn_data->errors[2]++;
-		return -2;
-	}
-
-	struct gdrr_config *config = rreil_gdrr_builder_config_get();
-	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(
-			rreil, config);
-	free(config);
-
-//	enum tester_result *test_result = (enum tester_result*)shmat(shmid, NULL, 0);
-//	*test_result = TESTER_RESULT_CRASH;
-
-	enum tester_result *test_result = mmap(NULL, sizeof(enum tester_result),
-			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, 0, 0);
-	*test_result = TESTER_RESULT_CRASH;
-
-	pid_t pid = fork();
-	if(!pid) {
-//		enum tester_result *test_result = (enum tester_result*)shmat(shmid, NULL, 0);
-		*test_result = tester_test_translated(statements, data, data_size);
-//		shmdt(test_result);
-//		tester_test_translated(statements, data, data_size);
-		exit(0);
+		insn_data->errors[result]++;
+		return 0;
 	} else
-		waitpid(pid, NULL, 0);
-
-	insn_data->errors[*test_result]++;
-
-//	shmdt(test_result);
-	munmap(test_result, sizeof(enum tester_result));
-
-	rreil_statements_free(statements);
-
-	gdsl_reset();
-
-	return 0;
+		return 1;
 }
-
-static void generator() {
-	struct hash_array *ha = hash_array_init(32768);
-
-	size_t n = 1000000;
-	for(size_t i = 0; i < n; ++i) {
-		printf("%lu +++++++++++++++++++++\n", i);
-
-//		generator_tree_print(root);
-//		printf("\n");
-
-		struct generator_tree_node *root = generator_x86_tree_get();
-		char *buffer;
-		size_t length;
-		FILE *stream = open_memstream(&buffer, &length);
-		generator_tree_execute(root, stream);
-		fclose(stream);
-		generator_tree_free(root);
-
-		char result = test_instruction(ha, (__char *)buffer, length);
-
-		free(buffer);
-	}
-
-	ENTRY *entries;
-	size_t entries_length = hash_array_entries_get(ha, &entries);
-	size_t errors[TESTER_RESULTS_LENGTH];
-	size_t executed = 0;
-	for(size_t i = 0; i < TESTER_RESULTS_LENGTH; ++i)
-		errors[i] = 0;
-	for(size_t i = 0; i < entries_length; ++i) {
-		struct insn_data *data = (struct insn_data*)entries[i].data;
-		printf(
-				"%s: %lu, successful tests: %lu, translation errors: %lu, simulation errors: %lu, execution errors: %lu, comparison errors: %lu, crashes: %lu\n",
-				entries[i].key, data->count,
-				data->errors[TESTER_RESULT_SUCCESS],
-				data->errors[TESTER_RESULT_TRANSLATION_ERROR],
-				data->errors[TESTER_RESULT_SIMULATION_ERROR],
-				data->errors[TESTER_RESULT_EXECUTION_ERROR],
-				data->errors[TESTER_RESULT_COMPARISON_ERROR],
-				data->errors[TESTER_RESULT_CRASH]);
-
-		errors[TESTER_RESULT_SUCCESS] += data->errors[TESTER_RESULT_SUCCESS];
-		errors[TESTER_RESULT_TRANSLATION_ERROR] +=
-				data->errors[TESTER_RESULT_TRANSLATION_ERROR];
-		errors[TESTER_RESULT_SIMULATION_ERROR] +=
-				data->errors[TESTER_RESULT_SIMULATION_ERROR];
-		errors[TESTER_RESULT_EXECUTION_ERROR] +=
-				data->errors[TESTER_RESULT_EXECUTION_ERROR];
-		errors[TESTER_RESULT_COMPARISON_ERROR] +=
-				data->errors[TESTER_RESULT_COMPARISON_ERROR];
-		errors[TESTER_RESULT_CRASH] += data->errors[TESTER_RESULT_CRASH];
-		executed += data->count;
-	}
-	printf("Error summary:\n");
-	printf("%lu instructions executed (%lu different ones)\n", executed,
-			entries_length);
-	printf("%lu successful tests (%f%%)\n", errors[TESTER_RESULT_SUCCESS],
-			100 * errors[TESTER_RESULT_SUCCESS] / (double)executed);
-	printf("%lu translation errors (%f%%)\n",
-			errors[TESTER_RESULT_TRANSLATION_ERROR],
-			100 * errors[TESTER_RESULT_TRANSLATION_ERROR] / (double)executed);
-	printf("%lu simulation errors (%f%%)\n",
-			errors[TESTER_RESULT_SIMULATION_ERROR],
-			100 * errors[TESTER_RESULT_SIMULATION_ERROR] / (double)executed);
-	printf("%lu execution errors (%f%%)\n", errors[TESTER_RESULT_EXECUTION_ERROR],
-			100 * errors[TESTER_RESULT_EXECUTION_ERROR] / (double)executed);
-	printf("%lu comparison errors (%f%%)\n",
-			errors[TESTER_RESULT_COMPARISON_ERROR],
-			100 * errors[TESTER_RESULT_COMPARISON_ERROR] / (double)executed);
-	printf("%lu crashes (%f%%)\n", errors[TESTER_RESULT_CRASH],
-			100 * errors[TESTER_RESULT_CRASH] / (double)executed);
-
-	for(size_t i = 0; i < entries_length; ++i) {
-		free(entries[i].data);
-		free(entries[i].key);
-	}
-	hash_array_free(ha);
-}
-
-enum mode {
-	MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
-};
 
 struct options {
-	enum mode mode;
-	char const *parameter;
+	char n_set;
+	unsigned long n;
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
+	options->n_set = 0;
+
 	while(1) {
-		char c = getopt(argc, argv, "gcpm:");
-		if(c == -1)
-			return -1;
+		char c = getopt(argc, argv, "n:");
 		switch(c) {
-			case 'g': {
-				options->mode = MODE_GENERATOR;
-				goto end;
+			case 'n': {
+				options->n_set = 1;
+				sscanf(optarg, "%lu", &options->n);
+				break;
 			}
-			case 'c': {
-				options->mode = MODE_CLI;
-				goto end;
-			}
-			case 'p': {
-				options->mode = MODE_CODE;
-				goto end;
-			}
-			case 'm': {
-				options->mode = MODE_CMDLINE;
-				options->parameter = optarg;
+			default: {
 				goto end;
 			}
 		}
@@ -242,11 +88,6 @@ static char args_parse(int argc, char **argv, struct options *options) {
 
 	return 0;
 }
-
-char *data[] = { "alpha", "bravo", "charlie", "delta", "echo", "foxtrot",
-		"golf", "hotel", "india", "juliet", "kilo", "lima", "mike", "november",
-		"oscar", "papa", "quebec", "romeo", "sierra", "tango", "uniform", "victor",
-		"whisky", "x-ray", "yankee", "zulu" };
 
 int main(int argc, char **argv) {
 //	while(1) {
@@ -328,21 +169,90 @@ int main(int argc, char **argv) {
 	if(retval)
 		return 1;
 
-	switch(options.mode) {
-		case MODE_CLI: {
-			break;
-		}
-		case MODE_GENERATOR: {
-			generator();
-			break;
-		}
-		case MODE_CODE: {
-			break;
-		}
-		case MODE_CMDLINE: {
-			break;
-		}
+	struct hash_array *ha = hash_array_init(32768);
+
+	size_t n;
+	if(options.n_set)
+		n = options.n;
+	else
+		n = 100;
+
+	size_t decode_errors = 0;
+
+	for(size_t i = 0; i < n; ++i) {
+		printf("%lu +++++++++++++++++++++\n", i);
+
+//		generator_tree_print(root);
+//		printf("\n");
+
+		struct generator_tree_node *root = generator_x86_tree_get();
+		char *buffer;
+		size_t length;
+		FILE *stream = open_memstream(&buffer, &length);
+		generator_tree_execute(root, stream);
+		fclose(stream);
+		generator_tree_free(root);
+
+		decode_errors += test_instruction(ha, (__char *)buffer, length);
+
+		free(buffer);
 	}
+
+	ENTRY *entries;
+	size_t entries_length = hash_array_entries_get(ha, &entries);
+	size_t errors[TESTER_RESULTS_LENGTH];
+	size_t executed = 0;
+	for(size_t i = 0; i < TESTER_RESULTS_LENGTH; ++i)
+		errors[i] = 0;
+	for(size_t i = 0; i < entries_length; ++i) {
+		struct insn_data *data = (struct insn_data*)entries[i].data;
+		printf(
+				"%s: %lu, successful tests: %lu, translation errors: %lu, simulation errors: %lu, execution errors: %lu, comparison errors: %lu, crashes: %lu\n",
+				entries[i].key, data->count, data->errors[TESTER_RESULT_SUCCESS],
+				data->errors[TESTER_RESULT_TRANSLATION_ERROR],
+				data->errors[TESTER_RESULT_SIMULATION_ERROR],
+				data->errors[TESTER_RESULT_EXECUTION_ERROR],
+				data->errors[TESTER_RESULT_COMPARISON_ERROR],
+				data->errors[TESTER_RESULT_CRASH]);
+
+		errors[TESTER_RESULT_SUCCESS] += data->errors[TESTER_RESULT_SUCCESS];
+		errors[TESTER_RESULT_TRANSLATION_ERROR] +=
+				data->errors[TESTER_RESULT_TRANSLATION_ERROR];
+		errors[TESTER_RESULT_SIMULATION_ERROR] +=
+				data->errors[TESTER_RESULT_SIMULATION_ERROR];
+		errors[TESTER_RESULT_EXECUTION_ERROR] +=
+				data->errors[TESTER_RESULT_EXECUTION_ERROR];
+		errors[TESTER_RESULT_COMPARISON_ERROR] +=
+				data->errors[TESTER_RESULT_COMPARISON_ERROR];
+		errors[TESTER_RESULT_CRASH] += data->errors[TESTER_RESULT_CRASH];
+		executed += data->count;
+	}
+	printf("Summary:\n");
+	printf("%lu instructions generated (%lu decodable ones, %f%%)\n", n,
+			n - decode_errors, 100 * (n - decode_errors) / (double)n);
+	printf("%lu instruction tests (%lu different instruction types)\n", executed,
+			entries_length);
+	printf("%lu successful tests (%f%%)\n", errors[TESTER_RESULT_SUCCESS],
+			100 * errors[TESTER_RESULT_SUCCESS] / (double)executed);
+	printf("%lu translation errors (%f%%)\n",
+			errors[TESTER_RESULT_TRANSLATION_ERROR],
+			100 * errors[TESTER_RESULT_TRANSLATION_ERROR] / (double)executed);
+	printf("%lu simulation errors (%f%%)\n",
+			errors[TESTER_RESULT_SIMULATION_ERROR],
+			100 * errors[TESTER_RESULT_SIMULATION_ERROR] / (double)executed);
+	printf("%lu execution errors (%f%%)\n", errors[TESTER_RESULT_EXECUTION_ERROR],
+			100 * errors[TESTER_RESULT_EXECUTION_ERROR] / (double)executed);
+	printf("%lu comparison errors (%f%%)\n",
+			errors[TESTER_RESULT_COMPARISON_ERROR],
+			100 * errors[TESTER_RESULT_COMPARISON_ERROR] / (double)executed);
+	printf("%lu crashes (%f%%)\n", errors[TESTER_RESULT_CRASH],
+			100 * errors[TESTER_RESULT_CRASH] / (double)executed);
+
+	for(size_t i = 0; i < entries_length; ++i) {
+		free(entries[i].data);
+		free(entries[i].key);
+	}
+	hash_array_free(ha);
 
 	return 0;
 }
