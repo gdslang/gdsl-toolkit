@@ -19,7 +19,18 @@
 #include "hash_array.h"
 
 struct insn_data {
-	size_t errors[TESTER_RESULTS_LENGTH];
+	size_t errors[TESTER_RESULT_TYPES_LENGTH];
+	/*
+	 * SIMULATOR_ERROR_UNALIGNED_STORE => 0
+	 * SIMULATOR_ERROR_UNDEFINED_ADDRESS => 1
+	 * SIMULATOR_ERROR_UNDEFINED_BRANCH => 2
+	 */
+	size_t simulation_errors[SIMULATOR_ERRORS_COUNT - 1];
+	size_t execution_errors[EXECUTOR_RESULTS_COUNT];
+	size_t sigsegv_count;
+	size_t sigill_count;
+	size_t sigalrm_count;
+	size_t sigbus_count;
 	size_t count;
 };
 
@@ -41,11 +52,49 @@ static char test_instruction(struct hash_array *ha, __char *data,
 		insn_data = (struct insn_data*)e->data;
 	}
 
-	enum tester_result result = tester_test_binary(&for_name, 1, data, data_size);
+	struct tester_result result = tester_test_binary(&for_name, 1, data,
+			data_size);
 
 	if(insn_data) {
 		insn_data->count++;
-		insn_data->errors[result]++;
+		insn_data->errors[result.type]++;
+
+		switch(result.type) {
+			case TESTER_RTYPE_SIMULATION_ERROR: {
+				if(result.simulator_error & SIMULATOR_ERROR_UNALIGNED_STORE)
+					insn_data->simulation_errors[0]++;
+				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_ADDRESS)
+					insn_data->simulation_errors[1]++;
+				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_BRANCH)
+					insn_data->simulation_errors[2]++;
+				break;
+			}
+			case TESTER_RTYPE_EXECUTION_ERROR: {
+				insn_data->execution_errors[result.execution_result.type]++;
+				if(result.execution_result.type == EXECUTION_RTYPE_SIGNAL)
+					switch(result.execution_result.signum) {
+						case SIGSEGV: {
+							insn_data->sigsegv_count++;
+							break;
+						}
+						case SIGILL: {
+							insn_data->sigill_count++;
+							break;
+						}
+						case SIGALRM: {
+							insn_data->sigalrm_count++;
+							break;
+						}
+						case SIGBUS: {
+							insn_data->sigbus_count++;
+							break;
+						}
+					}
+				break;
+			}
+			default:
+				break;
+		}
 		return 0;
 	} else
 		return 1;
@@ -182,54 +231,97 @@ int main(int argc, char **argv) {
 
 	ENTRY *entries;
 	size_t entries_length = hash_array_entries_get(ha, &entries);
-	size_t errors[TESTER_RESULTS_LENGTH];
-	size_t executed = 0;
-	for(size_t i = 0; i < TESTER_RESULTS_LENGTH; ++i)
-		errors[i] = 0;
+	struct insn_data accumulator;
+	memset(&accumulator, 0, sizeof(accumulator));
 	for(size_t i = 0; i < entries_length; ++i) {
 		struct insn_data *data = (struct insn_data*)entries[i].data;
 		printf(
 				"%s: %lu, successful tests: %lu, translation errors: %lu, simulation errors: %lu, execution errors: %lu, comparison errors: %lu, crashes: %lu\n",
-				entries[i].key, data->count, data->errors[TESTER_RESULT_SUCCESS],
-				data->errors[TESTER_RESULT_TRANSLATION_ERROR],
-				data->errors[TESTER_RESULT_SIMULATION_ERROR],
-				data->errors[TESTER_RESULT_EXECUTION_ERROR],
-				data->errors[TESTER_RESULT_COMPARISON_ERROR],
-				data->errors[TESTER_RESULT_CRASH]);
+				entries[i].key, data->count, data->errors[TESTER_RTYPE_SUCCESS],
+				data->errors[TESTER_RTYPE_TRANSLATION_ERROR],
+				data->errors[TESTER_RTYPE_SIMULATION_ERROR],
+				data->errors[TESTER_RTYPE_EXECUTION_ERROR],
+				data->errors[TESTER_RTYPE_COMPARISON_ERROR],
+				data->errors[TESTER_RTYPE_CRASH]);
 
-		errors[TESTER_RESULT_SUCCESS] += data->errors[TESTER_RESULT_SUCCESS];
-		errors[TESTER_RESULT_TRANSLATION_ERROR] +=
-				data->errors[TESTER_RESULT_TRANSLATION_ERROR];
-		errors[TESTER_RESULT_SIMULATION_ERROR] +=
-				data->errors[TESTER_RESULT_SIMULATION_ERROR];
-		errors[TESTER_RESULT_EXECUTION_ERROR] +=
-				data->errors[TESTER_RESULT_EXECUTION_ERROR];
-		errors[TESTER_RESULT_COMPARISON_ERROR] +=
-				data->errors[TESTER_RESULT_COMPARISON_ERROR];
-		errors[TESTER_RESULT_CRASH] += data->errors[TESTER_RESULT_CRASH];
-		executed += data->count;
+		for(size_t i = 0; i < TESTER_RESULT_TYPES_LENGTH; ++i)
+			accumulator.errors[i] += data->errors[i];
+		for(size_t i = 0; i < SIMULATOR_ERRORS_COUNT; ++i)
+			accumulator.simulation_errors[i] += data->simulation_errors[i];
+		for(size_t i = 0; i < EXECUTOR_RESULTS_COUNT; ++i)
+			accumulator.execution_errors[i] += data->execution_errors[i];
+		accumulator.sigsegv_count += data->sigsegv_count;
+		accumulator.sigill_count += data->sigill_count;
+		accumulator.sigalrm_count += data->sigalrm_count;
+		accumulator.sigbus_count += data->sigbus_count;
+		accumulator.count += data->count;
 	}
 	printf("Summary:\n");
 	printf("%lu instructions generated (%lu decodable ones, %f%%)\n", options.n,
 			options.n - decode_errors,
 			100 * (options.n - decode_errors) / (double)options.n);
-	printf("%lu instruction tests (%lu different instruction types)\n", executed,
-			entries_length);
-	printf("%lu successful tests (%f%%)\n", errors[TESTER_RESULT_SUCCESS],
-			100 * errors[TESTER_RESULT_SUCCESS] / (double)executed);
+	printf("%lu instruction tests (%lu different instruction types)\n",
+			accumulator.count, entries_length);
+	printf("%lu successful tests (%f%%)\n",
+			accumulator.errors[TESTER_RTYPE_SUCCESS],
+			100 * accumulator.errors[TESTER_RTYPE_SUCCESS]
+					/ (double)accumulator.count);
 	printf("%lu translation errors (%f%%)\n",
-			errors[TESTER_RESULT_TRANSLATION_ERROR],
-			100 * errors[TESTER_RESULT_TRANSLATION_ERROR] / (double)executed);
+			accumulator.errors[TESTER_RTYPE_TRANSLATION_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_TRANSLATION_ERROR]
+					/ (double)accumulator.count);
 	printf("%lu simulation errors (%f%%)\n",
-			errors[TESTER_RESULT_SIMULATION_ERROR],
-			100 * errors[TESTER_RESULT_SIMULATION_ERROR] / (double)executed);
-	printf("%lu execution errors (%f%%)\n", errors[TESTER_RESULT_EXECUTION_ERROR],
-			100 * errors[TESTER_RESULT_EXECUTION_ERROR] / (double)executed);
+			accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]
+					/ (double)accumulator.count);
+	printf("%lu execution errors (%f%%)\n",
+			accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR]
+					/ (double)accumulator.count);
 	printf("%lu comparison errors (%f%%)\n",
-			errors[TESTER_RESULT_COMPARISON_ERROR],
-			100 * errors[TESTER_RESULT_COMPARISON_ERROR] / (double)executed);
-	printf("%lu crashes (%f%%)\n", errors[TESTER_RESULT_CRASH],
-			100 * errors[TESTER_RESULT_CRASH] / (double)executed);
+			accumulator.errors[TESTER_RTYPE_COMPARISON_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_COMPARISON_ERROR]
+					/ (double)accumulator.count);
+	printf("%lu crashes (%f%%)\n", accumulator.errors[TESTER_RTYPE_CRASH],
+			100 * accumulator.errors[TESTER_RTYPE_CRASH] / (double)accumulator.count);
+
+	printf("Simulation errors:\n");
+	printf("%lu unaligned (bit level) store errors (%f%%)\n",
+			accumulator.simulation_errors[0],
+			100 * accumulator.simulation_errors[0]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu undefined address errors (%f%%)\n",
+			accumulator.simulation_errors[1],
+			100 * accumulator.simulation_errors[1]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu undefined branch errors (%f%%)\n",
+			accumulator.simulation_errors[2],
+			100 * accumulator.simulation_errors[2]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+
+	printf("Execution errors:\n");
+	printf("%lu mapping errors (%f%%)\n",
+			accumulator.execution_errors[EXECUTION_RTYPE_MAPPING_ERROR],
+			100 * accumulator.execution_errors[EXECUTION_RTYPE_MAPPING_ERROR]
+					/ (double)accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR]);
+	printf("%lu signals (%f%%)\n",
+			accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL],
+			100 * accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]
+					/ (double)accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR]);
+
+	printf("Signals:\n");
+	printf("%lu SIGSEGV (%f%%)\n", accumulator.sigsegv_count,
+			100 * accumulator.sigsegv_count
+					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+	printf("%lu SIGILL (%f%%)\n", accumulator.sigill_count,
+			100 * accumulator.sigill_count
+					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+	printf("%lu SIGALRM (%f%%)\n", accumulator.sigalrm_count,
+			100 * accumulator.sigalrm_count
+					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+	printf("%lu SIGBUS (%f%%)\n", accumulator.sigbus_count,
+			100 * accumulator.sigbus_count
+					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 
 	for(size_t i = 0; i < entries_length; ++i) {
 		free(entries[i].data);

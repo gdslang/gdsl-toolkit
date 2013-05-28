@@ -11,24 +11,34 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <rreil/rreil.h>
+#include <simulator/simulator.h>
 #include <dis.h>
+#include <executor.h>
 
-enum tester_result {
-	TESTER_RESULT_SUCCESS = 0,
-	TESTER_RESULT_DECODING_ERROR = 1,
-	TESTER_RESULT_TRANSLATION_ERROR = 2,
-	TESTER_RESULT_SIMULATION_ERROR = 3,
-	TESTER_RESULT_EXECUTION_ERROR = 4,
-	TESTER_RESULT_COMPARISON_ERROR = 5,
-	TESTER_RESULT_CRASH = 6
+enum tester_result_type {
+	TESTER_RTYPE_SUCCESS = 0,
+	TESTER_RTYPE_DECODING_ERROR = 1,
+	TESTER_RTYPE_TRANSLATION_ERROR = 2,
+	TESTER_RTYPE_SIMULATION_ERROR = 3,
+	TESTER_RTYPE_EXECUTION_ERROR = 4,
+	TESTER_RTYPE_COMPARISON_ERROR = 5,
+	TESTER_RTYPE_CRASH = 6
 };
 
-#define TESTER_RESULTS_LENGTH (TESTER_RESULT_CRASH + 1)
+#define TESTER_RESULT_TYPES_LENGTH (TESTER_RTYPE_CRASH + 1)
 
-extern enum tester_result tester_test_translated(struct rreil_statements *statements, uint8_t *instruction,
+struct tester_result {
+	enum tester_result_type type;
+	union {
+		enum simulator_error simulator_error;
+		struct execution_result execution_result;
+	};
+};
+
+extern struct tester_result tester_test_translated(struct rreil_statements *statements, uint8_t *instruction,
 		size_t instruction_length);
-extern enum tester_result tester_test_binary(void (*name)(char *), char fork_, __char *data,
+extern struct tester_result tester_test_binary(void (*name)(char *), char fork_, __char *data,
 		size_t data_size);
-extern void tester_result_print(enum tester_result result);
+extern void tester_result_type_print(enum tester_result_type result);
 
 #endif /* TESTER_H_ */

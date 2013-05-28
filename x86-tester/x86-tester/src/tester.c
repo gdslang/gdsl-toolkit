@@ -8,31 +8,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <signal.h>
 #include <unistd.h>
-#include <setjmp.h>
 #include <rreil/rreil.h>
 #include <rreil/gdrr_builder.h>
+#include <gdrr.h>
 #include <x86.h>
-#include <context.h>
 #include <simulator/simulator.h>
 #include <simulator/regacc.h>
 #include <simulator/tracking.h>
 #include <memory.h>
 #include <util.h>
-#include <stack.h>
 #include <tbgen.h>
-#include <tester.h>
 #include <gdsl.h>
 #include <dis.h>
-#include <gdrr.h>
-
 #include <context.h>
 #include <executor.h>
+#include <tester.h>
 
 static void tester_access_init(struct context *context,
 		struct register_access *access, void (*k)(uint8_t *, size_t)) {
@@ -113,9 +107,10 @@ static void ip_set(struct context *context_rreil, struct context *context_cpu,
 	free(insn_address.defined);
 }
 
-enum tester_result tester_test_translated(struct rreil_statements *statements,
+struct tester_result tester_test_translated(struct rreil_statements *statements,
 		uint8_t *instruction, size_t instruction_length) {
-	enum tester_result result = TESTER_RESULT_SUCCESS;
+	struct tester_result result;
+	result.type = TESTER_RTYPE_SUCCESS;
 
 	rreil_statements_print(statements);
 
@@ -176,16 +171,19 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 	printf("------------------\n");
 	context_x86_print(context_rreil);
 
-	if(simulator_statements_simulate(context_rreil, statements)
-			!= SIMULATOR_ERROR_NONE) {
-		result = TESTER_RESULT_SIMULATION_ERROR;
+	enum simulator_error simulation_error = simulator_statements_simulate(
+			context_rreil, statements);
+	if(simulation_error != SIMULATOR_ERROR_NONE) {
+		result.type = TESTER_RTYPE_SIMULATION_ERROR;
+		result.simulator_error = simulation_error;
 		goto cu_a;
 	}
 
-	char retval = executor_instruction_execute(instruction, instruction_length,
-			trace, context_cpu, code, tbgen_result);
-	if(retval) {
-		result = TESTER_RESULT_EXECUTION_ERROR;
+	struct execution_result execution_result = executor_instruction_execute(
+			instruction, instruction_length, trace, context_cpu, code, tbgen_result);
+	if(execution_result.type != EXECUTION_RTYPE_SUCCESS) {
+		result.type = TESTER_RTYPE_EXECUTION_ERROR;
+		result.execution_result = execution_result;
 		goto cu_a;
 	}
 
@@ -199,9 +197,9 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 
 	printf("------------------\n");
 //	if(!retval) {
-	retval = context_compare(trace, context_cpu, context_rreil);
+	char retval = context_compare(trace, context_cpu, context_rreil);
 	if(retval)
-		result = TESTER_RESULT_COMPARISON_ERROR;
+		result.type = TESTER_RTYPE_COMPARISON_ERROR;
 //	} else
 //		printf(
 //				"Comparison skipped because of the failure to execute the test function.\n");
@@ -222,15 +220,15 @@ enum tester_result tester_test_translated(struct rreil_statements *statements,
 	return result;
 }
 
-static enum tester_result tester_forked_test_translated(char fork_,
+static struct tester_result tester_forked_test_translated(char fork_,
 		struct rreil_statements *statements, uint8_t *instruction,
 		size_t instruction_length) {
-	enum tester_result result;
+	struct tester_result result;
 	if(fork_) {
-		enum tester_result *translated_result = mmap(NULL,
-				sizeof(enum tester_result), PROT_READ | PROT_WRITE,
+		struct tester_result *translated_result = mmap(NULL,
+				sizeof(enum tester_result_type), PROT_READ | PROT_WRITE,
 				MAP_SHARED | MAP_ANONYMOUS, 0, 0);
-		*translated_result = TESTER_RESULT_CRASH;
+		translated_result->type = TESTER_RTYPE_CRASH;
 
 		pid_t pid = fork();
 		if(!pid) {
@@ -240,7 +238,7 @@ static enum tester_result tester_forked_test_translated(char fork_,
 		} else
 			waitpid(pid, NULL, 0);
 		result = *translated_result;
-		munmap(translated_result, sizeof(enum tester_result));
+		munmap(translated_result, sizeof(enum tester_result_type));
 	} else
 		result = tester_test_translated(statements, instruction,
 				instruction_length);
@@ -248,9 +246,10 @@ static enum tester_result tester_forked_test_translated(char fork_,
 	return result;
 }
 
-enum tester_result tester_test_binary(void (*name)(char *), char fork_,
+struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 		__char *data, size_t data_size) {
-	enum tester_result result = TESTER_RESULT_SUCCESS;
+	struct tester_result result;
+	result.type = TESTER_RTYPE_SUCCESS;
 
 	__obj state = gdsl_create_state(data, data_size);
 
@@ -259,7 +258,7 @@ enum tester_result tester_test_binary(void (*name)(char *), char fork_,
 		printf("Decode failed\n");
 		fflush(stderr);
 		fflush(stdout);
-		result = TESTER_RESULT_DECODING_ERROR;
+		result.type = TESTER_RTYPE_DECODING_ERROR;
 		goto cu;
 	}
 
@@ -293,7 +292,7 @@ enum tester_result tester_test_binary(void (*name)(char *), char fork_,
 		printf("Translate failed\n");
 		fflush(stderr);
 		fflush(stdout);
-		result = TESTER_RESULT_TRANSLATION_ERROR;
+		result.type = TESTER_RTYPE_TRANSLATION_ERROR;
 		goto cu;
 	}
 
@@ -304,7 +303,7 @@ enum tester_result tester_test_binary(void (*name)(char *), char fork_,
 
 	result = tester_forked_test_translated(fork_, statements, data, data_size);
 
-	rreil_statements_free( statements);
+	rreil_statements_free(statements);
 
 	cu: ;
 
@@ -313,33 +312,33 @@ enum tester_result tester_test_binary(void (*name)(char *), char fork_,
 	return result;
 }
 
-void tester_result_print(enum tester_result result) {
-	switch(result) {
-		case TESTER_RESULT_SUCCESS: {
+void tester_result_type_print(enum tester_result_type result_type) {
+	switch(result_type) {
+		case TESTER_RTYPE_SUCCESS: {
 			printf("TESTER_RESULT_SUCCESS");
 			break;
 		}
-		case TESTER_RESULT_DECODING_ERROR: {
+		case TESTER_RTYPE_DECODING_ERROR: {
 			printf("TESTER_RESULT_DECODING_ERROR");
 			break;
 		}
-		case TESTER_RESULT_TRANSLATION_ERROR: {
+		case TESTER_RTYPE_TRANSLATION_ERROR: {
 			printf("TESTER_RESULT_TRANSLATION_ERROR");
 			break;
 		}
-		case TESTER_RESULT_SIMULATION_ERROR: {
+		case TESTER_RTYPE_SIMULATION_ERROR: {
 			printf("TESTER_RESULT_SIMULATION_ERROR");
 			break;
 		}
-		case TESTER_RESULT_EXECUTION_ERROR: {
+		case TESTER_RTYPE_EXECUTION_ERROR: {
 			printf("TESTER_RESULT_EXECUTION_ERROR");
 			break;
 		}
-		case TESTER_RESULT_COMPARISON_ERROR: {
+		case TESTER_RTYPE_COMPARISON_ERROR: {
 			printf("TESTER_RESULT_COMPARISON_ERROR");
 			break;
 		}
-		case TESTER_RESULT_CRASH: {
+		case TESTER_RTYPE_CRASH: {
 			printf("TESTER_RESULT_CRASH");
 			break;
 		}

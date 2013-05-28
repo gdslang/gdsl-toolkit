@@ -16,6 +16,7 @@
 #include <tbgen.h>
 #include <stack.h>
 #include <util.h>
+#include <executor.h>
 
 //#define DRYRUN
 
@@ -153,14 +154,19 @@ static void unmap_all(struct stack *mappings) {
 	}
 }
 
-char executor_instruction_execute(uint8_t *instruction,
+struct execution_result executor_instruction_execute(uint8_t *instruction,
 		size_t instruction_length, struct tracking_trace *trace,
 		struct context *context, void *code, struct tbgen_result tbgen_result) {
+	struct execution_result result;
+	result.type = EXECUTION_RTYPE_SUCCESS;
+
 	struct stack *mappings = stack_init();
 
 	char retval = map_and_copy(mappings, trace, context, tbgen_result);
-	if(retval)
+	if(retval) {
+		result.type = EXECUTION_RTYPE_MAPPING_ERROR;
 		goto unmap_all;
+	}
 
 	jmp_buf jbuf;
 	void sighandler(int signum, siginfo_t *info, void *ptr) {
@@ -184,6 +190,7 @@ char executor_instruction_execute(uint8_t *instruction,
 			}
 		}
 		printf(" while executing code.\n");
+		result.signum = signum;
 		longjmp(jbuf, 1);
 	}
 
@@ -203,7 +210,7 @@ char executor_instruction_execute(uint8_t *instruction,
 	if(!setjmp(jbuf))
 		((void (*)(void))code)();
 	else
-		retval = -10;
+		result.type = EXECUTION_RTYPE_SIGNAL;
 #endif
 
 	alarm(0);
@@ -211,6 +218,8 @@ char executor_instruction_execute(uint8_t *instruction,
 	act.sa_sigaction = NULL;
 	sigaction(SIGSEGV, &act, NULL);
 	sigaction(SIGILL, &act, NULL);
+	sigaction(SIGALRM, &act, NULL);
+	sigaction(SIGBUS, &act, NULL);
 
 	write_back(trace, context);
 
@@ -218,5 +227,5 @@ char executor_instruction_execute(uint8_t *instruction,
 	unmap_all(mappings);
 	stack_free(mappings);
 
-	return retval;
+	return result;
 }

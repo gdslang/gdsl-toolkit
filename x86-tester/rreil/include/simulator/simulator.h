@@ -19,6 +19,8 @@ enum simulator_error {
 	SIMULATOR_ERROR_UNDEFINED_BRANCH = 4
 };
 
+#define SIMULATOR_ERRORS_COUNT 4
+
 extern enum simulator_error simulator_statements_simulate(struct context *context,
 		struct rreil_statements *statements);
 

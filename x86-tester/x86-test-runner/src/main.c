@@ -11,10 +11,7 @@
 #include <stdint-gcc.h>
 #include <time.h>
 #include <unistd.h>
-#include <dis.h>
-#include <gdrr.h>
 #include <rreil/rreil.h>
-#include <rreil/gdrr_builder.h>
 #include <generator.h>
 #include <generator_tree.h>
 #include <setjmp.h>
@@ -113,16 +110,16 @@ static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer, size_t size_m
 //	return retval;
 //}
 
-static void result_print(enum tester_result result) {
+static void result_print(struct tester_result result) {
 	printf("Result: ");
-	tester_result_print(result);
+	tester_result_type_print(result.type);
 	printf("\n");
 }
 
 static void test_stream(FILE *stream, char fork_) {
 	__char data[15];
 	stream_to_insn_buffer(stream, (uint8_t*)data, sizeof(data));
-	enum tester_result result = tester_test_binary(NULL, fork_, data, sizeof(data));
+	struct tester_result result = tester_test_binary(NULL, fork_, data, sizeof(data));
 	result_print(result);
 }
 
@@ -141,12 +138,12 @@ static void generator(char fork_, unsigned long n) {
 		generator_tree_execute(root, stream);
 		fclose(stream);
 
-		enum tester_result result = tester_test_binary(NULL, fork_, (__char *)buffer, length);
+		struct tester_result result = tester_test_binary(NULL, fork_, (__char *)buffer, length);
 
 		free(buffer);
 
 		result_print(result);
-		if(result == TESTER_RESULT_COMPARISON_ERROR)
+		if(result.type == TESTER_RTYPE_COMPARISON_ERROR)
 			break;
 	}
 
@@ -189,7 +186,7 @@ static void code(char fork_) {
 
 	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x47, 0x74, 0xf0 };
 
-	enum tester_result result = tester_test_binary(NULL, fork_, data, sizeof(data));
+	struct tester_result result = tester_test_binary(NULL, fork_, data, sizeof(data));
 	result_print(result);
 }
 
