@@ -169,7 +169,7 @@ structure TypeRefinement = struct
             in
                ()
             end
-         (*val _ = app showSymBinding (SymMap.listItemsi (!st))*)
+         val _ = app showSymBinding (SymMap.listItemsi (!st))
          val _ = app showFieldBinding (SymMap.listItemsi (!ft))
       in
          ()
@@ -206,7 +206,7 @@ structure TypeRefinement = struct
    
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
-         val vars = ref ([] : stype list)
+         (*val _ = TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n")*)
          fun lub (VARstype x, VARstype y) =
             let
                val xRoot = find (tt,x)
@@ -308,7 +308,7 @@ structure TypeRefinement = struct
 
    fun visitStmt s (ASSIGNstmt (NONE, exp)) = ignore (visitExp s exp)
      | visitStmt s (ASSIGNstmt (SOME sym, exp)) = ignore (lub (s, symType s sym, visitExp s exp))
-     | visitStmt s (IFstmt (c,t,e)) = (lub (s,BITstype (CONSTstype 1), visitExp s c);
+     | visitStmt s (IFstmt (c,t,e)) = (lub (s,INTstype, visitExp s c);
                                        app (visitStmt s) t; app (visitStmt s) e)
      | visitStmt s (CASEstmt (e,cs)) = (lub (s, visitExp s e, INTstype);
       (*TextIO.print ("unified scurtinee " ^ showSType (inlineSType s (visitExp s e)) ^ "\n");*)
@@ -352,7 +352,7 @@ structure TypeRefinement = struct
                   ([],[symType s arg],OBJstype)
 
             val (clArgTys, argTys, resTy) = getDecTy (SymMap.lookup (#origDecls (s : state), sym))
-            val _ = map (fn (clTy,e) => lub (s,clTy,visitExp s e)) (ListPair.zipEq (clArgTys,es))
+            val _ = map (fn (clTy,e) => lub (s,clTy,visitExp s e)) (ListPair.zip (clArgTys,es))
          in
            FUNstype (resTy, not (null es), argTys)
          end
@@ -427,7 +427,7 @@ structure TypeRefinement = struct
             [(origFType s f, fieldType s f)]
         | (UPDATEdecl { updateName = sym, updateType = t, ... }) =>
             (case (t,inlineSType s (symType s sym)) of
-                (FUNvtype (_,_,vArgs), FUNstype (_,_,sArgs)) => ListPair.zipEq (vArgs,sArgs)
+                (FUNvtype (_,_,vArgs), FUNstype (_,_,sArgs)) => ListPair.zip (vArgs,sArgs)
               | (v,s) => (TextIO.print ("update function " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " has unequal no of args: " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ "\n"); raise TypeOptBug)
             )
         | (CONdecl { conName = name, conArg = arg, ... }) =>
@@ -437,26 +437,24 @@ structure TypeRefinement = struct
           (BOXstype INTstype) => BOXexp (INTvtype,e)
         | (BOXstype (BITstype (CONSTstype s))) => BOXexp (BITvtype, INT2VECexp (s,e))
         | (BOXstype (BITstype _)) => BOXexp (BITvtype, e)
-        | (VOIDstype) => RECORDexp []
         | _ => e
        )
-     (*| readWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
-          (FUNstype (rNew,_,_)) => writeWrap s (rOrig,rNew,e)
+     | readWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
+          (FUNstype (rNew,_,_)) => readWrap s (rOrig,rNew,e)
         |  t => e
-       )*)
+       )
      | readWrap s (_,_,e) = e
 
    and writeWrap s (OBJvtype,t,e) = (case inlineSType s t of
           (BOXstype INTstype) => UNBOXexp (INTvtype,e)
         | (BOXstype (BITstype (CONSTstype s))) => VEC2INTexp (SOME s,UNBOXexp (BITvtype, e))
         | (BOXstype (BITstype _)) => UNBOXexp (BITvtype, e)
-        | (VOIDstype) => RECORDexp []
         | _ => e
        )
-     (*| writeWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
-          (FUNstype (rNew,_,_)) => readWrap s (rOrig,rNew,e)
+     | writeWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
+          (FUNstype (rNew,_,_)) => writeWrap s (rOrig,rNew,e)
         | t => e
-       )*)
+       )
      | writeWrap s (_,_,e) = e
    
    fun adjustType s (OBJvtype,t) = (case inlineSType s t of
@@ -543,8 +541,11 @@ structure TypeRefinement = struct
      }
 
    and patchStmt s (ASSIGNstmt (NONE,exp)) = ASSIGNstmt (NONE, patchExp s exp)
-     | patchStmt s (ASSIGNstmt (SOME sym,exp)) =
-         ASSIGNstmt (SOME sym, writeWrap s (origType s sym,symType s sym,patchExp s exp))
+     | patchStmt s (ASSIGNstmt (SOME sym,exp)) = (case inlineSType s (symType s sym) of
+           VOIDstype => ASSIGNstmt (NONE, patchExp s exp)
+         | _ => ASSIGNstmt (SOME sym,
+                  writeWrap s (origType s sym,symType s sym,patchExp s exp))
+      )
      | patchStmt s (IFstmt (c,t,e)) = IFstmt (patchExp s c, map (patchStmt s) t, map (patchStmt s) e)
      | patchStmt s (CASEstmt (e,ps)) = CASEstmt (patchExp s e, map (patchCase s) ps)
 
@@ -605,7 +606,7 @@ structure TypeRefinement = struct
          | (es, FUNvtype (vRes, vCl, vs), FUNstype (sRes, sCl, ss)) =>
             (fn e => readWrap s (vRes, sRes, e), FUNvtype (
             adjustType s (vRes, sRes), vCl orelse sCl,
-            map (fn (vType,sType) => adjustType s (vType, sType)) (ListPair.zipEq (vs,ss))),
+            map (fn (vType,sType) => adjustType s (vType, sType)) (ListPair.zip (vs,ss))),
             es)
          | (es, v, s) => (TextIO.print ("patchArgs of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ "\n"); raise TypeOptBug)
      end
@@ -626,7 +627,7 @@ structure TypeRefinement = struct
             origFields = fs
          }
          val _ = map (visitDecl state) ds
-         val _ = showState state
+         (*val _ = showState state*)
          val ds = map (patchDecl state) ds
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, symType state sym)) fs
       in

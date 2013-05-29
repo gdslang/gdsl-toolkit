@@ -284,9 +284,9 @@ structure Primitives = struct
    end
 
    (* a table detailing how to translate primitives into imp: for each name, returns
-      a tuple with the number of arguments and a marshaller that processes
-      these arguments *)
-   val prim_map = ref (SymMap.empty : (int * (Imp.exp list -> Imp.exp)) SymMap.map)
+      a tuple with the type of the returned expression and a marshaller that processes
+      the arguments that given to the primitive *)
+   val prim_map = ref (SymMap.empty : (Imp.vtype * (Imp.exp list -> Imp.exp)) SymMap.map)
 
    val prim_table =
       let
@@ -321,47 +321,57 @@ structure Primitives = struct
          val i = ftype [] INTvtype
          val v = ftype [] VOIDvtype
          val fv = ftype [ftype [OBJvtype] OBJvtype] VOIDvtype
+         (* Generate type of the returned expression. The value that this
+            function is called with indicates the number of arguments.
+            A negative number is used to say that the result type is an
+            action. The function tv denotes a function that returns void. *)
+         fun genType (ret, n) = if n<=0 then
+               FUNvtype (ret, false, List.tabulate (abs n, fn _ => OBJvtype))
+            else
+               FUNvtype (ret, false, List.tabulate (n, fn _ => OBJvtype))
+         fun t n = genType (OBJvtype, n)
+         fun tv n = genType (VOIDvtype, n)
       in [
-         ("raise", (1, fn args => pr (RAISEprim,sv,args))),
-         ((Atom.toString Op.andAlso), (2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
-         ((Atom.toString Op.orElse), (2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
-         ("sx", (1, fn args => pr (SIGNEDprim,bi,unboxV args))),
-         ("zx", (1, fn args => pr (UNSIGNEDprim,bi,unboxV args))),
-         ("+", (2, fn args => boxI (pr (ADDprim,iii,unboxI args)))),
-         ("-", (2, fn args => boxI (pr (SUBprim,iii,unboxI args)))),
-         ("===", (2, fn args => boxV1 (pr (EQprim,iii,unboxI args)))),
-         ("*", (2, fn args => boxI (pr (MULprim,iii,unboxI args)))),
-         ("<", (2, fn args => boxV1 (pr (LTprim,iii,unboxI args)))),
-         (">", (2, fn args => boxV1 (pr (LTprim,iii,unboxI (rev args))))),
-         ("<=", (2, fn args => boxV1 (pr (LEprim,iii,unboxI args)))),
-         (">=", (2, fn args => boxV1 (pr (LEprim,iii,unboxI (rev args))))),
-         ("not", (1, fn args => boxV (pr (NOT_VECprim,bb,unboxV args)))),
-         ("==", (2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
-         ("^", (2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
-         ("showint", (1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
-         ("showbitvec", (1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
-         ("+++", (2, fn args => pr (CONCAT_STRINGprim,ooo,args))),
-         ("slice", (3, fn args => (case args of
+         ("raise", (tv 1, fn args => pr (RAISEprim,sv,args))),
+         ((Atom.toString Op.andAlso), (t 2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
+         ((Atom.toString Op.orElse), (t 2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
+         ("sx", (t 1, fn args => pr (SIGNEDprim,bi,unboxV args))),
+         ("zx", (t 1, fn args => pr (UNSIGNEDprim,bi,unboxV args))),
+         ("+", (t 2, fn args => boxI (pr (ADDprim,iii,unboxI args)))),
+         ("-", (t 2, fn args => boxI (pr (SUBprim,iii,unboxI args)))),
+         ("===", (t 2, fn args => boxV1 (pr (EQprim,iii,unboxI args)))),
+         ("*", (t 2, fn args => boxI (pr (MULprim,iii,unboxI args)))),
+         ("<", (t 2, fn args => boxV1 (pr (LTprim,iii,unboxI args)))),
+         (">", (t 2, fn args => boxV1 (pr (LTprim,iii,unboxI (rev args))))),
+         ("<=", (t 2, fn args => boxV1 (pr (LEprim,iii,unboxI args)))),
+         (">=", (t 2, fn args => boxV1 (pr (LEprim,iii,unboxI (rev args))))),
+         ("not", (t 1, fn args => boxV (pr (NOT_VECprim,bb,unboxV args)))),
+         ("==", (t 2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
+         ("^", (t 2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
+         ("showint", (t 1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
+         ("showbitvec", (t 1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
+         ("+++", (t 2, fn args => pr (CONCAT_STRINGprim,ooo,args))),
+         ("slice", (t 3, fn args => (case args of
              [vec,ofs,sz] => STATEexp (boxV (PRIexp (PUREmonkind, SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
            | _ => raise ImpPrimTranslationBug))),
-         ("index", (1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
-         ("query", (1, fn args => (case args of
+         ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
+         ("query", (t ~1, fn args => (case args of
              [f] => STATEexp (INVOKEexp (PUREmonkind, o_, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]))
            | _ => raise ImpPrimTranslationBug))),
-         ("update", (1, fn args => (case args of
+         ("update", (tv ~1, fn args => (case args of
              [f] => STATEexp (PRIexp (INOUTmonkind, SETSTATEprim, fv, [
                   INVOKEexp (PUREmonkind, oo, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]) 
                ]))
            | _ => raise ImpPrimTranslationBug))),
-         ("ipget", (0, fn args => STATEexp (boxI (PRIexp (INmonkind,IPGETprim,i,args))))),
-         ("consume8", (0, fn args => STATEexp (boxV8 (PRIexp (INOUTmonkind,CONSUME8prim,i,args))))),
-         ("consume16", (0, fn args => STATEexp (boxV16 (PRIexp (INOUTmonkind,CONSUME16prim,i,args))))),
-         ("consume32", (0, fn args => STATEexp (boxV32 (PRIexp (INOUTmonkind,CONSUME32prim,i,args))))),
-         ("unconsume8", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
-         ("unconsume16", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
-         ("unconsume32", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
-         ("println", (1, fn args => STATEexp (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
-         ("return", (1, fn args => (case args of
+         ("ipget", (t 0, fn args => STATEexp (boxI (PRIexp (INmonkind,IPGETprim,i,args))))),
+         ("consume8", (t 0, fn args => STATEexp (boxV8 (PRIexp (INOUTmonkind,CONSUME8prim,i,args))))),
+         ("consume16", (t 0, fn args => STATEexp (boxV16 (PRIexp (INOUTmonkind,CONSUME16prim,i,args))))),
+         ("consume32", (t 0, fn args => STATEexp (boxV32 (PRIexp (INOUTmonkind,CONSUME32prim,i,args))))),
+         ("unconsume8", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
+         ("unconsume16", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
+         ("unconsume32", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
+         ("println", (tv ~1, fn args => STATEexp (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
+         ("return", (t ~1, fn args => (case args of
             [e] => STATEexp e
           | _ => raise ImpPrimTranslationBug)))
          ]

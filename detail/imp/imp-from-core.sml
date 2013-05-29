@@ -82,10 +82,10 @@ end = struct
       in
          (res, !localDs)
       end
-   fun addGlobal { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
-         funcs := SymSet.add (!funcs,sym)
-   fun isGlobal { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
-         SymSet.member (!funcs,sym)
+   fun addFunction { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } (sym,ty) =
+         funcs := SymMap.insert (!funcs,sym,ty)
+   fun getFunction { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
+         SymMap.find (!funcs,sym)
 
    (* functions operating on the mutable variables *)
    fun addDecl { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } decl =
@@ -118,7 +118,7 @@ end = struct
                                          updateFields = fields,
                                          updateType = fType })
                   val _ = app (addField s) fields
-                  val _ = addGlobal s sym
+                  val _ = addFunction s (sym, fType)
                   val _ = SymbolTables.varTable := tab
                in
                   sym
@@ -142,7 +142,7 @@ end = struct
                                          selectField = field,
                                          selectType = fType })
                   val _ = addField s field
-                  val _ = addGlobal s sym
+                  val _ = addFunction s (sym,fType)
                in
                   sym
                end
@@ -165,7 +165,7 @@ end = struct
                   val _ = addDecl s (CONdecl { conName = sym,
                                                conArg = sym',
                                                conType = fType })
-                  val _ = addGlobal s sym
+                  val _ = addFunction s (sym,fType)
                in
                   sym
                end
@@ -186,7 +186,8 @@ end = struct
       end
      | trExpr s (Exp.LETREC (ds, e)) =
       let
-         val _ = app (fn (f,_,_) => addGlobal s f) ds
+         val _ = app (fn (sym,args,_) =>
+            addFunction s (sym,FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) args))) ds
          val ((eStmts, eExp), localDecls) =
             withNewDeclVars s (fn s => trExpr s e)
          val _ = List.map (trDecl s) ds
@@ -338,14 +339,20 @@ end = struct
          end
        )
      | trExpr s (Exp.ID sym) =
-     ([], if isGlobal s sym then CLOSUREexp (FUNvtype (OBJvtype,false,[]), sym, []) else IDexp sym)
+      ([], case getFunction s sym of
+         NONE => IDexp sym
+       | SOME ty => CLOSUREexp (ty, sym, [])
+      )
 
    and trDecl s (sym, args, body) =
       let
          val ((stmts, exp), declVars) =
             withNewDeclVars s (fn s => trExpr s body)
-         val availInClosure = SymSet.union (!(#functionSyms s),
-               SymSet.addList (SymSet.singleton sym, args))
+         val availInClosure = SymSet.singleton sym
+         val availInClosure =
+            SymSet.addList (availInClosure, SymMap.listKeys (!(#functionSyms s)))
+         val availInClosure =
+            SymSet.addList (availInClosure,  args)
          val inClosure = SymSet.difference (freeVars body, availInClosure)
          fun setToArgs ss = map (fn s => (OBJvtype, s)) (SymSet.listItems ss)
          val clArgs = setToArgs inClosure
@@ -389,8 +396,7 @@ end = struct
                val fs = ref ([] : decl list)
                val fields = ref (SymMap.empty : vtype SymMap.map)
                
-               val globs = foldl SymSet.add' SymSet.empty
-                              (SymMap.listKeys (!Primitives.prim_map))
+               val globs = SymMap.map (fn (ty,gen) => ty) (!Primitives.prim_map)
                val cs = { functions = fs,
                           prim_map = !Primitives.prim_map,
                           fields = fields }
