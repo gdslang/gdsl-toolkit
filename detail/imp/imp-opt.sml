@@ -87,9 +87,7 @@ structure Simplify = struct
    fun run ({ decls = ds, fdecls = fs } : imp) =
       let
          fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
-         val prim_map =
-            foldl (fn ((k,v),m) => SymMap.insert (m,get k,v))
-               SymMap.empty ImpFromCore.prim_table
+         val prim_map = !Primitives.prim_map
          val noArgFuns = foldl gatherNoArgFuns SymSet.empty ds
 
          val state = { prim_map = prim_map, no_arg_funs = noArgFuns }

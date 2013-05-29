@@ -4,8 +4,6 @@ structure ImpFromCore : sig
       Core.Spec.t ->
          Imp.Spec.t CompilationMonad.t
 
-   val prim_table : (string * (int * (Imp.exp list -> Imp.exp))) list
-
 end = struct
 
    structure CM = CompilationMonad
@@ -14,86 +12,6 @@ end = struct
 
    open Core
    open Imp
-
-   (* a table detailing how to translate primitives, for each name, returns
-      a tuple with the number of arguments and a marshaller that processes
-      these arguments *)
-   val prim_table =
-      let
-         fun pr (prim,ty,args) = PRIexp (PUREmonkind, prim, ty, args)
-         fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
-         fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (BITvtype, arg))) args
-         fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (BITvtype, arg))) args
-         fun unboxV args = map (fn arg => UNBOXexp (BITvtype, arg)) args
-         fun boxI arg = BOXexp (INTvtype, arg)
-         fun boxV1 arg = BOXexp (BITvtype, INT2VECexp (1,arg))
-         fun boxV8 arg = BOXexp (BITvtype, INT2VECexp (8,arg))
-         fun boxV16 arg = BOXexp (BITvtype, INT2VECexp (16,arg))
-         fun boxV32 arg = BOXexp (BITvtype, INT2VECexp (32,arg))
-         fun boxV arg = BOXexp (BITvtype, arg)
-         fun ftype args res = FUNvtype (res, false, args)
-         val iii = ftype [INTvtype, INTvtype] INTvtype
-         val vvv = ftype [BITvtype, BITvtype] BITvtype
-         val sv =  ftype [STRINGvtype] VOIDvtype
-         val bi = ftype [BITvtype] INTvtype
-         val iib = ftype [INTvtype, INTvtype] BITvtype
-         val bb = ftype [BITvtype] BITvtype
-         val is = ftype [INTvtype] STRINGvtype
-         val bs = ftype [BITvtype] STRINGvtype
-         val iiib = ftype [INTvtype, INTvtype, INTvtype] BITvtype
-         val ov = ftype [OBJvtype] VOIDvtype
-         val oi = ftype [OBJvtype] INTvtype
-         val oo = ftype [OBJvtype] OBJvtype
-         val o_ = ftype [] OBJvtype
-         val ooo = ftype [OBJvtype, OBJvtype] OBJvtype
-         val i = ftype [] INTvtype
-         val v = ftype [] VOIDvtype
-         val fv = ftype [ftype [OBJvtype] OBJvtype] VOIDvtype
-      in [
-         ("raise", (1, fn args => pr (RAISEprim,sv,args))),
-         ((Atom.toString Op.andAlso), (2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
-         ((Atom.toString Op.orElse), (2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
-         ("sx", (1, fn args => pr (SIGNEDprim,bi,unboxV args))),
-         ("zx", (1, fn args => pr (UNSIGNEDprim,bi,unboxV args))),
-         ("+", (2, fn args => boxI (pr (ADDprim,iii,unboxI args)))),
-         ("-", (2, fn args => boxI (pr (SUBprim,iii,unboxI args)))),
-         ("===", (2, fn args => boxV1 (pr (EQprim,iii,unboxI args)))),
-         ("*", (2, fn args => boxI (pr (MULprim,iii,unboxI args)))),
-         ("<", (2, fn args => boxV1 (pr (LTprim,iii,unboxI args)))),
-         (">", (2, fn args => boxV1 (pr (LTprim,iii,unboxI (rev args))))),
-         ("<=", (2, fn args => boxV1 (pr (LEprim,iii,unboxI args)))),
-         (">=", (2, fn args => boxV1 (pr (LEprim,iii,unboxI (rev args))))),
-         ("not", (1, fn args => boxV (pr (NOT_VECprim,bb,unboxV args)))),
-         ("==", (2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
-         ("^", (2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
-         ("showint", (1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
-         ("showbitvec", (1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
-         ("+++", (2, fn args => pr (CONCAT_STRINGprim,ooo,args))),
-         ("slice", (3, fn args => (case args of
-             [vec,ofs,sz] => STATEexp (boxV (PRIexp (PUREmonkind, SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
-           | _ => raise ImpTranslationBug))),
-         ("index", (1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
-         ("query", (1, fn args => (case args of
-             [f] => STATEexp (INVOKEexp (PUREmonkind, o_, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]))
-           | _ => raise ImpTranslationBug))),
-         ("update", (1, fn args => (case args of
-             [f] => STATEexp (PRIexp (INOUTmonkind, SETSTATEprim, fv, [
-                  INVOKEexp (PUREmonkind, oo, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]) 
-               ]))
-           | _ => raise ImpTranslationBug))),
-         ("ipget", (0, fn args => STATEexp (boxI (PRIexp (INmonkind,IPGETprim,i,args))))),
-         ("consume8", (0, fn args => STATEexp (boxV8 (PRIexp (INOUTmonkind,CONSUME8prim,i,args))))),
-         ("consume16", (0, fn args => STATEexp (boxV16 (PRIexp (INOUTmonkind,CONSUME16prim,i,args))))),
-         ("consume32", (0, fn args => STATEexp (boxV32 (PRIexp (INOUTmonkind,CONSUME32prim,i,args))))),
-         ("unconsume8", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
-         ("unconsume16", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
-         ("unconsume32", (0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
-         ("println", (1, fn args => STATEexp (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
-         ("return", (1, fn args => (case args of
-            [e] => STATEexp e
-          | _ => raise ImpTranslationBug)))
-         ]
-      end
    
    val constructors: (Spec.sym * Spec.ty option) SymMap.map ref = ref SymMap.empty
 
@@ -164,10 +82,10 @@ end = struct
       in
          (res, !localDs)
       end
-   fun addGlobal { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } v =
-         funcs := SymSet.add (!funcs,v)
-   fun isGlobal { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } v =
-      SymSet.member (!funcs,v)
+   fun addGlobal { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
+         funcs := SymSet.add (!funcs,sym)
+   fun isGlobal { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
+         SymSet.member (!funcs,sym)
 
    (* functions operating on the mutable variables *)
    fun addDecl { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } decl =
@@ -471,15 +389,10 @@ end = struct
                val fs = ref ([] : decl list)
                val fields = ref (SymMap.empty : vtype SymMap.map)
                
-               fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
-               val prim_map =
-                  foldl (fn ((k,v),m) => SymMap.insert (m,get k,v))
-                     SymMap.empty prim_table
-               val globs =
-                  foldl (fn ((k,v),s) => SymSet.add (s,get k))
-                     SymSet.empty prim_table
+               val globs = foldl SymSet.add' SymSet.empty
+                              (SymMap.listKeys (!Primitives.prim_map))
                val cs = { functions = fs,
-                          prim_map = prim_map,
+                          prim_map = !Primitives.prim_map,
                           fields = fields }
                val initialState = { functionSyms = ref globs,
                                     localVars = SymSet.empty,
