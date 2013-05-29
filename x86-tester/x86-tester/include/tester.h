@@ -33,6 +33,7 @@ struct tester_result {
 		enum simulator_error simulator_error;
 		struct execution_result execution_result;
 	};
+	uint64_t features;
 };
 
 extern struct tester_result tester_test_translated(struct rreil_statements *statements, uint8_t *instruction,

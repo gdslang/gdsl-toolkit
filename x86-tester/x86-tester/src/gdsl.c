@@ -30,6 +30,22 @@ size_t gdsl_decoded(__obj *state) {
 	return __getBlobIndex(*state);
 }
 
+__word gdsl_features_get(__obj insn) {
+	__obj payload = __DECON(insn);
+	switch(__CASETAGCON(payload)) {
+		case __VA0:
+		case __VA1:
+		case __VA2:
+		case __VA3:
+		case __VA4: {
+			payload = __DECON(payload);
+			break;
+		}
+	}
+	__obj features = __RECORD_SELECT(payload, ___features);
+	return __CASETAGINT(__zx(features));
+}
+
 char *gdsl_x86_pretty(__obj insn, enum gdsl_x86_print_mode mode) {
 	jmp_buf exp_vec;
 	__exp_vec_set(&exp_vec);

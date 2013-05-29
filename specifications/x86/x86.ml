@@ -631,28 +631,28 @@ type flowopnd =
  | NEARABS of opnd
  | FARABS of opnd
 
-#feature vector: aes, avx, f16c, invpcid, mmx, clmul, rdrand, fsgsbase, sse, sse2, sse3, sse4_1, sse4_2, ssse3, xsaveopt, illegal rep, illegal repne, illegal lock, illegal lock for register
+#feature vector: aes, avx, f16c, invpcid, mmx, clmul, rdrand, fsgsbase, sse, sse2, sse3, sse4_1, sse4_2, ssse3, xsaveopt, illegal rep, illegal repne, illegal lock, illegal lock (for register)
 
 val none_ a                  = '0000000000000000000' 
-val aes_ a                   = '1000000000000000000' 
-val avx_ a                   = '0100000000000000000'
-val f16c_ a                  = '0010000000000000000'
-val invpcid_ a               = '0001000000000000000'
-val mmx_ a                   = '0000100000000000000'
-val clmul_ a                 = '0000010000000000000'
-val rdrand_ a                = '0000001000000000000'
-val fsgsbase_ a              = '0000000100000000000'
-val sse_ a                   = '0000000010000000000'
+val aes_ a                   = '0000000000000000001' 
+val avx_ a                   = '0000000000000000010'
+val f16c_ a                  = '0000000000000000100'
+val invpcid_ a               = '0000000000000001000'
+val mmx_ a                   = '0000000000000010000'
+val clmul_ a                 = '0000000000000100000'
+val rdrand_ a                = '0000000000001000000'
+val fsgsbase_ a              = '0000000000010000000'
+val sse_ a                   = '0000000000100000000'
 val sse2_ a                  = '0000000001000000000'
-val sse3_ a                  = '0000000000100000000'
-val sse4_1_ a                = '0000000000010000000'
-val sse4_2_ a                = '0000000000001000000'
-val ssse3_ a                 = '0000000000000100000'
-val xsaveopt_ a              = '0000000000000010000'
-val illegal-rep_ a           = '0000000000000001000'
-val illegal-repne_ a         = '0000000000000000100'
-val illegal-lock_ a          = '0000000000000000010'
-val illegal-lock-register_ a = '0000000000000000001'
+val sse3_ a                  = '0000000010000000000'
+val sse4_1_ a                = '0000000100000000000'
+val sse4_2_ a                = '0000001000000000000'
+val ssse3_ a                 = '0000010000000000000'
+val xsaveopt_ a              = '0000100000000000000'
+val illegal-rep_ a           = '0001000000000000000'
+val illegal-repne_ a         = '0010000000000000000'
+val illegal-lock_ a          = '0100000000000000000'
+val illegal-lock-register_ a = '1000000000000000000'
 
 val none                  = return (none_ 0)
 val aes                   = return (aes_ 0)

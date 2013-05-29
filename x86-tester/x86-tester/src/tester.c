@@ -254,6 +254,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 	__obj state = gdsl_create_state(data, data_size);
 
 	__obj insn;
+	__word features;
 	if(gdsl_decode(&insn, &state)) {
 		printf("Decode failed\n");
 		fflush(stderr);
@@ -263,6 +264,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 	}
 
 	data_size = gdsl_decoded(&state);
+	features = gdsl_features_get(insn);
 
 	printf("Instruction bytes:");
 	for(size_t i = 0; i < data_size; ++i)
@@ -309,6 +311,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 
 	gdsl_reset();
 
+	result.features = features;
 	return result;
 }
 

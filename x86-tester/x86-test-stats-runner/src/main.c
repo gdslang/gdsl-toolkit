@@ -16,6 +16,7 @@
 #include <generator.h>
 #include <generator_tree.h>
 #include <tester.h>
+#include <x86_features.h>
 #include "hash_array.h"
 
 struct insn_data {
@@ -34,8 +35,13 @@ struct insn_data {
 	size_t count;
 };
 
-static char test_instruction(struct hash_array *ha, __char *data,
-		size_t data_size) {
+struct feature_data {
+	size_t success;
+	size_t failed;
+};
+
+static char test_instruction(struct feature_data *features,
+		struct hash_array *insn_types, __char *data, size_t data_size) {
 	struct insn_data *insn_data = NULL;
 
 	void for_name(char *name) {
@@ -43,7 +49,7 @@ static char test_instruction(struct hash_array *ha, __char *data,
 		char *copy = (char*)malloc(name_length + 1);
 		memcpy(copy, name, name_length + 1);
 
-		ENTRY *e = hash_array_search_insert(ha, copy);
+		ENTRY *e = hash_array_search_insert(insn_types, copy);
 
 		if(!e->data)
 			e->data = (struct insn_data*)calloc(sizeof(struct insn_data), 1);
@@ -94,6 +100,20 @@ static char test_instruction(struct hash_array *ha, __char *data,
 			}
 			default:
 				break;
+		}
+
+		if(result.type != TESTER_RTYPE_DECODING_ERROR) { //Always true ;-)
+			void incf(size_t i) {
+				if(result.type == TESTER_RTYPE_SUCCESS)
+					features[i].success++;
+				else
+					features[i].failed++;
+			}
+			for(size_t i = 1; i < X86_FEATURES_COUNT; ++i)
+				if(result.features & (1 << (i - 1)))
+					incf(i);
+			if(!result.features)
+				incf(0);
 		}
 		return 0;
 	} else
@@ -204,7 +224,9 @@ int main(int argc, char **argv) {
 	if(retval)
 		return 1;
 
-	struct hash_array *ha = hash_array_init(32768);
+	struct hash_array *insn_types = hash_array_init(32768);
+	struct feature_data *features = (struct feature_data *)calloc(
+			X86_FEATURES_COUNT, sizeof(struct feature_data));
 
 	size_t decode_errors = 0;
 
@@ -222,7 +244,8 @@ int main(int argc, char **argv) {
 		generator_tree_execute(root, stream);
 		fclose(stream);
 
-		decode_errors += test_instruction(ha, (__char *)buffer, length);
+		decode_errors += test_instruction(features, insn_types, (__char *)buffer,
+				length);
 
 		free(buffer);
 	}
@@ -230,7 +253,7 @@ int main(int argc, char **argv) {
 	generator_tree_free(root);
 
 	ENTRY *entries;
-	size_t entries_length = hash_array_entries_get(ha, &entries);
+	size_t entries_length = hash_array_entries_get(insn_types, &entries);
 	struct insn_data accumulator;
 	memset(&accumulator, 0, sizeof(accumulator));
 	for(size_t i = 0; i < entries_length; ++i) {
@@ -323,11 +346,23 @@ int main(int argc, char **argv) {
 			100 * accumulator.sigbus_count
 					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 
+	printf("Instruction tests by feature:\n");
+	for(size_t i = 0; i < X86_FEATURES_COUNT; ++i) {
+		size_t total = features[i].success + features[i].failed;
+		x86_feature_print(i ? (1 << (i - 1)) : 0);
+		printf(": %lu total, %lu failed", total, features[i].failed);
+		if(total)
+			printf(" (%f%% success)\n", 100 * features[i].success / (double)total);
+		else
+			printf("\n");
+	}
+
 	for(size_t i = 0; i < entries_length; ++i) {
 		free(entries[i].data);
 		free(entries[i].key);
 	}
-	hash_array_free(ha);
+	hash_array_free(insn_types);
+	free(features);
 
 	return 0;
 }
