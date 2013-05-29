@@ -18,7 +18,20 @@
 #include <tester.h>
 #include <gdsl.h>
 
-static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer, size_t size_max) {
+enum mode {
+	MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
+};
+
+struct options {
+	enum mode mode;
+	char const *parameter;
+	unsigned long n;
+	char fork;
+	char test_unused;
+};
+
+static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer,
+		size_t size_max) {
 	char char_to_hex(char x) {
 		if(x >= '0' && x <= '9')
 			return x - '0';
@@ -33,7 +46,7 @@ static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer, size_t size_m
 	size_t size_actual = 0;
 	for(size_t i = 0; i < size_max; i++) {
 		uint8_t c = 0;
-		for (int i = 0; i < 2;) {
+		for(int i = 0; i < 2;) {
 			int x = getc(stream);
 			switch(x) {
 				case EOF:
@@ -43,7 +56,7 @@ static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer, size_t size_m
 				default: {
 					char r = char_to_hex(x);
 					if(r >= 0)
-						c |= r << (4*(1 - i++));
+						c |= r << (4 * (1 - i++));
 					break;
 				}
 			}
@@ -107,7 +120,7 @@ static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer, size_t size_m
 //
 //	gdsl_reset();
 //
-//	return retval;
+//	return retval;enum mode {
 //}
 
 static void result_print(struct tester_result result) {
@@ -116,20 +129,21 @@ static void result_print(struct tester_result result) {
 	printf("\n");
 }
 
-static void test_stream(FILE *stream, char fork_) {
+static void test_stream(FILE *stream, struct options *options) {
 	__char data[15];
 	stream_to_insn_buffer(stream, (uint8_t*)data, sizeof(data));
-	struct tester_result result = tester_test_binary(NULL, fork_, data, sizeof(data));
+	struct tester_result result = tester_test_binary(NULL, options->fork, data,
+			sizeof(data), options->test_unused);
 	result_print(result);
 }
 
-static void generator(char fork_, unsigned long n) {
+static void generator(struct options *options) {
 	struct generator_tree_node *root = generator_x86_tree_get();
 	printf("Generator:\n");
 	generator_tree_print(root);
 	printf("\n");
 
-	for(size_t i = 0; i < n; ++i) {
+	for(size_t i = 0; i < options->n; ++i) {
 		printf("\nTest #%lu +++++++++++++++++++++\n", i);
 
 		char *buffer;
@@ -138,7 +152,8 @@ static void generator(char fork_, unsigned long n) {
 		generator_tree_execute(root, stream);
 		fclose(stream);
 
-		struct tester_result result = tester_test_binary(NULL, fork_, (__char *)buffer, length);
+		struct tester_result result = tester_test_binary(NULL, options->fork,
+				(__char *)buffer, length, options->test_unused);
 
 		free(buffer);
 
@@ -150,11 +165,11 @@ static void generator(char fork_, unsigned long n) {
 	generator_tree_free(root);
 }
 
-static void cli(char fork_) {
-	test_stream(stdin, fork_);
+static void cli(struct options *options) {
+	test_stream(stdin, options);
 }
 
-static void code(char fork_) {
+static void code(struct options *options) {
 
 	//	__char data[] = { 0x66, 0x42, 0x0f, 0x38, 0x07, 0x61, 0x55 };
 	// 66 66 66 66 41 63 4a 47 78 50 69 22
@@ -183,35 +198,27 @@ static void code(char fork_) {
 	 * Todo: Wrong decoding
 	 */
 //	__char data[] = { 0x41, 0x8a, 0xe5 };
+//	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x47, 0x74, 0xf0 };
+	__char data[] = { 0x48, 0x83, 0xc4, 0x08 };
 
-	__char data[] = { 0x66, 0x66, 0x66, 0x66, 0x66, 0x66, 0x47, 0x74, 0xf0 };
-
-	struct tester_result result = tester_test_binary(NULL, fork_, data, sizeof(data));
+	struct tester_result result = tester_test_binary(NULL, options->fork, data,
+			sizeof(data), options->test_unused);
 	result_print(result);
 }
 
-static void cmdline(char const *parameter, char fork_) {
-	FILE *stream = fmemopen((void*)parameter, strlen(parameter) + 1, "r");
-	test_stream(stream, fork_);
+static void cmdline(struct options *options) {
+	FILE *stream = fmemopen((void*)options->parameter,
+			strlen(options->parameter) + 1, "r");
+	test_stream(stream, options);
 }
-
-enum mode {
-	MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
-};
-
-struct options {
-	enum mode mode;
-	char const *parameter;
-	unsigned long n;
-	char fork;
-};
 
 static char args_parse(int argc, char **argv, struct options *options) {
 	options->n = 100;
 	options->fork = 0;
+	options->test_unused = 0;
 
 	while(1) {
-		char c = getopt(argc, argv, "gcpm:n:f");
+		char c = getopt(argc, argv, "gcpm:n:fu");
 		switch(c) {
 			case 'g': {
 				options->mode = MODE_GENERATOR;
@@ -238,12 +245,16 @@ static char args_parse(int argc, char **argv, struct options *options) {
 				options->fork = 1;
 				break;
 			}
+			case 'u': {
+				options->test_unused = 1;
+				break;
+			}
 			default: {
 				goto end;
 			}
 		}
 	}
-	end:;
+	end: ;
 
 	return 0;
 }
@@ -273,19 +284,19 @@ int main(int argc, char **argv) {
 
 	switch(options.mode) {
 		case MODE_CLI: {
-			cli(options.fork);
+			cli(&options);
 			break;
 		}
 		case MODE_GENERATOR: {
-			generator(options.fork, options.n);
+			generator(&options);
 			break;
 		}
 		case MODE_CODE: {
-			code(options.fork);
+			code(&options);
 			break;
 		}
 		case MODE_CMDLINE: {
-			cmdline(options.parameter, options.fork);
+			cmdline(&options);
 			break;
 		}
 	}

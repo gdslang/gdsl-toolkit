@@ -28,57 +28,59 @@
 #include <executor.h>
 #include <tester.h>
 
+static void tester_register_fill(struct context *context, enum x86_id reg,
+		void (*filler)(uint8_t *, size_t)) {
+	size_t length = x86_amd64_sizeof(reg);
+	uint8_t *buffer = (uint8_t*)malloc(length / 8 + 1);
+	filler(buffer, length);
+
+	struct data data;
+	data.data = buffer;
+	data.bit_length = length;
+	context_data_define(&data);
+
+	simulator_register_generic_write(&context->x86_registers[reg], data, 0);
+
+	context_data_clear(&data);
+}
+
 static void tester_access_init(struct context *context,
-		struct register_access *access, void (*k)(uint8_t *, size_t)) {
+		struct register_access *access, void (*filler)(uint8_t *, size_t)) {
 	for(size_t i = 0; i < access->x86_indices_length; ++i) {
 		size_t index = access->x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
 
-		size_t length = x86_amd64_sizeof(reg);
-		uint8_t *buffer = (uint8_t*)malloc(length / 8 + 1);
-		k(buffer, length);
-
-		struct data data;
-		data.data = buffer;
-		data.bit_length = length;
-		context_data_define(&data);
-
-		simulator_register_generic_write(&context->x86_registers[reg], data, 0);
-
-		context_data_clear(&data);
+		tester_register_fill(context, reg, filler);
 	}
 }
 
-static void zero_buffer(uint8_t *data, size_t bit_length) {
-	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-		data[i] = 0;
-}
-
-static void rand_buffer(uint8_t *data, size_t bit_length) {
-	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-		data[i] = rand();
-}
-
-static void rand_address_buffer(uint8_t *data, size_t bit_length) {
-	if(bit_length != 64) {
-		rand_buffer(data, bit_length);
-		return;
-	}
-
-	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
-		if(!i)
-			data[i] = rand() & 0xf0;
-		else if(i < 5)
-			data[i] = rand();
-		else
+static void registers_x86_rreil_init(struct context *context_rreil,
+		struct tracking_trace *trace, char test_unused) {
+	void zero_buffer(uint8_t *data, size_t bit_length) {
+		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
 			data[i] = 0;
 	}
-}
 
-static void access_rreil_init(struct context *context_rreil,
-		struct tracking_trace *trace) {
-	tester_access_init(context_rreil, &trace->reg.written, &zero_buffer);
-//	tester_access_init(context_rreil, &trace->reg.read, &rand_buffer);
+	void rand_buffer(uint8_t *data, size_t bit_length) {
+		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+			data[i] = rand();
+	}
+
+	void rand_address_buffer(uint8_t *data, size_t bit_length) {
+		if(bit_length != 64) {
+			rand_buffer(data, bit_length);
+			return;
+		}
+
+		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
+			if(!i)
+				data[i] = rand() & 0xf0;
+			else if(i < 5)
+				data[i] = rand();
+			else
+				data[i] = 0;
+		}
+	}
 
 	void (*rand)(uint8_t*, size_t);
 	if(trace->mem.used)
@@ -86,8 +88,16 @@ static void access_rreil_init(struct context *context_rreil,
 	else
 		rand = &rand_buffer;
 
-	tester_access_init(context_rreil, &trace->reg.read, rand);
-	tester_access_init(context_rreil, &trace->reg.dereferenced, rand);
+	if(test_unused) {
+		for(size_t i = 0; i < X86_ID_COUNT; ++i)
+			tester_register_fill(context_rreil, (enum x86_id)i, rand);
+	} else {
+		tester_access_init(context_rreil, &trace->reg.written, &zero_buffer);
+//	tester_access_init(context_rreil, &trace->reg.read, &rand_buffer);
+
+		tester_access_init(context_rreil, &trace->reg.read, rand);
+		tester_access_init(context_rreil, &trace->reg.dereferenced, rand);
+	}
 
 	executor_rflags_clean(context_rreil);
 }
@@ -108,7 +118,7 @@ static void ip_set(struct context *context_rreil, struct context *context_cpu,
 }
 
 struct tester_result tester_test_translated(struct rreil_statements *statements,
-		uint8_t *instruction, size_t instruction_length) {
+		uint8_t *instruction, size_t instruction_length, char test_unused) {
 	struct tester_result result;
 	result.type = TESTER_RTYPE_SUCCESS;
 
@@ -156,7 +166,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	printf("------------------\n");
 	tracking_trace_print(trace);
 
-	access_rreil_init(context_rreil, trace);
+	registers_x86_rreil_init(context_rreil, trace, test_unused);
 
 	context_cpu = context_copy(context_rreil);
 
@@ -222,7 +232,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 
 static struct tester_result tester_forked_test_translated(char fork_,
 		struct rreil_statements *statements, uint8_t *instruction,
-		size_t instruction_length) {
+		size_t instruction_length, char test_unused) {
 	struct tester_result result;
 	if(fork_) {
 		struct tester_result *translated_result = mmap(NULL,
@@ -233,21 +243,21 @@ static struct tester_result tester_forked_test_translated(char fork_,
 		pid_t pid = fork();
 		if(!pid) {
 			*translated_result = tester_test_translated(statements, instruction,
-					instruction_length);
+					instruction_length, test_unused);
 			exit(0);
 		} else
 			waitpid(pid, NULL, 0);
 		result = *translated_result;
 		munmap(translated_result, sizeof(enum tester_result_type));
 	} else
-		result = tester_test_translated(statements, instruction,
-				instruction_length);
+		result = tester_test_translated(statements, instruction, instruction_length,
+				test_unused);
 
 	return result;
 }
 
 struct tester_result tester_test_binary(void (*name)(char *), char fork_,
-		__char *data, size_t data_size) {
+		__char *data, size_t data_size, char test_unused) {
 	struct tester_result result;
 	result.type = TESTER_RTYPE_SUCCESS;
 
@@ -303,7 +313,8 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 			rreil, config);
 	free(config);
 
-	result = tester_forked_test_translated(fork_, statements, data, data_size);
+	result = tester_forked_test_translated(fork_, statements, data, data_size,
+			test_unused);
 
 	rreil_statements_free(statements);
 

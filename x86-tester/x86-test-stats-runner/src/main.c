@@ -19,6 +19,11 @@
 #include <x86_features.h>
 #include "hash_array.h"
 
+struct options {
+	unsigned long n;
+	char test_unused;
+};
+
 struct insn_data {
 	size_t errors[TESTER_RESULT_TYPES_LENGTH];
 	/*
@@ -41,7 +46,8 @@ struct feature_data {
 };
 
 static char test_instruction(struct feature_data *features,
-		struct hash_array *insn_types, __char *data, size_t data_size) {
+		struct hash_array *insn_types, __char *data, size_t data_size,
+		char test_unused) {
 	struct insn_data *insn_data = NULL;
 
 	void for_name(char *name) {
@@ -59,7 +65,7 @@ static char test_instruction(struct feature_data *features,
 	}
 
 	struct tester_result result = tester_test_binary(&for_name, 1, data,
-			data_size);
+			data_size, test_unused);
 
 	if(insn_data) {
 		insn_data->count++;
@@ -120,18 +126,19 @@ static char test_instruction(struct feature_data *features,
 		return 1;
 }
 
-struct options {
-	unsigned long n;
-};
-
 static char args_parse(int argc, char **argv, struct options *options) {
 	options->n = 100;
+	options->test_unused = 0;
 
 	while(1) {
-		char c = getopt(argc, argv, "n:");
+		char c = getopt(argc, argv, "n:u");
 		switch(c) {
 			case 'n': {
 				sscanf(optarg, "%lu", &options->n);
+				break;
+			}
+			case 'u': {
+				options->test_unused = 1;
 				break;
 			}
 			default: {
@@ -245,7 +252,7 @@ int main(int argc, char **argv) {
 		fclose(stream);
 
 		decode_errors += test_instruction(features, insn_types, (__char *)buffer,
-				length);
+				length, options.test_unused);
 
 		free(buffer);
 	}

@@ -68,6 +68,8 @@ enum x86_id {
 	X86_ID_XMM15
 };
 
+#define X86_ID_COUNT (X86_ID_XMM15 + 1)
+
 enum x86_rex {
 	X86_REX_W = 0x08,
 	X86_REX_R = 0x04,
@@ -85,7 +87,5 @@ enum x86_id_type {
 extern void x86_id_print(enum x86_id id);
 extern size_t x86_amd64_sizeof(enum x86_id id);
 extern enum x86_id_type x86_id_type_get(enum x86_id id);
-
-#define X86_ID_COUNT (X86_ID_XMM15 + 1)
 
 #endif /* X86_H_ */
