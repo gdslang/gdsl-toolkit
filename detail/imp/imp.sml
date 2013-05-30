@@ -11,6 +11,7 @@ structure Imp = struct
        | BITvtype
        | INTvtype
        | STRINGvtype
+       | MONADvtype of vtype
        | OBJvtype
        | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *) 
 
@@ -108,9 +109,8 @@ structure Imp = struct
         funcType : vtype,
         funcName : sym,
         funcArgs : arg list,
-        funcLocals : arg list,
-        funcBody : stmt list,
-        funcRes : exp
+        funcBody : block,
+        funcRes : sym
       }
     | SELECTdecl of {
         selectName : sym,
@@ -145,11 +145,13 @@ structure Imp = struct
 
    and stmt =
       ASSIGNstmt of sym option * exp
-    | IFstmt of exp * stmt list * stmt list
-    | CASEstmt of exp * (pat * stmt list) list
+    | IFstmt of exp * block * block
+    | CASEstmt of exp * (pat * block) list
+   
+   and block = BASICblock of arg list * stmt list
 
    and pat =
-      VECpat of String.string
+      VECpat of String.string list (* list is never empty *)
     | CONpat of sym
     | INTpat of IntInf.int
     | WILDpat
@@ -184,20 +186,20 @@ structure Imp = struct
         | vtype BITvtype = str "bitvec"
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
+        | vtype (MONADvtype t) = seq [str "M", space, vtype t]
         | vtype (FUNvtype (res, cl, atys)) =
             seq (args (if cl then "(...," else "(",vtype,atys,")") @
                 [str "->", vtype res])
       fun arg (t,n) = seq [vtype t, space, var n]
       fun monarg PUREmonkind = ")"
-        | monarg INmonkind = ",$)"
-        | monarg INOUTmonkind = ",$$)"
+        | monarg INmonkind = ")"
+        | monarg INOUTmonkind = ")"
       fun decl (FUNCdecl {
            funcMonadic,
            funcClosure,
            funcType,
            funcName,
            funcArgs,
-           funcLocals,
            funcBody,
            funcRes
          }) =
@@ -208,10 +210,8 @@ structure Imp = struct
                      args ("[", arg, funcClosure, "]")) @
                    (args ("(", arg, funcArgs, monarg funcMonadic))
                ),
-               indent 3 (align (
-                  seq (separate (map vardecl funcLocals, ", ")) ::
-                  map stmt funcBody @
-                  [seq [str "return ", exp funcRes]] ))
+               block funcBody,
+               seq [str "return ", var funcRes]
                ]
         | decl (SELECTdecl { selectName = name, selectField = f, selectType = t }) =
             seq [vtype t, space, var name, str ";"]
@@ -224,12 +224,16 @@ structure Imp = struct
         | lit (t,STRlit s) = seq [str "\"", str s, str "\""]
         | lit (t,INTlit i) = str (IntInf.toString i)
         | lit (t,CONlit s) = con s
+      and block (BASICblock (decls, stmts)) = indent 3 (align (
+            seq (separate (map vardecl decls, ", ")) ::
+            map stmt stmts
+         ))
       and exp (IDexp sym) = var sym
         | exp (PRIexp (m,p,t,es)) =
             seq (vtype t :: space :: str "prim" :: space ::
               str (#name (prim_info p)) :: args ("(",exp,es,monarg m))
         | exp (CALLexp (m,f,es)) = seq (var f :: args ("(",exp,es,monarg m))
-        | exp (INVOKEexp (m,t,f,es)) = seq (str "*" :: vtype t :: exp f :: args ("(",exp,es,monarg m))
+        | exp (INVOKEexp (m,t,f,es)) = seq (str "*" :: vtype t :: space :: exp f :: args ("(",exp,es,monarg m))
         | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
         | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]
@@ -248,20 +252,21 @@ structure Imp = struct
         | stmt (IFstmt (c,t,e)) =
             align [
                seq [str "if", space, exp c, space, str "then"],
-               indent 3 (stmts t),
+               block t,
                str "else",
-               indent 3 (stmts e)
+               block e
             ]
         | stmt (CASEstmt (e, cs)) = align
             [seq [str "case", space, exp e, space, str "of"], cases cs]
-      and pat (VECpat s) = seq [str "0b", str s]
+      and pat (VECpat bps) =
+         seq (separate (map (fn s => str ("0b" ^ s)) bps, ","))
         | pat (CONpat s) = con s
         | pat (INTpat i) = str (IntInf.toString i)
         | pat WILDpat = str "_"
       and casee (p, ss) =
          align
             [seq [pat p, space, str ":"],
-             indent 3 (stmts ss)]
+             block ss]
       and cases cs =
          case cs of [] => str "<empty>" | cs =>
             indent 3 (alignPrefix (map casee cs, "| "))

@@ -322,13 +322,9 @@ structure Primitives = struct
          val v = ftype [] VOIDvtype
          val fv = ftype [ftype [OBJvtype] OBJvtype] VOIDvtype
          (* Generate type of the returned expression. The value that this
-            function is called with indicates the number of arguments.
-            A negative number is used to say that the result type is an
-            action. The function tv denotes a function that returns void. *)
-         fun genType (ret, n) = if n<=0 then
-               FUNvtype (ret, false, List.tabulate (abs n, fn _ => OBJvtype))
-            else
-               FUNvtype (ret, false, List.tabulate (n, fn _ => OBJvtype))
+            function is called with indicates the number of arguments. *)
+         fun genType (ret, n) =
+            FUNvtype (ret, false, List.tabulate (n, fn _ => OBJvtype))
          fun t n = genType (OBJvtype, n)
          fun tv n = genType (VOIDvtype, n)
       in [
@@ -355,10 +351,10 @@ structure Primitives = struct
              [vec,ofs,sz] => STATEexp (boxV (PRIexp (PUREmonkind, SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
            | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
-         ("query", (t ~1, fn args => (case args of
+         ("query", (t 1, fn args => (case args of
              [f] => STATEexp (INVOKEexp (PUREmonkind, o_, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]))
            | _ => raise ImpPrimTranslationBug))),
-         ("update", (tv ~1, fn args => (case args of
+         ("update", (fv, fn args => (case args of
              [f] => STATEexp (PRIexp (INOUTmonkind, SETSTATEprim, fv, [
                   INVOKEexp (PUREmonkind, oo, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]) 
                ]))
@@ -370,8 +366,8 @@ structure Primitives = struct
          ("unconsume8", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
          ("unconsume16", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
          ("unconsume32", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
-         ("println", (tv ~1, fn args => STATEexp (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
-         ("return", (t ~1, fn args => (case args of
+         ("println", (tv 1, fn args => STATEexp (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
+         ("return", (t 1, fn args => (case args of
             [e] => STATEexp e
           | _ => raise ImpPrimTranslationBug)))
          ]

@@ -60,41 +60,35 @@ end = struct
      | freeVars _ = SymSet.empty
 
 
-   fun addLocalVar { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
+   fun addLocalVar { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } sym =
       let
          val _ = ds := SymSet.add (!ds, sym)
       in
-         { functionSyms = funcs, localVars = SymSet.add (lv,sym), declVars = ds, constants = cs }
+         { functionSyms = funcs, localVars = SymSet.add (lv,sym), resVar = res, declVars = ds, constants = cs }
       end
-   fun genTmpVar { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } =
+   fun freshRes (str,{ functionSyms = funcs, localVars = lv, declVars = ds, resVar = _, constants = cs }) =
       let
          val tab = !SymbolTables.varTable
-         val (tab, sym) = SymbolTable.fresh (tab, Atom.atom "tmp")
+         val (tab, res) = SymbolTable.fresh (tab, Atom.atom (str ^ "Res"))
          val _ = SymbolTables.varTable := tab
-         val _ = ds := SymSet.add (!ds, sym)
+         val _ = ds := SymSet.add (!ds, res)
        in
-         sym
+         (res,{ functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs })
       end
-   fun withNewDeclVars { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } f =
-      let
-         val localDs = ref SymSet.empty
-         val res = f { functionSyms = funcs, localVars = lv, declVars = localDs, constants = cs }
-      in
-         (res, !localDs)
-      end
-   fun addFunction { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } (sym,ty) =
+   
+   fun addFunction { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } (sym,ty) =
          funcs := SymMap.insert (!funcs,sym,ty)
-   fun getFunction { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
+   fun getFunction { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } sym =
          SymMap.find (!funcs,sym)
 
    (* functions operating on the mutable variables *)
-   fun addDecl { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } decl =
+   fun addDecl { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } decl =
       let
          val { functions = fs, fields, prim_map } = cs
       in
          fs := decl :: !fs
       end
-   fun addField { functionSyms = funcs, localVars = lv, declVars = ds, constants = cs } sym =
+   fun addField { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } sym =
       let
          val { functions, fields = fs, prim_map } = cs
       in
@@ -176,8 +170,21 @@ end = struct
       FUNvtype (INTvtype, false, [OBJvtype]), [e])
    fun get_con_arg e = PRIexp (PUREmonkind, GET_CON_ARGprim,
       FUNvtype (OBJvtype, false, [OBJvtype]), [e])
-      
-   fun trExpr s (Exp.LETVAL (x,b,e)) =
+
+   fun trBlock { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } e =
+      let
+         (* add the result variable to this scope if it is not already defined in the previous scope,
+            this is a quick fix for functions that declare their result value within the scope
+            of this function *)
+         val initSet = if SymSet.member (!ds,res) then SymSet.empty else SymSet.singleton res
+         val localDs = ref initSet
+         val sLocal = { functionSyms = funcs, localVars = lv, declVars = localDs, resVar = res, constants = cs }
+         val (stmts, exp) = trExpr sLocal e
+         val decls = map (fn s => (OBJvtype, s)) (SymSet.listItems (!localDs))
+      in
+         BASICblock (decls, stmts @ [ASSIGNstmt (SOME res, exp)])
+      end
+   and trExpr s (Exp.LETVAL (x,b,e)) =
       let
          val (bStmts, bExp) = trExpr (addLocalVar s x) b
          val (eStmts, eExp) = trExpr s e
@@ -188,28 +195,31 @@ end = struct
       let
          val _ = app (fn (sym,args,_) =>
             addFunction s (sym,FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) args))) ds
-         val ((eStmts, eExp), localDecls) =
-            withNewDeclVars s (fn s => trExpr s e)
          val _ = List.map (trDecl s) ds
       in
-         (eStmts, eExp)
+         trExpr s e
       end
      | trExpr s (Exp.IF (c,t,e)) =
       let
-         val res = genTmpVar s
          val (cStmts, cExp) = trExpr s c
-         val (tStmts, tExp) = trExpr s t
-         val tStmts = tStmts @ [ASSIGNstmt (SOME res, tExp)]
-         val (eStmts, eExp) = trExpr s e
-         val eStmts = eStmts @ [ASSIGNstmt (SOME res, eExp)]
+         val (res,s) = freshRes ("ite",s)
+         val tBlock = trBlock s t
+         val eBlock = trBlock s e
       in
-         (cStmts @ [IFstmt (VEC2INTexp (SOME 1,UNBOXexp (BITvtype,cExp)), tStmts, eStmts)], IDexp res)
+         (cStmts @ [IFstmt (VEC2INTexp (SOME 1,UNBOXexp (BITvtype,cExp)), tBlock, eBlock)], IDexp res)
       end
      | trExpr s (Exp.CASE (e, cs)) =
       let
          (* extract the scrutinee as an int which requires different
             primitives, depending on the type that is matched *)
-         fun convertScrut (e, (Core.Pat.BIT p,_) :: _) = VEC2INTexp (SOME (String.size p),UNBOXexp (BITvtype,e))
+         fun convertScrut (e, (Core.Pat.BIT bp,_) :: cs) =
+            let
+               val fields = String.fields (fn c => c= #"|") bp
+            in
+               case fields of
+                  [] => convertScrut (e, cs)
+                | (f::_) => VEC2INTexp (SOME (String.size f),UNBOXexp (BITvtype,e))
+            end
            | convertScrut (e, (Core.Pat.INT _,_) :: _) = UNBOXexp (INTvtype,e)
            | convertScrut (e, (Core.Pat.CON (sym,_),_) :: _) = get_con_idx e
            | convertScrut (e, _ :: cs) = convertScrut (e, cs)
@@ -217,21 +227,21 @@ end = struct
          val (stmts, scrutRaw) = trExpr s e
          val scrut = convertScrut (scrutRaw, cs)
          
-         val res = genTmpVar s
-         fun trCase (Core.Pat.BIT bStr,(stmts, exp)) =
-               (VECpat bStr, stmts @ [ASSIGNstmt (SOME res,exp)])
-           | trCase (Core.Pat.INT i,(stmts, exp)) =
-               (INTpat i, stmts @ [ASSIGNstmt (SOME res,exp)])
-           | trCase (Core.Pat.CON (sym,NONE),(stmts, exp)) =
-               (CONpat sym, stmts @ [ASSIGNstmt (SOME res,exp)])
-           | trCase (Core.Pat.CON (sym,SOME arg),(stmts, exp)) =
-               (CONpat sym, ASSIGNstmt (SOME sym,get_con_arg scrutRaw) :: stmts @ [ASSIGNstmt (SOME res,exp)])
-           | trCase (Core.Pat.ID sym,(stmts, exp)) =
-               (WILDpat, ASSIGNstmt (SOME sym,scrutRaw) :: stmts @ [ASSIGNstmt (SOME res,exp)])
-           | trCase (Core.Pat.WILD,(stmts, exp)) =
-               (WILDpat, stmts @ [ASSIGNstmt (SOME res,exp)])
+         val (res,s) = freshRes ("case",s)
+         fun trCase (Core.Pat.BIT bp, block) = (
+               case String.fields (fn c => c= #"|") bp of
+                  [] => (WILDpat, block)
+                | fs => (VECpat fs, block)
+             )
+           | trCase (Core.Pat.INT i, block) = (INTpat i, block)
+           | trCase (Core.Pat.CON (sym,NONE), block) = (CONpat sym, block)
+           | trCase (Core.Pat.CON (sym,SOME arg), BASICblock (decls, stmts)) =
+               (CONpat sym, BASICblock (decls, ASSIGNstmt (SOME sym,get_con_arg scrutRaw) :: stmts))
+           | trCase (Core.Pat.ID sym, BASICblock (decls, stmts)) =
+               (WILDpat, BASICblock (decls, ASSIGNstmt (SOME sym,scrutRaw) :: stmts))
+           | trCase (Core.Pat.WILD, block) = (WILDpat, block)
 
-         val cases = map (fn (pat,e) => trCase (pat,trExpr s e)) cs
+         val cases = map (fn (pat,e) => trCase (pat,trBlock s e)) cs
       in
          (stmts @ [CASEstmt (scrut, cases)], IDexp res)
       end
@@ -268,6 +278,7 @@ end = struct
          val (stmts, unsortedFields) = trans [] [] fs
          fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          val fields = ListMergeSort.uniqueSort fieldCmp unsortedFields
+         val _ = app (fn (f,e) => addField s f) fs
       in
          (stmts, RECORDexp fields)
       end
@@ -346,8 +357,8 @@ end = struct
 
    and trDecl s (sym, args, body) =
       let
-         val ((stmts, exp), declVars) =
-            withNewDeclVars s (fn s => trExpr s body)
+         val (res,s) = freshRes (SymbolTable.getInternalString(!SymbolTables.varTable,sym),s)
+         val block = trBlock s body
          val availInClosure = SymSet.singleton sym
          val availInClosure =
             SymSet.addList (availInClosure, SymMap.listKeys (!(#functionSyms s)))
@@ -365,9 +376,8 @@ end = struct
               funcType = fType,
               funcName = sym,
               funcArgs = map (fn s => (OBJvtype, s)) args,
-              funcLocals = setToArgs declVars,
-              funcBody = stmts,
-              funcRes = exp
+              funcBody = block,
+              funcRes = res
             })
       in
          fType
@@ -400,9 +410,11 @@ end = struct
                val cs = { functions = fs,
                           prim_map = !Primitives.prim_map,
                           fields = fields }
+                          
                val initialState = { functionSyms = ref globs,
                                     localVars = SymSet.empty,
                                     declVars = ref SymSet.empty,
+                                    resVar = SymbolTable.unsafeFromInt ~1,
                                     constants = cs
                                    }
                val bogusExp = Exp.LIT (SpecAbstractTree.INTlit 42)
