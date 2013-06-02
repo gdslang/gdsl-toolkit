@@ -59,7 +59,8 @@ extern void context_data_clear(struct data *data);
 extern struct context *context_copy(struct context *source);
 extern void context_free(struct context *context);
 extern void context_x86_print(struct context *context);
-extern char context_compare(struct tracking_trace *trace,
-		struct context *context_cpu, struct context *context_rreil);
+extern char context_compare_print(struct tracking_trace *trace,
+		struct context *context_cpu, struct context *context_rreil,
+		char test_unused);
 
 #endif /* CONTEXT_H_ */

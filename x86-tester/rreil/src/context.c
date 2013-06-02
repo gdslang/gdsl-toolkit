@@ -211,29 +211,66 @@ void context_x86_print(struct context *context) {
 	}
 }
 
-char context_compare(struct tracking_trace *trace,
-		struct context *context_cpu, struct context *context_rreil) {
-	char retval = 0;
+static void context_compare_registers(struct register_ *reg_cpu,
+		struct register_ *reg_rreil, void (*callback)(void)) {
+	for(size_t j = 0; j < reg_cpu->bit_length / 8; ++j)
+		if((reg_cpu->data[j] & reg_rreil->defined[j])
+				!= (reg_rreil->data[j] & reg_rreil->defined[j])) {
+			callback();
+			break;
+		}
+}
 
-	printf("Failing Registers:\n");
-	char found = 0;
+static void context_compare_registers_using_trace(struct tracking_trace *trace,
+		struct context *context_cpu, struct context *context_rreil,
+		void (*callback)(enum x86_id reg)) {
 	for(size_t i = 0; i < trace->reg.written.x86_indices_length; ++i) {
 		size_t index = trace->reg.written.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
 		struct register_ *reg_cpu = &context_cpu->x86_registers[index];
 		struct register_ *reg_rreil = &context_rreil->x86_registers[index];
 //		struct register_ *reg_trace = &trace->reg.written.x86_registers[index];
-		for(size_t j = 0; j < reg_cpu->bit_length / 8; ++j)
-			if((reg_cpu->data[j] & reg_rreil->defined[j])
-					!= (reg_rreil->data[j] & reg_rreil->defined[j])) {
-				if(found)
-					printf(", ");
-
-				x86_id_print(reg);
-				found = 1;
-				break;
-			}
+		void equal() {
+			callback(reg);
+		}
+		context_compare_registers(reg_cpu, reg_rreil, &equal);
 	}
+}
+
+static void context_compare_registers_all(struct context *context_cpu,
+		struct context *context_rreil, void (*callback)(enum x86_id reg)) {
+	for(size_t i = 0; i < X86_ID_COUNT; ++i) {
+		enum x86_id reg = (enum x86_id)i;
+		struct register_ *reg_cpu = &context_cpu->x86_registers[i];
+		struct register_ *reg_rreil = &context_rreil->x86_registers[i];
+//		struct register_ *reg_trace = &trace->reg.written.x86_registers[index];
+		void equal() {
+			callback(reg);
+		}
+		context_compare_registers(reg_cpu, reg_rreil, &equal);
+	}
+}
+
+char context_compare_print(struct tracking_trace *trace,
+		struct context *context_cpu, struct context *context_rreil,
+		char test_unused) {
+	char retval = 0;
+
+	printf("Failing Registers:\n");
+	char found = 0;
+	void reg_found(enum x86_id reg) {
+		if(found)
+			printf(", ");
+
+		x86_id_print(reg);
+		found = 1;
+	}
+
+	if(test_unused)
+		context_compare_registers_all(context_cpu, context_rreil, &reg_found);
+	else
+		context_compare_registers_using_trace(trace, context_cpu, context_rreil,
+				&reg_found);
 
 	if(!found)
 		printf("None\n");

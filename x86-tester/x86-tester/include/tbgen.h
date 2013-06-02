@@ -34,6 +34,6 @@ extern void tbgen_mov_standard_old_register_generate(FILE *stream,
 
 extern struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 		size_t instruction_length, struct tracking_trace *trace,
-		struct context *context);
+		struct context *context, char test_unused);
 
 #endif /* TBGEN_H_ */

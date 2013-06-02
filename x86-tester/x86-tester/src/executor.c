@@ -36,9 +36,10 @@ void executor_rflags_clean(struct context *context) {
 
 struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction,
 		size_t instruction_length, struct tracking_trace *trace,
-		struct context *context, void **memory, void **next_instruction_address) {
+		struct context *context, void **memory, void **next_instruction_address,
+		char test_unused) {
 	struct tbgen_result tbgen_result = tbgen_code_generate(instruction,
-			instruction_length, trace, context);
+			instruction_length, trace, context, test_unused);
 	*memory = mmap(NULL, tbgen_result.buffer_length,
 			PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	memcpy(*memory, tbgen_result.buffer, tbgen_result.buffer_length);
@@ -114,8 +115,7 @@ static char map_and_copy(struct stack *mappings, struct tracking_trace *trace,
 	return 0;
 }
 
-static void write_back(struct tracking_trace *trace,
-		struct context *context) {
+static void write_back(struct tracking_trace *trace, struct context *context) {
 	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
 		struct memory_allocation *allocation = &context->memory.allocations[i];
 
@@ -223,8 +223,7 @@ struct execution_result executor_instruction_execute(uint8_t *instruction,
 
 	write_back(trace, context);
 
-	unmap_all:
-	unmap_all(mappings);
+	unmap_all: unmap_all(mappings);
 	stack_free(mappings);
 
 	return result;

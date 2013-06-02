@@ -28,13 +28,12 @@ extern void tbgen_allocated_pop_generate(FILE *stream,
 extern struct tbgen_register_allocation *tbgen_allocation_init();
 extern void tbgen_allocate_fixed(struct tbgen_register_allocation *allocation,
 		enum x86_id reg);
-extern enum x86_id tbgen_allocate_dynamic(
+extern char tbgen_allocate_dynamic(enum x86_id *result,
 		struct tbgen_register_allocation *allocation, FILE *stream);
-extern void tbgen_allocation_fixed_commit(struct tbgen_register_allocation *allocation,
-		FILE *stream);
-extern void tbgen_allocation_registers_free(struct tbgen_register_allocation *allocation,
-		FILE *stream);
-extern void tbgen_allocation_free(
-		struct tbgen_register_allocation *allocation);
+extern void tbgen_allocation_fixed_commit(
+		struct tbgen_register_allocation *allocation, FILE *stream);
+extern void tbgen_allocation_registers_free(
+		struct tbgen_register_allocation *allocation, FILE *stream);
+extern void tbgen_allocation_free(struct tbgen_register_allocation *allocation);
 
 #endif /* TBGEN_ALLOC_H_ */

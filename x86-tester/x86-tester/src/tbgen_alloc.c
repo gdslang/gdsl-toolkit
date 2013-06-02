@@ -78,20 +78,54 @@ void tbgen_allocate_fixed(struct tbgen_register_allocation *allocation,
 			&allocation->registers_length, &allocation->registers_size);
 }
 
-enum x86_id tbgen_allocate_dynamic(struct tbgen_register_allocation *allocation,
-		FILE *stream) {
+char tbgen_allocate_dynamic(enum x86_id *result,
+		struct tbgen_register_allocation *allocation, FILE *stream) {
 	enum x86_id reg = X86_ID_R8;
-	next: if(reg == X86_ID_R15)
-		return 0; //Todo: Handle error
-	for(size_t i = 0; i < allocation->registers_length; ++i)
+	/*
+	 * Todo: Dynamically allocate stack pointer
+	 */
+	char next() {
+		switch(reg) {
+			case X86_ID_AX:
+			case X86_ID_BX:
+			case X86_ID_CX:
+			case X86_ID_DX:
+			case X86_ID_SI:
+			case X86_ID_R8:
+			case X86_ID_R9:
+			case X86_ID_R10:
+			case X86_ID_R11:
+			case X86_ID_R12:
+			case X86_ID_R13:
+			case X86_ID_R14: {
+				reg++;
+				break;
+			}
+			case X86_ID_R15: {
+				reg = X86_ID_AX;
+				break;
+			}
+			case X86_ID_DI: {
+				reg = X86_ID_BP;
+				break;
+			}
+			default: {
+				return 1;
+			}
+		}
+		return 0;
+	}
+	start: for(size_t i = 0; i < allocation->registers_length; ++i)
 		if(allocation->registers[i] == reg) {
-			reg++;
-			goto next;
+			if(next())
+				return 1;
+			goto start;
 		}
 	util_array_generic_add((void**)&allocation->registers, &reg, sizeof(reg),
 			&allocation->registers_length, &allocation->registers_size);
 	tbgen_allocated_push_generate(stream, allocation, reg);
-	return reg;
+	*result = reg;
+	return 0;
 }
 
 void tbgen_allocation_fixed_commit(struct tbgen_register_allocation *allocation,
@@ -106,8 +140,8 @@ void tbgen_allocation_fixed_commit(struct tbgen_register_allocation *allocation,
 		 * Todo: Not aesthetic :-(
 		 */
 		allocation->sp_allocated = 0;
-		allocation->sp_backup = tbgen_allocate_dynamic(allocation, stream);
-		allocation->sp_mirror = tbgen_allocate_dynamic(allocation, stream);
+		tbgen_allocate_dynamic(&allocation->sp_backup, allocation, stream);
+		tbgen_allocate_dynamic(&allocation->sp_mirror, allocation, stream);
 		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
 				allocation->sp_backup);
 		allocation->sp_allocated = 1;

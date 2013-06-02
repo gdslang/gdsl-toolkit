@@ -174,7 +174,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	void *next_instruction_address;
 	struct tbgen_result tbgen_result = executor_instruction_mapped_generate(
 			instruction, instruction_length, trace, context_cpu, &code,
-			&next_instruction_address);
+			&next_instruction_address, test_unused);
 
 	ip_set(context_rreil, context_cpu, next_instruction_address);
 
@@ -207,7 +207,8 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 
 	printf("------------------\n");
 //	if(!retval) {
-	char retval = context_compare(trace, context_cpu, context_rreil);
+	char retval = context_compare_print(trace, context_cpu, context_rreil,
+			test_unused);
 	if(retval)
 		result.type = TESTER_RTYPE_COMPARISON_ERROR;
 //	} else
