@@ -188,6 +188,18 @@ struct execution_result executor_instruction_execute(uint8_t *instruction,
 				printf("SIGBUS");
 				break;
 			}
+			case SIGFPE: {
+				printf("SIGFPE");
+				break;
+			}
+			case SIGSYS: {
+				printf("SIGSYS");
+				break;
+			}
+			case SIGTRAP: {
+				printf("SIGTRAP");
+				break;
+			}
 		}
 		printf(" while executing code.\n");
 		result.signum = signum;
@@ -203,6 +215,9 @@ struct execution_result executor_instruction_execute(uint8_t *instruction,
 	sigaction(SIGILL, &act, NULL);
 	sigaction(SIGALRM, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
+	sigaction(SIGFPE, &act, NULL);
+	sigaction(SIGSYS, &act, NULL);
+	sigaction(SIGTRAP, &act, NULL);
 
 	alarm(1);
 
@@ -220,6 +235,9 @@ struct execution_result executor_instruction_execute(uint8_t *instruction,
 	sigaction(SIGILL, &act, NULL);
 	sigaction(SIGALRM, &act, NULL);
 	sigaction(SIGBUS, &act, NULL);
+	sigaction(SIGFPE, &act, NULL);
+	sigaction(SIGSYS, &act, NULL);
+	sigaction(SIGTRAP, &act, NULL);
 
 	write_back(trace, context);
 

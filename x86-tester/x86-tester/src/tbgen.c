@@ -544,16 +544,16 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 		}
 	}
 
-	enum x86_id *addtional_regs = NULL;
+	enum x86_id *additional_regs = NULL;
 	size_t addtional_regs_length = 0;
 	if(test_unused) {
-		addtional_regs = (enum x86_id*)malloc(X86_ID_COUNT * sizeof(enum x86_id));
+		additional_regs = (enum x86_id*)malloc(X86_ID_COUNT * sizeof(enum x86_id));
 		enum x86_id next;
 		while(!tbgen_allocate_dynamic(&next, allocation, stream))
-			addtional_regs[addtional_regs_length++] = next;
+			additional_regs[addtional_regs_length++] = next;
 	}
 
-	tbgen_registers_preparation_iterate(trace, addtional_regs,
+	tbgen_registers_preparation_iterate(trace, additional_regs,
 			addtional_regs_length, &prepare_reg);
 
 	/*
@@ -598,10 +598,10 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 			}
 		}
 	}
-	tbgen_registers_write_back_iterate(trace, addtional_regs,
+	tbgen_registers_write_back_iterate(trace, additional_regs,
 			addtional_regs_length, &write_back_reg);
 
-	free(addtional_regs);
+	free(additional_regs);
 
 //	tbgen_registers_restore(stream, trace);
 	//	tbgen_allocated_pop_generate(stream, allocation, X86_ID_FLAGS);

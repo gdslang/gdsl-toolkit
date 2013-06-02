@@ -37,6 +37,9 @@ struct insn_data {
 	size_t sigill_count;
 	size_t sigalrm_count;
 	size_t sigbus_count;
+	size_t sigfpe_count;
+	size_t sigsys_count;
+	size_t sigtrap_count;
 	size_t count;
 };
 
@@ -99,6 +102,18 @@ static char test_instruction(struct feature_data *features,
 						}
 						case SIGBUS: {
 							insn_data->sigbus_count++;
+							break;
+						}
+						case SIGFPE: {
+							insn_data->sigfpe_count++;
+							break;
+						}
+						case SIGSYS: {
+							insn_data->sigsys_count++;
+							break;
+						}
+						case SIGTRAP: {
+							insn_data->sigtrap_count++;
 							break;
 						}
 					}
@@ -284,6 +299,9 @@ int main(int argc, char **argv) {
 		accumulator.sigill_count += data->sigill_count;
 		accumulator.sigalrm_count += data->sigalrm_count;
 		accumulator.sigbus_count += data->sigbus_count;
+		accumulator.sigfpe_count += data->sigfpe_count;
+		accumulator.sigsys_count += data->sigsys_count;
+		accumulator.sigtrap_count += data->sigtrap_count;
 		accumulator.count += data->count;
 	}
 	printf("Summary:\n");
@@ -351,6 +369,15 @@ int main(int argc, char **argv) {
 					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 	printf("%lu SIGBUS (%f%%)\n", accumulator.sigbus_count,
 			100 * accumulator.sigbus_count
+					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+	printf("%lu SIGFPE (%f%%)\n", accumulator.sigfpe_count,
+			100 * accumulator.sigfpe_count
+					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+	printf("%lu SIGSYS (%f%%)\n", accumulator.sigsys_count,
+			100 * accumulator.sigsys_count
+					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+	printf("%lu SIGTRAP (%f%%)\n", accumulator.sigtrap_count,
+			100 * accumulator.sigtrap_count
 					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 
 	printf("Instruction tests by feature:\n");

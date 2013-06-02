@@ -19,7 +19,7 @@
 #include <gdsl.h>
 
 enum mode {
-	MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
+	MODE_NONE, MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
 };
 
 struct options {
@@ -160,6 +160,8 @@ static void generator(struct options *options) {
 		result_print(result);
 		if(result.type == TESTER_RTYPE_COMPARISON_ERROR)
 			break;
+//		if(result.type == TESTER_RTYPE_CRASH)
+//			break;
 	}
 
 	generator_tree_free(root);
@@ -214,6 +216,7 @@ static void cmdline(struct options *options) {
 }
 
 static char args_parse(int argc, char **argv, struct options *options) {
+	options->mode = MODE_NONE;
 	options->n = 100;
 	options->fork = 0;
 	options->test_unused = 0;
@@ -298,6 +301,10 @@ int main(int argc, char **argv) {
 		}
 		case MODE_CMDLINE: {
 			cmdline(&options);
+			break;
+		}
+		default: {
+			printf("*** No operation specified. Exiting...\n");
 			break;
 		}
 	}
