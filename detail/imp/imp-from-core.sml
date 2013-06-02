@@ -75,7 +75,14 @@ end = struct
        in
          (res,{ functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs })
       end
-   
+   fun withLocalScope { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } f =
+      let
+         val localDecls = ref SymSet.empty
+         val res = f { functionSyms = funcs, localVars = lv, declVars = localDecls, resVar = res, constants = cs }
+      in
+         (res, !localDecls)
+      end
+
    fun addFunction { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } (sym,ty) =
          funcs := SymMap.insert (!funcs,sym,ty)
    fun getFunction { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } sym =
@@ -99,7 +106,7 @@ end = struct
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom (foldl
                      (fn (sym, str) =>
-                        str ^ "_" ^ SymbolTable.getInternalString (ftab,sym))
+                        str ^ "_" ^ SymbolTable.getString (ftab,sym))
                      "update" fields)
          val tab = !SymbolTables.varTable
       in
@@ -123,7 +130,7 @@ end = struct
       let
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom ("select_" ^ 
-                               SymbolTable.getInternalString (ftab,field))
+                               SymbolTable.getString (ftab,field))
          val tab = !SymbolTables.varTable
       in
          case SymbolTable.find (tab, name) of
@@ -145,7 +152,7 @@ end = struct
    fun addConFun s (con, fType) =
       let
          val ctab = !SymbolTables.conTable
-         val conName = SymbolTable.getInternalString (ctab,con)
+         val conName = SymbolTable.getString (ctab,con)
          val name = Atom.atom ("constructor_" ^ conName)
          val tab = !SymbolTables.varTable
       in
@@ -311,7 +318,7 @@ end = struct
                let
                   val (stmts, exp) = trExpr s e
                in
-                  (acc @ stmts, exp)
+                  (acc @ stmts, EXECexp exp)
                end
            | transSeq s acc ((Exp.ACTION e) :: seq) =
                let
@@ -328,8 +335,9 @@ end = struct
                   transSeq (addLocalVar s res) stmtss seq
                end
            | transSeq s acc _ = raise ImpTranslationBug
+         val ((stmts,exp), decls) = withLocalScope s (fn s => transSeq s [] seq)
       in
-         transSeq s [] seq
+         ([], STATEexp (BASICblock (map (fn d => (OBJvtype, d)) (SymSet.listItems decls), stmts), exp))
       end
      | trExpr s (Exp.LIT (SpecAbstractTree.INTlit i)) =
          ([], BOXexp (INTvtype, LITexp (INTvtype, INTlit i)))
@@ -357,7 +365,7 @@ end = struct
 
    and trDecl s (sym, args, body) =
       let
-         val (res,s) = freshRes (SymbolTable.getInternalString(!SymbolTables.varTable,sym),s)
+         val (res,s) = freshRes (SymbolTable.getString(!SymbolTables.varTable,sym),s)
          val block = trBlock s body
          val availInClosure = SymSet.singleton sym
          val availInClosure =

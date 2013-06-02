@@ -140,7 +140,7 @@ structure Imp = struct
     | VEC2INTexp of int option * exp
     | INT2VECexp of int * exp
     | CLOSUREexp of vtype * sym * exp list
-    | STATEexp of exp (* generate closure that expects a state *)
+    | STATEexp of block * exp (* generate closure that expects a state *)
     | EXECexp of exp (* apply the state to the closure *)
 
    and stmt =
@@ -208,10 +208,10 @@ structure Imp = struct
                    var funcName] @
                    (if null funcClosure then [] else
                      args ("[", arg, funcClosure, "]")) @
-                   (args ("(", arg, funcArgs, monarg funcMonadic))
+                   (args ("(", arg, funcArgs, monarg funcMonadic)) @
+                   [str " = ", var funcRes, str " where"]
                ),
-               block funcBody,
-               seq [str "return ", var funcRes]
+               block funcBody
                ]
         | decl (SELECTdecl { selectName = name, selectField = f, selectType = t }) =
             seq [vtype t, space, var name, str ";"]
@@ -244,8 +244,13 @@ structure Imp = struct
         | exp (CLOSUREexp (t,s,es)) =
          seq ([vtype t, space, str "closure", space, var s] @
               args ("[",exp,es,"]"))
-        | exp (STATEexp e) = seq [str "(fn $ => ", exp e, str ")"]
-        | exp (EXECexp e) = seq [exp e, str "($)"]
+        | exp (STATEexp (BASICblock ([],[]), e)) = seq [str "(fn $ => ", exp e, str ")"]
+        | exp (STATEexp (b, e)) = align [
+               str "fn $ => ",
+               block b,
+               indent 3 (exp e)
+            ]
+        | exp (EXECexp e) = seq [str "EXEC(", exp e, str ")"]
       and stmts ss = align (map stmt ss)
       and stmt (ASSIGNstmt (SOME s,e)) = seq [var s, space, str "=", space, exp e]
         | stmt (ASSIGNstmt (NONE,e)) = exp e

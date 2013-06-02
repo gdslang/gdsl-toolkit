@@ -1,3 +1,131 @@
+structure ActionClosures = struct
+   val name = "action-closures"
+
+   open Imp
+
+   type state = { monFuns : SymSet.set,
+                  declsRef : arg list ref,
+                  stmtsRef : stmt list ref }
+   fun addMonSym ({ monFuns = monFuns,
+                    declsRef = declsRef,
+                    stmtsRef = stmtsRef },sym) =
+      { monFuns = SymSet.add(monFuns,sym),
+        declsRef = declsRef,
+        stmtsRef = stmtsRef } : state
+      
+   fun isMonadic (BASICblock (_, [ASSIGNstmt (_,STATEexp _)])) = true
+     | isMonadic _ = false
+
+   fun visitBlock s (BASICblock (decls,stmts)) =
+      let
+         val s' = { monFuns = #monFuns s,
+                    declsRef = ref [],
+                    stmtsRef = ref [] } : state
+         fun trStmts [] = []
+           | trStmts (stmt :: stmts) =
+            let
+               val stmt' = visitStmt s' stmt
+               val stmts' = !(#stmtsRef s')
+               val _ = (#stmtsRef s') := []
+            in
+               stmts' @ stmt' :: trStmts stmts
+            end
+            val stmts' = trStmts stmts
+            val decls' = decls @ !(#declsRef s')
+      in
+         BASICblock (decls', stmts')
+      end
+
+   and visitStmt s (ASSIGNstmt (NONE,exp)) = ASSIGNstmt (NONE, visitExp s exp)
+     | visitStmt s (ASSIGNstmt (SOME sym,exp)) =
+         if SymSet.member(#monFuns s, sym) then
+            ASSIGNstmt (SOME sym, visitExp s (EXECexp exp))
+         else
+            ASSIGNstmt (SOME sym, visitExp s exp)
+     | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
+     | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
+
+   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   
+   and visitExp s (IDexp sym) = if SymSet.member (#monFuns (s : state),sym)
+         then STATEexp (BASICblock ([],[]), IDexp sym) else IDexp sym
+     | visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
+     | visitExp s (CALLexp (m,sym,es)) = CALLexp (m, sym, map (visitExp s) es)
+     | visitExp s (INVOKEexp (m,t,e,es)) = INVOKEexp (m,t,visitExp s e, map (visitExp s) es)
+     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
+     | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
+     | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
+     | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
+     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+     | visitExp s (STATEexp (body,e)) =
+         (case visitExp s e of
+            (EXECexp (IDexp sym)) => STATEexp (visitBlock (addMonSym (s,sym)) body, IDexp sym)
+          | e => STATEexp (visitBlock s body, e)
+         )
+     | visitExp s (EXECexp e) = (case (visitExp s e) of
+            STATEexp (BASICblock (decls, stmts),e) => 
+            let
+               val _ = (#declsRef s) := decls @ (!(#declsRef s))
+               val _ = (#stmtsRef s) := stmts @ (!(#stmtsRef s))
+            in
+               e
+            end
+          | e => EXECexp e
+        )                                           
+     | visitExp s e = e
+
+   fun visitDecl (s : state) (FUNCdecl {
+        funcMonadic = monkind,
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = body,
+        funcRes = res
+      }) =
+      let
+         val (monkind',body') = case visitBlock s body of
+            (BASICblock (decls, [ASSIGNstmt (lhs,STATEexp (b,e))])) =>
+               (INmonkind, visitBlock s (BASICblock (decls , [ASSIGNstmt (lhs,EXECexp (STATEexp (b,e)))])))
+          | body => (monkind, body)
+      in
+         FUNCdecl {
+           funcMonadic = monkind',
+           funcClosure = clArgs,
+           funcType = vtype,
+           funcName = name,
+           funcArgs = args,
+           funcBody = body',
+           funcRes = res
+         }
+      end
+     | visitDecl s d = d
+
+   (* gather a set of obviously monadic functions; we can call these without
+      generating a closure *)
+   fun addMonadic (FUNCdecl {
+        funcName = name,
+        funcBody = body,
+        ...
+        },m) = if isMonadic body then SymSet.add (m,name) else m
+     | addMonadic (_,m) = m
+     
+   fun run { decls = ds, fdecls = fs } =
+      let
+         val monFuns = foldl addMonadic SymSet.empty ds
+         val s = { monFuns = monFuns,
+                   declsRef = ref ([] : arg list),
+                   stmtsRef = ref ([] : stmt list)
+                 } : state
+         val ds = map (visitDecl s) ds
+         (*val ds = map (patchDecl s) ds*)
+      in
+         { decls = ds, fdecls = fs }
+      end
+   
+end
+
 structure Simplify = struct
    val name = "simplify"
 
@@ -41,21 +169,15 @@ structure Simplify = struct
           | e => VEC2INTexp (sz, e)
         )
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
-     | visitExp s (CLOSUREexp (t,sym,es)) =
-      let
-          val { prim_map = prim_map, no_arg_funs = funs } = s
-      in
-         if List.null es andalso SymSet.member(funs,sym) then
-         CALLexp (PUREmonkind, sym, []) else
-         CLOSUREexp (t,sym,map (visitExp s) es)
-      end
-     | visitExp s (STATEexp e) = STATEexp (visitExp s e)
+     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b,visitExp s e)
      | visitExp s (EXECexp e) = (case visitExp s e of
-            STATEexp e => e
-          | CALLexp (_,sym,es) => EXECexp (visitExp s (CALLexp (INOUTmonkind, sym, es)))
-          | CLOSUREexp (t,sym,es) => visitExp s (EXECexp (CALLexp (INOUTmonkind, sym, es)))
-          | e => EXECexp e
-        )
+         CLOSUREexp (t,sym,[]) => (case SymMap.find (#prim_map s,sym) of
+            SOME (_,gen) => visitExp s (gen [])
+          | NONE => EXECexp (CLOSUREexp (t,sym,[]))
+         )
+       | e => e
+     )
 
    fun visitDecl s (FUNCdecl {
         funcMonadic = monkind,
@@ -357,13 +479,15 @@ structure TypeRefinement = struct
                   (map (fieldType s) fs,[OBJstype],OBJstype)
               | getDecTy (CONdecl { conName = name, conArg = arg, ... }) =
                   ([],[symType s arg],OBJstype)
-
-            val (clArgTys, argTys, resTy) = getDecTy (SymMap.lookup (#origDecls (s : state), sym))
+            
+            val _ = TextIO.print ("looking for symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym))
+            val (SOME decl) = SymMap.find (#origDecls (s : state), sym)
+            val (clArgTys, argTys, resTy) = getDecTy decl
             val _ = map (fn (clTy,e) => lub (s,clTy,visitExp s e)) (ListPair.zip (clArgTys,es))
          in
            FUNstype (resTy, not (null es), argTys)
          end
-     | visitExp s (STATEexp e) = MONADstype (visitExp s e)
+     | visitExp s (STATEexp (b,e)) = (visitBlock s b; MONADstype (visitExp s e))
      | visitExp s (EXECexp e) =
          let
             val tVar = freshTVar s
@@ -451,7 +575,7 @@ structure TypeRefinement = struct
           (BOXstype INTstype) => BOXexp (INTvtype,e)
         | (BOXstype (BITstype (CONSTstype s))) => BOXexp (BITvtype, INT2VECexp (s,e))
         | (BOXstype (BITstype _)) => BOXexp (BITvtype, e)
-        | (MONADstype t) => STATEexp (readWrap s (OBJvtype, t, INVOKEexp (INmonkind, adjustType s (OBJvtype, t), e, [])))
+        | (MONADstype t) => STATEexp (BASICblock ([],[]), readWrap s (OBJvtype, t, INVOKEexp (INmonkind, adjustType s (OBJvtype, t), e, [])))
         | _ => e
        )
      | readWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
@@ -607,7 +731,7 @@ structure TypeRefinement = struct
       in
          wrap (CLOSUREexp (tyNew,sym,esNew))
       end
-     | patchExp s (STATEexp e) = STATEexp (patchExp s e)
+     | patchExp s (STATEexp (b,e)) = STATEexp (patchBlock s b, patchExp s e)
      | patchExp s (EXECexp e) = EXECexp (patchExp s e)
    
    and patchArgs s (orig,new,es) =
@@ -696,7 +820,7 @@ structure StatePassing = struct
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp e) = STATEexp e
+     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b, visitExp s e)
      | visitExp s (EXECexp e) = (raiseCurrent (s,INmonkind); EXECexp (visitExp s e))
      | visitExp s e = e
 

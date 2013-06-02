@@ -293,6 +293,7 @@ structure Primitives = struct
          open Imp
          exception ImpPrimTranslationBug
          fun pr (prim,ty,args) = PRIexp (PUREmonkind, prim, ty, args)
+         fun action e = STATEexp (BASICblock ([],[]), e)
          fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
          fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (BITvtype, arg))) args
          fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (BITvtype, arg))) args
@@ -348,27 +349,27 @@ structure Primitives = struct
          ("showbitvec", (t 1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
          ("+++", (t 2, fn args => pr (CONCAT_STRINGprim,ooo,args))),
          ("slice", (t 3, fn args => (case args of
-             [vec,ofs,sz] => STATEexp (boxV (PRIexp (PUREmonkind, SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
+             [vec,ofs,sz] => action (boxV (PRIexp (PUREmonkind, SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
            | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
          ("query", (t 1, fn args => (case args of
-             [f] => STATEexp (INVOKEexp (PUREmonkind, o_, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]))
+             [f] => action (INVOKEexp (PUREmonkind, o_, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]))
            | _ => raise ImpPrimTranslationBug))),
          ("update", (fv, fn args => (case args of
-             [f] => STATEexp (PRIexp (INOUTmonkind, SETSTATEprim, fv, [
+             [f] => action (PRIexp (INOUTmonkind, SETSTATEprim, fv, [
                   INVOKEexp (PUREmonkind, oo, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]) 
                ]))
            | _ => raise ImpPrimTranslationBug))),
-         ("ipget", (t 0, fn args => STATEexp (boxI (PRIexp (INmonkind,IPGETprim,i,args))))),
-         ("consume8", (t 0, fn args => STATEexp (boxV8 (PRIexp (INOUTmonkind,CONSUME8prim,i,args))))),
-         ("consume16", (t 0, fn args => STATEexp (boxV16 (PRIexp (INOUTmonkind,CONSUME16prim,i,args))))),
-         ("consume32", (t 0, fn args => STATEexp (boxV32 (PRIexp (INOUTmonkind,CONSUME32prim,i,args))))),
-         ("unconsume8", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
-         ("unconsume16", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
-         ("unconsume32", (tv 0, fn args => STATEexp (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
-         ("println", (tv 1, fn args => STATEexp (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
+         ("ipget", (t 0, fn args => action (boxI (PRIexp (INmonkind,IPGETprim,i,args))))),
+         ("consume8", (t 0, fn args => action (boxV8 (PRIexp (INOUTmonkind,CONSUME8prim,i,args))))),
+         ("consume16", (t 0, fn args => action (boxV16 (PRIexp (INOUTmonkind,CONSUME16prim,i,args))))),
+         ("consume32", (t 0, fn args => action (boxV32 (PRIexp (INOUTmonkind,CONSUME32prim,i,args))))),
+         ("unconsume8", (tv 0, fn args => action (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
+         ("unconsume16", (tv 0, fn args => action (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
+         ("unconsume32", (tv 0, fn args => action (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
+         ("println", (tv 1, fn args => action (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
          ("return", (t 1, fn args => (case args of
-            [e] => STATEexp e
+            [e] => action e
           | _ => raise ImpPrimTranslationBug)))
          ]
       end
