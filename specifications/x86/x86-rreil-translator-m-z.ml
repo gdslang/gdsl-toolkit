@@ -436,11 +436,13 @@ val sem-packuswb-packusdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = 
       src-offset <- return (element-size*i);
       dst-offset <- return (dst-element-size*i);
 
-      _if (/gtu element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
+      _if (/gts element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
        mov dst-element-size (at-offset temp-dst dst-offset) (imm upper)
-     ) _else (
-       mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src (src-offset + dst-element-size)))
-     )
+     ) _else (_if (/lts element-size (var (at-offset temp-src src-offset)) (imm 0)) _then (
+       mov dst-element-size (at-offset temp-dst dst-offset) (imm 0)
+		 ) _else (
+       mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src src-offset))
+     ))
     end
   in
     vector-apply (2*size) element-size m
@@ -448,6 +450,45 @@ val sem-packuswb-packusdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = 
 
   write-extend avx-encoded size dst (var temp-dst)
 end
+
+#val sem-packuswb-packusdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = do
+#  size <- sizeof1 opnd1;
+#  src1 <- read size opnd2;
+#  src2 <- read size opnd3;
+#  dst <- lval size opnd1;
+#
+#  temp-src <- mktemp;
+#  mov size temp-src src1;
+#  mov size (at-offset temp-src size) src2;
+#
+#  temp-dst <- mktemp;
+#
+#  element-size <- return (2*dst-element-size);
+#
+#  upper <- return (
+#    if dst-element-size === 8 then
+#      0xff
+#    else
+#      0xffff
+#  );
+#
+#  let
+#    val m i = do
+#      src-offset <- return (element-size*i);
+#      dst-offset <- return (dst-element-size*i);
+#
+#      _if (/gtu element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
+#       mov dst-element-size (at-offset temp-dst dst-offset) (imm upper)
+#     ) _else (
+#       mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src (src-offset + dst-element-size)))
+#     )
+#    end
+#  in
+#    vector-apply (2*size) element-size m
+#  end;
+#
+#  write-extend avx-encoded size dst (var temp-dst)
+#end
 
 val sem-packuswb-packusdw dst-element-size x = sem-packuswb-packusdw-opnd '0' dst-element-size x.opnd1 x.opnd1 x.opnd2
 val sem-vpackuswb-vpackusdw dst-element-size x = sem-packuswb-packusdw-opnd '1' dst-element-size x.opnd1 x.opnd2 x.opnd3
