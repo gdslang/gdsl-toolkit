@@ -1,3 +1,92 @@
+
+structure PatchFunctionCalls = struct
+   val name = "patch-function-calls"
+
+   open Imp
+      
+   fun visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
+     | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
+     | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
+   
+   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   
+   and visitBlock s (BASICblock (decls, stmts)) = BASICblock (decls, map (visitStmt s) stmts)
+   
+   and visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
+     | visitExp s (IDexp sym) = IDexp sym
+     | visitExp s (CALLexp (m, sym,es)) = CALLexp (m, sym, map (visitExp s) es)
+     | visitExp s (INVOKEexp (m, t, e, es)) =
+      let
+         val { prim_map = prim_map, no_arg_funs = _ } = s
+         (*val _ = TextIO.print ("checking call " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+      in
+         case visitExp s e of
+            CLOSUREexp (t,sym,[]) => (case SymMap.find (#prim_map s, sym) of
+               SOME (_,gen) => visitExp s (gen es)
+             | NONE => visitExp s (CALLexp (m, sym, es))
+            )
+          | e => INVOKEexp (m, t, e, map (visitExp s) es)
+      end
+     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (LITexp l) = LITexp l
+     | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
+     | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
+     | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
+     | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
+     | visitExp s (CLOSUREexp (t,sym,[])) =
+      (case SymMap.find (#prim_map s, sym) of
+         SOME (FUNvtype (_,false,[]),gen) => visitExp s (gen [])
+       | _ => if SymSet.member (#no_arg_funs s, sym)
+         then
+            IDexp sym
+         else
+            CLOSUREexp (t,sym,[])
+      )
+     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b,visitExp s e)
+     | visitExp s (EXECexp e) = EXECexp (visitExp s e)
+
+   fun visitDecl s (FUNCdecl {
+        funcMonadic = monkind,
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = stmts,
+        funcRes = res
+      }) = FUNCdecl {
+        funcMonadic = monkind,
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = visitBlock s stmts,
+        funcRes = res
+      }
+     | visitDecl s d = d
+
+   fun gatherNoArgFuns (FUNCdecl {
+        funcName = name,
+        funcArgs = [],
+        funcClosure = [],
+        ...
+      },ss) = SymSet.add (ss,name)
+     | gatherNoArgFuns (_, ss) = ss
+
+   fun run ({ decls = ds, fdecls = fs } : imp) =
+      let
+         fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
+         val prim_map = !Primitives.prim_map
+         val noArgFuns = foldl gatherNoArgFuns SymSet.empty ds
+
+         val state = { prim_map = prim_map, no_arg_funs = noArgFuns }
+         val ds = map (visitDecl state) ds
+      in
+         { decls = ds, fdecls = fs } : imp
+      end
+   
+end
+
 structure ActionClosures = struct
    val name = "action-closures"
 
@@ -87,7 +176,7 @@ structure ActionClosures = struct
       let
          val (monkind',body') = case visitBlock s body of
             (BASICblock (decls, [ASSIGNstmt (lhs,STATEexp (b,e))])) =>
-               (INmonkind, visitBlock s (BASICblock (decls , [ASSIGNstmt (lhs,EXECexp (STATEexp (b,e)))])))
+               (INmonkind, BASICblock (decls , [ASSIGNstmt (lhs,EXECexp (STATEexp (b,e)))]))
           | body => (monkind, body)
       in
          FUNCdecl {
@@ -141,19 +230,8 @@ structure Simplify = struct
    
    and visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
-     | visitExp s (CALLexp (m, sym,es)) = 
-      let
-         val { prim_map = prim_map, no_arg_funs = _ } = s
-         (*val _ = TextIO.print ("checking call " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
-      in
-         case SymMap.find (prim_map, sym) of
-            SOME (_,gen) => visitExp s (gen es)
-          | NONE => CALLexp (m, sym, map (visitExp s) es)
-      end
-     | visitExp s (INVOKEexp (m, t, e, es)) = (case visitExp s e of
-         CLOSUREexp (t,sym,ess) => visitExp s (CALLexp (m, sym, ess @ es))
-       | e => INVOKEexp (m, t, e, map (visitExp s) es)
-     )
+     | visitExp s (CALLexp (m, sym,es)) = CALLexp (m, sym, map (visitExp s) es)
+     | visitExp s (INVOKEexp (m, t, e, es)) = INVOKEexp (m, t, e, map (visitExp s) es)
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (LITexp l) = LITexp l
      | visitExp s (BOXexp (t,e)) = (case visitExp s e of
@@ -171,13 +249,7 @@ structure Simplify = struct
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
      | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b,visitExp s e)
-     | visitExp s (EXECexp e) = (case visitExp s e of
-         CLOSUREexp (t,sym,[]) => (case SymMap.find (#prim_map s,sym) of
-            SOME (_,gen) => visitExp s (gen [])
-          | NONE => EXECexp (CLOSUREexp (t,sym,[]))
-         )
-       | e => e
-     )
+     | visitExp s (EXECexp e) = EXECexp (visitExp s e)
 
    fun visitDecl s (FUNCdecl {
         funcMonadic = monkind,
@@ -198,22 +270,9 @@ structure Simplify = struct
       }
      | visitDecl s d = d
 
-   fun gatherNoArgFuns (FUNCdecl {
-        funcName = name,
-        funcArgs = [],
-        funcClosure = [],
-        ...
-      },ss) = SymSet.add (ss,name)
-     | gatherNoArgFuns (_, ss) = ss
-
    fun run ({ decls = ds, fdecls = fs } : imp) =
       let
-         fun get s = VarInfo.lookup (!SymbolTables.varTable, Atom.atom s)
-         val prim_map = !Primitives.prim_map
-         val noArgFuns = foldl gatherNoArgFuns SymSet.empty ds
-
-         val state = { prim_map = prim_map, no_arg_funs = noArgFuns }
-         val ds = map (visitDecl state) ds
+         val ds = map (visitDecl {}) ds
       in
          { decls = ds, fdecls = fs } : imp
       end
