@@ -27,6 +27,7 @@ end = struct
       ImpFromCore.run s >>=
       SimplifyPass.run >>=
       ActionClosuresPass.run >>=
+      SimplifyPass.run >>=
       StatePassingPass.run >>=
       TypeRefinementPass.run >>=
       SimplifyPass.run

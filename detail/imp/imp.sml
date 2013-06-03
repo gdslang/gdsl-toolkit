@@ -191,9 +191,9 @@ structure Imp = struct
             seq (args (if cl then "(...," else "(",vtype,atys,")") @
                 [str "->", vtype res])
       fun arg (t,n) = seq [vtype t, space, var n]
-      fun monarg PUREmonkind = ")"
-        | monarg INmonkind = ")"
-        | monarg INOUTmonkind = ")"
+      fun monarg PUREmonkind = empty
+        | monarg INmonkind = seq [space, str "ACT"]
+        | monarg INOUTmonkind = seq [space, str "ACT"]
       fun decl (FUNCdecl {
            funcMonadic,
            funcClosure,
@@ -205,10 +205,10 @@ structure Imp = struct
          }) =
             align [
                seq ([vtype funcType, space,
-                   var funcName] @
+                   var funcName, monarg funcMonadic] @
                    (if null funcClosure then [] else
                      args ("[", arg, funcClosure, "]")) @
-                   (args ("(", arg, funcArgs, monarg funcMonadic)) @
+                   (args ("(", arg, funcArgs, ")")) @
                    [str " = ", var funcRes, str " where"]
                ),
                block funcBody
@@ -231,9 +231,9 @@ structure Imp = struct
       and exp (IDexp sym) = var sym
         | exp (PRIexp (m,p,t,es)) =
             seq (vtype t :: space :: str "prim" :: space ::
-              str (#name (prim_info p)) :: args ("(",exp,es,monarg m))
-        | exp (CALLexp (m,f,es)) = seq (var f :: args ("(",exp,es,monarg m))
-        | exp (INVOKEexp (m,t,f,es)) = seq (str "*" :: vtype t :: space :: exp f :: args ("(",exp,es,monarg m))
+              str (#name (prim_info p)) :: monarg m :: args ("(",exp,es,")"))
+        | exp (CALLexp (m,f,es)) = seq (var f :: monarg m :: args ("(",exp,es,")"))
+        | exp (INVOKEexp (m,t,f,es)) = seq (str "*" :: vtype t :: monarg m :: space :: exp f :: args ("(",exp,es,")"))
         | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
         | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]
