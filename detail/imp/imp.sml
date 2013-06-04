@@ -11,7 +11,6 @@ structure Imp = struct
        | BITvtype
        | INTvtype
        | STRINGvtype
-       | MONADvtype of vtype
        | OBJvtype
        | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *) 
 
@@ -89,7 +88,11 @@ structure Imp = struct
    *     g 4                        invoke(g,[y])
    *   end
    *
-   * int g_closure(x, y) {
+   * int g_closure(args[], y) {
+   *   return g(arg[0], y);
+   * }
+   *
+   * int g(x, y) {
    *   return x * y;
    * }
    *
@@ -126,6 +129,12 @@ structure Imp = struct
         conArg : sym,
         conType : vtype
       }
+    | CLOSUREdecl of {
+        closureName : sym,
+        closureArgs : vtype list,
+        closureDelegate : sym,
+        closureDelArgs : arg list
+      }
 
    and exp =
       IDexp of sym
@@ -161,6 +170,12 @@ structure Imp = struct
     | INTlit of IntInf.int
     | CONlit of sym
 
+   fun getDeclName (FUNCdecl { funcName = name, ... }) = name
+     | getDeclName (SELECTdecl { selectName = name, ... }) = name
+     | getDeclName (UPDATEdecl { updateName = name, ... }) = name
+     | getDeclName (CONdecl { conName = name, ... }) = name
+     | getDeclName (CLOSUREdecl { closureName = name, ... }) = name
+
    type decls = decl list
 
    type imp = {
@@ -185,7 +200,6 @@ structure Imp = struct
         | vtype BITvtype = str "bitvec"
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
-        | vtype (MONADvtype t) = seq [str "M", space, vtype t]
         | vtype (FUNvtype (res, cl, atys)) =
             seq (args (if cl then "(...," else "(",vtype,atys,")") @
                 [str "->", vtype res])
@@ -217,6 +231,10 @@ structure Imp = struct
             seq [vtype t, space, var name, str ";"]
         | decl (CONdecl { conName = name, conArg = arg, conType = t }) =
             seq [vtype t, space, var name, str "(", var arg, str ");"]
+        | decl (CLOSUREdecl { closureName = name, closureArgs = ts,
+                              closureDelegate = del, closureDelArgs = delArgs}) =
+            seq ([var name] @ args ("[",vtype,ts,"]") @
+                 [space, str "->", space, var del] @ args ("(",arg,delArgs,")"))
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
       and lit (t,VEClit s) = seq [str "0b", str s] 
         | lit (t,STRlit s) = seq [str "\"", str s, str "\""]

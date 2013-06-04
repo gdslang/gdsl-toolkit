@@ -353,10 +353,10 @@ structure Primitives = struct
            | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
          ("query", (t 1, fn args => (case args of
-             [f] => action (INVOKEexp (PUREmonkind, o_, f,[PRIexp (ACTmonkind, GETSTATEprim, o_, [])]))
+             [f] => action (INVOKEexp (PUREmonkind, oo, f,[PRIexp (ACTmonkind, GETSTATEprim, o_, [])]))
            | _ => raise ImpPrimTranslationBug))),
          ("update", (fv, fn args => (case args of
-             [f] => action (PRIexp (ACTmonkind, SETSTATEprim, fv, [
+             [f] => action (PRIexp (ACTmonkind, SETSTATEprim, ov, [
                   INVOKEexp (PUREmonkind, oo, f,[PRIexp (ACTmonkind, GETSTATEprim, o_, [])]) 
                ]))
            | _ => raise ImpPrimTranslationBug))),

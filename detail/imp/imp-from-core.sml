@@ -60,48 +60,72 @@ end = struct
      | freeVars _ = SymSet.empty
 
 
-   fun addLocalVar { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } sym =
-      let
-         val _ = ds := SymSet.add (!ds, sym)
-      in
-         { functionSyms = funcs, localVars = SymSet.add (lv,sym), resVar = res, declVars = ds, constants = cs }
-      end
-   fun freshRes (str,{ functionSyms = funcs, localVars = lv, declVars = ds, resVar = _, constants = cs }) =
+   type state = { closureTy : vtype SymMap.map ref,
+                  globalVars : SymSet.set ref,
+                  declVars : SymSet.set ref,
+                  resVar : SymbolTable.symid,
+                  functions : decl list ref,
+                  fields : vtype SymMap.map ref }           
+
+   fun addLocalVar (s : state) sym =
+         ((#declVars s) := SymSet.add (!(#declVars s), sym); s)
+   fun addGlobalVar (s : state) sym =
+         ((#globalVars s) := SymSet.add (!(#globalVars s), sym); s)
+   fun freshRes (str,s : state) =
       let
          val tab = !SymbolTables.varTable
          val (tab, res) = SymbolTable.fresh (tab, Atom.atom (str ^ "Res"))
          val _ = SymbolTables.varTable := tab
-         val _ = ds := SymSet.add (!ds, res)
+         val _ = (#declVars s) := SymSet.add (!(#declVars s), res)
+         val s' = {
+               closureTy = #closureTy s,
+               globalVars = #globalVars s,
+               declVars = #declVars s,
+               resVar = res,
+               functions = #functions s,
+               fields = #fields s }
        in
-         (res,{ functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs })
+         (res,s')
       end
-   fun withLocalScope { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } f =
+   fun getClosureSym sym =
+      let
+         val tab = !SymbolTables.varTable
+         val atm = Atom.atom (SymbolTable.getString (tab,sym) ^ "_closure")
+       in
+         case SymbolTable.find (tab,atm) of
+            SOME res => res
+          | NONE =>
+            let
+               val (tab, res) = SymbolTable.fresh (tab, atm)
+               val _ = SymbolTables.varTable := tab
+            in
+               res
+            end
+      end
+
+   fun withLocalScope (s : state) f =
       let
          val localDecls = ref SymSet.empty
-         val res = f { functionSyms = funcs, localVars = lv, declVars = localDecls, resVar = res, constants = cs }
+         val s' = f {
+               closureTy = #closureTy s,
+               globalVars = #globalVars s,
+               declVars = localDecls,
+               resVar = #resVar s,
+               functions = #functions s,
+               fields = #fields s }
       in
-         (res, !localDecls)
+         (s', !localDecls)
       end
 
-   fun addFunction { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } (sym,ty) =
-         funcs := SymMap.insert (!funcs,sym,ty)
-   fun getFunction { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } sym =
-         SymMap.find (!funcs,sym)
+   fun addClosureTy (s : state) (sym,ty) =
+         (#closureTy s) := SymMap.insert (!(#closureTy s),sym,ty)
+   fun getClosureTy (s : state) sym =
+         SymMap.find (!(#closureTy s),sym)
 
    (* functions operating on the mutable variables *)
-   fun addDecl { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } decl =
-      let
-         val { functions = fs, fields, prim_map } = cs
-      in
-         fs := decl :: !fs
-      end
-   fun addField { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } sym =
-      let
-         val { functions, fields = fs, prim_map } = cs
-      in
-         fs := SymMap.insert (!fs,sym,OBJvtype)
-      end
-   fun addUpdate s (fields, fType) =
+   fun addDecl (s : state) decl = (#functions s) := decl :: !(#functions s)
+   fun addField (s : state) sym = (#fields s) := SymMap.insert (!(#fields s),sym,OBJvtype)
+   fun addUpdate (s : state) fields =
       let
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom (foldl
@@ -113,20 +137,40 @@ end = struct
          case SymbolTable.find (tab, name) of
             NONE =>
                let
+                  val arg = Atom.atom ("arg_of_" ^ Atom.toString name) 
                   val (tab, sym) = SymbolTable.fresh (tab, name)
+                  val (tab, sym') = SymbolTable.fresh (tab, arg)
+                  val _ = SymbolTables.varTable := tab
+                  val _ = app (addField s) fields
+                     
+                  val argsTy =  map (fn _ => OBJvtype) fields
+                  val fType = FUNvtype (OBJvtype, false, argsTy @ [OBJvtype])
+                  val fTypeCl = FUNvtype (OBJvtype, false, argsTy)
+
+                  val _ = addGlobalVar s sym
                   val _ = addDecl s 
                            (UPDATEdecl { updateName = sym, 
                                          updateFields = fields,
                                          updateType = fType })
-                  val _ = app (addField s) fields
-                  val _ = addFunction s (sym, fType)
-                  val _ = SymbolTables.varTable := tab
+
+                  val _ = addClosureTy s (sym, fTypeCl)
+                  val clSym = getClosureSym sym
+                  val _ = addGlobalVar s clSym
+                  val _ = addDecl s (CLOSUREdecl {
+                    closureName = clSym,
+                    closureArgs = argsTy,
+                    closureDelegate = sym,
+                    closureDelArgs = [(OBJvtype,sym')]
+                  })
                in
-                  sym
+                  (sym, fTypeCl)
                end
-          | SOME sym => sym
+          | SOME sym => (case getClosureTy s sym of
+             SOME ty => (sym, ty)
+           | NONE => raise ImpTranslationBug
+          )
       end
-   fun addSelect s (field, fType) =
+   fun addSelect (s : state) (field, fType) =
       let
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom ("select_" ^ 
@@ -138,18 +182,18 @@ end = struct
                let
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val _ = SymbolTables.varTable := tab                        
+                  val _ = addGlobalVar s sym
+                  val _ = addField s field
                   val _ = addDecl s 
                            (SELECTdecl { selectName = sym,
                                          selectField = field,
                                          selectType = fType })
-                  val _ = addField s field
-                  val _ = addFunction s (sym,fType)
                in
                   sym
                end
           | SOME sym => sym
       end
-   fun addConFun s (con, fType) =
+   fun addConFun (s : state) (con, fType) =
       let
          val ctab = !SymbolTables.conTable
          val conName = SymbolTable.getString (ctab,con)
@@ -163,10 +207,10 @@ end = struct
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val (tab, sym') = SymbolTable.fresh (tab, arg)
                   val _ = SymbolTables.varTable := tab                        
+                  val _ = addGlobalVar s sym
                   val _ = addDecl s (CONdecl { conName = sym,
                                                conArg = sym',
                                                conType = fType })
-                  val _ = addFunction s (sym,fType)
                in
                   sym
                end
@@ -178,20 +222,20 @@ end = struct
    fun get_con_arg e = PRIexp (PUREmonkind, GET_CON_ARGprim,
       FUNvtype (OBJvtype, false, [OBJvtype]), [e])
 
-   fun trBlock { functionSyms = funcs, localVars = lv, declVars = ds, resVar = res, constants = cs } e =
+   fun trBlock (s : state) e =
       let
          (* add the result variable to this scope if it is not already defined in the previous scope,
             this is a quick fix for functions that declare their result value within the scope
             of this function *)
-         val initSet = if SymSet.member (!ds,res) then SymSet.empty else SymSet.singleton res
-         val localDs = ref initSet
-         val sLocal = { functionSyms = funcs, localVars = lv, declVars = localDs, resVar = res, constants = cs }
-         val (stmts, exp) = trExpr sLocal e
-         val decls = map (fn s => (OBJvtype, s)) (SymSet.listItems (!localDs))
+         val res = #resVar s
+         val ((stmts, exp),ds) = withLocalScope s 
+            (fn s => trExpr (if SymSet.member (!(#declVars s),res)
+                              then s else addLocalVar s res) e)
+         val decls = map (fn s => (OBJvtype, s)) (SymSet.listItems ds)
       in
          BASICblock (decls, stmts @ [ASSIGNstmt (SOME res, exp)])
       end
-   and trExpr s (Exp.LETVAL (x,b,e)) =
+   and trExpr (s : state) (Exp.LETVAL (x,b,e)) =
       let
          val (bStmts, bExp) = trExpr (addLocalVar s x) b
          val (eStmts, eExp) = trExpr s e
@@ -201,7 +245,8 @@ end = struct
      | trExpr s (Exp.LETREC (ds, e)) =
       let
          val _ = app (fn (sym,args,_) =>
-            addFunction s (sym,FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) args))) ds
+            addClosureTy s (sym,FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) args))) ds
+         val _ = app (fn (sym,_,_) => ignore (addGlobalVar s sym)) ds
          val _ = List.map (trDecl s) ds
       in
          trExpr s e
@@ -265,7 +310,7 @@ end = struct
      | trExpr s (Exp.PRI (name, args)) = (
          (* this case is actually dead as all primitives are function calls,
             they are replaced by proper primitives during optimization *)
-         case SymMap.find (#prim_map (#constants s), name) of
+         case SymMap.find (!Primitives.prim_map, name) of
             SOME (_, gen) => ([], gen (map IDexp args))
           | NONE => raise ImpTranslationBug)
      | trExpr s (Exp.FN (var, e)) =
@@ -299,18 +344,16 @@ end = struct
          val (stmts, unsortedUpdates) = trans [] [] us
          fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
-         val resTy = FUNvtype (OBJvtype, true, [OBJvtype])
-         val fType = FUNvtype (resTy, false, map (fn _ => OBJvtype) updates)
-         val updateFun = addUpdate s (map (fn (f,_) => f) updates, fType)
+         val (updateFun,ty) = addUpdate s (map #1 updates)
       in
-         (stmts, CLOSUREexp (resTy, updateFun, map (fn (_,e) => e) updates))
+         (stmts, CLOSUREexp (ty, getClosureSym updateFun, map #2 updates))
       end
      | trExpr s (Exp.SELECT f) =
       let
          val fType = FUNvtype (OBJvtype, false, [OBJvtype])
          val selectFun = addSelect s (f, fType)
       in
-         ([], CLOSUREexp (fType, selectFun, []))
+         ([], IDexp selectFun)
       end
      | trExpr s (Exp.SEQ seq) =
       let
@@ -354,27 +397,29 @@ end = struct
          let
             val fType = FUNvtype (OBJvtype,false,[OBJvtype])
          in
-            ([], CLOSUREexp (fType, addConFun s (sym, fType), []))
+            ([], IDexp (addConFun s (sym, fType)))
          end
        )
      | trExpr s (Exp.ID sym) =
-      ([], case getFunction s sym of
+      ([], case getClosureTy s sym of
          NONE => IDexp sym
-       | SOME ty => CLOSUREexp (ty, sym, [])
+       | SOME ty => CLOSUREexp (ty, getClosureSym sym, [])
       )
 
-   and trDecl s (sym, args, body) =
+   and trDecl (s : state) (sym, args, body) =
       let
          val (res,s) = freshRes (SymbolTable.getString(!SymbolTables.varTable,sym),s)
          val block = trBlock s body
          val availInClosure = SymSet.singleton sym
+         (* add all known declarations *)
+         val availInClosure = SymSet.union(availInClosure,!(#globalVars s))
+         (* add all additional symbols that have been generated for functions *)
          val availInClosure =
-            SymSet.addList (availInClosure, SymMap.listKeys (!(#functionSyms s)))
+            SymSet.addList (availInClosure, map getClosureSym (SymMap.listKeys (!(#closureTy s))))
          val availInClosure =
             SymSet.addList (availInClosure,  args)
          val inClosure = SymSet.difference (freeVars body, availInClosure)
-         fun setToArgs ss = map (fn s => (OBJvtype, s)) (SymSet.listItems ss)
-         val clArgs = setToArgs inClosure
+         val clArgs = map (fn s => (OBJvtype, s)) (SymSet.listItems inClosure)
          val stdArgs = map (fn s => (OBJvtype, s)) args
          val fType = FUNvtype (OBJvtype, not (null clArgs), map (fn (t,_) => t) stdArgs)
          val _ =
@@ -383,9 +428,16 @@ end = struct
               funcClosure = clArgs,
               funcType = fType,
               funcName = sym,
-              funcArgs = map (fn s => (OBJvtype, s)) args,
+              funcArgs = stdArgs,
               funcBody = block,
               funcRes = res
+            })
+         val _ =
+            addDecl s (CLOSUREdecl {
+               closureName = getClosureSym sym,
+               closureArgs = map (fn (t,_) => t) clArgs,
+               closureDelegate = sym,
+               closureDelArgs = stdArgs
             })
       in
          fType
@@ -411,25 +463,22 @@ end = struct
                   in
                      map (fn e => (Exp.ID e)) es
                   end
-               val fs = ref ([] : decl list)
+               val decls = ref ([] : decl list)
                val fields = ref (SymMap.empty : vtype SymMap.map)
-               
-               val globs = SymMap.map (fn (ty,gen) => ty) (!Primitives.prim_map)
-               val cs = { functions = fs,
-                          prim_map = !Primitives.prim_map,
-                          fields = fields }
-                          
-               val initialState = { functionSyms = ref globs,
-                                    localVars = SymSet.empty,
+               val closureTypes = ref (SymMap.empty : vtype SymMap.map)
+               val globs = SymSet.fromList (SymMap.listKeys (!Primitives.prim_map))
+               val initialState = { closureTy = closureTypes,
+                                    globalVars = ref globs,
                                     declVars = ref SymSet.empty,
-                                    resVar = SymbolTable.unsafeFromInt ~1,
-                                    constants = cs
+                                    resVar = SymbolTable.unsafeFromInt 1,
+                                    functions = decls,
+                                    fields = fields
                                    }
                val bogusExp = Exp.LIT (SpecAbstractTree.INTlit 42)
                val _ = trExpr initialState (Exp.LETREC (clauses, bogusExp))
             in
-               { decls = !(#functions cs),
-                 fdecls = !(#fields cs) }
+               { decls = !decls,
+                 fdecls = !fields }
             end) spec
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)
