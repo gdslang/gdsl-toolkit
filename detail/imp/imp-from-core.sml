@@ -149,7 +149,8 @@ end = struct
 
                   val _ = addGlobalVar s sym
                   val _ = addDecl s 
-                           (UPDATEdecl { updateName = sym, 
+                           (UPDATEdecl { updateName = sym,
+                                         updateArg = sym',
                                          updateFields = fields,
                                          updateType = fType })
 

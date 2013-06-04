@@ -591,9 +591,10 @@ structure TypeRefinement = struct
       }) = lub (s, symType s name, FUNstype (fieldType s f, false, [freshTVar s]))
      | visitDecl s (UPDATEdecl {
          updateName = name,
+         updateArg = arg,
          updateFields = fs,
          updateType = _
-      }) = lub (s, symType s name, FUNstype (freshTVar s,true, map (fieldType s) fs @ [OBJstype]))
+      }) = lub (s, symType s name, FUNstype (freshTVar s,true, map (fieldType s) fs @ [symType s arg]))
      | visitDecl s (CONdecl {
          conName = name,
          conArg = arg,
@@ -737,10 +738,12 @@ structure TypeRefinement = struct
       }
      | patchDecl s (UPDATEdecl {
          updateName = name,
+         updateArg = arg,
          updateFields = fs,
          updateType = vtype
       }) = UPDATEdecl {
          updateName = name,
+         updateArg = arg,
          updateFields = fs,
          updateType = adjustType s (vtype, symType s name)
       }

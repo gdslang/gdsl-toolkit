@@ -29,7 +29,7 @@ end = struct
       PatchFunctionCallsPass.run >>=
       ActionClosuresPass.run >>=
       SimplifyPass.run >>=
-      StatePassingPass.run >>=
+      (*StatePassingPass.run >>=*)
       TypeRefinementPass.run >>=
       SimplifyPass.run
 
