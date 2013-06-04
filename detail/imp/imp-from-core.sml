@@ -230,8 +230,8 @@ end = struct
             of this function *)
          val res = #resVar s
          val ((stmts, exp),ds) = withLocalScope s 
-            (fn s => trExpr (if SymSet.member (!(#declVars s),res)
-                              then s else addLocalVar s res) e)
+            (fn s' => trExpr (if SymSet.member (!(#declVars s),res)
+                              then s' else addLocalVar s' res) e)
          val decls = map (fn s => (OBJvtype, s)) (SymSet.listItems ds)
       in
          BASICblock (decls, stmts @ [ASSIGNstmt (SOME res, exp)])
