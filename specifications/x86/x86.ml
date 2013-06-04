@@ -31,8 +31,8 @@ val main = do
         rexb='0',
         rexr='0',
         rexx='0',
-        opndsz='0',
         addrsz='0',
+        opndsz='0',
         lock='0',
         segment=SEG_NONE,
 	      default-operand-size=32,
@@ -2748,54 +2748,54 @@ val / [0x3f] | mode32? = arity0 none AAS
 ###  - Add with Carry
 val / [0x14] = binop none ADC al imm8
 val / [0x15]
- | opndsz? = binop none ADC ax imm16
  | rexw? = binop none ADC rax imm32
+ | opndsz? = binop none ADC ax imm16
  | otherwise = binop none ADC eax imm32
 val / [0x80 /2] = binop-lock none ADC r/m8 imm8
 val / [0x81 /2]
- | opndsz? = binop-lock none ADC r/m16 imm16
  | rexw? = binop-lock none ADC r/m64 imm32
+ | opndsz? = binop-lock none ADC r/m16 imm16
  | otherwise = binop-lock none ADC r/m32 imm32
 val / [0x83 /2]
- | opndsz? = binop-lock none ADC r/m16 imm8
  | rexw? = binop-lock none ADC r/m64 imm8
+ | opndsz? = binop-lock none ADC r/m16 imm8
  | otherwise = binop-lock none ADC r/m32 imm8
 val / [0x10 /r] = binop-lock none ADC r/m8 r8
 val / [0x11 /r]
- | opndsz? = binop-lock none ADC r/m16 r16
  | rexw? = binop-lock none ADC r/m64 r64
+ | opndsz? = binop-lock none ADC r/m16 r16
  | otherwise = binop-lock none ADC r/m32 r32
 val / [0x12 /r] = binop none ADC r8 r/m8
 val / [0x13 /r]
- | opndsz? = binop none ADC r16 r/m16
  | rexw? = binop none ADC r64 r/m64
+ | opndsz? = binop none ADC r16 r/m16
  | otherwise = binop none ADC r32 r/m32
 
 ### ADD
 ###  - Add
 val / [0x04] = binop none ADD al imm8
 val / [0x05]
- | opndsz? = binop none ADD ax imm16
  | rexw? = binop none ADD rax imm32
+ | opndsz? = binop none ADD ax imm16
  | otherwise = binop none ADD eax imm32
 val / [0x80 /0] = binop-lock none ADD r/m8 imm8
 val / [0x81 /0]
- | opndsz? = binop-lock none ADD r/m16 imm16
  | rexw? = binop-lock none ADD r/m64 imm32
+ | opndsz? = binop-lock none ADD r/m16 imm16
  | otherwise = binop-lock none ADD r/m32 imm32
 val / [0x83 /0]
- | opndsz? = binop-lock none ADD r/m16 imm8
  | rexw? = binop-lock none ADD r/m64 imm8
+ | opndsz? = binop-lock none ADD r/m16 imm8
  | otherwise = binop-lock none ADD r/m32 imm8
 val / [0x00 /r] = binop-lock none ADD r/m8 r8
 val / [0x01 /r]
- | opndsz? = binop-lock none ADD r/m16 r16
  | rexw? = binop-lock none ADD r/m64 r64
+ | opndsz? = binop-lock none ADD r/m16 r16
  | otherwise = binop-lock none ADD r/m32 r32
 val / [0x02 /r] = binop none ADD r8 r/m8
 val / [0x03 /r]
- | opndsz? = binop none ADD r16 r/m16
  | rexw? = binop none ADD r64 r/m64
+ | opndsz? = binop none ADD r16 r/m16
  | otherwise = binop none ADD r32 r/m32
 
 ### ADDPD
@@ -2870,27 +2870,27 @@ val /vex/66/0f/3a [0xdf /r] | vex128? = varity3 (orm aes avx) VAESKEYGENASSIST x
 ###  - Logical AND
 val / [0x24] = binop none AND al imm8
 val / [0x25]
- | opndsz? = binop none AND ax imm16
  | rexw? = binop none AND rax imm32
+ | opndsz? = binop none AND ax imm16
  | otherwise = binop none AND eax imm32
 val / [0x80 /4] = binop-lock none AND r/m8 imm8
 val / [0x81 /4]
- | opndsz? = binop-lock none AND r/m16 imm16
  | rexw? = binop-lock none AND r/m64 imm32
+ | opndsz? = binop-lock none AND r/m16 imm16
  | otherwise = binop-lock none AND r/m32 imm32
 val / [0x83 /4]
- | opndsz? = binop-lock none AND r/m16 imm8
  | rexw? = binop-lock none AND r/m64 imm8
+ | opndsz? = binop-lock none AND r/m16 imm8
  | otherwise = binop-lock none AND r/m32 imm8
 val / [0x20 /r] = binop-lock none AND r/m8 r8
 val / [0x21 /r]
- | opndsz? = binop-lock none AND r/m16 r16
  | rexw? = binop-lock none AND r/m64 r64
+ | opndsz? = binop-lock none AND r/m16 r16
  | otherwise = binop-lock none AND r/m32 r32
 val / [0x22 /r] = binop none AND r8 r/m8
 val / [0x23 /r]
- | opndsz? = binop none AND r16 r/m16
  | rexw? = binop none AND r64 r/m64
+ | opndsz? = binop none AND r16 r/m16
  | otherwise = binop none AND r32 r/m32
 
 ### ANDPD
@@ -2985,45 +2985,45 @@ val / [0x0f /1-reg]
 ### BT
 ###  - Bit Test
 val / [0x0f 0xa3 /r]
- | opndsz? = binop none BT r/m16 r16
  | rexw? = binop none BT r/m64 r64
+ | opndsz? = binop none BT r/m16 r16
  | otherwise = binop none BT r/m32 r32
 val / [0x0f 0xba /4]
- | opndsz? = binop none BT r/m16 imm8
  | rexw? = binop none BT r/m64 imm8
+ | opndsz? = binop none BT r/m16 imm8
  | otherwise = binop none BT r/m32 imm8
 
 ### BTC
 ###  - Bit Test and Complement
 val / [0x0f 0xbb /r]
- | opndsz? = binop-lock none BTC r/m16 r16
  | rexw? = binop-lock none BTC r/m64 r64
+ | opndsz? = binop-lock none BTC r/m16 r16
  | otherwise = binop-lock none BTC r/m32 r32
 val / [0x0f 0xba /7]
- | opndsz? = binop-lock none BTC r/m16 imm8
  | rexw? = binop-lock none BTC r/m64 imm8
+ | opndsz? = binop-lock none BTC r/m16 imm8
  | otherwise = binop-lock none BTC r/m32 imm8
 
 ### BTR
 ###  - Bit Test and Reset
 val / [0x0f 0xb3 /r]
- | opndsz? = binop-lock none BTR r/m16 r16
  | rexw? = binop-lock none BTR r/m64 r64
+ | opndsz? = binop-lock none BTR r/m16 r16
  | otherwise = binop-lock none BTR r/m32 r32
 val / [0x0f 0xba /6]
- | opndsz? = binop-lock none BTR r/m16 imm8
  | rexw? = binop-lock none BTR r/m64 imm8
+ | opndsz? = binop-lock none BTR r/m16 imm8
  | otherwise = binop-lock none BTR r/m32 imm8
 
 ### BTS
 ###  - Bit Test and Set
 val / [0x0f 0xab /r]
- | opndsz? = binop-lock none BTS r/m16 r16
  | rexw? = binop-lock none BTS r/m64 r64
+ | opndsz? = binop-lock none BTS r/m16 r16
  | otherwise = binop-lock none BTS r/m32 r32
 val / [0x0f 0xba /5]
- | opndsz? = binop-lock none BTS r/m16 imm8
  | rexw? = binop-lock none BTS r/m64 imm8
+ | opndsz? = binop-lock none BTS r/m16 imm8
  | otherwise = binop-lock none BTS r/m32 imm8
 
 ### CALL
@@ -3039,15 +3039,15 @@ val / [0x9a]
  | opndsz? = far-dir none CALL ptr16/16
  | otherwise = far-dir none CALL ptr16/32
 val / [0xff /3-mem]
- | opndsz? = far-ind none CALL m16/16
  | rexw? = far-ind none CALL m16/64
+ | opndsz? = far-ind none CALL m16/16
  | otherwise = far-ind none CALL m16/32
 
 ### CBW/CWDE/CDQE
 ###  - Convert Byte to Word/Convert Word to Doubleword/Convert Doubleword to Quadword
 val / [0x98]
- | opndsz? = arity0 none CBW
  | rexw? = arity0 none CDQE
+ | opndsz? = arity0 none CBW
  | otherwise = arity0 none CWDE
 
 ### CLC
@@ -3077,95 +3077,95 @@ val / [0xf5] = arity0 none CMC
 ### CMOVcc
 ###  - Conditional Move
 val / [0x0f 0x47 /r] # CMOVNBE
- | opndsz? = binop none CMOVA r16 r/m16
  | rexw? = binop none CMOVA r64 r/m64
+ | opndsz? = binop none CMOVA r16 r/m16
  | otherwise = binop none CMOVA r32 r/m32
 val / [0x0f 0x43 /r] # CMOVNB, CMOVNC
- | opndsz? = binop none CMOVAE r16 r/m16
  | rexw? = binop none CMOVAE r64 r/m64
+ | opndsz? = binop none CMOVAE r16 r/m16
  | otherwise = binop none CMOVAE r32 r/m32
 val / [0x0f 0x42 /r] # CMOVC, CMOVNAE
- | opndsz? = binop none CMOVB r16 r/m16
  | rexw? = binop none CMOVB r64 r/m64
+ | opndsz? = binop none CMOVB r16 r/m16
  | otherwise = binop none CMOVB r32 r/m32
 val / [0x0f 0x46 /r] # CMOVNA
- | opndsz? = binop none CMOVBE r16 r/m16
  | rexw? = binop none CMOVBE r64 r/m64
+ | opndsz? = binop none CMOVBE r16 r/m16
  | otherwise = binop none CMOVBE r32 r/m32
 val / [0x0f 0x44 /r] # CMOVZ
- | opndsz? = binop none CMOVE r16 r/m16
  | rexw? = binop none CMOVE r64 r/m64
+ | opndsz? = binop none CMOVE r16 r/m16
  | otherwise = binop none CMOVE r32 r/m32
 val / [0x0f 0x4f /r] # CMOVNLE
- | opndsz? = binop none CMOVG r16 r/m16
  | rexw? = binop none CMOVG r64 r/m64
+ | opndsz? = binop none CMOVG r16 r/m16
  | otherwise = binop none CMOVG r32 r/m32
 val / [0x0f 0x4d /r] # CMOVNL
- | opndsz? = binop none CMOVGE r16 r/m16
  | rexw? = binop none CMOVGE r64 r/m64
+ | opndsz? = binop none CMOVGE r16 r/m16
  | otherwise = binop none CMOVGE r32 r/m32
 val / [0x0f 0x4c /r] # CMOVNGE
- | opndsz? = binop none CMOVL r16 r/m16
  | rexw? = binop none CMOVL r64 r/m64
+ | opndsz? = binop none CMOVL r16 r/m16
  | otherwise = binop none CMOVL r32 r/m32
 val / [0x0f 0x4e /r] # CMOVNG
- | opndsz? = binop none CMOVLE r16 r/m16
  | rexw? = binop none CMOVLE r64 r/m64
+ | opndsz? = binop none CMOVLE r16 r/m16
  | otherwise = binop none CMOVLE r32 r/m32
 val / [0x0f 0x45 /r] # CMOVNZ
- | opndsz? = binop none CMOVNE r16 r/m16
  | rexw? = binop none CMOVNE r64 r/m64
+ | opndsz? = binop none CMOVNE r16 r/m16
  | otherwise = binop none CMOVNE r32 r/m32
 val / [0x0f 0x41 /r]
- | opndsz? = binop none CMOVNO r16 r/m16
  | rexw? = binop none CMOVNO r64 r/m64
+ | opndsz? = binop none CMOVNO r16 r/m16
  | otherwise = binop none CMOVNO r32 r/m32
 val / [0x0f 0x4b /r] # CMOVPO
- | opndsz? = binop none CMOVNP r16 r/m16
  | rexw? = binop none CMOVNP r64 r/m64
+ | opndsz? = binop none CMOVNP r16 r/m16
  | otherwise = binop none CMOVNP r32 r/m32
 val / [0x0f 0x49 /r]
- | opndsz? = binop none CMOVNS r16 r/m16
  | rexw? = binop none CMOVNS r64 r/m64
+ | opndsz? = binop none CMOVNS r16 r/m16
  | otherwise = binop none CMOVNS r32 r/m32
 val / [0x0f 0x40 /r]
- | opndsz? = binop none CMOVO r16 r/m16
  | rexw? = binop none CMOVO r64 r/m64
+ | opndsz? = binop none CMOVO r16 r/m16
  | otherwise = binop none CMOVO r32 r/m32
 val / [0x0f 0x4a /r] # CMOVPE
- | opndsz? = binop none CMOVP r16 r/m16
  | rexw? = binop none CMOVP r64 r/m64
+ | opndsz? = binop none CMOVP r16 r/m16
  | otherwise = binop none CMOVP r32 r/m32
 val / [0x0f 0x48 /r]
- | opndsz? = binop none CMOVS r16 r/m16
  | rexw? = binop none CMOVS r64 r/m64
+ | opndsz? = binop none CMOVS r16 r/m16
  | otherwise = binop none CMOVS r32 r/m32
 
 ### CMP
 ###  - Compare Two Operands
 val / [0x3c] = binop none CMP al imm8
 val / [0x3d]
- | opndsz? = binop none CMP ax imm16
  | rexw? = binop none CMP rax imm32
+ | opndsz? = binop none CMP ax imm16
  | otherwise = binop none CMP eax imm32
 val / [0x80 /7] = binop none CMP r/m8 imm8
 val / [0x81 /7]
- | opndsz? = binop none CMP r/m16 imm16
  | rexw? = binop none CMP r/m64 imm32
+ | opndsz? = binop none CMP r/m16 imm16
  | otherwise = binop none CMP r/m32 imm32
 val / [0x83 /7]
- | opndsz? = binop none CMP r/m16 imm8
  | rexw? = binop none CMP r/m64 imm8
+ | opndsz? = binop none CMP r/m16 imm8
  | otherwise = binop none CMP r/m32 imm8
 val / [0x38 /r] = binop none CMP r/m8 r8
 val / [0x39 /r]
- | opndsz? = binop none CMP r/m16 r16
  | rexw? = binop none CMP r/m64 r64
+ | opndsz? = binop none CMP r/m16 r16
  | otherwise = binop none CMP r/m32 r32
 val / [0x3a /r] = binop none CMP r8 r/m8
 val / [0x3b /r]
- | opndsz? = binop none CMP r16 r/m16
  | rexw? = binop none CMP r64 r/m64
+ | opndsz? = binop none CMP r16 r/m16
  | otherwise = binop none CMP r32 r/m32
 
 ### CMPPD
@@ -3186,8 +3186,8 @@ val /vex/0f/vexv [0xc2 /r]
 ###  - Compare String Operands
 val / [0xa6] = binop-rep-repne none CMPS (m/default/si/esi/rsi (return 8)) (m/es/di/edi/rdi (return 8))
 val / [0xa7]
- | opndsz? = binop-rep-repne none CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
  | rexw? = binop-rep-repne none CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size) 
+ | opndsz? = binop-rep-repne none CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
  | otherwise = binop-rep-repne none CMPS (m/default/si/esi/rsi operand-size) (m/es/di/edi/rdi operand-size)
 
 ### CMPSD
@@ -3204,8 +3204,8 @@ val /vex/f3/0f/vexv [0xc2 /r] = varity4 avx VCMPSS xmm128 v/xmm xmm/m32 imm8
 ###  - Compare and Exchange
 val / [0x0f 0xb0 /r] = binop-lock none CMPXCHG r/m8 r8
 val / [0x0f 0xb1 /r]
- | opndsz? = binop-lock none CMPXCHG r/m16 r16
  | rexw? = binop-lock none CMPXCHG r/m64 r64
+ | opndsz? = binop-lock none CMPXCHG r/m16 r16
  | otherwise = binop-lock none CMPXCHG r/m32 r32
 
 ### CMPXCHG8B/CMPXCHG16B
@@ -3234,8 +3234,8 @@ val /f2 [0x0f 0x38 0xf0 /r]
  | rexw? = binop none CRC32 r64 r/m8
  | otherwise = binop none CRC32 r32 r/m8
 val /f2 [0x0f 0x38 0xf1 /r]
- | opndsz? = binop none CRC32 r32 r/m16
  | rexw? = binop none CRC32 r64 r/m64
+ | opndsz? = binop none CRC32 r32 r/m16
  | otherwise = binop none CRC32 r32 r/m32
 
 ### CVTDQ2PD
@@ -3385,8 +3385,8 @@ val /vex/f3/0f [0x2c /r]
 ### CWD/CDQ/CQO
 ###  - Convert Word to Doubleword/Convert Doubleword to Quadword
 val / [0x99]
- | opndsz? = arity0 none CWD
  | rexw? = arity0 none CQO
+ | opndsz? = arity0 none CWD
  | otherwise = arity0 none CDQ
 
 ### DAA
@@ -3401,8 +3401,8 @@ val / [0x2f] | mode32? = arity0 none DAS
 ###  - Decrement by 1
 val / [0xfe /1] = unop-lock none DEC r/m8
 val / [0xff /1]
- | opndsz? = unop-lock none DEC r/m16
  | rexw? = unop-lock none DEC r/m64
+ | opndsz? = unop-lock none DEC r/m16
  | otherwise = unop-lock none DEC r/m32
 val / ['01001 r:3']
  | opndsz? & mode32? = do update@{reg/opcode=r}; unop-lock none DEC r16 end
@@ -3412,8 +3412,8 @@ val / ['01001 r:3']
 ###  - Unsigned Divide
 val / [0xf6 /6] = unop none DIV r/m8
 val / [0xf7 /6]
- | opndsz? = unop none DIV r/m16
  | rexw? = unop none DIV r/m64
+ | opndsz? = unop none DIV r/m16
  | otherwise = unop none DIV r/m32
 
 ### DIVPD
@@ -3814,48 +3814,48 @@ val /vex/f2/0f/vexv [0x7d /r]
 ###  - Signed Divide
 val / [0xf6 /7] = unop none IDIV r/m8
 val / [0xf7 /7]
- | opndsz? = unop none IDIV r/m16
  | rexw? = unop none IDIV r/m64
+ | opndsz? = unop none IDIV r/m16
  | otherwise = unop none IDIV r/m32
 
 ### IMUL
 ###  - Signed Multiply
 #val / [0xf6 /5] = unop IMUL r/m8
 #val / [0xf7 /5]
-# | opndsz? = unop IMUL r/m16
 # | rexw? = unop IMUL r/m64
+# | opndsz? = unop IMUL r/m16
 # | otherwise = unop IMUL r/m32
 #val / [0x0f 0xaf /r]
-# | opndsz? = binop IMUL r16 r/m16
 # | rexw? = binop IMUL r64 r/m64
+# | opndsz? = binop IMUL r16 r/m16
 # | otherwise = binop IMUL r32 r/m32
 #val / [0x6b /r]
-# | opndsz? = ternop IMUL r16 r/m16 imm8
 # | rexw? = ternop IMUL r64 r/m64 imm8
+# | opndsz? = ternop IMUL r16 r/m16 imm8
 # | otherwise = ternop IMUL r32 r/m32 imm8
 #val / [0x69 /r]
-# | opndsz? = ternop IMUL r16 r/m16 imm16
 # | rexw? = ternop IMUL r64 r/m64 imm32
+# | opndsz? = ternop IMUL r16 r/m16 imm16
 # | otherwise = ternop IMUL r32 r/m32 imm32
 
 ### IMUL
 ###  - Signed Multiply
 val / [0xf6 /5] = varity1 none IMUL r/m8
 val / [0xf7 /5]
- | opndsz? = varity1 none IMUL r/m16
  | rexw? = varity1 none IMUL r/m64
+ | opndsz? = varity1 none IMUL r/m16
  | otherwise = varity1 none IMUL r/m32
 val / [0x0f 0xaf /r]
- | opndsz? = varity2 none IMUL r16 r/m16
  | rexw? = varity2 none IMUL r64 r/m64
+ | opndsz? = varity2 none IMUL r16 r/m16
  | otherwise = varity2 none IMUL r32 r/m32
 val / [0x6b /r]
- | opndsz? = varity3 none IMUL r16 r/m16 imm8
  | rexw? = varity3 none IMUL r64 r/m64 imm8
+ | opndsz? = varity3 none IMUL r16 r/m16 imm8
  | otherwise = varity3 none IMUL r32 r/m32 imm8
 val / [0x69 /r]
- | opndsz? = varity3 none IMUL r16 r/m16 imm16
  | rexw? = varity3 none IMUL r64 r/m64 imm32
+ | opndsz? = varity3 none IMUL r16 r/m16 imm16
  | otherwise = varity3 none IMUL r32 r/m32 imm32
 
 ### IN
@@ -3873,8 +3873,8 @@ val / [0xed]
 ###  - Increment by 1
 val / [0xfe /0] = unop-lock none INC r/m8
 val / [0xff /0]
- | opndsz? = unop-lock none INC r/m16
  | rexw? = unop-lock none INC r/m64
+ | opndsz? = unop-lock none INC r/m16
  | otherwise = unop-lock none INC r/m32
 
 ### INS/INSB/INSW/INSD
@@ -3912,8 +3912,8 @@ val /66 [0x0f 0x38 0x82 /r-mem]
 ### IRET/IRETD
 ###  - Interrupt Return
 val / [0xcf]
- | opndsz? = arity0 none IRET
  | rexw? = arity0 none IRETQ
+ | opndsz? = arity0 none IRET
  | otherwise = arity0 none IRETD
 
 ### Jcc
@@ -4003,8 +4003,8 @@ val / [0xea]
  | mode32? & opndsz? = far-dir none JMP ptr16/16
  | mode32? = far-dir none JMP ptr16/32
 val / [0xff /5]
- | opndsz? = far-ind none JMP m16/16
  | rexw? = far-ind none JMP m16/64
+ | opndsz? = far-ind none JMP m16/16
  | otherwise = far-ind none JMP m16/32
 
 ### LAHF
@@ -4014,8 +4014,8 @@ val / [0x9f] = arity0 none LAHF
 ### LAR
 ###  - Load Access Rights Byte
 val / [0x0f 0x02 /r]
- | opndsz? = binop none LAR r16 r16/m16
  | rexw? = binop none LAR r64 r32/m16
+ | opndsz? = binop none LAR r16 r16/m16
  | otherwise = binop none LAR r32 r32/m16
 
 ### LDDQU
@@ -4037,19 +4037,19 @@ val /vex/0f [0xae /2-mem]
 # | opndsz? = binop LDS r16 m16/16
 # | otherwise = binop LDS r32 m16/32
 val / [0x0f 0xb2 /r-mem]
- | opndsz? = binop none LSS r16 m16/16
  | rexw? = binop none LSS r64 m16/64
+ | opndsz? = binop none LSS r16 m16/16
  | otherwise = binop none LSS r32 m16/32
 #val / [0xc4 /r-mem]
 # | opndsz? = binop LES r16 m16/16
 # | otherwise = binop LES r32 m16/32
 val / [0x0f 0xb4 /r-mem]
- | opndsz? = binop none LFS r16 m16/16
  | rexw? = binop none LFS r64 m16/64
+ | opndsz? = binop none LFS r16 m16/16
  | otherwise = binop none LFS r32 m16/32
 val / [0x0f 0xb5 /r-mem]
- | opndsz? = binop none LGS r16 m16/16
  | rexw? = binop none LGS r64 m16/64
+ | opndsz? = binop none LGS r16 m16/16
  | otherwise = binop none LGS r32 m16/32
 
 ### LEA
@@ -4095,8 +4095,8 @@ val / [0x0f 0x01 /6-mem] = unop none LMSW r/m16
 ###  - Load String
 val / [0xac] = unop-rep none LODS (m/default/si/esi/rsi (return 8))
 val / [0xad]
- | opndsz? = unop-rep none LODS (m/default/si/esi/rsi operand-size)
  | rexw? = unop-rep none LODS (m/default/si/esi/rsi operand-size)
+ | opndsz? = unop-rep none LODS (m/default/si/esi/rsi operand-size)
  | otherwise = unop-rep none LODS (m/default/si/esi/rsi operand-size)
 
 ### LOOP/LOOPcc
@@ -4108,8 +4108,8 @@ val / [0xe0] = near-rel none LOOPNE rel8
 ### LSL
 ###  - Load Segment Limit
 val / [0x0f 0x03 /r]
- | opndsz? = binop none LSL r16 r16/m16
  | rexw? = binop none LSL r64 r32/m16
+ | opndsz? = binop none LSL r16 r16/m16
  | otherwise = binop none LSL r32 r32/m16
 
 ### LTR
@@ -4186,21 +4186,21 @@ val / [0x0f 0x01 0xc8] = arity0 none MONITOR
 ###  - Move
 val / [0x88 /r] = binop none MOV r/m8 r8
 val / [0x89 /r]
- | opndsz? = binop none MOV r/m16 r16
  | rexw? = binop none MOV r/m64 r64
+ | opndsz? = binop none MOV r/m16 r16
  | otherwise = binop none MOV r/m32 r32
 val / [0x8a /r] = binop none MOV r8 r/m8
 val / [0x8b /r]
- | opndsz? = binop none MOV r16 r/m16
  | rexw? = binop none MOV r64 r/m64
+ | opndsz? = binop none MOV r16 r/m16
  | otherwise = binop none MOV r32 r/m32
 val / [0x8c /r]
- | opndsz? = binop none MOV r/m32 (r/rexb sreg3?)
  | rexw? = binop none MOV r/m64 (r/rexb sreg3?)
+ | opndsz? = binop none MOV r/m32 (r/rexb sreg3?)
  | otherwise = binop none MOV r/m16 (r/rexb sreg3?)
 val / [0x8e /r]
- | opndsz? = binop none MOV (r/rexb sreg3?) r/m16
  | rexw? = binop none MOV (r/rexb sreg3?) r/m64
+ | opndsz? = binop none MOV (r/rexb sreg3?) r/m16
  | otherwise = binop none MOV (r/rexb sreg3?) r/m32
 val / [0xa0] = binop none MOV al moffs8
 val / [0xa1]
@@ -4214,13 +4214,13 @@ val / [0xa3]
  | otherwise = binop none MOV moffs32 eax
 val / ['10110 r:3'] = do update@{reg/opcode=r}; binop none MOV r8/rexb imm8 end
 val / ['10111 r:3']
- | opndsz? = do update@{reg/opcode=r}; binop none MOV r16/rexb imm16 end
  | rexw? = do update@{reg/opcode=r}; binop none MOV r64/rexb imm64 end
+ | opndsz? = do update@{reg/opcode=r}; binop none MOV r16/rexb imm16 end
  | otherwise = do update@{reg/opcode=r}; binop none MOV r32/rexb imm32 end
 val / [0xc6 /0] = binop none MOV r/m8 imm8
 val / [0xc7 /0]
- | opndsz? = binop none MOV r/m16 imm16
  | rexw? = binop none MOV r/m64 imm32
+ | opndsz? = binop none MOV r/m16 imm16
  | otherwise = binop none MOV r/m32 imm32
 
 ### Todo: Move to/from Debug/Control Registers
@@ -4250,12 +4250,12 @@ val /vex/0f [0x29 /r]
 ### MOVBE
 ###  - Move Data After Swapping Bytes
 val / [0x0f 0x38 0xf0 /r-mem]
- | opndsz? = binop none MOVBE r16 m16
  | rexw? = binop none MOVBE r64 m64
+ | opndsz? = binop none MOVBE r16 m16
  | otherwise = binop none MOVBE r32 m32
 val / [0x0f 0x38 0xf1 /r-mem]
- | opndsz? = binop none MOVBE m16 r16
  | rexw? = binop none MOVBE m64 r64
+ | opndsz? = binop none MOVBE m16 r16
  | otherwise = binop none MOVBE m32 r32
 
 ### MOVD/MOVQ
@@ -4423,8 +4423,8 @@ val /f3 [0x0f 0xd6 /r-reg] = binop none MOVQ2DQ xmm128 mm/reg64
 ###  - Move Data from String to String
 val / [0xa4] = binop-rep none MOVS (m/es/di/edi/rdi (return 8)) (m/default/si/esi/rsi (return 8))
 val / [0xa5]
- | opndsz? = binop-rep none MOVS (m/es/di/edi/rdi operand-size) (m/default/si/esi/rsi operand-size)
  | rexw? = binop-rep none MOVS (m/es/di/edi/rdi operand-size) (m/default/si/esi/rsi operand-size)
+ | opndsz? = binop-rep none MOVS (m/es/di/edi/rdi operand-size) (m/default/si/esi/rsi operand-size)
  | otherwise = binop-rep none MOVS (m/es/di/edi/rdi operand-size) (m/default/si/esi/rsi operand-size)
 
 ### MOVSD
@@ -4462,8 +4462,8 @@ val /vex/f3/0f [0x11 /r-mem] = varity2 avx VMOVSS m32 xmm128
 ### MOVSX/MOVSXD
 ###  - Move with Sign-Extension
 val / [0x0f 0xbe /r]
- | opndsz? = binop none MOVSX r16 r/m8
  | rexw? = binop none MOVSX r64 r/m8
+ | opndsz? = binop none MOVSX r16 r/m8
  | otherwise = binop none MOVSX r32 r/m8
 val / [0x0f 0xbf /r]
  | rexw? = binop none MOVSX r64 r/m16
@@ -4498,8 +4498,8 @@ val /vex/0f [0x11 /r]
 ### MOVZX
 ###  - Move with Zero-Extend
 val / [0x0f 0xb6 /r]
- | opndsz? = binop none MOVZX r16 r/m8
  | rexw? = binop none MOVZX r64 r/m8
+ | opndsz? = binop none MOVZX r16 r/m8
  | otherwise = binop none MOVZX r32 r/m8
 val / [0x0f 0xb7 /r]
  | rexw? = binop none MOVZX r64 r/m16
@@ -4514,8 +4514,8 @@ val /vex/66/0f/3a/vexv [0x42 /r] | vex128? = varity4 avx VMPSADBW xmm128 v/xmm x
 ###  - Unsigned Multiply
 val / [0xf6 /4] = unop none MUL r/m8
 val / [0xf7 /4]
- | opndsz? = unop none MUL r/m16
  | rexw? = unop none MUL r/m64
+ | opndsz? = unop none MUL r/m16
  | otherwise = unop none MUL r/m32
 
 ### MULPD
@@ -4550,8 +4550,8 @@ val / [0x0f 0x01 0xc9] = arity0 none MWAIT
 ###  - Two's Complement Negation
 val / [0xf6 /3] = unop-lock none NEG r/m8
 val / [0xf7 /3]
- | opndsz? = unop-lock none NEG r/m16
  | rexw? = unop-lock none NEG r/m64
+ | opndsz? = unop-lock none NEG r/m16
  | otherwise = unop-lock none NEG r/m32
 
 ### NOP
@@ -4562,43 +4562,43 @@ val / [0xf7 /3]
 #val / [0x90] = arity0 NOP => See XCHG
 #val /66 [0x90] = arity0 NOP
 val / [0x0f 0x1f /0]
- | opndsz? = varity1 none NOP r/m16
  | rexw? = varity1 none NOP r/m64
+ | opndsz? = varity1 none NOP r/m16
  | otherwise = varity1 none NOP r/m32
 
 ### NOT
 ###  - One's Complement Negation
 val / [0xf6 /2] = unop-lock none NOT r/m8
 val / [0xf7 /2]
- | opndsz? = unop-lock none NOT r/m16
  | rexw? = unop-lock none NOT r/m64
+ | opndsz? = unop-lock none NOT r/m16
  | otherwise = unop-lock none NOT r/m32
 
 ### OR
 ###  - Logical Inclusive OR
 val / [0x0c] = binop none OR al imm8
 val / [0x0d]
- | opndsz? = binop none OR ax imm16
  | rexw? = binop none OR rax imm32
+ | opndsz? = binop none OR ax imm16
  | otherwise = binop none OR eax imm32
 val / [0x80 /1] = binop-lock none OR r/m8 imm8
 val / [0x81 /1]
- | opndsz? = binop-lock none OR r/m16 imm16
  | rexw? = binop-lock none OR r/m64 imm32
+ | opndsz? = binop-lock none OR r/m16 imm16
  | otherwise = binop-lock none OR r/m32 imm32
 val / [0x83 /1]
- | opndsz? = binop-lock none OR r/m16 imm8
  | rexw? = binop-lock none OR r/m64 imm8
+ | opndsz? = binop-lock none OR r/m16 imm8
  | otherwise = binop-lock none OR r/m32 imm8
 val / [0x08 /r] = binop-lock none OR r/m8 r8
 val / [0x09 /r]
- | opndsz? = binop-lock none OR r/m16 r16
  | rexw? = binop-lock none OR r/m64 r64
+ | opndsz? = binop-lock none OR r/m16 r16
  | otherwise = binop-lock none OR r/m32 r32
 val / [0x0a /r] = binop none OR r8 r/m8
 val / [0x0b /r]
- | opndsz? = binop none OR r16 r/m16
  | rexw? = binop none OR r64 r/m64
+ | opndsz? = binop none OR r16 r/m16
  | otherwise = binop none OR r32 r/m32
 
 ### ORPD
@@ -5083,15 +5083,15 @@ val / [0x61]
 ### POPCNT
 ###  - Return the Count of Number of Bits Set to 1
 val /f3 [0x0f 0xb8 /r]
- | opndsz? = binop none POPCNT r16 r/m16
  | rexw? = binop none POPCNT r64 r/m64
+ | opndsz? = binop none POPCNT r16 r/m16
  | otherwise = binop none POPCNT r32 r/m32
 
 ### POPF/POPFD/POPFQ
 ###  - Pop Stack into EFLAGS Register
 val / [0x9d]
- | opndsz? = arity0 none POPF
  | rexw? = arity0 none POPFQ
+ | opndsz? = arity0 none POPF
  | mode32? = arity0 none POPFD
 
 ### POR
@@ -5100,7 +5100,7 @@ val / [0x0f 0xeb /r] = binop mmx POR mm64 mm/m64
 val /66 [0x0f 0xeb /r] = binop sse2 POR xmm128 xmm/m128
 val /vex/66/0f/vexv [0xeb /r] | vex128? = varity3 avx VPOR xmm128 v/xmm xmm/m128
 
-#==> <==
+#FEATURES ==> <==
 
 ### PREFETCHh
 ###  - Prefetch Data Into Caches
@@ -5346,61 +5346,61 @@ val / [0xd0 /2] = binop none RCL r/m8 one
 val / [0xd2 /2] = binop none RCL r/m8 cl
 val / [0xc0 /2] = binop none RCL r/m8 imm8
 val / [0xd1 /2]
- | opndsz? = binop none RCL r/m16 one
  | rexw? = binop none RCL r/m64 one
+ | opndsz? = binop none RCL r/m16 one
  | otherwise = binop none RCL r/m32 one
 val / [0xd3 /2]
- | opndsz? = binop none RCL r/m16 cl
  | rexw? = binop none RCL r/m64 cl
+ | opndsz? = binop none RCL r/m16 cl
  | otherwise = binop none RCL r/m32 cl
 val / [0xc1 /2]
- | opndsz? = binop none RCL r/m16 imm8
  | rexw? = binop none RCL r/m64 imm8
+ | opndsz? = binop none RCL r/m16 imm8
  | otherwise = binop none RCL r/m32 imm8
 val / [0xd0 /3] = binop none RCR r/m8 one
 val / [0xd2 /3] = binop none RCR r/m8 cl
 val / [0xc0 /3] = binop none RCR r/m8 imm8
 val / [0xd1 /3]
- | opndsz? = binop none RCR r/m16 one
  | rexw? = binop none RCR r/m64 one
+ | opndsz? = binop none RCR r/m16 one
  | otherwise = binop none RCR r/m32 one
 val / [0xd3 /3]
- | opndsz? = binop none RCR r/m16 cl
  | rexw? = binop none RCR r/m64 cl
+ | opndsz? = binop none RCR r/m16 cl
  | otherwise = binop none RCR r/m32 cl
 val / [0xc1 /3]
- | opndsz? = binop none RCR r/m16 imm8
  | rexw? = binop none RCR r/m64 imm8
+ | opndsz? = binop none RCR r/m16 imm8
  | otherwise = binop none RCR r/m32 imm8
 val / [0xd0 /0] = binop none ROL r/m8 one
 val / [0xd2 /0] = binop none ROL r/m8 cl
 val / [0xc0 /0] = binop none ROL r/m8 imm8
 val / [0xd1 /0]
- | opndsz? = binop none ROL r/m16 one
  | rexw? = binop none ROL r/m64 one
+ | opndsz? = binop none ROL r/m16 one
  | otherwise = binop none ROL r/m32 one
 val / [0xd3 /0]
- | opndsz? = binop none ROL r/m16 cl
  | rexw? = binop none ROL r/m64 cl
+ | opndsz? = binop none ROL r/m16 cl
  | otherwise = binop none ROL r/m32 cl
 val / [0xc1 /0]
- | opndsz? = binop none ROL r/m16 imm8
  | rexw? = binop none ROL r/m64 imm8
+ | opndsz? = binop none ROL r/m16 imm8
  | otherwise = binop none ROL r/m32 imm8
 val / [0xd0 /1] = binop none ROR r/m8 one
 val / [0xd2 /1] = binop none ROR r/m8 cl
 val / [0xc0 /1] = binop none ROR r/m8 imm8
 val / [0xd1 /1]
- | opndsz? = binop none ROR r/m16 one
  | rexw? = binop none ROR r/m64 one
+ | opndsz? = binop none ROR r/m16 one
  | otherwise = binop none ROR r/m32 one
 val / [0xd3 /1]
- | opndsz? = binop none ROR r/m16 cl
  | rexw? = binop none ROR r/m64 cl
+ | opndsz? = binop none ROR r/m16 cl
  | otherwise = binop none ROR r/m32 cl
 val / [0xc1 /1]
- | opndsz? = binop none ROR r/m16 imm8
  | rexw? = binop none ROR r/m64 imm8
+ | opndsz? = binop none ROR r/m16 imm8
  | otherwise = binop none ROR r/m32 imm8
 
 ### RCPPS
@@ -5435,8 +5435,8 @@ val / [0x0f 0x33] = arity0 none RDPMC
 ### RDRAND
 ###  - Read Random Number
 val / [0x0f 0xc7 /6-reg]
- | opndsz? = unop rdrand RDRAND r/reg16
  | rexw? = unop rdrand RDRAND r/reg64
+ | opndsz? = unop rdrand RDRAND r/reg16
  | otherwise = unop rdrand RDRAND r/reg32
 
 ### RDTSC
@@ -5519,83 +5519,83 @@ val / [0xd0 /4] = binop none SHL r/m8 one
 val / [0xd2 /4] = binop none SHL r/m8 cl
 val / [0xc0 /4] = binop none SHL r/m8 imm8
 val / [0xd1 /4]
- | opndsz? = binop none SHL r/m16 one
  | rexw? = binop none SHL r/m64 one
+ | opndsz? = binop none SHL r/m16 one
  | otherwise = binop none SHL r/m32 one
 val / [0xd3 /4]
- | opndsz? = binop none SHL r/m16 cl
  | rexw? = binop none SHL r/m64 cl
+ | opndsz? = binop none SHL r/m16 cl
  | otherwise = binop none SHL r/m32 cl
 val / [0xc1 /4]
- | opndsz? = binop none SHL r/m16 imm8
  | rexw? = binop none SHL r/m64 imm8
+ | opndsz? = binop none SHL r/m16 imm8
  | otherwise = binop none SHL r/m32 imm8
 #### SAR
 val / [0xd0 /7] = binop none SAR r/m8 one
 val / [0xd2 /7] = binop none SAR r/m8 cl
 val / [0xc0 /7] = binop none SAR r/m8 imm8
 val / [0xd1 /7]
- | opndsz? = binop none SAR r/m16 one
  | rexw? = binop none SAR r/m64 one
+ | opndsz? = binop none SAR r/m16 one
  | otherwise = binop none SAR r/m32 one
 val / [0xd3 /7]
- | opndsz? = binop none SAR r/m16 cl
  | rexw? = binop none SAR r/m64 cl
+ | opndsz? = binop none SAR r/m16 cl
  | otherwise = binop none SAR r/m32 cl
 val / [0xc1 /7]
- | opndsz? = binop none SAR r/m16 imm8
  | rexw? = binop none SAR r/m64 imm8
+ | opndsz? = binop none SAR r/m16 imm8
  | otherwise = binop none SAR r/m32 imm8
 #### SHR
 val / [0xd0 /5] = binop none SHR r/m8 one
 val / [0xd2 /5] = binop none SHR r/m8 cl
 val / [0xc0 /5] = binop none SHR r/m8 imm8
 val / [0xd1 /5]
- | opndsz? = binop none SHR r/m16 one
  | rexw? = binop none SHR r/m64 one
+ | opndsz? = binop none SHR r/m16 one
  | otherwise = binop none SHR r/m32 one
 val / [0xd3 /5]
- | opndsz? = binop none SHR r/m16 cl
  | rexw? = binop none SHR r/m64 cl
+ | opndsz? = binop none SHR r/m16 cl
  | otherwise = binop none SHR r/m32 cl
 val / [0xc1 /5]
- | opndsz? = binop none SHR r/m16 imm8
  | rexw? = binop none SHR r/m64 imm8
+ | opndsz? = binop none SHR r/m16 imm8
  | otherwise = binop none SHR r/m32 imm8
 
 ### SBB
 ###  - Integer Subtraction with Borrow
 val / [0x1c] = binop none SBB al imm8
 val / [0x1d]
- | opndsz? = binop none SBB ax imm16
  | rexw? = binop none SBB rax imm32
+ | opndsz? = binop none SBB ax imm16
  | otherwise = binop none SBB eax imm32
 val / [0x80 /3] = binop-lock none SBB r/m8 imm8
 val / [0x81 /3]
- | opndsz? = binop-lock none SBB r/m16 imm16
  | rexw? = binop-lock none SBB r/m64 imm32
+ | opndsz? = binop-lock none SBB r/m16 imm16
  | otherwise = binop-lock none SBB r/m32 imm32
 val / [0x83 /3]
- | opndsz? = binop-lock none SBB r/m16 imm8
  | rexw? = binop-lock none SBB r/m64 imm8
+ | opndsz? = binop-lock none SBB r/m16 imm8
  | otherwise = binop-lock none SBB r/m32 imm8
 val / [0x18 /r] = binop-lock none SBB r/m8 r8
 val / [0x19 /r]
- | opndsz? = binop-lock none SBB r/m16 r16
  | rexw? = binop-lock none SBB r/m64 r64
+ | opndsz? = binop-lock none SBB r/m16 r16
  | otherwise = binop-lock none SBB r/m32 r32
 val / [0x1a /r] = binop none SBB r8 r/m8
 val / [0x1b /r]
- | opndsz? = binop none SBB r16 r/m16
  | rexw? = binop none SBB r64 r/m64
+ | opndsz? = binop none SBB r16 r/m16
  | otherwise = binop none SBB r32 r/m32
 
 ### SCAS/SCASB/SCASW/SCASD/SCASQ
 ###  - Scan String
 val / [0xae] = arity0-rep-repne none SCASB
 val / [0xaf]
- | opndsz? = arity0-rep-repne none SCASW
  | rexw? = arity0-rep-repne none SCASQ
+ | opndsz? = arity0-rep-repne none SCASW
  | otherwise = arity0-rep-repne none SCASD
 
 ### SETcc
@@ -5630,23 +5630,23 @@ val / [0x0f 0x01 /0-mem]
 ### SHLD
 ###  - Double Precision Shift Left
 val / [0x0f 0xa4 /r]
- | opndsz? = ternop none SHLD r/m16 r16 imm8
  | rexw? = ternop none SHLD r/m64 r64 imm8
+ | opndsz? = ternop none SHLD r/m16 r16 imm8
  | otherwise = ternop none SHLD r/m32 r32 imm8
 val / [0x0f 0xa5 /r]
- | opndsz? = ternop none SHLD r/m16 r16 cl
  | rexw? = ternop none SHLD r/m64 r64 cl
+ | opndsz? = ternop none SHLD r/m16 r16 cl
  | otherwise = ternop none SHLD r/m32 r32 cl
 
 ### SHRD
 ###  - Double Precision Shift Right
 val / [0x0f 0xac /r]
- | opndsz? = ternop none SHRD r/m16 r16 imm8
  | rexw? = ternop none SHRD r/m64 r64 imm8
+ | opndsz? = ternop none SHRD r/m16 r16 imm8
  | otherwise = ternop none SHRD r/m32 r32 imm8
 val / [0x0f 0xad /r]
- | opndsz? = ternop none SHRD r/m16 r16 cl
  | rexw? = ternop none SHRD r/m64 r64 cl
+ | opndsz? = ternop none SHRD r/m16 r16 cl
  | otherwise = ternop none SHRD r/m32 r32 cl
 
 ### SHUFPD
@@ -5678,8 +5678,8 @@ val / [0x0f 0x00 /0]
 ### SMSW
 ###  - Store Machine Status Word
 val / [0x0f 0x01 /4]
- | opndsz? = unop none SMSW r/m16
  | rexw? = unop none SMSW r64/m16
+ | opndsz? = unop none SMSW r/m16
  | otherwise = unop none SMSW r32/m16
 
 ### SQRTPD
@@ -5727,8 +5727,8 @@ val /vex/0f [0xae /3-mem] | vex128? = varity1 avx VSTMXCSR m32
 ###  - Store String
 val / [0xaa] = arity0-rep none STOSB
 val / [0xab]
- | opndsz? = arity0-rep none STOSW
  | rexw? = arity0-rep none STOSQ
+ | opndsz? = arity0-rep none STOSW
  | otherwise = arity0-rep none STOSD
 
 ### STR
@@ -5739,27 +5739,27 @@ val / [0x0f 0x00 /1] = unop none STR r/m16
 ###  - Subtract
 val / [0x2c] = binop none SUB al imm8
 val / [0x2d]
- | opndsz? = binop none SUB ax imm16
  | rexw? = binop none SUB rax imm32
+ | opndsz? = binop none SUB ax imm16
  | otherwise = binop none SUB eax imm32
 val / [0x80 /5] = binop-lock none SUB r/m8 imm8
 val / [0x81 /5]
- | opndsz? = binop-lock none SUB r/m16 imm16
  | rexw? = binop-lock none SUB r/m64 imm32
+ | opndsz? = binop-lock none SUB r/m16 imm16
  | otherwise = binop-lock none SUB r/m32 imm32
 val / [0x83 /5]
- | opndsz? = binop-lock none SUB r/m16 imm8
  | rexw? = binop-lock none SUB r/m64 imm8
+ | opndsz? = binop-lock none SUB r/m16 imm8
  | otherwise = binop-lock none SUB r/m32 imm8
 val / [0x28 /r] = binop-lock none SUB r/m8 r8
 val / [0x29 /r]
- | opndsz? = binop-lock none SUB r/m16 r16
  | rexw? = binop-lock none SUB r/m64 r64
+ | opndsz? = binop-lock none SUB r/m16 r16
  | otherwise = binop-lock none SUB r/m32 r32
 val / [0x2a /r] = binop none SUB r8 r/m8
 val / [0x2b /r]
- | opndsz? = binop none SUB r16 r/m16
  | rexw? = binop none SUB r64 r/m64
+ | opndsz? = binop none SUB r16 r/m16
  | otherwise = binop none SUB r32 r/m32
 
 ### SUBPD
@@ -5814,18 +5814,18 @@ val / [0x0f 0x07]
 ###  - Logical Compare
 val / [0xa8] = binop none TEST al imm8
 val / [0xa9]
- | opndsz? = binop none TEST ax imm16
  | rexw? = binop none TEST rax imm32
+ | opndsz? = binop none TEST ax imm16
  | otherwise = binop none TEST eax imm32
 val / [0xf6 /0] = binop none TEST r/m8 imm8
 val / [0xf7 /0]
- | opndsz? = binop none TEST r/m16 imm16
  | rexw? = binop none TEST r/m64 imm32
+ | opndsz? = binop none TEST r/m16 imm16
  | otherwise = binop none TEST r/m32 imm32
 val / [0x84 /r] = binop none TEST r/m8 r8
 val / [0x85 /r]
- | opndsz? = binop none TEST r/m16 r16
  | rexw? = binop none TEST r/m64 r64
+ | opndsz? = binop none TEST r/m16 r16
  | otherwise = binop none TEST r/m32 r32
 
 ### UCOMISD
@@ -5983,16 +5983,16 @@ val / [0x0f 0x30] = arity0 none WRMSR
 ###  - Exchange and Add
 val / [0x0f 0xc0 /r] = binop-lock none XADD r/m8 r8
 val / [0x0f 0xc1 /r]
- | opndsz? = binop-lock none XADD r/m16 r16
  | rexw? = binop-lock none XADD r/m64 r64
+ | opndsz? = binop-lock none XADD r/m16 r16
  | otherwise = binop-lock none XADD r/m32 r32
 
 ### XCHG
 ###  - Exchange Register/Memory with Register
 ### Todo: Reg => No lock?
 val / ['10010 r:3']
- | opndsz? = do update@{reg/opcode=r}; binop none XCHG ax r16/rexb end
  | rexw? = do update@{reg/opcode=r}; binop none XCHG rax r64/rexb end
+ | opndsz? = do update@{reg/opcode=r}; binop none XCHG ax r16/rexb end
  | otherwise = #:-(
      if r == '000' then #:-(
        varity0 none NOP
@@ -6002,8 +6002,8 @@ val / ['10010 r:3']
      end
 val / [0x86 /r] = binop-lock none XCHG r/m8 r8
 val / [0x87 /r]
- | opndsz? = binop-lock none XCHG r/m16 r16
  | rexw? = binop-lock none XCHG r/m64 r64
+ | opndsz? = binop-lock none XCHG r/m16 r16
  | otherwise = binop-lock none XCHG r/m32 r32
 
 ### XGETBV
@@ -6013,35 +6013,35 @@ val / [0x0f 0x01 0xd0] = arity0 none XGETBV
 ### XLAT/XLATB
 ###  - Table Look-up Translation
 val / [0xd7]
- | opndsz? = arity0 none XLATB
  | rexw? = arity0 none XLATB
+ | opndsz? = arity0 none XLATB
  | otherwise = arity0 none XLATB
 
 ### XOR
 ###  - Logical Exclusive OR
 val / [0x34] = binop none XOR al imm8
 val / [0x35]
- | opndsz? = binop none XOR ax imm16
  | rexw? = binop none XOR rax imm32
+ | opndsz? = binop none XOR ax imm16
  | otherwise = binop none XOR eax imm32
 val / [0x80 /6] = binop-lock none XOR r/m8 imm8
 val / [0x81 /6]
- | opndsz? = binop-lock none XOR r/m16 imm16
  | rexw? = binop-lock none XOR r/m64 imm32
+ | opndsz? = binop-lock none XOR r/m16 imm16
  | otherwise = binop-lock none XOR r/m32 imm32
 val / [0x83 /6]
- | opndsz? = binop-lock none XOR r/m16 imm8
  | rexw? = binop-lock none XOR r/m64 imm8
+ | opndsz? = binop-lock none XOR r/m16 imm8
  | otherwise = binop-lock none XOR r/m32 imm8
 val / [0x30 /r] = binop-lock none XOR r/m8 r8
 val / [0x31 /r]
- | opndsz? = binop-lock none XOR r/m16 r16
  | rexw? = binop-lock none XOR r/m64 r64
+ | opndsz? = binop-lock none XOR r/m16 r16
  | otherwise = binop-lock none XOR r/m32 r32
 val / [0x32 /r] = binop none XOR r8 r/m8
 val / [0x33 /r]
- | opndsz? = binop none XOR r16 r/m16
  | rexw? = binop none XOR r64 r/m64
+ | opndsz? = binop none XOR r16 r/m16
  | otherwise = binop none XOR r32 r/m32
 
 ### XORPD

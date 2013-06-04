@@ -134,7 +134,7 @@ val sem-bsr x = do
   ;
 
   zf <- fZF;
-  cmpeq x.opnd-sz zf src (imm 0);
+  cmpeq size zf src (imm 0);
 
   cf <- fCF;
   ov <- fOF;
@@ -147,8 +147,8 @@ val sem-bsr x = do
   undef 1 af;
   undef 1 pf;
 
-  dst <- lval x.opnd-sz x.opnd1;
-  write x.opnd-sz dst (var counter)
+  dst <- lval size x.opnd1;
+  write size dst (var counter)
 end
 
 val sem-bswap x = do
