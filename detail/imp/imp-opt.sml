@@ -160,6 +160,11 @@ structure ActionClosures = struct
             in
                e
             end
+          | CALLexp (m,sym,args) =>
+            if SymSet.member (#monFuns (s : state),sym) then
+               CALLexp (ACTmonkind,sym,args)
+            else
+               EXECexp (CALLexp (m,sym,args))
           | e => EXECexp e
         )                                           
      | visitExp s e = e
@@ -175,8 +180,8 @@ structure ActionClosures = struct
       }) =
       let
          val (monkind',body') = case visitBlock s body of
-            (BASICblock (decls, [ASSIGNstmt (lhs,STATEexp (b,e))])) =>
-               (INmonkind, BASICblock (decls , [ASSIGNstmt (lhs,EXECexp (STATEexp (b,e)))]))
+            (BASICblock (decls, [ASSIGNstmt (lhs,STATEexp (BASICblock (decls',stmts'),e))])) =>
+               (ACTmonkind, BASICblock (decls @ decls', stmts' @ [ASSIGNstmt (lhs,e)]))
           | body => (monkind, body)
       in
          FUNCdecl {
@@ -634,7 +639,7 @@ structure TypeRefinement = struct
           (BOXstype INTstype) => BOXexp (INTvtype,e)
         | (BOXstype (BITstype (CONSTstype s))) => BOXexp (BITvtype, INT2VECexp (s,e))
         | (BOXstype (BITstype _)) => BOXexp (BITvtype, e)
-        | (MONADstype t) => STATEexp (BASICblock ([],[]), readWrap s (OBJvtype, t, INVOKEexp (INmonkind, adjustType s (OBJvtype, t), e, [])))
+        | (MONADstype t) => STATEexp (BASICblock ([],[]), readWrap s (OBJvtype, t, INVOKEexp (ACTmonkind, adjustType s (OBJvtype, t), e, [])))
         | _ => e
        )
      | readWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
@@ -852,10 +857,8 @@ structure StatePassing = struct
 
    open Imp
       
-   fun lub (INOUTmonkind, _) = INOUTmonkind
-     | lub (_, INOUTmonkind) = INOUTmonkind
-     | lub (INmonkind, _) = INmonkind
-     | lub (_, INmonkind) = INmonkind
+   fun lub (ACTmonkind, _) = ACTmonkind
+     | lub (_, ACTmonkind) = ACTmonkind
      | lub _ = PUREmonkind
 
    fun genLub ({ current, state = s}, m, sym) = lub (m, SymMap.lookup (!s,sym))
@@ -880,7 +883,7 @@ structure StatePassing = struct
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
      | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b, visitExp s e)
-     | visitExp s (EXECexp e) = (raiseCurrent (s,INmonkind); EXECexp (visitExp s e))
+     | visitExp s (EXECexp e) = (raiseCurrent (s,ACTmonkind); EXECexp (visitExp s e))
      | visitExp s e = e
 
    fun visitDecl s (FUNCdecl {
@@ -905,9 +908,9 @@ structure StatePassing = struct
    fun run { decls = ds, fdecls = fs } =
       let
          fun insSymbol (FUNCdecl { funcName = name, funcMonadic = k, ... },m) = SymMap.insert (m,name, k)
-           | insSymbol (SELECTdecl { selectName = name, ... },m) = SymMap.insert (m,name, INmonkind)
-           | insSymbol (UPDATEdecl { updateName = name, ... },m) = SymMap.insert (m,name, INOUTmonkind)
-           | insSymbol (CONdecl { conName = name, ... },m) = SymMap.insert (m,name, INmonkind)
+           | insSymbol (SELECTdecl { selectName = name, ... },m) = SymMap.insert (m,name, ACTmonkind)
+           | insSymbol (UPDATEdecl { updateName = name, ... },m) = SymMap.insert (m,name, ACTmonkind)
+           | insSymbol (CONdecl { conName = name, ... },m) = SymMap.insert (m,name, ACTmonkind)
          val stateRef = ref (foldl insSymbol SymMap.empty ds)
          fun calcFixpoint prevState ds =
             let

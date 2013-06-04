@@ -329,7 +329,7 @@ structure Primitives = struct
          fun t n = genType (OBJvtype, n)
          fun tv n = genType (VOIDvtype, n)
       in [
-         ("raise", (tv 1, fn args => pr (RAISEprim,sv,args))),
+         ("raise", (tv 1, fn args => action (PRIexp (ACTmonkind,RAISEprim,sv,args)))),
          ((Atom.toString Op.andAlso), (t 2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
          ((Atom.toString Op.orElse), (t 2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
          ("sx", (t 1, fn args => pr (SIGNEDprim,bi,unboxV args))),
@@ -353,21 +353,21 @@ structure Primitives = struct
            | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
          ("query", (t 1, fn args => (case args of
-             [f] => action (INVOKEexp (PUREmonkind, o_, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]))
+             [f] => action (INVOKEexp (PUREmonkind, o_, f,[PRIexp (ACTmonkind, GETSTATEprim, o_, [])]))
            | _ => raise ImpPrimTranslationBug))),
          ("update", (fv, fn args => (case args of
-             [f] => action (PRIexp (INOUTmonkind, SETSTATEprim, fv, [
-                  INVOKEexp (PUREmonkind, oo, f,[PRIexp (INmonkind, GETSTATEprim, o_, [])]) 
+             [f] => action (PRIexp (ACTmonkind, SETSTATEprim, fv, [
+                  INVOKEexp (PUREmonkind, oo, f,[PRIexp (ACTmonkind, GETSTATEprim, o_, [])]) 
                ]))
            | _ => raise ImpPrimTranslationBug))),
-         ("ipget", (t 0, fn args => action (boxI (PRIexp (INmonkind,IPGETprim,i,args))))),
-         ("consume8", (t 0, fn args => action (boxV8 (PRIexp (INOUTmonkind,CONSUME8prim,i,args))))),
-         ("consume16", (t 0, fn args => action (boxV16 (PRIexp (INOUTmonkind,CONSUME16prim,i,args))))),
-         ("consume32", (t 0, fn args => action (boxV32 (PRIexp (INOUTmonkind,CONSUME32prim,i,args))))),
-         ("unconsume8", (tv 0, fn args => action (PRIexp (INOUTmonkind,UNCONSUME8prim,v,args)))),
-         ("unconsume16", (tv 0, fn args => action (PRIexp (INOUTmonkind,UNCONSUME16prim,v,args)))),
-         ("unconsume32", (tv 0, fn args => action (PRIexp (INOUTmonkind,UNCONSUME32prim,v,args)))),
-         ("println", (tv 1, fn args => action (PRIexp (INmonkind,PRINTLNprim,ov,args)))),
+         ("ipget", (t 0, fn args => action (boxI (PRIexp (ACTmonkind,IPGETprim,i,args))))),
+         ("consume8", (t 0, fn args => action (boxV8 (PRIexp (ACTmonkind,CONSUME8prim,i,args))))),
+         ("consume16", (t 0, fn args => action (boxV16 (PRIexp (ACTmonkind,CONSUME16prim,i,args))))),
+         ("consume32", (t 0, fn args => action (boxV32 (PRIexp (ACTmonkind,CONSUME32prim,i,args))))),
+         ("unconsume8", (tv 0, fn args => action (PRIexp (ACTmonkind,UNCONSUME8prim,v,args)))),
+         ("unconsume16", (tv 0, fn args => action (PRIexp (ACTmonkind,UNCONSUME16prim,v,args)))),
+         ("unconsume32", (tv 0, fn args => action (PRIexp (ACTmonkind,UNCONSUME32prim,v,args)))),
+         ("println", (tv 1, fn args => action (PRIexp (ACTmonkind,PRINTLNprim,ov,args)))),
          ("return", (t 1, fn args => (case args of
             [e] => action e
           | _ => raise ImpPrimTranslationBug)))

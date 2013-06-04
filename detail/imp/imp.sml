@@ -99,8 +99,7 @@ structure Imp = struct
    *)
    datatype monkind =
       PUREmonkind
-    | INmonkind
-    | INOUTmonkind
+    | ACTmonkind
 
    datatype decl =
       FUNCdecl of {
@@ -192,8 +191,7 @@ structure Imp = struct
                 [str "->", vtype res])
       fun arg (t,n) = seq [vtype t, space, var n]
       fun monarg PUREmonkind = empty
-        | monarg INmonkind = seq [space, str "ACT"]
-        | monarg INOUTmonkind = seq [space, str "ACT"]
+        | monarg ACTmonkind = seq [space, str "ACT"]
       fun decl (FUNCdecl {
            funcMonadic,
            funcClosure,
