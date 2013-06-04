@@ -22,17 +22,17 @@ size_t generator_x86_prefixes_generate(struct generator *this, FILE *stream) {
 				break;
 			}
 			case 1: {
-				fputc(0x66, stream);
+				fputc(0x67, stream);
 				size++;
 				break;
 			}
 			case 2: {
-				fputc(0x66, stream);
+				fputc(0xf2, stream);
 				size++;
 				break;
 			}
 			case 3: {
-				fputc(0x66, stream);
+				fputc(0xf3, stream);
 				size++;
 				break;
 			}
@@ -133,11 +133,13 @@ static size_t generator_x86_modrm_generate(struct generator *this, FILE *stream)
 
 static size_t generator_x86_immediate_generate(struct generator *this,
 		FILE *stream) {
-	if(rand() > 2 * (RAND_MAX / 3)) {
-		int random = rand();
-		return fwrite(&random, 4, 1, stream);
-	} else
-		return 0;
+//	if(rand() > 2 * (RAND_MAX / 3)) {
+	int random = rand();
+	return fwrite(&random, 4, 1, stream);
+	random = rand();
+	return fwrite(&random, 4, 1, stream);
+//	} else
+//		return 0;
 }
 
 static size_t generator_x86_rex_generate(struct generator *this, FILE *stream) {
@@ -265,16 +267,19 @@ void generator_execute(struct generator *generator, FILE *stream) {
 struct generator_tree_node *generator_x86_tree_get() {
 	struct generator_tree_node *imm = generator_tree_generator_build(
 			generator_init(GENERATOR_TYPE_IMMEDIATE), NULL);
+	struct generator_tree_node *imm_or_not = generator_tree_branch(2, imm, 10,
+			NULL, 1);
 	struct generator_tree_node *rm_imm = generator_tree_generator_build(
-			generator_init(GENERATOR_TYPE_MODRM), imm);
+			generator_init(GENERATOR_TYPE_MODRM), imm_or_not);
 	struct generator_tree_node *op_rm_imm = generator_tree_generator_build(
 			generator_init(GENERATOR_TYPE_OPCODE), rm_imm);
 	struct generator_tree_node *rex_op_rm_imm = generator_tree_generator_build(
 			generator_init(GENERATOR_TYPE_REX), op_rm_imm);
+	struct generator_tree_node *rex_or_not_op_rm_imm = generator_tree_branch(2,
+			op_rm_imm, 3, rex_op_rm_imm, 2);
 	struct generator_tree_node *pref_rex_op_rm_imm =
 			generator_tree_generator_build(generator_init(GENERATOR_TYPE_PREFIXES),
-					rex_op_rm_imm);
-
+					rex_or_not_op_rm_imm);
 	struct generator_tree_node *vex_op_rm_imm = generator_tree_generator_build(
 			generator_init(GENERATOR_TYPE_VEX), op_rm_imm);
 

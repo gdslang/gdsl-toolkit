@@ -63,7 +63,7 @@ static void registers_x86_rreil_init(struct context *context_rreil,
 
 	void rand_buffer(uint8_t *data, size_t bit_length) {
 		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-			data[i] = rand()*(rand() > RAND_MAX/4);
+			data[i] = rand() * (rand() > RAND_MAX / 4);
 	}
 
 	void rand_address_buffer(uint8_t *data, size_t bit_length) {

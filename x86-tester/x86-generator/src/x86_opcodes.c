@@ -11,7 +11,7 @@
 #include <x86_opcodes.h>
 #include <util.h>
 
-extern struct opcode_table *x86_opcodes_opcode_table_build() {
+struct opcode_table *x86_opcodes_opcode_table_build() {
 	struct opcode_table *table = (struct opcode_table*)malloc(sizeof(struct opcode_table));
 
 	table->offsets = NULL;

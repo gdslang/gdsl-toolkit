@@ -2962,17 +2962,15 @@ val / [0x62 /r-mem]
 ### BSF
 ###  - Bit Scan Forward
 val / [0x0f 0xbc /r]
- | opndsz? = binop none BSF r16 r/m16
  | rexw? = binop none BSF r64 r/m64
+ | opndsz? = binop none BSF r16 r/m16
  | otherwise = binop none BSF r32 r/m32
 
 ### BSR
 ###  - Bit Scan Reverse
-### Todo: Check operand size if not in mode64
 val / [0x0f 0xbd /r]
- | mode64? = binop none BSR r64 r/m64
+ | rexw? = binop none BSR r64 r/m64
  | opndsz? = binop none BSR r16 r/m16
-# | rexw? = binop none BSR r64 r/m64
  | otherwise = binop none BSR r32 r/m32
 
 ### BSWAP

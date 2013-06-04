@@ -5,6 +5,7 @@
  *      Author: jucs
  */
 
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -279,7 +280,12 @@ int main(int argc, char **argv) {
 
 	stderr = stdout;
 
-	srand(time(NULL));
+	struct timespec timespec;
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW 0
+#endif
+	clock_gettime(CLOCK_MONOTONIC_RAW, &timespec);
+	srand(timespec.tv_nsec);
 
 	struct options options;
 	char retval = args_parse(argc, argv, &options);

@@ -76,18 +76,19 @@ val sem-vandpd x = sem-andpd-opnds '1' x.opnd1 x.opnd2 x.opnd3
 ## B>>
 
 val sem-bsf x = do
-  src <- read x.opnd-sz x.opnd2;
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd2;
 
   counter <- mktemp;
-  _if (/neq x.opnd-sz src (imm 0)) _then do
-    mov x.opnd-sz counter (imm 0);
+  _if (/neq size src (imm 0)) _then do
+    mov size counter (imm 0);
 
     temp <- mktemp;
-    mov x.opnd-sz temp src;
+    mov size temp src;
 
     _while (/neq 1 (var temp) (imm 1)) __ do
-      add x.opnd-sz counter (var counter) (imm 1);
-      shr x.opnd-sz temp (var temp) (imm 1)
+      add size counter (var counter) (imm 1);
+      shr size temp (var temp) (imm 1)
     end
 
   end _else
@@ -95,7 +96,7 @@ val sem-bsf x = do
   ;
 
   zf <- fZF;
-  cmpeq x.opnd-sz zf src (imm 0);
+  cmpeq size zf src (imm 0);
 
   cf <- fCF;
   ov <- fOF;
@@ -108,23 +109,24 @@ val sem-bsf x = do
   undef 1 af;
   undef 1 pf;
 
-  dst <- lval x.opnd-sz x.opnd1;
-  write x.opnd-sz dst (var counter)
+  dst <- lval size x.opnd1;
+  write size dst (var counter)
 end
 
 val sem-bsr x = do
-  src <- read x.opnd-sz x.opnd2;
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd2;
 
   counter <- mktemp;
-  _if (/neq x.opnd-sz src (imm 0)) _then do
-    mov x.opnd-sz counter (imm (x.opnd-sz - 1));
+  _if (/neq size src (imm 0)) _then do
+    mov size counter (imm (size - 1));
 
     temp <- mktemp;
-    mov x.opnd-sz temp src;
+    mov size temp src;
 
-    _while (/neq 1 (var (at-offset temp (x.opnd-sz - 1))) (imm 1)) __ do
-      sub x.opnd-sz counter (var counter) (imm 1);
-      shl x.opnd-sz temp (var temp) (imm 1)
+    _while (/neq 1 (var (at-offset temp (size - 1))) (imm 1)) __ do
+      sub size counter (var counter) (imm 1);
+      shl size temp (var temp) (imm 1)
     end
 
   end _else

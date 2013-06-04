@@ -484,6 +484,12 @@ static void tbgen_registers_preparation_iterate(struct tracking_trace *trace,
 		prepare_reg(reg);
 	}
 
+	for(size_t i = 0; i < trace->reg.written.x86_indices_length; ++i) {
+		size_t index = trace->reg.written.x86_indices[i];
+		enum x86_id reg = (enum x86_id)index;
+		prepare_reg(reg);
+	}
+
 	for(size_t i = 0; i < addtional_regs_length; ++i) {
 		enum x86_id reg = (enum x86_id)addtional_regs[i];
 		prepare_reg(reg);
@@ -492,7 +498,21 @@ static void tbgen_registers_preparation_iterate(struct tracking_trace *trace,
 
 static void tbgen_registers_write_back_iterate(struct tracking_trace *trace,
 		enum x86_id *addtional_regs, size_t addtional_regs_length,
-		void (*write_back_reg)(enum x86_id)) {
+		void (*write_back_reg)(enum x86_id), char test_unused) {
+	if(test_unused) {
+		for(size_t i = 0; i < trace->reg.read.x86_indices_length; ++i) {
+			size_t index = trace->reg.read.x86_indices[i];
+			enum x86_id reg = (enum x86_id)index;
+			write_back_reg(reg);
+		}
+
+		for(size_t i = 0; i < trace->reg.dereferenced.x86_indices_length; ++i) {
+			size_t index = trace->reg.dereferenced.x86_indices[i];
+			enum x86_id reg = (enum x86_id)index;
+			write_back_reg(reg);
+		}
+	}
+
 	for(size_t i = 0; i < trace->reg.written.x86_indices_length; ++i) {
 		size_t index = trace->reg.written.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
@@ -599,7 +619,7 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction,
 		}
 	}
 	tbgen_registers_write_back_iterate(trace, additional_regs,
-			addtional_regs_length, &write_back_reg);
+			addtional_regs_length, &write_back_reg, test_unused);
 
 	free(additional_regs);
 
