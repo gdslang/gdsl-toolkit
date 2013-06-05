@@ -131,7 +131,7 @@ end = struct
          val name = Atom.atom (foldl
                      (fn (sym, str) =>
                         str ^ "_" ^ SymbolTable.getString (ftab,sym))
-                     "update" fields)
+                     "$update" fields)
          val tab = !SymbolTables.varTable
       in
          case SymbolTable.find (tab, name) of
@@ -168,13 +168,13 @@ end = struct
                end
           | SOME sym => (case getClosureTy s sym of
              SOME ty => (sym, ty)
-           | NONE => raise ImpTranslationBug
+           | NONE => (TextIO.print ("addUpdate: no closure type for " ^ Atom.toString name ^ "\n"); raise ImpTranslationBug)
           )
       end
    fun addSelect (s : state) (field, fType) =
       let
          val ftab = !SymbolTables.fieldTable
-         val name = Atom.atom ("select_" ^ 
+         val name = Atom.atom ("$select_" ^ 
                                SymbolTable.getString (ftab,field))
          val tab = !SymbolTables.varTable
       in
@@ -198,7 +198,7 @@ end = struct
       let
          val ctab = !SymbolTables.conTable
          val conName = SymbolTable.getString (ctab,con)
-         val name = Atom.atom ("constructor_" ^ conName)
+         val name = Atom.atom ("$constructor_" ^ conName)
          val tab = !SymbolTables.varTable
       in
          case SymbolTable.find (tab, name) of
@@ -255,7 +255,7 @@ end = struct
      | trExpr s (Exp.IF (c,t,e)) =
       let
          val (cStmts, cExp) = trExpr s c
-         val (res,s) = freshRes ("ite",s)
+         val (res,s) = freshRes ("$ite",s)
          val tBlock = trBlock s t
          val eBlock = trBlock s e
       in
@@ -280,7 +280,7 @@ end = struct
          val (stmts, scrutRaw) = trExpr s e
          val scrut = convertScrut (scrutRaw, cs)
          
-         val (res,s) = freshRes ("case",s)
+         val (res,s) = freshRes ("$case",s)
          fun trCase (Core.Pat.BIT bp, block) = (
                case String.fields (fn c => c= #"|") bp of
                   [] => (WILDpat, block)
@@ -317,7 +317,7 @@ end = struct
      | trExpr s (Exp.FN (var, e)) =
       let
          val tab = !SymbolTables.varTable
-         val (tab, sym) = SymbolTable.fresh (tab, Atom.atom "lambda")
+         val (tab, sym) = SymbolTable.fresh (tab, Atom.atom "$lambda")
          val _ = SymbolTables.varTable := tab
          val fType = trDecl (addLocalVar s var) (sym, [var], e)
       in
