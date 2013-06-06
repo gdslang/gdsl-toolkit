@@ -9,13 +9,13 @@ structure Main = struct
          Parser.run ins >>=
          ResolveSymbols.run >>= (fn ast =>
          ResolveTypeInfo.run ast >>= (fn tInfo =>
-         (*TypeInference.run (tInfo, ast) >>= (fn tys =>*)
+         TypeInference.run (tInfo, ast) >>= (fn tys =>
          Desugar.run ast >>=
          ImpPasses.run
          (*Desugar.run ast >>=
          CPSPasses.run >>=
          CodegenPasses.run *)
-         ))
+         )))
       fun run fps = let
          val ers = Error.mkErrStream'()
          val () = Controls.set (BasicControl.verbose, 1)
