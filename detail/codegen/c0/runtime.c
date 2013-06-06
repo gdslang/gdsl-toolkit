@@ -153,6 +153,17 @@ __obj __ipget (__obj s) {
   return (a);
 }
 
+/* FIXME */
+__obj __seek (__obj s, __obj x) {
+	printf("###### %lu\n", __CASETAGINT(x));
+  __LOCAL0(a);
+    __RECORD_BEGIN(a,2);
+    __RECORD_ADD(___1,__UNIT);
+    __RECORD_ADD(___2,s);
+    __RECORD_END(a,2);
+  return (a);
+}
+
 /**
  * Return the index of a data constructor or zero for any other object.
  */
