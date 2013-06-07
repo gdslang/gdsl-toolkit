@@ -48,7 +48,7 @@ end = struct
          val not = get "not"
          val raisee = get "raise"
          val ipget = get "ipget"
-         val seek = get "seek"
+         val rseek = get "rseek"
          val index = get "index"
          val println = get "println"
          val return = get "return"
@@ -280,15 +280,15 @@ end = struct
                (ipget, [s], body)
             end
 
-         (* val seek x s = %seek(x, s) *)
-         val seek =
+         (* val rseek x s = %rseek(x, s) *)
+         val rseek =
             let
                val x = fresh "x"
                val s = fresh "s"
-               val primseek = get "%seek"
-               val body = PRI (primseek, [x,s])
+               val primrseek = get "%rseek"
+               val body = FN (s, PRI (primrseek, [s,x]))
             in
-               (seek, [x,s], body)
+               (rseek, [x], body)
             end
 
          (* val index s = %index(s) *)
@@ -400,7 +400,7 @@ end = struct
           concat,
           raisee,
           ipget,
-          seek,
+          rseek,
           index,
 					println,
           add,

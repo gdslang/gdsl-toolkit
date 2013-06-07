@@ -154,7 +154,7 @@ __obj __ipget (__obj s) {
 }
 
 /* FIXME */
-__obj __seek (__obj s, __obj x) {
+__obj __rseek (__obj s, __obj x) {
 	printf("###### %lu\n", __CASETAGINT(x));
   __LOCAL0(a);
     __RECORD_BEGIN(a,2);
