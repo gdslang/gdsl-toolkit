@@ -1668,7 +1668,7 @@ val ymm15 = return (REG YMM15)
 val st0 = return (REG ST0)
 
 val imm-build cons b size = do
-  ip <- ipget;
+  ip <- idxget;
   return (cons {imm=b,address=(ip - size)})
 end
 

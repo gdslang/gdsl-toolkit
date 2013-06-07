@@ -47,7 +47,7 @@ end = struct
          val == = get "=="
          val not = get "not"
          val raisee = get "raise"
-         val ipget = get "ipget"
+         val idxget = get "idxget"
          val rseek = get "rseek"
          val index = get "index"
          val println = get "println"
@@ -270,14 +270,14 @@ end = struct
                (raisee, [a], body)
             end
 
-         (* val ipget s = %ipget(s) *)
-         val ipget =
+         (* val idxget s = %idxget(s) *)
+         val idxget =
             let
                val s = fresh "s"
-               val primipget = get "%ipget"
-               val body = PRI (primipget, [s])
+               val primidxget = get "%idxget"
+               val body = PRI (primidxget, [s])
             in
-               (ipget, [s], body)
+               (idxget, [s], body)
             end
 
          (* val rseek x s = %rseek(x, s) *)
@@ -399,7 +399,7 @@ end = struct
           ==,
           concat,
           raisee,
-          ipget,
+          idxget,
           rseek,
           index,
 					println,

@@ -139,7 +139,7 @@ __obj __zx (__obj x) {
 }
 
 /* FIXME */
-__obj __ipget (__obj s) {
+__obj __idxget (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __LOCAL0(y);
     __INT_BEGIN(y);
@@ -155,11 +155,38 @@ __obj __ipget (__obj s) {
 
 /* FIXME */
 __obj __rseek (__obj s, __obj x) {
-	printf("###### %lu\n", __CASETAGINT(x));
+  int64_t k = (int64_t)__CASETAGINT(x);
+//	printf("###### %ld\n", k);
+  __LOCAL(blob, __RECORD_SELECT(s,___blob));
+  uint64_t size = blob->blob.idx + blob->blob.sz;
+  if((uint64_t)(blob->blob.idx + k) >= size) {
+    __LOCAL0(y);
+      __INT_BEGIN(y);
+      __INT_INIT(1);
+      __INT_END(y);
+    __LOCAL0(a);
+      __RECORD_BEGIN(a,2);
+      __RECORD_ADD(___1,y);
+      __RECORD_ADD(___2,s);
+      __RECORD_END(a,2);
+    return (a);
+  }
+  __LOCAL0(blobb);
+  __BLOB_BEGIN(blobb);
+  __BLOB_INIT(blob->blob.blob+k,blob->blob.sz-k,blob->blob.idx+k);
+  __BLOB_END(blobb);
+  __LOCAL0(ss);
+    __RECORD_BEGIN_UPDATE(ss,s);
+    __RECORD_UPDATE(___blob,blobb);
+    __RECORD_END_UPDATE(ss);
+  __LOCAL0(y);
+    __INT_BEGIN(y);
+    __INT_INIT(0);
+    __INT_END(y);
   __LOCAL0(a);
     __RECORD_BEGIN(a,2);
-    __RECORD_ADD(___1,__UNIT);
-    __RECORD_ADD(___2,s);
+    __RECORD_ADD(___1,y);
+    __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
   return (a);
 }

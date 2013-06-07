@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate translateBlock
+export = translate translateBlock translateSuperBlock
 
 type sem_writeback =
    SEM_WRITE_VAR of {size:int, id:sem_var}
@@ -2214,5 +2214,76 @@ val translateBlock = do
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
 	 stmts <- transBlock;
+   return (rreil-stmts-rev stmts)
+end
+
+type int_option =
+   IO_SOME of int
+ | IO_NONE
+
+val io a b = {a=a,b=b}
+val io-to a = {a=a,b=IO_NONE}
+val io-tw a = {a=a,b=a}
+
+val relative-next stmts = let
+  val raddress addr =
+	  case addr.address of
+		   SEM_LIN_ADD s:
+			   case s.opnd1 of
+				    SEM_LIN_VAR v:
+						  case v.id of
+							   Sem_IP:
+								   case s.opnd2 of
+									    SEM_LIN_IMM i: IO_SOME i.imm
+									  | _: IO_NONE
+									 end
+							 | _: IO_NONE
+							end
+				  | SEM_LIN_IMM i:
+					    case s.opnd2 of
+							   SEM_LIN_VAR v:
+								   case v.id of
+									    Sem_IP: IO_SOME i.imm
+									  | _: IO_NONE
+									 end
+							 | _: IO_NONE
+							end
+				 end
+		 | SEM_LIN_VAR v:
+		     case v.id of
+				    Sem_IP: IO_SOME 0
+				  | _: IO_NONE
+				 end
+		 | _: IO_NONE
+		end
+in
+  case stmts of
+	   SEM_CONS x:
+		   case x.hd of
+			    SEM_CBRANCH b: io (raddress b.target-true) (raddress b.target-false)
+				| SEM_BRANCH b: io-to (raddress b.target)
+				| SEM_ITE c: io (relative-next (rreil-stmts-rev c.then_branch)).a (relative-next (rreil-stmts-rev c.else_branch)).a
+			  | _: io-tw IO_NONE
+			 end
+	 | SEM_NIL: (io-tw IO_NONE)
+	end
+end
+
+val translateSuperBlock = do
+   update @{ins_count=0,mode64='1'};
+   update@{stack=SEM_NIL,foundJump='0'};
+   # the type checker is seriously broken when it comes to infinite recursion,
+   # I cannot as of yet reproduce this bug
+   update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
+	 stmts <- transBlock;
+   next <- return (relative-next stmts);
+	 case next.a of
+	    IO_SOME i: rseek i
+		| _: return 0
+	 end;
+	 case next.b of
+	    IO_SOME i: rseek i
+		| _: return 0
+	 end;
    return (rreil-stmts-rev stmts)
 end

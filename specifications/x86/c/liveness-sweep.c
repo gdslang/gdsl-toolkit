@@ -160,11 +160,12 @@ int main(int argc, char** argv) {
 
 	uint64_t consumed = 0;
 	while(consumed < buffer_length) {
-		__obj state = __createState(buffer + consumed, buffer_length - consumed, 0,
-				0);
+		__obj state = __createState(buffer + consumed, buffer_length - consumed,
+				consumed, 0);
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		__obj rreil_instructions = __runMonadicNoArg(__translateBlock__, &state);
+		__obj rreil_instructions = __runMonadicNoArg(__translateSuperBlock__,
+				&state);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		long diff = end.tv_nsec - start.tv_nsec;
 		time_non_opt += diff > 0 ? diff : 0;
@@ -220,7 +221,7 @@ int main(int argc, char** argv) {
 				lines_greedy++;
 
 		__resetHeap();
-		consumed += __getBlobIndex(state);
+		consumed += __getBlobIndex(state) - consumed;
 
 		//printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
 	}

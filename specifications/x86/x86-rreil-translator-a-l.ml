@@ -273,18 +273,24 @@ val sem-call x = do
   temp-ip <- mktemp;
 
   ip <- ip-get;
-  if (near x.opnd1) then do
+  
+  result <- if (near x.opnd1) then do
     target <- read-flow ip-sz x.opnd1;
-    if (relative x.opnd1) then do
-      add ip-sz temp-ip ip target;
-      if (x.opnd-sz === 16) then
-          mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0)
-      else
-         return void
+    result <- if (relative x.opnd1) then do
+      result <- if (x.opnd-sz === 16) then do
+          add ip-sz temp-ip ip target;
+          mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0);
+					return (var temp-ip)
+      end else
+         return (lin-sum ip target)
+			;
+			return result
     end else
-      mov ip-sz temp-ip target
+#      mov ip-sz temp-ip target
+       return target
     ;
-    ps-push ip-sz ip
+    ps-push ip-sz ip;
+		return result
   end else do
     #Todo: Fix FF/3 (Call far, absolute, indirect...)
     sec-reg <- return CS;
@@ -302,11 +308,12 @@ val sem-call x = do
     mov target-sz temp-target target;
     mov reg-size sec-reg-sem (var (at-offset temp-target x.opnd-sz));
 
-    temp-ip <- mktemp;
-    movzx ip-sz temp-ip x.opnd-sz target
+    movzx ip-sz temp-ip x.opnd-sz target;
+
+		return (var temp-ip)
   end;
 
-  call (address ip-sz (var temp-ip))
+  call (address ip-sz result)
 end
 
 val sem-convert size = do
@@ -613,11 +620,12 @@ val sem-jcc x cond = do
 
   target <- read-flow ip-sz x.opnd1;
 
-  temp-ip <- mktemp;
-  add ip-sz temp-ip target ip;
+#  temp-ip <- mktemp;
+#  add ip-sz temp-ip target ip;
+  temp-ip <- return (lin-sum target ip);
 
   cond <- cond;
-  cbranch cond (address ip-sz (var temp-ip)) (address ip-sz ip)
+  cbranch cond (address ip-sz temp-ip) (address ip-sz ip)
 end
 
 val sem-jregz x reg = do
@@ -639,21 +647,26 @@ val sem-jmp x = do
   ;
   temp-ip <- mktemp;
 
-  if (near x.opnd1) then do
+  result <- if (near x.opnd1) then do
     target <- read-flow ip-sz x.opnd1;
-    if (relative x.opnd1) then do
+    result <- if (relative x.opnd1) then do
       ip <- ip-get;
-      add ip-sz temp-ip ip target
+      #add ip-sz temp-ip ip target
+			return (lin-sum ip target)
     end else
-      mov ip-sz temp-ip target
+      #mov ip-sz temp-ip target
+			return target
     ;
-    if (x.opnd-sz === 16) then
+    result <- if (x.opnd-sz === 16) then do
       #andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
-      mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0)
-    else
-      return void
-    end
-  else if (not mode64) then do
+			mov ip-sz temp-ip result;
+      mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0);
+			return (var temp-ip)
+    end else
+      return result
+	  ;
+	  return result
+  end else if (not mode64) then do
     target-sz <- sizeof-flow x.opnd1;
     target <- read-flow target-sz x.opnd1;
     movzx ip-sz temp-ip x.opnd-sz target;
@@ -668,12 +681,14 @@ val sem-jmp x = do
     reg-size <- sizeof1 (REG reg);
     temp-target <- mktemp;
     mov target-sz temp-target target;
-    mov reg-size reg-sem (var (at-offset temp-target x.opnd-sz))
+    mov reg-size reg-sem (var (at-offset temp-target x.opnd-sz));
+
+		return (var temp-ip)
   end else
-    return void
+    return (var temp-ip)
   ;
 
-  jump (address ip-sz (var temp-ip))
+  jump (address ip-sz result)
 end
 
 ## K>>
