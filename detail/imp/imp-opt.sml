@@ -25,7 +25,7 @@ structure PatchFunctionCalls = struct
      | visitExp s (INVOKEexp (m, t, e, es)) = (case visitExp s e of
          IDexp sym => (case SymMap.find (!Primitives.prim_map, sym) of
             SOME (_,gen) => visitExp s (gen es)
-          | NONE => visitExp s (CALLexp (m, sym, es))
+          | NONE => INVOKEexp (m, t, e, map (visitExp s) es)
          )
        | CLOSUREexp (tCl,sym,esCl) => (case SymMap.find (#decls s,sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
@@ -573,7 +573,7 @@ structure TypeRefinement = struct
             val stypes = map (fn (_,arg) => symType s arg) ts
             val resVar = freshTVar s
             val _ = lub (s,symType s del,  FUNstype (resVar, isCl, stypesCl @ stypes))
-            val _ = lub (s,symType s name, FUNstype (resVar, isCl, stypes))
+            val _ = lub (s,symType s name, FUNstype (resVar, isCl, stypesCl))
             val _ = msg ("CLOSURE: looking for symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showSType (inlineSType s (symType s name)) ^ "\n")
          in
            FUNstype (resVar, isCl, stypes)
@@ -625,7 +625,7 @@ structure TypeRefinement = struct
          updateArg = arg,
          updateFields = fs,
          updateType = _
-      }) = lub (s, symType s name, FUNstype (symType s arg,true, map (fieldType s) fs @ [symType s arg]))
+      }) = lub (s, symType s name, FUNstype (symType s arg,false, map (fieldType s) fs @ [symType s arg]))
      | visitDecl s (CONdecl {
          conName = name,
          conArg = arg,
@@ -636,7 +636,7 @@ structure TypeRefinement = struct
         closureArgs = clTys,
         closureDelegate = _,
         closureDelArgs = args
-     })= lub (s, symType s name, FUNstype (freshTVar s, not (List.null clTys), map (symType s o #2) args))
+     })= lub (s, symType s name, FUNstype (freshTVar s, not (List.null clTys), map (vtypeToStype s) clTys))
 
    (* Perform a type transformation for every symbol, based on the least
    required type inferred in the previous traversal. In the inital tree, every
@@ -837,6 +837,7 @@ structure TypeRefinement = struct
      | patchExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (patchExp s) es)
      | patchExp s (CALLexp (m, sym,es)) =
       let
+         val _ = TextIO.print ("patchExp CALL " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " from " ^ Layout.tostring (Imp.PP.vtype (origType s sym)) ^ " to " ^ showSType (inlineSType s (symType s sym)) ^ "\n")
          val (wrap, tyNew, esNew) = patchArgs s (origType s sym, symType s sym, map (patchExp s) es)
       in
          wrap (CALLexp (m, sym, esNew))
@@ -844,6 +845,7 @@ structure TypeRefinement = struct
      | patchExp s (INVOKEexp (m, ty, e, es)) =
       let
          val eNew = patchExp s e
+         val _ = TextIO.print ("patchExp INVOKE " ^ Layout.tostring (Imp.PP.exp e) ^ "\n")
          val (wrap, tyNew, esNew) = patchArgs s (ty, visitExp s e, map (patchExp s) es)
       in
          wrap (INVOKEexp (m, tyNew, eNew, esNew))
@@ -857,6 +859,7 @@ structure TypeRefinement = struct
      | patchExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, patchExp s e)
      | patchExp s (CLOSUREexp (ty,sym,es)) =
       let
+         val _ = TextIO.print ("patchExp CLOSURE " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " from " ^ Layout.tostring (Imp.PP.vtype (origType s sym)) ^ " to " ^ showSType (inlineSType s (symType s sym)) ^ "\n")
          val (wrap, tyNew,esNew) = patchArgs s (ty, symType s sym, map (patchExp s) es)
       in
          wrap (CLOSUREexp (tyNew,sym,esNew))
@@ -866,6 +869,7 @@ structure TypeRefinement = struct
    
    and patchArgs s (orig,new,es) =
       let
+         val _ = TextIO.print ("patchArgs of " ^ Layout.tostring (Imp.PP.vtype orig) ^ " and " ^ showSType (inlineSType s new) ^ " with args " ^ Layout.tostring (Layout.seq (Imp.PP.args ("(", Imp.PP.exp, es, ")"))) ^ "\n")
          fun genNewArgs acc (FUNvtype (vRes, vCl, vType :: vs),
                              FUNstype (sRes, sCl, sType :: ss), e :: es) =
                genNewArgs (acc @ [writeWrap s (vType,sType,e)])
@@ -880,7 +884,7 @@ structure TypeRefinement = struct
         case genNewArgs [] (orig, inlineSType s new, es) of
            (es, FUNvtype (vRes, vCl, []), FUNstype (sRes, sCl, [])) =>
             (fn e => readWrap s (vRes, sRes, e), adjustType s (vRes, sRes), es)
-         | (es, v, t) => (TextIO.print ("patchArgs of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ "\n"); raise TypeOptBug)
+         | (es, v, t) => (TextIO.print ("patchArgs of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ ": no more args\n"); raise TypeOptBug)
      end
    fun run { decls = ds, fdecls = fs } =
       let

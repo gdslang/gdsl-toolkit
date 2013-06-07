@@ -117,6 +117,10 @@ end = struct
          (s', !localDecls)
       end
 
+   (* any function f that is not a primitive (even record selectors and
+   constructors with arguments) has to have a corresponding closure function
+   f_closure. The following map takes the original function name f to the type
+   of f_closure. *)
    fun addClosureTy (s : state) (sym,ty) =
          (#closureTy s) := SymMap.insert (!(#closureTy s),sym,ty)
    fun getClosureTy (s : state) sym =
@@ -145,7 +149,7 @@ end = struct
                      
                   val argsTy =  map (fn _ => OBJvtype) fields
                   val fType = FUNvtype (OBJvtype, false, argsTy @ [OBJvtype])
-                  val fTypeCl = FUNvtype (OBJvtype, false, argsTy)
+                  val fTypeCl = FUNvtype (OBJvtype, false, [OBJvtype])
 
                   val _ = addGlobalVar s sym
                   val _ = addDecl s 
@@ -164,14 +168,14 @@ end = struct
                     closureDelArgs = [(OBJvtype,sym')]
                   })
                in
-                  (sym, fTypeCl)
+                  (clSym, fTypeCl)
                end
           | SOME sym => (case getClosureTy s sym of
-             SOME ty => (sym, ty)
+             SOME ty => (getClosureSym sym, ty)
            | NONE => (TextIO.print ("addUpdate: no closure type for " ^ Atom.toString name ^ "\n"); raise ImpTranslationBug)
           )
       end
-   fun addSelect (s : state) (field, fType) =
+   fun addSelect (s : state) field =
       let
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom ("%select_" ^ 
@@ -181,20 +185,36 @@ end = struct
          case SymbolTable.find (tab, name) of
             NONE =>
                let
+                  val arg = Atom.atom ("arg_of_" ^ Atom.toString name) 
+                  val (tab, sym') = SymbolTable.fresh (tab, arg)
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val _ = SymbolTables.varTable := tab                        
+                  val fType = FUNvtype (OBJvtype, false, [OBJvtype])
                   val _ = addGlobalVar s sym
                   val _ = addField s field
                   val _ = addDecl s 
                            (SELECTdecl { selectName = sym,
                                          selectField = field,
                                          selectType = fType })
+                  val fTypeCl = FUNvtype (OBJvtype, false, [])
+                  val _ = addClosureTy s (sym, fTypeCl)
+                  val clSym = getClosureSym sym
+                  val _ = addGlobalVar s clSym
+                  val _ = addDecl s (CLOSUREdecl {
+                    closureName = clSym,
+                    closureArgs = [],
+                    closureDelegate = sym,
+                    closureDelArgs = [(OBJvtype, sym')]
+                  })
                in
-                  sym
+                  (clSym, fTypeCl)
                end
-          | SOME sym => sym
+          | SOME sym => (case getClosureTy s sym of
+               SOME ty => (getClosureSym sym, ty)
+             | NONE => raise ImpTranslationBug
+           )
       end
-   fun addConFun (s : state) (con, fType) =
+   fun addConFun (s : state) con =
       let
          val ctab = !SymbolTables.conTable
          val conName = SymbolTable.getString (ctab,con)
@@ -205,9 +225,10 @@ end = struct
             NONE =>
                let
                   val arg = Atom.atom ("arg_of_" ^ conName) 
-                  val (tab, sym) = SymbolTable.fresh (tab, name)
                   val (tab, sym') = SymbolTable.fresh (tab, arg)
-                  val _ = SymbolTables.varTable := tab                        
+                  val (tab, sym) = SymbolTable.fresh (tab, name)
+                  val _ = SymbolTables.varTable := tab
+                  val fType = FUNvtype (OBJvtype, false, [OBJvtype])                        
                   val _ = addGlobalVar s sym
                   val _ = addDecl s (CONdecl { conName = sym,
                                                conArg = sym',
@@ -223,9 +244,12 @@ end = struct
                     closureDelArgs = [(OBJvtype, sym')]
                   })
                in
-                  sym
+                  (clSym, fTypeCl)
                end
-          | SOME sym => sym
+          | SOME sym => (case getClosureTy s sym of
+               SOME ty => (getClosureSym sym, ty)
+             | NONE => raise ImpTranslationBug
+           )
       end
    
    fun get_con_idx e = PRIexp (PUREmonkind, GET_CON_IDXprim,
@@ -355,16 +379,15 @@ end = struct
          val (stmts, unsortedUpdates) = trans [] [] us
          fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
-         val (updateFun,ty) = addUpdate s (map #1 updates)
+         val (updateFunCl,ty) = addUpdate s (map #1 updates)
       in
-         (stmts, CLOSUREexp (ty, getClosureSym updateFun, map #2 updates))
+         (stmts, CLOSUREexp (ty, updateFunCl, map #2 updates))
       end
      | trExpr s (Exp.SELECT f) =
       let
-         val fType = FUNvtype (OBJvtype, false, [OBJvtype])
-         val selectFun = addSelect s (f, fType)
+         val (selectFunCl, fTypeCl) = addSelect s f
       in
-         ([], IDexp selectFun)
+         ([], CLOSUREexp (fTypeCl, selectFunCl, []))
       end
      | trExpr s (Exp.SEQ seq) =
       let
@@ -406,9 +429,9 @@ end = struct
          (_, NONE) => ([], BOXexp (INTvtype, LITexp (INTvtype, CONlit sym)))
        | (_, SOME _) =>
          let
-            val fType = FUNvtype (OBJvtype,false,[OBJvtype])
+            val (symCl, fTypeCl) = addConFun s sym
          in
-            ([], CLOSUREexp (fType, getClosureSym (addConFun s (sym, fType)), []))  
+            ([], CLOSUREexp (fTypeCl, symCl, []))  
          end
        )
      | trExpr s (Exp.ID sym) =
