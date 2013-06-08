@@ -2269,21 +2269,41 @@ in
 	end
 end
 
-val translateSuperBlock = do
+type stmts_option =
+   SO_SOME of sem_stmts
+ | SO_NONE
+
+val translateSuperBlock = let
+  val translate-block-at idx = do
+	  current <- idxget;
+		error <- rseek idx;
+		result <- if error === 0 then do
+		  stmts <- translateBlock;
+			return (SO_SOME stmts)
+		end else
+		  return SO_NONE
+		;
+		#rseek current;
+		return result
+  end
+
+  val seek-translate-block-at idx-opt = do
+	  case idx-opt of
+		   IO_SOME i: translate-block-at i
+		 | IO_NONE: return SO_NONE
+		end
+	end
+in do
    update @{ins_count=0,mode64='1'};
    update@{stack=SEM_NIL,foundJump='0'};
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
 	 stmts <- transBlock;
-   next <- return (relative-next stmts);
-	 case next.a of
-	    IO_SOME i: rseek i
-		| _: return 0
-	 end;
-	 case next.b of
-	    IO_SOME i: rseek i
-		| _: return 0
-	 end;
-   return (rreil-stmts-rev stmts)
-end
+
+   succs <- return (relative-next stmts);
+   succ_a <- seek-translate-block-at succs.a;
+   succ_b <- seek-translate-block-at succs.b;
+
+   return {block=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
+end end

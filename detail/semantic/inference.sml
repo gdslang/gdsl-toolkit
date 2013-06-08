@@ -962,8 +962,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    fun checkDecoder s (sym,fs) =
       case E.forceNoInputs (sym,streamSymId () :: fs,toplevelEnv) of
         [] => ()
-      | fs =>
-         let
+      | fs => ()
+(*         let
             val decStr = SymbolTable.getString(!SymbolTables.varTable, sym)
             fun genFieldStr (f,(sep,str)) = (", ", str ^ sep ^
                   SymbolTable.getString(!SymbolTables.fieldTable, f))
@@ -973,6 +973,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                [decStr," is exported but requires fields: ", fsStr]
             )
          end
+*)
    fun checkExports _ (AST.MARKdecl {span=s, tree=t}) = checkExports s t
      | checkExports s (AST.EXPORTdecl es) = List.app (checkDecoder s) es
      | checkExports s _ = ()

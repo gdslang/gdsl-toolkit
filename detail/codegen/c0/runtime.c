@@ -159,7 +159,8 @@ __obj __rseek (__obj s, __obj x) {
 //	printf("###### %ld\n", k);
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   uint64_t size = blob->blob.idx + blob->blob.sz;
-  if((uint64_t)(blob->blob.idx + k) >= size) {
+  if((uint64_t)((int64_t)blob->blob.idx + k) >= size) {
+		printf("SEEK ERROR: size=%lu, offset=%ld\n", size, (int64_t)blob->blob.idx + k);
     __LOCAL0(y);
       __INT_BEGIN(y);
       __INT_INIT(1);
@@ -171,6 +172,7 @@ __obj __rseek (__obj s, __obj x) {
       __RECORD_END(a,2);
     return (a);
   }
+		printf("SEEK SUCCESS: size=%lu, sz=%lu, idx=%lu\n", size, blob->blob.sz-k,blob->blob.idx+k);
   __LOCAL0(blobb);
   __BLOB_BEGIN(blobb);
   __BLOB_INIT(blob->blob.blob+k,blob->blob.sz-k,blob->blob.idx+k);
