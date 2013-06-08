@@ -34,5 +34,5 @@ in do
 		end
 	;
   lv-state <- lv-analyze live-registers (rreil-stmts-rev data.insns);
-  return lv-state.greedy 
+  return {initial=live-registers, after=lv-state.greedy}
 end end

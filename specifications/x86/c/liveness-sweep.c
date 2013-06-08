@@ -160,8 +160,8 @@ int main(int argc, char** argv) {
 
 	printf("buffer_length=%zu\n", buffer_length);
 
-//	uint64_t consumed = 228;
-	uint64_t consumed = 0;
+	uint64_t consumed = 228;
+//	uint64_t consumed = 0;
 	while(consumed < buffer_length) {
 		__obj state = __createState(buffer + consumed, buffer_length - consumed,
 				consumed, 0);
@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
 		}
 
 		print_succ(succ_a, "a");
-		print_succ(succ_b, "a");
+		print_succ(succ_b, "b");
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		long diff = end.tv_nsec - start.tv_nsec;
@@ -218,14 +218,14 @@ int main(int argc, char** argv) {
 				lines++;
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		__obj greedy_state = __runMonadicOneArg(__liveness_super__, &state, rreil_insns_succs);
+		__obj lv_result = __runMonadicOneArg(__liveness_super__, &state, rreil_insns_succs);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		diff = end.tv_nsec - start.tv_nsec;
 		time_opt += diff > 0 ? diff : 0;
-		if(!__isNil(greedy_state)) {
-			__fatal("Liveness failed");
-			goto end;
-		}
+//		if(!__isNil(greedy_state)) {
+//			__fatal("Liveness failed");
+//			goto end;
+//		}
 
 		__obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
 		if(!__isNil(rreil_instructions_greedy)) {
@@ -233,6 +233,13 @@ int main(int argc, char** argv) {
 			goto end;
 		}
 
+		__obj initial_state = __RECORD_SELECT(lv_result, ___initial);
+		printf("Liveness initial state:\n");
+		__pretty(__lv_pretty__, initial_state, fmt, size);
+		puts(fmt);
+		printf("\n");
+
+		__obj greedy_state = __RECORD_SELECT(lv_result, ___after);
 		printf("Liveness greedy state:\n");
 		__pretty(__lv_pretty__, greedy_state, fmt, size);
 		puts(fmt);
