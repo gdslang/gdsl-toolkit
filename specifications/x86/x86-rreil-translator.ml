@@ -2279,11 +2279,11 @@ val translateSuperBlock = let
 		error <- rseek idx;
 		result <- if error === 0 then do
 		  stmts <- translateBlock;
+		  seek current;
 			return (SO_SOME stmts)
 		end else
 		  return SO_NONE
 		;
-		#rseek current;
 		return result
   end
 
@@ -2305,5 +2305,5 @@ in do
    succ_a <- seek-translate-block-at succs.a;
    succ_b <- seek-translate-block-at succs.b;
 
-   return {block=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
+   return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
 end end

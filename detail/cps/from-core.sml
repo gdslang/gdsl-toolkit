@@ -49,6 +49,7 @@ end = struct
          val raisee = get "raise"
          val idxget = get "idxget"
          val rseek = get "rseek"
+         val seek = get "seek"
          val index = get "index"
          val println = get "println"
          val return = get "return"
@@ -291,6 +292,17 @@ end = struct
                (rseek, [x], body)
             end
 
+         (* val seek x s = %seek(x, s) *)
+         val seek =
+            let
+               val x = fresh "x"
+               val s = fresh "s"
+               val primseek = get "%seek"
+               val body = FN (s, PRI (primseek, [s,x]))
+            in
+               (seek, [x], body)
+            end
+
          (* val index s = %index(s) *)
          val index =
             let
@@ -401,6 +413,7 @@ end = struct
           raisee,
           idxget,
           rseek,
+          seek,
           index,
 					println,
           add,

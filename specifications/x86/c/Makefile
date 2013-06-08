@@ -17,10 +17,10 @@ clang-sweep:
 	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o clang-sweep
 
 liveness-sweep:
-	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness-sweep.c ../../../dis.o -lelf -lrt -DRELAXEDFATAL -o liveness-sweep
+	gcc -std=gnu99 -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness-sweep.c ../../../dis.o -lelf -lrt -DRELAXEDFATAL -o liveness-sweep
 
 gcc-sweep:
-	gcc -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o gcc-sweep
+	gcc -std=c99 -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o gcc-sweep
 
 cmusl-liveness:
 	/usr/musl/bin/musl-gcc -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness.c ../../../dis.c -DRELAXEDFATAL -o musl-live

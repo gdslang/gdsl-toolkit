@@ -160,51 +160,45 @@ int main(int argc, char** argv) {
 
 	printf("buffer_length=%zu\n", buffer_length);
 
-	uint64_t consumed = 228;
+//	uint64_t consumed = 228;
+	uint64_t consumed = 0;
 	while(consumed < buffer_length) {
 		__obj state = __createState(buffer + consumed, buffer_length - consumed,
 				consumed, 0);
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
-		__obj rreil_blocks = __runMonadicNoArg(__translateSuperBlock__, &state);
+		__obj rreil_insns_succs = __runMonadicNoArg(__translateSuperBlock__,
+				&state);
 
-		__obj block = __RECORD_SELECT(rreil_blocks, ___block);
-		__obj succ_a = __RECORD_SELECT(rreil_blocks, ___succ_a);
-		__obj succ_b = __RECORD_SELECT(rreil_blocks, ___succ_b);
+		__obj rreil_insns = __RECORD_SELECT(rreil_insns_succs, ___insns);
+		__obj succ_a = __RECORD_SELECT(rreil_insns_succs, ___succ_a);
+		__obj succ_b = __RECORD_SELECT(rreil_insns_succs, ___succ_b);
 
-		switch(__CASETAGCON(succ_a)) {
-			case __SO_SOME: {
-				__obj succ_a_insns = __DECON(succ_a);
-				printf("Succ a:\n");
-				__pretty(__rreil_pretty__, succ_a_insns, fmt, size);
-				puts(fmt);
-				break;
-			}
-			case __SO_NONE: {
-				printf("Succ a: __SO_NONE :-(\n");
-				break;
+		void print_succ(__obj succ, char const *name) {
+			switch(__CASETAGCON(succ)) {
+				case __SO_SOME: {
+					__obj succ_insns = __DECON(succ);
+					printf("Succ %s:\n", name);
+					__pretty(__rreil_pretty__, succ_insns, fmt, size);
+					puts(fmt);
+					break;
+				}
+				case __SO_NONE: {
+					printf("Succ %s: __SO_NONE :-(\n", name);
+					break;
+				}
 			}
 		}
 
-		switch(__CASETAGCON(succ_b)) {
-			case __SO_SOME: {
-				__obj succ_b_insns = __DECON(succ_b);
-				printf("Succ b:\n");
-				__pretty(__rreil_pretty__, succ_b_insns, fmt, size);
-				break;
-			}
-			case __SO_NONE: {
-				printf("Succ b: __SO_NONE :-(\n");
-				break;
-			}
-		}
+		print_succ(succ_a, "a");
+		print_succ(succ_b, "a");
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		long diff = end.tv_nsec - start.tv_nsec;
 		time_non_opt += diff > 0 ? diff : 0;
 
-		if(!__isNil(block)) {
+		if(!__isNil(rreil_insns)) {
 			__fatal("TranslateBlock failed");
 			goto end;
 		}
@@ -215,7 +209,7 @@ int main(int argc, char** argv) {
 		//printf("%x\n", buffer[consumed]);
 
 		printf("Initial RREIL instructions:\n");
-		__pretty(__rreil_pretty__, block, fmt, size);
+		__pretty(__rreil_pretty__, rreil_insns, fmt, size);
 		puts(fmt);
 		printf("\n");
 
@@ -224,7 +218,7 @@ int main(int argc, char** argv) {
 				lines++;
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		__obj greedy_state = __runMonadicOneArg(__liveness__, &state, block);
+		__obj greedy_state = __runMonadicOneArg(__liveness_super__, &state, rreil_insns_succs);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		diff = end.tv_nsec - start.tv_nsec;
 		time_opt += diff > 0 ? diff : 0;
@@ -257,8 +251,6 @@ int main(int argc, char** argv) {
 		consumed += __getBlobIndex(state) - consumed;
 
 		//printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
-
-		break;
 	}
 
 	if(native_instructions)
