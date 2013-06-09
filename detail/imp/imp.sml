@@ -202,8 +202,8 @@ structure Imp = struct
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
         | vtype (FUNvtype (res, cl, atys)) =
-            seq (args (if cl then "(...," else "(",vtype,atys,")") @
-                [str "->", vtype res])
+            seq (args ("(",vtype,atys,")") @
+                [str (if cl then "=>" else "->"), vtype res])
       fun arg (t,n) = seq [vtype t, space, var n]
       fun monarg PUREmonkind = empty
         | monarg ACTmonkind = seq [space, str "ACT"]
@@ -234,8 +234,8 @@ structure Imp = struct
             seq [vtype t, space, var name, str "(", var arg, str ");"]
         | decl (CLOSUREdecl { closureName = name, closureArgs = ts,
                               closureDelegate = del, closureDelArgs = delArgs}) =
-            seq ([var name] @ args ("[",vtype,ts,"]") @
-                 [space, str "->", space, var del] @ args ("(",arg,delArgs,")"))
+            seq ([var name, space, str "invokes", space, var del] @
+                  args ("[",vtype,ts,"]") @ args ("(",arg,delArgs,")"))
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
       and lit (t,VEClit s) = seq [str "0b", str s] 
         | lit (t,STRlit s) = seq [str "\"", str s, str "\""]
