@@ -82,7 +82,7 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 }
 
 enum p_option {
-	OPTION_ELF, OPTION_OFFSET, OPTION_CHILDREN, OPTION_FILE
+	OPTION_ELF, OPTION_OFFSET, OPTION_CHILDREN, OPTION_FILE, OPTION_CLEANUP
 };
 
 struct options {
@@ -90,6 +90,7 @@ struct options {
 	size_t offset;
 	char children_consider;
 	char *file;
+	char cleanup;
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
@@ -97,11 +98,13 @@ static char args_parse(int argc, char **argv, struct options *options) {
 	options->offset = 0;
 	options->children_consider = 0;
 	options->file = NULL;
+	options->cleanup = 0;
 
 	struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, {
 			"offset", required_argument, NULL, OPTION_OFFSET }, { "children",
 			no_argument, NULL, OPTION_CHILDREN }, { "file", required_argument, NULL,
-			OPTION_FILE }, { 0, 0, 0, 0 }, };
+			OPTION_FILE }, { "cleanup", no_argument, NULL, OPTION_CLEANUP }, { 0, 0,
+			0, 0 }, };
 
 	while(1) {
 		int result = getopt_long(argc, argv, "", long_options, NULL);
@@ -122,6 +125,10 @@ static char args_parse(int argc, char **argv, struct options *options) {
 			}
 			case OPTION_FILE: {
 				options->file = optarg;
+				break;
+			}
+			case OPTION_CLEANUP: {
+				options->cleanup = 1;
 				break;
 			}
 			case '?':
@@ -177,11 +184,12 @@ int main(int argc, char** argv) {
 	struct options options;
 	if(args_parse(argc, argv, &options)) {
 		printf(
-				"Usage: liveness-sweep [--children] [--offset offset] [--elf] --file file\n");
+				"Usage: liveness-sweep [--children] [--offset offset] [--elf] [--cleanup] --file file\n");
 		return 42;
 	}
 
-//	printf("elf=%d, offset=%lu, children=%d, file=%s\n", options.elf, options.offset, options.children_consider, options.file);
+	printf("elf=%d, offset=%lu, children=%d, file=%s, cleanup=%d\n", options.elf,
+			options.offset, options.children_consider, options.file, options.cleanup);
 
 	const rlim_t kStackSize = 4096L * 1024L * 1024L;
 	struct rlimit rl;
@@ -352,6 +360,17 @@ int main(int argc, char** argv) {
 		__pretty(__lv_pretty__, greedy_state, fmt, size);
 		puts(fmt);
 		printf("\n");
+
+		if(options.cleanup) {
+			printf("RREIL instructions after LV (greedy), before cleanup:\n");
+			__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
+			puts(fmt);
+			printf("\n");
+
+			if(options.cleanup)
+				rreil_instructions_greedy = __runMonadicOneArg(__cleanup__, &state,
+						rreil_instructions_greedy);
+		}
 
 		printf("RREIL instructions after LV (greedy):\n");
 		__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
