@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <getopt.h>
+#include <unistd.h>
 #include <dis.h>
 #include <sys/resource.h>
 
@@ -11,7 +13,6 @@
 #include <gelf.h>
 #include <string.h>
 #include <sysexits.h>
-#include <unistd.h>
 
 #include <time.h>
 
@@ -80,7 +81,108 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	return retval;
 }
 
+enum p_option {
+	OPTION_ELF, OPTION_OFFSET, OPTION_CHILDREN, OPTION_FILE
+};
+
+struct options {
+	char elf;
+	size_t offset;
+	char children_consider;
+	char *file;
+};
+
+static char args_parse(int argc, char **argv, struct options *options) {
+	options->elf = 0;
+	options->offset = 0;
+	options->children_consider = 0;
+	options->file = NULL;
+
+	struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, {
+			"offset", required_argument, NULL, OPTION_OFFSET }, { "children",
+			no_argument, NULL, OPTION_CHILDREN }, { "file", required_argument, NULL,
+			OPTION_FILE }, { 0, 0, 0, 0 }, };
+
+	while(1) {
+		int result = getopt_long(argc, argv, "", long_options, NULL);
+		if(result < 0)
+			break;
+		switch(result) {
+			case OPTION_ELF: {
+				options->elf = 1;
+				break;
+			}
+			case OPTION_OFFSET: {
+				sscanf(optarg, "%lu", &options->offset);
+				break;
+			}
+			case OPTION_CHILDREN: {
+				options->children_consider = 1;
+				break;
+			}
+			case OPTION_FILE: {
+				options->file = optarg;
+				break;
+			}
+			case '?':
+				return 2;
+		}
+	}
+
+	if(!options->file)
+		return 1;
+
+	return 0;
+}
+
+__obj translate(__obj *state) {
+	__obj rreil_insns = __runMonadicNoArg(__translateBlock__, state);
+
+	return rreil_insns;
+}
+
+__obj translate_super(__obj *state, __obj *rreil_insns) {
+	__obj rreil_insns_succs = __runMonadicNoArg(__translateSuperBlock__, state);
+
+	*rreil_insns = __RECORD_SELECT(rreil_insns_succs, ___insns);
+
+	return rreil_insns_succs;
+}
+
+void print_succs(__obj translated, char *fmt, size_t size) {
+	__obj succ_a = __RECORD_SELECT(translated, ___succ_a);
+	__obj succ_b = __RECORD_SELECT(translated, ___succ_b);
+
+	void print_succ(__obj succ, char const *name) {
+		switch(__CASETAGCON(succ)) {
+			case __SO_SOME: {
+				__obj succ_insns = __DECON(succ);
+				printf("Succ %s:\n", name);
+				__pretty(__rreil_pretty__, succ_insns, fmt, size);
+				puts(fmt);
+				break;
+			}
+			case __SO_NONE: {
+				printf("Succ %s: __SO_NONE :-(\n", name);
+				break;
+			}
+		}
+	}
+
+	print_succ(succ_a, "a");
+	print_succ(succ_b, "b");
+}
+
 int main(int argc, char** argv) {
+	struct options options;
+	if(args_parse(argc, argv, &options)) {
+		printf(
+				"Usage: liveness-sweep [--children] [--offset offset] [--elf] --file file\n");
+		return 42;
+	}
+
+//	printf("elf=%d, offset=%lu, children=%d, file=%s\n", options.elf, options.offset, options.children_consider, options.file);
+
 	const rlim_t kStackSize = 4096L * 1024L * 1024L;
 	struct rlimit rl;
 	int result;
@@ -102,21 +204,31 @@ int main(int argc, char** argv) {
 	size_t offset;
 	size_t size_max;
 
-	if(argc == 3) {
-		if(strcmp(argv[1], "--elf"))
-			return 1;
-		char e = elf_section_boundary_get(argv[2], &offset, &size_max);
+	if(options.elf) {
+		char e = elf_section_boundary_get(options.file, &offset, &size_max);
 		if(e)
 			return 2;
-	} else if(argc != 2) {
-		printf("Usage: liveness-sweep [--elf] file\n");
-		return 1;
 	} else {
 		offset = 0;
 		size_max = 0;
 	}
 
-	FILE *f = fopen(argv[1 + (argc == 3)], "r");
+//	if(argc == 3) {
+//		if(strcmp(argv[1], "--elf"))
+//			return 1;
+//		char e = elf_section_boundary_get(argv[2], &offset, &size_max);
+//		if(e)
+//			return 2;
+//	} else if(argc != 2) {
+//		printf("Usage: liveness-sweep [--elf] file\n");
+//		return 1;
+//	} else {
+//		offset = 0;
+//		size_max = 0;
+//	}
+
+//	FILE *f = fopen(argv[1 + (argc == 3)], "r");
+	FILE *f = fopen(options.file, "r");
 	if(!f) {
 		printf("Unable to open file.\n");
 		return 1;
@@ -160,40 +272,20 @@ int main(int argc, char** argv) {
 
 	printf("buffer_length=%zu\n", buffer_length);
 
-	uint64_t consumed = 228;
+	uint64_t consumed = options.offset;
+//	uint64_t consumed = 228;
 //	uint64_t consumed = 0;
 	while(consumed < buffer_length) {
 		__obj state = __createState(buffer + consumed, buffer_length - consumed,
 				consumed, 0);
 
+		__obj translated;
+		__obj rreil_insns;
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-
-		__obj rreil_insns_succs = __runMonadicNoArg(__translateSuperBlock__,
-				&state);
-
-		__obj rreil_insns = __RECORD_SELECT(rreil_insns_succs, ___insns);
-		__obj succ_a = __RECORD_SELECT(rreil_insns_succs, ___succ_a);
-		__obj succ_b = __RECORD_SELECT(rreil_insns_succs, ___succ_b);
-
-		void print_succ(__obj succ, char const *name) {
-			switch(__CASETAGCON(succ)) {
-				case __SO_SOME: {
-					__obj succ_insns = __DECON(succ);
-					printf("Succ %s:\n", name);
-					__pretty(__rreil_pretty__, succ_insns, fmt, size);
-					puts(fmt);
-					break;
-				}
-				case __SO_NONE: {
-					printf("Succ %s: __SO_NONE :-(\n", name);
-					break;
-				}
-			}
-		}
-
-		print_succ(succ_a, "a");
-		print_succ(succ_b, "b");
-
+		if(options.children_consider)
+			translated = translate_super(&state, &rreil_insns);
+		else
+			translated = rreil_insns = translate(&state);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		long diff = end.tv_nsec - start.tv_nsec;
 		time_non_opt += diff > 0 ? diff : 0;
@@ -202,6 +294,9 @@ int main(int argc, char** argv) {
 			__fatal("TranslateBlock failed");
 			goto end;
 		}
+
+		if(options.children_consider)
+			print_succs(translated, fmt, size);
 
 		__obj native_instruction_count = __RECORD_SELECT(state, ___ins_count);
 		native_instructions += __CASETAGINT(native_instruction_count);
@@ -217,8 +312,12 @@ int main(int argc, char** argv) {
 			if(fmt[i] == '\n')
 				lines++;
 
+		__obj lv_result;
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		__obj lv_result = __runMonadicOneArg(__liveness_super__, &state, rreil_insns_succs);
+		if(options.children_consider)
+			lv_result = __runMonadicOneArg(__liveness_super__, &state, translated);
+		else
+			lv_result = __runMonadicOneArg(__liveness__, &state, translated);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		diff = end.tv_nsec - start.tv_nsec;
 		time_opt += diff > 0 ? diff : 0;
@@ -233,13 +332,19 @@ int main(int argc, char** argv) {
 			goto end;
 		}
 
-		__obj initial_state = __RECORD_SELECT(lv_result, ___initial);
-		printf("Liveness initial state:\n");
-		__pretty(__lv_pretty__, initial_state, fmt, size);
-		puts(fmt);
-		printf("\n");
+		if(options.children_consider) {
+			__obj initial_state = __RECORD_SELECT(lv_result, ___initial);
+			printf("Liveness initial state:\n");
+			__pretty(__lv_pretty__, initial_state, fmt, size);
+			puts(fmt);
+			printf("\n");
+		}
 
-		__obj greedy_state = __RECORD_SELECT(lv_result, ___after);
+		__obj greedy_state;
+		if(options.children_consider)
+			greedy_state = __RECORD_SELECT(lv_result, ___after);
+		else
+			greedy_state = lv_result;
 		printf("Liveness greedy state:\n");
 		__pretty(__lv_pretty__, greedy_state, fmt, size);
 		puts(fmt);
