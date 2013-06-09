@@ -275,7 +275,10 @@ int main(int argc, char** argv) {
 	uint64_t consumed = options.offset;
 //	uint64_t consumed = 228;
 //	uint64_t consumed = 0;
+
 	while(consumed < buffer_length) {
+		printf("### Next block (@offset %lu): ###\n\n", consumed);
+
 		__obj state = __createState(buffer + consumed, buffer_length - consumed,
 				consumed, 0);
 
