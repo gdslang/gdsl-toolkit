@@ -430,11 +430,16 @@ end = struct
             ([], CLOSUREexp (fTypeCl, symCl, []))  
          end
        )
-      (* insert any expression that is registered for a global symbol; in
-      particular, this will replace any function symbol with a closure
-      expression that is registered for it; the function getGlobalExp returns
-      IDexp sym if the symbol has no expression registered for it *)
-     | trExpr s (Exp.ID sym) = ([], getGlobalExp s sym)
+     | trExpr s (Exp.ID sym) = ( 
+      case SymMap.find(!Primitives.prim_val_map, sym) of
+         SOME exp => ([], exp)
+
+         (* insert any expression that is registered for a global symbol; in
+         particular, this will replace any function symbol with a closure
+         expression that is registered for it; the function getGlobalExp returns
+         IDexp sym if the symbol has no expression registered for it *)
+       | NONE => ([], getGlobalExp s sym)
+     )
 
    and trDecl (s : state) (sym, args, body) =
       let
@@ -448,7 +453,7 @@ end = struct
          val clArgs = map (fn s => (OBJvtype, s)) (SymSet.listItems inClosure)
          val stdArgs = map (fn s => (OBJvtype, s)) args
          val fType = FUNvtype (OBJvtype, not (null clArgs), map #1 clArgs @ map (fn (t,_) => t) stdArgs)
-         val _ = if null clArgs andalso null args
+         val _ = if null args
             then
                addGlobalExp s (sym, CALLexp (PUREmonkind, sym, []))
             else
@@ -501,7 +506,8 @@ end = struct
                val fields = ref (SymMap.empty : vtype SymMap.map)
                val globs = foldl (fn (sym,m) => SymMap.insert (m,sym,IDexp sym))
                               SymMap.empty
-                              (SymMap.listKeys (!Primitives.prim_map))
+                              (SymMap.listKeys (!Primitives.prim_map) @
+                               SymMap.listKeys (!Primitives.prim_val_map))
                val initialState = { globalExp = ref globs,
                                     declVars = ref SymSet.empty,
                                     resVar = SymbolTable.unsafeFromInt 1,

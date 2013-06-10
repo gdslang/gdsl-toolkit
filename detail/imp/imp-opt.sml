@@ -320,13 +320,15 @@ structure TypeRefinement = struct
             if IS.member (ecrs, idx) then
                (TextIO.print ("found " ^ Int.toString idx ^ " several times:\n");
                app (fn x => TextIO.print ("idx " ^ Int.toString x ^ " : " ^ showSType (DynamicArray.sub (tt,x)) ^ "\n")) (IS.listItems (ecrs));
-               t(*raise TypeOptBug*))
+               raise TypeOptBug)
             else
             let
                fun find idx = case DynamicArray.sub (tt,idx) of
                   VARstype idx' => if idx=idx' then idx' else find idx'
                 | t => idx
                val ecr = find idx
+               val _ = msg ("inlineSType: forwarded var " ^ Int.toString idx ^ " to " ^ Int.toString ecr ^ "\n")
+               val ecrs = IS.add (ecrs, idx)
                val ecrs = IS.add (ecrs, ecr)
             in
                inline ecrs (DynamicArray.sub (tt,ecr))
@@ -477,13 +479,12 @@ structure TypeRefinement = struct
             val _ = msg ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")
             (*val _ = if idx=18420 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=17937 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=17937 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
 
-            val _ = if idx=26 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=68 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=115 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=24249 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=24211 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
+            val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=18420 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=57656 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=57654 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = DynamicArray.update (tt,idx,VOIDstype)
             val _ = st := SymMap.insert (!st, sym, idx)
          in
@@ -893,7 +894,7 @@ structure TypeRefinement = struct
             origLocals = ref SymMap.empty,
             origFields = fs
          }
-         fun visitDeclPrint state d = (if (SymbolTable.toInt (getDeclName d)=1823) then debugOn:=false else (); msg ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); visitDecl state d)
+         fun visitDeclPrint state d = (msg ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); visitDecl state d)
          val _ = map (visitDeclPrint state) ds
          (*val _ = showState state*)
          val _ = debugOn := false

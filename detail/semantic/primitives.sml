@@ -287,7 +287,8 @@ structure Primitives = struct
       a tuple with the type of the returned expression and a marshaller that processes
       the arguments that given to the primitive *)
    val prim_map = ref (SymMap.empty : (Imp.vtype * (Imp.exp list -> Imp.exp)) SymMap.map)
-
+   val prim_val_map = ref (SymMap.empty : Imp.exp SymMap.map)
+   
    val prim_table =
       let
          open Imp
@@ -374,6 +375,15 @@ structure Primitives = struct
          ]
       end
 
+   val prim_val_table =
+      let
+         open Imp
+      in
+         [
+         ("void", RECORDexp [])
+         ]
+      end
+
    fun registerPrimitives () =
       (ST.varTable := VarInfo.empty
       ;ST.conTable := ConInfo.empty
@@ -388,6 +398,13 @@ structure Primitives = struct
          fun insTrans ((k,v),m) = SymMap.insert (m,get k,v)
       in
          foldl insTrans SymMap.empty prim_table
+      end
+      ;prim_val_map :=
+      let
+         fun get s = VarInfo.lookup (!ST.varTable, Atom.atom s)
+         fun insTrans ((k,v),m) = SymMap.insert (m,get k,v)
+      in
+         foldl insTrans SymMap.empty prim_val_table
       end
       )
    
