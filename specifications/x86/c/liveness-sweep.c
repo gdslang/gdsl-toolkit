@@ -329,6 +329,27 @@ int main(int argc, char** argv) {
 			lv_result = __runMonadicOneArg(__liveness_super__, &state, translated);
 		else
 			lv_result = __runMonadicOneArg(__liveness__, &state, translated);
+
+		__obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
+		if(!__isNil(rreil_instructions_greedy)) {
+			__fatal("Liveness failed (no greedy instructions)");
+			goto end;
+		}
+
+		if(options.cleanup) {
+			/*
+			 * Move the output somewhere else (so that it does not disturb the time measurement)
+			 */
+//			printf("RREIL instructions after LV (greedy), before cleanup:\n");
+//			__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
+//			puts(fmt);
+//			printf("\n");
+
+			if(options.cleanup)
+				rreil_instructions_greedy = __runMonadicOneArg(__cleanup__, &state,
+						rreil_instructions_greedy);
+		}
+
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		diff = end.tv_nsec - start.tv_nsec;
 		time_opt += diff > 0 ? diff : 0;
@@ -337,11 +358,6 @@ int main(int argc, char** argv) {
 //			goto end;
 //		}
 
-		__obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
-		if(!__isNil(rreil_instructions_greedy)) {
-			__fatal("Liveness failed (no greedy instructions)");
-			goto end;
-		}
 
 		if(options.children_consider) {
 			__obj initial_state = __RECORD_SELECT(lv_result, ___initial);

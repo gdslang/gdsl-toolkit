@@ -2301,9 +2301,13 @@ in do
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
 	 stmts <- transBlock;
 
+   ic <- query $ins_count;
+
    succs <- return (relative-next stmts);
    succ_a <- seek-translate-block-at succs.a;
    succ_b <- seek-translate-block-at succs.b;
+
+   update@{ins_count=ic};
 
    return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
 end end
