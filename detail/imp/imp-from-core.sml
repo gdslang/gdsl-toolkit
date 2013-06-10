@@ -281,6 +281,10 @@ end = struct
       in
          (cStmts @ [IFstmt (VEC2INTexp (SOME 1,UNBOXexp (BITvtype,cExp)), tBlock, eBlock)], IDexp res)
       end
+     | trExpr s (Exp.CASE (e, [(Core.Pat.BIT "........", e')])) = trExpr s e'
+     | trExpr s (Exp.CASE (e, [(Core.Pat.BIT "................", e')])) = trExpr s e'
+     | trExpr s (Exp.CASE (e, [(Core.Pat.BIT "................................", e')])) = trExpr s e'
+     | trExpr s (Exp.CASE (e, [(Core.Pat.WILD, e')])) = trExpr s e'
      | trExpr s (Exp.CASE (e, cs)) =
       let
          (* extract the scrutinee as an int which requires different
@@ -369,7 +373,7 @@ end = struct
          fun updateCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          val updates = ListMergeSort.uniqueSort updateCmp unsortedUpdates
          val clSym = addUpdate s (map #1 updates)
-         val fTypeCl = FUNvtype (OBJvtype,false,[OBJvtype])
+         val fTypeCl = FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) updates)
       in
          (stmts, CLOSUREexp (fTypeCl, clSym, map #2 updates))
       end
@@ -444,16 +448,22 @@ end = struct
          val clArgs = map (fn s => (OBJvtype, s)) (SymSet.listItems inClosure)
          val stdArgs = map (fn s => (OBJvtype, s)) args
          val fType = FUNvtype (OBJvtype, not (null clArgs), map #1 clArgs @ map (fn (t,_) => t) stdArgs)
-         val fTypeCl = FUNvtype (OBJvtype, false, map #1 clArgs)
-         val symCl = getClosureSym sym
-         val _ =
-            addDecl s (CLOSUREdecl {
-               closureName = symCl,
-               closureArgs = map #1 clArgs,
-               closureDelegate = sym,
-               closureDelArgs = stdArgs
-            })
-         val _ = addGlobalExp s (sym, CLOSUREexp (fTypeCl, symCl, map (IDexp o #2) clArgs))
+         val _ = if null clArgs andalso null args
+            then
+               addGlobalExp s (sym, CALLexp (PUREmonkind, sym, []))
+            else
+            let
+               val fTypeCl = FUNvtype (OBJvtype, false, map #1 clArgs)
+               val symCl = getClosureSym sym
+               
+               val _ = addDecl s (CLOSUREdecl {
+                     closureName = symCl,
+                     closureArgs = map #1 clArgs,
+                     closureDelegate = sym,
+                     closureDelArgs = stdArgs
+                  })
+               val _ = addGlobalExp s (sym, CLOSUREexp (fTypeCl, symCl, map (IDexp o #2) clArgs))
+            in s end
       in
          fn body =>
             addDecl s (FUNCdecl {

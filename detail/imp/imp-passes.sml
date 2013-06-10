@@ -27,9 +27,8 @@ end = struct
    fun all s = 
       ImpFromCore.run s >>=
       PatchFunctionCallsPass.run >>=
-      ActionClosuresPass.run >>=
-      SimplifyPass.run >>=
-      (*StatePassingPass.run >>=*)
+      (*ActionClosuresPass.run >>=
+      SimplifyPass.run >>=*)
       TypeRefinementPass.run >>=
       SimplifyPass.run
 
