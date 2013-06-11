@@ -214,10 +214,6 @@ structure ActionClosures = struct
             in
                e
             end
-          | CLOSUREexp (t,sym,es) => case SymMap.find (!(#pureToMonRef s),sym) of
-             NONE => EXECexp (CLOSUREexp (t,sym,es))
-           | SOME mon => CLOSUREexp (t,mon,es)
-          )
           | e => EXECexp e
         )                                           
      | visitExp s e = e
