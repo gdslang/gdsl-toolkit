@@ -27,11 +27,11 @@ end = struct
    fun all s = 
       ImpFromCore.run s >>=
       PatchFunctionCallsPass.run >>=
+      ActionClosuresPass.run >>=
       SimplifyPass.run >>=
       TypeRefinementPass.run >>=
       SimplifyPass.run
 
-      (*ActionClosuresPass.run >>=*)
 
    fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, Imp.PP.spec spec)

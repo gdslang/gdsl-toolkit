@@ -127,12 +127,20 @@ structure ActionClosures = struct
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (body,e)) =
-         (case visitExp s e of
-            (EXECexp (IDexp sym)) =>
-               STATEexp (visitBlock (addMonSym (s,sym)) body, IDexp sym)
-          | e => STATEexp (visitBlock s body, e)
-         )
+     | visitExp s (STATEexp (b,e)) =
+         let
+            val e' = visitExp s e
+            val eDecls = !(#declsRef s)
+            val eStmts = !(#stmtsRef s)
+            val _ = (#declsRef s) := []
+            val _ = (#stmtsRef s) := []
+            val (e',s) = case e' of
+                  EXECexp (IDexp sym) => (IDexp sym, addMonSym (s,sym))
+                | e => (e,s)
+            val BASICblock (decls,stmts) = visitBlock s b
+         in
+            STATEexp (BASICblock (decls @ eDecls, stmts @ eStmts), e')
+         end
      | visitExp s (EXECexp e) = (case (visitExp s e) of
             STATEexp (BASICblock (decls, stmts),e) => 
             let
@@ -186,36 +194,16 @@ structure Simplify = struct
    exception SimplifierBug
    
    type state = {
-      decls : decl SymMap.map,
-      declsRef : arg list ref,
-      stmtsRef : stmt list ref }
+      decls : decl SymMap.map
+   }
 
-   fun visitBlock s (BASICblock (decls,stmts)) =
-      let
-         val s' = { decls = #decls s,
-                    declsRef = ref [],
-                    stmtsRef = ref [] } : state
-         fun trStmts [] = []
-           | trStmts (stmt :: stmts) =
-            let
-               val stmt' = visitStmt s' stmt
-               val stmts' = !(#stmtsRef s')
-               val _ = (#stmtsRef s') := []
-            in
-               stmts' @ stmt' :: trStmts stmts
-            end
-            val stmts' = trStmts stmts
-            val decls' = decls @ !(#declsRef s')
-            val _ = (#declsRef s') := []
-      in
-         BASICblock (decls', stmts')
-      end
-
-   and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
+   fun visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
    
    and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   
+   and visitBlock s (BASICblock (decls, stmts)) = BASICblock (decls, map (visitStmt s) stmts)
    
    and visitExp (s :state) (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
@@ -244,31 +232,14 @@ structure Simplify = struct
         )
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (b,e)) =
-         let
-            val BASICblock (decls,stmts) = visitBlock s b
-            val e' = visitExp s e
-            val eDecls = !(#declsRef s)
-            val eStmts = !(#stmtsRef s)
-            val _ = (#declsRef s) := []
-            val _ = (#stmtsRef s) := []
-         in
-            STATEexp (BASICblock (decls @ eDecls, stmts @ eStmts), e')
-         end
-     | visitExp s (EXECexp e) = (case visitExp s e of
+     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b,visitExp s e)
+     | visitExp s (EXECexp e) = EXECexp (case visitExp s e of
          CLOSUREexp (tCl,sym,[]) => (case SymMap.find (#decls s,sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
-               EXECexp (CALLexp (PUREmonkind, delSym, []))
+               CALLexp (PUREmonkind, delSym, [])
           | _ => (TextIO.print ("EXEC of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " is bad idea.\n"); raise SimplifierBug)
          ) 
-       | STATEexp (BASICblock (decls, stmts),e) => 
-         let
-            val _ = (#declsRef s) := decls @ (!(#declsRef s))
-            val _ = (#stmtsRef s) := stmts @ (!(#stmtsRef s))
-         in
-            e
-         end
-       | e => EXECexp e
+       | e => e
       )
 
    fun visitDecl s (FUNCdecl {
@@ -293,11 +264,7 @@ structure Simplify = struct
    fun run ({ decls = ds, fdecls = fs } : imp) =
       let
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
-         val state = {
-            decls = declMap,
-            declsRef = ref ([] : arg list),
-            stmtsRef = ref ([] : stmt list)
-         } : state
+         val state = { decls = declMap } : state
          val ds = map (visitDecl state) ds
       in
          { decls = ds, fdecls = fs } : imp
