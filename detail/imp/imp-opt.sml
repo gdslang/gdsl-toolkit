@@ -128,9 +128,9 @@ structure ActionClosures = struct
                funcRes = res
             } :: CLOSUREdecl {
                closureName = name,
-               closureArgs = [],
+               closureArgs = map #1 (clArgs @ args),
                closureDelegate = mon,
-               closureDelArgs = args
+               closureDelArgs = []
             } :: addMonClosures s ds
          end
        | _ => d :: addMonClosures s ds
@@ -180,11 +180,7 @@ structure ActionClosures = struct
       else
          IDexp sym
      | visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
-     | visitExp s (CALLexp (m,sym,es)) =
-      if isMonVar (s,sym) then
-         CLOSUREexp (FUNvtype (OBJvtype, false, []), sym, map (visitExp s) es)
-      else
-         CALLexp (m, sym, map (visitExp s) es)
+     | visitExp s (CALLexp (m,sym,es)) = CALLexp (m, sym, map (visitExp s) es)
      | visitExp s (INVOKEexp (m,t,e,es)) = INVOKEexp (m,t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
@@ -279,9 +275,9 @@ structure Simplify = struct
      | visitExp s (INVOKEexp (m, t, e, es)) = (case visitExp s e of
          CLOSUREexp (tCl,sym,esCl) => (case SymMap.find (#decls s,sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
-               visitExp s (CALLexp (m, delSym, esCl @ es))
+               CALLexp (m, delSym, map (visitExp s) (esCl @ es))
           | _ => (TextIO.print ("INVOKE of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " is bad idea.\n"); raise SimplifierBug)
-         ) 
+         )
        | e => INVOKEexp (m, t, e, map (visitExp s) es)
       )
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
@@ -301,13 +297,18 @@ structure Simplify = struct
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
      | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b,visitExp s e)
-     | visitExp s (EXECexp e) = EXECexp (case visitExp s e of
+     | visitExp s (EXECexp e) = (case visitExp s e of
          CLOSUREexp (tCl,sym,[]) => (case SymMap.find (#decls s,sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
                CALLexp (PUREmonkind, delSym, [])
           | _ => (TextIO.print ("EXEC of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " is bad idea.\n"); raise SimplifierBug)
          ) 
-       | e => e
+       | CALLexp (m,sym,es) => (case SymMap.find (#decls s,sym) of
+            SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
+               CALLexp (m, delSym, map (visitExp s) es)
+          | _ => EXECexp (CALLexp (m,sym,map (visitExp s) es))
+         )
+       | e => EXECexp e
       )
 
    fun visitDecl s (FUNCdecl {
@@ -812,7 +813,7 @@ structure TypeRefinement = struct
         funcRes = res
       }) =
       let
-         val _ = TextIO.print ("patchDecl of function " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ "\n")
+         (*val _ = TextIO.print ("patchDecl of function " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ "\n")*)
          val clArgs' = map (fn (t,sym) => (adjustType s (t,symType s sym),sym)) clArgs
          val args' = map (fn (t,sym) => (adjustType s (t,symType s sym),sym)) args
          val vtype' = adjustType s (vtype, symType s name)
@@ -868,7 +869,7 @@ structure TypeRefinement = struct
          closureArgs = tsCl,
          closureDelegate = del,
          closureDelArgs = delArgs
-     }) = (case adjustType s (FUNvtype (OBJvtype,false,tsCl @ map #1 delArgs), symType s del) of
+     }) = (msg ("patchDecl CLOSURE " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " from " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (OBJvtype,false,tsCl @ map #1 delArgs))) ^ " to " ^ showSType (inlineSType s (symType s del)) ^ "\n");  case adjustType s (FUNvtype (OBJvtype,false,tsCl @ map #1 delArgs), symType s del) of
          FUNvtype (_,_,args) =>
          let
             val len = List.length tsCl
@@ -959,7 +960,7 @@ structure TypeRefinement = struct
         case genNewArgs [] (orig, inlineSType s new, es) of
            (es, FUNvtype (vRes, vCl, []), FUNstype (sRes, sCl, [])) =>
             (fn e => readWrap s (vRes, sRes, e), adjustType s (vRes, sRes), es)
-         | (es, v, t) => (TextIO.print ("patchCall of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ ": no more args\n"); raise TypeOptBug)
+         | (es, v, t) => (TextIO.print ("patchCall bad of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ ": no more args\n"); raise TypeOptBug)
      end
    fun run { decls = ds, fdecls = fs } =
       let
