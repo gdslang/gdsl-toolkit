@@ -82,29 +82,40 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 }
 
 enum p_option {
-	OPTION_ELF, OPTION_OFFSET, OPTION_CHILDREN, OPTION_FILE, OPTION_CLEANUP
+	OPTION_ELF,
+	OPTION_OFFSET,
+	OPTION_CHILDREN,
+	OPTION_FILE,
+	OPTION_CLEANUP,
+	OPTION_LATEX
 };
 
 struct options {
 	char elf;
 	size_t offset;
 	char children_consider;
-	char *file;
+	char **files;
+	size_t files_size;
+	size_t files_length;
 	char cleanup;
+	char latex;
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
 	options->elf = 0;
 	options->offset = 0;
 	options->children_consider = 0;
-	options->file = NULL;
+	options->files_size = 8;
+	options->files = (char**)malloc(sizeof(char*) * options->files_size);
+	options->files_length = 0;
 	options->cleanup = 0;
+	options->latex = 0;
 
 	struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, {
 			"offset", required_argument, NULL, OPTION_OFFSET }, { "children",
 			no_argument, NULL, OPTION_CHILDREN }, { "file", required_argument, NULL,
-			OPTION_FILE }, { "cleanup", no_argument, NULL, OPTION_CLEANUP }, { 0, 0,
-			0, 0 }, };
+			OPTION_FILE }, { "cleanup", no_argument, NULL, OPTION_CLEANUP }, {
+			"latex", no_argument, NULL, OPTION_LATEX }, { 0, 0, 0, 0 }, };
 
 	while(1) {
 		int result = getopt_long(argc, argv, "", long_options, NULL);
@@ -123,8 +134,17 @@ static char args_parse(int argc, char **argv, struct options *options) {
 				options->children_consider = 1;
 				break;
 			}
+			case OPTION_LATEX: {
+				options->latex = 1;
+				break;
+			}
 			case OPTION_FILE: {
-				options->file = optarg;
+				if(options->files_length == options->files_size) {
+					options->files_size <<= 1;
+					options->files = (char**)realloc(options->files,
+							sizeof(char*) * options->files_size);
+				}
+				options->files[options->files_length++] = optarg;
 				break;
 			}
 			case OPTION_CLEANUP: {
@@ -136,7 +156,7 @@ static char args_parse(int argc, char **argv, struct options *options) {
 		}
 	}
 
-	if(!options->file)
+	if(!options->files_length)
 		return 1;
 
 	return 0;
@@ -180,69 +200,59 @@ void print_succs(__obj translated, char *fmt, size_t size) {
 	print_succ(succ_b, "b");
 }
 
-int main(int argc, char** argv) {
-	struct options options;
-	if(args_parse(argc, argv, &options)) {
-		printf(
-				"Usage: liveness-sweep [--children] [--offset offset] [--elf] [--cleanup] --file file\n");
-		return 42;
-	}
+struct context {
+	size_t native_instructions;
+	size_t lines;
+	size_t lines_opt;
+	long time_non_opt;
+	long time_opt;
+};
 
-	printf("elf=%d, offset=%lu, children=%d, file=%s, cleanup=%d\n", options.elf,
-			options.offset, options.children_consider, options.file, options.cleanup);
+void print_results(struct context *context) {
+	printf("Statistics:\n");
+	printf("Number of native instructions: %zu\n", context->native_instructions);
+	printf("Number of lines without LV analysis: %zu\n", context->lines);
+	printf("Number of lines with LV analysis: %zu\n", context->lines_opt);
 
-	const rlim_t kStackSize = 4096L * 1024L * 1024L;
-	struct rlimit rl;
-	int result;
+	double reduction = 1 - (context->lines_opt / (double)context->lines);
 
-	result = getrlimit(RLIMIT_STACK, &rl);
-	if(result == 0) {
-		if(rl.rlim_cur < kStackSize) {
-			rl.rlim_cur = kStackSize;
-			result = setrlimit(RLIMIT_STACK, &rl);
-			if(result != 0) {
-				fprintf(stderr, "setrlimit returned result = %d\n", result);
-			}
-		}
-	}
+	printf("Reduction: %lf%%\n", 100 * reduction);
 
+	printf(
+			"Time needed for the decoding and the translation to RREIL: %lf seconds\n",
+			context->time_non_opt / (double)(1000000000));
+	printf("Time needed for the lv analysis: %lf seconds\n",
+			context->time_opt / (double)(1000000000));
+}
+
+void print_results_latex(char *file, struct context *intra,
+		struct context *inter) {
+	//netstat & 15k & 86k & 1.10s & 63k & 17.43s & 26.04\% & 53k & 39.98s & 38.51\%
+	double reduction_inter = 1 - (inter->lines_opt / (double)inter->lines);
+	double reduction_intra = 1 - (intra->lines_opt / (double)intra->lines);
+
+	printf(
+			"%s & %luk & %luk & %.2lfs & %luk & %.2lfs & %.2lf\\%% & %luk & %.2lfs & %.2lf\\%% \n",
+			file, (inter->native_instructions + 500) / 1000,
+			(inter->lines + 500) / 1000, inter->time_non_opt / (double)(1000000000),
+			(intra->lines_opt + 500) / 1000, intra->time_opt / (double)(1000000000),
+			100 * reduction_intra, (inter->lines_opt + 500) / 1000,
+			inter->time_opt / (double)(1000000000), 100 * reduction_inter);
+}
+
+char analyze(char *file, char print, char children, char cleanup,
+		size_t file_offset, size_t size_max, size_t user_offset,
+		struct context *context) {
 	size_t size = 16 * 1024 * 1024;
 	char *fmt = (char*)malloc(size);
 
-	size_t offset;
-	size_t size_max;
-
-	if(options.elf) {
-		char e = elf_section_boundary_get(options.file, &offset, &size_max);
-		if(e)
-			return 2;
-	} else {
-		offset = 0;
-		size_max = 0;
-	}
-
-//	if(argc == 3) {
-//		if(strcmp(argv[1], "--elf"))
-//			return 1;
-//		char e = elf_section_boundary_get(argv[2], &offset, &size_max);
-//		if(e)
-//			return 2;
-//	} else if(argc != 2) {
-//		printf("Usage: liveness-sweep [--elf] file\n");
-//		return 1;
-//	} else {
-//		offset = 0;
-//		size_max = 0;
-//	}
-
-//	FILE *f = fopen(argv[1 + (argc == 3)], "r");
-	FILE *f = fopen(options.file, "r");
+	FILE *f = fopen(file, "r");
 	if(!f) {
 		printf("Unable to open file.\n");
 		return 1;
 	}
 
-	fseek(f, offset, SEEK_SET);
+	fseek(f, file_offset, SEEK_SET);
 
 	size_t buffer_size = 128;
 	unsigned char *buffer = NULL;
@@ -267,25 +277,18 @@ int main(int argc, char** argv) {
 	}
 	buffer[buffer_length++] = 0xc3; //Last instruction should be a jump (ret) ;-).
 
-	size_t lines = 0;
-	size_t lines_greedy = 0;
-
-	long time_non_opt = 0;
-	long time_opt = 0;
-
 	struct timespec start;
 	struct timespec end;
 
-	size_t native_instructions = 0;
+//	printf("buffer_length=%zu\n", buffer_length);
 
-	printf("buffer_length=%zu\n", buffer_length);
-
-	uint64_t consumed = options.offset;
+	uint64_t consumed = user_offset;
 //	uint64_t consumed = 228;
 //	uint64_t consumed = 0;
 
 	while(consumed < buffer_length) {
-		printf("### Next block (@offset %lu): ###\n\n", consumed);
+		if(print)
+			printf("### Next block (@offset %lu): ###\n\n", consumed);
 
 		__obj state = __createState(buffer + consumed, buffer_length - consumed,
 				consumed, 0);
@@ -293,50 +296,57 @@ int main(int argc, char** argv) {
 		__obj translated;
 		__obj rreil_insns;
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		if(options.children_consider)
+		if(children)
 			translated = translate_super(&state, &rreil_insns);
 		else
 			translated = rreil_insns = translate(&state);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		long diff = end.tv_nsec - start.tv_nsec;
-		time_non_opt += diff > 0 ? diff : 0;
+		context->time_non_opt += diff > 0 ? diff : 0;
 
-		if(!__isNil(rreil_insns)) {
-			__fatal("TranslateBlock failed");
-			goto end;
-		}
-
-		if(options.children_consider)
+		/*
+		 * Todo: Fix
+		 */
+//		if(!__isNil(rreil_insns)) {
+//			__fatal("TranslateBlock failed");
+//			goto end;
+//		}
+		if(print && children)
 			print_succs(translated, fmt, size);
 
 		__obj native_instruction_count = __RECORD_SELECT(state, ___ins_count);
-		native_instructions += __CASETAGINT(native_instruction_count);
+		context->native_instructions += __CASETAGINT(native_instruction_count);
 
 		//printf("%x\n", buffer[consumed]);
 
-		printf("Initial RREIL instructions:\n");
+		if(print)
+			printf("Initial RREIL instructions:\n");
 		__pretty(__rreil_pretty__, rreil_insns, fmt, size);
-		puts(fmt);
-		printf("\n");
+		if(print) {
+			puts(fmt);
+			printf("\n");
+		}
 
 		for(size_t i = 0; fmt[i]; i++)
 			if(fmt[i] == '\n')
-				lines++;
+				context->lines++;
 
 		__obj lv_result;
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		if(options.children_consider)
+		if(children)
 			lv_result = __runMonadicOneArg(__liveness_super__, &state, translated);
 		else
 			lv_result = __runMonadicOneArg(__liveness__, &state, translated);
 
 		__obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
-		if(!__isNil(rreil_instructions_greedy)) {
-			__fatal("Liveness failed (no greedy instructions)");
-			goto end;
-		}
-
-		if(options.cleanup) {
+		/*
+		 * Todo: Fix
+		 */
+//		if(!__isNil(rreil_instructions_greedy)) {
+//			__fatal("Liveness failed (no greedy instructions)");
+//			goto end;
+//		}
+		if(cleanup) {
 			/*
 			 * Move the output somewhere else (so that it does not disturb the time measurement)
 			 */
@@ -344,22 +354,19 @@ int main(int argc, char** argv) {
 //			__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
 //			puts(fmt);
 //			printf("\n");
-
-			if(options.cleanup)
-				rreil_instructions_greedy = __runMonadicOneArg(__cleanup__, &state,
-						rreil_instructions_greedy);
+			rreil_instructions_greedy = __runMonadicOneArg(__cleanup__, &state,
+					rreil_instructions_greedy);
 		}
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		diff = end.tv_nsec - start.tv_nsec;
-		time_opt += diff > 0 ? diff : 0;
+		context->time_opt += diff > 0 ? diff : 0;
 //		if(!__isNil(greedy_state)) {
 //			__fatal("Liveness failed");
 //			goto end;
 //		}
 
-
-		if(options.children_consider) {
+		if(print && children) {
 			__obj initial_state = __RECORD_SELECT(lv_result, ___initial);
 			printf("Liveness initial state:\n");
 			__pretty(__lv_pretty__, initial_state, fmt, size);
@@ -368,34 +375,41 @@ int main(int argc, char** argv) {
 		}
 
 		__obj greedy_state;
-		if(options.children_consider)
+		if(children)
 			greedy_state = __RECORD_SELECT(lv_result, ___after);
 		else
 			greedy_state = lv_result;
-		printf("Liveness greedy state:\n");
-		__pretty(__lv_pretty__, greedy_state, fmt, size);
-		puts(fmt);
-		printf("\n");
 
-		if(options.cleanup) {
-			printf("RREIL instructions after LV (greedy), before cleanup:\n");
-			__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
+		if(print) {
+			printf("Liveness greedy state:\n");
+			__pretty(__lv_pretty__, greedy_state, fmt, size);
 			puts(fmt);
 			printf("\n");
-
-			if(options.cleanup)
-				rreil_instructions_greedy = __runMonadicOneArg(__cleanup__, &state,
-						rreil_instructions_greedy);
 		}
 
-		printf("RREIL instructions after LV (greedy):\n");
+		if(cleanup) {
+			if(print) {
+				printf("RREIL instructions after LV (greedy), before cleanup:\n");
+				__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
+				puts(fmt);
+				printf("\n");
+			}
+
+			rreil_instructions_greedy = __runMonadicOneArg(__cleanup__, &state,
+					rreil_instructions_greedy);
+		}
+
+		if(print)
+			printf("RREIL instructions after LV (greedy):\n");
 		__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
-		puts(fmt);
-		printf("\n");
+		if(print) {
+			puts(fmt);
+			printf("\n");
+		}
 
 		for(size_t i = 0; fmt[i]; i++)
 			if(fmt[i] == '\n')
-				lines_greedy++;
+				context->lines_opt++;
 
 		__resetHeap();
 		consumed += __getBlobIndex(state) - consumed;
@@ -403,27 +417,112 @@ int main(int argc, char** argv) {
 		//printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
 	}
 
-	if(native_instructions)
-		native_instructions--;
+	if(context->native_instructions)
+		context->native_instructions--;
 
-	printf("Statistics:\n");
-	printf("Number of native instructions: %zu\n", native_instructions);
-	printf("Number of lines without LV analysis: %zu\n", lines);
-	printf("Number of lines with LV analysis: %zu\n", lines_greedy);
-
-	double reduction = 1 - (lines_greedy / (double)lines);
-
-	printf("Reduction: %lf%%\n", 100 * reduction);
-
-	printf(
-			"Time needed for the decoding and the translation to RREIL: %lf seconds\n",
-			time_non_opt / (double)(1000000000));
-	printf("Time needed for the lv analysis: %lf\n seconds",
-			time_opt / (double)(1000000000));
-
-	end: free(buffer);
+	free(buffer);
 	free(fmt);
 
-	return (1);
+	return 0;
+}
+
+int main(int argc, char** argv) {
+	struct options options;
+	if(args_parse(argc, argv, &options)) {
+		printf(
+				"Usage: liveness-sweep [--children] [--offset offset] [--elf] [--cleanup] --file file\n");
+		return 42;
+	}
+
+//	printf("elf=%d, offset=%lu, children=%d, file=%s, cleanup=%d\n", options.elf,
+//			options.offset, options.children_consider, options.file, options.cleanup);
+
+	const rlim_t kStackSize = 4096L * 1024L * 1024L;
+	struct rlimit rl;
+	int result;
+
+	result = getrlimit(RLIMIT_STACK, &rl);
+	if(result == 0) {
+		if(rl.rlim_cur < kStackSize) {
+			rl.rlim_cur = kStackSize;
+			result = setrlimit(RLIMIT_STACK, &rl);
+			if(result != 0) {
+				fprintf(stderr, "setrlimit returned result = %d\n", result);
+			}
+		}
+	}
+
+	size_t offset;
+	size_t size_max;
+
+	void file_bounds_set(char *file) {
+		if(options.elf) {
+			char e = elf_section_boundary_get(file, &offset, &size_max);
+			if(e)
+				exit(2);
+		} else {
+			offset = 0;
+			size_max = 0;
+		}
+	}
+
+//	if(argc == 3) {
+//		if(strcmp(argv[1], "--elf"))
+//			return 1;
+//		char e = elf_section_boundary_get(argv[2], &offset, &size_max);
+//		if(e)
+//			return 2;
+//	} else if(argc != 2) {
+//		printf("Usage: liveness-sweep [--elf] file\n");
+//		return 1;
+//	} else {
+//		offset = 0;
+//		size_max = 0;
+//	}
+
+//	FILE *f = fopen(argv[1 + (argc == 3)], "r");
+
+	void run(size_t index, char print) {
+		if(options.latex) {
+			struct context inter;
+			memset(&inter, 0, sizeof(inter));
+			struct context intra;
+			memset(&intra, 0, sizeof(intra));
+
+			file_bounds_set(options.files[index]);
+
+			analyze(options.files[index], print, 0, options.cleanup, offset, size_max,
+					options.offset, &intra);
+			analyze(options.files[index], print, 1, options.cleanup, offset, size_max,
+					options.offset, &inter);
+
+			print_results_latex(options.files[index], &intra, &inter);
+		} else {
+
+			struct context context;
+			memset(&context, 0, sizeof(context));
+			file_bounds_set(options.files[index]);
+			analyze(options.files[index], print, options.children_consider,
+					options.cleanup, offset, size_max, options.offset, &context);
+
+			print_results(&context);
+		}
+	}
+
+	if(options.files_length == 1) {
+		run(0, 1);
+	} else {
+		for(size_t i = 0; i < options.files_length; ++i) {
+			if(!options.latex)
+				printf("$$$$$$ File %s:\n", options.files[i]);
+			run(i, 0);
+		}
+	}
+
+	free(options.files);
+
+//	end:
+
+	return (0);
 }
 

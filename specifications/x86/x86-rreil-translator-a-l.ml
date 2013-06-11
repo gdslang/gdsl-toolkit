@@ -345,13 +345,13 @@ end
 
 val sem-cmovcc x cond = do
   sz <- sizeof1 x.opnd1;
-  dst <- lval sz x.opnd1;
-  dst-read <- read sz x.opnd1;
 
+  dst <- lval sz x.opnd1;
+  dst-old <- read sz x.opnd1;
   src <- read sz x.opnd2;
 
   temp <- mktemp;
-  mov sz temp dst-read;
+  mov sz temp dst-old;
 
   _if cond _then
     mov sz temp src
