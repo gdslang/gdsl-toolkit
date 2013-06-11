@@ -186,16 +186,36 @@ structure Simplify = struct
    exception SimplifierBug
    
    type state = {
-      decls : decl SymMap.map
-   }
+      decls : decl SymMap.map,
+      declsRef : arg list ref,
+      stmtsRef : stmt list ref }
 
-   fun visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
+   fun visitBlock s (BASICblock (decls,stmts)) =
+      let
+         val s' = { decls = #decls s,
+                    declsRef = ref [],
+                    stmtsRef = ref [] } : state
+         fun trStmts [] = []
+           | trStmts (stmt :: stmts) =
+            let
+               val stmt' = visitStmt s' stmt
+               val stmts' = !(#stmtsRef s')
+               val _ = (#stmtsRef s') := []
+            in
+               stmts' @ stmt' :: trStmts stmts
+            end
+            val stmts' = trStmts stmts
+            val decls' = decls @ !(#declsRef s')
+            val _ = (#declsRef s') := []
+      in
+         BASICblock (decls', stmts')
+      end
+
+   and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
    
    and visitCase s (p,stmts) = (p, visitBlock s stmts)
-   
-   and visitBlock s (BASICblock (decls, stmts)) = BASICblock (decls, map (visitStmt s) stmts)
    
    and visitExp (s :state) (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
@@ -224,14 +244,31 @@ structure Simplify = struct
         )
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b,visitExp s e)
-     | visitExp s (EXECexp e) = EXECexp (case visitExp s e of
+     | visitExp s (STATEexp (b,e)) =
+         let
+            val BASICblock (decls,stmts) = visitBlock s b
+            val e' = visitExp s e
+            val eDecls = !(#declsRef s)
+            val eStmts = !(#stmtsRef s)
+            val _ = (#declsRef s) := []
+            val _ = (#stmtsRef s) := []
+         in
+            STATEexp (BASICblock (decls @ eDecls, stmts @ eStmts), e')
+         end
+     | visitExp s (EXECexp e) = (case visitExp s e of
          CLOSUREexp (tCl,sym,[]) => (case SymMap.find (#decls s,sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
-               CALLexp (PUREmonkind, delSym, [])
+               EXECexp (CALLexp (PUREmonkind, delSym, []))
           | _ => (TextIO.print ("EXEC of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " is bad idea.\n"); raise SimplifierBug)
          ) 
-       | e => e
+       | STATEexp (BASICblock (decls, stmts),e) => 
+         let
+            val _ = (#declsRef s) := decls @ (!(#declsRef s))
+            val _ = (#stmtsRef s) := stmts @ (!(#stmtsRef s))
+         in
+            e
+         end
+       | e => EXECexp e
       )
 
    fun visitDecl s (FUNCdecl {
@@ -256,7 +293,11 @@ structure Simplify = struct
    fun run ({ decls = ds, fdecls = fs } : imp) =
       let
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
-         val state = { decls = declMap } : state
+         val state = {
+            decls = declMap,
+            declsRef = ref ([] : arg list),
+            stmtsRef = ref ([] : stmt list)
+         } : state
          val ds = map (visitDecl state) ds
       in
          { decls = ds, fdecls = fs } : imp
@@ -327,7 +368,7 @@ structure TypeRefinement = struct
                   VARstype idx' => if idx=idx' then idx' else find idx'
                 | t => idx
                val ecr = find idx
-               val _ = msg ("inlineSType: forwarded var " ^ Int.toString idx ^ " to " ^ Int.toString ecr ^ "\n")
+               val _ =if idx<>ecr then msg ("inlineSType: forwarded var " ^ Int.toString idx ^ " to " ^ Int.toString ecr ^ "\n") else ()
                val ecrs = IS.add (ecrs, idx)
                val ecrs = IS.add (ecrs, ecr)
             in
@@ -394,7 +435,7 @@ structure TypeRefinement = struct
    
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
-         val _ = if t1=VARstype 18420 orelse t2=VARstype 18420 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()
+         (*val _ = if t1=VARstype 18420 orelse t2=VARstype 18420 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
          
          val iter = ref 0
          fun lub (VARstype x, VARstype y) =
@@ -481,10 +522,10 @@ structure TypeRefinement = struct
             val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=17937 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
 
-            val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            (*val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=18420 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=57656 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=57654 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=57654 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
             val _ = DynamicArray.update (tt,idx,VOIDstype)
             val _ = st := SymMap.insert (!st, sym, idx)
          in

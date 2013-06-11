@@ -310,12 +310,13 @@ end = struct
          fun trCase (Core.Pat.BIT bp, block) = (
                case String.fields (fn c => c= #"|") bp of
                   [] => (WILDpat, block)
+                | [""] => (WILDpat, block)
                 | fs => (VECpat fs, block)
              )
            | trCase (Core.Pat.INT i, block) = (INTpat i, block)
            | trCase (Core.Pat.CON (sym,NONE), block) = (CONpat sym, block)
            | trCase (Core.Pat.CON (sym,SOME arg), BASICblock (decls, stmts)) =
-               (CONpat sym, BASICblock (decls, ASSIGNstmt (SOME sym,get_con_arg scrutRaw) :: stmts))
+               (CONpat sym, BASICblock ((OBJvtype, arg) :: decls, ASSIGNstmt (SOME arg,get_con_arg scrutRaw) :: stmts))
            | trCase (Core.Pat.ID sym, BASICblock (decls, stmts)) =
                (WILDpat, BASICblock (decls, ASSIGNstmt (SOME sym,scrutRaw) :: stmts))
            | trCase (Core.Pat.WILD, block) = (WILDpat, block)
