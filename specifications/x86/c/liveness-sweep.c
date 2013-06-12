@@ -116,11 +116,12 @@ static char args_parse(int argc, char **argv, struct options *options) {
 	options->cleanup = 0;
 	options->latex = 0;
 
-	struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, { "offset",
-			required_argument, NULL, OPTION_OFFSET }, { "children", no_argument, NULL, OPTION_CHILDREN },
-			{ "single", no_argument, NULL, OPTION_SINGLE },
-			{ "file", required_argument, NULL, OPTION_FILE }, { "cleanup", no_argument, NULL,
-					OPTION_CLEANUP }, { "latex", no_argument, NULL, OPTION_LATEX }, { 0, 0, 0, 0 }, };
+	struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, {
+			"offset", required_argument, NULL, OPTION_OFFSET }, { "children",
+			no_argument, NULL, OPTION_CHILDREN }, { "single", no_argument, NULL,
+			OPTION_SINGLE }, { "file", required_argument, NULL, OPTION_FILE }, {
+			"cleanup", no_argument, NULL, OPTION_CLEANUP }, { "latex", no_argument,
+			NULL, OPTION_LATEX }, { 0, 0, 0, 0 }, };
 
 	while(1) {
 		int result = getopt_long(argc, argv, "", long_options, NULL);
@@ -150,7 +151,8 @@ static char args_parse(int argc, char **argv, struct options *options) {
 			case OPTION_FILE: {
 				if(options->files_length == options->files_size) {
 					options->files_size <<= 1;
-					options->files = (char**)realloc(options->files, sizeof(char*) * options->files_size);
+					options->files = (char**)realloc(options->files,
+							sizeof(char*) * options->files_size);
 				}
 				options->files[options->files_length++] = optarg;
 				break;
@@ -232,13 +234,15 @@ void print_results(struct context *context) {
 
 	printf("Reduction: %lf%%\n", 100 * reduction);
 
-	printf("Time needed for the decoding and the translation to RREIL: %lf seconds\n",
+	printf(
+			"Time needed for the decoding and the translation to RREIL: %lf seconds\n",
 			context->time_non_opt / (double)(1000000000));
 	printf("Time needed for the lv analysis: %lf seconds\n",
 			context->time_opt / (double)(1000000000));
 }
 
-void print_results_latex(char *file, struct context *intra, struct context *inter) {
+void print_results_latex(char *file, struct context *intra,
+		struct context *inter) {
 	//netstat & 15k & 86k & 1.10s & 63k & 17.43s & 26.04\% & 53k & 39.98s & 38.51\%
 	double reduction_inter = 1 - (inter->lines_opt / (double)inter->lines);
 	double reduction_intra = 1 - (intra->lines_opt / (double)intra->lines);
@@ -248,7 +252,7 @@ void print_results_latex(char *file, struct context *intra, struct context *inte
 			return "";
 		if(value < 10 * 1000 * 1000)
 			return "k";
-		return "m";
+		return "M";
 	}
 
 	size_t fit_sz(size_t value) {
@@ -282,20 +286,23 @@ void print_results_latex(char *file, struct context *intra, struct context *inte
 	}
 
 	printf(
-			"%s & %lu%s & %lu%s & %.2lf%s & %lu%s & %.2lf%s & %.2lf\\%% & %lu%s & %.2lf%s & %.2lf\\%% \n",
-			file + file_offset, fit_sz(inter->native_instructions), symbol_sz(inter->native_instructions),
-			fit_sz(inter->lines), symbol_sz(inter->lines),
+			"%s & %lu%s & %lu%s & %.2lf%s & %lu%s & %.2lf%s & %.2lf\\%% & %lu%s & %.2lf%s & %.2lf\\%% \\\\\n",
+			file + file_offset, fit_sz(inter->native_instructions),
+			symbol_sz(inter->native_instructions), fit_sz(inter->lines),
+			symbol_sz(inter->lines),
 			fit_t(inter->time_non_opt / (double)(1000000000)),
-			symbol_t(inter->time_non_opt / (double)(1000000000)), fit_sz(intra->lines_opt),
-			symbol_sz(intra->lines_opt), fit_t(intra->time_opt / (double)(1000000000)),
+			symbol_t(inter->time_non_opt / (double)(1000000000)),
+			fit_sz(intra->lines_opt), symbol_sz(intra->lines_opt),
+			fit_t(intra->time_opt / (double)(1000000000)),
 			symbol_t(intra->time_opt / (double)(1000000000)), 100 * reduction_intra,
 			fit_sz(inter->lines_opt), symbol_sz(inter->lines_opt),
 			fit_t(inter->time_opt / (double)(1000000000)),
 			symbol_t(inter->time_opt / (double)(1000000000)), 100 * reduction_inter);
 }
 
-char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_offset,
-		size_t size_max, size_t user_offset, struct context *context) {
+char analyze(char *file, char print, enum mode mode, char cleanup,
+		size_t file_offset, size_t size_max, size_t user_offset,
+		struct context *context) {
 	size_t size = 16 * 1024 * 1024;
 	char *fmt = (char*)malloc(size);
 
@@ -313,7 +320,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 	do {
 		buffer_size *= 2;
 		buffer = (unsigned char*)realloc(buffer, buffer_size);
-		buffer_length += fread(buffer + buffer_length, 1, buffer_size - buffer_length, f);
+		buffer_length += fread(buffer + buffer_length, 1,
+				buffer_size - buffer_length, f);
 	} while(!feof(f) && (!size_max || buffer_length < size_max));
 
 	fclose(f);
@@ -342,7 +350,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 		if(print)
 			printf("### Next block (@offset %lu): ###\n\n", consumed);
 
-		__obj state = __createState(buffer + consumed, buffer_length - consumed, consumed, 0);
+		__obj state = __createState(buffer + consumed, buffer_length - consumed,
+				consumed, 0);
 
 		__obj translated = NULL;
 		__obj rreil_insns = NULL;
@@ -564,10 +573,10 @@ int main(int argc, char** argv) {
 
 			file_bounds_set(options.files[index]);
 
-			analyze(options.files[index], print, MODE_DEFAULT, options.cleanup, offset, size_max,
-					options.offset, &intra);
-			analyze(options.files[index], print, MODE_CHILDREN, options.cleanup, offset, size_max,
-					options.offset, &inter);
+			analyze(options.files[index], print, MODE_DEFAULT, options.cleanup,
+					offset, size_max, options.offset, &intra);
+			analyze(options.files[index], print, MODE_CHILDREN, options.cleanup,
+					offset, size_max, options.offset, &inter);
 
 			print_results_latex(options.files[index], &intra, &inter);
 		} else {
@@ -575,8 +584,8 @@ int main(int argc, char** argv) {
 			struct context context;
 			memset(&context, 0, sizeof(context));
 			file_bounds_set(options.files[index]);
-			analyze(options.files[index], print, options.mode, options.cleanup, offset, size_max,
-					options.offset, &context);
+			analyze(options.files[index], print, options.mode, options.cleanup,
+					offset, size_max, options.offset, &context);
 
 			print_results(&context);
 		}
