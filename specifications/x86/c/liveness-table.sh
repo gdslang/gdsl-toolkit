@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./liveness-sweep --latex $(for file in examples/* ; do echo "--file $file"; done)
+./liveness-sweep --elf --latex $(for file in examples/* ; do echo "--file $file"; done)
