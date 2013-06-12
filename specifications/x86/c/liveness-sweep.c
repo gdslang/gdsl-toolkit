@@ -82,13 +82,23 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 }
 
 enum p_option {
-	OPTION_ELF, OPTION_OFFSET, OPTION_CHILDREN, OPTION_FILE, OPTION_CLEANUP, OPTION_LATEX
+	OPTION_ELF,
+	OPTION_OFFSET,
+	OPTION_SINGLE,
+	OPTION_CHILDREN,
+	OPTION_FILE,
+	OPTION_CLEANUP,
+	OPTION_LATEX
+};
+
+enum mode {
+	MODE_SINGLE, MODE_DEFAULT, MODE_CHILDREN
 };
 
 struct options {
 	char elf;
 	size_t offset;
-	char children_consider;
+	enum mode mode;
 	char **files;
 	size_t files_size;
 	size_t files_length;
@@ -99,7 +109,7 @@ struct options {
 static char args_parse(int argc, char **argv, struct options *options) {
 	options->elf = 0;
 	options->offset = 0;
-	options->children_consider = 0;
+	options->mode = MODE_DEFAULT;
 	options->files_size = 8;
 	options->files = (char**)malloc(sizeof(char*) * options->files_size);
 	options->files_length = 0;
@@ -108,6 +118,7 @@ static char args_parse(int argc, char **argv, struct options *options) {
 
 	struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, { "offset",
 			required_argument, NULL, OPTION_OFFSET }, { "children", no_argument, NULL, OPTION_CHILDREN },
+			{ "single", no_argument, NULL, OPTION_SINGLE },
 			{ "file", required_argument, NULL, OPTION_FILE }, { "cleanup", no_argument, NULL,
 					OPTION_CLEANUP }, { "latex", no_argument, NULL, OPTION_LATEX }, { 0, 0, 0, 0 }, };
 
@@ -125,7 +136,11 @@ static char args_parse(int argc, char **argv, struct options *options) {
 				break;
 			}
 			case OPTION_CHILDREN: {
-				options->children_consider = 1;
+				options->mode = MODE_CHILDREN;
+				break;
+			}
+			case OPTION_SINGLE: {
+				options->mode = MODE_SINGLE;
 				break;
 			}
 			case OPTION_LATEX: {
@@ -153,6 +168,12 @@ static char args_parse(int argc, char **argv, struct options *options) {
 		return 1;
 
 	return 0;
+}
+
+__obj translate_single(__obj *state) {
+	__obj rreil_insns = __runMonadicNoArg(__translateSingle__, state);
+
+	return rreil_insns;
 }
 
 __obj translate(__obj *state) {
@@ -273,7 +294,7 @@ void print_results_latex(char *file, struct context *intra, struct context *inte
 			symbol_t(inter->time_opt / (double)(1000000000)), 100 * reduction_inter);
 }
 
-char analyze(char *file, char print, char children, char cleanup, size_t file_offset,
+char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_offset,
 		size_t size_max, size_t user_offset, struct context *context) {
 	size_t size = 16 * 1024 * 1024;
 	char *fmt = (char*)malloc(size);
@@ -323,13 +344,23 @@ char analyze(char *file, char print, char children, char cleanup, size_t file_of
 
 		__obj state = __createState(buffer + consumed, buffer_length - consumed, consumed, 0);
 
-		__obj translated;
-		__obj rreil_insns;
+		__obj translated = NULL;
+		__obj rreil_insns = NULL;
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		if(children)
-			translated = translate_super(&state, &rreil_insns);
-		else
-			translated = rreil_insns = translate(&state);
+		switch(mode) {
+			case MODE_SINGLE: {
+				translated = rreil_insns = translate_single(&state);
+				break;
+			}
+			case MODE_DEFAULT: {
+				translated = rreil_insns = translate(&state);
+				break;
+			}
+			case MODE_CHILDREN: {
+				translated = translate_super(&state, &rreil_insns);
+				break;
+			}
+		}
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
 		long diff = end.tv_nsec - start.tv_nsec;
 		context->time_non_opt += diff > 0 ? diff : 0;
@@ -341,7 +372,7 @@ char analyze(char *file, char print, char children, char cleanup, size_t file_of
 //			__fatal("TranslateBlock failed");
 //			goto end;
 //		}
-		if(print && children)
+		if(print && mode == MODE_CHILDREN)
 			print_succs(translated, fmt, size);
 
 		__obj native_instruction_count = __RECORD_SELECT(state, ___ins_count);
@@ -363,11 +394,17 @@ char analyze(char *file, char print, char children, char cleanup, size_t file_of
 
 		__obj lv_result;
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-		if(children)
-			lv_result = __runMonadicOneArg(__liveness_super__, &state, translated);
-		else
-			lv_result = __runMonadicOneArg(__liveness__, &state, translated);
 
+		switch(mode) {
+			case MODE_CHILDREN: {
+				lv_result = __runMonadicOneArg(__liveness_super__, &state, translated);
+				break;
+			}
+			default: {
+				lv_result = __runMonadicOneArg(__liveness__, &state, translated);
+				break;
+			}
+		}
 		__obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
 		/*
 		 * Todo: Fix
@@ -396,7 +433,7 @@ char analyze(char *file, char print, char children, char cleanup, size_t file_of
 //			goto end;
 //		}
 
-		if(print && children) {
+		if(print && mode == MODE_CHILDREN) {
 			__obj initial_state = __RECORD_SELECT(lv_result, ___initial);
 			printf("Liveness initial state:\n");
 			__pretty(__lv_pretty__, initial_state, fmt, size);
@@ -405,11 +442,17 @@ char analyze(char *file, char print, char children, char cleanup, size_t file_of
 		}
 
 		__obj greedy_state;
-		if(children)
-			greedy_state = __RECORD_SELECT(lv_result, ___after);
-		else
-			greedy_state = lv_result;
 
+		switch(mode) {
+			case MODE_CHILDREN: {
+				greedy_state = __RECORD_SELECT(lv_result, ___after);
+				break;
+			}
+			default: {
+				greedy_state = lv_result;
+				break;
+			}
+		}
 		if(print) {
 			printf("Liveness greedy state:\n");
 			__pretty(__lv_pretty__, greedy_state, fmt, size);
@@ -521,10 +564,10 @@ int main(int argc, char** argv) {
 
 			file_bounds_set(options.files[index]);
 
-			analyze(options.files[index], print, 0, options.cleanup, offset, size_max, options.offset,
-					&intra);
-			analyze(options.files[index], print, 1, options.cleanup, offset, size_max, options.offset,
-					&inter);
+			analyze(options.files[index], print, MODE_DEFAULT, options.cleanup, offset, size_max,
+					options.offset, &intra);
+			analyze(options.files[index], print, MODE_CHILDREN, options.cleanup, offset, size_max,
+					options.offset, &inter);
 
 			print_results_latex(options.files[index], &intra, &inter);
 		} else {
@@ -532,8 +575,8 @@ int main(int argc, char** argv) {
 			struct context context;
 			memset(&context, 0, sizeof(context));
 			file_bounds_set(options.files[index]);
-			analyze(options.files[index], print, options.children_consider, options.cleanup, offset,
-					size_max, options.offset, &context);
+			analyze(options.files[index], print, options.mode, options.cleanup, offset, size_max,
+					options.offset, &context);
 
 			print_results(&context);
 		}

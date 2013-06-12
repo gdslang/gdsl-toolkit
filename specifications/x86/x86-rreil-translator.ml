@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate translateBlock translateSuperBlock
+export = translate translateBlock translateSingle translateSuperBlock
 
 type sem_writeback =
    SEM_WRITE_VAR of {size:int, id:sem_var}
@@ -2214,6 +2214,20 @@ val translateBlock = do
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
 	 stmts <- transBlock;
+   return (rreil-stmts-rev stmts)
+end
+
+val translateSingle = do
+   update @{ins_count=0,mode64='1'};
+   update@{stack=SEM_NIL,foundJump='0'};
+   # the type checker is seriously broken when it comes to infinite recursion,
+   # I cannot as of yet reproduce this bug
+   update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
+
+   transInstr;
+   jmp <- query $foundJump;
+   stmts <- query $stack;
+
    return (rreil-stmts-rev stmts)
 end
 
