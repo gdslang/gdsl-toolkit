@@ -15,40 +15,44 @@
 void tbgen_allocated_push_generate(FILE *stream,
 		struct tbgen_register_allocation *allocation, enum x86_id register_) {
 	if(allocation->sp_allocated) {
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
-				allocation->sp_mirror);
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup,
-				X86_ID_SP);
+//		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+//				allocation->sp_mirror);
+//		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup,
+//				X86_ID_SP);
+		tbgen_xchg_rsp_generate(stream, allocation->sp_backup);
 	}
 	if(register_ == X86_ID_FLAGS)
 		tbgen_push_rflags_generate(stream);
 	else
 		tbgen_push_generate(stream, register_);
 	if(allocation->sp_allocated) {
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
-				allocation->sp_backup);
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_mirror,
-				X86_ID_SP);
+//		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+//				allocation->sp_backup);
+//		tbgen_mov_standard_old_register_generate(stream, allocation->sp_mirror,
+//				X86_ID_SP);
+		tbgen_xchg_rsp_generate(stream, allocation->sp_backup);
 	}
 }
 
 void tbgen_allocated_pop_generate(FILE *stream,
 		struct tbgen_register_allocation *allocation, enum x86_id register_) {
 	if(allocation->sp_allocated) {
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
-				allocation->sp_mirror);
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup,
-				X86_ID_SP);
+//		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+//				allocation->sp_mirror);
+//		tbgen_mov_standard_old_register_generate(stream, allocation->sp_backup,
+//				X86_ID_SP);
+		tbgen_xchg_rsp_generate(stream, allocation->sp_backup);
 	}
 	if(register_ == X86_ID_FLAGS)
 		tbgen_pop_rflags_generate(stream);
 	else
 		tbgen_pop_generate(stream, register_);
 	if(allocation->sp_allocated) {
-		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
-				allocation->sp_backup);
-		tbgen_mov_standard_old_register_generate(stream, allocation->sp_mirror,
-				X86_ID_SP);
+//		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
+//				allocation->sp_backup);
+//		tbgen_mov_standard_old_register_generate(stream, allocation->sp_mirror,
+//				X86_ID_SP);
+		tbgen_xchg_rsp_generate(stream, allocation->sp_backup);
 	}
 }
 
@@ -141,7 +145,7 @@ void tbgen_allocation_fixed_commit(struct tbgen_register_allocation *allocation,
 		 */
 		allocation->sp_allocated = 0;
 		tbgen_allocate_dynamic(&allocation->sp_backup, allocation, stream);
-		tbgen_allocate_dynamic(&allocation->sp_mirror, allocation, stream);
+//		tbgen_allocate_dynamic(&allocation->sp_mirror, allocation, stream);
 		tbgen_mov_standard_old_register_generate(stream, X86_ID_SP,
 				allocation->sp_backup);
 		allocation->sp_allocated = 1;

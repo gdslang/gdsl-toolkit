@@ -18,7 +18,7 @@ struct tbgen_register_allocation {
 
 	char sp_allocated;
 	enum x86_id sp_backup;
-	enum x86_id sp_mirror;
+//	enum x86_id sp_mirror;
 };
 
 extern void tbgen_allocated_push_generate(FILE *stream,

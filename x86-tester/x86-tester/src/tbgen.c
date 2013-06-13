@@ -289,6 +289,12 @@ void tbgen_mov_standard_old_register_generate(FILE *stream, enum x86_id from,
 	fwrite(mov, 1, sizeof(mov), stream);
 }
 
+void tbgen_xchg_rsp_generate(FILE *stream, enum x86_id other) {
+	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_R, other);
+	uint8_t xchg[] = { 0x87, 0xc4 | (tbgen_register_to_binary(other) << 3) };
+	fwrite(xchg, 1, sizeof(xchg), stream);
+}
+
 static void tbgen_mov_memory_to_register_generate(FILE *stream,
 		enum x86_id register_, uint64_t *address, enum x86_id t0) {
 	uint8_t t0_bin = tbgen_register_to_binary(t0);

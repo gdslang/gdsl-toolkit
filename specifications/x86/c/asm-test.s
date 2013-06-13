@@ -583,6 +583,13 @@ main:
 	#mov %r13, -0x10(%rax, %rbx, 2)
 	#lea -7(%rip), %r8
 
+#add %rsp, %rbx
+#
+#xchg %r8, %rsp
+
+cmovz %eax, %ebx
+
+
 #call %r8	
 
 
