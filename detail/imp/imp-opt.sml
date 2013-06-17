@@ -1000,6 +1000,122 @@ structure TypeRefinement = struct
    
 end
 
+structure SwitchReduce = struct
+   val name = "switch-reduce"
+
+   open Imp
+   
+   
+   fun genDist dist [] = dist
+     | genDist NONE (VECpat [] :: pats) = genDist NONE pats
+     | genDist NONE (pats as (VECpat (bp :: _) :: _)) =
+         genDist (SOME (0, Array.array (String.size bp, 0))) pats
+    | genDist (SOME (count, dist)) (VECpat strs :: pats) =
+      let
+         fun addDist dist str = (
+            foldl (fn (chr,idx) => (
+               if chr = #"." then () else Array.update (dist,idx,Array.sub(dist,idx)+1); idx+1))
+               0 (String.explode str);
+            ())
+         val _ = app (addDist dist) strs
+      in
+         genDist (SOME (count+length pats, dist)) pats
+      end
+    | genDist NONE (_ :: pats) = genDist NONE pats
+    | genDist (SOME (count,dist)) (_ :: pats) = genDist (SOME (count+1,dist)) pats
+
+   fun genBits pats = case genDist NONE pats of
+      NONE => ([],[])
+    | SOME (count,dist) =>
+      let
+         val bits = Array.length dist
+         val sorted = Array.array (bits,0)
+         val _ = Array.copy { src = dist, dst = sorted, di = 0 }
+         val _ = ArrayQSort.sort Int.compare sorted
+         (* compute a cut-off for the number of cases in which a bit may not
+         be a wildcard; we implement a kind of exponential backup *)
+         fun calcCutOff (slack, last, max, idx) =
+            if idx<0 then last else
+            let
+               val newLast =  Array.sub (sorted, idx)
+               val newSlack = (slack+(max-newLast))*2
+            in
+               if newSlack>=max then
+                  last
+               else
+                  calcCutOff (newSlack, newLast, max, idx-1)
+            end
+         val cutOff = if bits<=1 then 0 else
+            calcCutOff (0, Array.sub (sorted, bits-1), Array.sub (sorted, bits-1), bits-2)
+         val bitPats = List.concat (map (fn p => case p of
+               VECpat bp => bp
+             | _ => []) pats)
+         val patStr = foldl (fn (v,str) => "\n" ^ v ^ str) "" bitPats
+         val arrStr = #2 (Array.foldl (fn (v,(sep,str)) => (",", str ^ sep ^ Int.toString v)) ("[","") dist) ^ "]"
+         val _ = TextIO.print ("case patterns:" ^ patStr ^ "\n" ^ arrStr ^ ", cutoff=" ^ Int.toString cutOff ^ "\n")
+      in
+         ([],[])
+      end
+    
+   fun optCase (scrut,cases) =
+      let
+         val (goodBits,badBits) = genBits (map #1 cases)
+         fun slice [] scrut = scrut
+         fun casesSlice [] cases = cases
+         
+      in
+         CASEstmt (slice goodBits scrut, casesSlice goodBits cases)
+      end
+   fun visitBlock s (BASICblock (decls,stmts)) = BASICblock (decls, map (visitStmt s) stmts)
+   
+   and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
+     | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
+     | visitStmt s (CASEstmt (e,ps)) = optCase (visitExp s e, map (visitCase s) ps)
+
+   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   
+   and visitExp s (PRIexp (m,f,t,es)) = (PRIexp (m,f,t,map (visitExp s) es))
+     | visitExp s (CALLexp (m,sym,es)) = (CALLexp (m, sym, map (visitExp s) es))
+     | visitExp s (INVOKEexp (m,t,e,es)) = (INVOKEexp (m,t,visitExp s e, map (visitExp s) es))
+     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
+     | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
+     | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
+     | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
+     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b, visitExp s e)
+     | visitExp s (EXECexp e) = (EXECexp (visitExp s e))
+     | visitExp s e = e
+
+   fun visitDecl s (FUNCdecl {
+        funcMonadic = monkind,
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = body,
+        funcRes = res
+      }) = FUNCdecl {
+        funcMonadic = monkind,
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = visitBlock s body,
+        funcRes = res
+      }
+     | visitDecl s d = d
+
+   fun run { decls = ds, fdecls = fs } =
+      let
+         val ds = map (visitDecl {}) ds
+      in
+         { decls = ds, fdecls = fs }
+      end
+   
+end
+
+
 structure StatePassing = struct
    val name = "statePassing"
 

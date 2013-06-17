@@ -12,6 +12,7 @@ structure ActionClosuresPass = MkIMPPass (ActionClosures)
 structure SimplifyPass = MkIMPPass (Simplify)
 structure StatePassingPass = MkIMPPass (StatePassing)
 structure TypeRefinementPass = MkIMPPass (TypeRefinement)
+structure SwitchReducePass = MkIMPPass (SwitchReduce)
 
 structure ImpPasses : sig
    val run:
@@ -31,6 +32,7 @@ end = struct
       ActionClosuresPass.run >>=
       SimplifyPass.run >>=
       TypeRefinementPass.run >>=
+      SwitchReducePass.run >>=
       SimplifyPass.run
 
 
