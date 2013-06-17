@@ -76,12 +76,12 @@ structure ActionClosures = struct
                   monVars : SymSet.set,
                   declsRef : arg list ref,
                   stmtsRef : stmt list ref }
-   fun addMonSym ({ pureToMonRef = pureToMonRef,
-                    monVars = monVars,
-                    declsRef = declsRef,
-                    stmtsRef = stmtsRef },sym) =
+   fun addMonSyms ({ pureToMonRef = pureToMonRef,
+                     monVars = monVars,
+                     declsRef = declsRef,
+                     stmtsRef = stmtsRef },syms) =
       { pureToMonRef = pureToMonRef,
-        monVars = SymSet.add(monVars,sym),
+        monVars = SymSet.union (monVars,syms),
         declsRef = declsRef,
         stmtsRef = stmtsRef } : state
 
@@ -142,6 +142,41 @@ structure ActionClosures = struct
       SOME mon => true
     | NONE => SymSet.member (#monVars s, sym)
 
+   fun getMonBlock ds (BASICblock (decls,stmts)) =
+      let
+         val ds = SymSet.union (ds, SymSet.fromList (map #2 decls))
+         (*val _ = TextIO.print ("declared vars:" ^ foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" (SymSet.listItems ds) ^ "\n")*)
+      in
+         foldl SymSet.union SymSet.empty (map (getMonStmt ds) stmts)
+      end
+   
+   and getMonStmt ds (ASSIGNstmt (res,exp)) = getMonExp ds exp
+     | getMonStmt ds (IFstmt (c,t,e)) = SymSet.union (getMonBlock ds t, getMonBlock ds e)
+     | getMonStmt ds (CASEstmt (e,ps)) = foldl SymSet.union (getMonExp ds e) (map (getMonCase ds) ps)
+
+   and getMonCase ds (p,stmts) = getMonBlock ds stmts
+   
+   and getMonExp ds (IDexp sym) = SymSet.empty
+     | getMonExp ds (PRIexp (m,f,t,es)) = foldl SymSet.union SymSet.empty (map (getMonExp ds) es)
+     | getMonExp ds (CALLexp (m,sym,es)) = foldl SymSet.union SymSet.empty (map (getMonExp ds) es)
+     | getMonExp ds (INVOKEexp (m,t,e,es)) = foldl SymSet.union (getMonExp ds e) (map (getMonExp ds) es)
+     | getMonExp ds (RECORDexp fs) = foldl SymSet.union SymSet.empty (map (getMonExp ds o #2) fs)
+     | getMonExp ds (LITexp l) = SymSet.empty
+     | getMonExp ds (BOXexp (t,e)) = getMonExp ds e
+     | getMonExp ds (UNBOXexp (t,e)) = getMonExp ds e
+     | getMonExp ds (VEC2INTexp (sz,e)) = getMonExp ds e
+     | getMonExp ds (INT2VECexp (sz,e)) = getMonExp ds e
+     | getMonExp ds (CLOSUREexp (t,sym,es)) = foldl SymSet.union SymSet.empty (map (getMonExp ds) es)
+     | getMonExp ds (STATEexp (BASICblock (decls,stmts),e)) =
+      let
+         val ds = SymSet.union (ds, SymSet.fromList (map #2 decls))
+      in
+         foldl SymSet.union (getMonExp ds e) (map (getMonStmt ds) stmts)
+      end
+     | getMonExp ds (EXECexp (IDexp sym)) =
+      if SymSet.member (ds,sym) then SymSet.singleton sym else SymSet.empty
+     | getMonExp ds (EXECexp e) = getMonExp ds e
+
    fun visitBlock s (BASICblock (decls,stmts)) =
       let
          val s' = { pureToMonRef = #pureToMonRef s,
@@ -195,9 +230,6 @@ structure ActionClosures = struct
             val eStmts = !(#stmtsRef s)
             val _ = (#declsRef s) := []
             val _ = (#stmtsRef s) := []
-            val (e',s) = case e' of
-                  EXECexp (IDexp sym) => (IDexp sym, addMonSym (s,sym))
-                | e => (e,s)
             val BASICblock (decls,stmts) = visitBlock s b
          in
             STATEexp (BASICblock (decls @ eDecls, stmts @ eStmts), e')
@@ -223,15 +255,22 @@ structure ActionClosures = struct
         funcBody = body,
         funcRes = res
       }) =
+      let
+         val execSyms = getMonBlock (SymSet.singleton res) body
+         (*val _ = TextIO.print ("action, decl " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^
+            " has exec syms" ^ foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" (SymSet.listItems execSyms) ^ "\n")*)
+         val body' = visitBlock (addMonSyms (s,execSyms)) body
+      in
          FUNCdecl {
            funcMonadic = monkind,
            funcClosure = clArgs,
            funcType = vtype,
            funcName = name,
            funcArgs = args,
-           funcBody = visitBlock s body,
+           funcBody = body',
            funcRes = res
          }
+      end
      | visitDecl s d = d
 
    fun run { decls = ds, fdecls = fs } =
@@ -1004,13 +1043,12 @@ structure SwitchReduce = struct
    val name = "switch-reduce"
 
    open Imp
-   
-   
+
    fun genDist dist [] = dist
      | genDist NONE (VECpat [] :: pats) = genDist NONE pats
      | genDist NONE (pats as (VECpat (bp :: _) :: _)) =
-         genDist (SOME (0, Array.array (String.size bp, 0))) pats
-    | genDist (SOME (count, dist)) (VECpat strs :: pats) =
+         genDist (SOME (Array.array (String.size bp, 0))) pats
+    | genDist (SOME dist) (VECpat strs :: pats) =
       let
          fun addDist dist str = (
             foldl (fn (chr,idx) => (
@@ -1019,14 +1057,14 @@ structure SwitchReduce = struct
             ())
          val _ = app (addDist dist) strs
       in
-         genDist (SOME (count+length pats, dist)) pats
+         genDist (SOME dist) pats
       end
     | genDist NONE (_ :: pats) = genDist NONE pats
-    | genDist (SOME (count,dist)) (_ :: pats) = genDist (SOME (count+1,dist)) pats
+    | genDist (SOME dist) (_ :: pats) = genDist (SOME dist) pats
 
    fun genBits pats = case genDist NONE pats of
-      NONE => ([],[])
-    | SOME (count,dist) =>
+      NONE => (0,[],[])
+    | SOME dist =>
       let
          val bits = Array.length dist
          val sorted = Array.array (bits,0)
@@ -1038,15 +1076,17 @@ structure SwitchReduce = struct
             if idx<0 then last else
             let
                val newLast =  Array.sub (sorted, idx)
-               val newSlack = (slack+(max-newLast))*2
+               val newSlack = slack*2+(max-newLast)
             in
-               if newSlack>=max then
-                  last
+               if newSlack>=2*max then
+                  Int.min (max,last+1)
+                   (* we should not allow any indices with this many bits set *)
                else
                   calcCutOff (newSlack, newLast, max, idx-1)
             end
          val cutOff = if bits<=1 then 0 else
             calcCutOff (0, Array.sub (sorted, bits-1), Array.sub (sorted, bits-1), bits-2)
+         
          val bitPats = List.concat (map (fn p => case p of
                VECpat bp => bp
              | _ => []) pats)
@@ -1054,17 +1094,64 @@ structure SwitchReduce = struct
          val arrStr = #2 (Array.foldl (fn (v,(sep,str)) => (",", str ^ sep ^ Int.toString v)) ("[","") dist) ^ "]"
          val _ = TextIO.print ("case patterns:" ^ patStr ^ "\n" ^ arrStr ^ ", cutoff=" ^ Int.toString cutOff ^ "\n")
       in
-         ([],[])
+         (bits,
+          Array.foldr (fn (x,bs) => (x>=cutOff) :: bs) [] dist,
+          Array.foldr (fn (x,bs) => (x>0 andalso x<cutOff) :: bs) [] dist)
       end
     
    fun optCase (scrut,cases) =
       let
-         val (goodBits,badBits) = genBits (map #1 cases)
-         fun slice [] scrut = scrut
-         fun casesSlice [] cases = cases
+         fun genRange (low,idx,(true :: bits)) =
+               genRange (if low<0 then idx else low,idx+1,bits)
+           | genRange (low,idx,(false :: bits)) =
+               if low<0 then genRange (low,idx+1,bits) else
+                  (low, idx) :: genRange (~1,idx+1,bits)
+           | genRange (low,idx,[]) =
+               if low<0 then [] else [(low,idx-1)]
+         val (bits,goodBits,badBits) = genBits (map #1 cases)
+         fun genPattern (bits,VECpat strs) =
+            let
+               fun projectPat (true::bits) (c::cs) = c::projectPat bits cs
+                 | projectPat (false::bits) (c::cs) = projectPat bits cs
+                 | projectPat _ _ = []
+            in
+               map (String.implode o projectPat bits o String.explode) strs
+            end
+           | genPattern (bits,pat) = []    
+         val rangeGood = genRange (~1,0,goodBits)
+         val rangeBad = genRange (~1,0,badBits)
+         val maskGoodStr = foldl (fn (bit,str) => str ^ (if bit then "1" else "0")) "" goodBits
+         val maskBadStr = foldl (fn (bit,str) => str ^ (if bit then "1" else "0")) "" badBits
          
+         val rangeStr = #2 (foldl (fn ((low,high),(sep,str)) => (";", str ^ sep ^ "[" ^ Int.toString low ^ "," ^ Int.toString high ^ "]")) ("","") rangeGood)
+         val _ = TextIO.print ("good mask: " ^ maskGoodStr ^ "\nbad mask:  " ^ maskBadStr ^ "\ngood range: " ^ rangeStr ^ "\n")
+         fun slice (low,high,e) =
+            let
+               val noOfBits = high-low+1
+               val sliceType = FUNvtype (BITvtype, false, [INTvtype, INTvtype, INTvtype])
+               fun lit x = LITexp (INTvtype, INTlit (IntInf.fromInt x))
+            in
+               VEC2INTexp (SOME noOfBits, PRIexp (PUREmonkind, SLICEprim, sliceType, [e, lit low, lit noOfBits]))
+            end
+         fun genSlice [] scrut = scrut
+           | genSlice ((low,high) :: ranges) scrut = slice (low,high,genSlice ranges scrut)
+           
+         fun splitCase (p,bb) =
+            (VECpat (genPattern (goodBits,p)), [(genPattern (badBits,p),bb)])
+         fun genCases (scrutBad, splitCases) =
+            let
+            in
+               map (fn (pat,subCases) => (pat,BASICblock ([],[
+                  CASEstmt (scrutBad,
+                     map (fn (pat,bb) => (VECpat pat,bb)) subCases)
+               ]))) splitCases
+            end
       in
-         CASEstmt (slice goodBits scrut, casesSlice goodBits cases)
+         if bits>0 then
+            CASEstmt (genSlice rangeGood scrut,
+                        genCases (genSlice rangeBad scrut, map splitCase cases))
+         else
+            CASEstmt (scrut, cases)
       end
    fun visitBlock s (BASICblock (decls,stmts)) = BASICblock (decls, map (visitStmt s) stmts)
    
