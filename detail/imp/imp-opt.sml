@@ -1090,7 +1090,7 @@ structure SwitchReduce = struct
          val bitPats = List.concat (map (fn p => case p of
                VECpat bp => bp
              | _ => []) pats)
-         val patStr = foldl (fn (v,str) => "\n" ^ v ^ str) "" bitPats
+         val patStr = foldl (fn (v,str) => str ^ "\n" ^ v) "" bitPats
          val arrStr = #2 (Array.foldl (fn (v,(sep,str)) => (",", str ^ sep ^ Int.toString v)) ("[","") dist) ^ "]"
          val _ = TextIO.print ("case patterns:" ^ patStr ^ "\n" ^ arrStr ^ ", cutoff=" ^ Int.toString cutOff ^ "\n")
       in
@@ -1131,25 +1131,56 @@ structure SwitchReduce = struct
                val sliceType = FUNvtype (BITvtype, false, [INTvtype, INTvtype, INTvtype])
                fun lit x = LITexp (INTvtype, INTlit (IntInf.fromInt x))
             in
-               VEC2INTexp (SOME noOfBits, PRIexp (PUREmonkind, SLICEprim, sliceType, [e, lit low, lit noOfBits]))
+               (noOfBits,
+                VEC2INTexp (SOME noOfBits,
+                  PRIexp (PUREmonkind, SLICEprim, sliceType, [e, lit low, lit noOfBits])))
             end
-         fun genSlice [] scrut = scrut
-           | genSlice ((low,high) :: ranges) scrut = slice (low,high,genSlice ranges scrut)
-           
+         fun conc (size1,e1) (size2,e2) =
+            let
+               val noOfBits = size1+size2
+               val concType = FUNvtype (BITvtype, false, [BITvtype, BITvtype])
+            in
+               (noOfBits,
+                VEC2INTexp (SOME noOfBits,
+                  PRIexp (PUREmonkind, CONCAT_VECprim, concType,
+                     [INT2VECexp (size1,e1), INT2VECexp (size2,e2)])))
+            end
+         fun genSlice [] scrut = (0, LITexp (BITvtype, VEClit ""))
+           | genSlice [(low,high)] scrut = slice (low,high,scrut)
+           | genSlice ((low,high) :: ranges) scrut =
+            conc (slice (low,high,scrut)) (genSlice ranges scrut)
+
+         fun amalgamate ((pats1, rhs1)::(pats2, rhs2)::cases) =
+            let
+               fun patsEq (p::ps, pats) =
+                  if List.exists (fn p' => String.compare (p,p')=EQUAL) pats then
+                     patsEq (ps, pats)
+                  else
+                     false
+                 | patsEq ([], _) = true
+            in
+               if patsEq (pats1,pats2) then
+                  amalgamate ((pats1, rhs1 @ rhs2) :: cases)
+               else
+                  (pats1,rhs1) :: amalgamate ((pats2, rhs2)::cases)
+            end
+           | amalgamate cases = cases
+
          fun splitCase (p,bb) =
-            (VECpat (genPattern (goodBits,p)), [(genPattern (badBits,p),bb)])
-         fun genCases (scrutBad, splitCases) =
+            (genPattern (goodBits,p), [(genPattern (badBits,p),bb)])
+         fun genCases ((scrutBadSize,scrutBad), splitCases) =
             let
             in
-               map (fn (pat,subCases) => (pat,BASICblock ([],[
+               map (fn (pat,subCases) => (VECpat pat,BASICblock ([],[
                   CASEstmt (scrutBad,
                      map (fn (pat,bb) => (VECpat pat,bb)) subCases)
                ]))) splitCases
             end
       in
          if bits>0 then
-            CASEstmt (genSlice rangeGood scrut,
-                        genCases (genSlice rangeBad scrut, map splitCase cases))
+            CASEstmt (#2 (genSlice rangeGood scrut),
+                        genCases (genSlice rangeBad scrut, 
+                           amalgamate (map splitCase cases)))
          else
             CASEstmt (scrut, cases)
       end
