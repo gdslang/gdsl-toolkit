@@ -1071,32 +1071,65 @@ structure SwitchReduce = struct
 
    fun patSubtract (pat1,pat2) =
       let
+         (* 0000 - 0000 = {}
+            0000 - 0001 = {0000}
+            00.0 - 0000 = {0010}
+            .0.0 - 0000 = {1000, 0010}
+            00.0 - 0001 = {00.0}
+            0000 - 000. = {}
+            .0.0 - 00.0 = {10.0}
+            strategy:
+            a) check if any 0 or 1 in pat1 has a 1 or 0 in the same position
+               in pat2, if so, return pat1
+            b) compute a set of patterns that form the difference, starting
+               with {pat1}; for any positions in pat1 where pat1 has . and pat2
+               has 0 or 1 duplicate the elements and set the position of these
+               elements to 0 and 1; upon completion, all positions that were
+               . in pat1 have been filled in with 0 or 1 and we can simply
+               subtract pat2 by removing the string of pat2 from the set;
+               this also covers the case where pat1 has no .
+            
+         *)
+         
          val noOfBits = Int.min(String.size pat1, String.size pat2)
-         fun subtract (idx,isSubset,acc) = if idx<0 then
-            if isSubset then SOME acc else NONE else
-            if String.sub (pat1,idx)=String.sub (pat2,idx) then
-               subtract (idx-1, isSubset, String.sub (pat1,idx) :: acc)
+         fun patWith (idx,c) pat =
+            (if idx>0 then String.substring (pat,0,idx) else "") ^
+            String.str c ^
+            (if idx+1<noOfBits then String.extract (pat,idx+1,NONE) else "")
+         fun subtract (idx,pat2,acc) =
+            if idx>=noOfBits
+            then
+               List.filter (fn p => String.compare (p,pat2)<>EQUAL) acc (* case c) *)
             else
-            if String.sub (pat1,idx)= #"." then
-               if String.sub (pat2,idx)= #"1" then
-                  subtract (idx-1, true, #"0" :: acc) else
-               if String.sub (pat2,idx)= #"0" then
-                  subtract (idx-1, true, #"1" :: acc) else NONE
-            else NONE
+            if (String.sub (pat1,idx)= #"0" andalso String.sub (pat2,idx)= #"1")
+               orelse
+               (String.sub (pat1,idx)= #"1" andalso String.sub (pat2,idx)= #"0")
+            then
+               [pat1]
+            else
+            if String.sub (pat1,idx)= #"." andalso String.sub (pat2,idx)<> #"."
+            then (* replace the wildcard in pat1 by 0 and by 1 *)
+               subtract (idx+1,pat2, map (patWith (idx,#"0")) acc @ map (patWith (idx,#"1")) acc)
+            else
+            if String.sub (pat1,idx)<> #"." andalso String.sub (pat2,idx)= #"."
+            then (* replace all . in pat2 where pat1 is more specific so that
+                    subtracting the pat2 string at the end will always work *)
+               subtract (idx+1,patWith (idx,String.sub (pat1,idx)) pat2, acc)
+            else
+               subtract (idx+1,pat2, acc)
       in
-         Option.map String.implode (subtract (noOfBits-1,false,[]))
+         subtract (0,pat2,[pat1])
       end
 
    (* compute a pattern set that describes the models in the first
       set of patterns without those of the second set of patterns *)
-   fun patsDifference (pats1, pats2) =
-      foldl (fn (p1,res) =>
+   fun patsDifference (pats1, pats2) = map Atom.toString (AtomSet.listItems
+      (foldl (fn (p1,res) =>
          foldl (fn (p2,res) =>
-            case patSubtract (p1,p2) of
-               SOME p => p :: res
-             | NONE => res
+            AtomSet.union (res,
+               AtomSet.fromList (map Atom.atom (patSubtract (p1,p2))))
          ) res pats2
-      ) [] pats1
+      ) AtomSet.empty pats1))
 
    (* compute a distribution of set bits from all the cases*)
    fun genDist dist [] = dist
@@ -1241,12 +1274,14 @@ structure SwitchReduce = struct
                      (rhss := !rhss @ rhsT;
                      case patsDifference (patT,pat) of
                         [] => fetch cases
-                      | remPats => (remPats,rhsT) :: fetch cases (* here we duplicate code; TODO: generate a function containing the code instead and call it *)
+                      | remPats => (
+                      TextIO.print ("group: duplicated code for " ^ (#2 (foldl (fn (p,(sep,str)) => (",",str ^ sep ^ p)) ("","") remPats)) ^"\n");
+                      (remPats,rhsT) :: fetch cases) (* here we duplicate code; TODO: generate a function containing the code instead and call it *)
                      )
                   else (patT,rhsT) :: fetch cases
                val newCases = fetch cases
             in
-               (pat, rhs @ !rhss) :: group cases
+               (pat, rhs @ !rhss) :: group newCases
             end
 
          fun splitCase (p,bb) =
