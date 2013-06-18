@@ -306,7 +306,15 @@ structure Simplify = struct
    
    and visitCase s (p,stmts) = (p, visitBlock s stmts)
    
-   and visitBlock s (BASICblock (decls, stmts)) = BASICblock (decls, map (visitStmt s) stmts)
+   and visitBlock s (BASICblock (decls, stmts)) =
+      (case map (visitStmt s) stmts of
+         stmts as [CASEstmt (_,[(VECpat p,BASICblock (decls',stmts'))])] =>
+            if List.all (fn pat => List.all (fn c => c = #".") (String.explode pat)) p then
+               BASICblock (decls @ decls', stmts')
+            else
+               BASICblock (decls, stmts)
+       | stmts => BASICblock (decls, stmts)
+      )
    
    and visitExp (s :state) (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
@@ -1044,6 +1052,53 @@ structure SwitchReduce = struct
 
    open Imp
 
+   fun patIntersect (pat1,pat2) =
+      let
+         val noOfBits = Int.min(String.size pat1, String.size pat2)
+         fun checkBit idx = idx<0 orelse (
+            String.sub (pat1,idx)= #"." orelse  String.sub (pat2,idx)= #"." orelse
+            String.sub (pat1,idx)= #"0" andalso String.sub (pat2,idx)= #"0" orelse
+            String.sub (pat1,idx)= #"1" andalso String.sub (pat2,idx)= #"1")
+            andalso checkBit (idx-1)
+      in
+         checkBit (noOfBits-1)
+      end
+
+   fun patsIntersect (pats1, pats2) =
+      List.exists (fn p1 =>
+         List.exists (fn p2 => patIntersect (p1,p2)) pats2
+      ) pats1
+
+   fun patSubtract (pat1,pat2) =
+      let
+         val noOfBits = Int.min(String.size pat1, String.size pat2)
+         fun subtract (idx,isSubset,acc) = if idx<0 then
+            if isSubset then SOME acc else NONE else
+            if String.sub (pat1,idx)=String.sub (pat2,idx) then
+               subtract (idx-1, isSubset, String.sub (pat1,idx) :: acc)
+            else
+            if String.sub (pat1,idx)= #"." then
+               if String.sub (pat2,idx)= #"1" then
+                  subtract (idx-1, true, #"0" :: acc) else
+               if String.sub (pat2,idx)= #"0" then
+                  subtract (idx-1, true, #"1" :: acc) else NONE
+            else NONE
+      in
+         Option.map String.implode (subtract (noOfBits-1,false,[]))
+      end
+
+   (* compute a pattern set that describes the models in the first
+      set of patterns without those of the second set of patterns *)
+   fun patsDifference (pats1, pats2) =
+      foldl (fn (p1,res) =>
+         foldl (fn (p2,res) =>
+            case patSubtract (p1,p2) of
+               SOME p => p :: res
+             | NONE => res
+         ) res pats2
+      ) [] pats1
+
+   (* compute a distribution of set bits from all the cases*)
    fun genDist dist [] = dist
      | genDist NONE (VECpat [] :: pats) = genDist NONE pats
      | genDist NONE (pats as (VECpat (bp :: _) :: _)) =
@@ -1062,6 +1117,9 @@ structure SwitchReduce = struct
     | genDist NONE (_ :: pats) = genDist NONE pats
     | genDist (SOME dist) (_ :: pats) = genDist (SOME dist) pats
 
+   (* from a distribution of bits, generate two sets of bit sequences,
+      namely those that we should check at this level and those that
+      should be deferred to the next level *)
    fun genBits pats = case genDist NONE pats of
       NONE => (0,[],[])
     | SOME dist =>
@@ -1105,7 +1163,7 @@ structure SwitchReduce = struct
                genRange (if low<0 then idx else low,idx+1,bits)
            | genRange (low,idx,(false :: bits)) =
                if low<0 then genRange (low,idx+1,bits) else
-                  (low, idx) :: genRange (~1,idx+1,bits)
+                  (low, idx-1) :: genRange (~1,idx+1,bits)
            | genRange (low,idx,[]) =
                if low<0 then [] else [(low,idx-1)]
          val (bits,goodBits,badBits) = genBits (map #1 cases)
@@ -1118,13 +1176,14 @@ structure SwitchReduce = struct
                map (String.implode o projectPat bits o String.explode) strs
             end
            | genPattern (bits,pat) = []    
-         val rangeGood = genRange (~1,0,goodBits)
-         val rangeBad = genRange (~1,0,badBits)
+         val rangeGood = List.rev (genRange (~1,0,List.rev goodBits))
+         val rangeBad = List.rev (genRange (~1,0,List.rev badBits))
          val maskGoodStr = foldl (fn (bit,str) => str ^ (if bit then "1" else "0")) "" goodBits
          val maskBadStr = foldl (fn (bit,str) => str ^ (if bit then "1" else "0")) "" badBits
          
-         val rangeStr = #2 (foldl (fn ((low,high),(sep,str)) => (";", str ^ sep ^ "[" ^ Int.toString low ^ "," ^ Int.toString high ^ "]")) ("","") rangeGood)
-         val _ = TextIO.print ("good mask: " ^ maskGoodStr ^ "\nbad mask:  " ^ maskBadStr ^ "\ngood range: " ^ rangeStr ^ "\n")
+         val rangeGoodStr = #2 (foldl (fn ((low,high),(sep,str)) => (";", str ^ sep ^ "[" ^ Int.toString low ^ "," ^ Int.toString high ^ "]")) ("","") rangeGood)
+         val rangeBadStr = #2 (foldl (fn ((low,high),(sep,str)) => (";", str ^ sep ^ "[" ^ Int.toString low ^ "," ^ Int.toString high ^ "]")) ("","") rangeBad)
+         val _ = TextIO.print ("good mask: " ^ maskGoodStr ^ "\nbad mask:  " ^ maskBadStr ^ "\ngood range: " ^ rangeGoodStr ^ "\nbad range: " ^ rangeBadStr ^ "\n")
          fun slice (low,high,e) =
             let
                val noOfBits = high-low+1
@@ -1150,6 +1209,9 @@ structure SwitchReduce = struct
            | genSlice ((low,high) :: ranges) scrut =
             conc (slice (low,high,scrut)) (genSlice ranges scrut)
 
+         (* merge consecutive cases that test for the same pattern;
+            this function is just an efficiency gimmick since the
+            group/sift functions below do the same but are quadratic *)
          fun amalgamate ((pats1, rhs1)::(pats2, rhs2)::cases) =
             let
                fun patsEq (p::ps, pats) =
@@ -1166,31 +1228,51 @@ structure SwitchReduce = struct
             end
            | amalgamate cases = cases
 
+         (* for each case, check if there are other cases further down
+            that overlap with the patterns of this case; turn them
+            into a group of cases *)
+         fun group [] = []
+           | group ((pat,rhs) :: cases) =
+            let
+               val rhss = ref []
+               fun fetch [] = []
+                 | fetch ((patT,rhsT) :: cases) =
+                  if patsIntersect (pat,patT) then
+                     (rhss := !rhss @ rhsT;
+                     case patsDifference (patT,pat) of
+                        [] => fetch cases
+                      | remPats => (remPats,rhsT) :: fetch cases (* here we duplicate code; TODO: generate a function containing the code instead and call it *)
+                     )
+                  else (patT,rhsT) :: fetch cases
+               val newCases = fetch cases
+            in
+               (pat, rhs @ !rhss) :: group cases
+            end
+
          fun splitCase (p,bb) =
             (genPattern (goodBits,p), [(genPattern (badBits,p),bb)])
          fun genCases ((scrutBadSize,scrutBad), splitCases) =
-            let
-            in
-               map (fn (pat,subCases) => (VECpat pat,BASICblock ([],[
-                  CASEstmt (scrutBad,
-                     map (fn (pat,bb) => (VECpat pat,bb)) subCases)
-               ]))) splitCases
-            end
+            map (fn (pat,subCases) => (VECpat pat,BASICblock ([],[
+               optCase (scrutBad,
+                  map (fn (pat,bb) => (VECpat pat,bb)) subCases)
+            ]))) splitCases
+
       in
          if bits>0 then
             CASEstmt (#2 (genSlice rangeGood scrut),
                         genCases (genSlice rangeBad scrut, 
-                           amalgamate (map splitCase cases)))
+                           group (amalgamate (map splitCase cases))))
          else
             CASEstmt (scrut, cases)
       end
+
    fun visitBlock s (BASICblock (decls,stmts)) = BASICblock (decls, map (visitStmt s) stmts)
    
    and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = optCase (visitExp s e, map (visitCase s) ps)
 
-   and visitCase s (p,stmts) = (p, visitBlock s stmts)
+   and visitCase s (p,bb) = (p, visitBlock s bb)
    
    and visitExp s (PRIexp (m,f,t,es)) = (PRIexp (m,f,t,map (visitExp s) es))
      | visitExp s (CALLexp (m,sym,es)) = (CALLexp (m, sym, map (visitExp s) es))

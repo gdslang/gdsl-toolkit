@@ -20,6 +20,7 @@ structure VarInfo = VarInfo
 structure Types = Types
 structure BooleanDomain = BooleanDomain
 structure Environment = Environment
+structure SwitchReduce = SwitchReduce
 structure TVar = TVar
 structure Main = Main
 structure Javascript = Javascript
