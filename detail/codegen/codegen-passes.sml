@@ -1,7 +1,7 @@
 
 structure CodegenPasses : sig
    val run:
-      CPS.Spec.t ->
+      Imp.Spec.t ->
          Layout.layout CompilationMonad.t
 end = struct
 
@@ -10,12 +10,13 @@ end = struct
    infix >>=
    infix >>
 
-   fun all cps =
+   fun all imp =
       (*JS0.run cps >>*)
-      ClosurePasses.run cps >>=
-      C.run
+      (*ClosurePasses.run cps >>=
+      C.run*)
+      C1.run imp
 
-   fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, CPS.PP.spec spec)
+   fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Imp.PP.spec spec)
    fun dumpPost (os, t) = Pretty.prettyTo (os, t)
    fun pass (s, spec) = CM.run s (all spec)
 
@@ -24,7 +25,7 @@ end = struct
          {passName="codegen",
           registry=ClosureControl.registry,
           pass=pass,
-          preExt="cps",
+          preExt="imp",
           preOutput=dumpPre,
           postExt="c",
           postOutput=dumpPost}

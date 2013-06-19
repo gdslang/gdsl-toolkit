@@ -16,8 +16,7 @@ functor MkIMPPass (Core: IMPCORE) = struct
       open Layout Pretty
       fun prettyPass imp = 
          align
-            [seq [str "imp.", str Core.name],
-             Imp.PP.imp imp]
+            [Imp.PP.imp imp]
    in
      Pretty.prettyTo (os, prettyPass t)
    end

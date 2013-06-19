@@ -78,6 +78,7 @@ group is
    ../../codegen/codegen-control.sml
    ../../codegen/codegen-mangle.sml
    ../../codegen/c0/c0.sml
+   ../../codegen/c1/c1.sml
    ../../codegen/js0/javascript-sig.sml
    ../../codegen/js0/javascript.sml
    ../../codegen/js0/js0.sml

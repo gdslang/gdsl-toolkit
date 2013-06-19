@@ -80,6 +80,7 @@ in
          detail/codegen/codegen-control.sml
          detail/codegen/codegen-mangle.sml
          detail/codegen/c0/c0.sml
+         detail/codegen/c1/c1.sml
          detail/codegen/js0/javascript-sig.sml
          detail/codegen/js0/javascript.sml
          detail/codegen/js0/js0.sml

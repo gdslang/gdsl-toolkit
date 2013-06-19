@@ -11,10 +11,10 @@ structure Main = struct
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          (*TypeInference.run (tInfo, ast) >>= (fn tys =>*)
          Desugar.run ast >>=
-         ImpPasses.run
+         ImpPasses.run >>=
          (*Desugar.run ast >>=
-         CPSPasses.run >>=
-         CodegenPasses.run *)
+         CPSPasses.run >>= *)
+         CodegenPasses.run 
          ))
       fun run fps = let
          val ers = Error.mkErrStream'()

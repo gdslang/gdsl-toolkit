@@ -101,7 +101,7 @@ end = struct
    fun getClosureSym sym =
       let
          val tab = !SymbolTables.varTable
-         val atm = Atom.atom (SymbolTable.getString (tab,sym) ^ "_closure")
+         val atm = Atom.atom (Atom.toString (SymbolTable.getAtom (tab,sym)) ^ "_closure")
        in
          case SymbolTable.find (tab,atm) of
             SOME res => res
@@ -135,7 +135,7 @@ end = struct
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom (foldl
                      (fn (sym, str) =>
-                        str ^ "_" ^ SymbolTable.getString (ftab,sym))
+                        str ^ "_" ^ Atom.toString (SymbolTable.getAtom (ftab,sym)))
                      "%update" fields)
          val tab = !SymbolTables.varTable
       in
@@ -174,7 +174,7 @@ end = struct
       let
          val ftab = !SymbolTables.fieldTable
          val name = Atom.atom ("%select_" ^ 
-                               SymbolTable.getString (ftab,field))
+                               Atom.toString (SymbolTable.getAtom (ftab,field)))
          val tab = !SymbolTables.varTable
       in
          case SymbolTable.find (tab, name) of
@@ -207,7 +207,7 @@ end = struct
    fun addConFun (s : state) con =
       let
          val ctab = !SymbolTables.conTable
-         val conName = SymbolTable.getString (ctab,con)
+         val conName = Atom.toString (SymbolTable.getAtom (ctab,con))
          val name = Atom.atom ("%constructor_" ^ conName)
          val tab = !SymbolTables.varTable
       in
@@ -444,7 +444,7 @@ end = struct
 
    and trDecl (s : state) (sym, args, body) =
       let
-         val (res,s) = freshRes (SymbolTable.getString(!SymbolTables.varTable,sym),s)
+         val (res,s) = freshRes (Atom.toString (SymbolTable.getAtom (!SymbolTables.varTable,sym)),s)
          val availInClosure = SymSet.singleton sym
          (* add all known declarations *)
          val availInClosure = SymSet.union(availInClosure,SymSet.fromList (SymMap.listKeys (!(#globalExp s))))

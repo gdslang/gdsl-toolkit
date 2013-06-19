@@ -88,7 +88,7 @@ structure ActionClosures = struct
    fun getClosureSym sym =
       let
          val tab = !SymbolTables.varTable
-         val atm = Atom.atom (SymbolTable.getString (tab,sym) ^ "Mon")
+         val atm = Atom.atom (Atom.toString (SymbolTable.getAtom (tab,sym)) ^ "Mon")
        in
          case SymbolTable.find (tab,atm) of
             SOME res => res
@@ -113,7 +113,7 @@ structure ActionClosures = struct
          [ASSIGNstmt (lhs,STATEexp block)] =>
          let
             val tab = !SymbolTables.varTable
-            val atm = Atom.atom (SymbolTable.getString (tab,name) ^ "Mon")
+            val atm = Atom.atom (Atom.toString (SymbolTable.getAtom (tab,name)) ^ "Mon")
             val (tab, mon) = SymbolTable.fresh (tab, atm)
             val _ = SymbolTables.varTable := tab
             val _ = (#pureToMonRef s) := SymMap.insert (!(#pureToMonRef s), name, mon)
@@ -772,7 +772,7 @@ structure TypeRefinement = struct
         closureArgs = clTys,
         closureDelegate = _,
         closureDelArgs = args
-     })=
+     }) =
       let
          val _ = msg ("visitDecl CLOSURE: type before: " ^ showSType (inlineSType s (symType s name)) ^ "\n")
          val isCl = if null clTys then VOIDstype else OBJstype
