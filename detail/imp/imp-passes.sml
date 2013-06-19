@@ -10,9 +10,9 @@ structure DeadValPass = MkCPSPass (DeadVal)*)
 structure PatchFunctionCallsPass = MkIMPPass (PatchFunctionCalls)
 structure ActionClosuresPass = MkIMPPass (ActionClosures)
 structure SimplifyPass = MkIMPPass (Simplify)
-structure StatePassingPass = MkIMPPass (StatePassing)
 structure TypeRefinementPass = MkIMPPass (TypeRefinement)
 structure SwitchReducePass = MkIMPPass (SwitchReduce)
+structure DeadSymbolPass = MkIMPPass (DeadSymbol)
 
 structure ImpPasses : sig
    val run:
@@ -33,7 +33,8 @@ end = struct
       SimplifyPass.run >>=
       TypeRefinementPass.run >>=
       SwitchReducePass.run >>=
-      SimplifyPass.run
+      SimplifyPass.run >>=
+      DeadSymbolPass.run
 
 
    fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Core.PP.spec spec)

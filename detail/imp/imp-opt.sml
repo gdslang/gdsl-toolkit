@@ -300,7 +300,10 @@ structure Simplify = struct
       decls : decl SymMap.map
    }
 
-   fun visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
+   fun visitStmt s (ASSIGNstmt (res,exp)) = (case visitExp s exp of
+         PRIexp (m,RAISEprim,t,es) => ASSIGNstmt (NONE, PRIexp (m,RAISEprim,t,es))
+       | exp => ASSIGNstmt (res, exp)
+      )
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
    
@@ -316,11 +319,17 @@ structure Simplify = struct
        | stmts => BASICblock (decls, stmts)
       )
    
-   and visitExp (s :state) (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
+   and visitExp s (PRIexp (m,SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs1), LITexp (INTvtype, INTlit size1)])) =
+      (case visitExp s e of
+         VEC2INTexp (_,PRIexp (m,SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs2), LITexp (INTvtype, INTlit size2)])) =>
+            PRIexp (m,SLICEprim,t,[e,LITexp (INTvtype, INTlit (ofs1+ofs2)), LITexp (INTvtype, INTlit size1)])
+       | e => PRIexp (m,SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs1), LITexp (INTvtype, INTlit size1)])
+      )
+     | visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
      | visitExp s (CALLexp (m, sym,es)) = CALLexp (m, sym, map (visitExp s) es)
      | visitExp s (INVOKEexp (m, t, e, es)) = (case visitExp s e of
-         CLOSUREexp (tCl,sym,esCl) => (case SymMap.find (#decls s,sym) of
+         CLOSUREexp (tCl,sym,esCl) => (case SymMap.find (#decls (s :state),sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
                CALLexp (m, delSym, map (visitExp s) (esCl @ es))
           | _ => (TextIO.print ("INVOKE of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " is bad idea.\n"); raise SimplifierBug)
@@ -1052,6 +1061,11 @@ structure SwitchReduce = struct
 
    open Imp
 
+   fun showPats pats = #2 (foldl (fn (p,(sep,str)) => (",",str ^ sep ^ p)) ("","") pats)
+
+   fun showCase (pat,bb) = showPats pat ^ " -> " ^ Layout.tostring (Imp.PP.block bb)
+   fun showCases cases = String.concatWith "\n" (map showCase cases)
+
    fun patIntersect (pat1,pat2) =
       let
          val noOfBits = Int.min(String.size pat1, String.size pat2)
@@ -1181,9 +1195,10 @@ structure SwitchReduce = struct
          val bitPats = List.concat (map (fn p => case p of
                VECpat bp => bp
              | _ => []) pats)
-         val patStr = foldl (fn (v,str) => str ^ "\n" ^ v) "" bitPats
+         (*val patStr = foldl (fn (v,str) => str ^ "\n" ^ v) "" bitPats
          val arrStr = #2 (Array.foldl (fn (v,(sep,str)) => (",", str ^ sep ^ Int.toString v)) ("[","") dist) ^ "]"
-         val _ = TextIO.print ("case patterns:" ^ patStr ^ "\n" ^ arrStr ^ ", cutoff=" ^ Int.toString cutOff ^ "\n")
+         val _ = if cutOff = 0 then () else 
+            TextIO.print ("case patterns:" ^ patStr ^ "\n" ^ arrStr ^ ", cutoff=" ^ Int.toString cutOff ^ "\n")*)
       in
          (bits,
           Array.foldr (fn (x,bs) => (x>=cutOff) :: bs) [] dist,
@@ -1211,12 +1226,12 @@ structure SwitchReduce = struct
            | genPattern (bits,pat) = []    
          val rangeGood = List.rev (genRange (~1,0,List.rev goodBits))
          val rangeBad = List.rev (genRange (~1,0,List.rev badBits))
-         val maskGoodStr = foldl (fn (bit,str) => str ^ (if bit then "1" else "0")) "" goodBits
+
+         (*val maskGoodStr = foldl (fn (bit,str) => str ^ (if bit then "1" else "0")) "" goodBits
          val maskBadStr = foldl (fn (bit,str) => str ^ (if bit then "1" else "0")) "" badBits
-         
          val rangeGoodStr = #2 (foldl (fn ((low,high),(sep,str)) => (";", str ^ sep ^ "[" ^ Int.toString low ^ "," ^ Int.toString high ^ "]")) ("","") rangeGood)
          val rangeBadStr = #2 (foldl (fn ((low,high),(sep,str)) => (";", str ^ sep ^ "[" ^ Int.toString low ^ "," ^ Int.toString high ^ "]")) ("","") rangeBad)
-         val _ = TextIO.print ("good mask: " ^ maskGoodStr ^ "\nbad mask:  " ^ maskBadStr ^ "\ngood range: " ^ rangeGoodStr ^ "\nbad range: " ^ rangeBadStr ^ "\n")
+         val _ = TextIO.print ("good mask: " ^ maskGoodStr ^ "\nbad mask:  " ^ maskBadStr ^ "\ngood range: " ^ rangeGoodStr ^ "\nbad range: " ^ rangeBadStr ^ "\n")*)
          fun slice (low,high,e) =
             let
                val noOfBits = high-low+1
@@ -1267,21 +1282,52 @@ structure SwitchReduce = struct
          fun group [] = []
            | group ((pat,rhs) :: cases) =
             let
-               val rhss = ref []
-               fun fetch [] = []
-                 | fetch ((patT,rhsT) :: cases) =
+               val rhss = ref rhs
+               fun addRhs rhsT =
+                  let
+                     val changed = ref false
+                     fun sift ((patsT,bbT), ((pats,bb) :: cases)) =
+                        (case patsDifference (patsT,pats) of
+                           [] => ((pats,bb) :: cases)
+                         | patsT => (pats,bb) :: sift ((patsT,bbT), cases)
+                        )
+                       | sift ((patsT,bbT), []) =
+                        (changed := true; [(patsT,bbT)])
+                     val _ = rhss := foldl sift (!rhss) rhsT
+                  in
+                     !changed
+                  end
+               fun fetch (_,[]) = []
+                 | fetch (pat,((patT,rhsT) :: cases)) =
                   if patsIntersect (pat,patT) then
-                     (rhss := !rhss @ rhsT;
-                     case patsDifference (patT,pat) of
-                        [] => fetch cases
-                      | remPats => (
-                      TextIO.print ("group: duplicated code for " ^ (#2 (foldl (fn (p,(sep,str)) => (",",str ^ sep ^ p)) ("","") remPats)) ^"\n");
-                      (remPats,rhsT) :: fetch cases) (* here we duplicate code; TODO: generate a function containing the code instead and call it *)
-                     )
-                  else (patT,rhsT) :: fetch cases
-               val newCases = fetch cases
+                     let
+                        val remPats = patsDifference (patT,pat)
+                        val rhsMovedUp = addRhs rhsT
+                        val rhsRemains = not (null remPats)
+                        (*val _ = if rhsMovedUp  then
+                           TextIO.print ("cur pat is " ^ showPats pat ^ ", moved cases\n" ^ showCases rhsT ^ " up\n")
+                           else ()
+                        val _ = if rhsRemains  then
+                           TextIO.print ("cur pat is " ^ showPats pat ^ ", retain " ^ showPats remPats ^ "\n")
+                           else ()*)
+                        val _ = if rhsMovedUp andalso rhsRemains then
+                           TextIO.print ("group: duplicated code\n" ^ showCases rhsT ^ "\nfor patterns " ^ showPats remPats ^ "\n")
+                           else ()
+                        val _ = if (not rhsMovedUp) andalso (not rhsRemains) then
+                           TextIO.print ("group: case branch\n" ^ showCases rhsT ^ "\n is dead\n")
+                           else ()
+                        val newPat = patsDifference (pat,patT)
+                     in
+                        if rhsRemains then
+                           (remPats,rhsT) :: fetch (newPat,cases)
+                        else
+                           fetch (newPat,cases)
+                     end
+                  else (patT,rhsT) :: fetch (patsDifference (pat,patT),cases)
+               (*val _ = TextIO.print ("inspecting pattern " ^ showPats pat ^ ":\n")*)
+               val newCases = fetch (pat,cases)
             in
-               (pat, rhs @ !rhss) :: group newCases
+               (pat, !rhss) :: group newCases
             end
 
          fun splitCase (p,bb) =
@@ -1351,38 +1397,75 @@ structure SwitchReduce = struct
 end
 
 
-structure StatePassing = struct
-   val name = "statePassing"
+structure DeadSymbol = struct
+   val name = "dead-symbol"
 
    open Imp
-      
-   fun lub (ACTmonkind, _) = ACTmonkind
-     | lub (_, ACTmonkind) = ACTmonkind
-     | lub _ = PUREmonkind
-
-   fun genLub ({ current, state = s}, m, sym) = lub (m, SymMap.lookup (!s,sym))
-   fun raiseCurrent ({ current = sym, state = s},m) =
-      s := SymMap.insert (!s, sym, lub (m, SymMap.lookup (!s, sym)))
-
-   fun visitBlock s (BASICblock (decls,stmts)) = BASICblock (decls, map (visitStmt s) stmts)
    
-   and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
+   type state = { locals : SymSet.set,
+                  replace : SymbolTable.symid SymMap.map ref,
+                  referenced : SymSet.set ref }
+
+   fun refSym (s : state,sym) = 
+      if not (SymSet.member (#locals s,sym)) then
+         (#referenced s) := SymSet.add (!(#referenced s),sym)
+      else
+         ()
+
+   fun withLocals (s : state, decls : arg list) =
+      { locals = SymSet.addList (#locals s, map #2 decls),
+        replace = #replace s,
+        referenced = #referenced s
+      }
+
+   fun applyReplace (s : state,sym) = case SymMap.find (!(#replace s),sym) of
+      NONE => sym
+    | SOME sym => sym
+
+   fun addReplacement (s : state,symTo,symFrom) =
+      if SymSet.member (#locals s,symFrom) then
+         (#replace s) := SymMap.insert (!(#replace s), symFrom, applyReplace (s,symTo))
+      else
+         ()
+   
+   fun visitBlock s (BASICblock (decls,stmts)) =
+      let
+         val s = withLocals (s,decls)
+         val stmts = List.rev (map (visitStmt s) (List.rev stmts))
+         fun notReplacedDecl (t,sym) = not (SymMap.inDomain (!(#replace s),sym))
+         fun notIdentityAssign (ASSIGNstmt (SOME symTo, IDexp symFrom)) =
+               not (SymbolTable.eq_symid (symTo,symFrom))
+           | notIdentityAssign _ = true
+         val stmts = List.filter notIdentityAssign stmts
+         val decls = List.filter notReplacedDecl decls
+      in
+         BASICblock (decls, stmts)
+      end
+   
+   and visitStmt s (ASSIGNstmt (SOME symTo,exp)) = 
+      (case exp of
+         IDexp symFrom => addReplacement (s,symTo,symFrom)
+       | _ => ();
+       ASSIGNstmt (SOME (applyReplace (s,symTo)), visitExp s exp)
+      )
+     | visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
 
    and visitCase s (p,stmts) = (p, visitBlock s stmts)
    
-   and visitExp s (PRIexp (m,f,t,es)) = (raiseCurrent (s,m); PRIexp (m,f,t,map (visitExp s) es))
-     | visitExp s (CALLexp (m,sym,es)) = (raiseCurrent (s,m); CALLexp (genLub (s,m,sym), sym, map (visitExp s) es))
-     | visitExp s (INVOKEexp (m,t,e,es)) = (raiseCurrent (s,m); INVOKEexp (m,t,visitExp s e, map (visitExp s) es))
+   and visitExp s (IDexp sym) = (refSym (s,sym); IDexp (applyReplace (s,sym)))
+     | visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
+     | visitExp s (CALLexp (m,sym,es)) = (refSym (s,sym); CALLexp (m, (applyReplace (s,sym)), map (visitExp s) es))
+     | visitExp s (INVOKEexp (m,t,e,es)) = INVOKEexp (m,t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
-     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+     | visitExp s (CLOSUREexp (t,sym,es)) = (refSym (s,sym); CLOSUREexp (t,(applyReplace (s,sym)),map (visitExp s) es))
      | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b, visitExp s e)
-     | visitExp s (EXECexp e) = (raiseCurrent (s,ACTmonkind); EXECexp (visitExp s e))
+     | visitExp s (EXECexp e) = EXECexp (visitExp s e)
      | visitExp s e = e
 
    fun visitDecl s (FUNCdecl {
@@ -1393,35 +1476,24 @@ structure StatePassing = struct
         funcArgs = args,
         funcBody = body,
         funcRes = res
-      }) = FUNCdecl {
+      }) = (refSym (s,name); FUNCdecl {
         funcMonadic = monkind,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
         funcArgs = args,
-        funcBody = visitBlock { current = name, state = s} body,
+        funcBody = visitBlock s body,
         funcRes = res
-      }
+      })
      | visitDecl s d = d
 
    fun run { decls = ds, fdecls = fs } =
       let
-         fun insSymbol (FUNCdecl { funcName = name, funcMonadic = k, ... },m) = SymMap.insert (m,name, k)
-           | insSymbol (SELECTdecl { selectName = name, ... },m) = SymMap.insert (m,name, ACTmonkind)
-           | insSymbol (UPDATEdecl { updateName = name, ... },m) = SymMap.insert (m,name, ACTmonkind)
-           | insSymbol (CONdecl { conName = name, ... },m) = SymMap.insert (m,name, ACTmonkind)
-           | insSymbol (CLOSUREdecl { closureName = name, ... },m) = SymMap.insert (m,name, ACTmonkind)
-         val stateRef = ref (foldl insSymbol SymMap.empty ds)
-         fun calcFixpoint prevState ds =
-            let
-               val stateRef = ref prevState
-               val ds = map (visitDecl stateRef) ds
-               val newState = !stateRef
-               val equal = SymMap.listItems prevState = SymMap.listItems newState
-            in
-               if equal then ds else calcFixpoint newState ds
-            end
-         val ds = calcFixpoint (!stateRef) ds
+         val s = { locals = SymSet.empty,
+                   replace = ref SymMap.empty,
+                   referenced = ref SymSet.empty } : state
+         val ds = map (visitDecl s) ds
+         val ds = List.filter (fn d => SymSet.member (!(#referenced s),getDeclName d)) ds
       in
          { decls = ds, fdecls = fs }
       end
