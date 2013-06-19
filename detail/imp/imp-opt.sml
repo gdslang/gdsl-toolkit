@@ -1423,7 +1423,8 @@ structure DeadSymbol = struct
     | SOME sym => sym
 
    fun addReplacement (s : state,symTo,symFrom) =
-      if SymSet.member (#locals s,symFrom) then
+      if SymSet.member (#locals s,symFrom) andalso
+         String.isSuffix "Res" (Atom.toString (SymbolTable.getAtom(!SymbolTables.varTable, symFrom))) then
          (#replace s) := SymMap.insert (!(#replace s), symFrom, applyReplace (s,symTo))
       else
          ()

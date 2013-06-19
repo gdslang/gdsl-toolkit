@@ -181,15 +181,15 @@ structure C1 = struct
            | gN acc (#"0" :: pat) = gN (map (fn n => 2*n) acc) pat
            | gN acc (#"1" :: pat) = gN (map (fn n => 2*n+1) acc) pat
            | gN acc (_ :: pat) =
-               gN (map (fn n => 2*n) acc @ map (fn n => 2*n+1) acc) pat
+               gN (List.concat (map (fn n => [2*n,2*n+1]) acc)) pat
          fun genNums pat = gN [0] (String.explode pat)
          fun genCase num = str ("case " ^ Int.toString num ^ ":")
          fun genPat pat = seq (
                align (map genCase (genNums pat)) ::
-               [space, comment pat]
+               [space, comment ("'" ^ pat ^ "'")]
             )
       in
-         align (separate (map genPat pats, ", "))
+         align (map genPat pats)
       end
      | emitPat s (CONpat con) = str ("case " ^ getConTag con ^ ":")
      | emitPat s (INTpat i) = str ("case " ^ IntInf.toString i ^ ":")
@@ -230,7 +230,7 @@ structure C1 = struct
       ]
    
    and emitExp s (IDexp sym) = emitSym s sym
-     | emitExp s (PRIexp (m,f,t,es)) = str ""
+     | emitExp s (PRIexp (m,f,t,es)) = emitPrim s (f,es)
      | emitExp s (CALLexp (m,sym,es)) = seq (emitSym s sym :: list ("(", emitExp s, es, ")"))
      | emitExp s (INVOKEexp (m,t,e,es)) = str ""
      | emitExp s (RECORDexp fs) = str "{}"
@@ -239,7 +239,7 @@ structure C1 = struct
          fun genNum (c,acc) = 2*acc+(if c= #"1" then 1 else 0)
          val num = foldl genNum 0 (String.explode pat)
       in
-         seq [str (Int.toString num), space, comment pat]
+         seq [str (Int.toString num), space, comment ("'" ^ pat ^ "'")]
       end
      | emitExp s (LITexp (t,STRlit string)) = seq [str "\"",str string, str "\""]
      | emitExp s (LITexp (t,INTlit i)) = str (IntInf.toString i)
@@ -248,17 +248,52 @@ structure C1 = struct
          seq [str "alloc(sizeof(", emitType s (NONE,t), str "), ", emitExp s e, str ")"]
      | emitExp s (UNBOXexp (t,e)) =
          seq [str "(*((", emitType s (NONE,t), str "*) ", emitExp s e, str "))"]
+     | emitExp s (VEC2INTexp (_,PRIexp (_,SLICEprim, _, [vec,ofs,sz]))) =
+         seq [str "(", emitExp s vec, str " >> ", emitExp s ofs, str ") & ((1ul<<", emitExp s sz, str ")-1"] 
      | emitExp s (VEC2INTexp (_,UNBOXexp (_,e))) =
          seq [emitExp s e, str "->", str "vec_data"]
      | emitExp s (VEC2INTexp (_,e)) =
          seq [emitExp s e, str ".", str "vec_data"]
      | emitExp s (INT2VECexp (sz,e)) =
-         seq [str "gen_vec(", str (Int.toString sz), str ", ", emitExp s e, str ")"]
+         seq [str "(", emitType s (NONE, BITvtype), str "){",
+              str (Int.toString sz), str ", ", emitExp s e, str "}"]
      | emitExp s (CLOSUREexp (t,sym,es)) = 
          seq ([str "closure("] @ separate (emitSym s sym :: map (emitExp s) es, ",") @ [str ")"])
      | emitExp s (STATEexp (b,e)) = str ""
      | emitExp s (EXECexp e) = seq [emitExp s e, str "()"]
 
+   and emitPrim s (GETSTATEprim, []) = str "s->state"
+     | emitPrim s (SETSTATEprim, [e]) = seq [str "s->state = ", emitExp s e]
+     | emitPrim s (IPGETprim, []) = str "(s->ip - s->base)"
+     | emitPrim s (CONSUME8prim, []) = str "*((uint8_t*) state->ip)++"
+     | emitPrim s (CONSUME16prim, []) = str "*((uint16_t*) state->ip)++"
+     | emitPrim s (CONSUME32prim, []) = str "*((uint32_t*) state->ip)++"
+     | emitPrim s (UNCONSUME8prim, []) = str "((uint8_t*) state->ip)--"
+     | emitPrim s (UNCONSUME16prim, []) = str "((uint16_t*) state->ip)--"
+     | emitPrim s (UNCONSUME32prim, []) = str "((uint32_t*) state->ip)--"
+     | emitPrim s (PRINTLNprim, [e]) = seq [str "printf(\"%s\",", emitExp s e, str ")"]
+     | emitPrim s (RAISEprim, [e]) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0);"]
+     | emitPrim s (ANDprim, [e1,e2]) = seq [str "(", emitExp s e1, str "&", emitExp s e2, str ")"]
+     | emitPrim s (ORprim, [e1,e2]) = seq [str "(", emitExp s e1, str "&", emitExp s e2, str ")"]
+     | emitPrim s (SIGNEDprim, [e]) = seq [str "signed(", emitExp s e, str ")"]
+     | emitPrim s (UNSIGNEDprim, [e]) = seq [str "unsigned(", emitExp s e, str ")"]
+     | emitPrim s (ADDprim, [e1,e2]) = seq [str "(", emitExp s e1, str "+", emitExp s e2, str ")"]
+     | emitPrim s (SUBprim, [e1,e2]) = seq [str "(", emitExp s e1, str "-", emitExp s e2, str ")"]
+     | emitPrim s (EQprim, [e1,e2]) = seq [str "(", emitExp s e1, str "=", emitExp s e2, str ")"]
+     | emitPrim s (MULprim, [e1,e2]) = seq [emitExp s e1, str "*", emitExp s e2]
+     | emitPrim s (LTprim, [e1,e2]) = seq [str "(", emitExp s e1, str "<", emitExp s e2, str ")"]
+     | emitPrim s (LEprim, [e1,e2]) = seq [str "(", emitExp s e1, str "<=", emitExp s e2, str ")"]
+     | emitPrim s (NOT_VECprim, [e]) = seq [str "(~", emitExp s e, str ")"]
+     | emitPrim s (EQ_VECprim, [e1,e2]) = seq [str "vec_eq(", emitExp s e1, str ",", emitExp s e2, str ")"] 
+     | emitPrim s (CONCAT_VECprim, [e1,e2]) = seq [str "vec_concat(", emitExp s e1, str ",", emitExp s e2, str ")"] 
+     | emitPrim s (INT_TO_STRINGprim, [e]) = seq [str "int_to_string(", emitExp s e, str ")"]
+     | emitPrim s (BITVEC_TO_STRINGprim, [e]) = seq [str "vec_to_string(", emitExp s e, str ")"]
+     | emitPrim s (CONCAT_STRINGprim, [e1,e2]) = seq [str "string_concat(", emitExp s e1, str ",", emitExp s e2, str ")"]
+     | emitPrim s (SLICEprim, [vec,ofs,sz]) = seq [str "(", emitType s (NONE, BITvtype), str "){ ", emitExp s sz, str ", (", emitExp s vec, str " >> ", emitExp s ofs, str ") & ((1ul<<", emitExp s sz, str ")-1 }"] 
+     | emitPrim s (GET_CON_IDXprim, [e]) = seq [str "((con_t*) ", emitExp s e , str ")->tag"]
+     | emitPrim s (GET_CON_ARGprim, [e]) = seq [str "((con_t*) ", emitExp s e , str ")->payload"]
+     | emitPrim s _ = raise CodeGenBug
+     
    fun emitDecl s (FUNCdecl {
         funcMonadic = monkind,
         funcClosure = clArgs,
