@@ -587,7 +587,11 @@ main:
 #
 #xchg %r8, %rsp
 
-cmovz %eax, %ebx
+#cmovz %eax, %ebx
+
+#jmp %rax
+
+add %rax, (%rbx)
 
 
 #call %r8	

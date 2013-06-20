@@ -345,10 +345,16 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 		case RREIL_STATEMENT_TYPE_LOAD: {
 			struct data address = simulator_linear_simulate(context,
 					statement->load.address->address, statement->load.address->size);
+			for (size_t i = 0; i < address.bit_length/8; ++i)
+				if(address.defined[i] != 0xff) {
+					printf("Warning: Aborting load because of undefined address bits.\n");
+					error |= SIMULATOR_ERROR_UNDEFINED_ADDRESS;
+					goto end;
+				}
+
 			uint8_t *buffer = NULL;
 			context->memory.load(&buffer, address.data, statement->load.address->size,
 					statement->load.size);
-			context_data_clear(&address);
 
 			struct data data;
 			data.data = buffer;
@@ -361,6 +367,8 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			 * Important (and ugly): data.data is still is use by the allocation
 			 */
 			free(data.defined);
+			end:
+			context_data_clear(&address);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
@@ -368,20 +376,27 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			if(data.bit_length % 8) {
 				printf("Warning: Unable to store unaligned (8 Bit) data.\n");
 				error |= SIMULATOR_ERROR_UNALIGNED_STORE;
-				goto end;
+				goto end_1;
 			}
 			for (size_t i = 0; i < data.bit_length/8; ++i)
 				if(data.defined[i] != 0xff) {
-					printf("Warning: Aborting store because of undefined bits.\n");
-					error |= SIMULATOR_ERROR_UNDEFINED_ADDRESS;
-					goto end;
+					printf("Warning: Aborting store because of undefined data bits.\n");
+					error |= SIMULATOR_ERROR_UNDEFINED_STORE;
+					goto end_1;
 				}
 			struct data address = simulator_linear_simulate(context,
 					statement->store.address->address, statement->store.address->size);
+			for (size_t i = 0; i < address.bit_length/8; ++i)
+				if(address.defined[i] != 0xff) {
+					printf("Warning: Aborting store because of undefined address bits.\n");
+					error |= SIMULATOR_ERROR_UNDEFINED_ADDRESS;
+					goto end_0;
+				}
 			context->memory.store(data.data, address.data,
 					statement->store.address->size, data.bit_length);
+			end_0:
 			context_data_clear(&address);
-			end:
+			end_1:
 			context_data_clear(&data);
 			break;
 		}

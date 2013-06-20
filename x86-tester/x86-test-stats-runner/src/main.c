@@ -80,8 +80,10 @@ static char test_instruction(struct feature_data *features,
 					insn_data->simulation_errors[0]++;
 				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_ADDRESS)
 					insn_data->simulation_errors[1]++;
-				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_BRANCH)
+				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_STORE)
 					insn_data->simulation_errors[2]++;
+				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_BRANCH)
+					insn_data->simulation_errors[3]++;
 				break;
 			}
 			case TESTER_RTYPE_EXECUTION_ERROR: {
@@ -347,9 +349,13 @@ int main(int argc, char **argv) {
 			accumulator.simulation_errors[1],
 			100 * accumulator.simulation_errors[1]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
-	printf("%lu undefined branch errors (%f%%)\n",
+	printf("%lu undefined data (to be stored) errors (%f%%)\n",
 			accumulator.simulation_errors[2],
 			100 * accumulator.simulation_errors[2]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu undefined branch errors (%f%%)\n",
+			accumulator.simulation_errors[3],
+			100 * accumulator.simulation_errors[3]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
 
 	printf("Execution errors:\n");

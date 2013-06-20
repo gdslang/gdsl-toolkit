@@ -335,6 +335,9 @@ struct data simulator_op_shl(struct data opnd1, struct data opnd2) {
 
 	end:
 
+	/*
+	 * Todo: This is wrong.
+	 */
 	simulator_op_definition_bitwise(opnd1, opnd2, &result);
 
 	return result;

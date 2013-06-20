@@ -68,7 +68,7 @@ static char map(struct stack *mappings, void *address, size_t size) {
 	page_address_size_get(&address, &size);
 
 	uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-			MAP_PRIVATE | MAP_ANONYMOUS/* | MAP_FIXED*/, 0, 0);
+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
 
 	struct mapping *mapping = (struct mapping*)malloc(sizeof(struct mapping));
 	mapping->address = mem_real;

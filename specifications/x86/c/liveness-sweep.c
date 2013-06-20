@@ -241,15 +241,21 @@ void print_results(struct context *context) {
 			context->time_opt / (double)(1000000000));
 }
 
-void print_results_latex(char *file, struct context *intra,
-		struct context *inter) {
+void print_results_latex(char *file, struct context *single,
+		struct context *intra, struct context *inter) {
 	//netstat & 15k & 86k & 1.10s & 63k & 17.43s & 26.04\% & 53k & 39.98s & 38.51\%
+	double reduction_simple = 1 - (single->lines_opt / (double)single->lines);
 	double reduction_inter = 1 - (inter->lines_opt / (double)inter->lines);
 	double reduction_intra = 1 - (intra->lines_opt / (double)intra->lines);
 
+	double fac_non = single->lines / (double)single->native_instructions;
+	double fac_single = single->lines_opt / (double)single->native_instructions;
+	double fac_inta = intra->lines_opt / (double)single->native_instructions;
+	double fac_inter = inter->lines_opt / (double)single->native_instructions;
+
 	char *symbol_sz(size_t value) {
 		if(value < 10 * 1000)
-			return "";
+			return "k";
 		if(value < 10 * 1000 * 1000)
 			return "k";
 		return "M";
@@ -257,7 +263,7 @@ void print_results_latex(char *file, struct context *intra,
 
 	size_t fit_sz(size_t value) {
 		if(value < 10 * 1000)
-			return value;
+			return (value + 500) / 1000;
 		if(value < 10 * 1000 * 1000)
 			return (value + 500) / 1000;
 		return (value + 500 * 1000) / (1000 * 1000);
@@ -286,18 +292,27 @@ void print_results_latex(char *file, struct context *intra,
 	}
 
 	printf(
-			"%s & %lu%s & %lu%s & %.2lf%s & %lu%s & %.2lf%s & %.2lf\\%% & %lu%s & %.2lf%s & %.2lf\\%% \\\\\n",
+			"%s & %lu%s & %lu%s & %.1lf%s & %.1lf & %lu%s & %.1lf%s & %.0lf\\%% & %.1f & %lu%s & %.1lf%s & %.0lf\\%% & %.1f & %lu%s & %.1lf%s & %.0lf\\%% & %.1f \\\\\n",
 			file + file_offset, fit_sz(inter->native_instructions),
 			symbol_sz(inter->native_instructions), fit_sz(inter->lines),
 			symbol_sz(inter->lines),
 			fit_t(inter->time_non_opt / (double)(1000000000)),
-			symbol_t(inter->time_non_opt / (double)(1000000000)),
+			symbol_t(inter->time_non_opt / (double)(1000000000)), fac_non,
+
+			fit_sz(single->lines_opt), symbol_sz(single->lines_opt),
+			fit_t(single->time_opt / (double)(1000000000)),
+			symbol_t(single->time_opt / (double)(1000000000)), 100 * reduction_simple,
+			fac_single,
+
 			fit_sz(intra->lines_opt), symbol_sz(intra->lines_opt),
 			fit_t(intra->time_opt / (double)(1000000000)),
 			symbol_t(intra->time_opt / (double)(1000000000)), 100 * reduction_intra,
+			fac_inta,
+
 			fit_sz(inter->lines_opt), symbol_sz(inter->lines_opt),
 			fit_t(inter->time_opt / (double)(1000000000)),
-			symbol_t(inter->time_opt / (double)(1000000000)), 100 * reduction_inter);
+			symbol_t(inter->time_opt / (double)(1000000000)), 100 * reduction_inter,
+			fac_inter);
 }
 
 char analyze(char *file, char print, enum mode mode, char cleanup,
@@ -564,21 +579,34 @@ int main(int argc, char** argv) {
 
 //	FILE *f = fopen(argv[1 + (argc == 3)], "r");
 
+	size_t count = 0;
+	double single_red_cum = 0.0d;
+	double intra_red_cum = 0.0d;
+	double inter_red_cum = 0.0d;
+
 	void run(size_t index, char print) {
 		if(options.latex) {
 			struct context inter;
 			memset(&inter, 0, sizeof(inter));
 			struct context intra;
 			memset(&intra, 0, sizeof(intra));
+			struct context single;
+			memset(&single, 0, sizeof(single));
 
 			file_bounds_set(options.files[index]);
 
+			analyze(options.files[index], print, MODE_SINGLE, options.cleanup, offset,
+					size_max, options.offset, &single);
 			analyze(options.files[index], print, MODE_DEFAULT, options.cleanup,
 					offset, size_max, options.offset, &intra);
 			analyze(options.files[index], print, MODE_CHILDREN, options.cleanup,
 					offset, size_max, options.offset, &inter);
 
-			print_results_latex(options.files[index], &intra, &inter);
+			print_results_latex(options.files[index], &single, &intra, &inter);
+
+			single_red_cum += 1 - (single.lines_opt / (double)single.lines);
+			intra_red_cum += 1 - (intra.lines_opt / (double)intra.lines);
+			inter_red_cum += 1 - (inter.lines_opt / (double)inter.lines);
 		} else {
 
 			struct context context;
@@ -593,15 +621,23 @@ int main(int argc, char** argv) {
 
 	if(options.files_length == 1) {
 		run(0, 1);
+		count = 1;
 	} else {
 		for(size_t i = 0; i < options.files_length; ++i) {
 			if(!options.latex)
 				printf("$$$$$$ File %s:\n", options.files[i]);
 			run(i, 0);
 		}
+		count = options.files_length;
 	}
 
 	free(options.files);
+
+	if(count > 1) {
+		printf("Average single reduction: %.3lf%%\n", 100*single_red_cum/count);
+		printf("Average intra reduction: %.3lf%%\n", 100*intra_red_cum/count);
+		printf("Average inter reduction: %.3lf%%\n", 100*inter_red_cum/count);
+	}
 
 //	end:
 

@@ -207,8 +207,8 @@ static void code(struct options *options) {
 
 //	__char data[] = { 0x48, 0x83, 0xc0, 0x2a };
 
-	__char data[] = { 0x48, 0x01, 0xe3 };
-
+	__char data[] = { 0x48, 0x01, 0x03 };
+//	__char data[] = { 0xff, 0xe0 };
 
 	struct tester_result result = tester_test_binary(NULL, options->fork, data,
 			sizeof(data), options->test_unused);

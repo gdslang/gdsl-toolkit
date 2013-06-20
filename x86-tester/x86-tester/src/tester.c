@@ -77,6 +77,8 @@ static void registers_x86_rreil_init(struct context *context_rreil,
 				data[i] = rand() & 0xf0;
 			else if(i < 5)
 				data[i] = rand();
+//			else if(i == 6)
+//				data[i] = 0x7f;
 			else
 				data[i] = 0;
 		}
