@@ -991,7 +991,7 @@ structure TypeRefinement = struct
       let
          val eNew = patchExp s e
          val _ = msg ("patchExp INVOKE " ^ Layout.tostring (Imp.PP.exp e) ^ "\n")
-         val (wrap, tyNew, esNew) = patchCall s (ty, visitExp s e, map (patchExp s) es)
+         val (wrap, tyNew, esNew) = patchCall s (ty,visitExp s e, map (patchExp s) es)
       in
          wrap (INVOKEexp (m, tyNew, eNew, esNew))
       end
@@ -1010,10 +1010,21 @@ structure TypeRefinement = struct
          wrap (CLOSUREexp (tyNew,sym,esNew))
       end
      | patchExp s (STATEexp (b,e)) = STATEexp (patchBlock s b, patchExp s e)
-     | patchExp s (EXECexp e) = EXECexp (patchExp s e)
+     | patchExp s (EXECexp e) =
+      let
+         val eNew = patchExp s e
+         val ty = FUNvtype (OBJvtype, false, [])
+         val sty = visitExp s e
+         val _ = msg ("patchExp EXEC " ^ Layout.tostring (Imp.PP.exp e) ^ ", expression type now " ^ showSType (inlineSType s sty) ^ "\n")
+         val (wrap, tyNew, _) = patchCall s (ty, sty, [])
+         val _ = msg ("patchExp result is " ^ Layout.tostring (Imp.PP.exp (wrap (EXECexp eNew))) ^ "\n")
+      in
+         wrap (EXECexp eNew)
+      end
    
    and patchCall s (orig,new,es) =
       let
+         val new = inlineSType s new
          val _ = msg ("patchCall of " ^ Layout.tostring (Imp.PP.vtype orig) ^ " and " ^ showSType (inlineSType s new) ^ " with args " ^ Layout.tostring (Layout.seq (Imp.PP.args ("(", Imp.PP.exp, es, ")"))) ^ "\n")
          fun genNewArgs acc (FUNvtype (vRes, vCl, vType :: vs),
                              FUNstype (sRes, sCl, sType :: ss), e :: es) =
@@ -1026,9 +1037,11 @@ structure TypeRefinement = struct
            | genNewArgs acc (v,s,e :: es) = (TextIO.print ("patchCall of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ ", next argument is " ^ Layout.tostring (Imp.PP.exp e) ^ "\n"); raise TypeOptBug)
 
       in
-        case genNewArgs [] (orig, inlineSType s new, es) of
+        case genNewArgs [] (orig, new, es) of
            (es, FUNvtype (vRes, vCl, []), FUNstype (sRes, sCl, [])) =>
-            (fn e => readWrap s (vRes, sRes, e), adjustType s (vRes, sRes), es)
+            (fn e => readWrap s (vRes, sRes, e), adjustType s (orig, new), es)
+         | ([], FUNvtype (vRes, vCl, []), OBJstype) =>
+            (fn e => readWrap s (vRes, OBJstype, e), adjustType s (orig, new), [])
          | (es, v, t) => (TextIO.print ("patchCall bad of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ ": no more args\n"); raise TypeOptBug)
      end
    fun run { decls = ds, fdecls = fs } =
@@ -1047,7 +1060,7 @@ structure TypeRefinement = struct
          val _ = map (visitDeclPrint state) ds
          (*val _ = showState state*)
          val _ = debugOn := false
-         fun patchDeclPrint state d = (msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
+         fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
          val ds = map (patchDeclPrint state) ds
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, symType state sym)) fs
       in

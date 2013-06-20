@@ -168,9 +168,9 @@ structure C1 = struct
      | emitType s (NONE, OBJvtype) = str "obj_ptr"
      | emitType s (SOME sym, OBJvtype) = seq [str "obj_ptr", space, emitSym s sym]
      | emitType s (symOpt, FUNvtype (retTy,_,argTys)) = seq (
-         emitType s (NONE,retTy) ::
-         (case symOpt of NONE => [] | SOME sym => [str "*", emitSym s sym]) @
-         list ("(",emitType s, map (fn t => (NONE,t)) argTys, ")")
+         emitType s (NONE,retTy) :: space :: str "(*" ::
+         (case symOpt of NONE => [] | SOME sym => [emitSym s sym]) @
+         list (")(",emitType s, map (fn t => (NONE,t)) argTys, ")")
       )
 
    fun emitPat s (VECpat []) = str "default:"
@@ -232,7 +232,8 @@ structure C1 = struct
    and emitExp s (IDexp sym) = emitSym s sym
      | emitExp s (PRIexp (m,f,t,es)) = emitPrim s (f,es)
      | emitExp s (CALLexp (m,sym,es)) = seq (emitSym s sym :: list ("(", emitExp s, es, ")"))
-     | emitExp s (INVOKEexp (m,t,e,es)) = str ""
+     | emitExp s (INVOKEexp (m,t,e,es)) = seq ([str "((", emitType s (NONE,t), str ") ", emitExp s e, str "->func)("] @
+         separate (seq [emitExp s e, str "->args"] :: map (emitExp s) es, ",") @ [str ")"])
      | emitExp s (RECORDexp fs) = str "{}"
      | emitExp s (LITexp (t,VEClit pat)) =
       let
@@ -283,7 +284,7 @@ structure C1 = struct
      | emitPrim s (MULprim, [e1,e2]) = seq [emitExp s e1, str "*", emitExp s e2]
      | emitPrim s (LTprim, [e1,e2]) = seq [str "(", emitExp s e1, str "<", emitExp s e2, str ")"]
      | emitPrim s (LEprim, [e1,e2]) = seq [str "(", emitExp s e1, str "<=", emitExp s e2, str ")"]
-     | emitPrim s (NOT_VECprim, [e]) = seq [str "(~", emitExp s e, str ")"]
+     | emitPrim s (NOT_VECprim, [e]) = seq [str "vec_not(", emitExp s e, str ")"]
      | emitPrim s (EQ_VECprim, [e1,e2]) = seq [str "vec_eq(", emitExp s e1, str ",", emitExp s e2, str ")"] 
      | emitPrim s (CONCAT_VECprim, [e1,e2]) = seq [str "vec_concat(", emitExp s e1, str ",", emitExp s e2, str ")"] 
      | emitPrim s (INT_TO_STRINGprim, [e]) = seq [str "int_to_string(", emitExp s e, str ")"]
