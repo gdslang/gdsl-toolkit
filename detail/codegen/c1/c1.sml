@@ -147,7 +147,9 @@ structure C1 = struct
    fun setRet (sym,s : state) =
       { names = #names s, symbols = #symbols s, ret = sym }
 
+   fun par arg = seq [str "(", arg, str ")"]
    fun list (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
+   fun fArgs args = par (separate (str "state_t* s" :: args, ","))
    fun comment cmt = seq [str "/* ", str cmt, str " */"]
 
    fun emitSym s sym = case SymMap.find (#symbols (s : state), sym) of
@@ -156,6 +158,9 @@ structure C1 = struct
 
    fun getConTag con = 
       "CON_" ^ mangleName (Atom.toString (SymbolTable.getAtom (!SymbolTables.conTable, con)))
+
+   fun getFieldTag f = 
+      "FLD_" ^ mangleName (Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)))
 
    fun emitType s (NONE, VOIDvtype) = str "void"
      | emitType s (SOME sym, VOIDvtype) = seq [str "void", space, emitSym s sym]
@@ -168,7 +173,9 @@ structure C1 = struct
      | emitType s (NONE, OBJvtype) = str "obj_ptr"
      | emitType s (SOME sym, OBJvtype) = seq [str "obj_ptr", space, emitSym s sym]
      | emitType s (symOpt, FUNvtype (retTy,_,argTys)) = seq (
-         emitType s (NONE,retTy) :: space :: str "(*" ::
+         (case retTy of FUNvtype _ => seq [str "(", emitType s (NONE,retTy), str ")"]
+                      | _ => emitType s (NONE,retTy)
+         ) :: space :: str "(*" ::
          (case symOpt of NONE => [] | SOME sym => [emitSym s sym]) @
          list (")(",emitType s, map (fn t => (NONE,t)) argTys, ")")
       )
@@ -210,7 +217,7 @@ structure C1 = struct
       else
          seq [emitSym s sym, space, str "=", space, emitExp s exp, str ";"]
      | emitStmt s (IFstmt (c,t,e)) = align [
-         seq [str "if", space, emitExp s c, space, str "{"],
+         seq [str "if", space, par (emitExp s c), space, str "{"],
          emitBlock s t,
          str "} else {",
          emitBlock s e,
@@ -234,7 +241,15 @@ structure C1 = struct
      | emitExp s (CALLexp (m,sym,es)) = seq (emitSym s sym :: list ("(", emitExp s, es, ")"))
      | emitExp s (INVOKEexp (m,t,e,es)) = seq ([str "((", emitType s (NONE,t), str ") ", emitExp s e, str "->func)("] @
          separate (seq [emitExp s e, str "->args"] :: map (emitExp s) es, ",") @ [str ")"])
-     | emitExp s (RECORDexp fs) = str "{}"
+     | emitExp s (RECORDexp fs) =
+         let
+            fun genUpdate ((field,e),res) = align [ 
+               seq [str "add_field(", str (getFieldTag field), str ",", emitExp s e, str ","],
+               indent 2 (seq [res, str ")"])
+            ]
+         in
+            foldl genUpdate (str "NULL") fs
+         end
      | emitExp s (LITexp (t,VEClit pat)) =
       let
          fun genNum (c,acc) = 2*acc+(if c= #"1" then 1 else 0)
@@ -273,7 +288,7 @@ structure C1 = struct
      | emitPrim s (UNCONSUME16prim, []) = str "((uint16_t*) state->ip)--"
      | emitPrim s (UNCONSUME32prim, []) = str "((uint32_t*) state->ip)--"
      | emitPrim s (PRINTLNprim, [e]) = seq [str "printf(\"%s\",", emitExp s e, str ")"]
-     | emitPrim s (RAISEprim, [e]) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0);"]
+     | emitPrim s (RAISEprim, [e]) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
      | emitPrim s (ANDprim, [e1,e2]) = seq [str "(", emitExp s e1, str "&", emitExp s e2, str ")"]
      | emitPrim s (ORprim, [e1,e2]) = seq [str "(", emitExp s e1, str "&", emitExp s e2, str ")"]
      | emitPrim s (SIGNEDprim, [e]) = seq [str "signed(", emitExp s e, str ")"]
