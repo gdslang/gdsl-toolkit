@@ -69,26 +69,36 @@ structure C1Templates = struct
    val header = ExpandFile.mkTemplateFromFile "detail/codegen/c1/runtime.h"
    val runtime = ExpandFile.mkTemplateFromFile "detail/codegen/c1/runtime.c"
 
-   fun expandHeader hooks =
+   fun stdHooks prefix =
+      let
+         val PREFIX = String.implode (map Char.toUpper (String.explode prefix))
+      in
+         [
+         ("I-am-a-template-so-edit-me", fn os => TextIO.output (os,
+            "/* Auto-generated file. DO NOT EDIT. */\n")),
+         ("if-guard-prefix", fn os => TextIO.output (os,
+            "#ifndef __GDSL_" ^ PREFIX ^ "_H\n#define __GDSL_" ^ PREFIX ^ "_H\n")),
+         ("end-guard-prefix", fn os => TextIO.output (os,
+            "#endif /* __GDSL_" ^ PREFIX ^ "_H */\n")),
+         ("include-prefix", fn os => TextIO.output (os,
+            "#include <gdsl_" ^ prefix ^ ".h>\n"))
+         ]
+      end
+
+   fun expandHeader prefix hooks =
       ExpandFile.expandTemplate
          {src=header,
-          dst="dis.h",
-          hooks=hooks}
+          dst="gdsl-" ^ prefix ^ ".h",
+          hooks=stdHooks prefix @ hooks}
 
-   fun expandRuntime hooks =
+   fun expandRuntime prefix hooks =
       ExpandFile.expandTemplate
          {src=runtime,
-          dst="dis.c",
-          hooks=hooks}
+          dst="gdsl-" ^ prefix ^ ".c",
+          hooks=stdHooks prefix @ hooks}
 
    fun mkPrint f os = Pretty.prettyTo(os, f())
-   fun mkPrototypesHook d = ("prototypes", mkPrint (fn () => d))
-   fun mkFunctionsHook d = ("functions", mkPrint (fn () => d))
-   fun mkConstrutorsHook d = ("constructors", mkPrint (fn () => d))
-   fun mkFieldsHook d = ("fields", mkPrint (fn () => d))
-   fun mkExportsHook d = ("exports", mkPrint (fn () => d))
-   fun mkFieldNamesHook d = ("tagnames", mkPrint (fn () => d))
-   fun mkTagNamesHook d = ("fieldnames", mkPrint (fn () => d))
+   fun mkHook (name,d) = (name, mkPrint (fn () => d))
 end
 
 structure C1 = struct
@@ -109,7 +119,7 @@ structure C1 = struct
       let
          fun tf c =
             case c of
-               #"%" => "__"
+               #"%" => ""
              | #"#" => "_"
              | #"<" => "_lt_"
              | #">" => "_gt_"
@@ -149,7 +159,7 @@ structure C1 = struct
 
    fun par arg = seq [str "(", arg, str ")"]
    fun list (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
-   fun fArgs args = par (separate (str "state_t* s" :: args, ","))
+   fun fArgs args = par (seq (separate (str "state_t* s" :: args, ",")))
    fun comment cmt = seq [str "/* ", str cmt, str " */"]
 
    fun emitSym s sym = case SymMap.find (#symbols (s : state), sym) of
@@ -281,9 +291,9 @@ structure C1 = struct
    and emitPrim s (GETSTATEprim, []) = str "s->state"
      | emitPrim s (SETSTATEprim, [e]) = seq [str "s->state = ", emitExp s e]
      | emitPrim s (IPGETprim, []) = str "(s->ip - s->base)"
-     | emitPrim s (CONSUME8prim, []) = str "*((uint8_t*) state->ip)++"
-     | emitPrim s (CONSUME16prim, []) = str "*((uint16_t*) state->ip)++"
-     | emitPrim s (CONSUME32prim, []) = str "*((uint32_t*) state->ip)++"
+     | emitPrim s (CONSUME8prim, []) = str "(s->ip_limit-s->ip>1 ? eos() : *((uint8_t*) s->ip)++)"
+     | emitPrim s (CONSUME16prim, []) = str "(s->ip_limit-s->ip>2 ? eos() : *((uint16_t*) s->ip)++)"
+     | emitPrim s (CONSUME32prim, []) = str "(s->ip_limit-s->ip>4 ? eos() : *((uint32_t*) s->ip)++)"
      | emitPrim s (UNCONSUME8prim, []) = str "((uint8_t*) state->ip)--"
      | emitPrim s (UNCONSUME16prim, []) = str "((uint16_t*) state->ip)--"
      | emitPrim s (UNCONSUME32prim, []) = str "((uint32_t*) state->ip)--"
@@ -359,7 +369,7 @@ structure C1 = struct
    fun codegen spec =
       let
          val { decls = ds, fdecls = fs } = Spec.get#declarations spec
-         
+         val prefix = "x86"
          val s = {
                names = AtomSet.empty,
                symbols = SymMap.empty,
@@ -367,20 +377,30 @@ structure C1 = struct
             } : state
 
          val s = foldl registerSymbol s (map getDeclName ds)
-         val c = map (emitDecl s) ds
-         (*val _ =
-            C1Templates.expandHeader
-               [C1Templates.mkConstrutorsHook (align constructors),
-                C1Templates.mkFieldsHook (align fields),
-                C1Templates.mkExportsHook (align externPrototypes)]
+         val funs = map (emitDecl s) ds
+         val constructors = []
+         val fields = []
+         val externPrototypes = []
+         val staticPrototypes = []
+         val constructorNames = str ""
+         val fieldNames = str ""
+
          val _ =
-            C1Templates.expandRuntime
-               [C1Templates.mkPrototypesHook (align staticPrototypes),
-                C1Templates.mkFunctionsHook (align funs),
-                C1Templates.mkTagNamesHook constructorNames,
-                C1Templates.mkFieldNamesHook fieldNames]*)
+            C1Templates.expandHeader prefix [
+               C1Templates.mkHook ("exports", align externPrototypes),
+               C1Templates.mkHook ("tagnames", constructorNames),
+               C1Templates.mkHook ("constructors", align constructors),
+               C1Templates.mkHook ("fields", align fields)
+            ]
+         val _ =
+            C1Templates.expandRuntime prefix [
+               C1Templates.mkHook ("fieldnames", fieldNames),
+               C1Templates.mkHook ("tagnames", constructorNames),
+               C1Templates.mkHook ("prototypes", align staticPrototypes),
+               C1Templates.mkHook ("functions", align funs)
+            ]
       in
-         align c
+         align funs
       end
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Imp.PP.spec spec)

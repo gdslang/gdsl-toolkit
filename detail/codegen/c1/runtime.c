@@ -1,13 +1,14 @@
 /* vim:ts=2:sw=2:expandtab */
+@I-am-a-template-so-edit-me@
 
-#include "dis.h"
+@include-prefix@
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <string.h>
 #include <setjmp.h>
-
-@fieldnames@
-
-@tagnames@
-
-@prototypes@
 
 struct state {
   char* heap_base;    /* the beginning of the heap */
@@ -37,7 +38,7 @@ static void alloc_heap(state_t* s, char* prev_page) {
   s->heap_limit = s->heap_base+size;
 };
 
-static void free_heap(state_t* s) {
+void gdsl_reset_heap(state_t* s) {
   char* heap = s->heap_base;
   while (heap!=NULL) {
     char* prev = *((char**) heap->base);
@@ -46,6 +47,10 @@ static void free_heap(state_t* s) {
   }
 };
 
+static void eos(state_t* s) {
+    s->err_str = "GDSL runtime: end of code input stream";
+    longjmp(s->err_tgt,0);
+}
 static void* inline alloc(state_t* s, unsigned int bytes) {
   bytes = ((bytes+7)>>3)<<3;    /* align to multiple of 8 */
   if (s->heap+bytes >= s->heap_limit) alloc_heap(s, s->heap_base);
@@ -55,6 +60,7 @@ static void* inline alloc(state_t* s, unsigned int bytes) {
 };
 
 typedef uint64_t vec_data_t;
+typedef int64_t int_t;
 
 struct vec {
   unsigned int size;
@@ -72,23 +78,23 @@ struct con {
 
 typedef struct con con_t;
 
-static int signed(state_t* s, vec_t v) {
-  int int_bitsize = sizeof(int)*4;
+static int_t signed(state_t* s, vec_t v) {
+  int int_bitsize = sizeof(int_t)*8;
   if (v.size>int_bitsize-1) {
     s->err_str = "GDSL runtime: signed applied to very long vector";
     longjmp(s->err_tgt,1);
   };
   int bits_to_fill = int_bit_size-v.size;
-  return (((int) v.data) << bits_to_fill) >> bits_to_fill;
+  return (((int_t) v.data) << bits_to_fill) >> bits_to_fill;
 }
 
-static int unsigned(state_t* s, vec_t v) {
-  int int_bitsize = sizeof(int)*4;
+static int_t unsigned(state_t* s, vec_t v) {
+  int int_bitsize = sizeof(int_t)*8;
   if (v.size>int_bitsize-1) {
     s->err_str = "GDSL runtime: unsigned applied to very long vector";
     longjmp(s->err_tgt,1);
   };
-  return (int) v.data;
+  return (int_t) v.data;
 }
 
 static inline vec_t vec_not(state_t* s, vec_t v) {
@@ -104,9 +110,9 @@ static inline vec_t vec_concat(state_t* s, vec_t v1, vec_t v2) {
   return (vec_t){ v1.size+v2.size, v1.data << v2.size | v2.data };
 }
 
-static inline obj_ptr int_to_string(state_t* s, int v) {
-  char* str = alloc(s, 16);
-  sprintf(str,"%d",v);
+static inline obj_ptr int_to_string(state_t* s, int_t v) {
+  char* str = alloc(s, 24);
+  sprintf(str,"%ld",v);
   return str;
 };
 
@@ -119,7 +125,7 @@ static obj_ptr vec_to_string(state_t* s, vec_t v) {
   return res;
 }
 
-static inline string_concat(state_t* s, obj_ptr s1, obj_ptr s2) {
+static inline char* string_concat(state_t* s, obj_ptr s1, obj_ptr s2) {
   char* str1 = s1;
   char* str2 = s2;
   int len = strlen(s1)+strlen(s2);
@@ -129,6 +135,28 @@ static inline string_concat(state_t* s, obj_ptr s1, obj_ptr s2) {
   return res;
 }
 
+state_t* gdsl_init() {
+  state_t* s = calloc(sizeof(state_t));
+  alloc_heap(s,NULL);
+  return s;
+}
+
+void gdsl_set_code(state_t* s, char* buf, size_t buf_len, uint64_t base) {
+  s->ip = buf;
+  s->ip_limit = buf+buf_len;
+  s->ip_base = s->ip-base;
+}
+
+void gdsl_destroy(state_t* s) {
+  gdsl_reset_heap(s);
+  free(s);
+}
+
+@fieldnames@
+
+@tagnames@
+
+@prototypes@
 
 #ifdef WITHMAIN
 

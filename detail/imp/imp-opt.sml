@@ -398,7 +398,7 @@ structure Simplify = struct
 end
 
 structure TypeRefinement = struct
-   val name = "typeRefinement"
+   val name = "type-refinement"
 
    open Imp
    
@@ -868,7 +868,7 @@ structure TypeRefinement = struct
                handle ListPair.UnequalLengths =>
                   (TextIO.print ("adjustType of " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (rOrig,clOrig,argsOrig))) ^ " and " ^ showSType (FUNstype (r,cl,args)) ^ ", unequal length\n"); raise TypeOptBug)
           )
-        | t => OBJvtype
+        | t => FUNvtype (rOrig,clOrig,argsOrig)
       )
      | adjustType s (t,_) = t
 
@@ -1447,11 +1447,17 @@ structure DeadSymbol = struct
          val s = withLocals (s,decls)
          val stmts = List.rev (map (visitStmt s) (List.rev stmts))
          fun notReplacedDecl (t,sym) = not (SymMap.inDomain (!(#replace s),sym))
+         fun notVoid (VOIDvtype,_) = false
+           | notVoid (_,_) = true
          fun notIdentityAssign (ASSIGNstmt (SOME symTo, IDexp symFrom)) =
                not (SymbolTable.eq_symid (symTo,symFrom))
            | notIdentityAssign _ = true
+         fun notVoidAssign (ASSIGNstmt (NONE, IDexp _)) = false
+           | notVoidAssign _ = true
          val stmts = List.filter notIdentityAssign stmts
+         val stmts = List.filter notVoidAssign stmts
          val decls = List.filter notReplacedDecl decls
+         val decls = List.filter notVoid decls
       in
          BASICblock (decls, stmts)
       end
