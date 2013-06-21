@@ -8,7 +8,7 @@ structure Imp = struct
    (* types of values *)
    datatype vtype =
          VOIDvtype
-       | BITvtype
+       | VECvtype
        | INTvtype
        | STRINGvtype
        | OBJvtype
@@ -198,7 +198,7 @@ structure Imp = struct
       fun args (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
       fun vtype VOIDvtype = str "void"
         | vtype OBJvtype = str "obj"
-        | vtype BITvtype = str "bitvec"
+        | vtype VECvtype = str "bitvec"
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
         | vtype (FUNvtype (res, cl, atys)) =

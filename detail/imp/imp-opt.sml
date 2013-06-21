@@ -142,39 +142,42 @@ structure ActionClosures = struct
       SOME mon => true
     | NONE => SymSet.member (#monVars s, sym)
 
-   fun getMonBlock ds (BASICblock (decls,stmts)) =
+   fun getMonBlock (declSyms,execSyms) (BASICblock (decls,stmts)) =
       let
-         val ds = SymSet.union (ds, SymSet.fromList (map #2 decls))
+         val declSyms = SymSet.union (declSyms, SymSet.fromList (map #2 decls))
          (*val _ = TextIO.print ("declared vars:" ^ foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" (SymSet.listItems ds) ^ "\n")*)
       in
-         foldl SymSet.union SymSet.empty (map (getMonStmt ds) stmts)
+         foldl (fn (stmt,execSyms) => getMonStmt (declSyms,execSyms) stmt) execSyms (List.rev stmts)
       end
    
-   and getMonStmt ds (ASSIGNstmt (res,exp)) = getMonExp ds exp
+   and getMonStmt (declSyms,execSyms) (ASSIGNstmt (SOME symL,IDexp symR)) =
+         if SymSet.member (execSyms,symL) then SymSet.add (execSyms, symR) else execSyms
+     | getMonStmt ds (ASSIGNstmt (res,exp)) = getMonExp ds exp
      | getMonStmt ds (IFstmt (c,t,e)) = SymSet.union (getMonBlock ds t, getMonBlock ds e)
-     | getMonStmt ds (CASEstmt (e,ps)) = foldl SymSet.union (getMonExp ds e) (map (getMonCase ds) ps)
+     | getMonStmt (declSyms,execSyms) (CASEstmt (e,ps)) =
+         foldl (fn (p,execSyms) => getMonCase (declSyms,execSyms) p) (getMonExp (declSyms,execSyms) e) ps
 
    and getMonCase ds (p,stmts) = getMonBlock ds stmts
    
-   and getMonExp ds (IDexp sym) = SymSet.empty
-     | getMonExp ds (PRIexp (m,f,t,es)) = foldl SymSet.union SymSet.empty (map (getMonExp ds) es)
-     | getMonExp ds (CALLexp (m,sym,es)) = foldl SymSet.union SymSet.empty (map (getMonExp ds) es)
-     | getMonExp ds (INVOKEexp (m,t,e,es)) = foldl SymSet.union (getMonExp ds e) (map (getMonExp ds) es)
-     | getMonExp ds (RECORDexp fs) = foldl SymSet.union SymSet.empty (map (getMonExp ds o #2) fs)
-     | getMonExp ds (LITexp l) = SymSet.empty
+   and getMonExp (declSyms,execSyms) (IDexp sym) = execSyms
+     | getMonExp (declSyms,execSyms) (PRIexp (m,f,t,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
+     | getMonExp (declSyms,execSyms) (CALLexp (m,sym,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
+     | getMonExp (declSyms,execSyms) (INVOKEexp (m,t,e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
+     | getMonExp (declSyms,execSyms) (RECORDexp fs) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) execSyms fs
+     | getMonExp (declSyms,execSyms) (LITexp l) = execSyms
      | getMonExp ds (BOXexp (t,e)) = getMonExp ds e
      | getMonExp ds (UNBOXexp (t,e)) = getMonExp ds e
      | getMonExp ds (VEC2INTexp (sz,e)) = getMonExp ds e
      | getMonExp ds (INT2VECexp (sz,e)) = getMonExp ds e
-     | getMonExp ds (CLOSUREexp (t,sym,es)) = foldl SymSet.union SymSet.empty (map (getMonExp ds) es)
-     | getMonExp ds (STATEexp (BASICblock (decls,stmts),e)) =
+     | getMonExp (declSyms,execSyms) (CLOSUREexp (t,sym,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
+     | getMonExp (declSyms,execSyms) (STATEexp (BASICblock (decls,stmts),e)) =
       let
-         val ds = SymSet.union (ds, SymSet.fromList (map #2 decls))
+         val declSyms = SymSet.union (declSyms, SymSet.fromList (map #2 decls))
       in
-         foldl SymSet.union (getMonExp ds e) (map (getMonStmt ds) stmts)
+         foldl (fn (stmt,execSyms) => getMonStmt (declSyms,execSyms) stmt) (getMonExp (declSyms,execSyms) e) (List.rev stmts)
       end
-     | getMonExp ds (EXECexp (IDexp sym)) =
-      if SymSet.member (ds,sym) then SymSet.singleton sym else SymSet.empty
+     | getMonExp (declSyms,execSyms) (EXECexp (IDexp sym)) =
+      if SymSet.member (declSyms,sym) then SymSet.add (execSyms, sym) else execSyms
      | getMonExp ds (EXECexp e) = getMonExp ds e
 
    fun visitBlock s (BASICblock (decls,stmts)) =
@@ -256,7 +259,7 @@ structure ActionClosures = struct
         funcRes = res
       }) =
       let
-         val execSyms = getMonBlock (SymSet.singleton res) body
+         val execSyms = getMonBlock (SymSet.singleton res, SymSet.empty) body
          (*val _ = TextIO.print ("action, decl " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^
             " has exec syms" ^ foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" (SymSet.listItems execSyms) ^ "\n")*)
          val body' = visitBlock (addMonSyms (s,execSyms)) body
@@ -527,12 +530,15 @@ structure TypeRefinement = struct
    
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
-         (*val _ = if t1=VARstype 18420 orelse t2=VARstype 18420 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
-         
+         (*val _ = if t1=VARstype 49229 orelse t2=VARstype 49229 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
+         (*val _ = if t1=VARstype 49217 orelse t2=VARstype 49217 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()
+         val _ = if t1=VARstype 49215 orelse t2=VARstype 49215 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
+         val _ = msg ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n")
          val iter = ref 0
          fun lub (VARstype x, VARstype y) =
             if x=y then VARstype x else
             let
+               (*val _ = if x=49229 orelse y=49229 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
                val xRoot = find (tt,x)
                val yRoot = find (tt,y)
                val _ = iter := (!iter) + 1
@@ -609,6 +615,7 @@ structure TypeRefinement = struct
        | NONE =>
          let
             val idx = DynamicArray.bound tt + 1
+            (*val _ = if SymbolTable.toInt sym=422 then debugOn := true else ()*)
             val _ = msg ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")
             (*val _ = if idx=18420 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
@@ -648,7 +655,7 @@ structure TypeRefinement = struct
       end
 
    fun vtypeToStype s VOIDvtype = VOIDstype
-     | vtypeToStype s BITvtype = BITstype (OBJstype)
+     | vtypeToStype s VECvtype = BITstype (OBJstype)
      | vtypeToStype s INTvtype = INTstype
      | vtypeToStype s STRINGvtype = STRINGstype
      | vtypeToStype s OBJvtype = OBJstype
@@ -690,19 +697,21 @@ structure TypeRefinement = struct
             val (SOME decl) = SymMap.find (#origDecls (s : state), sym)
             val (CLOSUREdecl {
                     closureName = name,
-                    closureArgs = tsCl,
+                    closureArgs = _,
                     closureDelegate = del,
-                    closureDelArgs = ts
+                    closureDelArgs = delArgs
                  }) = decl
-            val stypesCl = map (visitExp s) es
-            val stypes = map (fn (_,arg) => symType s arg) ts
-            val resVar = freshTVar s
-            val clVar = if List.null es then freshTVar s else OBJstype
-            val _ = lub (s,symType s del,  FUNstype (resVar, clVar, stypesCl @ stypes))
-            val _ = lub (s,symType s name, FUNstype (resVar, clVar, stypesCl))
+            val clTysS = map (visitExp s) es
+            val delTysS = map (fn (_,arg) => symType s arg) delArgs
+            val resTy = freshTVar s
+            val returnTy = freshTVar s
+            val isCl = if List.null es then freshTVar s else OBJstype
+            val t = lub (s,returnTy, FUNstype (resTy, isCl, delTysS))
+            val _ = lub (s,symType s name, FUNstype (returnTy, isCl, clTysS))
+            val _ = lub (s,symType s del,  FUNstype (resTy, isCl, clTysS @ delTysS))
             val _ = msg ("CLOSURE: looking for symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showSType (inlineSType s (symType s name)) ^ "\n")
          in
-           FUNstype (resVar, clVar, stypes)
+           returnTy
          end
      | visitExp s (STATEexp (b,e)) =
       let
@@ -717,7 +726,7 @@ structure TypeRefinement = struct
      | visitExp s (EXECexp e) =
       let
          val resVar = freshTVar s
-         val _ = lub (s,visitExp s e, FUNstype (resVar, VOIDstype, []))
+         val _ = lub (s,visitExp s e, FUNstype (resVar, freshTVar s, []))
       in
          resVar
       end
@@ -725,7 +734,7 @@ structure TypeRefinement = struct
    and visitCall s (fTy,args) =
       let
          val resTy = freshTVar s
-         val isCl = if null args then VOIDstype else OBJstype
+         val isCl = if null args then freshTVar s else OBJstype
          val _ = lub (s,FUNstype (resTy,isCl,map (visitExp s) args),fTy)
       in
          resTy
@@ -770,13 +779,17 @@ structure TypeRefinement = struct
      | visitDecl s (CLOSUREdecl {
         closureName = name,
         closureArgs = clTys,
-        closureDelegate = _,
-        closureDelArgs = args
+        closureDelegate = del,
+        closureDelArgs = delArgs
      }) =
       let
          val _ = msg ("visitDecl CLOSURE: type before: " ^ showSType (inlineSType s (symType s name)) ^ "\n")
-         val isCl = if null clTys then VOIDstype else OBJstype
-         val t = lub (s, symType s name, FUNstype (freshTVar s, isCl, map (fn _ => VOIDstype) clTys))
+         val isCl = if null clTys then freshTVar s else OBJstype
+         val resTy = freshTVar s
+         val clTysS = map (fn _ => freshTVar s) clTys
+         val delTysS = map (symType s o #2) delArgs
+         val t = lub (s, symType s name, FUNstype (FUNstype (resTy, isCl, delTysS), isCl, clTysS))
+         val _ = lub (s, symType s del, FUNstype (resTy,isCl,clTysS @ delTysS))
          val _ = msg ("visitDecl CLOSURE: type before: " ^ showSType (inlineSType s (symType s name)) ^ "\n")
       in
          t
@@ -823,9 +836,8 @@ structure TypeRefinement = struct
 
    fun readWrap s (OBJvtype,t,e) = (case inlineSType s t of
           (BOXstype INTstype) => BOXexp (INTvtype,e)
-        | (BOXstype (BITstype (CONSTstype s))) => BOXexp (BITvtype, INT2VECexp (s,e))
-        | (BOXstype (BITstype _)) => BOXexp (BITvtype, e)
-        (*| (MONADstype t) => STATEexp (BASICblock ([],[]), readWrap s (OBJvtype, t, e))*)
+        | (BOXstype (BITstype (CONSTstype s))) => BOXexp (VECvtype, INT2VECexp (s,e))
+        | (BOXstype (BITstype _)) => BOXexp (VECvtype, e)
         | _ => e
        )
      | readWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
@@ -836,9 +848,8 @@ structure TypeRefinement = struct
 
    and writeWrap s (OBJvtype,t,e) = (case inlineSType s t of
           (BOXstype INTstype) => UNBOXexp (INTvtype,e)
-        | (BOXstype (BITstype (CONSTstype s))) => VEC2INTexp (SOME s,UNBOXexp (BITvtype, e))
-        | (BOXstype (BITstype _)) => UNBOXexp (BITvtype, e)
-        (*| (MONADstype t) => writeWrap s (OBJvtype, t, EXECexp e)*)
+        | (BOXstype (BITstype (CONSTstype s))) => VEC2INTexp (SOME s,UNBOXexp (VECvtype, e))
+        | (BOXstype (BITstype _)) => UNBOXexp (VECvtype, e)
         | _ => e
        )
      | writeWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
@@ -850,14 +861,13 @@ structure TypeRefinement = struct
    and adjustType s (OBJvtype,t) = (case inlineSType s t of
           (BOXstype INTstype) => INTvtype
         | (BOXstype (BITstype (CONSTstype _))) => INTvtype
-        | (BOXstype (BITstype _)) => BITvtype
+        | (BOXstype (BITstype _)) => VECvtype
         | (BOXstype _) => OBJvtype
         | (BITstype (CONSTstype _)) => INTvtype
-        | (BITstype _) => BITvtype
+        | (BITstype _) => VECvtype
         | (VOIDstype) => VOIDvtype
         | (STRINGstype) => STRINGvtype
         | (OBJstype) => OBJvtype
-        (*| (MONADstype t) => adjustType s (OBJvtype, t)*)
         | (FUNstype (r,cl,args)) =>
             FUNvtype (adjustType s (OBJvtype, r), cl=OBJstype, map (fn arg => adjustType s (OBJvtype, arg)) args)
         | t => (TextIO.print ("adjustType of " ^ showSType t ^ "\n"); raise TypeOptBug)
@@ -1248,7 +1258,7 @@ structure SwitchReduce = struct
          fun slice (low,high,e) =
             let
                val noOfBits = high-low+1
-               val sliceType = FUNvtype (BITvtype, false, [INTvtype, INTvtype, INTvtype])
+               val sliceType = FUNvtype (VECvtype, false, [INTvtype, INTvtype, INTvtype])
                fun lit x = LITexp (INTvtype, INTlit (IntInf.fromInt x))
             in
                (noOfBits,
@@ -1258,14 +1268,14 @@ structure SwitchReduce = struct
          fun conc (size1,e1) (size2,e2) =
             let
                val noOfBits = size1+size2
-               val concType = FUNvtype (BITvtype, false, [BITvtype, BITvtype])
+               val concType = FUNvtype (VECvtype, false, [VECvtype, VECvtype])
             in
                (noOfBits,
                 VEC2INTexp (SOME noOfBits,
                   PRIexp (PUREmonkind, CONCAT_VECprim, concType,
                      [INT2VECexp (size1,e1), INT2VECexp (size2,e2)])))
             end
-         fun genSlice [] scrut = (0, LITexp (BITvtype, VEClit ""))
+         fun genSlice [] scrut = (0, LITexp (VECvtype, VEClit ""))
            | genSlice [(low,high)] scrut = slice (low,high,scrut)
            | genSlice ((low,high) :: ranges) scrut =
             conc (slice (low,high,scrut)) (genSlice ranges scrut)

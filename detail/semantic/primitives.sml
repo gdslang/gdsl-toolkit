@@ -296,25 +296,25 @@ structure Primitives = struct
          fun pr (prim,ty,args) = PRIexp (PUREmonkind, prim, ty, args)
          fun action e = STATEexp (BASICblock ([],[]), e)
          fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
-         fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (BITvtype, arg))) args
-         fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (BITvtype, arg))) args
-         fun unboxV args = map (fn arg => UNBOXexp (BITvtype, arg)) args
+         fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (VECvtype, arg))) args
+         fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (VECvtype, arg))) args
+         fun unboxV args = map (fn arg => UNBOXexp (VECvtype, arg)) args
          fun boxI arg = BOXexp (INTvtype, arg)
-         fun boxV1 arg = BOXexp (BITvtype, INT2VECexp (1,arg))
-         fun boxV8 arg = BOXexp (BITvtype, INT2VECexp (8,arg))
-         fun boxV16 arg = BOXexp (BITvtype, INT2VECexp (16,arg))
-         fun boxV32 arg = BOXexp (BITvtype, INT2VECexp (32,arg))
-         fun boxV arg = BOXexp (BITvtype, arg)
+         fun boxV1 arg = BOXexp (VECvtype, INT2VECexp (1,arg))
+         fun boxV8 arg = BOXexp (VECvtype, INT2VECexp (8,arg))
+         fun boxV16 arg = BOXexp (VECvtype, INT2VECexp (16,arg))
+         fun boxV32 arg = BOXexp (VECvtype, INT2VECexp (32,arg))
+         fun boxV arg = BOXexp (VECvtype, arg)
          fun ftype args res = FUNvtype (res, false, args)
          val iii = ftype [INTvtype, INTvtype] INTvtype
-         val vvv = ftype [BITvtype, BITvtype] BITvtype
+         val vvv = ftype [VECvtype, VECvtype] VECvtype
          val sv =  ftype [STRINGvtype] VOIDvtype
-         val bi = ftype [BITvtype] INTvtype
-         val iib = ftype [INTvtype, INTvtype] BITvtype
-         val bb = ftype [BITvtype] BITvtype
+         val bi = ftype [VECvtype] INTvtype
+         val iib = ftype [INTvtype, INTvtype] VECvtype
+         val bb = ftype [VECvtype] VECvtype
          val is = ftype [INTvtype] STRINGvtype
-         val bs = ftype [BITvtype] STRINGvtype
-         val iiib = ftype [INTvtype, INTvtype, INTvtype] BITvtype
+         val bs = ftype [VECvtype] STRINGvtype
+         val iiib = ftype [INTvtype, INTvtype, INTvtype] VECvtype
          val ov = ftype [OBJvtype] VOIDvtype
          val oi = ftype [OBJvtype] INTvtype
          val oo = ftype [OBJvtype] OBJvtype

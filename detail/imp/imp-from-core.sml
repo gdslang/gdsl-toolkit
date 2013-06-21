@@ -279,7 +279,7 @@ end = struct
          val tBlock = trBlock s t
          val eBlock = trBlock s e
       in
-         (cStmts @ [IFstmt (VEC2INTexp (SOME 1,UNBOXexp (BITvtype,cExp)), tBlock, eBlock)], IDexp res)
+         (cStmts @ [IFstmt (VEC2INTexp (SOME 1,UNBOXexp (VECvtype,cExp)), tBlock, eBlock)], IDexp res)
       end
      | trExpr s (Exp.CASE (e, [(Core.Pat.BIT "........", e')])) = trExpr s e'
      | trExpr s (Exp.CASE (e, [(Core.Pat.BIT "................", e')])) = trExpr s e'
@@ -295,7 +295,7 @@ end = struct
             in
                case fields of
                   [] => convertScrut (e, cs)
-                | (f::_) => VEC2INTexp (SOME (String.size f),UNBOXexp (BITvtype,e))
+                | (f::_) => VEC2INTexp (SOME (String.size f),UNBOXexp (VECvtype,e))
             end
            | convertScrut (e, (Core.Pat.INT _,_) :: _) = UNBOXexp (INTvtype,e)
            | convertScrut (e, (Core.Pat.CON (sym,_),_) :: _) = get_con_idx e
@@ -417,7 +417,7 @@ end = struct
      | trExpr s (Exp.LIT (SpecAbstractTree.STRlit str)) =
          ([], LITexp (STRINGvtype,STRlit str))
      | trExpr s (Exp.LIT (SpecAbstractTree.VEClit v)) =
-         ([], BOXexp (BITvtype, INT2VECexp (String.size v, LITexp (INTvtype, (VEClit v)))))
+         ([], BOXexp (VECvtype, INT2VECexp (String.size v, LITexp (INTvtype, (VEClit v)))))
      | trExpr s (Exp.LIT (SpecAbstractTree.FLTlit _)) =
          raise ImpTranslationBug
      | trExpr s (Exp.CON sym) =
