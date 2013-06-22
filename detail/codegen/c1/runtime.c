@@ -2,7 +2,6 @@
 @I-am-a-template-so-edit-me@
 
 @include-prefix@
-#include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdarg.h>
@@ -14,7 +13,7 @@ struct state {
   char* heap_base;    /* the beginning of the heap */
   char* heap_limit;   /* first byte beyond the heap buffer */
   char* heap;         /* current top of the heap */
-  obj_ptr state;      /* a heap pointer to the current monadic state */
+  obj_t state;      /* a heap pointer to the current monadic state */
   char* ip_base;      /* beginning of code buffer */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
@@ -22,10 +21,7 @@ struct state {
   jmp_buf err_tgt;    /* the position of the exception handler */
 };
 
-
-typedef struct state state_t;
-
-static void alloc_heap(state_t* s, char* prev_page) {
+static void alloc_heap(state_t s, char* prev_page) {
   unsigned int size = 4096;
   s->heap_base = malloc(size);
   if (s->heap_base==NULL) {
@@ -38,20 +34,16 @@ static void alloc_heap(state_t* s, char* prev_page) {
   s->heap_limit = s->heap_base+size;
 };
 
-void gdsl_reset_heap(state_t* s) {
+void gdsl_reset_heap(state_t s) {
   char* heap = s->heap_base;
   while (heap!=NULL) {
-    char* prev = *((char**) heap->base);
+    char* prev = *((char**) heap);
     free (heap);
     heap = prev;
   }
 };
 
-static void eos(state_t* s) {
-    s->err_str = "GDSL runtime: end of code input stream";
-    longjmp(s->err_tgt,0);
-}
-static void* inline alloc(state_t* s, unsigned int bytes) {
+static inline void* alloc(state_t s, size_t bytes) {
   bytes = ((bytes+7)>>3)<<3;    /* align to multiple of 8 */
   if (s->heap+bytes >= s->heap_limit) alloc_heap(s, s->heap_base);
   char* res = s->heap;
@@ -59,8 +51,22 @@ static void* inline alloc(state_t* s, unsigned int bytes) {
   return res; 
 };
 
-typedef uint64_t vec_data_t;
+#define GEN_ALLOC(type) \
+static inline type ## _t* alloc_ ## type (state_t s, type ## _t v) { \
+  type ## _t* res = alloc(s, sizeof(type ## _t));\
+  *res = v;\
+  return res;\
+}
+
 typedef int64_t int_t;
+
+GEN_ALLOC(int);
+
+typedef char* string_t;
+
+#define alloc_string(s,str) str
+
+typedef uint64_t vec_data_t;
 
 struct vec {
   unsigned int size;
@@ -69,26 +75,58 @@ struct vec {
 
 typedef struct vec vec_t;
 
+GEN_ALLOC(vec);
+
 typedef unsigned int con_tag_t;
 
-struct con {
-  con_tag_t tag;
-  char* payload;
+#define GEN_CON_STRUCT(type)  \
+struct con_ ## type {         \
+  con_tag_t tag;              \
+  type ## _t payload;         \
+};                            \
+                              \
+typedef struct con_ ## type  con_ ## type ## _t
+
+GEN_CON_STRUCT(obj);
+GEN_ALLOC(con_obj);
+GEN_CON_STRUCT(int);
+GEN_ALLOC(con_int);
+GEN_CON_STRUCT(vec);
+GEN_ALLOC(con_vec);
+
+#define slice(vec_data,ofs,sz) ((vec_data >> sz) & ((1ul << ofs)-1))
+#define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
+
+
+static int_t eos(state_t s) {
+  s->err_str = "GDSL runtime: end of code input stream";
+  longjmp(s->err_tgt,0);
+  return 0;
 };
 
-typedef struct con con_t;
+#define GEN_CONSUME(size)                                 \
+static inline int_t consume ## size(state_t s) {          \
+  uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;  \
+  int_t res = (unsigned) *ptr;                            \
+  s->ip+=size >> 3;                                       \
+  return res;                                             \
+}
 
-static int_t signed(state_t* s, vec_t v) {
-  int int_bitsize = sizeof(int_t)*8;
-  if (v.size>int_bitsize-1) {
+GEN_CONSUME(8);
+GEN_CONSUME(16);
+GEN_CONSUME(32);
+
+static int_t vec_to_signed(state_t s, vec_t v) {
+  int bit_size = sizeof(int_t)*8;
+  if (v.size>bit_size-1) {
     s->err_str = "GDSL runtime: signed applied to very long vector";
     longjmp(s->err_tgt,1);
   };
-  int bits_to_fill = int_bit_size-v.size;
+  int bits_to_fill = bit_size-v.size;
   return (((int_t) v.data) << bits_to_fill) >> bits_to_fill;
 }
 
-static int_t unsigned(state_t* s, vec_t v) {
+static int_t vec_to_unsigned(state_t s, vec_t v) {
   int int_bitsize = sizeof(int_t)*8;
   if (v.size>int_bitsize-1) {
     s->err_str = "GDSL runtime: unsigned applied to very long vector";
@@ -97,57 +135,64 @@ static int_t unsigned(state_t* s, vec_t v) {
   return (int_t) v.data;
 }
 
-static inline vec_t vec_not(state_t* s, vec_t v) {
-  vec_data_t mask = (1<<v.size)-1;
+static inline vec_t vec_not(state_t s, vec_t v) {
+  vec_data_t mask = (1<<((vec_data_t) v.size))-1;
   return (vec_t){ v.size, v.data ^ mask };
 }
 
-static inline vec_data_t vec_eq(state_t* s, vec_data_t d1, vec_data_t d2) {
-  return (d1=d2 ? 1 : 0)
+static inline vec_data_t vec_eq(state_t s, vec_data_t d1, vec_data_t d2) {
+  return (d1=d2 ? 1 : 0);
 }
 
-static inline vec_t vec_concat(state_t* s, vec_t v1, vec_t v2) {
+static inline vec_t vec_concat(state_t s, vec_t v1, vec_t v2) {
   return (vec_t){ v1.size+v2.size, v1.data << v2.size | v2.data };
 }
 
-static inline obj_ptr int_to_string(state_t* s, int_t v) {
-  char* str = alloc(s, 24);
-  sprintf(str,"%ld",v);
-  return str;
+static inline string_t int_to_string(state_t s, int_t v) {
+  char* str = alloc(s, 24)+23;
+  int_t r;
+  *str = 0;
+  while (v!=0) {
+    r = v % 10;
+    v = v / 10;
+    *--str = '0'+(unsigned char) r;
+  }
+  return alloc_string(s,str);
 };
 
-static obj_ptr vec_to_string(state_t* s, vec_t v) {
+static obj_t vec_to_string(state_t s, vec_t v) {
   char* str = alloc(s, v.size+1);
   char* idx = str;
-  for (vec_data_t mask = 1<<(v.size-1); mask!=0; mask>>=1)
+  vec_data_t mask;
+  for (mask = 1<<(v.size-1); mask!=0; mask>>=1)
     *(idx++) = (v.data & mask ? '1' : '0');
   *idx = 0;
-  return res;
+  return alloc_string(s,str);
 }
 
-static inline char* string_concat(state_t* s, obj_ptr s1, obj_ptr s2) {
+static inline string_t string_concat(state_t s, string_t s1, string_t s2) {
   char* str1 = s1;
   char* str2 = s2;
   int len = strlen(s1)+strlen(s2);
   char* res = alloc(s, len+1);
   strcpy(res,str1);
   strcat(res,str2);
-  return res;
+  return alloc_string(s,res);
 }
 
-state_t* gdsl_init() {
-  state_t* s = calloc(sizeof(state_t));
+state_t gdsl_init() {
+  state_t s = calloc(1,sizeof(state_t));
   alloc_heap(s,NULL);
   return s;
 }
 
-void gdsl_set_code(state_t* s, char* buf, size_t buf_len, uint64_t base) {
+void gdsl_set_code(state_t s, char* buf, size_t buf_len, uint64_t base) {
   s->ip = buf;
   s->ip_limit = buf+buf_len;
   s->ip_base = s->ip-base;
 }
 
-void gdsl_destroy(state_t* s) {
+void gdsl_destroy(state_t s) {
   gdsl_reset_heap(s);
   free(s);
 }

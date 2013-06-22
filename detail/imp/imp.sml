@@ -250,7 +250,7 @@ structure Imp = struct
             seq (vtype t :: space :: str "prim" :: space ::
               str (#name (prim_info p)) :: monarg m :: args ("(",exp,es,")"))
         | exp (CALLexp (m,f,es)) = seq (var f :: monarg m :: args ("(",exp,es,")"))
-        | exp (INVOKEexp (m,t,f,es)) = seq (str "*" :: vtype t :: monarg m :: space :: exp f :: args ("(",exp,es,")"))
+        | exp (INVOKEexp (m,t,f,es)) = seq (vtype t :: monarg m :: space :: str "*" :: exp f :: args ("(",exp,es,")"))
         | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
         | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]

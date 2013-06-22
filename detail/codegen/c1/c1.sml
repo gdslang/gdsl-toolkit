@@ -69,26 +69,36 @@ structure C1Templates = struct
    val header = ExpandFile.mkTemplateFromFile "detail/codegen/c1/runtime.h"
    val runtime = ExpandFile.mkTemplateFromFile "detail/codegen/c1/runtime.c"
 
-   fun expandHeader hooks =
+   fun stdHooks prefix =
+      let
+         val PREFIX = String.implode (map Char.toUpper (String.explode prefix))
+      in
+         [
+         ("I-am-a-template-so-edit-me", fn os => TextIO.output (os,
+            "/* Auto-generated file. DO NOT EDIT. */\n")),
+         ("if-guard-prefix", fn os => TextIO.output (os,
+            "#ifndef __GDSL_" ^ PREFIX ^ "_H\n#define __GDSL_" ^ PREFIX ^ "_H\n")),
+         ("end-guard-prefix", fn os => TextIO.output (os,
+            "#endif /* __GDSL_" ^ PREFIX ^ "_H */\n")),
+         ("include-prefix", fn os => TextIO.output (os,
+            "#include \"gdsl-" ^ prefix ^ ".h\"\n"))
+         ]
+      end
+
+   fun expandHeader prefix hooks =
       ExpandFile.expandTemplate
          {src=header,
-          dst="dis.h",
-          hooks=hooks}
+          dst="gdsl-" ^ prefix ^ ".h",
+          hooks=stdHooks prefix @ hooks}
 
-   fun expandRuntime hooks =
+   fun expandRuntime prefix hooks =
       ExpandFile.expandTemplate
          {src=runtime,
-          dst="dis.c",
-          hooks=hooks}
+          dst="gdsl-" ^ prefix ^ ".c",
+          hooks=stdHooks prefix @ hooks}
 
    fun mkPrint f os = Pretty.prettyTo(os, f())
-   fun mkPrototypesHook d = ("prototypes", mkPrint (fn () => d))
-   fun mkFunctionsHook d = ("functions", mkPrint (fn () => d))
-   fun mkConstrutorsHook d = ("constructors", mkPrint (fn () => d))
-   fun mkFieldsHook d = ("fields", mkPrint (fn () => d))
-   fun mkExportsHook d = ("exports", mkPrint (fn () => d))
-   fun mkFieldNamesHook d = ("tagnames", mkPrint (fn () => d))
-   fun mkTagNamesHook d = ("fieldnames", mkPrint (fn () => d))
+   fun mkHook (name,d) = (name, mkPrint (fn () => d))
 end
 
 structure C1 = struct
@@ -109,7 +119,7 @@ structure C1 = struct
       let
          fun tf c =
             case c of
-               #"%" => "__"
+               #"%" => ""
              | #"#" => "_"
              | #"<" => "_lt_"
              | #">" => "_gt_"
@@ -147,7 +157,10 @@ structure C1 = struct
    fun setRet (sym,s : state) =
       { names = #names s, symbols = #symbols s, ret = sym }
 
+   fun par arg = seq [str "(", arg, str ")"]
    fun list (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
+   fun fArgs args = par (seq (separate (str "s" :: args, ",")))
+   fun fTArgs args = par (seq (separate (str "state_t s" :: args, ",")))
    fun comment cmt = seq [str "/* ", str cmt, str " */"]
 
    fun emitSym s sym = case SymMap.find (#symbols (s : state), sym) of
@@ -157,18 +170,23 @@ structure C1 = struct
    fun getConTag con = 
       "CON_" ^ mangleName (Atom.toString (SymbolTable.getAtom (!SymbolTables.conTable, con)))
 
+   fun getFieldTag f = 
+      "FLD_" ^ mangleName (Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)))
+
    fun emitType s (NONE, VOIDvtype) = str "void"
      | emitType s (SOME sym, VOIDvtype) = seq [str "void", space, emitSym s sym]
      | emitType s (NONE, VECvtype) = str "vec_t"
      | emitType s (SOME sym, VECvtype) = seq [str "vec_t", space, emitSym s sym]
-     | emitType s (NONE, INTvtype) = str "int"
-     | emitType s (SOME sym, INTvtype) = seq [str "int", space, emitSym s sym]
-     | emitType s (NONE, STRINGvtype) = str "char*"
-     | emitType s (SOME sym, STRINGvtype) = seq [str "char*", space, emitSym s sym]
-     | emitType s (NONE, OBJvtype) = str "obj_ptr"
-     | emitType s (SOME sym, OBJvtype) = seq [str "obj_ptr", space, emitSym s sym]
+     | emitType s (NONE, INTvtype) = str "int_t"
+     | emitType s (SOME sym, INTvtype) = seq [str "int_t", space, emitSym s sym]
+     | emitType s (NONE, STRINGvtype) = str "string_t"
+     | emitType s (SOME sym, STRINGvtype) = seq [str "string_t", space, emitSym s sym]
+     | emitType s (NONE, OBJvtype) = str "obj_t"
+     | emitType s (SOME sym, OBJvtype) = seq [str "obj_t", space, emitSym s sym]
      | emitType s (symOpt, FUNvtype (retTy,_,argTys)) = seq (
-         emitType s (NONE,retTy) :: space :: str "(*" ::
+         (case retTy of FUNvtype _ => seq [str "(", emitType s (NONE,retTy), str ")"]
+                      | _ => emitType s (NONE,retTy)
+         ) :: space :: str "(*" ::
          (case symOpt of NONE => [] | SOME sym => [emitSym s sym]) @
          list (")(",emitType s, map (fn t => (NONE,t)) argTys, ")")
       )
@@ -210,14 +228,14 @@ structure C1 = struct
       else
          seq [emitSym s sym, space, str "=", space, emitExp s exp, str ";"]
      | emitStmt s (IFstmt (c,t,e)) = align [
-         seq [str "if", space, emitExp s c, space, str "{"],
+         seq [str "if", space, par (emitExp s c), space, str "{"],
          emitBlock s t,
          str "} else {",
          emitBlock s e,
          str "};"
       ]
      | emitStmt s (CASEstmt (e,ps)) = align [
-         seq [str "switch (", emitExp s e, str ") of {"],
+         seq [str "switch (", emitExp s e, str ") {"],
          indent 2 (align (map (emitCase s) ps)),
          str "};"
       ]
@@ -231,10 +249,16 @@ structure C1 = struct
    
    and emitExp s (IDexp sym) = emitSym s sym
      | emitExp s (PRIexp (m,f,t,es)) = emitPrim s (f,es)
-     | emitExp s (CALLexp (m,sym,es)) = seq (emitSym s sym :: list ("(", emitExp s, es, ")"))
-     | emitExp s (INVOKEexp (m,t,e,es)) = seq ([str "((", emitType s (NONE,t), str ") ", emitExp s e, str "->func)("] @
-         separate (seq [emitExp s e, str "->args"] :: map (emitExp s) es, ",") @ [str ")"])
-     | emitExp s (RECORDexp fs) = str "{}"
+     | emitExp s (CALLexp (m,sym,es)) = seq [emitSym s sym, fArgs (map (emitExp s) es)]
+     | emitExp s (INVOKEexp (m,t,e,es)) = seq [str "((", emitType s (NONE,t), str ") ", emitExp s e, str "->func)",
+         fArgs (seq [emitExp s e, str "->args"] :: map (emitExp s) es)]
+     | emitExp s (RECORDexp fs) =
+         let
+            fun genUpdate ((field,e),res) =
+               seq [str "add_field", fArgs [str (getFieldTag field), emitExp s e, res]]
+         in
+            foldl genUpdate (str "NULL") fs
+         end
      | emitExp s (LITexp (t,VEClit pat)) =
       let
          fun genNum (c,acc) = 2*acc+(if c= #"1" then 1 else 0)
@@ -245,19 +269,22 @@ structure C1 = struct
      | emitExp s (LITexp (t,STRlit string)) = seq [str "\"",str string, str "\""]
      | emitExp s (LITexp (t,INTlit i)) = str (IntInf.toString i)
      | emitExp s (LITexp (t,CONlit c)) = str (getConTag c)
-     | emitExp s (BOXexp (t,e)) = 
-         seq [str "alloc(sizeof(", emitType s (NONE,t), str "), ", emitExp s e, str ")"]
+     | emitExp s (BOXexp (VOIDvtype,e)) = raise CodeGenBug
+     | emitExp s (BOXexp (VECvtype,e)) = seq [str "alloc_vec", fArgs [emitExp s e]]
+     | emitExp s (BOXexp (INTvtype,e)) = seq [str "alloc_int", fArgs [emitExp s e]]
+     | emitExp s (BOXexp (STRINGvtype,e)) = seq [str "alloc_string", fArgs [emitExp s e]]
+     | emitExp s (BOXexp (OBJvtype,e)) = seq [str "alloc_obj", fArgs [emitExp s e]]
+     | emitExp s (BOXexp (FUNvtype _,e)) = raise CodeGenBug
      | emitExp s (UNBOXexp (t,e)) =
          seq [str "(*((", emitType s (NONE,t), str "*) ", emitExp s e, str "))"]
      | emitExp s (VEC2INTexp (_,PRIexp (_,SLICEprim, _, [vec,ofs,sz]))) =
-         seq [str "(", emitExp s vec, str " >> ", emitExp s ofs, str ") & ((1ul<<", emitExp s sz, str ")-1"] 
+         seq [str "slice(", emitExp s vec, str ", ", emitExp s ofs, str ", ", emitExp s sz, str ")"]
      | emitExp s (VEC2INTexp (_,UNBOXexp (_,e))) =
-         seq [emitExp s e, str "->", str "vec_data"]
+         seq [emitExp s e, str "->", str "data"]
      | emitExp s (VEC2INTexp (_,e)) =
-         seq [emitExp s e, str ".", str "vec_data"]
+         seq [emitExp s e, str ".", str "data"]
      | emitExp s (INT2VECexp (sz,e)) =
-         seq [str "(", emitType s (NONE, VECvtype), str "){",
-              str (Int.toString sz), str ", ", emitExp s e, str "}"]
+         seq [str "gen_vec(",str (Int.toString sz), str ", ", emitExp s e, str ")"]
      | emitExp s (CLOSUREexp (t,sym,es)) = 
          seq ([str "closure("] @ separate (emitSym s sym :: map (emitExp s) es, ",") @ [str ")"])
      | emitExp s (STATEexp (b,e)) = str ""
@@ -266,31 +293,31 @@ structure C1 = struct
    and emitPrim s (GETSTATEprim, []) = str "s->state"
      | emitPrim s (SETSTATEprim, [e]) = seq [str "s->state = ", emitExp s e]
      | emitPrim s (IPGETprim, []) = str "(s->ip - s->base)"
-     | emitPrim s (CONSUME8prim, []) = str "*((uint8_t*) state->ip)++"
-     | emitPrim s (CONSUME16prim, []) = str "*((uint16_t*) state->ip)++"
-     | emitPrim s (CONSUME32prim, []) = str "*((uint32_t*) state->ip)++"
-     | emitPrim s (UNCONSUME8prim, []) = str "((uint8_t*) state->ip)--"
-     | emitPrim s (UNCONSUME16prim, []) = str "((uint16_t*) state->ip)--"
-     | emitPrim s (UNCONSUME32prim, []) = str "((uint32_t*) state->ip)--"
+     | emitPrim s (CONSUME8prim, []) = str "consume8(s)"
+     | emitPrim s (CONSUME16prim, []) = str "consume16(s)"
+     | emitPrim s (CONSUME32prim, []) = str "consume12(s)"
+     | emitPrim s (UNCONSUME8prim, []) = str "state->ip-=1"
+     | emitPrim s (UNCONSUME16prim, []) = str "state->ip-=2"
+     | emitPrim s (UNCONSUME32prim, []) = str "state->ip-=4"
      | emitPrim s (PRINTLNprim, [e]) = seq [str "printf(\"%s\",", emitExp s e, str ")"]
-     | emitPrim s (RAISEprim, [e]) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0);"]
-     | emitPrim s (ANDprim, [e1,e2]) = seq [str "(", emitExp s e1, str "&", emitExp s e2, str ")"]
-     | emitPrim s (ORprim, [e1,e2]) = seq [str "(", emitExp s e1, str "&", emitExp s e2, str ")"]
-     | emitPrim s (SIGNEDprim, [e]) = seq [str "signed(", emitExp s e, str ")"]
-     | emitPrim s (UNSIGNEDprim, [e]) = seq [str "unsigned(", emitExp s e, str ")"]
+     | emitPrim s (RAISEprim, [e]) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
+     | emitPrim s (ANDprim, [e1,e2]) = seq [str "(", emitExp s e1, str " & ", emitExp s e2, str ")"]
+     | emitPrim s (ORprim, [e1,e2]) = seq [str "(", emitExp s e1, str " | ", emitExp s e2, str ")"]
+     | emitPrim s (SIGNEDprim, [e]) = seq [str "vec_to_signed", fArgs [emitExp s e]]
+     | emitPrim s (UNSIGNEDprim, [e]) = seq [str "vec_to_unsigned", fArgs [emitExp s e]]
      | emitPrim s (ADDprim, [e1,e2]) = seq [str "(", emitExp s e1, str "+", emitExp s e2, str ")"]
      | emitPrim s (SUBprim, [e1,e2]) = seq [str "(", emitExp s e1, str "-", emitExp s e2, str ")"]
      | emitPrim s (EQprim, [e1,e2]) = seq [str "(", emitExp s e1, str "=", emitExp s e2, str ")"]
      | emitPrim s (MULprim, [e1,e2]) = seq [emitExp s e1, str "*", emitExp s e2]
      | emitPrim s (LTprim, [e1,e2]) = seq [str "(", emitExp s e1, str "<", emitExp s e2, str ")"]
      | emitPrim s (LEprim, [e1,e2]) = seq [str "(", emitExp s e1, str "<=", emitExp s e2, str ")"]
-     | emitPrim s (NOT_VECprim, [e]) = seq [str "vec_not(", emitExp s e, str ")"]
-     | emitPrim s (EQ_VECprim, [e1,e2]) = seq [str "vec_eq(", emitExp s e1, str ",", emitExp s e2, str ")"] 
-     | emitPrim s (CONCAT_VECprim, [e1,e2]) = seq [str "vec_concat(", emitExp s e1, str ",", emitExp s e2, str ")"] 
-     | emitPrim s (INT_TO_STRINGprim, [e]) = seq [str "int_to_string(", emitExp s e, str ")"]
-     | emitPrim s (BITVEC_TO_STRINGprim, [e]) = seq [str "vec_to_string(", emitExp s e, str ")"]
-     | emitPrim s (CONCAT_STRINGprim, [e1,e2]) = seq [str "string_concat(", emitExp s e1, str ",", emitExp s e2, str ")"]
-     | emitPrim s (SLICEprim, [vec,ofs,sz]) = seq [str "(", emitType s (NONE, VECvtype), str "){ ", emitExp s sz, str ", (", emitExp s vec, str " >> ", emitExp s ofs, str ") & ((1ul<<", emitExp s sz, str ")-1 }"] 
+     | emitPrim s (NOT_VECprim, [e]) = seq [str "vec_not", fArgs [emitExp s e]]
+     | emitPrim s (EQ_VECprim, [e1,e2]) = seq [str "vec_eq", fArgs [emitExp s e1, emitExp s e2]] 
+     | emitPrim s (CONCAT_VECprim, [e1,e2]) = seq [str "vec_concat", fArgs [emitExp s e1, emitExp s e2]] 
+     | emitPrim s (INT_TO_STRINGprim, [e]) = seq [str "int_to_string", fArgs [emitExp s e]]
+     | emitPrim s (BITVEC_TO_STRINGprim, [e]) = seq [str "vec_to_string", fArgs [emitExp s e]]
+     | emitPrim s (CONCAT_STRINGprim, [e1,e2]) = seq [str "string_concat", fArgs [emitExp s e1, emitExp s e2]]
+     | emitPrim s (SLICEprim, [vec,ofs,sz]) = seq (str "gen_vec(" :: emitExp s sz :: str ", slice" :: list ("(", emitExp s, [vec,ofs,sz], "))"))
      | emitPrim s (GET_CON_IDXprim, [e]) = seq [str "((con_t*) ", emitExp s e , str ")->tag"]
      | emitPrim s (GET_CON_ARGprim, [e]) = seq [str "((con_t*) ", emitExp s e , str ")->payload"]
      | emitPrim s _ = raise CodeGenBug
@@ -311,9 +338,8 @@ structure C1 = struct
       in
          align [
             seq (
-               [emitType s (NONE,retTy), space, emitSym s name] @
-               list ("(", emitArg, args, ")") @
-               [space, str "{"]),
+               [emitType s (NONE,retTy), space, emitSym s name,
+               fTArgs (map emitArg args), space, str "{"]),
             emitBlock s block,
             str "}"
          ]
@@ -344,7 +370,7 @@ structure C1 = struct
    fun codegen spec =
       let
          val { decls = ds, fdecls = fs } = Spec.get#declarations spec
-         
+         val prefix = "x86"
          val s = {
                names = AtomSet.empty,
                symbols = SymMap.empty,
@@ -352,20 +378,30 @@ structure C1 = struct
             } : state
 
          val s = foldl registerSymbol s (map getDeclName ds)
-         val c = map (emitDecl s) ds
-         (*val _ =
-            C1Templates.expandHeader
-               [C1Templates.mkConstrutorsHook (align constructors),
-                C1Templates.mkFieldsHook (align fields),
-                C1Templates.mkExportsHook (align externPrototypes)]
+         val funs = map (emitDecl s) ds
+         val constructors = []
+         val fields = []
+         val externPrototypes = []
+         val staticPrototypes = []
+         val constructorNames = str ""
+         val fieldNames = str ""
+
          val _ =
-            C1Templates.expandRuntime
-               [C1Templates.mkPrototypesHook (align staticPrototypes),
-                C1Templates.mkFunctionsHook (align funs),
-                C1Templates.mkTagNamesHook constructorNames,
-                C1Templates.mkFieldNamesHook fieldNames]*)
+            C1Templates.expandHeader prefix [
+               C1Templates.mkHook ("exports", align externPrototypes),
+               C1Templates.mkHook ("tagnames", constructorNames),
+               C1Templates.mkHook ("constructors", align constructors),
+               C1Templates.mkHook ("fields", align fields)
+            ]
+         val _ =
+            C1Templates.expandRuntime prefix [
+               C1Templates.mkHook ("fieldnames", fieldNames),
+               C1Templates.mkHook ("tagnames", constructorNames),
+               C1Templates.mkHook ("prototypes", align staticPrototypes),
+               C1Templates.mkHook ("functions", align funs)
+            ]
       in
-         align c
+         align funs
       end
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Imp.PP.spec spec)
