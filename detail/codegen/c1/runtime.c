@@ -93,6 +93,37 @@ GEN_CON_STRUCT(int);
 GEN_ALLOC(con_int);
 GEN_CON_STRUCT(vec);
 GEN_ALLOC(con_vec);
+GEN_CON_STRUCT(string);
+GEN_ALLOC(con_sting);
+
+#define GEN_REC_STRUCT(type)  \
+struct field_ ## type {       \
+  field_tag_t tag;            \
+  obj_t next;                 \
+  type ## _t payload;         \
+};                            \
+                              \
+typedef struct field_ ## type  field_ ## type ## _t
+
+#define GEN_FIELD_ADD(type)                               \
+static inline obj_t add_field_ ## type                     \
+  (state_t s,field_tag_t tag, type ## _t v, obj_t rec) {  \
+  field_ ## type ## _t* res =                             \
+    alloc(s, sizeof(field_ ## type ## _t));               \
+  res->tag = tag;                                         \
+  res->next = rec;                                        \
+  res->payload = v;                                       \
+  return res;                                             \
+}
+
+GEN_REC_STRUCT(obj);
+GEN_ADD_FIELD(obj);
+GEN_REC_STRUCT(int);
+GEN_ADD_FIELD(int);
+GEN_REC_STRUCT(vec);
+GEN_ADD_FIELD(vec);
+GEN_REC_STRUCT(string);
+GEN_ADD_FIELD(string);
 
 #define slice(vec_data,ofs,sz) ((vec_data >> sz) & ((1ul << ofs)-1))
 #define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}

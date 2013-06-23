@@ -380,7 +380,7 @@ structure Primitives = struct
          open Imp
       in
          [
-         ("void", RECORDexp [])
+         ("void", PRIexp (PUREmonkind,VOIDprim, FUNvtype (VOIDvtype,false,[]), []))
          ]
       end
 

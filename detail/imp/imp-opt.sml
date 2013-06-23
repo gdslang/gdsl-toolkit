@@ -313,14 +313,20 @@ structure Simplify = struct
    and visitCase s (p,stmts) = (p, visitBlock s stmts)
    
    and visitBlock s (BASICblock (decls, stmts)) =
-      (case map (visitStmt s) stmts of
-         stmts as [CASEstmt (_,[(VECpat p,BASICblock (decls',stmts'))])] =>
-            if List.all (fn pat => List.all (fn c => c = #".") (String.explode pat)) p then
-               BASICblock (decls @ decls', stmts')
-            else
-               BASICblock (decls, stmts)
-       | stmts => BASICblock (decls, stmts)
-      )
+      let
+         fun noVoids (ASSIGNstmt (_,PRIexp (_,VOIDprim,_,_))) = false
+           | noVoids _ = true
+         val stmts = map (visitStmt s) stmts
+         val stmts = List.filter noVoids stmts
+      in
+         case stmts of
+            [CASEstmt (_,[(VECpat p,BASICblock (decls',stmts'))])] =>
+               if List.all (fn pat => List.all (fn c => c = #".") (String.explode pat)) p then
+                  BASICblock (decls @ decls', stmts')
+               else
+                  BASICblock (decls, stmts)
+          | stmts => BASICblock (decls, stmts)
+      end
    
    and visitExp s (PRIexp (m,SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs1), LITexp (INTvtype, INTlit size1)])) =
       (case visitExp s e of
@@ -493,7 +499,7 @@ structure TypeRefinement = struct
             in
                ()
             end
-         val _ = app showSymBinding (SymMap.listItemsi (!st))
+         (*val _ = app showSymBinding (SymMap.listItemsi (!st))*)
          val _ = app showFieldBinding (SymMap.listItemsi (!ft))
       in
          ()
@@ -1072,7 +1078,7 @@ structure TypeRefinement = struct
          val _ = debugOn := false
          fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
          val ds = map (patchDeclPrint state) ds
-         val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, symType state sym)) fs
+         val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
       in
          { decls = ds, fdecls = fs }
       end
