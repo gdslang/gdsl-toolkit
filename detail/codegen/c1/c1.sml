@@ -141,9 +141,9 @@ structure C1 = struct
          String.translate tf s
       end
 
-   fun registerSymbol (sym,s : state) =
+   fun regSym (sym, table, s : state) =
       let
-         val atom = SymbolTable.getAtom (!SymbolTables.varTable, sym)
+         val atom = SymbolTable.getAtom (table, sym)
          val atom = Atom.atom (mangleName (Atom.toString atom))
          fun addEntry (atom,names,symbols) = 
             if AtomSet.member(names,atom) then
@@ -159,6 +159,8 @@ structure C1 = struct
            onlyDecls = #onlyDecls s,
            exports = #exports s }
       end
+   fun registerSymbol (sym,s : state) = regSym (sym, !SymbolTables.varTable, s)
+   fun registerFSymbol (sym,s : state) = regSym (sym, !SymbolTables.fieldTable, s)
 
    fun setRet (sym,s : state) =
       { names = #names s,
@@ -185,23 +187,37 @@ structure C1 = struct
       Int.toString (SymbolTable.toInt (f)) ^
       "/* " ^ Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)) ^ " */"
 
-   fun emitType s (NONE, VOIDvtype) = str "void"
-     | emitType s (SOME sym, VOIDvtype) = seq [str "void", space, emitSym s sym]
-     | emitType s (NONE, VECvtype) = str "vec_t"
-     | emitType s (SOME sym, VECvtype) = seq [str "vec_t", space, emitSym s sym]
-     | emitType s (NONE, INTvtype) = str "int_t"
-     | emitType s (SOME sym, INTvtype) = seq [str "int_t", space, emitSym s sym]
-     | emitType s (NONE, STRINGvtype) = str "string_t"
-     | emitType s (SOME sym, STRINGvtype) = seq [str "string_t", space, emitSym s sym]
-     | emitType s (NONE, OBJvtype) = str "obj_t"
-     | emitType s (SOME sym, OBJvtype) = seq [str "obj_t", space, emitSym s sym]
-     | emitType s (symOpt, FUNvtype (retTy,_,argTys)) = seq (
-         (case retTy of FUNvtype _ => seq [str "(", emitType s (NONE,retTy), str ")"]
-                      | _ => emitType s (NONE,retTy)
-         ) :: space :: str "(*" ::
-         (case symOpt of NONE => [] | SOME sym => [emitSym s sym]) @ str ")" ::
-         [par (seq (separate (str "state_t" :: map (fn t => emitType s (NONE,t)) argTys, ",")))]
-      )
+   fun emitTypeDecl s (decl, t) =
+      let
+         fun addSpace [] = []
+           | addSpace xs = space :: xs
+         fun eT (decl, VOIDvtype) = seq (str "void" :: addSpace decl)
+           | eT (decl, VECvtype) = seq (str "vec_t" :: addSpace decl)
+           | eT (decl, INTvtype) = seq (str "int_t" :: addSpace decl)
+           | eT (decl, STRINGvtype) = seq (str "string_t" :: addSpace decl)
+           | eT (decl, OBJvtype) = seq (str "obj_t" :: addSpace decl)
+           | eT (decl, FUNvtype (retTy,_,argTys)) = 
+               eT (str "(*" ::
+                  decl @ [
+                     str ")",
+                     par (seq (separate (str "state_t" ::
+                               map (fn t => eT ([],t)) argTys, ",")))],
+                  retTy)
+      in
+         eT (decl,t)
+      end
+
+   fun emitType s (SOME sym, t) = emitTypeDecl s ([emitSym s sym], t)
+     | emitType s (NONE, t) = emitTypeDecl s ([], t)
+
+   fun emitFunType s (sym,args, FUNvtype (retTy,_,_)) =
+      emitTypeDecl s ([emitSym s sym,
+         par (seq (separate (
+            str "state_t s" ::
+            map (fn (t,sym) => emitTypeDecl s ([emitSym s sym],t)) args, ",")))],
+         retTy)
+     | emitFunType s (sym, args, t) =
+      emitTypeDecl s ([emitSym s sym], FUNvtype (VOIDvtype,false,[]))
 
    fun getTypeSuffix (VOIDvtype) = raise CodeGenBug
      | getTypeSuffix (VECvtype) = "_vec"
@@ -311,9 +327,11 @@ structure C1 = struct
          seq [emitExp s e, str ".", str "data"]
      | emitExp s (INT2VECexp (sz,e)) =
          seq [str "gen_vec(",str (Int.toString sz), str ", ", emitExp s e, str ")"]
-     | emitExp s (CLOSUREexp (t,sym,es)) = 
-         seq ([str "closure("] @ separate (emitSym s sym :: map (emitExp s) es, ",") @ [str ")"])
-     | emitExp s (STATEexp (b,e)) = str ""
+     | emitExp s (CLOSUREexp (t,sym,es)) =
+         seq ([str "NULL /*"] @ separate (emitSym s sym :: map (emitExp s) es, ",") @ [str "*/"])
+     | emitExp s (STATEexp (b,e)) =
+         align [str "NULL /*", emitBlock s b, emitExp s e, str "*/"]
+
      | emitExp s (EXECexp e) = seq [emitExp s e, fArgs []]
 
    and emitPrim s (GETSTATEprim, []) = str "s->state"
@@ -322,9 +340,9 @@ structure C1 = struct
      | emitPrim s (CONSUME8prim, []) = str "consume8(s)"
      | emitPrim s (CONSUME16prim, []) = str "consume16(s)"
      | emitPrim s (CONSUME32prim, []) = str "consume12(s)"
-     | emitPrim s (UNCONSUME8prim, []) = str "state->ip-=1"
-     | emitPrim s (UNCONSUME16prim, []) = str "state->ip-=2"
-     | emitPrim s (UNCONSUME32prim, []) = str "state->ip-=4"
+     | emitPrim s (UNCONSUME8prim, []) = str "s->ip-=1"
+     | emitPrim s (UNCONSUME16prim, []) = str "s->ip-=2"
+     | emitPrim s (UNCONSUME32prim, []) = str "s->ip-=4"
      | emitPrim s (PRINTLNprim, [e]) = seq [str "printf(\"%s\",", emitExp s e, str ")"]
      | emitPrim s (RAISEprim, [e]) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
      | emitPrim s (ANDprim, [e1,e2]) = seq [str "(", emitExp s e1, str " & ", emitExp s e2, str ")"]
@@ -346,7 +364,7 @@ structure C1 = struct
      | emitPrim s (SLICEprim, [vec,ofs,sz]) = seq (str "gen_vec(" :: emitExp s sz :: str ", slice" :: list ("(", emitExp s, [vec,ofs,sz], "))"))
      | emitPrim s (GET_CON_IDXprim, [e]) = seq [str "((con_t*) ", emitExp s e , str ")->tag"]
      | emitPrim s (GET_CON_ARGprim, [e]) = seq [str "((con_t*) ", emitExp s e , str ")->payload"]
-     | emitPrim s (VOIDprim, []) = str "0 /* void value /*"
+     | emitPrim s (VOIDprim, []) = str "0 /* void value */"
      | emitPrim s _ = raise CodeGenBug
      
    fun emitDecl s (FUNCdecl {
@@ -359,19 +377,14 @@ structure C1 = struct
         funcRes = res
       }) =
       let
-         val retTy = case ty of FUNvtype (retTy,_,_) => retTy | _ => VOIDvtype
          val s = setRet (res,foldl registerSymbol s (map #2 args))
-         fun emitArg (t,sym) = emitType s (SOME sym,t)
          val static = if SymSet.member(#exports s, name) then seq [] else str "static "
       in
          if #onlyDecls s then
-            seq [static, emitType s (NONE,retTy), space, emitSym s name,
-                  fTArgs (map emitArg args), str ";"]
+            seq [static, emitFunType s (name, args, ty), space, str ";"]
          else
          align [
-            seq [
-               static, emitType s (NONE,retTy), space, emitSym s name,
-               fTArgs (map emitArg args), space, str "{"],
+            seq [static, emitFunType s (name, args, ty), space, str "{"],
             emitBlock s block,
             str "}"
          ]
@@ -382,7 +395,6 @@ structure C1 = struct
          selectType = ty
       }) =
       let
-         val retTy = case ty of FUNvtype (retTy,_,_) => retTy | _ => VOIDvtype
          val retVar = #ret (s : state)
          val s = registerSymbol (retVar,s)
          val castRetVar = seq [
@@ -393,14 +405,10 @@ structure C1 = struct
          val fieldName = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
       in
          if #onlyDecls s then
-         seq [
-            str "static", space, emitType s (NONE,retTy), space, emitSym s name,
-            fTArgs [seq [emitType s (SOME retVar,OBJvtype)]], str ";"]
+            seq [str "static", space, emitFunType s (name, [(OBJvtype, retVar)], ty), space, str ";"]
          else
          align [
-            seq [
-               str "static", space, emitType s (NONE,retTy), space, emitSym s name,
-               fTArgs [seq [emitType s (SOME retVar,OBJvtype)]], space, str "{"],
+            seq [str "static", space, emitFunType s (name, [(OBJvtype, retVar)], ty), space, str "{"],
             indent 2 (align [
                seq [str "while (", emitSym s retVar , str ") {"],
                indent 2 (align [
@@ -421,8 +429,35 @@ structure C1 = struct
          updateName = name,
          updateArg = arg,
          updateFields = fs,
-         updateType = _
-      }) = str ""
+         updateType = ty
+      }) =
+      let
+         val recVar = #ret (s : state)
+         val s = registerSymbol (recVar,s)
+         val s = foldl registerFSymbol s fs
+         fun fieldName f = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
+         fun fieldType f = SymMap.lookup (#fieldTypes s,f)
+         fun fieldTSuf f = getTypeSuffix (SymMap.lookup (#fieldTypes s,f))
+         val args = map (fn f => (fieldType f, f)) fs @ [(OBJvtype, recVar)]
+      in
+         if #onlyDecls s then
+            seq [str "static", space, emitFunType s (name, args, ty), space, str ";"]
+         else
+         align [
+            seq [str "static", space, emitFunType s (name, args, ty), space, str "{"],
+            indent 2 (align ([
+               seq (str "field_tag_t tags[] = " :: list ("{",str o getFieldTag, fs, "};")),
+               seq [emitSym s recVar, str " = del_fields(s,tags,sizeof(tags)/sizeof(tags[0]),", emitSym s recVar, str ");"]
+            ] @ map (fn f =>
+               seq [emitSym s recVar, str " = add_field",
+                    str (fieldTSuf f), str "(s,", str (getFieldTag f), str ", ",
+                    emitSym s f, str ", ", emitSym s recVar, str ");"]) fs
+            @ [
+               seq [str "return ", emitSym s recVar, str ";"]
+            ])),
+            str "}"
+         ]
+      end
      | emitDecl s (CONdecl {
          conName = name,
          conArg = arg,
@@ -439,7 +474,9 @@ structure C1 = struct
       let
          val { decls = ds, fdecls = fs } = Spec.get #declarations spec
          val prefix = "x86"
-         val (st, genericSym) = SymbolTable.fresh (!SymbolTables.varTable,Atom.atom "v")
+         val st = !SymbolTables.varTable
+         val (st, genericSym) = SymbolTable.fresh (st,Atom.atom "v")
+         val (st, stateSym) = SymbolTable.fresh (st,Atom.atom "s")
          val _ = SymbolTables.varTable := st
          val exports = SymSet.fromList (Spec.get #exports spec)
          val s = {
@@ -450,7 +487,7 @@ structure C1 = struct
                onlyDecls = false,
                exports = exports
             } : state
-
+         val s = registerSymbol (stateSym, s)
          val s = foldl registerSymbol s (map getDeclName ds)
          val funs = map (emitDecl s) ds
          val s = {

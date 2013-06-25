@@ -1361,8 +1361,14 @@ structure SwitchReduce = struct
 
          fun splitCase (p,bb) =
             (genPattern (goodBits,p), [(genPattern (badBits,p),bb)])
+         fun remDup [] = []
+           | remDup (p :: pats) =
+            if List.exists (fn p' => String.compare (p,p')=EQUAL) pats then
+               remDup pats
+            else
+               p :: remDup pats
          fun genCases ((scrutBadSize,scrutBad), splitCases) =
-            map (fn (pat,subCases) => (VECpat pat,BASICblock ([],[
+            map (fn (pat,subCases) => (VECpat (remDup pat),BASICblock ([],[
                optCase (scrutBad,
                   map (fn (pat,bb) => (VECpat pat,bb)) subCases)
             ]))) splitCases

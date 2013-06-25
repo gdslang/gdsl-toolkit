@@ -94,23 +94,27 @@ GEN_ALLOC(con_int);
 GEN_CON_STRUCT(vec);
 GEN_ALLOC(con_vec);
 GEN_CON_STRUCT(string);
-GEN_ALLOC(con_sting);
+GEN_ALLOC(con_string);
+
+typedef unsigned int field_tag_t;
 
 #define GEN_REC_STRUCT(type)  \
 struct field_ ## type {       \
   field_tag_t tag;            \
+  unsigned int size;          \
   obj_t next;                 \
   type ## _t payload;         \
 };                            \
                               \
 typedef struct field_ ## type  field_ ## type ## _t
 
-#define GEN_FIELD_ADD(type)                               \
-static inline obj_t add_field_ ## type                     \
+#define GEN_ADD_FIELD(type)                               \
+static inline obj_t add_field_ ## type                    \
   (state_t s,field_tag_t tag, type ## _t v, obj_t rec) {  \
   field_ ## type ## _t* res =                             \
     alloc(s, sizeof(field_ ## type ## _t));               \
   res->tag = tag;                                         \
+  res->size = sizeof(field_ ## type ## _t);               \
   res->next = rec;                                        \
   res->payload = v;                                       \
   return res;                                             \
@@ -124,6 +128,49 @@ GEN_REC_STRUCT(vec);
 GEN_ADD_FIELD(vec);
 GEN_REC_STRUCT(string);
 GEN_ADD_FIELD(string);
+
+/* Returns a pointer to a record in which the given fields are removed.
+  This operation copies all fields that lie on the way to the list suffix
+  that only contains fields that do not need to be removed.
+*/
+static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec) {
+  field_tag_t del_tags[tags_size];
+  int last_del_tag = 0;
+  /* copy those entries form tags that actually occur in the record; computing
+     this information first makes it possible to share a common tail, even if
+     the record does not contain all fields that should be deleted
+  */
+  field_obj_t* current = rec;
+  int idx;
+  while (current) {
+    field_tag_t tag = current->tag;
+    for (idx = 0; idx<tags_size; idx++) if (tags[idx]==tag) {
+      del_tags[last_del_tag++] = tag;
+      /* reduce the size of the tags array */
+      tags[idx]=tags[--tags_size];
+    }
+    current = current->next;
+  }
+  current = rec;
+  idx = 0;
+  obj_t res = NULL;
+  obj_t* last_next = &res;
+  while (current && (idx<last_del_tag)) {
+    if (current->tag == del_tags[idx]) {
+      /* delete this field by doing nothing */
+      idx++;
+    } else {
+      /* this field is not supposed to be deleted, copy it */
+      field_obj_t* copy = alloc(s, current->size);
+      memcpy(copy,current,current->size);
+      *last_next = copy;
+      last_next = &copy->next;
+    };
+    current = current->next;
+  };
+  *last_next = current;
+  return res;
+}
 
 #define slice(vec_data,ofs,sz) ((vec_data >> sz) & ((1ul << ofs)-1))
 #define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
