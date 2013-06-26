@@ -779,7 +779,8 @@ structure TypeRefinement = struct
       }) = lub (s, symType s name, FUNstype (symType s arg, OBJstype, map (fieldType s) fs @ [symType s arg]))
      | visitDecl s (CONdecl {
          conName = name,
-         conArg = arg,
+         conTag = _,
+         conArg = (_,arg),
          conType = _
      }) = lub (s, symType s name, FUNstype (BOXstype OBJstype, VOIDstype, [symType s arg]))
      | visitDecl s (CLOSUREdecl {
@@ -831,7 +832,7 @@ structure TypeRefinement = struct
                 (FUNvtype (_,_,vArgs), FUNstype (_,_,sArgs)) => ListPair.zip (vArgs,sArgs)
               | (v,s) => (TextIO.print ("getArgTypes: update function " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " has unequal no of args: " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ "\n"); raise TypeOptBug)
             )
-        | SOME (CONdecl { conName = name, conArg = arg, ... }) =>
+        | SOME (CONdecl { conName = name, conArg = (_,arg), ... }) =>
             [(origType s arg, symType s arg)]
         | SOME (CLOSUREdecl { closureName = name, closureArgs = ts, ... }) =>
             (case inlineSType s (symType s name) of
@@ -942,11 +943,13 @@ structure TypeRefinement = struct
       }
      | patchDecl s (CONdecl {
          conName = name,
-         conArg = arg,
+         conTag = tag,
+         conArg = (argTy, argName),
          conType = vtype
      }) = CONdecl {
          conName = name,
-         conArg = arg,
+         conTag = tag,
+         conArg = (adjustType s (argTy, symType s argName), argName),
          conType = adjustType s (vtype, symType s name)
      }
      | patchDecl s (CLOSUREdecl {

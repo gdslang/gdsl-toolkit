@@ -118,18 +118,19 @@ structure Imp = struct
       }
     | SELECTdecl of {
         selectName : sym,
-        selectField : sym,
+        selectField : sym, (* field symbol *)
         selectType : vtype
       }
     | UPDATEdecl of {
         updateName : sym,
         updateArg : sym,
-        updateFields : sym list,
+        updateFields : sym list,  (* field symbols *)
         updateType : vtype
       }
     | CONdecl of {
         conName : sym,
-        conArg : sym,
+        conTag : sym, (* constructor symbol *)
+        conArg : arg,
         conType : vtype
       }
     | CLOSUREdecl of {
@@ -232,8 +233,8 @@ structure Imp = struct
             seq [vtype t, space, var name, str ";"]
         | decl (UPDATEdecl { updateName = name, updateArg = arg, updateFields = fs, updateType = t }) =
             seq ([vtype t, space, var name, str ";"] @ args ("[",fld, fs, "]") @ [str "(", var arg, str ")"])
-        | decl (CONdecl { conName = name, conArg = arg, conType = t }) =
-            seq [vtype t, space, var name, str "(", var arg, str ");"]
+        | decl (CONdecl { conName = name, conTag = tag, conArg = conArg, conType = t }) =
+            seq [vtype t, space, var name, str "(", arg conArg, str ");"]
         | decl (CLOSUREdecl { closureName = name, closureArgs = ts,
                               closureDelegate = del, closureDelArgs = delArgs}) =
             seq ([var name, space, str "invokes", space, var del] @

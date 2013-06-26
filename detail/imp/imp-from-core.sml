@@ -221,7 +221,8 @@ end = struct
 
                   val fType = FUNvtype (OBJvtype, false, [OBJvtype])                        
                   val _ = addDecl s (CONdecl { conName = sym,
-                                               conArg = sym',
+                                               conTag = con,
+                                               conArg = (OBJvtype, sym'),
                                                conType = fType })
 
                   val clSym = getClosureSym sym

@@ -180,7 +180,7 @@ structure C1 = struct
       SOME atom => str (Atom.toString atom)
     | NONE => (TextIO.print ("emitSym: no symbol name registered for " ^ SymbolTable.getString (!SymbolTables.varTable, sym) ^ "\n"); raise CodeGenBug)
 
-   fun getConTag con = 
+   fun getConTag (s : state) con = 
       "CON_" ^ mangleName (Atom.toString (SymbolTable.getAtom (!SymbolTables.conTable, con)))
 
    fun getFieldTag f = 
@@ -244,7 +244,7 @@ structure C1 = struct
       in
          align (map genPat pats)
       end
-     | emitPat s (CONpat con) = str ("case " ^ getConTag con ^ ":")
+     | emitPat s (CONpat con) = str ("case " ^ getConTag s con ^ ":")
      | emitPat s (INTpat i) = str ("case " ^ IntInf.toString i ^ ":")
      | emitPat s (WILDpat) = str "default:"
      
@@ -315,7 +315,7 @@ structure C1 = struct
       end
      | emitExp s (LITexp (t,STRlit string)) = seq [str "\"",str string, str "\""]
      | emitExp s (LITexp (t,INTlit i)) = str (IntInf.toString i)
-     | emitExp s (LITexp (t,CONlit c)) = str (getConTag c)
+     | emitExp s (LITexp (t,CONlit c)) = str (getConTag s c)
      | emitExp s (BOXexp (t,e)) = seq [str "alloc", str (getTypeSuffix t), fArgs [emitExp s e]]
      | emitExp s (UNBOXexp (t,e)) =
          seq [str "(*((", emitType s (NONE,t), str "*) ", emitExp s e, str "))"]
@@ -381,7 +381,7 @@ structure C1 = struct
          val static = if SymSet.member(#exports s, name) then seq [] else str "static "
       in
          if #onlyDecls s then
-            seq [static, emitFunType s (name, args, ty), space, str ";"]
+            seq [static, emitFunType s (name, args, ty), str ";"]
          else
          align [
             seq [static, emitFunType s (name, args, ty), space, str "{"],
@@ -405,7 +405,7 @@ structure C1 = struct
          val fieldName = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
       in
          if #onlyDecls s then
-            seq [str "static", space, emitFunType s (name, [(OBJvtype, retVar)], ty), space, str ";"]
+            seq [str "static", space, emitFunType s (name, [(OBJvtype, retVar)], ty), str ";"]
          else
          align [
             seq [str "static", space, emitFunType s (name, [(OBJvtype, retVar)], ty), space, str "{"],
@@ -441,7 +441,7 @@ structure C1 = struct
          val args = map (fn f => (fieldType f, f)) fs @ [(OBJvtype, recVar)]
       in
          if #onlyDecls s then
-            seq [str "static", space, emitFunType s (name, args, ty), space, str ";"]
+            seq [str "static", space, emitFunType s (name, args, ty), str ";"]
          else
          align [
             seq [str "static", space, emitFunType s (name, args, ty), space, str "{"],
@@ -460,9 +460,21 @@ structure C1 = struct
       end
      | emitDecl s (CONdecl {
          conName = name,
-         conArg = arg,
-         conType = _
-     }) = str ""
+         conTag = tag,
+         conArg = arg as (argTy, argName),
+         conType = ty
+     }) =
+      let
+         val s = registerSymbol (argName,s)
+      in
+         if #onlyDecls s then align [
+            seq [str "static inline", space, emitFunType s (name, [arg], ty), space, str "{"],
+            seq [str "  return alloc_con", str (getTypeSuffix argTy),
+                 fArgs [seq [str "(con", str (getTypeSuffix argTy), str "_t){",
+                             str (getConTag s tag), str ", ", emitSym s argName, str "}"]], str ";"],
+            str "}"
+         ] else seq []
+      end
      | emitDecl s (CLOSUREdecl {
         closureName = name,
         closureArgs = clTys,
