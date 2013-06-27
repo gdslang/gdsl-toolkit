@@ -152,8 +152,8 @@ structure Imp = struct
     | VEC2INTexp of int option * exp
     | INT2VECexp of int * exp
     | CLOSUREexp of vtype * sym * exp list
-    | STATEexp of block * exp (* generate closure that expects a state *)
-    | EXECexp of exp (* apply the state to the closure *)
+    | STATEexp of block * vtype * exp (* generate closure of an action, the type is that of the expression *)
+    | EXECexp of exp (* execute an action *)
 
    and stmt =
       ASSIGNstmt of sym option * exp
@@ -264,11 +264,11 @@ structure Imp = struct
         | exp (CLOSUREexp (t,s,es)) =
          seq ([vtype t, space, str "closure", space, var s] @
               args ("[",exp,es,"]"))
-        | exp (STATEexp (BASICblock ([],[]), e)) = seq [str "(fn $ => ", exp e, str ")"]
-        | exp (STATEexp (b, e)) = align [
+        | exp (STATEexp (BASICblock ([],[]), t, e)) = seq [str "(fn $ => (", vtype t, str ") ", exp e, str ")"]
+        | exp (STATEexp (b, t, e)) = align [
                str "fn $ => ",
                block b,
-               indent 3 (exp e)
+               indent 3 (seq [str "(", vtype t, str ") ", exp e])
             ]
         | exp (EXECexp e) = seq [str "EXEC(", exp e, str ")"]
       and stmts ss = align (map stmt ss)

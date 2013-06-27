@@ -116,7 +116,9 @@ structure C1 = struct
                   fieldTypes : vtype SymMap.map,
                   ret : SymbolTable.symid,
                   onlyDecls : bool,
-                  exports : SymSet.set }
+                  exports : SymSet.set,
+                  constrs : String.string SymMap.map,
+                  preDeclEmit : Layout.t list ref }
 
    fun mangleName s =
       let
@@ -157,7 +159,9 @@ structure C1 = struct
            fieldTypes = #fieldTypes s,
            ret = #ret s,
            onlyDecls = #onlyDecls s,
-           exports = #exports s }
+           exports = #exports s,
+           constrs = #constrs s,
+           preDeclEmit = #preDeclEmit s }
       end
    fun registerSymbol (sym,s : state) = regSym (sym, !SymbolTables.varTable, s)
    fun registerFSymbol (sym,s : state) = regSym (sym, !SymbolTables.fieldTable, s)
@@ -168,7 +172,9 @@ structure C1 = struct
         fieldTypes = #fieldTypes s,
         ret = sym,
         onlyDecls = #onlyDecls s,
-        exports = #exports s }
+        exports = #exports s,
+        constrs = #constrs s,
+        preDeclEmit = #preDeclEmit s }
 
    fun par arg = seq [str "(", arg, str ")"]
    fun list (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
@@ -180,11 +186,14 @@ structure C1 = struct
       SOME atom => str (Atom.toString atom)
     | NONE => (TextIO.print ("emitSym: no symbol name registered for " ^ SymbolTable.getString (!SymbolTables.varTable, sym) ^ "\n"); raise CodeGenBug)
 
-   fun getConTag (s : state) con = 
-      "CON_" ^ mangleName (Atom.toString (SymbolTable.getAtom (!SymbolTables.conTable, con)))
+   fun getConTag (s : state) con = case SymMap.find (#constrs s, con) of
+         SOME str => str
+       | NONE => 
+      Int.toString (SymbolTable.toInt con) ^
+      "/* " ^ Atom.toString (SymbolTable.getAtom (!SymbolTables.conTable, con)) ^ " */"
 
    fun getFieldTag f = 
-      Int.toString (SymbolTable.toInt (f)) ^
+      Int.toString (SymbolTable.toInt f) ^
       "/* " ^ Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)) ^ " */"
 
    fun emitTypeDecl s (decl, t) =
@@ -226,6 +235,7 @@ structure C1 = struct
      | getTypeSuffix (OBJvtype) = "_obj"
      | getTypeSuffix (FUNvtype _) = "_obj"
 
+
    fun emitPat s (VECpat []) = str "default:"
      | emitPat s (VECpat [""]) = str "default:"
      | emitPat s (VECpat pats) =
@@ -248,7 +258,40 @@ structure C1 = struct
      | emitPat s (INTpat i) = str ("case " ^ IntInf.toString i ^ ":")
      | emitPat s (WILDpat) = str "default:"
      
-   fun emitBlock s (BASICblock (decls,stmts)) =
+   val anonActMap = ref (AtomMap.empty : int AtomMap.map)
+   val genClosureSet = ref AtomSet.empty
+   val invokeClosureSet = ref AtomSet.empty
+   
+   fun emitAnonymousAction s (b,t,e) =
+      let
+         val body = Atom.atom (Layout.tostring (align [
+               emitBlock s b,
+               if t=VOIDvtype then
+                  indent 2 (seq [emitExp s e, str ";"])
+               else
+                  indent 2 (seq [str "return ", emitExp s e, str ";"])
+            ]))
+         val fName = case AtomMap.find (!anonActMap, body) of
+               SOME idx => "anonymousAction" ^ Int.toString idx
+             | NONE =>
+               let
+                  val idx = AtomMap.numItems (!anonActMap)+1
+                  val _ = anonActMap := AtomMap.insert (!anonActMap,body,idx)
+                  val fName = "anonymousAction" ^ Int.toString idx
+                  val f = [
+                        seq [str "static ", emitType s (NONE,t), space, str fName, str "(state_t s) {"],
+                        str (Atom.toString body),
+                        str "}"
+                     ]
+                  val _ = (#preDeclEmit s) := !(#preDeclEmit s) @ f
+               in
+                  fName
+               end
+      in
+         seq [str fName, str "(s)"]
+      end
+      
+   and emitBlock s (BASICblock (decls,stmts)) =
       let
          val s = foldl registerSymbol s (map #2 decls)
          fun emitDecl (ty, sym) = seq [emitType s (SOME sym, ty), str ";"]
@@ -293,7 +336,10 @@ structure C1 = struct
       ]
    
    and emitExp s (IDexp sym) = emitSym s sym
-     | emitExp s (PRIexp (m,f,t,es)) = emitPrim s (f,es)
+     | emitExp s (PRIexp (m,f,t,es)) = (case t of
+         FUNvtype (_,_,args) => emitPrim s (f,es,args)
+       | _ => emitPrim s (f,es,[])
+      )
      | emitExp s (CALLexp (m,sym,es)) = seq [emitSym s sym, fArgs (map (emitExp s) es)]
      | emitExp s (INVOKEexp (m,t,e,es)) = seq [str "((", emitType s (NONE,t), str ") ", emitExp s e, str "->func)",
          fArgs (seq [emitExp s e, str "->args"] :: map (emitExp s) es)]
@@ -329,42 +375,41 @@ structure C1 = struct
          seq [str "gen_vec(",str (Int.toString sz), str ", ", emitExp s e, str ")"]
      | emitExp s (CLOSUREexp (t,sym,es)) =
          seq ([str "NULL /*"] @ separate (emitSym s sym :: map (emitExp s) es, ",") @ [str "*/"])
-     | emitExp s (STATEexp (b,e)) =
-         align [str "NULL /*", emitBlock s b, emitExp s e, str "*/"]
+     | emitExp s (STATEexp (b,t,e)) = emitAnonymousAction s (b,t,e)
 
      | emitExp s (EXECexp e) = seq [emitExp s e, fArgs []]
 
-   and emitPrim s (GETSTATEprim, []) = str "s->state"
-     | emitPrim s (SETSTATEprim, [e]) = seq [str "s->state = ", emitExp s e]
-     | emitPrim s (IPGETprim, []) = str "(s->ip - s->base)"
-     | emitPrim s (CONSUME8prim, []) = str "consume8(s)"
-     | emitPrim s (CONSUME16prim, []) = str "consume16(s)"
-     | emitPrim s (CONSUME32prim, []) = str "consume12(s)"
-     | emitPrim s (UNCONSUME8prim, []) = str "s->ip-=1"
-     | emitPrim s (UNCONSUME16prim, []) = str "s->ip-=2"
-     | emitPrim s (UNCONSUME32prim, []) = str "s->ip-=4"
-     | emitPrim s (PRINTLNprim, [e]) = seq [str "printf(\"%s\",", emitExp s e, str ")"]
-     | emitPrim s (RAISEprim, [e]) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
-     | emitPrim s (ANDprim, [e1,e2]) = seq [str "(", emitExp s e1, str " & ", emitExp s e2, str ")"]
-     | emitPrim s (ORprim, [e1,e2]) = seq [str "(", emitExp s e1, str " | ", emitExp s e2, str ")"]
-     | emitPrim s (SIGNEDprim, [e]) = seq [str "vec_to_signed", fArgs [emitExp s e]]
-     | emitPrim s (UNSIGNEDprim, [e]) = seq [str "vec_to_unsigned", fArgs [emitExp s e]]
-     | emitPrim s (ADDprim, [e1,e2]) = seq [str "(", emitExp s e1, str "+", emitExp s e2, str ")"]
-     | emitPrim s (SUBprim, [e1,e2]) = seq [str "(", emitExp s e1, str "-", emitExp s e2, str ")"]
-     | emitPrim s (EQprim, [e1,e2]) = seq [str "(", emitExp s e1, str "=", emitExp s e2, str ")"]
-     | emitPrim s (MULprim, [e1,e2]) = seq [emitExp s e1, str "*", emitExp s e2]
-     | emitPrim s (LTprim, [e1,e2]) = seq [str "(", emitExp s e1, str "<", emitExp s e2, str ")"]
-     | emitPrim s (LEprim, [e1,e2]) = seq [str "(", emitExp s e1, str "<=", emitExp s e2, str ")"]
-     | emitPrim s (NOT_VECprim, [e]) = seq [str "vec_not", fArgs [emitExp s e]]
-     | emitPrim s (EQ_VECprim, [e1,e2]) = seq [str "vec_eq", fArgs [emitExp s e1, emitExp s e2]] 
-     | emitPrim s (CONCAT_VECprim, [e1,e2]) = seq [str "vec_concat", fArgs [emitExp s e1, emitExp s e2]] 
-     | emitPrim s (INT_TO_STRINGprim, [e]) = seq [str "int_to_string", fArgs [emitExp s e]]
-     | emitPrim s (BITVEC_TO_STRINGprim, [e]) = seq [str "vec_to_string", fArgs [emitExp s e]]
-     | emitPrim s (CONCAT_STRINGprim, [e1,e2]) = seq [str "string_concat", fArgs [emitExp s e1, emitExp s e2]]
-     | emitPrim s (SLICEprim, [vec,ofs,sz]) = seq (str "gen_vec(" :: emitExp s sz :: str ", slice" :: list ("(", emitExp s, [vec,ofs,sz], "))"))
-     | emitPrim s (GET_CON_IDXprim, [e]) = seq [str "((con_t*) ", emitExp s e , str ")->tag"]
-     | emitPrim s (GET_CON_ARGprim, [e]) = seq [str "((con_t*) ", emitExp s e , str ")->payload"]
-     | emitPrim s (VOIDprim, []) = str "0 /* void value */"
+   and emitPrim s (GETSTATEprim, [],_) = str "s->state"
+     | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->state = ", emitExp s e]
+     | emitPrim s (IPGETprim, [],_) = str "(s->ip - s->base)"
+     | emitPrim s (CONSUME8prim, [],_) = str "consume8(s)"
+     | emitPrim s (CONSUME16prim, [],_) = str "consume16(s)"
+     | emitPrim s (CONSUME32prim, [],_) = str "consume12(s)"
+     | emitPrim s (UNCONSUME8prim, [],_) = str "s->ip-=1"
+     | emitPrim s (UNCONSUME16prim, [],_) = str "s->ip-=2"
+     | emitPrim s (UNCONSUME32prim, [],_) = str "s->ip-=4"
+     | emitPrim s (PRINTLNprim, [e],_) = seq [str "printf(\"%s\",", emitExp s e, str ")"]
+     | emitPrim s (RAISEprim, [e],_) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
+     | emitPrim s (ANDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str " & ", emitExp s e2, str ")"]
+     | emitPrim s (ORprim, [e1,e2],_) = seq [str "(", emitExp s e1, str " | ", emitExp s e2, str ")"]
+     | emitPrim s (SIGNEDprim, [e],_) = seq [str "vec_to_signed", fArgs [emitExp s e]]
+     | emitPrim s (UNSIGNEDprim, [e],_) = seq [str "vec_to_unsigned", fArgs [emitExp s e]]
+     | emitPrim s (ADDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "+", emitExp s e2, str ")"]
+     | emitPrim s (SUBprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "-", emitExp s e2, str ")"]
+     | emitPrim s (EQprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "=", emitExp s e2, str ")"]
+     | emitPrim s (MULprim, [e1,e2],_) = seq [emitExp s e1, str "*", emitExp s e2]
+     | emitPrim s (LTprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "<", emitExp s e2, str ")"]
+     | emitPrim s (LEprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "<=", emitExp s e2, str ")"]
+     | emitPrim s (NOT_VECprim, [e],_) = seq [str "vec_not", fArgs [emitExp s e]]
+     | emitPrim s (EQ_VECprim, [e1,e2],_) = seq [str "vec_eq", fArgs [emitExp s e1, emitExp s e2]] 
+     | emitPrim s (CONCAT_VECprim, [e1,e2],_) = seq [str "vec_concat", fArgs [emitExp s e1, emitExp s e2]] 
+     | emitPrim s (INT_TO_STRINGprim, [e],_) = seq [str "int_to_string", fArgs [emitExp s e]]
+     | emitPrim s (BITVEC_TO_STRINGprim, [e],_) = seq [str "vec_to_string", fArgs [emitExp s e]]
+     | emitPrim s (CONCAT_STRINGprim, [e1,e2],_) = seq [str "string_concat", fArgs [emitExp s e1, emitExp s e2]]
+     | emitPrim s (SLICEprim, [vec,ofs,sz],_) = seq (str "gen_vec(" :: emitExp s sz :: str ", slice" :: list ("(", emitExp s, [vec,ofs,sz], "))"))
+     | emitPrim s (GET_CON_IDXprim, [e],[t]) = seq [str "((con", str (getTypeSuffix t), str "_t*) ", emitExp s e , str ")->tag"]
+     | emitPrim s (GET_CON_ARGprim, [e],[t]) = seq [str "((con", str (getTypeSuffix t), str "_t*) ", emitExp s e , str ")->payload"]
+     | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
      | emitPrim s _ = raise CodeGenBug
      
    fun emitDecl s (FUNCdecl {
@@ -383,11 +428,17 @@ structure C1 = struct
          if #onlyDecls s then
             seq [static, emitFunType s (name, args, ty), str ";"]
          else
-         align [
-            seq [static, emitFunType s (name, args, ty), space, str "{"],
-            emitBlock s block,
-            str "}"
-         ]
+         let
+            val block = emitBlock s block
+            val preDecl = !(#preDeclEmit s)
+            val _ = (#preDeclEmit s) := []
+         in
+            align (preDecl @ [
+               seq [static, emitFunType s (name, args, ty), space, str "{"],
+               block,
+               str "}"
+            ])
+         end
       end
      | emitDecl s (SELECTdecl {
          selectName = name,
@@ -482,9 +533,33 @@ structure C1 = struct
         closureDelArgs = fargs
      }) = str ""
 
+   fun emitConDefine (con, conStr) = align [
+         seq [str "#ifdef ", str conStr],
+         indent 2 (align [
+            seq [str "#if (", str conStr, str "!=", str (Int.toString (SymbolTable.toInt con)), str ")"],
+            indent 2 (
+               seq [str "#error \"merging GDSL libraries with incompatible definition for ", str conStr, str ".\""]
+            ),
+            str "#endif"]),
+         seq [str "#else"],
+         indent 2 (
+            seq [str "#define ", str conStr, space, str (Int.toString (SymbolTable.toInt con))]
+         ),
+         seq [str "#endif"]
+      ]
+
    fun codegen spec =
       let
          val { decls = ds, fdecls = fs } = Spec.get #declarations spec
+         (* compute a list of constructors that are to be public; since
+            we currently have data types in the export list, we just
+            make any constructor without argument public *)
+         fun mkConName con = "CON_" ^ mangleName (Atom.toString
+            (SymbolTable.getAtom (!SymbolTables.conTable, con)))
+         val conMap = SymMap.mapPartiali (fn (con,(_,argOpt)) => case argOpt of
+               SOME arg => NONE
+             | NONE => SOME (mkConName con)) (Spec.get #constructors spec)
+
          val prefix = "x86"
          val st = !SymbolTables.varTable
          val (st, genericSym) = SymbolTable.fresh (st,Atom.atom "v")
@@ -497,7 +572,9 @@ structure C1 = struct
                fieldTypes = fs,
                ret = genericSym,
                onlyDecls = false,
-               exports = exports
+               exports = exports,
+               constrs = conMap,
+               preDeclEmit = ref []
             } : state
          val s = registerSymbol (stateSym, s)
          val s = foldl registerSymbol s (map getDeclName ds)
@@ -508,13 +585,15 @@ structure C1 = struct
                fieldTypes = #fieldTypes s,
                ret = #ret s,
                onlyDecls = true,
-               exports = #exports s
+               exports = #exports s,
+               constrs = #constrs s,
+               preDeclEmit = #preDeclEmit s
             } : state
          val funDeclsPublic = map (emitDecl s) 
             (List.filter (fn d => SymSet.member(exports, getDeclName d)) ds)
          val funDeclsPrivate = map (emitDecl s)
             (List.filter (fn d => not (SymSet.member(exports, getDeclName d))) ds)
-         val constructors = []
+         val constructors = map emitConDefine (SymMap.listItemsi conMap)
          val fields = []
          val constructorNames = str ""
          val fieldNames = str ""
@@ -522,14 +601,12 @@ structure C1 = struct
          val _ =
             C1Templates.expandHeader prefix [
                C1Templates.mkHook ("exports", align funDeclsPublic),
-               C1Templates.mkHook ("tagnames", constructorNames),
-               C1Templates.mkHook ("constructors", align constructors),
+               C1Templates.mkHook ("tagnames", align constructors),
                C1Templates.mkHook ("fields", align fields)
             ]
          val _ =
             C1Templates.expandRuntime prefix [
                C1Templates.mkHook ("fieldnames", fieldNames),
-               C1Templates.mkHook ("tagnames", constructorNames),
                C1Templates.mkHook ("prototypes", align funDeclsPrivate),
                C1Templates.mkHook ("functions", align funs)
             ]

@@ -275,10 +275,6 @@ void gdsl_destroy(state_t s) {
   free(s);
 }
 
-@fieldnames@
-
-@tagnames@
-
 @prototypes@
 
 #ifdef WITHMAIN

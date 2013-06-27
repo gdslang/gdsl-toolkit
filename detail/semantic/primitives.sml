@@ -294,7 +294,7 @@ structure Primitives = struct
          open Imp
          exception ImpPrimTranslationBug
          fun pr (prim,ty,args) = PRIexp (PUREmonkind, prim, ty, args)
-         fun action e = STATEexp (BASICblock ([],[]), e)
+         fun action e = STATEexp (BASICblock ([],[]), OBJvtype, e)
          fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
          fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (VECvtype, arg))) args
          fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (VECvtype, arg))) args

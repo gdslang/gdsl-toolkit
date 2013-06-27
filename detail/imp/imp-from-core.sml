@@ -411,7 +411,7 @@ end = struct
            | transSeq s acc _ = raise ImpTranslationBug
          val ((stmts,exp), decls) = withLocalScope s (fn s => transSeq s [] seq)
       in
-         ([], STATEexp (BASICblock (map (fn d => (OBJvtype, d)) (SymSet.listItems decls), stmts), exp))
+         ([], STATEexp (BASICblock (map (fn d => (OBJvtype, d)) (SymSet.listItems decls), stmts), OBJvtype, exp))
       end
      | trExpr s (Exp.LIT (SpecAbstractTree.INTlit i)) =
          ([], BOXexp (INTvtype, LITexp (INTvtype, INTlit i)))

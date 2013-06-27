@@ -35,6 +35,6 @@ void gdsl_destroy(state_t s);
 
 /* The following defines are accumulative. */
 
-/* Tags of constructors without arguments. */
+/* Exported tags of constructors without arguments. */
 @tagnames@
 

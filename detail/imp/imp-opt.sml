@@ -29,7 +29,7 @@ structure PatchFunctionCalls = struct
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b,visitExp s e)
+     | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b,t,visitExp s e)
      | visitExp s (EXECexp e) = EXECexp (case visitExp s e of
          IDexp sym => (case SymMap.find (!Primitives.prim_map, sym) of
             SOME (_,gen) => visitExp s (gen [])
@@ -170,7 +170,7 @@ structure ActionClosures = struct
      | getMonExp ds (VEC2INTexp (sz,e)) = getMonExp ds e
      | getMonExp ds (INT2VECexp (sz,e)) = getMonExp ds e
      | getMonExp (declSyms,execSyms) (CLOSUREexp (t,sym,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
-     | getMonExp (declSyms,execSyms) (STATEexp (BASICblock (decls,stmts),e)) =
+     | getMonExp (declSyms,execSyms) (STATEexp (BASICblock (decls,stmts),t,e)) =
       let
          val declSyms = SymSet.union (declSyms, SymSet.fromList (map #2 decls))
       in
@@ -214,7 +214,7 @@ structure ActionClosures = struct
    
    and visitExp s (IDexp sym) =
       if isMonVar ((s : state),sym) then
-         STATEexp (BASICblock ([],[]), IDexp sym)
+         STATEexp (BASICblock ([],[]), OBJvtype, IDexp sym)
       else
          IDexp sym
      | visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
@@ -226,7 +226,7 @@ structure ActionClosures = struct
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (b,e)) =
+     | visitExp s (STATEexp (b,t,e)) =
          let
             val e' = visitExp s e
             val eDecls = !(#declsRef s)
@@ -235,10 +235,10 @@ structure ActionClosures = struct
             val _ = (#stmtsRef s) := []
             val BASICblock (decls,stmts) = visitBlock s b
          in
-            STATEexp (BASICblock (decls @ eDecls, stmts @ eStmts), e')
+            STATEexp (BASICblock (decls @ eDecls, stmts @ eStmts), t, e')
          end
      | visitExp s (EXECexp e) = (case (visitExp s e) of
-            STATEexp (BASICblock (decls, stmts),e) => 
+            STATEexp (BASICblock (decls, stmts),t,e) => 
             let
                val _ = (#declsRef s) := decls @ (!(#declsRef s))
                val _ = (#stmtsRef s) := stmts @ (!(#stmtsRef s))
@@ -361,7 +361,7 @@ structure Simplify = struct
         )
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b,visitExp s e)
+     | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b,t,visitExp s e)
      | visitExp s (EXECexp e) = (case visitExp s e of
          CLOSUREexp (tCl,sym,[]) => (case SymMap.find (#decls s,sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
@@ -719,7 +719,7 @@ structure TypeRefinement = struct
          in
            returnTy
          end
-     | visitExp s (STATEexp (b,e)) =
+     | visitExp s (STATEexp (b,t,e)) =
       let
          val isCl = case e of
             CALLexp (_,_,[]) => VOIDstype
@@ -1028,7 +1028,7 @@ structure TypeRefinement = struct
       in
          wrap (CLOSUREexp (tyNew,sym,esNew))
       end
-     | patchExp s (STATEexp (b,e)) = STATEexp (patchBlock s b, patchExp s e)
+     | patchExp s (STATEexp (b,t,e)) = STATEexp (patchBlock s b, adjustType s (t,visitExp s e), patchExp s e)
      | patchExp s (EXECexp e) =
       let
          val eNew = patchExp s e
@@ -1402,7 +1402,7 @@ structure SwitchReduce = struct
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b, visitExp s e)
+     | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b, t, visitExp s e)
      | visitExp s (EXECexp e) = (EXECexp (visitExp s e))
      | visitExp s e = e
 
@@ -1509,7 +1509,7 @@ structure DeadSymbol = struct
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = (refSym (s,sym); CLOSUREexp (t,(applyReplace (s,sym)),map (visitExp s) es))
-     | visitExp s (STATEexp (b,e)) = STATEexp (visitBlock s b, visitExp s e)
+     | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b, t, visitExp s e)
      | visitExp s (EXECexp e) = EXECexp (visitExp s e)
      | visitExp s e = e
 
