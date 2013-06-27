@@ -163,7 +163,8 @@ end = struct
                     closureName = clSym,
                     closureArgs = argsTy,
                     closureDelegate = sym,
-                    closureDelArgs = [(OBJvtype,sym')]
+                    closureDelArgs = [(OBJvtype,sym')],
+                    closureRetTy = OBJvtype
                   })
                in
                   clSym
@@ -197,7 +198,8 @@ end = struct
                     closureName = clSym,
                     closureArgs = [],
                     closureDelegate = sym,
-                    closureDelArgs = [(OBJvtype, sym')]
+                    closureDelArgs = [(OBJvtype, sym')],
+                    closureRetTy = OBJvtype
                   })
                in
                   clSym
@@ -230,7 +232,8 @@ end = struct
                     closureName = clSym,
                     closureArgs = [],
                     closureDelegate = sym,
-                    closureDelArgs = [(OBJvtype, sym')]
+                    closureDelArgs = [(OBJvtype, sym')],
+                    closureRetTy = OBJvtype
                   })
                in
                   clSym
@@ -392,19 +395,19 @@ end = struct
                let
                   val (stmts, exp) = trExpr s e
                in
-                  (acc @ stmts, EXECexp exp)
+                  (acc @ stmts, EXECexp (FUNvtype (OBJvtype, true, []), exp))
                end
            | transSeq s acc ((Exp.ACTION e) :: seq) =
                let
                   val (stmts, exp) = trExpr s e
-                  val stmtss = acc @ stmts @ [ASSIGNstmt (NONE,(EXECexp exp))]
+                  val stmtss = acc @ stmts @ [ASSIGNstmt (NONE,(EXECexp (FUNvtype (OBJvtype, true, []), exp)))]
                in
                   transSeq s stmtss seq
                end
            | transSeq s acc ((Exp.BIND (res,e)) :: seq) =
                let
                   val (stmts, exp) = trExpr s e
-                  val stmtss = acc @ stmts @ [ASSIGNstmt (SOME res,(EXECexp exp))]
+                  val stmtss = acc @ stmts @ [ASSIGNstmt (SOME res,(EXECexp (FUNvtype (OBJvtype, true, []), exp)))]
                in
                   transSeq (addLocalVar s res) stmtss seq
                end
@@ -467,7 +470,8 @@ end = struct
                      closureName = symCl,
                      closureArgs = map #1 clArgs,
                      closureDelegate = sym,
-                     closureDelArgs = stdArgs
+                     closureDelArgs = stdArgs,
+                     closureRetTy = OBJvtype
                   })
                val _ = addGlobalExp s (sym, CLOSUREexp (fTypeCl, symCl, map (IDexp o #2) clArgs))
             in s end

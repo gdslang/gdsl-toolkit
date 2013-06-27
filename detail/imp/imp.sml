@@ -137,7 +137,8 @@ structure Imp = struct
         closureName : sym,
         closureArgs : vtype list,
         closureDelegate : sym,
-        closureDelArgs : arg list
+        closureDelArgs : arg list,
+        closureRetTy : vtype
       }
 
    and exp =
@@ -153,7 +154,7 @@ structure Imp = struct
     | INT2VECexp of int * exp
     | CLOSUREexp of vtype * sym * exp list
     | STATEexp of block * vtype * exp (* generate closure of an action, the type is that of the expression *)
-    | EXECexp of exp (* execute an action *)
+    | EXECexp of vtype * exp (* execute an action *)
 
    and stmt =
       ASSIGNstmt of sym option * exp
@@ -236,8 +237,9 @@ structure Imp = struct
         | decl (CONdecl { conName = name, conTag = tag, conArg = conArg, conType = t }) =
             seq [vtype t, space, var name, str "(", arg conArg, str ");"]
         | decl (CLOSUREdecl { closureName = name, closureArgs = ts,
-                              closureDelegate = del, closureDelArgs = delArgs}) =
-            seq ([var name, space, str "invokes", space, var del] @
+                              closureDelegate = del, closureDelArgs = delArgs,
+                              closureRetTy = retTy }) =
+            seq ([var name, space, str "invokes", space, vtype retTy, space, var del] @
                   args ("[",vtype,ts,"]") @ args ("(",arg,delArgs,")"))
       and vardecl (ty, sym) = seq [vtype ty, space, var sym]
       and lit (t,VEClit s) = seq [str "0b", str s] 
@@ -270,7 +272,7 @@ structure Imp = struct
                block b,
                indent 3 (seq [str "(", vtype t, str ") ", exp e])
             ]
-        | exp (EXECexp e) = seq [str "EXEC(", exp e, str ")"]
+        | exp (EXECexp (ty,e)) = seq [str "EXEC", vtype ty, str "(", exp e, str ")"]
       and stmts ss = align (map stmt ss)
       and stmt (ASSIGNstmt (SOME s,e)) = seq [var s, space, str "=", space, exp e]
         | stmt (ASSIGNstmt (NONE,e)) = exp e

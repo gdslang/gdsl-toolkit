@@ -30,7 +30,7 @@ structure PatchFunctionCalls = struct
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
      | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b,t,visitExp s e)
-     | visitExp s (EXECexp e) = EXECexp (case visitExp s e of
+     | visitExp s (EXECexp (t,e)) = EXECexp (t, case visitExp s e of
          IDexp sym => (case SymMap.find (!Primitives.prim_map, sym) of
             SOME (_,gen) => visitExp s (gen [])
           | NONE => IDexp sym
@@ -117,6 +117,7 @@ structure ActionClosures = struct
             val (tab, mon) = SymbolTable.fresh (tab, atm)
             val _ = SymbolTables.varTable := tab
             val _ = (#pureToMonRef s) := SymMap.insert (!(#pureToMonRef s), name, mon)
+            val retTy = case vtype of FUNvtype (retTy,_,_) => retTy | _ => OBJvtype
          in
             FUNCdecl {
                funcMonadic = ACTmonkind,
@@ -124,13 +125,14 @@ structure ActionClosures = struct
                funcType = vtype,
                funcName = mon,
                funcArgs = args,
-               funcBody = BASICblock (decls,[ASSIGNstmt (lhs,EXECexp (STATEexp block))]),
+               funcBody = BASICblock (decls,[ASSIGNstmt (lhs,EXECexp (FUNvtype (OBJvtype, true, []), STATEexp block))]),
                funcRes = res
             } :: CLOSUREdecl {
                closureName = name,
                closureArgs = map #1 (clArgs @ args),
                closureDelegate = mon,
-               closureDelArgs = []
+               closureDelArgs = [],
+               closureRetTy = retTy
             } :: addMonClosures s ds
          end
        | _ => d :: addMonClosures s ds
@@ -176,9 +178,9 @@ structure ActionClosures = struct
       in
          foldl (fn (stmt,execSyms) => getMonStmt (declSyms,execSyms) stmt) (getMonExp (declSyms,execSyms) e) (List.rev stmts)
       end
-     | getMonExp (declSyms,execSyms) (EXECexp (IDexp sym)) =
+     | getMonExp (declSyms,execSyms) (EXECexp (t, IDexp sym)) =
       if SymSet.member (declSyms,sym) then SymSet.add (execSyms, sym) else execSyms
-     | getMonExp ds (EXECexp e) = getMonExp ds e
+     | getMonExp ds (EXECexp (t, e)) = getMonExp ds e
 
    fun visitBlock s (BASICblock (decls,stmts)) =
       let
@@ -204,7 +206,7 @@ structure ActionClosures = struct
    and visitStmt s (ASSIGNstmt (NONE,exp)) = ASSIGNstmt (NONE, visitExp s exp)
      | visitStmt s (ASSIGNstmt (SOME sym,exp)) =
          if isMonVar (s, sym) then
-            ASSIGNstmt (SOME sym, visitExp s (EXECexp exp))
+            ASSIGNstmt (SOME sym, visitExp s (EXECexp (FUNvtype (OBJvtype, true, []), exp)))
          else
             ASSIGNstmt (SOME sym, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
@@ -237,7 +239,7 @@ structure ActionClosures = struct
          in
             STATEexp (BASICblock (decls @ eDecls, stmts @ eStmts), t, e')
          end
-     | visitExp s (EXECexp e) = (case (visitExp s e) of
+     | visitExp s (EXECexp (t, e)) = (case visitExp s e of
             STATEexp (BASICblock (decls, stmts),t,e) => 
             let
                val _ = (#declsRef s) := decls @ (!(#declsRef s))
@@ -245,7 +247,7 @@ structure ActionClosures = struct
             in
                e
             end
-          | e => EXECexp e
+          | e => EXECexp (t, e)
         )                                           
      | visitExp s e = e
 
@@ -362,7 +364,7 @@ structure Simplify = struct
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
      | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b,t,visitExp s e)
-     | visitExp s (EXECexp e) = (case visitExp s e of
+     | visitExp s (EXECexp (t, e)) = (case visitExp s e of
          CLOSUREexp (tCl,sym,[]) => (case SymMap.find (#decls s,sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
                CALLexp (PUREmonkind, delSym, [])
@@ -371,9 +373,9 @@ structure Simplify = struct
        | CALLexp (m,sym,es) => (case SymMap.find (#decls s,sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
                CALLexp (m, delSym, map (visitExp s) es)
-          | _ => EXECexp (CALLexp (m,sym,map (visitExp s) es))
+          | _ => EXECexp (t, CALLexp (m,sym,map (visitExp s) es))
          )
-       | e => EXECexp e
+       | e => EXECexp (t, e)
       )
 
    fun visitDecl s (FUNCdecl {
@@ -705,7 +707,8 @@ structure TypeRefinement = struct
                     closureName = name,
                     closureArgs = _,
                     closureDelegate = del,
-                    closureDelArgs = delArgs
+                    closureDelArgs = delArgs,
+                    closureRetTy = _
                  }) = decl
             val clTysS = map (visitExp s) es
             val delTysS = map (fn (_,arg) => symType s arg) delArgs
@@ -721,18 +724,14 @@ structure TypeRefinement = struct
          end
      | visitExp s (STATEexp (b,t,e)) =
       let
-         val isCl = case e of
-            CALLexp (_,_,[]) => VOIDstype
-          | EXECexp (IDexp _) => VOIDstype
-          | _ => OBJstype
          val _ = visitBlock s b
       in
-         FUNstype (visitExp s e, VOIDstype, [])
+         FUNstype (visitExp s e, VOIDstype, []) (* TODO: check properly for free vars *)
       end
-     | visitExp s (EXECexp e) =
+     | visitExp s (EXECexp (ty,e)) = (* TODO: check properly for free vars *)
       let
          val resVar = freshTVar s
-         val _ = lub (s,visitExp s e, FUNstype (resVar, freshTVar s, []))
+         val _ = lub (s,visitExp s e, FUNstype (resVar, VOIDstype, []))
       in
          resVar
       end
@@ -740,7 +739,7 @@ structure TypeRefinement = struct
    and visitCall s (fTy,args) =
       let
          val resTy = freshTVar s
-         val isCl = if null args then freshTVar s else OBJstype
+         val isCl = if null args then VOIDstype else OBJstype
          val _ = lub (s,FUNstype (resTy,isCl,map (visitExp s) args),fTy)
       in
          resTy
@@ -787,7 +786,8 @@ structure TypeRefinement = struct
         closureName = name,
         closureArgs = clTys,
         closureDelegate = del,
-        closureDelArgs = delArgs
+        closureDelArgs = delArgs,
+        closureRetTy = _
      }) =
       let
          val _ = msg ("visitDecl CLOSURE: type before: " ^ showSType (inlineSType s (symType s name)) ^ "\n")
@@ -956,9 +956,11 @@ structure TypeRefinement = struct
          closureName = name,
          closureArgs = tsCl,
          closureDelegate = del,
-         closureDelArgs = delArgs
-     }) = (msg ("patchDecl CLOSURE " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " from " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (OBJvtype,false,tsCl @ map #1 delArgs))) ^ " to " ^ showSType (inlineSType s (symType s del)) ^ "\n");  case adjustType s (FUNvtype (OBJvtype,false,tsCl @ map #1 delArgs), symType s del) of
-         FUNvtype (_,_,args) =>
+         closureDelArgs = delArgs,
+         closureRetTy = retTy
+     }) = (msg ("patchDecl CLOSURE " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " from " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (OBJvtype,false,tsCl @ map #1 delArgs))) ^ " to " ^ showSType (inlineSType s (symType s del)) ^ "\n"); 
+      case adjustType s (FUNvtype (retTy,false,tsCl @ map #1 delArgs), symType s del) of
+         FUNvtype (retTy,_,args) =>
          let
             val len = List.length tsCl
             val tsClNew = List.take (args,len)
@@ -970,7 +972,8 @@ structure TypeRefinement = struct
                closureName = name,
                closureArgs = tsClNew,
                closureDelegate = del,
-               closureDelArgs = delArgsNew
+               closureDelArgs = delArgsNew,
+               closureRetTy = retTy
             }
          end
        | _ => (TextIO.print ("patchDecl CLOSURE " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " from " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (OBJvtype,false,tsCl @ map #1 delArgs))) ^ " to " ^ showSType (inlineSType s (symType s del)) ^ "\n"); raise TypeOptBug)
@@ -1029,16 +1032,16 @@ structure TypeRefinement = struct
          wrap (CLOSUREexp (tyNew,sym,esNew))
       end
      | patchExp s (STATEexp (b,t,e)) = STATEexp (patchBlock s b, adjustType s (t,visitExp s e), patchExp s e)
-     | patchExp s (EXECexp e) =
+     | patchExp s (EXECexp (_, e)) =
       let
          val eNew = patchExp s e
          val ty = FUNvtype (OBJvtype, false, [])
          val sty = visitExp s e
          val _ = msg ("patchExp EXEC " ^ Layout.tostring (Imp.PP.exp e) ^ ", expression type now " ^ showSType (inlineSType s sty) ^ "\n")
-         val (wrap, tyNew, _) = patchCall s (ty, sty, [])
-         val _ = msg ("patchExp result is " ^ Layout.tostring (Imp.PP.exp (wrap (EXECexp eNew))) ^ "\n")
+         val (wrap, newTy, _) = patchCall s (ty, sty, [])
+         val _ = msg ("patchExp result is " ^ Layout.tostring (Imp.PP.exp (wrap (EXECexp (newTy, eNew)))) ^ "\n")
       in
-         wrap (EXECexp eNew)
+         wrap (EXECexp (newTy, eNew))
       end
    
    and patchCall s (orig,new,es) =
@@ -1403,7 +1406,7 @@ structure SwitchReduce = struct
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
      | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b, t, visitExp s e)
-     | visitExp s (EXECexp e) = (EXECexp (visitExp s e))
+     | visitExp s (EXECexp (t, e)) = (EXECexp (t, visitExp s e))
      | visitExp s e = e
 
    fun visitDecl s (FUNCdecl {
@@ -1510,7 +1513,7 @@ structure DeadSymbol = struct
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = (refSym (s,sym); CLOSUREexp (t,(applyReplace (s,sym)),map (visitExp s) es))
      | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b, t, visitExp s e)
-     | visitExp s (EXECexp e) = EXECexp (visitExp s e)
+     | visitExp s (EXECexp (t, e)) = EXECexp (t, visitExp s e)
      | visitExp s e = e
 
    fun visitDecl s (FUNCdecl {
