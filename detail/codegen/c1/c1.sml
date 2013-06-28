@@ -303,8 +303,10 @@ structure C1 = struct
             end
       end
 
-   fun emitGenClosure (s : state) (ty as FUNvtype (retTy,_,argTys)) =
+   fun emitGenClosure (s : state) (FUNvtype (_,_,argTys)) =
       let
+         val retTy = OBJvtype
+         val ty = FUNvtype (retTy,false,argTys)
          val closureName = "gen" ^
                            foldl (fn (t,str) => str ^ getTypeSuffix t) "" (retTy::argTys) ^
                            "_closure"
@@ -320,7 +322,7 @@ structure C1 = struct
                   indent 2 (align [
                      seq [str structName, str "* closure = alloc(s, sizeof(", str structName, str "));"],
                      seq [str "*closure = (", str structName, str "){", seq (separate (map (str o #2) clArgs, ", ")), str "};"],
-                     str "return closure;"
+                     str "return (obj_t) closure;"
                   ]),
                   str "}"
                ]
