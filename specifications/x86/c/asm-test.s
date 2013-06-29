@@ -172,7 +172,7 @@ main:
 
 	#paddb %xmm3, %xmm5
 	#paddw %xmm1, %xmm2
-	#paddd %xmm1, %xmm2
+	#paddd %xmm1, %xmm2Italo Brothers - This is nightlife
 	#paddq %xmm1, %xmm2
 	#vpaddq %xmm1, %xmm2, %xmm3
 
@@ -591,8 +591,13 @@ main:
 
 #jmp %rax
 
-add %rax, (%rbx)
+#add %rax, (%rbx)
 
+#jmp -1
+
+#sub %rax, %rbx
+
+pblendvb %xmm1, %xmm2
 
 #call %r8	
 

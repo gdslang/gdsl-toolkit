@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 #include <rreil/rreil.h>
 #include <context.h>
 #include <simulator/simulator.h>
@@ -82,10 +83,16 @@ void simulator_register_read(struct context *context, struct rreil_id *id,
 void simulator_register_generic_write(struct register_ *reg, struct data data,
 		size_t bit_offset) {
 	if(bit_offset + data.bit_length > reg->bit_length) {
-		reg->data = (uint8_t*)realloc(reg->data,
-				bit_offset / 8 + 1 + data.bit_length / 8 + 1);
-		reg->defined = (uint8_t*)realloc(reg->defined,
-				bit_offset / 8 + 1 + data.bit_length / 8 + 1);
+		size_t new_size = bit_offset / 8 + data.bit_length / 8
+				+ (bit_offset % 8 + data.bit_length % 8) / 8
+				+ ((bit_offset + data.bit_length) % 8 > 0);
+		size_t reg_size = reg->bit_length / 8 + (reg->bit_length % 8 > 0);
+
+		reg->data = (uint8_t*)realloc(reg->data, new_size);
+
+		reg->defined = (uint8_t*)realloc(reg->defined, new_size);
+		memset(reg->defined + reg_size, 0, new_size - reg_size);
+
 		reg->bit_length = bit_offset + data.bit_length;
 	}
 

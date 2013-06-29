@@ -607,6 +607,8 @@ val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 op
   mov size temp-mask mask;
 
   temp-dst <- mktemp;
+#  mov size temp-dst (imm 0);
+  mov size temp-dst src1;
 
   let
     val m i = do
@@ -617,9 +619,9 @@ val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 op
         mov element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset))
       _else
 #        if avx-encoded then
-          mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
+#          mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
 #      	else
-#	        return void
+	        return void
     end
   in
     vector-apply size element-size m
