@@ -651,7 +651,6 @@ structure C1 = struct
       let
          val closureVar = #ret (s : state)
          val s = registerSymbol (closureVar,s)
-         val s = registerSymbol (del,s) (* in case the constructor is emitted later *)
          val s = foldl registerSymbol s (map #2 delArgs)
          val funArgs = (OBJvtype, closureVar) :: delArgs
       in
