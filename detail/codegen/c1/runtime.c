@@ -58,26 +58,11 @@ static inline type ## _t* alloc_ ## type (state_t s, type ## _t v) { \
   return res;\
 }
 
-typedef int64_t int_t;
-
 GEN_ALLOC(int);
-
-typedef char* string_t;
 
 #define alloc_string(s,str) str
 
-typedef uint64_t vec_data_t;
-
-struct vec {
-  unsigned int size;
-  vec_data_t data;
-};
-
-typedef struct vec vec_t;
-
 GEN_ALLOC(vec);
-
-typedef unsigned int con_tag_t;
 
 #define GEN_CON_STRUCT(type)  \
 struct con_ ## type {         \

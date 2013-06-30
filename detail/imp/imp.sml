@@ -209,7 +209,7 @@ structure Imp = struct
             seq (args ("(",vtype,atys,")") @
                 [str (if cl then "=>" else "->"), vtype res])
       fun arg (t,n) = seq [vtype t, space, var n]
-      fun monarg PUREmonkind = empty
+      fun monarg PUREmonkind = seq []
         | monarg ACTmonkind = seq [space, str "ACT"]
       fun decl (FUNCdecl {
            funcMonadic,

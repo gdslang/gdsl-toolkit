@@ -75,33 +75,20 @@ structure ActionClosures = struct
    type state = { pureToMonRef : SymbolTable.symid SymMap.map ref,
                   monVars : SymSet.set,
                   declsRef : arg list ref,
-                  stmtsRef : stmt list ref }
+                  stmtsRef : stmt list ref,
+                  closureRef : decl list ref }
    fun addMonSyms ({ pureToMonRef = pureToMonRef,
                      monVars = monVars,
                      declsRef = declsRef,
-                     stmtsRef = stmtsRef },syms) =
+                     stmtsRef = stmtsRef,
+                     closureRef = closureRef },syms) =
       { pureToMonRef = pureToMonRef,
         monVars = SymSet.union (monVars,syms),
         declsRef = declsRef,
-        stmtsRef = stmtsRef } : state
+        stmtsRef = stmtsRef,
+        closureRef = closureRef } : state
 
-   fun getClosureSym sym =
-      let
-         val tab = !SymbolTables.varTable
-         val atm = Atom.atom (Atom.toString (SymbolTable.getAtom (tab,sym)) ^ "Mon")
-       in
-         case SymbolTable.find (tab,atm) of
-            SOME res => res
-          | NONE =>
-            let
-               val (tab, res) = SymbolTable.fresh (tab, atm)
-               val _ = SymbolTables.varTable := tab
-            in
-               res
-            end
-      end
-
-   fun addMonClosures (s : state) ((d as FUNCdecl {
+   fun genMonClosures (s : state) (d as FUNCdecl {
         funcMonadic = monkind,
         funcClosure = clArgs,
         funcType = vtype,
@@ -109,7 +96,7 @@ structure ActionClosures = struct
         funcArgs = args,
         funcBody = BASICblock (decls,stmts),
         funcRes = res
-      }) :: ds) = (case stmts of
+      }) = (case stmts of
          [ASSIGNstmt (lhs,STATEexp block)] =>
          let
             val tab = !SymbolTables.varTable
@@ -118,31 +105,35 @@ structure ActionClosures = struct
             val _ = SymbolTables.varTable := tab
             val _ = (#pureToMonRef s) := SymMap.insert (!(#pureToMonRef s), name, mon)
             val retTy = case vtype of FUNvtype (retTy,_,_) => retTy | _ => OBJvtype
+            val _ = (#closureRef s) := CLOSUREdecl {
+               closureName = mon,
+               closureArgs = map #1 (clArgs @ args),
+               closureDelegate = name,
+               closureDelArgs = [],
+               closureRetTy = retTy
+            } :: !(#closureRef s)
          in
             FUNCdecl {
                funcMonadic = ACTmonkind,
                funcClosure = clArgs,
                funcType = vtype,
-               funcName = mon,
+               funcName = name,
                funcArgs = args,
                funcBody = BASICblock (decls,[ASSIGNstmt (lhs,EXECexp (FUNvtype (OBJvtype, true, []), STATEexp block))]),
                funcRes = res
-            } :: CLOSUREdecl {
-               closureName = name,
-               closureArgs = map #1 (clArgs @ args),
-               closureDelegate = mon,
-               closureDelArgs = [],
-               closureRetTy = retTy
-            } :: addMonClosures s ds
+            }
          end
-       | _ => d :: addMonClosures s ds
+       | _ => d
       )
-    | addMonClosures (s : state) (d :: ds) = d :: addMonClosures s ds
-    | addMonClosures (s : state) [] = []
+    | genMonClosures (s : state) d = d
          
-   fun isMonVar (s : state, sym) = case SymMap.find (!(#pureToMonRef s),sym) of
-      SOME mon => true
-    | NONE => SymSet.member (#monVars s, sym)
+   fun isMonVar (s : state, sym) =
+      SymSet.member (#monVars s, sym) orelse
+      SymMap.inDomain (!(#pureToMonRef s), sym)
+   
+   fun renameSym (s : state, sym) = case SymMap.find (!(#pureToMonRef s), sym) of
+      SOME mon => mon
+    | NONE => sym 
 
    fun getMonBlock (declSyms,execSyms) (BASICblock (decls,stmts)) =
       let
@@ -187,7 +178,8 @@ structure ActionClosures = struct
          val s' = { pureToMonRef = #pureToMonRef s,
                     monVars = #monVars s,
                     declsRef = ref [],
-                    stmtsRef = ref [] } : state
+                    stmtsRef = ref [],
+                    closureRef = #closureRef s } : state
          fun trStmts [] = []
            | trStmts (stmt :: stmts) =
             let
@@ -206,7 +198,7 @@ structure ActionClosures = struct
    and visitStmt s (ASSIGNstmt (NONE,exp)) = ASSIGNstmt (NONE, visitExp s exp)
      | visitStmt s (ASSIGNstmt (SOME sym,exp)) =
          if isMonVar (s, sym) then
-            ASSIGNstmt (SOME sym, visitExp s (EXECexp (FUNvtype (OBJvtype, true, []), exp)))
+            ASSIGNstmt (SOME sym, visitExp s (EXECexp (FUNvtype (OBJvtype, false, []), exp)))
          else
             ASSIGNstmt (SOME sym, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
@@ -220,14 +212,14 @@ structure ActionClosures = struct
       else
          IDexp sym
      | visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
-     | visitExp s (CALLexp (m,sym,es)) = CALLexp (m, sym, map (visitExp s) es)
+     | visitExp s (CALLexp (m,sym,es)) = CALLexp (m, renameSym (s,sym), map (visitExp s) es)
      | visitExp s (INVOKEexp (m,t,e,es)) = INVOKEexp (m,t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
-     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,sym,map (visitExp s) es)
+     | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (t,renameSym (s,sym),map (visitExp s) es)
      | visitExp s (STATEexp (b,t,e)) =
          let
             val e' = visitExp s e
@@ -276,6 +268,20 @@ structure ActionClosures = struct
            funcRes = res
          }
       end
+    | visitDecl s (CLOSUREdecl {
+        closureName = name,
+        closureArgs = args,
+        closureDelegate = del,
+        closureDelArgs = delArgs,
+        closureRetTy = retTy
+      }) =
+      CLOSUREdecl {
+        closureName = name,
+        closureArgs = args,
+        closureDelegate = renameSym (s,del),
+        closureDelArgs = delArgs,
+        closureRetTy = retTy
+      }
      | visitDecl s d = d
 
    fun run { decls = ds, fdecls = fs } =
@@ -284,10 +290,12 @@ structure ActionClosures = struct
          val s = { pureToMonRef = ref SymMap.empty,
                    monVars = SymSet.empty,
                    declsRef = ref ([] : arg list),
-                   stmtsRef = ref ([] : stmt list)
+                   stmtsRef = ref ([] : stmt list),
+                   closureRef = ref ([] : decl list)
                  } : state
-         val ds = addMonClosures s ds
+         val ds = map (genMonClosures s) ds
          val ds = map (visitDecl s) ds
+         val ds = ds @ !(#closureRef s)
       in
          { decls = ds, fdecls = fs }
       end

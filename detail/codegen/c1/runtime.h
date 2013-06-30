@@ -6,8 +6,20 @@
 #include <stdlib.h>
 #include <inttypes.h>
 
+/* data types used in decoder programs */
 typedef void* obj_t;
 typedef struct state* state_t;
+typedef int64_t int_t;
+typedef char* string_t;
+typedef uint64_t vec_data_t;
+
+struct vec {
+  unsigned int size;
+  vec_data_t data;
+};
+
+typedef struct vec vec_t;
+typedef unsigned int con_tag_t;
 
 /* Create a new decoder state. Should be destroyed by gdsl_destroy(). */
 state_t gdsl_init(void);

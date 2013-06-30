@@ -1,4 +1,11 @@
-export = test
+export = foo
+
+val foo = do
+  if '1' then
+   let val fooTest = test in fooTest 8 7 end
+   else
+   test 7 8
+end
 
 val f i =
   if i < 10 then
