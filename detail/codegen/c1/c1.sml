@@ -347,7 +347,7 @@ structure C1 = struct
 
    fun emitInvokeClosure (s : state) (FUNvtype (retTy,_,argTys)) =
       let
-         val retTy = removeArgs retTy
+         (*val retTy = removeArgs retTy*)
          val funName = "invoke" ^
                         foldl (fn (t,str) => str ^ getTypeSuffix t) "_closure" (retTy::argTys)
          val funNameAtom = Atom.atom funName
@@ -380,9 +380,10 @@ structure C1 = struct
       let
          val body = Atom.atom (Layout.tostring (align [
                emitBlock s b,
-               if t=VOIDvtype then
+               case t of
+                  FUNvtype (VOIDvtype,_,[]) =>
                   indent 2 (seq [emitExp s e, str ";"])
-               else
+                | _ =>
                   indent 2 (seq [str "return ", emitExp s e, str ";"])
             ]))
          val fName = case AtomMap.find (!anonActMap, body) of
@@ -402,7 +403,7 @@ structure C1 = struct
                   fName
                end
       in
-         seq [str fName, str "(s)"]
+         seq [str fName]
       end
       
    and emitBlock s (BASICblock (decls,stmts)) =
@@ -491,7 +492,7 @@ structure C1 = struct
          seq [emitGenClosure s t, fArgs (seq [str "&", emitSym s sym] :: map (emitExp s) es)]
      | emitExp s (STATEexp (b,t,e)) = emitAnonymousAction s (b,t,e)
 
-     | emitExp s (EXECexp (FUNvtype (_,false,_),e)) = seq [str "*", emitExp s e, fArgs []]
+     | emitExp s (EXECexp (FUNvtype (_,false,_),e)) = seq [emitExp s e, fArgs []]
      | emitExp s (EXECexp (t,e)) = seq [emitInvokeClosure s t, fArgs [emitExp s e]]
 
    and emitPrim s (GETSTATEprim, [],_) = str "s->state"

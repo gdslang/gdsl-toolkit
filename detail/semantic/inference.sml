@@ -778,7 +778,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (S.UnificationFailure (S.Clash, "last statement in a sequence may not bind a variable"))
      | infSeqexp stenv (AST.MARKseqexp m :: l) =
          reportError (fn stenv => fn e => infSeqexp stenv (e :: l)) stenv m
-     | infSeqexp (st,env) [AST.ACTIONseqexp e] = infExp (st,env) e
+     | infSeqexp (st,env) [AST.ACTIONseqexp e] =
+      let
+         val envExp = infExp (st,env) e
+         val resTy = freshVar ()
+         val inpTy = freshVar ()
+         val outTy = freshVar ()
+         val envMon = E.pushType (false, MONAD (resTy,inpTy,outTy),env)
+      in
+         E.meet (envExp,envMon)
+      end
      | infSeqexp (st,env) (s :: l) =
       let
          val (bind, vOpt,e) = case s of

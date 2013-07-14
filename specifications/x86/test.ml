@@ -1,11 +1,11 @@
-export = foo
+export = main
 
-val foo = do
+val main =  (
   if '1' then
-   let val fooTest = test in fooTest 8 7 end
+   let val renamed = test in return (renamed 8 7) end
    else
-   test 7 8
-end
+   return (test 7 8)
+)
 
 val f i =
   if i < 10 then
@@ -13,7 +13,7 @@ val f i =
   else
     42
 
-val test a b = do
+val test a b = 
 #  let
 #    val f i = do
 #      return 43 + i;
@@ -39,6 +39,6 @@ val test a b = do
 #  in
 #    f 0
 #  end
-  return (f 0)
-end
+   (f 0)
+
 
