@@ -2451,14 +2451,20 @@ val exception-lock-reg features giveOp = do
 	  return features
 end
 
-val exception-both a b features = do
-  features <- a features;
-	b features
+val exception-rep-repne features = do
+  features <- exception-rep features;
+  exception-repne features
 end
 
-val exception-rep-repne features = exception-both exception-rep exception-repne features
-val exception-repne-lock features = exception-both exception-repne exception-lock features
-val exception-rep-repne-lock features = exception-both exception-rep-repne exception-lock features
+val exception-repne-lock features = do
+  features <- exception-repne features;
+  exception-lock features
+end
+
+val exception-rep-repne-lock features = do
+  features <- exception-rep-repne features;
+  exception-lock features
+end
 
 val varity0 features cons = do
 	features <- features;
