@@ -302,7 +302,8 @@ end = struct
                 | (f::_) => VEC2INTexp (SOME (String.size f),UNBOXexp (VECvtype,e))
             end
            | convertScrut (e, (Core.Pat.INT _,_) :: _) = UNBOXexp (INTvtype,e)
-           | convertScrut (e, (Core.Pat.CON (sym,_),_) :: _) = get_con_idx e
+           | convertScrut (e, (Core.Pat.CON (sym,SOME _),_) :: _) = get_con_idx e
+           | convertScrut (e, (Core.Pat.CON (sym,NONE),_) :: _) = UNBOXexp (INTvtype,e)
            | convertScrut (e, _ :: cs) = convertScrut (e, cs)
            | convertScrut _ = raise ImpTranslationBug
          val (stmts, scrutRaw) = trExpr s e
@@ -524,7 +525,8 @@ end = struct
                val _ = trExpr initialState (Exp.LETREC (clauses, bogusExp))
             in
                { decls = !decls,
-                 fdecls = !fields }
+                 fdecls = !fields,
+                 exports = Spec.get #exports spec }
             end) spec
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)

@@ -92,6 +92,7 @@ structure C1 = struct
       "typeof",
       "inline",
       "restrict",
+      "main",
       "alloc_heap",
       "gdsl_reset_heap",
       "alloc",
@@ -216,12 +217,13 @@ structure C1 = struct
            | eT (decl, OBJvtype) = seq (str "obj_t" :: addSpace decl)
            | eT (decl, FUNvtype (retTy,_,[VOIDvtype])) = (* do not emit arguments *)
                eT (str "(*" :: decl @ [str ")()"], retTy)
-           | eT (decl, FUNvtype (retTy,_,argTys)) = 
+           | eT (decl, FUNvtype (retTy,isCl,argTys)) = 
                eT (str "(*" ::
                   decl @ [
                      str ")",
                      par (seq (separate (str "state_t" ::
-                               map (fn t => eT ([],t)) argTys, ",")))],
+                               (fn args => if isCl then str "obj_t" :: args else args)
+                               (map (fn t => eT ([],t)) argTys), ",")))],
                   retTy)
       in
          eT (decl,t)
@@ -301,8 +303,8 @@ structure C1 = struct
                val st = [
                   seq [str "typedef struct {"],
                   indent 2 (align (
-                     seq [emitStringFunType s (retTy,"(*func)",[(OBJvtype, "closure")]), str ";"] ::
-                     map (fn (ty,name) => emitType s (SOME name, ty)) args
+                     seq [emitStringFunType s (retTy,"(*func)",(OBJvtype, "closure")::args), str ";"] ::
+                     map (fn (ty,name) => seq [emitType s (SOME name, ty), str ";"]) args
                      )
                   ),
                   seq [str "}", space, str structName, str ";"]
@@ -354,18 +356,18 @@ structure C1 = struct
       in
         if AtomSet.member(!invokeClosureSet, funNameAtom) then str funName else
             let
-               val ty = FUNvtype (retTy,false,OBJvtype::argTys)
+               val (structName, args) = emitClosureStruct s (retTy,argTys)
                val _ = invokeClosureSet := AtomSet.add(!invokeClosureSet, funNameAtom)
                fun genArgs ([],idx) = []
                  | genArgs (ty::tys,idx) =
                      (ty, "arg" ^ Int.toString idx) :: genArgs (tys,idx+1)
                val args = genArgs (argTys,1)
                val f = [
-                  seq [str "static inline ", emitStringFunType s (retTy,funName,(ty,"closure") :: args), str " {"],
+                  seq [str "static inline ", emitStringFunType s (retTy,funName,(OBJvtype,"closure") :: args), str " {"],
                   indent 2 (seq [
                      if (retTy=VOIDvtype) then seq [] else str "return ",
-                     str "closure",
-                     fArgs (str "(obj_t) closure" :: map (str o #2) args), str ";"
+                     str "((", str structName, str "*) closure)->func",
+                     fArgs (str "closure" :: map (str o #2) args), str ";"
                   ]),
                   str "}"
                ]
@@ -490,6 +492,7 @@ structure C1 = struct
          seq [str "gen_vec(",str (Int.toString sz), str ", ", emitExp s e, str ")"]
      | emitExp s (CLOSUREexp (t,sym,es)) =
          seq [emitGenClosure s t, fArgs (seq [str "&", emitSym s sym] :: map (emitExp s) es)]
+     | emitExp s (STATEexp (BASICblock ([],[]), _, CALLexp (_,sym,[]))) = seq [str "&", emitSym s sym]
      | emitExp s (STATEexp (b,t,e)) = emitAnonymousAction s (b,t,e)
 
      | emitExp s (EXECexp (FUNvtype (_,false,_),e)) = seq [emitExp s e, fArgs []]
@@ -497,7 +500,7 @@ structure C1 = struct
 
    and emitPrim s (GETSTATEprim, [],_) = str "s->state"
      | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->state = ", emitExp s e]
-     | emitPrim s (IPGETprim, [],_) = str "(s->ip - s->base)"
+     | emitPrim s (IPGETprim, [],_) = str "(s->ip - s->ip_base)"
      | emitPrim s (CONSUME8prim, [],_) = str "consume8(s)"
      | emitPrim s (CONSUME16prim, [],_) = str "consume16(s)"
      | emitPrim s (CONSUME32prim, [],_) = str "consume12(s)"
@@ -562,11 +565,14 @@ structure C1 = struct
          selectType = ty
       }) =
       let
+         fun sufType f = case SymMap.lookup (#fieldTypes s,f) of
+            FUNvtype _ => OBJvtype
+          | ty => ty
          val retVar = #ret (s : state)
          val s = registerSymbol (retVar,s)
          val castRetVar = seq [
             str "((field",
-            str (getTypeSuffix (SymMap.lookup (#fieldTypes s,f)) ^ "_t*) "),
+            str (getTypeSuffix (sufType f) ^ "_t*) "),
             emitSym s retVar,
             str ")"]
          val fieldName = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
@@ -603,8 +609,10 @@ structure C1 = struct
          val s = registerSymbol (recVar,s)
          val s = foldl registerFSymbol s fs
          fun fieldName f = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
-         fun fieldType f = SymMap.lookup (#fieldTypes s,f)
-         fun fieldTSuf f = getTypeSuffix (SymMap.lookup (#fieldTypes s,f))
+         fun fieldType f = case SymMap.lookup (#fieldTypes s,f) of
+               FUNvtype _ => OBJvtype
+             | ty => ty
+         fun fieldTSuf f = getTypeSuffix (fieldType f)
          val args = map (fn f => (fieldType f, f)) fs @ [(OBJvtype, recVar)]
       in
          if #onlyDecls s then
@@ -697,7 +705,7 @@ structure C1 = struct
          val _ = genClosureSet := AtomSet.empty
          val _ = invokeClosureSet := AtomSet.empty
 
-         val { decls = ds, fdecls = fs } = Spec.get #declarations spec
+         val { decls = ds, fdecls = fs, exports } = Spec.get #declarations spec
          (* compute a list of constructors that are to be public; since
             we currently have data types in the export list, we just
             make any constructor without argument public *)

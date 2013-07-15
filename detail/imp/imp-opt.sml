@@ -58,11 +58,11 @@ structure PatchFunctionCalls = struct
       }
      | visitDecl s d = d
 
-   fun run ({ decls = ds, fdecls = fs } : imp) =
+   fun run ({ decls = ds, fdecls = fs, exports = es } : imp) =
       let
          val ds = map (visitDecl {}) ds
       in
-         { decls = ds, fdecls = fs } : imp
+         { decls = ds, fdecls = fs, exports = es } : imp
       end
    
 end
@@ -307,7 +307,7 @@ structure ActionClosures = struct
      | visitDecl s d = d
 
 
-   fun run { decls = ds, fdecls = fs } =
+   fun run { decls = ds, fdecls = fs, exports = es } =
       let
          val sFun =  { pureToMon = SymSet.empty,
                        closureSyms = SymSet.empty,
@@ -322,7 +322,7 @@ structure ActionClosures = struct
                     } : stateVar
          val ds = map (visitDecl sVar) ds
       in
-         { decls = ds, fdecls = fs }
+         { decls = ds, fdecls = fs, exports = es }
       end
    
 end
@@ -430,13 +430,13 @@ structure Simplify = struct
       }
      | visitDecl s d = d
 
-   fun run ({ decls = ds, fdecls = fs } : imp) =
+   fun run ({ decls = ds, fdecls = fs, exports = es } : imp) =
       let
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
          val state = { decls = declMap } : state
          val ds = map (visitDecl state) ds
       in
-         { decls = ds, fdecls = fs } : imp
+         { decls = ds, fdecls = fs, exports = es } : imp
       end
    
 end
@@ -1103,7 +1103,7 @@ structure TypeRefinement = struct
             (fn e => readWrap s (vRes, OBJstype, e), adjustType s (orig, new), [])
          | (es, v, t) => (TextIO.print ("patchCall bad of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ ": no more args\n"); raise TypeOptBug)
      end
-   fun run { decls = ds, fdecls = fs } =
+   fun run { decls = ds, fdecls = fs, exports = es } =
       let
 
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
@@ -1123,7 +1123,7 @@ structure TypeRefinement = struct
          val ds = map (patchDeclPrint state) ds
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
       in
-         { decls = ds, fdecls = fs }
+         { decls = ds, fdecls = fs, exports = es }
       end
    
 end
@@ -1465,11 +1465,11 @@ structure SwitchReduce = struct
       }
      | visitDecl s d = d
 
-   fun run { decls = ds, fdecls = fs } =
+   fun run { decls = ds, fdecls = fs, exports = es } =
       let
          val ds = map (visitDecl {}) ds
       in
-         { decls = ds, fdecls = fs }
+         { decls = ds, fdecls = fs, exports = es }
       end
    
 end
@@ -1581,7 +1581,7 @@ structure DeadSymbol = struct
      }) = if SymSet.member(!(#referenced s), name) then refSym (s : state,del) else ()
      | visitCDecl s _ = ()
 
-   fun run { decls = ds, fdecls = fs } =
+   fun run { decls = ds, fdecls = fs, exports = es } =
       let
          val s = { locals = SymSet.empty,
                    replace = ref SymMap.empty,
@@ -1590,7 +1590,7 @@ structure DeadSymbol = struct
          val _ = app (visitCDecl s) ds
          val ds = List.filter (fn d => SymSet.member (!(#referenced s),getDeclName d)) ds
       in
-         { decls = ds, fdecls = fs }
+         { decls = ds, fdecls = fs, exports = es }
       end
    
 end

@@ -115,35 +115,22 @@ GEN_REC_STRUCT(string);
 GEN_ADD_FIELD(string);
 
 /* Returns a pointer to a record in which the given fields are removed.
-  This operation copies all fields that lie on the way to the list suffix
-  that only contains fields that do not need to be removed.
+  This operation copies all fields of the record except for those that
+  are to be removed. The function returns the tail of the old record if
+  all given fields could be removed before the end of the record was
+  reached.
 */
 static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec) {
-  field_tag_t del_tags[tags_size];
-  int last_del_tag = 0;
-  /* copy those entries form tags that actually occur in the record; computing
-     this information first makes it possible to share a common tail, even if
-     the record does not contain all fields that should be deleted
-  */
   field_obj_t* current = rec;
   int idx;
-  while (current) {
-    field_tag_t tag = current->tag;
-    for (idx = 0; idx<tags_size; idx++) if (tags[idx]==tag) {
-      del_tags[last_del_tag++] = tag;
-      /* reduce the size of the tags array */
-      tags[idx]=tags[--tags_size];
-    }
-    current = current->next;
-  }
-  current = rec;
-  idx = 0;
   obj_t res = NULL;
   obj_t* last_next = &res;
-  while (current && (idx<last_del_tag)) {
-    if (current->tag == del_tags[idx]) {
-      /* delete this field by doing nothing */
-      idx++;
+  while (current && tags_size>0) {
+    for (idx=0; idx<tags_size; idx++)
+      if (current->tag == tags[idx]) break;
+    if (idx<tags_size) {
+      /* delete this field by doing nothing, but remove the index */
+      tags[idx]=tags[--tags_size];
     } else {
       /* this field is not supposed to be deleted, copy it */
       field_obj_t* copy = alloc(s, current->size);
@@ -265,23 +252,22 @@ void gdsl_destroy(state_t s) {
 #ifdef WITHMAIN
 
 int main (int argc, char** argv) {
-  __char blob001[15] = {0x67,0xF3,0x45,0x0F,0x7E,0xD1};
-  __char blob002[15] = {0xF3,0x67,0x45,0x0F,0x7E,0xD1};
-  __char blob003[15] = {0x67,0x45,0xF3,0x0F,0x7E,0xD1};
-  __char blob004[15] = {0xF3,0x45,0x67,0x0F,0x7E,0xD1};
+  uint8_t blob001[15] = {0x67,0xF3,0x45,0x0F,0x7E,0xD1};
+  uint8_t blob002[15] = {0xF3,0x67,0x45,0x0F,0x7E,0xD1};
+  uint8_t blob003[15] = {0x67,0x45,0xF3,0x0F,0x7E,0xD1};
+  uint8_t blob004[15] = {0xF3,0x45,0x67,0x0F,0x7E,0xD1};
   //__char blob005[15] = {67C4E1F97EC8};
   //__char blob006[15] = {C4E1F9677EC8};
-  __char blob007[15] = {0x67,0x45,0xF3,0x0F,0x7E,0x11};
+  uint8_t blob007[15] = {0x67,0x45,0xF3,0x0F,0x7E,0x11};
   //__char blob008[15] = {C4E1F97EC8};
-  __word sz = 15;
 
-  decode(blob001, sz);
-  decode(blob002, sz);
-  decode(blob003, sz);
-  decode(blob004, sz);
-  decode(blob007, sz);
+  state_t s = gdsl_init();
+  gdsl_set_code(s, blob001, sizeof(blob001), 0);
+  
+  x86_decode(s);
 
-  return (1); 
+  gdsl_destroy(s);
+  return 0; 
 }
 
 #endif
