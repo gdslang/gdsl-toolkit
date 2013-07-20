@@ -696,10 +696,10 @@ structure TypeRefinement = struct
       end
 
    fun vtypeToStype s VOIDvtype = VOIDstype
-     | vtypeToStype s VECvtype = BITstype (OBJstype)
+     | vtypeToStype s VECvtype = BITstype VOIDstype
      | vtypeToStype s INTvtype = INTstype
      | vtypeToStype s STRINGvtype = STRINGstype
-     | vtypeToStype s OBJvtype = OBJstype
+     | vtypeToStype s OBJvtype = VOIDstype
      | vtypeToStype s (FUNvtype (res, cl, args)) =
          FUNstype (vtypeToStype s res, if cl then OBJstype else VOIDstype, map (vtypeToStype s) args)
 
@@ -802,13 +802,13 @@ structure TypeRefinement = struct
          selectName = name,
          selectField = f,
          selectType = _
-      }) = lub (s, symType s name, FUNstype (fieldType s f, VOIDstype, [freshTVar s]))
+      }) = lub (s, symType s name, FUNstype (fieldType s f, VOIDstype, [OBJstype]))
      | visitDecl s (UPDATEdecl {
          updateName = name,
          updateArg = arg,
          updateFields = fs,
          updateType = _
-      }) = lub (s, symType s name, FUNstype (symType s arg, OBJstype, map (fieldType s) fs @ [symType s arg]))
+      }) = lub (s, symType s name, FUNstype (lub (s, OBJstype, symType s arg), OBJstype, map (fieldType s) fs @ [symType s arg]))
      | visitDecl s (CONdecl {
          conName = name,
          conTag = _,

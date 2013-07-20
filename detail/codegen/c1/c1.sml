@@ -419,7 +419,9 @@ structure C1 = struct
    and emitStmt s (ASSIGNstmt (NONE,exp)) = seq [emitExp s exp, str ";"]
      | emitStmt s (ASSIGNstmt (SOME sym,exp)) =
       if SymbolTable.eq_symid (sym, #ret s) then
-         seq [str "return", space, emitExp s exp, str ";"]
+         case exp of
+            PRIexp (_,VOIDprim,_,_) => comment "return void"
+          | exp => seq [str "return", space, emitExp s exp, str ";"]
       else
          seq [emitSym s sym, space, str "=", space, emitExp s exp, str ";"]
      | emitStmt s (IFstmt (c,t,BASICblock ([],[]))) = align [
@@ -541,11 +543,11 @@ structure C1 = struct
         funcRes = res
       }) =
       let
-         val s = setRet (res,foldl registerSymbol s (map #2 args))
+         val s = setRet (res,foldl registerSymbol s (map #2 (clArgs @ args)))
          val static = if SymSet.member(#exports s, name) then seq [] else str "static "
       in
          if #onlyDecls s then
-            seq [static, emitFunType s (name, args, ty), str ";"]
+            seq [static, emitFunType s (name, (clArgs @ args), ty), str ";"]
          else
          let
             val block = emitBlock s block
@@ -553,7 +555,7 @@ structure C1 = struct
             val _ = (#preDeclEmit s) := []
          in
             align (preDecl @ [
-               seq [static, emitFunType s (name, args, ty), space, str "{"],
+               seq [static, emitFunType s (name, (clArgs @ args), ty), space, str "{"],
                block,
                str "}"
             ])

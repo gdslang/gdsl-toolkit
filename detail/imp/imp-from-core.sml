@@ -323,7 +323,8 @@ end = struct
            | trCase (Core.Pat.CON (sym,SOME arg), BASICblock (decls, stmts)) =
                (CONpat sym, BASICblock ((OBJvtype, arg) :: decls, ASSIGNstmt (SOME arg,get_con_arg scrutRaw) :: stmts))
            | trCase (Core.Pat.ID sym, BASICblock (decls, stmts)) =
-               (WILDpat, BASICblock (decls, ASSIGNstmt (SOME sym,scrutRaw) :: stmts))
+               ((addLocalVar s sym; WILDpat),
+                BASICblock (decls, ASSIGNstmt (SOME sym,scrutRaw) :: stmts))
            | trCase (Core.Pat.WILD, block) = (WILDpat, block)
 
          val cases = map (fn (pat,e) => trCase (pat,trBlock s e)) cs
@@ -455,7 +456,20 @@ end = struct
          val availInClosure = SymSet.union(availInClosure,SymSet.fromList (SymMap.listKeys (!(#globalExp s))))
          (* add all arguments *)
          val availInClosure = SymSet.addList (availInClosure,  args)
-         val inClosure = SymSet.difference (freeVars body, availInClosure)
+         (* compute the variables used inside the closure, consisting of free varables plus the
+            closure arguments used by function symbols that are in free *)
+         val free = freeVars body
+         fun addClosureArgs (sym,set) = case SymMap.find (!(#globalExp s),sym) of
+               SOME (CLOSUREexp (_,_,args)) =>
+                  SymSet.addList (set,map (fn arg => case arg of
+                        IDexp arg => arg | _ => raise ImpTranslationBug)
+                     args)
+             | _ => set
+         val inClosureArgs = foldl addClosureArgs SymSet.empty (SymSet.listItems free)
+         val used = SymSet.union (free,inClosureArgs)
+         (* the set of variables that need to be passed to the closure is the difference of the used
+         and those that are already available *)
+         val inClosure = SymSet.difference (used, availInClosure)
          val clArgs = map (fn s => (OBJvtype, s)) (SymSet.listItems inClosure)
          val stdArgs = map (fn s => (OBJvtype, s)) args
          val fType = FUNvtype (OBJvtype, not (null clArgs), map #1 clArgs @ map (fn (t,_) => t) stdArgs)
