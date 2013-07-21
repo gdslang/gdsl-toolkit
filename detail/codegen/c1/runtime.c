@@ -191,7 +191,7 @@ static inline vec_t vec_not(state_t s, vec_t v) {
 }
 
 static inline vec_data_t vec_eq(state_t s, vec_data_t d1, vec_data_t d2) {
-  return (d1=d2 ? 1 : 0);
+  return (d1==d2 ? 1 : 0);
 }
 
 static inline vec_t vec_concat(state_t s, vec_t v1, vec_t v2) {
@@ -264,7 +264,9 @@ int main (int argc, char** argv) {
   state_t s = gdsl_init();
   gdsl_set_code(s, blob001, sizeof(blob001), 0);
   
-  x86_decode(s);
+  obj_t instr = x86_decode(s);
+  string_t res = x86_pretty(s,instr);
+  printf("result: %s\n", res);
 
   gdsl_destroy(s);
   return 0; 

@@ -383,7 +383,7 @@ structure C1 = struct
          val body = Atom.atom (Layout.tostring (align [
                emitBlock s b,
                case t of
-                  FUNvtype (VOIDvtype,_,[]) =>
+                  VOIDvtype =>
                   indent 2 (seq [emitExp s e, str ";"])
                 | _ =>
                   indent 2 (seq [str "return ", emitExp s e, str ";"])
@@ -419,9 +419,7 @@ structure C1 = struct
    and emitStmt s (ASSIGNstmt (NONE,exp)) = seq [emitExp s exp, str ";"]
      | emitStmt s (ASSIGNstmt (SOME sym,exp)) =
       if SymbolTable.eq_symid (sym, #ret s) then
-         case exp of
-            PRIexp (_,VOIDprim,_,_) => comment "return void"
-          | exp => seq [str "return", space, emitExp s exp, str ";"]
+         seq [str "return", space, emitExp s exp, str ";"]
       else
          seq [emitSym s sym, space, str "=", space, emitExp s exp, str ";"]
      | emitStmt s (IFstmt (c,t,BASICblock ([],[]))) = align [

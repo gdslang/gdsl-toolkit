@@ -658,9 +658,8 @@ structure TypeRefinement = struct
             val idx = DynamicArray.bound tt + 1
             (*val _ = if SymbolTable.toInt sym=422 then debugOn := true else ()*)
             val _ = msg ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")
-            (*val _ = if idx=18420 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=17937 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
+            (*val _ = if idx=42782 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=42783 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
 
             (*val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=18420 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
@@ -699,7 +698,7 @@ structure TypeRefinement = struct
      | vtypeToStype s VECvtype = BITstype VOIDstype
      | vtypeToStype s INTvtype = INTstype
      | vtypeToStype s STRINGvtype = STRINGstype
-     | vtypeToStype s OBJvtype = VOIDstype
+     | vtypeToStype s OBJvtype = OBJstype
      | vtypeToStype s (FUNvtype (res, cl, args)) =
          FUNstype (vtypeToStype s res, if cl then OBJstype else VOIDstype, map (vtypeToStype s) args)
 
@@ -814,7 +813,7 @@ structure TypeRefinement = struct
          conTag = _,
          conArg = (_,arg),
          conType = _
-     }) = lub (s, symType s name, FUNstype (BOXstype OBJstype, VOIDstype, [symType s arg]))
+     }) = lub (s, symType s name, FUNstype (OBJstype, VOIDstype, [lub (s,OBJstype, symType s arg)]))
      | visitDecl s (CLOSUREdecl {
         closureName = name,
         closureArgs = clTys,
@@ -874,57 +873,72 @@ structure TypeRefinement = struct
             )
         | NONE =>  (TextIO.print ("getArgTypes, symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not found\n"); raise TypeOptBug)
 
-   fun readWrap s (OBJvtype,t,e) = (case inlineSType s t of
-          (BOXstype INTstype) => BOXexp (INTvtype,e)
-        | (BOXstype (BITstype (CONSTstype s))) => BOXexp (VECvtype, INT2VECexp (s,e))
-        | (BOXstype (BITstype _)) => BOXexp (VECvtype, e)
-        | VOIDstype => (case e of
-            IDexp _ => PRIexp (PUREmonkind, VOIDprim, VOIDvtype, [])
-          | e => e
-         )
-        | _ => e
-       )
-     | readWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
-          (FUNstype (rNew,_,_)) => readWrap s (rOrig,rNew,e)
-        |  t => e
-       )
-     | readWrap s (_,_,e) = e
+   fun readWrap s (orig,new,e) =
+      let
+         fun genWrap (BOXstype INTstype) = BOXexp (INTvtype,e)
+           | genWrap (BOXstype (BITstype (CONSTstype s))) = BOXexp (VECvtype, INT2VECexp (s,e))
+           | genWrap (BOXstype (BITstype _)) = BOXexp (VECvtype, e)
+           | genWrap VOIDstype = (case e of
+               IDexp _ => PRIexp (PUREmonkind, VOIDprim, VOIDvtype, [])
+             | e => e
+            )
+           | genWrap _ = e
+      in
+         case orig of
+            OBJvtype => genWrap (inlineSType s new)
+          | VOIDvtype => genWrap (inlineSType s new)
+          | (FUNvtype (rOrig,_,_)) => (case inlineSType s new of
+               (FUNstype (rNew,_,_)) => readWrap s (rOrig,rNew,e)
+             | t => e
+            )
+          |  t => e
+      end
 
-   and writeWrap s (OBJvtype,t,e) = (case inlineSType s t of
-          (BOXstype INTstype) => UNBOXexp (INTvtype,e)
-        | (BOXstype (BITstype (CONSTstype s))) => VEC2INTexp (SOME s,UNBOXexp (VECvtype, e))
-        | (BOXstype (BITstype _)) => UNBOXexp (VECvtype, e)
-        | _ => e
-       )
-     | writeWrap s (FUNvtype (rOrig,_,_),t,e) = (case inlineSType s t of
-          (FUNstype (rNew,_,_)) => writeWrap s (rOrig,rNew,e)
-        | t => e
-       )
-     | writeWrap s (_,_,e) = e
+   and writeWrap s (orig,new,e) =
+      let
+         fun genWrap (BOXstype INTstype) = UNBOXexp (INTvtype,e)
+           | genWrap (BOXstype (BITstype (CONSTstype s))) = VEC2INTexp (SOME s,UNBOXexp (VECvtype, e))
+           | genWrap (BOXstype (BITstype _)) = UNBOXexp (VECvtype, e)
+           | genWrap _ = e
+      in
+         case orig of
+            OBJvtype => genWrap (inlineSType s new)
+          | VOIDvtype => genWrap (inlineSType s new)
+          | (FUNvtype (rOrig,_,_)) => (case inlineSType s new of
+                (FUNstype (rNew,_,_)) => writeWrap s (rOrig,rNew,e)
+              | t => e
+            )
+          | t => e
+      end
    
-   and adjustType s (OBJvtype,t) = (case inlineSType s t of
-          (BOXstype INTstype) => INTvtype
-        | (BOXstype (BITstype (CONSTstype _))) => INTvtype
-        | (BOXstype (BITstype _)) => VECvtype
-        | (BOXstype _) => OBJvtype
-        | (BITstype (CONSTstype _)) => INTvtype
-        | (BITstype _) => VECvtype
-        | (VOIDstype) => VOIDvtype
-        | (STRINGstype) => STRINGvtype
-        | (OBJstype) => OBJvtype
-        | (FUNstype (r,cl,args)) =>
-            FUNvtype (adjustType s (OBJvtype, r), cl=OBJstype, map (fn arg => adjustType s (OBJvtype, arg)) args)
-        | t => (TextIO.print ("adjustType of " ^ showSType t ^ "\n"); raise TypeOptBug)
-      )
-     | adjustType s (FUNvtype (rOrig,clOrig,argsOrig),t) = (case inlineSType s t of
-          (FUNstype (r,cl,args)) => (
-            FUNvtype (adjustType s (rOrig,r), cl=OBJstype, map (adjustType s) (ListPair.zipEq (argsOrig, args)))
-               handle ListPair.UnequalLengths =>
-                  (TextIO.print ("adjustType of " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (rOrig,clOrig,argsOrig))) ^ " and " ^ showSType (FUNstype (r,cl,args)) ^ ", unequal length\n"); raise TypeOptBug)
-          )
-        | t => FUNvtype (rOrig,clOrig,argsOrig)
-      )
-     | adjustType s (t,_) = t
+   and adjustType s (orig,new) =
+      let
+         fun genAdj (BOXstype INTstype) = INTvtype
+           | genAdj (BOXstype (BITstype (CONSTstype _))) = INTvtype
+           | genAdj (BOXstype (BITstype _)) = VECvtype
+           | genAdj (BOXstype _) = OBJvtype
+           | genAdj (BITstype (CONSTstype _)) = INTvtype
+           | genAdj (BITstype _) = VECvtype
+           | genAdj (VOIDstype) = VOIDvtype
+           | genAdj (STRINGstype) = STRINGvtype
+           | genAdj (OBJstype) = OBJvtype
+           | genAdj (FUNstype (r,cl,args)) =
+               FUNvtype (adjustType s (OBJvtype, r), cl=OBJstype, map (fn arg => adjustType s (OBJvtype, arg)) args)
+           | genAdj t = (TextIO.print ("adjustType of " ^ showSType new ^ "\n"); raise TypeOptBug)
+      in
+         case orig of
+            OBJvtype => genAdj (inlineSType s new)
+          | VOIDvtype => genAdj (inlineSType s new)
+          | (FUNvtype (rOrig,clOrig,argsOrig)) => (case inlineSType s new of
+                (FUNstype (r,cl,args)) => (
+                  FUNvtype (adjustType s (rOrig,r), cl=OBJstype, map (adjustType s) (ListPair.zipEq (argsOrig, args)))
+                     handle ListPair.UnequalLengths =>
+                        (TextIO.print ("adjustType of " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (rOrig,clOrig,argsOrig))) ^ " and " ^ showSType (FUNstype (r,cl,args)) ^ ", unequal length\n"); raise TypeOptBug)
+                )
+              | t => FUNvtype (rOrig,clOrig,argsOrig)
+            )
+          | _ => orig
+      end
 
    fun patchDecl s (FUNCdecl {
         funcMonadic = monkind,
@@ -1115,11 +1129,11 @@ structure TypeRefinement = struct
             origLocals = ref SymMap.empty,
             origFields = fs
          }
-         fun visitDeclPrint state d = (msg ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); visitDecl state d)
+         fun visitDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); visitDecl state d)
          val _ = map (visitDeclPrint state) ds
          (*val _ = showState state*)
          val _ = debugOn := false
-         fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
+         fun patchDeclPrint state d = (msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
          val ds = map (patchDeclPrint state) ds
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
       in
