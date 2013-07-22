@@ -48,9 +48,9 @@ struct rreil_op {
 		struct rreil_arity2 shl;
 		struct rreil_arity2 shr;
 		struct rreil_arity2 shrs;
-		struct rreil_arity2 and;
-		struct rreil_arity2 or;
-		struct rreil_arity2 xor;
+		struct rreil_arity2 and_;
+		struct rreil_arity2 or_;
+		struct rreil_arity2 xor_;
 		struct rreil_size_change sx;
 		struct rreil_size_change zx;
 		struct rreil_comparator *cmp;

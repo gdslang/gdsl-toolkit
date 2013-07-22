@@ -20,7 +20,7 @@ static void simulator_register_assign(struct context *context,
 		void (*function)(struct register_ *, struct data data, size_t)) {
 	switch(id->type) {
 		case RREIL_ID_TYPE_VIRTUAL: {
-			function(&context->virtual_registers[id->virtual], data, bit_offset);
+			function(&context->virtual_registers[id->virtual_], data, bit_offset);
 			break;
 		}
 		case RREIL_ID_TYPE_TEMPORARY: {

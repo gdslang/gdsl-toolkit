@@ -237,10 +237,10 @@ static struct data simulator_op_simulate(struct context *context,
 			break;
 		}
 		case RREIL_OP_TYPE_AND: {
-			size = op->and.size;
-			struct data opnd1 = simulator_linear_simulate(context, op->and.opnd1,
+			size = op->and_.size;
+			struct data opnd1 = simulator_linear_simulate(context, op->and_.opnd1,
 					size);
-			struct data opnd2 = simulator_linear_simulate(context, op->and.opnd2,
+			struct data opnd2 = simulator_linear_simulate(context, op->and_.opnd2,
 					size);
 			result = simulator_op_and(opnd1, opnd2);
 			context_data_clear(&opnd1);
@@ -248,10 +248,10 @@ static struct data simulator_op_simulate(struct context *context,
 			break;
 		}
 		case RREIL_OP_TYPE_OR: {
-			size = op->or.size;
-			struct data opnd1 = simulator_linear_simulate(context, op->or.opnd1,
+			size = op->or_.size;
+			struct data opnd1 = simulator_linear_simulate(context, op->or_.opnd1,
 					size);
-			struct data opnd2 = simulator_linear_simulate(context, op->or.opnd2,
+			struct data opnd2 = simulator_linear_simulate(context, op->or_.opnd2,
 					size);
 			result = simulator_op_or(opnd1, opnd2);
 			context_data_clear(&opnd1);
@@ -259,10 +259,10 @@ static struct data simulator_op_simulate(struct context *context,
 			break;
 		}
 		case RREIL_OP_TYPE_XOR: {
-			size = op->xor.size;
-			struct data opnd1 = simulator_linear_simulate(context, op->xor.opnd1,
+			size = op->xor_.size;
+			struct data opnd1 = simulator_linear_simulate(context, op->xor_.opnd1,
 					size);
-			struct data opnd2 = simulator_linear_simulate(context, op->xor.opnd2,
+			struct data opnd2 = simulator_linear_simulate(context, op->xor_.opnd2,
 					size);
 			result = simulator_op_xor(opnd1, opnd2);
 			context_data_clear(&opnd1);

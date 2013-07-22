@@ -179,19 +179,19 @@ static size_t tracking_op_trace(struct tracking_trace *trace,
 			return op->shrs.size;
 		}
 		case RREIL_OP_TYPE_AND: {
-			linear_trace(op->and.opnd1, op->and.size);
-			linear_trace(op->and.opnd2, op->and.size);
-			return op->and.size;
+			linear_trace(op->and_.opnd1, op->and_.size);
+			linear_trace(op->and_.opnd2, op->and_.size);
+			return op->and_.size;
 		}
 		case RREIL_OP_TYPE_OR: {
-			linear_trace(op->or.opnd1, op->or.size);
-			linear_trace(op->or.opnd2, op->or.size);
-			return op->or.size;
+			linear_trace(op->or_.opnd1, op->or_.size);
+			linear_trace(op->or_.opnd2, op->or_.size);
+			return op->or_.size;
 		}
 		case RREIL_OP_TYPE_XOR: {
-			linear_trace(op->xor.opnd1, op->xor.size);
-			linear_trace(op->xor.opnd2, op->xor.size);
-			return op->xor.size;
+			linear_trace(op->xor_.opnd1, op->xor_.size);
+			linear_trace(op->xor_.opnd2, op->xor_.size);
+			return op->xor_.size;
 		}
 		case RREIL_OP_TYPE_SX: {
 			linear_trace(op->sx.opnd, op->sx.fromsize);

@@ -68,7 +68,7 @@ void rreil_comparator_print(struct rreil_comparator *comparator) {
 void rreil_id_print(struct rreil_id *id) {
 	switch(id->type) {
 		case RREIL_ID_TYPE_VIRTUAL: {
-			switch(id->virtual) {
+			switch(id->virtual_) {
 				case RREIL_ID_VIRTUAL_EQ: {
 					printf("RREIL_ID_VIRTUAL_EQ");
 					break;
@@ -198,24 +198,24 @@ void rreil_op_print(struct rreil_op *op) {
 			break;
 		}
 		case RREIL_OP_TYPE_AND: {
-			printf("{%lu} ", op->and.size);
-			rreil_linear_print(op->and.opnd1);
+			printf("{%lu} ", op->and_.size);
+			rreil_linear_print(op->and_.opnd1);
 			printf(" & ");
-			rreil_linear_print(op->and.opnd2);
+			rreil_linear_print(op->and_.opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_OR: {
-			printf("{%lu} ", op->or.size);
-			rreil_linear_print(op->or.opnd1);
+			printf("{%lu} ", op->or_.size);
+			rreil_linear_print(op->or_.opnd1);
 			printf(" | ");
-			rreil_linear_print(op->or.opnd2);
+			rreil_linear_print(op->or_.opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_XOR: {
-			printf("{%lu} ", op->xor.size);
-			rreil_linear_print(op->xor.opnd1);
+			printf("{%lu} ", op->xor_.size);
+			rreil_linear_print(op->xor_.opnd1);
 			printf(" ^ ");
-			rreil_linear_print(op->xor.opnd2);
+			rreil_linear_print(op->xor_.opnd2);
 			break;
 		}
 		case RREIL_OP_TYPE_SX: {

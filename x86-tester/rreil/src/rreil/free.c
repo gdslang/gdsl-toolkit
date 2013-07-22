@@ -101,15 +101,15 @@ void rreil_op_free(struct rreil_op *op) {
 			break;
 		}
 		case RREIL_OP_TYPE_AND: {
-			rreil_arity2_clear(&op->and);
+			rreil_arity2_clear(&op->and_);
 			break;
 		}
 		case RREIL_OP_TYPE_OR: {
-			rreil_arity2_clear(&op->or);
+			rreil_arity2_clear(&op->or_);
 			break;
 		}
 		case RREIL_OP_TYPE_XOR: {
-			rreil_arity2_clear(&op->xor);
+			rreil_arity2_clear(&op->xor_);
 			break;
 		}
 		case RREIL_OP_TYPE_SX: {

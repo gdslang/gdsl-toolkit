@@ -33,7 +33,7 @@ enum rreil_id_virtual {
 struct rreil_id {
 	enum rreil_id_type type;
 	union {
-		enum rreil_id_virtual virtual;
+		enum rreil_id_virtual virtual_;
 		enum x86_id x86;
 		uint64_t temporary;
 	};

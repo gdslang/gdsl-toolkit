@@ -1,5 +1,5 @@
 /*
- * main.c
+ * main.cpp
  *
  *  Created on: 22.07.2013
  *      Author: jucs
@@ -7,11 +7,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+extern "C" {
 #include <gdsl.h>
 #include <dis.h>
-#include <gdrr.h>
 #include <rreil/rreil.h>
 #include <rreil/gdrr_builder.h>
+#include "igdrr.h"
+}
 #include "itree.h"
 
 int main(void) {
@@ -54,25 +56,36 @@ int main(void) {
 		exit(1);
 	}
 
-	struct gdrr_config *config = rreil_gdrr_builder_config_get();
-	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(
-			rreil, config);
-	free(config);
+	struct rreil_statements *statements = statements_get(rreil);
 
 	rreil_statements_print(statements);
 
 	printf("\n");
 
-	struct itree_node *root = itree_root("x", 0, 63);
+	itree_leaf_node *root = new itree_leaf_node((void*)"x", 0, 63);
+
 	char *k[] = { "x", "7", "x" };
 	size_t s[] = { 3, 27 };
-	itree_split(root, k, s, 3);
+	itree_inner_node *inner = root->split((void**)k, s, 3);
 
 	char *k1[] = { "y", "10", "y" };
 	size_t s1[] = { 5, 15 };
-	itree_split(&root->children[1], k1, s1, 3);
 
-	itree_print(root);
+	itree_node **children = inner->children_get();
+	children[1] = ((itree_leaf_node*)children[1])->split((void**)k1, s1, 3);
+
+	inner->print();
+
+//	struct itree_node *root = itree_root("x", 0, 63);
+//	char *k[] = { "x", "7", "x" };
+//	size_t s[] = { 3, 27 };
+//	itree_split(root, k, s, 3);
+//
+//	char *k1[] = { "y", "10", "y" };
+//	size_t s1[] = { 5, 15 };
+//	itree_split(&root->children[1], k1, s1, 3);
+//
+//	itree_print(root);
 
 	return 0;
 }
