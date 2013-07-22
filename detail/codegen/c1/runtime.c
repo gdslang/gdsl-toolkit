@@ -26,7 +26,7 @@ static void alloc_heap(state_t s, char* prev_page) {
   s->heap_base = malloc(size);
   if (s->heap_base==NULL) {
     s->err_str = "GDSL runtime: out of memory";
-    longjmp(s->err_tgt,1);
+    longjmp(s->err_tgt,2);
   };
   s->heap = s->heap_base+sizeof(char*);
   /* store a pointer to the previous page in the first bytes of this page */
@@ -150,8 +150,16 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
 
 static int_t eos(state_t s) {
   s->err_str = "GDSL runtime: end of code input stream";
-  longjmp(s->err_tgt,0);
+  longjmp(s->err_tgt,1);
   return 0;
+};
+
+int gdsl_install_handler(state_t s) {
+  return setjmp(s->err_tgt);
+};
+
+char* gdsl_get_error_message(state_t s) {
+  return s->err_str;
 };
 
 #define GEN_CONSUME(size)                                 \
@@ -170,7 +178,7 @@ static int_t vec_to_signed(state_t s, vec_t v) {
   int bit_size = sizeof(int_t)*8;
   if (v.size>bit_size-1) {
     s->err_str = "GDSL runtime: signed applied to very long vector";
-    longjmp(s->err_tgt,1);
+    longjmp(s->err_tgt,2);
   };
   int bits_to_fill = bit_size-v.size;
   return (((int_t) v.data) << bits_to_fill) >> bits_to_fill;
@@ -180,7 +188,7 @@ static int_t vec_to_unsigned(state_t s, vec_t v) {
   int int_bitsize = sizeof(int_t)*8;
   if (v.size>int_bitsize-1) {
     s->err_str = "GDSL runtime: unsigned applied to very long vector";
-    longjmp(s->err_tgt,1);
+    longjmp(s->err_tgt,2);
   };
   return (int_t) v.data;
 }
@@ -251,23 +259,39 @@ void gdsl_destroy(state_t s) {
 
 #ifdef WITHMAIN
 
+#define BUF_SIZE 8*1024*1024
+static uint8_t blob[BUF_SIZE];
+
 int main (int argc, char** argv) {
-  uint8_t blob001[15] = {0x67,0xF3,0x45,0x0F,0x7E,0xD1};
-  uint8_t blob002[15] = {0xF3,0x67,0x45,0x0F,0x7E,0xD1};
-  uint8_t blob003[15] = {0x67,0x45,0xF3,0x0F,0x7E,0xD1};
-  uint8_t blob004[15] = {0xF3,0x45,0x67,0x0F,0x7E,0xD1};
-  //__char blob005[15] = {67C4E1F97EC8};
-  //__char blob006[15] = {C4E1F9677EC8};
-  uint8_t blob007[15] = {0x67,0x45,0xF3,0x0F,0x7E,0x11};
-  //__char blob008[15] = {C4E1F97EC8};
-
+  size_t buf_size = BUF_SIZE;
+  int i,c;
+  for (i=0;i<buf_size;i++) {
+     int x = fscanf(stdin,"%x",&c);
+     switch (x) {
+        case EOF:
+           goto done;
+        case 0: {
+           printf("invalid input; should be in hex form: '0f 0b ..'");
+           return 1;
+        }
+     }
+     blob[i] = c & 0xff;
+  }
+done:
+  buf_size = i;
   state_t s = gdsl_init();
-  gdsl_set_code(s, blob001, sizeof(blob001), 0);
+  gdsl_set_code(s, blob, buf_size, 0);
   
-  obj_t instr = x86_decode(s);
-  string_t res = x86_pretty(s,instr);
-  printf("result: %s\n", res);
-
+  if (gdsl_install_handler(s)==0) {
+    for (i=0; i<buf_size; i++) {
+      obj_t instr = x86_decode(s);
+      string_t res = x86_pretty(s,instr);
+      printf("%s\n", res);
+      gdsl_reset_heap(s);    
+    }
+  } else {
+    printf("exception: %s\n", gdsl_get_error_message(s));
+  }
   gdsl_destroy(s);
   return 0; 
 }

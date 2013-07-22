@@ -28,6 +28,17 @@ state_t gdsl_init(void);
    in GDSL returns when no bytes have been consumed. */
 void gdsl_set_code(state_t s, char* buf, size_t buf_len, uint64_t base);
 
+/* Install an exception handler. Saves the calling context and returns 0.
+ * If an exception occurs, control will return from this function with
+ * value 1 if there are no more bytes in the input buffer or with
+ * value 2 if there has been an error (e.g. pattern match failure). In
+ * both cases, an error message can be retrieved using get_error_message().
+ */
+int gdsl_install_handler(state_t s);
+
+/* Retrieve the error message after an exception has been raised. */
+char* gdsl_get_error_message(state_t s);
+
 /* Reset the heap. Objects returned by exported function are no longer valid
    after a call to this funciton. */
 void gdsl_reset_heap(state_t s);
