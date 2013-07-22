@@ -41,6 +41,10 @@ void gdsl_reset_heap(state_t s) {
     free (heap);
     heap = prev;
   }
+  s->heap = 0;
+  s->heap_base = 0;
+  s->heap_limit = 0;
+  s->state = 0;
 };
 
 static inline void* alloc(state_t s, size_t bytes) {
@@ -144,18 +148,11 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
   return res;
 }
 
-#define slice(vec_data,ofs,sz) ((vec_data >> sz) & ((1ul << ofs)-1))
+#define slice(vec_data,ofs,sz) ((vec_data >> ofs) & ((1ul << sz)-1))
 #define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
 
-
-static int_t eos(state_t s) {
-  s->err_str = "GDSL runtime: end of code input stream";
-  longjmp(s->err_tgt,1);
-  return 0;
-};
-
-int gdsl_install_handler(state_t s) {
-  return setjmp(s->err_tgt);
+jmp_buf* gdsl_err_tgt(state_t s) {
+  return &(s->err_tgt);
 };
 
 char* gdsl_get_error_message(state_t s) {
@@ -164,9 +161,13 @@ char* gdsl_get_error_message(state_t s) {
 
 #define GEN_CONSUME(size)                                 \
 static inline int_t consume ## size(state_t s) {          \
+  if (s->ip+( size >>3)>s->ip_limit) {                    \
+    s->err_str = "GDSL runtime: end of code input stream";\
+    longjmp(s->err_tgt,1);                                \
+  };                                                      \
   uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;  \
   int_t res = (unsigned) *ptr;                            \
-  s->ip+=size >> 3;                                       \
+  s->ip+= size >> 3;                                      \
   return res;                                             \
 }
 
@@ -175,8 +176,8 @@ GEN_CONSUME(16);
 GEN_CONSUME(32);
 
 static int_t vec_to_signed(state_t s, vec_t v) {
-  int bit_size = sizeof(int_t)*8;
-  if (v.size>bit_size-1) {
+  unsigned int bit_size = sizeof(int_t)*8;
+  if (v.size>bit_size) {
     s->err_str = "GDSL runtime: signed applied to very long vector";
     longjmp(s->err_tgt,2);
   };
@@ -185,8 +186,8 @@ static int_t vec_to_signed(state_t s, vec_t v) {
 }
 
 static int_t vec_to_unsigned(state_t s, vec_t v) {
-  int int_bitsize = sizeof(int_t)*8;
-  if (v.size>int_bitsize-1) {
+  unsigned int int_bitsize = sizeof(int_t)*8;
+  if (v.size>int_bitsize) {
     s->err_str = "GDSL runtime: unsigned applied to very long vector";
     longjmp(s->err_tgt,2);
   };
@@ -207,14 +208,23 @@ static inline vec_t vec_concat(state_t s, vec_t v1, vec_t v2) {
 }
 
 static inline string_t int_to_string(state_t s, int_t v) {
+  int negate = v<0;
   char* str = alloc(s, 24)+23;
   int_t r;
   *str = 0;
-  while (v!=0) {
+  if (negate) {
+    v = -v;
+    *--str = ')';
+  };
+  do {
     r = v % 10;
     v = v / 10;
     *--str = '0'+(unsigned char) r;
-  }
+  } while (v!=0);
+  if (negate) {
+    *--str = '-';
+    *--str = '(';
+  };
   return alloc_string(s,str);
 };
 
@@ -239,15 +249,18 @@ static inline string_t string_concat(state_t s, string_t s1, string_t s2) {
 }
 
 state_t gdsl_init() {
-  state_t s = calloc(1,sizeof(state_t));
-  alloc_heap(s,NULL);
+  state_t s = calloc(1,sizeof(struct state));
   return s;
 }
 
 void gdsl_set_code(state_t s, char* buf, size_t buf_len, uint64_t base) {
   s->ip = buf;
   s->ip_limit = buf+buf_len;
-  s->ip_base = s->ip-base;
+  s->ip_base = buf-base;
+}
+
+uint64_t gdsl_get_ip_offset(state_t s) {
+  return s->ip - s->ip_base;
 }
 
 void gdsl_destroy(state_t s) {
@@ -260,11 +273,11 @@ void gdsl_destroy(state_t s) {
 #ifdef WITHMAIN
 
 #define BUF_SIZE 8*1024*1024
-static uint8_t blob[BUF_SIZE];
+static char blob[BUF_SIZE];
 
 int main (int argc, char** argv) {
-  size_t buf_size = BUF_SIZE;
-  int i,c;
+  uint64_t buf_size = BUF_SIZE;
+  unsigned int i,c;
   for (i=0;i<buf_size;i++) {
      int x = fscanf(stdin,"%x",&c);
      switch (x) {
@@ -280,13 +293,14 @@ int main (int argc, char** argv) {
 done:
   buf_size = i;
   state_t s = gdsl_init();
-  gdsl_set_code(s, blob, buf_size, 0);
+  gdsl_set_code(s, blob, buf_size, 0x0000000100001550);
   
-  if (gdsl_install_handler(s)==0) {
-    for (i=0; i<buf_size; i++) {
+  if (setjmp(*gdsl_err_tgt(s))==0) {
+    while (gdsl_get_ip_offset(s)<buf_size+0x0000000100001550) {
+      uint64_t ofs = gdsl_get_ip_offset(s);
       obj_t instr = x86_decode(s);
       string_t res = x86_pretty(s,instr);
-      printf("%s\n", res);
+      printf("%lx\t%s\n", (long unsigned int) ofs, res);
       gdsl_reset_heap(s);    
     }
   } else {

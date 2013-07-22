@@ -5,6 +5,7 @@
 
 #include <stdlib.h>
 #include <inttypes.h>
+#include <setjmp.h>
 
 /* data types used in decoder programs */
 typedef void* obj_t;
@@ -19,7 +20,7 @@ struct vec {
 };
 
 typedef struct vec vec_t;
-typedef unsigned int con_tag_t;
+typedef int_t con_tag_t;
 
 /* Create a new decoder state. Should be destroyed by gdsl_destroy(). */
 state_t gdsl_init(void);
@@ -28,13 +29,17 @@ state_t gdsl_init(void);
    in GDSL returns when no bytes have been consumed. */
 void gdsl_set_code(state_t s, char* buf, size_t buf_len, uint64_t base);
 
-/* Install an exception handler. Saves the calling context and returns 0.
- * If an exception occurs, control will return from this function with
+/* Query the offset of the current IP relative to base. */
+uint64_t gdsl_get_ip_offset(state_t s);
+
+/* An exception handler must be installed by calling setjmp with the argument
+ * returned by this function.
+ * If an exception occurs, control will return from setjmp with
  * value 1 if there are no more bytes in the input buffer or with
  * value 2 if there has been an error (e.g. pattern match failure). In
  * both cases, an error message can be retrieved using get_error_message().
  */
-int gdsl_install_handler(state_t s);
+jmp_buf* gdsl_err_tgt(state_t s);
 
 /* Retrieve the error message after an exception has been raised. */
 char* gdsl_get_error_message(state_t s);

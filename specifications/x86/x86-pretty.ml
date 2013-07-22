@@ -224,10 +224,10 @@ val show/scale s =
 
 val show/operand op =
    case op of
-      IMM8 x: showbitvec x.imm +++ "@" +++ showint x.address
-    | IMM16 x: showbitvec x.imm +++ "@" +++ showint x.address
-    | IMM32 x: showbitvec x.imm +++ "@" +++ showint x.address
-    | IMM64 x: showbitvec x.imm +++ "@" +++ showint x.address
+      IMM8 x: showint (sx x.imm) # +++ "@" +++ showint x.address
+    | IMM16 x: showint (sx x.imm) # +++ "@" +++ showint x.address
+    | IMM32 x: showint (sx x.imm) # +++ "@" +++ showint x.address
+    | IMM64 x: showint (sx x.imm) # +++ "@" +++ showint x.address
     | REG x: show/register x
     | MEM x: show/memsz x.sz -++ show/segment x.segment +++ "[" +++ show/operand x.opnd +++ "]" 
     | SUM x: show/operand x.a +++ "+" +++ show/operand x.b

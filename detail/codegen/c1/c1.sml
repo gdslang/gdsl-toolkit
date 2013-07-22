@@ -383,8 +383,10 @@ structure C1 = struct
          val body = Atom.atom (Layout.tostring (align [
                emitBlock s b,
                case t of
-                  VOIDvtype =>
-                  indent 2 (seq [emitExp s e, str ";"])
+                  VOIDvtype => (case e of
+                     PRIexp (_,VOIDprim,_,_) => seq []
+                   | e => indent 2 (seq [emitExp s e, str ";"])
+                  )
                 | _ =>
                   indent 2 (seq [str "return ", emitExp s e, str ";"])
             ]))
@@ -500,10 +502,10 @@ structure C1 = struct
 
    and emitPrim s (GETSTATEprim, [],_) = str "s->state"
      | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->state = ", emitExp s e]
-     | emitPrim s (IPGETprim, [],_) = str "(s->ip - s->ip_base)"
+     | emitPrim s (IPGETprim, [],_) = str "gdsl_get_ip_offset(s)"
      | emitPrim s (CONSUME8prim, [],_) = str "consume8(s)"
      | emitPrim s (CONSUME16prim, [],_) = str "consume16(s)"
-     | emitPrim s (CONSUME32prim, [],_) = str "consume12(s)"
+     | emitPrim s (CONSUME32prim, [],_) = str "consume32(s)"
      | emitPrim s (UNCONSUME8prim, [],_) = str "s->ip-=1"
      | emitPrim s (UNCONSUME16prim, [],_) = str "s->ip-=2"
      | emitPrim s (UNCONSUME32prim, [],_) = str "s->ip-=4"
@@ -552,7 +554,8 @@ structure C1 = struct
             val preDecl = !(#preDeclEmit s)
             val _ = (#preDeclEmit s) := []
          in
-            align (preDecl @ [
+            align (seq [str "/* ", str (SymbolTable.getString (!SymbolTables.varTable, name)), str " */"] ::
+               preDecl @ [
                seq [static, emitFunType s (name, (clArgs @ args), ty), space, str "{"],
                block,
                str "}"
@@ -668,16 +671,20 @@ structure C1 = struct
          else
          let
             val (structName, closureArgs) = emitClosureStruct s (retTy, clTys)
+            fun prependC arg = "c->" ^ arg
+            fun emitC rem = if null closureArgs then rem else 
+                  seq [str structName, str "* c = (", str structName, str "*)", space,
+                       emitSym s closureVar, str ";"] :: rem
             val preDecl = !(#preDeclEmit s)
             val _ = (#preDeclEmit s) := []
          in
             align (preDecl @ [
                seq [str "static ", emitFunType s (name, funArgs, FUNvtype (retTy, false, map #1 funArgs)), space, str "{"],
-               indent 2 (align [
-                  seq [str structName, str "* c = (", str structName, str "*)", space, emitSym s closureVar, str ";"],
+               indent 2 (align (emitC [
                   seq [if retTy=VOIDvtype then str "" else str "return ",
-                       emitSym s del, fArgs (map (str o #2) closureArgs @ map (emitSym s o #2) delArgs), str ";"]
-               ]),
+                       emitSym s del, fArgs (map (str o prependC o #2) closureArgs @
+                                             map (emitSym s o #2) delArgs), str ";"]
+               ])),
                str "}"
             ])
          end
@@ -733,7 +740,7 @@ structure C1 = struct
             } : state
          val s = registerSymbol (stateSym, s)
          val s = foldl registerSymbol s (map getDeclName ds)
-         val funs = map (fn d => align [str "/* ", str (SymbolTable.getString (st, getDeclName d)), str " */", emitDecl s d]) ds
+         val funs = map (emitDecl s) ds
          val s = {
                names = #names s,
                symbols = #symbols s,

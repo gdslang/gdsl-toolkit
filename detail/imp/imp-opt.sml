@@ -1147,6 +1147,18 @@ structure SwitchReduce = struct
 
    open Imp
 
+   fun addDefault f [p as (WILDpat,bb)] = [p]
+     | addDefault f [p as (VECpat [],bb)] = [p]
+     | addDefault f [p as (VECpat [""],bb)] = [p]
+     | addDefault f [] = [(WILDpat,BASICblock ([],[
+         ASSIGNstmt (NONE,
+            PRIexp (PUREmonkind, RAISEprim,
+               FUNvtype (STRINGvtype,false,[STRINGvtype]),[
+                  LITexp (STRINGvtype, STRlit ("pattern match failure in " ^ 
+                           SymbolTable.getString(!SymbolTables.varTable, f)))
+         ]))]))]
+     | addDefault f (c::cs) = c :: addDefault f cs
+
    fun showPats pats = #2 (foldl (fn (p,(sep,str)) => (",",str ^ sep ^ p)) ("","") pats)
 
    fun showCase (pat,bb) = showPats pat ^ " -> " ^ Layout.tostring (Imp.PP.block bb)
@@ -1443,7 +1455,7 @@ structure SwitchReduce = struct
    
    and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
-     | visitStmt s (CASEstmt (e,ps)) = optCase (visitExp s e, map (visitCase s) ps)
+     | visitStmt s (CASEstmt (e,ps)) = optCase (visitExp s e, addDefault s (map (visitCase s) ps))
 
    and visitCase s (p,bb) = (p, visitBlock s bb)
    
@@ -1474,7 +1486,7 @@ structure SwitchReduce = struct
         funcType = vtype,
         funcName = name,
         funcArgs = args,
-        funcBody = visitBlock s body,
+        funcBody = visitBlock name body,
         funcRes = res
       }
      | visitDecl s d = d
@@ -1498,7 +1510,7 @@ structure DeadSymbol = struct
                   replace : SymbolTable.symid SymMap.map ref,
                   referenced : SymSet.set ref }
 
-   fun refSym (s : state,sym) = 
+   fun refSym (s : state) sym = 
       if not (SymSet.member (#locals s,sym)) then
          (#referenced s) := SymSet.add (!(#referenced s),sym)
       else
@@ -1553,16 +1565,16 @@ structure DeadSymbol = struct
 
    and visitCase s (p,stmts) = (p, visitBlock s stmts)
    
-   and visitExp s (IDexp sym) = (refSym (s,sym); IDexp (applyReplace (s,sym)))
+   and visitExp s (IDexp sym) = (refSym s sym; IDexp (applyReplace (s,sym)))
      | visitExp s (PRIexp (m,f,t,es)) = PRIexp (m,f,t,map (visitExp s) es)
-     | visitExp s (CALLexp (m,sym,es)) = (refSym (s,sym); CALLexp (m, (applyReplace (s,sym)), map (visitExp s) es))
+     | visitExp s (CALLexp (m,sym,es)) = (refSym s sym; CALLexp (m, (applyReplace (s,sym)), map (visitExp s) es))
      | visitExp s (INVOKEexp (m,t,e,es)) = INVOKEexp (m,t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
-     | visitExp s (CLOSUREexp (t,sym,es)) = (refSym (s,sym); CLOSUREexp (t,(applyReplace (s,sym)),map (visitExp s) es))
+     | visitExp s (CLOSUREexp (t,sym,es)) = (refSym s sym; CLOSUREexp (t,(applyReplace (s,sym)),map (visitExp s) es))
      | visitExp s (STATEexp (b,t,e)) = STATEexp (visitBlock s b, t, visitExp s e)
      | visitExp s (EXECexp (t, e)) = EXECexp (t, visitExp s e)
      | visitExp s e = e
@@ -1575,7 +1587,7 @@ structure DeadSymbol = struct
         funcArgs = args,
         funcBody = body,
         funcRes = res
-      }) = (refSym (s,name); FUNCdecl {
+      }) = (FUNCdecl {
         funcMonadic = monkind,
         funcClosure = clArgs,
         funcType = vtype,
@@ -1592,7 +1604,7 @@ structure DeadSymbol = struct
          closureDelegate = del,
          closureDelArgs = delArgs,
          closureRetTy = retTy
-     }) = if SymSet.member(!(#referenced s), name) then refSym (s : state,del) else ()
+     }) = if SymSet.member(!(#referenced s), name) then refSym (s : state) del else ()
      | visitCDecl s _ = ()
 
    fun run { decls = ds, fdecls = fs, exports = es } =
@@ -1600,9 +1612,18 @@ structure DeadSymbol = struct
          val s = { locals = SymSet.empty,
                    replace = ref SymMap.empty,
                    referenced = ref SymSet.empty } : state
-         val ds = map (visitDecl s) ds
-         val _ = app (visitCDecl s) ds
-         val ds = List.filter (fn d => SymSet.member (!(#referenced s),getDeclName d)) ds
+         val _ = app (refSym s) es
+         fun fixpoint _ =
+            let
+               val reachable = List.filter (fn d => SymSet.member (!(#referenced s),getDeclName d)) ds
+               val oldSize = SymSet.numItems (!(#referenced s))
+               val reachable = map (visitDecl s) reachable
+               val _ = app (visitCDecl s) reachable
+               val newSize = SymSet.numItems (!(#referenced s))
+            in
+               if newSize>oldSize then fixpoint () else reachable
+            end
+         val ds = fixpoint ()
       in
          { decls = ds, fdecls = fs, exports = es }
       end
