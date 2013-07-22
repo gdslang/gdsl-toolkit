@@ -11,8 +11,8 @@
 #include <dis.h>
 
 enum gdsl_x86_print_mode {
-	GSDL_X86_PRINT_MODE_FULL,
-	GSDL_X86_PRINT_MODE_SIMPLE
+	GDSL_X86_PRINT_MODE_FULL,
+	GDSL_X86_PRINT_MODE_SIMPLE
 };
 
 extern __obj gdsl_create_state(__char *buffer, __word size);

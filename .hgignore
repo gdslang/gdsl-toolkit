@@ -41,6 +41,10 @@ x86-tester/rreil/.cproject
 x86-tester/rreil/.project
 x86-tester/rreil/Debug/
 
+x86-tester/gdsl/.cproject
+x86-tester/gdsl/.project
+x86-tester/gdsl/Debug/
+
 x86-tester/x86/.cproject
 x86-tester/x86/.project
 x86-tester/x86/Debug/
@@ -60,5 +64,9 @@ x86-tester/x86-test-stats-runner/Debug/
 x86-tester/util/.cproject
 x86-tester/util/.project
 x86-tester/util/Debug/
+
+tardet/.cproject
+tardet/.project
+tardet/Debug/
 
 lib/

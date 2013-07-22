@@ -284,14 +284,14 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 		printf(" %02x", (int)(data[i]) & 0xff);
 	printf("\n");
 
-	char *str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_FULL);
+	char *str = gdsl_x86_pretty(insn, GDSL_X86_PRINT_MODE_FULL);
 	if(str)
 		puts(str);
 	else
 		printf("NULL\n");
 	free(str);
 
-	str = gdsl_x86_pretty(insn, GSDL_X86_PRINT_MODE_SIMPLE);
+	str = gdsl_x86_pretty(insn, GDSL_X86_PRINT_MODE_SIMPLE);
 	if(str) {
 		puts(str);
 		if(name)

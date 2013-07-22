@@ -46,7 +46,6 @@ struct context {
 		context_store_t *store;
 		context_jump_t *jump;
 	} memory;
-
 };
 
 extern struct memory_allocation *memory_allocation_init(void *address);

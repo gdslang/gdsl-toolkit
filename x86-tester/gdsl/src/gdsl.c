@@ -64,11 +64,11 @@ char *gdsl_x86_pretty(__obj insn, enum gdsl_x86_print_mode mode) {
 			str = (char*)realloc(str, str_size);
 		} else {
 			switch(mode) {
-				case GSDL_X86_PRINT_MODE_FULL: {
+				case GDSL_X86_PRINT_MODE_FULL: {
 					__pretty(__pretty__, insn, str, str_size);
 					break;
 				}
-				case GSDL_X86_PRINT_MODE_SIMPLE: {
+				case GDSL_X86_PRINT_MODE_SIMPLE: {
 					__pretty(__pretty_simple__, insn, str, str_size);
 					break;
 				}
