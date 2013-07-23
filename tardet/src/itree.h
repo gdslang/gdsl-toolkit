@@ -11,6 +11,9 @@
 #include <tr1/memory>
 #include <stdlib.h>
 #include "expression/expression.h"
+extern "C" {
+#include <rreil/rreil.h>
+}
 
 using namespace std::tr1;
 
@@ -59,6 +62,19 @@ public:
 //	void *expression_get();
 	itree_inner_node *split(shared_ptr<class expression> *expressions,
 			size_t *offsets, size_t children_count);
+	void print();
+};
+
+class itree {
+private:
+	itree_node *root;
+
+public:
+	itree(shared_ptr<class expression> expression, size_t int_start,
+			size_t int_end);
+	~itree() {
+		delete root;
+	}
 	void print();
 };
 

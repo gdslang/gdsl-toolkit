@@ -12,14 +12,9 @@
 extern "C" {
 #include <rreil/rreil.h>
 }
+#include "expression.h"
 
-class operand {
-public:
-	virtual void print() = 0;
-	virtual ~operand() {};
-};
-
-class variable : public operand {
+class variable : public expression {
 private:
 	struct rreil_variable *variable_;
 
@@ -29,7 +24,7 @@ public:
 	void print();
 };
 
-class immediate : public operand {
+class immediate : public expression {
 private:
 	uint64_t immediate_;
 

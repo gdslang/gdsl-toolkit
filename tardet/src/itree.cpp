@@ -5,12 +5,24 @@
  *      Author: jucs
  */
 
+#include <tr1/functional>
 #include <tr1/memory>
 #include <stdlib.h>
 #include <stdio.h>
 #include "itree.h"
 
+#include "expression/expression.h"
+
 using namespace std::tr1;
+
+itree::itree(shared_ptr<class expression> expression, size_t int_start,
+		size_t int_end) {
+	this->root = new itree_leaf_node(expression, int_start, int_end);
+}
+
+void itree::print() {
+	root->print();
+}
 
 itree_node::itree_node(size_t int_start, size_t int_end) {
 	this->interval.start = int_start;
@@ -37,7 +49,7 @@ size_t itree_inner_node::children_count_get() {
 }
 
 itree_inner_node::~itree_inner_node() {
-	for (size_t i = 0; i < children_count; ++i) {
+	for(size_t i = 0; i < children_count; ++i) {
 		delete children[i];
 	}
 	free(children);
@@ -103,3 +115,4 @@ void itree_leaf_node::print() {
 	expression->print();
 	printf("\n");
 }
+

@@ -597,7 +597,11 @@ main:
 
 #sub %rax, %rbx
 
-pblendvb %xmm1, %xmm2
+mov $999, %rax
+add $42, %rax
+jmp %rax
+
+#pblendvb %xmm1, %xmm2
 
 #call %r8	
 

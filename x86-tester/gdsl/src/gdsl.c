@@ -92,6 +92,18 @@ char gdsl_translate(__obj *rreil, __obj insn, __obj *state) {
 	}
 }
 
+
+char gdsl_translate_block(__obj *rreil, __obj *state) {
+	jmp_buf exp_vec;
+	__exp_vec_set(&exp_vec);
+	if(setjmp(exp_vec)) {
+		return 1;
+	} else {
+		*rreil = __runMonadicNoArg(__translateBlock__, state);
+		return 0;
+	}
+}
+
 void gdsl_reset() {
 	__resetHeap();
 }

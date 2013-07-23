@@ -16,13 +16,15 @@ extern "C" {
 }
 #include "itree.h"
 #include "expression/binary_expression.h"
+#include "analyzer.h"
 
 int main(void) {
-	__char data[] = { 0x48, 0x83, 0xc4, 0x08 };
+	__char data[] = { 0x48, 0xc7, 0xc0, 0xe7, 0x03, 0x00, 0x00, 0x48, 0x83, 0xc0,
+			0x2a, 0xff, 0xe0 };
 	size_t data_size = sizeof(data);
 
 	__obj state = gdsl_create_state(data, data_size);
-//
+
 //	__obj insn;
 ////	__word features;
 //	if(gdsl_decode(&insn, &state)) {
@@ -56,38 +58,46 @@ int main(void) {
 //		fflush(stdout);
 //		exit(1);
 //	}
-//
-//	struct rreil_statements *statements = statements_get(rreil);
-//
-//	rreil_statements_print(statements);
+
+	__obj rreil;
+	if(gdsl_translate_block(&rreil, &state)) {
+		printf("Translate block failed\n");
+		fflush(stderr);
+		fflush(stdout);
+		exit(1);
+	}
+
+	struct rreil_statements *statements = statements_get(rreil);
+
+	rreil_statements_print(statements);
 //
 //	printf("\n");
 
-	shared_ptr<class expression> a(new subtraction(new immediate(7), new immediate(12)));
-	shared_ptr<class expression> b(new addition(new immediate(9), new immediate(2)));
-	shared_ptr<class expression> c(new subtraction(new immediate(5), new immediate(1)));
-	shared_ptr<class expression> d(new subtraction(new immediate(33), new immediate(12)));
-	shared_ptr<class expression> e(new addition(new immediate(99), new immediate(44)));
-	shared_ptr<class expression> f(new subtraction(new immediate(0), new immediate(66)));
-
-	itree_leaf_node *root = new itree_leaf_node(a, 0, 63);
-
-	shared_ptr<class expression>k[] = { a, b, c };
-	size_t s[] = { 3, 27 };
-	itree_inner_node *inner = root->split(k, s, 3);
-
-	shared_ptr<class expression>k1[] = { d, e, f };
-	size_t s1[] = { 5, 15 };
-
-	itree_node **children = inner->children_get();
-	itree_node *one_new = ((itree_leaf_node*)children[1])->split(k1, s1, 3);
-	delete children[1];
-	children[1] = one_new;
-
-	inner->print();
-
-	delete root;
-	delete inner;
+//	shared_ptr<class expression> a(new subtraction(new immediate(7), new immediate(12)));
+//	shared_ptr<class expression> b(new addition(new immediate(9), new immediate(2)));
+//	shared_ptr<class expression> c(new subtraction(new immediate(5), new immediate(1)));
+//	shared_ptr<class expression> d(new subtraction(new immediate(33), new immediate(12)));
+//	shared_ptr<class expression> e(new addition(new immediate(99), new immediate(44)));
+//	shared_ptr<class expression> f(new subtraction(new immediate(0), new immediate(66)));
+//
+//	itree_leaf_node *root = new itree_leaf_node(a, 0, 63);
+//
+//	shared_ptr<class expression>k[] = { a, b, a };
+//	size_t s[] = { 3, 27 };
+//	itree_inner_node *inner = root->split(k, s, 3);
+//
+//	shared_ptr<class expression>k1[] = { c, e, c };
+//	size_t s1[] = { 5, 15 };
+//
+//	itree_node **children = inner->children_get();
+//	itree_node *one_new = ((itree_leaf_node*)children[1])->split(k1, s1, 3);
+//	delete children[1];
+//	children[1] = one_new;
+//
+//	inner->print();
+//
+//	delete root;
+//	delete inner;
 
 //	struct itree_node *root = itree_root("x", 0, 63);
 //	char *k[] = { "x", "7", "x" };
@@ -99,6 +109,11 @@ int main(void) {
 //	itree_split(&root->children[1], k1, s1, 3);
 //
 //	itree_print(root);
+
+	printf("----------------------------\n");
+
+	itree *tree = analyze(statements);
+	tree->print();
 
 	return 0;
 }

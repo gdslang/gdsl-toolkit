@@ -21,6 +21,7 @@ extern size_t gdsl_decoded(__obj *state);
 extern __word gdsl_features_get(__obj insn);
 extern char *gdsl_x86_pretty(__obj insn, enum gdsl_x86_print_mode mode);
 extern char gdsl_translate(__obj *rreil, __obj insn, __obj *state);
+extern char gdsl_translate_block(__obj *rreil, __obj *state);
 extern void gdsl_reset();
 
 #endif /* GDSL_H_ */
