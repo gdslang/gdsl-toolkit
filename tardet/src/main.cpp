@@ -15,66 +15,79 @@ extern "C" {
 #include "igdrr.h"
 }
 #include "itree.h"
+#include "expression/binary_expression.h"
 
 int main(void) {
 	__char data[] = { 0x48, 0x83, 0xc4, 0x08 };
 	size_t data_size = sizeof(data);
 
 	__obj state = gdsl_create_state(data, data_size);
+//
+//	__obj insn;
+////	__word features;
+//	if(gdsl_decode(&insn, &state)) {
+//		printf("Decode failed\n");
+//		fflush(stderr);
+//		fflush(stdout);
+//		exit(1);
+//	}
+//
+//	data_size = gdsl_decoded(&state);
+////	features = gdsl_features_get(insn);
+//
+//	printf("Instruction bytes:");
+//	for(size_t i = 0; i < data_size; ++i)
+//		printf(" %02x", (int)(data[i]) & 0xff);
+//	printf("\n");
+//
+//	char *str = gdsl_x86_pretty(insn, GDSL_X86_PRINT_MODE_FULL);
+//	if(str)
+//		puts(str);
+//	else
+//		printf("NULL\n");
+//	free(str);
+//
+//	printf("---------------------------\n");
+//
+//	__obj rreil;
+//	if(gdsl_translate(&rreil, insn, &state)) {
+//		printf("Translate failed\n");
+//		fflush(stderr);
+//		fflush(stdout);
+//		exit(1);
+//	}
+//
+//	struct rreil_statements *statements = statements_get(rreil);
+//
+//	rreil_statements_print(statements);
+//
+//	printf("\n");
 
-	__obj insn;
-//	__word features;
-	if(gdsl_decode(&insn, &state)) {
-		printf("Decode failed\n");
-		fflush(stderr);
-		fflush(stdout);
-		exit(1);
-	}
+	shared_ptr<class expression> a(new subtraction(new immediate(7), new immediate(12)));
+	shared_ptr<class expression> b(new addition(new immediate(9), new immediate(2)));
+	shared_ptr<class expression> c(new subtraction(new immediate(5), new immediate(1)));
+	shared_ptr<class expression> d(new subtraction(new immediate(33), new immediate(12)));
+	shared_ptr<class expression> e(new addition(new immediate(99), new immediate(44)));
+	shared_ptr<class expression> f(new subtraction(new immediate(0), new immediate(66)));
 
-	data_size = gdsl_decoded(&state);
-//	features = gdsl_features_get(insn);
+	itree_leaf_node *root = new itree_leaf_node(a, 0, 63);
 
-	printf("Instruction bytes:");
-	for(size_t i = 0; i < data_size; ++i)
-		printf(" %02x", (int)(data[i]) & 0xff);
-	printf("\n");
-
-	char *str = gdsl_x86_pretty(insn, GDSL_X86_PRINT_MODE_FULL);
-	if(str)
-		puts(str);
-	else
-		printf("NULL\n");
-	free(str);
-
-	printf("---------------------------\n");
-
-	__obj rreil;
-	if(gdsl_translate(&rreil, insn, &state)) {
-		printf("Translate failed\n");
-		fflush(stderr);
-		fflush(stdout);
-		exit(1);
-	}
-
-	struct rreil_statements *statements = statements_get(rreil);
-
-	rreil_statements_print(statements);
-
-	printf("\n");
-
-	itree_leaf_node *root = new itree_leaf_node((void*)"x", 0, 63);
-
-	char *k[] = { "x", "7", "x" };
+	shared_ptr<class expression>k[] = { a, b, c };
 	size_t s[] = { 3, 27 };
-	itree_inner_node *inner = root->split((void**)k, s, 3);
+	itree_inner_node *inner = root->split(k, s, 3);
 
-	char *k1[] = { "y", "10", "y" };
+	shared_ptr<class expression>k1[] = { d, e, f };
 	size_t s1[] = { 5, 15 };
 
 	itree_node **children = inner->children_get();
-	children[1] = ((itree_leaf_node*)children[1])->split((void**)k1, s1, 3);
+	itree_node *one_new = ((itree_leaf_node*)children[1])->split(k1, s1, 3);
+	delete children[1];
+	children[1] = one_new;
 
 	inner->print();
+
+	delete root;
+	delete inner;
 
 //	struct itree_node *root = itree_root("x", 0, 63);
 //	char *k[] = { "x", "7", "x" };

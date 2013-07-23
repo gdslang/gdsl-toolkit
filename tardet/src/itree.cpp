@@ -5,9 +5,12 @@
  *      Author: jucs
  */
 
+#include <tr1/memory>
 #include <stdlib.h>
 #include <stdio.h>
 #include "itree.h"
+
+using namespace std::tr1;
 
 itree_node::itree_node(size_t int_start, size_t int_end) {
 	this->interval.start = int_start;
@@ -33,13 +36,20 @@ size_t itree_inner_node::children_count_get() {
 	return children_count;
 }
 
+itree_inner_node::~itree_inner_node() {
+	for (size_t i = 0; i < children_count; ++i) {
+		delete children[i];
+	}
+	free(children);
+}
+
 void itree_inner_node::print() {
 	for(size_t i = 0; i < children_count; ++i)
 		children[i]->print();
 }
 
-itree_leaf_node::itree_leaf_node(void *expression, size_t int_start,
-		size_t int_end) :
+itree_leaf_node::itree_leaf_node(shared_ptr<class expression> expression,
+		size_t int_start, size_t int_end) :
 		itree_node(int_start, int_end) {
 	this->expression = expression;
 }
@@ -48,11 +58,12 @@ enum itree_node_type itree_leaf_node::type_get() {
 	return ITREE_NODE_TYPE_LEAF;
 }
 
-void *itree_leaf_node::expression_get() {
-	return expression;
-}
+//void *itree_leaf_node::expression_get() {
+//	return expression;
+//}
 
-itree_inner_node *itree_leaf_node::split(void **expressions, size_t *offsets,
+itree_inner_node *itree_leaf_node::split(
+		shared_ptr<class expression> *expressions, size_t *offsets,
 		size_t children_count) {
 	struct {
 		size_t start;
@@ -83,6 +94,12 @@ itree_inner_node *itree_leaf_node::split(void **expressions, size_t *offsets,
 			this->interval.end);
 }
 
+itree_leaf_node::~itree_leaf_node() {
+	expression.reset();
+}
+
 void itree_leaf_node::print() {
-	printf("[%zu..%zu]: %s\n", interval.start, interval.end, expression);
+	printf("[%zu..%zu]: ", interval.start, interval.end);
+	expression->print();
+	printf("\n");
 }

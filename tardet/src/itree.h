@@ -8,6 +8,12 @@
 #ifndef ITREE_H_
 #define ITREE_H_
 
+#include <tr1/memory>
+#include <stdlib.h>
+#include "expression/expression.h"
+
+using namespace std::tr1;
+
 enum itree_node_type {
 	ITREE_NODE_TYPE_INNER, ITREE_NODE_TYPE_LEAF
 };
@@ -15,6 +21,8 @@ enum itree_node_type {
 class itree_node {
 public:
 	itree_node(size_t int_start, size_t int_end);
+	virtual ~itree_node() {
+	}
 	struct {
 		size_t start;
 		size_t end;
@@ -32,6 +40,7 @@ private:
 public:
 	itree_inner_node(itree_node **children, size_t children_count,
 			size_t int_start, size_t int_end);
+	~itree_inner_node();
 	enum itree_node_type type_get();
 	itree_node **children_get();
 	size_t children_count_get();
@@ -40,14 +49,16 @@ public:
 
 class itree_leaf_node: public itree_node {
 private:
-	void *expression;
+	shared_ptr<class expression> expression;
 
 public:
-	itree_leaf_node(void *expression, size_t int_start, size_t int_end);
+	itree_leaf_node(shared_ptr<class expression> expression, size_t int_start,
+			size_t int_end);
+	~itree_leaf_node();
 	enum itree_node_type type_get();
-	void *expression_get();
-	itree_inner_node *split(void **expressions, size_t *offsets,
-			size_t children_count);
+//	void *expression_get();
+	itree_inner_node *split(shared_ptr<class expression> *expressions,
+			size_t *offsets, size_t children_count);
 	void print();
 };
 
