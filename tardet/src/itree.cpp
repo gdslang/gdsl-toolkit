@@ -24,6 +24,10 @@ void itree::print() {
 	root->print();
 }
 
+char itree::contains(rreil_variable* variable, size_t size) {
+	return root->contains(variable, size);
+}
+
 itree_node::itree_node(size_t int_start, size_t int_end) {
 	this->interval.start = int_start;
 	this->interval.end = int_end;
@@ -58,6 +62,13 @@ itree_inner_node::~itree_inner_node() {
 void itree_inner_node::print() {
 	for(size_t i = 0; i < children_count; ++i)
 		children[i]->print();
+}
+
+char itree_inner_node::contains(rreil_variable* variable, size_t size) {
+	for (size_t i = 0; i < children_count; ++i)
+		if(children[i]->contains(variable, size))
+			return 1;
+	return 0;
 }
 
 itree_leaf_node::itree_leaf_node(shared_ptr<class expression> expression,
@@ -116,3 +127,6 @@ void itree_leaf_node::print() {
 	printf("\n");
 }
 
+char itree_leaf_node::contains(rreil_variable *variable, size_t size) {
+	return expression->contains(variable, size);
+}

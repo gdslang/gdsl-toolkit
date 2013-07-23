@@ -39,4 +39,6 @@ struct rreil_id {
 	};
 };
 
+extern char rreil_id_equals(struct rreil_id *a, struct rreil_id *b);
+
 #endif /* RREIL_ID_H_ */

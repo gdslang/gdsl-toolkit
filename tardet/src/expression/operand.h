@@ -22,6 +22,7 @@ public:
 	variable(struct rreil_variable *variable);
 	~variable() {};
 	void print();
+	char contains(rreil_variable *variable, size_t size);
 };
 
 class immediate : public expression {
@@ -32,6 +33,10 @@ public:
 	immediate(uint64_t immediate);
 	~immediate() {};
 	void print();
+
+	char contains(rreil_variable *variable, size_t size) {
+		return 0;
+	}
 };
 
 #endif /* OPERAND_H_ */

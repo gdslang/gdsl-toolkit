@@ -27,6 +27,8 @@ public:
 		delete left;
 		delete right;
 	}
+
+	char contains(rreil_variable *variable, size_t size);
 };
 
 class addition : public binary_expression {
