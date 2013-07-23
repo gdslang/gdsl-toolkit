@@ -497,7 +497,7 @@ structure TypeRefinement = struct
                   VARstype idx' => if idx=idx' then idx' else find idx'
                 | t => idx
                val ecr = find idx
-               val _ =if idx<>ecr then msg ("inlineSType: forwarded var " ^ Int.toString idx ^ " to " ^ Int.toString ecr ^ "\n") else ()
+               (*val _ =if idx<>ecr then msg ("inlineSType: forwarded var " ^ Int.toString idx ^ " to " ^ Int.toString ecr ^ "\n") else ()*)
                val ecrs = IS.add (ecrs, idx)
                val ecrs = IS.add (ecrs, ecr)
             in
@@ -564,7 +564,7 @@ structure TypeRefinement = struct
    
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
-         (*val _ = if t1=VARstype 49229 orelse t2=VARstype 49229 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
+         (*val _ = if t1=VARstype 64440 orelse t2=VARstype 64440 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
          (*val _ = if t1=VARstype 49217 orelse t2=VARstype 49217 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()
          val _ = if t1=VARstype 49215 orelse t2=VARstype 49215 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
          val _ = msg ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n")
@@ -572,7 +572,7 @@ structure TypeRefinement = struct
          fun lub (VARstype x, VARstype y) =
             if x=y then VARstype x else
             let
-               (*val _ = if x=49229 orelse y=49229 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
+               (*val _ = if x=64440 orelse y=64440 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
                val xRoot = find (tt,x)
                val yRoot = find (tt,y)
                val _ = iter := (!iter) + 1
@@ -651,8 +651,8 @@ structure TypeRefinement = struct
             val idx = DynamicArray.bound tt + 1
             (*val _ = if SymbolTable.toInt sym=422 then debugOn := true else ()*)
             val _ = msg ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")
-            (*val _ = if idx=42782 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=42783 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
+            val _ = if idx=53735 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=64440 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
 
             (*val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=18420 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
@@ -683,6 +683,8 @@ structure TypeRefinement = struct
       let
          val idx = DynamicArray.bound tt + 1
          val _ = DynamicArray.update (tt,idx,VOIDstype)
+         (*val _ = if idx=41084 then TextIO.print ("created fresh var " ^ Int.toString idx ^ "\n") else ()
+         val _ = if idx=40784 then TextIO.print ("created fresh var " ^ Int.toString idx ^ "\n") else ()*)
       in
          VARstype idx
       end
@@ -1119,11 +1121,11 @@ structure TypeRefinement = struct
             origLocals = ref SymMap.empty,
             origFields = fs
          }
-         fun visitDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); visitDecl state d)
+         fun visitDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= 789); msg ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); visitDecl state d)
          val _ = map (visitDeclPrint state) ds
          (*val _ = showState state*)
          val _ = debugOn := false
-         fun patchDeclPrint state d = (msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
+         fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= 789); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
          val ds = map (patchDeclPrint state) ds
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
       in
