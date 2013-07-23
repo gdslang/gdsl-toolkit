@@ -384,7 +384,7 @@ structure C1 = struct
                emitBlock s b,
                case t of
                   VOIDvtype => (case e of
-                     PRIexp (_,VOIDprim,_,_) => seq []
+                     PRIexp (VOIDprim,_,_) => seq []
                    | e => indent 2 (seq [emitExp s e, str ";"])
                   )
                 | _ =>
@@ -455,12 +455,12 @@ structure C1 = struct
       ]
    
    and emitExp s (IDexp sym) = emitSym s sym
-     | emitExp s (PRIexp (m,f,t,es)) = (case t of
+     | emitExp s (PRIexp (f,t,es)) = (case t of
          FUNvtype (_,_,args) => emitPrim s (f,es,args)
        | _ => emitPrim s (f,es,[])
       )
-     | emitExp s (CALLexp (m,sym,es)) = seq [emitSym s sym, fArgs (map (emitExp s) es)]
-     | emitExp s (INVOKEexp (m,t,e,es)) =
+     | emitExp s (CALLexp (sym,es)) = seq [emitSym s sym, fArgs (map (emitExp s) es)]
+     | emitExp s (INVOKEexp (t,e,es)) =
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
      | emitExp s (RECORDexp fs) =
          let
@@ -484,7 +484,7 @@ structure C1 = struct
      | emitExp s (BOXexp (t,e)) = seq [str "alloc", str (getTypeSuffix t), fArgs [emitExp s e]]
      | emitExp s (UNBOXexp (t,e)) =
          seq [str "(*((", emitType s (NONE,t), str "*) ", emitExp s e, str "))"]
-     | emitExp s (VEC2INTexp (_,PRIexp (_,SLICEprim, _, [vec,ofs,sz]))) =
+     | emitExp s (VEC2INTexp (_,PRIexp (SLICEprim, _, [vec,ofs,sz]))) =
          seq [str "slice(", emitExp s vec, str ", ", emitExp s ofs, str ", ", emitExp s sz, str ")"]
      | emitExp s (VEC2INTexp (_,UNBOXexp (_,e))) =
          seq [emitExp s e, str "->", str "data"]
@@ -494,7 +494,7 @@ structure C1 = struct
          seq [str "gen_vec(",str (Int.toString sz), str ", ", emitExp s e, str ")"]
      | emitExp s (CLOSUREexp (t,sym,es)) =
          seq [emitGenClosure s t, fArgs (seq [str "&", emitSym s sym] :: map (emitExp s) es)]
-     | emitExp s (STATEexp (BASICblock ([],[]), _, CALLexp (_,sym,[]))) = seq [str "&", emitSym s sym]
+     | emitExp s (STATEexp (BASICblock ([],[]), _, CALLexp (sym,[]))) = seq [str "&", emitSym s sym]
      | emitExp s (STATEexp (b,t,e)) = emitAnonymousAction s (b,t,e)
 
      | emitExp s (EXECexp (FUNvtype (_,false,_),e)) = seq [emitExp s e, fArgs []]
@@ -534,7 +534,6 @@ structure C1 = struct
      | emitPrim s _ = raise CodeGenBug
      
    fun emitDecl s (FUNCdecl {
-        funcMonadic = monkind,
         funcClosure = clArgs,
         funcType = ty,
         funcName = name,

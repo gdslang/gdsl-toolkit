@@ -241,9 +241,9 @@ end = struct
           | SOME sym => getClosureSym sym
       end
    
-   fun get_con_idx e = PRIexp (PUREmonkind, GET_CON_IDXprim,
+   fun get_con_idx e = PRIexp (GET_CON_IDXprim,
       FUNvtype (INTvtype, false, [OBJvtype]), [e])
-   fun get_con_arg e = PRIexp (PUREmonkind, GET_CON_ARGprim,
+   fun get_con_arg e = PRIexp (GET_CON_ARGprim,
       FUNvtype (OBJvtype, false, [OBJvtype]), [e])
 
    fun trBlock (s : state) e =
@@ -339,7 +339,7 @@ end = struct
             (stmtss @ stmts, args @ [argExp])) ([],[]) args
          val ty = FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) args)
       in
-         (stmtss, INVOKEexp (PUREmonkind, ty, funcExp, argExps))
+         (stmtss, INVOKEexp (ty, funcExp, argExps))
       end
      | trExpr s (Exp.PRI (name, args)) = (
          (* this case is actually dead as all primitives are function calls,
@@ -475,7 +475,7 @@ end = struct
          val fType = FUNvtype (OBJvtype, not (null clArgs), map #1 clArgs @ map (fn (t,_) => t) stdArgs)
          val _ = if null args
             then
-               addGlobalExp s (sym, CALLexp (PUREmonkind, sym, []))
+               addGlobalExp s (sym, CALLexp (sym, []))
             else
             let
                val fTypeCl = FUNvtype (OBJvtype, false, map #1 clArgs)
@@ -493,7 +493,6 @@ end = struct
       in
          fn body =>
             addDecl s (FUNCdecl {
-              funcMonadic = PUREmonkind,
               funcClosure = clArgs,
               funcType = fType,
               funcName = sym,

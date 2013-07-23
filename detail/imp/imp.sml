@@ -102,13 +102,8 @@ structure Imp = struct
    *   return g_closure(x, 4);
    * }
    *)
-   datatype monkind =
-      PUREmonkind
-    | ACTmonkind
-
    datatype decl =
       FUNCdecl of {
-        funcMonadic : monkind,
         funcClosure : arg list,
         funcType : vtype,
         funcName : sym,
@@ -143,9 +138,9 @@ structure Imp = struct
 
    and exp =
       IDexp of sym
-    | PRIexp of monkind * prim * vtype * exp list
-    | CALLexp of monkind * sym * exp list (* callee is unboxed *)
-    | INVOKEexp of monkind * vtype * exp * exp list (* callee is a closure *)
+    | PRIexp of prim * vtype * exp list
+    | CALLexp of sym * exp list (* callee is unboxed *)
+    | INVOKEexp of vtype * exp * exp list (* callee is a closure *)
     | RECORDexp of (sym * exp) list
     | LITexp of vtype * lit
     | BOXexp of vtype * exp
@@ -210,10 +205,7 @@ structure Imp = struct
             seq (args ("(",vtype,atys,")") @
                 [str (if cl then "=>" else "->"), vtype res])
       fun arg (t,n) = seq [vtype t, space, var n]
-      fun monarg PUREmonkind = seq []
-        | monarg ACTmonkind = seq [space, str "ACT"]
       fun decl (FUNCdecl {
-           funcMonadic,
            funcClosure,
            funcType,
            funcName,
@@ -222,8 +214,7 @@ structure Imp = struct
            funcRes
          }) =
             align [
-               seq ([vtype funcType, space,
-                   var funcName, monarg funcMonadic] @
+               seq ([vtype funcType, space, var funcName] @
                    (if null funcClosure then [] else
                      args ("[", arg, funcClosure, "]")) @
                    (args ("(", arg, funcArgs, ")")) @
@@ -252,11 +243,11 @@ structure Imp = struct
             map stmt stmts
          ))
       and exp (IDexp sym) = var sym
-        | exp (PRIexp (m,p,t,es)) =
+        | exp (PRIexp (p,t,es)) =
             seq (vtype t :: space :: str "prim" :: space ::
-              str (#name (prim_info p)) :: monarg m :: args ("(",exp,es,")"))
-        | exp (CALLexp (m,f,es)) = seq (var f :: monarg m :: args ("(",exp,es,")"))
-        | exp (INVOKEexp (m,t,f,es)) = seq (vtype t :: monarg m :: space :: str "*" :: exp f :: args ("(",exp,es,")"))
+              str (#name (prim_info p)) :: args ("(",exp,es,")"))
+        | exp (CALLexp (f,es)) = seq (var f :: args ("(",exp,es,")"))
+        | exp (INVOKEexp (t,f,es)) = seq (vtype t :: space :: str "*" :: exp f :: args ("(",exp,es,")"))
         | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
         | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]

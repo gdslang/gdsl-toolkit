@@ -293,10 +293,10 @@ int main (int argc, char** argv) {
 done:
   buf_size = i;
   state_t s = gdsl_init();
-  gdsl_set_code(s, blob, buf_size, 0x0000000100001550);
+  gdsl_set_code(s, blob, buf_size, 0);
   
   if (setjmp(*gdsl_err_tgt(s))==0) {
-    while (gdsl_get_ip_offset(s)<buf_size+0x0000000100001550) {
+    while (gdsl_get_ip_offset(s)<buf_size) {
       uint64_t ofs = gdsl_get_ip_offset(s);
       obj_t instr = x86_decode(s);
       string_t res = x86_pretty(s,instr);

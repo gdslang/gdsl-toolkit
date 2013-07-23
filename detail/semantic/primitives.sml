@@ -293,7 +293,7 @@ structure Primitives = struct
       let
          open Imp
          exception ImpPrimTranslationBug
-         fun pr (prim,ty,args) = PRIexp (PUREmonkind, prim, ty, args)
+         fun pr (prim,ty,args) = PRIexp (prim, ty, args)
          fun action e = STATEexp (BASICblock ([],[]), OBJvtype, e)
          fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
          fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (VECvtype, arg))) args
@@ -330,7 +330,7 @@ structure Primitives = struct
          fun t n = genType (VOIDvtype, n)
          fun tv n = genType (VOIDvtype, n)
       in [
-         ("raise", (tv 1, fn args => action (PRIexp (ACTmonkind,RAISEprim,sv,args)))),
+         ("raise", (tv 1, fn args => action (PRIexp (RAISEprim,sv,args)))),
          ((Atom.toString Op.andAlso), (t 2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
          ((Atom.toString Op.orElse), (t 2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
          ("sx", (t 1, fn args => boxI (pr (SIGNEDprim,bi,unboxV args)))),
@@ -350,25 +350,25 @@ structure Primitives = struct
          ("showbitvec", (t 1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
          ("+++", (t 2, fn args => pr (CONCAT_STRINGprim,sss,args))),
          ("slice", (t 3, fn args => (case args of
-             [vec,ofs,sz] => action (boxV (PRIexp (PUREmonkind, SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
+             [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
            | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,ii,args)))),
          ("query", (t 1, fn args => (case args of
-             [f] => action (INVOKEexp (PUREmonkind, ov, f,[PRIexp (ACTmonkind, GETSTATEprim, o_, [])]))
+             [f] => action (INVOKEexp (ov, f,[PRIexp (GETSTATEprim, o_, [])]))
            | _ => raise ImpPrimTranslationBug))),
          ("update", (fv, fn args => (case args of
-             [f] => action (PRIexp (ACTmonkind, SETSTATEprim, ov, [
-                  INVOKEexp (PUREmonkind, oo, f,[PRIexp (ACTmonkind, GETSTATEprim, o_, [])]) 
+             [f] => action (PRIexp (SETSTATEprim, ov, [
+                  INVOKEexp (oo, f,[PRIexp (GETSTATEprim, o_, [])]) 
                ]))
            | _ => raise ImpPrimTranslationBug))),
-         ("ipget", (t 0, fn args => action (boxI (PRIexp (ACTmonkind,IPGETprim,i,args))))),
-         ("consume8", (t 0, fn args => action (boxV8 (PRIexp (ACTmonkind,CONSUME8prim,i,args))))),
-         ("consume16", (t 0, fn args => action (boxV16 (PRIexp (ACTmonkind,CONSUME16prim,i,args))))),
-         ("consume32", (t 0, fn args => action (boxV32 (PRIexp (ACTmonkind,CONSUME32prim,i,args))))),
-         ("unconsume8", (tv 0, fn args => action (PRIexp (ACTmonkind,UNCONSUME8prim,v,args)))),
-         ("unconsume16", (tv 0, fn args => action (PRIexp (ACTmonkind,UNCONSUME16prim,v,args)))),
-         ("unconsume32", (tv 0, fn args => action (PRIexp (ACTmonkind,UNCONSUME32prim,v,args)))),
-         ("println", (tv 1, fn args => action (PRIexp (ACTmonkind,PRINTLNprim,ov,args)))),
+         ("ipget", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
+         ("consume8", (t 0, fn args => action (boxV8 (PRIexp (CONSUME8prim,i,args))))),
+         ("consume16", (t 0, fn args => action (boxV16 (PRIexp (CONSUME16prim,i,args))))),
+         ("consume32", (t 0, fn args => action (boxV32 (PRIexp (CONSUME32prim,i,args))))),
+         ("unconsume8", (tv 0, fn args => action (PRIexp (UNCONSUME8prim,v,args)))),
+         ("unconsume16", (tv 0, fn args => action (PRIexp (UNCONSUME16prim,v,args)))),
+         ("unconsume32", (tv 0, fn args => action (PRIexp (UNCONSUME32prim,v,args)))),
+         ("println", (tv 1, fn args => action (PRIexp (PRINTLNprim,ov,args)))),
          ("return", (t 1, fn args => (case args of
             [e] => action e
           | _ => raise ImpPrimTranslationBug)))
@@ -380,7 +380,7 @@ structure Primitives = struct
          open Imp
       in
          [
-         ("void", PRIexp (PUREmonkind,VOIDprim, FUNvtype (VOIDvtype,false,[]), []))
+         ("void", PRIexp (VOIDprim, FUNvtype (VOIDvtype,false,[]), []))
          ]
       end
 
