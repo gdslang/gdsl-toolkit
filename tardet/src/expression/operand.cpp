@@ -36,6 +36,10 @@ char variable::contains(struct rreil_variable *variable) {
 		return 0;
 }
 
+bool variable::substitute(struct rreil_id *old, shared_ptr<expression> new_) {
+	return rreil_id_equals(this->variable_->id, old);
+}
+
 //variable::~variable() {
 //
 //}

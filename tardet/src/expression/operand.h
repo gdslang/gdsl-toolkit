@@ -24,6 +24,7 @@ public:
 	}
 	void print();
 	char contains(struct rreil_variable *variable);
+	bool substitute(struct rreil_id *old, shared_ptr<expression> new_);
 };
 
 class immediate: public expression {
@@ -37,6 +38,9 @@ public:
 	void print();
 
 	char contains(struct rreil_variable *variable) {
+		return 0;
+	}
+	bool substitute(struct rreil_id *old, shared_ptr<expression> new_) {
 		return 0;
 	}
 };

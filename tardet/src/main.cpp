@@ -115,5 +115,8 @@ int main(void) {
 	itree *tree = analyze(statements);
 	tree->print();
 
+	delete tree;
+	rreil_statements_free(statements);
+
 	return 0;
 }

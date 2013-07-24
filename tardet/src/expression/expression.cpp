@@ -23,26 +23,26 @@ void expression::print() {
 	printf(":%lu", size);
 }
 
-expression *expression::from_rreil_linear(struct rreil_linear* linear,
+shared_ptr<expression> expression::from_rreil_linear(struct rreil_linear* linear,
 		uint64_t size) {
-	function<expression*(struct rreil_linear*)> handle_linear =
+	function<shared_ptr<expression>(struct rreil_linear*)> handle_linear =
 			[&](struct rreil_linear *linear) {
-				expression *exp;
+				shared_ptr<expression> exp;
 				switch(linear->type) {
 					case RREIL_LINEAR_TYPE_VARIABLE: {
-						exp = new variable(linear->variable, size);
+						exp = shared_ptr<expression>(new variable(linear->variable, size));
 						break;
 					}
 					case RREIL_LINEAR_TYPE_IMMEDIATE: {
-						exp = new immediate(linear->immediate, size);
+						exp = shared_ptr<expression>(new immediate(linear->immediate, size));
 						break;
 					}
 					case RREIL_LINEAR_TYPE_SUM: {
-						exp = new addition(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd1), size);
+						exp = shared_ptr<expression>(new addition(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd1), size));
 						break;
 					}
 					case RREIL_LINEAR_TYPE_DIFFERENCE: {
-						exp = new subtraction(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd1), size);
+						exp = shared_ptr<expression>(new subtraction(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd1), size));
 					}
 					case RREIL_LINEAR_TYPE_SCALE: {
 						printf("Scale :-(...\n");

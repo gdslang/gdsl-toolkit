@@ -8,33 +8,37 @@
 #ifndef BINARY_EXPRESSION_H_
 #define BINARY_EXPRESSION_H_
 
+#include <tr1/memory>
 #include "expression.h"
 #include "operand.h"
 
+using namespace std::tr1;
+
 class binary_expression: public expression {
 protected:
-	expression *left;
-	expression *right;
+	shared_ptr<expression> left;
+	shared_ptr<expression> right;
 
 	void print(char op);
 
 public:
-	binary_expression(expression *left, expression *right, uint64_t size) :
+	binary_expression(shared_ptr<expression> left, shared_ptr<expression> right,
+			uint64_t size) :
 			expression(size) {
 		this->left = left;
 		this->right = right;
 	}
 	virtual ~binary_expression() {
-		delete left;
-		delete right;
 	}
 
 	char contains(rreil_variable *variable);
+	bool substitute(struct rreil_id *old, shared_ptr<expression> new_);
 };
 
 class addition: public binary_expression {
 public:
-	addition(expression *left, expression *right, uint64_t size) :
+	addition(shared_ptr<expression> left, shared_ptr<expression> right,
+			uint64_t size) :
 			binary_expression(left, right, size) {
 	}
 	void print();
@@ -42,7 +46,8 @@ public:
 
 class subtraction: public binary_expression {
 public:
-	subtraction(expression *left, expression *right, uint64_t size) :
+	subtraction(shared_ptr<expression> left, shared_ptr<expression> right,
+			uint64_t size) :
 			binary_expression(left, right, size) {
 	}
 	void print();

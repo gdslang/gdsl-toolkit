@@ -8,10 +8,13 @@
 #ifndef EXPRESSION_H_
 #define EXPRESSION_H_
 
+#include <tr1/memory>
 #include <stdlib.h>
 extern "C" {
 #include <rreil/rreil_linear.h>
 }
+
+using namespace std::tr1;
 
 class expression {
 private:
@@ -26,8 +29,10 @@ public:
 	}
 
 	virtual char contains(struct rreil_variable *variable) = 0;
+	virtual bool substitute(struct rreil_id *old,
+			shared_ptr<expression> new_) = 0;
 
-	static expression *from_rreil_linear(struct rreil_linear* linear,
+	static shared_ptr<expression> from_rreil_linear(struct rreil_linear* linear,
 			uint64_t size);
 
 	uint64_t size_get() {

@@ -15,7 +15,7 @@
 
 using namespace std::tr1;
 
-itree::itree(shared_ptr<class expression> expression, size_t int_start,
+itree::itree(shared_ptr<expression> expression, size_t int_start,
 		size_t int_end) {
 	this->root = new itree_leaf_node(expression, int_start, int_end);
 }
@@ -26,6 +26,11 @@ void itree::print() {
 
 char itree::contains(rreil_variable* variable) {
 	return root->contains(variable);
+}
+
+void itree::substitute(struct rreil_id *old, shared_ptr<expression> new_,
+		uint64_t from, uint64_t to) {
+	root->substitute(old, new_, from, to);
 }
 
 itree_node::itree_node(size_t int_start, size_t int_end) {
@@ -64,17 +69,26 @@ void itree_inner_node::print() {
 		children[i]->print();
 }
 
-char itree_inner_node::contains(rreil_variable* variable) {
+char itree_inner_node::contains(struct rreil_variable *variable) {
 	for(size_t i = 0; i < children_count; ++i)
 		if(children[i]->contains(variable))
 			return 1;
 	return 0;
 }
 
-itree_leaf_node::itree_leaf_node(shared_ptr<class expression> expression,
+void itree_inner_node::substitute(struct rreil_id *old,
+		shared_ptr<expression> new_, uint64_t from, uint64_t to) {
+	for(size_t i = 0; i < children_count; ++i)
+		children[i]->substitute(old, new_, from, to);
+	/*
+	 * Todo: ...
+	 */
+}
+
+itree_leaf_node::itree_leaf_node(shared_ptr<expression> expression,
 		size_t int_start, size_t int_end) :
 		itree_node(int_start, int_end) {
-	this->expression = expression;
+	this->exp = expression;
 }
 
 enum itree_node_type itree_leaf_node::type_get() {
@@ -85,9 +99,8 @@ enum itree_node_type itree_leaf_node::type_get() {
 //	return expression;
 //}
 
-itree_inner_node *itree_leaf_node::split(
-		shared_ptr<class expression> *expressions, size_t *offsets,
-		size_t children_count) {
+itree_inner_node *itree_leaf_node::split(shared_ptr<expression> *expressions,
+		size_t *offsets, size_t children_count) {
 	struct {
 		size_t start;
 		size_t end;
@@ -118,15 +131,25 @@ itree_inner_node *itree_leaf_node::split(
 }
 
 itree_leaf_node::~itree_leaf_node() {
-	expression.reset();
+	exp.reset();
 }
 
 void itree_leaf_node::print() {
 	printf("[%zu..%zu]: ", interval.start, interval.end);
-	expression->print();
+	exp->print();
 	printf("\n");
 }
 
-char itree_leaf_node::contains(rreil_variable *variable) {
-	return expression->contains(variable);
+char itree_leaf_node::contains(struct rreil_variable *variable) {
+	return exp->contains(variable);
+}
+
+void itree_leaf_node::substitute(struct rreil_id *old,
+		shared_ptr<expression> new_, uint64_t from, uint64_t to) {
+	/*
+	 * Todo: ...
+	 */
+	bool substituted = exp->substitute(old, new_);
+	if(substituted)
+		exp.swap(new_);
 }
