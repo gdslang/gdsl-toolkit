@@ -17,9 +17,8 @@ variable::variable(struct rreil_variable *variable, uint64_t size) :
 	this->variable_ = variable;
 }
 
-void variable::print() {
+void variable::print_inner() {
 	rreil_variable_print(this->variable_);
-	expression::print();
 }
 
 char variable::contains(struct rreil_variable *variable) {
@@ -49,9 +48,8 @@ immediate::immediate(uint64_t immediate, uint64_t size) :
 	this->immediate_ = immediate;
 }
 
-void immediate::print() {
+void immediate::print_inner() {
 	printf("%lu", this->immediate_);
-	expression::print();
 }
 
 //immediate::~immediate() {

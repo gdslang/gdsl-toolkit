@@ -21,7 +21,9 @@ private:
 	uint64_t size;
 
 public:
-	virtual void print();
+	void print();
+	void print_size();
+	virtual void print_inner() = 0;
 	expression(uint64_t size) {
 		this->size = size;
 	}

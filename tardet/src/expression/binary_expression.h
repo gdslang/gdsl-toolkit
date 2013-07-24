@@ -19,8 +19,7 @@ protected:
 	shared_ptr<expression> left;
 	shared_ptr<expression> right;
 
-	void print(char op);
-
+	void print_inner(char op);
 public:
 	binary_expression(shared_ptr<expression> left, shared_ptr<expression> right,
 			uint64_t size) :
@@ -41,7 +40,7 @@ public:
 			uint64_t size) :
 			binary_expression(left, right, size) {
 	}
-	void print();
+	void print_inner();
 };
 
 class subtraction: public binary_expression {
@@ -50,7 +49,7 @@ public:
 			uint64_t size) :
 			binary_expression(left, right, size) {
 	}
-	void print();
+	void print_inner();
 };
 
 //class division : public binary_expression {

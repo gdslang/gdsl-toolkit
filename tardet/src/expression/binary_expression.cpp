@@ -12,24 +12,16 @@
 
 using namespace std::tr1;
 
-void binary_expression::print(char op) {
-	left->print();
+void binary_expression::print_inner(char op) {
+	printf("(");
+	left->print_inner();
 	printf(" %c ", op);
-	right->print();
+	right->print_inner();
+	printf(")");
 }
 
 char binary_expression::contains(rreil_variable *variable) {
 	return left->contains(variable) || right->contains(variable);
-}
-
-void addition::print() {
-	binary_expression::print('+');
-	expression::print();
-}
-
-void subtraction::print() {
-	binary_expression::print('-');
-	expression::print();
 }
 
 bool binary_expression::substitute(struct rreil_id *old,
@@ -43,3 +35,10 @@ bool binary_expression::substitute(struct rreil_id *old,
 	return 0;
 }
 
+void addition::print_inner() {
+	binary_expression::print_inner('+');
+}
+
+void subtraction::print_inner() {
+	binary_expression::print_inner('-');
+}

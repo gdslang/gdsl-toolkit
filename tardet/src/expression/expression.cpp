@@ -20,6 +20,11 @@ extern "C" {
 using namespace std::tr1;
 
 void expression::print() {
+	print_inner();
+	print_size();
+}
+
+void expression::print_size() {
 	printf(":%lu", size);
 }
 

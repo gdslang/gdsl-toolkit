@@ -22,7 +22,7 @@ public:
 	variable(struct rreil_variable *variable, uint64_t size);
 	~variable() {
 	}
-	void print();
+	void print_inner();
 	char contains(struct rreil_variable *variable);
 	bool substitute(struct rreil_id *old, shared_ptr<expression> new_);
 };
@@ -35,7 +35,7 @@ public:
 	immediate(uint64_t immediate, uint64_t size);
 	~immediate() {
 	}
-	void print();
+	void print_inner();
 
 	char contains(struct rreil_variable *variable) {
 		return 0;
