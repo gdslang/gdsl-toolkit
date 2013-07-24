@@ -322,15 +322,16 @@ structure Primitives = struct
          val sss = ftype [STRINGvtype, STRINGvtype] STRINGvtype
          val i = ftype [] INTvtype
          val v = ftype [] VOIDvtype
-         val fv = ftype [ftype [OBJvtype] OBJvtype] VOIDvtype
+         val fMv = ftype [ftype [OBJvtype] OBJvtype] (MONADvtype VOIDvtype)
          (* Generate type of the returned expression. The value that this
             function is called with indicates the number of arguments. *)
          fun genType (ret, n) =
             FUNvtype (ret, false, List.tabulate (n, fn _ => VOIDvtype))
-         fun t n = genType (VOIDvtype, n)
-         fun tv n = genType (VOIDvtype, n)
+         fun t n = if n=0 then MONADvtype VOIDvtype else
+                   if n>0 then genType (VOIDvtype, n) else
+                               genType (MONADvtype VOIDvtype, ~n)
       in [
-         ("raise", (tv 1, fn args => action (PRIexp (RAISEprim,sv,args)))),
+         ("raise", (t ~1, fn args => action (PRIexp (RAISEprim,sv,args)))),
          ((Atom.toString Op.andAlso), (t 2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
          ((Atom.toString Op.orElse), (t 2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
          ("sx", (t 1, fn args => boxI (pr (SIGNEDprim,bi,unboxV args)))),
@@ -349,14 +350,14 @@ structure Primitives = struct
          ("showint", (t 1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
          ("showbitvec", (t 1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
          ("+++", (t 2, fn args => pr (CONCAT_STRINGprim,sss,args))),
-         ("slice", (t 3, fn args => (case args of
+         ("slice", (t ~3, fn args => (case args of
              [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
            | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,ii,args)))),
          ("query", (t 1, fn args => (case args of
              [f] => action (INVOKEexp (ov, f,[PRIexp (GETSTATEprim, o_, [])]))
            | _ => raise ImpPrimTranslationBug))),
-         ("update", (fv, fn args => (case args of
+         ("update", (fMv, fn args => (case args of
              [f] => action (PRIexp (SETSTATEprim, ov, [
                   INVOKEexp (oo, f,[PRIexp (GETSTATEprim, o_, [])]) 
                ]))
@@ -365,11 +366,11 @@ structure Primitives = struct
          ("consume8", (t 0, fn args => action (boxV8 (PRIexp (CONSUME8prim,i,args))))),
          ("consume16", (t 0, fn args => action (boxV16 (PRIexp (CONSUME16prim,i,args))))),
          ("consume32", (t 0, fn args => action (boxV32 (PRIexp (CONSUME32prim,i,args))))),
-         ("unconsume8", (tv 0, fn args => action (PRIexp (UNCONSUME8prim,v,args)))),
-         ("unconsume16", (tv 0, fn args => action (PRIexp (UNCONSUME16prim,v,args)))),
-         ("unconsume32", (tv 0, fn args => action (PRIexp (UNCONSUME32prim,v,args)))),
-         ("println", (tv 1, fn args => action (PRIexp (PRINTLNprim,ov,args)))),
-         ("return", (t 1, fn args => (case args of
+         ("unconsume8", (t 0, fn args => action (PRIexp (UNCONSUME8prim,v,args)))),
+         ("unconsume16", (t 0, fn args => action (PRIexp (UNCONSUME16prim,v,args)))),
+         ("unconsume32", (t 0, fn args => action (PRIexp (UNCONSUME32prim,v,args)))),
+         ("println", (t ~1, fn args => action (PRIexp (PRINTLNprim,ov,args)))),
+         ("return", (t ~1, fn args => (case args of
             [e] => action e
           | _ => raise ImpPrimTranslationBug)))
          ]

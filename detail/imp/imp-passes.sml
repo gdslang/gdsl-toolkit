@@ -8,6 +8,7 @@ structure DeadValPass = MkCPSPass (DeadVal)*)
 
 (*structure TransCallsPass = MkIMPPass (TransCalls)*)
 structure PatchFunctionCallsPass = MkIMPPass (PatchFunctionCalls)
+structure ActionVarReductionPass = MkIMPPass (ActionVarReduction)
 structure ActionClosuresPass = MkIMPPass (ActionClosures)
 structure SimplifyPass = MkIMPPass (Simplify)
 structure TypeRefinementPass = MkIMPPass (TypeRefinement)
@@ -29,7 +30,7 @@ end = struct
       ImpFromCore.run s >>=
       PatchFunctionCallsPass.run >>=
       SimplifyPass.run >>=
-      ActionClosuresPass.run >>=
+      ActionVarReductionPass.run >>=
       SimplifyPass.run >>=
       TypeRefinementPass.run >>=
       SwitchReducePass.run >>=

@@ -445,19 +445,19 @@ end = struct
                let
                   val (stmts, exp) = trExpr s e
                in
-                  (acc @ stmts, EXECexp (FUNvtype (OBJvtype, true, []), exp))
+                  (acc @ stmts, EXECexp (MONADvtype OBJvtype, exp))
                end
            | transSeq s acc ((Exp.ACTION e) :: seq) =
                let
                   val (stmts, exp) = trExpr s e
-                  val stmtss = acc @ stmts @ [ASSIGNstmt (NONE,(EXECexp (FUNvtype (OBJvtype, true, []), exp)))]
+                  val stmtss = acc @ stmts @ [ASSIGNstmt (NONE,(EXECexp (MONADvtype OBJvtype, exp)))]
                in
                   transSeq s stmtss seq
                end
            | transSeq s acc ((Exp.BIND (res,e)) :: seq) =
                let
                   val (stmts, exp) = trExpr s e
-                  val stmtss = acc @ stmts @ [ASSIGNstmt (SOME res,(EXECexp (FUNvtype (OBJvtype, true, []), exp)))]
+                  val stmtss = acc @ stmts @ [ASSIGNstmt (SOME res,(EXECexp (MONADvtype OBJvtype, exp)))]
                in
                   transSeq (addLocalVar s res) stmtss seq
                end

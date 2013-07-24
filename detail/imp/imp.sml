@@ -12,7 +12,8 @@ structure Imp = struct
        | INTvtype
        | STRINGvtype
        | OBJvtype
-       | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *) 
+       | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *)
+       | MONADvtype of vtype (* result of monadic action *) 
 
    type arg = vtype * sym
 
@@ -204,6 +205,8 @@ structure Imp = struct
         | vtype (FUNvtype (res, cl, atys)) =
             seq (args ("(",vtype,atys,")") @
                 [str (if cl then "=>" else "->"), vtype res])
+        | vtype (MONADvtype res) = seq [str "M", space, vtype res]
+
       fun arg (t,n) = seq [vtype t, space, var n]
       fun decl (FUNCdecl {
            funcClosure,

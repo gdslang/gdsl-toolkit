@@ -215,6 +215,7 @@ structure C1 = struct
            | eT (decl, INTvtype) = seq (str "int_t" :: addSpace decl)
            | eT (decl, STRINGvtype) = seq (str "string_t" :: addSpace decl)
            | eT (decl, OBJvtype) = seq (str "obj_t" :: addSpace decl)
+           | eT (decl, MONADvtype retTy) = eT (str "(*" :: decl @ [str ")()"], retTy)
            | eT (decl, FUNvtype (retTy,_,[VOIDvtype])) = (* do not emit arguments *)
                eT (str "(*" :: decl @ [str ")()"], retTy)
            | eT (decl, FUNvtype (retTy,isCl,argTys)) = 
@@ -255,6 +256,7 @@ structure C1 = struct
      | getTypeSuffix (INTvtype) = "_int"
      | getTypeSuffix (STRINGvtype) = "_string"
      | getTypeSuffix (OBJvtype) = "_obj"
+     | getTypeSuffix (MONADvtype retTy) = getTypeSuffix retTy ^ "__mon"
      | getTypeSuffix (FUNvtype (retTy,_,args)) = "_" ^
       foldl (fn (ty,str) => str ^ getTypeSuffix ty) "" (retTy::args) ^ "__fun"
 
