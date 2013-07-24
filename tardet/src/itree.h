@@ -33,7 +33,7 @@ public:
 
 	virtual enum itree_node_type type_get() = 0;
 	virtual void print() = 0;
-	virtual char contains(rreil_variable *variable, size_t size) = 0;
+	virtual char contains(rreil_variable *variable) = 0;
 };
 
 class itree_inner_node: public itree_node {
@@ -49,7 +49,7 @@ public:
 	itree_node **children_get();
 	size_t children_count_get();
 	void print();
-	char contains(rreil_variable *variable, size_t size);
+	char contains(rreil_variable *variable);
 };
 
 class itree_leaf_node: public itree_node {
@@ -65,7 +65,7 @@ public:
 	itree_inner_node *split(shared_ptr<class expression> *expressions,
 			size_t *offsets, size_t children_count);
 	void print();
-	char contains(rreil_variable *variable, size_t size);
+	char contains(rreil_variable *variable);
 };
 
 class itree {
@@ -79,7 +79,7 @@ public:
 		delete root;
 	}
 	void print();
-	char contains(rreil_variable *variable, size_t size);
+	char contains(rreil_variable *variable);
 };
 
 #endif /* ITREE_H_ */

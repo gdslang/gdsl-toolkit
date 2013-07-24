@@ -22,7 +22,8 @@ static itree *initial(rreil_statement *last) {
 	switch(last->type) {
 		case RREIL_STATEMENT_TYPE_BRANCH: {
 			shared_ptr<class expression> exp = shared_ptr<class expression>(
-					expression::from_rreil_linear(last->branch.target->address));
+					expression::from_rreil_linear(last->branch.target->address,
+							last->branch.target->size));
 			root = new itree(exp, 0, last->branch.target->size - 1);
 			break;
 		}
@@ -50,6 +51,16 @@ itree *analyze(struct rreil_statements *statements) {
 	for(size_t i = statements->statements_length - 1; i > 0; --i) {
 		rreil_statement *current = statements->statements[i - 1];
 
+		switch(current->type) {
+			case RREIL_STATEMENT_TYPE_ASSIGN: {
+				if(root->contains(current->assign.lhs)) {
+					rreil_statement_print(current);
+					printf("\n");
+				}
+				break;
+			}
+			default: break;
+		}
 	}
 
 	return root;

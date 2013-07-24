@@ -14,27 +14,29 @@ extern "C" {
 }
 #include "expression.h"
 
-class variable : public expression {
+class variable: public expression {
 private:
 	struct rreil_variable *variable_;
 
 public:
-	variable(struct rreil_variable *variable);
-	~variable() {};
+	variable(struct rreil_variable *variable, uint64_t size);
+	~variable() {
+	}
 	void print();
-	char contains(rreil_variable *variable, size_t size);
+	char contains(struct rreil_variable *variable);
 };
 
-class immediate : public expression {
+class immediate: public expression {
 private:
 	uint64_t immediate_;
 
 public:
-	immediate(uint64_t immediate);
-	~immediate() {};
+	immediate(uint64_t immediate, uint64_t size);
+	~immediate() {
+	}
 	void print();
 
-	char contains(rreil_variable *variable, size_t size) {
+	char contains(struct rreil_variable *variable) {
 		return 0;
 	}
 };

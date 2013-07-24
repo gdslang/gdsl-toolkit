@@ -15,15 +15,17 @@ void binary_expression::print(char op) {
 	right->print();
 }
 
-char binary_expression::contains(rreil_variable *variable, size_t size) {
-	return left->contains(variable, size) || right->contains(variable, size);
+char binary_expression::contains(rreil_variable *variable) {
+	return left->contains(variable) || right->contains(variable);
 }
 
 void addition::print() {
 	binary_expression::print('+');
+	expression::print();
 }
 
 void subtraction::print() {
 	binary_expression::print('-');
+	expression::print();
 }
 

@@ -11,7 +11,7 @@
 #include "expression.h"
 #include "operand.h"
 
-class binary_expression : public expression {
+class binary_expression: public expression {
 protected:
 	expression *left;
 	expression *right;
@@ -19,7 +19,8 @@ protected:
 	void print(char op);
 
 public:
-	binary_expression(expression *left, expression *right) {
+	binary_expression(expression *left, expression *right, uint64_t size) :
+			expression(size) {
 		this->left = left;
 		this->right = right;
 	}
@@ -28,21 +29,21 @@ public:
 		delete right;
 	}
 
-	char contains(rreil_variable *variable, size_t size);
+	char contains(rreil_variable *variable);
 };
 
-class addition : public binary_expression {
+class addition: public binary_expression {
 public:
-	addition(expression *left, expression *right) :
-			binary_expression(left, right) {
+	addition(expression *left, expression *right, uint64_t size) :
+			binary_expression(left, right, size) {
 	}
 	void print();
 };
 
-class subtraction : public binary_expression {
+class subtraction: public binary_expression {
 public:
-	subtraction(expression *left, expression *right) :
-			binary_expression(left, right) {
+	subtraction(expression *left, expression *right, uint64_t size) :
+			binary_expression(left, right, size) {
 	}
 	void print();
 };

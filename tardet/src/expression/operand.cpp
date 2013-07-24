@@ -12,23 +12,25 @@ extern "C" {
 }
 #include "operand.h"
 
-variable::variable(struct rreil_variable *variable) {
+variable::variable(struct rreil_variable *variable, uint64_t size) :
+		expression(size) {
 	this->variable_ = variable;
 }
 
 void variable::print() {
 	rreil_variable_print(this->variable_);
+	expression::print();
 }
 
-char variable::contains(rreil_variable *variable, size_t size) {
-	if(!rreil_id_equals(this->variable_, variable))
+char variable::contains(struct rreil_variable *variable) {
+	if(!rreil_id_equals(this->variable_->id, variable->id))
 		return 0;
 	uint64_t diff;
 	if(this->variable_->offset < variable->offset)
 		diff = variable->offset - this->variable_->offset;
 	else
 		diff = this->variable_->offset - variable->offset;
-	if(diff < size)
+	if(diff < size_get())
 		return 1;
 	else
 		return 0;
@@ -38,12 +40,14 @@ char variable::contains(rreil_variable *variable, size_t size) {
 //
 //}
 
-immediate::immediate(uint64_t immediate) {
+immediate::immediate(uint64_t immediate, uint64_t size) :
+		expression(size) {
 	this->immediate_ = immediate;
 }
 
 void immediate::print() {
 	printf("%lu", this->immediate_);
+	expression::print();
 }
 
 //immediate::~immediate() {

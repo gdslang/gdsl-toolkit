@@ -14,14 +14,25 @@ extern "C" {
 }
 
 class expression {
+private:
+	uint64_t size;
+
 public:
-	virtual void print() = 0;
+	virtual void print();
+	expression(uint64_t size) {
+		this->size = size;
+	}
 	virtual ~expression() {
 	}
 
-	virtual char contains(rreil_variable *variable, size_t size) = 0;
+	virtual char contains(struct rreil_variable *variable) = 0;
 
-	static expression *from_rreil_linear(struct rreil_linear* linear);
+	static expression *from_rreil_linear(struct rreil_linear* linear,
+			uint64_t size);
+
+	uint64_t size_get() {
+		return size;
+	}
 };
 
 #endif /* EXPRESSION_H_ */
