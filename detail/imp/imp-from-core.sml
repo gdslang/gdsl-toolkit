@@ -122,6 +122,9 @@ end = struct
          let
             val newClArgs = SymSet.union (clArgs,args)
             val _ = #closureSyms s := SymMap.insert (!(#closureSyms s), sym, (clSym,newClArgs))
+            (*val _ = TextIO.print ("adding to symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^
+               SymSet.foldl (fn (s,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, s))
+                 "" (SymSet.difference (newClArgs,clArgs)) ^ "\n")*)
          in
             SymSet.isSubset (newClArgs, clArgs)
          end
@@ -279,13 +282,13 @@ end = struct
          val _ = app (fn (sym,free,avail) =>
             ignore (addClosureArgs (s,sym,SymSet.difference (free,avail)))) freeAndAvail
          fun fixpoint stable = if stable then () else
-            fixpoint (foldl (fn ((sym,free,avail),stable) => 
+            fixpoint (foldl (fn ((sym,free,avail),stable) =>
                addClosureArgs (s,sym,
                   SymSet.foldl (fn (sym,extra) =>
                      SymSet.union (getClosureArgs (s,sym),extra)
                   ) SymSet.empty free)
                andalso stable
-            ) stable freeAndAvail)
+            ) true freeAndAvail)
          val _ = fixpoint false
       in
          ()

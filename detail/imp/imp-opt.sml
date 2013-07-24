@@ -651,8 +651,8 @@ structure TypeRefinement = struct
             val idx = DynamicArray.bound tt + 1
             (*val _ = if SymbolTable.toInt sym=422 then debugOn := true else ()*)
             val _ = msg ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")
-            val _ = if idx=53735 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=64440 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            (*val _ = if idx=53735 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=64440 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
 
             (*val _ = if idx=18418 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
             val _ = if idx=18420 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
@@ -1121,11 +1121,11 @@ structure TypeRefinement = struct
             origLocals = ref SymMap.empty,
             origFields = fs
          }
-         fun visitDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= 789); msg ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); visitDecl state d)
+         fun visitDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("visiting " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); visitDecl state d)
          val _ = map (visitDeclPrint state) ds
          (*val _ = showState state*)
          val _ = debugOn := false
-         fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= 789); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
+         fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
          val ds = map (patchDeclPrint state) ds
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
       in
