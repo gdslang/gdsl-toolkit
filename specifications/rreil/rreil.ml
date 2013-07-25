@@ -18,10 +18,10 @@ type sem_var = {id:sem_id, offset:int}
 
 type sem_linear =
    SEM_LIN_VAR of sem_var
- | SEM_LIN_IMM of {imm:int}
+ | SEM_LIN_IMM of {const:int}
  | SEM_LIN_ADD of {opnd1:sem_linear, opnd2:sem_linear}
  | SEM_LIN_SUB of {opnd1:sem_linear, opnd2:sem_linear}
- | SEM_LIN_SCALE of {imm:int, opnd:sem_linear}
+ | SEM_LIN_SCALE of {const:int, opnd:sem_linear}
 
  type sem_sexpr =
    SEM_SEXPR_LIN of sem_linear
@@ -339,8 +339,8 @@ val /leu sz a b = do
   return (var t)
 end
 
-val const i = return (SEM_LIN_IMM{imm=i})
-val imm i = SEM_LIN_IMM{imm=i}
+val const i = return (SEM_LIN_IMM{const=i})
+val imm i = SEM_LIN_IMM{const=i}
 
 val /+ x offs = @{offset=offs} x
 val /++ x offs = @{offset= $offset x + offs} x

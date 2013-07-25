@@ -78,11 +78,11 @@ val rreil-show-var x =
 val rreil-show-linear lin = 
    case lin of
       SEM_LIN_VAR x: rreil-show-var x
-    | SEM_LIN_IMM x: showint x.imm
+    | SEM_LIN_IMM x: showint x.const
     | SEM_LIN_ADD x: rreil-show-linear x.opnd1 +++ "+" +++ rreil-show-linear x.opnd2
     | SEM_LIN_SUB x: rreil-show-linear x.opnd1 +++ "-" +++ rreil-show-linear x.opnd2
     | SEM_LIN_SCALE x:
-         case x.imm of
+         case x.const of
             0: ""
           | 1: rreil-show-linear x.opnd
           | s: showint s +++ "*" +++ rreil-show-linear x.opnd

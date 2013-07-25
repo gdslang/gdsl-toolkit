@@ -141,7 +141,7 @@ structure Imp = struct
       IDexp of sym
     | PRIexp of prim * vtype * exp list
     | CALLexp of sym * exp list (* callee is unboxed *)
-    | INVOKEexp of vtype * exp * exp list (* callee is a closure *)
+    | INVOKEexp of vtype * exp * exp list (* callee is a closure, type is that of exp *)
     | RECORDexp of (sym * exp) list
     | LITexp of vtype * lit
     | BOXexp of vtype * exp
@@ -150,7 +150,7 @@ structure Imp = struct
     | INT2VECexp of int * exp
     | CLOSUREexp of vtype * sym * exp list
     | STATEexp of block * vtype * exp (* generate closure of an action, the type is that of the expression *)
-    | EXECexp of vtype * exp (* execute an action *)
+    | EXECexp of vtype * exp (* execute an action, type is that of exp (i.e. monadic) *)
 
    and stmt =
       ASSIGNstmt of sym option * exp
