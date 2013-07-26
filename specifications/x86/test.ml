@@ -1,11 +1,11 @@
 export = main
 
-val main =  (
+val main =  do
   if '1' then
-   let val renamed = test in renamed 8 7 end
+   update @{ foo = 7}
    else
-   test 7 8
-)
+   return void
+end
 
 val f i =
   if i < 10 then

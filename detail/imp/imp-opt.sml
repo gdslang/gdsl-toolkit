@@ -494,6 +494,41 @@ structure ActionReduce = struct
         closureToFun = SymMap.insert (closureToFun, name, del) }
      | getCloDecl s d = s 
 
+   (* Gather all identifiers that are monadic top-level functions. *)
+   type stateMon = { resVar : SymbolTable.symid,
+                     pureToMon : SymSet.set }
+
+   fun isMonBlock s (BASICblock (decls,stmts)) = isMonStmt s (List.rev stmts)
+
+   and isMonStmt s (ASSIGNstmt (NONE,exp) :: stmts) = isMonStmt s stmts
+     | isMonStmt s (ASSIGNstmt (SOME lhs,STATEexp _) :: stmts) =
+         SymbolTable.eq_symid (#resVar (s : stateMon), lhs)
+     | isMonStmt s (ASSIGNstmt (SOME lhs,IDexp rhs) :: stmts) =
+         if SymbolTable.eq_symid (#resVar (s : stateMon), lhs) then
+            isMonStmt {resVar = rhs, pureToMon = #pureToMon s} stmts
+         else
+            false
+     | isMonStmt s (ASSIGNstmt (SOME lhs,CALLexp (sym,_)) :: stmts) =
+         if SymbolTable.eq_symid (#resVar (s : stateMon), lhs) then
+            SymSet.member (#pureToMon s, sym)
+         else
+            false
+     | isMonStmt s (IFstmt (c,t,e) :: stmts) =
+         isMonBlock s t orelse isMonBlock s e
+     | isMonStmt s (CASEstmt (e,ps) :: stmts) =
+         not (List.all (not o isMonCase s) ps)
+     | isMonStmt s _ = false
+
+   and isMonCase s (p,stmts) = isMonBlock s stmts
+   
+   fun getPureToMon (FUNCdecl { funcName = name,
+                                funcBody = bb,
+                                funcRes = resVar,
+                                ... }, set) =
+         if isMonBlock { resVar = resVar,pureToMon = set } bb then
+            SymSet.add (set, name) else set
+     | getPureToMon (d,set) = set
+ 
    (* In the second stage, apply the actual transformation of call(f,xa,xb) to
       \$ => call(f,xa,xb). Moreover, collect all local variables v' with 
       v = exec(v') in order to wrap read accesses with \$ => v' and writes
@@ -615,14 +650,22 @@ structure ActionReduce = struct
 
    fun run { decls = ds, fdecls = fs, exports = es } =
       let
-         val sFun =  { pureToMon = SymSet.empty,
+         fun fixpoint (size,set) =
+            let
+               val newSet = foldl getPureToMon set ds
+               val newSize = SymSet.numItems newSet
+            in
+               if newSize>size then fixpoint (newSize,newSet) else set
+            end
+         val pureToMon = fixpoint (0,SymSet.empty)
+         val sFun =  { pureToMon = pureToMon,
                        closureSyms = SymSet.empty,
                        closureToFun = SymMap.empty } : stateFun
          val sFun = foldl (fn (d,sFun) => getCloDecl sFun d) sFun ds
          val toRemove =
             SymSet.map (fn sym => SymMap.lookup (#closureToFun sFun, sym)) (#closureSyms sFun)
          val pureToMon = SymSet.difference (#pureToMon sFun, toRemove)
-         (*val _ = TextIO.print ("functions that are stripped of the monad:" ^
+         (*val _ = TextIO.print (Int.toString (SymSet.numItems pureToMon) ^ " functions that are stripped of the monad:" ^
             SymSet.foldl (fn (sym,str) => str ^ "\n" ^ SymbolTable.getString(!SymbolTables.varTable, sym))
                "" pureToMon ^ "\n")*)
          val sVar = { monVars = pureToMon } : stateVar
@@ -651,21 +694,28 @@ structure Simplify = struct
        | exp => ASSIGNstmt (res, exp)
       )
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
+      (* inline bogus case statements *)
+     | visitStmt s (CASEstmt (e,ps as [(pat,bb)])) =
+         if case pat of
+               WILDpat => true
+             | VECpat p => List.all (fn pat => List.all (fn c => c = #".") (String.explode pat)) p
+             | _ => false
+         then
+            let
+               val BASICblock (decls,stmts) = visitBlock s bb
+               val _ = (#declsRef s) := decls @ (!(#declsRef s))
+               val _ = (#stmtsRef s) := stmts @ (!(#stmtsRef s))
+            in
+               ASSIGNstmt (NONE, PRIexp (VOIDprim,VOIDvtype,[]))
+            end
+         else
+            CASEstmt (visitExp s e, map (visitCase s) ps)
      | visitStmt s (CASEstmt (e,ps)) = CASEstmt (visitExp s e, map (visitCase s) ps)
    
    and visitCase s (p,stmts) = (p, visitBlock s stmts)
    
    and visitBlock s (BASICblock (decls, stmts)) =
       let
-         (* inline bogus case statements *)
-         val (decls,stmts) = case stmts of
-            [CASEstmt (_,[(VECpat p,BASICblock (decls',stmts'))])] =>
-               if List.all (fn pat => List.all (fn c => c = #".") (String.explode pat)) p then
-                  (decls @ decls', stmts')
-               else
-                  (decls, stmts)
-          | stmts => (decls, stmts)
-
          (* visit each statement and insert any statements that were generated due to
             simplifications *)
          val s' = { decls = #decls s,
@@ -908,7 +958,7 @@ structure TypeRefinement = struct
    
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
-         (*val _ = if t1=VARstype 38861 orelse t2=VARstype 38861 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
+         (*val _ = if t1=VARstype 67285 orelse t2=VARstype 67285 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
          (*val _ = if t1=VARstype 47817 orelse t2=VARstype 47817 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
          val _ = msg ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n")
          val iter = ref 0
@@ -1223,13 +1273,11 @@ structure TypeRefinement = struct
          fun genWrap (BOXstype INTstype) = BOXexp (INTvtype,e)
            | genWrap (BOXstype (BITstype (CONSTstype s))) = BOXexp (VECvtype, INT2VECexp (s,e))
            | genWrap (BOXstype (BITstype _)) = BOXexp (VECvtype, e)
-           (*| genWrap (t as (FUNstype (MONADstype r,cl,args))) = STATEexp (BASICblock ([],[]), adjustType s (orig,t), e)*)
            | genWrap _ = e
       in
          case orig of
             OBJvtype => genWrap (inlineSType s new)
           | VOIDvtype => genWrap (inlineSType s new)
-          (*| FUNvtype _ => genWrap (inlineSType s new)*)
           |  t => e
       end
 
@@ -1238,13 +1286,11 @@ structure TypeRefinement = struct
          fun genWrap (BOXstype INTstype) = UNBOXexp (INTvtype,e)
            | genWrap (BOXstype (BITstype (CONSTstype s))) = VEC2INTexp (SOME s,UNBOXexp (VECvtype, e))
            | genWrap (BOXstype (BITstype _)) = UNBOXexp (VECvtype, e)
-           (*| genWrap (t as (FUNstype (MONADstype r,cl,args))) = EXECexp (MONADvtype (adjustType s (orig,t)), e)*)
            | genWrap _ = e
       in
          case orig of
             OBJvtype => genWrap (inlineSType s new)
           | VOIDvtype => genWrap (inlineSType s new)
-          (*| FUNvtype _ => genWrap (inlineSType s new)*)
           | t => e
       end
    
@@ -1260,7 +1306,7 @@ structure TypeRefinement = struct
            | genAdj (STRINGstype) = STRINGvtype
            | genAdj (OBJstype) = OBJvtype
            | genAdj (FUNstype (r,cl,args)) =
-               FUNvtype (adjustType s (OBJvtype, r), cl=OBJstype, map (fn arg => adjustType s (OBJvtype, arg)) args)
+               FUNvtype (adjustType s (OBJvtype, r), true, map (fn arg => adjustType s (OBJvtype, arg)) args)
            | genAdj (MONADstype r) = MONADvtype (genAdj r)
            | genAdj t = (TextIO.print ("adjustType of " ^ showSType new ^ "\n"); raise TypeOptBug)
       in
@@ -1268,17 +1314,16 @@ structure TypeRefinement = struct
             OBJvtype => genAdj (inlineSType s new)
           | VOIDvtype => genAdj (inlineSType s new)
           | (FUNvtype (rOrig,clOrig,argsOrig)) => (case inlineSType s new of
-                (*(FUNstype (MONADstype r,cl,args)) => (
-                  FUNvtype (adjustType s (rOrig,r), cl=OBJstype, map (adjustType s) (ListPair.zipEq (argsOrig, args)))
+                (FUNstype (r,cl,args)) => (
+                  FUNvtype (adjustType s (rOrig,r), true, map (adjustType s) (ListPair.zipEq (argsOrig, args)))
                      handle ListPair.UnequalLengths =>
                         (TextIO.print ("adjustType of " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (rOrig,clOrig,argsOrig))) ^ " and " ^ showSType (FUNstype (r,cl,args)) ^ ", unequal length\n"); raise TypeOptBug)
                 )
-               | *)(FUNstype (r,cl,args)) => (
-                  FUNvtype (adjustType s (rOrig,r), cl=OBJstype, map (adjustType s) (ListPair.zipEq (argsOrig, args)))
-                     handle ListPair.UnequalLengths =>
-                        (TextIO.print ("adjustType of " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (rOrig,clOrig,argsOrig))) ^ " and " ^ showSType (FUNstype (r,cl,args)) ^ ", unequal length\n"); raise TypeOptBug)
-                )
-              | t => FUNvtype (rOrig,clOrig,argsOrig)
+              | t => FUNvtype (rOrig, true, argsOrig)
+            )
+          | (MONADvtype rOrig) => (case inlineSType s new of
+                (MONADstype r) => MONADvtype (adjustType s (rOrig,r))
+              | t => MONADvtype rOrig
             )
           | _ => orig
       end
@@ -1704,8 +1749,8 @@ structure SwitchReduce = struct
             conc (slice (low,high,scrut)) (genSlice ranges scrut)
 
          (* merge consecutive cases that test for the same pattern;
-            this function is just an efficiency gimmick since the
-            group/sift functions below do the same but are quadratic *)
+            this function is just an debugging aid since the
+            group/sift functions below do the same *)
          fun amalgamate ((pats1, rhs1)::(pats2, rhs2)::cases) =
             let
                fun patsEq (p::ps, pats) =
@@ -1780,14 +1825,18 @@ structure SwitchReduce = struct
             (genPattern (goodBits,p), [(genPattern (badBits,p),bb)])
          fun remDup [] = []
            | remDup (p :: pats) =
-            if List.exists (fn p' => String.compare (p,p')=EQUAL) pats then
-               remDup pats
-            else
-               p :: remDup pats
+            let
+               val pats = remDup pats
+            in
+               if List.exists (fn p' => String.compare (p,p')=EQUAL) pats then
+                  pats
+               else
+                  p :: pats
+            end
          fun genCases ((scrutBadSize,scrutBad), splitCases) =
             map (fn (pat,subCases) => (VECpat (remDup pat),BASICblock ([],[
                optCase (scrutBad,
-                  map (fn (pat,bb) => (VECpat pat,bb)) subCases)
+                  map (fn (pat,bb) => (VECpat (remDup pat),bb)) subCases)
             ]))) splitCases
 
       in

@@ -149,6 +149,18 @@ structure C1 = struct
          String.translate tf s
       end
 
+   fun mangleString s =
+      let
+         fun tf c =
+            case c of
+               #"\n" => "\\n"
+             | #"\t" => "\\t"
+             | #"\\" => "\\"
+             | _ => String.str c
+      in
+         String.translate tf s
+      end
+               
    fun regSym (sym, table, s : state) =
       let
          val prefix = if SymSet.member(#exports s, sym) then "x86_" else ""
@@ -489,7 +501,7 @@ structure C1 = struct
       in
          seq [str (Int.toString num), space, comment ("'" ^ pat ^ "'")]
       end
-     | emitExp s (LITexp (t,STRlit string)) = seq [space, str "\"",str string, str "\"", space]
+     | emitExp s (LITexp (t,STRlit string)) = seq [str "\"",str (mangleString string), str "\""]
      | emitExp s (LITexp (t,INTlit i)) = str (IntInf.toString i)
      | emitExp s (LITexp (t,CONlit c)) = str (getConTag s c)
      | emitExp s (BOXexp (t,e)) = seq [str "alloc", str (getTypeSuffix t), fArgs [emitExp s e]]
@@ -497,8 +509,8 @@ structure C1 = struct
          seq [str "(*((", emitType s (NONE,t), str "*) ", emitExp s e, str "))"]
      | emitExp s (VEC2INTexp (_,PRIexp (SLICEprim, _, [vec,ofs,sz]))) =
          seq [str "slice(", emitExp s vec, str ", ", emitExp s ofs, str ", ", emitExp s sz, str ")"]
-     | emitExp s (VEC2INTexp (_,UNBOXexp (_,e))) =
-         seq [emitExp s e, str "->", str "data"]
+     | emitExp s (VEC2INTexp (_,UNBOXexp (t,e))) =
+         seq [str "((", emitType s (NONE,t), str "*) ", emitExp s e, str ")", str "->", str "data"]
      | emitExp s (VEC2INTexp (_,e)) =
          seq [emitExp s e, str ".", str "data"]
      | emitExp s (INT2VECexp (sz,e)) =
@@ -529,7 +541,7 @@ structure C1 = struct
      | emitPrim s (UNSIGNEDprim, [e],_) = seq [str "vec_to_unsigned", fArgs [emitExp s e]]
      | emitPrim s (ADDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "+", emitExp s e2, str ")"]
      | emitPrim s (SUBprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "-", emitExp s e2, str ")"]
-     | emitPrim s (EQprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "=", emitExp s e2, str ")"]
+     | emitPrim s (EQprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "==", emitExp s e2, str ")"]
      | emitPrim s (MULprim, [e1,e2],_) = seq [emitExp s e1, str "*", emitExp s e2]
      | emitPrim s (LTprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "<", emitExp s e2, str ")"]
      | emitPrim s (LEprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "<=", emitExp s e2, str ")"]

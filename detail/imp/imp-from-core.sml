@@ -574,7 +574,7 @@ end = struct
  
    val translate =
       BasicControl.mkKeepPass
-         {passName="impConversion",
+         {passName="imp-conversion",
           registry=CPSControl.registry,
           pass=translate,
           preExt="core",

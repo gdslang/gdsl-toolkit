@@ -35,6 +35,7 @@ end = struct
       ActionClosuresPass.run >>=
       SimplifyPass.run >>=
       TypeRefinementPass.run >>=
+      SimplifyPass.run >>=
       SwitchReducePass.run >>=
       SimplifyPass.run >>=
       DeadSymbolPass.run
