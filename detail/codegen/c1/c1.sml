@@ -122,7 +122,8 @@ structure C1 = struct
       "string_concat",
       "gdsl_init",
       "gdsl_set_code",
-      "gdsl_destroy"
+      "gdsl_destroy",
+      "mktemp"
       ])
 
    fun mangleName s =
@@ -488,7 +489,7 @@ structure C1 = struct
       in
          seq [str (Int.toString num), space, comment ("'" ^ pat ^ "'")]
       end
-     | emitExp s (LITexp (t,STRlit string)) = seq [str "\"",str string, str "\""]
+     | emitExp s (LITexp (t,STRlit string)) = seq [space, str "\"",str string, str "\"", space]
      | emitExp s (LITexp (t,INTlit i)) = str (IntInf.toString i)
      | emitExp s (LITexp (t,CONlit c)) = str (getConTag s c)
      | emitExp s (BOXexp (t,e)) = seq [str "alloc", str (getTypeSuffix t), fArgs [emitExp s e]]

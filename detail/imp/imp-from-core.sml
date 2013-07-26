@@ -502,26 +502,20 @@ end = struct
          val clArgs = map (fn s => (OBJvtype, s)) (SymSet.listItems (getClosureArgs (s,sym)))
          val stdArgs = map (fn s => (OBJvtype, s)) args
          val fType = FUNvtype (OBJvtype, not (null clArgs), map #1 clArgs @ map (fn (t,_) => t) stdArgs)
-         val _ = (*if null args andalso null clArgs
-                     then
-                        addGlobalExp s (sym, CALLexp (sym, []))
-                     else *)
-            let
-               val fTypeCl = FUNvtype (OBJvtype, false, map #1 clArgs)
-               val symCl = getClosureSym (s,sym)
-               
-               val _ = addDecl s (CLOSUREdecl {
-                     closureName = symCl,
-                     closureArgs = map #1 clArgs,
-                     closureDelegate = sym,
-                     closureDelArgs = stdArgs,
-                     closureRetTy = OBJvtype
-                  })
-               val _ = if null args then
-                     addGlobalExp s (sym, CALLexp (sym, map (IDexp o #2) clArgs))
-                  else
-                     addGlobalExp s (sym, CLOSUREexp (fTypeCl, symCl, map (IDexp o #2) clArgs))
-            in s end
+         val fTypeCl = FUNvtype (OBJvtype, false, map #1 clArgs)
+         val symCl = getClosureSym (s,sym)
+         
+         val _ = addDecl s (CLOSUREdecl {
+               closureName = symCl,
+               closureArgs = map #1 clArgs,
+               closureDelegate = sym,
+               closureDelArgs = stdArgs,
+               closureRetTy = OBJvtype
+            })
+         val _ = if null args then
+               addGlobalExp s (sym, CALLexp (sym, map (IDexp o #2) clArgs))
+            else
+               addGlobalExp s (sym, CLOSUREexp (fTypeCl, symCl, map (IDexp o #2) clArgs))
       in
          fn body =>
             addDecl s (FUNCdecl {
