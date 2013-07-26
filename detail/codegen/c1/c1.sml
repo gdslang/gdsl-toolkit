@@ -241,6 +241,8 @@ structure C1 = struct
             str "state_t s" ::
             map (fn (t,sym) => emitTypeDecl ([emitSym s sym],t)) args, ",")))],
          retTy)
+     | emitFunType s (sym, args, MONADvtype retTy) =
+      emitFunType s (sym, args, FUNvtype (retTy,false,[]))
      | emitFunType s (sym, args, t) =
       emitTypeDecl ([emitSym s sym], FUNvtype (VOIDvtype,false,[]))
 
@@ -317,8 +319,12 @@ structure C1 = struct
             end
       end
 
-   fun emitGenClosure (s : state) (FUNvtype (ty,_,argTys)) =
+   fun emitGenClosure (s : state) funTy =
       let
+         val (ty,argTys) = case funTy of
+               (FUNvtype (ty,_,argTys)) => (ty,argTys)
+             | (MONADvtype ty) => (ty,[])
+             | _ => raise CodeGenBug
          val ty = removeArgs ty
          val retTy = case ty of
                FUNvtype (retTy,_,_) => retTy
@@ -347,10 +353,13 @@ structure C1 = struct
                str closureName
             end
       end
-     | emitGenClosure s _ = raise CodeGenBug
 
-   fun emitInvokeClosure (s : state) (FUNvtype (retTy,_,argTys)) =
+   fun emitInvokeClosure (s : state) ty =
       let
+         val (retTy,argTys) = case ty of
+               (FUNvtype (retTy,_,argTys)) => (retTy,argTys)
+             | (MONADvtype retTy) => (retTy,[])
+             | _ =>  raise CodeGenBug
          (*val retTy = removeArgs retTy*)
          val funName = "invoke" ^
                         foldl (fn (t,str) => str ^ getTypeSuffix t) "_closure" (retTy::argTys)
@@ -378,7 +387,6 @@ structure C1 = struct
                str funName
             end
       end
-     | emitInvokeClosure s _ = raise CodeGenBug
 
    fun emitAnonymousAction s (b,t,e) =
       let
@@ -500,6 +508,7 @@ structure C1 = struct
      | emitExp s (STATEexp (b,t,e)) = emitAnonymousAction s (b,t,e)
 
      | emitExp s (EXECexp (FUNvtype (_,false,_),e)) = seq [emitExp s e, fArgs []]
+     | emitExp s (EXECexp (MONADvtype _,e)) = seq [emitExp s e, fArgs []]
      | emitExp s (EXECexp (t,e)) = seq [emitInvokeClosure s t, fArgs [emitExp s e]]
 
    and emitPrim s (GETSTATEprim, [],_) = str "s->state"
@@ -571,6 +580,7 @@ structure C1 = struct
       let
          fun sufType f = case SymMap.lookup (#fieldTypes s,f) of
             FUNvtype _ => OBJvtype
+          | MONADvtype _ => OBJvtype
           | ty => ty
          val retVar = #ret (s : state)
          val s = registerSymbol (retVar,s)
@@ -615,6 +625,7 @@ structure C1 = struct
          fun fieldName f = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
          fun fieldType f = case SymMap.lookup (#fieldTypes s,f) of
                FUNvtype _ => OBJvtype
+             | MONADvtype _ => OBJvtype
              | ty => ty
          fun fieldTSuf f = getTypeSuffix (fieldType f)
          val args = map (fn f => (fieldType f, f)) fs @ [(OBJvtype, recVar)]

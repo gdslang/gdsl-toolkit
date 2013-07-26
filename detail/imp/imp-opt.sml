@@ -239,7 +239,9 @@ structure ActionClosures = struct
 
    open Imp
 
-   type state = { locals : vtype SymMap.map,
+   type state = { funToClosure : SymbolTable.symid SymMap.map,
+                  funName : SymbolTable.symid,
+                  locals : vtype SymMap.map,
                   actions : decl list ref }
 
    fun remMonad (FUNvtype (res,cl,args)) = FUNvtype (remMonad res,cl,map remMonad args)
@@ -249,8 +251,8 @@ structure ActionClosures = struct
    fun remMonadArgs args = map (fn (ty,sym) => (remMonad ty, sym)) args
    
    fun freeBlock s (BASICblock (decls,stmts)) =
-      SymSet.difference (SymSet.addList (SymSet.empty, map #2 decls),
-                         foldl (fn (stmt,s) => freeStmt s stmt) s stmts)
+      SymSet.difference (foldl (fn (stmt,s) => freeStmt s stmt) s stmts,
+                         SymSet.addList (SymSet.empty, map #2 decls))
 
    and freeStmt s (ASSIGNstmt (SOME sym,exp)) = SymSet.add (freeExp s exp, sym)
      | freeStmt s (ASSIGNstmt (NONE,exp)) = freeExp s exp
@@ -270,14 +272,66 @@ structure ActionClosures = struct
      | freeExp s (VEC2INTexp (sz,e)) = freeExp s e
      | freeExp s (INT2VECexp (sz,e)) = freeExp s e
      | freeExp s (CLOSUREexp (t,sym,es)) = foldl (fn (e,s) => freeExp s e) (SymSet.add (s, sym)) es
-     | freeExp s (STATEexp (b,t,e)) = freeExp (freeBlock s b) e
+     | freeExp s (STATEexp (BASICblock (decls,stmts),t,e)) =
+      SymSet.difference (foldl (fn (stmt,s) => freeStmt s stmt) (freeExp s e) stmts,
+                         SymSet.addList (SymSet.empty, map #2 decls))
      | freeExp s (EXECexp (t, e)) = freeExp s e
 
 
-   fun visitBlock (s : state) (BASICblock (decls,stmts)) =
+   fun genAction s (decls,stmts,t,e) =
       let
-         val s' = { locals = foldl (fn ((ty,sym),set) =>
-                              SymMap.insert (set,sym,ty)) (#locals s) decls,
+         val s = { funToClosure = #funToClosure s,
+                   funName = #funName s,
+                   locals = foldl (fn ((ty,sym),set) => 
+                                 SymMap.insert (set,sym,ty)) (#locals s) decls,
+                   actions = #actions s } : state
+         val stmts = map (visitStmt s) stmts
+         val decls = remMonadArgs decls
+         val e = visitExp s e
+
+         val index = List.length (!(#actions s)) div 2+1
+         val fStr = Atom.toString (SymbolTable.getAtom (!SymbolTables.varTable,#funName s))
+         val str = fStr ^ "Action" ^ Int.toString index
+         val tab = !SymbolTables.varTable
+         val (tab, fSym) = SymbolTable.fresh (tab, Atom.atom (str))
+         val (tab, rSym) = SymbolTable.fresh (tab, Atom.atom (str ^ "Res"))
+         val (tab, cSym) = SymbolTable.fresh (tab, Atom.atom (str ^ "Closure"))
+         val _ = SymbolTables.varTable := tab
+
+         val free = freeExp SymSet.empty (STATEexp (BASICblock (decls, stmts),t,e))
+         val usedSet =  SymMap.filteri (fn (sym,ty) => SymSet.member (free,sym)) (#locals s)
+         val used = map (fn (s,t) => (t,s)) (SymMap.listItemsi usedSet)
+         val cl = not (List.null used)
+         
+         val body = BASICblock (decls, stmts @ [ASSIGNstmt (SOME rSym, e)])
+
+         val anonF = FUNCdecl {
+            funcClosure = used,
+            funcType = FUNvtype (t,cl,map #1 used),
+            funcName = fSym,
+            funcArgs = [],
+            funcBody = body,
+            funcRes = rSym
+         }
+         val anonC = CLOSUREdecl {
+            closureName = cSym,
+            closureArgs = map #1 used,
+            closureDelegate = fSym,
+            closureDelArgs = [],
+            closureRetTy = t
+         }
+
+         val _ = (#actions s) := (!(#actions s)) @ [anonF, anonC]
+      in
+         CLOSUREexp (FUNvtype (t,cl,map #1 used), cSym, map (IDexp o #2) used)
+      end
+
+   and visitBlock (s : state) (BASICblock (decls,stmts)) =
+      let
+         val s' = { funToClosure = #funToClosure s,
+                    funName = #funName s,
+                    locals = foldl (fn ((ty,sym),set) => 
+                                 SymMap.insert (set,sym,ty)) (#locals s) decls,
                     actions = #actions s } : state
       in
          BASICblock (remMonadArgs decls, map (visitStmt s') stmts)
@@ -300,48 +354,15 @@ structure ActionClosures = struct
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (remMonad t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (BASICblock (decls, stmts),t,e)) =
-         let
-            val index = List.length (!(#actions s)) div 2+1
-            val str = "anonymousAction" ^ Int.toString index
-            val tab = !SymbolTables.varTable
-            val (tab, fSym) = SymbolTable.fresh (tab, Atom.atom (str))
-            val (tab, rSym) = SymbolTable.fresh (tab, Atom.atom (str ^ "Res"))
-            val (tab, cSym) = SymbolTable.fresh (tab, Atom.atom (str ^ "Closure"))
-            val _ = SymbolTables.varTable := tab
-
-            val BASICblock (decls, stmts) = visitBlock s (BASICblock (decls, stmts))
-            val e = visitExp s e
-            val free = freeExp SymSet.empty (STATEexp (BASICblock (decls, stmts),t,e))
-            val usedSet =  SymMap.filteri (fn (sym,ty) => SymSet.member (free,sym)) (#locals s)
-            val used = map (fn (s,t) => (t,s)) (SymMap.listItemsi usedSet)
-            val cl = not (List.null used)
-            
-            val body = BASICblock (decls, stmts @ [ASSIGNstmt (SOME rSym, e)])
-
-            val anonF = FUNCdecl {
-               funcClosure = used,
-               funcType = FUNvtype (t,cl,[]),
-               funcName = fSym,
-               funcArgs = [],
-               funcBody = body,
-               funcRes = rSym
-            }
-            val anonC = CLOSUREdecl {
-               closureName = cSym,
-               closureArgs = map #1 used,
-               closureDelegate = fSym,
-               closureDelArgs = [],
-               closureRetTy = t
-            }
-
-            val _ = (#actions s) := (!(#actions s)) @ [anonF, anonC]
-         in
-            CLOSUREexp (FUNvtype (t,cl,map #1 used), cSym, map (IDexp o #2) used)
-         end
+     | visitExp s (STATEexp (BASICblock ([],[]),t,CALLexp (sym,[]))) =
+      (case SymMap.find (#funToClosure s, sym) of
+         SOME clSym => CLOSUREexp (t,clSym,[])
+       | NONE => genAction s ([],[],t,CALLexp (sym,[]))
+      )
+     | visitExp s (STATEexp (BASICblock (decls, stmts),t,e)) = genAction s (decls,stmts,t,e)
      | visitExp s (EXECexp (t, e)) = INVOKEexp (remMonad t, visitExp s e, [])
 
-   fun visitDecl (s : state) (FUNCdecl {
+   fun visitDecl s (FUNCdecl {
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -350,9 +371,13 @@ structure ActionClosures = struct
         funcRes = res
       } :: ds) = 
       let
-         val actionLenOld = List.length (!(#actions s))
-         val body = visitBlock s body
-         val newActions = List.drop (!(#actions s), actionLenOld)
+         val newActions = ref []
+         val s' = { funToClosure = s,
+                    funName = name,
+                    locals = foldl (fn ((ty,sym),set) => SymMap.insert (set,sym,ty))
+                                 SymMap.empty (clArgs @ args),
+                    actions = newActions } : state
+         val body = visitBlock s' body
       in
          FUNCdecl {
            funcClosure = clArgs,
@@ -361,17 +386,22 @@ structure ActionClosures = struct
            funcArgs = remMonadArgs args,
            funcBody = body,
            funcRes = res
-         } :: newActions @ visitDecl s ds
+         } :: (!newActions) @ visitDecl s ds
       end
      | visitDecl s (d :: ds) = d :: visitDecl s ds
      | visitDecl s [] = []
 
+   fun genFunToClosure
+      (CLOSUREdecl {
+         closureName = name,
+         closureDelegate = del,
+         ...
+      },s) = SymMap.insert (s, del, name)
+     | genFunToClosure (d,s) = s 
 
    fun run { decls = ds, fdecls = fs, exports = es } =
       let
-         val globals = SymSet.addList (SymSet.empty, map getDeclName ds)
-         val s = { locals = SymMap.empty,
-                   actions = ref [] } : state
+         val s = foldl genFunToClosure SymMap.empty ds
          val ds = visitDecl s ds
       in
          { decls = ds, fdecls = fs, exports = es }

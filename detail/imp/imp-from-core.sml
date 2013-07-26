@@ -502,10 +502,10 @@ end = struct
          val clArgs = map (fn s => (OBJvtype, s)) (SymSet.listItems (getClosureArgs (s,sym)))
          val stdArgs = map (fn s => (OBJvtype, s)) args
          val fType = FUNvtype (OBJvtype, not (null clArgs), map #1 clArgs @ map (fn (t,_) => t) stdArgs)
-         val _ = if null args andalso null clArgs
-            then
-               addGlobalExp s (sym, CALLexp (sym, []))
-            else
+         val _ = (*if null args andalso null clArgs
+                     then
+                        addGlobalExp s (sym, CALLexp (sym, []))
+                     else *)
             let
                val fTypeCl = FUNvtype (OBJvtype, false, map #1 clArgs)
                val symCl = getClosureSym (s,sym)

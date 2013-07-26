@@ -2,16 +2,16 @@ export = main
 
 val main =  (
   if '1' then
-   let val renamed = test in return (renamed 8 7) end
+   let val renamed = test in renamed 8 7 end
    else
-   return (test 7 8)
+   test 7 8
 )
 
 val f i =
   if i < 10 then
     f (i + 1)
   else
-    42
+    return 42
 
 val test a b = 
 #  let
