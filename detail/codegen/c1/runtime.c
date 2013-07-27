@@ -13,7 +13,7 @@ struct state {
   char* heap_base;    /* the beginning of the heap */
   char* heap_limit;   /* first byte beyond the heap buffer */
   char* heap;         /* current top of the heap */
-  obj_t state;      /* a heap pointer to the current monadic state */
+  obj_t state;        /* a heap pointer to the current monadic state */
   char* ip_base;      /* beginning of code buffer */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
@@ -298,9 +298,9 @@ done:
   if (setjmp(*gdsl_err_tgt(s))==0) {
     while (gdsl_get_ip_offset(s)<buf_size) {
       uint64_t ofs = gdsl_get_ip_offset(s);
-      obj_t instr = x86_decode(s);
-      string_t res = x86_pretty(s,instr);
-      printf("%lx\t%s\n", (long unsigned int) ofs, res);
+      obj_t rreil = x86_translateBlock(s);
+      string_t res = x86_rreil_pretty(s,rreil);
+      printf("%lx:\n%s\n", (long unsigned int) ofs, res);
       gdsl_reset_heap(s);    
     }
   } else {

@@ -123,7 +123,9 @@ structure C1 = struct
       "gdsl_init",
       "gdsl_set_code",
       "gdsl_destroy",
-      "mktemp"
+      "mktemp",
+      "logb",
+      "div"
       ])
 
    fun mangleName s =
