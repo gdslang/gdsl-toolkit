@@ -9,6 +9,7 @@
 #define EXPRESSION_H_
 
 #include <tr1/memory>
+#include <stdint.h>
 #include <stdlib.h>
 extern "C" {
 #include <rreil/rreil_linear.h>
@@ -33,9 +34,11 @@ public:
 	virtual char contains(struct rreil_variable *variable) = 0;
 	virtual bool substitute(struct rreil_id *old,
 			shared_ptr<expression> new_) = 0;
+	virtual char evaluate(uint64_t *result) = 0;
 
-	static shared_ptr<expression> from_rreil_linear(struct rreil_linear* linear,
+	static shared_ptr<expression> from_rreil_linear(struct rreil_linear *linear,
 			uint64_t size);
+	static shared_ptr<expression> from_rreil_op(struct rreil_op *op);
 
 	uint64_t size_get() {
 		return size;

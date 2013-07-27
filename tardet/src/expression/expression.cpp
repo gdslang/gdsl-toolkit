@@ -43,11 +43,11 @@ shared_ptr<expression> expression::from_rreil_linear(struct rreil_linear* linear
 						break;
 					}
 					case RREIL_LINEAR_TYPE_SUM: {
-						exp = shared_ptr<expression>(new addition(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd1), size));
+						exp = shared_ptr<expression>(new addition(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd2), size));
 						break;
 					}
 					case RREIL_LINEAR_TYPE_DIFFERENCE: {
-						exp = shared_ptr<expression>(new subtraction(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd1), size));
+						exp = shared_ptr<expression>(new subtraction(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd2), size));
 					}
 					case RREIL_LINEAR_TYPE_SCALE: {
 						printf("Scale :-(...\n");
@@ -57,4 +57,13 @@ shared_ptr<expression> expression::from_rreil_linear(struct rreil_linear* linear
 				return exp;
 			};
 	return handle_linear(linear);
+}
+
+shared_ptr<expression> expression::from_rreil_op(struct rreil_op *op) {
+	switch(op->type) {
+		case RREIL_OP_TYPE_LIN: {
+			return expression::from_rreil_linear(op->lin.opnd1, op->lin.size);
+		}
+	}
+	return shared_ptr<expression>();
 }

@@ -85,6 +85,10 @@ void itree_inner_node::substitute(struct rreil_id *old,
 	 */
 }
 
+char itree_inner_node::evaluate(uint64_t *result) {
+	return children[0]->evaluate(result);
+}
+
 itree_leaf_node::itree_leaf_node(shared_ptr<expression> expression,
 		size_t int_start, size_t int_end) :
 		itree_node(int_start, int_end) {
@@ -149,7 +153,12 @@ void itree_leaf_node::substitute(struct rreil_id *old,
 	/*
 	 * Todo: ...
 	 */
-	bool substituted = exp->substitute(old, new_);
-	if(substituted)
-		exp.swap(new_);
+	bool substitute_toplevel = exp->substitute(old, new_);
+	if(substitute_toplevel)
+		exp = new_;
 }
+
+char itree_leaf_node::evaluate(uint64_t *result) {
+	return exp->evaluate(result);
+}
+

@@ -51,11 +51,13 @@ itree *analyze(struct rreil_statements *statements) {
 	for(size_t i = statements->statements_length - 1; i > 0; --i) {
 		rreil_statement *current = statements->statements[i - 1];
 
+//		root->print();
+
 		switch(current->type) {
 			case RREIL_STATEMENT_TYPE_ASSIGN: {
 				if(root->contains(current->assign.lhs)) {
-					shared_ptr<expression> exp = expression::from_rreil_linear(
-							current->assign.rhs->lin.opnd1, 64);
+					shared_ptr<expression> exp = expression::from_rreil_op(
+							current->assign.rhs);
 					root->substitute(current->assign.lhs->id, exp, 0, 63);
 				}
 				break;

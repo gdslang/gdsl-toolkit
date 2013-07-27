@@ -115,6 +115,13 @@ int main(void) {
 	itree *tree = analyze(statements);
 	tree->print();
 
+	uint64_t evaluated;
+	char evalable = tree->evaluate(&evaluated);
+	if(evalable)
+		printf("Evaluated: %lu", evaluated);
+	else
+		printf("Unable to evaluate :-(.");
+
 	delete tree;
 	rreil_statements_free(statements);
 

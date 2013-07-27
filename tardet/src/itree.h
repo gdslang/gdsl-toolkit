@@ -10,6 +10,7 @@
 
 #include <tr1/memory>
 #include <stdlib.h>
+#include <stdint.h>
 #include "expression/expression.h"
 extern "C" {
 #include <rreil/rreil.h>
@@ -36,6 +37,7 @@ public:
 	virtual char contains(struct rreil_variable *variable) = 0;
 	virtual void substitute(struct rreil_id *old, shared_ptr<expression> new_,
 			uint64_t from, uint64_t to) = 0;
+	virtual char evaluate(uint64_t *result) = 0;
 };
 
 class itree_inner_node: public itree_node {
@@ -52,8 +54,9 @@ public:
 	size_t children_count_get();
 	void print();
 	char contains(struct rreil_variable *variable);
-	virtual void substitute(struct rreil_id *old, shared_ptr<expression> new_,
+	void substitute(struct rreil_id *old, shared_ptr<expression> new_,
 			uint64_t from, uint64_t to);
+	char evaluate(uint64_t *result);
 };
 
 class itree_leaf_node: public itree_node {
@@ -72,6 +75,7 @@ public:
 	char contains(rreil_variable *variable);
 	void substitute(struct rreil_id *old, shared_ptr<expression> new_,
 			uint64_t from, uint64_t to);
+	char evaluate(uint64_t *result);
 };
 
 class itree {
@@ -87,6 +91,9 @@ public:
 	char contains(struct rreil_variable *variable);
 	void substitute(struct rreil_id *old, shared_ptr<expression> new_,
 			uint64_t from, uint64_t to);
+	char evaluate(uint64_t *result) {
+		return root->evaluate(result);
+	}
 };
 
 #endif /* ITREE_H_ */

@@ -25,6 +25,9 @@ public:
 	void print_inner();
 	char contains(struct rreil_variable *variable);
 	bool substitute(struct rreil_id *old, shared_ptr<expression> new_);
+	char evaluate(uint64_t *result) {
+		return 0;
+	}
 };
 
 class immediate: public expression {
@@ -42,6 +45,10 @@ public:
 	}
 	bool substitute(struct rreil_id *old, shared_ptr<expression> new_) {
 		return 0;
+	}
+	char evaluate(uint64_t *result) {
+		*result = immediate_;
+		return 1;
 	}
 };
 
