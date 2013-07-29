@@ -1,12 +1,19 @@
-export = test
+export = main
+
+val main =  do
+  if '1' then
+   update @{ foo = 7}
+   else
+   return void
+end
 
 val f i =
   if i < 10 then
     f (i + 1)
   else
-    42
+    return 42
 
-val test a b = do
+val test a b = 
 #  let
 #    val f i = do
 #      return 43 + i;
@@ -32,6 +39,6 @@ val test a b = do
 #  in
 #    f 0
 #  end
-  return (f 0)
-end
+   (f 0)
+
 

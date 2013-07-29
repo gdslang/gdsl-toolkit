@@ -293,14 +293,131 @@ structure Primitives = struct
       table := newTable
    end
 
+   (* a table detailing how to translate primitives into imp: for each name, returns
+      a tuple with the type of the returned expression and a marshaller that processes
+      the arguments that given to the primitive *)
+   val prim_map = ref (SymMap.empty : (Imp.vtype * (Imp.exp list -> Imp.exp)) SymMap.map)
+   val prim_val_map = ref (SymMap.empty : Imp.exp SymMap.map)
+   
+   val prim_table =
+      let
+         open Imp
+         exception ImpPrimTranslationBug
+         fun pr (prim,ty,args) = PRIexp (prim, ty, args)
+         fun action e = STATEexp (BASICblock ([],[]), OBJvtype, e)
+         fun unboxI args = map (fn arg => UNBOXexp (INTvtype, arg)) args
+         fun unboxV args = map (fn arg => VEC2INTexp (SOME 1,UNBOXexp (VECvtype, arg))) args
+         fun unboxVfixed args = map (fn arg => VEC2INTexp (NONE,UNBOXexp (VECvtype, arg))) args
+         fun unboxV args = map (fn arg => UNBOXexp (VECvtype, arg)) args
+         fun boxI arg = BOXexp (INTvtype, arg)
+         fun boxV1 arg = BOXexp (VECvtype, INT2VECexp (1,arg))
+         fun boxV8 arg = BOXexp (VECvtype, INT2VECexp (8,arg))
+         fun boxV16 arg = BOXexp (VECvtype, INT2VECexp (16,arg))
+         fun boxV32 arg = BOXexp (VECvtype, INT2VECexp (32,arg))
+         fun boxV arg = BOXexp (VECvtype, arg)
+         fun ftype args res = FUNvtype (res, false, args)
+         val iii = ftype [INTvtype, INTvtype] INTvtype
+         val vvv = ftype [VECvtype, VECvtype] VECvtype
+         val sv =  ftype [STRINGvtype] VOIDvtype
+         val bi = ftype [VECvtype] INTvtype
+         val iib = ftype [INTvtype, INTvtype] VECvtype
+         val bb = ftype [VECvtype] VECvtype
+         val is = ftype [INTvtype] STRINGvtype
+         val bs = ftype [VECvtype] STRINGvtype
+         val iiib = ftype [INTvtype, INTvtype, INTvtype] VECvtype
+         val ov = ftype [OBJvtype] VOIDvtype
+         val ii = ftype [INTvtype] INTvtype
+         val oo = ftype [OBJvtype] OBJvtype
+         val o_ = ftype [] OBJvtype
+         val sss = ftype [STRINGvtype, STRINGvtype] STRINGvtype
+         val i = ftype [] INTvtype
+         val v = ftype [] VOIDvtype
+         val fMv = ftype [ftype [OBJvtype] OBJvtype] (MONADvtype VOIDvtype)
+         (* Generate type of the returned expression. The value that this
+            function is called with indicates the number of arguments. *)
+         fun genType (ret, n) =
+            FUNvtype (ret, false, List.tabulate (n, fn _ => VOIDvtype))
+         fun t n = if n=0 then MONADvtype VOIDvtype else
+                   if n>0 then genType (VOIDvtype, n) else
+                               genType (MONADvtype VOIDvtype, ~n)
+      in [
+         ("raise", (t ~1, fn args => action (PRIexp (RAISEprim,sv,args)))),
+         ((Atom.toString Op.andAlso), (t 2, fn args => boxV1 (pr (ANDprim,iii,unboxVfixed args)))),
+         ((Atom.toString Op.orElse), (t 2, fn args => boxV1 (pr (ORprim,iii,unboxVfixed args)))),
+         ("sx", (t 1, fn args => boxI (pr (SIGNEDprim,bi,unboxV args)))),
+         ("zx", (t 1, fn args => boxI (pr (UNSIGNEDprim,bi,unboxV args)))),
+         ("+", (t 2, fn args => boxI (pr (ADDprim,iii,unboxI args)))),
+         ("-", (t 2, fn args => boxI (pr (SUBprim,iii,unboxI args)))),
+         ("===", (t 2, fn args => boxV1 (pr (EQprim,iii,unboxI args)))),
+         ("*", (t 2, fn args => boxI (pr (MULprim,iii,unboxI args)))),
+         ("<", (t 2, fn args => boxV1 (pr (LTprim,iii,unboxI args)))),
+         (">", (t 2, fn args => boxV1 (pr (LTprim,iii,unboxI (rev args))))),
+         ("<=", (t 2, fn args => boxV1 (pr (LEprim,iii,unboxI args)))),
+         (">=", (t 2, fn args => boxV1 (pr (LEprim,iii,unboxI (rev args))))),
+         ("not", (t 1, fn args => boxV (pr (NOT_VECprim,bb,unboxV args)))),
+         ("==", (t 2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
+         ("^", (t 2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
+         ("showint", (t 1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
+         ("showbitvec", (t 1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
+         ("+++", (t 2, fn args => pr (CONCAT_STRINGprim,sss,args))),
+         ("slice", (t ~3, fn args => (case args of
+             [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
+           | _ => raise ImpPrimTranslationBug))),
+         ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,ii,args)))),
+         ("query", (t 1, fn args => (case args of
+             [f] => action (INVOKEexp (ov, f,[PRIexp (GETSTATEprim, o_, [])]))
+           | _ => raise ImpPrimTranslationBug))),
+         ("update", (fMv, fn args => (case args of
+             [f] => action (PRIexp (SETSTATEprim, ov, [
+                  INVOKEexp (oo, f,[PRIexp (GETSTATEprim, o_, [])]) 
+               ]))
+           | _ => raise ImpPrimTranslationBug))),
+         ("ipget", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
+         ("consume8", (t 0, fn args => action (boxV8 (PRIexp (CONSUME8prim,i,args))))),
+         ("consume16", (t 0, fn args => action (boxV16 (PRIexp (CONSUME16prim,i,args))))),
+         ("consume32", (t 0, fn args => action (boxV32 (PRIexp (CONSUME32prim,i,args))))),
+         ("unconsume8", (t 0, fn args => action (PRIexp (UNCONSUME8prim,v,args)))),
+         ("unconsume16", (t 0, fn args => action (PRIexp (UNCONSUME16prim,v,args)))),
+         ("unconsume32", (t 0, fn args => action (PRIexp (UNCONSUME32prim,v,args)))),
+         ("println", (t ~1, fn args => action (PRIexp (PRINTLNprim,ov,args)))),
+         ("return", (t ~1, fn args => (case args of
+            [e] => action e
+          | _ => raise ImpPrimTranslationBug)))
+         ]
+      end
+
+   val prim_val_table =
+      let
+         open Imp
+      in
+         [
+         ("void", PRIexp (VOIDprim, FUNvtype (VOIDvtype,false,[]), []))
+         ]
+      end
+
    fun registerPrimitives () =
       (ST.varTable := VarInfo.empty
       ;ST.conTable := ConInfo.empty
       ;ST.typeTable := TypeInfo.empty
       ;ST.fieldTable := FieldInfo.empty
-      ;List.map (addPrim ST.fieldTable) primitiveFields
-      ;List.map (addPrim ST.varTable) primitiveValues
-      ;List.map (addPrim ST.typeTable) primitiveTypes)
+      ;app (addPrim ST.fieldTable) primitiveFields
+      ;app (addPrim ST.varTable) primitiveValues
+      ;app (addPrim ST.typeTable) primitiveTypes
+      ;prim_map :=
+      let
+         fun get s = VarInfo.lookup (!ST.varTable, Atom.atom s)
+         fun insTrans ((k,v),m) = SymMap.insert (m,get k,v)
+      in
+         foldl insTrans SymMap.empty prim_table
+      end
+      ;prim_val_map :=
+      let
+         fun get s = VarInfo.lookup (!ST.varTable, Atom.atom s)
+         fun insTrans ((k,v),m) = SymMap.insert (m,get k,v)
+      in
+         foldl insTrans SymMap.empty prim_val_table
+      end
+      )
    
    fun getSymbolTypes () =
       let

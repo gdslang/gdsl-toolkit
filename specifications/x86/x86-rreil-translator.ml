@@ -143,8 +143,8 @@ end
 val conv-with conv sz x =
    let
       val conv-imm conv x = case conv of
-                               Signed: return (SEM_LIN_IMM{imm=sx x})
-                             | Unsigned: return (SEM_LIN_IMM{imm=zx x})
+      	  Signed: return (SEM_LIN_IMM{const=sx x})
+	| Unsigned: return (SEM_LIN_IMM{const=zx x})
       end
 
       val conv-reg conv sz r = do
@@ -167,7 +167,7 @@ val conv-with conv sz x =
             return
                (SEM_LIN_SCALE
                   {opnd=op,
-                   imm=
+                   const=
                      case $imm x of
                         '00': 1
                       | '01': 2
@@ -226,7 +226,7 @@ val read-addr-reg x =
 
 val read-flow sz x =
    let
-      val conv-bv v = return (SEM_LIN_IMM{imm=sx v})
+      val conv-bv v = return (SEM_LIN_IMM{const=sx v})
    in
       case x of
          REL8 x: conv-bv x
@@ -268,7 +268,7 @@ val lval-offset sz x offset =
        do
          #Offset for memory operands? => Add offset to pointer
          address <- conv-with Signed x.psz x.opnd;
-	 combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {imm=offset}});
+	 combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {const=offset}});
          return (SEM_WRITE_MEM{size=x.psz,address=combined,segment=x.segment})
        end
     | REG r:
@@ -369,7 +369,7 @@ val fLEU = return (_var VIRT_LEU)
 val fLTS = return (_var VIRT_LTS)
 val fLTU = return (_var VIRT_LTU)
 
-val zero = return (SEM_LIN_IMM{imm=0})
+val zero = return (SEM_LIN_IMM{const=0})
 
 val sem-a sem-cc x = do
   cf <- fCF;
@@ -2210,8 +2210,9 @@ end
 val translateBlock = do
    update @{ins_count=0,mode64='1'};
    update@{stack=SEM_NIL,foundJump='0'};
-   # the type checker is seriously broken when it comes to infinite recursion,
-   # I cannot as of yet reproduce this bug
+   # the type checker is does not instanitate types of decoders; what seemed to be
+   # a fine specialization turns out to be a bad idea since records need to be
+   # newly instantiated
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
 	 stmts <- transBlock;
    return (rreil-stmts-rev stmts)

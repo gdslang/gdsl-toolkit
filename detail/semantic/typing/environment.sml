@@ -47,8 +47,9 @@ structure Environment : sig
     (*given an occurrence of a symbol at a position, push its type onto the
     stack; arguments are the symbol to look up, the position it occurred and a
     Boolean flag indicating if this usage should be recorded (True) or if an
-    existing type should be used (False) *)
-   val pushSymbol : VarInfo.symid * Error.span * bool * environment -> environment
+    existing type should be used (False), and a flag that indicates if
+    a fresh instance or the plain type should be pushed *)
+   val pushSymbol : VarInfo.symid * Error.span * bool * bool * environment -> environment
 
    (*search in the current stack for the symbol and, if unsuccessful, in the
    nested definitions and push all nested groups onto the stack, returns the
@@ -145,6 +146,9 @@ end = struct
    structure SpanMap = SpanMap
    open Types
    open Substitutions
+   
+   (*restrict which symbols toString prints*)
+   val debugSymbol : int option = NONE
 
    (*any error that is not due to unification*)
    exception InferenceBug
@@ -299,7 +303,7 @@ end = struct
                   (vSet,bSet)
             fun getWidthVars (NONE, set) = set
               | getWidthVars (SOME w, (vSet,bSet)) = (texpVarset (w,vSet),bSet)
-            fun getBindVars ({name, ty, width = wOpt, uses, nested},set) =
+            fun getBindVars ({name=n, ty, width = wOpt, uses, nested},set) =
                List.foldl getUsesVars (getWidthVars (wOpt, set))
                   (SpanMap.listItems uses)
             fun getGroupVars ({bindInfo = bi, typeVars, boolVars, version},set) =
@@ -432,20 +436,28 @@ end = struct
                val (scStr, si) = showVarsVer (typeVars, boolVars, version, si)
                val (biStr, si) = showBindInfoSI (bi,si)
             in
-               (scStr ^ biStr, si)
+               if String.size biStr=0 then ("",si) else (scStr ^ biStr, si)
             end
       and showBindInfoSI (KAPPA {ty}, si) =
             let
                val (tStr, si) = showTypeSI (ty,si)
             in
-               ("KAPPA : " ^ tStr, si)
+               case debugSymbol of
+                  (SOME _) => ("",si)
+                | NONE => ("KAPPA : " ^ tStr, si)
             end
         | showBindInfoSI (SINGLE {name, ty}, si) =
             let
                val (tStr, si) = showTypeSI (ty,si)
+               val visible = case debugSymbol of
+                     NONE => true
+                   | (SOME sid) => sid=SymbolTable.toInt name
             in
-               ("SYMBOL " ^ ST.getString(!SymbolTables.varTable, name) ^
-                " : " ^ tStr, si)
+               if visible then
+                  ("SYMBOL " ^ ST.getString(!SymbolTables.varTable, name) ^
+                  " : " ^ tStr, si)
+               else
+                  ("",si)
             end
         | showBindInfoSI (GROUP bs, si) =
             let
@@ -476,6 +488,9 @@ end = struct
                   end
                fun printB ({name,ty,width,uses,nested}, (str, si)) =
                   let
+                     val visible = case debugSymbol of
+                           NONE => true
+                         | (SOME sid) => sid=SymbolTable.toInt name
                      val (tStr, si) = prBTyOpt (ty, " : ", si)
                      val (wStr, si) = prTyOpt (width, ", width = ", si)
                      val (uStr, _, si) = 
@@ -498,6 +513,7 @@ end = struct
                        | showBindInfosSI n ([], si) = ("", si)
                      val (nStr, si) = showBindInfosSI 1 (nested,si)
                   in
+                    if not visible then (str, si) else
                     (str ^
                      "\n  " ^ ST.getString(!SymbolTables.varTable, name) ^
                      tStr ^ wStr ^ nStr ^ uStr
@@ -732,7 +748,7 @@ end = struct
       (case Scope.lookup (sym,env) of
           (_, COMPOUND {ty, width = SOME t, uses, nested}) =>
             Scope.wrap (KAPPA {ty = t}, env)
-        | _ => raise (UnificationFailure (
+        | _ => raise (UnificationFailure (Clash,
             SymbolTable.getString(!SymbolTables.varTable, sym) ^
             " is not a decoder"))
       )
@@ -761,14 +777,14 @@ end = struct
 
          val (monoTVars, monoBVars) = Scope.getMonoVars env
          val (usesTVars, usesBVars) = Scope.getVarsUses (sym, env)
-         val funBVars = BD.union (texpBVarset (t,usesBVars),
+         val funBVars = texpBVarset (t,
                            BD.union (monoBVars, usesBVars))
                            
          val (scs, state) = env
          val bFun = BD.projectOnto (funBVars,Scope.getFlow state)
          val bFunRem = if reduceToMono then BD.projectOnto (monoBVars,bFun)
                        else bFun
-         (*val _ = TextIO.print ("projecting for " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showType t ^ " onto " ^ BD.setToString funBVars ^ ", mono " ^ BD.setToString monoBVars ^"\n")*)
+         (*val _ = TextIO.print ("projecting for " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showType t ^ " where \n" ^ toString env)*)
          val groupTVars = texpVarset (t,Scope.getVars env)
          val sCons = SC.filter (groupTVars, Scope.getSize state)
          val state = Scope.setSize sCons (Scope.setFlow bFunRem state)
@@ -842,7 +858,7 @@ end = struct
          val fStr = if Types.concisePrint then fStr else
                     fStr ^ " with vars " ^ BD.setToString bVar
       in
-         raise UnificationFailure (fStr ^ " cannot flow here")
+         raise UnificationFailure (Clash, fStr ^ " cannot flow here")
       end
 
    fun meetBoolean (update, env as (scs, state)) =
@@ -865,8 +881,10 @@ end = struct
          end
       | _ => raise InferenceBug
 
-   fun pushSymbol (sym, span, recordUsage, env) =
-      (case Scope.lookup (sym,env) of
+   fun pushSymbol (sym, span, recordUsage, createInstance, env) = (
+      (*if SOME (SymbolTable.toInt sym)=debugSymbol then
+         TextIO.print ("pushSymbol debug symbol:\n" ^ toString env) else ();*)
+      case Scope.lookup (sym,env) of
           (_, SIMPLE {ty = t}) =>
          let
             val tNew = setFlagsToTop t
@@ -892,7 +910,11 @@ end = struct
             val decVars = case w of
                  SOME t => texpVarset (t,TVar.empty)
                | NONE => TVar.empty
-            val (t,bFun,sCons) = instantiateType (tvs, t, decVars, bFun, Scope.getSize state)
+            val (t,bFun,sCons) =
+               if createInstance then
+                  instantiateType (tvs, t, decVars, bFun, Scope.getSize state)
+               else
+                  (t,bFun,Scope.getSize state)
             val env = (scs, Scope.setFlow bFun (Scope.setSize sCons state))
             (*we need to record the usage sites of all functions (primitives,
             really) that have explicit size constraints in order to be able
@@ -1271,7 +1293,7 @@ end = struct
    fun popToFunction (sym, env) =
       let
          (*val ctxt = getCtxt env
-         val _ = if List.all (fn x => SymbolTable.toInt x<>128) ctxt then () else
+         val _ = if List.all (fn x => SymbolTable.toInt x<>427) ctxt then () else
                  TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env)*)
          fun setType t (COMPOUND {ty = NONE, width, uses, nested}, cons) =
                (COMPOUND {ty = SOME t, width = width, uses = uses, nested = nested},

@@ -11,7 +11,9 @@ structure Main = struct
          ResolveTypeInfo.run ast >>= (fn tInfo =>
          TypeInference.run (tInfo, ast) >>= (fn tys =>
          Desugar.run ast >>=
-         CPSPasses.run >>=
+         ImpPasses.run >>=
+         (*Desugar.run ast >>=
+         CPSPasses.run >>= *)
          CodegenPasses.run 
          )))
       fun run fps = let

@@ -23,6 +23,8 @@ structure Environment = Environment
 structure TVar = TVar
 structure Main = Main
 structure Javascript = Javascript
+structure Imp = Imp
+structure C1 = C1
 
 (** ## Exported functors *)
 
