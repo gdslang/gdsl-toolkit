@@ -46,13 +46,16 @@ in
          detail/semantic/typing/size-constraint.sml
          detail/semantic/typing/substitutions.sml
          detail/semantic/typing/environment.sml
+
+         detail/spec/spec.sml
+         detail/spec/core.sml
+
+         detail/imp/imp.sml
+
          detail/semantic/primitives.sml
          detail/semantic/resolve-symbols.sml
          detail/semantic/resolve-type-info.sml
          detail/semantic/inference.sml
-
-         detail/spec/spec.sml
-         detail/spec/core.sml
 
          detail/desugar/desugar-control.sml
          detail/desugar/desugared-tree.sml
@@ -71,6 +74,12 @@ in
          detail/cps/cps-opt.sml
          detail/cps/mk-cps-pass.sml
          detail/cps/cps-passes.sml
+
+         detail/imp/imp-control.sml
+         detail/imp/imp-from-core.sml
+         detail/imp/mk-imp-pass.sml
+         detail/imp/imp-opt.sml
+         detail/imp/imp-passes.sml
 
          detail/closure/closure.sml
          detail/closure/closure-control.sml

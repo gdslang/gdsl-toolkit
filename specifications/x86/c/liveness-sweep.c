@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <unistd.h>
-#include <dis.h>
+#include <gdsl-x86.h>
 #include <sys/resource.h>
 
 #include <err.h>
@@ -172,36 +172,37 @@ static char args_parse(int argc, char **argv, struct options *options) {
 	return 0;
 }
 
-__obj translate_single(__obj *state) {
-	__obj rreil_insns = __runMonadicNoArg(__translateSingle__, state);
+obj_t translate_single(state_t state) {
+	obj_t rreil_insns = x86_translateSingle(state);
+	return rreil_insns;
+}
+
+obj_t translate(state_t state) {
+	obj_t rreil_insns = __runMonadicNoArg(__translateBlock__, state);
 
 	return rreil_insns;
 }
 
-__obj translate(__obj *state) {
-	__obj rreil_insns = __runMonadicNoArg(__translateBlock__, state);
+obj_t translate_super(state_t state, obj_t *rreil_insns) {
+	obj_t rreil_insns_succs = x86_translateSuperBlock(state, NULL, NULL);
 
-	return rreil_insns;
-}
-
-__obj translate_super(__obj *state, __obj *rreil_insns) {
-	__obj rreil_insns_succs = __runMonadicNoArg(__translateSuperBlock__, state);
-
-	*rreil_insns = __RECORD_SELECT(rreil_insns_succs, ___insns);
-
+	/*
+	 * Todo: ...
+	 */
+//	*rreil_insns = __RECORD_SELECT(rreil_insns_succs, ___insns);
 	return rreil_insns_succs;
 }
 
-void print_succs(__obj translated, char *fmt, size_t size) {
-	__obj succ_a = __RECORD_SELECT(translated, ___succ_a);
-	__obj succ_b = __RECORD_SELECT(translated, ___succ_b);
+void print_succs(state_t state, obj_t translated, size_t size) {
+	obj_t succ_a = __RECORD_SELECT(translated, ___succ_a);
+	obj_t succ_b = __RECORD_SELECT(translated, ___succ_b);
 
-	void print_succ(__obj succ, char const *name) {
+	void print_succ(obj_t succ, char const *name) {
 		switch(__CASETAGCON(succ)) {
 			case __SO_SOME: {
-				__obj succ_insns = __DECON(succ);
+				obj_t succ_insns = __DECON(succ);
 				printf("Succ %s:\n", name);
-				__pretty(__rreil_pretty__, succ_insns, fmt, size);
+				string_t fmt = x86_rreil_pretty(state, succ_insns);
 				puts(fmt);
 				break;
 			}
@@ -361,27 +362,30 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 //	uint64_t consumed = 228;
 //	uint64_t consumed = 0;
 
+	obj_t state = gdsl_init();
+
 	while(consumed < buffer_length) {
 		if(print)
 			printf("### Next block (@offset %lu): ###\n\n", consumed);
 
-		__obj state = __createState(buffer + consumed, buffer_length - consumed,
-				consumed, 0);
+//		obj_t state = __createState(buffer + consumed, buffer_length - consumed,
+//				consumed, 0);
+		gdsl_set_code(state, buffer + consumed, buffer_length, 0);
 
-		__obj translated = NULL;
-		__obj rreil_insns = NULL;
+		obj_t translated = NULL;
+		obj_t rreil_insns = NULL;
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 		switch(mode) {
 			case MODE_SINGLE: {
-				translated = rreil_insns = translate_single(&state);
+				translated = rreil_insns = translate_single(state);
 				break;
 			}
 			case MODE_DEFAULT: {
-				translated = rreil_insns = translate(&state);
+				translated = rreil_insns = translate(state);
 				break;
 			}
 			case MODE_CHILDREN: {
-				translated = translate_super(&state, &rreil_insns);
+				translated = translate_super(state, &rreil_insns);
 				break;
 			}
 		}
@@ -397,16 +401,17 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 //			goto end;
 //		}
 		if(print && mode == MODE_CHILDREN)
-			print_succs(translated, fmt, size);
+			print_succs(state, translated, size);
 
-		__obj native_instruction_count = __RECORD_SELECT(state, ___ins_count);
+		obj_t native_instruction_count = __RECORD_SELECT(state, ___ins_count);
 		context->native_instructions += __CASETAGINT(native_instruction_count);
 
 		//printf("%x\n", buffer[consumed]);
 
 		if(print)
 			printf("Initial RREIL instructions:\n");
-		__pretty(__rreil_pretty__, rreil_insns, fmt, size);
+		//__pretty(__rreil_pretty__, rreil_insns, fmt, size);
+		string_t fmt = x86_rreil_pretty(state, rreil_insns);
 		if(print) {
 			puts(fmt);
 			printf("\n");
@@ -416,20 +421,20 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 			if(fmt[i] == '\n')
 				context->lines++;
 
-		__obj lv_result;
+		obj_t lv_result;
 		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
 
 		switch(mode) {
 			case MODE_CHILDREN: {
-				lv_result = __runMonadicOneArg(__liveness_super__, &state, translated);
+				lv_result = x86_liveness_super(state, translated);
 				break;
 			}
 			default: {
-				lv_result = __runMonadicOneArg(__liveness__, &state, translated);
+				lv_result = x86_liveness(state, translated);
 				break;
 			}
 		}
-		__obj rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
+		obj_t rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
 		/*
 		 * Todo: Fix
 		 */
@@ -445,8 +450,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 //			__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
 //			puts(fmt);
 //			printf("\n");
-			rreil_instructions_greedy = __runMonadicOneArg(__cleanup__, &state,
-					rreil_instructions_greedy);
+			rreil_instructions_greedy = x86_cleanup(state, rreil_instructions_greedy);
 		}
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
@@ -458,14 +462,14 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 //		}
 
 		if(print && mode == MODE_CHILDREN) {
-			__obj initial_state = __RECORD_SELECT(lv_result, ___initial);
+			obj_t initial_state = __RECORD_SELECT(lv_result, ___initial);
 			printf("Liveness initial state:\n");
-			__pretty(__lv_pretty__, initial_state, fmt, size);
+			fmt = x86_lv_pretty(state, initial_state);
 			puts(fmt);
 			printf("\n");
 		}
 
-		__obj greedy_state;
+		obj_t greedy_state;
 
 		switch(mode) {
 			case MODE_CHILDREN: {
@@ -479,7 +483,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		}
 		if(print) {
 			printf("Liveness greedy state:\n");
-			__pretty(__lv_pretty__, greedy_state, fmt, size);
+			fmt = x86_lv_pretty(state, greedy_state);
 			puts(fmt);
 			printf("\n");
 		}
@@ -487,18 +491,17 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(cleanup) {
 			if(print) {
 				printf("RREIL instructions after LV (greedy), before cleanup:\n");
-				__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
+				fmt = x86_rreil_pretty(state, rreil_instructions_greedy);
 				puts(fmt);
 				printf("\n");
 			}
 
-			rreil_instructions_greedy = __runMonadicOneArg(__cleanup__, &state,
-					rreil_instructions_greedy);
+			rreil_instructions_greedy = x86_cleanup(state, rreil_instructions_greedy);
 		}
 
 		if(print)
 			printf("RREIL instructions after LV (greedy):\n");
-		__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
+		fmt = x86_rreil_pretty(state, rreil_instructions_greedy);
 		if(print) {
 			puts(fmt);
 			printf("\n");
@@ -508,8 +511,9 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 			if(fmt[i] == '\n')
 				context->lines_opt++;
 
-		__resetHeap();
 		consumed += __getBlobIndex(state) - consumed;
+
+		gdsl_reset_heap(state);
 
 		//printf("consumed: %lu, buffer_length: %lu\n", consumed, buffer_length);
 	}
@@ -634,9 +638,9 @@ int main(int argc, char** argv) {
 	free(options.files);
 
 	if(count > 1) {
-		printf("Average single reduction: %.3lf%%\n", 100*single_red_cum/count);
-		printf("Average intra reduction: %.3lf%%\n", 100*intra_red_cum/count);
-		printf("Average inter reduction: %.3lf%%\n", 100*inter_red_cum/count);
+		printf("Average single reduction: %.3lf%%\n", 100 * single_red_cum / count);
+		printf("Average intra reduction: %.3lf%%\n", 100 * intra_red_cum / count);
+		printf("Average inter reduction: %.3lf%%\n", 100 * inter_red_cum / count);
 	}
 
 //	end:

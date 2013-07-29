@@ -372,7 +372,7 @@ structure Primitives = struct
                   INVOKEexp (oo, f,[PRIexp (GETSTATEprim, o_, [])]) 
                ]))
            | _ => raise ImpPrimTranslationBug))),
-         ("ipget", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
+         ("idxget", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
          ("consume8", (t 0, fn args => action (boxV8 (PRIexp (CONSUME8prim,i,args))))),
          ("consume16", (t 0, fn args => action (boxV16 (PRIexp (CONSUME16prim,i,args))))),
          ("consume32", (t 0, fn args => action (boxV32 (PRIexp (CONSUME32prim,i,args))))),

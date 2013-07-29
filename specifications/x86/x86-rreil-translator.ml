@@ -2249,7 +2249,7 @@ val relative-next stmts = let
 						  case v.id of
 							   Sem_IP:
 								   case s.opnd2 of
-									    SEM_LIN_IMM i: IO_SOME i.imm
+									    SEM_LIN_IMM i: IO_SOME i.const
 									  | _: IO_NONE
 									 end
 							 | _: IO_NONE
@@ -2258,7 +2258,7 @@ val relative-next stmts = let
 					    case s.opnd2 of
 							   SEM_LIN_VAR v:
 								   case v.id of
-									    Sem_IP: IO_SOME i.imm
+									    Sem_IP: IO_SOME i.const
 									  | _: IO_NONE
 									 end
 							 | _: IO_NONE

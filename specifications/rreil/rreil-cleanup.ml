@@ -18,7 +18,7 @@ in
 	   SEM_SEXPR_LIN l:
 		   case l of
 			    SEM_LIN_IMM z:
-					  case z.imm of
+					  case z.const of
 						   1: STO_MORE (i.then_branch)
 						 | 0:	STO_MORE (i.else_branch)
 						 | _: def i

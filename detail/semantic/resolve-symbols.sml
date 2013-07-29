@@ -314,6 +314,8 @@ end = struct
       ;List.map (regDecl SymbolTable.noSpan) ast
       (*;TextIO.print (smapToString (!specDec))*)
       ;List.map (convDecl SymbolTable.noSpan) ast)
+				handle (SymbolTable.InvalidSymbol a) => (
+					TextIO.print ("error when resolving symbols: invalid symbol '" ^ Atom.toString a ^ "'\n"); raise SymbolTable.InvalidSymbol a)
    end
 
    val resolveSymbolPass =
