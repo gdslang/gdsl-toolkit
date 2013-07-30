@@ -1303,12 +1303,13 @@ structure TypeRefinement = struct
            | genAdj (BITstype (CONSTstype _)) = INTvtype
            | genAdj (BITstype _) = VECvtype
            | genAdj (VOIDstype) = VOIDvtype
+           | genAdj (INTstype) = INTvtype
            | genAdj (STRINGstype) = STRINGvtype
            | genAdj (OBJstype) = OBJvtype
            | genAdj (FUNstype (r,cl,args)) =
                FUNvtype (adjustType s (OBJvtype, r), true, map (fn arg => adjustType s (OBJvtype, arg)) args)
            | genAdj (MONADstype r) = MONADvtype (genAdj r)
-           | genAdj t = (TextIO.print ("adjustType of " ^ showSType new ^ "\n"); raise TypeOptBug)
+           | genAdj t = (TextIO.print ("adjustType of " ^ showSType new ^ ", that is, " ^ showSType (inlineSType s new) ^ "\n"); raise TypeOptBug)
       in
          case orig of
             OBJvtype => genAdj (inlineSType s new)
