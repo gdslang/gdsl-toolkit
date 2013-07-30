@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate translateBlock translateSingle translateSuperBlock
+export = translate translateBlock translateSingle translateSuperBlock succ_pretty
 
 type sem_writeback =
    SEM_WRITE_VAR of {size:int, id:sem_var}
@@ -2326,3 +2326,9 @@ in do
 
    return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
 end end
+
+val succ_pretty succ name =
+  case succ of
+	   SO_SOME i: "Succ " +++ name +++ ":\n" +++ (rreil-pretty i)
+	 | SO_NONE: "Succ " +++ name +++ ": NONE :-("
+	end

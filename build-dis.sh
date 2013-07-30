@@ -8,5 +8,5 @@
 #[ $? -eq 0 ] && clang -fno-inline -O -c dis.c -o dis.o
 #[ $? -eq 0 ] && clang -fPIC -c dis.c -o dis.o && ar -r  "lib/libdis.a"  dis.o
 #[ $? -eq 0 ] && clang -fPIC -c dis.c -o dis.o && gcc -shared -Wl,-soname,libdis.so -o lib/libdis.so dis.o
-[ $? -eq 0 ] && clang -fPIC -c gdsl-x86.c -o gdsl-x86.o && gcc -shared -Wl,-soname,libgdsl-x86.so -o lib/libgdsl-x86.so gdsl-x86.o
+[ $? -eq 0 ] && clang -g3 -fPIC -c gdsl-x86.c -o gdsl-x86.o && gcc -g3 -shared -Wl,-soname,libgdsl-x86.so -o lib/libgdsl-x86.so gdsl-x86.o
 #[ $? -eq 0 ] && clang -fno-inline -O -S dis.c

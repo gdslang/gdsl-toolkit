@@ -17,7 +17,7 @@ clang-sweep:
 	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o clang-sweep
 
 liveness-sweep:
-	gcc -std=gnu99 -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors liveness-sweep.c ../../../dis.o -lelf -lrt -DRELAXEDFATAL -o liveness-sweep
+	gcc -std=gnu99 -pipe -O0 -g3 -Wall -I. -I../../../include -Wfatal-errors liveness-sweep.c -L../../../lib -lgdsl-x86 -lelf -lrt -DRELAXEDFATAL -o liveness-sweep
 
 gcc-sweep:
 	gcc -std=c99 -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors sweep.c ../../../dis.o -DRELAXEDFATAL -o gcc-sweep

@@ -22,7 +22,7 @@ struct state {
 };
 
 static void alloc_heap(state_t s, char* prev_page) {
-  unsigned int size = 4096;
+  unsigned int size = 1024*4096;
   s->heap_base = malloc(size);
   if (s->heap_base==NULL) {
     s->err_str = "GDSL runtime: out of memory";
@@ -248,17 +248,17 @@ static inline string_t string_concat(state_t s, string_t s1, string_t s2) {
   return alloc_string(s,res);
 }
 
-static int64_t gdsl_seek(state_t s, int64_t i) {
+int64_t gdsl_seek(state_t s, int64_t i) {
   size_t size = (size_t)(s->ip_limit - s->ip_base);
-	if(i >= size)
+	if(i >= size || i < 0)
 	  return 1;
 	s->ip = s->ip_base + i;
 	return 0;
 }
 
-static int64_t gdsl_rseek(state_t s, int64_t i) {
+int64_t gdsl_rseek(state_t s, int64_t i) {
   char *new_ip = s->ip + i;
-	if(new_ip >= s->ip_limit)
+	if(new_ip >= s->ip_limit || new_ip < s->ip_base)
 	  return 1;
 	s->ip = new_ip;
 	return 0;

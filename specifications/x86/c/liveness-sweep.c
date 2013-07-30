@@ -184,10 +184,7 @@ obj_t translate(state_t state) {
 
 obj_t translate_super(state_t state, obj_t *rreil_insns) {
 	obj_t rreil_insns_succs = x86_translateSuperBlock(state);
-	/*
-	 * Todo: ...
-	 */
-//	*rreil_insns = __RECORD_SELECT(rreil_insns_succs, ___insns);
+	*rreil_insns = x86_select_insns(state, rreil_insns_succs);
 	return rreil_insns_succs;
 }
 
@@ -195,24 +192,27 @@ void print_succs(state_t state, obj_t translated, size_t size) {
 	obj_t succ_a = x86_select_succ_a(state, translated);
 	obj_t succ_b = x86_select_succ_b(state, translated);
 
-	void print_succ(obj_t succ, char const *name) {
-		switch(__CASETAGCON(succ)) {
-			case __SO_SOME: {
-				obj_t succ_insns = __DECON(succ);
-				printf("Succ %s:\n", name);
-				string_t fmt = x86_rreil_pretty(state, succ_insns);
-				puts(fmt);
-				break;
-			}
-			case __SO_NONE: {
-				printf("Succ %s: __SO_NONE :-(\n", name);
-				break;
-			}
-		}
-	}
+//	void print_succ(obj_t succ, char const *name) {
+//		switch(x86_con_index(state, succ)) {
+//			case __SO_SOME: {
+//				obj_t succ_insns = __DECON(succ);
+//				printf("Succ %s:\n", name);
+//				string_t fmt = x86_rreil_pretty(state, succ_insns);
+//				puts(fmt);
+//				break;
+//			}
+//			case __SO_NONE: {
+//				printf("Succ %s: __SO_NONE :-(\n", name);
+//				break;
+//			}
+//		}
+//	}
 
-	print_succ(succ_a, "a");
-	print_succ(succ_b, "b");
+	x86_succ_pretty(state, succ_a, "a");
+	x86_succ_pretty(state, succ_b, "b");
+
+//	print_succ(succ_a, "a");
+//	print_succ(succ_b, "b");
 }
 
 struct context {
@@ -362,13 +362,16 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 
 	obj_t state = gdsl_init();
 
+	gdsl_set_code(state, buffer, buffer_length, 0);
+
 	while(consumed < buffer_length) {
 		if(print)
 			printf("### Next block (@offset %lu): ###\n\n", consumed);
 
 //		obj_t state = __createState(buffer + consumed, buffer_length - consumed,
 //				consumed, 0);
-		gdsl_set_code(state, buffer + consumed, buffer_length, 0);
+//		gdsl_set_code(state, buffer + consumed, buffer_length - consumed, 0);
+		gdsl_seek(state, consumed);
 
 		obj_t translated = NULL;
 		obj_t rreil_insns = NULL;
@@ -401,8 +404,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(print && mode == MODE_CHILDREN)
 			print_succs(state, translated, size);
 
-		obj_t native_instruction_count = __RECORD_SELECT(state, ___ins_count);
-		context->native_instructions += __CASETAGINT(native_instruction_count);
+		int_t native_instruction_count = x86_select_ins_count(state, x86_state_get(state));
+		context->native_instructions += native_instruction_count;
 
 		//printf("%x\n", buffer[consumed]);
 
@@ -432,7 +435,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 				break;
 			}
 		}
-		obj_t rreil_instructions_greedy = __RECORD_SELECT(state, ___live);
+		obj_t rreil_instructions_greedy = x86_select_live(state, x86_state_get(state));
 		/*
 		 * Todo: Fix
 		 */
@@ -460,7 +463,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 //		}
 
 		if(print && mode == MODE_CHILDREN) {
-			obj_t initial_state = __RECORD_SELECT(lv_result, ___initial);
+			obj_t initial_state = x86_select_initial(state, lv_result);
 			printf("Liveness initial state:\n");
 			fmt = x86_lv_pretty(state, initial_state);
 			puts(fmt);
@@ -471,7 +474,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 
 		switch(mode) {
 			case MODE_CHILDREN: {
-				greedy_state = __RECORD_SELECT(lv_result, ___after);
+				greedy_state = x86_select_after(state, lv_result);
 				break;
 			}
 			default: {
@@ -509,7 +512,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 			if(fmt[i] == '\n')
 				context->lines_opt++;
 
-		consumed += __getBlobIndex(state) - consumed;
+		//consumed += __getBlobIndex(state) - consumed;
+		consumed = gdsl_get_ip_offset(state);
 
 		gdsl_reset_heap(state);
 
@@ -521,6 +525,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 
 	free(buffer);
 	free(fmt);
+
+	gdsl_destroy(state);
 
 	return 0;
 }

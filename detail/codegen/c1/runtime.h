@@ -22,6 +22,9 @@ struct vec {
 typedef struct vec vec_t;
 typedef int_t con_tag_t;
 
+int64_t gdsl_seek(state_t s, int64_t i);
+int64_t gdsl_rseek(state_t s, int64_t i);
+
 /* Create a new decoder state. Should be destroyed by gdsl_destroy(). */
 state_t gdsl_init(void);
 
