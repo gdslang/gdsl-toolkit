@@ -264,6 +264,10 @@ int64_t gdsl_rseek(state_t s, int64_t i) {
 	return 0;
 }
 
+static obj_t invoke_int(state_t s, obj_t func, int64_t i) {
+  printf("%ld\n", i);
+}
+
 state_t gdsl_init() {
   state_t s = calloc(1,sizeof(struct state));
   return s;

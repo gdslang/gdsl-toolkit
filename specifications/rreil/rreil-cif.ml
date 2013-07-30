@@ -1,6 +1,7 @@
 export = fiep
 
 val fiep cb = do
-  x <- return (cb 42);
-	print x
+  return (invoke_int cb 99)
+  #x <- return (cb 42);
+	#print x
 end

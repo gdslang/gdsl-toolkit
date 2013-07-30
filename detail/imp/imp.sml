@@ -23,6 +23,7 @@ structure Imp = struct
        | IPGETprim
        | SEEKprim
        | RSEEKprim
+       | INVOKE_INTprim
        | CONSUME8prim
        | CONSUME16prim
        | CONSUME32prim

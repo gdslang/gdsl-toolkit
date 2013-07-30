@@ -47,6 +47,8 @@ structure Primitives = struct
    val stateN' = newFlow stateN
    val stateO = freshVar ()
    val stateO' = newFlow stateO
+   val stateP = freshVar ()
+   val stateP' = newFlow stateP
    val a = freshVar ()
    val a = freshVar ()
    val a' = newFlow a
@@ -133,6 +135,7 @@ structure Primitives = struct
         flow = BD.meetVarImpliesVar (bvar stateN', bvar stateN)},
        {name="seek", ty=func (ZENO, MONAD (ZENO, stateO, stateO')),
         flow = BD.meetVarImpliesVar (bvar stateO', bvar stateO)},
+       {name="invoke_int", ty=FUN([UNIT,ZENO],UNIT),flow=noFlow},
        {name="index", ty=func (h, ZENO), flow = noFlow},
        {name="println", ty=func (i, ZENO), flow = noFlow},
        {name="%raise", ty=UNIT, flow = noFlow},
@@ -251,6 +254,7 @@ structure Primitives = struct
        {name="%idxget", ty=UNIT, flow = noFlow},
        {name="%rseek", ty=UNIT, flow = noFlow},
        {name="%seek", ty=UNIT, flow = noFlow},
+       {name="%invoke_int", ty=UNIT, flow = noFlow},
        {name="%index", ty=UNIT, flow = noFlow},
        {name="%println", ty=UNIT, flow = noFlow},
        {name="vcase", ty=FUN ([VEC inp, content',
@@ -328,6 +332,7 @@ structure Primitives = struct
          val ov = ftype [OBJvtype] VOIDvtype
          val ii = ftype [INTvtype] INTvtype
          val oi = ftype [OBJvtype] INTvtype
+         val ioo = ftype [OBJvtype, INTvtype] OBJvtype
          val oo = ftype [OBJvtype] OBJvtype
          val o_ = ftype [] OBJvtype
          val sss = ftype [STRINGvtype, STRINGvtype] STRINGvtype
@@ -376,6 +381,8 @@ structure Primitives = struct
          ("idxget", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
          ("seek", (t 0, fn args => action (boxI (PRIexp (SEEKprim,ii,unboxI args))))),
          ("rseek", (t 0, fn args => action (boxI (PRIexp (RSEEKprim,ii,unboxI args))))),
+         ("invoke_int", (t 2, fn args => pr (INVOKE_INTprim,ioo,unboxI args))),
+         (*("invoke_int", (t 2, fn args => action (PRIexp (INVOKE_INTprim,ioo,args)))),*)
          ("consume8", (t 0, fn args => action (boxV8 (PRIexp (CONSUME8prim,i,args))))),
          ("consume16", (t 0, fn args => action (boxV16 (PRIexp (CONSUME16prim,i,args))))),
          ("consume32", (t 0, fn args => action (boxV32 (PRIexp (CONSUME32prim,i,args))))),
