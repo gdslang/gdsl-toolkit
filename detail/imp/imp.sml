@@ -21,6 +21,8 @@ structure Imp = struct
          GETSTATEprim
        | SETSTATEprim
        | IPGETprim
+       | SEEKprim
+       | RSEEKprim
        | CONSUME8prim
        | CONSUME16prim
        | CONSUME32prim

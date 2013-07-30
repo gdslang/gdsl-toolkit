@@ -248,6 +248,22 @@ static inline string_t string_concat(state_t s, string_t s1, string_t s2) {
   return alloc_string(s,res);
 }
 
+static int64_t gdsl_seek(state_t s, int64_t i) {
+  size_t size = (size_t)(s->ip_limit - s->ip_base);
+	if(i >= size)
+	  return 1;
+	s->ip = s->ip_base + i;
+	return 0;
+}
+
+static int64_t gdsl_rseek(state_t s, int64_t i) {
+  char *new_ip = s->ip + i;
+	if(new_ip >= s->ip_limit)
+	  return 1;
+	s->ip = new_ip;
+	return 0;
+}
+
 state_t gdsl_init() {
   state_t s = calloc(1,sizeof(struct state));
   return s;

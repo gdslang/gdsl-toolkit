@@ -178,14 +178,12 @@ obj_t translate_single(state_t state) {
 }
 
 obj_t translate(state_t state) {
-	obj_t rreil_insns = __runMonadicNoArg(__translateBlock__, state);
-
+	obj_t rreil_insns = x86_translateBlock(state);
 	return rreil_insns;
 }
 
 obj_t translate_super(state_t state, obj_t *rreil_insns) {
-	obj_t rreil_insns_succs = x86_translateSuperBlock(state, NULL, NULL);
-
+	obj_t rreil_insns_succs = x86_translateSuperBlock(state);
 	/*
 	 * Todo: ...
 	 */
@@ -194,8 +192,8 @@ obj_t translate_super(state_t state, obj_t *rreil_insns) {
 }
 
 void print_succs(state_t state, obj_t translated, size_t size) {
-	obj_t succ_a = __RECORD_SELECT(translated, ___succ_a);
-	obj_t succ_b = __RECORD_SELECT(translated, ___succ_b);
+	obj_t succ_a = x86_select_succ_a(state, translated);
+	obj_t succ_b = x86_select_succ_b(state, translated);
 
 	void print_succ(obj_t succ, char const *name) {
 		switch(__CASETAGCON(succ)) {
