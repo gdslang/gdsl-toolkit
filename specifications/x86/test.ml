@@ -42,3 +42,4 @@ val test a b =
    (f 0)
 
 
+val idx c = index c
