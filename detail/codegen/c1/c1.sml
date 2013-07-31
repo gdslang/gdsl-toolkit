@@ -530,6 +530,7 @@ structure C1 = struct
      | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->state = ", emitExp s e]
      | emitPrim s (SEEKprim, [e],_) = seq [str "gdsl_seek(s, ", emitExp s e, str ")"]
      | emitPrim s (RSEEKprim, [e],_) = seq [str "gdsl_rseek(s, ", emitExp s e, str ")"]
+     | emitPrim s (INVOKEprim, [e1, e2],_) = seq [str "invoke(s, ", emitExp s e1, str ", ", emitExp s e2, str ")"]
      | emitPrim s (INVOKE_INTprim, [e1, e2],_) = seq [str "invoke_int(s, ", emitExp s e1, str ", ", emitExp s e2, str ")"]
      | emitPrim s (IPGETprim, [],_) = str "gdsl_get_ip_offset(s)"
      | emitPrim s (CONSUME8prim, [],_) = str "consume8(s)"

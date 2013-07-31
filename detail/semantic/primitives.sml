@@ -64,6 +64,7 @@ structure Primitives = struct
    val g' = newFlow g
    val h = freshVar ()
    val i = freshVar ()
+   val j = freshVar ()
    val s1 = freshVar ()
    val s2 = freshVar ()
    val s3 = freshVar ()
@@ -135,6 +136,7 @@ structure Primitives = struct
         flow = BD.meetVarImpliesVar (bvar stateN', bvar stateN)},
        {name="seek", ty=func (ZENO, MONAD (ZENO, stateO, stateO')),
         flow = BD.meetVarImpliesVar (bvar stateO', bvar stateO)},
+       {name="invoke", ty=FUN([UNIT, j],STRING),flow=noFlow},
        {name="invoke_int", ty=FUN([UNIT,ZENO],UNIT),flow=noFlow},
        {name="index", ty=func (h, ZENO), flow = noFlow},
        {name="println", ty=func (i, ZENO), flow = noFlow},
@@ -254,6 +256,7 @@ structure Primitives = struct
        {name="%idxget", ty=UNIT, flow = noFlow},
        {name="%rseek", ty=UNIT, flow = noFlow},
        {name="%seek", ty=UNIT, flow = noFlow},
+       {name="%invoke", ty=UNIT, flow = noFlow},
        {name="%invoke_int", ty=UNIT, flow = noFlow},
        {name="%index", ty=UNIT, flow = noFlow},
        {name="%println", ty=UNIT, flow = noFlow},
@@ -332,8 +335,9 @@ structure Primitives = struct
          val ov = ftype [OBJvtype] VOIDvtype
          val ii = ftype [INTvtype] INTvtype
          val oi = ftype [OBJvtype] INTvtype
-         val ioo = ftype [OBJvtype, INTvtype] OBJvtype
+         val oio = ftype [OBJvtype, INTvtype] OBJvtype
          val oo = ftype [OBJvtype] OBJvtype
+         val oos = ftype [OBJvtype, OBJvtype] STRINGvtype
          val o_ = ftype [] OBJvtype
          val sss = ftype [STRINGvtype, STRINGvtype] STRINGvtype
          val i = ftype [] INTvtype
@@ -367,21 +371,24 @@ structure Primitives = struct
          ("showbitvec", (t 1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
          ("+++", (t 2, fn args => pr (CONCAT_STRINGprim,sss,args))),
          ("slice", (t ~3, fn args => (case args of
-             [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
-           | _ => raise ImpPrimTranslationBug))),
+            [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
+          | _ => raise ImpPrimTranslationBug))),
          ("index", (t 1, fn args => boxI (pr (GET_CON_IDXprim,oi,args)))),
          ("query", (t 1, fn args => (case args of
-             [f] => action (INVOKEexp (ov, f,[PRIexp (GETSTATEprim, o_, [])]))
-           | _ => raise ImpPrimTranslationBug))),
+            [f] => action (INVOKEexp (ov, f,[PRIexp (GETSTATEprim, o_, [])]))
+          | _ => raise ImpPrimTranslationBug))),
          ("update", (fMv, fn args => (case args of
-             [f] => action (PRIexp (SETSTATEprim, ov, [
+            [f] => action (PRIexp (SETSTATEprim, ov, [
                   INVOKEexp (oo, f,[PRIexp (GETSTATEprim, o_, [])]) 
                ]))
-           | _ => raise ImpPrimTranslationBug))),
+          | _ => raise ImpPrimTranslationBug))),
          ("idxget", (t 0, fn args => action (boxI (PRIexp (IPGETprim,i,args))))),
          ("seek", (t 0, fn args => action (boxI (PRIexp (SEEKprim,ii,unboxI args))))),
          ("rseek", (t 0, fn args => action (boxI (PRIexp (RSEEKprim,ii,unboxI args))))),
-         ("invoke_int", (t 2, fn args => pr (INVOKE_INTprim,ioo,unboxI args))),
+         ("invoke", (t 2, fn args => pr (INVOKEprim,oos,args))),
+         ("invoke_int", (t 2, fn args => (case args of
+				    [e1, e2] => pr (INVOKE_INTprim,oio,[e1, UNBOXexp (INTvtype, e2)])
+				  | _ => raise ImpPrimTranslationBug))),
          (*("invoke_int", (t 2, fn args => action (PRIexp (INVOKE_INTprim,ioo,args)))),*)
          ("consume8", (t 0, fn args => action (boxV8 (PRIexp (CONSUME8prim,i,args))))),
          ("consume16", (t 0, fn args => action (boxV16 (PRIexp (CONSUME16prim,i,args))))),
