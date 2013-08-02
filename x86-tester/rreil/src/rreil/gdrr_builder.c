@@ -17,7 +17,32 @@
 static gdrr_sem_id_t *virt_na(void *closure, int_t con) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_VIRTUAL;
-	id->virtual_ = RREIL_ID_VIRTUAL_EQ;
+	switch(con) {
+		case CON_VIRT_EQ: {
+			id->virtual_ = RREIL_ID_VIRTUAL_EQ;
+			break;
+		}
+		case CON_VIRT_NEQ: {
+			id->virtual_ = RREIL_ID_VIRTUAL_NEQ;
+			break;
+		}
+		case CON_VIRT_LES: {
+			id->virtual_ = RREIL_ID_VIRTUAL_LES;
+			break;
+		}
+		case CON_VIRT_LEU: {
+			id->virtual_ = RREIL_ID_VIRTUAL_LEU;
+			break;
+		}
+		case CON_VIRT_LTS: {
+			id->virtual_ = RREIL_ID_VIRTUAL_LTS;
+			break;
+		}
+		case CON_VIRT_LTU: {
+			id->virtual_ = RREIL_ID_VIRTUAL_LTU;
+			break;
+		}
+	}
 	return (gdrr_sem_id_t*)id;
 }
 
@@ -31,7 +56,237 @@ static gdrr_sem_id_t *virt_t(void *closure, int_t t) {
 static gdrr_sem_id_t *x86(void *closure, int_t con) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_IP;
+	switch(con) {
+		case CON_Sem_IP: {
+			id->x86 = X86_ID_IP;
+			break;
+		}
+		case CON_Sem_FLAGS: {
+			id->x86 = X86_ID_FLAGS;
+			break;
+		}
+		case CON_Sem_MXCSR: {
+			id->x86 = X86_ID_MXCSR;
+			break;
+		}
+		case CON_Sem_AX: {
+			id->x86 = X86_ID_AX;
+			break;
+		}
+		case CON_Sem_BX: {
+			id->x86 = X86_ID_BX;
+			break;
+		}
+		case CON_Sem_CX: {
+			id->x86 = X86_ID_CX;
+			break;
+		}
+		case CON_Sem_DX: {
+			id->x86 = X86_ID_DX;
+			break;
+		}
+		case CON_Sem_SI: {
+			id->x86 = X86_ID_SI;
+			break;
+		}
+		case CON_Sem_DI: {
+			id->x86 = X86_ID_DI;
+			break;
+		}
+		case CON_Sem_SP: {
+			id->x86 = X86_ID_SP;
+			break;
+		}
+		case CON_Sem_BP: {
+			id->x86 = X86_ID_BP;
+			break;
+		}
+		case CON_Sem_R8: {
+			id->x86 = X86_ID_R8;
+			break;
+		}
+		case CON_Sem_R9: {
+			id->x86 = X86_ID_R9;
+			break;
+		}
+		case CON_Sem_R10: {
+			id->x86 = X86_ID_R10;
+			break;
+		}
+		case CON_Sem_R11: {
+			id->x86 = X86_ID_R11;
+			break;
+		}
+		case CON_Sem_R12: {
+			id->x86 = X86_ID_R12;
+			break;
+		}
+		case CON_Sem_R13: {
+			id->x86 = X86_ID_R13;
+			break;
+		}
+		case CON_Sem_R14: {
+			id->x86 = X86_ID_R14;
+			break;
+		}
+		case CON_Sem_R15: {
+			id->x86 = X86_ID_R15;
+			break;
+		}
+		case CON_Sem_CS: {
+			id->x86 = X86_ID_CS;
+			break;
+		}
+		case CON_Sem_DS: {
+			id->x86 = X86_ID_DS;
+			break;
+		}
+		case CON_Sem_SS: {
+			id->x86 = X86_ID_SS;
+			break;
+		}
+		case CON_Sem_ES: {
+			id->x86 = X86_ID_ES;
+			break;
+		}
+		case CON_Sem_FS: {
+			id->x86 = X86_ID_FS;
+			break;
+		}
+		case CON_Sem_GS: {
+			id->x86 = X86_ID_GS;
+			break;
+		}
+		case CON_Sem_ST0: {
+			id->x86 = X86_ID_ST0;
+			break;
+		}
+		case CON_Sem_ST1: {
+			id->x86 = X86_ID_ST1;
+			break;
+		}
+		case CON_Sem_ST2: {
+			id->x86 = X86_ID_ST2;
+			break;
+		}
+		case CON_Sem_ST3: {
+			id->x86 = X86_ID_ST3;
+			break;
+		}
+		case CON_Sem_ST4: {
+			id->x86 = X86_ID_ST4;
+			break;
+		}
+		case CON_Sem_ST5: {
+			id->x86 = X86_ID_ST5;
+			break;
+		}
+		case CON_Sem_ST6: {
+			id->x86 = X86_ID_ST6;
+			break;
+		}
+		case CON_Sem_ST7: {
+			id->x86 = X86_ID_ST7;
+			break;
+		}
+		case CON_Sem_MM0: {
+			id->x86 = X86_ID_MM0;
+			break;
+		}
+		case CON_Sem_MM1: {
+			id->x86 = X86_ID_MM1;
+			break;
+		}
+		case CON_Sem_MM2: {
+			id->x86 = X86_ID_MM2;
+			break;
+		}
+		case CON_Sem_MM3: {
+			id->x86 = X86_ID_MM3;
+			break;
+		}
+		case CON_Sem_MM4: {
+			id->x86 = X86_ID_MM4;
+			break;
+		}
+		case CON_Sem_MM5: {
+			id->x86 = X86_ID_MM5;
+			break;
+		}
+		case CON_Sem_MM6: {
+			id->x86 = X86_ID_MM6;
+			break;
+		}
+		case CON_Sem_MM7: {
+			id->x86 = X86_ID_MM7;
+			break;
+		}
+		case CON_Sem_XMM0: {
+			id->x86 = X86_ID_XMM0;
+			break;
+		}
+		case CON_Sem_XMM1: {
+			id->x86 = X86_ID_XMM1;
+			break;
+		}
+		case CON_Sem_XMM2: {
+			id->x86 = X86_ID_XMM2;
+			break;
+		}
+		case CON_Sem_XMM3: {
+			id->x86 = X86_ID_XMM3;
+			break;
+		}
+		case CON_Sem_XMM4: {
+			id->x86 = X86_ID_XMM4;
+			break;
+		}
+		case CON_Sem_XMM5: {
+			id->x86 = X86_ID_XMM5;
+			break;
+		}
+		case CON_Sem_XMM6: {
+			id->x86 = X86_ID_XMM6;
+			break;
+		}
+		case CON_Sem_XMM7: {
+			id->x86 = X86_ID_XMM7;
+			break;
+		}
+		case CON_Sem_XMM8: {
+			id->x86 = X86_ID_XMM8;
+			break;
+		}
+		case CON_Sem_XMM9: {
+			id->x86 = X86_ID_XMM9;
+			break;
+		}
+		case CON_Sem_XMM10: {
+			id->x86 = X86_ID_XMM10;
+			break;
+		}
+		case CON_Sem_XMM11: {
+			id->x86 = X86_ID_XMM11;
+			break;
+		}
+		case CON_Sem_XMM12: {
+			id->x86 = X86_ID_XMM12;
+			break;
+		}
+		case CON_Sem_XMM13: {
+			id->x86 = X86_ID_XMM13;
+			break;
+		}
+		case CON_Sem_XMM14: {
+			id->x86 = X86_ID_XMM14;
+			break;
+		}
+		case CON_Sem_XMM15: {
+			id->x86 = X86_ID_XMM15;
+			break;
+		}
+	}
+
 	return (gdrr_sem_id_t*)id;
 }
 
@@ -309,7 +564,20 @@ static gdrr_sem_op_t *sem_arb(void *closure, int_t size) {
 static gdrr_branch_hint_t *branch_hint(void *closure, int_t con) {
 	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
 			sizeof(enum rreil_branch_hint));
-	*hint = RREIL_BRANCH_HINT_JUMP;
+	switch(con) {
+		case CON_HINT_JUMP: {
+			*hint = RREIL_BRANCH_HINT_JUMP;
+			break;
+		}
+		case CON_HINT_CALL: {
+			*hint = RREIL_BRANCH_HINT_CALL;
+			break;
+		}
+		case CON_HINT_RET: {
+			*hint = RREIL_BRANCH_HINT_RET;
+			break;
+		}
+	}
 	return (gdrr_branch_hint_t*)hint;
 }
 
