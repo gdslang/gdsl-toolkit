@@ -15,7 +15,7 @@ typedef void gdrr_sem_linear_t;
 typedef void gdrr_sem_sexpr_t;
 typedef void gdrr_sem_op_cmp_t;
 typedef void gdrr_sem_op_t;
-typedef void gdrr_sem_branch_hint_t;
+typedef void gdrr_branch_hint_t;
 typedef void gdrr_sem_stmt_t;
 typedef void gdrr_sem_stmts_t;
 

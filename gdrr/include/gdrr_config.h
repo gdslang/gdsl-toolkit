@@ -8,6 +8,7 @@
 #ifndef GDRR_CONFIG_H_
 #define GDRR_CONFIG_H_
 
+#include <gdsl-x86.h>
 #include "gdrr_callbacks.h"
 #include "gdrr_x86_callbacks.h"
 
@@ -25,7 +26,7 @@ struct gdrr_config {
 		struct gdrr_sem_op_cmp_callbacks sem_op_cmp;
 		struct gdrr_sem_op_callbacks sem_op;
 		struct gdrr_sem_stmt_callbacks sem_stmt;
-		struct gdrr_sem_branch_hint_callbacks sem_branch_hint;
+		struct gdrr_branch_hint_callbacks branch_hint;
 		union {
 			struct gdrr_sem_stmts_callbacks sem_stmts;
 			struct gdrr_sem_stmts_list_callbacks sem_stmts_list;
@@ -36,6 +37,7 @@ struct gdrr_config {
 	} callbacks;
 	enum gdrr_config_stmts_handling gdrr_config_stmts_handling;
 	void *closure;
+	state_t state;
 };
 
 

@@ -1,6 +1,4 @@
-export = rreil-callbacks-sem-id rreil-callbacks-sem-address rreil-callbacks-sem-var rreil-callbacks-sem-linear rreil-callbacks-sem-sexpr rreil-callbacks-sem-op-cmp rreil-callbacks-sem-op rreil-callbacks-sem-stmt rreil-callbacks-branch-hint rreil-callbacks-sem-stmts rreil-callbacks rreil-convert-sem-stmts
-
-type string_ = STRING of string
+export = string__payload rreil-callbacks-sem-id rreil-callbacks-sem-address rreil-callbacks-sem-var rreil-callbacks-sem-linear rreil-callbacks-sem-sexpr rreil-callbacks-sem-op-cmp rreil-callbacks-sem-op rreil-callbacks-sem-stmt rreil-callbacks-branch-hint rreil-callbacks-sem-stmts rreil-callbacks rreil-convert-sem-stmts rreil-convert-sem-stmts-list
 
 type callbacks =
    SEM_ID_CBS of {virt_na:string_, virt_t:string_}
@@ -19,17 +17,42 @@ val rreil-callbacks-sem-stmts-list list_next list_init = {list_next=STRING list_
 
 val rreil-callbacks sem_id sem_address sem_var sem_linear sem_sexpr sem_op_cmp sem_op sem_stmt branch_hint sem_stmts sem_stmts_list = {sem_id=sem_id, sem_address=sem_address, sem_var=sem_var, sem_linear=sem_linear, sem_sexpr=sem_sexpr, sem_op_cmp=sem_op_cmp, sem_op=sem_op, sem_stmt=sem_stmt, branch_hint=branch_hint, sem_stmts=sem_stmts, sem_stmts_list=sem_stmts_list}
 
-val rreil-convert-sem-id cbs closure id = "..."
+val rreil-convert-sem-id cbs closure id = case id of
+   VIRT_EQ: invoke-oi cbs.sem_id.virt_na closure (index id)
+ | VIRT_NEQ: invoke-oi cbs.sem_id.virt_na closure (index id)
+ | VIRT_LES: invoke-oi cbs.sem_id.virt_na closure (index id)
+ | VIRT_LEU: invoke-oi cbs.sem_id.virt_na closure (index id)
+ | VIRT_LTS: invoke-oi cbs.sem_id.virt_na closure (index id)
+ | VIRT_LTU: invoke-oi cbs.sem_id.virt_na closure (index id)
+ | VIRT_T t: invoke-oi cbs.sem_id.virt_t closure t
+ | _: invoke-oi cbs.sem_id.x86 closure (index id)
+end
 
-val rreil-convert-sem-address cbs closure address = "..."
+val rreil-convert-sem-address cbs closure address = invoke-oio cbs.sem_address.sem_address closure address.size (rreil-convert-sem-linear cbs closure address.address)
 
-val rreil-convert-sem-var cbs closure var = "..."
+val rreil-convert-sem-var cbs closure var = invoke-ooi cbs.sem_var.sem_var closure (rreil-convert-sem-id cbs closure var.id) var.offset
 
-val rreil-convert-sem-linear cbs closure linear = "..."
+val rreil-convert-sem-linear cbs closure linear = case linear of
+   SEM_LIN_VAR v: invoke-oo cbs.sem_linear.sem_lin_var closure (rreil-convert-sem-var cbs closure v)
+ | SEM_LIN_IMM i: invoke-oi cbs.sem_linear.sem_lin_imm closure i.const
+ | SEM_LIN_ADD a: invoke-ooo cbs.sem_linear.sem_lin_add closure (rreil-convert-sem-linear cbs closure a.opnd1) (rreil-convert-sem-linear cbs closure a.opnd2)
+ | SEM_LIN_SUB s: invoke-ooo cbs.sem_linear.sem_lin_sub closure (rreil-convert-sem-linear cbs closure s.opnd1) (rreil-convert-sem-linear cbs closure s.opnd2)
+ | SEM_LIN_SCALE s: invoke-oio cbs.sem_linear.sem_lin_scale closure s.const (rreil-convert-sem-linear cbs closure s.opnd)
+end
 
-val rreil-convert-sem-sexpr cbs closure sexpr = "..."
+val rreil-convert-sem-sexpr cbs closure sexpr = case sexpr of
+   SEM_SEXPR_LIN l: invoke-oo cbs.sem_sexpr.sem_sexpr_lin closure (rreil-convert-sem-linear cbs closure l)
+ | SEM_SEXPR_CMP c: invoke-oo cbs.sem_sexpr.sem_sexpr_cmp closure (rreil-convert-sem-op-cmp cbs closure c)
+end
 
-val rreil-convert-sem-op-cmp cbs closure op-cmp = "..."
+val rreil-convert-sem-op-cmp cbs closure op-cmp = case op-cmp of
+   SEM_CMPEQ c: invoke-oioo cbs.sem_op_cmp.sem_cmpeq closure c.size (rreil-convert-sem-linear cbs closure c.opnd1) (rreil-convert-sem-linear cbs closure c.opnd2)
+ | SEM_CMPNEQ c: invoke-oioo cbs.sem_op_cmp.sem_cmpneq closure c.size (rreil-convert-sem-linear cbs closure c.opnd1) (rreil-convert-sem-linear cbs closure c.opnd2)
+ | SEM_CMPLES c: invoke-oioo cbs.sem_op_cmp.sem_cmples closure c.size (rreil-convert-sem-linear cbs closure c.opnd1) (rreil-convert-sem-linear cbs closure c.opnd2)
+ | SEM_CMPLEU c: invoke-oioo cbs.sem_op_cmp.sem_cmpleu closure c.size (rreil-convert-sem-linear cbs closure c.opnd1) (rreil-convert-sem-linear cbs closure c.opnd2)
+ | SEM_CMPLTS c: invoke-oioo cbs.sem_op_cmp.sem_cmplts closure c.size (rreil-convert-sem-linear cbs closure c.opnd1) (rreil-convert-sem-linear cbs closure c.opnd2)
+ | SEM_CMPLTU c: invoke-oioo cbs.sem_op_cmp.sem_cmpltu closure c.size (rreil-convert-sem-linear cbs closure c.opnd1) (rreil-convert-sem-linear cbs closure c.opnd2)
+end
 
 val rreil-convert-sem-op cbs closure op = case op of
    SEM_LIN l: invoke-oio cbs.sem_op.sem_lin closure l.size (rreil-convert-sem-linear cbs closure l.opnd1)
@@ -64,4 +87,10 @@ end
 val rreil-convert-sem-stmts cbs closure stmts = case stmts of
    SEM_CONS x: invoke-ooo cbs.sem_stmts.sem_cons closure (rreil-convert-sem-stmt cbs closure x.hd) (rreil-convert-sem-stmts cbs closure x.tl)
  | SEM_NIL: invoke-o cbs.sem_stmts.sem_nil closure
+end
+
+#Todo: fix
+val rreil-convert-sem-stmts-list cbs closure stmts = case stmts of
+   SEM_CONS x: invoke-ooo cbs.sem_stmts_list.list_next closure (rreil-convert-sem-stmt cbs closure x.hd) (rreil-convert-sem-stmts-list cbs closure x.tl)
+ | SEM_NIL: invoke-o cbs.sem_stmts_list.list_init closure
 end

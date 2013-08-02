@@ -266,6 +266,8 @@ int64_t gdsl_rseek(state_t s, int64_t i) {
 }
 
 static string_t invoke(state_t s, obj_t func, obj_t args) {
+  func = x86_string__payload(s, func);  
+
 	av_alist arg_list;
 	string_t result;
 	av_start_ptr(arg_list, func, string_t, &result);

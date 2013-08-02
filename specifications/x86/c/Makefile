@@ -8,7 +8,7 @@ clang-cli:
 	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors cli.c ../../../dis.o -DRELAXEDFATAL -o clang-cli
 
 cli-gdrr:
-	gcc -Wall -static -I. -I../../.. -I../../../include -Wfatal-errors cli-gdrr.c ../../../dis.o -DRELAXEDFATAL -o cli-gdrr -lgdrr -L../../../gdrr/Debug
+	gcc -Wall -I. -I../../.. -I../../../include -Wfatal-errors cli-gdrr.c -DRELAXEDFATAL -o cli-gdrr -lgdrr -L../../../gdrr/Debug -lgdsl-x86 -L../../../lib -lavcall
 
 clang-tester:
 	clang -pipe -O3 -Wall -static -I. -I../../.. -Wfatal-errors tester.c ../../../dis.o -DRELAXEDFATAL -o tester
