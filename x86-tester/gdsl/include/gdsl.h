@@ -14,7 +14,6 @@ enum gdsl_x86_print_mode {
 	GDSL_X86_PRINT_MODE_FULL, GDSL_X86_PRINT_MODE_SIMPLE
 };
 
-extern state_t gdsl_create_state(char *buffer, int_t size);
 extern char gdsl_decode(obj_t *insn, state_t state);
 extern size_t gdsl_decoded(state_t state);
 extern int_t gdsl_features_get(obj_t insn);

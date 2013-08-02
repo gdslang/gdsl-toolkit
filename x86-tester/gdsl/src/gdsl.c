@@ -11,13 +11,6 @@
 #include <gdsl-x86.h>
 #include <gdsl.h>
 
-state_t gdsl_create_state(char *buffer, int_t size) {
-	state_t s = gdsl_init();
-	gdsl_set_code(s, buffer, size, 0);
-
-	return s;
-}
-
 char gdsl_decode(obj_t *insn, state_t state) {
 	jmp_buf exp_vec;
 //	__exp_vec_set(&exp_vec);

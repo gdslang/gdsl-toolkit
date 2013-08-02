@@ -260,11 +260,12 @@ static struct tester_result tester_forked_test_translated(char fork_,
 }
 
 struct tester_result tester_test_binary(void (*name)(char *), char fork_,
-		char *data, size_t data_size, char test_unused) {
+		uint8_t *data, size_t data_size, char test_unused) {
 	struct tester_result result;
 	result.type = TESTER_RTYPE_SUCCESS;
 
-	state_t state = gdsl_create_state(data, data_size);
+	state_t state = gdsl_init();
+	gdsl_set_code(state, (char*)data, data_size, 0);
 
 	obj_t insn;
 	int_t features;
