@@ -1,4 +1,5 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
+export = rreil-stmts-rev
 
 type sem_id =
    VIRT_EQ  # ==

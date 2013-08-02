@@ -23,7 +23,7 @@
 #include <util.h>
 #include <tbgen.h>
 #include <gdsl.h>
-#include <dis.h>
+#include <gdsl-x86.h>
 #include <context.h>
 #include <executor.h>
 #include <tester.h>
@@ -260,15 +260,15 @@ static struct tester_result tester_forked_test_translated(char fork_,
 }
 
 struct tester_result tester_test_binary(void (*name)(char *), char fork_,
-		__char *data, size_t data_size, char test_unused) {
+		char *data, size_t data_size, char test_unused) {
 	struct tester_result result;
 	result.type = TESTER_RTYPE_SUCCESS;
 
-	__obj state = gdsl_create_state(data, data_size);
+	state_t state = gdsl_create_state(data, data_size);
 
-	__obj insn;
-	__word features;
-	if(gdsl_decode(&insn, &state)) {
+	obj_t insn;
+	int_t features;
+	if(gdsl_decode(&insn, state)) {
 		printf("Decode failed\n");
 		fflush(stderr);
 		fflush(stdout);
@@ -276,7 +276,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 		goto cu;
 	}
 
-	data_size = gdsl_decoded(&state);
+	data_size = gdsl_decoded(state);
 	features = gdsl_features_get(insn);
 
 	printf("Instruction bytes:");
@@ -284,26 +284,26 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 		printf(" %02x", (int)(data[i]) & 0xff);
 	printf("\n");
 
-	char *str = gdsl_x86_pretty(insn, GDSL_X86_PRINT_MODE_FULL);
+	char *str = gdsl_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_FULL);
 	if(str)
 		puts(str);
 	else
 		printf("NULL\n");
-	free(str);
+//	free(str);
 
-	str = gdsl_x86_pretty(insn, GDSL_X86_PRINT_MODE_SIMPLE);
+	str = gdsl_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_SIMPLE);
 	if(str) {
 		puts(str);
 		if(name)
 			name(str);
 	} else
 		printf("NULL\n");
-	free(str);
+//	free(str);
 
 	printf("---------------------------\n");
 
-	__obj rreil;
-	if(gdsl_translate(&rreil, insn, &state)) {
+	obj_t rreil;
+	if(gdsl_translate(&rreil, insn, state)) {
 		printf("Translate failed\n");
 		fflush(stderr);
 		fflush(stdout);
@@ -311,7 +311,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 		goto cu;
 	}
 
-	struct gdrr_config *config = rreil_gdrr_builder_config_get();
+	struct gdrr_config *config = rreil_gdrr_builder_config_get(state);
 	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(
 			rreil, config);
 	free(config);
@@ -323,7 +323,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 
 	cu: ;
 
-	gdsl_reset();
+	gdsl_destroy(state);
 
 	result.features = features;
 	return result;

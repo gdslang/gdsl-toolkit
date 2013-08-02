@@ -26,6 +26,7 @@ specifications/x86/c/liveness-sweep
 
 gdrr/.cproject
 gdrr/.project
+gdrr/.settings
 gdrr/Debug/
 include/
 specifications/x86/c/cli-gdrr
@@ -55,6 +56,7 @@ x86-tester/x86-tester/Debug/
 
 x86-tester/x86-test-runner/.cproject
 x86-tester/x86-test-runner/.project
+x86-tester/x86-test-runner/.settings
 x86-tester/x86-test-runner/Debug/
 
 x86-tester/x86-test-stats-runner/.cproject

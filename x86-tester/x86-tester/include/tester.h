@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <rreil/rreil.h>
 #include <simulator/simulator.h>
-#include <dis.h>
+#include <gdsl-x86.h>
 #include <executor.h>
 
 enum tester_result_type {
@@ -40,7 +40,7 @@ extern struct tester_result tester_test_translated(
 		struct rreil_statements *statements, uint8_t *instruction,
 		size_t instruction_length, char test_unused);
 extern struct tester_result tester_test_binary(void (*name)(char *), char fork_,
-		__char *data, size_t data_size, char test_unused);
+		char *data, size_t data_size, char test_unused);
 extern void tester_result_type_print(enum tester_result_type result);
 
 #endif /* TESTER_H_ */

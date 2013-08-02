@@ -8,6 +8,8 @@
 #ifndef RREIL_GDRR_BUILDER_H_
 #define RREIL_GDRR_BUILDER_H_
 
-struct gdrr_config *rreil_gdrr_builder_config_get();
+#include <gdsl-x86.h>
+
+struct gdrr_config *rreil_gdrr_builder_config_get(state_t state);
 
 #endif /* RREIL_GDRR_BUILDER_H_ */

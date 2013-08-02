@@ -131,7 +131,7 @@ static void result_print(struct tester_result result) {
 }
 
 static void test_stream(FILE *stream, struct options *options) {
-	__char data[15];
+	char data[15];
 	stream_to_insn_buffer(stream, (uint8_t*)data, sizeof(data));
 	struct tester_result result = tester_test_binary(NULL, options->fork, data,
 			sizeof(data), options->test_unused);
@@ -154,7 +154,7 @@ static void generator(struct options *options) {
 		fclose(stream);
 
 		struct tester_result result = tester_test_binary(NULL, options->fork,
-				(__char *)buffer, length, options->test_unused);
+				(char *)buffer, length, options->test_unused);
 
 		free(buffer);
 
@@ -207,7 +207,7 @@ static void code(struct options *options) {
 
 //	__char data[] = { 0x48, 0x83, 0xc0, 0x2a };
 
-	__char data[] = { 0x48, 0x29, 0xc3 };
+	char data[] = { 0x48, 0x29, 0xc3 };
 //	__char data[] = { 0xff, 0xe0 };
 
 	struct tester_result result = tester_test_binary(NULL, options->fork, data,

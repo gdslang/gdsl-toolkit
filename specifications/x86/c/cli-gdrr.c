@@ -489,6 +489,17 @@ static gdrr_sem_stmt_t *sem_branch(void *closure,
 }
 
 // sem_stmts
+static gdrr_sem_stmts_t *sem_cons(void *closure, gdrr_sem_stmt_t *hd,
+		gdrr_sem_stmts_t *tl) {
+	printf("sem_cons\n\n");
+	return NULL ;
+}
+static gdrr_sem_stmts_t *sem_nil(void *closure) {
+	printf("sem_nil\n");
+	return NULL ;
+}
+
+// sem_stmts
 static gdrr_sem_stmts_t *list_next(void *closure, gdrr_sem_stmt_t *next,
 		gdrr_sem_stmts_t *list) {
 	printf("next statement\n\n");
@@ -540,8 +551,6 @@ int main(int argc, char** argv) {
 	config.callbacks.sem_id.virt_t = &virt_t;
 	config.callbacks.arch.x86.sem_id.x86 = &x86;
 
-	printf("%p\n", &virt_t);
-
 	config.callbacks.sem_address.sem_address = &sem_address;
 
 	config.callbacks.sem_var.sem_var = &sem_var;
@@ -591,10 +600,15 @@ int main(int argc, char** argv) {
 	config.callbacks.sem_stmts_list.list_init = &list_init;
 	config.callbacks.sem_stmts_list.list_next = &list_next;
 	config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_LIST;
+//		config.callbacks.sem_stmts.sem_cons = &sem_cons;
+//		config.callbacks.sem_stmts.sem_nil = &sem_nil;
+//		config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
 
 	config.state = state;
 
 	gdrr_convert(rreil, &config);
+
+	gdsl_destroy(state);
 
 	return 0;
 }

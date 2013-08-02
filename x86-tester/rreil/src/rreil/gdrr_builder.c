@@ -9,398 +9,34 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <gdrr.h>
-#include <dis.h>
+#include <gdsl-x86.h>
 #include <rreil/rreil.h>
 #include <x86.h>
 
 // sem_id
-static gdrr_sem_id_t *virt_eq(void *closure) {
+static gdrr_sem_id_t *virt_na(void *closure, int_t con) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_VIRTUAL;
 	id->virtual_ = RREIL_ID_VIRTUAL_EQ;
 	return (gdrr_sem_id_t*)id;
 }
-static gdrr_sem_id_t *virt_neq(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_VIRTUAL;
-	id->virtual_ = RREIL_ID_VIRTUAL_NEQ;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *virt_les(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_VIRTUAL;
-	id->virtual_ = RREIL_ID_VIRTUAL_LES;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *virt_leu(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_VIRTUAL;
-	id->virtual_ = RREIL_ID_VIRTUAL_LEU;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *virt_lts(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_VIRTUAL;
-	id->virtual_ = RREIL_ID_VIRTUAL_LTS;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *virt_ltu(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_VIRTUAL;
-	id->virtual_ = RREIL_ID_VIRTUAL_LTU;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *virt_t(void *closure, __word t) {
+
+static gdrr_sem_id_t *virt_t(void *closure, int_t t) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_TEMPORARY;
 	id->temporary = t;
 	return (gdrr_sem_id_t*)id;
 }
-static gdrr_sem_id_t *sem_ip(void *closure) {
+
+static gdrr_sem_id_t *x86(void *closure, int_t con) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_X86;
 	id->virtual_ = X86_ID_IP;
 	return (gdrr_sem_id_t*)id;
 }
-static gdrr_sem_id_t *sem_flags(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_FLAGS;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mxcsr(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MXCSR;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_ax(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_AX;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_bx(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_BX;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_cx(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_CX;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_dx(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_DX;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_si(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_SI;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_di(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_DI;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_sp(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_SP;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_bp(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_BP;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_r8(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_R8;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_r9(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_R9;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_r10(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_R10;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_r11(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_R11;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_r12(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_R12;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_r13(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_R13;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_r14(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_R14;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_r15(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_R15;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_cs(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_CS;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_ds(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_DS;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_ss(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_SS;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_es(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ES;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_fs(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_FS;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_gs(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_GS;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_st0(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ST0;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_st1(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ST1;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_st2(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ST2;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_st3(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ST3;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_st4(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ST4;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_st5(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ST5;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_st6(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ST6;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_st7(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_ST7;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mm0(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MM0;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mm1(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MM1;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mm2(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MM2;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mm3(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MM3;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mm4(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MM4;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mm5(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MM5;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mm6(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MM6;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_mm7(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_MM7;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm0(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM0;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm1(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM1;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm2(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM2;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm3(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM3;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm4(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM4;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm5(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM5;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm6(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM6;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm7(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM7;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm8(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM8;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm9(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM9;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm10(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM10;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm11(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM11;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm12(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM12;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm13(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM13;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm14(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM14;
-	return (gdrr_sem_id_t*)id;
-}
-static gdrr_sem_id_t *sem_xmm15(void *closure) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_X86;
-	id->virtual_ = X86_ID_XMM15;
-	return (gdrr_sem_id_t*)id;
-}
 
 // sem_address
-static gdrr_sem_address_t *sem_address(void *closure, __word size,
+static gdrr_sem_address_t *sem_address(void *closure, int_t size,
 		gdrr_sem_linear_t *address) {
 	struct rreil_address *address_ = (struct rreil_address*)malloc(
 			sizeof(struct rreil_address));
@@ -410,7 +46,7 @@ static gdrr_sem_address_t *sem_address(void *closure, __word size,
 }
 
 // sem_var
-static gdrr_sem_var_t *sem_var(void *closure, gdrr_sem_id_t *id, __word offset) {
+static gdrr_sem_var_t *sem_var(void *closure, gdrr_sem_id_t *id, int_t offset) {
 	struct rreil_variable *variable = (struct rreil_variable*)malloc(
 			sizeof(struct rreil_variable));
 	variable->id = (struct rreil_id*)id;
@@ -426,7 +62,7 @@ static gdrr_sem_linear_t *sem_lin_var(void *closure, gdrr_sem_var_t *this) {
 	linear->variable = (struct rreil_variable*)this;
 	return (gdrr_sem_linear_t*)linear;
 }
-static gdrr_sem_linear_t *sem_lin_imm(void *closure, __word imm) {
+static gdrr_sem_linear_t *sem_lin_imm(void *closure, int_t imm) {
 	struct rreil_linear *linear = (struct rreil_linear*)malloc(
 			sizeof(struct rreil_linear));
 	linear->type = RREIL_LINEAR_TYPE_IMMEDIATE;
@@ -451,7 +87,7 @@ static gdrr_sem_linear_t *sem_lin_sub(void *closure, gdrr_sem_linear_t *opnd1,
 	linear->difference.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_linear_t*)linear;
 }
-static gdrr_sem_linear_t *sem_lin_scale(void *closure, __word imm,
+static gdrr_sem_linear_t *sem_lin_scale(void *closure, int_t imm,
 		gdrr_sem_linear_t *opnd) {
 	struct rreil_linear *linear = (struct rreil_linear*)malloc(
 			sizeof(struct rreil_linear));
@@ -478,7 +114,7 @@ static gdrr_sem_sexpr_t *sem_sexpr_cmp(void *closure, gdrr_sem_op_cmp_t *this) {
 }
 
 // sem_op_cmp
-static gdrr_sem_op_cmp_t *sem_cmpeq(void *closure, __word size,
+static gdrr_sem_op_cmp_t *sem_cmpeq(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
@@ -488,7 +124,7 @@ static gdrr_sem_op_cmp_t *sem_cmpeq(void *closure, __word size,
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
-static gdrr_sem_op_cmp_t *sem_cmpneq(void *closure, __word size,
+static gdrr_sem_op_cmp_t *sem_cmpneq(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
@@ -498,7 +134,7 @@ static gdrr_sem_op_cmp_t *sem_cmpneq(void *closure, __word size,
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
-static gdrr_sem_op_cmp_t *sem_cmples(void *closure, __word size,
+static gdrr_sem_op_cmp_t *sem_cmples(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
@@ -508,7 +144,7 @@ static gdrr_sem_op_cmp_t *sem_cmples(void *closure, __word size,
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
-static gdrr_sem_op_cmp_t *sem_cmpleu(void *closure, __word size,
+static gdrr_sem_op_cmp_t *sem_cmpleu(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
@@ -518,7 +154,7 @@ static gdrr_sem_op_cmp_t *sem_cmpleu(void *closure, __word size,
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
-static gdrr_sem_op_cmp_t *sem_cmplts(void *closure, __word size,
+static gdrr_sem_op_cmp_t *sem_cmplts(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
@@ -528,7 +164,7 @@ static gdrr_sem_op_cmp_t *sem_cmplts(void *closure, __word size,
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_cmp_t*)comparator;
 }
-static gdrr_sem_op_cmp_t *sem_cmpltu(void *closure, __word size,
+static gdrr_sem_op_cmp_t *sem_cmpltu(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
@@ -540,7 +176,7 @@ static gdrr_sem_op_cmp_t *sem_cmpltu(void *closure, __word size,
 }
 
 // sem_op
-static gdrr_sem_op_t *sem_lin(void *closure, __word size,
+static gdrr_sem_op_t *sem_lin(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_LIN;
@@ -548,7 +184,7 @@ static gdrr_sem_op_t *sem_lin(void *closure, __word size,
 	op->lin.opnd1 = (struct rreil_linear*)opnd1;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_mul(void *closure, __word size,
+static gdrr_sem_op_t *sem_mul(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_MUL;
@@ -557,7 +193,7 @@ static gdrr_sem_op_t *sem_mul(void *closure, __word size,
 	op->mul.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_div(void *closure, __word size,
+static gdrr_sem_op_t *sem_div(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_DIV;
@@ -566,7 +202,7 @@ static gdrr_sem_op_t *sem_div(void *closure, __word size,
 	op->div.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_divs(void *closure, __word size,
+static gdrr_sem_op_t *sem_divs(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_DIVS;
@@ -575,7 +211,7 @@ static gdrr_sem_op_t *sem_divs(void *closure, __word size,
 	op->divs.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_mod(void *closure, __word size,
+static gdrr_sem_op_t *sem_mod(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_MOD;
@@ -584,7 +220,7 @@ static gdrr_sem_op_t *sem_mod(void *closure, __word size,
 	op->mod.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_shl(void *closure, __word size,
+static gdrr_sem_op_t *sem_shl(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_SHL;
@@ -593,7 +229,7 @@ static gdrr_sem_op_t *sem_shl(void *closure, __word size,
 	op->shl.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_shr(void *closure, __word size,
+static gdrr_sem_op_t *sem_shr(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_SHR;
@@ -602,7 +238,7 @@ static gdrr_sem_op_t *sem_shr(void *closure, __word size,
 	op->shr.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_shrs(void *closure, __word size,
+static gdrr_sem_op_t *sem_shrs(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_SHRS;
@@ -611,7 +247,7 @@ static gdrr_sem_op_t *sem_shrs(void *closure, __word size,
 	op->shrs.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_and(void *closure, __word size,
+static gdrr_sem_op_t *sem_and(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_AND;
@@ -620,7 +256,7 @@ static gdrr_sem_op_t *sem_and(void *closure, __word size,
 	op->and_.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_or(void *closure, __word size,
+static gdrr_sem_op_t *sem_or(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_OR;
@@ -629,7 +265,7 @@ static gdrr_sem_op_t *sem_or(void *closure, __word size,
 	op->or_.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_xor(void *closure, __word size,
+static gdrr_sem_op_t *sem_xor(void *closure, int_t size,
 		gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_XOR;
@@ -638,7 +274,7 @@ static gdrr_sem_op_t *sem_xor(void *closure, __word size,
 	op->xor_.opnd2 = (struct rreil_linear*)opnd2;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_sx(void *closure, __word size, __word fromsize,
+static gdrr_sem_op_t *sem_sx(void *closure, int_t size, int_t fromsize,
 		gdrr_sem_linear_t *opnd1) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_SX;
@@ -647,7 +283,7 @@ static gdrr_sem_op_t *sem_sx(void *closure, __word size, __word fromsize,
 	op->sx.opnd = (struct rreil_linear*)opnd1;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_zx(void *closure, __word size, __word fromsize,
+static gdrr_sem_op_t *sem_zx(void *closure, int_t size, int_t fromsize,
 		gdrr_sem_linear_t *opnd1) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_ZX;
@@ -662,7 +298,7 @@ static gdrr_sem_op_t *sem_cmp(void *closure, gdrr_sem_op_cmp_t *this) {
 	op->cmp = (struct rreil_comparator*)this;
 	return (gdrr_sem_op_t*)op;
 }
-static gdrr_sem_op_t *sem_arb(void *closure, __word size) {
+static gdrr_sem_op_t *sem_arb(void *closure, int_t size) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
 	op->type = RREIL_OP_TYPE_ARB;
 	op->arb.size = size;
@@ -670,23 +306,11 @@ static gdrr_sem_op_t *sem_arb(void *closure, __word size) {
 }
 
 // sem_branch_hint
-static gdrr_sem_branch_hint_t *hint_jump(void *closure) {
+static gdrr_branch_hint_t *branch_hint(void *closure, int_t con) {
 	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
 			sizeof(enum rreil_branch_hint));
 	*hint = RREIL_BRANCH_HINT_JUMP;
-	return (gdrr_sem_branch_hint_t*)hint;
-}
-static gdrr_sem_branch_hint_t *hint_call(void *closure) {
-	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
-			sizeof(enum rreil_branch_hint));
-	*hint = RREIL_BRANCH_HINT_CALL;
-	return (gdrr_sem_branch_hint_t*)hint;
-}
-static gdrr_sem_branch_hint_t *hint_ret(void *closure) {
-	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
-			sizeof(enum rreil_branch_hint));
-	*hint = RREIL_BRANCH_HINT_RET;
-	return (gdrr_sem_branch_hint_t*)hint;
+	return (gdrr_branch_hint_t*)hint;
 }
 
 // sem_stmt
@@ -699,8 +323,8 @@ static gdrr_sem_stmt_t *sem_assign(void *closure, gdrr_sem_var_t *lhs,
 	statement->assign.rhs = (struct rreil_op*)rhs;
 	return (gdrr_sem_stmt_t*)statement;
 }
-static gdrr_sem_stmt_t *sem_load(void *closure, gdrr_sem_var_t *lhs,
-		__word size, gdrr_sem_address_t *address) {
+static gdrr_sem_stmt_t *sem_load(void *closure, gdrr_sem_var_t *lhs, int_t size,
+		gdrr_sem_address_t *address) {
 	struct rreil_statement *statement = (struct rreil_statement*)malloc(
 			sizeof(struct rreil_statement));
 	statement->type = RREIL_STATEMENT_TYPE_LOAD;
@@ -748,7 +372,7 @@ static gdrr_sem_stmt_t *sem_cbranch(void *closure, gdrr_sem_linear_t *cond,
 	return (gdrr_sem_stmt_t*)statement;
 }
 static gdrr_sem_stmt_t *sem_branch(void *closure,
-		gdrr_sem_branch_hint_t *branch_hint, gdrr_sem_address_t *target) {
+		gdrr_branch_hint_t *branch_hint, gdrr_sem_address_t *target) {
 	struct rreil_statement *statement = (struct rreil_statement*)malloc(
 			sizeof(struct rreil_statement));
 	statement->type = RREIL_STATEMENT_TYPE_BRANCH;
@@ -781,74 +405,13 @@ static gdrr_sem_stmts_t *list_init(void *closure) {
 	return (gdrr_sem_stmts_t*)statements;
 }
 
-struct gdrr_config *rreil_gdrr_builder_config_get() {
+struct gdrr_config *rreil_gdrr_builder_config_get(state_t state) {
 	struct gdrr_config *config = (struct gdrr_config*)malloc(
 			sizeof(struct gdrr_config));
 
-	config->callbacks.sem_id.virt_eq = &virt_eq;
-	config->callbacks.sem_id.virt_neq = &virt_neq;
-	config->callbacks.sem_id.virt_les = &virt_les;
-	config->callbacks.sem_id.virt_leu = &virt_leu;
-	config->callbacks.sem_id.virt_lts = &virt_lts;
-	config->callbacks.sem_id.virt_ltu = &virt_ltu;
+	config->callbacks.sem_id.virt_na = &virt_na;
 	config->callbacks.sem_id.virt_t = &virt_t;
-	config->callbacks.arch.x86.sem_id.sem_ip = &sem_ip;
-	config->callbacks.arch.x86.sem_id.sem_flags = &sem_flags;
-	config->callbacks.arch.x86.sem_id.sem_mxcsr = &sem_mxcsr;
-	config->callbacks.arch.x86.sem_id.sem_ax = &sem_ax;
-	config->callbacks.arch.x86.sem_id.sem_bx = &sem_bx;
-	config->callbacks.arch.x86.sem_id.sem_cx = &sem_cx;
-	config->callbacks.arch.x86.sem_id.sem_dx = &sem_dx;
-	config->callbacks.arch.x86.sem_id.sem_si = &sem_si;
-	config->callbacks.arch.x86.sem_id.sem_di = &sem_di;
-	config->callbacks.arch.x86.sem_id.sem_sp = &sem_sp;
-	config->callbacks.arch.x86.sem_id.sem_bp = &sem_bp;
-	config->callbacks.arch.x86.sem_id.sem_r8 = &sem_r8;
-	config->callbacks.arch.x86.sem_id.sem_r9 = &sem_r9;
-	config->callbacks.arch.x86.sem_id.sem_r10 = &sem_r10;
-	config->callbacks.arch.x86.sem_id.sem_r11 = &sem_r11;
-	config->callbacks.arch.x86.sem_id.sem_r12 = &sem_r12;
-	config->callbacks.arch.x86.sem_id.sem_r13 = &sem_r13;
-	config->callbacks.arch.x86.sem_id.sem_r14 = &sem_r14;
-	config->callbacks.arch.x86.sem_id.sem_r15 = &sem_r15;
-	config->callbacks.arch.x86.sem_id.sem_cs = &sem_cs;
-	config->callbacks.arch.x86.sem_id.sem_ds = &sem_ds;
-	config->callbacks.arch.x86.sem_id.sem_ss = &sem_ss;
-	config->callbacks.arch.x86.sem_id.sem_es = &sem_es;
-	config->callbacks.arch.x86.sem_id.sem_fs = &sem_fs;
-	config->callbacks.arch.x86.sem_id.sem_gs = &sem_gs;
-	config->callbacks.arch.x86.sem_id.sem_st0 = &sem_st0;
-	config->callbacks.arch.x86.sem_id.sem_st1 = &sem_st1;
-	config->callbacks.arch.x86.sem_id.sem_st2 = &sem_st2;
-	config->callbacks.arch.x86.sem_id.sem_st3 = &sem_st3;
-	config->callbacks.arch.x86.sem_id.sem_st4 = &sem_st4;
-	config->callbacks.arch.x86.sem_id.sem_st5 = &sem_st5;
-	config->callbacks.arch.x86.sem_id.sem_st6 = &sem_st6;
-	config->callbacks.arch.x86.sem_id.sem_st7 = &sem_st7;
-	config->callbacks.arch.x86.sem_id.sem_mm0 = &sem_mm0;
-	config->callbacks.arch.x86.sem_id.sem_mm1 = &sem_mm1;
-	config->callbacks.arch.x86.sem_id.sem_mm2 = &sem_mm2;
-	config->callbacks.arch.x86.sem_id.sem_mm3 = &sem_mm3;
-	config->callbacks.arch.x86.sem_id.sem_mm4 = &sem_mm4;
-	config->callbacks.arch.x86.sem_id.sem_mm5 = &sem_mm5;
-	config->callbacks.arch.x86.sem_id.sem_mm6 = &sem_mm6;
-	config->callbacks.arch.x86.sem_id.sem_mm7 = &sem_mm7;
-	config->callbacks.arch.x86.sem_id.sem_xmm0 = &sem_xmm0;
-	config->callbacks.arch.x86.sem_id.sem_xmm1 = &sem_xmm1;
-	config->callbacks.arch.x86.sem_id.sem_xmm2 = &sem_xmm2;
-	config->callbacks.arch.x86.sem_id.sem_xmm3 = &sem_xmm3;
-	config->callbacks.arch.x86.sem_id.sem_xmm4 = &sem_xmm4;
-	config->callbacks.arch.x86.sem_id.sem_xmm5 = &sem_xmm5;
-	config->callbacks.arch.x86.sem_id.sem_xmm6 = &sem_xmm6;
-	config->callbacks.arch.x86.sem_id.sem_xmm7 = &sem_xmm7;
-	config->callbacks.arch.x86.sem_id.sem_xmm8 = &sem_xmm8;
-	config->callbacks.arch.x86.sem_id.sem_xmm9 = &sem_xmm9;
-	config->callbacks.arch.x86.sem_id.sem_xmm10 = &sem_xmm10;
-	config->callbacks.arch.x86.sem_id.sem_xmm11 = &sem_xmm11;
-	config->callbacks.arch.x86.sem_id.sem_xmm12 = &sem_xmm12;
-	config->callbacks.arch.x86.sem_id.sem_xmm13 = &sem_xmm13;
-	config->callbacks.arch.x86.sem_id.sem_xmm14 = &sem_xmm14;
-	config->callbacks.arch.x86.sem_id.sem_xmm15 = &sem_xmm15;
+	config->callbacks.arch.x86.sem_id.x86 = &x86;
 
 	config->callbacks.sem_address.sem_address = &sem_address;
 
@@ -886,9 +449,7 @@ struct gdrr_config *rreil_gdrr_builder_config_get() {
 	config->callbacks.sem_op.sem_cmp = &sem_cmp;
 	config->callbacks.sem_op.sem_arb = &sem_arb;
 
-	config->callbacks.sem_branch_hint.hint_jump = &hint_jump;
-	config->callbacks.sem_branch_hint.hint_call = &hint_call;
-	config->callbacks.sem_branch_hint.hint_ret = &hint_ret;
+	config->callbacks.branch_hint.branch_hint = &branch_hint;
 
 	config->callbacks.sem_stmt.sem_assign = &sem_assign;
 	config->callbacks.sem_stmt.sem_load = &sem_load;
@@ -901,6 +462,8 @@ struct gdrr_config *rreil_gdrr_builder_config_get() {
 	config->callbacks.sem_stmts_list.list_init = &list_init;
 	config->callbacks.sem_stmts_list.list_next = &list_next;
 	config->gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_LIST;
+
+	config->state = state;
 
 	return config;
 }

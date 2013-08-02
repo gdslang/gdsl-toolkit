@@ -519,8 +519,41 @@
 //	return list;
 //}
 
+//static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_list(obj_t sem_stmts_obj,
+//		obj_t callbacks, struct gdrr_config *config) {
+//	/*
+//	 * Fix, move to GDSL
+//	 */
+//
+//}
+//
+//static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_recursive(obj_t sem_stmts_obj,
+//		obj_t callbacks, struct gdrr_config *config) {
+//
+//}
+
 static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(obj_t sem_stmts_obj,
 		struct gdrr_config *config) {
+	size_t size;
+	size_t length;
+	gdrr_sem_stmts_t **stmts;
+
+	gdrr_sem_stmts_t *sem_cons(void *closure, gdrr_sem_stmt_t *hd,
+			gdrr_sem_stmts_t *tl) {
+		printf("fu2\n");
+
+		if(length == size) {
+			size <<= 1;
+			stmts = (gdrr_sem_stmts_t**)realloc(stmts,
+					sizeof(gdrr_sem_stmts_t*) * size);
+		}
+		stmts[length++] = hd;
+		return NULL ;
+	}
+	gdrr_sem_stmts_t *sem_nil(void *closure) {
+		printf("fu3\n");
+		return NULL ;
+	}
 
 //	if(config->gdrr_config_stmts_handling == GDRR_CONFIG_STMTS_HANDLING_LIST)
 //		return gdrr_convert_sem_stmts_list(sem_stmts_obj, config);
@@ -578,6 +611,9 @@ static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(obj_t sem_stmts_obj,
 			sem_sexpr_callbacks, sem_op_cmp_callbacks, sem_op_callbacks,
 			sem_stmt_callbacks, branch_hint_callbacks, sem_stmts_callbacks,
 			sem_stmts_list_callbacks);
+
+	if(config->gdrr_config_stmts_handling == GDRR_CONFIG_STMTS_HANDLING_LIST)
+		sem_stmts_obj = x86_rreil_stmts_rev(config->state, sem_stmts_obj);
 
 	return x86_rreil_convert_sem_stmts(config->state, callbacks, config->closure,
 			sem_stmts_obj);

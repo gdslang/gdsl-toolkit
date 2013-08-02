@@ -8,20 +8,20 @@
 #ifndef GDSL_H_
 #define GDSL_H_
 
-#include <dis.h>
+#include <gdsl.h>
 
 enum gdsl_x86_print_mode {
-	GDSL_X86_PRINT_MODE_FULL,
-	GDSL_X86_PRINT_MODE_SIMPLE
+	GDSL_X86_PRINT_MODE_FULL, GDSL_X86_PRINT_MODE_SIMPLE
 };
 
-extern __obj gdsl_create_state(__char *buffer, __word size);
-extern char gdsl_decode(__obj *insn, __obj *state);
-extern size_t gdsl_decoded(__obj *state);
-extern __word gdsl_features_get(__obj insn);
-extern char *gdsl_x86_pretty(__obj insn, enum gdsl_x86_print_mode mode);
-extern char gdsl_translate(__obj *rreil, __obj insn, __obj *state);
-extern char gdsl_translate_block(__obj *rreil, __obj *state);
-extern void gdsl_reset();
+extern state_t gdsl_create_state(char *buffer, int_t size);
+extern char gdsl_decode(obj_t *insn, state_t state);
+extern size_t gdsl_decoded(state_t state);
+extern int_t gdsl_features_get(obj_t insn);
+extern char *gdsl_x86_pretty(state_t state, obj_t insn,
+		enum gdsl_x86_print_mode mode);
+extern char gdsl_translate(obj_t *rreil, obj_t insn, obj_t state);
+extern char gdsl_translate_block(obj_t *rreil, obj_t state);
+extern void gdsl_reset(state_t state);
 
 #endif /* GDSL_H_ */

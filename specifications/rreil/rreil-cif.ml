@@ -1,4 +1,4 @@
-export = string__payload rreil-callbacks-sem-id rreil-callbacks-sem-address rreil-callbacks-sem-var rreil-callbacks-sem-linear rreil-callbacks-sem-sexpr rreil-callbacks-sem-op-cmp rreil-callbacks-sem-op rreil-callbacks-sem-stmt rreil-callbacks-branch-hint rreil-callbacks-sem-stmts rreil-callbacks rreil-convert-sem-stmts rreil-convert-sem-stmts-list
+export = string__payload rreil-callbacks-sem-id rreil-callbacks-sem-address rreil-callbacks-sem-var rreil-callbacks-sem-linear rreil-callbacks-sem-sexpr rreil-callbacks-sem-op-cmp rreil-callbacks-sem-op rreil-callbacks-sem-stmt rreil-callbacks-branch-hint rreil-callbacks-sem-stmts rreil-callbacks rreil-convert-sem-stmts
 
 type callbacks =
    SEM_ID_CBS of {virt_na:string_, virt_t:string_}
@@ -89,8 +89,22 @@ val rreil-convert-sem-stmts cbs closure stmts = case stmts of
  | SEM_NIL: invoke-o cbs.sem_stmts.sem_nil closure
 end
 
-#Todo: fix
+#Todo: Fix
 val rreil-convert-sem-stmts-list cbs closure stmts = case stmts of
-   SEM_CONS x: invoke-ooo cbs.sem_stmts_list.list_next closure (rreil-convert-sem-stmt cbs closure x.hd) (rreil-convert-sem-stmts-list cbs closure x.tl)
+   SEM_CONS x: invoke-ooo cbs.sem_stmts_list.list_next closure (rreil-convert-sem-stmt cbs closure x.hd) (rreil-convert-sem-stmts cbs closure x.tl)
  | SEM_NIL: invoke-o cbs.sem_stmts_list.list_init closure
 end
+
+#val rreil-convert-sem-stmts-list cbs closure stmts = let
+#  val inner list next =
+#	  case next of
+#		   SEM_CONS c: do
+#			   list <- return (invoke-ooo cbs.sem_stmts_list.list_next closure (rreil-convert-sem-stmt cbs closure c.hd) list);
+#		 	  	return (inner list c.tl)
+#			 end
+#		 | SEM_NIL: return list
+#	  end
+#in do
+#  list <- return (invoke-o cbs.sem_stmts_list.list_init closure);
+#	return (inner list stmts)
+#end end
