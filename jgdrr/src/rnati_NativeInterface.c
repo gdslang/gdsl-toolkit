@@ -660,7 +660,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 	gdsl_set_code(state, bytes, length, 0);
 
 	if(setjmp(*gdsl_err_tgt(state))) {
-		jclass exp = (*env)->FindClass(env, "rnati/ReilDecodeException");
+		jclass exp = (*env)->FindClass(env, "rnati/GdslDecodeException");
 		(*env)->ThrowNew(env, exp, "Decode failed.");
 		return NULL;
 	}
