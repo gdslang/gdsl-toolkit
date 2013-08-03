@@ -23,6 +23,8 @@ specifications/x86/c/liveness-test
 specifications/x86/c/liveness-example
 specifications/x86/c/liveness-example.bin
 specifications/x86/c/liveness-sweep
+specifications/x86/c/cli
+specifications/x86/c/sweep
 
 gdrr/.cproject
 gdrr/.project
