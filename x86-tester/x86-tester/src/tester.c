@@ -269,7 +269,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 
 	obj_t insn;
 	int_t features;
-	if(gdsl_decode(&insn, state)) {
+	if(gdsl_decode(state, &insn)) {
 		printf("Decode failed\n");
 		fflush(stderr);
 		fflush(stdout);
@@ -277,13 +277,14 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 		goto cu;
 	}
 
-	data_size = gdsl_decoded(state);
-	features = gdsl_features_get(insn);
-
 	printf("Instruction bytes:");
 	for(size_t i = 0; i < data_size; ++i)
 		printf(" %02x", (int)(data[i]) & 0xff);
 	printf("\n");
+
+	fflush(stdout);
+	data_size = gdsl_get_ip_offset(state);
+	features = x86_features_get(state, insn);
 
 	char *str = gdsl_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_FULL);
 	if(str)
@@ -304,7 +305,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 	printf("---------------------------\n");
 
 	obj_t rreil;
-	if(gdsl_translate(&rreil, insn, state)) {
+	if(gdsl_translate(state, &rreil, insn)) {
 		printf("Translate failed\n");
 		fflush(stderr);
 		fflush(stdout);

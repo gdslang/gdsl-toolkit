@@ -1,5 +1,5 @@
 granularity = 8
-export = decode
+export = decode features-get
 
 # Optional arguments
 #
@@ -674,6 +674,8 @@ val illegal-rep           = return (illegal-rep_ 0)
 val illegal-repne         = return (illegal-repne_ 0)
 val illegal-lock          = return (illegal-lock_ 0)
 val illegal-lock-register = return (illegal-lock-register_ 0)
+
+val features-get insn = (zx insn.features)
 
 type flow1 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
 type arity0 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}

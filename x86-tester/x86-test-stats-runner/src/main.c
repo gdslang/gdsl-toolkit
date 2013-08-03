@@ -49,7 +49,7 @@ struct feature_data {
 };
 
 static char test_instruction(struct feature_data *features,
-		struct hash_array *insn_types, __char *data, size_t data_size,
+		struct hash_array *insn_types, uint8_t *data, size_t data_size,
 		char test_unused) {
 	struct insn_data *insn_data = NULL;
 
@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
 		generator_tree_execute(root, stream);
 		fclose(stream);
 
-		decode_errors += test_instruction(features, insn_types, (__char *)buffer,
+		decode_errors += test_instruction(features, insn_types, (uint8_t *)buffer,
 				length, options.test_unused);
 
 		free(buffer);
