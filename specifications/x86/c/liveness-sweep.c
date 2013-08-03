@@ -50,7 +50,7 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	Elf_Scn *scn = NULL;
 
 	char found = 0;
-	while((scn = elf_nextscn(e, scn)) != NULL) {
+	while((scn = elf_nextscn(e, scn)) != NULL ) {
 		GElf_Shdr shdr;
 		if(gelf_getshdr(scn, &shdr) != &shdr) {
 			retval = 6;
@@ -173,16 +173,22 @@ static char args_parse(int argc, char **argv, struct options *options) {
 }
 
 obj_t translate_single(state_t state) {
+	if(setjmp(*gdsl_err_tgt(state)))
+		return NULL ;
 	obj_t rreil_insns = x86_translateSingle(state);
 	return rreil_insns;
 }
 
 obj_t translate(state_t state) {
+	if(setjmp(*gdsl_err_tgt(state)))
+		return NULL ;
 	obj_t rreil_insns = x86_translateBlock(state);
 	return rreil_insns;
 }
 
 obj_t translate_super(state_t state, obj_t *rreil_insns) {
+	if(setjmp(*gdsl_err_tgt(state)))
+		return NULL ;
 	obj_t rreil_insns_succs = x86_translateSuperBlock(state);
 	*rreil_insns = x86_select_insns(state, rreil_insns_succs);
 	return rreil_insns_succs;
@@ -208,8 +214,11 @@ void print_succs(state_t state, obj_t translated, size_t size) {
 //		}
 //	}
 
-	x86_succ_pretty(state, succ_a, "a");
-	x86_succ_pretty(state, succ_b, "b");
+	string_t r = x86_succ_pretty(state, succ_a, "a");
+	printf("%s", r);
+
+	r = x86_succ_pretty(state, succ_b, "b");
+	printf("%s", r);
 
 //	print_succ(succ_a, "a");
 //	print_succ(succ_b, "b");
@@ -329,11 +338,11 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 	fseek(f, file_offset, SEEK_SET);
 
 	size_t buffer_size = 128;
-	unsigned char *buffer = NULL;
+	char *buffer = NULL;
 	size_t buffer_length = 0;
 	do {
 		buffer_size *= 2;
-		buffer = (unsigned char*)realloc(buffer, buffer_size);
+		buffer = (char*)realloc(buffer, buffer_size);
 		buffer_length += fread(buffer + buffer_length, 1,
 				buffer_size - buffer_length, f);
 	} while(!feof(f) && (!size_max || buffer_length < size_max));
@@ -347,7 +356,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 
 	if(buffer_length == buffer_size) {
 		buffer_size++;
-		buffer = (unsigned char*)realloc(buffer, buffer_size);
+		buffer = (char*)realloc(buffer, buffer_size);
 	}
 	buffer[buffer_length++] = 0xc3; //Last instruction should be a jump (ret) ;-).
 
@@ -394,6 +403,11 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		long diff = end.tv_nsec - start.tv_nsec;
 		context->time_non_opt += diff > 0 ? diff : 0;
 
+		if(translated == NULL || rreil_insns == NULL) {
+			printf("Translation or decoding error, aborting...");
+			break;
+		}
+
 		/*
 		 * Todo: Fix
 		 */
@@ -404,7 +418,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(print && mode == MODE_CHILDREN)
 			print_succs(state, translated, size);
 
-		int_t native_instruction_count = x86_select_ins_count(state, x86_state_get(state));
+		int_t native_instruction_count = x86_select_ins_count(state,
+				x86_state_get(state));
 		context->native_instructions += native_instruction_count;
 
 		//printf("%x\n", buffer[consumed]);
@@ -435,7 +450,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 				break;
 			}
 		}
-		obj_t rreil_instructions_greedy = x86_select_live(state, x86_state_get(state));
+		obj_t rreil_instructions_greedy = x86_select_live(state,
+				x86_state_get(state));
 		/*
 		 * Todo: Fix
 		 */
