@@ -6,62 +6,30 @@ resources/
 \.cps
 \.core
 
-dis.c
-dis.h
-dis.js
-dis.o
+\.cproject*
+\.project*
+\.settings*
 
 STATS
 examples/x86/cli
 gdsl
 
-gdrr/.cproject
-gdrr/.project
-gdrr/.settings
 gdrr/Debug/
-include/
 
 jgdrr/.classpath
 jgdrr/bin/
 
-x86-tester/x86-generator/.cproject
-x86-tester/x86-generator/.project
 x86-tester/x86-generator/Debug/
-
-x86-tester/rreil/.cproject
-x86-tester/rreil/.project
 x86-tester/rreil/Debug/
-
-x86-tester/gdsl/.cproject
-x86-tester/gdsl/.project
 x86-tester/gdsl/Debug/
-
-x86-tester/x86/.cproject
-x86-tester/x86/.project
 x86-tester/x86/Debug/
-
-x86-tester/x86-tester/.cproject
-x86-tester/x86-tester/.project
 x86-tester/x86-tester/Debug/
-
-x86-tester/x86-test-runner/.cproject
-x86-tester/x86-test-runner/.project
-x86-tester/x86-test-runner/.settings
 x86-tester/x86-test-runner/Debug/
-
-x86-tester/x86-test-stats-runner/.cproject
-x86-tester/x86-test-stats-runner/.project
-x86-tester/x86-test-stats-runner/.settings
 x86-tester/x86-test-stats-runner/Debug/
-
-x86-tester/util/.cproject
-x86-tester/util/.project
 x86-tester/util/Debug/
-
-tardet/.cproject
-tardet/.project
 tardet/Debug/
 
+include/
 lib/
 
 toys/liveness-example.bin
