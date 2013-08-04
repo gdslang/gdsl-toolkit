@@ -1,5 +1,6 @@
 CC=gcc
 #CC=clang
+MAKE=make
 LIBDS=-L../lib
 LIBS=-lgdrr -lgdsl-x86 -lavcall -lelf -lrt
 LIBFLAGS=$(LIBDS) $(LIBS)
@@ -7,9 +8,12 @@ LDFLAGS=
 INCDS=-I../include
 CFLAGS=-c -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
+PROJECTS=x86-test-runner
 EXECUTABLES=cli liveness-sweep sweep cli-gdrr
 
-all: $(EXECUTABLES)
+.PHONY: x86-test-runner clean-projects
+
+all: $(EXECUTABLES) $(PROJECTS)
 
 ### cli
 cli: cli.o
@@ -39,5 +43,14 @@ cli-gdrr: cli-gdrr.o
 cli-gdrr.o: cli-gdrr.c
 	$(CC) $(CFLAGS) cli-gdrr.c -o $@
 
-clean:
+### x86-test-runner
+x86-test-runner:
+	$(MAKE) -C $@
+
+clean: clean-projects
 	rm -f $(EXECUTABLES) *.o
+
+clean-projects: $(PROJECTS:=-clean)
+
+$(PROJECTS:=-clean):
+	$(MAKE) -C $(@:-clean=) clean
