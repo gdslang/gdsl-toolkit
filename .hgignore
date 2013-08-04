@@ -14,24 +14,12 @@ dis.o
 STATS
 examples/x86/cli
 gdsl
-specifications/x86/c/a.out
-specifications/x86/c/clang-cli
-specifications/x86/c/clang-sweep
-specifications/x86/c/gcc-sweep
-specifications/x86/c/tester
-specifications/x86/c/liveness-test
-specifications/x86/c/liveness-example
-specifications/x86/c/liveness-example.bin
-specifications/x86/c/liveness-sweep
-specifications/x86/c/cli
-specifications/x86/c/sweep
 
 gdrr/.cproject
 gdrr/.project
 gdrr/.settings
 gdrr/Debug/
 include/
-specifications/x86/c/cli-gdrr
 
 jgdrr/.classpath
 jgdrr/bin/
@@ -75,3 +63,5 @@ tardet/.project
 tardet/Debug/
 
 lib/
+
+toys/liveness-example.bin
