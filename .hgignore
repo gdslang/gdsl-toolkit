@@ -10,6 +10,9 @@ resources/
 \.project*
 \.settings*
 
+\.o
+\.a
+
 STATS
 examples/x86/cli
 gdsl
@@ -29,7 +32,7 @@ x86-tester/x86-test-stats-runner/Debug/
 x86-tester/util/Debug/
 tardet/Debug/
 
-include/
-lib/
+^include$
+^lib$
 
 toys/liveness-example.bin
