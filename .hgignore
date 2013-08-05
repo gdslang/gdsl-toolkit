@@ -44,6 +44,7 @@ tools/liveness-sweep
 tools/sweep
 tools/x86-test-runner/x86-test-runner
 tools/x86-test-stats-runner/x86-test-stats-runner
+tools/tardet/tardet
 
 #^include$
 #^lib$

@@ -489,15 +489,15 @@ static gdrr_sem_stmt_t *sem_branch(void *closure,
 }
 
 // sem_stmts
-static gdrr_sem_stmts_t *sem_cons(void *closure, gdrr_sem_stmt_t *hd,
-		gdrr_sem_stmts_t *tl) {
-	printf("sem_cons\n\n");
-	return NULL ;
-}
-static gdrr_sem_stmts_t *sem_nil(void *closure) {
-	printf("sem_nil\n");
-	return NULL ;
-}
+//static gdrr_sem_stmts_t *sem_cons(void *closure, gdrr_sem_stmt_t *hd,
+//		gdrr_sem_stmts_t *tl) {
+//	printf("sem_cons\n\n");
+//	return NULL ;
+//}
+//static gdrr_sem_stmts_t *sem_nil(void *closure) {
+//	printf("sem_nil\n");
+//	return NULL ;
+//}
 
 // sem_stmts
 static gdrr_sem_stmts_t *list_next(void *closure, gdrr_sem_stmt_t *next,
