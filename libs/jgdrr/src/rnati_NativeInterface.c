@@ -578,14 +578,6 @@ static gdrr_branch_hint_t *branch_hint(void *closure, int_t con) {
 	jobject ret = java_method_call(closure, func_n, 0);
 	return (gdrr_branch_hint_t*)ret;
 }
-static gdrr_branch_hint_t *hint_call(void *closure) {
-	jobject ret = java_method_call(closure, "hint_call", 0);
-	return (gdrr_branch_hint_t*)ret;
-}
-static gdrr_branch_hint_t *hint_ret(void *closure) {
-	jobject ret = java_method_call(closure, "hint_ret", 0);
-	return (gdrr_branch_hint_t*)ret;
-}
 
 // sem_stmt
 static gdrr_sem_stmt_t *sem_assign(void *closure, gdrr_sem_var_t *lhs,

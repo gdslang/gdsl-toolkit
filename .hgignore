@@ -9,6 +9,7 @@ resources/
 \.cproject*
 \.project*
 \.settings*
+\.externalToolBuilders
 
 \.o
 \.so
