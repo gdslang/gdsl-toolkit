@@ -8,8 +8,8 @@ LDFLAGS=
 INCDS=-Iinclude -I$(MLTK)/include
 CFLAGS=-c -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
-EXECUTABLE=x86-test-runner
-SOURCES=main.c
+EXECUTABLE=x86-test-stats-runner
+SOURCES=main.c hash_array.c
 
 all: pre-build $(EXECUTABLE)
 

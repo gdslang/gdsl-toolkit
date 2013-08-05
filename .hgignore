@@ -11,7 +11,10 @@ resources/
 \.settings*
 
 \.o
+\.so
 \.a
+\.class
+\.jar
 
 STATS
 examples/x86/cli
@@ -31,6 +34,13 @@ x86-tester/x86-test-runner/Debug/
 x86-tester/x86-test-stats-runner/Debug/
 x86-tester/util/Debug/
 tardet/Debug/
+
+tools/cli
+tools/cli-gdrr
+tools/liveness-sweep
+tools/sweep
+tools/x86-test-runner/x86-test-runner
+tools/x86-test-stats-runner/x86-test-stats-runner
 
 ^include$
 ^lib$

@@ -8,10 +8,10 @@ LDFLAGS=
 INCDS=-I../include
 CFLAGS=-c -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
-PROJECTS=x86-test-runner
+PROJECTS=x86-test-runner x86-test-stats-runner
 EXECUTABLES=cli liveness-sweep sweep cli-gdrr
 
-.PHONY: x86-test-runner clean-projects
+.PHONY: x86-test-runner x86-test-stats-runner clean-projects
 
 all: $(EXECUTABLES) $(PROJECTS)
 
@@ -45,6 +45,10 @@ cli-gdrr.o: cli-gdrr.c
 
 ### x86-test-runner
 x86-test-runner:
+	$(MAKE) -C $@
+
+### x86-test-stats-runner
+x86-test-stats-runner:
 	$(MAKE) -C $@
 
 clean: clean-projects

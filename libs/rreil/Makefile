@@ -4,21 +4,25 @@ CC=gcc
 INCDS=-Iinclude -I$(MLTK)/include
 CFLAGS=-c -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
-LIBRARIES=librreil.a
+LIBRARY=librreil.a
+SOURCES=memory.c context.c rreil/free.c rreil/print.c rreil/rreil_id.c rreil/gdrr_builder.c simulator/tools.c simulator/ops.c simulator/regacc.c simulator/simulator.c simulator/tracking.o
 
-all: pre-build $(LIBRARIES)
+all: pre-build $(LIBRARY)
 
-BDIRS=build build/rreil build/simulator
+SPRE=src
+BPRE=build
+
+BDIRS=$(BPRE) $(BPRE)/rreil $(BPRE)/simulator
 pre-build:
 	mkdir -p $(BDIRS)
 
-OBJECTS=memory.o context.o rreil/free.o rreil/print.o rreil/rreil_id.o rreil/gdrr_builder.o simulator/tools.o simulator/ops.o simulator/regacc.o simulator/simulator.o simulator/tracking.o
+OBJECTS=$(addprefix $(BPRE)/, $(SOURCES:.c=.o))
 
-librreil.a: $(OBJECTS)
-	ar -r  $@  $(addprefix build/, $(OBJECTS))
+$(LIBRARY): $(OBJECTS)
+	ar -r  $@  $(OBJECTS)
 
-$(OBJECTS): src/$(@:.o=.c)
-	$(CC) $(CFLAGS) src/$(@:.o=.c) -o build/$@
+$(OBJECTS): $(BPRE)/%.o : $(SPRE)/%.c
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf $(BDIRS) $(LIBRARIES)
+	rm -rf $(BDIRS) $(LIBRARY)

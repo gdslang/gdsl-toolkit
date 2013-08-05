@@ -2,7 +2,7 @@ MLTK=../..
 CC=gcc
 #CC=clang
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -fPIC -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 LIBRARIES=libgdrr.a
 

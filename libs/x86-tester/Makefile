@@ -9,17 +9,20 @@ SOURCES=tbgen.c tbgen_alloc.c executor.c tester.c
 
 all: pre-build $(LIBRARY)
 
-BDIRS=build
+SPRE=src/
+BPRE=build/
+
+BDIRS=$(BPRE)
 pre-build:
 	mkdir -p $(BDIRS)
 
-OBJECTS=$(SOURCES:.c=.o)
+OBJECTS=$(addprefix $(BPRE), $(SOURCES:.c=.o))
 
 $(LIBRARY): $(OBJECTS)
-	ar -r  $@  $(addprefix build/, $(OBJECTS))
+	ar -r  $@  $(OBJECTS)
 
-$(OBJECTS): src/$(@:.o=.c)
-	$(CC) $(CFLAGS) src/$(@:.o=.c) -o build/$@
+$(OBJECTS): $(BPRE)%.o : $(SPRE)%.c
+	$(CC) $(CFLAGS) $< -o $@
 
 clean:
 	rm -rf $(BDIRS) $(LIBRARY)
