@@ -42,7 +42,7 @@ tools/sweep
 tools/x86-test-runner/x86-test-runner
 tools/x86-test-stats-runner/x86-test-stats-runner
 
-^include$
-^lib$
+#^include$
+#^lib$
 
 toys/liveness-example.bin
