@@ -11,7 +11,7 @@
 #include <stdint-gcc.h>
 #include <string.h>
 #include <simulator/ops.h>
-#include <simulator/tools.h>
+#include <util.h>
 #include <context.h>
 
 static void simulator_op_definition_propagate(struct data opnd1,

@@ -16,15 +16,13 @@ extern "C" {
 
 using namespace std;
 
-static itree *initial(rreil_statement *last) {
-	itree *root = NULL;
+static shared_ptr<expression> initial(rreil_statement *last) {
+	shared_ptr<expression> exp = NULL;
 
 	switch(last->type) {
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			shared_ptr<class expression> exp = shared_ptr<class expression>(
-					expression::from_rreil_linear(last->branch.target->address,
-							last->branch.target->size));
-			root = new itree(exp, 0, last->branch.target->size - 1);
+			exp = expression::from_rreil_linear(last->branch.target->address,
+					last->branch.target->size);
 			break;
 		}
 //		case RREIL_STATEMENT_TYPE_CBRANCH: {
@@ -37,15 +35,15 @@ static itree *initial(rreil_statement *last) {
 		}
 	}
 
-	return root;
+	return exp;
 }
 
-itree *analyze(struct rreil_statements *statements) {
+shared_ptr<expression> analyze(struct rreil_statements *statements) {
 	rreil_statement *last = statements->statements[statements->statements_length
 			- 1];
 
-	itree *root = initial(last);
-	if(!root)
+	shared_ptr<expression> exp = initial(last);
+	if(!exp)
 		return NULL;
 
 	for(size_t i = statements->statements_length - 1; i > 0; --i) {
@@ -57,11 +55,12 @@ itree *analyze(struct rreil_statements *statements) {
 			case RREIL_STATEMENT_TYPE_ASSIGN: {
 				struct rreil_variable *lhs = current->assign.lhs;
 
-				if(root->contains(lhs)) {
-					shared_ptr<expression> exp = expression::from_rreil_op(
+				if(exp->contains(lhs)) {
+					shared_ptr<expression> new_ = expression::from_rreil_op(
 							current->assign.rhs);
-					root->substitute(current->assign.lhs, exp, lhs->offset, exp->get_size());
-					root->print();
+					bool substituted = exp->substitute(current->assign.lhs, new_);
+					if(substituted)
+						exp = new_;
 				}
 				break;
 			}
@@ -70,5 +69,5 @@ itree *analyze(struct rreil_statements *statements) {
 		}
 	}
 
-	return root;
+	return exp;
 }

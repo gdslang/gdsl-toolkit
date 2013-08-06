@@ -13,7 +13,7 @@
 #include <simulator/simulator.h>
 #include <simulator/regacc.h>
 #include <simulator/ops.h>
-#include <simulator/tools.h>
+#include <utime.h>
 #include <x86.h>
 #include <util.h>
 

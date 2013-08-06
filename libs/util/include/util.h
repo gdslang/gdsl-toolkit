@@ -23,4 +23,9 @@ extern void util_array_generic_remove_at(void **array, size_t index, size_t obje
 
 size_t util_byte_append(uint8_t **buffer, size_t offset, size_t *size, uint8_t byte);
 
+extern void membit_cpy(uint8_t *to, size_t to_offset, uint8_t *from,
+		size_t from_offset, size_t bit_length);
+extern void membit_zero_fill(uint8_t *to, size_t to_offset, size_t bit_length);
+extern void membit_one_fill(uint8_t *to, size_t to_offset, size_t bit_length);
+
 #endif /* UTIL_H_ */

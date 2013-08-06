@@ -13,7 +13,7 @@
 #include <context.h>
 #include <simulator/simulator.h>
 #include <simulator/regacc.h>
-#include <simulator/tools.h>
+#include <util.h>
 
 static void simulator_register_assign(struct context *context,
 		struct rreil_id *id, struct data data, size_t bit_offset,

@@ -73,6 +73,8 @@ bool variable::substitute(struct rreil_variable *old,
 		struct concat_element element;
 		element.expression = new_;
 		element.size = get_size();
+		element.offset = 0;
+//		element.offset = 0;
 
 		elements.push_back(element);
 
@@ -93,6 +95,7 @@ bool variable::substitute(struct rreil_variable *old,
 			element.expression = shared_ptr < expression
 					> (new variable(id, offset, size));
 			element.size = size;
+			element.offset = 0;
 			size_acc += size;
 			elements.push_back(element);
 		}
@@ -100,14 +103,16 @@ bool variable::substitute(struct rreil_variable *old,
 		size = other.get_end() - other.get_start() + 1;
 		element.expression = new_;
 		element.size = size;
+		element.offset = 0;
 		size_acc += size;
 		elements.push_back(element);
 
 		size = me.get_end() - other.get_end();
 		if(size) {
 			element.expression = shared_ptr < expression
-					> (new variable(id, size_acc + offset, size));
+					> (new variable(id, offset, size));
 			element.size = size;
+			element.offset = size_acc;
 			elements.push_back(element);
 		}
 
@@ -119,7 +124,8 @@ bool variable::substitute(struct rreil_variable *old,
 	/*
 	 * Todo: Overlapping
 	 */
-	throw new string("Not yet implemented...");
+	throw new string(
+			"Handling of partially overlapping expressions not yet implemented :-(...");
 }
 
 //variable::~variable() {

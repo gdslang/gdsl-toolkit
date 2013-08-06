@@ -5,6 +5,7 @@
  *      Author: jucs
  */
 
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 extern "C" {
@@ -18,6 +19,8 @@ extern "C" {
 #include "itree.h"
 #include "expression/binary_expression.h"
 #include "analyzer.h"
+
+using namespace std;
 
 int main(void) {
 	uint8_t data[] = { 0x48, 0xc7, 0xc0, 0xe7, 0x03, 0x00, 0x00, 0x48, 0x83, 0xc0,
@@ -117,17 +120,17 @@ int main(void) {
 
 	printf("----------------------------\n");
 
-	itree *tree = analyze(statements);
-	tree->print();
+	shared_ptr<expression> exp = analyze(statements);
+	exp->print();
+	printf("\n");
 
 	uint64_t evaluated;
-	char evalable = tree->evaluate(&evaluated);
+	char evalable = exp->evaluate(&evaluated);
 	if(evalable)
 		printf("Evaluated: %lu\n", evaluated);
 	else
 		printf("Unable to evaluate :-(.\n");
 
-	delete tree;
 	rreil_statements_free(statements);
 
 	return 0;

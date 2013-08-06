@@ -17,6 +17,7 @@ using namespace std;
 struct concat_element {
 	shared_ptr<class expression> expression;
 	size_t size;
+	size_t offset;
 };
 
 class concat_expression: public expression {

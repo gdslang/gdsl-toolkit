@@ -12,7 +12,7 @@
 #include <rreil/rreil.h>
 #include <x86.h>
 #include <context.h>
-#include <simulator/tools.h>
+#include <util.h>
 
 struct memory_allocation *memory_allocation_init(void *address) {
 	struct memory_allocation *allocation = (struct memory_allocation*)malloc(
