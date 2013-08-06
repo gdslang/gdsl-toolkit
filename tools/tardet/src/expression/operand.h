@@ -8,23 +8,27 @@
 #ifndef OPERAND_H_
 #define OPERAND_H_
 
+#include <memory>
 #include <stdint.h>
 extern "C" {
 #include <rreil/rreil.h>
 }
 #include "expression.h"
 
+using namespace std;
+
 class variable: public expression {
 private:
-	struct rreil_variable *variable_;
+	struct rreil_id *id;
+	uint64_t offset;
 
 public:
-	variable(struct rreil_variable *variable, uint64_t size);
+	variable(struct rreil_id *id, uint64_t offset, uint64_t size);
 	~variable() {
 	}
 	void print_inner();
 	char contains(struct rreil_variable *variable);
-	bool substitute(struct rreil_id *old, shared_ptr<expression> &new_);
+	bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result) {
 		return 0;
 	}
@@ -43,7 +47,7 @@ public:
 	char contains(struct rreil_variable *variable) {
 		return 0;
 	}
-	bool substitute(struct rreil_id *old, shared_ptr<expression> &new_) {
+	bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_) {
 		return 0;
 	}
 	char evaluate(uint64_t *result) {

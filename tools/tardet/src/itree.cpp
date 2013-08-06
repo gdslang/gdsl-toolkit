@@ -5,8 +5,8 @@
  *      Author: jucs
  */
 
-#include <tr1/functional>
-#include <tr1/memory>
+#include <functional>
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 #include "interval.h"
@@ -14,7 +14,7 @@
 
 #include "expression/expression.h"
 
-using namespace std::tr1;
+using namespace std;
 
 itree::itree(shared_ptr<expression> expression, size_t int_start,
 		size_t int_end) {
@@ -29,7 +29,7 @@ char itree::contains(struct rreil_variable* variable) {
 	return root->contains(variable);
 }
 
-void itree::substitute(struct rreil_id *old, shared_ptr<expression> new_,
+void itree::substitute(struct rreil_variable *old, shared_ptr<expression> new_,
 		uint64_t from, uint64_t to) {
 	root = root->substitute(old, new_, from, to);
 }
@@ -77,7 +77,7 @@ char itree_inner_node::contains(struct rreil_variable *variable) {
 	return 0;
 }
 
-itree_node *itree_inner_node::substitute(struct rreil_id *old,
+itree_node *itree_inner_node::substitute(struct rreil_variable *old,
 		shared_ptr<expression> new_, uint64_t from, uint64_t to) {
 	for(size_t i = 0; i < children_count; ++i)
 		children[i] = children[i]->substitute(old, new_, from, to);
@@ -146,47 +146,47 @@ char itree_leaf_node::contains(struct rreil_variable *variable) {
 	return exp->contains(variable);
 }
 
-itree_node *itree_leaf_node::substitute(struct rreil_id *old,
+itree_node *itree_leaf_node::substitute(struct rreil_variable *old,
 		shared_ptr<expression> new_, uint64_t from, uint64_t to) {
 
-	if(from < this->intv.start && to < this->intv.start)
-		return this;
-	if(from > this->intv.end && to > this->intv.end)
-		return this;
+//	if(from < this->intv.start && to < this->intv.start)
+//		return this;
+//	if(from > this->intv.end && to > this->intv.end)
+//		return this;
 
 	shared_ptr<expression> new_subst = new_;
 	bool substitute_toplevel = exp->substitute(old, new_subst);
 	if(!substitute_toplevel)
 		return this;
 
-	if(from <= this->intv.start && to >= this->intv.end) {
-		exp = new_subst;
-		return this;
-	}
-
-	interval me = interval(this->intv.start, this->intv.end);
-
-	if(from <= this->intv.start && to <= me) {
-		shared_ptr<expression> children[] = { new_subst, exp };
-		size_t offsets[] = { this->intv.start, to + 1 };
-		itree_inner_node *inner = split(children, offsets, 2);
-		delete this;
-		return inner;
-	}
-
-	if(from <= me && to >= this->intv.start) {
-		shared_ptr<expression> children[] = { exp, new_subst };
-		size_t offsets[] = { this->intv.start, from };
-		itree_inner_node *inner = split(children, offsets, 2);
-		delete this;
-		return inner;
-	}
-
-	shared_ptr<expression> children[] = { exp, new_subst, exp };
-	size_t offsets[] = { this->intv.start, to, from + 1 };
-	itree_inner_node *inner = split(children, offsets, 3);
-	delete this;
-	return inner;
+//	if(from <= this->intv.start && to >= this->intv.end) {
+	exp = new_subst;
+	return this;
+//	}
+//
+//	interval me = interval(this->intv.start, this->intv.end);
+//
+//	if(from <= this->intv.start && to <= me) {
+//		shared_ptr<expression> children[] = { new_subst, exp };
+//		size_t offsets[] = { this->intv.start, to + 1 };
+//		itree_inner_node *inner = split(children, offsets, 2);
+//		delete this;
+//		return inner;
+//	}
+//
+//	if(from <= me && to >= this->intv.start) {
+//		shared_ptr<expression> children[] = { exp, new_subst };
+//		size_t offsets[] = { this->intv.start, from };
+//		itree_inner_node *inner = split(children, offsets, 2);
+//		delete this;
+//		return inner;
+//	}
+//
+//	shared_ptr<expression> children[] = { exp, new_subst, exp };
+//	size_t offsets[] = { this->intv.start, to, from + 1 };
+//	itree_inner_node *inner = split(children, offsets, 3);
+//	delete this;
+//	return inner;
 }
 
 char itree_leaf_node::evaluate(uint64_t *result) {

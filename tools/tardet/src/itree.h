@@ -8,7 +8,7 @@
 #ifndef ITREE_H_
 #define ITREE_H_
 
-#include <tr1/memory>
+#include <memory>
 #include <stdlib.h>
 #include <stdint.h>
 #include "expression/expression.h"
@@ -16,7 +16,7 @@ extern "C" {
 #include <rreil/rreil.h>
 }
 
-using namespace std::tr1;
+using namespace std;
 
 enum itree_node_type {
 	ITREE_NODE_TYPE_INNER, ITREE_NODE_TYPE_LEAF
@@ -35,7 +35,7 @@ public:
 	virtual enum itree_node_type type_get() = 0;
 	virtual void print() = 0;
 	virtual char contains(struct rreil_variable *variable) = 0;
-	virtual itree_node *substitute(struct rreil_id *old,
+	virtual itree_node *substitute(struct rreil_variable *old,
 			shared_ptr<expression> new_, uint64_t from, uint64_t to) = 0;
 	virtual char evaluate(uint64_t *result) = 0;
 };
@@ -54,7 +54,7 @@ public:
 	size_t children_count_get();
 	void print();
 	char contains(struct rreil_variable *variable);
-	itree_node *substitute(struct rreil_id *old, shared_ptr<expression> new_,
+	itree_node *substitute(struct rreil_variable *old, shared_ptr<expression> new_,
 			uint64_t from, uint64_t to);
 	char evaluate(uint64_t *result);
 };
@@ -73,7 +73,7 @@ public:
 			size_t children_count);
 	void print();
 	char contains(rreil_variable *variable);
-	itree_node *substitute(struct rreil_id *old, shared_ptr<expression> new_,
+	itree_node *substitute(struct rreil_variable *old, shared_ptr<expression> new_,
 			uint64_t from, uint64_t to);
 	char evaluate(uint64_t *result);
 };
@@ -89,7 +89,7 @@ public:
 	}
 	void print();
 	char contains(struct rreil_variable *variable);
-	void substitute(struct rreil_id *old, shared_ptr<expression> new_,
+	void substitute(struct rreil_variable *old, shared_ptr<expression> new_,
 			uint64_t from, uint64_t to);
 	char evaluate(uint64_t *result) {
 		return root->evaluate(result);

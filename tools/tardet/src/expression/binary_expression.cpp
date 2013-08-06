@@ -5,12 +5,12 @@
  *      Author: jucs
  */
 
-#include <tr1/memory>
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 #include "binary_expression.h"
 
-using namespace std::tr1;
+using namespace std;
 
 void binary_expression::print_inner(char op) {
 	printf("(");
@@ -24,7 +24,7 @@ char binary_expression::contains(rreil_variable *variable) {
 	return left->contains(variable) || right->contains(variable);
 }
 
-bool binary_expression::substitute(struct rreil_id *old,
+bool binary_expression::substitute(struct rreil_variable *old,
 		shared_ptr<expression> &new_) {
 
 	shared_ptr<expression> left_new = new_;

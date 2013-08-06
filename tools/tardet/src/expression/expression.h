@@ -8,20 +8,26 @@
 #ifndef EXPRESSION_H_
 #define EXPRESSION_H_
 
-#include <tr1/memory>
+#include <memory>
 #include <stdint.h>
 #include <stdlib.h>
 extern "C" {
 #include <rreil/rreil_linear.h>
 }
 
-using namespace std::tr1;
+using namespace std;
 
 class expression {
 private:
 	uint64_t size;
 
 public:
+	expression(uint64_t size) {
+		this->size = size;
+	}
+	virtual ~expression() {
+	}
+
 	uint64_t get_size() {
 		return size;
 	}
@@ -29,14 +35,9 @@ public:
 	void print();
 	void print_size();
 	virtual void print_inner() = 0;
-	expression(uint64_t size) {
-		this->size = size;
-	}
-	virtual ~expression() {
-	}
 
 	virtual char contains(struct rreil_variable *variable) = 0;
-	virtual bool substitute(struct rreil_id *old,
+	virtual bool substitute(struct rreil_variable *old,
 			shared_ptr<expression> &new_) = 0;
 	virtual char evaluate(uint64_t *result) = 0;
 

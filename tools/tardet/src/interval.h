@@ -32,6 +32,9 @@ public:
 	bool overlaps(interval *other);
 
 	friend bool operator <=(size_t const &spot, interval &interval);
+	friend bool operator <=(interval &a, interval &b);
+	friend bool operator >=(interval &a, interval &b);
+	friend bool operator ==(interval &a, interval &b);
 };
 
 #endif /* INTERVAL_H_ */

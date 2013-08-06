@@ -15,5 +15,17 @@ bool interval::overlaps(interval *other) {
 }
 
 bool operator <=(size_t const &spot, interval &interval) {
-	return (spot >= interval.get_start() && spot <= interval.get_end());
+	return (spot >= interval.start && spot <= interval.end);
+}
+
+bool operator <=(interval &a, interval &b) {
+	return a.start >= b.start && a.end <= b.end;
+}
+
+bool operator >=(interval &a, interval &b) {
+	return b <= a;
+}
+
+bool operator ==(interval &a, interval &b) {
+	return a.start == b.start && a.end == b.end;
 }

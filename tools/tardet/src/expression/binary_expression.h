@@ -8,11 +8,11 @@
 #ifndef BINARY_EXPRESSION_H_
 #define BINARY_EXPRESSION_H_
 
-#include <tr1/memory>
+#include <memory>
 #include "expression.h"
 #include "operand.h"
 
-using namespace std::tr1;
+using namespace std;
 
 class binary_expression: public expression {
 protected:
@@ -30,7 +30,7 @@ public:
 	virtual ~binary_expression() {
 	}
 	char contains(rreil_variable *variable);
-	bool substitute(struct rreil_id *old, shared_ptr<expression> &new_);
+	bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result);
 	virtual uint64_t evaluate(uint64_t a, uint64_t b) = 0;
 	virtual expression *construct(shared_ptr<expression> left,

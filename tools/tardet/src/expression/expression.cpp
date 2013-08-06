@@ -7,8 +7,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <tr1/functional>
-#include <tr1/memory>
+#include <functional>
+#include <memory>
 #include "expression.h"
 extern "C" {
 #include <rreil/rreil.h>
@@ -17,7 +17,7 @@ extern "C" {
 #include "binary_expression.h"
 #include "operand.h"
 
-using namespace std::tr1;
+using namespace std;
 
 void expression::print() {
 	print_inner();
@@ -28,14 +28,14 @@ void expression::print_size() {
 	printf(":%lu", size);
 }
 
-shared_ptr<expression> expression::from_rreil_linear(struct rreil_linear* linear,
-		uint64_t size) {
+shared_ptr<expression> expression::from_rreil_linear(
+		struct rreil_linear* linear, uint64_t size) {
 	function<shared_ptr<expression>(struct rreil_linear*)> handle_linear =
 			[&](struct rreil_linear *linear) {
 				shared_ptr<expression> exp;
 				switch(linear->type) {
 					case RREIL_LINEAR_TYPE_VARIABLE: {
-						exp = shared_ptr<expression>(new variable(linear->variable, size));
+						exp = shared_ptr<expression>(new variable(linear->variable->id, linear->variable->offset, size));
 						break;
 					}
 					case RREIL_LINEAR_TYPE_IMMEDIATE: {

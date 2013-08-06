@@ -5,7 +5,7 @@
  *      Author: jucs
  */
 
-#include <tr1/memory>
+#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
 extern "C" {
@@ -14,7 +14,7 @@ extern "C" {
 #include "itree.h"
 #include "expression/expression.h"
 
-using namespace std::tr1;
+using namespace std;
 
 static itree *initial(rreil_statement *last) {
 	itree *root = NULL;
@@ -60,7 +60,8 @@ itree *analyze(struct rreil_statements *statements) {
 				if(root->contains(lhs)) {
 					shared_ptr<expression> exp = expression::from_rreil_op(
 							current->assign.rhs);
-					root->substitute(current->assign.lhs->id, exp, lhs->offset, exp->get_size());
+					root->substitute(current->assign.lhs, exp, lhs->offset, exp->get_size());
+					root->print();
 				}
 				break;
 			}
