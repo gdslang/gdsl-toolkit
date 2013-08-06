@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <readhex.h>
 #include <gdsl-x86.h>
 
 int main(int argc, char** argv) {
@@ -11,22 +12,11 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	char blob[15];
-	int_t sz = 15;
-	int i, c;
-	for(i = 0; i < sz; i++) {
-		int x = fscanf(stdin, "%x", &c);
-		switch(x) {
-			case EOF:
-				goto done;
-			case 0:
-				fatal("invalid input; should be in hex form: '0f 0b ..'");
-		}
-		blob[i] = c & 0xff;
-	}
-	done: ;
+	char *buffer;
+	size_t size = readhex_hex_read(stdin, &buffer);
+
 	state_t state = gdsl_init();
-	gdsl_set_code(state, blob, i, 0);
+	gdsl_set_code(state, buffer, size, 0);
 
 	if(setjmp(*gdsl_err_tgt(state)))
 		fatal("decode failed");
@@ -46,6 +36,7 @@ int main(int argc, char** argv) {
 	puts(fmt);
 
 	gdsl_destroy(state);
+	free(buffer);
 
 	return 1;
 }

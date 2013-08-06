@@ -18,6 +18,7 @@
 #include <setjmp.h>
 #include <tester.h>
 #include <gdsl.h>
+#include <readhex.h>
 
 enum mode {
 	MODE_NONE, MODE_GENERATOR, MODE_CLI, MODE_CODE, MODE_CMDLINE
@@ -31,42 +32,42 @@ struct options {
 	char test_unused;
 };
 
-static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer,
-		size_t size_max) {
-	char char_to_hex(char x) {
-		if(x >= '0' && x <= '9')
-			return x - '0';
-		if(x >= 'a' && x <= 'z')
-			return x - 'a' + 10;
-		else if(x >= 'A' && x <= 'Z')
-			return x - 'A' + 10;
-		else
-			return -1;
-	}
-
-	size_t size_actual = 0;
-	for(size_t i = 0; i < size_max; i++) {
-		uint8_t c = 0;
-		for(int i = 0; i < 2;) {
-			int x = getc(stream);
-			switch(x) {
-				case EOF:
-					goto done;
-				case '\n':
-					goto done;
-				default: {
-					char r = char_to_hex(x);
-					if(r >= 0)
-						c |= r << (4 * (1 - i++));
-					break;
-				}
-			}
-		}
-		buffer[size_actual++] = c;
-	}
-	done: ;
-	return size_actual;
-}
+//static size_t stream_to_insn_buffer(FILE *stream, uint8_t *buffer,
+//		size_t size_max) {
+//	char char_to_hex(char x) {
+//		if(x >= '0' && x <= '9')
+//			return x - '0';
+//		if(x >= 'a' && x <= 'z')
+//			return x - 'a' + 10;
+//		else if(x >= 'A' && x <= 'Z')
+//			return x - 'A' + 10;
+//		else
+//			return -1;
+//	}
+//
+//	size_t size_actual = 0;
+//	for(size_t i = 0; i < size_max; i++) {
+//		uint8_t c = 0;
+//		for(int i = 0; i < 2;) {
+//			int x = getc(stream);
+//			switch(x) {
+//				case EOF:
+//					goto done;
+//				case '\n':
+//					goto done;
+//				default: {
+//					char r = char_to_hex(x);
+//					if(r >= 0)
+//						c |= r << (4 * (1 - i++));
+//					break;
+//				}
+//			}
+//		}
+//		buffer[size_actual++] = c;
+//	}
+//	done: ;
+//	return size_actual;
+//}
 
 //static char test(__char *data, size_t data_size) {
 //	__obj state = gdsl_create_state(data, data_size);
@@ -131,10 +132,11 @@ static void result_print(struct tester_result result) {
 }
 
 static void test_stream(FILE *stream, struct options *options) {
-	uint8_t data[15];
-	stream_to_insn_buffer(stream, (uint8_t*)data, sizeof(data));
-	struct tester_result result = tester_test_binary(NULL, options->fork, data,
-			sizeof(data), options->test_unused);
+	char *buffer;
+	size_t buffer_length = readhex_hex_read(stream, &buffer);
+	struct tester_result result = tester_test_binary(NULL, options->fork, buffer,
+			buffer_length, options->test_unused);
+	free(buffer);
 	result_print(result);
 }
 
@@ -220,6 +222,7 @@ static void cmdline(struct options *options) {
 	FILE *stream = fmemopen((void*)options->parameter,
 			strlen(options->parameter) + 1, "r");
 	test_stream(stream, options);
+	fclose(stream);
 }
 
 static char args_parse(int argc, char **argv, struct options *options) {

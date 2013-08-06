@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <gdsl-x86.h>
 #include <gdrr.h>
+#include <readhex.h>
 
 // sem_id
 static gdrr_sem_id_t *virt_na(void *closure, int_t con) {
@@ -511,25 +512,11 @@ static gdrr_sem_stmts_t *list_init(void *closure) {
 }
 
 int main(int argc, char** argv) {
-//	char blob[15];
-//	int_t sz = 15;
-//	int i, c;
-//	for(i = 0; i < sz; i++) {
-//		int x = fscanf(stdin, "%x", &c);
-//		switch(x) {
-//			case EOF:
-//				goto done;
-//			case 0:
-//				printf("invalid input; should be in hex form: '0f 0b ..'");
-//		}
-//		blob[i] = c & 0xff;
-//	}
-//	done: ;
-	char blob[] = { 0x48, 0x83, 0xc4, 0x38 };
-	int i = sizeof(blob);
+	char *buffer;
+	size_t size = readhex_hex_read(stdin, &buffer);
 
 	state_t state = gdsl_init();
-	gdsl_set_code(state, blob, i, 0);
+	gdsl_set_code(state, buffer, size, 0);
 
 	obj_t insn = x86_decode(state);
 //	__obj state = __createState(blob, i, 0, 0);
@@ -609,6 +596,7 @@ int main(int argc, char** argv) {
 	gdrr_convert(rreil, &config);
 
 	gdsl_destroy(state);
+	free(buffer);
 
 	return 0;
 }

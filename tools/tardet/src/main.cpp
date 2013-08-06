@@ -12,6 +12,7 @@ extern "C" {
 #include <gdsl-x86.h>
 #include <rreil/rreil.h>
 #include <rreil/gdrr_builder.h>
+#include <readhex.h>
 #include "igdrr.h"
 }
 #include "itree.h"

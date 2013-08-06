@@ -2,7 +2,7 @@ CC=gcc
 #CC=clang
 MAKE=make
 LIBDS=-L../lib
-LIBS=-lgdrr -lgdsl-x86 -lavcall -lelf -lrt
+LIBS=-lgdrr -lgdsl-x86 -lavcall -lelf -lrt -lreadhex
 LIBFLAGS=$(LIBDS) $(LIBS)
 LDFLAGS=
 INCDS=-I../include
@@ -11,7 +11,7 @@ CFLAGS=-c -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 PROJECTS=x86-test-runner x86-test-stats-runner tardet
 EXECUTABLES=cli liveness-sweep sweep cli-gdrr
 
-.PHONY: x86-test-runner x86-test-stats-runner clean-projects tardet
+.PHONY: $(PROJECTS) clean-projects
 
 all: $(EXECUTABLES) $(PROJECTS)
 
