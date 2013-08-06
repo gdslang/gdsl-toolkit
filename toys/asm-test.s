@@ -95,7 +95,9 @@ main:
 
         #add (%rax), %rax
         #inc %rax
-
+	/*
+	 * Todo: ...
+	 */
 	#blah:
 	#call blah
 	#call blah
@@ -230,7 +232,9 @@ main:
 	#vpextrd $3, %xmm1, (%rax)
 	#vpextrd $3, %xmm1, %ebx
 	#vpextrq $3, %xmm1, (%rax)
-
+	/*
+	 * Todo: ...
+	 */
 	#phaddw %mm2, %mm5
 	#vphaddw %xmm1, %xmm2, %xmm5
 	#phaddd %xmm4, %xmm2
@@ -599,6 +603,7 @@ main:
 
 mov $999, %rax
 add $42, %rax
+mov $62, %ah
 jmp %rax
 
 #pblendvb %xmm1, %xmm2

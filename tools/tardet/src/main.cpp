@@ -27,7 +27,6 @@ int main(void) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, (char*)data, data_size, 0);
 
-
 //	__obj insn;
 ////	__word features;
 //	if(gdsl_decode(&insn, &state)) {
@@ -67,10 +66,13 @@ int main(void) {
 		printf("Translate block failed\n");
 		fflush(stderr);
 		fflush(stdout);
+		gdsl_destroy(state);
 		exit(1);
 	}
 
 	struct rreil_statements *statements = statements_get(state, rreil);
+
+	gdsl_destroy(state);
 
 	rreil_statements_print(statements);
 //
@@ -121,9 +123,9 @@ int main(void) {
 	uint64_t evaluated;
 	char evalable = tree->evaluate(&evaluated);
 	if(evalable)
-		printf("Evaluated: %lu", evaluated);
+		printf("Evaluated: %lu\n", evaluated);
 	else
-		printf("Unable to evaluate :-(.");
+		printf("Unable to evaluate :-(.\n");
 
 	delete tree;
 	rreil_statements_free(statements);

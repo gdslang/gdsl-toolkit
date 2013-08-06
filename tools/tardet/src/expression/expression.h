@@ -33,7 +33,7 @@ public:
 
 	virtual char contains(struct rreil_variable *variable) = 0;
 	virtual bool substitute(struct rreil_id *old,
-			shared_ptr<expression> new_) = 0;
+			shared_ptr<expression> &new_) = 0;
 	virtual char evaluate(uint64_t *result) = 0;
 
 	static shared_ptr<expression> from_rreil_linear(struct rreil_linear *linear,

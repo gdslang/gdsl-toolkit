@@ -29,8 +29,10 @@ size_t readhex_hex_read(FILE *f, char **buffer) {
 			}
 			if(next >= '0' && next <= '9')
 				target[length_str++] = next - '0';
-			if(next >= 'a' && next <= 'f')
+			else if(next >= 'a' && next <= 'f')
 				target[length_str++] = next - 'a' + 10;
+			else if(next >= 'A' && next <= 'F')
+				target[length_str++] = next - 'A' + 10;
 			if(length_str == size_str)
 				break;
 		}

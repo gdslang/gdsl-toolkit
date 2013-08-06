@@ -25,14 +25,22 @@ char binary_expression::contains(rreil_variable *variable) {
 }
 
 bool binary_expression::substitute(struct rreil_id *old,
-		shared_ptr<expression> new_) {
-	bool new_left = left->substitute(old, new_);
-	if(new_left)
-		left = new_;
-	bool new_right = right->substitute(old, new_);
-	if(new_right)
-		right = new_;
-	return 0;
+		shared_ptr<expression> &new_) {
+
+	shared_ptr<expression> left_new = new_;
+	bool subst_left = left->substitute(old, left_new);
+	if(!subst_left)
+		left_new = left;
+	shared_ptr<expression> right_new = new_;
+	bool subst_right = right->substitute(old, right_new);
+	if(!subst_right)
+		right_new = right;
+
+	if(subst_left || subst_right) {
+		new_ = shared_ptr<expression>(construct(left_new, right_new));
+		return 1;
+	} else
+		return 0;
 }
 
 char binary_expression::evaluate(uint64_t *result) {
@@ -56,10 +64,20 @@ void addition::print_inner() {
 	binary_expression::print_inner('+');
 }
 
+expression *addition::construct(shared_ptr<expression> left,
+		shared_ptr<expression> right) {
+	return new addition(left, right, size_get());
+}
+
 uint64_t subtraction::evaluate(uint64_t a, uint64_t b) {
 	return a - b;
 }
 
 void subtraction::print_inner() {
 	binary_expression::print_inner('-');
+}
+
+expression *subtraction::construct(shared_ptr<expression> left,
+		shared_ptr<expression> right) {
+	return new subtraction(left, right, size_get());
 }

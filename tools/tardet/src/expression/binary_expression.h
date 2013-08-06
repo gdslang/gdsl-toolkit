@@ -30,9 +30,11 @@ public:
 	virtual ~binary_expression() {
 	}
 	char contains(rreil_variable *variable);
-	bool substitute(struct rreil_id *old, shared_ptr<expression> new_);
+	bool substitute(struct rreil_id *old, shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result);
 	virtual uint64_t evaluate(uint64_t a, uint64_t b) = 0;
+	virtual expression *construct(shared_ptr<expression> left,
+			shared_ptr<expression> right) = 0;
 };
 
 class addition: public binary_expression {
@@ -43,6 +45,9 @@ public:
 	}
 	uint64_t evaluate(uint64_t a, uint64_t b);
 	void print_inner();
+
+	expression *construct(shared_ptr<expression> left,
+				shared_ptr<expression> right);
 };
 
 class subtraction: public binary_expression {
@@ -53,6 +58,9 @@ public:
 	}
 	uint64_t evaluate(uint64_t a, uint64_t b);
 	void print_inner();
+
+	expression *construct(shared_ptr<expression> left,
+				shared_ptr<expression> right);
 };
 
 //class division : public binary_expression {

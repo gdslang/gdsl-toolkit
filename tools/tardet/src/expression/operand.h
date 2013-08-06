@@ -24,7 +24,7 @@ public:
 	}
 	void print_inner();
 	char contains(struct rreil_variable *variable);
-	bool substitute(struct rreil_id *old, shared_ptr<expression> new_);
+	bool substitute(struct rreil_id *old, shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result) {
 		return 0;
 	}
@@ -43,7 +43,7 @@ public:
 	char contains(struct rreil_variable *variable) {
 		return 0;
 	}
-	bool substitute(struct rreil_id *old, shared_ptr<expression> new_) {
+	bool substitute(struct rreil_id *old, shared_ptr<expression> &new_) {
 		return 0;
 	}
 	char evaluate(uint64_t *result) {
