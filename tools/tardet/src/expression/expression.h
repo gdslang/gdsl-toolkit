@@ -22,6 +22,10 @@ private:
 	uint64_t size;
 
 public:
+	uint64_t get_size() {
+		return size;
+	}
+
 	void print();
 	void print_size();
 	virtual void print_inner() = 0;

@@ -55,10 +55,12 @@ itree *analyze(struct rreil_statements *statements) {
 
 		switch(current->type) {
 			case RREIL_STATEMENT_TYPE_ASSIGN: {
-				if(root->contains(current->assign.lhs)) {
+				struct rreil_variable *lhs = current->assign.lhs;
+
+				if(root->contains(lhs)) {
 					shared_ptr<expression> exp = expression::from_rreil_op(
 							current->assign.rhs);
-					root->substitute(current->assign.lhs->id, exp, 0, 63);
+					root->substitute(current->assign.lhs->id, exp, lhs->offset, exp->get_size());
 				}
 				break;
 			}
