@@ -12,13 +12,13 @@ CPPFLAGS=-c -g3 -std=gnu++11 $(INCDS)
 
 EXECUTABLE=tardet
 
-CSOURCES=$(shell find src/ -type f -name '*.c')
-CPPSOURCES=$(shell find src/ -type f -name '*.cpp')
-
-all: pre-build $(EXECUTABLE)
-
 SPRE=src
 BPRE=build
+
+CSOURCES=$(shell find $(SPRE)/ -type f -name '*.c')
+CPPSOURCES=$(shell find $(SPRE)/ -type f -name '*.cpp')
+
+all: pre-build $(EXECUTABLE)
 
 SDIRS=$(shell find $(SPRE)/ -type d)
 BDIRS=$(SDIRS:$(SPRE)/%=$(BPRE)/%)
