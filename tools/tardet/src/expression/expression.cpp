@@ -14,8 +14,7 @@ extern "C" {
 #include <rreil/rreil.h>
 }
 
-#include "binary_expression.h"
-#include "operand.h"
+#include "expressions.h"
 
 using namespace std;
 
@@ -28,8 +27,7 @@ void expression::print_size() {
 	printf(":%lu", size);
 }
 
-shared_ptr<expression> expression::from_rreil_linear(
-		struct rreil_linear* linear, uint64_t size) {
+shared_ptr<expression> expression::from_rreil_linear(struct rreil_linear* linear, uint64_t size) {
 	function<shared_ptr<expression>(struct rreil_linear*)> handle_linear =
 			[&](struct rreil_linear *linear) {
 				shared_ptr<expression> exp;
@@ -50,7 +48,7 @@ shared_ptr<expression> expression::from_rreil_linear(
 						exp = shared_ptr<expression>(new subtraction(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd2), size));
 					}
 					case RREIL_LINEAR_TYPE_SCALE: {
-						printf("Scale :-(...\n");
+						exp = shared_ptr<expression>(new multiplication(shared_ptr<expression>(new immediate(linear->scale.imm, size)), handle_linear(linear->scale.opnd), size));
 						break;
 					}
 				}
@@ -63,6 +61,14 @@ shared_ptr<expression> expression::from_rreil_op(struct rreil_op *op) {
 	switch(op->type) {
 		case RREIL_OP_TYPE_LIN: {
 			return expression::from_rreil_linear(op->lin.opnd1, op->lin.size);
+		}
+		case RREIL_OP_TYPE_MUL: {
+			return shared_ptr<expression>(
+					new multiplication(from_rreil_linear(op->mul.opnd1, op->mul.size),
+							from_rreil_linear(op->mul.opnd1, op->mul.size), op->mul.size));
+		}
+		case RREIL_OP_TYPE_ZX: {
+
 		}
 	}
 	return shared_ptr<expression>();

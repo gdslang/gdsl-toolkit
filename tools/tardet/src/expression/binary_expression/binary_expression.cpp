@@ -55,29 +55,3 @@ char binary_expression::evaluate(uint64_t *result) {
 	*result = evaluate(left_result, right_result);
 	return 1;
 }
-
-uint64_t addition::evaluate(uint64_t a, uint64_t b) {
-	return a + b;
-}
-
-void addition::print_inner() {
-	binary_expression::print_inner('+');
-}
-
-expression *addition::construct(shared_ptr<expression> left,
-		shared_ptr<expression> right) {
-	return new addition(left, right, size_get());
-}
-
-uint64_t subtraction::evaluate(uint64_t a, uint64_t b) {
-	return a - b;
-}
-
-void subtraction::print_inner() {
-	binary_expression::print_inner('-');
-}
-
-expression *subtraction::construct(shared_ptr<expression> left,
-		shared_ptr<expression> right) {
-	return new subtraction(left, right, size_get());
-}

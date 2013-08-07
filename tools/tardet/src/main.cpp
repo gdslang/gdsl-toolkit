@@ -21,7 +21,7 @@ extern "C" {
 #include <readhex.h>
 #include "igdrr.h"
 }
-#include "expression/binary_expression.h"
+#include "expression/expressions.h"
 #include "analyzer.h"
 
 using namespace std;
@@ -262,6 +262,8 @@ int main(int argc, char **argv) {
 
 		printf("Simulator: ");
 		simulator_statements_simulate(context, statements);
+
+		context_free(context);
 
 	} else
 		printf("Unable to evaluate :-(.\n");

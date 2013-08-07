@@ -9,8 +9,8 @@
 #define BINARY_EXPRESSION_H_
 
 #include <memory>
-#include "expression.h"
-#include "operand.h"
+#include "../expression.h"
+#include "../operand.h"
 
 using namespace std;
 
@@ -35,32 +35,6 @@ public:
 	virtual uint64_t evaluate(uint64_t a, uint64_t b) = 0;
 	virtual expression *construct(shared_ptr<expression> left,
 			shared_ptr<expression> right) = 0;
-};
-
-class addition: public binary_expression {
-public:
-	addition(shared_ptr<expression> left, shared_ptr<expression> right,
-			uint64_t size) :
-			binary_expression(left, right, size) {
-	}
-	uint64_t evaluate(uint64_t a, uint64_t b);
-	void print_inner();
-
-	expression *construct(shared_ptr<expression> left,
-				shared_ptr<expression> right);
-};
-
-class subtraction: public binary_expression {
-public:
-	subtraction(shared_ptr<expression> left, shared_ptr<expression> right,
-			uint64_t size) :
-			binary_expression(left, right, size) {
-	}
-	uint64_t evaluate(uint64_t a, uint64_t b);
-	void print_inner();
-
-	expression *construct(shared_ptr<expression> left,
-				shared_ptr<expression> right);
 };
 
 //class division : public binary_expression {
