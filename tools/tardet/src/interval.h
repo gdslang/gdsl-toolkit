@@ -30,6 +30,8 @@ public:
 	}
 
 	bool overlaps(interval *other);
+	bool starts_with(interval *other);
+	size_t get_size();
 
 	friend bool operator <=(size_t const &spot, interval &interval);
 	friend bool operator <=(interval &a, interval &b);

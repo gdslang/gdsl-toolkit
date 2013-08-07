@@ -5,9 +5,11 @@
  *      Author: jucs
  */
 
-#include <memory>
 #include <stdlib.h>
 #include <stdio.h>
+#include <memory>
+#include <string.h>
+#include <unistd.h>
 extern "C" {
 #include <gdsl.h>
 #include <gdsl-x86.h>
@@ -16,16 +18,108 @@ extern "C" {
 #include <readhex.h>
 #include "igdrr.h"
 }
-#include "itree.h"
 #include "expression/binary_expression.h"
 #include "analyzer.h"
 
 using namespace std;
 
-int main(void) {
+enum mode {
+	MODE_NONE, MODE_CLI, MODE_CODE, MODE_CMDLINE, MODE_FILE
+};
+
+struct options {
+	enum mode mode;
+	char const *parameter;
+};
+
+static char args_parse(int argc, char **argv, struct options *options) {
+	options->mode = MODE_NONE;
+
+	while(1) {
+		char c = getopt(argc, argv, "cpm:f:");
+		switch(c) {
+			case 'c': {
+				options->mode = MODE_CLI;
+				break;
+			}
+			case 'p': {
+				options->mode = MODE_CODE;
+				break;
+			}
+			case 'm': {
+				options->mode = MODE_CMDLINE;
+				options->parameter = optarg;
+				break;
+			}
+			case 'f': {
+				options->mode = MODE_FILE;
+				options->parameter = optarg;
+				break;
+			}
+			default: {
+				goto end;
+			}
+		}
+	}
+	end: ;
+
+	return 0;
+}
+
+static size_t code(uint8_t **buffer) {
 	uint8_t data[] = { 0x48, 0xc7, 0xc0, 0xe7, 0x03, 0x00, 0x00, 0x48, 0x83, 0xc0,
 			0x2a, 0xb4, 0x3e, 0xff, 0xe0 };
 	size_t data_size = sizeof(data);
+
+	*buffer = (uint8_t*)malloc(data_size);
+	memcpy(*buffer, data, data_size);
+
+	return data_size;
+}
+
+int main(int argc, char **argv) {
+	struct options options;
+	args_parse(argc, argv, &options);
+
+	uint8_t *data;
+	size_t data_size;
+
+	switch(options.mode) {
+		case MODE_NONE: {
+			printf("Usage ... :-P\n");
+			exit(1);
+		}
+		case MODE_CLI: {
+			data_size = readhex_hex_read(stdin, (char**)&data);
+			break;
+		}
+		case MODE_CMDLINE: {
+			FILE *stream = fmemopen((void*)options.parameter,
+					strlen(options.parameter) + 1, "r");
+			data_size = readhex_hex_read(stream, (char**)&data);
+			fclose(stream);
+		}
+		case MODE_FILE: {
+			FILE *f = fopen(options.parameter, "r");
+			size_t chunk = 32;
+			size_t data_length = 0;
+			data_size = 4*chunk;
+			data = (uint8_t*)malloc(data_size);
+			while(!feof(f)) {
+				if(data_length + chunk > data_size) {
+					data_size <<= 1;
+					data = (uint8_t*)realloc(data, data_size);
+				}
+				data_length += fread(data + data_length, chunk, 1, f);
+			}
+			fclose(f);
+			break;
+		}
+		case MODE_CODE: {
+			data_size = code(&data);
+			break;
+		}
+	}
 
 	state_t state = gdsl_init();
 	gdsl_set_code(state, (char*)data, data_size, 0);
@@ -132,6 +226,7 @@ int main(void) {
 		printf("Unable to evaluate :-(.\n");
 
 	rreil_statements_free(statements);
+	free(data);
 
 	return 0;
 }

@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <functional>
 #include <stdio.h>
 extern "C" {
 #include <rreil/rreil_print.h>
@@ -19,7 +20,7 @@ extern "C" {
 
 using namespace std;
 
-variable::variable(struct rreil_id *id, uint64_t offset, uint64_t size) :
+variable::variable(struct rreil_id *id, uint64_t size, uint64_t offset) :
 		expression(size) {
 	this->id = id;
 	this->offset = offset;
@@ -67,65 +68,70 @@ bool variable::substitute(struct rreil_variable *old,
 	if(me == other)
 		return true;
 
-	if(other >= me) {
-		vector<struct concat_element> elements = vector<struct concat_element>();
-
+	vector<struct concat_element> elements = vector<struct concat_element>();
+	auto element = [&](shared_ptr<expression> exp, size_t size, size_t offset) {
 		struct concat_element element;
-		element.expression = new_;
-		element.size = get_size();
-		element.offset = 0;
-//		element.offset = 0;
-
+		element.expression = exp;
+		element.size = size;
+		element.offset = offset;
 		elements.push_back(element);
+	};
+	auto element_ne = [&](expression *exp, size_t size, size_t offset) {
+		return element(shared_ptr<expression>(exp), size, offset);
+	};
 
-		new_ = shared_ptr < expression
-				> (new concat_expression(elements, get_size()));
-		return true;
-	}
-
-	if(other <= me) {
-		vector<struct concat_element> elements = vector<struct concat_element>();
-
-		struct concat_element element;
-
+	if(other >= me)
+		element(new_, get_size(), 0);
+	else if(other <= me) {
 		size_t size_acc = 0;
 
 		size_t size = other.get_start() - me.get_start();
 		if(size) {
-			element.expression = shared_ptr < expression
-					> (new variable(id, offset, size));
-			element.size = size;
-			element.offset = 0;
+			element_ne(new variable(id, size, offset), size, 0);
 			size_acc += size;
-			elements.push_back(element);
 		}
 
-		size = other.get_end() - other.get_start() + 1;
-		element.expression = new_;
-		element.size = size;
-		element.offset = 0;
-		size_acc += size;
-		elements.push_back(element);
+		element(new_, other.get_size(), 0);
+		size_acc += other.get_size();
 
 		size = me.get_end() - other.get_end();
-		if(size) {
-			element.expression = shared_ptr < expression
-					> (new variable(id, offset, size));
-			element.size = size;
-			element.offset = size_acc;
-			elements.push_back(element);
-		}
+		if(size)
+			element_ne(new variable(id, size, offset), size, size_acc);
 
-		new_ = shared_ptr < expression
-				> (new concat_expression(elements, get_size()));
-		return true;
+	} else {
+		auto two =
+				[&](function<void(size_t,size_t)> construct_a, function<void(size_t,size_t)> construct_b) {
+					size_t offset_a = me.get_start() - other.get_start();
+					size_t size_a = other.get_size() - offset_a;
+//			element(new_, size_a, offset_a);
+					construct_a(size_a, offset_a);
+
+					size_t offset_b = offset_a + size_a;
+					size_t size_b = me.get_size() - size_a;
+//			element_ne(new variable(id, offset_b, size_b), size_b, offset_b);
+					construct_b(size_b, offset_b);
+				};
+		auto construct_other = [&](size_t size, size_t offset) {
+			element(new_, size, offset);
+		};
+		auto construct_me = [&](size_t size, size_t offset) {
+			element_ne(new variable(id, size, offset), size, offset);
+		};
+
+		if(me.starts_with(&other))
+			two(construct_other, construct_me);
+		else
+			two(construct_me, construct_other);
 	}
 
-	/*
-	 * Todo: Overlapping
-	 */
-	throw new string(
-			"Handling of partially overlapping expressions not yet implemented :-(...");
+	new_ = shared_ptr<expression>(new concat_expression(elements, get_size()));
+	return true;
+
+//	/*
+//	 * Todo: Overlapping
+//	 */
+//	throw new string(
+//			"Handling of partially overlapping expressions not yet implemented :-(...");
 }
 
 //variable::~variable() {

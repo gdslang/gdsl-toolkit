@@ -11,7 +11,6 @@
 extern "C" {
 #include <rreil/rreil.h>
 }
-#include "itree.h"
 #include "expression/expression.h"
 
 using namespace std;

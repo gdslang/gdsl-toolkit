@@ -35,7 +35,7 @@ shared_ptr<expression> expression::from_rreil_linear(
 				shared_ptr<expression> exp;
 				switch(linear->type) {
 					case RREIL_LINEAR_TYPE_VARIABLE: {
-						exp = shared_ptr<expression>(new variable(linear->variable->id, linear->variable->offset, size));
+						exp = shared_ptr<expression>(new variable(linear->variable->id, size, linear->variable->offset));
 						break;
 					}
 					case RREIL_LINEAR_TYPE_IMMEDIATE: {

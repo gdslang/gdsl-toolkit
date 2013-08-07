@@ -14,6 +14,14 @@ bool interval::overlaps(interval *other) {
 		return other->end >= start;
 }
 
+bool interval::starts_with(interval *other) {
+	return other->start <= start && other->end <= end;
+}
+
+size_t interval::get_size() {
+	return end - start + 1;
+}
+
 bool operator <=(size_t const &spot, interval &interval) {
 	return (spot >= interval.start && spot <= interval.end);
 }
