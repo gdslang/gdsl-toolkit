@@ -23,7 +23,7 @@ pre-build:
 OBJECTS=$(SOURCES:$(SPRE)/%.c=$(BPRE)/%.o)
 
 $(EXECUTABLES): % : $(BPRE)/%.o
-	$(CC) $(LDFLAGS) $(OBJECTS) $(LIBFLAGS) -o $@
+	$(CC) $(LDFLAGS) $< $(LIBFLAGS) -o $@
 
 $(OBJECTS): $(BPRE)/%.o : $(SPRE)/%.c
 	$(CC) $(CFLAGS) $< -o $@

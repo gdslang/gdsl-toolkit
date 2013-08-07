@@ -55,6 +55,10 @@ shared_ptr<expression> analyze(struct rreil_statements *statements) {
 				struct rreil_variable *lhs = current->assign.lhs;
 
 				if(exp->contains(lhs)) {
+					exp->print();
+					printf("\n");
+					fflush(stdout);
+
 					shared_ptr<expression> new_ = expression::from_rreil_op(
 							current->assign.rhs);
 					bool substituted = exp->substitute(current->assign.lhs, new_);

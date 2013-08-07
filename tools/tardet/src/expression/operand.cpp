@@ -36,9 +36,14 @@ char variable::contains(struct rreil_variable *variable) {
 	if(!rreil_id_equals(this->id, variable->id))
 		return 0;
 
-	interval me = interval(offset, size_get());
+//	interval me = interval(offset, offset + size_get());
+//	interval other = interval(variable->offset, variable->offset + variable->)
 
-	return variable->offset <= me;
+	/*
+	 * Todo: Be more precise
+	 */
+
+	return variable->offset <= offset + size_get();
 
 //	uint64_t diff;
 //	if(this->variable_->offset < variable->offset)
@@ -81,13 +86,13 @@ bool variable::substitute(struct rreil_variable *old,
 	};
 
 	if(other >= me)
-		element(new_, get_size(), 0);
+		element(new_, get_size(), me.get_start() - other.get_start());
 	else if(other <= me) {
 		size_t size_acc = 0;
 
 		size_t size = other.get_start() - me.get_start();
 		if(size) {
-			element_ne(new variable(id, size, offset), size, 0);
+			element_ne(new variable(id, get_size(), offset), size, 0);
 			size_acc += size;
 		}
 
@@ -96,7 +101,7 @@ bool variable::substitute(struct rreil_variable *old,
 
 		size = me.get_end() - other.get_end();
 		if(size)
-			element_ne(new variable(id, size, offset), size, size_acc);
+			element_ne(new variable(id, get_size(), offset), size, size_acc);
 
 	} else {
 		auto two =
@@ -115,7 +120,7 @@ bool variable::substitute(struct rreil_variable *old,
 			element(new_, size, offset);
 		};
 		auto construct_me = [&](size_t size, size_t offset) {
-			element_ne(new variable(id, size, offset), size, offset);
+			element_ne(new variable(id, get_size(), offset), size, offset);
 		};
 
 		if(me.starts_with(&other))

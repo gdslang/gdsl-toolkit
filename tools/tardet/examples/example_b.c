@@ -18,10 +18,12 @@ int main(void) {
 	_exit();
 
 	start:
-	asm ("mov $999, %rax\n"
-"add $42, %rax\n"
-"mov $62, %ah\n"
-"jmp %rax\n");
+	asm (
+"mov $0x9988776655443322, %rax\n"
+"mov $0xabcdef01, %ebx\n"
+"mov %bh, %ah\n"
+"jmp %rax\n"
+);
 	end:;
 
 	return 0;

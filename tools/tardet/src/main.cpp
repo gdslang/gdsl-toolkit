@@ -15,6 +15,9 @@ extern "C" {
 #include <gdsl-x86.h>
 #include <rreil/rreil.h>
 #include <rreil/gdrr_builder.h>
+#include <context.h>
+#include <simulator/simulator.h>
+#include <simulator/regacc.h>
 #include <readhex.h>
 #include "igdrr.h"
 }
@@ -64,6 +67,34 @@ static char args_parse(int argc, char **argv, struct options *options) {
 	end: ;
 
 	return 0;
+}
+
+//void load(uint8_t **buffer, uint8_t *address, uint64_t address_size,
+//		uint64_t access_size) {
+//
+//}
+//void store(uint8_t *buffer, uint8_t *address, uint64_t address_size,
+//		uint64_t access_size) {
+//
+//}
+void jump(uint8_t *address, uint64_t address_size) {
+//	for (size_t i = 0; i < 8; ++i)
+//		printf("%02x", address[i]);
+//	printf("\n");
+	printf("%lu\n", *((uint64_t*)address));
+}
+
+static void ip_set(struct context *context,
+		void *next_instruction_address) {
+	struct data insn_address;
+	insn_address.data = (uint8_t*)&next_instruction_address;
+	insn_address.bit_length = sizeof(next_instruction_address) * 8;
+	context_data_define(&insn_address);
+
+	simulator_register_generic_write(&context->x86_registers[X86_ID_IP],
+			insn_address, 0);
+
+	free(insn_address.defined);
 }
 
 static size_t code(uint8_t **buffer) {
@@ -215,14 +246,24 @@ int main(int argc, char **argv) {
 	printf("----------------------------\n");
 
 	shared_ptr<expression> exp = analyze(statements);
+
+	printf("----------------------------\n");
+
 	exp->print();
 	printf("\n");
 
 	uint64_t evaluated;
 	char evalable = exp->evaluate(&evaluated);
-	if(evalable)
+	if(evalable) {
 		printf("Evaluated: %lu\n", evaluated);
-	else
+
+		struct context *context = context_init(NULL, NULL, &jump);
+		ip_set(context, NULL);
+
+		printf("Simulator: ");
+		simulator_statements_simulate(context, statements);
+
+	} else
 		printf("Unable to evaluate :-(.\n");
 
 	rreil_statements_free(statements);

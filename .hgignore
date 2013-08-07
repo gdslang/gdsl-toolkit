@@ -16,6 +16,7 @@ resources/
 \.a
 \.class
 \.jar
+\.bin
 
 STATS
 examples/x86/cli

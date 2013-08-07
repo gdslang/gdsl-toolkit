@@ -2,7 +2,7 @@ MLTK=../..
 CC=gcc
 #CC=clang
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 LIBRARY=librreil.a
 SOURCES=memory.c context.c rreil/free.c rreil/print.c rreil/rreil_id.c rreil/gdrr_builder.c simulator/ops.c simulator/regacc.c simulator/simulator.c simulator/tracking.o

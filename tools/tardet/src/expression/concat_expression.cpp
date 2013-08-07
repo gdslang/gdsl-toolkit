@@ -12,7 +12,8 @@
 #include "concat_expression.h"
 extern "C" {
 #include <util.h>
-}using namespace std;
+}
+using namespace std;
 
 concat_expression::concat_expression(vector<struct concat_element> elements,
 		size_t size) :
@@ -27,9 +28,9 @@ void concat_expression::print_inner() {
 	auto print_element = [&](struct concat_element *element) {
 		element->expression->print_inner();
 		if(element->size != get_size())
-			printf(":%lu", element->size);
+		printf(":%lu", element->size);
 		if(element->offset)
-			printf("/%lu", element->offset);
+		printf("/%lu", element->offset);
 	};
 
 	if(elements.size() > 1) {
@@ -62,6 +63,7 @@ bool concat_expression::substitute(struct rreil_variable *old,
 		element.expression = new_;
 		element.size = elements[i].size;
 		element.offset = elements[i].offset;
+
 		bool substituted = elements[i].expression->substitute(old,
 				element.expression);
 		if(substituted)
@@ -73,7 +75,7 @@ bool concat_expression::substitute(struct rreil_variable *old,
 	if(update) {
 		concat_expression *replacement = new concat_expression(elements_new,
 				get_size());
-		new_ = shared_ptr < expression > (replacement);
+		new_ = shared_ptr<expression>(replacement);
 		return true;
 	} else
 		return false;
