@@ -26,5 +26,5 @@ expression *multiplication::construct(shared_ptr<expression> left,
 }
 
 void multiplication::print_inner() {
-	binary_expression::print_inner('*');
+	binary_expression::print_inner("*");
 }

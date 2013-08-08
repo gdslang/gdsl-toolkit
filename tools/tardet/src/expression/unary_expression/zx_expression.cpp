@@ -24,13 +24,13 @@ char zx_expression::contains(struct rreil_variable *variable) {
 }
 
 bool zx_expression::substitute(struct rreil_variable *old, shared_ptr<expression> &new_) {
-	return operand->substitute(old, new_);
+	if(operand->substitute(old, new_)) {
+		new_ = shared_ptr<expression>(new zx_expression(new_, get_size()));
+		return true;
+	}
 }
 
 char zx_expression::evaluate(uint64_t *result) {
-	/*
-	 * Todo: Fix ;-)
-	 */
 	*result = 0;
 	return operand->evaluate(result);
 }

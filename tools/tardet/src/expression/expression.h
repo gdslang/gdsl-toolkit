@@ -9,6 +9,7 @@
 #define EXPRESSION_H_
 
 #include <memory>
+#include <string>
 #include <stdint.h>
 #include <stdlib.h>
 extern "C" {
@@ -23,6 +24,8 @@ private:
 
 public:
 	expression(uint64_t size) {
+		if(size > 64)
+			throw new string("Maximum size is 64 :-(.");
 		this->size = size;
 	}
 	virtual ~expression() {

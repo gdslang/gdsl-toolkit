@@ -12,10 +12,10 @@
 
 using namespace std;
 
-void binary_expression::print_inner(char op) {
+void binary_expression::print_inner(string op) {
 	printf("(");
 	left->print_inner();
-	printf(" %c ", op);
+	printf(" %s ", op.c_str());
 	right->print_inner();
 	printf(")");
 }

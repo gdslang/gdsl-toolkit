@@ -8,6 +8,7 @@
 #ifndef BINARY_EXPRESSION_H_
 #define BINARY_EXPRESSION_H_
 
+#include <string>
 #include <memory>
 #include "../expression.h"
 #include "../operand.h"
@@ -19,7 +20,7 @@ protected:
 	shared_ptr<expression> left;
 	shared_ptr<expression> right;
 
-	void print_inner(char op);
+	void print_inner(string op);
 public:
 	binary_expression(shared_ptr<expression> left, shared_ptr<expression> right,
 			uint64_t size) :

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void _exit() {
+void __exit() {
 	exit(0);
 }
 
@@ -15,7 +15,7 @@ int main(void) {
 
 	fclose(f);
 
-	_exit();
+	__exit();
 
 	start:
 	asm ("mov $999, %rax\n"

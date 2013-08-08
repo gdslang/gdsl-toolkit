@@ -13,7 +13,7 @@ uint64_t subtraction::evaluate(uint64_t a, uint64_t b) {
 }
 
 void subtraction::print_inner() {
-	binary_expression::print_inner('-');
+	binary_expression::print_inner("-");
 }
 
 expression *subtraction::construct(shared_ptr<expression> left,

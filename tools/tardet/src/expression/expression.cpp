@@ -9,11 +9,10 @@
 #include <stdio.h>
 #include <functional>
 #include <memory>
-#include "expression.h"
 extern "C" {
 #include <rreil/rreil.h>
 }
-
+#include "expression.h"
 #include "expressions.h"
 
 using namespace std;
@@ -68,7 +67,10 @@ shared_ptr<expression> expression::from_rreil_op(struct rreil_op *op) {
 							from_rreil_linear(op->mul.opnd1, op->mul.size), op->mul.size));
 		}
 		case RREIL_OP_TYPE_ZX: {
-
+			return shared_ptr<expression>(new zx_expression(from_rreil_linear(op->zx.opnd, op->zx.fromsize), op->zx.size));
+		}
+		case RREIL_OP_TYPE_SX: {
+			return shared_ptr<expression>(new sx_expression(from_rreil_linear(op->zx.opnd, op->zx.fromsize), op->zx.size));
 		}
 	}
 	return shared_ptr<expression>();

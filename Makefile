@@ -23,12 +23,12 @@ gdsl-x86.c: gdsl $(GDSL_X86_SOURCES)
 	./gdsl @MLton fixed-heap 6g -- $(GDSL_X86_SOURCES:%="%")
 
 tools: $(GDSL_X86_LIB) libs
-	make -C tools/
+	$(MAKE) -C tools/
 
 libs: $(GDSL_X86_LIB)
-	make -C libs/
+	$(MAKE) -C libs/
 
 clean:
-	make -C libs/	clean
-	make -C tools/ clean
+	$(MAKE) -C libs/	clean
+	$(MAKE) -C tools/ clean
 	rm -f gdsl gdsl-x86.* $(GDSL_X86_LIB)

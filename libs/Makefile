@@ -1,4 +1,3 @@
-MAKE=make
 LIBS=gdrr jgdrr x86 rreil util gdsl x86-tester x86-generator readhex
 
 .PHONY all: $(LIBS)

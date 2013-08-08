@@ -11,6 +11,8 @@
 #include "binary_expression/addition.h"
 #include "binary_expression/subtraction.h"
 #include "binary_expression/multiplication.h"
+#include "unary_expression/zx_expression.h"
+#include "unary_expression/sx_expression.h"
 #include "operand.h"
 
 #endif /* EXPRESSIONS_H_ */

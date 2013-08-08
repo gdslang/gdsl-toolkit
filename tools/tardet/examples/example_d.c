@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void _exit() {
+void __exit() {
 	exit(0);
 }
 
@@ -15,12 +15,13 @@ int main(void) {
 
 	fclose(f);
 
-	_exit();
+	__exit();
 
 	start:
 	asm (
 "mov $0x0000776655443322, %rax\n"
-"mov $0x10, %rbx\n"
+"mov $0xff, %bl\n"
+"movsx %bl, %rbx\n"
 "lea (%rax, %rbx, 2), %rax\n"
 "jmp %rax\n"
 );

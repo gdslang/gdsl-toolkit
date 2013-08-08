@@ -18,6 +18,6 @@ expression *addition::construct(shared_ptr<expression> left,
 }
 
 void addition::print_inner() {
-	binary_expression::print_inner('+');
+	binary_expression::print_inner("+");
 }
 
