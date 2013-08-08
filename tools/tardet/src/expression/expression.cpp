@@ -154,6 +154,9 @@ shared_ptr<expression> expression::from_rreil_op(struct rreil_op *op) {
 		case RREIL_OP_TYPE_CMP: {
 			return from_rreil_compare_op(op->cmp);
 		}
+		case RREIL_OP_TYPE_ARB: {
+			return shared_ptr<expression>(new arb_expression(op->arb.size));
+		}
 	}
 	return shared_ptr<expression>();
 }
