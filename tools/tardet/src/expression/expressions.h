@@ -20,6 +20,7 @@
 #include "binary_expression/and_expression.h"
 #include "binary_expression/or_expression.h"
 #include "binary_expression/xor_expression.h"
+#include "binary_expression/compare.h"
 #include "unary_expression/zx_expression.h"
 #include "unary_expression/sx_expression.h"
 #include "operand.h"

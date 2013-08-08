@@ -55,6 +55,41 @@ shared_ptr<expression> expression::from_rreil_linear(struct rreil_linear* linear
 			};
 	return handle_linear(linear);
 }
+
+shared_ptr<expression> expression::from_rreil_compare_op(struct rreil_comparator *cmp) {
+	compare_op *op;
+	switch(cmp->type) {
+		case RREIL_COMPARATOR_TYPE_EQ: {
+			op = new compare_eq();
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_NEQ: {
+			op = new compare_neq();
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_LES: {
+			op = new compare_les();
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_LEU: {
+			op = new compare_leu();
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_LTS: {
+			op = new compare_lts();
+			break;
+		}
+		case RREIL_COMPARATOR_TYPE_LTU: {
+			op = new compare_ltu();
+			break;
+		}
+	}
+	return shared_ptr<expression>(
+			new compare(from_rreil_linear(cmp->arity2.opnd1, cmp->arity2.size),
+					from_rreil_linear(cmp->arity2.opnd2, cmp->arity2.size), cmp->arity2.size, shared_ptr<compare_op>(op)));
+
+}
+
 shared_ptr<expression> expression::from_rreil_op(struct rreil_op *op) {
 	switch(op->type) {
 		case RREIL_OP_TYPE_LIN: {
@@ -115,6 +150,9 @@ shared_ptr<expression> expression::from_rreil_op(struct rreil_op *op) {
 			return shared_ptr<expression>(
 					new xor_expression(from_rreil_linear(op->xor_.opnd1, op->xor_.size),
 							from_rreil_linear(op->xor_.opnd2, op->xor_.size), op->xor_.size));
+		}
+		case RREIL_OP_TYPE_CMP: {
+			return from_rreil_compare_op(op->cmp);
 		}
 	}
 	return shared_ptr<expression>();
