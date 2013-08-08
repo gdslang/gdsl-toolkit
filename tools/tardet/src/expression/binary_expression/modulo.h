@@ -1,13 +1,13 @@
 
-#ifndef DIVISION_UNSIGNED_H_
-#define DIVISION_UNSIGNED_H_
+#ifndef MODULO_H_
+#define MODULO_H_
 
 #include <stdint.h>
 #include "binary_expression.h"
 
-class division_unsigned: public binary_expression {
+class modulo: public binary_expression {
 public:
-	division_unsigned(shared_ptr<expression> left, shared_ptr<expression> right,
+	modulo(shared_ptr<expression> left, shared_ptr<expression> right,
 			uint64_t size) :
 			binary_expression(left, right, size) {
 	}
@@ -17,4 +17,4 @@ public:
 	void print_inner();
 };
 
-#endif /* DIVISION_UNSIGNED_H_ */
+#endif /* MODULO_H_ */

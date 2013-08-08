@@ -1,34 +1,36 @@
 MLTK=.
-#CC=clang
+CC=gcc
 MLTON=mlton
 CFLAGS=-g3 -fPIC
 LFLAGS=-shared
 
-GDSL_X86_LIB=libgdsl-x86.so
+GDSL=gdsl
+GDSLFLAGS=@MLton fixed-heap 6g --
+GDSL_X86=gdsl-x86
 
 .PHONY: libs tools
 
-all: gdsl $(GDSL_X86_LIB) libs tools
+all: $(GDSL) lib$(GDSL_X86).so libs tools
 
-gdsl: gdsl.mlb $(shell find detail/ -type f -name '*')
-	mlton gdsl.mlb
+$(GDSL): gdsl.mlb $(shell find detail/ -type f -name '*')
+	$(MLTON) $<
 
 GDSL_X86_SOURCES=$(shell find specifications/basis specifications/rreil specifications/x86 -type f -name '*.ml')
 
-$(GDSL_X86_LIB): gdsl-x86.c
-	clang $(CFLAGS) -c gdsl-x86.c -o gdsl-x86.o
-	gcc $(LFLAGS) -Wl,-soname,$(GDSL_X86_LIB) -o $(GDSL_X86_LIB) gdsl-x86.o
+lib$(GDSL_X86).so: $(GDSL_X86).c
+	$(CC) $(CFLAGS) -c $< -o $(<:.c=.o)
+	$(CC) $(LFLAGS) -Wl,-soname,lib$(<:.c=.so) -o lib$(<:.c=.so) $(<:.c=.o)
 
-gdsl-x86.c: gdsl $(GDSL_X86_SOURCES)
-	./gdsl @MLton fixed-heap 6g -- $(GDSL_X86_SOURCES:%="%")
+$(GDSL_X86).c: $(GDSL) $(GDSL_X86_SOURCES)
+	./$< $(GDSLFLAGS) $(GDSL_X86_SOURCES:%="%")
 
-tools: $(GDSL_X86_LIB) libs
-	$(MAKE) -C tools/
+tools: lib$(GDSL_X86).so libs
+	$(MAKE) -C $@/
 
-libs: $(GDSL_X86_LIB)
-	$(MAKE) -C libs/
+libs: lib$(GDSL_X86).so
+	$(MAKE) -C $@/
 
 clean:
 	$(MAKE) -C libs/	clean
 	$(MAKE) -C tools/ clean
-	rm -f gdsl gdsl-x86.* $(GDSL_X86_LIB)
+	rm -f gdsl gdsl-x86.* lib$(GDSL_X86).so

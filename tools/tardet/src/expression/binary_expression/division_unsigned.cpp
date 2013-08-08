@@ -1,9 +1,3 @@
-/*
- * addition.cpp
- *
- *  Created on: Aug 7, 2013
- *      Author: jucs
- */
 
 #include <stdint.h>
 #include "division_unsigned.h"

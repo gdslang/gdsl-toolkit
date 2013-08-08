@@ -1,13 +1,19 @@
+/*
+ * shift_left.h
+ *
+ *  Created on: Aug 8, 2013
+ *      Author: jucs
+ */
 
-#ifndef DIVISION_UNSIGNED_H_
-#define DIVISION_UNSIGNED_H_
+#ifndef SHIFT_LEFT_H_
+#define SHIFT_LEFT_H_
 
 #include <stdint.h>
 #include "binary_expression.h"
 
-class division_unsigned: public binary_expression {
+class shift_left: public binary_expression {
 public:
-	division_unsigned(shared_ptr<expression> left, shared_ptr<expression> right,
+	shift_left(shared_ptr<expression> left, shared_ptr<expression> right,
 			uint64_t size) :
 			binary_expression(left, right, size) {
 	}
@@ -17,4 +23,4 @@ public:
 	void print_inner();
 };
 
-#endif /* DIVISION_UNSIGNED_H_ */
+#endif /* SHIFT_LEFT_H_ */
