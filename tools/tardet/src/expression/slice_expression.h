@@ -14,19 +14,19 @@
 
 using namespace std;
 
-struct concat_element {
+struct slice_element {
 	shared_ptr<class expression> expression;
 	size_t size;
 	size_t offset;
 };
 
-class concat_expression: public expression {
+class slice_expression: public expression {
 private:
-	vector<struct concat_element> elements;
+	vector<struct slice_element> elements;
 
 public:
-	concat_expression(vector<struct concat_element> elements, size_t size);
-	virtual ~concat_expression();
+	slice_expression(vector<struct slice_element> elements, size_t size);
+	virtual ~slice_expression();
 
 	void print_inner();
 

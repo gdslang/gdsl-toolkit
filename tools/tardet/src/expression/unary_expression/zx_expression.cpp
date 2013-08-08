@@ -36,7 +36,7 @@ char zx_expression::evaluate(uint64_t *result) {
 }
 
 void zx_expression::print_inner() {
-	printf("([->u%lu] ", get_size());
+	printf("([%lu->u%lu] ", operand->get_size(), get_size());
 	operand->print_inner();
 	printf(")");
 }

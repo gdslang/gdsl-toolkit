@@ -16,7 +16,7 @@ extern "C" {
 }
 #include "operand.h"
 #include "../interval.h"
-#include "concat_expression.h"
+#include "slice_expression.h"
 
 using namespace std;
 
@@ -73,9 +73,9 @@ bool variable::substitute(struct rreil_variable *old,
 	if(me == other)
 		return true;
 
-	vector<struct concat_element> elements = vector<struct concat_element>();
+	vector<struct slice_element> elements = vector<struct slice_element>();
 	auto element = [&](shared_ptr<expression> exp, size_t size, size_t offset) {
-		struct concat_element element;
+		struct slice_element element;
 		element.expression = exp;
 		element.size = size;
 		element.offset = offset;
@@ -129,7 +129,7 @@ bool variable::substitute(struct rreil_variable *old,
 			two(construct_me, construct_other);
 	}
 
-	new_ = shared_ptr<expression>(new concat_expression(elements, get_size()));
+	new_ = shared_ptr<expression>(new slice_expression(elements, get_size()));
 	return true;
 
 //	/*
