@@ -45,7 +45,6 @@ public:
 		marked = false;
 	}
 	~bbgraph_node() {
-		printf(":(\n");
 		delete id;
 		free(stmts.statements);
 	}
@@ -57,6 +56,7 @@ public:
 	}
 
 	void add_child(shared_ptr<bbgraph_node> child);
+	void add_parent(shared_ptr<bbgraph_node> parent);
 
 	struct rreil_statements get_stmts() {
 		return this->stmts;

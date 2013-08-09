@@ -13,6 +13,8 @@
 #include "bbgraph.h"
 #include "bbgraph_node.h"
 
+using namespace std;
+
 void bbgraph::print_dot() {
 	printf("digraph G {\n");
 	printf("\tnode [shape=box];\n");
@@ -21,7 +23,8 @@ void bbgraph::print_dot() {
 	printf("}\n");
 }
 
-bbgraph *bbgraph::from_rreil_statements(struct rreil_statements *stmts, size_t address) {
+tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> bbgraph::from_rreil_statements(struct rreil_statements *stmts,
+		size_t address) {
 	size_t counter = 0;
 
 	function<tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>>(struct rreil_statements*)> connect_nodes =
@@ -32,7 +35,6 @@ bbgraph *bbgraph::from_rreil_statements(struct rreil_statements *stmts, size_t a
 					acc.statements_length = 0;
 					acc.statements_size = stmts->statements_size;
 					acc.statements = (struct rreil_statement**)malloc(sizeof(struct rreil_statement*)*acc.statements_size);
-					printf("...\n");
 
 					current = shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(address, counter++), acc));
 				};
@@ -40,8 +42,14 @@ bbgraph *bbgraph::from_rreil_statements(struct rreil_statements *stmts, size_t a
 				next();
 				shared_ptr<bbgraph_node> me = current;
 
+				auto connect = [&](shared_ptr<bbgraph_node> a, shared_ptr<bbgraph_node> b) {
+					a->add_child(b);
+					b->add_parent(a);
+				};
+
 				for (size_t i = 0; i < stmts->statements_length; ++i) {
 					struct rreil_statement *stmt = stmts->statements[i];
+
 					switch(stmt->type) {
 						case RREIL_STATEMENT_TYPE_ITE: {
 							shared_ptr<bbgraph_node> then_start;
@@ -52,16 +60,27 @@ bbgraph *bbgraph::from_rreil_statements(struct rreil_statements *stmts, size_t a
 							shared_ptr<bbgraph_node> else_end;
 							tie(else_start, else_end) = connect_nodes(stmt->ite.else_branch);
 
-							current->add_child(then_start);
-							current->add_child(else_start);
+							connect(current, then_start);
+							connect(current, else_start);
 
 							next();
 
-							then_end->add_child(current);
-							else_end->add_child(current);
+							connect(then_end, current);
+							connect(else_end, current);
 							break;
 						}
 						case RREIL_STATEMENT_TYPE_WHILE: {
+							shared_ptr<bbgraph_node> body_start;
+							shared_ptr<bbgraph_node> body_end;
+							tie(body_start, body_end) = connect_nodes(stmt->while_.body);
+
+							connect(current, body_start);
+							shared_ptr<bbgraph_node> backup = current;
+							next();
+							connect(backup, current);
+							connect(body_start, body_end);
+							connect(body_end, current);
+
 							break;
 						}
 						default: {
@@ -74,8 +93,5 @@ bbgraph *bbgraph::from_rreil_statements(struct rreil_statements *stmts, size_t a
 				return tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>>(me, current);
 			};
 
-	shared_ptr<bbgraph_node> root;
-	tie(root, ignore) = connect_nodes(stmts);
-
-	return new bbgraph(root);
+	return connect_nodes(stmts);
 }

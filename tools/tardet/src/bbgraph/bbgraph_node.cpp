@@ -35,6 +35,10 @@ void bbgraph_node::add_child(shared_ptr<bbgraph_node> child) {
 	children.push_back(branch);
 }
 
+void bbgraph_node::add_parent(shared_ptr<bbgraph_node> parent) {
+	parents.push_back(parent);
+}
+
 void bbgraph_node::print_dot() {
 //	printf("\t\"%s\" [label=\"%p\"];\n", id->to_string().c_str(), (void*)id->get_address_machine());
 	if(is_marked())

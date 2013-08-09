@@ -223,10 +223,11 @@ int main(int argc, char **argv) {
 
 	rreil_statements_print(statements);
 
-
-	bbgraph *tree = bbgraph::from_rreil_statements(statements, 1000);
-	tree->print_dot();
-	delete tree;
+	shared_ptr<bbgraph_node> root;
+	tie(root, ignore) = bbgraph::from_rreil_statements(statements, 1000);
+	bbgraph *g = new bbgraph(root);
+	g->print_dot();
+	delete g;
 
 //
 //	printf("\n");

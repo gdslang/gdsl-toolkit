@@ -30,6 +30,7 @@ int main(void) {
 //"jmp %rax\n"
 "mov $0x0000776655443322, %rax\n"
 "shl $2, %rax\n"
+"bsf %rbx, %rax\n"
 "jmp %rax\n"
 );
 	end:;
