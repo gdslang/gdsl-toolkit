@@ -23,6 +23,9 @@ extern "C" {
 }
 #include "expression/expressions.h"
 #include "analyzer.h"
+#include "bbgraph/bbgraph.h"
+#include "bbgraph/bbgraph_id.h"
+#include "bbgraph/bbgraph_node.h"
 
 using namespace std;
 
@@ -115,6 +118,21 @@ int main(int argc, char **argv) {
 	uint8_t *data;
 	size_t data_size;
 
+//	shared_ptr<bbgraph_node> root = shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(1000, 0)));
+//
+//	auto a = shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(1001, 0)));
+//	root->add_child(a);
+//
+//	auto b = shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(1002, 0)));
+//	root->add_child(b);
+//	b->add_child(shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(1002, 1))));
+//
+//	bbgraph *tree = new bbgraph(root);
+//
+//	tree->print_dot();
+
+//	exit(0);
+
 	switch(options.mode) {
 		case MODE_NONE: {
 			printf("Usage ... :-P\n");
@@ -129,6 +147,7 @@ int main(int argc, char **argv) {
 					strlen(options.parameter) + 1, "r");
 			data_size = readhex_hex_read(stream, (char**)&data);
 			fclose(stream);
+			break;
 		}
 		case MODE_FILE: {
 			FILE *f = fopen(options.parameter, "r");
@@ -203,6 +222,12 @@ int main(int argc, char **argv) {
 	gdsl_destroy(state);
 
 	rreil_statements_print(statements);
+
+
+	bbgraph *tree = bbgraph::from_rreil_statements(statements, 1000);
+	tree->print_dot();
+	delete tree;
+
 //
 //	printf("\n");
 

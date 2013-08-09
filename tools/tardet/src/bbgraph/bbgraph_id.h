@@ -1,22 +1,26 @@
 /*
- * bbtree_id.h
+ * bbgraph_id.h
  *
  *  Created on: Aug 8, 2013
  *      Author: jucs
  */
 
-#ifndef BBTREE_ID_H_
-#define BBTREE_ID_H_
+#ifndef bbgraph_ID_H_
+#define bbgraph_ID_H_
 
 #include <stdlib.h>
+#include <string>
 
-class bbtree_id {
+using namespace std;
+
+
+class bbgraph_id {
 private:
 	size_t address_machine;
 	size_t inner;
 
 public:
-	bbtree_id(size_t address_machine, size_t inner) {
+	bbgraph_id(size_t address_machine, size_t inner) {
 		this->address_machine = address_machine;
 		this->inner = inner;
 	}
@@ -26,7 +30,8 @@ public:
 	size_t get_inner() {
 		return inner;
 	}
+
+	string to_string();
 };
 
-
-#endif /* BBTREE_ID_H_ */
+#endif /* bbgraph_ID_H_ */
