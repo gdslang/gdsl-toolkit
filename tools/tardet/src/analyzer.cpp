@@ -25,8 +25,7 @@ static shared_ptr<expression> initial(rreil_statement *last) {
 
 	switch(last->type) {
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			exp = expression::from_rreil_linear(last->branch.target->address,
-					last->branch.target->size);
+			exp = expression::from_rreil_linear(last->branch.target->address, last->branch.target->size);
 			break;
 		}
 //		case RREIL_STATEMENT_TYPE_CBRANCH: {
@@ -44,7 +43,6 @@ static shared_ptr<expression> initial(rreil_statement *last) {
 
 shared_ptr<expression> analyze(struct rreil_statements statements, shared_ptr<expression> exp) {
 
-
 	for(size_t i = statements.statements_length - 1; i > 0; --i) {
 		rreil_statement *current = statements.statements[i - 1];
 
@@ -59,8 +57,7 @@ shared_ptr<expression> analyze(struct rreil_statements statements, shared_ptr<ex
 					printf("\n");
 					fflush(stdout);
 
-					shared_ptr<expression> new_ = expression::from_rreil_op(
-							current->assign.rhs);
+					shared_ptr<expression> new_ = expression::from_rreil_op(current->assign.rhs);
 					bool substituted = exp->substitute(current->assign.lhs, new_);
 					if(substituted)
 						exp = new_;
@@ -80,8 +77,7 @@ shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
 	nodes.push(sp);
 
 	struct rreil_statements statements_sp = sp->get_stmts();
-	rreil_statement *last = statements_sp.statements[statements_sp.statements_length
-			- 1];
+	rreil_statement *last = statements_sp.statements[statements_sp.statements_length - 1];
 	shared_ptr<expression> exp = initial(last);
 	if(exp)
 		return NULL;
@@ -89,7 +85,16 @@ shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
 	while(!nodes.empty()) {
 		shared_ptr<bbgraph_node> next = nodes.front();
 		nodes.pop();
-	}
 
-	exp = analyze(sp->get_stmts(), exp);
+		exp = analyze(next->get_stmts(), next->get_uexp());
+
+		exp->print();
+
+		auto parents = next->get_parents();
+		for(size_t i = 0; i < parents.size(); ++i) {
+			shared_ptr<expression> exp_cur = shared_ptr<expression>(new conditional_expression(parents[i].condition, exp, exp->get_size()));
+			parents[i].dst.lock()->add_expression(exp_cur);
+			nodes.push(parents[i].dst.lock());
+		}
+	}
 }

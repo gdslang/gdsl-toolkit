@@ -15,11 +15,20 @@ union_expression::union_expression(vector<shared_ptr<expression>> children, uint
 	this->children = children;
 }
 
+union_expression::union_expression(uint64_t size) :
+		expression(size) {
+	this->children = vector<shared_ptr<expression>>();
+}
+
 union_expression::~union_expression() {
 	// TODO Auto-generated destructor stub
 }
 
 void union_expression::print_inner() {
+	if(children.size() == 1) {
+		children[0]->print_inner();
+		return;
+	}
 	printf("[");
 	for(size_t i = 0; i < children.size(); ++i) {
 		if(i)
@@ -61,4 +70,10 @@ char union_expression::evaluate(uint64_t *result) {
 		if(children[i]->evaluate(result))
 			return true;
 	return false;
+}
+
+void union_expression::add(shared_ptr<expression> exp) {
+	if(get_size() != exp->get_size())
+		throw new string("Cannot union expressions of different sizes :-(.");
+	children.push_back(exp);
 }

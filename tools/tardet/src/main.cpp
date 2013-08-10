@@ -226,10 +226,11 @@ int main(int argc, char **argv) {
 
 	vector<shared_ptr<bbgraph_node>> nodes;
 	shared_ptr<bbgraph_node> root;
-	tie(nodes, root, ignore) = bbgraph::from_rreil_statements(statements, 1000);
+	shared_ptr<bbgraph_node> tail;
+	tie(nodes, root, tail) = bbgraph::from_rreil_statements(statements, 1000);
 	bbgraph *g = new bbgraph(root);
 	g->print_dot();
-	delete g;
+//	delete g;
 
 //
 //	printf("\n");
@@ -273,7 +274,7 @@ int main(int argc, char **argv) {
 
 	printf("----------------------------\n");
 
-	shared_ptr<expression> exp = NULL;//analyze(*statements);
+	shared_ptr<expression> exp = analyze(g, tail);// NULL;//analyze(*statements);
 
 	printf("----------------------------\n");
 
@@ -298,6 +299,8 @@ int main(int argc, char **argv) {
 
 	rreil_statements_free(statements);
 	free(data);
+
+	delete g;
 
 	return 0;
 }

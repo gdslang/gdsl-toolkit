@@ -53,6 +53,12 @@ void bbgraph_node::add_parent(shared_ptr<bbgraph_node> parent, shared_ptr<expres
 	parents.push_back(pref);
 }
 
+void bbgraph_node::add_expression(shared_ptr<expression> expression) {
+	if(uexp == NULL)
+		uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
+	uexp->add(expression);
+}
+
 void bbgraph_node::print_dot() {
 //	printf("\t\"%s\" [label=\"%p\"];\n", id->to_string().c_str(), (void*)id->get_address_machine());
 	if(is_marked())

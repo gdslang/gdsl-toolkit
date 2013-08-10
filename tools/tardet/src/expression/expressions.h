@@ -25,5 +25,7 @@
 #include "unary_expression/sx_expression.h"
 #include "operand.h"
 #include "arb_expression.h"
+#include "conditional_expression.h"
+#include "union_expression.h"
 
 #endif /* EXPRESSIONS_H_ */

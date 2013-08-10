@@ -17,6 +17,7 @@ extern "C" {
 #include <rreil/rreil.h>
 }
 #include "../expression/expression.h"
+#include "../expression/expressions.h"
 
 using namespace std;
 
@@ -39,6 +40,7 @@ private:
 	vector<struct bbgraph_pref> parents;
 	struct rreil_statements stmts;
 	bool marked = 0;
+	shared_ptr<union_expression> uexp;
 
 	bool has_subgraph();
 //	void print_dot_label();
@@ -50,6 +52,7 @@ public:
 		parents = vector<struct bbgraph_pref>();
 		this->stmts = stmts;
 		marked = false;
+		uexp = NULL;
 	}
 	~bbgraph_node() {
 //		printf("Destructing: %s\n", this->id->to_string().c_str());
@@ -65,12 +68,17 @@ public:
 	struct rreil_statements get_stmts() {
 		return stmts;
 	}
+	shared_ptr<union_expression> get_uexp() {
+		return uexp;
+	}
 	bool is_marked() {
 		return marked;
 	}
 	void mark() {
 		marked = true;
 	}
+
+	void add_expression(shared_ptr<expression> expression);
 
 	void add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition);
 	void add_parent(shared_ptr<bbgraph_node> parent, shared_ptr<expression> condition);

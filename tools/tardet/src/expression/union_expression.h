@@ -19,7 +19,10 @@ private:
 	vector<shared_ptr<expression>> children;
 public:
 	union_expression(vector<shared_ptr<expression>> children, uint64_t size);
+	union_expression(uint64_t size);
 	virtual ~union_expression();
+
+	void add(shared_ptr<expression> exp);
 
 	void print_inner();
 
