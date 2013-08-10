@@ -17,6 +17,9 @@ extern "C" {
 
 using namespace std;
 
+shared_ptr<expression> expression::true_ = shared_ptr<expression>(new immediate(1, 1));
+shared_ptr<expression> expression::false_ = shared_ptr<expression>(new immediate(0, 1));
+
 void expression::print() {
 	print_inner();
 	print_size();
@@ -159,4 +162,15 @@ shared_ptr<expression> expression::from_rreil_op(struct rreil_op *op) {
 		}
 	}
 	return shared_ptr<expression>();
+}
+
+shared_ptr<expression> expression::from_rreil_sexpr(struct rreil_sexpr *sexpr, uint64_t size) {
+	switch(sexpr->type) {
+		case RREIL_SEXPR_TYPE_CMP: {
+			return from_rreil_compare_op(sexpr->cmp);
+		}
+		case RREIL_SEXPR_TYPE_LIN: {
+			return from_rreil_linear(sexpr->lin, size);
+		}
+	}
 }

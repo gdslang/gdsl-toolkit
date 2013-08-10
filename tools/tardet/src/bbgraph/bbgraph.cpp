@@ -10,6 +10,7 @@
 #include <memory>
 #include <functional>
 #include <tuple>
+#include "../expression/expression.h"
 #include "bbgraph.h"
 #include "bbgraph_node.h"
 
@@ -23,9 +24,10 @@ void bbgraph::print_dot() {
 	printf("}\n");
 }
 
-tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> bbgraph::from_rreil_statements(struct rreil_statements *stmts,
-		size_t address) {
+tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> bbgraph::from_rreil_statements(
+		struct rreil_statements *stmts, size_t address) {
 	size_t counter = 0;
+	vector<shared_ptr<bbgraph_node>> nodes = vector<shared_ptr<bbgraph_node>>();
 
 	function<tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>>(struct rreil_statements*)> connect_nodes =
 			[&](struct rreil_statements *stmts) {
@@ -37,13 +39,15 @@ tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> bbgraph::from_rreil_st
 					acc.statements = (struct rreil_statement**)malloc(sizeof(struct rreil_statement*)*acc.statements_size);
 
 					current = shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(address, counter++), acc));
+					nodes.push_back(current);
+//					printf("Constructed: %s\n", current->get_id()->to_string().c_str());
 				};
 
 				next();
 				shared_ptr<bbgraph_node> me = current;
 
-				auto connect = [&](shared_ptr<bbgraph_node> a, shared_ptr<bbgraph_node> b) {
-					a->add_child(b);
+				auto connect = [&](shared_ptr<bbgraph_node> a, shared_ptr<bbgraph_node> b, shared_ptr<expression> condition) {
+					a->add_child(b, condition);
 					b->add_parent(a);
 				};
 
@@ -60,13 +64,13 @@ tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> bbgraph::from_rreil_st
 							shared_ptr<bbgraph_node> else_end;
 							tie(else_start, else_end) = connect_nodes(stmt->ite.else_branch);
 
-							connect(current, then_start);
-							connect(current, else_start);
+							connect(current, then_start, expression::true_);
+							connect(current, else_start, expression::true_);
 
 							next();
 
-							connect(then_end, current);
-							connect(else_end, current);
+							connect(then_end, current, expression::true_);
+							connect(else_end, current, expression::true_);
 							break;
 						}
 						case RREIL_STATEMENT_TYPE_WHILE: {
@@ -74,13 +78,12 @@ tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> bbgraph::from_rreil_st
 							shared_ptr<bbgraph_node> body_end;
 							tie(body_start, body_end) = connect_nodes(stmt->while_.body);
 
-							connect(current, body_start);
+							connect(current, body_start, expression::true_);
 							shared_ptr<bbgraph_node> backup = current;
 							next();
-							connect(backup, current);
-							connect(body_start, body_end);
-							connect(body_end, current);
-
+							connect(backup, current, expression::true_);
+							connect(body_start, body_end, expression::true_);
+							connect(body_end, current, expression::true_);
 							break;
 						}
 						default: {
@@ -93,5 +96,5 @@ tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> bbgraph::from_rreil_st
 				return tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>>(me, current);
 			};
 
-	return connect_nodes(stmts);
+	return tuple_cat(tuple<vector<shared_ptr<bbgraph_node>>>(nodes), connect_nodes(stmts));
 }

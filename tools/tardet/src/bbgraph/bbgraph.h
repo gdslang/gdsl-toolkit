@@ -28,8 +28,8 @@ public:
 
 	void print_dot();
 
-	static tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> from_rreil_statements(struct rreil_statements *stmts,
-			size_t address);
+	static tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> from_rreil_statements(
+			struct rreil_statements *stmts, size_t address);
 };
 
 #endif /* bbgraph_H_ */

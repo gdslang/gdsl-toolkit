@@ -16,21 +16,22 @@
 extern "C" {
 #include <rreil/rreil.h>
 }
+#include "../expression/expression.h"
 
 using namespace std;
 
 class bbgraph_node;
 
 struct bbgraph_branch {
-	shared_ptr<bbgraph_node> dst;
-	void *condition;
+	weak_ptr<bbgraph_node> dst;
+	shared_ptr<expression> condition;
 };
 
 class bbgraph_node {
 private:
 	bbgraph_id *id;
 	vector<struct bbgraph_branch> children;
-	vector<shared_ptr<bbgraph_node>> parents;
+	vector<weak_ptr<bbgraph_node>> parents;
 	struct rreil_statements stmts;
 	bool marked = 0;
 
@@ -40,13 +41,17 @@ public:
 	bbgraph_node(bbgraph_id *id, struct rreil_statements stmts) {
 		this->id = id;
 		children = vector<struct bbgraph_branch>();
-		parents = vector<shared_ptr<bbgraph_node>>();
+		parents = vector<weak_ptr<bbgraph_node>>();
 		this->stmts = stmts;
 		marked = false;
 	}
 	~bbgraph_node() {
+//		printf("Destructing: %s\n", this->id->to_string().c_str());
 		delete id;
 		free(stmts.statements);
+	}
+	bbgraph_id *get_id() {
+		return this->id;
 	}
 	bool is_marked() {
 		return marked;
@@ -55,7 +60,7 @@ public:
 		marked = true;
 	}
 
-	void add_child(shared_ptr<bbgraph_node> child);
+	void add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition);
 	void add_parent(shared_ptr<bbgraph_node> parent);
 
 	struct rreil_statements get_stmts() {

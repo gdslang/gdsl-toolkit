@@ -15,6 +15,7 @@ EXECUTABLE=tardet
 SPRE=src
 BPRE=build
 
+HEADERS=$(shell find $(SPRE)/ -type f -name '*.h')
 CSOURCES=$(shell find $(SPRE)/ -type f -name '*.c')
 CPPSOURCES=$(shell find $(SPRE)/ -type f -name '*.cpp')
 
@@ -33,10 +34,10 @@ OBJECTS=$(COBJECTS) $(CPPOBJECTS)
 $(EXECUTABLE): $(OBJECTS)
 	$(CPP) $(LDFLAGS) $(OBJECTS) $(LIBFLAGS) -o $@
 
-$(COBJECTS): $(BPRE)/%.o : $(SPRE)/%.c
+$(COBJECTS): $(BPRE)/%.o : $(SPRE)/%.c $(HEADERS)
 	$(CC) $(CFLAGS) $< -o $@
 
-$(CPPOBJECTS): $(BPRE)/%.o : $(SPRE)/%.cpp
+$(CPPOBJECTS): $(BPRE)/%.o : $(SPRE)/%.cpp $(HEADERS)
 	$(CPP) $(CPPFLAGS) $< -o $@
 
 clean:

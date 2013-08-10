@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory>
+#include <vector>
 #include <string.h>
 #include <unistd.h>
 extern "C" {
@@ -223,8 +224,9 @@ int main(int argc, char **argv) {
 
 	rreil_statements_print(statements);
 
+	vector<shared_ptr<bbgraph_node>> nodes;
 	shared_ptr<bbgraph_node> root;
-	tie(root, ignore) = bbgraph::from_rreil_statements(statements, 1000);
+	tie(nodes, root, ignore) = bbgraph::from_rreil_statements(statements, 1000);
 	bbgraph *g = new bbgraph(root);
 	g->print_dot();
 	delete g;
