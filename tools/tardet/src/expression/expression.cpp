@@ -20,6 +20,10 @@ using namespace std;
 shared_ptr<expression> expression::true_ = shared_ptr<expression>(new immediate(1, 1));
 shared_ptr<expression> expression::false_ = shared_ptr<expression>(new immediate(0, 1));
 
+shared_ptr<expression> expression::not_(shared_ptr<expression> other) {
+	return shared_ptr<expression>(new xor_expression(other, shared_ptr<expression>(new immediate(1, 1)), 1));
+}
+
 void expression::print() {
 	print_inner();
 	print_size();

@@ -18,13 +18,24 @@ bool bbgraph_node::has_subgraph() {
 	return false;
 }
 
+//void bbgraph_node::print_dot_label() {
+//	printf("\t\"%s\"", id->to_string().c_str());
+//	if(id->get_inner())
+//		printf(" [label=%zu];\n", id->get_inner());
+//	else
+//		printf(";\n");
+//}
+
 void bbgraph_node::print_dot_subgraph() {
 	if(is_marked())
 		return;
 	mark();
+	printf("\t\t\"%s\" [label=%zu];\n", id->to_string().c_str(), id->get_inner());
 	for(size_t i = 0; i < children.size(); ++i) {
 		if(children[i].dst.lock()->id->get_address_machine() == id->get_address_machine()) {
-			printf("\t\t\"%s\" -> \"%s\";\n", id->to_string().c_str(), children[i].dst.lock()->id->to_string().c_str());
+			printf("\t\t\"%s\" -> \"%s\" [label=\"", id->to_string().c_str(), children[i].dst.lock()->id->to_string().c_str());
+			children[i].condition->print();
+			printf("\"];\n");
 			children[i].dst.lock()->print_dot_subgraph();
 		}
 	}
@@ -36,20 +47,23 @@ void bbgraph_node::add_child(shared_ptr<bbgraph_node> child, shared_ptr<expressi
 	children.push_back(branch);
 }
 
-void bbgraph_node::add_parent(shared_ptr<bbgraph_node> parent) {
-	parents.push_back(parent);
+void bbgraph_node::add_parent(shared_ptr<bbgraph_node> parent, shared_ptr<expression> condition) {
+	struct bbgraph_pref pref = { parent, condition };
+
+	parents.push_back(pref);
 }
 
 void bbgraph_node::print_dot() {
 //	printf("\t\"%s\" [label=\"%p\"];\n", id->to_string().c_str(), (void*)id->get_address_machine());
 	if(is_marked())
 		return;
-	printf("\t\"%s\";\n", id->to_string().c_str());
 	if(has_subgraph()) {
 		printf("\tsubgraph cluster%p {\n", (void*)id->get_address_machine());
 		printf("\t\tlabel=\"%p\";\n", (void*)id->get_address_machine());
 		print_dot_subgraph();
 		printf("\t}\n");
+	} else {
+		printf("\t\"%s\";\n", id->to_string().c_str());
 	}
 	mark();
 	for(size_t i = 0; i < children.size(); ++i) {

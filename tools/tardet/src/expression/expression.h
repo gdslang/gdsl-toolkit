@@ -43,12 +43,14 @@ public:
 	virtual bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_) = 0;
 	virtual char evaluate(uint64_t *result) = 0;
 
+	static shared_ptr<expression> true_;
+	static shared_ptr<expression> false_;
+	static shared_ptr<expression> not_(shared_ptr<expression> other);
+
 	static shared_ptr<expression> from_rreil_linear(struct rreil_linear *linear, uint64_t size);
 	static shared_ptr<expression> from_rreil_op(struct rreil_op *op);
 	static shared_ptr<expression> from_rreil_compare_op(struct rreil_comparator *cmp);
 	static shared_ptr<expression> from_rreil_sexpr(struct rreil_sexpr *sexpr, uint64_t size);
-	static shared_ptr<expression> true_;
-	static shared_ptr<expression> false_;
 
 	uint64_t size_get() {
 		return size;

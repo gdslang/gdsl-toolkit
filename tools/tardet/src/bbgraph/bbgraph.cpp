@@ -48,7 +48,7 @@ tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbg
 
 				auto connect = [&](shared_ptr<bbgraph_node> a, shared_ptr<bbgraph_node> b, shared_ptr<expression> condition) {
 					a->add_child(b, condition);
-					b->add_parent(a);
+					b->add_parent(a, condition);
 				};
 
 				for (size_t i = 0; i < stmts->statements_length; ++i) {
@@ -64,8 +64,8 @@ tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbg
 							shared_ptr<bbgraph_node> else_end;
 							tie(else_start, else_end) = connect_nodes(stmt->ite.else_branch);
 
-							connect(current, then_start, expression::true_);
-							connect(current, else_start, expression::true_);
+							connect(current, then_start, expression::from_rreil_sexpr(stmt->ite.cond, 0 /* Todo: fix */));
+							connect(current, else_start, expression::not_(expression::from_rreil_sexpr(stmt->ite.cond, 0 /* Todo: fix */)));
 
 							next();
 
@@ -78,12 +78,12 @@ tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbg
 							shared_ptr<bbgraph_node> body_end;
 							tie(body_start, body_end) = connect_nodes(stmt->while_.body);
 
-							connect(current, body_start, expression::true_);
+							connect(current, body_start, expression::from_rreil_sexpr(stmt->while_.cond, 0 /* Todo: fix */));
 							shared_ptr<bbgraph_node> backup = current;
 							next();
-							connect(backup, current, expression::true_);
-							connect(body_start, body_end, expression::true_);
-							connect(body_end, current, expression::true_);
+							connect(backup, current, expression::not_(expression::from_rreil_sexpr(stmt->while_.cond, 0 /* Todo: fix */)));
+							connect(body_end, body_start, expression::from_rreil_sexpr(stmt->while_.cond, 0 /* Todo: fix */));
+							connect(body_end, current, expression::not_(expression::from_rreil_sexpr(stmt->while_.cond, 0 /* Todo: fix */)));
 							break;
 						}
 						default: {

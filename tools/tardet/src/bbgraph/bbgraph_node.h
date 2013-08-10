@@ -27,21 +27,27 @@ struct bbgraph_branch {
 	shared_ptr<expression> condition;
 };
 
+struct bbgraph_pref {
+	weak_ptr<bbgraph_node> dst;
+	shared_ptr<expression> condition;
+};
+
 class bbgraph_node {
 private:
 	bbgraph_id *id;
 	vector<struct bbgraph_branch> children;
-	vector<weak_ptr<bbgraph_node>> parents;
+	vector<struct bbgraph_pref> parents;
 	struct rreil_statements stmts;
 	bool marked = 0;
 
 	bool has_subgraph();
+//	void print_dot_label();
 	void print_dot_subgraph();
 public:
 	bbgraph_node(bbgraph_id *id, struct rreil_statements stmts) {
 		this->id = id;
 		children = vector<struct bbgraph_branch>();
-		parents = vector<weak_ptr<bbgraph_node>>();
+		parents = vector<struct bbgraph_pref>();
 		this->stmts = stmts;
 		marked = false;
 	}
@@ -61,7 +67,7 @@ public:
 	}
 
 	void add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition);
-	void add_parent(shared_ptr<bbgraph_node> parent);
+	void add_parent(shared_ptr<bbgraph_node> parent, shared_ptr<expression> condition);
 
 	struct rreil_statements get_stmts() {
 		return this->stmts;
