@@ -8,10 +8,15 @@
 #include <memory>
 #include <stdlib.h>
 #include <stdio.h>
+#include <queue>
+#include <vector>
 extern "C" {
 #include <rreil/rreil.h>
 }
 #include "expression/expression.h"
+#include "bbgraph/bbgraph.h"
+#include "bbgraph/bbgraph_id.h"
+#include "bbgraph/bbgraph_node.h"
 
 using namespace std;
 
@@ -37,16 +42,11 @@ static shared_ptr<expression> initial(rreil_statement *last) {
 	return exp;
 }
 
-shared_ptr<expression> analyze(struct rreil_statements *statements) {
-	rreil_statement *last = statements->statements[statements->statements_length
-			- 1];
+shared_ptr<expression> analyze(struct rreil_statements statements, shared_ptr<expression> exp) {
 
-	shared_ptr<expression> exp = initial(last);
-	if(!exp)
-		return NULL;
 
-	for(size_t i = statements->statements_length - 1; i > 0; --i) {
-		rreil_statement *current = statements->statements[i - 1];
+	for(size_t i = statements.statements_length - 1; i > 0; --i) {
+		rreil_statement *current = statements.statements[i - 1];
 
 //		root->print();
 
@@ -73,4 +73,23 @@ shared_ptr<expression> analyze(struct rreil_statements *statements) {
 	}
 
 	return exp;
+}
+
+shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
+	queue<shared_ptr<bbgraph_node>> nodes = queue<shared_ptr<bbgraph_node>>();
+	nodes.push(sp);
+
+	struct rreil_statements statements_sp = sp->get_stmts();
+	rreil_statement *last = statements_sp.statements[statements_sp.statements_length
+			- 1];
+	shared_ptr<expression> exp = initial(last);
+	if(exp)
+		return NULL;
+
+	while(!nodes.empty()) {
+		shared_ptr<bbgraph_node> next = nodes.front();
+		nodes.pop();
+	}
+
+	exp = analyze(sp->get_stmts(), exp);
 }

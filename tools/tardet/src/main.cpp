@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
 
 	printf("----------------------------\n");
 
-	shared_ptr<expression> exp = analyze(statements);
+	shared_ptr<expression> exp = NULL;//analyze(*statements);
 
 	printf("----------------------------\n");
 

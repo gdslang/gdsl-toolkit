@@ -59,6 +59,12 @@ public:
 	bbgraph_id *get_id() {
 		return this->id;
 	}
+	vector<struct bbgraph_pref> get_parents() {
+		return parents;
+	}
+	struct rreil_statements get_stmts() {
+		return stmts;
+	}
 	bool is_marked() {
 		return marked;
 	}
@@ -68,10 +74,6 @@ public:
 
 	void add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition);
 	void add_parent(shared_ptr<bbgraph_node> parent, shared_ptr<expression> condition);
-
-	struct rreil_statements get_stmts() {
-		return this->stmts;
-	}
 
 	void print_dot();
 };
