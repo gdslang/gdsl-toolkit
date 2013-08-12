@@ -15,6 +15,8 @@ public:
 	expression *construct(shared_ptr<expression> left,
 				shared_ptr<expression> right);
 	void print_inner();
+//	void require_size(uint64_t size) {
+//	}
 };
 
 #endif /* SHIFT_RIGHT_SIGNED_H_ */

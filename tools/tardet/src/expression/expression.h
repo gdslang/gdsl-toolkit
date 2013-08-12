@@ -42,6 +42,7 @@ public:
 	virtual char contains(struct rreil_variable *variable) = 0;
 	virtual bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_) = 0;
 	virtual char evaluate(uint64_t *result) = 0;
+//	virtual void require_size(uint64_t size);
 
 	static shared_ptr<expression> true_;
 	static shared_ptr<expression> false_;

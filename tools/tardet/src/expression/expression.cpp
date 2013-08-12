@@ -178,3 +178,9 @@ shared_ptr<expression> expression::from_rreil_sexpr(struct rreil_sexpr *sexpr, u
 		}
 	}
 }
+
+//void expression::require_size(uint64_t size) {
+//	if(size > this->size)
+//		throw new string("Cannot grow expression!");
+//	this->size = size;
+//}

@@ -210,18 +210,18 @@ int main(int argc, char **argv) {
 //	}
 
 	obj_t rreil;
-//	if(gdsl_translate_block(state, &rreil)) {
-//		printf("Translate block failed\n");
-//		fflush(stderr);
-//		fflush(stdout);
-//		gdsl_destroy(state);
-//		exit(1);
-//	}
-
-	if(setjmp(*gdsl_err_tgt(state))) {
+	if(gdsl_translate_block(state, &rreil)) {
+		printf("Translate block failed\n");
+		fflush(stderr);
+		fflush(stdout);
+		gdsl_destroy(state);
 		exit(1);
-	} else
-		rreil = x86_example_b(state);
+	}
+
+//	if(setjmp(*gdsl_err_tgt(state))) {
+//		exit(1);
+//	} else
+//		rreil = x86_example_b(state);
 
 	struct rreil_statements *statements = statements_get(state, rreil);
 

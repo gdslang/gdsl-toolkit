@@ -79,6 +79,7 @@ bool variable::substitute(struct rreil_variable *old,
 		element.expression = exp;
 		element.size = size;
 		element.offset = offset;
+//		element.expression->require_size(size + offset);
 		elements.push_back(element);
 	};
 	auto element_ne = [&](expression *exp, size_t size, size_t offset) {
@@ -92,7 +93,7 @@ bool variable::substitute(struct rreil_variable *old,
 
 		size_t size = other.get_start() - me.get_start();
 		if(size) {
-			element_ne(new variable(id, get_size(), offset), size, 0);
+			element_ne(new variable(id, size, offset), size, 0);
 			size_acc += size;
 		}
 
@@ -101,7 +102,7 @@ bool variable::substitute(struct rreil_variable *old,
 
 		size = me.get_end() - other.get_end();
 		if(size)
-			element_ne(new variable(id, get_size(), offset), size, size_acc);
+			element_ne(new variable(id, size, offset + size_acc), size, 0);
 
 	} else {
 		auto two =
@@ -120,7 +121,7 @@ bool variable::substitute(struct rreil_variable *old,
 			element(new_, size, offset);
 		};
 		auto construct_me = [&](size_t size, size_t offset) {
-			element_ne(new variable(id, get_size(), offset), size, offset);
+			element_ne(new variable(id, size, offset + this->offset), size, 0);
 		};
 
 		if(me.starts_with(&other))

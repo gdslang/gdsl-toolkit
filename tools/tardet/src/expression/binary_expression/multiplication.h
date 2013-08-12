@@ -20,6 +20,8 @@ public:
 	expression *construct(shared_ptr<expression> left,
 				shared_ptr<expression> right);
 	void print_inner();
+//	void require_size(uint64_t size) {
+//	}
 };
 #endif /* MULTIPLICATION_H_ */
 

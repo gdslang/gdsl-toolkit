@@ -66,9 +66,10 @@ bool slice_expression::substitute(struct rreil_variable *old,
 
 		bool substituted = elements[i].expression->substitute(old,
 				element.expression);
-		if(substituted)
+		if(substituted) {
+//			element.expression->require_size(element.size + element.offset);
 			elements_new.push_back(element);
-		else
+		} else
 			elements_new.push_back(elements[i]);
 		update |= substituted;
 	}
