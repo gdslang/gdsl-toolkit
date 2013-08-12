@@ -22,6 +22,14 @@ structure DesugarDecode = struct
    val tok = Atom.atom "tok"
    val slice = Atom.atom "slice"
    val return = Atom.atom "return"
+   val raisee = Atom.atom "raise"
+
+   fun raisingDecodeSequenceMatchFailure () = let
+      open Exp
+      val raisee = ID (VarInfo.lookup (!SymbolTables.varTable, raisee))
+   in
+      APP (raisee, [LIT (SpecAbstractTree.STRlit "DecodeSequenceMatchFailure")])
+   end
 
    fun freshTok () = let
       val (tab, sym) =
@@ -101,12 +109,21 @@ structure DesugarDecode = struct
    end
 
    fun desugar ds = let
-      fun lp (ds, acc) =
+      fun dup n = if n=0 then "" else "." ^ dup (n-1)
+      fun lubPat NONE [] = SOME 0
+        | lubPat NONE [[Pat.VEC ""]] = SOME 0
+        | lubPat sizeOpt _ = sizeOpt
+
+      fun lp (defaultSizeOpt, ds, acc) =
          case ds of
-            [] => rev acc
-          | (toks, e)::ds => lp (ds, (toVec toks, e)::acc)
+            [] =>
+               (case defaultSizeOpt of
+                  NONE => rev acc
+                | SOME n => rev ((toVec [], raisingDecodeSequenceMatchFailure ()) :: acc)
+               )
+          | (toks, e)::ds => lp (lubPat defaultSizeOpt toks, ds, (toVec toks, e)::acc)
    in
-      desugarCases (toVec (lp (ds, [])))
+      desugarCases (toVec (lp (NONE, ds, [])))
    end
 
    and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
@@ -136,10 +153,10 @@ structure DesugarDecode = struct
        (*val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
       val equiv = buildEquivClass decls
       (* +DEBUG:overlapping-patterns *)
-      (* val () =
+       val () =
          Pretty.prettyTo
             (TextIO.stdOut,
-             Pretty.stringtab Pretty.intset equiv) *)
+             Pretty.stringtab Pretty.intset equiv) 
       
       fun genBindSlices indices = let
          open DT.Pat
