@@ -519,66 +519,49 @@
 //	return list;
 //}
 
-static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(obj_t sem_stmts_obj,
-		struct gdrr_config *config) {
-	obj_t sem_id_callbacks = x86_rreil_callbacks_sem_id(config->state,
-			config->callbacks.sem_id.virt_na, config->callbacks.sem_id.virt_t,
-			config->callbacks.arch.x86.sem_id.x86);
+static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(obj_t sem_stmts_obj, struct gdrr_config *config) {
+	obj_t sem_id_callbacks = x86_rreil_callbacks_sem_id(config->state, config->callbacks.sem_id.virt_na,
+			config->callbacks.sem_id.virt_t, config->callbacks.arch.x86.sem_id.x86);
 	obj_t sem_address_callbacks = x86_rreil_callbacks_sem_address(config->state,
 			config->callbacks.sem_address.sem_address);
-	obj_t sem_var_callbacks = x86_rreil_callbacks_sem_var(config->state,
-			config->callbacks.sem_var.sem_var);
-	obj_t sem_linear_callbacks = x86_rreil_callbacks_sem_linear(config->state,
-			config->callbacks.sem_linear.sem_lin_var,
-			config->callbacks.sem_linear.sem_lin_imm,
-			config->callbacks.sem_linear.sem_lin_add,
-			config->callbacks.sem_linear.sem_lin_sub,
-			config->callbacks.sem_linear.sem_lin_scale);
-	obj_t sem_sexpr_callbacks = x86_rreil_callbacks_sem_sexpr(config->state,
-			config->callbacks.sem_sexpr.sem_sexpr_lin,
+	obj_t sem_var_callbacks = x86_rreil_callbacks_sem_var(config->state, config->callbacks.sem_var.sem_var);
+	obj_t sem_linear_callbacks = x86_rreil_callbacks_sem_linear(config->state, config->callbacks.sem_linear.sem_lin_var,
+			config->callbacks.sem_linear.sem_lin_imm, config->callbacks.sem_linear.sem_lin_add,
+			config->callbacks.sem_linear.sem_lin_sub, config->callbacks.sem_linear.sem_lin_scale);
+	obj_t sem_sexpr_callbacks = x86_rreil_callbacks_sem_sexpr(config->state, config->callbacks.sem_sexpr.sem_sexpr_lin,
 			config->callbacks.sem_sexpr.sem_sexpr_cmp);
-	obj_t sem_op_cmp_callbacks = x86_rreil_callbacks_sem_op_cmp(config->state,
-			config->callbacks.sem_op_cmp.sem_cmpeq,
-			config->callbacks.sem_op_cmp.sem_cmpneq,
-			config->callbacks.sem_op_cmp.sem_cmples,
-			config->callbacks.sem_op_cmp.sem_cmpleu,
-			config->callbacks.sem_op_cmp.sem_cmplts,
+	obj_t sem_op_cmp_callbacks = x86_rreil_callbacks_sem_op_cmp(config->state, config->callbacks.sem_op_cmp.sem_cmpeq,
+			config->callbacks.sem_op_cmp.sem_cmpneq, config->callbacks.sem_op_cmp.sem_cmples,
+			config->callbacks.sem_op_cmp.sem_cmpleu, config->callbacks.sem_op_cmp.sem_cmplts,
 			config->callbacks.sem_op_cmp.sem_cmpltu);
-	obj_t sem_op_callbacks = x86_rreil_callbacks_sem_op(config->state,
-			config->callbacks.sem_op.sem_lin, config->callbacks.sem_op.sem_mul,
-			config->callbacks.sem_op.sem_div, config->callbacks.sem_op.sem_divs,
-			config->callbacks.sem_op.sem_mod, config->callbacks.sem_op.sem_shl,
-			config->callbacks.sem_op.sem_shr, config->callbacks.sem_op.sem_shrs,
-			config->callbacks.sem_op.sem_and, config->callbacks.sem_op.sem_or,
-			config->callbacks.sem_op.sem_xor, config->callbacks.sem_op.sem_sx,
-			config->callbacks.sem_op.sem_zx, config->callbacks.sem_op.sem_cmp,
-			config->callbacks.sem_op.sem_arb);
-	obj_t sem_stmt_callbacks = x86_rreil_callbacks_sem_stmt(config->state,
-			config->callbacks.sem_stmt.sem_assign,
-			config->callbacks.sem_stmt.sem_load, config->callbacks.sem_stmt.sem_store,
-			config->callbacks.sem_stmt.sem_ite, config->callbacks.sem_stmt.sem_while,
-			config->callbacks.sem_stmt.sem_cbranch,
+	obj_t sem_op_callbacks = x86_rreil_callbacks_sem_op(config->state, config->callbacks.sem_op.sem_lin,
+			config->callbacks.sem_op.sem_mul, config->callbacks.sem_op.sem_div, config->callbacks.sem_op.sem_divs,
+			config->callbacks.sem_op.sem_mod, config->callbacks.sem_op.sem_shl, config->callbacks.sem_op.sem_shr,
+			config->callbacks.sem_op.sem_shrs, config->callbacks.sem_op.sem_and, config->callbacks.sem_op.sem_or,
+			config->callbacks.sem_op.sem_xor, config->callbacks.sem_op.sem_sx, config->callbacks.sem_op.sem_zx,
+			config->callbacks.sem_op.sem_cmp, config->callbacks.sem_op.sem_arb);
+	obj_t sem_stmt_callbacks = x86_rreil_callbacks_sem_stmt(config->state, config->callbacks.sem_stmt.sem_assign,
+			config->callbacks.sem_stmt.sem_load, config->callbacks.sem_stmt.sem_store, config->callbacks.sem_stmt.sem_ite,
+			config->callbacks.sem_stmt.sem_while, config->callbacks.sem_stmt.sem_cbranch,
 			config->callbacks.sem_stmt.sem_branch);
 	obj_t branch_hint_callbacks = x86_rreil_callbacks_branch_hint(config->state,
 			config->callbacks.branch_hint.branch_hint);
-	obj_t sem_stmts_callbacks = x86_rreil_callbacks_sem_stmts(config->state,
-			config->callbacks.sem_stmts.sem_cons,
+	obj_t sem_stmts_callbacks = x86_rreil_callbacks_sem_stmts(config->state, config->callbacks.sem_stmts.sem_cons,
 			config->callbacks.sem_stmts.sem_nil);
 	obj_t sem_stmts_list_callbacks = x86_rreil_callbacks_sem_stmts(config->state,
-			config->callbacks.sem_stmts_list.list_next,
-			config->callbacks.sem_stmts_list.list_init);
+			config->callbacks.sem_stmts_list.list_next, config->callbacks.sem_stmts_list.list_init);
 
-	obj_t callbacks = x86_rreil_callbacks(config->state, sem_id_callbacks,
-			sem_address_callbacks, sem_var_callbacks, sem_linear_callbacks,
-			sem_sexpr_callbacks, sem_op_cmp_callbacks, sem_op_callbacks,
-			sem_stmt_callbacks, branch_hint_callbacks, sem_stmts_callbacks,
-			sem_stmts_list_callbacks);
+	obj_t callbacks = x86_rreil_callbacks(config->state, sem_id_callbacks, sem_address_callbacks, sem_var_callbacks,
+			sem_linear_callbacks, sem_sexpr_callbacks, sem_op_cmp_callbacks, sem_op_callbacks, sem_stmt_callbacks,
+			branch_hint_callbacks, sem_stmts_callbacks, sem_stmts_list_callbacks);
+
+//	if(config->gdrr_config_stmts_handling == GDRR_CONFIG_STMTS_HANDLING_LIST)
+//		sem_stmts_obj = x86_rreil_stmts_rev(config->state, sem_stmts_obj);
 
 	if(config->gdrr_config_stmts_handling == GDRR_CONFIG_STMTS_HANDLING_LIST)
-		sem_stmts_obj = x86_rreil_stmts_rev(config->state, sem_stmts_obj);
-
-	return x86_rreil_convert_sem_stmts(config->state, callbacks, config->closure,
-			sem_stmts_obj);
+		return x86_rreil_convert_sem_stmts_list(config->state, callbacks, config->closure, sem_stmts_obj);
+	else
+		return x86_rreil_convert_sem_stmts(config->state, callbacks, config->closure, sem_stmts_obj);
 }
 
 gdrr_sem_stmts_t *gdrr_convert(obj_t semantics, struct gdrr_config *config) {

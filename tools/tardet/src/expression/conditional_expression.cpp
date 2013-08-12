@@ -52,7 +52,7 @@ bool conditional_expression::substitute(struct rreil_variable *old, shared_ptr<e
 char conditional_expression::evaluate(uint64_t *result) {
 	uint64_t cond_r;
 	bool cond_eval = condition->evaluate(&cond_r);
-	if(cond_eval && cond_r)
+	if(cond_eval && (cond_r & 1))
 		return inner->evaluate(result);
 	else
 		return false;

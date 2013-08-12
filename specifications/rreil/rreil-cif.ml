@@ -74,26 +74,28 @@ end
 
 val rreil-convert-branch-hint cbs closure hint = invoke-oi cbs.branch_hint.branch_hint closure (index hint)
 
-val rreil-convert-sem-stmt cbs closure stmt = case stmt of
+val rreil-convert-sem-stmt lr cbs closure stmt = case stmt of
    SEM_ASSIGN s: invoke-ooo cbs.sem_stmt.sem_assign closure (rreil-convert-sem-var cbs closure s.lhs) (rreil-convert-sem-op cbs closure s.rhs)
  | SEM_LOAD l: invoke-ooio cbs.sem_stmt.sem_load closure (rreil-convert-sem-var cbs closure l.lhs) l.size (rreil-convert-sem-address cbs closure l.address)
  | SEM_STORE s: invoke-ooo cbs.sem_stmt.sem_store closure (rreil-convert-sem-address cbs closure s.address) (rreil-convert-sem-op cbs closure s.rhs)
- | SEM_ITE i: invoke-oooo cbs.sem_stmt.sem_ite closure (rreil-convert-sem-sexpr cbs closure i.cond) (rreil-convert-sem-stmts cbs closure i.then_branch) (rreil-convert-sem-stmts cbs closure i.else_branch)
- | SEM_WHILE w: invoke-ooo cbs.sem_stmt.sem_while closure (rreil-convert-sem-sexpr cbs closure w.cond) (rreil-convert-sem-stmts cbs closure w.body)
+ | SEM_ITE i: invoke-oooo cbs.sem_stmt.sem_ite closure (rreil-convert-sem-sexpr cbs closure i.cond) (rreil-convert-sem-stmts-lr lr cbs closure i.then_branch) (rreil-convert-sem-stmts-lr lr cbs closure i.else_branch)
+ | SEM_WHILE w: invoke-ooo cbs.sem_stmt.sem_while closure (rreil-convert-sem-sexpr cbs closure w.cond) (rreil-convert-sem-stmts-lr lr cbs closure w.body)
  | SEM_CBRANCH c: invoke-oooo cbs.sem_stmt.sem_cbranch closure (rreil-convert-sem-sexpr cbs closure c.cond) (rreil-convert-sem-address cbs closure c.target-true) (rreil-convert-sem-address cbs closure c.target-false)
  | SEM_BRANCH b: invoke-ooo cbs.sem_stmt.sem_branch closure (rreil-convert-branch-hint cbs closure b.hint) (rreil-convert-sem-address cbs closure b.target)
 end
 
-val rreil-convert-sem-stmts cbs closure stmts = case stmts of
-   SEM_CONS x: invoke-ooo cbs.sem_stmts.sem_cons closure (rreil-convert-sem-stmt cbs closure x.hd) (rreil-convert-sem-stmts cbs closure x.tl)
+val rreil-convert-sem-stmts-inner lr cbs closure stmts = case stmts of
+   SEM_CONS x: invoke-ooo cbs.sem_stmts.sem_cons closure (rreil-convert-sem-stmt lr cbs closure x.hd) (rreil-convert-sem-stmts-inner lr cbs closure x.tl)
  | SEM_NIL: invoke-o cbs.sem_stmts.sem_nil closure
 end
 
+val just-return x = x
+val rreil-convert-sem-stmts cbs closure stmts = rreil-convert-sem-stmts-lr just-return cbs closure stmts
+
 #Todo: Fix
-val rreil-convert-sem-stmts-list cbs closure stmts = case stmts of
-   SEM_CONS x: invoke-ooo cbs.sem_stmts_list.list_next closure (rreil-convert-sem-stmt cbs closure x.hd) (rreil-convert-sem-stmts cbs closure x.tl)
- | SEM_NIL: invoke-o cbs.sem_stmts_list.list_init closure
-end
+val rreil-convert-sem-stmts-list cbs closure stmts = rreil-convert-sem-stmts-lr rreil-stmts-rev cbs closure stmts
+
+val rreil-convert-sem-stmts-lr lr cbs closure stmts = rreil-convert-sem-stmts-inner lr cbs closure (lr stmts)
 
 #val rreil-convert-sem-stmts-list cbs closure stmts = let
 #  val inner list next =

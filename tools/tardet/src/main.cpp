@@ -218,6 +218,9 @@ int main(int argc, char **argv) {
 		exit(1);
 	}
 
+	char *x = x86_rreil_pretty(state, rreil);
+	printf("%s\n#########\n", x);
+
 //	if(setjmp(*gdsl_err_tgt(state))) {
 //		exit(1);
 //	} else
