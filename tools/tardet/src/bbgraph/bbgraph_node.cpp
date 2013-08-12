@@ -59,6 +59,14 @@ void bbgraph_node::add_expression(shared_ptr<expression> expression) {
 	uexp->add(expression);
 }
 
+void bbgraph_node::unmark_all() {
+	if(marked) {
+		marked = false;
+		for (size_t i = 0; i < children.size(); ++i)
+			children[i].dst.lock()->unmark_all();
+	}
+}
+
 void bbgraph_node::print_dot() {
 //	printf("\t\"%s\" [label=\"%p\"];\n", id->to_string().c_str(), (void*)id->get_address_machine());
 	if(is_marked())

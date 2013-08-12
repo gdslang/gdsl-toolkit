@@ -43,7 +43,7 @@ static shared_ptr<expression> initial(rreil_statement *last) {
 
 shared_ptr<expression> analyze(struct rreil_statements statements, shared_ptr<expression> exp) {
 
-	for(size_t i = statements.statements_length - 1; i > 0; --i) {
+	for(size_t i = statements.statements_length; i > 0; --i) {
 		rreil_statement *current = statements.statements[i - 1];
 
 //		root->print();
@@ -73,28 +73,67 @@ shared_ptr<expression> analyze(struct rreil_statements statements, shared_ptr<ex
 }
 
 shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
+	graph->unmark_all();
+
 	queue<shared_ptr<bbgraph_node>> nodes = queue<shared_ptr<bbgraph_node>>();
 	nodes.push(sp);
 
-	struct rreil_statements statements_sp = sp->get_stmts();
+	struct rreil_statements statements_sp = *sp->get_stmts();
 	rreil_statement *last = statements_sp.statements[statements_sp.statements_length - 1];
 	shared_ptr<expression> exp = initial(last);
-	if(exp)
+	if(!exp)
 		return NULL;
+	sp->add_expression(exp);
+
+	size_t count = 0;
 
 	while(!nodes.empty()) {
 		shared_ptr<bbgraph_node> next = nodes.front();
 		nodes.pop();
 
-		exp = analyze(next->get_stmts(), next->get_uexp());
+		if(next->is_marked())
+			continue;
+
+		auto children = next->get_children();
+
+		bool _continue = false;
+		for (size_t i = 0; i < children.size(); ++i) {
+			shared_ptr<bbgraph_node> child = children[i].dst.lock();
+			if(!child->is_marked()) {
+				_continue = true;
+				break;
+			}
+		}
+		if(_continue)
+			continue;
+
+		exp = analyze(*next->get_stmts(), next->get_uexp());
+
+		printf("%zu\n", count++);
 
 		exp->print();
+		printf("\n");
+
+		fflush(stdout);
 
 		auto parents = next->get_parents();
 		for(size_t i = 0; i < parents.size(); ++i) {
-			shared_ptr<expression> exp_cur = shared_ptr<expression>(new conditional_expression(parents[i].condition, exp, exp->get_size()));
-			parents[i].dst.lock()->add_expression(exp_cur);
-			nodes.push(parents[i].dst.lock());
+			shared_ptr<conditional_expression> exp_cur = shared_ptr<conditional_expression>(
+					new conditional_expression(parents[i].condition, exp, exp->get_size()));
+//			printf("cond:\n");
+//			parents[i].condition->print();
+//			printf("\n++\n");
+			shared_ptr<expression> reduced = exp_cur->reduce();
+			if(!reduced)
+				reduced = exp_cur;
+
+			shared_ptr<bbgraph_node> parent = parents[i].dst.lock();
+			parent->add_expression(reduced);
+			nodes.push(parent);
 		}
+
+		next->mark();
 	}
+
+	return exp;
 }

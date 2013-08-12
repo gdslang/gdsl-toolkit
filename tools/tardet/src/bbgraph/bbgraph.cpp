@@ -32,8 +32,9 @@ tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbg
 	function<tuple<shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>>(struct rreil_statements*)> connect_nodes =
 			[&](struct rreil_statements *stmts) {
 				shared_ptr<bbgraph_node> current;
-				struct rreil_statements acc;
+
 				auto next = [&]() {
+					struct rreil_statements acc;
 					acc.statements_length = 0;
 					acc.statements_size = stmts->statements_size;
 					acc.statements = (struct rreil_statement**)malloc(sizeof(struct rreil_statement*)*acc.statements_size);
@@ -64,8 +65,8 @@ tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbg
 							shared_ptr<bbgraph_node> else_end;
 							tie(else_start, else_end) = connect_nodes(stmt->ite.else_branch);
 
-							connect(current, then_start, expression::from_rreil_sexpr(stmt->ite.cond, 0 /* Todo: fix */));
-							connect(current, else_start, expression::not_(expression::from_rreil_sexpr(stmt->ite.cond, 0 /* Todo: fix */)));
+							connect(current, then_start, expression::from_rreil_sexpr(stmt->ite.cond, 1 /* Todo: fix */));
+							connect(current, else_start, expression::not_(expression::from_rreil_sexpr(stmt->ite.cond, 1 /* Todo: fix */)));
 
 							next();
 
@@ -78,16 +79,17 @@ tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbg
 							shared_ptr<bbgraph_node> body_end;
 							tie(body_start, body_end) = connect_nodes(stmt->while_.body);
 
-							connect(current, body_start, expression::from_rreil_sexpr(stmt->while_.cond, 0 /* Todo: fix */));
+							connect(current, body_start, expression::from_rreil_sexpr(stmt->while_.cond, 1 /* Todo: fix */));
 							shared_ptr<bbgraph_node> backup = current;
 							next();
-							connect(backup, current, expression::not_(expression::from_rreil_sexpr(stmt->while_.cond, 0 /* Todo: fix */)));
-							connect(body_end, body_start, expression::from_rreil_sexpr(stmt->while_.cond, 0 /* Todo: fix */));
-							connect(body_end, current, expression::not_(expression::from_rreil_sexpr(stmt->while_.cond, 0 /* Todo: fix */)));
+							connect(backup, current, expression::not_(expression::from_rreil_sexpr(stmt->while_.cond, 1 /* Todo: fix */)));
+							connect(body_end, body_start, expression::from_rreil_sexpr(stmt->while_.cond, 1 /* Todo: fix */));
+							connect(body_end, current, expression::not_(expression::from_rreil_sexpr(stmt->while_.cond, 1 /* Todo: fix */)));
 							break;
 						}
 						default: {
-							acc.statements[acc.statements_length++] = stmt;
+							struct rreil_statements *acc = current->get_stmts();
+							acc->statements[acc->statements_length++] = stmt;
 							break;
 						}
 					}

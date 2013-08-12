@@ -25,6 +25,9 @@ public:
 	bbgraph(shared_ptr<bbgraph_node> root) {
 		this->root = root;
 	}
+	void unmark_all() {
+		root->unmark_all();
+	}
 
 	void print_dot();
 

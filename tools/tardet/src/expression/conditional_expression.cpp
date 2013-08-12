@@ -24,9 +24,9 @@ conditional_expression::~conditional_expression() {
 
 void conditional_expression::print_inner() {
 	printf("if ");
-	condition->print();
+	condition->print_inner();
 	printf(" => ");
-	inner->print();
+	inner->print_inner();
 }
 
 char conditional_expression::contains(struct rreil_variable *variable) {
@@ -36,8 +36,12 @@ char conditional_expression::contains(struct rreil_variable *variable) {
 bool conditional_expression::substitute(struct rreil_variable *old, shared_ptr<expression> &new_) {
 	shared_ptr<expression> new_condition = new_;
 	bool condition_substituted = condition->substitute(old, new_condition);
+	if(!condition_substituted)
+		new_condition = this->condition;
 	shared_ptr<expression> new_inner = new_;
 	bool inner_substituted = inner->substitute(old, new_inner);
+	if(!inner_substituted)
+		new_inner = this->inner;
 	if(condition_substituted || inner_substituted) {
 		new_ = shared_ptr<expression>(new conditional_expression(new_condition, new_inner, get_size()));
 		return true;
@@ -52,4 +56,13 @@ char conditional_expression::evaluate(uint64_t *result) {
 		return inner->evaluate(result);
 	else
 		return false;
+}
+
+shared_ptr<expression> conditional_expression::reduce() {
+	uint64_t cond_r;
+	bool cond_eval = condition->evaluate(&cond_r);
+	if(cond_eval && cond_r)
+		return inner;
+	else
+		return NULL;
 }

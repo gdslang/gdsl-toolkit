@@ -62,11 +62,14 @@ public:
 	bbgraph_id *get_id() {
 		return this->id;
 	}
+	vector<struct bbgraph_branch> get_children() {
+		return children;
+	}
 	vector<struct bbgraph_pref> get_parents() {
 		return parents;
 	}
-	struct rreil_statements get_stmts() {
-		return stmts;
+	struct rreil_statements *get_stmts() {
+		return &stmts;
 	}
 	shared_ptr<union_expression> get_uexp() {
 		return uexp;
@@ -77,6 +80,7 @@ public:
 	void mark() {
 		marked = true;
 	}
+	void unmark_all();
 
 	void add_expression(shared_ptr<expression> expression);
 
