@@ -186,21 +186,17 @@ val conv-with conv sz x =
        | SUM x: conv-sum conv sz x
        | SCALE x: conv-scale conv sz x
        | MEM x:
-           let
-	     val m expanded = do
-               address <- conv-mem x;
-               segmented-load x.sz expanded x.psz address x.segment;
-               expanded <- expand (return expanded) conv (var expanded) x.sz sz;
-	       return expanded
-	     end
-	   in do
-             #address <- conv-mem x;
-	     address <- return (conv-mem x);
-
-	     expanded <- mktemp;
-	     expanded <- with-subscope (m expanded);
-	     return expanded
-           end end
+         let
+            val m expanded = do
+              address <- conv-mem x;
+              segmented-load x.sz expanded x.psz address x.segment;
+              expand (return expanded) conv (var expanded) x.sz sz
+            end
+         in do
+            expanded <- mktemp;
+            with-subscope (m expanded)
+            end
+         end
       end
    end
 
