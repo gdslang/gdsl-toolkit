@@ -99,6 +99,7 @@ end
 val /66 [] = continue
 val /f2 [] = continue
 val /f3 [] = continue
+#val / [] = arity0 none MWAIT
 
 val /rex-p ['0100 w:1 r:1 x:1 b:1'] =
    update @{rex='1', rexw=w, rexb=b, rexx=x, rexr=r}
