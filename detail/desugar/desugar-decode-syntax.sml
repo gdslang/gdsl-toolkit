@@ -109,21 +109,13 @@ structure DesugarDecode = struct
    end
 
    fun desugar ds = let
-      fun dup n = if n=0 then "" else "." ^ dup (n-1)
-      fun lubPat NONE [] = SOME 0
-        | lubPat NONE [[Pat.VEC ""]] = SOME 0
-        | lubPat sizeOpt _ = sizeOpt
-
-      fun lp (defaultSizeOpt, ds, acc) =
+      fun lp (hasDefault, ds, acc) =
          case ds of
-            [] =>
-               (case defaultSizeOpt of
-                  NONE => rev acc
-                | SOME n => rev ((toVec [], raisingDecodeSequenceMatchFailure ()) :: acc)
-               )
-          | (toks, e)::ds => lp (lubPat defaultSizeOpt toks, ds, (toVec toks, e)::acc)
+            [] => if hasDefault then rev acc else
+                     rev ((toVec [], raisingDecodeSequenceMatchFailure ()) :: acc)
+          | (toks, e)::ds => lp (hasDefault orelse null toks, ds, (toVec toks, e)::acc)
    in
-      desugarCases (toVec (lp (NONE, ds, [])))
+      desugarCases (toVec (lp (false, ds, [])))
    end
 
    and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
@@ -153,10 +145,10 @@ structure DesugarDecode = struct
        (*val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
       val equiv = buildEquivClass decls
       (* +DEBUG:overlapping-patterns *)
-       val () =
+       (*val () =
          Pretty.prettyTo
             (TextIO.stdOut,
-             Pretty.stringtab Pretty.intset equiv) 
+             Pretty.stringtab Pretty.intset equiv) *)
       
       fun genBindSlices indices = let
          open DT.Pat
@@ -204,7 +196,8 @@ structure DesugarDecode = struct
                      in
                         Exp.SEQ [unconsumeTok(),Exp.ACTION e]
                      end
-                | _ => raise Fail "desugarCases.bug.overlappingBacktrackPattern")
+                | is => (Pretty.prettyTo (TextIO.stdOut, layoutDecls (toVec (map (fn i => VS.sub (decls,i)) is)));
+                         raise Fail "desugarCases.bug.overlappingBacktrackPattern"))
 
       fun extendBacktrackPath ds =
          case StringMap.find (equiv, "") of
@@ -270,8 +263,7 @@ end = struct
 
    fun desugar ds =
       List.map
-         (fn (n, ds) =>
-             (n, [], DesugarDecode.desugar ds))
+         (fn (n, ds) => (n, [], DesugarDecode.desugar ds))
          (SymMap.listItemsi ds)
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)
