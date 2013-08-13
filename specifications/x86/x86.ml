@@ -3499,7 +3499,7 @@ val / [0xd9 0xe0] = arity0 none FCHS
 
 ### FCLEX/FNCLEX
 ###  - Clear Exceptions
-val / [0x9b 0xdb 0xe2] = arity0 none FCLEX
+#val / [0x9b 0xdb 0xe2] = arity0 none FCLEX
 val / [0xdb 0xe2] = arity0 none FNCLEX
 
 ### FCMOVcc
@@ -3577,7 +3577,7 @@ val / [0xd9 0xf7] = arity0 none FINCSTP
 
 ### FINIT/FNINIT
 ###  - Initialize Floating-Point Unit
-val / [0x9b 0xdb 0xe3] = arity0 none FINIT
+#val / [0x9b 0xdb 0xe3] = arity0 none FINIT
 val / [0xdb 0xe3] = arity0 none FNINIT
 
 ### FIST/FISTP
@@ -3666,9 +3666,9 @@ val / [0xdd /4-mem]
 ### FSAVE/FNSAVE
 ###  - Store x87 FPU State
 ### Todo: fix
-val / [0x9b 0xdd /6-mem]
- | mode64? = unop none FSAVE m108byte
- | mode32? = unop none FSAVE m94byte
+#val / [0x9b 0xdd /6-mem]
+# | mode64? = unop none FSAVE m108byte
+# | mode32? = unop none FSAVE m94byte
 val / [0xdd /6-mem]
  | mode64? = unop none FNSAVE m108byte
  | mode32? = unop none FNSAVE m94byte
@@ -3699,23 +3699,23 @@ val / [0xdb /7-mem] = unop none FSTP m80
 
 ### FSTCW/FNSTCW
 ###  - Store x87 FPU Control Word
-val / [0x9b 0xd9 /7-mem] = unop none FSTCW m2byte
+#val / [0x9b 0xd9 /7-mem] = unop none FSTCW m2byte
 val / [0xd9 /7-mem] = unop none FNSTCW m2byte
 
 ### FSTENV/FNSTENV
 ###  - Store x87 FPU Environment
 ### Todo: fix
-val / [0x9b 0xd9 /6-mem]
- | mode64? = unop none FSTENV m28byte
- | mode32? = unop none FSTENV m14byte
+#val / [0x9b 0xd9 /6-mem]
+# | mode64? = unop none FSTENV m28byte
+# | mode32? = unop none FSTENV m14byte
 val / [0xd9 /6-mem]
  | mode64? = unop none FNSTENV m28byte
  | mode32? = unop none FNSTENV m14byte
 
 ### FSTSW/FNSTSW
 ###  - Store x87 FPU Status Word
-val / [0x9b 0xdd /7-mem] = unop none FSTSW m2byte
-val / [0x9b 0xdf 0xe0] = unop none FSTSW ax
+#val / [0x9b 0xdd /7-mem] = unop none FSTSW m2byte
+#val / [0x9b 0xdf 0xe0] = unop none FSTSW ax
 val / [0xdd /7-mem] = unop none FNSTSW m2byte
 val / [0xdf 0xe0] = unop none FNSTSW ax
 

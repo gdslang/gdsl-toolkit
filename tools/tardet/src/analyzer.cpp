@@ -118,17 +118,22 @@ shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
 
 		auto parents = next->get_parents();
 		for(size_t i = 0; i < parents.size(); ++i) {
-			shared_ptr<conditional_expression> exp_cur = shared_ptr<conditional_expression>(
+			shared_ptr<expression> exp_new;
+
+			shared_ptr<conditional_expression> exp_cond = shared_ptr<conditional_expression>(
 					new conditional_expression(parents[i].condition, exp, exp->get_size()));
 //			printf("cond:\n");
 //			parents[i].condition->print();
 //			printf("\n++\n");
-			shared_ptr<expression> reduced = exp_cur->reduce();
-			if(!reduced)
-				reduced = exp_cur;
+//			shared_ptr<expression> reduced =
+			exp_cond->reduce((shared_ptr<expression>&)exp_cond);
+			if(exp_cond)
+				exp_new = exp_cond;
+			else
+				exp_new = exp;
 
 			shared_ptr<bbgraph_node> parent = parents[i].dst.lock();
-			parent->add_expression(reduced);
+			parent->add_expression(exp_new);
 			nodes.push(parent);
 		}
 
