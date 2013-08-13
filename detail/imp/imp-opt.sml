@@ -1540,17 +1540,17 @@ structure SwitchReduce = struct
 
    open Imp
 
-   fun addDefault f [p as (WILDpat,bb)] = [p]
-     | addDefault f [p as (VECpat [],bb)] = [p]
-     | addDefault f [p as (VECpat [""],bb)] = [p]
-     | addDefault f [] = [(WILDpat,BASICblock ([],[
+   fun getDefault f cases = case rev cases of
+         ((WILDpat,bb) :: cases) => (rev cases, (WILDpat,bb))
+       | ((VECpat [],bb) :: cases) => (rev cases, (VECpat [],bb))
+       | ((VECpat [""],bb) :: cases) => (rev cases, (VECpat [""],bb))
+       | _ => (cases, (WILDpat,BASICblock ([],[
          ASSIGNstmt (NONE,
             PRIexp (RAISEprim,
                FUNvtype (STRINGvtype,false,[STRINGvtype]),[
                   LITexp (STRINGvtype, STRlit ("pattern match failure in " ^ 
                            SymbolTable.getString(!SymbolTables.varTable, f)))
-         ]))]))]
-     | addDefault f (c::cs) = c :: addDefault f cs
+         ]))])))
 
    fun showPats pats = #2 (foldl (fn (p,(sep,str)) => (",",str ^ sep ^ p)) ("","") pats)
 
@@ -1696,7 +1696,7 @@ structure SwitchReduce = struct
           Array.foldr (fn (x,bs) => (x>0 andalso x<cutOff) :: bs) [] dist)
       end
     
-   fun optCase (scrut,cases) =
+   fun optCase (scrut,(cases,default)) =
       let
          fun genRange (low,idx,(true :: bits)) =
                genRange (if low<0 then idx else low,idx+1,bits)
@@ -1836,23 +1836,33 @@ structure SwitchReduce = struct
          fun genCases ((scrutBadSize,scrutBad), splitCases) =
             map (fn (pat,subCases) => (VECpat (remDup pat),BASICblock ([],[
                optCase (scrutBad,
-                  map (fn (pat,bb) => (VECpat (remDup pat),bb)) subCases)
+                  (map (fn (pat,bb) => (VECpat (remDup pat),bb)) subCases,
+                   default))
             ]))) splitCases
+         (* add the default case unless the set of cases is trivial *)
+         fun addDefault (cases as [(WILDpat,bb)]) = cases
+           | addDefault (cases as [(VECpat strs,bb)]) =
+               if List.all (List.all (fn c => c= #".") o String.explode) strs then 
+                  cases
+               else
+                  cases @ [default]
+           | addDefault cases = cases @ [default]
 
       in
          if bits>0 then
             CASEstmt (#2 (genSlice rangeGood scrut),
+                     addDefault (
                         genCases (genSlice rangeBad scrut, 
-                           group (amalgamate (map splitCase cases))))
+                           group (amalgamate (map splitCase cases)))))
          else
-            CASEstmt (scrut, cases)
+            CASEstmt (scrut, addDefault cases)
       end
 
    fun visitBlock s (BASICblock (decls,stmts)) = BASICblock (decls, map (visitStmt s) stmts)
    
    and visitStmt s (ASSIGNstmt (res,exp)) = ASSIGNstmt (res, visitExp s exp)
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
-     | visitStmt s (CASEstmt (e,ps)) = optCase (visitExp s e, addDefault s (map (visitCase s) ps))
+     | visitStmt s (CASEstmt (e,ps)) = optCase (visitExp s e, getDefault s (map (visitCase s) ps))
 
    and visitCase s (p,bb) = (p, visitBlock s bb)
    

@@ -203,6 +203,13 @@ structure C1 = struct
    fun fTArgs args = par (seq (separate (str "state_t s" :: args, ",")))
    fun comment cmt = seq [str "/* ", str cmt, str " */"]
 
+   fun emitNum num = case Int.maxInt of
+         SOME m => if IntInf.fromInt m<num then
+            str ("0x" ^ IntInf.fmt StringCvt.HEX num)
+         else
+            str (IntInf.toString num)
+       | NONE => str (IntInf.toString num)
+
    fun emitSym s sym = case SymMap.find (#symbols (s : state), sym) of
       SOME atom => str (Atom.toString atom)
     | NONE => (TextIO.print ("emitSym: no symbol name registered for " ^ SymbolTable.getString (!SymbolTables.varTable, sym) ^ "\n"); raise CodeGenBug)
@@ -343,7 +350,8 @@ structure C1 = struct
          val ty = removeArgs ty
          val retTy = case ty of
                FUNvtype (retTy,_,_) => retTy
-             | _ => raise CodeGenBug
+             | (MONADvtype retTy) => retTy
+             | _ => OBJvtype
          val closureName = "gen" ^
                            foldl (fn (t,str) => str ^ getTypeSuffix t) "" (retTy::argTys) ^
                            "_closure"
@@ -498,17 +506,17 @@ structure C1 = struct
          end
      | emitExp s (LITexp (t,VEClit pat)) =
       let
-         fun genNum (c,acc) = 2*acc+(if c= #"1" then 1 else 0)
+         fun genNum (c,acc) = IntInf.fromInt 2*acc+(if c= #"1" then 1 else 0)
          val num = foldl genNum 0 (String.explode pat)
       in
-         seq [str (Int.toString num), space, comment ("'" ^ pat ^ "'")]
+         seq [emitNum num, space, comment ("'" ^ pat ^ "'")]
       end
      | emitExp s (LITexp (t,STRlit string)) = seq [str "\"",str (mangleString string), str "\""]
-     | emitExp s (LITexp (t,INTlit i)) = str (IntInf.toString i)
+     | emitExp s (LITexp (t,INTlit i)) = emitNum i
      | emitExp s (LITexp (t,CONlit c)) = str (getConTag s c)
      | emitExp s (BOXexp (t,e)) = seq [str "alloc", str (getTypeSuffix t), fArgs [emitExp s e]]
      | emitExp s (UNBOXexp (t,e)) =
-         seq [str "(*((", emitType s (NONE,t), str "*) ", emitExp s e, str "))"]
+         seq [str "*((", emitType s (NONE,t), str "*) ", emitExp s e, str ")"]
      | emitExp s (VEC2INTexp (_,PRIexp (SLICEprim, _, [vec,ofs,sz]))) =
          seq [str "slice(", emitExp s vec, str ", ", emitExp s ofs, str ", ", emitExp s sz, str ")"]
      | emitExp s (VEC2INTexp (_,UNBOXexp (t,e))) =
@@ -541,16 +549,16 @@ structure C1 = struct
      | emitPrim s (UNCONSUME32prim, [],_) = str "s->ip-=4"
      | emitPrim s (PRINTLNprim, [e],_) = seq [str "printf(\"%s\",", emitExp s e, str ")"]
      | emitPrim s (RAISEprim, [e],_) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
-     | emitPrim s (ANDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str " & ", emitExp s e2, str ")"]
-     | emitPrim s (ORprim, [e1,e2],_) = seq [str "(", emitExp s e1, str " | ", emitExp s e2, str ")"]
+     | emitPrim s (ANDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str ") & (", emitExp s e2, str ")"]
+     | emitPrim s (ORprim, [e1,e2],_) = seq [str "(", emitExp s e1, str ") | (", emitExp s e2, str ")"]
      | emitPrim s (SIGNEDprim, [e],_) = seq [str "vec_to_signed", fArgs [emitExp s e]]
      | emitPrim s (UNSIGNEDprim, [e],_) = seq [str "vec_to_unsigned", fArgs [emitExp s e]]
      | emitPrim s (ADDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "+", emitExp s e2, str ")"]
      | emitPrim s (SUBprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "-", emitExp s e2, str ")"]
-     | emitPrim s (EQprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "==", emitExp s e2, str ")"]
+     | emitPrim s (EQprim, [e1,e2],_) = seq [str "", emitExp s e1, str "==", emitExp s e2, str ""]
      | emitPrim s (MULprim, [e1,e2],_) = seq [emitExp s e1, str "*", emitExp s e2]
-     | emitPrim s (LTprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "<", emitExp s e2, str ")"]
-     | emitPrim s (LEprim, [e1,e2],_) = seq [str "(", emitExp s e1, str "<=", emitExp s e2, str ")"]
+     | emitPrim s (LTprim, [e1,e2],_) = seq [str "", emitExp s e1, str "<", emitExp s e2, str ""]
+     | emitPrim s (LEprim, [e1,e2],_) = seq [str "", emitExp s e1, str "<=", emitExp s e2, str ""]
      | emitPrim s (NOT_VECprim, [e],_) = seq [str "vec_not", fArgs [emitExp s e]]
      | emitPrim s (EQ_VECprim, [e1,e2],_) = seq [str "vec_eq", fArgs [emitExp s e1, emitExp s e2]] 
      | emitPrim s (CONCAT_VECprim, [e1,e2],_) = seq [str "vec_concat", fArgs [emitExp s e1, emitExp s e2]] 
