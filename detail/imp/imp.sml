@@ -21,6 +21,10 @@ structure Imp = struct
          GETSTATEprim
        | SETSTATEprim
        | IPGETprim
+       | SEEKprim
+       | RSEEKprim
+       | INVOKEprim
+       | INVOKE_INTprim
        | CONSUME8prim
        | CONSUME16prim
        | CONSUME32prim
@@ -54,7 +58,11 @@ structure Imp = struct
       and the priority is the operator precedence, 0 if not infix *)
    fun prim_info GETSTATEprim = { name = "__get_state", prio = 0 }
      | prim_info SETSTATEprim = { name = "__set_state", prio = 0 }
-     | prim_info IPGETprim = { name = "__ipget", prio = 0 }
+     | prim_info IPGETprim = { name = "idxget", prio = 0 }
+     | prim_info SEEKprim = { name = "seek", prio = 0 }
+     | prim_info RSEEKprim = { name = "rseek", prio = 0 }
+     | prim_info INVOKEprim = { name = "invoke", prio = 0 }
+     | prim_info INVOKE_INTprim = { name = "invoke_int", prio = 0 }
      | prim_info CONSUME8prim = { name = "__consume8", prio = 0 }
      | prim_info CONSUME16prim = { name = "__consume16", prio = 0 }
      | prim_info CONSUME32prim = { name = "__consume32", prio = 0 }

@@ -76,18 +76,19 @@ val sem-vandpd x = sem-andpd-opnds '1' x.opnd1 x.opnd2 x.opnd3
 ## B>>
 
 val sem-bsf x = do
-  src <- read x.opnd-sz x.opnd2;
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd2;
 
   counter <- mktemp;
-  _if (/neq x.opnd-sz src (imm 0)) _then do
-    mov x.opnd-sz counter (imm 0);
+  _if (/neq size src (imm 0)) _then do
+    mov size counter (imm 0);
 
     temp <- mktemp;
-    mov x.opnd-sz temp src;
+    mov size temp src;
 
     _while (/neq 1 (var temp) (imm 1)) __ do
-      add x.opnd-sz counter (var counter) (imm 1);
-      shr x.opnd-sz temp (var temp) (imm 1)
+      add size counter (var counter) (imm 1);
+      shr size temp (var temp) (imm 1)
     end
 
   end _else
@@ -95,7 +96,7 @@ val sem-bsf x = do
   ;
 
   zf <- fZF;
-  cmpeq x.opnd-sz zf src (imm 0);
+  cmpeq size zf src (imm 0);
 
   cf <- fCF;
   ov <- fOF;
@@ -108,23 +109,24 @@ val sem-bsf x = do
   undef 1 af;
   undef 1 pf;
 
-  dst <- lval x.opnd-sz x.opnd1;
-  write x.opnd-sz dst (var counter)
+  dst <- lval size x.opnd1;
+  write size dst (var counter)
 end
 
 val sem-bsr x = do
-  src <- read x.opnd-sz x.opnd2;
+  size <- sizeof1 x.opnd1;
+  src <- read size x.opnd2;
 
   counter <- mktemp;
-  _if (/neq x.opnd-sz src (imm 0)) _then do
-    mov x.opnd-sz counter (imm (x.opnd-sz - 1));
+  _if (/neq size src (imm 0)) _then do
+    mov size counter (imm (size - 1));
 
     temp <- mktemp;
-    mov x.opnd-sz temp src;
+    mov size temp src;
 
-    _while (/neq 1 (var (at-offset temp (x.opnd-sz - 1))) (imm 1)) __ do
-      sub x.opnd-sz counter (var counter) (imm 1);
-      shl x.opnd-sz temp (var temp) (imm 1)
+    _while (/neq 1 (var (at-offset temp (size - 1))) (imm 1)) __ do
+      sub size counter (var counter) (imm 1);
+      shl size temp (var temp) (imm 1)
     end
 
   end _else
@@ -132,7 +134,7 @@ val sem-bsr x = do
   ;
 
   zf <- fZF;
-  cmpeq x.opnd-sz zf src (imm 0);
+  cmpeq size zf src (imm 0);
 
   cf <- fCF;
   ov <- fOF;
@@ -145,8 +147,8 @@ val sem-bsr x = do
   undef 1 af;
   undef 1 pf;
 
-  dst <- lval x.opnd-sz x.opnd1;
-  write x.opnd-sz dst (var counter)
+  dst <- lval size x.opnd1;
+  write size dst (var counter)
 end
 
 val sem-bswap x = do
@@ -271,18 +273,24 @@ val sem-call x = do
   temp-ip <- mktemp;
 
   ip <- ip-get;
-  if (near x.opnd1) then do
+  
+  result <- if (near x.opnd1) then do
     target <- read-flow ip-sz x.opnd1;
-    if (relative x.opnd1) then do
-      add ip-sz temp-ip ip target;
-      if (x.opnd-sz === 16) then
-          mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0)
-      else
-         return void
+    result <- if (relative x.opnd1) then do
+      result <- if (x.opnd-sz === 16) then do
+          add ip-sz temp-ip ip target;
+          mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0);
+					return (var temp-ip)
+      end else
+         return (lin-sum ip target)
+			;
+			return result
     end else
-      mov ip-sz temp-ip target
+#      mov ip-sz temp-ip target
+       return target
     ;
-    ps-push ip-sz ip
+    ps-push ip-sz ip;
+		return result
   end else do
     #Todo: Fix FF/3 (Call far, absolute, indirect...)
     sec-reg <- return CS;
@@ -300,11 +308,12 @@ val sem-call x = do
     mov target-sz temp-target target;
     mov reg-size sec-reg-sem (var (at-offset temp-target x.opnd-sz));
 
-    temp-ip <- mktemp;
-    movzx ip-sz temp-ip x.opnd-sz target
+    movzx ip-sz temp-ip x.opnd-sz target;
+
+		return (var temp-ip)
   end;
 
-  call (address ip-sz (var temp-ip))
+  call (address ip-sz result)
 end
 
 val sem-convert size = do
@@ -336,13 +345,13 @@ end
 
 val sem-cmovcc x cond = do
   sz <- sizeof1 x.opnd1;
-  dst <- lval sz x.opnd1;
-  dst-read <- read sz x.opnd1;
 
+  dst <- lval sz x.opnd1;
+  dst-old <- read sz x.opnd1;
   src <- read sz x.opnd2;
 
   temp <- mktemp;
-  mov sz temp dst-read;
+  mov sz temp dst-old;
 
   _if cond _then
     mov sz temp src
@@ -611,11 +620,12 @@ val sem-jcc x cond = do
 
   target <- read-flow ip-sz x.opnd1;
 
-  temp-ip <- mktemp;
-  add ip-sz temp-ip target ip;
+#  temp-ip <- mktemp;
+#  add ip-sz temp-ip target ip;
+  temp-ip <- return (lin-sum target ip);
 
   cond <- cond;
-  cbranch cond (address ip-sz (var temp-ip)) (address ip-sz ip)
+  cbranch cond (address ip-sz temp-ip) (address ip-sz ip)
 end
 
 val sem-jregz x reg = do
@@ -637,21 +647,26 @@ val sem-jmp x = do
   ;
   temp-ip <- mktemp;
 
-  if (near x.opnd1) then do
+  result <- if (near x.opnd1) then do
     target <- read-flow ip-sz x.opnd1;
-    if (relative x.opnd1) then do
+    result <- if (relative x.opnd1) then do
       ip <- ip-get;
-      add ip-sz temp-ip ip target
+      #add ip-sz temp-ip ip target
+			return (lin-sum ip target)
     end else
-      mov ip-sz temp-ip target
+      #mov ip-sz temp-ip target
+			return target
     ;
-    if (x.opnd-sz === 16) then
+    result <- if (x.opnd-sz === 16) then do
       #andb ip-sz temp-ip (var temp-ip) (imm 0xffff)
-      mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0)
-    else
-      return void
-    end
-  else if (not mode64) then do
+			mov ip-sz temp-ip result;
+      mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0);
+			return (var temp-ip)
+    end else
+      return result
+	  ;
+	  return result
+  end else if (not mode64) then do
     target-sz <- sizeof-flow x.opnd1;
     target <- read-flow target-sz x.opnd1;
     movzx ip-sz temp-ip x.opnd-sz target;
@@ -666,12 +681,14 @@ val sem-jmp x = do
     reg-size <- sizeof1 (REG reg);
     temp-target <- mktemp;
     mov target-sz temp-target target;
-    mov reg-size reg-sem (var (at-offset temp-target x.opnd-sz))
+    mov reg-size reg-sem (var (at-offset temp-target x.opnd-sz));
+
+		return (var temp-ip)
   end else
-    return void
+    return (var temp-ip)
   ;
 
-  jump (address ip-sz (var temp-ip))
+  jump (address ip-sz result)
 end
 
 ## K>>

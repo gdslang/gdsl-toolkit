@@ -436,11 +436,13 @@ val sem-packuswb-packusdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = 
       src-offset <- return (element-size*i);
       dst-offset <- return (dst-element-size*i);
 
-      _if (/gtu element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
+      _if (/gts element-size (var (at-offset temp-src src-offset)) (imm upper)) _then (
        mov dst-element-size (at-offset temp-dst dst-offset) (imm upper)
-     ) _else (
-       mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src (src-offset + dst-element-size)))
-     )
+     ) _else (_if (/lts element-size (var (at-offset temp-src src-offset)) (imm 0)) _then (
+       mov dst-element-size (at-offset temp-dst dst-offset) (imm 0)
+		 ) _else (
+       mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src src-offset))
+     ))
     end
   in
     vector-apply (2*size) element-size m
@@ -594,17 +596,19 @@ val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 op
   mask <- read size opnd4;
 
   temp-src1 <- mktemp;
-  if avx-encoded then do
-    mov size temp-src1 src1
-  end else
-    return void
-  ;
+#  if avx-encoded then do
+    mov size temp-src1 src1;
+#  end else
+#    return void
+#  ;
   temp-src2 <- mktemp;
   mov size temp-src2 src2;
   temp-mask <- mktemp;
   mov size temp-mask mask;
 
   temp-dst <- mktemp;
+#  mov size temp-dst (imm 0);
+  mov size temp-dst src1;
 
   let
     val m i = do
@@ -614,10 +618,10 @@ val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 op
       _if (/d (var test-bit)) _then
         mov element-size (at-offset temp-dst offset) (var (at-offset temp-src2 offset))
       _else
-        if avx-encoded then
-          mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
-	else
-	  return void
+#        if avx-encoded then
+#          mov element-size (at-offset temp-dst offset) (var (at-offset temp-src1 offset))
+#      	else
+	        return void
     end
   in
     vector-apply size element-size m
@@ -655,6 +659,7 @@ val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   _else
     mov part-size temp1 (var (at-offset temp-src1 part-size))
   ;
+  mov part-size (at-offset temp1 part-size) (imm 0);
 
   temp2 <- mktemp;
   _if (/not (var (at-offset temp-imm 4))) _then
@@ -662,6 +667,7 @@ val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   _else
     mov part-size temp2 (var (at-offset temp-src2 part-size))
   ;
+  mov part-size (at-offset temp2 part-size) (imm 0);
 
   temp-dst <- mktemp;
   mov part-size temp-dst (imm 0);
@@ -670,11 +676,11 @@ val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   mov 7 counter (imm 0);
   _while (/ltu 7 (var counter) (imm 64)) __ do
     _if (/d (var temp1)) _then
-      xorb part-size temp-dst (var temp-dst) (var temp2)
+      xorb (2*part-size) temp-dst (var temp-dst) (var temp2)
     ;
 
-    shr part-size temp1 (var temp1) (imm 1);
-    shl part-size temp2 (var temp2) (imm 1);
+    shr (2*part-size) temp1 (var temp1) (imm 1);
+    shl (2*part-size) temp2 (var temp2) (imm 1);
 
     add 7 counter (var counter) (imm 1)
   end;

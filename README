@@ -13,6 +13,7 @@ Building the Application
 
 The following steps need to be taken in order to build the application. It is assumed that the GDSL root directory is the current working directory. First one needs to compile GDSL itself using Mlton:
 
+mkdir lib
 mlton gdsl.mlb
 
 Next all related sources written in GDSL need to be translated to C; in order to be able to later compile the liveness analyzer the following command needs to be executed:

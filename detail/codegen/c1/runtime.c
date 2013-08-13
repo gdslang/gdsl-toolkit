@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <setjmp.h>
+#include <avcall.h>
 
 struct state {
   char* heap_base;    /* the beginning of the heap */
@@ -22,7 +23,7 @@ struct state {
 };
 
 static void alloc_heap(state_t s, char* prev_page) {
-  unsigned int size = 4096;
+  unsigned int size = 1024*4096;
   s->heap_base = malloc(size);
   if (s->heap_base==NULL) {
     s->err_str = "GDSL runtime: out of memory";
@@ -246,6 +247,56 @@ static inline string_t string_concat(state_t s, string_t s1, string_t s2) {
   strcpy(res,str1);
   strcat(res,str2);
   return alloc_string(s,res);
+}
+
+int64_t gdsl_seek(state_t s, int64_t i) {
+  size_t size = (size_t)(s->ip_limit - s->ip_base);
+	if(i >= size || i < 0)
+	  return 1;
+	s->ip = s->ip_base + i;
+	return 0;
+}
+
+int64_t gdsl_rseek(state_t s, int64_t i) {
+  char *new_ip = s->ip + i;
+	if(new_ip >= s->ip_limit || new_ip < s->ip_base)
+	  return 1;
+	s->ip = new_ip;
+	return 0;
+}
+
+static string_t invoke(state_t s, obj_t func, obj_t args) {
+  func = x86_string__payload(s, func);  
+
+	av_alist arg_list;
+	string_t result;
+	av_start_ptr(arg_list, func, string_t, &result);
+
+	obj_t next = args;
+	while(1) {
+		if(x86_con_index(s, next) == CON_P_NIL)
+			break;
+		obj_t unwrapped = x86_p_cons_unwrap(s, next);
+
+		obj_t parameter = x86_select_hd(s, unwrapped);
+		if(x86_p_is_int(s, parameter))
+			av_long(arg_list, *(int64_t*)x86_p_unwrap_i(s, parameter));
+		else
+			av_ptr(arg_list, string_t, x86_p_unwrap_o(s, parameter));
+
+		next = x86_select_tl(s, unwrapped);
+	}
+
+	av_call(arg_list);
+
+	return result;
+//  obj_t (*f)(void) = (obj_t (*)(void))func;
+//  return (string_t)f();
+}
+
+static obj_t invoke_int(state_t s, obj_t func, int64_t i) {
+  obj_t (*f)(int64_t) = (obj_t (*)(int64_t))func;
+  return f(i);
 }
 
 state_t gdsl_init() {

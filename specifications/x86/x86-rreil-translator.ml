@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = translate translateBlock
+export = translate translateBlock translateSingle translateSuperBlock succ_pretty
 
 type sem_writeback =
    SEM_WRITE_VAR of {size:int, id:sem_var}
@@ -16,8 +16,9 @@ val runtime-stack-address-size = do
 end
 
 val ip-get = do
-  k <- ipget;
-  return (imm k)
+  return (var (semantic-register-of RIP))
+#  k <- ipget;
+#  return (imm k)
 end
 
 val segment-register? x =
@@ -472,6 +473,7 @@ val undef-opnd opnd = do
   sz <- sizeof1 opnd;
   a <- lval sz opnd;
   t <- mktemp;
+	undef sz t;
   write sz a (var t)
 end
 
@@ -2173,6 +2175,7 @@ val semantics insn =
 
 val translate insn =
    do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
+#case 0 of 1: return 0 end;
       semantics insn;
       stack <- query $stack;
       return (rreil-stmts-rev stack)
@@ -2210,3 +2213,118 @@ val translateBlock = do
 	 stmts <- transBlock;
    return (rreil-stmts-rev stmts)
 end
+
+val translateSingle = do
+   update @{ins_count=0,mode64='1'};
+   update@{stack=SEM_NIL,foundJump='0'};
+   # the type checker is seriously broken when it comes to infinite recursion,
+   # I cannot as of yet reproduce this bug
+   update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
+
+   transInstr;
+   jmp <- query $foundJump;
+   stmts <- query $stack;
+
+   return (rreil-stmts-rev stmts)
+end
+
+type int_option =
+   IO_SOME of int
+ | IO_NONE
+
+val io a b = {a=a,b=b}
+val io-to a = {a=a,b=IO_NONE}
+val io-tw a = {a=a,b=a}
+
+val relative-next stmts = let
+  val raddress addr =
+	  case addr.address of
+		   SEM_LIN_ADD s:
+			   case s.opnd1 of
+				    SEM_LIN_VAR v:
+						  case v.id of
+							   Sem_IP:
+								   case s.opnd2 of
+									    SEM_LIN_IMM i: IO_SOME i.const
+									  | _: IO_NONE
+									 end
+							 | _: IO_NONE
+							end
+				  | SEM_LIN_IMM i:
+					    case s.opnd2 of
+							   SEM_LIN_VAR v:
+								   case v.id of
+									    Sem_IP: IO_SOME i.const
+									  | _: IO_NONE
+									 end
+							 | _: IO_NONE
+							end
+				 end
+		 | SEM_LIN_VAR v:
+		     case v.id of
+				    Sem_IP: IO_SOME 0
+				  | _: IO_NONE
+				 end
+		 | _: IO_NONE
+		end
+in
+  case stmts of
+	   SEM_CONS x:
+		   case x.hd of
+			    SEM_CBRANCH b: io (raddress b.target-true) (raddress b.target-false)
+				| SEM_BRANCH b: io-to (raddress b.target)
+				| SEM_ITE c: io (relative-next (rreil-stmts-rev c.then_branch)).a (relative-next (rreil-stmts-rev c.else_branch)).a
+			  | _: io-tw IO_NONE
+			 end
+	 | SEM_NIL: (io-tw IO_NONE)
+	end
+end
+
+type stmts_option =
+   SO_SOME of sem_stmts
+ | SO_NONE
+
+val translateSuperBlock = let
+  val translate-block-at idx = do
+	  current <- idxget;
+		error <- rseek idx;
+		result <- if error === 0 then do
+		  stmts <- translateBlock;
+		  seek current;
+			return (SO_SOME stmts)
+		end else
+		  return SO_NONE
+		;
+		return result
+  end
+
+  val seek-translate-block-at idx-opt = do
+	  case idx-opt of
+		   IO_SOME i: translate-block-at i
+		 | IO_NONE: return SO_NONE
+		end
+	end
+in do
+   update @{ins_count=0,mode64='1'};
+   update@{stack=SEM_NIL,foundJump='0'};
+   # the type checker is seriously broken when it comes to infinite recursion,
+   # I cannot as of yet reproduce this bug
+   update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
+	 stmts <- transBlock;
+
+   ic <- query $ins_count;
+
+   succs <- return (relative-next stmts);
+   succ_a <- seek-translate-block-at succs.a;
+   succ_b <- seek-translate-block-at succs.b;
+
+   update@{ins_count=ic};
+
+   return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
+end end
+
+val succ_pretty succ name =
+  case succ of
+	   SO_SOME i: "Succ " +++ name +++ ":\n" +++ (rreil-pretty i)
+	 | SO_NONE: "Succ " +++ name +++ ": NONE :-("
+	end

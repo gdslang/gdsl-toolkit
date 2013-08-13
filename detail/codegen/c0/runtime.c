@@ -5,6 +5,8 @@
 __unwrapped_obj heap[__RT_HEAP_SIZE] __attribute__((aligned(8)));
 __objref hp = &heap[__RT_HEAP_SIZE];
 
+static jmp_buf *exp_vec = NULL;
+
 @fieldnames@
 
 @tagnames@
@@ -26,6 +28,10 @@ __obj __UNIT = __WRAP(&__unwrapped_UNIT);
 __obj __TRUE = __WRAP(&__unwrapped_TRUE);
 __obj __FALSE = __WRAP(&__unwrapped_FALSE);
 
+void __exp_vec_set(jmp_buf *_exp_vec) {
+  exp_vec = _exp_vec;
+}
+
 void __fatal (char *fmt, ...) {
   va_list ap;
   va_start(ap,fmt);
@@ -33,7 +39,10 @@ void __fatal (char *fmt, ...) {
   vfprintf(stderr,fmt,ap);
   fprintf(stderr,"]\n");
   va_end(ap);
-  abort();
+	if(exp_vec)
+    longjmp(*exp_vec,1);
+  else
+    abort();
 }
 
 __obj __and (__obj A, __obj B) {
@@ -110,9 +119,12 @@ __obj __lei (__obj A, __obj B) {
 
 /* FIXME */
 __obj __sx (__obj x) {
+	__word k = x->bv.vec;
+  if(k & (1 << (x->bv.sz - 1)))
+    k |= ~(((__word)1 << x->bv.sz) - 1);
   __LOCAL0(y);
     __INT_BEGIN(y);
-    __INT_INIT(x->bv.vec);
+    __INT_INIT(k);
     __INT_END(y);
   return (y);
 }
@@ -127,7 +139,7 @@ __obj __zx (__obj x) {
 }
 
 /* FIXME */
-__obj __ipget (__obj s) {
+__obj __idxget (__obj s) {
   __LOCAL(blob, __RECORD_SELECT(s,___blob));
   __LOCAL0(y);
     __INT_BEGIN(y);
@@ -137,6 +149,87 @@ __obj __ipget (__obj s) {
     __RECORD_BEGIN(a,2);
     __RECORD_ADD(___1,y);
     __RECORD_ADD(___2,s);
+    __RECORD_END(a,2);
+  return (a);
+}
+
+/* FIXME */
+__obj __rseek (__obj s, __obj x) {
+  int64_t k = (int64_t)__CASETAGINT(x);
+//	printf("###### %ld\n", k);
+  __LOCAL(blob, __RECORD_SELECT(s,___blob));
+  uint64_t size = blob->blob.idx + blob->blob.sz;
+  if((uint64_t)((int64_t)blob->blob.idx + k) >= size) {
+	//	printf("RSEEK ERROR: size=%lu, offset=%ld\n", size, (int64_t)blob->blob.idx + k);
+    __LOCAL0(y);
+      __INT_BEGIN(y);
+      __INT_INIT(1);
+      __INT_END(y);
+    __LOCAL0(a);
+      __RECORD_BEGIN(a,2);
+      __RECORD_ADD(___1,y);
+      __RECORD_ADD(___2,s);
+      __RECORD_END(a,2);
+    return (a);
+  }
+//		printf("RSEEK SUCCESS: size=%lu, sz=%lu, idx=%lu\n", size, blob->blob.sz-k,blob->blob.idx+k);
+  __LOCAL0(blobb);
+  __BLOB_BEGIN(blobb);
+  __BLOB_INIT(blob->blob.blob+k,blob->blob.sz-k,blob->blob.idx+k);
+  __BLOB_END(blobb);
+  __LOCAL0(ss);
+    __RECORD_BEGIN_UPDATE(ss,s);
+    __RECORD_UPDATE(___blob,blobb);
+    __RECORD_END_UPDATE(ss);
+  __LOCAL0(y);
+    __INT_BEGIN(y);
+    __INT_INIT(0);
+    __INT_END(y);
+  __LOCAL0(a);
+    __RECORD_BEGIN(a,2);
+    __RECORD_ADD(___1,y);
+    __RECORD_ADD(___2,ss);
+    __RECORD_END(a,2);
+  return (a);
+}
+
+
+/* FIXME */
+__obj __seek (__obj s, __obj x) {
+  uint64_t k = __CASETAGINT(x);
+//	printf("###### %ld\n", k);
+  __LOCAL(blob, __RECORD_SELECT(s,___blob));
+  uint64_t size = blob->blob.idx + blob->blob.sz;
+  if(k >= size) {
+//		printf("SEEK ERROR: size=%lu, offset=%lu\n", size, k);
+    __LOCAL0(y);
+      __INT_BEGIN(y);
+      __INT_INIT(1);
+      __INT_END(y);
+    __LOCAL0(a);
+      __RECORD_BEGIN(a,2);
+      __RECORD_ADD(___1,y);
+      __RECORD_ADD(___2,s);
+      __RECORD_END(a,2);
+    return (a);
+  }
+//		printf("SEEK SUCCESS: size=%lu, sz=%lu, idx=%lu\n", size, size - k, k);
+  __LOCAL0(blobb);
+  __BLOB_BEGIN(blobb);
+  __BLOB_INIT(blob->blob.blob-blob->blob.idx+k, size-k, k);
+  __BLOB_END(blobb);
+  __LOCAL0(ss);
+    __RECORD_BEGIN_UPDATE(ss,s);
+    __RECORD_UPDATE(___blob,blobb);
+    __RECORD_END_UPDATE(ss);
+  __LOCAL0(y);
+    __INT_BEGIN(y);
+    __INT_INIT(0);
+    __INT_END(y);
+  __LOCAL0(a);
+    __RECORD_BEGIN(a,2);
+    __RECORD_ADD(___1,y);
+    __RECORD_ADD(___2,ss);
     __RECORD_END(a,2);
   return (a);
 }
