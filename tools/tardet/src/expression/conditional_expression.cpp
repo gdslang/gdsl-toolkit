@@ -58,12 +58,13 @@ char conditional_expression::evaluate(uint64_t *result) {
 		return false;
 }
 
-void conditional_expression::reduce(shared_ptr<expression> &me) {
+shared_ptr<expression> conditional_expression::reduce() {
 	uint64_t cond_r;
 	bool cond_eval = condition->evaluate(&cond_r);
 	if(cond_eval)
 		if(cond_r)
-			me = inner;
+			return inner;
 		else
-			me = NULL;
+			return NULL;
+	return shared_from_this();
 }

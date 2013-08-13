@@ -72,10 +72,10 @@ shared_ptr<expression> analyze(struct rreil_statements statements, shared_ptr<ex
 	return exp;
 }
 
-shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
+shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode> sp) {
 	graph->unmark_all();
 
-	queue<shared_ptr<bbgraph_node>> nodes = queue<shared_ptr<bbgraph_node>>();
+	queue<shared_ptr<bbgraph_rrnode>> nodes = queue<shared_ptr<bbgraph_rrnode>>();
 	nodes.push(sp);
 
 	struct rreil_statements statements_sp = *sp->get_stmts();
@@ -88,7 +88,7 @@ shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
 	size_t count = 0;
 
 	while(!nodes.empty()) {
-		shared_ptr<bbgraph_node> next = nodes.front();
+		shared_ptr<bbgraph_rrnode> next = nodes.front();
 		nodes.pop();
 
 		if(next->is_marked())
@@ -109,7 +109,7 @@ shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
 
 		exp = analyze(*next->get_stmts(), next->get_uexp());
 
-		printf("%zu\n", count++);
+//		printf("%zu\n", count++);
 
 		exp->print();
 		printf("\n");
@@ -118,21 +118,25 @@ shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp) {
 
 		auto parents = next->get_parents();
 		for(size_t i = 0; i < parents.size(); ++i) {
-			shared_ptr<expression> exp_new;
-
 			shared_ptr<conditional_expression> exp_cond = shared_ptr<conditional_expression>(
 					new conditional_expression(parents[i].condition, exp, exp->get_size()));
 //			printf("cond:\n");
 //			parents[i].condition->print();
 //			printf("\n++\n");
 //			shared_ptr<expression> reduced =
-			exp_cond->reduce((shared_ptr<expression>&)exp_cond);
-			if(exp_cond)
-				exp_new = exp_cond;
-			else
+//			exp_cond->reduce((shared_ptr<expression>&)exp_cond);
+//			if(exp_cond)
+//				exp_new = exp_cond;
+//			else
+//				exp_new = exp;
+			shared_ptr<expression> exp_new = exp_cond->reduce();
+			if(!exp_new)
 				exp_new = exp;
 
-			shared_ptr<bbgraph_node> parent = parents[i].dst.lock();
+			/*
+			 * Todo: Fix cast
+			 */
+			shared_ptr<bbgraph_rrnode> parent = parents[i].dst.lock();
 			parent->add_expression(exp_new);
 			nodes.push(parent);
 		}

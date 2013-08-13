@@ -8,8 +8,11 @@
 #ifndef bbgraph_H_
 #define bbgraph_H_
 
+#include <stdint.h>
 #include <memory>
 #include <functional>
+#include <vector>
+#include <map>
 #include "bbgraph_node.h"
 extern "C" {
 #include <rreil/rreil.h>
@@ -19,19 +22,25 @@ using namespace std;
 
 class bbgraph {
 private:
-	shared_ptr<bbgraph_node> root;
+//	shared_ptr<bbgraph_node> root;
+	map<int64_t, vector<shared_ptr<bbgraph_node>>> addr_map;
 
 public:
-	bbgraph(shared_ptr<bbgraph_node> root) {
-		this->root = root;
+	bbgraph(/*shared_ptr<bbgraph_node> root*/) {
+//		this->root = root;
+		addr_map = map<int64_t, vector<shared_ptr<bbgraph_node>>>();
 	}
 	void unmark_all() {
-		root->unmark_all();
+		get_root()->unmark_all();
 	}
+
+	shared_ptr<bbgraph_node> get_root();
 
 	void print_dot();
 
-	static tuple<vector<shared_ptr<bbgraph_node>>, shared_ptr<bbgraph_node>, shared_ptr<bbgraph_node>> from_rreil_statements(
+	void rreil_add(struct rreil_statements *statements, int64_t offset);
+
+	static vector<shared_ptr<bbgraph_rrnode>> from_rreil_statements(
 			struct rreil_statements *stmts, size_t address);
 };
 

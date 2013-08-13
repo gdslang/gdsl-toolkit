@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <memory>
 #include <vector>
+#include <map>
+#include <queue>
 #include <string.h>
 #include <unistd.h>
 extern "C" {
@@ -88,22 +90,19 @@ void jump(uint8_t *address, uint64_t address_size) {
 	printf("%lu\n", *((uint64_t*)address));
 }
 
-static void ip_set(struct context *context,
-		void *next_instruction_address) {
+static void ip_set(struct context *context, void *next_instruction_address) {
 	struct data insn_address;
 	insn_address.data = (uint8_t*)&next_instruction_address;
 	insn_address.bit_length = sizeof(next_instruction_address) * 8;
 	context_data_define(&insn_address);
 
-	simulator_register_generic_write(&context->x86_registers[X86_ID_IP],
-			insn_address, 0);
+	simulator_register_generic_write(&context->x86_registers[X86_ID_IP], insn_address, 0);
 
 	free(insn_address.defined);
 }
 
 static size_t code(uint8_t **buffer) {
-	uint8_t data[] = { 0x48, 0xc7, 0xc0, 0xe7, 0x03, 0x00, 0x00, 0x48, 0x83, 0xc0,
-			0x2a, 0xb4, 0x3e, 0xff, 0xe0 };
+	uint8_t data[] = { 0x48, 0xc7, 0xc0, 0xe7, 0x03, 0x00, 0x00, 0x48, 0x83, 0xc0, 0x2a, 0xb4, 0x3e, 0xff, 0xe0 };
 	size_t data_size = sizeof(data);
 
 	*buffer = (uint8_t*)malloc(data_size);
@@ -119,14 +118,14 @@ int main(int argc, char **argv) {
 	uint8_t *data;
 	size_t data_size;
 
-//	shared_ptr<bbgraph_node> root = shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(1000, 0)));
+//	shared_ptr<bbgraph_rrnode> root = shared_ptr<bbgraph_rrnode>(new bbgraph_rrnode(new bbgraph_id(1000, 0)));
 //
-//	auto a = shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(1001, 0)));
+//	auto a = shared_ptr<bbgraph_rrnode>(new bbgraph_rrnode(new bbgraph_id(1001, 0)));
 //	root->add_child(a);
 //
-//	auto b = shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(1002, 0)));
+//	auto b = shared_ptr<bbgraph_rrnode>(new bbgraph_rrnode(new bbgraph_id(1002, 0)));
 //	root->add_child(b);
-//	b->add_child(shared_ptr<bbgraph_node>(new bbgraph_node(new bbgraph_id(1002, 1))));
+//	b->add_child(shared_ptr<bbgraph_rrnode>(new bbgraph_rrnode(new bbgraph_id(1002, 1))));
 //
 //	bbgraph *tree = new bbgraph(root);
 //
@@ -144,8 +143,7 @@ int main(int argc, char **argv) {
 			break;
 		}
 		case MODE_CMDLINE: {
-			FILE *stream = fmemopen((void*)options.parameter,
-					strlen(options.parameter) + 1, "r");
+			FILE *stream = fmemopen((void*)options.parameter, strlen(options.parameter) + 1, "r");
 			data_size = readhex_hex_read(stream, (char**)&data);
 			fclose(stream);
 			break;
@@ -154,7 +152,7 @@ int main(int argc, char **argv) {
 			FILE *f = fopen(options.parameter, "r");
 			size_t chunk = 32;
 			size_t data_length = 0;
-			data_size = 4*chunk;
+			data_size = 4 * chunk;
 			data = (uint8_t*)malloc(data_size);
 			while(!feof(f)) {
 				if(data_length + chunk > data_size) {
@@ -175,69 +173,51 @@ int main(int argc, char **argv) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, (char*)data, data_size, 0);
 
-//	__obj insn;
-////	__word features;
-//	if(gdsl_decode(&insn, &state)) {
-//		printf("Decode failed\n");
-//		fflush(stderr);
-//		fflush(stdout);
-//		exit(1);
-//	}
-//
-//	data_size = gdsl_decoded(&state);
-////	features = gdsl_features_get(insn);
-//
-//	printf("Instruction bytes:");
-//	for(size_t i = 0; i < data_size; ++i)
-//		printf(" %02x", (int)(data[i]) & 0xff);
-//	printf("\n");
-//
-//	char *str = gdsl_x86_pretty(insn, GDSL_X86_PRINT_MODE_FULL);
-//	if(str)
-//		puts(str);
-//	else
-//		printf("NULL\n");
-//	free(str);
-//
-//	printf("---------------------------\n");
-//
-//	__obj rreil;
-//	if(gdsl_translate(&rreil, insn, &state)) {
-//		printf("Translate failed\n");
-//		fflush(stderr);
-//		fflush(stdout);
-//		exit(1);
-//	}
+//	auto addr_map = map<int64_t, vector<shared_ptr<bbgraph_rrnode>>>();
 
-	obj_t rreil;
-	if(gdsl_translate_block(state, &rreil)) {
-		printf("Translate block failed\n");
-		fflush(stderr);
-		fflush(stdout);
-		gdsl_destroy(state);
-		exit(1);
-	}
+	queue<int64_t> offset_queue = queue<int64_t>();
+	offset_queue.push(0);
 
-	char *x = x86_rreil_pretty(state, rreil);
-	printf("%s\n#########\n", x);
+	bbgraph *g = new bbgraph();
+
+	while(!offset_queue.empty()) {
+		int64_t offset = offset_queue.front();
+		offset_queue.pop();
+
+		gdsl_seek(state, offset);
+
+		obj_t rreil;
+		if(gdsl_translate_block(state, &rreil)) {
+			printf("Translate block failed\n");
+			fflush(stderr);
+			fflush(stdout);
+			gdsl_destroy(state);
+			exit(1);
+		}
+
+//		char *x = x86_rreil_pretty(state, rreil);
+//		printf("%s\n#########\n", x);
 
 //	if(setjmp(*gdsl_err_tgt(state))) {
 //		exit(1);
 //	} else
 //		rreil = x86_example_b(state);
 
-	struct rreil_statements *statements = statements_get(state, rreil);
+		struct rreil_statements *statements = statements_get(state, rreil);
 
-	gdsl_destroy(state);
+		rreil_statements_print(statements);
 
-	rreil_statements_print(statements);
+		g->rreil_add(statements, offset);
 
-	vector<shared_ptr<bbgraph_node>> nodes;
-	shared_ptr<bbgraph_node> root;
-	shared_ptr<bbgraph_node> tail;
-	tie(nodes, root, tail) = bbgraph::from_rreil_statements(statements, 1000);
-	bbgraph *g = new bbgraph(root);
-	g->print_dot();
+//		map[offset] = nodes;
+
+		/*
+		 * Todo: Handle empty
+		 */
+		shared_ptr<bbgraph_rrnode> root = nodes.front();
+		shared_ptr<bbgraph_rrnode> tail = nodes.back();
+
+		g->print_dot();
 //	delete g;
 
 //
@@ -280,35 +260,39 @@ int main(int argc, char **argv) {
 //
 //	itree_print(root);
 
-	printf("----------------------------\n");
+		printf("----------------------------\n");
 
-	shared_ptr<expression> exp = analyze(g, tail);// NULL;//analyze(*statements);
+		shared_ptr<expression> exp = analyze(g, tail); // NULL;//analyze(*statements);
 
-	printf("----------------------------\n");
+		printf("----------------------------\n");
 
-	exp->print();
-	printf("\n");
+		exp->print();
+		printf("\n");
 
-	uint64_t evaluated;
-	char evalable = exp->evaluate(&evaluated);
-	if(evalable) {
-		printf("Evaluated: %lu\n", evaluated);
+		uint64_t evaluated;
+		char evalable = exp->evaluate(&evaluated);
+		if(evalable) {
+			printf("Evaluated: %lu\n", evaluated);
 
-		struct context *context = context_init(NULL, NULL, &jump);
-		ip_set(context, NULL);
+//			struct context *context = context_init(NULL, NULL, &jump);
+//			ip_set(context, NULL);
+//
+//			printf("Simulator: ");
+//			simulator_statements_simulate(context, statements);
+//
+//			context_free(context);
 
-		printf("Simulator: ");
-		simulator_statements_simulate(context, statements);
+		} else
+			printf("Unable to evaluate :-(.\n");
 
-		context_free(context);
+			rreil_statements_free (statements);
+	}
 
-	} else
-		printf("Unable to evaluate :-(.\n");
-
-	rreil_statements_free(statements);
 	free(data);
 
-	delete g;
+	gdsl_destroy(state);
+
+//	delete g;
 
 	return 0;
 }

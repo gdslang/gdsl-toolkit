@@ -19,6 +19,6 @@ extern "C" {
 using namespace std;
 
 shared_ptr<expression> analyze(struct rreil_statements statements, shared_ptr<expression> exp);
-shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_node> sp);
+shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode> sp);
 
 #endif /* ANALYZER_H_ */

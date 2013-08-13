@@ -1,5 +1,5 @@
 /*
- * bbgraph_node.cpp
+ * bbgraph_rrnode.cpp
  *
  *  Created on: Aug 9, 2013
  *      Author: jucs
@@ -11,14 +11,14 @@
 #include "bbgraph_node.h"
 #include "../expression/expression.h"
 
-bool bbgraph_node::has_subgraph() {
+bool bbgraph_rrnode::has_subgraph() {
 	for(size_t i = 0; i < children.size(); ++i)
 		if(children[i].dst.lock()->id->get_address_machine() == id->get_address_machine())
 			return true;
 	return false;
 }
 
-//void bbgraph_node::print_dot_label() {
+//void bbgraph_rrnode::print_dot_label() {
 //	printf("\t\"%s\"", id->to_string().c_str());
 //	if(id->get_inner())
 //		printf(" [label=%zu];\n", id->get_inner());
@@ -26,7 +26,7 @@ bool bbgraph_node::has_subgraph() {
 //		printf(";\n");
 //}
 
-void bbgraph_node::print_dot_subgraph() {
+void bbgraph_rrnode::print_dot_subgraph() {
 	if(is_marked())
 		return;
 	mark();
@@ -41,25 +41,25 @@ void bbgraph_node::print_dot_subgraph() {
 	}
 }
 
-void bbgraph_node::add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition) {
+void bbgraph_rrnode::add_child(shared_ptr<bbgraph_rrnode> child, shared_ptr<expression> condition) {
 	struct bbgraph_branch branch = { child, condition };
 
 	children.push_back(branch);
 }
 
-void bbgraph_node::add_parent(shared_ptr<bbgraph_node> parent, shared_ptr<expression> condition) {
+void bbgraph_rrnode::add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expression> condition) {
 	struct bbgraph_pref pref = { parent, condition };
 
 	parents.push_back(pref);
 }
 
-void bbgraph_node::add_expression(shared_ptr<expression> expression) {
+void bbgraph_rrnode::add_expression(shared_ptr<expression> expression) {
 	if(uexp == NULL)
 		uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
 	uexp->add(expression);
 }
 
-void bbgraph_node::unmark_all() {
+void bbgraph_rrnode::unmark_all() {
 	if(marked) {
 		marked = false;
 		for (size_t i = 0; i < children.size(); ++i)
@@ -67,7 +67,7 @@ void bbgraph_node::unmark_all() {
 	}
 }
 
-void bbgraph_node::print_dot() {
+void bbgraph_rrnode::print_dot() {
 //	printf("\t\"%s\" [label=\"%p\"];\n", id->to_string().c_str(), (void*)id->get_address_machine());
 	if(is_marked())
 		return;
@@ -90,4 +90,11 @@ void bbgraph_node::print_dot() {
 		printf("\t\"%s\" -> \"%s\";\n", id->to_string().c_str(), children[i].dst.lock()->id->to_string().c_str());
 		children[i].dst.lock()->print_dot();
 	}
+}
+
+void bbgraph_stubnode::unmark_all() {
+	marked = false;
+}
+
+void bbgraph_stubnode::print_dot() {
 }

@@ -18,7 +18,7 @@ extern "C" {
 
 using namespace std;
 
-class expression {
+class expression : public enable_shared_from_this<expression> {
 private:
 	uint64_t size;
 
