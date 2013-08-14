@@ -31,7 +31,9 @@ shared_ptr<bbgraph_node> bbgraph::get_root() {
 
 void bbgraph::print_dot() {
 	auto root = get_root();
-	root->unmark_all();
+
+	unmark_all();
+
 	printf("digraph G {\n");
 	printf("\tnode [shape=box];\n");
 	printf("\tcompound=true;\n");

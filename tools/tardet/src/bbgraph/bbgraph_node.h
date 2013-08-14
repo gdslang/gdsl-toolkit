@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <memory>
+#include <set>
 #include <vector>
 #include <queue>
 #include "bbgraph_id.h"
@@ -29,19 +30,26 @@ struct bbgraph_pref {
 	shared_ptr<expression> condition;
 };
 
-class bbgraph_node : public enable_shared_from_this<bbgraph_node> {
+class bbgraph_node {
 protected:
 	vector<struct bbgraph_pref> parents;
 	bool marked = 0;
 	bbgraph_id *id;
+	size_t count;
+
+	static size_t counter;
 public:
 	bbgraph_node(bbgraph_id *id) {
 		this->id = id;
 		marked = false;
 		parents = vector<struct bbgraph_pref>();
+		count = counter++;
 	}
 	vector<struct bbgraph_pref> get_parents() {
 		return parents;
+	}
+	size_t get_count() {
+		return count;
 	}
 
 	virtual ~bbgraph_node() {
@@ -59,12 +67,13 @@ public:
 
 	void add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expression> condition);
 
-	virtual void unmark_all() = 0;
+	virtual void unmark_all(set<shared_ptr<bbgraph_node>> &seen) = 0;
 
 	virtual void print_dot() = 0;
 	virtual bool has_subgraph() = 0;
 //	void print_dot_label();
 	virtual void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) = 0;
+	virtual void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) = 0;
 
 	virtual bool replace_with(shared_ptr<bbgraph_node> other) = 0;
 };
@@ -74,7 +83,7 @@ struct bbgraph_branch {
 	shared_ptr<expression> condition;
 };
 
-class bbgraph_rrnode : public bbgraph_node {
+class bbgraph_rrnode : public bbgraph_node,  public enable_shared_from_this<bbgraph_rrnode> {
 private:
 	vector<struct bbgraph_branch> children;
 	struct rreil_statements stmts;
@@ -104,12 +113,15 @@ public:
 
 	void add_expression(shared_ptr<expression> expression);
 
-	void unmark_all();
+	void unmark_all(set<shared_ptr<bbgraph_node>> &seen);
 
 	bool has_subgraph();
 //	void print_dot_label();
 	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
 	void print_dot();
+	void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) {
+		queue.push(shared_from_this());
+	}
 
 	bool replace_with(shared_ptr<bbgraph_node> other);
 };
@@ -119,12 +131,15 @@ public:
 	bbgraph_stubnode(bbgraph_id *id) : bbgraph_node(id) {
 	}
 
-	void unmark_all();
+	void unmark_all(set<shared_ptr<bbgraph_node>> &seen);
 
 	bool has_subgraph();
 //	void print_dot_label();
 	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
 	void print_dot();
+	void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) {
+
+	}
 
 	bool replace_with(shared_ptr<bbgraph_node> other);
 };
