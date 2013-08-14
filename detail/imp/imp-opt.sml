@@ -837,6 +837,12 @@ structure TypeRefinement = struct
    
    type index = int
 
+   (* existance of a record field: true denotes that the field
+      is always in the record, false means that the field may be
+      in the record; this flag is also used
+      to indicate this property for all non-existing fields *)
+   type existance = bool
+
    (* The universe of types form a lattice with VOID being the bottom element
       and OBJ being the top element and all other types are in-between. Types
       are only combined using a least-upper bound operation (lub). *)
@@ -846,6 +852,7 @@ structure TypeRefinement = struct
      | BOXstype of stype
      | FUNstype of (stype * stype * stype list) (* the middle value is VOID if no closure had any arguments and OBJstype otherwise *)
      | MONADstype of stype
+     | RECORDstype of (existance * SymbolTable.symid * stype) list * existance
      | BITstype of stype
      | CONSTstype of int
      | STRINGstype
@@ -869,6 +876,12 @@ structure TypeRefinement = struct
             ("", "") args
          ) ^ (if cl=OBJstype then ") => " else ") -> ") ^ showSType res
      | showSType (MONADstype r) = "M " ^ showSType r
+     | showSType (RECORDstype (fs,b)) = "{" ^ #1 (
+         foldl (fn ((b,f,t),(str,sep)) => (str ^ sep ^
+            (if b then "" else "?") ^
+            SymbolTable.getString(!SymbolTables.fieldTable, f) ^
+            ":" ^ showSType t,","))
+            ("", "") fs) ^ (if b then ",..." else ",?...") ^"}"
      | showSType (CONSTstype s) = Int.toString s
      | showSType (BITstype t) = "|" ^ showSType t ^ "|"
      | showSType (STRINGstype) = "string"
@@ -899,29 +912,31 @@ structure TypeRefinement = struct
            | inline ecrs (BOXstype t) = BOXstype (inline ecrs t)
            | inline ecrs (FUNstype (res,clos,args)) = FUNstype (inline ecrs res, inline ecrs clos, map (inline ecrs) args)
            | inline ecrs (MONADstype res) = MONADstype (inline ecrs res)
+           | inline ecrs (RECORDstype (fs,b)) = RECORDstype (map (fn (b,f,t) => (b,f,inline ecrs t)) fs,b)
            | inline ecrs (BITstype t) = BITstype (inline ecrs t)
            | inline ecrs t = t
       in
          inline IS.empty t
       end
 
-   fun showState (s as { symType = st, fieldType = ft, typeTable = tt, ...} : state) =
+   fun showState syms (s as { symType = st, fieldType = ft, typeTable = tt, ...} : state) =
       let
-         fun showSymBinding (k,idx) =
+         fun showSymBinding sym =
             let
+               val idx = SymMap.lookup (!st, sym)
                val tyStr = showSType (inlineSType s (DynamicArray.sub(tt,idx)))
-               val _ = TextIO.print (SymbolTable.getString(!SymbolTables.varTable, k) ^ " : " ^ tyStr ^ "\n")
+               val _ = TextIO.print (SymbolTable.getString(!SymbolTables.varTable, sym) ^ " : " ^ tyStr ^ "\n")
             in
                ()
             end
-         fun showFieldBinding (k,idx) =
+         fun showFieldBinding (sym,idx) =
             let
                val tyStr = showSType (inlineSType s (DynamicArray.sub(tt,idx)))
-               val _ = TextIO.print (SymbolTable.getString(!SymbolTables.fieldTable, k) ^ " : " ^ tyStr ^ "\n")
+               val _ = TextIO.print (SymbolTable.getString(!SymbolTables.fieldTable, sym) ^ " : " ^ tyStr ^ "\n")
             in
                ()
             end
-         (*val _ = app showSymBinding (SymMap.listItemsi (!st))*)
+         val _ = app showSymBinding syms
          val _ = app showFieldBinding (SymMap.listItemsi (!ft))
       in
          ()
@@ -956,6 +971,48 @@ structure TypeRefinement = struct
          DynamicArray.sub (tt,find (tt,idx))
      | findType (_,t) = t
    
+   fun symType ({ symType = st, typeTable = tt, ...} : state) sym =
+      (case SymMap.find (!st,sym) of
+         SOME idx => VARstype idx
+       | NONE =>
+         let
+            val idx = DynamicArray.bound tt + 1
+            (*val _ = if SymbolTable.toInt sym=4936 then debugOn := true else ()*)
+            val _ = msg ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")
+            (*val _ = if idx=57714 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
+
+            (*val _ = if idx=57656 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
+            val _ = if idx=57654 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
+            val _ = DynamicArray.update (tt,idx,VOIDstype)
+            val _ = st := SymMap.insert (!st, sym, idx)
+         in
+            VARstype idx
+         end
+      )
+
+   fun fieldType ({ fieldType = ft, typeTable = tt, ...} : state) sym =
+      (case SymMap.find (!ft,sym) of
+         SOME idx => VARstype idx
+       | NONE =>
+         let
+            val idx = DynamicArray.bound tt + 1
+            (*val _ = TextIO.print ("fieldType(" ^ SymbolTable.getString(!SymbolTables.fieldTable, sym) ^ ")= " ^ Int.toString idx ^ "\n")*)
+            val _ = DynamicArray.update (tt,idx,VOIDstype)
+            val _ = ft := SymMap.insert (!ft, sym, idx)
+         in
+            VARstype idx
+         end
+      )
+   
+   fun freshTVar ({ typeTable = tt, ...} : state) =
+      let
+         val idx = DynamicArray.bound tt + 1
+         val _ = DynamicArray.update (tt,idx,VOIDstype)
+         (*val _ = if idx=40784 then TextIO.print ("created fresh var " ^ Int.toString idx ^ "\n") else ()*)
+      in
+         VARstype idx
+      end
+
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
          (*val _ = if t1=VARstype 57711 orelse t2=VARstype 57711 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
@@ -1029,6 +1086,23 @@ structure TypeRefinement = struct
                   (TextIO.print ("lub on bad func args: " ^ showSType (FUNstype (r1, clos1, args1)) ^ "," ^ showSType (FUNstype (r2, clos2, args2)) ^ "\n"); raise TypeOptBug)
              )
            | lub (MONADstype r1, MONADstype r2) = MONADstype (lub (r1,r2))
+           | lub (RECORDstype (fs1,always1), RECORDstype (fs2,always2)) =
+            let
+               fun mergeFields ((b1,f1,t1)::fs1, (b2,f2,t2)::fs2) =
+                  (case SymbolTable.compare_symid (f1,f2) of
+                     EQUAL   => (b1 andalso b2, f1, lub (t1,t2)) :: mergeFields (fs1,fs2)
+                   | LESS    => (always2,f1,t1)::mergeFields (fs1, (b2,f2,t2)::fs2)
+                   | GREATER => (always1,f2,t2)::mergeFields ((b1,f1,t1)::fs1, fs2)
+                  )
+                 | mergeFields ([],fs2) = map (fn (e,f,t) => (always1,f,t)) fs2
+                 | mergeFields (fs1,[]) = map (fn (e,f,t) => (always2,f,t)) fs1
+            in
+               RECORDstype (mergeFields (fs1,fs2), always1 andalso always2)
+            end
+           | lub (RECORDstype (fs,b), OBJstype) =
+               (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
+           | lub (OBJstype, RECORDstype (fs,b)) =
+               (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
            | lub (BITstype s1, BITstype s2) = BITstype (lub (s1,s2))
            | lub (CONSTstype s1, CONSTstype s2) =
                if s1=s2 then CONSTstype s1 else OBJstype
@@ -1046,48 +1120,6 @@ structure TypeRefinement = struct
          lub (t1,t2)
       end
    
-   fun symType ({ symType = st, typeTable = tt, ...} : state) sym =
-      (case SymMap.find (!st,sym) of
-         SOME idx => VARstype idx
-       | NONE =>
-         let
-            val idx = DynamicArray.bound tt + 1
-            (*val _ = if SymbolTable.toInt sym=4936 then debugOn := true else ()*)
-            val _ = msg ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n")
-            (*val _ = if idx=57714 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
-
-            (*val _ = if idx=57656 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()
-            val _ = if idx=57654 then TextIO.print ("symType(" ^ (SymbolTable.getString(!SymbolTables.varTable, sym)) ^ ")= " ^ Int.toString idx ^ "\n") else ()*)
-            val _ = DynamicArray.update (tt,idx,VOIDstype)
-            val _ = st := SymMap.insert (!st, sym, idx)
-         in
-            VARstype idx
-         end
-      )
-
-   fun fieldType ({ fieldType = ft, typeTable = tt, ...} : state) sym =
-      (case SymMap.find (!ft,sym) of
-         SOME idx => VARstype idx
-       | NONE =>
-         let
-            val idx = DynamicArray.bound tt + 1
-            (*val _ = TextIO.print ("fieldType(" ^ SymbolTable.getString(!SymbolTables.fieldTable, sym) ^ ")= " ^ Int.toString idx ^ "\n")*)
-            val _ = DynamicArray.update (tt,idx,VOIDstype)
-            val _ = ft := SymMap.insert (!ft, sym, idx)
-         in
-            VARstype idx
-         end
-      )
-   
-   fun freshTVar ({ typeTable = tt, ...} : state) =
-      let
-         val idx = DynamicArray.bound tt + 1
-         val _ = DynamicArray.update (tt,idx,VOIDstype)
-         (*val _ = if idx=40784 then TextIO.print ("created fresh var " ^ Int.toString idx ^ "\n") else ()*)
-      in
-         VARstype idx
-      end
-
    fun vtypeToStype s VOIDvtype = VOIDstype
      | vtypeToStype s VECvtype = BITstype VOIDstype
      | vtypeToStype s INTvtype = INTstype
@@ -1096,6 +1128,7 @@ structure TypeRefinement = struct
      | vtypeToStype s (FUNvtype (res, cl, args)) =
          FUNstype (vtypeToStype s res, if cl then OBJstype else VOIDstype, map (vtypeToStype s) args)
      | vtypeToStype s (MONADvtype res) = MONADstype (vtypeToStype s res)
+     | vtypeToStype s (RECORDvtype fs) = RECORDstype (map (fn (f,t) => (true,f,vtypeToStype s t)) fs, false)
 
    fun visitBlock s (BASICblock (decls,stmts)) = app (visitStmt s) stmts
 
@@ -1113,7 +1146,7 @@ structure TypeRefinement = struct
      | visitExp s (PRIexp (f,t,es)) = visitCall s (vtypeToStype s t, es)
      | visitExp s (CALLexp (sym,es)) = visitCall s (symType s sym, es)
      | visitExp s (INVOKEexp (t,e,es)) = visitCall s (visitExp s e, es)
-     | visitExp s (RECORDexp fs) = (map (fn (f,e) => lub (s,fieldType s f,visitExp s e)) fs; BOXstype OBJstype)
+     | visitExp s (RECORDexp fs) = RECORDstype (map (fn (f,e) => (true, f, visitExp s e)) fs, false)
      | visitExp s (LITexp (ty,lit)) = vtypeToStype s ty
      | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
      | visitExp s (UNBOXexp (t,e)) =
@@ -1153,9 +1186,9 @@ structure TypeRefinement = struct
       let
          val _ = visitBlock s b
       in
-         MONADstype (visitExp s e) (* TODO: check properly for free vars *)
+         MONADstype (visitExp s e)
       end
-     | visitExp s (EXECexp (ty,e)) = (* TODO: check properly for free vars *)
+     | visitExp s (EXECexp (ty,e)) =
       let
          val resVar = freshTVar s
          val _ = lub (s,visitExp s e, MONADstype resVar)
@@ -1195,19 +1228,31 @@ structure TypeRefinement = struct
          selectName = name,
          selectField = f,
          selectType = _
-      }) = lub (s, symType s name, FUNstype (fieldType s f, VOIDstype, [OBJstype]))
+      }) =
+      let
+         val fTy = freshTVar s
+         val reTy = RECORDstype ([(true,f,fTy)],true)
+      in
+         lub (s, symType s name, FUNstype (fTy, VOIDstype, [reTy]))
+      end
      | visitDecl s (UPDATEdecl {
          updateName = name,
          updateArg = arg,
          updateFields = fs,
          updateType = _
-      }) = lub (s, symType s name, FUNstype (lub (s, OBJstype, symType s arg), OBJstype, map (fieldType s) fs @ [symType s arg]))
+      }) =
+      let
+         val fsTys = map (fn f => (true, f, freshTVar s)) fs
+         val reTy = lub (s, RECORDstype (fsTys,true), symType s arg)
+      in
+         lub (s, symType s name, FUNstype (reTy, OBJstype, map #3 fsTys @ [reTy]))
+      end
      | visitDecl s (CONdecl {
          conName = name,
          conTag = _,
          conArg = (_,arg),
          conType = _
-     }) = lub (s, symType s name, FUNstype (VOIDstype, VOIDstype, [lub (s,OBJstype, symType s arg)]))
+     }) = lub (s, symType s name, FUNstype (OBJstype, VOIDstype, [symType s arg]))
      | visitDecl s (CLOSUREdecl {
         closureName = name,
         closureArgs = clTys,
@@ -1308,6 +1353,7 @@ structure TypeRefinement = struct
            | genAdj (FUNstype (r,cl,args)) =
                FUNvtype (adjustType s (OBJvtype, r), true, map (fn arg => adjustType s (OBJvtype, arg)) args)
            | genAdj (MONADstype r) = MONADvtype (genAdj r)
+           | genAdj (RECORDstype (fs,b)) = if List.all #1 fs then RECORDvtype (map (fn (_,f,t) => (f, genAdj t)) fs) else OBJvtype
            | genAdj t = (TextIO.print ("adjustType of " ^ showSType new ^ ", that is, " ^ showSType (inlineSType s new) ^ "\n"); raise TypeOptBug)
       in
          case orig of
@@ -1524,7 +1570,7 @@ structure TypeRefinement = struct
          }
          fun visitDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); (*TextIO.print ("type of writeRes : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 1045)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
-         (*val _ = showState state*)
+         val _ = showState (SymMap.listKeys declMap) state
          val _ = debugOn := false
          fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
          val ds = map (patchDeclPrint state) ds

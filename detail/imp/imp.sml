@@ -12,6 +12,7 @@ structure Imp = struct
        | INTvtype
        | STRINGvtype
        | OBJvtype
+       | RECORDvtype of (SymbolTable.symid * vtype) list (* record with a fixed set of fields *)
        | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *)
        | MONADvtype of vtype (* result of monadic action *) 
 
@@ -205,11 +206,13 @@ structure Imp = struct
       fun fld sym = SpecAbstractTree.PP.field_use sym
       fun vars xs = seq [lp, seq (separate (map var xs, ",")), rp]
       fun args (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
-      fun vtype VOIDvtype = str "void"
+      fun fieldTy (f,t) = seq [fld f, str ":", vtype t]
+      and vtype VOIDvtype = str "void"
         | vtype OBJvtype = str "obj"
         | vtype VECvtype = str "bitvec"
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
+        | vtype (RECORDvtype fs) = seq (str "{" :: separate (map fieldTy fs,",") @ [str "}"])
         | vtype (FUNvtype (res, cl, atys)) =
             seq (args ("(",vtype,atys,")") @
                 [str (if cl then "=>" else "->"), vtype res])

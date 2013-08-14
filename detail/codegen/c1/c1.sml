@@ -228,7 +228,36 @@ structure C1 = struct
          FUNvtype (removeArgs retTy, isCl, [VOIDvtype])
      | removeArgs ty = ty
 
-   fun emitTypeDecl (decl, t) =
+   val recordTypeMap = ref (AtomMap.empty : int AtomMap.map)
+
+   fun getRecordType (s : state) fs =
+      let
+         fun showField (f,t) =
+            "  " ^ Layout.tostring (emitTypeDecl s (
+               [str (Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)))],
+               t
+            ))
+         val body = Atom.atom (concat (map showField fs))
+      in
+         case AtomMap.find (!recordTypeMap, body) of
+            SOME idx => "struct" ^ Int.toString idx ^ "_t"
+          | NONE =>
+            let
+               val idx = AtomMap.numItems (!recordTypeMap)+1
+               val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,body,idx)
+               val tyName = "struct" ^ Int.toString idx ^ "_t"
+               val f = [
+                     seq [str "typedef struct {"],
+                     str (Atom.toString body),
+                     str "}", space, str tyName, str ";"
+                  ]
+               val _ = (#preDeclEmit s) := !(#preDeclEmit s) @ f
+            in
+               tyName
+            end
+      end
+
+   and emitTypeDecl s (decl, t) =
       let
          fun addSpace [] = []
            | addSpace xs = space :: xs
@@ -238,6 +267,7 @@ structure C1 = struct
            | eT (decl, STRINGvtype) = seq (str "string_t" :: addSpace decl)
            | eT (decl, OBJvtype) = seq (str "obj_t" :: addSpace decl)
            | eT (decl, MONADvtype retTy) = eT (str "(*" :: decl @ [str ")()"], retTy)
+           | eT (decl, RECORDvtype fs) = seq (str (getRecordType s fs) :: addSpace decl)
            | eT (decl, FUNvtype (retTy,_,[VOIDvtype])) = (* do not emit arguments *)
                eT (str "(*" :: decl @ [str ")()"], retTy)
            | eT (decl, FUNvtype (retTy,isCl,argTys)) = 
@@ -252,38 +282,38 @@ structure C1 = struct
          eT (decl,t)
       end
 
-   fun emitSymType s (sym, t) = emitTypeDecl ([emitSym s sym], t)
+   fun emitSymType s (sym, t) = emitTypeDecl s ([emitSym s sym], t)
 
-   fun emitType s (SOME symName, t) = emitTypeDecl ([str symName], t)
-     | emitType s (NONE, t) = emitTypeDecl ([], t)
+   fun emitType s (SOME symName, t) = emitTypeDecl s ([str symName], t)
+     | emitType s (NONE, t) = emitTypeDecl s ([], t)
 
    fun emitFunType s (sym,args, FUNvtype (retTy,_,_)) =
-      emitTypeDecl ([emitSym s sym,
+      emitTypeDecl s ([emitSym s sym,
          par (seq (separate (
             str "state_t s" ::
-            map (fn (t,sym) => emitTypeDecl ([emitSym s sym],t)) args, ",")))],
+            map (fn (t,sym) => emitTypeDecl s ([emitSym s sym],t)) args, ",")))],
          retTy)
      | emitFunType s (sym, args, MONADvtype retTy) =
       emitFunType s (sym, args, FUNvtype (retTy,false,[]))
      | emitFunType s (sym, args, t) =
-      emitTypeDecl ([emitSym s sym], FUNvtype (VOIDvtype,false,[]))
+      emitTypeDecl s ([emitSym s sym], FUNvtype (VOIDvtype,false,[]))
 
    fun emitStringFunType s (retTy,name,args) =
-      emitTypeDecl ([str name,
+      emitTypeDecl s ([str name,
          par (seq (separate (
             str "state_t s" ::
-            map (fn (t,arg) => emitTypeDecl ([str arg],t)) args, ",")))],
+            map (fn (t,arg) => emitTypeDecl s ([str arg],t)) args, ",")))],
          retTy)
 
-   fun getTypeSuffix (VOIDvtype) = "_void"
-     | getTypeSuffix (VECvtype) = "_vec"
-     | getTypeSuffix (INTvtype) = "_int"
-     | getTypeSuffix (STRINGvtype) = "_string"
-     | getTypeSuffix (OBJvtype) = "_obj"
-     | getTypeSuffix (MONADvtype retTy) = getTypeSuffix retTy ^ "__mon"
-     | getTypeSuffix (FUNvtype (retTy,_,args)) = "_" ^
-      foldl (fn (ty,str) => str ^ getTypeSuffix ty) "" (retTy::args) ^ "__fun"
-
+   fun getTypeSuffix s (VOIDvtype) = "_void"
+     | getTypeSuffix s (VECvtype) = "_vec"
+     | getTypeSuffix s (INTvtype) = "_int"
+     | getTypeSuffix s (STRINGvtype) = "_string"
+     | getTypeSuffix s (OBJvtype) = "_obj"
+     | getTypeSuffix s (MONADvtype retTy) = getTypeSuffix s retTy ^ "__mon"
+     | getTypeSuffix s (FUNvtype (retTy,_,args)) = "_" ^
+      foldl (fn (ty,str) => str ^ getTypeSuffix s ty) "" (retTy::args) ^ "__fun"
+     | getTypeSuffix s (RECORDvtype fs) = "_" ^ getRecordType s fs
 
    fun emitPat s (VECpat []) = str "default:"
      | emitPat s (VECpat [""]) = str "default:"
@@ -315,7 +345,7 @@ structure C1 = struct
    fun emitClosureStruct (s : state) (retTy,argTys) =
       let
          val structName = "closure" ^
-                           foldl (fn (t,str) => str ^ getTypeSuffix t) "" (retTy::argTys) ^
+                           foldl (fn (t,str) => str ^ getTypeSuffix s t) "" (retTy::argTys) ^
                           "_t"
          val structNameAtom = Atom.atom structName
          fun genArgs ([],idx) = []
@@ -353,7 +383,7 @@ structure C1 = struct
              | (MONADvtype retTy) => retTy
              | _ => OBJvtype
          val closureName = "gen" ^
-                           foldl (fn (t,str) => str ^ getTypeSuffix t) "" (retTy::argTys) ^
+                           foldl (fn (t,str) => str ^ getTypeSuffix s t) "" (retTy::argTys) ^
                            "_closure"
          val closureNameAtom = Atom.atom closureName
       in
@@ -385,7 +415,7 @@ structure C1 = struct
              | _ =>  raise CodeGenBug
          (*val retTy = removeArgs retTy*)
          val funName = "invoke" ^
-                        foldl (fn (t,str) => str ^ getTypeSuffix t) "_closure" (retTy::argTys)
+                        foldl (fn (t,str) => str ^ getTypeSuffix s t) "_closure" (retTy::argTys)
          val funNameAtom = Atom.atom funName
       in
         if AtomSet.member(!invokeClosureSet, funNameAtom) then str funName else
@@ -498,7 +528,7 @@ structure C1 = struct
      | emitExp s (RECORDexp fs) =
          let
             fun genUpdate ((field,e),res) = seq [
-               str "add_field", str (getTypeSuffix (SymMap.lookup (#fieldTypes s, field))),
+               str "add_field", str (getTypeSuffix s (SymMap.lookup (#fieldTypes s, field))),
                fArgs [str (getFieldTag field), emitExp s e, res]
             ]
          in
@@ -514,7 +544,7 @@ structure C1 = struct
      | emitExp s (LITexp (t,STRlit string)) = seq [str "\"",str (mangleString string), str "\""]
      | emitExp s (LITexp (t,INTlit i)) = emitNum i
      | emitExp s (LITexp (t,CONlit c)) = str (getConTag s c)
-     | emitExp s (BOXexp (t,e)) = seq [str "alloc", str (getTypeSuffix t), fArgs [emitExp s e]]
+     | emitExp s (BOXexp (t,e)) = seq [str "alloc", str (getTypeSuffix s t), fArgs [emitExp s e]]
      | emitExp s (UNBOXexp (t,e)) =
          seq [str "*((", emitType s (NONE,t), str "*) ", emitExp s e, str ")"]
      | emitExp s (VEC2INTexp (_,PRIexp (SLICEprim, _, [vec,ofs,sz]))) =
@@ -566,8 +596,8 @@ structure C1 = struct
      | emitPrim s (BITVEC_TO_STRINGprim, [e],_) = seq [str "vec_to_string", fArgs [emitExp s e]]
      | emitPrim s (CONCAT_STRINGprim, [e1,e2],_) = seq [str "string_concat", fArgs [emitExp s e1, emitExp s e2]]
      | emitPrim s (SLICEprim, [vec,ofs,sz],_) = seq (str "gen_vec(" :: emitExp s sz :: str ", slice" :: list ("(", emitExp s, [vec,ofs,sz], "))"))
-     | emitPrim s (GET_CON_IDXprim, [e],[t]) = seq [str "((con", str (getTypeSuffix t), str "_t*) ", emitExp s e , str ")->tag"]
-     | emitPrim s (GET_CON_ARGprim, [e],[t]) = seq [str "((con", str (getTypeSuffix t), str "_t*) ", emitExp s e , str ")->payload"]
+     | emitPrim s (GET_CON_IDXprim, [e],[t]) = seq [str "((con", str (getTypeSuffix s t), str "_t*) ", emitExp s e , str ")->tag"]
+     | emitPrim s (GET_CON_ARGprim, [e],[t]) = seq [str "((con", str (getTypeSuffix s t), str "_t*) ", emitExp s e , str ")->payload"]
      | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
      | emitPrim s _ = raise CodeGenBug
      
@@ -584,7 +614,16 @@ structure C1 = struct
          val static = if SymSet.member(#exports s, name) then seq [] else str "static "
       in
          if #onlyDecls s then
-            seq [static, emitFunType s (name, (clArgs @ args), ty), str ";"]
+         let
+            val fTy = emitFunType s (name, (clArgs @ args), ty)
+            val preDecl = !(#preDeclEmit s)
+            val _ = (#preDeclEmit s) := []
+         in
+            align (
+               preDecl @ [
+               seq [static, fTy, str ";"]
+            ])
+         end
          else
          let
             val block = emitBlock s block
@@ -613,13 +652,22 @@ structure C1 = struct
          val s = registerSymbol (retVar,s)
          val castRetVar = seq [
             str "((field",
-            str (getTypeSuffix (sufType f) ^ "_t*) "),
+            str (getTypeSuffix s (sufType f) ^ "_t*) "),
             emitSym s retVar,
             str ")"]
          val fieldName = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
       in
          if #onlyDecls s then
-            seq [str "static", space, emitFunType s (name, [(OBJvtype, retVar)], ty), str ";"]
+         let
+            val fTy = emitFunType s (name, [(OBJvtype, retVar)], ty)
+            val preDecl = !(#preDeclEmit s)
+            val _ = (#preDeclEmit s) := []
+         in
+            align (
+               preDecl @ [
+               seq [str "static", space, fTy, str ";"]
+            ])
+         end
          else
          align [
             seq [str "static", space, emitFunType s (name, [(OBJvtype, retVar)], ty), space, str "{"],
@@ -654,11 +702,20 @@ structure C1 = struct
                FUNvtype _ => OBJvtype
              | MONADvtype _ => OBJvtype
              | ty => ty
-         fun fieldTSuf f = getTypeSuffix (fieldType f)
+         fun fieldTSuf f = getTypeSuffix s (fieldType f)
          val args = map (fn f => (fieldType f, f)) fs @ [(OBJvtype, recVar)]
       in
          if #onlyDecls s then
-            seq [str "static", space, emitFunType s (name, args, ty), str ";"]
+         let
+            val fTy = emitFunType s (name, args, ty)
+            val preDecl = !(#preDeclEmit s)
+            val _ = (#preDeclEmit s) := []
+         in
+            align (
+               preDecl @ [
+               seq [str "static", space, fTy, str ";"]
+            ])
+         end
          else
          align [
             seq [str "static", space, emitFunType s (name, args, ty), space, str "{"],
@@ -684,13 +741,23 @@ structure C1 = struct
       let
          val s = registerSymbol (argName,s)
       in
-         if #onlyDecls s then align [
-            seq [str "static inline", space, emitFunType s (name, [arg], ty), space, str "{"],
-            seq [str "  return alloc_con", str (getTypeSuffix argTy),
-                 fArgs [seq [str "(con", str (getTypeSuffix argTy), str "_t){",
-                             str (getConTag s tag), str ", ", emitSym s argName, str "}"]], str ";"],
-            str "}"
-         ] else seq []
+         if #onlyDecls s then
+         let
+            val fTy = emitFunType s (name, [arg], ty)
+            val suf = getTypeSuffix s argTy
+            val preDecl = !(#preDeclEmit s)
+            val _ = (#preDeclEmit s) := []
+         in
+            align (
+               preDecl @ [
+               seq [str "static inline", space, fTy, space, str "{"],
+               seq [str "  return alloc_con", str suf,
+                    fArgs [seq [str "(con", str suf, str "_t){",
+                                str (getConTag s tag), str ", ", emitSym s argName, str "}"]], str ";"],
+               str "}"
+         ])
+         end
+         else seq []
       end
      | emitDecl s (CLOSUREdecl {
         closureName = name,
@@ -706,7 +773,16 @@ structure C1 = struct
          val funArgs = (OBJvtype, closureVar) :: delArgs
       in
          if #onlyDecls s then
-            seq [str "static ", emitFunType s (name, funArgs, FUNvtype (retTy, false, map #1 funArgs)), str ";"]
+         let
+            val fTy = emitFunType s (name, funArgs, FUNvtype (retTy, false, map #1 funArgs))
+            val preDecl = !(#preDeclEmit s)
+            val _ = (#preDeclEmit s) := []
+         in
+            align (
+               preDecl @ [
+               seq [str "static ", fTy, str ";"]
+            ])
+         end
          else
          let
             val (structName, closureArgs) = emitClosureStruct s (retTy, clTys)
@@ -753,7 +829,7 @@ structure C1 = struct
 
          val { decls = ds, fdecls = fs, exports } = Spec.get #declarations spec
          (* compute a list of constructors that are to be public; since
-            we currently have data types in the export list, we just
+            we currently have no data types in the export list, we just
             make any constructor without argument public *)
          fun mkConName con = "CON_" ^ mangleName (Atom.toString
             (SymbolTable.getAtom (!SymbolTables.conTable, con)))

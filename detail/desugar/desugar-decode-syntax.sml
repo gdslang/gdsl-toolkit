@@ -109,11 +109,19 @@ structure DesugarDecode = struct
    end
 
    fun desugar ds = let
+      fun isCatchAll [] = true
+        | isCatchAll ([Pat.VEC str] :: _) =
+            List.all (fn c => c= #".") (String.explode str)
+        | isCatchAll ([Pat.BND (_,str)] :: _) =
+            List.all (fn c => c= #".") (String.explode str)
+        | isCatchAll _ = false
+
       fun lp (hasDefault, ds, acc) =
          case ds of
             [] => if hasDefault then rev acc else
                      rev ((toVec [], raisingDecodeSequenceMatchFailure ()) :: acc)
-          | (toks, e)::ds => lp (hasDefault orelse null toks, ds, (toVec toks, e)::acc)
+          | (toks, e)::ds => lp (hasDefault orelse isCatchAll toks,
+                                 ds, (toVec toks, e)::acc)
    in
       desugarCases (toVec (lp (false, ds, [])))
    end
