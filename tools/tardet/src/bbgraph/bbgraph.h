@@ -22,12 +22,13 @@ using namespace std;
 
 class bbgraph {
 private:
-//	shared_ptr<bbgraph_node> root;
+	shared_ptr<bbgraph_node> root;
 	map<int64_t, vector<shared_ptr<bbgraph_node>>> addr_map;
 
 public:
 	bbgraph(/*shared_ptr<bbgraph_node> root*/) {
 //		this->root = root;
+		this->root = NULL;
 		addr_map = map<int64_t, vector<shared_ptr<bbgraph_node>>>();
 	}
 	void unmark_all() {
@@ -38,10 +39,11 @@ public:
 
 	void print_dot();
 
-	void rreil_add(struct rreil_statements *statements, int64_t offset);
+	shared_ptr<bbgraph_rrnode> rreil_add(struct rreil_statements *statements, int64_t offset);
 
 	static vector<shared_ptr<bbgraph_rrnode>> from_rreil_statements(
 			struct rreil_statements *stmts, size_t address);
+	void connect(shared_ptr<bbgraph_rrnode> node, int64_t offset);
 };
 
 #endif /* bbgraph_H_ */

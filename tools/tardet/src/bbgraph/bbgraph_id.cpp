@@ -16,7 +16,7 @@ string bbgraph_id::to_string() {
 	char *str;
 	size_t str_length;
 	FILE *stream = open_memstream(&str, &str_length);
-	fprintf(stream, "%p:%zu", (void*)address_machine, inner);
+	fprintf(stream, "%lx:%zu", address_machine, inner);
 	fclose(stream);
 	string result = string(str);
 	free(str);

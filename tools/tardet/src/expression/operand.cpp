@@ -20,20 +20,20 @@ extern "C" {
 
 using namespace std;
 
-variable::variable(struct rreil_id *id, uint64_t size, uint64_t offset) :
+variable::variable(struct rreil_id id, uint64_t size, uint64_t offset) :
 		expression(size) {
 	this->id = id;
 	this->offset = offset;
 }
 
 void variable::print_inner() {
-	rreil_id_print(id);
+	rreil_id_print(&id);
 	if(offset)
 		printf("/%lu", offset);
 }
 
 char variable::contains(struct rreil_variable *variable) {
-	if(!rreil_id_equals(this->id, variable->id))
+	if(!rreil_id_equals(&this->id, variable->id))
 		return 0;
 
 //	interval me = interval(offset, offset + size_get());
@@ -58,7 +58,7 @@ char variable::contains(struct rreil_variable *variable) {
 
 bool variable::substitute(struct rreil_variable *old,
 		shared_ptr<expression> &new_) {
-	if(!rreil_id_equals(id, old->id))
+	if(!rreil_id_equals(&id, old->id))
 		return false;
 
 	/*

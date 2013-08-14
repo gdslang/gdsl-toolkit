@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <memory>
 #include <vector>
+#include <algorithm>
 #include <map>
 #include <functional>
 #include <tuple>
@@ -19,19 +20,22 @@
 using namespace std;
 
 shared_ptr<bbgraph_node> bbgraph::get_root() {
-	if(addr_map.find(0) == addr_map.end())
-		return NULL;
-	vector<shared_ptr<bbgraph_node>> base = addr_map[0];
-	if(!base.size())
-		return NULL;
-	return base.front();
+//	if(addr_map.find(0) == addr_map.end())
+//		return NULL;
+//	vector<shared_ptr<bbgraph_node>> base = addr_map[0];
+//	if(!base.size())
+//		return NULL;
+//	return base.front();
+	return this->root;
 }
 
 void bbgraph::print_dot() {
+	auto root = get_root();
+	root->unmark_all();
 	printf("digraph G {\n");
 	printf("\tnode [shape=box];\n");
 	printf("\tcompound=true;\n");
-	get_root()->print_dot();
+	root->print_dot();
 	printf("}\n");
 }
 
@@ -114,6 +118,52 @@ vector<shared_ptr<bbgraph_rrnode>> bbgraph::from_rreil_statements(
 	return nodes;
 }
 
-void bbgraph::rreil_add(struct rreil_statements *statements, int64_t offset) {
-	vector<shared_ptr<bbgraph_rrnode>> nodes = bbgraph::from_rreil_statements(statements, offset);
+shared_ptr<bbgraph_rrnode> bbgraph::rreil_add(struct rreil_statements *statements, int64_t offset) {
+	vector<shared_ptr<bbgraph_rrnode>> rrnodes = bbgraph::from_rreil_statements(statements, offset);
+	vector<shared_ptr<bbgraph_node>> nodes = vector<shared_ptr<bbgraph_node>>(rrnodes.begin(), rrnodes.end());
+
+	/*
+	 * Todo: Handle nodes.size() === 0
+	 */
+	if(root == NULL && nodes.size()) {
+		root = nodes.front();
+		addr_map[offset] = nodes;
+		return rrnodes.back();
+	}
+
+	if(addr_map.find(offset) == addr_map.end())
+		;//Todo: Handle error
+
+	auto current = addr_map[offset];
+	if(current.size() == 0)
+		;//Todo: Handle error
+
+	bool replacable = current[0]->replace_with(nodes[0]);
+
+	if(current.size() > 1 || !replacable)
+		;//Todo: => Already processed?
+
+	addr_map[offset] = nodes;
+
+//	if(addr_map.find())
+
+	return rrnodes.back();
+}
+
+void bbgraph::connect(shared_ptr<bbgraph_rrnode> node, int64_t offset) {
+	shared_ptr<bbgraph_node> dest;
+
+	if(addr_map.find(offset) == addr_map.end()) {
+		dest = make_shared<bbgraph_stubnode>(new bbgraph_id(offset, 0));
+		auto vec = vector<shared_ptr<bbgraph_node>>();
+		vec.push_back(dest);
+		addr_map[offset] = vec;
+	} else if(!addr_map[offset].size()) {
+		dest = make_shared<bbgraph_stubnode>(new bbgraph_id(offset, 0));
+		addr_map[offset].push_back(dest);
+	} else
+		dest = addr_map[offset].front();
+
+	node->add_child(dest, expression::true_);
+	dest->add_parent(node, expression::true_);
 }

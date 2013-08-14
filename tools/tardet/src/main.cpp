@@ -207,17 +207,15 @@ int main(int argc, char **argv) {
 
 		rreil_statements_print(statements);
 
-		g->rreil_add(statements, offset);
-
 //		map[offset] = nodes;
 
 		/*
 		 * Todo: Handle empty
 		 */
-		shared_ptr<bbgraph_rrnode> root = nodes.front();
-		shared_ptr<bbgraph_rrnode> tail = nodes.back();
+//		shared_ptr<bbgraph_rrnode> root = NULL;//nodes.front();
+		shared_ptr<bbgraph_rrnode> tail = g->rreil_add(statements, offset);//nodes.back();
 
-		g->print_dot();
+//		g->print_dot();
 //	delete g;
 
 //
@@ -274,6 +272,8 @@ int main(int argc, char **argv) {
 		if(evalable) {
 			printf("Evaluated: %lu\n", evaluated);
 
+			g->connect(tail, evaluated);
+
 //			struct context *context = context_init(NULL, NULL, &jump);
 //			ip_set(context, NULL);
 //
@@ -286,13 +286,17 @@ int main(int argc, char **argv) {
 			printf("Unable to evaluate :-(.\n");
 
 			rreil_statements_free (statements);
+//		free(statements->statements);
+//		free(statements);
 	}
+
+	g->print_dot();
 
 	free(data);
 
 	gdsl_destroy(state);
 
-//	delete g;
+	delete g;
 
 	return 0;
 }

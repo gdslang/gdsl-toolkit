@@ -19,11 +19,11 @@ using namespace std;
 
 class variable: public expression {
 private:
-	struct rreil_id *id;
+	struct rreil_id id;
 	uint64_t offset;
 
 public:
-	variable(struct rreil_id *id, uint64_t offset, uint64_t size);
+	variable(struct rreil_id id, uint64_t offset, uint64_t size);
 	~variable() {
 	}
 	void print_inner();

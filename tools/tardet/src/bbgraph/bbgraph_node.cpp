@@ -8,46 +8,24 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory>
+#include <queue>
 #include "bbgraph_node.h"
 #include "../expression/expression.h"
 
 bool bbgraph_rrnode::has_subgraph() {
 	for(size_t i = 0; i < children.size(); ++i)
-		if(children[i].dst.lock()->id->get_address_machine() == id->get_address_machine())
+		if(children[i].dst.lock()->get_id()->get_address_machine() == id->get_address_machine())
 			return true;
 	return false;
 }
 
-//void bbgraph_rrnode::print_dot_label() {
-//	printf("\t\"%s\"", id->to_string().c_str());
-//	if(id->get_inner())
-//		printf(" [label=%zu];\n", id->get_inner());
-//	else
-//		printf(";\n");
-//}
-
-void bbgraph_rrnode::print_dot_subgraph() {
-	if(is_marked())
-		return;
-	mark();
-	printf("\t\t\"%s\" [label=%zu];\n", id->to_string().c_str(), id->get_inner());
-	for(size_t i = 0; i < children.size(); ++i) {
-		if(children[i].dst.lock()->id->get_address_machine() == id->get_address_machine()) {
-			printf("\t\t\"%s\" -> \"%s\" [label=\"", id->to_string().c_str(), children[i].dst.lock()->id->to_string().c_str());
-			children[i].condition->print();
-			printf("\"];\n");
-			children[i].dst.lock()->print_dot_subgraph();
-		}
-	}
-}
-
-void bbgraph_rrnode::add_child(shared_ptr<bbgraph_rrnode> child, shared_ptr<expression> condition) {
+void bbgraph_rrnode::add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition) {
 	struct bbgraph_branch branch = { child, condition };
 
 	children.push_back(branch);
 }
 
-void bbgraph_rrnode::add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expression> condition) {
+void bbgraph_node::add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expression> condition) {
 	struct bbgraph_pref pref = { parent, condition };
 
 	parents.push_back(pref);
@@ -62,39 +40,106 @@ void bbgraph_rrnode::add_expression(shared_ptr<expression> expression) {
 void bbgraph_rrnode::unmark_all() {
 	if(marked) {
 		marked = false;
-		for (size_t i = 0; i < children.size(); ++i)
+		for(size_t i = 0; i < children.size(); ++i)
 			children[i].dst.lock()->unmark_all();
+	}
+}
+
+//void bbgraph_rrnode::print_dot_label() {
+//	printf("\t\"%s\"", id->to_string().c_str());
+//	if(id->get_inner())
+//		printf(" [label=%zu];\n", id->get_inner());
+//	else
+//		printf(";\n");
+//}
+
+void bbgraph_rrnode::print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) {
+	if(is_marked())
+		return;
+	mark();
+	printf("\t\t\"%s\" [label=%zu];\n", id->to_string().c_str(), id->get_inner());
+	for(size_t i = 0; i < children.size(); ++i) {
+		auto child = children[i].dst.lock();
+		if(child->get_id()->get_address_machine() == id->get_address_machine()) {
+			printf("\t\t\"%s\" -> \"%s\" [label=\"", id->to_string().c_str(),
+					child->get_id()->to_string().c_str());
+			children[i].condition->print();
+			printf("\"];\n");
+			child->print_dot_subgraph(outsiders);
+		} else
+			outsiders.push(child);
 	}
 }
 
 void bbgraph_rrnode::print_dot() {
 //	printf("\t\"%s\" [label=\"%p\"];\n", id->to_string().c_str(), (void*)id->get_address_machine());
+	auto subs = queue<shared_ptr<bbgraph_node>>();
+	auto nodes = queue<shared_ptr<bbgraph_node>>();
+
+	nodes.push(shared_from_this());
+
+	while(!nodes.empty())
+
+
 	if(is_marked())
 		return;
+	auto outsiders = queue<shared_ptr<bbgraph_node>>();
 	if(has_subgraph()) {
-		printf("\tsubgraph cluster%p {\n", (void*)id->get_address_machine());
-		printf("\t\tlabel=\"%p\";\n", (void*)id->get_address_machine());
-		print_dot_subgraph();
+		printf("\tsubgraph cluster%lx {\n", id->get_address_machine());
+		printf("\t\tlabel=\"%lx\";\n", id->get_address_machine());
+		print_dot_subgraph(outsiders);
 		printf("\t}\n");
 	} else {
 		printf("\t\"%s\";\n", id->to_string().c_str());
 	}
 	mark();
 	for(size_t i = 0; i < children.size(); ++i) {
-		if(children[i].dst.lock()->is_marked())
+		auto child = children[i].dst.lock();
+		if(child->is_marked())
 			continue;
+		outsiders.push(child);
 //		if(children[i].dst->id->get_address_machine() != id->get_address_machine())
 //			printf("\t\"%p\" -> %zu;\n", (void*)id->get_address_machine(), children[i]->id->get_inner());
 //		else
 //			printf("\t\"%p\" -> \"%p\";\n", (void*)id->get_address_machine(), (void*)children[i]->id->get_address_machine());
-		printf("\t\"%s\" -> \"%s\";\n", id->to_string().c_str(), children[i].dst.lock()->id->to_string().c_str());
-		children[i].dst.lock()->print_dot();
+
 	}
+	while(!outsiders.empty()) {
+		auto child = outsiders.front();
+		outsiders.pop();
+
+		printf("\t\"%s\" -> \"%s\";\n", id->to_string().c_str(), child->get_id()->to_string().c_str());
+		child->print_dot();
+	}
+}
+
+bool bbgraph_rrnode::replace_with(shared_ptr<bbgraph_node> other) {
+	return false;
 }
 
 void bbgraph_stubnode::unmark_all() {
 	marked = false;
 }
 
+bool bbgraph_stubnode::has_subgraph() {
+}
+
+void bbgraph_stubnode::print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) {
+}
+
 void bbgraph_stubnode::print_dot() {
+	printf("\t\"%s\" [color=\"red\"];\n", id->to_string().c_str(), id->get_inner());
+}
+
+bool bbgraph_stubnode::replace_with(shared_ptr<bbgraph_node> other) {
+	auto parents = get_parents();
+
+	for(size_t i = 0; i < parents.size(); ++i) {
+		auto parent_children = parents[i].dst.lock()->get_children();
+		for(size_t i = 0; i < parent_children.size(); ++i)
+			if(parent_children[i].dst.lock().get() == (void*)this)
+				parent_children[i].dst = other;
+	}
+
+	return true;
 }
