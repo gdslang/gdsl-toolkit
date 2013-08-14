@@ -274,6 +274,8 @@ int main(int argc, char **argv) {
 
 			g->connect(tail, evaluated);
 
+			offset_queue.push(evaluated);
+
 //			struct context *context = context_init(NULL, NULL, &jump);
 //			ip_set(context, NULL);
 //

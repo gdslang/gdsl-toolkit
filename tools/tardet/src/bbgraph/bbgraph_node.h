@@ -67,7 +67,7 @@ public:
 
 	void add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expression> condition);
 
-	virtual void unmark_all(set<shared_ptr<bbgraph_node>> &seen) = 0;
+	virtual void unmark_all(set<size_t> &seen) = 0;
 
 	virtual void print_dot() = 0;
 	virtual bool has_subgraph() = 0;
@@ -113,7 +113,7 @@ public:
 
 	void add_expression(shared_ptr<expression> expression);
 
-	void unmark_all(set<shared_ptr<bbgraph_node>> &seen);
+	void unmark_all(set<size_t> &seen);
 
 	bool has_subgraph();
 //	void print_dot_label();
@@ -131,7 +131,7 @@ public:
 	bbgraph_stubnode(bbgraph_id *id) : bbgraph_node(id) {
 	}
 
-	void unmark_all(set<shared_ptr<bbgraph_node>> &seen);
+	void unmark_all(set<size_t> &seen);
 
 	bool has_subgraph();
 //	void print_dot_label();

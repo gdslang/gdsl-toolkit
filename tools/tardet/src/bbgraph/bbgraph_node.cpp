@@ -38,13 +38,13 @@ void bbgraph_rrnode::add_expression(shared_ptr<expression> expression) {
 	uexp->add(expression);
 }
 
-void bbgraph_rrnode::unmark_all(set<shared_ptr<bbgraph_node>> &seen) {
+void bbgraph_rrnode::unmark_all(set<size_t> &seen) {
 	marked = false;
 	for(size_t i = 0; i < children.size(); ++i) {
 		auto child = children[i].dst.lock();
 
-		if(seen.find(child) != seen.end()) {
-			seen.insert(child);
+		if(seen.find(child->get_count()) == seen.end()) {
+			seen.insert(child->get_count());
 			child->unmark_all(seen);
 		}
 	}
@@ -161,7 +161,7 @@ bool bbgraph_rrnode::replace_with(shared_ptr<bbgraph_node> other) {
 	return false;
 }
 
-void bbgraph_stubnode::unmark_all(set<shared_ptr<bbgraph_node>> &seen) {
+void bbgraph_stubnode::unmark_all(set<size_t> &seen) {
 	marked = false;
 }
 

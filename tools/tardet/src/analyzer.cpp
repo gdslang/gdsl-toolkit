@@ -28,6 +28,9 @@ static shared_ptr<expression> initial(rreil_statement *last) {
 			exp = expression::from_rreil_linear(last->branch.target->address, last->branch.target->size);
 			break;
 		}
+		case RREIL_STATEMENT_TYPE_CBRANCH: {
+			//
+		}
 //		case RREIL_STATEMENT_TYPE_CBRANCH: {
 //			shared_ptr<class expression> exp = expression::from_rreil_linear(last->cbranch.target->address);
 //			root = new itree(exp, 0, last->cbranch.target->size - 1);

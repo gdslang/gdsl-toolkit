@@ -32,7 +32,7 @@ public:
 		addr_map = map<int64_t, vector<shared_ptr<bbgraph_node>>>();
 	}
 	void unmark_all() {
-		auto seen = set<shared_ptr<bbgraph_node>>();
+		auto seen = set<size_t>();
 		get_root()->unmark_all(seen);
 //		get_root()->unmark_all();
 	}
