@@ -48,7 +48,7 @@ struct rreil_comparator *rreil_comparator_copy(struct rreil_comparator *comparat
 	struct rreil_comparator *comparator_copy = (struct rreil_comparator*)malloc(sizeof(struct rreil_comparator));
 
 	comparator_copy->arity2 = rreil_arity2_copy(comparator->arity2);
-	comparator_copy->type = rreil_arity2_copy(comparator->arity2);
+	comparator_copy->type = comparator->type;
 
 	return comparator_copy;
 }
@@ -95,140 +95,173 @@ struct rreil_linear *rreil_linear_copy(struct rreil_linear *linear) {
 	return linear_copy;
 }
 
-void rreil_size_change_clear(struct rreil_size_change *size_change) {
-	rreil_linear_free(size_change->opnd);
+struct rreil_size_change rreil_size_change_copy(struct rreil_size_change size_change) {
+	struct rreil_size_change size_change_copy;
+
+	size_change_copy.fromsize = size_change.fromsize;
+	size_change_copy.size = size_change.size;
+	size_change_copy.opnd = rreil_linear_copy(size_change.opnd);
+
+	return size_change_copy;
 }
 
-void rreil_op_free(struct rreil_op *op) {
+struct rreil_op *rreil_op_copy(struct rreil_op *op) {
+	struct rreil_op *op_copy = (struct rreil_op*)malloc(sizeof(struct rreil_op));
+
+	op_copy->type = op->type;
+
 	switch (op->type) {
 		case RREIL_OP_TYPE_LIN: {
-			rreil_arity1_clear(&op->lin);
+			op_copy->lin = rreil_arity1_copy(op->lin);
 			break;
 		}
 		case RREIL_OP_TYPE_MUL: {
-			rreil_arity2_clear(&op->mul);
+			op_copy->mul = rreil_arity2_copy(op->mul);
 			break;
 		}
 		case RREIL_OP_TYPE_DIV: {
-			rreil_arity2_clear(&op->div);
+			op_copy->div = rreil_arity2_copy(op->div);
 			break;
 		}
 		case RREIL_OP_TYPE_DIVS: {
-			rreil_arity2_clear(&op->divs);
+			op_copy->divs = rreil_arity2_copy(op->divs);
 			break;
 		}
 		case RREIL_OP_TYPE_MOD: {
-			rreil_arity2_clear(&op->mod);
+			op_copy->mod = rreil_arity2_copy(op->mod);
 			break;
 		}
 		case RREIL_OP_TYPE_SHL: {
-			rreil_arity2_clear(&op->shl);
+			op_copy->shl = rreil_arity2_copy(op->shl);
 			break;
 		}
 		case RREIL_OP_TYPE_SHR: {
-			rreil_arity2_clear(&op->shr);
+			op_copy->shr = rreil_arity2_copy(op->shr);
 			break;
 		}
 		case RREIL_OP_TYPE_SHRS: {
-			rreil_arity2_clear(&op->shrs);
+			op_copy->shrs = rreil_arity2_copy(op->shrs);
 			break;
 		}
 		case RREIL_OP_TYPE_AND: {
-			rreil_arity2_clear(&op->and_);
+			op_copy->and_ = rreil_arity2_copy(op->and_);
 			break;
 		}
 		case RREIL_OP_TYPE_OR: {
-			rreil_arity2_clear(&op->or_);
+			op_copy->or_ = rreil_arity2_copy(op->or_);
 			break;
 		}
 		case RREIL_OP_TYPE_XOR: {
-			rreil_arity2_clear(&op->xor_);
+			op_copy->xor_ = rreil_arity2_copy(op->xor_);
 			break;
 		}
 		case RREIL_OP_TYPE_SX: {
-			rreil_size_change_clear(&op->sx);
+			op_copy->sx = rreil_size_change_copy(op->sx);
 			break;
 		}
 		case RREIL_OP_TYPE_ZX: {
-			rreil_size_change_clear(&op->zx);
+			op_copy->zx = rreil_size_change_copy(op->zx);
 			break;
 		}
 		case RREIL_OP_TYPE_CMP: {
-			rreil_comparator_free(op->cmp);
+			op_copy->cmp = rreil_comparator_copy(op->cmp);
 			break;
 		}
 		case RREIL_OP_TYPE_ARB: {
+			op_copy->arb.size = op->arb.size;
 			break;
 		}
 	}
-	free(op);
+
+	return op_copy;
 }
 
-void rreil_sexpr_free(struct rreil_sexpr *sexpr) {
+struct rreil_sexpr *rreil_sexpr_copy(struct rreil_sexpr *sexpr) {
+	struct rreil_sexpr *sexpr_copy = (struct rreil_sexpr*)malloc(sizeof(struct rreil_sexpr));
+
+	sexpr_copy->type = sexpr->type;
+
 	switch(sexpr->type) {
 		case RREIL_SEXPR_TYPE_LIN: {
-			rreil_linear_free(sexpr->lin);
+			sexpr_copy->lin = rreil_linear_copy(sexpr->lin);
 			break;
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
-			rreil_comparator_free(sexpr->cmp);
+			sexpr_copy->cmp = rreil_comparator_copy(sexpr->cmp);
 			break;
 		}
 	}
-	free(sexpr);
+
+	return sexpr_copy;
 }
 
-void rreil_variable_free(struct rreil_variable *variable) {
-	rreil_id_free(variable->id);
-	free(variable);
+struct rreil_variable *rreil_variable_copy(struct rreil_variable *variable) {
+	struct rreil_variable *variable_copy = (struct rreil_variable*)malloc(sizeof(struct rreil_variable));
+
+	variable_copy->id = rreil_id_copy(variable->id);
+	variable_copy->offset = variable->offset;
+
+	return variable_copy;
 }
 
-void rreil_statement_free(struct rreil_statement *statement) {
+struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) {
+	struct rreil_statement *statement_copy = (struct rreil_statement*)malloc(sizeof(struct rreil_statement));
+
+	statement_copy->type = statement->type;
+
 	switch (statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
-			rreil_variable_free(statement->assign.lhs);
-			rreil_op_free(statement->assign.rhs);
+			statement_copy->assign.lhs = rreil_variable_copy(statement->assign.lhs);
+			statement_copy->assign.rhs = rreil_op_copy(statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
-			rreil_variable_free(statement->load.lhs);
-			rreil_address_free(statement->load.address);
+			statement_copy->load.lhs = rreil_variable_copy(statement->load.lhs);
+			statement_copy->load.address = rreil_address_copy(statement->load.address);
+			statement_copy->load.size = statement->load.size;
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
-			rreil_address_free(statement->store.address);
-			rreil_op_free(statement->store.rhs);
+			statement_copy->store.address = rreil_address_copy(statement->store.address);
+			statement_copy->store.rhs = rreil_op_copy(statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
-			rreil_sexpr_free(statement->ite.cond);
-			rreil_statements_free(statement->ite.then_branch);
-			rreil_statements_free(statement->ite.else_branch);
+			statement_copy->ite.cond = rreil_sexpr_copy(statement->ite.cond);
+			statement_copy->ite.then_branch = rreil_statements_copy(statement->ite.then_branch);
+			statement_copy->ite.else_branch = rreil_statements_copy(statement->ite.else_branch);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_WHILE: {
-			rreil_sexpr_free(statement->while_.cond);
-			rreil_statements_free(statement->while_.body);
+			statement_copy->while_.cond = rreil_sexpr_copy(statement->while_.cond);
+			statement_copy->while_.body = rreil_statements_copy(statement->while_.body);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_CBRANCH: {
-			rreil_sexpr_free(statement->cbranch.cond);
-			rreil_address_free(statement->cbranch.target_true);
-			rreil_address_free(statement->cbranch.target_false);
+			statement_copy->cbranch.cond = rreil_sexpr_copy(statement->cbranch.cond);
+			statement_copy->cbranch.target_true = rreil_address_copy(statement->cbranch.target_true);
+			statement_copy->cbranch.target_false = rreil_address_copy(statement->cbranch.target_false);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			rreil_branch_hint_free(statement->branch.hint);
-			rreil_address_free(statement->branch.target);
+			statement_copy->branch.hint = rreil_branch_hint_copy(statement->branch.hint);
+			statement_copy->branch.target = rreil_address_copy(statement->branch.target);
 			break;
 		}
 	}
-	free(statement);
+
+	return statement_copy;
 }
 
-void rreil_statements_free(struct rreil_statements *statements) {
+struct rreil_statements *rreil_statements_copy(struct rreil_statements *statements) {
+	struct rreil_statements *statements_copy = (struct rreil_statements*)malloc(sizeof(struct rreil_statements));
+
+	statements_copy->statements_length = statements->statements_length;
+	statements_copy->statements_size = statements->statements_size;
+	statements_copy->statements = (struct rreil_statement**)malloc(sizeof(struct rreil_statement*)*statements_copy->statements_size);
+
 	for (size_t i = 0; i < statements->statements_length; ++i)
-		rreil_statement_free(statements->statements[i]);
-	free(statements->statements);
-	free(statements);
+		statements_copy->statements[i] = rreil_statement_copy(statements->statements[i]);
+
+	return statements_copy;
 }

@@ -317,10 +317,8 @@ int main(int argc, char **argv) {
 				printf("Unable to evaluate :-(.\n");
 		}
 
-		free(statements->statements);
-		free(statements);
 
-//		rreil_statements_free(statements);
+		rreil_statements_free(statements);
 //		free(statements->statements);
 //		free(statements);
 

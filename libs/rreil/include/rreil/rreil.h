@@ -21,5 +21,6 @@
 
 #include <rreil/rreil_free.h>
 #include <rreil/rreil_print.h>
+#include <rreil/rreil_copy.h>
 
 #endif /* RREIL_H_ */

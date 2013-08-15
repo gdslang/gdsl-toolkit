@@ -113,7 +113,7 @@ vector<shared_ptr<bbgraph_rrnode>> bbgraph::from_rreil_statements(struct rreil_s
 						}
 						default: {
 							struct rreil_statements *acc = current->get_stmts();
-							acc->statements[acc->statements_length++] = stmt;
+							acc->statements[acc->statements_length++] = rreil_statement_copy(stmt);
 							break;
 						}
 					}

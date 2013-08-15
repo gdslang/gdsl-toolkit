@@ -19,6 +19,7 @@ extern "C" {
 bbgraph_rrnode::~bbgraph_rrnode() {
 	for (size_t i = 0; i < stmts.statements_length; ++i)
 		rreil_statement_free(stmts.statements[i]);
+	free(stmts.statements);
 }
 
 bool bbgraph_rrnode::has_subgraph() {
