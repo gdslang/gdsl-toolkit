@@ -180,9 +180,14 @@ int main(int argc, char **argv) {
 
 	bbgraph *g = new bbgraph();
 
+	char count = 0;
+
 	while(!offset_queue.empty()) {
 		int64_t offset = offset_queue.front();
 		offset_queue.pop();
+
+//		if(gdsl_seek(state, offset))
+//			continue;
 
 		gdsl_seek(state, offset);
 
@@ -191,8 +196,9 @@ int main(int argc, char **argv) {
 			printf("Translate block failed\n");
 			fflush(stderr);
 			fflush(stdout);
-			gdsl_destroy(state);
-			exit(1);
+			break;
+//			gdsl_destroy(state);
+//			exit(1);
 		}
 
 //		char *x = x86_rreil_pretty(state, rreil);
@@ -264,41 +270,61 @@ int main(int argc, char **argv) {
 
 		printf("----------------------------\n");
 
-		auto handle_exp = [&](shared_ptr<expression> exp) {
+//		auto handle_exp = [&](shared_ptr<expression> exp) {
+//
+//			exp->print();
+//			printf("\n");
+//
+//			uint64_t evaluated;
+//			char evalable = exp->evaluate(&evaluated);
+//			if(evalable) {
+//				printf("Evaluated: %lu\n", evaluated);
+//
+//				g->connect(tail, evaluated);
+//
+//				offset_queue.push(evaluated);
+//
+////			struct context *context = context_init(NULL, NULL, &jump);
+////			ip_set(context, NULL);
+////
+////			printf("Simulator: ");
+////			simulator_statements_simulate(context, statements);
+////
+////			context_free(context);
+//
+//			} else
+//			printf("Unable to evaluate :-(.\n");
+//		};
 
-			exp->print();
-			printf("\n");
-
+		for(size_t i = 0; i < results.size(); ++i) {
 			uint64_t evaluated;
-			char evalable = exp->evaluate(&evaluated);
+			results[i].exp = substitute_ip(results[i].exp, gdsl_get_ip_offset(state));
+			char evalable = results[i].exp->evaluate(&evaluated);
 			if(evalable) {
 				printf("Evaluated: %lu\n", evaluated);
 
-				g->connect(tail, evaluated);
+				g->connect(tail, evaluated, results[i].condition);
 
 				offset_queue.push(evaluated);
 
-//			struct context *context = context_init(NULL, NULL, &jump);
-//			ip_set(context, NULL);
-//
-//			printf("Simulator: ");
-//			simulator_statements_simulate(context, statements);
-//
-//			context_free(context);
+				//			struct context *context = context_init(NULL, NULL, &jump);
+				//			ip_set(context, NULL);
+				//
+				//			printf("Simulator: ");
+				//			simulator_statements_simulate(context, statements);
+				//
+				//			context_free(context);
 
 			} else
-			printf("Unable to evaluate :-(.\n");
-		};
-
-		for (size_t i = 0; i < results.size(); ++i) {
-			handle_exp(results[i].condition);
-			handle_exp(results[i].exp);
+				printf("Unable to evaluate :-(.\n");
 		}
-
 
 		rreil_statements_free(statements);
 //		free(statements->statements);
 //		free(statements);
+
+	if(++count == 3)
+		break;
 	}
 
 	g->print_dot();

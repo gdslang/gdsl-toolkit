@@ -48,11 +48,15 @@ public:
 	vector<struct bbgraph_pref> get_parents() {
 		return parents;
 	}
+	void set_parents(vector<struct bbgraph_pref> parents) {
+		this->parents = parents;
+	}
 	size_t get_count() {
 		return count;
 	}
 
 	virtual ~bbgraph_node() {
+//		printf("Destructing: %p\n", this);
 		delete id;
 	}
 	bbgraph_id *get_id() {
@@ -101,10 +105,10 @@ public:
 		uexp = NULL;
 	}
 	~bbgraph_rrnode() {
-//		printf("Destructing: %s\n", this->id->to_string().c_str());
+//		printf("Destructing: %p\n", this);
 		free(stmts.statements);
 	}
-	vector<struct bbgraph_branch> get_children() {
+	vector<struct bbgraph_branch> &get_children() {
 		return children;
 	}
 	struct rreil_statements *get_stmts() {
@@ -149,7 +153,6 @@ public:
 	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
 	void print_dot();
 	void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) {
-
 	}
 
 	bool replace_with(shared_ptr<bbgraph_node> other);

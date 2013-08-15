@@ -118,6 +118,22 @@ static shared_ptr<expression> analyze(struct rreil_statements statements, shared
 	return exp;
 }
 
+shared_ptr<expression> substitute_ip(shared_ptr<expression> exp, int64_t ip_val) {
+	shared_ptr<expression> ip_exp = make_shared<immediate>(immediate(ip_val, 64));
+	struct rreil_variable ip_var;
+	struct rreil_id ip_id;
+	ip_id.type = RREIL_ID_TYPE_X86;
+	ip_id.x86 = X86_ID_IP;
+	ip_var.id = &ip_id;
+	ip_var.offset = 0;
+
+	bool substituted = exp->substitute(&ip_var, ip_exp);
+	if(substituted)
+		return ip_exp;
+	else
+		return exp;
+}
+
 vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode> sp) {
 	auto analyze_one = [&](shared_ptr<expression> exp) {
 		graph->reset_all();
@@ -199,4 +215,6 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 		analysis_results[i].condition = analyze_one(analysis_results[i].condition);
 		analysis_results[i].exp = analyze_one(analysis_results[i].exp);
 	}
+
+	return analysis_results;
 }

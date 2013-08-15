@@ -159,7 +159,7 @@ shared_ptr<bbgraph_rrnode> bbgraph::rreil_add(struct rreil_statements *statement
 	return rrnodes.back();
 }
 
-void bbgraph::connect(shared_ptr<bbgraph_rrnode> node, int64_t offset) {
+void bbgraph::connect(shared_ptr<bbgraph_rrnode> node, int64_t offset, shared_ptr<expression> condition) {
 	shared_ptr<bbgraph_node> dest;
 
 	if(addr_map.find(offset) == addr_map.end()) {
@@ -173,6 +173,6 @@ void bbgraph::connect(shared_ptr<bbgraph_rrnode> node, int64_t offset) {
 	} else
 		dest = addr_map[offset].front();
 
-	node->add_child(dest, expression::true_);
-	dest->add_parent(node, expression::true_);
+	node->add_child(dest, condition);
+	dest->add_parent(node, condition);
 }

@@ -62,7 +62,7 @@ shared_ptr<expression> conditional_expression::reduce() {
 	uint64_t cond_r;
 	bool cond_eval = condition->evaluate(&cond_r);
 	if(cond_eval)
-		if(cond_r)
+		if(cond_r & 1)
 			return inner;
 		else
 			return NULL;

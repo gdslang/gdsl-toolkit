@@ -24,6 +24,7 @@ struct analysis_result {
 	shared_ptr<expression> exp;
 };
 
+shared_ptr<expression> substitute_ip(shared_ptr<expression> exp, int64_t ip_val);
 //vector<struct analysis_result> analyze(struct rreil_statements statements, shared_ptr<expression> exp);
 vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode> sp);
 

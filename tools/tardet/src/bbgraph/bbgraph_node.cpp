@@ -124,7 +124,8 @@ void bbgraph_rrnode::print_dot() {
 			auto parent = parents[i].dst.lock();
 			printf("\t\"%s\" -> \"%s\" [label=\"", parent->get_id()->to_string().c_str(),
 					node->get_id()->to_string().c_str());
-			parents[i].condition->print();
+//			parents[i].condition->print();
+			printf("cond");
 			printf("\"];\n");
 		}
 	}
@@ -184,11 +185,12 @@ bool bbgraph_stubnode::replace_with(shared_ptr<bbgraph_node> other) {
 	auto parents = get_parents();
 
 	for(size_t i = 0; i < parents.size(); ++i) {
-		auto parent_children = parents[i].dst.lock()->get_children();
+		auto &parent_children = parents[i].dst.lock()->get_children();
 		for(size_t i = 0; i < parent_children.size(); ++i)
 			if(parent_children[i].dst.lock().get() == (void*)this)
 				parent_children[i].dst = other;
 	}
+	other->set_parents(parents);
 
 	return true;
 }

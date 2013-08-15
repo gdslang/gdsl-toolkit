@@ -46,7 +46,7 @@ public:
 
 	static vector<shared_ptr<bbgraph_rrnode>> from_rreil_statements(
 			struct rreil_statements *stmts, size_t address);
-	void connect(shared_ptr<bbgraph_rrnode> node, int64_t offset);
+	void connect(shared_ptr<bbgraph_rrnode> node, int64_t offset, shared_ptr<expression> condition);
 };
 
 #endif /* bbgraph_H_ */
