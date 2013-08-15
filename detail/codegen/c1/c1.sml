@@ -51,6 +51,8 @@ structure C1 = struct
                   onlyDecls : bool,
                   exports : SymSet.set,
                   constrs : String.string SymMap.map,
+                  structsLocal : Layout.t list ref,
+                  structsGlobal : Layout.t list ref,
                   preDeclEmit : Layout.t list ref }
 
 
@@ -182,6 +184,8 @@ structure C1 = struct
            onlyDecls = #onlyDecls s,
            exports = #exports s,
            constrs = #constrs s,
+           structsGlobal = #structsGlobal s,
+           structsLocal = #structsLocal s,
            preDeclEmit = #preDeclEmit s }
       end
    fun registerSymbol (sym,s : state) = regSym (sym, !SymbolTables.varTable, s)
@@ -195,6 +199,8 @@ structure C1 = struct
         onlyDecls = #onlyDecls s,
         exports = #exports s,
         constrs = #constrs s,
+        structsGlobal = #structsGlobal s,
+        structsLocal = #structsLocal s,
         preDeclEmit = #preDeclEmit s }
 
    fun par arg = seq [str "(", arg, str ")"]
@@ -236,7 +242,7 @@ structure C1 = struct
             "  " ^ Layout.tostring (emitTypeDecl s (
                [str (Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)))],
                t
-            ))
+            )) ^ ";\n"
          val body = Atom.atom (concat (map showField fs))
       in
          case AtomMap.find (!recordTypeMap, body) of
@@ -249,9 +255,9 @@ structure C1 = struct
                val f = [
                      seq [str "typedef struct {"],
                      str (Atom.toString body),
-                     str "}", space, str tyName, str ";"
+                     seq [str "}", space, str tyName, str ";"]
                   ]
-               val _ = (#preDeclEmit s) := !(#preDeclEmit s) @ f
+               val _ = (#structsLocal s) := !(#structsLocal s) @ f
             in
                tyName
             end
@@ -851,6 +857,8 @@ structure C1 = struct
                onlyDecls = false,
                exports = exports,
                constrs = conMap,
+               structsGlobal = ref [],
+               structsLocal = ref [],
                preDeclEmit = ref []
             } : state
          val s = registerSymbol (stateSym, s)
@@ -864,6 +872,8 @@ structure C1 = struct
                onlyDecls = true,
                exports = #exports s,
                constrs = #constrs s,
+               structsGlobal = #structsGlobal s,
+               structsLocal = #structsLocal s,
                preDeclEmit = #preDeclEmit s
             } : state
          val funDeclsPublic = map (emitDecl s) 
@@ -877,12 +887,14 @@ structure C1 = struct
 
          val _ =
             C1Templates.expandHeader prefix [
+               C1Templates.mkHook ("records", align (!(#structsGlobal s))),
                C1Templates.mkHook ("exports", align funDeclsPublic),
                C1Templates.mkHook ("tagnames", align constructors),
                C1Templates.mkHook ("fields", align fields)
             ]
          val _ =
             C1Templates.expandRuntime prefix [
+               C1Templates.mkHook ("records", align (!(#structsLocal s))),
                C1Templates.mkHook ("fieldnames", fieldNames),
                C1Templates.mkHook ("prototypes", align funDeclsPrivate),
                C1Templates.mkHook ("functions", align funs)

@@ -59,6 +59,9 @@ void gdsl_destroy(state_t s);
 /* The following declarations are individual for each decoder. */
 @if-guard-prefix@
 
+/* Records that are represented as C structs. */
+@records@
+
 /* Exported functions. */
 @exports@
 
