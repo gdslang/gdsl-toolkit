@@ -12,6 +12,14 @@
 #include <queue>
 #include "bbgraph_node.h"
 #include "../expression/expression.h"
+extern "C" {
+#include <rreil/rreil.h>
+}
+
+bbgraph_rrnode::~bbgraph_rrnode() {
+	for (size_t i = 0; i < stmts.statements_length; ++i)
+		rreil_statement_free(stmts.statements[i]);
+}
 
 bool bbgraph_rrnode::has_subgraph() {
 	for(size_t i = 0; i < children.size(); ++i)

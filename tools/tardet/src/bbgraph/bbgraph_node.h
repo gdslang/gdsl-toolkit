@@ -104,10 +104,7 @@ public:
 		children = vector<struct bbgraph_branch>();
 		uexp = NULL;
 	}
-	~bbgraph_rrnode() {
-//		printf("Destructing: %p\n", this);
-		free(stmts.statements);
-	}
+	~bbgraph_rrnode();
 	vector<struct bbgraph_branch> &get_children() {
 		return children;
 	}

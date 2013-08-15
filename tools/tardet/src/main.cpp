@@ -186,10 +186,8 @@ int main(int argc, char **argv) {
 		int64_t offset = offset_queue.front();
 		offset_queue.pop();
 
-//		if(gdsl_seek(state, offset))
-//			continue;
-
-		gdsl_seek(state, offset);
+		if(gdsl_seek(state, offset))
+			continue;
 
 		obj_t rreil;
 		if(gdsl_translate_block(state, &rreil)) {
@@ -319,12 +317,15 @@ int main(int argc, char **argv) {
 				printf("Unable to evaluate :-(.\n");
 		}
 
-		rreil_statements_free(statements);
+		free(statements->statements);
+		free(statements);
+
+//		rreil_statements_free(statements);
 //		free(statements->statements);
 //		free(statements);
 
-	if(++count == 3)
-		break;
+//	if(++count == 3)
+//		break;
 	}
 
 	g->print_dot();

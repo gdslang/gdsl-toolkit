@@ -1,65 +1,98 @@
 /*
- * rreil.c
+ * copy.c
  *
- *  Created on: 06.05.2013
+ *  Created on: Aug 15, 2013
  *      Author: jucs
  */
 
 #include <stdlib.h>
 #include <rreil/rreil.h>
 
-void rreil_address_free(struct rreil_address *address) {
-	rreil_linear_free(address->address);
-	free(address);
+struct rreil_address *rreil_address_copy(struct rreil_address *address) {
+	struct rreil_address *address_copy = (struct rreil_address*)malloc(sizeof(struct rreil_address));
+
+	address_copy->address = rreil_linear_copy(address->address);
+	address_copy->size = address->size;
+
+	return address_copy;
 }
 
-void rreil_arity1_clear(struct rreil_arity1 *arity1) {
-	rreil_linear_free(arity1->opnd1);
+struct rreil_arity1 rreil_arity1_copy(struct rreil_arity1 arity1) {
+	struct rreil_arity1 arity1_copy;
+
+	arity1_copy.opnd1 = rreil_linear_copy(arity1.opnd1);
+	arity1_copy.size = arity1.size;
+
+	return arity1_copy;
 }
 
-void rreil_arity2_clear(struct rreil_arity2 *arity2) {
-	rreil_linear_free(arity2->opnd1);
-	rreil_linear_free(arity2->opnd2);
+struct rreil_arity2 rreil_arity2_copy(struct rreil_arity2 arity2) {
+	struct rreil_arity2 arity2_copy;
+
+	arity2_copy.opnd1 = rreil_linear_copy(arity2.opnd1);
+	arity2_copy.opnd2 = rreil_linear_copy(arity2.opnd2);
+	arity2_copy.size = arity2.size;
+
+	return arity2_copy;
 }
 
-void rreil_branch_hint_free(enum rreil_branch_hint *hint) {
-	free(hint);
+enum rreil_branch_hint *rreil_branch_hint_copy(enum rreil_branch_hint *hint) {
+	enum rreil_branch_hint *hint_copy = (enum rreil_branch_hint*)malloc(sizeof(enum rreil_branch_hint));
+
+	*hint_copy = *hint;
+
+	return hint_copy;
 }
 
-void rreil_comparator_free(struct rreil_comparator *comparator) {
-	rreil_arity2_clear(&comparator->arity2);
-	free(comparator);
+struct rreil_comparator *rreil_comparator_copy(struct rreil_comparator *comparator) {
+	struct rreil_comparator *comparator_copy = (struct rreil_comparator*)malloc(sizeof(struct rreil_comparator));
+
+	comparator_copy->arity2 = rreil_arity2_copy(comparator->arity2);
+	comparator_copy->type = rreil_arity2_copy(comparator->arity2);
+
+	return comparator_copy;
 }
 
-void rreil_id_free(struct rreil_id *id) {
-	free(id);
+struct rreil_id *rreil_id_copy(struct rreil_id *id) {
+	struct rreil_id *id_copy = (struct rreil_id*)malloc(sizeof(struct rreil_id));
+
+	*id_copy = *id;
+
+	return id_copy;
 }
 
-void rreil_linear_free(struct rreil_linear *linear) {
+struct rreil_linear *rreil_linear_copy(struct rreil_linear *linear) {
+	struct rreil_linear *linear_copy = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
+
+	linear_copy->type = linear->type;
+
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
-			rreil_variable_free(linear->variable);
+			linear_copy->variable = rreil_variable_copy(linear->variable);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_IMMEDIATE: {
+			linear_copy->immediate = linear->immediate;
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SUM: {
-			rreil_linear_free(linear->sum.opnd1);
-			rreil_linear_free(linear->sum.opnd2);
+			linear_copy->sum.opnd1 = rreil_linear_copy(linear->sum.opnd1);
+			linear_copy->sum.opnd2 = rreil_linear_copy(linear->sum.opnd2);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_DIFFERENCE: {
-			rreil_linear_free(linear->difference.opnd1);
-			rreil_linear_free(linear->difference.opnd2);
+			linear_copy->difference.opnd1 = rreil_linear_copy(linear->difference.opnd1);
+			linear_copy->difference.opnd2 = rreil_linear_copy(linear->difference.opnd2);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SCALE: {
-			rreil_linear_free(linear->scale.opnd);
+			linear_copy->scale.imm = linear->scale.imm;
+			linear_copy->scale.opnd = rreil_linear_copy(linear->scale.opnd);
 			break;
 		}
 	}
-	free(linear);
+
+	return linear_copy;
 }
 
 void rreil_size_change_clear(struct rreil_size_change *size_change) {
