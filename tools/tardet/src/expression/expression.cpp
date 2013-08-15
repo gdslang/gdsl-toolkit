@@ -51,7 +51,8 @@ shared_ptr<expression> expression::from_rreil_linear(struct rreil_linear* linear
 						break;
 					}
 					case RREIL_LINEAR_TYPE_DIFFERENCE: {
-						exp = shared_ptr<expression>(new subtraction(handle_linear(linear->sum.opnd1), handle_linear(linear->sum.opnd2), size));
+						exp = shared_ptr<expression>(new subtraction(handle_linear(linear->difference.opnd1), handle_linear(linear->difference.opnd2), size));
+						break;
 					}
 					case RREIL_LINEAR_TYPE_SCALE: {
 						exp = shared_ptr<expression>(new multiplication(shared_ptr<expression>(new immediate(linear->scale.imm, size)), handle_linear(linear->scale.opnd), size));
@@ -93,7 +94,7 @@ shared_ptr<expression> expression::from_rreil_compare_op(struct rreil_comparator
 	}
 	return shared_ptr<expression>(
 			new compare(from_rreil_linear(cmp->arity2.opnd1, cmp->arity2.size),
-					from_rreil_linear(cmp->arity2.opnd2, cmp->arity2.size), cmp->arity2.size, shared_ptr<compare_op>(op)));
+					from_rreil_linear(cmp->arity2.opnd2, cmp->arity2.size), shared_ptr<compare_op>(op)));
 
 }
 

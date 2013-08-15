@@ -301,9 +301,18 @@ int main(int argc, char **argv) {
 			if(evalable) {
 				printf("Evaluated: %lu\n", evaluated);
 
-				g->connect(tail, evaluated, results[i].condition);
-
-				offset_queue.push(evaluated);
+				uint64_t evaluated_cond;
+				results[i].condition = substitute_ip(results[i].condition, gdsl_get_ip_offset(state));
+				char evalable_cond = results[i].condition->evaluate(&evaluated_cond);
+				if(evalable_cond) {
+					if(evaluated_cond & 1) {
+						g->connect(tail, evaluated, conditional_expression::true_);
+						offset_queue.push(evaluated);
+					}
+				} else {
+					g->connect(tail, evaluated, results[i].condition);
+					offset_queue.push(evaluated);
+				}
 
 				//			struct context *context = context_init(NULL, NULL, &jump);
 				//			ip_set(context, NULL);

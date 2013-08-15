@@ -19,13 +19,14 @@ int main(void) {
 
 	start:
 	asm (
+"mov $107, %rbx\n"
 "mov $98, %rax\n"
 "cmp $99, %rax\n"
 "jne else\n"
-"mov $999, %rbx\n"
+"add $99, %rbx\n"
 "jmp after\n"
 "else:\n"
-"mov $777, %rbx\n"
+"sub $77, %rbx\n"
 "after:\n"
 "jmp %rbx\n"
 );

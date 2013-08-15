@@ -31,7 +31,7 @@ public:
 	virtual ~expression() {
 	}
 
-	uint64_t get_size() {
+	virtual uint64_t get_size() {
 		return size;
 	}
 
