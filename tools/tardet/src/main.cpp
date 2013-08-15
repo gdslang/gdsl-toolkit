@@ -213,7 +213,7 @@ int main(int argc, char **argv) {
 		 * Todo: Handle empty
 		 */
 //		shared_ptr<bbgraph_rrnode> root = NULL;//nodes.front();
-		shared_ptr<bbgraph_rrnode> tail = g->rreil_add(statements, offset);//nodes.back();
+		shared_ptr<bbgraph_rrnode> tail = g->rreil_add(statements, offset); //nodes.back();
 
 //		g->print_dot();
 //	delete g;
@@ -260,21 +260,23 @@ int main(int argc, char **argv) {
 
 		printf("----------------------------\n");
 
-		shared_ptr<expression> exp = analyze(g, tail); // NULL;//analyze(*statements);
+		vector<struct analysis_result> results = analyze(g, tail); // NULL;//analyze(*statements);
 
 		printf("----------------------------\n");
 
-		exp->print();
-		printf("\n");
+		auto handle_exp = [&](shared_ptr<expression> exp) {
 
-		uint64_t evaluated;
-		char evalable = exp->evaluate(&evaluated);
-		if(evalable) {
-			printf("Evaluated: %lu\n", evaluated);
+			exp->print();
+			printf("\n");
 
-			g->connect(tail, evaluated);
+			uint64_t evaluated;
+			char evalable = exp->evaluate(&evaluated);
+			if(evalable) {
+				printf("Evaluated: %lu\n", evaluated);
 
-			offset_queue.push(evaluated);
+				g->connect(tail, evaluated);
+
+				offset_queue.push(evaluated);
 
 //			struct context *context = context_init(NULL, NULL, &jump);
 //			ip_set(context, NULL);
@@ -284,10 +286,17 @@ int main(int argc, char **argv) {
 //
 //			context_free(context);
 
-		} else
+			} else
 			printf("Unable to evaluate :-(.\n");
+		};
 
-			rreil_statements_free (statements);
+		for (size_t i = 0; i < results.size(); ++i) {
+			handle_exp(results[i].condition);
+			handle_exp(results[i].exp);
+		}
+
+
+		rreil_statements_free(statements);
 //		free(statements->statements);
 //		free(statements);
 	}

@@ -36,6 +36,7 @@ public:
 		get_root()->unmark_all(seen);
 //		get_root()->unmark_all();
 	}
+	void reset_all();
 
 	shared_ptr<bbgraph_node> get_root();
 

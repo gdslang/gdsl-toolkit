@@ -19,6 +19,14 @@
 
 using namespace std;
 
+void bbgraph::reset_all() {
+	for(auto it = addr_map.begin(); it != addr_map.end(); ++it) {
+		auto nodes = it->second;
+		for (size_t i = 0; i < nodes.size(); ++i)
+			nodes[i]->reset();
+	}
+}
+
 shared_ptr<bbgraph_node> bbgraph::get_root() {
 //	if(addr_map.find(0) == addr_map.end())
 //		return NULL;
@@ -41,8 +49,7 @@ void bbgraph::print_dot() {
 	printf("}\n");
 }
 
-vector<shared_ptr<bbgraph_rrnode>> bbgraph::from_rreil_statements(
-		struct rreil_statements *stmts, size_t address) {
+vector<shared_ptr<bbgraph_rrnode>> bbgraph::from_rreil_statements(struct rreil_statements *stmts, size_t address) {
 	size_t counter = 0;
 	vector<shared_ptr<bbgraph_rrnode>> nodes = vector<shared_ptr<bbgraph_rrnode>>();
 
@@ -134,16 +141,16 @@ shared_ptr<bbgraph_rrnode> bbgraph::rreil_add(struct rreil_statements *statement
 	}
 
 	if(addr_map.find(offset) == addr_map.end())
-		;//Todo: Handle error
+		; //Todo: Handle error
 
 	auto current = addr_map[offset];
 	if(current.size() == 0)
-		;//Todo: Handle error
+		; //Todo: Handle error
 
 	bool replacable = current[0]->replace_with(nodes[0]);
 
 	if(current.size() > 1 || !replacable)
-		;//Todo: => Already processed?
+		; //Todo: => Already processed?
 
 	addr_map[offset] = nodes;
 

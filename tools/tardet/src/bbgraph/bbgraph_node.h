@@ -64,6 +64,9 @@ public:
 	void mark() {
 		marked = true;
 	}
+	void unmark() {
+		marked = false;
+	}
 
 	void add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expression> condition);
 
@@ -76,6 +79,8 @@ public:
 	virtual void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) = 0;
 
 	virtual bool replace_with(shared_ptr<bbgraph_node> other) = 0;
+
+	virtual void reset() = 0;
 };
 
 struct bbgraph_branch {
@@ -112,6 +117,7 @@ public:
 	void add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition);
 
 	void add_expression(shared_ptr<expression> expression);
+	void set_expression(shared_ptr<expression> expression);
 
 	void unmark_all(set<size_t> &seen);
 
@@ -124,6 +130,11 @@ public:
 	}
 
 	bool replace_with(shared_ptr<bbgraph_node> other);
+
+	void reset() {
+		unmark();
+		uexp = NULL;
+	}
 };
 
 class bbgraph_stubnode : public bbgraph_node {
@@ -142,6 +153,10 @@ public:
 	}
 
 	bool replace_with(shared_ptr<bbgraph_node> other);
+
+	void reset() {
+		unmark();
+	}
 };
 
 

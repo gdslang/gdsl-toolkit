@@ -9,6 +9,7 @@
 #define ANALYZER_H_
 
 #include <memory>
+#include <vector>
 #include "bbgraph/bbgraph.h"
 #include "bbgraph/bbgraph_id.h"
 #include "bbgraph/bbgraph_node.h"
@@ -18,7 +19,12 @@ extern "C" {
 
 using namespace std;
 
-shared_ptr<expression> analyze(struct rreil_statements statements, shared_ptr<expression> exp);
-shared_ptr<expression> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode> sp);
+struct analysis_result {
+	shared_ptr<expression> condition;
+	shared_ptr<expression> exp;
+};
+
+//vector<struct analysis_result> analyze(struct rreil_statements statements, shared_ptr<expression> exp);
+vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode> sp);
 
 #endif /* ANALYZER_H_ */

@@ -38,6 +38,11 @@ void bbgraph_rrnode::add_expression(shared_ptr<expression> expression) {
 	uexp->add(expression);
 }
 
+void bbgraph_rrnode::set_expression(shared_ptr<expression> expression) {
+	uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
+	uexp->add(expression);
+}
+
 void bbgraph_rrnode::unmark_all(set<size_t> &seen) {
 	marked = false;
 	for(size_t i = 0; i < children.size(); ++i) {
