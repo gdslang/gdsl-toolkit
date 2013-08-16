@@ -43,6 +43,15 @@ public:
 	virtual bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_) = 0;
 	virtual char evaluate(uint64_t *result) = 0;
 //	virtual void require_size(uint64_t size);
+	virtual shared_ptr<expression> simplify() {
+		return shared_from_this();
+	}
+	virtual bool is_dead() {
+		return false;
+	}
+	virtual bool is_trivial() {
+		return false;
+	}
 
 	static shared_ptr<expression> true_;
 	static shared_ptr<expression> false_;

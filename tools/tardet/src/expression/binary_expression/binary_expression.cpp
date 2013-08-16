@@ -55,3 +55,16 @@ char binary_expression::evaluate(uint64_t *result) {
 	*result = evaluate(left_result, right_result);
 	return 1;
 }
+
+shared_ptr<expression> binary_expression::simplify() {
+	left = left->simplify();
+	right = right->simplify();
+	if(left->is_trivial() && right->is_trivial()) {
+		uint64_t a;
+		left->evaluate(&a);
+		uint64_t b;
+		right->evaluate(&b);
+		return make_shared<immediate>(evaluate(a, b), get_size());
+	} else
+		return shared_from_this();
+}

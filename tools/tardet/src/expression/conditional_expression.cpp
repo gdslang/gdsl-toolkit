@@ -7,6 +7,7 @@
 
 #include <memory>
 #include "expression.h"
+#include "expressions.h"
 #include "conditional_expression.h"
 
 using namespace std;
@@ -58,13 +59,15 @@ char conditional_expression::evaluate(uint64_t *result) {
 		return false;
 }
 
-shared_ptr<expression> conditional_expression::reduce() {
+shared_ptr<expression> conditional_expression::simplify() {
 	uint64_t cond_r;
 	bool cond_eval = condition->evaluate(&cond_r);
 	if(cond_eval)
 		if(cond_r & 1)
-			return inner;
+			return inner->simplify();
 		else
-			return NULL;
+			return make_shared<unevalable>();
+	condition = condition->simplify();
+	inner = inner->simplify();
 	return shared_from_this();
 }

@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include "expression.h"
+#include "expressions.h"
 #include "union_expression.h"
 
 union_expression::union_expression(vector<shared_ptr<expression>> children, uint64_t size) :
@@ -76,4 +77,34 @@ void union_expression::add(shared_ptr<expression> exp) {
 	if(get_size() != exp->get_size())
 		throw new string("Cannot union expressions of different sizes :-(.");
 	children.push_back(exp);
+}
+
+shared_ptr<expression> union_expression::simplify() {
+	for (size_t i = 0; i < this->children.size(); ++i)
+		children[i] = children[i]->simplify();
+
+	vector<size_t> alive = vector<size_t>();
+	for (size_t i = 0; i < this->children.size(); ++i)
+		if(!children[i]->is_dead())
+			alive.push_back(i);
+
+	if(alive.size() == children.size())
+		return shared_from_this();
+
+	vector<shared_ptr<expression>> children_new;
+	for (size_t i = 0; i < alive.size(); ++i)
+		children_new.push_back(children[alive[i]]);
+
+	switch(children_new.size()) {
+		case 0: {
+			return make_shared<unevalable>();
+		}
+		case 1: {
+			return children_new[0];
+		}
+		default: {
+			children = children_new;
+			return shared_from_this();
+		}
+	}
 }

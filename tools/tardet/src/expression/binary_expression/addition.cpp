@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include "addition.h"
+#include "../expressions.h"
 
 uint64_t addition::evaluate(uint64_t a, uint64_t b) {
 	return a + b;

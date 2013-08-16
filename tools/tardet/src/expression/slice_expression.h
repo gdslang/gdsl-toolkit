@@ -34,6 +34,7 @@ public:
 	virtual bool substitute(struct rreil_variable *old,
 			shared_ptr<expression> &new_);
 	virtual char evaluate(uint64_t *result);
+	virtual shared_ptr<expression> simplify();
 };
 #endif /* CONCAT_EXPRESSION_H_ */
 

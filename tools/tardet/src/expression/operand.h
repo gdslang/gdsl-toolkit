@@ -54,6 +54,9 @@ public:
 		*result = immediate_;
 		return 1;
 	}
+	virtual bool is_trivial() {
+		return true;
+	}
 };
 
 #endif /* OPERAND_H_ */

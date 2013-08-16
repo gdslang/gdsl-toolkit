@@ -31,7 +31,7 @@ public:
 	bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result);
 
-	shared_ptr<expression> reduce();
+	virtual shared_ptr<expression> simplify();
 };
 #endif /* CONDITIONAL_EXPRESSION_H_ */
 

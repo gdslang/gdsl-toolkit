@@ -179,7 +179,7 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 				if(_continue)
 				continue;
 
-				exp = analyze(*next->get_stmts(), next->get_exp());
+				exp = analyze(*next->get_stmts(), next->get_exp())->simplify();
 
 //		printf("%zu\n", count++);
 

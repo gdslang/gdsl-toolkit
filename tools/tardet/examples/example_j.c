@@ -28,8 +28,8 @@ int main(void) {
 "elseb:\n"
 "sub $0x77, %rcx\n"
 "afterb:\n"
-//"shl $2, %rcx\n"
-"add $2, %rcx\n"
+"shl $2, %rcx\n"
+//"add $2, %rcx\n"
 
 "mov $0x207, %rbx\n"
 //"mov $99, %rax\n"
@@ -40,8 +40,8 @@ int main(void) {
 "else:\n"
 "sub $0x77, %rbx\n"
 "after:\n"
-//"shl $2, %rbx\n"
-"add $2, %rbx\n"
+"shl $2, %rbx\n"
+//"add $2, %rbx\n"
 "add %rcx, %rbx\n"
 "jmp %rbx\n"
 );

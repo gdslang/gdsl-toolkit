@@ -9,14 +9,15 @@
 #include <stdio.h>
 #include <vector>
 #include <memory>
-#include "slice_expression.h"
+#include "expressions.h"
 extern "C" {
 #include <util.h>
 }
+#include "slice_expression.h"
+
 using namespace std;
 
-slice_expression::slice_expression(vector<struct slice_element> elements,
-		size_t size) :
+slice_expression::slice_expression(vector<struct slice_element> elements, size_t size) :
 		expression(size) {
 	this->elements = elements;
 }
@@ -54,8 +55,7 @@ char slice_expression::contains(struct rreil_variable *variable) {
 	return false;
 }
 
-bool slice_expression::substitute(struct rreil_variable *old,
-		shared_ptr<expression> &new_) {
+bool slice_expression::substitute(struct rreil_variable *old, shared_ptr<expression> &new_) {
 	vector<struct slice_element> elements_new = vector<struct slice_element>();
 	bool update = false;
 	for(size_t i = 0; i < elements.size(); ++i) {
@@ -64,8 +64,7 @@ bool slice_expression::substitute(struct rreil_variable *old,
 		element.size = elements[i].size;
 		element.offset = elements[i].offset;
 
-		bool substituted = elements[i].expression->substitute(old,
-				element.expression);
+		bool substituted = elements[i].expression->substitute(old, element.expression);
 		if(substituted) {
 //			element.expression->require_size(element.size + element.offset);
 			elements_new.push_back(element);
@@ -74,8 +73,7 @@ bool slice_expression::substitute(struct rreil_variable *old,
 		update |= substituted;
 	}
 	if(update) {
-		slice_expression *replacement = new slice_expression(elements_new,
-				get_size());
+		slice_expression *replacement = new slice_expression(elements_new, get_size());
 		new_ = shared_ptr<expression>(replacement);
 		return true;
 	} else
@@ -90,10 +88,29 @@ char slice_expression::evaluate(uint64_t *result) {
 		uint64_t element;
 		if(!elements[i].expression->evaluate(&element))
 			return 0;
-		membit_cpy((uint8_t*)result, bit_offset, (uint8_t*)&element,
-				elements[i].offset, elements[i].size);
+		membit_cpy((uint8_t*)result, bit_offset, (uint8_t*)&element, elements[i].offset, elements[i].size);
 		bit_offset += elements[i].size;
 	}
 
 	return 1;
+}
+
+shared_ptr<expression> slice_expression::simplify() {
+	if(!elements.size())
+		return make_shared<unevalable>();
+	bool bad = false;
+	for(size_t i = 0; i < elements.size(); ++i) {
+		auto &element = elements[i];
+		element.expression = element.expression->simplify();
+		if(!element.expression->is_trivial())
+			bad = true;
+	}
+	if(!bad) {
+		uint64_t me;
+		this->evaluate(&me);
+		return make_shared<immediate>(me, get_size());
+	}
+	auto element = elements[0];
+	if(element.expression->is_dead() || (!element.offset && element.size == element.expression->size_get()))
+		return element.expression;
 }

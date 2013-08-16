@@ -36,6 +36,7 @@ public:
 	virtual uint64_t evaluate(uint64_t a, uint64_t b) = 0;
 	virtual expression *construct(shared_ptr<expression> left,
 			shared_ptr<expression> right) = 0;
+	virtual shared_ptr<expression> simplify();
 };
 
 //class division : public binary_expression {
