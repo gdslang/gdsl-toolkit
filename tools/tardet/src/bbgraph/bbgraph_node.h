@@ -45,7 +45,7 @@ public:
 		parents = vector<struct bbgraph_pref>();
 		count = counter++;
 	}
-	vector<struct bbgraph_pref> get_parents() {
+	vector<struct bbgraph_pref> &get_parents() {
 		return parents;
 	}
 	void set_parents(vector<struct bbgraph_pref> parents) {

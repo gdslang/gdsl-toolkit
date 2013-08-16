@@ -161,7 +161,7 @@ void bbgraph_rrnode::print_dot() {
 			sub->mark();
 
 			printf("\t\t\"%s\" [label=%zu];\n", sub->get_id()->to_string().c_str(), sub->get_id()->get_inner());
-			auto children = sub->get_children();
+			auto &children = sub->get_children();
 			for(size_t i = 0; i < children.size(); ++i) {
 				auto child = children[i].dst.lock();
 
@@ -176,7 +176,7 @@ void bbgraph_rrnode::print_dot() {
 		}
 		printf("\t}\n");
 
-		auto parents = node->get_parents();
+		auto &parents = node->get_parents();
 		for(size_t i = 0; i < parents.size(); ++i) {
 			auto parent = parents[i].dst.lock();
 			printf("\t\"%s\" -> \"%s\" [label=\"", parent->get_id()->to_string().c_str(),
@@ -241,7 +241,7 @@ void bbgraph_stubnode::print_dot() {
 }
 
 bool bbgraph_stubnode::replace_with(shared_ptr<bbgraph_node> other) {
-	auto parents = get_parents();
+	auto &parents = get_parents();
 
 	for(size_t i = 0; i < parents.size(); ++i) {
 		auto &parent_children = parents[i].dst.lock()->get_children();

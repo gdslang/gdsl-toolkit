@@ -105,8 +105,11 @@ static shared_ptr<expression> analyze(struct rreil_statements statements, shared
 
 					shared_ptr<expression> new_ = expression::from_rreil_op(current->assign.rhs);
 					bool substituted = exp->substitute(current->assign.lhs, new_);
-					if(substituted)
+					if(substituted) {
 						exp = new_;
+//						if(exp->is_dead() || exp->is_trivial())
+//							return exp;
+					}
 				}
 				break;
 			}
@@ -146,9 +149,9 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 			shared_ptr<bbgraph_rrnode> next = reachable.front();
 			reachable.pop();
 			next->mark();
-			auto children = next->get_parents();
-			for (size_t i = 0; i < children.size(); ++i)
-				reachable.push(children[i].dst.lock());
+			auto &parents = next->get_parents();
+			for (size_t i = 0; i < parents.size(); ++i)
+			reachable.push(parents[i].dst.lock());
 		}
 		graph->invert_marking();
 
@@ -166,7 +169,7 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 				if(next->is_marked())
 				continue;
 
-				auto children = next->get_children();
+				auto &children = next->get_children();
 
 				bool _continue = false;
 				for (size_t i = 0; i < children.size(); ++i) {
@@ -180,6 +183,8 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 				continue;
 
 				exp = analyze(*next->get_stmts(), next->get_exp())->simplify();
+				if(exp->is_dead() || exp->is_trivial())
+					break;
 
 //		printf("%zu\n", count++);
 
@@ -188,7 +193,7 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 
 				fflush(stdout);
 
-				auto parents = next->get_parents();
+				auto &parents = next->get_parents();
 				for(size_t i = 0; i < parents.size(); ++i) {
 					shared_ptr<conditional_expression> exp_cond = shared_ptr<conditional_expression>(
 							new conditional_expression(parents[i].condition, exp, exp->get_size()));
