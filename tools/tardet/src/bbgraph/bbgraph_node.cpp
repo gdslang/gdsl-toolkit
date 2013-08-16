@@ -46,15 +46,33 @@ bool bbgraph_rrnode::has_subgraph() {
 }
 
 void bbgraph_rrnode::add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition) {
+//	for (size_t i = 0; i < children.size(); ++i) {
+//		auto next = children[i].dst.lock();
+//		if(next->get_id()->get_inner() == child->get_id()->get_inner() && next->get_id()->get_address_machine() == child->get_id()->get_address_machine())
+//			printf("fiep\n");
+//	}
+
 	struct bbgraph_branch branch = { child, condition };
 
 	children.push_back(branch);
+
+	if(children.size() > 2)
+		throw new string("FATAL: >2 children.");
 }
 
 void bbgraph_node::add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expression> condition) {
+//	for (size_t i = 0; i < parents.size(); ++i) {
+//		auto next = parents[i].dst.lock();
+//		if(next->get_id()->get_inner() == parent->get_id()->get_inner() && next->get_id()->get_address_machine() == parent->get_id()->get_address_machine())
+//			printf("fiep\n");
+//	}
+
 	struct bbgraph_pref pref = { parent, condition };
 
 	parents.push_back(pref);
+
+	if(parents.size() > 2)
+		throw new string("FATAL: >2 parents.");
 }
 
 void bbgraph_rrnode::add_expression(shared_ptr<conditional_expression> expression) {
@@ -128,6 +146,9 @@ void bbgraph_rrnode::print_dot() {
 		auto node = nodes.front();
 		nodes.pop();
 
+		if(node->is_marked())
+			continue;
+
 		printf("\tsubgraph cluster%lx {\n", node->get_id()->get_address_machine());
 		printf("\t\tlabel=\"%lx\";\n", node->get_id()->get_address_machine());
 		node->print_dot_queue_push(subs);
@@ -161,8 +182,10 @@ void bbgraph_rrnode::print_dot() {
 			printf("\t\"%s\" -> \"%s\" [label=\"", parent->get_id()->to_string().c_str(),
 					node->get_id()->to_string().c_str());
 //			parents[i].condition->print();
-			printf("cond");
+			printf("...");
 			printf("\"];\n");
+
+//			printf("~~~~~~+ %s -- %p\n", node->get_id()->to_string().c_str(), node.get());
 		}
 	}
 //

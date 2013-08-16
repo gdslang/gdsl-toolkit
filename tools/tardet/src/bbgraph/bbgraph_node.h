@@ -85,6 +85,7 @@ public:
 	virtual bool replace_with(shared_ptr<bbgraph_node> other) = 0;
 
 	virtual void reset() = 0;
+	virtual bool analyzed() = 0;
 };
 
 struct bbgraph_branch {
@@ -135,6 +136,10 @@ public:
 		unmark();
 		expressions.clear();
 	}
+
+	bool analyzed() {
+		return true;
+	}
 };
 
 class bbgraph_stubnode : public bbgraph_node {
@@ -155,6 +160,9 @@ public:
 
 	void reset() {
 		unmark();
+	}
+	bool analyzed() {
+		return false;
 	}
 };
 

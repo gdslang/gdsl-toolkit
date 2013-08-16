@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
 					data_size <<= 1;
 					data = (uint8_t*)realloc(data, data_size);
 				}
-				data_length += fread(data + data_length, chunk, 1, f);
+				data_length += fread(data + data_length, 1, chunk, f);
 			}
 			fclose(f);
 			break;
@@ -185,6 +185,9 @@ int main(int argc, char **argv) {
 	while(!offset_queue.empty()) {
 		int64_t offset = offset_queue.front();
 		offset_queue.pop();
+
+		if(g->analyzed(offset))
+			continue;
 
 		printf("=> Decoding block at offset %ld...\n", offset);
 

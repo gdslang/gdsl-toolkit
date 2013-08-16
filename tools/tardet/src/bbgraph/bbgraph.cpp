@@ -187,3 +187,10 @@ void bbgraph::connect(shared_ptr<bbgraph_rrnode> node, int64_t offset, shared_pt
 	node->add_child(dest, condition);
 	dest->add_parent(node, condition);
 }
+
+bool bbgraph::analyzed(int64_t offset) {
+	if(addr_map.find(offset) == addr_map.end())
+		return false;
+	else
+		return addr_map[offset][0]->analyzed();
+}
