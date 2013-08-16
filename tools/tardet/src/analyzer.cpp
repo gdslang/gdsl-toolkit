@@ -137,6 +137,20 @@ shared_ptr<expression> substitute_ip(shared_ptr<expression> exp, int64_t ip_val)
 vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode> sp) {
 	auto analyze_one = [&](shared_ptr<expression> exp) {
 		graph->reset_all();
+		/*
+		 * Todo: Not like that, please...
+		 */
+		queue<shared_ptr<bbgraph_rrnode>> reachable = queue<shared_ptr<bbgraph_rrnode>>();
+		reachable.push(sp);
+		while(!reachable.empty()) {
+			shared_ptr<bbgraph_rrnode> next = reachable.front();
+			reachable.pop();
+			next->mark();
+			auto children = next->get_parents();
+			for (size_t i = 0; i < children.size(); ++i)
+				reachable.push(children[i].dst.lock());
+		}
+		graph->invert_marking();
 
 		sp->set_expression(exp);
 
@@ -165,7 +179,7 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 				if(_continue)
 				continue;
 
-				exp = analyze(*next->get_stmts(), next->get_uexp());
+				exp = analyze(*next->get_stmts(), next->get_exp());
 
 //		printf("%zu\n", count++);
 
@@ -181,21 +195,23 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 //			printf("cond:\n");
 //			parents[i].condition->print();
 //			printf("\n++\n");
+
 //			shared_ptr<expression> reduced =
 //			exp_cond->reduce((shared_ptr<expression>&)exp_cond);
 //			if(exp_cond)
 //				exp_new = exp_cond;
 //			else
 //				exp_new = exp;
-					shared_ptr<expression> exp_new = exp_cond->reduce();
-					if(!exp_new)
-					exp_new = exp;
+
+//					shared_ptr<expression> exp_new = exp_cond->reduce();
+//					if(!exp_new)
+//					exp_new = exp;
 
 					/*
 					 * Todo: Fix cast
 					 */
 					shared_ptr<bbgraph_rrnode> parent = parents[i].dst.lock();
-					parent->add_expression(exp_new);
+					parent->add_expression(exp_cond);
 					nodes.push(parent);
 				}
 

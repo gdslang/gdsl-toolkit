@@ -22,8 +22,19 @@ using namespace std;
 void bbgraph::reset_all() {
 	for(auto it = addr_map.begin(); it != addr_map.end(); ++it) {
 		auto nodes = it->second;
-		for (size_t i = 0; i < nodes.size(); ++i)
+		for(size_t i = 0; i < nodes.size(); ++i)
 			nodes[i]->reset();
+	}
+}
+
+void bbgraph::invert_marking() {
+	for(auto it = addr_map.begin(); it != addr_map.end(); ++it) {
+		auto nodes = it->second;
+		for(size_t i = 0; i < nodes.size(); ++i)
+			if(nodes[i]->is_marked())
+				nodes[i]->unmark();
+			else
+				nodes[i]->mark();
 	}
 }
 

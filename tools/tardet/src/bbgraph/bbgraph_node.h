@@ -96,13 +96,13 @@ class bbgraph_rrnode : public bbgraph_node,  public enable_shared_from_this<bbgr
 private:
 	vector<struct bbgraph_branch> children;
 	struct rreil_statements stmts;
-	shared_ptr<union_expression> uexp;
+	vector<shared_ptr<conditional_expression>> expressions;
 
 public:
 	bbgraph_rrnode(bbgraph_id *id, struct rreil_statements stmts) : bbgraph_node(id) {
 		this->stmts = stmts;
 		children = vector<struct bbgraph_branch>();
-		uexp = NULL;
+		expressions = vector<shared_ptr<conditional_expression>>();
 	}
 	~bbgraph_rrnode();
 	vector<struct bbgraph_branch> &get_children() {
@@ -111,12 +111,11 @@ public:
 	struct rreil_statements *get_stmts() {
 		return &stmts;
 	}
-	shared_ptr<union_expression> get_uexp() {
-		return uexp;
-	}
+	shared_ptr<expression> get_exp();
 
 	void add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition);
 
+	void add_expression(shared_ptr<conditional_expression> expression);
 	void add_expression(shared_ptr<expression> expression);
 	void set_expression(shared_ptr<expression> expression);
 
@@ -134,7 +133,7 @@ public:
 
 	void reset() {
 		unmark();
-		uexp = NULL;
+		expressions.clear();
 	}
 };
 

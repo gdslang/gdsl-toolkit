@@ -186,8 +186,12 @@ int main(int argc, char **argv) {
 		int64_t offset = offset_queue.front();
 		offset_queue.pop();
 
-		if(gdsl_seek(state, offset))
+		printf("=> Decoding block at offset %ld...\n", offset);
+
+		if(gdsl_seek(state, offset)) {
+			printf("<= Unable to decode.\n");
 			continue;
+		}
 
 		obj_t rreil;
 		if(gdsl_translate_block(state, &rreil)) {
@@ -325,6 +329,10 @@ int main(int argc, char **argv) {
 			} else
 				printf("Unable to evaluate :-(.\n");
 		}
+
+		printf("°°°°°°°°°°°°°°°°°°°°°°°°\n");
+		g->print_dot();
+		printf("°°°°°°°°°°°°°°°°°°°°°°°°\n");
 
 
 		rreil_statements_free(statements);

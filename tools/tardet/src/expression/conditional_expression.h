@@ -21,6 +21,9 @@ private:
 public:
 	conditional_expression(shared_ptr<expression> condition, shared_ptr<expression> inner, uint64_t size);
 	virtual ~conditional_expression();
+	shared_ptr<expression> get_inner() {
+		return inner;
+	}
 
 	void print_inner();
 

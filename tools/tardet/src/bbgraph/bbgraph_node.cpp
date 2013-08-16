@@ -22,6 +22,22 @@ bbgraph_rrnode::~bbgraph_rrnode() {
 	free(stmts.statements);
 }
 
+shared_ptr<expression> bbgraph_rrnode::get_exp() {
+	switch(expressions.size()) {
+		case 0: {
+			return NULL;
+		}
+		case 1: {
+			return expressions[0]->get_inner();
+		}
+		default: {
+			vector<shared_ptr<expression>> expressions = vector<shared_ptr<expression>>(this->expressions.begin(), this->expressions.end());
+			shared_ptr<union_expression> union_exp = make_shared<union_expression>(expressions, expressions[0]->get_size());
+			return union_exp;
+		}
+	}
+}
+
 bool bbgraph_rrnode::has_subgraph() {
 	for(size_t i = 0; i < children.size(); ++i)
 		if(children[i].dst.lock()->get_id()->get_address_machine() == id->get_address_machine())
@@ -41,15 +57,26 @@ void bbgraph_node::add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expr
 	parents.push_back(pref);
 }
 
+void bbgraph_rrnode::add_expression(shared_ptr<conditional_expression> expression) {
+//	if(uexp == NULL)
+//		uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
+//	uexp->add(expression);
+	expressions.push_back(expression);
+}
+
 void bbgraph_rrnode::add_expression(shared_ptr<expression> expression) {
-	if(uexp == NULL)
-		uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
-	uexp->add(expression);
+//	if(uexp == NULL)
+//		uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
+//	uexp->add(expression);
+	shared_ptr<conditional_expression> cond_exp = make_shared<conditional_expression>(conditional_expression::true_, expression, expression->size_get());
+	add_expression(cond_exp);
 }
 
 void bbgraph_rrnode::set_expression(shared_ptr<expression> expression) {
-	uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
-	uexp->add(expression);
+	expressions.clear();
+	add_expression(expression);
+//	uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
+//	uexp->add(expression);
 }
 
 void bbgraph_rrnode::unmark_all(set<size_t> &seen) {
