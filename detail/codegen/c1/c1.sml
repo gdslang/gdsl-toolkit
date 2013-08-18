@@ -51,6 +51,7 @@ structure C1 = struct
                   onlyDecls : bool,
                   exports : SymSet.set,
                   constrs : String.string SymMap.map,
+                  closureToFun : SymbolTable.symid SymMap.map,
                   structsLocal : Layout.t list ref,
                   structsGlobal : Layout.t list ref,
                   preDeclEmit : Layout.t list ref }
@@ -184,9 +185,10 @@ structure C1 = struct
            onlyDecls = #onlyDecls s,
            exports = #exports s,
            constrs = #constrs s,
+           closureToFun = #closureToFun s,
            structsGlobal = #structsGlobal s,
            structsLocal = #structsLocal s,
-           preDeclEmit = #preDeclEmit s }
+           preDeclEmit = #preDeclEmit s } : state
       end
    fun registerSymbol (sym,s : state) = regSym (sym, !SymbolTables.varTable, s)
    fun registerFSymbol (sym,s : state) = regSym (sym, !SymbolTables.fieldTable, s)
@@ -199,9 +201,10 @@ structure C1 = struct
         onlyDecls = #onlyDecls s,
         exports = #exports s,
         constrs = #constrs s,
+        closureToFun = #closureToFun s,
         structsGlobal = #structsGlobal s,
         structsLocal = #structsLocal s,
-        preDeclEmit = #preDeclEmit s }
+        preDeclEmit = #preDeclEmit s } : state
 
    fun par arg = seq [str "(", arg, str ")"]
    fun list (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
@@ -529,6 +532,8 @@ structure C1 = struct
        | _ => emitPrim s (f,es,[])
       )
      | emitExp s (CALLexp (sym,es)) = seq [emitSym s sym, fArgs (map (emitExp s) es)]
+     | emitExp s (INVOKEexp (FUNvtype (_,false,_),e,es)) =
+         seq [emitExp s e, fArgs (map (emitExp s) es)]
      | emitExp s (INVOKEexp (t,e,es)) =
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
      | emitExp s (RECORDexp fs) =
@@ -561,6 +566,8 @@ structure C1 = struct
          seq [emitExp s e, str ".", str "data"]
      | emitExp s (INT2VECexp (sz,e)) =
          seq [str "gen_vec(",str (Int.toString sz), str ", ", emitExp s e, str ")"]
+     | emitExp s (CLOSUREexp (FUNvtype (_,false,_),sym,es)) =
+         seq [str "&", emitSym s (SymMap.lookup (#closureToFun s, sym))]
      | emitExp s (CLOSUREexp (t,sym,es)) =
          seq [emitGenClosure s t, fArgs (seq [str "&", emitSym s sym] :: map (emitExp s) es)]
      | emitExp s (STATEexp (BASICblock ([],[]), _, CALLexp (sym,[]))) = seq [str "&", emitSym s sym]
@@ -834,6 +841,15 @@ structure C1 = struct
          val _ = invokeClosureSet := AtomSet.empty
 
          val { decls = ds, fdecls = fs, exports } = Spec.get #declarations spec
+         
+         val closureToFunMap = foldl (fn (d,m) => case d of
+                  CLOSUREdecl {
+                    closureName = clName,
+                    closureDelegate = delName,
+                    ...
+                  } => SymMap.insert (m,clName,delName)
+                | _ => m
+              ) SymMap.empty ds
          (* compute a list of constructors that are to be public; since
             we currently have no data types in the export list, we just
             make any constructor without argument public *)
@@ -857,6 +873,7 @@ structure C1 = struct
                onlyDecls = false,
                exports = exports,
                constrs = conMap,
+               closureToFun = closureToFunMap,
                structsGlobal = ref [],
                structsLocal = ref [],
                preDeclEmit = ref []
@@ -872,6 +889,7 @@ structure C1 = struct
                onlyDecls = true,
                exports = #exports s,
                constrs = #constrs s,
+               closureToFun = #closureToFun s,
                structsGlobal = #structsGlobal s,
                structsLocal = #structsLocal s,
                preDeclEmit = #preDeclEmit s

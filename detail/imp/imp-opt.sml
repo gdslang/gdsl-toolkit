@@ -832,6 +832,8 @@ structure TypeRefinement = struct
    
    val debugOn = ref false
    fun msg str = if !debugOn then TextIO.print str else ()
+   
+   val genFixedRecords = ref false
 
    exception TypeOptBug
    
@@ -859,6 +861,9 @@ structure TypeRefinement = struct
      | INTstype
      | OBJstype
    
+   fun isOBJstype (OBJstype) = true
+     | isOBJstype _ = false
+
    type state = {
      symType : (index SymMap.map) ref,
      fieldType : (index SymMap.map) ref,
@@ -867,14 +872,14 @@ structure TypeRefinement = struct
      origLocals : (vtype SymMap.map) ref,
      origFields : vtype SymMap.map
    }
-   
+
    fun showSType (VOIDstype) = "void"
      | showSType (VARstype idx) = "#" ^ Int.toString idx
      | showSType (BOXstype t) = "box(" ^ showSType t ^ ")"
      | showSType (FUNstype (res,cl,args)) = ("(") ^ #1 (
          foldl (fn (t,(str,sep)) => (str ^ sep ^ showSType t,","))
             ("", "") args
-         ) ^ (if cl=OBJstype then ") => " else ") -> ") ^ showSType res
+         ) ^ (if isOBJstype cl then ") => " else ") -> ") ^ showSType res
      | showSType (MONADstype r) = "M " ^ showSType r
      | showSType (RECORDstype (fs,b)) = "{" ^ #1 (
          foldl (fn ((b,f,t),(str,sep)) => (str ^ sep ^
@@ -1142,11 +1147,17 @@ structure TypeRefinement = struct
 
    and visitExp s (IDexp sym) = symType s sym
      | visitExp s (PRIexp (SLICEprim,t,es as [vec,ofs,LITexp (INTvtype, INTlit sz)])) =
-         visitCall s (FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), VOIDstype, [INTstype, INTstype, INTstype]), es)
-     | visitExp s (PRIexp (f,t,es)) = visitCall s (vtypeToStype s t, es)
-     | visitExp s (CALLexp (sym,es)) = visitCall s (symType s sym, es)
-     | visitExp s (INVOKEexp (t,e,es)) = visitCall s (visitExp s e, es)
-     | visitExp s (RECORDexp fs) = RECORDstype (map (fn (f,e) => (true, f, visitExp s e)) fs, false)
+         visitCall s (false, FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), VOIDstype, [INTstype, INTstype, INTstype]), es)
+     | visitExp s (PRIexp (f,t,es)) = visitCall s (false, vtypeToStype s t, es)
+     | visitExp s (CALLexp (sym,es)) = visitCall s (false, symType s sym, es)
+     | visitExp s (INVOKEexp (t,IDexp sym,es)) = visitCall s (false, visitExp s (IDexp sym), es)
+     | visitExp s (INVOKEexp (t,e,es)) = visitCall s (true, visitExp s e, es)
+     | visitExp s (RECORDexp fs) = 
+      if !genFixedRecords then
+         RECORDstype (map (fn (f,e) => (true, f, visitExp s e)) fs, false)
+      else
+         (map (fn (f,e) => lub (s,fieldType s f, visitExp s e)) fs;
+         OBJstype)
      | visitExp s (LITexp (ty,lit)) = vtypeToStype s ty
      | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
      | visitExp s (UNBOXexp (t,e)) =
@@ -1177,7 +1188,7 @@ structure TypeRefinement = struct
             val isCl = if List.null es then freshTVar s else OBJstype
             val t = lub (s,returnTy, FUNstype (resTy, isCl, delTysS))
             val _ = lub (s,symType s name, FUNstype (returnTy, isCl, clTysS))
-            val _ = lub (s,symType s del,  FUNstype (resTy, isCl, clTysS @ delTysS))
+            val _ = lub (s,symType s del,  FUNstype (resTy, VOIDstype, clTysS @ delTysS))
             val _ = msg ("CLOSUREexp: looking for symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showSType (inlineSType s (symType s name)) ^ "\n")
          in
            returnTy
@@ -1196,11 +1207,11 @@ structure TypeRefinement = struct
          resVar
       end
    
-   and visitCall s (fTy,args) =
+   and visitCall s (forceClosure,fTy,args) =
       let
+         val cl = if forceClosure then OBJstype else VOIDstype
          val resTy = freshTVar s
-         val isCl = if null args then VOIDstype else OBJstype
-         val _ = lub (s,FUNstype (resTy,isCl,map (visitExp s) args),fTy)
+         val _ = lub (s,FUNstype (resTy,cl,map (visitExp s) args),fTy)
       in
          resTy
       end
@@ -1217,8 +1228,7 @@ structure TypeRefinement = struct
          val _ = msg ("visitDecl start " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ showSType (inlineSType s (symType s name)) ^ "\n")
          val _ = visitBlock s block
          fun argTypes args = map (fn (_,sym) => symType s sym) args
-         val isCl = if null clArgs then VOIDstype else OBJstype
-         val ty = FUNstype (symType s res, isCl, argTypes clArgs @ argTypes args)
+         val ty = FUNstype (symType s res, VOIDstype, argTypes clArgs @ argTypes args)
          val _ = msg ("visitDecl basic type " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " : " ^ showSType (ty) ^ "\n")
          val _ = msg ("visitDecl end   " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^ " : " ^ showSType (inlineSType s ty) ^ "\n")
       in
@@ -1232,6 +1242,9 @@ structure TypeRefinement = struct
       let
          val fTy = freshTVar s
          val reTy = RECORDstype ([(true,f,fTy)],true)
+         val reTy = if !genFixedRecords then reTy else (
+            lub (s,fieldType s f, fTy);
+            OBJstype)
       in
          lub (s, symType s name, FUNstype (fTy, VOIDstype, [reTy]))
       end
@@ -1243,7 +1256,10 @@ structure TypeRefinement = struct
       }) =
       let
          val fsTys = map (fn f => (true, f, freshTVar s)) fs
-         val reTy = lub (s, RECORDstype (fsTys,true), symType s arg)
+         val recTy = if !genFixedRecords then RECORDstype (fsTys,true) else
+            (map (fn (_,f,t) => lub (s,fieldType s f, t)) fsTys;
+            OBJstype)
+         val reTy = lub (s, recTy, symType s arg)
       in
          lub (s, symType s name, FUNstype (reTy, OBJstype, map #3 fsTys @ [reTy]))
       end
@@ -1267,7 +1283,7 @@ structure TypeRefinement = struct
          val clTysS = map (fn _ => freshTVar s) clTys
          val delTysS = map (symType s o #2) delArgs
          val t = lub (s, symType s name, FUNstype (FUNstype (resTy, isCl, delTysS), isCl, clTysS))
-         val _ = lub (s, symType s del, FUNstype (resTy,isCl,clTysS @ delTysS))
+         val _ = lub (s, symType s del, FUNstype (resTy,VOIDstype,clTysS @ delTysS))
          val _ = msg ("visitDecl CLOSURE: type after: " ^ showSType (inlineSType s (symType s name)) ^ "\n")
       in
          t
@@ -1351,7 +1367,7 @@ structure TypeRefinement = struct
            | genAdj (STRINGstype) = STRINGvtype
            | genAdj (OBJstype) = OBJvtype
            | genAdj (FUNstype (r,cl,args)) =
-               FUNvtype (adjustType s (OBJvtype, r), true, map (fn arg => adjustType s (OBJvtype, arg)) args)
+               FUNvtype (adjustType s (OBJvtype, r), isOBJstype cl, map (fn arg => adjustType s (OBJvtype, arg)) args)
            | genAdj (MONADstype r) = MONADvtype (genAdj r)
            | genAdj (RECORDstype (fs,b)) = if List.all #1 fs then RECORDvtype (map (fn (_,f,t) => (f, genAdj t)) fs) else OBJvtype
            | genAdj t = (TextIO.print ("adjustType of " ^ showSType new ^ ", that is, " ^ showSType (inlineSType s new) ^ "\n"); raise TypeOptBug)
@@ -1361,7 +1377,7 @@ structure TypeRefinement = struct
           | VOIDvtype => genAdj (inlineSType s new)
           | (FUNvtype (rOrig,clOrig,argsOrig)) => (case inlineSType s new of
                 (FUNstype (r,cl,args)) => (
-                  FUNvtype (adjustType s (rOrig,r), true, map (adjustType s) (ListPair.zipEq (argsOrig, args)))
+                  FUNvtype (adjustType s (rOrig,r), isOBJstype cl, map (adjustType s) (ListPair.zipEq (argsOrig, args)))
                      handle ListPair.UnequalLengths =>
                         (TextIO.print ("adjustType of " ^ Layout.tostring (Imp.PP.vtype (FUNvtype (rOrig,clOrig,argsOrig))) ^ " and " ^ showSType (FUNstype (r,cl,args)) ^ ", unequal length\n"); raise TypeOptBug)
                 )
@@ -1504,7 +1520,13 @@ structure TypeRefinement = struct
          val _ = msg ("patchExp INVOKE " ^ Layout.tostring (Imp.PP.exp e) ^ "\n")
          val (wrap, tyNew, esNew) = patchCall s (ty,visitExp s e, map (patchExp s) es)
       in
-         wrap (INVOKEexp (tyNew, eNew, esNew))
+         case tyNew of
+            FUNvtype (_,true,_) => wrap (INVOKEexp (tyNew, eNew, esNew))
+          | FUNvtype (_,false,_) => (case e of
+               IDexp sym => wrap (CALLexp (sym, esNew))
+             | _ => raise TypeOptBug (* the flag shouldn't be true if e is not an identifier *)
+           )
+          | _ => raise TypeOptBug (* must be function type *)
       end
      | patchExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) =>
          (f, writeWrap s (origFType s f, fieldType s f, patchExp s e))) fs)
@@ -1518,7 +1540,16 @@ structure TypeRefinement = struct
          val _ = msg ("patchExp CLOSURE " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " from " ^ Layout.tostring (Imp.PP.vtype (origType s sym)) ^ " to " ^ showSType (inlineSType s (symType s sym)) ^ "\n")
          val (wrap, tyNew,esNew) = patchCall s (ty, symType s sym, map (patchExp s) es)
       in
-         wrap (CLOSUREexp (tyNew,sym,esNew))
+         case tyNew of
+            FUNvtype (_,true,_) => wrap (CLOSUREexp (tyNew,sym,esNew))
+          | FUNvtype (_,false,_) =>
+               let
+                  val (SOME decl) = SymMap.find (#origDecls (s : state), sym)
+                  val (CLOSUREdecl { closureDelegate = del, ... }) = decl
+               in
+                  IDexp del
+               end
+          | _ => raise TypeOptBug (* must be function type *)
       end
      | patchExp s (STATEexp (b,t,e)) = STATEexp (patchBlock s b, adjustType s (t,visitExp s e), writeWrap s (t,visitExp s e,patchExp s e))
      | patchExp s (EXECexp (ty, e)) =
