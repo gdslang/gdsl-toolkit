@@ -35,9 +35,8 @@ public:
 		return size;
 	}
 
-	void print();
-	void print_size();
-	virtual void print_inner() = 0;
+	string print();
+	virtual string print_inner() = 0;
 
 	virtual char contains(struct rreil_variable *variable) = 0;
 	virtual bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_) = 0;

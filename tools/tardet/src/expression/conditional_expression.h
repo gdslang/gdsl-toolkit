@@ -8,7 +8,9 @@
 #ifndef CONDITIONAL_EXPRESSION_H_
 #define CONDITIONAL_EXPRESSION_H_
 
+#include <stdint.h>
 #include <memory>
+#include <string>
 #include "expression.h"
 
 using namespace std;
@@ -25,7 +27,7 @@ public:
 		return inner;
 	}
 
-	void print_inner();
+	string print_inner();
 
 	char contains(struct rreil_variable *variable);
 	bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_);

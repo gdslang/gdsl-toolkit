@@ -8,6 +8,10 @@
 #ifndef X86_H_
 #define X86_H_
 
+#include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
+
 enum x86_id {
 	X86_ID_IP,
 	X86_ID_FLAGS,
@@ -84,7 +88,7 @@ enum x86_id_type {
 	X86_ID_TYPE_SSE
 };
 
-extern void x86_id_print(enum x86_id id);
+extern void x86_id_print(FILE *stream, enum x86_id id);
 extern size_t x86_amd64_sizeof(enum x86_id id);
 extern enum x86_id_type x86_id_type_get(enum x86_id id);
 

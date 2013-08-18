@@ -1,5 +1,6 @@
 
 #include <stdint.h>
+#include <string>
 #include "modulo.h"
 
 uint64_t modulo::evaluate(uint64_t a, uint64_t b) {
@@ -11,6 +12,6 @@ expression *modulo::construct(shared_ptr<expression> left,
 	return new modulo(left, right, size_get());
 }
 
-void modulo::print_inner() {
-	binary_expression::print_inner("%");
+string modulo::print_inner() {
+	return binary_expression::print_inner("%");
 }

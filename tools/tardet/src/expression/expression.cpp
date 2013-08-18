@@ -12,6 +12,7 @@
 extern "C" {
 #include <rreil/rreil.h>
 }
+#include "../util.hpp"
 #include "expression.h"
 #include "expressions.h"
 
@@ -24,13 +25,10 @@ shared_ptr<expression> expression::not_(shared_ptr<expression> other) {
 	return shared_ptr<expression>(new xor_expression(other, shared_ptr<expression>(new immediate(1, 1)), 1));
 }
 
-void expression::print() {
-	print_inner();
-	print_size();
-}
-
-void expression::print_size() {
-	printf(":%lu", size);
+string expression::print() {
+	string e = print_inner();
+	string_format_append(e, ":%lu", size);
+	return e;
 }
 
 shared_ptr<expression> expression::from_rreil_linear(struct rreil_linear* linear, uint64_t size) {

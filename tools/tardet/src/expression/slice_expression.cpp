@@ -9,6 +9,8 @@
 #include <stdio.h>
 #include <vector>
 #include <memory>
+#include <string>
+#include "../util.hpp"
 #include "expressions.h"
 extern "C" {
 #include <util.h>
@@ -25,27 +27,29 @@ slice_expression::slice_expression(vector<struct slice_element> elements, size_t
 slice_expression::~slice_expression() {
 }
 
-void slice_expression::print_inner() {
+string slice_expression::print_inner() {
 	auto print_element = [&](struct slice_element *element) {
-		element->expression->print_inner();
+		string r = element->expression->print_inner();
 		if(element->size != get_size())
-		printf(":%lu", element->size);
+			string_format_append(r, ":%lu", element->size);
 		if(element->offset)
-		printf("/%lu", element->offset);
+			string_format_append(r, "/%lu", element->offset);
+		return r;
 	};
 
+	string r = "";
 	if(elements.size() > 1) {
-		printf("[");
+		r = "[";
 		for(size_t i = 0; i < elements.size(); ++i) {
 			if(i)
-				printf(", ");
-			printf("{");
-			print_element(&elements[i]);
-			printf("}");
+				r.append(", ");
+			string_format_append(r, "{%s}", print_element(&elements[i]).c_str());
 		}
-		printf("]");
+		r.append("]");
 	} else if(elements.size())
-		print_element(&elements[0]);
+		r = print_element(&elements[0]);
+
+	return r;
 }
 
 char slice_expression::contains(struct rreil_variable *variable) {

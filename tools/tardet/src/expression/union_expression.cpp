@@ -5,6 +5,7 @@
  *      Author: jucs
  */
 
+#include <stdint.h>
 #include <memory>
 #include <vector>
 #include "expression.h"
@@ -25,18 +26,17 @@ union_expression::~union_expression() {
 	// TODO Auto-generated destructor stub
 }
 
-void union_expression::print_inner() {
-	if(children.size() == 1) {
-		children[0]->print_inner();
-		return;
-	}
-	printf("[");
+string union_expression::print_inner() {
+	if(children.size() == 1)
+		return children[0]->print_inner();
+	string r = "[";
 	for(size_t i = 0; i < children.size(); ++i) {
 		if(i)
-			printf(", ");
-		children[i]->print();
+			r.append(", ");
+		r.append(children[i]->print());
 	}
-	printf("]");
+	r.append("]");
+	return r;
 }
 
 char union_expression::contains(struct rreil_variable *variable) {

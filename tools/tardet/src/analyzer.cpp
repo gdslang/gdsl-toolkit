@@ -99,8 +99,7 @@ static shared_ptr<expression> analyze(struct rreil_statements statements, shared
 				struct rreil_variable *lhs = current->assign.lhs;
 
 				if(exp->contains(lhs)) {
-					exp->print();
-					printf("\n");
+					printf("%s\n", exp->print().c_str());
 					fflush(stdout);
 
 					shared_ptr<expression> new_ = expression::from_rreil_op(current->assign.rhs);
@@ -188,8 +187,7 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 
 //		printf("%zu\n", count++);
 
-				exp->print();
-				printf("\n");
+				printf("%s\n", exp->print().c_str());
 
 				fflush(stdout);
 

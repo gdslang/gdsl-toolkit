@@ -1,5 +1,6 @@
 
 #include <stdint.h>
+#include <string>
 #include "xor_expression.h"
 
 uint64_t xor_expression::evaluate(uint64_t a, uint64_t b) {
@@ -11,7 +12,7 @@ expression *xor_expression::construct(shared_ptr<expression> left,
 	return new xor_expression(left, right, size_get());
 }
 
-void xor_expression::print_inner() {
-	binary_expression::print_inner("^");
+string xor_expression::print_inner() {
+	return binary_expression::print_inner("^");
 }
 

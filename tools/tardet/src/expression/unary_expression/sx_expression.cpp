@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string>
+#include "../../util.hpp"
 #include "sx_expression.h"
 extern "C" {
 #include <context.h>
@@ -52,8 +54,6 @@ char sx_expression::evaluate(uint64_t *result) {
 	return true;
 }
 
-void sx_expression::print_inner() {
-	printf("([%lu->s%lu] ", operand->get_size(), get_size());
-	operand->print_inner();
-	printf(")");
+string sx_expression::print_inner() {
+	return string_format("([%lu->s%lu] %s", operand->get_size(), get_size(), operand->print_inner().c_str());
 }

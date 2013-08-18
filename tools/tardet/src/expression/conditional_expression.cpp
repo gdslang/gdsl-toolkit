@@ -5,7 +5,10 @@
  *      Author: jucs
  */
 
+#include <stdint.h>
 #include <memory>
+#include <string>
+#include "../util.hpp"
 #include "expression.h"
 #include "expressions.h"
 #include "conditional_expression.h"
@@ -23,11 +26,8 @@ conditional_expression::~conditional_expression() {
 	// TODO Auto-generated destructor stub
 }
 
-void conditional_expression::print_inner() {
-	printf("if ");
-	condition->print_inner();
-	printf(" => ");
-	inner->print_inner();
+string conditional_expression::print_inner() {
+	return string_format("if %s => %s", condition->print_inner().c_str(), inner->print_inner().c_str());
 }
 
 char conditional_expression::contains(struct rreil_variable *variable) {

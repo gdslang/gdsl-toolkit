@@ -77,6 +77,6 @@ expression *compare::construct(shared_ptr<expression> left, shared_ptr<expressio
 	return new compare(left, right, op);
 }
 
-void compare::print_inner() {
-	binary_expression::print_inner(op->print());
+string compare::print_inner() {
+	return binary_expression::print_inner(op->print());
 }

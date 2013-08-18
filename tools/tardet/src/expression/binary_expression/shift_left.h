@@ -9,6 +9,7 @@
 #define SHIFT_LEFT_H_
 
 #include <stdint.h>
+#include <string>
 #include "binary_expression.h"
 
 class shift_left: public binary_expression {
@@ -20,7 +21,7 @@ public:
 	uint64_t evaluate(uint64_t a, uint64_t b);
 	expression *construct(shared_ptr<expression> left,
 				shared_ptr<expression> right);
-	void print_inner();
+	string print_inner();
 };
 
 #endif /* SHIFT_LEFT_H_ */

@@ -8,6 +8,7 @@
 #ifndef ADDITION_H_
 #define ADDITION_H_
 
+#include <string.h>
 #include <stdint.h>
 #include "binary_expression.h"
 
@@ -20,7 +21,7 @@ public:
 	uint64_t evaluate(uint64_t a, uint64_t b);
 	expression *construct(shared_ptr<expression> left,
 				shared_ptr<expression> right);
-	void print_inner();
+	string print_inner();
 };
 
 #endif /* ADDITION_H_ */

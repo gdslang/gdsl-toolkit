@@ -17,7 +17,7 @@ extern "C" {
 }
 
 bbgraph_rrnode::~bbgraph_rrnode() {
-	for (size_t i = 0; i < stmts.statements_length; ++i)
+	for(size_t i = 0; i < stmts.statements_length; ++i)
 		rreil_statement_free(stmts.statements[i]);
 	free(stmts.statements);
 }
@@ -31,19 +31,20 @@ shared_ptr<expression> bbgraph_rrnode::get_exp() {
 			return expressions[0]->get_inner();
 		}
 		default: {
-			vector<shared_ptr<expression>> expressions = vector<shared_ptr<expression>>(this->expressions.begin(), this->expressions.end());
+			vector<shared_ptr<expression>> expressions = vector<shared_ptr<expression>>(this->expressions.begin(),
+					this->expressions.end());
 			shared_ptr<union_expression> union_exp = make_shared<union_expression>(expressions, expressions[0]->get_size());
 			return union_exp;
 		}
 	}
 }
 
-bool bbgraph_rrnode::has_subgraph() {
-	for(size_t i = 0; i < children.size(); ++i)
-		if(children[i].dst.lock()->get_id()->get_address_machine() == id->get_address_machine())
-			return true;
-	return false;
-}
+//bool bbgraph_rrnode::has_subgraph() {
+//	for(size_t i = 0; i < children.size(); ++i)
+//		if(children[i].dst.lock()->get_id()->get_address_machine() == id->get_address_machine())
+//			return true;
+//	return false;
+//}
 
 void bbgraph_rrnode::add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition) {
 //	for (size_t i = 0; i < children.size(); ++i) {
@@ -86,7 +87,8 @@ void bbgraph_rrnode::add_expression(shared_ptr<expression> expression) {
 //	if(uexp == NULL)
 //		uexp = shared_ptr<union_expression>(new union_expression(expression->get_size()));
 //	uexp->add(expression);
-	shared_ptr<conditional_expression> cond_exp = make_shared<conditional_expression>(conditional_expression::true_, expression, expression->size_get());
+	shared_ptr<conditional_expression> cond_exp = make_shared<conditional_expression>(conditional_expression::true_,
+			expression, expression->size_get());
 	add_expression(cond_exp);
 }
 
@@ -117,22 +119,21 @@ void bbgraph_rrnode::unmark_all(set<size_t> &seen) {
 //		printf(";\n");
 //}
 
-void bbgraph_rrnode::print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) {
-	if(is_marked())
-		return;
-	mark();
-	printf("\t\t\"%s\" [label=%zu];\n", id->to_string().c_str(), id->get_inner());
-	for(size_t i = 0; i < children.size(); ++i) {
-		auto child = children[i].dst.lock();
-		if(child->get_id()->get_address_machine() == id->get_address_machine()) {
-			printf("\t\t\"%s\" -> \"%s\" [label=\"", id->to_string().c_str(), child->get_id()->to_string().c_str());
-			children[i].condition->print();
-			printf("\"];\n");
-			child->print_dot_subgraph(outsiders);
-		} else
-			outsiders.push(child);
-	}
-}
+//void bbgraph_rrnode::print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) {
+//	if(is_marked())
+//		return;
+//	mark();
+//	printf("\t\t\"%s\" [label=%zu];\n", id->to_string().c_str(), id->get_inner());
+//	for(size_t i = 0; i < children.size(); ++i) {
+//		auto child = children[i].dst.lock();
+//		if(child->get_id()->get_address_machine() == id->get_address_machine()) {
+//			printf("\t\t\"%s\" -> \"%s\" [label=\"%s\"];\n", id->to_string().c_str(), child->get_id()->to_string().c_str(),
+//					children[i].condition->print().c_str());
+//			child->print_dot_subgraph(outsiders);
+//		} else
+//			outsiders.push(child);
+//	}
+//}
 
 void bbgraph_rrnode::print_dot() {
 //	printf("\t\"%s\" [label=\"%p\"];\n", id->to_string().c_str(), (void*)id->get_address_machine());
@@ -166,9 +167,8 @@ void bbgraph_rrnode::print_dot() {
 				auto child = children[i].dst.lock();
 
 				if(child->get_id()->get_address_machine() == node->get_id()->get_address_machine()) {
-					printf("\t\t\"%s\" -> \"%s\" [label=\"", sub->id->to_string().c_str(), child->get_id()->to_string().c_str());
-					children[i].condition->print();
-					printf("\"];\n");
+					printf("\t\t\"%s\" -> \"%s\" [label=\"%s\"];\n", sub->id->to_string().c_str(),
+							child->get_id()->to_string().c_str(), children[i].condition->print().c_str());
 					child->print_dot_queue_push(subs);
 				} else
 					nodes.push(child);

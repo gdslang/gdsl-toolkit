@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string>
+#include "../../util.hpp"
 #include "zx_expression.h"
 
 zx_expression::zx_expression(shared_ptr<expression> operand, size_t to_size) :
@@ -35,8 +37,6 @@ char zx_expression::evaluate(uint64_t *result) {
 	return operand->evaluate(result);
 }
 
-void zx_expression::print_inner() {
-	printf("([%lu->u%lu] ", operand->get_size(), get_size());
-	operand->print_inner();
-	printf(")");
+string zx_expression::print_inner() {
+	return string_format("([%lu->u%lu] %s", operand->get_size(), get_size(), operand->print_inner().c_str());
 }

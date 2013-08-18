@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <memory>
+#include <string>
 #include "expression.h"
 
 using namespace std;
@@ -28,7 +29,7 @@ public:
 	slice_expression(vector<struct slice_element> elements, size_t size);
 	virtual ~slice_expression();
 
-	void print_inner();
+	string print_inner();
 
 	virtual char contains(struct rreil_variable *variable);
 	virtual bool substitute(struct rreil_variable *old,

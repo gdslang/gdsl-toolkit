@@ -77,9 +77,9 @@ public:
 	virtual void unmark_all(set<size_t> &seen) = 0;
 
 	virtual void print_dot() = 0;
-	virtual bool has_subgraph() = 0;
+//	virtual bool has_subgraph() = 0;
 //	void print_dot_label();
-	virtual void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) = 0;
+//	virtual void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) = 0;
 	virtual void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) = 0;
 
 	virtual bool replace_with(shared_ptr<bbgraph_node> other) = 0;

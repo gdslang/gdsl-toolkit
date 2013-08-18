@@ -8,6 +8,7 @@
 #ifndef SX_EXPRESSION_H_
 #define SX_EXPRESSION_H_
 
+#include <string>
 #include "../expression.h"
 
 class sx_expression: public expression {
@@ -22,7 +23,7 @@ public:
 	bool substitute(struct rreil_variable *old,
 				shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result);
-	void print_inner();
+	string print_inner();
 };
 #endif /* SX_EXPRESSION_H_ */
 

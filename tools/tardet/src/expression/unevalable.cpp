@@ -5,10 +5,12 @@
  *      Author: jucs
  */
 
+#include <stdint.h>
+#include <string>
 #include "unevalable.h"
 
-void unevalable::print_inner() {
-	printf("$unevalable");
+string unevalable::print_inner() {
+	return "$unevalable";
 }
 
 char unevalable::contains(struct rreil_variable *variable) {

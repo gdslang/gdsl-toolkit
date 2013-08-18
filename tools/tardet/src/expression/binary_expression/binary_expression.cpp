@@ -8,16 +8,13 @@
 #include <memory>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
 #include "binary_expression.h"
 
 using namespace std;
 
-void binary_expression::print_inner(string op) {
-	printf("(");
-	left->print_inner();
-	printf(" %s ", op.c_str());
-	right->print_inner();
-	printf(")");
+string binary_expression::print_inner(string op) {
+	return "(" + left->print_inner() + " " + op + " " + right->print_inner() + ")";
 }
 
 char binary_expression::contains(rreil_variable *variable) {

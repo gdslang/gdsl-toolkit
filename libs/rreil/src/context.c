@@ -161,7 +161,7 @@ void context_x86_print(struct context *context) {
 		 * Todo: Extra function for printing
 		 */
 		printf("Register ");
-		x86_id_print(id_x86);
+		x86_id_print(stdout, id_x86);
 		printf(": ");
 
 		size_t rest = 0;
@@ -262,7 +262,7 @@ char context_compare_print(struct tracking_trace *trace,
 		if(found)
 			printf(", ");
 
-		x86_id_print(reg);
+		x86_id_print(stdout, reg);
 		found = 1;
 	}
 

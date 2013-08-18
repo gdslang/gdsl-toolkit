@@ -19,7 +19,7 @@ public:
 	virtual ~arb_expression() {
 	}
 
-	void print_inner();
+	string print_inner();
 
 	char contains(struct rreil_variable *variable);
 	bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_);

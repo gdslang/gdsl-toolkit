@@ -1,5 +1,6 @@
 
 #include <stdint.h>
+#include <string>
 #include "or_expression.h"
 
 uint64_t or_expression::evaluate(uint64_t a, uint64_t b) {
@@ -11,7 +12,7 @@ expression *or_expression::construct(shared_ptr<expression> left,
 	return new or_expression(left, right, size_get());
 }
 
-void or_expression::print_inner() {
-	binary_expression::print_inner("|");
+string or_expression::print_inner() {
+	return binary_expression::print_inner("|");
 }
 

@@ -5,6 +5,8 @@
  *      Author: jucs
  */
 
+#include <stdint.h>
+#include <string>
 #include "multiplication.h"
 
 multiplication::multiplication(shared_ptr<expression> left,
@@ -25,6 +27,6 @@ expression *multiplication::construct(shared_ptr<expression> left,
 	return new multiplication(left, right, size_get());
 }
 
-void multiplication::print_inner() {
-	binary_expression::print_inner("*");
+string multiplication::print_inner() {
+	return binary_expression::print_inner("*");
 }

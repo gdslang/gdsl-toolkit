@@ -65,43 +65,43 @@ void rreil_comparator_print(struct rreil_comparator *comparator) {
 	rreil_linear_print(comparator->arity2.opnd2);
 }
 
-void rreil_id_print(struct rreil_id *id) {
+void rreil_id_print(FILE *stream, struct rreil_id *id) {
 	switch(id->type) {
 		case RREIL_ID_TYPE_VIRTUAL: {
 			switch(id->virtual_) {
 				case RREIL_ID_VIRTUAL_EQ: {
-					printf("RREIL_ID_VIRTUAL_EQ");
+					fprintf(stream, "RREIL_ID_VIRTUAL_EQ");
 					break;
 				}
 				case RREIL_ID_VIRTUAL_NEQ: {
-					printf("RREIL_ID_VIRTUAL_NEQ");
+					fprintf(stream, "RREIL_ID_VIRTUAL_NEQ");
 					break;
 				}
 				case RREIL_ID_VIRTUAL_LES: {
-					printf("RREIL_ID_VIRTUAL_LES");
+					fprintf(stream, "RREIL_ID_VIRTUAL_LES");
 					break;
 				}
 				case RREIL_ID_VIRTUAL_LEU: {
-					printf("RREIL_ID_VIRTUAL_LEU");
+					fprintf(stream, "RREIL_ID_VIRTUAL_LEU");
 					break;
 				}
 				case RREIL_ID_VIRTUAL_LTS: {
-					printf("RREIL_ID_VIRTUAL_LTS");
+					fprintf(stream, "RREIL_ID_VIRTUAL_LTS");
 					break;
 				}
 				case RREIL_ID_VIRTUAL_LTU: {
-					printf("RREIL_ID_VIRTUAL_LTU");
+					fprintf(stream, "RREIL_ID_VIRTUAL_LTU");
 					break;
 				}
 			}
 			break;
 		}
 		case RREIL_ID_TYPE_TEMPORARY: {
-			printf("T%lu", id->temporary);
+			fprintf(stream, "T%lu", id->temporary);
 			break;
 		}
 		case RREIL_ID_TYPE_X86: {
-			x86_id_print(id->x86);
+			x86_id_print(stream, id->x86);
 			break;
 		}
 	}
@@ -253,7 +253,7 @@ void rreil_sexpr_print(struct rreil_sexpr *sexpr) {
 }
 
 void rreil_variable_print(struct rreil_variable *variable) {
-	rreil_id_print(variable->id);
+	rreil_id_print(stdout, variable->id);
 	if(variable->offset)
 		printf("/%lu", variable->offset);
 }

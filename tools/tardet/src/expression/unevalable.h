@@ -9,6 +9,7 @@
 #define UNEVALABLE_H_
 
 #include <stdint.h>
+#include <string>
 #include "expression.h"
 
 class unevalable : public expression {
@@ -19,7 +20,7 @@ public:
 	virtual ~unevalable() {
 	}
 
-	void print_inner();
+	string print_inner();
 
 	char contains(struct rreil_variable *variable);
 	bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_);
