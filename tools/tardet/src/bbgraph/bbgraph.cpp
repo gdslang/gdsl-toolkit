@@ -13,6 +13,8 @@
 #include <map>
 #include <functional>
 #include <tuple>
+#include <string>
+#include "../util.hpp"
 #include "../expression/expression.h"
 #include "bbgraph.h"
 #include "bbgraph_node.h"
@@ -48,16 +50,18 @@ shared_ptr<bbgraph_node> bbgraph::get_root() {
 	return this->root;
 }
 
-void bbgraph::print_dot() {
+string bbgraph::print_dot() {
 	auto root = get_root();
 
 	unmark_all();
 
-	printf("digraph G {\n");
-	printf("\tnode [shape=box];\n");
-	printf("\tcompound=true;\n");
-	root->print_dot();
-	printf("}\n");
+	string r = "digraph G {\n";
+	r.append("\tnode [shape=box];\n");
+	r.append("\tcompound=true;\n");
+	r.append(root->print_dot());
+	r.append("}\n");
+
+	return r;
 }
 
 vector<shared_ptr<bbgraph_rrnode>> bbgraph::from_rreil_statements(struct rreil_statements *stmts, size_t address) {

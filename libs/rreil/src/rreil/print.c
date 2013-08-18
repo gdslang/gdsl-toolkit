@@ -110,7 +110,7 @@ void rreil_id_print(FILE *stream, struct rreil_id *id) {
 void rreil_linear_print(struct rreil_linear *linear) {
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
-			rreil_variable_print(linear->variable);
+			rreil_variable_print(stdout, linear->variable);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_IMMEDIATE: {
@@ -252,22 +252,22 @@ void rreil_sexpr_print(struct rreil_sexpr *sexpr) {
 	}
 }
 
-void rreil_variable_print(struct rreil_variable *variable) {
-	rreil_id_print(stdout, variable->id);
+void rreil_variable_print(FILE *stream, struct rreil_variable *variable) {
+	rreil_id_print(stream, variable->id);
 	if(variable->offset)
-		printf("/%lu", variable->offset);
+		fprintf(stream, "/%lu", variable->offset);
 }
 
 void rreil_statement_print(struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
-			rreil_variable_print(statement->assign.lhs);
+			rreil_variable_print(stdout, statement->assign.lhs);
 			printf(" = ");
 			rreil_op_print(statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
-			rreil_variable_print(statement->load.lhs);
+			rreil_variable_print(stdout, statement->load.lhs);
 			printf(" = {%lu} *(", statement->load.size);
 			rreil_address_print(statement->load.address);
 			printf(")");

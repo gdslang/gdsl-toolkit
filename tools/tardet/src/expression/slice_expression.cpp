@@ -31,9 +31,9 @@ string slice_expression::print_inner() {
 	auto print_element = [&](struct slice_element *element) {
 		string r = element->expression->print_inner();
 		if(element->size != get_size())
-			string_format_append(r, ":%lu", element->size);
+		string_format_append(r, ":%lu", element->size);
 		if(element->offset)
-			string_format_append(r, "/%lu", element->offset);
+		string_format_append(r, "/%lu", element->offset);
 		return r;
 	};
 
@@ -114,7 +114,10 @@ shared_ptr<expression> slice_expression::simplify() {
 		this->evaluate(&me);
 		return make_shared<immediate>(me, get_size());
 	}
-	auto element = elements[0];
-	if(element.expression->is_dead() || (!element.offset && element.size == element.expression->size_get()))
-		return element.expression;
+	if(elements.size() == 1) {
+		auto element = elements[0];
+		if(element.expression->is_dead() || (!element.offset/* && element.size == element.expression->size_get()*/))
+			return element.expression;
+	}
+	return shared_from_this();
 }

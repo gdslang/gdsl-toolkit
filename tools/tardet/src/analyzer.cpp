@@ -99,16 +99,26 @@ static shared_ptr<expression> analyze(struct rreil_statements statements, shared
 				struct rreil_variable *lhs = current->assign.lhs;
 
 				if(exp->contains(lhs)) {
-					printf("%s\n", exp->print().c_str());
-					fflush(stdout);
+					char *var_str;
+					size_t var_str_length;
+					FILE *var_stream = open_memstream(&var_str, &var_str_length);
+					rreil_variable_print(var_stream, current->assign.lhs);
+					fputc(0, var_stream);
+					fclose(var_stream);
 
 					shared_ptr<expression> new_ = expression::from_rreil_op(current->assign.rhs);
+
+					printf("Substituting %s for %s in %s...\n", new_->print().c_str(), var_str, exp->print().c_str());
+					free(var_str);
+
 					bool substituted = exp->substitute(current->assign.lhs, new_);
 					if(substituted) {
 						exp = new_;
 //						if(exp->is_dead() || exp->is_trivial())
 //							return exp;
 					}
+
+					printf("Result: %s\n", exp->print().c_str());
 				}
 				break;
 			}
@@ -182,8 +192,9 @@ vector<struct analysis_result> analyze(bbgraph *graph, shared_ptr<bbgraph_rrnode
 				continue;
 
 				exp = analyze(*next->get_stmts(), next->get_exp())->simplify();
+				printf("After simplification: %s\n", exp->print().c_str());
 				if(exp->is_dead() || exp->is_trivial())
-					break;
+				break;
 
 //		printf("%zu\n", count++);
 

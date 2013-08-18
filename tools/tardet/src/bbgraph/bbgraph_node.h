@@ -14,6 +14,7 @@
 #include <set>
 #include <vector>
 #include <queue>
+#include <string>
 #include "bbgraph_id.h"
 extern "C" {
 #include <rreil/rreil.h>
@@ -76,7 +77,7 @@ public:
 
 	virtual void unmark_all(set<size_t> &seen) = 0;
 
-	virtual void print_dot() = 0;
+	virtual string print_dot() = 0;
 //	virtual bool has_subgraph() = 0;
 //	void print_dot_label();
 //	virtual void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) = 0;
@@ -122,10 +123,10 @@ public:
 
 	void unmark_all(set<size_t> &seen);
 
-	bool has_subgraph();
+//	bool has_subgraph();
 //	void print_dot_label();
-	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
-	void print_dot();
+//	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
+	string print_dot();
 	void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) {
 		queue.push(shared_from_this());
 	}
@@ -149,10 +150,10 @@ public:
 
 	void unmark_all(set<size_t> &seen);
 
-	bool has_subgraph();
+//	bool has_subgraph();
 //	void print_dot_label();
-	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
-	void print_dot();
+//	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
+	string print_dot();
 	void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) {
 	}
 

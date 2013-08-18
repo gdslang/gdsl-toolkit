@@ -39,13 +39,15 @@ enum mode {
 struct options {
 	enum mode mode;
 	char const *parameter;
+	char const *graph_file;
 };
 
 static char args_parse(int argc, char **argv, struct options *options) {
 	options->mode = MODE_NONE;
+	options->graph_file = NULL;
 
 	while(1) {
-		char c = getopt(argc, argv, "cpm:f:");
+		char c = getopt(argc, argv, "cpm:f:g:");
 		switch(c) {
 			case 'c': {
 				options->mode = MODE_CLI;
@@ -63,6 +65,10 @@ static char args_parse(int argc, char **argv, struct options *options) {
 			case 'f': {
 				options->mode = MODE_FILE;
 				options->parameter = optarg;
+				break;
+			}
+			case 'g': {
+				options->graph_file = optarg;
 				break;
 			}
 			default: {
@@ -334,7 +340,7 @@ int main(int argc, char **argv) {
 		}
 
 		printf("°°°°°°°°°°°°°°°°°°°°°°°°\n");
-		g->print_dot();
+		printf("%s", g->print_dot().c_str());
 		printf("°°°°°°°°°°°°°°°°°°°°°°°°\n");
 
 
@@ -346,7 +352,11 @@ int main(int argc, char **argv) {
 //		break;
 	}
 
-	g->print_dot();
+	if(options.graph_file) {
+		FILE *gf = fopen(options.graph_file, "w");
+		fprintf(gf, "%s", g->print_dot().c_str());
+		fclose(gf);
+	}
 
 	free(data);
 

@@ -10,6 +10,8 @@
 #include <memory>
 #include <set>
 #include <queue>
+#include <string>
+#include "../util.hpp"
 #include "bbgraph_node.h"
 #include "../expression/expression.h"
 extern "C" {
@@ -135,8 +137,10 @@ void bbgraph_rrnode::unmark_all(set<size_t> &seen) {
 //	}
 //}
 
-void bbgraph_rrnode::print_dot() {
+string bbgraph_rrnode::print_dot() {
 //	printf("\t\"%s\" [label=\"%p\"];\n", id->to_string().c_str(), (void*)id->get_address_machine());
+
+	string r = "";
 
 	auto subs = queue<shared_ptr<bbgraph_rrnode>>();
 	auto nodes = queue<shared_ptr<bbgraph_node>>();
@@ -150,8 +154,8 @@ void bbgraph_rrnode::print_dot() {
 		if(node->is_marked())
 			continue;
 
-		printf("\tsubgraph cluster%lx {\n", node->get_id()->get_address_machine());
-		printf("\t\tlabel=\"%lx\";\n", node->get_id()->get_address_machine());
+		string_format_append(r, "\tsubgraph cluster%lx {\n", node->get_id()->get_address_machine());
+		string_format_append(r, "\t\tlabel=\"%lx\";\n", node->get_id()->get_address_machine());
 		node->print_dot_queue_push(subs);
 		while(!subs.empty()) {
 			auto sub = subs.front();
@@ -161,33 +165,32 @@ void bbgraph_rrnode::print_dot() {
 				continue;
 			sub->mark();
 
-			printf("\t\t\"%s\" [label=%zu];\n", sub->get_id()->to_string().c_str(), sub->get_id()->get_inner());
+			string_format_append(r, "\t\t\"%s\" [label=%zu];\n", sub->get_id()->to_string().c_str(), sub->get_id()->get_inner());
 			auto &children = sub->get_children();
 			for(size_t i = 0; i < children.size(); ++i) {
 				auto child = children[i].dst.lock();
 
 				if(child->get_id()->get_address_machine() == node->get_id()->get_address_machine()) {
-					printf("\t\t\"%s\" -> \"%s\" [label=\"%s\"];\n", sub->id->to_string().c_str(),
+					string_format_append(r, "\t\t\"%s\" -> \"%s\" [label=\"%s\"];\n", sub->id->to_string().c_str(),
 							child->get_id()->to_string().c_str(), children[i].condition->print().c_str());
 					child->print_dot_queue_push(subs);
 				} else
 					nodes.push(child);
 			}
 		}
-		printf("\t}\n");
+		r.append("\t}\n");
 
 		auto &parents = node->get_parents();
 		for(size_t i = 0; i < parents.size(); ++i) {
 			auto parent = parents[i].dst.lock();
-			printf("\t\"%s\" -> \"%s\" [label=\"", parent->get_id()->to_string().c_str(),
+			string_format_append(r, "\t\"%s\" -> \"%s\" [label=\"...\"];\n", parent->get_id()->to_string().c_str(),
 					node->get_id()->to_string().c_str());
 //			parents[i].condition->print();
-			printf("...");
-			printf("\"];\n");
-
 //			printf("~~~~~~+ %s -- %p\n", node->get_id()->to_string().c_str(), node.get());
 		}
 	}
+
+	return r;
 //
 //
 //	if(is_marked())
@@ -230,14 +233,14 @@ void bbgraph_stubnode::unmark_all(set<size_t> &seen) {
 	marked = false;
 }
 
-bool bbgraph_stubnode::has_subgraph() {
-}
+//bool bbgraph_stubnode::has_subgraph() {
+//}
+//
+//void bbgraph_stubnode::print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) {
+//}
 
-void bbgraph_stubnode::print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) {
-}
-
-void bbgraph_stubnode::print_dot() {
-	printf("\t\"%s\" [color=\"red\"];\n", id->to_string().c_str(), id->get_inner());
+string bbgraph_stubnode::print_dot() {
+	return string_format("\t\"%s\" [color=\"red\"];\n", id->to_string().c_str(), id->get_inner());
 }
 
 bool bbgraph_stubnode::replace_with(shared_ptr<bbgraph_node> other) {

@@ -13,6 +13,7 @@
 #include <functional>
 #include <vector>
 #include <map>
+#include <string>
 #include "bbgraph_node.h"
 extern "C" {
 #include <rreil/rreil.h>
@@ -41,7 +42,7 @@ public:
 
 	shared_ptr<bbgraph_node> get_root();
 
-	void print_dot();
+	string print_dot();
 
 	shared_ptr<bbgraph_rrnode> rreil_add(struct rreil_statements *statements, int64_t offset);
 
