@@ -14,6 +14,7 @@
 #include "../util.hpp"
 #include "bbgraph_node.h"
 #include "../expression/expression.h"
+#include "../expression/expressions.h"
 extern "C" {
 #include <rreil/rreil.h>
 }
@@ -25,9 +26,11 @@ bbgraph_rrnode::~bbgraph_rrnode() {
 }
 
 shared_ptr<expression> bbgraph_rrnode::get_exp() {
+	if(this->get_id()->get_address_machine() == 0 && this->get_id()->get_inner() == 3)
+		printf("yippie.\n");
 	switch(expressions.size()) {
 		case 0: {
-			return NULL;
+			return make_shared<unevalable>();
 		}
 		case 1: {
 			return expressions[0]->get_inner();
@@ -183,8 +186,8 @@ string bbgraph_rrnode::print_dot() {
 		auto &parents = node->get_parents();
 		for(size_t i = 0; i < parents.size(); ++i) {
 			auto parent = parents[i].dst.lock();
-			string_format_append(r, "\t\"%s\" -> \"%s\" [label=\"...\"];\n", parent->get_id()->to_string().c_str(),
-					node->get_id()->to_string().c_str());
+			string_format_append(r, "\t\"%s\" -> \"%s\" [label=\"%s\"];\n", parent->get_id()->to_string().c_str(),
+					node->get_id()->to_string().c_str(), parents[i].condition->print().c_str());
 //			parents[i].condition->print();
 //			printf("~~~~~~+ %s -- %p\n", node->get_id()->to_string().c_str(), node.get());
 		}

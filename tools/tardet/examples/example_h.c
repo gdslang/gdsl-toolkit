@@ -20,7 +20,7 @@ int main(void) {
 	start:
 	asm (
 "mov $0x207, %rbx\n"
-//"mov $98, %rax\n"
+"mov $99, %rax\n"
 "cmp $99, %rax\n"
 "jne else\n"
 "add $0x99, %rbx\n"

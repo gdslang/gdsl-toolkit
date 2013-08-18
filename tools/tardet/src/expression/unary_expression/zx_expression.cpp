@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <string>
 #include "../../util.hpp"
+#include "../expressions.h"
 #include "zx_expression.h"
 
 zx_expression::zx_expression(shared_ptr<expression> operand, size_t to_size) :
@@ -39,4 +40,16 @@ char zx_expression::evaluate(uint64_t *result) {
 
 string zx_expression::print_inner() {
 	return string_format("([%lu->u%lu] %s", operand->get_size(), get_size(), operand->print_inner().c_str());
+}
+
+shared_ptr<expression> zx_expression::simplify() {
+	operand = operand->simplify();
+	if(operand->is_trivial()) {
+		uint64_t me;
+		evaluate(&me);
+		return make_shared<immediate>(me, get_size());
+	} else if(operand->is_dead())
+		return make_shared<unevalable>();
+	else
+		return shared_from_this();
 }

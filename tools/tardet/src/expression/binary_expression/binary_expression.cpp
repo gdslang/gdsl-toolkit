@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
+#include "../expressions.h"
 #include "binary_expression.h"
 
 using namespace std;
@@ -56,6 +57,8 @@ char binary_expression::evaluate(uint64_t *result) {
 shared_ptr<expression> binary_expression::simplify() {
 	left = left->simplify();
 	right = right->simplify();
+	if(left->is_dead() || right->is_dead())
+		return make_shared<unevalable>();
 	if(left->is_trivial() && right->is_trivial()) {
 		uint64_t a;
 		left->evaluate(&a);

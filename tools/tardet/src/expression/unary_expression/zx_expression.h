@@ -24,6 +24,7 @@ public:
 				shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result);
 	string print_inner();
+	virtual shared_ptr<expression> simplify();
 };
 #endif /* ZX_EXPRESSION_H_ */
 
