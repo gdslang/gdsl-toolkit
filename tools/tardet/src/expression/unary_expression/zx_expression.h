@@ -8,6 +8,7 @@
 #ifndef ZX_EXPRESSION_H_
 #define ZX_EXPRESSION_H_
 
+#include <string>
 #include "../expression.h"
 
 class zx_expression: public expression {
@@ -22,7 +23,8 @@ public:
 	bool substitute(struct rreil_variable *old,
 				shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result);
-	void print_inner();
+	string print_inner();
+	virtual shared_ptr<expression> simplify();
 };
 #endif /* ZX_EXPRESSION_H_ */
 

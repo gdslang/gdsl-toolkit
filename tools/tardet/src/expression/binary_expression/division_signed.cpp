@@ -1,5 +1,6 @@
 
 #include <stdint.h>
+#include <string>
 #include "division_signed.h"
 
 uint64_t division_signed::evaluate(uint64_t a, uint64_t b) {
@@ -11,7 +12,7 @@ expression *division_signed::construct(shared_ptr<expression> left,
 	return new division_signed(left, right, size_get());
 }
 
-void division_signed::print_inner() {
-	binary_expression::print_inner("/s");
+string division_signed::print_inner() {
+	return binary_expression::print_inner("/s");
 }
 

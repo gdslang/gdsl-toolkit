@@ -18,7 +18,7 @@ extern "C" {
 
 using namespace std;
 
-class expression {
+class expression : public enable_shared_from_this<expression> {
 private:
 	uint64_t size;
 
@@ -31,18 +31,26 @@ public:
 	virtual ~expression() {
 	}
 
-	uint64_t get_size() {
+	virtual uint64_t get_size() {
 		return size;
 	}
 
-	void print();
-	void print_size();
-	virtual void print_inner() = 0;
+	string print();
+	virtual string print_inner() = 0;
 
 	virtual char contains(struct rreil_variable *variable) = 0;
 	virtual bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_) = 0;
 	virtual char evaluate(uint64_t *result) = 0;
 //	virtual void require_size(uint64_t size);
+	virtual shared_ptr<expression> simplify() {
+		return shared_from_this();
+	}
+	virtual bool is_dead() {
+		return false;
+	}
+	virtual bool is_trivial() {
+		return false;
+	}
 
 	static shared_ptr<expression> true_;
 	static shared_ptr<expression> false_;

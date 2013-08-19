@@ -9,7 +9,7 @@ structure Main = struct
          Parser.run ins >>=
          ResolveSymbols.run >>= (fn ast =>
          ResolveTypeInfo.run ast >>= (fn tInfo =>
-         (*TypeInference.run (tInfo, ast) >>= (fn tys =>*)
+(*         TypeInference.run (tInfo, ast) >>= (fn tys =>*)
          Desugar.run ast >>=
          ImpPasses.run >>=
          (*Desugar.run ast >>=

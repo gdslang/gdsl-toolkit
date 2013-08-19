@@ -1,5 +1,6 @@
 
 #include <stdint.h>
+#include <string>
 #include "shift_right.h"
 extern "C" {
 #include <context.h>
@@ -35,6 +36,6 @@ expression *shift_right::construct(shared_ptr<expression> left,
 	return new shift_right(left, right, size_get());
 }
 
-void shift_right::print_inner() {
-	binary_expression::print_inner(">>u");
+string shift_right::print_inner() {
+	return binary_expression::print_inner(">>u");
 }

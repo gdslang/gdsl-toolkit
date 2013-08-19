@@ -3,6 +3,7 @@
 #define SHIFT_RIGHT_SIGNED_H_
 
 #include <stdint.h>
+#include <string>
 #include "binary_expression.h"
 
 class shift_right_signed: public binary_expression {
@@ -14,7 +15,7 @@ public:
 	uint64_t evaluate(uint64_t a, uint64_t b);
 	expression *construct(shared_ptr<expression> left,
 				shared_ptr<expression> right);
-	void print_inner();
+	string print_inner();
 //	void require_size(uint64_t size) {
 //	}
 };

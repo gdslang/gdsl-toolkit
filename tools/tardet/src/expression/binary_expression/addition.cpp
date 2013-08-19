@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include "addition.h"
+#include "../expressions.h"
 
 uint64_t addition::evaluate(uint64_t a, uint64_t b) {
 	return a + b;
@@ -17,7 +18,7 @@ expression *addition::construct(shared_ptr<expression> left,
 	return new addition(left, right, size_get());
 }
 
-void addition::print_inner() {
-	binary_expression::print_inner("+");
+string addition::print_inner() {
+	return binary_expression::print_inner("+");
 }
 

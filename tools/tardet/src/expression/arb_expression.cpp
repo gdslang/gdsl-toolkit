@@ -7,8 +7,8 @@
 
 #include "arb_expression.h"
 
-void arb_expression::print_inner() {
-	printf("$arbitrary");
+string arb_expression::print_inner() {
+	return "$arbitrary";
 }
 
 char arb_expression::contains(struct rreil_variable *variable) {

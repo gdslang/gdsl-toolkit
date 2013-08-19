@@ -13,9 +13,8 @@
 
 using namespace std;
 
-compare::compare(shared_ptr<expression> left, shared_ptr<expression> right,
-		uint64_t size, shared_ptr<compare_op> op) :
-binary_expression(left, right, size) {
+compare::compare(shared_ptr<expression> left, shared_ptr<expression> right, shared_ptr<compare_op> op) :
+binary_expression(left, right, 1) {
 	this->op = op;
 }
 
@@ -75,9 +74,9 @@ uint64_t compare::evaluate(uint64_t a, uint64_t b) {
 }
 
 expression *compare::construct(shared_ptr<expression> left, shared_ptr<expression> right) {
-	return new compare(left, right, size_get(), op);
+	return new compare(left, right, op);
 }
 
-void compare::print_inner() {
-	binary_expression::print_inner(op->print());
+string compare::print_inner() {
+	return binary_expression::print_inner(op->print());
 }

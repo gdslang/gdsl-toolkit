@@ -27,5 +27,6 @@
 #include "arb_expression.h"
 #include "conditional_expression.h"
 #include "union_expression.h"
+#include "unevalable.h"
 
 #endif /* EXPRESSIONS_H_ */

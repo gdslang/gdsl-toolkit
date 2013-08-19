@@ -2,6 +2,7 @@
 #ifndef DIVISION_UNSIGNED_H_
 #define DIVISION_UNSIGNED_H_
 
+#include <string>
 #include <stdint.h>
 #include "binary_expression.h"
 
@@ -14,7 +15,7 @@ public:
 	uint64_t evaluate(uint64_t a, uint64_t b);
 	expression *construct(shared_ptr<expression> left,
 				shared_ptr<expression> right);
-	void print_inner();
+	string print_inner();
 //	void require_size(uint64_t size) {
 //	}
 };

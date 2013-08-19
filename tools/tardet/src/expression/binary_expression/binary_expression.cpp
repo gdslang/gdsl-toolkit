@@ -8,16 +8,14 @@
 #include <memory>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string>
+#include "../expressions.h"
 #include "binary_expression.h"
 
 using namespace std;
 
-void binary_expression::print_inner(string op) {
-	printf("(");
-	left->print_inner();
-	printf(" %s ", op.c_str());
-	right->print_inner();
-	printf(")");
+string binary_expression::print_inner(string op) {
+	return "(" + left->print_inner() + " " + op + " " + right->print_inner() + ")";
 }
 
 char binary_expression::contains(rreil_variable *variable) {
@@ -54,4 +52,19 @@ char binary_expression::evaluate(uint64_t *result) {
 		return 0;
 	*result = evaluate(left_result, right_result);
 	return 1;
+}
+
+shared_ptr<expression> binary_expression::simplify() {
+	left = left->simplify();
+	right = right->simplify();
+	if(left->is_dead() || right->is_dead())
+		return make_shared<unevalable>();
+	if(left->is_trivial() && right->is_trivial()) {
+		uint64_t a;
+		left->evaluate(&a);
+		uint64_t b;
+		right->evaluate(&b);
+		return make_shared<immediate>(evaluate(a, b), get_size());
+	} else
+		return shared_from_this();
 }

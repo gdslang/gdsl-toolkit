@@ -5,7 +5,7 @@ INCDS=-Iinclude -I$(MLTK)/include
 CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 LIBRARY=librreil.a
-SOURCES=memory.c context.c rreil/free.c rreil/print.c rreil/rreil_id.c rreil/gdrr_builder.c simulator/ops.c simulator/regacc.c simulator/simulator.c simulator/tracking.o
+SOURCES=memory.c context.c rreil/free.c rreil/print.c rreil/copy.c rreil/rreil_id.c rreil/gdrr_builder.c simulator/ops.c simulator/regacc.c simulator/simulator.c simulator/tracking.o
 
 all: pre-build $(LIBRARY)
 

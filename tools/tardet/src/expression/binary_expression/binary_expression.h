@@ -20,7 +20,7 @@ protected:
 	shared_ptr<expression> left;
 	shared_ptr<expression> right;
 
-	void print_inner(string op);
+	string print_inner(string op);
 public:
 	binary_expression(shared_ptr<expression> left, shared_ptr<expression> right,
 			uint64_t size) :
@@ -36,6 +36,7 @@ public:
 	virtual uint64_t evaluate(uint64_t a, uint64_t b) = 0;
 	virtual expression *construct(shared_ptr<expression> left,
 			shared_ptr<expression> right) = 0;
+	virtual shared_ptr<expression> simplify();
 };
 
 //class division : public binary_expression {

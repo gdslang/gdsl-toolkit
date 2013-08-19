@@ -1,17 +1,20 @@
 /*
- * bbgraph_node.h
+ * bbgraph_rrnode.h
  *
  *  Created on: Aug 8, 2013
  *      Author: jucs
  */
 
-#ifndef bbgraph_NODE_H_
-#define bbgraph_NODE_H_
+#ifndef bbgraph_rrnode_H_
+#define bbgraph_rrnode_H_
 
 #include <stdlib.h>
 #include <stdint.h>
 #include <memory>
+#include <set>
 #include <vector>
+#include <queue>
+#include <string>
 #include "bbgraph_id.h"
 extern "C" {
 #include <rreil/rreil.h>
@@ -21,58 +24,44 @@ extern "C" {
 
 using namespace std;
 
-class bbgraph_node;
-
-struct bbgraph_branch {
-	weak_ptr<bbgraph_node> dst;
-	shared_ptr<expression> condition;
-};
+class bbgraph_rrnode;
 
 struct bbgraph_pref {
-	weak_ptr<bbgraph_node> dst;
+	weak_ptr<bbgraph_rrnode> dst;
 	shared_ptr<expression> condition;
 };
 
 class bbgraph_node {
-private:
-	bbgraph_id *id;
-	vector<struct bbgraph_branch> children;
+protected:
 	vector<struct bbgraph_pref> parents;
-	struct rreil_statements stmts;
 	bool marked = 0;
-	shared_ptr<union_expression> uexp;
+	bbgraph_id *id;
+	size_t count;
 
-	bool has_subgraph();
-//	void print_dot_label();
-	void print_dot_subgraph();
+	static size_t counter;
 public:
-	bbgraph_node(bbgraph_id *id, struct rreil_statements stmts) {
+	bbgraph_node(bbgraph_id *id) {
 		this->id = id;
-		children = vector<struct bbgraph_branch>();
-		parents = vector<struct bbgraph_pref>();
-		this->stmts = stmts;
 		marked = false;
-		uexp = NULL;
+		parents = vector<struct bbgraph_pref>();
+		count = counter++;
 	}
-	~bbgraph_node() {
-//		printf("Destructing: %s\n", this->id->to_string().c_str());
+	vector<struct bbgraph_pref> &get_parents() {
+		return parents;
+	}
+	void set_parents(vector<struct bbgraph_pref> parents) {
+		this->parents = parents;
+	}
+	size_t get_count() {
+		return count;
+	}
+
+	virtual ~bbgraph_node() {
+//		printf("Destructing: %p\n", this);
 		delete id;
-		free(stmts.statements);
 	}
 	bbgraph_id *get_id() {
 		return this->id;
-	}
-	vector<struct bbgraph_branch> get_children() {
-		return children;
-	}
-	vector<struct bbgraph_pref> get_parents() {
-		return parents;
-	}
-	struct rreil_statements *get_stmts() {
-		return &stmts;
-	}
-	shared_ptr<union_expression> get_uexp() {
-		return uexp;
 	}
 	bool is_marked() {
 		return marked;
@@ -80,15 +69,103 @@ public:
 	void mark() {
 		marked = true;
 	}
-	void unmark_all();
+	void unmark() {
+		marked = false;
+	}
 
-	void add_expression(shared_ptr<expression> expression);
+	void add_parent(shared_ptr<bbgraph_rrnode> parent, shared_ptr<expression> condition);
+
+	virtual void unmark_all(set<size_t> &seen) = 0;
+
+	virtual string print_dot() = 0;
+//	virtual bool has_subgraph() = 0;
+//	void print_dot_label();
+//	virtual void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders) = 0;
+	virtual void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) = 0;
+
+	virtual bool replace_with(shared_ptr<bbgraph_node> other) = 0;
+
+	virtual void reset() = 0;
+	virtual bool analyzed() = 0;
+};
+
+struct bbgraph_branch {
+	weak_ptr<bbgraph_node> dst;
+	shared_ptr<expression> condition;
+};
+
+class bbgraph_rrnode : public bbgraph_node,  public enable_shared_from_this<bbgraph_rrnode> {
+private:
+	vector<struct bbgraph_branch> children;
+	struct rreil_statements stmts;
+	vector<shared_ptr<conditional_expression>> expressions;
+
+public:
+	bbgraph_rrnode(bbgraph_id *id, struct rreil_statements stmts) : bbgraph_node(id) {
+		this->stmts = stmts;
+		children = vector<struct bbgraph_branch>();
+		expressions = vector<shared_ptr<conditional_expression>>();
+	}
+	~bbgraph_rrnode();
+	vector<struct bbgraph_branch> &get_children() {
+		return children;
+	}
+	struct rreil_statements *get_stmts() {
+		return &stmts;
+	}
+	shared_ptr<expression> get_exp();
 
 	void add_child(shared_ptr<bbgraph_node> child, shared_ptr<expression> condition);
-	void add_parent(shared_ptr<bbgraph_node> parent, shared_ptr<expression> condition);
 
-	void print_dot();
+	void add_expression(shared_ptr<conditional_expression> expression);
+	void add_expression(shared_ptr<expression> expression);
+	void set_expression(shared_ptr<expression> expression);
+
+	void unmark_all(set<size_t> &seen);
+
+//	bool has_subgraph();
+//	void print_dot_label();
+//	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
+	string print_dot();
+	void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) {
+		queue.push(shared_from_this());
+	}
+
+	bool replace_with(shared_ptr<bbgraph_node> other);
+
+	void reset() {
+		unmark();
+		expressions.clear();
+	}
+
+	bool analyzed() {
+		return true;
+	}
+};
+
+class bbgraph_stubnode : public bbgraph_node {
+public:
+	bbgraph_stubnode(bbgraph_id *id) : bbgraph_node(id) {
+	}
+
+	void unmark_all(set<size_t> &seen);
+
+//	bool has_subgraph();
+//	void print_dot_label();
+//	void print_dot_subgraph(queue<shared_ptr<bbgraph_node>> &outsiders);
+	string print_dot();
+	void print_dot_queue_push(queue<shared_ptr<bbgraph_rrnode>> &queue) {
+	}
+
+	bool replace_with(shared_ptr<bbgraph_node> other);
+
+	void reset() {
+		unmark();
+	}
+	bool analyzed() {
+		return false;
+	}
 };
 
 
-#endif /* bbgraph_NODE_H_ */
+#endif /* bbgraph_rrnode_H_ */

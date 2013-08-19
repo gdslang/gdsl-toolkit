@@ -392,7 +392,7 @@ void tracking_trace_print(struct tracking_trace *trace) {
 			struct register_ *reg = &access->x86_registers[id_x86];
 
 			printf("Register ");
-			x86_id_print(id_x86);
+			x86_id_print(stdout, id_x86);
 			printf(": ");
 
 			size_t rest = 0;

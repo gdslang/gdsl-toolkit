@@ -5,7 +5,7 @@
  *      Author: jucs
  */
 
-
+#include <stdlib.h>
 #include <rreil/rreil.h>
 
 void rreil_address_free(struct rreil_address *address) {

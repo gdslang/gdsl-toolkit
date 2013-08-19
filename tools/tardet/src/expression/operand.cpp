@@ -17,23 +17,31 @@ extern "C" {
 #include "operand.h"
 #include "../interval.h"
 #include "slice_expression.h"
+#include "../util.hpp"
 
 using namespace std;
 
-variable::variable(struct rreil_id *id, uint64_t size, uint64_t offset) :
+variable::variable(struct rreil_id id, uint64_t size, uint64_t offset) :
 		expression(size) {
 	this->id = id;
 	this->offset = offset;
 }
 
-void variable::print_inner() {
-	rreil_id_print(id);
+string variable::print_inner() {
+	char *id_str;
+	size_t id_str_length;
+	FILE *stream = open_memstream(&id_str, &id_str_length);
+	rreil_id_print(stream, &id);
 	if(offset)
-		printf("/%lu", offset);
+		fprintf(stream, "/%lu", offset);
+	fclose(stream);
+	string r = string(id_str);
+	free(id_str);
+	return r;
 }
 
 char variable::contains(struct rreil_variable *variable) {
-	if(!rreil_id_equals(this->id, variable->id))
+	if(!rreil_id_equals(&this->id, variable->id))
 		return 0;
 
 //	interval me = interval(offset, offset + size_get());
@@ -58,7 +66,7 @@ char variable::contains(struct rreil_variable *variable) {
 
 bool variable::substitute(struct rreil_variable *old,
 		shared_ptr<expression> &new_) {
-	if(!rreil_id_equals(id, old->id))
+	if(!rreil_id_equals(&id, old->id))
 		return false;
 
 	/*
@@ -149,8 +157,8 @@ immediate::immediate(uint64_t immediate, uint64_t size) :
 	this->immediate_ = immediate;
 }
 
-void immediate::print_inner() {
-	printf("%lu", this->immediate_);
+string immediate::print_inner() {
+	return string_format("%lu", this->immediate_);
 }
 
 //immediate::~immediate() {

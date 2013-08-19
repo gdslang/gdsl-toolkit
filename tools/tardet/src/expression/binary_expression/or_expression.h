@@ -3,6 +3,7 @@
 #define OR_EXPRESSION_H_
 
 #include <stdint.h>
+#include <string>
 #include "binary_expression.h"
 
 class or_expression: public binary_expression {
@@ -14,7 +15,7 @@ public:
 	uint64_t evaluate(uint64_t a, uint64_t b);
 	expression *construct(shared_ptr<expression> left,
 				shared_ptr<expression> right);
-	void print_inner();
+	string print_inner();
 };
 
 #endif /* OR_EXPRESSION_H_ */

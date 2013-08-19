@@ -9,234 +9,234 @@
 #include <stdio.h>
 #include <x86.h>
 
-void x86_id_print(enum x86_id id) {
+void x86_id_print(FILE *stream, enum x86_id id) {
 	switch(id) {
 		case X86_ID_IP: {
-			printf("IP");
+			fprintf(stream, "IP");
 			break;
 		}
 		case X86_ID_FLAGS: {
-			printf("FLAGS");
+			fprintf(stream, "FLAGS");
 			break;
 		}
 		case X86_ID_MXCSR: {
-			printf("MXCSR");
+			fprintf(stream, "MXCSR");
 			break;
 		}
 		case X86_ID_AX: {
-			printf("AX");
+			fprintf(stream, "AX");
 			break;
 		}
 		case X86_ID_BX: {
-			printf("BX");
+			fprintf(stream, "BX");
 			break;
 		}
 		case X86_ID_CX: {
-			printf("CX");
+			fprintf(stream, "CX");
 			break;
 		}
 		case X86_ID_DX: {
-			printf("DX");
+			fprintf(stream, "DX");
 			break;
 		}
 		case X86_ID_SI: {
-			printf("SI");
+			fprintf(stream, "SI");
 			break;
 		}
 		case X86_ID_DI: {
-			printf("DI");
+			fprintf(stream, "DI");
 			break;
 		}
 		case X86_ID_SP: {
-			printf("SP");
+			fprintf(stream, "SP");
 			break;
 		}
 		case X86_ID_BP: {
-			printf("BP");
+			fprintf(stream, "BP");
 			break;
 		}
 		case X86_ID_R8: {
-			printf("R8");
+			fprintf(stream, "R8");
 			break;
 		}
 		case X86_ID_R9: {
-			printf("R9");
+			fprintf(stream, "R9");
 			break;
 		}
 		case X86_ID_R10: {
-			printf("R10");
+			fprintf(stream, "R10");
 			break;
 		}
 		case X86_ID_R11: {
-			printf("R11");
+			fprintf(stream, "R11");
 			break;
 		}
 		case X86_ID_R12: {
-			printf("R12");
+			fprintf(stream, "R12");
 			break;
 		}
 		case X86_ID_R13: {
-			printf("R13");
+			fprintf(stream, "R13");
 			break;
 		}
 		case X86_ID_R14: {
-			printf("R14");
+			fprintf(stream, "R14");
 			break;
 		}
 		case X86_ID_R15: {
-			printf("R15");
+			fprintf(stream, "R15");
 			break;
 		}
 		case X86_ID_CS: {
-			printf("CS");
+			fprintf(stream, "CS");
 			break;
 		}
 		case X86_ID_DS: {
-			printf("DS");
+			fprintf(stream, "DS");
 			break;
 		}
 		case X86_ID_SS: {
-			printf("SS");
+			fprintf(stream, "SS");
 			break;
 		}
 		case X86_ID_ES: {
-			printf("ES");
+			fprintf(stream, "ES");
 			break;
 		}
 		case X86_ID_FS: {
-			printf("FS");
+			fprintf(stream, "FS");
 			break;
 		}
 		case X86_ID_GS: {
-			printf("GS");
+			fprintf(stream, "GS");
 			break;
 		}
 		case X86_ID_ST0: {
-			printf("ST0");
+			fprintf(stream, "ST0");
 			break;
 		}
 		case X86_ID_ST1: {
-			printf("ST1");
+			fprintf(stream, "ST1");
 			break;
 		}
 		case X86_ID_ST2: {
-			printf("ST2");
+			fprintf(stream, "ST2");
 			break;
 		}
 		case X86_ID_ST3: {
-			printf("ST3");
+			fprintf(stream, "ST3");
 			break;
 		}
 		case X86_ID_ST4: {
-			printf("ST4");
+			fprintf(stream, "ST4");
 			break;
 		}
 		case X86_ID_ST5: {
-			printf("ST5");
+			fprintf(stream, "ST5");
 			break;
 		}
 		case X86_ID_ST6: {
-			printf("ST6");
+			fprintf(stream, "ST6");
 			break;
 		}
 		case X86_ID_ST7: {
-			printf("ST7");
+			fprintf(stream, "ST7");
 			break;
 		}
 		case X86_ID_MM0: {
-			printf("MM0");
+			fprintf(stream, "MM0");
 			break;
 		}
 		case X86_ID_MM1: {
-			printf("MM1");
+			fprintf(stream, "MM1");
 			break;
 		}
 		case X86_ID_MM2: {
-			printf("MM2");
+			fprintf(stream, "MM2");
 			break;
 		}
 		case X86_ID_MM3: {
-			printf("MM3");
+			fprintf(stream, "MM3");
 			break;
 		}
 		case X86_ID_MM4: {
-			printf("MM4");
+			fprintf(stream, "MM4");
 			break;
 		}
 		case X86_ID_MM5: {
-			printf("MM5");
+			fprintf(stream, "MM5");
 			break;
 		}
 		case X86_ID_MM6: {
-			printf("MM6");
+			fprintf(stream, "MM6");
 			break;
 		}
 		case X86_ID_MM7: {
-			printf("MM7");
+			fprintf(stream, "MM7");
 			break;
 		}
 		case X86_ID_XMM0: {
-			printf("XMM0");
+			fprintf(stream, "XMM0");
 			break;
 		}
 		case X86_ID_XMM1: {
-			printf("XMM1");
+			fprintf(stream, "XMM1");
 			break;
 		}
 		case X86_ID_XMM2: {
-			printf("XMM2");
+			fprintf(stream, "XMM2");
 			break;
 		}
 		case X86_ID_XMM3: {
-			printf("XMM3");
+			fprintf(stream, "XMM3");
 			break;
 		}
 		case X86_ID_XMM4: {
-			printf("XMM4");
+			fprintf(stream, "XMM4");
 			break;
 		}
 		case X86_ID_XMM5: {
-			printf("XMM5");
+			fprintf(stream, "XMM5");
 			break;
 		}
 		case X86_ID_XMM6: {
-			printf("XMM6");
+			fprintf(stream, "XMM6");
 			break;
 		}
 		case X86_ID_XMM7: {
-			printf("XMM7");
+			fprintf(stream, "XMM7");
 			break;
 		}
 		case X86_ID_XMM8: {
-			printf("XMM8");
+			fprintf(stream, "XMM8");
 			break;
 		}
 		case X86_ID_XMM9: {
-			printf("XMM9");
+			fprintf(stream, "XMM9");
 			break;
 		}
 		case X86_ID_XMM10: {
-			printf("XMM10");
+			fprintf(stream, "XMM10");
 			break;
 		}
 		case X86_ID_XMM11: {
-			printf("XMM11");
+			fprintf(stream, "XMM11");
 			break;
 		}
 		case X86_ID_XMM12: {
-			printf("XMM12");
+			fprintf(stream, "XMM12");
 			break;
 		}
 		case X86_ID_XMM13: {
-			printf("XMM13");
+			fprintf(stream, "XMM13");
 			break;
 		}
 		case X86_ID_XMM14: {
-			printf("XMM14");
+			fprintf(stream, "XMM14");
 			break;
 		}
 		case X86_ID_XMM15: {
-			printf("XMM15");
+			fprintf(stream, "XMM15");
 			break;
 		}
 	}

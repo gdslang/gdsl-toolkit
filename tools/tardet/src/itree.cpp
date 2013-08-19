@@ -16,8 +16,7 @@
 
 using namespace std;
 
-itree::itree(shared_ptr<expression> expression, size_t int_start,
-		size_t int_end) {
+itree::itree(shared_ptr<expression> expression, size_t int_start, size_t int_end) {
 	this->root = new itree_leaf_node(expression, int_start, int_end);
 }
 
@@ -29,8 +28,7 @@ char itree::contains(struct rreil_variable* variable) {
 	return root->contains(variable);
 }
 
-void itree::substitute(struct rreil_variable *old, shared_ptr<expression> new_,
-		uint64_t from, uint64_t to) {
+void itree::substitute(struct rreil_variable *old, shared_ptr<expression> new_, uint64_t from, uint64_t to) {
 	root = root->substitute(old, new_, from, to);
 }
 
@@ -39,8 +37,7 @@ itree_node::itree_node(size_t int_start, size_t int_end) {
 	this->intv.end = int_end;
 }
 
-itree_inner_node::itree_inner_node(itree_node **children, size_t children_count,
-		size_t int_start, size_t int_end) :
+itree_inner_node::itree_inner_node(itree_node **children, size_t children_count, size_t int_start, size_t int_end) :
 		itree_node(int_start, int_end) {
 	this->children = children;
 	this->children_count = children_count;
@@ -77,8 +74,8 @@ char itree_inner_node::contains(struct rreil_variable *variable) {
 	return 0;
 }
 
-itree_node *itree_inner_node::substitute(struct rreil_variable *old,
-		shared_ptr<expression> new_, uint64_t from, uint64_t to) {
+itree_node *itree_inner_node::substitute(struct rreil_variable *old, shared_ptr<expression> new_, uint64_t from,
+		uint64_t to) {
 	for(size_t i = 0; i < children_count; ++i)
 		children[i] = children[i]->substitute(old, new_, from, to);
 	return this;
@@ -88,8 +85,7 @@ char itree_inner_node::evaluate(uint64_t *result) {
 	return children[0]->evaluate(result);
 }
 
-itree_leaf_node::itree_leaf_node(shared_ptr<expression> expression,
-		size_t int_start, size_t int_end) :
+itree_leaf_node::itree_leaf_node(shared_ptr<expression> expression, size_t int_start, size_t int_end) :
 		itree_node(int_start, int_end) {
 	this->exp = expression;
 }
@@ -102,8 +98,7 @@ enum itree_node_type itree_leaf_node::type_get() {
 //	return expression;
 //}
 
-itree_inner_node *itree_leaf_node::split(shared_ptr<expression> *expressions,
-		size_t *offsets, size_t children_count) {
+itree_inner_node *itree_leaf_node::split(shared_ptr<expression> *expressions, size_t *offsets, size_t children_count) {
 	struct {
 		size_t start;
 		size_t end;
@@ -121,15 +116,13 @@ itree_inner_node *itree_leaf_node::split(shared_ptr<expression> *expressions,
 		}
 	};
 
-	itree_node **children = (itree_node**)malloc(
-			sizeof(itree_node*) * children_count);
+	itree_node **children = (itree_node**)malloc(sizeof(itree_node*) * children_count);
 	for(size_t i = 0; i < children_count; ++i) {
 		intv_calc(i);
 		children[i] = new itree_leaf_node(expressions[i], intv.start, intv.end);
 	}
 
-	return new itree_inner_node(children, children_count, this->intv.start,
-			this->intv.end);
+	return new itree_inner_node(children, children_count, this->intv.start, this->intv.end);
 }
 
 itree_leaf_node::~itree_leaf_node() {
@@ -137,17 +130,15 @@ itree_leaf_node::~itree_leaf_node() {
 }
 
 void itree_leaf_node::print() {
-	printf("[%zu..%zu]: ", intv.start, intv.end);
-	exp->print();
-	printf("\n");
+	printf("[%zu..%zu]: %s\n", intv.start, intv.end, exp->print().c_str());
 }
 
 char itree_leaf_node::contains(struct rreil_variable *variable) {
 	return exp->contains(variable);
 }
 
-itree_node *itree_leaf_node::substitute(struct rreil_variable *old,
-		shared_ptr<expression> new_, uint64_t from, uint64_t to) {
+itree_node *itree_leaf_node::substitute(struct rreil_variable *old, shared_ptr<expression> new_, uint64_t from,
+		uint64_t to) {
 
 //	if(from < this->intv.start && to < this->intv.start)
 //		return this;

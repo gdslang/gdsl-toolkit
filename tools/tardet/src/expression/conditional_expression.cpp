@@ -5,8 +5,12 @@
  *      Author: jucs
  */
 
+#include <stdint.h>
 #include <memory>
+#include <string>
+#include "../util.hpp"
 #include "expression.h"
+#include "expressions.h"
 #include "conditional_expression.h"
 
 using namespace std;
@@ -22,11 +26,8 @@ conditional_expression::~conditional_expression() {
 	// TODO Auto-generated destructor stub
 }
 
-void conditional_expression::print_inner() {
-	printf("if ");
-	condition->print_inner();
-	printf(" => ");
-	inner->print_inner();
+string conditional_expression::print_inner() {
+	return string_format("if %s => %s", condition->print_inner().c_str(), inner->print_inner().c_str());
 }
 
 char conditional_expression::contains(struct rreil_variable *variable) {
@@ -58,12 +59,15 @@ char conditional_expression::evaluate(uint64_t *result) {
 		return false;
 }
 
-void conditional_expression::reduce(shared_ptr<expression> &me) {
+shared_ptr<expression> conditional_expression::simplify() {
 	uint64_t cond_r;
 	bool cond_eval = condition->evaluate(&cond_r);
 	if(cond_eval)
-		if(cond_r)
-			me = inner;
+		if(cond_r & 1)
+			return inner->simplify();
 		else
-			me = NULL;
+			return make_shared<unevalable>();
+	condition = condition->simplify();
+	inner = inner->simplify();
+	return shared_from_this();
 }

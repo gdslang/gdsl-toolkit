@@ -8,6 +8,7 @@
 #ifndef OPERAND_H_
 #define OPERAND_H_
 
+#include <string>
 #include <memory>
 #include <stdint.h>
 extern "C" {
@@ -19,14 +20,14 @@ using namespace std;
 
 class variable: public expression {
 private:
-	struct rreil_id *id;
+	struct rreil_id id;
 	uint64_t offset;
 
 public:
-	variable(struct rreil_id *id, uint64_t offset, uint64_t size);
+	variable(struct rreil_id id, uint64_t offset, uint64_t size);
 	~variable() {
 	}
-	void print_inner();
+	string print_inner();
 	char contains(struct rreil_variable *variable);
 	bool substitute(struct rreil_variable *old, shared_ptr<expression> &new_);
 	char evaluate(uint64_t *result) {
@@ -42,7 +43,7 @@ public:
 	immediate(uint64_t immediate, uint64_t size);
 	~immediate() {
 	}
-	void print_inner();
+	string print_inner();
 
 	char contains(struct rreil_variable *variable) {
 		return 0;
@@ -53,6 +54,9 @@ public:
 	char evaluate(uint64_t *result) {
 		*result = immediate_;
 		return 1;
+	}
+	virtual bool is_trivial() {
+		return true;
 	}
 };
 

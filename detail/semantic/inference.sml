@@ -282,7 +282,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    (* define a traversal that is a full inference of the tree *)
    
-   val maxIter = 3
+   val maxIter = 4
    
    fun calcSubset (printWarn,sym,env) =
       let
