@@ -1,6 +1,6 @@
 signature SymbolTableSig  = sig
 
-   type symid
+   eqtype symid
    type table
 
    val noSpan : Error.span

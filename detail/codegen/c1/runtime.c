@@ -265,39 +265,39 @@ int64_t gdsl_rseek(state_t s, int64_t i) {
 	return 0;
 }
 
-static string_t invoke(state_t s, obj_t func, obj_t args) {
-  func = x86_string__payload(s, func);  
-
-	av_alist arg_list;
-	string_t result;
-	av_start_ptr(arg_list, func, string_t, &result);
-
-	obj_t next = args;
-	while(1) {
-		if(x86_con_index(s, next) == CON_P_NIL)
-			break;
-		obj_t unwrapped = x86_p_cons_unwrap(s, next);
-
-		obj_t parameter = x86_select_hd(s, unwrapped);
-		if(x86_p_is_int(s, parameter))
-			av_long(arg_list, *(int64_t*)x86_p_unwrap_i(s, parameter));
-		else
-			av_ptr(arg_list, string_t, x86_p_unwrap_o(s, parameter));
-
-		next = x86_select_tl(s, unwrapped);
-	}
-
-	av_call(arg_list);
-
-	return result;
-//  obj_t (*f)(void) = (obj_t (*)(void))func;
-//  return (string_t)f();
-}
-
-static obj_t invoke_int(state_t s, obj_t func, int64_t i) {
-  obj_t (*f)(int64_t) = (obj_t (*)(int64_t))func;
-  return f(i);
-}
+// static string_t invoke(state_t s, obj_t func, obj_t args) {
+//   func = x86_string__payload(s, func);  
+// 
+//  av_alist arg_list;
+//  string_t result;
+//  av_start_ptr(arg_list, func, string_t, &result);
+// 
+//  obj_t next = args;
+//  while(1) {
+//    if(x86_con_index(s, next) == CON_P_NIL)
+//      break;
+//    obj_t unwrapped = x86_p_cons_unwrap(s, next);
+// 
+//    obj_t parameter = x86_select_hd(s, unwrapped);
+//    if(x86_p_is_int(s, parameter))
+//      av_long(arg_list, *(int64_t*)x86_p_unwrap_i(s, parameter));
+//    else
+//      av_ptr(arg_list, string_t, x86_p_unwrap_o(s, parameter));
+// 
+//    next = x86_select_tl(s, unwrapped);
+//  }
+// 
+//  av_call(arg_list);
+// 
+//  return result;
+// //  obj_t (*f)(void) = (obj_t (*)(void))func;
+// //  return (string_t)f();
+// }
+// 
+// static obj_t invoke_int(state_t s, obj_t func, int64_t i) {
+//   obj_t (*f)(int64_t) = (obj_t (*)(int64_t))func;
+//   return f(i);
+// }
 
 state_t gdsl_init() {
   state_t s = calloc(1,sizeof(struct state));
@@ -318,6 +318,8 @@ void gdsl_destroy(state_t s) {
   gdsl_reset_heap(s);
   free(s);
 }
+
+@records@
 
 @prototypes@
 

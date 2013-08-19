@@ -22,6 +22,14 @@ structure DesugarDecode = struct
    val tok = Atom.atom "tok"
    val slice = Atom.atom "slice"
    val return = Atom.atom "return"
+   val raisee = Atom.atom "raise"
+
+   fun raisingDecodeSequenceMatchFailure () = let
+      open Exp
+      val raisee = ID (VarInfo.lookup (!SymbolTables.varTable, raisee))
+   in
+      APP (raisee, [LIT (SpecAbstractTree.STRlit "DecodeSequenceMatchFailure")])
+   end
 
    fun freshTok () = let
       val (tab, sym) =
@@ -101,12 +109,21 @@ structure DesugarDecode = struct
    end
 
    fun desugar ds = let
-      fun lp (ds, acc) =
+      fun isCatchAll [] = true
+        | isCatchAll ([Pat.VEC str] :: _) =
+            List.all (fn c => c= #".") (String.explode str)
+        | isCatchAll ([Pat.BND (_,str)] :: _) =
+            List.all (fn c => c= #".") (String.explode str)
+        | isCatchAll _ = false
+
+      fun lp (hasDefault, ds, acc) =
          case ds of
-            [] => rev acc
-          | (toks, e)::ds => lp (ds, (toVec toks, e)::acc)
+            [] => if hasDefault then rev acc else
+                     rev ((toVec [], raisingDecodeSequenceMatchFailure ()) :: acc)
+          | (toks, e)::ds => lp (hasDefault orelse isCatchAll toks,
+                                 ds, (toVec toks, e)::acc)
    in
-      desugarCases (toVec (lp (ds, [])))
+      desugarCases (toVec (lp (false, ds, [])))
    end
 
    and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
@@ -136,7 +153,7 @@ structure DesugarDecode = struct
        (*val () = Pretty.prettyTo (TextIO.stdOut, layoutDecls decls) *)
       val equiv = buildEquivClass decls
       (* +DEBUG:overlapping-patterns *)
-      (* val () =
+       (*val () =
          Pretty.prettyTo
             (TextIO.stdOut,
              Pretty.stringtab Pretty.intset equiv) *)
@@ -187,7 +204,8 @@ structure DesugarDecode = struct
                      in
                         Exp.SEQ [unconsumeTok(),Exp.ACTION e]
                      end
-                | _ => raise Fail "desugarCases.bug.overlappingBacktrackPattern")
+                | is => (Pretty.prettyTo (TextIO.stdOut, layoutDecls (toVec (map (fn i => VS.sub (decls,i)) is)));
+                         raise Fail "desugarCases.bug.overlappingBacktrackPattern"))
 
       fun extendBacktrackPath ds =
          case StringMap.find (equiv, "") of
@@ -253,8 +271,7 @@ end = struct
 
    fun desugar ds =
       List.map
-         (fn (n, ds) =>
-             (n, [], DesugarDecode.desugar ds))
+         (fn (n, ds) => (n, [], DesugarDecode.desugar ds))
          (SymMap.listItemsi ds)
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, DT.PP.spec spec)

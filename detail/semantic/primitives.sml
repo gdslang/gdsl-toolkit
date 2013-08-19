@@ -408,7 +408,7 @@ structure Primitives = struct
          open Imp
       in
          [
-         ("void", PRIexp (VOIDprim, FUNvtype (VOIDvtype,false,[]), []))
+         ("void", PRIexp (VOIDprim, VOIDvtype, []))
          ]
       end
 
