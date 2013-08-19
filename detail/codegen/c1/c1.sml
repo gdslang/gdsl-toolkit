@@ -56,6 +56,8 @@ structure C1 = struct
                   structsGlobal : Layout.t list ref,
                   preDeclEmit : Layout.t list ref }
 
+   fun isVOIDvtype VOIDvtype = true
+     | isVOIDvtype _ = false
 
    (* define a list of identifiers that we cannot emit as C identifiers *)
    val reservedNames = AtomSet.fromList (map Atom.atom [
@@ -249,16 +251,16 @@ structure C1 = struct
          val body = Atom.atom (concat (map showField fs))
       in
          case AtomMap.find (!recordTypeMap, body) of
-            SOME idx => "struct" ^ Int.toString idx ^ "_t"
+            SOME idx => "struct" ^ Int.toString idx
           | NONE =>
             let
                val idx = AtomMap.numItems (!recordTypeMap)+1
                val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,body,idx)
-               val tyName = "struct" ^ Int.toString idx ^ "_t"
+               val tyName = "struct" ^ Int.toString idx
                val f = [
                      seq [str "typedef struct {"],
                      str (Atom.toString body),
-                     seq [str "}", space, str tyName, str ";"]
+                     seq [str "}", space, str tyName, str "_t;"]
                   ]
                val _ = (#structsLocal s) := !(#structsLocal s) @ f
             in
@@ -276,7 +278,7 @@ structure C1 = struct
            | eT (decl, STRINGvtype) = seq (str "string_t" :: addSpace decl)
            | eT (decl, OBJvtype) = seq (str "obj_t" :: addSpace decl)
            | eT (decl, MONADvtype retTy) = eT (str "(*" :: decl @ [str ")()"], retTy)
-           | eT (decl, RECORDvtype fs) = seq (str (getRecordType s fs) :: addSpace decl)
+           | eT (decl, RECORDvtype fs) = seq (str (getRecordType s fs ^ "_t") :: addSpace decl)
            | eT (decl, FUNvtype (retTy,_,[VOIDvtype])) = (* do not emit arguments *)
                eT (str "(*" :: decl @ [str ")()"], retTy)
            | eT (decl, FUNvtype (retTy,isCl,argTys)) = 
@@ -438,7 +440,7 @@ structure C1 = struct
                val f = [
                   seq [str "static inline ", emitStringFunType s (retTy,funName,(OBJvtype,"closure") :: args), str " {"],
                   indent 2 (seq [
-                     if (retTy=VOIDvtype) then seq [] else str "return ",
+                     if isVOIDvtype retTy then seq [] else str "return ",
                      str "((", str structName, str "*) closure)->func",
                      fArgs (str "closure" :: map (str o #2) args), str ";"
                   ]),
@@ -536,7 +538,10 @@ structure C1 = struct
          seq [emitExp s e, fArgs (map (emitExp s) es)]
      | emitExp s (INVOKEexp (t,e,es)) =
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
-     | emitExp s (RECORDexp fs) =
+     | emitExp s (RECORDexp (RECORDvtype fTys,fs)) =
+         seq [par (str (getRecordType s fTys ^ "_t")),  
+              seq (list ("{",emitExp s, map #2 fs, "}"))]
+     | emitExp s (RECORDexp (t,fs)) =
          let
             fun genUpdate ((field,e),res) = seq [
                str "add_field", str (getTypeSuffix s (SymMap.lookup (#fieldTypes s, field))),
@@ -809,7 +814,7 @@ structure C1 = struct
             align (preDecl @ [
                seq [str "static ", emitFunType s (name, funArgs, FUNvtype (retTy, false, map #1 funArgs)), space, str "{"],
                indent 2 (align (emitC [
-                  seq [if retTy=VOIDvtype then str "" else str "return ",
+                  seq [if isVOIDvtype retTy then str "" else str "return ",
                        emitSym s del, fArgs (map (str o prependC o #2) closureArgs @
                                              map (emitSym s o #2) delArgs), str ";"]
                ])),

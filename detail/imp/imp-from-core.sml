@@ -415,7 +415,7 @@ end = struct
          val fields = ListMergeSort.uniqueSort fieldCmp unsortedFields
          val _ = app (fn (f,e) => addField s f) fs
       in
-         (stmts, RECORDexp fields)
+         (stmts, RECORDexp (OBJvtype, fields))
       end
      | trExpr s (Exp.UPDATE us) =
       let

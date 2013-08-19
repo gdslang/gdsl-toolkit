@@ -22,7 +22,7 @@ structure PatchFunctionCalls = struct
          )
        | e => INVOKEexp (t, e, map (visitExp s) es)
       )
-     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (LITexp l) = LITexp l
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
@@ -108,7 +108,7 @@ structure ActionVarReduction = struct
      | getMonExp (declSyms,execSyms) (PRIexp (f,t,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
      | getMonExp (declSyms,execSyms) (CALLexp (sym,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
      | getMonExp (declSyms,execSyms) (INVOKEexp (t,e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
-     | getMonExp (declSyms,execSyms) (RECORDexp fs) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) execSyms fs
+     | getMonExp (declSyms,execSyms) (RECORDexp (t,fs)) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) execSyms fs
      | getMonExp (declSyms,execSyms) (LITexp l) = execSyms
      | getMonExp ds (BOXexp (t,e)) = getMonExp ds e
      | getMonExp ds (UNBOXexp (t,e)) = getMonExp ds e
@@ -166,7 +166,7 @@ structure ActionVarReduction = struct
          STATEexp (BASICblock ([],[]), OBJvtype, CALLexp (sym, map (visitExp s) es))
       else CALLexp (sym, map (visitExp s) es)
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (t,visitExp s e, map (visitExp s) es)
-     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
@@ -265,7 +265,7 @@ structure ActionClosures = struct
      | freeExp s (PRIexp (f,t,es)) = foldl (fn (e,s) => freeExp s e) s es
      | freeExp s (CALLexp (sym,es)) = foldl (fn (e,s) => freeExp s e) (SymSet.add (s, sym)) es
      | freeExp s (INVOKEexp (t,e,es)) = foldl (fn (e,s) => freeExp s e) (freeExp s e) es
-     | freeExp s (RECORDexp fs) = foldl (fn ((f,e),s) => freeExp s e) s fs
+     | freeExp s (RECORDexp (t,fs)) = foldl (fn ((f,e),s) => freeExp s e) s fs
      | freeExp s (LITexp (t,l)) = s
      | freeExp s (BOXexp (t,e)) = freeExp s e
      | freeExp s (UNBOXexp (t,e)) = freeExp s e
@@ -347,7 +347,7 @@ structure ActionClosures = struct
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,remMonad t,map (visitExp s) es)
      | visitExp s (CALLexp (sym,es)) = CALLexp (sym, map (visitExp s) es)
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (remMonad t,visitExp s e, map (visitExp s) es)
-     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (LITexp (t,l)) = LITexp (remMonad t, l)
      | visitExp s (BOXexp (t,e)) = BOXexp (remMonad t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (remMonad t, visitExp s e)
@@ -445,7 +445,7 @@ structure ActionReduce = struct
      | getCloFunExp cs (PRIexp (f,t,es)) = foldl (fn (e,cs) => getCloFunExp cs e) cs es
      | getCloFunExp cs (CALLexp (sym,es)) = foldl (fn (e,cs) => getCloFunExp cs e) cs es
      | getCloFunExp cs (INVOKEexp (t,e,es)) = foldl (fn (e,cs) => getCloFunExp cs e) (getCloFunExp cs e) es
-     | getCloFunExp cs (RECORDexp fs) = foldl (fn ((_,e),cs) => getCloFunExp cs e) cs fs
+     | getCloFunExp cs (RECORDexp (t,fs)) = foldl (fn ((_,e),cs) => getCloFunExp cs e) cs fs
      | getCloFunExp cs (LITexp l) = cs
      | getCloFunExp cs (BOXexp (t,e)) = getCloFunExp cs e
      | getCloFunExp cs (UNBOXexp (t,e)) = getCloFunExp cs e
@@ -562,7 +562,7 @@ structure ActionReduce = struct
      | getMonExp (declSyms,execSyms) (PRIexp (f,t,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
      | getMonExp (declSyms,execSyms) (CALLexp (sym,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
      | getMonExp (declSyms,execSyms) (INVOKEexp (t,e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
-     | getMonExp (declSyms,execSyms) (RECORDexp fs) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) execSyms fs
+     | getMonExp (declSyms,execSyms) (RECORDexp (t,fs)) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) execSyms fs
      | getMonExp (declSyms,execSyms) (LITexp l) = execSyms
      | getMonExp ds (BOXexp (t,e)) = getMonExp ds e
      | getMonExp ds (UNBOXexp (t,e)) = getMonExp ds e
@@ -602,7 +602,7 @@ structure ActionReduce = struct
          STATEexp (BASICblock ([],[]), OBJvtype, CALLexp (sym, map (visitExp s) es))
       else CALLexp (sym, map (visitExp s) es)
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (t,visitExp s e, map (visitExp s) es)
-     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
@@ -757,7 +757,7 @@ structure Simplify = struct
          )
        | e => INVOKEexp (t, e, map (visitExp s) es)
       )
-     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (LITexp l) = LITexp l
      | visitExp s (BOXexp (t,e)) = (case visitExp s e of
             UNBOXexp (t2,e) => e
@@ -833,7 +833,7 @@ structure TypeRefinement = struct
    val debugOn = ref false
    fun msg str = if !debugOn then TextIO.print str else ()
    
-   val genFixedRecords = ref false
+   val genFixedRecords = ref true
 
    exception TypeOptBug
    
@@ -1152,7 +1152,7 @@ structure TypeRefinement = struct
      | visitExp s (CALLexp (sym,es)) = visitCall s (false, symType s sym, es)
      | visitExp s (INVOKEexp (t,IDexp sym,es)) = visitCall s (false, visitExp s (IDexp sym), es)
      | visitExp s (INVOKEexp (t,e,es)) = visitCall s (true, visitExp s e, es)
-     | visitExp s (RECORDexp fs) = 
+     | visitExp s (RECORDexp (t,fs)) = 
       if !genFixedRecords then
          RECORDstype (map (fn (f,e) => (true, f, visitExp s e)) fs, false)
       else
@@ -1528,13 +1528,14 @@ structure TypeRefinement = struct
            )
           | _ => raise TypeOptBug (* must be function type *)
       end
-     | patchExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) =>
-         (f, writeWrap s (origFType s f, fieldType s f, patchExp s e))) fs)
+     | patchExp s (RECORDexp (t,fs)) = RECORDexp (
+         adjustType s (t, visitExp s (RECORDexp (t,fs))),
+         map (fn (f,e) => (f, writeWrap s (origFType s f, fieldType s f, patchExp s e))) fs)
      | patchExp s (LITexp l) = LITexp l
      | patchExp s (BOXexp (t,e)) = BOXexp (t, patchExp s e)
      | patchExp s (UNBOXexp (t,e)) = UNBOXexp (t, patchExp s e)
      | patchExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz,patchExp s e)
-     | patchExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, patchExp s e)
+     | patchExp s (INT2VECexp (sz,e)) = INT2VECexp (sz,patchExp s e)
      | patchExp s (CLOSUREexp (ty,sym,es)) =
       let
          val _ = msg ("patchExp CLOSURE " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " from " ^ Layout.tostring (Imp.PP.vtype (origType s sym)) ^ " to " ^ showSType (inlineSType s (symType s sym)) ^ "\n")
@@ -1946,7 +1947,7 @@ structure SwitchReduce = struct
    and visitExp s (PRIexp (f,t,es)) = (PRIexp (f,t,map (visitExp s) es))
      | visitExp s (CALLexp (sym,es)) = (CALLexp (sym, map (visitExp s) es))
      | visitExp s (INVOKEexp (t,e,es)) = (INVOKEexp (t,visitExp s e, map (visitExp s) es))
-     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
@@ -2051,7 +2052,7 @@ structure DeadSymbol = struct
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
      | visitExp s (CALLexp (sym,es)) = (refSym s sym; CALLexp (applyReplace (s,sym), map (visitExp s) es))
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (t,visitExp s e, map (visitExp s) es)
-     | visitExp s (RECORDexp fs) = RECORDexp (map (fn (f,e) => (f,visitExp s e)) fs)
+     | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)

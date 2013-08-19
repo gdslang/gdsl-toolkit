@@ -151,7 +151,7 @@ structure Imp = struct
     | PRIexp of prim * vtype * exp list
     | CALLexp of sym * exp list (* callee is unboxed *)
     | INVOKEexp of vtype * exp * exp list (* callee is a closure, type is that of exp *)
-    | RECORDexp of (sym * exp) list
+    | RECORDexp of vtype * (sym * exp) list
     | LITexp of vtype * lit
     | BOXexp of vtype * exp
     | UNBOXexp of vtype * exp
@@ -262,7 +262,7 @@ structure Imp = struct
               str (#name (prim_info p)) :: args ("(",exp,es,")"))
         | exp (CALLexp (f,es)) = seq (var f :: args ("(",exp,es,")"))
         | exp (INVOKEexp (t,f,es)) = seq (vtype t :: space :: str "*" :: exp f :: args ("(",exp,es,")"))
-        | exp (RECORDexp fs) = seq (args ("{",field,fs,"}"))
+        | exp (RECORDexp (t,fs)) = seq (vtype t :: space :: args ("{",field,fs,"}"))
         | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]
         | exp (UNBOXexp (t,e)) = seq [str "unbox[", vtype t, str "](", exp e, str ")"]
