@@ -1268,7 +1268,7 @@ structure TypeRefinement = struct
          conTag = _,
          conArg = (_,arg),
          conType = _
-     }) = lub (s, symType s name, FUNstype (OBJstype, VOIDstype, [symType s arg]))
+     }) = lub (s, symType s name, FUNstype (OBJstype, VOIDstype, [lub (s, OBJstype, symType s arg)]))
      | visitDecl s (CLOSUREdecl {
         closureName = name,
         closureArgs = clTys,
@@ -1574,7 +1574,10 @@ structure TypeRefinement = struct
            | genNewArgs acc (OBJvtype, FUNstype (sRes, sCl, ss), es) =
                genNewArgs acc (FUNvtype (OBJvtype, false, map (fn _ => OBJvtype) ss),
                                FUNstype (sRes, sCl, ss), es)
-           | genNewArgs acc (vs, ss, []) = (acc, vs, ss)
+(*           | genNewArgs acc (FUNvtype (vRes, vCl, vs), OBJstype, es) =
+               genNewArgs acc (FUNvtype (vRes, vCl, vs),
+                               FUNstype (OBJstype, OBJstype, map (fn _ => OBJstype) vs), es)
+*)           | genNewArgs acc (vs, ss, []) = (acc, vs, ss)
            | genNewArgs acc (v,s,e :: es) = (TextIO.print ("patchCall of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ ", next argument is " ^ Layout.tostring (Imp.PP.exp e) ^ "\n"); raise TypeOptBug)
 
       in
@@ -1583,8 +1586,8 @@ structure TypeRefinement = struct
             (fn e => readWrap s (vRes, sRes, e), adjustType s (orig, new), es)
          | (es, MONADvtype vRes, MONADstype sRes) =>
             (fn e => readWrap s (vRes, sRes, e), adjustType s (orig, new), es)
-         | ([], FUNvtype (vRes, vCl, []), OBJstype) =>
-            (fn e => readWrap s (vRes, OBJstype, e), adjustType s (orig, new), [])
+         | (es, FUNvtype (vRes, vCl, _), OBJstype) =>
+            (fn e => readWrap s (vRes, OBJstype, e), adjustType s (orig, new), es)
          | (es, v, t) => (TextIO.print ("patchCall bad of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ ": no more args\n"); raise TypeOptBug)
      end
    fun run { decls = ds, fdecls = fs, exports = es } =
@@ -1601,7 +1604,7 @@ structure TypeRefinement = struct
          }
          fun visitDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); (*TextIO.print ("type of writeRes : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 1045)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
-         (*val _ = showState (SymMap.listKeys declMap) state*)
+         val _ = showState (SymMap.listKeys declMap) state
          val _ = debugOn := false
          fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
          val ds = map (patchDeclPrint state) ds

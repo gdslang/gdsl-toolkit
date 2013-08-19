@@ -324,6 +324,11 @@ structure C1 = struct
       foldl (fn (ty,str) => str ^ getTypeSuffix s ty) "" (retTy::args) ^ "__fun"
      | getTypeSuffix s (RECORDvtype fs) = "_" ^ getRecordType s fs
 
+   fun getRecordTypeSuffix (s : state) f = getTypeSuffix s (case SymMap.lookup (#fieldTypes s,f) of
+      FUNvtype _ => OBJvtype
+    | MONADvtype _ => OBJvtype
+    | ty => ty)
+
    fun emitPat s (VECpat []) = str "default:"
      | emitPat s (VECpat [""]) = str "default:"
      | emitPat s (VECpat pats) =
@@ -538,9 +543,9 @@ structure C1 = struct
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
      | emitExp s (RECORDexp fs) =
          let
-            fun genUpdate ((field,e),res) = seq [
-               str "add_field", str (getTypeSuffix s (SymMap.lookup (#fieldTypes s, field))),
-               fArgs [str (getFieldTag field), emitExp s e, res]
+            fun genUpdate ((f,e),res) = seq [
+               str "add_field", str (getRecordTypeSuffix s f),
+               fArgs [str (getFieldTag f), emitExp s e, res]
             ]
          in
             foldl genUpdate (str "NULL") fs
@@ -657,15 +662,11 @@ structure C1 = struct
          selectType = ty
       }) =
       let
-         fun sufType f = case SymMap.lookup (#fieldTypes s,f) of
-            FUNvtype _ => OBJvtype
-          | MONADvtype _ => OBJvtype
-          | ty => ty
          val retVar = #ret (s : state)
          val s = registerSymbol (retVar,s)
          val castRetVar = seq [
             str "((field",
-            str (getTypeSuffix s (sufType f) ^ "_t*) "),
+            str (getRecordTypeSuffix s f ^ "_t*) "),
             emitSym s retVar,
             str ")"]
          val fieldName = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
@@ -711,12 +712,7 @@ structure C1 = struct
          val s = registerSymbol (recVar,s)
          val s = foldl registerFSymbol s fs
          fun fieldName f = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
-         fun fieldType f = case SymMap.lookup (#fieldTypes s,f) of
-               FUNvtype _ => OBJvtype
-             | MONADvtype _ => OBJvtype
-             | ty => ty
-         fun fieldTSuf f = getTypeSuffix s (fieldType f)
-         val args = map (fn f => (fieldType f, f)) fs @ [(OBJvtype, recVar)]
+         val args = map (fn f => (SymMap.lookup (#fieldTypes s,f), f)) fs @ [(OBJvtype, recVar)]
       in
          if #onlyDecls s then
          let
@@ -737,7 +733,7 @@ structure C1 = struct
                seq [emitSym s recVar, str " = del_fields(s,tags,sizeof(tags)/sizeof(tags[0]),", emitSym s recVar, str ");"]
             ] @ map (fn f =>
                seq [emitSym s recVar, str " = add_field",
-                    str (fieldTSuf f), str "(s,", str (getFieldTag f), str ", ",
+                    str (getRecordTypeSuffix s f), str "(s,", str (getFieldTag f), str ", ",
                     emitSym s f, str ", ", emitSym s recVar, str ");"]) fs
             @ [
                seq [str "return ", emitSym s recVar, str ";"]
