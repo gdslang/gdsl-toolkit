@@ -398,7 +398,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                env
             end
          val usages = E.getUsages (sym, env)
-         val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+         (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
       in
          List.foldl checkUsage env usages
       end
@@ -988,11 +988,19 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | setDummyType (st,env) _ = env
 
    val sccs = List.rev (sccsSpecification ast)
+   val noOfSCCs = List.length sccs
+   val cnt = ref 0
    
    (*val _ = TextIO.print ("SCCs:\n" ^ List.foldl (fn (c,str) => str ^ prComp c) "" sccs)*)
 
    val toplevelEnv = List.foldl (fn (comp,env) =>
       let
+         val str = "completed " ^ Int.toString (!cnt div noOfSCCs) ^ "% (" ^ (case comp of
+              SCC.SIMPLE sym => SymbolTable.getString(!SymbolTables.varTable, sym)
+            | SCC.RECURSIVE (sym :: _) => SymbolTable.getString(!SymbolTables.varTable, sym)
+            | SCC.RECURSIVE _ => "") ^ ")\r"
+         val _ = TextIO.print str
+
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
                                   component = comp},env) d
@@ -1005,9 +1013,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
               SCC.SIMPLE _ => env
             | SCC.RECURSIVE syms => calcFixpoints (syms, env)
                         handle TypeError => env
-         in
-            env
-         end
+         val _ = TextIO.print (String.implode (List.tabulate (String.size str, fn _ => #" ") @ [#"\r"]))
+         val _ = cnt := (!cnt + 100)
+      in
+         env
+      end
       ) toplevelEnv sccs
 
    (* check if all exported functions can be run with the specified fields *)
