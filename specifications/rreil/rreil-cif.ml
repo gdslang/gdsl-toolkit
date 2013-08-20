@@ -116,22 +116,3 @@ val rreil-convert-sem-stmts-lr lr cbs closure stmts = rreil-convert-sem-stmts-in
 #	return (inner list stmts)
 #end end
 
-val typefoo cbs closure a b c d e f g h i j k l m n o p q r =
-  case SEM_NIL of
-     SEM_NIL: rreil-convert-sem-id cbs closure a
-   | SEM_NIL: rreil-convert-sem-address cbs closure b
-   | SEM_NIL: rreil-convert-sem-var cbs closure c
-   | SEM_NIL: rreil-convert-sem-linear cbs closure d
-   | SEM_NIL: rreil-convert-sem-sexpr cbs closure e
-   | SEM_NIL: rreil-convert-sem-op-cmp cbs closure f
-   | SEM_NIL: rreil-convert-sem-op cbs closure g
-   | SEM_NIL: rreil-convert-branch-hint cbs closure h
-   | SEM_NIL: rreil-convert-sem-stmt i cbs closure j
-   | SEM_NIL: rreil-convert-sem-stmts-inner k cbs closure l
-   | SEM_NIL: rreil-convert-sem-stmts-list-inner m cbs closure n
-   | SEM_NIL: rreil-convert-sem-stmts cbs closure o
-   | SEM_NIL: rreil-convert-sem-stmts-list cbs closure p
-   | SEM_NIL: rreil-convert-sem-stmts-lr q cbs closure r
-   | SEM_CONS x: SEM_CONS x
-   | SEM_NIL: closure
-end

@@ -14,7 +14,7 @@ structure PatchFunctionCalls = struct
    
    and visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
-     | visitExp s (CALLexp (sym,es)) = CALLexp (sym, map (visitExp s) es)
+     | visitExp s (CALLexp (e,es)) = CALLexp (visitExp s e, map (visitExp s) es)
      | visitExp s (INVOKEexp (t, e, es)) = (case visitExp s e of
          IDexp sym => (case SymMap.find (!Primitives.prim_map, sym) of
             SOME (_,gen) => visitExp s (gen es)
@@ -106,7 +106,7 @@ structure ActionVarReduction = struct
    
    and getMonExp (declSyms,execSyms) (IDexp sym) = execSyms
      | getMonExp (declSyms,execSyms) (PRIexp (f,t,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
-     | getMonExp (declSyms,execSyms) (CALLexp (sym,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
+     | getMonExp (declSyms,execSyms) (CALLexp (e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
      | getMonExp (declSyms,execSyms) (INVOKEexp (t,e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
      | getMonExp (declSyms,execSyms) (RECORDexp (t,fs)) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) execSyms fs
      | getMonExp (declSyms,execSyms) (LITexp l) = execSyms
@@ -161,10 +161,11 @@ structure ActionVarReduction = struct
          STATEexp (BASICblock ([],[]), OBJvtype, IDexp sym)
       else IDexp sym
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
-     | visitExp s (CALLexp (sym,es)) =
+     | visitExp s (CALLexp (IDexp sym,es)) =
       if isMonVar (s, sym) then
-         STATEexp (BASICblock ([],[]), OBJvtype, CALLexp (sym, map (visitExp s) es))
-      else CALLexp (sym, map (visitExp s) es)
+         STATEexp (BASICblock ([],[]), OBJvtype, CALLexp (IDexp sym, map (visitExp s) es))
+      else CALLexp (IDexp sym, map (visitExp s) es)
+     | visitExp s (CALLexp (e,es)) = CALLexp (visitExp s e, map (visitExp s) es)
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
@@ -263,7 +264,7 @@ structure ActionClosures = struct
    
    and freeExp s (IDexp sym) = SymSet.add (s, sym)
      | freeExp s (PRIexp (f,t,es)) = foldl (fn (e,s) => freeExp s e) s es
-     | freeExp s (CALLexp (sym,es)) = foldl (fn (e,s) => freeExp s e) (SymSet.add (s, sym)) es
+     | freeExp s (CALLexp (e,es)) = foldl (fn (e,s) => freeExp s e) (freeExp s e) es
      | freeExp s (INVOKEexp (t,e,es)) = foldl (fn (e,s) => freeExp s e) (freeExp s e) es
      | freeExp s (RECORDexp (t,fs)) = foldl (fn ((f,e),s) => freeExp s e) s fs
      | freeExp s (LITexp (t,l)) = s
@@ -345,7 +346,7 @@ structure ActionClosures = struct
    
    and visitExp s (IDexp sym) = IDexp sym
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,remMonad t,map (visitExp s) es)
-     | visitExp s (CALLexp (sym,es)) = CALLexp (sym, map (visitExp s) es)
+     | visitExp s (CALLexp (e,es)) = CALLexp (visitExp s e, map (visitExp s) es)
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (remMonad t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (LITexp (t,l)) = LITexp (remMonad t, l)
@@ -354,10 +355,14 @@ structure ActionClosures = struct
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
      | visitExp s (INT2VECexp (sz,e)) = INT2VECexp (sz, visitExp s e)
      | visitExp s (CLOSUREexp (t,sym,es)) = CLOSUREexp (remMonad t,sym,map (visitExp s) es)
-     | visitExp s (STATEexp (BASICblock ([],[]),t,CALLexp (sym,[]))) =
-      (case SymMap.find (#funToClosure s, sym) of
-         SOME clSym => CLOSUREexp (t,clSym,[])
-       | NONE => genAction s ([],[],t,CALLexp (sym,[]))
+     | visitExp s (STATEexp (BASICblock ([],[]),t,CALLexp (e,[]))) =
+      (case e of
+         IDexp sym =>
+            (case SymMap.find (#funToClosure s, sym) of
+               SOME clSym => CLOSUREexp (t,clSym,[])
+             | NONE => genAction s ([],[],t,CALLexp (IDexp sym,[]))
+            )
+       | e => genAction s ([],[],t,CALLexp (e,[]))
       )
      | visitExp s (STATEexp (BASICblock (decls, stmts),t,e)) = genAction s (decls,stmts,t,e)
      | visitExp s (EXECexp (t, e)) = INVOKEexp (remMonad t, visitExp s e, [])
@@ -443,7 +448,7 @@ structure ActionReduce = struct
    
    and getCloFunExp cs (IDexp sym) = cs
      | getCloFunExp cs (PRIexp (f,t,es)) = foldl (fn (e,cs) => getCloFunExp cs e) cs es
-     | getCloFunExp cs (CALLexp (sym,es)) = foldl (fn (e,cs) => getCloFunExp cs e) cs es
+     | getCloFunExp cs (CALLexp (e,es)) = foldl (fn (e,cs) => getCloFunExp cs e) (getCloFunExp cs e) es
      | getCloFunExp cs (INVOKEexp (t,e,es)) = foldl (fn (e,cs) => getCloFunExp cs e) (getCloFunExp cs e) es
      | getCloFunExp cs (RECORDexp (t,fs)) = foldl (fn ((_,e),cs) => getCloFunExp cs e) cs fs
      | getCloFunExp cs (LITexp l) = cs
@@ -508,7 +513,7 @@ structure ActionReduce = struct
             isMonStmt {resVar = rhs, pureToMon = #pureToMon s} stmts
          else
             false
-     | isMonStmt s (ASSIGNstmt (SOME lhs,CALLexp (sym,_)) :: stmts) =
+     | isMonStmt s (ASSIGNstmt (SOME lhs,CALLexp (IDexp sym,_)) :: stmts) =
          if SymbolTable.eq_symid (#resVar (s : stateMon), lhs) then
             SymSet.member (#pureToMon s, sym)
          else
@@ -560,7 +565,7 @@ structure ActionReduce = struct
    
    and getMonExp (declSyms,execSyms) (IDexp sym) = execSyms
      | getMonExp (declSyms,execSyms) (PRIexp (f,t,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
-     | getMonExp (declSyms,execSyms) (CALLexp (sym,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) execSyms es
+     | getMonExp (declSyms,execSyms) (CALLexp (e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
      | getMonExp (declSyms,execSyms) (INVOKEexp (t,e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
      | getMonExp (declSyms,execSyms) (RECORDexp (t,fs)) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) execSyms fs
      | getMonExp (declSyms,execSyms) (LITexp l) = execSyms
@@ -597,10 +602,11 @@ structure ActionReduce = struct
          STATEexp (BASICblock ([],[]), OBJvtype, IDexp sym)
       else IDexp sym
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
-     | visitExp s (CALLexp (sym,es)) =
+     | visitExp s (CALLexp (IDexp sym,es)) =
       if isMonVar (s, sym) then
-         STATEexp (BASICblock ([],[]), OBJvtype, CALLexp (sym, map (visitExp s) es))
-      else CALLexp (sym, map (visitExp s) es)
+         STATEexp (BASICblock ([],[]), OBJvtype, CALLexp (IDexp sym, map (visitExp s) es))
+      else CALLexp (IDexp sym, map (visitExp s) es)
+     | visitExp s (CALLexp (e,es)) = CALLexp (visitExp s e, map (visitExp s) es)
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
@@ -748,11 +754,11 @@ structure Simplify = struct
       )
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
-     | visitExp s (CALLexp (sym,es)) = CALLexp (sym, map (visitExp s) es)
+     | visitExp s (CALLexp (e,es)) = CALLexp (visitExp s e, map (visitExp s) es)
      | visitExp s (INVOKEexp (t, e, es)) = (case visitExp s e of
          CLOSUREexp (tCl,sym,esCl) => (case SymMap.find (#decls (s :state),sym) of
             SOME (CLOSUREdecl { closureDelegate = delSym, ... }) =>
-               CALLexp (delSym, map (visitExp s) (esCl @ es))
+               CALLexp (IDexp delSym, map (visitExp s) (esCl @ es))
           | _ => (TextIO.print ("INVOKE of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " is bad idea.\n"); raise SimplifierBug)
          )
        | e => INVOKEexp (t, e, map (visitExp s) es)
@@ -833,7 +839,7 @@ structure TypeRefinement = struct
    val debugOn = ref false
    fun msg str = if !debugOn then TextIO.print str else ()
    
-   val genFixedRecords = ref true
+   val genFixedRecords = ref false
 
    exception TypeOptBug
    
@@ -941,7 +947,7 @@ structure TypeRefinement = struct
             in
                ()
             end
-         val _ = app showSymBinding syms
+         (*val _ = app showSymBinding syms*)
          val _ = app showFieldBinding (SymMap.listItemsi (!ft))
       in
          ()
@@ -1147,11 +1153,10 @@ structure TypeRefinement = struct
 
    and visitExp s (IDexp sym) = symType s sym
      | visitExp s (PRIexp (SLICEprim,t,es as [vec,ofs,LITexp (INTvtype, INTlit sz)])) =
-         visitCall s (false, FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), VOIDstype, [INTstype, INTstype, INTstype]), es)
-     | visitExp s (PRIexp (f,t,es)) = visitCall s (false, vtypeToStype s t, es)
-     | visitExp s (CALLexp (sym,es)) = visitCall s (false, symType s sym, es)
-     | visitExp s (INVOKEexp (t,IDexp sym,es)) = visitCall s (false, visitExp s (IDexp sym), es)
-     | visitExp s (INVOKEexp (t,e,es)) = visitCall s (true, visitExp s e, es)
+         visitCall s (FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), VOIDstype, [INTstype, INTstype, INTstype]), es)
+     | visitExp s (PRIexp (f,t,es)) = visitCall s (vtypeToStype s t, es)
+     | visitExp s (CALLexp (e,es)) = visitCall s (visitExp s e, es)
+     | visitExp s (INVOKEexp (t,e,es)) = visitCall s (visitExp s e, es)
      | visitExp s (RECORDexp (t,fs)) = 
       if !genFixedRecords then
          RECORDstype (map (fn (f,e) => (true, f, visitExp s e)) fs, false)
@@ -1207,11 +1212,10 @@ structure TypeRefinement = struct
          resVar
       end
    
-   and visitCall s (forceClosure,fTy,args) =
+   and visitCall s (fTy,args) =
       let
-         val cl = if forceClosure then OBJstype else VOIDstype
          val resTy = freshTVar s
-         val _ = lub (s,FUNstype (resTy,cl,map (visitExp s) args),fTy)
+         val _ = lub (s,FUNstype (resTy,VOIDstype,map (visitExp s) args),fTy)
       in
          resTy
       end
@@ -1507,12 +1511,17 @@ structure TypeRefinement = struct
        | _ => readWrap s (origType s sym, symType s sym, IDexp sym)
       )
      | patchExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (patchExp s) es)
-     | patchExp s (CALLexp (sym,es)) =
+     | patchExp s (CALLexp (e,es)) =
       let
-         val _ = msg ("patchExp CALL " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " from " ^ Layout.tostring (Imp.PP.vtype (origType s sym)) ^ " to " ^ showSType (inlineSType s (symType s sym)) ^ "\n")
-         val (wrap, tyNew, esNew) = patchCall s (origType s sym, symType s sym, map (patchExp s) es)
+         val eNew = patchExp s e
+         val origTy = case e of
+            IDexp sym => origType s sym
+          | _ => FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) es)
+         val newTy = visitExp s e
+         val _ = msg ("patchExp CALL " ^ Layout.tostring (Imp.PP.exp e) ^ " from " ^ Layout.tostring (Imp.PP.vtype origTy) ^ " to " ^ showSType (inlineSType s newTy) ^ "\n")
+         val (wrap, tyNew, esNew) = patchCall s (origTy, newTy, map (patchExp s) es)
       in
-         wrap (CALLexp (sym, esNew))
+         wrap (CALLexp (eNew, esNew))
       end
      | patchExp s (INVOKEexp (ty, e, es)) =
       let
@@ -1522,10 +1531,7 @@ structure TypeRefinement = struct
       in
          case tyNew of
             FUNvtype (_,true,_) => wrap (INVOKEexp (tyNew, eNew, esNew))
-          | FUNvtype (_,false,_) => (case e of
-               IDexp sym => wrap (CALLexp (sym, esNew))
-             | _ => raise TypeOptBug (* the flag shouldn't be true if e is not an identifier *)
-           )
+          | FUNvtype (_,false,_) => wrap (CALLexp (eNew, esNew))
           | _ => raise TypeOptBug (* must be function type *)
       end
      | patchExp s (RECORDexp (t,fs)) = RECORDexp (
@@ -1575,10 +1581,10 @@ structure TypeRefinement = struct
            | genNewArgs acc (OBJvtype, FUNstype (sRes, sCl, ss), es) =
                genNewArgs acc (FUNvtype (OBJvtype, false, map (fn _ => OBJvtype) ss),
                                FUNstype (sRes, sCl, ss), es)
-(*           | genNewArgs acc (FUNvtype (vRes, vCl, vs), OBJstype, es) =
+           | genNewArgs acc (FUNvtype (vRes, vCl, vs), OBJstype, es) =
                genNewArgs acc (FUNvtype (vRes, vCl, vs),
                                FUNstype (OBJstype, OBJstype, map (fn _ => OBJstype) vs), es)
-*)           | genNewArgs acc (vs, ss, []) = (acc, vs, ss)
+           | genNewArgs acc (vs, ss, []) = (acc, vs, ss)
            | genNewArgs acc (v,s,e :: es) = (TextIO.print ("patchCall of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ ", next argument is " ^ Layout.tostring (Imp.PP.exp e) ^ "\n"); raise TypeOptBug)
 
       in
@@ -1590,7 +1596,26 @@ structure TypeRefinement = struct
          | (es, FUNvtype (vRes, vCl, _), OBJstype) =>
             (fn e => readWrap s (vRes, OBJstype, e), adjustType s (orig, new), es)
          | (es, v, t) => (TextIO.print ("patchCall bad of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ ": no more args\n"); raise TypeOptBug)
-     end
+      end
+
+   fun setArgsToTop s (FUNCdecl {
+        funcName = f,
+        funcArgs = args,
+        ...
+      }) =
+      let
+         fun voidsToTop (VOIDstype) = OBJstype
+           | voidsToTop (BOXstype t) = BOXstype (voidsToTop t)
+           | voidsToTop (FUNstype (res,clos,args)) = FUNstype (voidsToTop res, clos, map (voidsToTop) args)
+           | voidsToTop (MONADstype res) = MONADstype (voidsToTop res)
+           | voidsToTop (RECORDstype (fs,b)) = RECORDstype (map (fn (b,f,t) => (b,f,voidsToTop t)) fs,b)
+           | voidsToTop (BITstype t) = BITstype (voidsToTop t)
+           | voidsToTop t = t
+      in
+         app (fn (t,a) => (lub (s, symType s a, voidsToTop (inlineSType s (symType s a))); ())) args
+      end
+     | setArgsToTop s _ = ()
+
    fun run { decls = ds, fdecls = fs, exports = es } =
       let
 
@@ -1605,7 +1630,12 @@ structure TypeRefinement = struct
          }
          fun visitDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); (*TextIO.print ("type of writeRes : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 1045)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
-         val _ = showState (SymMap.listKeys declMap) state
+         (* set all arguments in exported functions to OBJstype if they are void *)
+         val exports = SymSet.fromList es
+         val _ = app (setArgsToTop state)
+            (List.filter (fn d => SymSet.member (exports, getDeclName d)) ds)
+         
+         (*val _ = showState (SymMap.listKeys declMap) state*)
          val _ = debugOn := false
          fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)
          val ds = map (patchDeclPrint state) ds
@@ -1948,7 +1978,7 @@ structure SwitchReduce = struct
    and visitCase s (p,bb) = (p, visitBlock s bb)
    
    and visitExp s (PRIexp (f,t,es)) = (PRIexp (f,t,map (visitExp s) es))
-     | visitExp s (CALLexp (sym,es)) = (CALLexp (sym, map (visitExp s) es))
+     | visitExp s (CALLexp (e,es)) = (CALLexp (visitExp s e, map (visitExp s) es))
      | visitExp s (INVOKEexp (t,e,es)) = (INVOKEexp (t,visitExp s e, map (visitExp s) es))
      | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
@@ -2053,7 +2083,7 @@ structure DeadSymbol = struct
    
    and visitExp s (IDexp sym) = (refSym s sym; IDexp (applyReplace (s,sym)))
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
-     | visitExp s (CALLexp (sym,es)) = (refSym s sym; CALLexp (applyReplace (s,sym), map (visitExp s) es))
+     | visitExp s (CALLexp (e,es)) = CALLexp (visitExp s e, map (visitExp s) es)
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp (t,fs)) = RECORDexp (t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)

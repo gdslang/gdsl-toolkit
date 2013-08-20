@@ -513,7 +513,7 @@ end = struct
                closureRetTy = OBJvtype
             })
          val _ = if null args then
-               addGlobalExp s (sym, CALLexp (sym, map (IDexp o #2) clArgs))
+               addGlobalExp s (sym, CALLexp (IDexp sym, map (IDexp o #2) clArgs))
             else
                addGlobalExp s (sym, CLOSUREexp (fTypeCl, symCl, map (IDexp o #2) clArgs))
       in

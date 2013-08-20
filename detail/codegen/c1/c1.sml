@@ -538,7 +538,7 @@ structure C1 = struct
          FUNvtype (_,_,args) => emitPrim s (f,es,args)
        | _ => emitPrim s (f,es,[])
       )
-     | emitExp s (CALLexp (sym,es)) = seq [emitSym s sym, fArgs (map (emitExp s) es)]
+     | emitExp s (CALLexp (e,es)) = seq [emitExp s e, fArgs (map (emitExp s) es)]
      | emitExp s (INVOKEexp (FUNvtype (_,false,_),e,es)) =
          seq [emitExp s e, fArgs (map (emitExp s) es)]
      | emitExp s (INVOKEexp (t,e,es)) =
@@ -580,7 +580,7 @@ structure C1 = struct
          seq [str "&", emitSym s (SymMap.lookup (#closureToFun s, sym))]
      | emitExp s (CLOSUREexp (t,sym,es)) =
          seq [emitGenClosure s t, fArgs (seq [str "&", emitSym s sym] :: map (emitExp s) es)]
-     | emitExp s (STATEexp (BASICblock ([],[]), _, CALLexp (sym,[]))) = seq [str "&", emitSym s sym]
+     | emitExp s (STATEexp (BASICblock ([],[]), _, CALLexp (e,[]))) = seq [str "&", emitExp s e]
      | emitExp s (STATEexp (b,t,e)) = emitAnonymousAction s (b,t,e)
 
      | emitExp s (EXECexp (FUNvtype (_,false,_),e)) = seq [emitExp s e, fArgs []]
