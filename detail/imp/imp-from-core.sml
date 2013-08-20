@@ -72,6 +72,7 @@ end = struct
                   resVar : SymbolTable.symid,
                   functions : decl list ref,
                   fields : vtype SymMap.map ref,
+                  conToArg : SymbolTable.symid SymMap.map ref,
                   closureSyms : (SymbolTable.symid * SymSet.set) SymMap.map ref }
 
    fun addLocalVar (s : state) sym =
@@ -96,6 +97,7 @@ end = struct
                resVar = res,
                functions = #functions s,
                fields = #fields s,
+               conToArg = #conToArg s,
                closureSyms = #closureSyms s }
        in
          (res,s')
@@ -142,6 +144,7 @@ end = struct
                declVars = localDecls,
                resVar = #resVar s,
                functions = #functions s,
+               conToArg = #conToArg s,
                fields = #fields s,
                closureSyms = #closureSyms s }
       in
@@ -242,6 +245,8 @@ end = struct
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val _ = SymbolTables.varTable := tab
 
+                  val _ = #conToArg s := SymMap.insert (!(#conToArg s),con,sym')
+
                   val fType = FUNvtype (OBJvtype, false, [OBJvtype])                        
                   val _ = addDecl s (CONdecl { conName = sym,
                                                conTag = con,
@@ -257,15 +262,19 @@ end = struct
                     closureRetTy = OBJvtype
                   })
                in
-                  clSym
+                  sym
                end
-          | SOME sym => getClosureSym (s,sym)
+          | SOME sym => sym
       end
    
    fun get_con_idx e = PRIexp (GET_CON_IDXprim,
       FUNvtype (INTvtype, false, [OBJvtype]), [e])
-   fun get_con_arg e = PRIexp (GET_CON_ARGprim,
-      FUNvtype (OBJvtype, false, [OBJvtype]), [e])
+
+   (* a bit of a cheat: the first argument is a dummy variable that is the
+   constructor function, this is used to do track to which constructor the
+   payload belongs to *)
+   fun get_con_arg (a,e) = PRIexp (GET_CON_ARGprim,
+      FUNvtype (OBJvtype, false, [FUNvtype (OBJvtype, false, [OBJvtype]),OBJvtype]), [IDexp a,e])
 
    (* Given a binding group, compute the set of variables that have to be provided
       in the closure of each defined symbol. *)
@@ -367,7 +376,7 @@ end = struct
            | trCase (Core.Pat.INT i, block) = (INTpat i, block)
            | trCase (Core.Pat.CON (sym,NONE), block) = (CONpat sym, block)
            | trCase (Core.Pat.CON (sym,SOME arg), BASICblock (decls, stmts)) =
-               (CONpat sym, BASICblock ((OBJvtype, arg) :: decls, ASSIGNstmt (SOME arg,get_con_arg scrutRaw) :: stmts))
+               (CONpat sym, BASICblock ((OBJvtype, arg) :: decls, ASSIGNstmt (SOME arg,get_con_arg (addConFun s sym,scrutRaw)) :: stmts))
            | trCase (Core.Pat.ID sym, BASICblock (decls, stmts)) =
                ((addLocalVar s sym; WILDpat),
                 BASICblock (decls, ASSIGNstmt (SOME sym,scrutRaw) :: stmts))
@@ -480,7 +489,7 @@ end = struct
        | (_, SOME _) =>
          let
             val fTypeCl = FUNvtype (OBJvtype, false, [])
-            val symCl = addConFun s sym
+            val symCl = getClosureSym (s, addConFun s sym)
          in
             ([], CLOSUREexp (fTypeCl, symCl, []))  
          end
@@ -558,6 +567,7 @@ end = struct
                                     declVars = ref SymSet.empty,
                                     resVar = SymbolTable.unsafeFromInt 1,
                                     functions = decls,
+                                    conToArg = ref SymMap.empty,
                                     fields = fields,
                                     closureSyms = ref SymMap.empty
                                    }

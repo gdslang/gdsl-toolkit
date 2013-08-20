@@ -620,7 +620,7 @@ structure C1 = struct
      | emitPrim s (CONCAT_STRINGprim, [e1,e2],_) = seq [str "string_concat", fArgs [emitExp s e1, emitExp s e2]]
      | emitPrim s (SLICEprim, [vec,ofs,sz],_) = seq (str "gen_vec(" :: emitExp s sz :: str ", slice" :: list ("(", emitExp s, [vec,ofs,sz], "))"))
      | emitPrim s (GET_CON_IDXprim, [e],[t]) = seq [str "((con", str (getTypeSuffix s t), str "_t*) ", emitExp s e , str ")->tag"]
-     | emitPrim s (GET_CON_ARGprim, [e],[t]) = seq [str "((con", str (getTypeSuffix s t), str "_t*) ", emitExp s e , str ")->payload"]
+     | emitPrim s (GET_CON_ARGprim, [_,e],[FUNvtype (_,_,[t]),_]) = seq [str "((con", str (getTypeSuffix s t), str "_t*) ", emitExp s e , str ")->payload"]
      | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
      | emitPrim s _ = raise CodeGenBug
      

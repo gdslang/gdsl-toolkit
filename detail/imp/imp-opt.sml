@@ -1161,6 +1161,16 @@ structure TypeRefinement = struct
    and visitExp s (IDexp sym) = symType s sym
      | visitExp s (PRIexp (SLICEprim,t,es as [vec,ofs,LITexp (INTvtype, INTlit sz)])) =
          visitCall s (FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), VOIDstype, [INTstype, INTstype, INTstype]), es)
+     | visitExp s (PRIexp (GET_CON_ARGprim,t, es as [IDexp arg,_])) =
+         let
+            val (SOME decl) = SymMap.find (#origDecls (s : state), arg)
+            val (CONdecl {
+                    conArg = (t,sym),
+                    ...
+                 }) = decl
+         in
+            lub (s,symType s sym, visitCall s (vtypeToStype s t, es))
+         end
      | visitExp s (PRIexp (f,t,es)) = visitCall s (vtypeToStype s t, es)
      | visitExp s (CALLexp (e,es)) = visitCall s (visitExp s e, es)
      | visitExp s (INVOKEexp (t,e,es)) = visitCall s (visitExp s e, es)
@@ -1517,6 +1527,17 @@ structure TypeRefinement = struct
          VOIDstype => PRIexp (VOIDprim, VOIDvtype, [])
        | _ => readWrap s (origType s sym, symType s sym, IDexp sym)
       )
+     | patchExp s (PRIexp (GET_CON_ARGprim,t, es as [IDexp arg,_])) =
+         let
+            val (SOME decl) = SymMap.find (#origDecls (s : state), arg)
+            val (CONdecl {
+                    conArg = (argTy,argSym),
+                    ...
+                 }) = decl
+            val t = adjustType s (t,FUNstype (symType s argSym, VOIDstype, map (visitExp s) es))
+         in
+            readWrap s (argTy, symType s argSym, PRIexp (GET_CON_ARGprim,t,map (patchExp s) es))
+         end
      | patchExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (patchExp s) es)
      | patchExp s (CALLexp (e,es)) =
       let
