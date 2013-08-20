@@ -5,7 +5,6 @@ CFLAGS=-g3 -fPIC -Wall -Wno-unused-but-set-variable
 LFLAGS=-shared
 
 GDSL=gdsl
-SMLFLAGS="-Cimp.keep-switch-reduce=true", "-Cimp.keep-action-closures=true", "-Ccodegen.keep-c1-codegen=true", "-Cimp.keep-type-refinement=true"
 GDSL_NAME=gdsl-x86
 
 .PHONY: libs tools
@@ -15,7 +14,7 @@ all: $(GDSL_NAME).c lib$(GDSL_NAME).so libs tools
 GDSL_NAME_SOURCES=$(shell find specifications/basis specifications/rreil specifications/x86 -type f -name '*.ml')
 
 $(GDSL_NAME).c: $(GDSL).cm  $(shell find detail/ -type f -name '*') $(GDSL_NAME_SOURCES)
-	echo 'Main.processArgs [$(SMLFLAGS) $(GDSL_NAME_SOURCES:%=, "%") ];' | $(SML) -m $<
+	echo 'Main.processArgs ["-verbose" $(GDSL_NAME_SOURCES:%=, "%")];' | $(SML) -m $<
 
 lib$(GDSL_NAME).so: $(GDSL_NAME).c
 	$(CC) $(CFLAGS) -c $< -o $(<:.c=.o)
