@@ -132,7 +132,7 @@ static void result_print(struct tester_result result) {
 }
 
 static void test_stream(FILE *stream, struct options *options) {
-	char *buffer;
+	uint8_t *buffer;
 	size_t buffer_length = readhex_hex_read(stream, &buffer);
 	struct tester_result result = tester_test_binary(NULL, options->fork, buffer,
 			buffer_length, options->test_unused);

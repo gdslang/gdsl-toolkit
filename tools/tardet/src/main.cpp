@@ -145,12 +145,12 @@ int main(int argc, char **argv) {
 			exit(1);
 		}
 		case MODE_CLI: {
-			data_size = readhex_hex_read(stdin, (char**)&data);
+			data_size = readhex_hex_read(stdin, &data);
 			break;
 		}
 		case MODE_CMDLINE: {
 			FILE *stream = fmemopen((void*)options.parameter, strlen(options.parameter) + 1, "r");
-			data_size = readhex_hex_read(stream, (char**)&data);
+			data_size = readhex_hex_read(stream, &data);
 			fclose(stream);
 			break;
 		}

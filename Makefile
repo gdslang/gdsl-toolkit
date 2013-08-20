@@ -1,7 +1,7 @@
 MLTK=.
 CC=gcc
 MLTON=mlton
-CFLAGS=-g3 -fPIC
+CFLAGS=-g3 -fPIC -Wall -Wno-unused-but-set-variable
 LFLAGS=-shared
 
 GDSL=gdsl

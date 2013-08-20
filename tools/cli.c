@@ -12,11 +12,11 @@ int main(int argc, char** argv) {
 		exit(1);
 	}
 
-	char *buffer;
+	uint8_t *buffer;
 	size_t size = readhex_hex_read(stdin, &buffer);
 
 	state_t state = gdsl_init();
-	gdsl_set_code(state, buffer, size, 0);
+	gdsl_set_code(state, (char*)buffer, size, 0);
 
 	if(setjmp(*gdsl_err_tgt(state)))
 		fatal("decode failed");
