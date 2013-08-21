@@ -45,10 +45,7 @@ val show/instruction i =
     | AND x: "AND" -++ show/binop x
     | ANDI x: "ANDI" -++ show/binop x
     | ASR x: "ASR" -++ show/unop x
-    | BCLR x: "BCLR" -++ show/unop x
     | BLD x: "BLD" -++ show/binop x
-    | BRBC x: "BRBC" -++ show/binop x
-    | BRBS x: "BRBS" -++ show/binop x
     | BRCC x: "BRCC" -++ show/unop x
     | BRCS x: "BRCS" -++ show/unop x
     | BREAK: "BREAK"
@@ -58,12 +55,10 @@ val show/instruction i =
     | BRHS x: "BRHS" -++ show/unop x
     | BRID x: "BRID" -++ show/unop x
     | BRIE x: "BRIE" -++ show/unop x
-    | BRLO x: "BRLO" -++ show/unop x
     | BRLT x: "BRLT" -++ show/unop x
     | BRMI x: "BRMI" -++ show/unop x
     | BRNE x: "BRNE" -++ show/unop x
     | BRPL x: "BRPL" -++ show/unop x
-    | BRSH x: "BRSH" -++ show/unop x
     | BRTC x: "BRTC" -++ show/unop x
     | BRTS x: "BRTS" -++ show/unop x
     | BRVC x: "BRVC" -++ show/unop x
@@ -141,7 +136,6 @@ val show/instruction i =
     | SEH: "SEH"
     | SEI: "SEI"
     | SEN: "SEN"
-    | SER x: "SER" -++ show/unop x
     | SES: "SES"
     | SET: "SET"
     | SEV: "SEV"

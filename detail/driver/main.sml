@@ -64,7 +64,7 @@ structure Main = struct
 \    -C<control>=<v>  set named control\n\
 \    -h               show help message\n\
 \    -p pfx\n\
-\    -prefix=pfx     prefix functions with pfx\n\
+\    --prefix=pfx     prefix functions with pfx\n\
 \    -o name\n\
 \    --outname=name   base name of output file, defaults to gdsl-pfx\n\
 \    -verbose         verbose mode\n\

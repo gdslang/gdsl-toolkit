@@ -1894,9 +1894,10 @@ structure SwitchReduce = struct
             group/sift functions below do the same *)
          fun amalgamate ((pats1, rhs1)::(pats2, rhs2)::cases) =
             let
+               fun strEq s s' = String.compare (s,s')=EQUAL
                fun patsEq (p::ps, pats) =
-                  if List.exists (fn p' => String.compare (p,p')=EQUAL) pats then
-                     patsEq (ps, pats)
+                  if List.exists (strEq p) pats then
+                     patsEq (ps, List.filter (not o strEq p) pats)
                   else
                      false
                  | patsEq ([], _) = true
@@ -1911,7 +1912,9 @@ structure SwitchReduce = struct
          (* for each case, check if there are other cases further down
             that overlap with the patterns of this case; turn them
             into a group of cases *)
-         fun group [] = []
+            
+         (* the following code checks for duplicates but does not always generate correct code *)
+         (*fun group [] = []
            | group ((pat,rhs) :: cases) =
             let
                val rhss = ref rhs
@@ -1926,11 +1929,12 @@ structure SwitchReduce = struct
                        | sift ((patsT,bbT), []) =
                         (changed := true; [(patsT,bbT)])
                      val _ = rhss := foldl sift (!rhss) rhsT
+                     (*val _ = if not (!changed) then () else TextIO.print ("rhs have changed:\n" ^ showCases (!rhss) ^ "\nend changes\n")*)
                   in
                      !changed
                   end
-               fun fetch (_,[]) = []
-                 | fetch (pat,((patT,rhsT) :: cases)) =
+               fun fetch (_, []) = []
+                 | fetch (pat, ((patT,rhsT) :: cases)) =
                   if patsIntersect (pat,patT) then
                      let
                         val remPats = patsDifference (patT,pat)
@@ -1960,6 +1964,35 @@ structure SwitchReduce = struct
                val newCases = fetch (pat,cases)
             in
                (pat, !rhss) :: group newCases
+            end*)
+
+         fun group [] = []
+           | group ((pat,rhs) :: cases) =
+            let
+               (* add the rhs cases of the first argument into the second *)
+               fun addRhs (rhsT,rhs) =
+                  let
+                     fun sift ((patsT,bbT), ((pats,bb) :: cases)) =
+                        (case patsDifference (patsT,pats) of
+                           [] => ((pats,bb) :: cases)
+                         | patsT => (pats,bb) :: sift ((patsT,bbT), cases)
+                        )
+                       | sift ((patsT,bbT), []) = [(patsT,bbT)]
+                  in
+                     foldl sift rhs rhsT
+                  end
+               fun compress acc (pat, rhs, []) =
+                  if null pat then group acc else (pat, rhs) :: group acc
+                 | compress acc (pat, rhs, ((patT,rhsT) :: cases)) =
+                     compress
+                        (case patsDifference (patT,pat) of
+                           [] => acc
+                         | patT' => acc @
+                           [(patT',if patsIntersect (pat,patT) then addRhs (rhs,rhsT) else rhsT)]
+                        )
+                        (patsDifference (pat,patT), rhs, cases)
+            in
+               compress [] (pat, rhs, cases)
             end
 
          fun splitCase (p,bb) =

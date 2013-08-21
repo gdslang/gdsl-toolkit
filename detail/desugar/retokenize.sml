@@ -20,8 +20,8 @@ end = struct
                if len <> 0 orelse List.length tok <> 0
                   then
                      (* TODO: Make this a proper warning *)
-                     (print "Retokenize: SKIPPING DECODE DECLARATION\n"
-                     ;NONE) 
+                     ((*print "Retokenize: skipping decoder that reads less than a token\n";*)
+                     NONE) 
                else SOME (rev pats) 
           | p::ps =>
                (case p of

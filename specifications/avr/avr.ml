@@ -60,34 +60,17 @@ val / ['0111 k k k k d d d d k k k k'] = binop ANDI rd4 ck8
 ###  - Arithmetic Shift Right
 val / ['1001010 d d d d d 0101'] = unop ASR rd5
 
-### BCLR
-###  - Bit Clear in SREG
-### => see CLC,CLZ,...
-#val / ['100101001 s s s 1000'] = unop BCLR cs3
-
 ### BLD
 ###  - Bit Load from the T Flag in SREG to a Bit in Register
 val / ['1111100 d d d d d 0 b b b'] = binop BLD rd5 cb3
 
-### BRBC
-###  - Branch if Bit in SREG is Cleared
-###  => see below
-#val / ['111101 k k k k k k k s s s'] = binop BRBC cs3 ck7
-
-### BRBS
-###  - Branch if Bit in SREG is Set
-###  => see below
-#val / ['111100 k k k k k k k s s s'] = binop BRBS cs3 ck7
-
 ### BRCC
 ###  - Branch if Carry Cleared
-###  => see BRSH
-#val / ['111101 k k k k k k k 000'] = unop BRCC ck7
+val / ['111101 k k k k k k k 000'] = unop BRCC ck7
 
 ### BRCS
 ###  - Branch if Carry Set
-###  => see BRLO
-#val / ['111100 k k k k k k k 000'] = unop BRCS ck7
+val / ['111100 k k k k k k k 000'] = unop BRCS ck7
 
 ### BREAK
 ###  - Break
@@ -117,10 +100,6 @@ val / ['111101 k k k k k k k 111'] = unop BRID ck7
 ###  - Branch if Global Interrupt is Enabled
 val / ['111100 k k k k k k k 111'] = unop BRIE ck7
 
-### BRLO
-###  - Branch if Lower (Unsigned)
-val / ['111100 k k k k k k k 000'] = unop BRLO ck7
-
 ### BRLT
 ###  - Branch if Less Than (Signed)
 val / ['111100 k k k k k k k 100'] = unop BRLT ck7
@@ -136,10 +115,6 @@ val / ['111101 k k k k k k k 001'] = unop BRNE ck7
 ### BRPL
 ###  - Branch if Plus
 val / ['111101 k k k k k k k 010'] = unop BRPL ck7
-
-### BRSH
-###  - Branch if Same or Higher (Unsigned)
-val / ['111101 k k k k k k k 000'] = unop BRSH ck7
 
 ### BRTC
 ###  - Branch if the T Flag is Cleared
@@ -160,7 +135,7 @@ val / ['111100 k k k k k k k 011'] = unop BRVS ck7
 ### BSET
 ###  - Bit Set in SREG
 ### => see SEC,SEZ,...
-#val / ['100101000 s s s 1000'] = unop BSET cs3
+val / ['100101000 s s s 1000'] = unop BSET cs3
 
 ### BST
 ###  - Bit Store from Bit in Register to T Flag in SREG
@@ -312,14 +287,12 @@ val / ['1001000 d d d d d 1110'] = binop LD rd5 (//X DECR)
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index Y
-#val / ['1000000 d d d d d 1000'] = binop LD rd5 (//Y NONE)
 val / ['1001000 d d d d d 1001'] = binop LD rd5 (//Y INCR)
 val / ['1001000 d d d d d 1010'] = binop LD rd5 (//Y DECR)
 val / ['10 q 0 q q 0 d d d d d 1 q q q '] = binop LD rd5 (///Y dq6)
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index Z
-#val / ['1000000 d d d d d 0000'] = binop LD rd5 (//Z NONE)
 val / ['1001000 d d d d d 0001'] = binop LD rd5 (//Z INCR)
 val / ['1001000 d d d d d 0010'] = binop LD rd5 (//Z DECR)
 val / ['10 q 0 q q 0 d d d d d 0 q q q'] = binop LD rd5 (///Z dq6)
@@ -473,11 +446,6 @@ val / ['1001010001111000'] = nullop SEI
 ###  - Set Negative Flag
 val / ['1001010000101000'] = nullop SEN
 
-### SER
-###  - Set all Bits in Register
-### => see LDS Rd,K
-#val / ['11101111 d d d d 1111'] = unop SER rd4
-
 ### SES
 ###  - Set Signed Flag
 val / ['1001010001001000'] = nullop SES
@@ -510,14 +478,12 @@ val / ['1001001 r r r r r 1110'] = binop ST (//X DECR) rr5
 
 ### ST
 ###  - Store Indirect From Register to Data Space using Index Y
-#val / ['1000001 r r r r r 1000'] = binop ST (//Y NONE) rr5
 val / ['1001001 r r r r r 1001'] = binop ST (//Y INCR) rr5
 val / ['1001001 r r r r r 1010'] = binop ST (//Y DECR) rr5
 val / ['10 q 0 q q 1 r r r r r 1 q q q '] = binop ST (///Y dq6) rr5
 
 ### ST
 ###  - Store Indirect From Register to Data Space using Index Z
-#val / ['1000001 r r r r r 0000'] = binop ST (//Z NONE) rr5
 val / ['1001001 r r r r r 0001'] = binop ST (//Z INCR) rr5
 val / ['1001001 r r r r r 0010'] = binop ST (//Z DECR) rr5
 val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
@@ -525,7 +491,7 @@ val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
 ### STS
 ###  - Store Direct to Data Space
 val / ['1001001 r r r r r 0000' 'k k k k k k k k k k k k k k k k'] = binop STS ck16 rr5
-#val / ['10101 k k k r r r r k k k k'] = binop STS ck7 rr4
+val / ['10101 k k k r r r r k k k k'] = binop STS ck7 rr4
 
 ### SUB
 ###  - Subtract without Carry
@@ -590,10 +556,7 @@ type instruction =
  | AND of binop
  | ANDI of binop
  | ASR of unop
- | BCLR of unop
  | BLD of binop
- | BRBC of binop
- | BRBS of binop
  | BRCC of unop
  | BRCS of unop
  | BREAK
@@ -603,12 +566,10 @@ type instruction =
  | BRHS of unop
  | BRID of unop
  | BRIE of unop
- | BRLO of unop
  | BRLT of unop
  | BRMI of unop
  | BRNE of unop
  | BRPL of unop
- | BRSH of unop
  | BRTC of unop
  | BRTS of unop
  | BRVC of unop
@@ -686,7 +647,6 @@ type instruction =
  | SEH
  | SEI
  | SEN
- | SER of unop
  | SES
  | SET
  | SEV
