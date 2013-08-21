@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <gdsl-x86.h>
+#include <gdsl.h>
 #include <sys/resource.h>
 
 int main(int argc, char** argv) {
@@ -57,20 +57,20 @@ int main(int argc, char** argv) {
 
 		if(setjmp(*gdsl_err_tgt(state)))
 			fatal("Decode failed");
-		obj_t insn = x86_decode(state);
+		obj_t insn = gdsl_decode(state);
 
-		string_t fmt = x86_pretty(state, insn);
+		string_t fmt = gdsl_pretty(state, insn);
 		puts(fmt);
 
 		printf("---------------------------\n");
 
 		if(setjmp(*gdsl_err_tgt(state)))
 			fatal("Translate failed");
-		obj_t rreil = x86_translate(state, insn);
+		obj_t rreil = gdsl_translate(state, insn);
 //		__obj r = __runMonadicOneArg(__translate__, &state, insn);
 		//__obj r = __translate(__translate__,insn);
 
-		fmt = x86_rreil_pretty(state, rreil);
+		fmt = gdsl_rreil_pretty(state, rreil);
 		puts(fmt);
 
 		gdsl_reset_heap(state);

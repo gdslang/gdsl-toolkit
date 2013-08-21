@@ -868,7 +868,7 @@ structure C1 = struct
 
          val prefix = Controls.get BasicControl.exportPrefix
          val outputName = case Controls.get BasicControl.outputName of
-            NONE => if String.size prefix=0 then "gdsl" else "gdsl-" ^ prefix
+            NONE => prefix
           | SOME p => p
          val prefix = if String.size prefix=0 then prefix else prefix ^ "_"
 

@@ -8,7 +8,7 @@
 #ifndef GDRR_CONFIG_H_
 #define GDRR_CONFIG_H_
 
-#include <gdsl-x86.h>
+#include <gdsl.h>
 #include "gdrr_callbacks.h"
 #include "gdrr_x86_callbacks.h"
 

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <gdsl-x86.h>
+#include <gdsl.h>
 #include <gdrr.h>
 #include "rnati_NativeInterface.h"
 
@@ -19,7 +19,7 @@ static jobject java_method_call(state_t state, char *name, int numargs, ...) {
 		return NULL; //Todo: Handle error
 
 
-	struct userdata *ud = (struct userdata*)x86_rreil_cif_userdata_get(state);
+	struct userdata *ud = (struct userdata*)gdsl_rreil_cif_userdata_get(state);
 
 	jclass class = (*ud->env)->GetObjectClass(ud->env, ud->obj);
 
@@ -79,7 +79,7 @@ static jobject java_method_call(state_t state, char *name, int numargs, ...) {
 }
 
 static jobject java_long_create(state_t state, long int x) {
-	struct userdata *ud = (struct userdata*)x86_rreil_cif_userdata_get(state);
+	struct userdata *ud = (struct userdata*)gdsl_rreil_cif_userdata_get(state);
 
 	jclass class = (*ud->env)->FindClass(ud->env, "java/lang/Long");
 	jmethodID method_id = (*ud->env)->GetMethodID(ud->env, class, "<init>",
@@ -657,14 +657,14 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env,
 		(*env)->ThrowNew(env, exp, "Decode failed.");
 		return NULL;
 	}
-	obj_t insn = x86_decode(state);
+	obj_t insn = gdsl_decode(state);
 
 	if(setjmp(*gdsl_err_tgt(state))) {
 		jclass exp = (*env)->FindClass(env, "rnati/RReilTranslateException");
 		(*env)->ThrowNew(env, exp, "Translate failed.");
 		return NULL;
 	}
-	obj_t rreil = x86_translate(state, insn);
+	obj_t rreil = gdsl_translate(state, insn);
 
 //			__pretty(__rreil_pretty__, r, fmt, 2048);
 //			printf("---------------------------\n");
