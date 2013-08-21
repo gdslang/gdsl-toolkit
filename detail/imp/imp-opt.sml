@@ -1132,7 +1132,9 @@ structure TypeRefinement = struct
            | lub (OBJstype, CONSTstype _) = OBJstype
            | lub (_, OBJstype) = OBJstype
            | lub (OBJstype, _) = OBJstype
-           | lub (t1', t2') = (TextIO.print ("lub top for " ^ showSType t1' ^ "; " ^ showSType t2' ^ " when called for " ^ showSType t1 ^ "; " ^ showSType t2 ^ "\n"); OBJstype)
+           | lub (t1', t2') = 
+            ((*TextIO.print ("lub top for " ^ showSType t1' ^ "; " ^ showSType t2' ^ " when called for " ^ showSType t1 ^ "; " ^ showSType t2 ^ "\n");*)
+            OBJstype)
 
       in
          lub (t1,t2)

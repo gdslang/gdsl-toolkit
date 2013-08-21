@@ -2,33 +2,36 @@ structure C1Templates = struct
    val header = ExpandFile.mkTemplateFromFile "detail/codegen/c1/runtime.h"
    val runtime = ExpandFile.mkTemplateFromFile "detail/codegen/c1/runtime.c"
 
-   fun stdHooks prefix =
+   fun stdHooks basename =
       let
-         val PREFIX = String.implode (map Char.toUpper (String.explode prefix))
+         fun conv c = case c of
+            #"-" => #"_"
+          | c => Char.toUpper c
+         val BASENAME = String.implode (map conv (String.explode basename))
       in
          [
          ("I-am-a-template-so-edit-me", fn os => TextIO.output (os,
             "/* Auto-generated file. DO NOT EDIT. */\n")),
          ("if-guard-prefix", fn os => TextIO.output (os,
-            "#ifndef __GDSL_" ^ PREFIX ^ "_H\n#define __GDSL_" ^ PREFIX ^ "_H\n")),
+            "#ifndef __" ^ BASENAME ^ "_H\n#define __" ^ BASENAME ^ "_H\n")),
          ("end-guard-prefix", fn os => TextIO.output (os,
-            "#endif /* __GDSL_" ^ PREFIX ^ "_H */\n")),
+            "#endif /* __" ^ BASENAME ^ "_H */\n")),
          ("include-prefix", fn os => TextIO.output (os,
-            "#include \"gdsl-" ^ prefix ^ ".h\"\n"))
+            "#include \"" ^ basename  ^ ".h\"\n"))
          ]
       end
 
-   fun expandHeader prefix hooks =
+   fun expandHeader basename hooks =
       ExpandFile.expandTemplate
          {src=header,
-          dst="gdsl-" ^ prefix ^ ".h",
-          hooks=stdHooks prefix @ hooks}
+          dst=basename ^ ".h",
+          hooks=stdHooks basename @ hooks}
 
-   fun expandRuntime prefix hooks =
+   fun expandRuntime basename hooks =
       ExpandFile.expandTemplate
          {src=runtime,
-          dst="gdsl-" ^ prefix ^ ".c",
-          hooks=stdHooks prefix @ hooks}
+          dst=basename ^ ".c",
+          hooks=stdHooks basename @ hooks}
 
    fun mkPrint f os = Pretty.prettyTo(os, f())
    fun mkHook (name,d) = (name, mkPrint (fn () => d))
@@ -44,7 +47,8 @@ structure C1 = struct
 
    exception CodeGenBug
    
-   type state = { names : AtomSet.set,
+   type state = { prefix : string,
+                  names : AtomSet.set,
                   symbols : Atom.atom SymMap.map,
                   fieldTypes : vtype SymMap.map,
                   ret : SymbolTable.symid,
@@ -170,7 +174,7 @@ structure C1 = struct
                
    fun regSym (sym, table, s : state) =
       let
-         val prefix = if SymSet.member(#exports s, sym) then "x86_" else ""
+         val prefix = if SymSet.member(#exports s, sym) then #prefix s else ""
          val atom = SymbolTable.getAtom (table, sym)
          val atom = Atom.atom (prefix ^ mangleName (Atom.toString atom))
          fun addEntry (atom,names,symbols) = 
@@ -181,6 +185,7 @@ structure C1 = struct
          val (names,symbols) = addEntry (atom,#names s,#symbols s)
       in
          { names = names,
+           prefix = #prefix s,
            symbols = symbols,
            fieldTypes = #fieldTypes s,
            ret = #ret s,
@@ -197,6 +202,7 @@ structure C1 = struct
 
    fun setRet (sym,s : state) =
       { names = #names s,
+        prefix = #prefix s,
         symbols = #symbols s,
         fieldTypes = #fieldTypes s,
         ret = sym,
@@ -860,7 +866,12 @@ structure C1 = struct
                SOME arg => NONE
              | NONE => SOME (mkConName con)) (Spec.get #constructors spec)
 
-         val prefix = "x86"
+         val prefix = Controls.get BasicControl.exportPrefix
+         val outputName = case Controls.get BasicControl.outputName of
+            NONE => if String.size prefix=0 then "gdsl" else "gdsl-" ^ prefix
+          | SOME p => p
+         val prefix = if String.size prefix=0 then prefix else prefix ^ "_"
+
          val st = !SymbolTables.varTable
          val (st, genericSym) = SymbolTable.fresh (st,Atom.atom "v")
          val (st, stateSym) = SymbolTable.fresh (st,Atom.atom "s")
@@ -868,6 +879,7 @@ structure C1 = struct
          val exports = SymSet.fromList (Spec.get #exports spec)
          val s = {
                names = reservedNames,
+               prefix = prefix,
                symbols = SymMap.empty,
                fieldTypes = fs,
                ret = genericSym,
@@ -884,6 +896,7 @@ structure C1 = struct
          val funs = map (emitDecl s) ds
          val s = {
                names = #names s,
+               prefix = #prefix s,
                symbols = #symbols s,
                fieldTypes = #fieldTypes s,
                ret = #ret s,
@@ -905,14 +918,14 @@ structure C1 = struct
          val fieldNames = str ""
 
          val _ =
-            C1Templates.expandHeader prefix [
+            C1Templates.expandHeader outputName [
                C1Templates.mkHook ("records", align (!(#structsGlobal s))),
                C1Templates.mkHook ("exports", align funDeclsPublic),
                C1Templates.mkHook ("tagnames", align constructors),
                C1Templates.mkHook ("fields", align fields)
             ]
          val _ =
-            C1Templates.expandRuntime prefix [
+            C1Templates.expandRuntime outputName [
                C1Templates.mkHook ("records", align (!(#structsLocal s))),
                C1Templates.mkHook ("fieldnames", fieldNames),
                C1Templates.mkHook ("prototypes", align funDeclsPrivate),

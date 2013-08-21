@@ -26,6 +26,12 @@ structure BasicControl :  sig
   (* enable collection of GC and memory statistics *)
     val gcStats : bool Controls.control
 
+  (* the name for the generated file *)
+    val outputName : string option Controls.control
+
+  (* the prefix for exported functions *)
+    val exportPrefix : string Controls.control
+
   (* wrap a 'pre -> 'post pass with a tracing diagnostic, controled by the
    * "verbose" control.
    *)
@@ -118,6 +124,24 @@ structure BasicControl :  sig
 	    obscurity = 0,
 	    help = "enable collection of GC statistics",
 	    default = false
+	  }
+
+  (* the name for the generated file *)
+    val outputName : string option Controls.control = Controls.genControl {
+	    name = "output",
+	    pri = [0],
+	    obscurity = 0,
+	    help = "name of the output file",
+	    default = NONE
+	  }
+
+  (*  the prefix for exported functions*)
+    val exportPrefix : string Controls.control = Controls.genControl {
+	    name = "prefix",
+	    pri = [0],
+	    obscurity = 0,
+	    help = "specify a prefix for all exported functions",
+	    default = "gdsl"
 	  }
 
     val () = (

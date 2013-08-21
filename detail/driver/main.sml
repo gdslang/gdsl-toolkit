@@ -63,6 +63,10 @@ structure Main = struct
 \  options:\n\
 \    -C<control>=<v>  set named control\n\
 \    -h               show help message\n\
+\    -p pfx\n\
+\    -prefix=pfx     prefix functions with pfx\n\
+\    -o name\n\
+\    --outname=name   base name of output file, defaults to gdsl-pfx\n\
 \    -verbose         verbose mode\n\
 \"
 
@@ -90,6 +94,10 @@ structure Main = struct
                             value, "' for ", name, " : ", #tyName vse, "\n"])))
    end
 
+   and processPrefix arg = Controls.set (BasicControl.exportPrefix, arg)
+
+   and processLibname arg = Controls.set (BasicControl.outputName, SOME arg)
+
    and processArgs args =
       case args of
          arg :: args =>
@@ -107,9 +115,23 @@ structure Main = struct
       if String.isPrefix "-C" arg
          then (processControl arg; processArgs args)
       else
+      if String.isPrefix "--prefix=" arg
+         then (processPrefix (String.extract (arg,9,NONE)); processArgs args)
+      else
+      if String.isPrefix "--libname=" arg
+         then (processLibname (String.extract (arg,10,NONE)); processArgs args)
+      else
          case arg of
             "-h" => usage ()
           | "-verbose" => (Controls.set(BasicControl.verbose, 1); processArgs args)
+          | "-p" => (case args of
+             (arg :: args) => (processPrefix arg; processArgs args)
+           | [] => badopt ()
+           )
+          | "-l" => (case args of
+             (arg :: args) => (processLibname arg; processArgs args)
+           | [] => badopt ()
+           )
           | _ => badopt ()
    end
 
