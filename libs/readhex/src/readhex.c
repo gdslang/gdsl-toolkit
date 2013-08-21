@@ -6,12 +6,13 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <readhex.h>
 
-size_t readhex_hex_read(FILE *f, char **buffer) {
+size_t readhex_hex_read(FILE *f, uint8_t **buffer) {
 	size_t size = 32;
 	size_t length = 0;
-	*buffer = (char*)malloc(size);
+	*buffer = (uint8_t*)malloc(size);
 
 	while(1) {
 		size_t size_str = 2;
@@ -38,7 +39,7 @@ size_t readhex_hex_read(FILE *f, char **buffer) {
 		}
 		if(size_str + 1 > size) {
 			size *= 2;
-			*buffer = (char*)realloc(*buffer, size);
+			*buffer = (uint8_t*)realloc(*buffer, size);
 		}
 		(*buffer)[length++] = target[0] << 4 | target[1];
 	}

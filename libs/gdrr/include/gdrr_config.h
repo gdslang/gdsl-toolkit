@@ -36,7 +36,7 @@ struct gdrr_config {
 		} arch;
 	} callbacks;
 	enum gdrr_config_stmts_handling gdrr_config_stmts_handling;
-	void *closure;
+	void *userdata;
 	state_t state;
 };
 

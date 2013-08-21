@@ -1,0 +1,46 @@
+MLTK=.
+CC=gcc
+SML=sml
+CFLAGS=-g3 -fPIC -Wall -Wno-unused-but-set-variable
+LFLAGS=-shared
+
+GDSL=gdsl
+GDSL_NAME=gdsl-x86
+
+SMLFLAGS=-verbose
+
+#GDSL_NAME_SOURCES=$(shell find specifications/basis specifications/rreil specifications/x86 -type f -name '*.ml')
+GDSL_BASIS_SOURCES=specifications/basis/bbtree.ml specifications/basis/selectors.ml
+GDSL_RREIL_SOURCES=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-cleanup.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml
+GDSL_X86_SOURCES=specifications/x86/x86-rreil-translator-a-l.ml specifications/x86/x86-pretty-simple.ml specifications/x86/x86-rreil-translator.ml specifications/x86/x86.ml specifications/x86/x86-rreil-translator-m-z.ml specifications/x86/x86-rreil-registermapping.ml specifications/x86/x86-liveness.ml specifications/x86/x86-pretty.ml
+GDSL_NAME_SOURCES=$(GDSL_BASIS_SOURCES) $(GDSL_RREIL_SOURCES) $(GDSL_X86_SOURCES)
+
+NOTHING:=
+SPACE:=$(NOTHING) $(NOTHING)
+COMMA:=,
+
+SML_PLIST=$(SMLFLAGS) $(GDSL_NAME_SOURCES)
+SML_PLIST:=$(strip $(SML_PLIST))
+SML_PLIST:=$(subst $(SPACE),$(COMMA) ,$(SML_PLIST:%="%"))
+
+.PHONY: libs tools
+
+all: $(GDSL_NAME).c lib$(GDSL_NAME).so libs tools
+
+$(GDSL_NAME).c: $(GDSL).cm  $(shell find detail/ -type f -name '*') $(GDSL_NAME_SOURCES)
+	echo 'Main.processArgs [$(SML_PLIST)];' | $(SML) -m $<
+
+lib$(GDSL_NAME).so: $(GDSL_NAME).c
+	$(CC) $(CFLAGS) -c $< -o $(<:.c=.o)
+	$(CC) $(LFLAGS) -Wl,-soname,lib$(<:.c=.so) -o lib$(<:.c=.so) $(<:.c=.o)
+
+tools: lib$(GDSL_NAME).so libs
+	$(MAKE) -C $@/
+
+libs: lib$(GDSL_NAME).so
+	$(MAKE) -C $@/
+
+clean:
+	$(MAKE) -C libs/	clean
+	$(MAKE) -C tools/ clean
+	rm -f $(GDSL_NAME).* lib$(GDSL_NAME).so

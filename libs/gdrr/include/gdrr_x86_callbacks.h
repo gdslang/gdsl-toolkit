@@ -9,9 +9,10 @@
 #define GDRR_X86_CALLBACKS_H_
 
 #include <gdrr_types.h>
+#include <gdsl-x86.h>
 
 struct gdrr_sem_id_x86_callbacks {
-	gdrr_sem_id_t *(*x86)(void *closure, int_t con);
+	gdrr_sem_id_t *(*x86)(state_t closure, int_t con);
 //	gdrr_sem_id_t *(*sem_ip)(void *closure);
 //	gdrr_sem_id_t *(*sem_flags)(void *closure);
 //	gdrr_sem_id_t *(*sem_mxcsr)(void *closure);

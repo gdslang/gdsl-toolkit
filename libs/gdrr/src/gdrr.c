@@ -558,10 +558,12 @@ static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(obj_t sem_stmts_obj,
 //	if(config->gdrr_config_stmts_handling == GDRR_CONFIG_STMTS_HANDLING_LIST)
 //		sem_stmts_obj = x86_rreil_stmts_rev(config->state, sem_stmts_obj);
 
+	x86_rreil_cif_userdata_set(config->state, config->userdata);
+
 	if(config->gdrr_config_stmts_handling == GDRR_CONFIG_STMTS_HANDLING_LIST)
-		return x86_rreil_convert_sem_stmts_list(config->state, callbacks, config->closure, sem_stmts_obj);
+		return x86_rreil_convert_sem_stmts_list(config->state, callbacks, sem_stmts_obj);
 	else
-		return x86_rreil_convert_sem_stmts(config->state, callbacks, config->closure, sem_stmts_obj);
+		return x86_rreil_convert_sem_stmts(config->state, callbacks, sem_stmts_obj);
 }
 
 gdrr_sem_stmts_t *gdrr_convert(obj_t semantics, struct gdrr_config *config) {

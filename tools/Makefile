@@ -52,8 +52,8 @@ x86-test-stats-runner:
 	$(MAKE) -C $@
 
 ### tardet
-tardet:
-	$(MAKE) -C $@
+#tardet:
+#	$(MAKE) -C $@
 
 clean: clean-projects
 	rm -f $(EXECUTABLES) *.o
