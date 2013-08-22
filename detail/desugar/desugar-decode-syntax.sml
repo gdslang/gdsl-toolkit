@@ -128,8 +128,14 @@ structure DesugarDecode = struct
 
    and desugarCases (decls: (Pat.t list VS.slice * Exp.t) VS.slice) = let
       fun grabExp () = 
-         if VS.length decls <> 1 
-            then raise Fail "overlapping patterns detected, guess where!"
+         if VS.length decls = 0 
+            then raise Fail "empty pattern detected"
+         else if VS.length decls > 1 
+            then raise Fail ("overlapping pattern detected for " ^
+               VS.foldl (fn ((pats,e),str) => 
+                  VS.foldl (fn (pl,str) => Layout.tostring (DesugaredTree.PP.tokpat pl) ^ str) "" pats ^
+                  " => " ^ Layout.tostring (Core.PP.layout e) ^ "\n" ^ str) "" decls
+               )
          else #2 (VS.sub (decls, 0))
       fun isEmpty (vs, _) = VS.length vs = 0
       val bottom = VS.all isEmpty decls

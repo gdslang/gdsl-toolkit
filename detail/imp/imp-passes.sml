@@ -33,11 +33,11 @@ end = struct
       SimplifyPass.run >>=
       ActionReducePass.run >>=
       SimplifyPass.run >>=
+      SwitchReducePass.run >>=
+      SimplifyPass.run >>=
       ActionClosuresPass.run >>=
       SimplifyPass.run >>=
       TypeRefinementPass.run >>=
-      SimplifyPass.run >>=
-      SwitchReducePass.run >>=
       SimplifyPass.run >>=
       DeadSymbolPass.run
 
