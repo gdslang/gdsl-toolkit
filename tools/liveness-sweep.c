@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <unistd.h>
-#include <gdsl-x86.h>
+#include <gdsl.h>
 #include <sys/resource.h>
 
 #include <err.h>
@@ -175,35 +175,35 @@ static char args_parse(int argc, char **argv, struct options *options) {
 obj_t translate_single(state_t state) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL ;
-	obj_t rreil_insns = x86_translateSingle(state);
+	obj_t rreil_insns = gdsl_translateSingle(state);
 	return rreil_insns;
 }
 
 obj_t translate(state_t state) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL ;
-	obj_t rreil_insns = x86_translateBlock(state);
+	obj_t rreil_insns = gdsl_translateBlock(state);
 	return rreil_insns;
 }
 
 obj_t translate_super(state_t state, obj_t *rreil_insns) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL ;
-	obj_t rreil_insns_succs = x86_translateSuperBlock(state);
-	*rreil_insns = x86_select_insns(state, rreil_insns_succs);
+	obj_t rreil_insns_succs = gdsl_translateSuperBlock(state);
+	*rreil_insns = gdsl_select_insns(state, rreil_insns_succs);
 	return rreil_insns_succs;
 }
 
 void print_succs(state_t state, obj_t translated, size_t size) {
-	obj_t succ_a = x86_select_succ_a(state, translated);
-	obj_t succ_b = x86_select_succ_b(state, translated);
+	obj_t succ_a = gdsl_select_succ_a(state, translated);
+	obj_t succ_b = gdsl_select_succ_b(state, translated);
 
 //	void print_succ(obj_t succ, char const *name) {
 //		switch(x86_con_index(state, succ)) {
 //			case __SO_SOME: {
 //				obj_t succ_insns = __DECON(succ);
 //				printf("Succ %s:\n", name);
-//				string_t fmt = x86_rreil_pretty(state, succ_insns);
+//				string_t fmt = gdsl_rreil_pretty(state, succ_insns);
 //				puts(fmt);
 //				break;
 //			}
@@ -214,10 +214,10 @@ void print_succs(state_t state, obj_t translated, size_t size) {
 //		}
 //	}
 
-	string_t r = x86_succ_pretty(state, succ_a, "a");
+	string_t r = gdsl_succ_pretty(state, succ_a, "a");
 	printf("%s", r);
 
-	r = x86_succ_pretty(state, succ_b, "b");
+	r = gdsl_succ_pretty(state, succ_b, "b");
 	printf("%s", r);
 
 //	print_succ(succ_a, "a");
@@ -418,8 +418,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(print && mode == MODE_CHILDREN)
 			print_succs(state, translated, size);
 
-		int_t native_instruction_count = x86_select_ins_count(state,
-				x86_state_get(state));
+		int_t native_instruction_count = gdsl_select_ins_count(state,
+				gdsl_state_get(state));
 		context->native_instructions += native_instruction_count;
 
 		//printf("%x\n", buffer[consumed]);
@@ -427,7 +427,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(print)
 			printf("Initial RREIL instructions:\n");
 		//__pretty(__rreil_pretty__, rreil_insns, fmt, size);
-		string_t fmt = x86_rreil_pretty(state, rreil_insns);
+		string_t fmt = gdsl_rreil_pretty(state, rreil_insns);
 		if(print) {
 			puts(fmt);
 			printf("\n");
@@ -442,16 +442,16 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 
 		switch(mode) {
 			case MODE_CHILDREN: {
-				lv_result = x86_liveness_super(state, translated);
+				lv_result = gdsl_liveness_super(state, translated);
 				break;
 			}
 			default: {
-				lv_result = x86_liveness(state, translated);
+				lv_result = gdsl_liveness(state, translated);
 				break;
 			}
 		}
-		obj_t rreil_instructions_greedy = x86_select_live(state,
-				x86_state_get(state));
+		obj_t rreil_instructions_greedy = gdsl_select_live(state,
+				gdsl_state_get(state));
 		/*
 		 * Todo: Fix
 		 */
@@ -467,7 +467,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 //			__pretty(__rreil_pretty__, rreil_instructions_greedy, fmt, size);
 //			puts(fmt);
 //			printf("\n");
-			rreil_instructions_greedy = x86_cleanup(state, rreil_instructions_greedy);
+			rreil_instructions_greedy = gdsl_cleanup(state, rreil_instructions_greedy);
 		}
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
@@ -479,9 +479,9 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 //		}
 
 		if(print && mode == MODE_CHILDREN) {
-			obj_t initial_state = x86_select_initial(state, lv_result);
+			obj_t initial_state = gdsl_select_initial(state, lv_result);
 			printf("Liveness initial state:\n");
-			fmt = x86_lv_pretty(state, initial_state);
+			fmt = gdsl_lv_pretty(state, initial_state);
 			puts(fmt);
 			printf("\n");
 		}
@@ -490,7 +490,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 
 		switch(mode) {
 			case MODE_CHILDREN: {
-				greedy_state = x86_select_after(state, lv_result);
+				greedy_state = gdsl_select_after(state, lv_result);
 				break;
 			}
 			default: {
@@ -500,7 +500,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		}
 		if(print) {
 			printf("Liveness greedy state:\n");
-			fmt = x86_lv_pretty(state, greedy_state);
+			fmt = gdsl_lv_pretty(state, greedy_state);
 			puts(fmt);
 			printf("\n");
 		}
@@ -508,17 +508,17 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(cleanup) {
 			if(print) {
 				printf("RREIL instructions after LV (greedy), before cleanup:\n");
-				fmt = x86_rreil_pretty(state, rreil_instructions_greedy);
+				fmt = gdsl_rreil_pretty(state, rreil_instructions_greedy);
 				puts(fmt);
 				printf("\n");
 			}
 
-			rreil_instructions_greedy = x86_cleanup(state, rreil_instructions_greedy);
+			rreil_instructions_greedy = gdsl_cleanup(state, rreil_instructions_greedy);
 		}
 
 		if(print)
 			printf("RREIL instructions after LV (greedy):\n");
-		fmt = x86_rreil_pretty(state, rreil_instructions_greedy);
+		fmt = gdsl_rreil_pretty(state, rreil_instructions_greedy);
 		if(print) {
 			puts(fmt);
 			printf("\n");

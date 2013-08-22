@@ -9,7 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <gdrr.h>
-#include <gdsl-x86.h>
+#include <gdsl.h>
 #include <rreil/rreil.h>
 #include <x86.h>
 

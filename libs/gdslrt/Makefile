@@ -2,26 +2,26 @@ MLTK=../..
 CC=gcc
 #CC=clang
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -fPIC -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
-LIBRARY=libgdsl.a
-SOURCES=gdsl.c
+LIBRARY=libgdslrt.a
+SOURCES=gdslrt.c
 
 all: pre-build $(LIBRARY)
 
-SPRE=src
-BPRE=build
+SPRE=src/
+BPRE=build/
 
 BDIRS=$(BPRE)
 pre-build:
 	mkdir -p $(BDIRS)
 
-OBJECTS=$(addprefix $(BPRE)/, $(SOURCES:.c=.o))
+OBJECTS=$(addprefix $(BPRE), $(SOURCES:.c=.o))
 
 $(LIBRARY): $(OBJECTS)
 	ar -r  $@  $(OBJECTS)
 
-$(OBJECTS): $(BPRE)/%.o : $(SPRE)/%.c
+$(OBJECTS): $(BPRE)%.o : $(SPRE)%.c
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:

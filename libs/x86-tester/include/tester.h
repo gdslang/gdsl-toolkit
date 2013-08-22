@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <rreil/rreil.h>
 #include <simulator/simulator.h>
-#include <gdsl-x86.h>
+#include <gdsl.h>
 #include <executor.h>
 
 enum tester_result_type {

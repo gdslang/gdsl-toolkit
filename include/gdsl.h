@@ -1,1 +1,1 @@
-../libs/gdsl/include/gdsl.h
+../gdsl.h

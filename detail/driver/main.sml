@@ -128,7 +128,7 @@ structure Main = struct
              (arg :: args) => (processPrefix arg; processArgs args)
            | [] => badopt ()
            )
-          | "-l" => (case args of
+          | "-o" => (case args of
              (arg :: args) => (processLibname arg; processArgs args)
            | [] => badopt ()
            )

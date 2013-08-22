@@ -9,7 +9,7 @@
 #define GDRR_X86_CALLBACKS_H_
 
 #include <gdrr_types.h>
-#include <gdsl-x86.h>
+#include <gdsl.h>
 
 struct gdrr_sem_id_x86_callbacks {
 	gdrr_sem_id_t *(*x86)(state_t closure, int_t con);

@@ -1628,23 +1628,38 @@ structure TypeRefinement = struct
          | (es, v, t) => (TextIO.print ("patchCall bad of " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType (inlineSType s t) ^ ": no more args\n"); raise TypeOptBug)
       end
 
+
+   fun voidsToTop (VOIDstype) = OBJstype
+     | voidsToTop (BOXstype t) = BOXstype (voidsToTop t)
+     | voidsToTop (FUNstype (res,clos,args)) = FUNstype (voidsToTop res, clos, map (voidsToTop) args)
+     | voidsToTop (MONADstype res) = MONADstype (voidsToTop res)
+     | voidsToTop (RECORDstype (fs,b)) = RECORDstype (map (fn (b,f,t) => (b,f,voidsToTop t)) fs,b)
+     | voidsToTop (BITstype t) = BITstype (voidsToTop t)
+     | voidsToTop t = t
+
    fun setArgsToTop s (FUNCdecl {
         funcName = f,
         funcArgs = args,
         ...
       }) =
-      let
-         fun voidsToTop (VOIDstype) = OBJstype
-           | voidsToTop (BOXstype t) = BOXstype (voidsToTop t)
-           | voidsToTop (FUNstype (res,clos,args)) = FUNstype (voidsToTop res, clos, map (voidsToTop) args)
-           | voidsToTop (MONADstype res) = MONADstype (voidsToTop res)
-           | voidsToTop (RECORDstype (fs,b)) = RECORDstype (map (fn (b,f,t) => (b,f,voidsToTop t)) fs,b)
-           | voidsToTop (BITstype t) = BITstype (voidsToTop t)
-           | voidsToTop t = t
-      in
-         app (fn (t,a) => (lub (s, symType s a, voidsToTop (inlineSType s (symType s a))); ())) args
-      end
+      app (fn (t,a) => (lub (s, symType s a, voidsToTop (inlineSType s (symType s a))); ())) args
+     | setArgsToTop s (SELECTdecl {
+        selectField = f,
+	...
+      }) =
+      ignore (lub (s, fieldType s f, voidsToTop (inlineSType s (fieldType s f))))
+     | setArgsToTop s (UPDATEdecl {
+        updateArg = sym,
+	...
+      }) =
+      ignore (lub (s, symType s sym, voidsToTop (inlineSType s (symType s sym))))
+     | setArgsToTop s (CONdecl {
+        conArg = (_,sym),
+	...
+      }) =
+      ignore (lub (s, symType s sym, voidsToTop (inlineSType s (symType s sym))))
      | setArgsToTop s _ = ()
+
 
    fun run { decls = ds, fdecls = fs, exports = es } =
       let
@@ -1660,10 +1675,8 @@ structure TypeRefinement = struct
          }
          fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= ~1);*) (*TextIO.print ("type of writeRes : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 1045)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
-         (* set all arguments in exported functions to OBJstype if they are void *)
-         val exports = SymSet.fromList es
-         val _ = app (setArgsToTop state)
-            (List.filter (fn d => SymSet.member (exports, getDeclName d)) ds)
+         (* set all arguments in functions and constructors to OBJstype if they are void so that the (C) backend is not emitting invalid code *)
+         val _ = app (setArgsToTop state) ds
          
          (*val _ = showState (SymMap.listKeys declMap) state*)
          (*val _ = debugOn := false

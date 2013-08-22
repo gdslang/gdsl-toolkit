@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <gdsl-x86.h>
+#include <gdwrap.h>
 #include <gdrr_config.h>
 #include <gdrr_x86.h>
 

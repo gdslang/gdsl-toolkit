@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <readhex.h>
-#include <gdsl-x86.h>
+#include <gdwrap.h>
 
 int main(int argc, char** argv) {
 	void fatal(char *msg) {
@@ -20,9 +20,9 @@ int main(int argc, char** argv) {
 
 	if(setjmp(*gdsl_err_tgt(state)))
 		fatal("decode failed");
-	obj_t insn = x86_decode(state);
+	obj_t insn = gdsl_decode(state);
 
-	string_t fmt = x86_pretty(state, insn);
+	string_t fmt = gdsl_pretty(state, insn);
 	puts(fmt);
 
 	printf("---------------------------\n");
@@ -30,9 +30,9 @@ int main(int argc, char** argv) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		fatal("translate failed");
 
-	obj_t rreil = x86_translate(state, insn);
+	obj_t rreil = gdsl_translate(state, insn);
 
-	fmt = x86_rreil_pretty(state, rreil);
+	fmt = gdsl_rreil_pretty(state, rreil);
 	puts(fmt);
 
 	gdsl_destroy(state);

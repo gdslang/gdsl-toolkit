@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <gdsl-x86.h>
+#include <gdsl.h>
 #include <gdrr.h>
 #include <readhex.h>
 
@@ -519,18 +519,18 @@ int main(int argc, char** argv) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, (char*)buffer, size, 0);
 
-	obj_t insn = x86_decode(state);
+	obj_t insn = gdsl_decode(state);
 //	__obj state = __createState(blob, i, 0, 0);
 //	__obj insn = __runMonadicNoArg(__decode__, &state);
 
-	string_t fmt = x86_pretty(state, insn);
+	string_t fmt = gdsl_pretty(state, insn);
 	puts(fmt);
 
 	printf("---------------------------\n");
 
-	obj_t rreil = x86_translate(state, insn);
+	obj_t rreil = gdsl_translate(state, insn);
 
-	fmt = x86_rreil_pretty(state, rreil);
+	fmt = gdsl_rreil_pretty(state, rreil);
 	puts(fmt);
 
 	struct gdrr_config config;

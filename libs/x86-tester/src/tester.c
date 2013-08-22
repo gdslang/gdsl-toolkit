@@ -22,8 +22,8 @@
 #include <memory.h>
 #include <util.h>
 #include <tbgen.h>
+#include <gdwrap.h>
 #include <gdsl.h>
-#include <gdsl-x86.h>
 #include <context.h>
 #include <executor.h>
 #include <tester.h>
@@ -269,7 +269,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 
 	obj_t insn;
 	int_t features;
-	if(gdsl_decode(state, &insn)) {
+	if(gdwrap_decode(state, &insn)) {
 		printf("Decode failed\n");
 		fflush(stderr);
 		fflush(stdout);
@@ -284,16 +284,16 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 
 	fflush(stdout);
 	data_size = gdsl_get_ip_offset(state);
-	features = x86_features_get(state, insn);
+	features = gdsl_features_get(state, insn);
 
-	char *str = gdsl_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_FULL);
+	char *str = gdwrap_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_FULL);
 	if(str)
 		puts(str);
 	else
 		printf("NULL\n");
 //	free(str);
 
-	str = gdsl_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_SIMPLE);
+	str = gdwrap_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_SIMPLE);
 	if(str) {
 		puts(str);
 		if(name)
@@ -305,7 +305,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 	printf("---------------------------\n");
 
 	obj_t rreil;
-	if(gdsl_translate(state, &rreil, insn)) {
+	if(gdwrap_translate(state, &rreil, insn)) {
 		printf("Translate failed\n");
 		fflush(stderr);
 		fflush(stdout);

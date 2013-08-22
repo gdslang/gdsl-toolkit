@@ -16,7 +16,7 @@ public class NativeInterface {
 	private IRReilBuilder builder;
 
 	public NativeInterface(IRReilBuilder builder) {
-		System.loadLibrary("jgdrr");
+		System.loadLibrary("jrreil");
 
 		this.builder = builder;
 	}
