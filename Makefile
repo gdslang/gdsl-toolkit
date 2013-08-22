@@ -1,12 +1,13 @@
 MLTK=.
 CC=gcc
 MLTON=mlton
-CFLAGS=-g3 -fPIC -Wall -Wno-unused-but-set-variable -Iinclude
+MLTONFLAGS=-disable-ann nonexhaustiveMatch
+CFLAGS=-g3 -fPIC -Wall -Iinclude
 LFLAGS=-shared
 
 GDSL=gdsl
 GPREFIX=
-GDSLFLAGS=@MLton fixed-heap 6g --
+GDSLFLAGS=
 GDSL_NAME=$(GDSL)
 
 #GDSL_NAME_SOURCES=$(shell find specifications/basis specifications/rreil specifications/x86 -type f -name '*.ml')
@@ -27,7 +28,7 @@ GDSL_SOURCES=$(GDSL_ALL_SOURCES)
 all: $(GDSL) lib$(GDSL_NAME).so libs tools
 
 $(GDSL): $(GDSL).mlb $(shell find detail/ -type f -name '*')
-	$(MLTON) $<
+	$(MLTON) $(MLTONFLAGS) $<
 
 lib$(GDSL_NAME).so: $(GDSL_NAME).c
 	$(CC) $(CFLAGS) -c $< -o $(<:.c=.o)

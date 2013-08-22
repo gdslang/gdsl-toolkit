@@ -913,12 +913,17 @@ structure C1 = struct
          val funDeclsPrivate = map (emitDecl s)
             (List.filter (fn d => not (SymSet.member(exports, getDeclName d))) ds)
          val constructors = map emitConDefine (SymMap.listItemsi conMap)
+         val prefixMacro =
+               str ("#define GDSL_PREFIX(name) " ^
+                  (if String.size prefix=0 then "" else prefix ^ " ## ") ^
+                  "name")
          val fields = []
          val constructorNames = str ""
          val fieldNames = str ""
 
          val _ =
             C1Templates.expandHeader outputName [
+               C1Templates.mkHook ("prefix", prefixMacro),
                C1Templates.mkHook ("records", align (!(#structsGlobal s))),
                C1Templates.mkHook ("exports", align funDeclsPublic),
                C1Templates.mkHook ("tagnames", align constructors),
@@ -926,6 +931,7 @@ structure C1 = struct
             ]
          val _ =
             C1Templates.expandRuntime outputName [
+               C1Templates.mkHook ("prefix", prefixMacro),
                C1Templates.mkHook ("records", align (!(#structsLocal s))),
                C1Templates.mkHook ("fieldnames", fieldNames),
                C1Templates.mkHook ("prototypes", align funDeclsPrivate),
