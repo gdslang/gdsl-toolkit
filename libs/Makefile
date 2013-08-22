@@ -1,6 +1,7 @@
 LIBS=util gdwrap readhex
 
 ifndef MANAGED
+GDSL_AVR:=1
 GDSL_X86:=1
 endif
 

@@ -541,7 +541,7 @@ type imm =
 type operand =
    REG of register
  | REGHL of {regh:register,regl:register}
- | IOREG of io-register
+ | IOREG of register
  | IMM of imm
  | OPSE of {op:operand,se:side-effect}
  | OPDI of {op:operand,imm:imm}
@@ -696,7 +696,7 @@ type register =
  | R30
  | R31
 
-type io-register =
+type register =
    IO0
  | IO1
  | IO2
@@ -762,6 +762,8 @@ type io-register =
  | IO62
  | IO63
 
+type register =
+   SREG
 
 val register-from-bits bits =
  case bits of
