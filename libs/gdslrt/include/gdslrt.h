@@ -49,7 +49,7 @@ typedef int_t con_tag_t;
 
 #define GEN_ALLOC(type) \
 inline type ## _t* alloc_ ## type (state_t s, type ## _t v) { \
-  type ## _t* res = alloc(s, sizeof(type ## _t));\
+  type ## _t* res = (type ## _t*) alloc(s, sizeof(type ## _t));\
   *res = v;\
   return res;\
 }
@@ -90,9 +90,9 @@ struct field_ ## type {       \
 typedef struct field_ ## type  field_ ## type ## _t
 
 #define GEN_ADD_FIELD(type)                               \
-inline obj_t add_field_ ## type                    \
+inline obj_t add_field_ ## type                           \
   (state_t s,field_tag_t tag, type ## _t v, obj_t rec) {  \
-  field_ ## type ## _t* res =                             \
+  field_ ## type ## _t* res = (field_ ## type ## _t *)    \
     alloc(s, sizeof(field_ ## type ## _t));               \
   res->tag = tag;                                         \
   res->size = sizeof(field_ ## type ## _t);               \
@@ -115,16 +115,16 @@ obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec);
 #define slice(vec_data,ofs,sz) ((vec_data >> ofs) & ((1ul << sz)-1))
 #define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
 
-#define GEN_CONSUME(size)                                 \
-inline int_t consume ## size(state_t s) {                 \
-  if (s->ip+( size >>3)>s->ip_limit) {                    \
-    s->err_str = "GDSL runtime: end of code input stream";\
-    longjmp(s->err_tgt,1);                                \
-  };                                                      \
-  uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;  \
-  int_t res = (unsigned) *ptr;                            \
-  s->ip+= size >> 3;                                      \
-  return res;                                             \
+#define GEN_CONSUME(size)                                        \
+inline int_t consume ## size(state_t s) {                        \
+  if (s->ip+( size >>3)>s->ip_limit) {                           \
+    s->err_str = (char*)"GDSL runtime: end of code input stream";\
+    longjmp(s->err_tgt,1);                                       \
+  };                                                             \
+  uint ## size ## _t* ptr = (uint ## size ## _t*) s->ip;         \
+  int_t res = (unsigned) *ptr;                                   \
+  s->ip+= size >> 3;                                             \
+  return res;                                                    \
 }
 
 GEN_CONSUME(8);
@@ -149,7 +149,7 @@ inline vec_t vec_concat(state_t s, vec_t v1, vec_t v2) {
 
 inline string_t int_to_string(state_t s, int_t v) {
   int negate = v<0;
-  char* str = alloc(s, 24)+23;
+  char* str = (char*)alloc(s, 24)+23;
   int_t r;
   *str = 0;
   if (negate) {
@@ -174,7 +174,7 @@ inline string_t string_concat(state_t s, string_t s1, string_t s2) {
   char* str1 = s1;
   char* str2 = s2;
   int len = strlen(s1)+strlen(s2);
-  char* res = alloc(s, len+1);
+  char* res = (char*)alloc(s, len+1);
   strcpy(res,str1);
   strcat(res,str2);
   return alloc_string(s,res);

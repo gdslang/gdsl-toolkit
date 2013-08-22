@@ -21,8 +21,8 @@ resources/
 STATS
 examples/x86/cli
 ^gdsl$
-^gdsl-x86.c$
-^gdsl-x86.h$
+^gdsl.c$
+^gdsl.h$
 
 gdrr/Debug/
 
