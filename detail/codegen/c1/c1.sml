@@ -910,20 +910,38 @@ structure C1 = struct
             } : state
          val funDeclsPublic = map (emitDecl s) 
             (List.filter (fn d => SymSet.member(exports, getDeclName d)) ds)
+         (* Generate the macros that rename functions from prefix_foo to gdsl_foo. *)
+         fun genRenamingMacro d =
+            let
+               val prefLen = String.size prefix
+               val prefSym = Layout.tostring (emitSym s (getDeclName d))
+               val gdslSym = String.extract (prefSym, prefLen, NONE)
+            in   
+               str ("#define gdsl_" ^ gdslSym ^ " " ^ prefSym)
+            end
+         val renamings = map genRenamingMacro
+            (List.filter (fn d => SymSet.member(exports, getDeclName d)) ds)
+
          val funDeclsPrivate = map (emitDecl s)
             (List.filter (fn d => not (SymSet.member(exports, getDeclName d))) ds)
          val constructors = map emitConDefine (SymMap.listItemsi conMap)
-         val prefixMacro =
-               str ("#define GDSL_PREFIX(name) " ^
-                  (if String.size prefix=0 then "" else prefix ^ " ## ") ^
-                  "name")
          val fields = []
          val constructorNames = str ""
          val fieldNames = str ""
 
          val _ =
             C1Templates.expandHeader outputName [
-               C1Templates.mkHook ("prefix", prefixMacro),
+               C1Templates.mkHook ("init", str (prefix ^ "init")),
+               C1Templates.mkHook ("set_code", str (prefix ^ "set_code")),
+               C1Templates.mkHook ("get_ip_offset", str (prefix ^ "get_ip_offset")),
+               C1Templates.mkHook ("seek", str (prefix ^ "seek")),
+               C1Templates.mkHook ("rseek", str (prefix ^ "rseek")),
+               C1Templates.mkHook ("err_tgt", str (prefix ^ "err_tgt")),
+               C1Templates.mkHook ("get_error_message", str (prefix ^ "get_error_message")),
+               C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),
+               C1Templates.mkHook ("heap_residency", str (prefix ^ "heap_residency")),
+               C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),
+               C1Templates.mkHook ("renamings", align renamings),
                C1Templates.mkHook ("records", align (!(#structsGlobal s))),
                C1Templates.mkHook ("exports", align funDeclsPublic),
                C1Templates.mkHook ("tagnames", align constructors),
@@ -931,7 +949,16 @@ structure C1 = struct
             ]
          val _ =
             C1Templates.expandRuntime outputName [
-               C1Templates.mkHook ("prefix", prefixMacro),
+               C1Templates.mkHook ("init", str (prefix ^ "init")),
+               C1Templates.mkHook ("set_code", str (prefix ^ "set_code")),
+               C1Templates.mkHook ("get_ip_offset", str (prefix ^ "get_ip_offset")),
+               C1Templates.mkHook ("seek", str (prefix ^ "seek")),
+               C1Templates.mkHook ("rseek", str (prefix ^ "rseek")),
+               C1Templates.mkHook ("err_tgt", str (prefix ^ "err_tgt")),
+               C1Templates.mkHook ("get_error_message", str (prefix ^ "get_error_message")),
+               C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),
+               C1Templates.mkHook ("heap_residency", str (prefix ^ "heap_residency")),
+               C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),
                C1Templates.mkHook ("records", align (!(#structsLocal s))),
                C1Templates.mkHook ("fieldnames", fieldNames),
                C1Templates.mkHook ("prototypes", align funDeclsPrivate),

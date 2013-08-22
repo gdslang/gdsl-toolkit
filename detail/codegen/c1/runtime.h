@@ -1,7 +1,7 @@
 /* vim:ts=2:sw=2:expandtab */
 @I-am-a-template-so-edit-me@
-#ifndef __GDSL_H
-#define __GDSL_H
+#ifndef __GDSL_RUNTIME_H
+#define __GDSL_RUNTIME_H
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -22,18 +22,38 @@ struct vec {
 typedef struct vec vec_t;
 typedef int_t con_tag_t;
 
-int64_t gdsl_seek(state_t s, int64_t i);
-int64_t gdsl_rseek(state_t s, int64_t i);
+#endif /* __GDSL_RUNTIME_H */
 
-/* Create a new decoder state. Should be destroyed by gdsl_destroy(). */
-state_t gdsl_init(void);
+/* The following declarations are individual for each decoder. */
+@if-guard-prefix@
+
+/* Create a new decoder state. Should be destroyed by 
+@destroy@
+(). */
+state_t 
+@init@
+(void);
 
 /* Set the code buffer. The parameter base denotes the address that ip_get
    in GDSL returns when no bytes have been consumed. */
-void gdsl_set_code(state_t s, char* buf, size_t buf_len, uint64_t base);
+void 
+@set_code@
+(state_t s, char* buf, size_t buf_len, uint64_t base);
 
 /* Query the offset of the current IP relative to base. */
-uint64_t gdsl_get_ip_offset(state_t s);
+uint64_t 
+@get_ip_offset@
+(state_t s);
+
+/* Set the current code position to this address. */
+int_t
+@seek@
+(state_t s, size_t i);
+
+/* Adjust the current code position by this offset. */
+int_t
+@rseek@
+(state_t s, int_t i);
 
 /* An exception handler must be installed by calling setjmp with the argument
  * returned by this function.
@@ -42,26 +62,31 @@ uint64_t gdsl_get_ip_offset(state_t s);
  * value 2 if there has been an error (e.g. pattern match failure). In
  * both cases, an error message can be retrieved using get_error_message().
  */
-jmp_buf* gdsl_err_tgt(state_t s);
+jmp_buf* 
+@err_tgt@
+(state_t s);
 
 /* Retrieve the error message after an exception has been raised. */
-char* gdsl_get_error_message(state_t s);
+char* 
+@get_error_message@
+(state_t s);
 
 /* Reset the heap. Objects returned by exported function are no longer valid
    after a call to this funciton. This function does not necessarily
    deallocate all of the heap. */
-void gdsl_reset_heap(state_t s);
+void 
+@reset_heap@
+(state_t s);
 
 /* Query the no of bytes currently allocated on the heap. */
-size_t gdsl_heap_residency(state_t s);
+size_t 
+@heap_residency@
+(state_t s);
 
 /* Frees the heap and the decoder state. */
-void gdsl_destroy(state_t s);
-
-#endif /* __GDSL_H */
-
-/* The following declarations are individual for each decoder. */
-@if-guard-prefix@
+void 
+@destroy@
+(state_t s);
 
 /* Records that are represented as C structs. */
 @records@
@@ -69,9 +94,44 @@ void gdsl_destroy(state_t s);
 /* Exported functions. */
 @exports@
 
+#ifdef GDSL_NO_PREFIX
+#define gdsl_init \
+@init@
+
+#define gdsl_set_code \
+@set_code@
+
+#define gdsl_get_ip_offset \
+@get_ip_offset@
+
+#define gdsl_seek \
+@seek@
+
+#define gdsl_rseek \
+@rseek@
+
+#define gdsl_err_tgt \
+@err_tgt@
+
+#define gdsl_get_error_message \
+@get_error_message@
+
+#define gdsl_reset_heap \
+@reset_heap@
+
+#define gdsl_heap_residency \
+@heap_residency@
+
+#define gdsl_destroy \
+@destroy@
+
+@renamings@
+
+#endif
+
 @end-guard-prefix@
 
 /* The following defines are accumulative. */
 
-/* Exported tags of constructors without arguments. */
+/* Exported tags of constructors. */
 @tagnames@

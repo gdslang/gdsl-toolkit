@@ -32,7 +32,9 @@ static void alloc_heap(state_t s, char* prev_page, size_t size) {
 };
 
 
-void gdsl_reset_heap(state_t s) {
+void 
+@reset_heap@
+(state_t s) {
   char* heap = s->heap_base;
   if (heap==NULL) return;
   while (1) {
@@ -47,7 +49,9 @@ void gdsl_reset_heap(state_t s) {
   s->state = 0;
 };
 
-size_t gdsl_heap_residency(state_t s) {
+size_t 
+@heap_residency@
+(state_t s) {
   char* heap = s->heap_base;
   if (heap==NULL) return 0;
   size_t res = s->heap - s->heap_base;
@@ -111,8 +115,8 @@ struct field_ ## type {       \
 typedef struct field_ ## type  field_ ## type ## _t
 
 #define GEN_ADD_FIELD(type)                               \
-static inline obj_t add_field_ ## type                    \
-  (state_t s,field_tag_t tag, type ## _t v, obj_t rec) {  \
+static obj_t add_field_ ## type                           \
+(state_t s,field_tag_t tag, type ## _t v, obj_t rec) {  \
   field_ ## type ## _t* res =                             \
     alloc(s, sizeof(field_ ## type ## _t));               \
   res->tag = tag;                                         \
@@ -164,11 +168,15 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
 #define slice(vec_data,ofs,sz) ((vec_data >> ofs) & ((1ul << sz)-1))
 #define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
 
-jmp_buf* gdsl_err_tgt(state_t s) {
+jmp_buf* 
+@err_tgt@
+(state_t s) {
   return &(s->err_tgt);
 };
 
-char* gdsl_get_error_message(state_t s) {
+char* 
+@get_error_message@
+(state_t s) {
   return s->err_str;
 };
 
@@ -261,15 +269,40 @@ static string_t string_concat(state_t s, string_t s1, string_t s2) {
   return alloc_string(s,res);
 }
 
-int64_t gdsl_seek(state_t s, int64_t i) {
+state_t 
+@init@
+() {
+  state_t s = calloc(1,sizeof(struct state));
+  return s;
+}
+
+void 
+@set_code@
+(state_t s, char* buf, size_t buf_len, uint64_t base) {
+  s->ip = buf;
+  s->ip_limit = buf+buf_len;
+  s->ip_base = buf-base;
+}
+
+uint64_t 
+@get_ip_offset@
+(state_t s) {
+  return s->ip - s->ip_base;
+}
+
+int_t 
+@seek@
+(state_t s, size_t i) {
   size_t size = (size_t)(s->ip_limit - s->ip_base);
-	if(i >= size || i < 0)
+	if(i >= size)
 	  return 1;
 	s->ip = s->ip_base + i;
 	return 0;
 }
 
-int64_t gdsl_rseek(state_t s, int64_t i) {
+int_t 
+@rseek@
+(state_t s, int_t i) {
   char *new_ip = s->ip + i;
 	if(new_ip >= s->ip_limit || new_ip < s->ip_base)
 	  return 1;
@@ -277,24 +310,11 @@ int64_t gdsl_rseek(state_t s, int64_t i) {
 	return 0;
 }
 
-
-state_t gdsl_init() {
-  state_t s = calloc(1,sizeof(struct state));
-  return s;
-}
-
-void gdsl_set_code(state_t s, char* buf, size_t buf_len, uint64_t base) {
-  s->ip = buf;
-  s->ip_limit = buf+buf_len;
-  s->ip_base = buf-base;
-}
-
-uint64_t gdsl_get_ip_offset(state_t s) {
-  return s->ip - s->ip_base;
-}
-
-void gdsl_destroy(state_t s) {
-  gdsl_reset_heap(s);
+void 
+@destroy@
+(state_t s) {
+@reset_heap@
+(s);
   free(s->heap_base);
   free(s);
 }
@@ -304,8 +324,7 @@ void gdsl_destroy(state_t s) {
 @prototypes@
 
 #ifdef WITHMAIN
-
-@prefix@
+#ifdef GDSL_NO_PREFIX
 
 #include<stdio.h>
 
@@ -340,12 +359,12 @@ done:
     uint64_t ofs = gdsl_get_ip_offset(s);
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (argc>1) {
-        obj_t rreil = GDSL_PREFIX(translateBlock)(s);
-        string_t res = GDSL_PREFIX(rreil_pretty)(s,rreil);
+        obj_t rreil = gdsl_translateBlock(s);
+        string_t res = gdsl_rreil_pretty(s,rreil);
         printf("%08lx:\n%s\n", (long unsigned int) ofs, res);
       } else {
-        obj_t instr = GDSL_PREFIX(decode)(s);
-        string_t res = GDSL_PREFIX(pretty)(s,instr);
+        obj_t instr = gdsl_decode(s);
+        string_t res = gdsl_pretty(s,instr);
         printf("%08lx: %s\n", (long unsigned int) ofs, res);
       }
     } else {
@@ -363,6 +382,7 @@ done:
   return 0; 
 }
 
+#endif
 #endif
 
 @functions@

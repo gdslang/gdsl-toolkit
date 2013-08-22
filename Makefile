@@ -1,7 +1,7 @@
 MLTK=.
 CC=gcc
 MLTON=mlton
-MLTONFLAGS=-disable-ann nonexhaustiveMatch
+MLTONFLAGS=-default-ann 'warnUnused true'
 CFLAGS=-g3 -fPIC -Wall -Iinclude
 LFLAGS=-shared
 
