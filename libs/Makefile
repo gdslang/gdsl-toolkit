@@ -1,4 +1,4 @@
-LIBS=gdslrt gdrr jrreil x86 rreil util gdwrap x86-tester x86-generator readhex
+LIBS=gdrr jrreil x86 rreil util gdwrap x86-tester x86-generator readhex
 
 .PHONY all: $(LIBS)
 

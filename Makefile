@@ -1,12 +1,13 @@
 MLTK=.
 CC=gcc
 MLTON=mlton
-CFLAGS=-g3 -fPIC -Wall -Wno-unused-but-set-variable -Iinclude
+MLTONFLAGS=-default-ann 'warnUnused true'
+CFLAGS=-g3 -fPIC -Wall -Iinclude
 LFLAGS=-shared
 
 GDSL=gdsl
 GPREFIX=
-GDSLFLAGS=@MLton fixed-heap 6g --
+GDSLFLAGS=
 
 #GDSL_SOURCES=$(shell find specifications/basis specifications/rreil specifications/x86 -type f -name '*.ml')
 GDSL_BASIS_HL=specifications/basis/bbtree.ml specifications/basis/selectors.ml
@@ -38,7 +39,7 @@ avr: override GDSL_SOURCES := $(GDSL_AVR_SOURCES)
 avr: $(GDSL) lib$(GDSL).so libs tools
 
 $(GDSL): $(GDSL).mlb $(shell find detail/ -type f -name '*')
-	$(MLTON) $<
+	$(MLTON) $(MLTONFLAGS) $<
 
 lib$(GDSL).so: $(GDSL).c
 	$(CC) $(CFLAGS) -c $< -o $(<:.c=.o)
