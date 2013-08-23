@@ -1,31 +1,110 @@
 export = translate
 
+val sem-adc bo = do
+return void
+end
+
+val sem-adiw bo = do
+  rd <- rval Unsigned bo.first;
+	rr <- rval Unsigned bo.second;
+  size <- return (sizeof bo.first);
+
+	r <- mktemp;
+	add size r rd rr;
+
+	emit-flag-add-v size rd rr (var r);
+	emit-flag-n size (var r);
+	emit-flag-z size (var r);
+	emit-flag-add-c size rd (var r);
+	emit-flag-s;
+
+	write bo.first (var r)
+end
+
 val sem-undef-binop bo = do
-return 42
+return void
 end
 
 val sem-undef-unop uo = do
-return 42
+return void
 end
 
 val sem-unknown = do
-return 42
+return void
 end
 
-val sem-adc bo = do
-return 42
+val emit-flag-add-c sz rd r = do
+  cf <- return fCF;
+  cmpltu sz cf r rd
 end
 
+val emit-flag-add-v sz rd rr r = do
+  ov <- return fVF;
+	
+	t1 <- mktemp;
+	t2 <- mktemp;
+	t3 <- mktemp;
+
+  xorb sz t1 r rd;
+  xorb sz t2 r rr;
+  andb sz t3 (var t1) (var t2);
+  cmplts sz ov (var t3) (imm 0)
+end
+
+val emit-flag-n sz r = do
+  nf <- return fNF;
+
+	cmplts sz nf r (imm 0)
+end
+
+val emit-flag-z sz r = do
+  zf <- return fZF;
+
+	cmpeq sz zf r (imm 0)
+end
+
+val emit-flag-s = do
+  nf <- return fNF;
+  ov <- return fVF;
+  sf <- return fSF;
+
+	xorb 1 sf (var nf) (var ov)
+end
 
 type signedness =
    Signed
  | Unsigned
 
-val sizeof x = return 42
+val sizeof x =
+  case x of
+	   REG r: 8
+	 | REGHL r: 16
+	 | IOREG i: 8
+	 | IMM imm: case imm of
+	      IMM3 i: 3
+	    | IMM4 i: 4
+	    | IMM6 i: 6
+	    | IMM7 i: 7
+	    | IMM8 i: 8
+	    | IMM12 i: 12
+	    | IMM16 i: 16
+	    | IMM22 i: 22
+		 end
+	 | OPSE o: sizeof o.op
+	 | OPDI o: sizeof o.op
+  end
 
-val lval sn x = return (rval sn x)
+val write to from =
+  case to of
+	   REG r: mov (sizeof to) (semantic-register-of r) from
+	 | REGHL r: mov (sizeof to) (@{size=16}(semantic-register-of r.regl)) from
+	 | IOREG i: mov (sizeof to) (semantic-register-of i) from
+  end
 
-val write to from = return void
+val write-mem size ao v = do
+  addr <- rval Unsigned ao;
+	store {size=size, address=addr} v
+end
 
 val rval sn x = let
   val from-vec sn vec =
@@ -56,13 +135,12 @@ in
 		  | _: do
 	        t <- mktemp;
 		      orval <- rval sn o.op;
-		      olval <- lval sn o.op;
-		      size <- sizeof o.op;
+		      size <- return (sizeof o.op);
 		      case o.se of
 		         DECR: sub size t orval (imm 1)
 		       | _: mov size t orval
 		      end;
-		      write olval (var t);
+		      write o.op (var t);
 		      case o.se of
 		         INCR: add size t orval (imm 1)
 		       | _: return void
@@ -77,7 +155,7 @@ val semantics insn =
  case insn of
     ADC x: sem-adc x
   | ADD x: sem-undef-binop x
-  | ADIW x: sem-undef-binop x
+  | ADIW x: sem-adiw x
   | AND x: sem-undef-binop x
   | ANDI x: sem-undef-binop x
   | ASR x: sem-undef-unop x

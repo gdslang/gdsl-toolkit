@@ -1,7 +1,21 @@
-val arch-show-id r = ""
+val fCF = sem-reg-offset (semantic-register-of SREG) 0
+val fZF = sem-reg-offset (semantic-register-of SREG) 1
+val fNF = sem-reg-offset (semantic-register-of SREG) 2
+val fVF = sem-reg-offset (semantic-register-of SREG) 3
+val fSF = sem-reg-offset (semantic-register-of SREG) 4
+val fHF = sem-reg-offset (semantic-register-of SREG) 5
+val fTF = sem-reg-offset (semantic-register-of SREG) 6
+val fIF = sem-reg-offset (semantic-register-of SREG) 7
+
+val arch-show-id r =
+  case r of
+	   Sem_ALL: "memory"
+	end
 
 type sem_id =
 	Sem_ALL
+
+val sem-reg-offset r o = @{offset=r.offset + o}r
 
 val semantic-register-of r =
   case r of
