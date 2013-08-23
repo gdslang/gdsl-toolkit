@@ -8,7 +8,7 @@
 
 int main(int argc, char** argv) {
 	void fatal(char *msg) {
-		fprintf(stderr, "%s", msg);
+		fprintf(stderr, "%s\n", msg);
 		exit(1);
 	}
 

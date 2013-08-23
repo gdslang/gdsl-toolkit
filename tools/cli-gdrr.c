@@ -18,8 +18,8 @@ static gdrr_sem_id_t *virt_t(state_t state, int_t t) {
 	return NULL ;
 }
 
-static gdrr_sem_id_t *x86(state_t state, int_t con) {
-	printf("=> x86#%ld\n", con);
+static gdrr_sem_id_t *arch(state_t state, int_t con) {
+	printf("=> arch#%ld\n", con);
 	return NULL ;
 }
 
@@ -537,7 +537,7 @@ int main(int argc, char** argv) {
 
 	config.callbacks.sem_id.virt_na = &virt_na;
 	config.callbacks.sem_id.virt_t = &virt_t;
-	config.callbacks.arch.x86.sem_id.x86 = &x86;
+	config.callbacks.arch.sem_id.arch = &arch;
 
 	config.callbacks.sem_address.sem_address = &sem_address;
 

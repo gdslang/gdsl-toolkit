@@ -2,14 +2,28 @@ CC=gcc
 #CC=clang
 MAKE=make
 LIBDS=-L../lib
-LIBS=-lgdrr -lgdsl -lelf -lrt -lreadhex
+
+ifndef MANAGED
+GDSL_AVR:=1
+GDSL_X86:=1
+endif
+
+ifdef GDSL_X86
+LIBS+=-lgdrr
+endif
+LIBS+=-lgdsl -lelf -lrt -lreadhex
+
 LIBFLAGS=$(LIBDS) $(LIBS)
 LDFLAGS=
 INCDS=-I../include
-CFLAGS=-c -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
-PROJECTS=x86-test-runner x86-test-stats-runner
-EXECUTABLES=cli liveness-sweep sweep cli-gdrr
+PROJECTS=
+EXECUTABLES=cli sweep cli-gdrr
+ifdef GDSL_X86
+PROJECTS+=x86-test-runner x86-test-stats-runner
+EXECUTABLES+=liveness-sweep
+endif
 
 .PHONY: $(PROJECTS) clean-projects
 
@@ -22,19 +36,20 @@ cli: cli.o
 cli.o: cli.c
 	$(CC) $(CFLAGS) cli.c -o $@
 
-### liveness-sweep
-liveness-sweep: liveness-sweep.o
-	$(CC) $(LDFLAGS) liveness-sweep.o $(LIBFLAGS) -o $@
-
-liveness-sweep.o: liveness-sweep.c
-	$(CC) $(CFLAGS) liveness-sweep.c -o $@
-
 ### sweep
 sweep: sweep.o
 	$(CC) $(LDFLAGS) sweep.o $(LIBFLAGS) -o $@
 
 sweep.o: sweep.c
 	$(CC) $(CFLAGS) sweep.c -o $@
+
+ifdef GDSL_X86
+### liveness-sweep
+liveness-sweep: liveness-sweep.o
+	$(CC) $(LDFLAGS) liveness-sweep.o $(LIBFLAGS) -o $@
+
+liveness-sweep.o: liveness-sweep.c
+	$(CC) $(CFLAGS) liveness-sweep.c -o $@
 
 ### cli-gdrr
 cli-gdrr: cli-gdrr.o
@@ -50,6 +65,7 @@ x86-test-runner:
 ### x86-test-stats-runner
 x86-test-stats-runner:
 	$(MAKE) -C $@
+endif
 
 ### tardet
 #tardet:

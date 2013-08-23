@@ -14,7 +14,11 @@
 #include <simulator/regacc.h>
 #include <simulator/ops.h>
 #include <utime.h>
+
+#ifdef GDSL_X86
 #include <x86.h>
+#endif
+
 #include <util.h>
 
 static void simulator_variable_write(struct context *context,
@@ -323,8 +327,14 @@ static void simulator_branch_simulate(struct context *context,
 
 	struct rreil_variable ip;
 	struct rreil_id ip_id;
+#ifdef GDSL_X86
 	ip_id.type = RREIL_ID_TYPE_X86;
 	ip_id.x86 = X86_ID_IP;
+#else
+	fprintf(stderr, "Simulator: Architecture not supported!\n");
+	exit(1);
+#endif
+
 	ip.id = &ip_id;
 	ip.offset = 0;
 	simulator_variable_write(context, &ip, address);

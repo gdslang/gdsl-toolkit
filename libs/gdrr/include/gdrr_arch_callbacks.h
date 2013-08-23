@@ -1,18 +1,18 @@
 /*
- * gdrr_x86_callbacks.h
+ * gdrr_arch_callbacks.h
  *
  *  Created on: Mar 10, 2013
  *      Author: jucs
  */
 
-#ifndef GDRR_X86_CALLBACKS_H_
-#define GDRR_X86_CALLBACKS_H_
+#ifndef GDRR_ARCH_CALLBACKS_H_
+#define GDRR_ARCH_CALLBACKS_H_
 
 #include <gdrr_types.h>
 #include <gdsl.h>
 
-struct gdrr_sem_id_x86_callbacks {
-	gdrr_sem_id_t *(*x86)(state_t closure, int_t con);
+struct gdrr_sem_id_arch_callbacks {
+	gdrr_sem_id_t *(*arch)(state_t closure, int_t con);
 //	gdrr_sem_id_t *(*sem_ip)(void *closure);
 //	gdrr_sem_id_t *(*sem_flags)(void *closure);
 //	gdrr_sem_id_t *(*sem_mxcsr)(void *closure);
@@ -72,8 +72,8 @@ struct gdrr_sem_id_x86_callbacks {
 //	gdrr_sem_id_t *(*sem_xmm15)(void *closure);
 };
 
-struct gdrr_x86_callbacks {
-	struct gdrr_sem_id_x86_callbacks sem_id;
+struct gdrr_arch_callbacks {
+	struct gdrr_sem_id_arch_callbacks sem_id;
 };
 
-#endif /* GDRR_X86_CALLBACKS_H_ */
+#endif /* GDRR_ARCH_CALLBACKS_H_ */

@@ -10,7 +10,7 @@
 
 #include <gdsl.h>
 #include "gdrr_callbacks.h"
-#include "gdrr_x86_callbacks.h"
+#include "gdrr_arch_callbacks.h"
 
 enum gdrr_config_stmts_handling {
 	GDRR_CONFIG_STMTS_HANDLING_RECURSIVE, GDRR_CONFIG_STMTS_HANDLING_LIST
@@ -31,9 +31,7 @@ struct gdrr_config {
 			struct gdrr_sem_stmts_callbacks sem_stmts;
 			struct gdrr_sem_stmts_list_callbacks sem_stmts_list;
 		};
-		union {
-			struct gdrr_x86_callbacks x86;
-		} arch;
+		struct gdrr_arch_callbacks arch;
 	} callbacks;
 	enum gdrr_config_stmts_handling gdrr_config_stmts_handling;
 	void *userdata;
