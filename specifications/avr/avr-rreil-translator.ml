@@ -16,6 +16,63 @@ val sem-adc bo = do
 return 42
 end
 
+
+type signedness =
+   Signed
+ | Unsigned
+
+val sizeof x = return 42
+
+val lval sn x = return (rval sn x)
+
+val write to from = return void
+
+val rval sn x = let
+  val from-vec sn vec =
+	  case sn of
+	     Signed: SEM_LIN_IMM {const=sx vec}
+	   | Unsigned: SEM_LIN_IMM {const=zx vec}
+		end
+
+	val from-imm sn imm =
+	  case imm of
+	     IMM3 i: from-vec sn i
+	   | IMM4 i: from-vec sn i
+	   | IMM6 i: from-vec sn i
+	   | IMM7 i: from-vec sn i
+	   | IMM8 i: from-vec sn i
+	   | IMM12 i: from-vec sn i
+	   | IMM16 i: from-vec sn i
+	   | IMM22 i: from-vec sn i
+		end
+in
+  case x of
+	   REG r: return (var (semantic-register-of r))
+	 | REGHL r: return (var (@{size=16}(semantic-register-of r.regl)))
+	 | IOREG i: return (var (semantic-register-of i))
+	 | IMM i: return (from-imm sn i)
+	 | OPSE o: case o.se of
+	      NONE: rval sn o.op
+		  | _: do
+	        t <- mktemp;
+		      orval <- rval sn o.op;
+		      olval <- lval sn o.op;
+		      size <- sizeof o.op;
+		      case o.se of
+		         DECR: sub size t orval (imm 1)
+		       | _: mov size t orval
+		      end;
+		      write olval (var t);
+		      case o.se of
+		         INCR: add size t orval (imm 1)
+		       | _: return void
+		      end;
+		      return (var t)
+	      end end
+		| OPDI o: return (SEM_LIN_ADD {opnd1=rval sn o.op, opnd2=from-imm sn o.imm})
+	end
+end
+
 val semantics insn =
  case insn of
     ADC x: sem-adc x

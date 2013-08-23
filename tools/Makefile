@@ -19,13 +19,10 @@ INCDS=-I../include
 CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 PROJECTS=
+EXECUTABLES=cli sweep cli-gdrr
 ifdef GDSL_X86
 PROJECTS+=x86-test-runner x86-test-stats-runner
-endif
-
-EXECUTABLES=cli sweep
-ifdef GDSL_X86
-EXECUTABLES+=liveness-sweep cli-gdrr
+EXECUTABLES+=liveness-sweep
 endif
 
 .PHONY: $(PROJECTS) clean-projects
