@@ -10,12 +10,18 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+
+#ifdef GDSL_X86
 #include <x86.h>
+#endif
 
 enum rreil_id_type {
-	RREIL_ID_TYPE_VIRTUAL,
-	RREIL_ID_TYPE_TEMPORARY,
+	RREIL_ID_TYPE_VIRTUAL, RREIL_ID_TYPE_TEMPORARY,
+#ifdef GDSL_X86
 	RREIL_ID_TYPE_X86
+#else
+	RREIL_ID_TYPE_ARCH
+#endif
 };
 
 enum rreil_id_virtual {
@@ -34,7 +40,13 @@ struct rreil_id {
 	enum rreil_id_type type;
 	union {
 		enum rreil_id_virtual virtual_;
-		enum x86_id x86;
+		union {
+#ifdef GDSL_X86
+			enum x86_id x86;
+#else
+			uint32_t arch;
+#endif
+		};
 		uint64_t temporary;
 	};
 };

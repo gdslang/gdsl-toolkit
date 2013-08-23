@@ -1,5 +1,6 @@
 package rreil;
 
+import rreil.id.GenericArchRegister;
 import rreil.id.IId;
 import rreil.id.Id;
 import rreil.id.VirtualEqualsId;
@@ -380,6 +381,11 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	@Override
 	public IId sem_xmm15() {
 		return new X86RegisterId(X86Register.XMM15);
+	}
+	
+	@Override
+	public IId id_arch(long id) {
+		return new GenericArchRegister(id);
 	}
 
 	/*

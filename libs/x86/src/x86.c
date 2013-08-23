@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <x86.h>
+#include <gdsl.h>
 
 void x86_id_print(FILE *stream, enum x86_id id) {
 	switch(id) {
@@ -450,5 +451,238 @@ enum x86_id_type x86_id_type_get(enum x86_id id) {
 			return X86_ID_TYPE_SSE;
 		default:
 			return X86_ID_TYPE_STANDARD;
+	}
+}
+
+enum x86_id x86_reg_from_con(int_t con) {
+	switch(con) {
+		case CON_Sem_IP: {
+			return X86_ID_IP;
+			break;
+		}
+		case CON_Sem_FLAGS: {
+			return X86_ID_FLAGS;
+			break;
+		}
+		case CON_Sem_MXCSR: {
+			return X86_ID_MXCSR;
+			break;
+		}
+		case CON_Sem_AX: {
+			return X86_ID_AX;
+			break;
+		}
+		case CON_Sem_BX: {
+			return X86_ID_BX;
+			break;
+		}
+		case CON_Sem_CX: {
+			return X86_ID_CX;
+			break;
+		}
+		case CON_Sem_DX: {
+			return X86_ID_DX;
+			break;
+		}
+		case CON_Sem_SI: {
+			return X86_ID_SI;
+			break;
+		}
+		case CON_Sem_DI: {
+			return X86_ID_DI;
+			break;
+		}
+		case CON_Sem_SP: {
+			return X86_ID_SP;
+			break;
+		}
+		case CON_Sem_BP: {
+			return X86_ID_BP;
+			break;
+		}
+		case CON_Sem_R8: {
+			return X86_ID_R8;
+			break;
+		}
+		case CON_Sem_R9: {
+			return X86_ID_R9;
+			break;
+		}
+		case CON_Sem_R10: {
+			return X86_ID_R10;
+			break;
+		}
+		case CON_Sem_R11: {
+			return X86_ID_R11;
+			break;
+		}
+		case CON_Sem_R12: {
+			return X86_ID_R12;
+			break;
+		}
+		case CON_Sem_R13: {
+			return X86_ID_R13;
+			break;
+		}
+		case CON_Sem_R14: {
+			return X86_ID_R14;
+			break;
+		}
+		case CON_Sem_R15: {
+			return X86_ID_R15;
+			break;
+		}
+		case CON_Sem_CS: {
+			return X86_ID_CS;
+			break;
+		}
+		case CON_Sem_DS: {
+			return X86_ID_DS;
+			break;
+		}
+		case CON_Sem_SS: {
+			return X86_ID_SS;
+			break;
+		}
+		case CON_Sem_ES: {
+			return X86_ID_ES;
+			break;
+		}
+		case CON_Sem_FS: {
+			return X86_ID_FS;
+			break;
+		}
+		case CON_Sem_GS: {
+			return X86_ID_GS;
+			break;
+		}
+		case CON_Sem_ST0: {
+			return X86_ID_ST0;
+			break;
+		}
+		case CON_Sem_ST1: {
+			return X86_ID_ST1;
+			break;
+		}
+		case CON_Sem_ST2: {
+			return X86_ID_ST2;
+			break;
+		}
+		case CON_Sem_ST3: {
+			return X86_ID_ST3;
+			break;
+		}
+		case CON_Sem_ST4: {
+			return X86_ID_ST4;
+			break;
+		}
+		case CON_Sem_ST5: {
+			return X86_ID_ST5;
+			break;
+		}
+		case CON_Sem_ST6: {
+			return X86_ID_ST6;
+			break;
+		}
+		case CON_Sem_ST7: {
+			return X86_ID_ST7;
+			break;
+		}
+		case CON_Sem_MM0: {
+			return X86_ID_MM0;
+			break;
+		}
+		case CON_Sem_MM1: {
+			return X86_ID_MM1;
+			break;
+		}
+		case CON_Sem_MM2: {
+			return X86_ID_MM2;
+			break;
+		}
+		case CON_Sem_MM3: {
+			return X86_ID_MM3;
+			break;
+		}
+		case CON_Sem_MM4: {
+			return X86_ID_MM4;
+			break;
+		}
+		case CON_Sem_MM5: {
+			return X86_ID_MM5;
+			break;
+		}
+		case CON_Sem_MM6: {
+			return X86_ID_MM6;
+			break;
+		}
+		case CON_Sem_MM7: {
+			return X86_ID_MM7;
+			break;
+		}
+		case CON_Sem_XMM0: {
+			return X86_ID_XMM0;
+			break;
+		}
+		case CON_Sem_XMM1: {
+			return X86_ID_XMM1;
+			break;
+		}
+		case CON_Sem_XMM2: {
+			return X86_ID_XMM2;
+			break;
+		}
+		case CON_Sem_XMM3: {
+			return X86_ID_XMM3;
+			break;
+		}
+		case CON_Sem_XMM4: {
+			return X86_ID_XMM4;
+			break;
+		}
+		case CON_Sem_XMM5: {
+			return X86_ID_XMM5;
+			break;
+		}
+		case CON_Sem_XMM6: {
+			return X86_ID_XMM6;
+			break;
+		}
+		case CON_Sem_XMM7: {
+			return X86_ID_XMM7;
+			break;
+		}
+		case CON_Sem_XMM8: {
+			return X86_ID_XMM8;
+			break;
+		}
+		case CON_Sem_XMM9: {
+			return X86_ID_XMM9;
+			break;
+		}
+		case CON_Sem_XMM10: {
+			return X86_ID_XMM10;
+			break;
+		}
+		case CON_Sem_XMM11: {
+			return X86_ID_XMM11;
+			break;
+		}
+		case CON_Sem_XMM12: {
+			return X86_ID_XMM12;
+			break;
+		}
+		case CON_Sem_XMM13: {
+			return X86_ID_XMM13;
+			break;
+		}
+		case CON_Sem_XMM14: {
+			return X86_ID_XMM14;
+			break;
+		}
+		case CON_Sem_XMM15: {
+			return X86_ID_XMM15;
+			break;
+		}
 	}
 }

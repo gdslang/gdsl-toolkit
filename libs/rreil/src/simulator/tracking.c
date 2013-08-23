@@ -13,7 +13,10 @@
 #include <simulator/regacc.h>
 #include <simulator/tracking.h>
 #include <util.h>
+
+#ifdef GDSL_X86
 #include <x86.h>
+#endif
 
 enum simulator_access_type {
 	SIMULATOR_ACCESS_TYPE_READ,
@@ -24,6 +27,7 @@ enum simulator_access_type {
 static void tracking_variable_access_trace(struct tracking_trace *trace,
 		struct rreil_variable *variable, size_t bit_length,
 		enum simulator_access_type type) {
+#ifdef GDSL_X86
 	if(variable->id->type != RREIL_ID_TYPE_X86)
 		return;
 
@@ -67,6 +71,10 @@ static void tracking_variable_access_trace(struct tracking_trace *trace,
 	if(!found)
 		util_array_generic_add((void**)&access->x86_indices, &index, sizeof(index),
 				&access->x86_indices_length, &access->x86_indices_size);
+#else
+		fprintf(stderr, "Simulator: Architecture not supported!\n");
+		exit(1);
+#endif
 }
 
 //static void tracking_variable_define(struct tracking_trace *trace,
@@ -214,12 +222,18 @@ static size_t tracking_op_trace(struct tracking_trace *trace,
 
 static void tracking_branch_trace(struct tracking_trace *trace,
 		struct rreil_address *target) {
+
 	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_DEREFERENCE,
 			target->address, target->size);
 	struct rreil_variable ip;
 	struct rreil_id ip_id;
+#ifdef GDSL_X86
 	ip_id.type = RREIL_ID_TYPE_X86;
 	ip_id.x86 = X86_ID_IP;
+#else
+		fprintf(stderr, "Simulator: Architecture not supported!\n");
+		exit(1);
+#endif
 	ip.id = &ip_id;
 	ip.offset = 0;
 	tracking_variable_access_trace(trace, &ip, target->size,

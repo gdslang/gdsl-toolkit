@@ -139,6 +139,8 @@ public interface IRReilBuilder {
 	IId sem_xmm14();
 
 	IId sem_xmm15();
+	
+	IId id_arch(long id);
 
 	/*
 	 * sem_address

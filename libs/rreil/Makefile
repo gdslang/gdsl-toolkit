@@ -2,7 +2,13 @@ MLTK=../..
 CC=gcc
 #CC=clang
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+
+DEFINES=-DRELAXEDFATAL
+ifdef GDSL_X86
+DEFINES+=-DGDSL_X86
+endif
+
+CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
 LIBRARY=librreil.a
 SOURCES=memory.c context.c rreil/free.c rreil/print.c rreil/copy.c rreil/rreil_id.c rreil/gdrr_builder.c simulator/ops.c simulator/regacc.c simulator/simulator.c simulator/tracking.o

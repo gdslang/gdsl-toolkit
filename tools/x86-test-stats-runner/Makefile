@@ -2,11 +2,11 @@ MLTK=../..
 CC=gcc
 #CC=clang
 LIBDS=-L$(MLTK)/lib
-LIBS=-lx86-tester -lgdrr -lgdwrap -lrreil -lx86-generator -lx86-generator -lutil -lx86 -lgdsl -lgdslrt
+LIBS=-lx86-tester -lgdrr -lgdwrap -lrreil -lx86-generator -lx86-generator -lutil -lx86 -lgdsl
 LIBFLAGS=$(LIBDS) $(LIBS)
 LDFLAGS=
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DGDSL_X86 -DRELAXEDFATAL $(INCDS)
 
 EXECUTABLE=x86-test-stats-runner
 SOURCES=main.c hash_array.c

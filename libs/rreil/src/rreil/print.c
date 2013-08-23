@@ -9,7 +9,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <rreil/rreil.h>
+
+#ifdef GDSL_X86
 #include <x86.h>
+#endif
 
 void rreil_address_print(struct rreil_address *address) {
 	printf("{%lu} ", address->size);
@@ -100,10 +103,16 @@ void rreil_id_print(FILE *stream, struct rreil_id *id) {
 			fprintf(stream, "T%lu", id->temporary);
 			break;
 		}
+#ifdef GDSL_X86
 		case RREIL_ID_TYPE_X86: {
 			x86_id_print(stream, id->x86);
 			break;
 		}
+#else
+		case RREIL_ID_TYPE_ARCH: {
+			fprintf(stream, "arch#%u", id->arch);
+		}
+#endif
 	}
 }
 
