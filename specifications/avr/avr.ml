@@ -132,11 +132,6 @@ val / ['111101 k k k k k k k 011'] = unop BRVC ck7
 ###  - Branch if Overflow Set
 val / ['111100 k k k k k k k 011'] = unop BRVS ck7
 
-### BSET
-###  - Bit Set in SREG
-### => see SEC,SEZ,...
-val / ['100101000 s s s 1000'] = unop BSET cs3
-
 ### BST
 ###  - Bit Store from Bit in Register to T Flag in SREG
 val / ['1111101 d d d d d 0 b b b'] = binop BST rd5 cb3
@@ -431,7 +426,6 @@ val / ['1111111 r r r r r 0 b b b'] = binop SBRS rr5 cb3
 
 ### SEC
 ###  - Set Carry Flag
-### <=> BSET 0
 val / ['1001010000001000'] = nullop SEC
 
 ### SEH
@@ -491,7 +485,11 @@ val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
 ### STS
 ###  - Store Direct to Data Space
 val / ['1001001 r r r r r 0000' 'k k k k k k k k k k k k k k k k'] = binop STS ck16 rr5
-val / ['10101 k k k r r r r k k k k'] = binop STS ck7 rr4
+# the following instruction overlaps with STS  that have a dq6 argument
+# it seems that tinyAVRs implement the instruction below but that larger
+# chips that implement STS and LDS with dq6 implement only the 32-bit
+# variant of STS; what a weird design
+#val / ['10101 k k k r r r r k k k k'] = binop STS ck7 rr4
 
 ### SUB
 ###  - Subtract without Carry
@@ -574,7 +572,6 @@ type instruction =
  | BRTS of unop
  | BRVC of unop
  | BRVS of unop
- | BSET of unop
  | BST of binop
  | CALL of unop
  | CBI of binop

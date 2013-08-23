@@ -1728,6 +1728,29 @@ structure SwitchReduce = struct
          List.exists (fn p2 => patIntersect (p1,p2)) pats2
       ) pats1
 
+   fun patIntersection (pat1, pat2) =
+      let
+         exception EmptyIntersection
+         fun genBits ([],[]) = []
+           | genBits (#"." :: xs, #"." :: ys) = #"." :: genBits (xs,ys)
+           | genBits (#"0" :: xs, #"0" :: ys) = #"0" :: genBits (xs,ys)
+           | genBits (#"1" :: xs, #"1" :: ys) = #"1" :: genBits (xs,ys)
+           | genBits (#"." :: xs, c :: ys) = c :: genBits (xs,ys)
+           | genBits (c :: xs, #"." :: ys) = c :: genBits (xs,ys)
+           | genBits (_,_) = raise EmptyIntersection
+      in
+         SOME (String.implode (genBits (String.explode pat1,String.explode pat2)))
+            handle
+               EmptyIntersection => NONE
+      end
+
+   fun patsIntersection (pats1, pats2) =
+      (List.concat 
+         (List.map (fn pat1 =>
+            (List.mapPartial (fn pat2 => patIntersection (pat1,pat2)) pats2)
+         ) pats1)
+      )
+
    fun patSubtract (pat1,pat2) =
       let
          (* 0000 - 0000 = {}
@@ -1834,13 +1857,14 @@ structure SwitchReduce = struct
                else
                   calcCutOff (newSlack, newLast, max, idx-1)
             end
-         val cutOff = if bits<=1 then 0 else
-            calcCutOff (0, Array.sub (sorted, bits-1), Array.sub (sorted, bits-1), bits-2)
+         (* including other bits might lead to overlapping patterns later *)
+         val cutOff = if bits<=1 then 0 else Array.sub (sorted, bits-1)
+            (*calcCutOff (0, Array.sub (sorted, bits-1), Array.sub (sorted, bits-1), bits-2)*)
          
-         val bitPats = List.concat (map (fn p => case p of
+         (*val bitPats = List.concat (map (fn p => case p of
                VECpat bp => bp
              | _ => []) pats)
-         (*val patStr = foldl (fn (v,str) => str ^ "\n" ^ v) "" bitPats
+         val patStr = foldl (fn (v,str) => str ^ "\n" ^ v) "" bitPats
          val arrStr = #2 (Array.foldl (fn (v,(sep,str)) => (",", str ^ sep ^ Int.toString v)) ("[","") dist) ^ "]"
          val _ = if cutOff = 0 then () else 
             TextIO.print ("case patterns:" ^ patStr ^ "\n" ^ arrStr ^ ", cutoff=" ^ Int.toString cutOff ^ "\n")*)
@@ -1902,110 +1926,47 @@ structure SwitchReduce = struct
            | genSlice ((low,high) :: ranges) scrut =
             conc (slice (low,high,scrut)) (genSlice ranges scrut)
 
-         (* merge consecutive cases that test for the same pattern;
-            this function is just an debugging aid since the
-            group/sift functions below do the same *)
-         fun amalgamate ((pats1, rhs1)::(pats2, rhs2)::cases) =
-            let
-               fun strEq s s' = String.compare (s,s')=EQUAL
-               fun patsEq (p::ps, pats) =
-                  if List.exists (strEq p) pats then
-                     patsEq (ps, List.filter (not o strEq p) pats)
-                  else
-                     false
-                 | patsEq ([], _) = true
-            in
-               if patsEq (pats1,pats2) then
-                  amalgamate ((pats1, rhs1 @ rhs2) :: cases)
-               else
-                  (pats1,rhs1) :: amalgamate ((pats2, rhs2)::cases)
-            end
-           | amalgamate cases = cases
-
          (* for each case, check if there are other cases further down
             that overlap with the patterns of this case; turn them
             into a group of cases *)
-            
-         (* the following code checks for duplicates but does not always generate correct code *)
-         (*fun group [] = []
-           | group ((pat,rhs) :: cases) =
-            let
-               val rhss = ref rhs
-               fun addRhs rhsT =
-                  let
-                     val changed = ref false
-                     fun sift ((patsT,bbT), ((pats,bb) :: cases)) =
-                        (case patsDifference (patsT,pats) of
-                           [] => ((pats,bb) :: cases)
-                         | patsT => (pats,bb) :: sift ((patsT,bbT), cases)
-                        )
-                       | sift ((patsT,bbT), []) =
-                        (changed := true; [(patsT,bbT)])
-                     val _ = rhss := foldl sift (!rhss) rhsT
-                     (*val _ = if not (!changed) then () else TextIO.print ("rhs have changed:\n" ^ showCases (!rhss) ^ "\nend changes\n")*)
-                  in
-                     !changed
-                  end
-               fun fetch (_, []) = []
-                 | fetch (pat, ((patT,rhsT) :: cases)) =
-                  if patsIntersect (pat,patT) then
-                     let
-                        val remPats = patsDifference (patT,pat)
-                        val rhsMovedUp = addRhs rhsT
-                        val rhsRemains = not (null remPats)
-                        (*val _ = if rhsMovedUp  then
-                           TextIO.print ("cur pat is " ^ showPats pat ^ ", moved cases\n" ^ showCases rhsT ^ " up\n")
-                           else ()
-                        val _ = if rhsRemains  then
-                           TextIO.print ("cur pat is " ^ showPats pat ^ ", retain " ^ showPats remPats ^ "\n")
-                           else ()*)
-                        val _ = if rhsMovedUp andalso rhsRemains then
-                           TextIO.print ("group: duplicated code\n" ^ showCases rhsT ^ "\nfor patterns " ^ showPats remPats ^ "\n")
-                           else ()
-                        val _ = if (not rhsMovedUp) andalso (not rhsRemains) then
-                           TextIO.print ("group: case branch\n" ^ showCases rhsT ^ "\n is dead\n")
-                           else ()
-                        val newPat = patsDifference (pat,patT)
-                     in
-                        if rhsRemains then
-                           (remPats,rhsT) :: fetch (newPat,cases)
-                        else
-                           fetch (newPat,cases)
-                     end
-                  else (patT,rhsT) :: fetch (patsDifference (pat,patT),cases)
-               (*val _ = TextIO.print ("inspecting pattern " ^ showPats pat ^ ":\n")*)
-               val newCases = fetch (pat,cases)
-            in
-               (pat, !rhss) :: group newCases
-            end*)
-
          fun group [] = []
            | group ((pat,rhs) :: cases) =
             let
-               (* add the rhs cases of the first argument into the second *)
-               fun addRhs (rhsT,rhs) =
-                  let
-                     fun sift ((patsT,bbT), ((pats,bb) :: cases)) =
-                        (case patsDifference (patsT,pats) of
-                           [] => ((pats,bb) :: cases)
-                         | patsT => (pats,bb) :: sift ((patsT,bbT), cases)
-                        )
-                       | sift ((patsT,bbT), []) = [(patsT,bbT)]
-                  in
-                     foldl sift rhs rhsT
-                  end
-               fun compress acc (pat, rhs, []) =
-                  if null pat then group acc else (pat, rhs) :: group acc
-                 | compress acc (pat, rhs, ((patT,rhsT) :: cases)) =
-                     compress
-                        (case patsDifference (patT,pat) of
-                           [] => acc
-                         | patT' => acc @
-                           [(patT',if patsIntersect (pat,patT) then addRhs (rhs,rhsT) else rhsT)]
-                        )
-                        (patsDifference (pat,patT), rhs, cases)
+               fun addRhs ([], rhs, cases) = cases
+                 | addRhs (pat, rhs, cases) = (pat,rhs) :: cases
+
+               fun fetch (pat, rhs, []) = (pat, rhs, [])
+                 | fetch (pat, rhs, ((patT,rhsT) :: cases)) =
+                  (case patsIntersection (pat,patT) of
+                     [] => 
+                     let
+                        val (pat, rhs, cases) = fetch (pat,rhs,cases)
+                     in
+                        (pat, rhs, (patT,rhsT) :: cases)
+                     end
+                   | commonPat =>
+                     let
+                        val commonRhs = rhs @ rhsT
+                        val newPat = patsDifference (pat,commonPat)
+                        val newPatT = patsDifference (patT,commonPat)
+                        val _ = if not (null newPat) then
+                           TextIO.print ("group: overlapping pattern with code\n" ^ showCases rhsT ^
+                              "\nfor patterns common patterns " ^ showPats commonPat ^
+                              " and earlier patterns " ^ showPats pat ^ " with code\n" ^ showCases rhs ^ "\n")
+                           else ()
+                        val _ = if not (null newPatT) then
+                           TextIO.print ("group: overlapping pattern with code\n" ^ showCases rhs ^
+                              "\nfor patterns common patterns " ^ showPats commonPat ^
+                              " and later patterns " ^ showPats patT ^ " with code\n" ^ showCases rhsT ^ "\n")
+                           else ()
+                     in
+                        fetch (commonPat, commonRhs, cases)
+                     end
+                  ) 
+               (*val _ = TextIO.print ("inspecting pattern " ^ showPats pat ^ ":\n")*)
+               val (newPat, newRhs, newCases) = fetch (pat,rhs,cases)
             in
-               compress [] (pat, rhs, cases)
+               (newPat, newRhs) :: group newCases
             end
 
          fun splitCase (p,bb) =
@@ -2040,7 +2001,7 @@ structure SwitchReduce = struct
             CASEstmt (#2 (genSlice rangeGood scrut),
                      addDefault (
                         genCases (genSlice rangeBad scrut, 
-                           group (amalgamate (map splitCase cases)))))
+                           group (map splitCase cases))))
          else
             CASEstmt (scrut, addDefault cases)
       end

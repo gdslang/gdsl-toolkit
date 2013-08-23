@@ -369,7 +369,7 @@ done:
       }
     } else {
       printf("exception: %s\n", gdsl_get_error_message(s));
-      gdsl_seek(s,ofs+1);
+      consume8(s);
     }
     int_t size = gdsl_heap_residency(s);
     alloc_size += size;

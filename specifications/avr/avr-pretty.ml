@@ -63,7 +63,6 @@ val show/instruction i =
     | BRTS x: "BRTS" -++ show/unop x
     | BRVC x: "BRVC" -++ show/unop x
     | BRVS x: "BRVS" -++ show/unop x
-    | BSET x: "BSET" -++ show/unop x
     | BST x: "BST" -++ show/binop x
     | CALL x: "CALL" -++ show/unop x
     | CBI x: "CBI" -++ show/binop x
