@@ -2093,8 +2093,8 @@ structure SwitchReduce = struct
 end
 
 
-structure DeadSymbol = struct
-   val name = "dead-symbol"
+structure DeadFunctions = struct
+   val name = "dead-functions"
 
    open Imp
    
@@ -2220,3 +2220,175 @@ structure DeadSymbol = struct
    
 end
 
+structure DeadVariables = struct
+   val name = "dead-variables"
+
+   open Imp
+
+   type stateExp = {
+      vars : SymSet.set,
+      side : bool
+   }
+   
+   val pureSet = ref SymSet.empty
+
+   fun initialState live = { vars = live, side = false } : stateExp
+   fun addSide (s : stateExp,value) = { vars = #vars s, side = #side s orelse value } : stateExp
+   fun addVar (s : stateExp,var) = { vars = SymSet.add (#vars s, var), side = #side s } : stateExp
+
+   fun visit f s [] = (s,[])
+     | visit f s (x :: xs) =
+      let
+        val (s,xs) = visit f s xs
+        val (s,x) = f s x
+      in
+         (s,x :: xs)
+      end
+
+   fun visitBlock s (BASICblock (decls,stmts)) =
+      let
+         val (s, stmts) = visit visitStmt s stmts
+         val decls = List.filter (fn (_,sym) => SymSet.member (s, sym)) decls
+         val s = foldl (fn ((_,sym),s) => SymSet.delete (s,sym)) s decls
+      in
+         (s, BASICblock (decls, stmts))
+      end
+   
+   and visitStmt s (ASSIGNstmt (lhs,exp)) =
+      let
+         val ({vars, side},exp) = visitExp (initialState s) exp
+      in
+         if Option.isSome lhs andalso SymSet.member (s, Option.valOf lhs) then
+            (SymSet.union (s,vars), ASSIGNstmt (lhs,exp))
+         else if side then
+            (SymSet.union (s,vars), ASSIGNstmt (NONE,exp))
+         else
+            (s, ASSIGNstmt (NONE,PRIexp (VOIDprim,VOIDvtype,[])))
+      end
+     | visitStmt s (IFstmt (c,t,e)) =
+      let
+         val ({vars, side},c) = visitExp (initialState s) c
+         val (sT,t) = visitBlock s t
+         val (sE,e) = visitBlock s e
+         val s = SymSet.union(sT,sE)
+      in
+         (SymSet.union (s,vars), IFstmt (c,t,e))
+      end
+     | visitStmt s (CASEstmt (e,ps)) =
+      let
+         val ({vars, side},e) = visitExp (initialState s) e
+         val (s,ps) = visit visitCase s ps
+      in
+         (SymSet.union (s,vars), CASEstmt (e,ps))
+      end
+
+   and visitCase s (p,b) =
+      let
+         val (s,b) = visitBlock s b
+      in
+         (s, (p, b))
+      end
+   
+   and visitExp s (IDexp sym) = (addVar (s,sym), IDexp sym)
+     | visitExp s (PRIexp (f,t,es)) =
+         let val (s,es) = visit visitExp s es in (addSide (s,hasSidePrim f), PRIexp (f,t,es)) end
+     | visitExp s (CALLexp (e,es)) =
+         let
+            val (s,es) = visit visitExp s es
+            val (s,e) = visitExp s e
+            val hasSideEffect = case e of
+                  IDexp sym => not (SymSet.member (!pureSet, sym))
+                | _ => true
+         in
+            (addSide (s,hasSideEffect), CALLexp (e, es))
+         end
+     | visitExp s (INVOKEexp (t,e,es)) =
+         let
+            val (s,es) = visit visitExp s es
+            val (s,e) = visitExp s e
+         in
+            (addSide (s,true), INVOKEexp (t,e,es))
+         end
+     | visitExp s (RECORDexp (t,fs)) =
+         let
+            fun visitField s (f,e) =
+               let val (s,e) = visitExp s e in (s,(f,e)) end
+            val (s,fs) = visit visitField s fs
+         in
+            (s, RECORDexp (t,fs))
+         end
+     | visitExp s (BOXexp (t,e)) = let val (s,e) = visitExp s e in (s,BOXexp (t,e)) end
+     | visitExp s (UNBOXexp (t,e)) = let val (s,e) = visitExp s e in (s,UNBOXexp (t,e)) end
+     | visitExp s (VEC2INTexp (sz,e)) = let val (s,e) = visitExp s e in (s,VEC2INTexp (sz,e)) end
+     | visitExp s (INT2VECexp (sz,e)) = let val (s,e) = visitExp s e in (s,INT2VECexp (sz,e)) end
+     | visitExp s (CLOSUREexp (t,sym,es)) =
+      let
+         val (s,es) = visit visitExp s es
+      in
+         (addVar (s,sym), CLOSUREexp (t,sym,es))
+      end
+     | visitExp s (STATEexp (b,t,e)) =
+      let
+         val ({vars = vars, side = _},e) = visitExp s e
+         val (vars,b) = visitBlock vars b
+      in
+         ({vars = vars, side = #side s}, STATEexp (b,t,e))
+      end
+     | visitExp s (EXECexp (t, e)) =
+       let val (s,e) = visitExp s e in (addSide (s,true),EXECexp (t, e)) end
+     | visitExp s e = (s,e)
+
+   and hasSidePrim SETSTATEprim = true
+     | hasSidePrim SEEKprim = true
+     | hasSidePrim RSEEKprim = true
+     | hasSidePrim INVOKEprim = true
+     | hasSidePrim INVOKE_INTprim = true
+     | hasSidePrim CONSUME8prim = true
+     | hasSidePrim CONSUME16prim = true
+     | hasSidePrim CONSUME32prim = true
+     | hasSidePrim UNCONSUME8prim = true
+     | hasSidePrim UNCONSUME16prim = true
+     | hasSidePrim UNCONSUME32prim = true
+     | hasSidePrim PRINTLNprim = true
+     | hasSidePrim RAISEprim = true
+     | hasSidePrim _ = false
+
+   fun visitDecl (FUNCdecl {
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = body,
+        funcRes = res
+      }) = (FUNCdecl {
+        funcClosure = clArgs,
+        funcType = vtype,
+        funcName = name,
+        funcArgs = args,
+        funcBody = #2 (visitBlock (SymSet.singleton res) body),
+        funcRes = res
+      })
+     | visitDecl d = d
+
+   fun addPure (SELECTdecl {
+         selectName = sym,
+         ...
+      }) = (pureSet := SymSet.add(!pureSet,sym))
+     | addPure (UPDATEdecl {
+         updateName = sym,
+         ...
+      }) = (pureSet := SymSet.add(!pureSet,sym))
+     | addPure (CONdecl {
+         conName = sym,
+         ...
+      }) = (pureSet := SymSet.add(!pureSet,sym))
+     | addPure _ = ()
+
+   fun run { decls = ds, fdecls = fs, exports = es } =
+      let
+         val _ = app addPure ds
+      in
+         { decls = map visitDecl ds, fdecls = fs, exports = es }
+      end
+   
+end

@@ -1,12 +1,3 @@
-
-(*structure BetaContFunPass = MkCPSPass (BetaContFun)
-structure BetaContFunShrinkPass = MkCPSPass (BetaContFunShrink)
-structure BetaContractPass = MkCPSPass (BetaContract)
-structure BetaPairPass = MkCPSPass (BetaPair)
-structure HoistFunPass = MkCPSPass (HoistFun)
-structure DeadValPass = MkCPSPass (DeadVal)*)
-
-(*structure TransCallsPass = MkIMPPass (TransCalls)*)
 structure PatchFunctionCallsPass = MkIMPPass (PatchFunctionCalls)
 structure ActionReducePass = MkIMPPass (ActionReduce)
 structure ActionVarReductionPass = MkIMPPass (ActionVarReduction)
@@ -14,7 +5,8 @@ structure ActionClosuresPass = MkIMPPass (ActionClosures)
 structure SimplifyPass = MkIMPPass (Simplify)
 structure TypeRefinementPass = MkIMPPass (TypeRefinement)
 structure SwitchReducePass = MkIMPPass (SwitchReduce)
-structure DeadSymbolPass = MkIMPPass (DeadSymbol)
+structure DeadFunctionsPass = MkIMPPass (DeadFunctions)
+structure DeadVariablesPass = MkIMPPass (DeadVariables)
 
 structure ImpPasses : sig
    val run:
@@ -39,7 +31,9 @@ end = struct
       SimplifyPass.run >>=
       TypeRefinementPass.run >>=
       SimplifyPass.run >>=
-      DeadSymbolPass.run
+      DeadFunctionsPass.run >>=
+      DeadVariablesPass.run >>=
+      SimplifyPass.run
 
 
    fun dumpPre (os, (_, spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
