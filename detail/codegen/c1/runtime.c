@@ -72,6 +72,10 @@ static inline void* alloc(state_t s, size_t bytes) {
   return res;
 };
 
+/* generated declarations for records with fixed fields */
+@records@
+
+
 #define GEN_ALLOC(type) \
 static inline type ## _t* alloc_ ## type (state_t s, type ## _t v) { \
   type ## _t* res = alloc(s, sizeof(type ## _t));\
@@ -116,7 +120,7 @@ typedef struct field_ ## type  field_ ## type ## _t
 
 #define GEN_ADD_FIELD(type)                               \
 static obj_t add_field_ ## type                           \
-(state_t s,field_tag_t tag, type ## _t v, obj_t rec) {  \
+(state_t s,field_tag_t tag, type ## _t v, obj_t rec) {    \
   field_ ## type ## _t* res =                             \
     alloc(s, sizeof(field_ ## type ## _t));               \
   res->tag = tag;                                         \
@@ -126,14 +130,33 @@ static obj_t add_field_ ## type                           \
   return res;                                             \
 }
 
+#define GEN_SELECT_FIELD(type)                            \
+static type ## _t select_  ## type                        \
+(state_t s,field_tag_t field, obj_t rec) {                \
+  field_ ## type ## _t* v = (field_ ## type ## _t*) rec;  \
+  while (v) {                                             \
+    if (v->tag==field) return v->payload;                 \
+    v = v->next;                                          \
+  };                                                      \
+  s->err_str = "GDSL runtime: field not found in record"; \
+  longjmp(s->err_tgt,1);                                  \
+}                                                         \
+
 GEN_REC_STRUCT(obj);
 GEN_ADD_FIELD(obj);
+GEN_SELECT_FIELD(obj);
 GEN_REC_STRUCT(int);
 GEN_ADD_FIELD(int);
+GEN_SELECT_FIELD(int);
 GEN_REC_STRUCT(vec);
 GEN_ADD_FIELD(vec);
+GEN_SELECT_FIELD(vec);
 GEN_REC_STRUCT(string);
 GEN_ADD_FIELD(string);
+GEN_SELECT_FIELD(string);
+
+@alloc_funcs@
+
 
 /* Returns a pointer to a record in which the given fields are removed.
   This operation copies all fields of the record except for those that
@@ -319,8 +342,6 @@ void
   free(s);
 }
 
-@records@
-
 @prototypes@
 
 #ifdef WITHMAIN
@@ -359,9 +380,9 @@ done:
     uint64_t ofs = gdsl_get_ip_offset(s);
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (argc>1) {
-        obj_t rreil = gdsl_translateBlock(s);
-        string_t res = gdsl_rreil_pretty(s,rreil);
-        printf("%08lx:\n%s\n", (long unsigned int) ofs, res);
+        // obj_t rreil = gdsl_translateBlock(s);
+        // string_t res = gdsl_rreil_pretty(s,rreil);
+        // printf("%08lx:\n%s\n", (long unsigned int) ofs, res);
       } else {
         obj_t instr = gdsl_decode(s);
         string_t res = gdsl_pretty(s,instr);
@@ -386,3 +407,4 @@ done:
 #endif
 
 @functions@
+

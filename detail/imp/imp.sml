@@ -16,6 +16,8 @@ structure Imp = struct
        | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *)
        | MONADvtype of vtype (* result of monadic action *) 
 
+   type fixed_fields = (SymbolTable.symid * vtype) list option
+
    type arg = vtype * sym
 
    datatype prim =
@@ -112,6 +114,9 @@ structure Imp = struct
    *   return g_closure(x, 4);
    * }
    *)
+   
+   type rec_sym = sym (* a dummy symbol associated with each record literal and selector, a hack for the type inference *)
+
    datatype decl =
       FUNCdecl of {
         funcClosure : arg list,
@@ -120,11 +125,6 @@ structure Imp = struct
         funcArgs : arg list,
         funcBody : block,
         funcRes : sym
-      }
-    | SELECTdecl of {
-        selectName : sym,
-        selectField : sym, (* field symbol *)
-        selectType : vtype
       }
     | UPDATEdecl of {
         updateName : sym,
@@ -151,7 +151,8 @@ structure Imp = struct
     | PRIexp of prim * vtype * exp list
     | CALLexp of exp * exp list (* callee is unboxed *)
     | INVOKEexp of vtype * exp * exp list (* callee is a closure, type is that of exp *)
-    | RECORDexp of vtype * (sym * exp) list
+    | RECORDexp of rec_sym * vtype * (sym * exp) list
+    | SELECTexp of rec_sym * vtype * sym * exp (* type is that of the record exp *)
     | LITexp of vtype * lit
     | BOXexp of vtype * exp
     | UNBOXexp of vtype * exp
@@ -181,7 +182,6 @@ structure Imp = struct
     | CONlit of sym
 
    fun getDeclName (FUNCdecl { funcName = name, ... }) = name
-     | getDeclName (SELECTdecl { selectName = name, ... }) = name
      | getDeclName (UPDATEdecl { updateName = name, ... }) = name
      | getDeclName (CONdecl { conName = name, ... }) = name
      | getDeclName (CLOSUREdecl { closureName = name, ... }) = name
@@ -236,8 +236,6 @@ structure Imp = struct
                ),
                block funcBody
                ]
-        | decl (SELECTdecl { selectName = name, selectField = f, selectType = t }) =
-            seq [vtype t, space, var name, str ";"]
         | decl (UPDATEdecl { updateName = name, updateArg = arg, updateFields = fs, updateType = t }) =
             seq ([vtype t, space, var name, str ";"] @ args ("[",fld, fs, "]") @ [str "(", var arg, str ")"])
         | decl (CONdecl { conName = name, conTag = tag, conArg = conArg, conType = t }) =
@@ -262,7 +260,8 @@ structure Imp = struct
               str (#name (prim_info p)) :: args ("(",exp,es,")"))
         | exp (CALLexp (f,es)) = seq (exp f :: args ("(",exp,es,")"))
         | exp (INVOKEexp (t,f,es)) = seq (vtype t :: space :: str "*" :: exp f :: args ("(",exp,es,")"))
-        | exp (RECORDexp (t,fs)) = seq (vtype t :: space :: args ("{",field,fs,"}"))
+        | exp (RECORDexp (_,t,fs)) = seq (vtype t :: space :: args ("{",field,fs,"}"))
+        | exp (SELECTexp (_,t,f,e)) = seq [str "(", vtype t, str ")", exp e, space, str ".", fld f]
         | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]
         | exp (UNBOXexp (t,e)) = seq [str "unbox[", vtype t, str "](", exp e, str ")"]

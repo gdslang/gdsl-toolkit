@@ -206,15 +206,25 @@ end = struct
             NONE =>
                let
                   val arg = Atom.atom ("arg_of_" ^ Atom.toString name) 
-                  val (tab, sym') = SymbolTable.fresh (tab, arg)
+                  val res = Atom.atom ("res_of_" ^ Atom.toString name)
+                  val dum = Atom.atom ("dummy_" ^ Atom.toString name)
+                  val (tab, symArg) = SymbolTable.fresh (tab, arg)
+                  val (tab, symRes) = SymbolTable.fresh (tab, res)
+                  val (tab, symDum) = SymbolTable.fresh (tab, dum)
                   val (tab, sym) = SymbolTable.fresh (tab, name)
                   val _ = SymbolTables.varTable := tab                        
                   val fType = FUNvtype (OBJvtype, false, [OBJvtype])
                   val _ = addField s field
+                  val body = BASICblock ([], [
+                        ASSIGNstmt (SOME symRes, SELECTexp (symDum, OBJvtype, field, IDexp symArg))
+                     ])
                   val _ = addDecl s 
-                           (SELECTdecl { selectName = sym,
-                                         selectField = field,
-                                         selectType = fType })
+                           (FUNCdecl { funcClosure = [],
+                                       funcType = fType,
+                                       funcName = sym,
+                                       funcArgs = [(OBJvtype,symArg)],
+                                       funcBody = body,
+                                       funcRes = symRes })
 
                   val fTypeCl = FUNvtype (OBJvtype, false, [])
                   val clSym = getClosureSym (s,sym)
@@ -222,7 +232,7 @@ end = struct
                     closureName = clSym,
                     closureArgs = [],
                     closureDelegate = sym,
-                    closureDelArgs = [(OBJvtype, sym')],
+                    closureDelArgs = [(OBJvtype, symArg)],
                     closureRetTy = OBJvtype
                   })
                in
@@ -416,6 +426,9 @@ end = struct
       end
      | trExpr s (Exp.RECORD fs) =
       let
+         val tab = !SymbolTables.varTable
+         val (tab, symDum) = SymbolTable.fresh (tab, Atom.atom "dummy_rec")
+         val _ = SymbolTables.varTable := tab
          fun trans acc res [] = (acc,res)
            | trans acc res ((f,e) :: es) = (case trExpr s e of
               (stmts, e') => trans (acc @ stmts) (res @ [(f,e')]) es)
@@ -424,7 +437,7 @@ end = struct
          val fields = ListMergeSort.uniqueSort fieldCmp unsortedFields
          val _ = app (fn (f,e) => addField s f) fs
       in
-         (stmts, RECORDexp (OBJvtype, fields))
+         (stmts, RECORDexp (symDum, OBJvtype, fields))
       end
      | trExpr s (Exp.UPDATE us) =
       let
