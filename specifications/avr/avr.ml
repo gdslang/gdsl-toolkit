@@ -485,10 +485,10 @@ val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
 ### STS
 ###  - Store Direct to Data Space
 val / ['1001001 r r r r r 0000' 'k k k k k k k k k k k k k k k k'] = binop STS ck16 rr5
-# the following instruction overlaps with STS  that have a dq6 argument
-# it seems that tinyAVRs implement the instruction below but that larger
-# chips that implement STS and LDS with dq6 implement only the 32-bit
-# variant of STS; what a weird design
+# the following instruction overlaps with ST if it has a dq6 argument;
+# ATtiny4,5,9, and 10 implement the instruction below while other
+# chips (notably those that implement ST with dq6) implement only the 32-bit
+# variant of STS; see Wikipedia
 #val / ['10101 k k k r r r r k k k k'] = binop STS ck7 rr4
 
 ### SUB
