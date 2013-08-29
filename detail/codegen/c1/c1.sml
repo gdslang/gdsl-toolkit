@@ -47,6 +47,12 @@ structure C1 = struct
 
    exception CodeGenBug
    
+   (* the number of fields in a fixed record after which it is allocated
+      on the heap rather than passed by value *)
+   val boxThreshold = 5
+   
+   fun boxRecord fs = false (*length fs >= boxThreshold*)
+   
    type state = { prefix : string,
                   names : AtomSet.set,
                   symbols : Atom.atom SymMap.map,
@@ -254,7 +260,7 @@ structure C1 = struct
          FUNvtype (removeArgs retTy, isCl, [VOIDvtype])
      | removeArgs ty = ty
 
-   val recordTypeMap = ref (AtomMap.empty : (bool * string * Layout.t list * int) AtomMap.map)
+   val recordTypeMap = ref (AtomMap.empty : (bool * string * Layout.t list * int * bool) AtomMap.map)
 
    fun genRecSignature fs =
       let
@@ -266,11 +272,17 @@ structure C1 = struct
 
    fun genRecordDecl s onlyPublic =
       let
-         fun showDecl (pub,tyName,body,_) =
+         fun showDecl (pub,tyName,body,_,false) =
             align [
                str "typedef struct {",
                indent 2 (align body),
                seq [str "}", space, str tyName, str "_t;"]]
+           | showDecl (pub,tyName,body,_,true) =
+            align [
+               str "typedef struct {",
+               indent 2 (align body),
+               seq [str "}", space, str tyName, str "_unboxed;"],
+               seq [str "typedef ", str tyName, str "_unboxed* ", str tyName, str "_t;"]]
       in
          map showDecl
             (List.filter (fn r => (#1 r)=onlyPublic)
@@ -283,7 +295,7 @@ structure C1 = struct
          val rSig = genRecSignature fs
       in
          case AtomMap.find (!recordTypeMap, rSig) of
-            SOME (_,tyName,_,_) => tyName
+            SOME rInfo => #2 rInfo
           | NONE =>
             let
                (* put something into the table so showField doesn't create an infinite cycle via emitTypeDecl *)
@@ -291,7 +303,7 @@ structure C1 = struct
                val emittedFields = map showField fs
                val idx = AtomMap.numItems (!recordTypeMap)+1
                val tyName = "struct" ^ Int.toString idx
-               val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,rSig,(false,tyName,emittedFields,idx))
+               val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,rSig,(false,tyName,emittedFields,idx, boxRecord fs))
             in
                tyName
             end
@@ -328,9 +340,9 @@ structure C1 = struct
             let
                val _ = getRecordTag s fs
                val rSig = genRecSignature fs
-               val (_,tyName,def,idx) = AtomMap.lookup (!recordTypeMap, rSig)
+               val (_,tyName,def,idx,isBoxed) = AtomMap.lookup (!recordTypeMap, rSig)
             in
-               recordTypeMap := AtomMap.insert (!recordTypeMap, rSig, (true,tyName,def,idx))
+               recordTypeMap := AtomMap.insert (!recordTypeMap, rSig, (true,tyName,def,idx,isBoxed))
             end
          fun markTy (RECORDvtype fs) = (markRecAsExport fs; app (markTy o #2) fs)
            | markTy (FUNvtype (rTy,_,aTys)) = (markTy rTy; app markTy aTys)
@@ -629,8 +641,19 @@ structure C1 = struct
      | emitExp s (INVOKEexp (t,e,es)) =
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
      | emitExp s (RECORDexp (rs,t as RECORDvtype fTys,fs)) =
-         seq [par (str (getRecordTag s fTys ^ "_t")),  
-              seq (list ("{",emitInitializer s, ListPair.zipEq (fs,fTys), "}"))]
+      if boxRecord fTys then
+         seq [emitAlloc s t,
+            fArgs [seq (
+              str "&" ::
+              par (str (getRecordTag s fTys ^ "_unboxed")) ::  
+              list ("{",emitInitializer s, fs, "}")
+            )
+         ]]
+      else
+         seq (
+            par (str (getRecordTag s fTys ^ "_t")) ::  
+            list ("{",emitInitializer s, fs, "}")
+         )
      | emitExp s (RECORDexp (rs,t,fs)) =
          let
             fun genUpdate ((f,e),res) = seq [
@@ -640,7 +663,11 @@ structure C1 = struct
          in
             foldl genUpdate (str "NULL") fs
          end
-     | emitExp s (SELECTexp (rs,RECORDvtype fTys,f,e)) = seq [emitExp s e, str ".", emitFieldSym s f]
+     | emitExp s (SELECTexp (rs,RECORDvtype fTys,f,e)) =
+      if boxRecord fTys then
+         seq [emitExp s e, str "->", emitFieldSym s f]
+      else
+         seq [emitExp s e, str ".", emitFieldSym s f]
      | emitExp s (SELECTexp (rs,t,f,e)) = seq [emitSelect s f, fArgs [str (getFieldTag f), emitExp s e]]
      | emitExp s (LITexp (t,VEClit pat)) =
       let
@@ -674,7 +701,7 @@ structure C1 = struct
      | emitExp s (EXECexp (MONADvtype _,e)) = seq [emitExp s e, fArgs []]
      | emitExp s (EXECexp (t,e)) = seq [emitInvokeClosure s t, fArgs [emitExp s e]]
 
-   and emitInitializer s ((sym,e),(_,_)) = seq [str ".", emitFieldSym s sym, str "=", emitExp s e]
+   and emitInitializer s (sym,e) = seq [str ".", emitFieldSym s sym, str "=", emitExp s e]
      
    and emitPrim s (GETSTATEprim, [],_) = str "s->state"
      | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->state = ", emitExp s e]
