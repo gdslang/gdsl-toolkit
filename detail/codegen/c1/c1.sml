@@ -49,9 +49,9 @@ structure C1 = struct
    
    (* the number of fields in a fixed record after which it is allocated
       on the heap rather than passed by value *)
-   val boxThreshold = 5
+   val boxThreshold = 3
    
-   fun boxRecord fs = false (*length fs >= boxThreshold*)
+   fun boxRecord fs = length fs >= boxThreshold
    
    type state = { prefix : string,
                   names : AtomSet.set,
@@ -281,8 +281,8 @@ structure C1 = struct
             align [
                str "typedef struct {",
                indent 2 (align body),
-               seq [str "}", space, str tyName, str "_unboxed;"],
-               seq [str "typedef ", str tyName, str "_unboxed* ", str tyName, str "_t;"]]
+               seq [str "}", space, str ("unboxed_" ^ tyName), str "_t;"],
+               seq [str "typedef ", str ("unboxed_" ^ tyName), str "_t* ", str tyName, str "_t;"]]
       in
          map showDecl
             (List.filter (fn r => (#1 r)=onlyPublic)
@@ -397,10 +397,6 @@ structure C1 = struct
                  AtomSet.member (macrosDefinedInRuntime, macro) then () else 
                (#allocFuncs s) := AtomMap.insert (!(#allocFuncs s), macro,
                                     AtomMap.numItems (!(#allocFuncs s))+1)
-         (*val ty = case ty of
-               FUNvtype _ => OBJvtype
-             | MONADvtype _ => OBJvtype
-             | ty => ty*)
          val tyTag = getTypeSuffix s ty
          fun genTypedef ty =
             registerMacro (Atom.atom (Layout.tostring (
@@ -417,6 +413,7 @@ structure C1 = struct
       end
 
    fun emitAlloc (s : state) ty = emitMacro (s,ty,"alloc_","GEN_ALLOC(")
+   fun emitUnboxedAlloc (s : state) ty = emitMacro (s,ty,"alloc_unboxed_","GEN_ALLOC(unboxed_")
    fun emitAllocCon (s : state) ty = 
       (emitMacro (s,ty,"con_","GEN_CON_STRUCT("); emitMacro (s,ty,"alloc_con_","GEN_ALLOC(con_"))
    fun emitConType (s : state) ty = seq [emitMacro (s,ty,"con_","GEN_CON_STRUCT("),str "_t"]
@@ -642,10 +639,9 @@ structure C1 = struct
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
      | emitExp s (RECORDexp (rs,t as RECORDvtype fTys,fs)) =
       if boxRecord fTys then
-         seq [emitAlloc s t,
+         seq [emitUnboxedAlloc s t,
             fArgs [seq (
-              str "&" ::
-              par (str (getRecordTag s fTys ^ "_unboxed")) ::  
+              par (str ("unboxed_" ^ getRecordTag s fTys ^ "_t")) ::  
               list ("{",emitInitializer s, fs, "}")
             )
          ]]

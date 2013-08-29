@@ -18,7 +18,7 @@ struct state {
 
 #define CHUNK_SIZE (4*1024)
 
-#if __has_attribute(noinline)
+#ifdef __CLANG__
 #define NO_INLINE_ATTR __attribute__((noinline))
 #elif __GNUC__
 #define NO_INLINE_ATTR __attribute__((noinline))
@@ -26,7 +26,7 @@ struct state {
 #define NO_INLINE_ATTR
 #endif
 
-#if __has_attribute(malloc)
+#ifdef __CLANG__
 #define MALLOC_ATTR __attribute__((malloc))
 #elif __GNUC__
 #define MALLOC_ATTR __attribute__((malloc))
