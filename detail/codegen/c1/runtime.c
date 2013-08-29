@@ -18,7 +18,24 @@ struct state {
 
 #define CHUNK_SIZE (4*1024)
 
-static void alloc_heap(state_t s, char* prev_page, size_t size) {
+#if __has_attribute(noinline)
+#define NO_INLINE_ATTR __attribute__((noinline))
+#elif __GNUC__
+#define NO_INLINE_ATTR __attribute__((noinline))
+#else
+#define NO_INLINE_ATTR
+#endif
+
+#if __has_attribute(malloc)
+#define MALLOC_ATTR __attribute__((malloc))
+#elif __GNUC__
+#define MALLOC_ATTR __attribute__((malloc))
+#else
+#define MALLOC_ATTR
+#endif
+
+
+static void NO_INLINE_ATTR alloc_heap(state_t s, char* prev_page, size_t size) {
   if (size<CHUNK_SIZE) size = CHUNK_SIZE; else size = CHUNK_SIZE*((size/CHUNK_SIZE)+1);
   s->heap_base = malloc(size);
   if (s->heap_base==NULL) {
@@ -64,7 +81,7 @@ size_t
   return res;
 };
 
-static inline void* alloc(state_t s, size_t bytes) {
+static inline void* MALLOC_ATTR alloc(state_t s, size_t bytes) {
   bytes = ((bytes+7)>>3)<<3;    /* align to multiple of 8 */
   if (s->heap+bytes >= s->heap_limit) alloc_heap(s, s->heap_base, bytes);
   char* res = s->heap;
@@ -83,11 +100,7 @@ static inline type ## _t* alloc_ ## type (state_t s, type ## _t v) { \
   return res;\
 }
 
-GEN_ALLOC(int);
-
 #define alloc_string(s,str) str
-
-GEN_ALLOC(vec);
 
 #define GEN_CON_STRUCT(type)  \
 struct con_ ## type {         \
@@ -96,15 +109,6 @@ struct con_ ## type {         \
 };                            \
                               \
 typedef struct con_ ## type  con_ ## type ## _t
-
-GEN_CON_STRUCT(obj);
-GEN_ALLOC(con_obj);
-GEN_CON_STRUCT(int);
-GEN_ALLOC(con_int);
-GEN_CON_STRUCT(vec);
-GEN_ALLOC(con_vec);
-GEN_CON_STRUCT(string);
-GEN_ALLOC(con_string);
 
 typedef unsigned int field_tag_t;
 
@@ -143,18 +147,6 @@ static type ## _t select_  ## type                        \
 }                                                         \
 
 GEN_REC_STRUCT(obj);
-GEN_ADD_FIELD(obj);
-GEN_SELECT_FIELD(obj);
-GEN_REC_STRUCT(int);
-GEN_ADD_FIELD(int);
-GEN_SELECT_FIELD(int);
-GEN_REC_STRUCT(vec);
-GEN_ADD_FIELD(vec);
-GEN_SELECT_FIELD(vec);
-GEN_REC_STRUCT(string);
-GEN_ADD_FIELD(string);
-GEN_SELECT_FIELD(string);
-
 @alloc_funcs@
 
 

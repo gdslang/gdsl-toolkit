@@ -16,8 +16,6 @@ structure Imp = struct
        | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *)
        | MONADvtype of vtype (* result of monadic action *) 
 
-   type fixed_fields = (SymbolTable.symid * vtype) list option
-
    type arg = vtype * sym
 
    datatype prim =
@@ -115,7 +113,7 @@ structure Imp = struct
    * }
    *)
    
-   type rec_sym = sym (* a dummy symbol associated with each record literal and selector, a hack for the type inference *)
+   type rec_sym = sym (* a dummy symbol associated with each record literal and selector, a hack for the type refinement *)
 
    datatype decl =
       FUNCdecl of {

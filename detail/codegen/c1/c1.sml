@@ -57,7 +57,7 @@ structure C1 = struct
                   constrs : String.string SymMap.map,
                   closureToFun : SymbolTable.symid SymMap.map,
                   structsLocal : Layout.t list ref,
-                  allocFuncs : AtomSet.set ref,
+                  allocFuncs : int AtomMap.map ref,
                   preDeclEmit : Layout.t list ref }
 
    fun isVOIDvtype VOIDvtype = true
@@ -241,15 +241,22 @@ structure C1 = struct
       Int.toString (SymbolTable.toInt f) ^
       "/* " ^ Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)) ^ " */"
 
-   fun emitFieldSym s sym = mangleName (SymbolTable.getString (!SymbolTables.fieldTable, sym))
+   fun emitFieldSym s sym =
+      let
+         val field = SymbolTable.getString (!SymbolTables.fieldTable, sym)
+         val field = if AtomSet.member (reservedNames,Atom.atom field)
+                   then field ^ "_" else field
+      in
+         str (mangleName field)
+      end
    
    fun removeArgs (FUNvtype (retTy, isCl, args)) =
          FUNvtype (removeArgs retTy, isCl, [VOIDvtype])
      | removeArgs ty = ty
 
-   val recordTypeMap = ref (AtomMap.empty : (bool * string * Layout.t list) AtomMap.map)
+   val recordTypeMap = ref (AtomMap.empty : (bool * string * Layout.t list * int) AtomMap.map)
 
-   fun genRecSignature s fs =
+   fun genRecSignature fs =
       let
          val str = foldl (fn ((f,t),str) =>
             Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)) ^ str) "" fs
@@ -259,36 +266,32 @@ structure C1 = struct
 
    fun genRecordDecl s onlyPublic =
       let
-         fun showDecl (pub,tyName,body) =
-            align (
-               str "typedef struct {" ::
-               body @
-               [seq [str "}", space, str tyName, str "_t;"]]
-            )
+         fun showDecl (pub,tyName,body,_) =
+            align [
+               str "typedef struct {",
+               indent 2 (align body),
+               seq [str "}", space, str tyName, str "_t;"]]
       in
          map showDecl
-            (List.filter (fn (p,_,_) => p=onlyPublic) (
-               AtomMap.listItems (!recordTypeMap)))
+            (List.filter (fn r => (#1 r)=onlyPublic)
+               (ListMergeSort.sort (fn (r1,r2) => (#4 r1)>(#4 r2))
+                  (AtomMap.listItems (!recordTypeMap))))
       end
 
    fun getRecordTag (s : state) fs =
       let
-         val rSig = genRecSignature s fs
+         val rSig = genRecSignature fs
       in
          case AtomMap.find (!recordTypeMap, rSig) of
-            SOME (_,tyName,_) => tyName
+            SOME (_,tyName,_,_) => tyName
           | NONE =>
             let
+               (* put something into the table so showField doesn't create an infinite cycle via emitTypeDecl *)
+               fun showField (f,t) = seq [emitTypeDecl s ([emitFieldSym s f], t), str ";"]
+               val emittedFields = map showField fs
                val idx = AtomMap.numItems (!recordTypeMap)+1
                val tyName = "struct" ^ Int.toString idx
-               (* put something into the table so showField doesn't create an infinite cycle via emitTypeDecl *)
-               val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,rSig,(false,tyName,[]))
-               fun showField (f,t) =
-                  seq [emitTypeDecl s (
-                     [str (Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)))],
-                     t
-                  ), str ";"]
-               val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,rSig,(false,tyName,map showField fs))
+               val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,rSig,(false,tyName,emittedFields,idx))
             in
                tyName
             end
@@ -317,6 +320,24 @@ structure C1 = struct
                   retTy)
       in
          eT (decl,t)
+      end
+
+   fun markTypeAsExport (s : state) ty =
+      let
+         fun markRecAsExport fs =
+            let
+               val _ = getRecordTag s fs
+               val rSig = genRecSignature fs
+               val (_,tyName,def,idx) = AtomMap.lookup (!recordTypeMap, rSig)
+            in
+               recordTypeMap := AtomMap.insert (!recordTypeMap, rSig, (true,tyName,def,idx))
+            end
+         fun markTy (RECORDvtype fs) = (markRecAsExport fs; app (markTy o #2) fs)
+           | markTy (FUNvtype (rTy,_,aTys)) = (markTy rTy; app markTy aTys)
+           | markTy (MONADvtype rTy) = markTy rTy
+           | markTy _ = ()
+      in
+         markTy ty
       end
 
    fun emitSymType s (sym, t) = emitTypeDecl s ([emitSym s sym], t)
@@ -352,30 +373,47 @@ structure C1 = struct
       foldl (fn (ty,str) => str ^ "_" ^ getTypeSuffix s ty) "" (retTy::args) ^ "_fun"
      | getTypeSuffix s (RECORDvtype fs) = getRecordTag s fs
 
+   val macrosDefinedInRuntime = AtomSet.fromList
+      [Atom.atom "GEN_ALLOC(string);", (* pre-defined as no-op *)
+       Atom.atom "GEN_REC_STRUCT(obj);" (* pre-defined since its used in del_fields *)
+      ]
+
    fun emitMacro (s : state, ty, funBase, macroBase) =
       let
-         val ty = case ty of
+         fun registerMacro macro =
+            if AtomMap.inDomain (!(#allocFuncs s), macro) orelse
+                 AtomSet.member (macrosDefinedInRuntime, macro) then () else 
+               (#allocFuncs s) := AtomMap.insert (!(#allocFuncs s), macro,
+                                    AtomMap.numItems (!(#allocFuncs s))+1)
+         (*val ty = case ty of
                FUNvtype _ => OBJvtype
              | MONADvtype _ => OBJvtype
-             | ty => ty
+             | ty => ty*)
          val tyTag = getTypeSuffix s ty
+         fun genTypedef ty =
+            registerMacro (Atom.atom (Layout.tostring (
+               seq [str "typedef ", emitTypeDecl s ([str (tyTag ^ "_t")], ty), str ";"])))
+         val _ = case ty of
+               FUNvtype _ => genTypedef ty
+             | MONADvtype _ => genTypedef ty
+             | ty => ()
          val funName = funBase ^ tyTag
          val macro = Atom.atom (macroBase ^ tyTag ^ ");")
-         val _ = if AtomSet.member (!(#allocFuncs s), macro) then () else 
-                  (#allocFuncs s) := AtomSet.add (!(#allocFuncs s), macro)
+         val _ = registerMacro macro
       in
          str funName
       end
 
    fun emitAlloc (s : state) ty = emitMacro (s,ty,"alloc_","GEN_ALLOC(")
-   fun emitAllocCon (s : state) ty = emitMacro (s,ty,"alloc_con_","GEN_ALLOC(con_")
+   fun emitAllocCon (s : state) ty = 
+      (emitMacro (s,ty,"con_","GEN_CON_STRUCT("); emitMacro (s,ty,"alloc_con_","GEN_ALLOC(con_"))
    fun emitConType (s : state) ty = seq [emitMacro (s,ty,"con_","GEN_CON_STRUCT("),str "_t"]
    fun emitAddField (s : state) f =
       (emitMacro (s,SymMap.lookup (#fieldTypes s,f),"","GEN_REC_STRUCT(")
       ;emitMacro (s,SymMap.lookup (#fieldTypes s,f),"add_field_","GEN_ADD_FIELD("))
    fun emitSelect (s : state) f =
       (emitMacro (s,SymMap.lookup (#fieldTypes s,f),"","GEN_REC_STRUCT(")
-      ; emitMacro (s,SymMap.lookup (#fieldTypes s,f),"select_","GEN_SELECT_FIELD("))
+      ;emitMacro (s,SymMap.lookup (#fieldTypes s,f),"select_","GEN_SELECT_FIELD("))
 
 
    fun emitPat s (VECpat []) = str "default:"
@@ -591,8 +629,8 @@ structure C1 = struct
      | emitExp s (INVOKEexp (t,e,es)) =
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
      | emitExp s (RECORDexp (rs,t as RECORDvtype fTys,fs)) =
-         seq [emitAlloc s t, par (str (getRecordTag s fTys ^ "_t")),  
-              seq (list ("{",emitExp s, map #2 fs, "}"))]
+         seq [par (str (getRecordTag s fTys ^ "_t")),  
+              seq (list ("{",emitInitializer s, ListPair.zipEq (fs,fTys), "}"))]
      | emitExp s (RECORDexp (rs,t,fs)) =
          let
             fun genUpdate ((f,e),res) = seq [
@@ -602,7 +640,7 @@ structure C1 = struct
          in
             foldl genUpdate (str "NULL") fs
          end
-     | emitExp s (SELECTexp (rs,RECORDvtype fTys,f,e)) = seq [str "(", emitExp s e, str (")->" ^ emitFieldSym s f)]
+     | emitExp s (SELECTexp (rs,RECORDvtype fTys,f,e)) = seq [emitExp s e, str ".", emitFieldSym s f]
      | emitExp s (SELECTexp (rs,t,f,e)) = seq [emitSelect s f, fArgs [str (getFieldTag f), emitExp s e]]
      | emitExp s (LITexp (t,VEClit pat)) =
       let
@@ -636,6 +674,8 @@ structure C1 = struct
      | emitExp s (EXECexp (MONADvtype _,e)) = seq [emitExp s e, fArgs []]
      | emitExp s (EXECexp (t,e)) = seq [emitInvokeClosure s t, fArgs [emitExp s e]]
 
+   and emitInitializer s ((sym,e),(_,_)) = seq [str ".", emitFieldSym s sym, str "=", emitExp s e]
+     
    and emitPrim s (GETSTATEprim, [],_) = str "s->state"
      | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->state = ", emitExp s e]
      | emitPrim s (SEEKprim, [e],_) = seq [str "gdsl_seek(s, ", emitExp s e, str ")"]
@@ -684,6 +724,7 @@ structure C1 = struct
       let
          val s = setRet (res,foldl registerSymbol s (map #2 (clArgs @ args)))
          val static = if SymSet.member(#exports s, name) then seq [] else str "static "
+         val _ = if SymSet.member(#exports s, name) then markTypeAsExport s ty else ()
       in
          if #onlyDecls s then
          let
@@ -884,7 +925,7 @@ structure C1 = struct
                exports = exports,
                constrs = conMap,
                closureToFun = closureToFunMap,
-               allocFuncs = ref AtomSet.empty,
+               allocFuncs = ref AtomMap.empty,
                structsLocal = ref [],
                preDeclEmit = ref []
             } : state
@@ -922,8 +963,11 @@ structure C1 = struct
          val funDeclsPrivate = map (emitDecl s)
             (List.filter (fn d => not (SymSet.member(exports, getDeclName d))) ds)
          val constructors = map emitConDefine (SymMap.listItemsi conMap)
+         (* generate a list of macros in the order in which they were added *)
          val recAllocFuncs =
-            map (str o Atom.toString) (AtomSet.listItems (!(#allocFuncs s)))
+            map (str o Atom.toString o #1) 
+               (ListMergeSort.sort (fn ((_,i1),(_,i2)) => i1>i2)
+                  (AtomMap.listItemsi (!(#allocFuncs s))))
          val fields = []
          val constructorNames = str ""
          val fieldNames = str ""

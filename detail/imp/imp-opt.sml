@@ -658,9 +658,16 @@ structure Simplify = struct
          ]),
          funcRes = res,
          ...
-      }),[e]) = if SymbolTable.eq_symid (arg,symArg) andalso
-                  SymbolTable.eq_symid (res,symRes) then
-               SOME (SELECTexp (rs,t, field, e)) else NONE
+      }),[e]) =
+      let
+         val tab = !SymbolTables.varTable
+         val (tab, symDum) = SymbolTable.fresh (tab, Atom.atom "dummy_select")
+         val _ = SymbolTables.varTable := tab
+      in
+         if SymbolTable.eq_symid (arg,symArg) andalso
+            SymbolTable.eq_symid (res,symRes) then
+         SOME (SELECTexp (symDum,t, field, e)) else NONE
+      end
      | getTrivialFunctionBody _ = NONE
 
    fun visitDecl s (FUNCdecl {
@@ -816,7 +823,7 @@ structure TypeRefinement = struct
             in
                ()
             end
-         (*val _ = app showSymBinding syms*)
+         val _ = app showSymBinding syms
          val _ = app showFieldBinding (SymMap.listItemsi (!ft))
       in
          ()
@@ -892,7 +899,7 @@ structure TypeRefinement = struct
       in
          VARstype idx
       end
-
+   
    fun lub (s as { typeTable = tt, ...} : state,t1,t2) =
       let
          (*val _ = if t1=VARstype 57711 orelse t2=VARstype 57711 then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
@@ -909,9 +916,9 @@ structure TypeRefinement = struct
                val _ = iter := (!iter) + 1
                val xTy = DynamicArray.sub (tt,xRoot)
                val yTy = DynamicArray.sub (tt,yRoot)
-               val _ = if !iter>30 then
+               val _ = if !iter>40 then
                         raise TypeOptBug
-                     else if !iter>20 then
+                     else if !iter>30 then
                         TextIO.print ("non-termination for lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ ", xTy = " ^ showSType xTy ^ ", yTy = " ^ showSType yTy ^"\n")
                      else ()
                (*val _ = if (xRoot=18419 orelse yRoot=18419) andalso (xRoot<>yRoot) then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
@@ -976,8 +983,16 @@ structure TypeRefinement = struct
                   )
                  | mergeFields ([],fs2) = map (fn (e,f,t) => (always1,f,t)) fs2
                  | mergeFields (fs1,[]) = map (fn (e,f,t) => (always2,f,t)) fs1
+               val fs = mergeFields (fs1,fs2)
+               (* the following condition holds if the record always contains
+                  the fields in fs; if it may contain fewer fields at any point
+                  we return OBJstype and use the flex record mechanism *)
+               val resTy = if List.all #1 fs then
+                     RECORDstype (fs, always1 andalso always2)
+                  else
+                     (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
             in
-               RECORDstype (mergeFields (fs1,fs2), always1 andalso always2)
+               resTy
             end
            | lub (RECORDstype (fs,b), _) =
                (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
@@ -1533,6 +1548,22 @@ structure TypeRefinement = struct
       ignore (lub (s, symType s sym, voidsToTop (inlineSType s (symType s sym))))
      | setArgsToTop s _ = ()
 
+   fun mergeRecords s =
+      let
+         val recordTypes = ref AtomMap.empty : stype AtomMap.map ref
+         fun checkForRecord (ty as RECORDstype (fs,_),recordTypes) =
+            let
+                val key = Atom.atom (foldl (fn (f,str) =>
+                     Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,#2 f)) ^ str)
+                     "" fs)
+            in
+               AtomMap.insert (recordTypes, key,
+                  lub (s,Option.getOpt(AtomMap.find (recordTypes,key),VOIDstype),ty))
+            end
+           | checkForRecord (_, recordTypes) = recordTypes
+      in
+         DynamicArray.foldl checkForRecord AtomMap.empty (#typeTable s)
+      end
 
    fun run { decls = ds, fdecls = fs, exports = es } =
       let
@@ -1548,6 +1579,8 @@ structure TypeRefinement = struct
          }
          fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= ~1);*) (*TextIO.print ("type of writeRes : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 1045)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
+         (* unify the types of all records that have the same set of fields *)
+         val _ = mergeRecords state
          (* set all arguments in functions and constructors to OBJstype if they are void so that the (C) backend is not emitting invalid code *)
          val _ = app (setArgsToTop state) ds
          
