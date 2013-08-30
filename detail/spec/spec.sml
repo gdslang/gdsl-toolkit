@@ -23,14 +23,15 @@ structure Spec = struct
    structure PP = struct
       open Layout Pretty
       val dots = str ".."
+      fun i x = str (Int.toString x)
       val is = seq [space, str "=", space]
       fun spec pA t =
          align
             [seq [str "granularity", is, int (get#granularity t)],
-             seq [str "export", is, dots],
-             seq [str "typealiases", is, dots],
-             seq [str "datatypes", is, dots],
-             seq [str "constructors", is, dots],
+             seq [str "export: ", is, i (length (get #exports t))],
+             seq [str "typealiases: ", is, i (length (get #typealias t))],
+             seq [str "datatypes: ", is, i (length (get #datatypes t))],
+             seq [str "constructors: ", is, i (SymMap.numItems (get #constructors t))],
              seq [str "declarations", is],
              pA (get#declarations t)]
 

@@ -13,8 +13,8 @@
 # weight is a parameter to the rebalancing process. 
 #val weight:int = 3
 
-export =
-   bbtree-size
+# the following functions are defined here
+   (*bbtree-size
    bbtree-empty
    bbtree-empty?
    bbtree-singleton
@@ -60,7 +60,7 @@ export =
    fitree-remove-min
    fitree-fold
    fitree-pretty
-   fitree-mk
+   fitree-mk*)
 
 #type intset = bbtree [a=int]
 #type fitree = bbtree [a={lo:int,hi:int}]
@@ -577,7 +577,7 @@ val fitree-fold f s t = bbtree-fold f s t
 val fitree-pretty t =
    let
       val pretty-interval x =
-         "[" +++ showint x.lo +++ "," +++ showint x.hi +++ "]"
+         "[" +++ show-int x.lo +++ "," +++ show-int x.hi +++ "]"
    in
       bbtree-pretty pretty-interval t
    end

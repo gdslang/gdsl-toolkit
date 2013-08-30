@@ -84,7 +84,6 @@ structure Primitives = struct
    val s17 = freshVar ()
    val s18 = freshVar ()
    val s19 = freshVar ()
-   val anyToString = freshVar()
    val content = freshVar ()
    val content' = newFlow content
    val content'' = newFlow content
@@ -139,7 +138,8 @@ structure Primitives = struct
        {name="invoke", ty=FUN([UNIT, j],STRING),flow=noFlow},
        {name="invoke_int", ty=FUN([UNIT,ZENO],UNIT),flow=noFlow},
        {name="index", ty=func (h, ZENO), flow = noFlow},
-       {name="println", ty=func (i, ZENO), flow = noFlow},
+       {name="puts", ty=func (i, MONAD (ZENO, stateL, stateL')),
+         flow = BD.meetVarImpliesVar (bvar stateL', bvar stateL)},
        {name="%raise", ty=UNIT, flow = noFlow},
        {name="%and", ty=UNIT, flow = noFlow},
        {name="%or", ty=UNIT, flow = noFlow},
@@ -155,9 +155,7 @@ structure Primitives = struct
        {name="%equal", ty=UNIT, flow = noFlow},
        {name="%concat", ty=UNIT, flow = noFlow},
        {name="showint", ty=FUN([ZENO],STRING), flow = noFlow},
-       {name="showbitvec", ty=FUN([VEC (anyToString)], STRING), flow = noFlow},
        {name="%showint", ty=FUN([ZENO],STRING), flow = noFlow},
-       {name="%showbitvec", ty=UNIT, flow = noFlow},
        {name=caseExpression, ty=UNIT,
         flow = noFlow},
        (*{name=globalState, ty=state,
@@ -206,8 +204,8 @@ structure Primitives = struct
         flow = BD.meetVarZero (bvar s2)},
        {name="**", ty=vvv s3,
         flow = BD.meetVarZero (bvar s3)},
-       {name="+++", ty=FUN([STRING,STRING], STRING), flow = noFlow},
-       {name="%concatstring", ty=FUN([STRING,STRING], STRING), flow = noFlow},
+       {name="strlen", ty=FUN([STRING], ZENO), flow = noFlow},
+       {name="strcat", ty=FUN([STRING,STRING,ZENO], STRING), flow = noFlow},
        {name="^", ty=FUN ([VEC s4, VEC s5], VEC s6),
         flow = BD.meetVarZero (bvar s4) o
                BD.meetVarZero (bvar s5) o
@@ -236,30 +234,21 @@ structure Primitives = struct
         flow = BD.meetVarZero (bvar s17) o
                BD.meetVarZero (bvar s18) o
                BD.meetVarZero (bvar s19)},
-       {name="%consume8", ty=MONAD (VEC size,stateJ, stateJ'),
-        flow = BD.meetVarZero (bvar size) o
-               BD.meetVarImpliesVar (bvar stateJ', bvar stateJ)},
-       {name="%unconsume8", ty=MONAD (UNIT,stateK, stateK'),
-        flow = BD.meetVarImpliesVar (bvar stateK', bvar stateK)}, 
-       {name="%consume16", ty=MONAD (VEC size,stateJ, stateJ'),
-        flow = BD.meetVarZero (bvar size) o
-               BD.meetVarImpliesVar (bvar stateJ', bvar stateJ)},
-       {name="%unconsume16", ty=MONAD (UNIT,stateK, stateK'),
-        flow = BD.meetVarImpliesVar (bvar stateK', bvar stateK)}, 
-       {name="%consume32", ty=MONAD (VEC size,stateJ, stateJ'),
-        flow = BD.meetVarZero (bvar size) o
-               BD.meetVarImpliesVar (bvar stateJ', bvar stateJ)},
-       {name="%unconsume32", ty=MONAD (UNIT,stateK, stateK'),
-        flow = BD.meetVarImpliesVar (bvar stateK', bvar stateK)}, 
-       {name="%slice", ty=MONAD (freshVar (),stateL, stateL'),
-        flow = BD.meetVarImpliesVar (bvar stateL', bvar stateL)},
+       {name="%concatstring", ty=UNIT, flow = noFlow},
+       {name="%consume8", ty=UNIT, flow = noFlow},
+       {name="%unconsume8", ty=UNIT, flow = noFlow},
+       {name="%consume16", ty=UNIT, flow = noFlow},
+       {name="%unconsume16", ty=UNIT, flow = noFlow},
+       {name="%consume32", ty=UNIT, flow = noFlow},
+       {name="%unconsume32", ty=UNIT, flow = noFlow},
+       {name="%slice", ty=UNIT, flow = noFlow},
        {name="%idxget", ty=UNIT, flow = noFlow},
        {name="%rseek", ty=UNIT, flow = noFlow},
        {name="%seek", ty=UNIT, flow = noFlow},
        {name="%invoke", ty=UNIT, flow = noFlow},
        {name="%invoke_int", ty=UNIT, flow = noFlow},
        {name="%index", ty=UNIT, flow = noFlow},
-       {name="%println", ty=UNIT, flow = noFlow},
+       {name="%puts", ty=UNIT, flow = noFlow},
        {name="vcase", ty=FUN ([VEC inp, content',
          FUN ([content'', VEC out], content''')], content''''),
          flow = BD.meetVarImpliesVar (bvar content'''', bvar content') o
@@ -339,7 +328,8 @@ structure Primitives = struct
          val oo = ftype [OBJvtype] OBJvtype
          val oos = ftype [OBJvtype, OBJvtype] STRINGvtype
          val o_ = ftype [] OBJvtype
-         val sss = ftype [STRINGvtype, STRINGvtype] STRINGvtype
+         val ssis = ftype [STRINGvtype, STRINGvtype, INTvtype] STRINGvtype
+         val si =  ftype [STRINGvtype] INTvtype
          val i = ftype [] INTvtype
          val v = ftype [] VOIDvtype
          val fMv = ftype [ftype [OBJvtype] OBJvtype] (MONADvtype VOIDvtype)
@@ -368,8 +358,10 @@ structure Primitives = struct
          ("==", (t 2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
          ("^", (t 2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
          ("showint", (t 1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
-         ("showbitvec", (t 1, fn args => pr (BITVEC_TO_STRINGprim,bs,unboxV args))),
-         ("+++", (t 2, fn args => pr (CONCAT_STRINGprim,sss,args))),
+         ("strlen", (t 1, fn args => boxV (pr (STRLENprim,si,args)))),
+         ("strcat", (t 3, fn args => (case args of
+            [src,tgt,size] => pr (CONCAT_STRINGprim,ssis,[src,tgt,UNBOXexp (INTvtype, size)])
+          | _ => raise ImpPrimTranslationBug))),
          ("slice", (t ~3, fn args => (case args of
             [vec,ofs,sz] => action (boxV (PRIexp (SLICEprim,iiib,unboxVfixed [vec] @ unboxI [ofs,sz])))
           | _ => raise ImpPrimTranslationBug))),
@@ -396,7 +388,7 @@ structure Primitives = struct
          ("unconsume8", (t 0, fn args => action (PRIexp (UNCONSUME8prim,v,args)))),
          ("unconsume16", (t 0, fn args => action (PRIexp (UNCONSUME16prim,v,args)))),
          ("unconsume32", (t 0, fn args => action (PRIexp (UNCONSUME32prim,v,args)))),
-         ("println", (t ~1, fn args => action (PRIexp (PRINTLNprim,ov,args)))),
+         ("puts", (t ~1, fn args => action (PRIexp (PRINTLNprim,ov,args)))),
          ("return", (t ~1, fn args => (case args of
             [e] => action e
           | _ => raise ImpPrimTranslationBug)))

@@ -717,6 +717,10 @@ structure TypeRefinement = struct
       record. Hence, this flag must stay false for now. *)
    val genFixedRecords = ref true
 
+   (* the number of fields in a fixed record after which it is allocated
+      on the heap rather than passed by value *)
+   val boxThreshold = 100
+   
    exception TypeOptBug
    
    type index = int
@@ -736,7 +740,7 @@ structure TypeRefinement = struct
      | BOXstype of stype
      | FUNstype of (stype * stype * stype list) (* the middle value is VOID if no closure had any arguments and OBJstype otherwise *)
      | MONADstype of stype
-     | RECORDstype of (existance * SymbolTable.symid * stype) list * existance
+     | RECORDstype of stype * (existance * SymbolTable.symid * stype) list * existance (* the first value is VOID for unboxed and OBJstype otherwise *)
      | BITstype of stype
      | CONSTstype of int
      | STRINGstype
@@ -763,7 +767,8 @@ structure TypeRefinement = struct
             ("", "") args
          ) ^ (if isOBJstype cl then ") => " else ") -> ") ^ showSType res
      | showSType (MONADstype r) = "M " ^ showSType r
-     | showSType (RECORDstype (fs,b)) = "{" ^ #1 (
+     | showSType (RECORDstype (boxed,fs,b)) = 
+         (if isOBJstype boxed then "*" else "") ^ "{" ^ #1 (
          foldl (fn ((b,f,t),(str,sep)) => (str ^ sep ^
             (if b then "" else "?") ^
             SymbolTable.getString(!SymbolTables.fieldTable, f) ^
@@ -799,7 +804,7 @@ structure TypeRefinement = struct
            | inline ecrs (BOXstype t) = BOXstype (inline ecrs t)
            | inline ecrs (FUNstype (res,clos,args)) = FUNstype (inline ecrs res, inline ecrs clos, map (inline ecrs) args)
            | inline ecrs (MONADstype res) = MONADstype (inline ecrs res)
-           | inline ecrs (RECORDstype (fs,b)) = RECORDstype (map (fn (b,f,t) => (b,f,inline ecrs t)) fs,b)
+           | inline ecrs (RECORDstype (boxed,fs,b)) = RECORDstype (inline ecrs boxed,map (fn (b,f,t) => (b,f,inline ecrs t)) fs,b)
            | inline ecrs (BITstype t) = BITstype (inline ecrs t)
            | inline ecrs t = t
       in
@@ -973,7 +978,7 @@ structure TypeRefinement = struct
                   (TextIO.print ("lub on bad func args: " ^ showSType (FUNstype (r1, clos1, args1)) ^ "," ^ showSType (FUNstype (r2, clos2, args2)) ^ "\n"); raise TypeOptBug)
              )
            | lub (MONADstype r1, MONADstype r2) = MONADstype (lub (r1,r2))
-           | lub (RECORDstype (fs1,always1), RECORDstype (fs2,always2)) =
+           | lub (RECORDstype (boxed1,fs1,always1), RECORDstype (boxed2,fs2,always2)) =
             let
                fun mergeFields ((b1,f1,t1)::fs1, (b2,f2,t2)::fs2) =
                   (case SymbolTable.compare_symid (f1,f2) of
@@ -988,15 +993,15 @@ structure TypeRefinement = struct
                   the fields in fs; if it may contain fewer fields at any point
                   we return OBJstype and use the flex record mechanism *)
                val resTy = if List.all #1 fs then
-                     RECORDstype (fs, always1 andalso always2)
+                     RECORDstype (lub (boxed1,boxed2), fs, always1 andalso always2)
                   else
                      (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
             in
                resTy
             end
-           | lub (RECORDstype (fs,b), _) =
+           | lub (RECORDstype (_,fs,b), _) =
                (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
-           | lub (_, RECORDstype (fs,b)) =
+           | lub (_, RECORDstype (_,fs,b)) =
                (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
            | lub (BITstype s1, BITstype s2) = BITstype (lub (s1,s2))
            | lub (CONSTstype s1, CONSTstype s2) =
@@ -1025,7 +1030,8 @@ structure TypeRefinement = struct
      | vtypeToStype s (FUNvtype (res, cl, args)) =
          FUNstype (vtypeToStype s res, if cl then OBJstype else VOIDstype, map (vtypeToStype s) args)
      | vtypeToStype s (MONADvtype res) = MONADstype (vtypeToStype s res)
-     | vtypeToStype s (RECORDvtype fs) = RECORDstype (map (fn (f,t) => (true,f,vtypeToStype s t)) fs, false)
+     | vtypeToStype s (RECORDvtype (boxed,fs)) =
+         RECORDstype (if boxed then OBJstype else VOIDstype,map (fn (f,t) => (true,f,vtypeToStype s t)) fs, false)
 
    fun visitBlock s (BASICblock (decls,stmts)) = app (visitStmt s) stmts
 
@@ -1056,7 +1062,9 @@ structure TypeRefinement = struct
      | visitExp s (RECORDexp (rs,t,fs)) = 
       if !genFixedRecords then
          lub (s, symType s rs, 
-            RECORDstype (map (fn (f,e) => (true, f, visitExp s e)) fs, false))
+            RECORDstype (
+               if length fs >= boxThreshold then OBJstype else freshTVar s,
+               map (fn (f,e) => (true, f, visitExp s e)) fs, false))
       else
          (map (fn (f,e) => lub (s,fieldType s f, visitExp s e)) fs;
          lub (s, symType s rs, OBJstype))
@@ -1065,7 +1073,7 @@ structure TypeRefinement = struct
          let
             val resTy = freshTVar s
             val _ = lub (s, symType s rs, visitExp s e)
-            val _ = lub (s, symType s rs, RECORDstype ([(true,f,resTy)],true))
+            val _ = lub (s, symType s rs, RECORDstype (freshTVar s,[(true,f,resTy)],true))
          in
             resTy
          end
@@ -1262,7 +1270,7 @@ structure TypeRefinement = struct
            | genAdj (FUNstype (r,cl,args)) =
                FUNvtype (adjustType s (OBJvtype, r), isOBJstype cl, map (fn arg => adjustType s (OBJvtype, arg)) args)
            | genAdj (MONADstype r) = MONADvtype (genAdj r)
-           | genAdj (RECORDstype (fs,b)) = if List.all #1 fs then RECORDvtype (map (fn (_,f,t) => (f, genAdj t)) fs) else OBJvtype
+           | genAdj (RECORDstype (boxed,fs,b)) = if List.all #1 fs then RECORDvtype (isOBJstype boxed, map (fn (_,f,t) => (f, genAdj t)) fs) else OBJvtype
            | genAdj t = (TextIO.print ("adjustType of " ^ showSType new ^ ", that is, " ^ showSType (inlineSType s new) ^ "\n"); raise TypeOptBug)
       in
          case orig of
@@ -1513,45 +1521,50 @@ structure TypeRefinement = struct
            | getSTy ((_,fld,ty) :: fs) = if SymbolTable.eq_symid (fld,f) then ty else getSTy fs
         
          val origTy = case t of
-               RECORDvtype fTys => getVTy fTys
+               RECORDvtype (_,fTys) => getVTy fTys
              | _ => origFType s f
          val newTy = case sTy of
-               RECORDstype (fTys,_) => getSTy fTys
+               RECORDstype (_,fTys,_) => getSTy fTys
              | _ => fieldType s f
       in
          (origTy, newTy)
       end
 
-   fun voidsToTop (VOIDstype) = OBJstype
-     | voidsToTop (BOXstype t) = BOXstype (voidsToTop t)
-     | voidsToTop (FUNstype (res,clos,args)) = FUNstype (voidsToTop res, clos, map (voidsToTop) args)
-     | voidsToTop (MONADstype res) = MONADstype (voidsToTop res)
-     | voidsToTop (RECORDstype (fs,b)) = RECORDstype (map (fn (b,f,t) => (b,f,voidsToTop t)) fs,b)
-     | voidsToTop (BITstype t) = BITstype (voidsToTop t)
-     | voidsToTop t = t
+   fun voidsToTop boxRec (VOIDstype) = OBJstype
+     | voidsToTop boxRec (BOXstype t) = BOXstype (voidsToTop boxRec t)
+     | voidsToTop boxRec (FUNstype (res,clos,args)) = FUNstype (voidsToTop boxRec res, clos, map (voidsToTop false) args)
+     | voidsToTop boxRec (MONADstype res) = MONADstype (voidsToTop boxRec res)
+     | voidsToTop boxRec (RECORDstype (boxed,fs,b)) =
+      RECORDstype (if boxRec then OBJstype else VOIDstype,map (fn (b,f,t) => (b,f,voidsToTop boxRec t)) fs,b)
+     | voidsToTop boxRec (BITstype t) = BITstype (voidsToTop boxRec t)
+     | voidsToTop boxRec t = t
 
-   fun setArgsToTop s (FUNCdecl {
+   fun setArgsToTop (es,s) (FUNCdecl {
         funcName = f,
         funcArgs = args,
         ...
       }) =
-      app (fn (t,a) => (lub (s, symType s a, voidsToTop (inlineSType s (symType s a))); ())) args
-     | setArgsToTop s (UPDATEdecl {
+      let
+         val boxRec = List.exists (fn s => SymbolTable.eq_symid (s,f)) es
+      in
+         app (fn (t,a) => (lub (s, symType s a, voidsToTop boxRec (inlineSType s (symType s a))); ())) args
+      end
+     | setArgsToTop (es,s) (UPDATEdecl {
         updateArg = sym,
-	...
+	     ...
       }) =
-      ignore (lub (s, symType s sym, voidsToTop (inlineSType s (symType s sym))))
-     | setArgsToTop s (CONdecl {
+      ignore (lub (s, symType s sym, voidsToTop false (inlineSType s (symType s sym))))
+     | setArgsToTop (es,s) (CONdecl {
         conArg = (_,sym),
-	...
+	     ...
       }) =
-      ignore (lub (s, symType s sym, voidsToTop (inlineSType s (symType s sym))))
-     | setArgsToTop s _ = ()
+      ignore (lub (s, symType s sym, voidsToTop false (inlineSType s (symType s sym))))
+     | setArgsToTop (es,s) _ = ()
 
    fun mergeRecords s =
       let
          val recordTypes = ref AtomMap.empty : stype AtomMap.map ref
-         fun checkForRecord (ty as RECORDstype (fs,_),recordTypes) =
+         fun checkForRecord (ty as RECORDstype (_,fs,_),recordTypes) =
             let
                 val key = Atom.atom (foldl (fn (f,str) =>
                      Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,#2 f)) ^ str)
@@ -1582,7 +1595,7 @@ structure TypeRefinement = struct
          (* unify the types of all records that have the same set of fields *)
          val _ = mergeRecords state
          (* set all arguments in functions and constructors to OBJstype if they are void so that the (C) backend is not emitting invalid code *)
-         val _ = app (setArgsToTop state) ds
+         val _ = app (setArgsToTop (es,state)) ds
          
          (*val _ = showState (SymMap.listKeys declMap) state*)
          (*val _ = debugOn := false

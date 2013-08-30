@@ -51,7 +51,7 @@ end = struct
          val rseek = get "rseek"
          val seek = get "seek"
          val index = get "index"
-         val println = get "println"
+         val puts = get "puts"
          val return = get "return"
          val add = get "+"
          val eqi = get "==="
@@ -60,7 +60,7 @@ end = struct
          val lei = get "<="
          val gti = get ">"
          val gei = get ">="
-         val concatstring = get "+++"
+         val concatstring = get "strcat"
          val showbitvec = get "showbitvec"
          val showint = get "showint"
          val sub = get "-"
@@ -313,14 +313,14 @@ end = struct
                (index, [s], body)
             end
 
-         (* val println s = %println(s) *)
-         val println =
+         (* val puts s = %puts(s) *)
+         val puts =
             let
                val s = fresh "s"
-               val primprintln = get "%println"
-               val body = PRI (primprintln, [s])
+               val primputs = get "%puts"
+               val body = PRI (primputs, [s])
             in
-               (println, [s], body)
+               (puts, [s], body)
             end
 
          (* val slice tok offs sz = return (%slice(tok,offs,sz) *)
@@ -415,7 +415,7 @@ end = struct
           rseek,
           seek,
           index,
-					println,
+					puts,
           add,
           sx,
           zx,

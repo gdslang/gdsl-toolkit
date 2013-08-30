@@ -12,7 +12,7 @@ structure Imp = struct
        | INTvtype
        | STRINGvtype
        | OBJvtype
-       | RECORDvtype of (SymbolTable.symid * vtype) list (* record with a fixed set of fields *)
+       | RECORDvtype of bool * (SymbolTable.symid * vtype) list (* record with a fixed set of fields, boolean is true if record should be boxed *)
        | FUNvtype of (vtype * bool * vtype list) (* flag is true if function contains closure arguments *)
        | MONADvtype of vtype (* result of monadic action *) 
 
@@ -48,7 +48,7 @@ structure Imp = struct
        | EQ_VECprim
        | CONCAT_VECprim
        | INT_TO_STRINGprim
-       | BITVEC_TO_STRINGprim
+       | STRLENprim
        | CONCAT_STRINGprim
        | SLICEprim
        | GET_CON_IDXprim
@@ -70,7 +70,7 @@ structure Imp = struct
      | prim_info UNCONSUME8prim = { name = "__unconsume8", prio = 0 }
      | prim_info UNCONSUME16prim = { name = "__unconsume16", prio = 0 }
      | prim_info UNCONSUME32prim = { name = "__consume32", prio = 0 }
-     | prim_info PRINTLNprim = { name = "__println", prio = 0 }
+     | prim_info PRINTLNprim = { name = "__puts", prio = 0 }
      | prim_info RAISEprim = { name = "__raise", prio = 0 }
      | prim_info ANDprim = { name = "&", prio = 10 }
      | prim_info ORprim = { name = "|", prio = 12 }
@@ -86,7 +86,7 @@ structure Imp = struct
      | prim_info EQ_VECprim = {name = "__equal", prio = 0 }
      | prim_info CONCAT_VECprim = { name = "__concat", prio = 0 }
      | prim_info INT_TO_STRINGprim = { name = "__showint", prio = 0 }
-     | prim_info BITVEC_TO_STRINGprim  = { name = "__showbitvec", prio = 0 }
+     | prim_info STRLENprim = { name = "__strlen", prio = 0 }
      | prim_info CONCAT_STRINGprim = { name = "__concatstring", prio = 0 }
      | prim_info SLICEprim = { name = "__slice", prio = 0 }
      | prim_info GET_CON_IDXprim = { name = "__get_con_idx", prio = 0 }
@@ -210,7 +210,8 @@ structure Imp = struct
         | vtype VECvtype = str "bitvec"
         | vtype INTvtype = str "int"
         | vtype STRINGvtype = str "string"
-        | vtype (RECORDvtype fs) = seq (str "{" :: separate (map fieldTy fs,",") @ [str "}"])
+        | vtype (RECORDvtype (boxed,fs)) = 
+            seq (str (if boxed then "*{" else "{") :: separate (map fieldTy fs,",") @ [str "}"])
         | vtype (FUNvtype (res, cl, atys)) =
             seq (args ("(",vtype,atys,")") @
                 [str (if cl then "=>" else "->"), vtype res])

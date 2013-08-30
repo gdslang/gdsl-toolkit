@@ -315,7 +315,7 @@ __obj __not (__obj A) {
 
 __obj __raise (__obj o) {
   printf("raising: ");
-  __println(o);
+  __puts(o);
   __fatal("Unhandled exception");
   return (o);
 }
@@ -742,7 +742,7 @@ __obj __print (__obj o) {
    return (__UNIT);
 }
 
-__obj __println (__obj o) {
+__obj __puts (__obj o) {
   __print(o);
   printf("\n");
   return (__UNIT);

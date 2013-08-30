@@ -290,6 +290,8 @@ ApplyExp
 
 AtomicExp
    : Lit => (mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
+   | STRING => (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Atom.atom "from-string-lit"},
+      [PT.LITexp (PT.STRlit STRING)])))
    | Qid => (mark PT.MARKexp (FULL_SPAN, PT.IDexp Qid))
    (* | path=("." Qid)+ => (foldl (fn (fld,e) => PT.APPLYexp (PT.SELECTexp fld, [e])) AtomicExp path) *)
    | Qid ("." Qid)+ => (foldl (fn (fld,e) => PT.APPLYexp (PT.SELECTexp fld, [e])) (PT.IDexp Qid) SR) 
@@ -321,7 +323,6 @@ ValueDecl
 
 Lit
    : Int => (PT.INTlit Int)
-   | STRING => (PT.STRlit STRING)
    | "'" "'" => (PT.VEClit "")
    | "'" BITSTR "'" => (PT.VEClit BITSTR)
    ;                   

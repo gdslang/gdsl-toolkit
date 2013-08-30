@@ -83,6 +83,12 @@ size_t
 @heap_residency@
 (state_t s);
 
+/* Allocate a buffer on the heap and emit the given rope into it.
+   Returns a pointer to the buffer on the heap. */
+string_t
+@merge_rope@
+(state_t s, obj_t rope);
+
 /* Frees the heap and the decoder state. */
 void 
 @destroy@
@@ -121,6 +127,9 @@ void
 
 #define gdsl_heap_residency \
 @heap_residency@
+
+#define gdsl_merge_rope \
+@merge_rope@
 
 #define gdsl_destroy \
 @destroy@

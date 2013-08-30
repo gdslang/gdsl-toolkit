@@ -3,6 +3,7 @@
 
 @include-prefix@
 #include <string.h>
+#include <stdio.h>
 
 struct state {
   char* heap_base;    /* the beginning of the heap */
@@ -14,6 +15,7 @@ struct state {
   char* ip;           /* current pointer into the buffer */
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
+  FILE* handle;       /* the file that the puts primitve uses */
 };
 
 #define CHUNK_SIZE (4*1024)
@@ -115,8 +117,8 @@ typedef unsigned int field_tag_t;
 #define GEN_REC_STRUCT(type)  \
 struct field_ ## type {       \
   field_tag_t tag;            \
-  unsigned int size;          \
   obj_t next;                 \
+  unsigned int size;          \
   type ## _t payload;         \
 };                            \
                               \
@@ -147,8 +149,6 @@ static type ## _t select_  ## type                        \
 }                                                         \
 
 GEN_REC_STRUCT(obj);
-@alloc_funcs@
-
 
 /* Returns a pointer to a record in which the given fields are removed.
   This operation copies all fields of the record except for those that
@@ -179,6 +179,10 @@ static obj_t del_fields(state_t s, field_tag_t tags[], int tags_size, obj_t rec)
   *last_next = current;
   return res;
 }
+
+
+/* Functions to allocate values, constructors and record fields on the heap. */
+@alloc_funcs@
 
 #define slice(vec_data,ofs,sz) ((vec_data >> ofs) & ((1ul << sz)-1))
 #define gen_vec(vec_sz,vec_data) (vec_t){vec_sz, vec_data}
@@ -264,30 +268,11 @@ static string_t int_to_string(state_t s, int_t v) {
   return alloc_string(s,str);
 };
 
-static obj_t vec_to_string(state_t s, vec_t v) {
-  char* str = alloc(s, v.size+1);
-  char* idx = str;
-  vec_data_t mask;
-  for (mask = 1<<(v.size-1); mask!=0; mask>>=1)
-    *(idx++) = (v.data & mask ? '1' : '0');
-  *idx = 0;
-  return alloc_string(s,str);
-}
-
-static string_t string_concat(state_t s, string_t s1, string_t s2) {
-  char* str1 = s1;
-  char* str2 = s2;
-  int len = strlen(s1)+strlen(s2);
-  char* res = alloc(s, len+1);
-  strcpy(res,str1);
-  strcat(res,str2);
-  return alloc_string(s,res);
-}
-
 state_t 
 @init@
 () {
   state_t s = calloc(1,sizeof(struct state));
+  s->handle = stdout;
   return s;
 }
 
@@ -325,6 +310,20 @@ int_t
 	return 0;
 }
 
+string_t
+@merge_rope@
+(state_t s, obj_t rope) {
+  int_t len =
+@rope_length@
+(s,rope);
+  string_t buf = alloc(s,len);
+  string_t end =
+@rope_to_string@
+(s,rope,buf);
+  *end = 0;
+  return buf;
+}
+
 void 
 @destroy@
 (state_t s) {
@@ -338,8 +337,6 @@ void
 
 #ifdef WITHMAIN
 #ifdef GDSL_NO_PREFIX
-
-#include<stdio.h>
 
 #define BUF_SIZE 32*1024*1024
 static char blob[BUF_SIZE];
@@ -372,18 +369,26 @@ done:
     uint64_t ofs = gdsl_get_ip_offset(s);
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (argc>1) {
-        // obj_t rreil = gdsl_translateBlock(s);
-        // string_t res = gdsl_rreil_pretty(s,rreil);
-        // printf("%08lx:\n%s\n", (long unsigned int) ofs, res);
+#if defined(gdsl_translateBlock) && defined(gdsl_rreil_pretty)
+        obj_t rreil = gdsl_translateBlock(s);
+        obj_t res = gdsl_rreil_pretty(s,rreil);
+        string_t str = gdsl_merge_rope(s,res);
+        fputs(str,stdout);
+#endif
       } else {
+#if defined(gdsl_decode) && defined(gdsl_pretty)
         obj_t instr = gdsl_decode(s);
-        string_t res = gdsl_pretty(s,instr);
-        printf("%08lx: %s\n", (long unsigned int) ofs, res);
+        obj_t res = gdsl_pretty(s,instr);
+        string_t str = gdsl_merge_rope(s,res);
+        fputs(str,stdout);
+#endif
       }
     } else {
-      printf("exception: %s\n", gdsl_get_error_message(s));
+      fputs("exception: ",stdout);
+      fputs(gdsl_get_error_message(s),stdout);
       consume8(s);
     }
+    fputs("\n",stdout);
     int_t size = gdsl_heap_residency(s);
     alloc_size += size;
     alloc_no++;

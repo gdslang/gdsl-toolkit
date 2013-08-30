@@ -372,7 +372,7 @@ const __char* __fieldName(__word);
 
 __obj __halt(__obj,__obj);
 __obj __print(__obj);
-__obj __println(__obj);
+__obj __puts(__obj);
 __obj __traceln(__obj(*)(__obj,__obj),const char*,__obj);
 
 static inline __objref __recordLookup (struct __s_record* record, __word field) {

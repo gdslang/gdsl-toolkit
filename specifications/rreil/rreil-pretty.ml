@@ -33,7 +33,7 @@ val rreil-show-hint x =
    | HINT_RET: "RET"
   end
 
-val rreil-show-label l = "l" +++ showint l +++ ":"
+val rreil-show-label l = "l" +++ show-int l +++ ":"
 
 val rreil-show-op-cmp cmp =
   case cmp of
@@ -58,34 +58,34 @@ val rreil-show-op op =
     | SEM_AND x: "and" +++ rreil-show-arity2 x
     | SEM_OR x: "or" +++ rreil-show-arity2 x
     | SEM_XOR x: "xor" +++ rreil-show-arity2 x
-    | SEM_SX x: "sx[" +++ showint x.fromsize +++ "->" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
-    | SEM_ZX x: "zx[" +++ showint x.fromsize +++ "->" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
+    | SEM_SX x: "sx[" +++ show-int x.fromsize +++ "->" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
+    | SEM_ZX x: "zx[" +++ show-int x.fromsize +++ "->" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
 		| SEM_CMP c: rreil-show-op-cmp c
-    | SEM_ARB x: "arbitrary[" +++ showint x.size +++ "]"
+    | SEM_ARB x: "arbitrary[" +++ show-int x.size +++ "]"
    end
 
-val rreil-show-arity1 x = "[" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
-val rreil-show-arity2 x = "[" +++ showint x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
-val rreil-show-cmp x = "[" +++ showint x.size +++ "->1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
-val rreil-show-ptrderef sz addr = "*[" +++ showint addr.size +++ "->" +++ showint sz +++ "](" +++ rreil-show-linear addr.address +++ ")"
-val rreil-show-address addr = "[" +++ showint addr.size +++ "](" +++ rreil-show-linear addr.address +++ ")"
+val rreil-show-arity1 x = "[" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
+val rreil-show-arity2 x = "[" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
+val rreil-show-cmp x = "[" +++ show-int x.size +++ "->1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
+val rreil-show-ptrderef sz addr = "*[" +++ show-int addr.size +++ "->" +++ show-int sz +++ "](" +++ rreil-show-linear addr.address +++ ")"
+val rreil-show-address addr = "[" +++ show-int addr.size +++ "](" +++ rreil-show-linear addr.address +++ ")"
 val rreil-show-var x =
    case x.offset of
       0: rreil-show-id x.id
-    | o: rreil-show-id x.id +++ "/" +++ showint o
+    | o: rreil-show-id x.id +++ "/" +++ show-int o
    end
 
 val rreil-show-linear lin = 
    case lin of
       SEM_LIN_VAR x: rreil-show-var x
-    | SEM_LIN_IMM x: showint x.const
+    | SEM_LIN_IMM x: show-int x.const
     | SEM_LIN_ADD x: rreil-show-linear x.opnd1 +++ "+" +++ rreil-show-linear x.opnd2
     | SEM_LIN_SUB x: rreil-show-linear x.opnd1 +++ "-" +++ rreil-show-linear x.opnd2
     | SEM_LIN_SCALE x:
          case x.const of
             0: ""
           | 1: rreil-show-linear x.opnd
-          | s: showint s +++ "*" +++ rreil-show-linear x.opnd
+          | s: show-int s +++ "*" +++ rreil-show-linear x.opnd
          end
    end
 
@@ -103,6 +103,6 @@ val rreil-show-id id =
     | VIRT_LEU: "LEU"
     | VIRT_LTS: "LTS"
     | VIRT_LTU: "LTU"
-    | VIRT_T x: "T" +++ showint x
+    | VIRT_T x: "T" +++ show-int x
     | _: arch-show-id id
    end

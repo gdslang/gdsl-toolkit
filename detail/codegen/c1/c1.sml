@@ -47,12 +47,6 @@ structure C1 = struct
 
    exception CodeGenBug
    
-   (* the number of fields in a fixed record after which it is allocated
-      on the heap rather than passed by value *)
-   val boxThreshold = 3
-   
-   fun boxRecord fs = length fs >= boxThreshold
-   
    type state = { prefix : string,
                   names : AtomSet.set,
                   symbols : Atom.atom SymMap.map,
@@ -62,7 +56,7 @@ structure C1 = struct
                   exports : SymSet.set,
                   constrs : String.string SymMap.map,
                   closureToFun : SymbolTable.symid SymMap.map,
-                  structsLocal : Layout.t list ref,
+                  recordMapping : Atom.atom AtomMap.map,
                   allocFuncs : int AtomMap.map ref,
                   preDeclEmit : Layout.t list ref }
 
@@ -140,7 +134,8 @@ structure C1 = struct
       "gdsl_destroy",
       "mktemp",
       "logb",
-      "div"
+      "div",
+      "memcpy"
       ])
 
    fun mangleName s =
@@ -200,7 +195,7 @@ structure C1 = struct
            constrs = #constrs s,
            closureToFun = #closureToFun s,
            allocFuncs = #allocFuncs s,
-           structsLocal = #structsLocal s,
+           recordMapping = #recordMapping s,
            preDeclEmit = #preDeclEmit s } : state
       end
    fun registerSymbol (sym,s : state) = regSym (sym, !SymbolTables.varTable, s)
@@ -217,7 +212,7 @@ structure C1 = struct
         constrs = #constrs s,
         closureToFun = #closureToFun s,
         allocFuncs = #allocFuncs s,
-        structsLocal = #structsLocal s,
+        recordMapping = #recordMapping s,
         preDeclEmit = #preDeclEmit s } : state
 
    fun par arg = seq [str "(", arg, str ")"]
@@ -260,7 +255,15 @@ structure C1 = struct
          FUNvtype (removeArgs retTy, isCl, [VOIDvtype])
      | removeArgs ty = ty
 
-   val recordTypeMap = ref (AtomMap.empty : (bool * string * Layout.t list * int * bool) AtomMap.map)
+   type recordInfo = {
+      riExport : bool,
+      riTypeName : string,
+      riFieldDecls : Layout.t list,
+      riSequenceNo : int,
+      riBoxed : bool
+   }
+
+   val recordTypeMap = ref (AtomMap.empty : recordInfo AtomMap.map)
 
    fun genRecSignature fs =
       let
@@ -272,38 +275,46 @@ structure C1 = struct
 
    fun genRecordDecl s onlyPublic =
       let
-         fun showDecl (pub,tyName,body,_,false) =
+         fun showDecl (riInfo as { riBoxed = false, ... } : recordInfo) =
             align [
                str "typedef struct {",
-               indent 2 (align body),
-               seq [str "}", space, str tyName, str "_t;"]]
-           | showDecl (pub,tyName,body,_,true) =
+               indent 2 (align (#riFieldDecls riInfo)),
+               seq [str "}", space, str (#riTypeName riInfo), str "_t;"]]
+           | showDecl (riInfo as { riBoxed = true, ... }: recordInfo) =
             align [
                str "typedef struct {",
-               indent 2 (align body),
-               seq [str "}", space, str ("unboxed_" ^ tyName), str "_t;"],
-               seq [str "typedef ", str ("unboxed_" ^ tyName), str "_t* ", str tyName, str "_t;"]]
+               indent 2 (align (#riFieldDecls riInfo)),
+               seq [str "}", space, str ("unboxed_" ^ #riTypeName riInfo), str "_t;"],
+               seq [str "typedef ", str ("unboxed_" ^ #riTypeName riInfo), str "_t* ", str (#riTypeName riInfo), str "_t;"]]
       in
          map showDecl
-            (List.filter (fn r => (#1 r)=onlyPublic)
-               (ListMergeSort.sort (fn (r1,r2) => (#4 r1)>(#4 r2))
+            (List.filter (fn r => (#riExport r)=onlyPublic)
+               (ListMergeSort.sort (fn (r1,r2) => (#riSequenceNo r1)>(#riSequenceNo r2))
                   (AtomMap.listItems (!recordTypeMap))))
       end
 
-   fun getRecordTag (s : state) fs =
+   fun getRecordTag (s : state) (boxed, fs) =
       let
          val rSig = genRecSignature fs
       in
          case AtomMap.find (!recordTypeMap, rSig) of
-            SOME rInfo => #2 rInfo
+            SOME riInfo => #riTypeName riInfo
           | NONE =>
             let
-               (* put something into the table so showField doesn't create an infinite cycle via emitTypeDecl *)
                fun showField (f,t) = seq [emitTypeDecl s ([emitFieldSym s f], t), str ";"]
                val emittedFields = map showField fs
                val idx = AtomMap.numItems (!recordTypeMap)+1
-               val tyName = "struct" ^ Int.toString idx
-               val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,rSig,(false,tyName,emittedFields,idx, boxRecord fs))
+               val tyName = case AtomMap.find (#recordMapping s,rSig) of
+                     SOME name => Atom.toString name
+                   | NONE => "struct" ^ Int.toString idx
+               val riInfo = {
+                  riExport = false,
+                  riTypeName = tyName,
+                  riFieldDecls = emittedFields,
+                  riSequenceNo = idx,
+                  riBoxed = boxed
+               }
+               val _ = recordTypeMap := AtomMap.insert (!recordTypeMap,rSig,riInfo)
             in
                tyName
             end
@@ -319,7 +330,7 @@ structure C1 = struct
            | eT (decl, STRINGvtype) = seq (str "string_t" :: addSpace decl)
            | eT (decl, OBJvtype) = seq (str "obj_t" :: addSpace decl)
            | eT (decl, MONADvtype retTy) = eT (str "(*" :: decl @ [str ")()"], retTy)
-           | eT (decl, RECORDvtype fs) = seq (str (getRecordTag s fs ^ "_t") :: addSpace decl)
+           | eT (decl, RECORDvtype bfs) = seq (str (getRecordTag s bfs ^ "_t") :: addSpace decl)
            | eT (decl, FUNvtype (retTy,_,[VOIDvtype])) = (* do not emit arguments *)
                eT (str "(*" :: decl @ [str ")()"], retTy)
            | eT (decl, FUNvtype (retTy,isCl,argTys)) = 
@@ -336,15 +347,27 @@ structure C1 = struct
 
    fun markTypeAsExport (s : state) ty =
       let
-         fun markRecAsExport fs =
+         fun markRecAsExport (boxed,fs) =
             let
-               val _ = getRecordTag s fs
+               val _ = getRecordTag s (boxed,fs)
                val rSig = genRecSignature fs
-               val (_,tyName,def,idx,isBoxed) = AtomMap.lookup (!recordTypeMap, rSig)
+               val { riExport = _,
+                     riTypeName = tyName,
+                     riFieldDecls = def,
+                     riSequenceNo = idx,
+                     riBoxed = isBoxed
+                   } = AtomMap.lookup (!recordTypeMap, rSig)
+               val riInfo = {
+                  riExport = true,
+                  riTypeName = tyName,
+                  riFieldDecls = def,
+                  riSequenceNo = idx,
+                  riBoxed = isBoxed
+               }
             in
-               recordTypeMap := AtomMap.insert (!recordTypeMap, rSig, (true,tyName,def,idx,isBoxed))
+               recordTypeMap := AtomMap.insert (!recordTypeMap, rSig, riInfo)
             end
-         fun markTy (RECORDvtype fs) = (markRecAsExport fs; app (markTy o #2) fs)
+         fun markTy (RECORDvtype (boxed,fs)) = (markRecAsExport (boxed,fs); app (markTy o #2) fs)
            | markTy (FUNvtype (rTy,_,aTys)) = (markTy rTy; app markTy aTys)
            | markTy (MONADvtype rTy) = markTy rTy
            | markTy _ = ()
@@ -383,7 +406,7 @@ structure C1 = struct
      | getTypeSuffix s (MONADvtype retTy) = getTypeSuffix s retTy ^ "_mon"
      | getTypeSuffix s (FUNvtype (retTy,_,args)) = 
       foldl (fn (ty,str) => str ^ "_" ^ getTypeSuffix s ty) "" (retTy::args) ^ "_fun"
-     | getTypeSuffix s (RECORDvtype fs) = getRecordTag s fs
+     | getTypeSuffix s (RECORDvtype bfs) = getRecordTag s bfs
 
    val macrosDefinedInRuntime = AtomSet.fromList
       [Atom.atom "GEN_ALLOC(string);", (* pre-defined as no-op *)
@@ -637,17 +660,17 @@ structure C1 = struct
          seq [emitExp s e, fArgs (map (emitExp s) es)]
      | emitExp s (INVOKEexp (t,e,es)) =
          seq [emitInvokeClosure s t, fArgs (emitExp s e :: map (emitExp s) es)]
-     | emitExp s (RECORDexp (rs,t as RECORDvtype fTys,fs)) =
-      if boxRecord fTys then
+     | emitExp s (RECORDexp (rs,t as RECORDvtype (boxed,fsTys),fs)) =
+      if boxed then
          seq [emitUnboxedAlloc s t,
             fArgs [seq (
-              par (str ("unboxed_" ^ getRecordTag s fTys ^ "_t")) ::  
+              par (str ("unboxed_" ^ getRecordTag s (boxed,fsTys) ^ "_t")) ::  
               list ("{",emitInitializer s, fs, "}")
             )
          ]]
       else
          seq (
-            par (str (getRecordTag s fTys ^ "_t")) ::  
+            par (str (getRecordTag s (boxed,fsTys) ^ "_t")) ::  
             list ("{",emitInitializer s, fs, "}")
          )
      | emitExp s (RECORDexp (rs,t,fs)) =
@@ -659,8 +682,8 @@ structure C1 = struct
          in
             foldl genUpdate (str "NULL") fs
          end
-     | emitExp s (SELECTexp (rs,RECORDvtype fTys,f,e)) =
-      if boxRecord fTys then
+     | emitExp s (SELECTexp (rs,RECORDvtype (boxed,fsTys),f,e)) =
+      if boxed then
          seq [emitExp s e, str "->", emitFieldSym s f]
       else
          seq [emitExp s e, str ".", emitFieldSym s f]
@@ -712,7 +735,7 @@ structure C1 = struct
      | emitPrim s (UNCONSUME8prim, [],_) = str "s->ip-=1"
      | emitPrim s (UNCONSUME16prim, [],_) = str "s->ip-=2"
      | emitPrim s (UNCONSUME32prim, [],_) = str "s->ip-=4"
-     | emitPrim s (PRINTLNprim, [e],_) = seq [str "printf(\"%s\",", emitExp s e, str ")"]
+     | emitPrim s (PRINTLNprim, [e],_) = seq [str "fputs(", emitExp s e, str ", s->handle)"]
      | emitPrim s (RAISEprim, [e],_) = align [seq [str "s->err_str = ", emitExp s e, str ";"], str "longjmp(s->err_tgt,0)"]
      | emitPrim s (ANDprim, [e1,e2],_) = seq [str "(", emitExp s e1, str ") & (", emitExp s e2, str ")"]
      | emitPrim s (ORprim, [e1,e2],_) = seq [str "(", emitExp s e1, str ") | (", emitExp s e2, str ")"]
@@ -728,8 +751,8 @@ structure C1 = struct
      | emitPrim s (EQ_VECprim, [e1,e2],_) = seq [str "vec_eq", fArgs [emitExp s e1, emitExp s e2]] 
      | emitPrim s (CONCAT_VECprim, [e1,e2],_) = seq [str "vec_concat", fArgs [emitExp s e1, emitExp s e2]] 
      | emitPrim s (INT_TO_STRINGprim, [e],_) = seq [str "int_to_string", fArgs [emitExp s e]]
-     | emitPrim s (BITVEC_TO_STRINGprim, [e],_) = seq [str "vec_to_string", fArgs [emitExp s e]]
-     | emitPrim s (CONCAT_STRINGprim, [e1,e2],_) = seq [str "string_concat", fArgs [emitExp s e1, emitExp s e2]]
+     | emitPrim s (STRLENprim, [e],_) = seq [str "strlen(", emitExp s e, str ")"]
+     | emitPrim s (CONCAT_STRINGprim, [e1,e2,sz],_) = seq [str "(string_t) memcpy(", emitExp s e1, str ",", emitExp s e2, str ",", emitExp s sz, str ")+", emitExp s sz]
      | emitPrim s (SLICEprim, [vec,ofs,sz],_) = seq (str "gen_vec(" :: emitExp s sz :: str ", slice" :: list ("(", emitExp s, [vec,ofs,sz], "))"))
      | emitPrim s (GET_CON_IDXprim, [e],[t]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->tag"]
      | emitPrim s (GET_CON_ARGprim, [_,e],[FUNvtype (_,_,[t]),_]) = seq [str "((", emitConType s t, str "*) ", emitExp s e , str ")->payload"]
@@ -901,6 +924,18 @@ structure C1 = struct
          seq [str "#endif"]
       ]
 
+   fun genRecordMapping ((tySym, ty), m) =
+      let
+         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
+         fun addRec (SpecAbstractTree.MARKty t) = addRec (#tree t)
+           | addRec (SpecAbstractTree.RECORDty fs) =
+               AtomMap.insert (m, genRecSignature (ListMergeSort.uniqueSort fieldCmp fs),
+                  SymbolTable.getAtom (!SymbolTables.typeTable,tySym))
+           | addRec _ = m
+      in
+         addRec ty
+      end
+
    fun codegen spec =
       let
          val _ = anonActMap := AtomMap.empty
@@ -909,6 +944,8 @@ structure C1 = struct
          val _ = invokeClosureSet := AtomSet.empty
 
          val { decls = ds, fdecls = fs, exports } = Spec.get #declarations spec
+
+         val recordMapping = foldl genRecordMapping AtomMap.empty (Spec.get #typealias spec)
          
          val closureToFunMap = foldl (fn (d,m) => case d of
                   CLOSUREdecl {
@@ -949,7 +986,7 @@ structure C1 = struct
                constrs = conMap,
                closureToFun = closureToFunMap,
                allocFuncs = ref AtomMap.empty,
-               structsLocal = ref [],
+               recordMapping = recordMapping,
                preDeclEmit = ref []
             } : state
          val s = registerSymbol (stateSym, s)
@@ -966,7 +1003,7 @@ structure C1 = struct
                constrs = #constrs s,
                closureToFun = #closureToFun s,
                allocFuncs = #allocFuncs s,
-               structsLocal = #structsLocal s,
+               recordMapping = #recordMapping s,
                preDeclEmit = #preDeclEmit s
             } : state
          val funDeclsPublic = map (emitDecl s) 
@@ -1006,6 +1043,7 @@ structure C1 = struct
                C1Templates.mkHook ("get_error_message", str (prefix ^ "get_error_message")),
                C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),
                C1Templates.mkHook ("heap_residency", str (prefix ^ "heap_residency")),
+               C1Templates.mkHook ("merge_rope", str (prefix ^ "merge_rope")),
                C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),
                C1Templates.mkHook ("renamings", align renamings),
                C1Templates.mkHook ("records", align (genRecordDecl s true)),
@@ -1024,6 +1062,9 @@ structure C1 = struct
                C1Templates.mkHook ("get_error_message", str (prefix ^ "get_error_message")),
                C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),
                C1Templates.mkHook ("heap_residency", str (prefix ^ "heap_residency")),
+               C1Templates.mkHook ("merge_rope", str (prefix ^ "merge_rope")),
+               C1Templates.mkHook ("rope_to_string", str (prefix ^ "rope_to_string")),
+               C1Templates.mkHook ("rope_length", str (prefix ^ "rope_length")),
                C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),
                C1Templates.mkHook ("alloc_funcs", align recAllocFuncs),
                C1Templates.mkHook ("records", align (genRecordDecl s false)),
