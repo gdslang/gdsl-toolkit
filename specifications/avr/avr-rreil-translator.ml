@@ -107,6 +107,11 @@ val sem-bclr flag = do
 #	andb sreg.size sreg (var t);
 end
 
+val sem-bset flag = do
+	sreg <- return (semantic-register-of SREG);
+  mov 1 (sem-reg-offset sreg flag) (imm 1)
+end
+
 val sem-undef-binop bo = do
 return void
 end
@@ -354,14 +359,14 @@ val semantics insn =
   | SBR x: sem-undef-binop x
   | SBRC x: sem-undef-binop x
   | SBRS x: sem-undef-binop x
-  | SEC: sem-unknown
-  | SEH: sem-unknown
-  | SEI: sem-unknown
-  | SEN: sem-unknown
-  | SES: sem-unknown
-  | SET: sem-unknown
-  | SEV: sem-unknown
-  | SEZ: sem-unknown
+  | SEC: sem-bset 0
+  | SEH: sem-bset 5
+  | SEI: sem-bset 7
+  | SEN: sem-bset 2
+  | SES: sem-bset 4
+  | SET: sem-bset 6
+  | SEV: sem-bset 3
+  | SEZ: sem-bset 1
   | SLEEP: sem-unknown
   | SPM x: sem-undef-unop x
   | ST x: sem-undef-binop x
