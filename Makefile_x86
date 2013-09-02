@@ -32,7 +32,8 @@ $(GDSL): $(GDSL).mlb $(shell find detail/ -type f -name '*')
 
 lib$(GDSL).so: $(GDSL).c
 	$(CC) $(CFLAGS) -c $< -o $(<:.c=.o)
-	$(CC) $(LFLAGS) -Wl,-soname,lib$(<:.c=.so) -o lib$(<:.c=.so) $(<:.c=.o)
+	$(CC) $(LFLAGS) -o lib$(<:.c=.so) $(<:.c=.o)
+#	$(CC) $(LFLAGS) -Wl,-soname,lib$(<:.c=.so) -o lib$(<:.c=.so) $(<:.c=.o)
 
 $(GDSL).c: $(GDSL) $(GDSL_SOURCES)
 	./$< $(GDSLFLAGS) $(GDSL_SOURCES:%="%")
