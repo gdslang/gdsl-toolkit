@@ -94,6 +94,19 @@ val sem-asr bo = do
 	write bo.operand (var r)
 end
 
+val sem-bclr flag = do
+	sreg <- return (semantic-register-of SREG);
+
+#	t <- mktemp;
+#	mov sreg.size t (imm 1);
+#	shl sreg.size t (var t) flag;
+#	xorb sreg.size t (var t) (imm 255);
+
+  mov 1 (sem-reg-offset sreg flag) (imm 0)
+
+#	andb sreg.size sreg (var t);
+end
+
 val sem-undef-binop bo = do
 return void
 end
@@ -277,15 +290,15 @@ val semantics insn =
   | CALL x: sem-undef-unop x
   | CBI x: sem-undef-binop x
   | CBR x: sem-undef-binop x
-  | CLC: sem-unknown
-  | CLH: sem-unknown
-  | CLI: sem-unknown
-  | CLN: sem-unknown
+  | CLC: sem-bclr 0
+  | CLH: sem-bclr 5
+  | CLI: sem-bclr 7
+  | CLN: sem-bclr 2
   | CLR x: sem-undef-unop x
-  | CLS: sem-unknown
-  | CLT: sem-unknown
-  | CLV: sem-unknown
-  | CLZ: sem-unknown
+  | CLS: sem-bclr 4
+  | CLT: sem-bclr 6
+  | CLV: sem-bclr 3
+  | CLZ: sem-bclr 1
   | COM x: sem-undef-unop x
   | CP x: sem-undef-binop x
   | CPC x: sem-undef-binop x
