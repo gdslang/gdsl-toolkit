@@ -1546,6 +1546,12 @@ structure TypeRefinement = struct
       }) =
       let
          val boxRec = List.exists (fn s => SymbolTable.eq_symid (s,f)) es
+         val _ = if boxRec then
+            case inlineSType s (symType s f) of
+               FUNstype (RECORDstype (boxed,_,_),_,_) =>
+                  ignore (lub (s,boxed,OBJstype))
+             | _ => ()
+            else ()
       in
          app (fn (t,a) => (lub (s, symType s a, voidsToTop boxRec (inlineSType s (symType s a))); ())) args
       end
