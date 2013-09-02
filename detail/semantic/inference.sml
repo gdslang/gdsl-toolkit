@@ -282,8 +282,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    (* define a traversal that is a full inference of the tree *)
    
-   val maxIter = 4
-   
    fun calcSubset (printWarn,sym,env) =
       let
          fun checkUsage sym s =
@@ -404,9 +402,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
 
    fun calcFixpoints curIter (syms,env) =
-         case calcSubsets (curIter=maxIter) (syms,env) of unstable =>
+         case calcSubsets (curIter=Controls.get BasicControl.maxIter) (syms,env) of unstable =>
          if E.SymbolSet.isEmpty unstable then env else
-         if curIter<maxIter then
+         if curIter<Controls.get BasicControl.maxIter then
             calcFixpoints (curIter+1) (syms,
                List.foldl calcIteration env (E.SymbolSet.listItems unstable)
             )
@@ -430,8 +428,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             (Error.errorAt (errStrm, s, [
             "no typing found for ",
             symsStr,
-            "\tpass --inference-iterations=",
-            Int.toString (maxIter+1),
+            "\tpass --maxIter=",
+            Int.toString (Controls.get BasicControl.maxIter+1),
             " to try a little harder"]); env)
          end
    val calcFixpoints = calcFixpoints 0
@@ -988,6 +986,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | setDummyType (st,env) _ = env
 
    val sccs = List.rev (sccsSpecification ast)
+   
+   (* turn off type inference if requested *)
+   val sccs = if Controls.get BasicControl.skipTypeCheck then [] else sccs
+   
    val noOfSCCs = List.length sccs
    val cnt = ref 0
    

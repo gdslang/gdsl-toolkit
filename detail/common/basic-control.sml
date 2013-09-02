@@ -32,6 +32,16 @@ structure BasicControl :  sig
   (* the prefix for exported functions *)
     val exportPrefix : string Controls.control
 
+  (* on demand, skip type inference *)
+    val skipTypeCheck : bool Controls.control
+
+  (* maximum number of iterations in the type checker before giving up *)
+    val maxIter : int Controls.control
+
+  (* the number of fields in a fixed record after which it is allocated
+      on the heap rather than passed by value *)
+    val boxThreshold : int Controls.control
+    
   (* wrap a 'pre -> 'post pass with a tracing diagnostic, controled by the
    * "verbose" control.
    *)
@@ -144,6 +154,36 @@ structure BasicControl :  sig
 	    default = "gdsl"
 	  }
 
+  (* on demand, skip type inference *)
+    val skipTypeCheck : bool Controls.control = Controls.genControl {
+	    name = "t",
+	    pri = [0],
+	    obscurity = 0,
+	    help = "do not run the type checker",
+	    default = false
+    }
+
+  (* maximum number of iterations in the type checker before giving up *)
+    val maxIter : int Controls.control = Controls.genControl {
+	    name = "maxIter",
+	    pri = [0],
+	    obscurity = 0,
+	    help = "maximum number of fixpoint iterations in type checker",
+	    default = 4
+    }
+
+
+  (* the number of fields in a fixed record after which it is allocated
+      on the heap rather than passed by value *)
+    val boxThreshold : int Controls.control = Controls.genControl {
+	    name = "boxThreshold",
+	    pri = [0],
+	    obscurity = 0,
+	    help = "no of fields in a record before it is boxed",
+	    default = 100
+    }
+
+    
     val () = (
 	  ControlRegistry.register topRegistry {
 	      ctl = Controls.stringControl ControlUtil.Cvt.int verbose,

@@ -67,6 +67,9 @@ structure Main = struct
 \    --prefix=pfx     prefix functions with pfx\n\
 \    -o name\n\
 \    --outname=name   base name of output file, defaults to gdsl-pfx\n\
+\    -t               do not run the type checker\n\
+\    --maxIter=n      restrict fixpoint in type checker to n iterations\n\
+\    --boxTheshold=n  box fixed records with more than n fields\n\
 \    -verbose         verbose mode\n\
 \"
 
@@ -98,6 +101,14 @@ structure Main = struct
 
    and processLibname arg = Controls.set (BasicControl.outputName, SOME arg)
 
+   and processMaxIter arg = case Int.fromString arg of
+      SOME num => Controls.set (BasicControl.maxIter, num)
+    | NONE => bad ("!* expected number for --maxIter\n")
+    
+   and processBoxThreshold arg = case Int.fromString arg of
+      SOME num => Controls.set (BasicControl.boxThreshold, num)
+    | NONE => bad ("!* expected number for --boxThreshold\n")
+    
    and processArgs args =
       case args of
          arg :: args =>
@@ -121,8 +132,15 @@ structure Main = struct
       if String.isPrefix "--libname=" arg
          then (processLibname (String.extract (arg,10,NONE)); processArgs args)
       else
+      if String.isPrefix "--maxIter=" arg
+         then (processMaxIter (String.extract (arg,10,NONE)); processArgs args)
+      else
+      if String.isPrefix "--boxThreshold=" arg
+         then (processBoxThreshold (String.extract (arg,15,NONE)); processArgs args)
+      else
          case arg of
             "-h" => usage ()
+          | "-t" => (Controls.set (BasicControl.skipTypeCheck, true); processArgs args)
           | "-verbose" => (Controls.set(BasicControl.verbose, 1); processArgs args)
           | "-p" => (case args of
              (arg :: args) => (processPrefix arg; processArgs args)

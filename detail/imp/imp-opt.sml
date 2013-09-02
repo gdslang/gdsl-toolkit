@@ -717,10 +717,6 @@ structure TypeRefinement = struct
       record. Hence, this flag must stay false for now. *)
    val genFixedRecords = ref true
 
-   (* the number of fields in a fixed record after which it is allocated
-      on the heap rather than passed by value *)
-   val boxThreshold = 100
-   
    exception TypeOptBug
    
    type index = int
@@ -1063,7 +1059,8 @@ structure TypeRefinement = struct
       if !genFixedRecords then
          lub (s, symType s rs, 
             RECORDstype (
-               if length fs >= boxThreshold then OBJstype else freshTVar s,
+               if length fs >= Controls.get BasicControl.boxThreshold
+                  then OBJstype else freshTVar s,
                map (fn (f,e) => (true, f, visitExp s e)) fs, false))
       else
          (map (fn (f,e) => lub (s,fieldType s f, visitExp s e)) fs;
