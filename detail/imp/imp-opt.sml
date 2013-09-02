@@ -829,7 +829,7 @@ structure TypeRefinement = struct
                ()
             end
          val _ = app showSymBinding syms
-         val _ = app showFieldBinding (SymMap.listItemsi (!ft))
+         (*val _ = app showFieldBinding (SymMap.listItemsi (!ft))*)
       in
          ()
       end
@@ -1546,14 +1546,17 @@ structure TypeRefinement = struct
       }) =
       let
          val boxRec = List.exists (fn s => SymbolTable.eq_symid (s,f)) es
-         val _ = if boxRec then
+         val fTy =
             case inlineSType s (symType s f) of
-               FUNstype (RECORDstype (boxed,_,_),_,_) =>
-                  ignore (lub (s,boxed,OBJstype))
-             | _ => ()
-            else ()
+               FUNstype (RECORDstype (boxed,fs,b),cl,args) =>
+                  FUNstype (RECORDstype (if boxRec then OBJstype else VOIDstype,fs,b),
+                     cl,map (voidsToTop boxRec) args)
+             | FUNstype (res,cl,args) =>
+                  FUNstype (res,cl,map (voidsToTop boxRec) args)
+             | _ => VOIDstype
+         val _ = lub (s, symType s f, fTy)
       in
-         app (fn (t,a) => (lub (s, symType s a, voidsToTop boxRec (inlineSType s (symType s a))); ())) args
+         ()
       end
      | setArgsToTop (es,s) (UPDATEdecl {
         updateArg = sym,
@@ -1603,7 +1606,7 @@ structure TypeRefinement = struct
          (* set all arguments in functions and constructors to OBJstype if they are void so that the (C) backend is not emitting invalid code *)
          val _ = app (setArgsToTop (es,state)) ds
          
-         (*val _ = showState (SymMap.listKeys declMap) state*)
+         (*val _ = showState es state*)
          (*val _ = debugOn := false
          fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)*)
          val ds = map (patchDecl state) ds
