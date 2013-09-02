@@ -23,6 +23,24 @@ val sem-adc bo = do
 	write bo.first (var r)
 end
 
+val sem-add bo = do
+  rd <- rval Unsigned bo.first;
+	rr <- rval Unsigned bo.second;
+  size <- return (sizeof bo.first);
+
+	r <- mktemp;
+	add size r rd rr;
+
+  emit-flag-add-h size rd (var r);
+	emit-flag-add-adc-v size rd rr (var r);
+	emit-flag-n size (var r);
+	emit-flag-z size (var r);
+	emit-flag-add-c size rd (var r);
+	emit-flag-s;
+
+	write bo.first (var r)
+end
+
 val sem-adiw bo = do
   rd <- rval Unsigned bo.first;
 	rr <- rval Unsigned bo.second;
@@ -40,6 +58,42 @@ val sem-adiw bo = do
 	write bo.first (var r)
 end
 
+val sem-and-andi bo = do
+  rd <- rval Unsigned bo.first;
+	rr <- rval Unsigned bo.second;
+  size <- return (sizeof bo.first);
+
+	r <- mktemp;
+	andb size r rd rr;
+
+	ov <- return fVF;
+	mov 1 ov (imm 0);
+	emit-flag-n size (var r);
+	emit-flag-z size (var r);
+	emit-flag-s;
+
+	write bo.first (var r)
+end
+
+val sem-asr bo = do
+  rd <- rval Unsigned bo.operand;
+  size <- return (sizeof bo.operand);
+
+	r <- mktemp;
+	shrs size r rd (imm 1);
+
+	emit-flag-n size (var r);
+	emit-flag-z size (var r);
+	cf <- return fCF;
+	mov 1 cf rd;
+	ov <- return fVF;
+	nf <- return fNF;
+	xorb 1 ov (var nf) (var cf);
+	emit-flag-s;
+
+	write bo.operand (var r)
+end
+
 val sem-undef-binop bo = do
 return void
 end
@@ -55,6 +109,11 @@ end
 val emit-flag-add-c sz rd r = do
   cf <- return fCF;
   cmpltu sz cf r rd
+end
+
+val emit-flag-add-h sz rd r = do
+  cf <- return fCF;
+  cmpltu (divb sz 2) cf r rd
 end
 
 val emit-flag-adc-c sz rd r = do
@@ -190,11 +249,11 @@ end
 val semantics insn =
  case insn of
     ADC x: sem-adc x
-  | ADD x: sem-undef-binop x
+  | ADD x: sem-add x
   | ADIW x: sem-adiw x
-  | AND x: sem-undef-binop x
-  | ANDI x: sem-undef-binop x
-  | ASR x: sem-undef-unop x
+  | AND x: sem-and-andi x
+  | ANDI x: sem-and-andi x
+  | ASR x: sem-asr x
   | BLD x: sem-undef-binop x
   | BRCC x: sem-undef-unop x
   | BRCS x: sem-undef-unop x
