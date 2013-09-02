@@ -82,46 +82,48 @@ void tbgen_allocate_fixed(struct tbgen_register_allocation *allocation,
 			&allocation->registers_length, &allocation->registers_size);
 }
 
+static char next(enum x86_id *reg) {
+	switch(*reg) {
+		case X86_ID_AX:
+		case X86_ID_BX:
+		case X86_ID_CX:
+		case X86_ID_DX:
+		case X86_ID_SI:
+		case X86_ID_R8:
+		case X86_ID_R9:
+		case X86_ID_R10:
+		case X86_ID_R11:
+		case X86_ID_R12:
+		case X86_ID_R13:
+		case X86_ID_R14: {
+			(*reg)++;
+			break;
+		}
+		case X86_ID_R15: {
+			*reg = X86_ID_AX;
+			break;
+		}
+		case X86_ID_DI: {
+			*reg = X86_ID_BP;
+			break;
+		}
+		default: {
+			return 1;
+		}
+	}
+	return 0;
+}
+
 char tbgen_allocate_dynamic(enum x86_id *result,
 		struct tbgen_register_allocation *allocation, FILE *stream) {
 	enum x86_id reg = X86_ID_R8;
 	/*
 	 * Todo: Dynamically allocate stack pointer
 	 */
-	char next() {
-		switch(reg) {
-			case X86_ID_AX:
-			case X86_ID_BX:
-			case X86_ID_CX:
-			case X86_ID_DX:
-			case X86_ID_SI:
-			case X86_ID_R8:
-			case X86_ID_R9:
-			case X86_ID_R10:
-			case X86_ID_R11:
-			case X86_ID_R12:
-			case X86_ID_R13:
-			case X86_ID_R14: {
-				reg++;
-				break;
-			}
-			case X86_ID_R15: {
-				reg = X86_ID_AX;
-				break;
-			}
-			case X86_ID_DI: {
-				reg = X86_ID_BP;
-				break;
-			}
-			default: {
-				return 1;
-			}
-		}
-		return 0;
-	}
+
 	start: for(size_t i = 0; i < allocation->registers_length; ++i)
 		if(allocation->registers[i] == reg) {
-			if(next())
+			if(next(&reg))
 				return 1;
 			goto start;
 		}

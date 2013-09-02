@@ -8,7 +8,7 @@ ifdef GDSL_X86
 DEFINES+=-DGDSL_X86
 endif
 
-CFLAGS=-c -g3 -fPIC -std=gnu99 -Wall -Wfatal-errors $(DEFINES) $(INCDS)
+CFLAGS=-c -g3 -fPIC -std=c11 -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
 LIBRARIES=libgdrr.a
 

@@ -85,9 +85,9 @@ static void tracking_variable_access_trace(struct tracking_trace *trace,
 static void tracking_linear_trace(struct tracking_trace *trace,
 		enum simulator_access_type access_type, struct rreil_linear *linear,
 		size_t bit_length) {
-	void linear_trace(struct rreil_linear *linear, size_t bit_length) {
-		tracking_linear_trace(trace, access_type, linear, bit_length);
-	}
+//	void linear_trace(struct rreil_linear *linear, size_t bit_length) {
+//		tracking_linear_trace(trace, access_type, linear, bit_length);
+//	}
 
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
@@ -99,17 +99,17 @@ static void tracking_linear_trace(struct tracking_trace *trace,
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SUM: {
-			linear_trace(linear->sum.opnd1, bit_length);
-			linear_trace(linear->sum.opnd2, bit_length);
+			tracking_linear_trace(trace, access_type, linear->sum.opnd1, bit_length);
+			tracking_linear_trace(trace, access_type, linear->sum.opnd2, bit_length);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_DIFFERENCE: {
-			linear_trace(linear->difference.opnd1, bit_length);
-			linear_trace(linear->difference.opnd2, bit_length);
+			tracking_linear_trace(trace, access_type, linear->difference.opnd1, bit_length);
+			tracking_linear_trace(trace, access_type, linear->difference.opnd2, bit_length);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SCALE: {
-			linear_trace(linear->scale.opnd, bit_length);
+			tracking_linear_trace(trace, access_type, linear->scale.opnd, bit_length);
 			break;
 		}
 	}
@@ -141,72 +141,72 @@ static void tracking_sexpr_trace(struct tracking_trace *trace,
 
 static size_t tracking_op_trace(struct tracking_trace *trace,
 		struct rreil_op *op) {
-	void linear_trace(struct rreil_linear *linear, size_t bit_length) {
-		tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, linear,
-				bit_length);
-	}
+//	void linear_trace(struct rreil_linear *linear, size_t bit_length) {
+//		tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, linear,
+//				bit_length);
+//	}
 
 	switch(op->type) {
 		case RREIL_OP_TYPE_LIN: {
-			linear_trace(op->lin.opnd1, op->lin.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->lin.opnd1, op->lin.size);
 			return op->lin.size;
 		}
 		case RREIL_OP_TYPE_MUL: {
-			linear_trace(op->mul.opnd1, op->mul.size);
-			linear_trace(op->mul.opnd2, op->mul.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->mul.opnd1, op->mul.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->mul.opnd2, op->mul.size);
 			return op->mul.size;
 		}
 		case RREIL_OP_TYPE_DIV: {
-			linear_trace(op->div.opnd1, op->div.size);
-			linear_trace(op->div.opnd2, op->div.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->div.opnd1, op->div.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->div.opnd2, op->div.size);
 			return op->div.size;
 		}
 		case RREIL_OP_TYPE_DIVS: {
-			linear_trace(op->divs.opnd1, op->divs.size);
-			linear_trace(op->divs.opnd2, op->divs.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->divs.opnd1, op->divs.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->divs.opnd2, op->divs.size);
 			return op->divs.size;
 		}
 		case RREIL_OP_TYPE_MOD: {
-			linear_trace(op->mod.opnd1, op->mod.size);
-			linear_trace(op->mod.opnd2, op->mod.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->mod.opnd1, op->mod.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->mod.opnd2, op->mod.size);
 			return op->mod.size;
 		}
 		case RREIL_OP_TYPE_SHL: {
-			linear_trace(op->shl.opnd1, op->shl.size);
-			linear_trace(op->shl.opnd2, op->shl.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shl.opnd1, op->shl.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shl.opnd2, op->shl.size);
 			return op->shl.size;
 		}
 		case RREIL_OP_TYPE_SHR: {
-			linear_trace(op->shr.opnd1, op->shr.size);
-			linear_trace(op->shr.opnd2, op->shr.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shr.opnd1, op->shr.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shr.opnd2, op->shr.size);
 			return op->shr.size;
 		}
 		case RREIL_OP_TYPE_SHRS: {
-			linear_trace(op->shrs.opnd1, op->shrs.size);
-			linear_trace(op->shrs.opnd2, op->shrs.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shrs.opnd1, op->shrs.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shrs.opnd2, op->shrs.size);
 			return op->shrs.size;
 		}
 		case RREIL_OP_TYPE_AND: {
-			linear_trace(op->and_.opnd1, op->and_.size);
-			linear_trace(op->and_.opnd2, op->and_.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->and_.opnd1, op->and_.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->and_.opnd2, op->and_.size);
 			return op->and_.size;
 		}
 		case RREIL_OP_TYPE_OR: {
-			linear_trace(op->or_.opnd1, op->or_.size);
-			linear_trace(op->or_.opnd2, op->or_.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->or_.opnd1, op->or_.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->or_.opnd2, op->or_.size);
 			return op->or_.size;
 		}
 		case RREIL_OP_TYPE_XOR: {
-			linear_trace(op->xor_.opnd1, op->xor_.size);
-			linear_trace(op->xor_.opnd2, op->xor_.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->xor_.opnd1, op->xor_.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->xor_.opnd2, op->xor_.size);
 			return op->xor_.size;
 		}
 		case RREIL_OP_TYPE_SX: {
-			linear_trace(op->sx.opnd, op->sx.fromsize);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->sx.opnd, op->sx.fromsize);
 			return op->sx.size;
 		}
 		case RREIL_OP_TYPE_ZX: {
-			linear_trace(op->zx.opnd, op->zx.fromsize);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->zx.opnd, op->zx.fromsize);
 			return op->zx.size;
 		}
 		case RREIL_OP_TYPE_CMP: {
@@ -309,30 +309,30 @@ void tracking_statements_trace(struct tracking_trace *trace,
 //	access->indices[access->indices_length++] = id;
 //}
 
+static void init_register(struct register_access *access, enum x86_id x86) {
+	size_t size = x86_amd64_sizeof(x86);
+	struct register_ *reg = &access->x86_registers[x86];
+	reg->data = (uint8_t*)calloc(size / 8, 1);
+	reg->defined = (uint8_t*)calloc(size / 8, 1);
+	reg->bit_length = size;
+//			reg->data_size = size / 8;
+}
+
+static void init_rw(struct register_access *access) {
+	access->x86_registers = (struct register_*)calloc(X86_ID_COUNT,
+			sizeof(struct register_));
+
+	for(size_t i = 0; i < X86_ID_COUNT; ++i)
+		init_register(access, (enum x86_id)i);
+
+	access->x86_indices = NULL;
+	access->x86_indices_length = 0;
+	access->x86_indices_size = 0;
+}
+
 struct tracking_trace *tracking_trace_init() {
 	struct tracking_trace *trace = (struct tracking_trace*)malloc(
 			sizeof(struct tracking_trace));
-
-	void init_rw(struct register_access *access) {
-		access->x86_registers = (struct register_*)calloc(X86_ID_COUNT,
-				sizeof(struct register_));
-
-		void init_register(enum x86_id x86) {
-			size_t size = x86_amd64_sizeof(x86);
-			struct register_ *reg = &access->x86_registers[x86];
-			reg->data = (uint8_t*)calloc(size / 8, 1);
-			reg->defined = (uint8_t*)calloc(size / 8, 1);
-			reg->bit_length = size;
-//			reg->data_size = size / 8;
-		}
-
-		for(size_t i = 0; i < X86_ID_COUNT; ++i)
-			init_register((enum x86_id)i);
-
-		access->x86_indices = NULL;
-		access->x86_indices_length = 0;
-		access->x86_indices_size = 0;
-	}
 
 	init_rw(&trace->reg.read);
 	init_rw(&trace->reg.written);
@@ -364,21 +364,21 @@ struct tracking_trace *tracking_trace_init() {
 	return trace;
 }
 
+static void registers_free(struct register_ *registers, size_t length) {
+	for(size_t i = 0; i < length; ++i) {
+		struct register_ *reg = &registers[i];
+		free(reg->data);
+		free(reg->defined);
+	}
+}
+
+static void access_clear(struct register_access *access) {
+	registers_free(access->x86_registers, X86_ID_COUNT);
+	free(access->x86_indices);
+	free(access->x86_registers);
+}
+
 void tracking_trace_free(struct tracking_trace *trace) {
-	void registers_free(struct register_ *registers, size_t length) {
-		for(size_t i = 0; i < length; ++i) {
-			struct register_ *reg = &registers[i];
-			free(reg->data);
-			free(reg->defined);
-		}
-	}
-
-	void access_clear(struct register_access *access) {
-		registers_free(access->x86_registers, X86_ID_COUNT);
-		free(access->x86_indices);
-		free(access->x86_registers);
-	}
-
 	access_clear(&trace->reg.read);
 	access_clear(&trace->reg.written);
 	access_clear(&trace->reg.dereferenced);
@@ -399,35 +399,35 @@ void tracking_trace_memory_write_add(struct tracking_trace *trace,
 			&trace->mem.written.accesses_size);
 }
 
-void tracking_trace_print(struct tracking_trace *trace) {
-	void access_print(struct register_access *access) {
-		for(size_t i = 0; i < access->x86_indices_length; ++i) {
-			enum x86_id id_x86 = (enum x86_id)access->x86_indices[i];
-			struct register_ *reg = &access->x86_registers[id_x86];
+static void access_print(struct register_access *access) {
+	for(size_t i = 0; i < access->x86_indices_length; ++i) {
+		enum x86_id id_x86 = (enum x86_id)access->x86_indices[i];
+		struct register_ *reg = &access->x86_registers[id_x86];
 
-			printf("Register ");
-			x86_id_print(stdout, id_x86);
-			printf(": ");
+		printf("Register ");
+		x86_id_print(stdout, id_x86);
+		printf(": ");
 
-			size_t rest = 0;
-			size_t reg_size = x86_amd64_sizeof(id_x86);
-			if(reg_size > reg->bit_length)
-				rest = reg_size - reg->bit_length;
-			for(size_t i = 0; i < rest / 8; ++i)
-				printf("00");
-			if(reg->bit_length) {
-				if(reg->bit_length % 8) {
-					uint8_t top = reg->data[reg->bit_length / 8];
-					uint8_t mask = (1 << (reg->bit_length % 8)) - 1;
-					printf("%02x", (top & mask));
-				}
-				for(size_t i = reg->bit_length / 8; i > 0; --i)
-					printf("%02x", reg->data[i - 1]);
+		size_t rest = 0;
+		size_t reg_size = x86_amd64_sizeof(id_x86);
+		if(reg_size > reg->bit_length)
+			rest = reg_size - reg->bit_length;
+		for(size_t i = 0; i < rest / 8; ++i)
+			printf("00");
+		if(reg->bit_length) {
+			if(reg->bit_length % 8) {
+				uint8_t top = reg->data[reg->bit_length / 8];
+				uint8_t mask = (1 << (reg->bit_length % 8)) - 1;
+				printf("%02x", (top & mask));
 			}
-			printf("\n");
+			for(size_t i = reg->bit_length / 8; i > 0; --i)
+				printf("%02x", reg->data[i - 1]);
 		}
+		printf("\n");
 	}
+}
 
+void tracking_trace_print(struct tracking_trace *trace) {
 	printf("Read registers:\n");
 	access_print(&trace->reg.read);
 	printf("Written registers:\n");

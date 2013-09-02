@@ -58,6 +58,31 @@ static size_t generator_x86_opcode_generate(struct generator *this,
 	return fwrite(&table->opcodes[start], 1, next - start, stream);
 }
 
+static void add_disp8(size_t *written, FILE *stream) {
+	int random = rand();
+	if((rand() & 0xff) > 25)
+		random &= 0xf0;
+	*written += fwrite(&random, 1, 1, stream);
+}
+
+static void add_disp16(size_t *written, FILE *stream) {
+	int random = rand();
+	if((rand() & 0xff) > 25)
+		random &= 0xfff0;
+	*written += fwrite(&random, 1, 2, stream);
+}
+
+static void add_disp32(size_t *written, FILE *stream) {
+	int random = rand();
+	*written += fwrite(&random, 1, 2, stream);
+	add_disp16(written, stream);
+}
+
+static void add_sib(size_t *written, FILE *stream) {
+	int random = rand();
+	*written += fwrite(&random, 1, 1, stream);
+}
+
 static size_t generator_x86_modrm_generate(struct generator *this, FILE *stream) {
 	uint8_t modrm = rand() & 0xff;
 	size_t written = fwrite(&modrm, 1, 1, stream);
@@ -66,41 +91,16 @@ static size_t generator_x86_modrm_generate(struct generator *this, FILE *stream)
 //	uint8_t reg = (modrm >> 3) & 0b111;
 	uint8_t rm = modrm & 0b111;
 
-	void add_disp8() {
-		int random = rand();
-		if((rand() & 0xff) > 25)
-			random &= 0xf0;
-		written += fwrite(&random, 1, 1, stream);
-	}
-
-	void add_disp16() {
-		int random = rand();
-		if((rand() & 0xff) > 25)
-			random &= 0xfff0;
-		written += fwrite(&random, 1, 2, stream);
-	}
-
-	void add_disp32() {
-		int random = rand();
-		written += fwrite(&random, 1, 2, stream);
-		add_disp16();
-	}
-
-	void add_sib() {
-		int random = rand();
-		written += fwrite(&random, 1, 1, stream);
-	}
-
 	switch(mod) {
 		case 0b00: {
 			switch(rm) {
 				case 0b100: {
-					add_sib();
-					add_disp32();
+					add_sib(&written, stream);
+					add_disp32(&written, stream);
 					break;
 				}
 				case 0b101: {
-					add_disp32();
+					add_disp32(&written, stream);
 					break;
 				}
 			}
@@ -109,21 +109,21 @@ static size_t generator_x86_modrm_generate(struct generator *this, FILE *stream)
 		case 0b01: {
 			switch(rm) {
 				case 0b100: {
-					add_sib();
+					add_sib(&written, stream);
 					break;
 				}
 			}
-			add_disp8();
+			add_disp8(&written, stream);
 			break;
 		}
 		case 0b10: {
 			switch(rm) {
 				case 0b100: {
-					add_sib();
+					add_sib(&written, stream);
 					break;
 				}
 			}
-			add_disp32();
+			add_disp32(&written, stream);
 			break;
 		}
 	}

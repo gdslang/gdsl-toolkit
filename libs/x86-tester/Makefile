@@ -2,7 +2,7 @@ MLTK=../..
 CC=gcc
 #CC=clang
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 LIBRARY=libx86-tester.a
 SOURCES=tbgen.c tbgen_alloc.c executor.c tester.c

@@ -73,6 +73,12 @@ static void simulator_op_definition_simple(struct data opnd1, struct data opnd2,
 	f(result);
 }
 
+static uint8_t local_add(uint8_t *accumulator, uint8_t opnd1, uint8_t opnd2) {
+	uint16_t result = (uint16_t)opnd1 + (uint16_t)opnd2 + (uint16_t)accumulator;
+	accumulator = result >> 8;
+	return (uint8_t)result;
+}
+
 struct data simulator_op_add(struct data opnd1, struct data opnd2) {
 	/*
 	 * Todo: Handle different sizes
@@ -84,18 +90,18 @@ struct data simulator_op_add(struct data opnd1, struct data opnd2) {
 	result.data = (uint8_t*)malloc(bit_length / 8 + 1);
 
 	uint8_t accumulator = 0;
-	uint8_t local_add(uint8_t opnd1, uint8_t opnd2) {
-		uint16_t result = (uint16_t)opnd1 + (uint16_t)opnd2 + (uint16_t)accumulator;
-		accumulator = result >> 8;
-		return (uint8_t)result;
-	}
 
 	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-		result.data[i] = local_add(opnd1.data[i], opnd2.data[i]);
+		result.data[i] = local_add(&accumulator, opnd1.data[i], opnd2.data[i]);
 
 	simulator_op_definition_propagate(opnd1, opnd2, &result);
 
 	return result;
+}
+
+static char more(size_t length, struct data opnd1, struct data opnd2, size_t i) {
+	return i < length - 1 && opnd1.defined[i] == 0xff
+			&& opnd2.defined[i] == 0xff;
 }
 
 struct data simulator_op_sub(struct data opnd1, struct data opnd2) {
@@ -113,16 +119,12 @@ struct data simulator_op_sub(struct data opnd1, struct data opnd2) {
 	}
 
 	size_t length = bit_length / 8 + (bit_length % 8 > 0);
-	char more(size_t i) {
-		return i < length - 1 && opnd1.defined[i] == 0xff
-				&& opnd2.defined[i] == 0xff;
-	}
 
 	uint8_t *complement = (uint8_t*)malloc(bit_length / 8 + 1);
 	for(size_t i = 0; i < length; ++i)
 		complement[i] = ~opnd2.data[i];
 	for(size_t i = 0; 1; ++i)
-		if(!more(i) || complement[i] != 0xff) {
+		if(!more(length, opnd1, opnd2, i) || complement[i] != 0xff) {
 			complement[i]++;
 			break;
 		} else
@@ -281,6 +283,10 @@ struct data simulator_op_mod(struct data opnd1, struct data opnd2) {
 	return result_data;
 }
 
+char inside(size_t bit_length, size_t i) {
+	return i < bit_length / 8 + (bit_length % 8 > 0);
+}
+
 /*
  * Todo: bit_length == 0
  */
@@ -314,19 +320,15 @@ struct data simulator_op_shl(struct data opnd1, struct data opnd2) {
 	uint16_t inter = amount / 8;
 	uint16_t inner = amount % 8;
 
-	char inside(size_t i) {
-		return i < bit_length / 8 + (bit_length % 8 > 0);
-	}
-
 	for(size_t i = 0; i < inter; ++i) {
-		if(!inside(i))
+		if(!inside(bit_length, i))
 			goto end;
 		result.data[i] = 0;
 	}
 
 	uint32_t acc = 0;
 	uint8_t *acc_ptr = (uint8_t*)&acc;
-	for(size_t i = 0; inside(inter + i); ++i) {
+	for(size_t i = 0; inside(bit_length, inter + i); ++i) {
 		acc >>= inner + 8;
 		acc_ptr[1] = opnd1.data[i];
 		acc <<= inner;
@@ -524,6 +526,38 @@ struct data simulator_op_zx(size_t to, struct data opnd1) {
 	return result;
 }
 
+static uint8_t *sx_buffer(size_t to, size_t from, uint8_t *opnd) {
+	uint8_t *result = (uint8_t*)calloc(to / 8 + 1, 1);
+	memcpy(result, opnd, from / 8);
+
+	uint8_t sign;
+	if(from / 8)
+		sign = opnd[from / 8 - 1] >> 7;
+	size_t next = from / 8;
+
+//		if(opnd[1] >> 7)
+//			printf("%lu\n", from/8 - 1);
+//		if(opnd[from / 8 - 1] >> 7)
+//			printf("%lu\n", from/8 - 1);
+
+	if(from % 8) {
+		uint8_t top = opnd[from / 8];
+		sign = top >> ((from % 8) - 1);
+		uint8_t mask = (1 << from % 8) - 1;
+		result[from / 8] = top & mask;
+		if(sign & 0x01) {
+			result[from / 8] |= ~mask;
+			next++;
+		}
+	}
+
+	if(sign & 0x01)
+		for(size_t i = next; i <= to / 8; ++i)
+			result[i] = 0xff;
+
+	return result;
+}
+
 struct data simulator_op_sx(size_t to, struct data opnd) {
 	size_t from = opnd.bit_length;
 
@@ -542,41 +576,10 @@ struct data simulator_op_sx(size_t to, struct data opnd) {
 	 * Todo: Use membit_cpy()
 	 */
 
-	uint8_t *sx_buffer(uint8_t *opnd) {
-		uint8_t *result = (uint8_t*)calloc(to / 8 + 1, 1);
-		memcpy(result, opnd, from / 8);
-
-		uint8_t sign;
-		if(from / 8)
-			sign = opnd[from / 8 - 1] >> 7;
-		size_t next = from / 8;
-
-//		if(opnd[1] >> 7)
-//			printf("%lu\n", from/8 - 1);
-//		if(opnd[from / 8 - 1] >> 7)
-//			printf("%lu\n", from/8 - 1);
-
-		if(from % 8) {
-			uint8_t top = opnd[from / 8];
-			sign = top >> ((from % 8) - 1);
-			uint8_t mask = (1 << from % 8) - 1;
-			result[from / 8] = top & mask;
-			if(sign & 0x01) {
-				result[from / 8] |= ~mask;
-				next++;
-			}
-		}
-
-		if(sign & 0x01)
-			for(size_t i = next; i <= to / 8; ++i)
-				result[i] = 0xff;
-
-		return result;
-	}
 
 	struct data result;
-	result.data = sx_buffer(opnd.data);
-	result.defined = sx_buffer(opnd.defined);
+	result.data = sx_buffer(to, from, opnd.data);
+	result.defined = sx_buffer(to, from, opnd.defined);
 	result.bit_length = to;
 
 	return result;
@@ -623,6 +626,15 @@ struct data simulator_op_cmp_neq(struct data opnd1, struct data opnd2) {
 	return result;
 }
 
+static void top_bit_set(size_t bit_length, uint8_t *dst, uint8_t *src) {
+	uint8_t top = src[bit_length / 8 - (bit_length % 8 == 0)];
+	uint8_t local = bit_length % 8;
+	if(!local)
+		*dst = top >> 7;
+	else
+		*dst = top >> (local - 1);
+}
+
 struct data simulator_op_cmp_les(struct data opnd1, struct data opnd2) {
 	/*
 	 * Todo: Handle different sizes
@@ -639,22 +651,13 @@ struct data simulator_op_cmp_les(struct data opnd1, struct data opnd2) {
 
 	struct data r = simulator_op_and(d, f);
 
-	void top_bit_set(uint8_t *dst, uint8_t *src) {
-		uint8_t top = src[bit_length / 8 - (bit_length % 8 == 0)];
-		uint8_t local = bit_length % 8;
-		if(!local)
-			*dst = top >> 7;
-		else
-			*dst = top >> (local - 1);
-	}
-
 	struct data result;
 	result.data = (uint8_t*)malloc(1);
 	result.defined = (uint8_t*)malloc(1);
 	result.bit_length = 1;
 
-	top_bit_set(result.data, r.data);
-	top_bit_set(result.defined, r.defined);
+	top_bit_set(bit_length, result.data, r.data);
+	top_bit_set(bit_length, result.defined, r.defined);
 
 	context_data_clear(&a);
 	context_data_clear(&b);
@@ -683,22 +686,22 @@ struct data simulator_op_cmp_leu(struct data opnd1, struct data opnd2) {
 
 	struct data r = simulator_op_and(d, f);
 
-	void top_bit_set(uint8_t *dst, uint8_t *src) {
-		uint8_t top = src[bit_length / 8 - (bit_length % 8 == 0)];
-		uint8_t local = bit_length % 8;
-		if(!local)
-			*dst = top >> 7;
-		else
-			*dst = top >> (local - 1);
-	}
+//	void top_bit_set(uint8_t *dst, uint8_t *src) {
+//		uint8_t top = src[bit_length / 8 - (bit_length % 8 == 0)];
+//		uint8_t local = bit_length % 8;
+//		if(!local)
+//			*dst = top >> 7;
+//		else
+//			*dst = top >> (local - 1);
+//	}
 
 	struct data result;
 	result.data = (uint8_t*)malloc(1);
 	result.defined = (uint8_t*)malloc(1);
 	result.bit_length = 1;
 
-	top_bit_set(result.data, r.data);
-	top_bit_set(result.defined, r.defined);
+	top_bit_set(bit_length, result.data, r.data);
+	top_bit_set(bit_length, result.defined, r.defined);
 
 	context_data_clear(&a);
 	context_data_clear(&b);

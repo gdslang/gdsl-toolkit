@@ -11,7 +11,7 @@ ifdef GDSL_X86
 DEFINES+=-DGDSL_X86
 endif
 
-CFLAGS=-std=gnu99 -fPIC -shared -Wall -Wfatal-errors $(DEFINES) $(INCDS)
+CFLAGS=-std=c11 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
 LIBRARY=libjrreil.so
 JAR=jrreil.jar
@@ -26,7 +26,8 @@ pre-build:
 	mkdir -p $(BDIRS)
 
 $(LIBRARY): src/rnati_NativeInterface.c
-	$(CC) $(CFLAGS) -Wl,-soname,$(LIBRARY) $< $(LIBFLAGS) -o $@
+	$(CC) $(CFLAGS) $< $(LIBFLAGS) -o $@
+#	$(CC) $(CFLAGS) -Wl,-soname,$(LIBRARY) $< $(LIBFLAGS) -o $@
 
 JSOURCES=$(shell find src/ -type f -name '*.java')
 #JSOURCES=$(wildcard src/**/*.java)

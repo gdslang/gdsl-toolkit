@@ -27,24 +27,20 @@ void executor_rflags_clean(struct context *context) {
 	uint64_t rflags_mask = 0x0000000000244cd5;
 	uint8_t *rflags_mask_ptr = (uint8_t*)&rflags_mask;
 
-	for(size_t i = 0; i < context->x86_registers[X86_ID_FLAGS].bit_length / 8;
-			++i) {
+	for(size_t i = 0; i < context->x86_registers[X86_ID_FLAGS].bit_length / 8; ++i) {
 		context->x86_registers[X86_ID_FLAGS].data[i] &= rflags_mask_ptr[i];
 		context->x86_registers[X86_ID_FLAGS].defined[i] &= rflags_mask_ptr[i];
 	}
 }
 
-struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction,
-		size_t instruction_length, struct tracking_trace *trace,
-		struct context *context, void **memory, void **next_instruction_address,
+struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, size_t instruction_length,
+		struct tracking_trace *trace, struct context *context, void **memory, void **next_instruction_address,
 		char test_unused) {
-	struct tbgen_result tbgen_result = tbgen_code_generate(instruction,
-			instruction_length, trace, context, test_unused);
+	struct tbgen_result tbgen_result = tbgen_code_generate(instruction, instruction_length, trace, context, test_unused);
 	*memory = mmap(NULL, tbgen_result.buffer_length,
 			PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	memcpy(*memory, tbgen_result.buffer, tbgen_result.buffer_length);
-	*next_instruction_address = *memory + tbgen_result.instruction_offset
-			+ instruction_length;
+	*next_instruction_address = *memory + tbgen_result.instruction_offset + instruction_length;
 	return tbgen_result;
 }
 
@@ -68,7 +64,7 @@ static char map(struct stack *mappings, void *address, size_t size) {
 	page_address_size_get(&address, &size);
 
 	uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
+	MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
 
 	struct mapping *mapping = (struct mapping*)malloc(sizeof(struct mapping));
 	mapping->address = mem_real;
@@ -84,8 +80,8 @@ static char map(struct stack *mappings, void *address, size_t size) {
 	return 0;
 }
 
-static char map_and_copy(struct stack *mappings, struct tracking_trace *trace,
-		struct context *context, struct tbgen_result tbgen_result) {
+static char map_and_copy(struct stack *mappings, struct tracking_trace *trace, struct context *context,
+		struct tbgen_result tbgen_result) {
 	for(size_t i = 0; i < trace->mem.written.accesses_length; ++i) {
 		struct memory_access *access = &trace->mem.written.accesses[i];
 		if(map(mappings, access->address, access->data_size))
@@ -105,8 +101,7 @@ static char map_and_copy(struct stack *mappings, struct tracking_trace *trace,
 			case MEMORY_ALLOCATION_TYPE_JUMP: {
 				if(map(mappings, allocation->address, tbgen_result.jump_marker_length))
 					return -3;
-				memcpy(allocation->address, tbgen_result.jump_marker,
-						tbgen_result.jump_marker_length);
+				memcpy(allocation->address, tbgen_result.jump_marker, tbgen_result.jump_marker_length);
 				break;
 			}
 		}
@@ -140,9 +135,8 @@ static void write_back(struct tracking_trace *trace, struct context *context) {
 		allocation.data = (uint8_t*)malloc(access->data_size);
 		memcpy(allocation.data, access->address, access->data_size);
 
-		util_array_generic_add((void**)&context->memory.allocations, &allocation,
-				sizeof(allocation), &context->memory.allocations_length,
-				&context->memory.allocations_size);
+		util_array_generic_add((void**)&context->memory.allocations, &allocation, sizeof(allocation),
+				&context->memory.allocations_length, &context->memory.allocations_size);
 	}
 }
 
@@ -154,10 +148,53 @@ static void unmap_all(struct stack *mappings) {
 	}
 }
 
-struct execution_result executor_instruction_execute(uint8_t *instruction,
-		size_t instruction_length, struct tracking_trace *trace,
-		struct context *context, void *code, struct tbgen_result tbgen_result) {
-	struct execution_result result;
+static struct execution_result result;
+static jmp_buf jbuf;
+
+static void sighandler(int signum, siginfo_t *info, void *ptr) {
+	printf("Received signal ");
+	switch(signum) {
+		case SIGSEGV: {
+			printf("SIGSEGV");
+			break;
+		}
+		case SIGILL: {
+			printf("SIGILL");
+			break;
+		}
+		case SIGALRM: {
+			printf("SIGALRM");
+			break;
+		}
+		case SIGBUS: {
+			printf("SIGBUS");
+			break;
+		}
+		case SIGFPE: {
+			printf("SIGFPE");
+			break;
+		}
+		case SIGSYS: {
+			printf("SIGSYS");
+			break;
+		}
+		case SIGTRAP: {
+			printf("SIGTRAP");
+			break;
+		}
+		default: {
+			printf("UNKNOWN");
+			break;
+		}
+	}
+	printf(" while executing code.\n");
+	result.signum = signum;
+	longjmp(jbuf, 1);
+}
+
+struct execution_result executor_instruction_execute(uint8_t *instruction, size_t instruction_length,
+		struct tracking_trace *trace, struct context *context, void *code, struct tbgen_result tbgen_result) {
+
 	result.type = EXECUTION_RTYPE_SUCCESS;
 
 	struct stack *mappings = stack_init();
@@ -166,44 +203,6 @@ struct execution_result executor_instruction_execute(uint8_t *instruction,
 	if(retval) {
 		result.type = EXECUTION_RTYPE_MAPPING_ERROR;
 		goto unmap_all;
-	}
-
-	jmp_buf jbuf;
-	void sighandler(int signum, siginfo_t *info, void *ptr) {
-		printf("Received signal ");
-		switch(signum) {
-			case SIGSEGV: {
-				printf("SIGSEGV");
-				break;
-			}
-			case SIGILL: {
-				printf("SIGILL");
-				break;
-			}
-			case SIGALRM: {
-				printf("SIGALRM");
-				break;
-			}
-			case SIGBUS: {
-				printf("SIGBUS");
-				break;
-			}
-			case SIGFPE: {
-				printf("SIGFPE");
-				break;
-			}
-			case SIGSYS: {
-				printf("SIGSYS");
-				break;
-			}
-			case SIGTRAP: {
-				printf("SIGTRAP");
-				break;
-			}
-		}
-		printf(" while executing code.\n");
-		result.signum = signum;
-		longjmp(jbuf, 1);
 	}
 
 	struct sigaction act;
@@ -219,7 +218,7 @@ struct execution_result executor_instruction_execute(uint8_t *instruction,
 	sigaction(SIGSYS, &act, NULL);
 	sigaction(SIGTRAP, &act, NULL);
 
-//	alarm(1);
+	alarm(1);
 
 #ifndef DRYRUN
 	if(!setjmp(jbuf))

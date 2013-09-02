@@ -24,7 +24,7 @@ struct memory_allocation *memory_allocation_init(void *address) {
 }
 
 struct context *context_init(context_load_t *load, context_store_t *store,
-		context_jump_t *jump) {
+		context_jump_t *jump, void *closure) {
 	struct context *context = (struct context*)malloc(sizeof(struct context));
 	context->virtual_registers = (struct register_*)calloc(RREIL_ID_VIRTUAL_COUNT,
 			sizeof(struct register_));
@@ -39,6 +39,7 @@ struct context *context_init(context_load_t *load, context_store_t *store,
 	context->memory.load = load;
 	context->memory.store = store;
 	context->memory.jump = jump;
+	context->memory.closure = closure;
 
 	return context;
 }
@@ -65,23 +66,25 @@ void context_data_clear(struct data *data) {
 	}
 }
 
+static void copy(size_t i, struct register_ *registers, uint8_t **field_to, uint8_t *field_from) {
+	*field_to = (uint8_t*)malloc(registers[i].bit_length / 8 + 1);
+	memcpy(*field_to, field_from,
+			registers[i].bit_length / 8 + (registers[i].bit_length % 8 > 0));
+}
+
+static void copy_registers(size_t count, struct register_ *registers,
+		struct register_ *registers_source) {
+	for(size_t i = 0; i < count; ++i) {
+		registers[i].bit_length = registers_source[i].bit_length;
+//			registers[i].data_size = registers_source[i].data_size;
+
+		copy(i, registers, &registers[i].data, registers_source[i].data);
+		copy(i, registers, &registers[i].defined, registers_source[i].defined);
+	}
+}
+
 struct context *context_copy(struct context *source) {
 	struct context *context = (struct context*)malloc(sizeof(struct context));
-
-	void copy_registers(size_t count, struct register_ *registers,
-			struct register_ *registers_source) {
-		for(size_t i = 0; i < count; ++i) {
-			registers[i].bit_length = registers_source[i].bit_length;
-//			registers[i].data_size = registers_source[i].data_size;
-			void copy(uint8_t **field_to, uint8_t *field_from) {
-				*field_to = (uint8_t*)malloc(registers[i].bit_length / 8 + 1);
-				memcpy(*field_to, field_from,
-						registers[i].bit_length / 8 + (registers[i].bit_length % 8 > 0));
-			}
-			copy(&registers[i].data, registers_source[i].data);
-			copy(&registers[i].defined, registers_source[i].defined);
-		}
-	}
 
 	context->virtual_registers = (struct register_*)malloc(
 			RREIL_ID_VIRTUAL_COUNT * sizeof(struct register_));
@@ -112,6 +115,7 @@ struct context *context_copy(struct context *source) {
 	context->memory.load = source->memory.load;
 	context->memory.store = source->memory.store;
 	context->memory.jump = source->memory.jump;
+	context->memory.closure = source->memory.closure;
 
 	return context;
 }
@@ -149,6 +153,17 @@ void context_free(struct context *context) {
 	}
 }
 
+static void print(struct register_ *reg, uint8_t *ptr) {
+	if(reg->bit_length % 8) {
+		uint8_t top = ptr[reg->bit_length / 8]
+				& reg->defined[reg->bit_length / 8];
+		uint8_t mask = (1 << (reg->bit_length % 8)) - 1;
+		printf("%02x", (top & mask));
+	}
+	for(size_t i = reg->bit_length / 8; i > 0; --i)
+		printf("%02x", ptr[i - 1] & reg->defined[i - 1]);
+}
+
 void context_x86_print(struct context *context) {
 	for(size_t i = 0; i < X86_ID_COUNT; ++i) {
 		enum x86_id id_x86 = (enum x86_id)i;
@@ -171,19 +186,10 @@ void context_x86_print(struct context *context) {
 		for(size_t i = 0; i < rest / 8; ++i)
 			printf("00");
 		if(reg->bit_length) {
-			void print(uint8_t *ptr) {
-				if(reg->bit_length % 8) {
-					uint8_t top = ptr[reg->bit_length / 8]
-							& reg->defined[reg->bit_length / 8];
-					uint8_t mask = (1 << (reg->bit_length % 8)) - 1;
-					printf("%02x", (top & mask));
-				}
-				for(size_t i = reg->bit_length / 8; i > 0; --i)
-					printf("%02x", ptr[i - 1] & reg->defined[i - 1]);
-			}
-			print(reg->data);
+
+			print(reg, reg->data);
 			printf(" [defined:");
-			print(reg->defined);
+			print(reg, reg->defined);
 			printf("]");
 		}
 		printf("\n");
@@ -212,43 +218,74 @@ void context_x86_print(struct context *context) {
 }
 
 static void context_compare_registers(struct register_ *reg_cpu,
-		struct register_ *reg_rreil, void (*callback)(void)) {
+		struct register_ *reg_rreil, void (*callback)(char *found, enum x86_id reg), enum x86_id reg, char *found) {
 	for(size_t j = 0; j < reg_cpu->bit_length / 8; ++j)
 		if((reg_cpu->data[j] & reg_rreil->defined[j])
 				!= (reg_rreil->data[j] & reg_rreil->defined[j])) {
-			callback();
+			callback(found, reg);
 			break;
 		}
 }
 
 static void context_compare_registers_using_trace(struct tracking_trace *trace,
 		struct context *context_cpu, struct context *context_rreil,
-		void (*callback)(enum x86_id reg)) {
+		void (*callback)(char *found, enum x86_id reg), char *found) {
 	for(size_t i = 0; i < trace->reg.written.x86_indices_length; ++i) {
 		size_t index = trace->reg.written.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
 		struct register_ *reg_cpu = &context_cpu->x86_registers[index];
 		struct register_ *reg_rreil = &context_rreil->x86_registers[index];
 //		struct register_ *reg_trace = &trace->reg.written.x86_registers[index];
-		void equal() {
-			callback(reg);
-		}
-		context_compare_registers(reg_cpu, reg_rreil, &equal);
+		context_compare_registers(reg_cpu, reg_rreil, callback, reg, found);
 	}
 }
 
 static void context_compare_registers_all(struct context *context_cpu,
-		struct context *context_rreil, void (*callback)(enum x86_id reg)) {
+		struct context *context_rreil, void (*callback)(char *found, enum x86_id reg), char *found) {
 	for(size_t i = 0; i < X86_ID_COUNT; ++i) {
 		enum x86_id reg = (enum x86_id)i;
 		struct register_ *reg_cpu = &context_cpu->x86_registers[i];
 		struct register_ *reg_rreil = &context_rreil->x86_registers[i];
 //		struct register_ *reg_trace = &trace->reg.written.x86_registers[index];
-		void equal() {
-			callback(reg);
-		}
-		context_compare_registers(reg_cpu, reg_rreil, &equal);
+		context_compare_registers(reg_cpu, reg_rreil, callback, reg, found);
 	}
+}
+
+static void reg_found(char *found, enum x86_id reg) {
+	if(*found)
+		printf(", ");
+
+	x86_id_print(stdout, reg);
+	*found = 1;
+}
+
+static int allocation_compare(__const void *a, __const void *b) {
+	struct memory_allocation *a_ = (struct memory_allocation*)a;
+	struct memory_allocation *b_ = (struct memory_allocation*)b;
+
+	if(a_->address < b_->address)
+		return -1;
+	else if(a_->address > b_->address)
+		return 1;
+	else
+		return 0;
+}
+
+static void print_addr(void *addr) {
+	printf("Memory address: 0x");
+	for(size_t i = sizeof(addr); i > 0; --i) {
+		uint8_t *addr_ptr = (uint8_t*)&addr;
+		printf("%02x", addr_ptr[i - 1]);
+	}
+}
+
+static void handle_find(struct memory_allocation *alloc_rreil) {
+	print_addr(alloc_rreil->address);
+
+	if(alloc_rreil->data_size > 1)
+		printf(" (+ the %zu follwing)", alloc_rreil->data_size - 1);
+
+	printf("\n");
 }
 
 char context_compare_print(struct tracking_trace *trace,
@@ -258,19 +295,12 @@ char context_compare_print(struct tracking_trace *trace,
 
 	printf("Failing Registers:\n");
 	char found = 0;
-	void reg_found(enum x86_id reg) {
-		if(found)
-			printf(", ");
-
-		x86_id_print(stdout, reg);
-		found = 1;
-	}
 
 	if(test_unused)
-		context_compare_registers_all(context_cpu, context_rreil, &reg_found);
+		context_compare_registers_all(context_cpu, context_rreil, &reg_found, &found);
 	else
 		context_compare_registers_using_trace(trace, context_cpu, context_rreil,
-				&reg_found);
+				&reg_found, &found);
 
 	if(!found)
 		printf("None\n");
@@ -321,18 +351,6 @@ char context_compare_print(struct tracking_trace *trace,
 //		}
 //	}
 
-	int allocation_compare(__const void *a, __const void *b) {
-		struct memory_allocation *a_ = (struct memory_allocation*)a;
-		struct memory_allocation *b_ = (struct memory_allocation*)b;
-
-		if(a_->address < b_->address)
-			return -1;
-		else if(a_->address > b_->address)
-			return 1;
-		else
-			return 0;
-	}
-
 	qsort(context_cpu->memory.allocations, context_cpu->memory.allocations_length,
 			sizeof(struct memory_allocation), &allocation_compare);
 	qsort(context_rreil->memory.allocations,
@@ -344,25 +362,6 @@ char context_compare_print(struct tracking_trace *trace,
 		struct memory_allocation *alloc_rreil =
 				&context_rreil->memory.allocations[i];
 
-		void print_addr(void *addr) {
-			printf("Memory address: 0x");
-			for(size_t i = sizeof(addr); i > 0; --i) {
-				uint8_t *addr_ptr = (uint8_t*)&addr;
-				printf("%02x", addr_ptr[i - 1]);
-			}
-
-			found = 1;
-		}
-
-		void handle_find() {
-			print_addr(alloc_rreil->address);
-
-			if(alloc_rreil->data_size > 1)
-				printf(" (+ the %zu follwing)", alloc_rreil->data_size - 1);
-
-			printf("\n");
-		}
-
 		struct memory_allocation *alloc_cpu = NULL;
 		for(; j < context_cpu->memory.allocations_length; ++j) {
 			alloc_cpu = &context_cpu->memory.allocations[j];
@@ -370,15 +369,18 @@ char context_compare_print(struct tracking_trace *trace,
 				break;
 		}
 
-		if(!alloc_cpu || alloc_cpu->address != alloc_rreil->address)
-			handle_find();
-		else {
-			if(alloc_cpu->data_size != alloc_rreil->data_size)
-				handle_find();
-			else {
+		if(!alloc_cpu || alloc_cpu->address != alloc_rreil->address) {
+			handle_find(alloc_rreil);
+			found = 1;
+		} else {
+			if(alloc_cpu->data_size != alloc_rreil->data_size) {
+				handle_find(alloc_rreil);
+				found = 1;
+			} else {
 				for(size_t k = 0; k < alloc_rreil->data_size; ++k)
 					if(alloc_rreil->data[k] != alloc_cpu->data[k]) {
 						print_addr(alloc_rreil->address + k);
+						found = 1;
 						printf("\n");
 					}
 			}

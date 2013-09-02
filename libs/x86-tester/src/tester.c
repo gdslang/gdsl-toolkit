@@ -28,8 +28,7 @@
 #include <executor.h>
 #include <tester.h>
 
-static void tester_register_fill(struct context *context, enum x86_id reg,
-		void (*filler)(uint8_t *, size_t)) {
+static void tester_register_fill(struct context *context, enum x86_id reg, void (*filler)(uint8_t *, size_t)) {
 	size_t length = x86_amd64_sizeof(reg);
 	uint8_t *buffer = (uint8_t*)malloc(length / 8 + 1);
 	filler(buffer, length);
@@ -44,8 +43,8 @@ static void tester_register_fill(struct context *context, enum x86_id reg,
 	context_data_clear(&data);
 }
 
-static void tester_access_init(struct context *context,
-		struct register_access *access, void (*filler)(uint8_t *, size_t)) {
+static void tester_access_init(struct context *context, struct register_access *access,
+		void (*filler)(uint8_t *, size_t)) {
 	for(size_t i = 0; i < access->x86_indices_length; ++i) {
 		size_t index = access->x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
@@ -54,36 +53,35 @@ static void tester_access_init(struct context *context,
 	}
 }
 
-static void registers_x86_rreil_init(struct context *context_rreil,
-		struct tracking_trace *trace, char test_unused) {
-	void zero_buffer(uint8_t *data, size_t bit_length) {
-		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-			data[i] = 0;
+static void zero_buffer(uint8_t *data, size_t bit_length) {
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+		data[i] = 0;
+}
+
+static void rand_buffer(uint8_t *data, size_t bit_length) {
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+		data[i] = rand() * (rand() > RAND_MAX / 4);
+}
+
+static void rand_address_buffer(uint8_t *data, size_t bit_length) {
+	if(bit_length != 64) {
+		rand_buffer(data, bit_length);
+		return;
 	}
 
-	void rand_buffer(uint8_t *data, size_t bit_length) {
-		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
-			data[i] = rand() * (rand() > RAND_MAX / 4);
-	}
-
-	void rand_address_buffer(uint8_t *data, size_t bit_length) {
-		if(bit_length != 64) {
-			rand_buffer(data, bit_length);
-			return;
-		}
-
-		for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
-			if(!i)
-				data[i] = rand() & 0xf0;
-			else if(i < 5)
-				data[i] = rand();
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
+		if(!i)
+			data[i] = rand() & 0xf0;
+		else if(i < 5)
+			data[i] = rand();
 //			else if(i == 6)
 //				data[i] = 0x7f;
-			else
-				data[i] = 0;
-		}
+		else
+			data[i] = 0;
 	}
+}
 
+static void registers_x86_rreil_init(struct context *context_rreil, struct tracking_trace *trace, char test_unused) {
 	void (*rand)(uint8_t*, size_t);
 	if(trace->mem.used)
 		rand = &rand_address_buffer;
@@ -104,23 +102,54 @@ static void registers_x86_rreil_init(struct context *context_rreil,
 	executor_rflags_clean(context_rreil);
 }
 
-static void ip_set(struct context *context_rreil, struct context *context_cpu,
-		void *next_instruction_address) {
+static void ip_set(struct context *context_rreil, struct context *context_cpu, void *next_instruction_address) {
 	struct data insn_address;
 	insn_address.data = (uint8_t*)&next_instruction_address;
 	insn_address.bit_length = sizeof(next_instruction_address) * 8;
 	context_data_define(&insn_address);
 
-	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP],
-			insn_address, 0);
-	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP],
-			insn_address, 0);
+	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP], insn_address, 0);
+	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP], insn_address, 0);
 
 	free(insn_address.defined);
 }
 
-struct tester_result tester_test_translated(struct rreil_statements *statements,
-		uint8_t *instruction, size_t instruction_length, char test_unused) {
+struct context_callback_closure {
+	struct context *context_cpu;
+	struct context *context_rreil;
+	struct tracking_trace *trace;
+};
+
+void load(void *closure, uint8_t **buffer, uint8_t *address, uint64_t address_size, uint64_t access_size) {
+	struct context_callback_closure *cls = (struct context_callback_closure*)closure;
+
+	uint8_t *source = (uint8_t*)malloc(access_size / 8);
+	for(size_t i = 0; i < access_size / 8; ++i)
+		source[i] = rand();
+	memory_load(cls->context_rreil, buffer, address, address_size, access_size, source);
+	memory_load(cls->context_cpu, buffer, address, address_size, access_size, source);
+	free(source);
+}
+
+void store(void *closure, uint8_t *buffer, uint8_t *address, uint64_t address_size, uint64_t access_size) {
+	struct context_callback_closure *cls = (struct context_callback_closure*)closure;
+
+	memory_store(cls->context_rreil, buffer, address, address_size, access_size);
+	struct memory_access access;
+	access.address = memory_ptr_get(address, address_size);
+	access.data_size = access_size / 8;
+	tracking_trace_memory_write_add(cls->trace, access);
+}
+
+void jump(void *closure, uint8_t *address, uint64_t address_size) {
+	struct context_callback_closure *cls = (struct context_callback_closure*)closure;
+
+	memory_jump(cls->context_rreil, address, address_size);
+	memory_jump(cls->context_cpu, address, address_size);
+}
+
+struct tester_result tester_test_translated(struct rreil_statements *statements, uint8_t *instruction,
+		size_t instruction_length, char test_unused) {
 	struct tester_result result;
 	result.type = TESTER_RTYPE_SUCCESS;
 
@@ -130,36 +159,16 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	struct context *context_rreil;
 	struct tracking_trace *trace = tracking_trace_init();
 
-	void load(uint8_t **buffer, uint8_t *address, uint64_t address_size,
-			uint64_t access_size) {
-		uint8_t *source = (uint8_t*)malloc(access_size / 8);
-		for(size_t i = 0; i < access_size / 8; ++i)
-			source[i] = rand();
-		memory_load(context_rreil, buffer, address, address_size, access_size,
-				source);
-		memory_load(context_cpu, buffer, address, address_size, access_size,
-				source);
-		free(source);
-	}
-	void store(uint8_t *buffer, uint8_t *address, uint64_t address_size,
-			uint64_t access_size) {
-		memory_store(context_rreil, buffer, address, address_size, access_size);
-		struct memory_access access;
-		access.address = memory_ptr_get(address, address_size);
-		access.data_size = access_size / 8;
-		tracking_trace_memory_write_add(trace, access);
-	}
-	void jump(uint8_t *address, uint64_t address_size) {
-		memory_jump(context_rreil, address, address_size);
-		memory_jump(context_cpu, address, address_size);
-	}
+	struct context_callback_closure cls;
+	cls.context_cpu = context_cpu;
+	cls.context_rreil = context_rreil;
+	cls.trace = trace;
 
-	context_rreil = context_init(&load, &store, &jump);
+	context_rreil = context_init(&load, &store, &jump, &cls);
 
 	tracking_statements_trace(trace, statements);
 
-	if(!trace->reg.dereferenced.x86_indices_length
-			&& !trace->reg.read.x86_indices_length
+	if(!trace->reg.dereferenced.x86_indices_length && !trace->reg.read.x86_indices_length
 			&& !trace->reg.written.x86_indices_length && !trace->mem.used) {
 		printf("Instruction without any effects, aborting...\n");
 		goto cu_b;
@@ -174,25 +183,23 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 
 	void *code;
 	void *next_instruction_address;
-	struct tbgen_result tbgen_result = executor_instruction_mapped_generate(
-			instruction, instruction_length, trace, context_cpu, &code,
-			&next_instruction_address, test_unused);
+	struct tbgen_result tbgen_result = executor_instruction_mapped_generate(instruction, instruction_length, trace,
+			context_cpu, &code, &next_instruction_address, test_unused);
 
 	ip_set(context_rreil, context_cpu, next_instruction_address);
 
 	printf("------------------\n");
 	context_x86_print(context_rreil);
 
-	enum simulator_error simulation_error = simulator_statements_simulate(
-			context_rreil, statements);
+	enum simulator_error simulation_error = simulator_statements_simulate(context_rreil, statements);
 	if(simulation_error != SIMULATOR_ERROR_NONE) {
 		result.type = TESTER_RTYPE_SIMULATION_ERROR;
 		result.simulator_error = simulation_error;
 		goto cu_a;
 	}
 
-	struct execution_result execution_result = executor_instruction_execute(
-			instruction, instruction_length, trace, context_cpu, code, tbgen_result);
+	struct execution_result execution_result = executor_instruction_execute(instruction, instruction_length, trace,
+			context_cpu, code, tbgen_result);
 	if(execution_result.type != EXECUTION_RTYPE_SUCCESS) {
 		result.type = TESTER_RTYPE_EXECUTION_ERROR;
 		result.execution_result = execution_result;
@@ -209,8 +216,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 
 	printf("------------------\n");
 //	if(!retval) {
-	char retval = context_compare_print(trace, context_cpu, context_rreil,
-			test_unused);
+	char retval = context_compare_print(trace, context_cpu, context_rreil, test_unused);
 	if(retval)
 		result.type = TESTER_RTYPE_COMPARISON_ERROR;
 //	} else
@@ -233,34 +239,30 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	return result;
 }
 
-static struct tester_result tester_forked_test_translated(char fork_,
-		struct rreil_statements *statements, uint8_t *instruction,
-		size_t instruction_length, char test_unused) {
+static struct tester_result tester_forked_test_translated(char fork_, struct rreil_statements *statements,
+		uint8_t *instruction, size_t instruction_length, char test_unused) {
 	struct tester_result result;
 	if(fork_) {
-		struct tester_result *translated_result = mmap(NULL,
-				sizeof(enum tester_result_type), PROT_READ | PROT_WRITE,
-				MAP_SHARED | MAP_ANONYMOUS, 0, 0);
+		struct tester_result *translated_result = mmap(NULL, sizeof(enum tester_result_type), PROT_READ | PROT_WRITE,
+		MAP_SHARED | MAP_ANONYMOUS, 0, 0);
 		translated_result->type = TESTER_RTYPE_CRASH;
 
 		pid_t pid = fork();
 		if(!pid) {
-			*translated_result = tester_test_translated(statements, instruction,
-					instruction_length, test_unused);
+			*translated_result = tester_test_translated(statements, instruction, instruction_length, test_unused);
 			exit(0);
 		} else
 			waitpid(pid, NULL, 0);
 		result = *translated_result;
 		munmap(translated_result, sizeof(enum tester_result_type));
 	} else
-		result = tester_test_translated(statements, instruction, instruction_length,
-				test_unused);
+		result = tester_test_translated(statements, instruction, instruction_length, test_unused);
 
 	return result;
 }
 
-struct tester_result tester_test_binary(void (*name)(char *), char fork_,
-		uint8_t *data, size_t data_size, char test_unused) {
+struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_t *data, size_t data_size,
+		char test_unused) {
 	struct tester_result result;
 	result.type = TESTER_RTYPE_SUCCESS;
 
@@ -314,12 +316,10 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_,
 	}
 
 	struct gdrr_config *config = rreil_gdrr_builder_config_get(state);
-	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(
-			rreil, config);
+	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(rreil, config);
 	free(config);
 
-	result = tester_forked_test_translated(fork_, statements, data, data_size,
-			test_unused);
+	result = tester_forked_test_translated(fork_, statements, data, data_size, test_unused);
 
 	rreil_statements_free(statements);
 

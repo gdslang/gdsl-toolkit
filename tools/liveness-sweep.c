@@ -418,8 +418,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(print && mode == MODE_CHILDREN)
 			print_succs(state, translated, size);
 
-		int_t native_instruction_count = gdsl_select_ins_count(state,
-				gdsl_state_get(state));
+		int_t native_instruction_count = gdsl_select_ins_count(state);
 		context->native_instructions += native_instruction_count;
 
 		//printf("%x\n", buffer[consumed]);
