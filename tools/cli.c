@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
 		fatal("decode failed");
 	obj_t insn = gdsl_decode(state);
 
-	string_t fmt = gdsl_pretty(state, insn);
+	string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 	puts(fmt);
 
 	printf("---------------------------\n");
@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
 	obj_t rreil = gdsl_translate(state, insn);
 
-	fmt = gdsl_rreil_pretty(state, rreil);
+	fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 	puts(fmt);
 
 	gdsl_destroy(state);

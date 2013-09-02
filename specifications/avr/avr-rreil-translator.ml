@@ -1,7 +1,26 @@
 export = translate
 
 val sem-adc bo = do
-return void
+  rd <- rval Unsigned bo.first;
+  rr <- rval Unsigned bo.second;
+	size <- return (sizeof bo.first);
+
+	r <- mktemp;
+	add size r rd rr;
+
+	cf <- return fCF;
+	t <- mktemp;
+	movzx size t 1 (var cf);
+	add size r (var r) (var t);
+
+  emit-flag-adc-h size rd (var r);
+  emit-flag-add-adc-v size rd rr (var r);
+  emit-flag-n size (var r);
+  emit-flag-z size (var r);
+  emit-flag-adc-c size rd (var r);
+	emit-flag-s;
+
+	write bo.first (var r)
 end
 
 val sem-adiw bo = do
@@ -12,7 +31,7 @@ val sem-adiw bo = do
 	r <- mktemp;
 	add size r rd rr;
 
-	emit-flag-add-v size rd rr (var r);
+	emit-flag-add-adc-v size rd rr (var r);
 	emit-flag-n size (var r);
 	emit-flag-z size (var r);
 	emit-flag-add-c size rd (var r);
@@ -38,7 +57,24 @@ val emit-flag-add-c sz rd r = do
   cmpltu sz cf r rd
 end
 
-val emit-flag-add-v sz rd rr r = do
+val emit-flag-adc-c sz rd r = do
+  cf <- return fCF;
+	_if (/d (var cf)) _then
+    cmpleu sz cf r rd
+	_else
+    cmpltu sz cf r rd
+end
+
+val emit-flag-adc-h sz rd r = do
+  cf <- return fCF;
+  hf <- return fHF;
+	_if (/d (var cf)) _then
+    cmpleu (divb sz 2) hf r rd
+	_else
+    cmpltu (divb sz 2) hf r rd
+end
+
+val emit-flag-add-adc-v sz rd rr r = do
   ov <- return fVF;
 	
 	t1 <- mktemp;
@@ -177,7 +213,7 @@ val semantics insn =
   | BRTS x: sem-undef-unop x
   | BRVC x: sem-undef-unop x
   | BRVS x: sem-undef-unop x
-  | BSET x: sem-undef-unop x
+#  | BSET x: sem-undef-unop x
   | BST x: sem-undef-binop x
   | CALL x: sem-undef-unop x
   | CBI x: sem-undef-binop x

@@ -523,14 +523,14 @@ int main(int argc, char** argv) {
 //	__obj state = __createState(blob, i, 0, 0);
 //	__obj insn = __runMonadicNoArg(__decode__, &state);
 
-	string_t fmt = gdsl_pretty(state, insn);
+	string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 	puts(fmt);
 
 	printf("---------------------------\n");
 
 	obj_t rreil = gdsl_translate(state, insn);
 
-	fmt = gdsl_rreil_pretty(state, rreil);
+	fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 	puts(fmt);
 
 	struct gdrr_config config;

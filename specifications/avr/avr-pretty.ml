@@ -27,14 +27,14 @@ val show/operand opnd =
 
 val show/operand/imm imm =
    case imm of
-      IMM3 x: showbitvec x
-    | IMM4 x: showbitvec x
-    | IMM6 x: showbitvec x
-    | IMM7 x: showbitvec x
-    | IMM8 x: showbitvec x
-    | IMM12 x: showbitvec x
-    | IMM16 x: showbitvec x
-    | IMM22 x: showbitvec x
+      IMM3 x: show-int (zx x)
+    | IMM4 x: show-int (zx x)
+    | IMM6 x: show-int (zx x)
+    | IMM7 x: show-int (zx x)
+    | IMM8 x: show-int (zx x)
+    | IMM12 x: show-int (zx x)
+    | IMM16 x: show-int (zx x)
+    | IMM22 x: show-int (zx x)
   end
 
 val show/instruction i =

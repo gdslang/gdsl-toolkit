@@ -214,10 +214,10 @@ void print_succs(state_t state, obj_t translated, size_t size) {
 //		}
 //	}
 
-	string_t r = gdsl_succ_pretty(state, succ_a, "a");
+	string_t r = gdsl_merge_rope(state, gdsl_succ_pretty(state, succ_a, "a"));
 	printf("%s", r);
 
-	r = gdsl_succ_pretty(state, succ_b, "b");
+	r = gdsl_merge_rope(state, gdsl_succ_pretty(state, succ_b, "b"));
 	printf("%s", r);
 
 //	print_succ(succ_a, "a");
@@ -426,7 +426,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(print)
 			printf("Initial RREIL instructions:\n");
 		//__pretty(__rreil_pretty__, rreil_insns, fmt, size);
-		string_t fmt = gdsl_rreil_pretty(state, rreil_insns);
+		string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_insns));
 		if(print) {
 			puts(fmt);
 			printf("\n");
@@ -480,7 +480,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(print && mode == MODE_CHILDREN) {
 			obj_t initial_state = gdsl_select_initial(state, lv_result);
 			printf("Liveness initial state:\n");
-			fmt = gdsl_lv_pretty(state, initial_state);
+			fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, initial_state));
 			puts(fmt);
 			printf("\n");
 		}
@@ -499,7 +499,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		}
 		if(print) {
 			printf("Liveness greedy state:\n");
-			fmt = gdsl_lv_pretty(state, greedy_state);
+			fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, greedy_state));
 			puts(fmt);
 			printf("\n");
 		}
@@ -507,7 +507,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 		if(cleanup) {
 			if(print) {
 				printf("RREIL instructions after LV (greedy), before cleanup:\n");
-				fmt = gdsl_rreil_pretty(state, rreil_instructions_greedy);
+				fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_instructions_greedy));
 				puts(fmt);
 				printf("\n");
 			}
@@ -517,7 +517,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup,
 
 		if(print)
 			printf("RREIL instructions after LV (greedy):\n");
-		fmt = gdsl_rreil_pretty(state, rreil_instructions_greedy);
+		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_instructions_greedy));
 		if(print) {
 			puts(fmt);
 			printf("\n");

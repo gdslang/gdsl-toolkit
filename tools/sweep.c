@@ -59,7 +59,7 @@ int main(int argc, char** argv) {
 			fatal("Decode failed");
 		obj_t insn = gdsl_decode(state);
 
-		string_t fmt = gdsl_pretty(state, insn);
+		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);
 
 		printf("---------------------------\n");
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 //		__obj r = __runMonadicOneArg(__translate__, &state, insn);
 		//__obj r = __translate(__translate__,insn);
 
-		fmt = gdsl_rreil_pretty(state, rreil);
+		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 		puts(fmt);
 
 		gdsl_reset_heap(state);
