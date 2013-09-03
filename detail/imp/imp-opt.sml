@@ -825,7 +825,7 @@ structure TypeRefinement = struct
                ()
             end
          val _ = app showSymBinding syms
-         (*val _ = app showFieldBinding (SymMap.listItemsi (!ft))*)
+         val _ = app showFieldBinding (SymMap.listItemsi (!ft))
       in
          ()
       end
@@ -1042,8 +1042,22 @@ structure TypeRefinement = struct
    and visitExp s (IDexp sym) = symType s sym
      | visitExp s (PRIexp (SLICEprim,t,es as [vec,ofs,LITexp (INTvtype, INTlit sz)])) =
          visitCall s (FUNstype (BITstype (CONSTstype (IntInf.toInt sz)), VOIDstype, [INTstype, INTstype, INTstype]), es)
-     | visitExp s (PRIexp (GET_CON_ARGprim,t, es as [IDexp arg,_])) =
+     | visitExp s (PRIexp (CONCAT_VECprim,t,[vec1,vec2])) =
+      let
+         val tySize1 = freshTVar s
+         val tySize2 = freshTVar s
+         val _ = lub (s,visitExp s vec1, BITstype (tySize1))
+         val _ = lub (s,visitExp s vec2, BITstype (tySize2))
+      in   
+         BITstype (
+            case (inlineSType s tySize1, inlineSType s tySize2) of
+               (CONSTstype s1, CONSTstype s2) => CONSTstype (s1+s2)
+               | _ => OBJstype
+            )
+      end
+     | visitExp s (PRIexp (GET_CON_ARGprim,t, es)) =
          let
+            val [IDexp arg,_] = es
             val (SOME decl) = SymMap.find (#origDecls (s : state), arg)
             val (CONdecl {
                     conArg = (t,sym),
