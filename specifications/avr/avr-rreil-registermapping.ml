@@ -7,13 +7,19 @@ val fHF = sem-reg-offset (semantic-register-of SREG) 5
 val fTF = sem-reg-offset (semantic-register-of SREG) 6
 val fIF = sem-reg-offset (semantic-register-of SREG) 7
 
+val f-at offset = sem-reg-offset (semantic-register-of SREG) offset
+
+val ip-get = return (semantic-register-of PC)
+
 val arch-show-id r =
   case r of
 	   Sem_ALL: "memory"
+	 | Sem_PC: "PC"
 	end
 
 type sem_id =
-	Sem_ALL
+	 Sem_ALL
+ | Sem_PC
 
 val sem-reg-offset r o = @{offset=r.offset + o}r
 
@@ -52,4 +58,5 @@ val semantic-register-of r =
    | R30: {id=Sem_ALL,offset=240,size=8}
    | R31: {id=Sem_ALL,offset=248,size=8}
    | SREG: {id=Sem_ALL,offset=760,size=8}
+   | PC: {id=Sem_PC,offset=0,size=16}
   end

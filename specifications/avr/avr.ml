@@ -761,6 +761,7 @@ type register =
 
 type register =
    SREG
+ | PC
 
 val register-from-bits bits =
  case bits of

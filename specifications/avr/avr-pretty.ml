@@ -185,6 +185,8 @@ val show/register r =
     | R29: "R29"
     | R30: "R30"
     | R31: "R31"
+		| SREG: "SREG"
+		| PC: "PC"
   end
 
 val show/io-register r =

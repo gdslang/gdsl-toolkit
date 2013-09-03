@@ -75,9 +75,9 @@ val sem-and-andi bo = do
 	write bo.first (var r)
 end
 
-val sem-asr bo = do
-  rd <- rval Unsigned bo.operand;
-  size <- return (sizeof bo.operand);
+val sem-asr uo = do
+  rd <- rval Unsigned uo.operand;
+  size <- return (sizeof uo.operand);
 
 	r <- mktemp;
 	shrs size r rd (imm 1);
@@ -91,21 +91,62 @@ val sem-asr bo = do
 	xorb 1 ov (var nf) (var cf);
 	emit-flag-s;
 
-	write bo.operand (var r)
+	write uo.operand (var r)
 end
 
 val sem-bclr flag = do
-	sreg <- return (semantic-register-of SREG);
+#	sreg <- return (semantic-register-of SREG);
 
 #	t <- mktemp;
 #	mov sreg.size t (imm 1);
 #	shl sreg.size t (var t) flag;
 #	xorb sreg.size t (var t) (imm 255);
 
-  mov 1 (sem-reg-offset sreg flag) (imm 0)
+  mov 1 (f-at flag) (imm 0)
 
 #	andb sreg.size sreg (var t);
 end
+
+val sem-bld bo = do
+  rd <- rval Unsigned bo.first;
+	b <- return (rval-uint bo.second);
+  size <- return (sizeof bo.first);
+
+  tf <- return fTF;
+#	a <- mktemp;
+#	movzx size a 1 tf;
+#	shl size a (var a) b
+#
+#	b <- mktemp;
+#	mov size b (imm -1);
+
+  t <- mktemp;
+	mov size t rd;
+
+  mov 1 (at-offset t b) (var tf);
+	
+	write bo.first (var t)
+end
+
+val sem-br uo sc flag = do
+  k <- rval Signed uo.operand;
+
+  cond <- sc (var (f-at flag));
+
+	pc <- ip-get;
+	
+	tgt-t <- mktemp;
+	add pc.size tgt-t (var pc) k;
+	add pc.size tgt-t (var tgt-t) (imm 1);
+
+  tgt-f <- mktemp;
+	add pc.size tgt-f (var pc) (imm 1);
+
+	cbranch cond (address pc.size (var tgt-t)) (address pc.size (var tgt-f))
+end
+
+val sem-brbc uo flag = sem-br uo /not flag
+val sem-brbs uo flag = sem-br uo /d flag
 
 val sem-bset flag = do
 	sreg <- return (semantic-register-of SREG);
@@ -264,6 +305,20 @@ in
 	end
 end
 
+val rval-uint x =
+  case x of
+	   IMM imm: case imm of
+	      IMM3 i: zx i
+	    | IMM4 i: zx i
+	    | IMM6 i: zx i
+	    | IMM7 i: zx i
+	    | IMM8 i: zx i
+	    | IMM12 i: zx i
+	    | IMM16 i: zx i
+	    | IMM22 i: zx i
+		 end
+	end
+
 val semantics insn =
  case insn of
     ADC x: sem-adc x
@@ -272,24 +327,24 @@ val semantics insn =
   | AND x: sem-and-andi x
   | ANDI x: sem-and-andi x
   | ASR x: sem-asr x
-  | BLD x: sem-undef-binop x
-  | BRCC x: sem-undef-unop x
-  | BRCS x: sem-undef-unop x
+  | BLD x: sem-bld x
+  | BRCC x: sem-brbc x 0
+  | BRCS x: sem-brbs x 0
   | BREAK: sem-unknown
-  | BREQ x: sem-undef-unop x
-  | BRGE x: sem-undef-unop x
-  | BRHC x: sem-undef-unop x
-  | BRHS x: sem-undef-unop x
-  | BRID x: sem-undef-unop x
-  | BRIE x: sem-undef-unop x
-  | BRLT x: sem-undef-unop x
-  | BRMI x: sem-undef-unop x
-  | BRNE x: sem-undef-unop x
-  | BRPL x: sem-undef-unop x
-  | BRTC x: sem-undef-unop x
-  | BRTS x: sem-undef-unop x
-  | BRVC x: sem-undef-unop x
-  | BRVS x: sem-undef-unop x
+  | BREQ x: sem-brbs x 1
+  | BRGE x: sem-brbc x 4
+  | BRHC x: sem-brbc x 5
+  | BRHS x: sem-brbs x 5
+  | BRID x: sem-brbc x 7
+  | BRIE x: sem-brbs x 7
+  | BRLT x: sem-brbs x 4
+  | BRMI x: sem-brbs x 2
+  | BRNE x: sem-brbc x 1
+  | BRPL x: sem-brbc x 2
+  | BRTC x: sem-brbc x 6
+  | BRTS x: sem-brbs x 6
+  | BRVC x: sem-brbc x 3
+  | BRVS x: sem-brbs x 3
 #  | BSET x: sem-undef-unop x
   | BST x: sem-undef-binop x
   | CALL x: sem-undef-unop x
