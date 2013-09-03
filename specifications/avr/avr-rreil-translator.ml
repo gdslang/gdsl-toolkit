@@ -148,10 +148,35 @@ end
 val sem-brbc uo flag = sem-br uo /not flag
 val sem-brbs uo flag = sem-br uo /d flag
 
+val sem-break = return void
+
 val sem-bset flag = do
 	sreg <- return (semantic-register-of SREG);
   mov 1 (sem-reg-offset sreg flag) (imm 1)
 end
+
+val sem-bst bo = do
+  rd <- rval Unsigned bo.first;
+	b <- return (rval-uint bo.second);
+  size <- return (sizeof bo.first);
+
+	t <- mktemp;
+	mov size t rd;
+
+  tf <- return fTF;
+	mov 1 tf (var (at-offset t b))
+end
+
+val sem-call uo = do
+  k <- rval Unsigned uo.operand;
+	size <- return (sizeof uo.operand);
+
+return void
+end
+
+#val push = do
+#return void
+#end
 
 val sem-undef-binop bo = do
 return void
@@ -330,7 +355,7 @@ val semantics insn =
   | BLD x: sem-bld x
   | BRCC x: sem-brbc x 0
   | BRCS x: sem-brbs x 0
-  | BREAK: sem-unknown
+  | BREAK: sem-break
   | BREQ x: sem-brbs x 1
   | BRGE x: sem-brbc x 4
   | BRHC x: sem-brbc x 5
@@ -346,7 +371,7 @@ val semantics insn =
   | BRVC x: sem-brbc x 3
   | BRVS x: sem-brbs x 3
 #  | BSET x: sem-undef-unop x
-  | BST x: sem-undef-binop x
+  | BST x: sem-bst x
   | CALL x: sem-undef-unop x
   | CBI x: sem-undef-binop x
   | CBR x: sem-undef-binop x
