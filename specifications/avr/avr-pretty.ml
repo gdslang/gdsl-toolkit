@@ -252,7 +252,7 @@ val show/io-register r =
     | IO58: "IO58"
     | IO59: "IO59"
     | IO60: "IO60"
-    | IO61: "IO61"
-    | IO62: "IO62"
-    | IO63: "IO63"
+    | SPL: "SPL"
+    | SPH: "SPH"
+    | SREG: "SREG"
    end

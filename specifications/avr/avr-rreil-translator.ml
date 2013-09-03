@@ -169,14 +169,31 @@ end
 
 val sem-call uo = do
   k <- rval Unsigned uo.operand;
-	size <- return (sizeof uo.operand);
 
-return void
+  pc <- ip-get;
+	t <- mktemp;
+	add pc.size t (var pc) (imm 2);
+
+	ps-push pc.size (var t);
+
+	call (address pc.size k)
 end
 
-#val push = do
-#return void
-#end
+val sem-cbi bo = do
+  return void
+end
+
+val ps-push size x = do
+  sp <- return (semantic-register-of SP);
+	store (address sp.size (var sp)) (lin size x);
+	sub sp.size sp (var sp) (imm (divb size 8))
+end
+
+val ps-pop size x = do
+  sp <- return (semantic-register-of SP);
+	add sp.size sp (var sp) (imm (divb size 8));
+	load size x sp.size (var sp)
+end
 
 val sem-undef-binop bo = do
 return void
@@ -372,7 +389,7 @@ val semantics insn =
   | BRVS x: sem-brbs x 3
 #  | BSET x: sem-undef-unop x
   | BST x: sem-bst x
-  | CALL x: sem-undef-unop x
+  | CALL x: sem-call x
   | CBI x: sem-undef-binop x
   | CBR x: sem-undef-binop x
   | CLC: sem-bclr 0

@@ -755,13 +755,13 @@ type register =
  | IO58
  | IO59
  | IO60
- | IO61
- | IO62
- | IO63
+ | SPL
+ | SPH
+ | SREG
 
 type register =
-   SREG
- | PC
+   PC
+ | SP
 
 val register-from-bits bits =
  case bits of
@@ -862,9 +862,9 @@ val io-register-from-bits bits =
   | '111010': IO58
   | '111011': IO59
   | '111100': IO60
-  | '111101': IO61
-  | '111110': IO62
-  | '111111': IO63
+  | '111101': SPL
+  | '111110': SPH
+  | '111111': SREG
  end
 
 val /X = return (REGHL {regh=R27,regl=R26})
