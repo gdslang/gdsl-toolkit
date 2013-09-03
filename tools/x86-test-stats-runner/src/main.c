@@ -48,24 +48,34 @@ struct feature_data {
 	size_t failed;
 };
 
+static struct hash_array *insn_types;
+static struct insn_data *insn_data = NULL;
+
+static void for_name(char *name) {
+	size_t name_length = strlen(name);
+	char *copy = (char*)malloc(name_length + 1);
+	memcpy(copy, name, name_length + 1);
+
+	ENTRY *e = hash_array_search_insert(insn_types, copy);
+
+	if(!e->data)
+		e->data = (struct insn_data*)calloc(sizeof(struct insn_data), 1);
+	else
+		free(copy);
+	insn_data = (struct insn_data*)e->data;
+}
+
+static void incf(struct tester_result *result, struct feature_data *features, size_t i) {
+	if(result->type == TESTER_RTYPE_SUCCESS)
+		features[i].success++;
+	else
+		features[i].failed++;
+}
+
 static char test_instruction(struct feature_data *features,
-		struct hash_array *insn_types, uint8_t *data, size_t data_size,
+		struct hash_array *insn_types_, uint8_t *data, size_t data_size,
 		char test_unused) {
-	struct insn_data *insn_data = NULL;
-
-	void for_name(char *name) {
-		size_t name_length = strlen(name);
-		char *copy = (char*)malloc(name_length + 1);
-		memcpy(copy, name, name_length + 1);
-
-		ENTRY *e = hash_array_search_insert(insn_types, copy);
-
-		if(!e->data)
-			e->data = (struct insn_data*)calloc(sizeof(struct insn_data), 1);
-		else
-			free(copy);
-		insn_data = (struct insn_data*)e->data;
-	}
+	insn_types = insn_types_;
 
 	struct tester_result result = tester_test_binary(&for_name, 1, data,
 			data_size, test_unused);
@@ -126,17 +136,12 @@ static char test_instruction(struct feature_data *features,
 		}
 
 		if(result.type != TESTER_RTYPE_DECODING_ERROR) { //Always true ;-)
-			void incf(size_t i) {
-				if(result.type == TESTER_RTYPE_SUCCESS)
-					features[i].success++;
-				else
-					features[i].failed++;
-			}
+
 			for(size_t i = 1; i < X86_FEATURES_COUNT; ++i)
 				if(result.features & (1 << (i - 1)))
-					incf(i);
+					incf(&result, features, i);
 			if(!result.features)
-				incf(0);
+				incf(&result, features, 0);
 		}
 		return 0;
 	} else

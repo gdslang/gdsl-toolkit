@@ -16,7 +16,7 @@ LIBS+=-lgdsl -lelf -lrt -lreadhex
 LIBFLAGS=$(LIBDS) $(LIBS)
 LDFLAGS=
 INCDS=-I../include
-CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 PROJECTS=
 EXECUTABLES=cli sweep cli-gdrr

@@ -6,12 +6,12 @@
 #include <gdsl.h>
 #include <sys/resource.h>
 
-int main(int argc, char** argv) {
-	void fatal(char *msg) {
-		fprintf(stderr, "%s", msg);
-		exit(1);
-	}
+static void fatal(char *msg) {
+	fprintf(stderr, "%s", msg);
+	exit(1);
+}
 
+int main(int argc, char** argv) {
 	const rlim_t kStackSize = 64L * 1024L * 1024L; // min stack size = 64 Mb
 	struct rlimit rl;
 	int result;

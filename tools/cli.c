@@ -6,12 +6,12 @@
 #include <readhex.h>
 #include <gdwrap.h>
 
-int main(int argc, char** argv) {
-	void fatal(char *msg) {
-		fprintf(stderr, "%s\n", msg);
-		exit(1);
-	}
+static void fatal(char *msg) {
+	fprintf(stderr, "%s\n", msg);
+	exit(1);
+}
 
+int main(int argc, char** argv) {
 	uint8_t *buffer;
 	size_t size = readhex_hex_read(stdin, &buffer);
 

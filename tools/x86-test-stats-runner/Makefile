@@ -6,7 +6,7 @@ LIBS=-lx86-tester -lgdrr -lgdwrap -lrreil -lx86-generator -lx86-generator -lutil
 LIBFLAGS=$(LIBDS) $(LIBS)
 LDFLAGS=
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -g3 -std=gnu99 -Wall -Wfatal-errors -DGDSL_X86 -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors -DGDSL_X86 -DRELAXEDFATAL $(INCDS)
 
 EXECUTABLE=x86-test-stats-runner
 SOURCES=main.c hash_array.c
