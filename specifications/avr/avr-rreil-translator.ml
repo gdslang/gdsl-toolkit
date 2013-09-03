@@ -180,7 +180,50 @@ val sem-call uo = do
 end
 
 val sem-cbi bo = do
-  return void
+  a <- rval Unsigned bo.first;
+	b <- return (rval-uint bo.second);
+  size <- return (sizeof bo.first);
+
+	t <- mktemp;
+	mov size t a;
+
+	mov 1 (at-offset t b) (imm 0);
+
+	write bo.first (var t)
+end
+
+val sem-com uo = do
+  rd <- rval Unsigned uo.operand;
+	size <- return (sizeof uo.operand);
+
+	t <- mktemp;
+	xorb size t rd (imm (0-1));
+
+	ov <- return fVF;
+	mov 1 ov (imm 0);
+	emit-flag-n size (var t);
+	emit-flag-z size (var t);
+	cf <- return fCF;
+	mov 1 cf (imm 1);
+	emit-flag-s;
+
+	write uo.operand (var t)
+end
+
+val sem-cp bo = do
+  rd <- rval Unsigned bo.first;
+	rr <- rval Unsigned bo.second;
+  size <- return (sizeof bo.first);
+
+	r <- mktemp;
+	sub size r rd rr;
+
+  emit-flag-sub-h size rd rr;
+	emit-flag-n size (var r);
+	emit-flag-sub-sbc-v size rd rr;
+	emit-flag-z size (var r);
+	emit-flag-sub-c size rd rr;
+	emit-flag-s
 end
 
 val ps-push size x = do
@@ -212,9 +255,19 @@ val emit-flag-add-c sz rd r = do
   cmpltu sz cf r rd
 end
 
-val emit-flag-add-h sz rd r = do
+val emit-flag-sub-c sz rd rr = do
   cf <- return fCF;
-  cmpltu (divb sz 2) cf r rd
+  cmpltu sz cf rd rr
+end
+
+val emit-flag-add-h sz rd r = do
+  hf <- return fHF;
+  cmpltu (divb sz 2) hf r rd
+end
+
+val emit-flag-sub-h sz rd rr = do
+  hf <- return fHF;
+  cmpltu (divb sz 2) hf rd rr
 end
 
 val emit-flag-adc-c sz rd r = do
@@ -247,6 +300,16 @@ val emit-flag-add-adc-v sz rd rr r = do
   cmplts sz ov (var t3) (imm 0)
 end
 
+val emit-flag-sub-sbc-v sz rd rr = do #requires n
+  ov <- return fVF;
+
+	lts <- mktemp;
+	cmplts sz lts rd rr;
+  nf <- return fNF;
+
+  xorb 1 ov (var lts) (var nf)
+end
+
 val emit-flag-n sz r = do
   nf <- return fNF;
 
@@ -259,7 +322,7 @@ val emit-flag-z sz r = do
 	cmpeq sz zf r (imm 0)
 end
 
-val emit-flag-s = do
+val emit-flag-s = do #requires n, v
   nf <- return fNF;
   ov <- return fVF;
   sf <- return fSF;
@@ -390,7 +453,7 @@ val semantics insn =
 #  | BSET x: sem-undef-unop x
   | BST x: sem-bst x
   | CALL x: sem-call x
-  | CBI x: sem-undef-binop x
+  | CBI x: sem-cbi x
   | CBR x: sem-undef-binop x
   | CLC: sem-bclr 0
   | CLH: sem-bclr 5
@@ -401,7 +464,7 @@ val semantics insn =
   | CLT: sem-bclr 6
   | CLV: sem-bclr 3
   | CLZ: sem-bclr 1
-  | COM x: sem-undef-unop x
+  | COM x: sem-com x
   | CP x: sem-undef-binop x
   | CPC x: sem-undef-binop x
   | CPI x: sem-undef-binop x
