@@ -1,7 +1,7 @@
 MLTK=.
 CC=gcc
 MLTON=mlton
-MLTONFLAGS=-default-ann 'warnUnused true'
+MLTONFLAGS=
 CFLAGS=-g3 -fPIC -Wall -Iinclude
 LFLAGS=-shared
 
