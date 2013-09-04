@@ -327,6 +327,17 @@ val sem-eijmp = do
 	jump (address addr-sz (var t))
 end
 
+val sem-elpm bo = do
+  size <- return (sizeof bo.first);
+	addr <- rval Unsigned bo.second;
+	addr-sz <- return (sizeof bo.second);
+
+  t <- mktemp;
+	load size t addr-sz addr;
+
+	write bo.first (var t)
+end
+
 val ps-push size x = do
   sp <- return (semantic-register-of SP);
 	store (address sp.size (var sp)) (lin size x);
@@ -456,6 +467,7 @@ val sizeof x =
   case x of
 	   REG r: 8
 	 | REGHL r: 16
+	 | REGIHL r: 24
 	 | IOREG i: 8
 	 | IMM imm: case imm of
 	      IMM3 i: 3
@@ -475,6 +487,12 @@ val write to from =
   case to of
 	   REG r: mov (sizeof to) (semantic-register-of r) from
 	 | REGHL r: mov (sizeof to) (@{size=16}(semantic-register-of r.regl)) from
+	 | REGIHL r: do
+	     t <- mktemp;
+			 mov (sizeof to) t from;
+		   mov 16 (@{size=16}(semantic-register-of r.reghl.regl)) (var t);
+			 mov 8 (semantic-register-of r.regi) (var (at-offset t 16))
+	   end
 	 | IOREG i: mov (sizeof to) (semantic-register-of i) from
   end
 
@@ -505,24 +523,37 @@ in
   case x of
 	   REG r: return (var (semantic-register-of r))
 	 | REGHL r: return (var (@{size=16}(semantic-register-of r.regl)))
+	 | REGIHL r: do
+		   high <- return (semantic-register-of r.regi);
+			 low <- return (@{size=16}(semantic-register-of r.reghl.regl));
+
+			 t <- mktemp;
+			 mov low.size t (var low);
+			 mov high.size (at-offset t low.size) (var high);
+
+			 return (var t)
+	   end
 	 | IOREG i: return (var (semantic-register-of i))
 	 | IMM i: return (from-imm sn i)
 	 | OPSE o: case o.se of
 	      NONE: rval sn o.op
 		  | _: do
-	        t <- mktemp;
 		      orval <- rval sn o.op;
 		      size <- return (sizeof o.op);
-		      case o.se of
-		         DECR: sub size t orval (imm 1)
-		       | _: mov size t orval
+	        t <- mktemp;
+		      j <- case o.se of
+		         DECR: do
+						   sub size t orval (imm 1);
+							 return (var t)
+						 end
+		       | INCR: do
+						   add size t orval (imm 1);
+							 return orval
+						 end
+		       | _: return (var t)
 		      end;
 		      write o.op (var t);
-		      case o.se of
-		         INCR: add size t orval (imm 1)
-		       | _: return void
-		      end;
-		      return (var t)
+		      return j
 	      end end
 		| OPDI o: return (SEM_LIN_ADD {opnd1=rval sn o.op, opnd2=from-imm sn o.imm})
 	end
@@ -591,7 +622,7 @@ val semantics insn =
   | DES x: sem-des x
   | EICALL: sem-eicall
   | EIJMP: sem-eijmp
-  | ELPM x: sem-undef-binop x
+  | ELPM x: sem-elpm x
   | EOR x: sem-undef-binop x
   | FMUL x: sem-undef-binop x
   | FMULS x: sem-undef-binop x

@@ -113,10 +113,10 @@ val semantic-register-of r =
    | IO53: {id=Sem_ALL,offset=680,size=8}
    | IO54: {id=Sem_ALL,offset=688,size=8}
    | IO55: {id=Sem_ALL,offset=696,size=8}
-   | IO56: {id=Sem_ALL,offset=704,size=8}
-   | IO57: {id=Sem_ALL,offset=712,size=8}
-   | IO58: {id=Sem_ALL,offset=720,size=8}
-   | IO59: {id=Sem_ALL,offset=728,size=8}
+   | RAMPD: {id=Sem_ALL,offset=704,size=8}
+   | RAMPX: {id=Sem_ALL,offset=712,size=8}
+   | RAMPY: {id=Sem_ALL,offset=720,size=8}
+   | RAMPZ: {id=Sem_ALL,offset=728,size=8}
    | EIND: {id=Sem_ALL,offset=736,size=8}
    | SPL: {id=Sem_ALL,offset=744,size=8}
    | SPH: {id=Sem_ALL,offset=752,size=8}

@@ -222,9 +222,9 @@ val / ['1001010000011001'] = nullop EIJMP
 
 ### ELPM
 ###  - Extended Load Program Memory
-val / ['1001010111011000'] = binop ELPM r0 (//Z NONE)
-val / ['1001000 d d d d d 0110'] = binop ELPM rd5 (//Z NONE)
-val / ['1001000 d d d d d 0111'] = binop ELPM rd5 (//Z INCR)
+val / ['1001010111011000'] = binop ELPM r0 (//RAMPZ-Z NONE)
+val / ['1001000 d d d d d 0110'] = binop ELPM rd5 (//RAMPZ-Z NONE)
+val / ['1001000 d d d d d 0111'] = binop ELPM rd5 (//RAMPZ-Z INCR)
 
 ### EOR
 ###  - Exclusive OR
@@ -536,9 +536,12 @@ type imm =
  | IMM16 of 16
  | IMM22 of 22
 
+type reghl = {regh:register,regl:register} 
+
 type operand =
    REG of register
- | REGHL of {regh:register,regl:register}
+ | REGHL of reghl
+ | REGIHL of {regi:register,reghl:reghl}
  | IOREG of register
  | IMM of imm
  | OPSE of {op:operand,se:side-effect}
@@ -750,10 +753,10 @@ type register =
  | IO53
  | IO54
  | IO55
- | IO56
- | IO57
- | IO58
- | IO59
+ | RAMPD
+ | RAMPX
+ | RAMPY
+ | RAMPZ
  | EIND
  | SPL
  | SPH
@@ -857,23 +860,28 @@ val io-register-from-bits bits =
   | '110101': IO53
   | '110110': IO54
   | '110111': IO55
-  | '111000': IO56
-  | '111001': IO57
-  | '111010': IO58
-  | '111011': IO59
+  | '111000': RAMPD
+  | '111001': RAMPX
+  | '111010': RAMPY
+  | '111011': RAMPZ
   | '111100': EIND
   | '111101': SPL
   | '111110': SPH
   | '111111': SREG
  end
 
+
 val rX = REGHL {regh=R27,regl=R26}
 val rY = REGHL {regh=R29,regl=R28}
 val rZ = REGHL {regh=R31,regl=R30}
 
+val rampz-z = REGIHL {regi=RAMPZ,reghl=case rZ of REGHL x: x end}
+
 val /X = return rX
 val /Y = return rY
 val /Z = return rZ
+
+val /RAMPZ-Z = return rampz-z
 
 val r0 = return (REG R0)
 
@@ -888,6 +896,10 @@ end
 val //Z se = do
  /Z <- /Z;
  return (OPSE {op=(/Z),se=se})
+end
+val //RAMPZ-Z se = do
+ /RAMPZ-Z <- /RAMPZ-Z;
+ return (OPSE {op=(/RAMPZ-Z),se=se})
 end
 
 val ///X imm = do
@@ -905,7 +917,6 @@ val ///Z imm = do
  imm <- imm;
  return (OPDI {op=(/Z),imm=imm})
 end
-
 
 val rd5 = do
  rd <- query $rd;
