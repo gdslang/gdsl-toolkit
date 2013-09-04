@@ -19,7 +19,8 @@ val show/operand opnd =
    case opnd of
       REG r: show/register r
     | REGHL r: show/register r.regh +++ "/" +++ show/register r.regl
-    | IOREG ior: show/io-register ior
+    | REGIHL r: show/register r.regi +++ "/" +++ show/register r.reghl.regh +++ "/" +++ show/register r.reghl.regl
+    | IOREG ior: show/register ior
     | IMM imm: show/operand/imm imm
     | OPSE op: show/operand op.op +++ show/side-effect op.se
     | OPDI op: show/operand op.op +++ "+" +++ show/operand/imm op.imm
@@ -185,13 +186,7 @@ val show/register r =
     | R29: "R29"
     | R30: "R30"
     | R31: "R31"
-		| SREG: "SREG"
-		| PC: "PC"
-  end
-
-val show/io-register r =
-   case r of
-      IO0 : "IO0"   
+    | IO0 : "IO0"   
     | IO1 : "IO1"
     | IO2 : "IO2"
     | IO3 : "IO3"
@@ -247,12 +242,13 @@ val show/io-register r =
     | IO53: "IO53"
     | IO54: "IO54"
     | IO55: "IO55"
-    | IO56: "IO56"
-    | IO57: "IO57"
-    | IO58: "IO58"
-    | IO59: "IO59"
+    | RAMPD: "RAMPD"
+    | RAMPX: "RAMPX"
+    | RAMPY: "RAMPY"
+    | RAMPZ: "RAMPZ"
     | EIND: "EIND"
     | SPL: "SPL"
     | SPH: "SPH"
     | SREG: "SREG"
+    | PC: "PC"
    end

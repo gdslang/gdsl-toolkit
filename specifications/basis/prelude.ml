@@ -119,7 +119,7 @@ val divb x y =
     | k:
        case y of
           1: k
-	      | k: 1
+#	      | k: 1
        end
   end
 ;
