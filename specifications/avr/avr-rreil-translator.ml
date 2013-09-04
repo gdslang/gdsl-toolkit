@@ -306,16 +306,31 @@ val sem-eicall = do
 	mov z.size t (var z);
 	mov eind.size (at-offset t z.size) (var eind);
 
-  addr-sz <- return (z.size + eind.size);
-	ps-push addr-sz (var t);
+	pc <- ip-get;
+  addr-sz <- return pc.size;
+	npc <- mktemp;
+	add pc.size npc (var pc) (imm 1);
 
+	ps-push addr-sz (var npc);
 	call (address addr-sz (var t))
+end
+
+val sem-eijmp = do
+  z <- return (semantic-comp-register-of rZ);
+	eind <- return (semantic-register-of EIND);
+
+	t <- mktemp;
+	mov z.size t (var z);
+	mov eind.size (at-offset t z.size) (var eind);
+
+  addr-sz <- return (semantic-register-of PC).size;
+	jump (address addr-sz (var t))
 end
 
 val ps-push size x = do
   sp <- return (semantic-register-of SP);
 	store (address sp.size (var sp)) (lin size x);
-	sub sp.size sp (var sp) (imm (divb size 8))
+	sub sp.size sp (var sp) (imm (divb-up size 8))
 end
 
 val ps-pop size x = do
@@ -575,7 +590,7 @@ val semantics insn =
   | DEC x: sem-dec x
   | DES x: sem-des x
   | EICALL: sem-eicall
-  | EIJMP: sem-unknown
+  | EIJMP: sem-eijmp
   | ELPM x: sem-undef-binop x
   | EOR x: sem-undef-binop x
   | FMUL x: sem-undef-binop x
