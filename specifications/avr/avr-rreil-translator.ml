@@ -438,6 +438,46 @@ val sem-inc uo = do
 	write uo.operand (var r)
 end
 
+val sem-jmp uo = do
+  k <- rval Unsigned uo.operand;
+	pc <- return (semantic-register-of PC);
+
+	jump (address pc.size k)
+end
+
+val sem-lac bo = do
+  z <- rval Unsigned bo.first;
+	ptrsz <- return (sizeof bo.first);
+	rd <- rval Unsigned bo.second;
+  size <- return (sizeof bo.second);
+
+	t <- mktemp;
+	xorb size t rd (imm (0-1));
+
+	zv <- mktemp;
+	load size zv ptrsz z;
+
+	andb size t (var t) (var zv);
+
+	store (address ptrsz z) (lin size (var t))
+end
+
+val sem-las bo = do
+  z <- rval Unsigned bo.first;
+	ptrsz <- return (sizeof bo.first);
+	rd <- rval Unsigned bo.second;
+  size <- return (sizeof bo.second);
+
+	zv <- mktemp;
+	load size zv ptrsz z;
+
+  r <- mktemp;
+	orb size r (var zv) rd;
+
+	store (address ptrsz z) (lin size (var r));
+	write bo.second (var zv)
+end
+
 val ps-push size x = do
   sp <- return (semantic-register-of SP);
 	store (address sp.size (var sp)) (lin size x);
@@ -731,9 +771,9 @@ val semantics insn =
   | IJMP: sem-ijmp
   | IN x: sem-in x
   | INC x: sem-inc x
-  | JMP x: sem-undef-unop x
-  | LAC x: sem-undef-binop x
-  | LAS x: sem-undef-binop x
+  | JMP x: sem-jmp x
+  | LAC x: sem-lac x
+  | LAS x: sem-las x
   | LAT x: sem-undef-binop x
   | LD x: sem-undef-binop x
   | LDI x: sem-undef-binop x
