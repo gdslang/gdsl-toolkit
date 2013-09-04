@@ -35,7 +35,6 @@
    | PLUS ("+")
    | MINUS ("-")
    | TIMES ("*")
-   | SLASH ("/")
    | TILDE ("~")
    | COMMA (",")
    | SEMI (";")
@@ -285,7 +284,7 @@ ApplyExp
       ( rhs=AtomicExp* => (mkApply(AtomicExp, rhs))) =>
          (mark PT.MARKexp (FULL_SPAN, exp))
    | "~" AtomicExp =>
-      (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Op.uminus}, [AtomicExp])))
+      (mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Op.minus}, [PT.LITexp (PT.INTlit 0), AtomicExp])))
    ;
 
 AtomicExp

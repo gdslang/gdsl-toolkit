@@ -24,8 +24,7 @@ structure Imp = struct
        | IPGETprim
        | SEEKprim
        | RSEEKprim
-       | INVOKEprim
-       | INVOKE_INTprim
+       | DIVprim
        | CONSUME8prim
        | CONSUME16prim
        | CONSUME32prim
@@ -62,8 +61,7 @@ structure Imp = struct
      | prim_info IPGETprim = { name = "idxget", prio = 0 }
      | prim_info SEEKprim = { name = "seek", prio = 0 }
      | prim_info RSEEKprim = { name = "rseek", prio = 0 }
-     | prim_info INVOKEprim = { name = "invoke", prio = 0 }
-     | prim_info INVOKE_INTprim = { name = "invoke_int", prio = 0 }
+     | prim_info DIVprim = { name = "/z", prio = 5 }
      | prim_info CONSUME8prim = { name = "__consume8", prio = 0 }
      | prim_info CONSUME16prim = { name = "__consume16", prio = 0 }
      | prim_info CONSUME32prim = { name = "__consume32", prio = 0 }

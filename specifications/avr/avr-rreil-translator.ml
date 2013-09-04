@@ -341,12 +341,12 @@ end
 val ps-push size x = do
   sp <- return (semantic-register-of SP);
 	store (address sp.size (var sp)) (lin size x);
-	sub sp.size sp (var sp) (imm (divb-up size 8))
+	sub sp.size sp (var sp) (imm (/p size 8))
 end
 
 val ps-pop size x = do
   sp <- return (semantic-register-of SP);
-	add sp.size sp (var sp) (imm (divb size 8));
+	add sp.size sp (var sp) (imm (/m size 8));
 	load size x sp.size (var sp)
 end
 
@@ -374,12 +374,12 @@ end
 
 val emit-flag-add-h sz rd r = do
   hf <- return fHF;
-  cmpltu (divb sz 2) hf r rd
+  cmpltu (/m sz 2) hf r rd
 end
 
 val emit-flag-sub-h sz rd rr = do
   hf <- return fHF;
-  cmpltu (divb sz 2) hf rd rr
+  cmpltu (/m sz 2) hf rd rr
 end
 
 val emit-flag-adc-c sz rd r = do
@@ -402,18 +402,18 @@ val emit-flag-adc-h sz rd r = do
   cf <- return fCF;
   hf <- return fHF;
 	_if (/d (var cf)) _then
-    cmpleu (divb sz 2) hf r rd
+    cmpleu (/m sz 2) hf r rd
 	_else
-    cmpltu (divb sz 2) hf r rd
+    cmpltu (/m sz 2) hf r rd
 end
 
 val emit-flag-sbc-h sz rd rr = do
   cf <- return fCF;
   hf <- return fHF;
 	_if (/d (var cf)) _then
-    cmpleu (divb sz 2) hf rd rr
+    cmpleu (/m sz 2) hf rd rr
 	_else
-    cmpltu (divb sz 2) hf rd rr
+    cmpltu (/m sz 2) hf rd rr
 end
 
 val emit-flag-add-adc-v sz rd rr r = do
