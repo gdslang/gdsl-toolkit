@@ -256,7 +256,8 @@ val sem-dec uo = do
 	sub size r rd sb;
 
 	emit-flag-n size (var r);
-	emit-flag-sub-sbc-v size rd sb;
+	ov <- return fVF;
+	cmpeq size ov rd (imm 0x80);
 	emit-flag-z size (var r);
 	emit-flag-s;
 
@@ -336,6 +337,105 @@ val sem-elpm bo = do
 	load size t addr-sz addr;
 
 	write bo.first (var t)
+end
+
+val sem-eor bo = do
+  rd <- rval Unsigned bo.first;
+  rr <- rval Unsigned bo.second;
+	size <- return (sizeof bo.first);
+
+	t <- mktemp;
+	xorb size t rd rr;
+
+	ov <- return fVF;
+	mov 1 ov (imm 0);
+	emit-flag-n size (var t);
+	emit-flag-z size (var t);
+	emit-flag-s;
+
+	write bo.first (var t)
+end
+
+val sem-fmul-fmuls exa exb bo = do
+  rd <- rval Unsigned bo.first;
+  rr <- rval Unsigned bo.second;
+	size <- return (sizeof bo.first);
+
+  rde <- mktemp;
+	exa (2*size) rde size rd;
+  rre <- mktemp;
+	exb (2*size) rre size rr;
+
+	r <- return (@{size=16}(semantic-register-of R0));
+	mul (2*size) r (var rde) (var rre);
+
+	cf <- return fCF;
+	cmplts (2*size) cf (var r) (imm 0);
+	emit-flag-z (2*size) (var r);
+
+	shl (2*size) r (var r) (imm 1)
+end
+
+val sem-fmul bo = sem-fmul-fmuls movzx movzx bo
+val sem-fmuls bo = sem-fmul-fmuls movsx movsx bo
+val sem-fmulsu bo = sem-fmul-fmuls movsx movzx bo
+
+val sem-icall = do
+  z <- return (semantic-comp-register-of rZ);
+  pc <- return (semantic-register-of PC);
+
+	t <- mktemp;
+	mov z.size t (var z);
+
+	if pc.size > z.size then
+	  mov (pc.size - z.size) (at-offset t z.size) (imm 0)
+	else
+	  return void
+	;
+
+  q <- mktemp;
+	add pc.size q (var pc) (imm 1);
+	ps-push pc.size (var q);
+
+	call (address pc.size (var t))
+end
+
+val sem-ijmp = do
+  z <- return (semantic-comp-register-of rZ);
+  pc <- return (semantic-register-of PC);
+
+	t <- mktemp;
+	mov z.size t (var z);
+
+	if pc.size > z.size then
+	  mov (pc.size - z.size) (at-offset t z.size) (imm 0)
+	else
+	  return void
+	;
+
+	jump (address pc.size (var t))
+end
+
+val sem-in bo = do
+  io <- rval Unsigned bo.second;
+	write bo.first io
+end
+
+val sem-inc uo = do
+  rd <- rval Unsigned uo.operand;
+	sb <- return (imm 1);
+  size <- return (sizeof uo.operand);
+  
+	r <- mktemp;
+	add size r rd sb;
+
+	emit-flag-n size (var r);
+	ov <- return fVF;
+	cmpeq size ov rd (imm 0x7f);
+	emit-flag-z size (var r);
+	emit-flag-s;
+
+	write uo.operand (var r)
 end
 
 val ps-push size x = do
@@ -623,14 +723,14 @@ val semantics insn =
   | EICALL: sem-eicall
   | EIJMP: sem-eijmp
   | ELPM x: sem-elpm x
-  | EOR x: sem-undef-binop x
-  | FMUL x: sem-undef-binop x
-  | FMULS x: sem-undef-binop x
-  | FMULSU x: sem-undef-binop x
-  | ICALL: sem-unknown
-  | IJMP: sem-unknown
-  | IN x: sem-undef-binop x
-  | INC x: sem-undef-unop x
+  | EOR x: sem-eor x
+  | FMUL x: sem-fmul x
+  | FMULS x: sem-fmuls x
+  | FMULSU x: sem-fmulsu x
+  | ICALL: sem-icall
+  | IJMP: sem-ijmp
+  | IN x: sem-in x
+  | INC x: sem-inc x
   | JMP x: sem-undef-unop x
   | LAC x: sem-undef-binop x
   | LAS x: sem-undef-binop x
