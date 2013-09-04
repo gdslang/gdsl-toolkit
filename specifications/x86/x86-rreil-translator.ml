@@ -699,7 +699,7 @@ val exp base e =
   end
 
 val vector-apply size element-size monad = do
-  limit <- return (divb size element-size);
+  limit <- return (/z size element-size);
 
   let
     val f i = do
