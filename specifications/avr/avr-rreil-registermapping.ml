@@ -117,10 +117,19 @@ val semantic-register-of r =
    | IO57: {id=Sem_ALL,offset=712,size=8}
    | IO58: {id=Sem_ALL,offset=720,size=8}
    | IO59: {id=Sem_ALL,offset=728,size=8}
-   | IO60: {id=Sem_ALL,offset=736,size=8}
+   | EIND: {id=Sem_ALL,offset=736,size=8}
    | SPL: {id=Sem_ALL,offset=744,size=8}
    | SPH: {id=Sem_ALL,offset=752,size=8}
    | SREG: {id=Sem_ALL,offset=760,size=8}
    | PC: {id=Sem_PC,offset=0,size=16}
    | SP: @{size=16}(semantic-register-of SPL)
+  end
+
+val semantic-comp-register-of r =
+  case r of
+     REGHL x: let
+	     val rs = semantic-register-of x.regl
+		 in
+		   @{size=rs.size + rs.size}rs
+		 end
   end

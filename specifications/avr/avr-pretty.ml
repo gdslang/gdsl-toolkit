@@ -251,7 +251,7 @@ val show/io-register r =
     | IO57: "IO57"
     | IO58: "IO58"
     | IO59: "IO59"
-    | IO60: "IO60"
+    | EIND: "EIND"
     | SPL: "SPL"
     | SPH: "SPH"
     | SREG: "SREG"

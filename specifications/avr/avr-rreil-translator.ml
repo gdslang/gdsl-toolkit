@@ -210,7 +210,7 @@ val sem-com uo = do
 	write uo.operand (var t)
 end
 
-val sem-cp bo = do
+val sem-cp-cpi bo = do
   rd <- rval Unsigned bo.first;
 	rr <- rval Unsigned bo.second;
   size <- return (sizeof bo.first);
@@ -224,6 +224,92 @@ val sem-cp bo = do
 	emit-flag-z size (var r);
 	emit-flag-sub-c size rd rr;
 	emit-flag-s
+end
+
+val sem-cpc bo = do
+  rd <- rval Unsigned bo.first;
+	rr <- rval Unsigned bo.second;
+  size <- return (sizeof bo.first);
+
+	r <- mktemp;
+	sub size r rd rr;
+
+  emit-flag-sbc-h size rd rr;
+	emit-flag-n size (var r);
+	emit-flag-sub-sbc-v size rd rr;
+	emit-flag-z size (var r);
+	emit-flag-sbc-c size rd rr;
+	emit-flag-s
+end
+
+val sem-cpse bo = do
+#:-(
+return void
+end
+
+val sem-dec uo = do
+  rd <- rval Unsigned uo.operand;
+	sb <- return (imm 1);
+  size <- return (sizeof uo.operand);
+  
+	r <- mktemp;
+	sub size r rd sb;
+
+	emit-flag-n size (var r);
+	emit-flag-sub-sbc-v size rd sb;
+	emit-flag-z size (var r);
+	emit-flag-s;
+
+	write uo.operand (var r)
+end
+
+val sem-des uo = do
+  r0 <- return (semantic-register-of R0);
+  undef r0.size r0;
+  r1 <- return (semantic-register-of R1);
+  undef r1.size r1;
+  r2 <- return (semantic-register-of R2);
+  undef r2.size r2;
+  r3 <- return (semantic-register-of R3);
+  undef r3.size r3;
+  r4 <- return (semantic-register-of R4);
+  undef r4.size r4;
+  r5 <- return (semantic-register-of R5);
+  undef r5.size r5;
+  r6 <- return (semantic-register-of R6);
+  undef r6.size r6;
+  r7 <- return (semantic-register-of R7);
+  undef r7.size r7;
+  r8 <- return (semantic-register-of R8);
+  undef r8.size r8;
+  r9 <- return (semantic-register-of R9);
+  undef r9.size r9;
+  r10 <- return (semantic-register-of R10);
+  undef r10.size r10;
+  r11 <- return (semantic-register-of R11);
+  undef r11.size r11;
+  r12 <- return (semantic-register-of R12);
+  undef r12.size r12;
+  r13 <- return (semantic-register-of R13);
+  undef r13.size r13;
+  r14 <- return (semantic-register-of R14);
+  undef r14.size r14;
+  r15 <- return (semantic-register-of R15);
+  undef r15.size r15
+end
+
+val sem-eicall = do
+  z <- return (semantic-comp-register-of rZ);
+	eind <- return (semantic-register-of EIND);
+
+	t <- mktemp;
+	mov z.size t (var z);
+	mov eind.size (at-offset t z.size) (var eind);
+
+  addr-sz <- return (z.size + eind.size);
+	ps-push addr-sz (var t);
+
+	call (address addr-sz (var t))
 end
 
 val ps-push size x = do
@@ -278,6 +364,14 @@ val emit-flag-adc-c sz rd r = do
     cmpltu sz cf r rd
 end
 
+val emit-flag-sbc-c sz rd rr = do
+  cf <- return fCF;
+	_if (/d (var cf)) _then
+    cmpleu sz cf rd rr
+	_else
+    cmpltu sz cf rd rr
+end
+
 val emit-flag-adc-h sz rd r = do
   cf <- return fCF;
   hf <- return fHF;
@@ -285,6 +379,15 @@ val emit-flag-adc-h sz rd r = do
     cmpleu (divb sz 2) hf r rd
 	_else
     cmpltu (divb sz 2) hf r rd
+end
+
+val emit-flag-sbc-h sz rd rr = do
+  cf <- return fCF;
+  hf <- return fHF;
+	_if (/d (var cf)) _then
+    cmpleu (divb sz 2) hf rd rr
+	_else
+    cmpltu (divb sz 2) hf rd rr
 end
 
 val emit-flag-add-adc-v sz rd rr r = do
@@ -465,13 +568,13 @@ val semantics insn =
   | CLV: sem-bclr 3
   | CLZ: sem-bclr 1
   | COM x: sem-com x
-  | CP x: sem-undef-binop x
-  | CPC x: sem-undef-binop x
-  | CPI x: sem-undef-binop x
-  | CPSE x: sem-undef-binop x
-  | DEC x: sem-undef-unop x
-  | DES x: sem-undef-unop x
-  | EICALL: sem-unknown
+  | CP x: sem-cp-cpi x
+  | CPC x: sem-cpc x
+  | CPI x: sem-cp-cpi x
+  | CPSE x: sem-cpse x
+  | DEC x: sem-dec x
+  | DES x: sem-des x
+  | EICALL: sem-eicall
   | EIJMP: sem-unknown
   | ELPM x: sem-undef-binop x
   | EOR x: sem-undef-binop x

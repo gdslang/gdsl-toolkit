@@ -754,7 +754,7 @@ type register =
  | IO57
  | IO58
  | IO59
- | IO60
+ | EIND
  | SPL
  | SPH
  | SREG
@@ -861,15 +861,19 @@ val io-register-from-bits bits =
   | '111001': IO57
   | '111010': IO58
   | '111011': IO59
-  | '111100': IO60
+  | '111100': EIND
   | '111101': SPL
   | '111110': SPH
   | '111111': SREG
  end
 
-val /X = return (REGHL {regh=R27,regl=R26})
-val /Y = return (REGHL {regh=R29,regl=R28})
-val /Z = return (REGHL {regh=R31,regl=R30})
+val rX = REGHL {regh=R27,regl=R26}
+val rY = REGHL {regh=R29,regl=R28}
+val rZ = REGHL {regh=R31,regl=R30}
+
+val /X = return rX
+val /Y = return rY
+val /Z = return rZ
 
 val r0 = return (REG R0)
 

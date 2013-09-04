@@ -67,6 +67,13 @@ val divb x y =
         | 8: 2
         | 16: 1
        end
+	 | 24:
+       case y of
+          1: 24
+        | 2: 12
+        | 4: 6
+        | 8: 3
+       end
    | 32:
        case y of
           1: 32
@@ -112,7 +119,7 @@ val divb x y =
     | k:
        case y of
           1: k
-	| k: 1
+	      | k: 1
        end
   end
 ;
