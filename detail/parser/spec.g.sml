@@ -18,7 +18,6 @@ SpecTokens = struct
       | SEMI
       | COMMA
       | TILDE
-      | SLASH
       | TIMES
       | MINUS
       | PLUS
@@ -53,7 +52,7 @@ SpecTokens = struct
       | KW_in
       | KW_case
 
-    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, SLASH, TIMES, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_or, KW_and, KW_type, KW_then, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_export, KW_do, KW_in, KW_case]
+    val allToks = [EOF, WILD, COLON, BAR, SEMI, COMMA, TILDE, TIMES, MINUS, PLUS, CONCAT, RCB, LCB, RB, LB, RP, LP, DOT, TICK, EQ, BIND, SELECT, WITH, KW_or, KW_and, KW_type, KW_then, KW_raise, KW_granularity, KW_of, KW_mod, KW_val, KW_let, KW_if, KW_end, KW_else, KW_export, KW_do, KW_in, KW_case]
 
     fun toString tok =
 (case (tok)
@@ -74,7 +73,6 @@ SpecTokens = struct
   | (SEMI) => ";"
   | (COMMA) => ","
   | (TILDE) => "~"
-  | (SLASH) => "/"
   | (TIMES) => "*"
   | (MINUS) => "-"
   | (PLUS) => "+"
@@ -128,7 +126,6 @@ SpecTokens = struct
   | (SEMI) => false
   | (COMMA) => false
   | (TILDE) => false
-  | (SLASH) => false
   | (TIMES) => false
   | (MINUS) => false
   | (PLUS) => false
@@ -395,7 +392,7 @@ fun ApplyExp_PROD_1_ACT (exp, AtomicExp, exp_SPAN : (Lex.pos * Lex.pos), AtomicE
          mark PT.MARKexp (FULL_SPAN, exp))
 fun ApplyExp_PROD_2_ACT (TILDE, AtomicExp, TILDE_SPAN : (Lex.pos * Lex.pos), AtomicExp_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   (
-      mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Op.uminus}, [AtomicExp])))
+      mark PT.MARKexp (FULL_SPAN, PT.APPLYexp (PT.IDexp {span={file= !sourcemap, span=FULL_SPAN}, tree=Op.minus}, [PT.LITexp (PT.INTlit 0), AtomicExp])))
 fun AtomicExp_PROD_1_ACT (Lit, Lit_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( mark PT.MARKexp (FULL_SPAN, PT.LITexp Lit))
 fun AtomicExp_PROD_2_ACT (STRING, STRING_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -542,10 +539,6 @@ fun matchCOMMA strm = (case (lex(strm))
 (* end case *))
 fun matchTILDE strm = (case (lex(strm))
  of (Tok.TILDE, span, strm') => ((), span, strm')
-  | _ => fail()
-(* end case *))
-fun matchSLASH strm = (case (lex(strm))
- of (Tok.SLASH, span, strm') => ((), span, strm')
   | _ => fail()
 (* end case *))
 fun matchTIMES strm = (case (lex(strm))
