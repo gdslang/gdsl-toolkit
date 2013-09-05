@@ -6,11 +6,6 @@
 #include <readhex.h>
 #include <gdwrap.h>
 
-static void fatal(char *msg) {
-	fprintf(stderr, "%s\n", msg);
-	exit(1);
-}
-
 int main(int argc, char** argv) {
 	uint8_t *buffer;
 	size_t size = readhex_hex_read(stdin, &buffer);
@@ -18,8 +13,10 @@ int main(int argc, char** argv) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, (char*)buffer, size, 0);
 
-	if(setjmp(*gdsl_err_tgt(state)))
-		fatal("decode failed");
+	if(setjmp(*gdsl_err_tgt(state))) {
+		fprintf(stderr, "decode failed: %s\n", gdsl_get_error_message(state));
+		exit(1);
+	}
 	obj_t insn = gdsl_decode(state);
 
 	string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
@@ -27,8 +24,10 @@ int main(int argc, char** argv) {
 
 	printf("---------------------------\n");
 
-	if(setjmp(*gdsl_err_tgt(state)))
-		fatal("translate failed");
+	if(setjmp(*gdsl_err_tgt(state))) {
+		fprintf(stderr, "translate failed: %s\n", gdsl_get_error_message(state));
+		exit(1);
+	}
 
 	obj_t rreil = gdsl_translate(state, insn);
 
