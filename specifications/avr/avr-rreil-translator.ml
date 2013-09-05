@@ -462,7 +462,7 @@ val sem-lac bo = do
 	store (address ptrsz z) (lin size (var t))
 end
 
-val sem-las bo = do
+val sem-las-lat bw bo = do
   z <- rval Unsigned bo.first;
 	ptrsz <- return (sizeof bo.first);
 	rd <- rval Unsigned bo.second;
@@ -472,10 +472,26 @@ val sem-las bo = do
 	load size zv ptrsz z;
 
   r <- mktemp;
-	orb size r (var zv) rd;
+	bw size r (var zv) rd;
 
 	store (address ptrsz z) (lin size (var r));
 	write bo.second (var zv)
+end
+
+val sem-las bo = sem-las-lat orb bo
+val sem-lat bo = sem-las-lat xorb bo
+
+val sem-ld-ldd bo = do
+  #Todo: undefined combinations
+
+	size <- return (sizeof bo.first);
+	ptr <- rval Unsigned bo.second;
+	ptrsz <- return (sizeof bo.second);
+
+	t <- mktemp;
+	load size t ptrsz ptr;
+
+	write bo.first (var t)
 end
 
 val ps-push size x = do
@@ -774,8 +790,8 @@ val semantics insn =
   | JMP x: sem-jmp x
   | LAC x: sem-lac x
   | LAS x: sem-las x
-  | LAT x: sem-undef-binop x
-  | LD x: sem-undef-binop x
+  | LAT x: sem-lat x
+  | LD x: sem-ld-ldd x
   | LDI x: sem-undef-binop x
   | LDS x: sem-undef-binop x
   | LPM x: sem-undef-binop x
