@@ -125,6 +125,8 @@ val semantic-register-of r =
    | SP: @{size=16}(semantic-register-of SPL)
   end
 
+val semantic-io-register addr = {id=Sem_ALL,offset=256 + 8*addr,size=8}
+
 val semantic-comp-register-of r =
   case r of
      REGHL x: let

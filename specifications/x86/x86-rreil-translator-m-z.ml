@@ -22,7 +22,7 @@ val sem-maskmov element-size x = do
     if is-load then
       element-size
     else
-      divb element-size 8
+      /z element-size 8
   );
 
   let
@@ -1227,7 +1227,7 @@ val sem-pmuludq-vpmuludq-opnd avx-encoded opnd1 opnd2 opnd3 = do
   s1-ex <- mktemp;
   s2-ex <- mktemp;
 
-  part-size <- return (divb element-size 2);
+  part-size <- return (/z element-size 2);
   let
     val m i = do
       offset <- return (element-size*i);
@@ -1304,7 +1304,7 @@ val sem-popa-popad x = do
   reg-sp <- return ESP;
   reg-sp-size <- sizeof1 (REG reg-sp);
   reg-sp-sem <- return (semantic-register-of reg-sp);
-  add reg-sp-size reg-sp-sem (var reg-sp-sem) (imm ((divb x.opnd-sz 16)*2));
+  add reg-sp-size reg-sp-sem (var reg-sp-sem) (imm ((/z x.opnd-sz 16)*2));
 
   reg-b <- return (register-by-size low B x.opnd-sz);
   reg-b-sem <- return (semantic-register-of reg-b);
@@ -1459,7 +1459,7 @@ val sem-pshufb-vpshufb-opnd avx-encoded opnd1 opnd2 opnd3 = do
       _if (/d (var (at-offset temp-scm (offset + 7)))) _then
         mov element-size (at-offset temp-dst offset) (imm 0)
       _else do
-        movzx size index (logb (divb size element-size)) (var (at-offset temp-scm offset));
+        movzx size index (logb (/z size element-size)) (var (at-offset temp-scm offset));
 	mul size index (var index) (imm element-size);
         shr size temp src (var index);
 	mov element-size (at-offset temp-dst offset) (var temp)
@@ -1715,7 +1715,7 @@ val sem-punpck-vpunpck-opnd avx-encoded use-high element-size opnd1 opnd2 opnd3 
   temp-src2 <- mktemp;
   mov size temp-src2 src2;
 
-  source-position <- return ((divb size 2)*use-high);
+  source-position <- return ((/z size 2)*use-high);
 
   temp-dst <- mktemp;
   let
