@@ -665,7 +665,8 @@ val sem-sub-carry wb bo = do
 	emit-flag-sub-sbc-v size rd rr;
 	emit-flag-z size (var r);
 	emit-flag-sbc-c size rd rr;
-	emit-flag-s;
+	sf <- fSF;
+  cmplts size sf rd rr;
 
   if wb then
     write bo.first (var r)
@@ -688,7 +689,8 @@ val sem-sub wb bo = do
 	emit-flag-sub-sbc-v size rd rr;
 	emit-flag-z size (var r);
 	emit-flag-sub-c size rd rr;
-	emit-flag-s;
+	sf <- fSF;
+  cmplts size sf rd rr;
 
   if wb then
     write bo.first (var r)
