@@ -461,7 +461,7 @@ val / ['1001010110001000'] = nullop SLEEP
 
 ### SPM
 ###  - Store Program Memory
-val / ['1001010111101000'] = unop SPM (//RAMPZ-Z (INCR 2))
+val / ['1001010111101000'] = unop SPM (//RAMPZ-Z NONE)
 val / ['1001010111111000'] = unop SPM (//RAMPZ-Z (INCR 2))
 
 ### ST

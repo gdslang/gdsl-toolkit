@@ -729,6 +729,50 @@ val sem-spm uo = do
   store (address ptrsz (var pmptr)) (lin r.size (var r))
 end
 
+val sem-st-std-sts bo = do
+  ptr <- rval Unsigned bo.first;
+  ptrsz <- return (sizeof bo.first);
+  rr <- rval Unsigned bo.second;
+  size <- return (sizeof bo.second);
+
+  store (address ptrsz ptr) (lin size rr)  
+end
+
+val sem-sub-subi bo = sem-sub '1' bo
+
+val sem-swap uo = do
+  rd <- rval Unsigned uo.operand;
+  size <- return (sizeof uo.operand);
+  csz <- return (/z size 2);
+
+  p <- mktemp;
+  mov size p rd;
+
+  r <- mktemp;
+  mov csz r (var (at-offset p csz));
+  mov csz (at-offset r csz) (var p);
+
+  write uo.operand (var r)
+end
+
+val sem-wdr = do
+  return void
+end
+
+val sem-xch bo = do
+  z <- rval Unsigned bo.first;
+  zsz <- return (sizeof bo.first);
+  rd <- rval Unsigned bo.second;
+  size <- return (sizeof bo.second);
+
+  t <- mktemp;
+  load size t zsz z;
+
+  store (address zsz z) (lin size rd);
+
+  write bo.second (var t)
+end
+
 val ps-push size x = do
   sp <- return (semantic-register-of SP);
 	store (address sp.size (var sp)) (lin size x);
@@ -1074,14 +1118,14 @@ val semantics insn =
   | SEZ: sem-bset 1
   | SLEEP: sem-sleep
   | SPM x: sem-spm x
-  | ST x: sem-undef-binop x
-  | STS x: sem-undef-binop x
-  | SUB x: sem-undef-binop x
-  | SUBI x: sem-undef-binop x
-  | SWAP x: sem-undef-unop x
-  | TST x: sem-undef-unop x
-  | WDR: sem-unknown
-  | XCH x: sem-undef-binop x
+  | ST x: sem-st-std-sts x
+  | STS x: sem-st-std-sts x
+  | SUB x: sem-sub-subi x
+  | SUBI x: sem-sub-subi x
+  | SWAP x: sem-swap x
+#  | TST x: sem-undef-unop x
+  | WDR: sem-wdr
+  | XCH x: sem-xch x
 end
 
 val translate insn = do
