@@ -192,8 +192,6 @@ end = struct
       type environment = scope list * constraints
       val initial : binding * SC.size_constraint_set -> environment
       val wrap : binding * environment -> environment
-      val wrapWithVars : binding * TVar.set * environment ->
-                         environment
       val unwrap : environment -> (binding * environment)
       val unwrapDifferent : environment * environment ->
             (binding * binding) option * environment * environment
@@ -333,13 +331,6 @@ end = struct
             boolVars = bvarsOfBinding (b, getCtxt state, prevBVars scs),
             version = nextVersion ()
          }::scs,state)
-      fun wrapWithVars (b, tVars, (scs, state)) =
-         ({
-            bindInfo = b,
-            typeVars = (*varsOfBinding (b, prevTVars scs)*)tVars,
-            boolVars = bvarsOfBinding (b, getCtxt state, prevBVars scs),
-            version = nextVersion ()
-         }::scs,state)
       fun unwrap ({bindInfo = bi, typeVars, boolVars, version} :: scs, state) =
             (bi, (scs, state))
         | unwrap ([], state) = raise InferenceBug
@@ -428,7 +419,7 @@ end = struct
             val bsStr = BD.setToString boolVars
          in
             ("ver=" ^ Int.toString(ver) ^
-             (*", bvars = " ^ bsStr ^  ", vars=" ^ vsStr ^ *)"\n", si)
+             ", bvars = " ^ bsStr ^  ", vars=" ^ vsStr ^ "\n", si)
          end
 
       fun toString ({bindInfo = bi, typeVars, boolVars, version}, si) =
@@ -555,7 +546,7 @@ end = struct
       end
    
    fun topToStringSI ((scs, state), si) =
-        toStringSI (((List.rev (List.drop (List.rev scs, 2))), state), si)
+        toStringSI (((List.rev (List.drop (List.rev scs, 1))), state), si)
 
    fun topToString env =
       let
@@ -882,8 +873,8 @@ end = struct
       | _ => raise InferenceBug
 
    fun pushSymbol (sym, span, recordUsage, createInstance, env) = (
-      (*if SOME (SymbolTable.toInt sym)=debugSymbol then
-         TextIO.print ("pushSymbol debug symbol:\n" ^ toString env) else ();*)
+      if SOME (SymbolTable.toInt sym)=debugSymbol then
+         TextIO.print ("pushSymbol debug symbol:\n" ^ toString env) else ();
       case Scope.lookup (sym,env) of
           (_, SIMPLE {ty = t}) =>
          let
@@ -946,6 +937,7 @@ end = struct
                       nested = nested}, cons)
                   | action _ = raise InferenceBug
                 val env = Scope.update (sym, action, env)
+                (*val _ = TextIO.print ("added usage for " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " with state " ^ #1 (TVar.setToString (Scope.getVars env,TVar.emptyShowInfo)) ^ "\n")*)
              in
                 Scope.wrap (KAPPA {ty = res}, env)
              end
@@ -1105,14 +1097,13 @@ end = struct
                                                         Scope.getVars env2))
          fun substBinding (KAPPA {ty=t}, newUses, ei) =
             (case applySubstsToExp substs (t,ei) of (t,ei) =>
-               (KAPPA {ty = t}, TVar.empty, newUses, ei))
+               (KAPPA {ty = t}, newUses, ei))
            | substBinding (SINGLE {name = n, ty = t}, newUses, ei) =
             (case applySubstsToExp substs (t,ei) of (t,ei) =>
-               (SINGLE {name = n, ty = t}, TVar.empty, newUses, ei))
+               (SINGLE {name = n, ty = t}, newUses, ei))
            | substBinding (GROUP bs, newUses, ei) =
                let
                   val eiRef = ref ei
-                  val varSet = ref TVar.empty
                   val usesRef = ref newUses
                   fun optSubst (SOME t) =
                      (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
@@ -1133,21 +1124,18 @@ end = struct
                         | SOME nUs =>
                            let
                               val _ = usesRef := #1 (SymMap.remove (!usesRef,n))
-                              val _ = varSet :=
-                                 List.foldl (fn ((_,(_,t)),set) =>
-                                             texpVarset (t,set)) (!varSet) nUs
                            in
                               List.foldl SpanMap.insert' us nUs
                            end),
                       nested = List.map (fn b =>
                         case substBinding (b, !usesRef, !eiRef) of
-                           (b, _, us, ei) =>
+                           (b, us, ei) =>
                               (usesRef := us
                               ;eiRef := ei
                               ;b)) ns
                      }
                in
-                  (GROUP (List.map substB bs), !varSet, !usesRef, !eiRef)
+                  (GROUP (List.map substB bs), !usesRef, !eiRef)
                end
          fun genImpl (t1,t2) ((contra1,f1), (contra2,f2),bFun) =
             if contra1<>contra2 then
@@ -1260,15 +1248,13 @@ end = struct
                val curVars = Scope.getVars env1
                val (b1, env1) = Scope.unwrap env1
                val (b2, env2) = Scope.unwrap env2
-               val (b1', extraVars, newUses1, ei) = substBinding (b1, newUses1, ei)
-               val (b2', _,         newUses2, ei) = substBinding (b2, newUses2, ei)
+               val (b1', newUses1, ei) = substBinding (b1, newUses1, ei)
+               val (b2', newUses2, ei) = substBinding (b2, newUses2, ei)
                val (b,bFun) = uniteFlowInfo (b1', b2', bFun)
                val (ei, bFun, env) =
                      applySubsts (substs, ei, bFun, false, newUses1, newUses2, env1, env2)
-               val newVars =
-                     applySubstsToVarset (substs, TVar.union (extraVars, curVars))
             in
-               (ei, bFun, Scope.wrapWithVars (b, newVars, env))
+               (ei, bFun, Scope.wrap (b, env))
             end
       end
 
