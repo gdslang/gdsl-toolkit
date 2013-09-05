@@ -183,7 +183,7 @@ val sem-call uo = do
 	call (address pc.size k)
 end
 
-val sem-cbi bo = do
+val sem-write-bit bit bo = do
   a <- rval Unsigned bo.first;
 	b <- return (rval-uint bo.second);
   size <- return (sizeof bo.first);
@@ -191,10 +191,12 @@ val sem-cbi bo = do
 	t <- mktemp;
 	mov size t a;
 
-	mov 1 (at-offset t b) (imm 0);
+	mov 1 (at-offset t b) (imm bit);
 
 	write bo.first (var t)
 end
+
+val sem-cbi bo = sem-write-bit 0 bo
 
 val sem-com uo = do
   rd <- rval Unsigned uo.operand;
@@ -214,42 +216,9 @@ val sem-com uo = do
 	write uo.operand (var t)
 end
 
-val sem-cp-cpi bo = do
-  rd <- rval Unsigned bo.first;
-	rr <- rval Unsigned bo.second;
-  size <- return (sizeof bo.first);
+val sem-cp-cpi bo = sem-sub '0' bo
 
-	r <- mktemp;
-	sub size r rd rr;
-
-  emit-flag-sub-h size rd rr;
-	emit-flag-n size (var r);
-	emit-flag-sub-sbc-v size rd rr;
-	emit-flag-z size (var r);
-	emit-flag-sub-c size rd rr;
-	emit-flag-s
-end
-
-val sem-cpc bo = do
-  rd <- rval Unsigned bo.first;
-	rr <- rval Unsigned bo.second;
-  size <- return (sizeof bo.first);
-
-	r <- mktemp;
-	sub size r rd rr;
-
-  cf <- return fCF;
-  cfe <- mktemp;
-  movzx size cfe 1 (var cf);
-  sub size r (var r) (var cfe);
-
-  emit-flag-sbc-h size rd rr;
-	emit-flag-n size (var r);
-	emit-flag-sub-sbc-v size rd rr;
-	emit-flag-z size (var r);
-	emit-flag-sbc-c size rd rr;
-	emit-flag-s
-end
+val sem-cpc bo = sem-sub-carry '0' bo
 
 val sem-cpse bo = do
 #:-(
@@ -678,7 +647,7 @@ val sem-ror uo = do
   write uo.operand (var t)
 end
 
-val sem-sbc-sbci bo = do
+val sem-sub-carry wb bo = do
   rd <- rval Unsigned bo.first;
 	rr <- rval Unsigned bo.second;
   size <- return (sizeof bo.first);
@@ -698,7 +667,66 @@ val sem-sbc-sbci bo = do
 	emit-flag-sbc-c size rd rr;
 	emit-flag-s;
 
+  if wb then
+    write bo.first (var r)
+  else
+    return void
+end
+
+val sem-sbc-sbci bo = sem-sub-carry '1' bo
+
+val sem-sub wb bo = do
+  rd <- rval Unsigned bo.first;
+	rr <- rval Unsigned bo.second;
+  size <- return (sizeof bo.first);
+
+	r <- mktemp;
+	sub size r rd rr;
+
+  emit-flag-sub-h size rd rr;
+	emit-flag-n size (var r);
+	emit-flag-sub-sbc-v size rd rr;
+	emit-flag-z size (var r);
+	emit-flag-sub-c size rd rr;
+	emit-flag-s;
+
+  if wb then
+    write bo.first (var r)
+  else
+    return void
+end
+
+val sem-sbi bo = sem-write-bit 1 bo
+
+val sem-sbiw bo = do
+  rd <- rval Unsigned bo.first;
+	rr <- rval Unsigned bo.second;
+  size <- return (sizeof bo.first);
+
+	r <- mktemp;
+	sub size r rd rr;
+
+	emit-flag-n size (var r);
+	emit-flag-sub-sbc-v size rd rr;
+	emit-flag-z size (var r);
+	emit-flag-sub-c size rd rr;
+	emit-flag-s;
+
   write bo.first (var r)
+end
+
+val sem-sleep = return void
+
+val sem-spm uo = do
+  ptr <- rval Unsigned uo.operand;
+  ptrsz <- return (sizeof uo.operand);
+  r <- return (@{size=16}(semantic-register-of R0));
+
+  pm <- pm-get;
+	pmptr <- mktemp;
+  add ptrsz pmptr ptr (var pm);
+
+  store (address ptrsz (var pmptr)) (lin r.size (var r))
 end
 
 val ps-push size x = do
@@ -909,10 +937,10 @@ in
 						   sub size t orval (imm 1);
 							 return t
 						 end
-		       | INCR: do
+		       | INCR a: do
 					     j <- mktemp;
 							 mov size j orval;
-						   add size t orval (imm 1);
+						   add size t orval (imm a);
 							 return j
 						 end
 		       | _: return t
@@ -1029,11 +1057,11 @@ val semantics insn =
   | ROR x: sem-ror x
   | SBC x: sem-sbc-sbci x
   | SBCI x: sem-sbc-sbci x
-  | SBI x: sem-undef-binop x
+  | SBI x: sem-sbi x
   | SBIC x: sem-undef-binop x
   | SBIS x: sem-undef-binop x
-  | SBIW x: sem-undef-binop x
-  | SBR x: sem-undef-binop x
+  | SBIW x: sem-sbiw x
+#  | SBR x: sem-undef-binop x
   | SBRC x: sem-undef-binop x
   | SBRS x: sem-undef-binop x
   | SEC: sem-bset 0
@@ -1044,8 +1072,8 @@ val semantics insn =
   | SET: sem-bset 6
   | SEV: sem-bset 3
   | SEZ: sem-bset 1
-  | SLEEP: sem-unknown
-  | SPM x: sem-undef-unop x
+  | SLEEP: sem-sleep
+  | SPM x: sem-spm x
   | ST x: sem-undef-binop x
   | STS x: sem-undef-binop x
   | SUB x: sem-undef-binop x
