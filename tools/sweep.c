@@ -9,6 +9,77 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <err.h>
+#include <fcntl.h>
+#include <gelf.h>
+#include <string.h>
+#include <sysexits.h>
+
+char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
+	char retval = 0;
+
+	int fd = open(path, O_RDONLY);
+	if(!fd) {
+		retval = 8;
+		goto end_0;
+	}
+
+	if(elf_version(EV_CURRENT) == EV_NONE) {
+		retval = 2;
+		goto end_0;
+	}
+
+	Elf *e = elf_begin(fd, ELF_C_READ, NULL);
+	if(!e) {
+		retval = 3;
+		goto end_0;
+	}
+
+	if(elf_kind(e) != ELF_K_ELF) {
+		retval = 4;
+		goto end_1;
+	}
+
+	size_t shstrndx;
+	if(elf_getshdrstrndx(e, &shstrndx) != 0) {
+		retval = 5;
+		goto end_1;
+	}
+
+	Elf_Scn *scn = NULL;
+
+	char found = 0;
+	while((scn = elf_nextscn(e, scn)) != NULL) {
+		GElf_Shdr shdr;
+		if(gelf_getshdr(scn, &shdr) != &shdr) {
+			retval = 6;
+			goto end_1;
+		}
+
+		char *name = elf_strptr(e, shstrndx, shdr.sh_name);
+		if(!name) {
+			retval = 7;
+			goto end_1;
+		}
+		if(!strcmp(name, ".text")) {
+			*offset = shdr.sh_offset;
+			*size = shdr.sh_size;
+			found = 1;
+			break;
+		}
+//		printf("%s - %zu:%zu\n", name, shdr.sh_offset, shdr.sh_size);
+	}
+
+	if(!found)
+		retval = 1;
+
+	end_1: elf_end(e);
+
+	end_0: close(fd);
+
+	return retval;
+}
+
 int main(int argc, char** argv) {
 	const rlim_t kStackSize = 64L * 1024L * 1024L; // min stack size = 64 Mb
 	struct rlimit rl;
@@ -32,11 +103,15 @@ int main(int argc, char** argv) {
 	switch(argc) {
 		case 2: {
 			file = argv[1];
-			offset = 0;
 
-			struct stat buf;
-			stat(file, &buf);
-			length = buf.st_size;
+			char e = elf_section_boundary_get(file, &offset, &length);
+			if(e)
+				exit(2);
+//			offset = 0;
+//
+//			struct stat buf;
+//			stat(file, &buf);
+//			length = buf.st_size;
 			break;
 		}
 		case 3: {
@@ -75,7 +150,7 @@ int main(int argc, char** argv) {
 	gdsl_set_code(state, buffer, buffer_length, 0);
 
 	//uint64_t consumed = 0;
-	while(1) {
+	while(gdsl_get_ip_offset(state) < length) {
 		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
 
 		if(setjmp(*gdsl_err_tgt(state))) {

@@ -2204,6 +2204,8 @@ type stmts_option =
    SO_SOME of sem_stmts
  | SO_NONE
 
+type translate-result = {insns:int, succ_a:int, succ_b:int}
+
 val translateSuperBlock = let
   val translate-block-at idx = do
 	  current <- idxget;

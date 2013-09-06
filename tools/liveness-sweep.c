@@ -16,6 +16,8 @@
 
 #include <time.h>
 
+#define NANOS 1000000000LL
+
 char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	char retval = 0;
 
@@ -178,17 +180,17 @@ obj_t translate(state_t state) {
 	return rreil_insns;
 }
 
-obj_t translate_super(state_t state, obj_t *rreil_insns) {
+translate_result_t translate_super(state_t state, obj_t *rreil_insns) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	obj_t rreil_insns_succs = gdsl_translateSuperBlock(state);
-	*rreil_insns = gdsl_select_insns(state, rreil_insns_succs);
+	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state);
+	*rreil_insns = rreil_insns_succs->insns;
 	return rreil_insns_succs;
 }
 
-void print_succs(state_t state, obj_t translated, size_t size) {
-	obj_t succ_a = gdsl_select_succ_a(state, translated);
-	obj_t succ_b = gdsl_select_succ_b(state, translated);
+void print_succs(state_t state, translate_result_t translated, size_t size) {
+	obj_t succ_a = translated->succ_a;
+	obj_t succ_b = translated->succ_b;
 
 //	void print_succ(obj_t succ, char const *name) {
 //		switch(x86_con_index(state, succ)) {
@@ -235,8 +237,8 @@ void print_results(struct context *context) {
 	printf("Reduction: %lf%%\n", 100 * reduction);
 
 	printf("Time needed for the decoding and the translation to RREIL: %lf seconds\n",
-			context->time_non_opt / (double)(1000000000));
-	printf("Time needed for the lv analysis: %lf seconds\n", context->time_opt / (double)(1000000000));
+			context->time_non_opt / (double)(NANOS));
+	printf("Time needed for the lv analysis: %lf seconds\n", context->time_opt / (double)(NANOS));
 }
 
 static char *symbol_sz(size_t value) {
@@ -291,17 +293,17 @@ void print_results_latex(char *file, struct context *single, struct context *int
 	printf(
 			"%s & %lu%s & %lu%s & %.1lf%s & %.1lf & %lu%s & %.1lf%s & %.0lf\\%% & %.1f & %lu%s & %.1lf%s & %.0lf\\%% & %.1f & %lu%s & %.1lf%s & %.0lf\\%% & %.1f \\\\\n",
 			file + file_offset, fit_sz(inter->native_instructions), symbol_sz(inter->native_instructions),
-			fit_sz(inter->lines), symbol_sz(inter->lines), fit_t(inter->time_non_opt / (double)(1000000000)),
-			symbol_t(inter->time_non_opt / (double)(1000000000)), fac_non,
+			fit_sz(inter->lines), symbol_sz(inter->lines), fit_t(inter->time_non_opt / (double)(NANOS)),
+			symbol_t(inter->time_non_opt / (double)(NANOS)), fac_non,
 
-			fit_sz(single->lines_opt), symbol_sz(single->lines_opt), fit_t(single->time_opt / (double)(1000000000)),
-			symbol_t(single->time_opt / (double)(1000000000)), 100 * reduction_simple, fac_single,
+			fit_sz(single->lines_opt), symbol_sz(single->lines_opt), fit_t(single->time_opt / (double)(NANOS)),
+			symbol_t(single->time_opt / (double)(NANOS)), 100 * reduction_simple, fac_single,
 
-			fit_sz(intra->lines_opt), symbol_sz(intra->lines_opt), fit_t(intra->time_opt / (double)(1000000000)),
+			fit_sz(intra->lines_opt), symbol_sz(intra->lines_opt), fit_t(intra->time_opt / (double)(NANOS)),
 			symbol_t(intra->time_opt / (double)(1000000000)), 100 * reduction_intra, fac_inta,
 
-			fit_sz(inter->lines_opt), symbol_sz(inter->lines_opt), fit_t(inter->time_opt / (double)(1000000000)),
-			symbol_t(inter->time_opt / (double)(1000000000)), 100 * reduction_inter, fac_inter);
+			fit_sz(inter->lines_opt), symbol_sz(inter->lines_opt), fit_t(inter->time_opt / (double)(NANOS)),
+			symbol_t(inter->time_opt / (double)(NANOS)), 100 * reduction_inter, fac_inter);
 }
 
 char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_offset, size_t size_max,
@@ -363,7 +365,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 		obj_t translated = NULL;
 		obj_t rreil_insns = NULL;
-		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+		clock_gettime(CLOCK_REALTIME, &start);
 		switch(mode) {
 			case MODE_SINGLE: {
 				translated = rreil_insns = translate_single(state);
@@ -378,9 +380,9 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 				break;
 			}
 		}
-		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-		long diff = end.tv_nsec - start.tv_nsec;
-		context->time_non_opt += diff > 0 ? diff : 0;
+		clock_gettime(CLOCK_REALTIME, &end);
+		long diff = end.tv_sec*NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec*NANOS;
+		context->time_non_opt += diff;
 
 		if(translated == NULL || rreil_insns == NULL) {
 			printf("Translation or decoding error, aborting...");
@@ -415,8 +417,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 			if(fmt[i] == '\n')
 				context->lines++;
 
-		obj_t lv_result;
-		clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+		lv_super_result_t lv_result;
+		clock_gettime(CLOCK_REALTIME, &start);
 
 		switch(mode) {
 			case MODE_CHILDREN: {
@@ -428,7 +430,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 				break;
 			}
 		}
-		obj_t rreil_instructions_greedy = gdsl_select_live(state, gdsl_state_get(state));
+		obj_t rreil_instructions_greedy = gdsl_select_live(state);
 		/*
 		 * Todo: Fix
 		 */
@@ -447,18 +449,17 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 			rreil_instructions_greedy = gdsl_cleanup(state, rreil_instructions_greedy);
 		}
 
-		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-		diff = end.tv_nsec - start.tv_nsec;
-		context->time_opt += diff > 0 ? diff : 0;
+		clock_gettime(CLOCK_REALTIME, &end);
+		diff = end.tv_sec*NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec*NANOS;
+		context->time_opt += diff;
 //		if(!__isNil(greedy_state)) {
 //			__fatal("Liveness failed");
 //			goto end;
 //		}
 
 		if(print && mode == MODE_CHILDREN) {
-			obj_t initial_state = gdsl_select_initial(state, lv_result);
 			printf("Liveness initial state:\n");
-			fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, initial_state));
+			fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, lv_result->initial));
 			puts(fmt);
 			printf("\n");
 		}
@@ -467,7 +468,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 		switch(mode) {
 			case MODE_CHILDREN: {
-				greedy_state = gdsl_select_after(state, lv_result);
+				greedy_state = lv_result->after;
 				break;
 			}
 			default: {

@@ -6,6 +6,8 @@ val liveness instructions = do
   return lv-state.greedy 
 end
 
+type lv-super-result = {initial:stmts_option, after:int}
+
 val liveness_super data = let
   val lv-option-analyze live-registers option =
 	  case option of
