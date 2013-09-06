@@ -224,7 +224,7 @@ val / ['1001010000011001'] = nullop EIJMP
 ###  - Extended Load Program Memory
 val / ['1001010111011000'] = binop ELPM r0 (//RAMPZ-Z NONE)
 val / ['1001000 d d d d d 0110'] = binop ELPM rd5 (//RAMPZ-Z NONE)
-val / ['1001000 d d d d d 0111'] = binop ELPM rd5 (//RAMPZ-Z INCR)
+val / ['1001000 d d d d d 0111'] = binop ELPM rd5 (//RAMPZ-Z (INCR 1))
 
 ### EOR
 ###  - Exclusive OR
@@ -277,18 +277,18 @@ val / ['1001001 d d d d d 0111'] = binop LAT /Z rd5
 ### LD
 ###  - Load Indirect from Data Space to Register using Index X
 val / ['1001000 d d d d d 1100'] = binop LD rd5 (//X NONE)
-val / ['1001000 d d d d d 1101'] = binop LD rd5 (//X INCR)
+val / ['1001000 d d d d d 1101'] = binop LD rd5 (//X (INCR 1))
 val / ['1001000 d d d d d 1110'] = binop LD rd5 (//X DECR)
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index Y
-val / ['1001000 d d d d d 1001'] = binop LD rd5 (//Y INCR)
+val / ['1001000 d d d d d 1001'] = binop LD rd5 (//Y (INCR 1))
 val / ['1001000 d d d d d 1010'] = binop LD rd5 (//Y DECR)
 val / ['10 q 0 q q 0 d d d d d 1 q q q '] = binop LD rd5 (///Y dq6)
 
 ### LD
 ###  - Load Indirect from Data Space to Register using Index Z
-val / ['1001000 d d d d d 0001'] = binop LD rd5 (//Z INCR)
+val / ['1001000 d d d d d 0001'] = binop LD rd5 (//Z (INCR 1))
 val / ['1001000 d d d d d 0010'] = binop LD rd5 (//Z DECR)
 val / ['10 q 0 q q 0 d d d d d 0 q q q'] = binop LD rd5 (///Z dq6)
 
@@ -305,7 +305,7 @@ val / ['1001000 d d d d d 0000' 'k k k k k k k k k k k k k k k k'] = binop LDS r
 ###  - Load Program Memory
 val / ['1001010111001000'] = binop LPM r0 (//Z NONE)
 val / ['1001000 d d d d d 0100'] = binop LPM rd5 (//Z NONE)
-val / ['1001000 d d d d d 0101'] = binop LPM rd5 (//Z INCR)
+val / ['1001000 d d d d d 0101'] = binop LPM rd5 (//Z (INCR 1))
 
 ### LSL
 ###  - Logical Shift Left
@@ -409,7 +409,7 @@ val / ['10011011 a a a a a b b b'] = binop SBIS io5 cb3
 
 ### SBIW
 ###  - Subtract Immediate from Word
-val / ['10010111 k k d d k k k k'] = binop SBIW rd2 ck6
+val / ['10010111 k k d d k k k k'] = binop SBIW rd2h-rd2l ck6
 
 ### SBR
 ###  - Set Bits in Register
@@ -461,24 +461,24 @@ val / ['1001010110001000'] = nullop SLEEP
 
 ### SPM
 ###  - Store Program Memory
-val / ['1001010111101000'] = unop SPM (//Z INCR)
-val / ['1001010111111000'] = unop SPM (//Z INCR)
+val / ['1001010111101000'] = unop SPM (//RAMPZ-Z NONE)
+val / ['1001010111111000'] = unop SPM (//RAMPZ-Z (INCR 2))
 
 ### ST
 ###  - Store Indirect From Register to Data Space using Index X
 val / ['1001001 r r r r r 1100'] = binop ST (//X NONE) rr5
-val / ['1001001 r r r r r 1101'] = binop ST (//X INCR) rr5
+val / ['1001001 r r r r r 1101'] = binop ST (//X (INCR 1)) rr5
 val / ['1001001 r r r r r 1110'] = binop ST (//X DECR) rr5
 
 ### ST
 ###  - Store Indirect From Register to Data Space using Index Y
-val / ['1001001 r r r r r 1001'] = binop ST (//Y INCR) rr5
+val / ['1001001 r r r r r 1001'] = binop ST (//Y (INCR 1)) rr5
 val / ['1001001 r r r r r 1010'] = binop ST (//Y DECR) rr5
 val / ['10 q 0 q q 1 r r r r r 1 q q q '] = binop ST (///Y dq6) rr5
 
 ### ST
 ###  - Store Indirect From Register to Data Space using Index Z
-val / ['1001001 r r r r r 0001'] = binop ST (//Z INCR) rr5
+val / ['1001001 r r r r r 0001'] = binop ST (//Z (INCR 1)) rr5
 val / ['1001001 r r r r r 0010'] = binop ST (//Z DECR) rr5
 val / ['10 q 0 q q 1 r r r r r 0 q q q '] = binop ST (///Z dq6) rr5
 
@@ -523,7 +523,7 @@ val decode =
 
 type side-effect =
    NONE
- | INCR
+ | INCR of int
  | DECR
 
 type imm =

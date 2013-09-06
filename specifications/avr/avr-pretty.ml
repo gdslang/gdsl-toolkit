@@ -11,8 +11,11 @@ val -++ a b = a +++ " " +++ b
 val show/side-effect eff =
    case eff of
       NONE: ""
-    | INCR: "+"
-    | DECR: "-"
+    | INCR a: case a of
+         1: "++"
+       | _: "(++ " +++ show-int a +++ ")"
+      end
+    | DECR: "--"
   end
 
 val show/operand opnd = 
