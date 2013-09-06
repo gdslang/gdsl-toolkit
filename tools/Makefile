@@ -21,7 +21,7 @@ CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 PROJECTS=
 EXECUTABLES=cli sweep cli-gdrr
 ifdef GDSL_X86
-PROJECTS+=x86-test-runner x86-test-stats-runner
+PROJECTS+=x86-test-runner x86-test-stats-runner xed-cmp
 EXECUTABLES+=liveness-sweep
 endif
 
@@ -64,6 +64,10 @@ x86-test-runner:
 
 ### x86-test-stats-runner
 x86-test-stats-runner:
+	$(MAKE) -C $@
+	
+### xed-cmp
+xed-cmp:
 	$(MAKE) -C $@
 endif
 
