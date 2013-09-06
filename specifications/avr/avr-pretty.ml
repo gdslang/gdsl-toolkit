@@ -6,6 +6,7 @@ val pretty i = show/instruction i
 
 val show/unop x = show/operand x.operand
 val show/binop x = show/operand x.first +++ ", " +++ show/operand x.second
+val show/ternop x = show/operand x.first +++ ", " +++ show/operand x.second +++ ", " +++ show/operand x.third
 val -++ a b = a +++ " " +++ b
 
 val show/side-effect eff =
@@ -39,6 +40,7 @@ val show/operand/imm imm =
     | IMM12 x: show-int (zx x)
     | IMM16 x: show-int (zx x)
     | IMM22 x: show-int (zx x)
+    | IMMi i: show-int i
   end
 
 val show/instruction i =
@@ -84,7 +86,7 @@ val show/instruction i =
     | CP x: "CP" -++ show/binop x
     | CPC x: "CPC" -++ show/binop x
     | CPI x: "CPI" -++ show/binop x
-    | CPSE x: "CPSE" -++ show/binop x
+    | CPSE x: "CPSE" -++ show/ternop x
     | DEC x: "DEC" -++ show/unop x
     | DES x: "DES" -++ show/unop x
     | EICALL: "EICALL"
@@ -129,12 +131,12 @@ val show/instruction i =
     | SBC x: "SBC" -++ show/binop x
     | SBCI x: "SBCI" -++ show/binop x
     | SBI x: "SBI" -++ show/binop x
-    | SBIC x: "SBIC" -++ show/binop x
-    | SBIS x: "SBIS" -++ show/binop x
+    | SBIC x: "SBIC" -++ show/ternop x
+    | SBIS x: "SBIS" -++ show/ternop x
     | SBIW x: "SBIW" -++ show/binop x
     | SBR x: "SBR" -++ show/binop x
-    | SBRC x: "SBRC" -++ show/binop x
-    | SBRS x: "SBRS" -++ show/binop x
+    | SBRC x: "SBRC" -++ show/ternop x
+    | SBRS x: "SBRS" -++ show/ternop x
     | SEC: "SEC"
     | SEH: "SEH"
     | SEI: "SEI"

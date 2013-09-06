@@ -137,16 +137,7 @@ val sem-br uo sc flag = do
 
   cond <- sc (var (f-at flag));
 
-	pc <- ip-get;
-	
-	tgt-t <- mktemp;
-	add pc.size tgt-t (var pc) k;
-	add pc.size tgt-t (var tgt-t) (imm 1);
-
-  tgt-f <- mktemp;
-	add pc.size tgt-f (var pc) (imm 1);
-
-	cbranch cond (address pc.size (var tgt-t)) (address pc.size (var tgt-f))
+	cbranch-rel cond k
 end
 
 val sem-brbc uo flag = sem-br uo /not flag
@@ -220,9 +211,15 @@ val sem-cp-cpi bo = sem-sub '0' bo
 
 val sem-cpc bo = sem-sub-carry '0' bo
 
-val sem-cpse bo = do
-#:-(
-return void
+val sem-cpse to = do
+  rd <- rval Unsigned to.first;
+  rr <- rval Unsigned to.second;
+  size <- return (sizeof to.first);
+  n <- return (rval-uint to.third);
+
+  cond <- /eq size rd rr;
+
+  cbranch-rel cond (imm n)
 end
 
 val sem-dec uo = do
@@ -665,7 +662,7 @@ val sem-sub-carry wb bo = do
 	emit-flag-sub-sbc-v size rd rr;
 	emit-flag-z size (var r);
 	emit-flag-sbc-c size rd rr;
-	sf <- fSF;
+	sf <- return fSF;
   cmplts size sf rd rr;
 
   if wb then
@@ -689,7 +686,7 @@ val sem-sub wb bo = do
 	emit-flag-sub-sbc-v size rd rr;
 	emit-flag-z size (var r);
 	emit-flag-sub-c size rd rr;
-	sf <- fSF;
+	sf <- return fSF;
   cmplts size sf rd rr;
 
   if wb then
@@ -699,6 +696,23 @@ val sem-sub wb bo = do
 end
 
 val sem-sbi bo = sem-write-bit 1 bo
+
+val sem-sbirc-sbirs sc to = do
+  a <- rval Unsigned to.first;
+  size <- return (sizeof to.first);
+  b <- return (rval-uint to.second);
+  n <- return (rval-uint to.third);
+
+  t <- mktemp;
+  mov size t a;
+
+  cond <- sc (var (at-offset t b));
+
+  cbranch-rel cond (imm n)
+end
+
+val sem-sbic-sbrc to = sem-sbirc-sbirs /not to
+val sem-sbis-sbrs to = sem-sbirc-sbirs /d to
 
 val sem-sbiw bo = do
   rd <- rval Unsigned bo.first;
@@ -915,6 +929,7 @@ val sizeof x =
 	    | IMM12 i: 12
 	    | IMM16 i: 16
 	    | IMM22 i: 22
+	    | IMMi i: 64
 		 end
 	 | OPSE o: sizeof o.op
 	 | OPDI o: sizeof o.op
@@ -955,6 +970,7 @@ val rval sn x = let
 	   | IMM12 i: from-vec sn i
 	   | IMM16 i: from-vec sn i
 	   | IMM22 i: from-vec sn i
+	   | IMMi i: SEM_LIN_IMM {const=i}
 		end
 in
   case x of
@@ -1012,8 +1028,22 @@ val rval-uint x =
 	    | IMM12 i: zx i
 	    | IMM16 i: zx i
 	    | IMM22 i: zx i
+	    | IMMi i: i
 		 end
 	end
+
+val cbranch-rel cond k = do
+	pc <- ip-get;
+	
+	tgt-t <- mktemp;
+	add pc.size tgt-t (var pc) k;
+	add pc.size tgt-t (var tgt-t) (imm 1);
+
+  tgt-f <- mktemp;
+	add pc.size tgt-f (var pc) (imm 1);
+
+	cbranch cond (address pc.size (var tgt-t)) (address pc.size (var tgt-f))
+end
 
 val semantics insn =
  case insn of
@@ -1104,12 +1134,12 @@ val semantics insn =
   | SBC x: sem-sbc-sbci x
   | SBCI x: sem-sbc-sbci x
   | SBI x: sem-sbi x
-  | SBIC x: sem-undef-binop x
-  | SBIS x: sem-undef-binop x
+  | SBIC x: sem-sbic-sbrc x
+  | SBIS x: sem-sbis-sbrs x
   | SBIW x: sem-sbiw x
 #  | SBR x: sem-undef-binop x
-  | SBRC x: sem-undef-binop x
-  | SBRS x: sem-undef-binop x
+  | SBRC x: sem-sbic-sbrc x
+  | SBRS x: sem-sbis-sbrs x
   | SEC: sem-bset 0
   | SEH: sem-bset 5
   | SEI: sem-bset 7
