@@ -52,6 +52,7 @@ val sem-and x = do
   zf <- fZF;
   cmpeq size zf (var temp) (imm 0);
   emit-parity-flag (var temp);
+  emit-virt-flags;
 
   write size dst (var temp)
 end
@@ -108,6 +109,7 @@ val sem-bsf x = do
   undef 1 sf;
   undef 1 af;
   undef 1 pf;
+  emit-virt-flags;
 
   dst <- lval size x.opnd1;
   write size dst (var counter)
@@ -146,6 +148,7 @@ val sem-bsr x = do
   undef 1 sf;
   undef 1 af;
   undef 1 pf;
+  emit-virt-flags;
 
   dst <- lval size x.opnd1;
   write size dst (var counter)
@@ -255,7 +258,8 @@ val sem-bt x modifier = do
   undef 1 ov;
   undef 1 sf;
   undef 1 af;
-  undef 1 pf
+  undef 1 pf;
+  emit-virt-flags
 end
 
 ## C>>
@@ -330,7 +334,8 @@ end
 
 val sem-clc = do
   cf <- fCF;
-  mov 1 cf (imm 0)
+  mov 1 cf (imm 0);
+  emit-virt-flags
 end
 
 val sem-cld = do
@@ -340,7 +345,8 @@ end
 
 val sem-cmc = do
   cf <- fCF;
-  xorb 1 cf (var cf) (imm 1)
+  xorb 1 cf (var cf) (imm 1);
+  emit-virt-flags
 end
 
 val sem-cmovcc x cond = do
@@ -459,7 +465,9 @@ val sem-cmpxchg16b-cmpxchg8b x = do
     mov (2*x.opnd-sz) temp subtrahend;
 
     move-combined x.opnd-sz (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz) temp
-  end
+  end;
+
+  emit-virt-flags
 end
 
 val sem-cpuid x = do
@@ -557,7 +565,8 @@ val sem-div signedness x = do
   undef 1 sf;
   undef 1 zf;
   undef 1 af;
-  undef 1 pf
+  undef 1 pf;
+  emit-virt-flags
 end
 
 ## E>>

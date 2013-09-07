@@ -368,9 +368,8 @@ val fLTU = return (_var VIRT_LTU)
 val zero = return (SEM_LIN_IMM{const=0})
 
 val sem-a sem-cc x = do
-  cf <- fCF;
-  zf <- fZF;
-  sem-cc x (/and (/not (var cf)) (/not (var zf)))
+  leu <- fLEU;
+  sem-cc x (/not (var leu))
 end
 val sem-nbe sem-cc x = sem-a sem-cc x
 
@@ -548,31 +547,30 @@ end
 
 val emit-add-adc-flags sz sum s0 s1 carry set-carry = let
   val emit = do
-    eq <- fEQ;
-    les <- fLES;
-    leu <- fLEU;
-    lts <- fLTS;
-    ltu <- fLTU;
+#    eq <- fEQ;
+#    les <- fLES;
+#    leu <- fLEU;
+#    lts <- fLTS;
+#    ltu <- fLTU;
     sf <- fSF;
     ov <- fOF;
-    z <- fZF;
+    zf <- fZF;
     cf <- fCF;
     t1 <- mktemp;
     t2 <- mktemp;
     t3 <- mktemp;
-    zer0 <- zero;
   
-    cmpltu sz ltu s0 s1;
+#    cmpltu sz ltu s0 s1;
     xorb sz t1 sum s0;
     xorb sz t2 sum s1;
     andb sz t3 (var t1) (var t2);
-    cmplts sz ov (var t3) zer0;
-    cmplts sz sf sum zer0;
-    cmpeq sz eq sum zer0;
-    xorb 1 lts (var sf) (var ov);
-    orb 1 leu (var ltu) (var eq);
-    orb 1 les (var lts) (var eq);
-    cmpeq sz z sum zer0;
+    cmplts sz ov (var t3) (imm 0);
+    cmplts sz sf sum (imm 0);
+#   cmpeq sz eq sum (imm 0);
+#    xorb 1 lts (var sf) (var ov);
+#   orb 1 leu (var ltu) (var eq);
+#   orb 1 les (var lts) (var eq);
+    cmpeq sz zf sum (imm 0);
   
     # Hacker's Delight - Unsigned Add/Subtract
     if set-carry then (
@@ -586,7 +584,8 @@ val emit-add-adc-flags sz sum s0 s1 carry set-carry = let
     ;
   
     emit-parity-flag sum;
-    emit-arithmetic-adjust-flag sz sum s0 s1
+    emit-arithmetic-adjust-flag sz sum s0 s1;
+    emit-virt-flags
   end
 in
   with-subscope emit
@@ -594,11 +593,6 @@ end
 
 val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
   val emit = do
-    eq <- fEQ;
-    les <- fLES;
-    leu <- fLEU;
-    lts <- fLTS;
-    ltu <- fLTU;
     sf <- fSF;
     ov <- fOF;
     cf <- fCF;
@@ -606,27 +600,39 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
     t1 <- mktemp;
     t2 <- mktemp;
     t3 <- mktemp;
-    zer0 <- zero;
-  
-    cmpltu sz ltu minuend subtrahend;
-    cmpleu sz leu minuend subtrahend;
-    cmplts sz lts minuend subtrahend;
-    cmples sz les minuend subtrahend;
-    cmpeq sz eq minuend subtrahend;
-    cmplts sz sf difference zer0;
-    xorb 1 ov (var lts) (var sf);
-    cmpeq sz z difference zer0;
-  
-    if set-carry then (
-      # Hacker's Delight - Unsigned Add/Subtract
-      _if (/d carry) _then do
+
+    tlts <- mktemp;
+    cmplts sz tlts minuend subtrahend;
+
+    cmplts sz sf difference (imm 0);
+    xorb 1 ov (var tlts) (var sf);
+    cmpeq sz z difference (imm 0);
+
+    # Hacker's Delight - Unsigned Add/Subtract
+    _if (/d carry) _then do
+      if set-carry then
         cmpleu sz cf minuend subtrahend
-      end _else do
+      else
+        return void
+      ;
+      emit-virt-flags
+    end _else do
+      if set-carry then
         cmpltu sz cf minuend subtrahend
-      end
-    ) else
-      return void
-    ;
+      else
+        return void
+      ;
+      eq <- fEQ;
+      les <- fLES;
+      leu <- fLEU;
+      ltu <- fLTU;
+      lts <- fLTS;
+      cmpltu sz ltu minuend subtrahend;
+      cmpleu sz leu minuend subtrahend;
+      mov 1 lts (var tlts);
+      cmples sz les minuend subtrahend;
+      cmpeq sz eq minuend subtrahend
+    end;
   
     emit-parity-flag difference;
     emit-arithmetic-adjust-flag sz difference minuend subtrahend
@@ -653,10 +659,22 @@ val emit-mul-flags sz product = let
     undef 1 sf;
     undef 1 zf;
     undef 1 af;
-    undef 1 pf
+    undef 1 pf;
+
+    emit-virt-flags
   end
 in
   with-subscope emit
+end
+
+val emit-virt-flags = do
+  leu <- fLEU;
+
+  cf <- fCF;
+  zf <- fZF;
+
+  #LEU := C | Z
+  orb 1 leu (var cf) (var zf)
 end
 
 val move-to-rflags size lin = let
