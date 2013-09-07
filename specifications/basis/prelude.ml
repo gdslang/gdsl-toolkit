@@ -60,5 +60,21 @@ val /p a b =
    if b<0 then ~ (/m a (~ b)) else
    if a<=0 then /z a b else /z (a + b - 1) b
 
-
 val logb x = if x<=1 then 0 else 1+(logb (/m x 2))
+
+val addi a b = a + b
+val subi a b = a - b
+val muli a b = a * b
+
+type int_option =
+   IO_SOME of int
+ | IO_NONE
+
+val io-binop binop a b =
+  case a of
+     IO_SOME i: case b of
+        IO_SOME j: IO_SOME (binop i j)
+      | IO_NONE: IO_NONE
+     end
+   | IO_NONE: IO_NONE
+  end

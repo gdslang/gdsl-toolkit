@@ -388,9 +388,8 @@ val sem-b sem-cc x = sem-c sem-cc x
 val sem-nae sem-cc x = sem-nae sem-cc x
 
 val sem-be sem-cc x = do
-  cf <- fCF;
-  zf <- fZF;
-  sem-cc x (/or (/d (var cf)) (/d (var zf)))
+  leu <- fLEU;
+  sem-cc x (/d (var leu))
 end
 val sem-na sem-cc x = sem-be sem-cc x
 
@@ -401,32 +400,26 @@ end
 val sem-z sem-cc x = sem-e sem-cc x
 
 val sem-g sem-cc x = do
-  zf <- fZF;
-  sf <- fSF;
-  ov <- fOF;
-  sem-cc x (/and (/not (var zf)) (/eq 1 (var sf) (var ov)))
+  les <- fLES;
+  sem-cc x (/not (var les))
 end
 val sem-nle sem-cc x = sem-g sem-cc x
 
 val sem-ge sem-cc x = do
-  sf <- fSF;
-  ov <- fOF;
-  sem-cc x (/eq 1 (var sf) (var ov))
+  lts <- fLTS;
+  sem-cc x (/not (var lts))
 end
 val sem-nl sem-cc x = sem-ge sem-cc x
 
 val sem-l sem-cc x = do
-  sf <- fSF;
-  ov <- fOF;
-  sem-cc x (/neq 1 (var sf) (var ov))
+  lts <- fLTS;
+  sem-cc x (/d (var lts))
 end
 val sem-nge sem-cc x = sem-l sem-cc x
 
 val sem-le sem-cc x = do
-  zf <- fZF;
-  sf <- fSF;
-  ov <- fOF;
-  sem-cc x (/or (/d (var zf)) (/neq 1 (var sf) (var ov)))
+  les <- fLES;
+  sem-cc x (/d (var les))
 end
 val sem-ng sem-cc x = sem-le sem-cc x
 
@@ -622,16 +615,16 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
       else
         return void
       ;
-      eq <- fEQ;
+#     eq <- fEQ;
       les <- fLES;
       leu <- fLEU;
-      ltu <- fLTU;
+#     ltu <- fLTU;
       lts <- fLTS;
-      cmpltu sz ltu minuend subtrahend;
+#     cmpltu sz ltu minuend subtrahend;
       cmpleu sz leu minuend subtrahend;
       mov 1 lts (var tlts);
-      cmples sz les minuend subtrahend;
-      cmpeq sz eq minuend subtrahend
+      cmples sz les minuend subtrahend
+ #    cmpeq sz eq minuend subtrahend
     end;
   
     emit-parity-flag difference;
@@ -669,12 +662,22 @@ end
 
 val emit-virt-flags = do
   leu <- fLEU;
+  lts <- fLTS;
+  les <- fLES;
 
   cf <- fCF;
   zf <- fZF;
+  sf <- fSF;
+  ov <- fOF;
 
   #LEU := C | Z
-  orb 1 leu (var cf) (var zf)
+  orb 1 leu (var cf) (var zf);
+
+  #LTS := S != O
+  cmpneq 1 lts (var sf) (var ov);
+
+  #LES := S != O | Z
+  orb 1 les (var lts) (var zf)
 end
 
 val move-to-rflags size lin = let
@@ -2165,10 +2168,6 @@ val translateSingle = do
 
    return (rreil-stmts-rev stmts)
 end
-
-type int_option =
-   IO_SOME of int
- | IO_NONE
 
 val io a b = {a=a,b=b}
 val io-to a = {a=a,b=IO_NONE}

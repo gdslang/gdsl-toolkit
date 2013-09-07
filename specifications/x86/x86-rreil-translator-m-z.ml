@@ -1897,8 +1897,7 @@ val sem-rcl x = do
     sub 1 temp-count (var temp-count) (imm 1);
     shl (2*size + 1) temp-dst (var temp-dst) (var temp-count);
     orb size temp-dst (var (at-offset temp-dst (size + 1))) (var temp-dst);
-    mov 1 cf (var (at-offset temp-dst size));
-    emit-virt-flags
+    mov 1 cf (var (at-offset temp-dst size))
   end _else
     mov size temp-dst src
   ;
@@ -1910,6 +1909,7 @@ val sem-rcl x = do
     undef 1 ov
   ;
 
+  emit-virt-flags;
   write size dst (var temp-dst)
 end
 
@@ -1951,10 +1951,10 @@ val sem-rcr x = do
     sub 1 temp-count (var temp-count) (imm 1);
     shr (2*size + 1) temp-dst (var temp-dst) (var temp-count);
     orb size temp-dst (var (at-offset temp-dst (size + 1))) (var temp-dst);
-    mov 1 cf (var (at-offset temp-dst size));
-    emit-virt-flags
+    mov 1 cf (var (at-offset temp-dst size))
   end;
 
+  emit-virt-flags;
   write size dst (var temp-dst)
 end
 

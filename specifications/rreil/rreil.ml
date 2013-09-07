@@ -234,15 +234,23 @@ end
 
 val _if c _then a _else b = do
   c <- with-subscope c;
-  stack <- pop-all;
-  with-subscope a;
-  t <- pop-all;
-  t <- return (rreil-stmts-rev t);
-  with-subscope b;
-  e <- pop-all;
-  e <- return (rreil-stmts-rev e);
-  stack-set stack;
-  ite c t e
+  case (int-from-linear c) of
+     IO_NONE: do
+       stack <- pop-all;
+       with-subscope a;
+       t <- pop-all;
+       t <- return (rreil-stmts-rev t);
+       with-subscope b;
+       e <- pop-all;
+       e <- return (rreil-stmts-rev e);
+       stack-set stack;
+       ite c t e
+     end
+   | IO_SOME i: case i of
+        0: with-subscope b
+      | _: with-subscope a
+     end
+  end
 end
 
 val _if c _then a = do
@@ -350,3 +358,17 @@ val imm i = SEM_LIN_IMM{const=i}
 val /+ x offs = @{offset=offs} x
 val /++ x offs = @{offset= $offset x + offs} x
 
+val int-from-linear lin =
+  case lin of
+     SEM_LIN_VAR x: IO_NONE
+   | SEM_LIN_IMM x: IO_SOME x.const
+   | SEM_LIN_ADD x: io-binop addi (int-from-linear x.opnd1) (int-from-linear x.opnd2)
+   | SEM_LIN_SUB x: io-binop subi (int-from-linear x.opnd1) (int-from-linear x.opnd2)
+   | SEM_LIN_SCALE x: io-binop muli (IO_SOME x.const) (int-from-linear x.opnd)
+  end
+
+val int-from-sexpr sex =
+  case sex of
+     SEM_SEXPR_LIN lin: int-from-linear lin
+   | SEM_SEXPR_CMP cmp: IO_NONE
+  end
