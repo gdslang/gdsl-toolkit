@@ -12,7 +12,7 @@
 #include <gdsl.h>
 
 struct gdrr_sem_id_callbacks {
-	gdrr_sem_id_t *(*virt_na)(state_t state, int_t con);
+//	gdrr_sem_id_t *(*virt_na)(state_t state, int_t con);
 //	gdrr_sem_id_t *(*virt_eq)(state_t state);
 //	gdrr_sem_id_t *(*virt_neq)(state_t state);
 //	gdrr_sem_id_t *(*virt_les)(state_t state);

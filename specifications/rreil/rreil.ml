@@ -2,13 +2,7 @@
 export = rreil-stmts-rev
 
 type sem_id =
-   VIRT_EQ  # ==
- | VIRT_NEQ # /=
- | VIRT_LES # <=s
- | VIRT_LEU # <=u
- | VIRT_LTS # <s
- | VIRT_LTU # <u
- | VIRT_T of int
+   VIRT_T of int
 
 type sem_arity1 = {size:int, opnd1:sem_linear}
 type sem_arity2 = {size:int, opnd1:sem_linear, opnd2:sem_linear}

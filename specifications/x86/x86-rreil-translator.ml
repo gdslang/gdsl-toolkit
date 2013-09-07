@@ -358,15 +358,6 @@ val move-combined size dst-high dst-low src = do
   mov size dst-low (var (at-offset src 0))
 end
 
-val fEQ = return (_var VIRT_EQ)
-val fNEQ = return (_var VIRT_NEQ)
-val fLES = return (_var VIRT_LES)
-val fLEU = return (_var VIRT_LEU)
-val fLTS = return (_var VIRT_LTS)
-val fLTU = return (_var VIRT_LTU)
-
-val zero = return (SEM_LIN_IMM{const=0})
-
 val sem-a sem-cc x = do
   leu <- fLEU;
   sem-cc x (/not (var leu))
