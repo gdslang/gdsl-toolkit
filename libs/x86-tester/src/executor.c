@@ -244,7 +244,7 @@ struct execution_result executor_instruction_execute(uint8_t *instruction, size_
 	sigaction(SIGSYS, &act, NULL);
 	sigaction(SIGTRAP, &act, NULL);
 
-//	alarm(1);
+	alarm(1);
 
 #ifndef DRYRUN
 	if(!setjmp(jbuf))

@@ -49,6 +49,8 @@ val sizeof-flow target =
    | REL16 x: return 16
    | REL32 x: return 32
    | REL64 x: return 64
+   | PTR16/16 x: return 32
+   | PTR16/32 x: return 48
    | NEARABS x: sizeof1 x
    | FARABS x: sizeof1 x
   end

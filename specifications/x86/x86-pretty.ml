@@ -306,6 +306,8 @@ val show/flowoperand op =
     | REL16 x: show-int (sx x)
     | REL32 x: show-int (sx x)
     | REL64 x: show-int (sx x)
+    | PTR16/16 x: "[16/16: " +++ show-int (sx x) +++ "]"
+    | PTR16/32 x: "[16/32: " +++ show-int (sx x) +++ "]"
     | NEARABS x: show/operand '1' x 
     | FARABS x: show/operand '1' x
    end
