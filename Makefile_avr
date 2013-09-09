@@ -28,7 +28,7 @@ GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_AVR_HL) $(GDSL_AVR_TRANS_H
 
 all: $(GDSL) lib$(GDSL).so libs tools
 
-$(GDSL): $(GDSL).mlb $(shell find detail/ -type f -name '*')
+$(GDSL): $(GDSL)c.mlb $(shell find detail/ -type f -name '*')
 	$(MLTON) $(MLTONFLAGS) $<
 
 lib$(GDSL).so: $(GDSL_COMP).c
