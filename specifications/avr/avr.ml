@@ -202,7 +202,7 @@ val / ['0011 k k k k d d d d k k k k'] = binop CPI rd4 ck8
 
 ### CPSE
 ###  - Compare Skip if Equal
-val / ['000100 r d d d d d r r r r'] = binop CPSE rd5 rr5
+val / ['000100 r d d d d d r r r r'] = ternop CPSE rd5 rr5 sizeof-next
 
 ### DEC
 ###  - Decrement
@@ -401,11 +401,11 @@ val / ['10011010 a a a a a b b b'] = binop SBI io5 cb3
 
 ### SBIC
 ###  - Skip if Bit in I/O Register is Cleared
-val / ['10011001 a a a a a b b b'] = binop SBIC io5 cb3
+val / ['10011001 a a a a a b b b'] = ternop SBIC io5 cb3 sizeof-next
 
 ### SBIS
 ###  - Skip if Bit in I/O Register is Set
-val / ['10011011 a a a a a b b b'] = binop SBIS io5 cb3
+val / ['10011011 a a a a a b b b'] = ternop SBIS io5 cb3 sizeof-next
 
 ### SBIW
 ###  - Subtract Immediate from Word
@@ -418,11 +418,11 @@ val / ['10010111 k k d d k k k k'] = binop SBIW rd2h-rd2l ck6
 
 ### SBRC
 ###  - Skip if Bit in Register is Cleared
-val / ['1111110 r r r r r 0 b b b'] = binop SBRC rr5 cb3
+val / ['1111110 r r r r r 0 b b b'] = ternop SBRC rr5 cb3 sizeof-next
 
 ### SBRS
 ###  - Skip if Bit in Register is Set
-val / ['1111111 r r r r r 0 b b b'] = binop SBRS rr5 cb3
+val / ['1111111 r r r r r 0 b b b'] = ternop SBRS rr5 cb3 sizeof-next
 
 ### SEC
 ###  - Set Carry Flag
@@ -535,6 +535,7 @@ type imm =
  | IMM12 of 12
  | IMM16 of 16
  | IMM22 of 22
+ | IMMi of int
 
 type reghl = {regh:register,regl:register} 
 
@@ -547,6 +548,7 @@ type operand =
  | OPSE of {op:operand,se:side-effect}
  | OPDI of {op:operand,imm:imm}
 
+type ternop = {first:operand,second:operand,third:operand}
 type binop = {first:operand,second:operand}
 type unop = {operand:operand}
 
@@ -592,7 +594,7 @@ type instruction =
  | CP of binop
  | CPC of binop
  | CPI of binop
- | CPSE of binop
+ | CPSE of ternop
  | DEC of unop
  | DES of unop
  | EICALL
@@ -637,12 +639,12 @@ type instruction =
  | SBC of binop
  | SBCI of binop
  | SBI of binop
- | SBIC of binop
- | SBIS of binop
+ | SBIC of ternop
+ | SBIS of ternop
  | SBIW of binop
  | SBR of binop
- | SBRC of binop
- | SBRS of binop
+ | SBRC of ternop
+ | SBRS of ternop
  | SEC
  | SEH
  | SEI
@@ -1054,6 +1056,21 @@ val rr4h-rr4l = do
  rr-regh <- return (register-from-bits (rr ^ '1'));
  update @{rr=''};
  return (REGHL {regh=rr-regh,regl=rr-regl})
+end
+
+val sizeof-next = do
+  index <- idxget;
+  /;
+  new <- idxget;
+  seek index;
+  return (IMM (IMMi (/z (new - index) 2)))
+end
+
+val ternop cons first second third = do
+ first <- first;
+ second <- second;
+ third <- third;
+ return (cons {first=first, second=second, third=third})
 end
 
 val binop cons first second = do

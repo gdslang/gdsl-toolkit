@@ -358,19 +358,9 @@ val move-combined size dst-high dst-low src = do
   mov size dst-low (var (at-offset src 0))
 end
 
-val fEQ = return (_var VIRT_EQ)
-val fNEQ = return (_var VIRT_NEQ)
-val fLES = return (_var VIRT_LES)
-val fLEU = return (_var VIRT_LEU)
-val fLTS = return (_var VIRT_LTS)
-val fLTU = return (_var VIRT_LTU)
-
-val zero = return (SEM_LIN_IMM{const=0})
-
 val sem-a sem-cc x = do
-  cf <- fCF;
-  zf <- fZF;
-  sem-cc x (/and (/not (var cf)) (/not (var zf)))
+  leu <- fLEU;
+  sem-cc x (/not (var leu))
 end
 val sem-nbe sem-cc x = sem-a sem-cc x
 
@@ -389,9 +379,8 @@ val sem-b sem-cc x = sem-c sem-cc x
 val sem-nae sem-cc x = sem-nae sem-cc x
 
 val sem-be sem-cc x = do
-  cf <- fCF;
-  zf <- fZF;
-  sem-cc x (/or (/d (var cf)) (/d (var zf)))
+  leu <- fLEU;
+  sem-cc x (/d (var leu))
 end
 val sem-na sem-cc x = sem-be sem-cc x
 
@@ -402,32 +391,26 @@ end
 val sem-z sem-cc x = sem-e sem-cc x
 
 val sem-g sem-cc x = do
-  zf <- fZF;
-  sf <- fSF;
-  ov <- fOF;
-  sem-cc x (/and (/not (var zf)) (/eq 1 (var sf) (var ov)))
+  les <- fLES;
+  sem-cc x (/not (var les))
 end
 val sem-nle sem-cc x = sem-g sem-cc x
 
 val sem-ge sem-cc x = do
-  sf <- fSF;
-  ov <- fOF;
-  sem-cc x (/eq 1 (var sf) (var ov))
+  lts <- fLTS;
+  sem-cc x (/not (var lts))
 end
 val sem-nl sem-cc x = sem-ge sem-cc x
 
 val sem-l sem-cc x = do
-  sf <- fSF;
-  ov <- fOF;
-  sem-cc x (/neq 1 (var sf) (var ov))
+  lts <- fLTS;
+  sem-cc x (/d (var lts))
 end
 val sem-nge sem-cc x = sem-l sem-cc x
 
 val sem-le sem-cc x = do
-  zf <- fZF;
-  sf <- fSF;
-  ov <- fOF;
-  sem-cc x (/or (/d (var zf)) (/neq 1 (var sf) (var ov)))
+  les <- fLES;
+  sem-cc x (/d (var les))
 end
 val sem-ng sem-cc x = sem-le sem-cc x
 
@@ -548,31 +531,30 @@ end
 
 val emit-add-adc-flags sz sum s0 s1 carry set-carry = let
   val emit = do
-    eq <- fEQ;
-    les <- fLES;
-    leu <- fLEU;
-    lts <- fLTS;
-    ltu <- fLTU;
+#    eq <- fEQ;
+#    les <- fLES;
+#    leu <- fLEU;
+#    lts <- fLTS;
+#    ltu <- fLTU;
     sf <- fSF;
     ov <- fOF;
-    z <- fZF;
+    zf <- fZF;
     cf <- fCF;
     t1 <- mktemp;
     t2 <- mktemp;
     t3 <- mktemp;
-    zer0 <- zero;
   
-    cmpltu sz ltu s0 s1;
+#    cmpltu sz ltu s0 s1;
     xorb sz t1 sum s0;
     xorb sz t2 sum s1;
     andb sz t3 (var t1) (var t2);
-    cmplts sz ov (var t3) zer0;
-    cmplts sz sf sum zer0;
-    cmpeq sz eq sum zer0;
-    xorb 1 lts (var sf) (var ov);
-    orb 1 leu (var ltu) (var eq);
-    orb 1 les (var lts) (var eq);
-    cmpeq sz z sum zer0;
+    cmplts sz ov (var t3) (imm 0);
+    cmplts sz sf sum (imm 0);
+#   cmpeq sz eq sum (imm 0);
+#    xorb 1 lts (var sf) (var ov);
+#   orb 1 leu (var ltu) (var eq);
+#   orb 1 les (var lts) (var eq);
+    cmpeq sz zf sum (imm 0);
   
     # Hacker's Delight - Unsigned Add/Subtract
     if set-carry then (
@@ -586,7 +568,8 @@ val emit-add-adc-flags sz sum s0 s1 carry set-carry = let
     ;
   
     emit-parity-flag sum;
-    emit-arithmetic-adjust-flag sz sum s0 s1
+    emit-arithmetic-adjust-flag sz sum s0 s1;
+    emit-virt-flags
   end
 in
   with-subscope emit
@@ -594,11 +577,6 @@ end
 
 val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
   val emit = do
-    eq <- fEQ;
-    les <- fLES;
-    leu <- fLEU;
-    lts <- fLTS;
-    ltu <- fLTU;
     sf <- fSF;
     ov <- fOF;
     cf <- fCF;
@@ -606,27 +584,39 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
     t1 <- mktemp;
     t2 <- mktemp;
     t3 <- mktemp;
-    zer0 <- zero;
-  
-    cmpltu sz ltu minuend subtrahend;
-    cmpleu sz leu minuend subtrahend;
-    cmplts sz lts minuend subtrahend;
-    cmples sz les minuend subtrahend;
-    cmpeq sz eq minuend subtrahend;
-    cmplts sz sf difference zer0;
-    xorb 1 ov (var lts) (var sf);
-    cmpeq sz z difference zer0;
-  
-    if set-carry then (
-      # Hacker's Delight - Unsigned Add/Subtract
-      _if (/d carry) _then do
+
+    tlts <- mktemp;
+    cmplts sz tlts minuend subtrahend;
+
+    cmplts sz sf difference (imm 0);
+    xorb 1 ov (var tlts) (var sf);
+    cmpeq sz z difference (imm 0);
+
+    # Hacker's Delight - Unsigned Add/Subtract
+    _if (/d carry) _then do
+      if set-carry then
         cmpleu sz cf minuend subtrahend
-      end _else do
+      else
+        return void
+      ;
+      emit-virt-flags
+    end _else do
+      if set-carry then
         cmpltu sz cf minuend subtrahend
-      end
-    ) else
-      return void
-    ;
+      else
+        return void
+      ;
+#     eq <- fEQ;
+      les <- fLES;
+      leu <- fLEU;
+#     ltu <- fLTU;
+      lts <- fLTS;
+#     cmpltu sz ltu minuend subtrahend;
+      cmpleu sz leu minuend subtrahend;
+      mov 1 lts (var tlts);
+      cmples sz les minuend subtrahend
+ #    cmpeq sz eq minuend subtrahend
+    end;
   
     emit-parity-flag difference;
     emit-arithmetic-adjust-flag sz difference minuend subtrahend
@@ -653,10 +643,32 @@ val emit-mul-flags sz product = let
     undef 1 sf;
     undef 1 zf;
     undef 1 af;
-    undef 1 pf
+    undef 1 pf;
+
+    emit-virt-flags
   end
 in
   with-subscope emit
+end
+
+val emit-virt-flags = do
+  leu <- fLEU;
+  lts <- fLTS;
+  les <- fLES;
+
+  cf <- fCF;
+  zf <- fZF;
+  sf <- fSF;
+  ov <- fOF;
+
+  #LEU := C | Z
+  orb 1 leu (var cf) (var zf);
+
+  #LTS := S != O
+  cmpneq 1 lts (var sf) (var ov);
+
+  #LES := S != O | Z
+  orb 1 les (var lts) (var zf)
 end
 
 val move-to-rflags size lin = let
@@ -2148,10 +2160,6 @@ val translateSingle = do
    return (rreil-stmts-rev stmts)
 end
 
-type int_option =
-   IO_SOME of int
- | IO_NONE
-
 val io a b = {a=a,b=b}
 val io-to a = {a=a,b=IO_NONE}
 val io-tw a = {a=a,b=a}
@@ -2203,6 +2211,8 @@ end
 type stmts_option =
    SO_SOME of sem_stmts
  | SO_NONE
+
+type translate-result = {insns:int, succ_a:int, succ_b:int}
 
 val translateSuperBlock = let
   val translate-block-at idx = do

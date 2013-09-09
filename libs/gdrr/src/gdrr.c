@@ -520,8 +520,8 @@
 //}
 
 static gdrr_sem_stmts_t *gdrr_convert_sem_stmts_with_config(obj_t sem_stmts_obj, struct gdrr_config *config) {
-	obj_t sem_id_callbacks = gdsl_rreil_callbacks_sem_id(config->state, config->callbacks.sem_id.virt_na,
-			config->callbacks.sem_id.virt_t, config->callbacks.arch.sem_id.arch);
+	obj_t sem_id_callbacks = gdsl_rreil_callbacks_sem_id(config->state, config->callbacks.sem_id.virt_t,
+			config->callbacks.arch.sem_id.arch);
 	obj_t sem_address_callbacks = gdsl_rreil_callbacks_sem_address(config->state,
 			config->callbacks.sem_address.sem_address);
 	obj_t sem_var_callbacks = gdsl_rreil_callbacks_sem_var(config->state, config->callbacks.sem_var.sem_var);

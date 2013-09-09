@@ -284,6 +284,7 @@ val sem-neg x = do
 
   emit-parity-flag (var temp);
   emit-arithmetic-adjust-flag size (var temp) (imm 0) src; #Todo: Correct?
+  emit-virt-flags;
 
   write size dst (var temp)
 end
@@ -324,6 +325,7 @@ val sem-or x = do
   emit-parity-flag (var temp);
   af <- fAF;
   undef 1 af;
+  emit-virt-flags;
 
   write sz dst (var temp)
 end
@@ -1353,9 +1355,9 @@ val sem-popcnt x = do
   mov 1 cf (imm 0);
   pf <- fPF;
   mov 1 pf (imm 0);
-
   zf <- fZF;
   cmpeq x.opnd-sz zf src (imm 0);
+  emit-virt-flags;
 
   write x.opnd-sz dst (var counter)
 end
@@ -1701,7 +1703,8 @@ val sem-ptest-vptest x = do
   pf <- fPF;
   mov 1 pf (imm 0);
   sf <- fSF;
-  mov 1 sf (imm 0)
+  mov 1 sf (imm 0);
+  emit-virt-flags
 end
 
 val sem-punpck-vpunpck-opnd avx-encoded use-high element-size opnd1 opnd2 opnd3 = do
@@ -1906,6 +1909,7 @@ val sem-rcl x = do
     undef 1 ov
   ;
 
+  emit-virt-flags;
   write size dst (var temp-dst)
 end
 
@@ -1950,6 +1954,7 @@ val sem-rcr x = do
     mov 1 cf (var (at-offset temp-dst size))
   end;
 
+  emit-virt-flags;
   write size dst (var temp-dst)
 end
 
@@ -1999,6 +2004,8 @@ val sem-rol x = do
     undef 1 ov
   ;
 
+  emit-virt-flags;
+
   write size dst (var temp-dst)
 end
 
@@ -2046,6 +2053,8 @@ val sem-ror x = do
   _else
     undef 1 ov
   ;
+
+  emit-virt-flags;
 
   write size dst (var temp-dst)
 end
@@ -2260,6 +2269,7 @@ val sem-sal-shl x = do
   cmpeq sz zf (var tdst) (imm 0);
 
   emit-parity-flag (var tdst);
+  emit-virt-flags;
 
   write sz dst (var tdst)
 
@@ -2381,6 +2391,7 @@ val sem-shr-sar x signed = do
   cmpeq sz zf (var tdst) (imm 0);
 
   emit-parity-flag (var tdst);
+  emit-virt-flags;
 
   write sz dst (var tdst)
 end
@@ -2493,6 +2504,8 @@ val sem-shld-shrd s1-shifter s2-shifter x = do
         undef 1 ov
     end
   end;
+
+  emit-virt-flags;
   
   write size dst (var temp-dst)
 end
@@ -2502,7 +2515,8 @@ val sem-shrd x = sem-shld-shrd shr shl x
 
 val sem-stc = do
   cf <- fCF;
-  mov 1 cf (imm 1)
+  mov 1 cf (imm 1);
+  emit-virt-flags
 end
 
 val sem-std = do
@@ -2561,7 +2575,9 @@ val sem-test x = do
   mov 1 ov (imm 0);
 
   af <- fAF;
-  undef 1 af
+  undef 1 af;
+
+  emit-virt-flags
 end
 
 ## U>>
@@ -2741,6 +2757,8 @@ val sem-xor x = do
 
   af <- fAF;
   undef 1 af;
+
+  emit-virt-flags;
 
   write sz dst (var temp)
 end

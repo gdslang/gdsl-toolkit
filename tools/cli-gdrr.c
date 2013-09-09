@@ -7,10 +7,10 @@
 #include <readhex.h>
 
 // sem_id
-static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
-	printf("=> virt#%ld\n", con);
-	return NULL ;
-}
+//static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
+//	printf("=> virt#%ld\n", con);
+//	return NULL ;
+//}
 
 static gdrr_sem_id_t *virt_t(state_t state, int_t t) {
 	printf("=> t%ld\n", t);
@@ -534,7 +534,7 @@ int main(int argc, char** argv) {
 
 	struct gdrr_config config;
 
-	config.callbacks.sem_id.virt_na = &virt_na;
+//	config.callbacks.sem_id.virt_na = &virt_na;
 	config.callbacks.sem_id.virt_t = &virt_t;
 	config.callbacks.arch.sem_id.arch = &arch;
 

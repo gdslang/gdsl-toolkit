@@ -12,9 +12,9 @@ public interface IRReilBuilder {
 	 * sem_id
 	 */
 
-	IId virt_eq();
-
-	IId virt_neq();
+//	IId virt_eq();
+//
+//	IId virt_neq();
 
 	IId virt_les();
 
@@ -22,7 +22,7 @@ public interface IRReilBuilder {
 
 	IId virt_lts();
 
-	IId virt_ltu();
+//	IId virt_ltu();
 
 	IId virt_t(long t);
 

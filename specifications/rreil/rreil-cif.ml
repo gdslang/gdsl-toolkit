@@ -6,7 +6,7 @@ export = rreil-cif-userdata-set rreil-cif-userdata-get rreil-callbacks-sem-id rr
 val rreil-cif-userdata-set userdata = update@{userdata=userdata}
 val rreil-cif-userdata-get = query $userdata
 
-val rreil-callbacks-sem-id virt_na virt_t x86 = {virt_na=virt_na, virt_t=virt_t, x86=x86}
+val rreil-callbacks-sem-id virt_t x86 = {virt_t=virt_t, x86=x86}
 val rreil-callbacks-sem-address sem_address = {sem_address_=sem_address}
 val rreil-callbacks-sem-var sem_var = {sem_var_=sem_var}
 val rreil-callbacks-sem-linear sem_lin_var sem_lin_imm sem_lin_add sem_lin_sub sem_lin_scale = {sem_lin_var=sem_lin_var, sem_lin_imm=sem_lin_imm, sem_lin_add=sem_lin_add, sem_lin_sub=sem_lin_sub, sem_lin_scale=sem_lin_scale}
@@ -21,13 +21,13 @@ val rreil-callbacks-sem-stmts-list list_next list_init = {list_next=list_next, l
 val rreil-callbacks sem_id sem_address sem_var sem_linear sem_sexpr sem_op_cmp sem_op sem_stmt branch_hint sem_stmts sem_stmts_list = {sem_id=sem_id, sem_address=sem_address, sem_var=sem_var, sem_linear=sem_linear, sem_sexpr=sem_sexpr, sem_op_cmp=sem_op_cmp, sem_op=sem_op, sem_stmt=sem_stmt, branch_hint=branch_hint, sem_stmts=sem_stmts, sem_stmts_list=sem_stmts_list}
 
 val rreil-convert-sem-id cbs id = case id of
-   VIRT_EQ: cbs.sem_id.virt_na (index id)
- | VIRT_NEQ: cbs.sem_id.virt_na (index id)
- | VIRT_LES: cbs.sem_id.virt_na (index id)
- | VIRT_LEU: cbs.sem_id.virt_na (index id)
- | VIRT_LTS: cbs.sem_id.virt_na (index id)
- | VIRT_LTU: cbs.sem_id.virt_na (index id)
- | VIRT_T t: cbs.sem_id.virt_t t
+#   VIRT_EQ: cbs.sem_id.virt_na (index id)
+# | VIRT_NEQ: cbs.sem_id.virt_na (index id)
+# | VIRT_LES: cbs.sem_id.virt_na (index id)
+# | VIRT_LEU: cbs.sem_id.virt_na (index id)
+# | VIRT_LTS: cbs.sem_id.virt_na (index id)
+# | VIRT_LTU: cbs.sem_id.virt_na (index id)
+   VIRT_T t: cbs.sem_id.virt_t t
  | _: cbs.sem_id.x86 (index id)
 end
 

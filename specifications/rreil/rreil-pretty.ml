@@ -97,12 +97,6 @@ val rreil-show-sexpr sexpr =
 
 val rreil-show-id id =
    case id of
-      VIRT_EQ: "EQ"
-    | VIRT_NEQ: "NEQ"
-    | VIRT_LES: "LES"
-    | VIRT_LEU: "LEU"
-    | VIRT_LTS: "LTS"
-    | VIRT_LTU: "LTU"
-    | VIRT_T x: "T" +++ show-int x
+      VIRT_T x: "T" +++ show-int x
     | _: arch-show-id id
    end

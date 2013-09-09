@@ -9,6 +9,13 @@ val fSF = return (_var Sem_FLAGS _offset 7)
 val fDF = return (_var Sem_FLAGS _offset 10)
 val fOF = return (_var Sem_FLAGS _offset 11)
 
+#val fEQ = return (_var VIRT_EQ)
+#val fNEQ = return (_var VIRT_NEQ)
+val fLES = return (_var VIRT_LES)
+val fLEU = return (_var VIRT_LEU)
+val fLTS = return (_var VIRT_LTS)
+#val fLTU = return (_var VIRT_LTU)
+
 val rflags = do
   flags <- return {id=Sem_FLAGS,offset=0,size=64};
 
@@ -79,6 +86,12 @@ type sem_id
    | Sem_XMM13
    | Sem_XMM14
    | Sem_XMM15
+#   | VIRT_EQ  # ==
+#   | VIRT_NEQ # /=
+   | VIRT_LES # <=s
+   | VIRT_LEU # <=u
+   | VIRT_LTS # <s
+#   | VIRT_LTU # <u
 
 val semantic-register-of r = case r of
     AL    : {id=Sem_AX,offset=0,size=8}
@@ -215,66 +228,6 @@ val semantic-register-of-operand-with-size opnd size =
   end
 
 val semantic-register id offset size = {id=id,offset=offset,size=size}
-
-val arch-show-id r = case r of
-     Sem_IP : "IP"
-   | Sem_FLAGS : "FLAGS"
-   | Sem_MXCSR : "MXCSR"
-   | Sem_AX : "AX"
-   | Sem_BX : "BX"
-   | Sem_CX : "CX"
-   | Sem_DX : "DX"
-   | Sem_SI : "SI"
-   | Sem_DI : "DI"
-   | Sem_SP : "SP"
-   | Sem_BP : "BP"
-   | Sem_R8 : "R8"
-   | Sem_R9 : "R9"
-   | Sem_R10 : "R10"
-   | Sem_R11 : "R11"
-   | Sem_R12 : "R12"
-   | Sem_R13 : "R13"
-   | Sem_R14 : "R14"
-   | Sem_R15 : "R15"
-   | Sem_CS : "CS"
-   | Sem_DS : "DS"
-   | Sem_SS : "SS"
-   | Sem_ES : "ES"
-   | Sem_FS : "FS"
-   | Sem_GS : "GS"
-   | Sem_ST0 : "ST0"
-   | Sem_ST1 : "ST1"
-   | Sem_ST2 : "ST2"
-   | Sem_ST3 : "ST3"
-   | Sem_ST4 : "ST4"
-   | Sem_ST5 : "ST5"
-   | Sem_ST6 : "ST6"
-   | Sem_ST7 : "ST7"
-   | Sem_MM0 : "MM0"
-   | Sem_MM1 : "MM1"
-   | Sem_MM2 : "MM2"
-   | Sem_MM3 : "MM3"
-   | Sem_MM4 : "MM4"
-   | Sem_MM5 : "MM5"
-   | Sem_MM6 : "MM6"
-   | Sem_MM7 : "MM7"
-   | Sem_XMM0 : "XMM0"
-   | Sem_XMM1 : "XMM1"
-   | Sem_XMM2 : "XMM2"
-   | Sem_XMM3 : "XMM3"
-   | Sem_XMM4 : "XMM4"
-   | Sem_XMM5 : "XMM5"
-   | Sem_XMM6 : "XMM6"
-   | Sem_XMM7 : "XMM7"
-   | Sem_XMM8 : "XMM8"
-   | Sem_XMM9 : "XMM9"
-   | Sem_XMM10 : "XMM10"
-   | Sem_XMM11 : "XMM11"
-   | Sem_XMM12 : "XMM12"
-   | Sem_XMM13 : "XMM13"
-   | Sem_XMM14 : "XMM14"
-   | Sem_XMM15 : "XMM15"
-end
 
 val is-avx-sse id =
   case id of

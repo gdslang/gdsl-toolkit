@@ -63,15 +63,15 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	 * sem_id
 	 */
 
-	@Override
-	public Id virt_eq() {
-		return new VirtualEqualsId();
-	}
-
-	@Override
-	public Id virt_neq() {
-		return new VirtualEqualsNotId();
-	}
+//	@Override
+//	public Id virt_eq() {
+//		return new VirtualEqualsId();
+//	}
+//
+//	@Override
+//	public Id virt_neq() {
+//		return new VirtualEqualsNotId();
+//	}
 
 	@Override
 	public Id virt_les() {
@@ -88,10 +88,10 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 		return new VirtualLessSignedId();
 	}
 
-	@Override
-	public Id virt_ltu() {
-		return new VirtualLessUnsignedId();
-	}
+//	@Override
+//	public Id virt_ltu() {
+//		return new VirtualLessUnsignedId();
+//	}
 
 	@Override
 	public Id virt_t(long t) {

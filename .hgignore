@@ -46,6 +46,7 @@ tools/sweep
 tools/x86-test-runner/x86-test-runner
 tools/x86-test-stats-runner/x86-test-stats-runner
 tools/tardet/tardet
+tools/xed-cmp/xed-cmp
 
 #^include$
 #^lib$

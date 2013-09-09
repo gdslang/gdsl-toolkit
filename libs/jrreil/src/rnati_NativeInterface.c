@@ -85,36 +85,36 @@ static jobject java_long_create(state_t state, long int x) {
 }
 
 // sem_id
-static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
-	jobject ret;
-	switch(con) {
-		case CON_VIRT_EQ: {
-			ret = java_method_call(state, "virt_eq", 0);
-			break;
-		}
-		case CON_VIRT_NEQ: {
-			ret = java_method_call(state, "virt_neq", 0);
-			break;
-		}
-		case CON_VIRT_LES: {
-			ret = java_method_call(state, "virt_les", 0);
-			break;
-		}
-		case CON_VIRT_LEU: {
-			ret = java_method_call(state, "virt_leu", 0);
-			break;
-		}
-		case CON_VIRT_LTS: {
-			ret = java_method_call(state, "virt_lts", 0);
-			break;
-		}
-		case CON_VIRT_LTU: {
-			ret = java_method_call(state, "virt_ltu", 0);
-			break;
-		}
-	}
-	return (gdrr_sem_id_t*)ret;
-}
+//static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
+//	jobject ret;
+//	switch(con) {
+//		case CON_VIRT_EQ: {
+//			ret = java_method_call(state, "virt_eq", 0);
+//			break;
+//		}
+//		case CON_VIRT_NEQ: {
+//			ret = java_method_call(state, "virt_neq", 0);
+//			break;
+//		}
+//		case CON_VIRT_LES: {
+//			ret = java_method_call(state, "virt_les", 0);
+//			break;
+//		}
+//		case CON_VIRT_LEU: {
+//			ret = java_method_call(state, "virt_leu", 0);
+//			break;
+//		}
+//		case CON_VIRT_LTS: {
+//			ret = java_method_call(state, "virt_lts", 0);
+//			break;
+//		}
+//		case CON_VIRT_LTU: {
+//			ret = java_method_call(state, "virt_ltu", 0);
+//			break;
+//		}
+//	}
+//	return (gdrr_sem_id_t*)ret;
+//}
 static gdrr_sem_id_t *virt_t(state_t state, int_t t) {
 	jobject ret = java_method_call(state, "virt_t", 1, java_long_create(state, (long int)t));
 	return (gdrr_sem_id_t*)ret;
@@ -350,6 +350,18 @@ static gdrr_sem_id_t *arch(state_t state, int_t con) {
 		}
 		case CON_Sem_XMM15: {
 			ret = java_method_call(state, "sem_xmm15", 0);
+			break;
+		}
+		case CON_VIRT_LES: {
+			ret = java_method_call(state, "virt_les", 0);
+			break;
+		}
+		case CON_VIRT_LEU: {
+			ret = java_method_call(state, "virt_leu", 0);
+			break;
+		}
+		case CON_VIRT_LTS: {
+			ret = java_method_call(state, "virt_lts", 0);
 			break;
 		}
 	}
@@ -611,7 +623,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 
 	struct gdrr_config config;
 
-	config.callbacks.sem_id.virt_na = &virt_na;
+//	config.callbacks.sem_id.virt_na = &virt_na;
 	config.callbacks.sem_id.virt_t = &virt_t;
 	config.callbacks.arch.sem_id.arch = &arch;
 	//%s/gdrr_sem_id_t .(.\(.*\))(void .closure);/config.callbacks.arch.x86.sem_id.\1 = \&\1;/g

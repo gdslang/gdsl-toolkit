@@ -14,37 +14,37 @@
 #include <x86.h>
 
 // sem_id
-static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_VIRTUAL;
-	switch(con) {
-		case CON_VIRT_EQ: {
-			id->virtual_ = RREIL_ID_VIRTUAL_EQ;
-			break;
-		}
-		case CON_VIRT_NEQ: {
-			id->virtual_ = RREIL_ID_VIRTUAL_NEQ;
-			break;
-		}
-		case CON_VIRT_LES: {
-			id->virtual_ = RREIL_ID_VIRTUAL_LES;
-			break;
-		}
-		case CON_VIRT_LEU: {
-			id->virtual_ = RREIL_ID_VIRTUAL_LEU;
-			break;
-		}
-		case CON_VIRT_LTS: {
-			id->virtual_ = RREIL_ID_VIRTUAL_LTS;
-			break;
-		}
-		case CON_VIRT_LTU: {
-			id->virtual_ = RREIL_ID_VIRTUAL_LTU;
-			break;
-		}
-	}
-	return (gdrr_sem_id_t*)id;
-}
+//static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
+//	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
+//	id->type = RREIL_ID_TYPE_VIRTUAL;
+//	switch(con) {
+//		case CON_VIRT_EQ: {
+//			id->virtual_ = RREIL_ID_VIRTUAL_EQ;
+//			break;
+//		}
+//		case CON_VIRT_NEQ: {
+//			id->virtual_ = RREIL_ID_VIRTUAL_NEQ;
+//			break;
+//		}
+//		case CON_VIRT_LES: {
+//			id->virtual_ = RREIL_ID_VIRTUAL_LES;
+//			break;
+//		}
+//		case CON_VIRT_LEU: {
+//			id->virtual_ = RREIL_ID_VIRTUAL_LEU;
+//			break;
+//		}
+//		case CON_VIRT_LTS: {
+//			id->virtual_ = RREIL_ID_VIRTUAL_LTS;
+//			break;
+//		}
+//		case CON_VIRT_LTU: {
+//			id->virtual_ = RREIL_ID_VIRTUAL_LTU;
+//			break;
+//		}
+//	}
+//	return (gdrr_sem_id_t*)id;
+//}
 
 static gdrr_sem_id_t *virt_t(state_t state, int_t t) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
@@ -456,7 +456,7 @@ struct gdrr_config *rreil_gdrr_builder_config_get(state_t state) {
 	struct gdrr_config *config = (struct gdrr_config*)malloc(
 			sizeof(struct gdrr_config));
 
-	config->callbacks.sem_id.virt_na = &virt_na;
+//	config->callbacks.sem_id.virt_na = &virt_na;
 	config->callbacks.sem_id.virt_t = &virt_t;
 	config->callbacks.arch.sem_id.arch = &sem_id_arch;
 	config->callbacks.arch.sem_id.arch = &sem_id_arch;

@@ -29,13 +29,13 @@ public class NativeInterface {
 	 * sem_id
 	 */
 
-	private Object virt_eq() {
-		return builder.virt_eq();
-	}
-
-	private Object virt_neq() {
-		return builder.virt_neq();
-	}
+//	private Object virt_eq() {
+//		return builder.virt_eq();
+//	}
+//
+//	private Object virt_neq() {
+//		return builder.virt_neq();
+//	}
 
 	private Object virt_les() {
 		return builder.virt_les();
@@ -49,9 +49,9 @@ public class NativeInterface {
 		return builder.virt_lts();
 	}
 
-	private Object virt_ltu() {
-		return builder.virt_ltu();
-	}
+//	private Object virt_ltu() {
+//		return builder.virt_ltu();
+//	}
 
 	private Object virt_t(Object t) {
 		return builder.virt_t((Long) t);
