@@ -10,6 +10,7 @@ export GDSL_X86 := 1
 #GDSL=gdsl
 GDSL_MEX=_manual
 GDSL_COMP=$(GDSL)$(GDSL_MEX)
+GDSL_EXEC=$(GDSL)c
 GPREFIX=
 #GDSLFLAGS=
 
@@ -28,9 +29,9 @@ GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_X86_HL) $(GDSL_X86_TRANS_H
 
 .PHONY: libs tools
 
-all: $(GDSL) lib$(GDSL).so libs tools
+all: $(GDSL_EXEC) lib$(GDSL).so libs tools
 
-$(GDSL): $(GDSL)c.mlb $(shell find detail/ -type f -name '*')
+$(GDSL_EXEC): $(GDSL_EXEC).mlb $(shell find detail/ -type f -name '*')
 	$(MLTON) $(MLTONFLAGS) $<
 
 lib$(GDSL).so: $(GDSL_COMP).c
@@ -38,7 +39,7 @@ lib$(GDSL).so: $(GDSL_COMP).c
 	$(CC) $(LFLAGS) -o lib$(<:$(GDSL_MEX).c=.so) $(<:$(GDSL_MEX).c=.o)
 #	$(CC) $(LFLAGS) -Wl,-soname,lib$(<:.c=.so) -o lib$(<:.c=.so) $(<:.c=.o)
 
-$(GDSL_COMP).c: $(GDSL) $(GDSL_SOURCES)
+$(GDSL_COMP).c: $(GDSL_EXEC) $(GDSL_SOURCES)
 	./$< -o $(GDSL_COMP) $(GDSLFLAGS) $(GDSL_SOURCES:%="%")
 
 tools: lib$(GDSL).so libs
@@ -50,4 +51,4 @@ libs: lib$(GDSL).so
 clean:
 	$(MAKE) -C libs/	clean
 	$(MAKE) -C tools/ clean
-	rm -f $(GDSL) $(GDSL).o $(GDSL_COMP).c $(GDSL_COMP).h lib$(GDSL).so
+	rm -f $(GDSL_EXEC) $(GDSL).o $(GDSL_COMP).c $(GDSL_COMP).h lib$(GDSL).so
