@@ -44,33 +44,34 @@ AM_CONDITIONAL([INSTALL_GDSLC],[test x$enable_install_gdslc = xyes])
 
 dnl conditionals for the various decoders, either with or without semantics
 
-AC_ARG_ENABLE([x86-rreil],
-  [AS_HELP_STRING(
-    [--enable-x86-rreil],
-    [generate decoder and RReil semantics for x86])],
-  [], [enable_x86_rreil=yes])
-AM_CONDITIONAL([X86_RREIL],[test x$enable_x86_rreil = xyes])
+BACKENDS="x86 x86-rreil avr avr-rreil";
 
-AC_ARG_ENABLE([x86],
+AC_ARG_WITH([decoder],
   [AS_HELP_STRING(
-    [--enable-x86],
-    [generate bare decoder for x86])],
-  [], [enable_x86=no])
-AM_CONDITIONAL([X86],[test x$enable_x86 = xyes])
+    [--with-decoder=backend],
+    [one of: $(BACKENDS)])],
+  [], [with_decoder=x86])
 
-AC_ARG_ENABLE([avr-rreil],
-  [AS_HELP_STRING(
-    [--enable-avr-rreil],
-    [generate decoder and RReil semantics for avr])],
-  [], [enable_avr_rreil=yes])
-AM_CONDITIONAL([AVR_RREIL],[test x$enable_avr_rreil = xyes])
+case $with_decoder in
+	x86)
+		AC_DEFINE([USE_X86_RREIL],[1],[build x86 decoder and RReil semantics])
+	 	with_decoder=x86;;
+	x86-rreil)
+		AC_DEFINE([USE_X86],[1],[build x86 bare decoder])
+		with_decoder=x86-rreil;;
+	avr)
+		AC_DEFINE([USE_AVR],[1],[build AVR bare decoder])
+		with_decoder=avr;;
+	avr-rreil)
+		AC_DEFINE([USE_AVR_RREIL],[1],[build AVR decoder and RReil semantics])
+		with_decoder=avr-rreil;;
+	*) AC_MSG_FAILURE([invalid backend, choose one of $(BACKENDS)]);;
+esac
 
-AC_ARG_ENABLE([avr],
-  [AS_HELP_STRING(
-    [--enable-avr],
-    [generate bare decoder for avr])],
-  [], [enable_avr=no])
-AM_CONDITIONAL([AVR],[test x$enable_avr = xyes])
+AM_CONDITIONAL([X86_RREIL],[test x$with_decoder = xx86-rreil])
+AM_CONDITIONAL([X86],[test x$with_decoder = xx86])
+AM_CONDITIONAL([AVR_RREIL],[test x$with_decoder = xavr-rreil])
+AM_CONDITIONAL([AVR],[test x$with_decoder = xavr])
 
 dnl check if the helper executables should be build and/or installed
 AC_ARG_ENABLE([install-auxbins],
@@ -117,10 +118,7 @@ cat <<EOF
 GDSL toolkit configuration:
   directory prefix:             $prefix
   C flags:                      $CFLAGS
-  x86 decoder + RREIL:          $enable_x86_rreil
-  x86 decoder (bare):           $enable_x86
-  AVR decoder + RREIL:          $enable_avr_rreil
-  AVR decoder (bare):           $enable_avr
+  decoder to build:          	$with_decoder
   install compiler:             $enable_install_gdslc
   build auxiliary libraries:    $enable_build_auxlibs
   install auxiliary libraries:  $enable_install_auxlibs

@@ -1,0 +1,14 @@
+#include "config.h"
+#define GDSL_NO_PREFIX
+
+#ifdef USE_X86
+#include "gdsl-x86.h"
+#elif USE_X86_RREIL
+#include "gdsl-x86-rreil.h"
+#elif USE_AVR
+#include "gdsl-avr.h"
+#elif USE_AVR_RREIL
+#include "gdsl-avr-rreil.h"
+#endif
+ 
+

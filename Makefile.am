@@ -165,6 +165,7 @@ GDSL_RREIL = \
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 include_HEADERS += gdsl-x86-rreil.h
+libgdrr_la_LIBADD = libgdsl-x86-rreil.la
 endif
 libgdsl_x86_rreil_la_SOURCES =
 nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
@@ -176,6 +177,7 @@ gdsl-x86-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X
 
 if X86
 lib_LTLIBRARIES += libgdsl-x86.la
+libgdrr_la_LIBADD = libgdsl-x86.la
 endif
 libgdsl_x86_la_SOURCES =
 nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
@@ -187,6 +189,7 @@ gdsl-x86.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
 
 if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
+libgdrr_la_LIBADD = libgdsl-avr-rreil.la
 endif
 libgdsl_avr_rreil_la_SOURCES =
 nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
@@ -198,6 +201,7 @@ gdsl-avr-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_A
 
 if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
+libgdrr_la_LIBADD = libgdsl-avr.la
 endif
 libgdsl_avr_la_SOURCES =
 nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
@@ -207,10 +211,6 @@ CLEANFILES += gdsl-avr.c
 gdsl-avr.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
 
-
-# we build all libraries and binaries against one of the backends, namely x86-rreil
-# in order to change this in one place, we define the include variable here
-BACKEND_INCLUDE = -include gdsl-x86-rreil.h
 
 if INSTALL_AUXLIBS
 lib_LTLIBRARIES += libgdrr.la
@@ -237,14 +237,13 @@ include_HEADERS += \
 	libs/gdrr/include/gdrr_callbacks.h \
 	libs/gdrr/include/gdrr_config.h \
 	libs/gdrr/include/gdrr_types.h
-libgdrr_la_LIBADD = libgdsl-x86-rreil.la
 
 libreadhex_la_SOURCES = libs/readhex/src/readhex.c
 libreadhex_la_CFLAGS = -I./libs/readhex/include
 include_HEADERS += libs/readhex/include/readhex.h
 
 libgdwrap_la_SOURCES = libs/gdwrap/src/gdwrap.c
-libgdwrap_la_CFLAGS = -I./libs/gdwrap/include $(BACKEND_INCLUDE)
+libgdwrap_la_CFLAGS = -I./libs/gdwrap/include
 include_HEADERS += libs/gdwrap/include/gdwrap.h
 
 if INSTALL_AUXBINS
@@ -261,9 +260,9 @@ endif
 endif
 
 cli_SOURCES = tools/cli.c
-cli_CFLAGS = -I./libs/readhex/include -I./libs/gdwrap/include $(BACKEND_INCLUDE)
+cli_CFLAGS = -I./libs/readhex/include -I./libs/gdwrap/include
 cli_LDADD = libgdsl-x86-rreil.la libreadhex.la libgdwrap.la
 
 cli_gdrr_SOURCES = tools/cli-gdrr.c
-cli_gdrr_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include -I./libs/gdwrap/include $(BACKEND_INCLUDE)
+cli_gdrr_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include -I./libs/gdwrap/include
 cli_gdrr_LDADD = libgdrr.la libreadhex.la libgdwrap.la
