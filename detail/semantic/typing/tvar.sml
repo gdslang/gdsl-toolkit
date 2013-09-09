@@ -30,6 +30,8 @@ structure TVar : sig
 
 end = struct
 
+   val explicitPrint : bool = false
+   
    datatype tvar = TVAR of int
 
    fun eq (TVAR v1, TVAR v2) = v1=v2
@@ -49,13 +51,16 @@ end = struct
    fun name idx = (if idx>25 then name (Int.div (idx,26)-1) else "") ^
         Char.toString (Char.chr (Char.ord #"a"+Int.mod (idx,26)))
 
-   fun varToString (TVAR var, tab) = (*(name var, tab)*) case VarMap.find (tab, var) of
-                                              SOME str => (str, tab)
-                                            | NONE => let
-                                                 val str = name (VarMap.numItems(tab))
-                                              in
-                                                 (str, VarMap.insert(tab, var, str))
-                                              end
+   fun varToString (TVAR var, tab) =
+      if explicitPrint then
+         (name var, tab)
+      else case VarMap.find (tab, var) of
+          SOME str => (str, tab)
+        | NONE => let
+             val str = name (VarMap.numItems(tab))
+          in
+             (str, VarMap.insert(tab, var, str))
+          end
 
    structure IntSet = SplaySetFn(struct
       type ord_key = int

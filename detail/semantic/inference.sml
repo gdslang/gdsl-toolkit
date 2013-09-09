@@ -18,7 +18,7 @@ structure TypeInference : sig
    
 end = struct
 
-   (*val debugSymbol = 128*)
+   (*val debugSymbol = 8*)
    
    structure AST = SpecAbstractTree
    structure E = Environment
@@ -371,7 +371,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      (Error.errorAt (errStrm, s, [str,
                      " when checking call to ",
                      SymbolTable.getString(!SymbolTables.varTable, sym),
-                     "\n\tcall provides type  " ^ sCall,
+                     "\n\tcall site has type  " ^ sCall,
                      "\tdefinition has type " ^ sFun]))
                   end
 
@@ -585,7 +585,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      refineError (str,
                                   " in the branches of if-statment",
                                   [(envM, "then-branch "),
-                                   (envT, "else-branch ")])
+                                   (envE, "else-branch ")])
          (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString envM)*)
       in
          envM

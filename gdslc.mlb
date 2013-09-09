@@ -12,6 +12,7 @@ in
       "forceUsed"
       (* "sequenceNonUnit warn" *)
       (* "warnUnused true" *)
+      "nonexhaustiveMatch ignore"
    in
       local
          detail/common/basic-control.sml
