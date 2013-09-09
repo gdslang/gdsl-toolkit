@@ -49,8 +49,8 @@ BACKENDS="x86 x86-rreil avr avr-rreil";
 AC_ARG_WITH([decoder],
   [AS_HELP_STRING(
     [--with-decoder=backend],
-    [one of: $(BACKENDS)])],
-  [], [with_decoder=x86])
+    [one of: $BACKENDS])],
+  [], [with_decoder=x86-rreil])
 
 case $with_decoder in
 	x86)
@@ -65,7 +65,7 @@ case $with_decoder in
 	avr-rreil)
 		AC_DEFINE([USE_AVR_RREIL],[1],[build AVR decoder and RReil semantics])
 		with_decoder=avr-rreil;;
-	*) AC_MSG_FAILURE([invalid backend, choose one of $(BACKENDS)]);;
+	*) AC_MSG_FAILURE([invalid backend, choose one of $BACKENDS]);;
 esac
 case $with_decoder in
 	*-rreil) has_rreil=yes;;
