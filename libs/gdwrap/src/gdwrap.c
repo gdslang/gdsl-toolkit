@@ -26,9 +26,9 @@ char *gdwrap_x86_pretty(state_t state, obj_t insn, enum gdwrap_x86_print_mode mo
 	else
 		switch(mode) {
 			case GDSL_X86_PRINT_MODE_FULL:
-				return gdsl_pretty(state, insn);
+				return gdsl_merge_rope(state, gdsl_pretty(state, insn));
 			case GDSL_X86_PRINT_MODE_SIMPLE:
-				return gdsl_pretty_simple(state, insn);
+				return gdsl_merge_rope(state, gdsl_pretty_simple(state, insn));
 		}
 
 	return NULL ;

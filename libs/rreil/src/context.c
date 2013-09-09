@@ -219,7 +219,7 @@ void context_x86_print(struct context *context) {
 
 static void context_compare_registers(struct register_ *reg_cpu,
 		struct register_ *reg_rreil, void (*callback)(char *found, enum x86_id reg), enum x86_id reg, char *found) {
-	for(size_t j = 0; j < reg_cpu->bit_length / 8; ++j)
+	for(size_t j = 0; j < reg_cpu->bit_length / 8 + (reg_cpu->bit_length % 8 > 0); ++j)
 		if((reg_cpu->data[j] & reg_rreil->defined[j])
 				!= (reg_rreil->data[j] & reg_rreil->defined[j])) {
 			callback(found, reg);

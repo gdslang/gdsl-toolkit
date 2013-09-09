@@ -2243,7 +2243,7 @@ structure DeadVariables = struct
 
    and hasSidePrim SETSTATEprim = true
      | hasSidePrim SEEKprim = true
-     | hasSidePrim RSEEKprim = true
+     (*| hasSidePrim RSEEKprim = true*)
      | hasSidePrim CONSUME8prim = true
      | hasSidePrim CONSUME16prim = true
      | hasSidePrim CONSUME32prim = true

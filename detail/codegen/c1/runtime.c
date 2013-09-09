@@ -300,8 +300,8 @@ int_t
 	return 0;
 }
 
+/*
 int_t 
-@rseek@
 (state_t s, int_t i) {
   char *new_ip = s->ip + i;
 	if(new_ip >= s->ip_limit || new_ip < s->ip_base)
@@ -309,6 +309,7 @@ int_t
 	s->ip = new_ip;
 	return 0;
 }
+*/
 
 string_t
 @merge_rope@

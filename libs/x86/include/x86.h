@@ -76,7 +76,19 @@ enum x86_id {
 	X86_ID_VIRT_LTS
 };
 
-#define X86_ID_COUNT (X86_ID_XMM15 + 1)
+#define X86_ID_COUNT (X86_ID_VIRT_LTS + 1)
+
+#define X86_FLAGS_CARRY 0
+#define X86_FLAGS_PARITY 2
+#define X86_FLAGS_ADJUST 4
+#define X86_FLAGS_ZERO 6
+#define X86_FLAGS_SIGN 7
+#define X86_FLAGS_TRAP 8
+#define X86_FLAGS_INTERRUPT 9
+#define X86_FLAGS_DIRECTION 10
+#define X86_FLAGS_OVERFLOW 11
+#define X86_FLAGS_IOP 12
+#define X86_FLAGS_NT 14
 
 enum x86_rex {
 	X86_REX_W = 0x08,

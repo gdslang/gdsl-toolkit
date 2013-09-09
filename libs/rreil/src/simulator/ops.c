@@ -74,8 +74,8 @@ static void simulator_op_definition_simple(struct data opnd1, struct data opnd2,
 }
 
 static uint8_t local_add(uint8_t *accumulator, uint8_t opnd1, uint8_t opnd2) {
-	uint16_t result = (uint16_t)opnd1 + (uint16_t)opnd2 + (uint16_t)accumulator;
-	accumulator = result >> 8;
+	uint16_t result = (uint16_t)opnd1 + (uint16_t)opnd2 + (uint16_t)*accumulator;
+	*accumulator = result >> 8;
 	return (uint8_t)result;
 }
 

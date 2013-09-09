@@ -100,6 +100,7 @@ static void registers_x86_rreil_init(struct context *context_rreil, struct track
 	}
 
 	executor_rflags_clean(context_rreil);
+	executor_virt_calc(context_rreil);
 }
 
 static void ip_set(struct context *context_rreil, struct context *context_cpu, void *next_instruction_address) {

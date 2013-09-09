@@ -50,10 +50,10 @@ int_t
 @seek@
 (state_t s, size_t i);
 
-/* Adjust the current code position by this offset. */
+/* Adjust the current code position by this offset.
 int_t
-@rseek@
 (state_t s, int_t i);
+*/
 
 /* An exception handler must be installed by calling setjmp with the argument
  * returned by this function.
@@ -112,9 +112,6 @@ void
 
 #define gdsl_seek \
 @seek@
-
-#define gdsl_rseek \
-@rseek@
 
 #define gdsl_err_tgt \
 @err_tgt@

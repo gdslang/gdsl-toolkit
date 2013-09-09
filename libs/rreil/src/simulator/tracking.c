@@ -56,6 +56,10 @@ static void tracking_variable_access_trace(struct tracking_trace *trace,
 	data.bit_length = bit_length;
 	context_data_define(&data);
 
+//	printf("+++\n");
+//	rreil_id_print(stdout, variable->id);
+//	printf("\n+++\n");
+	fflush(stdout);
 	simulator_register_generic_write(&access->x86_registers[variable->id->x86],
 			data, variable->offset);
 
@@ -312,8 +316,8 @@ void tracking_statements_trace(struct tracking_trace *trace,
 static void init_register(struct register_access *access, enum x86_id x86) {
 	size_t size = x86_amd64_sizeof(x86);
 	struct register_ *reg = &access->x86_registers[x86];
-	reg->data = (uint8_t*)calloc(size / 8, 1);
-	reg->defined = (uint8_t*)calloc(size / 8, 1);
+	reg->data = (uint8_t*)calloc(size / 8 + (size % 8 > 0), 1);
+	reg->defined = (uint8_t*)calloc(size / 8 + (size % 8 > 0), 1);
 	reg->bit_length = size;
 //			reg->data_size = size / 8;
 }

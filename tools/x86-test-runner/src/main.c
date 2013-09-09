@@ -161,7 +161,7 @@ static void generator(struct options *options) {
 		free(buffer);
 
 		result_print(result);
-		if(result.type == TESTER_RTYPE_COMPARISON_ERROR)
+		if(result.type == TESTER_RTYPE_TRANSLATION_ERROR)
 			break;
 //		if(result.type == TESTER_RTYPE_CRASH)
 //			break;
@@ -209,8 +209,8 @@ static void code(struct options *options) {
 
 //	uint8_t data[] = { 0x48, 0x83, 0xc0, 0x2a };
 
-//	uint8_t data[] = { 0x48, 0x29, 0xc3 };
-	uint8_t data[] = { 0xdb, 0xe0, 0x5b, 0x43, 0x84, 0x7f};
+	uint8_t data[] = { 0x48, 0x29, 0xc3 };
+//	uint8_t data[] = { 0xdb, 0xe0, 0x5b, 0x43, 0x84, 0x7f};
 //	uint8_t data[] = { 0xff, 0xe0 };
 
 	struct tester_result result = tester_test_binary(NULL, options->fork, data,

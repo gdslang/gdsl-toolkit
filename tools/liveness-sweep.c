@@ -320,11 +320,11 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 	fseek(f, file_offset, SEEK_SET);
 
 	size_t buffer_size = 128;
-	char *buffer = NULL;
+	unsigned char *buffer = NULL;
 	size_t buffer_length = 0;
 	do {
 		buffer_size *= 2;
-		buffer = (char*)realloc(buffer, buffer_size);
+		buffer = (unsigned char*)realloc(buffer, buffer_size);
 		buffer_length += fread(buffer + buffer_length, 1, buffer_size - buffer_length, f);
 	} while(!feof(f) && (!size_max || buffer_length < size_max));
 
@@ -337,7 +337,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 	if(buffer_length == buffer_size) {
 		buffer_size++;
-		buffer = (char*)realloc(buffer, buffer_size);
+		buffer = (unsigned char*)realloc(buffer, buffer_size);
 	}
 	buffer[buffer_length++] = 0xc3; //Last instruction should be a jump (ret) ;-).
 

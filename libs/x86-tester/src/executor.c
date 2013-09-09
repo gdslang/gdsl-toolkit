@@ -33,6 +33,17 @@ void executor_rflags_clean(struct context *context) {
 	}
 }
 
+static uint8_t read_flag(struct context *context, uint8_t flag) {
+	uint64_t *fp = (uint64_t*)context->x86_registers[X86_ID_FLAGS].data;
+	return ((*fp) >> flag) & 1;
+}
+
+void executor_virt_calc(struct context *context) {
+	context->x86_registers[X86_ID_VIRT_LEU].data[0] = read_flag(context, X86_FLAGS_CARRY) | read_flag(context, X86_FLAGS_ZERO);
+	context->x86_registers[X86_ID_VIRT_LTS].data[0] = read_flag(context, X86_FLAGS_SIGN) != read_flag(context, X86_FLAGS_OVERFLOW);
+	context->x86_registers[X86_ID_VIRT_LES].data[0] = context->x86_registers[X86_ID_VIRT_LTS].data[0] | read_flag(context, X86_FLAGS_ZERO);
+}
+
 struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, size_t instruction_length,
 		struct tracking_trace *trace, struct context *context, void **memory, void **next_instruction_address,
 		char test_unused) {
@@ -218,7 +229,7 @@ struct execution_result executor_instruction_execute(uint8_t *instruction, size_
 	sigaction(SIGSYS, &act, NULL);
 	sigaction(SIGTRAP, &act, NULL);
 
-	alarm(1);
+//	alarm(1);
 
 #ifndef DRYRUN
 	if(!setjmp(jbuf))
@@ -242,6 +253,8 @@ struct execution_result executor_instruction_execute(uint8_t *instruction, size_
 
 	unmap_all: unmap_all(mappings);
 	stack_free(mappings);
+
+	executor_virt_calc(context);
 
 	return result;
 }

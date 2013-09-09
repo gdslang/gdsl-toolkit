@@ -2217,7 +2217,8 @@ type translate-result = {insns:int, succ_a:int, succ_b:int}
 val translateSuperBlock = let
   val translate-block-at idx = do
 	  current <- idxget;
-		error <- rseek idx;
+		#error <- rseek idx;
+		error <- seek (current + idx);
 		result <- if error === 0 then do
 		  stmts <- translateBlock;
 		  seek current;
