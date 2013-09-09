@@ -161,9 +161,6 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	struct tracking_trace *trace = tracking_trace_init();
 
 	struct context_callback_closure cls;
-	cls.context_cpu = context_cpu;
-	cls.context_rreil = context_rreil;
-	cls.trace = trace;
 
 	context_rreil = context_init(&load, &store, &jump, &cls);
 
@@ -181,6 +178,10 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	registers_x86_rreil_init(context_rreil, trace, test_unused);
 
 	context_cpu = context_copy(context_rreil);
+
+	cls.context_cpu = context_cpu;
+	cls.context_rreil = context_rreil;
+	cls.trace = trace;
 
 	void *code;
 	void *next_instruction_address;

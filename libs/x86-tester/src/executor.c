@@ -16,6 +16,7 @@
 #include <tbgen.h>
 #include <stack.h>
 #include <util.h>
+#include <simulator/regacc.h>
 #include <executor.h>
 
 //#define DRYRUN
@@ -39,9 +40,23 @@ static uint8_t read_flag(struct context *context, uint8_t flag) {
 }
 
 void executor_virt_calc(struct context *context) {
-	context->x86_registers[X86_ID_VIRT_LEU].data[0] = read_flag(context, X86_FLAGS_CARRY) | read_flag(context, X86_FLAGS_ZERO);
-	context->x86_registers[X86_ID_VIRT_LTS].data[0] = read_flag(context, X86_FLAGS_SIGN) != read_flag(context, X86_FLAGS_OVERFLOW);
-	context->x86_registers[X86_ID_VIRT_LES].data[0] = context->x86_registers[X86_ID_VIRT_LTS].data[0] | read_flag(context, X86_FLAGS_ZERO);
+	if(!context->x86_registers[X86_ID_FLAGS].data)
+		return;
+	struct data data;
+	data.bit_length = 1;
+	uint8_t flag;
+	data.data = &flag;
+	uint8_t one = 1;
+	data.defined = &one;
+
+	flag = read_flag(context, X86_FLAGS_CARRY) | read_flag(context, X86_FLAGS_ZERO);
+	simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LEU], data, 0);
+
+	flag = read_flag(context, X86_FLAGS_SIGN) != read_flag(context, X86_FLAGS_OVERFLOW);
+	simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LTS], data, 0);
+
+	flag = context->x86_registers[X86_ID_VIRT_LTS].data[0] | read_flag(context, X86_FLAGS_ZERO);
+	simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LES], data, 0);
 }
 
 struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, size_t instruction_length,
