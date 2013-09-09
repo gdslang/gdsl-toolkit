@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <gdsl.h>
 #include <gdrr.h>
 #include <readhex.h>
 
