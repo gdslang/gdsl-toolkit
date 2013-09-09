@@ -48,7 +48,7 @@ tools/x86-test-stats-runner/x86-test-stats-runner
 tools/tardet/tardet
 tools/xed-cmp/xed-cmp
 
-#^include$
-#^lib$
+^include$
+^lib$
 
 toys/liveness-example.bin
