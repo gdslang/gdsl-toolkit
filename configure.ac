@@ -67,11 +67,16 @@ case $with_decoder in
 		with_decoder=avr-rreil;;
 	*) AC_MSG_FAILURE([invalid backend, choose one of $(BACKENDS)]);;
 esac
+case $with_decoder in
+	*-rreil) has_rreil=yes;;
+	*) has_rreil=no;;
+esac
 
 AM_CONDITIONAL([X86_RREIL],[test x$with_decoder = xx86-rreil])
 AM_CONDITIONAL([X86],[test x$with_decoder = xx86])
 AM_CONDITIONAL([AVR_RREIL],[test x$with_decoder = xavr-rreil])
 AM_CONDITIONAL([AVR],[test x$with_decoder = xavr])
+AM_CONDITIONAL([RREIL],[test x$has_rreil = xyes])
 
 dnl check if the helper executables should be build and/or installed
 AC_ARG_ENABLE([install-auxbins],

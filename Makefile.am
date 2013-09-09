@@ -9,6 +9,9 @@ lib_LTLIBRARIES =
 EXTRA_LTLIBRARIES =
 include_HEADERS =
 
+# we need to add a dependency to the actual backend to this variable
+cli_LDADD =
+
 # options for the C compiler
 AM_CFLAGS = -Wall
 
@@ -153,8 +156,7 @@ GDSL_AVRSEM = \
 GDSL_RREIL = \
 	specifications/rreil/fmap.ml \
 	specifications/basis/bbtree.ml \
-	specifications/rreil/rreil-decl.ml \
-	specifications/rreil/rreil-emit.ml \
+	specifications/rreil/rreil.ml \
 	specifications/rreil/rreil-examples.ml \
 	specifications/rreil/rreil-cif.ml \
 	specifications/rreil/rreil-pretty.ml \
@@ -166,6 +168,7 @@ if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 include_HEADERS += gdsl-x86-rreil.h
 libgdrr_la_LIBADD = libgdsl-x86-rreil.la
+cli_LDADD += libgdsl-x86-rreil.la
 endif
 libgdsl_x86_rreil_la_SOURCES =
 nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
@@ -178,18 +181,20 @@ gdsl-x86-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X
 if X86
 lib_LTLIBRARIES += libgdsl-x86.la
 libgdrr_la_LIBADD = libgdsl-x86.la
+cli_LDADD += libgdsl-x86.la
 endif
 libgdsl_x86_la_SOURCES =
 nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
 libgdsl_x86_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-x86.c
 
-gdsl-x86.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
+gdsl-x86.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
 
 if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
 libgdrr_la_LIBADD = libgdsl-avr-rreil.la
+cli_LDADD += libgdsl-avr-rreil.la
 endif
 libgdsl_avr_rreil_la_SOURCES =
 nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
@@ -202,34 +207,39 @@ gdsl-avr-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_A
 if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
 libgdrr_la_LIBADD = libgdsl-avr.la
+cli_LDADD += libgdsl-avr.la
 endif
 libgdsl_avr_la_SOURCES =
 nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
 libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-avr.c
 
-gdsl-avr.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
+gdsl-avr.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
 
 
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += libgdrr.la
 lib_LTLIBRARIES += libreadhex.la
+else
+if BUILD_AUXLIBS
+noinst_LTLIBRARIES += libreadhex.la
+endif
+endif
+
+if RREIL
+if INSTALL_AUXLIBS
+lib_LTLIBRARIES += libgdrr.la
 lib_LTLIBRARIES += libgdwrap.la
 else
 if BUILD_AUXLIBS
 noinst_LTLIBRARIES += libgdrr.la
-noinst_LTLIBRARIES += libreadhex.la
 noinst_LTLIBRARIES += libgdwrap.la
-else
-EXTRA_LTLIBRARIES += libgdrr.la
-EXTRA_LTLIBRARIES += libreadhex.la
-EXTRA_LTLIBRARIES += libgdwrap.la
+endif
 endif
 endif
 
 libgdrr_la_SOURCES = libs/gdrr/src/gdrr.c
-libgdrr_la_CFLAGS = -I./libs/gdrr/include $(BACKEND_INCLUDE)
+libgdrr_la_CFLAGS = -I./libs/gdrr/include
 include_HEADERS += \
 	libs/gdrr/include/gdrr.h \
 	libs/gdrr/include/gdrr_arch.h \
@@ -246,6 +256,7 @@ libgdwrap_la_SOURCES = libs/gdwrap/src/gdwrap.c
 libgdwrap_la_CFLAGS = -I./libs/gdwrap/include
 include_HEADERS += libs/gdwrap/include/gdwrap.h
 
+if RREIL
 if INSTALL_AUXBINS
 bin_PROGRAMS += cli
 bin_PROGRAMS += cli-gdrr
@@ -253,15 +264,13 @@ else
 if BUILD_AUXBINS
 noinst_PROGRAMS += cli
 noinst_PROGRAMS += cli-gdrr
-else
-EXTRA_PROGRAMS += cli
-EXTRA_PROGRAMS += cli-gdrr
+endif
 endif
 endif
 
 cli_SOURCES = tools/cli.c
 cli_CFLAGS = -I./libs/readhex/include -I./libs/gdwrap/include
-cli_LDADD = libgdsl-x86-rreil.la libreadhex.la libgdwrap.la
+cli_LDADD += libreadhex.la libgdwrap.la
 
 cli_gdrr_SOURCES = tools/cli-gdrr.c
 cli_gdrr_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include -I./libs/gdwrap/include
