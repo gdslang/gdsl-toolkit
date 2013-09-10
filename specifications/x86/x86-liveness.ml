@@ -1,4 +1,4 @@
-export = liveness liveness_super
+export = liveness liveness_super{insns,succ_a,succ_b}
 
 val liveness instructions = do
   live-registers <- registers-live-map;

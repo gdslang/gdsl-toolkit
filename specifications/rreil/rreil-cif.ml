@@ -1,4 +1,4 @@
-export = rreil-cif-userdata-set rreil-cif-userdata-get rreil-callbacks-sem-id rreil-callbacks-sem-address rreil-callbacks-sem-var rreil-callbacks-sem-linear rreil-callbacks-sem-sexpr rreil-callbacks-sem-op-cmp rreil-callbacks-sem-op rreil-callbacks-sem-stmt rreil-callbacks-branch-hint rreil-callbacks-sem-stmts rreil-callbacks rreil-convert-sem-stmts rreil-convert-sem-stmts-list
+export = rreil-cif-userdata-set rreil-cif-userdata-get{userdata} rreil-callbacks-sem-id rreil-callbacks-sem-address rreil-callbacks-sem-var rreil-callbacks-sem-linear rreil-callbacks-sem-sexpr rreil-callbacks-sem-op-cmp rreil-callbacks-sem-op rreil-callbacks-sem-stmt rreil-callbacks-branch-hint rreil-callbacks-sem-stmts rreil-callbacks rreil-convert-sem-stmts rreil-convert-sem-stmts-list
 
 #type callbacks =
 #   SEM_ID_CBS of {virt_na:string_, virt_t:string_}

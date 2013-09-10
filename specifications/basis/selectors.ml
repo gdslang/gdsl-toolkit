@@ -1,4 +1,6 @@
-export = con_index state_get select_succ_a select_succ_b select_insns select_ins_count select_live select_initial select_after select_hd select_tl
+export = con_index{index} state_get select_succ_a{succ_a} select_succ_b{succ_b} select_insns{insns}
+   select_ins_count{ins_count} select_live{live} select_initial{initial}
+   select_after{after} select_hd{hd} select_tl{tl}
 
 val con_index c = index c
 val state_get = let

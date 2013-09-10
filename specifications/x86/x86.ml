@@ -1,5 +1,5 @@
 granularity = 8
-export = decode features-get
+export = decode features-get{features}
 
 # Optional arguments
 #
@@ -3465,7 +3465,7 @@ val / [0xc8] = binop none ENTER imm16 imm8
 
 ### EXTRACTPS
 ###  - Extract Packed Single Precision Floating-Point Value
-val /66 [0x0f 0x3a 0x17 /r] = ternop sse4_1 EXTRACTPS r/m32 xmm128 imm8
+val /66 [0x0f 0x3a 0x17 /0] = ternop sse4_1 EXTRACTPS r/m32 xmm128 imm8
 val /vex/66/0f/3a [0x17 /r] | vex128? = varity3 avx VEXTRACTPS r/m32 xmm128 imm8
 
 ### F2XM1
