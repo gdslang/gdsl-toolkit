@@ -231,6 +231,8 @@ val read-flow sz x =
        | REL16 x: conv-bv x
        | REL32 x: conv-bv x
        | REL64 x: conv-bv x
+       | PTR16/16 x: conv-bv x
+       | PTR16/32 x: conv-bv x
        | NEARABS x: read sz x
        | FARABS x: read sz x
       end
@@ -466,6 +468,7 @@ val sem-undef-arity-ge1 x = do
   case x.opnd1 of
      REG r: undef-opnd x.opnd1
    | MEM m: undef-opnd x.opnd1
+   | _: return void
   end
 end
 
