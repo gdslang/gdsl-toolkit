@@ -54,10 +54,10 @@ AC_ARG_WITH([decoder],
 
 case $with_decoder in
 	x86)
-		AC_DEFINE([USE_X86_RREIL],[1],[build x86 decoder and RReil semantics])
+		AC_DEFINE([USE_X86],[1],[build x86 bare decoder])
 	 	with_decoder=x86;;
 	x86-rreil)
-		AC_DEFINE([USE_X86],[1],[build x86 bare decoder])
+		AC_DEFINE([USE_X86_RREIL],[1],[build x86 decoder and RReil semantics])
 		with_decoder=x86-rreil;;
 	avr)
 		AC_DEFINE([USE_AVR],[1],[build AVR bare decoder])
