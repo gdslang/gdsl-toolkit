@@ -9,6 +9,13 @@ lib_LTLIBRARIES =
 EXTRA_LTLIBRARIES =
 include_HEADERS =
 
+#if X86
+#X86_ACC = 1
+#endif
+#if X86_RREIL
+#X86_ACC = 1
+#endif
+
 # we need to add a dependency to the actual backend to this variable
 cli_LDADD =
 
@@ -44,7 +51,7 @@ GDSLC_SML_FILES = \
          detail/parser/spec-parse-tree.sml \
          detail/parser/parser.sml \
          detail/semantic/spec-abstract-tree.sml \
-         detail/semantic/typing/boolean-domain.sml \
+         detlibfooail/semantic/typing/boolean-domain.sml \
          detail/semantic/typing/tvar.sml \
          detail/semantic/typing/lang-types.sml \
          detail/semantic/typing/size-constraint.sml \
@@ -102,6 +109,7 @@ GDSLC_SML_FILES = \
          detail/driver/main.sml \
          detail/ml/mlton/main.sml
 
+JAR=jrreil.jar
 
 .PHONY: %.mlb
 
@@ -164,11 +172,24 @@ GDSL_RREIL = \
 	specifications/rreil/rreil-cleanup.ml \
 	specifications/basis/selectors.ml 
 
+libjrreil_la_LIBADD = 
+cli_gdrr_LDADD = 
+sweep_LDADD = 
+liveness_sweep_LDADD = 
+x86_test_runner_LDADD = 
+x86_test_stats_runner_LDADD = 
+
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 include_HEADERS += gdsl-x86-rreil.h
 libgdrr_la_LIBADD = libgdsl-x86-rreil.la
+libjrreil_la_LIBADD += libgdsl-x86-rreil.la
 cli_LDADD += libgdsl-x86-rreil.la
+cli_gdrr_LDADD += libgdsl-x86-rreil.la
+sweep_LDADD += libgdsl-x86-rreil.la
+liveness_sweep_LDADD += libgdsl-x86-rreil.la
+x86_test_runner_LDADD += libgdsl-x86-rreil.la
+x86_test_stats_runner_LDADD += libgdsl-x86-rreil.la
 endif
 libgdsl_x86_rreil_la_SOURCES =
 nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
@@ -194,7 +215,13 @@ gdsl-x86.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86)
 if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
 libgdrr_la_LIBADD = libgdsl-avr-rreil.la
+libjrreil_la_LIBADD += libgdsl-avr-rreil.la
 cli_LDADD += libgdsl-avr-rreil.la
+cli_gdrr_LDADD += libgdsl-avr-rreil.la
+sweep_LDADD += libgdsl-avr-rreil.la
+liveness_sweep_LDADD += libgdsl-avr-rreil.la
+x86_test_runner_LDADD += libgdsl-avr-rreil.la
+x86_test_stats_runner_LDADD += libgdsl-avr-rreil.la
 endif
 libgdsl_avr_rreil_la_SOURCES =
 nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
@@ -217,23 +244,119 @@ CLEANFILES += gdsl-avr.c
 gdsl-avr.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
 
+if RREIL
+JSOURCES = src/rreil/IAddress.java \
+           src/rreil/BranchHint.java \
+           src/rreil/id/VirtualLessOrEqualSignedId.java \
+           src/rreil/id/VirtualLessSignedId.java \
+           src/rreil/id/GenericArchRegister.java \
+           src/rreil/id/VirtualLessUnsignedId.java \
+           src/rreil/id/Id.java \
+           src/rreil/id/IId.java \
+           src/rreil/id/VirtualEqualsNotId.java \
+           src/rreil/id/VirtualTemporaryId.java \
+           src/rreil/id/x86/X86RegisterId.java \
+           src/rreil/id/x86/X86Register.java \
+           src/rreil/id/VirtualLessOrEqualUnsignedId.java \
+           src/rreil/id/VirtualEqualsId.java \
+           src/rreil/statement/ConditionalBranchStatement.java \
+           src/rreil/statement/AssignStatement.java \
+           src/rreil/statement/WhileStatement.java \
+           src/rreil/statement/LoadStatement.java \
+           src/rreil/statement/StoreStatement.java \
+           src/rreil/statement/Statement.java \
+           src/rreil/statement/BranchStatement.java \
+           src/rreil/statement/IStatement.java \
+           src/rreil/statement/IfThenElseStatement.java \
+           src/rreil/IRReilBuilder.java \
+           src/rreil/linear/LinearImmediateExpression.java \
+           src/rreil/linear/ILinearExpression.java \
+           src/rreil/linear/LinearVariableExpression.java \
+           src/rreil/linear/LinearBinaryExpression.java \
+           src/rreil/linear/LinearScaleExpression.java \
+           src/rreil/linear/LinearExpression.java \
+           src/rreil/linear/LinearAdditionExpression.java \
+           src/rreil/linear/LinearSubtractionExpression.java \
+           src/rreil/sexpression/SimpleLinearExpression.java \
+           src/rreil/sexpression/SimpleCompareExpression.java \
+           src/rreil/sexpression/SimpleExpression.java \
+           src/rreil/sexpression/ISimpleExpression.java \
+           src/rreil/Variable.java \
+           src/rreil/DefaultRReilBuilder.java \
+           src/rreil/Address.java \
+           src/rreil/IVariable.java \
+           src/rreil/IRReilCollection.java \
+           src/rreil/DefaultRReilCollection.java \
+           src/rreil/IBranchHint.java \
+           src/rreil/operation/SignExtendOperation.java \
+           src/rreil/operation/CompareLessOrEqualSignedOperation.java \
+           src/rreil/operation/ZeroExtendOperation.java \
+           src/rreil/operation/AndOperation.java \
+           src/rreil/operation/DivisionOperation.java \
+           src/rreil/operation/Operation.java \
+           src/rreil/operation/BinaryOperation.java \
+           src/rreil/operation/ShiftLeftOperation.java \
+           src/rreil/operation/CompareLessUnsignedOperation.java \
+           src/rreil/operation/OrOperation.java \
+           src/rreil/operation/ExtendOperation.java \
+           src/rreil/operation/CompareNotEqualOperation.java \
+           src/rreil/operation/ModuloOperation.java \
+           src/rreil/operation/ICompareOperation.java \
+           src/rreil/operation/ArbitraryOperation.java \
+           src/rreil/operation/UnaryOperation.java \
+           src/rreil/operation/CompareEqualOperation.java \
+           src/rreil/operation/CompareOperation.java \
+           src/rreil/operation/LinearOperation.java \
+           src/rreil/operation/MultiplicationOperation.java \
+           src/rreil/operation/ShiftRightSignedOperation.java \
+           src/rreil/operation/SignedDivisionOperation.java \
+           src/rreil/operation/CompareLessOrEqualUnsignedOperation.java \
+           src/rreil/operation/CompareLessSignedOperation.java \
+           src/rreil/operation/IOperation.java \
+           src/rreil/operation/ShiftRightOperation.java \
+           src/rreil/operation/XorOperation.java \
+           src/rnati/RReilTranslateException.java \
+           src/rnati/GdslDecodeException.java \
+           src/rnati/NativeInterface.java \
+           src/Program.java
+
+SPRE=src
+BPRE=build
+
+BDIRS=$(BPRE)
+pre-build:
+	mkdir -p $(BDIRS)
+
+$(JAR): pre-build $(JSOURCES:%=libs/jrreil/%)
+	cd libs/jrreil && javac $(JSOURCES) -d ../../$(BPRE)/
+	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
+endif
+
 
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += libreadhex.la
+lib_LTLIBRARIES += libreadhex.la libutil.la
 else
 if BUILD_AUXLIBS
-noinst_LTLIBRARIES += libreadhex.la
+noinst_LTLIBRARIES += libreadhex.la libutil.la
 endif
+endif
+
+if X86_ACC
+lib_LTLIBRARIES += libx86.la libx86-generator.la libx86-tester.la
 endif
 
 if RREIL
 if INSTALL_AUXLIBS
 lib_LTLIBRARIES += libgdrr.la
 lib_LTLIBRARIES += libgdwrap.la
+lib_LTLIBRARIES += librreil.la
+lib_LTLIBRARIES += libjrreil.la
 else
 if BUILD_AUXLIBS
 noinst_LTLIBRARIES += libgdrr.la
 noinst_LTLIBRARIES += libgdwrap.la
+noinst_LTLIBRARIES += librreil.la
+noinst_LTLIBRARIES += libjrreil.la
 endif
 endif
 endif
@@ -247,23 +370,110 @@ include_HEADERS += \
 	libs/gdrr/include/gdrr_callbacks.h \
 	libs/gdrr/include/gdrr_config.h \
 	libs/gdrr/include/gdrr_types.h
+#libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
 
 libreadhex_la_SOURCES = libs/readhex/src/readhex.c
 libreadhex_la_CFLAGS = -I./libs/readhex/include
 include_HEADERS += libs/readhex/include/readhex.h
 
+libutil_la_SOURCES = libs/util/src/util.c libs/util/src/stack.c
+libutil_la_CFLAGS = -std=c99 -I./libs/util/include
+include_HEADERS += libs/util/include/util.h libs/util/include/stack.h
+
+if X86_ACC
+libx86_la_SOURCES = libs/x86/src/x86.c libs/x86/src/x86_features.c
+libx86_la_CFLAGS = -std=c99 -I./libs/x86/include
+include_HEADERS += libs/x86/include/x86.h libs/x86/include/x86_features.h
+endif
+
+librreil_la_SOURCES = libs/rreil/src/rreil/copy.c \
+                      libs/rreil/src/rreil/print.c \
+                      libs/rreil/src/rreil/gdrr_builder.c \
+                      libs/rreil/src/rreil/free.c \
+                      libs/rreil/src/rreil/rreil_id.c \
+                      libs/rreil/src/simulator/simulator.c \
+                      libs/rreil/src/simulator/ops.c \
+                      libs/rreil/src/simulator/regacc.c \
+                      libs/rreil/src/simulator/tracking.c \
+                      libs/rreil/src/memory.c \
+                      libs/rreil/src/context.c
+librreil_la_CFLAGS = -std=c11 -I./libs/rreil/include -I./libs/gdrr/include -I./libs/util/include
+if X86_ACC
+librreil_la_CFLAGS += -DGDSL_X86 -I./libs/x86/include
+endif
+include_HEADERS += libs/rreil/include/rreil/rreil.h \
+                   libs/rreil/include/rreil/rreil_copy.h \
+                   libs/rreil/include/rreil/rreil_print.h \
+                   libs/rreil/include/rreil/rreil_address.h \
+                   libs/rreil/include/rreil/gdrr_builder.h \
+                   libs/rreil/include/rreil/rreil_linear.h \
+                   libs/rreil/include/rreil/rreil_id.h \
+                   libs/rreil/include/rreil/rreil_free.h \
+                   libs/rreil/include/rreil/rreil_variable.h \
+                   libs/rreil/include/rreil/rreil_comparator.h \
+                   libs/rreil/include/rreil/rreil_op.h \
+                   libs/rreil/include/rreil/rreil_branch_hint.h \
+                   libs/rreil/include/rreil/rreil_sexpr.h \
+                   libs/rreil/include/rreil/rreil_arity.h \
+                   libs/rreil/include/rreil/rreil_statement.h \
+                   libs/rreil/include/memory.h \
+                   libs/rreil/include/simulator/register.h \
+                   libs/rreil/include/simulator/tracking.h \
+                   libs/rreil/include/simulator/regacc.h \
+                   libs/rreil/include/simulator/simulator.h \
+                   libs/rreil/include/simulator/ops.h \
+                   libs/rreil/include/context.h
+#librreil_la_DEPENDENCIES = $(GDSLC_DEP) libgddr.la
+#if X86_ACC
+#librreil_la_DEPENDENCIES += libx86.la
+#endif
+
 libgdwrap_la_SOURCES = libs/gdwrap/src/gdwrap.c
 libgdwrap_la_CFLAGS = -I./libs/gdwrap/include
 include_HEADERS += libs/gdwrap/include/gdwrap.h
+
+if X86_ACC
+libx86_generator_la_SOURCES = libs/x86-generator/src/generator_tree.c \
+                             libs/x86-generator/src/x86_opcodes.c \
+                             libs/x86-generator/src/generator.c
+libx86_generator_la_CFLAGS = -std=c99 -I./libs/x86-generator/include -I./libs/util/include
+include_HEADERS += libs/x86-generator/include/x86_opcodes.h \
+                   libs/x86-generator/include/generator_tree.h \
+                   libs/x86-generator/include/generator.h
+endif
+
+if X86_ACC
+libx86_tester_la_SOURCES = libs/x86-tester/src/executor.c \
+                           libs/x86-tester/src/tbgen.c \
+                           libs/x86-tester/src/tester.c \
+                           libs/x86-tester/src/tbgen_alloc.c
+libx86_tester_la_CFLAGS = -std=gnu99 -I./libs/x86-tester/include -I./libs/rreil/include -I./libs/x86/include -I./libs/util/include -I./libs/gdrr/include -I./libs/gdwrap/include
+include_HEADERS += libs/x86-tester/include/tbgen.h \
+                   libs/x86-tester/include/tbgen_alloc.h \
+                   libs/x86-tester/include/executor.h \
+                   libs/x86-tester/include/tester.h
+endif
+
+libjrreil_la_SOURCES = libs/jrreil/src/rnati_NativeInterface.c
+libjrreil_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I./libs/gdrr/include
+libjrreil_la_LIBADD += libgdrr.la
 
 if RREIL
 if INSTALL_AUXBINS
 bin_PROGRAMS += cli
 bin_PROGRAMS += cli-gdrr
+bin_PROGRAMS += sweep
+bin_PROGRAMS += liveness_sweep
+bin_PROGRAMS += x86_test_runner
+bin_PROGRAMS += x86_test_stats_runner
 else
 if BUILD_AUXBINS
 noinst_PROGRAMS += cli
 noinst_PROGRAMS += cli-gdrr
+noinst_PROGRAMS += sweep
+noinst_PROGRAMS += liveness_sweep
+noinst_PROGRAMS += x86_test_runner
+noinst_PROGRAMS += x86_test_stats_runner
 endif
 endif
 endif
@@ -274,4 +484,24 @@ cli_LDADD += libreadhex.la libgdwrap.la
 
 cli_gdrr_SOURCES = tools/cli-gdrr.c
 cli_gdrr_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include -I./libs/gdwrap/include
-cli_gdrr_LDADD = libgdrr.la libreadhex.la libgdwrap.la
+cli_gdrr_LDADD += libgdrr.la libreadhex.la libgdwrap.la
+
+sweep_SOURCES = tools/sweep.c
+sweep_CFLAGS = 
+sweep_LDFLAGS = -lelf
+
+liveness_sweep_SOURCES = tools/liveness-sweep.c
+liveness_sweep_CFLAGS = -std=gnu99
+liveness_sweep_LDFLAGS = -lelf
+
+if X86_RREIL
+x86_test_runner_SOURCES = tools/x86-test-runner/src/main.c
+x86_test_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
+x86_test_runner_LDADD += libx86-tester.la libgdrr.la libgdwrap.la librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
+endif
+
+if X86_RREIL
+x86_test_stats_runner_SOURCES = tools/x86-test-stats-runner/src/main.c tools/x86-test-stats-runner/src/hash_array.c
+x86_test_stats_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
+x86_test_stats_runner_LDADD += libx86-tester.la libgdrr.la libgdwrap.la librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
+endif

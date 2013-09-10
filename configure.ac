@@ -78,6 +78,8 @@ AM_CONDITIONAL([AVR_RREIL],[test x$with_decoder = xavr-rreil])
 AM_CONDITIONAL([AVR],[test x$with_decoder = xavr])
 AM_CONDITIONAL([RREIL],[test x$has_rreil = xyes])
 
+AM_CONDITIONAL([X86_ACC], test [x$with_decoder = xx86-rreil] || test [x$with_decoder = xx86])
+
 dnl check if the helper executables should be build and/or installed
 AC_ARG_ENABLE([install-auxbins],
   [AS_HELP_STRING(
@@ -123,7 +125,7 @@ cat <<EOF
 GDSL toolkit configuration:
   directory prefix:             $prefix
   C flags:                      $CFLAGS
-  decoder to build:          	$with_decoder
+  decoder to build:          	  $with_decoder
   install compiler:             $enable_install_gdslc
   build auxiliary libraries:    $enable_build_auxlibs
   install auxiliary libraries:  $enable_install_auxlibs
