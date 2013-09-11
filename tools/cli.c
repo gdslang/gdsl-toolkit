@@ -46,6 +46,6 @@ int main(int argc, char** argv) {
 	gdsl_destroy(state);
 	free(buffer);
 
-	return 1;
+	return 0;
 }
 

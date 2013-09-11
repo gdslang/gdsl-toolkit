@@ -1,4 +1,4 @@
-LIBS=util gdwrap readhex rreil jrreil
+LIBS=util gdwrap readhex rreil jrreil gdsl-multiplex
 
 ifndef MANAGED
 GDSL_AVR:=1
