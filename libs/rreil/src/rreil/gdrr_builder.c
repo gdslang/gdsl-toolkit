@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include <gdrr.h>
 #include <gdsl.h>
 #include <rreil/rreil.h>
 #include <x86.h>
@@ -569,6 +568,8 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.branch_hint = &callbacks_heap->branch_hint_callbacks,
 			.sem_stmts = &callbacks_heap->sem_stmts_callbacks
 	};
+
+	callbacks_heap->callbacks = callbacks;
 
 //		config.callbacks.sem_stmts.sem_cons = &sem_cons;
 //		config.callbacks.sem_stmts.sem_nil = &sem_nil;

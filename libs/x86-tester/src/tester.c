@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <rreil/rreil.h>
 #include <rreil/gdrr_builder.h>
-#include <gdrr.h>
 #include <x86.h>
 #include <simulator/simulator.h>
 #include <simulator/regacc.h>
