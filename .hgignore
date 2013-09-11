@@ -43,6 +43,7 @@ x86-tester/util/Debug/
 tardet/Debug/
 
 tools/cli
+tools/dectran-cli-generic
 tools/cli-gdrr
 tools/liveness-sweep
 tools/sweep
