@@ -284,6 +284,10 @@ public class NativeInterface {
 	private Object sem_xmm16() {
 		return builder.sem_xmm15();
 	}
+	
+	private Object id_arch(Object con) {
+		return builder.id_arch((Long)con);
+	}
 
 	/*
 	 * sem_address

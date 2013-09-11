@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <gdsl.h>
-#include <gdrr.h>
 #include "rnati_NativeInterface.h"
 
 //gcc -std=c99 -fPIC -shared -Wl,-soname,libjgdrr.so -I/usr/lib/jvm/java-6-openjdk-amd64/include -I/usr/lib/jvm/java-7-openjdk-amd64/include -I../.. -I../../include -o ../bin/libjgdrr.so rnati_NativeInterface.c ../../gdrr/Debug/libgdrr.a -L../../lib -lgdsl-x86 -lavcall
@@ -85,7 +84,7 @@ static jobject java_long_create(state_t state, long int x) {
 }
 
 // sem_id
-//static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
+//static obj_t virt_na(state_t state, int_t con) {
 //	jobject ret;
 //	switch(con) {
 //		case CON_VIRT_EQ: {
@@ -113,15 +112,15 @@ static jobject java_long_create(state_t state, long int x) {
 //			break;
 //		}
 //	}
-//	return (gdrr_sem_id_t*)ret;
+//	return (obj_t)ret;
 //}
-static gdrr_sem_id_t *virt_t(state_t state, int_t t) {
+static obj_t virt_t(state_t state, int_t t) {
 	jobject ret = java_method_call(state, "virt_t", 1, java_long_create(state, (long int)t));
-	return (gdrr_sem_id_t*)ret;
+	return (obj_t)ret;
 }
 
 #ifdef GDSL_X86
-static gdrr_sem_id_t *arch(state_t state, int_t con) {
+static obj_t arch(state_t state, int_t con) {
 	jobject ret;
 	switch(con) {
 		case CON_Sem_IP: {
@@ -365,167 +364,167 @@ static gdrr_sem_id_t *arch(state_t state, int_t con) {
 			break;
 		}
 	}
-	return (gdrr_sem_id_t*)ret;
+	return (obj_t)ret;
 }
 #else
-static gdrr_sem_id_t *arch(state_t state, int_t con) {
-	jobject ret = java_method_call(state, "arch_id", 1, java_long_create(state, (long int)con));
-	return (gdrr_sem_id_t*)ret;
+static obj_t arch(state_t state, int_t con) {
+	jobject ret = java_method_call(state, "id_arch", 1, java_long_create(state, (long int)con));
+	return (obj_t)ret;
 }
 #endif
 
 // sem_address
-static gdrr_sem_address_t *sem_address(state_t state, int_t size, gdrr_sem_linear_t *address) {
+static obj_t sem_address(state_t state, int_t size, obj_t address) {
 	jobject ret = java_method_call(state, "sem_address", 2, java_long_create(state, (long int)size), (jobject)address);
-	return (gdrr_sem_var_t*)ret;
+	return (obj_t)ret;
 }
 
 // sem_var
-static gdrr_sem_var_t *sem_var(state_t state, gdrr_sem_id_t *id, int_t offset) {
+static obj_t sem_var(state_t state, obj_t id, int_t offset) {
 	jobject ret = java_method_call(state, "sem_var", 2, (jobject)id, java_long_create(state, (long int)offset));
-	return (gdrr_sem_var_t*)ret;
+	return (obj_t)ret;
 }
 
 // sem_linear
-static gdrr_sem_linear_t *sem_lin_var(state_t state, gdrr_sem_var_t *this) {
+static obj_t sem_lin_var(state_t state, obj_t this) {
 	jobject ret = java_method_call(state, "sem_lin_var", 1, (jobject)this);
-	return (gdrr_sem_linear_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_linear_t *sem_lin_imm(state_t state, int_t imm) {
+static obj_t sem_lin_imm(state_t state, int_t imm) {
 	jobject ret = java_method_call(state, "sem_lin_imm", 1, java_long_create(state, (long int)imm));
-	return (gdrr_sem_linear_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_linear_t *sem_lin_add(state_t state, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_lin_add(state_t state, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_lin_add", 2, (jobject)opnd1, (jobject)opnd2);
-	return (gdrr_sem_linear_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_linear_t *sem_lin_sub(state_t state, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_lin_sub(state_t state, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_lin_sub", 2, (jobject)opnd1, (jobject)opnd2);
-	return (gdrr_sem_linear_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_linear_t *sem_lin_scale(state_t state, int_t imm, gdrr_sem_linear_t *opnd) {
+static obj_t sem_lin_scale(state_t state, int_t imm, obj_t opnd) {
 	jobject ret = java_method_call(state, "sem_lin_scale", 2, java_long_create(state, (long int)imm), (jobject)opnd);
-	return (gdrr_sem_linear_t*)ret;
+	return (obj_t)ret;
 }
 
 // sem_sexpr
-static gdrr_sem_sexpr_t *sem_sexpr_lin(state_t state, gdrr_sem_linear_t *this) {
+static obj_t sem_sexpr_lin(state_t state, obj_t this) {
 	jobject ret = java_method_call(state, "sem_sexpr_lin", 1, (jobject)this);
-	return (gdrr_sem_sexpr_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_sexpr_t *sem_sexpr_cmp(state_t state, gdrr_sem_op_cmp_t *this) {
+static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
 	jobject ret = java_method_call(state, "sem_sexpr_cmp", 1, (jobject)this);
-	return (gdrr_sem_sexpr_t*)ret;
+	return (obj_t)ret;
 }
 
 // sem_op_cmp
-static gdrr_sem_op_cmp_t *sem_cmpeq(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_cmpeq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_cmpeq", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_cmp_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_cmp_t *sem_cmpneq(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_cmpneq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_cmpneq", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_cmp_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_cmp_t *sem_cmples(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_cmples(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_cmples", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_cmp_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_cmp_t *sem_cmpleu(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_cmpleu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_cmpleu", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_cmp_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_cmp_t *sem_cmplts(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_cmplts(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_cmplts", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_cmp_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_cmp_t *sem_cmpltu(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_cmpltu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_cmpltu", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_cmp_t*)ret;
+	return (obj_t)ret;
 }
 
 // sem_op
-static gdrr_sem_op_t *sem_lin(state_t state, int_t size, gdrr_sem_linear_t *opnd1) {
+static obj_t sem_lin(state_t state, int_t size, obj_t opnd1) {
 	jobject ret = java_method_call(state, "sem_lin", 2, java_long_create(state, (long int)size), (jobject)opnd1);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_mul(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_mul(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_mul", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_div(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_div(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_div", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_divs(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_divs(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_divs", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_mod(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_mod(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_mod", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_shl(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_shl(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_shl", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_shr(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_shr(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_shr", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_shrs(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_shrs(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_shrs", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_and(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_and(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_and", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_or(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_or(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_or", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_xor(state_t state, int_t size, gdrr_sem_linear_t *opnd1, gdrr_sem_linear_t *opnd2) {
+static obj_t sem_xor(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_xor", 3, java_long_create(state, (long int)size), (jobject)opnd1,
 			(jobject)opnd2);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_sx(state_t state, int_t size, int_t fromsize, gdrr_sem_linear_t *opnd1) {
+static obj_t sem_sx(state_t state, int_t size, int_t fromsize, obj_t opnd1) {
 	jobject ret = java_method_call(state, "sem_sx", 3, java_long_create(state, (long int)size),
 			java_long_create(state, (long int)fromsize), (jobject)opnd1);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_zx(state_t state, int_t size, int_t fromsize, gdrr_sem_linear_t *opnd1) {
+static obj_t sem_zx(state_t state, int_t size, int_t fromsize, obj_t opnd1) {
 	jobject ret = java_method_call(state, "sem_zx", 3, java_long_create(state, (long int)size),
 			java_long_create(state, (long int)fromsize), (jobject)opnd1);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_cmp(state_t state, gdrr_sem_op_cmp_t *this) {
+static obj_t sem_cmp(state_t state, obj_t this) {
 	jobject ret = java_method_call(state, "sem_cmp", 1, (jobject)this);
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_op_t *sem_arb(state_t state, int_t size) {
+static obj_t sem_arb(state_t state, int_t size) {
 	jobject ret = java_method_call(state, "sem_arb", 1, java_long_create(state, (long int)size));
-	return (gdrr_sem_op_t*)ret;
+	return (obj_t)ret;
 }
 
 // branch_hint
-static gdrr_branch_hint_t *branch_hint(state_t state, int_t con) {
+static obj_t branch_hint(state_t state, int_t con) {
 	char *func_n;
 	switch(con) {
 		case CON_HINT_JUMP: {
@@ -542,50 +541,50 @@ static gdrr_branch_hint_t *branch_hint(state_t state, int_t con) {
 		}
 	}
 	jobject ret = java_method_call(state, func_n, 0);
-	return (gdrr_branch_hint_t*)ret;
+	return (obj_t)ret;
 }
 
 // sem_stmt
-static gdrr_sem_stmt_t *sem_assign(state_t state, gdrr_sem_var_t *lhs, gdrr_sem_op_t *rhs) {
+static obj_t sem_assign(state_t state, obj_t lhs, obj_t rhs) {
 	jobject ret = java_method_call(state, "sem_assign", 2, (jobject)lhs, (jobject)rhs);
-	return (gdrr_sem_stmt_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_stmt_t *sem_load(state_t state, gdrr_sem_var_t *lhs, int_t size, gdrr_sem_address_t *address) {
+static obj_t sem_load(state_t state, obj_t lhs, int_t size, obj_t address) {
 	jobject ret = java_method_call(state, "sem_load", 3, (jobject)lhs, java_long_create(state, (long)size),
 			(jobject)address);
-	return (gdrr_sem_stmt_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_stmt_t *sem_store(state_t state, gdrr_sem_address_t *address, gdrr_sem_op_t *rhs) {
+static obj_t sem_store(state_t state, obj_t address, obj_t rhs) {
 	jobject ret = java_method_call(state, "sem_store", 2, (jobject)address, (jobject)rhs);
-	return (gdrr_sem_stmt_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_stmt_t *sem_ite(state_t state, gdrr_sem_sexpr_t *cond, gdrr_sem_stmts_t *then_branch,
-		gdrr_sem_stmts_t *else_branch) {
+static obj_t sem_ite(state_t state, obj_t cond, obj_t then_branch,
+		obj_t else_branch) {
 	jobject ret = java_method_call(state, "sem_ite", 3, (jobject)cond, (jobject)then_branch, (jobject)else_branch);
-	return (gdrr_sem_stmt_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_stmt_t *sem_while(state_t state, gdrr_sem_sexpr_t *cond, gdrr_sem_stmts_t *body) {
+static obj_t sem_while(state_t state, obj_t cond, obj_t body) {
 	jobject ret = java_method_call(state, "sem_while", 2, (jobject)cond, (jobject)body);
-	return (gdrr_sem_stmt_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_stmt_t *sem_cbranch(state_t state, gdrr_sem_sexpr_t *cond, gdrr_sem_address_t *target_true,
-		gdrr_sem_address_t *target_false) {
+static obj_t sem_cbranch(state_t state, obj_t cond, obj_t target_true,
+		obj_t target_false) {
 	jobject ret = java_method_call(state, "sem_cbranch", 3, (jobject)cond, (jobject)target_true, (jobject)target_false);
-	return (gdrr_sem_stmt_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_stmt_t *sem_branch(state_t state, gdrr_branch_hint_t *branch_hint, gdrr_sem_address_t *target) {
+static obj_t sem_branch(state_t state, obj_t branch_hint, obj_t target) {
 	jobject ret = java_method_call(state, "sem_branch", 2, (jobject)branch_hint, (jobject)target);
-	return (gdrr_sem_stmt_t*)ret;
+	return (obj_t)ret;
 }
 
 // sem_stmts
-static gdrr_sem_stmts_t *list_next(state_t state, gdrr_sem_stmt_t *next, gdrr_sem_stmts_t *list) {
+static obj_t list_next(state_t state, obj_t next, obj_t list) {
 	jobject ret = java_method_call(state, "list_next", 2, (jobject)next, (jobject)list);
-	return (gdrr_sem_stmts_t*)ret;
+	return (obj_t)ret;
 }
-static gdrr_sem_stmts_t *list_init(state_t state) {
+static obj_t list_init(state_t state) {
 	jobject ret = java_method_call(state, "list_init", 0);
-	return (gdrr_sem_stmts_t*)ret;
+	return (obj_t)ret;
 }
 
 JNIEXPORT
@@ -621,69 +620,108 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 //			printf("---------------------------\n");
 //			puts(fmt);
 
-	struct gdrr_config config;
 
-//	config.callbacks.sem_id.virt_na = &virt_na;
-	config.callbacks.sem_id.virt_t = &virt_t;
-	config.callbacks.arch.sem_id.arch = &arch;
-	//%s/gdrr_sem_id_t .(.\(.*\))(void .closure);/config.callbacks.arch.x86.sem_id.\1 = \&\1;/g
+	//%s/obj_t .(.\(.*\))(void .closure);/config.callbacks.arch.x86.sem_id.\1 = \&\1;/g
 
-	config.callbacks.sem_address.sem_address = &sem_address;
+	unboxed_sem_id_callbacks_t sem_id_callbacks = {
+			.virt_t = &virt_t,
+			.arch = &arch
+	};
 
-	config.callbacks.sem_var.sem_var = &sem_var;
+	unboxed_sem_address_callbacks_t sem_address_callbacks = {
+			.sem_address_ = &sem_address
+	};
 
-	config.callbacks.sem_linear.sem_lin_var = &sem_lin_var;
-	config.callbacks.sem_linear.sem_lin_imm = &sem_lin_imm;
-	config.callbacks.sem_linear.sem_lin_add = &sem_lin_add;
-	config.callbacks.sem_linear.sem_lin_sub = &sem_lin_sub;
-	config.callbacks.sem_linear.sem_lin_scale = &sem_lin_scale;
+	unboxed_sem_var_callbacks_t sem_var_callbacks = {
+			.sem_var_ = &sem_var
+	};
 
-	config.callbacks.sem_sexpr.sem_sexpr_lin = &sem_sexpr_lin;
-	config.callbacks.sem_sexpr.sem_sexpr_cmp = &sem_sexpr_cmp;
+	unboxed_sem_linear_callbacks_t sem_linear_callbacks = {
+			.sem_lin_var = &sem_lin_var,
+			.sem_lin_imm = &sem_lin_imm,
+			.sem_lin_add = &sem_lin_add,
+			.sem_lin_sub = &sem_lin_sub,
+			.sem_lin_scale = &sem_lin_scale
+	};
 
-	config.callbacks.sem_op_cmp.sem_cmpeq = &sem_cmpeq;
-	config.callbacks.sem_op_cmp.sem_cmpneq = &sem_cmpneq;
-	config.callbacks.sem_op_cmp.sem_cmples = &sem_cmples;
-	config.callbacks.sem_op_cmp.sem_cmpleu = &sem_cmpleu;
-	config.callbacks.sem_op_cmp.sem_cmplts = &sem_cmplts;
-	config.callbacks.sem_op_cmp.sem_cmpltu = &sem_cmpltu;
+	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
+			.sem_cmpeq = &sem_cmpeq,
+			.sem_cmpneq = &sem_cmpneq,
+			.sem_cmples = &sem_cmples,
+			.sem_cmpleu = &sem_cmpleu,
+			.sem_cmplts = &sem_cmplts,
+			.sem_cmpltu = &sem_cmpltu
+	};
 
-	config.callbacks.sem_op.sem_lin = &sem_lin;
-	config.callbacks.sem_op.sem_mul = &sem_mul;
-	config.callbacks.sem_op.sem_div = &sem_div;
-	config.callbacks.sem_op.sem_divs = &sem_divs;
-	config.callbacks.sem_op.sem_mod = &sem_mod;
-	config.callbacks.sem_op.sem_shl = &sem_shl;
-	config.callbacks.sem_op.sem_shr = &sem_shr;
-	config.callbacks.sem_op.sem_shrs = &sem_shrs;
-	config.callbacks.sem_op.sem_and = &sem_and;
-	config.callbacks.sem_op.sem_or = &sem_or;
-	config.callbacks.sem_op.sem_xor = &sem_xor;
-	config.callbacks.sem_op.sem_sx = &sem_sx;
-	config.callbacks.sem_op.sem_zx = &sem_zx;
-	config.callbacks.sem_op.sem_cmp = &sem_cmp;
-	config.callbacks.sem_op.sem_arb = &sem_arb;
+	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
+			.sem_sexpr_lin = &sem_sexpr_lin,
+			.sem_sexpr_cmp = &sem_sexpr_cmp
+	};
 
-	config.callbacks.branch_hint.branch_hint = &branch_hint;
+	unboxed_sem_op_callbacks_t sem_op_callbacks = {
+			.sem_lin = &sem_lin,
+			.sem_mul = &sem_mul,
+			.sem_div = &sem_div,
+			.sem_divs = &sem_divs,
+			.sem_mod = &sem_mod,
+			.sem_shl = &sem_shl,
+			.sem_shr = &sem_shr,
+			.sem_shrs = &sem_shrs,
+			.sem_and = &sem_and,
+			.sem_or = &sem_or,
+			.sem_xor = &sem_xor,
+			.sem_sx = &sem_sx,
+			.sem_zx = &sem_zx,
+			.sem_cmp = &sem_cmp,
+			.sem_arb = &sem_arb
+	};
 
-	config.callbacks.sem_stmt.sem_assign = &sem_assign;
-	config.callbacks.sem_stmt.sem_load = &sem_load;
-	config.callbacks.sem_stmt.sem_store = &sem_store;
-	config.callbacks.sem_stmt.sem_ite = &sem_ite;
-	config.callbacks.sem_stmt.sem_while = &sem_while;
-	config.callbacks.sem_stmt.sem_cbranch = &sem_cbranch;
-	config.callbacks.sem_stmt.sem_branch = &sem_branch;
+	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
+			.branch_hint_ = &branch_hint
+	};
 
-	config.callbacks.sem_stmts_list.list_init = &list_init;
-	config.callbacks.sem_stmts_list.list_next = &list_next;
-	config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_LIST;
+	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
+			.sem_assign = &sem_assign,
+			.sem_load = &sem_load,
+			.sem_store = &sem_store,
+			.sem_ite = &sem_ite,
+			.sem_while = &sem_while,
+			.sem_cbranch = &sem_cbranch,
+			.sem_branch = &sem_branch
+	};
 
-	config.state = state;
+//	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
+//			.list_init = &list_init,
+//			.list_next = &list_next
+//	};
+
+	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
+			.sem_nil = &list_init,
+			.sem_cons = &list_next
+	};
+
+	unboxed_callbacks_t callbacks = {
+			.sem_id = &sem_id_callbacks,
+			.sem_address = &sem_address_callbacks,
+			.sem_var = &sem_var_callbacks,
+			.sem_linear = &sem_linear_callbacks,
+			.sem_sexpr = &sem_sexpr_callbacks,
+			.sem_op_cmp = &sem_op_cmp_callbacks,
+			.sem_op = &sem_op_callbacks,
+			.sem_stmt = &sem_stmt_callbacks,
+			.branch_hint = &branch_hint_callbacks,
+			.sem_stmts = &sem_stmts_callbacks
+	};
+
+//		config.callbacks.sem_stmts.sem_cons = &sem_cons;
+//		config.callbacks.sem_stmts.sem_nil = &sem_nil;
+//		config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
 
 	struct userdata ud;
 	ud.env = env;
 	ud.obj = obj;
-	config.userdata = &ud;
 
-	return gdrr_convert(rreil, &config);
+	gdsl_rreil_cif_userdata_set(state, &ud);
+
+	return gdsl_rreil_convert_sem_stmts_list(state, &callbacks, rreil);
 }

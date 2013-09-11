@@ -9,6 +9,6 @@ public class GenericArchRegister extends Id {
 	
 	@Override
 	public String toString() {
-		return "[Arch " + id;
+		return "[Arch " + id + "]";
 	}
 }

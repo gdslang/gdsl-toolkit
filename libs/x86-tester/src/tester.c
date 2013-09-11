@@ -317,9 +317,10 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 		goto cu;
 	}
 
-	struct gdrr_config *config = rreil_gdrr_builder_config_get(state);
-	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(rreil, config);
-	free(config);
+	callbacks_t callbacks = rreil_gdrr_builder_callbacks_get(state);
+	struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmts_list(state, callbacks,
+			rreil);
+	free(callbacks);
 
 	result = tester_forked_test_translated(fork_, statements, data, data_size, test_unused);
 

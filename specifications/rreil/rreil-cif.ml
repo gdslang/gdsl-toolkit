@@ -3,10 +3,24 @@ export = rreil-cif-userdata-set rreil-cif-userdata-get rreil-callbacks-sem-id rr
 #type callbacks =
 #   SEM_ID_CBS of {virt_na:string_, virt_t:string_}
 
+type sem_id_callbacks = {virt_t:int, arch:int}
+type sem_address_callbacks = {sem_address_:int}
+type sem_var_callbacks = {sem_var_:int}
+type sem_linear_callbacks = {sem_lin_var:int, sem_lin_imm:int, sem_lin_add:int, sem_lin_sub:int, sem_lin_scale:int}
+type sem_sexpr_callbacks = {sem_sexpr_lin:int, sem_sexpr_cmp:int}
+type sem_op_cmp_callbacks = {sem_cmpeq:int, sem_cmpneq:int, sem_cmples:int, sem_cmpleu:int, sem_cmplts:int, sem_cmpltu:int}
+type sem_op_callbacks = {sem_lin:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int, sem_cmp:int, sem_arb:int}
+type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int}
+type branch_hint_callbacks = {branch_hint_:int}
+type sem_stmts_callbacks = {sem_cons:int, sem_nil:int}
+#type sem_stmts_list_callbacks = {list_next:int, list_init:int}
+
+type callbacks = {sem_id:sem_id_callbacks, sem_address:sem_address_callbacks, sem_var:sem_var_callbacks, sem_linear:sem_linear_callbacks, sem_sexpr:sem_sexpr_callbacks, sem_op_cmp:sem_op_cmp_callbacks, sem_op:sem_op_callbacks, sem_stmt:sem_stmt_callbacks, branch_hint:branch_hint_callbacks, sem_stmts:sem_stmts_callbacks}
+
 val rreil-cif-userdata-set userdata = update@{userdata=userdata}
 val rreil-cif-userdata-get = query $userdata
 
-val rreil-callbacks-sem-id virt_t x86 = {virt_t=virt_t, x86=x86}
+val rreil-callbacks-sem-id virt_t arch = {virt_t=virt_t, arch=arch}
 val rreil-callbacks-sem-address sem_address = {sem_address_=sem_address}
 val rreil-callbacks-sem-var sem_var = {sem_var_=sem_var}
 val rreil-callbacks-sem-linear sem_lin_var sem_lin_imm sem_lin_add sem_lin_sub sem_lin_scale = {sem_lin_var=sem_lin_var, sem_lin_imm=sem_lin_imm, sem_lin_add=sem_lin_add, sem_lin_sub=sem_lin_sub, sem_lin_scale=sem_lin_scale}
@@ -28,7 +42,7 @@ val rreil-convert-sem-id cbs id = case id of
 # | VIRT_LTS: cbs.sem_id.virt_na (index id)
 # | VIRT_LTU: cbs.sem_id.virt_na (index id)
    VIRT_T t: cbs.sem_id.virt_t t
- | _: cbs.sem_id.x86 (index id)
+ | _: cbs.sem_id.arch (index id)
 end
 
 val rreil-convert-sem-address cbs address = cbs.sem_address.sem_address_ address.size (rreil-convert-sem-linear cbs address.address)
@@ -92,18 +106,18 @@ val rreil-convert-sem-stmts-inner lr cbs stmts = case stmts of
  | SEM_NIL: cbs.sem_stmts.sem_nil 42
 end
 
-val rreil-convert-sem-stmts-list-inner lr cbs stmts = case stmts of
-   SEM_CONS x: cbs.sem_stmts_list.list_next (rreil-convert-sem-stmt lr cbs x.hd) (rreil-convert-sem-stmts cbs x.tl)
- | SEM_NIL: cbs.sem_stmts_list.list_init 42
-end
+#val rreil-convert-sem-stmts-list-inner lr cbs stmts = case stmts of
+#   SEM_CONS x: cbs.sem_stmts_list.list_next (rreil-convert-sem-stmt lr cbs x.hd) (rreil-convert-sem-stmts cbs x.tl)
+# | SEM_NIL: cbs.sem_stmts_list.list_init 42
+#end
+
+val rreil-convert-sem-stmts-lr lr cbs stmts = rreil-convert-sem-stmts-inner lr cbs (lr stmts)
 
 val just-return x = x
 val rreil-convert-sem-stmts cbs stmts = rreil-convert-sem-stmts-lr just-return cbs stmts
 
 #Todo: Fix
 val rreil-convert-sem-stmts-list cbs stmts = rreil-convert-sem-stmts-lr rreil-stmts-rev cbs stmts
-
-val rreil-convert-sem-stmts-lr lr cbs stmts = rreil-convert-sem-stmts-inner lr cbs (lr stmts)
 
 #val rreil-convert-sem-stmts-list cbs stmts = let
 #  val inner list next =

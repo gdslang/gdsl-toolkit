@@ -9,7 +9,6 @@ GDSL_X86:=1
 endif
 
 ifdef GDSL_X86
-LIBS+=-lgdrr
 endif
 LIBS+=-lgdsl -lelf -lrt -lreadhex
 

@@ -11,7 +11,7 @@ ifdef GDSL_X86
 DEFINES+=-DGDSL_X86
 endif
 
-CFLAGS=-std=c11 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
+CFLAGS=-std=c11 -g3 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
 LIBRARY=libjrreil.so
 JAR=jrreil.jar
