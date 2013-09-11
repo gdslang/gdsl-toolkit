@@ -19,6 +19,15 @@ int main(int argc, char** argv) {
 	}
 	obj_t insn = gdsl_decode(state);
 
+	printf("[");
+	size_t decoded = gdsl_get_ip_offset(state);
+	for (size_t i = 0; i < decoded; ++i) {
+		if(i)
+			printf(" ");
+		printf("%02x", buffer[i]);
+	}
+	printf("] ");
+
 	string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 	puts(fmt);
 
