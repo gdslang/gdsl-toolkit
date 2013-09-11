@@ -9,9 +9,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <gdsl_multiplex.h>
-
 #include <dirent.h>
+#include <dlfcn.h>
+
+#include <gdsl_multiplex.h>
 
 static char *backend_get(char *file) {
 	size_t length = strlen(file);
@@ -60,4 +61,42 @@ size_t gdsl_multiplex_backends_list(char ***backends) {
 	}
 
 	return backends_length;
+}
+
+char gdsl_multiplex_backend_get(struct backend *backend, char *name) {
+	char *base = getenv("GDSL_DECODERS");
+	if(!base)
+		return 1;
+
+	char *lib;
+	size_t lib_length;
+	FILE *libf = open_memstream(&lib, &lib_length);
+	fprintf(libf, "%s/libgdsl-%s.so", base, name);
+	fputc(0, libf);
+	fclose(libf);
+
+	void *dl = dlopen(lib, RTLD_LAZY);
+	free(lib);
+	if(!dl)
+		return 2;
+
+	backend->generic.init = (void(*)(void))dlsym(dl, "gdsl_init");
+	backend->generic.set_code = (void(*)(void))dlsym(dl, "gdsl_set_code");
+	backend->generic.err_tgt = (void(*)(void))dlsym(dl, "gdsl_err_tgt");
+	backend->generic.get_error_message = (void(*)(void))dlsym(dl, "gdsl_get_error_message");
+	backend->generic.destroy = (void(*)(void))dlsym(dl, "gdsl_destroy");
+	backend->generic.get_ip_offset = (void(*)(void))dlsym(dl, "gdsl_get_ip_offset");
+	backend->generic.merge_rope = (void(*)(void))dlsym(dl, "gdsl_merge_rope");
+	backend->decoder.decode = (void(*)(void))dlsym(dl, "gdsl_decode");
+	backend->decoder.pretty = (void(*)(void))dlsym(dl, "gdsl_pretty");
+	backend->translator.translate = (void(*)(void))dlsym(dl, "gdsl_translate");
+	backend->translator.pretty = (void(*)(void))dlsym(dl, "gdsl_rreil_pretty");
+
+	backend->dl = dl;
+
+	return 0;
+}
+
+void gdsl_multiplex_backend_close(struct backend *backend) {
+	dlclose(backend->dl);
 }

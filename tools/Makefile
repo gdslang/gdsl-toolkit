@@ -10,7 +10,7 @@ endif
 
 ifdef GDSL_X86
 endif
-LIBS+=-lgdsl -lelf -lrt -lreadhex -lgdsl-multiplex
+LIBS+=-lgdsl -lelf -lrt -lreadhex -lgdsl-multiplex -ldl
 
 LIBFLAGS=$(LIBDS) $(LIBS)
 LDFLAGS=

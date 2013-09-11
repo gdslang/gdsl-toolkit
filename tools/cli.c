@@ -7,6 +7,8 @@
 #include <gdwrap.h>
 
 int main(int argc, char** argv) {
+	char retval = 0;
+
 	uint8_t *buffer;
 	size_t size = readhex_hex_read(stdin, &buffer);
 
@@ -15,7 +17,8 @@ int main(int argc, char** argv) {
 
 	if(setjmp(*gdsl_err_tgt(state))) {
 		fprintf(stderr, "decode failed: %s\n", gdsl_get_error_message(state));
-		exit(1);
+		retval = 1;
+		goto cleanup;
 	}
 	obj_t insn = gdsl_decode(state);
 
@@ -35,7 +38,8 @@ int main(int argc, char** argv) {
 
 	if(setjmp(*gdsl_err_tgt(state))) {
 		fprintf(stderr, "translate failed: %s\n", gdsl_get_error_message(state));
-		exit(1);
+		retval = 1;
+		goto cleanup;
 	}
 
 	obj_t rreil = gdsl_translate(state, insn);
@@ -43,9 +47,11 @@ int main(int argc, char** argv) {
 	fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 	puts(fmt);
 
+	cleanup:
+
 	gdsl_destroy(state);
 	free(buffer);
 
-	return 0;
+	return retval;
 }
 
