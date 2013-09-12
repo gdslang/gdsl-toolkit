@@ -176,13 +176,13 @@ libjrreil_la_LIBADD =
 cli_gdrr_LDADD = 
 sweep_LDADD = 
 liveness_sweep_LDADD = 
-x86_test_runner_LDADD = 
-x86_test_stats_runner_LDADD = 
+x86_test_runner_LDADD = libx86-tester.la libgdwrap.la
+x86_test_stats_runner_LDADD = libx86-tester.la libgdwrap.la
+dectran_cli_generic_LDADD = 
 
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 include_HEADERS += gdsl-x86-rreil.h
-libgdrr_la_LIBADD = libgdsl-x86-rreil.la
 libjrreil_la_LIBADD += libgdsl-x86-rreil.la
 cli_LDADD += libgdsl-x86-rreil.la
 cli_gdrr_LDADD += libgdsl-x86-rreil.la
@@ -190,6 +190,7 @@ sweep_LDADD += libgdsl-x86-rreil.la
 liveness_sweep_LDADD += libgdsl-x86-rreil.la
 x86_test_runner_LDADD += libgdsl-x86-rreil.la
 x86_test_stats_runner_LDADD += libgdsl-x86-rreil.la
+dectran_cli_generic_LDADD += libgdsl-x86-rreil.la
 endif
 libgdsl_x86_rreil_la_SOURCES =
 nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
@@ -201,7 +202,6 @@ gdsl-x86-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X
 
 if X86
 lib_LTLIBRARIES += libgdsl-x86.la
-libgdrr_la_LIBADD = libgdsl-x86.la
 cli_LDADD += libgdsl-x86.la
 endif
 libgdsl_x86_la_SOURCES =
@@ -214,7 +214,6 @@ gdsl-x86.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86)
 
 if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
-libgdrr_la_LIBADD = libgdsl-avr-rreil.la
 libjrreil_la_LIBADD += libgdsl-avr-rreil.la
 cli_LDADD += libgdsl-avr-rreil.la
 cli_gdrr_LDADD += libgdsl-avr-rreil.la
@@ -222,6 +221,7 @@ sweep_LDADD += libgdsl-avr-rreil.la
 liveness_sweep_LDADD += libgdsl-avr-rreil.la
 x86_test_runner_LDADD += libgdsl-avr-rreil.la
 x86_test_stats_runner_LDADD += libgdsl-avr-rreil.la
+dectran_cli_generic_LDADD += libgdsl-avr-rreil.la
 endif
 libgdsl_avr_rreil_la_SOURCES =
 nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
@@ -233,7 +233,6 @@ gdsl-avr-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_A
 
 if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
-libgdrr_la_LIBADD = libgdsl-avr.la
 cli_LDADD += libgdsl-avr.la
 endif
 libgdsl_avr_la_SOURCES =
@@ -347,30 +346,19 @@ endif
 
 if RREIL
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += libgdrr.la
 lib_LTLIBRARIES += libgdwrap.la
 lib_LTLIBRARIES += librreil.la
 lib_LTLIBRARIES += libjrreil.la
+lib_LTLIBRARIES += libgdsl-multiplex.la
 else
 if BUILD_AUXLIBS
-noinst_LTLIBRARIES += libgdrr.la
 noinst_LTLIBRARIES += libgdwrap.la
 noinst_LTLIBRARIES += librreil.la
 noinst_LTLIBRARIES += libjrreil.la
+noinst_LTLIBRARIES += libgdsl-multiplex.la
 endif
 endif
 endif
-
-libgdrr_la_SOURCES = libs/gdrr/src/gdrr.c
-libgdrr_la_CFLAGS = -I./libs/gdrr/include
-include_HEADERS += \
-	libs/gdrr/include/gdrr.h \
-	libs/gdrr/include/gdrr_arch.h \
-	libs/gdrr/include/gdrr_arch_callbacks.h \
-	libs/gdrr/include/gdrr_callbacks.h \
-	libs/gdrr/include/gdrr_config.h \
-	libs/gdrr/include/gdrr_types.h
-#libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
 
 libreadhex_la_SOURCES = libs/readhex/src/readhex.c
 libreadhex_la_CFLAGS = -I./libs/readhex/include
@@ -386,6 +374,7 @@ libx86_la_CFLAGS = -std=c99 -I./libs/x86/include
 include_HEADERS += libs/x86/include/x86.h libs/x86/include/x86_features.h
 endif
 
+if RREIL
 librreil_la_SOURCES = libs/rreil/src/rreil/copy.c \
                       libs/rreil/src/rreil/print.c \
                       libs/rreil/src/rreil/gdrr_builder.c \
@@ -427,6 +416,7 @@ include_HEADERS += libs/rreil/include/rreil/rreil.h \
 #if X86_ACC
 #librreil_la_DEPENDENCIES += libx86.la
 #endif
+endif
 
 libgdwrap_la_SOURCES = libs/gdwrap/src/gdwrap.c
 libgdwrap_la_CFLAGS = -I./libs/gdwrap/include
@@ -454,9 +444,18 @@ include_HEADERS += libs/x86-tester/include/tbgen.h \
                    libs/x86-tester/include/tester.h
 endif
 
+if RREIL
 libjrreil_la_SOURCES = libs/jrreil/src/rnati_NativeInterface.c
 libjrreil_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I./libs/gdrr/include
-libjrreil_la_LIBADD += libgdrr.la
+libjrreil_la_LIBADD += 
+endif
+
+if RREIL
+libgdsl_multiplex_la_SOURCES = libs/gdsl-multiplex/src/gdsl_multiplex.c
+libgdsl_multiplex_la_CFLAGS = -I./libs/gdsl-multiplex/include
+libgdsl_multiplex_la_LDFLAGS = -ldl
+include_HEADERS += libs/gdsl-multiplex/include/gdsl_multiplex.h
+endif
 
 if RREIL
 if INSTALL_AUXBINS
@@ -466,6 +465,7 @@ bin_PROGRAMS += sweep
 bin_PROGRAMS += liveness_sweep
 bin_PROGRAMS += x86_test_runner
 bin_PROGRAMS += x86_test_stats_runner
+bin_PROGRAMS += dectran-cli-generci
 else
 if BUILD_AUXBINS
 noinst_PROGRAMS += cli
@@ -474,17 +474,18 @@ noinst_PROGRAMS += sweep
 noinst_PROGRAMS += liveness_sweep
 noinst_PROGRAMS += x86_test_runner
 noinst_PROGRAMS += x86_test_stats_runner
+noinst_PROGRAMS += dectran-cli-generic
 endif
 endif
 endif
 
 cli_SOURCES = tools/cli.c
-cli_CFLAGS = -I./libs/readhex/include -I./libs/gdwrap/include
+cli_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdwrap/include
 cli_LDADD += libreadhex.la libgdwrap.la
 
 cli_gdrr_SOURCES = tools/cli-gdrr.c
 cli_gdrr_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include -I./libs/gdwrap/include
-cli_gdrr_LDADD += libgdrr.la libreadhex.la libgdwrap.la
+cli_gdrr_LDADD += libreadhex.la libgdwrap.la
 
 sweep_SOURCES = tools/sweep.c
 sweep_CFLAGS = 
@@ -497,11 +498,15 @@ liveness_sweep_LDFLAGS = -lelf
 if X86_RREIL
 x86_test_runner_SOURCES = tools/x86-test-runner/src/main.c
 x86_test_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
-x86_test_runner_LDADD += libx86-tester.la libgdrr.la libgdwrap.la librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
+x86_test_runner_LDADD += librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
 endif
 
 if X86_RREIL
 x86_test_stats_runner_SOURCES = tools/x86-test-stats-runner/src/main.c tools/x86-test-stats-runner/src/hash_array.c
 x86_test_stats_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
-x86_test_stats_runner_LDADD += libx86-tester.la libgdrr.la libgdwrap.la librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
+x86_test_stats_runner_LDADD += librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
 endif
+
+dectran_cli_generic_SOURCES = tools/dectran-cli-generic.c
+dectran_cli_generic_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdsl-multiplex/include
+dectran_cli_generic_LDADD += libreadhex.la libgdsl-multiplex.la
