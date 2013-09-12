@@ -95,6 +95,7 @@ char gdsl_multiplex_backend_get(struct backend *backend, const char *name) {
 	ADD_FUNCTION(generic, destroy)
 	ADD_FUNCTION(generic, get_ip_offset)
 	ADD_FUNCTION(generic, merge_rope)
+	ADD_FUNCTION(decoder, config_default)
 	ADD_FUNCTION(decoder, decode)
 	ADD_FUNCTION(decoder, pretty)
 	ADD_FUNCTION(translator, translate)

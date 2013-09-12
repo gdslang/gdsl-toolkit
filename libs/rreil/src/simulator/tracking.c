@@ -16,7 +16,6 @@
 
 #ifdef GDSL_X86
 #include <x86.h>
-#endif
 
 enum simulator_access_type {
 	SIMULATOR_ACCESS_TYPE_READ, SIMULATOR_ACCESS_TYPE_WRITE, SIMULATOR_ACCESS_TYPE_DEREFERENCE
@@ -325,6 +324,7 @@ void tracking_statements_trace(struct tracking_trace *trace, struct rreil_statem
 //	access->indices[access->indices_length++] = id;
 //}
 
+#ifdef GDSL_X86
 static void init_register(struct register_access *access, enum x86_id x86) {
 	size_t size = x86_amd64_sizeof(x86);
 	struct register_ *reg = &access->x86_registers[x86];
@@ -333,7 +333,9 @@ static void init_register(struct register_access *access, enum x86_id x86) {
 	reg->bit_length = size;
 //			reg->data_size = size / 8;
 }
+#endif
 
+#ifdef GDSL_X86
 static void init_rw(struct register_access *access) {
 	access->x86_registers = (struct register_*)calloc(X86_ID_COUNT, sizeof(struct register_));
 
@@ -344,6 +346,7 @@ static void init_rw(struct register_access *access) {
 	access->x86_indices_length = 0;
 	access->x86_indices_size = 0;
 }
+#endif
 
 struct tracking_trace *tracking_trace_init() {
 	struct tracking_trace *trace = (struct tracking_trace*)malloc(sizeof(struct tracking_trace));
@@ -447,3 +450,5 @@ void tracking_trace_print(struct tracking_trace *trace) {
 	printf("Dereferenced registers:\n");
 	access_print(&trace->reg.dereferenced);
 }
+
+#endif

@@ -343,18 +343,22 @@ endif
 endif
 
 if X86_ACC
-lib_LTLIBRARIES += libx86.la libx86-generator.la libx86-tester.la
+if INSTALL_AUXLIBS
+lib_LTLIBRARIES += libx86.la libx86-generator.la libx86-tester.la libgdwrap.la
+else
+if BUILD_AUXLIBS
+noinst_LTLIBRARIES += libx86.la libx86-generator.la libx86-tester.la libgdwrap.la
+endif
+endif
 endif
 
 if RREIL
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += libgdwrap.la
 lib_LTLIBRARIES += librreil.la
 lib_LTLIBRARIES += libjrreil.la
 lib_LTLIBRARIES += libgdsl-multiplex.la
 else
 if BUILD_AUXLIBS
-noinst_LTLIBRARIES += libgdwrap.la
 noinst_LTLIBRARIES += librreil.la
 noinst_LTLIBRARIES += libjrreil.la
 noinst_LTLIBRARIES += libgdsl-multiplex.la

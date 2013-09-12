@@ -518,7 +518,7 @@ int main(int argc, char** argv) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, (char*)buffer, size, 0);
 
-	obj_t insn = gdsl_decode(state);
+	obj_t insn = gdsl_decode(state, gdsl_config_default(state));
 //	__obj state = __createState(blob, i, 0, 0);
 //	__obj insn = __runMonadicNoArg(__decode__, &state);
 

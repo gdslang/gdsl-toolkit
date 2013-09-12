@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
 		retval = 1;
 		goto cleanup;
 	}
-	obj_t insn = backend.decoder.decode(state);
+	obj_t insn = backend.decoder.decode(state, backend.decoder.config_default(state));
 
 	printf("[");
 	size_t decoded = backend.generic.get_ip_offset(state);

@@ -610,7 +610,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 		(*env)->ThrowNew(env, exp, "Decode failed.");
 		return NULL;
 	}
-	obj_t insn = backend.decoder.decode(state);
+	obj_t insn = backend.decoder.decode(state, backend.decoder.config_default(state));
 
 	if(setjmp(*backend.generic.err_tgt(state))) {
 		jclass exp = (*env)->FindClass(env, "rnati/RReilTranslateException");

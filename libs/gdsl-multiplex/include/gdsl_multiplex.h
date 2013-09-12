@@ -23,7 +23,8 @@ struct backend {
 	} generic;
 
 	struct {
-		obj_t (*decode)(state_t state);
+		int_t (*config_default)(state_t state);
+		obj_t (*decode)(state_t state, int_t config);
 		obj_t *(*pretty)(state_t state, obj_t insn);
 	} decoder;
 

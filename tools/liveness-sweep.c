@@ -169,21 +169,21 @@ static char args_parse(int argc, char **argv, struct options *options) {
 obj_t translate_single(state_t state) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	obj_t rreil_insns = gdsl_translateSingle(state);
+	obj_t rreil_insns = gdsl_translateSingle(state, gdsl_config_default(state));
 	return rreil_insns;
 }
 
 obj_t translate(state_t state) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	obj_t rreil_insns = gdsl_translateBlock(state);
+	obj_t rreil_insns = gdsl_translateBlock(state, gdsl_config_default(state));
 	return rreil_insns;
 }
 
 translate_result_t translate_super(state_t state, obj_t *rreil_insns) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state);
+	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state, gdsl_config_default(state));
 	*rreil_insns = rreil_insns_succs->insns;
 	return rreil_insns_succs;
 }
@@ -352,7 +352,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 	obj_t state = gdsl_init();
 
-	gdsl_set_code(state, buffer, buffer_length, 0);
+	gdsl_set_code(state, (char*)buffer, buffer_length, 0);
 
 	while(consumed < buffer_length) {
 		if(print)
@@ -381,7 +381,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 			}
 		}
 		clock_gettime(CLOCK_REALTIME, &end);
-		long diff = end.tv_sec*NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec*NANOS;
+		long diff = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
 		context->time_non_opt += diff;
 
 		if(translated == NULL || rreil_insns == NULL) {
@@ -450,7 +450,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 		}
 
 		clock_gettime(CLOCK_REALTIME, &end);
-		diff = end.tv_sec*NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec*NANOS;
+		diff = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
 		context->time_opt += diff;
 //		if(!__isNil(greedy_state)) {
 //			__fatal("Liveness failed");

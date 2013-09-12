@@ -6,8 +6,45 @@
 #include <readhex.h>
 #include <gdwrap.h>
 
+struct options {
+	char mode64;
+	char default_opnd_sz_32;
+};
+
+static char args_parse(int argc, char **argv, struct options *options) {
+	options->mode64 = 1;
+	options->default_opnd_sz_32 = 1;
+
+	while(1) {
+		char c = getopt(argc, argv, "md");
+		switch(c) {
+			case 'm': {
+				options->mode64 = 0;
+				break;
+			}
+			case 'd': {
+				options->default_opnd_sz_32 = 0;
+				break;
+			}
+			default: {
+				goto end;
+			}
+		}
+	}
+	end: ;
+
+	return 0;
+}
+
 int main(int argc, char** argv) {
 	char retval = 0;
+
+	struct options options;
+	args_parse(argc, argv, &options);
+
+	printf("Configuration:\n");
+	printf("\tmode64: %s\n", options.mode64 ? "true" : "false");
+	printf("\tdefault_opnd_sz = 32: %s\n", options.default_opnd_sz_32 ? "true" : "false");
 
 	uint8_t *buffer;
 	size_t size = readhex_hex_read(stdin, &buffer);
@@ -20,7 +57,12 @@ int main(int argc, char** argv) {
 		retval = 1;
 		goto cleanup;
 	}
-	obj_t insn = gdsl_decode(state);
+
+	int_t config = 0;
+	config |= gdsl_config_mode64(state)*options.mode64;
+	config |= gdsl_config_default_opnd_sz_32(state)*options.default_opnd_sz_32;
+
+	obj_t insn = gdsl_decode(state, config);
 
 	printf("[");
 	size_t decoded = gdsl_get_ip_offset(state);

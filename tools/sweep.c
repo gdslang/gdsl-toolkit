@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
 			fprintf(stderr, "decode failed: %s\n", gdsl_get_error_message(state));
 			break;
 		}
-		obj_t insn = gdsl_decode(state);
+		obj_t insn = gdsl_decode(state, gdsl_config_default(state));
 
 		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);

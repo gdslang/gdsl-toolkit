@@ -10,7 +10,10 @@
 #include <stdint.h>
 #include <gdsl.h>
 #include <rreil/rreil.h>
+
+#ifdef GDSL_X86
 #include <x86.h>
+#endif
 
 // sem_id
 //static obj_t virt_na(state_t state, int_t con) {

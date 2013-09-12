@@ -2125,40 +2125,40 @@ val translate-bottom-up insn =
       return stack
    end
 
-val transInstr = do
+val transInstr config = do
    ic <- query $ins_count;
    update@{tmp=0,ins_count=ic+1};
-   insn <- decode;
+   insn <- decode config;
    semantics insn
 end
 
-val transBlock = do
-   transInstr;
+val transBlock config = do
+   transInstr config;
    jmp <- query $foundJump;
    #ic <- query $ins_count;
-   #if jmp or ic>1000 then query $stack else transBlock
-   if jmp then query $stack else transBlock
+   #if jmp or ic>1000 then query $stack else transBlock config
+   if jmp then query $stack else transBlock config
 end
 
-val translateBlock = do
-   update @{ins_count=0,mode64='1'};
+val translateBlock config = do
+   update @{ins_count=0};
    update@{stack=SEM_NIL,foundJump='0'};
    # the type checker is does not instanitate types of decoders; what seemed to be
    # a fine specialization turns out to be a bad idea since records need to be
    # newly instantiated
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock;
+	 stmts <- transBlock config;
    return (rreil-stmts-rev stmts)
 end
 
-val translateSingle = do
+val translateSingle config = do
    update @{ins_count=0,mode64='1'};
    update@{stack=SEM_NIL,foundJump='0'};
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
 
-   transInstr;
+   transInstr config;
    jmp <- query $foundJump;
    stmts <- query $stack;
 
@@ -2219,13 +2219,13 @@ type stmts_option =
 
 type translate-result = {insns:int, succ_a:int, succ_b:int}
 
-val translateSuperBlock = let
+val translateSuperBlock config = let
   val translate-block-at idx = do
 	  current <- idxget;
 		#error <- rseek idx;
 		error <- seek (current + idx);
 		result <- if error === 0 then do
-		  stmts <- translateBlock;
+		  stmts <- translateBlock config;
 		  seek current;
 			return (SO_SOME stmts)
 		end else
@@ -2246,7 +2246,7 @@ in do
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock;
+	 stmts <- transBlock config;
 
    ic <- query $ins_count;
 
