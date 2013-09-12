@@ -115,10 +115,10 @@ endif
 gdslc_MAIN = $(gdslc_SOURCES)
 gdslc_SOURCES = gdslc.mlb $(GDSLC_SML_FILES)
 
-*.l.sml	: *.l
+%.l.sml	: %.l
 	$(MLULEX) $<
 
-*.g.sml	: *.g
+%.g.sml	: %.g
 	$(MLANTLR) $<
 
 GDSLC = $(abspath $(CURDIR)/gdslc$(EXEEXT))
