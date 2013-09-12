@@ -24,7 +24,7 @@ public class Program {
 			String[] backends = n.getBackends();
 
 			if (backends.length == 0)
-				throw new RuntimeException("No backends available.");
+				throw new RuntimeException("No backends available");
 
 			int backend_ind = 0;
 
@@ -38,14 +38,13 @@ public class Program {
 				backend_ind = in.nextInt();
 				
 				if(backend_ind >= backends.length)
-					throw new RuntimeException("Invalid backend.");
+					throw new RuntimeException("Invalid backend");
 			}
 
 			System.out
 					.println("Using backend " + backends[backend_ind] + "...");
 
 			n.useBackend(backends[backend_ind]);
-			
 			
 			String line = reader.readLine();
 			if (line == null)

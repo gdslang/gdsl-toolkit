@@ -3,10 +3,10 @@ CC=gcc
 MAKE=make
 LIBDS=-L../lib
 
-ifndef MANAGED
-GDSL_AVR:=1
-GDSL_X86:=1
-endif
+#ifndef MANAGED
+#GDSL_AVR:=1
+#GDSL_X86:=1
+#endif
 
 ifdef GDSL_X86
 endif
@@ -18,7 +18,7 @@ INCDS=-I../include
 CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 PROJECTS=
-EXECUTABLES=cli sweep cli-gdrr dectran-cli-generic
+EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep
 ifdef GDSL_X86
 PROJECTS+=x86-test-runner x86-test-stats-runner xed-cmp
 EXECUTABLES+=liveness-sweep
@@ -28,19 +28,33 @@ endif
 
 all: $(EXECUTABLES) $(PROJECTS)
 
-### cli
-cli: cli.o
-	$(CC) $(LDFLAGS) cli.o $(LIBFLAGS) -o $@
+### decoder-cli
+decoder-cli: decoder-cli.o
+	$(CC) $(LDFLAGS) decoder-cli.o $(LIBFLAGS) -o $@
 
-cli.o: cli.c
-	$(CC) $(CFLAGS) cli.c -o $@
+decoder-cli.o: decoder-cli.c
+	$(CC) $(CFLAGS) decoder-cli.c -o $@
+
+### semantics-cli
+semantics-cli: semantics-cli.o
+	$(CC) $(LDFLAGS) semantics-cli.o $(LIBFLAGS) -o $@
+
+semantics-cli.o: semantics-cli.c
+	$(CC) $(CFLAGS) semantics-cli.c -o $@
 	
-### dectran-cli-generic
-dectran-cli-generic: dectran-cli-generic.o
-	$(CC) $(LDFLAGS) dectran-cli-generic.o $(LIBFLAGS) -o $@
+### semantics-cli-dynamic
+semantics-cli-dynamic: semantics-cli-dynamic.o
+	$(CC) $(LDFLAGS) semantics-cli-dynamic.o $(LIBFLAGS) -o $@
 
-dectran-cli-generic.o: dectran-cli-generic.c
-	$(CC) $(CFLAGS) dectran-cli-generic.c -o $@
+semantics-cli-dynamic.o: semantics-cli-dynamic.c
+	$(CC) $(CFLAGS) semantics-cli-dynamic.c -o $@
+	
+### semantics-cif-cli
+semantics-cif-cli: semantics-cif-cli.o
+	$(CC) $(LDFLAGS) semantics-cif-cli.o $(LIBFLAGS) -o $@
+
+semantics-cif-cli.o: semantics-cif-cli.c
+	$(CC) $(CFLAGS) semantics-cif-cli.c -o $@
 
 ### sweep
 sweep: sweep.o
@@ -56,13 +70,6 @@ liveness-sweep: liveness-sweep.o
 
 liveness-sweep.o: liveness-sweep.c
 	$(CC) $(CFLAGS) liveness-sweep.c -o $@
-
-### cli-gdrr
-cli-gdrr: cli-gdrr.o
-	$(CC) $(LDFLAGS) cli-gdrr.o $(LIBFLAGS) -o $@
-
-cli-gdrr.o: cli-gdrr.c
-	$(CC) $(CFLAGS) cli-gdrr.c -o $@
 
 ### x86-test-runner
 x86-test-runner:

@@ -37,6 +37,11 @@ struct backend {
 	void *dl;
 };
 
+#define GDSL_MULTIPLEX_ERROR_NONE 0
+#define GDSL_MULTIPLEX_ERROR_BACKENDS_PATH_NOT_SET 1
+#define GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN 2
+#define GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND 3
+
 size_t gdsl_multiplex_backends_list(char ***backends);
 char gdsl_multiplex_backend_get(struct backend *backend, const char *name);
 void gdsl_multiplex_backend_close(struct backend *backend);

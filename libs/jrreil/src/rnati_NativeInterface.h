@@ -14,9 +14,9 @@ extern "C" {
  */
 JNIEXPORT jobject JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *, jobject, jbyteArray);
 
-JNIEXPORT jobjectArray JNICALL Java_rnati_NativeInterface_getBackends_(JNIEnv *, jobject);
-JNIEXPORT void JNICALL Java_rnati_NativeInterface_useBackend_(JNIEnv *, jobject, jstring);
-JNIEXPORT void JNICALL Java_rnati_NativeInterface_closeBackend_(JNIEnv *, jobject);
+JNIEXPORT jobjectArray JNICALL Java_rnati_NativeInterface_getBackendsNative(JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_rnati_NativeInterface_useBackendNative(JNIEnv *, jobject, jstring);
+JNIEXPORT void JNICALL Java_rnati_NativeInterface_closeBackendNative(JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

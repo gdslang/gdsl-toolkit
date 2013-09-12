@@ -682,7 +682,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 
 JNIEXPORT
 jobjectArray
-JNICALL Java_rnati_NativeInterface_getBackends_(JNIEnv *env, jobject obj) {
+JNICALL Java_rnati_NativeInterface_getBackendsNative(JNIEnv *env, jobject obj) {
 	char **backends;
 	size_t backends_length = gdsl_multiplex_backends_list(&backends);
 
@@ -700,23 +700,29 @@ JNICALL Java_rnati_NativeInterface_getBackends_(JNIEnv *env, jobject obj) {
 	return jbackends;
 }
 
+#define THROW_RUNTIME(MSG) {\
+		jclass exp = (*env)->FindClass(env, "java/lang/RuntimeException");\
+		(*env)->ThrowNew(env, exp, MSG);\
+		return;\
+}
+
 JNIEXPORT
 void
-JNICALL Java_rnati_NativeInterface_useBackend_(JNIEnv *env, jobject obj, jstring backend_str) {
+JNICALL Java_rnati_NativeInterface_useBackendNative(JNIEnv *env, jobject obj, jstring backend_str) {
   const char *backend_str_n = (*env)->GetStringUTFChars(env, backend_str, 0);
 
-  // use your string
-
-	if(gdsl_multiplex_backend_get(&backend, backend_str_n)) {
-		fprintf(stderr, "Unable to open backend.\n");
-		return;
-	}
+  switch(gdsl_multiplex_backend_get(&backend, backend_str_n)) {
+  	case GDSL_MULTIPLEX_ERROR_BACKENDS_PATH_NOT_SET: THROW_RUNTIME("Unable to open backend: Path to backends not set")
+  	case GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN: THROW_RUNTIME("Unable to open backend: Unable to open backend library")
+  	case GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND: THROW_RUNTIME("Unable to open backend: Symbol not found")
+  	case GDSL_MULTIPLEX_ERROR_NONE: break;
+  }
 
   (*env)->ReleaseStringUTFChars(env, backend_str, backend_str_n);
 }
 
 JNIEXPORT
 void
-JNICALL Java_rnati_NativeInterface_closeBackend_(JNIEnv *env, jobject obj) {
-
+JNICALL Java_rnati_NativeInterface_closeBackendNative(JNIEnv *env, jobject obj) {
+	gdsl_multiplex_backend_close(&backend);
 }

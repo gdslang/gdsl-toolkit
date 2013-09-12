@@ -30,20 +30,20 @@ public class NativeInterface {
 	}
 	
 	public String[] getBackends() {
-		return getBackends_();
+		return getBackendsNative();
 	}
 	
 	public void useBackend(String backend) {
 		if(backendSet)
 			throw new RuntimeException("Backend already set");
-		useBackend_(backend);
+		useBackendNative(backend);
 		backendSet = true;
 	}
 	
 	public void closeBackend() {
 		if(!backendSet)
 			throw new RuntimeException("Backend not set");
-		closeBackend_();
+		closeBackendNative();
 		backendSet = false;
 	}
 
@@ -540,7 +540,7 @@ public class NativeInterface {
 	}
 
 	private native Object decodeAndTranslateNative(byte[] bytes);
-	private native String[] getBackends_();
-	private native void useBackend_(String backend);
-	private native void closeBackend_();
+	private native String[] getBackendsNative();
+	private native void useBackendNative(String backend);
+	private native void closeBackendNative();
 }

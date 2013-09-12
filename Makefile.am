@@ -17,7 +17,15 @@ include_HEADERS =
 #endif
 
 # we need to add a dependency to the actual backend to this variable
-cli_LDADD =
+libjrreil_la_LIBADD = 
+decoder_cli_LDADD = 
+semantics_cli_LDADD = 
+semantics_cli_dynamic_LDADD = 
+semantics_cif_cli_LDADD = 
+sweep_LDADD = 
+liveness_sweep_LDADD = 
+x86_test_runner_LDADD = libx86-tester.la libgdwrap.la
+x86_test_stats_runner_LDADD = libx86-tester.la libgdwrap.la
 
 # options for the C compiler
 AM_CFLAGS = -Wall
@@ -172,25 +180,18 @@ GDSL_RREIL = \
 	specifications/rreil/rreil-cleanup.ml \
 	specifications/basis/selectors.ml 
 
-libjrreil_la_LIBADD = 
-cli_gdrr_LDADD = 
-sweep_LDADD = 
-liveness_sweep_LDADD = 
-x86_test_runner_LDADD = libx86-tester.la libgdwrap.la
-x86_test_stats_runner_LDADD = libx86-tester.la libgdwrap.la
-dectran_cli_generic_LDADD = 
-
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 include_HEADERS += gdsl-x86-rreil.h
 libjrreil_la_LIBADD += libgdsl-x86-rreil.la
-cli_LDADD += libgdsl-x86-rreil.la
-cli_gdrr_LDADD += libgdsl-x86-rreil.la
+decoder_cli_LDADD += libgdsl-x86-rreil.la
+semantics_cli_LDADD += libgdsl-x86-rreil.la
+semantics_cli_dynamic_LDADD += libgdsl-x86-rreil.la
+semantics_cif_cli_LDADD += libgdsl-x86-rreil.la
 sweep_LDADD += libgdsl-x86-rreil.la
 liveness_sweep_LDADD += libgdsl-x86-rreil.la
 x86_test_runner_LDADD += libgdsl-x86-rreil.la
 x86_test_stats_runner_LDADD += libgdsl-x86-rreil.la
-dectran_cli_generic_LDADD += libgdsl-x86-rreil.la
 endif
 libgdsl_x86_rreil_la_SOURCES =
 nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
@@ -202,7 +203,7 @@ gdsl-x86-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X
 
 if X86
 lib_LTLIBRARIES += libgdsl-x86.la
-cli_LDADD += libgdsl-x86.la
+decoder_cli_LDADD += libgdsl-x86.la
 endif
 libgdsl_x86_la_SOURCES =
 nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
@@ -215,13 +216,14 @@ gdsl-x86.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86)
 if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
 libjrreil_la_LIBADD += libgdsl-avr-rreil.la
-cli_LDADD += libgdsl-avr-rreil.la
-cli_gdrr_LDADD += libgdsl-avr-rreil.la
+decoder_cli_LDADD += libgdsl-avr-rreil.la
+semantics_cli_LDADD += libgdsl-avr-rreil.la
+semantics_cli_dynamic_LDADD += libgdsl-avr-rreil.la
+semantics_cif_cli_LDADD += libgdsl-avr-rreil.la
 sweep_LDADD += libgdsl-avr-rreil.la
 liveness_sweep_LDADD += libgdsl-avr-rreil.la
 x86_test_runner_LDADD += libgdsl-avr-rreil.la
 x86_test_stats_runner_LDADD += libgdsl-avr-rreil.la
-dectran_cli_generic_LDADD += libgdsl-avr-rreil.la
 endif
 libgdsl_avr_rreil_la_SOURCES =
 nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
@@ -233,7 +235,7 @@ gdsl-avr-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_A
 
 if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
-cli_LDADD += libgdsl-avr.la
+decoder_cli_LDADD += libgdsl-avr.la
 endif
 libgdsl_avr_la_SOURCES =
 nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
@@ -446,8 +448,8 @@ endif
 
 if RREIL
 libjrreil_la_SOURCES = libs/jrreil/src/rnati_NativeInterface.c
-libjrreil_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I./libs/gdrr/include
-libjrreil_la_LIBADD += 
+libjrreil_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I./libs/gdsl-multiplex/include
+libjrreil_la_LIBADD += libgdsl-multiplex.la
 endif
 
 if RREIL
@@ -459,33 +461,43 @@ endif
 
 if RREIL
 if INSTALL_AUXBINS
-bin_PROGRAMS += cli
-bin_PROGRAMS += cli-gdrr
+bin_PROGRAMS += decoder-cli
+bin_PROGRAMS += semantics-cli
+bin_PROGRAMS += semantics-cli-dynamic
+bin_PROGRAMS += semantics-cif-cli
 bin_PROGRAMS += sweep
 bin_PROGRAMS += liveness_sweep
 bin_PROGRAMS += x86_test_runner
 bin_PROGRAMS += x86_test_stats_runner
-bin_PROGRAMS += dectran-cli-generci
 else
 if BUILD_AUXBINS
-noinst_PROGRAMS += cli
-noinst_PROGRAMS += cli-gdrr
+noinst_PROGRAMS += decoder-cli
+noinst_PROGRAMS += semantics-cli
+noinst_PROGRAMS += semantics-cli-dynamic
+noinst_PROGRAMS += semantics-cif-cli
 noinst_PROGRAMS += sweep
 noinst_PROGRAMS += liveness_sweep
 noinst_PROGRAMS += x86_test_runner
 noinst_PROGRAMS += x86_test_stats_runner
-noinst_PROGRAMS += dectran-cli-generic
 endif
 endif
 endif
 
-cli_SOURCES = tools/cli.c
-cli_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdwrap/include
-cli_LDADD += libreadhex.la libgdwrap.la
+decoder_cli_SOURCES = tools/decoder-cli.c
+decoder_cli_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdwrap/include
+decoder_cli_LDADD += libreadhex.la libgdwrap.la
 
-cli_gdrr_SOURCES = tools/cli-gdrr.c
-cli_gdrr_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include -I./libs/gdwrap/include
-cli_gdrr_LDADD += libreadhex.la libgdwrap.la
+semantics_cli_SOURCES = tools/semantics-cli.c
+semantics_cli_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdwrap/include
+semantics_cli_LDADD += libreadhex.la libgdwrap.la
+
+semantics_cli_dynamic_SOURCES = tools/semantics-cli-dynamic.c
+semantics_cli_dynamic_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdsl-multiplex/include
+semantics_cli_dynamic_LDADD += libreadhex.la libgdsl-multiplex.la
+
+semantics_cif_cli_SOURCES = tools/semantics-cif-cli.c
+semantics_cif_cli_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include -I./libs/gdwrap/include
+semantics_cif_cli_LDADD += libreadhex.la libgdwrap.la
 
 sweep_SOURCES = tools/sweep.c
 sweep_CFLAGS = 
@@ -506,7 +518,3 @@ x86_test_stats_runner_SOURCES = tools/x86-test-stats-runner/src/main.c tools/x86
 x86_test_stats_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
 x86_test_stats_runner_LDADD += librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
 endif
-
-dectran_cli_generic_SOURCES = tools/dectran-cli-generic.c
-dectran_cli_generic_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdsl-multiplex/include
-dectran_cli_generic_LDADD += libreadhex.la libgdsl-multiplex.la
