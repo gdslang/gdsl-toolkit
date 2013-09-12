@@ -2,7 +2,7 @@ MLTK=../..
 CC=gcc
 #CC=clang
 LIBDS=-L$(MLTK)/lib
-LIBS=-lgdsl
+LIBS=-lgdsl -lgdsl-multiplex
 LIBFLAGS=$(LIBDS) $(LIBS)
 INCDS=-Iinclude -I$(MLTK)/include -I/usr/lib/jvm/java-7-openjdk-amd64/include
 

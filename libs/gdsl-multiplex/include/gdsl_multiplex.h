@@ -30,13 +30,15 @@ struct backend {
 	struct {
 		obj_t (*translate)(state_t state, obj_t insn);
 		obj_t *(*pretty)(state_t state, obj_t rreil);
+		void (*rreil_cif_userdata_set)(state_t s, obj_t userdata);
+		obj_t (*rreil_convert_sem_stmts_list)(state_t s, callbacks_t cbs, obj_t stmts);
 	} translator;
 
 	void *dl;
 };
 
 size_t gdsl_multiplex_backends_list(char ***backends);
-char gdsl_multiplex_backend_get(struct backend *backend, char *name);
+char gdsl_multiplex_backend_get(struct backend *backend, const char *name);
 void gdsl_multiplex_backend_close(struct backend *backend);
 
 #endif /* GDSL_MULTIPLEX_H_ */

@@ -14,6 +14,8 @@ import rreil.statement.IStatement;
 
 public class NativeInterface {
 	private IRReilBuilder builder;
+	
+	private boolean backendSet = false;
 
 	public NativeInterface(IRReilBuilder builder) {
 		System.loadLibrary("jrreil");
@@ -22,7 +24,27 @@ public class NativeInterface {
 	}
 
 	public IRReilCollection decodeAndTranslate(byte[] bytes) {
+		if(!backendSet)
+			throw new RuntimeException("Backend not set");
 		return (IRReilCollection) decodeAndTranslateNative(bytes);
+	}
+	
+	public String[] getBackends() {
+		return getBackends_();
+	}
+	
+	public void useBackend(String backend) {
+		if(backendSet)
+			throw new RuntimeException("Backend already set");
+		useBackend_(backend);
+		backendSet = true;
+	}
+	
+	public void closeBackend() {
+		if(!backendSet)
+			throw new RuntimeException("Backend not set");
+		closeBackend_();
+		backendSet = false;
 	}
 
 	/*
@@ -518,4 +540,7 @@ public class NativeInterface {
 	}
 
 	private native Object decodeAndTranslateNative(byte[] bytes);
+	private native String[] getBackends_();
+	private native void useBackend_(String backend);
+	private native void closeBackend_();
 }

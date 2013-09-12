@@ -34,7 +34,7 @@ static char *backend_get(char *file) {
 }
 
 size_t gdsl_multiplex_backends_list(char ***backends) {
-	char *base = getenv("GDSL_DECODERS");
+	char *base = getenv("GDSL_BACKENDS");
 	if(!base)
 		return 0;
 
@@ -63,7 +63,7 @@ size_t gdsl_multiplex_backends_list(char ***backends) {
 	return backends_length;
 }
 
-char gdsl_multiplex_backend_get(struct backend *backend, char *name) {
+char gdsl_multiplex_backend_get(struct backend *backend, const char *name) {
 	char *base = getenv("GDSL_BACKENDS");
 	if(!base)
 		return 1;
@@ -84,13 +84,15 @@ char gdsl_multiplex_backend_get(struct backend *backend, char *name) {
 	backend->generic.set_code = (__typeof__(backend->generic.set_code))dlsym(dl, "gdsl_set_code");
 	backend->generic.err_tgt = (__typeof__(backend->generic.err_tgt))dlsym(dl, "gdsl_err_tgt");
 	backend->generic.get_error_message = (__typeof__(backend->generic.get_error_message))dlsym(dl, "gdsl_get_error_message");
-	backend->generic.destroy = (__typeof__(backend->generic.get_error_message))dlsym(dl, "gdsl_destroy");
+	backend->generic.destroy = (__typeof__(backend->generic.destroy))dlsym(dl, "gdsl_destroy");
 	backend->generic.get_ip_offset = (__typeof__(backend->generic.get_ip_offset))dlsym(dl, "gdsl_get_ip_offset");
 	backend->generic.merge_rope = (__typeof__(backend->generic.merge_rope))dlsym(dl, "gdsl_merge_rope");
 	backend->decoder.decode = (__typeof__(backend->decoder.decode))dlsym(dl, "gdsl_decode");
 	backend->decoder.pretty = (__typeof__(backend->decoder.pretty))dlsym(dl, "gdsl_pretty");
 	backend->translator.translate = (__typeof__(backend->translator.translate))dlsym(dl, "gdsl_translate");
 	backend->translator.pretty = (__typeof__(backend->translator.pretty))dlsym(dl, "gdsl_rreil_pretty");
+	backend->translator.rreil_cif_userdata_set = (__typeof__(backend->translator.rreil_cif_userdata_set))dlsym(dl, "gdsl_rreil_cif_userdata_set");
+	backend->translator.rreil_convert_sem_stmts_list = (__typeof__(backend->translator.rreil_convert_sem_stmts_list))dlsym(dl, "gdsl_rreil_convert_sem_stmts_list");
 
 	backend->dl = dl;
 

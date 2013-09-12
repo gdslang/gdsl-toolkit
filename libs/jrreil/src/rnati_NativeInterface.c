@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <gdsl.h>
+#include <gdsl_multiplex.h>
 #include "rnati_NativeInterface.h"
 
 //gcc -std=c99 -fPIC -shared -Wl,-soname,libjgdrr.so -I/usr/lib/jvm/java-6-openjdk-amd64/include -I/usr/lib/jvm/java-7-openjdk-amd64/include -I../.. -I../../include -o ../bin/libjgdrr.so rnati_NativeInterface.c ../../gdrr/Debug/libgdrr.a -L../../lib -lgdsl-x86 -lavcall
@@ -587,6 +588,8 @@ static obj_t list_init(state_t state) {
 	return (obj_t)ret;
 }
 
+struct backend backend;
+
 JNIEXPORT
 jobject
 JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj, jbyteArray input) {
@@ -599,22 +602,22 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 	size_t length = (*env)->GetArrayLength(env, input);
 	char *bytes = (char*)(*env)->GetByteArrayElements(env, input, 0);
 
-	state_t state = gdsl_init();
-	gdsl_set_code(state, bytes, length, 0);
+	state_t state = backend.generic.init();
+	backend.generic.set_code(state, bytes, length, 0);
 
-	if(setjmp(*gdsl_err_tgt(state))) {
+	if(setjmp(*backend.generic.err_tgt(state))) {
 		jclass exp = (*env)->FindClass(env, "rnati/GdslDecodeException");
 		(*env)->ThrowNew(env, exp, "Decode failed.");
 		return NULL;
 	}
-	obj_t insn = gdsl_decode(state);
+	obj_t insn = backend.decoder.decode(state);
 
-	if(setjmp(*gdsl_err_tgt(state))) {
+	if(setjmp(*backend.generic.err_tgt(state))) {
 		jclass exp = (*env)->FindClass(env, "rnati/RReilTranslateException");
 		(*env)->ThrowNew(env, exp, "Translate failed.");
 		return NULL;
 	}
-	obj_t rreil = gdsl_translate(state, insn);
+	obj_t rreil = backend.translator.translate(state, insn);
 
 //			__pretty(__rreil_pretty__, r, fmt, 2048);
 //			printf("---------------------------\n");
@@ -629,89 +632,40 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 	};
 
 	unboxed_sem_address_callbacks_t sem_address_callbacks = {
-			.sem_address_ = &sem_address
-	};
+			.sem_address_ = &sem_address };
 
-	unboxed_sem_var_callbacks_t sem_var_callbacks = {
-			.sem_var_ = &sem_var
-	};
+	unboxed_sem_var_callbacks_t sem_var_callbacks = { .sem_var_ = &sem_var };
 
-	unboxed_sem_linear_callbacks_t sem_linear_callbacks = {
-			.sem_lin_var = &sem_lin_var,
-			.sem_lin_imm = &sem_lin_imm,
-			.sem_lin_add = &sem_lin_add,
-			.sem_lin_sub = &sem_lin_sub,
-			.sem_lin_scale = &sem_lin_scale
-	};
+	unboxed_sem_linear_callbacks_t sem_linear_callbacks = { .sem_lin_var = &sem_lin_var, .sem_lin_imm = &sem_lin_imm,
+			.sem_lin_add = &sem_lin_add, .sem_lin_sub = &sem_lin_sub, .sem_lin_scale = &sem_lin_scale };
 
-	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
-			.sem_cmpeq = &sem_cmpeq,
-			.sem_cmpneq = &sem_cmpneq,
-			.sem_cmples = &sem_cmples,
-			.sem_cmpleu = &sem_cmpleu,
-			.sem_cmplts = &sem_cmplts,
-			.sem_cmpltu = &sem_cmpltu
-	};
+	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = { .sem_cmpeq = &sem_cmpeq, .sem_cmpneq = &sem_cmpneq,
+			.sem_cmples = &sem_cmples, .sem_cmpleu = &sem_cmpleu, .sem_cmplts = &sem_cmplts, .sem_cmpltu = &sem_cmpltu };
 
-	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
-			.sem_sexpr_lin = &sem_sexpr_lin,
-			.sem_sexpr_cmp = &sem_sexpr_cmp
-	};
+	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks =
+			{ .sem_sexpr_lin = &sem_sexpr_lin, .sem_sexpr_cmp = &sem_sexpr_cmp };
 
-	unboxed_sem_op_callbacks_t sem_op_callbacks = {
-			.sem_lin = &sem_lin,
-			.sem_mul = &sem_mul,
-			.sem_div = &sem_div,
-			.sem_divs = &sem_divs,
-			.sem_mod = &sem_mod,
-			.sem_shl = &sem_shl,
-			.sem_shr = &sem_shr,
-			.sem_shrs = &sem_shrs,
-			.sem_and = &sem_and,
-			.sem_or = &sem_or,
-			.sem_xor = &sem_xor,
-			.sem_sx = &sem_sx,
-			.sem_zx = &sem_zx,
-			.sem_cmp = &sem_cmp,
-			.sem_arb = &sem_arb
-	};
+	unboxed_sem_op_callbacks_t sem_op_callbacks = { .sem_lin = &sem_lin, .sem_mul = &sem_mul, .sem_div = &sem_div,
+			.sem_divs = &sem_divs, .sem_mod = &sem_mod, .sem_shl = &sem_shl, .sem_shr = &sem_shr, .sem_shrs = &sem_shrs,
+			.sem_and = &sem_and, .sem_or = &sem_or, .sem_xor = &sem_xor, .sem_sx = &sem_sx, .sem_zx = &sem_zx, .sem_cmp =
+					&sem_cmp, .sem_arb = &sem_arb };
 
-	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
-			.branch_hint_ = &branch_hint
-	};
+	unboxed_branch_hint_callbacks_t branch_hint_callbacks = { .branch_hint_ = &branch_hint };
 
-	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
-			.sem_assign = &sem_assign,
-			.sem_load = &sem_load,
-			.sem_store = &sem_store,
-			.sem_ite = &sem_ite,
-			.sem_while = &sem_while,
-			.sem_cbranch = &sem_cbranch,
-			.sem_branch = &sem_branch
-	};
+	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = { .sem_assign = &sem_assign, .sem_load = &sem_load, .sem_store =
+			&sem_store, .sem_ite = &sem_ite, .sem_while = &sem_while, .sem_cbranch = &sem_cbranch, .sem_branch = &sem_branch };
 
 //	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
 //			.list_init = &list_init,
 //			.list_next = &list_next
 //	};
 
-	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
-			.sem_nil = &list_init,
-			.sem_cons = &list_next
-	};
+	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = { .sem_nil = &list_init, .sem_cons = &list_next };
 
-	unboxed_callbacks_t callbacks = {
-			.sem_id = &sem_id_callbacks,
-			.sem_address = &sem_address_callbacks,
-			.sem_var = &sem_var_callbacks,
-			.sem_linear = &sem_linear_callbacks,
-			.sem_sexpr = &sem_sexpr_callbacks,
-			.sem_op_cmp = &sem_op_cmp_callbacks,
-			.sem_op = &sem_op_callbacks,
-			.sem_stmt = &sem_stmt_callbacks,
-			.branch_hint = &branch_hint_callbacks,
-			.sem_stmts = &sem_stmts_callbacks
-	};
+	unboxed_callbacks_t callbacks = { .sem_id = &sem_id_callbacks, .sem_address = &sem_address_callbacks, .sem_var =
+			&sem_var_callbacks, .sem_linear = &sem_linear_callbacks, .sem_sexpr = &sem_sexpr_callbacks, .sem_op_cmp =
+			&sem_op_cmp_callbacks, .sem_op = &sem_op_callbacks, .sem_stmt = &sem_stmt_callbacks, .branch_hint =
+			&branch_hint_callbacks, .sem_stmts = &sem_stmts_callbacks };
 
 //		config.callbacks.sem_stmts.sem_cons = &sem_cons;
 //		config.callbacks.sem_stmts.sem_nil = &sem_nil;
@@ -721,7 +675,48 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 	ud.env = env;
 	ud.obj = obj;
 
-	gdsl_rreil_cif_userdata_set(state, &ud);
+	backend.translator.rreil_cif_userdata_set(state, &ud);
 
-	return gdsl_rreil_convert_sem_stmts_list(state, &callbacks, rreil);
+	return backend.translator.rreil_convert_sem_stmts_list(state, &callbacks, rreil);
+}
+
+JNIEXPORT
+jobjectArray
+JNICALL Java_rnati_NativeInterface_getBackends_(JNIEnv *env, jobject obj) {
+	char **backends;
+	size_t backends_length = gdsl_multiplex_backends_list(&backends);
+
+	jobjectArray jbackends = (*env)->NewObjectArray(env, backends_length, (*env)->FindClass(env, "java/lang/String"),
+			(*env)->NewStringUTF(env, ""));
+
+	for(size_t i = 0; i < backends_length; ++i) {
+		jstring next = (*env)->NewStringUTF(env, backends[i]);
+		free(backends[i]);
+		(*env)->SetObjectArrayElement(env, jbackends, i, next);
+	}
+	if(backends_length)
+		free(backends);
+
+	return jbackends;
+}
+
+JNIEXPORT
+void
+JNICALL Java_rnati_NativeInterface_useBackend_(JNIEnv *env, jobject obj, jstring backend_str) {
+  const char *backend_str_n = (*env)->GetStringUTFChars(env, backend_str, 0);
+
+  // use your string
+
+	if(gdsl_multiplex_backend_get(&backend, backend_str_n)) {
+		fprintf(stderr, "Unable to open backend.\n");
+		return;
+	}
+
+  (*env)->ReleaseStringUTFChars(env, backend_str, backend_str_n);
+}
+
+JNIEXPORT
+void
+JNICALL Java_rnati_NativeInterface_closeBackend_(JNIEnv *env, jobject obj) {
+
 }

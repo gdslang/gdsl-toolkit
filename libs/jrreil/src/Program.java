@@ -2,6 +2,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Scanner;
 
 import rnati.*;
 import rreil.DefaultRReilBuilder;
@@ -16,12 +18,41 @@ public class Program {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				System.in));
 		while (true) {
-			String line = reader.readLine();
-			if(line == null)
-				break;
-			else if(line.length() == 0)
-				continue;				
+			DefaultRReilBuilder builder = new DefaultRReilBuilder();
+			NativeInterface n = new NativeInterface(builder);
+
+			String[] backends = n.getBackends();
+
+			if (backends.length == 0)
+				throw new RuntimeException("No backends available.");
+
+			int backend_ind = 0;
+
+			if (backends.length > 1) {
+				System.out.println("Available backends:");
+				for (int i = 0; i < backends.length; i++)
+					System.out.println("\t[" + i + "] " + backends[i]);
+				System.out.print("Your choice? ");
+
+				Scanner in = new Scanner(System.in);
+				backend_ind = in.nextInt();
+				
+				if(backend_ind >= backends.length)
+					throw new RuntimeException("Invalid backend.");
+			}
+
+			System.out
+					.println("Using backend " + backends[backend_ind] + "...");
+
+			n.useBackend(backends[backend_ind]);
 			
+			
+			String line = reader.readLine();
+			if (line == null)
+				break;
+			else if (line.length() == 0)
+				continue;
+
 			System.out.println("Interpreting \"" + line + "\"...");
 
 			ArrayList<Byte> byteList = new ArrayList<Byte>();
@@ -54,12 +85,10 @@ public class Program {
 			for (int i = 0; i < bytes.length; i++)
 				bytes[i] = byteList.get(i);
 
-			DefaultRReilBuilder builder = new DefaultRReilBuilder();
-			NativeInterface n = new NativeInterface(builder);
-
 			System.out.println("Decoding and translating...");
-
 			IRReilCollection c = n.decodeAndTranslate(bytes);
+
+			n.closeBackend();
 
 			// IRReilCollection c = n.decodeAndTranslate(new byte[] { 0x66,
 			// 0x0f,
