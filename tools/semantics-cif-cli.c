@@ -433,10 +433,36 @@ static obj_t sem_arb(state_t state, int_t size) {
 	return NULL ;
 }
 
-// branch_hint
-static obj_t branch_hint(state_t state, int_t con) {
-	printf("==> branch_hint#%lu\n", con);
-	return NULL ;
+// sem_varl
+static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
+	printf("=> sem_varl {id=..., offset=%ld, size=%ld}\n", offset, size);
+	return NULL;
+}
+
+// sem_varls
+static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
+	printf("=> sem_varls_next\n");
+	return NULL;
+}
+static obj_t sem_varls_init(state_t state) {
+	printf("=> sem_varls_init\n");
+	return NULL;
+}
+
+// sem_flop
+static obj_t sem_flop(state_t state, int_t flop) {
+	printf("=> sem_flop %ld\n", flop);
+	return NULL;
+}
+
+// sem_prim
+static obj_t sem_prim_generic(state_t state, obj_t op, obj_t res, obj_t args) {
+	printf("=> sem_prim_generic %s\n", (string_t)op);
+	return NULL;
+}
+static obj_t sem_prim_flop(state_t state, obj_t op, obj_t flags, obj_t res, obj_t args) {
+	printf("=> sem_prim_flop\n");
+	return NULL;
 }
 
 //static gdrr_sem_branch_hint_t hint_jump(state_t state) {
@@ -486,6 +512,17 @@ static obj_t sem_cbranch(state_t state, obj_t cond,
 static obj_t sem_branch(state_t state,
 		obj_t branch_hint, obj_t target) {
 	printf("branch\n");
+	return NULL ;
+}
+static obj_t sem_prim(state_t state,
+		obj_t prim) {
+	printf("prim\n");
+	return NULL ;
+}
+
+// branch_hint
+static obj_t branch_hint(state_t state, int_t con) {
+	printf("==> branch_hint#%lu\n", con);
 	return NULL ;
 }
 
@@ -562,6 +599,19 @@ int main(int argc, char** argv) {
 			.sem_cmpltu = &sem_cmpltu
 	};
 
+	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {
+			.sem_varl_ = &sem_varl
+	};
+
+	unboxed_sem_varls_callbacks_t sem_varls_callbacks = {
+			.sem_varls_next = &sem_varls_next,
+			.sem_varls_init = &sem_varls_init
+	};
+
+	unboxed_sem_flop_callbacks_t sem_flop_callbacks = {
+			.sem_flop_ = &sem_flop
+	};
+
 	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
 			.sem_sexpr_lin = &sem_sexpr_lin,
 			.sem_sexpr_cmp = &sem_sexpr_cmp
@@ -585,8 +635,9 @@ int main(int argc, char** argv) {
 			.sem_arb = &sem_arb
 	};
 
-	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
-			.branch_hint_ = &branch_hint
+	unboxed_sem_prim_callbacks_t sem_prim_callbacks = {
+			.sem_prim_generic = &sem_prim_generic,
+			.sem_prim_flop = &sem_prim_flop
 	};
 
 	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
@@ -596,7 +647,12 @@ int main(int argc, char** argv) {
 			.sem_ite = &sem_ite,
 			.sem_while = &sem_while,
 			.sem_cbranch = &sem_cbranch,
-			.sem_branch = &sem_branch
+			.sem_branch = &sem_branch,
+			.sem_prim = &sem_prim
+	};
+
+	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
+			.branch_hint_ = &branch_hint
 	};
 
 //	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
@@ -617,6 +673,10 @@ int main(int argc, char** argv) {
 			.sem_sexpr = &sem_sexpr_callbacks,
 			.sem_op_cmp = &sem_op_cmp_callbacks,
 			.sem_op = &sem_op_callbacks,
+			.sem_varl = &sem_varl_callbacks,
+			.sem_varls = &sem_varls_callbacks,
+			.sem_flop = &sem_flop_callbacks,
+			.sem_prim = &sem_prim_callbacks,
 			.sem_stmt = &sem_stmt_callbacks,
 			.branch_hint = &branch_hint_callbacks,
 			.sem_stmts = &sem_stmts_callbacks

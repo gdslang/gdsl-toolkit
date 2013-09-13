@@ -10,12 +10,31 @@ type sem_linear_callbacks = {sem_lin_var:int, sem_lin_imm:int, sem_lin_add:int, 
 type sem_sexpr_callbacks = {sem_sexpr_lin:int, sem_sexpr_cmp:int}
 type sem_op_cmp_callbacks = {sem_cmpeq:int, sem_cmpneq:int, sem_cmples:int, sem_cmpleu:int, sem_cmplts:int, sem_cmpltu:int}
 type sem_op_callbacks = {sem_lin:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int, sem_cmp:int, sem_arb:int}
-type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int}
+type sem_varl_callbacks = {sem_varl_:int}
+type sem_varls_callbacks = {sem_varls_next:int, sem_varls_init:int}
+type sem_flop_callbacks = {sem_flop_:int}
+type sem_prim_callbacks = {sem_prim_generic:int, sem_prim_flop:int}
+type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int, sem_prim:int}
 type branch_hint_callbacks = {branch_hint_:int}
 type sem_stmts_callbacks = {sem_cons:int, sem_nil:int}
 #type sem_stmts_list_callbacks = {list_next:int, list_init:int}
 
-type callbacks = {sem_id:sem_id_callbacks, sem_address:sem_address_callbacks, sem_var:sem_var_callbacks, sem_linear:sem_linear_callbacks, sem_sexpr:sem_sexpr_callbacks, sem_op_cmp:sem_op_cmp_callbacks, sem_op:sem_op_callbacks, sem_stmt:sem_stmt_callbacks, branch_hint:branch_hint_callbacks, sem_stmts:sem_stmts_callbacks}
+type callbacks = {
+  sem_id:sem_id_callbacks,
+  sem_address:sem_address_callbacks,
+  sem_var:sem_var_callbacks,
+  sem_linear:sem_linear_callbacks,
+  sem_sexpr:sem_sexpr_callbacks,
+  sem_op_cmp:sem_op_cmp_callbacks,
+  sem_op:sem_op_callbacks,
+  sem_varl:sem_varl_callbacks,
+  sem_varls:sem_varls_callbacks,
+  sem_flop:sem_flop_callbacks,
+  sem_prim:sem_prim_callbacks,
+  sem_stmt:sem_stmt_callbacks,
+  branch_hint:branch_hint_callbacks,
+  sem_stmts:sem_stmts_callbacks
+}
 
 val rreil-cif-userdata-set userdata = update@{userdata=userdata}
 val rreil-cif-userdata-get = query $userdata
@@ -90,6 +109,24 @@ end
 
 val rreil-convert-branch-hint cbs hint = cbs.branch_hint.branch_hint_ (index hint)
 
+val rreil-convert-sem-varl cbs varl = cbs.sem_varl.sem_varl_ (rreil-convert-sem-id cbs varl.id) varl.offset varl.size
+
+val rreil-convert-sem-varls cbs varls = let
+  val varls-inner cbs list varls = case varls of
+     SEM_VARLS_CONS s: varls-inner cbs (cbs.sem_varls.sem_varls_next (rreil-convert-sem-varl cbs s.hd) list) s.tl
+   | SEM_VARLS_NIL: list
+  end
+in
+  varls-inner cbs (cbs.sem_varls.sem_varls_init 42) varls
+end
+
+val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (index flop)
+
+val rreil-convert-sem-prim cbs prim = case prim of
+   SEM_PRIM_GENERIC g: cbs.sem_prim.sem_prim_generic g.op (rreil-convert-sem-varls cbs g.res) (rreil-convert-sem-varls cbs g.args)
+ | SEM_PRIM_FLOP f: cbs.sem_prim.sem_prim_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.res) (rreil-convert-sem-varls cbs f.args)
+end
+
 val rreil-convert-sem-stmt lr cbs stmt = case stmt of
    SEM_ASSIGN s: cbs.sem_stmt.sem_assign (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-op cbs s.rhs)
  | SEM_LOAD l: cbs.sem_stmt.sem_load (rreil-convert-sem-var cbs l.lhs) l.size (rreil-convert-sem-address cbs l.address)
@@ -98,6 +135,7 @@ val rreil-convert-sem-stmt lr cbs stmt = case stmt of
  | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) (rreil-convert-sem-stmts-lr lr cbs w.body)
  | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)
  | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
+ | SEM_PRIM p: cbs.sem_stmt.sem_prim (rreil-convert-sem-prim cbs p)
 end
 
 val rreil-convert-sem-stmts-inner lr cbs stmts = case stmts of
