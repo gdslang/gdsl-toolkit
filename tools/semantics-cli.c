@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <readhex.h>
-#include <gdwrap.h>
+#include <gdsl.h>
 
 #ifdef GDSL_X86
 struct options {

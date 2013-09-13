@@ -342,7 +342,7 @@ noinst_LTLIBRARIES += libreadhex.la libutil.la
 endif
 endif
 
-if X86_ACC
+if X86_RREIL
 if INSTALL_AUXLIBS
 lib_LTLIBRARIES += libx86.la libx86-generator.la libx86-tester.la libgdwrap.la
 else
@@ -355,11 +355,13 @@ endif
 if RREIL
 if INSTALL_AUXLIBS
 lib_LTLIBRARIES += librreil.la
+lib_LTLIBRARIES += librreil-sim.la
 lib_LTLIBRARIES += libjrreil.la
 lib_LTLIBRARIES += libgdsl-multiplex.la
 else
 if BUILD_AUXLIBS
 noinst_LTLIBRARIES += librreil.la
+noinst_LTLIBRARIES += librreil-sim.la
 noinst_LTLIBRARIES += libjrreil.la
 noinst_LTLIBRARIES += libgdsl-multiplex.la
 endif
@@ -385,13 +387,7 @@ librreil_la_SOURCES = libs/rreil/src/rreil/copy.c \
                       libs/rreil/src/rreil/print.c \
                       libs/rreil/src/rreil/gdrr_builder.c \
                       libs/rreil/src/rreil/free.c \
-                      libs/rreil/src/rreil/rreil_id.c \
-                      libs/rreil/src/simulator/simulator.c \
-                      libs/rreil/src/simulator/ops.c \
-                      libs/rreil/src/simulator/regacc.c \
-                      libs/rreil/src/simulator/tracking.c \
-                      libs/rreil/src/memory.c \
-                      libs/rreil/src/context.c
+                      libs/rreil/src/rreil/rreil_id.c
 librreil_la_CFLAGS = -std=c11 -I./libs/rreil/include -I./libs/gdrr/include -I./libs/util/include
 if X86_ACC
 librreil_la_CFLAGS += -DGDSL_X86 -I./libs/x86/include
@@ -410,23 +406,31 @@ include_HEADERS += libs/rreil/include/rreil/rreil.h \
                    libs/rreil/include/rreil/rreil_branch_hint.h \
                    libs/rreil/include/rreil/rreil_sexpr.h \
                    libs/rreil/include/rreil/rreil_arity.h \
-                   libs/rreil/include/rreil/rreil_statement.h \
-                   libs/rreil/include/memory.h \
-                   libs/rreil/include/simulator/register.h \
-                   libs/rreil/include/simulator/tracking.h \
-                   libs/rreil/include/simulator/regacc.h \
-                   libs/rreil/include/simulator/simulator.h \
-                   libs/rreil/include/simulator/ops.h \
-                   libs/rreil/include/context.h
-#librreil_la_DEPENDENCIES = $(GDSLC_DEP) libgddr.la
-#if X86_ACC
-#librreil_la_DEPENDENCIES += libx86.la
-#endif
+                   libs/rreil/include/rreil/rreil_statement.h
 endif
 
+if X86_RREIL
+librreil_sim_la_SOURCES = libs/rreil-sim/src/simulator/simulator.c \
+                      libs/rreil-sim/src/simulator/ops.c \
+                      libs/rreil-sim/src/simulator/regacc.c \
+                      libs/rreil-sim/src/simulator/tracking.c \
+                      libs/rreil-sim/src/memory.c \
+                      libs/rreil-sim/src/context.c
+librreil_sim_la_CFLAGS = -std=c99 -DGDSL_X86 -I./libs/rreil/include -I./libs/rreil-sim/include -I./libs/gdrr/include -I./libs/util/include -I./libs/x86/include
+include_HEADERS += libs/rreil-sim/include/memory.h \
+                   libs/rreil-sim/include/simulator/register.h \
+                   libs/rreil-sim/include/simulator/tracking.h \
+                   libs/rreil-sim/include/simulator/regacc.h \
+                   libs/rreil-sim/include/simulator/simulator.h \
+                   libs/rreil-sim/include/simulator/ops.h \
+                   libs/rreil-sim/include/context.h
+endif
+
+if X86_RREIL
 libgdwrap_la_SOURCES = libs/gdwrap/src/gdwrap.c
 libgdwrap_la_CFLAGS = -I./libs/gdwrap/include
 include_HEADERS += libs/gdwrap/include/gdwrap.h
+endif
 
 if X86_ACC
 libx86_generator_la_SOURCES = libs/x86-generator/src/generator_tree.c \
@@ -438,12 +442,12 @@ include_HEADERS += libs/x86-generator/include/x86_opcodes.h \
                    libs/x86-generator/include/generator.h
 endif
 
-if X86_ACC
+if X86_RREIL
 libx86_tester_la_SOURCES = libs/x86-tester/src/executor.c \
                            libs/x86-tester/src/tbgen.c \
                            libs/x86-tester/src/tester.c \
                            libs/x86-tester/src/tbgen_alloc.c
-libx86_tester_la_CFLAGS = -std=gnu99 -I./libs/x86-tester/include -I./libs/rreil/include -I./libs/x86/include -I./libs/util/include -I./libs/gdrr/include -I./libs/gdwrap/include
+libx86_tester_la_CFLAGS = -std=gnu99 -I./libs/x86-tester/include -I./libs/rreil/include -I./libs/rreil-sim/include -I./libs/x86/include -I./libs/util/include -I./libs/gdrr/include -I./libs/gdwrap/include
 include_HEADERS += libs/x86-tester/include/tbgen.h \
                    libs/x86-tester/include/tbgen_alloc.h \
                    libs/x86-tester/include/executor.h \
@@ -470,9 +474,6 @@ bin_PROGRAMS += semantics-cli
 bin_PROGRAMS += semantics-cli-dynamic
 bin_PROGRAMS += semantics-cif-cli
 bin_PROGRAMS += sweep
-bin_PROGRAMS += liveness_sweep
-bin_PROGRAMS += x86_test_runner
-bin_PROGRAMS += x86_test_stats_runner
 else
 if BUILD_AUXBINS
 noinst_PROGRAMS += decoder-cli
@@ -480,6 +481,17 @@ noinst_PROGRAMS += semantics-cli
 noinst_PROGRAMS += semantics-cli-dynamic
 noinst_PROGRAMS += semantics-cif-cli
 noinst_PROGRAMS += sweep
+endif
+endif
+endif
+
+if X86_RREIL
+if INSTALL_AUXBINS
+bin_PROGRAMS += liveness_sweep
+bin_PROGRAMS += x86_test_runner
+bin_PROGRAMS += x86_test_stats_runner
+else
+if BUILD_AUXBINS
 noinst_PROGRAMS += liveness_sweep
 noinst_PROGRAMS += x86_test_runner
 noinst_PROGRAMS += x86_test_stats_runner
@@ -488,37 +500,45 @@ endif
 endif
 
 decoder_cli_SOURCES = tools/decoder-cli.c
-decoder_cli_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdwrap/include
-decoder_cli_LDADD += libreadhex.la libgdwrap.la
+decoder_cli_CFLAGS = -std=c99 -I./libs/readhex/include
+if X86_ACC
+decoder_cli_CFLAGS += -DGDSL_X86
+endif
+decoder_cli_LDADD += libreadhex.la
 
 semantics_cli_SOURCES = tools/semantics-cli.c
-semantics_cli_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdwrap/include
-semantics_cli_LDADD += libreadhex.la libgdwrap.la
+semantics_cli_CFLAGS = -std=c99 -I./libs/readhex/include
+if X86_ACC
+semantics_cli_CFLAGS += -DGDSL_X86
+endif
+semantics_cli_LDADD += libreadhex.la
 
 semantics_cli_dynamic_SOURCES = tools/semantics-cli-dynamic.c
 semantics_cli_dynamic_CFLAGS = -std=c99 -I./libs/readhex/include -I./libs/gdsl-multiplex/include
 semantics_cli_dynamic_LDADD += libreadhex.la libgdsl-multiplex.la
 
 semantics_cif_cli_SOURCES = tools/semantics-cif-cli.c
-semantics_cif_cli_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include -I./libs/gdwrap/include
-semantics_cif_cli_LDADD += libreadhex.la libgdwrap.la
+semantics_cif_cli_CFLAGS = -I./libs/gdrr/include -I./libs/readhex/include
+semantics_cif_cli_LDADD += libreadhex.la
 
 sweep_SOURCES = tools/sweep.c
 sweep_CFLAGS = 
 sweep_LDFLAGS = -lelf
 
+if X86_RREIL
 liveness_sweep_SOURCES = tools/liveness-sweep.c
 liveness_sweep_CFLAGS = -std=gnu99
 liveness_sweep_LDFLAGS = -lelf
+endif
 
 if X86_RREIL
 x86_test_runner_SOURCES = tools/x86-test-runner/src/main.c
-x86_test_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
-x86_test_runner_LDADD += librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
+x86_test_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/rreil-sim/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
+x86_test_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
 endif
 
 if X86_RREIL
 x86_test_stats_runner_SOURCES = tools/x86-test-stats-runner/src/main.c tools/x86-test-stats-runner/src/hash_array.c
-x86_test_stats_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
-x86_test_stats_runner_LDADD += librreil.la libx86-generator.la libx86.la libreadhex.la libutil.la
+x86_test_stats_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/rreil-sim/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
+x86_test_stats_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
 endif
