@@ -14,11 +14,7 @@
 #include <simulator/regacc.h>
 #include <simulator/ops.h>
 #include <utime.h>
-
-#ifdef GDSL_X86
 #include <x86.h>
-#endif
-
 #include <util.h>
 
 static void simulator_variable_write(struct context *context, struct rreil_variable *variable, struct data data) {
@@ -270,7 +266,6 @@ static struct data simulator_op_simulate(struct context *context, struct rreil_o
 }
 
 static void simulator_branch_simulate(struct context *context, struct rreil_address *target) {
-#ifdef GDSL_X86
 	struct data address = simulator_linear_simulate(context, target->address, target->size);
 	char defined = 1;
 	for(size_t j = 0; j < target->size / 8; ++j)
@@ -299,10 +294,6 @@ static void simulator_branch_simulate(struct context *context, struct rreil_addr
 	simulator_variable_write(context, &ip, address);
 
 	context_data_clear(&address);
-#else
-	fprintf(stderr, "Simulator: Architecture not supported!\n");
-	exit(1);
-#endif
 }
 
 static enum simulator_error simulator_statement_simulate(struct context *context, struct rreil_statement *statement) {

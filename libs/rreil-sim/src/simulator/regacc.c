@@ -27,15 +27,10 @@ static void simulator_register_assign(struct context *context,
 			function(&context->temporary_registers[id->temporary], data, bit_offset);
 			break;
 		}
-#ifdef GDSL_X86
 		case RREIL_ID_TYPE_X86: {
 			function(&context->x86_registers[id->x86], data, bit_offset);
 			break;
 		}
-#else
-		fprintf(stderr, "Simulator: Architecture not supported!\n");
-		exit(1);
-#endif
 	}
 }
 

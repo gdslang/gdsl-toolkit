@@ -10,9 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <rreil/rreil.h>
-#ifdef GDSL_X86
 #include <x86.h>
-#endif
 #include <context.h>
 #include <util.h>
 

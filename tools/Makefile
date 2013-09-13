@@ -8,6 +8,11 @@ LIBDS=-L../lib
 #GDSL_X86:=1
 #endif
 
+DEFINES=-DRELAXEDFATAL
+ifdef GDSL_X86
+DEFINES+=-DGDSL_X86
+endif
+
 ifdef GDSL_X86
 endif
 LIBS+=-lgdsl -lelf -lrt -lreadhex -lgdsl-multiplex -ldl
@@ -15,7 +20,7 @@ LIBS+=-lgdsl -lelf -lrt -lreadhex -lgdsl-multiplex -ldl
 LIBFLAGS=$(LIBDS) $(LIBS)
 LDFLAGS=
 INCDS=-I../include
-CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(DEFINES) $(INCDS)
 
 PROJECTS=
 EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep

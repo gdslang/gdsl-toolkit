@@ -7,6 +7,7 @@
 #include <readhex.h>
 #include <gdwrap.h>
 
+#ifdef GDSL_X86
 struct options {
 	char mode64;
 	char default_opnd_sz_32;
@@ -36,16 +37,19 @@ static char args_parse(int argc, char **argv, struct options *options) {
 
 	return 0;
 }
+#endif
 
 int main(int argc, char** argv) {
 	char retval = 0;
 
+#ifdef GDSL_X86
 	struct options options;
 	args_parse(argc, argv, &options);
 
 	printf("Configuration:\n");
 	printf("\tmode64: %s\n", options.mode64 ? "true" : "false");
 	printf("\tdefault_opnd_sz = 32: %s\n", options.default_opnd_sz_32 ? "true" : "false");
+#endif
 
 	uint8_t *buffer;
 	size_t size = readhex_hex_read(stdin, &buffer);
@@ -59,11 +63,15 @@ int main(int argc, char** argv) {
 		goto cleanup;
 	}
 
+#ifdef GDSL_X86
 	int_t config = 0;
 	config |= gdsl_config_mode64(state)*options.mode64;
 	config |= gdsl_config_default_opnd_sz_32(state)*options.default_opnd_sz_32;
 
 	obj_t insn = gdsl_decode(state, config);
+#else
+	obj_t insn = gdsl_decode(state, gdsl_config_default(state));
+#endif
 
 	printf("[");
 	size_t decoded = gdsl_get_ip_offset(state);

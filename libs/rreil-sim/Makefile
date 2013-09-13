@@ -4,21 +4,21 @@ CC=gcc
 INCDS=-Iinclude -I$(MLTK)/include
 
 DEFINES=-DRELAXEDFATAL
-ifdef GDSL_X86
+#ifdef GDSL_X86
 DEFINES+=-DGDSL_X86
-endif
+#endif
 
 CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
-LIBRARY=librreil.a
-SOURCES=rreil/free.c rreil/print.c rreil/copy.c rreil/rreil_id.c rreil/gdrr_builder.c
+LIBRARY=librreil-sim.a
+SOURCES=memory.c context.c simulator/ops.c simulator/regacc.c simulator/simulator.c simulator/tracking.c
 
 all: pre-build $(LIBRARY)
 
 SPRE=src
 BPRE=build
 
-BDIRS=$(BPRE) $(BPRE)/rreil
+BDIRS=$(BPRE) $(BPRE)/simulator
 pre-build:
 	mkdir -p $(BDIRS)
 

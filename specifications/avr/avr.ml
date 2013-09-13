@@ -1,5 +1,5 @@
 granularity = 16
-export = decode
+export = config-default decode
 
 val d ['bit:1'] = do
  rd <- query $rd;
@@ -515,11 +515,14 @@ val / ['1001010110101000'] = nullop WDR
 ###  - Exchange
 val / ['1001001 d d d d d 0100'] = binop XCH /Z rd5
 
-val decode =
+val config-default = ''
+
+val decode config =
   do update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
      /
   end
 
+val force-int-for-decode-config = decode config-default
 
 type side-effect =
    NONE
