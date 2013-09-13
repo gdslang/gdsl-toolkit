@@ -2,7 +2,8 @@
 export = rreil-stmts-rev
 
 type sem_id =
-   VIRT_T of int
+   FLOATING_FLAGS
+ | VIRT_T of int
 
 type sem_arity1 = {size:int, opnd1:sem_linear}
 type sem_arity2 = {size:int, opnd1:sem_linear, opnd2:sem_linear}
@@ -47,6 +48,21 @@ type sem_op =
  | SEM_CMP of sem_op_cmp
  | SEM_ARB of {size:int}
 
+type sem_varl = {id:sem_id, offset:int, size:int}
+
+type sem_varls =
+   SEM_VARLS_CONS of {hd:sem_varl, tl:sem_varls}
+ | SEM_VARLS_NIL
+
+type sem_flop =
+   SEM_FADD
+ | SEM_FSUB
+ | SEM_FMUL
+
+type sem_prim =
+   SEM_PRIM_GENERIC of {op:string, res:sem_varls, args:sem_varls}
+ | SEM_PRIM_FLOP of {op:sem_flop, flags:sem_var, res:sem_varl, args:sem_varls}
+
 type sem_stmt =
    SEM_ASSIGN of {lhs:sem_var, rhs:sem_op}
  | SEM_LOAD of {lhs:sem_var, size:int, address:sem_address}
@@ -55,6 +71,7 @@ type sem_stmt =
  | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
  | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
  | SEM_BRANCH of {hint:branch_hint, target:sem_address}
+ | SEM_PRIM of sem_prim
 
 type branch_hint =
     HINT_JUMP
@@ -106,6 +123,11 @@ val lin-sum x y = SEM_LIN_ADD {opnd1=x, opnd2=y}
 val lin sz l = SEM_LIN {size=sz, opnd1=l}
 val address sz addr = {size=sz, address=addr}
 
+val varl-from-var sz v = @{size=sz}v
+
+val varls-one v = SEM_VARLS_CONS {hd=v, tl=SEM_VARLS_NIL}
+val varls-more v tl = SEM_VARLS_CONS {hd=v, tl=tl}
+
 type temp_list =
    TLIST_CONS of {hd:sem_var, tl:temp_list}
  | TLIST_NIL
@@ -155,6 +177,7 @@ val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
 val /BRANCH hint address =SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
+val /BFLOP sz op r a b = SEM_PRIM (SEM_PRIM_FLOP{op=op,flags=_var FLOATING_FLAGS,res=varl-from-var sz r,args=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))})
 
 val push insn = do
    tl <- query $stack;
@@ -224,6 +247,25 @@ end
 val cbranch cond target-true target-false = do
    update @{foundJump = '1'};
    push (/CBRANCH (SEM_SEXPR_LIN cond) target-true target-false)
+end
+val bflop sz op r a b = let
+  val unpack o = case o of
+     SEM_LIN_VAR v: return v
+   | _: do
+       t <- mktemp;
+       mov sz t a;
+       return t
+     end
+  end
+  
+  val bflop-inner = do
+    a <- unpack a;
+    b <- unpack b;
+
+    push (/BFLOP sz op r a b)
+  end
+in
+  with-subscope bflop-inner
 end
 
 val _if c _then a _else b = do

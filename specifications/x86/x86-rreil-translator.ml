@@ -948,7 +948,7 @@ val semantics insn =
    | EXTRACTPS x: sem-undef-arity3 x
    | F2XM1 x: sem-undef-arity0 x
    | FABS x: sem-undef-arity0 x
-   | FADD x: sem-undef-arity2 x
+   | FADD x: sem-fadd x
    | FADDP x: sem-undef-arity2 x
    | FBLD x: sem-undef-arity1 x
    | FBSTP x: sem-undef-arity1 x

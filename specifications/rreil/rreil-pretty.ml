@@ -15,16 +15,48 @@ val rreil-show-stmts ss =
     | SEM_CONS x: rreil-show-stmt x.hd +++ "\n" +++ rreil-show-stmts x.tl
    end
 
+val rreil-show-varl v = rreil-show-var v +++ ":" +++ show-int v.size
+
+val rreil-show-varls vs = let
+  val show-inner vs =
+    case vs of
+       SEM_VARLS_CONS c: ", " +++ rreil-show-varl c.hd +++ show-inner c.tl
+     | SEM_VARLS_NIL: ""
+    end
+in
+  case vs of
+     SEM_VARLS_CONS c: case c.tl of
+          SEM_VARLS_CONS d: "(" +++ rreil-show-varl c.hd +++ show-inner c.tl +++ ")"
+        | SEM_VARLS_NIL: rreil-show-varl c.hd
+       end
+     | SEM_VARLS_NIL: "(void)"
+  end
+end
+
+val rreil-show-flop f =
+  case f of
+     SEM_FADD: "FADD"
+   | SEM_FSUB: "FSUB"
+   | SEM_FMUL: "FMUL"
+  end
+
+val rreil-show-prim p =
+  case p of
+     SEM_PRIM_GENERIC g: rreil-show-varls g.res +++ " = $" +++ from-string-lit g.op +++ " " +++ rreil-show-varls g.args
+   | SEM_PRIM_FLOP f: rreil-show-varl f.res +++ " = $" +++ rreil-show-flop f.op +++ " " +++ rreil-show-varls f.args +++ " [flags:" +++ rreil-show-var f.flags +++ "]"
+  end
+
 val rreil-show-stmt s =
-   case s of
-      SEM_ASSIGN x: rreil-show-var x.lhs +++ " = " +++ rreil-show-op x.rhs 
-    | SEM_LOAD x: rreil-show-var x.lhs +++ " = " +++ rreil-show-ptrderef x.size x.address
-    | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " = " +++ rreil-show-op x.rhs
-    | SEM_ITE x: "if (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.then_branch +++ "} else {\n" +++ rreil-show-stmts x.else_branch +++ "}"
-    | SEM_WHILE x: "while (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
-    | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
-    | SEM_BRANCH x: "goto [" +++ rreil-show-hint x.hint +++ "] " +++ rreil-show-address x.target
-   end
+  case s of
+     SEM_ASSIGN x: rreil-show-var x.lhs +++ " = " +++ rreil-show-op x.rhs 
+   | SEM_LOAD x: rreil-show-var x.lhs +++ " = " +++ rreil-show-ptrderef x.size x.address
+   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " = " +++ rreil-show-op x.rhs
+   | SEM_ITE x: "if (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.then_branch +++ "} else {\n" +++ rreil-show-stmts x.else_branch +++ "}"
+   | SEM_WHILE x: "while (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
+   | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
+   | SEM_BRANCH x: "goto [" +++ rreil-show-hint x.hint +++ "] " +++ rreil-show-address x.target
+   | SEM_PRIM x: rreil-show-prim x
+  end
 
 val rreil-show-hint x =
   case x of
@@ -97,6 +129,7 @@ val rreil-show-sexpr sexpr =
 
 val rreil-show-id id =
    case id of
-      VIRT_T x: "T" +++ show-int x
+      FLOATING_FLAGS: "FLOATING_FLAGS"
+    | VIRT_T x: "T" +++ show-int x
     | _: arch-show-id id
    end

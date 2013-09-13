@@ -571,6 +571,19 @@ end
 
 ## E>>
 ## F>>
+
+val sem-fadd x = do
+  sz <- sizeof1 x.opnd1;
+  src0 <- read sz x.opnd1;
+  src1 <- read sz x.opnd2;
+  dst <- lval sz x.opnd1;
+
+  t <- mktemp;
+  bflop sz SEM_FADD t src0 src1; 
+
+  write sz dst (var t)
+end
+
 ## G>>
 ## H>>
 
