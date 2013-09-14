@@ -35,7 +35,7 @@ typedef void (context_store_t)(void *, uint8_t *, uint8_t *, uint64_t, uint64_t)
 typedef void (context_jump_t)(void *, uint8_t *, uint64_t);
 
 struct context {
-	struct register_ *virtual_registers;
+	struct register_ *shared_registers;
 	struct register_ *x86_registers;
 	struct register_ *temporary_registers;
 	struct {

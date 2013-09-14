@@ -26,7 +26,7 @@ struct memory_allocation *memory_allocation_init(void *address) {
 struct context *context_init(context_load_t *load, context_store_t *store,
 		context_jump_t *jump, void *closure) {
 	struct context *context = (struct context*)malloc(sizeof(struct context));
-	context->virtual_registers = (struct register_*)calloc(RREIL_ID_VIRTUAL_COUNT,
+	context->shared_registers = (struct register_*)calloc(RREIL_ID_SHARED_COUNT,
 			sizeof(struct register_));
 	context->x86_registers = (struct register_*)calloc(X86_ID_COUNT,
 			sizeof(struct register_));
@@ -86,10 +86,10 @@ static void copy_registers(size_t count, struct register_ *registers,
 struct context *context_copy(struct context *source) {
 	struct context *context = (struct context*)malloc(sizeof(struct context));
 
-	context->virtual_registers = (struct register_*)malloc(
-			RREIL_ID_VIRTUAL_COUNT * sizeof(struct register_));
-	copy_registers(RREIL_ID_VIRTUAL_COUNT, context->virtual_registers,
-			source->virtual_registers);
+	context->shared_registers = (struct register_*)malloc(
+			RREIL_ID_SHARED_COUNT * sizeof(struct register_));
+	copy_registers(RREIL_ID_SHARED_COUNT, context->shared_registers,
+			source->shared_registers);
 	context->x86_registers = (struct register_*)malloc(
 			X86_ID_COUNT * sizeof(struct register_));
 	copy_registers(X86_ID_COUNT, context->x86_registers, source->x86_registers);
@@ -132,9 +132,9 @@ void context_free(struct context *context) {
 		/*
 		 * Todo: ...
 		 */
-		for(size_t i = 0; i < RREIL_ID_VIRTUAL_COUNT; ++i)
-			register_clear(&context->virtual_registers[i]);
-		free(context->virtual_registers);
+		for(size_t i = 0; i < RREIL_ID_SHARED_COUNT; ++i)
+			register_clear(&context->shared_registers[i]);
+		free(context->shared_registers);
 		for(size_t i = 0; i < X86_ID_COUNT; ++i)
 			register_clear(&context->x86_registers[i]);
 		free(context->x86_registers);

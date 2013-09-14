@@ -248,6 +248,7 @@ gdsl-avr.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR)
 if RREIL
 JSOURCES = src/rreil/IAddress.java \
            src/rreil/BranchHint.java \
+           src/rreil/id/FloatingFlags.java \
            src/rreil/id/VirtualLessOrEqualSignedId.java \
            src/rreil/id/VirtualLessSignedId.java \
            src/rreil/id/GenericArchRegister.java \
@@ -269,6 +270,7 @@ JSOURCES = src/rreil/IAddress.java \
            src/rreil/statement/BranchStatement.java \
            src/rreil/statement/IStatement.java \
            src/rreil/statement/IfThenElseStatement.java \
+           src/rreil/statement/PrimitiveStatement.java \
            src/rreil/IRReilBuilder.java \
            src/rreil/linear/LinearImmediateExpression.java \
            src/rreil/linear/ILinearExpression.java \
@@ -287,8 +289,13 @@ JSOURCES = src/rreil/IAddress.java \
            src/rreil/Address.java \
            src/rreil/IVariable.java \
            src/rreil/IRReilCollection.java \
-           src/rreil/DefaultRReilCollection.java \
+           src/rreil/DefaultStatementCollection.java \
+           src/rreil/DefaultLimitedVariableCollection.java \
            src/rreil/IBranchHint.java \
+           src/rreil/ILimitedVariable.java \
+           src/rreil/LimitedVariable.java \
+           src/rreil/Flop.java \
+           src/rreil/IFlop.java \
            src/rreil/operation/SignExtendOperation.java \
            src/rreil/operation/CompareLessOrEqualSignedOperation.java \
            src/rreil/operation/ZeroExtendOperation.java \
@@ -316,6 +323,9 @@ JSOURCES = src/rreil/IAddress.java \
            src/rreil/operation/IOperation.java \
            src/rreil/operation/ShiftRightOperation.java \
            src/rreil/operation/XorOperation.java \
+           src/rreil/prim/IPrim.java \
+           src/rreil/prim/GenericPrimitive.java \
+           src/rreil/prim/FlopPrimitive.java \
            src/rnati/RReilTranslateException.java \
            src/rnati/GdslDecodeException.java \
            src/rnati/NativeInterface.java \
