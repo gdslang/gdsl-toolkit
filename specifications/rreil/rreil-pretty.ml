@@ -3,7 +3,7 @@
 # The following functions need to be defined elsewhere:
 #   - arch-show-id
 
-export = rreil-pretty rreil-pretty-rev rreil-pretty-stmt
+export = rreil-pretty
 
 val rreil-pretty-stmt s = rreil-show-stmt s
 val rreil-pretty ss = rreil-show-stmts ss

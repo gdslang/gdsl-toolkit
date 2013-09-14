@@ -1,5 +1,5 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
-export = rreil-stmts-rev
+export =
 
 type sem_id =
    FLOATING_FLAGS
