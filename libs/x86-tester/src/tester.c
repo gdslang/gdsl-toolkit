@@ -317,7 +317,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 	}
 
 	callbacks_t callbacks = rreil_gdrr_builder_callbacks_get(state);
-	struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmts_list(state, callbacks,
+	struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmts(state, callbacks,
 			rreil);
 	free(callbacks);
 

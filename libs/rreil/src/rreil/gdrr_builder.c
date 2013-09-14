@@ -51,11 +51,10 @@ static obj_t shared(state_t state, int_t con) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_SHARED;
 	switch (con) {
-		case CON_FLOATING_FLAGS:
+		case CON_FLOATING_FLAGS: {
 			id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
 			break;
-		default:
-			break;
+		}
 	}
 	return (obj_t)id;
 }
@@ -380,9 +379,22 @@ static obj_t sem_varls_init(state_t state) {
 }
 
 // sem_flop
-static obj_t sem_flop(state_t state, int_t flop) {
+static obj_t sem_flop(state_t state, int_t con) {
 	enum rreil_flop *rreil_flop = (enum rreil_flop*)malloc(sizeof(enum rreil_flop));
-	*rreil_flop = (enum rreil_flop)flop;
+	switch (con) {
+		case CON_SEM_FADD: {
+			*rreil_flop = RREIL_FLOP_SEM_FADD;
+			break;
+		}
+		case CON_SEM_FSUB: {
+			*rreil_flop = RREIL_FLOP_SEM_FSUB;
+			break;
+		}
+		case CON_SEM_FMUL: {
+			*rreil_flop = RREIL_FLOP_SEM_FMUL;
+			break;
+		}
+	}
 	return (obj_t)rreil_flop;
 }
 
@@ -620,8 +632,8 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 //	};
 
 	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
-			.sem_nil = &list_init,
-			.sem_cons = &list_next
+			.init = &list_init,
+			.next = &list_next
 	};
 
 	struct unboxed_callbacks {

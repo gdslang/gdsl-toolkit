@@ -1,4 +1,4 @@
-export = rreil-cif-userdata-set rreil-cif-userdata-get rreil-convert-sem-stmts rreil-convert-sem-stmts-list
+export = rreil-cif-userdata-set rreil-cif-userdata-get rreil-convert-sem-stmts
 
 #type callbacks =
 #   SEM_ID_CBS of {virt_na:string_, virt_t:string_}
@@ -16,7 +16,7 @@ type sem_flop_callbacks = {sem_flop_:int}
 type sem_prim_callbacks = {sem_prim_generic:int, sem_prim_flop:int}
 type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int, sem_prim:int}
 type branch_hint_callbacks = {branch_hint_:int}
-type sem_stmts_callbacks = {sem_cons:int, sem_nil:int}
+type sem_stmts_callbacks = {next:int, init:int}
 #type sem_stmts_list_callbacks = {list_next:int, list_init:int}
 
 type callbacks = {
@@ -113,12 +113,12 @@ val rreil-convert-branch-hint cbs hint = cbs.branch_hint.branch_hint_ (index hin
 val rreil-convert-sem-varl cbs varl = cbs.sem_varl.sem_varl_ (rreil-convert-sem-id cbs varl.id) varl.offset varl.size
 
 val rreil-convert-sem-varls cbs varls = let
-  val varls-inner cbs list varls = case varls of
-     SEM_VARLS_CONS s: varls-inner cbs (cbs.sem_varls.sem_varls_next (rreil-convert-sem-varl cbs s.hd) list) s.tl
+  val convert-inner cbs list varls = case varls of
+     SEM_VARLS_CONS s: convert-inner cbs (cbs.sem_varls.sem_varls_next (rreil-convert-sem-varl cbs s.hd) list) s.tl
    | SEM_VARLS_NIL: list
   end
 in
-  varls-inner cbs (cbs.sem_varls.sem_varls_init 42) varls
+  convert-inner cbs (cbs.sem_varls.sem_varls_init 42) varls
 end
 
 val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (index flop)
@@ -128,34 +128,25 @@ val rreil-convert-sem-prim cbs prim = case prim of
  | SEM_PRIM_FLOP f: cbs.sem_prim.sem_prim_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.res) (rreil-convert-sem-varls cbs f.args)
 end
 
-val rreil-convert-sem-stmt lr cbs stmt = case stmt of
+val rreil-convert-sem-stmt cbs stmt = case stmt of
    SEM_ASSIGN s: cbs.sem_stmt.sem_assign (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-op cbs s.rhs)
  | SEM_LOAD l: cbs.sem_stmt.sem_load (rreil-convert-sem-var cbs l.lhs) l.size (rreil-convert-sem-address cbs l.address)
  | SEM_STORE s: cbs.sem_stmt.sem_store (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-op cbs s.rhs)
- | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) (rreil-convert-sem-stmts-lr lr cbs i.then_branch) (rreil-convert-sem-stmts-lr lr cbs i.else_branch)
- | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) (rreil-convert-sem-stmts-lr lr cbs w.body)
+ | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) (rreil-convert-sem-stmts cbs i.then_branch) (rreil-convert-sem-stmts cbs i.else_branch)
+ | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) (rreil-convert-sem-stmts cbs w.body)
  | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)
  | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
  | SEM_PRIM p: cbs.sem_stmt.sem_prim (rreil-convert-sem-prim cbs p)
 end
 
-val rreil-convert-sem-stmts-inner lr cbs stmts = case stmts of
-   SEM_CONS x: cbs.sem_stmts.sem_cons (rreil-convert-sem-stmt lr cbs x.hd) (rreil-convert-sem-stmts-inner lr cbs x.tl)
- | SEM_NIL: cbs.sem_stmts.sem_nil 42
+val rreil-convert-sem-stmts cbs stmts = let
+  val convert-inner cbs list stmts = case stmts of
+     SEM_CONS s: convert-inner cbs (cbs.sem_stmts.next (rreil-convert-sem-stmt cbs s.hd) list) s.tl
+   | SEM_NIL: list
+  end
+in
+  convert-inner cbs (cbs.sem_stmts.init 42) stmts
 end
-
-#val rreil-convert-sem-stmts-list-inner lr cbs stmts = case stmts of
-#   SEM_CONS x: cbs.sem_stmts_list.list_next (rreil-convert-sem-stmt lr cbs x.hd) (rreil-convert-sem-stmts cbs x.tl)
-# | SEM_NIL: cbs.sem_stmts_list.list_init 42
-#end
-
-val rreil-convert-sem-stmts-lr lr cbs stmts = rreil-convert-sem-stmts-inner lr cbs (lr stmts)
-
-val just-return x = x
-val rreil-convert-sem-stmts cbs stmts = rreil-convert-sem-stmts-lr just-return cbs stmts
-
-#Todo: Fix
-val rreil-convert-sem-stmts-list cbs stmts = rreil-convert-sem-stmts-lr rreil-stmts-rev cbs stmts
 
 #val rreil-convert-sem-stmts-list cbs stmts = let
 #  val inner list next =

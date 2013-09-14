@@ -101,7 +101,7 @@ char gdsl_multiplex_backend_get(struct backend *backend, const char *name) {
 	ADD_FUNCTION(translator, translate)
 	ADD_FUNCTION_GENERIC(translator, pretty, "gdsl_rreil_pretty")
 	ADD_FUNCTION(translator, rreil_cif_userdata_set)
-	ADD_FUNCTION(translator, rreil_convert_sem_stmts_list)
+	ADD_FUNCTION(translator, rreil_convert_sem_stmts)
 
 	if(error)
 		return GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND;

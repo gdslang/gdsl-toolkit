@@ -669,8 +669,8 @@ int main(int argc, char** argv) {
 //	};
 
 	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
-			.sem_nil = &list_init,
-			.sem_cons = &list_next
+			.init = &list_init,
+			.next = &list_next
 	};
 
 	unboxed_callbacks_t callbacks = {
@@ -694,7 +694,7 @@ int main(int argc, char** argv) {
 //		config.callbacks.sem_stmts.sem_nil = &sem_nil;
 //		config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
 
-	gdsl_rreil_convert_sem_stmts_list(state, &callbacks, rreil);
+	gdsl_rreil_convert_sem_stmts(state, &callbacks, rreil);
 
 	gdsl_destroy(state);
 	free(buffer);

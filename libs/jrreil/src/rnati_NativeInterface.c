@@ -795,8 +795,8 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 //	};
 
 	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
-			.sem_nil = &list_init,
-			.sem_cons = &list_next
+			.init = &list_init,
+			.next = &list_next
 	};
 
 	unboxed_callbacks_t callbacks = {
@@ -826,7 +826,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 
 	backend.translator.rreil_cif_userdata_set(state, &ud);
 
-	return backend.translator.rreil_convert_sem_stmts_list(state, &callbacks, rreil);
+	return backend.translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
 }
 
 JNIEXPORT
