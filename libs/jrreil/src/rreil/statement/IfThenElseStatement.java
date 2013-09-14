@@ -1,6 +1,6 @@
 package rreil.statement;
 
-import rreil.DefaultRReilCollection;
+import rreil.DefaultStatementCollection;
 import rreil.sexpression.SimpleExpression;
 
 public class IfThenElseStatement extends Statement {
@@ -10,20 +10,20 @@ public class IfThenElseStatement extends Statement {
 		return condition;
 	}
 
-	protected DefaultRReilCollection thenBranch;
+	protected DefaultStatementCollection thenBranch;
 
-	public DefaultRReilCollection getThenBranch() {
+	public DefaultStatementCollection getThenBranch() {
 		return thenBranch;
 	}
 
-	protected DefaultRReilCollection elseBranch;
+	protected DefaultStatementCollection elseBranch;
 
-	public DefaultRReilCollection getElseBranch() {
+	public DefaultStatementCollection getElseBranch() {
 		return elseBranch;
 	}
 
 	public IfThenElseStatement(SimpleExpression condition,
-			DefaultRReilCollection thenBranch, DefaultRReilCollection elseBranch) {
+			DefaultStatementCollection thenBranch, DefaultStatementCollection elseBranch) {
 		this.condition = condition;
 		this.thenBranch = thenBranch;
 		this.elseBranch = elseBranch;

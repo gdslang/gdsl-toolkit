@@ -457,8 +457,8 @@ static obj_t sem_varls_init(state_t state) {
 }
 
 // sem_flop
-static obj_t sem_flop(state_t state, int_t flop) {
-	printf("=> sem_flop %ld\n", flop);
+static obj_t sem_flop(state_t state, int_t con) {
+	printf("=> sem_flop %ld\n", con);
 	return NULL;
 }
 

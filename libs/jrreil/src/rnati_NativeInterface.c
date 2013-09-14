@@ -15,7 +15,7 @@ struct userdata {
 };
 
 static jobject java_method_call(state_t state, char *name, int numargs, ...) {
-	if(numargs > 3)
+	if(numargs > 4)
 		return NULL; //Todo: Handle error
 
 	struct userdata *ud = (struct userdata*)gdsl_rreil_cif_userdata_get(state);
@@ -38,6 +38,10 @@ static jobject java_method_call(state_t state, char *name, int numargs, ...) {
 		}
 		case 3: {
 			signature = "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
+			break;
+		}
+		case 4: {
+			signature = "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;";
 			break;
 		}
 	}
@@ -69,6 +73,10 @@ static jobject java_method_call(state_t state, char *name, int numargs, ...) {
 			ret = (*ud->env)->CallObjectMethod(ud->env, ud->obj, mid, args[0], args[1], args[2]);
 			break;
 		}
+		case 4: {
+			ret = (*ud->env)->CallObjectMethod(ud->env, ud->obj, mid, args[0], args[1], args[2], args[3]);
+			break;
+		}
 	}
 
 	return ret;
@@ -84,7 +92,24 @@ static jobject java_long_create(state_t state, long int x) {
 	return a;
 }
 
+static jstring java_string_create(state_t state, char *x) {
+	struct userdata *ud = (struct userdata*)gdsl_rreil_cif_userdata_get(state);
+	jstring str = (*ud->env)->NewStringUTF(ud->env, x);
+	return str;
+}
+
 // sem_id
+static obj_t shared(state_t state, int_t con) {
+	jobject ret = NULL;
+	switch (con) {
+		case CON_FLOATING_FLAGS: {
+			ret = java_method_call(state, "shared_floating_flags", 0);
+			break;
+		}
+	}
+	return (obj_t)ret;
+}
+
 //static obj_t virt_na(state_t state, int_t con) {
 //	jobject ret;
 //	switch(con) {
@@ -524,24 +549,50 @@ static obj_t sem_arb(state_t state, int_t size) {
 	return (obj_t)ret;
 }
 
-// branch_hint
-static obj_t branch_hint(state_t state, int_t con) {
-	char *func_n;
-	switch(con) {
-		case CON_HINT_JUMP: {
-			func_n = "hint_jump";
+// sem_varl
+static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
+	jobject ret = java_method_call(state, "sem_varl", 3, (jobject)id,
+			java_long_create(state, (long int)offset), java_long_create(state, (long int)size));
+	return (obj_t)ret;
+}
+
+// sem_varls
+static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
+	jobject ret = java_method_call(state, "sem_varls_next", 2, (jobject)next, (jobject)list);
+	return (obj_t)ret;
+}
+static obj_t sem_varls_init(state_t state) {
+	jobject ret = java_method_call(state, "sem_varls_init", 0);
+	return (obj_t)ret;
+}
+
+// sem_flop
+static obj_t sem_flop(state_t state, int_t con) {
+	jobject ret;
+	switch (con) {
+		case CON_SEM_FADD: {
+			ret = java_method_call(state, "sem_flop_fadd", 0);
 			break;
 		}
-		case CON_HINT_CALL: {
-			func_n = "hint_call";
+		case CON_SEM_FSUB: {
+			ret = java_method_call(state, "sem_flop_fsub", 0);
 			break;
 		}
-		case CON_HINT_RET: {
-			func_n = "hint_ret";
+		case CON_SEM_FMUL: {
+			ret = java_method_call(state, "sem_flop_fmul", 0);
 			break;
 		}
 	}
-	jobject ret = java_method_call(state, func_n, 0);
+	return (obj_t)ret;
+}
+
+// sem_prim
+static obj_t sem_prim_generic(state_t state, obj_t op, obj_t res, obj_t args) {
+	jobject ret = java_method_call(state, "sem_prim_generic", 3, java_string_create(state, (char*)op), (jobject)res, (jobject)args);
+	return (obj_t)ret;
+}
+static obj_t sem_prim_flop(state_t state, obj_t op, obj_t flags, obj_t res, obj_t args) {
+	jobject ret = java_method_call(state, "sem_prim_flop", 4, (jobject)op, (jobject)flags, (jobject)res, (jobject)args);
 	return (obj_t)ret;
 }
 
@@ -575,6 +626,31 @@ static obj_t sem_cbranch(state_t state, obj_t cond, obj_t target_true,
 }
 static obj_t sem_branch(state_t state, obj_t branch_hint, obj_t target) {
 	jobject ret = java_method_call(state, "sem_branch", 2, (jobject)branch_hint, (jobject)target);
+	return (obj_t)ret;
+}
+static obj_t sem_prim(state_t state, obj_t prim) {
+	jobject ret = java_method_call(state, "sem_prim", 1, (jobject)prim);
+	return (obj_t)ret;
+}
+
+// branch_hint
+static obj_t branch_hint(state_t state, int_t con) {
+	char *func_n;
+	switch(con) {
+		case CON_HINT_JUMP: {
+			func_n = "hint_jump";
+			break;
+		}
+		case CON_HINT_CALL: {
+			func_n = "hint_call";
+			break;
+		}
+		case CON_HINT_RET: {
+			func_n = "hint_ret";
+			break;
+		}
+	}
+	jobject ret = java_method_call(state, func_n, 0);
 	return (obj_t)ret;
 }
 
@@ -627,45 +703,118 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 	//%s/obj_t .(.\(.*\))(void .closure);/config.callbacks.arch.x86.sem_id.\1 = \&\1;/g
 
 	unboxed_sem_id_callbacks_t sem_id_callbacks = {
+			.shared = &shared,
 			.virt_t = &virt_t,
 			.arch = &arch
 	};
 
 	unboxed_sem_address_callbacks_t sem_address_callbacks = {
-			.sem_address_ = &sem_address };
+			.sem_address_ = &sem_address
+	};
 
-	unboxed_sem_var_callbacks_t sem_var_callbacks = { .sem_var_ = &sem_var };
+	unboxed_sem_var_callbacks_t sem_var_callbacks = {
+			.sem_var_ = &sem_var
+	};
 
-	unboxed_sem_linear_callbacks_t sem_linear_callbacks = { .sem_lin_var = &sem_lin_var, .sem_lin_imm = &sem_lin_imm,
-			.sem_lin_add = &sem_lin_add, .sem_lin_sub = &sem_lin_sub, .sem_lin_scale = &sem_lin_scale };
+	unboxed_sem_linear_callbacks_t sem_linear_callbacks = {
+			.sem_lin_var = &sem_lin_var,
+			.sem_lin_imm = &sem_lin_imm,
+			.sem_lin_add = &sem_lin_add,
+			.sem_lin_sub = &sem_lin_sub,
+			.sem_lin_scale = &sem_lin_scale
+	};
 
-	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = { .sem_cmpeq = &sem_cmpeq, .sem_cmpneq = &sem_cmpneq,
-			.sem_cmples = &sem_cmples, .sem_cmpleu = &sem_cmpleu, .sem_cmplts = &sem_cmplts, .sem_cmpltu = &sem_cmpltu };
+	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
+			.sem_sexpr_lin = &sem_sexpr_lin,
+			.sem_sexpr_cmp = &sem_sexpr_cmp
+	};
 
-	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks =
-			{ .sem_sexpr_lin = &sem_sexpr_lin, .sem_sexpr_cmp = &sem_sexpr_cmp };
+	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
+			.sem_cmpeq = &sem_cmpeq,
+			.sem_cmpneq = &sem_cmpneq,
+			.sem_cmples = &sem_cmples,
+			.sem_cmpleu = &sem_cmpleu,
+			.sem_cmplts = &sem_cmplts,
+			.sem_cmpltu = &sem_cmpltu
+	};
 
-	unboxed_sem_op_callbacks_t sem_op_callbacks = { .sem_lin = &sem_lin, .sem_mul = &sem_mul, .sem_div = &sem_div,
-			.sem_divs = &sem_divs, .sem_mod = &sem_mod, .sem_shl = &sem_shl, .sem_shr = &sem_shr, .sem_shrs = &sem_shrs,
-			.sem_and = &sem_and, .sem_or = &sem_or, .sem_xor = &sem_xor, .sem_sx = &sem_sx, .sem_zx = &sem_zx, .sem_cmp =
-					&sem_cmp, .sem_arb = &sem_arb };
+	unboxed_sem_op_callbacks_t sem_op_callbacks = {
+			.sem_lin = &sem_lin,
+			.sem_mul = &sem_mul,
+			.sem_div = &sem_div,
+			.sem_divs = &sem_divs,
+			.sem_mod = &sem_mod,
+			.sem_shl = &sem_shl,
+			.sem_shr = &sem_shr,
+			.sem_shrs = &sem_shrs,
+			.sem_and = &sem_and,
+			.sem_or = &sem_or,
+			.sem_xor = &sem_xor,
+			.sem_sx = &sem_sx,
+			.sem_zx = &sem_zx,
+			.sem_cmp = &sem_cmp,
+			.sem_arb = &sem_arb
+	};
 
-	unboxed_branch_hint_callbacks_t branch_hint_callbacks = { .branch_hint_ = &branch_hint };
+	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {
+			.sem_varl_ = &sem_varl
+	};
 
-	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = { .sem_assign = &sem_assign, .sem_load = &sem_load, .sem_store =
-			&sem_store, .sem_ite = &sem_ite, .sem_while = &sem_while, .sem_cbranch = &sem_cbranch, .sem_branch = &sem_branch };
+	unboxed_sem_varls_callbacks_t sem_varls_callbacks = {
+			.sem_varls_next = &sem_varls_next,
+			.sem_varls_init = &sem_varls_init
+	};
+
+	unboxed_sem_flop_callbacks_t sem_flop_callbacks = {
+			.sem_flop_ = &sem_flop
+	};
+
+	unboxed_sem_prim_callbacks_t sem_prim_callbacks = {
+			.sem_prim_generic = &sem_prim_generic,
+			.sem_prim_flop = &sem_prim_flop
+	};
+
+	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
+			.sem_assign = &sem_assign,
+			.sem_load = &sem_load,
+			.sem_store = &sem_store,
+			.sem_ite = &sem_ite,
+			.sem_while = &sem_while,
+			.sem_cbranch = &sem_cbranch,
+			.sem_branch = &sem_branch,
+			.sem_prim = &sem_prim
+	};
+
+	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
+			.branch_hint_ = &branch_hint
+	};
 
 //	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
 //			.list_init = &list_init,
 //			.list_next = &list_next
 //	};
 
-	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = { .sem_nil = &list_init, .sem_cons = &list_next };
+	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
+			.sem_nil = &list_init,
+			.sem_cons = &list_next
+	};
 
-	unboxed_callbacks_t callbacks = { .sem_id = &sem_id_callbacks, .sem_address = &sem_address_callbacks, .sem_var =
-			&sem_var_callbacks, .sem_linear = &sem_linear_callbacks, .sem_sexpr = &sem_sexpr_callbacks, .sem_op_cmp =
-			&sem_op_cmp_callbacks, .sem_op = &sem_op_callbacks, .sem_stmt = &sem_stmt_callbacks, .branch_hint =
-			&branch_hint_callbacks, .sem_stmts = &sem_stmts_callbacks };
+	unboxed_callbacks_t callbacks = {
+			.sem_id = &sem_id_callbacks,
+			.sem_address = &sem_address_callbacks,
+			.sem_var = &sem_var_callbacks,
+			.sem_linear = &sem_linear_callbacks,
+			.sem_sexpr = &sem_sexpr_callbacks,
+			.sem_op_cmp = &sem_op_cmp_callbacks,
+			.sem_op = &sem_op_callbacks,
+			.sem_varl = &sem_varl_callbacks,
+			.sem_varls = &sem_varls_callbacks,
+			.sem_flop = &sem_flop_callbacks,
+			.sem_prim = &sem_prim_callbacks,
+			.sem_stmt = &sem_stmt_callbacks,
+			.branch_hint = &branch_hint_callbacks,
+			.sem_stmts = &sem_stmts_callbacks
+	};
 
 //		config.callbacks.sem_stmts.sem_cons = &sem_cons;
 //		config.callbacks.sem_stmts.sem_nil = &sem_nil;

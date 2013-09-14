@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import rreil.statement.IStatement;
 import rreil.statement.Statement;
 
-public class DefaultRReilCollection implements IRReilCollection {
+public class DefaultStatementCollection implements IRReilCollection<IStatement> {
 	ArrayList<Statement> statements = new ArrayList<Statement>();
 	
 	public void add(IStatement s) {

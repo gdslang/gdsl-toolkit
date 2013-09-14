@@ -1,5 +1,6 @@
 package rreil;
 
+import rreil.id.FloatingFlags;
 import rreil.id.GenericArchRegister;
 import rreil.id.IId;
 import rreil.id.Id;
@@ -43,6 +44,9 @@ import rreil.operation.SignExtendOperation;
 import rreil.operation.SignedDivisionOperation;
 import rreil.operation.XorOperation;
 import rreil.operation.ZeroExtendOperation;
+import rreil.prim.FlopPrimitive;
+import rreil.prim.GenericPrimitive;
+import rreil.prim.IPrim;
 import rreil.sexpression.ISimpleExpression;
 import rreil.sexpression.SimpleCompareExpression;
 import rreil.sexpression.SimpleExpression;
@@ -53,6 +57,7 @@ import rreil.statement.ConditionalBranchStatement;
 import rreil.statement.IStatement;
 import rreil.statement.IfThenElseStatement;
 import rreil.statement.LoadStatement;
+import rreil.statement.PrimitiveStatement;
 import rreil.statement.Statement;
 import rreil.statement.StoreStatement;
 import rreil.statement.WhileStatement;
@@ -63,15 +68,20 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	 * sem_id
 	 */
 
-//	@Override
-//	public Id virt_eq() {
-//		return new VirtualEqualsId();
-//	}
-//
-//	@Override
-//	public Id virt_neq() {
-//		return new VirtualEqualsNotId();
-//	}
+	@Override
+	public IId shared_floating_flags() {
+		return new FloatingFlags();
+	}
+
+	// @Override
+	// public Id virt_eq() {
+	// return new VirtualEqualsId();
+	// }
+	//
+	// @Override
+	// public Id virt_neq() {
+	// return new VirtualEqualsNotId();
+	// }
 
 	@Override
 	public Id virt_les() {
@@ -88,10 +98,10 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 		return new VirtualLessSignedId();
 	}
 
-//	@Override
-//	public Id virt_ltu() {
-//		return new VirtualLessUnsignedId();
-//	}
+	// @Override
+	// public Id virt_ltu() {
+	// return new VirtualLessUnsignedId();
+	// }
 
 	@Override
 	public Id virt_t(long t) {
@@ -382,7 +392,7 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public IId sem_xmm15() {
 		return new X86RegisterId(X86Register.XMM15);
 	}
-	
+
 	@Override
 	public IId id_arch(long id) {
 		return new GenericArchRegister(id);
@@ -438,24 +448,25 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public LinearExpression sem_lin_scale(long imm, ILinearExpression opnd) {
 		return new LinearScaleExpression(imm, (LinearExpression) opnd);
 	}
-	
+
 	/*
 	 * sem_sexpr
 	 */
-	
+
 	@Override
 	public SimpleLinearExpression sem_sexpr_lin(ILinearExpression _this) {
-		return new SimpleLinearExpression((LinearExpression)_this);
+		return new SimpleLinearExpression((LinearExpression) _this);
 	}
+
 	@Override
 	public SimpleCompareExpression sem_sexpr_cmp(ICompareOperation _this) {
-		return new SimpleCompareExpression((CompareOperation)_this);
+		return new SimpleCompareExpression((CompareOperation) _this);
 	}
-	
+
 	/*
 	 * sem_op_cmp
 	 */
-	
+
 	@Override
 	public CompareOperation sem_cmpeq(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2) {
@@ -586,10 +597,10 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public Operation sem_zx(long size, long fromsize, ILinearExpression opnd1) {
 		return new ZeroExtendOperation(size, fromsize, (LinearExpression) opnd1);
 	}
-	
+
 	@Override
 	public Operation sem_cmp(ICompareOperation _this) {
-		return (Operation)_this;
+		return (Operation) _this;
 	}
 
 	@Override
@@ -598,22 +609,66 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	/*
-	 * sem_branch_hint
+	 * sem_varl
 	 */
 
 	@Override
-	public BranchHint hint_jump() {
-		return BranchHint.JUMP;
+	public ILimitedVariable sem_varl(IId id, long offset, long size) {
+		return new LimitedVariable((Id) id, offset, size);
+	}
+
+	/*
+	 * sem_varls
+	 */
+
+	@Override
+	public IRReilCollection<ILimitedVariable> sem_varls_next(
+			ILimitedVariable next, IRReilCollection<ILimitedVariable> list) {
+		list.add(next);
+		return list;
 	}
 
 	@Override
-	public BranchHint hint_call() {
-		return BranchHint.CALL;
+	public IRReilCollection<ILimitedVariable> sem_varls_init() {
+		return new DefaultLimitedVariableCollection();
+	}
+
+	/*
+	 * sem_flop
+	 */
+
+	@Override
+	public IFlop sem_flop_fadd() {
+		return Flop.FADD;
 	}
 
 	@Override
-	public BranchHint hint_ret() {
-		return BranchHint.RET;
+	public IFlop sem_flop_fsub() {
+		return Flop.FSUB;
+	}
+
+	@Override
+	public IFlop sem_flop_fmul() {
+		return Flop.FMUL;
+	}
+
+	/*
+	 * sem_prim
+	 */
+
+	@Override
+	public IPrim sem_prim_generic(String op,
+			IRReilCollection<ILimitedVariable> res,
+			IRReilCollection<ILimitedVariable> args) {
+		return new GenericPrimitive(op, (DefaultLimitedVariableCollection) res,
+				(DefaultLimitedVariableCollection) args);
+	}
+
+	@Override
+	public IPrim sem_prim_flop(IFlop op, IVariable flags, ILimitedVariable res,
+			IRReilCollection<ILimitedVariable> args) {
+		return new FlopPrimitive((Flop) op, (Variable) flags,
+				(LimitedVariable) res, (DefaultLimitedVariableCollection) args);
 	}
 
 	/*
@@ -639,14 +694,14 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public Statement sem_ite(ISimpleExpression cond,
 			IRReilCollection then_branch, IRReilCollection else_branch) {
 		return new IfThenElseStatement((SimpleExpression) cond,
-				(DefaultRReilCollection) then_branch,
-				(DefaultRReilCollection) else_branch);
+				(DefaultStatementCollection) then_branch,
+				(DefaultStatementCollection) else_branch);
 	}
 
 	@Override
 	public Statement sem_while(ISimpleExpression cond, IRReilCollection body) {
 		return new WhileStatement((SimpleExpression) cond,
-				(DefaultRReilCollection) body);
+				(DefaultStatementCollection) body);
 	}
 
 	@Override
@@ -660,20 +715,43 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public Statement sem_branch(IBranchHint branch_hint, IAddress target) {
 		return new BranchStatement((BranchHint) branch_hint, (Address) target);
 	}
+	
+	@Override
+	public IStatement sem_prim(IPrim prim) {
+		return new PrimitiveStatement(prim);
+	}
+
+	/*
+	 * sem_branch_hint
+	 */
+
+	@Override
+	public BranchHint hint_jump() {
+		return BranchHint.JUMP;
+	}
+
+	@Override
+	public BranchHint hint_call() {
+		return BranchHint.CALL;
+	}
+
+	@Override
+	public BranchHint hint_ret() {
+		return BranchHint.RET;
+	}
 
 	/*
 	 * sem_stmts
 	 */
 
 	@Override
-	public IRReilCollection list_next(IStatement next, IRReilCollection list) {
+	public IRReilCollection<IStatement> list_next(IStatement next, IRReilCollection<IStatement> list) {
 		list.add(next);
 		return list;
 	}
 
 	@Override
-	public IRReilCollection list_init() {
-		return new DefaultRReilCollection();
+	public IRReilCollection<IStatement> list_init() {
+		return new DefaultStatementCollection();
 	}
-
 }
