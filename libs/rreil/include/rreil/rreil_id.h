@@ -16,7 +16,7 @@
 #endif
 
 enum rreil_id_type {
-	RREIL_ID_TYPE_VIRTUAL, RREIL_ID_TYPE_TEMPORARY,
+	RREIL_ID_TYPE_SHARED, RREIL_ID_TYPE_TEMPORARY,
 #ifdef GDSL_X86
 	RREIL_ID_TYPE_X86
 #else
@@ -24,13 +24,8 @@ enum rreil_id_type {
 #endif
 };
 
-enum rreil_id_virtual {
-	RREIL_ID_VIRTUAL_EQ,
-	RREIL_ID_VIRTUAL_NEQ,
-	RREIL_ID_VIRTUAL_LES,
-	RREIL_ID_VIRTUAL_LEU,
-	RREIL_ID_VIRTUAL_LTS,
-	RREIL_ID_VIRTUAL_LTU,
+enum rreil_id_shared {
+	RREIL_ID_SHARED_FLOATING_FLAGS
 };
 
 #define RREIL_ID_VIRTUAL_COUNT (RREIL_ID_VIRTUAL_LTU + 1)
@@ -39,7 +34,7 @@ enum rreil_id_virtual {
 struct rreil_id {
 	enum rreil_id_type type;
 	union {
-		enum rreil_id_virtual virtual_;
+		enum rreil_id_shared shared;
 		union {
 #ifdef GDSL_X86
 			enum x86_id x86;

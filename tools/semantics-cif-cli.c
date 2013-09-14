@@ -11,12 +11,19 @@
 //	printf("=> virt#%ld\n", con);
 //	return NULL ;
 //}
-
+static obj_t shared(state_t state, int_t con) {
+	switch(con) {
+		case CON_FLOATING_FLAGS: {
+			printf("FLOATING_FLAGS\n");
+			break;
+		}
+	}
+	return NULL;
+}
 static obj_t virt_t(state_t state, int_t t) {
 	printf("=> t%ld\n", t);
 	return NULL ;
 }
-
 static obj_t arch(state_t state, int_t con) {
 	printf("=> arch#%ld\n", con);
 	return NULL ;
@@ -570,6 +577,7 @@ int main(int argc, char** argv) {
 	puts(fmt);
 
 	unboxed_sem_id_callbacks_t sem_id_callbacks = {
+			.shared = &shared,
 			.virt_t = &virt_t,
 			.arch = &arch
 	};
@@ -590,6 +598,11 @@ int main(int argc, char** argv) {
 			.sem_lin_scale = &sem_lin_scale
 	};
 
+	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
+			.sem_sexpr_lin = &sem_sexpr_lin,
+			.sem_sexpr_cmp = &sem_sexpr_cmp
+	};
+
 	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
 			.sem_cmpeq = &sem_cmpeq,
 			.sem_cmpneq = &sem_cmpneq,
@@ -597,24 +610,6 @@ int main(int argc, char** argv) {
 			.sem_cmpleu = &sem_cmpleu,
 			.sem_cmplts = &sem_cmplts,
 			.sem_cmpltu = &sem_cmpltu
-	};
-
-	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {
-			.sem_varl_ = &sem_varl
-	};
-
-	unboxed_sem_varls_callbacks_t sem_varls_callbacks = {
-			.sem_varls_next = &sem_varls_next,
-			.sem_varls_init = &sem_varls_init
-	};
-
-	unboxed_sem_flop_callbacks_t sem_flop_callbacks = {
-			.sem_flop_ = &sem_flop
-	};
-
-	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
-			.sem_sexpr_lin = &sem_sexpr_lin,
-			.sem_sexpr_cmp = &sem_sexpr_cmp
 	};
 
 	unboxed_sem_op_callbacks_t sem_op_callbacks = {
@@ -633,6 +628,19 @@ int main(int argc, char** argv) {
 			.sem_zx = &sem_zx,
 			.sem_cmp = &sem_cmp,
 			.sem_arb = &sem_arb
+	};
+
+	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {
+			.sem_varl_ = &sem_varl
+	};
+
+	unboxed_sem_varls_callbacks_t sem_varls_callbacks = {
+			.sem_varls_next = &sem_varls_next,
+			.sem_varls_init = &sem_varls_init
+	};
+
+	unboxed_sem_flop_callbacks_t sem_flop_callbacks = {
+			.sem_flop_ = &sem_flop
 	};
 
 	unboxed_sem_prim_callbacks_t sem_prim_callbacks = {

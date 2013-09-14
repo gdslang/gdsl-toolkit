@@ -3,7 +3,7 @@ export = rreil-cif-userdata-set rreil-cif-userdata-get rreil-convert-sem-stmts r
 #type callbacks =
 #   SEM_ID_CBS of {virt_na:string_, virt_t:string_}
 
-type sem_id_callbacks = {virt_t:int, arch:int}
+type sem_id_callbacks = {shared:int, virt_t:int, arch:int}
 type sem_address_callbacks = {sem_address_:int}
 type sem_var_callbacks = {sem_var_:int}
 type sem_linear_callbacks = {sem_lin_var:int, sem_lin_imm:int, sem_lin_add:int, sem_lin_sub:int, sem_lin_scale:int}
@@ -59,7 +59,8 @@ val rreil-convert-sem-id cbs id = case id of
 # | VIRT_LEU: cbs.sem_id.virt_na (index id)
 # | VIRT_LTS: cbs.sem_id.virt_na (index id)
 # | VIRT_LTU: cbs.sem_id.virt_na (index id)
-   VIRT_T t: cbs.sem_id.virt_t t
+   FLOATING_FLAGS: cbs.sem_id.shared (index id)
+ | VIRT_T t: cbs.sem_id.virt_t t
  | _: cbs.sem_id.arch (index id)
 end
 

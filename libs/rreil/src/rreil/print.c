@@ -70,30 +70,10 @@ void rreil_comparator_print(struct rreil_comparator *comparator) {
 
 void rreil_id_print(FILE *stream, struct rreil_id *id) {
 	switch(id->type) {
-		case RREIL_ID_TYPE_VIRTUAL: {
-			switch(id->virtual_) {
-				case RREIL_ID_VIRTUAL_EQ: {
-					fprintf(stream, "RREIL_ID_VIRTUAL_EQ");
-					break;
-				}
-				case RREIL_ID_VIRTUAL_NEQ: {
-					fprintf(stream, "RREIL_ID_VIRTUAL_NEQ");
-					break;
-				}
-				case RREIL_ID_VIRTUAL_LES: {
-					fprintf(stream, "RREIL_ID_VIRTUAL_LES");
-					break;
-				}
-				case RREIL_ID_VIRTUAL_LEU: {
-					fprintf(stream, "RREIL_ID_VIRTUAL_LEU");
-					break;
-				}
-				case RREIL_ID_VIRTUAL_LTS: {
-					fprintf(stream, "RREIL_ID_VIRTUAL_LTS");
-					break;
-				}
-				case RREIL_ID_VIRTUAL_LTU: {
-					fprintf(stream, "RREIL_ID_VIRTUAL_LTU");
+		case RREIL_ID_TYPE_SHARED: {
+			switch(id->shared) {
+				case RREIL_ID_SHARED_FLOATING_FLAGS: {
+					fprintf(stream, "FLOATING_FLAGS");
 					break;
 				}
 			}
@@ -109,9 +89,9 @@ void rreil_id_print(FILE *stream, struct rreil_id *id) {
 			break;
 		}
 #else
-		case RREIL_ID_TYPE_ARCH: {
-			fprintf(stream, "arch#%u", id->arch);
-		}
+			case RREIL_ID_TYPE_ARCH: {
+				fprintf(stream, "arch#%u", id->arch);
+			}
 #endif
 	}
 }
@@ -267,6 +247,64 @@ void rreil_variable_print(FILE *stream, struct rreil_variable *variable) {
 		fprintf(stream, "/%lu", variable->offset);
 }
 
+void rreil_varl_print(FILE *stream, struct rreil_variable_limited *varl) {
+	rreil_id_print(stream, varl->id);
+	if(varl->offset)
+		fprintf(stream, "/%lu", varl->offset);
+	fprintf(stream, ":%lu", varl->size);
+}
+
+void rreil_varls_print(FILE *stream, struct rreil_variable_limited_tuple *varls) {
+	if(varls->variables_length > 1)
+		fprintf(stream, "(");
+	for(size_t i = 0; i < varls->variables_length; ++i) {
+		if(i)
+			fprintf(stream, ", ");
+		rreil_varl_print(stream, varls->variables[i]);
+	}
+	if(varls->variables_length > 1)
+		fprintf(stream, ")");
+}
+
+void rreil_flop_print(FILE *stream, enum rreil_flop *flop) {
+	switch(*flop) {
+		case RREIL_FLOP_SEM_FADD: {
+			fprintf(stream, "FADD");
+			break;
+		}
+		case RREIL_FLOP_SEM_FSUB: {
+			fprintf(stream, "FSUB");
+			break;
+		}
+		case RREIL_FLOP_SEM_FMUL: {
+			fprintf(stream, "FMUL");
+			break;
+		}
+	}
+}
+
+void rreil_prim_print(FILE *stream, struct rreil_prim *prim) {
+	switch(prim->type) {
+		case RREIL_PRIM_TYPE_GENERIC: {
+			rreil_varls_print(stream, prim->generic.res);
+			fprintf(stream, " = $%s ", prim->generic.op);
+			rreil_varls_print(stream, prim->generic.args);
+			break;
+		}
+		case RREIL_PRIM_TYPE_FLOP: {
+			rreil_varl_print(stream, prim->flop.res);
+			fprintf(stream, " = $");
+			rreil_flop_print(stream, prim->flop.op);
+			fprintf(stream, " ");
+			rreil_varls_print(stream, prim->flop.args);
+			fprintf(stream, " [flags:");
+			rreil_variable_print(stream, prim->flop.flags);
+			fprintf(stream, "]");
+			break;
+		}
+	}
+}
+
 void rreil_statement_print(struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
@@ -322,6 +360,10 @@ void rreil_statement_print(struct rreil_statement *statement) {
 			rreil_branch_hint_print(statement->branch.hint);
 			printf("] ");
 			rreil_address_print(statement->branch.target);
+			break;
+		}
+		case RREIL_STATEMENT_TYPE_PRIM: {
+			rreil_prim_print(stdout, statement->prim);
 			break;
 		}
 	}

@@ -47,7 +47,18 @@
 //	}
 //	return (obj_t)id;
 //}
-
+static obj_t shared(state_t state, int_t con) {
+	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
+	id->type = RREIL_ID_TYPE_SHARED;
+	switch (con) {
+		case CON_FLOATING_FLAGS:
+			id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
+			break;
+		default:
+			break;
+	}
+	return (obj_t)id;
+}
 static obj_t virt_t(state_t state, int_t t) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_TEMPORARY;
@@ -341,25 +352,57 @@ static obj_t sem_arb(state_t state, int_t size) {
 	return (obj_t)op;
 }
 
-// sem_branch_hint
-static obj_t branch_hint(state_t state, int_t con) {
-	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
-			sizeof(enum rreil_branch_hint));
-	switch(con) {
-		case CON_HINT_JUMP: {
-			*hint = RREIL_BRANCH_HINT_JUMP;
-			break;
-		}
-		case CON_HINT_CALL: {
-			*hint = RREIL_BRANCH_HINT_CALL;
-			break;
-		}
-		case CON_HINT_RET: {
-			*hint = RREIL_BRANCH_HINT_RET;
-			break;
-		}
+// sem_varl
+static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
+	struct rreil_variable_limited *variable = (struct rreil_variable_limited*)malloc(sizeof(struct rreil_variable_limited));
+	variable->id = (struct rreil_id*)id;
+	variable->offset = (uint64_t)offset;
+	variable->size = (uint64_t)size;
+	return (obj_t)variable;
+}
+
+// sem_varls
+static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
+	struct rreil_variable_limited_tuple *variable_tuple = (struct rreil_variable_limited_tuple*)list;
+	if(variable_tuple->variables_length >= variable_tuple->variables_size) {
+		variable_tuple->variables_size = variable_tuple->variables_size ? (variable_tuple->variables_size << 1) : 4;
+		variable_tuple->variables = (struct rreil_variable_limited**)malloc(sizeof(struct rreil_variable_limited*)*variable_tuple->variables_size);
 	}
-	return (obj_t)hint;
+	variable_tuple->variables[variable_tuple->variables_length++] = (struct rreil_variable_limited*)next;
+	return (obj_t)variable_tuple;
+}
+static obj_t sem_varls_init(state_t state) {
+	struct rreil_variable_limited_tuple *variable_tuple = (struct rreil_variable_limited_tuple*)malloc(sizeof(struct rreil_variable_limited_tuple));
+	variable_tuple->variables = NULL;
+	variable_tuple->variables_length = 0;
+	variable_tuple->variables_size = 0;
+	return variable_tuple;
+}
+
+// sem_flop
+static obj_t sem_flop(state_t state, int_t flop) {
+	enum rreil_flop *rreil_flop = (enum rreil_flop*)malloc(sizeof(enum rreil_flop));
+	*rreil_flop = (enum rreil_flop)flop;
+	return (obj_t)rreil_flop;
+}
+
+// sem_prim
+static obj_t sem_prim_generic(state_t state, obj_t op, obj_t res, obj_t args) {
+	struct rreil_prim *prim = (struct rreil_prim*)malloc(sizeof(struct rreil_prim));
+	prim->type = RREIL_PRIM_TYPE_GENERIC;
+	prim->generic.op = (char*)op;
+	prim->generic.res = (struct rreil_variable_limited_tuple*)res;
+	prim->generic.args = (struct rreil_variable_limited_tuple*)args;
+	return (obj_t)prim;
+}
+static obj_t sem_prim_flop(state_t state, obj_t op, obj_t flags, obj_t res, obj_t args) {
+	struct rreil_prim *prim = (struct rreil_prim*)malloc(sizeof(struct rreil_prim));
+	prim->type = RREIL_PRIM_TYPE_FLOP;
+	prim->flop.op = (enum rreil_flop*)op;
+	prim->flop.flags = (struct rreil_variable*)flags;
+	prim->flop.res = (struct rreil_variable_limited*)res;
+	prim->flop.args = (struct rreil_variable_limited_tuple*)args;
+	return (obj_t)prim;
 }
 
 // sem_stmt
@@ -429,6 +472,35 @@ static obj_t sem_branch(state_t state,
 	statement->branch.target = (struct rreil_address*)target;
 	return (obj_t)statement;
 }
+static obj_t sem_prim(state_t state,
+		obj_t prim) {
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_PRIM;
+	statement->prim = (struct rreil_prim*)prim;
+	return (obj_t)statement;
+}
+
+// sem_branch_hint
+static obj_t branch_hint(state_t state, int_t con) {
+	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(
+			sizeof(enum rreil_branch_hint));
+	switch(con) {
+		case CON_HINT_JUMP: {
+			*hint = RREIL_BRANCH_HINT_JUMP;
+			break;
+		}
+		case CON_HINT_CALL: {
+			*hint = RREIL_BRANCH_HINT_CALL;
+			break;
+		}
+		case CON_HINT_RET: {
+			*hint = RREIL_BRANCH_HINT_RET;
+			break;
+		}
+	}
+	return (obj_t)hint;
+}
 
 // sem_stmts
 static obj_t list_next(state_t state, obj_t next,
@@ -456,6 +528,7 @@ static obj_t list_init(state_t state) {
 
 callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 	unboxed_sem_id_callbacks_t sem_id_callbacks = {
+			.shared = &shared,
 			.virt_t = &virt_t,
 			.arch = &sem_id_arch
 	};
@@ -476,6 +549,11 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_lin_scale = &sem_lin_scale
 	};
 
+	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
+			.sem_sexpr_lin = &sem_sexpr_lin,
+			.sem_sexpr_cmp = &sem_sexpr_cmp
+	};
+
 	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
 			.sem_cmpeq = &sem_cmpeq,
 			.sem_cmpneq = &sem_cmpneq,
@@ -483,11 +561,6 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_cmpleu = &sem_cmpleu,
 			.sem_cmplts = &sem_cmplts,
 			.sem_cmpltu = &sem_cmpltu
-	};
-
-	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
-			.sem_sexpr_lin = &sem_sexpr_lin,
-			.sem_sexpr_cmp = &sem_sexpr_cmp
 	};
 
 	unboxed_sem_op_callbacks_t sem_op_callbacks = {
@@ -508,8 +581,22 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_arb = &sem_arb
 	};
 
-	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
-			.branch_hint_ = &branch_hint
+	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {
+			.sem_varl_ = &sem_varl
+	};
+
+	unboxed_sem_varls_callbacks_t sem_varls_callbacks = {
+			.sem_varls_next = &sem_varls_next,
+			.sem_varls_init = &sem_varls_init
+	};
+
+	unboxed_sem_flop_callbacks_t sem_flop_callbacks = {
+			.sem_flop_ = &sem_flop
+	};
+
+	unboxed_sem_prim_callbacks_t sem_prim_callbacks = {
+			.sem_prim_generic = &sem_prim_generic,
+			.sem_prim_flop = &sem_prim_flop
 	};
 
 	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
@@ -519,7 +606,12 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_ite = &sem_ite,
 			.sem_while = &sem_while,
 			.sem_cbranch = &sem_cbranch,
-			.sem_branch = &sem_branch
+			.sem_branch = &sem_branch,
+			.sem_prim = &sem_prim
+	};
+
+	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
+			.branch_hint_ = &branch_hint
 	};
 
 //	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
@@ -539,11 +631,15 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 		unboxed_sem_address_callbacks_t sem_address_callbacks;
 		unboxed_sem_var_callbacks_t sem_var_callbacks;
 		unboxed_sem_linear_callbacks_t sem_linear_callbacks;
-		unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks;
 		unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks;
+		unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks;
 		unboxed_sem_op_callbacks_t sem_op_callbacks;
-		unboxed_branch_hint_callbacks_t branch_hint_callbacks;
+		unboxed_sem_varl_callbacks_t sem_varl_callbacks;
+		unboxed_sem_varls_callbacks_t sem_varls_callbacks;
+		unboxed_sem_flop_callbacks_t sem_flop_callbacks;
+		unboxed_sem_prim_callbacks_t sem_prim_callbacks;
 		unboxed_sem_stmt_callbacks_t sem_stmt_callbacks;
+		unboxed_branch_hint_callbacks_t branch_hint_callbacks;
 		unboxed_sem_stmts_callbacks_t sem_stmts_callbacks;
 	};
 
@@ -552,11 +648,15 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 	callbacks_heap->sem_address_callbacks = sem_address_callbacks;
 	callbacks_heap->sem_var_callbacks = sem_var_callbacks;
 	callbacks_heap->sem_linear_callbacks = sem_linear_callbacks;
-	callbacks_heap->sem_op_cmp_callbacks = sem_op_cmp_callbacks;
 	callbacks_heap->sem_sexpr_callbacks = sem_sexpr_callbacks;
+	callbacks_heap->sem_op_cmp_callbacks = sem_op_cmp_callbacks;
 	callbacks_heap->sem_op_callbacks = sem_op_callbacks;
-	callbacks_heap->branch_hint_callbacks = branch_hint_callbacks;
+	callbacks_heap->sem_varl_callbacks = sem_varl_callbacks;
+	callbacks_heap->sem_varls_callbacks = sem_varls_callbacks;
+	callbacks_heap->sem_flop_callbacks = sem_flop_callbacks;
+	callbacks_heap->sem_prim_callbacks = sem_prim_callbacks;
 	callbacks_heap->sem_stmt_callbacks = sem_stmt_callbacks;
+	callbacks_heap->branch_hint_callbacks = branch_hint_callbacks;
 	callbacks_heap->sem_stmts_callbacks = sem_stmts_callbacks;
 
 	unboxed_callbacks_t callbacks = {
@@ -567,6 +667,10 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_sexpr = &callbacks_heap->sem_sexpr_callbacks,
 			.sem_op_cmp = &callbacks_heap->sem_op_cmp_callbacks,
 			.sem_op = &callbacks_heap->sem_op_callbacks,
+			.sem_varl = &callbacks_heap->sem_varl_callbacks,
+			.sem_varls = &callbacks_heap->sem_varls_callbacks,
+			.sem_flop = &callbacks_heap->sem_flop_callbacks,
+			.sem_prim = &callbacks_heap->sem_prim_callbacks,
 			.sem_stmt = &callbacks_heap->sem_stmt_callbacks,
 			.branch_hint = &callbacks_heap->branch_hint_callbacks,
 			.sem_stmts = &callbacks_heap->sem_stmts_callbacks

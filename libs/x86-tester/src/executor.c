@@ -40,8 +40,6 @@ static uint8_t read_flag(struct context *context, uint8_t flag) {
 }
 
 void executor_virt_calc(struct context *context) {
-	if(!context->x86_registers[X86_ID_FLAGS].data)
-		return;
 	struct data data;
 	data.bit_length = 1;
 	uint8_t flag;
@@ -49,14 +47,22 @@ void executor_virt_calc(struct context *context) {
 	uint8_t one = 1;
 	data.defined = &one;
 
-	flag = read_flag(context, X86_FLAGS_CARRY) | read_flag(context, X86_FLAGS_ZERO);
-	simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LEU], data, 0);
+	if(context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_CARRY
+			&& context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_ZERO) {
+		flag = read_flag(context, X86_FLAGS_CARRY) | read_flag(context, X86_FLAGS_ZERO);
+		simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LEU], data, 0);
+	}
 
-	flag = read_flag(context, X86_FLAGS_SIGN) != read_flag(context, X86_FLAGS_OVERFLOW);
-	simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LTS], data, 0);
+	if(context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_SIGN
+			&& context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_OVERFLOW) {
+		flag = read_flag(context, X86_FLAGS_SIGN) != read_flag(context, X86_FLAGS_OVERFLOW);
+		simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LTS], data, 0);
+	}
 
-	flag = context->x86_registers[X86_ID_VIRT_LTS].data[0] | read_flag(context, X86_FLAGS_ZERO);
-	simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LES], data, 0);
+	if(context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_ZERO) {
+		flag = context->x86_registers[X86_ID_VIRT_LTS].data[0] | read_flag(context, X86_FLAGS_ZERO);
+		simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LES], data, 0);
+	}
 }
 
 struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, size_t instruction_length,
@@ -64,7 +70,7 @@ struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, s
 		char test_unused) {
 	struct tbgen_result tbgen_result = tbgen_code_generate(instruction, instruction_length, trace, context, test_unused);
 	*memory = mmap(NULL, tbgen_result.buffer_length,
-			PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	memcpy(*memory, tbgen_result.buffer, tbgen_result.buffer_length);
 	*next_instruction_address = *memory + tbgen_result.instruction_offset + instruction_length;
 	return tbgen_result;
@@ -248,9 +254,9 @@ struct execution_result executor_instruction_execute(uint8_t *instruction, size_
 
 #ifndef DRYRUN
 	if(!setjmp(jbuf))
-		((void (*)(void))code)();
+	((void (*)(void))code)();
 	else
-		result.type = EXECUTION_RTYPE_SIGNAL;
+	result.type = EXECUTION_RTYPE_SIGNAL;
 #endif
 
 	alarm(0);

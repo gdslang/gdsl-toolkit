@@ -24,7 +24,8 @@ enum rreil_statement_type {
 	RREIL_STATEMENT_TYPE_ITE,
 	RREIL_STATEMENT_TYPE_WHILE,
 	RREIL_STATEMENT_TYPE_CBRANCH,
-	RREIL_STATEMENT_TYPE_BRANCH
+	RREIL_STATEMENT_TYPE_BRANCH,
+	RREIL_STATEMENT_TYPE_PRIM
 };
 
 struct rreil_statement {
@@ -61,6 +62,7 @@ struct rreil_statement {
 			enum rreil_branch_hint *hint;
 			struct rreil_address *target;
 		} branch;
+		struct rreil_prim *prim;
 	};
 };
 
