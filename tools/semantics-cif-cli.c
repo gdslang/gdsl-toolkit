@@ -694,6 +694,13 @@ int main(int argc, char** argv) {
 //		config.callbacks.sem_stmts.sem_nil = &sem_nil;
 //		config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
 
+//	obj_t stmts_rest = rreil;
+//	while(gdsl_rreil_sem_stmts_has_more(state, stmts_rest)) {
+//		printf("~~~ (loop) next statement\n");
+//		gdsl_rreil_convert_sem_stmt_manual(state, &callbacks, gdsl_rreil_sem_stmts_head(state, stmts_rest));
+//		stmts_rest = gdsl_rreil_sem_stmts_tail(state, stmts_rest);
+//	}
+
 	gdsl_rreil_convert_sem_stmts(state, &callbacks, rreil);
 
 	gdsl_destroy(state);

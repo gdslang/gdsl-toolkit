@@ -1,4 +1,4 @@
-export = rreil-cif-userdata-set rreil-cif-userdata-get rreil-convert-sem-stmts
+export = rreil-sem-stmts-head rreil-sem-stmts-tail rreil-sem-stmts-has-more rreil-sem-varls-head rreil-sem-varls-tail rreil-sem-varls-has-more rreil-cif-userdata-set rreil-cif-userdata-get rreil-convert-sem-varl rreil-convert-sem-stmt-manual rreil-convert-sem-stmts
 
 #type callbacks =
 #   SEM_ID_CBS of {virt_na:string_, virt_t:string_}
@@ -121,11 +121,29 @@ in
   convert-inner cbs (cbs.sem_varls.sem_varls_init 42) varls
 end
 
+val rreil-sem-varls-head stmts = case stmts of
+   SEM_VARLS_CONS s: s.hd
+end
+
+val rreil-sem-varls-tail stmts = case stmts of
+   SEM_VARLS_CONS s: s.tl
+end
+
+val rreil-sem-varls-has-more varls = case varls of
+   SEM_VARLS_CONS s: '1'
+ | SEM_VARLS_NIL: '0'
+end
+
 val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (index flop)
 
 val rreil-convert-sem-prim cbs prim = case prim of
    SEM_PRIM_GENERIC g: cbs.sem_prim.sem_prim_generic g.op (rreil-convert-sem-varls cbs g.res) (rreil-convert-sem-varls cbs g.args)
  | SEM_PRIM_FLOP f: cbs.sem_prim.sem_prim_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.res) (rreil-convert-sem-varls cbs f.args)
+end
+
+val rreil-convert-sem-prim-manual cbs prim = case prim of
+   SEM_PRIM_GENERIC g: cbs.sem_prim.sem_prim_generic g.op g.res g.args
+ | SEM_PRIM_FLOP f: cbs.sem_prim.sem_prim_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.res) f.args
 end
 
 val rreil-convert-sem-stmt cbs stmt = case stmt of
@@ -139,6 +157,17 @@ val rreil-convert-sem-stmt cbs stmt = case stmt of
  | SEM_PRIM p: cbs.sem_stmt.sem_prim (rreil-convert-sem-prim cbs p)
 end
 
+val rreil-convert-sem-stmt-manual cbs stmt = case stmt of
+   SEM_ASSIGN s: cbs.sem_stmt.sem_assign (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-op cbs s.rhs)
+ | SEM_LOAD l: cbs.sem_stmt.sem_load (rreil-convert-sem-var cbs l.lhs) l.size (rreil-convert-sem-address cbs l.address)
+ | SEM_STORE s: cbs.sem_stmt.sem_store (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-op cbs s.rhs)
+ | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) i.then_branch i.else_branch
+ | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) w.body
+ | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)
+ | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
+ | SEM_PRIM p: cbs.sem_stmt.sem_prim (rreil-convert-sem-prim-manual cbs p)
+end
+
 val rreil-convert-sem-stmts cbs stmts = let
   val convert-inner cbs list stmts = case stmts of
      SEM_CONS s: convert-inner cbs (cbs.sem_stmts.next (rreil-convert-sem-stmt cbs s.hd) list) s.tl
@@ -146,6 +175,19 @@ val rreil-convert-sem-stmts cbs stmts = let
   end
 in
   convert-inner cbs (cbs.sem_stmts.init 42) stmts
+end
+
+val rreil-sem-stmts-has-more stmts = case stmts of
+   SEM_CONS s: '1'
+ | SEM_NIL: '0'
+end
+
+val rreil-sem-stmts-head stmts = case stmts of
+   SEM_CONS s: s.hd
+end
+
+val rreil-sem-stmts-tail stmts = case stmts of
+   SEM_CONS s: s.tl
 end
 
 #val rreil-convert-sem-stmts-list cbs stmts = let
