@@ -58,5 +58,6 @@ tools/xed-cmp/xed-cmp$
 ^lib$
 
 ^gdsl-avr-rreil.h$
+^gdsl-x86-rreil.h$
 
 toys/liveness-example.bin

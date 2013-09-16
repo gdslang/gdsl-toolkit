@@ -27,6 +27,8 @@ liveness_sweep_LDADD =
 x86_test_runner_LDADD = libx86-tester.la libgdwrap.la
 x86_test_stats_runner_LDADD = libx86-tester.la libgdwrap.la
 
+private_headers =
+
 # options for the C compiler
 AM_CFLAGS = -Wall
 
@@ -37,6 +39,7 @@ MLULEX = @MLULEX@
 MLANTLR = @MLANTLR@
 
 GDSLC_SML_FILES = \
+         detail/export.sml \
          detail/common/basic-control.sml \
          detail/common/stats.sml \
          detail/common/expand-file.sml \
@@ -59,7 +62,7 @@ GDSLC_SML_FILES = \
          detail/parser/spec-parse-tree.sml \
          detail/parser/parser.sml \
          detail/semantic/spec-abstract-tree.sml \
-         detlibfooail/semantic/typing/boolean-domain.sml \
+         detail/semantic/typing/boolean-domain.sml \
          detail/semantic/typing/tvar.sml \
          detail/semantic/typing/lang-types.sml \
          detail/semantic/typing/size-constraint.sml \
@@ -155,6 +158,7 @@ GDSL_X86 = \
 	specifications/x86/x86-pretty-simple.ml
 
 GDSL_X86SEM = \
+	specifications/x86/x86-rreil-pretty.ml \
 	specifications/x86/x86-rreil-translator.ml \
 	specifications/x86/x86-rreil-translator-a-l.ml \
 	specifications/x86/x86-rreil-translator-m-z.ml \
@@ -411,6 +415,9 @@ include_HEADERS += libs/rreil/include/rreil/rreil.h \
                    libs/rreil/include/rreil/rreil_id.h \
                    libs/rreil/include/rreil/rreil_free.h \
                    libs/rreil/include/rreil/rreil_variable.h \
+                   libs/rreil/include/rreil/rreil_variable_limited.h \
+                   libs/rreil/include/rreil/rreil_prim.h \
+                   libs/rreil/include/rreil/rreil_flop.h \
                    libs/rreil/include/rreil/rreil_comparator.h \
                    libs/rreil/include/rreil/rreil_op.h \
                    libs/rreil/include/rreil/rreil_branch_hint.h \
@@ -468,6 +475,7 @@ if RREIL
 libjrreil_la_SOURCES = libs/jrreil/src/rnati_NativeInterface.c
 libjrreil_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I./libs/gdsl-multiplex/include
 libjrreil_la_LIBADD += libgdsl-multiplex.la
+private_headers += libs/jrreil/src/rnati_NativeInterface.h
 endif
 
 if RREIL
@@ -551,4 +559,13 @@ if X86_RREIL
 x86_test_stats_runner_SOURCES = tools/x86-test-stats-runner/src/main.c tools/x86-test-stats-runner/src/hash_array.c
 x86_test_stats_runner_CFLAGS = -std=gnu99 -I./libs/rreil/include -I./libs/rreil-sim/include -I./libs/x86/include -I./libs/x86-generator/include -I./libs/x86-tester/include -I./libs/readhex/include
 x86_test_stats_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
+private_headers += tools/x86-test-stats-runner/src/hash_array.h
 endif
+
+RUNTIME =  detail/codegen/c0/runtime.h \
+  detail/codegen/c0/runtime.c \
+  detail/codegen/c1/runtime.h \
+  detail/codegen/c1/runtime.c \
+  detail/codegen/js0/runtime.js
+
+EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(RUNTIME) $(private_headers) gdsl.h
