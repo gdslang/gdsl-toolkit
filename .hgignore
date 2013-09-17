@@ -21,8 +21,11 @@ resources/
 STATS
 examples/x86/cli
 ^gdsl$
+^gdslc$
 ^gdsl.c$
 ^gdsl.h$
+^gdsl_manual.c$
+^gdsl_manual.h$
 
 gdrr/Debug/
 
@@ -39,16 +42,22 @@ x86-tester/x86-test-stats-runner/Debug/
 x86-tester/util/Debug/
 tardet/Debug/
 
-tools/cli
-tools/cli-gdrr
-tools/liveness-sweep
-tools/sweep
-tools/x86-test-runner/x86-test-runner
-tools/x86-test-stats-runner/x86-test-stats-runner
-tools/tardet/tardet
-tools/xed-cmp/xed-cmp
+tools/decoder-cli$
+tools/semantics-cli$
+tools/semantics-cli-dynamic$
+tools/semantics-cif-cli$
+tools/cli-gdrr$
+tools/liveness-sweep$
+tools/sweep$
+tools/x86-test-runner/x86-test-runner$
+tools/x86-test-stats-runner/x86-test-stats-runner$
+tools/tardet/tardet$
+tools/xed-cmp/xed-cmp$
 
-#^include$
-#^lib$
+^include$
+^lib$
+
+^gdsl-avr-rreil.h$
+^gdsl-x86-rreil.h$
 
 toys/liveness-example.bin

@@ -48,7 +48,7 @@ end = struct
          val not = get "not"
          val raisee = get "raise"
          val idxget = get "idxget"
-         val rseek = get "rseek"
+(*         val rseek = get "rseek"*)
          val seek = get "seek"
          val index = get "index"
          val puts = get "puts"
@@ -281,7 +281,7 @@ end = struct
                (idxget, [s], body)
             end
 
-         (* val rseek x s = %rseek(x, s) *)
+         (* val rseek x s = %rseek(x, s)
          val rseek =
             let
                val x = fresh "x"
@@ -291,6 +291,7 @@ end = struct
             in
                (rseek, [x], body)
             end
+         *)
 
          (* val seek x s = %seek(x, s) *)
          val seek =
@@ -412,7 +413,7 @@ end = struct
           concat,
           raisee,
           idxget,
-          rseek,
+          (*rseek,*)
           seek,
           index,
 					puts,

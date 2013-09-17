@@ -153,7 +153,7 @@ __obj __idxget (__obj s) {
   return (a);
 }
 
-/* FIXME */
+/* FIXME
 __obj __rseek (__obj s, __obj x) {
   int64_t k = (int64_t)__CASETAGINT(x);
 //	printf("###### %ld\n", k);
@@ -192,6 +192,7 @@ __obj __rseek (__obj s, __obj x) {
     __RECORD_END(a,2);
   return (a);
 }
+*/
 
 
 /* FIXME */

@@ -2,6 +2,8 @@ package rnati;
 
 import rreil.IAddress;
 import rreil.IBranchHint;
+import rreil.IFlop;
+import rreil.ILimitedVariable;
 import rreil.IRReilBuilder;
 import rreil.IRReilCollection;
 import rreil.IVariable;
@@ -9,11 +11,14 @@ import rreil.id.IId;
 import rreil.linear.ILinearExpression;
 import rreil.operation.ICompareOperation;
 import rreil.operation.IOperation;
+import rreil.prim.IPrim;
 import rreil.sexpression.ISimpleExpression;
 import rreil.statement.IStatement;
 
 public class NativeInterface {
 	private IRReilBuilder builder;
+
+	private boolean backendSet = false;
 
 	public NativeInterface(IRReilBuilder builder) {
 		System.loadLibrary("jrreil");
@@ -22,20 +27,43 @@ public class NativeInterface {
 	}
 
 	public IRReilCollection decodeAndTranslate(byte[] bytes) {
+		if (!backendSet)
+			throw new RuntimeException("Backend not set");
 		return (IRReilCollection) decodeAndTranslateNative(bytes);
+	}
+
+	public String[] getBackends() {
+		return getBackendsNative();
+	}
+
+	public void useBackend(String backend) {
+		if (backendSet)
+			throw new RuntimeException("Backend already set");
+		useBackendNative(backend);
+		backendSet = true;
+	}
+
+	public void closeBackend() {
+		if (!backendSet)
+			throw new RuntimeException("Backend not set");
+		closeBackendNative();
+		backendSet = false;
 	}
 
 	/*
 	 * sem_id
 	 */
+	private Object shared_floating_flags() {
+		return builder.shared_floating_flags();
+	}
 
-//	private Object virt_eq() {
-//		return builder.virt_eq();
-//	}
-//
-//	private Object virt_neq() {
-//		return builder.virt_neq();
-//	}
+	// private Object virt_eq() {
+	// return builder.virt_eq();
+	// }
+	//
+	// private Object virt_neq() {
+	// return builder.virt_neq();
+	// }
 
 	private Object virt_les() {
 		return builder.virt_les();
@@ -49,9 +77,9 @@ public class NativeInterface {
 		return builder.virt_lts();
 	}
 
-//	private Object virt_ltu() {
-//		return builder.virt_ltu();
-//	}
+	// private Object virt_ltu() {
+	// return builder.virt_ltu();
+	// }
 
 	private Object virt_t(Object t) {
 		return builder.virt_t((Long) t);
@@ -285,6 +313,10 @@ public class NativeInterface {
 		return builder.sem_xmm15();
 	}
 
+	private Object id_arch(Object con) {
+		return builder.id_arch((Long) con);
+	}
+
 	/*
 	 * sem_address
 	 */
@@ -326,22 +358,23 @@ public class NativeInterface {
 	private Object sem_lin_scale(Object imm, Object opnd) {
 		return builder.sem_lin_scale((Long) imm, (ILinearExpression) opnd);
 	}
-	
+
 	/*
 	 * sem_sexpr
 	 */
-	
+
 	private Object sem_sexpr_lin(Object _this) {
-		return builder.sem_sexpr_lin((ILinearExpression)_this);
+		return builder.sem_sexpr_lin((ILinearExpression) _this);
 	}
+
 	private Object sem_sexpr_cmp(Object _this) {
-		return builder.sem_sexpr_lin((ILinearExpression)_this);
+		return builder.sem_sexpr_lin((ILinearExpression) _this);
 	}
-	
+
 	/*
 	 * sem_op_cmp
 	 */
-	
+
 	private Object sem_cmpeq(Object size, Object opnd1, Object opnd2) {
 		return builder.sem_cmpeq((Long) size, (ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
@@ -439,9 +472,9 @@ public class NativeInterface {
 		return builder.sem_zx((Long) size, (Long) fromsize,
 				(ILinearExpression) opnd1);
 	}
-	
+
 	private Object sem_cmp(Object _this) {
-		return builder.sem_cmp((ICompareOperation)_this);
+		return builder.sem_cmp((ICompareOperation) _this);
 	}
 
 	private Object sem_arb(Object size) {
@@ -449,19 +482,60 @@ public class NativeInterface {
 	}
 
 	/*
-	 * sem_branch_hint
+	 * sem_varl
 	 */
 
-	private Object hint_jump() {
-		return builder.hint_jump();
+	private Object sem_varl(Object id, Object offset, Object size) {
+		return builder.sem_varl((IId) id, (Long) offset, (Long) size);
 	}
 
-	private Object hint_call() {
-		return builder.hint_call();
+	/*
+	 * sem_varls
+	 */
+
+	@SuppressWarnings("unchecked")
+	private Object sem_varls_next(Object next, Object list) {
+		return builder.sem_varls_next((ILimitedVariable) next,
+				(IRReilCollection<ILimitedVariable>) list);
 	}
 
-	private Object hint_ret() {
-		return builder.hint_ret();
+	private Object sem_varls_init() {
+		return builder.sem_varls_init();
+	}
+
+	/*
+	 * sem_flop
+	 */
+
+	private Object sem_flop_fadd() {
+		return builder.sem_flop_fadd();
+	}
+
+	private Object sem_flop_fsub() {
+		return builder.sem_flop_fsub();
+	}
+
+	private Object sem_flop_fmul() {
+		return builder.sem_flop_fmul();
+	}
+
+	/*
+	 * sem_prim
+	 */
+
+	@SuppressWarnings("unchecked")
+	private Object sem_prim_generic(String op, Object res, Object args) {
+		return builder.sem_prim_generic(op,
+				(IRReilCollection<ILimitedVariable>) res,
+				(IRReilCollection<ILimitedVariable>) args);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object sem_prim_flop(Object op, Object flags, Object res,
+			Object args) {
+		return builder.sem_prim_flop((IFlop) op, (IVariable) flags,
+				(ILimitedVariable) res,
+				(IRReilCollection<ILimitedVariable>) args);
 	}
 
 	/*
@@ -501,6 +575,26 @@ public class NativeInterface {
 		return builder.sem_branch((IBranchHint) branch_hint, (IAddress) target);
 	}
 
+	private Object sem_prim(Object prim) {
+		return builder.sem_prim((IPrim) prim);
+	}
+
+	/*
+	 * sem_branch_hint
+	 */
+
+	private Object hint_jump() {
+		return builder.hint_jump();
+	}
+
+	private Object hint_call() {
+		return builder.hint_call();
+	}
+
+	private Object hint_ret() {
+		return builder.hint_ret();
+	}
+
 	/*
 	 * sem_stmts
 	 */
@@ -514,4 +608,10 @@ public class NativeInterface {
 	}
 
 	private native Object decodeAndTranslateNative(byte[] bytes);
+
+	private native String[] getBackendsNative();
+
+	private native void useBackendNative(String backend);
+
+	private native void closeBackendNative();
 }

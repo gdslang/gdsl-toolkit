@@ -16,6 +16,7 @@
 #include <tbgen.h>
 #include <stack.h>
 #include <util.h>
+#include <simulator/regacc.h>
 #include <executor.h>
 
 //#define DRYRUN
@@ -33,12 +34,43 @@ void executor_rflags_clean(struct context *context) {
 	}
 }
 
+static uint8_t read_flag(struct context *context, uint8_t flag) {
+	uint64_t *fp = (uint64_t*)context->x86_registers[X86_ID_FLAGS].data;
+	return ((*fp) >> flag) & 1;
+}
+
+void executor_virt_calc(struct context *context) {
+	struct data data;
+	data.bit_length = 1;
+	uint8_t flag;
+	data.data = &flag;
+	uint8_t one = 1;
+	data.defined = &one;
+
+	if(context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_CARRY
+			&& context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_ZERO) {
+		flag = read_flag(context, X86_FLAGS_CARRY) | read_flag(context, X86_FLAGS_ZERO);
+		simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LEU], data, 0);
+	}
+
+	if(context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_SIGN
+			&& context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_OVERFLOW) {
+		flag = read_flag(context, X86_FLAGS_SIGN) != read_flag(context, X86_FLAGS_OVERFLOW);
+		simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LTS], data, 0);
+	}
+
+	if(context->x86_registers[X86_ID_FLAGS].bit_length > X86_FLAGS_ZERO) {
+		flag = context->x86_registers[X86_ID_VIRT_LTS].data[0] | read_flag(context, X86_FLAGS_ZERO);
+		simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LES], data, 0);
+	}
+}
+
 struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, size_t instruction_length,
 		struct tracking_trace *trace, struct context *context, void **memory, void **next_instruction_address,
 		char test_unused) {
 	struct tbgen_result tbgen_result = tbgen_code_generate(instruction, instruction_length, trace, context, test_unused);
 	*memory = mmap(NULL, tbgen_result.buffer_length,
-			PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
 	memcpy(*memory, tbgen_result.buffer, tbgen_result.buffer_length);
 	*next_instruction_address = *memory + tbgen_result.instruction_offset + instruction_length;
 	return tbgen_result;
@@ -222,9 +254,9 @@ struct execution_result executor_instruction_execute(uint8_t *instruction, size_
 
 #ifndef DRYRUN
 	if(!setjmp(jbuf))
-		((void (*)(void))code)();
+	((void (*)(void))code)();
 	else
-		result.type = EXECUTION_RTYPE_SIGNAL;
+	result.type = EXECUTION_RTYPE_SIGNAL;
 #endif
 
 	alarm(0);
@@ -242,6 +274,8 @@ struct execution_result executor_instruction_execute(uint8_t *instruction, size_
 
 	unmap_all: unmap_all(mappings);
 	stack_free(mappings);
+
+	executor_virt_calc(context);
 
 	return result;
 }

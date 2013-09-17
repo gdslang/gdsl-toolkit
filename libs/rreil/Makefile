@@ -11,14 +11,14 @@ endif
 CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
 LIBRARY=librreil.a
-SOURCES=memory.c context.c rreil/free.c rreil/print.c rreil/copy.c rreil/rreil_id.c rreil/gdrr_builder.c simulator/ops.c simulator/regacc.c simulator/simulator.c simulator/tracking.o
+SOURCES=rreil/free.c rreil/print.c rreil/copy.c rreil/rreil_id.c rreil/gdrr_builder.c
 
 all: pre-build $(LIBRARY)
 
 SPRE=src
 BPRE=build
 
-BDIRS=$(BPRE) $(BPRE)/rreil $(BPRE)/simulator
+BDIRS=$(BPRE) $(BPRE)/rreil
 pre-build:
 	mkdir -p $(BDIRS)
 

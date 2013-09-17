@@ -725,7 +725,7 @@ structure C1 = struct
    and emitPrim s (GETSTATEprim, [],_) = str "s->state"
      | emitPrim s (SETSTATEprim, [e],_) = seq [str "s->state = ", emitExp s e]
      | emitPrim s (SEEKprim, [e],_) = seq [str "gdsl_seek(s, ", emitExp s e, str ")"]
-     | emitPrim s (RSEEKprim, [e],_) = seq [str "gdsl_rseek(s, ", emitExp s e, str ")"]
+     (*| emitPrim s (RSEEKprim, [e],_) = seq [str "gdsl_rseek(s, ", emitExp s e, str ")"]*)
      | emitPrim s (DIVprim, [e1, e2],_) = seq [str "(", emitExp s e1, str ")/(", emitExp s e2, str ")"]
      | emitPrim s (IPGETprim, [],_) = str "gdsl_get_ip_offset(s)"
      | emitPrim s (CONSUME8prim, [],_) = str "consume8(s)"
@@ -1037,7 +1037,7 @@ structure C1 = struct
                C1Templates.mkHook ("set_code", str (prefix ^ "set_code")),
                C1Templates.mkHook ("get_ip_offset", str (prefix ^ "get_ip_offset")),
                C1Templates.mkHook ("seek", str (prefix ^ "seek")),
-               C1Templates.mkHook ("rseek", str (prefix ^ "rseek")),
+               (*C1Templates.mkHook ("rseek", str (prefix ^ "rseek")),*)
                C1Templates.mkHook ("err_tgt", str (prefix ^ "err_tgt")),
                C1Templates.mkHook ("get_error_message", str (prefix ^ "get_error_message")),
                C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),
@@ -1056,7 +1056,7 @@ structure C1 = struct
                C1Templates.mkHook ("set_code", str (prefix ^ "set_code")),
                C1Templates.mkHook ("get_ip_offset", str (prefix ^ "get_ip_offset")),
                C1Templates.mkHook ("seek", str (prefix ^ "seek")),
-               C1Templates.mkHook ("rseek", str (prefix ^ "rseek")),
+               (*C1Templates.mkHook ("rseek", str (prefix ^ "rseek")),*)
                C1Templates.mkHook ("err_tgt", str (prefix ^ "err_tgt")),
                C1Templates.mkHook ("get_error_message", str (prefix ^ "get_error_message")),
                C1Templates.mkHook ("reset_heap", str (prefix ^ "reset_heap")),

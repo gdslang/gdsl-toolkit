@@ -1,5 +1,5 @@
 granularity = 8
-export = decode features-get{features}
+export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features}
 
 # Optional arguments
 #
@@ -15,15 +15,23 @@ export = decode features-get{features}
 # limit = 120
 # recursion-depth = p64 = 4
 
-val decode = do
+val config-default            = '11'
+val config-mode64             = '01'
+val config-default-opnd-sz-32 = '10'
+
+val test-opt opt config = if (zx (opt and config)) > 0 then '1' else '0'
+
+val decode config = do
    update @{tab=void};
-   main
+   main config
 end
 
-val main = do
+val force-int-for-decode-config = decode config-default
+
+val main config = do
    t <- query $tab;
    update
-      @{mode64='1',
+      @{mode64=test-opt config-mode64 config,
         repne='0',
         rep='0',
         rex='0',
@@ -35,7 +43,7 @@ val main = do
         opndsz='0',
         lock='0',
         segment=SEG_NONE,
-	      default-operand-size=32,
+	      default-operand-size=if test-opt config-mode64 config then 32 else 16,
         ptrty=32, #TODO: check
         ~tab};
    instr <- p64;

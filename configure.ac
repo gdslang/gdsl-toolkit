@@ -1,12 +1,13 @@
 dnl configure file for the GDSL compiler and the decoders shipped with it
 AC_INIT([gdsl], [0.9.0], [http://code.google.com/p/gdsl-toolkit/], [gdsl-toolkit])
 
-AM_INIT_AUTOMAKE([no-dependencies -Wall -Werror foreign no-define])
+AM_INIT_AUTOMAKE([no-dependencies -Wall foreign no-define])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([LICENSE])
 
-AC_PROG_CC()
+AM_PROG_CC_C_O()
+AM_PROG_AR()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()
 
@@ -71,12 +72,17 @@ case $with_frontend in
 	*-rreil) has_rreil=yes;;
 	*) has_rreil=no;;
 esac
+case $with-frontend in
+	x86*) has_x86=yes;;
+	*) has_x86=no;;
+esac
 
 AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil])
 AM_CONDITIONAL([X86],[test x$with_frontend = xx86])
 AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil])
 AM_CONDITIONAL([AVR],[test x$with_frontend = xavr])
-AM_CONDITIONAL([RREIL],[test x$has_rreil = xyes])
+AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes])
+AM_CONDITIONAL([HAVE_X86], [test x$has_x86 = xyes])
 
 dnl check if the helper executables should be build and/or installed
 AC_ARG_ENABLE([install-auxbins],

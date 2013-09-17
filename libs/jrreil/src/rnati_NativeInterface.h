@@ -12,8 +12,11 @@ extern "C" {
  * Method:    decodeAndTranslateNative
  * Signature: ([B)Ljava/lang/Object;
  */
-JNIEXPORT jobject JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative
-  (JNIEnv *, jobject, jbyteArray);
+JNIEXPORT jobject JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *, jobject, jbyteArray);
+
+JNIEXPORT jobjectArray JNICALL Java_rnati_NativeInterface_getBackendsNative(JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_rnati_NativeInterface_useBackendNative(JNIEnv *, jobject, jstring);
+JNIEXPORT void JNICALL Java_rnati_NativeInterface_closeBackendNative(JNIEnv *, jobject);
 
 #ifdef __cplusplus
 }

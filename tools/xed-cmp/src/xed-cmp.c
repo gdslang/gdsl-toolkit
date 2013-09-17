@@ -56,11 +56,10 @@ static struct decode_result xed_decode_blob(unsigned char *blob, size_t size) {
 		result.decoded++;
 	} while(len > 0 && size > 0);
 	clock_gettime(CLOCK_REALTIME, &end);
-	result.time = end.tv_sec*NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec*NANOS;
+	result.time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
 
 	return result;
 }
-
 
 static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 	struct decode_result result;
@@ -79,7 +78,7 @@ static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 //			result.invalid++;
 			break;
 		}
-		obj_t insn = gdsl_decode(state);
+		obj_t insn = gdsl_decode(state, gdsl_config_mode64(state) | gdsl_config_default_opnd_sz_32(state));
 
 		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);
@@ -92,11 +91,10 @@ static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 
 	gdsl_destroy(state);
 
-	result.time = end.tv_sec*NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec*NANOS;
+	result.time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
 
 	return result;
 }
-
 
 int main(int argc, char** argv) {
 	if(argc < 2)

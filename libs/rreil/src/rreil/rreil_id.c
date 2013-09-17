@@ -13,8 +13,8 @@ char rreil_id_equals(struct rreil_id *a, struct rreil_id *b) {
 	if(a->type != b->type)
 		return 0;
 	switch(a->type) {
-		case RREIL_ID_TYPE_VIRTUAL: {
-			return a->virtual_ == b->virtual_;
+		case RREIL_ID_TYPE_SHARED: {
+			return a->shared == b->shared;
 		}
 		case RREIL_ID_TYPE_TEMPORARY: {
 			return a->temporary == b->temporary;

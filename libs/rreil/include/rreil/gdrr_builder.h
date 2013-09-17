@@ -10,6 +10,6 @@
 
 #include <gdsl.h>
 
-struct gdrr_config *rreil_gdrr_builder_config_get(state_t state);
+callbacks_t rreil_gdrr_builder_callbacks_get(state_t state);
 
 #endif /* RREIL_GDRR_BUILDER_H_ */

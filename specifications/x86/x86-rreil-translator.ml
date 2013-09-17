@@ -49,6 +49,8 @@ val sizeof-flow target =
    | REL16 x: return 16
    | REL32 x: return 32
    | REL64 x: return 64
+   | PTR16/16 x: return 32
+   | PTR16/32 x: return 48
    | NEARABS x: sizeof1 x
    | FARABS x: sizeof1 x
   end
@@ -229,6 +231,8 @@ val read-flow sz x =
        | REL16 x: conv-bv x
        | REL32 x: conv-bv x
        | REL64 x: conv-bv x
+       | PTR16/16 x: conv-bv x
+       | PTR16/32 x: conv-bv x
        | NEARABS x: read sz x
        | FARABS x: read sz x
       end
@@ -464,6 +468,7 @@ val sem-undef-arity-ge1 x = do
   case x.opnd1 of
      REG r: undef-opnd x.opnd1
    | MEM m: undef-opnd x.opnd1
+   | _: return void
   end
 end
 
@@ -943,7 +948,7 @@ val semantics insn =
    | EXTRACTPS x: sem-undef-arity3 x
    | F2XM1 x: sem-undef-arity0 x
    | FABS x: sem-undef-arity0 x
-   | FADD x: sem-undef-arity2 x
+   | FADD x: sem-fadd x
    | FADDP x: sem-undef-arity2 x
    | FBLD x: sem-undef-arity1 x
    | FBSTP x: sem-undef-arity1 x
@@ -2120,40 +2125,40 @@ val translate-bottom-up insn =
       return stack
    end
 
-val transInstr = do
+val transInstr config = do
    ic <- query $ins_count;
    update@{tmp=0,ins_count=ic+1};
-   insn <- decode;
+   insn <- decode config;
    semantics insn
 end
 
-val transBlock = do
-   transInstr;
+val transBlock config = do
+   transInstr config;
    jmp <- query $foundJump;
    #ic <- query $ins_count;
-   #if jmp or ic>1000 then query $stack else transBlock
-   if jmp then query $stack else transBlock
+   #if jmp or ic>1000 then query $stack else transBlock config
+   if jmp then query $stack else transBlock config
 end
 
-val translateBlock = do
-   update @{ins_count=0,mode64='1'};
+val translateBlock config = do
+   update @{ins_count=0};
    update@{stack=SEM_NIL,foundJump='0'};
    # the type checker is does not instanitate types of decoders; what seemed to be
    # a fine specialization turns out to be a bad idea since records need to be
    # newly instantiated
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock;
+	 stmts <- transBlock config;
    return (rreil-stmts-rev stmts)
 end
 
-val translateSingle = do
+val translateSingle config = do
    update @{ins_count=0,mode64='1'};
    update@{stack=SEM_NIL,foundJump='0'};
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
 
-   transInstr;
+   transInstr config;
    jmp <- query $foundJump;
    stmts <- query $stack;
 
@@ -2214,12 +2219,13 @@ type stmts_option =
 
 type translate-result = {insns:int, succ_a:int, succ_b:int}
 
-val translateSuperBlock = let
+val translateSuperBlock config = let
   val translate-block-at idx = do
 	  current <- idxget;
-		error <- rseek idx;
+		#error <- rseek idx;
+		error <- seek (current + idx);
 		result <- if error === 0 then do
-		  stmts <- translateBlock;
+		  stmts <- translateBlock config;
 		  seek current;
 			return (SO_SOME stmts)
 		end else
@@ -2240,7 +2246,7 @@ in do
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock;
+	 stmts <- transBlock config;
 
    ic <- query $ins_count;
 

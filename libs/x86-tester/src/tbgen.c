@@ -534,6 +534,11 @@ static void prepare_reg(void *closure, enum x86_id reg) {
 		case X86_ID_IP: {
 			break;
 		}
+		case X86_ID_VIRT_LES:
+		case X86_ID_VIRT_LEU:
+		case X86_ID_VIRT_LTS: {
+			break;
+		}
 		default: {
 			tbgen_mov_memory_to_register_generate(cls->stream, reg, (uint64_t*)&cls->context->x86_registers[reg].data, cls->t0);
 			break;
@@ -555,6 +560,11 @@ static void write_back_reg(void *closure, enum x86_id reg) {
 	switch(reg) {
 		case X86_ID_FLAGS: {
 			tbgen_mov_rflags_to_memory_generate(cls->stream, (uint64_t*)&cls->context->x86_registers[reg].data, cls->t0, cls->t1, cls->allocation);
+			break;
+		}
+		case X86_ID_VIRT_LES:
+		case X86_ID_VIRT_LEU:
+		case X86_ID_VIRT_LTS: {
 			break;
 		}
 		case X86_ID_IP: {

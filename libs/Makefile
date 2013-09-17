@@ -1,12 +1,12 @@
-LIBS=util gdwrap readhex gdrr rreil jrreil
+LIBS=util gdsl-multiplex gdwrap readhex rreil jrreil
 
-ifndef MANAGED
-GDSL_AVR:=1
-GDSL_X86:=1
-endif
+#ifndef MANAGED
+#GDSL_AVR:=1
+#GDSL_X86:=1
+#endif
 
 ifdef GDSL_X86
-LIBS+=x86 x86-tester x86-generator 
+LIBS+=x86 rreil-sim x86-tester x86-generator 
 endif
 
 .PHONY all: $(LIBS)

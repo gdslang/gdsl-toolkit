@@ -150,6 +150,40 @@ void rreil_variable_free(struct rreil_variable *variable) {
 	free(variable);
 }
 
+void rreil_variable_limited_free(struct rreil_variable_limited *varl) {
+	rreil_id_free(varl->id);
+	free(varl);
+}
+
+void rreil_variable_limited_tuple_free(struct rreil_variable_limited_tuple *varls) {
+	for (size_t i = 0; i < varls->variables_length; ++i)
+		rreil_variable_limited_free(varls->variables[i]);
+	free(varls->variables);
+	free(varls);
+}
+
+void rreil_flop_free(enum rreil_flop *flop) {
+	free(flop);
+}
+
+void rreil_prim_free(struct rreil_prim *prim) {
+	switch(prim->type) {
+		case RREIL_PRIM_TYPE_GENERIC: {
+			//prim->generic.op: allocated on GDSL heap
+			rreil_variable_limited_tuple_free(prim->generic.res);
+			rreil_variable_limited_tuple_free(prim->generic.args);
+			break;
+		}
+		case RREIL_PRIM_TYPE_FLOP: {
+			rreil_flop_free(prim->flop.op);
+			rreil_variable_free(prim->flop.flags);
+			rreil_variable_limited_free(prim->flop.res);
+			rreil_variable_limited_tuple_free(prim->flop.args);
+		}
+	}
+	free(prim);
+}
+
 void rreil_statement_free(struct rreil_statement *statement) {
 	switch (statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
@@ -187,6 +221,10 @@ void rreil_statement_free(struct rreil_statement *statement) {
 		case RREIL_STATEMENT_TYPE_BRANCH: {
 			rreil_branch_hint_free(statement->branch.hint);
 			rreil_address_free(statement->branch.target);
+			break;
+		}
+		case RREIL_STATEMENT_TYPE_PRIM: {
+			rreil_prim_free(statement->prim);
 			break;
 		}
 	}

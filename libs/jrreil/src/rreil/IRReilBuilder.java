@@ -4,6 +4,7 @@ import rreil.id.IId;
 import rreil.linear.ILinearExpression;
 import rreil.operation.ICompareOperation;
 import rreil.operation.IOperation;
+import rreil.prim.IPrim;
 import rreil.sexpression.ISimpleExpression;
 import rreil.statement.IStatement;
 
@@ -12,6 +13,8 @@ public interface IRReilBuilder {
 	 * sem_id
 	 */
 
+	IId shared_floating_flags();
+	
 //	IId virt_eq();
 //
 //	IId virt_neq();
@@ -243,7 +246,61 @@ public interface IRReilBuilder {
 	IOperation sem_cmp(ICompareOperation _this);
 	
 	IOperation sem_arb(long size);
+	
+	/*
+	 * sem_varl
+	 */
+	
+	ILimitedVariable sem_varl(IId id, long offset, long size);
+	
+	/*
+	 * sem_varls
+	 */
+	
+	IRReilCollection<ILimitedVariable> sem_varls_next(ILimitedVariable next, IRReilCollection<ILimitedVariable> list);
 
+	IRReilCollection<ILimitedVariable> sem_varls_init();
+	
+	/*
+	 * sem_flop
+	 */
+	
+	IFlop sem_flop_fadd();
+	
+	IFlop sem_flop_fsub();
+	
+	IFlop sem_flop_fmul();
+	
+	/*
+	 * sem_prim
+	 */
+	
+	IPrim sem_prim_generic(String op, IRReilCollection<ILimitedVariable> res, IRReilCollection<ILimitedVariable> args);
+
+	IPrim sem_prim_flop(IFlop op, IVariable flags, ILimitedVariable res, IRReilCollection<ILimitedVariable> args);
+	
+	/*
+	 * sem_stmt
+	 */
+
+	IStatement sem_assign(IVariable lhs, IOperation rhs);
+
+	IStatement sem_load(IVariable lhs, long size, IAddress address);
+
+	IStatement sem_store(IAddress address, IOperation rhs);
+
+	IStatement sem_ite(ISimpleExpression cond, IRReilCollection<IStatement> then_branch,
+			IRReilCollection<IStatement> else_branch);
+
+	IStatement sem_while(ISimpleExpression cond, IRReilCollection<IStatement> body);
+
+	IStatement sem_cbranch(ISimpleExpression cond, IAddress target_true,
+			IAddress target_false);
+
+	IStatement sem_branch(IBranchHint branch_hint, IAddress target);
+	
+	IStatement sem_prim(IPrim prim);
+	
 	/*
 	 * sem_branch_hint
 	 */
@@ -255,30 +312,10 @@ public interface IRReilBuilder {
 	IBranchHint hint_ret();
 
 	/*
-	 * sem_stmt
-	 */
-
-	IStatement sem_assign(IVariable lhs, IOperation rhs);
-
-	IStatement sem_load(IVariable lhs, long size, IAddress address);
-
-	IStatement sem_store(IAddress address, IOperation rhs);
-
-	IStatement sem_ite(ISimpleExpression cond, IRReilCollection then_branch,
-			IRReilCollection else_branch);
-
-	IStatement sem_while(ISimpleExpression cond, IRReilCollection body);
-
-	IStatement sem_cbranch(ISimpleExpression cond, IAddress target_true,
-			IAddress target_false);
-
-	IStatement sem_branch(IBranchHint branch_hint, IAddress target);
-
-	/*
 	 * sem_stmts
 	 */
 
-	IRReilCollection list_next(IStatement next, IRReilCollection list);
+	IRReilCollection<IStatement> list_next(IStatement next, IRReilCollection<IStatement> list);
 
-	IRReilCollection list_init();
+	IRReilCollection<IStatement> list_init();
 }

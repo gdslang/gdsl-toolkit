@@ -1,11 +1,9 @@
 package rreil;
 
-import rreil.statement.IStatement;
-
-public interface IRReilCollection {
-	void add(IStatement s);
+public interface IRReilCollection<T> {
+	void add(T s);
 	
-	IStatement get(int i);
+	T get(int i);
 	
 	int size();
 }

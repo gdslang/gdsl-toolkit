@@ -204,6 +204,59 @@ struct rreil_variable *rreil_variable_copy(struct rreil_variable *variable) {
 	return variable_copy;
 }
 
+struct rreil_variable_limited *rreil_variable_limited_copy(struct rreil_variable_limited *varl) {
+	struct rreil_variable_limited *varl_copy = (struct rreil_variable_limited*)malloc(sizeof(struct rreil_variable_limited));
+
+	varl_copy->id = rreil_id_copy(varl->id);
+	varl_copy->offset = varl->offset;
+	varl_copy->size = varl->size;
+
+	return varl_copy;
+}
+
+struct rreil_variable_limited_tuple *rreil_variable_limited_tuple_copy(struct rreil_variable_limited_tuple *varls) {
+	struct rreil_variable_limited_tuple *varls_copy = (struct rreil_variable_limited_tuple*)malloc(sizeof(struct rreil_variable_limited_tuple));
+
+	varls_copy->variables_length = varls->variables_length;
+	varls_copy->variables_size = varls->variables_size;
+	varls_copy->variables = (struct rreil_variable_limited**)malloc(sizeof(struct rreil_variable_limited*)*varls_copy->variables_size);
+	for (size_t i = 0; i < varls->variables_length; ++i)
+		varls_copy->variables[i] = rreil_variable_limited_copy(varls->variables[i]);
+
+	return varls_copy;
+}
+
+enum rreil_flop *rreil_flop_copy(enum rreil_flop *flop) {
+	enum rreil_flop *flop_copy = (enum rreil_flop*)malloc(sizeof(enum rreil_flop));
+
+	*flop_copy = *flop;
+
+	return flop_copy;
+}
+
+struct rreil_prim *rreil_prim_copy(struct rreil_prim *prim) {
+	struct rreil_prim *prim_copy = (struct rreil_prim*)malloc(sizeof(struct rreil_prim));
+
+	prim_copy->type = prim->type;
+
+	switch (prim->type) {
+		case RREIL_PRIM_TYPE_GENERIC: {
+			prim_copy->generic.op = prim->generic.op; //String allocated on GDSL heap
+			prim_copy->generic.res = rreil_variable_limited_tuple_copy(prim->generic.res);
+			prim_copy->generic.args = rreil_variable_limited_tuple_copy(prim->generic.args);
+			break;
+		}
+		case RREIL_PRIM_TYPE_FLOP: {
+			prim_copy->flop.op = rreil_flop_copy(prim->flop.op);
+			prim_copy->flop.res = rreil_variable_limited_copy(prim->flop.res);
+			prim_copy->flop.args = rreil_variable_limited_tuple_copy(prim->flop.args);
+			break;
+		}
+	}
+
+	return prim_copy;
+}
+
 struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) {
 	struct rreil_statement *statement_copy = (struct rreil_statement*)malloc(sizeof(struct rreil_statement));
 
@@ -246,6 +299,10 @@ struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) 
 		case RREIL_STATEMENT_TYPE_BRANCH: {
 			statement_copy->branch.hint = rreil_branch_hint_copy(statement->branch.hint);
 			statement_copy->branch.target = rreil_address_copy(statement->branch.target);
+			break;
+		}
+		case RREIL_STATEMENT_TYPE_PRIM: {
+			statement_copy->prim = rreil_prim_copy(statement->prim);
 			break;
 		}
 	}

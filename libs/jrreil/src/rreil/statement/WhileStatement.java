@@ -1,6 +1,6 @@
 package rreil.statement;
 
-import rreil.DefaultRReilCollection;
+import rreil.DefaultStatementCollection;
 import rreil.sexpression.SimpleExpression;
 
 public class WhileStatement extends Statement {
@@ -10,14 +10,14 @@ public class WhileStatement extends Statement {
 		return condition;
 	}
 
-	protected DefaultRReilCollection body;
+	protected DefaultStatementCollection body;
 
-	public DefaultRReilCollection getBody() {
+	public DefaultStatementCollection getBody() {
 		return body;
 	}
 
 	public WhileStatement(SimpleExpression condition,
-			DefaultRReilCollection body) {
+			DefaultStatementCollection body) {
 		this.body = body;
 	}
 

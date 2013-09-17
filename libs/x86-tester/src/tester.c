@@ -14,7 +14,6 @@
 #include <unistd.h>
 #include <rreil/rreil.h>
 #include <rreil/gdrr_builder.h>
-#include <gdrr.h>
 #include <x86.h>
 #include <simulator/simulator.h>
 #include <simulator/regacc.h>
@@ -100,6 +99,7 @@ static void registers_x86_rreil_init(struct context *context_rreil, struct track
 	}
 
 	executor_rflags_clean(context_rreil);
+	executor_virt_calc(context_rreil);
 }
 
 static void ip_set(struct context *context_rreil, struct context *context_cpu, void *next_instruction_address) {
@@ -160,9 +160,6 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	struct tracking_trace *trace = tracking_trace_init();
 
 	struct context_callback_closure cls;
-	cls.context_cpu = context_cpu;
-	cls.context_rreil = context_rreil;
-	cls.trace = trace;
 
 	context_rreil = context_init(&load, &store, &jump, &cls);
 
@@ -180,6 +177,10 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	registers_x86_rreil_init(context_rreil, trace, test_unused);
 
 	context_cpu = context_copy(context_rreil);
+
+	cls.context_cpu = context_cpu;
+	cls.context_rreil = context_rreil;
+	cls.trace = trace;
 
 	void *code;
 	void *next_instruction_address;
@@ -315,9 +316,10 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 		goto cu;
 	}
 
-	struct gdrr_config *config = rreil_gdrr_builder_config_get(state);
-	struct rreil_statements *statements = (struct rreil_statements*)gdrr_convert(rreil, config);
-	free(config);
+	callbacks_t callbacks = rreil_gdrr_builder_callbacks_get(state);
+	struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmts(state, callbacks,
+			rreil);
+	free(callbacks);
 
 	result = tester_forked_test_translated(fork_, statements, data, data_size, test_unused);
 
