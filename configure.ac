@@ -72,7 +72,7 @@ case $with_frontend in
 	*-rreil) has_rreil=yes;;
 	*) has_rreil=no;;
 esac
-case $with-frontend in
+case $with_frontend in
 	x86*) has_x86=yes;;
 	*) has_x86=no;;
 esac
