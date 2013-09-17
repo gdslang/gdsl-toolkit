@@ -44,38 +44,38 @@ AM_CONDITIONAL([INSTALL_GDSLC],[test x$enable_install_gdslc = xyes])
 
 dnl conditionals for the various decoders, either with or without semantics
 
-BACKENDS="x86 x86-rreil avr avr-rreil";
+FRONTENDS="x86 x86-rreil avr avr-rreil";
 
-AC_ARG_WITH([decoder],
+AC_ARG_WITH([frontend],
   [AS_HELP_STRING(
-    [--with-decoder=backend],
-    [one of: $BACKENDS])],
-  [], [with_decoder=x86-rreil])
+    [--with-frontend=frontend],
+    [one of: ]$FRONTENDS)],
+  [], [with_frontend=x86-rreil])
 
-case $with_decoder in
+case $with_frontend in
 	x86)
 		AC_DEFINE([USE_X86],[1],[build x86 bare decoder])
-	 	with_decoder=x86;;
+	 	with_frontend=x86;;
 	x86-rreil)
 		AC_DEFINE([USE_X86_RREIL],[1],[build x86 decoder and RReil semantics])
-		with_decoder=x86-rreil;;
+		with_frontend=x86-rreil;;
 	avr)
 		AC_DEFINE([USE_AVR],[1],[build AVR bare decoder])
-		with_decoder=avr;;
+		with_frontend=avr;;
 	avr-rreil)
 		AC_DEFINE([USE_AVR_RREIL],[1],[build AVR decoder and RReil semantics])
-		with_decoder=avr-rreil;;
-	*) AC_MSG_FAILURE([invalid backend, choose one of $BACKENDS]);;
+		with_frontend=avr-rreil;;
+	*) AC_MSG_FAILURE([invalid frontend, choose one of ]$FRONTENDS);;
 esac
-case $with_decoder in
+case $with_frontend in
 	*-rreil) has_rreil=yes;;
 	*) has_rreil=no;;
 esac
 
-AM_CONDITIONAL([X86_RREIL],[test x$with_decoder = xx86-rreil])
-AM_CONDITIONAL([X86],[test x$with_decoder = xx86])
-AM_CONDITIONAL([AVR_RREIL],[test x$with_decoder = xavr-rreil])
-AM_CONDITIONAL([AVR],[test x$with_decoder = xavr])
+AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil])
+AM_CONDITIONAL([X86],[test x$with_frontend = xx86])
+AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil])
+AM_CONDITIONAL([AVR],[test x$with_frontend = xavr])
 AM_CONDITIONAL([RREIL],[test x$has_rreil = xyes])
 
 dnl check if the helper executables should be build and/or installed
@@ -123,7 +123,7 @@ cat <<EOF
 GDSL toolkit configuration:
   directory prefix:             $prefix
   C flags:                      $CFLAGS
-  decoder to build:          	$with_decoder
+  front-end to build:          	$with_frontend
   install compiler:             $enable_install_gdslc
   build auxiliary libraries:    $enable_build_auxlibs
   install auxiliary libraries:  $enable_install_auxlibs
