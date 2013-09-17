@@ -70,7 +70,7 @@ struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, s
 		char test_unused) {
 	struct tbgen_result tbgen_result = tbgen_code_generate(instruction, instruction_length, trace, context, test_unused);
 	*memory = mmap(NULL, tbgen_result.buffer_length,
-	PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, 0, 0);
+	PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, 0, 0);
 	memcpy(*memory, tbgen_result.buffer, tbgen_result.buffer_length);
 	*next_instruction_address = *memory + tbgen_result.instruction_offset + instruction_length;
 	return tbgen_result;
@@ -96,7 +96,7 @@ static char map(struct stack *mappings, void *address, size_t size) {
 	page_address_size_get(&address, &size);
 
 	uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-	MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, 0, 0);
+	MAP_PRIVATE | MAP_ANON | MAP_FIXED, 0, 0);
 
 	struct mapping *mapping = (struct mapping*)malloc(sizeof(struct mapping));
 	mapping->address = mem_real;
