@@ -371,14 +371,14 @@ done:
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (argc>1) {
 #if defined(gdsl_translateBlock) && defined(gdsl_rreil_pretty)
-        obj_t rreil = gdsl_translateBlock(s);
+        obj_t rreil = gdsl_translateBlock(s, gdsl_config_default(s));
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
 #endif
       } else {
 #if defined(gdsl_decode) && defined(gdsl_pretty)
-        obj_t instr = gdsl_decode(s);
+        obj_t instr = gdsl_decode(s, gdsl_config_default(s));
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
@@ -387,7 +387,7 @@ done:
     } else {
       fputs("exception: ",stdout);
       fputs(gdsl_get_error_message(s),stdout);
-      consume8(s);
+			if (gdsl_get_ip_offset(s)<buf_size) consume8(s);
     }
     fputs("\n",stdout);
     int_t size = gdsl_heap_residency(s);

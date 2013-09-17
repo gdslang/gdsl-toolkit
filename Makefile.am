@@ -141,7 +141,7 @@ gdslc_SOURCES = gdslc.mlb $(GDSLC_SML_FILES)
 	$(MLANTLR) $<
 
 GDSLC = $(abspath $(CURDIR)/gdslc$(EXEEXT))
-GDSLC_DEP = gdslc$(EXEEXT)
+GDSLC_DEP = gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
 
 # the decoders
 
