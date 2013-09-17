@@ -1,4 +1,4 @@
-export = rreil-sem-stmts-head rreil-sem-stmts-tail rreil-sem-stmts-has-more rreil-sem-varls-head rreil-sem-varls-tail rreil-sem-varls-has-more rreil-cif-userdata-set rreil-cif-userdata-get rreil-convert-sem-varl rreil-convert-sem-stmt-manual rreil-convert-sem-stmts
+export = rreil-sem-stmts-head rreil-sem-stmts-tail rreil-sem-stmts-has-more rreil-sem-varls-head rreil-sem-varls-tail rreil-sem-varls-has-more rreil-cif-userdata-set rreil-cif-userdata-get{userdata} rreil-convert-sem-varl rreil-convert-sem-stmt-manual rreil-convert-sem-stmts
 
 #type callbacks =
 #   SEM_ID_CBS of {virt_na:string_, virt_t:string_}

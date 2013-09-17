@@ -1,4 +1,4 @@
-export = select_ins_count select_live
+export = select_ins_count{ins_count} select_live{live}
 
 #export = con_index state_get select_succ_a select_succ_b select_insns select_ins_count select_live select_initial select_after select_hd select_tl
 #val con_index c = index c

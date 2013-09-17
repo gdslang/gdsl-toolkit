@@ -122,12 +122,8 @@ GDSLC_SML_FILES = \
 
 JAR=jrreil.jar
 
-.PHONY: %.mlb
-
-%.mlb : $(GDSLC_SML_FILES)
-
-gdslc$(EXEEXT) : gdslc.mlb
-	$(MLTON) $(MLFLAGS) -output $@ $<
+gdslc$(EXEEXT) : gdslc.mlb $(GDSLC_SML_FILES)
+	$(MLTON) $(MLFLAGS) -output $@ gdslc.mlb
 
 if INSTALL_GDSLC
 bin_PROGRAMS += gdslc
@@ -138,10 +134,10 @@ endif
 gdslc_MAIN = $(gdslc_SOURCES)
 gdslc_SOURCES = gdslc.mlb $(GDSLC_SML_FILES)
 
-*.l.sml	: *.l
+%.l.sml	: %.l
 	$(MLULEX) $<
 
-*.g.sml	: *.g
+%.g.sml	: %.g
 	$(MLANTLR) $<
 
 GDSLC = $(abspath $(CURDIR)/gdslc$(EXEEXT))
