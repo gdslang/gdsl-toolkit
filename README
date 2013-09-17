@@ -1,41 +1,45 @@
-In order to compile and run the x86 decoder, RREIL translator, and liveness analysis program (which is called "liveness analyzer" from now on) follow the steps below.
+In order to build the decoder and semantics translations (for x86 or Atmel
+AVR) and to test the liveness analysis follow the steps below.
 
 Dependencies
 
-The following software packages are needed to compile the liveness analyzer:
+The following software packages are needed to compile the liveness analysis:
 
-- Mlton (see http://www.mlton.org/) [>= SVN revision 7624]
-- clang (http://clang.llvm.org/) [>= version 3.0]
-- GNU make (http://www.gnu.org/software/make/) [any version]
+- Mlton (see http://www.mlton.org/) [version from 15/07/2013]
+- GNU autoconf and make
 - Libelf (http://www.mr511.de/software/) [>= version 0.152]
 
 Building the Application
 
-The following steps need to be taken in order to build the application. It is assumed that the GDSL root directory is the current working directory. First one needs to compile GDSL itself using Mlton:
+The following steps need to be taken in order to build the application. It is
+assumed that the GDSL root directory is the current working directory.
 
-mkdir lib
-mlton gdsl.mlb
+autoreconf -i
+./configure
+make
 
-Next all related sources written in GDSL need to be translated to C; in order to be able to later compile the liveness analyzer the following command needs to be executed:
+By default, the x86 decoder and semantic translation to RReil are built.
+Furthermore, there are a few supporting libraries and some demo applications
+that are by default built but not installed. In order to generate a different front-end pass the --with-frontend= option to ./configure.
 
-./gdsl @MLton fixed-heap 6g -- "specifications/basis/bbtree.ml" "specifications/rreil/rreil.ml" "specifications/rreil/fmap.ml" "specifications/x86/x86.ml" "specifications/x86/x86-rreil-registermapping.ml" "specifications/x86/x86-pretty.ml" "specifications/rreil/rreil-pretty.ml" "specifications/x86/x86-rreil-translator.ml" "specifications/x86/x86-rreil-translator-a-l.ml" "specifications/x86/x86-rreil-translator-m-z.ml" "specifications/rreil/rreil-liveness.ml" "specifications/x86/x86-liveness.ml"
-
-The compilation run outputs the two files dis.c and dis.h. In the next step the C code has to be compiled:
-
-clang -fPIC -c dis.c -o dis.o
+The sources of the decoders can be found under the specifications/ directory.
+In particular, the decoder for the x86 is in specifications/x86/x86.ml.
 
 The liveness analyzer itself is a small C program that uses the API offered by the GDSL modules. The following commands compile the liveness analyzer:
 
 cd specifications/x86/c
 make liveness-sweep
 
-The compilation outputs an executable file called "liveness-sweep". It analyzes a binary passed as command line argument:
+The compilation outputs an executable file called "liveness-sweep". It
+analyses a binary passed as command line argument:
 
 ./liveness-sweep liveness-example.bin
 
-The output should be self-explanatory. The above example file only contains a bunch of instructions to be decoded, translated and optimized. In case however one wishes to analyze the ".text" section of a standard ELF executable it
-also is possible to directly pass such a file:
+The above example file only contains a bunch of instructions to be decoded,
+translated and optimised. In case however one wishes to analyse the ".text"
+section of a standard ELF executable it also is possible to directly pass such
+a file:
 
-./liveness-sweep --elf examples/ls
+./liveness-sweep --elf `which ls`
 
-This command analyzes the binary belonging to the well-known "ls" command.
+This command analyses the binary of the "ls" command.
