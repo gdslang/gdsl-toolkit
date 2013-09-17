@@ -352,12 +352,22 @@ noinst_LTLIBRARIES += libreadhex.la libutil.la
 endif
 endif
 
-if X86_RREIL
+if HAVE_X86
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += libx86.la libx86-generator.la libx86-tester.la libgdwrap.la
+lib_LTLIBRARIES += libx86.la libx86-generator.la
 else
 if BUILD_AUXLIBS
-noinst_LTLIBRARIES += libx86.la libx86-generator.la libx86-tester.la libgdwrap.la
+noinst_LTLIBRARIES += libx86.la libx86-generator.la
+endif
+endif
+endif
+
+if X86_RREIL
+if INSTALL_AUXLIBS
+lib_LTLIBRARIES += libx86-tester.la libgdwrap.la
+else
+if BUILD_AUXLIBS
+noinst_LTLIBRARIES += libx86-tester.la libgdwrap.la
 endif
 endif
 endif

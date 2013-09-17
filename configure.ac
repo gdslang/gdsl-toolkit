@@ -109,6 +109,8 @@ AM_CONDITIONAL([INSTALL_AUXLIBS],[test x$enable_install_auxlibs = xyes])
 
 if test [x$enable_install_auxlibs = xyes] || test [x$enable_build_auxbins = xyes]; then
   default_build_auxlibs=yes;
+else
+  default_build_auxlibs=no;
 fi
 
 AC_ARG_ENABLE([build-auxlibs],
