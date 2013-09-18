@@ -58,7 +58,8 @@ structure C1 = struct
                   closureToFun : SymbolTable.symid SymMap.map,
                   recordMapping : Atom.atom AtomMap.map,
                   allocFuncs : int AtomMap.map ref,
-                  preDeclEmit : Layout.t list ref }
+                  preDeclEmit : Layout.t list ref,
+                  stateType : Imp.vtype ref }
 
    fun isVOIDvtype VOIDvtype = true
      | isVOIDvtype _ = false
@@ -196,7 +197,8 @@ structure C1 = struct
            closureToFun = #closureToFun s,
            allocFuncs = #allocFuncs s,
            recordMapping = #recordMapping s,
-           preDeclEmit = #preDeclEmit s } : state
+           preDeclEmit = #preDeclEmit s,
+           stateType = #stateType s } : state
       end
    fun registerSymbol (sym,s : state) = regSym (sym, !SymbolTables.varTable, s)
    fun registerFSymbol (sym,s : state) = regSym (sym, !SymbolTables.fieldTable, s)
@@ -213,7 +215,8 @@ structure C1 = struct
         closureToFun = #closureToFun s,
         allocFuncs = #allocFuncs s,
         recordMapping = #recordMapping s,
-        preDeclEmit = #preDeclEmit s } : state
+        preDeclEmit = #preDeclEmit s,
+        stateType = #stateType s } : state
 
    fun par arg = seq [str "(", arg, str ")"]
    fun list (lp,arg,xs,rp) = [str lp, seq (separate (map arg xs, ",")), str rp]
@@ -651,6 +654,17 @@ structure C1 = struct
       ]
    
    and emitExp s (IDexp sym) = emitSym s sym
+     | emitExp s (PRIexp (SETSTATEprim,_,
+         [UPDATEexp (rs,t as RECORDvtype (boxed,fsTys),fs,PRIexp (GETSTATEprim,_,[]))])) =
+      let
+         val _ = #stateType s := t
+         fun setField (f,e) =
+            seq [
+               str "s->state", str (if boxed then "->" else "."),
+               emitFieldSym s f, str " = ", emitExp s e, str ";"]
+      in
+         align (map setField fs)
+      end
      | emitExp s (PRIexp (f,t,es)) = (case t of
          FUNvtype (_,_,args) => emitPrim s (f,es,args)
        | _ => emitPrim s (f,es,[])
@@ -688,6 +702,23 @@ structure C1 = struct
       else
          seq [emitExp s e, str ".", emitFieldSym s f]
      | emitExp s (SELECTexp (rs,t,f,e)) = seq [emitSelect s f, fArgs [str (getFieldTag f), emitExp s e]]
+     | emitExp s (UPDATEexp (rs,OBJvtype,fs,e)) =
+      let
+         val recStripped =
+            seq [
+               str "del_fields",
+               fArgs [
+                  seq (str "(field_tag_t[])" :: list ("{",str o Int.toString o SymbolTable.toInt o #1, fs, "}")),
+                  str (Int.toString (length fs)),
+                  emitExp s e]]
+         fun recAdd ((f,e),layout) =
+            align [
+               seq [emitAddField s f, str "(s,", str (getFieldTag f), str ",", emitExp s e, str ","],
+               indent 2 (seq [layout, str ")"])]
+      in
+         foldl recAdd recStripped fs
+      end
+     | emitExp s (UPDATEexp (rs,_,fs,e)) = raise CodeGenBug (* we can't copy a C struct and set a field as a C expression *)
      | emitExp s (LITexp (t,VEClit pat)) =
       let
          fun genNum (c,acc) = IntInf.fromInt 2*acc+(if c= #"1" then 1 else 0)
@@ -986,7 +1017,8 @@ structure C1 = struct
                closureToFun = closureToFunMap,
                allocFuncs = ref AtomMap.empty,
                recordMapping = recordMapping,
-               preDeclEmit = ref []
+               preDeclEmit = ref [],
+               stateType = ref OBJvtype
             } : state
          val s = registerSymbol (stateSym, s)
          val s = foldl registerSymbol s (map getDeclName ds)
@@ -1003,7 +1035,8 @@ structure C1 = struct
                closureToFun = #closureToFun s,
                allocFuncs = #allocFuncs s,
                recordMapping = #recordMapping s,
-               preDeclEmit = #preDeclEmit s
+               preDeclEmit = #preDeclEmit s,
+               stateType = #stateType s
             } : state
          val funDeclsPublic = map (emitDecl s) 
             (List.filter (fn d => SymSet.member(exports, getDeclName d)) ds)
@@ -1027,9 +1060,7 @@ structure C1 = struct
             map (str o Atom.toString o #1) 
                (ListMergeSort.sort (fn ((_,i1),(_,i2)) => i1>i2)
                   (AtomMap.listItemsi (!(#allocFuncs s))))
-         val fields = []
-         val constructorNames = str ""
-         val fieldNames = str ""
+         val state = emitType s (SOME "state", !(#stateType s))
 
          val _ =
             C1Templates.expandHeader outputName [
@@ -1047,8 +1078,7 @@ structure C1 = struct
                C1Templates.mkHook ("renamings", align renamings),
                C1Templates.mkHook ("records", align (genRecordDecl s true)),
                C1Templates.mkHook ("exports", align funDeclsPublic),
-               C1Templates.mkHook ("tagnames", align constructors),
-               C1Templates.mkHook ("fields", align fields)
+               C1Templates.mkHook ("tagnames", align constructors)
             ]
          val _ =
             C1Templates.expandRuntime outputName [
@@ -1067,7 +1097,7 @@ structure C1 = struct
                C1Templates.mkHook ("destroy", str (prefix ^ "destroy")),
                C1Templates.mkHook ("alloc_funcs", align recAllocFuncs),
                C1Templates.mkHook ("records", align (genRecordDecl s false)),
-               C1Templates.mkHook ("fieldnames", fieldNames),
+               C1Templates.mkHook ("state_type", indent 2 state),
                C1Templates.mkHook ("prototypes", align funDeclsPrivate),
                C1Templates.mkHook ("functions", align funs)
             ]

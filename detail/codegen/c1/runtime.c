@@ -1,15 +1,20 @@
-/* vim:ts=2:sw=2:expandtab */
+/* vim:set ts=2:set sw=2:set expandtab: */
 @I-am-a-template-so-edit-me@
 
 @include-prefix@
 #include <string.h>
 #include <stdio.h>
 
+/* generated declarations for records with fixed fields */
+@records@
+
+
 struct state {
   char* heap_base;    /* the beginning of the heap */
   char* heap_limit;   /* first byte beyond the heap buffer */
   char* heap;         /* current top of the heap */
-  obj_t state;        /* a heap pointer to the current monadic state */
+@state_type@
+;      /* the current monadic state */
   char* ip_base;      /* beginning of code buffer */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
@@ -65,7 +70,6 @@ void
   s->heap_base = heap;
   s->heap = heap+sizeof(char*);
   s->heap_limit = heap+CHUNK_SIZE;
-  s->state = 0;
 };
 
 size_t 
@@ -90,10 +94,6 @@ static inline void* MALLOC_ATTR alloc(state_t s, size_t bytes) {
   s->heap = s->heap+bytes;
   return res;
 };
-
-/* generated declarations for records with fixed fields */
-@records@
-
 
 #define GEN_ALLOC(type) \
 static inline type ## _t* alloc_ ## type (state_t s, type ## _t v) { \
@@ -367,18 +367,17 @@ done:
   int_t alloc_max = 0;
 
   while (gdsl_get_ip_offset(s)<buf_size) {
-    uint64_t ofs = gdsl_get_ip_offset(s);
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (argc>1) {
 #if defined(gdsl_translateBlock) && defined(gdsl_rreil_pretty)
-        obj_t rreil = gdsl_translateBlock(s);
+        obj_t rreil = gdsl_translateBlock(s, gdsl_config_default(s));
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
 #endif
       } else {
 #if defined(gdsl_decode) && defined(gdsl_pretty)
-        obj_t instr = gdsl_decode(s);
+        obj_t instr = gdsl_decode(s, gdsl_config_default(s));
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
@@ -387,7 +386,7 @@ done:
     } else {
       fputs("exception: ",stdout);
       fputs(gdsl_get_error_message(s),stdout);
-      consume8(s);
+			if (gdsl_get_ip_offset(s)<buf_size) consume8(s);
     }
     fputs("\n",stdout);
     int_t size = gdsl_heap_residency(s);

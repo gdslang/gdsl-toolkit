@@ -24,6 +24,7 @@ structure PatchFunctionCalls = struct
       )
      | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
+     | visitExp s (UPDATEexp (rs,t,fs,e)) = UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs, visitExp s e)
      | visitExp s (LITexp l) = LITexp l
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
@@ -102,6 +103,7 @@ structure ActionClosures = struct
      | freeExp s (INVOKEexp (t,e,es)) = foldl (fn (e,s) => freeExp s e) (freeExp s e) es
      | freeExp s (RECORDexp (rs,t,fs)) = foldl (fn ((f,e),s) => freeExp s e) s fs
      | freeExp s (SELECTexp (rs,t,f,e)) = freeExp s e
+     | freeExp s (UPDATEexp (rs,t,fs,e)) = foldl (fn ((f,e),s) => freeExp s e) (freeExp s e) fs
      | freeExp s (LITexp (t,l)) = s
      | freeExp s (BOXexp (t,e)) = freeExp s e
      | freeExp s (UNBOXexp (t,e)) = freeExp s e
@@ -185,6 +187,7 @@ structure ActionClosures = struct
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (remMonad t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
+     | visitExp s (UPDATEexp (rs,t,fs,e)) = UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs, visitExp s e)
      | visitExp s (LITexp (t,l)) = LITexp (remMonad t, l)
      | visitExp s (BOXexp (t,e)) = BOXexp (remMonad t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (remMonad t, visitExp s e)
@@ -288,6 +291,7 @@ structure ActionReduce = struct
      | getCloFunExp cs (INVOKEexp (t,e,es)) = foldl (fn (e,cs) => getCloFunExp cs e) (getCloFunExp cs e) es
      | getCloFunExp cs (RECORDexp (rs,t,fs)) = foldl (fn ((_,e),cs) => getCloFunExp cs e) cs fs
      | getCloFunExp cs (SELECTexp (rs,t,f,e)) = getCloFunExp cs e
+     | getCloFunExp cs (UPDATEexp (rs,t,fs,e)) = foldl (fn ((_,e),cs) => getCloFunExp cs e) (getCloFunExp cs e) fs
      | getCloFunExp cs (LITexp l) = cs
      | getCloFunExp cs (BOXexp (t,e)) = getCloFunExp cs e
      | getCloFunExp cs (UNBOXexp (t,e)) = getCloFunExp cs e
@@ -405,6 +409,7 @@ structure ActionReduce = struct
      | getMonExp (declSyms,execSyms) (CALLexp (e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
      | getMonExp (declSyms,execSyms) (INVOKEexp (t,e,es)) = foldl (fn (e,execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) es
      | getMonExp (declSyms,execSyms) (RECORDexp (rs,t,fs)) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) execSyms fs
+     | getMonExp (declSyms,execSyms) (UPDATEexp (rs,t,fs,e)) = foldl (fn ((_,e),execSyms) => getMonExp (declSyms,execSyms) e) (getMonExp (declSyms,execSyms) e) fs
      | getMonExp ds (SELECTexp (rs,t,f,e)) = getMonExp ds e
      | getMonExp (declSyms,execSyms) (LITexp l) = execSyms
      | getMonExp ds (BOXexp (t,e)) = getMonExp ds e
@@ -536,6 +541,8 @@ structure Simplify = struct
 
    fun visitStmt s (ASSIGNstmt (res,exp)) = (case visitExp s exp of
          PRIexp (RAISEprim,t,es) => ASSIGNstmt (NONE, PRIexp (RAISEprim,t,es))
+       | PRIexp (SETSTATEprim,t,es) => (#stmtsRef s := !(#stmtsRef s) @ [ASSIGNstmt (NONE, PRIexp (SETSTATEprim,t,es))];
+                                       ASSIGNstmt (res,PRIexp (VOIDprim, VOIDvtype, [])))
        | exp => ASSIGNstmt (res, exp)
       )
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
@@ -591,6 +598,7 @@ structure Simplify = struct
             PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit (ofs1+ofs2)), LITexp (INTvtype, INTlit size1)])
        | e => PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs1), LITexp (INTvtype, INTlit size1)])
       )
+     | visitExp s (PRIexp (SETSTATEprim,_,[PRIexp (GETSTATEprim,_,[])])) = PRIexp (VOIDprim,VOIDvtype,[])
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
      | visitExp s (CALLexp (e,es)) =
@@ -614,6 +622,9 @@ structure Simplify = struct
       )
      | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
+     | visitExp s (UPDATEexp (rs,t,fs,e)) =
+        if List.null fs then visitExp s e else
+        UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs,visitExp s e)
      | visitExp s (LITexp l) = LITexp l
      | visitExp s (BOXexp (t,e)) = (case visitExp s e of
             UNBOXexp (t2,e) => e
@@ -659,14 +670,34 @@ structure Simplify = struct
          funcRes = res,
          ...
       }),[e]) =
+      if not (SymbolTable.eq_symid (arg,symArg)) orelse
+         not (SymbolTable.eq_symid (res,symRes)) then NONE else
       let
          val tab = !SymbolTables.varTable
          val (tab, symDum) = SymbolTable.fresh (tab, Atom.atom "dummy_select")
          val _ = SymbolTables.varTable := tab
       in
-         if SymbolTable.eq_symid (arg,symArg) andalso
-            SymbolTable.eq_symid (res,symRes) then
-         SOME (SELECTexp (symDum,t, field, e)) else NONE
+         SOME (SELECTexp (symDum, t, field, e))
+      end
+     | getTrivialFunctionBody (SOME (FUNCdecl {
+         funcArgs = args,
+         funcBody = BASICblock ([], [
+            ASSIGNstmt (SOME symRes, UPDATEexp (rs,t,fs,recArg))
+         ]),
+         funcRes = res,
+         ...
+      }),es) =
+      if not (List.all (fn ((_,arg),exp) => case exp of
+            IDexp sym => SymbolTable.eq_symid (arg,sym)
+          | _ => false) (ListPair.zip (args,map #2 fs @ [recArg]))) orelse
+         not (List.length es=List.length args) orelse
+         not (SymbolTable.eq_symid (res,symRes)) then NONE else
+      let
+         val tab = !SymbolTables.varTable
+         val (tab, symDum) = SymbolTable.fresh (tab, Atom.atom "dummy_select")
+         val _ = SymbolTables.varTable := tab
+      in
+         SOME (UPDATEexp (symDum, t, ListPair.zip (map #1 fs, es), List.last es))
       end
      | getTrivialFunctionBody _ = NONE
 
@@ -752,7 +783,8 @@ structure TypeRefinement = struct
      typeTable : stype DynamicArray.array,
      origDecls : decl SymMap.map,
      origLocals : (vtype SymMap.map) ref,
-     origFields : vtype SymMap.map
+     origFields : vtype SymMap.map,
+     stateSym : SymbolTable.symid
    }
 
    fun showSType (VOIDstype) = "void"
@@ -1064,8 +1096,18 @@ structure TypeRefinement = struct
                     ...
                  }) = decl
          in
-            lub (s,symType s sym, visitCall s (vtypeToStype s t, es))
+            symType s sym
          end
+     | visitExp s (PRIexp (SETSTATEprim,_, [UPDATEexp (rs,_,fs,PRIexp (GETSTATEprim,_,[]))])) =
+         let
+            val recTy = lub (s, symType s (#stateSym s), symType s rs)
+            val fields = map (fn (f,e) => (true,f,visitExp s e)) fs
+            val _ = lub (s, recTy, RECORDstype (freshTVar s, fields, true))
+         in
+            VOIDstype
+         end
+     | visitExp s (PRIexp (SETSTATEprim,_,[e])) = (lub (s, symType s (#stateSym s), visitExp s e); VOIDstype)
+     | visitExp s (PRIexp (GETSTATEprim,_,[])) = symType s (#stateSym s)
      | visitExp s (PRIexp (f,t,es)) = visitCall s (vtypeToStype s t, es)
      | visitExp s (CALLexp (e,es)) = visitCall s (visitExp s e, es)
      | visitExp s (INVOKEexp (t,e,es)) = visitCall s (visitExp s e, es)
@@ -1091,6 +1133,13 @@ structure TypeRefinement = struct
       else
          (lub (s, symType s rs, lub (s,OBJstype,visitExp s e));
          fieldType s f)
+     | visitExp s (UPDATEexp (rs,t,fs,e)) =
+         let
+            val sFields = map (fn (f,e) => (true,f,lub (s,fieldType s f, visitExp s e))) fs
+            val _ = lub (s, symType s rs, RECORDstype (freshTVar s,sFields,true))
+         in
+            lub (s, lub (s,OBJstype, symType s rs), visitExp s e)
+         end
      | visitExp s (LITexp (ty,lit)) = vtypeToStype s ty
      | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
      | visitExp s (UNBOXexp (t,e)) =
@@ -1420,6 +1469,8 @@ structure TypeRefinement = struct
          in
             readWrap s (argTy, symType s argSym, PRIexp (GET_CON_ARGprim,t,map (patchExp s) es))
          end
+     | patchExp s (PRIexp (GETSTATEprim, t, [])) = PRIexp (GETSTATEprim, adjustType s (t,FUNstype (symType s (#stateSym s), VOIDstype, [])), [])
+     | patchExp s (PRIexp (SETSTATEprim, t, [e])) = PRIexp (SETSTATEprim, adjustType s (t,FUNstype (VOIDstype, VOIDstype, [symType s (#stateSym s)])), [patchExp s e])
      | patchExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (patchExp s) es)
      | patchExp s (CALLexp (e,es)) =
       let
@@ -1462,6 +1513,18 @@ structure TypeRefinement = struct
             val (origTy, newTy) = genFieldTypes (s,t,sTy,f)
          in
             readWrap s (origTy, newTy, SELECTexp (rs,adjustType s (t, sTy), f, patchExp s e))
+         end
+     | patchExp s (UPDATEexp (rs,t,fs,e)) =
+         let
+            val sTy = inlineSType s (symType s rs)
+            fun genWrap (f,e) =
+               let
+                  val (origTy,newTy) = genFieldTypes (s,t,sTy,f)
+               in
+                  (f, writeWrap s (origTy, newTy, patchExp s e))
+               end
+         in
+            UPDATEexp (rs, adjustType s (t, sTy), map genWrap fs, patchExp s e)
          end
      | patchExp s (LITexp l) = LITexp l
      | patchExp s (BOXexp (t,e)) = BOXexp (t, patchExp s e)
@@ -1600,6 +1663,9 @@ structure TypeRefinement = struct
 
    fun run { decls = ds, fdecls = fs, exports = es } =
       let
+         (* register one symbol to track the type of the global state *)
+         val (tab, stateSym) = SymbolTable.fresh (!SymbolTables.varTable, Atom.atom Primitives.globalState)
+         val _ = SymbolTables.varTable := tab
 
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
          val state : state = {
@@ -1608,9 +1674,10 @@ structure TypeRefinement = struct
             typeTable = DynamicArray.array (4000, VOIDstype),
             origDecls = declMap,
             origLocals = ref SymMap.empty,
-            origFields = fs
+            origFields = fs,
+            stateSym = stateSym
          }
-         fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= ~1);*) (*TextIO.print ("type of writeRes : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 1045)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
+         fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= 18570); TextIO.print ("type of XCHG args : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 18569)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
          (* unify the types of all records that have the same set of fields *)
          val _ = mergeRecords state
@@ -1958,6 +2025,7 @@ structure SwitchReduce = struct
      | visitExp s (INVOKEexp (t,e,es)) = (INVOKEexp (t,visitExp s e, map (visitExp s) es))
      | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
+     | visitExp s (UPDATEexp (rs,t,fs,e)) = UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs,visitExp s e)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
@@ -2064,6 +2132,7 @@ structure DeadFunctions = struct
      | visitExp s (INVOKEexp (t,e,es)) = INVOKEexp (t,visitExp s e, map (visitExp s) es)
      | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
+     | visitExp s (UPDATEexp (rs,t,fs,e)) = UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs,visitExp s e)
      | visitExp s (BOXexp (t,e)) = BOXexp (t, visitExp s e)
      | visitExp s (UNBOXexp (t,e)) = UNBOXexp (t, visitExp s e)
      | visitExp s (VEC2INTexp (sz,e)) = VEC2INTexp (sz, visitExp s e)
@@ -2220,6 +2289,15 @@ structure DeadVariables = struct
             (s, RECORDexp (rs,t,fs))
          end
      | visitExp s (SELECTexp (rs,t,f,e)) = let val (s,e) = visitExp s e in (s,SELECTexp (rs,t,f,e)) end
+     | visitExp s (UPDATEexp (rs,t,fs,e)) =
+         let
+            val (s,e) = visitExp s e
+            fun visitField s (f,e) =
+               let val (s,e) = visitExp s e in (s,(f,e)) end
+            val (s,fs) = visit visitField s fs
+         in
+            (s, UPDATEexp (rs,t,fs,e))
+         end
      | visitExp s (BOXexp (t,e)) = let val (s,e) = visitExp s e in (s,BOXexp (t,e)) end
      | visitExp s (UNBOXexp (t,e)) = let val (s,e) = visitExp s e in (s,UNBOXexp (t,e)) end
      | visitExp s (VEC2INTexp (sz,e)) = let val (s,e) = visitExp s e in (s,VEC2INTexp (sz,e)) end
