@@ -1023,11 +1023,6 @@ structure C1 = struct
          val s = registerSymbol (stateSym, s)
          val s = foldl registerSymbol s (map getDeclName ds)
          val funs = map (emitDecl s) ds
-         val recordMapping = case !(#stateType s) of
-            RECORDvtype (_,fs) =>
-               AtomMap.insert (#recordMapping s, genRecSignature fs,
-                  Atom.atom "monad")
-          | _ => #recordMapping s
          val s = {
                names = #names s,
                prefix = #prefix s,
@@ -1039,7 +1034,7 @@ structure C1 = struct
                constrs = #constrs s,
                closureToFun = #closureToFun s,
                allocFuncs = #allocFuncs s,
-               recordMapping = recordMapping,
+               recordMapping = #recordMapping s,
                preDeclEmit = #preDeclEmit s,
                stateType = #stateType s
             } : state

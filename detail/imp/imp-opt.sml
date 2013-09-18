@@ -1096,7 +1096,7 @@ structure TypeRefinement = struct
                     ...
                  }) = decl
          in
-            lub (s,symType s sym, visitCall s (vtypeToStype s t, es))
+            symType s sym
          end
      | visitExp s (PRIexp (SETSTATEprim,_, [UPDATEexp (rs,_,fs,PRIexp (GETSTATEprim,_,[]))])) =
          let
@@ -1677,7 +1677,7 @@ structure TypeRefinement = struct
             origFields = fs,
             stateSym = stateSym
          }
-         fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= ~1);*) (*TextIO.print ("type of writeRes : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 1045)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
+         fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= 18570); TextIO.print ("type of XCHG args : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 18569)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
          (* unify the types of all records that have the same set of fields *)
          val _ = mergeRecords state
