@@ -541,7 +541,8 @@ structure Simplify = struct
 
    fun visitStmt s (ASSIGNstmt (res,exp)) = (case visitExp s exp of
          PRIexp (RAISEprim,t,es) => ASSIGNstmt (NONE, PRIexp (RAISEprim,t,es))
-       | PRIexp (SETSTATEprim,t,es) => ASSIGNstmt (NONE, PRIexp (SETSTATEprim,t,es))
+       | PRIexp (SETSTATEprim,t,es) => (#stmtsRef s := !(#stmtsRef s) @ [ASSIGNstmt (NONE, PRIexp (SETSTATEprim,t,es))];
+                                       ASSIGNstmt (res,PRIexp (VOIDprim, VOIDvtype, [])))
        | exp => ASSIGNstmt (res, exp)
       )
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
