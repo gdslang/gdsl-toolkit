@@ -89,6 +89,8 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[char *c, size_t s, FILE *f = open_memstream(&c, &s);]])],
     has_open_memstream=no)
 
+AC_CHECK_HEADERS([gelf.h], [has_elf=yes], [has_elf=no])
+
 AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil])
 AM_CONDITIONAL([X86],[test x$with_frontend = xx86])
 AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil])
@@ -100,6 +102,7 @@ AM_CONDITIONAL([HAVE_X86], [test x$has_x86 = xyes])
 AM_CONDITIONAL([HAVE_ANON_MEMBERS], [test x$has_anon_members = xyes])
 AM_CONDITIONAL([HAVE_OPEN_MEMSTREAM], [test x$has_open_memstream = xyes])
 AM_CONDITIONAL([HAVE_POSIX200809_C11], [test x$has_anon_members = xyes && test x$has_open_memstream = xyes])
+AM_CONDITIONAL([HAVE_ELF], [test x$has_elf = xyes])
 
 dnl check if the helper executables should be build and/or installed
 AC_ARG_ENABLE([install-auxbins],
