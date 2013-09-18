@@ -364,14 +364,21 @@ endif
 
 if X86_RREIL
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += libx86-tester.la libgdwrap.la
+if HAVE_POSIX200809_C11
+lib_LTLIBRARIES += libx86-tester.la
+endif
+lib_LTLIBRARIES += libgdwrap.la
 else
 if BUILD_AUXLIBS
-noinst_LTLIBRARIES += libx86-tester.la libgdwrap.la
+if HAVE_POSIX200809_C11
+noinst_LTLIBRARIES += libx86-tester.la
+endif
+noinst_LTLIBRARIES += libgdwrap.la
 endif
 endif
 endif
 
+if HAVE_POSIX200809_C11
 if HAVE_RREIL
 if INSTALL_AUXLIBS
 lib_LTLIBRARIES += librreil.la
@@ -384,6 +391,7 @@ noinst_LTLIBRARIES += librreil.la
 noinst_LTLIBRARIES += librreil-sim.la
 noinst_LTLIBRARIES += libjrreil.la
 noinst_LTLIBRARIES += libgdsl-multiplex.la
+endif
 endif
 endif
 endif
@@ -493,16 +501,20 @@ endif
 
 if HAVE_RREIL
 if INSTALL_AUXBINS
+if HAVE_POSIX200809_C11
+bin_PROGRAMS += semantics-cli-dynamic
+endif
 bin_PROGRAMS += decoder-cli
 bin_PROGRAMS += semantics-cli
-bin_PROGRAMS += semantics-cli-dynamic
 bin_PROGRAMS += semantics-cif-cli
 bin_PROGRAMS += sweep
 else
 if BUILD_AUXBINS
+if HAVE_POSIX200809_C11
+noinst_PROGRAMS += semantics-cli-dynamic
+endif
 noinst_PROGRAMS += decoder-cli
 noinst_PROGRAMS += semantics-cli
-noinst_PROGRAMS += semantics-cli-dynamic
 noinst_PROGRAMS += semantics-cif-cli
 noinst_PROGRAMS += sweep
 endif
@@ -511,14 +523,18 @@ endif
 
 if X86_RREIL
 if INSTALL_AUXBINS
-bin_PROGRAMS += liveness_sweep
+if HAVE_POSIX200809_C11
 bin_PROGRAMS += x86_test_runner
 bin_PROGRAMS += x86_test_stats_runner
+endif
+bin_PROGRAMS += liveness_sweep
 else
 if BUILD_AUXBINS
-noinst_PROGRAMS += liveness_sweep
+if HAVE_POSIX200809_C11
 noinst_PROGRAMS += x86_test_runner
 noinst_PROGRAMS += x86_test_stats_runner
+endif
+noinst_PROGRAMS += liveness_sweep
 endif
 endif
 endif

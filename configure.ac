@@ -83,6 +83,12 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[struct inge { union { int a; int b }; }; struct inge i; i.a = 42;]])],
     has_anon_members=no)
 
+has_open_memstream=yes
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <stdio.h>]],
+    [[char *c, size_t s, FILE *f = open_memstream(&c, &s);]])],
+    has_open_memstream=no)
+
 AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil])
 AM_CONDITIONAL([X86],[test x$with_frontend = xx86])
 AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil])
@@ -92,6 +98,8 @@ AM_CONDITIONAL([HAVE_X86], [test x$has_x86 = xyes])
 #AM_CONDITIONAL([HAVE_GNU_C11], [echo "int main(void) { return 0; }" | gcc -std=gnu11 -xc - -o /dev/null])
 #AM_CONDITIONAL([HAVE_POSIX200809], [test `getconf _POSIX_VERSION` -ge 200809 >/dev/null 2>&1])
 AM_CONDITIONAL([HAVE_ANON_MEMBERS], [test x$has_anon_members = xyes])
+AM_CONDITIONAL([HAVE_OPEN_MEMSTREAM], [test x$has_open_memstream = xyes])
+AM_CONDITIONAL([HAVE_POSIX200809_C11], [test x$has_anon_members = xyes && test x$has_open_memstream = xyes])
 
 dnl check if the helper executables should be build and/or installed
 AC_ARG_ENABLE([install-auxbins],
