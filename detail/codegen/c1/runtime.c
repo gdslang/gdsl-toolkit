@@ -367,7 +367,6 @@ done:
   int_t alloc_max = 0;
 
   while (gdsl_get_ip_offset(s)<buf_size) {
-    uint64_t ofs = gdsl_get_ip_offset(s);
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (argc>1) {
 #if defined(gdsl_translateBlock) && defined(gdsl_rreil_pretty)
