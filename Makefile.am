@@ -354,10 +354,16 @@ endif
 
 if HAVE_X86
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += libx86.la libx86-generator.la
+if HAVE_POSIX200809_C11
+lib_LTLIBRARIES += libx86-generator.la
+endif
+lib_LTLIBRARIES += libx86.la
 else
 if BUILD_AUXLIBS
-noinst_LTLIBRARIES += libx86.la libx86-generator.la
+if HAVE_POSIX200809_C11
+noinst_LTLIBRARIES += libx86-generator.la
+endif
+noinst_LTLIBRARIES += libx86.la
 endif
 endif
 endif
