@@ -5,11 +5,16 @@
 #include <string.h>
 #include <stdio.h>
 
+/* generated declarations for records with fixed fields */
+@records@
+
+
 struct state {
   char* heap_base;    /* the beginning of the heap */
   char* heap_limit;   /* first byte beyond the heap buffer */
   char* heap;         /* current top of the heap */
-  obj_t state;        /* a heap pointer to the current monadic state */
+@state_type@
+;      /* the current monadic state */
   char* ip_base;      /* beginning of code buffer */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
@@ -65,7 +70,6 @@ void
   s->heap_base = heap;
   s->heap = heap+sizeof(char*);
   s->heap_limit = heap+CHUNK_SIZE;
-  s->state = 0;
 };
 
 size_t 
@@ -90,10 +94,6 @@ static inline void* MALLOC_ATTR alloc(state_t s, size_t bytes) {
   s->heap = s->heap+bytes;
   return res;
 };
-
-/* generated declarations for records with fixed fields */
-@records@
-
 
 #define GEN_ALLOC(type) \
 static inline type ## _t* alloc_ ## type (state_t s, type ## _t v) { \

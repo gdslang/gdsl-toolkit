@@ -541,6 +541,7 @@ structure Simplify = struct
 
    fun visitStmt s (ASSIGNstmt (res,exp)) = (case visitExp s exp of
          PRIexp (RAISEprim,t,es) => ASSIGNstmt (NONE, PRIexp (RAISEprim,t,es))
+       | PRIexp (SETSTATEprim,t,es) => ASSIGNstmt (NONE, PRIexp (SETSTATEprim,t,es))
        | exp => ASSIGNstmt (res, exp)
       )
      | visitStmt s (IFstmt (c,t,e)) = IFstmt (visitExp s c, visitBlock s t, visitBlock s e)
@@ -596,6 +597,7 @@ structure Simplify = struct
             PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit (ofs1+ofs2)), LITexp (INTvtype, INTlit size1)])
        | e => PRIexp (SLICEprim,t,[e,LITexp (INTvtype, INTlit ofs1), LITexp (INTvtype, INTlit size1)])
       )
+     | visitExp s (PRIexp (SETSTATEprim,_,[PRIexp (GETSTATEprim,_,[])])) = PRIexp (VOIDprim,VOIDvtype,[])
      | visitExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (visitExp s) es)
      | visitExp s (IDexp sym) = IDexp sym
      | visitExp s (CALLexp (e,es)) =
@@ -619,7 +621,9 @@ structure Simplify = struct
       )
      | visitExp s (RECORDexp (rs,t,fs)) = RECORDexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs)
      | visitExp s (SELECTexp (rs,t,f,e)) = SELECTexp (rs,t,f,visitExp s e)
-     | visitExp s (UPDATEexp (rs,t,fs,e)) = UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs,visitExp s e)
+     | visitExp s (UPDATEexp (rs,t,fs,e)) =
+        if List.null fs then visitExp s e else
+        UPDATEexp (rs,t,map (fn (f,e) => (f,visitExp s e)) fs,visitExp s e)
      | visitExp s (LITexp l) = LITexp l
      | visitExp s (BOXexp (t,e)) = (case visitExp s e of
             UNBOXexp (t2,e) => e
@@ -778,7 +782,8 @@ structure TypeRefinement = struct
      typeTable : stype DynamicArray.array,
      origDecls : decl SymMap.map,
      origLocals : (vtype SymMap.map) ref,
-     origFields : vtype SymMap.map
+     origFields : vtype SymMap.map,
+     stateSym : SymbolTable.symid
    }
 
    fun showSType (VOIDstype) = "void"
@@ -1092,14 +1097,16 @@ structure TypeRefinement = struct
          in
             lub (s,symType s sym, visitCall s (vtypeToStype s t, es))
          end
-     (*| visitExp s (PRIexp (SETSTATEprim,t, [CALLexp (IDexp sym,es)])) =
-      (case SymMap.find (#origDecls s, sym) of
-         SOME (UPDATEdecl {
-            updateFields = fs,
-            ...
-         }) => visitCall s (vtypeToStype s t, [CALLexp (IDexp sym,es)])
-       | _ => visitCall s (vtypeToStype s t, [CALLexp (IDexp sym,es)])
-      )*)
+     | visitExp s (PRIexp (SETSTATEprim,_, [UPDATEexp (rs,_,fs,PRIexp (GETSTATEprim,_,[]))])) =
+         let
+            val recTy = lub (s, symType s (#stateSym s), symType s rs)
+            val fields = map (fn (f,e) => (true,f,visitExp s e)) fs
+            val _ = lub (s, recTy, RECORDstype (freshTVar s, fields, true))
+         in
+            VOIDstype
+         end
+     | visitExp s (PRIexp (SETSTATEprim,_,[e])) = (lub (s, symType s (#stateSym s), visitExp s e); VOIDstype)
+     | visitExp s (PRIexp (GETSTATEprim,_,[])) = symType s (#stateSym s)
      | visitExp s (PRIexp (f,t,es)) = visitCall s (vtypeToStype s t, es)
      | visitExp s (CALLexp (e,es)) = visitCall s (visitExp s e, es)
      | visitExp s (INVOKEexp (t,e,es)) = visitCall s (visitExp s e, es)
@@ -1461,6 +1468,8 @@ structure TypeRefinement = struct
          in
             readWrap s (argTy, symType s argSym, PRIexp (GET_CON_ARGprim,t,map (patchExp s) es))
          end
+     | patchExp s (PRIexp (GETSTATEprim, t, [])) = PRIexp (GETSTATEprim, adjustType s (t,FUNstype (symType s (#stateSym s), VOIDstype, [])), [])
+     | patchExp s (PRIexp (SETSTATEprim, t, [e])) = PRIexp (SETSTATEprim, adjustType s (t,FUNstype (VOIDstype, VOIDstype, [symType s (#stateSym s)])), [patchExp s e])
      | patchExp s (PRIexp (f,t,es)) = PRIexp (f,t,map (patchExp s) es)
      | patchExp s (CALLexp (e,es)) =
       let
@@ -1653,6 +1662,9 @@ structure TypeRefinement = struct
 
    fun run { decls = ds, fdecls = fs, exports = es } =
       let
+         (* register one symbol to track the type of the global state *)
+         val (tab, stateSym) = SymbolTable.fresh (!SymbolTables.varTable, Atom.atom Primitives.globalState)
+         val _ = SymbolTables.varTable := tab
 
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
          val state : state = {
@@ -1661,7 +1673,8 @@ structure TypeRefinement = struct
             typeTable = DynamicArray.array (4000, VOIDstype),
             origDecls = declMap,
             origLocals = ref SymMap.empty,
-            origFields = fs
+            origFields = fs,
+            stateSym = stateSym
          }
          fun visitDeclPrint state d = ((*debugOn:=(SymbolTable.toInt(getDeclName d)= ~1);*) (*TextIO.print ("type of writeRes : " ^ showSType (inlineSType state (symType state ((SymbolTable.unsafeFromInt 1045)))) ^ " at " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n");*) visitDecl state d)
          val _ = map (visitDeclPrint state) ds
