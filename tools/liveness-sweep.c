@@ -243,9 +243,9 @@ void print_results(struct context *context) {
 
 static char *symbol_sz(size_t value) {
 	if(value < 10 * 1000)
-		return "k";
+		return "";
 	if(value < 10 * 1000 * 1000)
-		return "k";
+		return "";
 	return "M";
 }
 
