@@ -1,4 +1,4 @@
-/* vim:ts=2:sw=2:expandtab */
+/* vim:set ts=2:set sw=2:set expandtab: */
 @I-am-a-template-so-edit-me@
 
 @include-prefix@

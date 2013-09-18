@@ -149,6 +149,7 @@ structure Imp = struct
     | INVOKEexp of vtype * exp * exp list (* callee is a closure, type is that of exp *)
     | RECORDexp of rec_sym * vtype * (sym * exp) list
     | SELECTexp of rec_sym * vtype * sym * exp (* type is that of the record exp *)
+    | UPDATEexp of rec_sym * vtype * (sym * exp) list * exp (* type is that of the record exp *)
     | LITexp of vtype * lit
     | BOXexp of vtype * exp
     | UNBOXexp of vtype * exp
@@ -259,6 +260,8 @@ structure Imp = struct
         | exp (INVOKEexp (t,f,es)) = seq (vtype t :: space :: str "*" :: exp f :: args ("(",exp,es,")"))
         | exp (RECORDexp (_,t,fs)) = seq (vtype t :: space :: args ("{",field,fs,"}"))
         | exp (SELECTexp (_,t,f,e)) = seq [str "(", vtype t, str ")", exp e, space, str ".", fld f]
+        | exp (UPDATEexp (_,t,fs,e)) =
+            seq ([vtype t] @ args ("[",field,fs,"]") @ [str "(", exp e, str ")"])
         | exp (LITexp l) = lit l
         | exp (BOXexp (t,e)) = seq [str "box[", vtype t, str "](", exp e, str ")"]
         | exp (UNBOXexp (t,e)) = seq [str "unbox[", vtype t, str "](", exp e, str ")"]

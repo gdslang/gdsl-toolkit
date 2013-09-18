@@ -166,28 +166,43 @@ end = struct
          case SymbolTable.find (tab, name) of
             NONE =>
                let
-                  val arg = Atom.atom ("arg_of_" ^ Atom.toString name) 
                   val (tab, sym) = SymbolTable.fresh (tab, name)
-                  val (tab, sym') = SymbolTable.fresh (tab, arg)
+                  val (tab, symArg) = SymbolTable.fresh (tab, Atom.atom "recArg")
+                  val (tab, symRes) = SymbolTable.fresh (tab, Atom.atom "recRes")
+                  val (tab, symDummy) = SymbolTable.fresh (tab, Atom.atom "recSym")
                   val _ = SymbolTables.varTable := tab
-                  val _ = app (addField s) fields
-                     
-                  val argsTy =  map (fn _ => OBJvtype) fields
+                  fun genArgs f =
+                     let
+                        val _ = addField s f
+                        val arg = Atom.atom (SymbolTable.getString (ftab,f) ^ "_val")
+                        val tab = !SymbolTables.varTable
+                        val (tab, sym) = SymbolTable.fresh (tab,arg)
+                        val _ = SymbolTables.varTable := tab
+                     in
+                        sym
+                     end
+                  val args = map genArgs fields
+                  val argsTy =  map (fn _ => OBJvtype) args
                   val fType = FUNvtype (OBJvtype, false, argsTy @ [OBJvtype])
                   val fTypeCl = FUNvtype (OBJvtype, false, [OBJvtype])
-                  
+                  val fieldsExps = ListPair.zipEq (fields, map IDexp args)
+                  val body = BASICblock ([],[ASSIGNstmt (SOME symRes,
+                     UPDATEexp (symDummy, OBJvtype, fieldsExps, IDexp symArg))])
+                  val fArgs = map (fn arg => (OBJvtype,arg)) (args @ [symArg])
                   val _ = addDecl s 
-                           (UPDATEdecl { updateName = sym,
-                                         updateArg = sym',
-                                         updateFields = fields,
-                                         updateType = fType })
+                           (FUNCdecl { funcClosure = [],
+                                       funcType = fType,
+                                       funcName = sym,
+                                       funcArgs = fArgs,
+                                       funcBody = body,
+                                       funcRes = symRes })
 
                   val clSym = getClosureSym (s,sym)
                   val _ = addDecl s (CLOSUREdecl {
                     closureName = clSym,
                     closureArgs = argsTy,
                     closureDelegate = sym,
-                    closureDelArgs = [(OBJvtype,sym')],
+                    closureDelArgs = [(OBJvtype,symArg)],
                     closureRetTy = OBJvtype
                   })
                in

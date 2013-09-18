@@ -688,6 +688,23 @@ structure C1 = struct
       else
          seq [emitExp s e, str ".", emitFieldSym s f]
      | emitExp s (SELECTexp (rs,t,f,e)) = seq [emitSelect s f, fArgs [str (getFieldTag f), emitExp s e]]
+     | emitExp s (UPDATEexp (rs,OBJvtype,fs,e)) =
+      let
+         val recStripped =
+            seq [
+               str "del_fields",
+               fArgs [
+                  seq (str "(field_tag_t[])" :: list ("{",str o Int.toString o SymbolTable.toInt o #1, fs, "}")),
+                  str (Int.toString (length fs)),
+                  emitExp s e]]
+         fun recAdd ((f,e),layout) =
+            align [
+               seq [emitAddField s f, str "(s,", str (getFieldTag f), str ",", emitExp s e, str ","],
+               indent 2 (seq [layout, str ")"])]
+      in
+         foldl recAdd recStripped fs
+      end
+     | emitExp s (UPDATEexp (rs,_,fs,e)) = raise CodeGenBug (* we can't copy a C struct and set a field as a C expression *)
      | emitExp s (LITexp (t,VEClit pat)) =
       let
          fun genNum (c,acc) = IntInf.fromInt 2*acc+(if c= #"1" then 1 else 0)
