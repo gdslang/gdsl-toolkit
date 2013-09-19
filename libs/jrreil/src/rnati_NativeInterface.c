@@ -673,7 +673,6 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 		jclass exp = (*env)->FindClass(env, "java/lang/IllegalArgumentException");
 		(*env)->ThrowNew(env, exp, "Input must not be null.");
 		return NULL;
-
 	}
 
 	size_t length = (*env)->GetArrayLength(env, input);

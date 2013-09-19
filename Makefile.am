@@ -149,8 +149,8 @@ RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
 	$(MLANTLR) $<
 
 GDSLC = $(abspath $(CURDIR)/gdslc$(EXEEXT))
-#GDSLC_DEP = gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
-GDSLC_DEP = gdslc$(EXEEXT)
+GDSLC_DEP = gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
+#GDSLC_DEP = gdslc$(EXEEXT)
 GDSLFLAGS = --runtime=$(srcdir)/detail/codegen/c1
 
 # the decoders
@@ -208,8 +208,9 @@ nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
 libgdsl_x86_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-x86-rreil.c
 
-gdsl-x86-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
-	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
+GS_X86_RREIL := $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
+gdsl-x86-rreil.c : $(GDSLC_DEP) $(GS_X86_RREIL)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86_RREIL)
 
 CLEANFILES += gdsl-x86-rreil.c gdsl-x86-rreil.h
 
@@ -222,8 +223,9 @@ nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
 libgdsl_x86_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-x86.c
 
-gdsl-x86.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86)
-	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
+GS_X86 := $(GDSL_BASIS) $(GDSL_X86)
+gdsl-x86.c : $(GDSLC_DEP) $(GS_X86)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86)
 
 if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
@@ -242,8 +244,9 @@ nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
 libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-avr-rreil.c
 
-gdsl-avr-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
-	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
+GS_AVR_RREIL :=  $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
+gdsl-avr-rreil.c : $(GDSLC_DEP) $(GS_AVR_RREIL)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
 
 CLEANFILES += gdsl-avr-rreil.c gdsl-avr-rreil.h
 
@@ -256,8 +259,9 @@ nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
 libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-avr.c
 
-gdsl-avr.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR)
-	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
+GS_AVR := $(GDSL_BASIS) $(GDSL_AVR)
+gdsl-avr.c : $(GDSLC_DEP) $(GS_AVR)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
 
 CLEANFILES += gdsl-avr.c gdsl-avr.h
 
