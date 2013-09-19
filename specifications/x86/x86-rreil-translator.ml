@@ -2132,22 +2132,21 @@ val transInstr config = do
    semantics insn
 end
 
-val transBlock config = do
+val transBlock config limit = do
    transInstr config;
    jmp <- query $foundJump;
-   #ic <- query $ins_count;
-   #if jmp or ic>1000 then query $stack else transBlock config
-   if jmp then query $stack else transBlock config
+   idx <- idxget;
+   if jmp or (idx >= limit) then query $stack else transBlock config limit
 end
 
-val translateBlock config = do
+val translateBlock config limit = do
    update @{ins_count=0};
    update@{stack=SEM_NIL,foundJump='0'};
    # the type checker is does not instanitate types of decoders; what seemed to be
    # a fine specialization turns out to be a bad idea since records need to be
    # newly instantiated
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock config;
+	 stmts <- transBlock config limit;
    return (rreil-stmts-rev stmts)
 end
 
@@ -2219,13 +2218,13 @@ type stmts_option =
 
 type translate-result = {insns:int, succ_a:int, succ_b:int}
 
-val translateSuperBlock config = let
+val translateSuperBlock config limit = let
   val translate-block-at idx = do
 	  current <- idxget;
 		#error <- rseek idx;
 		error <- seek (current + idx);
 		result <- if error === 0 then do
-		  stmts <- translateBlock config;
+		  stmts <- translateBlock config int-max;
 		  seek current;
 			return (SO_SOME stmts)
 		end else
@@ -2246,7 +2245,7 @@ in do
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock config;
+	 stmts <- transBlock config limit;
 
    ic <- query $ins_count;
 

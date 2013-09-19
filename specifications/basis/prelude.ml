@@ -1,6 +1,6 @@
 # Standard definitions.
 
-export = rope-length rope-print rope-to-string
+export = rope-length rope-print rope-to-string int-max
 
 type rope = RopeLeaf of { rope-size : int, rope-string: string }
           | RopeInner of { rope-size : int, rope-left : rope, rope-right : rope }
@@ -78,3 +78,5 @@ val io-binop binop a b =
      end
    | IO_NONE: IO_NONE
   end
+
+val int-max = 0x7fffffffffffffff

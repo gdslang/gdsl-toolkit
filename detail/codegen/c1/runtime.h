@@ -38,10 +38,10 @@ state_t
    in GDSL returns when no bytes have been consumed. */
 void 
 @set_code@
-(state_t s, char* buf, size_t buf_len, uint64_t base);
+(state_t s, char* buf, size_t buf_len, size_t base);
 
 /* Query the offset of the current IP relative to base. */
-uint64_t 
+size_t 
 @get_ip_offset@
 (state_t s);
 
