@@ -151,7 +151,7 @@ RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
 GDSLC = $(abspath $(CURDIR)/gdslc$(EXEEXT))
 GDSLC_DEP = gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
 #GDSLC_DEP = gdslc$(EXEEXT)
-GDSLFLAGS = --runtime=$(srcdir)/detail/codegen/c1
+GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
 # the decoders
 
