@@ -1215,18 +1215,6 @@ structure TypeRefinement = struct
       in
          lub (s, symType s name, ty)
       end
-     | visitDecl s (UPDATEdecl {
-         updateName = name,
-         updateArg = arg,
-         updateFields = fs,
-         updateType = _
-      }) =
-      let
-         val fsTys = map (fieldType s) fs
-         val reTy = lub (s, OBJstype, symType s arg)
-      in
-         lub (s, symType s name, FUNstype (reTy, OBJstype, fsTys @ [reTy]))
-      end
      | visitDecl s (CONdecl {
          conName = name,
          conTag = _,
@@ -1266,7 +1254,6 @@ structure TypeRefinement = struct
       SOME t => t
     | NONE => (case SymMap.find (#origDecls s, sym) of
           (SOME (FUNCdecl { funcType = ty, ... })) => ty
-        | (SOME (UPDATEdecl { updateType = ty, ... })) => ty
         | (SOME (CONdecl { conType = ty, ... })) => ty
         | (SOME (CLOSUREdecl { closureArgs = ts, ... })) => FUNvtype (OBJvtype,true,ts)
         | NONE => (TextIO.print ("origType: no type of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n"); raise TypeOptBug)
@@ -1275,11 +1262,6 @@ structure TypeRefinement = struct
    fun getArgTypes s sym = case SymMap.find (#origDecls s, sym) of
           SOME (FUNCdecl { funcArgs = args, ... }) =>
             map (fn (t,sym) => (t,symType s sym)) args
-        | SOME (UPDATEdecl { updateName = sym, updateType = t, ... }) =>
-            (case (t,inlineSType s (symType s sym)) of
-                (FUNvtype (_,_,vArgs), FUNstype (_,_,sArgs)) => ListPair.zip (vArgs,sArgs)
-              | (v,s) => (TextIO.print ("getArgTypes: update function " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " has unequal no of args: " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ "\n"); raise TypeOptBug)
-            )
         | SOME (CONdecl { conName = name, conArg = (_,arg), ... }) =>
             [(origType s arg, symType s arg)]
         | SOME (CLOSUREdecl { closureName = name, closureArgs = ts, ... }) =>
@@ -1381,17 +1363,6 @@ structure TypeRefinement = struct
             funcRes = res
          }
       end
-     | patchDecl s (UPDATEdecl {
-         updateName = name,
-         updateArg = arg,
-         updateFields = fs,
-         updateType = vtype
-      }) = UPDATEdecl {
-         updateName = name,
-         updateArg = arg,
-         updateFields = fs,
-         updateType = adjustType s (vtype, symType s name)
-      }
      | patchDecl s (CONdecl {
          conName = name,
          conTag = tag,
@@ -1632,11 +1603,6 @@ structure TypeRefinement = struct
       in
          ()
       end
-     | setArgsToTop (es,s) (UPDATEdecl {
-        updateArg = sym,
-	     ...
-      }) =
-      ignore (lub (s, symType s sym, voidsToTop false (inlineSType s (symType s sym))))
      | setArgsToTop (es,s) (CONdecl {
         conArg = (_,sym),
 	     ...
@@ -2350,11 +2316,7 @@ structure DeadVariables = struct
       })
      | visitDecl d = d
 
-   fun addPure (UPDATEdecl {
-         updateName = sym,
-         ...
-      }) = (pureSet := SymSet.add(!pureSet,sym))
-     | addPure (CONdecl {
+   fun addPure (CONdecl {
          conName = sym,
          ...
       }) = (pureSet := SymSet.add(!pureSet,sym))

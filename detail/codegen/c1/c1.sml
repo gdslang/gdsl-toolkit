@@ -829,46 +829,6 @@ structure C1 = struct
             ])
          end
       end
-     | emitDecl s (UPDATEdecl {
-         updateName = name,
-         updateArg = arg,
-         updateFields = fs,
-         updateType = ty
-      }) =
-      let
-         val recVar = #ret (s : state)
-         val s = registerSymbol (recVar,s)
-         val s = foldl registerFSymbol s fs
-         fun fieldName f = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
-         val args = map (fn f => (SymMap.lookup (#fieldTypes s,f), f)) fs @ [(OBJvtype, recVar)]
-      in
-         if #onlyDecls s then
-         let
-            val fTy = emitFunType s (name, args, ty)
-            val preDecl = !(#preDeclEmit s)
-            val _ = (#preDeclEmit s) := []
-         in
-            align (
-               preDecl @ [
-               seq [str "static", space, fTy, str ";"]
-            ])
-         end
-         else
-         align [
-            seq [str "static", space, emitFunType s (name, args, ty), space, str "{"],
-            indent 2 (align ([
-               seq (str "field_tag_t tags[] = " :: list ("{",str o getFieldTag, fs, "};")),
-               seq [emitSym s recVar, str " = del_fields(s,tags,sizeof(tags)/sizeof(tags[0]),", emitSym s recVar, str ");"]
-            ] @ map (fn f =>
-               seq [emitSym s recVar, str " = ",
-                    emitAddField s f, str "(s,", str (getFieldTag f), str ", ",
-                    emitSym s f, str ", ", emitSym s recVar, str ");"]) fs
-            @ [
-               seq [str "return ", emitSym s recVar, str ";"]
-            ])),
-            str "}"
-         ]
-      end
      | emitDecl s (CONdecl {
          conName = name,
          conTag = tag,

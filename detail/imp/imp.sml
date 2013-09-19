@@ -122,12 +122,6 @@ structure Imp = struct
         funcBody : block,
         funcRes : sym
       }
-    | UPDATEdecl of {
-        updateName : sym,
-        updateArg : sym,
-        updateFields : sym list,  (* field symbols *)
-        updateType : vtype
-      }
     | CONdecl of {
         conName : sym,
         conTag : sym, (* constructor symbol *)
@@ -179,7 +173,6 @@ structure Imp = struct
     | CONlit of sym
 
    fun getDeclName (FUNCdecl { funcName = name, ... }) = name
-     | getDeclName (UPDATEdecl { updateName = name, ... }) = name
      | getDeclName (CONdecl { conName = name, ... }) = name
      | getDeclName (CLOSUREdecl { closureName = name, ... }) = name
 
@@ -235,8 +228,6 @@ structure Imp = struct
                ),
                block funcBody
                ]
-        | decl (UPDATEdecl { updateName = name, updateArg = arg, updateFields = fs, updateType = t }) =
-            seq ([vtype t, space, var name, str ";"] @ args ("[",fld, fs, "]") @ [str "(", var arg, str ")"])
         | decl (CONdecl { conName = name, conTag = tag, conArg = conArg, conType = t }) =
             seq [vtype t, space, var name, str "(", arg conArg, str ");"]
         | decl (CLOSUREdecl { closureName = name, closureArgs = ts,
