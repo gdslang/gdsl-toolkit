@@ -1,10 +1,9 @@
 
 structure JS0Templates = struct
-   val runtime = ExpandFile.mkTemplateFromFile "detail/codegen/js0/runtime.js"
 
-   fun expandRuntime hooks =
+   fun expandRuntime path hooks =
       ExpandFile.expandTemplate
-         {src=runtime,
+         {src=ExpandFile.mkTemplateFromFile (path ^ "/js0/runtime.js"),
           dst="dis.js",
           hooks=hooks}
 
@@ -156,8 +155,9 @@ structure JS0 = struct
             in
                Program.T (Vector.fromList jsfuns)
             end
+         val path = Controls.get BasicControl.runtimePath
          val _ =
-            JS0Templates.expandRuntime
+            JS0Templates.expandRuntime path
                [JS0Templates.mkFunctionsHook (Program.layout js)]
       in
          js

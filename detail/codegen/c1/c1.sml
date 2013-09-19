@@ -21,13 +21,13 @@ structure C1Templates = struct
 
    fun expandHeader path basename hooks =
       ExpandFile.expandTemplate
-         {src=ExpandFile.mkTemplateFromFile (path ^ "/runtime.h"),
+         {src=ExpandFile.mkTemplateFromFile (path ^ "/c1/runtime.h"),
           dst=basename ^ ".h",
           hooks=stdHooks basename @ hooks}
 
    fun expandRuntime path basename hooks =
       ExpandFile.expandTemplate
-         {src=ExpandFile.mkTemplateFromFile (path ^ "/runtime.c"),
+         {src=ExpandFile.mkTemplateFromFile (path ^ "/c1/runtime.c"),
           dst=basename ^ ".c",
           hooks=stdHooks basename @ hooks}
 
@@ -134,7 +134,8 @@ structure C1 = struct
       "mktemp",
       "logb",
       "div",
-      "memcpy"
+      "memcpy",
+      "s"
       ])
 
    fun mangleName s =
@@ -268,6 +269,8 @@ structure C1 = struct
 
    fun genRecSignature fs =
       let
+         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
+         val fs = ListMergeSort.uniqueSort fieldCmp fs
          val str = foldl (fn ((f,t),str) =>
             Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)) ^ str) "" fs
       in
@@ -825,46 +828,6 @@ structure C1 = struct
             ])
          end
       end
-     | emitDecl s (UPDATEdecl {
-         updateName = name,
-         updateArg = arg,
-         updateFields = fs,
-         updateType = ty
-      }) =
-      let
-         val recVar = #ret (s : state)
-         val s = registerSymbol (recVar,s)
-         val s = foldl registerFSymbol s fs
-         fun fieldName f = Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable,f))
-         val args = map (fn f => (SymMap.lookup (#fieldTypes s,f), f)) fs @ [(OBJvtype, recVar)]
-      in
-         if #onlyDecls s then
-         let
-            val fTy = emitFunType s (name, args, ty)
-            val preDecl = !(#preDeclEmit s)
-            val _ = (#preDeclEmit s) := []
-         in
-            align (
-               preDecl @ [
-               seq [str "static", space, fTy, str ";"]
-            ])
-         end
-         else
-         align [
-            seq [str "static", space, emitFunType s (name, args, ty), space, str "{"],
-            indent 2 (align ([
-               seq (str "field_tag_t tags[] = " :: list ("{",str o getFieldTag, fs, "};")),
-               seq [emitSym s recVar, str " = del_fields(s,tags,sizeof(tags)/sizeof(tags[0]),", emitSym s recVar, str ");"]
-            ] @ map (fn f =>
-               seq [emitSym s recVar, str " = ",
-                    emitAddField s f, str "(s,", str (getFieldTag f), str ", ",
-                    emitSym s f, str ", ", emitSym s recVar, str ");"]) fs
-            @ [
-               seq [str "return ", emitSym s recVar, str ";"]
-            ])),
-            str "}"
-         ]
-      end
      | emitDecl s (CONdecl {
          conName = name,
          conTag = tag,
@@ -954,10 +917,9 @@ structure C1 = struct
 
    fun genRecordMapping ((tySym, ty), m) =
       let
-         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          fun addRec (SpecAbstractTree.MARKty t) = addRec (#tree t)
            | addRec (SpecAbstractTree.RECORDty fs) =
-               AtomMap.insert (m, genRecSignature (ListMergeSort.uniqueSort fieldCmp fs),
+               AtomMap.insert (m, genRecSignature fs,
                   SymbolTable.getAtom (!SymbolTables.typeTable,tySym))
            | addRec _ = m
       in
@@ -971,9 +933,12 @@ structure C1 = struct
          val _ = genClosureSet := AtomSet.empty
          val _ = invokeClosureSet := AtomSet.empty
 
-         val { decls = ds, fdecls = fs, exports } = Spec.get #declarations spec
+         val { decls = ds, fdecls = fs, exports, monad = mt } = Spec.get #declarations spec
 
-         val recordMapping = foldl genRecordMapping AtomMap.empty (Spec.get #typealias spec)
+         val recordMapping = case mt of
+            RECORDvtype (_,fs) => AtomMap.singleton (genRecSignature fs, Atom.atom "monad")
+          | _ => AtomMap.empty
+         val recordMapping = foldl genRecordMapping recordMapping (Spec.get #typealias spec)
          
          val closureToFunMap = foldl (fn (d,m) => case d of
                   CLOSUREdecl {
@@ -1000,7 +965,6 @@ structure C1 = struct
 
          val st = !SymbolTables.varTable
          val (st, genericSym) = SymbolTable.fresh (st,Atom.atom "v")
-         val (st, stateSym) = SymbolTable.fresh (st,Atom.atom "s")
          val _ = SymbolTables.varTable := st
          val exports = SymSet.fromList (Spec.get #exports spec)
          val s = {
@@ -1018,7 +982,6 @@ structure C1 = struct
                preDeclEmit = ref [],
                stateType = ref OBJvtype
             } : state
-         val s = registerSymbol (stateSym, s)
          val s = foldl registerSymbol s (map getDeclName ds)
          val funs = map (emitDecl s) ds
          val s = {

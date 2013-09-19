@@ -66,18 +66,16 @@ structure PrettyC = struct
 end
 
 structure C0Templates = struct
-   val header = ExpandFile.mkTemplateFromFile "detail/codegen/c0/runtime.h"
-   val runtime = ExpandFile.mkTemplateFromFile "detail/codegen/c0/runtime.c"
 
-   fun expandHeader hooks =
+   fun expandHeader path hooks =
       ExpandFile.expandTemplate
-         {src=header,
+         {src=ExpandFile.mkTemplateFromFile (path ^ "/c0/runtime.h"),
           dst="dis.h",
           hooks=hooks}
 
-   fun expandRuntime hooks =
+   fun expandRuntime path hooks =
       ExpandFile.expandTemplate
-         {src=runtime,
+         {src=ExpandFile.mkTemplateFromFile (path ^ "/c0/runtime.c"),
           dst="dis.c",
           hooks=hooks}
 
@@ -418,13 +416,14 @@ structure C = struct
             end 
 
          val funs = map emitFun clos
+         val path = Controls.get BasicControl.runtimePath
          val _ =
-            C0.expandHeader
+            C0.expandHeader path
                [C0.mkConstrutorsHook (align constructors),
                 C0.mkFieldsHook (align fields),
                 C0.mkExportsHook (align externPrototypes)]
          val _ =
-            C0.expandRuntime
+            C0.expandRuntime path
                [C0.mkPrototypesHook (align staticPrototypes),
                 C0.mkFunctionsHook (align funs),
                 C0.mkTagNamesHook constructorNames,
