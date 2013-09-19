@@ -1,6 +1,4 @@
 structure C1Templates = struct
-   val header = ExpandFile.mkTemplateFromFile "detail/codegen/c1/runtime.h"
-   val runtime = ExpandFile.mkTemplateFromFile "detail/codegen/c1/runtime.c"
 
    fun stdHooks basename =
       let
@@ -21,15 +19,15 @@ structure C1Templates = struct
          ]
       end
 
-   fun expandHeader basename hooks =
+   fun expandHeader path basename hooks =
       ExpandFile.expandTemplate
-         {src=header,
+         {src=ExpandFile.mkTemplateFromFile (path ^ "/runtime.h"),
           dst=basename ^ ".h",
           hooks=stdHooks basename @ hooks}
 
-   fun expandRuntime basename hooks =
+   fun expandRuntime path basename hooks =
       ExpandFile.expandTemplate
-         {src=runtime,
+         {src=ExpandFile.mkTemplateFromFile (path ^ "/runtime.c"),
           dst=basename ^ ".c",
           hooks=stdHooks basename @ hooks}
 
@@ -1061,9 +1059,9 @@ structure C1 = struct
                (ListMergeSort.sort (fn ((_,i1),(_,i2)) => i1>i2)
                   (AtomMap.listItemsi (!(#allocFuncs s))))
          val state = emitType s (SOME "state", !(#stateType s))
-
+         val path = Controls.get BasicControl.runtimePath
          val _ =
-            C1Templates.expandHeader outputName [
+            C1Templates.expandHeader path outputName [
                C1Templates.mkHook ("init", str (prefix ^ "init")),
                C1Templates.mkHook ("set_code", str (prefix ^ "set_code")),
                C1Templates.mkHook ("get_ip_offset", str (prefix ^ "get_ip_offset")),
@@ -1081,7 +1079,7 @@ structure C1 = struct
                C1Templates.mkHook ("tagnames", align constructors)
             ]
          val _ =
-            C1Templates.expandRuntime outputName [
+            C1Templates.expandRuntime path outputName [
                C1Templates.mkHook ("init", str (prefix ^ "init")),
                C1Templates.mkHook ("set_code", str (prefix ^ "set_code")),
                C1Templates.mkHook ("get_ip_offset", str (prefix ^ "get_ip_offset")),

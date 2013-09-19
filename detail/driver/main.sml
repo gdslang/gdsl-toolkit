@@ -65,6 +65,8 @@ structure Main = struct
 \    -h               show help message\n\
 \    -p pfx\n\
 \    --prefix=pfx     prefix functions with pfx\n\
+\    -r path\n\
+\    --runtime=path   path to the runtime files, defaults to detail/codegen/c1/\n\
 \    -o name\n\
 \    --outname=name   base name of output file, defaults to gdsl-pfx\n\
 \    -t               do not run the type checker\n\
@@ -101,6 +103,13 @@ structure Main = struct
 
    and processLibname arg = Controls.set (BasicControl.outputName, SOME arg)
 
+   and processRuntime arg =
+      if String.size arg=0 then () else
+      if String.sub (arg,String.size arg-1) = #"/" then
+         Controls.set (BasicControl.runtimePath, String.substring (arg,0,String.size arg-1))
+      else
+         Controls.set (BasicControl.runtimePath, arg)
+
    and processMaxIter arg = case Int.fromString arg of
       SOME num => Controls.set (BasicControl.maxIter, num)
     | NONE => bad ("!* expected number for --maxIter\n")
@@ -129,7 +138,10 @@ structure Main = struct
       if String.isPrefix "--prefix=" arg
          then (processPrefix (String.extract (arg,9,NONE)); processArgs args)
       else
-      if String.isPrefix "--libname=" arg
+      if String.isPrefix "--runtime=" arg
+         then (processRuntime (String.extract (arg,10,NONE)); processArgs args)
+      else
+      if String.isPrefix "--outname=" arg
          then (processLibname (String.extract (arg,10,NONE)); processArgs args)
       else
       if String.isPrefix "--maxIter=" arg
@@ -148,6 +160,10 @@ structure Main = struct
            )
           | "-o" => (case args of
              (arg :: args) => (processLibname arg; processArgs args)
+           | [] => badopt ()
+           )
+          | "-r" => (case args of
+             (arg :: args) => (processRuntime arg; processArgs args)
            | [] => badopt ()
            )
           | _ => badopt ()
