@@ -149,7 +149,9 @@ RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
 	$(MLANTLR) $<
 
 GDSLC = $(abspath $(CURDIR)/gdslc$(EXEEXT))
-GDSLC_DEP = gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
+#GDSLC_DEP = gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
+GDSLC_DEP = gdslc$(EXEEXT)
+GDSLFLAGS = --runtime=$(srcdir)/detail/codegen/c1
 
 # the decoders
 
@@ -347,7 +349,7 @@ pre-build:
 	mkdir -p $(BDIRS)
 
 $(JAR): pre-build $(JSOURCES:%=libs/jrreil/%)
-	cd $(srcdir)/libs/jrreil && javac $(JSOURCES) -d ../../$(BPRE)/
+	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jrreil && javac $(JSOURCES) -d $$ABS_DST/
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
 endif
 
