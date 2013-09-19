@@ -58,11 +58,11 @@ structure PatchFunctionCalls = struct
       }
      | visitDecl s d = d
 
-   fun run ({ decls = ds, fdecls = fs, exports = es } : imp) =
+   fun run ({ decls = ds, fdecls = fs, exports = es, monad = mt } : imp) =
       let
          val ds = map (visitDecl {}) ds
       in
-         { decls = ds, fdecls = fs, exports = es } : imp
+         { decls = ds, fdecls = fs, exports = es, monad = mt } : imp
       end
    
 end
@@ -243,12 +243,12 @@ structure ActionClosures = struct
       },s) = SymMap.insert (s, del, name)
      | genFunToClosure (d,s) = s 
 
-   fun run { decls = ds, fdecls = fs, exports = es } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
       let
          val s = foldl genFunToClosure SymMap.empty ds
          val ds = visitDecl s ds
       in
-         { decls = ds, fdecls = fs, exports = es }
+         { decls = ds, fdecls = fs, exports = es, monad = mt }
       end
    
 end
@@ -498,7 +498,7 @@ structure ActionReduce = struct
      | visitDecl s d = d
 
 
-   fun run { decls = ds, fdecls = fs, exports = es } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
       let
          fun fixpoint (size,set) =
             let
@@ -521,7 +521,7 @@ structure ActionReduce = struct
          val sVar = { monVars = pureToMon } : stateVar
          val ds = map (visitDecl sVar) ds
       in
-         { decls = ds, fdecls = fs, exports = es }
+         { decls = ds, fdecls = fs, exports = es, monad = mt }
       end
    
 end
@@ -718,7 +718,7 @@ structure Simplify = struct
       }
      | visitDecl s d = d
 
-   fun run ({ decls = ds, fdecls = fs, exports = es } : imp) =
+   fun run ({ decls = ds, fdecls = fs, exports = es, monad = mt } : imp) =
       let
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
          val state = { decls = declMap,
@@ -726,7 +726,7 @@ structure Simplify = struct
                        stmtsRef = ref ([] : stmt list) } : state
          val ds = map (visitDecl state) ds
       in
-         { decls = ds, fdecls = fs, exports = es } : imp
+         { decls = ds, fdecls = fs, exports = es, monad = mt } : imp
       end
    
 end
@@ -1215,18 +1215,6 @@ structure TypeRefinement = struct
       in
          lub (s, symType s name, ty)
       end
-     | visitDecl s (UPDATEdecl {
-         updateName = name,
-         updateArg = arg,
-         updateFields = fs,
-         updateType = _
-      }) =
-      let
-         val fsTys = map (fieldType s) fs
-         val reTy = lub (s, OBJstype, symType s arg)
-      in
-         lub (s, symType s name, FUNstype (reTy, OBJstype, fsTys @ [reTy]))
-      end
      | visitDecl s (CONdecl {
          conName = name,
          conTag = _,
@@ -1266,7 +1254,6 @@ structure TypeRefinement = struct
       SOME t => t
     | NONE => (case SymMap.find (#origDecls s, sym) of
           (SOME (FUNCdecl { funcType = ty, ... })) => ty
-        | (SOME (UPDATEdecl { updateType = ty, ... })) => ty
         | (SOME (CONdecl { conType = ty, ... })) => ty
         | (SOME (CLOSUREdecl { closureArgs = ts, ... })) => FUNvtype (OBJvtype,true,ts)
         | NONE => (TextIO.print ("origType: no type of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n"); raise TypeOptBug)
@@ -1275,11 +1262,6 @@ structure TypeRefinement = struct
    fun getArgTypes s sym = case SymMap.find (#origDecls s, sym) of
           SOME (FUNCdecl { funcArgs = args, ... }) =>
             map (fn (t,sym) => (t,symType s sym)) args
-        | SOME (UPDATEdecl { updateName = sym, updateType = t, ... }) =>
-            (case (t,inlineSType s (symType s sym)) of
-                (FUNvtype (_,_,vArgs), FUNstype (_,_,sArgs)) => ListPair.zip (vArgs,sArgs)
-              | (v,s) => (TextIO.print ("getArgTypes: update function " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " has unequal no of args: " ^ Layout.tostring (Imp.PP.vtype v) ^ " and " ^ showSType s ^ "\n"); raise TypeOptBug)
-            )
         | SOME (CONdecl { conName = name, conArg = (_,arg), ... }) =>
             [(origType s arg, symType s arg)]
         | SOME (CLOSUREdecl { closureName = name, closureArgs = ts, ... }) =>
@@ -1381,17 +1363,6 @@ structure TypeRefinement = struct
             funcRes = res
          }
       end
-     | patchDecl s (UPDATEdecl {
-         updateName = name,
-         updateArg = arg,
-         updateFields = fs,
-         updateType = vtype
-      }) = UPDATEdecl {
-         updateName = name,
-         updateArg = arg,
-         updateFields = fs,
-         updateType = adjustType s (vtype, symType s name)
-      }
      | patchDecl s (CONdecl {
          conName = name,
          conTag = tag,
@@ -1632,11 +1603,6 @@ structure TypeRefinement = struct
       in
          ()
       end
-     | setArgsToTop (es,s) (UPDATEdecl {
-        updateArg = sym,
-	     ...
-      }) =
-      ignore (lub (s, symType s sym, voidsToTop false (inlineSType s (symType s sym))))
      | setArgsToTop (es,s) (CONdecl {
         conArg = (_,sym),
 	     ...
@@ -1661,7 +1627,7 @@ structure TypeRefinement = struct
          DynamicArray.foldl checkForRecord AtomMap.empty (#typeTable s)
       end
 
-   fun run { decls = ds, fdecls = fs, exports = es } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
       let
          (* register one symbol to track the type of the global state *)
          val (tab, stateSym) = SymbolTable.fresh (!SymbolTables.varTable, Atom.atom Primitives.globalState)
@@ -1689,8 +1655,9 @@ structure TypeRefinement = struct
          fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)*)
          val ds = map (patchDecl state) ds
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
+         val mt = adjustType state (mt, symType state stateSym)
       in
-         { decls = ds, fdecls = fs, exports = es }
+         { decls = ds, fdecls = fs, exports = es, monad = mt }
       end
    
 end
@@ -2052,11 +2019,11 @@ structure SwitchReduce = struct
       }
      | visitDecl s d = d
 
-   fun run { decls = ds, fdecls = fs, exports = es } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
       let
          val ds = map (visitDecl {}) ds
       in
-         { decls = ds, fdecls = fs, exports = es }
+         { decls = ds, fdecls = fs, exports = es, monad = mt }
       end
    
 end
@@ -2168,7 +2135,7 @@ structure DeadFunctions = struct
      }) = if SymSet.member(!(#referenced s), name) then refSym (s : state) del else ()
      | visitCDecl s _ = ()
 
-   fun run { decls = ds, fdecls = fs, exports = es } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
       let
          val s = { locals = SymSet.empty,
                    replace = ref SymMap.empty,
@@ -2186,7 +2153,7 @@ structure DeadFunctions = struct
             end
          val ds = fixpoint ()
       in
-         { decls = ds, fdecls = fs, exports = es }
+         { decls = ds, fdecls = fs, exports = es, monad = mt }
       end
    
 end
@@ -2349,21 +2316,17 @@ structure DeadVariables = struct
       })
      | visitDecl d = d
 
-   fun addPure (UPDATEdecl {
-         updateName = sym,
-         ...
-      }) = (pureSet := SymSet.add(!pureSet,sym))
-     | addPure (CONdecl {
+   fun addPure (CONdecl {
          conName = sym,
          ...
       }) = (pureSet := SymSet.add(!pureSet,sym))
      | addPure _ = ()
 
-   fun run { decls = ds, fdecls = fs, exports = es } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
       let
          val _ = app addPure ds
       in
-         { decls = map visitDecl ds, fdecls = fs, exports = es }
+         { decls = map visitDecl ds, fdecls = fs, exports = es, monad = mt }
       end
    
 end
