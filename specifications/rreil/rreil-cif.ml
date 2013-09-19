@@ -123,7 +123,7 @@ val rreil-convert-sem-varls cbs varls = let
    | SEM_VARLS_NIL: list
   end
 in
-  convert-inner cbs (cbs.sem_varls.sem_varls_init 42) varls
+  convert-inner cbs (cbs.sem_varls.sem_varls_init void) varls #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
 val rreil-sem-varls-head stmts = case stmts of
@@ -179,7 +179,7 @@ val rreil-convert-sem-stmts cbs stmts = let
    | SEM_NIL: list
   end
 in
-  convert-inner cbs (cbs.sem_stmts.init 42) stmts
+  convert-inner cbs (cbs.sem_stmts.init void) stmts #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
 val rreil-sem-stmts-has-more stmts = case stmts of

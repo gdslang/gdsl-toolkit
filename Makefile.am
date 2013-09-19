@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = -Wno-override
 
-CLEANFILES =
+CLEANFILES = STATS
 noinst_PROGRAMS =
 bin_PROGRAMS =
 EXTRA_PROGRAMS =
@@ -211,6 +211,8 @@ CLEANFILES += gdsl-x86-rreil.c
 gdsl-x86-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
 
+CLEANFILES += gdsl-x86-rreil.c gdsl-x86-rreil.h
+
 if X86
 lib_LTLIBRARIES += libgdsl-x86.la
 decoder_cli_LDADD += libgdsl-x86.la
@@ -243,6 +245,8 @@ CLEANFILES += gdsl-avr-rreil.c
 gdsl-avr-rreil.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
 
+CLEANFILES += gdsl-avr-rreil.c gdsl-avr-rreil.h
+
 if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
 decoder_cli_LDADD += libgdsl-avr.la
@@ -254,6 +258,8 @@ CLEANFILES += gdsl-avr.c
 
 gdsl-avr.c : $(GDSLC_DEP) $(GDSL_BASIS) $(GDSL_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(filter-out $(GDSLC_DEP),$^)
+
+CLEANFILES += gdsl-avr.c gdsl-avr.h
 
 if HAVE_RREIL
 JSOURCES = src/rreil/IAddress.java \
@@ -351,6 +357,12 @@ pre-build:
 $(JAR): pre-build $(JSOURCES:%=libs/jrreil/%)
 	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jrreil && javac $(JSOURCES) -d $$ABS_DST/
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
+
+clean-local:
+	-rm -rf build/
+
+CLEANFILES += jrreil.jar
+
 endif
 
 
