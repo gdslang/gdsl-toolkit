@@ -154,7 +154,7 @@ structure BasicControl :  sig
 	    pri = [0],
 	    obscurity = 0,
 	    help = "path to the runtime files",
-	    default = "./detail/codegen/c1/"
+	    default = "./detail/codegen/"
 	  }
 
   (*  the prefix for exported functions*)
