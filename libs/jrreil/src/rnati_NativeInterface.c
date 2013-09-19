@@ -561,7 +561,7 @@ static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
 	jobject ret = java_method_call(state, "sem_varls_next", 2, (jobject)next, (jobject)list);
 	return (obj_t)ret;
 }
-static obj_t sem_varls_init(state_t state) {
+static obj_t sem_varls_init(state_t state, obj_t nothing) {
 	jobject ret = java_method_call(state, "sem_varls_init", 0);
 	return (obj_t)ret;
 }
@@ -659,7 +659,7 @@ static obj_t list_next(state_t state, obj_t next, obj_t list) {
 	jobject ret = java_method_call(state, "list_next", 2, (jobject)next, (jobject)list);
 	return (obj_t)ret;
 }
-static obj_t list_init(state_t state) {
+static obj_t list_init(state_t state, obj_t nothing) {
 	jobject ret = java_method_call(state, "list_init", 0);
 	return (obj_t)ret;
 }

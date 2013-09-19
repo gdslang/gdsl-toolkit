@@ -451,7 +451,7 @@ static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
 	printf("=> sem_varls_next\n");
 	return NULL;
 }
-static obj_t sem_varls_init(state_t state) {
+static obj_t sem_varls_init(state_t state, obj_t nothing) {
 	printf("=> sem_varls_init\n");
 	return NULL;
 }
@@ -550,7 +550,7 @@ static obj_t list_next(state_t state, obj_t next,
 	printf("next statement\n\n");
 	return NULL ;
 }
-static obj_t list_init(state_t state) {
+static obj_t list_init(state_t state, obj_t nothing) {
 	printf("init\n");
 	return NULL ;
 }

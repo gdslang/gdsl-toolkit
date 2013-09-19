@@ -370,7 +370,7 @@ static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
 	variable_tuple->variables[variable_tuple->variables_length++] = (struct rreil_variable_limited*)next;
 	return (obj_t)variable_tuple;
 }
-static obj_t sem_varls_init(state_t state) {
+static obj_t sem_varls_init(state_t state, obj_t nothing) {
 	struct rreil_variable_limited_tuple *variable_tuple = (struct rreil_variable_limited_tuple*)malloc(sizeof(struct rreil_variable_limited_tuple));
 	variable_tuple->variables = NULL;
 	variable_tuple->variables_length = 0;
@@ -529,7 +529,7 @@ static obj_t list_next(state_t state, obj_t next,
 			(struct rreil_statement*)next;
 	return (obj_t)statements;
 }
-static obj_t list_init(state_t state) {
+static obj_t list_init(state_t state, obj_t nothing) {
 	struct rreil_statements *statements = (struct rreil_statements*)malloc(
 			sizeof(struct rreil_statements));
 	statements->statements = NULL;
