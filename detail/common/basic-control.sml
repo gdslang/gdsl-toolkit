@@ -29,6 +29,9 @@ structure BasicControl :  sig
   (* the name for the generated file *)
     val outputName : string option Controls.control
 
+  (* the name for the generated file *)
+    val runtimePath : string Controls.control
+
   (* the prefix for exported functions *)
     val exportPrefix : string Controls.control
 
@@ -143,6 +146,15 @@ structure BasicControl :  sig
 	    obscurity = 0,
 	    help = "name of the output file",
 	    default = NONE
+	  }
+
+  (* the path to the files *)
+    val runtimePath : string Controls.control = Controls.genControl {
+	    name = "runtime",
+	    pri = [0],
+	    obscurity = 0,
+	    help = "path to the runtime files",
+	    default = "./detail/codegen/c1/"
 	  }
 
   (*  the prefix for exported functions*)
