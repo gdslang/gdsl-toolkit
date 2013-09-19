@@ -604,7 +604,8 @@ end = struct
             in
                { decls = !decls,
                  fdecls = !fields,
-                 exports = Spec.get #exports spec }
+                 exports = Spec.get #exports spec,
+                 monad = OBJvtype }
             end) spec
 
    fun dumpPre (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)

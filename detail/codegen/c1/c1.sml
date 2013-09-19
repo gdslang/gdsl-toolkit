@@ -59,7 +59,7 @@ structure C1 = struct
                   recordMapping : Atom.atom AtomMap.map,
                   allocFuncs : int AtomMap.map ref,
                   preDeclEmit : Layout.t list ref,
-                  stateType : Imp.vtype ref }
+                  stateType : Imp.vtype }
 
    fun isVOIDvtype VOIDvtype = true
      | isVOIDvtype _ = false
@@ -136,7 +136,8 @@ structure C1 = struct
       "mktemp",
       "logb",
       "div",
-      "memcpy"
+      "memcpy",
+      "s"
       ])
 
    fun mangleName s =
@@ -270,6 +271,8 @@ structure C1 = struct
 
    fun genRecSignature fs =
       let
+         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
+         val fs = ListMergeSort.uniqueSort fieldCmp fs
          val str = foldl (fn ((f,t),str) =>
             Atom.toString (SymbolTable.getAtom (!SymbolTables.fieldTable, f)) ^ str) "" fs
       in
@@ -655,9 +658,8 @@ structure C1 = struct
    
    and emitExp s (IDexp sym) = emitSym s sym
      | emitExp s (PRIexp (SETSTATEprim,_,
-         [UPDATEexp (rs,t as RECORDvtype (boxed,fsTys),fs,PRIexp (GETSTATEprim,_,[]))])) =
+         [UPDATEexp (rs,RECORDvtype (boxed,fsTys),fs,PRIexp (GETSTATEprim,_,[]))])) =
       let
-         val _ = #stateType s := t
          fun setField (f,e) =
             seq [
                str "s->state", str (if boxed then "->" else "."),
@@ -956,10 +958,9 @@ structure C1 = struct
 
    fun genRecordMapping ((tySym, ty), m) =
       let
-         fun fieldCmp ((f1,_),(f2,_)) = SymbolTable.compare_symid (f1,f2)
          fun addRec (SpecAbstractTree.MARKty t) = addRec (#tree t)
            | addRec (SpecAbstractTree.RECORDty fs) =
-               AtomMap.insert (m, genRecSignature (ListMergeSort.uniqueSort fieldCmp fs),
+               AtomMap.insert (m, genRecSignature fs,
                   SymbolTable.getAtom (!SymbolTables.typeTable,tySym))
            | addRec _ = m
       in
@@ -973,9 +974,12 @@ structure C1 = struct
          val _ = genClosureSet := AtomSet.empty
          val _ = invokeClosureSet := AtomSet.empty
 
-         val { decls = ds, fdecls = fs, exports } = Spec.get #declarations spec
+         val { decls = ds, fdecls = fs, exports, monad = mt } = Spec.get #declarations spec
 
-         val recordMapping = foldl genRecordMapping AtomMap.empty (Spec.get #typealias spec)
+         val recordMapping = case mt of
+            RECORDvtype (_,fs) => AtomMap.singleton (genRecSignature fs, Atom.atom "monad")
+          | _ => AtomMap.empty
+         val recordMapping = foldl genRecordMapping recordMapping (Spec.get #typealias spec)
          
          val closureToFunMap = foldl (fn (d,m) => case d of
                   CLOSUREdecl {
@@ -1002,7 +1006,6 @@ structure C1 = struct
 
          val st = !SymbolTables.varTable
          val (st, genericSym) = SymbolTable.fresh (st,Atom.atom "v")
-         val (st, stateSym) = SymbolTable.fresh (st,Atom.atom "s")
          val _ = SymbolTables.varTable := st
          val exports = SymSet.fromList (Spec.get #exports spec)
          val s = {
@@ -1018,9 +1021,8 @@ structure C1 = struct
                allocFuncs = ref AtomMap.empty,
                recordMapping = recordMapping,
                preDeclEmit = ref [],
-               stateType = ref OBJvtype
+               stateType = mt
             } : state
-         val s = registerSymbol (stateSym, s)
          val s = foldl registerSymbol s (map getDeclName ds)
          val funs = map (emitDecl s) ds
          val s = {
@@ -1060,7 +1062,7 @@ structure C1 = struct
             map (str o Atom.toString o #1) 
                (ListMergeSort.sort (fn ((_,i1),(_,i2)) => i1>i2)
                   (AtomMap.listItemsi (!(#allocFuncs s))))
-         val state = emitType s (SOME "state", !(#stateType s))
+         val state = emitType s (SOME "state", (#stateType s))
 
          val _ =
             C1Templates.expandHeader outputName [
