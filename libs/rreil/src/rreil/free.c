@@ -13,6 +13,10 @@ void rreil_address_free(struct rreil_address *address) {
 	free(address);
 }
 
+void rreil_arity1_sexpr_clear(struct rreil_arity1_sexpr *arity1_sexpr) {
+	rreil_sexpr_free(arity1_sexpr->opnd1);
+}
+
 void rreil_arity1_clear(struct rreil_arity1 *arity1) {
 	rreil_linear_free(arity1->opnd1);
 }
@@ -66,65 +70,61 @@ void rreil_size_change_clear(struct rreil_size_change *size_change) {
 	rreil_linear_free(size_change->opnd);
 }
 
-void rreil_op_free(struct rreil_op *op) {
+void rreil_op_free(struct rreil_expr *op) {
 	switch (op->type) {
-		case RREIL_OP_TYPE_LIN: {
-			rreil_arity1_clear(&op->lin);
+		case RREIL_EXPR_TYPE_SEXPR: {
+			rreil_arity1_sexpr_clear(&op->sexpr);
 			break;
 		}
-		case RREIL_OP_TYPE_MUL: {
+		case RREIL_EXPR_TYPE_MUL: {
 			rreil_arity2_clear(&op->mul);
 			break;
 		}
-		case RREIL_OP_TYPE_DIV: {
+		case RREIL_EXPR_TYPE_DIV: {
 			rreil_arity2_clear(&op->div);
 			break;
 		}
-		case RREIL_OP_TYPE_DIVS: {
+		case RREIL_EXPR_TYPE_DIVS: {
 			rreil_arity2_clear(&op->divs);
 			break;
 		}
-		case RREIL_OP_TYPE_MOD: {
+		case RREIL_EXPR_TYPE_MOD: {
 			rreil_arity2_clear(&op->mod);
 			break;
 		}
-		case RREIL_OP_TYPE_SHL: {
+		case RREIL_EXPR_TYPE_SHL: {
 			rreil_arity2_clear(&op->shl);
 			break;
 		}
-		case RREIL_OP_TYPE_SHR: {
+		case RREIL_EXPR_TYPE_SHR: {
 			rreil_arity2_clear(&op->shr);
 			break;
 		}
-		case RREIL_OP_TYPE_SHRS: {
+		case RREIL_EXPR_TYPE_SHRS: {
 			rreil_arity2_clear(&op->shrs);
 			break;
 		}
-		case RREIL_OP_TYPE_AND: {
+		case RREIL_EXPR_TYPE_AND: {
 			rreil_arity2_clear(&op->and_);
 			break;
 		}
-		case RREIL_OP_TYPE_OR: {
+		case RREIL_EXPR_TYPE_OR: {
 			rreil_arity2_clear(&op->or_);
 			break;
 		}
-		case RREIL_OP_TYPE_XOR: {
+		case RREIL_EXPR_TYPE_XOR: {
 			rreil_arity2_clear(&op->xor_);
 			break;
 		}
-		case RREIL_OP_TYPE_SX: {
+		case RREIL_EXPR_TYPE_SX: {
 			rreil_size_change_clear(&op->sx);
 			break;
 		}
-		case RREIL_OP_TYPE_ZX: {
+		case RREIL_EXPR_TYPE_ZX: {
 			rreil_size_change_clear(&op->zx);
 			break;
 		}
-		case RREIL_OP_TYPE_CMP: {
-			rreil_comparator_free(op->cmp);
-			break;
-		}
-		case RREIL_OP_TYPE_ARB: {
+		case RREIL_EXPR_TYPE_ARB: {
 			break;
 		}
 	}

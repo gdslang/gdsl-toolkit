@@ -1,8 +1,8 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public abstract class ExtendOperation extends Operation {
+public abstract class Extend extends Expression {
 	protected long fromsize;
 
 	public long getfromsize() {
@@ -15,7 +15,7 @@ public abstract class ExtendOperation extends Operation {
 		return operand1;
 	}
 
-	public ExtendOperation(long size, long fromsize, LinearExpression operand1) {
+	public Extend(long size, long fromsize, LinearExpression operand1) {
 		super(size);
 
 		this.fromsize = fromsize;

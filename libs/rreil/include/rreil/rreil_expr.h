@@ -13,22 +13,21 @@
 #include <rreil/rreil_arity.h>
 #include <rreil/rreil_comparator.h>
 
-enum rreil_op_type {
-	RREIL_OP_TYPE_LIN,
-	RREIL_OP_TYPE_MUL,
-	RREIL_OP_TYPE_DIV,
-	RREIL_OP_TYPE_DIVS,
-	RREIL_OP_TYPE_MOD,
-	RREIL_OP_TYPE_SHL,
-	RREIL_OP_TYPE_SHR,
-	RREIL_OP_TYPE_SHRS,
-	RREIL_OP_TYPE_AND,
-	RREIL_OP_TYPE_OR,
-	RREIL_OP_TYPE_XOR,
-	RREIL_OP_TYPE_SX,
-	RREIL_OP_TYPE_ZX,
-	RREIL_OP_TYPE_CMP,
-	RREIL_OP_TYPE_ARB
+enum rreil_expr_type {
+	RREIL_EXPR_TYPE_SEXPR,
+	RREIL_EXPR_TYPE_MUL,
+	RREIL_EXPR_TYPE_DIV,
+	RREIL_EXPR_TYPE_DIVS,
+	RREIL_EXPR_TYPE_MOD,
+	RREIL_EXPR_TYPE_SHL,
+	RREIL_EXPR_TYPE_SHR,
+	RREIL_EXPR_TYPE_SHRS,
+	RREIL_EXPR_TYPE_AND,
+	RREIL_EXPR_TYPE_OR,
+	RREIL_EXPR_TYPE_XOR,
+	RREIL_EXPR_TYPE_SX,
+	RREIL_EXPR_TYPE_ZX,
+	RREIL_EXPR_TYPE_ARB
 };
 
 struct rreil_size_change {
@@ -37,10 +36,10 @@ struct rreil_size_change {
 	struct rreil_linear *opnd;
 };
 
-struct rreil_op {
-	enum rreil_op_type type;
+struct rreil_expr {
+	enum rreil_expr_type type;
 	union {
-		struct rreil_arity1 lin;
+		struct rreil_arity1_sexpr sexpr;
 		struct rreil_arity2 mul;
 		struct rreil_arity2 div;
 		struct rreil_arity2 divs;
@@ -53,7 +52,6 @@ struct rreil_op {
 		struct rreil_arity2 xor_;
 		struct rreil_size_change sx;
 		struct rreil_size_change zx;
-		struct rreil_comparator *cmp;
 		struct {
 			uint64_t size;
 		} arb;

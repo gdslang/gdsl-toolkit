@@ -15,7 +15,7 @@
 #include <rreil/rreil_linear.h>
 #include <rreil/rreil_sexpr.h>
 #include <rreil/rreil_comparator.h>
-#include <rreil/rreil_op.h>
+#include <rreil/rreil_expr.h>
 #include <rreil/rreil_variable_limited.h>
 #include <rreil/rreil_flop.h>
 #include <rreil/rreil_statement.h>

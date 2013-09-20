@@ -367,9 +367,9 @@ static obj_t sem_cmpltu(state_t state, int_t size,
 }
 
 // sem_expr
-static obj_t sem_lin(state_t state, int_t size,
+static obj_t sem_sexpr(state_t state, int_t size,
 		obj_t opnd1) {
-	printf("=> lin {size=%lu}\n", size);
+	printf("=> sem_sexpr {size=%lu}\n", size);
 	return NULL ;
 }
 static obj_t sem_mul(state_t state, int_t size,
@@ -430,9 +430,6 @@ static obj_t sem_sx(state_t state, int_t size, int_t fromsize,
 static obj_t sem_zx(state_t state, int_t size, int_t fromsize,
 		obj_t opnd1) {
 	printf("=> zx {size=%lu, fromsize=%lu}\n", size, fromsize);
-	return NULL ;
-}
-static obj_t sem_cmp(state_t state, obj_t this) {
 	return NULL ;
 }
 static obj_t sem_arb(state_t state, int_t size) {
@@ -607,7 +604,7 @@ int main(int argc, char** argv) {
 	};
 
 	unboxed_sem_expr_callbacks_t sem_expr_callbacks = {
-			.sem_lin = &sem_lin,
+			.sem_sexpr = &sem_sexpr,
 			.sem_mul = &sem_mul,
 			.sem_div = &sem_div,
 			.sem_divs = &sem_divs,
@@ -620,7 +617,6 @@ int main(int argc, char** argv) {
 			.sem_xor = &sem_xor,
 			.sem_sx = &sem_sx,
 			.sem_zx = &sem_zx,
-			.sem_cmp = &sem_cmp,
 			.sem_arb = &sem_arb
 	};
 

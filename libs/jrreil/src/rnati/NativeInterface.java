@@ -7,10 +7,10 @@ import rreil.ILimitedVariable;
 import rreil.IRReilBuilder;
 import rreil.IRReilCollection;
 import rreil.IVariable;
+import rreil.expression.ICompare;
+import rreil.expression.IExpression;
 import rreil.id.IId;
 import rreil.linear.ILinearExpression;
-import rreil.operation.ICompareOperation;
-import rreil.operation.IOperation;
 import rreil.sexpression.ISimpleExpression;
 import rreil.statement.IStatement;
 
@@ -368,7 +368,7 @@ public class NativeInterface {
 	}
 
 	private Object sem_sexpr_cmp(Object _this) {
-		return builder.sem_sexpr_lin((ILinearExpression) _this);
+		return builder.sem_sexpr_cmp((ICompare) _this);
 	}
 
 	/*
@@ -409,8 +409,8 @@ public class NativeInterface {
 	 * sem_expr
 	 */
 
-	private Object sem_lin(Object size, Object opnd1) {
-		return builder.sem_lin((Long) size, (ILinearExpression) opnd1);
+	private Object sem_sexpr(Object size, Object opnd1) {
+		return builder.sem_sexpr((Long) size, (ISimpleExpression) opnd1);
 	}
 
 	private Object sem_mul(Object size, Object opnd1, Object opnd2) {
@@ -473,10 +473,6 @@ public class NativeInterface {
 				(ILinearExpression) opnd1);
 	}
 
-	private Object sem_cmp(Object _this) {
-		return builder.sem_cmp((ICompareOperation) _this);
-	}
-
 	private Object sem_arb(Object size) {
 		return builder.sem_arb((Long) size);
 	}
@@ -524,7 +520,7 @@ public class NativeInterface {
 	 */
 
 	private Object sem_assign(Object lhs, Object rhs) {
-		return builder.sem_assign((IVariable) lhs, (IOperation) rhs);
+		return builder.sem_assign((IVariable) lhs, (IExpression) rhs);
 	}
 
 	private Object sem_load(Object lhs, Object size, Object address) {
@@ -533,7 +529,7 @@ public class NativeInterface {
 	}
 
 	private Object sem_store(Object address, Object rhs) {
-		return builder.sem_store((IAddress) address, (IOperation) rhs);
+		return builder.sem_store((IAddress) address, (IExpression) rhs);
 	}
 
 	@SuppressWarnings("unchecked")

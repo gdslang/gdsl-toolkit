@@ -1,9 +1,9 @@
 package rreil;
 
+import rreil.expression.ICompare;
+import rreil.expression.IExpression;
 import rreil.id.IId;
 import rreil.linear.ILinearExpression;
-import rreil.operation.ICompareOperation;
-import rreil.operation.IOperation;
 import rreil.sexpression.ISimpleExpression;
 import rreil.statement.IStatement;
 
@@ -178,73 +178,71 @@ public interface IRReilBuilder {
 	
 	ISimpleExpression sem_sexpr_lin(ILinearExpression _this);
 	
-	ISimpleExpression sem_sexpr_cmp(ICompareOperation _this);
+	ISimpleExpression sem_sexpr_cmp(ICompare _this);
 	
 	/*
 	 * sem_op_cmp
 	 */
 	
-	ICompareOperation sem_cmpeq(long size, ILinearExpression opnd1,
+	ICompare sem_cmpeq(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompareOperation sem_cmpneq(long size, ILinearExpression opnd1,
+	ICompare sem_cmpneq(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompareOperation sem_cmples(long size, ILinearExpression opnd1,
+	ICompare sem_cmples(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompareOperation sem_cmpleu(long size, ILinearExpression opnd1,
+	ICompare sem_cmpleu(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompareOperation sem_cmplts(long size, ILinearExpression opnd1,
+	ICompare sem_cmplts(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompareOperation sem_cmpltu(long size, ILinearExpression opnd1,
+	ICompare sem_cmpltu(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
 	/*
 	 * sem_expr
 	 */
 
-	IOperation sem_lin(long size, ILinearExpression opnd1);
+	IExpression sem_sexpr(long size, ISimpleExpression opnd1);
 
-	IOperation sem_mul(long size, ILinearExpression opnd1,
+	IExpression sem_mul(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_div(long size, ILinearExpression opnd1,
+	IExpression sem_div(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_divs(long size, ILinearExpression opnd1,
+	IExpression sem_divs(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_mod(long size, ILinearExpression opnd1,
+	IExpression sem_mod(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_shl(long size, ILinearExpression opnd1,
+	IExpression sem_shl(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_shr(long size, ILinearExpression opnd1,
+	IExpression sem_shr(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_shrs(long size, ILinearExpression opnd1,
+	IExpression sem_shrs(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_and(long size, ILinearExpression opnd1,
+	IExpression sem_and(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_or(long size, ILinearExpression opnd1,
+	IExpression sem_or(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_xor(long size, ILinearExpression opnd1,
+	IExpression sem_xor(long size, ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IOperation sem_sx(long size, long fromsize, ILinearExpression opnd1);
+	IExpression sem_sx(long size, long fromsize, ILinearExpression opnd1);
 
-	IOperation sem_zx(long size, long fromsize, ILinearExpression opnd1);
+	IExpression sem_zx(long size, long fromsize, ILinearExpression opnd1);
 	
-	IOperation sem_cmp(ICompareOperation _this);
-	
-	IOperation sem_arb(long size);
+	IExpression sem_arb(long size);
 	
 	/*
 	 * sem_varl
@@ -274,11 +272,11 @@ public interface IRReilBuilder {
 	 * sem_stmt
 	 */
 
-	IStatement sem_assign(IVariable lhs, IOperation rhs);
+	IStatement sem_assign(IVariable lhs, IExpression rhs);
 
 	IStatement sem_load(IVariable lhs, long size, IAddress address);
 
-	IStatement sem_store(IAddress address, IOperation rhs);
+	IStatement sem_store(IAddress address, IExpression rhs);
 
 	IStatement sem_ite(ISimpleExpression cond, IRReilCollection<IStatement> then_branch,
 			IRReilCollection<IStatement> else_branch);

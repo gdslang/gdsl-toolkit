@@ -1,10 +1,10 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public class SignExtendOperation extends ExtendOperation {
+public class SignExtend extends Extend {
 
-	public SignExtendOperation(long size, long fromsize,
+	public SignExtend(long size, long fromsize,
 			LinearExpression operand1) {
 		super(size, fromsize, operand1);
 	}

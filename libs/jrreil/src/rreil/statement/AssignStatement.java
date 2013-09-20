@@ -1,7 +1,7 @@
 package rreil.statement;
 
 import rreil.Variable;
-import rreil.operation.Operation;
+import rreil.expression.Expression;
 
 public class AssignStatement extends Statement {
 	protected Variable lhs;
@@ -10,13 +10,13 @@ public class AssignStatement extends Statement {
 		return lhs;
 	}
 
-	protected Operation rhs;
+	protected Expression rhs;
 
-	public Operation getRhs() {
+	public Expression getRhs() {
 		return rhs;
 	}
 
-	public AssignStatement(Variable lhs, Operation rhs) {
+	public AssignStatement(Variable lhs, Expression rhs) {
 		this.lhs = lhs;
 		this.rhs = rhs;
 	}

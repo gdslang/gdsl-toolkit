@@ -1,10 +1,10 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public class XorOperation extends BinaryOperation {
+public class Xor extends Binary {
 
-	public XorOperation(long size, LinearExpression operand1,
+	public Xor(long size, LinearExpression operand1,
 			LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}

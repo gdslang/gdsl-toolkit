@@ -1,10 +1,10 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public class ShiftRightSignedOperation extends BinaryOperation {
+public class ShiftRightSigned extends Binary {
 
-	public ShiftRightSignedOperation(long size, LinearExpression operand1,
+	public ShiftRightSigned(long size, LinearExpression operand1,
 			LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}

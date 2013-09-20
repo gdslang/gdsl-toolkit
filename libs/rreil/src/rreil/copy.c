@@ -17,6 +17,15 @@ struct rreil_address *rreil_address_copy(struct rreil_address *address) {
 	return address_copy;
 }
 
+struct rreil_arity1_sexpr rreil_arity1_sexpr_copy(struct rreil_arity1_sexpr arity1_sexpr) {
+	struct rreil_arity1_sexpr arity1_sexpr_copy;
+
+	arity1_sexpr_copy.opnd1 = rreil_sexpr_copy(arity1_sexpr.opnd1);
+	arity1_sexpr_copy.size = arity1_sexpr.size;
+
+	return arity1_sexpr_copy;
+}
+
 struct rreil_arity1 rreil_arity1_copy(struct rreil_arity1 arity1) {
 	struct rreil_arity1 arity1_copy;
 
@@ -105,69 +114,65 @@ struct rreil_size_change rreil_size_change_copy(struct rreil_size_change size_ch
 	return size_change_copy;
 }
 
-struct rreil_op *rreil_op_copy(struct rreil_op *op) {
-	struct rreil_op *op_copy = (struct rreil_op*)malloc(sizeof(struct rreil_op));
+struct rreil_expr *rreil_op_copy(struct rreil_expr *op) {
+	struct rreil_expr *op_copy = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
 
 	op_copy->type = op->type;
 
 	switch (op->type) {
-		case RREIL_OP_TYPE_LIN: {
-			op_copy->lin = rreil_arity1_copy(op->lin);
+		case RREIL_EXPR_TYPE_SEXPR: {
+			op_copy->sexpr = rreil_arity1_sexpr_copy(op->sexpr);
 			break;
 		}
-		case RREIL_OP_TYPE_MUL: {
+		case RREIL_EXPR_TYPE_MUL: {
 			op_copy->mul = rreil_arity2_copy(op->mul);
 			break;
 		}
-		case RREIL_OP_TYPE_DIV: {
+		case RREIL_EXPR_TYPE_DIV: {
 			op_copy->div = rreil_arity2_copy(op->div);
 			break;
 		}
-		case RREIL_OP_TYPE_DIVS: {
+		case RREIL_EXPR_TYPE_DIVS: {
 			op_copy->divs = rreil_arity2_copy(op->divs);
 			break;
 		}
-		case RREIL_OP_TYPE_MOD: {
+		case RREIL_EXPR_TYPE_MOD: {
 			op_copy->mod = rreil_arity2_copy(op->mod);
 			break;
 		}
-		case RREIL_OP_TYPE_SHL: {
+		case RREIL_EXPR_TYPE_SHL: {
 			op_copy->shl = rreil_arity2_copy(op->shl);
 			break;
 		}
-		case RREIL_OP_TYPE_SHR: {
+		case RREIL_EXPR_TYPE_SHR: {
 			op_copy->shr = rreil_arity2_copy(op->shr);
 			break;
 		}
-		case RREIL_OP_TYPE_SHRS: {
+		case RREIL_EXPR_TYPE_SHRS: {
 			op_copy->shrs = rreil_arity2_copy(op->shrs);
 			break;
 		}
-		case RREIL_OP_TYPE_AND: {
+		case RREIL_EXPR_TYPE_AND: {
 			op_copy->and_ = rreil_arity2_copy(op->and_);
 			break;
 		}
-		case RREIL_OP_TYPE_OR: {
+		case RREIL_EXPR_TYPE_OR: {
 			op_copy->or_ = rreil_arity2_copy(op->or_);
 			break;
 		}
-		case RREIL_OP_TYPE_XOR: {
+		case RREIL_EXPR_TYPE_XOR: {
 			op_copy->xor_ = rreil_arity2_copy(op->xor_);
 			break;
 		}
-		case RREIL_OP_TYPE_SX: {
+		case RREIL_EXPR_TYPE_SX: {
 			op_copy->sx = rreil_size_change_copy(op->sx);
 			break;
 		}
-		case RREIL_OP_TYPE_ZX: {
+		case RREIL_EXPR_TYPE_ZX: {
 			op_copy->zx = rreil_size_change_copy(op->zx);
 			break;
 		}
-		case RREIL_OP_TYPE_CMP: {
-			op_copy->cmp = rreil_comparator_copy(op->cmp);
-			break;
-		}
-		case RREIL_OP_TYPE_ARB: {
+		case RREIL_EXPR_TYPE_ARB: {
 			op_copy->arb.size = op->arb.size;
 			break;
 		}
@@ -234,29 +239,6 @@ enum rreil_flop *rreil_flop_copy(enum rreil_flop *flop) {
 	return flop_copy;
 }
 
-struct rreil_prim *rreil_prim_copy(struct rreil_prim *prim) {
-	struct rreil_prim *prim_copy = (struct rreil_prim*)malloc(sizeof(struct rreil_prim));
-
-	prim_copy->type = prim->type;
-
-	switch (prim->type) {
-		case RREIL_PRIM_TYPE_GENERIC: {
-			prim_copy->generic.op = prim->generic.op; //String allocated on GDSL heap
-			prim_copy->generic.res = rreil_variable_limited_tuple_copy(prim->generic.res);
-			prim_copy->generic.args = rreil_variable_limited_tuple_copy(prim->generic.args);
-			break;
-		}
-		case RREIL_PRIM_TYPE_FLOP: {
-			prim_copy->flop.op = rreil_flop_copy(prim->flop.op);
-			prim_copy->flop.res = rreil_variable_limited_copy(prim->flop.res);
-			prim_copy->flop.args = rreil_variable_limited_tuple_copy(prim->flop.args);
-			break;
-		}
-	}
-
-	return prim_copy;
-}
-
 struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) {
 	struct rreil_statement *statement_copy = (struct rreil_statement*)malloc(sizeof(struct rreil_statement));
 
@@ -301,8 +283,16 @@ struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) 
 			statement_copy->branch.target = rreil_address_copy(statement->branch.target);
 			break;
 		}
+		case RREIL_STATEMENT_TYPE_FLOP: {
+			statement_copy->flop.op = rreil_flop_copy(statement->flop.op);
+			statement_copy->flop.lhs = rreil_variable_limited_copy(statement->flop.lhs);
+			statement_copy->flop.rhs = rreil_variable_limited_tuple_copy(statement->flop.rhs);
+			break;
+		}
 		case RREIL_STATEMENT_TYPE_PRIM: {
-			statement_copy->prim = rreil_prim_copy(statement->prim);
+			statement_copy->prim.op = statement->prim.op; //String allocated on GDSL heap
+			statement_copy->prim.lhs = rreil_variable_limited_tuple_copy(statement->prim.lhs);
+			statement_copy->prim.rhs = rreil_variable_limited_tuple_copy(statement->prim.rhs);
 			break;
 		}
 	}

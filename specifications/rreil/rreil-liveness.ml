@@ -72,9 +72,9 @@ val lv-gen gens stmt =
 
       val visit-op gens op =
          case op of
-            SEM_LIN x: visit-arity1 gens x
+#Todo (grammar):             SEM_LIN x: visit-arity1 gens x
 #          | SEM_BSWAP x: visit-arity1 gens x
-          | SEM_MUL x: visit-arity2 gens x
+            SEM_MUL x: visit-arity2 gens x
           | SEM_DIV x: visit-arity2 gens x
           | SEM_DIVS x: visit-arity2 gens x
           | SEM_MOD x: visit-arity2 gens x
@@ -86,7 +86,7 @@ val lv-gen gens stmt =
           | SEM_XOR x: visit-arity2 gens x
           | SEM_SX x: visit-lin gens x.fromsize x.opnd1
           | SEM_ZX x: visit-lin gens x.fromsize x.opnd1
-					| SEM_CMP c: visit-op-cmp gens c
+#Todo (grammar):					| SEM_CMP c: visit-op-cmp gens c
           | SEM_ARB x: gens
          end
 

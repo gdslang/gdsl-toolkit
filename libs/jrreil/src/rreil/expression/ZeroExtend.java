@@ -1,10 +1,10 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public class ZeroExtendOperation extends ExtendOperation {
+public class ZeroExtend extends Extend {
 
-	public ZeroExtendOperation(long size, long fromsize,
+	public ZeroExtend(long size, long fromsize,
 			LinearExpression operand1) {
 		super(size, fromsize, operand1);
 	}

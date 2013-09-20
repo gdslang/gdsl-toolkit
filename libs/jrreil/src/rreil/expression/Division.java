@@ -1,10 +1,10 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public class DivisionOperation extends BinaryOperation {
+public class Division extends Binary {
 
-	public DivisionOperation(long size, LinearExpression operand1,
+	public Division(long size, LinearExpression operand1,
 			LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}

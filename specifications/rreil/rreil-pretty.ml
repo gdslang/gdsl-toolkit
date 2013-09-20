@@ -74,7 +74,7 @@ val rreil-show-op-cmp cmp =
 
 val rreil-show-expr expr =
    case expr of
-      SEM_LIN x: rreil-show-arity1 x
+      SEM_SEXPR x: rreil-show-arity1-sexpr x
     | SEM_MUL x: "mul" +++ rreil-show-arity2 x
     | SEM_DIV x: "div" +++ rreil-show-arity2 x
     | SEM_DIVS x: "divs" +++ rreil-show-arity2 x
@@ -87,10 +87,10 @@ val rreil-show-expr expr =
     | SEM_XOR x: "xor" +++ rreil-show-arity2 x
     | SEM_SX x: "sx[" +++ show-int x.fromsize +++ "->" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
     | SEM_ZX x: "zx[" +++ show-int x.fromsize +++ "->" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
-		| SEM_CMP c: rreil-show-op-cmp c
     | SEM_ARB x: "arbitrary[" +++ show-int x.size +++ "]"
    end
 
+val rreil-show-arity1-sexpr x = "[" +++ show-int x.size +++ "](" +++ rreil-show-sexpr x.opnd1 +++ ")"
 val rreil-show-arity1 x = "[" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
 val rreil-show-arity2 x = "[" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
 val rreil-show-cmp x = "[" +++ show-int x.size +++ "->1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"

@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <rreil/rreil_variable.h>
-#include <rreil/rreil_op.h>
+#include <rreil/rreil_expr.h>
 #include <rreil/rreil_address.h>
 #include <rreil/rreil_sexpr.h>
 #include <rreil/rreil_branch_hint.h>
@@ -34,7 +34,7 @@ struct rreil_statement {
 	union {
 		struct {
 			struct rreil_variable *lhs;
-			struct rreil_op *rhs;
+			struct rreil_expr *rhs;
 		} assign;
 		struct {
 			struct rreil_variable *lhs;
@@ -43,7 +43,7 @@ struct rreil_statement {
 		} load;
 		struct {
 			struct rreil_address *address;
-			struct rreil_op *rhs;
+			struct rreil_expr *rhs;
 		} store;
 		struct {
 			struct rreil_sexpr *cond;

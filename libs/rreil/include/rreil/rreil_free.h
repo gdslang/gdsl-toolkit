@@ -16,7 +16,7 @@ extern void rreil_comparator_free(struct rreil_comparator *comparator);
 extern void rreil_id_free(struct rreil_id *id);
 extern void rreil_linear_free(struct rreil_linear *linear);
 extern void rreil_size_change_clear(struct rreil_size_change *size_change);
-extern void rreil_op_free(struct rreil_op *op);
+extern void rreil_op_free(struct rreil_expr *op);
 extern void rreil_sexpr_free(struct rreil_sexpr *sexpr);
 extern void rreil_variable_free(struct rreil_variable *variable);
 extern void rreil_statement_free(struct rreil_statement *statement);

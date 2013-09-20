@@ -1,10 +1,10 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public class OrOperation extends BinaryOperation {
+public class Or extends Binary {
 
-	public OrOperation(long size, LinearExpression operand1,
+	public Or(long size, LinearExpression operand1,
 			LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}

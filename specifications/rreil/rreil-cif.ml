@@ -14,7 +14,7 @@ type sem_var_callbacks = {sem_var_:int}
 type sem_linear_callbacks = {sem_lin_var:int, sem_lin_imm:int, sem_lin_add:int, sem_lin_sub:int, sem_lin_scale:int}
 type sem_sexpr_callbacks = {sem_sexpr_lin:int, sem_sexpr_cmp:int}
 type sem_op_cmp_callbacks = {sem_cmpeq:int, sem_cmpneq:int, sem_cmples:int, sem_cmpleu:int, sem_cmplts:int, sem_cmpltu:int}
-type sem_expr_callbacks = {sem_lin:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int, sem_cmp:int, sem_arb:int}
+type sem_expr_callbacks = {sem_sexpr:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int, sem_arb:int}
 type sem_varl_callbacks = {sem_varl_:int}
 type sem_varls_callbacks = {sem_varls_next:int, sem_varls_init:int}
 type sem_flop_callbacks = {sem_flop_:int}
@@ -94,7 +94,7 @@ val rreil-convert-sem-op-cmp cbs op-cmp = case op-cmp of
 end
 
 val rreil-convert-sem-expr cbs op = case op of
-   SEM_LIN l: cbs.sem_expr.sem_lin l.size (rreil-convert-sem-linear cbs l.opnd1)
+   SEM_SEXPR s: cbs.sem_expr.sem_sexpr s.size (rreil-convert-sem-sexpr cbs s.opnd1)
  | SEM_MUL m: cbs.sem_expr.sem_mul m.size (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
  | SEM_DIV d: cbs.sem_expr.sem_div d.size (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
  | SEM_DIVS d: cbs.sem_expr.sem_divs d.size (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
@@ -107,7 +107,6 @@ val rreil-convert-sem-expr cbs op = case op of
  | SEM_XOR x: cbs.sem_expr.sem_xor x.size (rreil-convert-sem-linear cbs x.opnd1) (rreil-convert-sem-linear cbs x.opnd2)
  | SEM_SX s: cbs.sem_expr.sem_sx s.size s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
  | SEM_ZX s: cbs.sem_expr.sem_zx s.size s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
- | SEM_CMP c: cbs.sem_expr.sem_cmp (rreil-convert-sem-op-cmp cbs c)
  | SEM_ARB a: cbs.sem_expr.sem_arb a.size
 end
 

@@ -1,10 +1,10 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public class CompareLessUnsignedOperation extends CompareOperation {
+public class CompareLessUnsigned extends Compare {
 
-	public CompareLessUnsignedOperation(long size, LinearExpression operand1,
+	public CompareLessUnsigned(long size, LinearExpression operand1,
 			LinearExpression operand2) {
 		super(size, operand1, operand2);
 	}

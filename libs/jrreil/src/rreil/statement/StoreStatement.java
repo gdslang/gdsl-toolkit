@@ -1,7 +1,7 @@
 package rreil.statement;
 
 import rreil.Address;
-import rreil.operation.Operation;
+import rreil.expression.Expression;
 
 public class StoreStatement extends Statement {
 	protected Address address;
@@ -10,13 +10,13 @@ public class StoreStatement extends Statement {
 		return address;
 	}
 
-	protected Operation rhs;
+	protected Expression rhs;
 
-	public Operation getRhs() {
+	public Expression getRhs() {
 		return rhs;
 	}
 
-	public StoreStatement(Address address, Operation rhs) {
+	public StoreStatement(Address address, Expression rhs) {
 		this.address = address;
 		this.rhs = rhs;
 	}

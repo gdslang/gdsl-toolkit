@@ -1,8 +1,8 @@
-package rreil.operation;
+package rreil.expression;
 
 import rreil.linear.LinearExpression;
 
-public abstract class BinaryOperation extends Operation {
+public abstract class Binary extends Expression {
 	protected LinearExpression operand1;
 
 	public LinearExpression getOperand1() {
@@ -15,7 +15,7 @@ public abstract class BinaryOperation extends Operation {
 		return operand2;
 	}
 
-	public BinaryOperation(long size, LinearExpression operand1,
+	public Binary(long size, LinearExpression operand1,
 			LinearExpression operand2) {
 		super(size);
 
