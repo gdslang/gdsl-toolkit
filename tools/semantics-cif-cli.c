@@ -333,6 +333,10 @@ static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
 	printf("=> sem_sexpr_cmp\n");
 	return NULL ;
 }
+static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
+	printf("=> sem_sexpr_arb\n");
+	return NULL ;
+}
 
 // sem_op_cmp
 static obj_t sem_cmpeq(state_t state, int_t size,
@@ -430,10 +434,6 @@ static obj_t sem_sx(state_t state, int_t size, int_t fromsize,
 static obj_t sem_zx(state_t state, int_t size, int_t fromsize,
 		obj_t opnd1) {
 	printf("=> zx {size=%lu, fromsize=%lu}\n", size, fromsize);
-	return NULL ;
-}
-static obj_t sem_arb(state_t state, int_t size) {
-	printf("=> arb {size=%lu}\n", size);
 	return NULL ;
 }
 
@@ -591,7 +591,8 @@ int main(int argc, char** argv) {
 
 	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
 			.sem_sexpr_lin = &sem_sexpr_lin,
-			.sem_sexpr_cmp = &sem_sexpr_cmp
+			.sem_sexpr_cmp = &sem_sexpr_cmp,
+			.sem_sexpr_arb = &sem_sexpr_arb
 	};
 
 	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
@@ -616,8 +617,7 @@ int main(int argc, char** argv) {
 			.sem_or = &sem_or,
 			.sem_xor = &sem_xor,
 			.sem_sx = &sem_sx,
-			.sem_zx = &sem_zx,
-			.sem_arb = &sem_arb
+			.sem_zx = &sem_zx
 	};
 
 	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {

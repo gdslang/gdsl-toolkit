@@ -217,10 +217,6 @@ void rreil_op_print(struct rreil_expr *op) {
 			rreil_linear_print(op->zx.opnd);
 			break;
 		}
-		case RREIL_EXPR_TYPE_ARB: {
-			printf("{%lu} arbitrary", op->arb.size);
-			break;
-		}
 	}
 }
 
@@ -232,6 +228,10 @@ void rreil_sexpr_print(struct rreil_sexpr *sexpr) {
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
 			rreil_comparator_print(sexpr->cmp);
+			break;
+		}
+		case RREIL_SEXPR_TYPE_ARB: {
+			printf("arbitrary");
 			break;
 		}
 	}

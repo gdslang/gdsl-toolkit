@@ -180,6 +180,8 @@ public interface IRReilBuilder {
 	
 	ISimpleExpression sem_sexpr_cmp(ICompare _this);
 	
+	ISimpleExpression sem_sexpr_arb();
+	
 	/*
 	 * sem_op_cmp
 	 */
@@ -241,8 +243,6 @@ public interface IRReilBuilder {
 	IExpression sem_sx(long size, long fromsize, ILinearExpression opnd1);
 
 	IExpression sem_zx(long size, long fromsize, ILinearExpression opnd1);
-	
-	IExpression sem_arb(long size);
 	
 	/*
 	 * sem_varl

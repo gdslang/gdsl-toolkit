@@ -114,71 +114,67 @@ struct rreil_size_change rreil_size_change_copy(struct rreil_size_change size_ch
 	return size_change_copy;
 }
 
-struct rreil_expr *rreil_op_copy(struct rreil_expr *op) {
-	struct rreil_expr *op_copy = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+struct rreil_expr *rreil_expr_copy(struct rreil_expr *op) {
+	struct rreil_expr *expr_copy = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
 
-	op_copy->type = op->type;
+	expr_copy->type = op->type;
 
 	switch (op->type) {
 		case RREIL_EXPR_TYPE_SEXPR: {
-			op_copy->sexpr = rreil_arity1_sexpr_copy(op->sexpr);
+			expr_copy->sexpr = rreil_arity1_sexpr_copy(op->sexpr);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MUL: {
-			op_copy->mul = rreil_arity2_copy(op->mul);
+			expr_copy->mul = rreil_arity2_copy(op->mul);
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIV: {
-			op_copy->div = rreil_arity2_copy(op->div);
+			expr_copy->div = rreil_arity2_copy(op->div);
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIVS: {
-			op_copy->divs = rreil_arity2_copy(op->divs);
+			expr_copy->divs = rreil_arity2_copy(op->divs);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MOD: {
-			op_copy->mod = rreil_arity2_copy(op->mod);
+			expr_copy->mod = rreil_arity2_copy(op->mod);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHL: {
-			op_copy->shl = rreil_arity2_copy(op->shl);
+			expr_copy->shl = rreil_arity2_copy(op->shl);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHR: {
-			op_copy->shr = rreil_arity2_copy(op->shr);
+			expr_copy->shr = rreil_arity2_copy(op->shr);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHRS: {
-			op_copy->shrs = rreil_arity2_copy(op->shrs);
+			expr_copy->shrs = rreil_arity2_copy(op->shrs);
 			break;
 		}
 		case RREIL_EXPR_TYPE_AND: {
-			op_copy->and_ = rreil_arity2_copy(op->and_);
+			expr_copy->and_ = rreil_arity2_copy(op->and_);
 			break;
 		}
 		case RREIL_EXPR_TYPE_OR: {
-			op_copy->or_ = rreil_arity2_copy(op->or_);
+			expr_copy->or_ = rreil_arity2_copy(op->or_);
 			break;
 		}
 		case RREIL_EXPR_TYPE_XOR: {
-			op_copy->xor_ = rreil_arity2_copy(op->xor_);
+			expr_copy->xor_ = rreil_arity2_copy(op->xor_);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SX: {
-			op_copy->sx = rreil_size_change_copy(op->sx);
+			expr_copy->sx = rreil_size_change_copy(op->sx);
 			break;
 		}
 		case RREIL_EXPR_TYPE_ZX: {
-			op_copy->zx = rreil_size_change_copy(op->zx);
-			break;
-		}
-		case RREIL_EXPR_TYPE_ARB: {
-			op_copy->arb.size = op->arb.size;
+			expr_copy->zx = rreil_size_change_copy(op->zx);
 			break;
 		}
 	}
 
-	return op_copy;
+	return expr_copy;
 }
 
 struct rreil_sexpr *rreil_sexpr_copy(struct rreil_sexpr *sexpr) {
@@ -193,6 +189,9 @@ struct rreil_sexpr *rreil_sexpr_copy(struct rreil_sexpr *sexpr) {
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
 			sexpr_copy->cmp = rreil_comparator_copy(sexpr->cmp);
+			break;
+		}
+		case RREIL_SEXPR_TYPE_ARB: {
 			break;
 		}
 	}
@@ -247,7 +246,7 @@ struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) 
 	switch (statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
 			statement_copy->assign.lhs = rreil_variable_copy(statement->assign.lhs);
-			statement_copy->assign.rhs = rreil_op_copy(statement->assign.rhs);
+			statement_copy->assign.rhs = rreil_expr_copy(statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
@@ -258,7 +257,7 @@ struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) 
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
 			statement_copy->store.address = rreil_address_copy(statement->store.address);
-			statement_copy->store.rhs = rreil_op_copy(statement->store.rhs);
+			statement_copy->store.rhs = rreil_expr_copy(statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {

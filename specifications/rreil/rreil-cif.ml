@@ -12,9 +12,9 @@ type sem_id_callbacks = {shared:int, virt_t:int, arch:int}
 type sem_address_callbacks = {sem_address_:int}
 type sem_var_callbacks = {sem_var_:int}
 type sem_linear_callbacks = {sem_lin_var:int, sem_lin_imm:int, sem_lin_add:int, sem_lin_sub:int, sem_lin_scale:int}
-type sem_sexpr_callbacks = {sem_sexpr_lin:int, sem_sexpr_cmp:int}
+type sem_sexpr_callbacks = {sem_sexpr_lin:int, sem_sexpr_cmp:int, sem_sexpr_arb:int}
 type sem_op_cmp_callbacks = {sem_cmpeq:int, sem_cmpneq:int, sem_cmples:int, sem_cmpleu:int, sem_cmplts:int, sem_cmpltu:int}
-type sem_expr_callbacks = {sem_sexpr:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int, sem_arb:int}
+type sem_expr_callbacks = {sem_sexpr:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int}
 type sem_varl_callbacks = {sem_varl_:int}
 type sem_varls_callbacks = {sem_varls_next:int, sem_varls_init:int}
 type sem_flop_callbacks = {sem_flop_:int}
@@ -82,6 +82,7 @@ end
 val rreil-convert-sem-sexpr cbs sexpr = case sexpr of
    SEM_SEXPR_LIN l: cbs.sem_sexpr.sem_sexpr_lin (rreil-convert-sem-linear cbs l)
  | SEM_SEXPR_CMP c: cbs.sem_sexpr.sem_sexpr_cmp (rreil-convert-sem-op-cmp cbs c)
+ | SEM_SEXPR_ARB: cbs.sem_sexpr.sem_sexpr_arb void #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
 val rreil-convert-sem-op-cmp cbs op-cmp = case op-cmp of
@@ -107,7 +108,6 @@ val rreil-convert-sem-expr cbs op = case op of
  | SEM_XOR x: cbs.sem_expr.sem_xor x.size (rreil-convert-sem-linear cbs x.opnd1) (rreil-convert-sem-linear cbs x.opnd2)
  | SEM_SX s: cbs.sem_expr.sem_sx s.size s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
  | SEM_ZX s: cbs.sem_expr.sem_zx s.size s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
- | SEM_ARB a: cbs.sem_expr.sem_arb a.size
 end
 
 val rreil-convert-branch-hint cbs hint = cbs.branch_hint.branch_hint_ (index hint)

@@ -370,6 +370,10 @@ public class NativeInterface {
 	private Object sem_sexpr_cmp(Object _this) {
 		return builder.sem_sexpr_cmp((ICompare) _this);
 	}
+	
+	private Object sem_sexpr_arb() {
+		return builder.sem_sexpr_arb();
+	}
 
 	/*
 	 * sem_op_cmp
@@ -471,10 +475,6 @@ public class NativeInterface {
 	private Object sem_zx(Object size, Object fromsize, Object opnd1) {
 		return builder.sem_zx((Long) size, (Long) fromsize,
 				(ILinearExpression) opnd1);
-	}
-
-	private Object sem_arb(Object size) {
-		return builder.sem_arb((Long) size);
 	}
 
 	/*
@@ -589,8 +589,9 @@ public class NativeInterface {
 	 * sem_stmts
 	 */
 
+	@SuppressWarnings("unchecked")
 	private Object list_next(Object next, Object list) {
-		return builder.list_next((IStatement) next, (IRReilCollection) list);
+		return builder.list_next((IStatement) next, (IRReilCollection<IStatement>) list);
 	}
 
 	private Object list_init() {

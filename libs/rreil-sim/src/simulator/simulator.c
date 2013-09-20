@@ -133,6 +133,12 @@ static struct data simulator_sexpr_simulate(struct context *context, struct rrei
 			result = simulator_comparator_simulate(context, sexpr->cmp);
 			break;
 		}
+		case RREIL_SEXPR_TYPE_ARB: {
+			result.data = (uint8_t*)calloc(bit_length / 8 + 1, 1);
+			result.bit_length = bit_length;
+			context_data_undefine(&result);
+			break;
+		}
 	}
 	return result;
 }
@@ -248,13 +254,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			struct data opnd = simulator_linear_simulate(context, expr->zx.opnd, expr->zx.fromsize);
 			result = simulator_op_zx(size, opnd);
 			context_data_clear(&opnd);
-			break;
-		}
-		case RREIL_EXPR_TYPE_ARB: {
-			size = expr->arb.size;
-			result.data = (uint8_t*)calloc(size / 8 + 1, 1);
-			result.bit_length = size;
-			context_data_undefine(&result);
 			break;
 		}
 	}

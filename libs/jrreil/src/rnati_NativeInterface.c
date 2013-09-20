@@ -442,6 +442,10 @@ static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
 	jobject ret = java_method_call(state, "sem_sexpr_cmp", 1, (jobject)this);
 	return (obj_t)ret;
 }
+static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
+	jobject ret = java_method_call(state, "sem_sexpr_arb", 0);
+	return (obj_t)ret;
+}
 
 // sem_op_cmp
 static obj_t sem_cmpeq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
@@ -538,10 +542,6 @@ static obj_t sem_sx(state_t state, int_t size, int_t fromsize, obj_t opnd1) {
 static obj_t sem_zx(state_t state, int_t size, int_t fromsize, obj_t opnd1) {
 	jobject ret = java_method_call(state, "sem_zx", 3, java_long_create(state, (long int)size),
 			java_long_create(state, (long int)fromsize), (jobject)opnd1);
-	return (obj_t)ret;
-}
-static obj_t sem_arb(state_t state, int_t size) {
-	jobject ret = java_method_call(state, "sem_arb", 1, java_long_create(state, (long int)size));
 	return (obj_t)ret;
 }
 
@@ -716,7 +716,8 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 
 	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
 			.sem_sexpr_lin = &sem_sexpr_lin,
-			.sem_sexpr_cmp = &sem_sexpr_cmp
+			.sem_sexpr_cmp = &sem_sexpr_cmp,
+			.sem_sexpr_arb = &sem_sexpr_arb
 	};
 
 	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
@@ -742,7 +743,6 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			.sem_xor = &sem_xor,
 			.sem_sx = &sem_sx,
 			.sem_zx = &sem_zx,
-			.sem_arb = &sem_arb
 	};
 
 	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {

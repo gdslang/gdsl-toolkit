@@ -158,6 +158,12 @@ static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
 	sexpr->cmp = (struct rreil_comparator*)this;
 	return (obj_t)sexpr;
 }
+static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
+	struct rreil_sexpr *sexpr = (struct rreil_sexpr*)malloc(
+			sizeof(struct rreil_sexpr));
+	sexpr->type = RREIL_SEXPR_TYPE_ARB;
+	return (obj_t)sexpr;
+}
 
 // sem_op_cmp
 static obj_t sem_cmpeq(state_t state, int_t size,
@@ -336,12 +342,6 @@ static obj_t sem_zx(state_t state, int_t size, int_t fromsize,
 	op->zx.size = size;
 	op->zx.fromsize = fromsize;
 	op->zx.opnd = (struct rreil_linear*)opnd1;
-	return (obj_t)op;
-}
-static obj_t sem_arb(state_t state, int_t size) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_ARB;
-	op->arb.size = size;
 	return (obj_t)op;
 }
 
@@ -549,7 +549,8 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 
 	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
 			.sem_sexpr_lin = &sem_sexpr_lin,
-			.sem_sexpr_cmp = &sem_sexpr_cmp
+			.sem_sexpr_cmp = &sem_sexpr_cmp,
+			.sem_sexpr_arb = &sem_sexpr_arb
 	};
 
 	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
@@ -574,8 +575,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_or = &sem_or,
 			.sem_xor = &sem_xor,
 			.sem_sx = &sem_sx,
-			.sem_zx = &sem_zx,
-			.sem_arb = &sem_arb
+			.sem_zx = &sem_zx
 	};
 
 	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {

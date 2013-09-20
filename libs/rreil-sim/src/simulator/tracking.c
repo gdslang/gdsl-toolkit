@@ -152,6 +152,9 @@ static void tracking_sexpr_trace(struct tracking_trace *trace, struct rreil_sexp
 			tracking_comparator_trace(trace, sexpr->cmp);
 			break;
 		}
+		case RREIL_SEXPR_TYPE_ARB: {
+			break;
+		}
 	}
 }
 
@@ -223,9 +226,6 @@ static size_t tracking_expr_trace(struct tracking_trace *trace, struct rreil_exp
 		case RREIL_EXPR_TYPE_ZX: {
 			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->zx.opnd, expr->zx.fromsize);
 			return expr->zx.size;
-		}
-		case RREIL_EXPR_TYPE_ARB: {
-			return expr->arb.size;
 		}
 		default:
 			return 0;

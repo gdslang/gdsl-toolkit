@@ -1,7 +1,6 @@
 package rreil;
 
 import rreil.expression.And;
-import rreil.expression.Arbitrary;
 import rreil.expression.CompareEqual;
 import rreil.expression.CompareLessOrEqualSigned;
 import rreil.expression.CompareLessOrEqualUnsigned;
@@ -44,6 +43,7 @@ import rreil.linear.LinearImmediateExpression;
 import rreil.linear.LinearScaleExpression;
 import rreil.linear.LinearSubtractionExpression;
 import rreil.linear.LinearVariableExpression;
+import rreil.sexpression.Arbitrary;
 import rreil.sexpression.ISimpleExpression;
 import rreil.sexpression.SimpleCompareExpression;
 import rreil.sexpression.SimpleExpression;
@@ -460,6 +460,11 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public SimpleCompareExpression sem_sexpr_cmp(ICompare _this) {
 		return new SimpleCompareExpression((Compare) _this);
 	}
+	
+	@Override
+	public SimpleExpression sem_sexpr_arb() {
+		return new Arbitrary();
+	}
 
 	/*
 	 * sem_op_cmp
@@ -594,11 +599,6 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	@Override
 	public Expression sem_zx(long size, long fromsize, ILinearExpression opnd1) {
 		return new ZeroExtend(size, fromsize, (LinearExpression) opnd1);
-	}
-
-	@Override
-	public Expression sem_arb(long size) {
-		return new Arbitrary(size);
 	}
 
 	/*

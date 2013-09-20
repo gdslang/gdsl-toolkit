@@ -18,6 +18,7 @@ public class WhileStatement extends Statement {
 
 	public WhileStatement(SimpleExpression condition,
 			DefaultStatementCollection body) {
+		this.condition = condition;
 		this.body = body;
 	}
 

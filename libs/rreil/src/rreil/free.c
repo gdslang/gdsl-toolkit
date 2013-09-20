@@ -124,9 +124,6 @@ void rreil_op_free(struct rreil_expr *op) {
 			rreil_size_change_clear(&op->zx);
 			break;
 		}
-		case RREIL_EXPR_TYPE_ARB: {
-			break;
-		}
 	}
 	free(op);
 }
@@ -139,6 +136,9 @@ void rreil_sexpr_free(struct rreil_sexpr *sexpr) {
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
 			rreil_comparator_free(sexpr->cmp);
+			break;
+		}
+		case RREIL_SEXPR_TYPE_ARB: {
 			break;
 		}
 	}

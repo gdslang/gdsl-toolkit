@@ -87,7 +87,7 @@ val lv-gen gens stmt =
           | SEM_SX x: visit-lin gens x.fromsize x.opnd1
           | SEM_ZX x: visit-lin gens x.fromsize x.opnd1
 #Todo (grammar):					| SEM_CMP c: visit-op-cmp gens c
-          | SEM_ARB x: gens
+#Todo (grammar):          | SEM_ARB x: gens
          end
 
       val visit-address gens x = visit-lin gens x.size x.address

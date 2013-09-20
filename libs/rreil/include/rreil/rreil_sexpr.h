@@ -13,7 +13,8 @@
 
 enum rreil_sexpr_type {
 	RREIL_SEXPR_TYPE_LIN,
-	RREIL_SEXPR_TYPE_CMP
+	RREIL_SEXPR_TYPE_CMP,
+	RREIL_SEXPR_TYPE_ARB
 };
 
 struct rreil_sexpr {

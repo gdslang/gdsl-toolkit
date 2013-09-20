@@ -26,8 +26,7 @@ enum rreil_expr_type {
 	RREIL_EXPR_TYPE_OR,
 	RREIL_EXPR_TYPE_XOR,
 	RREIL_EXPR_TYPE_SX,
-	RREIL_EXPR_TYPE_ZX,
-	RREIL_EXPR_TYPE_ARB
+	RREIL_EXPR_TYPE_ZX
 };
 
 struct rreil_size_change {
@@ -52,9 +51,6 @@ struct rreil_expr {
 		struct rreil_arity2 xor_;
 		struct rreil_size_change sx;
 		struct rreil_size_change zx;
-		struct {
-			uint64_t size;
-		} arb;
 	};
 };
 

@@ -22,6 +22,7 @@ type sem_linear =
  type sem_sexpr =
    SEM_SEXPR_LIN of sem_linear
  | SEM_SEXPR_CMP of sem_op_cmp
+ | SEM_SEXPR_ARB
 
 type sem_op_cmp =
    SEM_CMPEQ of sem_cmp
@@ -45,7 +46,6 @@ type sem_expr =
  | SEM_XOR of sem_arity2
  | SEM_SX of {size:int, fromsize:int, opnd1:sem_linear}
  | SEM_ZX of {size:int, fromsize:int, opnd1:sem_linear}
- | SEM_ARB of {size:int}
 
 type sem_varl = {id:sem_id, offset:int, size:int}
 
@@ -93,7 +93,6 @@ val rreil-sizeOf op =
     | SEM_XOR x: x.size
     | SEM_SX x: x.size
     | SEM_ZX x: x.size
-    | SEM_ARB x: x.size
    end
 
 val rreil-stmts-rev stmts =
@@ -198,7 +197,7 @@ val stack-set stmt = do
 end
 
 val mov sz a b = push (/ASSIGN a (SEM_SEXPR {size=sz, opnd1=(SEM_SEXPR_LIN b)}))
-val undef sz a = push (/ASSIGN a (SEM_ARB{size=sz}))
+val undef sz a = push (/ASSIGN a (SEM_SEXPR {size=sz, opnd1=SEM_SEXPR_ARB}))
 val load sz a psz b = push (/LOAD sz a {size=psz,address=b})
 val store a b = push (/STORE a b)
 val add sz a b c = push (/ASSIGN a (SEM_SEXPR {size=sz, opnd1=SEM_SEXPR_LIN (/ADD b c)}))

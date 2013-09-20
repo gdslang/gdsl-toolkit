@@ -87,7 +87,6 @@ val rreil-show-expr expr =
     | SEM_XOR x: "xor" +++ rreil-show-arity2 x
     | SEM_SX x: "sx[" +++ show-int x.fromsize +++ "->" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
     | SEM_ZX x: "zx[" +++ show-int x.fromsize +++ "->" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
-    | SEM_ARB x: "arbitrary[" +++ show-int x.size +++ "]"
    end
 
 val rreil-show-arity1-sexpr x = "[" +++ show-int x.size +++ "](" +++ rreil-show-sexpr x.opnd1 +++ ")"
@@ -120,6 +119,7 @@ val rreil-show-sexpr sexpr =
   case sexpr of
 	   SEM_SEXPR_LIN l: rreil-show-linear l
 	 | SEM_SEXPR_CMP c: rreil-show-op-cmp c
+   | SEM_SEXPR_ARB: "arbitrary"
 	end
 
 val rreil-show-id id =
