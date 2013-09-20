@@ -31,7 +31,7 @@ type sem_op_cmp =
  | SEM_CMPLTS of sem_cmp
  | SEM_CMPLTU of sem_cmp
 
-type sem_op =
+type sem_expr =
    SEM_LIN of sem_arity1
  | SEM_MUL of sem_arity2
  | SEM_DIV of sem_arity2
@@ -64,9 +64,9 @@ type sem_prim =
  | SEM_PRIM_FLOP of {op:sem_flop, flags:sem_var, res:sem_varl, args:sem_varls}
 
 type sem_stmt =
-   SEM_ASSIGN of {lhs:sem_var, rhs:sem_op}
+   SEM_ASSIGN of {lhs:sem_var, rhs:sem_expr}
  | SEM_LOAD of {lhs:sem_var, size:int, address:sem_address}
- | SEM_STORE of {address:sem_address, rhs:sem_op}
+ | SEM_STORE of {address:sem_address, rhs:sem_expr}
  | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmts, else_branch:sem_stmts}
  | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
  | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}

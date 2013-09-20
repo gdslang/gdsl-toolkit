@@ -221,7 +221,7 @@ static obj_t sem_cmpltu(state_t state, int_t size,
 	return (obj_t)comparator;
 }
 
-// sem_op
+// sem_expr
 static obj_t sem_lin(state_t state, int_t size,
 		obj_t opnd1) {
 	struct rreil_op *op = (struct rreil_op*)malloc(sizeof(struct rreil_op));
@@ -575,7 +575,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_cmpltu = &sem_cmpltu
 	};
 
-	unboxed_sem_op_callbacks_t sem_op_callbacks = {
+	unboxed_sem_expr_callbacks_t sem_expr_callbacks = {
 			.sem_lin = &sem_lin,
 			.sem_mul = &sem_mul,
 			.sem_div = &sem_div,
@@ -645,7 +645,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 		unboxed_sem_linear_callbacks_t sem_linear_callbacks;
 		unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks;
 		unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks;
-		unboxed_sem_op_callbacks_t sem_op_callbacks;
+		unboxed_sem_expr_callbacks_t sem_expr_callbacks;
 		unboxed_sem_varl_callbacks_t sem_varl_callbacks;
 		unboxed_sem_varls_callbacks_t sem_varls_callbacks;
 		unboxed_sem_flop_callbacks_t sem_flop_callbacks;
@@ -662,7 +662,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 	callbacks_heap->sem_linear_callbacks = sem_linear_callbacks;
 	callbacks_heap->sem_sexpr_callbacks = sem_sexpr_callbacks;
 	callbacks_heap->sem_op_cmp_callbacks = sem_op_cmp_callbacks;
-	callbacks_heap->sem_op_callbacks = sem_op_callbacks;
+	callbacks_heap->sem_expr_callbacks = sem_expr_callbacks;
 	callbacks_heap->sem_varl_callbacks = sem_varl_callbacks;
 	callbacks_heap->sem_varls_callbacks = sem_varls_callbacks;
 	callbacks_heap->sem_flop_callbacks = sem_flop_callbacks;
@@ -678,7 +678,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_linear = &callbacks_heap->sem_linear_callbacks,
 			.sem_sexpr = &callbacks_heap->sem_sexpr_callbacks,
 			.sem_op_cmp = &callbacks_heap->sem_op_cmp_callbacks,
-			.sem_op = &callbacks_heap->sem_op_callbacks,
+			.sem_expr = &callbacks_heap->sem_expr_callbacks,
 			.sem_varl = &callbacks_heap->sem_varl_callbacks,
 			.sem_varls = &callbacks_heap->sem_varls_callbacks,
 			.sem_flop = &callbacks_heap->sem_flop_callbacks,

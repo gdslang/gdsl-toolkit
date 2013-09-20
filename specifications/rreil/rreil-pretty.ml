@@ -48,9 +48,9 @@ val rreil-show-prim p =
 
 val rreil-show-stmt s =
   case s of
-     SEM_ASSIGN x: rreil-show-var x.lhs +++ " = " +++ rreil-show-op x.rhs 
+     SEM_ASSIGN x: rreil-show-var x.lhs +++ " = " +++ rreil-show-expr x.rhs 
    | SEM_LOAD x: rreil-show-var x.lhs +++ " = " +++ rreil-show-ptrderef x.size x.address
-   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " = " +++ rreil-show-op x.rhs
+   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " = " +++ rreil-show-expr x.rhs
    | SEM_ITE x: "if (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.then_branch +++ "} else {\n" +++ rreil-show-stmts x.else_branch +++ "}"
    | SEM_WHILE x: "while (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
    | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
@@ -77,8 +77,8 @@ val rreil-show-op-cmp cmp =
    | SEM_CMPLTU x: "<u" +++ rreil-show-cmp x
   end
 
-val rreil-show-op op =
-   case op of
+val rreil-show-expr expr =
+   case expr of
       SEM_LIN x: rreil-show-arity1 x
     | SEM_MUL x: "mul" +++ rreil-show-arity2 x
     | SEM_DIV x: "div" +++ rreil-show-arity2 x

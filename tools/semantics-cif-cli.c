@@ -366,7 +366,7 @@ static obj_t sem_cmpltu(state_t state, int_t size,
 	return NULL ;
 }
 
-// sem_op
+// sem_expr
 static obj_t sem_lin(state_t state, int_t size,
 		obj_t opnd1) {
 	printf("=> lin {size=%lu}\n", size);
@@ -612,7 +612,7 @@ int main(int argc, char** argv) {
 			.sem_cmpltu = &sem_cmpltu
 	};
 
-	unboxed_sem_op_callbacks_t sem_op_callbacks = {
+	unboxed_sem_expr_callbacks_t sem_expr_callbacks = {
 			.sem_lin = &sem_lin,
 			.sem_mul = &sem_mul,
 			.sem_div = &sem_div,
@@ -680,7 +680,7 @@ int main(int argc, char** argv) {
 			.sem_linear = &sem_linear_callbacks,
 			.sem_sexpr = &sem_sexpr_callbacks,
 			.sem_op_cmp = &sem_op_cmp_callbacks,
-			.sem_op = &sem_op_callbacks,
+			.sem_expr = &sem_expr_callbacks,
 			.sem_varl = &sem_varl_callbacks,
 			.sem_varls = &sem_varls_callbacks,
 			.sem_flop = &sem_flop_callbacks,
