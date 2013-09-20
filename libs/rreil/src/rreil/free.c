@@ -166,24 +166,6 @@ void rreil_flop_free(enum rreil_flop *flop) {
 	free(flop);
 }
 
-void rreil_prim_free(struct rreil_prim *prim) {
-	switch(prim->type) {
-		case RREIL_PRIM_TYPE_GENERIC: {
-			//prim->generic.op: allocated on GDSL heap
-			rreil_variable_limited_tuple_free(prim->generic.res);
-			rreil_variable_limited_tuple_free(prim->generic.args);
-			break;
-		}
-		case RREIL_PRIM_TYPE_FLOP: {
-			rreil_flop_free(prim->flop.op);
-			rreil_variable_free(prim->flop.flags);
-			rreil_variable_limited_free(prim->flop.res);
-			rreil_variable_limited_tuple_free(prim->flop.args);
-		}
-	}
-	free(prim);
-}
-
 void rreil_statement_free(struct rreil_statement *statement) {
 	switch (statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
@@ -223,8 +205,17 @@ void rreil_statement_free(struct rreil_statement *statement) {
 			rreil_address_free(statement->branch.target);
 			break;
 		}
+		case RREIL_STATEMENT_TYPE_FLOP: {
+			rreil_flop_free(statement->flop.op);
+			rreil_variable_free(statement->flop.flags);
+			rreil_variable_limited_free(statement->flop.lhs);
+			rreil_variable_limited_tuple_free(statement->flop.rhs);
+			break;
+		}
 		case RREIL_STATEMENT_TYPE_PRIM: {
-			rreil_prim_free(statement->prim);
+			//prim->generic.op: allocated on GDSL heap
+			rreil_variable_limited_tuple_free(statement->prim.lhs);
+			rreil_variable_limited_tuple_free(statement->prim.rhs);
 			break;
 		}
 	}

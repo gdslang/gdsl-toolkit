@@ -18,7 +18,6 @@
 #include <rreil/rreil_op.h>
 #include <rreil/rreil_variable_limited.h>
 #include <rreil/rreil_flop.h>
-#include <rreil/rreil_prim.h>
 #include <rreil/rreil_statement.h>
 #include <rreil/rreil_branch_hint.h>
 

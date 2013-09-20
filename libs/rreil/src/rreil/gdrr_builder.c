@@ -398,25 +398,6 @@ static obj_t sem_flop(state_t state, int_t con) {
 	return (obj_t)rreil_flop;
 }
 
-// sem_prim
-static obj_t sem_prim_generic(state_t state, obj_t op, obj_t res, obj_t args) {
-	struct rreil_prim *prim = (struct rreil_prim*)malloc(sizeof(struct rreil_prim));
-	prim->type = RREIL_PRIM_TYPE_GENERIC;
-	prim->generic.op = (char*)op;
-	prim->generic.res = (struct rreil_variable_limited_tuple*)res;
-	prim->generic.args = (struct rreil_variable_limited_tuple*)args;
-	return (obj_t)prim;
-}
-static obj_t sem_prim_flop(state_t state, obj_t op, obj_t flags, obj_t res, obj_t args) {
-	struct rreil_prim *prim = (struct rreil_prim*)malloc(sizeof(struct rreil_prim));
-	prim->type = RREIL_PRIM_TYPE_FLOP;
-	prim->flop.op = (enum rreil_flop*)op;
-	prim->flop.flags = (struct rreil_variable*)flags;
-	prim->flop.res = (struct rreil_variable_limited*)res;
-	prim->flop.args = (struct rreil_variable_limited_tuple*)args;
-	return (obj_t)prim;
-}
-
 // sem_stmt
 static obj_t sem_assign(state_t state, obj_t lhs,
 		obj_t rhs) {
@@ -484,12 +465,23 @@ static obj_t sem_branch(state_t state,
 	statement->branch.target = (struct rreil_address*)target;
 	return (obj_t)statement;
 }
-static obj_t sem_prim(state_t state,
-		obj_t prim) {
+static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_t rhs) {
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_FLOP;
+	statement->flop.op = (enum rreil_flop*)op;
+	statement->flop.flags = (struct rreil_variable*)flags;
+	statement->flop.lhs = (struct rreil_variable_limited*)lhs;
+	statement->flop.rhs = (struct rreil_variable_limited_tuple*)rhs;
+	return (obj_t)statement;
+}
+static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
 	struct rreil_statement *statement = (struct rreil_statement*)malloc(
 			sizeof(struct rreil_statement));
 	statement->type = RREIL_STATEMENT_TYPE_PRIM;
-	statement->prim = (struct rreil_prim*)prim;
+	statement->prim.op = (char*)op;
+	statement->prim.lhs = (struct rreil_variable_limited_tuple*)lhs;
+	statement->prim.rhs = (struct rreil_variable_limited_tuple*)rhs;
 	return (obj_t)statement;
 }
 
@@ -606,11 +598,6 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_flop_ = &sem_flop
 	};
 
-	unboxed_sem_prim_callbacks_t sem_prim_callbacks = {
-			.sem_prim_generic = &sem_prim_generic,
-			.sem_prim_flop = &sem_prim_flop
-	};
-
 	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
 			.sem_assign = &sem_assign,
 			.sem_load = &sem_load,
@@ -619,6 +606,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_while = &sem_while,
 			.sem_cbranch = &sem_cbranch,
 			.sem_branch = &sem_branch,
+			.sem_flop = &sem_flop_stmt,
 			.sem_prim = &sem_prim
 	};
 
@@ -649,7 +637,6 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 		unboxed_sem_varl_callbacks_t sem_varl_callbacks;
 		unboxed_sem_varls_callbacks_t sem_varls_callbacks;
 		unboxed_sem_flop_callbacks_t sem_flop_callbacks;
-		unboxed_sem_prim_callbacks_t sem_prim_callbacks;
 		unboxed_sem_stmt_callbacks_t sem_stmt_callbacks;
 		unboxed_branch_hint_callbacks_t branch_hint_callbacks;
 		unboxed_sem_stmts_callbacks_t sem_stmts_callbacks;
@@ -666,7 +653,6 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 	callbacks_heap->sem_varl_callbacks = sem_varl_callbacks;
 	callbacks_heap->sem_varls_callbacks = sem_varls_callbacks;
 	callbacks_heap->sem_flop_callbacks = sem_flop_callbacks;
-	callbacks_heap->sem_prim_callbacks = sem_prim_callbacks;
 	callbacks_heap->sem_stmt_callbacks = sem_stmt_callbacks;
 	callbacks_heap->branch_hint_callbacks = branch_hint_callbacks;
 	callbacks_heap->sem_stmts_callbacks = sem_stmts_callbacks;
@@ -682,7 +668,6 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_varl = &callbacks_heap->sem_varl_callbacks,
 			.sem_varls = &callbacks_heap->sem_varls_callbacks,
 			.sem_flop = &callbacks_heap->sem_flop_callbacks,
-			.sem_prim = &callbacks_heap->sem_prim_callbacks,
 			.sem_stmt = &callbacks_heap->sem_stmt_callbacks,
 			.branch_hint = &callbacks_heap->branch_hint_callbacks,
 			.sem_stmts = &callbacks_heap->sem_stmts_callbacks

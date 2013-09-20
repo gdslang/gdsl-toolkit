@@ -4,7 +4,6 @@ import rreil.id.IId;
 import rreil.linear.ILinearExpression;
 import rreil.operation.ICompareOperation;
 import rreil.operation.IOperation;
-import rreil.prim.IPrim;
 import rreil.sexpression.ISimpleExpression;
 import rreil.statement.IStatement;
 
@@ -204,7 +203,7 @@ public interface IRReilBuilder {
 			ILinearExpression opnd2);
 
 	/*
-	 * sem_op
+	 * sem_expr
 	 */
 
 	IOperation sem_lin(long size, ILinearExpression opnd1);
@@ -272,14 +271,6 @@ public interface IRReilBuilder {
 	IFlop sem_flop_fmul();
 	
 	/*
-	 * sem_prim
-	 */
-	
-	IPrim sem_prim_generic(String op, IRReilCollection<ILimitedVariable> res, IRReilCollection<ILimitedVariable> args);
-
-	IPrim sem_prim_flop(IFlop op, IVariable flags, ILimitedVariable res, IRReilCollection<ILimitedVariable> args);
-	
-	/*
 	 * sem_stmt
 	 */
 
@@ -299,7 +290,9 @@ public interface IRReilBuilder {
 
 	IStatement sem_branch(IBranchHint branch_hint, IAddress target);
 	
-	IStatement sem_prim(IPrim prim);
+	IStatement sem_flop_stmt(IFlop op, IVariable flags, ILimitedVariable lhs, IRReilCollection<ILimitedVariable> rhs);
+	
+	IStatement sem_prim(String op, IRReilCollection<ILimitedVariable> lhs, IRReilCollection<ILimitedVariable> rhs);
 	
 	/*
 	 * sem_branch_hint

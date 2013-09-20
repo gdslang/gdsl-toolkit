@@ -283,28 +283,6 @@ void rreil_flop_print(FILE *stream, enum rreil_flop *flop) {
 	}
 }
 
-void rreil_prim_print(FILE *stream, struct rreil_prim *prim) {
-	switch(prim->type) {
-		case RREIL_PRIM_TYPE_GENERIC: {
-			rreil_varls_print(stream, prim->generic.res);
-			fprintf(stream, " = $%s ", prim->generic.op);
-			rreil_varls_print(stream, prim->generic.args);
-			break;
-		}
-		case RREIL_PRIM_TYPE_FLOP: {
-			rreil_varl_print(stream, prim->flop.res);
-			fprintf(stream, " = $");
-			rreil_flop_print(stream, prim->flop.op);
-			fprintf(stream, " ");
-			rreil_varls_print(stream, prim->flop.args);
-			fprintf(stream, " [flags:");
-			rreil_variable_print(stream, prim->flop.flags);
-			fprintf(stream, "]");
-			break;
-		}
-	}
-}
-
 void rreil_statement_print(struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
@@ -362,8 +340,21 @@ void rreil_statement_print(struct rreil_statement *statement) {
 			rreil_address_print(statement->branch.target);
 			break;
 		}
+		case RREIL_STATEMENT_TYPE_FLOP: {
+			rreil_varl_print(stdout, statement->flop.lhs);
+			fprintf(stdout, " = $");
+			rreil_flop_print(stdout, statement->flop.op);
+			fprintf(stdout, " ");
+			rreil_varls_print(stdout, statement->flop.rhs);
+			fprintf(stdout, " [flags:");
+			rreil_variable_print(stdout, statement->flop.flags);
+			fprintf(stdout, "]");
+			break;
+		}
 		case RREIL_STATEMENT_TYPE_PRIM: {
-			rreil_prim_print(stdout, statement->prim);
+			rreil_varls_print(stdout, statement->prim.lhs);
+			fprintf(stdout, " = $%s ", statement->prim.op);
+			rreil_varls_print(stdout, statement->prim.rhs);
 			break;
 		}
 	}

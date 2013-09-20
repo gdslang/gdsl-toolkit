@@ -11,7 +11,6 @@ import rreil.id.IId;
 import rreil.linear.ILinearExpression;
 import rreil.operation.ICompareOperation;
 import rreil.operation.IOperation;
-import rreil.prim.IPrim;
 import rreil.sexpression.ISimpleExpression;
 import rreil.statement.IStatement;
 
@@ -26,10 +25,11 @@ public class NativeInterface {
 		this.builder = builder;
 	}
 
-	public IRReilCollection decodeAndTranslate(byte[] bytes) {
+	@SuppressWarnings("unchecked")
+	public IRReilCollection<IStatement> decodeAndTranslate(byte[] bytes) {
 		if (!backendSet)
 			throw new RuntimeException("Backend not set");
-		return (IRReilCollection) decodeAndTranslateNative(bytes);
+		return (IRReilCollection<IStatement>) decodeAndTranslateNative(bytes);
 	}
 
 	public String[] getBackends() {
@@ -406,7 +406,7 @@ public class NativeInterface {
 	}
 
 	/*
-	 * sem_op
+	 * sem_expr
 	 */
 
 	private Object sem_lin(Object size, Object opnd1) {
@@ -520,25 +520,6 @@ public class NativeInterface {
 	}
 
 	/*
-	 * sem_prim
-	 */
-
-	@SuppressWarnings("unchecked")
-	private Object sem_prim_generic(String op, Object res, Object args) {
-		return builder.sem_prim_generic(op,
-				(IRReilCollection<ILimitedVariable>) res,
-				(IRReilCollection<ILimitedVariable>) args);
-	}
-
-	@SuppressWarnings("unchecked")
-	private Object sem_prim_flop(Object op, Object flags, Object res,
-			Object args) {
-		return builder.sem_prim_flop((IFlop) op, (IVariable) flags,
-				(ILimitedVariable) res,
-				(IRReilCollection<ILimitedVariable>) args);
-	}
-
-	/*
 	 * sem_stmt
 	 */
 
@@ -555,14 +536,16 @@ public class NativeInterface {
 		return builder.sem_store((IAddress) address, (IOperation) rhs);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object sem_ite(Object cond, Object then_branch, Object else_branch) {
 		return builder.sem_ite((ISimpleExpression) cond,
-				(IRReilCollection) then_branch, (IRReilCollection) else_branch);
+				(IRReilCollection<IStatement>) then_branch, (IRReilCollection<IStatement>) else_branch);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object sem_while(Object cond, Object body) {
 		return builder.sem_while((ISimpleExpression) cond,
-				(IRReilCollection) body);
+				(IRReilCollection<IStatement>) body);
 	}
 
 	private Object sem_cbranch(Object cond, Object target_true,
@@ -575,8 +558,19 @@ public class NativeInterface {
 		return builder.sem_branch((IBranchHint) branch_hint, (IAddress) target);
 	}
 
-	private Object sem_prim(Object prim) {
-		return builder.sem_prim((IPrim) prim);
+	@SuppressWarnings("unchecked")
+	private Object sem_flop_stmt(Object op, Object flags, Object lhs,
+			Object rhs) {
+		return builder.sem_flop_stmt((IFlop) op, (IVariable) flags,
+				(ILimitedVariable) lhs,
+				(IRReilCollection<ILimitedVariable>) rhs);
+	}
+	
+	@SuppressWarnings("unchecked")
+	private Object sem_prim(String op, Object lhs, Object rhs) {
+		return builder.sem_prim(op,
+				(IRReilCollection<ILimitedVariable>) lhs,
+				(IRReilCollection<ILimitedVariable>) rhs);
 	}
 
 	/*

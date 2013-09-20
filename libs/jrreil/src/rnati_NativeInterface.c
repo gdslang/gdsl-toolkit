@@ -475,7 +475,7 @@ static obj_t sem_cmpltu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
 	return (obj_t)ret;
 }
 
-// sem_op
+// sem_expr
 static obj_t sem_lin(state_t state, int_t size, obj_t opnd1) {
 	jobject ret = java_method_call(state, "sem_lin", 2, java_long_create(state, (long int)size), (jobject)opnd1);
 	return (obj_t)ret;
@@ -586,16 +586,6 @@ static obj_t sem_flop(state_t state, int_t con) {
 	return (obj_t)ret;
 }
 
-// sem_prim
-static obj_t sem_prim_generic(state_t state, obj_t op, obj_t res, obj_t args) {
-	jobject ret = java_method_call(state, "sem_prim_generic", 3, java_string_create(state, (char*)op), (jobject)res, (jobject)args);
-	return (obj_t)ret;
-}
-static obj_t sem_prim_flop(state_t state, obj_t op, obj_t flags, obj_t res, obj_t args) {
-	jobject ret = java_method_call(state, "sem_prim_flop", 4, (jobject)op, (jobject)flags, (jobject)res, (jobject)args);
-	return (obj_t)ret;
-}
-
 // sem_stmt
 static obj_t sem_assign(state_t state, obj_t lhs, obj_t rhs) {
 	jobject ret = java_method_call(state, "sem_assign", 2, (jobject)lhs, (jobject)rhs);
@@ -628,8 +618,12 @@ static obj_t sem_branch(state_t state, obj_t branch_hint, obj_t target) {
 	jobject ret = java_method_call(state, "sem_branch", 2, (jobject)branch_hint, (jobject)target);
 	return (obj_t)ret;
 }
-static obj_t sem_prim(state_t state, obj_t prim) {
-	jobject ret = java_method_call(state, "sem_prim", 1, (jobject)prim);
+static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_t rhs) {
+	jobject ret = java_method_call(state, "sem_flop_stmt", 4, (jobject)op, (jobject)flags, (jobject)lhs, (jobject)rhs);
+	return (obj_t)ret;
+}
+static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
+	jobject ret = java_method_call(state, "sem_prim", 3, java_string_create(state, (char*)op), (jobject)lhs, (jobject)rhs);
 	return (obj_t)ret;
 }
 
@@ -738,7 +732,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			.sem_cmpltu = &sem_cmpltu
 	};
 
-	unboxed_sem_op_callbacks_t sem_op_callbacks = {
+	unboxed_sem_expr_callbacks_t sem_expr_callbacks = {
 			.sem_lin = &sem_lin,
 			.sem_mul = &sem_mul,
 			.sem_div = &sem_div,
@@ -769,11 +763,6 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			.sem_flop_ = &sem_flop
 	};
 
-	unboxed_sem_prim_callbacks_t sem_prim_callbacks = {
-			.sem_prim_generic = &sem_prim_generic,
-			.sem_prim_flop = &sem_prim_flop
-	};
-
 	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
 			.sem_assign = &sem_assign,
 			.sem_load = &sem_load,
@@ -782,6 +771,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			.sem_while = &sem_while,
 			.sem_cbranch = &sem_cbranch,
 			.sem_branch = &sem_branch,
+			.sem_flop = &sem_flop_stmt,
 			.sem_prim = &sem_prim
 	};
 
@@ -806,11 +796,10 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			.sem_linear = &sem_linear_callbacks,
 			.sem_sexpr = &sem_sexpr_callbacks,
 			.sem_op_cmp = &sem_op_cmp_callbacks,
-			.sem_op = &sem_op_callbacks,
+			.sem_expr = &sem_expr_callbacks,
 			.sem_varl = &sem_varl_callbacks,
 			.sem_varls = &sem_varls_callbacks,
 			.sem_flop = &sem_flop_callbacks,
-			.sem_prim = &sem_prim_callbacks,
 			.sem_stmt = &sem_stmt_callbacks,
 			.branch_hint = &branch_hint_callbacks,
 			.sem_stmts = &sem_stmts_callbacks

@@ -1,11 +1,11 @@
-package rreil.prim;
+package rreil.statement;
 
 import rreil.DefaultLimitedVariableCollection;
 import rreil.Flop;
 import rreil.LimitedVariable;
 import rreil.Variable;
 
-public class FlopPrimitive implements IPrim {
+public class FlopStatement extends Statement {
 	private Flop flop;
 
 	public Flop getFlop() {
@@ -18,28 +18,28 @@ public class FlopPrimitive implements IPrim {
 		return flags;
 	}
 
-	private LimitedVariable res;
+	private LimitedVariable lhs;
 
 	public LimitedVariable getRes() {
-		return res;
+		return lhs;
 	}
 
-	private DefaultLimitedVariableCollection args;
+	private DefaultLimitedVariableCollection rhs;
 
 	public DefaultLimitedVariableCollection getArgs() {
-		return args;
+		return rhs;
 	}
 
-	public FlopPrimitive(Flop flop, Variable flags, LimitedVariable res,
-			DefaultLimitedVariableCollection args) {
+	public FlopStatement(Flop flop, Variable flags, LimitedVariable lhs,
+			DefaultLimitedVariableCollection rhs) {
 		this.flop = flop;
 		this.flags = flags;
-		this.res = res;
-		this.args = args;
+		this.lhs = lhs;
+		this.rhs = rhs;
 	}
 
 	@Override
 	public String toString() {
-		return res + " = $" + flop + " " + args + " [flags:" + flags + "]";
+		return lhs + " = $" + flop + " " + rhs + " [flags:" + flags + "]";
 	}
 }

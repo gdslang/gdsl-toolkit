@@ -59,10 +59,6 @@ type sem_flop =
  | SEM_FSUB
  | SEM_FMUL
 
-type sem_prim =
-   SEM_PRIM_GENERIC of {op:string, res:sem_varls, args:sem_varls}
- | SEM_PRIM_FLOP of {op:sem_flop, flags:sem_var, res:sem_varl, args:sem_varls}
-
 type sem_stmt =
    SEM_ASSIGN of {lhs:sem_var, rhs:sem_expr}
  | SEM_LOAD of {lhs:sem_var, size:int, address:sem_address}
@@ -71,7 +67,8 @@ type sem_stmt =
  | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
  | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
  | SEM_BRANCH of {hint:branch_hint, target:sem_address}
- | SEM_PRIM of sem_prim
+ | SEM_FLOP of {op:sem_flop, flags:sem_var, lhs:sem_varl, rhs:sem_varls}
+ | SEM_PRIM of {op:string, lhs:sem_varls, rhs:sem_varls}
 
 type branch_hint =
     HINT_JUMP
@@ -81,9 +78,6 @@ type branch_hint =
 type sem_stmts =
    SEM_CONS of {hd:sem_stmt, tl:sem_stmts}
  | SEM_NIL
-
-# vim:filetype=sml:ts=3:sw=3:expandtab
-export = rreil-stmts-rev
 
 val rreil-sizeOf op =
    case op of
@@ -177,7 +171,7 @@ val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
 val /BRANCH hint address =SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
-val /BFLOP sz op r a b = SEM_PRIM (SEM_PRIM_FLOP{op=op,flags=_var FLOATING_FLAGS,res=varl-from-var sz r,args=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))})
+val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
 
 val push insn = do
    tl <- query $stack;

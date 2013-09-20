@@ -40,12 +40,6 @@ val rreil-show-flop f =
    | SEM_FMUL: "FMUL"
   end
 
-val rreil-show-prim p =
-  case p of
-     SEM_PRIM_GENERIC g: rreil-show-varls g.res +++ " = $" +++ from-string-lit g.op +++ " " +++ rreil-show-varls g.args
-   | SEM_PRIM_FLOP f: rreil-show-varl f.res +++ " = $" +++ rreil-show-flop f.op +++ " " +++ rreil-show-varls f.args +++ " [flags:" +++ rreil-show-var f.flags +++ "]"
-  end
-
 val rreil-show-stmt s =
   case s of
      SEM_ASSIGN x: rreil-show-var x.lhs +++ " = " +++ rreil-show-expr x.rhs 
@@ -55,7 +49,8 @@ val rreil-show-stmt s =
    | SEM_WHILE x: "while (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
    | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
    | SEM_BRANCH x: "goto [" +++ rreil-show-hint x.hint +++ "] " +++ rreil-show-address x.target
-   | SEM_PRIM x: rreil-show-prim x
+   | SEM_PRIM p: rreil-show-varls p.lhs +++ " = $" +++ from-string-lit p.op +++ " " +++ rreil-show-varls p.rhs
+   | SEM_FLOP f: rreil-show-varl f.lhs +++ " = $" +++ rreil-show-flop f.op +++ " " +++ rreil-show-varls f.rhs +++ " [flags:" +++ rreil-show-var f.flags +++ "]"
   end
 
 val rreil-show-hint x =

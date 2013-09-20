@@ -44,9 +44,6 @@ import rreil.operation.SignExtendOperation;
 import rreil.operation.SignedDivisionOperation;
 import rreil.operation.XorOperation;
 import rreil.operation.ZeroExtendOperation;
-import rreil.prim.FlopPrimitive;
-import rreil.prim.GenericPrimitive;
-import rreil.prim.IPrim;
 import rreil.sexpression.ISimpleExpression;
 import rreil.sexpression.SimpleCompareExpression;
 import rreil.sexpression.SimpleExpression;
@@ -54,6 +51,7 @@ import rreil.sexpression.SimpleLinearExpression;
 import rreil.statement.AssignStatement;
 import rreil.statement.BranchStatement;
 import rreil.statement.ConditionalBranchStatement;
+import rreil.statement.FlopStatement;
 import rreil.statement.IStatement;
 import rreil.statement.IfThenElseStatement;
 import rreil.statement.LoadStatement;
@@ -510,7 +508,7 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	/*
-	 * sem_op
+	 * sem_expr
 	 */
 
 	@Override
@@ -653,25 +651,6 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	/*
-	 * sem_prim
-	 */
-
-	@Override
-	public IPrim sem_prim_generic(String op,
-			IRReilCollection<ILimitedVariable> res,
-			IRReilCollection<ILimitedVariable> args) {
-		return new GenericPrimitive(op, (DefaultLimitedVariableCollection) res,
-				(DefaultLimitedVariableCollection) args);
-	}
-
-	@Override
-	public IPrim sem_prim_flop(IFlop op, IVariable flags, ILimitedVariable res,
-			IRReilCollection<ILimitedVariable> args) {
-		return new FlopPrimitive((Flop) op, (Variable) flags,
-				(LimitedVariable) res, (DefaultLimitedVariableCollection) args);
-	}
-
-	/*
 	 * sem_stmt
 	 */
 
@@ -692,14 +671,14 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 
 	@Override
 	public Statement sem_ite(ISimpleExpression cond,
-			IRReilCollection then_branch, IRReilCollection else_branch) {
+			IRReilCollection<IStatement> then_branch, IRReilCollection<IStatement> else_branch) {
 		return new IfThenElseStatement((SimpleExpression) cond,
 				(DefaultStatementCollection) then_branch,
 				(DefaultStatementCollection) else_branch);
 	}
 
 	@Override
-	public Statement sem_while(ISimpleExpression cond, IRReilCollection body) {
+	public Statement sem_while(ISimpleExpression cond, IRReilCollection<IStatement> body) {
 		return new WhileStatement((SimpleExpression) cond,
 				(DefaultStatementCollection) body);
 	}
@@ -717,8 +696,18 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 	
 	@Override
-	public IStatement sem_prim(IPrim prim) {
-		return new PrimitiveStatement(prim);
+	public Statement sem_flop_stmt(IFlop op, IVariable flags, ILimitedVariable lhs,
+			IRReilCollection<ILimitedVariable> rhs) {
+		return new FlopStatement((Flop) op, (Variable) flags,
+				(LimitedVariable) lhs, (DefaultLimitedVariableCollection) rhs);
+	}
+	
+	@Override
+	public Statement sem_prim(String op,
+			IRReilCollection<ILimitedVariable> lhs,
+			IRReilCollection<ILimitedVariable> rhs) {
+		return new PrimitiveStatement(op, (DefaultLimitedVariableCollection) lhs,
+				(DefaultLimitedVariableCollection) rhs);
 	}
 
 	/*
