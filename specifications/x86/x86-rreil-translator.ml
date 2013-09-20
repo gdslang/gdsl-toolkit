@@ -120,10 +120,10 @@ val segmented-load dst-sz dst addr-sz address segment = do
   load dst-sz dst addr-sz address-segmented
 end
 
-val segmented-store addr rhs segment = do
+val segmented-store sz addr rhs segment = do
   address-segmented <- segmented-lin addr.address addr.size segment;
   addr-sz <- real-addr-sz;
-  store (address addr-sz address-segmented) rhs
+  store sz (address addr-sz address-segmented) rhs
 end
 
 #val segment segment = do
@@ -293,7 +293,7 @@ val write-extend avx-encoded sz a b =
    case a of
       SEM_WRITE_MEM x:
          #store x (SEM_LIN{size=sz,opnd1=b})
-	 segmented-store x (SEM_SEXPR{size=sz,opnd1=SEM_SEXPR_LIN b}) x.segment
+	 segmented-store sz x (SEM_SEXPR (SEM_SEXPR_LIN b)) x.segment
     | SEM_WRITE_VAR x: do
         #if mode64 then
 	#  mov 32 (semantic-register-of EAX) (imm 100)

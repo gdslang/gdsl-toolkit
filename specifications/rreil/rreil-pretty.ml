@@ -42,9 +42,9 @@ val rreil-show-flop f =
 
 val rreil-show-stmt s =
   case s of
-     SEM_ASSIGN x: rreil-show-var x.lhs +++ " = " +++ rreil-show-expr x.rhs 
-   | SEM_LOAD x: rreil-show-var x.lhs +++ " = " +++ rreil-show-ptrderef x.size x.address
-   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " = " +++ rreil-show-expr x.rhs
+     SEM_ASSIGN x: rreil-show-var x.lhs +++ " =:" +++ show-int x.size +++ " " +++ rreil-show-expr x.rhs 
+   | SEM_LOAD x: rreil-show-var x.lhs +++ " =:" +++ show-int x.size +++ " " +++ rreil-show-ptrderef x.size x.address
+   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " =:" +++ show-int x.size +++ " " +++ rreil-show-expr x.rhs
    | SEM_ITE x: "if (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.then_branch +++ "} else {\n" +++ rreil-show-stmts x.else_branch +++ "}"
    | SEM_WHILE x: "while (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
    | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
@@ -74,7 +74,7 @@ val rreil-show-op-cmp cmp =
 
 val rreil-show-expr expr =
    case expr of
-      SEM_SEXPR x: rreil-show-arity1-sexpr x
+      SEM_SEXPR x: rreil-show-sexpr x
     | SEM_MUL x: "mul" +++ rreil-show-arity2 x
     | SEM_DIV x: "div" +++ rreil-show-arity2 x
     | SEM_DIVS x: "divs" +++ rreil-show-arity2 x
@@ -85,14 +85,13 @@ val rreil-show-expr expr =
     | SEM_AND x: "and" +++ rreil-show-arity2 x
     | SEM_OR x: "or" +++ rreil-show-arity2 x
     | SEM_XOR x: "xor" +++ rreil-show-arity2 x
-    | SEM_SX x: "sx[" +++ show-int x.fromsize +++ "->" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
-    | SEM_ZX x: "zx[" +++ show-int x.fromsize +++ "->" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
+    | SEM_SX x: "sx[" +++ show-int x.fromsize +++ "->#](" +++ rreil-show-linear x.opnd1 +++ ")"
+    | SEM_ZX x: "zx[" +++ show-int x.fromsize +++ "->#](" +++ rreil-show-linear x.opnd1 +++ ")"
    end
 
-val rreil-show-arity1-sexpr x = "[" +++ show-int x.size +++ "](" +++ rreil-show-sexpr x.opnd1 +++ ")"
-val rreil-show-arity1 x = "[" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ ")"
-val rreil-show-arity2 x = "[" +++ show-int x.size +++ "](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
-val rreil-show-cmp x = "[" +++ show-int x.size +++ "->1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
+val rreil-show-arity1 x = " (" +++ rreil-show-linear x.opnd1 +++ ")"
+val rreil-show-arity2 x = " (" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
+val rreil-show-cmp x = " [*->1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
 val rreil-show-ptrderef sz addr = "*[" +++ show-int addr.size +++ "->" +++ show-int sz +++ "](" +++ rreil-show-linear addr.address +++ ")"
 val rreil-show-address addr = "[" +++ show-int addr.size +++ "](" +++ rreil-show-linear addr.address +++ ")"
 val rreil-show-var x =

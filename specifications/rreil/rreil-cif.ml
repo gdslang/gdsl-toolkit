@@ -86,28 +86,28 @@ val rreil-convert-sem-sexpr cbs sexpr = case sexpr of
 end
 
 val rreil-convert-sem-op-cmp cbs op-cmp = case op-cmp of
-   SEM_CMPEQ c: cbs.sem_op_cmp.sem_cmpeq c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPNEQ c: cbs.sem_op_cmp.sem_cmpneq c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLES c: cbs.sem_op_cmp.sem_cmples c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLEU c: cbs.sem_op_cmp.sem_cmpleu c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLTS c: cbs.sem_op_cmp.sem_cmplts c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLTU c: cbs.sem_op_cmp.sem_cmpltu c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+   SEM_CMPEQ c: cbs.sem_op_cmp.sem_cmpeq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPNEQ c: cbs.sem_op_cmp.sem_cmpneq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLES c: cbs.sem_op_cmp.sem_cmples (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLEU c: cbs.sem_op_cmp.sem_cmpleu (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLTS c: cbs.sem_op_cmp.sem_cmplts (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLTU c: cbs.sem_op_cmp.sem_cmpltu (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
 end
 
 val rreil-convert-sem-expr cbs op = case op of
-   SEM_SEXPR s: cbs.sem_expr.sem_sexpr s.size (rreil-convert-sem-sexpr cbs s.opnd1)
- | SEM_MUL m: cbs.sem_expr.sem_mul m.size (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
- | SEM_DIV d: cbs.sem_expr.sem_div d.size (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
- | SEM_DIVS d: cbs.sem_expr.sem_divs d.size (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
- | SEM_MOD m: cbs.sem_expr.sem_mod m.size (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
- | SEM_SHL s: cbs.sem_expr.sem_shl s.size (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
- | SEM_SHR s: cbs.sem_expr.sem_shr s.size (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
- | SEM_SHRS s: cbs.sem_expr.sem_shrs s.size (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
- | SEM_AND a: cbs.sem_expr.sem_and a.size (rreil-convert-sem-linear cbs a.opnd1) (rreil-convert-sem-linear cbs a.opnd2)
- | SEM_OR o: cbs.sem_expr.sem_or o.size (rreil-convert-sem-linear cbs o.opnd1) (rreil-convert-sem-linear cbs o.opnd2)
- | SEM_XOR x: cbs.sem_expr.sem_xor x.size (rreil-convert-sem-linear cbs x.opnd1) (rreil-convert-sem-linear cbs x.opnd2)
- | SEM_SX s: cbs.sem_expr.sem_sx s.size s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
- | SEM_ZX s: cbs.sem_expr.sem_zx s.size s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
+   SEM_SEXPR s: cbs.sem_expr.sem_sexpr (rreil-convert-sem-sexpr cbs s)
+ | SEM_MUL m: cbs.sem_expr.sem_mul (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
+ | SEM_DIV d: cbs.sem_expr.sem_div (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
+ | SEM_DIVS d: cbs.sem_expr.sem_divs (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
+ | SEM_MOD m: cbs.sem_expr.sem_mod (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
+ | SEM_SHL s: cbs.sem_expr.sem_shl (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
+ | SEM_SHR s: cbs.sem_expr.sem_shr (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
+ | SEM_SHRS s: cbs.sem_expr.sem_shrs (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
+ | SEM_AND a: cbs.sem_expr.sem_and (rreil-convert-sem-linear cbs a.opnd1) (rreil-convert-sem-linear cbs a.opnd2)
+ | SEM_OR o: cbs.sem_expr.sem_or (rreil-convert-sem-linear cbs o.opnd1) (rreil-convert-sem-linear cbs o.opnd2)
+ | SEM_XOR x: cbs.sem_expr.sem_xor (rreil-convert-sem-linear cbs x.opnd1) (rreil-convert-sem-linear cbs x.opnd2)
+ | SEM_SX s: cbs.sem_expr.sem_sx s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
+ | SEM_ZX s: cbs.sem_expr.sem_zx s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
 end
 
 val rreil-convert-branch-hint cbs hint = cbs.branch_hint.branch_hint_ (index hint)
@@ -139,9 +139,9 @@ end
 val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (index flop)
 
 val rreil-convert-sem-stmt cbs stmt = case stmt of
-   SEM_ASSIGN s: cbs.sem_stmt.sem_assign (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
- | SEM_LOAD l: cbs.sem_stmt.sem_load (rreil-convert-sem-var cbs l.lhs) l.size (rreil-convert-sem-address cbs l.address)
- | SEM_STORE s: cbs.sem_stmt.sem_store (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-expr cbs s.rhs)
+   SEM_ASSIGN s: cbs.sem_stmt.sem_assign s.size (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
+ | SEM_LOAD l: cbs.sem_stmt.sem_load l.size (rreil-convert-sem-var cbs l.lhs) l.size (rreil-convert-sem-address cbs l.address)
+ | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-expr cbs s.rhs)
  | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) (rreil-convert-sem-stmts cbs i.then_branch) (rreil-convert-sem-stmts cbs i.else_branch)
  | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) (rreil-convert-sem-stmts cbs w.body)
  | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)

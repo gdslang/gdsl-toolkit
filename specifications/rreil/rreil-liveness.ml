@@ -19,7 +19,7 @@ val lv-kill kills stmt =
 
       val visit-stmt kills stmt =
          case stmt of
-            SEM_ASSIGN x: visit-semvar kills (rreil-sizeOf x.rhs) x.lhs
+            SEM_ASSIGN x: visit-semvar kills x.size x.lhs
           | SEM_LOAD x: visit-semvar kills x.size x.lhs
 					| SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
           | _ : kills
@@ -57,8 +57,8 @@ val lv-gen gens stmt =
 
       val visit-arity2 gens x =
          lv-union
-            (visit-lin gens x.size x.opnd1)
-            (visit-lin gens x.size x.opnd2)
+            (visit-lin gens 42 x.opnd1) #Todo (grammar): x.size instead of 42, fix
+            (visit-lin gens 42 x.opnd2) #Todo (grammar): x.size instead of 42, fix
 
 			val visit-op-cmp gens cmp =
 			  case cmp of

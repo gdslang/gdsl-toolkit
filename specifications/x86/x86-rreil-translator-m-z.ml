@@ -1768,7 +1768,7 @@ val ps-push opnd-sz opnd = do
       sub sp.size sp (var sp) (imm 2)
   ;
 
-  segmented-store (address sp.size (var sp)) (lin opnd-sz opnd) (SEG_OVERRIDE SS)
+  segmented-store opnd-sz (address sp.size (var sp)) (lin opnd) (SEG_OVERRIDE SS)
 
   #store (address sp.size (segment-add (var sp) segment)) (lin opnd-sz opnd)
 end
@@ -2529,7 +2529,7 @@ val sem-stos size x = let
     mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
     a <- return (semantic-register-of (register-by-size low A size));
 
-    segmented-store (address x.addr-sz (var mem-sem)) (lin a.size (var a)) (SEG_OVERRIDE ES);
+    segmented-store a.size (address x.addr-sz (var mem-sem)) (lin (var a)) (SEG_OVERRIDE ES);
 
     direction-adjust mem-sem.size mem-sem size
   end
