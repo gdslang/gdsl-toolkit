@@ -9,14 +9,12 @@ public class Simple extends Expression {
 		return operand1;
 	}
 	
-	public Simple(long size, SimpleExpression operand1) {
-		super(size);
-		
+	public Simple(SimpleExpression operand1) {		
 		this.operand1 = operand1;
 	}
 	
 	@Override
 	public String toString() {
-		return "sexpr:" + size + " " + operand1;
+		return operand1.toString();
 	}
 }

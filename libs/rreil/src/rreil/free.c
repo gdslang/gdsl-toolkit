@@ -13,10 +13,6 @@ void rreil_address_free(struct rreil_address *address) {
 	free(address);
 }
 
-void rreil_arity1_sexpr_clear(struct rreil_arity1_sexpr *arity1_sexpr) {
-	rreil_sexpr_free(arity1_sexpr->opnd1);
-}
-
 void rreil_arity1_clear(struct rreil_arity1 *arity1) {
 	rreil_linear_free(arity1->opnd1);
 }
@@ -70,62 +66,62 @@ void rreil_size_change_clear(struct rreil_size_change *size_change) {
 	rreil_linear_free(size_change->opnd);
 }
 
-void rreil_op_free(struct rreil_expr *op) {
-	switch (op->type) {
+void rreil_expr_free(struct rreil_expr *expr) {
+	switch (expr->type) {
 		case RREIL_EXPR_TYPE_SEXPR: {
-			rreil_arity1_sexpr_clear(&op->sexpr);
+			rreil_sexpr_free(expr->sexpr);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MUL: {
-			rreil_arity2_clear(&op->mul);
+			rreil_arity2_clear(&expr->mul);
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIV: {
-			rreil_arity2_clear(&op->div);
+			rreil_arity2_clear(&expr->div);
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIVS: {
-			rreil_arity2_clear(&op->divs);
+			rreil_arity2_clear(&expr->divs);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MOD: {
-			rreil_arity2_clear(&op->mod);
+			rreil_arity2_clear(&expr->mod);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHL: {
-			rreil_arity2_clear(&op->shl);
+			rreil_arity2_clear(&expr->shl);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHR: {
-			rreil_arity2_clear(&op->shr);
+			rreil_arity2_clear(&expr->shr);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHRS: {
-			rreil_arity2_clear(&op->shrs);
+			rreil_arity2_clear(&expr->shrs);
 			break;
 		}
 		case RREIL_EXPR_TYPE_AND: {
-			rreil_arity2_clear(&op->and_);
+			rreil_arity2_clear(&expr->and_);
 			break;
 		}
 		case RREIL_EXPR_TYPE_OR: {
-			rreil_arity2_clear(&op->or_);
+			rreil_arity2_clear(&expr->or_);
 			break;
 		}
 		case RREIL_EXPR_TYPE_XOR: {
-			rreil_arity2_clear(&op->xor_);
+			rreil_arity2_clear(&expr->xor_);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SX: {
-			rreil_size_change_clear(&op->sx);
+			rreil_size_change_clear(&expr->sx);
 			break;
 		}
 		case RREIL_EXPR_TYPE_ZX: {
-			rreil_size_change_clear(&op->zx);
+			rreil_size_change_clear(&expr->zx);
 			break;
 		}
 	}
-	free(op);
+	free(expr);
 }
 
 void rreil_sexpr_free(struct rreil_sexpr *sexpr) {
@@ -170,7 +166,7 @@ void rreil_statement_free(struct rreil_statement *statement) {
 	switch (statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
 			rreil_variable_free(statement->assign.lhs);
-			rreil_op_free(statement->assign.rhs);
+			rreil_expr_free(statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
@@ -180,7 +176,7 @@ void rreil_statement_free(struct rreil_statement *statement) {
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
 			rreil_address_free(statement->store.address);
-			rreil_op_free(statement->store.rhs);
+			rreil_expr_free(statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {

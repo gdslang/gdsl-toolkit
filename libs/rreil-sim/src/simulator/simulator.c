@@ -84,8 +84,7 @@ static struct data simulator_linear_simulate(struct context *context, struct rre
 	return result;
 }
 
-static struct data simulator_comparator_simulate(struct context *context, struct rreil_comparator *comparator) {
-	uint64_t size = comparator->arity2.size;
+static struct data simulator_comparator_simulate(struct context *context, struct rreil_comparator *comparator, uint64_t size) {
 	struct data opnd1 = simulator_linear_simulate(context, comparator->arity2.opnd1, size);
 	struct data opnd2 = simulator_linear_simulate(context, comparator->arity2.opnd2, size);
 
@@ -122,20 +121,20 @@ static struct data simulator_comparator_simulate(struct context *context, struct
 	return data;
 }
 
-static struct data simulator_sexpr_simulate(struct context *context, struct rreil_sexpr *sexpr, size_t bit_length) {
+static struct data simulator_sexpr_simulate(struct context *context, struct rreil_sexpr *sexpr, uint64_t size) {
 	struct data result;
 	switch(sexpr->type) {
 		case RREIL_SEXPR_TYPE_LIN: {
-			result = simulator_linear_simulate(context, sexpr->lin, bit_length);
+			result = simulator_linear_simulate(context, sexpr->lin, size);
 			break;
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
-			result = simulator_comparator_simulate(context, sexpr->cmp);
+			result = simulator_comparator_simulate(context, sexpr->cmp, size);
 			break;
 		}
 		case RREIL_SEXPR_TYPE_ARB: {
-			result.data = (uint8_t*)calloc(bit_length / 8 + 1, 1);
-			result.bit_length = bit_length;
+			result.data = (uint8_t*)calloc(size / 8 + 1, 1);
+			result.bit_length = size;
 			context_data_undefine(&result);
 			break;
 		}
@@ -143,17 +142,14 @@ static struct data simulator_sexpr_simulate(struct context *context, struct rrei
 	return result;
 }
 
-static struct data simulator_expr_simulate(struct context *context, struct rreil_expr *expr) {
-	size_t size;
+static struct data simulator_expr_simulate(struct context *context, struct rreil_expr *expr, uint64_t size) {
 	struct data result;
 	switch(expr->type) {
 		case RREIL_EXPR_TYPE_SEXPR: {
-			size = expr->sexpr.size;
-			result = simulator_sexpr_simulate(context, expr->sexpr.opnd1, size);
+			result = simulator_sexpr_simulate(context, expr->sexpr, size);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MUL: {
-			size = expr->mul.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->mul.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->mul.opnd2, size);
 			result = simulator_op_mul(opnd1, opnd2);
@@ -162,7 +158,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIV: {
-			size = expr->div.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->div.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->div.opnd2, size);
 			result = simulator_op_div(opnd1, opnd2);
@@ -171,7 +166,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIVS: {
-			size = expr->divs.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->divs.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->divs.opnd2, size);
 			result = simulator_op_divs(opnd1, opnd2);
@@ -180,7 +174,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_MOD: {
-			size = expr->mod.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->mod.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->mod.opnd2, size);
 			result = simulator_op_mod(opnd1, opnd2);
@@ -189,7 +182,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHL: {
-			size = expr->shl.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->shl.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->shl.opnd2, size);
 			result = simulator_op_shl(opnd1, opnd2);
@@ -198,7 +190,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHR: {
-			size = expr->shr.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->shr.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->shr.opnd2, size);
 			result = simulator_op_shr(opnd1, opnd2);
@@ -207,7 +198,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHRS: {
-			size = expr->shrs.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->shrs.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->shrs.opnd2, size);
 			result = simulator_op_shrs(opnd1, opnd2);
@@ -216,7 +206,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_AND: {
-			size = expr->and_.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->and_.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->and_.opnd2, size);
 			result = simulator_op_and(opnd1, opnd2);
@@ -225,7 +214,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_OR: {
-			size = expr->or_.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->or_.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->or_.opnd2, size);
 			result = simulator_op_or(opnd1, opnd2);
@@ -234,7 +222,6 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_XOR: {
-			size = expr->xor_.size;
 			struct data opnd1 = simulator_linear_simulate(context, expr->xor_.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->xor_.opnd2, size);
 			result = simulator_op_xor(opnd1, opnd2);
@@ -243,14 +230,12 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			break;
 		}
 		case RREIL_EXPR_TYPE_SX: {
-			size = expr->sx.size;
 			struct data opnd = simulator_linear_simulate(context, expr->sx.opnd, expr->sx.fromsize);
 			result = simulator_op_sx(size, opnd);
 			context_data_clear(&opnd);
 			break;
 		}
 		case RREIL_EXPR_TYPE_ZX: {
-			size = expr->zx.size;
 			struct data opnd = simulator_linear_simulate(context, expr->zx.opnd, expr->zx.fromsize);
 			result = simulator_op_zx(size, opnd);
 			context_data_clear(&opnd);
@@ -295,7 +280,7 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 	enum simulator_error error = SIMULATOR_ERROR_NONE;
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
-			struct data data = simulator_expr_simulate(context, statement->assign.rhs);
+			struct data data = simulator_expr_simulate(context, statement->assign.rhs, statement->assign.size);
 			simulator_variable_write(context, statement->assign.lhs, data);
 			context_data_clear(&data);
 			break;
@@ -329,7 +314,7 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
-			struct data data = simulator_expr_simulate(context, statement->store.rhs);
+			struct data data = simulator_expr_simulate(context, statement->store.rhs, statement->store.size);
 			if(data.bit_length % 8) {
 				printf("Warning: Unable to store unaligned (8 Bit) data.\n");
 				error |= SIMULATOR_ERROR_UNALIGNED_STORE;

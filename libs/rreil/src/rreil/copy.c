@@ -17,20 +17,10 @@ struct rreil_address *rreil_address_copy(struct rreil_address *address) {
 	return address_copy;
 }
 
-struct rreil_arity1_sexpr rreil_arity1_sexpr_copy(struct rreil_arity1_sexpr arity1_sexpr) {
-	struct rreil_arity1_sexpr arity1_sexpr_copy;
-
-	arity1_sexpr_copy.opnd1 = rreil_sexpr_copy(arity1_sexpr.opnd1);
-	arity1_sexpr_copy.size = arity1_sexpr.size;
-
-	return arity1_sexpr_copy;
-}
-
 struct rreil_arity1 rreil_arity1_copy(struct rreil_arity1 arity1) {
 	struct rreil_arity1 arity1_copy;
 
 	arity1_copy.opnd1 = rreil_linear_copy(arity1.opnd1);
-	arity1_copy.size = arity1.size;
 
 	return arity1_copy;
 }
@@ -40,7 +30,6 @@ struct rreil_arity2 rreil_arity2_copy(struct rreil_arity2 arity2) {
 
 	arity2_copy.opnd1 = rreil_linear_copy(arity2.opnd1);
 	arity2_copy.opnd2 = rreil_linear_copy(arity2.opnd2);
-	arity2_copy.size = arity2.size;
 
 	return arity2_copy;
 }
@@ -121,7 +110,7 @@ struct rreil_expr *rreil_expr_copy(struct rreil_expr *op) {
 
 	switch (op->type) {
 		case RREIL_EXPR_TYPE_SEXPR: {
-			expr_copy->sexpr = rreil_arity1_sexpr_copy(op->sexpr);
+			expr_copy->sexpr = rreil_sexpr_copy(op->sexpr);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MUL: {
@@ -245,17 +234,19 @@ struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) 
 
 	switch (statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
+			statement_copy->assign.size = statement->assign.size;
 			statement_copy->assign.lhs = rreil_variable_copy(statement->assign.lhs);
 			statement_copy->assign.rhs = rreil_expr_copy(statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
+			statement_copy->load.size = statement->load.size;
 			statement_copy->load.lhs = rreil_variable_copy(statement->load.lhs);
 			statement_copy->load.address = rreil_address_copy(statement->load.address);
-			statement_copy->load.size = statement->load.size;
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
+			statement_copy->store.size = statement->store.size;
 			statement_copy->store.address = rreil_address_copy(statement->store.address);
 			statement_copy->store.rhs = rreil_expr_copy(statement->store.rhs);
 			break;

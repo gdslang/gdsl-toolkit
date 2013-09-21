@@ -15,10 +15,8 @@ public abstract class Binary extends Expression {
 		return operand2;
 	}
 
-	public Binary(long size, LinearExpression operand1,
+	public Binary(LinearExpression operand1,
 			LinearExpression operand2) {
-		super(size);
-
 		this.operand1 = operand1;
 		this.operand2 = operand2;
 	}

@@ -23,7 +23,7 @@ extern void rreil_id_x86_print(enum x86_id x86);
 #endif
 extern void rreil_id_print(FILE *stream, struct rreil_id *id);
 extern void rreil_linear_print(struct rreil_linear *linear);
-extern void rreil_op_print(struct rreil_expr *op);
+extern void rreil_expr_print(struct rreil_expr *op);
 extern void rreil_sexpr_print(struct rreil_sexpr *sexpr);
 extern void rreil_variable_print(FILE *stream, struct rreil_variable *variable);
 extern void rreil_statement_print(struct rreil_statement *statement);

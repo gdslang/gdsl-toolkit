@@ -15,9 +15,7 @@ public abstract class Extend extends Expression {
 		return operand1;
 	}
 
-	public Extend(long size, long fromsize, LinearExpression operand1) {
-		super(size);
-
+	public Extend(long fromsize, LinearExpression operand1) {
 		this.fromsize = fromsize;
 		this.operand1 = operand1;
 	}
@@ -25,6 +23,6 @@ public abstract class Extend extends Expression {
 	public abstract String getSignedUnsignedString();
 	
 	public String toString() {
-		return getSignedUnsignedString() + "x:[" + fromsize + "=>" + size + "] " + operand1;
+		return getSignedUnsignedString() + "x:[" + fromsize + "=>*] " + operand1;
 	}
 }

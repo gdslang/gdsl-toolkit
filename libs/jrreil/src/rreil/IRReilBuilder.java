@@ -186,63 +186,63 @@ public interface IRReilBuilder {
 	 * sem_op_cmp
 	 */
 	
-	ICompare sem_cmpeq(long size, ILinearExpression opnd1,
+	ICompare sem_cmpeq(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompare sem_cmpneq(long size, ILinearExpression opnd1,
+	ICompare sem_cmpneq(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompare sem_cmples(long size, ILinearExpression opnd1,
+	ICompare sem_cmples(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompare sem_cmpleu(long size, ILinearExpression opnd1,
+	ICompare sem_cmpleu(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompare sem_cmplts(long size, ILinearExpression opnd1,
+	ICompare sem_cmplts(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	ICompare sem_cmpltu(long size, ILinearExpression opnd1,
+	ICompare sem_cmpltu(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
 	/*
 	 * sem_expr
 	 */
 
-	IExpression sem_sexpr(long size, ISimpleExpression opnd1);
+	IExpression sem_sexpr(ISimpleExpression opnd1);
 
-	IExpression sem_mul(long size, ILinearExpression opnd1,
+	IExpression sem_mul(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_div(long size, ILinearExpression opnd1,
+	IExpression sem_div(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_divs(long size, ILinearExpression opnd1,
+	IExpression sem_divs(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_mod(long size, ILinearExpression opnd1,
+	IExpression sem_mod(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_shl(long size, ILinearExpression opnd1,
+	IExpression sem_shl(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_shr(long size, ILinearExpression opnd1,
+	IExpression sem_shr(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_shrs(long size, ILinearExpression opnd1,
+	IExpression sem_shrs(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_and(long size, ILinearExpression opnd1,
+	IExpression sem_and(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_or(long size, ILinearExpression opnd1,
+	IExpression sem_or(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_xor(long size, ILinearExpression opnd1,
+	IExpression sem_xor(ILinearExpression opnd1,
 			ILinearExpression opnd2);
 
-	IExpression sem_sx(long size, long fromsize, ILinearExpression opnd1);
+	IExpression sem_sx(long fromsize, ILinearExpression opnd1);
 
-	IExpression sem_zx(long size, long fromsize, ILinearExpression opnd1);
+	IExpression sem_zx(long fromsize, ILinearExpression opnd1);
 	
 	/*
 	 * sem_varl
@@ -272,11 +272,11 @@ public interface IRReilBuilder {
 	 * sem_stmt
 	 */
 
-	IStatement sem_assign(IVariable lhs, IExpression rhs);
+	IStatement sem_assign(long size, IVariable lhs, IExpression rhs);
 
-	IStatement sem_load(IVariable lhs, long size, IAddress address);
+	IStatement sem_load(long size, IVariable lhs, IAddress address);
 
-	IStatement sem_store(IAddress address, IExpression rhs);
+	IStatement sem_store(long size, IAddress address, IExpression rhs);
 
 	IStatement sem_ite(ISimpleExpression cond, IRReilCollection<IStatement> then_branch,
 			IRReilCollection<IStatement> else_branch);

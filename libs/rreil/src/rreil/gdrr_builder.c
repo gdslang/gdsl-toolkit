@@ -166,183 +166,145 @@ static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
 }
 
 // sem_op_cmp
-static obj_t sem_cmpeq(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpeq(state_t state, obj_t opnd1, obj_t opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_EQ;
-	comparator->arity2.size = size;
 	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (obj_t)comparator;
 }
-static obj_t sem_cmpneq(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpneq(state_t state, obj_t opnd1, obj_t opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_NEQ;
-	comparator->arity2.size = size;
 	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (obj_t)comparator;
 }
-static obj_t sem_cmples(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmples(state_t state, obj_t opnd1, obj_t opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_LES;
-	comparator->arity2.size = size;
 	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (obj_t)comparator;
 }
-static obj_t sem_cmpleu(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpleu(state_t state, obj_t opnd1, obj_t opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_LEU;
-	comparator->arity2.size = size;
 	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (obj_t)comparator;
 }
-static obj_t sem_cmplts(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmplts(state_t state, obj_t opnd1, obj_t opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_LTS;
-	comparator->arity2.size = size;
 	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (obj_t)comparator;
 }
-static obj_t sem_cmpltu(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
+static obj_t sem_cmpltu(state_t state, obj_t opnd1, obj_t opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
 	comparator->type = RREIL_COMPARATOR_TYPE_LTU;
-	comparator->arity2.size = size;
 	comparator->arity2.opnd1 = (struct rreil_linear*)opnd1;
 	comparator->arity2.opnd2 = (struct rreil_linear*)opnd2;
 	return (obj_t)comparator;
 }
 
 // sem_expr
-static obj_t sem_sexpr(state_t state, int_t size,
-		obj_t opnd1) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_SEXPR;
-	op->sexpr.size = size;
-	op->sexpr.opnd1 = (struct rreil_sexpr*)opnd1;
-	return (obj_t)op;
+static obj_t sem_sexpr(state_t state, obj_t opnd1) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_SEXPR;
+	expr->sexpr = (struct rreil_sexpr*)opnd1;
+	return (obj_t)expr;
 }
-static obj_t sem_mul(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_MUL;
-	op->mul.size = size;
-	op->mul.opnd1 = (struct rreil_linear*)opnd1;
-	op->mul.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_mul(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_MUL;
+	expr->mul.opnd1 = (struct rreil_linear*)opnd1;
+	expr->mul.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_div(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_DIV;
-	op->div.size = size;
-	op->div.opnd1 = (struct rreil_linear*)opnd1;
-	op->div.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_div(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_DIV;
+	expr->div.opnd1 = (struct rreil_linear*)opnd1;
+	expr->div.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_divs(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_DIVS;
-	op->divs.size = size;
-	op->divs.opnd1 = (struct rreil_linear*)opnd1;
-	op->divs.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_divs(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_DIVS;
+	expr->divs.opnd1 = (struct rreil_linear*)opnd1;
+	expr->divs.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_mod(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_MOD;
-	op->mod.size = size;
-	op->mod.opnd1 = (struct rreil_linear*)opnd1;
-	op->mod.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_mod(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_MOD;
+	expr->mod.opnd1 = (struct rreil_linear*)opnd1;
+	expr->mod.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_shl(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_SHL;
-	op->shl.size = size;
-	op->shl.opnd1 = (struct rreil_linear*)opnd1;
-	op->shl.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_shl(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_SHL;
+	expr->shl.opnd1 = (struct rreil_linear*)opnd1;
+	expr->shl.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_shr(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_SHR;
-	op->shr.size = size;
-	op->shr.opnd1 = (struct rreil_linear*)opnd1;
-	op->shr.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_shr(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_SHR;
+	expr->shr.opnd1 = (struct rreil_linear*)opnd1;
+	expr->shr.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_shrs(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_SHRS;
-	op->shrs.size = size;
-	op->shrs.opnd1 = (struct rreil_linear*)opnd1;
-	op->shrs.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_shrs(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_SHRS;
+	expr->shrs.opnd1 = (struct rreil_linear*)opnd1;
+	expr->shrs.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_and(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_AND;
-	op->and_.size = size;
-	op->and_.opnd1 = (struct rreil_linear*)opnd1;
-	op->and_.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_and(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_AND;
+	expr->and_.opnd1 = (struct rreil_linear*)opnd1;
+	expr->and_.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_or(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_OR;
-	op->or_.size = size;
-	op->or_.opnd1 = (struct rreil_linear*)opnd1;
-	op->or_.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_or(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_OR;
+	expr->or_.opnd1 = (struct rreil_linear*)opnd1;
+	expr->or_.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_xor(state_t state, int_t size,
-		obj_t opnd1, obj_t opnd2) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_XOR;
-	op->xor_.size = size;
-	op->xor_.opnd1 = (struct rreil_linear*)opnd1;
-	op->xor_.opnd2 = (struct rreil_linear*)opnd2;
-	return (obj_t)op;
+static obj_t sem_xor(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_XOR;
+	expr->xor_.opnd1 = (struct rreil_linear*)opnd1;
+	expr->xor_.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
 }
-static obj_t sem_sx(state_t state, int_t size, int_t fromsize,
-		obj_t opnd1) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_SX;
-	op->sx.size = size;
-	op->sx.fromsize = fromsize;
-	op->sx.opnd = (struct rreil_linear*)opnd1;
-	return (obj_t)op;
+static obj_t sem_sx(state_t state, int_t fromsize, obj_t opnd1) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_SX;
+	expr->sx.fromsize = fromsize;
+	expr->sx.opnd = (struct rreil_linear*)opnd1;
+	return (obj_t)expr;
 }
-static obj_t sem_zx(state_t state, int_t size, int_t fromsize,
-		obj_t opnd1) {
-	struct rreil_expr *op = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
-	op->type = RREIL_EXPR_TYPE_ZX;
-	op->zx.size = size;
-	op->zx.fromsize = fromsize;
-	op->zx.opnd = (struct rreil_linear*)opnd1;
-	return (obj_t)op;
+static obj_t sem_zx(state_t state, int_t fromsize, obj_t opnd1) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_ZX;
+	expr->zx.fromsize = fromsize;
+	expr->zx.opnd = (struct rreil_linear*)opnd1;
+	return (obj_t)expr;
 }
 
 // sem_varl
@@ -393,30 +355,32 @@ static obj_t sem_flop(state_t state, int_t con) {
 }
 
 // sem_stmt
-static obj_t sem_assign(state_t state, obj_t lhs,
+static obj_t sem_assign(state_t state, int_t size, obj_t lhs,
 		obj_t rhs) {
 	struct rreil_statement *statement = (struct rreil_statement*)malloc(
 			sizeof(struct rreil_statement));
 	statement->type = RREIL_STATEMENT_TYPE_ASSIGN;
+	statement->assign.size = size;
 	statement->assign.lhs = (struct rreil_variable*)lhs;
 	statement->assign.rhs = (struct rreil_expr*)rhs;
 	return (obj_t)statement;
 }
-static obj_t sem_load(state_t state, obj_t lhs, int_t size,
+static obj_t sem_load(state_t state, int_t size, obj_t lhs,
 		obj_t address) {
 	struct rreil_statement *statement = (struct rreil_statement*)malloc(
 			sizeof(struct rreil_statement));
 	statement->type = RREIL_STATEMENT_TYPE_LOAD;
-	statement->load.lhs = (struct rreil_variable*)lhs;
 	statement->load.size = size;
+	statement->load.lhs = (struct rreil_variable*)lhs;
 	statement->load.address = (struct rreil_address*)address;
 	return (obj_t)statement;
 }
-static obj_t sem_store(state_t state, obj_t address,
+static obj_t sem_store(state_t state, int_t size, obj_t address,
 		obj_t rhs) {
 	struct rreil_statement *statement = (struct rreil_statement*)malloc(
 			sizeof(struct rreil_statement));
 	statement->type = RREIL_STATEMENT_TYPE_STORE;
+	statement->store.size = size;
 	statement->store.address = (struct rreil_address*)address;
 	statement->store.rhs = (struct rreil_expr*)rhs;
 	return (obj_t)statement;

@@ -9,9 +9,7 @@ public abstract class Unary extends Expression {
 		return operand1;
 	}
 
-	public Unary(long size, LinearExpression operand1) {
-		super(size);
-
+	public Unary(LinearExpression operand1) {
 		this.operand1 = operand1;
 	}
 }

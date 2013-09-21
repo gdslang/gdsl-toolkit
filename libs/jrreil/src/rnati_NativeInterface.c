@@ -448,99 +448,99 @@ static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
 }
 
 // sem_op_cmp
-static obj_t sem_cmpeq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmpeq", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_cmpeq(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_cmpeq", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_cmpneq(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmpneq", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_cmpneq(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_cmpneq", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_cmples(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmples", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_cmples(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_cmples", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_cmpleu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmpleu", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_cmpleu(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_cmpleu", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_cmplts(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmplts", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_cmplts(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_cmplts", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_cmpltu(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmpltu", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_cmpltu(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_cmpltu", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
 
 // sem_expr
-static obj_t sem_sexpr(state_t state, int_t size, obj_t opnd1) {
-	jobject ret = java_method_call(state, "sem_sexpr", 2, java_long_create(state, (long int)size), (jobject)opnd1);
+static obj_t sem_sexpr(state_t state, obj_t opnd1) {
+	jobject ret = java_method_call(state, "sem_sexpr", 1, (jobject)opnd1);
 	return (obj_t)ret;
 }
-static obj_t sem_mul(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_mul", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_mul(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_mul", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_div(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_div", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_div(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_div", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_divs(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_divs", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_divs(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_divs", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_mod(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_mod", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_mod(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_mod", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_shl(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_shl", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_shl(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_shl", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_shr(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_shr", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_shr(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_shr", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_shrs(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_shrs", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_shrs(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_shrs", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_and(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_and", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_and(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_and", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_or(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_or", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_or(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_or", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_xor(state_t state, int_t size, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_xor", 3, java_long_create(state, (long int)size), (jobject)opnd1,
+static obj_t sem_xor(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_xor", 2, (jobject)opnd1,
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
-static obj_t sem_sx(state_t state, int_t size, int_t fromsize, obj_t opnd1) {
-	jobject ret = java_method_call(state, "sem_sx", 3, java_long_create(state, (long int)size),
+static obj_t sem_sx(state_t state, int_t fromsize, obj_t opnd1) {
+	jobject ret = java_method_call(state, "sem_sx", 2,
 			java_long_create(state, (long int)fromsize), (jobject)opnd1);
 	return (obj_t)ret;
 }
-static obj_t sem_zx(state_t state, int_t size, int_t fromsize, obj_t opnd1) {
-	jobject ret = java_method_call(state, "sem_zx", 3, java_long_create(state, (long int)size),
+static obj_t sem_zx(state_t state, int_t fromsize, obj_t opnd1) {
+	jobject ret = java_method_call(state, "sem_zx", 2,
 			java_long_create(state, (long int)fromsize), (jobject)opnd1);
 	return (obj_t)ret;
 }
@@ -583,17 +583,17 @@ static obj_t sem_flop(state_t state, int_t con) {
 }
 
 // sem_stmt
-static obj_t sem_assign(state_t state, obj_t lhs, obj_t rhs) {
-	jobject ret = java_method_call(state, "sem_assign", 2, (jobject)lhs, (jobject)rhs);
+static obj_t sem_assign(state_t state, int_t size, obj_t lhs, obj_t rhs) {
+	jobject ret = java_method_call(state, "sem_assign", 3, java_long_create(state, (long)size), (jobject)lhs, (jobject)rhs);
 	return (obj_t)ret;
 }
-static obj_t sem_load(state_t state, obj_t lhs, int_t size, obj_t address) {
-	jobject ret = java_method_call(state, "sem_load", 3, (jobject)lhs, java_long_create(state, (long)size),
+static obj_t sem_load(state_t state, int_t size, obj_t lhs, obj_t address) {
+	jobject ret = java_method_call(state, "sem_load", 3, java_long_create(state, (long)size), (jobject)lhs,
 			(jobject)address);
 	return (obj_t)ret;
 }
-static obj_t sem_store(state_t state, obj_t address, obj_t rhs) {
-	jobject ret = java_method_call(state, "sem_store", 2, (jobject)address, (jobject)rhs);
+static obj_t sem_store(state_t state, int_t size, obj_t address, obj_t rhs) {
+	jobject ret = java_method_call(state, "sem_store", 3, java_long_create(state, (long)size), (jobject)address, (jobject)rhs);
 	return (obj_t)ret;
 }
 static obj_t sem_ite(state_t state, obj_t cond, obj_t then_branch,

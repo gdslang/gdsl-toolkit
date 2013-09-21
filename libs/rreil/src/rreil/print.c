@@ -37,7 +37,6 @@ void rreil_branch_hint_print(enum rreil_branch_hint *hint) {
 }
 
 void rreil_comparator_print(struct rreil_comparator *comparator) {
-	printf("{%lu->1} ", comparator->arity2.size);
 	rreil_linear_print(comparator->arity2.opnd1);
 	switch(comparator->type) {
 		case RREIL_COMPARATOR_TYPE_EQ: {
@@ -130,91 +129,80 @@ void rreil_linear_print(struct rreil_linear *linear) {
 	}
 }
 
-void rreil_op_print(struct rreil_expr *op) {
-	switch(op->type) {
+void rreil_expr_print(struct rreil_expr *expr) {
+	switch(expr->type) {
 		case RREIL_EXPR_TYPE_SEXPR: {
-			printf("{%lu} ", op->sexpr.size);
-			rreil_sexpr_print(op->sexpr.opnd1);
+			rreil_sexpr_print(expr->sexpr);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MUL: {
-			printf("{%lu} ", op->mul.size);
-			rreil_linear_print(op->mul.opnd1);
+			rreil_linear_print(expr->mul.opnd1);
 			printf(" * ");
-			rreil_linear_print(op->mul.opnd2);
+			rreil_linear_print(expr->mul.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIV: {
-			printf("{%lu} ", op->div.size);
-			rreil_linear_print(op->div.opnd1);
+			rreil_linear_print(expr->div.opnd1);
 			printf(" /u ");
-			rreil_linear_print(op->div.opnd2);
+			rreil_linear_print(expr->div.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIVS: {
-			printf("{%lu} ", op->divs.size);
-			rreil_linear_print(op->divs.opnd1);
+			rreil_linear_print(expr->divs.opnd1);
 			printf(" /s ");
-			rreil_linear_print(op->divs.opnd2);
+			rreil_linear_print(expr->divs.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MOD: {
-			printf("{%lu} ", op->mod.size);
-			rreil_linear_print(op->mod.opnd1);
+			rreil_linear_print(expr->mod.opnd1);
 			printf(" %% ");
-			rreil_linear_print(op->mod.opnd2);
+			rreil_linear_print(expr->mod.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHL: {
-			printf("{%lu} ", op->shl.size);
-			rreil_linear_print(op->shl.opnd1);
+			rreil_linear_print(expr->shl.opnd1);
 			printf(" << ");
-			rreil_linear_print(op->shl.opnd2);
+			rreil_linear_print(expr->shl.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHR: {
-			printf("{%lu} ", op->shr.size);
-			rreil_linear_print(op->shr.opnd1);
+			rreil_linear_print(expr->shr.opnd1);
 			printf(" >>u ");
-			rreil_linear_print(op->shr.opnd2);
+			rreil_linear_print(expr->shr.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHRS: {
-			printf("{%lu} ", op->shrs.size);
-			rreil_linear_print(op->shrs.opnd1);
+			rreil_linear_print(expr->shrs.opnd1);
 			printf(" >>s ");
-			rreil_linear_print(op->shrs.opnd2);
+			rreil_linear_print(expr->shrs.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_AND: {
-			printf("{%lu} ", op->and_.size);
-			rreil_linear_print(op->and_.opnd1);
+			rreil_linear_print(expr->and_.opnd1);
 			printf(" & ");
-			rreil_linear_print(op->and_.opnd2);
+			rreil_linear_print(expr->and_.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_OR: {
-			printf("{%lu} ", op->or_.size);
-			rreil_linear_print(op->or_.opnd1);
+			rreil_linear_print(expr->or_.opnd1);
 			printf(" | ");
-			rreil_linear_print(op->or_.opnd2);
+			rreil_linear_print(expr->or_.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_XOR: {
-			printf("{%lu} ", op->xor_.size);
-			rreil_linear_print(op->xor_.opnd1);
+			rreil_linear_print(expr->xor_.opnd1);
 			printf(" ^ ");
-			rreil_linear_print(op->xor_.opnd2);
+			rreil_linear_print(expr->xor_.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SX: {
-			printf("{%lu->s%lu} ", op->sx.fromsize, op->sx.size);
-			rreil_linear_print(op->sx.opnd);
+			printf("{%lu->s*} ", expr->sx.fromsize);
+			rreil_linear_print(expr->sx.opnd);
 			break;
 		}
 		case RREIL_EXPR_TYPE_ZX: {
-			printf("{%lu->u%lu} ", op->zx.fromsize, op->zx.size);
-			rreil_linear_print(op->zx.opnd);
+			printf("{%lu->u*} ", expr->zx.fromsize);
+			rreil_linear_print(expr->zx.opnd);
 			break;
 		}
 	}
@@ -283,13 +271,13 @@ void rreil_statement_print(struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
 			rreil_variable_print(stdout, statement->assign.lhs);
-			printf(" = ");
-			rreil_op_print(statement->assign.rhs);
+			printf(" =:%lu ", statement->assign.size);
+			rreil_expr_print(statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
 			rreil_variable_print(stdout, statement->load.lhs);
-			printf(" = {%lu} *(", statement->load.size);
+			printf(" =:%lu *(", statement->load.size);
 			rreil_address_print(statement->load.address);
 			printf(")");
 			break;
@@ -297,8 +285,8 @@ void rreil_statement_print(struct rreil_statement *statement) {
 		case RREIL_STATEMENT_TYPE_STORE: {
 			printf("*(");
 			rreil_address_print(statement->store.address);
-			printf(") = ");
-			rreil_op_print(statement->store.rhs);
+			printf(") =:%lu ", statement->store.size);
+			rreil_expr_print(statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {

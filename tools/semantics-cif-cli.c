@@ -339,101 +339,101 @@ static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
 }
 
 // sem_op_cmp
-static obj_t sem_cmpeq(state_t state, int_t size,
+static obj_t sem_cmpeq(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmpeq {size=%lu}\n", size);
+	printf("=> cmpeq\n");
 	return NULL ;
 }
-static obj_t sem_cmpneq(state_t state, int_t size,
+static obj_t sem_cmpneq(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmpneq {size=%lu}\n", size);
+	printf("=> cmpneq\n");
 	return NULL ;
 }
-static obj_t sem_cmples(state_t state, int_t size,
+static obj_t sem_cmples(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmples {size=%lu}\n", size);
+	printf("=> cmples\n");
 	return NULL ;
 }
-static obj_t sem_cmpleu(state_t state, int_t size,
+static obj_t sem_cmpleu(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmpleu {size=%lu}\n", size);
+	printf("=> cmpleu\n");
 	return NULL ;
 }
-static obj_t sem_cmplts(state_t state, int_t size,
+static obj_t sem_cmplts(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmplts {size=%lu}\n", size);
+	printf("=> cmplts\n");
 	return NULL ;
 }
-static obj_t sem_cmpltu(state_t state, int_t size,
+static obj_t sem_cmpltu(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmpltu {size=%lu}\n", size);
+	printf("=> cmpltu\n");
 	return NULL ;
 }
 
 // sem_expr
-static obj_t sem_sexpr(state_t state, int_t size,
+static obj_t sem_sexpr(state_t state,
 		obj_t opnd1) {
-	printf("=> sem_sexpr {size=%lu}\n", size);
+	printf("=> sem_sexpr");
 	return NULL ;
 }
-static obj_t sem_mul(state_t state, int_t size,
+static obj_t sem_mul(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> mul {size=%lu}\n", size);
+	printf("=> mul");
 	return NULL ;
 }
-static obj_t sem_div(state_t state, int_t size,
+static obj_t sem_div(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> div {size=%lu}\n", size);
+	printf("=> div");
 	return NULL ;
 }
-static obj_t sem_divs(state_t state, int_t size,
+static obj_t sem_divs(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> divs {size=%lu}\n", size);
+	printf("=> divs");
 	return NULL ;
 }
-static obj_t sem_mod(state_t state, int_t size,
+static obj_t sem_mod(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> mod {size=%lu}\n", size);
+	printf("=> mod");
 	return NULL ;
 }
-static obj_t sem_shl(state_t state, int_t size,
+static obj_t sem_shl(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> shl {size=%lu}\n", size);
+	printf("=> shl");
 	return NULL ;
 }
-static obj_t sem_shr(state_t state, int_t size,
+static obj_t sem_shr(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> shr {size=%lu}\n", size);
+	printf("=> shr");
 	return NULL ;
 }
-static obj_t sem_shrs(state_t state, int_t size,
+static obj_t sem_shrs(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> shrs {size=%lu}\n", size);
+	printf("=> shrs");
 	return NULL ;
 }
-static obj_t sem_and(state_t state, int_t size,
+static obj_t sem_and(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> and {size=%lu}\n", size);
+	printf("=> and");
 	return NULL ;
 }
-static obj_t sem_or(state_t state, int_t size,
+static obj_t sem_or(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> or {size=%lu}\n", size);
+	printf("=> or");
 	return NULL ;
 }
-static obj_t sem_xor(state_t state, int_t size,
+static obj_t sem_xor(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> xor {size=%lu}\n", size);
+	printf("=> xor");
 	return NULL ;
 }
-static obj_t sem_sx(state_t state, int_t size, int_t fromsize,
+static obj_t sem_sx(state_t state, int_t fromsize,
 		obj_t opnd1) {
-	printf("=> sx {size=%lu, fromsize=%lu}\n", size, fromsize);
+	printf("=> sx {fromsize=%lu}\n", fromsize);
 	return NULL ;
 }
-static obj_t sem_zx(state_t state, int_t size, int_t fromsize,
+static obj_t sem_zx(state_t state, int_t fromsize,
 		obj_t opnd1) {
-	printf("=> zx {size=%lu, fromsize=%lu}\n", size, fromsize);
+	printf("=> zx {fromsize=%lu}\n", fromsize);
 	return NULL ;
 }
 
@@ -474,19 +474,19 @@ static obj_t sem_flop(state_t state, int_t con) {
 //}
 
 // sem_stmt
-static obj_t sem_assign(state_t state, obj_t lhs,
+static obj_t sem_assign(state_t state, int_t size, obj_t lhs,
 		obj_t rhs) {
-	printf("assign\n");
+	printf("assign {size=%lu}\n", size);
 	return NULL ;
 }
-static obj_t sem_load(state_t state, obj_t lhs, int_t size,
+static obj_t sem_load(state_t state, int_t size, obj_t lhs,
 		obj_t address) {
-	printf("load\n");
+	printf("load {size=%lu}\n", size);
 	return NULL ;
 }
-static obj_t sem_store(state_t state, obj_t address,
+static obj_t sem_store(state_t state, int_t size, obj_t address,
 		obj_t rhs) {
-	printf("store\n");
+	printf("store {size=%lu}\n", size);
 	return NULL ;
 }
 static obj_t sem_ite(state_t state, obj_t cond,

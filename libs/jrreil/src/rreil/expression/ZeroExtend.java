@@ -4,9 +4,9 @@ import rreil.linear.LinearExpression;
 
 public class ZeroExtend extends Extend {
 
-	public ZeroExtend(long size, long fromsize,
+	public ZeroExtend(long fromsize,
 			LinearExpression operand1) {
-		super(size, fromsize, operand1);
+		super(fromsize, operand1);
 	}
 
 	@Override

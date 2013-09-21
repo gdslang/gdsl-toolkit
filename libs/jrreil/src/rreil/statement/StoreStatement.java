@@ -4,6 +4,12 @@ import rreil.Address;
 import rreil.expression.Expression;
 
 public class StoreStatement extends Statement {
+	protected long size;
+	
+	public long getSize() {
+		return size;
+	}
+	
 	protected Address address;
 
 	public Address getAddress() {
@@ -16,13 +22,14 @@ public class StoreStatement extends Statement {
 		return rhs;
 	}
 
-	public StoreStatement(Address address, Expression rhs) {
+	public StoreStatement(long size, Address address, Expression rhs) {
+		this.size = size;
 		this.address = address;
 		this.rhs = rhs;
 	}
 	
 	@Override
 	public String toString() {
-		return "*" + address + " = " + rhs;
+		return "*" + address + " =:" + size + " " + rhs;
 	}
 }

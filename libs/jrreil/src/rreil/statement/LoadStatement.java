@@ -4,16 +4,16 @@ import rreil.Address;
 import rreil.Variable;
 
 public class LoadStatement extends Statement {
-	protected Variable lhs;
-
-	public Variable getLhs() {
-		return lhs;
-	}
-
 	protected long size;
 
 	public long getSize() {
 		return size;
+	}
+	
+	protected Variable lhs;
+
+	public Variable getLhs() {
+		return lhs;
 	}
 
 	protected Address address;
@@ -22,9 +22,9 @@ public class LoadStatement extends Statement {
 		return address;
 	}
 
-	public LoadStatement(Variable lhs, long size, Address address) {
-		this.lhs = lhs;
+	public LoadStatement(long size, Variable lhs, Address address) {
 		this.size = size;
+		this.lhs = lhs;
 		this.address = address;
 	}
 

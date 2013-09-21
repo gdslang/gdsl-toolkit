@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <rreil/rreil_sexpr.h>
 #include <rreil/rreil_arity.h>
 #include <rreil/rreil_comparator.h>
 
@@ -38,7 +39,7 @@ struct rreil_size_change {
 struct rreil_expr {
 	enum rreil_expr_type type;
 	union {
-		struct rreil_arity1_sexpr sexpr;
+		struct rreil_sexpr *sexpr;
 		struct rreil_arity2 mul;
 		struct rreil_arity2 div;
 		struct rreil_arity2 divs;
