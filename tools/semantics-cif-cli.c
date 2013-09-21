@@ -6,6 +6,31 @@
 #include <readhex.h>
 #include <gdsl.h>
 
+static obj_t indent_unary(obj_t a) {
+	size_t me = (size_t)a + 1;
+	for (size_t i = 0; i < me; ++i)
+		printf("=");
+	return (obj_t)me;
+}
+
+static obj_t indent_binary(obj_t a, obj_t b) {
+	size_t ai = (size_t)a;
+	size_t bi = (size_t)b;
+	return indent_unary(bi > ai ? b : a);
+}
+
+static obj_t indent_ternary(obj_t a, obj_t b, obj_t c) {
+	size_t ai = (size_t)a;
+	size_t bi = (size_t)b;
+	return indent_binary(bi > ai ? b : a, c);
+}
+
+static obj_t indent_quaternary(obj_t a, obj_t b, obj_t c, obj_t d) {
+	size_t ai = (size_t)a;
+	size_t bi = (size_t)b;
+	return indent_ternary(bi > ai ? b : a, c, d);
+}
+
 // sem_id
 //static gdrr_sem_id_t *virt_na(state_t state, int_t con) {
 //	printf("=> virt#%ld\n", con);
@@ -14,19 +39,19 @@
 static obj_t shared(state_t state, int_t con) {
 	switch(con) {
 		case CON_FLOATING_FLAGS: {
-			printf("FLOATING_FLAGS\n");
+			printf("> FLOATING_FLAGS\n");
 			break;
 		}
 	}
-	return NULL;
+	return (obj_t)0;
 }
 static obj_t virt_t(state_t state, int_t t) {
-	printf("=> t%ld\n", t);
-	return NULL ;
+	printf("> t%ld\n", t);
+	return (obj_t)0;
 }
 static obj_t arch(state_t state, int_t con) {
-	printf("=> arch#%ld\n", con);
-	return NULL ;
+	printf("> arch#%ld\n", con);
+	return (obj_t)0;
 }
 
 //static gdrr_sem_id_t virt_eq(state_t state) {
@@ -289,174 +314,203 @@ static obj_t arch(state_t state, int_t con) {
 // sem_address
 static obj_t sem_address(state_t state, int_t size,
 		obj_t address) {
-	printf("==> sem_address {size=%lu}\n", size);
-	return NULL ;
+	obj_t indent = indent_unary(address);
+	printf("> sem_address {size=%lu}\n", size);
+	return indent;
 }
 
 // sem_var
 static obj_t sem_var(state_t state, obj_t id, int_t offset) {
-	printf("==> var {offset=%lu}\n", offset);
-	return NULL ;
+	obj_t indent = indent_unary(id);
+	printf("> var {offset=%lu}\n", offset);
+	return indent;
 }
 
 // sem_linear
 static obj_t sem_lin_var(state_t state, obj_t this) {
-	printf("==> sem_lin_var\n");
-	return NULL ;
+	obj_t indent = indent_unary(this);
+	printf("> sem_lin_var\n");
+	return indent;
 }
 static obj_t sem_lin_imm(state_t state, int_t imm) {
-	printf("==> sem_lin_imm {imm=%lu}\n", imm);
-	return NULL ;
+	printf("> sem_lin_imm {imm=%lu}\n", imm);
+	return (obj_t)0;
 }
 static obj_t sem_lin_add(state_t state, obj_t opnd1,
 		obj_t opnd2) {
-	printf("==> sem_lin_add\n");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> sem_lin_add\n");
+	return indent;
 }
 static obj_t sem_lin_sub(state_t state, obj_t opnd1,
 		obj_t opnd2) {
-	printf("==> sem_lin_sub\n");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> sem_lin_sub\n");
+	return indent;
 }
 static obj_t sem_lin_scale(state_t state, int_t imm,
 		obj_t opnd) {
-	printf("==> sem_lin_scale {imm=%lu}\n", imm);
-	return NULL ;
+	obj_t indent = indent_unary(opnd);
+	printf("> sem_lin_scale {imm=%lu}\n", imm);
+	return indent;
 }
 
 // sem_sexpr
 static obj_t sem_sexpr_lin(state_t state, obj_t this) {
-	printf("=> sem_sexpr_lin\n");
-	return NULL ;
+	obj_t indent = indent_unary(this);
+	printf("> sem_sexpr_lin\n");
+	return indent;
 }
 static obj_t sem_sexpr_cmp(state_t state, obj_t this) {
-	printf("=> sem_sexpr_cmp\n");
-	return NULL ;
+	obj_t indent = indent_unary(this);
+	printf("> sem_sexpr_cmp\n");
+	return indent;
 }
 static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
-	printf("=> sem_sexpr_arb\n");
-	return NULL ;
+	printf("> sem_sexpr_arb\n");
+	return (obj_t)0;
 }
 
 // sem_op_cmp
 static obj_t sem_cmpeq(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmpeq\n");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> cmpeq\n");
+	return indent;
 }
 static obj_t sem_cmpneq(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmpneq\n");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> cmpneq\n");
+	return indent;
 }
 static obj_t sem_cmples(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmples\n");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> cmples\n");
+	return indent;
 }
 static obj_t sem_cmpleu(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmpleu\n");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> cmpleu\n");
+	return indent;
 }
 static obj_t sem_cmplts(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmplts\n");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> cmplts\n");
+	return indent;
 }
 static obj_t sem_cmpltu(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> cmpltu\n");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> cmpltu\n");
+	return indent;
 }
 
 // sem_expr
 static obj_t sem_sexpr(state_t state,
-		obj_t opnd1) {
-	printf("=> sem_sexpr");
-	return NULL ;
+		obj_t this) {
+	obj_t indent = indent_unary(this);
+	printf("> sem_sexpr\n");
+	return indent;
 }
 static obj_t sem_mul(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> mul");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> mul");
+	return indent;
 }
 static obj_t sem_div(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> div");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> div");
+	return indent;
 }
 static obj_t sem_divs(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> divs");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> divs");
+	return indent;
 }
 static obj_t sem_mod(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> mod");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> mod");
+	return indent;
 }
 static obj_t sem_shl(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> shl");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> shl");
+	return indent;
 }
 static obj_t sem_shr(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> shr");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> shr");
+	return indent;
 }
 static obj_t sem_shrs(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> shrs");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> shrs");
+	return indent;
 }
 static obj_t sem_and(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> and");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> and");
+	return indent;
 }
 static obj_t sem_or(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> or");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> or");
+	return indent;
 }
 static obj_t sem_xor(state_t state,
 		obj_t opnd1, obj_t opnd2) {
-	printf("=> xor");
-	return NULL ;
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> xor");
+	return indent;
 }
 static obj_t sem_sx(state_t state, int_t fromsize,
 		obj_t opnd1) {
-	printf("=> sx {fromsize=%lu}\n", fromsize);
-	return NULL ;
+	obj_t indent = indent_unary(opnd1);
+	printf("> sx {fromsize=%lu}\n", fromsize);
+	return indent;
 }
 static obj_t sem_zx(state_t state, int_t fromsize,
 		obj_t opnd1) {
-	printf("=> zx {fromsize=%lu}\n", fromsize);
-	return NULL ;
+	obj_t indent = indent_unary(opnd1);
+	printf("> zx {fromsize=%lu}\n", fromsize);
+	return indent;
 }
 
 // sem_varl
 static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
-	printf("=> sem_varl {id=..., offset=%ld, size=%ld}\n", offset, size);
-	return NULL;
+	obj_t indent = indent_unary(id);
+	printf("> sem_varl {id=..., offset=%ld, size=%ld}\n", offset, size);
+	return indent;
 }
 
 // sem_varls
 static obj_t sem_varls_next(state_t state, obj_t next, obj_t list) {
-	printf("=> sem_varls_next\n");
-	return NULL;
+	obj_t indent = indent_unary(next);
+	printf("> sem_varls_next\n");
+	return indent;
 }
 static obj_t sem_varls_init(state_t state, obj_t nothing) {
-	printf("=> sem_varls_init\n");
-	return NULL;
+	printf("> sem_varls_init\n");
+	return (obj_t)0;
 }
 
 // sem_flop
 static obj_t sem_flop(state_t state, int_t con) {
-	printf("=> sem_flop %ld\n", con);
-	return NULL;
+	printf("> sem_flop %ld\n", con);
+	return (obj_t)0;
 }
 
 
@@ -476,52 +530,61 @@ static obj_t sem_flop(state_t state, int_t con) {
 // sem_stmt
 static obj_t sem_assign(state_t state, int_t size, obj_t lhs,
 		obj_t rhs) {
-	printf("assign {size=%lu}\n", size);
-	return NULL ;
+	obj_t indent = indent_binary(lhs, rhs);
+	printf("> assign {size=%lu}\n", size);
+	return indent;
 }
 static obj_t sem_load(state_t state, int_t size, obj_t lhs,
 		obj_t address) {
-	printf("load {size=%lu}\n", size);
-	return NULL ;
+	obj_t indent = indent_binary(lhs, address);
+	printf("> load {size=%lu}\n", size);
+	return indent;
 }
 static obj_t sem_store(state_t state, int_t size, obj_t address,
 		obj_t rhs) {
-	printf("store {size=%lu}\n", size);
-	return NULL ;
+	obj_t indent = indent_binary(address, rhs);
+	printf("> store {size=%lu}\n", size);
+	return indent;
 }
 static obj_t sem_ite(state_t state, obj_t cond,
 		obj_t then_branch, obj_t else_branch) {
-	printf("ite\n");
-	return NULL ;
+	obj_t indent = indent_unary(cond);
+	printf("> ite\n");
+	return indent;
 }
 static obj_t sem_while(state_t state, obj_t cond,
 		obj_t body) {
-	printf("while\n");
-	return NULL ;
+	obj_t indent = indent_unary(cond);
+	printf("> while\n");
+	return indent;
 }
 static obj_t sem_cbranch(state_t state, obj_t cond,
 		obj_t target_true, obj_t target_false) {
-	printf("cbranch\n");
-	return NULL ;
+	obj_t indent = indent_ternary(cond, target_true, target_false);
+	printf("> cbranch\n");
+	return indent;
 }
 static obj_t sem_branch(state_t state,
 		obj_t branch_hint, obj_t target) {
-	printf("branch\n");
-	return NULL ;
+	obj_t indent = indent_binary(branch_hint, target);
+	printf("> branch\n");
+	return indent;
 }
 static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_t rhs) {
-	printf("=> sem_flop\n");
-	return NULL;
+	obj_t indent = indent_quaternary(op, flags, lhs, rhs);
+	printf("> sem_flop\n");
+	return indent;
 }
 static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
-	printf("=> sem_prim %s\n", (string_t)op);
-	return NULL;
+	obj_t indent = indent_ternary(op, lhs, rhs);
+	printf("> sem_prim %s\n", (string_t)op);
+	return indent;
 }
 
 // branch_hint
 static obj_t branch_hint(state_t state, int_t con) {
-	printf("==> branch_hint#%lu\n", con);
-	return NULL ;
+	printf("> branch_hint#%lu\n", con);
+	return (obj_t)0;
 }
 
 // sem_stmts
@@ -538,12 +601,13 @@ static obj_t branch_hint(state_t state, int_t con) {
 // sem_stmts
 static obj_t list_next(state_t state, obj_t next,
 		obj_t list) {
-	printf("next statement\n\n");
-	return NULL ;
+	obj_t indent = indent_unary(next);
+	printf("> next statement\n\n");
+	return indent;
 }
 static obj_t list_init(state_t state, obj_t nothing) {
-	printf("init\n");
-	return NULL ;
+	printf("> init\n");
+	return (obj_t)0;
 }
 
 int main(int argc, char** argv) {
