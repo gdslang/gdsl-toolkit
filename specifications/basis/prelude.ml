@@ -39,6 +39,10 @@ end
 # this function is applied to each string literal during parsing
 val from-string-lit s = RopeLeaf { rope-size = strlen s, rope-string = s }
 
+val string-from-rope-lit r = case r of
+   RopeLeaf l: l.rope-string
+end
+
 val show-int s = from-string-lit (showint s)
 
 val +++ r1 r2 =

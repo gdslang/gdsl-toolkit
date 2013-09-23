@@ -492,7 +492,7 @@ static obj_t sem_zx(state_t state, int_t fromsize,
 // sem_varl
 static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
 	obj_t indent = indent_unary(id);
-	printf("> sem_varl {id=..., offset=%ld, size=%ld}\n", offset, size);
+	printf("> sem_varl {offset=%ld, size=%ld}\n", offset, size);
 	return indent;
 }
 
@@ -576,7 +576,7 @@ static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_
 	return indent;
 }
 static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
-	obj_t indent = indent_ternary(op, lhs, rhs);
+	obj_t indent = indent_binary(lhs, rhs);
 	printf("> sem_prim %s\n", (string_t)op);
 	return indent;
 }

@@ -563,8 +563,8 @@ public class NativeInterface {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Object sem_prim(String op, Object lhs, Object rhs) {
-		return builder.sem_prim(op, (IRReilCollection<ILimitedVariable>) lhs,
+	private Object sem_prim(Object op, Object lhs, Object rhs) {
+		return builder.sem_prim((String)op, (IRReilCollection<ILimitedVariable>) lhs,
 				(IRReilCollection<ILimitedVariable>) rhs);
 	}
 

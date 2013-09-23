@@ -1,4 +1,4 @@
-# vim:filetype=sml:ts=3:sw=3:expandtab
+# vim:ai:filetype=sml:ts=3:sw=3:expandtab
 export =
 
 type sem_id =
@@ -152,6 +152,7 @@ val /WHILE c b = SEM_WHILE{cond=c,body=b}
 val /BRANCH hint address =SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
 val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
+val /PRIM op lhs rhs = SEM_PRIM{op=op,lhs=lhs,rhs=rhs}
 
 val push insn = do
    tl <- query $stack;
@@ -222,24 +223,52 @@ val cbranch cond target-true target-false = do
    update @{foundJump = '1'};
    push (/CBRANCH (SEM_SEXPR_LIN cond) target-true target-false)
 end
+
+val unpack-lin sz o = case o of
+   SEM_LIN_VAR v: return v
+ | _: do
+     t <- mktemp;
+     mov sz t o;
+     return t
+   end
+end
+
+type sem_lins =
+   SEM_LINS_CONS of {hd:sem_linear, tl:sem_lins}
+ | SEM_LINS_NIL
+
+val lins-one l = SEM_LINS_CONS {hd=l, tl=SEM_LINS_NIL}
+val lins-more l lins = SEM_LINS_CONS {hd=l, tl=lins}
+
 val bflop sz op r a b = let
-  val unpack o = case o of
-     SEM_LIN_VAR v: return v
-   | _: do
-       t <- mktemp;
-       mov sz t a;
-       return t
-     end
-  end
-  
   val bflop-inner = do
-    a <- unpack a;
-    b <- unpack b;
+    a <- unpack-lin sz a;
+    b <- unpack-lin sz b;
 
     push (/BFLOP sz op r a b)
   end
 in
   with-subscope bflop-inner
+end
+
+val prim sz op lhs rhs = let
+  val unpack lins = case lins of
+     SEM_LINS_CONS c: do
+       hd <- unpack-lin sz c.hd;
+       tl <- unpack c.tl;
+       return (SEM_VARLS_CONS {hd=varl-from-var sz hd, tl=tl})
+     end
+   | SEM_LINS_NIL: return SEM_VARLS_NIL
+  end
+  
+  val prim-inner = do
+    lhs <- unpack lhs;
+    rhs <- unpack rhs;
+
+    push (/PRIM (string-from-rope-lit op) lhs rhs)
+  end
+in
+  with-subscope prim-inner
 end
 
 val _if c _then a _else b = do

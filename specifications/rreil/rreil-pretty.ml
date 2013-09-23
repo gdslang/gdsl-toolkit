@@ -97,7 +97,7 @@ val rreil-show-address addr = "[" +++ show-int addr.size +++ "](" +++ rreil-show
 val rreil-show-var x =
    case x.offset of
       0: rreil-show-id x.id
-    | o: rreil-show-id x.id +++ "/" +++ show-int o
+    | o: rreil-show-id x.id +++ "." +++ show-int o
    end
 
 val rreil-show-linear lin = 

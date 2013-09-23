@@ -825,7 +825,7 @@ val semantics insn =
    | ADDSS x: sem-undef-arity2 x
    | ADDSUBPD x: sem-undef-arity2 x
    | ADDSUBPS x: sem-undef-arity2 x
-   | AESDEC x: sem-undef-arity2 x
+   | AESDEC x: sem-aesdec x
    | AESDECLAST x: sem-undef-arity2 x
    | AESENC x: sem-undef-arity2 x
    | AESENCLAST x: sem-undef-arity2 x
@@ -1441,7 +1441,10 @@ val semantics insn =
    | VADDSS x: sem-undef-varity x
    | VADDSUBPD x: sem-undef-varity x
    | VADDSUBPS x: sem-undef-varity x
-   | VAESDEC x: sem-undef-varity x
+   | VAESDEC v:
+       case v of
+          VA3 x: sem-vaesdec x
+       end
    | VAESDECLAST x: sem-undef-varity x
    | VAESENC x: sem-undef-varity x
    | VAESENCLAST x: sem-undef-varity x

@@ -1,3 +1,5 @@
+# vim:ai:tabstop=2:shiftwidth=2:expandtab:filetype=sml
+
 ## A>>
 
 val sem-adc x = do
@@ -33,6 +35,21 @@ end
 #  size <- return 128;
 #
 #end
+
+val sem-aesdec-opnd avx-encoded opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src0 <- read size opnd2;
+  src1 <- read size opnd3;
+  dst <- lval size opnd1;
+  
+  t <- mktemp;
+  prim size "AESDEC" (lins-one (var t)) (lins-more src0 (lins-one src1));
+
+  write-extend avx-encoded size dst (var t)
+end
+
+val sem-aesdec x = sem-aesdec-opnd '0' x.opnd1 x.opnd1 x.opnd2
+val sem-vaesdec x = sem-aesdec-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-and x = do
   size <- sizeof1 x.opnd1;
