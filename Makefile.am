@@ -122,13 +122,13 @@ GDSLC_SML_FILES = \
 
 JAR=jrreil.jar
 
-gdslc$(EXEEXT) : $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
+$(builddir)/gdslc$(EXEEXT): $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
 	$(MLTON) $(MLFLAGS) -output $@ $(srcdir)/gdslc.mlb
 
 if INSTALL_GDSLC
-bin_PROGRAMS += gdslc
+bin_PROGRAMS += $(builddir)/gdslc
 else
-noinst_PROGRAMS += gdslc
+noinst_PROGRAMS += $(builddir)/gdslc
 endif
 
 gdslc_MAIN = $(gdslc_SOURCES)
@@ -148,8 +148,8 @@ RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
 %.g.sml	: %.g
 	$(MLANTLR) $<
 
-GDSLC = $(abspath $(CURDIR)/gdslc$(EXEEXT))
-GDSLC_DEP = gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
+GDSLC = $(abspath $(builddir)/gdslc$(EXEEXT))
+GDSLC_DEP = $(builddir)/gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
 #GDSLC_DEP = gdslc$(EXEEXT)
 GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
@@ -209,7 +209,7 @@ libgdsl_x86_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-x86-rreil.c
 
 GS_X86_RREIL := $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
-gdsl-x86-rreil.c : $(GDSLC_DEP) $(GS_X86_RREIL)
+gdsl-x86-rreil.c: $(GDSLC_DEP) $(GS_X86_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86_RREIL)
 
 CLEANFILES += gdsl-x86-rreil.c gdsl-x86-rreil.h
@@ -224,7 +224,7 @@ libgdsl_x86_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-x86.c
 
 GS_X86 := $(GDSL_BASIS) $(GDSL_X86)
-gdsl-x86.c : $(GDSLC_DEP) $(GS_X86)
+gdsl-x86.c: $(GDSLC_DEP) $(GS_X86)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86)
 
 if AVR_RREIL
@@ -245,7 +245,7 @@ libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-avr-rreil.c
 
 GS_AVR_RREIL :=  $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
-gdsl-avr-rreil.c : $(GDSLC_DEP) $(GS_AVR_RREIL)
+gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
 
 CLEANFILES += gdsl-avr-rreil.c gdsl-avr-rreil.h
@@ -260,13 +260,15 @@ libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
 CLEANFILES += gdsl-avr.c
 
 GS_AVR := $(GDSL_BASIS) $(GDSL_AVR)
-gdsl-avr.c : $(GDSLC_DEP) $(GS_AVR)
+gdsl-avr.c: $(GDSLC_DEP) $(GS_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
 
 CLEANFILES += gdsl-avr.c gdsl-avr.h
 
 if HAVE_RREIL
-JSOURCES = src/rreil/IAddress.java \
+JSOURCES = src/rreil/DefaultLimitedVariableCollection.java \
+           src/rreil/IAddress.java \
+           src/rreil/LimitedVariable.java \
            src/rreil/BranchHint.java \
            src/rreil/id/FloatingFlags.java \
            src/rreil/id/VirtualLessOrEqualSignedId.java \
@@ -284,13 +286,16 @@ JSOURCES = src/rreil/IAddress.java \
            src/rreil/statement/ConditionalBranchStatement.java \
            src/rreil/statement/AssignStatement.java \
            src/rreil/statement/WhileStatement.java \
+           src/rreil/statement/PrimitiveStatement.java \
            src/rreil/statement/LoadStatement.java \
            src/rreil/statement/StoreStatement.java \
            src/rreil/statement/Statement.java \
+           src/rreil/statement/FlopStatement.java \
            src/rreil/statement/BranchStatement.java \
            src/rreil/statement/IStatement.java \
            src/rreil/statement/IfThenElseStatement.java \
-           src/rreil/statement/PrimitiveStatement.java \
+           src/rreil/DefaultStatementCollection.java \
+           src/rreil/Flop.java \
            src/rreil/IRReilBuilder.java \
            src/rreil/linear/LinearImmediateExpression.java \
            src/rreil/linear/ILinearExpression.java \
@@ -304,48 +309,41 @@ JSOURCES = src/rreil/IAddress.java \
            src/rreil/sexpression/SimpleCompareExpression.java \
            src/rreil/sexpression/SimpleExpression.java \
            src/rreil/sexpression/ISimpleExpression.java \
+           src/rreil/sexpression/Arbitrary.java \
            src/rreil/Variable.java \
            src/rreil/DefaultRReilBuilder.java \
            src/rreil/Address.java \
            src/rreil/IVariable.java \
-           src/rreil/IRReilCollection.java \
-           src/rreil/DefaultStatementCollection.java \
-           src/rreil/DefaultLimitedVariableCollection.java \
-           src/rreil/IBranchHint.java \
            src/rreil/ILimitedVariable.java \
-           src/rreil/LimitedVariable.java \
-           src/rreil/Flop.java \
+           src/rreil/IRReilCollection.java \
            src/rreil/IFlop.java \
-           src/rreil/operation/SignExtendOperation.java \
-           src/rreil/operation/CompareLessOrEqualSignedOperation.java \
-           src/rreil/operation/ZeroExtendOperation.java \
-           src/rreil/operation/AndOperation.java \
-           src/rreil/operation/DivisionOperation.java \
-           src/rreil/operation/Operation.java \
-           src/rreil/operation/BinaryOperation.java \
-           src/rreil/operation/ShiftLeftOperation.java \
-           src/rreil/operation/CompareLessUnsignedOperation.java \
-           src/rreil/operation/OrOperation.java \
-           src/rreil/operation/ExtendOperation.java \
-           src/rreil/operation/CompareNotEqualOperation.java \
-           src/rreil/operation/ModuloOperation.java \
-           src/rreil/operation/ICompareOperation.java \
-           src/rreil/operation/ArbitraryOperation.java \
-           src/rreil/operation/UnaryOperation.java \
-           src/rreil/operation/CompareEqualOperation.java \
-           src/rreil/operation/CompareOperation.java \
-           src/rreil/operation/LinearOperation.java \
-           src/rreil/operation/MultiplicationOperation.java \
-           src/rreil/operation/ShiftRightSignedOperation.java \
-           src/rreil/operation/SignedDivisionOperation.java \
-           src/rreil/operation/CompareLessOrEqualUnsignedOperation.java \
-           src/rreil/operation/CompareLessSignedOperation.java \
-           src/rreil/operation/IOperation.java \
-           src/rreil/operation/ShiftRightOperation.java \
-           src/rreil/operation/XorOperation.java \
-           src/rreil/prim/IPrim.java \
-           src/rreil/prim/GenericPrimitive.java \
-           src/rreil/prim/FlopPrimitive.java \
+           src/rreil/expression/CompareLessSigned.java \
+           src/rreil/expression/SignExtend.java \
+           src/rreil/expression/And.java \
+           src/rreil/expression/Unary.java \
+           src/rreil/expression/CompareNotEqual.java \
+           src/rreil/expression/Simple.java \
+           src/rreil/expression/ShiftRight.java \
+           src/rreil/expression/ZeroExtend.java \
+           src/rreil/expression/ICompare.java \
+           src/rreil/expression/Modulo.java \
+           src/rreil/expression/CompareEqual.java \
+           src/rreil/expression/CompareLessOrEqualUnsigned.java \
+           src/rreil/expression/ShiftLeft.java \
+           src/rreil/expression/Multiplication.java \
+           src/rreil/expression/Binary.java \
+           src/rreil/expression/Division.java \
+           src/rreil/expression/Or.java \
+           src/rreil/expression/CompareLessOrEqualSigned.java \
+           src/rreil/expression/Expression.java \
+           src/rreil/expression/ShiftRightSigned.java \
+           src/rreil/expression/IExpression.java \
+           src/rreil/expression/Compare.java \
+           src/rreil/expression/CompareLessUnsigned.java \
+           src/rreil/expression/SignedDivision.java \
+           src/rreil/expression/Extend.java \
+           src/rreil/expression/Xor.java \
+           src/rreil/IBranchHint.java \
            src/rnati/RReilTranslateException.java \
            src/rnati/GdslDecodeException.java \
            src/rnati/NativeInterface.java \
@@ -460,10 +458,9 @@ include_HEADERS += $(srcdir)/libs/rreil/include/rreil/rreil.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_free.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_variable.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_variable_limited.h \
-                   $(srcdir)/libs/rreil/include/rreil/rreil_prim.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_flop.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_comparator.h \
-                   $(srcdir)/libs/rreil/include/rreil/rreil_op.h \
+                   $(srcdir)/libs/rreil/include/rreil/rreil_expr.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_branch_hint.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_sexpr.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_arity.h \
@@ -596,7 +593,7 @@ semantics_cli_dynamic_CFLAGS = -std=c99 -I$(srcdir)/libs/readhex/include -I$(src
 semantics_cli_dynamic_LDADD += libreadhex.la libgdsl-multiplex.la
 
 semantics_cif_cli_SOURCES = $(srcdir)/tools/semantics-cif-cli.c
-semantics_cif_cli_CFLAGS = -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/readhex/include
+semantics_cif_cli_CFLAGS = -std=c99 -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/readhex/include
 semantics_cif_cli_LDADD += libreadhex.la
 
 sweep_SOURCES = $(srcdir)/tools/sweep.c
