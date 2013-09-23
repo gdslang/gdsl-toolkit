@@ -47,67 +47,66 @@ val lv-gen gens stmt =
           | SEM_LIN_SCALE x: visit-lin gens sz x.opnd
          end
 
-			val visit-sexpr gens sexpr =
+			val visit-sexpr size gens sexpr =
 			  case sexpr of
-				   SEM_SEXPR_LIN l: visit-lin gens 1 l
-				 | SEM_SEXPR_CMP c: visit-op-cmp gens c
+				   SEM_SEXPR_LIN l: visit-lin gens size l
+				 | SEM_SEXPR_CMP c: visit-op-cmp size gens c
+         | SEM_SEXPR_ARB: gens
 				end
 
       val visit-arity1 gens x = visit-lin gens x.size x.opnd1
 
-      val visit-arity2 gens x =
+      val visit-arity2 size gens x =
          lv-union
-            (visit-lin gens 42 x.opnd1) #Todo (grammar): x.size instead of 42, fix
-            (visit-lin gens 42 x.opnd2) #Todo (grammar): x.size instead of 42, fix
+            (visit-lin gens size x.opnd1)
+            (visit-lin gens size x.opnd2)
 
-			val visit-op-cmp gens cmp =
+			val visit-op-cmp size gens cmp =
 			  case cmp of
-           SEM_CMPEQ x: visit-arity2 gens x
-         | SEM_CMPNEQ x: visit-arity2 gens x
-         | SEM_CMPLES x: visit-arity2 gens x
-         | SEM_CMPLEU x: visit-arity2 gens x
-         | SEM_CMPLTS x: visit-arity2 gens x
-         | SEM_CMPLTU x: visit-arity2 gens x
+           SEM_CMPEQ x: visit-arity2 size gens x
+         | SEM_CMPNEQ x: visit-arity2 size gens x
+         | SEM_CMPLES x: visit-arity2 size gens x
+         | SEM_CMPLEU x: visit-arity2 size gens x
+         | SEM_CMPLTS x: visit-arity2 size gens x
+         | SEM_CMPLTU x: visit-arity2 size gens x
 			  end
 
-      val visit-op gens op =
+      val visit-expr size gens op =
          case op of
-#Todo (grammar):             SEM_LIN x: visit-arity1 gens x
+            SEM_SEXPR x: visit-sexpr size gens x
 #          | SEM_BSWAP x: visit-arity1 gens x
-            SEM_MUL x: visit-arity2 gens x
-          | SEM_DIV x: visit-arity2 gens x
-          | SEM_DIVS x: visit-arity2 gens x
-          | SEM_MOD x: visit-arity2 gens x
-          | SEM_SHL x: visit-arity2 gens x
-          | SEM_SHR x: visit-arity2 gens x
-          | SEM_SHRS x: visit-arity2 gens x
-          | SEM_AND x: visit-arity2 gens x
-          | SEM_OR x: visit-arity2 gens x
-          | SEM_XOR x: visit-arity2 gens x
+          | SEM_MUL x: visit-arity2 size gens x
+          | SEM_DIV x: visit-arity2 size gens x
+          | SEM_DIVS x: visit-arity2 size gens x
+          | SEM_MOD x: visit-arity2 size gens x
+          | SEM_SHL x: visit-arity2 size gens x
+          | SEM_SHR x: visit-arity2 size gens x
+          | SEM_SHRS x: visit-arity2 size gens x
+          | SEM_AND x: visit-arity2 size gens x
+          | SEM_OR x: visit-arity2 size gens x
+          | SEM_XOR x: visit-arity2 size gens x
           | SEM_SX x: visit-lin gens x.fromsize x.opnd1
           | SEM_ZX x: visit-lin gens x.fromsize x.opnd1
-#Todo (grammar):					| SEM_CMP c: visit-op-cmp gens c
-#Todo (grammar):          | SEM_ARB x: gens
          end
 
       val visit-address gens x = visit-lin gens x.size x.address
 
-      val visit-flow gens x =
+      val visit-flow size gens x =
          lv-union
-           (visit-sexpr gens x.cond)
+           (visit-sexpr size gens x.cond)
 					 (lv-union
              (visit-address gens x.target-true)
              (visit-address gens x.target-false))
 
       val visit-stmt gens stmt =
          case stmt of
-            SEM_ASSIGN x: visit-op gens x.rhs
+            SEM_ASSIGN x: visit-expr x.size gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
-          | SEM_STORE x: lv-union (visit-address gens x.address) (visit-op gens x.rhs)
-					| SEM_WHILE x: visit-sexpr gens x.cond
-					| SEM_ITE x: visit-sexpr gens x.cond
+          | SEM_STORE x: lv-union (visit-address gens x.address) (visit-expr x.size gens x.rhs)
+					| SEM_WHILE x: visit-sexpr 1 gens x.cond
+					| SEM_ITE x: visit-sexpr 1 gens x.cond
 					| SEM_BRANCH x: visit-address gens x.target
-					| SEM_CBRANCH x: visit-flow gens x
+					| SEM_CBRANCH x: visit-flow 1 gens x
 #          | SEM_LABEL x: gens
 #          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
 #          | SEM_IF_GOTO x: visit-flow gens x
