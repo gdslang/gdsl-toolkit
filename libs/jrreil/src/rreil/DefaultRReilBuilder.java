@@ -710,14 +710,14 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	 */
 
 	@Override
-	public IRReilCollection<IStatement> list_next(IStatement next,
+	public IRReilCollection<IStatement> sem_stmts_next(IStatement next,
 			IRReilCollection<IStatement> list) {
 		list.add(next);
 		return list;
 	}
 
 	@Override
-	public IRReilCollection<IStatement> list_init() {
+	public IRReilCollection<IStatement> sem_stmts_init() {
 		return new DefaultStatementCollection();
 	}
 }

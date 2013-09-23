@@ -599,13 +599,13 @@ static obj_t branch_hint(state_t state, int_t con) {
 //}
 
 // sem_stmts
-static obj_t list_next(state_t state, obj_t next,
+static obj_t sem_stmts_next(state_t state, obj_t next,
 		obj_t list) {
 	obj_t indent = indent_unary(next);
 	printf("> next statement\n\n");
 	return indent;
 }
-static obj_t list_init(state_t state, obj_t nothing) {
+static obj_t sem_stmts_init(state_t state, obj_t nothing) {
 	printf("> init\n");
 	return (obj_t)0;
 }
@@ -719,8 +719,8 @@ int main(int argc, char** argv) {
 //	};
 
 	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
-			.init = &list_init,
-			.next = &list_next
+			.sem_stmts_next = &sem_stmts_next,
+			.sem_stmts_init = &sem_stmts_init
 	};
 
 	unboxed_callbacks_t callbacks = {

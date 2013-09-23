@@ -465,7 +465,7 @@ static obj_t branch_hint(state_t state, int_t con) {
 }
 
 // sem_stmts
-static obj_t list_next(state_t state, obj_t next,
+static obj_t sem_stmts_next(state_t state, obj_t next,
 		obj_t list) {
 	struct rreil_statements *statements = (struct rreil_statements*)list;
 	if(statements->statements_length + 1 > statements->statements_size) {
@@ -479,7 +479,7 @@ static obj_t list_next(state_t state, obj_t next,
 			(struct rreil_statement*)next;
 	return (obj_t)statements;
 }
-static obj_t list_init(state_t state, obj_t nothing) {
+static obj_t sem_stmts_init(state_t state, obj_t nothing) {
 	struct rreil_statements *statements = (struct rreil_statements*)malloc(
 			sizeof(struct rreil_statements));
 	statements->statements = NULL;
@@ -577,8 +577,8 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 //	};
 
 	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
-			.init = &list_init,
-			.next = &list_next
+			.sem_stmts_next = &sem_stmts_next,
+			.sem_stmts_init = &sem_stmts_init
 	};
 
 	struct unboxed_callbacks {

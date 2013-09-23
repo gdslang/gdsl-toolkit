@@ -20,7 +20,7 @@ type sem_varls_callbacks = {sem_varls_next:int, sem_varls_init:int}
 type sem_flop_callbacks = {sem_flop_:int}
 type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int, sem_flop:int, sem_prim:int}
 type branch_hint_callbacks = {branch_hint_:int}
-type sem_stmts_callbacks = {next:int, init:int}
+type sem_stmts_callbacks = {sem_stmts_next:int, sem_stmts_init:int}
 #type sem_stmts_list_callbacks = {list_next:int, list_init:int}
 
 type callbacks = {
@@ -164,11 +164,11 @@ end
 
 val rreil-convert-sem-stmts cbs stmts = let
   val convert-inner cbs list stmts = case stmts of
-     SEM_CONS s: convert-inner cbs (cbs.sem_stmts.next (rreil-convert-sem-stmt cbs s.hd) list) s.tl
+     SEM_CONS s: convert-inner cbs (cbs.sem_stmts.sem_stmts_next (rreil-convert-sem-stmt cbs s.hd) list) s.tl
    | SEM_NIL: list
   end
 in
-  convert-inner cbs (cbs.sem_stmts.init void) stmts #Note: init is a function and, hence, has to be called by applying it to an argument
+  convert-inner cbs (cbs.sem_stmts.sem_stmts_init void) stmts #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
 val rreil-sem-stmts-has-more stmts = case stmts of

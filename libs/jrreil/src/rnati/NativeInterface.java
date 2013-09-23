@@ -589,13 +589,13 @@ public class NativeInterface {
 	 */
 
 	@SuppressWarnings("unchecked")
-	private Object list_next(Object next, Object list) {
-		return builder.list_next((IStatement) next,
+	private Object sem_stmts_next(Object next, Object list) {
+		return builder.sem_stmts_next((IStatement) next,
 				(IRReilCollection<IStatement>) list);
 	}
 
-	private Object list_init() {
-		return builder.list_init();
+	private Object sem_stmts_init() {
+		return builder.sem_stmts_init();
 	}
 
 	private native Object decodeAndTranslateNative(byte[] bytes);

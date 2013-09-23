@@ -306,7 +306,7 @@ public interface IRReilBuilder {
 	 * sem_stmts
 	 */
 
-	IRReilCollection<IStatement> list_next(IStatement next, IRReilCollection<IStatement> list);
+	IRReilCollection<IStatement> sem_stmts_next(IStatement next, IRReilCollection<IStatement> list);
 
-	IRReilCollection<IStatement> list_init();
+	IRReilCollection<IStatement> sem_stmts_init();
 }
