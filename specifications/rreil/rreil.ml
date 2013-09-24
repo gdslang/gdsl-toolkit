@@ -5,6 +5,10 @@ type sem_id =
    FLOATING_FLAGS
  | VIRT_T of int
 
+val sizeof-id id = case id of
+   FLOATING_FLAGS: 64
+end
+
 type sem_arity1 = {opnd1:sem_linear}
 type sem_arity2 = {opnd1:sem_linear, opnd2:sem_linear}
 type sem_cmp = {opnd1:sem_linear, opnd2:sem_linear}
@@ -149,7 +153,7 @@ val /ADD a b = SEM_LIN_ADD{opnd1=a,opnd2=b}
 val /SUB a b = SEM_LIN_SUB{opnd1=a,opnd2=b}
 val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
-val /BRANCH hint address =SEM_BRANCH{hint=hint,target=address}
+val /BRANCH hint address = SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
 val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
 val /PRIM op lhs rhs = SEM_PRIM{op=op,lhs=lhs,rhs=rhs}

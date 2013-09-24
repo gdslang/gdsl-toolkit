@@ -317,7 +317,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 		return 1;
 	}
 
-	fprintf(stderr, "File offset: %zu\n", file_offset);
+//	fprintf(stderr, "File offset: %zu\n", file_offset);
 
 	fseek(f, file_offset, SEEK_SET);
 

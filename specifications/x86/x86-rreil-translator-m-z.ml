@@ -2120,7 +2120,7 @@ val sem-ret x = do
        end
    | VA1 x:
        do
-	 address <- sem-ret-without-operand x;
+	       address <- sem-ret-without-operand x;
          release-from-stack x;
          ret address
        end
