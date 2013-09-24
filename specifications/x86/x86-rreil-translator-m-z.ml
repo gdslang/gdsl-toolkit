@@ -2115,8 +2115,8 @@ val sem-ret x = do
   case x of
      VA0 x:
        do
-         sem-ret-without-operand x;
-	 return void
+         address <- sem-ret-without-operand x;
+         ret address
        end
    | VA1 x:
        do
@@ -2132,8 +2132,8 @@ val sem-ret-far x = do
   case x of
      VA0 x:
        do
-         sem-ret-far-without-operand x;
-	 return void
+         address <- sem-ret-far-without-operand x;
+         ret address
        end
    | VA1 x:
        do
