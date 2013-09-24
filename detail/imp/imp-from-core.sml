@@ -14,7 +14,8 @@ end = struct
    open Imp
    
    val constructors: (Spec.sym * Spec.ty option) SymMap.map ref = ref SymMap.empty
-
+   val datatypes : (Spec.sym * (Spec.sym * Spec.ty option) list) list ref = ref []
+   
    fun freeVars (Exp.LETVAL (s,b,e)) =
       SymSet.union (freeVars b,
          SymSet.difference (freeVars e, SymSet.singleton s))
@@ -401,13 +402,49 @@ end = struct
            | trCase (Core.Pat.INT i, block) = (INTpat i, block)
            | trCase (Core.Pat.CON (sym,NONE), block) = (CONpat sym, block)
            | trCase (Core.Pat.CON (sym,SOME arg), BASICblock (decls, stmts)) =
-               (CONpat sym, BASICblock ((OBJvtype, arg) :: decls, ASSIGNstmt (SOME arg,get_con_arg (addConFun s sym,scrutRaw)) :: stmts))
+               (CONpat sym, BASICblock ((OBJvtype, arg) :: decls,
+               ASSIGNstmt (SOME arg,get_con_arg (addConFun s sym,scrutRaw)) :: stmts))
            | trCase (Core.Pat.ID sym, BASICblock (decls, stmts)) =
                ((addLocalVar s sym; WILDpat),
                 BASICblock (decls, ASSIGNstmt (SOME sym,scrutRaw) :: stmts))
            | trCase (Core.Pat.WILD, block) = (WILDpat, block)
 
          val cases = map (fn (pat,e) => trCase (pat,trBlock s e)) cs
+         
+         (* if a switch statement matches against all constructors of a data type,
+            then turn the last case into a default one *)
+         fun getDataType (CONpat sym :: _) =
+            (case SymMap.find (!constructors, sym) of
+               NONE => NONE
+             | SOME (dt,_) => SOME dt
+            )
+           | getDataType _ = NONE
+     
+         fun addDefault ps = case getDataType ps of
+            NONE => ps
+          | SOME dt =>
+            let
+               fun dtEqual (dt',_) = SymbolTable.eq_symid (dt,dt')
+               val cons = foldl
+                  (fn ((_,consArgs),ss) => SymSet.addList (ss,map #1 consArgs))
+                  SymSet.empty (List.filter dtEqual (!datatypes))
+               fun inspectPat ((p as (CONpat sym)) :: ps) cons =
+                  let
+                     val cons = SymSet.delete (cons, sym)
+                     val p = if SymSet.isEmpty cons then WILDpat else p
+                  in
+                     p :: inspectPat ps cons
+                  end
+                 | inspectPat (p :: ps) cons = p :: inspectPat ps cons
+                 | inspectPat [] cons = []
+            in
+               inspectPat ps cons
+            end
+
+        val (ps,bbs) = ListPair.unzip cases
+        val ps = addDefault ps
+        val cases = ListPair.zipEq (ps,bbs)
+
       in
          (stmts @ [CASEstmt (scrut, cases)], IDexp res)
       end
@@ -570,6 +607,7 @@ end = struct
          (fn clauses =>
             let
                val () = constructors := Spec.get#constructors spec
+               val () = datatypes := Spec.get#datatypes spec
                fun exports clauses =
                   rev (foldl
                      (fn ((f, _, _), acc) => 
