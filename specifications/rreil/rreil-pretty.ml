@@ -40,14 +40,22 @@ val rreil-show-flop f =
    | SEM_FMUL: "FMUL"
   end
 
+val rreil-size-by-expr-type bsz ex = case ex of
+   SEM_SEXPR s: case s of
+      SEM_SEXPR_CMP c: 1
+    | _: bsz
+   end
+ | _: bsz
+end
+
 val rreil-show-stmt s =
   case s of
-     SEM_ASSIGN x: rreil-show-var x.lhs +++ " =:" +++ show-int x.size +++ " " +++ rreil-show-expr x.rhs 
+     SEM_ASSIGN x: rreil-show-var x.lhs +++ " =:" +++ show-int (rreil-size-by-expr-type x.size x.rhs) +++ " " +++ rreil-show-expr x.size x.rhs 
    | SEM_LOAD x: rreil-show-var x.lhs +++ " =:" +++ show-int x.size +++ " " +++ rreil-show-ptrderef x.size x.address
-   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " =:" +++ show-int x.size +++ " " +++ rreil-show-expr x.rhs
-   | SEM_ITE x: "if (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.then_branch +++ "} else {\n" +++ rreil-show-stmts x.else_branch +++ "}"
-   | SEM_WHILE x: "while (" +++ rreil-show-sexpr x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
-   | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
+   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " =:" +++ show-int (rreil-size-by-expr-type x.size x.rhs) +++ " " +++ rreil-show-expr x.size x.rhs
+   | SEM_ITE x: "if (" +++ rreil-show-sexpr 1 x.cond +++ ") {\n" +++ rreil-show-stmts x.then_branch +++ "} else {\n" +++ rreil-show-stmts x.else_branch +++ "}"
+   | SEM_WHILE x: "while (" +++ rreil-show-sexpr 1 x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
+   | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr 1 x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
    | SEM_BRANCH x: "goto [" +++ rreil-show-hint x.hint +++ "] " +++ rreil-show-address x.target
    | SEM_PRIM p: rreil-show-varls p.lhs +++ " = $" +++ from-string-lit p.op +++ " " +++ rreil-show-varls p.rhs
    | SEM_FLOP f: rreil-show-varl f.lhs +++ " = $" +++ rreil-show-flop f.op +++ " " +++ rreil-show-varls f.rhs +++ " [flags:" +++ rreil-show-var f.flags +++ "]"
@@ -62,38 +70,39 @@ val rreil-show-hint x =
 
 val rreil-show-label l = "l" +++ show-int l +++ ":"
 
-val rreil-show-op-cmp cmp =
+val rreil-show-op-cmp size cmp =
   case cmp of
-     SEM_CMPEQ x: "==" +++ rreil-show-cmp x
-   | SEM_CMPNEQ x: "/=" +++ rreil-show-cmp x
-   | SEM_CMPLES x: "<=s" +++ rreil-show-cmp x
-   | SEM_CMPLEU x: "<=u" +++ rreil-show-cmp x
-   | SEM_CMPLTS x: "<s" +++ rreil-show-cmp x
-   | SEM_CMPLTU x: "<u" +++ rreil-show-cmp x
+     SEM_CMPEQ x: rreil-show-cmp x ("==:" +++ show-int size)
+   | SEM_CMPNEQ x: rreil-show-cmp x ("!=:" +++ show-int size)
+   | SEM_CMPLES x: rreil-show-cmp x ("<=s:" +++ show-int size)
+   | SEM_CMPLEU x: rreil-show-cmp x ("<=u:" +++ show-int size)
+   | SEM_CMPLTS x: rreil-show-cmp x ("<s:" +++ show-int size)
+   | SEM_CMPLTU x: rreil-show-cmp x ("<u:" +++ show-int size)
   end
 
-val rreil-show-expr expr =
+val rreil-show-expr size expr =
    case expr of
-      SEM_SEXPR x: rreil-show-sexpr x
-    | SEM_MUL x: "mul" +++ rreil-show-arity2 x
-    | SEM_DIV x: "div" +++ rreil-show-arity2 x
-    | SEM_DIVS x: "divs" +++ rreil-show-arity2 x
-    | SEM_MOD x: "mod" +++ rreil-show-arity2 x
-    | SEM_SHL x: "shl" +++ rreil-show-arity2 x
-    | SEM_SHR x: "shr" +++ rreil-show-arity2 x
-    | SEM_SHRS x: "shrs" +++ rreil-show-arity2 x
-    | SEM_AND x: "and" +++ rreil-show-arity2 x
-    | SEM_OR x: "or" +++ rreil-show-arity2 x
-    | SEM_XOR x: "xor" +++ rreil-show-arity2 x
-    | SEM_SX x: "sx[" +++ show-int x.fromsize +++ "->#](" +++ rreil-show-linear x.opnd1 +++ ")"
-    | SEM_ZX x: "zx[" +++ show-int x.fromsize +++ "->#](" +++ rreil-show-linear x.opnd1 +++ ")"
+      SEM_SEXPR x: rreil-show-sexpr size x
+    | SEM_MUL x: rreil-show-arity2-infix x "*"
+    | SEM_DIV x: rreil-show-arity2-infix x "/u"
+    | SEM_DIVS x: rreil-show-arity2-infix x "/s"
+    | SEM_MOD x: rreil-show-arity2-infix x "%"
+    | SEM_SHL x: rreil-show-arity2-infix x "<<"
+    | SEM_SHR x: rreil-show-arity2-infix x ">>u"
+    | SEM_SHRS x: rreil-show-arity2-infix x ">>s"
+    | SEM_AND x: rreil-show-arity2-infix x "&"
+    | SEM_OR x: rreil-show-arity2-infix x "|"
+    | SEM_XOR x: rreil-show-arity2-infix x "^"
+    | SEM_SX x: "sx[" +++ show-int x.fromsize +++ "->" +++ show-int size +++ "]" +++ rreil-show-linear x.opnd1
+    | SEM_ZX x: "zx[" +++ show-int x.fromsize +++ "->" +++ show-int size +++ "]" +++ rreil-show-linear x.opnd1
    end
 
 val rreil-show-arity1 x = " (" +++ rreil-show-linear x.opnd1 +++ ")"
+val rreil-show-arity2-infix x op = rreil-show-linear x.opnd1 +++ " " +++ op +++ " " +++ rreil-show-linear x.opnd2
 val rreil-show-arity2 x = " (" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
-val rreil-show-cmp x = " [*->1](" +++ rreil-show-linear x.opnd1 +++ "," +++ rreil-show-linear x.opnd2 +++ ")"
-val rreil-show-ptrderef sz addr = "*[" +++ show-int addr.size +++ "->" +++ show-int sz +++ "](" +++ rreil-show-linear addr.address +++ ")"
-val rreil-show-address addr = "[" +++ show-int addr.size +++ "](" +++ rreil-show-linear addr.address +++ ")"
+val rreil-show-cmp x op =  rreil-show-linear x.opnd1 +++ " " +++ op +++ " " +++ rreil-show-linear x.opnd2
+val rreil-show-ptrderef sz addr = "*[" +++ show-int addr.size +++ "->" +++ show-int sz +++ "]" +++ rreil-show-linear addr.address
+val rreil-show-address addr = "[" +++ show-int addr.size +++ "]" +++ rreil-show-linear addr.address
 val rreil-show-var x =
    case x.offset of
       0: rreil-show-id x.id
@@ -104,8 +113,8 @@ val rreil-show-linear lin =
    case lin of
       SEM_LIN_VAR x: rreil-show-var x
     | SEM_LIN_IMM x: show-int x.const
-    | SEM_LIN_ADD x: rreil-show-linear x.opnd1 +++ "+" +++ rreil-show-linear x.opnd2
-    | SEM_LIN_SUB x: rreil-show-linear x.opnd1 +++ "-" +++ rreil-show-linear x.opnd2
+    | SEM_LIN_ADD x: "(" +++ rreil-show-linear x.opnd1 +++ " " +++ "+" +++ " " +++ rreil-show-linear x.opnd2 +++ ")"
+    | SEM_LIN_SUB x: "(" +++ rreil-show-linear x.opnd1 +++ " " +++ "-" +++ " " +++ rreil-show-linear x.opnd2 +++ ")"
     | SEM_LIN_SCALE x:
          case x.const of
             0: ""
@@ -114,10 +123,10 @@ val rreil-show-linear lin =
          end
    end
 
-val rreil-show-sexpr sexpr =
+val rreil-show-sexpr size sexpr =
   case sexpr of
 	   SEM_SEXPR_LIN l: rreil-show-linear l
-	 | SEM_SEXPR_CMP c: rreil-show-op-cmp c
+	 | SEM_SEXPR_CMP c: rreil-show-op-cmp size c
    | SEM_SEXPR_ARB: "arbitrary"
 	end
 

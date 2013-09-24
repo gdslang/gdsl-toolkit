@@ -8,6 +8,7 @@ import java.util.Scanner;
 import rnati.*;
 import rreil.DefaultRReilBuilder;
 import rreil.IRReilCollection;
+import rreil.statement.IStatement;
 
 public class Program {
 	/**
@@ -85,7 +86,7 @@ public class Program {
 				bytes[i] = byteList.get(i);
 
 			System.out.println("Decoding and translating...");
-			IRReilCollection c = n.decodeAndTranslate(bytes);
+			IRReilCollection<IStatement> c = n.decodeAndTranslate(bytes);
 
 			n.closeBackend();
 
