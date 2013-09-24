@@ -1,5 +1,5 @@
 # vim:ai:filetype=sml:ts=3:sw=3:expandtab
-export =
+export = rreil-stmts-count
 
 type sem_id =
    FLOATING_FLAGS
@@ -415,3 +415,16 @@ val int-from-sexpr sex =
      SEM_SEXPR_LIN lin: int-from-linear lin
    | SEM_SEXPR_CMP cmp: IO_NONE
   end
+
+val rreil-stmts-count stmts = let
+  val count c stmts = case stmts of
+    SEM_CONS x: count (1 + (case x.hd of
+        SEM_ITE i: (count c i.then_branch) + (count 0 i.else_branch)
+      | SEM_WHILE w: count c w.body
+      | _: c
+    end)) x.tl
+   | SEM_NIL: c
+  end
+in
+  count 0 stmts
+end
