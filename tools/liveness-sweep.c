@@ -184,13 +184,13 @@ translate_result_t translate_super(state_t state, obj_t *rreil_insns) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
 	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state, gdsl_config_default(state), gdsl_int_max(state));
-	*rreil_insns = rreil_insns_succs->insns_134;
+	*rreil_insns = rreil_insns_succs->insns;
 	return rreil_insns_succs;
 }
 
 void print_succs(state_t state, translate_result_t translated, size_t size) {
-	obj_t succ_a = translated->succ_a_135;
-	obj_t succ_b = translated->succ_b_136;
+	obj_t succ_a = translated->succ_a;
+	obj_t succ_b = translated->succ_b;
 
 //	void print_succ(obj_t succ, char const *name) {
 //		switch(x86_con_index(state, succ)) {
@@ -463,7 +463,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 		if(print && mode == MODE_CHILDREN) {
 			printf("Liveness initial state:\n");
-			fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, lv_result->initial_141));
+			fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, lv_result->initial));
 			puts(fmt);
 			printf("\n");
 		}
@@ -472,7 +472,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 		switch(mode) {
 			case MODE_CHILDREN: {
-				greedy_state = lv_result->after_142;
+				greedy_state = lv_result->after;
 				break;
 			}
 			default: {

@@ -1,4 +1,4 @@
-# vim:filetype=sml:ts=3:sw=3:expandtab
+# vim: filetype=sml:ts=3:sw=3:expandtab
 
 export = translate translateBlock translateSingle translateSuperBlock succ_pretty
 

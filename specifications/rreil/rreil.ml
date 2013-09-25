@@ -11,7 +11,6 @@ end
 
 type sem_arity1 = {opnd1:sem_linear}
 type sem_arity2 = {opnd1:sem_linear, opnd2:sem_linear}
-type sem_cmp = {opnd1:sem_linear, opnd2:sem_linear}
 
 type sem_address = {size:int, address: sem_linear}
 type sem_var = {id:sem_id, offset:int}
@@ -29,12 +28,12 @@ type sem_linear =
  | SEM_SEXPR_ARB
 
 type sem_op_cmp =
-   SEM_CMPEQ of sem_cmp
- | SEM_CMPNEQ of sem_cmp
- | SEM_CMPLES of sem_cmp
- | SEM_CMPLEU of sem_cmp
- | SEM_CMPLTS of sem_cmp
- | SEM_CMPLTU of sem_cmp
+   SEM_CMPEQ of sem_arity2
+ | SEM_CMPNEQ of sem_arity2
+ | SEM_CMPLES of sem_arity2
+ | SEM_CMPLEU of sem_arity2
+ | SEM_CMPLTS of sem_arity2
+ | SEM_CMPLTU of sem_arity2
 
 type sem_expr =
    SEM_SEXPR of sem_sexpr
