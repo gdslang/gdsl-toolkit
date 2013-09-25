@@ -5,8 +5,8 @@
 val sem-adc x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- lval sz x.opnd1;
-  b <- read sz x.opnd1;
-  c <- read sz x.opnd2;
+  b <- rval sz x.opnd1;
+  c <- rval sz x.opnd2;
 
   t <- mktemp;
   add sz t b c;
@@ -23,8 +23,8 @@ end
 val sem-add x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- lval sz x.opnd1;
-  b <- read sz x.opnd1;
-  c <- read sz x.opnd2;
+  b <- rval sz x.opnd1;
+  c <- rval sz x.opnd2;
   t <- mktemp;
   add sz t b c;
   emit-add-adc-flags sz (var t) b c (imm 0) '1';
@@ -38,8 +38,8 @@ end
 
 val sem-aesdec-opnd avx-encoded opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src0 <- read size opnd2;
-  src1 <- read size opnd3;
+  src0 <- rval size opnd2;
+  src1 <- rval size opnd3;
   dst <- lval size opnd1;
   
   t <- mktemp;
@@ -53,8 +53,8 @@ val sem-vaesdec x = sem-aesdec-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-and x = do
   size <- sizeof1 x.opnd1;
-  src1 <- read size x.opnd1;
-  src2 <- read size x.opnd2;
+  src1 <- rval size x.opnd1;
+  src2 <- rval size x.opnd2;
   dst <- lval size x.opnd1;
 
   temp <- mktemp;
@@ -78,8 +78,8 @@ val sem-andpd-opnds avx-encoded opnd1 opnd2 opnd3 = do
   #size <- return 128;
   size <- sizeof1 opnd1;
 
-  src0 <- read size opnd2;
-  src1 <- read size opnd3;
+  src0 <- rval size opnd2;
+  src1 <- rval size opnd3;
 
   temp <- mktemp;
   andb size temp src0 src1;
@@ -95,7 +95,7 @@ val sem-vandpd x = sem-andpd-opnds '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-bsf x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd2;
+  src <- rval size x.opnd2;
 
   counter <- mktemp;
   _if (/neq size src (imm 0)) _then do
@@ -134,7 +134,7 @@ end
 
 val sem-bsr x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd2;
+  src <- rval size x.opnd2;
 
   counter <- mktemp;
   _if (/neq size src (imm 0)) _then do
@@ -173,7 +173,7 @@ end
 
 val sem-bswap x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd1;
+  src <- rval size x.opnd1;
 
   src-temp <- mktemp;
   mov size src-temp src;
@@ -244,9 +244,9 @@ val sem-bt-none base-sz base base-opnd shifted offset-ext = return void
 
 val sem-bt x modifier = do
   base-sz <- sizeof1 x.opnd1;
-  base <- read base-sz x.opnd1;
+  base <- rval base-sz x.opnd1;
   offset-sz <- sizeof1 x.opnd2;
-  offset <- read offset-sz x.opnd2;
+  offset <- rval offset-sz x.opnd2;
 
   offset-real-sz <-
     case base-sz of
@@ -370,8 +370,8 @@ val sem-cmovcc x cond = do
   sz <- sizeof1 x.opnd1;
 
   dst <- lval sz x.opnd1;
-  dst-old <- read sz x.opnd1;
-  src <- read sz x.opnd2;
+  dst-old <- rval sz x.opnd1;
+  src <- rval sz x.opnd2;
 
   temp <- mktemp;
   mov sz temp dst-old;
@@ -386,8 +386,8 @@ end
 val sem-cmp x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- lval sz x.opnd1;
-  b <- read sz x.opnd1;
-  c <- read sz x.opnd2;
+  b <- rval sz x.opnd1;
+  c <- rval sz x.opnd2;
   t <- mktemp;
   sub sz t b c;
   emit-sub-sbb-flags sz (var t) b c (imm 0) '1'
@@ -395,8 +395,8 @@ end
 
 val sem-cmps x = do
   sz <- sizeof1 x.opnd1;
-  src0 <- read sz x.opnd1;
-  src1 <- read sz x.opnd2;
+  src0 <- rval sz x.opnd1;
+  src1 <- rval sz x.opnd2;
 
   temp <- mktemp;
   sub sz temp src0 src1;
@@ -422,7 +422,7 @@ val sem-cmps x = do
 #
 #  #Todo: Fix, use specified segment
 #  reg0-segment <- segment DS;
-#  src0 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg0-segment,opnd=REG reg0});
+#  src0 <- rval sz (MEM{sz=sz,psz=addr-sz,segment=reg0-segment,opnd=REG reg0});
 #
 #  reg1 <-
 #    case addr-sz of
@@ -434,7 +434,7 @@ val sem-cmps x = do
 #  reg1-sem <- return (semantic-register-of reg1);
 #  reg1-sz <- sizeof1 (REG reg1);
 #  reg1-segment <- segment ES;
-#  src1 <- read sz (MEM{sz=sz,psz=addr-sz,segment=reg1-segment,opnd=REG reg1});
+#  src1 <- rval sz (MEM{sz=sz,psz=addr-sz,segment=reg1-segment,opnd=REG reg1});
 #
 end
 #val sem-cmpsb = sem-cmps 8
@@ -445,7 +445,7 @@ end
 val sem-cmpxchg x = do
   size <- sizeof1 x.opnd1;
 
-  subtrahend <- read size x.opnd1;
+  subtrahend <- rval size x.opnd1;
   minuend <- return (semantic-register-of (register-by-size low A size)); #accumulator
 
   difference <- mktemp;
@@ -456,16 +456,16 @@ val sem-cmpxchg x = do
   zf <- fZF;
   _if (/d (var zf)) _then do
     dst <- lval size x.opnd1;
-    src <- read size x.opnd2;
+    src <- rval size x.opnd2;
     write size dst src
   end _else do
-    dst <- read size x.opnd1;
+    dst <- rval size x.opnd1;
     mov size minuend dst
   end
 end
 
 val sem-cmpxchg16b-cmpxchg8b x = do
-  subtrahend <- read (2*x.opnd-sz) x.opnd1;
+  subtrahend <- rval (2*x.opnd-sz) x.opnd1;
 
   minuend <- combine (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz);
 
@@ -529,7 +529,7 @@ end
 
 val sem-dec x = do
   sz <- sizeof1 x.opnd1;
-  src <- read sz x.opnd1;
+  src <- rval sz x.opnd1;
   dst <- lval sz x.opnd1;
 
   temp <- mktemp;
@@ -542,7 +542,7 @@ end
 
 val sem-div signedness x = do
   sz <- sizeof1 x.opnd1;
-  divisor <- read (sz + sz) x.opnd1;
+  divisor <- rval (sz + sz) x.opnd1;
 
   dividend <-
     case sz of
@@ -591,8 +591,8 @@ end
 
 val sem-fadd x = do
   sz <- sizeof1 x.opnd1;
-  src0 <- read sz x.opnd1;
-  src1 <- read sz x.opnd2;
+  src0 <- rval sz x.opnd1;
+  src1 <- rval sz x.opnd2;
   dst <- lval sz x.opnd1;
 
   t <- mktemp;
@@ -617,8 +617,8 @@ val sem-imul-1 x = sem-mul Signed x
 val sem-imul-2-3 op1 op2 op3 = do
   sz <- sizeof1 op1;
 
-  factor0 <- reads Signed (sz + sz) op2;
-  factor1 <- reads Signed (sz + sz) op3;
+  factor0 <- rvals Signed (sz + sz) op2;
+  factor1 <- rvals Signed (sz + sz) op3;
 
   product <- mktemp;
   mul (sz + sz) product factor0 factor1;
@@ -633,7 +633,7 @@ val sem-imul-3 x = sem-imul-2-3 x.opnd1 x.opnd2 x.opnd3
 
 val sem-inc x = do
   sz <- sizeof1 x.opnd1;
-  src <- read sz x.opnd1;
+  src <- rval sz x.opnd1;
   dst <- lval sz x.opnd1;
 
   temp <- mktemp;
@@ -745,7 +745,7 @@ val sem-lar x = do
 end
 
 #val sem-lddqu-vlddqu size x = do
-#  src <- read size x.opnd2;
+#  src <- rval size x.opnd2;
 #  dst <- lval size x.opnd1;
 #
 #  write size dst src
@@ -756,7 +756,7 @@ end
 
 val sem-lds-les-lfs-lgs-lss x segment = do
   src-size <- sizeof1 x.opnd1;
-  src <- read src-size x.opnd1;
+  src <- rval src-size x.opnd1;
 
   src-temp <- mktemp;
   mov src-size src-temp src;
@@ -787,7 +787,7 @@ end
 
 val sem-lods x = do
   sz <- sizeof1 x.opnd1;
-  src <- read sz x.opnd1;
+  src <- rval sz x.opnd1;
 
   dst <- return (semantic-register-of (register-by-size low A sz));
   mov dst.size dst src;

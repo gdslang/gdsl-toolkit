@@ -203,8 +203,8 @@ val conv-with conv sz x =
       end
    end
 
-val read sz x = conv-with Unsigned sz x
-val reads conv sz x = conv-with conv sz x
+val rval sz x = conv-with Unsigned sz x
+val rvals conv sz x = conv-with conv sz x
 
 val extract-imm-unsigned imm =
   case imm of
@@ -233,8 +233,8 @@ val read-flow sz x =
        | REL64 x: conv-bv x
        | PTR16/16 x: conv-bv x
        | PTR16/32 x: conv-bv x
-       | NEARABS x: read sz x
-       | FARABS x: read sz x
+       | NEARABS x: rval sz x
+       | FARABS x: rval sz x
       end
    end
 

@@ -2,8 +2,8 @@
 
 val sem-maskmov element-size x = do
   size <- sizeof1 x.opnd2;
-  src <- read size x.opnd2;
-  mask <- read size x.opnd3;
+  src <- rval size x.opnd2;
+  mask <- rval size x.opnd3;
 
   src-temp <- mktemp;
   mov size src-temp src;
@@ -60,14 +60,14 @@ val sem-maskmovq x = sem-maskmov 8 x
 val sem-mov avx-encoded x = do
   sz <- sizeof1 x.opnd1;
   a <- lval sz x.opnd1;
-  b <- read sz x.opnd2;
+  b <- rval sz x.opnd2;
   write-extend avx-encoded sz a b
 end
 
 #val sem-movap x = do
 #  sz <- sizeof1 x.opnd1;
 #  dst <- lval sz x.opnd1;
-#  src <- read sz x.opnd2;
+#  src <- rval sz x.opnd2;
 #
 #  temp <- mktemp;
 #  mov sz temp src;
@@ -80,7 +80,7 @@ end
 #
 #  sz <- sizeof1 x.opnd1;
 #  dst <- lval sz x.opnd1;
-#  src <- read sz x.opnd2;
+#  src <- rval sz x.opnd2;
 #
 #  if sz === 128 then
 #    do
@@ -97,7 +97,7 @@ end
 #end
 
 val sem-movbe x = do
-  src <- read x.opnd-sz x.opnd2;
+  src <- rval x.opnd-sz x.opnd2;
   dst <- lval x.opnd-sz x.opnd1;
 
   src-temp <- mktemp;
@@ -132,7 +132,7 @@ end
 
 #val sem-movd-movq-vmovd-vmovq x dst-size = do
 #  src-size <- sizeof1 x.opnd2;
-#  src <- read src-size x.opnd2;
+#  src <- rval src-size x.opnd2;
 #
 #  dst <- lval dst-size x.opnd1;
 #
@@ -159,7 +159,7 @@ end
 #end
 #
 #val sem-mov-sse-avx x size out-size = do
-#  src <- read size x.opnd2;
+#  src <- rval size x.opnd2;
 #  dst <- lval out-size x.opnd1;
 #
 #  temp <- mktemp;
@@ -186,7 +186,7 @@ end
 #
 #val sem-movdq2q x = do
 #  size <- sizeof1 x.opnd1; #Important: Destination size!
-#  src <- read size x.opnd2;
+#  src <- rval size x.opnd2;
 #  dst <- lval size x.opnd1;
 #
 #  write size dst src
@@ -194,7 +194,7 @@ end
 
 val sem-movs x = do
   sz <- sizeof1 x.opnd1;
-  src <- read sz x.opnd2;
+  src <- rval sz x.opnd2;
   dst <- lval sz x.opnd1;
 
   write sz dst src;
@@ -210,7 +210,7 @@ val sem-movsx x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
   dst <- lval sz-dst x.opnd1;
-  src <- read sz-src x.opnd2;
+  src <- rval sz-src x.opnd2;
 
   temp <- mktemp;
   movsx sz-dst temp sz-src src;
@@ -222,7 +222,7 @@ val sem-movzx avx-encoded x = do
   sz-dst <- sizeof1 x.opnd1;
   sz-src <- sizeof1 x.opnd2;
   dst <- lval sz-dst x.opnd1;
-  src <- read sz-src x.opnd2;
+  src <- rval sz-src x.opnd2;
 
   temp <- mktemp;
   movzx sz-dst temp sz-src src;
@@ -237,7 +237,7 @@ val sem-mul conv x = do
 
   factor0 <- expand mktemp conv (var factor0-sem) sz (sz + sz);
 
-  factor1 <- reads conv (sz + sz) x.opnd1;
+  factor1 <- rvals conv (sz + sz) x.opnd1;
 
   product <- mktemp;
   mul (sz + sz) product factor0 factor1;
@@ -264,7 +264,7 @@ end
 
 val sem-neg x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd1;
+  src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
 
   temp <- mktemp;
@@ -295,7 +295,7 @@ end
 
 val sem-not x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd1;
+  src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
 
   temp <- mktemp;
@@ -309,8 +309,8 @@ end
 val sem-or x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   dst <- lval sz x.opnd1;
-  src0 <- read sz x.opnd1;
-  src1 <- read sz x.opnd2;
+  src0 <- rval sz x.opnd1;
+  src1 <- rval sz x.opnd2;
   temp <- mktemp;
   orb sz temp src0 src1;
 
@@ -334,7 +334,7 @@ end
 
 val sem-pabs avx-encoded element-size x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd2;
+  src <- rval size x.opnd2;
   dst <- lval size x.opnd1;
 
   temp-src <- mktemp;
@@ -364,8 +364,8 @@ end
 
 val sem-packsswb-packssdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src <- mktemp;
@@ -414,8 +414,8 @@ val sem-vpacksswb-vpackssdw dst-element-size x = sem-packsswb-packssdw-opnd '1' 
 
 val sem-packuswb-packusdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src <- mktemp;
@@ -458,8 +458,8 @@ val sem-vpackuswb-vpackusdw dst-element-size x = sem-packuswb-packusdw-opnd '1' 
 
 val sem-pbinop-opnd avx-encoded element-size operator opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -493,9 +493,9 @@ val sem-vpaddus element-size x = sem-pbinop-opnd '1' element-size add-unsigned-s
 val sem-palignr-vpalignr-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   size <- sizeof1 opnd1;
   dst <- lval size opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
-  imm8 <- read 8 opnd4;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
+  imm8 <- rval 8 opnd4;
 
   shift-amount <- mktemp;
   movzx (2*size) shift-amount 8 imm8;
@@ -516,8 +516,8 @@ val sem-vpalignr x = sem-palignr-vpalignr-opnd '1' x.opnd1 x.opnd2 x.opnd3 x.opn
 val sem-pand-vpand-opnd avx-encoded opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
   dst <- lval size opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
 
   temp <- mktemp;
   andb size temp src1 src2;
@@ -531,8 +531,8 @@ val sem-vpand x = sem-pand-vpand-opnd '1' x.opnd1 x.opnd2 x.opnd3
 val sem-pandn-vpandn-opnd avx-encoded opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
   dst <- lval size opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
 
   temp <- mktemp;
   xorb size temp src1 (imm (0-1));
@@ -546,8 +546,8 @@ val sem-vpandn x = sem-pandn-vpandn-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-pavg-vpavg-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -592,10 +592,10 @@ val blend-bit-selector-immediate element-size index mask = return (at-offset mas
 
 val sem-pblend-vpblend-opnd bit-selector avx-encoded element-size opnd1 opnd2 opnd3 opnd4 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
-  mask <- read size opnd4;
+  mask <- rval size opnd4;
 
   temp-src1 <- mktemp;
 #  if avx-encoded then do
@@ -641,9 +641,9 @@ val sem-vpblendw x = sem-pblend-vpblend-opnd blend-bit-selector-immediate '1' 16
 val sem-pclmulqdq-vpclmulqdq-opnd avx-encoded opnd1 opnd2 opnd3 opnd4 = do
   size <- sizeof1 opnd1;
   dst <- lval size opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
-  imm_ <- read 8 opnd4;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
+  imm_ <- rval 8 opnd4;
 
   temp-imm <- mktemp;
   mov 8 temp-imm imm_;
@@ -756,8 +756,8 @@ val sem-vpclmulqdq x = sem-pclmulqdq-vpclmulqdq-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-pcmp-vpcmp-opnd avx-encoded element-size comparer opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -794,10 +794,10 @@ val sem-pextr-vpextr element-size x = do
   src-size <- return 128;
   offset-size <- return 8;
 
-  src <- read src-size x.opnd2;
+  src <- rval src-size x.opnd2;
   dst <- lval dst-size x.opnd1;
 
-  offset <- read offset-size x.opnd3;
+  offset <- rval offset-size x.opnd3;
   offset-mask <- return (
     case element-size of
        8: 0xf
@@ -824,8 +824,8 @@ end
 
 val sem-phbinop-vphbinop-opnd avx-encoded element-size operator opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src <- mktemp;
@@ -856,7 +856,7 @@ val sem-vphaddsw x = sem-phbinop-vphbinop-opnd '1' 16 add-signed-saturating x.op
 val sem-phminposuw-vphminposuw avx-encoded x = do
   element-size <- return 16;
   size <- sizeof1 x.opnd1;
-  src1 <- read size x.opnd2;
+  src1 <- rval size x.opnd2;
   dst <- lval size x.opnd1;
 
   temp-src <- mktemp;
@@ -909,8 +909,8 @@ val sem-pinsr-vpinsr-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4 = do
   dst <- lval dst-size opnd1;
 
   src-size <- sizeof1 opnd3;
-  src1 <- read dst-size opnd2;
-  src2 <- read src-size opnd3;
+  src1 <- rval dst-size opnd2;
+  src2 <- rval src-size opnd3;
 
   temp <- mktemp;
   mov dst-size temp src1;
@@ -925,8 +925,8 @@ val sem-vpinsr element-size x = sem-pinsr-vpinsr-opnd '1' element-size x.opnd1 x
 
 val sem-pmcombine-opnd avx-encoded element-size combiner mover1 mover2 opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -973,8 +973,8 @@ val sem-vpmaddwd x = sem-pmaddwd-vpmaddwd-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-pcomp-opnd avx-encoded comparer element-size opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1019,7 +1019,7 @@ val sem-pmovmskb-vpmovmskb avx-encoded x = do
   element-size <- return 8;
 
   src-size <- sizeof1 x.opnd2;
-  src <- read src-size x.opnd2;
+  src <- rval src-size x.opnd2;
   dst-size <- sizeof1 x.opnd1;
   dst <- lval dst-size x.opnd1;
 
@@ -1044,7 +1044,7 @@ end
 
 val sem-pmovex-vpmovex avx-encoded mover from-size to-size x = do
   src-size <- sizeof1 x.opnd2;
-  src <- read src-size x.opnd2;
+  src <- rval src-size x.opnd2;
   dst-size <- sizeof1 x.opnd1;
   dst <- lval dst-size x.opnd1;
 
@@ -1073,8 +1073,8 @@ val sem-pmuldq-vpmuldq-opnd avx-encoded opnd1 opnd2 opnd3 = do
   size <- return 128;
   element-size <- return 32;
 
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1104,8 +1104,8 @@ val sem-pmulhrsw-vpmulhrsw-opnd avx-encoded opnd1 opnd2 opnd3 = do
   element-size <- return 16;
 
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1144,8 +1144,8 @@ val sem-pmulhxw-vpmulhxw-opnd avx-encoded mover opnd1 opnd2 opnd3 = do
   element-size <- return 16;
 
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1184,8 +1184,8 @@ val sem-vpmulhw x = sem-pmulhxw-vpmulhxw-opnd '1' movsx x.opnd1 x.opnd2 x.opnd3
 
 val sem-pmull-vpmull-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1215,8 +1215,8 @@ val sem-pmuludq-vpmuludq-opnd avx-encoded opnd1 opnd2 opnd3 = do
   element-size <- return 64;
 
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1323,7 +1323,7 @@ val sem-popa-popad x = do
 end
 
 val sem-popcnt x = do
-  src <- read x.opnd-sz x.opnd2;
+  src <- rval x.opnd-sz x.opnd2;
   dst <- lval x.opnd-sz x.opnd1;
 
   temp-src <- mktemp;
@@ -1371,8 +1371,8 @@ end
 
 val sem-por-vpor-opnd avx-encoded opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp <- mktemp;
@@ -1386,8 +1386,8 @@ val sem-vpor x = sem-por-vpor-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-psadbw-vpsadbw-opnd avx-encoded opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1444,8 +1444,8 @@ val sem-pshufb-vpshufb-opnd avx-encoded opnd1 opnd2 opnd3 = do
   element-size <- return 8;
 
   size <- sizeof1 opnd1;
-  src <- read size opnd2;
-  shuffle-control-mask <- read size opnd3;
+  src <- rval size opnd2;
+  shuffle-control-mask <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-scm <- mktemp;
@@ -1479,7 +1479,7 @@ val sem-vpshufb x = sem-pshufb-vpshufb-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-pshuf-vdhwlw avx-encoded element-size low-size high-size x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd2;
+  src <- rval size x.opnd2;
   dst <- lval size x.opnd1;
 
   temp-src <- mktemp;
@@ -1573,8 +1573,8 @@ val sem-pshufw x = sem-pshuf-vdhwlw '0' 16 0 0 x
 
 val sem-psign-vpsign-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1612,7 +1612,7 @@ val sem-vpsign element-size x = sem-psign-vpsign-opnd '1' element-size x.opnd1 x
 
 val sem-psxldq-vpsxldq-opnd avx-encoded shifter opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src <- read size opnd2;
+  src <- rval size opnd2;
   dst <- lval size opnd1;
 
   amount <- return (zx (
@@ -1638,8 +1638,8 @@ val sem-vpslldq x = sem-psxldq-vpsxldq-opnd '1' shl x.opnd1 x.opnd2 x.opnd3
 
 val sem-ps-vps-opnd avx-encoded element-size shifter opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src <- read size opnd2;
-  count <- read element-size opnd3;
+  src <- rval size opnd2;
+  count <- rval element-size opnd3;
   dst <- lval size opnd1;
 
   temp-src <- mktemp;
@@ -1682,8 +1682,8 @@ val sem-vpsubus element-size x = sem-pbinop-opnd '1' element-size sub-unsigned-s
 
 val sem-ptest-vptest x = do
   size <- sizeof1 x.opnd1;
-  src1 <- read size x.opnd1;
-  src2 <- read size x.opnd2;
+  src1 <- rval size x.opnd1;
+  src2 <- rval size x.opnd2;
 
   temp <- mktemp;
 
@@ -1709,8 +1709,8 @@ end
 
 val sem-punpck-vpunpck-opnd avx-encoded use-high element-size opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp-src1 <- mktemp;
@@ -1775,7 +1775,7 @@ end
 
 val sem-push x = do
   src-size <- sizeof1 x.opnd1;
-  src <- read src-size x.opnd1;
+  src <- rval src-size x.opnd1;
 
   temp <- mktemp;
   case x.opnd1 of
@@ -1852,8 +1852,8 @@ end
 
 val sem-pxor-vpxor-opnd avx-encoded opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
-  src1 <- read size opnd2;
-  src2 <- read size opnd3;
+  src1 <- rval size opnd2;
+  src2 <- rval size opnd3;
   dst <- lval size opnd1;
 
   temp <- mktemp;
@@ -1870,9 +1870,9 @@ val sem-vpxor x = sem-pxor-vpxor-opnd '1' x.opnd1 x.opnd2 x.opnd3
 
 val sem-rcl x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd1;
+  src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- read size x.opnd2;
+  count <- rval size x.opnd2;
 
   temp-count <- mktemp;
   case size of
@@ -1915,9 +1915,9 @@ end
 
 val sem-rcr x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd1;
+  src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- read size x.opnd2;
+  count <- rval size x.opnd2;
 
   temp-count <- mktemp;
   case size of
@@ -1960,9 +1960,9 @@ end
 
 val sem-rol x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd1;
+  src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- read size x.opnd2;
+  count <- rval size x.opnd2;
 
   count-mask <- return (
     if x.opnd-sz === 64 then
@@ -2011,9 +2011,9 @@ end
 
 val sem-ror x = do
   size <- sizeof1 x.opnd1;
-  src <- read size x.opnd1;
+  src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- read size x.opnd2;
+  count <- rval size x.opnd2;
 
   count-mask <- return (
     if x.opnd-sz === 64 then
@@ -2181,7 +2181,7 @@ end
 
 val release-from-stack x = do
   x-sz <- sizeof1 x.opnd1;
-  src <- read x-sz x.opnd1;
+  src <- rval x-sz x.opnd1;
 
   stack-addr-sz <- runtime-stack-address-size;
 
@@ -2215,8 +2215,8 @@ val sem-sal-shl x = do
   sz <- sizeof1 x.opnd1;
   szOp2 <- sizeof1 x.opnd2;
   dst <- lval sz x.opnd1;
-  src <- read sz x.opnd1;
-  count <- read szOp2 x.opnd2;
+  src <- rval sz x.opnd1;
+  count <- rval szOp2 x.opnd2;
 
   #count-mask <- const
   #   (case sz of
@@ -2322,8 +2322,8 @@ val sem-shr-sar x signed = do
   sz <- sizeof1 x.opnd1;
   szOp2 <- sizeof1 x.opnd2;
   dst <- lval sz x.opnd1;
-  src <- read sz x.opnd1;
-  count <- read szOp2 x.opnd2;
+  src <- rval sz x.opnd1;
+  count <- rval szOp2 x.opnd2;
 
   #count-mask <- const
   #   (case sz of
@@ -2399,8 +2399,8 @@ end
 val sem-sbb x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- lval sz x.opnd1;
-  minuend <- read sz x.opnd1;
-  subtrahend <- read sz x.opnd2;
+  minuend <- rval sz x.opnd1;
+  subtrahend <- rval sz x.opnd2;
 
   t <- mktemp;
   cf <- fCF;
@@ -2447,9 +2447,9 @@ end
 val sem-shld-shrd s1-shifter s2-shifter x = do
   size <- sizeof1 x.opnd1;
   dst <- lval size x.opnd1;
-  src1 <- read size x.opnd1;
-  src2 <- read size x.opnd2;
-  count <- read size x.opnd3;
+  src1 <- rval size x.opnd1;
+  src2 <- rval size x.opnd2;
+  count <- rval size x.opnd3;
   
   mask <- return (
     if size === 64 then
@@ -2540,8 +2540,8 @@ end
 val sem-sub x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- lval sz x.opnd1;
-  minuend <- read sz x.opnd1;
-  subtrahend <- read sz x.opnd2;
+  minuend <- rval sz x.opnd1;
+  subtrahend <- rval sz x.opnd2;
 
   t <- mktemp;
   sub sz t minuend subtrahend;
@@ -2554,8 +2554,8 @@ end
 
 val sem-test x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
-  a <- read sz x.opnd1;
-  b <- read sz x.opnd2;
+  a <- rval sz x.opnd1;
+  b <- rval sz x.opnd2;
 
   temp <- mktemp;
   andb sz temp a b;
@@ -2591,7 +2591,7 @@ val sem-vbroadcast v = do
   );
 
   src-size <- sizeof1 x.opnd2;
-  src <- read src-size x.opnd2;
+  src <- rval src-size x.opnd2;
   dst-size <- sizeof1 x.opnd1;
   dst <- lval dst-size x.opnd1;
   
@@ -2704,8 +2704,8 @@ end
 
 val sem-xadd x = do
   size <- sizeof1 x.opnd1;
-  src0 <- read size x.opnd1;
-  src1 <- read size x.opnd2;
+  src0 <- rval size x.opnd1;
+  src1 <- rval size x.opnd2;
   dst0 <- lval size x.opnd1;
   dst1 <- lval size x.opnd2;
 
@@ -2720,8 +2720,8 @@ end
 
 val sem-xchg x = do
   sz <- sizeof1 x.opnd1;
-  a-r <- read sz x.opnd1;
-  b-r <- read sz x.opnd2;
+  a-r <- rval sz x.opnd1;
+  b-r <- rval sz x.opnd2;
   a-w <- lval sz x.opnd1;
   b-w <- lval sz x.opnd2;
 
@@ -2735,8 +2735,8 @@ end
 val sem-xor x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   dst <- lval sz x.opnd1;
-  src0 <- read sz x.opnd1;
-  src1 <- reads Signed sz x.opnd2;
+  src0 <- rval sz x.opnd1;
+  src1 <- rvals Signed sz x.opnd2;
 
   temp <- mktemp;
   xorb sz temp src0 src1;
