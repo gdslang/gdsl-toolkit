@@ -2125,10 +2125,14 @@ val sib-with-index-and-base psz reg s i b = do
    end
 end
 
-val sib ['scale:2 index:3 base:3']
- | addrsz? = sib-with-index-and-base 16 reg16-rex scale index base
- | mode64? = sib-with-index-and-base 64 reg64-rex scale index base
- | otherwise = sib-with-index-and-base 32 reg32-rex scale index base
+val sib ['scale:2 index:3 base:3'] = do
+  addr-reg <- addr-reg;
+  ptrsz <- query $ptrsz;
+  sib-with-index-and-base ptrsz addr-reg scale index base
+end
+# | addrsz? = sib-with-index-and-base 16 reg16-rex scale index base
+# | mode64? = sib-with-index-and-base 64 reg64-rex scale index base
+# | otherwise = sib-with-index-and-base 32 reg32-rex scale index base
 
 ## Decoding the mod/rm byte
 
@@ -2188,7 +2192,7 @@ val r/m-without-sib = do
    mod <- query $mod;
    rm <- query $rm;
    rexb <- query $rexb;
-   addr-reg <- addrReg;
+   addr-reg <- addr-reg;
    case mod of
       '00':
          case rm of
@@ -2224,12 +2228,23 @@ val r/m-without-sib = do
    end
 end
 
-val addrReg = do
-   addrsz <- query $addrsz;
-   case addrsz of
-      '0': do update@{ptrsz=64};return reg64-rex end
-    | '1': do update@{ptrsz=32};return reg32-rex end
-   end
+val addr-reg = do
+  addrsz <- query $addrsz;
+  mode64 <- mode64?;
+  if addrsz then do
+    update@{ptrsz=16};
+    return reg16-rex
+  end else if mode64 then do
+    update@{ptrsz=64};
+    return reg64-rex
+  end else do
+    update@{ptrsz=32};
+    return reg32-rex
+  end
+#   case addrsz of
+#      '0': do update@{ptrsz=64};return reg64-rex end
+#    | '1': do update@{ptrsz=32};return reg32-rex end
+#   end
 end
 
 val r/m ptrTy reg = do
