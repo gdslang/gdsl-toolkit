@@ -21,7 +21,9 @@ int main(void) {
 	asm (
 //"fadd %st(0), %st(1)\n"
 
-"pclmulqdq $42, %xmm0, %xmm1\n"
+//"pclmulqdq $42, %xmm0, %xmm1\n"
+
+"nop\n"
 
 //"vaesdec %xmm14, %xmm15, %xmm2\n"
 //"vpextrw $0, %xmm2, %rax\n"

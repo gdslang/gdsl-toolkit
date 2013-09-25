@@ -209,10 +209,10 @@ void print_succs(state_t state, translate_result_t translated, size_t size) {
 //	}
 
 	string_t r = gdsl_merge_rope(state, gdsl_succ_pretty(state, succ_a, "a"));
-	printf("%s", r);
+	printf("%s\n", r);
 
 	r = gdsl_merge_rope(state, gdsl_succ_pretty(state, succ_b, "b"));
-	printf("%s", r);
+	printf("%s\n", r);
 
 //	print_succ(succ_a, "a");
 //	print_succ(succ_b, "b");

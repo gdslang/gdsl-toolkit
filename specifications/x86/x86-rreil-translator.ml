@@ -2263,6 +2263,6 @@ end end
 
 val succ_pretty succ name =
   case succ of
-	   SO_SOME i: "Succ " +++ name +++ ":\n" +++ (rreil-pretty i)
-	 | SO_NONE: "Succ " +++ name +++ ": NONE :-("
+	   SO_SOME i: "Succ " +++ (from-string-lit name) +++ ":\n" +++ (rreil-pretty i)
+	 | SO_NONE: "Succ " +++ (from-string-lit name) +++ ": NONE :-("
 	end

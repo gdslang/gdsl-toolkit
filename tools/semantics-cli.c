@@ -101,6 +101,8 @@ int main(int argc, char** argv) {
 
 	cleanup:
 
+	gdsl_reset_heap(state);
+
 	gdsl_destroy(state);
 	free(buffer);
 
