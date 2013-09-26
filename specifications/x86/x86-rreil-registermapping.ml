@@ -47,12 +47,12 @@ type sem_id
    | Sem_R13
    | Sem_R14
    | Sem_R15
-   | Sem_CS    # the segment registers represent their entry in the segment table
-   | Sem_DS
-   | Sem_SS
-   | Sem_ES
-   | Sem_FS
-   | Sem_GS
+   | Sem_CS_Base    # the segment registers represent their entry in the segment table
+   | Sem_DS_Base
+   | Sem_SS_Base
+   | Sem_ES_Base
+   | Sem_FS_Base
+   | Sem_GS_Base
    | Sem_ST0
    | Sem_ST1
    | Sem_ST2
@@ -198,12 +198,12 @@ val semantic-register-of r = case r of
    | MM5   : {id=Sem_MM5, offset=0, size=64}
    | MM6   : {id=Sem_MM6, offset=0, size=64}
    | MM7   : {id=Sem_MM7, offset=0, size=64}
-   | ES    : {id=Sem_ES, offset=0, size=64} # content of segment table
-   | SS    : {id=Sem_SS, offset=0, size=64}
-   | DS    : {id=Sem_DS, offset=0, size=64}
-   | FS    : {id=Sem_FS, offset=0, size=64}
-   | GS    : {id=Sem_GS, offset=0, size=64}
-   | CS    : {id=Sem_CS, offset=0, size=64}
+   | ES    : {id=Sem_ES_Base, offset=0, size=64} # content of segment table
+   | SS    : {id=Sem_SS_Base, offset=0, size=64}
+   | DS    : {id=Sem_DS_Base, offset=0, size=64}
+   | FS    : {id=Sem_FS_Base, offset=0, size=64}
+   | GS    : {id=Sem_GS_Base, offset=0, size=64}
+   | CS    : {id=Sem_CS_Base, offset=0, size=64}
    | ST0   : {id=Sem_ST0, offset=0, size=80}
    | ST1   : {id=Sem_ST1, offset=0, size=80}
    | ST2   : {id=Sem_ST2, offset=0, size=80}

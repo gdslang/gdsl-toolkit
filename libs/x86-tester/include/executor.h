@@ -23,6 +23,7 @@ struct execution_result {
 
 extern void executor_rflags_clean(struct context *context);
 extern void executor_virt_calc(struct context *context);
+extern void *executor_segment_base_get(enum x86_id reg);
 extern struct tbgen_result executor_instruction_mapped_generate(
 		uint8_t *instruction, size_t instruction_length,
 		struct tracking_trace *trace, struct context *context, void **memory,

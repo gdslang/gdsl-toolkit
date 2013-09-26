@@ -225,28 +225,28 @@ static obj_t arch(state_t state, int_t con) {
 			ret = java_method_call(state, "sem_r15", 0);
 			break;
 		}
-		case CON_Sem_CS: {
-			ret = java_method_call(state, "sem_cs", 0);
+		case CON_Sem_CS_Base: {
+			ret = java_method_call(state, "sem_cs_base", 0);
 			break;
 		}
-		case CON_Sem_DS: {
-			ret = java_method_call(state, "sem_ds", 0);
+		case CON_Sem_DS_Base: {
+			ret = java_method_call(state, "sem_ds_base", 0);
 			break;
 		}
-		case CON_Sem_SS: {
-			ret = java_method_call(state, "sem_ss", 0);
+		case CON_Sem_SS_Base: {
+			ret = java_method_call(state, "sem_ss_base", 0);
 			break;
 		}
-		case CON_Sem_ES: {
-			ret = java_method_call(state, "sem_es", 0);
+		case CON_Sem_ES_Base: {
+			ret = java_method_call(state, "sem_es_base", 0);
 			break;
 		}
-		case CON_Sem_FS: {
-			ret = java_method_call(state, "sem_fs", 0);
+		case CON_Sem_FS_Base: {
+			ret = java_method_call(state, "sem_fs_base", 0);
 			break;
 		}
-		case CON_Sem_GS: {
-			ret = java_method_call(state, "sem_gs", 0);
+		case CON_Sem_GS_Base: {
+			ret = java_method_call(state, "sem_gs_base", 0);
 			break;
 		}
 		case CON_Sem_ST0: {

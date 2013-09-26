@@ -27,29 +27,11 @@
 #include <executor.h>
 #include <tester.h>
 
-static void tester_register_fill(struct context *context, enum x86_id reg, void (*filler)(uint8_t *, size_t)) {
-	size_t length = x86_amd64_sizeof(reg);
-	uint8_t *buffer = (uint8_t*)malloc(length / 8 + 1);
-	filler(buffer, length);
+static uint8_t *data_template;
 
-	struct data data;
-	data.data = buffer;
-	data.bit_length = length;
-	context_data_define(&data);
-
-	simulator_register_generic_write(&context->x86_registers[reg], data, 0);
-
-	context_data_clear(&data);
-}
-
-static void tester_access_init(struct context *context, struct register_access *access,
-		void (*filler)(uint8_t *, size_t)) {
-	for(size_t i = 0; i < access->x86_indices_length; ++i) {
-		size_t index = access->x86_indices[i];
-		enum x86_id reg = (enum x86_id)index;
-
-		tester_register_fill(context, reg, filler);
-	}
+static void copy_buffer(uint8_t *data, size_t bit_length) {
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+		data[i] = data_template[i];
 }
 
 static void zero_buffer(uint8_t *data, size_t bit_length) {
@@ -77,6 +59,49 @@ static void rand_address_buffer(uint8_t *data, size_t bit_length) {
 //				data[i] = 0x7f;
 		else
 			data[i] = 0;
+	}
+}
+
+static void tester_register_fill(struct context *context, enum x86_id reg, void (*filler)(uint8_t *, size_t)) {
+	switch(reg) {
+		case X86_ID_GS_Base: {
+			void *gs_base = executor_segment_base_get(reg);
+			data_template = (uint8_t*)&gs_base;
+			filler = &copy_buffer;
+			break;
+		}
+		case X86_ID_FS_Base: {
+			void *fs_base = executor_segment_base_get(reg);
+			data_template = (uint8_t*)&fs_base;
+			filler = &copy_buffer;
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+
+	size_t length = x86_amd64_sizeof(reg);
+	uint8_t *buffer = (uint8_t*)malloc(length / 8 + 1);
+	filler(buffer, length);
+
+	struct data data;
+	data.data = buffer;
+	data.bit_length = length;
+	context_data_define(&data);
+
+	simulator_register_generic_write(&context->x86_registers[reg], data, 0);
+
+	context_data_clear(&data);
+}
+
+static void tester_access_init(struct context *context, struct register_access *access,
+		void (*filler)(uint8_t *, size_t)) {
+	for(size_t i = 0; i < access->x86_indices_length; ++i) {
+		size_t index = access->x86_indices[i];
+		enum x86_id reg = (enum x86_id)index;
+
+		tester_register_fill(context, reg, filler);
 	}
 }
 

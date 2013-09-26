@@ -161,28 +161,28 @@ public class NativeInterface {
 		return builder.sem_r15();
 	}
 
-	private Object sem_cs() {
-		return builder.sem_cs();
+	private Object sem_cs_base() {
+		return builder.sem_cs_base();
 	}
 
-	private Object sem_ds() {
-		return builder.sem_ds();
+	private Object sem_ds_base() {
+		return builder.sem_ds_base();
 	}
 
-	private Object sem_ss() {
-		return builder.sem_ss();
+	private Object sem_ss_base() {
+		return builder.sem_ss_base();
 	}
 
-	private Object sem_es() {
-		return builder.sem_es();
+	private Object sem_es_base() {
+		return builder.sem_es_base();
 	}
 
-	private Object sem_fs() {
-		return builder.sem_fs();
+	private Object sem_fs_base() {
+		return builder.sem_fs_base();
 	}
 
-	private Object sem_gs() {
-		return builder.sem_gs();
+	private Object sem_gs_base() {
+		return builder.sem_gs_base();
 	}
 
 	private Object sem_st0() {

@@ -88,6 +88,30 @@ void x86_id_print(FILE *stream, enum x86_id id) {
 			fprintf(stream, "R15");
 			break;
 		}
+		case X86_ID_CS_Base: {
+			fprintf(stream, "CS_Base");
+			break;
+		}
+		case X86_ID_DS_Base: {
+			fprintf(stream, "DS_Base");
+			break;
+		}
+		case X86_ID_SS_Base: {
+			fprintf(stream, "SS_Base");
+			break;
+		}
+		case X86_ID_ES_Base: {
+			fprintf(stream, "ES_Base");
+			break;
+		}
+		case X86_ID_FS_Base: {
+			fprintf(stream, "FS_Base");
+			break;
+		}
+		case X86_ID_GS_Base: {
+			fprintf(stream, "GS_Base");
+			break;
+		}
 		case X86_ID_CS: {
 			fprintf(stream, "CS");
 			break;
@@ -314,47 +338,65 @@ size_t x86_amd64_sizeof(enum x86_id id) {
 		case X86_ID_R15: {
 			return 64;
 		}
-		case X86_ID_CS: {
+		case X86_ID_CS_Base: {
 			return 64;
+		}
+		case X86_ID_DS_Base: {
+			return 64;
+		}
+		case X86_ID_SS_Base: {
+			return 64;
+		}
+		case X86_ID_ES_Base: {
+			return 64;
+		}
+		case X86_ID_FS_Base: {
+			return 64;
+		}
+		case X86_ID_GS_Base: {
+			return 64;
+		}
+		case X86_ID_CS: {
+			return 16;
 		}
 		case X86_ID_DS: {
-			return 64;
+			return 16;
 		}
 		case X86_ID_SS: {
-			return 64;
+			return 16;
 		}
 		case X86_ID_ES: {
-			return 64;
+			return 16;
 		}
 		case X86_ID_FS: {
-			return 64;
+			return 16;
 		}
 		case X86_ID_GS: {
-			return 64;
+			return 16;
 		}
 		case X86_ID_ST0: {
-			return 64;
+			return 80;
 		}
 		case X86_ID_ST1: {
-			return 64;
+			return 80;
 		}
 		case X86_ID_ST2: {
-			return 64;
+			return 80;
 		}
 		case X86_ID_ST3: {
-			return 64;
+			return 80;
 		}
 		case X86_ID_ST4: {
-			return 64;
+			return 80;
 		}
 		case X86_ID_ST5: {
-			return 64;
+			return 80;
 		}
 		case X86_ID_ST6: {
-			return 64;
+			return 80;
 		}
 		case X86_ID_ST7: {
-			return 64;
+			return 80;
 		}
 		case X86_ID_MM0: {
 			return 64;
@@ -534,23 +576,23 @@ enum x86_id x86_reg_from_con(int_t con) {
 		case CON_Sem_R15: {
 			return X86_ID_R15;
 		}
-		case CON_Sem_CS: {
-			return X86_ID_CS;
+		case CON_Sem_CS_Base: {
+			return X86_ID_CS_Base;
 		}
-		case CON_Sem_DS: {
-			return X86_ID_DS;
+		case CON_Sem_DS_Base: {
+			return X86_ID_DS_Base;
 		}
-		case CON_Sem_SS: {
-			return X86_ID_SS;
+		case CON_Sem_SS_Base: {
+			return X86_ID_SS_Base;
 		}
-		case CON_Sem_ES: {
-			return X86_ID_ES;
+		case CON_Sem_ES_Base: {
+			return X86_ID_ES_Base;
 		}
-		case CON_Sem_FS: {
-			return X86_ID_FS;
+		case CON_Sem_FS_Base: {
+			return X86_ID_FS_Base;
 		}
-		case CON_Sem_GS: {
-			return X86_ID_GS;
+		case CON_Sem_GS_Base: {
+			return X86_ID_GS_Base;
 		}
 		case CON_Sem_ST0: {
 			return X86_ID_ST0;

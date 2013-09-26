@@ -66,17 +66,17 @@ public interface IRReilBuilder {
 
 	IId sem_r15();
 
-	IId sem_cs();
+	IId sem_cs_base();
 
-	IId sem_ds();
+	IId sem_ds_base();
 
-	IId sem_ss();
+	IId sem_ss_base();
 
-	IId sem_es();
+	IId sem_es_base();
 
-	IId sem_fs();
+	IId sem_fs_base();
 
-	IId sem_gs();
+	IId sem_gs_base();
 
 	IId sem_st0();
 

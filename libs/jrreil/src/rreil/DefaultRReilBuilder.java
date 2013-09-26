@@ -202,33 +202,33 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	@Override
-	public IId sem_cs() {
-		return new X86RegisterId(X86Register.CS);
+	public IId sem_cs_base() {
+		return new X86RegisterId(X86Register.CS_Base);
 	}
 
 	@Override
-	public IId sem_ds() {
-		return new X86RegisterId(X86Register.DS);
+	public IId sem_ds_base() {
+		return new X86RegisterId(X86Register.DS_Base);
 	}
 
 	@Override
-	public IId sem_ss() {
-		return new X86RegisterId(X86Register.SS);
+	public IId sem_ss_base() {
+		return new X86RegisterId(X86Register.SS_Base);
 	}
 
 	@Override
-	public IId sem_es() {
-		return new X86RegisterId(X86Register.ES);
+	public IId sem_es_base() {
+		return new X86RegisterId(X86Register.ES_Base);
 	}
 
 	@Override
-	public IId sem_fs() {
-		return new X86RegisterId(X86Register.FS);
+	public IId sem_fs_base() {
+		return new X86RegisterId(X86Register.FS_Base);
 	}
 
 	@Override
-	public IId sem_gs() {
-		return new X86RegisterId(X86Register.GS);
+	public IId sem_gs_base() {
+		return new X86RegisterId(X86Register.GS_Base);
 	}
 
 	@Override
