@@ -346,7 +346,7 @@ struct data simulator_op_shl(struct data opnd1, struct data opnd2) {
 	uint16_t amount = 0;
 	uint8_t *amount_ptr = (uint8_t*)&amount;
 	for(size_t i = 0; i < 2; ++i) {
-		amount_ptr[i] = opnd2.data[i] << (i * 8);
+		amount_ptr[i] = opnd2.data[i];
 		if(i == bit_length / 8) {
 			uint8_t mask = (1 << (bit_length % 8)) - 1;
 			amount_ptr[i] &= mask;
@@ -396,7 +396,7 @@ static struct data simulator_op_shr_sign(struct data opnd1, struct data opnd2,
 	uint16_t amount = 0;
 	uint8_t *amount_ptr = (uint8_t*)&amount;
 	for(size_t i = 0; i < 2; ++i) {
-		amount_ptr[i] = opnd2.data[i] << (i * 8);
+		amount_ptr[i] = opnd2.data[i];
 		if(i == bit_length / 8) {
 			uint8_t mask = (1 << (bit_length % 8)) - 1;
 			amount_ptr[i] &= mask;
@@ -409,8 +409,8 @@ static struct data simulator_op_shr_sign(struct data opnd1, struct data opnd2,
 
 	size_t bytes = bit_length / 8 + (bit_length % 8 > 0);
 
-	for(size_t i = bytes - 1, j = 0; j < inter; --i, ++j) {
-		result.data[i] = 0xff * sign;
+	for(size_t i = bytes, j = 0; j < inter && i > 0; --i, ++j) {
+		result.data[i - 1] = 0xff * sign;
 		if(!i)
 			goto end;
 	}

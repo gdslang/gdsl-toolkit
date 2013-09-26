@@ -423,52 +423,52 @@ size_t x86_amd64_sizeof(enum x86_id id) {
 			return 64;
 		}
 		case X86_ID_XMM0: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM1: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM2: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM3: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM4: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM5: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM6: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM7: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM8: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM9: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM10: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM11: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM12: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM13: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM14: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_XMM15: {
-			return 128;
+			return 256;
 		}
 		case X86_ID_VIRT_LES: {
 			return 1;
