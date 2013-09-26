@@ -2,7 +2,7 @@ MLTK=../..
 CC=gcc
 #CC=clang
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -std=c11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
 LIBRARY=libutil.a
 SOURCES=stack.c util.c

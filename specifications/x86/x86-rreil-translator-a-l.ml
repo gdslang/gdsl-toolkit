@@ -542,7 +542,7 @@ end
 
 val sem-div signedness x = do
   sz <- sizeof1 x.opnd1;
-  divisor <- rval (sz + sz) x.opnd1;
+  divisor <- rvals signedness (sz + sz) x.opnd1;
 
   dividend <-
     case sz of
@@ -557,11 +557,16 @@ val sem-div signedness x = do
      Unsigned: div (sz + sz) quotient (var dividend) divisor
    | Signed: divs (sz + sz) quotient (var dividend) divisor
   end;
+
+  remainder <- mktemp;
+  case signedness of
+     Unsigned: modulo (sz + sz) remainder (var dividend) divisor
+   | Signed: prim (sz + sz) "mods" (lins-one (var remainder)) (lins-more (var dividend) (lins-one divisor))
+  end;
+
   quotient-sem <- return (semantic-register-of (register-by-size low A sz));
   mov sz quotient-sem (var quotient);
 
-  remainder <- mktemp;
-  modulo (sz + sz) remainder (var dividend) divisor;
   remainder-sem <-
     case sz of
        8: return (semantic-register-of AH)

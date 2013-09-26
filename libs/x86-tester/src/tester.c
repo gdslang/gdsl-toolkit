@@ -59,6 +59,8 @@ static void rand_address_buffer(uint8_t *data, size_t bit_length) {
 //				data[i] = 0x7f;
 		else
 			data[i] = 0;
+
+//		data[i] &= 0x7f;
 	}
 }
 

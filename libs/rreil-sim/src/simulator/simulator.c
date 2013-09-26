@@ -22,18 +22,46 @@ static void simulator_variable_write(struct context *context, struct rreil_varia
 		simulator_register_write(context, variable->id, data, variable->offset);
 }
 
+static void simulator_variable_limited_write(struct context *context, struct rreil_variable_limited *varl, struct data data) {
+	if(data.bit_length)
+		simulator_register_write(context, varl->id, data, varl->offset);
+}
+
 static void simulator_variable_read(struct context *context, struct rreil_variable *variable, struct data data) {
 	simulator_register_read(context, variable->id, data, variable->offset);
+}
+
+static void simulator_variable_limited_read(struct context *context, struct rreil_variable_limited *varl, struct data data) {
+	simulator_register_read(context, varl->id, data, varl->offset);
+}
+
+struct data simulator_variable_simulate(struct context *context, struct rreil_variable *variable, size_t bit_length) {
+	struct data result;
+
+	result.data = (uint8_t*)malloc(bit_length / 8 + 1);
+	result.defined = (uint8_t*)malloc(bit_length / 8 + 1);
+	result.bit_length = bit_length;
+	simulator_variable_read(context, variable, result);
+
+	return result;
+}
+
+struct data simulator_variable_limited_simulate(struct context *context, struct rreil_variable_limited *varl) {
+	struct data result;
+
+	result.data = (uint8_t*)malloc(varl->size / 8 + 1);
+	result.defined = (uint8_t*)malloc(varl->size / 8 + 1);
+	result.bit_length = varl->size;
+	simulator_variable_limited_read(context, varl, result);
+
+	return result;
 }
 
 static struct data simulator_linear_simulate(struct context *context, struct rreil_linear *linear, size_t bit_length) {
 	struct data result;
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
-			result.data = (uint8_t*)malloc(bit_length / 8 + 1);
-			result.defined = (uint8_t*)malloc(bit_length / 8 + 1);
-			result.bit_length = bit_length;
-			simulator_variable_read(context, linear->variable, result);
+			result = simulator_variable_simulate(context, linear->variable, bit_length);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_IMMEDIATE: {
@@ -84,7 +112,8 @@ static struct data simulator_linear_simulate(struct context *context, struct rre
 	return result;
 }
 
-static struct data simulator_comparator_simulate(struct context *context, struct rreil_comparator *comparator, uint64_t size) {
+static struct data simulator_comparator_simulate(struct context *context, struct rreil_comparator *comparator,
+		uint64_t size) {
 	struct data opnd1 = simulator_linear_simulate(context, comparator->arity2.opnd1, size);
 	struct data opnd2 = simulator_linear_simulate(context, comparator->arity2.opnd2, size);
 
@@ -276,6 +305,31 @@ static void simulator_branch_simulate(struct context *context, struct rreil_addr
 	context_data_clear(&address);
 }
 
+static enum simulator_error simulator_prim_simulate(struct context *context, char *op, struct rreil_variable_limited_tuple *lhs,
+		struct rreil_variable_limited_tuple *rhs) {
+	if(!strcmp(op, "mods")) {
+		if(lhs->variables_length != 1 || rhs->variables_length != 2)
+			return SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID;
+
+		uint64_t size = lhs->variables[0]->size;
+		if(size != rhs->variables[0]->size || size != rhs->variables[1]->size)
+			return SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID;
+
+		struct data opnd1 = simulator_variable_limited_simulate(context, rhs->variables[0]);
+		struct data opnd2 = simulator_variable_limited_simulate(context, rhs->variables[1]);
+		struct data result = simulator_op_mods(opnd1, opnd2);
+		context_data_clear(&opnd1);
+		context_data_clear(&opnd2);
+
+		simulator_variable_limited_write(context, lhs->variables[0], result);
+		context_data_clear(&result);
+
+		return SIMULATOR_ERROR_NONE;
+	}
+
+	return SIMULATOR_ERROR_PRIMITIVE_UNKNOWN;
+}
+
 static enum simulator_error simulator_statement_simulate(struct context *context, struct rreil_statement *statement) {
 	enum simulator_error error = SIMULATOR_ERROR_NONE;
 	switch(statement->type) {
@@ -407,9 +461,13 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			simulator_branch_simulate(context, statement->branch.target);
 			break;
 		}
-		/*
-		 * Todo: Primitives, Floating point operations
-		 */
+		case RREIL_STATEMENT_TYPE_PRIM: {
+			error = simulator_prim_simulate(context, statement->prim.op, statement->prim.lhs, statement->prim.rhs);
+			break;
+		}
+			/*
+			 * Todo: Primitives, Floating point operations
+			 */
 	}
 	return error;
 }
