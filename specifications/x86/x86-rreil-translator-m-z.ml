@@ -2400,13 +2400,13 @@ val sem-sbb x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- lval sz x.opnd1;
   minuend <- rval sz x.opnd1;
-  subtrahend <- rval sz x.opnd2;
+  subtrahend <- rvals Signed sz x.opnd2;
 
   t <- mktemp;
   cf <- fCF;
   movzx sz t 1 (var cf);
   add sz t (var t) subtrahend;
-  sub sz t minuend subtrahend;
+  sub sz t minuend (var t);
 
   emit-sub-sbb-flags sz (var t) minuend subtrahend (var cf) '1';
 
