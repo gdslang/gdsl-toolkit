@@ -314,6 +314,14 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 	data_size = gdsl_get_ip_offset(state);
 	features = gdsl_features_get(state, insn);
 
+	printf("[");
+	for (size_t i = 0; i < data_size; ++i) {
+		if(i)
+			printf(" ");
+		printf("%02x", data[i]);
+	}
+	printf("] ");
+
 	char *str = gdwrap_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_FULL);
 	if(str)
 		puts(str);

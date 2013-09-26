@@ -289,6 +289,18 @@ val register? x =
     | _: '0'
   end
 
+val postproc-reg sz id avx-encoded = do
+  mode64 <- mode64?;
+  if (mode64 and (not (is-avx-sse id.id)) and sz === 32) then
+    #Todo: Only if sz == 32? - Yes (tested)!
+    #Todo: Only for a subset of all registers?
+         mov (64 - sz) (at-offset id sz) (imm 0)
+  else if (avx-encoded and (is-avx-sse id.id) and sz < 256) then
+    mov (256 - sz) (at-offset id sz) (imm 0)
+  else
+    return void
+end
+
 val write-extend avx-encoded sz a b =
    case a of
       SEM_WRITE_MEM x:
@@ -314,15 +326,7 @@ val write-extend avx-encoded sz a b =
 
 	mov sz x.id b;
 
-	mode64 <- mode64?;
-	if (mode64 and (not (is-avx-sse x.id.id)) and sz === 32) then
-	  #Todo: Only if sz == 32? - Yes (tested)!
-	  #Todo: Only for a subset of all registers?
-          mov (64 - sz) (at-offset x.id sz) (imm 0)
-	else if (avx-encoded and (is-avx-sse x.id.id) and sz < 256) then
-	  mov (256 - sz) (at-offset x.id sz) (imm 0)
-	else
-	  return void
+   postproc-reg sz x.id avx-encoded
 
 #        case sz of
 #           32:
@@ -707,6 +711,9 @@ val direction-adjust reg-size reg-sem for-size = do
     add reg-size reg-sem (var reg-sem) (imm amount)  
   _else
     sub reg-size reg-sem (var reg-sem) (imm amount)
+  ;
+
+  postproc-reg reg-size reg-sem '0'
 end
 
 val exp base e =
