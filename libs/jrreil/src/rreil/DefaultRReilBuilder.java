@@ -11,6 +11,7 @@ import rreil.expression.Compare;
 import rreil.expression.Division;
 import rreil.expression.ICompare;
 import rreil.expression.IExpression;
+import rreil.expression.SignedModulo;
 import rreil.expression.Simple;
 import rreil.expression.Modulo;
 import rreil.expression.Multiplication;

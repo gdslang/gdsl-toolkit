@@ -539,6 +539,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_div = &sem_div,
 			.sem_divs = &sem_divs,
 			.sem_mod = &sem_mod,
+			.sem_mods = &sem_mods,
 			.sem_shl = &sem_shl,
 			.sem_shr = &sem_shr,
 			.sem_shrs = &sem_shrs,

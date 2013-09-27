@@ -221,6 +221,9 @@ public interface IRReilBuilder {
 
 	IExpression sem_mod(ILinearExpression opnd1,
 			ILinearExpression opnd2);
+	
+	IExpression sem_mods(ILinearExpression opnd1,
+			ILinearExpression opnd2);
 
 	IExpression sem_shl(ILinearExpression opnd1,
 			ILinearExpression opnd2);
