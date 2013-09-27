@@ -504,6 +504,11 @@ static obj_t sem_mod(state_t state, obj_t opnd1, obj_t opnd2) {
 			(jobject)opnd2);
 	return (obj_t)ret;
 }
+static obj_t sem_mods(state_t state, obj_t opnd1, obj_t opnd2) {
+	jobject ret = java_method_call(state, "sem_mod", 2, (jobject)opnd1,
+			(jobject)opnd2);
+	return (obj_t)ret;
+}
 static obj_t sem_shl(state_t state, obj_t opnd1, obj_t opnd2) {
 	jobject ret = java_method_call(state, "sem_shl", 2, (jobject)opnd1,
 			(jobject)opnd2);
@@ -735,6 +740,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			.sem_div = &sem_div,
 			.sem_divs = &sem_divs,
 			.sem_mod = &sem_mod,
+			.sem_mods = &sem_mods,
 			.sem_shl = &sem_shl,
 			.sem_shr = &sem_shr,
 			.sem_shrs = &sem_shrs,

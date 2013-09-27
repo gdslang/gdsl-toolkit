@@ -146,7 +146,7 @@ static void generator(struct options *options) {
 	generator_tree_print(root);
 	printf("\n");
 
-	for(size_t i = 0; i < options->n; ++i) {
+	for(size_t i = 0; !options->n || i < options->n; ++i) {
 		printf("\nTest #%lu +++++++++++++++++++++\n", i);
 
 		uint8_t *buffer;

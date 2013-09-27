@@ -210,6 +210,14 @@ static struct data simulator_expr_simulate(struct context *context, struct rreil
 			context_data_clear(&opnd2);
 			break;
 		}
+		case RREIL_EXPR_TYPE_MODS: {
+			struct data opnd1 = simulator_linear_simulate(context, expr->mods.opnd1, size);
+			struct data opnd2 = simulator_linear_simulate(context, expr->mods.opnd2, size);
+			result = simulator_op_mods(opnd1, opnd2);
+			context_data_clear(&opnd1);
+			context_data_clear(&opnd2);
+			break;
+		}
 		case RREIL_EXPR_TYPE_SHL: {
 			struct data opnd1 = simulator_linear_simulate(context, expr->shl.opnd1, size);
 			struct data opnd2 = simulator_linear_simulate(context, expr->shl.opnd2, size);
@@ -307,25 +315,25 @@ static void simulator_branch_simulate(struct context *context, struct rreil_addr
 
 static enum simulator_error simulator_prim_simulate(struct context *context, char *op, struct rreil_variable_limited_tuple *lhs,
 		struct rreil_variable_limited_tuple *rhs) {
-	if(!strcmp(op, "mods")) {
-		if(lhs->variables_length != 1 || rhs->variables_length != 2)
-			return SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID;
-
-		uint64_t size = lhs->variables[0]->size;
-		if(size != rhs->variables[0]->size || size != rhs->variables[1]->size)
-			return SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID;
-
-		struct data opnd1 = simulator_variable_limited_simulate(context, rhs->variables[0]);
-		struct data opnd2 = simulator_variable_limited_simulate(context, rhs->variables[1]);
-		struct data result = simulator_op_mods(opnd1, opnd2);
-		context_data_clear(&opnd1);
-		context_data_clear(&opnd2);
-
-		simulator_variable_limited_write(context, lhs->variables[0], result);
-		context_data_clear(&result);
-
-		return SIMULATOR_ERROR_NONE;
-	}
+//	if(!strcmp(op, "mods")) {
+//		if(lhs->variables_length != 1 || rhs->variables_length != 2)
+//			return SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID;
+//
+//		uint64_t size = lhs->variables[0]->size;
+//		if(size != rhs->variables[0]->size || size != rhs->variables[1]->size)
+//			return SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID;
+//
+//		struct data opnd1 = simulator_variable_limited_simulate(context, rhs->variables[0]);
+//		struct data opnd2 = simulator_variable_limited_simulate(context, rhs->variables[1]);
+//		struct data result = simulator_op_mods(opnd1, opnd2);
+//		context_data_clear(&opnd1);
+//		context_data_clear(&opnd2);
+//
+//		simulator_variable_limited_write(context, lhs->variables[0], result);
+//		context_data_clear(&result);
+//
+//		return SIMULATOR_ERROR_NONE;
+//	}
 
 	return SIMULATOR_ERROR_PRIMITIVE_UNKNOWN;
 }

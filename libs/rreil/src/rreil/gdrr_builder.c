@@ -250,6 +250,13 @@ static obj_t sem_mod(state_t state, obj_t opnd1, obj_t opnd2) {
 	expr->mod.opnd2 = (struct rreil_linear*)opnd2;
 	return (obj_t)expr;
 }
+static obj_t sem_mods(state_t state, obj_t opnd1, obj_t opnd2) {
+	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
+	expr->type = RREIL_EXPR_TYPE_MODS;
+	expr->mod.opnd1 = (struct rreil_linear*)opnd1;
+	expr->mod.opnd2 = (struct rreil_linear*)opnd2;
+	return (obj_t)expr;
+}
 static obj_t sem_shl(state_t state, obj_t opnd1, obj_t opnd2) {
 	struct rreil_expr *expr = (struct rreil_expr*)malloc(sizeof(struct rreil_expr));
 	expr->type = RREIL_EXPR_TYPE_SHL;

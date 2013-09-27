@@ -88,6 +88,10 @@ void rreil_expr_free(struct rreil_expr *expr) {
 			rreil_arity2_clear(&expr->mod);
 			break;
 		}
+		case RREIL_EXPR_TYPE_MODS: {
+			rreil_arity2_clear(&expr->mods);
+			break;
+		}
 		case RREIL_EXPR_TYPE_SHL: {
 			rreil_arity2_clear(&expr->shl);
 			break;

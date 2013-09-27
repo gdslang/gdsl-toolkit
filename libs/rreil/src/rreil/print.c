@@ -159,6 +159,12 @@ void rreil_expr_print(struct rreil_expr *expr) {
 			rreil_linear_print(expr->mod.opnd2);
 			break;
 		}
+		case RREIL_EXPR_TYPE_MODS: {
+			rreil_linear_print(expr->mods.opnd1);
+			printf(" %%s ");
+			rreil_linear_print(expr->mods.opnd2);
+			break;
+		}
 		case RREIL_EXPR_TYPE_SHL: {
 			rreil_linear_print(expr->shl.opnd1);
 			printf(" << ");

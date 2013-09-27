@@ -129,6 +129,10 @@ struct rreil_expr *rreil_expr_copy(struct rreil_expr *op) {
 			expr_copy->mod = rreil_arity2_copy(op->mod);
 			break;
 		}
+		case RREIL_EXPR_TYPE_MODS: {
+			expr_copy->mods = rreil_arity2_copy(op->mods);
+			break;
+		}
 		case RREIL_EXPR_TYPE_SHL: {
 			expr_copy->shl = rreil_arity2_copy(op->shl);
 			break;

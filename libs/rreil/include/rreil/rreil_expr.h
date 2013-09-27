@@ -20,6 +20,7 @@ enum rreil_expr_type {
 	RREIL_EXPR_TYPE_DIV,
 	RREIL_EXPR_TYPE_DIVS,
 	RREIL_EXPR_TYPE_MOD,
+	RREIL_EXPR_TYPE_MODS,
 	RREIL_EXPR_TYPE_SHL,
 	RREIL_EXPR_TYPE_SHR,
 	RREIL_EXPR_TYPE_SHRS,
@@ -44,6 +45,7 @@ struct rreil_expr {
 		struct rreil_arity2 div;
 		struct rreil_arity2 divs;
 		struct rreil_arity2 mod;
+		struct rreil_arity2 mods;
 		struct rreil_arity2 shl;
 		struct rreil_arity2 shr;
 		struct rreil_arity2 shrs;

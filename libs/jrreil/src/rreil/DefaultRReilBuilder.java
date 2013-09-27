@@ -536,6 +536,12 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public Expression sem_mod(ILinearExpression opnd1, ILinearExpression opnd2) {
 		return new Modulo((LinearExpression) opnd1, (LinearExpression) opnd2);
 	}
+	
+	@Override
+	public Expression sem_mods(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new SignedModulo((LinearExpression) opnd1, (LinearExpression) opnd2);
+	}
+
 
 	@Override
 	public Expression sem_shl(ILinearExpression opnd1, ILinearExpression opnd2) {

@@ -440,6 +440,12 @@ static obj_t sem_mod(state_t state,
 	printf("> mod");
 	return indent;
 }
+static obj_t sem_mods(state_t state,
+		obj_t opnd1, obj_t opnd2) {
+	obj_t indent = indent_binary(opnd1, opnd2);
+	printf("> mods");
+	return indent;
+}
 static obj_t sem_shl(state_t state,
 		obj_t opnd1, obj_t opnd2) {
 	obj_t indent = indent_binary(opnd1, opnd2);
@@ -674,6 +680,7 @@ int main(int argc, char** argv) {
 			.sem_div = &sem_div,
 			.sem_divs = &sem_divs,
 			.sem_mod = &sem_mod,
+			.sem_mods = &sem_mods,
 			.sem_shl = &sem_shl,
 			.sem_shr = &sem_shr,
 			.sem_shrs = &sem_shrs,
