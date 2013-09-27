@@ -471,7 +471,7 @@ end
 val sem-undef-arity-ge1 x = do
   case x.opnd1 of
      REG r: undef-opnd x.opnd1
-   | MEM m: undef-opnd x.opnd1
+   | MEM m: return void
    | _: return void
   end
 end
