@@ -41,6 +41,7 @@ type sem_expr =
  | SEM_DIV of sem_arity2
  | SEM_DIVS of sem_arity2
  | SEM_MOD of sem_arity2
+ | SEM_MODS of sem_arity2
  | SEM_SHL of sem_arity2
  | SEM_SHR of sem_arity2
  | SEM_SHRS of sem_arity2
@@ -198,7 +199,8 @@ val divs sz a b c = push (/ASSIGN sz a (SEM_DIVS{opnd1=b,opnd2=c}))
 val shl sz a b c = push (/ASSIGN sz a (SEM_SHL{opnd1=b,opnd2=c}))
 val shr sz a b c = push (/ASSIGN sz a (SEM_SHR{opnd1=b,opnd2=c}))
 val shrs sz a b c = push (/ASSIGN sz a (SEM_SHRS{opnd1=b,opnd2=c}))
-val modulo sz a b c = push (/ASSIGN sz a (SEM_MOD{opnd1=b,opnd2=c}))
+val mod sz a b c = push (/ASSIGN sz a (SEM_MOD{opnd1=b,opnd2=c}))
+val mods sz a b c = push (/ASSIGN sz a (SEM_MODS{opnd1=b,opnd2=c}))
 val movsx szA a szB b = push (/ASSIGN szA a (SEM_SX{fromsize=szB,opnd1=b}))
 val movzx szA a szB b = push (/ASSIGN szA a (SEM_ZX{fromsize=szB,opnd1=b}))
 val convert szA a szB b = push (/ASSIGN szA a (SEM_ZX{fromsize=szB,opnd1=b}))

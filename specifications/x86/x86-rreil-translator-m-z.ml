@@ -1878,11 +1878,11 @@ val sem-rcl x = do
   case size of
      8: do
        andb size temp-count count (imm 0x1f);
-       modulo size temp-count (var temp-count) (imm 9)
+       mod size temp-count (var temp-count) (imm 9)
      end
    | 16: do
        andb size temp-count count (imm 0x1f);
-       modulo size temp-count (var temp-count) (imm 17)
+       mod size temp-count (var temp-count) (imm 17)
      end
    | 32: andb size temp-count count (imm 0x1f)
    | 64: andb size temp-count count (imm 0x3f)
@@ -1923,11 +1923,11 @@ val sem-rcr x = do
   case size of
      8: do
        andb size temp-count count (imm 0x1f);
-       modulo size temp-count (var temp-count) (imm 9)
+       mod size temp-count (var temp-count) (imm 9)
      end
    | 16: do
        andb size temp-count count (imm 0x1f);
-       modulo size temp-count (var temp-count) (imm 17)
+       mod size temp-count (var temp-count) (imm 17)
      end
    | 32: andb size temp-count count (imm 0x1f)
    | 64: andb size temp-count count (imm 0x3f)

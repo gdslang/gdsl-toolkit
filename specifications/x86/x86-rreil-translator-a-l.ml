@@ -553,16 +553,18 @@ val sem-div signedness x = do
 
   quotient <- mktemp;
   #Todo: Handle exception
-  case signedness of
-     Unsigned: div (sz + sz) quotient (var dividend) divisor
-   | Signed: divs (sz + sz) quotient (var dividend) divisor
-  end;
+  (case signedness of
+     Unsigned: div
+   | Signed: divs
+  end) (sz + sz) quotient (var dividend) divisor;
 
   remainder <- mktemp;
-  case signedness of
-     Unsigned: modulo (sz + sz) remainder (var dividend) divisor
-   | Signed: prim (sz + sz) "mods" (lins-one (var remainder)) (lins-more (var dividend) (lins-one divisor))
-  end;
+  (case signedness of
+     Unsigned: mod
+   | Signed: mods
+  end) (sz + sz) remainder (var dividend) divisor;
+
+#   | Signed: prim (sz + sz) "mods" (lins-one (var remainder)) (lins-more (var dividend) (lins-one divisor))
 
   quotient-sem <- return (semantic-register-of (register-by-size low A sz));
   mov sz quotient-sem (var quotient);
