@@ -2464,11 +2464,10 @@ val exception-lock features = do
 	end
 end
 
-val exception-lock-reg features giveOp = do
+val exception-lock-reg features op = do
   v <- query $lock;
 	illegal-lock-register <- illegal-lock-register;
   if v then do
-    op <- giveOp;
     case op of
 		   MEM x: return features
 		 | _: return (features or illegal-lock-register)
@@ -2589,8 +2588,7 @@ val arity0 features cons = do
   arity0-all features cons
 end
 
-val unop-all features cons giveOp1 = do
-  op1 <- giveOp1;
+val unop-all features cons op1 = do
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   rep <- query $rep;
@@ -2600,33 +2598,35 @@ val unop-all features cons giveOp1 = do
 end
 
 val unop-rep-repne features cons giveOp1 = do
+  op1 <- giveOp1;
   features <- features;
   features <- exception-lock features;
-  unop-all features cons giveOp1
+  unop-all features cons op1
 end
 
 val unop-rep features cons giveOp1 = do
+  op1 <- giveOp1;
   features <- features;
   features <- exception-repne-lock features;
-  unop-all features cons giveOp1
+  unop-all features cons op1
 end
 
 val unop-lock features cons giveOp1 = do
+  op1 <- giveOp1;
   features <- features;
   features <- exception-rep-repne features;
-	features <- exception-lock-reg features giveOp1;
-  unop-all features cons giveOp1
+	features <- exception-lock-reg features op1;
+  unop-all features cons op1
 end
 
 val unop features cons giveOp1 = do
+  op1 <- giveOp1;
   features <- features;
   features <- exception-rep-repne-lock features;
-  unop-all features cons giveOp1
+  unop-all features cons op1
 end
 
-val binop-all features cons giveOp1 giveOp2 = do
-  op1 <- giveOp1;
-  op2 <- giveOp2;
+val binop-all features cons op1 op2 = do
   opnd-sz <- operand-size;
   addr-sz <- address-size;
   rep <- query $rep;
@@ -2636,28 +2636,36 @@ val binop-all features cons giveOp1 giveOp2 = do
 end
 
 val binop-rep-repne features cons giveOp1 giveOp2 = do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
 	features <- features;
   features <- exception-lock features;
-  binop-all features cons giveOp1 giveOp2
+  binop-all features cons op1 op2
 end
 
 val binop-rep features cons giveOp1 giveOp2 = do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
   features <- features;
   features <- exception-repne-lock features;
-  binop-all features cons giveOp1 giveOp2
+  binop-all features cons op1 op2
 end
 
 val binop-lock features cons giveOp1 giveOp2 = do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
   features <- features;
   features <- exception-rep-repne features;
-	features <- exception-lock-reg features giveOp1;
-  binop-all features cons giveOp1 giveOp2
+	features <- exception-lock-reg features op1;
+  binop-all features cons op1 op2
 end
 
 val binop features cons giveOp1 giveOp2 = do
+  op1 <- giveOp1;
+  op2 <- giveOp2;
   features <- features;
   features <- exception-rep-repne-lock features;
-  binop-all features cons giveOp1 giveOp2
+  binop-all features cons op1 op2
 end
 
 val ternop features cons giveOp1 giveOp2 giveOp3 = do

@@ -39,7 +39,7 @@ static struct memory_allocation *memory_allocation_get(struct context *context,
 	for(size_t i = 0; i < context->memory.allocations_length; ++i)
 		if(ptr >= context->memory.allocations[i].address
 				&& ptr
-						<= context->memory.allocations[i].address
+						<= (size_t)context->memory.allocations[i].address
 								+ context->memory.allocations[i].data_size) {
 			allocation = &context->memory.allocations[i];
 			break;
@@ -60,7 +60,7 @@ void *memory_ptr_get(uint8_t *address, uint64_t address_size) {
 
 static void memory_allocation_resize(struct memory_allocation *allocation,
 		uint64_t access_size, void *ptr) {
-	size_t diff = (size_t)(ptr - allocation->address);
+	size_t diff = (size_t)ptr - (size_t)allocation->address;
 	if(diff + access_size / 8 > allocation->data_size) {
 		allocation->data_size = diff + access_size / 8;
 		allocation->data = (uint8_t*)realloc(allocation->data,
@@ -77,8 +77,9 @@ void memory_load(struct context *context, uint8_t **buffer, uint8_t *address,
 	size_t old_size = allocation->data_size;
 	memory_allocation_resize(allocation, access_size, ptr);
 
-	size_t diff = (size_t)(ptr - allocation->address);
+	size_t diff = (size_t)ptr - (size_t)allocation->address;
 	*buffer = &allocation->data[diff];
+
 	for(size_t i = 0; i < allocation->data_size - old_size; ++i)
 		allocation->data[old_size + i] = source[i];
 }
@@ -91,7 +92,7 @@ void memory_store(struct context *context, uint8_t *buffer, uint8_t *address,
 
 	memory_allocation_resize(allocation, access_size, ptr);
 
-	size_t diff = (size_t)(ptr - allocation->address);
+	size_t diff = (size_t)ptr - (size_t)allocation->address;
 	uint8_t *to = &allocation->data[diff];
 
 	memcpy(to, buffer, access_size / 8);

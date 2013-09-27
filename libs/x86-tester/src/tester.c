@@ -155,6 +155,15 @@ void load(void *closure, uint8_t **buffer, uint8_t *address, uint64_t address_si
 		source[i] = rand();
 	memory_load(cls->context_rreil, buffer, address, address_size, access_size, source);
 	memory_load(cls->context_cpu, buffer, address, address_size, access_size, source);
+
+	printf("[Debug] Random data for address 0x");
+	for(size_t i = address_size / 8; i > 0; --i)
+		printf("%02x", address[i - 1]);
+	printf(": ");
+	for(size_t i = access_size / 8; i > 0; --i)
+		printf("%02x", source[i - 1]);
+	printf("\n");
+
 	free(source);
 }
 
@@ -317,7 +326,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 	features = gdsl_features_get(state, insn);
 
 	printf("[");
-	for (size_t i = 0; i < data_size; ++i) {
+	for(size_t i = 0; i < data_size; ++i) {
 		if(i)
 			printf(" ");
 		printf("%02x", data[i]);
@@ -352,8 +361,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 	}
 
 	callbacks_t callbacks = rreil_gdrr_builder_callbacks_get(state);
-	struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmts(state, callbacks,
-			rreil);
+	struct rreil_statements *statements = (struct rreil_statements*)gdsl_rreil_convert_sem_stmts(state, callbacks, rreil);
 	free(callbacks);
 
 	result = tester_forked_test_translated(fork_, statements, data, data_size, test_unused);
