@@ -456,7 +456,7 @@ end = struct
             (stmtss @ stmts, args @ [argExp])) ([],[]) args
          val ty = FUNvtype (OBJvtype,false,map (fn _ => OBJvtype) args)
       in
-         (stmtss, INVOKEexp (ty, funcExp, argExps))
+         (stmts @ stmtss, INVOKEexp (ty, funcExp, argExps))
       end
      | trExpr s (Exp.PRI (name, args)) = (
          (* this case is actually dead as all primitives are function calls,
