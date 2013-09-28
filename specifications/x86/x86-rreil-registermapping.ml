@@ -94,126 +94,130 @@ type sem_id
 #   | VIRT_LTU # <u
 
 val semantic-register-of r = case r of
-    AL    : {id=Sem_AX,offset=0,size=8}
-   | AH    : {id=Sem_AX,offset=8,size=8}
-   | AX    : {id=Sem_AX,offset=0,size=16}
-   | EAX   : {id=Sem_AX,offset=0,size=32}
-   | RAX   : {id=Sem_AX,offset=0,size=64}
-   | BL    : {id=Sem_BX,offset=0,size=8}
-   | BH    : {id=Sem_BX,offset=8,size=8}
-   | BX    : {id=Sem_BX,offset=0,size=16}
-   | EBX   : {id=Sem_BX,offset=0,size=32}
-   | RBX   : {id=Sem_BX,offset=0,size=64}
-   | CL    : {id=Sem_CX,offset=0,size=8}
-   | CH    : {id=Sem_CX,offset=8,size=8}
-   | CX    : {id=Sem_CX,offset=0,size=16}
-   | ECX   : {id=Sem_CX,offset=0,size=32}
-   | RCX   : {id=Sem_CX,offset=0,size=64}
-   | DL    : {id=Sem_DX,offset=0,size=8}
-   | DH    : {id=Sem_DX,offset=8,size=8}
-   | DX    : {id=Sem_DX,offset=0,size=16}
-   | EDX   : {id=Sem_DX,offset=0,size=32}
-   | RDX   : {id=Sem_DX,offset=0,size=64}
-   | R8B   : {id=Sem_R8,offset=0,size=8}
-   | R8L   : {id=Sem_R8,offset=0,size=16}
-   | R8D   : {id=Sem_R8,offset=0,size=32}
-   | R8    : {id=Sem_R8,offset=0,size=64}
-   | R9B   : {id=Sem_R9,offset=0,size=8}
-   | R9L   : {id=Sem_R9,offset=0,size=16}
-   | R9D   : {id=Sem_R9,offset=0,size=32}
-   | R9    : {id=Sem_R9,offset=0,size=64}
-   | R10B  : {id=Sem_R10,offset=0,size=8}
-   | R10L  : {id=Sem_R10,offset=0,size=16}
-   | R10D  : {id=Sem_R10,offset=0,size=32}
-   | R10   : {id=Sem_R10,offset=0,size=64}
-   | R11B  : {id=Sem_R11,offset=0,size=8}
-   | R11L  : {id=Sem_R11,offset=0,size=16}
-   | R11D  : {id=Sem_R11,offset=0,size=32}
-   | R11   : {id=Sem_R11,offset=0,size=64}
-   | R12B  : {id=Sem_R12,offset=0,size=8}
-   | R12L  : {id=Sem_R12,offset=0,size=16}
-   | R12D  : {id=Sem_R12,offset=0,size=32}
-   | R12   : {id=Sem_R12,offset=0,size=64}
-   | R13B  : {id=Sem_R13,offset=0,size=8}
-   | R13L  : {id=Sem_R13,offset=0,size=16}
-   | R13D  : {id=Sem_R13,offset=0,size=32}
-   | R13   : {id=Sem_R13,offset=0,size=64}
-   | R14B  : {id=Sem_R14,offset=0,size=8}
-   | R14L  : {id=Sem_R14,offset=0,size=16}
-   | R14D  : {id=Sem_R14,offset=0,size=32}
-   | R14   : {id=Sem_R14,offset=0,size=64}
-   | R15B  : {id=Sem_R15,offset=0,size=8}
-   | R15L  : {id=Sem_R15,offset=0,size=16}
-   | R15D  : {id=Sem_R15,offset=0,size=32}
-   | R15   : {id=Sem_R15,offset=0,size=64}
-   | SP    : {id=Sem_SP, offset=0,size=16}
-   | ESP   : {id=Sem_SP, offset=0,size=32}
-   | RSP   : {id=Sem_SP, offset=0,size=64}
-   | BP    : {id=Sem_BP, offset=0,size=16}
-   | EBP   : {id=Sem_BP, offset=0,size=32}
-   | RBP   : {id=Sem_BP, offset=0,size=64}
-   | SI    : {id=Sem_SI, offset=0,size=16}
-   | ESI   : {id=Sem_SI, offset=0,size=32}
-   | RSI   : {id=Sem_SI, offset=0,size=64}
-   | DI    : {id=Sem_DI, offset=0,size=16}
-   | EDI   : {id=Sem_DI, offset=0,size=32}
-   | RDI   : {id=Sem_DI, offset=0,size=64}
-   | XMM0  : {id=Sem_XMM0, offset=0,size=128}
-   | XMM1  : {id=Sem_XMM1, offset=0,size=128}
-   | XMM2  : {id=Sem_XMM2, offset=0,size=128}
-   | XMM3  : {id=Sem_XMM3, offset=0,size=128}
-   | XMM4  : {id=Sem_XMM4, offset=0,size=128}
-   | XMM5  : {id=Sem_XMM5, offset=0,size=128}
-   | XMM6  : {id=Sem_XMM6, offset=0,size=128}
-   | XMM7  : {id=Sem_XMM7, offset=0,size=128}
-   | XMM8  : {id=Sem_XMM8, offset=0,size=128}
-   | XMM9  : {id=Sem_XMM9, offset=0,size=128}
-   | XMM10 : {id=Sem_XMM10, offset=0,size=128}
-   | XMM11 : {id=Sem_XMM11, offset=0,size=128}
-   | XMM12 : {id=Sem_XMM12, offset=0,size=128}
-   | XMM13 : {id=Sem_XMM13, offset=0,size=128}
-   | XMM14 : {id=Sem_XMM14, offset=0,size=128}
-   | XMM15 : {id=Sem_XMM15, offset=0,size=128}
-   | YMM0  : {id=Sem_XMM0, offset=0,size=256}
-   | YMM1  : {id=Sem_XMM1, offset=0,size=256}
-   | YMM2  : {id=Sem_XMM2, offset=0,size=256}
-   | YMM3  : {id=Sem_XMM3, offset=0,size=256}
-   | YMM4  : {id=Sem_XMM4, offset=0,size=256}
-   | YMM5  : {id=Sem_XMM5, offset=0,size=256}
-   | YMM6  : {id=Sem_XMM6, offset=0,size=256}
-   | YMM7  : {id=Sem_XMM7, offset=0,size=256}
-   | YMM8  : {id=Sem_XMM8, offset=0,size=256}
-   | YMM9  : {id=Sem_XMM9, offset=0,size=256}
-   | YMM10 : {id=Sem_XMM10, offset=0,size=256}
-   | YMM11 : {id=Sem_XMM11, offset=0,size=256}
-   | YMM12 : {id=Sem_XMM12, offset=0,size=256}
-   | YMM13 : {id=Sem_XMM13, offset=0,size=256}
-   | YMM14 : {id=Sem_XMM14, offset=0,size=256}
-   | YMM15 : {id=Sem_XMM15, offset=0,size=256}
-   | MM0   : {id=Sem_MM0, offset=0, size=64}
-   | MM1   : {id=Sem_MM1, offset=0, size=64}
-   | MM2   : {id=Sem_MM2, offset=0, size=64}
-   | MM3   : {id=Sem_MM3, offset=0, size=64}
-   | MM4   : {id=Sem_MM4, offset=0, size=64}
-   | MM5   : {id=Sem_MM5, offset=0, size=64}
-   | MM6   : {id=Sem_MM6, offset=0, size=64}
-   | MM7   : {id=Sem_MM7, offset=0, size=64}
-   | ES    : {id=Sem_ES_Base, offset=0, size=64} # content of segment table
-   | SS    : {id=Sem_SS_Base, offset=0, size=64}
-   | DS    : {id=Sem_DS_Base, offset=0, size=64}
-   | FS    : {id=Sem_FS_Base, offset=0, size=64}
-   | GS    : {id=Sem_GS_Base, offset=0, size=64}
-   | CS    : {id=Sem_CS_Base, offset=0, size=64}
-   | ST0   : {id=Sem_ST0, offset=0, size=80}
-   | ST1   : {id=Sem_ST1, offset=0, size=80}
-   | ST2   : {id=Sem_ST2, offset=0, size=80}
-   | ST3   : {id=Sem_ST3, offset=0, size=80}
-   | ST4   : {id=Sem_ST4, offset=0, size=80}
-   | ST5   : {id=Sem_ST5, offset=0, size=80}
-   | ST6   : {id=Sem_ST6, offset=0, size=80}
-   | ST7   : {id=Sem_ST7, offset=0, size=80}
-   | RIP   : {id=Sem_IP, offset=0, size=64}
-   | FLAGS : {id=Sem_FLAGS,offset=0,size=64}
+   AL    : {id=Sem_AX,offset=0,size=8}
+ | AH    : {id=Sem_AX,offset=8,size=8}
+ | AX    : {id=Sem_AX,offset=0,size=16}
+ | EAX   : {id=Sem_AX,offset=0,size=32}
+ | RAX   : {id=Sem_AX,offset=0,size=64}
+ | BL    : {id=Sem_BX,offset=0,size=8}
+ | BH    : {id=Sem_BX,offset=8,size=8}
+ | BX    : {id=Sem_BX,offset=0,size=16}
+ | EBX   : {id=Sem_BX,offset=0,size=32}
+ | RBX   : {id=Sem_BX,offset=0,size=64}
+ | CL    : {id=Sem_CX,offset=0,size=8}
+ | CH    : {id=Sem_CX,offset=8,size=8}
+ | CX    : {id=Sem_CX,offset=0,size=16}
+ | ECX   : {id=Sem_CX,offset=0,size=32}
+ | RCX   : {id=Sem_CX,offset=0,size=64}
+ | DL    : {id=Sem_DX,offset=0,size=8}
+ | DH    : {id=Sem_DX,offset=8,size=8}
+ | DX    : {id=Sem_DX,offset=0,size=16}
+ | EDX   : {id=Sem_DX,offset=0,size=32}
+ | RDX   : {id=Sem_DX,offset=0,size=64}
+ | R8L   : {id=Sem_R8,offset=0,size=8}
+ | R8W   : {id=Sem_R8,offset=0,size=16}
+ | R8D   : {id=Sem_R8,offset=0,size=32}
+ | R8    : {id=Sem_R8,offset=0,size=64}
+ | R9L   : {id=Sem_R9,offset=0,size=8}
+ | R9W   : {id=Sem_R9,offset=0,size=16}
+ | R9D   : {id=Sem_R9,offset=0,size=32}
+ | R9    : {id=Sem_R9,offset=0,size=64}
+ | R10L  : {id=Sem_R10,offset=0,size=8}
+ | R10W  : {id=Sem_R10,offset=0,size=16}
+ | R10D  : {id=Sem_R10,offset=0,size=32}
+ | R10   : {id=Sem_R10,offset=0,size=64}
+ | R11L  : {id=Sem_R11,offset=0,size=8}
+ | R11W  : {id=Sem_R11,offset=0,size=16}
+ | R11D  : {id=Sem_R11,offset=0,size=32}
+ | R11   : {id=Sem_R11,offset=0,size=64}
+ | R12L  : {id=Sem_R12,offset=0,size=8}
+ | R12W  : {id=Sem_R12,offset=0,size=16}
+ | R12D  : {id=Sem_R12,offset=0,size=32}
+ | R12   : {id=Sem_R12,offset=0,size=64}
+ | R13L  : {id=Sem_R13,offset=0,size=8}
+ | R13W  : {id=Sem_R13,offset=0,size=16}
+ | R13D  : {id=Sem_R13,offset=0,size=32}
+ | R13   : {id=Sem_R13,offset=0,size=64}
+ | R14L  : {id=Sem_R14,offset=0,size=8}
+ | R14W  : {id=Sem_R14,offset=0,size=16}
+ | R14D  : {id=Sem_R14,offset=0,size=32}
+ | R14   : {id=Sem_R14,offset=0,size=64}
+ | R15L  : {id=Sem_R15,offset=0,size=8}
+ | R15W  : {id=Sem_R15,offset=0,size=16}
+ | R15D  : {id=Sem_R15,offset=0,size=32}
+ | R15   : {id=Sem_R15,offset=0,size=64}
+ | SPL   : {id=Sem_SP, offset=0,size=8}
+ | SP    : {id=Sem_SP, offset=0,size=16}
+ | ESP   : {id=Sem_SP, offset=0,size=32}
+ | RSP   : {id=Sem_SP, offset=0,size=64}
+ | BPL   : {id=Sem_BP, offset=0,size=8}
+ | BP    : {id=Sem_BP, offset=0,size=16}
+ | EBP   : {id=Sem_BP, offset=0,size=32}
+ | RBP   : {id=Sem_BP, offset=0,size=64}
+ | SIL   : {id=Sem_SI, offset=0,size=8}
+ | SI    : {id=Sem_SI, offset=0,size=16}
+ | ESI   : {id=Sem_SI, offset=0,size=32}
+ | RSI   : {id=Sem_SI, offset=0,size=64}
+ | DIL   : {id=Sem_DI, offset=0,size=8}
+ | DI    : {id=Sem_DI, offset=0,size=16}
+ | EDI   : {id=Sem_DI, offset=0,size=32}
+ | RDI   : {id=Sem_DI, offset=0,size=64}
+ | XMM0  : {id=Sem_XMM0, offset=0,size=128}
+ | XMM1  : {id=Sem_XMM1, offset=0,size=128}
+ | XMM2  : {id=Sem_XMM2, offset=0,size=128}
+ | XMM3  : {id=Sem_XMM3, offset=0,size=128}
+ | XMM4  : {id=Sem_XMM4, offset=0,size=128}
+ | XMM5  : {id=Sem_XMM5, offset=0,size=128}
+ | XMM6  : {id=Sem_XMM6, offset=0,size=128}
+ | XMM7  : {id=Sem_XMM7, offset=0,size=128}
+ | XMM8  : {id=Sem_XMM8, offset=0,size=128}
+ | XMM9  : {id=Sem_XMM9, offset=0,size=128}
+ | XMM10 : {id=Sem_XMM10, offset=0,size=128}
+ | XMM11 : {id=Sem_XMM11, offset=0,size=128}
+ | XMM12 : {id=Sem_XMM12, offset=0,size=128}
+ | XMM13 : {id=Sem_XMM13, offset=0,size=128}
+ | XMM14 : {id=Sem_XMM14, offset=0,size=128}
+ | XMM15 : {id=Sem_XMM15, offset=0,size=128}
+ | YMM0  : {id=Sem_XMM0, offset=0,size=256}
+ | YMM1  : {id=Sem_XMM1, offset=0,size=256}
+ | YMM2  : {id=Sem_XMM2, offset=0,size=256}
+ | YMM3  : {id=Sem_XMM3, offset=0,size=256}
+ | YMM4  : {id=Sem_XMM4, offset=0,size=256}
+ | YMM5  : {id=Sem_XMM5, offset=0,size=256}
+ | YMM6  : {id=Sem_XMM6, offset=0,size=256}
+ | YMM7  : {id=Sem_XMM7, offset=0,size=256}
+ | YMM8  : {id=Sem_XMM8, offset=0,size=256}
+ | YMM9  : {id=Sem_XMM9, offset=0,size=256}
+ | YMM10 : {id=Sem_XMM10, offset=0,size=256}
+ | YMM11 : {id=Sem_XMM11, offset=0,size=256}
+ | YMM12 : {id=Sem_XMM12, offset=0,size=256}
+ | YMM13 : {id=Sem_XMM13, offset=0,size=256}
+ | YMM14 : {id=Sem_XMM14, offset=0,size=256}
+ | YMM15 : {id=Sem_XMM15, offset=0,size=256}
+ | MM0   : {id=Sem_MM0, offset=0, size=64}
+ | MM1   : {id=Sem_MM1, offset=0, size=64}
+ | MM2   : {id=Sem_MM2, offset=0, size=64}
+ | MM3   : {id=Sem_MM3, offset=0, size=64}
+ | MM4   : {id=Sem_MM4, offset=0, size=64}
+ | MM5   : {id=Sem_MM5, offset=0, size=64}
+ | MM6   : {id=Sem_MM6, offset=0, size=64}
+ | MM7   : {id=Sem_MM7, offset=0, size=64}
+ | ES    : {id=Sem_ES_Base, offset=0, size=64} # content of segment table
+ | SS    : {id=Sem_SS_Base, offset=0, size=64}
+ | DS    : {id=Sem_DS_Base, offset=0, size=64}
+ | FS    : {id=Sem_FS_Base, offset=0, size=64}
+ | GS    : {id=Sem_GS_Base, offset=0, size=64}
+ | CS    : {id=Sem_CS_Base, offset=0, size=64}
+ | ST0   : {id=Sem_ST0, offset=0, size=80}
+ | ST1   : {id=Sem_ST1, offset=0, size=80}
+ | ST2   : {id=Sem_ST2, offset=0, size=80}
+ | ST3   : {id=Sem_ST3, offset=0, size=80}
+ | ST4   : {id=Sem_ST4, offset=0, size=80}
+ | ST5   : {id=Sem_ST5, offset=0, size=80}
+ | ST6   : {id=Sem_ST6, offset=0, size=80}
+ | ST7   : {id=Sem_ST7, offset=0, size=80}
+ | RIP   : {id=Sem_IP, offset=0, size=64}
+ | FLAGS : {id=Sem_FLAGS,offset=0,size=64}
 end
 
 val semantic-register-of-offset r offset = let

@@ -519,47 +519,51 @@ type register =
  | DX
  | EDX
  | RDX
- | R8B
  | R8L
+ | R8W
  | R8D
  | R8
- | R9B
  | R9L
+ | R9W
  | R9D
  | R9
- | R10B
  | R10L
+ | R10W
  | R10D
  | R10
- | R11B
  | R11L
+ | R11W
  | R11D
  | R11
- | R12B
  | R12L
+ | R12W
  | R12D
  | R12
- | R13B
  | R13L
+ | R13W
  | R13D
  | R13
- | R14B
  | R14L
+ | R14W
  | R14D
  | R14
- | R15B
  | R15L
+ | R15W
  | R15D
  | R15
+ | SPL
  | SP
  | ESP
  | RSP
+ | BPL
  | BP
  | EBP
  | RBP
+ | SIL
  | SI
  | ESI
  | RSI
+ | DIL
  | DI
  | EDI
  | RDI
@@ -1825,32 +1829,40 @@ val st-reg n =
     | '0111': REG ST7
   end
 
-val sti extension n = st-reg (extension ^ n)
+val sti rex extension n = st-reg (extension ^ n)
 val st n = return (st-reg n)
 #val st/i n = return (st-reg ('0' ^ n))
-val st-rex rex i = st-reg ('0' ^ i)
+val st-rex rex rdis i = st-reg ('0' ^ i)
 
 val reg8 n =
    case n of
-      '0000': REG AL
-    | '0001': REG CL
-    | '0010': REG DL
-    | '0011': REG BL
-    | '0100': REG AH
-    | '0101': REG CH
-    | '0110': REG DH
-    | '0111': REG BH
-    | '1000': REG R8B
-    | '1001': REG R9B
-    | '1010': REG R10B
-    | '1011': REG R11B
-    | '1100': REG R12B
-    | '1101': REG R13B
-    | '1110': REG R14B
-    | '1111': REG R15B
+      '00000': REG AL
+    | '00001': REG CL
+    | '00010': REG DL
+    | '00011': REG BL
+    | '00100': REG AH
+    | '00101': REG CH
+    | '00110': REG DH
+    | '00111': REG BH
+    | '10000': REG AL
+    | '10001': REG CL
+    | '10010': REG DL
+    | '10011': REG BL
+    | '10100': REG SPL
+    | '10101': REG BPL
+    | '10110': REG SIL
+    | '10111': REG DIL
+    | '11000': REG R8L
+    | '11001': REG R9L
+    | '11010': REG R10L
+    | '11011': REG R11L
+    | '11100': REG R12L
+    | '11101': REG R13L
+    | '11110': REG R14L
+    | '11111': REG R15L
    end
 
-val reg8-rex rex reg-idx = reg8 (rex ^ reg-idx)
+val reg8-rex rex rdis reg-idx = reg8 (rex ^ rdis ^ reg-idx)
 
 val reg16 n =
    case n of
@@ -1862,17 +1874,17 @@ val reg16 n =
     | '0101': REG BP
     | '0110': REG SI
     | '0111': REG DI
-    | '1000': REG R8L
-    | '1001': REG R9L
-    | '1010': REG R10L
-    | '1011': REG R11L
-    | '1100': REG R12L
-    | '1101': REG R13L
-    | '1110': REG R14L
-    | '1111': REG R15L
+    | '1000': REG R8W
+    | '1001': REG R9W
+    | '1010': REG R10W
+    | '1011': REG R11W
+    | '1100': REG R12W
+    | '1101': REG R13W
+    | '1110': REG R14W
+    | '1111': REG R15W
    end
 
-val reg16-rex rex reg-idx = reg16 (rex ^ reg-idx)
+val reg16-rex rex rdis reg-idx = reg16 (rdis ^ reg-idx)
 
 val reg32 n =
    case n of
@@ -1894,7 +1906,7 @@ val reg32 n =
     | '1111': REG R15D
    end
 
-val reg32-rex rex reg-idx = reg32 (rex ^ reg-idx)
+val reg32-rex rex rdis reg-idx = reg32 (rdis ^ reg-idx)
 
 val reg64 n =
    case n of
@@ -1916,7 +1928,7 @@ val reg64 n =
     | '1111': REG R15
    end
 
-val reg64-rex rex reg-idx = reg64 (rex ^ reg-idx)
+val reg64-rex rex rdis reg-idx = reg64 (rdis ^ reg-idx)
 
 val sreg3 n =
    case n of
@@ -1930,7 +1942,7 @@ val sreg3 n =
 #| '111': reserved
    end
 
-val sreg3? rex n = sreg3 n
+val sreg3? rex rdis n = sreg3 n
 
 val mm n =
    case n of
@@ -1944,7 +1956,7 @@ val mm n =
     | '111': REG MM7
    end
 
-val mm-rex rex reg-idx = mm reg-idx
+val mm-rex rex rdis reg-idx = mm reg-idx
 
 val xmm n =
    case n of
@@ -1966,7 +1978,7 @@ val xmm n =
     | '1111': REG XMM15
    end
 
-val xmm-rex rex reg-idx = xmm (rex ^ reg-idx)
+val xmm-rex rex rdis reg-idx = xmm (rdis ^ reg-idx)
 
 val ymm n =
    case n of
@@ -1988,7 +2000,7 @@ val ymm n =
     | '1111': REG YMM15
    end
 
-val ymm-rex rex reg-idx = ymm (rex ^ reg-idx)
+val ymm-rex rex rdis reg-idx = ymm (rdis ^ reg-idx)
 
 # Deslice the mod/rm byte and put it into the the state
 
@@ -2058,18 +2070,19 @@ val segmentation-set-for-base base =
 
 val sib-without-index reg = do
    mod <- query $mod;
+   rex <- query $rex;
    rexb <- query $rexb;
    case mod of
       '00': imm32
     | '01':
       do
-        rBP <- return (reg rexb '101'); # rBP
+        rBP <- return (reg rex rexb '101'); # rBP
 	segmentation-set-for-base rBP;
         return rBP
       end
     | '10':
       do
-        rBP <- return (reg rexb '101'); # rBP
+        rBP <- return (reg rex rexb '101'); # rBP
 	segmentation-set-for-base rBP;
         return rBP
       end
@@ -2077,8 +2090,9 @@ val sib-without-index reg = do
 end
 
 val sib-without-base reg scale index = do
+   rex <- query $rex;
    rexx <- query $rexx;
-   scaled <- return (SCALE{imm=scale, opnd=reg rexx index});
+   scaled <- return (SCALE{imm=scale, opnd=reg rex rexx index});
    mod <- query $mod;
    rexb <- query $rexb;
    case mod of
@@ -2089,7 +2103,7 @@ val sib-without-base reg scale index = do
          end
     | _:
       do
-        base <- return (reg rexb '101'); # rBP
+        base <- return (reg rex rexb '101'); # rBP
         return (SUM{a=scaled, b=base})
       end
    end
@@ -2097,6 +2111,7 @@ end
 
 val sib-with-index-and-base psz reg s i b = do
    update@{ptrsz=psz};
+   rex <- query $rex;
    rexx <- query $rexx;
    rexb <- query $rexb;
    case i of
@@ -2106,7 +2121,7 @@ val sib-with-index-and-base psz reg s i b = do
              '101': sib-without-index reg
            | _:
 	     do
-	       reg-b <- return (reg rexb b);
+	       reg-b <- return (reg rex rexb b);
 	       segmentation-set-for-base reg-b;
 	       return reg-b
 	     end
@@ -2117,9 +2132,9 @@ val sib-with-index-and-base psz reg s i b = do
             '101': sib-without-base reg s i
           | _:
 	    do
-	      base <- return (reg rexb b);
+	      base <- return (reg rex rexb b);
 	      segmentation-set-for-base base;
-              return (SUM{b=SCALE{imm=s, opnd=reg rexx i}, a=base})
+              return (SUM{b=SCALE{imm=s, opnd=reg rex rexx i}, a=base})
 	    end
          end
    end
@@ -2191,6 +2206,7 @@ end
 val r/m-without-sib = do
    mod <- query $mod;
    rm <- query $rm;
+   rex <- query $rex;
    rexb <- query $rexb;
    addr-reg <- addr-reg;
    case mod of
@@ -2206,7 +2222,7 @@ val r/m-without-sib = do
                end
           | _ :
 	      do
-	        base <- return (addr-reg rexb rm);
+	        base <- return (addr-reg rex rexb rm);
                 segmentation-set-for-base base;
 		mem base
 	      end
@@ -2214,14 +2230,14 @@ val r/m-without-sib = do
     | '01':
          do
             i <- imm8;
-	    base <- return (addr-reg rexb rm);
+	    base <- return (addr-reg rex rexb rm);
             segmentation-set-for-base base;
             mem (SUM{a=base, b=i})
          end
     | '10':
          do
             i <- imm32;
-	    base <- return (addr-reg rexb rm);
+	    base <- return (addr-reg rex rexb rm);
             segmentation-set-for-base base;
             mem (SUM{a=base, b=i})
          end
@@ -2251,9 +2267,10 @@ val r/m ptrTy reg = do
    update@{ptrty=ptrTy};
    mod <- query $mod;
    rm <- query $rm;
+   rex <- query $rex;
    rexb <- query $rexb;
    case mod of
-      '11': return (reg rexb rm)
+      '11': return (reg rex rexb rm)
     | _:
          case rm of
             '100': r/m-with-sib
@@ -2280,15 +2297,17 @@ val reg/reg reg = do
 end
 
 val r/rexb reg = do
+   rex <- query $rex;
    mod <- query $rexb;
    r <- query $reg/opcode;
-   return (reg mod r)
+   return (reg rex mod r)
 end
 
 val r/rexr reg = do
+   rex <- query $rex;
    mod <- query $rexr;
    r <- query $reg/opcode;
-   return (reg mod r)
+   return (reg rex mod r)
 end
 
 val r/m0 = r/m 0 reg8-rex
