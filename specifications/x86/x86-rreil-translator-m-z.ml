@@ -2271,20 +2271,15 @@ end
 
 val sem-shr-sar x signed = do
   sz <- sizeof1 x.opnd1;
-  szOp2 <- sizeof1 x.opnd2;
   dst <- lval sz x.opnd1;
   src <- rval sz x.opnd1;
-  count <- rval szOp2 x.opnd2;
+  count-size <- sizeof1 x.opnd2;
+  count <- rval count-size x.opnd2;
 
-  #count-mask <- const
-  #   (case sz of
-  #       8: 31
-  #     | 16: 31
-  #     | 32: 31
-  #     | 64: 63
-  #    end);
-  #temp-count <- mktemp;
-  #andb sz temp-count count count-mask;
+  af <- fAF;
+  _if (/neq sz count (imm 0)) _then
+    undef 1 af
+  ;
 
   real-shift-count-size <-
     case sz of
@@ -2313,7 +2308,7 @@ val sem-shr-sar x signed = do
     sub sz temp (var temp-count) (imm 1);
     shifter sz tdst src (var temp);
 
-    _if (/geu szOp2 (imm sz) count) _then
+    _if (/geu count-size (imm sz) count) _then
       mov 1 cf (var tdst)
     _else
       undef 1 cf
