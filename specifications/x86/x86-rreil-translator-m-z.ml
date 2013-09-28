@@ -2213,20 +2213,15 @@ end
 
 val sem-sal-shl x = do
   sz <- sizeof1 x.opnd1;
-  szOp2 <- sizeof1 x.opnd2;
   dst <- lval sz x.opnd1;
   src <- rval sz x.opnd1;
-  count <- rval szOp2 x.opnd2;
+  count-size <- sizeof1 x.opnd2;
+  count <- rval count-size x.opnd2;
 
-  #count-mask <- const
-  #   (case sz of
-  #       8: 31
-  #     | 16: 31
-  #     | 32: 31
-  #     | 64: 63
-  #    end);
-  #temp-count <- mktemp;
-  #andb sz temp-count count count-mask;
+  af <- fAF;
+  _if (/neq sz count (imm 0)) _then
+    undef 1 af
+  ;
 
   real-shift-count-size <-
     case sz of
@@ -2246,7 +2241,7 @@ val sem-sal-shl x = do
   _if (/gtu sz (var temp-count) (imm 0)) _then do
     shl sz tdst src (var temp-count);
 
-    _if (/geu szOp2 (imm sz) count) _then do
+    _if (/geu count-size (imm sz) count) _then do
       temp-c <- mktemp;
       sub sz temp-c (imm sz) (var temp-count);
       shr sz temp-c src (var temp-c);
@@ -2272,50 +2267,6 @@ val sem-sal-shl x = do
   emit-virt-flags;
 
   write sz dst (var tdst)
-
-#  # dst => a, src => b, amount => c
-#  ## Temporary variables:
-#  t1 <- mktemp;
-#  t2 <- mktemp;
-#  cnt <- mktemp;
-#  cntIsZero <- mktemp;
-#  cntIsOne <- mktemp;
-#  af <- fAF;
-#  ov <- fOF;
-#  cf <- fCF;
-#  eq <- fEQ;
-#  mask <- const
-#     (case sz of
-#         8: 31
-#       | 16: 31
-#       | 32: 31
-#       | 64: 63
-#      end);
-#  zer0 <- const 0;
-#  one <- const 1;
-#
-#  ## Instruction semantics:
-#  setflag <- mklabel;
-#  exit <- mklabel;
-#  nop <- mklabel;
-#  convert sz cnt szOp2 c;
-#  andb sz cnt (var cnt) mask;
-#  cmpeq sz cntIsZero (var cnt) zer0;
-#  ifgotolabel (var cntIsZero) nop;
-#  shl sz t1 b (/SUB (var cnt) one);
-#  mov 1 cf (var (t1 /+ (sz - 1)));
-#  shl sz t2 b (var cnt);
-#  cmpeq sz cntIsOne (var cnt) one;
-#  ifgotolabel (var cntIsOne) setflag;
-#  undef 1 ov;
-#  gotolabel exit;
-#  label setflag;
-#  xorb 1 ov (var cf) (var (t2 /+ (sz - 1)));
-#  label exit;
-#  undef 1 af;
-#  write sz a (var t2);
-#  label nop;
-#  cmpeq sz eq b zer0
 end
 
 val sem-shr-sar x signed = do
