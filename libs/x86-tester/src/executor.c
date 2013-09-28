@@ -97,6 +97,8 @@ struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, s
 		struct tracking_trace *trace, struct context *context, void **memory, void **next_instruction_address,
 		char test_unused) {
 	struct tbgen_result tbgen_result = tbgen_code_generate(instruction, instruction_length, trace, context, test_unused);
+	if(tbgen_result.result == TBGEN_RTYPE_ERROR)
+		return tbgen_result;
 	*memory = mmap(NULL, tbgen_result.buffer_length,
 	PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, 0, 0);
 	memcpy(*memory, tbgen_result.buffer, tbgen_result.buffer_length);

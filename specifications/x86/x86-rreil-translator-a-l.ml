@@ -786,7 +786,7 @@ val sem-lea x = do
     end
   ;
   addr-sz <- return src.psz;
-  address <- conv-with Signed src.psz src.opnd;
+  address <- conv-with '1' Signed src.psz src.opnd;
 
   temp <- mktemp;
   movzx opnd-sz temp addr-sz address;

@@ -189,6 +189,11 @@ static void tracking_expr_trace(struct tracking_trace *trace, struct rreil_expr 
 			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->mod.opnd2, size);
 			break;
 		}
+		case RREIL_EXPR_TYPE_MODS: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->mods.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->mods.opnd2, size);
+			break;
+		}
 		case RREIL_EXPR_TYPE_SHL: {
 			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->shl.opnd1, size);
 			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->shl.opnd2, size);

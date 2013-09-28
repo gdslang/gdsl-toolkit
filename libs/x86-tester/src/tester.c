@@ -222,6 +222,10 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	void *next_instruction_address;
 	struct tbgen_result tbgen_result = executor_instruction_mapped_generate(instruction, instruction_length, trace,
 			context_cpu, &code, &next_instruction_address, test_unused);
+	if(tbgen_result.result != TBGEN_RTYPE_SUCCESS) {
+		result.type = TESTER_RTYPE_TBGEN_ERROR;
+		goto cu_c;
+	}
 
 	ip_set(context_rreil, context_cpu, next_instruction_address);
 
@@ -266,6 +270,8 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	free(tbgen_result.jump_marker);
 
 	munmap(code, tbgen_result.buffer_length);
+
+	cu_c:;
 
 	context_free(context_cpu);
 
@@ -388,6 +394,10 @@ void tester_result_type_print(enum tester_result_type result_type) {
 		}
 		case TESTER_RTYPE_TRANSLATION_ERROR: {
 			printf("TESTER_RESULT_TRANSLATION_ERROR");
+			break;
+		}
+		case TESTER_RTYPE_TBGEN_ERROR: {
+			printf("TESTER_RTYPE_TBGEN_ERROR");
 			break;
 		}
 		case TESTER_RTYPE_SIMULATION_ERROR: {

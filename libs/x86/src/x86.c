@@ -576,6 +576,24 @@ enum x86_id x86_reg_from_con(int_t con) {
 		case CON_Sem_R15: {
 			return X86_ID_R15;
 		}
+		case CON_Sem_CS: {
+			return X86_ID_CS;
+		}
+		case CON_Sem_DS: {
+			return X86_ID_DS;
+		}
+		case CON_Sem_SS: {
+			return X86_ID_SS;
+		}
+		case CON_Sem_ES: {
+			return X86_ID_ES;
+		}
+		case CON_Sem_FS: {
+			return X86_ID_FS;
+		}
+		case CON_Sem_GS: {
+			return X86_ID_GS;
+		}
 		case CON_Sem_CS_Base: {
 			return X86_ID_CS_Base;
 		}

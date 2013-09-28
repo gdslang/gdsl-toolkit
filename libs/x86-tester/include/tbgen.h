@@ -15,7 +15,13 @@
 #include <simulator/tracking.h>
 #include <x86.h>
 
+enum tbgen_result_type {
+	TBGEN_RTYPE_SUCCESS, TBGEN_RTYPE_ERROR
+};
+
 struct tbgen_result {
+	enum tbgen_result_type result;
+
 	uint8_t *buffer;
 	size_t buffer_length;
 

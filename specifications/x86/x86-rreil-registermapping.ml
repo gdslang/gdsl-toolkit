@@ -53,6 +53,12 @@ type sem_id
    | Sem_ES_Base
    | Sem_FS_Base
    | Sem_GS_Base
+   | Sem_CS
+   | Sem_DS
+   | Sem_SS
+   | Sem_ES
+   | Sem_FS
+   | Sem_GS
    | Sem_ST0
    | Sem_ST1
    | Sem_ST2
@@ -93,7 +99,9 @@ type sem_id
    | VIRT_LTS # <s
 #   | VIRT_LTU # <u
 
-val semantic-register-of r = case r of
+val semantic-register-of r = semantic-register-of-mr '0' r
+
+val semantic-register-of-mr is-mem r = case r of
    AL    : {id=Sem_AX,offset=0,size=8}
  | AH    : {id=Sem_AX,offset=8,size=8}
  | AX    : {id=Sem_AX,offset=0,size=16}
@@ -202,12 +210,12 @@ val semantic-register-of r = case r of
  | MM5   : {id=Sem_MM5, offset=0, size=64}
  | MM6   : {id=Sem_MM6, offset=0, size=64}
  | MM7   : {id=Sem_MM7, offset=0, size=64}
- | ES    : {id=Sem_ES_Base, offset=0, size=64} # content of segment table
- | SS    : {id=Sem_SS_Base, offset=0, size=64}
- | DS    : {id=Sem_DS_Base, offset=0, size=64}
- | FS    : {id=Sem_FS_Base, offset=0, size=64}
- | GS    : {id=Sem_GS_Base, offset=0, size=64}
- | CS    : {id=Sem_CS_Base, offset=0, size=64}
+ | ES    : if is-mem then {id=Sem_ES_Base, offset=0, size=64} else {id=Sem_ES, offset=0, size=16} # content of segment table
+ | SS    : if is-mem then {id=Sem_SS_Base, offset=0, size=64} else {id=Sem_SS, offset=0, size=16}
+ | DS    : if is-mem then {id=Sem_DS_Base, offset=0, size=64} else {id=Sem_DS, offset=0, size=16}
+ | FS    : if is-mem then {id=Sem_FS_Base, offset=0, size=64} else {id=Sem_FS, offset=0, size=16}
+ | GS    : if is-mem then {id=Sem_GS_Base, offset=0, size=64} else {id=Sem_GS, offset=0, size=16}
+ | CS    : if is-mem then {id=Sem_CS_Base, offset=0, size=64} else {id=Sem_CS, offset=0, size=16}
  | ST0   : {id=Sem_ST0, offset=0, size=80}
  | ST1   : {id=Sem_ST1, offset=0, size=80}
  | ST2   : {id=Sem_ST2, offset=0, size=80}
@@ -337,7 +345,7 @@ val register-by-size modifier reg-unsized size =
        end
   end
 
-val registers-live-map = let
+val registers-live-map = let #Todo: Segment base addresses
 	val add map r = do
 	 reg-sem <- return (semantic-register-of r);
    return (fmap-add-range map reg-sem.id reg-sem.size reg-sem.offset)

@@ -82,7 +82,7 @@ val expand dst-getter conv lin from-sz to-sz =
   end
 
 val segment-add mode64 address segment = let
-  val seg-sem seg-reg = SEM_LIN_VAR(semantic-register-of seg-reg)
+  val seg-sem seg-reg = SEM_LIN_VAR(semantic-register-of-mr '1' seg-reg)
 in
   case segment of
      SEG_NONE:
@@ -142,7 +142,7 @@ end
 #  return DS
 #end
 
-val conv-with conv sz x =
+val conv-with is-mem conv sz x =
    let
       val conv-imm conv x = case conv of
       	  Signed: return (SEM_LIN_IMM{const=sx x})
@@ -150,14 +150,14 @@ val conv-with conv sz x =
       end
 
       val conv-reg conv sz r = do
-        reg <- return (semantic-register-of r);
+        reg <- return (semantic-register-of-mr is-mem r);
 	expanded <- expand mktemp conv (var reg) reg.size sz;
 	return expanded
       end
 
       val conv-sum conv sz x =
-         do op1 <- conv-with conv sz x.a;
-            op2 <- conv-with conv sz x.b;
+         do op1 <- conv-with is-mem conv sz x.a;
+            op2 <- conv-with is-mem conv sz x.b;
             return
                (SEM_LIN_ADD
                   {opnd1=op1,
@@ -165,7 +165,7 @@ val conv-with conv sz x =
          end
 
       val conv-scale conv sz x =
-         do op <- conv-with conv sz x.opnd;
+         do op <- conv-with is-mem conv sz x.opnd;
             return
                (SEM_LIN_SCALE
                   {opnd=op,
@@ -178,7 +178,7 @@ val conv-with conv sz x =
                      end})
          end
 
-      val conv-mem x = conv-with Signed x.psz x.opnd
+      val conv-mem x = conv-with '1' Signed x.psz x.opnd
    in
       case x of
          IMM8 x: conv-imm conv x.imm
@@ -203,8 +203,8 @@ val conv-with conv sz x =
       end
    end
 
-val rval sz x = conv-with Unsigned sz x
-val rvals conv sz x = conv-with conv sz x
+val rval sz x = conv-with '0' Unsigned sz x
+val rvals conv sz x = conv-with '0' conv sz x
 
 val extract-imm-unsigned imm =
   case imm of
@@ -267,7 +267,7 @@ val lval-offset sz x offset =
      MEM x:
        do
          #Offset for memory operands? => Add offset to pointer
-         address <- conv-with Signed x.psz x.opnd;
+         address <- conv-with '1' Signed x.psz x.opnd;
 	 combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {const=offset}});
          return (SEM_WRITE_MEM{size=x.psz,address=combined,segment=x.segment})
        end

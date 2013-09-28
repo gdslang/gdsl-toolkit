@@ -462,58 +462,83 @@ static void tbgen_jump_marker_generate(FILE *stream, struct tracking_trace *trac
 	fwrite(&jmp, 1, sizeof(jmp), stream);
 }
 
-static void tbgen_registers_preparation_iterate(struct tracking_trace *trace, enum x86_id *addtional_regs,
-		size_t addtional_regs_length, void (*prepare_reg)(void *closure, enum x86_id), void *prepare_reg_cls) {
+static char tbgen_registers_preparation_iterate(struct tracking_trace *trace, enum x86_id *addtional_regs,
+		size_t addtional_regs_length, char (*prepare_reg)(void *closure, enum x86_id), void *prepare_reg_cls) {
+	char retval = 0;
+
 	for(size_t i = 0; i < trace->reg.read.x86_indices_length; ++i) {
 		size_t index = trace->reg.read.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
-		prepare_reg(prepare_reg_cls, reg);
+		retval = prepare_reg(prepare_reg_cls, reg);
+		if(retval)
+			return retval;
 	}
 
 	for(size_t i = 0; i < trace->reg.dereferenced.x86_indices_length; ++i) {
 		size_t index = trace->reg.dereferenced.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
-		prepare_reg(prepare_reg_cls, reg);
+		retval = prepare_reg(prepare_reg_cls, reg);
+		if(retval && retval != 1)
+			return retval;
 	}
 
 	for(size_t i = 0; i < trace->reg.written.x86_indices_length; ++i) {
 		size_t index = trace->reg.written.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
-		prepare_reg(prepare_reg_cls, reg);
+		retval = prepare_reg(prepare_reg_cls, reg);
+		if(retval)
+			return retval;
 	}
 
 	for(size_t i = 0; i < addtional_regs_length; ++i) {
 		enum x86_id reg = (enum x86_id)addtional_regs[i];
-		prepare_reg(prepare_reg_cls, reg);
+		retval = prepare_reg(prepare_reg_cls, reg);
+		if(retval)
+			return retval;
 	}
+
+	return retval;
 }
 
-static void tbgen_registers_write_back_iterate(struct tracking_trace *trace, enum x86_id *addtional_regs,
-		size_t addtional_regs_length, void (*write_back_reg)(void *closure, enum x86_id), void *write_back_reg_cls, char test_unused) {
+static char tbgen_registers_write_back_iterate(struct tracking_trace *trace, enum x86_id *addtional_regs,
+		size_t addtional_regs_length, char (*write_back_reg)(void *closure, enum x86_id), void *write_back_reg_cls,
+		char test_unused) {
+	char retval = 0;
+
 	if(test_unused) {
 		for(size_t i = 0; i < trace->reg.read.x86_indices_length; ++i) {
 			size_t index = trace->reg.read.x86_indices[i];
 			enum x86_id reg = (enum x86_id)index;
-			write_back_reg(write_back_reg_cls, reg);
+			retval = write_back_reg(write_back_reg_cls, reg);
+			if(retval)
+				return retval;
 		}
 
 		for(size_t i = 0; i < trace->reg.dereferenced.x86_indices_length; ++i) {
 			size_t index = trace->reg.dereferenced.x86_indices[i];
 			enum x86_id reg = (enum x86_id)index;
-			write_back_reg(write_back_reg_cls, reg);
+			retval = write_back_reg(write_back_reg_cls, reg);
+			if(retval && retval != 1)
+				return retval;
 		}
 	}
 
 	for(size_t i = 0; i < trace->reg.written.x86_indices_length; ++i) {
 		size_t index = trace->reg.written.x86_indices[i];
 		enum x86_id reg = (enum x86_id)index;
-		write_back_reg(write_back_reg_cls, reg);
+		retval = write_back_reg(write_back_reg_cls, reg);
+		if(retval)
+			return retval;
 	}
 
 	for(size_t i = 0; i < addtional_regs_length; ++i) {
 		enum x86_id reg = (enum x86_id)addtional_regs[i];
-		write_back_reg(write_back_reg_cls, reg);
+		retval = write_back_reg(write_back_reg_cls, reg);
+		if(retval)
+			return retval;
 	}
+
+	return retval;
 }
 
 struct prepare_reg_closure {
@@ -523,27 +548,44 @@ struct prepare_reg_closure {
 	struct tbgen_register_allocation *allocation;
 };
 
-static void prepare_reg(void *closure, enum x86_id reg) {
+static char prepare_reg(void *closure, enum x86_id reg) {
 	struct prepare_reg_closure *cls = (struct prepare_reg_closure*)closure;
 
 	switch(reg) {
 		case X86_ID_FLAGS: {
-			tbgen_mov_memory_to_rflags_generate(cls->stream, (uint64_t*)&cls->context->x86_registers[reg].data, cls->t0, cls->allocation);
+			tbgen_mov_memory_to_rflags_generate(cls->stream, (uint64_t*)&cls->context->x86_registers[reg].data, cls->t0,
+					cls->allocation);
 			break;
 		}
 		case X86_ID_IP: {
 			break;
 		}
+		case X86_ID_CS:
+		case X86_ID_DS:
+		case X86_ID_SS:
+		case X86_ID_ES:
+		case X86_ID_FS:
+		case X86_ID_GS:
+		case X86_ID_CS_Base:
+		case X86_ID_DS_Base:
+		case X86_ID_SS_Base:
+		case X86_ID_ES_Base:
+		case X86_ID_FS_Base:
+		case X86_ID_GS_Base:
+			return 1;
 		case X86_ID_VIRT_LES:
 		case X86_ID_VIRT_LEU:
 		case X86_ID_VIRT_LTS: {
 			break;
 		}
 		default: {
-			tbgen_mov_memory_to_register_generate(cls->stream, reg, (uint64_t*)&cls->context->x86_registers[reg].data, cls->t0);
+			tbgen_mov_memory_to_register_generate(cls->stream, reg, (uint64_t*)&cls->context->x86_registers[reg].data,
+					cls->t0);
 			break;
 		}
 	}
+
+	return 0;
 }
 
 struct write_back_reg_closure {
@@ -554,12 +596,13 @@ struct write_back_reg_closure {
 	struct tbgen_register_allocation *allocation;
 };
 
-static void write_back_reg(void *closure, enum x86_id reg) {
+static char write_back_reg(void *closure, enum x86_id reg) {
 	struct write_back_reg_closure *cls = (struct write_back_reg_closure*)closure;
 
 	switch(reg) {
 		case X86_ID_FLAGS: {
-			tbgen_mov_rflags_to_memory_generate(cls->stream, (uint64_t*)&cls->context->x86_registers[reg].data, cls->t0, cls->t1, cls->allocation);
+			tbgen_mov_rflags_to_memory_generate(cls->stream, (uint64_t*)&cls->context->x86_registers[reg].data, cls->t0,
+					cls->t1, cls->allocation);
 			break;
 		}
 		case X86_ID_VIRT_LES:
@@ -567,19 +610,36 @@ static void write_back_reg(void *closure, enum x86_id reg) {
 		case X86_ID_VIRT_LTS: {
 			break;
 		}
+		case X86_ID_CS:
+		case X86_ID_DS:
+		case X86_ID_SS:
+		case X86_ID_ES:
+		case X86_ID_FS:
+		case X86_ID_GS:
+		case X86_ID_CS_Base:
+		case X86_ID_DS_Base:
+		case X86_ID_SS_Base:
+		case X86_ID_ES_Base:
+		case X86_ID_FS_Base:
+		case X86_ID_GS_Base:
+			return 1;
 		case X86_ID_IP: {
 			break;
 		}
 		default: {
-			tbgen_mov_register_to_memory_generate(cls->stream, reg, (uint64_t*)&cls->context->x86_registers[reg].data, cls->t0);
+			tbgen_mov_register_to_memory_generate(cls->stream, reg, (uint64_t*)&cls->context->x86_registers[reg].data,
+					cls->t0);
 			break;
 		}
 	}
+
+	return 0;
 }
 
 struct tbgen_result tbgen_code_generate(uint8_t *instruction, size_t instruction_length, struct tracking_trace *trace,
 		struct context *context, char test_unused) {
 	struct tbgen_result result;
+	result.result = TBGEN_RTYPE_SUCCESS;
 
 	FILE *stream = open_memstream((char**)&result.buffer, &result.buffer_length);
 
@@ -612,15 +672,21 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction, size_t instruction
 	tbgen_allocate_dynamic(&return_reg, allocation, stream);
 
 	enum x86_id *additional_regs = NULL;
-	size_t addtional_regs_length = 0;
+	size_t additional_regs_length = 0;
 	if(test_unused) {
 		additional_regs = (enum x86_id*)malloc(X86_ID_COUNT * sizeof(enum x86_id));
 		enum x86_id next;
 		while(!tbgen_allocate_dynamic(&next, allocation, stream))
-			additional_regs[addtional_regs_length++] = next;
+			additional_regs[additional_regs_length++] = next;
 	}
 
-	tbgen_registers_preparation_iterate(trace, additional_regs, addtional_regs_length, &prepare_reg, &prepare_reg_cls);
+	if(tbgen_registers_preparation_iterate(trace, additional_regs, additional_regs_length, &prepare_reg,
+			&prepare_reg_cls)) {
+		result.result = TBGEN_RTYPE_ERROR;
+		fclose(stream);
+		free(result.buffer);
+		goto cleanup;
+	}
 
 	/*
 	 * Important: It might not be possible to allocate any more register from this point on
@@ -645,20 +711,26 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction, size_t instruction
 	tbgen_jump_marker_generate(marker_stream, trace, context, allocation, return_reg, t0, t1);
 	fclose(marker_stream);
 
-
-	tbgen_registers_write_back_iterate(trace, additional_regs, addtional_regs_length, &write_back_reg, &write_back_reg_cls, test_unused);
-
-	free(additional_regs);
-
+	if(tbgen_registers_write_back_iterate(trace, additional_regs, additional_regs_length, &write_back_reg,
+			&write_back_reg_cls, test_unused)) {
+		result.result = TBGEN_RTYPE_ERROR;
+		fclose(stream);
+		free(result.buffer);
+		goto cleanup;
+	}
 //	tbgen_registers_restore(stream, trace);
-	//	tbgen_allocated_pop_generate(stream, allocation, X86_ID_FLAGS);
+//	tbgen_allocated_pop_generate(stream, allocation, X86_ID_FLAGS);
 
 	tbgen_allocation_registers_free(allocation, stream);
-	tbgen_allocation_free(allocation);
 
 	tbgen_trailer_generate(stream);
 
 	fclose(stream);
+
+	cleanup:
+
+	tbgen_allocation_free(allocation);
+	free(additional_regs);
 
 	return result;
 }
