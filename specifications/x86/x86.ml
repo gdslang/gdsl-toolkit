@@ -1834,6 +1834,8 @@ val st n = return (st-reg n)
 #val st/i n = return (st-reg ('0' ^ n))
 val st-rex rex rdis i = st-reg ('0' ^ i)
 
+#See: Table 3-2. Addressable General Purpose Registers
+
 val reg8 n =
    case n of
       '00000': REG AL

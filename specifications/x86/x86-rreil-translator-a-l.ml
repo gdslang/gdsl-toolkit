@@ -69,6 +69,8 @@ val sem-and x = do
   zf <- fZF;
   cmpeq size zf (var temp) (imm 0);
   emit-parity-flag (var temp);
+  af <- fAF;
+  undef 1 af;
   emit-virt-flags;
 
   write size dst (var temp)
