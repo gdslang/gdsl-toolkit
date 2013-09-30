@@ -399,7 +399,7 @@ val sem-packsswb-packssdw-opnd avx-encoded dst-element-size opnd1 opnd2 opnd3 = 
       ) _else ( _if (/lts element-size (var (at-offset temp-src src-offset)) (imm lower)) _then
         mov dst-element-size (at-offset temp-dst dst-offset) (imm lower)
       _else
-        mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src (src-offset + dst-element-size)))
+        mov dst-element-size (at-offset temp-dst dst-offset) (var (at-offset temp-src src-offset))
       )
     end
   in
