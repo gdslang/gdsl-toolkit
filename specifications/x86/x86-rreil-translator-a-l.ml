@@ -816,6 +816,7 @@ val sem-loop-loop x = do
   ));
 
   sub reg.size reg (var reg) (imm 1);
+  postproc-reg '0' reg.size reg;  
 
   return reg
 end
