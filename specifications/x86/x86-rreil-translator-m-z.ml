@@ -1639,24 +1639,28 @@ val sem-vpslldq x = sem-psxldq-vpsxldq-opnd '1' shl x.opnd1 x.opnd2 x.opnd3
 val sem-ps-vps-opnd avx-encoded element-size shifter opnd1 opnd2 opnd3 = do
   size <- sizeof1 opnd1;
   src <- rval size opnd2;
-  count <- rval element-size opnd3;
+  count-size <- sizeof1 opnd3;
+  count <- rval count-size opnd3;
   dst <- lval size opnd1;
 
-  temp-src <- mktemp;
-  mov size temp-src src;
+  _if (/ltu count-size count (imm element-size)) _then do
+    temp-src <- mktemp;
+    mov size temp-src src;
 
-  temp-dst <- mktemp;
-  let
-    val m i = do
-      offset <- return (element-size*i);
+    temp-dst <- mktemp;
+    let
+      val m i = do
+        offset <- return (element-size*i);
 
-      shifter element-size (at-offset temp-dst offset) (var (at-offset temp-src offset)) count
-    end
-  in
-    vector-apply size element-size m
-  end;
+        shifter element-size (at-offset temp-dst offset) (var (at-offset temp-src offset)) count
+      end
+    in
+      vector-apply size element-size m
+    end;
 
-  write-extend avx-encoded size dst (var temp-dst)
+    write-extend avx-encoded size dst (var temp-dst)
+  end _else
+    write-extend avx-encoded size dst (imm 0)
 end
 
 val sem-psll element-size x = sem-ps-vps-opnd '0' element-size shl x.opnd1 x.opnd1 x.opnd2
