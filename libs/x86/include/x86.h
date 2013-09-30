@@ -104,6 +104,24 @@ enum x86_rex {
 	X86_REX_NONE = 0x00
 };
 
+enum x86_vex_l {
+	X86_VEX_128 = 0,
+	X86_VEX_256 = 1
+};
+
+enum x86_vex_p {
+	X86_VEX_P_NONE = 0,
+	X86_VEX_66 = 1,
+	X86_VEX_F3 = 2,
+	X86_VEX_F2 = 3
+};
+
+enum x86_vex_m {
+	X86_VEX_0F = 1,
+	X86_VEX_0F_38 = 2,
+	X86_VEX_0f_3A = 3
+};
+
 enum x86_id_type {
 	X86_ID_TYPE_STANDARD,
 	X86_ID_TYPE_MMX,

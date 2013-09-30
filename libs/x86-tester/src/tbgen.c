@@ -16,6 +16,8 @@
 #include <tbgen.h>
 #include <tbgen_alloc.h>
 
+#define VEX
+
 static uint8_t tbgen_register_to_binary(enum x86_id register_) {
 	switch(register_) {
 		case X86_ID_XMM8:
@@ -79,10 +81,15 @@ static uint8_t tbgen_register_to_binary(enum x86_id register_) {
 	}
 }
 
+static void rex_write(FILE *stream, uint8_t rex) {
+	if(rex != 0x40)
+		fwrite(&rex, 1, sizeof(rex), stream);
+}
+
 /*
  * Todo: Hacky...
  */
-static void tbgen_rex_generic_generate(FILE *stream, uint8_t rex_flags, enum x86_id register_) {
+static uint8_t tbgen_rex_generic_generate(uint8_t rex_flags, enum x86_id register_) {
 	uint8_t rex = 0x40 | (rex_flags & X86_REX_W);
 	switch(register_) {
 		case X86_ID_XMM8:
@@ -109,14 +116,13 @@ static void tbgen_rex_generic_generate(FILE *stream, uint8_t rex_flags, enum x86
 		default:
 			break;
 	}
-	if(rex != 0x40)
-		fwrite(&rex, 1, sizeof(rex), stream);
+	return rex;
 }
 
 /*
  * Todo: Hacky...
  */
-static void tbgen_rex_rb_generate(FILE *stream, enum x86_rex w, enum x86_id r, enum x86_id b) {
+static uint8_t tbgen_rex_rb_generate(enum x86_rex w, enum x86_id r, enum x86_id b) {
 	uint8_t rex = 0x40 | w;
 	switch(r) {
 		case X86_ID_XMM8:
@@ -164,8 +170,28 @@ static void tbgen_rex_rb_generate(FILE *stream, enum x86_rex w, enum x86_id r, e
 		default:
 			break;
 	}
-	if(rex != 0x40)
-		fwrite(&rex, 1, sizeof(rex), stream);
+	return rex;
+//	if(rex != 0x40)
+//		fwrite(&rex, 1, sizeof(rex), stream);
+}
+
+static void vex_generate(FILE *stream, uint8_t rex, enum x86_vex_l vex_l, enum x86_vex_p vex_p, enum x86_vex_m vex_m) {
+	if(vex_m != X86_VEX_0F || (rex & X86_REX_X) || (rex & X86_REX_B) || (rex & X86_REX_W)) {
+		uint8_t vex0 = 0xc4;
+		fwrite(&vex0, 1, sizeof(vex0), stream);
+
+		uint8_t vex1 = (~rex << 5) | vex_m;
+		fwrite(&vex1, 1, sizeof(vex1), stream);
+
+		uint8_t vex2 = ~(rex & X86_REX_W) << 4 | 0xf << 3 | vex_l << 2 | vex_p;
+		fwrite(&vex2, 1, sizeof(vex2), stream);
+	} else {
+		uint8_t vex0 = 0xc5;
+		fwrite(&vex0, 1, sizeof(vex0), stream);
+
+		uint8_t vex1 = ~(rex & X86_REX_R) << 5 | 0xf << 3 | vex_l << 2 | vex_p;
+		fwrite(&vex1, 1, sizeof(vex1), stream);
+	}
 }
 
 static void tbgen_modrm_ra_generate(FILE *stream, uint8_t reg, uint8_t addr) {
@@ -195,7 +221,7 @@ void tbgen_push_generate(FILE *stream, enum x86_id register_) {
 	uint8_t reg_bin = tbgen_register_to_binary(register_);
 	switch(x86_id_type_get(register_)) {
 		case X86_ID_TYPE_STANDARD: {
-			tbgen_rex_generic_generate(stream, X86_REX_B, register_);
+			rex_write(stream, tbgen_rex_generic_generate(X86_REX_B, register_));
 			uint8_t push[] = { 0x50 + reg_bin };
 			fwrite(push, 1, sizeof(push), stream);
 			break;
@@ -212,6 +238,17 @@ void tbgen_push_generate(FILE *stream, enum x86_id register_) {
 			break;
 		}
 		case X86_ID_TYPE_SSE: {
+#ifdef VEX
+			// sub rsp, 32
+			uint8_t sub[] = { 0x48, 0x83, 0xec, 0x20 };
+			fwrite(sub, 1, sizeof(sub), stream);
+
+			// vmovupd [rsp], register
+			vex_generate(stream, tbgen_rex_generic_generate(X86_REX_R, register_), X86_VEX_256, X86_VEX_66, X86_VEX_0F);
+			uint8_t vmovupd[] = { 0x11 };
+			fwrite(vmovupd, 1, sizeof(vmovupd), stream);
+			tbgen_modrm_ra_generate(stream, reg_bin, tbgen_register_to_binary(X86_ID_SP));
+#else
 			// sub rsp, 16
 			uint8_t sub[] = { 0x48, 0x83, 0xec, 0x10 };
 			fwrite(sub, 1, sizeof(sub), stream);
@@ -219,10 +256,11 @@ void tbgen_push_generate(FILE *stream, enum x86_id register_) {
 			// movupd [rsp], register
 			uint8_t prefix = 0x66;
 			fwrite(&prefix, 1, sizeof(prefix), stream);
-			tbgen_rex_generic_generate(stream, X86_REX_R, register_);
-			uint8_t movupd[] = { 0x0f, 0x11 };
+			rex_write(stream, tbgen_rex_generic_generate(X86_REX_R, register_));
+			uint8_t movupd[] = {0x0f, 0x11};
 			fwrite(movupd, 1, sizeof(movupd), stream);
 			tbgen_modrm_ra_generate(stream, reg_bin, tbgen_register_to_binary(X86_ID_SP));
+#endif
 			break;
 		}
 	}
@@ -232,7 +270,7 @@ void tbgen_pop_generate(FILE *stream, enum x86_id register_) {
 	uint8_t reg_bin = tbgen_register_to_binary(register_);
 	switch(x86_id_type_get(register_)) {
 		case X86_ID_TYPE_STANDARD: {
-			tbgen_rex_generic_generate(stream, X86_REX_B, register_);
+			rex_write(stream, tbgen_rex_generic_generate(X86_REX_B, register_));
 			uint8_t pop[] = { 0x58 + tbgen_register_to_binary(register_) };
 			fwrite(pop, 1, sizeof(pop), stream);
 			break;
@@ -249,10 +287,21 @@ void tbgen_pop_generate(FILE *stream, enum x86_id register_) {
 			break;
 		}
 		case X86_ID_TYPE_SSE: {
+#ifdef VEX
+			// vmovupd register, [rsp]
+			vex_generate(stream, tbgen_rex_generic_generate(X86_REX_R, register_), X86_VEX_256, X86_VEX_66, X86_VEX_0F);
+			uint8_t vmovupd[] = { 0x10 };
+			fwrite(vmovupd, 1, sizeof(vmovupd), stream);
+			tbgen_modrm_ra_generate(stream, reg_bin, tbgen_register_to_binary(X86_ID_SP));
+
+			// add rsp, 32
+			uint8_t add[] = { 0x48, 0x83, 0xc4, 0x20 };
+			fwrite(add, 1, sizeof(add), stream);
+#else
 			// movupd register, [rsp]
 			uint8_t prefix = 0x66;
 			fwrite(&prefix, 1, sizeof(prefix), stream);
-			tbgen_rex_generic_generate(stream, X86_REX_R, register_);
+			rex_write(stream, tbgen_rex_generic_generate(X86_REX_R, register_));
 			uint8_t movupd[] = { 0x0f, 0x10 };
 			fwrite(movupd, 1, sizeof(movupd), stream);
 			tbgen_modrm_ra_generate(stream, reg_bin, tbgen_register_to_binary(X86_ID_SP));
@@ -260,6 +309,7 @@ void tbgen_pop_generate(FILE *stream, enum x86_id register_) {
 			// add rsp, 16
 			uint8_t add[] = { 0x48, 0x83, 0xc4, 0x10 };
 			fwrite(add, 1, sizeof(add), stream);
+#endif
 			break;
 		}
 	}
@@ -276,13 +326,13 @@ void tbgen_pop_rflags_generate(FILE *stream) {
 }
 
 void tbgen_mov_standard_old_register_generate(FILE *stream, enum x86_id from, enum x86_id to) {
-	tbgen_rex_rb_generate(stream, X86_REX_W, from, to);
+	rex_write(stream, tbgen_rex_rb_generate(X86_REX_W, from, to));
 	uint8_t mov[] = { 0x89, 0xc0 | tbgen_register_to_binary(to) | (tbgen_register_to_binary(from) << 3) };
 	fwrite(mov, 1, sizeof(mov), stream);
 }
 
 void tbgen_xchg_rsp_generate(FILE *stream, enum x86_id other) {
-	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_R, other);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_W | X86_REX_R, other));
 	uint8_t xchg[] = { 0x87, 0xc4 | (tbgen_register_to_binary(other) << 3) };
 	fwrite(xchg, 1, sizeof(xchg), stream);
 }
@@ -293,7 +343,7 @@ static void tbgen_mov_memory_to_register_generate(FILE *stream, enum x86_id regi
 	uint8_t register_bin = tbgen_register_to_binary(register_);
 
 	// mov t0, address
-	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_B, t0);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_W | X86_REX_B, t0));
 	uint8_t mov_t0_address[] = { 0xb8 | t0_bin };
 	fwrite(mov_t0_address, 1, sizeof(mov_t0_address), stream);
 	fwrite(address, 8, 1, stream);
@@ -301,7 +351,7 @@ static void tbgen_mov_memory_to_register_generate(FILE *stream, enum x86_id regi
 	switch(x86_id_type_get(register_)) {
 		case X86_ID_TYPE_STANDARD: {
 			// mov register, [t0]
-			tbgen_rex_rb_generate(stream, X86_REX_W, register_, t0);
+			rex_write(stream, tbgen_rex_rb_generate(X86_REX_W, register_, t0));
 			uint8_t mov_reg_dt0[] = { 0x8b };
 			fwrite(mov_reg_dt0, 1, sizeof(mov_reg_dt0), stream);
 			tbgen_modrm_ra_generate(stream, register_bin, t0_bin);
@@ -309,20 +359,28 @@ static void tbgen_mov_memory_to_register_generate(FILE *stream, enum x86_id regi
 		}
 		case X86_ID_TYPE_MMX: {
 			// movq register, [t0]
-			tbgen_rex_generic_generate(stream, X86_REX_B, t0);
+			rex_write(stream, tbgen_rex_generic_generate(X86_REX_B, t0));
 			uint8_t movq[] = { 0x0f, 0x6f };
 			fwrite(movq, 1, sizeof(movq), stream);
 			tbgen_modrm_ra_generate(stream, register_bin, t0_bin);
 			break;
 		}
 		case X86_ID_TYPE_SSE: {
+#ifdef VEX
+			// vmovupd register, [t0]
+			vex_generate(stream, tbgen_rex_rb_generate(X86_REX_NONE, register_, t0), X86_VEX_256, X86_VEX_66, X86_VEX_0F);
+			uint8_t vmovupd[] = { 0x10 };
+			fwrite(vmovupd, 1, sizeof(vmovupd), stream);
+			tbgen_modrm_ra_generate(stream, register_bin, t0_bin);
+#else
 			// movupd register, [t0]
 			uint8_t prefix = 0x66;
 			fwrite(&prefix, 1, sizeof(prefix), stream);
-			tbgen_rex_rb_generate(stream, X86_REX_NONE, register_, t0);
+			rex_write(stream, tbgen_rex_rb_generate(X86_REX_NONE, register_, t0));
 			uint8_t movupd[] = { 0x0f, 0x10 };
 			fwrite(movupd, 1, sizeof(movupd), stream);
 			tbgen_modrm_ra_generate(stream, register_bin, t0_bin);
+#endif
 			break;
 		}
 	}
@@ -333,13 +391,13 @@ static void tbgen_mov_memory_to_rflags_generate(FILE *stream, uint64_t *address,
 	uint8_t t0_bin = tbgen_register_to_binary(t0);
 
 	// mov t0, address
-	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_B, t0);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_W | X86_REX_B, t0));
 	uint8_t mov_t0_address[] = { 0xb8 | t0_bin };
 	fwrite(mov_t0_address, 1, sizeof(mov_t0_address), stream);
 	fwrite(address, 8, 1, stream);
 
 	// mov t0, [t0]
-	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_R | X86_REX_B, t0);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_W | X86_REX_R | X86_REX_B, t0));
 	uint8_t mov_t0_dt0[] = { 0x8b };
 	fwrite(mov_t0_dt0, 1, sizeof(mov_t0_dt0), stream);
 	tbgen_modrm_ra_generate(stream, t0_bin, t0_bin);
@@ -357,7 +415,7 @@ static void tbgen_mov_register_to_memory_generate(FILE *stream, enum x86_id regi
 	uint8_t register_bin = tbgen_register_to_binary(register_);
 
 	// mov t0, address
-	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_B, t0);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_W | X86_REX_B, t0));
 	uint8_t mov_t0_address[] = { 0xb8 | t0_bin };
 	fwrite(mov_t0_address, 1, sizeof(mov_t0_address), stream);
 	fwrite(address, 8, 1, stream);
@@ -365,7 +423,7 @@ static void tbgen_mov_register_to_memory_generate(FILE *stream, enum x86_id regi
 	switch(x86_id_type_get(register_)) {
 		case X86_ID_TYPE_STANDARD: {
 			// mov [t0], register
-			tbgen_rex_rb_generate(stream, X86_REX_W, register_, t0);
+			rex_write(stream, tbgen_rex_rb_generate(X86_REX_W, register_, t0));
 			uint8_t mov_dt0_reg[] = { 0x89 };
 			fwrite(mov_dt0_reg, 1, sizeof(mov_dt0_reg), stream);
 			tbgen_modrm_ra_generate(stream, register_bin, t0_bin);
@@ -373,20 +431,28 @@ static void tbgen_mov_register_to_memory_generate(FILE *stream, enum x86_id regi
 		}
 		case X86_ID_TYPE_MMX: {
 			// movq [t0], register
-			tbgen_rex_generic_generate(stream, X86_REX_B, t0);
+			rex_write(stream, tbgen_rex_generic_generate(X86_REX_B, t0));
 			uint8_t movq[] = { 0x0f, 0x7f };
 			fwrite(movq, 1, sizeof(movq), stream);
 			tbgen_modrm_ra_generate(stream, register_bin, t0_bin);
 			break;
 		}
 		case X86_ID_TYPE_SSE: {
+#ifdef VEX
+			// vmovupd [t0], register
+			vex_generate(stream, tbgen_rex_rb_generate(X86_REX_NONE, register_, t0), X86_VEX_256, X86_VEX_66, X86_VEX_0F);
+			uint8_t vmovupd[] = { 0x11 };
+			fwrite(vmovupd, 1, sizeof(vmovupd), stream);
+			tbgen_modrm_ra_generate(stream, register_bin, t0_bin);
+#else
 			// movupd [t0], register
 			uint8_t prefix = 0x66;
 			fwrite(&prefix, 1, sizeof(prefix), stream);
-			tbgen_rex_rb_generate(stream, X86_REX_NONE, register_, t0);
+			rex_write(stream, tbgen_rex_rb_generate(X86_REX_NONE, register_, t0));
 			uint8_t movupd[] = { 0x0f, 0x11 };
 			fwrite(movupd, 1, sizeof(movupd), stream);
 			tbgen_modrm_ra_generate(stream, register_bin, t0_bin);
+#endif
 			break;
 		}
 	}
@@ -404,13 +470,13 @@ static void tbgen_mov_rflags_to_memory_generate(FILE *stream, uint64_t *address,
 	tbgen_allocated_pop_generate(stream, allocation, t1);
 
 	// mov t0, address
-	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_B, t0);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_W | X86_REX_B, t0));
 	uint8_t mov_t0_address[] = { 0xb8 | t0_bin };
 	fwrite(mov_t0_address, 1, sizeof(mov_t0_address), stream);
 	fwrite(address, 8, 1, stream);
 
 	// mov [t0], t1
-	tbgen_rex_rb_generate(stream, X86_REX_W, t1, t0);
+	rex_write(stream, tbgen_rex_rb_generate(X86_REX_W, t1, t0));
 	uint8_t mov_dt0_t1[] = { 0x89 };
 	fwrite(mov_dt0_t1, 1, sizeof(mov_dt0_t1), stream);
 	tbgen_modrm_ra_generate(stream, t1_bin, t0_bin);
@@ -451,13 +517,13 @@ static void tbgen_jump_marker_generate(FILE *stream, struct tracking_trace *trac
 		struct tbgen_register_allocation *allocation, enum x86_id return_reg, enum x86_id t0, enum x86_id t1) {
 	uint8_t t0_bin = tbgen_register_to_binary(t0);
 
-	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_R, t0);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_W | X86_REX_R, t0));
 	uint8_t lea[] = { 0x8d, 0x05 | (t0_bin << 3), 0xf9, 0xff, 0xff, 0xff };
 	fwrite(&lea, 1, sizeof(lea), stream);
 
 	tbgen_mov_register_to_memory_generate(stream, t0, (uint64_t*)&context->x86_registers[X86_ID_IP].data, t1);
 
-	tbgen_rex_generic_generate(stream, X86_REX_B, return_reg);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_B, return_reg));
 	uint8_t jmp[] = { 0xff, 0xe0 | tbgen_register_to_binary(return_reg) };
 	fwrite(&jmp, 1, sizeof(jmp), stream);
 }
@@ -692,7 +758,7 @@ struct tbgen_result tbgen_code_generate(uint8_t *instruction, size_t instruction
 	 * Important: It might not be possible to allocate any more register from this point on
 	 */
 
-	tbgen_rex_generic_generate(stream, X86_REX_W | X86_REX_R, return_reg);
+	rex_write(stream, tbgen_rex_generic_generate(X86_REX_W | X86_REX_R, return_reg));
 	uint8_t lea[] = { 0x8d, 0x05 | (tbgen_register_to_binary(return_reg) << 3) };
 	fwrite(&lea, 1, sizeof(lea), stream);
 	fwrite((uint32_t*)&instruction_length, 1, sizeof(uint32_t), stream);
