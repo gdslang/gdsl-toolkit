@@ -462,7 +462,7 @@ val sem-cmpxchg x = do
     write size dst src
   end _else do
     dst <- rval size x.opnd1;
-    mov size minuend dst
+    write-extend-reg '0' size minuend dst
   end
 end
 
