@@ -54,7 +54,7 @@ val sem-vaesdec x = sem-aesdec-opnd '1' x.opnd1 x.opnd2 x.opnd3
 val sem-and x = do
   size <- sizeof1 x.opnd1;
   src1 <- rval size x.opnd1;
-  src2 <- rval size x.opnd2;
+  src2 <- rvals Signed size x.opnd2;
   dst <- lval size x.opnd1;
 
   temp <- mktemp;

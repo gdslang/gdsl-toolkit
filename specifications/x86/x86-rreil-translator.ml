@@ -599,12 +599,19 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
     t2 <- mktemp;
     t3 <- mktemp;
 
-    tlts <- mktemp;
-    cmplts sz tlts minuend subtrahend;
-
     cmplts sz sf difference (imm 0);
-    xorb 1 ov (var tlts) (var sf);
     cmpeq sz z difference (imm 0);
+
+    #xorb 1 ov (var tlts) (var sf);
+    #t <- mktemp;
+    #xorb sz t difference minuend;
+    #xorb sz t (var t) subtrahend;
+    #cmplts sz ov (var t) (imm 0);
+
+    tlts <- mktemp;
+    add sz tlts subtrahend carry;
+    cmplts sz tlts minuend (var tlts);
+    xorb 1 ov (var tlts) (var sf);
 
     # Hacker's Delight - Unsigned Add/Subtract
     _if (/d carry) _then do
