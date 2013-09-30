@@ -2695,8 +2695,10 @@ val sem-xadd x = do
 
   emit-add-adc-flags size (var sum) src0 src1 (imm 0) '1';
 
+  t <- mktemp;
+  mov size t src0;
   write size dst0 (var sum);
-  write size dst1 src0
+  write size dst1 (var t)
 end
 
 val sem-xchg x = do
