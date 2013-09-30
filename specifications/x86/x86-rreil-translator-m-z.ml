@@ -1666,8 +1666,39 @@ end
 val sem-psll element-size x = sem-ps-vps-opnd '0' element-size shl x.opnd1 x.opnd1 x.opnd2
 val sem-vpsll element-size x = sem-ps-vps-opnd '1' element-size shl x.opnd1 x.opnd2 x.opnd3
 
-val sem-psra element-size x = sem-ps-vps-opnd '0' element-size shrs x.opnd1 x.opnd1 x.opnd2
-val sem-vpsra element-size x = sem-ps-vps-opnd '1' element-size shrs x.opnd1 x.opnd2 x.opnd3
+val sem-psra-vpsra-opnd avx-encoded element-size opnd1 opnd2 opnd3 = do
+  size <- sizeof1 opnd1;
+  src <- rval size opnd2;
+  count-size <- sizeof1 opnd3;
+  count <- rval count-size opnd3;
+  dst <- lval size opnd1;
+
+  temp-src <- mktemp;
+  mov size temp-src src;
+
+  temp-dst <- mktemp;
+  let
+    val shift i = do
+      offset <- return (element-size*i);
+      shrs element-size (at-offset temp-dst offset) (var (at-offset temp-src offset)) count
+    end
+
+    val overflow i = do
+      offset <- return (element-size*i);
+      movsx element-size (at-offset temp-dst offset) 1 (var (at-offset temp-src (offset + element-size - 1)))
+    end
+  in
+    _if (/ltu count-size count (imm element-size)) _then
+      vector-apply size element-size shift
+    _else
+      vector-apply size element-size overflow
+  end;
+
+  write-extend avx-encoded size dst (var temp-dst)
+end
+
+val sem-psra element-size x = sem-psra-vpsra-opnd '0' element-size x.opnd1 x.opnd1 x.opnd2
+val sem-vpsra element-size x = sem-psra-vpsra-opnd '1' element-size x.opnd1 x.opnd2 x.opnd3
 
 val sem-psrldq x = sem-psxldq-vpsxldq-opnd '0' shr x.opnd1 x.opnd1 x.opnd2
 val sem-vpsrldq x = sem-psxldq-vpsxldq-opnd '1' shr x.opnd1 x.opnd2 x.opnd3

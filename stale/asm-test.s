@@ -402,7 +402,7 @@ main:
 	#vpsllq $33, %xmm1, %xmm2
 
 	#psrad $42, %xmm1
-	#vpsraw $22, %xmm1, %xmm2
+	vpsraw $22, %xmm1, %xmm2
 	#vpsrad %xmm1, %xmm2, %xmm3
 
 	#psrldq $73, %xmm1

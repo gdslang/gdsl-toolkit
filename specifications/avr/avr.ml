@@ -517,10 +517,10 @@ val / ['1001001 d d d d d 0100'] = binop XCH /Z rd5
 
 val config-default = ''
 
-val decode config =
-  do update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
-     /
-  end
+val decode config = do
+  update@{rd='',rr='',ck='',cs='',cb='',io='',dq=''};
+  /
+end
 
 val force-int-for-decode-config = decode config-default
 
