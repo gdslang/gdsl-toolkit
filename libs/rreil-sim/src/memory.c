@@ -39,7 +39,7 @@ static struct memory_allocation *memory_allocation_get(struct context *context,
 	for(size_t i = 0; i < context->memory.allocations_length; ++i)
 		if(ptr >= context->memory.allocations[i].address
 				&& ptr
-						<= (size_t)context->memory.allocations[i].address
+						< (size_t)context->memory.allocations[i].address
 								+ context->memory.allocations[i].data_size) {
 			allocation = &context->memory.allocations[i];
 			break;

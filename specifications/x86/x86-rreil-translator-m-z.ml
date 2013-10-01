@@ -247,7 +247,7 @@ val sem-mul conv x = do
   case sz of
      8: do
        ax <- return (semantic-register-of AX);
-       mov (sz + sz) ax (var product)
+       write-extend-reg '0' (sz + sz) ax (var product)
      end
     | _: move-combined sz (register-by-size low D sz) (register-by-size low A sz) product
 #   | _: do

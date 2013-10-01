@@ -367,8 +367,8 @@ val move-combined size dst-high dst-low src = do
   dst-high <- return (semantic-register-of dst-high);
   dst-low <- return (semantic-register-of dst-low);
  
-  mov size dst-high (var (at-offset src size));
-  mov size dst-low (var (at-offset src 0))
+  write-extend-reg '0' size dst-high (var (at-offset src size));
+  write-extend-reg '0' size dst-low (var (at-offset src 0))
 end
 
 val sem-a sem-cc x = do
