@@ -569,7 +569,7 @@ val sem-div signedness x = do
 #   | Signed: prim (sz + sz) "mods" (lins-one (var remainder)) (lins-more (var dividend) (lins-one divisor))
 
   quotient-sem <- return (semantic-register-of (register-by-size low A sz));
-  mov sz quotient-sem (var quotient);
+  write-extend-reg '0' sz quotient-sem (var quotient);
 
   remainder-sem <-
     case sz of
@@ -577,7 +577,7 @@ val sem-div signedness x = do
      | _: return (semantic-register-of (register-by-size high D sz))
     end
   ;
-  mov sz remainder-sem (var remainder);
+  write-extend-reg '0' sz remainder-sem (var remainder);
 
   cf <- fCF;
   ov <- fOF;
