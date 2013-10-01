@@ -4523,9 +4523,10 @@ val / [0x0f 0xbe /r]
 val / [0x0f 0xbf /r]
  | rexw? = binop none MOVSX r64 r/m16
  | otherwise = binop none MOVSX r32 r/m16
-val / [0x63 /r]
- | mode64? & rexw? = binop none MOVSXD r64 r/m32
- | mode64? = binop none MOVSXD r32 r/m32 #TODO: check
+val / [0x63 /r] #Partially listed in manual; the following lines resulted from test cases
+ | rexw? = binop none MOVSXD r64 r/m32
+ | mode64? & opndsz? = binop none MOVSXD r16 r/m32
+ | mode64? = binop none MOVSXD r32 r/m32
  | mode32? = binop none ARPL r/m16 r16
 
 ### MOVUPD

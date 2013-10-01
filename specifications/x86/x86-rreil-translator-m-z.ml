@@ -278,9 +278,11 @@ val sem-neg x = do
   cmpneq size cf src (imm 0);
 
   src-temp <- mktemp;
-  mov size src-temp src;
-  cmpeq 1 ov (var (at-offset temp (size - 1))) (var (at-offset src-temp (size - 1)));
+  #mov size src-temp src;
+  #cmpeq 1 ov (var (at-offset temp (size - 1))) (var (at-offset src-temp (size - 1)));
+  cmpeq size ov (var temp) src;
   cmplts size sf (var temp) (imm 0);
+  cmpeq size zf (var temp) (imm 0);
 
   emit-parity-flag (var temp);
   emit-arithmetic-adjust-flag size (var temp) (imm 0) src; #Todo: Correct?
