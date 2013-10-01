@@ -632,7 +632,7 @@ val sem-imul-2-3 op1 op2 op3 = do
   product <- mktemp;
   mul (sz + sz) product factor0 factor1;
 
-  emit-mul-flags sz product;
+  emit-mul-flags Signed sz product;
 
   result <- lval sz op1;
   write sz result (var product)

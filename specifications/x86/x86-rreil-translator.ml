@@ -646,7 +646,7 @@ in
   with-subscope emit
 end
 
-val emit-mul-flags sz product = let
+val emit-mul-flags signedness sz product = let
   val emit = do
     ov <- fOF;
     cf <- fCF;
@@ -654,11 +654,25 @@ val emit-mul-flags sz product = let
     zf <- fZF;
     af <- fAF;
     pf <- fPF;
+    #xorb 1 sgn-ext (var (at-offset factor0 (sz - 1))) (var (at-offset factor1 (sz - 1)));
+    #sa <- mktemp;
+    #sb <- mktemp;
+    #cmplts sz sa factor0 (imm 0);
+    #cmplts sz sb factor1 (imm 0);
+    #xorb 1 sgn-ext (var sa) (var sb);
+    #sub sz sgn-ext (imm 0) (var sgn-ext);
   
-    sgn-ext <- mktemp;
-    movsx sz sgn-ext 1 (var (at-offset product (sz + sz - 1)));
-  
-    cmpneq sz ov (var (at-offset product sz)) (var sgn-ext);
+    case signedness of
+       Signed: do
+         sgn-ext <- mktemp;
+         movsx (sz + 1) sgn-ext 1 (var (at-offset product (sz + sz - 1)));
+         cmpneq (sz + 1) ov (var (at-offset product (sz - 1))) (var sgn-ext)
+       end
+     | Unsigned: do
+         cmpneq sz ov (var (at-offset product sz)) (imm 0)
+       end
+    end;
+
     mov 1 cf (var ov);
   
     undef 1 sf;

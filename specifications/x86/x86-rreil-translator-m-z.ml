@@ -242,7 +242,7 @@ val sem-mul conv x = do
   product <- mktemp;
   mul (sz + sz) product factor0 factor1;
 
-  emit-mul-flags sz product;
+  emit-mul-flags conv sz product;
 
   case sz of
      8: do
