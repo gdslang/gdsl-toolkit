@@ -312,7 +312,7 @@ val sem-or x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   dst <- lval sz x.opnd1;
   src0 <- rval sz x.opnd1;
-  src1 <- rval sz x.opnd2;
+  src1 <- rvals Signed sz x.opnd2;
   temp <- mktemp;
   orb sz temp src0 src1;
 
