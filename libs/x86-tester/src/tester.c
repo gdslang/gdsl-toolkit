@@ -201,11 +201,11 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 
 	tracking_statements_trace(trace, statements);
 
-	if(!trace->reg.dereferenced.x86_indices_length && !trace->reg.read.x86_indices_length
-			&& !trace->reg.written.x86_indices_length && !trace->mem.used) {
-		printf("Instruction without any effects, aborting...\n");
-		goto cu_b;
-	}
+//	if(!trace->reg.dereferenced.x86_indices_length && !trace->reg.read.x86_indices_length
+//			&& !trace->reg.written.x86_indices_length && !trace->mem.used) {
+//		printf("Instruction without any effects, aborting...\n");
+//		goto cu_b;
+//	}
 
 	printf("------------------\n");
 	tracking_trace_print(trace);

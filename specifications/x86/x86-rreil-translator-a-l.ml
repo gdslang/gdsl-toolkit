@@ -343,7 +343,10 @@ val sem-convert size = do
   src <- return (semantic-register-of (register-by-size low A size));
   dst <- return (semantic-register-of (register-by-size low A (2*size)));
 
-  movsx dst.size dst src.size (var src)
+  t <- mktemp;
+  movsx dst.size t src.size (var src);
+
+  write-extend-reg '0' dst.size dst (var t)
 end
 
 #val sem-cdqe = do
@@ -524,7 +527,7 @@ val sem-cwd-cdq-cqo x = do
   ;
 
   dst-high-sem <- return (semantic-register-of dst-high);
-  mov dst-high-sem.size dst-high-sem (var temp)
+  write-extend-reg '0' dst-high-sem.size dst-high-sem (var temp)
 end
 
 ## D>>
