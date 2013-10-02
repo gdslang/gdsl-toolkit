@@ -386,9 +386,9 @@ val p64 [p/vex/66/0f/3a]
 # | otherwise = /vex/66/f3/0f
 val p64 [] = /
 
-val p/66 [/66-p] = p/66/f2
-val p/66 [/f2-p] = p/66/f3
-val p/66 [/f3-p] = p/66
+val p/66 [/66-p] = p/66
+val p/66 [/f2-p] = p/66/f2
+val p/66 [/f3-p] = p/66/f3
 val p/66 [/legacy-p] = p/66
 val p/66 [/rex-p]
  | mode64? = p/66
@@ -4782,7 +4782,7 @@ val /vex/66/0f/vexv [0xdf /r] | vex128? = varity3 avx VPANDN xmm128 v/xmm xmm/m1
 
 ### PAUSE
 ###  - Spin Loop Hint
-val / [0xf3 0x90] = arity0 none PAUSE
+val /f3 [0x90] = arity0 none PAUSE
 
 ### PAVGB/PAVGW
 ###  - Average Packed Integers
@@ -6049,13 +6049,15 @@ val / [0x0f 0xc1 /r]
 val / ['10010 r:3']
  | rexw? = do update@{reg/opcode=r}; binop none XCHG rax r64/rexb end
  | opndsz? = do update@{reg/opcode=r}; binop none XCHG ax r16/rexb end
- | otherwise = #:-(
-     if r == '000' then #:-(
+ | otherwise = do #:-(
+     rexb <- query $rexb;
+     if r == '000' and (not rexb) then #:-(
        varity0 none NOP
      else do
        update@{reg/opcode=r};
        binop none XCHG eax r32/rexb
      end
+   end
 val / [0x86 /r] = binop-lock none XCHG r/m8 r8
 val / [0x87 /r]
  | rexw? = binop-lock none XCHG r/m64 r64
