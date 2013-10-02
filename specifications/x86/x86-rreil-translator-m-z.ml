@@ -2529,7 +2529,7 @@ val sem-sub x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   difference <- lval sz x.opnd1;
   minuend <- rval sz x.opnd1;
-  subtrahend <- rval sz x.opnd2;
+  subtrahend <- rvals Signed sz x.opnd2;
 
   t <- mktemp;
   sub sz t minuend subtrahend;
