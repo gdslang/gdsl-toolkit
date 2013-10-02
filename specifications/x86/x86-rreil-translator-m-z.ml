@@ -192,6 +192,23 @@ end
 #  write size dst src
 #end
 
+val sem-movq x = do
+  sz-dst <- sizeof1 x.opnd1;
+  sz-src <- return 64;
+  dst <- lval sz-dst x.opnd1;
+  src <- rval sz-src x.opnd2;
+
+  t <- mktemp;
+  if sz-dst > sz-src then
+    mov (sz-dst - sz-src) (at-offset t sz-src) (imm 0)
+  else
+    return void
+  ;
+  mov sz-src t src;
+
+  write-extend '0' sz-dst dst (var t)
+end
+
 val sem-movs x = do
   sz <- sizeof1 x.opnd1;
   src <- rval sz x.opnd2;
