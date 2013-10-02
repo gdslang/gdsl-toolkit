@@ -2711,8 +2711,8 @@ val sem-xadd x = do
   size <- sizeof1 x.opnd1;
   src0 <- rval size x.opnd1;
   src1 <- rval size x.opnd2;
-  dst0 <- lval size x.opnd1;
-  dst1 <- lval size x.opnd2;
+  dst0 <- lval-volatile size x.opnd1;
+  dst1 <- lval-volatile size x.opnd2;
 
   sum <- mktemp;
   add size sum src0 src1;
@@ -2721,8 +2721,8 @@ val sem-xadd x = do
 
   t <- mktemp;
   mov size t src0;
-  write size dst0 (var sum);
-  write size dst1 (var t)
+  write size dst1 (var t);
+  write size dst0 (var sum)
 end
 
 val sem-xchg x = do

@@ -262,25 +262,31 @@ val relative target =
 val absolute target = not (relative target)
 
 #Todo: MEM => byte offset, REG => bit offset... confusing (division?)
-val lval-offset sz x offset =
-   case x of
-     MEM x:
-       do
-         #Offset for memory operands? => Add offset to pointer
-         address <- conv-with '1' Signed x.psz x.opnd;
-	 combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {const=offset}});
-         return (SEM_WRITE_MEM{size=x.psz,address=combined,segment=x.segment})
-       end
-    | REG r:
-       do 
-         id <- return (semantic-register-of-operand-with-size x sz);
-	 id <- return (@{offset=id.offset + offset} id);
-         return (SEM_WRITE_VAR{size= $size id,id=id})
-       end
+val lval-offset-volatile sz x offset volatile = case x of
+   MEM x: do
+     #Offset for memory operands? => Add offset to pointer
+     address <- conv-with '1' Signed x.psz x.opnd;
+     address <- if volatile then do
+       t <- mktemp;
+       mov x.psz t address;
+       return (var t)
+     end else
+       return address
+     ;
+     combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {const=offset}});
+     return (SEM_WRITE_MEM{size=x.psz,address=combined,segment=x.segment})
    end
+ | REG r: do 
+     id <- return (semantic-register-of-operand-with-size x sz);
+     id <- return (@{offset=id.offset + offset} id);
+     return (SEM_WRITE_VAR{size= $size id,id=id})
+   end
+end
 
+val lval-offset sz x offset = lval-offset-volatile sz x offset '0'
 
 val lval sz x = lval-offset sz x 0
+val lval-volatile sz x = lval-offset-volatile sz x 0 '1'
 val lval-upper sz x = lval-offset sz x sz
 
 val register? x =
