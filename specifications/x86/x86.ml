@@ -5364,7 +5364,9 @@ val / [0x6a]
  | mode32? = do opndsz-set-from-d; unop none PUSH imm8 end
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm8 end
 val / [0x68]
- | opndsz? = do opndsz-set-from-d; unop none PUSH imm16 end
+ | rexw? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm32 end
+ | opndsz? & mode32? = do opndsz-set-from-d; unop none PUSH imm16 end
+ | opndsz? & mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm16 end
  | mode32? = do opndsz-set-from-d; unop none PUSH imm32 end
  | mode64? = do opndsz-set-from-d; update@{default-operand-size=64}; unop none PUSH imm32 end
 val / [0x0e] | mode32? = do opndsz-set-from-d; unop none PUSH cs end

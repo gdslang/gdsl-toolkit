@@ -1834,7 +1834,7 @@ end
 
 val sem-push x = do
   src-size <- sizeof1 x.opnd1;
-  src <- rval src-size x.opnd1;
+  src <- rvals Signed src-size x.opnd1;
 
   temp <- mktemp;
   case x.opnd1 of
