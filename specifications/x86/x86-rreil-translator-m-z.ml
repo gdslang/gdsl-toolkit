@@ -810,21 +810,14 @@ val sem-vpcmpgt element-size x = sem-pcmp-vpcmp-opnd '1' element-size /gts x.opn
 
 val sem-pextr-vpextr element-size x = do
   dst-size <- sizeof1 x.opnd1;
-  src-size <- return 128;
+  src-size <- sizeof1 x.opnd2;
   offset-size <- return 8;
 
   src <- rval src-size x.opnd2;
   dst <- lval dst-size x.opnd1;
 
   offset <- rval offset-size x.opnd3;
-  offset-mask <- return (
-    case element-size of
-       8: 0xf
-     | 16: 0x7
-     | 32: 0x3
-     | 64: 0x1
-    end
-  );
+  offset-mask <- return ((/m src-size element-size) - 1);
 
   temp <- mktemp;
   movzx src-size temp offset-size offset;

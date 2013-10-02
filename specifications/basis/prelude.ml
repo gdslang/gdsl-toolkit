@@ -68,8 +68,9 @@ val logb x = if x<=1 then 0 else 1+(logb (/m x 2))
 
 val power a b = case b of
    0: 1
+ | 1: a
  | _: let
-     val half-exp = /p b 2
+     val half-exp = /m b 2
    in
      (power a half-exp)*(power a (b - half-exp))
    end
