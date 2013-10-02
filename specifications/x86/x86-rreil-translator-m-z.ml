@@ -891,24 +891,29 @@ val sem-phsubsw x = sem-phbinop-vphbinop-opnd '0' 16 sub-signed-saturating x.opn
 val sem-vphsubsw x = sem-phbinop-vphbinop-opnd '1' 16 sub-signed-saturating x.opnd1 x.opnd2 x.opnd3
 
 val sem-pinsr-vpinsr-opnd avx-encoded element-size opnd1 opnd2 opnd3 opnd4 = do
+  dst-size <- sizeof1 opnd1;
+  dst <- lval dst-size opnd1;
+
   offset <- return (
     case opnd4 of
       IMM8 x: x.imm
     end
   );
   offset-mask <- return (
-    case element-size of
-       8: '00001111'
-     | 16: '00000111'
-     | 32: '00000011'
-     | 64: '00000001'
+    case (/m dst-size element-size) of
+       1: '00000000'
+     | 2: '00000001'
+     | 4: '00000011'
+     | 8: '00000111'
+     | 16: '00001111'
+     | 32: '00011111'
+     | 64: '00111111'
+     | 128: '01111111'
+     | 256: '11111111'
     end
   );
   offset-masked <- return (offset and offset-mask);
   index <- return ((zx offset-masked) * element-size);
-
-  dst-size <- sizeof1 opnd1;
-  dst <- lval dst-size opnd1;
 
   src-size <- sizeof1 opnd3;
   src1 <- rval dst-size opnd2;
