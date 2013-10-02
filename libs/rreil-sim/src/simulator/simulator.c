@@ -443,6 +443,7 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 				i++;
 				if(i == max) {
 					printf("Warning: Aborting loop after %u iterations.\n", max);
+					error |= SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED;
 					break;
 				}
 			}

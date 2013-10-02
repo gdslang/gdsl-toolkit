@@ -389,7 +389,7 @@ val sem-cmp x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- lval sz x.opnd1;
   b <- rval sz x.opnd1;
-  c <- rval sz x.opnd2;
+  c <- rvals Signed sz x.opnd2;
   t <- mktemp;
   sub sz t b c;
   emit-sub-sbb-flags sz (var t) b c (imm 0) '1'
