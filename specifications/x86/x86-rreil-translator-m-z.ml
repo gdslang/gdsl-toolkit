@@ -2111,30 +2111,31 @@ val sem-ror x = do
   write size dst (var temp-dst)
 end
 
-val sem-rep-repe-repne size sem fc = do
-  count-reg <- return (semantic-register-of (register-by-size low C size));
-
-  cond-creg <- return (/neq size (var count-reg) (imm 0));
-
+val sem-rep-repe-repne size sem fc = let
+  val count-reg = semantic-register-of (register-by-size low C size)
+  val cond-creg = /neq size (var count-reg) (imm 0)
+in do
   cond <- mktemp;
   c <- cond-creg;
   mov 1 cond c;
   _while (/d (var cond)) __ do
     with-subscope sem;
 
-    sub size count-reg (var count-reg) (imm 1);
+    t <- mktemp;
+    sub size t (var count-reg) (imm 1);
+    write-extend-reg '0' size count-reg (var t);
 
     c <- /and cond-creg fc;
     mov 1 cond c
   end
-end
+end end
 
 val sem-rep size sem = sem-rep-repe-repne size sem (return (imm 1))
 
 val sem-repe size sem = let
   val fc = do
     zf <- fZF;
-    /not (var zf)
+    /d (var zf)
   end
 in
   sem-rep-repe-repne size sem fc
@@ -2143,7 +2144,7 @@ end
 val sem-repne size sem = let
   val fc = do
     zf <- fZF;
-    /d (var zf)
+    /not (var zf)
   end
 in
   sem-rep-repe-repne size sem fc

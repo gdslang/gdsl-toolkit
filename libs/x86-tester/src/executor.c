@@ -23,7 +23,7 @@
 #include <sys/prctl.h>
 extern int arch_prctl(int code, unsigned long *addr);
 
-//#define DRYRUN
+#define DRYRUN
 
 /*
  * Clean up RFLAGS
@@ -125,6 +125,46 @@ struct mapping {
 static char map(struct stack *mappings, void *address, size_t size) {
 	page_address_size_get(&address, &size);
 
+	struct mapping **mappings_raw;
+	size_t mappings_raw_length = stack_data_get((void***)&mappings_raw, mappings);
+	for (size_t i = 0; i < mappings_raw_length; ++i) {
+		size_t last = (size_t)address + (size_t)size - 1;
+		size_t other_last = (size_t)mappings_raw[i]->address + (size_t)mappings_raw[i]->length - 1;
+		char overlap = 0;
+//		if(address <= other_last && last >= mappings_raw[i]->address) {
+//			if(address < mappings_raw[i]->address)
+//				address = mappings_raw[i]->address;
+//			else
+//				return 0;
+//		} else if(address <= other_last && last >= other_last)
+				if((size_t)address <= other_last && last >= (size_t)mappings_raw[i]->address)
+					overlap = 1;
+				if(!overlap)
+					continue;
+				char included = 0;
+				if(address >= mappings_raw[i]->address)
+					included |= 1;
+				if(last <= other_last)
+					included |= 2;
+				switch(included) {
+					case 0: {
+						break;
+					}
+					case 1: {
+						address = mappings_raw[i]->address;
+						break;
+					}
+					case 2: {
+						last = other_last;
+						break;
+					}
+					case 3: {
+						return 0;
+					}
+				}
+				size = last - (size_t)address + 1;
+	}
+
 	uint64_t *mem_real = mmap(address, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 	MAP_PRIVATE | MAP_ANON | MAP_FIXED, 0, 0);
 
@@ -157,12 +197,25 @@ static char map_and_copy(struct stack *mappings, struct tracking_trace *trace, s
 			case MEMORY_ALLOCATION_TYPE_ACCESS: {
 				if(map(mappings, allocation->address, allocation->data_size))
 					return -3;
-				memcpy(allocation->address, allocation->data, allocation->data_size);
 				break;
 			}
 			case MEMORY_ALLOCATION_TYPE_JUMP: {
 				if(map(mappings, allocation->address, tbgen_result.jump_marker_length))
 					return -3;
+				break;
+			}
+		}
+	}
+
+	for(size_t i = 0; i < context->memory.allocations_length; ++i) {
+		struct memory_allocation *allocation = &context->memory.allocations[i];
+
+		switch(allocation->type) {
+			case MEMORY_ALLOCATION_TYPE_ACCESS: {
+				memcpy(allocation->address, allocation->data, allocation->data_size);
+				break;
+			}
+			case MEMORY_ALLOCATION_TYPE_JUMP: {
 				memcpy(allocation->address, tbgen_result.jump_marker, tbgen_result.jump_marker_length);
 				break;
 			}
