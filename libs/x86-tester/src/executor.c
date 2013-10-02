@@ -23,7 +23,7 @@
 #include <sys/prctl.h>
 extern int arch_prctl(int code, unsigned long *addr);
 
-#define DRYRUN
+//#define DRYRUN
 
 /*
  * Clean up RFLAGS
