@@ -428,7 +428,7 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			/*
 			 * Todo: Handle undefined value
 			 */
-			uint32_t max = 0xffff;
+			uint32_t max = 0x0fff;
 			uint32_t i = 0;
 			if(!(data.defined[0] & 0x01)) {
 				printf("Warning: Undefined condition in while statement.\n");

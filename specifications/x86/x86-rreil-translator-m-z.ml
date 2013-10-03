@@ -1,9 +1,9 @@
 ## M>>
 
-val sem-maskmov element-size x = do
-  size <- sizeof1 x.opnd2;
-  src <- rval size x.opnd2;
-  mask <- rval size x.opnd3;
+val sem-maskmov-opnd element-size dst src mask = do
+  size <- sizeof1 mask;
+  src <- rval size src;
+  mask <- rval size mask;
 
   src-temp <- mktemp;
   mov size src-temp src;
@@ -12,7 +12,7 @@ val sem-maskmov element-size x = do
   mov size mask-temp mask;
 
   is-load <- return (
-    case x.opnd1 of
+    case dst of
        MEM m: '0'
      | REG r: '1'
     end
@@ -29,7 +29,7 @@ val sem-maskmov element-size x = do
     val m i =
       let
         val write-dst value = do
-          dst <- lval-offset element-size x.opnd1 (i*offset-factor);
+          dst <- lval-offset element-size dst (i*offset-factor);
           write element-size dst value
         end
       in do
@@ -47,15 +47,15 @@ val sem-maskmov element-size x = do
   end;
 
   if is-load and size === 128 then do
-    dst <- lval-offset size x.opnd1 size;
+    dst <- lval-offset size dst size;
     write size dst (imm 0)
   end else
     return void
 end
 
-val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov 8 x
+val sem-maskmovdqu-vmaskmovdqu x = sem-maskmov-opnd 8 x.opnd1 x.opnd2 x.opnd3
 
-val sem-maskmovq x = sem-maskmov 8 x
+val sem-maskmovq x = sem-maskmov-opnd 8 x.opnd1 x.opnd2 x.opnd3
 
 val sem-mov avx-encoded x = do
   sz <- sizeof1 x.opnd1;
@@ -2613,7 +2613,7 @@ val sem-vmaskmovp element-size v = do
        VA3 x: x
     end
   );
-  sem-maskmov element-size x
+  sem-maskmov-opnd element-size x.opnd1 x.opnd3 x.opnd2
 end
 
 val sem-vzeroall = do
