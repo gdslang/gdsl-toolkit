@@ -201,21 +201,20 @@ val sem-bswap x = do
   write size dst (var temp)
 end
 
-val sem-bt-complement base-sz base base-opnd shifted offset-ext = let
+val sem-bt-complement base-sz base dst shifted offset-ext = let
   val sem = do
     output <- mktemp;
     #andb base-sz output (var shifted) (imm 1);
     #shl base-sz output (var output) (var offset-ext);
     shl base-sz output (imm 1) (var offset-ext);
     xorb base-sz output (var output) base;
-    dst <- lval base-sz base-opnd;
     write base-sz dst (var output)
   end
 in
   with-subscope sem
 end
 
-val sem-bt-reset base-sz base base-opnd shifted offset-ext = let
+val sem-bt-reset base-sz base dst shifted offset-ext = let
   val sem = do
    output <- mktemp;
    shl base-sz output (imm 1) (var offset-ext);
@@ -223,19 +222,17 @@ val sem-bt-reset base-sz base base-opnd shifted offset-ext = let
    #xorb base-sz output (imm (0-1)) (imm 1);
    #shl base-sz output (var output) (var offset-ext);
    andb base-sz output (var output) base;
-   dst <- lval base-sz base-opnd;
    write base-sz dst (var output)
  end
 in
   with-subscope sem
 end
 
-val sem-bt-set base-sz base base-opnd shifted offset-ext = let
+val sem-bt-set base-sz base dst shifted offset-ext = let
   val sem = do
     output <- mktemp;
     shl base-sz output (imm 1) (var offset-ext);
     orb base-sz output (var output) base;
-    dst <- lval base-sz base-opnd;
     write base-sz dst (var output)
   end
 in
@@ -245,11 +242,25 @@ end
 val sem-bt-none base-sz base base-opnd shifted offset-ext = return void
 
 val sem-bt x modifier = do
-  base-sz <- sizeof1 x.opnd1;
-  base <- rval base-sz x.opnd1;
   offset-sz <- sizeof1 x.opnd2;
   offset <- rval offset-sz x.opnd2;
-
+  base-sz <- sizeof1 x.opnd1;
+  bd <- case x.opnd1 of
+     MEM m: do
+       t <- mktemp;
+       movzx m.psz t offset-sz offset;
+       shr m.psz t (var t) (imm 3);
+       base <- rval-ptroff base-sz (var t) x.opnd1;
+       dst <- lval-ptroff base-sz (var t) x.opnd1;
+       return {base=base, dst=dst}
+     end
+   | _: do 
+       base <- rval base-sz x.opnd1;
+       dst <- lval base-sz x.opnd1;
+       return {base=base, dst=dst}
+     end
+  end;
+  
   offset-real-sz <-
     case base-sz of
        16: return 4
@@ -263,12 +274,12 @@ val sem-bt x modifier = do
   mov (base-sz - offset-real-sz) (at-offset offset-ext offset-real-sz) (imm 0);
 
   shifted <- mktemp;
-  shr base-sz shifted base (var offset-ext);
+  shr base-sz shifted bd.base (var offset-ext);
 
   cf <- fCF;
   mov 1 cf (var shifted);
 
-  modifier base-sz base x.opnd1 shifted offset-ext;
+  modifier base-sz bd.base bd.dst shifted offset-ext;
 
   ov <- fOF;
   sf <- fSF;
@@ -789,7 +800,7 @@ val sem-lea x = do
     end
   ;
   addr-sz <- return src.psz;
-  address <- conv-with '1' Signed src.psz src.opnd;
+  address <- conv-with '1' OFFSET_NONE Signed src.psz src.opnd;
 
   temp <- mktemp;
   movzx opnd-sz temp addr-sz address;

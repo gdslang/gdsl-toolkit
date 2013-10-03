@@ -335,6 +335,8 @@ struct execution_result executor_instruction_execute(uint8_t *instruction, size_
 
 //	alarm(1);
 
+//	__asm__ ("mov $0x00112244556677, %rsi\nbtc %ax, (%rsi)\n");
+
 #ifndef DRYRUN
 	if(!setjmp(jbuf))
 		((void (*)(void))code)();

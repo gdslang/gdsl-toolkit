@@ -29,7 +29,7 @@ val sem-maskmov-opnd element-size dst src mask = do
     val m i =
       let
         val write-dst value = do
-          dst <- lval-offset element-size dst (i*offset-factor);
+          dst <- lval-offset element-size dst (OFFSET_CONST (i*offset-factor));
           write element-size dst value
         end
       in do
@@ -47,7 +47,7 @@ val sem-maskmov-opnd element-size dst src mask = do
   end;
 
   if is-load and size === 128 then do
-    dst <- lval-offset size dst size;
+    dst <- lval-offset size dst (OFFSET_CONST size);
     write size dst (imm 0)
   end else
     return void

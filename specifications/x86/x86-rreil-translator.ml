@@ -142,7 +142,12 @@ end
 #  return DS
 #end
 
-val conv-with is-mem conv sz x =
+type offset-option =
+   OFFSET_NONE
+ | OFFSET_LIN of sem_linear
+ | OFFSET_CONST of int
+
+val conv-with is-mem ptro conv sz x =
    let
       val conv-imm conv x = case conv of
       	  Signed: return (SEM_LIN_IMM{const=sx x})
@@ -156,8 +161,8 @@ val conv-with is-mem conv sz x =
       end
 
       val conv-sum conv sz x =
-         do op1 <- conv-with is-mem conv sz x.a;
-            op2 <- conv-with is-mem conv sz x.b;
+         do op1 <- conv-with is-mem ptro conv sz x.a;
+            op2 <- conv-with is-mem ptro conv sz x.b;
             return
                (SEM_LIN_ADD
                   {opnd1=op1,
@@ -165,7 +170,7 @@ val conv-with is-mem conv sz x =
          end
 
       val conv-scale conv sz x =
-         do op <- conv-with is-mem conv sz x.opnd;
+         do op <- conv-with is-mem ptro conv sz x.opnd;
             return
                (SEM_LIN_SCALE
                   {opnd=op,
@@ -178,7 +183,18 @@ val conv-with is-mem conv sz x =
                      end})
          end
 
-      val conv-mem x = conv-with '1' Signed x.psz x.opnd
+      val conv-mem x = case ptro of
+         OFFSET_NONE: conv-with '1' ptro Signed x.psz x.opnd
+       | OFFSET_LIN o: do
+           opnd2 <- conv-with '1' ptro Signed x.psz x.opnd;
+           return (SEM_LIN_ADD {opnd1=o, opnd2=opnd2})
+         end
+       | OFFSET_CONST o: do
+           opnd2 <- conv-with '1' ptro Signed x.psz x.opnd;
+           return (SEM_LIN_ADD {opnd1=SEM_LIN_IMM {const=o}, opnd2=opnd2})
+         end
+      end
+
    in
       case x of
          IMM8 x: conv-imm conv x.imm
@@ -203,8 +219,9 @@ val conv-with is-mem conv sz x =
       end
    end
 
-val rval sz x = conv-with '0' Unsigned sz x
-val rvals conv sz x = conv-with '0' conv sz x
+val rval sz x = conv-with '0' OFFSET_NONE Unsigned sz x
+val rvals conv sz x = conv-with '0' OFFSET_NONE conv sz x
+val rval-ptroff sz offset x = conv-with '0' (OFFSET_LIN offset) Unsigned sz x
 
 val extract-imm-unsigned imm =
   case imm of
@@ -265,7 +282,7 @@ val absolute target = not (relative target)
 val lval-offset-volatile sz x offset volatile = case x of
    MEM x: do
      #Offset for memory operands? => Add offset to pointer
-     address <- conv-with '1' Signed x.psz x.opnd;
+     address <- conv-with '1' OFFSET_NONE Signed x.psz x.opnd;
      address <- if volatile then do
        t <- mktemp;
        mov x.psz t address;
@@ -273,21 +290,29 @@ val lval-offset-volatile sz x offset volatile = case x of
      end else
        return address
      ;
-     combined <- return (SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {const=offset}});
+     combined <- return (case offset of
+        OFFSET_NONE: address
+      | OFFSET_LIN l: SEM_LIN_ADD{opnd1=address,opnd2=l}
+      | OFFSET_CONST c: SEM_LIN_ADD{opnd1=address,opnd2=SEM_LIN_IMM {const=c}}
+     end);
      return (SEM_WRITE_MEM{size=x.psz,address=combined,segment=x.segment})
    end
  | REG r: do 
      id <- return (semantic-register-of-operand-with-size x sz);
-     id <- return (@{offset=id.offset + offset} id);
+     combined <- return (case offset of
+        OFFSET_NONE: id
+      | OFFSET_CONST c: @{offset=id.offset + c} id
+     end);
      return (SEM_WRITE_VAR{size= $size id,id=id})
    end
 end
 
 val lval-offset sz x offset = lval-offset-volatile sz x offset '0'
 
-val lval sz x = lval-offset sz x 0
-val lval-volatile sz x = lval-offset-volatile sz x 0 '1'
-val lval-upper sz x = lval-offset sz x sz
+val lval sz x = lval-offset sz x OFFSET_NONE
+val lval-volatile sz x = lval-offset-volatile sz x OFFSET_NONE '1'
+val lval-upper sz x = lval-offset sz x (OFFSET_CONST sz)
+val lval-ptroff sz offset x = lval-offset sz x (OFFSET_LIN offset)
 
 val register? x =
   case x of
