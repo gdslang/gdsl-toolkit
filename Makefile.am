@@ -327,6 +327,7 @@ JSOURCES = src/rreil/DefaultLimitedVariableCollection.java \
            src/rreil/expression/ZeroExtend.java \
            src/rreil/expression/ICompare.java \
            src/rreil/expression/Modulo.java \
+           src/rreil/expression/SignedModulo.java \
            src/rreil/expression/CompareEqual.java \
            src/rreil/expression/CompareLessOrEqualUnsigned.java \
            src/rreil/expression/ShiftLeft.java \
