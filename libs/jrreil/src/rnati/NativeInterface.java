@@ -97,20 +97,20 @@ public class NativeInterface {
 		return builder.sem_mxcsr();
 	}
 
-	private Object sem_ax() {
-		return builder.sem_ax();
+	private Object sem_a() {
+		return builder.sem_a();
 	}
 
-	private Object sem_bx() {
-		return builder.sem_bx();
+	private Object sem_b() {
+		return builder.sem_b();
 	}
 
-	private Object sem_cx() {
-		return builder.sem_cx();
+	private Object sem_c() {
+		return builder.sem_c();
 	}
 
-	private Object sem_dx() {
-		return builder.sem_dx();
+	private Object sem_d() {
+		return builder.sem_d();
 	}
 
 	private Object sem_si() {

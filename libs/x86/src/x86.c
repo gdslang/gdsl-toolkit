@@ -24,20 +24,20 @@ void x86_id_print(FILE *stream, enum x86_id id) {
 			fprintf(stream, "MXCSR");
 			break;
 		}
-		case X86_ID_AX: {
-			fprintf(stream, "AX");
+		case X86_ID_A: {
+			fprintf(stream, "A");
 			break;
 		}
-		case X86_ID_BX: {
-			fprintf(stream, "BX");
+		case X86_ID_B: {
+			fprintf(stream, "B");
 			break;
 		}
-		case X86_ID_CX: {
-			fprintf(stream, "CX");
+		case X86_ID_C: {
+			fprintf(stream, "C");
 			break;
 		}
-		case X86_ID_DX: {
-			fprintf(stream, "DX");
+		case X86_ID_D: {
+			fprintf(stream, "D");
 			break;
 		}
 		case X86_ID_SI: {
@@ -290,16 +290,16 @@ size_t x86_amd64_sizeof(enum x86_id id) {
 		case X86_ID_MXCSR: {
 			return 64;
 		}
-		case X86_ID_AX: {
+		case X86_ID_A: {
 			return 64;
 		}
-		case X86_ID_BX: {
+		case X86_ID_B: {
 			return 64;
 		}
-		case X86_ID_CX: {
+		case X86_ID_C: {
 			return 64;
 		}
-		case X86_ID_DX: {
+		case X86_ID_D: {
 			return 64;
 		}
 		case X86_ID_SI: {
@@ -528,17 +528,17 @@ enum x86_id x86_reg_from_con(int_t con) {
 		case CON_Sem_MXCSR: {
 			return X86_ID_MXCSR;
 		}
-		case CON_Sem_AX: {
-			return X86_ID_AX;
+		case CON_Sem_A: {
+			return X86_ID_A;
 		}
-		case CON_Sem_BX: {
-			return X86_ID_BX;
+		case CON_Sem_B: {
+			return X86_ID_B;
 		}
-		case CON_Sem_CX: {
-			return X86_ID_CX;
+		case CON_Sem_C: {
+			return X86_ID_C;
 		}
-		case CON_Sem_DX: {
-			return X86_ID_DX;
+		case CON_Sem_D: {
+			return X86_ID_D;
 		}
 		case CON_Sem_SI: {
 			return X86_ID_SI;

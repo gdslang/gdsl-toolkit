@@ -24,28 +24,28 @@ static uint8_t tbgen_register_to_binary(enum x86_id register_) {
 		case X86_ID_XMM0:
 		case X86_ID_MM0:
 		case X86_ID_R8:
-		case X86_ID_AX: {
+		case X86_ID_A: {
 			return 0b000;
 		}
 		case X86_ID_XMM9:
 		case X86_ID_XMM1:
 		case X86_ID_MM1:
 		case X86_ID_R9:
-		case X86_ID_CX: {
+		case X86_ID_C: {
 			return 0b001;
 		}
 		case X86_ID_XMM10:
 		case X86_ID_XMM2:
 		case X86_ID_MM2:
 		case X86_ID_R10:
-		case X86_ID_DX: {
+		case X86_ID_D: {
 			return 0b010;
 		}
 		case X86_ID_XMM11:
 		case X86_ID_XMM3:
 		case X86_ID_MM3:
 		case X86_ID_R11:
-		case X86_ID_BX: {
+		case X86_ID_B: {
 			return 0b011;
 		}
 		case X86_ID_XMM12:

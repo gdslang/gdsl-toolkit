@@ -123,23 +123,23 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	@Override
-	public IId sem_ax() {
-		return new X86RegisterId(X86Register.AX);
+	public IId sem_a() {
+		return new X86RegisterId(X86Register.A);
 	}
 
 	@Override
-	public IId sem_bx() {
-		return new X86RegisterId(X86Register.BX);
+	public IId sem_b() {
+		return new X86RegisterId(X86Register.B);
 	}
 
 	@Override
-	public IId sem_cx() {
-		return new X86RegisterId(X86Register.CX);
+	public IId sem_c() {
+		return new X86RegisterId(X86Register.C);
 	}
 
 	@Override
-	public IId sem_dx() {
-		return new X86RegisterId(X86Register.DX);
+	public IId sem_d() {
+		return new X86RegisterId(X86Register.D);
 	}
 
 	@Override

@@ -31,10 +31,10 @@ type sem_id
    = Sem_IP
    | Sem_FLAGS
    | Sem_MXCSR
-   | Sem_AX
-   | Sem_BX
-   | Sem_CX
-   | Sem_DX
+   | Sem_A
+   | Sem_B
+   | Sem_C
+   | Sem_D
    | Sem_SI
    | Sem_DI
    | Sem_SP
@@ -102,26 +102,26 @@ type sem_id
 val semantic-register-of r = semantic-register-of-mr '0' r
 
 val semantic-register-of-mr is-mem r = case r of
-   AL    : {id=Sem_AX,offset=0,size=8}
- | AH    : {id=Sem_AX,offset=8,size=8}
- | AX    : {id=Sem_AX,offset=0,size=16}
- | EAX   : {id=Sem_AX,offset=0,size=32}
- | RAX   : {id=Sem_AX,offset=0,size=64}
- | BL    : {id=Sem_BX,offset=0,size=8}
- | BH    : {id=Sem_BX,offset=8,size=8}
- | BX    : {id=Sem_BX,offset=0,size=16}
- | EBX   : {id=Sem_BX,offset=0,size=32}
- | RBX   : {id=Sem_BX,offset=0,size=64}
- | CL    : {id=Sem_CX,offset=0,size=8}
- | CH    : {id=Sem_CX,offset=8,size=8}
- | CX    : {id=Sem_CX,offset=0,size=16}
- | ECX   : {id=Sem_CX,offset=0,size=32}
- | RCX   : {id=Sem_CX,offset=0,size=64}
- | DL    : {id=Sem_DX,offset=0,size=8}
- | DH    : {id=Sem_DX,offset=8,size=8}
- | DX    : {id=Sem_DX,offset=0,size=16}
- | EDX   : {id=Sem_DX,offset=0,size=32}
- | RDX   : {id=Sem_DX,offset=0,size=64}
+   AL    : {id=Sem_A,offset=0,size=8}
+ | AH    : {id=Sem_A,offset=8,size=8}
+ | AX    : {id=Sem_A,offset=0,size=16}
+ | EAX   : {id=Sem_A,offset=0,size=32}
+ | RAX   : {id=Sem_A,offset=0,size=64}
+ | BL    : {id=Sem_B,offset=0,size=8}
+ | BH    : {id=Sem_B,offset=8,size=8}
+ | BX    : {id=Sem_B,offset=0,size=16}
+ | EBX   : {id=Sem_B,offset=0,size=32}
+ | RBX   : {id=Sem_B,offset=0,size=64}
+ | CL    : {id=Sem_C,offset=0,size=8}
+ | CH    : {id=Sem_C,offset=8,size=8}
+ | CX    : {id=Sem_C,offset=0,size=16}
+ | ECX   : {id=Sem_C,offset=0,size=32}
+ | RCX   : {id=Sem_C,offset=0,size=64}
+ | DL    : {id=Sem_D,offset=0,size=8}
+ | DH    : {id=Sem_D,offset=8,size=8}
+ | DX    : {id=Sem_D,offset=0,size=16}
+ | EDX   : {id=Sem_D,offset=0,size=32}
+ | RDX   : {id=Sem_D,offset=0,size=64}
  | R8L   : {id=Sem_R8,offset=0,size=8}
  | R8W   : {id=Sem_R8,offset=0,size=16}
  | R8D   : {id=Sem_R8,offset=0,size=32}

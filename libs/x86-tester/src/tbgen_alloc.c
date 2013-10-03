@@ -84,10 +84,10 @@ void tbgen_allocate_fixed(struct tbgen_register_allocation *allocation,
 
 static char next(enum x86_id *reg) {
 	switch(*reg) {
-		case X86_ID_AX:
-		case X86_ID_BX:
-		case X86_ID_CX:
-		case X86_ID_DX:
+		case X86_ID_A:
+		case X86_ID_B:
+		case X86_ID_C:
+		case X86_ID_D:
 		case X86_ID_SI:
 		case X86_ID_R8:
 		case X86_ID_R9:
@@ -100,7 +100,7 @@ static char next(enum x86_id *reg) {
 			break;
 		}
 		case X86_ID_R15: {
-			*reg = X86_ID_AX;
+			*reg = X86_ID_A;
 			break;
 		}
 		case X86_ID_DI: {

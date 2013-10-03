@@ -34,13 +34,13 @@ public interface IRReilBuilder {
 
 	IId sem_mxcsr();
 
-	IId sem_ax();
+	IId sem_a();
 
-	IId sem_bx();
+	IId sem_b();
 
-	IId sem_cx();
+	IId sem_c();
 
-	IId sem_dx();
+	IId sem_d();
 
 	IId sem_si();
 
