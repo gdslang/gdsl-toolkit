@@ -243,13 +243,23 @@ val sem-bt-none base-sz base base-opnd shifted offset-ext = return void
 
 val sem-bt x modifier = do
   offset-sz <- sizeof1 x.opnd2;
-  offset <- rval offset-sz x.opnd2;
+  offset <- rvals Unsigned offset-sz x.opnd2;
   base-sz <- sizeof1 x.opnd1;
+  
+  offset-real-sz <-
+    case base-sz of
+       16: return 4
+     | 32: return 5
+     | 64: return 6
+    end
+  ;
+
   bd <- case x.opnd1 of
      MEM m: do
        t <- mktemp;
-       movzx m.psz t offset-sz offset;
-       shr m.psz t (var t) (imm 3);
+       movsx m.psz t offset-sz offset;
+       shrs m.psz t (var t) (imm 3);
+       mov (offset-real-sz - 3) t (imm 0);
        base <- rval-ptroff base-sz (var t) x.opnd1;
        dst <- lval-ptroff base-sz (var t) x.opnd1;
        return {base=base, dst=dst}
@@ -260,14 +270,6 @@ val sem-bt x modifier = do
        return {base=base, dst=dst}
      end
   end;
-  
-  offset-real-sz <-
-    case base-sz of
-       16: return 4
-     | 32: return 5
-     | 64: return 6
-    end
-  ;
 
   offset-ext <- mktemp;
   mov offset-real-sz offset-ext offset;
