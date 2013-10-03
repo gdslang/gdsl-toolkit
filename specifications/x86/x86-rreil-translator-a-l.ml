@@ -257,7 +257,10 @@ val sem-bt x modifier = do
   bd <- case x.opnd1 of
      MEM m: do
        t <- mktemp;
-       movsx m.psz t offset-sz offset;
+       (case x.opnd2 of
+          REG r: movsx m.psz t offset-sz offset
+        | _: movzx m.psz t offset-real-sz offset
+       end);
        shrs m.psz t (var t) (imm 3);
        mov (offset-real-sz - 3) t (imm 0);
        base <- rval-ptroff base-sz (var t) x.opnd1;

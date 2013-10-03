@@ -295,11 +295,12 @@ val sem-neg x = do
   cmpneq size cf src (imm 0);
 
   src-temp <- mktemp;
+  cmplts size sf (var temp) (imm 0);
+  cmpeq size zf (var temp) (imm 0);
   #mov size src-temp src;
   #cmpeq 1 ov (var (at-offset temp (size - 1))) (var (at-offset src-temp (size - 1)));
   cmpeq size ov (var temp) src;
-  cmplts size sf (var temp) (imm 0);
-  cmpeq size zf (var temp) (imm 0);
+  xorb 1 ov (var ov) (var zf);
 
   emit-parity-flag (var temp);
   emit-arithmetic-adjust-flag size (var temp) (imm 0) src; #Todo: Correct?
@@ -2554,7 +2555,7 @@ end
 val sem-test x = do
   sz <- sizeof2 x.opnd1 x.opnd2;
   a <- rval sz x.opnd1;
-  b <- rval sz x.opnd2;
+  b <- rvals Signed sz x.opnd2;
 
   temp <- mktemp;
   andb sz temp a b;
