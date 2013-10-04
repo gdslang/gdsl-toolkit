@@ -232,18 +232,47 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	printf("------------------\n");
 	context_x86_print(context_rreil);
 
+	char exception = 0;
+
 	enum simulator_error simulation_error = simulator_statements_simulate(context_rreil, statements);
-	if(simulation_error != SIMULATOR_ERROR_NONE) {
-		result.type = TESTER_RTYPE_SIMULATION_ERROR;
-		result.simulator_error = simulation_error;
-		goto cu_a;
+	switch(simulation_error) {
+		case SIMULATOR_ERROR_NONE: {
+			break;
+		}
+		case SIMULATOR_ERROR_EXCEPTION: {
+			exception = 1;
+			break;
+		}
+		default: {
+			result.type = TESTER_RTYPE_SIMULATION_ERROR;
+			result.simulator_error = simulation_error;
+			goto cu_a;
+		}
 	}
 
 	struct execution_result execution_result = executor_instruction_execute(instruction, instruction_length, trace,
 			context_cpu, code, tbgen_result);
-	if(execution_result.type != EXECUTION_RTYPE_SUCCESS) {
-		result.type = TESTER_RTYPE_EXECUTION_ERROR;
-		result.execution_result = execution_result;
+	switch(execution_result.type) {
+		case EXECUTION_RTYPE_SUCCESS: {
+			break;
+		}
+		case EXECUTION_RTYPE_SIGNAL: {
+			if(exception) {
+				printf("Received signal while expecting signal due to a simulation exception.\n");
+				result.type = TESTER_RTYPE_SUCCESS;
+				goto cu_a;
+			}
+		}
+		default: {
+			result.type = TESTER_RTYPE_EXECUTION_ERROR;
+			result.execution_result = execution_result;
+			goto cu_a;
+		}
+	}
+
+	if(exception) {
+		printf("Received no signal while expecting signal due to a simulation exception.\n");
+		result.type = TESTER_RTYPE_COMPARISON_ERROR;
 		goto cu_a;
 	}
 

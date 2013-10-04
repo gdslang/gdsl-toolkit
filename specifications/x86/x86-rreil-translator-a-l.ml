@@ -565,8 +565,6 @@ val sem-div signedness x = do
   sz <- sizeof1 x.opnd1;
   divisor <- rvals signedness (sz + sz) x.opnd1;
 
-  #by-zero <- mktemp;
-  #cmpeq (sz + sz) by-zero divisor (imm 0);
   _if (/eq (sz + sz) divisor (imm 0)) _then
     throw SEM_DIVISION_BY_ZERO
   ;
@@ -579,11 +577,20 @@ val sem-div signedness x = do
   ;
 
   quotient <- mktemp;
-  #Todo: Handle exception
   (case signedness of
      Unsigned: div
    | Signed: divs
   end) (sz + sz) quotient (var dividend) divisor;
+
+  case signedness of
+     Unsigned:
+       _if (/neq sz (var (at-offset quotient sz)) (imm 0)) _then
+         throw SEM_DIVISION_OVERFLOW
+   | Signed: do
+       _if (/or (/gts (sz + sz) (var quotient) (imm ((power 2 (sz - 1)) - 1))) (/lts (sz + sz) (var quotient) (imm (0 - (power 2 (sz - 1)))))) _then
+         throw SEM_DIVISION_OVERFLOW
+     end
+  end;
 
   remainder <- mktemp;
   (case signedness of

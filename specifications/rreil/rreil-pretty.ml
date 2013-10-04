@@ -89,6 +89,7 @@ val rreil-show-expr size expr =
     | SEM_DIV x: rreil-show-arity2-infix x "/u"
     | SEM_DIVS x: rreil-show-arity2-infix x "/s"
     | SEM_MOD x: rreil-show-arity2-infix x "%"
+    | SEM_MODS x: rreil-show-arity2-infix x "%s"
     | SEM_SHL x: rreil-show-arity2-infix x "<<"
     | SEM_SHR x: rreil-show-arity2-infix x ">>u"
     | SEM_SHRS x: rreil-show-arity2-infix x ">>s"

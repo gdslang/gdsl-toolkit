@@ -413,9 +413,9 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 				error |= SIMULATOR_ERROR_UNDEFINED_BRANCH;
 			}
 			if(!(data.defined[0] & 0x01) || (data.data[0] & 0x01))
-				simulator_statements_simulate(context, statement->ite.then_branch);
+				error |= simulator_statements_simulate(context, statement->ite.then_branch);
 			else
-				simulator_statements_simulate(context, statement->ite.else_branch);
+				error |= simulator_statements_simulate(context, statement->ite.else_branch);
 
 			context_data_clear(&data);
 			break;
@@ -436,7 +436,7 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 				goto error_while;
 			}
 			while(data.data[0] & 0x01) {
-				simulator_statements_simulate(context, statement->while_.body);
+				error |= simulator_statements_simulate(context, statement->while_.body);
 				context_data_clear(&data);
 				data = simulator_sexpr_simulate(context, statement->while_.cond, 1);
 

@@ -294,6 +294,7 @@ JSOURCES = src/rreil/DefaultLimitedVariableCollection.java \
            src/rreil/statement/BranchStatement.java \
            src/rreil/statement/IStatement.java \
            src/rreil/statement/IfThenElseStatement.java \
+           src/rreil/statement/ThrowStatement.java \
            src/rreil/DefaultStatementCollection.java \
            src/rreil/Flop.java \
            src/rreil/IRReilBuilder.java \
@@ -344,6 +345,10 @@ JSOURCES = src/rreil/DefaultLimitedVariableCollection.java \
            src/rreil/expression/SignedDivision.java \
            src/rreil/expression/Extend.java \
            src/rreil/expression/Xor.java \
+           src/rreil/exception/IException.java \
+           src/rreil/exception/Exception.java \
+           src/rreil/exception/x86/X86Exception.java \
+           src/rreil/exception/GenericArchException.java \
            src/rreil/IBranchHint.java \
            src/rnati/RReilTranslateException.java \
            src/rnati/GdslDecodeException.java \
@@ -463,6 +468,7 @@ include_HEADERS += $(srcdir)/libs/rreil/include/rreil/rreil.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_comparator.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_expr.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_branch_hint.h \
+                   $(srcdir)/libs/rreil/include/rreil/rreil_exception.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_sexpr.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_arity.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_statement.h
