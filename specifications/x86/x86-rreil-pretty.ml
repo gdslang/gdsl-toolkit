@@ -69,3 +69,8 @@ val arch-show-id r = case r of
     | VIRT_LTS: "LTS"
 #    | VIRT_LTU: "LTU"
 end
+
+val arch-show-exception exception =
+   case exception of
+      SEM_DIVISION_OVERFLOW: "{Exception: Division overflow}"
+   end

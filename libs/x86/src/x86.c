@@ -279,6 +279,15 @@ void x86_id_print(FILE *stream, enum x86_id id) {
 	}
 }
 
+void x86_exception_print(FILE *stream, enum x86_exception exception) {
+	switch(exception) {
+		case X86_EXCEPTION_DIVISION_OVERFLOW: {
+			fprintf(stream, "{Exception: Division overflow}");
+			break;
+		}
+	}
+}
+
 size_t x86_amd64_sizeof(enum x86_id id) {
 	switch(id) {
 		case X86_ID_IP: {
@@ -716,6 +725,15 @@ enum x86_id x86_reg_from_con(int_t con) {
 		}
 		case CON_VIRT_LTS: {
 			return X86_ID_VIRT_LTS;
+		}
+	}
+	return 0;
+}
+
+enum x86_exception x86_exception_from_con(int_t con) {
+	switch(con) {
+		case CON_SEM_DIVISION_OVERFLOW: {
+			return X86_EXCEPTION_DIVISION_OVERFLOW;
 		}
 	}
 	return 0;

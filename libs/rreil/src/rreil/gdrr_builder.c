@@ -69,7 +69,7 @@ static obj_t virt_t(state_t state, int_t t) {
 obj_t sem_id_arch(state_t state, int_t con) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_X86;
-	id->x86 = (uint32_t)x86_reg_from_con(con);
+	id->x86 = x86_reg_from_con(con);
 	return id;
 }
 #else
@@ -78,6 +78,35 @@ obj_t sem_id_arch(state_t state, int_t con) {
 	id->type = RREIL_ID_TYPE_ARCH;
 	id->arch = (uint32_t)con;
 	return id;
+}
+#endif
+
+// sem_exception
+static obj_t exception_shared(state_t state, int_t con) {
+	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
+	id->type = RREIL_ID_TYPE_SHARED;
+	switch (con) {
+		case CON_FLOATING_FLAGS: {
+			id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
+			break;
+		}
+	}
+	return (obj_t)id;
+}
+
+#ifdef GDSL_X86
+obj_t exception_arch(state_t state, int_t con) {
+	struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
+	exception->type = RREIL_EXCEPTION_TYPE_X86;
+	exception->x86 = x86_exception_from_con(con);
+	return exception;
+}
+#else
+obj_t exception_arch(state_t state, int_t con) {
+	struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
+	exception->type = RREIL_EXCEPTION_TYPE_ARCH;
+	exception->arch = (uint32_t)con;
+	return exception;
 }
 #endif
 
@@ -449,6 +478,13 @@ static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
 	statement->prim.rhs = (struct rreil_variable_limited_tuple*)rhs;
 	return (obj_t)statement;
 }
+static obj_t sem_throw(state_t state, obj_t exception) {
+	struct rreil_statement *statement = (struct rreil_statement*)malloc(
+			sizeof(struct rreil_statement));
+	statement->type = RREIL_STATEMENT_TYPE_THROW;
+	statement->throw_.exception = (struct rreil_exception*)exception;
+	return (obj_t)statement;
+}
 
 // sem_branch_hint
 static obj_t branch_hint(state_t state, int_t con) {
@@ -500,6 +536,11 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.shared = &shared,
 			.virt_t = &virt_t,
 			.arch = &sem_id_arch
+	};
+
+	unboxed_sem_exception_callbacks_t sem_exception_callbacks = {
+			.shared = &exception_shared,
+			.arch = &exception_arch
 	};
 
 	unboxed_sem_address_callbacks_t sem_address_callbacks = {
@@ -572,7 +613,8 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_cbranch = &sem_cbranch,
 			.sem_branch = &sem_branch,
 			.sem_flop = &sem_flop_stmt,
-			.sem_prim = &sem_prim
+			.sem_prim = &sem_prim,
+			.sem_throw = &sem_throw
 	};
 
 	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
@@ -604,6 +646,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 		unboxed_sem_flop_callbacks_t sem_flop_callbacks;
 		unboxed_sem_stmt_callbacks_t sem_stmt_callbacks;
 		unboxed_branch_hint_callbacks_t branch_hint_callbacks;
+		unboxed_sem_exception_callbacks_t sem_exception_callbacks;
 		unboxed_sem_stmts_callbacks_t sem_stmts_callbacks;
 	};
 
@@ -620,6 +663,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 	callbacks_heap->sem_flop_callbacks = sem_flop_callbacks;
 	callbacks_heap->sem_stmt_callbacks = sem_stmt_callbacks;
 	callbacks_heap->branch_hint_callbacks = branch_hint_callbacks;
+	callbacks_heap->sem_exception_callbacks = sem_exception_callbacks;
 	callbacks_heap->sem_stmts_callbacks = sem_stmts_callbacks;
 
 	unboxed_callbacks_t callbacks = {
@@ -635,6 +679,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_flop = &callbacks_heap->sem_flop_callbacks,
 			.sem_stmt = &callbacks_heap->sem_stmt_callbacks,
 			.branch_hint = &callbacks_heap->branch_hint_callbacks,
+			.sem_exception = &callbacks_heap->sem_exception_callbacks,
 			.sem_stmts = &callbacks_heap->sem_stmts_callbacks
 	};
 

@@ -26,7 +26,8 @@ enum rreil_statement_type {
 	RREIL_STATEMENT_TYPE_CBRANCH,
 	RREIL_STATEMENT_TYPE_BRANCH,
 	RREIL_STATEMENT_TYPE_FLOP,
-	RREIL_STATEMENT_TYPE_PRIM
+	RREIL_STATEMENT_TYPE_PRIM,
+	RREIL_STATEMENT_TYPE_THROW
 };
 
 struct rreil_statement {
@@ -76,6 +77,9 @@ struct rreil_statement {
 			struct rreil_variable_limited_tuple *lhs;
 			struct rreil_variable_limited_tuple *rhs;
 		} prim;
+		struct {
+			struct rreil_exception *exception;
+		} throw_;
 	};
 };
 

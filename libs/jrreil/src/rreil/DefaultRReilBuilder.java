@@ -1,5 +1,8 @@
 package rreil;
 
+import rreil.exception.GenericArchException;
+import rreil.exception.IException;
+import rreil.exception.x86.X86Exception;
 import rreil.expression.And;
 import rreil.expression.CompareEqual;
 import rreil.expression.CompareLessOrEqualSigned;
@@ -60,6 +63,7 @@ import rreil.statement.PrimitiveStatement;
 import rreil.statement.Statement;
 import rreil.statement.StoreStatement;
 import rreil.statement.WhileStatement;
+import sun.org.mozilla.javascript.ast.ThrowStatement;
 
 public class DefaultRReilBuilder implements IRReilBuilder {
 
@@ -396,6 +400,25 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public IId id_arch(long id) {
 		return new GenericArchRegister(id);
 	}
+	
+	/*
+	 * sem_exception
+	 */
+	
+	@Override
+	public IException exception_shared_division_by_zero() {
+		return rreil.exception.Exception.DIVISION_BY_ZERO;
+	}
+	
+	@Override
+	public IException exception_x86_division_overflow() {
+		return X86Exception.DIVISION_OVERFLOW;
+	}
+	
+	@Override
+	public IException exception_arch(long con) {
+		return new GenericArchException(con);
+	}
 
 	/*
 	 * sem_address
@@ -691,6 +714,11 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 		return new PrimitiveStatement(op,
 				(DefaultLimitedVariableCollection) lhs,
 				(DefaultLimitedVariableCollection) rhs);
+	}
+	
+	@Override
+	public Statement sem_throw(IException exception) {
+		return new rreil.statement.ThrowStatement(exception);
 	}
 
 	/*

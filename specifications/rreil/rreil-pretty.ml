@@ -2,6 +2,7 @@
 
 # The following functions need to be defined elsewhere:
 #   - arch-show-id
+#   - arch-show-exception
 
 export = rreil-pretty
 
@@ -59,6 +60,7 @@ val rreil-show-stmt s =
    | SEM_BRANCH x: "goto [" +++ rreil-show-hint x.hint +++ "] " +++ rreil-show-address x.target
    | SEM_PRIM p: rreil-show-varls p.lhs +++ " = $" +++ from-string-lit p.op +++ " " +++ rreil-show-varls p.rhs
    | SEM_FLOP f: rreil-show-varl f.lhs +++ " = $" +++ rreil-show-flop f.op +++ " " +++ rreil-show-varls f.rhs +++ " [flags:" +++ rreil-show-var f.flags +++ "]"
+   | SEM_THROW e: "throw " +++ (rreil-show-exception e)
   end
 
 val rreil-show-hint x =
@@ -135,4 +137,10 @@ val rreil-show-id id =
       FLOATING_FLAGS: "FLOATING_FLAGS"
     | VIRT_T x: "T" +++ show-int x
     | _: arch-show-id id
+   end
+
+val rreil-show-exception exception =
+   case exception of
+      SEM_DIVISION_BY_ZERO: "{Exception: Division by zero}"
+    | _: arch-show-exception exception
    end

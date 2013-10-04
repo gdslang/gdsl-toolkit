@@ -35,6 +35,10 @@ void rreil_id_free(struct rreil_id *id) {
 	free(id);
 }
 
+void rreil_exception_free(struct rreil_exception *exception) {
+	free(exception);
+}
+
 void rreil_linear_free(struct rreil_linear *linear) {
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
@@ -216,6 +220,10 @@ void rreil_statement_free(struct rreil_statement *statement) {
 			//prim->generic.op: allocated on GDSL heap
 			rreil_variable_limited_tuple_free(statement->prim.lhs);
 			rreil_variable_limited_tuple_free(statement->prim.rhs);
+			break;
+		}
+		case RREIL_STATEMENT_TYPE_THROW: {
+			rreil_exception_free(statement->throw_.exception);
 			break;
 		}
 	}

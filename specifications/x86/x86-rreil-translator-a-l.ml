@@ -565,6 +565,12 @@ val sem-div signedness x = do
   sz <- sizeof1 x.opnd1;
   divisor <- rvals signedness (sz + sz) x.opnd1;
 
+  #by-zero <- mktemp;
+  #cmpeq (sz + sz) by-zero divisor (imm 0);
+  _if (/eq (sz + sz) divisor (imm 0)) _then
+    throw SEM_DIVISION_BY_ZERO
+  ;
+
   dividend <-
     case sz of
        8: return (semantic-register-of AX)

@@ -1,5 +1,6 @@
 package rreil;
 
+import rreil.exception.IException;
 import rreil.expression.ICompare;
 import rreil.expression.IExpression;
 import rreil.id.IId;
@@ -143,6 +144,16 @@ public interface IRReilBuilder {
 	IId sem_xmm15();
 	
 	IId id_arch(long id);
+	
+	/*
+	 * sem_exception
+	 */
+	
+	IException exception_shared_division_by_zero();
+	
+	IException exception_x86_division_overflow();
+	
+	IException exception_arch(long con);
 
 	/*
 	 * sem_address
@@ -294,6 +305,8 @@ public interface IRReilBuilder {
 	IStatement sem_flop_stmt(IFlop op, IVariable flags, ILimitedVariable lhs, IRReilCollection<ILimitedVariable> rhs);
 	
 	IStatement sem_prim(String op, IRReilCollection<ILimitedVariable> lhs, IRReilCollection<ILimitedVariable> rhs);
+	
+	IStatement sem_throw(IException exception);
 	
 	/*
 	 * sem_branch_hint

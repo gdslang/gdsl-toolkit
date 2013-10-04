@@ -9,6 +9,9 @@ val sizeof-id id = case id of
    FLOATING_FLAGS: 64
 end
 
+type sem_exception =
+   SEM_DIVISION_BY_ZERO
+
 type sem_arity1 = {opnd1:sem_linear}
 type sem_arity2 = {opnd1:sem_linear, opnd2:sem_linear}
 
@@ -72,6 +75,7 @@ type sem_stmt =
  | SEM_BRANCH of {hint:branch_hint, target:sem_address}
  | SEM_FLOP of {op:sem_flop, flags:sem_var, lhs:sem_varl, rhs:sem_varls}
  | SEM_PRIM of {op:string, lhs:sem_varls, rhs:sem_varls}
+ | SEM_THROW of sem_exception
 
 type branch_hint =
     HINT_JUMP
@@ -157,6 +161,7 @@ val /BRANCH hint address = SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
 val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
 val /PRIM op lhs rhs = SEM_PRIM{op=op,lhs=lhs,rhs=rhs}
+val /THROW exception = SEM_THROW exception
 
 val push insn = do
    tl <- query $stack;
@@ -228,6 +233,7 @@ val cbranch cond target-true target-false = do
    update @{foundJump = '1'};
    push (/CBRANCH (SEM_SEXPR_LIN cond) target-true target-false)
 end
+val throw exception = push (/THROW exception)
 
 val unpack-lin sz o = case o of
    SEM_LIN_VAR v: return v

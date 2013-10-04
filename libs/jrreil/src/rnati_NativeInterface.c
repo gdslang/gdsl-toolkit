@@ -399,6 +399,35 @@ static obj_t arch(state_t state, int_t con) {
 }
 #endif
 
+// sem_exception
+static obj_t exception_shared(state_t state, int_t con) {
+	jobject ret = NULL;
+	switch (con) {
+		case CON_SEM_DIVISION_BY_ZERO: {
+			ret = java_method_call(state, "exception_shared_division_by_zero", 0);
+			break;
+		}
+	}
+	return (obj_t)ret;
+}
+#ifdef GDSL_X86
+static obj_t exception_arch(state_t state, int_t con) {
+	jobject ret;
+		switch(con) {
+			case CON_SEM_DIVISION_OVERFLOW: {
+				ret = java_method_call(state, "exception_x86_division_overflow", 0);
+				break;
+			}
+		}
+		return (obj_t)ret;
+}
+#else
+static obj_t exception_arch(state_t state, int_t con) {
+	jobject ret = java_method_call(state, "exception_arch", 1, java_long_create(state, (long int)con));
+	return (obj_t)ret;
+}
+#endif
+
 // sem_address
 static obj_t sem_address(state_t state, int_t size, obj_t address) {
 	jobject ret = java_method_call(state, "sem_address", 2, java_long_create(state, (long int)size), (jobject)address);
@@ -549,6 +578,10 @@ static obj_t sem_zx(state_t state, int_t fromsize, obj_t opnd1) {
 			java_long_create(state, (long int)fromsize), (jobject)opnd1);
 	return (obj_t)ret;
 }
+static obj_t sem_throw(state_t state, obj_t exception) {
+	jobject ret = java_method_call(state, "sem_throw", 1, (jobject)exception);
+	return (obj_t)ret;
+}
 
 // sem_varl
 static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
@@ -694,13 +727,17 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 //			printf("---------------------------\n");
 //			puts(fmt);
 
-
 	//%s/obj_t .(.\(.*\))(void .closure);/config.callbacks.arch.x86.sem_id.\1 = \&\1;/g
 
 	unboxed_sem_id_callbacks_t sem_id_callbacks = {
 			.shared = &shared,
 			.virt_t = &virt_t,
 			.arch = &arch
+	};
+
+	unboxed_sem_exception_callbacks_t sem_exception_callbacks = {
+			.shared = &exception_shared,
+			.arch = &exception_arch
 	};
 
 	unboxed_sem_address_callbacks_t sem_address_callbacks = {
@@ -773,7 +810,8 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			.sem_cbranch = &sem_cbranch,
 			.sem_branch = &sem_branch,
 			.sem_flop = &sem_flop_stmt,
-			.sem_prim = &sem_prim
+			.sem_prim = &sem_prim,
+			.sem_throw = &sem_throw
 	};
 
 	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
@@ -803,6 +841,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 			.sem_flop = &sem_flop_callbacks,
 			.sem_stmt = &sem_stmt_callbacks,
 			.branch_hint = &branch_hint_callbacks,
+			.sem_exception = &sem_exception_callbacks,
 			.sem_stmts = &sem_stmts_callbacks
 	};
 

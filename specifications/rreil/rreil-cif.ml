@@ -2,8 +2,8 @@ export = rreil-sem-stmts-head rreil-sem-stmts-tail rreil-sem-stmts-has-more
    rreil-sem-varls-head rreil-sem-varls-tail rreil-sem-varls-has-more
    rreil-cif-userdata-set rreil-cif-userdata-get{userdata}
    rreil-convert-sem-varl{sem_varl, sem_id, offset, size, id}
-   rreil-convert-sem-stmt-manual{branch_hint, sem_stmt, sem_flop, sem_varl, sem_expr, sem_op_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
-   rreil-convert-sem-stmts{sem_stmts, branch_hint, sem_stmt, sem_flop, sem_varls, sem_varl, sem_expr, sem_op_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
+   rreil-convert-sem-stmt-manual{sem_exception, branch_hint, sem_stmt, sem_flop, sem_varl, sem_expr, sem_op_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
+   rreil-convert-sem-stmts{sem_stmts, sem_exception, branch_hint, sem_stmt, sem_flop, sem_varls, sem_varl, sem_expr, sem_op_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
 
 #type callbacks =
 #   SEM_ID_CBS of {virt_na:string_, virt_t:string_}
@@ -18,8 +18,9 @@ type sem_expr_callbacks = {sem_sexpr:int, sem_mul:int, sem_div:int, sem_divs:int
 type sem_varl_callbacks = {sem_varl_:int}
 type sem_varls_callbacks = {sem_varls_next:int, sem_varls_init:int}
 type sem_flop_callbacks = {sem_flop_:int}
-type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int, sem_flop:int, sem_prim:int}
+type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int, sem_flop:int, sem_prim:int, sem_throw:int}
 type branch_hint_callbacks = {branch_hint_:int}
+type sem_exception_callbacks = {shared:int, arch:int}
 type sem_stmts_callbacks = {sem_stmts_next:int, sem_stmts_init:int}
 #type sem_stmts_list_callbacks = {list_next:int, list_init:int}
 
@@ -36,6 +37,7 @@ type callbacks = {
   sem_flop:sem_flop_callbacks,
   sem_stmt:sem_stmt_callbacks,
   branch_hint:branch_hint_callbacks,
+  sem_exception:sem_exception_callbacks,
   sem_stmts:sem_stmts_callbacks
 }
 
@@ -139,6 +141,11 @@ end
 
 val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (index flop)
 
+val rreil-convert-sem-exception cbs exception = case exception of
+   SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared (index exception)
+ | _: cbs.sem_exception.arch (index exception)
+end
+
 val rreil-convert-sem-stmt cbs stmt = case stmt of
    SEM_ASSIGN s: cbs.sem_stmt.sem_assign s.size (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
  | SEM_LOAD l: cbs.sem_stmt.sem_load l.size (rreil-convert-sem-var cbs l.lhs) (rreil-convert-sem-address cbs l.address)
@@ -149,6 +156,7 @@ val rreil-convert-sem-stmt cbs stmt = case stmt of
  | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
  | SEM_FLOP f: cbs.sem_stmt.sem_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.lhs) (rreil-convert-sem-varls cbs f.rhs)
  | SEM_PRIM p: cbs.sem_stmt.sem_prim p.op (rreil-convert-sem-varls cbs p.lhs) (rreil-convert-sem-varls cbs p.rhs)
+ | SEM_THROW p: cbs.sem_stmt.sem_throw (rreil-convert-sem-exception cbs p)
 end
 
 val rreil-convert-sem-stmt-manual cbs stmt = case stmt of
@@ -161,6 +169,7 @@ val rreil-convert-sem-stmt-manual cbs stmt = case stmt of
  | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
  | SEM_FLOP f: cbs.sem_stmt.sem_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.lhs) f.rhs
  | SEM_PRIM p: cbs.sem_stmt.sem_prim p.op p.lhs p.rhs
+ | SEM_THROW p: cbs.sem_stmt.sem_throw (rreil-convert-sem-exception cbs p)
 end
 
 val rreil-convert-sem-stmts cbs stmts = let

@@ -474,6 +474,10 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			error = simulator_prim_simulate(context, statement->prim.op, statement->prim.lhs, statement->prim.rhs);
 			break;
 		}
+		case RREIL_STATEMENT_TYPE_THROW: {
+			error |= SIMULATOR_ERROR_EXCEPTION;
+			break;
+		}
 			/*
 			 * Todo: Primitives, Floating point operations
 			 */

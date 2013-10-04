@@ -59,6 +59,14 @@ struct rreil_id *rreil_id_copy(struct rreil_id *id) {
 	return id_copy;
 }
 
+struct rreil_exception *rreil_exception_copy(struct rreil_exception *exception) {
+	struct rreil_exception *exception_copy = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
+
+	*exception_copy = *exception;
+
+	return exception_copy;
+}
+
 struct rreil_linear *rreil_linear_copy(struct rreil_linear *linear) {
 	struct rreil_linear *linear_copy = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
 
@@ -108,7 +116,7 @@ struct rreil_expr *rreil_expr_copy(struct rreil_expr *op) {
 
 	expr_copy->type = op->type;
 
-	switch (op->type) {
+	switch(op->type) {
 		case RREIL_EXPR_TYPE_SEXPR: {
 			expr_copy->sexpr = rreil_sexpr_copy(op->sexpr);
 			break;
@@ -202,7 +210,8 @@ struct rreil_variable *rreil_variable_copy(struct rreil_variable *variable) {
 }
 
 struct rreil_variable_limited *rreil_variable_limited_copy(struct rreil_variable_limited *varl) {
-	struct rreil_variable_limited *varl_copy = (struct rreil_variable_limited*)malloc(sizeof(struct rreil_variable_limited));
+	struct rreil_variable_limited *varl_copy = (struct rreil_variable_limited*)malloc(
+			sizeof(struct rreil_variable_limited));
 
 	varl_copy->id = rreil_id_copy(varl->id);
 	varl_copy->offset = varl->offset;
@@ -212,12 +221,14 @@ struct rreil_variable_limited *rreil_variable_limited_copy(struct rreil_variable
 }
 
 struct rreil_variable_limited_tuple *rreil_variable_limited_tuple_copy(struct rreil_variable_limited_tuple *varls) {
-	struct rreil_variable_limited_tuple *varls_copy = (struct rreil_variable_limited_tuple*)malloc(sizeof(struct rreil_variable_limited_tuple));
+	struct rreil_variable_limited_tuple *varls_copy = (struct rreil_variable_limited_tuple*)malloc(
+			sizeof(struct rreil_variable_limited_tuple));
 
 	varls_copy->variables_length = varls->variables_length;
 	varls_copy->variables_size = varls->variables_size;
-	varls_copy->variables = (struct rreil_variable_limited**)malloc(sizeof(struct rreil_variable_limited*)*varls_copy->variables_size);
-	for (size_t i = 0; i < varls->variables_length; ++i)
+	varls_copy->variables = (struct rreil_variable_limited**)malloc(
+			sizeof(struct rreil_variable_limited*) * varls_copy->variables_size);
+	for(size_t i = 0; i < varls->variables_length; ++i)
 		varls_copy->variables[i] = rreil_variable_limited_copy(varls->variables[i]);
 
 	return varls_copy;
@@ -236,7 +247,7 @@ struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) 
 
 	statement_copy->type = statement->type;
 
-	switch (statement->type) {
+	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
 			statement_copy->assign.size = statement->assign.size;
 			statement_copy->assign.lhs = rreil_variable_copy(statement->assign.lhs);
@@ -289,6 +300,10 @@ struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) 
 			statement_copy->prim.rhs = rreil_variable_limited_tuple_copy(statement->prim.rhs);
 			break;
 		}
+		case RREIL_STATEMENT_TYPE_THROW: {
+			statement_copy->throw_.exception = rreil_exception_copy(statement->throw_.exception);
+			break;
+		}
 	}
 
 	return statement_copy;
@@ -299,9 +314,10 @@ struct rreil_statements *rreil_statements_copy(struct rreil_statements *statemen
 
 	statements_copy->statements_length = statements->statements_length;
 	statements_copy->statements_size = statements->statements_size;
-	statements_copy->statements = (struct rreil_statement**)malloc(sizeof(struct rreil_statement*)*statements_copy->statements_size);
+	statements_copy->statements = (struct rreil_statement**)malloc(
+			sizeof(struct rreil_statement*) * statements_copy->statements_size);
 
-	for (size_t i = 0; i < statements->statements_length; ++i)
+	for(size_t i = 0; i < statements->statements_length; ++i)
 		statements_copy->statements[i] = rreil_statement_copy(statements->statements[i]);
 
 	return statements_copy;

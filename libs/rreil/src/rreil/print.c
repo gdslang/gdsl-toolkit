@@ -95,6 +95,30 @@ void rreil_id_print(FILE *stream, struct rreil_id *id) {
 	}
 }
 
+void rreil_exception_print(FILE *stream, struct rreil_exception *exception) {
+	switch(exception->type) {
+		case RREIL_EXCEPTION_TYPE_SHARED: {
+			switch(exception->shared) {
+				case RREIL_EXCEPTION_SHARED_DIVISION_BY_ZERO: {
+					fprintf(stream, "{Exception: Division by zero}");
+					break;
+				}
+			}
+			break;
+		}
+#ifdef GDSL_X86
+		case RREIL_EXCEPTION_TYPE_X86: {
+			x86_exception_print(stream, exception->x86);
+			break;
+		}
+#else
+			case RREIL_EXCEPTION_TYPE_ARCH: {
+				fprintf(stream, "{Exception: arch#%u}", exception->arch);
+			}
+#endif
+	}
+}
+
 void rreil_linear_print(struct rreil_linear *linear) {
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
@@ -345,6 +369,11 @@ void rreil_statement_print(struct rreil_statement *statement) {
 			rreil_varls_print(stdout, statement->prim.lhs);
 			fprintf(stdout, " = $%s ", statement->prim.op);
 			rreil_varls_print(stdout, statement->prim.rhs);
+			break;
+		}
+		case RREIL_STATEMENT_TYPE_THROW: {
+			fprintf(stdout, "throw ");
+			rreil_exception_print(stdout, statement->throw_.exception);
 			break;
 		}
 	}

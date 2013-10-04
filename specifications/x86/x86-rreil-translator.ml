@@ -2,6 +2,9 @@
 
 export = translate translateBlock translateSingle translateSuperBlock succ_pretty
 
+type sem_exception =
+   SEM_DIVISION_OVERFLOW
+
 type sem_writeback =
    SEM_WRITE_VAR of {size:int, id:sem_var}
  | SEM_WRITE_MEM of {size:int, address:sem_linear, segment:seg_override}

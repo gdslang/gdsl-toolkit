@@ -20,6 +20,7 @@
 #include <rreil/rreil_flop.h>
 #include <rreil/rreil_statement.h>
 #include <rreil/rreil_branch_hint.h>
+#include <rreil/rreil_exception.h>
 
 #include <rreil/rreil_free.h>
 #include <rreil/rreil_print.h>

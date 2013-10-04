@@ -54,6 +54,21 @@ static obj_t arch(state_t state, int_t con) {
 	return (obj_t)0;
 }
 
+// sem_exception
+static obj_t exception_shared(state_t state, int_t con) {
+	switch(con) {
+		case CON_SEM_DIVISION_BY_ZERO: {
+			printf("> CON_SEM_DIVISION_BY_ZERO\n");
+			break;
+		}
+	}
+	return (obj_t)0;
+}
+static obj_t exception_arch(state_t state, int_t con) {
+	printf("> exception_arch#%ld\n", con);
+	return (obj_t)0;
+}
+
 //static gdrr_sem_id_t virt_eq(state_t state) {
 //	printf("=> virt_eq\n");
 //	return NULL;
@@ -586,6 +601,11 @@ static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
 	printf("> sem_prim %s\n", (string_t)op);
 	return indent;
 }
+static obj_t sem_throw(state_t state, obj_t exception) {
+	obj_t indent = indent_unary(exception);
+	printf("> sem_throw\n");
+	return indent;
+}
 
 // branch_hint
 static obj_t branch_hint(state_t state, int_t con) {
@@ -641,6 +661,11 @@ int main(int argc, char** argv) {
 			.shared = &shared,
 			.virt_t = &virt_t,
 			.arch = &arch
+	};
+
+	unboxed_sem_exception_callbacks_t sem_exception_callbacks = {
+			.shared = &exception_shared,
+			.arch = &exception_arch
 	};
 
 	unboxed_sem_address_callbacks_t sem_address_callbacks = {
@@ -713,7 +738,8 @@ int main(int argc, char** argv) {
 			.sem_cbranch = &sem_cbranch,
 			.sem_branch = &sem_branch,
 			.sem_flop = &sem_flop_stmt,
-			.sem_prim = &sem_prim
+			.sem_prim = &sem_prim,
+			.sem_throw = &sem_throw
 	};
 
 	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
@@ -743,6 +769,7 @@ int main(int argc, char** argv) {
 			.sem_flop = &sem_flop_callbacks,
 			.sem_stmt = &sem_stmt_callbacks,
 			.branch_hint = &branch_hint_callbacks,
+			.sem_exception = &sem_exception_callbacks,
 			.sem_stmts = &sem_stmts_callbacks
 	};
 

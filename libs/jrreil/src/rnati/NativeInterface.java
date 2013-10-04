@@ -7,6 +7,7 @@ import rreil.ILimitedVariable;
 import rreil.IRReilBuilder;
 import rreil.IRReilCollection;
 import rreil.IVariable;
+import rreil.exception.IException;
 import rreil.expression.ICompare;
 import rreil.expression.IExpression;
 import rreil.id.IId;
@@ -55,6 +56,21 @@ public class NativeInterface {
 	 */
 	private Object shared_floating_flags() {
 		return builder.shared_floating_flags();
+	}
+	
+	/*
+	 * sem_exception
+	 */
+	private Object exception_shared_division_by_zero() {
+		return builder.exception_shared_division_by_zero();
+	}
+	
+	private Object exception_x86_division_overflow() {
+		return builder.exception_x86_division_overflow();
+	}
+	
+	private Object exception_arch(Object t) {
+		return builder.exception_arch((Long)t);
 	}
 
 	// private Object virt_eq() {
@@ -566,6 +582,10 @@ public class NativeInterface {
 	private Object sem_prim(Object op, Object lhs, Object rhs) {
 		return builder.sem_prim((String)op, (IRReilCollection<ILimitedVariable>) lhs,
 				(IRReilCollection<ILimitedVariable>) rhs);
+	}
+	
+	private Object sem_throw(Object exception) {
+		return builder.sem_throw((IException) exception);
 	}
 
 	/*
