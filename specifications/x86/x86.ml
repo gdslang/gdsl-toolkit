@@ -4522,6 +4522,7 @@ val / [0x0f 0xbe /r]
  | otherwise = binop none MOVSX r32 r/m8
 val / [0x0f 0xbf /r]
  | rexw? = binop none MOVSX r64 r/m16
+ | opndsz? = binop none MOVSX r16 r/m16
  | otherwise = binop none MOVSX r32 r/m16
 val / [0x63 /r] #Partially listed in manual; the following lines resulted from test cases
  | rexw? = binop none MOVSXD r64 r/m32
@@ -4559,6 +4560,7 @@ val / [0x0f 0xb6 /r]
  | otherwise = binop none MOVZX r32 r/m8
 val / [0x0f 0xb7 /r]
  | rexw? = binop none MOVZX r64 r/m16
+ | opndsz? = binop none MOVZX r16 r/m16
  | otherwise = binop none MOVZX r32 r/m16
 
 ### MPSADBW
