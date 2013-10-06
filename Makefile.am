@@ -177,7 +177,8 @@ GDSL_AVR = \
 
 GDSL_AVRSEM = \
 	$(srcdir)/specifications/avr/avr-rreil-translator.ml \
-	$(srcdir)/specifications/avr/avr-rreil-registermapping.ml
+	$(srcdir)/specifications/avr/avr-rreil-registermapping.ml \
+	$(srcdir)/specifications/avr/avr-rreil-pretty.ml
 
 GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/fmap.ml \

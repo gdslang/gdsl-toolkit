@@ -13,13 +13,6 @@ val ip-get = return (semantic-register-of PC)
 #val pm-get = return {id=Sem_PM,offset=0,size=(semantic-register-of PC).size + 1}
 val pm-get = return {id=Sem_PM,offset=0,size=0}
 
-val arch-show-id r =
-  case r of
-	   Sem_ALL: "memory"
-	 | Sem_PC: "PC"
-	 | Sem_PM: "PM"
-	end
-
 type sem_id =
 	 Sem_ALL
  | Sem_PC
