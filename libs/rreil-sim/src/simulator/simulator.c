@@ -470,6 +470,10 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			simulator_branch_simulate(context, statement->branch.target);
 			break;
 		}
+		case RREIL_STATEMENT_TYPE_FLOP: {
+			error |= SIMULATOR_ERROR_FLOP_UNIMPLEMENTED;
+			break;
+		}
 		case RREIL_STATEMENT_TYPE_PRIM: {
 			error = simulator_prim_simulate(context, statement->prim.op, statement->prim.lhs, statement->prim.rhs);
 			break;
@@ -478,9 +482,6 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			error |= SIMULATOR_ERROR_EXCEPTION;
 			break;
 		}
-			/*
-			 * Todo: Primitives, Floating point operations
-			 */
 	}
 	return error;
 }

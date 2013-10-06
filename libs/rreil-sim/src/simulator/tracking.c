@@ -20,8 +20,11 @@ enum simulator_access_type {
 };
 
 static void tracking_variable_access_trace(struct tracking_trace *trace, struct rreil_variable *variable,
+		size_t bit_length, enum simulator_access_type type);
+
+static void tracking_id_access_trace(struct tracking_trace *trace, struct rreil_id *id, uint64_t offset,
 		size_t bit_length, enum simulator_access_type type) {
-	if(variable->id->type != RREIL_ID_TYPE_X86)
+	if(id->type != RREIL_ID_TYPE_X86)
 		return;
 
 	{
@@ -31,7 +34,7 @@ static void tracking_variable_access_trace(struct tracking_trace *trace, struct 
 		new_id.x86 = X86_ID_FLAGS;
 		new_.id = &new_id;
 
-		switch(variable->id->x86) {
+		switch(id->x86) {
 			case X86_ID_VIRT_LEU: {
 				new_.offset = X86_FLAGS_CARRY;
 				tracking_variable_access_trace(trace, &new_, 1, type);
@@ -84,11 +87,11 @@ static void tracking_variable_access_trace(struct tracking_trace *trace, struct 
 //	rreil_id_print(stdout, variable->id);
 //	printf("\n+++\n");
 	fflush(stdout);
-	simulator_register_generic_write(&access->x86_registers[variable->id->x86], data, variable->offset);
+	simulator_register_generic_write(&access->x86_registers[id->x86], data, offset);
 
 	context_data_clear(&data);
 
-	size_t index = variable->id->x86;
+	size_t index = id->x86;
 	char found = 0;
 	for(size_t i = 0; i < access->x86_indices_length; ++i)
 		if(access->x86_indices[i] == index) {
@@ -98,6 +101,11 @@ static void tracking_variable_access_trace(struct tracking_trace *trace, struct 
 	if(!found)
 		util_array_generic_add((void**)&access->x86_indices, &index, sizeof(index), &access->x86_indices_length,
 				&access->x86_indices_size);
+}
+
+static void tracking_variable_access_trace(struct tracking_trace *trace, struct rreil_variable *variable,
+		size_t bit_length, enum simulator_access_type type) {
+	tracking_id_access_trace(trace, variable->id, variable->offset, bit_length, type);
 }
 
 //static void tracking_variable_define(struct tracking_trace *trace,
@@ -136,7 +144,8 @@ static void tracking_linear_trace(struct tracking_trace *trace, enum simulator_a
 	}
 }
 
-static size_t tracking_comparator_trace(struct tracking_trace *trace, struct rreil_comparator *comparator, uint64_t size) {
+static size_t tracking_comparator_trace(struct tracking_trace *trace, struct rreil_comparator *comparator,
+		uint64_t size) {
 	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, comparator->arity2.opnd1, size);
 	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, comparator->arity2.opnd2, size);
 	return 1;
@@ -236,7 +245,6 @@ static void tracking_expr_trace(struct tracking_trace *trace, struct rreil_expr 
 }
 
 static void tracking_branch_trace(struct tracking_trace *trace, struct rreil_address *target) {
-
 	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_DEREFERENCE, target->address, target->size);
 	struct rreil_variable ip;
 	struct rreil_id ip_id;
@@ -245,6 +253,18 @@ static void tracking_branch_trace(struct tracking_trace *trace, struct rreil_add
 	ip.id = &ip_id;
 	ip.offset = 0;
 	tracking_variable_access_trace(trace, &ip, target->size, SIMULATOR_ACCESS_TYPE_WRITE);
+}
+
+static void tracking_variable_limited_trace(struct tracking_trace *trace, struct rreil_variable_limited *varl,
+		enum simulator_access_type access_type) {
+	tracking_id_access_trace(trace, varl->id, varl->offset, varl->size, access_type);
+}
+
+static void tracking_variable_limited_tuple_trace(struct tracking_trace *trace,
+		struct rreil_variable_limited_tuple *varls, enum simulator_access_type access_type) {
+	for(size_t i = 0; i < varls->variables_length; ++i) {
+		tracking_variable_limited_trace(trace, varls->variables[i], access_type);
+	}
 }
 
 static void tracking_statement_trace(struct tracking_trace *trace, struct rreil_statement *statement) {
@@ -294,9 +314,21 @@ static void tracking_statement_trace(struct tracking_trace *trace, struct rreil_
 			trace->mem.used = 1;
 			break;
 		}
-		/*
-		 * Todo: Primitives, Floating point operations
-		 */
+		case RREIL_STATEMENT_TYPE_FLOP: {
+			tracking_variable_limited_trace(trace, statement->flop.lhs, SIMULATOR_ACCESS_TYPE_WRITE);
+			tracking_variable_access_trace(trace, statement->flop.flags, 64, SIMULATOR_ACCESS_TYPE_WRITE);
+			tracking_variable_limited_tuple_trace(trace, statement->flop.rhs, SIMULATOR_ACCESS_TYPE_READ);
+			tracking_variable_access_trace(trace, statement->flop.flags, 64, SIMULATOR_ACCESS_TYPE_READ);
+			break;
+		}
+		case RREIL_STATEMENT_TYPE_PRIM: {
+			tracking_variable_limited_tuple_trace(trace, statement->prim.lhs, SIMULATOR_ACCESS_TYPE_WRITE);
+			tracking_variable_limited_tuple_trace(trace, statement->prim.rhs, SIMULATOR_ACCESS_TYPE_READ);
+			break;
+		}
+		case RREIL_STATEMENT_TYPE_THROW: {
+			break;
+		}
 	}
 }
 

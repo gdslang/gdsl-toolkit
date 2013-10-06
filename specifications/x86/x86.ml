@@ -2006,15 +2006,6 @@ val ymm-rex rex rdis reg-idx = ymm (rdis ^ reg-idx)
 
 # Deslice the mod/rm byte and put it into the the state
 
-#reg/opcode='000',
-#reg/opcode='001',
-#reg/opcode='010',
-#reg/opcode='011',
-#reg/opcode='100',
-#reg/opcode='101',
-#reg/opcode='110',
-#reg/opcode='111',
-
 val /0 ['mod:2 000 rm:3'] = update @{mod=mod, rm=rm}
 val /1 ['mod:2 001 rm:3'] = update @{mod=mod, rm=rm}
 val /2 ['mod:2 010 rm:3'] = update @{mod=mod, rm=rm}
@@ -2147,9 +2138,6 @@ val sib ['scale:2 index:3 base:3'] = do
   ptrsz <- query $ptrsz;
   sib-with-index-and-base ptrsz addr-reg scale index base
 end
-# | addrsz? = sib-with-index-and-base 16 reg16-rex scale index base
-# | mode64? = sib-with-index-and-base 64 reg64-rex scale index base
-# | otherwise = sib-with-index-and-base 32 reg32-rex scale index base
 
 ## Decoding the mod/rm byte
 
