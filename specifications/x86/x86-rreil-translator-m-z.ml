@@ -11,7 +11,7 @@ val sem-maskmov-opnd element-size dst src mask = do
   mask-temp <- mktemp;
   mov size mask-temp mask;
 
-  is-load <- return (
+  is-store <- return (
     case dst of
        MEM m: '0'
      | REG r: '1'
@@ -19,7 +19,7 @@ val sem-maskmov-opnd element-size dst src mask = do
   );
 
   offset-factor <- return (
-    if is-load then
+    if is-store then
       element-size
     else
       /z element-size 8
@@ -37,8 +37,8 @@ val sem-maskmov-opnd element-size dst src mask = do
         _if (/d (var (at-offset mask-temp ((i + 1)*element-size - 1)))) _then
           write-dst (var (at-offset src-temp offset))
         _else
-          if is-load then
-  	    write-dst (imm 0)
+          if is-store then
+  	        write-dst (imm 0)
           else
             return void
       end end
@@ -46,7 +46,7 @@ val sem-maskmov-opnd element-size dst src mask = do
     vector-apply size element-size m
   end;
 
-  if is-load and size === 128 then do
+  if is-store and size === 128 then do
     dst <- lval-offset size dst (OFFSET_CONST size);
     write size dst (imm 0)
   end else

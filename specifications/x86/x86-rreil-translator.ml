@@ -306,7 +306,7 @@ val lval-offset-volatile sz x offset volatile = case x of
         OFFSET_NONE: id
       | OFFSET_CONST c: @{offset=id.offset + c} id
      end);
-     return (SEM_WRITE_VAR{size= $size id,id=id})
+     return (SEM_WRITE_VAR{size= $size id,id=combined})
    end
 end
 
