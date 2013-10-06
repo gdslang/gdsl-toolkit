@@ -27,10 +27,10 @@ type sem_linear =
 
  type sem_sexpr =
    SEM_SEXPR_LIN of sem_linear
- | SEM_SEXPR_CMP of sem_op_cmp
+ | SEM_SEXPR_CMP of sem_expr_cmp
  | SEM_SEXPR_ARB
 
-type sem_op_cmp =
+type sem_expr_cmp =
    SEM_CMPEQ of sem_arity2
  | SEM_CMPNEQ of sem_arity2
  | SEM_CMPLES of sem_arity2

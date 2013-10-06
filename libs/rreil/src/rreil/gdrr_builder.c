@@ -194,7 +194,7 @@ static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
 	return (obj_t)sexpr;
 }
 
-// sem_op_cmp
+// sem_expr_cmp
 static obj_t sem_cmpeq(state_t state, obj_t opnd1, obj_t opnd2) {
 	struct rreil_comparator *comparator = (struct rreil_comparator*)malloc(
 			sizeof(struct rreil_comparator));
@@ -565,7 +565,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_sexpr_arb = &sem_sexpr_arb
 	};
 
-	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
+	unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = {
 			.sem_cmpeq = &sem_cmpeq,
 			.sem_cmpneq = &sem_cmpneq,
 			.sem_cmples = &sem_cmples,
@@ -639,7 +639,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 		unboxed_sem_var_callbacks_t sem_var_callbacks;
 		unboxed_sem_linear_callbacks_t sem_linear_callbacks;
 		unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks;
-		unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks;
+		unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks;
 		unboxed_sem_expr_callbacks_t sem_expr_callbacks;
 		unboxed_sem_varl_callbacks_t sem_varl_callbacks;
 		unboxed_sem_varls_callbacks_t sem_varls_callbacks;
@@ -656,7 +656,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 	callbacks_heap->sem_var_callbacks = sem_var_callbacks;
 	callbacks_heap->sem_linear_callbacks = sem_linear_callbacks;
 	callbacks_heap->sem_sexpr_callbacks = sem_sexpr_callbacks;
-	callbacks_heap->sem_op_cmp_callbacks = sem_op_cmp_callbacks;
+	callbacks_heap->sem_expr_cmp_callbacks = sem_expr_cmp_callbacks;
 	callbacks_heap->sem_expr_callbacks = sem_expr_callbacks;
 	callbacks_heap->sem_varl_callbacks = sem_varl_callbacks;
 	callbacks_heap->sem_varls_callbacks = sem_varls_callbacks;
@@ -672,7 +672,7 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
 			.sem_var = &callbacks_heap->sem_var_callbacks,
 			.sem_linear = &callbacks_heap->sem_linear_callbacks,
 			.sem_sexpr = &callbacks_heap->sem_sexpr_callbacks,
-			.sem_op_cmp = &callbacks_heap->sem_op_cmp_callbacks,
+			.sem_expr_cmp = &callbacks_heap->sem_expr_cmp_callbacks,
 			.sem_expr = &callbacks_heap->sem_expr_callbacks,
 			.sem_varl = &callbacks_heap->sem_varl_callbacks,
 			.sem_varls = &callbacks_heap->sem_varls_callbacks,

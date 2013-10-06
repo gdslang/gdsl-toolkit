@@ -386,7 +386,7 @@ static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
 	return (obj_t)0;
 }
 
-// sem_op_cmp
+// sem_expr_cmp
 static obj_t sem_cmpeq(state_t state,
 		obj_t opnd1, obj_t opnd2) {
 	obj_t indent = indent_binary(opnd1, opnd2);
@@ -690,7 +690,7 @@ int main(int argc, char** argv) {
 			.sem_sexpr_arb = &sem_sexpr_arb
 	};
 
-	unboxed_sem_op_cmp_callbacks_t sem_op_cmp_callbacks = {
+	unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = {
 			.sem_cmpeq = &sem_cmpeq,
 			.sem_cmpneq = &sem_cmpneq,
 			.sem_cmples = &sem_cmples,
@@ -762,7 +762,7 @@ int main(int argc, char** argv) {
 			.sem_var = &sem_var_callbacks,
 			.sem_linear = &sem_linear_callbacks,
 			.sem_sexpr = &sem_sexpr_callbacks,
-			.sem_op_cmp = &sem_op_cmp_callbacks,
+			.sem_expr_cmp = &sem_expr_cmp_callbacks,
 			.sem_expr = &sem_expr_callbacks,
 			.sem_varl = &sem_varl_callbacks,
 			.sem_varls = &sem_varls_callbacks,
