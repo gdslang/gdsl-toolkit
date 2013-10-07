@@ -2235,22 +2235,13 @@ val r/m-without-sib = do
 end
 
 val addr-reg = do
-  addrsz <- query $addrsz;
-  mode64 <- mode64?;
-  if addrsz then do
-    update@{ptrsz=16};
-    return reg16-rex
-  end else if mode64 then do
-    update@{ptrsz=64};
-    return reg64-rex
-  end else do
-    update@{ptrsz=32};
-    return reg32-rex
+  addr-sz <- address-size;
+  update@{ptrsz=addr-sz};
+  case addr-sz of
+     16: return reg16-rex
+   | 32: return reg32-rex
+   | 64: return reg64-rex
   end
-#   case addrsz of
-#      '0': do update@{ptrsz=64};return reg64-rex end
-#    | '1': do update@{ptrsz=32};return reg32-rex end
-#   end
 end
 
 val r/m ptrTy reg = do
