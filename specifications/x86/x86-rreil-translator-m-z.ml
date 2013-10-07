@@ -1925,20 +1925,20 @@ val sem-rcl x = do
   size <- sizeof1 x.opnd1;
   src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- rval size x.opnd2;
+  count <- rval (2*size + 1) x.opnd2;
 
   temp-count <- mktemp;
   case size of
      8: do
-       andb size temp-count count (imm 0x1f);
-       mod size temp-count (var temp-count) (imm 9)
+       andb (2*size + 1) temp-count count (imm 0x1f);
+       mod (2*size + 1) temp-count (var temp-count) (imm 9)
      end
    | 16: do
-       andb size temp-count count (imm 0x1f);
-       mod size temp-count (var temp-count) (imm 17)
+       andb (2*size + 1) temp-count count (imm 0x1f);
+       mod (2*size + 1) temp-count (var temp-count) (imm 17)
      end
-   | 32: andb size temp-count count (imm 0x1f)
-   | 64: andb size temp-count count (imm 0x3f)
+   | 32: andb (2*size + 1) temp-count count (imm 0x1f)
+   | 64: andb (2*size + 1) temp-count count (imm 0x3f)
   end;
 
   cf <- fCF;
@@ -1970,20 +1970,20 @@ val sem-rcr x = do
   size <- sizeof1 x.opnd1;
   src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- rval size x.opnd2;
+  count <- rval (2*size + 1) x.opnd2;
 
   temp-count <- mktemp;
   case size of
      8: do
-       andb size temp-count count (imm 0x1f);
-       mod size temp-count (var temp-count) (imm 9)
+       andb (2*size + 1) temp-count count (imm 0x1f);
+       mod (2*size + 1) temp-count (var temp-count) (imm 9)
      end
    | 16: do
-       andb size temp-count count (imm 0x1f);
-       mod size temp-count (var temp-count) (imm 17)
+       andb (2*size + 1) temp-count count (imm 0x1f);
+       mod (2*size + 1) temp-count (var temp-count) (imm 17)
      end
-   | 32: andb size temp-count count (imm 0x1f)
-   | 64: andb size temp-count count (imm 0x3f)
+   | 32: andb (2*size + 1) temp-count count (imm 0x1f)
+   | 64: andb (2*size + 1) temp-count count (imm 0x3f)
   end;
 
   temp-dst <- mktemp;
@@ -2015,7 +2015,7 @@ val sem-rol x = do
   size <- sizeof1 x.opnd1;
   src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- rval size x.opnd2;
+  count <- rval (2*size) x.opnd2;
 
   count-mask <- return (
     if x.opnd-sz === 64 then
@@ -2034,7 +2034,7 @@ val sem-rol x = do
   );
 
   temp-count <- mktemp;
-  andb size temp-count count (imm count-mask-full);
+  andb (2*size) temp-count count (imm count-mask-full);
   
   temp-dst <- mktemp;
   movzx (2*size) temp-dst size src;
@@ -2066,7 +2066,7 @@ val sem-ror x = do
   size <- sizeof1 x.opnd1;
   src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- rval size x.opnd2;
+  count <- rval (2*size) x.opnd2;
 
   count-mask <- return (
     if x.opnd-sz === 64 then
@@ -2085,7 +2085,7 @@ val sem-ror x = do
   );
 
   temp-count <- mktemp;
-  andb size temp-count count (imm count-mask-full);
+  andb (2*size) temp-count count (imm count-mask-full);
   
   temp-dst <- mktemp;
   mov size (at-offset temp-dst size) src;
