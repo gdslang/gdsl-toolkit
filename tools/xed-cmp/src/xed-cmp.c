@@ -12,6 +12,7 @@
 struct decode_result {
 	unsigned int decoded;
 	unsigned int invalid;
+	size_t memory;
 
 	long time;
 };
@@ -44,9 +45,9 @@ static struct decode_result xed_decode_blob(unsigned char *blob, size_t size) {
 		r = xed_decode(insn, blobb, size);
 		if(r == XED_ERROR_NONE) {
 			len = xed_decoded_inst_get_length(insn);
-//			xed_decoded_inst_dump_intel_format(insn, insnstr, 128, 0);
-//			//printf("%-27s\n", insnstr);
-//			puts(insnstr);
+			xed_decoded_inst_dump_intel_format(insn, insnstr, 128, 0);
+			//printf("%-27s\n", insnstr);
+			puts(insnstr);
 		} else {
 			result.invalid++;
 			len = 1;
@@ -57,6 +58,8 @@ static struct decode_result xed_decode_blob(unsigned char *blob, size_t size) {
 	} while(len > 0 && size > 0);
 	clock_gettime(CLOCK_REALTIME, &end);
 	result.time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
+
+	result.memory = 0;
 
 	return result;
 }
@@ -83,8 +86,10 @@ static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 		}
 		obj_t insn = gdsl_decode(state, gdsl_config_mode64(state) | gdsl_config_default_opnd_sz_32(state));
 
-//		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
-//		puts(fmt);
+		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
+		puts(fmt);
+
+		result.memory += gdsl_heap_residency(state);
 
 		gdsl_reset_heap(state);
 
@@ -128,10 +133,10 @@ int main(int argc, char** argv) {
 	struct decode_result xed_result = xed_decode_blob(blob, sz);
 	struct decode_result gdsl_result = gdsl_decode_blob(blob, sz);
 
-	fprintf(stderr, "XED: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds\n", xed_result.decoded,
-			xed_result.invalid, xed_result.time / (double)(1000000000));
-	fprintf(stderr, "GDSL: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds\n", gdsl_result.decoded,
-			gdsl_result.invalid, gdsl_result.time / (double)(1000000000));
+	fprintf(stderr, "XED: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds; memory: %zu bytes\n", xed_result.decoded,
+			xed_result.invalid, xed_result.time / (double)(1000000000), xed_result.memory);
+	fprintf(stderr, "GDSL: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds; memory: %zu bytes\n", gdsl_result.decoded,
+			gdsl_result.invalid, gdsl_result.time / (double)(1000000000), gdsl_result.memory);
 
 	return (0);
 }

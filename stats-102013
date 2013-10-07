@@ -1,0 +1,105 @@
+(1)
+
+=> X86 only
+=> Refinement: Yes
+=> GCC / O2
+=> XED: pin-2.12-58423-gcc.4.4.7-linux
+
+./gdslc -o gdsl_manual  "specifications/basis/prelude.ml" "specifications/basis/bbtree.ml" "specifications/x86/x86.ml" "specifications/x86/x86-pretty.ml"
+gcc -O2 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o libgdsl.so gdsl.o
+
+Code size:
+
+$ wc -l gdsl.*
+  35191 gdsl.c
+   1028 gdsl.h
+  36219 total
+
+libgdsl.so: 457K
+
+jucs@jucs-pc:~/projects/mltk/tools/xed-cmp$ ./xed-cmp /usr/bin/clang >/dev/null 
+file is /usr/bin/clang
+.text is 11530764 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.201872 seconds; memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.095589 seconds; memory: 2699667296 bytes
+
+$ ./xed-cmp /usr/bin/clang >/dev/null 
+file is /usr/bin/clang
+.text is 11530764 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.201872 seconds; memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.095589 seconds; memory: 2699667296 bytes
+
+(2)
+
+=> X86 only
+=> Refinement: Yes
+=> GCC / O2
+=> XED: pin-2.11-49306-gcc.3.4.6-ia32_intel64-linux
+
+./gdslc -o gdsl_manual  "specifications/basis/prelude.ml" "specifications/basis/bbtree.ml" "specifications/x86/x86.ml" "specifications/x86/x86-pretty.ml"
+gcc -O2 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o libgdsl.so gdsl.o
+
+Code size:
+
+$ wc -l gdsl.*
+  35191 gdsl.c
+   1028 gdsl.h
+  36219 total
+
+libgdsl.so: 457K
+
+$ ./xed-cmp /usr/bin/clang >/dev/null 
+file is /usr/bin/clang
+.text is 11530764 bytes
+XED: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.726320 seconds; memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.119175 seconds; memory: 2699667296 bytes
+
+(3)
+
+=> X86 only
+=> Refinement: Yes
+=> GCC / O0
+=> XED: pin-2.12-58423-gcc.4.4.7-linux
+
+./gdslc -o gdsl_manual  "specifications/basis/prelude.ml" "specifications/basis/bbtree.ml" "specifications/x86/x86.ml" "specifications/x86/x86-pretty.ml"
+gcc -O0 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o libgdsl.so gdsl.o
+
+Code size:
+
+$ wc -l gdsl.*
+  35191 gdsl.c
+   1028 gdsl.h
+  36219 total
+
+libgdsl.so: 671K
+
+jucs@jucs-pc:~/projects/mltk/tools/xed-cmp$ ./xed-cmp /usr/bin/clang >/dev/null 
+file is /usr/bin/clang
+.text is 11530764 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.197324 seconds; memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.605407 seconds; memory: 2699667296 bytes
+
+(4)
+
+=> X86 only
+=> Refinement: Yes
+=> GCC / O0
+=> XED: pin-2.11-49306-gcc.3.4.6-ia32_intel64-linux
+
+./gdslc -o gdsl_manual  "specifications/basis/prelude.ml" "specifications/basis/bbtree.ml" "specifications/x86/x86.ml" "specifications/x86/x86-pretty.ml"
+gcc -O0 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o libgdsl.so gdsl.o
+
+Code size:
+
+$ wc -l gdsl.*
+  35191 gdsl.c
+   1028 gdsl.h
+  36219 total
+
+libgdsl.so: 671K
+
+jucs@jucs-pc:~/projects/mltk/tools/xed-cmp$ ./xed-cmp /usr/bin/clang >/dev/null 
+file is /usr/bin/clang
+.text is 11530764 bytes
+XED: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.707570 seconds; memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.523141 seconds; memory: 2699667296 bytes
