@@ -1925,31 +1925,31 @@ val sem-rcl x = do
   size <- sizeof1 x.opnd1;
   src <- rval size x.opnd1;
   dst <- lval size x.opnd1;
-  count <- rval (2*size + 1) x.opnd2;
+  count <- rval (2*size) x.opnd2;
 
   temp-count <- mktemp;
   case size of
      8: do
-       andb (2*size + 1) temp-count count (imm 0x1f);
-       mod (2*size + 1) temp-count (var temp-count) (imm 9)
+       andb (2*size) temp-count count (imm 0x1f);
+       mod (2*size) temp-count (var temp-count) (imm 9)
      end
    | 16: do
-       andb (2*size + 1) temp-count count (imm 0x1f);
-       mod (2*size + 1) temp-count (var temp-count) (imm 17)
+       andb (2*size) temp-count count (imm 0x1f);
+       mod (2*size) temp-count (var temp-count) (imm 17)
      end
-   | 32: andb (2*size + 1) temp-count count (imm 0x1f)
-   | 64: andb (2*size + 1) temp-count count (imm 0x3f)
+   | 32: andb (2*size) temp-count count (imm 0x1f)
+   | 64: andb (2*size) temp-count count (imm 0x3f)
   end;
 
   cf <- fCF;
   temp-dst <- mktemp;
   _if (/gtu size (var temp-count) (imm 0)) _then do
-    movzx (2*size + 1) temp-dst size src;
+    movzx (2*size) temp-dst size src;
     shl (size + 1) temp-dst (var temp-dst) (imm 1);
     mov 1 temp-dst (var cf);
-    sub 1 temp-count (var temp-count) (imm 1);
-    shl (2*size + 1) temp-dst (var temp-dst) (var temp-count);
-    orb size temp-dst (var (at-offset temp-dst (size + 1))) (var temp-dst);
+    sub (2*size) temp-count (var temp-count) (imm 1);
+    shl (2*size) temp-dst (var temp-dst) (var temp-count);
+    orb (size - 1) temp-dst (var (at-offset temp-dst (size + 1))) (var temp-dst);
     mov 1 cf (var (at-offset temp-dst size))
   end _else
     mov size temp-dst src
@@ -2001,7 +2001,7 @@ val sem-rcr x = do
     mov 1 (at-offset temp-dst (2*size)) (var cf);
     mov size (at-offset temp-dst size) src;
     mov size temp-dst (imm 0);
-    sub 1 temp-count (var temp-count) (imm 1);
+    sub (2*size + 1) temp-count (var temp-count) (imm 1);
     shr (2*size + 1) temp-dst (var temp-dst) (var temp-count);
     orb size temp-dst (var (at-offset temp-dst (size + 1))) (var temp-dst);
     mov 1 cf (var (at-offset temp-dst size))

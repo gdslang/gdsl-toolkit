@@ -14,8 +14,7 @@
 #include <util.h>
 #include <context.h>
 
-static void simulator_op_definition_propagate(struct data opnd1,
-		struct data opnd2, struct data *result) {
+static void simulator_op_definition_propagate(struct data opnd1, struct data opnd2, struct data *result) {
 	/*
 	 * Todo: Handle different sizes
 	 */
@@ -34,8 +33,7 @@ static void simulator_op_definition_propagate(struct data opnd1,
 	}
 }
 
-static void simulator_op_definition_bitwise(struct data opnd1,
-		struct data opnd2, struct data *result) {
+static void simulator_op_definition_bitwise(struct data opnd1, struct data opnd2, struct data *result) {
 	/*
 	 * Todo: Handle different sizes
 	 */
@@ -47,8 +45,7 @@ static void simulator_op_definition_bitwise(struct data opnd1,
 		result->defined[i] = opnd1.defined[i] & opnd2.defined[i];
 }
 
-static void simulator_op_definition_simple(struct data opnd1, struct data opnd2,
-		struct data *result) {
+static void simulator_op_definition_simple(struct data opnd1, struct data opnd2, struct data *result) {
 	/*
 	 * Todo: Handle different sizes
 	 */
@@ -64,8 +61,7 @@ static void simulator_op_definition_simple(struct data opnd1, struct data opnd2,
 	}
 	if(bit_length % 8 > 0) {
 		uint8_t local = bit_length % 8;
-		uint8_t last = opnd1.defined[bit_length / 8]
-				& opnd2.defined[bit_length / 8];
+		uint8_t last = opnd1.defined[bit_length / 8] & opnd2.defined[bit_length / 8];
 		uint8_t mask = (1 << local) - 1;
 		if((last & mask) != mask)
 			f = &context_data_undefine;
@@ -100,8 +96,7 @@ struct data simulator_op_add(struct data opnd1, struct data opnd2) {
 }
 
 static char more(size_t length, struct data opnd1, struct data opnd2, size_t i) {
-	return i < length - 1 && opnd1.defined[i] == 0xff
-			&& opnd2.defined[i] == 0xff;
+	return i < length - 1 && opnd1.defined[i] == 0xff && opnd2.defined[i] == 0xff;
 }
 
 struct data simulator_op_sub(struct data opnd1, struct data opnd2) {
@@ -135,37 +130,109 @@ struct data simulator_op_sub(struct data opnd1, struct data opnd2) {
 	return result;
 }
 
+__uint128_t opnd_data_unsigned(struct data opnd) {
+	__uint128_t result;
+	uint8_t size = 8;
+	while(size < opnd.bit_length && size < 256)
+		size *= 2;
+	switch(size) {
+		case 8: {
+			result = (*((uint8_t*)opnd.data));
+			break;
+		}
+		case 16: {
+			result = (*((uint16_t*)opnd.data));
+			break;
+		}
+		case 32: {
+			result = (*((uint32_t*)opnd.data));
+			break;
+		}
+		case 64: {
+			result = (*((uint64_t*)opnd.data));
+			break;
+		}
+		case 128: {
+			result = (*((__uint128_t *)opnd.data));
+			break;
+		}
+	}
+	if(opnd.bit_length == 128)
+		return result;
+	else
+		return result & (((__uint128_t)1 << opnd.bit_length) - 1);
+}
+
+__int128_t opnd_data_signed(struct data opnd) {
+	__int128_t result;
+	uint8_t size = 8;
+	while(size < opnd.bit_length && size < 256)
+		size *= 2;
+	switch(size) {
+		case 8: {
+			result = (*((int8_t*)opnd.data));
+			break;
+		}
+		case 16: {
+			result = (*((int16_t*)opnd.data));
+			break;
+		}
+		case 32: {
+			result = (*((int32_t*)opnd.data));
+			break;
+		}
+		case 64: {
+			result = (*((int64_t*)opnd.data));
+			break;
+		}
+		case 128: {
+			result = (*((__int128_t *)opnd.data));
+			break;
+		}
+	}
+	if(opnd.bit_length == 128)
+		return result;
+	else
+		return
+				((result >> (opnd.bit_length - 1)) & 1) ? ~(((__uint128_t)1 << opnd.bit_length) - 1) | result :
+						(((__uint128_t)1 << opnd.bit_length) - 1) & result;
+}
+
 struct data simulator_op_mul(struct data opnd1, struct data opnd2) {
 	/*
-	 * Todo: Handle different sizes
+	 * Todo: Handle different sizes, errors
 	 */
 	size_t bit_length = opnd1.bit_length;
 
 	struct data result_data;
 	result_data.bit_length = bit_length;
 
-	if(bit_length <= 8) {
-		uint8_t *result = (uint8_t*)malloc(sizeof(uint8_t));
-		*result = (*opnd1.data) * (*opnd2.data);
-		result_data.data = result;
-	} else if(bit_length <= 16) {
-		uint16_t *result = (uint16_t*)malloc(sizeof(uint16_t));
-		*result = (*((uint16_t*)opnd1.data)) * (*((uint16_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 32) {
-		uint32_t *result = (uint32_t*)malloc(sizeof(uint32_t));
-		*result = (*((uint32_t*)opnd1.data)) * (*((uint32_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 64) {
-		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
-		*result = (*((uint64_t*)opnd1.data)) * (*((uint64_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 128) {
-		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
-		*result = (*((__uint128_t *)opnd1.data)) * (*((__uint128_t *)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else
-		result_data.data = NULL; //error
+//	if(bit_length <= 8) {
+//		uint8_t *result = (uint8_t*)malloc(sizeof(uint8_t));
+//		*result = (*opnd1.data) * (*opnd2.data);
+//		result_data.data = result;
+//	} else if(bit_length <= 16) {
+//		uint16_t *result = (uint16_t*)malloc(sizeof(uint16_t));
+//		*result = (*((uint16_t*)opnd1.data)) * (*((uint16_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 32) {
+//		uint32_t *result = (uint32_t*)malloc(sizeof(uint32_t));
+//		*result = (*((uint32_t*)opnd1.data)) * (*((uint32_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 64) {
+//		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
+//		*result = (*((uint64_t*)opnd1.data)) * (*((uint64_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 128) {
+//		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+//		*result = (*((__uint128_t *)opnd1.data)) * (*((__uint128_t *)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else
+//		result_data.data = NULL; //error
+
+	__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+	*result = opnd_data_unsigned(opnd1) * opnd_data_unsigned(opnd2);
+	result_data.data = (uint8_t*)result;
 
 	simulator_op_definition_simple(opnd1, opnd2, &result_data);
 
@@ -181,28 +248,32 @@ struct data simulator_op_div(struct data opnd1, struct data opnd2) {
 	struct data result_data;
 	result_data.bit_length = bit_length;
 
-	if(bit_length <= 8) {
-		uint8_t *result = (uint8_t*)malloc(sizeof(uint8_t));
-		*result = (*opnd1.data) / (*opnd2.data);
-		result_data.data = result;
-	} else if(bit_length <= 16) {
-		uint16_t *result = (uint16_t*)malloc(sizeof(uint16_t));
-		*result = (*((uint16_t*)opnd1.data)) / (*((uint16_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 32) {
-		uint32_t *result = (uint32_t*)malloc(sizeof(uint32_t));
-		*result = (*((uint32_t*)opnd1.data)) / (*((uint32_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 64) {
-		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
-		*result = (*((uint64_t*)opnd1.data)) / (*((uint64_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 128) {
-		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
-		*result = (*((__uint128_t *)opnd1.data)) / (*((__uint128_t *)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else
-		result_data.data = NULL; //error
+//	if(bit_length <= 8) {
+//		uint8_t *result = (uint8_t*)malloc(sizeof(uint8_t));
+//		*result = (*opnd1.data) / (*opnd2.data);
+//		result_data.data = result;
+//	} else if(bit_length <= 16) {
+//		uint16_t *result = (uint16_t*)malloc(sizeof(uint16_t));
+//		*result = (*((uint16_t*)opnd1.data)) / (*((uint16_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 32) {
+//		uint32_t *result = (uint32_t*)malloc(sizeof(uint32_t));
+//		*result = (*((uint32_t*)opnd1.data)) / (*((uint32_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 64) {
+//		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
+//		*result = (*((uint64_t*)opnd1.data)) / (*((uint64_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 128) {
+//		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+//		*result = (*((__uint128_t *)opnd1.data)) / (*((__uint128_t *)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else
+//		result_data.data = NULL; //error
+
+	__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+	*result = opnd_data_unsigned(opnd1) / opnd_data_unsigned(opnd2);
+	result_data.data = (uint8_t*)result;
 
 	simulator_op_definition_simple(opnd1, opnd2, &result_data);
 
@@ -218,28 +289,32 @@ struct data simulator_op_divs(struct data opnd1, struct data opnd2) {
 	struct data result_data;
 	result_data.bit_length = bit_length;
 
-	if(bit_length <= 8) {
-		int8_t *result = (int8_t*)malloc(sizeof(int8_t));
-		*result = (*((int8_t*)opnd1.data)) / (*((int8_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 16) {
-		int16_t *result = (int16_t*)malloc(sizeof(int16_t));
-		*result = (*((int16_t*)opnd1.data)) / (*((int16_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 32) {
-		int32_t *result = (int32_t*)malloc(sizeof(int32_t));
-		*result = (*((int32_t*)opnd1.data)) / (*((int32_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 64) {
-		int64_t *result = (int64_t*)malloc(sizeof(int64_t));
-		*result = (*((int64_t*)opnd1.data)) / (*((int64_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 128) {
-		__int128_t *result = (__int128_t *)malloc(sizeof(__int128_t ));
-		*result = (*((__int128_t *)opnd1.data)) / (*((__int128_t *)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else
-		result_data.data = NULL; //error
+//	if(bit_length <= 8) {
+//		int8_t *result = (int8_t*)malloc(sizeof(int8_t));
+//		*result = (*((int8_t*)opnd1.data)) / (*((int8_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 16) {
+//		int16_t *result = (int16_t*)malloc(sizeof(int16_t));
+//		*result = (*((int16_t*)opnd1.data)) / (*((int16_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 32) {
+//		int32_t *result = (int32_t*)malloc(sizeof(int32_t));
+//		*result = (*((int32_t*)opnd1.data)) / (*((int32_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 64) {
+//		int64_t *result = (int64_t*)malloc(sizeof(int64_t));
+//		*result = (*((int64_t*)opnd1.data)) / (*((int64_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 128) {
+//		__int128_t *result = (__int128_t *)malloc(sizeof(__int128_t ));
+//		*result = (*((__int128_t *)opnd1.data)) / (*((__int128_t *)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else
+//		result_data.data = NULL; //error
+
+	__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+	*result = opnd_data_signed(opnd1) / opnd_data_signed(opnd2);
+	result_data.data = (uint8_t*)result;
 
 	simulator_op_definition_simple(opnd1, opnd2, &result_data);
 
@@ -255,28 +330,32 @@ struct data simulator_op_mod(struct data opnd1, struct data opnd2) {
 	struct data result_data;
 	result_data.bit_length = bit_length;
 
-	if(bit_length <= 8) {
-		uint8_t *result = (uint8_t*)malloc(sizeof(uint8_t));
-		*result = (*opnd1.data) % (*opnd2.data);
-		result_data.data = result;
-	} else if(bit_length <= 16) {
-		uint16_t *result = (uint16_t*)malloc(sizeof(uint16_t));
-		*result = (*((uint16_t*)opnd1.data)) % (*((uint16_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 32) {
-		uint32_t *result = (uint32_t*)malloc(sizeof(uint32_t));
-		*result = (*((uint32_t*)opnd1.data)) % (*((uint32_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 64) {
-		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
-		*result = (*((uint64_t*)opnd1.data)) % (*((uint64_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 128) {
-		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
-		*result = (*((__uint128_t *)opnd1.data)) % (*((__uint128_t *)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else
-		result_data.data = NULL; //error
+//	if(bit_length <= 8) {
+//		uint8_t *result = (uint8_t*)malloc(sizeof(uint8_t));
+//		*result = (*opnd1.data) % (*opnd2.data);
+//		result_data.data = result;
+//	} else if(bit_length <= 16) {
+//		uint16_t *result = (uint16_t*)malloc(sizeof(uint16_t));
+//		*result = (*((uint16_t*)opnd1.data)) % (*((uint16_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 32) {
+//		uint32_t *result = (uint32_t*)malloc(sizeof(uint32_t));
+//		*result = (*((uint32_t*)opnd1.data)) % (*((uint32_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 64) {
+//		uint64_t *result = (uint64_t*)malloc(sizeof(uint64_t));
+//		*result = (*((uint64_t*)opnd1.data)) % (*((uint64_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 128) {
+//		__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+//		*result = (*((__uint128_t *)opnd1.data)) % (*((__uint128_t *)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else
+//		result_data.data = NULL; //error
+
+	__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+	*result = opnd_data_unsigned(opnd1) % opnd_data_unsigned(opnd2);
+	result_data.data = (uint8_t*)result;
 
 	simulator_op_definition_simple(opnd1, opnd2, &result_data);
 
@@ -292,28 +371,32 @@ struct data simulator_op_mods(struct data opnd1, struct data opnd2) {
 	struct data result_data;
 	result_data.bit_length = bit_length;
 
-	if(bit_length <= 8) {
-		int8_t *result = (int8_t*)malloc(sizeof(int8_t));
-		*result = (*((int8_t*)opnd1.data)) % (*((int8_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 16) {
-		int16_t *result = (int16_t*)malloc(sizeof(int16_t));
-		*result = (*((int16_t*)opnd1.data)) % (*((int16_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 32) {
-		int32_t *result = (int32_t*)malloc(sizeof(int32_t));
-		*result = (*((int32_t*)opnd1.data)) % (*((int32_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 64) {
-		int64_t *result = (int64_t*)malloc(sizeof(int64_t));
-		*result = (*((int64_t*)opnd1.data)) % (*((int64_t*)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else if(bit_length <= 128) {
-		__int128_t *result = (__int128_t *)malloc(sizeof(__int128_t ));
-		*result = (*((__int128_t *)opnd1.data)) % (*((__int128_t *)opnd2.data));
-		result_data.data = (uint8_t*)result;
-	} else
-		result_data.data = NULL; //error
+//	if(bit_length <= 8) {
+//		int8_t *result = (int8_t*)malloc(sizeof(int8_t));
+//		*result = (*((int8_t*)opnd1.data)) % (*((int8_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 16) {
+//		int16_t *result = (int16_t*)malloc(sizeof(int16_t));
+//		*result = (*((int16_t*)opnd1.data)) % (*((int16_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 32) {
+//		int32_t *result = (int32_t*)malloc(sizeof(int32_t));
+//		*result = (*((int32_t*)opnd1.data)) % (*((int32_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 64) {
+//		int64_t *result = (int64_t*)malloc(sizeof(int64_t));
+//		*result = (*((int64_t*)opnd1.data)) % (*((int64_t*)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else if(bit_length <= 128) {
+//		__int128_t *result = (__int128_t *)malloc(sizeof(__int128_t ));
+//		*result = (*((__int128_t *)opnd1.data)) % (*((__int128_t *)opnd2.data));
+//		result_data.data = (uint8_t*)result;
+//	} else
+//		result_data.data = NULL; //error
+
+	__uint128_t *result = (__uint128_t *)malloc(sizeof(__uint128_t ));
+	*result = opnd_data_signed(opnd1) % opnd_data_signed(opnd2);
+	result_data.data = (uint8_t*)result;
 
 	simulator_op_definition_simple(opnd1, opnd2, &result_data);
 
@@ -382,8 +465,7 @@ struct data simulator_op_shl(struct data opnd1, struct data opnd2) {
 	return result;
 }
 
-static struct data simulator_op_shr_sign(struct data opnd1, struct data opnd2,
-		uint8_t sign) {
+static struct data simulator_op_shr_sign(struct data opnd1, struct data opnd2, uint8_t sign) {
 	/*
 	 * Todo: Handle different sizes
 	 */
@@ -613,7 +695,6 @@ struct data simulator_op_sx(size_t to, struct data opnd) {
 	 * Todo: Use membit_cpy()
 	 */
 
-
 	struct data result;
 	result.data = sx_buffer(to, from, opnd.data);
 	result.defined = sx_buffer(to, from, opnd.defined);
@@ -637,8 +718,7 @@ struct data simulator_op_cmp_eq(struct data opnd1, struct data opnd2) {
 	result.bit_length = 1;
 
 	for(size_t i = 0; i < bit_length / 8; ++i)
-		if((opnd1.data[i] & opnd1.defined[i])
-				!= (opnd2.data[i] & opnd2.defined[i])) {
+		if((opnd1.data[i] & opnd1.defined[i]) != (opnd2.data[i] & opnd2.defined[i])) {
 			result.data[0] = 0;
 			goto end;
 		}
