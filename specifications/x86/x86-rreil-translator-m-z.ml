@@ -2096,8 +2096,10 @@ val sem-ror x = do
 
   temp <- mktemp;
 
-  cf <- fCF;
-  mov 1 cf (var (at-offset temp-dst (size - 1)));
+  _if (/gtu (2*size) count (imm 0)) _then do
+    cf <- fCF;
+    mov 1 cf (var (at-offset temp-dst (size - 1)))
+  end;
 
   ov <- fOF;
   andb size temp count (imm count-mask);
