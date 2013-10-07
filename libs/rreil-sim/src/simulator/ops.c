@@ -283,6 +283,43 @@ struct data simulator_op_mod(struct data opnd1, struct data opnd2) {
 	return result_data;
 }
 
+struct data simulator_op_mods(struct data opnd1, struct data opnd2) {
+	/*
+	 * Todo: Handle different sizes
+	 */
+	size_t bit_length = opnd1.bit_length;
+
+	struct data result_data;
+	result_data.bit_length = bit_length;
+
+	if(bit_length <= 8) {
+		int8_t *result = (int8_t*)malloc(sizeof(int8_t));
+		*result = (*((int8_t*)opnd1.data)) % (*((int8_t*)opnd2.data));
+		result_data.data = (uint8_t*)result;
+	} else if(bit_length <= 16) {
+		int16_t *result = (int16_t*)malloc(sizeof(int16_t));
+		*result = (*((int16_t*)opnd1.data)) % (*((int16_t*)opnd2.data));
+		result_data.data = (uint8_t*)result;
+	} else if(bit_length <= 32) {
+		int32_t *result = (int32_t*)malloc(sizeof(int32_t));
+		*result = (*((int32_t*)opnd1.data)) % (*((int32_t*)opnd2.data));
+		result_data.data = (uint8_t*)result;
+	} else if(bit_length <= 64) {
+		int64_t *result = (int64_t*)malloc(sizeof(int64_t));
+		*result = (*((int64_t*)opnd1.data)) % (*((int64_t*)opnd2.data));
+		result_data.data = (uint8_t*)result;
+	} else if(bit_length <= 128) {
+		__int128_t *result = (__int128_t *)malloc(sizeof(__int128_t ));
+		*result = (*((__int128_t *)opnd1.data)) % (*((__int128_t *)opnd2.data));
+		result_data.data = (uint8_t*)result;
+	} else
+		result_data.data = NULL; //error
+
+	simulator_op_definition_simple(opnd1, opnd2, &result_data);
+
+	return result_data;
+}
+
 char inside(size_t bit_length, size_t i) {
 	return i < bit_length / 8 + (bit_length % 8 > 0);
 }
@@ -309,7 +346,7 @@ struct data simulator_op_shl(struct data opnd1, struct data opnd2) {
 	uint16_t amount = 0;
 	uint8_t *amount_ptr = (uint8_t*)&amount;
 	for(size_t i = 0; i < 2; ++i) {
-		amount_ptr[i] = opnd2.data[i] << (i * 8);
+		amount_ptr[i] = opnd2.data[i];
 		if(i == bit_length / 8) {
 			uint8_t mask = (1 << (bit_length % 8)) - 1;
 			amount_ptr[i] &= mask;
@@ -359,7 +396,7 @@ static struct data simulator_op_shr_sign(struct data opnd1, struct data opnd2,
 	uint16_t amount = 0;
 	uint8_t *amount_ptr = (uint8_t*)&amount;
 	for(size_t i = 0; i < 2; ++i) {
-		amount_ptr[i] = opnd2.data[i] << (i * 8);
+		amount_ptr[i] = opnd2.data[i];
 		if(i == bit_length / 8) {
 			uint8_t mask = (1 << (bit_length % 8)) - 1;
 			amount_ptr[i] &= mask;
@@ -372,8 +409,8 @@ static struct data simulator_op_shr_sign(struct data opnd1, struct data opnd2,
 
 	size_t bytes = bit_length / 8 + (bit_length % 8 > 0);
 
-	for(size_t i = bytes - 1, j = 0; j < inter; --i, ++j) {
-		result.data[i] = 0xff * sign;
+	for(size_t i = bytes, j = 0; j < inter && i > 0; --i, ++j) {
+		result.data[i - 1] = 0xff * sign;
 		if(!i)
 			goto end;
 	}

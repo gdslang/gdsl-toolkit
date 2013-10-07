@@ -1,13 +1,16 @@
-# vim:filetype=sml:ts=3:sw=3:expandtab
-export =
+# vim:ai:filetype=sml:ts=3:sw=3:expandtab
+export = rreil-stmts-count
 
 type sem_id =
    FLOATING_FLAGS
  | VIRT_T of int
 
-type sem_arity1 = {size:int, opnd1:sem_linear}
-type sem_arity2 = {size:int, opnd1:sem_linear, opnd2:sem_linear}
-type sem_cmp = {size:int, opnd1:sem_linear, opnd2:sem_linear}
+val sizeof-id id = case id of
+   FLOATING_FLAGS: 64
+end
+
+type sem_arity1 = {opnd1:sem_linear}
+type sem_arity2 = {opnd1:sem_linear, opnd2:sem_linear}
 
 type sem_address = {size:int, address: sem_linear}
 type sem_var = {id:sem_id, offset:int}
@@ -22,31 +25,31 @@ type sem_linear =
  type sem_sexpr =
    SEM_SEXPR_LIN of sem_linear
  | SEM_SEXPR_CMP of sem_op_cmp
+ | SEM_SEXPR_ARB
 
 type sem_op_cmp =
-   SEM_CMPEQ of sem_cmp
- | SEM_CMPNEQ of sem_cmp
- | SEM_CMPLES of sem_cmp
- | SEM_CMPLEU of sem_cmp
- | SEM_CMPLTS of sem_cmp
- | SEM_CMPLTU of sem_cmp
+   SEM_CMPEQ of sem_arity2
+ | SEM_CMPNEQ of sem_arity2
+ | SEM_CMPLES of sem_arity2
+ | SEM_CMPLEU of sem_arity2
+ | SEM_CMPLTS of sem_arity2
+ | SEM_CMPLTU of sem_arity2
 
-type sem_op =
-   SEM_LIN of sem_arity1
+type sem_expr =
+   SEM_SEXPR of sem_sexpr
  | SEM_MUL of sem_arity2
  | SEM_DIV of sem_arity2
  | SEM_DIVS of sem_arity2
  | SEM_MOD of sem_arity2
+ | SEM_MODS of sem_arity2
  | SEM_SHL of sem_arity2
  | SEM_SHR of sem_arity2
  | SEM_SHRS of sem_arity2
  | SEM_AND of sem_arity2
  | SEM_OR of sem_arity2
  | SEM_XOR of sem_arity2
- | SEM_SX of {size:int, fromsize:int, opnd1:sem_linear}
- | SEM_ZX of {size:int, fromsize:int, opnd1:sem_linear}
- | SEM_CMP of sem_op_cmp
- | SEM_ARB of {size:int}
+ | SEM_SX of {fromsize:int, opnd1:sem_linear}
+ | SEM_ZX of {fromsize:int, opnd1:sem_linear}
 
 type sem_varl = {id:sem_id, offset:int, size:int}
 
@@ -59,19 +62,16 @@ type sem_flop =
  | SEM_FSUB
  | SEM_FMUL
 
-type sem_prim =
-   SEM_PRIM_GENERIC of {op:string, res:sem_varls, args:sem_varls}
- | SEM_PRIM_FLOP of {op:sem_flop, flags:sem_var, res:sem_varl, args:sem_varls}
-
 type sem_stmt =
-   SEM_ASSIGN of {lhs:sem_var, rhs:sem_op}
- | SEM_LOAD of {lhs:sem_var, size:int, address:sem_address}
- | SEM_STORE of {address:sem_address, rhs:sem_op}
+   SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr}
+ | SEM_LOAD of {size:int, lhs:sem_var, address:sem_address}
+ | SEM_STORE of {size:int, address:sem_address, rhs:sem_expr}
  | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmts, else_branch:sem_stmts}
  | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
  | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
  | SEM_BRANCH of {hint:branch_hint, target:sem_address}
- | SEM_PRIM of sem_prim
+ | SEM_FLOP of {op:sem_flop, flags:sem_var, lhs:sem_varl, rhs:sem_varls}
+ | SEM_PRIM of {op:string, lhs:sem_varls, rhs:sem_varls}
 
 type branch_hint =
     HINT_JUMP
@@ -81,28 +81,6 @@ type branch_hint =
 type sem_stmts =
    SEM_CONS of {hd:sem_stmt, tl:sem_stmts}
  | SEM_NIL
-
-# vim:filetype=sml:ts=3:sw=3:expandtab
-export = rreil-stmts-rev
-
-val rreil-sizeOf op =
-   case op of
-      SEM_LIN x: x.size
-    | SEM_MUL x: x.size
-    | SEM_DIV x: x.size
-    | SEM_DIVS x: x.size
-    | SEM_MOD x: x.size
-    | SEM_SHL x: x.size
-    | SEM_SHR x: x.size
-    | SEM_SHRS x: x.size
-    | SEM_AND x: x.size
-    | SEM_OR x: x.size
-    | SEM_XOR x: x.size
-    | SEM_SX x: x.size
-    | SEM_ZX x: x.size
-    | SEM_CMP x: 1
-    | SEM_ARB x: x.size
-   end
 
 val rreil-stmts-rev stmts =
    let
@@ -120,7 +98,7 @@ val _var x _offset o = {id=x, offset=o}
 val at-offset v o = @{offset=o} v
 val var x = SEM_LIN_VAR x
 val lin-sum x y = SEM_LIN_ADD {opnd1=x, opnd2=y}
-val lin sz l = SEM_LIN {size=sz, opnd1=l}
+val lin l = SEM_SEXPR (SEM_SEXPR_LIN l)
 val address sz addr = {size=sz, address=addr}
 
 val varl-from-var sz v = @{size=sz}v
@@ -168,16 +146,17 @@ val mklabel = do
    return l
 end
 
-val /ASSIGN a b = SEM_ASSIGN{lhs=a,rhs=b}
-val /LOAD sz a b = SEM_LOAD{lhs=a,size=sz,address=b}
-val /STORE a b = SEM_STORE{address=a,rhs=b}
+val /ASSIGN sz a b = SEM_ASSIGN{size=sz,lhs=a,rhs=b}
+val /LOAD sz a b = SEM_LOAD{size=sz,lhs=a,address=b}
+val /STORE sz a b = SEM_STORE{size=sz,address=a,rhs=b}
 val /ADD a b = SEM_LIN_ADD{opnd1=a,opnd2=b}
 val /SUB a b = SEM_LIN_SUB{opnd1=a,opnd2=b}
 val /ITE c t e = SEM_ITE{cond=c,then_branch=t,else_branch=e}
 val /WHILE c b = SEM_WHILE{cond=c,body=b}
-val /BRANCH hint address =SEM_BRANCH{hint=hint,target=address}
+val /BRANCH hint address = SEM_BRANCH{hint=hint,target=address}
 val /CBRANCH cond target-true target-false = SEM_CBRANCH{cond=cond,target-true=target-true,target-false=target-false}
-val /BFLOP sz op r a b = SEM_PRIM (SEM_PRIM_FLOP{op=op,flags=_var FLOATING_FLAGS,res=varl-from-var sz r,args=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))})
+val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-var sz r,rhs=varls-more (varl-from-var sz a) (varls-one (varl-from-var sz b))}
+val /PRIM op lhs rhs = SEM_PRIM{op=op,lhs=lhs,rhs=rhs}
 
 val push insn = do
    tl <- query $stack;
@@ -205,31 +184,32 @@ val stack-set stmt = do
    update @{stack=stmt}
 end
 
-val mov sz a b = push (/ASSIGN a (SEM_LIN{size=sz,opnd1=b}))
-val undef sz a = push (/ASSIGN a (SEM_ARB{size=sz}))
+val mov sz a b = push (/ASSIGN sz a (SEM_SEXPR (SEM_SEXPR_LIN b)))
+val undef sz a = push (/ASSIGN sz a (SEM_SEXPR SEM_SEXPR_ARB))
 val load sz a psz b = push (/LOAD sz a {size=psz,address=b})
-val store a b = push (/STORE a b)
-val add sz a b c = push (/ASSIGN a (SEM_LIN{size=sz,opnd1= /ADD b c}))
-val sub sz a b c = push (/ASSIGN a (SEM_LIN{size=sz,opnd1= /SUB b c}))
-val andb sz a b c = push (/ASSIGN a (SEM_AND{size=sz,opnd1=b,opnd2=c}))
-val orb sz a b c = push (/ASSIGN a (SEM_OR{size=sz,opnd1=b,opnd2=c}))
-val xorb sz a b c = push (/ASSIGN a (SEM_XOR{size=sz,opnd1=b,opnd2=c}))
-val mul sz a b c = push (/ASSIGN a (SEM_MUL{size=sz,opnd1=b,opnd2=c}))
-val div sz a b c = push (/ASSIGN a (SEM_DIV{size=sz,opnd1=b,opnd2=c}))
-val divs sz a b c = push (/ASSIGN a (SEM_DIVS{size=sz,opnd1=b,opnd2=c}))
-val shl sz a b c = push (/ASSIGN a (SEM_SHL{size=sz,opnd1=b,opnd2=c}))
-val shr sz a b c = push (/ASSIGN a (SEM_SHR{size=sz,opnd1=b,opnd2=c}))
-val shrs sz a b c = push (/ASSIGN a (SEM_SHRS{size=sz,opnd1=b,opnd2=c}))
-val modulo sz a b c = push (/ASSIGN a (SEM_MOD{size=sz,opnd1=b,opnd2=c}))
-val movsx szA a szB b = push (/ASSIGN a (SEM_SX{size=szA,fromsize=szB,opnd1=b}))
-val movzx szA a szB b = push (/ASSIGN a (SEM_ZX{size=szA,fromsize=szB,opnd1=b}))
-val convert szA a szB b = push (/ASSIGN a (SEM_ZX{size=szA,fromsize=szB,opnd1=b}))
-val cmpeq sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPEQ{size=sz,opnd1=a,opnd2=b})))
-val cmpneq sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPNEQ{size=sz,opnd1=a,opnd2=b})))
-val cmples sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPLES{size=sz,opnd1=a,opnd2=b})))
-val cmpleu sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPLEU{size=sz,opnd1=a,opnd2=b})))
-val cmplts sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPLTS{size=sz,opnd1=a,opnd2=b})))
-val cmpltu sz f a b = push (/ASSIGN f (SEM_CMP (SEM_CMPLTU{size=sz,opnd1=a,opnd2=b})))
+val store sz a b = push (/STORE sz a b)
+val add sz a b c = push (/ASSIGN sz a (SEM_SEXPR (SEM_SEXPR_LIN (/ADD b c))))
+val sub sz a b c = push (/ASSIGN sz a (SEM_SEXPR (SEM_SEXPR_LIN (/SUB b c))))
+val andb sz a b c = push (/ASSIGN sz a (SEM_AND{opnd1=b,opnd2=c}))
+val orb sz a b c = push (/ASSIGN sz a (SEM_OR{opnd1=b,opnd2=c}))
+val xorb sz a b c = push (/ASSIGN sz a (SEM_XOR{opnd1=b,opnd2=c}))
+val mul sz a b c = push (/ASSIGN sz a (SEM_MUL{opnd1=b,opnd2=c}))
+val div sz a b c = push (/ASSIGN sz a (SEM_DIV{opnd1=b,opnd2=c}))
+val divs sz a b c = push (/ASSIGN sz a (SEM_DIVS{opnd1=b,opnd2=c}))
+val shl sz a b c = push (/ASSIGN sz a (SEM_SHL{opnd1=b,opnd2=c}))
+val shr sz a b c = push (/ASSIGN sz a (SEM_SHR{opnd1=b,opnd2=c}))
+val shrs sz a b c = push (/ASSIGN sz a (SEM_SHRS{opnd1=b,opnd2=c}))
+val mod sz a b c = push (/ASSIGN sz a (SEM_MOD{opnd1=b,opnd2=c}))
+val mods sz a b c = push (/ASSIGN sz a (SEM_MODS{opnd1=b,opnd2=c}))
+val movsx szA a szB b = push (/ASSIGN szA a (SEM_SX{fromsize=szB,opnd1=b}))
+val movzx szA a szB b = push (/ASSIGN szA a (SEM_ZX{fromsize=szB,opnd1=b}))
+val convert szA a szB b = push (/ASSIGN szA a (SEM_ZX{fromsize=szB,opnd1=b}))
+val cmpeq sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPEQ{opnd1=a,opnd2=b}))))
+val cmpneq sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPNEQ{opnd1=a,opnd2=b}))))
+val cmples sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPLES{opnd1=a,opnd2=b}))))
+val cmpleu sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPLEU{opnd1=a,opnd2=b}))))
+val cmplts sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPLTS{opnd1=a,opnd2=b}))))
+val cmpltu sz f a b = push (/ASSIGN sz f (SEM_SEXPR (SEM_SEXPR_CMP (SEM_CMPLTU{opnd1=a,opnd2=b}))))
 val ite c t e = push (/ITE (SEM_SEXPR_LIN c) t e)
 val while c b = push (/WHILE (SEM_SEXPR_LIN c) b)
 val jump address = do
@@ -248,24 +228,52 @@ val cbranch cond target-true target-false = do
    update @{foundJump = '1'};
    push (/CBRANCH (SEM_SEXPR_LIN cond) target-true target-false)
 end
+
+val unpack-lin sz o = case o of
+   SEM_LIN_VAR v: return v
+ | _: do
+     t <- mktemp;
+     mov sz t o;
+     return t
+   end
+end
+
+type sem_lins =
+   SEM_LINS_CONS of {hd:sem_linear, tl:sem_lins}
+ | SEM_LINS_NIL
+
+val lins-one l = SEM_LINS_CONS {hd=l, tl=SEM_LINS_NIL}
+val lins-more l lins = SEM_LINS_CONS {hd=l, tl=lins}
+
 val bflop sz op r a b = let
-  val unpack o = case o of
-     SEM_LIN_VAR v: return v
-   | _: do
-       t <- mktemp;
-       mov sz t a;
-       return t
-     end
-  end
-  
   val bflop-inner = do
-    a <- unpack a;
-    b <- unpack b;
+    a <- unpack-lin sz a;
+    b <- unpack-lin sz b;
 
     push (/BFLOP sz op r a b)
   end
 in
   with-subscope bflop-inner
+end
+
+val prim sz op lhs rhs = let
+  val unpack lins = case lins of
+     SEM_LINS_CONS c: do
+       hd <- unpack-lin sz c.hd;
+       tl <- unpack c.tl;
+       return (SEM_VARLS_CONS {hd=varl-from-var sz hd, tl=tl})
+     end
+   | SEM_LINS_NIL: return SEM_VARLS_NIL
+  end
+  
+  val prim-inner = do
+    lhs <- unpack lhs;
+    rhs <- unpack rhs;
+
+    push (/PRIM (string-from-rope-lit op) lhs rhs)
+  end
+in
+  with-subscope prim-inner
 end
 
 val _if c _then a _else b = do
@@ -408,3 +416,16 @@ val int-from-sexpr sex =
      SEM_SEXPR_LIN lin: int-from-linear lin
    | SEM_SEXPR_CMP cmp: IO_NONE
   end
+
+val rreil-stmts-count stmts = let
+  val count c stmts = case stmts of
+    SEM_CONS x: count (1 + (case x.hd of
+        SEM_ITE i: (count c i.then_branch) + (count 0 i.else_branch)
+      | SEM_WHILE w: count c w.body
+      | _: c
+    end)) x.tl
+   | SEM_NIL: c
+  end
+in
+  count 0 stmts
+end

@@ -1,6 +1,6 @@
 # Standard definitions.
 
-export = rope-length rope-print rope-to-string
+export = rope-length rope-print rope-to-string int-max
 
 type rope = RopeLeaf of { rope-size : int, rope-string: string }
           | RopeInner of { rope-size : int, rope-left : rope, rope-right : rope }
@@ -38,6 +38,10 @@ end
 
 # this function is applied to each string literal during parsing
 val from-string-lit s = RopeLeaf { rope-size = strlen s, rope-string = s }
+
+val string-from-rope-lit r = case r of
+   RopeLeaf l: l.rope-string
+end
 
 val show-int s = from-string-lit (showint s)
 
@@ -78,3 +82,5 @@ val io-binop binop a b =
      end
    | IO_NONE: IO_NONE
   end
+
+val int-max = 0x7fffffffffffffff

@@ -77,16 +77,14 @@ case $with_frontend in
 	*) has_x86=no;;
 esac
 
-has_anon_members=yes
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[;]],
-    [[struct inge { union { int a; int b }; }; struct inge i; i.a = 42;]])],
+    [[struct inge { union { int a; int b }; }; struct inge i; i.a = 42;]])], [has_anon_members=yes],
     has_anon_members=no)
 
-has_open_memstream=yes
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[#include <stdio.h>]],
-    [[char *c, size_t s, FILE *f = open_memstream(&c, &s);]])],
+    [[char *c; size_t s; FILE *f = open_memstream(&c, &s);]])], [has_open_memstream=yes],
     has_open_memstream=no)
 
 AC_CHECK_HEADERS([gelf.h], [has_elf=yes], [has_elf=no])

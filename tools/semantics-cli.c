@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <getopt.h>
 #include <readhex.h>
 #include <gdsl.h>
 
@@ -98,6 +100,8 @@ int main(int argc, char** argv) {
 	puts(fmt);
 
 	cleanup:
+
+	gdsl_reset_heap(state);
 
 	gdsl_destroy(state);
 	free(buffer);

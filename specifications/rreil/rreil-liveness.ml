@@ -13,15 +13,22 @@ export =
 #   lvstate-pretty
 #   lv-sweep-and-collect-upto-native-flow
 
+val visit-semvarls visitor-semvar set varls = case varls of
+   SEM_VARLS_CONS c: lv-union (visitor-semvar set c.hd.size c.hd) (visit-semvarls visitor-semvar set c.tl)
+ | SEM_VARLS_NIL: set
+end
+
 val lv-kill kills stmt =
    let
       val visit-semvar kills sz x = fmap-add-range kills x.id sz x.offset
 
       val visit-stmt kills stmt =
          case stmt of
-            SEM_ASSIGN x: visit-semvar kills (rreil-sizeOf x.rhs) x.lhs
+            SEM_ASSIGN x: visit-semvar kills x.size x.lhs
           | SEM_LOAD x: visit-semvar kills x.size x.lhs
 					| SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
+          | SEM_FLOP x: visit-semvar kills x.lhs.size x.lhs
+          | SEM_PRIM x: visit-semvarls visit-semvar kills x.lhs
           | _ : kills
          end
    in
@@ -47,67 +54,68 @@ val lv-gen gens stmt =
           | SEM_LIN_SCALE x: visit-lin gens sz x.opnd
          end
 
-			val visit-sexpr gens sexpr =
+			val visit-sexpr size gens sexpr =
 			  case sexpr of
-				   SEM_SEXPR_LIN l: visit-lin gens 1 l
-				 | SEM_SEXPR_CMP c: visit-op-cmp gens c
+				   SEM_SEXPR_LIN l: visit-lin gens size l
+				 | SEM_SEXPR_CMP c: visit-op-cmp size gens c
+         | SEM_SEXPR_ARB: gens
 				end
 
       val visit-arity1 gens x = visit-lin gens x.size x.opnd1
 
-      val visit-arity2 gens x =
+      val visit-arity2 size gens x =
          lv-union
-            (visit-lin gens x.size x.opnd1)
-            (visit-lin gens x.size x.opnd2)
+            (visit-lin gens size x.opnd1)
+            (visit-lin gens size x.opnd2)
 
-			val visit-op-cmp gens cmp =
+			val visit-op-cmp size gens cmp =
 			  case cmp of
-           SEM_CMPEQ x: visit-arity2 gens x
-         | SEM_CMPNEQ x: visit-arity2 gens x
-         | SEM_CMPLES x: visit-arity2 gens x
-         | SEM_CMPLEU x: visit-arity2 gens x
-         | SEM_CMPLTS x: visit-arity2 gens x
-         | SEM_CMPLTU x: visit-arity2 gens x
+           SEM_CMPEQ x: visit-arity2 size gens x
+         | SEM_CMPNEQ x: visit-arity2 size gens x
+         | SEM_CMPLES x: visit-arity2 size gens x
+         | SEM_CMPLEU x: visit-arity2 size gens x
+         | SEM_CMPLTS x: visit-arity2 size gens x
+         | SEM_CMPLTU x: visit-arity2 size gens x
 			  end
 
-      val visit-op gens op =
+      val visit-expr size gens op =
          case op of
-            SEM_LIN x: visit-arity1 gens x
+            SEM_SEXPR x: visit-sexpr size gens x
 #          | SEM_BSWAP x: visit-arity1 gens x
-          | SEM_MUL x: visit-arity2 gens x
-          | SEM_DIV x: visit-arity2 gens x
-          | SEM_DIVS x: visit-arity2 gens x
-          | SEM_MOD x: visit-arity2 gens x
-          | SEM_SHL x: visit-arity2 gens x
-          | SEM_SHR x: visit-arity2 gens x
-          | SEM_SHRS x: visit-arity2 gens x
-          | SEM_AND x: visit-arity2 gens x
-          | SEM_OR x: visit-arity2 gens x
-          | SEM_XOR x: visit-arity2 gens x
+          | SEM_MUL x: visit-arity2 size gens x
+          | SEM_DIV x: visit-arity2 size gens x
+          | SEM_DIVS x: visit-arity2 size gens x
+          | SEM_MOD x: visit-arity2 size gens x
+          | SEM_SHL x: visit-arity2 size gens x
+          | SEM_SHR x: visit-arity2 size gens x
+          | SEM_SHRS x: visit-arity2 size gens x
+          | SEM_AND x: visit-arity2 size gens x
+          | SEM_OR x: visit-arity2 size gens x
+          | SEM_XOR x: visit-arity2 size gens x
           | SEM_SX x: visit-lin gens x.fromsize x.opnd1
           | SEM_ZX x: visit-lin gens x.fromsize x.opnd1
-					| SEM_CMP c: visit-op-cmp gens c
-          | SEM_ARB x: gens
          end
 
       val visit-address gens x = visit-lin gens x.size x.address
 
-      val visit-flow gens x =
+      val visit-flow size gens x =
          lv-union
-           (visit-sexpr gens x.cond)
+           (visit-sexpr size gens x.cond)
 					 (lv-union
              (visit-address gens x.target-true)
              (visit-address gens x.target-false))
 
       val visit-stmt gens stmt =
          case stmt of
-            SEM_ASSIGN x: visit-op gens x.rhs
+            SEM_ASSIGN x: visit-expr x.size gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
-          | SEM_STORE x: lv-union (visit-address gens x.address) (visit-op gens x.rhs)
-					| SEM_WHILE x: visit-sexpr gens x.cond
-					| SEM_ITE x: visit-sexpr gens x.cond
+          | SEM_STORE x: lv-union (visit-address gens x.address) (visit-expr x.size gens x.rhs)
+					| SEM_WHILE x: visit-sexpr 1 gens x.cond
+					| SEM_ITE x: visit-sexpr 1 gens x.cond
 					| SEM_BRANCH x: visit-address gens x.target
-					| SEM_CBRANCH x: visit-flow gens x
+					| SEM_CBRANCH x: visit-flow 1 gens x
+          | SEM_FLOP x: lv-union (visit-semvar gens (sizeof-id x.flags.id) x.flags) (visit-semvarls visit-semvar gens x.rhs)
+          | SEM_PRIM x: visit-semvarls visit-semvar gens x.rhs
 #          | SEM_LABEL x: gens
 #          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
 #          | SEM_IF_GOTO x: visit-flow gens x
@@ -234,134 +242,103 @@ val lv-analyze initial-live stack =
       val sweep stack state =
          case stack of
             SEM_NIL: return state
-          | SEM_CONS x:
-# do print x.hd;
-               case x.hd of
-#                  SEM_LABEL y:
-#                     do lv-update-state y.label state;
-#                        lv-push-live x.hd;
-#                        lv-push-maybelive x.hd;
-#                        sweep x.tl state
-#                     end
-#                | SEM_IF_GOTO_LABEL y:
-#                     do lmap <- query $state;
-#                        lv-push-live x.hd;
-#                        lv-push-maybelive x.hd;
-#                        sweep
-#                           x.tl
-#                           (lvstate-union
-#                              (lvstate-eval state x.hd)
-#                              (lmap-get-orelse
-#                                 lmap
-#                                 {lab=y.label,state=lvstate-empty{}}).state)
-#                     end
-                  SEM_LOAD y:
-                     do lv-push-live x.hd;
-                        sweep x.tl (lvstate-eval state x.hd)
-                     end
-                | SEM_STORE y:
-                     do lv-push-live x.hd;
-                        sweep x.tl (lvstate-eval state x.hd)
-                     end
-                | SEM_WHILE y: do
-										backup <- live-stack-backup-and-reset;
+          | SEM_CONS x: let
+              val cont kill cont-state =
+                 if lv-any-live? state.greedy kill
+                    then
+                       do lv-push-live x.hd;
+                          sweep x.tl cont-state
+                       end
+                 else if lv-any-live? state.conservative kill
+                    then
+                       do lv-push-maybelive x.hd;
+                          sweep x.tl cont-state
+                       end
+                 else sweep x.tl cont-state
+            in
+              case x.hd of
+                 SEM_LOAD y:
+                    do lv-push-live x.hd;
+                       sweep x.tl (lvstate-eval state x.hd)
+                    end
+               | SEM_STORE y:
+                    do lv-push-live x.hd;
+                       sweep x.tl (lvstate-eval state x.hd)
+                    end
+               | SEM_WHILE y: do
+							 		backup <- live-stack-backup-and-reset;
 
-										body-rev <- return (rreil-stmts-rev y.body);
-										body-state <- sweep body-rev (lvstate-empty (fmap-empty {}) body-rev);
-										state-new <- return (lvstate-union-conservative state body-state);
+							 		body-rev <- return (rreil-stmts-rev y.body);
+							 		body-state <- sweep body-rev (lvstate-empty (fmap-empty {}) body-rev);
+							 		state-new <- return (lvstate-union-conservative state body-state);
 
-										maybelive <- query $maybelive;
+							 		maybelive <- query $maybelive;
 
-										live-stack-restore backup;
-								    lv-push-live (/WHILE y.cond maybelive);
-                    sweep x.tl (lvstate-eval state-new x.hd)
-                  end
-                | SEM_ITE y: do
-										org-backup <- live-stack-backup-and-reset;
+							 		live-stack-restore backup;
+							     lv-push-live (/WHILE y.cond maybelive);
+                   sweep x.tl (lvstate-eval state-new x.hd)
+                 end
+               | SEM_ITE y: do
+							 		org-backup <- live-stack-backup-and-reset;
 
-										then_branch-rev <- return (rreil-stmts-rev y.then_branch);
-										then-state <- sweep then_branch-rev state;
-										then-backup <- live-stack-backup-and-reset;
+							 		then_branch-rev <- return (rreil-stmts-rev y.then_branch);
+							 		then-state <- sweep then_branch-rev state;
+							 		then-backup <- live-stack-backup-and-reset;
 
-										else_branch-rev <- return (rreil-stmts-rev y.else_branch);
-										else-state <- sweep else_branch-rev state;
-										else-backup <- live-stack-backup-and-reset;
+							 		else_branch-rev <- return (rreil-stmts-rev y.else_branch);
+							 		else-state <- sweep else_branch-rev state;
+							 		else-backup <- live-stack-backup-and-reset;
 
-										live-stack-restore org-backup;
+							 		live-stack-restore org-backup;
 
-										#state-new <- let
-										#  val stacks-empty a b = 
-										#    case a of
-										#       SEM_NIL:
-										#			   case b of
-										#			      SEM_NIL: '1'
-										#				  | SEM_CONS x: '0'
-										#				 end
-									  #     | SEM_CONS x: '0'
-										#		end
-										#in
-										#  if (stacks-empty then-backup.maybelive else-backup.maybelive) == '0' then do
-										#	  lv-push-maybelive (/ITE y.cond then-backup.maybelive else-backup.maybelive);
-										#    greedy <-
-										#		  if (stacks-empty then-backup.live else-backup.live) == '0' then do
-										#        lv-push-live-only (/ITE y.cond then-backup.live else-backup.live);
-                    #        return (lvstate-eval-simple-no-kill state.greedy x.hd)
-										#		  end else
-										#		    return state.greedy
-										#		  ;
-										#	  return {greedy=greedy,conservative=lvstate-eval-simple-no-kill state.conservative x.hd}
-										#	end else
-										#	  return {greedy=state.greedy,conservative=state.conservative}
-										#end;
-										
-										ite-conservative <- return (/ITE y.cond then-backup.maybelive else-backup.maybelive);
-										ite-greedy <- return (/ITE y.cond then-backup.live else-backup.live);
-										lv-push-maybelive ite-conservative;
-										lv-push-live-only ite-greedy;
+							 		#state-new <- let
+							 		#  val stacks-empty a b = 
+							 		#    case a of
+							 		#       SEM_NIL:
+							 		#			   case b of
+							 		#			      SEM_NIL: '1'
+							 		#				  | SEM_CONS x: '0'
+							 		#				 end
+							 	  #     | SEM_CONS x: '0'
+							 		#		end
+							 		#in
+							 		#  if (stacks-empty then-backup.maybelive else-backup.maybelive) == '0' then do
+							 		#	  lv-push-maybelive (/ITE y.cond then-backup.maybelive else-backup.maybelive);
+							 		#    greedy <-
+							 		#		  if (stacks-empty then-backup.live else-backup.live) == '0' then do
+							 		#        lv-push-live-only (/ITE y.cond then-backup.live else-backup.live);
+                   #        return (lvstate-eval-simple-no-kill state.greedy x.hd)
+							 		#		  end else
+							 		#		    return state.greedy
+							 		#		  ;
+							 		#	  return {greedy=greedy,conservative=lvstate-eval-simple-no-kill state.conservative x.hd}
+							 		#	end else
+							 		#	  return {greedy=state.greedy,conservative=state.conservative}
+							 		#end;
+							 		
+							 		ite-conservative <- return (/ITE y.cond then-backup.maybelive else-backup.maybelive);
+							 		ite-greedy <- return (/ITE y.cond then-backup.live else-backup.live);
+							 		lv-push-maybelive ite-conservative;
+							 		lv-push-live-only ite-greedy;
 
-										state-new <- return (lvstate-union then-state else-state);
+							 		state-new <- return (lvstate-union then-state else-state);
 
-										#sweep x.tl state-new
-                    sweep x.tl (lv-eval-simple state-new x.hd)
-                  end
-								| SEM_CBRANCH y: do
-                    lv-push-live x.hd;
-                    sweep x.tl (lvstate-eval state x.hd)
-								  end
-								| SEM_BRANCH y: do
-                    lv-push-live x.hd;
-                    sweep x.tl (lvstate-eval state x.hd)
-								  end
-#                | SEM_IF_GOTO y:
-#                     do lv-push-live x.hd;
-#                        sweep x.tl (lvstate-eval state x.hd)
-#                     end
-#                | SEM_CALL y:
-#                     do lv-push-live x.hd;
-#                        sweep x.tl (lvstate-eval state x.hd)
-#                     end
-#                | SEM_RETURN y:
-#                     do lv-push-live x.hd;
-#                        sweep x.tl (lvstate-eval state x.hd)
-#                     end
-                | SEM_ASSIGN y:
-                     let
-                        val cont kill cont-state =
-                           if lv-any-live? state.greedy kill
-                              then
-                                 do lv-push-live x.hd;
-                                    sweep x.tl cont-state
-                                 end
-                           else if lv-any-live? state.conservative kill
-                              then
-                                 do lv-push-maybelive x.hd;
-                                    sweep x.tl cont-state
-                                 end
-                           else sweep x.tl cont-state
-                     in
-                        cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
-                     end
-               end# end
+							 		#sweep x.tl state-new
+                   sweep x.tl (lv-eval-simple state-new x.hd)
+                 end
+							 | SEM_CBRANCH y: do
+                   lv-push-live x.hd;
+                   sweep x.tl (lvstate-eval state x.hd)
+							   end
+							 | SEM_BRANCH y: do
+                   lv-push-live x.hd;
+                   sweep x.tl (lvstate-eval state x.hd)
+							   end
+               | SEM_ASSIGN y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
+               | SEM_FLOP y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
+               | SEM_PRIM y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
+              end
+            end
          end
    in do
 #	   lv-sweep-and-collect-upto-native-flow;

@@ -15,7 +15,8 @@ struct state {
   char* heap;         /* current top of the heap */
 @state_type@
 ;      /* the current monadic state */
-  char* ip_base;      /* beginning of code buffer */
+  char* ip_start;      /* beginning of code buffer */
+  size_t ip_base;      /* base address of code */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
   char* err_str;      /* a string describing the fatal error that occurred */
@@ -278,25 +279,27 @@ state_t
 
 void 
 @set_code@
-(state_t s, char* buf, size_t buf_len, uint64_t base) {
+(state_t s, char* buf, size_t buf_len, size_t base) {
   s->ip = buf;
   s->ip_limit = buf+buf_len;
-  s->ip_base = buf-base;
+  s->ip_start = buf;
+  s->ip_base = base;
 }
 
-uint64_t 
+size_t 
 @get_ip_offset@
 (state_t s) {
-  return s->ip - s->ip_base;
+  return s->ip_base + (s->ip - s->ip_start);
 }
 
 int_t 
 @seek@
 (state_t s, size_t i) {
-  size_t size = (size_t)(s->ip_limit - s->ip_base);
-	if(i >= size)
+  size_t size = (size_t)(s->ip_limit - s->ip_start);
+  size_t start_offset = i - s->ip_base;
+	if(start_offset >= size)
 	  return 1;
-	s->ip = s->ip_base + i;
+	s->ip = s->ip_start + start_offset;
 	return 0;
 }
 

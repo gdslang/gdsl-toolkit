@@ -1,20 +1,34 @@
 package rreil.statement;
 
-import rreil.prim.IPrim;
+import rreil.DefaultLimitedVariableCollection;
 
-public class PrimitiveStatement extends Statement implements IPrim {
-	private IPrim primitive;
+public class PrimitiveStatement extends Statement {
+	private String op;
 	
-	public IPrim getPrimitive() {
-		return primitive;
+	public String getOp() {
+		return op;
 	}
 	
-	public PrimitiveStatement(IPrim primitive) {
-		this.primitive = primitive;
+	private DefaultLimitedVariableCollection lhs;
+	
+	public DefaultLimitedVariableCollection getRes() {
+		return lhs;
+	}
+	
+	private DefaultLimitedVariableCollection rhs;
+	
+	public DefaultLimitedVariableCollection getArgs() {
+		return rhs;
+	}
+	
+	public PrimitiveStatement(String op, DefaultLimitedVariableCollection lhs, DefaultLimitedVariableCollection rhs) {
+		this.op = op;
+		this.lhs = lhs;
+		this.rhs = rhs;
 	}
 	
 	@Override
 	public String toString() {
-		return primitive.toString();
+		return lhs + " = $" + op + " " + rhs;
 	}
 }

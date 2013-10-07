@@ -1,28 +1,35 @@
 package rreil.statement;
 
 import rreil.Variable;
-import rreil.operation.Operation;
+import rreil.expression.Expression;
 
 public class AssignStatement extends Statement {
+	protected long size;
+	
+	public long getSize() {
+		return size;
+	}
+	
 	protected Variable lhs;
 
 	public Variable getLhs() {
 		return lhs;
 	}
 
-	protected Operation rhs;
+	protected Expression rhs;
 
-	public Operation getRhs() {
+	public Expression getRhs() {
 		return rhs;
 	}
 
-	public AssignStatement(Variable lhs, Operation rhs) {
+	public AssignStatement(long size, Variable lhs, Expression rhs) {
+		this.size = size;
 		this.lhs = lhs;
 		this.rhs = rhs;
 	}
 	
 	@Override
 	public String toString() {
-		return lhs + " = " + rhs;
+		return lhs + " =:" + size + " " + rhs;
 	}
 }

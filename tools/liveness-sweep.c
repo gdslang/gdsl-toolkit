@@ -176,14 +176,14 @@ obj_t translate_single(state_t state) {
 obj_t translate(state_t state) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	obj_t rreil_insns = gdsl_translateBlock(state, gdsl_config_default(state));
+	obj_t rreil_insns = gdsl_translateBlock(state, gdsl_config_default(state), gdsl_int_max(state));
 	return rreil_insns;
 }
 
 translate_result_t translate_super(state_t state, obj_t *rreil_insns) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state, gdsl_config_default(state));
+	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state, gdsl_config_default(state), gdsl_int_max(state));
 	*rreil_insns = rreil_insns_succs->insns;
 	return rreil_insns_succs;
 }
@@ -209,10 +209,10 @@ void print_succs(state_t state, translate_result_t translated, size_t size) {
 //	}
 
 	string_t r = gdsl_merge_rope(state, gdsl_succ_pretty(state, succ_a, "a"));
-	printf("%s", r);
+	printf("%s\n", r);
 
 	r = gdsl_merge_rope(state, gdsl_succ_pretty(state, succ_b, "b"));
-	printf("%s", r);
+	printf("%s\n", r);
 
 //	print_succ(succ_a, "a");
 //	print_succ(succ_b, "b");
@@ -220,8 +220,8 @@ void print_succs(state_t state, translate_result_t translated, size_t size) {
 
 struct context {
 	size_t native_instructions;
-	size_t lines;
-	size_t lines_opt;
+	size_t stmts;
+	size_t stmts_opt;
 	long time_non_opt;
 	long time_opt;
 };
@@ -229,14 +229,14 @@ struct context {
 void print_results(struct context *context) {
 	printf("Statistics:\n");
 	printf("Number of native instructions: %zu\n", context->native_instructions);
-	printf("Number of lines without LV analysis: %zu\n", context->lines);
-	printf("Number of lines with LV analysis: %zu\n", context->lines_opt);
+	printf("Number of RReil statements without LV analysis: %zu\n", context->stmts);
+	printf("Number of RReil statements with LV analysis: %zu\n", context->stmts_opt);
 
-	double reduction = 1 - (context->lines_opt / (double)context->lines);
+	double reduction = 1 - (context->stmts_opt / (double)context->stmts);
 
 	printf("Reduction: %lf%%\n", 100 * reduction);
 
-	printf("Time needed for the decoding and the translation to RREIL: %lf seconds\n",
+	printf("Time needed for the decoding and the translation into RREIL: %lf seconds\n",
 			context->time_non_opt / (double)(NANOS));
 	printf("Time needed for the lv analysis: %lf seconds\n", context->time_opt / (double)(NANOS));
 }
@@ -275,14 +275,14 @@ static double fit_t(double value) {
 
 void print_results_latex(char *file, struct context *single, struct context *intra, struct context *inter) {
 	//netstat & 15k & 86k & 1.10s & 63k & 17.43s & 26.04\% & 53k & 39.98s & 38.51\%
-	double reduction_simple = 1 - (single->lines_opt / (double)single->lines);
-	double reduction_inter = 1 - (inter->lines_opt / (double)inter->lines);
-	double reduction_intra = 1 - (intra->lines_opt / (double)intra->lines);
+	double reduction_simple = 1 - (single->stmts_opt / (double)single->stmts);
+	double reduction_inter = 1 - (inter->stmts_opt / (double)inter->stmts);
+	double reduction_intra = 1 - (intra->stmts_opt / (double)intra->stmts);
 
-	double fac_non = single->lines / (double)single->native_instructions;
-	double fac_single = single->lines_opt / (double)single->native_instructions;
-	double fac_inta = intra->lines_opt / (double)single->native_instructions;
-	double fac_inter = inter->lines_opt / (double)single->native_instructions;
+	double fac_non = single->stmts / (double)single->native_instructions;
+	double fac_single = single->stmts_opt / (double)single->native_instructions;
+	double fac_inta = intra->stmts_opt / (double)single->native_instructions;
+	double fac_inter = inter->stmts_opt / (double)single->native_instructions;
 
 	size_t file_offset = 0;
 	for(size_t i = 0; file[i]; i++) {
@@ -293,16 +293,16 @@ void print_results_latex(char *file, struct context *single, struct context *int
 	printf(
 			"%s & %lu%s & %lu%s & %.1lf%s & %.1lf & %lu%s & %.1lf%s & %.0lf\\%% & %.1f & %lu%s & %.1lf%s & %.0lf\\%% & %.1f & %lu%s & %.1lf%s & %.0lf\\%% & %.1f \\\\\n",
 			file + file_offset, fit_sz(inter->native_instructions), symbol_sz(inter->native_instructions),
-			fit_sz(inter->lines), symbol_sz(inter->lines), fit_t(inter->time_non_opt / (double)(NANOS)),
+			fit_sz(inter->stmts), symbol_sz(inter->stmts), fit_t(inter->time_non_opt / (double)(NANOS)),
 			symbol_t(inter->time_non_opt / (double)(NANOS)), fac_non,
 
-			fit_sz(single->lines_opt), symbol_sz(single->lines_opt), fit_t(single->time_opt / (double)(NANOS)),
+			fit_sz(single->stmts_opt), symbol_sz(single->stmts_opt), fit_t(single->time_opt / (double)(NANOS)),
 			symbol_t(single->time_opt / (double)(NANOS)), 100 * reduction_simple, fac_single,
 
-			fit_sz(intra->lines_opt), symbol_sz(intra->lines_opt), fit_t(intra->time_opt / (double)(NANOS)),
+			fit_sz(intra->stmts_opt), symbol_sz(intra->stmts_opt), fit_t(intra->time_opt / (double)(NANOS)),
 			symbol_t(intra->time_opt / (double)(1000000000)), 100 * reduction_intra, fac_inta,
 
-			fit_sz(inter->lines_opt), symbol_sz(inter->lines_opt), fit_t(inter->time_opt / (double)(NANOS)),
+			fit_sz(inter->stmts_opt), symbol_sz(inter->stmts_opt), fit_t(inter->time_opt / (double)(NANOS)),
 			symbol_t(inter->time_opt / (double)(NANOS)), 100 * reduction_inter, fac_inter);
 }
 
@@ -316,6 +316,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 		printf("Unable to open file.\n");
 		return 1;
 	}
+
+//	fprintf(stderr, "File offset: %zu\n", file_offset);
 
 	fseek(f, file_offset, SEEK_SET);
 
@@ -413,9 +415,11 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 			printf("\n");
 		}
 
-		for(size_t i = 0; fmt[i]; i++)
-			if(fmt[i] == '\n')
-				context->lines++;
+		context->stmts = gdsl_rreil_stmts_count(state, rreil_insns);
+
+//		for(size_t i = 0; fmt[i]; i++)
+//			if(fmt[i] == '\n')
+//				context->lines++;
 
 		lv_super_result_t lv_result;
 		clock_gettime(CLOCK_REALTIME, &start);
@@ -502,9 +506,11 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 			printf("\n");
 		}
 
-		for(size_t i = 0; fmt[i]; i++)
-			if(fmt[i] == '\n')
-				context->lines_opt++;
+		context->stmts_opt = gdsl_rreil_stmts_count(state, rreil_instructions_greedy);
+
+//		for(size_t i = 0; fmt[i]; i++)
+//			if(fmt[i] == '\n')
+//				context->lines_opt++;
 
 		//consumed += __getBlobIndex(state) - consumed;
 		consumed = gdsl_get_ip_offset(state);
@@ -554,9 +560,9 @@ static void run(struct options options, size_t *offset, size_t *size_max, double
 
 		print_results_latex(options.files[index], &single, &intra, &inter);
 
-		*single_red_cum += 1 - (single.lines_opt / (double)single.lines);
-		*intra_red_cum += 1 - (intra.lines_opt / (double)intra.lines);
-		*inter_red_cum += 1 - (inter.lines_opt / (double)inter.lines);
+		*single_red_cum += 1 - (single.stmts_opt / (double)single.stmts);
+		*intra_red_cum += 1 - (intra.stmts_opt / (double)intra.stmts);
+		*inter_red_cum += 1 - (inter.stmts_opt / (double)inter.stmts);
 	} else {
 
 		struct context context;

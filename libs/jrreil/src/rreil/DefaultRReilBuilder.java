@@ -1,5 +1,28 @@
 package rreil;
 
+import rreil.expression.And;
+import rreil.expression.CompareEqual;
+import rreil.expression.CompareLessOrEqualSigned;
+import rreil.expression.CompareLessOrEqualUnsigned;
+import rreil.expression.CompareLessSigned;
+import rreil.expression.CompareLessUnsigned;
+import rreil.expression.CompareNotEqual;
+import rreil.expression.Compare;
+import rreil.expression.Division;
+import rreil.expression.ICompare;
+import rreil.expression.IExpression;
+import rreil.expression.Simple;
+import rreil.expression.Modulo;
+import rreil.expression.Multiplication;
+import rreil.expression.Expression;
+import rreil.expression.Or;
+import rreil.expression.ShiftLeft;
+import rreil.expression.ShiftRight;
+import rreil.expression.ShiftRightSigned;
+import rreil.expression.SignExtend;
+import rreil.expression.SignedDivision;
+import rreil.expression.Xor;
+import rreil.expression.ZeroExtend;
 import rreil.id.FloatingFlags;
 import rreil.id.GenericArchRegister;
 import rreil.id.IId;
@@ -20,33 +43,7 @@ import rreil.linear.LinearImmediateExpression;
 import rreil.linear.LinearScaleExpression;
 import rreil.linear.LinearSubtractionExpression;
 import rreil.linear.LinearVariableExpression;
-import rreil.operation.AndOperation;
-import rreil.operation.ArbitraryOperation;
-import rreil.operation.CompareEqualOperation;
-import rreil.operation.CompareLessOrEqualSignedOperation;
-import rreil.operation.CompareLessOrEqualUnsignedOperation;
-import rreil.operation.CompareLessSignedOperation;
-import rreil.operation.CompareLessUnsignedOperation;
-import rreil.operation.CompareNotEqualOperation;
-import rreil.operation.CompareOperation;
-import rreil.operation.DivisionOperation;
-import rreil.operation.ICompareOperation;
-import rreil.operation.IOperation;
-import rreil.operation.LinearOperation;
-import rreil.operation.ModuloOperation;
-import rreil.operation.MultiplicationOperation;
-import rreil.operation.Operation;
-import rreil.operation.OrOperation;
-import rreil.operation.ShiftLeftOperation;
-import rreil.operation.ShiftRightOperation;
-import rreil.operation.ShiftRightSignedOperation;
-import rreil.operation.SignExtendOperation;
-import rreil.operation.SignedDivisionOperation;
-import rreil.operation.XorOperation;
-import rreil.operation.ZeroExtendOperation;
-import rreil.prim.FlopPrimitive;
-import rreil.prim.GenericPrimitive;
-import rreil.prim.IPrim;
+import rreil.sexpression.Arbitrary;
 import rreil.sexpression.ISimpleExpression;
 import rreil.sexpression.SimpleCompareExpression;
 import rreil.sexpression.SimpleExpression;
@@ -54,6 +51,7 @@ import rreil.sexpression.SimpleLinearExpression;
 import rreil.statement.AssignStatement;
 import rreil.statement.BranchStatement;
 import rreil.statement.ConditionalBranchStatement;
+import rreil.statement.FlopStatement;
 import rreil.statement.IStatement;
 import rreil.statement.IfThenElseStatement;
 import rreil.statement.LoadStatement;
@@ -204,33 +202,33 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	@Override
-	public IId sem_cs() {
-		return new X86RegisterId(X86Register.CS);
+	public IId sem_cs_base() {
+		return new X86RegisterId(X86Register.CS_Base);
 	}
 
 	@Override
-	public IId sem_ds() {
-		return new X86RegisterId(X86Register.DS);
+	public IId sem_ds_base() {
+		return new X86RegisterId(X86Register.DS_Base);
 	}
 
 	@Override
-	public IId sem_ss() {
-		return new X86RegisterId(X86Register.SS);
+	public IId sem_ss_base() {
+		return new X86RegisterId(X86Register.SS_Base);
 	}
 
 	@Override
-	public IId sem_es() {
-		return new X86RegisterId(X86Register.ES);
+	public IId sem_es_base() {
+		return new X86RegisterId(X86Register.ES_Base);
 	}
 
 	@Override
-	public IId sem_fs() {
-		return new X86RegisterId(X86Register.FS);
+	public IId sem_fs_base() {
+		return new X86RegisterId(X86Register.FS_Base);
 	}
 
 	@Override
-	public IId sem_gs() {
-		return new X86RegisterId(X86Register.GS);
+	public IId sem_gs_base() {
+		return new X86RegisterId(X86Register.GS_Base);
 	}
 
 	@Override
@@ -459,8 +457,13 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	@Override
-	public SimpleCompareExpression sem_sexpr_cmp(ICompareOperation _this) {
-		return new SimpleCompareExpression((CompareOperation) _this);
+	public SimpleCompareExpression sem_sexpr_cmp(ICompare _this) {
+		return new SimpleCompareExpression((Compare) _this);
+	}
+
+	@Override
+	public SimpleExpression sem_sexpr_arb() {
+		return new Arbitrary();
 	}
 
 	/*
@@ -468,144 +471,112 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	 */
 
 	@Override
-	public CompareOperation sem_cmpeq(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareEqualOperation(size, (LinearExpression) opnd1,
+	public Compare sem_cmpeq(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new CompareEqual((LinearExpression) opnd1,
 				(LinearExpression) opnd2);
 	}
 
 	@Override
-	public CompareOperation sem_cmpneq(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareNotEqualOperation(size, (LinearExpression) opnd1,
+	public Compare sem_cmpneq(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new CompareNotEqual((LinearExpression) opnd1,
 				(LinearExpression) opnd2);
 	}
 
 	@Override
-	public CompareOperation sem_cmples(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareLessOrEqualSignedOperation(size,
-				(LinearExpression) opnd1, (LinearExpression) opnd2);
-	}
-
-	@Override
-	public CompareOperation sem_cmpleu(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareLessOrEqualUnsignedOperation(size,
-				(LinearExpression) opnd1, (LinearExpression) opnd2);
-	}
-
-	@Override
-	public CompareOperation sem_cmplts(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareLessSignedOperation(size, (LinearExpression) opnd1,
+	public Compare sem_cmples(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new CompareLessOrEqualSigned((LinearExpression) opnd1,
 				(LinearExpression) opnd2);
 	}
 
 	@Override
-	public CompareOperation sem_cmpltu(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new CompareLessUnsignedOperation(size, (LinearExpression) opnd1,
+	public Compare sem_cmpleu(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new CompareLessOrEqualUnsigned((LinearExpression) opnd1,
+				(LinearExpression) opnd2);
+	}
+
+	@Override
+	public Compare sem_cmplts(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new CompareLessSigned((LinearExpression) opnd1,
+				(LinearExpression) opnd2);
+	}
+
+	@Override
+	public Compare sem_cmpltu(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new CompareLessUnsigned((LinearExpression) opnd1,
 				(LinearExpression) opnd2);
 	}
 
 	/*
-	 * sem_op
+	 * sem_expr
 	 */
 
 	@Override
-	public Operation sem_lin(long size, ILinearExpression opnd1) {
-		return new LinearOperation(size, (LinearExpression) opnd1);
+	public Expression sem_sexpr(ISimpleExpression opnd1) {
+		return new Simple((SimpleExpression) opnd1);
 	}
 
 	@Override
-	public Operation sem_mul(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new MultiplicationOperation(size, (LinearExpression) opnd1,
+	public Expression sem_mul(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new Multiplication((LinearExpression) opnd1,
 				(LinearExpression) opnd2);
 	}
 
 	@Override
-	public Operation sem_div(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new DivisionOperation(size, (LinearExpression) opnd1,
+	public Expression sem_div(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new Division((LinearExpression) opnd1, (LinearExpression) opnd2);
+	}
+
+	@Override
+	public Expression sem_divs(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new SignedDivision((LinearExpression) opnd1,
 				(LinearExpression) opnd2);
 	}
 
 	@Override
-	public Operation sem_divs(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new SignedDivisionOperation(size, (LinearExpression) opnd1,
+	public Expression sem_mod(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new Modulo((LinearExpression) opnd1, (LinearExpression) opnd2);
+	}
+
+	@Override
+	public Expression sem_shl(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new ShiftLeft((LinearExpression) opnd1, (LinearExpression) opnd2);
+	}
+
+	@Override
+	public Expression sem_shr(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new ShiftRight((LinearExpression) opnd1,
 				(LinearExpression) opnd2);
 	}
 
 	@Override
-	public Operation sem_mod(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new ModuloOperation(size, (LinearExpression) opnd1,
+	public Expression sem_shrs(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new ShiftRightSigned((LinearExpression) opnd1,
 				(LinearExpression) opnd2);
 	}
 
 	@Override
-	public Operation sem_shl(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new ShiftLeftOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
+	public Expression sem_and(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new And((LinearExpression) opnd1, (LinearExpression) opnd2);
 	}
 
 	@Override
-	public Operation sem_shr(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new ShiftRightOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
+	public Expression sem_or(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new Or((LinearExpression) opnd1, (LinearExpression) opnd2);
 	}
 
 	@Override
-	public Operation sem_shrs(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new ShiftRightSignedOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
+	public Expression sem_xor(ILinearExpression opnd1, ILinearExpression opnd2) {
+		return new Xor((LinearExpression) opnd1, (LinearExpression) opnd2);
 	}
 
 	@Override
-	public Operation sem_and(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new AndOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
+	public Expression sem_sx(long fromsize, ILinearExpression opnd1) {
+		return new SignExtend(fromsize, (LinearExpression) opnd1);
 	}
 
 	@Override
-	public Operation sem_or(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new OrOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
-	}
-
-	@Override
-	public Operation sem_xor(long size, ILinearExpression opnd1,
-			ILinearExpression opnd2) {
-		return new XorOperation(size, (LinearExpression) opnd1,
-				(LinearExpression) opnd2);
-	}
-
-	@Override
-	public Operation sem_sx(long size, long fromsize, ILinearExpression opnd1) {
-		return new SignExtendOperation(size, fromsize, (LinearExpression) opnd1);
-	}
-
-	@Override
-	public Operation sem_zx(long size, long fromsize, ILinearExpression opnd1) {
-		return new ZeroExtendOperation(size, fromsize, (LinearExpression) opnd1);
-	}
-
-	@Override
-	public Operation sem_cmp(ICompareOperation _this) {
-		return (Operation) _this;
-	}
-
-	@Override
-	public Operation sem_arb(long size) {
-		return new ArbitraryOperation(size);
+	public Expression sem_zx(long fromsize, ILinearExpression opnd1) {
+		return new ZeroExtend(fromsize, (LinearExpression) opnd1);
 	}
 
 	/*
@@ -653,53 +624,36 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	/*
-	 * sem_prim
-	 */
-
-	@Override
-	public IPrim sem_prim_generic(String op,
-			IRReilCollection<ILimitedVariable> res,
-			IRReilCollection<ILimitedVariable> args) {
-		return new GenericPrimitive(op, (DefaultLimitedVariableCollection) res,
-				(DefaultLimitedVariableCollection) args);
-	}
-
-	@Override
-	public IPrim sem_prim_flop(IFlop op, IVariable flags, ILimitedVariable res,
-			IRReilCollection<ILimitedVariable> args) {
-		return new FlopPrimitive((Flop) op, (Variable) flags,
-				(LimitedVariable) res, (DefaultLimitedVariableCollection) args);
-	}
-
-	/*
 	 * sem_stmt
 	 */
 
 	@Override
-	public Statement sem_assign(IVariable lhs, IOperation rhs) {
-		return new AssignStatement((Variable) lhs, (Operation) rhs);
+	public Statement sem_assign(long size, IVariable lhs, IExpression rhs) {
+		return new AssignStatement(size, (Variable) lhs, (Expression) rhs);
 	}
 
 	@Override
-	public Statement sem_load(IVariable lhs, long size, IAddress address) {
-		return new LoadStatement((Variable) lhs, size, (Address) address);
+	public Statement sem_load(long size, IVariable lhs, IAddress address) {
+		return new LoadStatement(size, (Variable) lhs, (Address) address);
 	}
 
 	@Override
-	public Statement sem_store(IAddress lhs, IOperation rhs) {
-		return new StoreStatement((Address) lhs, (Operation) rhs);
+	public Statement sem_store(long size, IAddress lhs, IExpression rhs) {
+		return new StoreStatement(size, (Address) lhs, (Expression) rhs);
 	}
 
 	@Override
 	public Statement sem_ite(ISimpleExpression cond,
-			IRReilCollection then_branch, IRReilCollection else_branch) {
+			IRReilCollection<IStatement> then_branch,
+			IRReilCollection<IStatement> else_branch) {
 		return new IfThenElseStatement((SimpleExpression) cond,
 				(DefaultStatementCollection) then_branch,
 				(DefaultStatementCollection) else_branch);
 	}
 
 	@Override
-	public Statement sem_while(ISimpleExpression cond, IRReilCollection body) {
+	public Statement sem_while(ISimpleExpression cond,
+			IRReilCollection<IStatement> body) {
 		return new WhileStatement((SimpleExpression) cond,
 				(DefaultStatementCollection) body);
 	}
@@ -715,10 +669,21 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	public Statement sem_branch(IBranchHint branch_hint, IAddress target) {
 		return new BranchStatement((BranchHint) branch_hint, (Address) target);
 	}
-	
+
 	@Override
-	public IStatement sem_prim(IPrim prim) {
-		return new PrimitiveStatement(prim);
+	public Statement sem_flop_stmt(IFlop op, IVariable flags,
+			ILimitedVariable lhs, IRReilCollection<ILimitedVariable> rhs) {
+		return new FlopStatement((Flop) op, (Variable) flags,
+				(LimitedVariable) lhs, (DefaultLimitedVariableCollection) rhs);
+	}
+
+	@Override
+	public Statement sem_prim(String op,
+			IRReilCollection<ILimitedVariable> lhs,
+			IRReilCollection<ILimitedVariable> rhs) {
+		return new PrimitiveStatement(op,
+				(DefaultLimitedVariableCollection) lhs,
+				(DefaultLimitedVariableCollection) rhs);
 	}
 
 	/*
@@ -745,13 +710,14 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	 */
 
 	@Override
-	public IRReilCollection<IStatement> list_next(IStatement next, IRReilCollection<IStatement> list) {
+	public IRReilCollection<IStatement> sem_stmts_next(IStatement next,
+			IRReilCollection<IStatement> list) {
 		list.add(next);
 		return list;
 	}
 
 	@Override
-	public IRReilCollection<IStatement> list_init() {
+	public IRReilCollection<IStatement> sem_stmts_init() {
 		return new DefaultStatementCollection();
 	}
 }

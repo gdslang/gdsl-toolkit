@@ -14,6 +14,7 @@ extern struct data simulator_op_mul(struct data opnd1, struct data opnd2);
 extern struct data simulator_op_div(struct data opnd1, struct data opnd2);
 extern struct data simulator_op_divs(struct data opnd1, struct data opnd2);
 extern struct data simulator_op_mod(struct data opnd1, struct data opnd2);
+extern struct data simulator_op_mods(struct data opnd1, struct data opnd2);
 extern struct data simulator_op_shl(struct data opnd1, struct data opnd2);
 extern struct data simulator_op_shr(struct data opnd1, struct data opnd2);
 extern struct data simulator_op_shrs(struct data opnd1, struct data opnd2);

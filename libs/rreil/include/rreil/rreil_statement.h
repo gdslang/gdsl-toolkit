@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <rreil/rreil_variable.h>
-#include <rreil/rreil_op.h>
+#include <rreil/rreil_expr.h>
 #include <rreil/rreil_address.h>
 #include <rreil/rreil_sexpr.h>
 #include <rreil/rreil_branch_hint.h>
@@ -25,6 +25,7 @@ enum rreil_statement_type {
 	RREIL_STATEMENT_TYPE_WHILE,
 	RREIL_STATEMENT_TYPE_CBRANCH,
 	RREIL_STATEMENT_TYPE_BRANCH,
+	RREIL_STATEMENT_TYPE_FLOP,
 	RREIL_STATEMENT_TYPE_PRIM
 };
 
@@ -32,17 +33,19 @@ struct rreil_statement {
 	enum rreil_statement_type type;
 	union {
 		struct {
+			uint64_t size;
 			struct rreil_variable *lhs;
-			struct rreil_op *rhs;
+			struct rreil_expr *rhs;
 		} assign;
 		struct {
-			struct rreil_variable *lhs;
 			uint64_t size;
+			struct rreil_variable *lhs;
 			struct rreil_address *address;
 		} load;
 		struct {
+			uint64_t size;
 			struct rreil_address *address;
-			struct rreil_op *rhs;
+			struct rreil_expr *rhs;
 		} store;
 		struct {
 			struct rreil_sexpr *cond;
@@ -62,7 +65,17 @@ struct rreil_statement {
 			enum rreil_branch_hint *hint;
 			struct rreil_address *target;
 		} branch;
-		struct rreil_prim *prim;
+		struct {
+			enum rreil_flop *op;
+			struct rreil_variable *flags;
+			struct rreil_variable_limited *lhs;
+			struct rreil_variable_limited_tuple *rhs;
+		} flop;
+		struct {
+			char *op;
+			struct rreil_variable_limited_tuple *lhs;
+			struct rreil_variable_limited_tuple *rhs;
+		} prim;
 	};
 };
 

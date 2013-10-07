@@ -19,6 +19,10 @@
 #include <simulator/regacc.h>
 #include <executor.h>
 
+#include <asm/prctl.h>
+#include <sys/prctl.h>
+extern int arch_prctl(int code, unsigned long *addr);
+
 //#define DRYRUN
 
 /*
@@ -63,6 +67,30 @@ void executor_virt_calc(struct context *context) {
 		flag = context->x86_registers[X86_ID_VIRT_LTS].data[0] | read_flag(context, X86_FLAGS_ZERO);
 		simulator_register_generic_write(&context->x86_registers[X86_ID_VIRT_LES], data, 0);
 	}
+}
+
+void *executor_segment_base_get(enum x86_id reg) {
+	void *base;
+
+	int code;
+	switch(reg) {
+		case X86_ID_GS_Base: {
+			code = ARCH_GET_GS;
+			break;
+		}
+		case X86_ID_FS_Base: {
+			code = ARCH_GET_FS;
+			break;
+		}
+		default: {
+			code = -1;
+			break;
+		}
+	}
+
+	if(arch_prctl(code, (unsigned long*)&base))
+		return NULL;
+	return base;
 }
 
 struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, size_t instruction_length,
@@ -254,9 +282,9 @@ struct execution_result executor_instruction_execute(uint8_t *instruction, size_
 
 #ifndef DRYRUN
 	if(!setjmp(jbuf))
-	((void (*)(void))code)();
+		((void (*)(void))code)();
 	else
-	result.type = EXECUTION_RTYPE_SIGNAL;
+		result.type = EXECUTION_RTYPE_SIGNAL;
 #endif
 
 	alarm(0);

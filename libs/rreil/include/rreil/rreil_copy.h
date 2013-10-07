@@ -18,7 +18,7 @@ extern struct rreil_comparator *rreil_comparator_copy(struct rreil_comparator *c
 extern struct rreil_id *rreil_id_copy(struct rreil_id *id);
 extern struct rreil_linear *rreil_linear_copy(struct rreil_linear *linear);
 extern struct rreil_size_change rreil_size_change_copy(struct rreil_size_change size_change);
-extern struct rreil_op *rreil_op_copy(struct rreil_op *op);
+extern struct rreil_expr *rreil_expr_copy(struct rreil_expr *op);
 extern struct rreil_sexpr *rreil_sexpr_copy(struct rreil_sexpr *sexpr);
 extern struct rreil_variable *rreil_variable_copy(struct rreil_variable *variable);
 extern struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement);

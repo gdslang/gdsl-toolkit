@@ -7,11 +7,10 @@ import rreil.ILimitedVariable;
 import rreil.IRReilBuilder;
 import rreil.IRReilCollection;
 import rreil.IVariable;
+import rreil.expression.ICompare;
+import rreil.expression.IExpression;
 import rreil.id.IId;
 import rreil.linear.ILinearExpression;
-import rreil.operation.ICompareOperation;
-import rreil.operation.IOperation;
-import rreil.prim.IPrim;
 import rreil.sexpression.ISimpleExpression;
 import rreil.statement.IStatement;
 
@@ -26,10 +25,11 @@ public class NativeInterface {
 		this.builder = builder;
 	}
 
-	public IRReilCollection decodeAndTranslate(byte[] bytes) {
+	@SuppressWarnings("unchecked")
+	public IRReilCollection<IStatement> decodeAndTranslate(byte[] bytes) {
 		if (!backendSet)
 			throw new RuntimeException("Backend not set");
-		return (IRReilCollection) decodeAndTranslateNative(bytes);
+		return (IRReilCollection<IStatement>) decodeAndTranslateNative(bytes);
 	}
 
 	public String[] getBackends() {
@@ -161,28 +161,28 @@ public class NativeInterface {
 		return builder.sem_r15();
 	}
 
-	private Object sem_cs() {
-		return builder.sem_cs();
+	private Object sem_cs_base() {
+		return builder.sem_cs_base();
 	}
 
-	private Object sem_ds() {
-		return builder.sem_ds();
+	private Object sem_ds_base() {
+		return builder.sem_ds_base();
 	}
 
-	private Object sem_ss() {
-		return builder.sem_ss();
+	private Object sem_ss_base() {
+		return builder.sem_ss_base();
 	}
 
-	private Object sem_es() {
-		return builder.sem_es();
+	private Object sem_es_base() {
+		return builder.sem_es_base();
 	}
 
-	private Object sem_fs() {
-		return builder.sem_fs();
+	private Object sem_fs_base() {
+		return builder.sem_fs_base();
 	}
 
-	private Object sem_gs() {
-		return builder.sem_gs();
+	private Object sem_gs_base() {
+		return builder.sem_gs_base();
 	}
 
 	private Object sem_st0() {
@@ -368,117 +368,111 @@ public class NativeInterface {
 	}
 
 	private Object sem_sexpr_cmp(Object _this) {
-		return builder.sem_sexpr_lin((ILinearExpression) _this);
+		return builder.sem_sexpr_cmp((ICompare) _this);
+	}
+
+	private Object sem_sexpr_arb() {
+		return builder.sem_sexpr_arb();
 	}
 
 	/*
 	 * sem_op_cmp
 	 */
 
-	private Object sem_cmpeq(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmpeq((Long) size, (ILinearExpression) opnd1,
+	private Object sem_cmpeq(Object opnd1, Object opnd2) {
+		return builder.sem_cmpeq((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_cmpneq(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmpneq((Long) size, (ILinearExpression) opnd1,
+	private Object sem_cmpneq(Object opnd1, Object opnd2) {
+		return builder.sem_cmpneq((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_cmples(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmples((Long) size, (ILinearExpression) opnd1,
+	private Object sem_cmples(Object opnd1, Object opnd2) {
+		return builder.sem_cmples((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_cmpleu(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmpleu((Long) size, (ILinearExpression) opnd1,
+	private Object sem_cmpleu(Object opnd1, Object opnd2) {
+		return builder.sem_cmpleu((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_cmplts(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmplts((Long) size, (ILinearExpression) opnd1,
+	private Object sem_cmplts(Object opnd1, Object opnd2) {
+		return builder.sem_cmplts((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_cmpltu(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_cmpltu((Long) size, (ILinearExpression) opnd1,
+	private Object sem_cmpltu(Object opnd1, Object opnd2) {
+		return builder.sem_cmpltu((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
 	/*
-	 * sem_op
+	 * sem_expr
 	 */
 
-	private Object sem_lin(Object size, Object opnd1) {
-		return builder.sem_lin((Long) size, (ILinearExpression) opnd1);
+	private Object sem_sexpr(Object opnd1) {
+		return builder.sem_sexpr((ISimpleExpression) opnd1);
 	}
 
-	private Object sem_mul(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_mul((Long) size, (ILinearExpression) opnd1,
+	private Object sem_mul(Object opnd1, Object opnd2) {
+		return builder.sem_mul((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_div(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_div((Long) size, (ILinearExpression) opnd1,
+	private Object sem_div(Object opnd1, Object opnd2) {
+		return builder.sem_div((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_divs(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_divs((Long) size, (ILinearExpression) opnd1,
+	private Object sem_divs(Object opnd1, Object opnd2) {
+		return builder.sem_divs((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_mod(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_mod((Long) size, (ILinearExpression) opnd1,
+	private Object sem_mod(Object opnd1, Object opnd2) {
+		return builder.sem_mod((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_shl(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_shl((Long) size, (ILinearExpression) opnd1,
+	private Object sem_shl(Object opnd1, Object opnd2) {
+		return builder.sem_shl((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_shr(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_shr((Long) size, (ILinearExpression) opnd1,
+	private Object sem_shr(Object opnd1, Object opnd2) {
+		return builder.sem_shr((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_shrs(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_shrs((Long) size, (ILinearExpression) opnd1,
+	private Object sem_shrs(Object opnd1, Object opnd2) {
+		return builder.sem_shrs((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_and(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_and((Long) size, (ILinearExpression) opnd1,
+	private Object sem_and(Object opnd1, Object opnd2) {
+		return builder.sem_and((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_or(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_or((Long) size, (ILinearExpression) opnd1,
+	private Object sem_or(Object opnd1, Object opnd2) {
+		return builder.sem_or((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_xor(Object size, Object opnd1, Object opnd2) {
-		return builder.sem_xor((Long) size, (ILinearExpression) opnd1,
+	private Object sem_xor(Object opnd1, Object opnd2) {
+		return builder.sem_xor((ILinearExpression) opnd1,
 				(ILinearExpression) opnd2);
 	}
 
-	private Object sem_sx(Object size, Object fromsize, Object opnd1) {
-		return builder.sem_sx((Long) size, (Long) fromsize,
-				(ILinearExpression) opnd1);
+	private Object sem_sx(Object fromsize, Object opnd1) {
+		return builder.sem_sx((Long) fromsize, (ILinearExpression) opnd1);
 	}
 
-	private Object sem_zx(Object size, Object fromsize, Object opnd1) {
-		return builder.sem_zx((Long) size, (Long) fromsize,
-				(ILinearExpression) opnd1);
-	}
-
-	private Object sem_cmp(Object _this) {
-		return builder.sem_cmp((ICompareOperation) _this);
-	}
-
-	private Object sem_arb(Object size) {
-		return builder.sem_arb((Long) size);
+	private Object sem_zx(Object fromsize, Object opnd1) {
+		return builder.sem_zx((Long) fromsize, (ILinearExpression) opnd1);
 	}
 
 	/*
@@ -520,49 +514,35 @@ public class NativeInterface {
 	}
 
 	/*
-	 * sem_prim
-	 */
-
-	@SuppressWarnings("unchecked")
-	private Object sem_prim_generic(String op, Object res, Object args) {
-		return builder.sem_prim_generic(op,
-				(IRReilCollection<ILimitedVariable>) res,
-				(IRReilCollection<ILimitedVariable>) args);
-	}
-
-	@SuppressWarnings("unchecked")
-	private Object sem_prim_flop(Object op, Object flags, Object res,
-			Object args) {
-		return builder.sem_prim_flop((IFlop) op, (IVariable) flags,
-				(ILimitedVariable) res,
-				(IRReilCollection<ILimitedVariable>) args);
-	}
-
-	/*
 	 * sem_stmt
 	 */
 
-	private Object sem_assign(Object lhs, Object rhs) {
-		return builder.sem_assign((IVariable) lhs, (IOperation) rhs);
+	private Object sem_assign(Object size, Object lhs, Object rhs) {
+		return builder.sem_assign((Long) size, (IVariable) lhs,
+				(IExpression) rhs);
 	}
 
-	private Object sem_load(Object lhs, Object size, Object address) {
-		return builder.sem_load((IVariable) lhs, (Long) size,
+	private Object sem_load(Object size, Object lhs, Object address) {
+		return builder.sem_load((Long) size, (IVariable) lhs,
 				(IAddress) address);
 	}
 
-	private Object sem_store(Object address, Object rhs) {
-		return builder.sem_store((IAddress) address, (IOperation) rhs);
+	private Object sem_store(Object size, Object address, Object rhs) {
+		return builder.sem_store((Long) size, (IAddress) address,
+				(IExpression) rhs);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object sem_ite(Object cond, Object then_branch, Object else_branch) {
 		return builder.sem_ite((ISimpleExpression) cond,
-				(IRReilCollection) then_branch, (IRReilCollection) else_branch);
+				(IRReilCollection<IStatement>) then_branch,
+				(IRReilCollection<IStatement>) else_branch);
 	}
 
+	@SuppressWarnings("unchecked")
 	private Object sem_while(Object cond, Object body) {
 		return builder.sem_while((ISimpleExpression) cond,
-				(IRReilCollection) body);
+				(IRReilCollection<IStatement>) body);
 	}
 
 	private Object sem_cbranch(Object cond, Object target_true,
@@ -575,8 +555,17 @@ public class NativeInterface {
 		return builder.sem_branch((IBranchHint) branch_hint, (IAddress) target);
 	}
 
-	private Object sem_prim(Object prim) {
-		return builder.sem_prim((IPrim) prim);
+	@SuppressWarnings("unchecked")
+	private Object sem_flop_stmt(Object op, Object flags, Object lhs, Object rhs) {
+		return builder.sem_flop_stmt((IFlop) op, (IVariable) flags,
+				(ILimitedVariable) lhs,
+				(IRReilCollection<ILimitedVariable>) rhs);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Object sem_prim(Object op, Object lhs, Object rhs) {
+		return builder.sem_prim((String)op, (IRReilCollection<ILimitedVariable>) lhs,
+				(IRReilCollection<ILimitedVariable>) rhs);
 	}
 
 	/*
@@ -599,12 +588,14 @@ public class NativeInterface {
 	 * sem_stmts
 	 */
 
-	private Object list_next(Object next, Object list) {
-		return builder.list_next((IStatement) next, (IRReilCollection) list);
+	@SuppressWarnings("unchecked")
+	private Object sem_stmts_next(Object next, Object list) {
+		return builder.sem_stmts_next((IStatement) next,
+				(IRReilCollection<IStatement>) list);
 	}
 
-	private Object list_init() {
-		return builder.list_init();
+	private Object sem_stmts_init() {
+		return builder.sem_stmts_init();
 	}
 
 	private native Object decodeAndTranslateNative(byte[] bytes);

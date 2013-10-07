@@ -1,4 +1,4 @@
-# vim:filetype=sml:ts=3:sw=3:expandtab
+# vim: filetype=sml:ts=3:sw=3:expandtab
 
 export = translate translateBlock translateSingle translateSuperBlock succ_pretty
 
@@ -120,10 +120,10 @@ val segmented-load dst-sz dst addr-sz address segment = do
   load dst-sz dst addr-sz address-segmented
 end
 
-val segmented-store addr rhs segment = do
+val segmented-store sz addr rhs segment = do
   address-segmented <- segmented-lin addr.address addr.size segment;
   addr-sz <- real-addr-sz;
-  store (address addr-sz address-segmented) rhs
+  store sz (address addr-sz address-segmented) rhs
 end
 
 #val segment segment = do
@@ -203,8 +203,8 @@ val conv-with conv sz x =
       end
    end
 
-val read sz x = conv-with Unsigned sz x
-val reads conv sz x = conv-with conv sz x
+val rval sz x = conv-with Unsigned sz x
+val rvals conv sz x = conv-with conv sz x
 
 val extract-imm-unsigned imm =
   case imm of
@@ -233,8 +233,8 @@ val read-flow sz x =
        | REL64 x: conv-bv x
        | PTR16/16 x: conv-bv x
        | PTR16/32 x: conv-bv x
-       | NEARABS x: read sz x
-       | FARABS x: read sz x
+       | NEARABS x: rval sz x
+       | FARABS x: rval sz x
       end
    end
 
@@ -289,11 +289,23 @@ val register? x =
     | _: '0'
   end
 
+val postproc-reg sz id avx-encoded = do
+  mode64 <- mode64?;
+  if (mode64 and (not (is-avx-sse id.id)) and sz === 32) then
+    #Todo: Only if sz == 32? - Yes (tested)!
+    #Todo: Only for a subset of all registers?
+         mov (64 - sz) (at-offset id sz) (imm 0)
+  else if (avx-encoded and (is-avx-sse id.id) and sz < 256) then
+    mov (256 - sz) (at-offset id sz) (imm 0)
+  else
+    return void
+end
+
 val write-extend avx-encoded sz a b =
    case a of
       SEM_WRITE_MEM x:
          #store x (SEM_LIN{size=sz,opnd1=b})
-	 segmented-store x (SEM_LIN{size=sz,opnd1=b}) x.segment
+	 segmented-store sz x (SEM_SEXPR (SEM_SEXPR_LIN b)) x.segment
     | SEM_WRITE_VAR x: do
         #if mode64 then
 	#  mov 32 (semantic-register-of EAX) (imm 100)
@@ -314,15 +326,7 @@ val write-extend avx-encoded sz a b =
 
 	mov sz x.id b;
 
-	mode64 <- mode64?;
-	if (mode64 and (not (is-avx-sse x.id.id)) and sz === 32) then
-	  #Todo: Only if sz == 32? - Yes (tested)!
-	  #Todo: Only for a subset of all registers?
-          mov (64 - sz) (at-offset x.id sz) (imm 0)
-	else if (avx-encoded and (is-avx-sse x.id.id) and sz < 256) then
-	  mov (256 - sz) (at-offset x.id sz) (imm 0)
-	else
-	  return void
+   postproc-reg sz x.id avx-encoded
 
 #        case sz of
 #           32:
@@ -707,6 +711,9 @@ val direction-adjust reg-size reg-sem for-size = do
     add reg-size reg-sem (var reg-sem) (imm amount)  
   _else
     sub reg-size reg-sem (var reg-sem) (imm amount)
+  ;
+
+  postproc-reg reg-size reg-sem '0'
 end
 
 val exp base e =
@@ -825,7 +832,7 @@ val semantics insn =
    | ADDSS x: sem-undef-arity2 x
    | ADDSUBPD x: sem-undef-arity2 x
    | ADDSUBPS x: sem-undef-arity2 x
-   | AESDEC x: sem-undef-arity2 x
+   | AESDEC x: sem-aesdec x
    | AESDECLAST x: sem-undef-arity2 x
    | AESENC x: sem-undef-arity2 x
    | AESENCLAST x: sem-undef-arity2 x
@@ -1441,7 +1448,10 @@ val semantics insn =
    | VADDSS x: sem-undef-varity x
    | VADDSUBPD x: sem-undef-varity x
    | VADDSUBPS x: sem-undef-varity x
-   | VAESDEC x: sem-undef-varity x
+   | VAESDEC v:
+       case v of
+          VA3 x: sem-vaesdec x
+       end
    | VAESDECLAST x: sem-undef-varity x
    | VAESENC x: sem-undef-varity x
    | VAESENCLAST x: sem-undef-varity x
@@ -2132,22 +2142,21 @@ val transInstr config = do
    semantics insn
 end
 
-val transBlock config = do
+val transBlock config limit = do
    transInstr config;
    jmp <- query $foundJump;
-   #ic <- query $ins_count;
-   #if jmp or ic>1000 then query $stack else transBlock config
-   if jmp then query $stack else transBlock config
+   idx <- idxget;
+   if jmp or (idx >= limit) then query $stack else transBlock config limit
 end
 
-val translateBlock config = do
+val translateBlock config limit = do
    update @{ins_count=0};
    update@{stack=SEM_NIL,foundJump='0'};
    # the type checker is does not instanitate types of decoders; what seemed to be
    # a fine specialization turns out to be a bad idea since records need to be
    # newly instantiated
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock config;
+	 stmts <- transBlock config limit;
    return (rreil-stmts-rev stmts)
 end
 
@@ -2219,13 +2228,13 @@ type stmts_option =
 
 type translate-result = {insns:int, succ_a:int, succ_b:int}
 
-val translateSuperBlock config = let
+val translateSuperBlock config limit = let
   val translate-block-at idx = do
 	  current <- idxget;
 		#error <- rseek idx;
 		error <- seek (current + idx);
 		result <- if error === 0 then do
-		  stmts <- translateBlock config;
+		  stmts <- translateBlock config int-max;
 		  seek current;
 			return (SO_SOME stmts)
 		end else
@@ -2246,7 +2255,7 @@ in do
    # the type checker is seriously broken when it comes to infinite recursion,
    # I cannot as of yet reproduce this bug
    update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock config;
+	 stmts <- transBlock config limit;
 
    ic <- query $ins_count;
 
@@ -2261,6 +2270,6 @@ end end
 
 val succ_pretty succ name =
   case succ of
-	   SO_SOME i: "Succ " +++ name +++ ":\n" +++ (rreil-pretty i)
-	 | SO_NONE: "Succ " +++ name +++ ": NONE :-("
+	   SO_SOME i: "Succ " +++ (from-string-lit name) +++ ":\n" +++ (rreil-pretty i)
+	 | SO_NONE: "Succ " +++ (from-string-lit name) +++ ": NONE :-("
 	end

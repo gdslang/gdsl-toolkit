@@ -66,69 +66,62 @@ void rreil_size_change_clear(struct rreil_size_change *size_change) {
 	rreil_linear_free(size_change->opnd);
 }
 
-void rreil_op_free(struct rreil_op *op) {
-	switch (op->type) {
-		case RREIL_OP_TYPE_LIN: {
-			rreil_arity1_clear(&op->lin);
+void rreil_expr_free(struct rreil_expr *expr) {
+	switch (expr->type) {
+		case RREIL_EXPR_TYPE_SEXPR: {
+			rreil_sexpr_free(expr->sexpr);
 			break;
 		}
-		case RREIL_OP_TYPE_MUL: {
-			rreil_arity2_clear(&op->mul);
+		case RREIL_EXPR_TYPE_MUL: {
+			rreil_arity2_clear(&expr->mul);
 			break;
 		}
-		case RREIL_OP_TYPE_DIV: {
-			rreil_arity2_clear(&op->div);
+		case RREIL_EXPR_TYPE_DIV: {
+			rreil_arity2_clear(&expr->div);
 			break;
 		}
-		case RREIL_OP_TYPE_DIVS: {
-			rreil_arity2_clear(&op->divs);
+		case RREIL_EXPR_TYPE_DIVS: {
+			rreil_arity2_clear(&expr->divs);
 			break;
 		}
-		case RREIL_OP_TYPE_MOD: {
-			rreil_arity2_clear(&op->mod);
+		case RREIL_EXPR_TYPE_MOD: {
+			rreil_arity2_clear(&expr->mod);
 			break;
 		}
-		case RREIL_OP_TYPE_SHL: {
-			rreil_arity2_clear(&op->shl);
+		case RREIL_EXPR_TYPE_SHL: {
+			rreil_arity2_clear(&expr->shl);
 			break;
 		}
-		case RREIL_OP_TYPE_SHR: {
-			rreil_arity2_clear(&op->shr);
+		case RREIL_EXPR_TYPE_SHR: {
+			rreil_arity2_clear(&expr->shr);
 			break;
 		}
-		case RREIL_OP_TYPE_SHRS: {
-			rreil_arity2_clear(&op->shrs);
+		case RREIL_EXPR_TYPE_SHRS: {
+			rreil_arity2_clear(&expr->shrs);
 			break;
 		}
-		case RREIL_OP_TYPE_AND: {
-			rreil_arity2_clear(&op->and_);
+		case RREIL_EXPR_TYPE_AND: {
+			rreil_arity2_clear(&expr->and_);
 			break;
 		}
-		case RREIL_OP_TYPE_OR: {
-			rreil_arity2_clear(&op->or_);
+		case RREIL_EXPR_TYPE_OR: {
+			rreil_arity2_clear(&expr->or_);
 			break;
 		}
-		case RREIL_OP_TYPE_XOR: {
-			rreil_arity2_clear(&op->xor_);
+		case RREIL_EXPR_TYPE_XOR: {
+			rreil_arity2_clear(&expr->xor_);
 			break;
 		}
-		case RREIL_OP_TYPE_SX: {
-			rreil_size_change_clear(&op->sx);
+		case RREIL_EXPR_TYPE_SX: {
+			rreil_size_change_clear(&expr->sx);
 			break;
 		}
-		case RREIL_OP_TYPE_ZX: {
-			rreil_size_change_clear(&op->zx);
-			break;
-		}
-		case RREIL_OP_TYPE_CMP: {
-			rreil_comparator_free(op->cmp);
-			break;
-		}
-		case RREIL_OP_TYPE_ARB: {
+		case RREIL_EXPR_TYPE_ZX: {
+			rreil_size_change_clear(&expr->zx);
 			break;
 		}
 	}
-	free(op);
+	free(expr);
 }
 
 void rreil_sexpr_free(struct rreil_sexpr *sexpr) {
@@ -139,6 +132,9 @@ void rreil_sexpr_free(struct rreil_sexpr *sexpr) {
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
 			rreil_comparator_free(sexpr->cmp);
+			break;
+		}
+		case RREIL_SEXPR_TYPE_ARB: {
 			break;
 		}
 	}
@@ -166,29 +162,11 @@ void rreil_flop_free(enum rreil_flop *flop) {
 	free(flop);
 }
 
-void rreil_prim_free(struct rreil_prim *prim) {
-	switch(prim->type) {
-		case RREIL_PRIM_TYPE_GENERIC: {
-			//prim->generic.op: allocated on GDSL heap
-			rreil_variable_limited_tuple_free(prim->generic.res);
-			rreil_variable_limited_tuple_free(prim->generic.args);
-			break;
-		}
-		case RREIL_PRIM_TYPE_FLOP: {
-			rreil_flop_free(prim->flop.op);
-			rreil_variable_free(prim->flop.flags);
-			rreil_variable_limited_free(prim->flop.res);
-			rreil_variable_limited_tuple_free(prim->flop.args);
-		}
-	}
-	free(prim);
-}
-
 void rreil_statement_free(struct rreil_statement *statement) {
 	switch (statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
 			rreil_variable_free(statement->assign.lhs);
-			rreil_op_free(statement->assign.rhs);
+			rreil_expr_free(statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
@@ -198,7 +176,7 @@ void rreil_statement_free(struct rreil_statement *statement) {
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
 			rreil_address_free(statement->store.address);
-			rreil_op_free(statement->store.rhs);
+			rreil_expr_free(statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
@@ -223,8 +201,17 @@ void rreil_statement_free(struct rreil_statement *statement) {
 			rreil_address_free(statement->branch.target);
 			break;
 		}
+		case RREIL_STATEMENT_TYPE_FLOP: {
+			rreil_flop_free(statement->flop.op);
+			rreil_variable_free(statement->flop.flags);
+			rreil_variable_limited_free(statement->flop.lhs);
+			rreil_variable_limited_tuple_free(statement->flop.rhs);
+			break;
+		}
 		case RREIL_STATEMENT_TYPE_PRIM: {
-			rreil_prim_free(statement->prim);
+			//prim->generic.op: allocated on GDSL heap
+			rreil_variable_limited_tuple_free(statement->prim.lhs);
+			rreil_variable_limited_tuple_free(statement->prim.rhs);
 			break;
 		}
 	}

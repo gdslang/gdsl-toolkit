@@ -44,9 +44,9 @@ static struct decode_result xed_decode_blob(unsigned char *blob, size_t size) {
 		r = xed_decode(insn, blobb, size);
 		if(r == XED_ERROR_NONE) {
 			len = xed_decoded_inst_get_length(insn);
-			xed_decoded_inst_dump_intel_format(insn, insnstr, 128, 0);
+//			xed_decoded_inst_dump_intel_format(insn, insnstr, 128, 0);
 //			//printf("%-27s\n", insnstr);
-			puts(insnstr);
+//			puts(insnstr);
 		} else {
 			result.invalid++;
 			len = 1;
@@ -75,13 +75,16 @@ static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 	while(1) {
 		if(setjmp(*gdsl_err_tgt(state))) {
 //			fprintf(stderr, "decode failed: %s\n", gdsl_get_error_message(state));
-//			result.invalid++;
-			break;
+//			fprintf(stderr, "GDSL - FATAL: Invalid instruction, breaking...\n");
+			if(gdsl_seek(state, gdsl_get_ip_offset(state) + 1))
+				break;
+			else
+				result.invalid++;
 		}
 		obj_t insn = gdsl_decode(state, gdsl_config_mode64(state) | gdsl_config_default_opnd_sz_32(state));
 
-		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
-		puts(fmt);
+//		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
+//		puts(fmt);
 
 		gdsl_reset_heap(state);
 

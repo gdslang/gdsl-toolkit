@@ -1,15 +1,15 @@
 package rreil.sexpression;
 
-import rreil.operation.CompareOperation;
+import rreil.expression.Compare;
 
 public class SimpleCompareExpression extends SimpleExpression {
-	protected CompareOperation _this;
+	protected Compare _this;
 
-	public CompareOperation getThis() {
+	public Compare getThis() {
 		return _this;
 	}
 
-	public SimpleCompareExpression(CompareOperation _this) {
+	public SimpleCompareExpression(Compare _this) {
 		this._this = _this;
 	}
 	

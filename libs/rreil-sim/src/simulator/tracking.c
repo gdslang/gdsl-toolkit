@@ -136,102 +136,97 @@ static void tracking_linear_trace(struct tracking_trace *trace, enum simulator_a
 	}
 }
 
-static size_t tracking_comparator_trace(struct tracking_trace *trace, struct rreil_comparator *comparator) {
-	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, comparator->arity2.opnd1, comparator->arity2.size);
-	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, comparator->arity2.opnd2, comparator->arity2.size);
+static size_t tracking_comparator_trace(struct tracking_trace *trace, struct rreil_comparator *comparator, uint64_t size) {
+	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, comparator->arity2.opnd1, size);
+	tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, comparator->arity2.opnd2, size);
 	return 1;
 }
 
-static void tracking_sexpr_trace(struct tracking_trace *trace, struct rreil_sexpr *sexpr, size_t bit_length) {
+static void tracking_sexpr_trace(struct tracking_trace *trace, struct rreil_sexpr *sexpr, uint64_t size) {
 	switch(sexpr->type) {
 		case RREIL_SEXPR_TYPE_LIN: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, sexpr->lin, bit_length);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, sexpr->lin, size);
 			break;
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
-			tracking_comparator_trace(trace, sexpr->cmp);
+			tracking_comparator_trace(trace, sexpr->cmp, size);
+			break;
+		}
+		case RREIL_SEXPR_TYPE_ARB: {
 			break;
 		}
 	}
 }
 
-static size_t tracking_op_trace(struct tracking_trace *trace, struct rreil_op *op) {
+static void tracking_expr_trace(struct tracking_trace *trace, struct rreil_expr *expr, uint64_t size) {
 //	void linear_trace(struct rreil_linear *linear, size_t bit_length) {
 //		tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, linear,
 //				bit_length);
 //	}
 
-	switch(op->type) {
-		case RREIL_OP_TYPE_LIN: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->lin.opnd1, op->lin.size);
-			return op->lin.size;
+	switch(expr->type) {
+		case RREIL_EXPR_TYPE_SEXPR: {
+			tracking_sexpr_trace(trace, expr->sexpr, size);
+			break;
 		}
-		case RREIL_OP_TYPE_MUL: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->mul.opnd1, op->mul.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->mul.opnd2, op->mul.size);
-			return op->mul.size;
+		case RREIL_EXPR_TYPE_MUL: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->mul.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->mul.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_DIV: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->div.opnd1, op->div.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->div.opnd2, op->div.size);
-			return op->div.size;
+		case RREIL_EXPR_TYPE_DIV: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->div.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->div.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_DIVS: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->divs.opnd1, op->divs.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->divs.opnd2, op->divs.size);
-			return op->divs.size;
+		case RREIL_EXPR_TYPE_DIVS: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->divs.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->divs.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_MOD: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->mod.opnd1, op->mod.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->mod.opnd2, op->mod.size);
-			return op->mod.size;
+		case RREIL_EXPR_TYPE_MOD: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->mod.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->mod.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_SHL: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shl.opnd1, op->shl.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shl.opnd2, op->shl.size);
-			return op->shl.size;
+		case RREIL_EXPR_TYPE_SHL: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->shl.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->shl.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_SHR: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shr.opnd1, op->shr.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shr.opnd2, op->shr.size);
-			return op->shr.size;
+		case RREIL_EXPR_TYPE_SHR: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->shr.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->shr.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_SHRS: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shrs.opnd1, op->shrs.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->shrs.opnd2, op->shrs.size);
-			return op->shrs.size;
+		case RREIL_EXPR_TYPE_SHRS: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->shrs.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->shrs.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_AND: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->and_.opnd1, op->and_.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->and_.opnd2, op->and_.size);
-			return op->and_.size;
+		case RREIL_EXPR_TYPE_AND: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->and_.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->and_.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_OR: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->or_.opnd1, op->or_.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->or_.opnd2, op->or_.size);
-			return op->or_.size;
+		case RREIL_EXPR_TYPE_OR: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->or_.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->or_.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_XOR: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->xor_.opnd1, op->xor_.size);
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->xor_.opnd2, op->xor_.size);
-			return op->xor_.size;
+		case RREIL_EXPR_TYPE_XOR: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->xor_.opnd1, size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->xor_.opnd2, size);
+			break;
 		}
-		case RREIL_OP_TYPE_SX: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->sx.opnd, op->sx.fromsize);
-			return op->sx.size;
+		case RREIL_EXPR_TYPE_SX: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->sx.opnd, expr->sx.fromsize);
+			break;
 		}
-		case RREIL_OP_TYPE_ZX: {
-			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, op->zx.opnd, op->zx.fromsize);
-			return op->zx.size;
+		case RREIL_EXPR_TYPE_ZX: {
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, expr->zx.opnd, expr->zx.fromsize);
+			break;
 		}
-		case RREIL_OP_TYPE_CMP: {
-			return tracking_comparator_trace(trace, op->cmp);
-		}
-		case RREIL_OP_TYPE_ARB: {
-			return op->arb.size;
-		}
-		default:
-			return 0;
 	}
 }
 
@@ -250,8 +245,8 @@ static void tracking_branch_trace(struct tracking_trace *trace, struct rreil_add
 static void tracking_statement_trace(struct tracking_trace *trace, struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
-			size_t bits = tracking_op_trace(trace, statement->assign.rhs);
-			tracking_variable_access_trace(trace, statement->assign.lhs, bits, SIMULATOR_ACCESS_TYPE_WRITE);
+			tracking_expr_trace(trace, statement->assign.rhs, statement->assign.size);
+			tracking_variable_access_trace(trace, statement->assign.lhs, statement->assign.size, SIMULATOR_ACCESS_TYPE_WRITE);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
@@ -262,7 +257,7 @@ static void tracking_statement_trace(struct tracking_trace *trace, struct rreil_
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
-			tracking_op_trace(trace, statement->store.rhs);
+			tracking_expr_trace(trace, statement->store.rhs, statement->store.size);
 			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_DEREFERENCE, statement->store.address->address,
 					statement->store.address->size);
 			trace->mem.used = 1;
@@ -294,6 +289,9 @@ static void tracking_statement_trace(struct tracking_trace *trace, struct rreil_
 			trace->mem.used = 1;
 			break;
 		}
+		/*
+		 * Todo: Primitives, Floating point operations
+		 */
 	}
 }
 

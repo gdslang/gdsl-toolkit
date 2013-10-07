@@ -2,8 +2,8 @@ export = rreil-sem-stmts-head rreil-sem-stmts-tail rreil-sem-stmts-has-more
    rreil-sem-varls-head rreil-sem-varls-tail rreil-sem-varls-has-more
    rreil-cif-userdata-set rreil-cif-userdata-get{userdata}
    rreil-convert-sem-varl{sem_varl, sem_id, offset, size, id}
-   rreil-convert-sem-stmt-manual{branch_hint, sem_stmt, sem_flop, sem_varl, sem_op, sem_op_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
-   rreil-convert-sem-stmts{sem_stmts, branch_hint, sem_stmt, sem_flop, sem_varls, sem_varl, sem_op, sem_op_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
+   rreil-convert-sem-stmt-manual{branch_hint, sem_stmt, sem_flop, sem_varl, sem_expr, sem_op_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
+   rreil-convert-sem-stmts{sem_stmts, branch_hint, sem_stmt, sem_flop, sem_varls, sem_varl, sem_expr, sem_op_cmp, sem_sexpr, sem_linear, sem_var, sem_address, sem_id, sem_prim}
 
 #type callbacks =
 #   SEM_ID_CBS of {virt_na:string_, virt_t:string_}
@@ -12,16 +12,15 @@ type sem_id_callbacks = {shared:int, virt_t:int, arch:int}
 type sem_address_callbacks = {sem_address_:int}
 type sem_var_callbacks = {sem_var_:int}
 type sem_linear_callbacks = {sem_lin_var:int, sem_lin_imm:int, sem_lin_add:int, sem_lin_sub:int, sem_lin_scale:int}
-type sem_sexpr_callbacks = {sem_sexpr_lin:int, sem_sexpr_cmp:int}
+type sem_sexpr_callbacks = {sem_sexpr_lin:int, sem_sexpr_cmp:int, sem_sexpr_arb:int}
 type sem_op_cmp_callbacks = {sem_cmpeq:int, sem_cmpneq:int, sem_cmples:int, sem_cmpleu:int, sem_cmplts:int, sem_cmpltu:int}
-type sem_op_callbacks = {sem_lin:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int, sem_cmp:int, sem_arb:int}
+type sem_expr_callbacks = {sem_sexpr:int, sem_mul:int, sem_div:int, sem_divs:int, sem_mod:int, sem_shl:int, sem_shr:int, sem_shrs:int, sem_and:int, sem_or:int, sem_xor:int, sem_sx:int, sem_zx:int}
 type sem_varl_callbacks = {sem_varl_:int}
 type sem_varls_callbacks = {sem_varls_next:int, sem_varls_init:int}
 type sem_flop_callbacks = {sem_flop_:int}
-type sem_prim_callbacks = {sem_prim_generic:int, sem_prim_flop:int}
-type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int, sem_prim:int}
+type sem_stmt_callbacks = {sem_assign:int, sem_load:int, sem_store:int, sem_ite:int, sem_while:int, sem_cbranch:int, sem_branch:int, sem_flop:int, sem_prim:int}
 type branch_hint_callbacks = {branch_hint_:int}
-type sem_stmts_callbacks = {next:int, init:int}
+type sem_stmts_callbacks = {sem_stmts_next:int, sem_stmts_init:int}
 #type sem_stmts_list_callbacks = {list_next:int, list_init:int}
 
 type callbacks = {
@@ -31,11 +30,10 @@ type callbacks = {
   sem_linear:sem_linear_callbacks,
   sem_sexpr:sem_sexpr_callbacks,
   sem_op_cmp:sem_op_cmp_callbacks,
-  sem_op:sem_op_callbacks,
+  sem_expr:sem_expr_callbacks,
   sem_varl:sem_varl_callbacks,
   sem_varls:sem_varls_callbacks,
   sem_flop:sem_flop_callbacks,
-  sem_prim:sem_prim_callbacks,
   sem_stmt:sem_stmt_callbacks,
   branch_hint:branch_hint_callbacks,
   sem_stmts:sem_stmts_callbacks
@@ -55,7 +53,7 @@ val rreil-cif-userdata-get = query $userdata
 #val rreil-callbacks-branch-hint branch_hint = {branch_hint_=branch_hint}
 #val rreil-callbacks-sem-stmts sem_cons sem_nil = {sem_cons=sem_cons, sem_nil=sem_nil}
 #val rreil-callbacks-sem-stmts-list list_next list_init = {list_next=list_next, list_init=list_init}
-#val rreil-callbacks sem_id sem_address sem_var sem_linear sem_sexpr sem_op_cmp sem_op sem_stmt branch_hint sem_stmts sem_stmts_list = {sem_id=sem_id, sem_address=sem_address, sem_var=sem_var, sem_linear=sem_linear, sem_sexpr=sem_sexpr, sem_op_cmp=sem_op_cmp, sem_op=sem_op, sem_stmt=sem_stmt, branch_hint=branch_hint, sem_stmts=sem_stmts, sem_stmts_list=sem_stmts_list}
+#val rreil-callbacks sem_id sem_address sem_var sem_linear sem_sexpr sem_op_cmp sem_expr sem_stmt branch_hint sem_stmts sem_stmts_list = {sem_id=sem_id, sem_address=sem_address, sem_var=sem_var, sem_linear=sem_linear, sem_sexpr=sem_sexpr, sem_op_cmp=sem_op_cmp, sem_expr=sem_expr, sem_stmt=sem_stmt, branch_hint=branch_hint, sem_stmts=sem_stmts, sem_stmts_list=sem_stmts_list}
 
 val rreil-convert-sem-id cbs id = case id of
 #   VIRT_EQ: cbs.sem_id.virt_na (index id)
@@ -84,33 +82,32 @@ end
 val rreil-convert-sem-sexpr cbs sexpr = case sexpr of
    SEM_SEXPR_LIN l: cbs.sem_sexpr.sem_sexpr_lin (rreil-convert-sem-linear cbs l)
  | SEM_SEXPR_CMP c: cbs.sem_sexpr.sem_sexpr_cmp (rreil-convert-sem-op-cmp cbs c)
+ | SEM_SEXPR_ARB: cbs.sem_sexpr.sem_sexpr_arb void #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
 val rreil-convert-sem-op-cmp cbs op-cmp = case op-cmp of
-   SEM_CMPEQ c: cbs.sem_op_cmp.sem_cmpeq c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPNEQ c: cbs.sem_op_cmp.sem_cmpneq c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLES c: cbs.sem_op_cmp.sem_cmples c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLEU c: cbs.sem_op_cmp.sem_cmpleu c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLTS c: cbs.sem_op_cmp.sem_cmplts c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
- | SEM_CMPLTU c: cbs.sem_op_cmp.sem_cmpltu c.size (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+   SEM_CMPEQ c: cbs.sem_op_cmp.sem_cmpeq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPNEQ c: cbs.sem_op_cmp.sem_cmpneq (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLES c: cbs.sem_op_cmp.sem_cmples (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLEU c: cbs.sem_op_cmp.sem_cmpleu (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLTS c: cbs.sem_op_cmp.sem_cmplts (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
+ | SEM_CMPLTU c: cbs.sem_op_cmp.sem_cmpltu (rreil-convert-sem-linear cbs c.opnd1) (rreil-convert-sem-linear cbs c.opnd2)
 end
 
-val rreil-convert-sem-op cbs op = case op of
-   SEM_LIN l: cbs.sem_op.sem_lin l.size (rreil-convert-sem-linear cbs l.opnd1)
- | SEM_MUL m: cbs.sem_op.sem_mul m.size (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
- | SEM_DIV d: cbs.sem_op.sem_div d.size (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
- | SEM_DIVS d: cbs.sem_op.sem_divs d.size (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
- | SEM_MOD m: cbs.sem_op.sem_mod m.size (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
- | SEM_SHL s: cbs.sem_op.sem_shl s.size (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
- | SEM_SHR s: cbs.sem_op.sem_shr s.size (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
- | SEM_SHRS s: cbs.sem_op.sem_shrs s.size (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
- | SEM_AND a: cbs.sem_op.sem_and a.size (rreil-convert-sem-linear cbs a.opnd1) (rreil-convert-sem-linear cbs a.opnd2)
- | SEM_OR o: cbs.sem_op.sem_or o.size (rreil-convert-sem-linear cbs o.opnd1) (rreil-convert-sem-linear cbs o.opnd2)
- | SEM_XOR x: cbs.sem_op.sem_xor x.size (rreil-convert-sem-linear cbs x.opnd1) (rreil-convert-sem-linear cbs x.opnd2)
- | SEM_SX s: cbs.sem_op.sem_sx s.size s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
- | SEM_ZX s: cbs.sem_op.sem_zx s.size s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
- | SEM_CMP c: cbs.sem_op.sem_cmp (rreil-convert-sem-op-cmp cbs c)
- | SEM_ARB a: cbs.sem_op.sem_arb a.size
+val rreil-convert-sem-expr cbs op = case op of
+   SEM_SEXPR s: cbs.sem_expr.sem_sexpr (rreil-convert-sem-sexpr cbs s)
+ | SEM_MUL m: cbs.sem_expr.sem_mul (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
+ | SEM_DIV d: cbs.sem_expr.sem_div (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
+ | SEM_DIVS d: cbs.sem_expr.sem_divs (rreil-convert-sem-linear cbs d.opnd1) (rreil-convert-sem-linear cbs d.opnd2)
+ | SEM_MOD m: cbs.sem_expr.sem_mod (rreil-convert-sem-linear cbs m.opnd1) (rreil-convert-sem-linear cbs m.opnd2)
+ | SEM_SHL s: cbs.sem_expr.sem_shl (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
+ | SEM_SHR s: cbs.sem_expr.sem_shr (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
+ | SEM_SHRS s: cbs.sem_expr.sem_shrs (rreil-convert-sem-linear cbs s.opnd1) (rreil-convert-sem-linear cbs s.opnd2)
+ | SEM_AND a: cbs.sem_expr.sem_and (rreil-convert-sem-linear cbs a.opnd1) (rreil-convert-sem-linear cbs a.opnd2)
+ | SEM_OR o: cbs.sem_expr.sem_or (rreil-convert-sem-linear cbs o.opnd1) (rreil-convert-sem-linear cbs o.opnd2)
+ | SEM_XOR x: cbs.sem_expr.sem_xor (rreil-convert-sem-linear cbs x.opnd1) (rreil-convert-sem-linear cbs x.opnd2)
+ | SEM_SX s: cbs.sem_expr.sem_sx s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
+ | SEM_ZX s: cbs.sem_expr.sem_zx s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
 end
 
 val rreil-convert-branch-hint cbs hint = cbs.branch_hint.branch_hint_ (index hint)
@@ -123,7 +120,7 @@ val rreil-convert-sem-varls cbs varls = let
    | SEM_VARLS_NIL: list
   end
 in
-  convert-inner cbs (cbs.sem_varls.sem_varls_init 42) varls
+  convert-inner cbs (cbs.sem_varls.sem_varls_init void) varls #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
 val rreil-sem-varls-head stmts = case stmts of
@@ -141,45 +138,37 @@ end
 
 val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (index flop)
 
-val rreil-convert-sem-prim cbs prim = case prim of
-   SEM_PRIM_GENERIC g: cbs.sem_prim.sem_prim_generic g.op (rreil-convert-sem-varls cbs g.res) (rreil-convert-sem-varls cbs g.args)
- | SEM_PRIM_FLOP f: cbs.sem_prim.sem_prim_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.res) (rreil-convert-sem-varls cbs f.args)
-end
-
-val rreil-convert-sem-prim-manual cbs prim = case prim of
-   SEM_PRIM_GENERIC g: cbs.sem_prim.sem_prim_generic g.op g.res g.args
- | SEM_PRIM_FLOP f: cbs.sem_prim.sem_prim_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.res) f.args
-end
-
 val rreil-convert-sem-stmt cbs stmt = case stmt of
-   SEM_ASSIGN s: cbs.sem_stmt.sem_assign (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-op cbs s.rhs)
- | SEM_LOAD l: cbs.sem_stmt.sem_load (rreil-convert-sem-var cbs l.lhs) l.size (rreil-convert-sem-address cbs l.address)
- | SEM_STORE s: cbs.sem_stmt.sem_store (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-op cbs s.rhs)
+   SEM_ASSIGN s: cbs.sem_stmt.sem_assign s.size (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
+ | SEM_LOAD l: cbs.sem_stmt.sem_load l.size (rreil-convert-sem-var cbs l.lhs) (rreil-convert-sem-address cbs l.address)
+ | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-expr cbs s.rhs)
  | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) (rreil-convert-sem-stmts cbs i.then_branch) (rreil-convert-sem-stmts cbs i.else_branch)
  | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) (rreil-convert-sem-stmts cbs w.body)
  | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)
  | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
- | SEM_PRIM p: cbs.sem_stmt.sem_prim (rreil-convert-sem-prim cbs p)
+ | SEM_FLOP f: cbs.sem_stmt.sem_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.lhs) (rreil-convert-sem-varls cbs f.rhs)
+ | SEM_PRIM p: cbs.sem_stmt.sem_prim p.op (rreil-convert-sem-varls cbs p.lhs) (rreil-convert-sem-varls cbs p.rhs)
 end
 
 val rreil-convert-sem-stmt-manual cbs stmt = case stmt of
-   SEM_ASSIGN s: cbs.sem_stmt.sem_assign (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-op cbs s.rhs)
- | SEM_LOAD l: cbs.sem_stmt.sem_load (rreil-convert-sem-var cbs l.lhs) l.size (rreil-convert-sem-address cbs l.address)
- | SEM_STORE s: cbs.sem_stmt.sem_store (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-op cbs s.rhs)
+   SEM_ASSIGN s: cbs.sem_stmt.sem_assign s.size (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
+ | SEM_LOAD l: cbs.sem_stmt.sem_load l.size (rreil-convert-sem-var cbs l.lhs) (rreil-convert-sem-address cbs l.address)
+ | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-expr cbs s.rhs)
  | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) i.then_branch i.else_branch
  | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) w.body
  | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)
  | SEM_BRANCH b: cbs.sem_stmt.sem_branch (rreil-convert-branch-hint cbs b.hint) (rreil-convert-sem-address cbs b.target)
- | SEM_PRIM p: cbs.sem_stmt.sem_prim (rreil-convert-sem-prim-manual cbs p)
+ | SEM_FLOP f: cbs.sem_stmt.sem_flop (rreil-convert-sem-flop cbs f.op) (rreil-convert-sem-var cbs f.flags) (rreil-convert-sem-varl cbs f.lhs) f.rhs
+ | SEM_PRIM p: cbs.sem_stmt.sem_prim p.op p.lhs p.rhs
 end
 
 val rreil-convert-sem-stmts cbs stmts = let
   val convert-inner cbs list stmts = case stmts of
-     SEM_CONS s: convert-inner cbs (cbs.sem_stmts.next (rreil-convert-sem-stmt cbs s.hd) list) s.tl
+     SEM_CONS s: convert-inner cbs (cbs.sem_stmts.sem_stmts_next (rreil-convert-sem-stmt cbs s.hd) list) s.tl
    | SEM_NIL: list
   end
 in
-  convert-inner cbs (cbs.sem_stmts.init 42) stmts
+  convert-inner cbs (cbs.sem_stmts.sem_stmts_init void) stmts #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
 val rreil-sem-stmts-has-more stmts = case stmts of
