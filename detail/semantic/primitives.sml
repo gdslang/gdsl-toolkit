@@ -356,7 +356,7 @@ structure Primitives = struct
          ("==", (t 2, fn args => boxV1 (pr (EQ_VECprim,iii,unboxVfixed args)))),
          ("^", (t 2, fn args => boxV (pr (CONCAT_VECprim,vvv,unboxV args)))),
          ("showint", (t 1, fn args => pr (INT_TO_STRINGprim,is,unboxI args))),
-         ("strlen", (t 1, fn args => boxV (pr (STRLENprim,si,args)))),
+         ("strlen", (t 1, fn args => boxI (pr (STRLENprim,si,args)))),
          ("strcat", (t 3, fn args => (case args of
             [src,tgt,size] => pr (CONCAT_STRINGprim,ssis,[src,tgt,UNBOXexp (INTvtype, size)])
           | _ => raise ImpPrimTranslationBug))),
