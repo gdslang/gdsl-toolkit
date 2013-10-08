@@ -1406,6 +1406,10 @@ in () end;*)
                let
                   val fs = case t of
                        (MONAD (r,RECORD (_,_,fs),out)) => fs
+                     | FUN (args,(MONAD (r,RECORD (_,_,fs),out))) =>
+                        List.foldl (fn (arg,fs) => case arg of
+                             RECORD (_,_,fs') => fs' @ fs
+                           | _ => fs) fs args
                      | FUN (args,_) =>
                         List.foldl (fn (arg,fs) => case arg of
                              RECORD (_,_,fs') => fs' @ fs
