@@ -116,6 +116,7 @@ val lv-gen gens stmt =
 					| SEM_CBRANCH x: visit-flow 1 gens x
           | SEM_FLOP x: lv-union (visit-semvar gens (sizeof-id x.flags.id) x.flags) (visit-semvarls visit-semvar gens x.rhs)
           | SEM_PRIM x: visit-semvarls visit-semvar gens x.rhs
+          | SEM_THROW x: gens
 #          | SEM_LABEL x: gens
 #          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
 #          | SEM_IF_GOTO x: visit-flow gens x
@@ -337,6 +338,7 @@ val lv-analyze initial-live stack =
                | SEM_ASSIGN y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
                | SEM_FLOP y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
                | SEM_PRIM y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
+               | SEM_THROW y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
               end
             end
          end
