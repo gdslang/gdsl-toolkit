@@ -131,6 +131,9 @@ int main(int argc, char** argv) {
 		exit(1);
 
 	struct decode_result xed_result = xed_decode_blob(blob, sz);
+
+	printf("------------------------- $$\n");
+
 	struct decode_result gdsl_result = gdsl_decode_blob(blob, sz);
 
 	fprintf(stderr, "XED: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds; memory: %zu bytes\n", xed_result.decoded,

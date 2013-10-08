@@ -71,6 +71,7 @@ void
   s->heap_base = heap;
   s->heap = heap+sizeof(char*);
   s->heap_limit = heap+CHUNK_SIZE;
+  memset(&s->state, 0, sizeof(s->state));
 };
 
 size_t 

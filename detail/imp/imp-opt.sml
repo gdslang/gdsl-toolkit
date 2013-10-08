@@ -746,7 +746,7 @@ structure TypeRefinement = struct
       This means that it is not easily possible to emit code that
       differs between selecting a field from a varidadic record and a fixed
       record. Hence, this flag must stay false for now. *)
-   val genFixedRecords = ref true
+   val genFixedRecords = ref false
 
    exception TypeOptBug
    
