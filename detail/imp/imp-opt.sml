@@ -1020,7 +1020,7 @@ structure TypeRefinement = struct
                (* the following condition holds if the record always contains
                   the fields in fs; if it may contain fewer fields at any point
                   we return OBJstype and use the flex record mechanism *)
-               val resTy = if List.all #1 fs then
+               val resTy = if false (*List.all #1 fs*) then
                      RECORDstype (lub (boxed1,boxed2), fs, always1 andalso always2)
                   else
                      (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
@@ -1031,12 +1031,12 @@ structure TypeRefinement = struct
                (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
            | lub (_, RECORDstype (_,fs,b)) =
                (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
-           | lub (BITstype s1, BITstype s2) = BITstype (lub (s1,s2))
+           (*| lub (BITstype s1, BITstype s2) = BITstype (lub (s1,s2))
            | lub (CONSTstype s1, CONSTstype s2) =
                if s1=s2 then CONSTstype s1 else OBJstype
            | lub (INTstype, INTstype) = INTstype
+           | lub (BOXstype t1, BOXstype t2) = BOXstype (lub (t1,t2))*)
            | lub (STRINGstype, STRINGstype) = STRINGstype
-           | lub (BOXstype t1, BOXstype t2) = BOXstype (lub (t1,t2))
            | lub (OBJstype, OBJstype) = OBJstype
            | lub (CONSTstype _, OBJstype) = OBJstype
            | lub (OBJstype, CONSTstype _) = OBJstype
