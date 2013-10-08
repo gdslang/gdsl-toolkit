@@ -84,7 +84,8 @@ static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 			else
 				result.invalid++;
 		}
-		obj_t insn = gdsl_decode(state, gdsl_config_mode64(state) | gdsl_config_default_opnd_sz_32(state));
+//		obj_t insn = gdsl_decode(state, gdsl_config_mode64(state) | gdsl_config_default_opnd_sz_32(state));
+		obj_t insn = gdsl_decode(state, gdsl_config_default(state));
 
 		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);

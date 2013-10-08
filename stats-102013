@@ -295,7 +295,7 @@ file is /usr/bin/clang
 XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.208432 seconds; memory: 0 bytes
 GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 9.883397 seconds; memory: 12510270112 bytes
 
-(10)
+(12)
 
 => X86 only
 => Refinement: Yes
@@ -321,3 +321,25 @@ file is /usr/bin/clang
 .text is 11530764 bytes
 XED: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.705428 seconds; memory: 0 bytes
 GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 9.892532 seconds; memory: 12510270112 bytes
+
+(13)
+
+=> X86 only
+=> Refinement: No
+=> Box threshold: default
+=> genFixedRecords: false
+=> GCC / O2
+=> XED: pin-2.12-58423-gcc.4.4.7-linux
+
+$ ./gdslc -o gdsl_manual  "specifications/basis/prelude.ml" "specifications/x86/x86.ml" "specifications/x86/x86-pretty.ml"
+$ gcc -O2 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o libgdsl.so gdsl.o
+
+Code size:
+
+$ wc -l gdsl.*
+  36197 gdsl.c
+   1018 gdsl.h
+  37215 total
+
+libgdsl.so: 543K
+ces (0 invalid/unknown); time: 3.730913 seconds; memory: 12510270112 bytes
