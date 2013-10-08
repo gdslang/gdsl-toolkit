@@ -1001,7 +1001,7 @@ structure TypeRefinement = struct
            | lub (VOIDstype, t) = t
            | lub (t, VOIDstype) = t
            | lub (FUNstype (r1, clos1, args1), FUNstype (r2, clos2, args2)) = (
-               FUNstype (lub (r1,r2), lub (clos1,clos2), map lub (ListPair.zip (args1,args2)))
+               FUNstype (lub (r1,r2), lub (OBJstype,lub (clos1,clos2)), map lub (ListPair.zip (args1,args2)))
                handle ListPair.UnequalLengths =>
                   (TextIO.print ("lub on bad func args: " ^ showSType (FUNstype (r1, clos1, args1)) ^ "," ^ showSType (FUNstype (r2, clos2, args2)) ^ "\n"); raise TypeOptBug)
              )
