@@ -508,12 +508,12 @@ structure C1 = struct
             end
       end
 
-   fun emitGenClosure (s : state) funTy =
+   fun emitGenClosure (s : state) funTy argLen =
       let
          val (ty,argTys) = case funTy of
                (FUNvtype (ty,_,argTys)) => (ty,argTys)
              | (MONADvtype ty) => (ty,[])
-             | _ => raise CodeGenBug
+             | _ => (OBJvtype, List.tabulate (argLen, fn _ => OBJvtype))
          val ty = removeArgs ty
          val retTy = case ty of
                FUNvtype (retTy,_,_) => retTy
@@ -744,7 +744,7 @@ structure C1 = struct
      | emitExp s (CLOSUREexp (FUNvtype (_,false,_),sym,es)) =
          seq [str "&", emitSym s (SymMap.lookup (#closureToFun s, sym))]
      | emitExp s (CLOSUREexp (t,sym,es)) =
-         seq [emitGenClosure s t, fArgs (seq [str "&", emitSym s sym] :: map (emitExp s) es)]
+         seq [emitGenClosure s t (length es), fArgs (seq [str "&", emitSym s sym] :: map (emitExp s) es)]
      | emitExp s (STATEexp (BASICblock ([],[]), _, CALLexp (e,[]))) = seq [str "&", emitExp s e]
      | emitExp s (STATEexp (b,t,e)) = emitAnonymousAction s (b,t,e)
 

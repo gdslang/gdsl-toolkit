@@ -20,8 +20,10 @@ end = struct
 
    fun all s = 
       ImpFromCore.run s >>=
+      SimplifyPass.run >>=
       PatchFunctionCallsPass.run >>=
       SimplifyPass.run >>=
+      ActionReducePass.run >>=
       ActionReducePass.run >>=
       SimplifyPass.run >>=
       ActionClosuresPass.run >>=
