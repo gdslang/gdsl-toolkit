@@ -149,7 +149,15 @@ int main(int argc, char** argv) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, buffer, buffer_length, 0);
 
+	struct timespec start;
+	struct timespec decoding_end;
+	struct timespec translation_end;
+
+	size_t memory_dec = 0;
+	size_t memory_dec_tran = 0;
+
 	//uint64_t consumed = 0;
+	clock_gettime(CLOCK_REALTIME, &start);
 	while(gdsl_get_ip_offset(state) < length) {
 		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
 
@@ -161,6 +169,8 @@ int main(int argc, char** argv) {
 
 		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);
+
+		clock_gettime(CLOCK_REALTIME, &decoding_end);
 
 		printf("---------------------------\n");
 
@@ -174,6 +184,8 @@ int main(int argc, char** argv) {
 
 		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 		puts(fmt);
+
+		clock_gettime(CLOCK_REALTIME, &translation_end);
 
 		gdsl_reset_heap(state);
 	}

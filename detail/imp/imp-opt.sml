@@ -1035,7 +1035,6 @@ structure TypeRefinement = struct
            | lub (CONSTstype s1, CONSTstype s2) =
                if s1=s2 then CONSTstype s1 else OBJstype
            | lub (INTstype, INTstype) = INTstype
-           | lub (BOXstype t1, BOXstype t2) = BOXstype (lub (t1,t2))
            | lub (STRINGstype, STRINGstype) = STRINGstype
            | lub (BOXstype t1, BOXstype t2) = BOXstype (lub (t1,t2))
            | lub (OBJstype, OBJstype) = OBJstype
