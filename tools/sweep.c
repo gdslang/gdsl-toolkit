@@ -8,12 +8,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <err.h>
 #include <fcntl.h>
 #include <gelf.h>
 #include <string.h>
 #include <sysexits.h>
+
+#define NANOS 1000000000LL
 
 char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	char retval = 0;
@@ -149,6 +152,17 @@ int main(int argc, char** argv) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, buffer, buffer_length, 0);
 
+	struct timespec start;
+	struct timespec end;
+
+	size_t memory_dec = 0;
+	size_t memory_dec_tran = 0;
+
+	size_t memory_dec_max = 0;
+	size_t memory_dec_tran_max = 0;
+
+	size_t instructions = 0;
+
 	//uint64_t consumed = 0;
 	while(gdsl_get_ip_offset(state) < length) {
 		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
@@ -161,6 +175,11 @@ int main(int argc, char** argv) {
 
 		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);
+
+		size_t residency = gdsl_heap_residency(state);
+		memory_dec += residency;
+		if(residency > memory_dec_max)
+			memory_dec_max = residency;
 
 		printf("---------------------------\n");
 
@@ -175,10 +194,27 @@ int main(int argc, char** argv) {
 		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 		puts(fmt);
 
+		residency = gdsl_heap_residency(state);
+		memory_dec_tran += residency;
+		if(residency > memory_dec_tran_max)
+			memory_dec_tran_max = residency;
+
 		gdsl_reset_heap(state);
+
+		instructions++;
 	}
 
+	clock_gettime(CLOCK_REALTIME, &end);
+	long time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
+
 	gdsl_destroy(state);
+
+	fprintf(stderr, "---------------------------\n");
+	fprintf(stderr, "Statistics\n");
+	fprintf(stderr, "Instruction count: %zu\n", instructions);
+	fprintf(stderr, "Decoder: Total memoy: %zu, maximal memoy: %zu\n", memory_dec, memory_dec_max);
+	fprintf(stderr, "Decoder + Translator: Total memoy: %zu, maximal memoy: %zu\n", memory_dec_tran, memory_dec_tran_max);
+	fprintf(stderr, "time: %ld\n", time);
 
 	return 1;
 }
