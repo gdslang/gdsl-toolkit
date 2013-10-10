@@ -183,7 +183,8 @@ obj_t translate(state_t state) {
 translate_result_t translate_super(state_t state, obj_t *rreil_insns) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state, gdsl_config_default(state), gdsl_int_max(state));
+	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state, gdsl_config_default(state),
+			gdsl_int_max(state));
 	*rreil_insns = rreil_insns_succs->insns;
 	return rreil_insns_succs;
 }
@@ -224,21 +225,30 @@ struct context {
 	size_t stmts_opt;
 	long time_non_opt;
 	long time_opt;
+
+	size_t memory_cum;
+	size_t memory_max;
+
+	size_t blocks;
 };
 
 void print_results(struct context *context) {
-	printf("Statistics:\n");
-	printf("Number of native instructions: %zu\n", context->native_instructions);
-	printf("Number of RReil statements without LV analysis: %zu\n", context->stmts);
-	printf("Number of RReil statements with LV analysis: %zu\n", context->stmts_opt);
+	fprintf(stderr, "Statistics:\n");
+	fprintf(stderr, "Number of native instructions: %zu\n", context->native_instructions);
+	fprintf(stderr, "Number of blocks: %zu\n", context->blocks);
+	fprintf(stderr, "Number of RReil statements without LV analysis: %zu\n", context->stmts);
+	fprintf(stderr, "Number of RReil statements with LV analysis: %zu\n", context->stmts_opt);
 
 	double reduction = 1 - (context->stmts_opt / (double)context->stmts);
 
-	printf("Reduction: %lf%%\n", 100 * reduction);
+	fprintf(stderr, "Reduction: %lf%%\n", 100 * reduction);
 
-	printf("Time needed for the decoding and the translation into RREIL: %lf seconds\n",
+	fprintf(stderr, "Time needed for the decoding and the translation into RREIL: %lf seconds\n",
 			context->time_non_opt / (double)(NANOS));
-	printf("Time needed for the lv analysis: %lf seconds\n", context->time_opt / (double)(NANOS));
+	fprintf(stderr, "Time needed for the lv analysis: %lf seconds\n", context->time_opt / (double)(NANOS));
+
+	fprintf(stderr, "Memory accumulative: %zu bytes, memory maximal: %zu bytes\n", context->memory_cum,
+			context->memory_max);
 }
 
 static char *symbol_sz(size_t value) {
@@ -356,9 +366,14 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 	gdsl_set_code(state, (char*)buffer, buffer_length, 0);
 
+	context->memory_cum = 0;
+	context->memory_max = 0;
+	context->blocks = 0;
+
 	while(consumed < buffer_length) {
 		if(print)
 			printf("### Next block (@offset %lu): ###\n\n", consumed);
+		context->blocks++;
 
 //		obj_t state = __createState(buffer + consumed, buffer_length - consumed,
 //				consumed, 0);
@@ -514,6 +529,11 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 		//consumed += __getBlobIndex(state) - consumed;
 		consumed = gdsl_get_ip_offset(state);
+
+		size_t residency = gdsl_heap_residency(state);
+		context->memory_cum += residency;
+		if(residency > context->memory_max)
+			context->memory_max = residency;
 
 		gdsl_reset_heap(state);
 

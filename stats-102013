@@ -1,3 +1,23 @@
+x86:
+
+Statistics
+Instruction count: 2667248
+Decoder: Total memoy: 2699667296, maximal memoy: 2592
+Decoder + Translator: Total memoy: 0, maximal memoy: 0
+time: 1.232152 seconds
+
+x86 + trans:
+
+./gdslc -o gdsl_manual  "specifications/basis/prelude.ml" "specifications/basis/selectors.ml" "specifications/rreil/rreil.ml" "specifications/rreil/rreil-examples.ml" "specifications/rreil/rreil-pretty.ml" "specifications/x86/x86.ml" "specifications/x86/x86-pretty.ml" "specifications/x86/x86-pretty-simple.ml" "specifications/x86/x86-rreil-translator.ml" "specifications/x86/x86-rreil-translator-a-l.ml" "specifications/x86/x86-rreil-translator-m-z.ml" "specifications/x86/x86-rreil-registermapping.ml" "specifications/x86/x86-rreil-pretty.ml"
+
+Statistics
+Instruction count: 2667248
+Decoder: Total memoy: 2704206384, maximal memoy: 2592
+Decoder + Translator: Total memoy: 21037430952, maximal memoy: 67152
+time: 8.157454 seconds
+
+----------------------------------------------------------
+
 (1)
 
 => X86 only

@@ -163,6 +163,8 @@ int main(int argc, char** argv) {
 
 	size_t instructions = 0;
 
+	clock_gettime(CLOCK_REALTIME, &start);
+
 	//uint64_t consumed = 0;
 	while(gdsl_get_ip_offset(state) < length) {
 		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
@@ -188,8 +190,6 @@ int main(int argc, char** argv) {
 			break;
 		}
 		obj_t rreil = gdsl_translate(state, insn);
-//		__obj r = __runMonadicOneArg(__translate__, &state, insn);
-		//__obj r = __translate(__translate__,insn);
 
 		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 		puts(fmt);
@@ -214,7 +214,7 @@ int main(int argc, char** argv) {
 	fprintf(stderr, "Instruction count: %zu\n", instructions);
 	fprintf(stderr, "Decoder: Total memoy: %zu, maximal memoy: %zu\n", memory_dec, memory_dec_max);
 	fprintf(stderr, "Decoder + Translator: Total memoy: %zu, maximal memoy: %zu\n", memory_dec_tran, memory_dec_tran_max);
-	fprintf(stderr, "time: %ld\n", time);
+	fprintf(stderr, "time: %lf seconds\n", time / (double)(1000000000));
 
 	return 1;
 }
