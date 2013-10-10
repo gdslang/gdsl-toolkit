@@ -13,6 +13,7 @@ struct decode_result {
 	unsigned int decoded;
 	unsigned int invalid;
 	size_t memory;
+	size_t memory_max;
 
 	long time;
 };
@@ -59,8 +60,6 @@ static struct decode_result xed_decode_blob(unsigned char *blob, size_t size) {
 	clock_gettime(CLOCK_REALTIME, &end);
 	result.time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
 
-	result.memory = 0;
-
 	return result;
 }
 
@@ -90,7 +89,10 @@ static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);
 
-		result.memory += gdsl_heap_residency(state);
+		size_t residency = gdsl_heap_residency(state);
+		result.memory += residency;
+		if(residency > result.memory_max)
+			result.memory_max = residency;
 
 		gdsl_reset_heap(state);
 
@@ -137,10 +139,10 @@ int main(int argc, char** argv) {
 
 	struct decode_result gdsl_result = gdsl_decode_blob(blob, sz);
 
-	fprintf(stderr, "XED: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds; memory: %zu bytes\n", xed_result.decoded,
-			xed_result.invalid, xed_result.time / (double)(1000000000), xed_result.memory);
-	fprintf(stderr, "GDSL: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds; memory: %zu bytes\n", gdsl_result.decoded,
-			gdsl_result.invalid, gdsl_result.time / (double)(1000000000), gdsl_result.memory);
+	fprintf(stderr, "XED: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds; memory: %zu bytes, maximal memory: %zu bytes\n", xed_result.decoded,
+			xed_result.invalid, xed_result.time / (double)(1000000000), xed_result.memory, xed_result.memory_max);
+	fprintf(stderr, "GDSL: Decoded %u opcode sequences (%u invalid/unknown); time: %lf seconds; memory: %zu bytes, maximal memory: %zu bytes\n", gdsl_result.decoded,
+			gdsl_result.invalid, gdsl_result.time / (double)(1000000000), gdsl_result.memory, gdsl_result.memory_max);
 
 	return (0);
 }
