@@ -329,6 +329,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 //	fprintf(stderr, "File offset: %zu\n", file_offset);
 
+	fprintf(stderr, "Using file offset: %zu\n", file_offset);
+
 	fseek(f, file_offset, SEEK_SET);
 
 	size_t buffer_size = 128;
@@ -363,6 +365,11 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 //	uint64_t consumed = 0;
 
 	obj_t state = gdsl_init();
+
+	if(setjmp(*gdsl_err_tgt(state))) {
+		fprintf(stderr, "failed: %s\n", gdsl_get_error_message(state));
+		exit(1);
+	}
 
 	gdsl_set_code(state, (char*)buffer, buffer_length, 0);
 
@@ -595,6 +602,8 @@ static void run(struct options options, size_t *offset, size_t *size_max, double
 }
 
 int main(int argc, char** argv) {
+//	stdout = fopen("/dev/null", "r");
+
 	struct options options;
 	if(args_parse(argc, argv, &options)) {
 		printf("Usage: liveness-sweep [--children] [--offset offset] [--elf] [--cleanup] --file file\n");

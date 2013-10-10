@@ -166,7 +166,8 @@ int main(int argc, char** argv) {
 	clock_gettime(CLOCK_REALTIME, &start);
 
 	//uint64_t consumed = 0;
-	while(gdsl_get_ip_offset(state) < length) {
+	size_t last_offset = 0;
+	while(last_offset < length) {
 		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
 
 		if(setjmp(*gdsl_err_tgt(state))) {
@@ -174,6 +175,15 @@ int main(int argc, char** argv) {
 			break;
 		}
 		obj_t insn = gdsl_decode(state, gdsl_config_default(state));
+
+		printf("[");
+		size_t decoded = gdsl_get_ip_offset(state) - last_offset;
+		for(size_t i = 0; i < decoded; ++i) {
+			if(i)
+				printf(" ");
+			printf("%02x", ((uint8_t*)buffer)[last_offset + i]);
+		}
+		printf("] ");
 
 		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);
@@ -202,6 +212,7 @@ int main(int argc, char** argv) {
 		gdsl_reset_heap(state);
 
 		instructions++;
+		last_offset = gdsl_get_ip_offset(state);
 	}
 
 	clock_gettime(CLOCK_REALTIME, &end);
