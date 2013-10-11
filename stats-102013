@@ -445,17 +445,17 @@ $ gcc -O2 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o lib
 Code size:
 
 $ wc -l gdsl.*
-  40664 gdsl.c
-   1018 gdsl.h
-  41682 total
+  39686 gdsl.c
+   1021 gdsl.h
+  40707 total
 
-libgdsl.so: 939K
+gdsl.o=>.text: 719K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.207489 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.930880 seconds; memory: 14576513216 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.215135 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.467701 seconds; memory: 5075179488 bytes, maximal memory: 6304 bytes
 
 (18)
 
@@ -472,9 +472,9 @@ $ gcc -O2 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o lib
 Code size:
 
 $ wc -l gdsl.*
-  40664 gdsl.c
-   1018 gdsl.h
-  41682 total
+  39686 gdsl.c
+   1021 gdsl.h
+  40707 total
 
 libgdsl.so: 939K
 
@@ -499,17 +499,17 @@ $ gcc -O0 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o lib
 Code size:
 
 $ wc -l gdsl.*
-  40664 gdsl.c
-   1018 gdsl.h
-  41682 total
+  39686 gdsl.c
+   1021 gdsl.h
+  40707 total
 
-libgdsl.so: 1,2M
+gdsl.o=>.text: 855K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.204465 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 11.295275 seconds; memory: 14576513216 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.202730 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 5.358969 seconds; memory: 5075179488 bytes, maximal memory: 6304 bytes
 
 (20)
 
@@ -526,9 +526,9 @@ $ gcc -O0 -fPIC -Wall -Iinclude -c gdsl_manual.c -o gdsl.o && gcc -shared -o lib
 Code size:
 
 $ wc -l gdsl.*
-  40664 gdsl.c
-   1018 gdsl.h
-  41682 total
+  39686 gdsl.c
+   1021 gdsl.h
+  40707 total
 
 libgdsl.so: 1,2M
 
