@@ -8,12 +8,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <err.h>
 #include <fcntl.h>
 #include <gelf.h>
 #include <string.h>
 #include <sysexits.h>
+
+#define NANOS 1000000000LL
 
 char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	char retval = 0;
@@ -149,8 +152,22 @@ int main(int argc, char** argv) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, buffer, buffer_length, 0);
 
+	struct timespec start;
+	struct timespec end;
+
+	size_t memory_dec = 0;
+	size_t memory_dec_tran = 0;
+
+	size_t memory_dec_max = 0;
+	size_t memory_dec_tran_max = 0;
+
+	size_t instructions = 0;
+
+	clock_gettime(CLOCK_REALTIME, &start);
+
 	//uint64_t consumed = 0;
-	while(gdsl_get_ip_offset(state) < length) {
+	size_t last_offset = 0;
+	while(last_offset < length) {
 		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
 
 		if(setjmp(*gdsl_err_tgt(state))) {
@@ -159,8 +176,22 @@ int main(int argc, char** argv) {
 		}
 		obj_t insn = gdsl_decode(state, gdsl_config_default(state));
 
+		printf("[");
+		size_t decoded = gdsl_get_ip_offset(state) - last_offset;
+		for(size_t i = 0; i < decoded; ++i) {
+			if(i)
+				printf(" ");
+			printf("%02x", ((uint8_t*)buffer)[last_offset + i]);
+		}
+		printf("] ");
+
 		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
 		puts(fmt);
+
+		size_t residency = gdsl_heap_residency(state);
+		memory_dec += residency;
+		if(residency > memory_dec_max)
+			memory_dec_max = residency;
 
 		printf("---------------------------\n");
 
@@ -169,16 +200,32 @@ int main(int argc, char** argv) {
 			break;
 		}
 		obj_t rreil = gdsl_translate(state, insn);
-//		__obj r = __runMonadicOneArg(__translate__, &state, insn);
-		//__obj r = __translate(__translate__,insn);
 
 		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 		puts(fmt);
 
+		residency = gdsl_heap_residency(state);
+		memory_dec_tran += residency;
+		if(residency > memory_dec_tran_max)
+			memory_dec_tran_max = residency;
+
 		gdsl_reset_heap(state);
+
+		instructions++;
+		last_offset = gdsl_get_ip_offset(state);
 	}
 
+	clock_gettime(CLOCK_REALTIME, &end);
+	long time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
+
 	gdsl_destroy(state);
+
+	fprintf(stderr, "---------------------------\n");
+	fprintf(stderr, "Statistics\n");
+	fprintf(stderr, "Instruction count: %zu\n", instructions);
+	fprintf(stderr, "Decoder: Total memoy: %zu, maximal memoy: %zu\n", memory_dec, memory_dec_max);
+	fprintf(stderr, "Decoder + Translator: Total memoy: %zu, maximal memoy: %zu\n", memory_dec_tran, memory_dec_tran_max);
+	fprintf(stderr, "time: %lf seconds\n", time / (double)(1000000000));
 
 	return 1;
 }

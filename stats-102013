@@ -1,3 +1,23 @@
+x86:
+
+Statistics
+Instruction count: 2667248
+Decoder: Total memoy: 2699667296, maximal memoy: 2592
+Decoder + Translator: Total memoy: 0, maximal memoy: 0
+time: 1.232152 seconds
+
+x86 + trans:
+
+./gdslc -o gdsl_manual  "specifications/basis/prelude.ml" "specifications/basis/selectors.ml" "specifications/rreil/rreil.ml" "specifications/rreil/rreil-examples.ml" "specifications/rreil/rreil-pretty.ml" "specifications/x86/x86.ml" "specifications/x86/x86-pretty.ml" "specifications/x86/x86-pretty-simple.ml" "specifications/x86/x86-rreil-translator.ml" "specifications/x86/x86-rreil-translator-a-l.ml" "specifications/x86/x86-rreil-translator-m-z.ml" "specifications/x86/x86-rreil-registermapping.ml" "specifications/x86/x86-rreil-pretty.ml"
+
+Statistics
+Instruction count: 2667248
+Decoder: Total memoy: 2704206384, maximal memoy: 2592
+Decoder + Translator: Total memoy: 21037430952, maximal memoy: 67152
+time: 8.157454 seconds
+
+----------------------------------------------------------
+
 (1)
 
 => X86 only
@@ -17,13 +37,13 @@ $ wc -l gdsl.*
    1021 gdsl.h
   36220 total
 
-libgdsl.so: 457K
+gdsl.o=>.text: 295K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.201872 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.095589 seconds; memory: 2699667296 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.215298 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.144838 seconds; memory: 2699667296 bytes, maximal memory: 2592 bytes
 
 (2)
 
@@ -71,13 +91,13 @@ $ wc -l gdsl.*
    1021 gdsl.h
   36220 total
 
-libgdsl.so: 671K
+gdsl.o=>.text: 511K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.197324 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.605407 seconds; memory: 2699667296 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.215975 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.527424 seconds; memory: 2699667296 bytes, maximal memory: 2592 bytes
 
 (4)
 
@@ -125,13 +145,13 @@ $ wc -l gdsl.*
    1021 gdsl.h
   36234 total
 
-libgdsl.so: 445K
+gdsl.o=>.text: 284K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.179657 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.186429 seconds; memory: 3112294728 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.195937 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 1.229216 seconds; memory: 3112294728 bytes, maximal memory: 3216 bytes
 
 (6)
 
@@ -179,13 +199,13 @@ $ wc -l gdsl.*
    1021 gdsl.h
   36234 total
 
-libgdsl.so: 659K
+gdsl.o=>.text: 499K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.202058 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 4.043878 seconds; memory: 3112294728 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.194375 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 4.045660 seconds; memory: 3112294728 bytes, maximal memory: 3216 bytes
 
 (8)
 
@@ -233,13 +253,13 @@ $ wc -l gdsl.*
    1018 gdsl.h
   37215 total
 
-libgdsl.so: 543K
+gdsl.o=>.text: 388K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.206049 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.727403 seconds; memory: 12510270112 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.240584 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.791024 seconds; memory: 12510270112 bytes, maximal memory: 11184 bytes
 
 (10)
 
@@ -287,13 +307,13 @@ $ wc -l gdsl.*
    1018 gdsl.h
   37215 total
 
-libgdsl.so: 763K
+gdsl.o=>.text: 605K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.208432 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 9.883397 seconds; memory: 12510270112 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.272345 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 9.946860 seconds; memory: 12510270112 bytes, maximal memory: 11184 bytes
 
 (12)
 
@@ -341,13 +361,13 @@ $ wc -l gdsl.*
    1018 gdsl.h
   41686 total
 
-libgdsl.so: 939K
+gdsl.o=>.text: 764K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.220009 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.807403 seconds; memory: 14576513216 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.221912 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 3.839121 seconds; memory: 14576513216 bytes, maximal memory: 14736 bytes
 
 (14)
 
@@ -395,13 +415,13 @@ $ wc -l gdsl.*
    1018 gdsl.h
   41686 total
 
-libgdsl.so: 1,2M
+gdsl.o=>.text: 945K
 
 $ ./xed-cmp /usr/bin/clang >/dev/null 
 file is /usr/bin/clang
 .text is 11530764 bytes
-XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.200499 seconds; memory: 0 bytes
-GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 11.397309 seconds; memory: 14576513216 bytes
+XED: Decoded 2667829 opcode sequences (488 invalid/unknown); time: 1.244342 seconds; memory: 0 bytes, maximal memory: 0 bytes
+GDSL: Decoded 2667248 opcode sequences (0 invalid/unknown); time: 11.602962 seconds; memory: 14576513216 bytes, maximal memory: 14736 bytes
 
 (16)
 
