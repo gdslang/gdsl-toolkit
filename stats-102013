@@ -16,6 +16,43 @@ Decoder: Total memoy: 2704206384, maximal memoy: 2592
 Decoder + Translator: Total memoy: 21037430952, maximal memoy: 67152
 time: 8.157454 seconds
 
+X86 + trans + lv simple:
+
+$ time ./liveness-sweep --elf --file /usr/bin/clang >>/dev/null 
+Using file offset: 1262496
+Statistics:
+Number of native instructions: 2667248
+Number of blocks: 596280
+Number of RReil statements without LV analysis: 15960658
+Number of RReil statements with LV analysis: 10201968
+Reduction: 36.080530%
+Time needed for the decoding and the translation into RREIL: 2.166464 seconds
+Time needed for the lv analysis: 89.840790 seconds
+Memory accumulative: 125949206624 bytes, memory maximal: 70383976 bytes
+
+real	1m46.134s
+user	1m23.992s
+sys	0m21.808s
+
+x86 + trans + lv children:
+
+$ time ./liveness-sweep --children --elf --file /usr/bin/clang >>/dev/null 
+Using file offset: 1262496
+Statistics:
+Number of native instructions: 2667248
+Number of blocks: 596280
+Number of RReil statements without LV analysis: 15960658
+Number of RReil statements with LV analysis: 8189625
+Reduction: 48.688676%
+Time needed for the decoding and the translation into RREIL: 5.320947 seconds
+Time needed for the lv analysis: 235.512596 seconds
+Memory accumulative: 303706774232 bytes, memory maximal: 70722008 bytes
+
+real	4m43.324s
+user	3m34.464s
+sys	1m7.952s
+
+
 ----------------------------------------------------------
 
 (1)

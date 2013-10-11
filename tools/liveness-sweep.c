@@ -376,6 +376,8 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 	context->memory_cum = 0;
 	context->memory_max = 0;
 	context->blocks = 0;
+	context->stmts = 0;
+	context->stmts_opt = 0;
 
 	while(consumed < buffer_length) {
 		if(print)
@@ -428,16 +430,16 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 		//printf("%x\n", buffer[consumed]);
 
-		if(print)
-			printf("Initial RREIL instructions:\n");
-		//__pretty(__rreil_pretty__, rreil_insns, fmt, size);
-		string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_insns));
 		if(print) {
+			printf("Initial RREIL instructions:\n");
+			//__pretty(__rreil_pretty__, rreil_insns, fmt, size);
+			string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_insns));
+
 			puts(fmt);
 			printf("\n");
 		}
 
-		context->stmts = gdsl_rreil_stmts_count(state, rreil_insns);
+		context->stmts += gdsl_rreil_stmts_count(state, rreil_insns);
 
 //		for(size_t i = 0; fmt[i]; i++)
 //			if(fmt[i] == '\n')
@@ -452,12 +454,6 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 				break;
 			}
 			default: {
-				static size_t x = 0;
-				x++;
-				if(x == 51206) {
-					printf(":-)\n");
-				}
-
 				lv_result = gdsl_liveness(state, translated);
 				break;
 			}
@@ -491,7 +487,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 
 		if(print && mode == MODE_CHILDREN) {
 			printf("Liveness initial state:\n");
-			fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, lv_result->initial));
+			string_t fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, lv_result->initial));
 			puts(fmt);
 			printf("\n");
 		}
@@ -510,7 +506,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 		}
 		if(print) {
 			printf("Liveness greedy state:\n");
-			fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, greedy_state));
+			string_t fmt = gdsl_merge_rope(state, gdsl_lv_pretty(state, greedy_state));
 			puts(fmt);
 			printf("\n");
 		}
@@ -518,7 +514,7 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 		if(cleanup) {
 			if(print) {
 				printf("RREIL instructions after LV (greedy), before cleanup:\n");
-				fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_instructions_greedy));
+				string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_instructions_greedy));
 				puts(fmt);
 				printf("\n");
 			}
@@ -526,15 +522,14 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 			rreil_instructions_greedy = gdsl_cleanup(state, rreil_instructions_greedy);
 		}
 
-		if(print)
-			printf("RREIL instructions after LV (greedy):\n");
-		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_instructions_greedy));
 		if(print) {
+			printf("RREIL instructions after LV (greedy):\n");
+			string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil_instructions_greedy));
 			puts(fmt);
 			printf("\n");
 		}
 
-		context->stmts_opt = gdsl_rreil_stmts_count(state, rreil_instructions_greedy);
+		context->stmts_opt += gdsl_rreil_stmts_count(state, rreil_instructions_greedy);
 
 //		for(size_t i = 0; fmt[i]; i++)
 //			if(fmt[i] == '\n')
