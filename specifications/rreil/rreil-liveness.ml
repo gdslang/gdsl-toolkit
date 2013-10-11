@@ -86,6 +86,7 @@ val lv-gen gens stmt =
           | SEM_DIV x: visit-arity2 size gens x
           | SEM_DIVS x: visit-arity2 size gens x
           | SEM_MOD x: visit-arity2 size gens x
+          | SEM_MODS x: visit-arity2 size gens x
           | SEM_SHL x: visit-arity2 size gens x
           | SEM_SHR x: visit-arity2 size gens x
           | SEM_SHRS x: visit-arity2 size gens x

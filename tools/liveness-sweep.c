@@ -452,6 +452,12 @@ char analyze(char *file, char print, enum mode mode, char cleanup, size_t file_o
 				break;
 			}
 			default: {
+				static size_t x = 0;
+				x++;
+				if(x == 51206) {
+					printf(":-)\n");
+				}
+
 				lv_result = gdsl_liveness(state, translated);
 				break;
 			}
@@ -605,6 +611,7 @@ int main(int argc, char** argv) {
 //	stdout = fopen("/dev/null", "r");
 
 	struct options options;
+
 	if(args_parse(argc, argv, &options)) {
 		printf("Usage: liveness-sweep [--children] [--offset offset] [--elf] [--cleanup] --file file\n");
 		return 42;

@@ -41,6 +41,7 @@ lib$(GDSL).so: $(GDSL_COMP).c
 
 $(GDSL_COMP).c: $(GDSL_EXEC) $(GDSL_SOURCES)
 	./$< -o $(GDSL_COMP) $(GDSLFLAGS) $(GDSL_SOURCES:%="%")
+#	./$< -t -o $(GDSL_COMP) $(GDSLFLAGS) $(GDSL_SOURCES:%="%")
 
 tools: lib$(GDSL).so libs
 	$(MAKE) -C $@/
