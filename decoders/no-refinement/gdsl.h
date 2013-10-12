@@ -85,10 +85,13 @@ void
 gdsl_destroy(state_t s);
 
 /* Records that are represented as C structs. */
-
+typedef struct {
+  obj_t features;
+} unboxed_struct6_t;
+typedef unboxed_struct6_t* struct6_t;
 /* Exported functions. */
 obj_t gdsl_pretty(state_t s,obj_t i);
-obj_t gdsl_features_get(state_t s,obj_t insn);
+obj_t gdsl_features_get(state_t s,struct6_t insn);
 obj_t gdsl_decode(state_t s,obj_t config);
 obj_t gdsl_config_default_opnd_sz_32(state_t s);
 obj_t gdsl_config_mode64(state_t s);
