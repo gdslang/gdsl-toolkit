@@ -2365,6 +2365,9 @@ val sem-shr-sar x signed = do
       shr
   );
 
+  sf <- fSF;
+  zf <- fZF;
+  
   _if (/gtu sz (var temp-count) (imm 0)) _then do
     temp <- mktemp;
     sub sz temp (var temp-count) (imm 1);
@@ -2376,7 +2379,19 @@ val sem-shr-sar x signed = do
       undef 1 cf
     ;
 
-    shifter sz tdst (var tdst) (imm 1)
+    shifter sz tdst (var tdst) (imm 1);
+
+    cmplts sz sf (var tdst) (imm 0);
+    emit-parity-flag (var tdst);
+
+    cmpeq sz zf (var tdst) (imm 0)
+  end _else do
+    mov sz tdst src;
+
+    undef 1 sf;
+    undef 1 zf;
+    pf <- fPF;
+    undef 1 pf
   end;
 
   ov <- fOF;
@@ -2392,13 +2407,7 @@ val sem-shr-sar x signed = do
     undef 1 ov)
   ;
 
-  sf <- fSF;
-  cmplts sz sf (var tdst) (imm 0);
 
-  zf <- fZF;
-  cmpeq sz zf (var tdst) (imm 0);
-
-  emit-parity-flag (var tdst);
   emit-virt-flags;
 
   write sz dst (var tdst)
