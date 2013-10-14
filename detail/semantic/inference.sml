@@ -343,7 +343,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                (if calcSubset (printWarn,sym,env) then unstable else
                   E.SymbolSet.add (unstable, sym))
                handle (S.UnificationFailure (_,str)) =>
-                  (TextIO.print ("calcSubsets: " ^ str ^ "\n"); E.SymbolSet.add (unstable, sym))
+                  ((*TextIO.print ("calcSubsets: " ^ str ^ "\n");*) E.SymbolSet.add (unstable, sym))
             ) E.SymbolSet.empty syms
 
    fun calcIteration (sym, env) =

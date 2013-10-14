@@ -25,35 +25,61 @@ val show/features/any acc features first = let
 in
   acc +++
   next aes_ "AES" (
-	next avx_ "AVX" (
-	next f16c_ "F16C" (
-	next invpcid_ "INVPCID" (
-	next mmx_ "MMX" (
-	next clmul_ "CLMUL" (
-	next rdrand_ "RDRAND" (
-	next fsgsbase_ "FSGSBASE" (
-	next sse_ "SSE" (
-	next sse2_ "SSE2" (
-	next sse3_ "SSE3" (
-	next sse4_1_ "SSE4_1" (
-	next sse4_2_ "SSE4_2" (
-	next ssse3_ "SSSE3" (
-	next xsaveopt_ "XSAVEOPT" (
-	next illegal-rep_ "ILLEGAL REP" (
-	next illegal-repne_ "ILLEGAL REPNE" (
-	next illegal-lock_ "ILLEGAL LOCK" (
-	next illegal-lock-register_ "ILLEGAL LOCK REGISTER" 
-	""))))))))))))))))))
+  next avx_ "AVX" (
+  next f16c_ "F16C" (
+  next invpcid_ "INVPCID" (
+  next mmx_ "MMX" (
+  next clmul_ "CLMUL" (
+  next rdrand_ "RDRAND" (
+  next fsgsbase_ "FSGSBASE" (
+  next sse_ "SSE" (
+  next sse2_ "SSE2" (
+  next sse3_ "SSE3" (
+  next sse4_1_ "SSE4_1" (
+  next sse4_2_ "SSE4_2" (
+  next ssse3_ "SSSE3" (
+  next xsaveopt_ "XSAVEOPT" (
+  next illegal-rep_ "ILLEGAL REP" (
+  next illegal-repne_ "ILLEGAL REPNE" (
+  next illegal-lock_ "ILLEGAL LOCK" (
+  next illegal-lock-register_ "ILLEGAL LOCK REGISTER" 
+  ""))))))))))))))))))
 end
 
-val show/arity1 x = show/operand '0' x.opnd1 +++ (show/features x)
-val show/arity2 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ (show/features x)
-val show/arity3 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ (show/features x)
-val show/arity4 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ ", " +++ show/operand '0' x.opnd4 +++ (show/features x)
-val show/flow1 x = show/flowoperand x.opnd1 +++ (show/features x)
+val show/prefixes arity = let
+  val first = {any='0', acc=""}
+
+  val next cond str last =
+    if cond then
+      if last.any then
+        {any=last.any, acc=last.acc +++ ", " +++ str}
+      else
+        {any='1', acc="[" +++ str}
+    else
+      last
+  
+  val all =
+#    next arity.opnd-sz "OPNDSZ" (
+#    next arity.addr-sz "ADDRSZ" (
+    next arity.rep "REP" (
+    next arity.repne "REPNE" (
+    next arity.lock "LOCK" (
+    first)))
+in
+  if all.any then
+    all.acc +++ "] "
+  else
+    ""
+end
+
+val show/arity1 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ (show/features x)
+val show/arity2 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ (show/features x)
+val show/arity3 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ (show/features x)
+val show/arity4 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ ", " +++ show/operand '0' x.opnd4 +++ (show/features x)
+val show/flow1 x = show/prefixes x +++ show/flowoperand x.opnd1 +++ (show/features x)
 val show/varity x =
    case x of
-      VA0 x: show/features x
+      VA0 x: " " +++ show/prefixes x +++ show/features x
     | VA1 x: " " +++ show/arity1 x
     | VA2 x: " " +++ show/arity2 x
     | VA3 x: " " +++ show/arity3 x
