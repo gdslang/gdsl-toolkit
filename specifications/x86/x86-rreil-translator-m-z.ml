@@ -2270,7 +2270,9 @@ end
 val sem-sahf x = do
   ah <- return (semantic-register-of AH);
 
-  move-to-rflags ah.size (var ah)
+  move-to-rflags ah.size (var ah);
+
+  emit-virt-flags
 end
 
 val sem-sal-shl x = do
