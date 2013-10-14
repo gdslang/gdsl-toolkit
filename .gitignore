@@ -61,3 +61,4 @@ tools/sweep
 tools/sweep.o
 tools/x86-test-runner/x86-test-runner
 tools/x86-test-stats-runner/x86-test-stats-runner
+tools/xed-cmp/xed-cmp
