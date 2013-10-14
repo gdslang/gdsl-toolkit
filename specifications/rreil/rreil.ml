@@ -108,6 +108,7 @@ val address sz addr = {size=sz, address=addr}
 
 val varl-from-var sz v = @{size=sz}v
 
+val varls-none = SEM_VARLS_NIL
 val varls-one v = SEM_VARLS_CONS {hd=v, tl=SEM_VARLS_NIL}
 val varls-more v tl = SEM_VARLS_CONS {hd=v, tl=tl}
 
@@ -249,6 +250,7 @@ type sem_lins =
    SEM_LINS_CONS of {hd:sem_linear, tl:sem_lins}
  | SEM_LINS_NIL
 
+val lins-none = SEM_LINS_NIL
 val lins-one l = SEM_LINS_CONS {hd=l, tl=SEM_LINS_NIL}
 val lins-more l lins = SEM_LINS_CONS {hd=l, tl=lins}
 

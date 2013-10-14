@@ -782,10 +782,8 @@ val sem-lahf = do
   mov ah.size ah (var flags)
 end
 
-val sem-lar x = do
-#TOOOODOOO
-#  sem-default-arity2 x
-return void
+val sem-lar insn x = do
+  sem-default-arity2 insn x
 end
 
 #val sem-lddqu-vlddqu size x = do

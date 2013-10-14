@@ -161,7 +161,7 @@ static void generator(struct options *options) {
 		free(buffer);
 
 		result_print(result);
-		if(result.type == TESTER_RTYPE_COMPARISON_ERROR)
+		if(result.type == TESTER_RTYPE_SIMULATION_ERROR && result.simulator_error == SIMULATOR_ERROR_PRIMITIVE_UNKNOWN)
 			break;
 //		if(result.type == TESTER_RTYPE_CRASH)
 //			break;

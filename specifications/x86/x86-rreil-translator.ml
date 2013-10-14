@@ -515,15 +515,26 @@ val sem-undef-arity-ge1 x = do
   end
 end
 
-val sem-undef-arity0 x = do
-  return void
-end
+val sem-default-arity0-generic avx-encoded insn x = prim-generic (show/mnemonic insn) varls-none varls-none
+val sem-default-arity0 insn x = sem-default-arity0-generic '0' insn x
 
-val sem-undef-arity1 x = do
-  sem-undef-arity-ge1 x
-end
+val sem-default-arity1-generic avx-encoded insn x = do
+  dst-sz <- sizeof1 x.opnd1;
+  src1-sz <- return dst-sz;
 
-val sem-default-arity2 insn x = do
+  dst <- lval dst-sz x.opnd1;
+  src1 <- rval src1-sz x.opnd1;
+
+  temp-dst <- mktemp;
+  src1-up <- unpack-lin src1-sz src1;
+
+  prim-generic (show/mnemonic insn) (varls-one (varl dst-sz temp-dst)) (varls-one (varl src1-sz src1-up));
+
+  write-extend avx-encoded dst-sz dst (var temp-dst)
+end
+val sem-default-arity1 insn x = sem-default-arity1-generic '0' insn x
+
+val sem-default-arity2-generic avx-encoded insn x = do
   dst-sz <- sizeof1 x.opnd1;
   src1-sz <- return dst-sz;
   src2-sz <- sizeof1 x.opnd2;
@@ -538,26 +549,65 @@ val sem-default-arity2 insn x = do
 
   prim-generic (show/mnemonic insn) (varls-one (varl dst-sz temp-dst)) (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)));
 
-  write-extend '0' dst-sz dst (var temp-dst)
+  write-extend avx-encoded dst-sz dst (var temp-dst)
 end
+val sem-default-arity2 insn x = sem-default-arity2-generic '0' insn x
 
-val sem-undef-arity3 x = do
-  sem-undef-arity-ge1 x
+val sem-default-arity3-generic avx-encoded insn x = do
+  dst-sz <- sizeof1 x.opnd1;
+  src1-sz <- return dst-sz;
+  src2-sz <- sizeof1 x.opnd2;
+  src3-sz <- sizeof1 x.opnd3;
+
+  dst <- lval dst-sz x.opnd1;
+  src1 <- rval src1-sz x.opnd1;
+  src2 <- rval src2-sz x.opnd2;
+  src3 <- rval src3-sz x.opnd3;
+
+  temp-dst <- mktemp;
+  src1-up <- unpack-lin src1-sz src1;
+  src2-up <- unpack-lin src2-sz src2;
+  src3-up <- unpack-lin src3-sz src3;
+
+  prim-generic (show/mnemonic insn) (varls-one (varl dst-sz temp-dst)) (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-one (varl src3-sz src3-up))));
+
+  write-extend avx-encoded dst-sz dst (var temp-dst)
 end
+val sem-default-arity3 insn x = sem-default-arity3-generic '0' insn x
 
-val sem-undef-arity4 x = do
-  sem-undef-arity-ge1 x
+val sem-default-arity4-generic avx-encoded insn x = do
+  dst-sz <- sizeof1 x.opnd1;
+  src1-sz <- return dst-sz;
+  src2-sz <- sizeof1 x.opnd2;
+  src3-sz <- sizeof1 x.opnd3;
+  src4-sz <- sizeof1 x.opnd4;
+
+  dst <- lval dst-sz x.opnd1;
+  src1 <- rval src1-sz x.opnd1;
+  src2 <- rval src2-sz x.opnd2;
+  src3 <- rval src3-sz x.opnd3;
+  src4 <- rval src4-sz x.opnd4;
+
+  temp-dst <- mktemp;
+  src1-up <- unpack-lin src1-sz src1;
+  src2-up <- unpack-lin src2-sz src2;
+  src3-up <- unpack-lin src3-sz src3;
+  src4-up <- unpack-lin src4-sz src4;
+
+  prim-generic (show/mnemonic insn) (varls-one (varl dst-sz temp-dst)) (varls-more (varl src1-sz src1-up) (varls-more (varl src2-sz src2-up) (varls-more (varl src3-sz src3-up)  (varls-one (varl src4-sz src4-up)))));
+
+  write-extend avx-encoded dst-sz dst (var temp-dst)
 end
+val sem-default-arity4 insn x = sem-default-arity4-generic '0' insn x
 
-val sem-undef-varity x = do
-return void
-#  case x of
-#     VA0 x: sem-undef-arity0 x
-#   | VA1 x: sem-undef-arity1 x
-#   | VA2 x: sem-default-arity2 x
-#   | VA3 x: sem-undef-arity3 x
-#   | VA4 x: sem-undef-arity4 x
-#  end
+val sem-default-varity insn x = do
+  case x of
+     VA0 x: sem-default-arity0-generic '1' insn x
+   | VA1 x: sem-default-arity1-generic '1' insn x
+   | VA2 x: sem-default-arity2-generic '1' insn x
+   | VA3 x: sem-default-arity3-generic '1' insn x
+   | VA4 x: sem-default-arity4-generic '1' insn x
+  end
 end
 
 val sem-undef-flow1 x = do
@@ -895,10 +945,10 @@ val sub-unsigned-saturating size dst src1 src2 = binop-unsigned-saturating sub /
 
 val semantics insn =
   case insn of
-     AAA x: sem-undef-arity0 x
-   | AAD x: sem-undef-arity1 x
-   | AAM x: sem-undef-arity1 x
-   | AAS x: sem-undef-arity0 x
+     AAA x: sem-default-arity0 insn x
+   | AAD x: sem-default-arity1 insn x
+   | AAM x: sem-default-arity1 insn x
+   | AAS x: sem-default-arity0 insn x
    | ADC x: sem-adc x
    | ADD x: sem-add x
    | ADDPD x: sem-default-arity2 insn x
@@ -912,17 +962,17 @@ val semantics insn =
    | AESENC x: sem-default-arity2 insn x
    | AESENCLAST x: sem-default-arity2 insn x
    | AESIMC x: sem-default-arity2 insn x
-   | AESKEYGENASSIST x: sem-undef-arity3 x
+   | AESKEYGENASSIST x: sem-default-arity3 insn x
    | AND x: sem-and x
    | ANDNPD x: sem-default-arity2 insn x
    | ANDNPS x: sem-default-arity2 insn x
    | ANDPD x: sem-andpd x
    | ANDPS x: sem-default-arity2 insn x
    | ARPL x: sem-default-arity2 insn x
-   | BLENDPD x: sem-undef-arity3 x
-   | BLENDPS x: sem-undef-arity3 x
-   | BLENDVPD x: sem-undef-arity3 x
-   | BLENDVPS x: sem-undef-arity3 x
+   | BLENDPD x: sem-default-arity3 insn x
+   | BLENDPS x: sem-default-arity3 insn x
+   | BLENDVPD x: sem-default-arity3 insn x
+   | BLENDVPS x: sem-default-arity3 insn x
    | BOUND x: sem-default-arity2 insn x
    | BSF x: sem-bsf x
    | BSR x: sem-bsr x
@@ -935,11 +985,11 @@ val semantics insn =
    | CBW x: sem-convert 8
    | CDQ x: sem-cwd-cdq-cqo x
    | CDQE x: sem-convert 32
-   | CLC x: sem-undef-arity0 x
-   | CLD x: sem-undef-arity0 x
-   | CLFLUSH x: sem-undef-arity1 x
-   | CLI x: sem-undef-arity0 x
-   | CLTS x: sem-undef-arity0 x
+   | CLC x: sem-default-arity0 insn x
+   | CLD x: sem-default-arity0 insn x
+   | CLFLUSH x: sem-default-arity1 insn x
+   | CLI x: sem-default-arity0 insn x
+   | CLTS x: sem-default-arity0 insn x
    | CMC x: sem-cmc
    | CMOVA x: sem-a sem-cmovcc x
    | CMOVAE x: sem-ae sem-cmovcc x
@@ -972,17 +1022,17 @@ val semantics insn =
    | CMOVS x: sem-s sem-cmovcc x
    | CMOVZ x: sem-z sem-cmovcc x
    | CMP x: sem-cmp x
-   | CMPPD x: sem-undef-arity3 x
-   | CMPPS x: sem-undef-arity3 x
+   | CMPPD x: sem-default-arity3 insn x
+   | CMPPS x: sem-default-arity3 insn x
    | CMPS x: sem-repe-repne-insn x sem-cmps
-   | CMPSD x: sem-undef-arity3 x
+   | CMPSD x: sem-default-arity3 insn x
 #   | CMPSD x:
 #       case x of
 #         VA0: sem-cmpsd
-#       | _ x: sem-undef-arity0 x
+#       | _ x: sem-default-arity0 insn x
 #      end
-#   | CMPSQ x: sem-undef-arity0 x
-   | CMPSS x: sem-undef-arity3 x
+#   | CMPSQ x: sem-default-arity0 insn x
+   | CMPSS x: sem-default-arity3 insn x
    | CMPXCHG x: sem-cmpxchg x
    | CMPXCHG16B x: sem-cmpxchg16b-cmpxchg8b x
    | CMPXCHG8B x: sem-cmpxchg16b-cmpxchg8b x
@@ -1015,27 +1065,27 @@ val semantics insn =
    | CVTTSS2SI x: sem-default-arity2 insn x
    | CWD x: sem-cwd-cdq-cqo x
    | CWDE x: sem-convert 16
-   | DAA x: sem-undef-arity0 x
-   | DAS x: sem-undef-arity0 x
+   | DAA x: sem-default-arity0 insn x
+   | DAS x: sem-default-arity0 insn x
    | DEC x: sem-dec x
    | DIV x: sem-div Unsigned x
    | DIVPD x: sem-default-arity2 insn x
    | DIVPS x: sem-default-arity2 insn x
    | DIVSD x: sem-default-arity2 insn x
    | DIVSS x: sem-default-arity2 insn x
-   | DPPD x: sem-undef-arity3 x
-   | DPPS x: sem-undef-arity3 x
-   | EMMS x: sem-undef-arity0 x
+   | DPPD x: sem-default-arity3 insn x
+   | DPPS x: sem-default-arity3 insn x
+   | EMMS x: sem-default-arity0 insn x
    | ENTER x: sem-default-arity2 insn x
-   | EXTRACTPS x: sem-undef-arity3 x
-   | F2XM1 x: sem-undef-arity0 x
-   | FABS x: sem-undef-arity0 x
+   | EXTRACTPS x: sem-default-arity3 insn x
+   | F2XM1 x: sem-default-arity0 insn x
+   | FABS x: sem-default-arity0 insn x
    | FADD x: sem-fadd x
    | FADDP x: sem-default-arity2 insn x
-   | FBLD x: sem-undef-arity1 x
-   | FBSTP x: sem-undef-arity1 x
-   | FCHS x: sem-undef-arity0 x
-   | FCLEX x: sem-undef-arity0 x
+   | FBLD x: sem-default-arity1 insn x
+   | FBSTP x: sem-default-arity1 insn x
+   | FCHS x: sem-default-arity0 insn x
+   | FCLEX x: sem-default-arity0 insn x
    | FCMOVB x: sem-default-arity2 insn x
    | FCMOVBE x: sem-default-arity2 insn x
    | FCMOVE x: sem-default-arity2 insn x
@@ -1044,89 +1094,89 @@ val semantics insn =
    | FCMOVNE x: sem-default-arity2 insn x
    | FCMOVNU x: sem-default-arity2 insn x
    | FCMOVU x: sem-default-arity2 insn x
-   | FCOM x: sem-undef-arity1 x
+   | FCOM x: sem-default-arity1 insn x
    | FCOMI x: sem-default-arity2 insn x
    | FCOMIP x: sem-default-arity2 insn x
-   | FCOMP x: sem-undef-arity1 x
-   | FCOMPP x: sem-undef-arity0 x
-   | FCOS x: sem-undef-arity0 x
-   | FDECSTP x: sem-undef-arity0 x
+   | FCOMP x: sem-default-arity1 insn x
+   | FCOMPP x: sem-default-arity0 insn x
+   | FCOS x: sem-default-arity0 insn x
+   | FDECSTP x: sem-default-arity0 insn x
    | FDIV x: sem-default-arity2 insn x
    | FDIVP x: sem-default-arity2 insn x
    | FDIVR x: sem-default-arity2 insn x
    | FDIVRP x: sem-default-arity2 insn x
-   | FFREE x: sem-undef-arity1 x
-   | FIADD x: sem-undef-arity1 x
-   | FICOM x: sem-undef-arity1 x
-   | FICOMP x: sem-undef-arity1 x
+   | FFREE x: sem-default-arity1 insn x
+   | FIADD x: sem-default-arity1 insn x
+   | FICOM x: sem-default-arity1 insn x
+   | FICOMP x: sem-default-arity1 insn x
    | FIDIV x: sem-default-arity2 insn x
-   | FIDIVR x: sem-undef-arity1 x
-   | FILD x: sem-undef-arity1 x
-   | FIMUL x: sem-undef-arity1 x
-   | FINCSTP x: sem-undef-arity0 x
-   | FINIT x: sem-undef-arity0 x
-   | FIST x: sem-undef-arity1 x
-   | FISTP x: sem-undef-arity1 x
-   | FISTTP x: sem-undef-arity1 x
-   | FISUB x: sem-undef-arity1 x
-   | FISUBR x: sem-undef-arity1 x
-   | FLD x: sem-undef-arity1 x
-   | FLD1 x: sem-undef-arity0 x
-   | FLDCW x: sem-undef-arity1 x
-   | FLDENV x: sem-undef-arity1 x
-   | FLDL2E x: sem-undef-arity0 x
-   | FLDL2T x: sem-undef-arity0 x
-   | FLDLG2 x: sem-undef-arity0 x
-   | FLDLN2 x: sem-undef-arity0 x
-   | FLDPI x: sem-undef-arity0 x
-   | FLDZ x: sem-undef-arity0 x
+   | FIDIVR x: sem-default-arity1 insn x
+   | FILD x: sem-default-arity1 insn x
+   | FIMUL x: sem-default-arity1 insn x
+   | FINCSTP x: sem-default-arity0 insn x
+   | FINIT x: sem-default-arity0 insn x
+   | FIST x: sem-default-arity1 insn x
+   | FISTP x: sem-default-arity1 insn x
+   | FISTTP x: sem-default-arity1 insn x
+   | FISUB x: sem-default-arity1 insn x
+   | FISUBR x: sem-default-arity1 insn x
+   | FLD x: sem-default-arity1 insn x
+   | FLD1 x: sem-default-arity0 insn x
+   | FLDCW x: sem-default-arity1 insn x
+   | FLDENV x: sem-default-arity1 insn x
+   | FLDL2E x: sem-default-arity0 insn x
+   | FLDL2T x: sem-default-arity0 insn x
+   | FLDLG2 x: sem-default-arity0 insn x
+   | FLDLN2 x: sem-default-arity0 insn x
+   | FLDPI x: sem-default-arity0 insn x
+   | FLDZ x: sem-default-arity0 insn x
    | FMUL x: sem-default-arity2 insn x
    | FMULP x: sem-default-arity2 insn x
-   | FNCLEX x: sem-undef-arity0 x
-   | FNINIT x: sem-undef-arity0 x
-   | FNOP x: sem-undef-arity0 x
-   | FNSAVE x: sem-undef-arity1 x
-   | FNSTCW x: sem-undef-arity1 x
-   | FNSTENV x: sem-undef-arity1 x
-   | FNSTSW x: sem-undef-arity1 x
-   | FPATAN x: sem-undef-arity0 x
-   | FPREM1 x: sem-undef-arity0 x
-   | FPREM x: sem-undef-arity0 x
-   | FPTAN x: sem-undef-arity0 x
-   | FRNDINT x: sem-undef-arity0 x
-   | FRSTOR x: sem-undef-arity1 x
-   | FSAVE x: sem-undef-arity1 x
-   | FSCALE x: sem-undef-arity0 x
-   | FSIN x: sem-undef-arity0 x
-   | FSINCOS x: sem-undef-arity0 x
-   | FSQRT x: sem-undef-arity0 x
-   | FST x: sem-undef-arity1 x
-   | FSTCW x: sem-undef-arity1 x
-   | FSTENV x: sem-undef-arity1 x
-   | FSTP x: sem-undef-arity1 x
-   | FSTSW x: sem-undef-arity1 x
+   | FNCLEX x: sem-default-arity0 insn x
+   | FNINIT x: sem-default-arity0 insn x
+   | FNOP x: sem-default-arity0 insn x
+   | FNSAVE x: sem-default-arity1 insn x
+   | FNSTCW x: sem-default-arity1 insn x
+   | FNSTENV x: sem-default-arity1 insn x
+   | FNSTSW x: sem-default-arity1 insn x
+   | FPATAN x: sem-default-arity0 insn x
+   | FPREM1 x: sem-default-arity0 insn x
+   | FPREM x: sem-default-arity0 insn x
+   | FPTAN x: sem-default-arity0 insn x
+   | FRNDINT x: sem-default-arity0 insn x
+   | FRSTOR x: sem-default-arity1 insn x
+   | FSAVE x: sem-default-arity1 insn x
+   | FSCALE x: sem-default-arity0 insn x
+   | FSIN x: sem-default-arity0 insn x
+   | FSINCOS x: sem-default-arity0 insn x
+   | FSQRT x: sem-default-arity0 insn x
+   | FST x: sem-default-arity1 insn x
+   | FSTCW x: sem-default-arity1 insn x
+   | FSTENV x: sem-default-arity1 insn x
+   | FSTP x: sem-default-arity1 insn x
+   | FSTSW x: sem-default-arity1 insn x
    | FSUB x: sem-default-arity2 insn x
    | FSUBP x: sem-default-arity2 insn x
    | FSUBR x: sem-default-arity2 insn x
    | FSUBRP x: sem-default-arity2 insn x
-   | FTST x: sem-undef-arity0 x
-   | FUCOM x: sem-undef-arity1 x
-   | FUCOMI x: sem-undef-arity1 x
-   | FUCOMIP x: sem-undef-arity1 x
-   | FUCOMP x: sem-undef-arity1 x
-   | FUCOMPP x: sem-undef-arity0 x
-   | FXAM x: sem-undef-arity0 x
-   | FXCH x: sem-undef-arity1 x
-   | FXRSTOR x: sem-undef-arity1 x
-   | FXRSTOR64 x: sem-undef-arity1 x
-   | FXSAVE x: sem-undef-arity1 x
-   | FXSAVE64 x: sem-undef-arity1 x
-   | FXTRACT x: sem-undef-arity0 x
-   | FYL2X x: sem-undef-arity0 x
-   | FYL2XP1 x: sem-undef-arity0 x
+   | FTST x: sem-default-arity0 insn x
+   | FUCOM x: sem-default-arity1 insn x
+   | FUCOMI x: sem-default-arity1 insn x
+   | FUCOMIP x: sem-default-arity1 insn x
+   | FUCOMP x: sem-default-arity1 insn x
+   | FUCOMPP x: sem-default-arity0 insn x
+   | FXAM x: sem-default-arity0 insn x
+   | FXCH x: sem-default-arity1 insn x
+   | FXRSTOR x: sem-default-arity1 insn x
+   | FXRSTOR64 x: sem-default-arity1 insn x
+   | FXSAVE x: sem-default-arity1 insn x
+   | FXSAVE64 x: sem-default-arity1 insn x
+   | FXTRACT x: sem-default-arity0 insn x
+   | FYL2X x: sem-default-arity0 insn x
+   | FYL2XP1 x: sem-default-arity0 insn x
    | HADDPD x: sem-default-arity2 insn x
    | HADDPS x: sem-default-arity2 insn x
-   | HLT x: sem-undef-arity0 x
+   | HLT x: sem-default-arity0 insn x
    | HSUBPD x: sem-default-arity2 insn x
    | HSUBPS x: sem-default-arity2 insn x
    | IDIV x: sem-idiv x
@@ -1138,19 +1188,19 @@ val semantics insn =
        end
    | IN x: sem-default-arity2 insn x
    | INC x: sem-inc x
-   | INSB x: sem-undef-arity0 x
-   | INSD x: sem-undef-arity0 x
-   | INSERTPS x: sem-undef-arity3 x
-   | INSW x: sem-undef-arity0 x
-   | INT x: sem-undef-arity1 x
-   | INT0 x: sem-undef-arity0 x
-   | INT3 x: sem-undef-arity0 x
+   | INSB x: sem-default-arity0 insn x
+   | INSD x: sem-default-arity0 insn x
+   | INSERTPS x: sem-default-arity3 insn x
+   | INSW x: sem-default-arity0 insn x
+   | INT x: sem-default-arity1 insn x
+   | INT0 x: sem-default-arity0 insn x
+   | INT3 x: sem-default-arity0 insn x
    | INVD x: sem-invd
-   | INVLPG x: sem-undef-arity1 x
+   | INVLPG x: sem-default-arity1 insn x
    | INVPCID x: sem-default-arity2 insn x
-   | IRET x: sem-undef-arity0 x
-   | IRETD x: sem-undef-arity0 x
-   | IRETQ x: sem-undef-arity0 x
+   | IRET x: sem-default-arity0 insn x
+   | IRETD x: sem-default-arity0 insn x
+   | IRETQ x: sem-default-arity0 insn x
    | JA x: sem-a sem-jcc x
    | JAE x: sem-ae sem-jcc x
    | JB x: sem-b sem-jcc x
@@ -1186,39 +1236,39 @@ val semantics insn =
    | JS x: sem-s sem-jcc x
    | JZ x: sem-z sem-jcc x
    | LAHF x: sem-lahf
-   | LAR x: sem-default-arity2 insn x
+   | LAR x: sem-lar insn x
    | LDDQU x: sem-mov '0' x
-   | LDMXCSR x: sem-undef-arity1 x
+   | LDMXCSR x: sem-default-arity1 insn x
    | LDS x: sem-lds-les-lfs-lgs-lss x DS
    | LEA x: sem-lea x
-   | LEAVE x: sem-undef-arity0 x
+   | LEAVE x: sem-default-arity0 insn x
    | LES x: sem-lds-les-lfs-lgs-lss x ES
-   | LFENCE x: sem-undef-arity0 x
+   | LFENCE x: sem-default-arity0 insn x
    | LFS x: sem-lds-les-lfs-lgs-lss x FS
-   | LGDT x: sem-undef-arity1 x
+   | LGDT x: sem-default-arity1 insn x
    | LGS x: sem-lds-les-lfs-lgs-lss x GS
-   | LIDT x: sem-undef-arity1 x
-   | LLDT x: sem-undef-arity1 x
-   | LMSW x: sem-undef-arity1 x
+   | LIDT x: sem-default-arity1 insn x
+   | LLDT x: sem-default-arity1 insn x
+   | LMSW x: sem-default-arity1 insn x
    | LODS x: sem-rep-insn x sem-lods
    | LOOP x: sem-loop x
    | LOOPE x: sem-loope x
    | LOOPNE x: sem-loopne x
    | LSL x: sem-default-arity2 insn x
    | LSS x: sem-lds-les-lfs-lgs-lss x SS
-   | LTR x: sem-undef-arity1 x
+   | LTR x: sem-default-arity1 insn x
    | MASKMOVDQU x: sem-maskmovdqu-vmaskmovdqu x
    | MASKMOVQ x: sem-maskmovq x
    | MAXPD x: sem-default-arity2 insn x
    | MAXPS x: sem-default-arity2 insn x
    | MAXSD x: sem-default-arity2 insn x
    | MAXSS x: sem-default-arity2 insn x
-   | MFENCE x: sem-undef-arity0 x
+   | MFENCE x: sem-default-arity0 insn x
    | MINPD x: sem-default-arity2 insn x
    | MINPS x: sem-default-arity2 insn x
    | MINSD x: sem-default-arity2 insn x
    | MINSS x: sem-default-arity2 insn x
-   | MONITOR x: sem-undef-arity0 x
+   | MONITOR x: sem-default-arity0 insn x
    | MOV x: sem-mov '0' x
    | MOVAPD x: sem-mov '0' x
    | MOVAPS x: sem-mov '0' x
@@ -1255,7 +1305,7 @@ val semantics insn =
    | MOVUPD x: sem-default-arity2 insn x
    | MOVUPS x: sem-default-arity2 insn x
    | MOVZX x: sem-movzx '0' x
-   | MPSADBW x: sem-undef-arity3 x
+   | MPSADBW x: sem-default-arity3 insn x
    | MUL x: sem-mul Unsigned x
    | MULPD x: sem-default-arity2 insn x
    | MULPS x: sem-default-arity2 insn x
@@ -1269,10 +1319,10 @@ val semantics insn =
    | ORPD x: sem-default-arity2 insn x
    | ORPS x: sem-default-arity2 insn x
    | OUT x: sem-default-arity2 insn x
-   | OUTS x: sem-undef-arity0 x
-   | OUTSB x: sem-undef-arity0 x
-   | OUTSD x: sem-undef-arity0 x
-   | OUTSW x: sem-undef-arity0 x
+   | OUTS x: sem-default-arity0 insn x
+   | OUTSB x: sem-default-arity0 insn x
+   | OUTSD x: sem-default-arity0 insn x
+   | OUTSW x: sem-default-arity0 insn x
    | PABSB x: sem-pabs '0' 8 x
    | PABSD x: sem-pabs '0' 32 x
    | PABSW x: sem-pabs '0' 16 x
@@ -1291,7 +1341,7 @@ val semantics insn =
    | PALIGNR x: sem-palignr x
    | PAND x: sem-pand x
    | PANDN x: sem-pandn x
-   | PAUSE x: sem-undef-arity0 x
+   | PAUSE x: sem-default-arity0 insn x
    | PAVGB x: sem-pavg 8 x
    | PAVGW x: sem-pavg 16 x
    | PBLENDVB x: sem-pblendvb x
@@ -1301,15 +1351,15 @@ val semantics insn =
    | PCMPEQD x: sem-pcmpeq 32 x
    | PCMPEQQ x: sem-pcmpeq 64 x
    | PCMPEQW x: sem-pcmpeq 16 x
-   | PCMPESTRI x: sem-undef-arity3 x
-   | PCMPESTRM x: sem-undef-arity3 x
+   | PCMPESTRI x: sem-default-arity3 insn x
+   | PCMPESTRM x: sem-default-arity3 insn x
    | PCMPGRD x: sem-default-arity2 insn x
    | PCMPGTB x: sem-pcmpgt 8 x
    | PCMPGTD x: sem-pcmpgt 32 x 
    | PCMPGTQ x: sem-pcmpgt 64 x
    | PCMPGTW x: sem-pcmpgt 16 x
-   | PCMPISTRI x: sem-undef-arity3 x
-   | PCMPISTRM x: sem-undef-arity3 x
+   | PCMPISTRI x: sem-default-arity3 insn x
+   | PCMPISTRM x: sem-default-arity3 insn x
    | PEXTRB x: sem-pextr-vpextr 8 x
    | PEXTRD x: sem-pextr-vpextr 32 x
    | PEXTRQ x: sem-pextr-vpextr 64 x
@@ -1367,11 +1417,11 @@ val semantics insn =
    | POPFD x: sem-popf x
    | POPFQ x: sem-popf x
    | POR x: sem-por x
-   | PREFETCHNTA x: sem-undef-arity1 x
-   | PREFETCHT0 x: sem-undef-arity1 x
-   | PREFETCHT1 x: sem-undef-arity1 x
-   | PREFETCHT2 x: sem-undef-arity1 x
-   | PREFETCHW x: sem-undef-arity1 x
+   | PREFETCHNTA x: sem-default-arity1 insn x
+   | PREFETCHT0 x: sem-default-arity1 insn x
+   | PREFETCHT1 x: sem-default-arity1 insn x
+   | PREFETCHT2 x: sem-default-arity1 insn x
+   | PREFETCHW x: sem-default-arity1 insn x
    | PSADBW x: sem-psadbw x
    | PSHUFB x: sem-pshufb x
    | PSHUFD x: sem-pshufd-vpshufd '0' x
@@ -1419,22 +1469,22 @@ val semantics insn =
    | RCPPS x: sem-default-arity2 insn x
    | RCPSS x: sem-default-arity2 insn x
    | RCR x: sem-rcr x
-   | RDFSBASE x: sem-undef-arity1 x
-   | RDGSBASE x: sem-undef-arity1 x
-   | RDMSR x: sem-undef-arity0 x
-   | RDPMC x: sem-undef-arity0 x
-   | RDRAND x: sem-undef-arity1 x
-   | RDTSC x: sem-undef-arity0 x
-   | RDTSCP x: sem-undef-arity0 x
+   | RDFSBASE x: sem-default-arity1 insn x
+   | RDGSBASE x: sem-default-arity1 insn x
+   | RDMSR x: sem-default-arity0 insn x
+   | RDPMC x: sem-default-arity0 insn x
+   | RDRAND x: sem-default-arity1 insn x
+   | RDTSC x: sem-default-arity0 insn x
+   | RDTSCP x: sem-default-arity0 insn x
    | RET x: sem-ret x
    | RET_FAR x: sem-ret-far x
    | ROL x: sem-rol x
    | ROR x: sem-ror x
-   | ROUNDPD x: sem-undef-arity3 x
-   | ROUNDPS x: sem-undef-arity3 x
-   | ROUNDSD x: sem-undef-arity3 x
-   | ROUNDSS x: sem-undef-arity3 x
-   | RSM x: sem-undef-arity0 x
+   | ROUNDPD x: sem-default-arity3 insn x
+   | ROUNDPS x: sem-default-arity3 insn x
+   | ROUNDSD x: sem-default-arity3 insn x
+   | ROUNDSS x: sem-default-arity3 insn x
+   | RSM x: sem-default-arity0 insn x
    | RSQRTPS x: sem-default-arity2 insn x
    | RSQRTSS x: sem-default-arity2 insn x
    | SAHF x: sem-sahf x
@@ -1475,139 +1525,139 @@ val semantics insn =
    | SETPO x: sem-po sem-setcc x
    | SETS x: sem-s sem-setcc x
    | SETZ x: sem-z sem-setcc x
-   | SFENCE x: sem-undef-arity0 x
-   | SGDT x: sem-undef-arity1 x
+   | SFENCE x: sem-default-arity0 insn x
+   | SGDT x: sem-default-arity1 insn x
    | SHL x: sem-sal-shl x
    | SHLD x: sem-shld x
    | SHR x: sem-shr-sar x '0'
    | SHRD x: sem-shrd x
-   | SHUFPD x: sem-undef-arity3 x
-   | SHUFPS x: sem-undef-arity3 x
-   | SIDT x: sem-undef-arity1 x
-   | SLDT x: sem-undef-arity1 x
-   | SMSW x: sem-undef-arity1 x
+   | SHUFPD x: sem-default-arity3 insn x
+   | SHUFPS x: sem-default-arity3 insn x
+   | SIDT x: sem-default-arity1 insn x
+   | SLDT x: sem-default-arity1 insn x
+   | SMSW x: sem-default-arity1 insn x
    | SQRTPD x: sem-default-arity2 insn x
    | SQRTPS x: sem-default-arity2 insn x
    | SQRTSD x: sem-default-arity2 insn x
    | SQRTSS x: sem-default-arity2 insn x
    | STC x: sem-stc
    | STD x: sem-std
-   | STI x: sem-undef-arity0 x
-   | STMXCSR x: sem-undef-arity1 x
+   | STI x: sem-default-arity0 insn x
+   | STMXCSR x: sem-default-arity1 insn x
    | STOSB x: sem-stos 8 x
    | STOSD x: sem-stos 32 x
    | STOSQ x: sem-stos 64 x
    | STOSW x: sem-stos 16 x
-   | STR x: sem-undef-arity1 x
+   | STR x: sem-default-arity1 insn x
    | SUB x: sem-sub x
    | SUBPD x: sem-default-arity2 insn x
    | SUBPS x: sem-default-arity2 insn x
    | SUBSD x: sem-default-arity2 insn x
    | SUBSS x: sem-default-arity2 insn x
-   | SWAPGS x: sem-undef-arity0 x
-   | SYSCALL x: sem-undef-arity0 x
-   | SYSENTER x: sem-undef-arity0 x
-   | SYSEXIT x: sem-undef-arity0 x
-   | SYSRET x: sem-undef-arity0 x
+   | SWAPGS x: sem-default-arity0 insn x
+   | SYSCALL x: sem-default-arity0 insn x
+   | SYSENTER x: sem-default-arity0 insn x
+   | SYSEXIT x: sem-default-arity0 insn x
+   | SYSRET x: sem-default-arity0 insn x
    | TEST x: sem-test x
    | UCOMISD x: sem-default-arity2 insn x
    | UCOMISS x: sem-default-arity2 insn x
-   | UD2 x: sem-undef-arity0 x
+   | UD2 x: sem-default-arity0 insn x
    | UNPCKHPD x: sem-default-arity2 insn x
    | UNPCKHPS x: sem-default-arity2 insn x
    | UNPCKLPD x: sem-default-arity2 insn x
    | UNPCKLPS x: sem-default-arity2 insn x
-   | VADDPD x: sem-undef-varity x
-   | VADDPS x: sem-undef-varity x
-   | VADDSD x: sem-undef-varity x
-   | VADDSS x: sem-undef-varity x
-   | VADDSUBPD x: sem-undef-varity x
-   | VADDSUBPS x: sem-undef-varity x
+   | VADDPD x: sem-default-varity insn x
+   | VADDPS x: sem-default-varity insn x
+   | VADDSD x: sem-default-varity insn x
+   | VADDSS x: sem-default-varity insn x
+   | VADDSUBPD x: sem-default-varity insn x
+   | VADDSUBPS x: sem-default-varity insn x
    | VAESDEC v:
        case v of
           VA3 x: sem-vaesdec x
        end
-   | VAESDECLAST x: sem-undef-varity x
-   | VAESENC x: sem-undef-varity x
-   | VAESENCLAST x: sem-undef-varity x
-   | VAESIMC x: sem-undef-varity x
-   | VAESKEYGENASSIST x: sem-undef-varity x
-   | VANDNPD v: sem-undef-varity v
-   | VANDNPS x: sem-undef-varity x
+   | VAESDECLAST x: sem-default-varity insn x
+   | VAESENC x: sem-default-varity insn x
+   | VAESENCLAST x: sem-default-varity insn x
+   | VAESIMC x: sem-default-varity insn x
+   | VAESKEYGENASSIST x: sem-default-varity insn x
+   | VANDNPD v: sem-default-varity insn v
+   | VANDNPS x: sem-default-varity insn x
    | VANDPD v:
        case v of
           VA3 x: sem-vandpd x
        end
-   | VANDPS x: sem-undef-varity x
-   | VBLENDPD x: sem-undef-varity x
-   | VBLENDPS x: sem-undef-varity x
-   | VBLENDVPD x: sem-undef-varity x
-   | VBLENDVPS x: sem-undef-varity x
+   | VANDPS x: sem-default-varity insn x
+   | VBLENDPD x: sem-default-varity insn x
+   | VBLENDPS x: sem-default-varity insn x
+   | VBLENDVPD x: sem-default-varity insn x
+   | VBLENDVPS x: sem-default-varity insn x
    | VBROADCASTF128 v: sem-vbroadcast v
    | VBROADCASTSD v: sem-vbroadcast v
    | VBROADCASTSS v: sem-vbroadcast v
-   | VCMPEQB x: sem-undef-varity x
-   | VCMPEQD x: sem-undef-varity x
-   | VCMPEQW x: sem-undef-varity x
-   | VCMPPD x: sem-undef-varity x
-   | VCMPPS x: sem-undef-varity x
-   | VCMPSD x: sem-undef-varity x
-   | VCMPSS x: sem-undef-varity x
-   | VCOMISD x: sem-undef-varity x
-   | VCOMISS x: sem-undef-varity x
-   | VCVTDQ2PD x: sem-undef-varity x
-   | VCVTDQ2PS x: sem-undef-varity x
-   | VCVTPD2DQ x: sem-undef-varity x
-   | VCVTPD2PS x: sem-undef-varity x
-   | VCVTPH2PS x: sem-undef-varity x
-   | VCVTPS2DQ x: sem-undef-varity x
-   | VCVTPS2PD x: sem-undef-varity x
-   | VCVTPS2PH x: sem-undef-varity x
-   | VCVTSD2SI x: sem-undef-varity x
-   | VCVTSD2SS x: sem-undef-varity x
-   | VCVTSI2SD x: sem-undef-varity x
-   | VCVTSI2SS x: sem-undef-varity x
-   | VCVTSS2SD x: sem-undef-varity x
-   | VCVTSS2SI x: sem-undef-varity x
-   | VCVTTPD2DQ x: sem-undef-varity x
-   | VCVTTPS2DQ x: sem-undef-varity x
-   | VCVTTSD2SI x: sem-undef-varity x
-   | VCVTTSS2SI x: sem-undef-varity x
-   | VDIVPD x: sem-undef-varity x
-   | VDIVPS x: sem-undef-varity x
-   | VDIVSD x: sem-undef-varity x
-   | VDIVSS x: sem-undef-varity x
-   | VDPPD x: sem-undef-varity x
-   | VDPPS x: sem-undef-varity x
-   | VERR x: sem-undef-arity1 x
-   | VERW x: sem-undef-arity1 x
-   | VEXTRACTF128 x: sem-undef-varity x
-   | VEXTRACTPS x: sem-undef-varity x
-   | VHADDPD x: sem-undef-varity x
-   | VHADDPS x: sem-undef-varity x
-   | VHSUBPD x: sem-undef-varity x
-   | VHSUBPS x: sem-undef-varity x
-   | VINSERTF128 x: sem-undef-varity x
-   | VINSERTPS x: sem-undef-varity x
+   | VCMPEQB x: sem-default-varity insn x
+   | VCMPEQD x: sem-default-varity insn x
+   | VCMPEQW x: sem-default-varity insn x
+   | VCMPPD x: sem-default-varity insn x
+   | VCMPPS x: sem-default-varity insn x
+   | VCMPSD x: sem-default-varity insn x
+   | VCMPSS x: sem-default-varity insn x
+   | VCOMISD x: sem-default-varity insn x
+   | VCOMISS x: sem-default-varity insn x
+   | VCVTDQ2PD x: sem-default-varity insn x
+   | VCVTDQ2PS x: sem-default-varity insn x
+   | VCVTPD2DQ x: sem-default-varity insn x
+   | VCVTPD2PS x: sem-default-varity insn x
+   | VCVTPH2PS x: sem-default-varity insn x
+   | VCVTPS2DQ x: sem-default-varity insn x
+   | VCVTPS2PD x: sem-default-varity insn x
+   | VCVTPS2PH x: sem-default-varity insn x
+   | VCVTSD2SI x: sem-default-varity insn x
+   | VCVTSD2SS x: sem-default-varity insn x
+   | VCVTSI2SD x: sem-default-varity insn x
+   | VCVTSI2SS x: sem-default-varity insn x
+   | VCVTSS2SD x: sem-default-varity insn x
+   | VCVTSS2SI x: sem-default-varity insn x
+   | VCVTTPD2DQ x: sem-default-varity insn x
+   | VCVTTPS2DQ x: sem-default-varity insn x
+   | VCVTTSD2SI x: sem-default-varity insn x
+   | VCVTTSS2SI x: sem-default-varity insn x
+   | VDIVPD x: sem-default-varity insn x
+   | VDIVPS x: sem-default-varity insn x
+   | VDIVSD x: sem-default-varity insn x
+   | VDIVSS x: sem-default-varity insn x
+   | VDPPD x: sem-default-varity insn x
+   | VDPPS x: sem-default-varity insn x
+   | VERR x: sem-default-arity1 insn x
+   | VERW x: sem-default-arity1 insn x
+   | VEXTRACTF128 x: sem-default-varity insn x
+   | VEXTRACTPS x: sem-default-varity insn x
+   | VHADDPD x: sem-default-varity insn x
+   | VHADDPS x: sem-default-varity insn x
+   | VHSUBPD x: sem-default-varity insn x
+   | VHSUBPS x: sem-default-varity insn x
+   | VINSERTF128 x: sem-default-varity insn x
+   | VINSERTPS x: sem-default-varity insn x
    | VLDDQU v:
        case v of
          VA2 x: sem-mov '1' x
        end
-   | VLDMXCSR x: sem-undef-varity x
+   | VLDMXCSR x: sem-default-varity insn x
    | VMASKMOVDQU v:
        case v of
           VA3 x: sem-maskmovdqu-vmaskmovdqu x
        end
    | VMASKMOVPD x: sem-vmaskmovp 64 x
    | VMASKMOVPS x: sem-vmaskmovp 32 x
-   | VMAXPD x: sem-undef-varity x
-   | VMAXPS x: sem-undef-varity x
-   | VMAXSD x: sem-undef-varity x
-   | VMAXSS x: sem-undef-varity x
-   | VMINPD x: sem-undef-varity x
-   | VMINPS x: sem-undef-varity x
-   | VMINSD x: sem-undef-varity x
-   | VMINSS x: sem-undef-varity x
+   | VMAXPD x: sem-default-varity insn x
+   | VMAXPS x: sem-default-varity insn x
+   | VMAXSD x: sem-default-varity insn x
+   | VMAXSS x: sem-default-varity insn x
+   | VMINPD x: sem-default-varity insn x
+   | VMINPS x: sem-default-varity insn x
+   | VMINSD x: sem-default-varity insn x
+   | VMINSS x: sem-default-varity insn x
    | VMOVAPD v:
        case v of
           VA2 x: sem-mov '1' x
@@ -1620,7 +1670,7 @@ val semantics insn =
        case v of
           VA2 x: sem-movzx '1' x
        end
-   | VMOVDDUP x: sem-undef-varity x
+   | VMOVDDUP x: sem-default-varity insn x
    | VMOVDQA v:
        case v of
           VA2 x: sem-mov '1' x
@@ -1629,14 +1679,14 @@ val semantics insn =
        case v of
           VA2 x: sem-mov '1' x
        end
-   | VMOVHLPS x: sem-undef-varity x
-   | VMOVHPD x: sem-undef-varity x
-   | VMOVHPS x: sem-undef-varity x
-   | VMOVLHPS x: sem-undef-varity x
-   | VMOVLPD x: sem-undef-varity x
-   | VMOVLPS x: sem-undef-varity x
-   | VMOVMSKPD x: sem-undef-varity x
-   | VMOVMSKPS x: sem-undef-varity x
+   | VMOVHLPS x: sem-default-varity insn x
+   | VMOVHPD x: sem-default-varity insn x
+   | VMOVHPS x: sem-default-varity insn x
+   | VMOVLHPS x: sem-default-varity insn x
+   | VMOVLPD x: sem-default-varity insn x
+   | VMOVLPS x: sem-default-varity insn x
+   | VMOVMSKPD x: sem-default-varity insn x
+   | VMOVMSKPS x: sem-default-varity insn x
    | VMOVNTDQ v:
        case v of
           VA2 x: sem-mov '1' x
@@ -1645,25 +1695,25 @@ val semantics insn =
        case v of
           VA2 x: sem-mov '1' x
        end
-   | VMOVNTPD x: sem-undef-varity x
-   | VMOVNTPS x: sem-undef-varity x
+   | VMOVNTPD x: sem-default-varity insn x
+   | VMOVNTPS x: sem-default-varity insn x
    | VMOVQ v:
        case v of
           VA2 x: sem-movzx '1' x
        end
-   | VMOVSD x: sem-undef-varity x
-   | VMOVSHDUP x: sem-undef-varity x
-   | VMOVSLDUP x: sem-undef-varity x
-   | VMOVSS x: sem-undef-varity x
-   | VMOVUPD x: sem-undef-varity x
-   | VMOVUPS x: sem-undef-varity x
-   | VMPSADBW x: sem-undef-varity x
-   | VMULPD x: sem-undef-varity x
-   | VMULPS x: sem-undef-varity x
-   | VMULSD x: sem-undef-varity x
-   | VMULSS x: sem-undef-varity x
-   | VORPD x: sem-undef-varity x
-   | VORPS x: sem-undef-varity x
+   | VMOVSD x: sem-default-varity insn x
+   | VMOVSHDUP x: sem-default-varity insn x
+   | VMOVSLDUP x: sem-default-varity insn x
+   | VMOVSS x: sem-default-varity insn x
+   | VMOVUPD x: sem-default-varity insn x
+   | VMOVUPS x: sem-default-varity insn x
+   | VMPSADBW x: sem-default-varity insn x
+   | VMULPD x: sem-default-varity insn x
+   | VMULPS x: sem-default-varity insn x
+   | VMULSD x: sem-default-varity insn x
+   | VMULSS x: sem-default-varity insn x
+   | VORPD x: sem-default-varity insn x
+   | VORPS x: sem-default-varity insn x
    | VPABSB v:
        case v of
           VA2 x: sem-pabs '1' 8 x
@@ -1772,8 +1822,8 @@ val semantics insn =
        case v of
           VA3 x: sem-vpcmpeq 16 x
        end
-   | VPCMPESTRI x: sem-undef-varity x
-   | VPCMPESTRM x: sem-undef-varity x
+   | VPCMPESTRI x: sem-default-varity insn x
+   | VPCMPESTRM x: sem-default-varity insn x
    | VPCMPGTB v:
        case v of
           VA3 x: sem-vpcmpgt 8 x
@@ -1790,11 +1840,11 @@ val semantics insn =
        case v of
           VA3 x: sem-vpcmpgt 16 x
        end
-   | VPCMPISTRI x: sem-undef-varity x
-   | VPCMPISTRM x: sem-undef-varity x
-   | VPERM2F128 x: sem-undef-varity x
-   | VPERMILPD x: sem-undef-varity x
-   | VPERMILPS x: sem-undef-varity x
+   | VPCMPISTRI x: sem-default-varity insn x
+   | VPCMPISTRM x: sem-default-varity insn x
+   | VPERM2F128 x: sem-default-varity insn x
+   | VPERMILPD x: sem-default-varity insn x
+   | VPERMILPS x: sem-default-varity insn x
    | VPEXTRB v:
        case v of
           VA3 x: sem-pextr-vpextr 8 x
@@ -2139,61 +2189,61 @@ val semantics insn =
        case v of
           VA3 x: sem-vpxor x
        end
-   | VRCPPS x: sem-undef-varity x
-   | VRCPSS x: sem-undef-varity x
-   | VROUNDPD x: sem-undef-varity x
-   | VROUNDPS x: sem-undef-varity x
-   | VROUNDSD x: sem-undef-varity x
-   | VROUNDSS x: sem-undef-varity x
-   | VRSQRTPS x: sem-undef-varity x
-   | VRSQRTSS x: sem-undef-varity x
-   | VSHUFPD x: sem-undef-varity x
-   | VSHUFPS x: sem-undef-varity x
-   | VSQRTPD x: sem-undef-varity x
-   | VSQRTPS x: sem-undef-varity x
-   | VSQRTSD x: sem-undef-varity x
-   | VSQRTSS x: sem-undef-varity x
-   | VSTMXCSR x: sem-undef-varity x
-   | VSUBPD x: sem-undef-varity x
-   | VSUBPS x: sem-undef-varity x
-   | VSUBSD x: sem-undef-varity x
-   | VSUBSS x: sem-undef-varity x
-   | VTESTPD x: sem-undef-varity x
-   | VTESTPS x: sem-undef-varity x
-   | VUCOMISD x: sem-undef-varity x
-   | VUCOMISS x: sem-undef-varity x
-   | VUNPCKHPD x: sem-undef-varity x
-   | VUNPCKHPS x: sem-undef-varity x
-   | VUNPCKLPD x: sem-undef-varity x
-   | VUNPCKLPS x: sem-undef-varity x
-   | VXORPD x: sem-undef-varity x
-   | VXORPS x: sem-undef-varity x
+   | VRCPPS x: sem-default-varity insn x
+   | VRCPSS x: sem-default-varity insn x
+   | VROUNDPD x: sem-default-varity insn x
+   | VROUNDPS x: sem-default-varity insn x
+   | VROUNDSD x: sem-default-varity insn x
+   | VROUNDSS x: sem-default-varity insn x
+   | VRSQRTPS x: sem-default-varity insn x
+   | VRSQRTSS x: sem-default-varity insn x
+   | VSHUFPD x: sem-default-varity insn x
+   | VSHUFPS x: sem-default-varity insn x
+   | VSQRTPD x: sem-default-varity insn x
+   | VSQRTPS x: sem-default-varity insn x
+   | VSQRTSD x: sem-default-varity insn x
+   | VSQRTSS x: sem-default-varity insn x
+   | VSTMXCSR x: sem-default-varity insn x
+   | VSUBPD x: sem-default-varity insn x
+   | VSUBPS x: sem-default-varity insn x
+   | VSUBSD x: sem-default-varity insn x
+   | VSUBSS x: sem-default-varity insn x
+   | VTESTPD x: sem-default-varity insn x
+   | VTESTPS x: sem-default-varity insn x
+   | VUCOMISD x: sem-default-varity insn x
+   | VUCOMISS x: sem-default-varity insn x
+   | VUNPCKHPD x: sem-default-varity insn x
+   | VUNPCKHPS x: sem-default-varity insn x
+   | VUNPCKLPD x: sem-default-varity insn x
+   | VUNPCKLPS x: sem-default-varity insn x
+   | VXORPD x: sem-default-varity insn x
+   | VXORPS x: sem-default-varity insn x
    | VZEROALL v: sem-vzeroall
    | VZEROUPPER v: sem-vzeroupper
-   | WAIT x: sem-undef-arity0 x
-   | WBINVD x: sem-undef-arity0 x
-   | WRFSBASE x: sem-undef-arity1 x
-   | WRGSBASE x: sem-undef-arity1 x
-   | WRMSR x: sem-undef-arity0 x
+   | WAIT x: sem-default-arity0 insn x
+   | WBINVD x: sem-default-arity0 insn x
+   | WRFSBASE x: sem-default-arity1 insn x
+   | WRGSBASE x: sem-default-arity1 insn x
+   | WRMSR x: sem-default-arity0 insn x
    | XADD x: sem-xadd x
    | XCHG x: sem-xchg x
-   | XGETBV x: sem-undef-arity0 x
-   | XLATB x: sem-undef-arity0 x
+   | XGETBV x: sem-default-arity0 insn x
+   | XLATB x: sem-default-arity0 insn x
    | XOR x: sem-xor x
    | XORPD x: sem-default-arity2 insn x
    | XORPS x: sem-default-arity2 insn x
-   | XRSTOR x: sem-undef-arity1 x
-   | XRSTOR64 x: sem-undef-arity1 x
-   | XSAVE x: sem-undef-arity1 x
-   | XSAVE64 x: sem-undef-arity1 x
-   | XSAVEOPT x: sem-undef-arity1 x
-   | XSAVEOPT64 x: sem-undef-arity1 x
-   | XSETBV x: sem-undef-arity0 x
+   | XRSTOR x: sem-default-arity1 insn x
+   | XRSTOR64 x: sem-default-arity1 insn x
+   | XSAVE x: sem-default-arity1 insn x
+   | XSAVE64 x: sem-default-arity1 insn x
+   | XSAVEOPT x: sem-default-arity1 insn x
+   | XSAVEOPT64 x: sem-default-arity1 insn x
+   | XSETBV x: sem-default-arity0 insn x
   end
 #s/^ | \([^\s]*\) of \(arity\|flow\)\(.\)\s*/ | \1 x: sem-undef-\2\3 x/g
-#s/^ | \([^\s]*\) of varity\s*/ | \1 x: sem-undef-varity x/g
-#s/^ | \(\S*\)\s*$/ | \1: sem-undef-arity0/g
-#s/\(.*\)| \(\S*\):.*/\1| \2 x: sem-undef-arity0 x/g
+#s/^ | \([^\s]*\) of varity\s*/ | \1 x: sem-default-varity insn x/g
+#s/^ | \(\S*\)\s*$/ | \1: sem-default-arity0 insn/g
+#s/\(.*\)| \(\S*\):.*/\1| \2 x: sem-default-arity0 insn x/g
 
 val translate insn =
    do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
