@@ -3024,6 +3024,7 @@ val / [0x0f 0xbd /r]
 ###  - Byte Swap
 val / [0x0f /1-reg]
  | rexw? = unop none BSWAP r/reg64
+ | opndsz? = unop none BSWAP r/reg16
  | otherwise = unop none BSWAP r/reg32
 #val / [0x0f '11001 r:3']
 # | rexw? = do update@{reg/opcode=r}; unop none BSWAP r64/rexb end
