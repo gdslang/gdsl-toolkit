@@ -2508,11 +2508,13 @@ val sem-shld-shrd s1-shifter s2-shifter x = do
     sub size temp (imm size) (var temp-count);
     s2-shifter size temp src2 (var temp);
 
+    temp-cf <- mktemp;
+    orb 1 temp-cf (var temp-dst) (var (at-offset temp-dst (size + 1)));
+
     orb size temp-dst (var (at-offset temp-dst 1)) (var temp);
 
     _if (/gtu size (var temp-count) (imm 0)) _then do
- #     orb 1 cf (var temp-dst) (var (at-offset temp-dst (size + 1)));
-      mov 1 cf (var (at-offset temp-dst (size + 1)));
+      mov 1 cf (var temp-cf);
       mov 1 sf (var (at-offset temp-dst (size - 1)));
       cmpeq size zf (var temp-dst) (imm 0);
       emit-parity-flag (var temp-dst);
