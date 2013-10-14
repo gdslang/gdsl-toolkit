@@ -2047,7 +2047,11 @@ val sem-rol x = do
   #shr size temp src (var temp);
 
   cf <- fCF;
-  mov 1 cf (var temp-dst);
+  _if (/gtu (2*size) (var temp-count) (imm 0)) _then
+    mov 1 cf (var temp-dst)
+  _else
+    undef 1 cf
+  ;
 
   ov <- fOF;
   andb size temp count (imm count-mask);
