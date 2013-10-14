@@ -1,3 +1,5 @@
+### Automake
+
 Makefile.in
 STATS
 aclocal.m4
@@ -24,3 +26,38 @@ missing
 tools/.cproject
 tools/.project
 tools/.settings/
+
+### Manual make
+
+gdsl.o
+gdsl_manual.c
+gdsl_manual.h
+gdslc
+libgdsl.so
+libs/gdsl-multiplex/libgdsl-multiplex.a
+libs/gdwrap/libgdwrap.a
+libs/jrreil/jrreil.jar
+libs/jrreil/libjrreil.so
+libs/readhex/libreadhex.a
+libs/rreil-sim/librreil-sim.a
+libs/rreil/librreil.a
+libs/util/libutil.a
+libs/x86-generator/libx86-generator.a
+libs/x86-tester/libx86-tester.a
+libs/x86/libx86.a
+libs/x86/x86.o
+libs/x86/x86_features.o
+tools/decoder-cli
+tools/decoder-cli.o
+tools/liveness-sweep
+tools/liveness-sweep.o
+tools/semantics-cif-cli
+tools/semantics-cif-cli.o
+tools/semantics-cli
+tools/semantics-cli-dynamic
+tools/semantics-cli-dynamic.o
+tools/semantics-cli.o
+tools/sweep
+tools/sweep.o
+tools/x86-test-runner/x86-test-runner
+tools/x86-test-stats-runner/x86-test-stats-runner
