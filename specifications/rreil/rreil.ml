@@ -101,6 +101,7 @@ val _var x = {id=x,offset=0}
 val _var x _offset o = {id=x, offset=o}
 val at-offset v o = @{offset=o} v
 val var x = SEM_LIN_VAR x
+val varl sz x = @{size=sz}x
 val lin-sum x y = SEM_LIN_ADD {opnd1=x, opnd2=y}
 val lin l = SEM_SEXPR (SEM_SEXPR_LIN l)
 val address sz addr = {size=sz, address=addr}
@@ -261,6 +262,8 @@ val bflop sz op r a b = let
 in
   with-subscope bflop-inner
 end
+
+val prim-generic op lhs rhs = push (/PRIM (string-from-rope-lit op) lhs rhs)
 
 val prim sz op lhs rhs = let
   val unpack lins = case lins of

@@ -783,7 +783,9 @@ val sem-lahf = do
 end
 
 val sem-lar x = do
-  sem-undef-arity2 x
+#TOOOODOOO
+#  sem-default-arity2 x
+return void
 end
 
 #val sem-lddqu-vlddqu size x = do
