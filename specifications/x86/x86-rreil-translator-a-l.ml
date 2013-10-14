@@ -511,10 +511,10 @@ end
 
 val sem-cpuid x = do
   #Todo: ;-)
-  eax <- return (semantic-register-of EAX);
-  ebx <- return (semantic-register-of EBX);
-  ecx <- return (semantic-register-of ECX);
-  edx <- return (semantic-register-of EDX);
+  eax <- return (semantic-register-of RAX);
+  ebx <- return (semantic-register-of RBX);
+  ecx <- return (semantic-register-of RCX);
+  edx <- return (semantic-register-of RDX);
 
   undef eax.size eax;
   undef ebx.size ebx;
