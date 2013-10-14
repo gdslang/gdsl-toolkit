@@ -486,23 +486,24 @@ val sem-cmpxchg x = do
 end
 
 val sem-cmpxchg16b-cmpxchg8b x = do
-  subtrahend <- rval (2*x.opnd-sz) x.opnd1;
+  size <- sizeof1 x.opnd1;
+  subtrahend <- rval size x.opnd1;
 
-  minuend <- combine (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz);
+  minuend <- combine (register-by-size low D (/p size 2)) (register-by-size low A (/p size 2));
 
   zf <- fZF;
 
-  cmpeq (2*x.opnd-sz) zf (var minuend) subtrahend;
+  cmpeq size zf (var minuend) subtrahend;
 
   _if (/d (var zf)) _then do
     src-reg <- combine (register-by-size low C x.opnd-sz) (register-by-size low B x.opnd-sz);
-    dst <- lval (2*x.opnd-sz) x.opnd1;
-    write (2*x.opnd-sz) dst (var src-reg)
+    dst <- lval size x.opnd1;
+    write size dst (var src-reg)
   end _else do
     temp <- mktemp;
-    mov (2*x.opnd-sz) temp subtrahend;
+    mov size temp subtrahend;
 
-    move-combined x.opnd-sz (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz) temp
+    move-combined (/p size 2) (register-by-size low D (/p size 2)) (register-by-size low A (/p size 2)) temp
   end;
 
   emit-virt-flags
