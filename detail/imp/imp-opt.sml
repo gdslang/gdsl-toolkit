@@ -1650,7 +1650,7 @@ structure TypeRefinement = struct
          (* set all arguments in functions and constructors to OBJstype if they are void so that the (C) backend is not emitting invalid code *)
          val _ = app (setArgsToTop (es,state)) ds
          (* set all fields in the global state to non-void *)
-         val _ = lub (state,symType state stateSym, voidsToTop false (symType state stateSym))
+         val _ = lub (state,symType state stateSym, voidsToTop false (inlineSType state (symType state stateSym)))
          
          (*val _ = showState es state*)
          (*val _ = debugOn := false
