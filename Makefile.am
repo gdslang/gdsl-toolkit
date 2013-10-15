@@ -605,7 +605,7 @@ semantics_cif_cli_CFLAGS = -std=c99 -I$(srcdir)/libs/gdrr/include -I$(srcdir)/li
 semantics_cif_cli_LDADD += libreadhex.la
 
 sweep_SOURCES = $(srcdir)/tools/sweep.c
-sweep_CFLAGS = 
+sweep_CFLAGS = -std=gnu99
 sweep_LDFLAGS = -lelf
 
 if X86_RREIL
