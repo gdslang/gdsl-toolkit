@@ -1384,7 +1384,9 @@ val sem-popf x = do
   popped <- mktemp;
   ps-pop x.opnd-sz popped;
 
-  move-to-rflags x.opnd-sz (var popped)
+  move-to-rflags x.opnd-sz (var popped);
+
+  emit-virt-flags
 end
 
 val sem-por-vpor-opnd avx-encoded opnd1 opnd2 opnd3 = do
