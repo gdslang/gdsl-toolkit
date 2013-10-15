@@ -486,23 +486,24 @@ val sem-cmpxchg x = do
 end
 
 val sem-cmpxchg16b-cmpxchg8b x = do
-  subtrahend <- rval (2*x.opnd-sz) x.opnd1;
+  size <- sizeof1 x.opnd1;
+  subtrahend <- rval size x.opnd1;
 
-  minuend <- combine (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz);
+  minuend <- combine (register-by-size low D (/p size 2)) (register-by-size low A (/p size 2));
 
   zf <- fZF;
 
-  cmpeq (2*x.opnd-sz) zf (var minuend) subtrahend;
+  cmpeq size zf (var minuend) subtrahend;
 
   _if (/d (var zf)) _then do
     src-reg <- combine (register-by-size low C x.opnd-sz) (register-by-size low B x.opnd-sz);
-    dst <- lval (2*x.opnd-sz) x.opnd1;
-    write (2*x.opnd-sz) dst (var src-reg)
+    dst <- lval size x.opnd1;
+    write size dst (var src-reg)
   end _else do
     temp <- mktemp;
-    mov (2*x.opnd-sz) temp subtrahend;
+    mov size temp subtrahend;
 
-    move-combined x.opnd-sz (register-by-size low D x.opnd-sz) (register-by-size low A x.opnd-sz) temp
+    move-combined (/p size 2) (register-by-size low D (/p size 2)) (register-by-size low A (/p size 2)) temp
   end;
 
   emit-virt-flags
@@ -510,10 +511,10 @@ end
 
 val sem-cpuid x = do
   #Todo: ;-)
-  eax <- return (semantic-register-of EAX);
-  ebx <- return (semantic-register-of EBX);
-  ecx <- return (semantic-register-of ECX);
-  edx <- return (semantic-register-of EDX);
+  eax <- return (semantic-register-of RAX);
+  ebx <- return (semantic-register-of RBX);
+  ecx <- return (semantic-register-of RCX);
+  edx <- return (semantic-register-of RDX);
 
   undef eax.size eax;
   undef ebx.size ebx;
@@ -781,8 +782,8 @@ val sem-lahf = do
   mov ah.size ah (var flags)
 end
 
-val sem-lar x = do
-  sem-undef-arity2 x
+val sem-lar insn x = do
+  sem-default-arity2 insn x
 end
 
 #val sem-lddqu-vlddqu size x = do
@@ -831,7 +832,7 @@ val sem-lods x = do
   src <- rval sz x.opnd1;
 
   dst <- return (semantic-register-of (register-by-size low A sz));
-  mov dst.size dst src;
+  write-extend-reg '0' dst.size dst src;
 
   reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
 

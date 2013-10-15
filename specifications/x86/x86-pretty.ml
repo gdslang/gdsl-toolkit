@@ -25,35 +25,61 @@ val show/features/any acc features first = let
 in
   acc +++
   next aes_ "AES" (
-	next avx_ "AVX" (
-	next f16c_ "F16C" (
-	next invpcid_ "INVPCID" (
-	next mmx_ "MMX" (
-	next clmul_ "CLMUL" (
-	next rdrand_ "RDRAND" (
-	next fsgsbase_ "FSGSBASE" (
-	next sse_ "SSE" (
-	next sse2_ "SSE2" (
-	next sse3_ "SSE3" (
-	next sse4_1_ "SSE4_1" (
-	next sse4_2_ "SSE4_2" (
-	next ssse3_ "SSSE3" (
-	next xsaveopt_ "XSAVEOPT" (
-	next illegal-rep_ "ILLEGAL REP" (
-	next illegal-repne_ "ILLEGAL REPNE" (
-	next illegal-lock_ "ILLEGAL LOCK" (
-	next illegal-lock-register_ "ILLEGAL LOCK REGISTER" 
-	""))))))))))))))))))
+  next avx_ "AVX" (
+  next f16c_ "F16C" (
+  next invpcid_ "INVPCID" (
+  next mmx_ "MMX" (
+  next clmul_ "CLMUL" (
+  next rdrand_ "RDRAND" (
+  next fsgsbase_ "FSGSBASE" (
+  next sse_ "SSE" (
+  next sse2_ "SSE2" (
+  next sse3_ "SSE3" (
+  next sse4_1_ "SSE4_1" (
+  next sse4_2_ "SSE4_2" (
+  next ssse3_ "SSSE3" (
+  next xsaveopt_ "XSAVEOPT" (
+  next illegal-rep_ "ILLEGAL REP" (
+  next illegal-repne_ "ILLEGAL REPNE" (
+  next illegal-lock_ "ILLEGAL LOCK" (
+  next illegal-lock-register_ "ILLEGAL LOCK REGISTER" 
+  ""))))))))))))))))))
 end
 
-val show/arity1 x = show/operand '0' x.opnd1 +++ (show/features x)
-val show/arity2 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ (show/features x)
-val show/arity3 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ (show/features x)
-val show/arity4 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ ", " +++ show/operand '0' x.opnd4 +++ (show/features x)
-val show/flow1 x = show/flowoperand x.opnd1 +++ (show/features x)
+val show/prefixes arity = let
+  val first = {any='0', acc=""}
+
+  val next cond str last =
+    if cond then
+      if last.any then
+        {any=last.any, acc=last.acc +++ ", " +++ str}
+      else
+        {any='1', acc="[" +++ str}
+    else
+      last
+  
+  val all =
+#    next arity.opnd-sz "OPNDSZ" (
+#    next arity.addr-sz "ADDRSZ" (
+    next arity.rep "REP" (
+    next arity.repne "REPNE" (
+    next arity.lock "LOCK" (
+    first)))
+in
+  if all.any then
+    all.acc +++ "] "
+  else
+    ""
+end
+
+val show/arity1 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ (show/features x)
+val show/arity2 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ (show/features x)
+val show/arity3 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ (show/features x)
+val show/arity4 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ ", " +++ show/operand '0' x.opnd4 +++ (show/features x)
+val show/flow1 x = show/prefixes x +++ show/flowoperand x.opnd1 +++ (show/features x)
 val show/varity x =
    case x of
-      VA0 x: show/features x
+      VA0 x: " " +++ show/prefixes x +++ show/features x
     | VA1 x: " " +++ show/arity1 x
     | VA2 x: " " +++ show/arity2 x
     | VA3 x: " " +++ show/arity3 x
@@ -252,904 +278,1806 @@ val show/flowoperand op =
 
 val show/instruction insn =
    case insn of
+      AAA x: show/mnemonic insn
+    | AAD x: show/mnemonic insn -++ show/arity1 x
+    | AAM x: show/mnemonic insn -++ show/arity1 x
+    | AAS x: show/mnemonic insn
+    | ADC x: show/mnemonic insn -++ show/arity2 x
+    | ADD x: show/mnemonic insn -++ show/arity2 x
+    | ADDPD x: show/mnemonic insn -++ show/arity2 x
+    | ADDPS x: show/mnemonic insn -++ show/arity2 x
+    | ADDSD x: show/mnemonic insn -++ show/arity2 x
+    | ADDSS x: show/mnemonic insn -++ show/arity2 x
+    | ADDSUBPD x: show/mnemonic insn -++ show/arity2 x
+    | ADDSUBPS x: show/mnemonic insn -++ show/arity2 x
+    | AESDEC x: show/mnemonic insn -++ show/arity2 x
+    | AESDECLAST x: show/mnemonic insn -++ show/arity2 x
+    | AESENC x: show/mnemonic insn -++ show/arity2 x
+    | AESENCLAST x: show/mnemonic insn -++ show/arity2 x
+    | AESIMC x: show/mnemonic insn -++ show/arity2 x
+    | AESKEYGENASSIST x: show/mnemonic insn -++ show/arity3 x
+    | AND x: show/mnemonic insn -++ show/arity2 x
+    | ANDNPD x: show/mnemonic insn -++ show/arity2 x
+    | ANDNPS x: show/mnemonic insn -++ show/arity2 x
+    | ANDPD x: show/mnemonic insn -++ show/arity2 x
+    | ANDPS x: show/mnemonic insn -++ show/arity2 x
+    | ARPL x: show/mnemonic insn -++ show/arity2 x
+    | BLENDPD x: show/mnemonic insn -++ show/arity3 x
+    | BLENDPS x: show/mnemonic insn -++ show/arity3 x
+    | BLENDVPD x: show/mnemonic insn -++ show/arity3 x
+    | BLENDVPS x: show/mnemonic insn -++ show/arity3 x
+    | BOUND x: show/mnemonic insn -++ show/arity2 x
+    | BSF x: show/mnemonic insn -++ show/arity2 x
+    | BSR x: show/mnemonic insn -++ show/arity2 x
+    | BSWAP x: show/mnemonic insn -++ show/arity1 x
+    | BT x: show/mnemonic insn -++ show/arity2 x
+    | BTC x: show/mnemonic insn -++ show/arity2 x
+    | BTR x: show/mnemonic insn -++ show/arity2 x
+    | BTS x: show/mnemonic insn -++ show/arity2 x
+    | CALL x: show/mnemonic insn -++ show/flow1 x
+    | CBW x: show/mnemonic insn
+    | CDQ x: show/mnemonic insn
+    | CDQE x: show/mnemonic insn
+    | CLC x: show/mnemonic insn
+    | CLD x: show/mnemonic insn
+    | CLFLUSH x: show/mnemonic insn -++ show/arity1 x
+    | CLI x: show/mnemonic insn
+    | CLTS x: show/mnemonic insn
+    | CMC x: show/mnemonic insn
+    | CMOVA x: show/mnemonic insn -++ show/arity2 x
+    | CMOVAE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVB x: show/mnemonic insn -++ show/arity2 x
+    | CMOVBE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVC x: show/mnemonic insn -++ show/arity2 x
+    | CMOVE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVG x: show/mnemonic insn -++ show/arity2 x
+    | CMOVGE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVL x: show/mnemonic insn -++ show/arity2 x
+    | CMOVLE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNA x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNAE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNB x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNBE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNC x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNG x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNGE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNL x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNLE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNO x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNP x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNS x: show/mnemonic insn -++ show/arity2 x
+    | CMOVNZ x: show/mnemonic insn -++ show/arity2 x
+    | CMOVO x: show/mnemonic insn -++ show/arity2 x
+    | CMOVP x: show/mnemonic insn -++ show/arity2 x
+    | CMOVPE x: show/mnemonic insn -++ show/arity2 x
+    | CMOVPO x: show/mnemonic insn -++ show/arity2 x
+    | CMOVS x: show/mnemonic insn -++ show/arity2 x
+    | CMOVZ x: show/mnemonic insn -++ show/arity2 x
+    | CMP x: show/mnemonic insn -++ show/arity2 x
+    | CMPPD x: show/mnemonic insn -++ show/arity3 x
+    | CMPPS x: show/mnemonic insn -++ show/arity3 x
+    | CMPS x: show/mnemonic insn -++ show/arity2 x
+    | CMPSD x: show/mnemonic insn -++ show/arity3 x
+    | CMPSS x: show/mnemonic insn -++ show/arity3 x
+    | CMPXCHG x: show/mnemonic insn -++ show/arity2 x
+    | CMPXCHG16B x: show/mnemonic insn -++ show/arity1 x
+    | CMPXCHG8B x: show/mnemonic insn -++ show/arity1 x
+    | COMISD x: show/mnemonic insn -++ show/arity2 x
+    | COMISS x: show/mnemonic insn -++ show/arity2 x
+    | CPUID x: show/mnemonic insn
+    | CQO x: show/mnemonic insn
+    | CRC32 x: show/mnemonic insn -++ show/arity2 x
+    | CVTDQ2PD x: show/mnemonic insn -++ show/arity2 x
+    | CVTDQ2PS x: show/mnemonic insn -++ show/arity2 x
+    | CVTPD2DQ x: show/mnemonic insn -++ show/arity2 x
+    | CVTPD2PI x: show/mnemonic insn -++ show/arity2 x
+    | CVTPD2PS x: show/mnemonic insn -++ show/arity2 x
+    | CVTPI2PD x: show/mnemonic insn -++ show/arity2 x
+    | CVTPI2PS x: show/mnemonic insn -++ show/arity2 x
+    | CVTPS2DQ x: show/mnemonic insn -++ show/arity2 x
+    | CVTPS2PD x: show/mnemonic insn -++ show/arity2 x
+    | CVTPS2PI x: show/mnemonic insn -++ show/arity2 x
+    | CVTSD2SI x: show/mnemonic insn -++ show/arity2 x
+    | CVTSD2SS x: show/mnemonic insn -++ show/arity2 x
+    | CVTSI2SD x: show/mnemonic insn -++ show/arity2 x
+    | CVTSI2SS x: show/mnemonic insn -++ show/arity2 x
+    | CVTSS2SD x: show/mnemonic insn -++ show/arity2 x
+    | CVTSS2SI x: show/mnemonic insn -++ show/arity2 x
+    | CVTTPD2DQ x: show/mnemonic insn -++ show/arity2 x
+    | CVTTPD2PI x: show/mnemonic insn -++ show/arity2 x
+    | CVTTPS2DQ x: show/mnemonic insn -++ show/arity2 x
+    | CVTTPS2PI x: show/mnemonic insn -++ show/arity2 x
+    | CVTTSD2SI x: show/mnemonic insn -++ show/arity2 x
+    | CVTTSS2SI x: show/mnemonic insn -++ show/arity2 x
+    | CWD x: show/mnemonic insn
+    | CWDE x: show/mnemonic insn
+    | DAA x: show/mnemonic insn
+    | DAS x: show/mnemonic insn
+    | DEC x: show/mnemonic insn -++ show/arity1 x
+    | DIV x: show/mnemonic insn -++ show/arity1 x
+    | DIVPD x: show/mnemonic insn -++ show/arity2 x
+    | DIVPS x: show/mnemonic insn -++ show/arity2 x
+    | DIVSD x: show/mnemonic insn -++ show/arity2 x
+    | DIVSS x: show/mnemonic insn -++ show/arity2 x
+    | DPPD x: show/mnemonic insn -++ show/arity3 x
+    | DPPS x: show/mnemonic insn -++ show/arity3 x
+    | EMMS x: show/mnemonic insn
+    | ENTER x: show/mnemonic insn -++ show/arity2 x
+    | EXTRACTPS x: show/mnemonic insn -++ show/arity3 x
+    | F2XM1 x: show/mnemonic insn
+    | FABS x: show/mnemonic insn
+    | FADD x: show/mnemonic insn -++ show/arity2 x
+    | FADDP x: show/mnemonic insn -++ show/arity2 x
+    | FBLD x: show/mnemonic insn -++ show/arity1 x
+    | FBSTP x: show/mnemonic insn -++ show/arity1 x
+    | FCHS x: show/mnemonic insn
+    | FCLEX x: show/mnemonic insn
+    | FCMOVB x: show/mnemonic insn -++ show/arity2 x
+    | FCMOVBE x: show/mnemonic insn -++ show/arity2 x
+    | FCMOVE x: show/mnemonic insn -++ show/arity2 x
+    | FCMOVNB x: show/mnemonic insn -++ show/arity2 x
+    | FCMOVNBE x: show/mnemonic insn -++ show/arity2 x
+    | FCMOVNE x: show/mnemonic insn -++ show/arity2 x
+    | FCMOVNU x: show/mnemonic insn -++ show/arity2 x
+    | FCMOVU x: show/mnemonic insn -++ show/arity2 x
+    | FCOM x: show/mnemonic insn -++ show/arity1 x
+    | FCOMI x: show/mnemonic insn -++ show/arity2 x
+    | FCOMIP x: show/mnemonic insn -++ show/arity2 x
+    | FCOMP x: show/mnemonic insn -++ show/arity1 x
+    | FCOMPP x: show/mnemonic insn
+    | FCOS x: show/mnemonic insn
+    | FDECSTP x: show/mnemonic insn
+    | FDIV x: show/mnemonic insn -++ show/arity2 x
+    | FDIVP x: show/mnemonic insn -++ show/arity2 x
+    | FDIVR x: show/mnemonic insn -++ show/arity2 x
+    | FDIVRP x: show/mnemonic insn -++ show/arity2 x
+    | FFREE x: show/mnemonic insn -++ show/arity1 x
+    | FIADD x: show/mnemonic insn -++ show/arity1 x
+    | FICOM x: show/mnemonic insn -++ show/arity1 x
+    | FICOMP x: show/mnemonic insn -++ show/arity1 x
+    | FIDIV x: show/mnemonic insn -++ show/arity2 x
+    | FIDIVR x: show/mnemonic insn -++ show/arity1 x
+    | FILD x: show/mnemonic insn -++ show/arity1 x
+    | FIMUL x: show/mnemonic insn -++ show/arity1 x
+    | FINCSTP x: show/mnemonic insn
+    | FINIT x: show/mnemonic insn
+    | FIST x: show/mnemonic insn -++ show/arity1 x
+    | FISTP x: show/mnemonic insn -++ show/arity1 x
+    | FISTTP x: show/mnemonic insn -++ show/arity1 x
+    | FISUB x: show/mnemonic insn -++ show/arity1 x
+    | FISUBR x: show/mnemonic insn -++ show/arity1 x
+    | FLD x: show/mnemonic insn -++ show/arity1 x
+    | FLD1 x: show/mnemonic insn
+    | FLDCW x: show/mnemonic insn -++ show/arity1 x
+    | FLDENV x: show/mnemonic insn -++ show/arity1 x
+    | FLDL2E x: show/mnemonic insn
+    | FLDL2T x: show/mnemonic insn
+    | FLDLG2 x: show/mnemonic insn
+    | FLDLN2 x: show/mnemonic insn
+    | FLDPI x: show/mnemonic insn
+    | FLDZ x: show/mnemonic insn
+    | FMUL x: show/mnemonic insn -++ show/arity2 x
+    | FMULP x: show/mnemonic insn -++ show/arity2 x
+    | FNCLEX x: show/mnemonic insn
+    | FNINIT x: show/mnemonic insn
+    | FNOP x: show/mnemonic insn
+    | FNSAVE x: show/mnemonic insn -++ show/arity1 x
+    | FNSTCW x: show/mnemonic insn -++ show/arity1 x
+    | FNSTENV x: show/mnemonic insn -++ show/arity1 x
+    | FNSTSW x: show/mnemonic insn -++ show/arity1 x
+    | FPATAN x: show/mnemonic insn
+    | FPREM1 x: show/mnemonic insn
+    | FPREM x: show/mnemonic insn
+    | FPTAN x: show/mnemonic insn
+    | FRNDINT x: show/mnemonic insn
+    | FRSTOR x: show/mnemonic insn -++ show/arity1 x
+    | FSAVE x: show/mnemonic insn -++ show/arity1 x
+    | FSCALE x: show/mnemonic insn
+    | FSIN x: show/mnemonic insn
+    | FSINCOS x: show/mnemonic insn
+    | FSQRT x: show/mnemonic insn
+    | FST x: show/mnemonic insn -++ show/arity1 x
+    | FSTCW x: show/mnemonic insn -++ show/arity1 x
+    | FSTENV x: show/mnemonic insn -++ show/arity1 x
+    | FSTP x: show/mnemonic insn -++ show/arity1 x
+    | FSTSW x: show/mnemonic insn -++ show/arity1 x
+    | FSUB x: show/mnemonic insn -++ show/arity2 x
+    | FSUBP x: show/mnemonic insn -++ show/arity2 x
+    | FSUBR x: show/mnemonic insn -++ show/arity2 x
+    | FSUBRP x: show/mnemonic insn -++ show/arity2 x
+    | FTST x: show/mnemonic insn
+    | FUCOM x: show/mnemonic insn -++ show/arity1 x
+    | FUCOMI x: show/mnemonic insn -++ show/arity1 x
+    | FUCOMIP x: show/mnemonic insn -++ show/arity1 x
+    | FUCOMP x: show/mnemonic insn -++ show/arity1 x
+    | FUCOMPP x: show/mnemonic insn
+    | FXAM x: show/mnemonic insn
+    | FXCH x: show/mnemonic insn -++ show/arity1 x
+    | FXRSTOR x: show/mnemonic insn -++ show/arity1 x
+    | FXRSTOR64 x: show/mnemonic insn -++ show/arity1 x
+    | FXSAVE x: show/mnemonic insn -++ show/arity1 x
+    | FXSAVE64 x: show/mnemonic insn -++ show/arity1 x
+    | FXTRACT x: show/mnemonic insn
+    | FYL2X x: show/mnemonic insn
+    | FYL2XP1 x: show/mnemonic insn
+    | HADDPD x: show/mnemonic insn -++ show/arity2 x
+    | HADDPS x: show/mnemonic insn -++ show/arity2 x
+    | HLT x: show/mnemonic insn
+    | HSUBPD x: show/mnemonic insn -++ show/arity2 x
+    | HSUBPS x: show/mnemonic insn -++ show/arity2 x
+    | IDIV x: show/mnemonic insn -++ show/arity1 x
+    | IMUL x: show/mnemonic insn +++ show/varity x
+    | IN x: show/mnemonic insn -++ show/arity2 x
+    | INC x: show/mnemonic insn -++ show/arity1 x
+    | INSB x: show/mnemonic insn
+    | INSD x: show/mnemonic insn
+    | INSERTPS x: show/mnemonic insn -++ show/arity3 x
+    | INSW x: show/mnemonic insn
+    | INT x: show/mnemonic insn -++ show/arity1 x
+    | INT0 x: show/mnemonic insn
+    | INT3 x: show/mnemonic insn
+    | INVD x: show/mnemonic insn
+    | INVLPG x: show/mnemonic insn -++ show/arity1 x
+    | INVPCID x: show/mnemonic insn -++ show/arity2 x
+    | IRET x: show/mnemonic insn
+    | IRETD x: show/mnemonic insn
+    | IRETQ x: show/mnemonic insn
+    | JA x: show/mnemonic insn -++ show/flow1 x
+    | JAE x: show/mnemonic insn -++ show/flow1 x
+    | JB x: show/mnemonic insn -++ show/flow1 x
+    | JBE x: show/mnemonic insn -++ show/flow1 x
+    | JC x: show/mnemonic insn -++ show/flow1 x
+    | JCXZ x: show/mnemonic insn -++ show/flow1 x
+    | JE x: show/mnemonic insn -++ show/flow1 x
+    | JECXZ x: show/mnemonic insn -++ show/flow1 x
+    | JG x: show/mnemonic insn -++ show/flow1 x
+    | JGE x: show/mnemonic insn -++ show/flow1 x
+    | JL x: show/mnemonic insn -++ show/flow1 x
+    | JLE x: show/mnemonic insn -++ show/flow1 x
+    | JMP x: show/mnemonic insn -++ show/flow1 x
+    | JNA x: show/mnemonic insn -++ show/flow1 x
+    | JNAE x: show/mnemonic insn -++ show/flow1 x
+    | JNB x: show/mnemonic insn -++ show/flow1 x
+    | JNBE x: show/mnemonic insn -++ show/flow1 x
+    | JNC x: show/mnemonic insn -++ show/flow1 x
+    | JNE x: show/mnemonic insn -++ show/flow1 x
+    | JNG x: show/mnemonic insn -++ show/flow1 x
+    | JNGE x: show/mnemonic insn -++ show/flow1 x
+    | JNL x: show/mnemonic insn -++ show/flow1 x
+    | JNLE x: show/mnemonic insn -++ show/flow1 x
+    | JNO x: show/mnemonic insn -++ show/flow1 x
+    | JNP x: show/mnemonic insn -++ show/flow1 x
+    | JNS x: show/mnemonic insn -++ show/flow1 x
+    | JNZ x: show/mnemonic insn -++ show/flow1 x
+    | JO x: show/mnemonic insn -++ show/flow1 x
+    | JP x: show/mnemonic insn -++ show/flow1 x
+    | JPE x: show/mnemonic insn -++ show/flow1 x
+    | JPO x: show/mnemonic insn -++ show/flow1 x
+    | JRCXZ x: show/mnemonic insn -++ show/flow1 x
+    | JS x: show/mnemonic insn -++ show/flow1 x
+    | JZ x: show/mnemonic insn -++ show/flow1 x
+    | LAHF x: show/mnemonic insn
+    | LAR x: show/mnemonic insn -++ show/arity2 x
+    | LDDQU x: show/mnemonic insn -++ show/arity2 x
+    | LDMXCSR x: show/mnemonic insn -++ show/arity1 x
+    | LDS x: show/mnemonic insn -++ show/arity2 x
+    | LEA x: show/mnemonic insn -++ show/arity2 x
+    | LEAVE x: show/mnemonic insn
+    | LES x: show/mnemonic insn -++ show/arity2 x
+    | LFENCE x: show/mnemonic insn
+    | LFS x: show/mnemonic insn -++ show/arity2 x
+    | LGDT x: show/mnemonic insn -++ show/arity1 x
+    | LGS x: show/mnemonic insn -++ show/arity2 x
+    | LIDT x: show/mnemonic insn -++ show/arity1 x
+    | LLDT x: show/mnemonic insn -++ show/arity1 x
+    | LMSW x: show/mnemonic insn -++ show/arity1 x
+    | LODS x: show/mnemonic insn -++ show/arity1 x
+    | LOOP x: show/mnemonic insn -++ show/flow1 x
+    | LOOPE x: show/mnemonic insn -++ show/flow1 x
+    | LOOPNE x: show/mnemonic insn -++ show/flow1 x
+    | LSL x: show/mnemonic insn -++ show/arity2 x
+    | LSS x: show/mnemonic insn -++ show/arity2 x
+    | LTR x: show/mnemonic insn -++ show/arity1 x
+    | MASKMOVDQU x: show/mnemonic insn -++ show/arity3 x
+    | MASKMOVQ x: show/mnemonic insn -++ show/arity3 x
+    | MAXPD x: show/mnemonic insn -++ show/arity2 x
+    | MAXPS x: show/mnemonic insn -++ show/arity2 x
+    | MAXSD x: show/mnemonic insn -++ show/arity2 x
+    | MAXSS x: show/mnemonic insn -++ show/arity2 x
+    | MFENCE x: show/mnemonic insn
+    | MINPD x: show/mnemonic insn -++ show/arity2 x
+    | MINPS x: show/mnemonic insn -++ show/arity2 x
+    | MINSD x: show/mnemonic insn -++ show/arity2 x
+    | MINSS x: show/mnemonic insn -++ show/arity2 x
+    | MONITOR x: show/mnemonic insn
+    | MOV x: show/mnemonic insn -++ show/arity2 x
+    | MOVAPD x: show/mnemonic insn -++ show/arity2 x
+    | MOVAPS x: show/mnemonic insn -++ show/arity2 x
+    | MOVBE x: show/mnemonic insn -++ show/arity2 x
+    | MOVD x: show/mnemonic insn -++ show/arity2 x
+    | MOVDDUP x: show/mnemonic insn -++ show/arity2 x
+    | MOVDQ2Q x: show/mnemonic insn -++ show/arity2 x
+    | MOVDQA x: show/mnemonic insn -++ show/arity2 x
+    | MOVDQU x: show/mnemonic insn -++ show/arity2 x
+    | MOVHLPS x: show/mnemonic insn -++ show/arity2 x
+    | MOVHPD x: show/mnemonic insn -++ show/arity2 x
+    | MOVHPS x: show/mnemonic insn -++ show/arity2 x
+    | MOVLHPS x: show/mnemonic insn -++ show/arity2 x
+    | MOVLPD x: show/mnemonic insn -++ show/arity2 x
+    | MOVLPS x: show/mnemonic insn -++ show/arity2 x
+    | MOVMSKPD x: show/mnemonic insn -++ show/arity2 x
+    | MOVMSKPS x: show/mnemonic insn -++ show/arity2 x
+    | MOVNTDQ x: show/mnemonic insn -++ show/arity2 x
+    | MOVNTDQA x: show/mnemonic insn -++ show/arity2 x
+    | MOVNTI x: show/mnemonic insn -++ show/arity2 x
+    | MOVNTPD x: show/mnemonic insn -++ show/arity2 x
+    | MOVNTPS x: show/mnemonic insn -++ show/arity2 x
+    | MOVNTQ x: show/mnemonic insn -++ show/arity2 x
+    | MOVQ x: show/mnemonic insn -++ show/arity2 x
+    | MOVQ2DQ x: show/mnemonic insn -++ show/arity2 x
+    | MOVS x: show/mnemonic insn -++ show/arity2 x
+    | MOVSD x: show/mnemonic insn -++ show/arity2 x
+    | MOVSHDUP x: show/mnemonic insn -++ show/arity2 x
+    | MOVSLDUP x: show/mnemonic insn -++ show/arity2 x
+    | MOVSS x: show/mnemonic insn -++ show/arity2 x
+    | MOVSW x: show/mnemonic insn -++ show/arity2 x
+    | MOVSX x: show/mnemonic insn -++ show/arity2 x
+    | MOVSXD x: show/mnemonic insn -++ show/arity2 x
+    | MOVUPD x: show/mnemonic insn -++ show/arity2 x
+    | MOVUPS x: show/mnemonic insn -++ show/arity2 x
+    | MOVZX x: show/mnemonic insn -++ show/arity2 x
+    | MPSADBW x: show/mnemonic insn -++ show/arity3 x
+    | MUL x: show/mnemonic insn -++ show/arity1 x
+    | MULPD x: show/mnemonic insn -++ show/arity2 x
+    | MULPS x: show/mnemonic insn -++ show/arity2 x
+    | MULSD x: show/mnemonic insn -++ show/arity2 x
+    | MULSS x: show/mnemonic insn -++ show/arity2 x
+    | MWAIT x: show/mnemonic insn
+    | NEG x: show/mnemonic insn -++ show/arity1 x
+    | NOP x: show/mnemonic insn +++ show/varity x
+    | NOT x: show/mnemonic insn -++ show/arity1 x
+    | OR x: show/mnemonic insn -++ show/arity2 x
+    | ORPD x: show/mnemonic insn -++ show/arity2 x
+    | ORPS x: show/mnemonic insn -++ show/arity2 x
+    | OUT x: show/mnemonic insn -++ show/arity2 x
+    | OUTS x: show/mnemonic insn
+    | OUTSB x: show/mnemonic insn
+    | OUTSD x: show/mnemonic insn
+    | OUTSW x: show/mnemonic insn
+    | PABSB x: show/mnemonic insn -++ show/arity2 x
+    | PABSD x: show/mnemonic insn -++ show/arity2 x
+    | PABSW x: show/mnemonic insn -++ show/arity2 x
+    | PACKSSDW x: show/mnemonic insn -++ show/arity2 x
+    | PACKSSWB x: show/mnemonic insn -++ show/arity2 x
+    | PACKUSDW x: show/mnemonic insn -++ show/arity2 x
+    | PACKUSWB x: show/mnemonic insn -++ show/arity2 x
+    | PADDB x: show/mnemonic insn -++ show/arity2 x
+    | PADDD x: show/mnemonic insn -++ show/arity2 x
+    | PADDQ x: show/mnemonic insn -++ show/arity2 x
+    | PADDSB x: show/mnemonic insn -++ show/arity2 x
+    | PADDSW x: show/mnemonic insn -++ show/arity2 x
+    | PADDUSB x: show/mnemonic insn -++ show/arity2 x
+    | PADDUSW x: show/mnemonic insn -++ show/arity2 x
+    | PADDW x: show/mnemonic insn -++ show/arity2 x
+    | PALIGNR x: show/mnemonic insn -++ show/arity3 x
+    | PAND x: show/mnemonic insn -++ show/arity2 x
+    | PANDN x: show/mnemonic insn -++ show/arity2 x
+    | PAUSE x: show/mnemonic insn
+    | PAVGB x: show/mnemonic insn -++ show/arity2 x
+    | PAVGW x: show/mnemonic insn -++ show/arity2 x
+    | PBLENDVB x: show/mnemonic insn -++ show/arity2 x
+    | PBLENDW x: show/mnemonic insn -++ show/arity3 x
+    | PCLMULQDQ x: show/mnemonic insn -++ show/arity3 x
+    | PCMPEQB x: show/mnemonic insn -++ show/arity2 x
+    | PCMPEQD x: show/mnemonic insn -++ show/arity2 x
+    | PCMPEQQ x: show/mnemonic insn -++ show/arity2 x
+    | PCMPEQW x: show/mnemonic insn -++ show/arity2 x
+    | PCMPESTRI x: show/mnemonic insn -++ show/arity3 x
+    | PCMPESTRM x: show/mnemonic insn -++ show/arity3 x
+    | PCMPGRD x: show/mnemonic insn -++ show/arity2 x
+    | PCMPGTB x: show/mnemonic insn -++ show/arity2 x
+    | PCMPGTD x: show/mnemonic insn -++ show/arity2 x
+    | PCMPGTQ x: show/mnemonic insn -++ show/arity2 x
+    | PCMPGTW x: show/mnemonic insn -++ show/arity2 x
+    | PCMPISTRI x: show/mnemonic insn -++ show/arity3 x
+    | PCMPISTRM x: show/mnemonic insn -++ show/arity3 x
+    | PEXTRB x: show/mnemonic insn -++ show/arity3 x
+    | PEXTRD x: show/mnemonic insn -++ show/arity3 x
+    | PEXTRQ x: show/mnemonic insn -++ show/arity3 x
+    | PEXTRW x: show/mnemonic insn -++ show/arity3 x
+    | PHADDD x: show/mnemonic insn -++ show/arity2 x
+    | PHADDSW x: show/mnemonic insn -++ show/arity2 x
+    | PHADDW x: show/mnemonic insn -++ show/arity2 x
+    | PHMINPOSUW x: show/mnemonic insn -++ show/arity2 x
+    | PHSUBD x: show/mnemonic insn -++ show/arity2 x
+    | PHSUBSW x: show/mnemonic insn -++ show/arity2 x
+    | PHSUBW x: show/mnemonic insn -++ show/arity2 x
+    | PINSRB x: show/mnemonic insn -++ show/arity3 x
+    | PINSRD x: show/mnemonic insn -++ show/arity3 x
+    | PINSRQ x: show/mnemonic insn -++ show/arity3 x
+    | PINSRW x: show/mnemonic insn -++ show/arity3 x
+    | PMADDUBSW x: show/mnemonic insn -++ show/arity2 x
+    | PMADDWD x: show/mnemonic insn -++ show/arity2 x
+    | PMAXSB x: show/mnemonic insn -++ show/arity2 x
+    | PMAXSD x: show/mnemonic insn -++ show/arity2 x
+    | PMAXSW x: show/mnemonic insn -++ show/arity2 x
+    | PMAXUB x: show/mnemonic insn -++ show/arity2 x
+    | PMAXUD x: show/mnemonic insn -++ show/arity2 x
+    | PMAXUW x: show/mnemonic insn -++ show/arity2 x
+    | PMINSB x: show/mnemonic insn -++ show/arity2 x
+    | PMINSD x: show/mnemonic insn -++ show/arity2 x
+    | PMINSW x: show/mnemonic insn -++ show/arity2 x
+    | PMINUB x: show/mnemonic insn -++ show/arity2 x
+    | PMINUD x: show/mnemonic insn -++ show/arity2 x
+    | PMINUW x: show/mnemonic insn -++ show/arity2 x
+    | PMOVMSKB x: show/mnemonic insn -++ show/arity2 x
+    | PMOVSXBD x: show/mnemonic insn -++ show/arity2 x
+    | PMOVSXBQ x: show/mnemonic insn -++ show/arity2 x
+    | PMOVSXBW x: show/mnemonic insn -++ show/arity2 x
+    | PMOVSXDQ x: show/mnemonic insn -++ show/arity2 x
+    | PMOVSXWD x: show/mnemonic insn -++ show/arity2 x
+    | PMOVSXWQ x: show/mnemonic insn -++ show/arity2 x
+    | PMOVZXBD x: show/mnemonic insn -++ show/arity2 x
+    | PMOVZXBQ x: show/mnemonic insn -++ show/arity2 x
+    | PMOVZXBW x: show/mnemonic insn -++ show/arity2 x
+    | PMOVZXDQ x: show/mnemonic insn -++ show/arity2 x
+    | PMOVZXWD x: show/mnemonic insn -++ show/arity2 x
+    | PMOVZXWQ x: show/mnemonic insn -++ show/arity2 x
+    | PMULDQ x: show/mnemonic insn -++ show/arity2 x
+    | PMULHRSW x: show/mnemonic insn -++ show/arity2 x
+    | PMULHUW x: show/mnemonic insn -++ show/arity2 x
+    | PMULHW x: show/mnemonic insn -++ show/arity2 x
+    | PMULLD x: show/mnemonic insn -++ show/arity2 x
+    | PMULLW x: show/mnemonic insn -++ show/arity2 x
+    | PMULUDQ x: show/mnemonic insn -++ show/arity2 x
+    | POP x: show/mnemonic insn -++ show/arity1 x
+    | POPA x: show/mnemonic insn
+    | POPAD x: show/mnemonic insn
+    | POPCNT x: show/mnemonic insn -++ show/arity2 x
+    | POPF x: show/mnemonic insn
+    | POPFD x: show/mnemonic insn
+    | POPFQ x: show/mnemonic insn
+    | POR x: show/mnemonic insn -++ show/arity2 x
+    | PREFETCHNTA x: show/mnemonic insn -++ show/arity1 x
+    | PREFETCHT0 x: show/mnemonic insn -++ show/arity1 x
+    | PREFETCHT1 x: show/mnemonic insn -++ show/arity1 x
+    | PREFETCHT2 x: show/mnemonic insn -++ show/arity1 x
+    | PREFETCHW x: show/mnemonic insn -++ show/arity1 x
+    | PSADBW x: show/mnemonic insn -++ show/arity2 x
+    | PSHUFB x: show/mnemonic insn -++ show/arity2 x
+    | PSHUFD x: show/mnemonic insn -++ show/arity3 x
+    | PSHUFHW x: show/mnemonic insn -++ show/arity3 x
+    | PSHUFLW x: show/mnemonic insn -++ show/arity3 x
+    | PSHUFW x: show/mnemonic insn -++ show/arity3 x
+    | PSIGNB x: show/mnemonic insn -++ show/arity2 x
+    | PSIGND x: show/mnemonic insn -++ show/arity2 x
+    | PSIGNW x: show/mnemonic insn -++ show/arity2 x
+    | PSLLD x: show/mnemonic insn -++ show/arity2 x
+    | PSLLDQ x: show/mnemonic insn -++ show/arity2 x
+    | PSLLQ x: show/mnemonic insn -++ show/arity2 x
+    | PSLLW x: show/mnemonic insn -++ show/arity2 x
+    | PSRAD x: show/mnemonic insn -++ show/arity2 x
+    | PSRAW x: show/mnemonic insn -++ show/arity2 x
+    | PSRLD x: show/mnemonic insn -++ show/arity2 x
+    | PSRLDQ x: show/mnemonic insn -++ show/arity2 x
+    | PSRLQ x: show/mnemonic insn -++ show/arity2 x
+    | PSRLW x: show/mnemonic insn -++ show/arity2 x
+    | PSUBB x: show/mnemonic insn -++ show/arity2 x
+    | PSUBD x: show/mnemonic insn -++ show/arity2 x
+    | PSUBQ x: show/mnemonic insn -++ show/arity2 x
+    | PSUBSB x: show/mnemonic insn -++ show/arity2 x
+    | PSUBSW x: show/mnemonic insn -++ show/arity2 x
+    | PSUBUSB x: show/mnemonic insn -++ show/arity2 x
+    | PSUBUSW x: show/mnemonic insn -++ show/arity2 x
+    | PSUBW x: show/mnemonic insn -++ show/arity2 x
+    | PTEST x: show/mnemonic insn -++ show/arity2 x
+    | PUNPCKHBW x: show/mnemonic insn -++ show/arity2 x
+    | PUNPCKHDQ x: show/mnemonic insn -++ show/arity2 x
+    | PUNPCKHQDQ x: show/mnemonic insn -++ show/arity2 x
+    | PUNPCKHWD x: show/mnemonic insn -++ show/arity2 x
+    | PUNPCKLBW x: show/mnemonic insn -++ show/arity2 x
+    | PUNPCKLDQ x: show/mnemonic insn -++ show/arity2 x
+    | PUNPCKLQDQ x: show/mnemonic insn -++ show/arity2 x
+    | PUNPCKLWD x: show/mnemonic insn -++ show/arity2 x
+    | PUSH x: show/mnemonic insn -++ show/arity1 x
+    | PUSHA x: show/mnemonic insn
+    | PUSHAD x: show/mnemonic insn
+    | PUSHF x: show/mnemonic insn
+    | PUSHFD x: show/mnemonic insn
+    | PUSHFQ x: show/mnemonic insn
+    | PXOR x: show/mnemonic insn -++ show/arity2 x
+    | RCL x: show/mnemonic insn -++ show/arity2 x
+    | RCPPS x: show/mnemonic insn -++ show/arity2 x
+    | RCPSS x: show/mnemonic insn -++ show/arity2 x
+    | RCR x: show/mnemonic insn -++ show/arity2 x
+    | RDFSBASE x: show/mnemonic insn -++ show/arity1 x
+    | RDGSBASE x: show/mnemonic insn -++ show/arity1 x
+    | RDMSR x: show/mnemonic insn
+    | RDPMC x: show/mnemonic insn
+    | RDRAND x: show/mnemonic insn -++ show/arity1 x
+    | RDTSC x: show/mnemonic insn
+    | RDTSCP x: show/mnemonic insn
+    | RET x: show/mnemonic insn +++ show/varity x
+    | RET_FAR x: show/mnemonic insn +++ show/varity x
+    | ROL x: show/mnemonic insn -++ show/arity2 x
+    | ROR x: show/mnemonic insn -++ show/arity2 x
+    | ROUNDPD x: show/mnemonic insn -++ show/arity3 x
+    | ROUNDPS x: show/mnemonic insn -++ show/arity3 x
+    | ROUNDSD x: show/mnemonic insn -++ show/arity3 x
+    | ROUNDSS x: show/mnemonic insn -++ show/arity3 x
+    | RSM x: show/mnemonic insn
+    | RSQRTPS x: show/mnemonic insn -++ show/arity2 x
+    | RSQRTSS x: show/mnemonic insn -++ show/arity2 x
+    | SAHF x: show/mnemonic insn
+    | SAL x: show/mnemonic insn -++ show/arity2 x
+    | SAR x: show/mnemonic insn -++ show/arity2 x
+    | SBB x: show/mnemonic insn -++ show/arity2 x
+    | SCASB x: show/mnemonic insn
+    | SCASD x: show/mnemonic insn
+    | SCASQ x: show/mnemonic insn
+    | SCASW x: show/mnemonic insn
+    | SETA x: show/mnemonic insn -++ show/arity1 x
+    | SETAE x: show/mnemonic insn -++ show/arity1 x
+    | SETB x: show/mnemonic insn -++ show/arity1 x
+    | SETBE x: show/mnemonic insn -++ show/arity1 x
+    | SETC x: show/mnemonic insn -++ show/arity1 x
+    | SETE x: show/mnemonic insn -++ show/arity1 x
+    | SETG x: show/mnemonic insn -++ show/arity1 x
+    | SETGE x: show/mnemonic insn -++ show/arity1 x
+    | SETL x: show/mnemonic insn -++ show/arity1 x
+    | SETLE x: show/mnemonic insn -++ show/arity1 x
+    | SETNA x: show/mnemonic insn -++ show/arity1 x
+    | SETNAE x: show/mnemonic insn -++ show/arity1 x
+    | SETNB x: show/mnemonic insn -++ show/arity1 x
+    | SETNBE x: show/mnemonic insn -++ show/arity1 x
+    | SETNC x: show/mnemonic insn -++ show/arity1 x
+    | SETNE x: show/mnemonic insn -++ show/arity1 x
+    | SETNG x: show/mnemonic insn -++ show/arity1 x
+    | SETNGE x: show/mnemonic insn -++ show/arity1 x
+    | SETNL x: show/mnemonic insn -++ show/arity1 x
+    | SETNLE x: show/mnemonic insn -++ show/arity1 x
+    | SETNO x: show/mnemonic insn -++ show/arity1 x
+    | SETNP x: show/mnemonic insn -++ show/arity1 x
+    | SETNS x: show/mnemonic insn -++ show/arity1 x
+    | SETNZ x: show/mnemonic insn -++ show/arity1 x
+    | SETO x: show/mnemonic insn -++ show/arity1 x
+    | SETP x: show/mnemonic insn -++ show/arity1 x
+    | SETPE x: show/mnemonic insn -++ show/arity1 x
+    | SETPO x: show/mnemonic insn -++ show/arity1 x
+    | SETS x: show/mnemonic insn -++ show/arity1 x
+    | SETZ x: show/mnemonic insn -++ show/arity1 x
+    | SFENCE x: show/mnemonic insn
+    | SGDT x: show/mnemonic insn -++ show/arity1 x
+    | SHL x: show/mnemonic insn -++ show/arity2 x
+    | SHLD x: show/mnemonic insn -++ show/arity3 x
+    | SHR x: show/mnemonic insn -++ show/arity2 x
+    | SHRD x: show/mnemonic insn -++ show/arity3 x
+    | SHUFPD x: show/mnemonic insn -++ show/arity3 x
+    | SHUFPS x: show/mnemonic insn -++ show/arity3 x
+    | SIDT x: show/mnemonic insn -++ show/arity1 x
+    | SLDT x: show/mnemonic insn -++ show/arity1 x
+    | SMSW x: show/mnemonic insn -++ show/arity1 x
+    | SQRTPD x: show/mnemonic insn -++ show/arity2 x
+    | SQRTPS x: show/mnemonic insn -++ show/arity2 x
+    | SQRTSD x: show/mnemonic insn -++ show/arity2 x
+    | SQRTSS x: show/mnemonic insn -++ show/arity2 x
+    | STC x: show/mnemonic insn
+    | STD x: show/mnemonic insn
+    | STI x: show/mnemonic insn
+    | STMXCSR x: show/mnemonic insn -++ show/arity1 x
+    | STOSB x: show/mnemonic insn
+    | STOSD x: show/mnemonic insn
+    | STOSQ x: show/mnemonic insn
+    | STOSW x: show/mnemonic insn
+    | STR x: show/mnemonic insn -++ show/arity1 x
+    | SUB x: show/mnemonic insn -++ show/arity2 x
+    | SUBPD x: show/mnemonic insn -++ show/arity2 x
+    | SUBPS x: show/mnemonic insn -++ show/arity2 x
+    | SUBSD x: show/mnemonic insn -++ show/arity2 x
+    | SUBSS x: show/mnemonic insn -++ show/arity2 x
+    | SWAPGS x: show/mnemonic insn
+    | SYSCALL x: show/mnemonic insn
+    | SYSENTER x: show/mnemonic insn
+    | SYSEXIT x: show/mnemonic insn
+    | SYSRET x: show/mnemonic insn
+    | TEST x: show/mnemonic insn -++ show/arity2 x
+    | UCOMISD x: show/mnemonic insn -++ show/arity2 x
+    | UCOMISS x: show/mnemonic insn -++ show/arity2 x
+    | UD2 x: show/mnemonic insn
+    | UNPCKHPD x: show/mnemonic insn -++ show/arity2 x
+    | UNPCKHPS x: show/mnemonic insn -++ show/arity2 x
+    | UNPCKLPD x: show/mnemonic insn -++ show/arity2 x
+    | UNPCKLPS x: show/mnemonic insn -++ show/arity2 x
+    | VADDPD x: show/mnemonic insn +++ show/varity x
+    | VADDPS x: show/mnemonic insn +++ show/varity x
+    | VADDSD x: show/mnemonic insn +++ show/varity x
+    | VADDSS x: show/mnemonic insn +++ show/varity x
+    | VADDSUBPD x: show/mnemonic insn +++ show/varity x
+    | VADDSUBPS x: show/mnemonic insn +++ show/varity x
+    | VAESDEC x: show/mnemonic insn +++ show/varity x
+    | VAESDECLAST x: show/mnemonic insn +++ show/varity x
+    | VAESENC x: show/mnemonic insn +++ show/varity x
+    | VAESENCLAST x: show/mnemonic insn +++ show/varity x
+    | VAESIMC x: show/mnemonic insn +++ show/varity x
+    | VAESKEYGENASSIST x: show/mnemonic insn +++ show/varity x
+    | VANDNPD x: show/mnemonic insn +++ show/varity x
+    | VANDNPS x: show/mnemonic insn +++ show/varity x
+    | VANDPD x: show/mnemonic insn +++ show/varity x
+    | VANDPS x: show/mnemonic insn +++ show/varity x
+    | VBLENDPD x: show/mnemonic insn +++ show/varity x
+    | VBLENDPS x: show/mnemonic insn +++ show/varity x
+    | VBLENDVPD x: show/mnemonic insn +++ show/varity x
+    | VBLENDVPS x: show/mnemonic insn +++ show/varity x
+    | VBROADCASTF128 x: show/mnemonic insn +++ show/varity x
+    | VBROADCASTSD x: show/mnemonic insn +++ show/varity x
+    | VBROADCASTSS x: show/mnemonic insn +++ show/varity x
+    | VCMPEQB x: show/mnemonic insn +++ show/varity x
+    | VCMPEQD x: show/mnemonic insn +++ show/varity x
+    | VCMPEQW x: show/mnemonic insn +++ show/varity x
+    | VCMPPD x: show/mnemonic insn +++ show/varity x
+    | VCMPPS x: show/mnemonic insn +++ show/varity x
+    | VCMPSD x: show/mnemonic insn +++ show/varity x
+    | VCMPSS x: show/mnemonic insn +++ show/varity x
+    | VCOMISD x: show/mnemonic insn +++ show/varity x
+    | VCOMISS x: show/mnemonic insn +++ show/varity x
+    | VCVTDQ2PD x: show/mnemonic insn +++ show/varity x
+    | VCVTDQ2PS x: show/mnemonic insn +++ show/varity x
+    | VCVTPD2DQ x: show/mnemonic insn +++ show/varity x
+    | VCVTPD2PS x: show/mnemonic insn +++ show/varity x
+    | VCVTPH2PS x: show/mnemonic insn +++ show/varity x
+    | VCVTPS2DQ x: show/mnemonic insn +++ show/varity x
+    | VCVTPS2PD x: show/mnemonic insn +++ show/varity x
+    | VCVTPS2PH x: show/mnemonic insn +++ show/varity x
+    | VCVTSD2SI x: show/mnemonic insn +++ show/varity x
+    | VCVTSD2SS x: show/mnemonic insn +++ show/varity x
+    | VCVTSI2SD x: show/mnemonic insn +++ show/varity x
+    | VCVTSI2SS x: show/mnemonic insn +++ show/varity x
+    | VCVTSS2SD x: show/mnemonic insn +++ show/varity x
+    | VCVTSS2SI x: show/mnemonic insn +++ show/varity x
+    | VCVTTPD2DQ x: show/mnemonic insn +++ show/varity x
+    | VCVTTPS2DQ x: show/mnemonic insn +++ show/varity x
+    | VCVTTSD2SI x: show/mnemonic insn +++ show/varity x
+    | VCVTTSS2SI x: show/mnemonic insn +++ show/varity x
+    | VDIVPD x: show/mnemonic insn +++ show/varity x
+    | VDIVPS x: show/mnemonic insn +++ show/varity x
+    | VDIVSD x: show/mnemonic insn +++ show/varity x
+    | VDIVSS x: show/mnemonic insn +++ show/varity x
+    | VDPPD x: show/mnemonic insn +++ show/varity x
+    | VDPPS x: show/mnemonic insn +++ show/varity x
+    | VERR x: show/mnemonic insn -++ show/arity1 x
+    | VERW x: show/mnemonic insn -++ show/arity1 x
+    | VEXTRACTF128 x: show/mnemonic insn +++ show/varity x
+    | VEXTRACTPS x: show/mnemonic insn +++ show/varity x
+    | VHADDPD x: show/mnemonic insn +++ show/varity x
+    | VHADDPS x: show/mnemonic insn +++ show/varity x
+    | VHSUBPD x: show/mnemonic insn +++ show/varity x
+    | VHSUBPS x: show/mnemonic insn +++ show/varity x
+    | VINSERTF128 x: show/mnemonic insn +++ show/varity x
+    | VINSERTPS x: show/mnemonic insn +++ show/varity x
+    | VLDDQU x: show/mnemonic insn +++ show/varity x
+    | VLDMXCSR x: show/mnemonic insn +++ show/varity x
+    | VMASKMOVDQU x: show/mnemonic insn +++ show/varity x
+    | VMASKMOVPD x: show/mnemonic insn +++ show/varity x
+    | VMASKMOVPS x: show/mnemonic insn +++ show/varity x
+    | VMAXPD x: show/mnemonic insn +++ show/varity x
+    | VMAXPS x: show/mnemonic insn +++ show/varity x
+    | VMAXSD x: show/mnemonic insn +++ show/varity x
+    | VMAXSS x: show/mnemonic insn +++ show/varity x
+    | VMINPD x: show/mnemonic insn +++ show/varity x
+    | VMINPS x: show/mnemonic insn +++ show/varity x
+    | VMINSD x: show/mnemonic insn +++ show/varity x
+    | VMINSS x: show/mnemonic insn +++ show/varity x
+    | VMOVAPD x: show/mnemonic insn +++ show/varity x
+    | VMOVAPS x: show/mnemonic insn +++ show/varity x
+    | VMOVD x: show/mnemonic insn +++ show/varity x
+    | VMOVDDUP x: show/mnemonic insn +++ show/varity x
+    | VMOVDQA x: show/mnemonic insn +++ show/varity x
+    | VMOVDQU x: show/mnemonic insn +++ show/varity x
+    | VMOVHLPS x: show/mnemonic insn +++ show/varity x
+    | VMOVHPD x: show/mnemonic insn +++ show/varity x
+    | VMOVHPS x: show/mnemonic insn +++ show/varity x
+    | VMOVLHPS x: show/mnemonic insn +++ show/varity x
+    | VMOVLPD x: show/mnemonic insn +++ show/varity x
+    | VMOVLPS x: show/mnemonic insn +++ show/varity x
+    | VMOVMSKPD x: show/mnemonic insn +++ show/varity x
+    | VMOVMSKPS x: show/mnemonic insn +++ show/varity x
+    | VMOVNTDQ x: show/mnemonic insn +++ show/varity x
+    | VMOVNTDQA x: show/mnemonic insn +++ show/varity x
+    | VMOVNTPD x: show/mnemonic insn +++ show/varity x
+    | VMOVNTPS x: show/mnemonic insn +++ show/varity x
+    | VMOVQ x: show/mnemonic insn +++ show/varity x
+    | VMOVSD x: show/mnemonic insn +++ show/varity x
+    | VMOVSHDUP x: show/mnemonic insn +++ show/varity x
+    | VMOVSLDUP x: show/mnemonic insn +++ show/varity x
+    | VMOVSS x: show/mnemonic insn +++ show/varity x
+    | VMOVUPD x: show/mnemonic insn +++ show/varity x
+    | VMOVUPS x: show/mnemonic insn +++ show/varity x
+    | VMPSADBW x: show/mnemonic insn +++ show/varity x
+    | VMULPD x: show/mnemonic insn +++ show/varity x
+    | VMULPS x: show/mnemonic insn +++ show/varity x
+    | VMULSD x: show/mnemonic insn +++ show/varity x
+    | VMULSS x: show/mnemonic insn +++ show/varity x
+    | VORPD x: show/mnemonic insn +++ show/varity x
+    | VORPS x: show/mnemonic insn +++ show/varity x
+    | VPABSB x: show/mnemonic insn +++ show/varity x
+    | VPABSD x: show/mnemonic insn +++ show/varity x
+    | VPABSW x: show/mnemonic insn +++ show/varity x
+    | VPACKSSDW x: show/mnemonic insn +++ show/varity x
+    | VPACKSSWB x: show/mnemonic insn +++ show/varity x
+    | VPACKUSDW x: show/mnemonic insn +++ show/varity x
+    | VPACKUSWB x: show/mnemonic insn +++ show/varity x
+    | VPADDB x: show/mnemonic insn +++ show/varity x
+    | VPADDD x: show/mnemonic insn +++ show/varity x
+    | VPADDQ x: show/mnemonic insn +++ show/varity x
+    | VPADDSB x: show/mnemonic insn +++ show/varity x
+    | VPADDSW x: show/mnemonic insn +++ show/varity x
+    | VPADDUSB x: show/mnemonic insn +++ show/varity x
+    | VPADDUSW x: show/mnemonic insn +++ show/varity x
+    | VPADDW x: show/mnemonic insn +++ show/varity x
+    | VPALIGNR x: show/mnemonic insn +++ show/varity x
+    | VPAND x: show/mnemonic insn +++ show/varity x
+    | VPANDN x: show/mnemonic insn +++ show/varity x
+    | VPAVGB x: show/mnemonic insn +++ show/varity x
+    | VPAVGW x: show/mnemonic insn +++ show/varity x
+    | VPBLENDVB x: show/mnemonic insn +++ show/varity x
+    | VPBLENDW x: show/mnemonic insn +++ show/varity x
+    | VPCLMULQDQ x: show/mnemonic insn +++ show/varity x
+    | VPCMPEQB x: show/mnemonic insn +++ show/varity x
+    | VPCMPEQD x: show/mnemonic insn +++ show/varity x
+    | VPCMPEQQ x: show/mnemonic insn +++ show/varity x
+    | VPCMPEQW x: show/mnemonic insn +++ show/varity x
+    | VPCMPESTRI x: show/mnemonic insn +++ show/varity x
+    | VPCMPESTRM x: show/mnemonic insn +++ show/varity x
+    | VPCMPGTB x: show/mnemonic insn +++ show/varity x
+    | VPCMPGTD x: show/mnemonic insn +++ show/varity x
+    | VPCMPGTQ x: show/mnemonic insn +++ show/varity x
+    | VPCMPGTW x: show/mnemonic insn +++ show/varity x
+    | VPCMPISTRI x: show/mnemonic insn +++ show/varity x
+    | VPCMPISTRM x: show/mnemonic insn +++ show/varity x
+    | VPERM2F128 x: show/mnemonic insn +++ show/varity x
+    | VPERMILPD x: show/mnemonic insn +++ show/varity x
+    | VPERMILPS x: show/mnemonic insn +++ show/varity x
+    | VPEXTRB x: show/mnemonic insn +++ show/varity x
+    | VPEXTRD x: show/mnemonic insn +++ show/varity x
+    | VPEXTRQ x: show/mnemonic insn +++ show/varity x
+    | VPEXTRW x: show/mnemonic insn +++ show/varity x
+    | VPHADDD x: show/mnemonic insn +++ show/varity x
+    | VPHADDSW x: show/mnemonic insn +++ show/varity x
+    | VPHADDW x: show/mnemonic insn +++ show/varity x
+    | VPHMINPOSUW x: show/mnemonic insn +++ show/varity x
+    | VPHSUBD x: show/mnemonic insn +++ show/varity x
+    | VPHSUBSW x: show/mnemonic insn +++ show/varity x
+    | VPHSUBW x: show/mnemonic insn +++ show/varity x
+    | VPINSRB x: show/mnemonic insn +++ show/varity x
+    | VPINSRD x: show/mnemonic insn +++ show/varity x
+    | VPINSRQ x: show/mnemonic insn +++ show/varity x
+    | VPINSRW x: show/mnemonic insn +++ show/varity x
+    | VPMADDUBSW x: show/mnemonic insn +++ show/varity x
+    | VPMADDWD x: show/mnemonic insn +++ show/varity x
+    | VPMAXSB x: show/mnemonic insn +++ show/varity x
+    | VPMAXSD x: show/mnemonic insn +++ show/varity x
+    | VPMAXSW x: show/mnemonic insn +++ show/varity x
+    | VPMAXUB x: show/mnemonic insn +++ show/varity x
+    | VPMAXUD x: show/mnemonic insn +++ show/varity x
+    | VPMAXUW x: show/mnemonic insn +++ show/varity x
+    | VPMINSB x: show/mnemonic insn +++ show/varity x
+    | VPMINSD x: show/mnemonic insn +++ show/varity x
+    | VPMINSW x: show/mnemonic insn +++ show/varity x
+    | VPMINUB x: show/mnemonic insn +++ show/varity x
+    | VPMINUD x: show/mnemonic insn +++ show/varity x
+    | VPMINUW x: show/mnemonic insn +++ show/varity x
+    | VPMOVMSKB x: show/mnemonic insn +++ show/varity x
+    | VPMOVSXBD x: show/mnemonic insn +++ show/varity x
+    | VPMOVSXBQ x: show/mnemonic insn +++ show/varity x
+    | VPMOVSXBW x: show/mnemonic insn +++ show/varity x
+    | VPMOVSXDQ x: show/mnemonic insn +++ show/varity x
+    | VPMOVSXWD x: show/mnemonic insn +++ show/varity x
+    | VPMOVSXWQ x: show/mnemonic insn +++ show/varity x
+    | VPMOVZXBD x: show/mnemonic insn +++ show/varity x
+    | VPMOVZXBQ x: show/mnemonic insn +++ show/varity x
+    | VPMOVZXBW x: show/mnemonic insn +++ show/varity x
+    | VPMOVZXDQ x: show/mnemonic insn +++ show/varity x
+    | VPMOVZXWD x: show/mnemonic insn +++ show/varity x
+    | VPMOVZXWQ x: show/mnemonic insn +++ show/varity x
+    | VPMULDQ x: show/mnemonic insn +++ show/varity x
+    | VPMULHRSW x: show/mnemonic insn +++ show/varity x
+    | VPMULHUW x: show/mnemonic insn +++ show/varity x
+    | VPMULHW x: show/mnemonic insn +++ show/varity x
+    | VPMULLD x: show/mnemonic insn +++ show/varity x
+    | VPMULLW x: show/mnemonic insn +++ show/varity x
+    | VPMULUDQ x: show/mnemonic insn +++ show/varity x
+    | VPOR x: show/mnemonic insn +++ show/varity x
+    | VPSADBW x: show/mnemonic insn +++ show/varity x
+    | VPSHUFB x: show/mnemonic insn +++ show/varity x
+    | VPSHUFD x: show/mnemonic insn +++ show/varity x
+    | VPSHUFHW x: show/mnemonic insn +++ show/varity x
+    | VPSHUFLW x: show/mnemonic insn +++ show/varity x
+    | VPSIGNB x: show/mnemonic insn +++ show/varity x
+    | VPSIGND x: show/mnemonic insn +++ show/varity x
+    | VPSIGNW x: show/mnemonic insn +++ show/varity x
+    | VPSLLD x: show/mnemonic insn +++ show/varity x
+    | VPSLLDQ x: show/mnemonic insn +++ show/varity x
+    | VPSLLQ x: show/mnemonic insn +++ show/varity x
+    | VPSLLW x: show/mnemonic insn +++ show/varity x
+    | VPSRAD x: show/mnemonic insn +++ show/varity x
+    | VPSRAW x: show/mnemonic insn +++ show/varity x
+    | VPSRLD x: show/mnemonic insn +++ show/varity x
+    | VPSRLDQ x: show/mnemonic insn +++ show/varity x
+    | VPSRLQ x: show/mnemonic insn +++ show/varity x
+    | VPSRLW x: show/mnemonic insn +++ show/varity x
+    | VPSUBB x: show/mnemonic insn +++ show/varity x
+    | VPSUBD x: show/mnemonic insn +++ show/varity x
+    | VPSUBQ x: show/mnemonic insn +++ show/varity x
+    | VPSUBSB x: show/mnemonic insn +++ show/varity x
+    | VPSUBSW x: show/mnemonic insn +++ show/varity x
+    | VPSUBUSB x: show/mnemonic insn +++ show/varity x
+    | VPSUBUSW x: show/mnemonic insn +++ show/varity x
+    | VPSUBW x: show/mnemonic insn +++ show/varity x
+    | VPTEST x: show/mnemonic insn +++ show/varity x
+    | VPUNPCKHBW x: show/mnemonic insn +++ show/varity x
+    | VPUNPCKHDQ x: show/mnemonic insn +++ show/varity x
+    | VPUNPCKHQDQ x: show/mnemonic insn +++ show/varity x
+    | VPUNPCKHWD x: show/mnemonic insn +++ show/varity x
+    | VPUNPCKLBW x: show/mnemonic insn +++ show/varity x
+    | VPUNPCKLDQ x: show/mnemonic insn +++ show/varity x
+    | VPUNPCKLQDQ x: show/mnemonic insn +++ show/varity x
+    | VPUNPCKLWD x: show/mnemonic insn +++ show/varity x
+    | VPXOR x: show/mnemonic insn +++ show/varity x
+    | VRCPPS x: show/mnemonic insn +++ show/varity x
+    | VRCPSS x: show/mnemonic insn +++ show/varity x
+    | VROUNDPD x: show/mnemonic insn +++ show/varity x
+    | VROUNDPS x: show/mnemonic insn +++ show/varity x
+    | VROUNDSD x: show/mnemonic insn +++ show/varity x
+    | VROUNDSS x: show/mnemonic insn +++ show/varity x
+    | VRSQRTPS x: show/mnemonic insn +++ show/varity x
+    | VRSQRTSS x: show/mnemonic insn +++ show/varity x
+    | VSHUFPD x: show/mnemonic insn +++ show/varity x
+    | VSHUFPS x: show/mnemonic insn +++ show/varity x
+    | VSQRTPD x: show/mnemonic insn +++ show/varity x
+    | VSQRTPS x: show/mnemonic insn +++ show/varity x
+    | VSQRTSD x: show/mnemonic insn +++ show/varity x
+    | VSQRTSS x: show/mnemonic insn +++ show/varity x
+    | VSTMXCSR x: show/mnemonic insn +++ show/varity x
+    | VSUBPD x: show/mnemonic insn +++ show/varity x
+    | VSUBPS x: show/mnemonic insn +++ show/varity x
+    | VSUBSD x: show/mnemonic insn +++ show/varity x
+    | VSUBSS x: show/mnemonic insn +++ show/varity x
+    | VTESTPD x: show/mnemonic insn +++ show/varity x
+    | VTESTPS x: show/mnemonic insn +++ show/varity x
+    | VUCOMISD x: show/mnemonic insn +++ show/varity x
+    | VUCOMISS x: show/mnemonic insn +++ show/varity x
+    | VUNPCKHPD x: show/mnemonic insn +++ show/varity x
+    | VUNPCKHPS x: show/mnemonic insn +++ show/varity x
+    | VUNPCKLPD x: show/mnemonic insn +++ show/varity x
+    | VUNPCKLPS x: show/mnemonic insn +++ show/varity x
+    | VXORPD x: show/mnemonic insn +++ show/varity x
+    | VXORPS x: show/mnemonic insn +++ show/varity x
+    | VZEROALL x: show/mnemonic insn +++ show/varity x
+    | VZEROUPPER x: show/mnemonic insn +++ show/varity x
+    | WAIT x: show/mnemonic insn
+    | WBINVD x: show/mnemonic insn
+    | WRFSBASE x: show/mnemonic insn -++ show/arity1 x
+    | WRGSBASE x: show/mnemonic insn -++ show/arity1 x
+    | WRMSR x: show/mnemonic insn
+    | XADD x: show/mnemonic insn -++ show/arity2 x
+    | XCHG x: show/mnemonic insn -++ show/arity2 x
+    | XGETBV x: show/mnemonic insn
+    | XLATB x: show/mnemonic insn
+    | XOR x: show/mnemonic insn -++ show/arity2 x
+    | XORPD x: show/mnemonic insn -++ show/arity2 x
+    | XORPS x: show/mnemonic insn -++ show/arity2 x
+    | XRSTOR x: show/mnemonic insn -++ show/arity1 x
+    | XRSTOR64 x: show/mnemonic insn -++ show/arity1 x
+    | XSAVE x: show/mnemonic insn -++ show/arity1 x
+    | XSAVE64 x: show/mnemonic insn -++ show/arity1 x
+    | XSAVEOPT x: show/mnemonic insn -++ show/arity1 x
+    | XSAVEOPT64 x: show/mnemonic insn -++ show/arity1 x
+    | XSETBV x: show/mnemonic insn
+    #| PSLRDQ x: show/mnemonic insn -++ show/arity2 x
+    #| VPSLRDQ x: show/mnemonic insn +++ show/varity x
+   end
+#s/^\(...\)\(\S*\)\s*$/\1\2: show/mnemonic insn/
+#s/^\(...\)\(\S*\) of \(\S*\)\s*$/\1\2 x: show/mnemonic insn -++ show\/\3 x/
+
+val show/mnemonic insn =
+   case insn of
       AAA x: "AAA"
-    | AAD x: "AAD" -++ show/arity1 x
-    | AAM x: "AAM" -++ show/arity1 x
+    | AAD x: "AAD"
+    | AAM x: "AAM"
     | AAS x: "AAS"
-    | ADC x: "ADC" -++ show/arity2 x
-    | ADD x: "ADD" -++ show/arity2 x
-    | ADDPD x: "ADDPD" -++ show/arity2 x
-    | ADDPS x: "ADDPS" -++ show/arity2 x
-    | ADDSD x: "ADDSD" -++ show/arity2 x
-    | ADDSS x: "ADDSS" -++ show/arity2 x
-    | ADDSUBPD x: "ADDSUBPD" -++ show/arity2 x
-    | ADDSUBPS x: "ADDSUBPS" -++ show/arity2 x
-    | AESDEC x: "AESDEC" -++ show/arity2 x
-    | AESDECLAST x: "AESDECLAST" -++ show/arity2 x
-    | AESENC x: "AESENC" -++ show/arity2 x
-    | AESENCLAST x: "AESENCLAST" -++ show/arity2 x
-    | AESIMC x: "AESIMC" -++ show/arity2 x
-    | AESKEYGENASSIST x: "AESKEYGENASSIST" -++ show/arity3 x
-    | AND x: "AND" -++ show/arity2 x
-    | ANDNPD x: "ANDNPD" -++ show/arity2 x
-    | ANDNPS x: "ANDNPS" -++ show/arity2 x
-    | ANDPD x: "ANDPD" -++ show/arity2 x
-    | ANDPS x: "ANDPS" -++ show/arity2 x
-    | ARPL x: "ARPL" -++ show/arity2 x
-    | BLENDPD x: "BLENDPD" -++ show/arity3 x
-    | BLENDPS x: "BLENDPS" -++ show/arity3 x
-    | BLENDVPD x: "BLENDVPD" -++ show/arity3 x
-    | BLENDVPS x: "BLENDVPS" -++ show/arity3 x
-    | BOUND x: "BOUND" -++ show/arity2 x
-    | BSF x: "BSF" -++ show/arity2 x
-    | BSR x: "BSR" -++ show/arity2 x
-    | BSWAP x: "BSWAP" -++ show/arity1 x
-    | BT x: "BT" -++ show/arity2 x
-    | BTC x: "BTC" -++ show/arity2 x
-    | BTR x: "BTR" -++ show/arity2 x
-    | BTS x: "BTS" -++ show/arity2 x
-    | CALL x: "CALL" -++ show/flow1 x
+    | ADC x: "ADC"
+    | ADD x: "ADD"
+    | ADDPD x: "ADDPD"
+    | ADDPS x: "ADDPS"
+    | ADDSD x: "ADDSD"
+    | ADDSS x: "ADDSS"
+    | ADDSUBPD x: "ADDSUBPD"
+    | ADDSUBPS x: "ADDSUBPS"
+    | AESDEC x: "AESDEC"
+    | AESDECLAST x: "AESDECLAST"
+    | AESENC x: "AESENC"
+    | AESENCLAST x: "AESENCLAST"
+    | AESIMC x: "AESIMC"
+    | AESKEYGENASSIST x: "AESKEYGENASSIST"
+    | AND x: "AND"
+    | ANDNPD x: "ANDNPD"
+    | ANDNPS x: "ANDNPS"
+    | ANDPD x: "ANDPD"
+    | ANDPS x: "ANDPS"
+    | ARPL x: "ARPL"
+    | BLENDPD x: "BLENDPD"
+    | BLENDPS x: "BLENDPS"
+    | BLENDVPD x: "BLENDVPD"
+    | BLENDVPS x: "BLENDVPS"
+    | BOUND x: "BOUND"
+    | BSF x: "BSF"
+    | BSR x: "BSR"
+    | BSWAP x: "BSWAP"
+    | BT x: "BT"
+    | BTC x: "BTC"
+    | BTR x: "BTR"
+    | BTS x: "BTS"
+    | CALL x: "CALL"
     | CBW x: "CBW"
     | CDQ x: "CDQ"
     | CDQE x: "CDQE"
     | CLC x: "CLC"
     | CLD x: "CLD"
-    | CLFLUSH x: "CLFLUSH" -++ show/arity1 x
+    | CLFLUSH x: "CLFLUSH"
     | CLI x: "CLI"
     | CLTS x: "CLTS"
     | CMC x: "CMC"
-    | CMOVA x: "CMOVA" -++ show/arity2 x
-    | CMOVAE x: "CMOVAE" -++ show/arity2 x
-    | CMOVB x: "CMOVB" -++ show/arity2 x
-    | CMOVBE x: "CMOVBE" -++ show/arity2 x
-    | CMOVC x: "CMOVC" -++ show/arity2 x
-    | CMOVE x: "CMOVE" -++ show/arity2 x
-    | CMOVG x: "CMOVG" -++ show/arity2 x
-    | CMOVGE x: "CMOVGE" -++ show/arity2 x
-    | CMOVL x: "CMOVL" -++ show/arity2 x
-    | CMOVLE x: "CMOVLE" -++ show/arity2 x
-    | CMOVNA x: "CMOVNA" -++ show/arity2 x
-    | CMOVNAE x: "CMOVNAE" -++ show/arity2 x
-    | CMOVNB x: "CMOVNB" -++ show/arity2 x
-    | CMOVNBE x: "CMOVNBE" -++ show/arity2 x
-    | CMOVNC x: "CMOVNC" -++ show/arity2 x
-    | CMOVNE x: "CMOVNE" -++ show/arity2 x
-    | CMOVNG x: "CMOVNG" -++ show/arity2 x
-    | CMOVNGE x: "CMOVNGE" -++ show/arity2 x
-    | CMOVNL x: "CMOVNL" -++ show/arity2 x
-    | CMOVNLE x: "CMOVNLE" -++ show/arity2 x
-    | CMOVNO x: "CMOVNO" -++ show/arity2 x
-    | CMOVNP x: "CMOVNP" -++ show/arity2 x
-    | CMOVNS x: "CMOVNS" -++ show/arity2 x
-    | CMOVNZ x: "CMOVNZ" -++ show/arity2 x
-    | CMOVO x: "CMOVO" -++ show/arity2 x
-    | CMOVP x: "CMOVP" -++ show/arity2 x
-    | CMOVPE x: "CMOVPE" -++ show/arity2 x
-    | CMOVPO x: "CMOVPO" -++ show/arity2 x
-    | CMOVS x: "CMOVS" -++ show/arity2 x
-    | CMOVZ x: "CMOVZ" -++ show/arity2 x
-    | CMP x: "CMP" -++ show/arity2 x
-    | CMPPD x: "CMPPD" -++ show/arity3 x
-    | CMPPS x: "CMPPS" -++ show/arity3 x
-    | CMPS x: "CMPS" -++ show/arity2 x
-    | CMPSD x: "CMPSD" -++ show/arity3 x
-    | CMPSS x: "CMPSS" -++ show/arity3 x
-    | CMPXCHG x: "CMPXCHG" -++ show/arity2 x
-    | CMPXCHG16B x: "CMPXCHG16B" -++ show/arity1 x
-    | CMPXCHG8B x: "CMPXCHG8B" -++ show/arity1 x
-    | COMISD x: "COMISD" -++ show/arity2 x
-    | COMISS x: "COMISS" -++ show/arity2 x
+    | CMOVA x: "CMOVA"
+    | CMOVAE x: "CMOVAE"
+    | CMOVB x: "CMOVB"
+    | CMOVBE x: "CMOVBE"
+    | CMOVC x: "CMOVC"
+    | CMOVE x: "CMOVE"
+    | CMOVG x: "CMOVG"
+    | CMOVGE x: "CMOVGE"
+    | CMOVL x: "CMOVL"
+    | CMOVLE x: "CMOVLE"
+    | CMOVNA x: "CMOVNA"
+    | CMOVNAE x: "CMOVNAE"
+    | CMOVNB x: "CMOVNB"
+    | CMOVNBE x: "CMOVNBE"
+    | CMOVNC x: "CMOVNC"
+    | CMOVNE x: "CMOVNE"
+    | CMOVNG x: "CMOVNG"
+    | CMOVNGE x: "CMOVNGE"
+    | CMOVNL x: "CMOVNL"
+    | CMOVNLE x: "CMOVNLE"
+    | CMOVNO x: "CMOVNO"
+    | CMOVNP x: "CMOVNP"
+    | CMOVNS x: "CMOVNS"
+    | CMOVNZ x: "CMOVNZ"
+    | CMOVO x: "CMOVO"
+    | CMOVP x: "CMOVP"
+    | CMOVPE x: "CMOVPE"
+    | CMOVPO x: "CMOVPO"
+    | CMOVS x: "CMOVS"
+    | CMOVZ x: "CMOVZ"
+    | CMP x: "CMP"
+    | CMPPD x: "CMPPD"
+    | CMPPS x: "CMPPS"
+    | CMPS x: "CMPS"
+    | CMPSD x: "CMPSD"
+    | CMPSS x: "CMPSS"
+    | CMPXCHG x: "CMPXCHG"
+    | CMPXCHG16B x: "CMPXCHG16B"
+    | CMPXCHG8B x: "CMPXCHG8B"
+    | COMISD x: "COMISD"
+    | COMISS x: "COMISS"
     | CPUID x: "CPUID"
     | CQO x: "CQO"
-    | CRC32 x: "CRC32" -++ show/arity2 x
-    | CVTDQ2PD x: "CVTDQ2PD" -++ show/arity2 x
-    | CVTDQ2PS x: "CVTDQ2PS" -++ show/arity2 x
-    | CVTPD2DQ x: "CVTPD2DQ" -++ show/arity2 x
-    | CVTPD2PI x: "CVTPD2PI" -++ show/arity2 x
-    | CVTPD2PS x: "CVTPD2PS" -++ show/arity2 x
-    | CVTPI2PD x: "CVTPI2PD" -++ show/arity2 x
-    | CVTPI2PS x: "CVTPI2PS" -++ show/arity2 x
-    | CVTPS2DQ x: "CVTPS2DQ" -++ show/arity2 x
-    | CVTPS2PD x: "CVTPS2PD" -++ show/arity2 x
-    | CVTPS2PI x: "CVTPS2PI" -++ show/arity2 x
-    | CVTSD2SI x: "CVTSD2SI" -++ show/arity2 x
-    | CVTSD2SS x: "CVTSD2SS" -++ show/arity2 x
-    | CVTSI2SD x: "CVTSI2SD" -++ show/arity2 x
-    | CVTSI2SS x: "CVTSI2SS" -++ show/arity2 x
-    | CVTSS2SD x: "CVTSS2SD" -++ show/arity2 x
-    | CVTSS2SI x: "CVTSS2SI" -++ show/arity2 x
-    | CVTTPD2DQ x: "CVTTPD2DQ" -++ show/arity2 x
-    | CVTTPD2PI x: "CVTTPD2PI" -++ show/arity2 x
-    | CVTTPS2DQ x: "CVTTPS2DQ" -++ show/arity2 x
-    | CVTTPS2PI x: "CVTTPS2PI" -++ show/arity2 x
-    | CVTTSD2SI x: "CVTTSD2SI" -++ show/arity2 x
-    | CVTTSS2SI x: "CVTTSS2SI" -++ show/arity2 x
+    | CRC32 x: "CRC32"
+    | CVTDQ2PD x: "CVTDQ2PD"
+    | CVTDQ2PS x: "CVTDQ2PS"
+    | CVTPD2DQ x: "CVTPD2DQ"
+    | CVTPD2PI x: "CVTPD2PI"
+    | CVTPD2PS x: "CVTPD2PS"
+    | CVTPI2PD x: "CVTPI2PD"
+    | CVTPI2PS x: "CVTPI2PS"
+    | CVTPS2DQ x: "CVTPS2DQ"
+    | CVTPS2PD x: "CVTPS2PD"
+    | CVTPS2PI x: "CVTPS2PI"
+    | CVTSD2SI x: "CVTSD2SI"
+    | CVTSD2SS x: "CVTSD2SS"
+    | CVTSI2SD x: "CVTSI2SD"
+    | CVTSI2SS x: "CVTSI2SS"
+    | CVTSS2SD x: "CVTSS2SD"
+    | CVTSS2SI x: "CVTSS2SI"
+    | CVTTPD2DQ x: "CVTTPD2DQ"
+    | CVTTPD2PI x: "CVTTPD2PI"
+    | CVTTPS2DQ x: "CVTTPS2DQ"
+    | CVTTPS2PI x: "CVTTPS2PI"
+    | CVTTSD2SI x: "CVTTSD2SI"
+    | CVTTSS2SI x: "CVTTSS2SI"
     | CWD x: "CWD"
     | CWDE x: "CWDE"
     | DAA x: "DAA"
     | DAS x: "DAS"
-    | DEC x: "DEC" -++ show/arity1 x
-    | DIV x: "DIV" -++ show/arity1 x
-    | DIVPD x: "DIVPD" -++ show/arity2 x
-    | DIVPS x: "DIVPS" -++ show/arity2 x
-    | DIVSD x: "DIVSD" -++ show/arity2 x
-    | DIVSS x: "DIVSS" -++ show/arity2 x
-    | DPPD x: "DPPD" -++ show/arity3 x
-    | DPPS x: "DPPS" -++ show/arity3 x
+    | DEC x: "DEC"
+    | DIV x: "DIV"
+    | DIVPD x: "DIVPD"
+    | DIVPS x: "DIVPS"
+    | DIVSD x: "DIVSD"
+    | DIVSS x: "DIVSS"
+    | DPPD x: "DPPD"
+    | DPPS x: "DPPS"
     | EMMS x: "EMMS"
-    | ENTER x: "ENTER" -++ show/arity2 x
-    | EXTRACTPS x: "EXTRACTPS" -++ show/arity3 x
+    | ENTER x: "ENTER"
+    | EXTRACTPS x: "EXTRACTPS"
     | F2XM1 x: "F2XM1"
     | FABS x: "FABS"
-    | FADD x: "FADD" -++ show/arity2 x
-    | FADDP x: "FADDP" -++ show/arity2 x
-    | FBLD x: "FBLD" -++ show/arity1 x
-    | FBSTP x: "FBSTP" -++ show/arity1 x
+    | FADD x: "FADD"
+    | FADDP x: "FADDP"
+    | FBLD x: "FBLD"
+    | FBSTP x: "FBSTP"
     | FCHS x: "FCHS"
     | FCLEX x: "FCLEX"
-    | FCMOVB x: "FCMOVB" -++ show/arity2 x
-    | FCMOVBE x: "FCMOVBE" -++ show/arity2 x
-    | FCMOVE x: "FCMOVE" -++ show/arity2 x
-    | FCMOVNB x: "FCMOVNB" -++ show/arity2 x
-    | FCMOVNBE x: "FCMOVNBE" -++ show/arity2 x
-    | FCMOVNE x: "FCMOVNE" -++ show/arity2 x
-    | FCMOVNU x: "FCMOVNU" -++ show/arity2 x
-    | FCMOVU x: "FCMOVU" -++ show/arity2 x
-    | FCOM x: "FCOM" -++ show/arity1 x
-    | FCOMI x: "FCOMI" -++ show/arity2 x
-    | FCOMIP x: "FCOMIP" -++ show/arity2 x
-    | FCOMP x: "FCOMP" -++ show/arity1 x
+    | FCMOVB x: "FCMOVB"
+    | FCMOVBE x: "FCMOVBE"
+    | FCMOVE x: "FCMOVE"
+    | FCMOVNB x: "FCMOVNB"
+    | FCMOVNBE x: "FCMOVNBE"
+    | FCMOVNE x: "FCMOVNE"
+    | FCMOVNU x: "FCMOVNU"
+    | FCMOVU x: "FCMOVU"
+    | FCOM x: "FCOM"
+    | FCOMI x: "FCOMI"
+    | FCOMIP x: "FCOMIP"
+    | FCOMP x: "FCOMP"
     | FCOMPP x: "FCOMPP"
     | FCOS x: "FCOS"
     | FDECSTP x: "FDECSTP"
-    | FDIV x: "FDIV" -++ show/arity2 x
-    | FDIVP x: "FDIVP" -++ show/arity2 x
-    | FDIVR x: "FDIVR" -++ show/arity2 x
-    | FDIVRP x: "FDIVRP" -++ show/arity2 x
-    | FFREE x: "FFREE" -++ show/arity1 x
-    | FIADD x: "FIADD" -++ show/arity1 x
-    | FICOM x: "FICOM" -++ show/arity1 x
-    | FICOMP x: "FICOMP" -++ show/arity1 x
-    | FIDIV x: "FIDIV" -++ show/arity2 x
-    | FIDIVR x: "FIDIVR" -++ show/arity1 x
-    | FILD x: "FILD" -++ show/arity1 x
-    | FIMUL x: "FIMUL" -++ show/arity1 x
+    | FDIV x: "FDIV"
+    | FDIVP x: "FDIVP"
+    | FDIVR x: "FDIVR"
+    | FDIVRP x: "FDIVRP"
+    | FFREE x: "FFREE"
+    | FIADD x: "FIADD"
+    | FICOM x: "FICOM"
+    | FICOMP x: "FICOMP"
+    | FIDIV x: "FIDIV"
+    | FIDIVR x: "FIDIVR"
+    | FILD x: "FILD"
+    | FIMUL x: "FIMUL"
     | FINCSTP x: "FINCSTP"
     | FINIT x: "FINIT"
-    | FIST x: "FIST" -++ show/arity1 x
-    | FISTP x: "FISTP" -++ show/arity1 x
-    | FISTTP x: "FISTTP" -++ show/arity1 x
-    | FISUB x: "FISUB" -++ show/arity1 x
-    | FISUBR x: "FISUBR" -++ show/arity1 x
-    | FLD x: "FLD" -++ show/arity1 x
+    | FIST x: "FIST"
+    | FISTP x: "FISTP"
+    | FISTTP x: "FISTTP"
+    | FISUB x: "FISUB"
+    | FISUBR x: "FISUBR"
+    | FLD x: "FLD"
     | FLD1 x: "FLD1"
-    | FLDCW x: "FLDCW" -++ show/arity1 x
-    | FLDENV x: "FLDENV" -++ show/arity1 x
+    | FLDCW x: "FLDCW"
+    | FLDENV x: "FLDENV"
     | FLDL2E x: "FLDL2E"
     | FLDL2T x: "FLDL2T"
     | FLDLG2 x: "FLDLG2"
     | FLDLN2 x: "FLDLN2"
     | FLDPI x: "FLDPI"
     | FLDZ x: "FLDZ"
-    | FMUL x: "FMUL" -++ show/arity2 x
-    | FMULP x: "FMULP" -++ show/arity2 x
+    | FMUL x: "FMUL"
+    | FMULP x: "FMULP"
     | FNCLEX x: "FNCLEX"
     | FNINIT x: "FNINIT"
     | FNOP x: "FNOP"
-    | FNSAVE x: "FNSAVE" -++ show/arity1 x
-    | FNSTCW x: "FNSTCW" -++ show/arity1 x
-    | FNSTENV x: "FNSTENV" -++ show/arity1 x
-    | FNSTSW x: "FNSTSW" -++ show/arity1 x
+    | FNSAVE x: "FNSAVE"
+    | FNSTCW x: "FNSTCW"
+    | FNSTENV x: "FNSTENV"
+    | FNSTSW x: "FNSTSW"
     | FPATAN x: "FPATAN"
     | FPREM1 x: "FPREM1"
     | FPREM x: "FPREM"
     | FPTAN x: "FPTAN"
     | FRNDINT x: "FRNDINT"
-    | FRSTOR x: "FRSTOR" -++ show/arity1 x
-    | FSAVE x: "FSAVE" -++ show/arity1 x
+    | FRSTOR x: "FRSTOR"
+    | FSAVE x: "FSAVE"
     | FSCALE x: "FSCALE"
     | FSIN x: "FSIN"
     | FSINCOS x: "FSINCOS"
     | FSQRT x: "FSQRT"
-    | FST x: "FST" -++ show/arity1 x
-    | FSTCW x: "FSTCW" -++ show/arity1 x
-    | FSTENV x: "FSTENV" -++ show/arity1 x
-    | FSTP x: "FSTP" -++ show/arity1 x
-    | FSTSW x: "FSTSW" -++ show/arity1 x
-    | FSUB x: "FSUB" -++ show/arity2 x
-    | FSUBP x: "FSUBP" -++ show/arity2 x
-    | FSUBR x: "FSUBR" -++ show/arity2 x
-    | FSUBRP x: "FSUBRP" -++ show/arity2 x
+    | FST x: "FST"
+    | FSTCW x: "FSTCW"
+    | FSTENV x: "FSTENV"
+    | FSTP x: "FSTP"
+    | FSTSW x: "FSTSW"
+    | FSUB x: "FSUB"
+    | FSUBP x: "FSUBP"
+    | FSUBR x: "FSUBR"
+    | FSUBRP x: "FSUBRP"
     | FTST x: "FTST"
-    | FUCOM x: "FUCOM" -++ show/arity1 x
-    | FUCOMI x: "FUCOMI" -++ show/arity1 x
-    | FUCOMIP x: "FUCOMIP" -++ show/arity1 x
-    | FUCOMP x: "FUCOMP" -++ show/arity1 x
+    | FUCOM x: "FUCOM"
+    | FUCOMI x: "FUCOMI"
+    | FUCOMIP x: "FUCOMIP"
+    | FUCOMP x: "FUCOMP"
     | FUCOMPP x: "FUCOMPP"
     | FXAM x: "FXAM"
-    | FXCH x: "FXCH" -++ show/arity1 x
-    | FXRSTOR x: "FXRSTOR" -++ show/arity1 x
-    | FXRSTOR64 x: "FXRSTOR64" -++ show/arity1 x
-    | FXSAVE x: "FXSAVE" -++ show/arity1 x
-    | FXSAVE64 x: "FXSAVE64" -++ show/arity1 x
+    | FXCH x: "FXCH"
+    | FXRSTOR x: "FXRSTOR"
+    | FXRSTOR64 x: "FXRSTOR64"
+    | FXSAVE x: "FXSAVE"
+    | FXSAVE64 x: "FXSAVE64"
     | FXTRACT x: "FXTRACT"
     | FYL2X x: "FYL2X"
     | FYL2XP1 x: "FYL2XP1"
-    | HADDPD x: "HADDPD" -++ show/arity2 x
-    | HADDPS x: "HADDPS" -++ show/arity2 x
+    | HADDPD x: "HADDPD"
+    | HADDPS x: "HADDPS"
     | HLT x: "HLT"
-    | HSUBPD x: "HSUBPD" -++ show/arity2 x
-    | HSUBPS x: "HSUBPS" -++ show/arity2 x
-    | IDIV x: "IDIV" -++ show/arity1 x
-    | IMUL x: "IMUL" +++ show/varity x
-    | IN x: "IN" -++ show/arity2 x
-    | INC x: "INC" -++ show/arity1 x
+    | HSUBPD x: "HSUBPD"
+    | HSUBPS x: "HSUBPS"
+    | IDIV x: "IDIV"
+    | IMUL x: "IMUL"
+    | IN x: "IN"
+    | INC x: "INC"
     | INSB x: "INSB"
     | INSD x: "INSD"
-    | INSERTPS x: "INSERTPS" -++ show/arity3 x
+    | INSERTPS x: "INSERTPS"
     | INSW x: "INSW"
-    | INT x: "INT" -++ show/arity1 x
+    | INT x: "INT"
     | INT0 x: "INT0"
     | INT3 x: "INT3"
     | INVD x: "INVD"
-    | INVLPG x: "INVLPG" -++ show/arity1 x
-    | INVPCID x: "INVPCID" -++ show/arity2 x
+    | INVLPG x: "INVLPG"
+    | INVPCID x: "INVPCID"
     | IRET x: "IRET"
     | IRETD x: "IRETD"
     | IRETQ x: "IRETQ"
-    | JA x: "JA" -++ show/flow1 x
-    | JAE x: "JAE" -++ show/flow1 x
-    | JB x: "JB" -++ show/flow1 x
-    | JBE x: "JBE" -++ show/flow1 x
-    | JC x: "JC" -++ show/flow1 x
-    | JCXZ x: "JCXZ" -++ show/flow1 x
-    | JE x: "JE" -++ show/flow1 x
-    | JECXZ x: "JECXZ" -++ show/flow1 x
-    | JG x: "JG" -++ show/flow1 x
-    | JGE x: "JGE" -++ show/flow1 x
-    | JL x: "JL" -++ show/flow1 x
-    | JLE x: "JLE" -++ show/flow1 x
-    | JMP x: "JMP" -++ show/flow1 x
-    | JNA x: "JNA" -++ show/flow1 x
-    | JNAE x: "JNAE" -++ show/flow1 x
-    | JNB x: "JNB" -++ show/flow1 x
-    | JNBE x: "JNBE" -++ show/flow1 x
-    | JNC x: "JNC" -++ show/flow1 x
-    | JNE x: "JNE" -++ show/flow1 x
-    | JNG x: "JNG" -++ show/flow1 x
-    | JNGE x: "JNGE" -++ show/flow1 x
-    | JNL x: "JNL" -++ show/flow1 x
-    | JNLE x: "JNLE" -++ show/flow1 x
-    | JNO x: "JNO" -++ show/flow1 x
-    | JNP x: "JNP" -++ show/flow1 x
-    | JNS x: "JNS" -++ show/flow1 x
-    | JNZ x: "JNZ" -++ show/flow1 x
-    | JO x: "JO" -++ show/flow1 x
-    | JP x: "JP" -++ show/flow1 x
-    | JPE x: "JPE" -++ show/flow1 x
-    | JPO x: "JPO" -++ show/flow1 x
-    | JRCXZ x: "JRCXZ" -++ show/flow1 x
-    | JS x: "JS" -++ show/flow1 x
-    | JZ x: "JZ" -++ show/flow1 x
+    | JA x: "JA"
+    | JAE x: "JAE"
+    | JB x: "JB"
+    | JBE x: "JBE"
+    | JC x: "JC"
+    | JCXZ x: "JCXZ"
+    | JE x: "JE"
+    | JECXZ x: "JECXZ"
+    | JG x: "JG"
+    | JGE x: "JGE"
+    | JL x: "JL"
+    | JLE x: "JLE"
+    | JMP x: "JMP"
+    | JNA x: "JNA"
+    | JNAE x: "JNAE"
+    | JNB x: "JNB"
+    | JNBE x: "JNBE"
+    | JNC x: "JNC"
+    | JNE x: "JNE"
+    | JNG x: "JNG"
+    | JNGE x: "JNGE"
+    | JNL x: "JNL"
+    | JNLE x: "JNLE"
+    | JNO x: "JNO"
+    | JNP x: "JNP"
+    | JNS x: "JNS"
+    | JNZ x: "JNZ"
+    | JO x: "JO"
+    | JP x: "JP"
+    | JPE x: "JPE"
+    | JPO x: "JPO"
+    | JRCXZ x: "JRCXZ"
+    | JS x: "JS"
+    | JZ x: "JZ"
     | LAHF x: "LAHF"
-    | LAR x: "LAR" -++ show/arity2 x
-    | LDDQU x: "LDDQU" -++ show/arity2 x
-    | LDMXCSR x: "LDMXCSR" -++ show/arity1 x
-    | LDS x: "LDS" -++ show/arity2 x
-    | LEA x: "LEA" -++ show/arity2 x
+    | LAR x: "LAR"
+    | LDDQU x: "LDDQU"
+    | LDMXCSR x: "LDMXCSR"
+    | LDS x: "LDS"
+    | LEA x: "LEA"
     | LEAVE x: "LEAVE"
-    | LES x: "LES" -++ show/arity2 x
+    | LES x: "LES"
     | LFENCE x: "LFENCE"
-    | LFS x: "LFS" -++ show/arity2 x
-    | LGDT x: "LGDT" -++ show/arity1 x
-    | LGS x: "LGS" -++ show/arity2 x
-    | LIDT x: "LIDT" -++ show/arity1 x
-    | LLDT x: "LLDT" -++ show/arity1 x
-    | LMSW x: "LMSW" -++ show/arity1 x
-    | LODS x: "LODS" -++ show/arity1 x
-    | LOOP x: "LOOP" -++ show/flow1 x
-    | LOOPE x: "LOOPE" -++ show/flow1 x
-    | LOOPNE x: "LOOPNE" -++ show/flow1 x
-    | LSL x: "LSL" -++ show/arity2 x
-    | LSS x: "LSS" -++ show/arity2 x
-    | LTR x: "LTR" -++ show/arity1 x
-    | MASKMOVDQU x: "MASKMOVDQU" -++ show/arity3 x
-    | MASKMOVQ x: "MASKMOVQ" -++ show/arity3 x
-    | MAXPD x: "MAXPD" -++ show/arity2 x
-    | MAXPS x: "MAXPS" -++ show/arity2 x
-    | MAXSD x: "MAXSD" -++ show/arity2 x
-    | MAXSS x: "MAXSS" -++ show/arity2 x
+    | LFS x: "LFS"
+    | LGDT x: "LGDT"
+    | LGS x: "LGS"
+    | LIDT x: "LIDT"
+    | LLDT x: "LLDT"
+    | LMSW x: "LMSW"
+    | LODS x: "LODS"
+    | LOOP x: "LOOP"
+    | LOOPE x: "LOOPE"
+    | LOOPNE x: "LOOPNE"
+    | LSL x: "LSL"
+    | LSS x: "LSS"
+    | LTR x: "LTR"
+    | MASKMOVDQU x: "MASKMOVDQU"
+    | MASKMOVQ x: "MASKMOVQ"
+    | MAXPD x: "MAXPD"
+    | MAXPS x: "MAXPS"
+    | MAXSD x: "MAXSD"
+    | MAXSS x: "MAXSS"
     | MFENCE x: "MFENCE"
-    | MINPD x: "MINPD" -++ show/arity2 x
-    | MINPS x: "MINPS" -++ show/arity2 x
-    | MINSD x: "MINSD" -++ show/arity2 x
-    | MINSS x: "MINSS" -++ show/arity2 x
+    | MINPD x: "MINPD"
+    | MINPS x: "MINPS"
+    | MINSD x: "MINSD"
+    | MINSS x: "MINSS"
     | MONITOR x: "MONITOR"
-    | MOV x: "MOV" -++ show/arity2 x
-    | MOVAPD x: "MOVAPD" -++ show/arity2 x
-    | MOVAPS x: "MOVAPS" -++ show/arity2 x
-    | MOVBE x: "MOVBE" -++ show/arity2 x
-    | MOVD x: "MOVD" -++ show/arity2 x
-    | MOVDDUP x: "MOVDDUP" -++ show/arity2 x
-    | MOVDQ2Q x: "MOVDQ2Q" -++ show/arity2 x
-    | MOVDQA x: "MOVDQA" -++ show/arity2 x
-    | MOVDQU x: "MOVDQU" -++ show/arity2 x
-    | MOVHLPS x: "MOVHLPS" -++ show/arity2 x
-    | MOVHPD x: "MOVHPD" -++ show/arity2 x
-    | MOVHPS x: "MOVHPS" -++ show/arity2 x
-    | MOVLHPS x: "MOVLHPS" -++ show/arity2 x
-    | MOVLPD x: "MOVLPD" -++ show/arity2 x
-    | MOVLPS x: "MOVLPS" -++ show/arity2 x
-    | MOVMSKPD x: "MOVMSKPD" -++ show/arity2 x
-    | MOVMSKPS x: "MOVMSKPS" -++ show/arity2 x
-    | MOVNTDQ x: "MOVNTDQ" -++ show/arity2 x
-    | MOVNTDQA x: "MOVNTDQA" -++ show/arity2 x
-    | MOVNTI x: "MOVNTI" -++ show/arity2 x
-    | MOVNTPD x: "MOVNTPD" -++ show/arity2 x
-    | MOVNTPS x: "MOVNTPS" -++ show/arity2 x
-    | MOVNTQ x: "MOVNTQ" -++ show/arity2 x
-    | MOVQ x: "MOVQ" -++ show/arity2 x
-    | MOVQ2DQ x: "MOVQ2DQ" -++ show/arity2 x
-    | MOVS x: "MOVS" -++ show/arity2 x
-    | MOVSD x: "MOVSD" -++ show/arity2 x
-    | MOVSHDUP x: "MOVSHDUP" -++ show/arity2 x
-    | MOVSLDUP x: "MOVSLDUP" -++ show/arity2 x
-    | MOVSS x: "MOVSS" -++ show/arity2 x
-    | MOVSW x: "MOVSW" -++ show/arity2 x
-    | MOVSX x: "MOVSX" -++ show/arity2 x
-    | MOVSXD x: "MOVSXD" -++ show/arity2 x
-    | MOVUPD x: "MOVUPD" -++ show/arity2 x
-    | MOVUPS x: "MOVUPS" -++ show/arity2 x
-    | MOVZX x: "MOVZX" -++ show/arity2 x
-    | MPSADBW x: "MPSADBW" -++ show/arity3 x
-    | MUL x: "MUL" -++ show/arity1 x
-    | MULPD x: "MULPD" -++ show/arity2 x
-    | MULPS x: "MULPS" -++ show/arity2 x
-    | MULSD x: "MULSD" -++ show/arity2 x
-    | MULSS x: "MULSS" -++ show/arity2 x
+    | MOV x: "MOV"
+    | MOVAPD x: "MOVAPD"
+    | MOVAPS x: "MOVAPS"
+    | MOVBE x: "MOVBE"
+    | MOVD x: "MOVD"
+    | MOVDDUP x: "MOVDDUP"
+    | MOVDQ2Q x: "MOVDQ2Q"
+    | MOVDQA x: "MOVDQA"
+    | MOVDQU x: "MOVDQU"
+    | MOVHLPS x: "MOVHLPS"
+    | MOVHPD x: "MOVHPD"
+    | MOVHPS x: "MOVHPS"
+    | MOVLHPS x: "MOVLHPS"
+    | MOVLPD x: "MOVLPD"
+    | MOVLPS x: "MOVLPS"
+    | MOVMSKPD x: "MOVMSKPD"
+    | MOVMSKPS x: "MOVMSKPS"
+    | MOVNTDQ x: "MOVNTDQ"
+    | MOVNTDQA x: "MOVNTDQA"
+    | MOVNTI x: "MOVNTI"
+    | MOVNTPD x: "MOVNTPD"
+    | MOVNTPS x: "MOVNTPS"
+    | MOVNTQ x: "MOVNTQ"
+    | MOVQ x: "MOVQ"
+    | MOVQ2DQ x: "MOVQ2DQ"
+    | MOVS x: "MOVS"
+    | MOVSD x: "MOVSD"
+    | MOVSHDUP x: "MOVSHDUP"
+    | MOVSLDUP x: "MOVSLDUP"
+    | MOVSS x: "MOVSS"
+    | MOVSW x: "MOVSW"
+    | MOVSX x: "MOVSX"
+    | MOVSXD x: "MOVSXD"
+    | MOVUPD x: "MOVUPD"
+    | MOVUPS x: "MOVUPS"
+    | MOVZX x: "MOVZX"
+    | MPSADBW x: "MPSADBW"
+    | MUL x: "MUL"
+    | MULPD x: "MULPD"
+    | MULPS x: "MULPS"
+    | MULSD x: "MULSD"
+    | MULSS x: "MULSS"
     | MWAIT x: "MWAIT"
-    | NEG x: "NEG" -++ show/arity1 x
-    | NOP x: "NOP" +++ show/varity x
-    | NOT x: "NOT" -++ show/arity1 x
-    | OR x: "OR" -++ show/arity2 x
-    | ORPD x: "ORPD" -++ show/arity2 x
-    | ORPS x: "ORPS" -++ show/arity2 x
-    | OUT x: "OUT" -++ show/arity2 x
+    | NEG x: "NEG"
+    | NOP x: "NOP"
+    | NOT x: "NOT"
+    | OR x: "OR"
+    | ORPD x: "ORPD"
+    | ORPS x: "ORPS"
+    | OUT x: "OUT"
     | OUTS x: "OUTS"
     | OUTSB x: "OUTSB"
     | OUTSD x: "OUTSD"
     | OUTSW x: "OUTSW"
-    | PABSB x: "PABSB" -++ show/arity2 x
-    | PABSD x: "PABSD" -++ show/arity2 x
-    | PABSW x: "PABSW" -++ show/arity2 x
-    | PACKSSDW x: "PACKSSDW" -++ show/arity2 x
-    | PACKSSWB x: "PACKSSWB" -++ show/arity2 x
-    | PACKUSDW x: "PACKUSDW" -++ show/arity2 x
-    | PACKUSWB x: "PACKUSWB" -++ show/arity2 x
-    | PADDB x: "PADDB" -++ show/arity2 x
-    | PADDD x: "PADDD" -++ show/arity2 x
-    | PADDQ x: "PADDQ" -++ show/arity2 x
-    | PADDSB x: "PADDSB" -++ show/arity2 x
-    | PADDSW x: "PADDSW" -++ show/arity2 x
-    | PADDUSB x: "PADDUSB" -++ show/arity2 x
-    | PADDUSW x: "PADDUSW" -++ show/arity2 x
-    | PADDW x: "PADDW" -++ show/arity2 x
-    | PALIGNR x: "PALIGNR" -++ show/arity3 x
-    | PAND x: "PAND" -++ show/arity2 x
-    | PANDN x: "PANDN" -++ show/arity2 x
+    | PABSB x: "PABSB"
+    | PABSD x: "PABSD"
+    | PABSW x: "PABSW"
+    | PACKSSDW x: "PACKSSDW"
+    | PACKSSWB x: "PACKSSWB"
+    | PACKUSDW x: "PACKUSDW"
+    | PACKUSWB x: "PACKUSWB"
+    | PADDB x: "PADDB"
+    | PADDD x: "PADDD"
+    | PADDQ x: "PADDQ"
+    | PADDSB x: "PADDSB"
+    | PADDSW x: "PADDSW"
+    | PADDUSB x: "PADDUSB"
+    | PADDUSW x: "PADDUSW"
+    | PADDW x: "PADDW"
+    | PALIGNR x: "PALIGNR"
+    | PAND x: "PAND"
+    | PANDN x: "PANDN"
     | PAUSE x: "PAUSE"
-    | PAVGB x: "PAVGB" -++ show/arity2 x
-    | PAVGW x: "PAVGW" -++ show/arity2 x
-    | PBLENDVB x: "PBLENDVB" -++ show/arity2 x
-    | PBLENDW x: "PBLENDW" -++ show/arity3 x
-    | PCLMULQDQ x: "PCLMULQDQ" -++ show/arity3 x
-    | PCMPEQB x: "PCMPEQB" -++ show/arity2 x
-    | PCMPEQD x: "PCMPEQD" -++ show/arity2 x
-    | PCMPEQQ x: "PCMPEQQ" -++ show/arity2 x
-    | PCMPEQW x: "PCMPEQW" -++ show/arity2 x
-    | PCMPESTRI x: "PCMPESTRI" -++ show/arity3 x
-    | PCMPESTRM x: "PCMPESTRM" -++ show/arity3 x
-    | PCMPGRD x: "PCMPGRD" -++ show/arity2 x
-    | PCMPGTB x: "PCMPGTB" -++ show/arity2 x
-    | PCMPGTD x: "PCMPGTD" -++ show/arity2 x
-    | PCMPGTQ x: "PCMPGTQ" -++ show/arity2 x
-    | PCMPGTW x: "PCMPGTW" -++ show/arity2 x
-    | PCMPISTRI x: "PCMPISTRI" -++ show/arity3 x
-    | PCMPISTRM x: "PCMPISTRM" -++ show/arity3 x
-    | PEXTRB x: "PEXTRB" -++ show/arity3 x
-    | PEXTRD x: "PEXTRD" -++ show/arity3 x
-    | PEXTRQ x: "PEXTRQ" -++ show/arity3 x
-    | PEXTRW x: "PEXTRW" -++ show/arity3 x
-    | PHADDD x: "PHADDD" -++ show/arity2 x
-    | PHADDSW x: "PHADDSW" -++ show/arity2 x
-    | PHADDW x: "PHADDW" -++ show/arity2 x
-    | PHMINPOSUW x: "PHMINPOSUW" -++ show/arity2 x
-    | PHSUBD x: "PHSUBD" -++ show/arity2 x
-    | PHSUBSW x: "PHSUBSW" -++ show/arity2 x
-    | PHSUBW x: "PHSUBW" -++ show/arity2 x
-    | PINSRB x: "PINSRB" -++ show/arity3 x
-    | PINSRD x: "PINSRD" -++ show/arity3 x
-    | PINSRQ x: "PINSRQ" -++ show/arity3 x
-    | PINSRW x: "PINSRW" -++ show/arity3 x
-    | PMADDUBSW x: "PMADDUBSW" -++ show/arity2 x
-    | PMADDWD x: "PMADDWD" -++ show/arity2 x
-    | PMAXSB x: "PMAXSB" -++ show/arity2 x
-    | PMAXSD x: "PMAXSD" -++ show/arity2 x
-    | PMAXSW x: "PMAXSW" -++ show/arity2 x
-    | PMAXUB x: "PMAXUB" -++ show/arity2 x
-    | PMAXUD x: "PMAXUD" -++ show/arity2 x
-    | PMAXUW x: "PMAXUW" -++ show/arity2 x
-    | PMINSB x: "PMINSB" -++ show/arity2 x
-    | PMINSD x: "PMINSD" -++ show/arity2 x
-    | PMINSW x: "PMINSW" -++ show/arity2 x
-    | PMINUB x: "PMINUB" -++ show/arity2 x
-    | PMINUD x: "PMINUD" -++ show/arity2 x
-    | PMINUW x: "PMINUW" -++ show/arity2 x
-    | PMOVMSKB x: "PMOVMSKB" -++ show/arity2 x
-    | PMOVSXBD x: "PMOVSXBD" -++ show/arity2 x
-    | PMOVSXBQ x: "PMOVSXBQ" -++ show/arity2 x
-    | PMOVSXBW x: "PMOVSXBW" -++ show/arity2 x
-    | PMOVSXDQ x: "PMOVSXDQ" -++ show/arity2 x
-    | PMOVSXWD x: "PMOVSXWD" -++ show/arity2 x
-    | PMOVSXWQ x: "PMOVSXWQ" -++ show/arity2 x
-    | PMOVZXBD x: "PMOVZXBD" -++ show/arity2 x
-    | PMOVZXBQ x: "PMOVZXBQ" -++ show/arity2 x
-    | PMOVZXBW x: "PMOVZXBW" -++ show/arity2 x
-    | PMOVZXDQ x: "PMOVZXDQ" -++ show/arity2 x
-    | PMOVZXWD x: "PMOVZXWD" -++ show/arity2 x
-    | PMOVZXWQ x: "PMOVZXWQ" -++ show/arity2 x
-    | PMULDQ x: "PMULDQ" -++ show/arity2 x
-    | PMULHRSW x: "PMULHRSW" -++ show/arity2 x
-    | PMULHUW x: "PMULHUW" -++ show/arity2 x
-    | PMULHW x: "PMULHW" -++ show/arity2 x
-    | PMULLD x: "PMULLD" -++ show/arity2 x
-    | PMULLW x: "PMULLW" -++ show/arity2 x
-    | PMULUDQ x: "PMULUDQ" -++ show/arity2 x
-    | POP x: "POP" -++ show/arity1 x
+    | PAVGB x: "PAVGB"
+    | PAVGW x: "PAVGW"
+    | PBLENDVB x: "PBLENDVB"
+    | PBLENDW x: "PBLENDW"
+    | PCLMULQDQ x: "PCLMULQDQ"
+    | PCMPEQB x: "PCMPEQB"
+    | PCMPEQD x: "PCMPEQD"
+    | PCMPEQQ x: "PCMPEQQ"
+    | PCMPEQW x: "PCMPEQW"
+    | PCMPESTRI x: "PCMPESTRI"
+    | PCMPESTRM x: "PCMPESTRM"
+    | PCMPGRD x: "PCMPGRD"
+    | PCMPGTB x: "PCMPGTB"
+    | PCMPGTD x: "PCMPGTD"
+    | PCMPGTQ x: "PCMPGTQ"
+    | PCMPGTW x: "PCMPGTW"
+    | PCMPISTRI x: "PCMPISTRI"
+    | PCMPISTRM x: "PCMPISTRM"
+    | PEXTRB x: "PEXTRB"
+    | PEXTRD x: "PEXTRD"
+    | PEXTRQ x: "PEXTRQ"
+    | PEXTRW x: "PEXTRW"
+    | PHADDD x: "PHADDD"
+    | PHADDSW x: "PHADDSW"
+    | PHADDW x: "PHADDW"
+    | PHMINPOSUW x: "PHMINPOSUW"
+    | PHSUBD x: "PHSUBD"
+    | PHSUBSW x: "PHSUBSW"
+    | PHSUBW x: "PHSUBW"
+    | PINSRB x: "PINSRB"
+    | PINSRD x: "PINSRD"
+    | PINSRQ x: "PINSRQ"
+    | PINSRW x: "PINSRW"
+    | PMADDUBSW x: "PMADDUBSW"
+    | PMADDWD x: "PMADDWD"
+    | PMAXSB x: "PMAXSB"
+    | PMAXSD x: "PMAXSD"
+    | PMAXSW x: "PMAXSW"
+    | PMAXUB x: "PMAXUB"
+    | PMAXUD x: "PMAXUD"
+    | PMAXUW x: "PMAXUW"
+    | PMINSB x: "PMINSB"
+    | PMINSD x: "PMINSD"
+    | PMINSW x: "PMINSW"
+    | PMINUB x: "PMINUB"
+    | PMINUD x: "PMINUD"
+    | PMINUW x: "PMINUW"
+    | PMOVMSKB x: "PMOVMSKB"
+    | PMOVSXBD x: "PMOVSXBD"
+    | PMOVSXBQ x: "PMOVSXBQ"
+    | PMOVSXBW x: "PMOVSXBW"
+    | PMOVSXDQ x: "PMOVSXDQ"
+    | PMOVSXWD x: "PMOVSXWD"
+    | PMOVSXWQ x: "PMOVSXWQ"
+    | PMOVZXBD x: "PMOVZXBD"
+    | PMOVZXBQ x: "PMOVZXBQ"
+    | PMOVZXBW x: "PMOVZXBW"
+    | PMOVZXDQ x: "PMOVZXDQ"
+    | PMOVZXWD x: "PMOVZXWD"
+    | PMOVZXWQ x: "PMOVZXWQ"
+    | PMULDQ x: "PMULDQ"
+    | PMULHRSW x: "PMULHRSW"
+    | PMULHUW x: "PMULHUW"
+    | PMULHW x: "PMULHW"
+    | PMULLD x: "PMULLD"
+    | PMULLW x: "PMULLW"
+    | PMULUDQ x: "PMULUDQ"
+    | POP x: "POP"
     | POPA x: "POPA"
     | POPAD x: "POPAD"
-    | POPCNT x: "POPCNT" -++ show/arity2 x
+    | POPCNT x: "POPCNT"
     | POPF x: "POPF"
     | POPFD x: "POPFD"
     | POPFQ x: "POPFQ"
-    | POR x: "POR" -++ show/arity2 x
-    | PREFETCHNTA x: "PREFETCHNTA" -++ show/arity1 x
-    | PREFETCHT0 x: "PREFETCHT0" -++ show/arity1 x
-    | PREFETCHT1 x: "PREFETCHT1" -++ show/arity1 x
-    | PREFETCHT2 x: "PREFETCHT2" -++ show/arity1 x
-    | PREFETCHW x: "PREFETCHW" -++ show/arity1 x
-    | PSADBW x: "PSADBW" -++ show/arity2 x
-    | PSHUFB x: "PSHUFB" -++ show/arity2 x
-    | PSHUFD x: "PSHUFD" -++ show/arity3 x
-    | PSHUFHW x: "PSHUFHW" -++ show/arity3 x
-    | PSHUFLW x: "PSHUFLW" -++ show/arity3 x
-    | PSHUFW x: "PSHUFW" -++ show/arity3 x
-    | PSIGNB x: "PSIGNB" -++ show/arity2 x
-    | PSIGND x: "PSIGND" -++ show/arity2 x
-    | PSIGNW x: "PSIGNW" -++ show/arity2 x
-    | PSLLD x: "PSLLD" -++ show/arity2 x
-    | PSLLDQ x: "PSLLDQ" -++ show/arity2 x
-    | PSLLQ x: "PSLLQ" -++ show/arity2 x
-    | PSLLW x: "PSLLW" -++ show/arity2 x
-    | PSRAD x: "PSRAD" -++ show/arity2 x
-    | PSRAW x: "PSRAW" -++ show/arity2 x
-    | PSRLD x: "PSRLD" -++ show/arity2 x
-    | PSRLDQ x: "PSRLDQ" -++ show/arity2 x
-    | PSRLQ x: "PSRLQ" -++ show/arity2 x
-    | PSRLW x: "PSRLW" -++ show/arity2 x
-    | PSUBB x: "PSUBB" -++ show/arity2 x
-    | PSUBD x: "PSUBD" -++ show/arity2 x
-    | PSUBQ x: "PSUBQ" -++ show/arity2 x
-    | PSUBSB x: "PSUBSB" -++ show/arity2 x
-    | PSUBSW x: "PSUBSW" -++ show/arity2 x
-    | PSUBUSB x: "PSUBUSB" -++ show/arity2 x
-    | PSUBUSW x: "PSUBUSW" -++ show/arity2 x
-    | PSUBW x: "PSUBW" -++ show/arity2 x
-    | PTEST x: "PTEST" -++ show/arity2 x
-    | PUNPCKHBW x: "PUNPCKHBW" -++ show/arity2 x
-    | PUNPCKHDQ x: "PUNPCKHDQ" -++ show/arity2 x
-    | PUNPCKHQDQ x: "PUNPCKHQDQ" -++ show/arity2 x
-    | PUNPCKHWD x: "PUNPCKHWD" -++ show/arity2 x
-    | PUNPCKLBW x: "PUNPCKLBW" -++ show/arity2 x
-    | PUNPCKLDQ x: "PUNPCKLDQ" -++ show/arity2 x
-    | PUNPCKLQDQ x: "PUNPCKLQDQ" -++ show/arity2 x
-    | PUNPCKLWD x: "PUNPCKLWD" -++ show/arity2 x
-    | PUSH x: "PUSH" -++ show/arity1 x
+    | POR x: "POR"
+    | PREFETCHNTA x: "PREFETCHNTA"
+    | PREFETCHT0 x: "PREFETCHT0"
+    | PREFETCHT1 x: "PREFETCHT1"
+    | PREFETCHT2 x: "PREFETCHT2"
+    | PREFETCHW x: "PREFETCHW"
+    | PSADBW x: "PSADBW"
+    | PSHUFB x: "PSHUFB"
+    | PSHUFD x: "PSHUFD"
+    | PSHUFHW x: "PSHUFHW"
+    | PSHUFLW x: "PSHUFLW"
+    | PSHUFW x: "PSHUFW"
+    | PSIGNB x: "PSIGNB"
+    | PSIGND x: "PSIGND"
+    | PSIGNW x: "PSIGNW"
+    | PSLLD x: "PSLLD"
+    | PSLLDQ x: "PSLLDQ"
+    | PSLLQ x: "PSLLQ"
+    | PSLLW x: "PSLLW"
+    | PSRAD x: "PSRAD"
+    | PSRAW x: "PSRAW"
+    | PSRLD x: "PSRLD"
+    | PSRLDQ x: "PSRLDQ"
+    | PSRLQ x: "PSRLQ"
+    | PSRLW x: "PSRLW"
+    | PSUBB x: "PSUBB"
+    | PSUBD x: "PSUBD"
+    | PSUBQ x: "PSUBQ"
+    | PSUBSB x: "PSUBSB"
+    | PSUBSW x: "PSUBSW"
+    | PSUBUSB x: "PSUBUSB"
+    | PSUBUSW x: "PSUBUSW"
+    | PSUBW x: "PSUBW"
+    | PTEST x: "PTEST"
+    | PUNPCKHBW x: "PUNPCKHBW"
+    | PUNPCKHDQ x: "PUNPCKHDQ"
+    | PUNPCKHQDQ x: "PUNPCKHQDQ"
+    | PUNPCKHWD x: "PUNPCKHWD"
+    | PUNPCKLBW x: "PUNPCKLBW"
+    | PUNPCKLDQ x: "PUNPCKLDQ"
+    | PUNPCKLQDQ x: "PUNPCKLQDQ"
+    | PUNPCKLWD x: "PUNPCKLWD"
+    | PUSH x: "PUSH"
     | PUSHA x: "PUSHA"
     | PUSHAD x: "PUSHAD"
     | PUSHF x: "PUSHF"
     | PUSHFD x: "PUSHFD"
     | PUSHFQ x: "PUSHFQ"
-    | PXOR x: "PXOR" -++ show/arity2 x
-    | RCL x: "RCL" -++ show/arity2 x
-    | RCPPS x: "RCPPS" -++ show/arity2 x
-    | RCPSS x: "RCPSS" -++ show/arity2 x
-    | RCR x: "RCR" -++ show/arity2 x
-    | RDFSBASE x: "RDFSBASE" -++ show/arity1 x
-    | RDGSBASE x: "RDGSBASE" -++ show/arity1 x
+    | PXOR x: "PXOR"
+    | RCL x: "RCL"
+    | RCPPS x: "RCPPS"
+    | RCPSS x: "RCPSS"
+    | RCR x: "RCR"
+    | RDFSBASE x: "RDFSBASE"
+    | RDGSBASE x: "RDGSBASE"
     | RDMSR x: "RDMSR"
     | RDPMC x: "RDPMC"
-    | RDRAND x: "RDRAND" -++ show/arity1 x
+    | RDRAND x: "RDRAND"
     | RDTSC x: "RDTSC"
     | RDTSCP x: "RDTSCP"
-    | RET x: "RET" +++ show/varity x
-    | RET_FAR x: "RET_FAR" +++ show/varity x
-    | ROL x: "ROL" -++ show/arity2 x
-    | ROR x: "ROR" -++ show/arity2 x
-    | ROUNDPD x: "ROUNDPD" -++ show/arity3 x
-    | ROUNDPS x: "ROUNDPS" -++ show/arity3 x
-    | ROUNDSD x: "ROUNDSD" -++ show/arity3 x
-    | ROUNDSS x: "ROUNDSS" -++ show/arity3 x
+    | RET x: "RET"
+    | RET_FAR x: "RET_FAR"
+    | ROL x: "ROL"
+    | ROR x: "ROR"
+    | ROUNDPD x: "ROUNDPD"
+    | ROUNDPS x: "ROUNDPS"
+    | ROUNDSD x: "ROUNDSD"
+    | ROUNDSS x: "ROUNDSS"
     | RSM x: "RSM"
-    | RSQRTPS x: "RSQRTPS" -++ show/arity2 x
-    | RSQRTSS x: "RSQRTSS" -++ show/arity2 x
+    | RSQRTPS x: "RSQRTPS"
+    | RSQRTSS x: "RSQRTSS"
     | SAHF x: "SAHF"
-    | SAL x: "SAL" -++ show/arity2 x
-    | SAR x: "SAR" -++ show/arity2 x
-    | SBB x: "SBB" -++ show/arity2 x
+    | SAL x: "SAL"
+    | SAR x: "SAR"
+    | SBB x: "SBB"
     | SCASB x: "SCASB"
     | SCASD x: "SCASD"
     | SCASQ x: "SCASQ"
     | SCASW x: "SCASW"
-    | SETA x: "SETA" -++ show/arity1 x
-    | SETAE x: "SETAE" -++ show/arity1 x
-    | SETB x: "SETB" -++ show/arity1 x
-    | SETBE x: "SETBE" -++ show/arity1 x
-    | SETC x: "SETC" -++ show/arity1 x
-    | SETE x: "SETE" -++ show/arity1 x
-    | SETG x: "SETG" -++ show/arity1 x
-    | SETGE x: "SETGE" -++ show/arity1 x
-    | SETL x: "SETL" -++ show/arity1 x
-    | SETLE x: "SETLE" -++ show/arity1 x
-    | SETNA x: "SETNA" -++ show/arity1 x
-    | SETNAE x: "SETNAE" -++ show/arity1 x
-    | SETNB x: "SETNB" -++ show/arity1 x
-    | SETNBE x: "SETNBE" -++ show/arity1 x
-    | SETNC x: "SETNC" -++ show/arity1 x
-    | SETNE x: "SETNE" -++ show/arity1 x
-    | SETNG x: "SETNG" -++ show/arity1 x
-    | SETNGE x: "SETNGE" -++ show/arity1 x
-    | SETNL x: "SETNL" -++ show/arity1 x
-    | SETNLE x: "SETNLE" -++ show/arity1 x
-    | SETNO x: "SETNO" -++ show/arity1 x
-    | SETNP x: "SETNP" -++ show/arity1 x
-    | SETNS x: "SETNS" -++ show/arity1 x
-    | SETNZ x: "SETNZ" -++ show/arity1 x
-    | SETO x: "SETO" -++ show/arity1 x
-    | SETP x: "SETP" -++ show/arity1 x
-    | SETPE x: "SETPE" -++ show/arity1 x
-    | SETPO x: "SETPO" -++ show/arity1 x
-    | SETS x: "SETS" -++ show/arity1 x
-    | SETZ x: "SETZ" -++ show/arity1 x
+    | SETA x: "SETA"
+    | SETAE x: "SETAE"
+    | SETB x: "SETB"
+    | SETBE x: "SETBE"
+    | SETC x: "SETC"
+    | SETE x: "SETE"
+    | SETG x: "SETG"
+    | SETGE x: "SETGE"
+    | SETL x: "SETL"
+    | SETLE x: "SETLE"
+    | SETNA x: "SETNA"
+    | SETNAE x: "SETNAE"
+    | SETNB x: "SETNB"
+    | SETNBE x: "SETNBE"
+    | SETNC x: "SETNC"
+    | SETNE x: "SETNE"
+    | SETNG x: "SETNG"
+    | SETNGE x: "SETNGE"
+    | SETNL x: "SETNL"
+    | SETNLE x: "SETNLE"
+    | SETNO x: "SETNO"
+    | SETNP x: "SETNP"
+    | SETNS x: "SETNS"
+    | SETNZ x: "SETNZ"
+    | SETO x: "SETO"
+    | SETP x: "SETP"
+    | SETPE x: "SETPE"
+    | SETPO x: "SETPO"
+    | SETS x: "SETS"
+    | SETZ x: "SETZ"
     | SFENCE x: "SFENCE"
-    | SGDT x: "SGDT" -++ show/arity1 x
-    | SHL x: "SHL" -++ show/arity2 x
-    | SHLD x: "SHLD" -++ show/arity3 x
-    | SHR x: "SHR" -++ show/arity2 x
-    | SHRD x: "SHRD" -++ show/arity3 x
-    | SHUFPD x: "SHUFPD" -++ show/arity3 x
-    | SHUFPS x: "SHUFPS" -++ show/arity3 x
-    | SIDT x: "SIDT" -++ show/arity1 x
-    | SLDT x: "SLDT" -++ show/arity1 x
-    | SMSW x: "SMSW" -++ show/arity1 x
-    | SQRTPD x: "SQRTPD" -++ show/arity2 x
-    | SQRTPS x: "SQRTPS" -++ show/arity2 x
-    | SQRTSD x: "SQRTSD" -++ show/arity2 x
-    | SQRTSS x: "SQRTSS" -++ show/arity2 x
+    | SGDT x: "SGDT"
+    | SHL x: "SHL"
+    | SHLD x: "SHLD"
+    | SHR x: "SHR"
+    | SHRD x: "SHRD"
+    | SHUFPD x: "SHUFPD"
+    | SHUFPS x: "SHUFPS"
+    | SIDT x: "SIDT"
+    | SLDT x: "SLDT"
+    | SMSW x: "SMSW"
+    | SQRTPD x: "SQRTPD"
+    | SQRTPS x: "SQRTPS"
+    | SQRTSD x: "SQRTSD"
+    | SQRTSS x: "SQRTSS"
     | STC x: "STC"
     | STD x: "STD"
     | STI x: "STI"
-    | STMXCSR x: "STMXCSR" -++ show/arity1 x
+    | STMXCSR x: "STMXCSR"
     | STOSB x: "STOSB"
     | STOSD x: "STOSD"
     | STOSQ x: "STOSQ"
     | STOSW x: "STOSW"
-    | STR x: "STR" -++ show/arity1 x
-    | SUB x: "SUB" -++ show/arity2 x
-    | SUBPD x: "SUBPD" -++ show/arity2 x
-    | SUBPS x: "SUBPS" -++ show/arity2 x
-    | SUBSD x: "SUBSD" -++ show/arity2 x
-    | SUBSS x: "SUBSS" -++ show/arity2 x
+    | STR x: "STR"
+    | SUB x: "SUB"
+    | SUBPD x: "SUBPD"
+    | SUBPS x: "SUBPS"
+    | SUBSD x: "SUBSD"
+    | SUBSS x: "SUBSS"
     | SWAPGS x: "SWAPGS"
     | SYSCALL x: "SYSCALL"
     | SYSENTER x: "SYSENTER"
     | SYSEXIT x: "SYSEXIT"
     | SYSRET x: "SYSRET"
-    | TEST x: "TEST" -++ show/arity2 x
-    | UCOMISD x: "UCOMISD" -++ show/arity2 x
-    | UCOMISS x: "UCOMISS" -++ show/arity2 x
+    | TEST x: "TEST"
+    | UCOMISD x: "UCOMISD"
+    | UCOMISS x: "UCOMISS"
     | UD2 x: "UD2"
-    | UNPCKHPD x: "UNPCKHPD" -++ show/arity2 x
-    | UNPCKHPS x: "UNPCKHPS" -++ show/arity2 x
-    | UNPCKLPD x: "UNPCKLPD" -++ show/arity2 x
-    | UNPCKLPS x: "UNPCKLPS" -++ show/arity2 x
-    | VADDPD x: "VADDPD" +++ show/varity x
-    | VADDPS x: "VADDPS" +++ show/varity x
-    | VADDSD x: "VADDSD" +++ show/varity x
-    | VADDSS x: "VADDSS" +++ show/varity x
-    | VADDSUBPD x: "VADDSUBPD" +++ show/varity x
-    | VADDSUBPS x: "VADDSUBPS" +++ show/varity x
-    | VAESDEC x: "VAESDEC" +++ show/varity x
-    | VAESDECLAST x: "VAESDECLAST" +++ show/varity x
-    | VAESENC x: "VAESENC" +++ show/varity x
-    | VAESENCLAST x: "VAESENCLAST" +++ show/varity x
-    | VAESIMC x: "VAESIMC" +++ show/varity x
-    | VAESKEYGENASSIST x: "VAESKEYGENASSIST" +++ show/varity x
-    | VANDNPD x: "VANDNPD" +++ show/varity x
-    | VANDNPS x: "VANDNPS" +++ show/varity x
-    | VANDPD x: "VANDPD" +++ show/varity x
-    | VANDPS x: "VANDPS" +++ show/varity x
-    | VBLENDPD x: "VBLENDPD" +++ show/varity x
-    | VBLENDPS x: "VBLENDPS" +++ show/varity x
-    | VBLENDVPD x: "VBLENDVPD" +++ show/varity x
-    | VBLENDVPS x: "VBLENDVPS" +++ show/varity x
-    | VBROADCASTF128 x: "VBROADCASTF128" +++ show/varity x
-    | VBROADCASTSD x: "VBROADCASTSD" +++ show/varity x
-    | VBROADCASTSS x: "VBROADCASTSS" +++ show/varity x
-    | VCMPEQB x: "VCMPEQB" +++ show/varity x
-    | VCMPEQD x: "VCMPEQD" +++ show/varity x
-    | VCMPEQW x: "VCMPEQW" +++ show/varity x
-    | VCMPPD x: "VCMPPD" +++ show/varity x
-    | VCMPPS x: "VCMPPS" +++ show/varity x
-    | VCMPSD x: "VCMPSD" +++ show/varity x
-    | VCMPSS x: "VCMPSS" +++ show/varity x
-    | VCOMISD x: "VCOMISD" +++ show/varity x
-    | VCOMISS x: "VCOMISS" +++ show/varity x
-    | VCVTDQ2PD x: "VCVTDQ2PD" +++ show/varity x
-    | VCVTDQ2PS x: "VCVTDQ2PS" +++ show/varity x
-    | VCVTPD2DQ x: "VCVTPD2DQ" +++ show/varity x
-    | VCVTPD2PS x: "VCVTPD2PS" +++ show/varity x
-    | VCVTPH2PS x: "VCVTPH2PS" +++ show/varity x
-    | VCVTPS2DQ x: "VCVTPS2DQ" +++ show/varity x
-    | VCVTPS2PD x: "VCVTPS2PD" +++ show/varity x
-    | VCVTPS2PH x: "VCVTPS2PH" +++ show/varity x
-    | VCVTSD2SI x: "VCVTSD2SI" +++ show/varity x
-    | VCVTSD2SS x: "VCVTSD2SS" +++ show/varity x
-    | VCVTSI2SD x: "VCVTSI2SD" +++ show/varity x
-    | VCVTSI2SS x: "VCVTSI2SS" +++ show/varity x
-    | VCVTSS2SD x: "VCVTSS2SD" +++ show/varity x
-    | VCVTSS2SI x: "VCVTSS2SI" +++ show/varity x
-    | VCVTTPD2DQ x: "VCVTTPD2DQ" +++ show/varity x
-    | VCVTTPS2DQ x: "VCVTTPS2DQ" +++ show/varity x
-    | VCVTTSD2SI x: "VCVTTSD2SI" +++ show/varity x
-    | VCVTTSS2SI x: "VCVTTSS2SI" +++ show/varity x
-    | VDIVPD x: "VDIVPD" +++ show/varity x
-    | VDIVPS x: "VDIVPS" +++ show/varity x
-    | VDIVSD x: "VDIVSD" +++ show/varity x
-    | VDIVSS x: "VDIVSS" +++ show/varity x
-    | VDPPD x: "VDPPD" +++ show/varity x
-    | VDPPS x: "VDPPS" +++ show/varity x
-    | VERR x: "VERR" -++ show/arity1 x
-    | VERW x: "VERW" -++ show/arity1 x
-    | VEXTRACTF128 x: "VEXTRACTF128" +++ show/varity x
-    | VEXTRACTPS x: "VEXTRACTPS" +++ show/varity x
-    | VHADDPD x: "VHADDPD" +++ show/varity x
-    | VHADDPS x: "VHADDPS" +++ show/varity x
-    | VHSUBPD x: "VHSUBPD" +++ show/varity x
-    | VHSUBPS x: "VHSUBPS" +++ show/varity x
-    | VINSERTF128 x: "VINSERTF128" +++ show/varity x
-    | VINSERTPS x: "VINSERTPS" +++ show/varity x
-    | VLDDQU x: "VLDDQU" +++ show/varity x
-    | VLDMXCSR x: "VLDMXCSR" +++ show/varity x
-    | VMASKMOVDQU x: "VMASKMOVDQU" +++ show/varity x
-    | VMASKMOVPD x: "VMASKMOVPD" +++ show/varity x
-    | VMASKMOVPS x: "VMASKMOVPS" +++ show/varity x
-    | VMAXPD x: "VMAXPD" +++ show/varity x
-    | VMAXPS x: "VMAXPS" +++ show/varity x
-    | VMAXSD x: "VMAXSD" +++ show/varity x
-    | VMAXSS x: "VMAXSS" +++ show/varity x
-    | VMINPD x: "VMINPD" +++ show/varity x
-    | VMINPS x: "VMINPS" +++ show/varity x
-    | VMINSD x: "VMINSD" +++ show/varity x
-    | VMINSS x: "VMINSS" +++ show/varity x
-    | VMOVAPD x: "VMOVAPD" +++ show/varity x
-    | VMOVAPS x: "VMOVAPS" +++ show/varity x
-    | VMOVD x: "VMOVD" +++ show/varity x
-    | VMOVDDUP x: "VMOVDDUP" +++ show/varity x
-    | VMOVDQA x: "VMOVDQA" +++ show/varity x
-    | VMOVDQU x: "VMOVDQU" +++ show/varity x
-    | VMOVHLPS x: "VMOVHLPS" +++ show/varity x
-    | VMOVHPD x: "VMOVHPD" +++ show/varity x
-    | VMOVHPS x: "VMOVHPS" +++ show/varity x
-    | VMOVLHPS x: "VMOVLHPS" +++ show/varity x
-    | VMOVLPD x: "VMOVLPD" +++ show/varity x
-    | VMOVLPS x: "VMOVLPS" +++ show/varity x
-    | VMOVMSKPD x: "VMOVMSKPD" +++ show/varity x
-    | VMOVMSKPS x: "VMOVMSKPS" +++ show/varity x
-    | VMOVNTDQ x: "VMOVNTDQ" +++ show/varity x
-    | VMOVNTDQA x: "VMOVNTDQA" +++ show/varity x
-    | VMOVNTPD x: "VMOVNTPD" +++ show/varity x
-    | VMOVNTPS x: "VMOVNTPS" +++ show/varity x
-    | VMOVQ x: "VMOVQ" +++ show/varity x
-    | VMOVSD x: "VMOVSD" +++ show/varity x
-    | VMOVSHDUP x: "VMOVSHDUP" +++ show/varity x
-    | VMOVSLDUP x: "VMOVSLDUP" +++ show/varity x
-    | VMOVSS x: "VMOVSS" +++ show/varity x
-    | VMOVUPD x: "VMOVUPD" +++ show/varity x
-    | VMOVUPS x: "VMOVUPS" +++ show/varity x
-    | VMPSADBW x: "VMPSADBW" +++ show/varity x
-    | VMULPD x: "VMULPD" +++ show/varity x
-    | VMULPS x: "VMULPS" +++ show/varity x
-    | VMULSD x: "VMULSD" +++ show/varity x
-    | VMULSS x: "VMULSS" +++ show/varity x
-    | VORPD x: "VORPD" +++ show/varity x
-    | VORPS x: "VORPS" +++ show/varity x
-    | VPABSB x: "VPABSB" +++ show/varity x
-    | VPABSD x: "VPABSD" +++ show/varity x
-    | VPABSW x: "VPABSW" +++ show/varity x
-    | VPACKSSDW x: "VPACKSSDW" +++ show/varity x
-    | VPACKSSWB x: "VPACKSSWB" +++ show/varity x
-    | VPACKUSDW x: "VPACKUSDW" +++ show/varity x
-    | VPACKUSWB x: "VPACKUSWB" +++ show/varity x
-    | VPADDB x: "VPADDB" +++ show/varity x
-    | VPADDD x: "VPADDD" +++ show/varity x
-    | VPADDQ x: "VPADDQ" +++ show/varity x
-    | VPADDSB x: "VPADDSB" +++ show/varity x
-    | VPADDSW x: "VPADDSW" +++ show/varity x
-    | VPADDUSB x: "VPADDUSB" +++ show/varity x
-    | VPADDUSW x: "VPADDUSW" +++ show/varity x
-    | VPADDW x: "VPADDW" +++ show/varity x
-    | VPALIGNR x: "VPALIGNR" +++ show/varity x
-    | VPAND x: "VPAND" +++ show/varity x
-    | VPANDN x: "VPANDN" +++ show/varity x
-    | VPAVGB x: "VPAVGB" +++ show/varity x
-    | VPAVGW x: "VPAVGW" +++ show/varity x
-    | VPBLENDVB x: "VPBLENDVB" +++ show/varity x
-    | VPBLENDW x: "VPBLENDW" +++ show/varity x
-    | VPCLMULQDQ x: "VPCLMULQDQ" +++ show/varity x
-    | VPCMPEQB x: "VPCMPEQB" +++ show/varity x
-    | VPCMPEQD x: "VPCMPEQD" +++ show/varity x
-    | VPCMPEQQ x: "VPCMPEQQ" +++ show/varity x
-    | VPCMPEQW x: "VPCMPEQW" +++ show/varity x
-    | VPCMPESTRI x: "VPCMPESTRI" +++ show/varity x
-    | VPCMPESTRM x: "VPCMPESTRM" +++ show/varity x
-    | VPCMPGTB x: "VPCMPGTB" +++ show/varity x
-    | VPCMPGTD x: "VPCMPGTD" +++ show/varity x
-    | VPCMPGTQ x: "VPCMPGTQ" +++ show/varity x
-    | VPCMPGTW x: "VPCMPGTW" +++ show/varity x
-    | VPCMPISTRI x: "VPCMPISTRI" +++ show/varity x
-    | VPCMPISTRM x: "VPCMPISTRM" +++ show/varity x
-    | VPERM2F128 x: "VPERM2F128" +++ show/varity x
-    | VPERMILPD x: "VPERMILPD" +++ show/varity x
-    | VPERMILPS x: "VPERMILPS" +++ show/varity x
-    | VPEXTRB x: "VPEXTRB" +++ show/varity x
-    | VPEXTRD x: "VPEXTRD" +++ show/varity x
-    | VPEXTRQ x: "VPEXTRQ" +++ show/varity x
-    | VPEXTRW x: "VPEXTRW" +++ show/varity x
-    | VPHADDD x: "VPHADDD" +++ show/varity x
-    | VPHADDSW x: "VPHADDSW" +++ show/varity x
-    | VPHADDW x: "VPHADDW" +++ show/varity x
-    | VPHMINPOSUW x: "VPHMINPOSUW" +++ show/varity x
-    | VPHSUBD x: "VPHSUBD" +++ show/varity x
-    | VPHSUBSW x: "VPHSUBSW" +++ show/varity x
-    | VPHSUBW x: "VPHSUBW" +++ show/varity x
-    | VPINSRB x: "VPINSRB" +++ show/varity x
-    | VPINSRD x: "VPINSRD" +++ show/varity x
-    | VPINSRQ x: "VPINSRQ" +++ show/varity x
-    | VPINSRW x: "VPINSRW" +++ show/varity x
-    | VPMADDUBSW x: "VPMADDUBSW" +++ show/varity x
-    | VPMADDWD x: "VPMADDWD" +++ show/varity x
-    | VPMAXSB x: "VPMAXSB" +++ show/varity x
-    | VPMAXSD x: "VPMAXSD" +++ show/varity x
-    | VPMAXSW x: "VPMAXSW" +++ show/varity x
-    | VPMAXUB x: "VPMAXUB" +++ show/varity x
-    | VPMAXUD x: "VPMAXUD" +++ show/varity x
-    | VPMAXUW x: "VPMAXUW" +++ show/varity x
-    | VPMINSB x: "VPMINSB" +++ show/varity x
-    | VPMINSD x: "VPMINSD" +++ show/varity x
-    | VPMINSW x: "VPMINSW" +++ show/varity x
-    | VPMINUB x: "VPMINUB" +++ show/varity x
-    | VPMINUD x: "VPMINUD" +++ show/varity x
-    | VPMINUW x: "VPMINUW" +++ show/varity x
-    | VPMOVMSKB x: "VPMOVMSKB" +++ show/varity x
-    | VPMOVSXBD x: "VPMOVSXBD" +++ show/varity x
-    | VPMOVSXBQ x: "VPMOVSXBQ" +++ show/varity x
-    | VPMOVSXBW x: "VPMOVSXBW" +++ show/varity x
-    | VPMOVSXDQ x: "VPMOVSXDQ" +++ show/varity x
-    | VPMOVSXWD x: "VPMOVSXWD" +++ show/varity x
-    | VPMOVSXWQ x: "VPMOVSXWQ" +++ show/varity x
-    | VPMOVZXBD x: "VPMOVZXBD" +++ show/varity x
-    | VPMOVZXBQ x: "VPMOVZXBQ" +++ show/varity x
-    | VPMOVZXBW x: "VPMOVZXBW" +++ show/varity x
-    | VPMOVZXDQ x: "VPMOVZXDQ" +++ show/varity x
-    | VPMOVZXWD x: "VPMOVZXWD" +++ show/varity x
-    | VPMOVZXWQ x: "VPMOVZXWQ" +++ show/varity x
-    | VPMULDQ x: "VPMULDQ" +++ show/varity x
-    | VPMULHRSW x: "VPMULHRSW" +++ show/varity x
-    | VPMULHUW x: "VPMULHUW" +++ show/varity x
-    | VPMULHW x: "VPMULHW" +++ show/varity x
-    | VPMULLD x: "VPMULLD" +++ show/varity x
-    | VPMULLW x: "VPMULLW" +++ show/varity x
-    | VPMULUDQ x: "VPMULUDQ" +++ show/varity x
-    | VPOR x: "VPOR" +++ show/varity x
-    | VPSADBW x: "VPSADBW" +++ show/varity x
-    | VPSHUFB x: "VPSHUFB" +++ show/varity x
-    | VPSHUFD x: "VPSHUFD" +++ show/varity x
-    | VPSHUFHW x: "VPSHUFHW" +++ show/varity x
-    | VPSHUFLW x: "VPSHUFLW" +++ show/varity x
-    | VPSIGNB x: "VPSIGNB" +++ show/varity x
-    | VPSIGND x: "VPSIGND" +++ show/varity x
-    | VPSIGNW x: "VPSIGNW" +++ show/varity x
-    | VPSLLD x: "VPSLLD" +++ show/varity x
-    | VPSLLDQ x: "VPSLLDQ" +++ show/varity x
-    | VPSLLQ x: "VPSLLQ" +++ show/varity x
-    | VPSLLW x: "VPSLLW" +++ show/varity x
-    | VPSRAD x: "VPSRAD" +++ show/varity x
-    | VPSRAW x: "VPSRAW" +++ show/varity x
-    | VPSRLD x: "VPSRLD" +++ show/varity x
-    | VPSRLDQ x: "VPSRLDQ" +++ show/varity x
-    | VPSRLQ x: "VPSRLQ" +++ show/varity x
-    | VPSRLW x: "VPSRLW" +++ show/varity x
-    | VPSUBB x: "VPSUBB" +++ show/varity x
-    | VPSUBD x: "VPSUBD" +++ show/varity x
-    | VPSUBQ x: "VPSUBQ" +++ show/varity x
-    | VPSUBSB x: "VPSUBSB" +++ show/varity x
-    | VPSUBSW x: "VPSUBSW" +++ show/varity x
-    | VPSUBUSB x: "VPSUBUSB" +++ show/varity x
-    | VPSUBUSW x: "VPSUBUSW" +++ show/varity x
-    | VPSUBW x: "VPSUBW" +++ show/varity x
-    | VPTEST x: "VPTEST" +++ show/varity x
-    | VPUNPCKHBW x: "VPUNPCKHBW" +++ show/varity x
-    | VPUNPCKHDQ x: "VPUNPCKHDQ" +++ show/varity x
-    | VPUNPCKHQDQ x: "VPUNPCKHQDQ" +++ show/varity x
-    | VPUNPCKHWD x: "VPUNPCKHWD" +++ show/varity x
-    | VPUNPCKLBW x: "VPUNPCKLBW" +++ show/varity x
-    | VPUNPCKLDQ x: "VPUNPCKLDQ" +++ show/varity x
-    | VPUNPCKLQDQ x: "VPUNPCKLQDQ" +++ show/varity x
-    | VPUNPCKLWD x: "VPUNPCKLWD" +++ show/varity x
-    | VPXOR x: "VPXOR" +++ show/varity x
-    | VRCPPS x: "VRCPPS" +++ show/varity x
-    | VRCPSS x: "VRCPSS" +++ show/varity x
-    | VROUNDPD x: "VROUNDPD" +++ show/varity x
-    | VROUNDPS x: "VROUNDPS" +++ show/varity x
-    | VROUNDSD x: "VROUNDSD" +++ show/varity x
-    | VROUNDSS x: "VROUNDSS" +++ show/varity x
-    | VRSQRTPS x: "VRSQRTPS" +++ show/varity x
-    | VRSQRTSS x: "VRSQRTSS" +++ show/varity x
-    | VSHUFPD x: "VSHUFPD" +++ show/varity x
-    | VSHUFPS x: "VSHUFPS" +++ show/varity x
-    | VSQRTPD x: "VSQRTPD" +++ show/varity x
-    | VSQRTPS x: "VSQRTPS" +++ show/varity x
-    | VSQRTSD x: "VSQRTSD" +++ show/varity x
-    | VSQRTSS x: "VSQRTSS" +++ show/varity x
-    | VSTMXCSR x: "VSTMXCSR" +++ show/varity x
-    | VSUBPD x: "VSUBPD" +++ show/varity x
-    | VSUBPS x: "VSUBPS" +++ show/varity x
-    | VSUBSD x: "VSUBSD" +++ show/varity x
-    | VSUBSS x: "VSUBSS" +++ show/varity x
-    | VTESTPD x: "VTESTPD" +++ show/varity x
-    | VTESTPS x: "VTESTPS" +++ show/varity x
-    | VUCOMISD x: "VUCOMISD" +++ show/varity x
-    | VUCOMISS x: "VUCOMISS" +++ show/varity x
-    | VUNPCKHPD x: "VUNPCKHPD" +++ show/varity x
-    | VUNPCKHPS x: "VUNPCKHPS" +++ show/varity x
-    | VUNPCKLPD x: "VUNPCKLPD" +++ show/varity x
-    | VUNPCKLPS x: "VUNPCKLPS" +++ show/varity x
-    | VXORPD x: "VXORPD" +++ show/varity x
-    | VXORPS x: "VXORPS" +++ show/varity x
-    | VZEROALL x: "VZEROALL" +++ show/varity x
-    | VZEROUPPER x: "VZEROUPPER" +++ show/varity x
+    | UNPCKHPD x: "UNPCKHPD"
+    | UNPCKHPS x: "UNPCKHPS"
+    | UNPCKLPD x: "UNPCKLPD"
+    | UNPCKLPS x: "UNPCKLPS"
+    | VADDPD x: "VADDPD"
+    | VADDPS x: "VADDPS"
+    | VADDSD x: "VADDSD"
+    | VADDSS x: "VADDSS"
+    | VADDSUBPD x: "VADDSUBPD"
+    | VADDSUBPS x: "VADDSUBPS"
+    | VAESDEC x: "VAESDEC"
+    | VAESDECLAST x: "VAESDECLAST"
+    | VAESENC x: "VAESENC"
+    | VAESENCLAST x: "VAESENCLAST"
+    | VAESIMC x: "VAESIMC"
+    | VAESKEYGENASSIST x: "VAESKEYGENASSIST"
+    | VANDNPD x: "VANDNPD"
+    | VANDNPS x: "VANDNPS"
+    | VANDPD x: "VANDPD"
+    | VANDPS x: "VANDPS"
+    | VBLENDPD x: "VBLENDPD"
+    | VBLENDPS x: "VBLENDPS"
+    | VBLENDVPD x: "VBLENDVPD"
+    | VBLENDVPS x: "VBLENDVPS"
+    | VBROADCASTF128 x: "VBROADCASTF128"
+    | VBROADCASTSD x: "VBROADCASTSD"
+    | VBROADCASTSS x: "VBROADCASTSS"
+    | VCMPEQB x: "VCMPEQB"
+    | VCMPEQD x: "VCMPEQD"
+    | VCMPEQW x: "VCMPEQW"
+    | VCMPPD x: "VCMPPD"
+    | VCMPPS x: "VCMPPS"
+    | VCMPSD x: "VCMPSD"
+    | VCMPSS x: "VCMPSS"
+    | VCOMISD x: "VCOMISD"
+    | VCOMISS x: "VCOMISS"
+    | VCVTDQ2PD x: "VCVTDQ2PD"
+    | VCVTDQ2PS x: "VCVTDQ2PS"
+    | VCVTPD2DQ x: "VCVTPD2DQ"
+    | VCVTPD2PS x: "VCVTPD2PS"
+    | VCVTPH2PS x: "VCVTPH2PS"
+    | VCVTPS2DQ x: "VCVTPS2DQ"
+    | VCVTPS2PD x: "VCVTPS2PD"
+    | VCVTPS2PH x: "VCVTPS2PH"
+    | VCVTSD2SI x: "VCVTSD2SI"
+    | VCVTSD2SS x: "VCVTSD2SS"
+    | VCVTSI2SD x: "VCVTSI2SD"
+    | VCVTSI2SS x: "VCVTSI2SS"
+    | VCVTSS2SD x: "VCVTSS2SD"
+    | VCVTSS2SI x: "VCVTSS2SI"
+    | VCVTTPD2DQ x: "VCVTTPD2DQ"
+    | VCVTTPS2DQ x: "VCVTTPS2DQ"
+    | VCVTTSD2SI x: "VCVTTSD2SI"
+    | VCVTTSS2SI x: "VCVTTSS2SI"
+    | VDIVPD x: "VDIVPD"
+    | VDIVPS x: "VDIVPS"
+    | VDIVSD x: "VDIVSD"
+    | VDIVSS x: "VDIVSS"
+    | VDPPD x: "VDPPD"
+    | VDPPS x: "VDPPS"
+    | VERR x: "VERR"
+    | VERW x: "VERW"
+    | VEXTRACTF128 x: "VEXTRACTF128"
+    | VEXTRACTPS x: "VEXTRACTPS"
+    | VHADDPD x: "VHADDPD"
+    | VHADDPS x: "VHADDPS"
+    | VHSUBPD x: "VHSUBPD"
+    | VHSUBPS x: "VHSUBPS"
+    | VINSERTF128 x: "VINSERTF128"
+    | VINSERTPS x: "VINSERTPS"
+    | VLDDQU x: "VLDDQU"
+    | VLDMXCSR x: "VLDMXCSR"
+    | VMASKMOVDQU x: "VMASKMOVDQU"
+    | VMASKMOVPD x: "VMASKMOVPD"
+    | VMASKMOVPS x: "VMASKMOVPS"
+    | VMAXPD x: "VMAXPD"
+    | VMAXPS x: "VMAXPS"
+    | VMAXSD x: "VMAXSD"
+    | VMAXSS x: "VMAXSS"
+    | VMINPD x: "VMINPD"
+    | VMINPS x: "VMINPS"
+    | VMINSD x: "VMINSD"
+    | VMINSS x: "VMINSS"
+    | VMOVAPD x: "VMOVAPD"
+    | VMOVAPS x: "VMOVAPS"
+    | VMOVD x: "VMOVD"
+    | VMOVDDUP x: "VMOVDDUP"
+    | VMOVDQA x: "VMOVDQA"
+    | VMOVDQU x: "VMOVDQU"
+    | VMOVHLPS x: "VMOVHLPS"
+    | VMOVHPD x: "VMOVHPD"
+    | VMOVHPS x: "VMOVHPS"
+    | VMOVLHPS x: "VMOVLHPS"
+    | VMOVLPD x: "VMOVLPD"
+    | VMOVLPS x: "VMOVLPS"
+    | VMOVMSKPD x: "VMOVMSKPD"
+    | VMOVMSKPS x: "VMOVMSKPS"
+    | VMOVNTDQ x: "VMOVNTDQ"
+    | VMOVNTDQA x: "VMOVNTDQA"
+    | VMOVNTPD x: "VMOVNTPD"
+    | VMOVNTPS x: "VMOVNTPS"
+    | VMOVQ x: "VMOVQ"
+    | VMOVSD x: "VMOVSD"
+    | VMOVSHDUP x: "VMOVSHDUP"
+    | VMOVSLDUP x: "VMOVSLDUP"
+    | VMOVSS x: "VMOVSS"
+    | VMOVUPD x: "VMOVUPD"
+    | VMOVUPS x: "VMOVUPS"
+    | VMPSADBW x: "VMPSADBW"
+    | VMULPD x: "VMULPD"
+    | VMULPS x: "VMULPS"
+    | VMULSD x: "VMULSD"
+    | VMULSS x: "VMULSS"
+    | VORPD x: "VORPD"
+    | VORPS x: "VORPS"
+    | VPABSB x: "VPABSB"
+    | VPABSD x: "VPABSD"
+    | VPABSW x: "VPABSW"
+    | VPACKSSDW x: "VPACKSSDW"
+    | VPACKSSWB x: "VPACKSSWB"
+    | VPACKUSDW x: "VPACKUSDW"
+    | VPACKUSWB x: "VPACKUSWB"
+    | VPADDB x: "VPADDB"
+    | VPADDD x: "VPADDD"
+    | VPADDQ x: "VPADDQ"
+    | VPADDSB x: "VPADDSB"
+    | VPADDSW x: "VPADDSW"
+    | VPADDUSB x: "VPADDUSB"
+    | VPADDUSW x: "VPADDUSW"
+    | VPADDW x: "VPADDW"
+    | VPALIGNR x: "VPALIGNR"
+    | VPAND x: "VPAND"
+    | VPANDN x: "VPANDN"
+    | VPAVGB x: "VPAVGB"
+    | VPAVGW x: "VPAVGW"
+    | VPBLENDVB x: "VPBLENDVB"
+    | VPBLENDW x: "VPBLENDW"
+    | VPCLMULQDQ x: "VPCLMULQDQ"
+    | VPCMPEQB x: "VPCMPEQB"
+    | VPCMPEQD x: "VPCMPEQD"
+    | VPCMPEQQ x: "VPCMPEQQ"
+    | VPCMPEQW x: "VPCMPEQW"
+    | VPCMPESTRI x: "VPCMPESTRI"
+    | VPCMPESTRM x: "VPCMPESTRM"
+    | VPCMPGTB x: "VPCMPGTB"
+    | VPCMPGTD x: "VPCMPGTD"
+    | VPCMPGTQ x: "VPCMPGTQ"
+    | VPCMPGTW x: "VPCMPGTW"
+    | VPCMPISTRI x: "VPCMPISTRI"
+    | VPCMPISTRM x: "VPCMPISTRM"
+    | VPERM2F128 x: "VPERM2F128"
+    | VPERMILPD x: "VPERMILPD"
+    | VPERMILPS x: "VPERMILPS"
+    | VPEXTRB x: "VPEXTRB"
+    | VPEXTRD x: "VPEXTRD"
+    | VPEXTRQ x: "VPEXTRQ"
+    | VPEXTRW x: "VPEXTRW"
+    | VPHADDD x: "VPHADDD"
+    | VPHADDSW x: "VPHADDSW"
+    | VPHADDW x: "VPHADDW"
+    | VPHMINPOSUW x: "VPHMINPOSUW"
+    | VPHSUBD x: "VPHSUBD"
+    | VPHSUBSW x: "VPHSUBSW"
+    | VPHSUBW x: "VPHSUBW"
+    | VPINSRB x: "VPINSRB"
+    | VPINSRD x: "VPINSRD"
+    | VPINSRQ x: "VPINSRQ"
+    | VPINSRW x: "VPINSRW"
+    | VPMADDUBSW x: "VPMADDUBSW"
+    | VPMADDWD x: "VPMADDWD"
+    | VPMAXSB x: "VPMAXSB"
+    | VPMAXSD x: "VPMAXSD"
+    | VPMAXSW x: "VPMAXSW"
+    | VPMAXUB x: "VPMAXUB"
+    | VPMAXUD x: "VPMAXUD"
+    | VPMAXUW x: "VPMAXUW"
+    | VPMINSB x: "VPMINSB"
+    | VPMINSD x: "VPMINSD"
+    | VPMINSW x: "VPMINSW"
+    | VPMINUB x: "VPMINUB"
+    | VPMINUD x: "VPMINUD"
+    | VPMINUW x: "VPMINUW"
+    | VPMOVMSKB x: "VPMOVMSKB"
+    | VPMOVSXBD x: "VPMOVSXBD"
+    | VPMOVSXBQ x: "VPMOVSXBQ"
+    | VPMOVSXBW x: "VPMOVSXBW"
+    | VPMOVSXDQ x: "VPMOVSXDQ"
+    | VPMOVSXWD x: "VPMOVSXWD"
+    | VPMOVSXWQ x: "VPMOVSXWQ"
+    | VPMOVZXBD x: "VPMOVZXBD"
+    | VPMOVZXBQ x: "VPMOVZXBQ"
+    | VPMOVZXBW x: "VPMOVZXBW"
+    | VPMOVZXDQ x: "VPMOVZXDQ"
+    | VPMOVZXWD x: "VPMOVZXWD"
+    | VPMOVZXWQ x: "VPMOVZXWQ"
+    | VPMULDQ x: "VPMULDQ"
+    | VPMULHRSW x: "VPMULHRSW"
+    | VPMULHUW x: "VPMULHUW"
+    | VPMULHW x: "VPMULHW"
+    | VPMULLD x: "VPMULLD"
+    | VPMULLW x: "VPMULLW"
+    | VPMULUDQ x: "VPMULUDQ"
+    | VPOR x: "VPOR"
+    | VPSADBW x: "VPSADBW"
+    | VPSHUFB x: "VPSHUFB"
+    | VPSHUFD x: "VPSHUFD"
+    | VPSHUFHW x: "VPSHUFHW"
+    | VPSHUFLW x: "VPSHUFLW"
+    | VPSIGNB x: "VPSIGNB"
+    | VPSIGND x: "VPSIGND"
+    | VPSIGNW x: "VPSIGNW"
+    | VPSLLD x: "VPSLLD"
+    | VPSLLDQ x: "VPSLLDQ"
+    | VPSLLQ x: "VPSLLQ"
+    | VPSLLW x: "VPSLLW"
+    | VPSRAD x: "VPSRAD"
+    | VPSRAW x: "VPSRAW"
+    | VPSRLD x: "VPSRLD"
+    | VPSRLDQ x: "VPSRLDQ"
+    | VPSRLQ x: "VPSRLQ"
+    | VPSRLW x: "VPSRLW"
+    | VPSUBB x: "VPSUBB"
+    | VPSUBD x: "VPSUBD"
+    | VPSUBQ x: "VPSUBQ"
+    | VPSUBSB x: "VPSUBSB"
+    | VPSUBSW x: "VPSUBSW"
+    | VPSUBUSB x: "VPSUBUSB"
+    | VPSUBUSW x: "VPSUBUSW"
+    | VPSUBW x: "VPSUBW"
+    | VPTEST x: "VPTEST"
+    | VPUNPCKHBW x: "VPUNPCKHBW"
+    | VPUNPCKHDQ x: "VPUNPCKHDQ"
+    | VPUNPCKHQDQ x: "VPUNPCKHQDQ"
+    | VPUNPCKHWD x: "VPUNPCKHWD"
+    | VPUNPCKLBW x: "VPUNPCKLBW"
+    | VPUNPCKLDQ x: "VPUNPCKLDQ"
+    | VPUNPCKLQDQ x: "VPUNPCKLQDQ"
+    | VPUNPCKLWD x: "VPUNPCKLWD"
+    | VPXOR x: "VPXOR"
+    | VRCPPS x: "VRCPPS"
+    | VRCPSS x: "VRCPSS"
+    | VROUNDPD x: "VROUNDPD"
+    | VROUNDPS x: "VROUNDPS"
+    | VROUNDSD x: "VROUNDSD"
+    | VROUNDSS x: "VROUNDSS"
+    | VRSQRTPS x: "VRSQRTPS"
+    | VRSQRTSS x: "VRSQRTSS"
+    | VSHUFPD x: "VSHUFPD"
+    | VSHUFPS x: "VSHUFPS"
+    | VSQRTPD x: "VSQRTPD"
+    | VSQRTPS x: "VSQRTPS"
+    | VSQRTSD x: "VSQRTSD"
+    | VSQRTSS x: "VSQRTSS"
+    | VSTMXCSR x: "VSTMXCSR"
+    | VSUBPD x: "VSUBPD"
+    | VSUBPS x: "VSUBPS"
+    | VSUBSD x: "VSUBSD"
+    | VSUBSS x: "VSUBSS"
+    | VTESTPD x: "VTESTPD"
+    | VTESTPS x: "VTESTPS"
+    | VUCOMISD x: "VUCOMISD"
+    | VUCOMISS x: "VUCOMISS"
+    | VUNPCKHPD x: "VUNPCKHPD"
+    | VUNPCKHPS x: "VUNPCKHPS"
+    | VUNPCKLPD x: "VUNPCKLPD"
+    | VUNPCKLPS x: "VUNPCKLPS"
+    | VXORPD x: "VXORPD"
+    | VXORPS x: "VXORPS"
+    | VZEROALL x: "VZEROALL"
+    | VZEROUPPER x: "VZEROUPPER"
     | WAIT x: "WAIT"
     | WBINVD x: "WBINVD"
-    | WRFSBASE x: "WRFSBASE" -++ show/arity1 x
-    | WRGSBASE x: "WRGSBASE" -++ show/arity1 x
+    | WRFSBASE x: "WRFSBASE"
+    | WRGSBASE x: "WRGSBASE"
     | WRMSR x: "WRMSR"
-    | XADD x: "XADD" -++ show/arity2 x
-    | XCHG x: "XCHG" -++ show/arity2 x
+    | XADD x: "XADD"
+    | XCHG x: "XCHG"
     | XGETBV x: "XGETBV"
     | XLATB x: "XLATB"
-    | XOR x: "XOR" -++ show/arity2 x
-    | XORPD x: "XORPD" -++ show/arity2 x
-    | XORPS x: "XORPS" -++ show/arity2 x
-    | XRSTOR x: "XRSTOR" -++ show/arity1 x
-    | XRSTOR64 x: "XRSTOR64" -++ show/arity1 x
-    | XSAVE x: "XSAVE" -++ show/arity1 x
-    | XSAVE64 x: "XSAVE64" -++ show/arity1 x
-    | XSAVEOPT x: "XSAVEOPT" -++ show/arity1 x
-    | XSAVEOPT64 x: "XSAVEOPT64" -++ show/arity1 x
+    | XOR x: "XOR"
+    | XORPD x: "XORPD"
+    | XORPS x: "XORPS"
+    | XRSTOR x: "XRSTOR"
+    | XRSTOR64 x: "XRSTOR64"
+    | XSAVE x: "XSAVE"
+    | XSAVE64 x: "XSAVE64"
+    | XSAVEOPT x: "XSAVEOPT"
+    | XSAVEOPT64 x: "XSAVEOPT64"
     | XSETBV x: "XSETBV"
-    #| PSLRDQ x: "PSLRDQ" -++ show/arity2 x
-    #| VPSLRDQ x: "VPSLRDQ" +++ show/varity x
+    #| PSLRDQ x: "PSLRDQ"
+    #| VPSLRDQ x: "VPSLRDQ"
    end
-#s/^\(...\)\(\S*\)\s*$/\1\2: "\2"/
-#s/^\(...\)\(\S*\) of \(\S*\)\s*$/\1\2 x: "\2" -++ show\/\3 x/

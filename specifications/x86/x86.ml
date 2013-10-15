@@ -328,8 +328,21 @@ val p/vex/f3/0f/3a [0xc4 'r:1 x:1 b:1 00011' 'w:1 v:4 l:1 10'] = do
 end
 
 val set-opndsz = update@{opndsz='1'}
-val set-repne = update@{repne='1'}
-val set-rep = update@{rep='1'}
+val set-repne = do
+  rep <- query $rep;
+  repne <- query $repne;
+  update@{rep='0'};
+  update@{repne='1'};
+  return {rep=rep, repne=repne}
+end
+val set-rep = do
+  rep <- query $rep;
+  repne <- query $repne;
+  update@{rep='1'};
+  update@{repne='0'};
+  return {rep=rep, repne=repne}
+end
+val reset-rep-repne old = update@{rep=old.rep, repne=old.repne}
 
 val with-66 act = do
   update@{opndsz='1'};
@@ -339,16 +352,16 @@ val with-66 act = do
 end
 
 val with-f2 act = do
-  update@{repne='1'};
+  old <- set-repne;
   insn <- act;
-  update@{repne='0'};
+  reset-rep-repne old;
   return insn
 end
 
 val with-f3 act = do
-  update@{rep='1'};
+  old <- set-rep;
   insn <- act;
-  update@{rep='0'};
+  reset-rep-repne old;
   return insn
 end
 
@@ -427,7 +440,7 @@ val p/f2/f3 [/rex-p]
 val p/f2/f3 [] = after (with-f2 /f3) (
                  after (with-f3 /f2) (with-f2 (with-f3 /)))
 
-val p/f3/f2 [/66-p] = p/66/f2/f3
+val p/f3/f2 [/66-p] = p/66/f3/f2
 val p/f3/f2 [/f2-p] = p/f3/f2
 val p/f3/f2 [/f3-p] = p/f2/f3
 val p/f3/f2 [/legacy-p] = p/f3/f2
@@ -436,7 +449,7 @@ val p/f3/f2 [/rex-p]
  | mode32? & rexw? = unop none DEC rex/reg32
  | mode32? & // rexw? = unop none INC rex/reg32
 val p/f3/f2 [] = after (with-f3 /f2) (
-                 after (with-f2 /f3) (with-f2 (with-f3 /)))
+                 after (with-f2 /f3) (with-f3 (with-f2 /)))
 
 val p/66/f2 [/66-p] = p/66/f2
 val p/66/f2 [/f2-p] = p/66/f2
@@ -484,8 +497,8 @@ val p/66/f3/f2 [/rex-p]
  | mode32? & // rexw? = unop none INC rex/reg16
 val p/66/f3/f2 [] = after (with-66 (with-f3 /f2)) (
                     after (with-66 (with-f2 /f3)) (
-		    after (with-f2 (with-f3 /66)) (
-		           with-66 (with-f2 (with-f3 /)))))
+		    after (with-f3 (with-f2 /66)) (
+		           with-66 (with-f3 (with-f2 /)))))
 
 val /vex/0f [] = /vex/0f/vexv
 val /vex/66/0f [] = /vex/66/0f/vexv
@@ -3011,6 +3024,7 @@ val / [0x0f 0xbd /r]
 ###  - Byte Swap
 val / [0x0f /1-reg]
  | rexw? = unop none BSWAP r/reg64
+ | opndsz? = unop none BSWAP r/reg16
  | otherwise = unop none BSWAP r/reg32
 #val / [0x0f '11001 r:3']
 # | rexw? = do update@{reg/opcode=r}; unop none BSWAP r64/rexb end

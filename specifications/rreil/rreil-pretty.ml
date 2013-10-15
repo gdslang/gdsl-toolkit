@@ -34,6 +34,11 @@ in
   end
 end
 
+val rreil-has-varls vs = case vs of
+   SEM_VARLS_CONS x: '1'
+ | SEM_VARLS_NIL: '0'
+end
+
 val rreil-show-flop f =
   case f of
      SEM_FADD: "FADD"
@@ -58,8 +63,8 @@ val rreil-show-stmt s =
    | SEM_WHILE x: "while (" +++ rreil-show-sexpr 1 x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
    | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr 1 x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false
    | SEM_BRANCH x: "goto [" +++ rreil-show-hint x.hint +++ "] " +++ rreil-show-address x.target
-   | SEM_PRIM p: rreil-show-varls p.lhs +++ " = $" +++ from-string-lit p.op +++ " " +++ rreil-show-varls p.rhs
-   | SEM_FLOP f: rreil-show-varl f.lhs +++ " = $" +++ rreil-show-flop f.op +++ " " +++ rreil-show-varls f.rhs +++ " [flags:" +++ rreil-show-var f.flags +++ "]"
+   | SEM_PRIM p: (if rreil-has-varls p.lhs then rreil-show-varls p.lhs +++ " = " else "") +++ "$" +++ from-string-lit p.op +++ (if rreil-has-varls p.rhs then " " +++ rreil-show-varls p.rhs else "")
+   | SEM_FLOP f: rreil-show-varl f.lhs +++ " = $" +++ rreil-show-flop f.op +++ (if rreil-has-varls f.rhs then " " +++ rreil-show-varls f.rhs else "") +++ " [flags:" +++ rreil-show-var f.flags +++ "]"
    | SEM_THROW e: "throw " +++ (rreil-show-exception e)
   end
 
