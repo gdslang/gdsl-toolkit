@@ -2314,7 +2314,18 @@ val sem-sal-shl x = do
       mov 1 cf (var temp-c)
     end _else
       undef 1 cf
-  end;
+    ;
+
+    sf <- fSF;
+    cmplts sz sf (var tdst) (imm 0);
+    
+    zf <- fZF;
+    cmpeq sz zf (var tdst) (imm 0);
+    
+    emit-parity-flag (var tdst)
+  end _else
+    mov sz tdst src
+  ;
 
   ov <- fOF;
   _if (/eq sz (var temp-count) (imm 1)) _then
@@ -2323,13 +2334,6 @@ val sem-sal-shl x = do
     undef 1 ov)
   ;
 
-  sf <- fSF;
-  cmplts sz sf (var tdst) (imm 0);
-
-  zf <- fZF;
-  cmpeq sz zf (var tdst) (imm 0);
-
-  emit-parity-flag (var tdst);
   emit-virt-flags;
 
   write sz dst (var tdst)
