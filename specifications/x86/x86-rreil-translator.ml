@@ -721,18 +721,18 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
       ;
       emit-virt-flags
     end _else do
-      if set-carry then
-        cmpltu sz cf minuend subtrahend
-      else
-        return void
+      if set-carry then do
+        cmpltu sz cf minuend subtrahend;
+        leu <- fLEU;
+        cmpleu sz leu minuend subtrahend
+      end else
+        emit-virt-leu
       ;
 #     eq <- fEQ;
       les <- fLES;
-      leu <- fLEU;
 #     ltu <- fLTU;
       lts <- fLTS;
 #     cmpltu sz ltu minuend subtrahend;
-      cmpleu sz leu minuend subtrahend;
       mov 1 lts (var tlts);
       cmples sz les minuend subtrahend
  #    cmpeq sz eq minuend subtrahend
@@ -785,18 +785,25 @@ in
   with-subscope emit
 end
 
-val emit-virt-flags = do
+val emit-virt-leu = do
   leu <- fLEU;
+
+  cf <- fCF;
+  zf <- fZF;
+
+  #LEU := C | Z
+  orb 1 leu (var cf) (var zf)
+end
+
+val emit-virt-flags = do
   lts <- fLTS;
   les <- fLES;
 
-  cf <- fCF;
   zf <- fZF;
   sf <- fSF;
   ov <- fOF;
 
-  #LEU := C | Z
-  orb 1 leu (var cf) (var zf);
+  emit-virt-leu;
 
   #LTS := S != O
   cmpneq 1 lts (var sf) (var ov);
