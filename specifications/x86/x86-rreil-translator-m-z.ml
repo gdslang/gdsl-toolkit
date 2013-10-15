@@ -883,7 +883,7 @@ val sem-phminposuw-vphminposuw avx-encoded x = do
     val m i = do
       offset <- return (element-size*i);
 
-      _if (/leu element-size (var (at-offset temp-src offset)) (var temp-dst)) _then do
+      _if (/ltu element-size (var (at-offset temp-src offset)) (var temp-dst)) _then do
         mov element-size temp-dst (var (at-offset temp-src offset));
         mov element-size (at-offset temp-dst element-size) (imm i)
       end
@@ -1384,7 +1384,9 @@ val sem-popf x = do
   popped <- mktemp;
   ps-pop x.opnd-sz popped;
 
-  move-to-rflags x.opnd-sz (var popped)
+  move-to-rflags x.opnd-sz (var popped);
+
+  emit-virt-flags
 end
 
 val sem-por-vpor-opnd avx-encoded opnd1 opnd2 opnd3 = do
