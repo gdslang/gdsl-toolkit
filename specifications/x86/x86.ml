@@ -2120,22 +2120,22 @@ val sib-with-index-and-base psz reg s i b = do
    rex <- query $rex;
    rexx <- query $rexx;
    rexb <- query $rexb;
-   case i of
-      '100':
+   case (rexx ^ i) of
+      '0100':
         do
-          case b of
-             '101': sib-without-index reg
+          case (rexb ^ b) of
+             '0101': sib-without-index reg
            | _:
-	     do
-	       reg-b <- return (reg rex rexb b);
-	       segmentation-set-for-base reg-b;
-	       return reg-b
-	     end
-          end
+	           do
+	             reg-b <- return (reg rex rexb b);
+	             segmentation-set-for-base reg-b;
+	             return reg-b
+	           end
+        end
 	end
     | _:
-         case b of
-            '101': sib-without-base reg s i
+         case (rexb ^ b) of
+            '0101': sib-without-base reg s i
           | _:
 	    do
 	      base <- return (reg rex rexb b);
