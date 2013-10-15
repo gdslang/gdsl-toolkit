@@ -25,7 +25,7 @@ enum simulator_error {
 	SIMULATOR_ERROR_EXCEPTION = 256
 };
 
-#define SIMULATOR_ERRORS_COUNT 5
+#define SIMULATOR_ERRORS_COUNT 10
 
 extern enum simulator_error simulator_statements_simulate(struct context *context,
 		struct rreil_statements *statements);

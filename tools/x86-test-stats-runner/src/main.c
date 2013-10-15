@@ -24,13 +24,18 @@ struct options {
 	char test_unused;
 };
 
+#define LOG_SIMULATOR_ERROR_UNALIGNED_STORE 0
+#define LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS 1
+#define LOG_SIMULATOR_ERROR_UNDEFINED_STORE 2
+#define LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH 3
+#define LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED 4
+#define LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN 5
+#define LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID 6
+#define LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED 7
+#define LOG_SIMULATOR_ERROR_EXCEPTION 8
+
 struct insn_data {
 	size_t errors[TESTER_RESULT_TYPES_LENGTH];
-	/*
-	 * SIMULATOR_ERROR_UNALIGNED_STORE => 0
-	 * SIMULATOR_ERROR_UNDEFINED_ADDRESS => 1
-	 * SIMULATOR_ERROR_UNDEFINED_BRANCH => 2
-	 */
 	size_t simulation_errors[SIMULATOR_ERRORS_COUNT - 1];
 	size_t execution_errors[EXECUTOR_RESULTS_COUNT];
 	size_t sigsegv_count;
@@ -87,13 +92,23 @@ static char test_instruction(struct feature_data *features,
 		switch(result.type) {
 			case TESTER_RTYPE_SIMULATION_ERROR: {
 				if(result.simulator_error & SIMULATOR_ERROR_UNALIGNED_STORE)
-					insn_data->simulation_errors[0]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNALIGNED_STORE]++;
 				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_ADDRESS)
-					insn_data->simulation_errors[1]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS]++;
 				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_STORE)
-					insn_data->simulation_errors[2]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_STORE]++;
 				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_BRANCH)
-					insn_data->simulation_errors[3]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH]++;
+				if(result.simulator_error & SIMULATOR_ERROR_FLOP_UNIMPLEMENTED)
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED]++;
+				if(result.simulator_error & SIMULATOR_ERROR_PRIMITIVE_UNKNOWN)
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN]++;
+				if(result.simulator_error & SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID)
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID]++;
+				if(result.simulator_error & SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED)
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED]++;
+				if(result.simulator_error & SIMULATOR_ERROR_EXCEPTION)
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_EXCEPTION]++;
 				break;
 			}
 			case TESTER_RTYPE_EXECUTION_ERROR: {
@@ -347,20 +362,40 @@ int main(int argc, char **argv) {
 
 	printf("Simulation errors:\n");
 	printf("%lu unaligned (bit level) store errors (%f%%)\n",
-			accumulator.simulation_errors[0],
-			100 * accumulator.simulation_errors[0]
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNALIGNED_STORE],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNALIGNED_STORE]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
 	printf("%lu undefined address errors (%f%%)\n",
-			accumulator.simulation_errors[1],
-			100 * accumulator.simulation_errors[1]
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
 	printf("%lu undefined data (to be stored) errors (%f%%)\n",
-			accumulator.simulation_errors[2],
-			100 * accumulator.simulation_errors[2]
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_STORE],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_STORE]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
 	printf("%lu undefined branch errors (%f%%)\n",
-			accumulator.simulation_errors[3],
-			100 * accumulator.simulation_errors[3]
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu unimplemented flop errors (%f%%)\n",
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu unknown primitive errors (%f%%)\n",
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu invalid primitive signature errors (%f%%)\n",
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu loop iteration count limit exceedance errors (%f%%)\n",
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu unexpected exception errors (%f%%)\n",
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_EXCEPTION],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_EXCEPTION]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
 
 	printf("Execution errors:\n");
