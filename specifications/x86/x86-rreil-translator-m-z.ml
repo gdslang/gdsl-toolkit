@@ -883,7 +883,7 @@ val sem-phminposuw-vphminposuw avx-encoded x = do
     val m i = do
       offset <- return (element-size*i);
 
-      _if (/leu element-size (var (at-offset temp-src offset)) (var temp-dst)) _then do
+      _if (/ltu element-size (var (at-offset temp-src offset)) (var temp-dst)) _then do
         mov element-size temp-dst (var (at-offset temp-src offset));
         mov element-size (at-offset temp-dst element-size) (imm i)
       end
