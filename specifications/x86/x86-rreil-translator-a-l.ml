@@ -832,7 +832,7 @@ val sem-lods x = do
   src <- rval sz x.opnd1;
 
   dst <- return (semantic-register-of (register-by-size low A sz));
-  mov dst.size dst src;
+  write-extend-reg '0' dst.size dst src;
 
   reg0-sem <- return (semantic-register-of (read-addr-reg x.opnd1));
 
