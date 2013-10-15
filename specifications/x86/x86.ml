@@ -2123,8 +2123,8 @@ val sib-with-index-and-base psz reg s i b = do
    case (rexx ^ i) of
       '0100':
         do
-          case (rexb ^ b) of
-             '0101': sib-without-index reg
+          case b of
+             '101': sib-without-index reg
            | _:
 	           do
 	             reg-b <- return (reg rex rexb b);
@@ -2134,8 +2134,8 @@ val sib-with-index-and-base psz reg s i b = do
         end
 	end
     | _:
-         case (rexb ^ b) of
-            '0101': sib-without-base reg s i
+         case b of
+            '101': sib-without-base reg s i
           | _:
 	    do
 	      base <- return (reg rex rexb b);
