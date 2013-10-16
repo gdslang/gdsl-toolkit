@@ -2175,16 +2175,16 @@ val sem-rep-insn x sem =
   else
     sem x
 
-val sem-ret x = do
-  case x of
-     VA0 x:
+val sem-ret insn x = do
+  case insn of
+     VA0:
        do
          address <- sem-ret-without-operand x;
          ret address
        end
-   | VA1 x:
+   | VA1 v:
        do
-	       address <- sem-ret-without-operand x;
+	       address <- sem-ret-without-operand (@{opnd1=v.opnd1} x);
          release-from-stack x;
          ret address
        end
@@ -2192,16 +2192,16 @@ val sem-ret x = do
   update @{foundJump='1'}
 end
 
-val sem-ret-far x = do
-  case x of
-     VA0 x:
+val sem-ret-far insn x = do
+  case insn of
+     VA0:
        do
          address <- sem-ret-far-without-operand x;
          ret address
        end
-   | VA1 x:
+   | VA1 v:
        do
-         address <- sem-ret-far-without-operand x;
+         address <- sem-ret-far-without-operand (@{opnd1=v.opnd1} x);
          release-from-stack x;
          ret address
        end
