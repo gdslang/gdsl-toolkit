@@ -11,7 +11,7 @@ val show/arity4/s x = show/operand/s x.opnd1 +++ ", " +++ show/operand/s x.opnd2
 val show/flow1/s x = show/flowoperand/s x.opnd1
 val show/varity/s x =
    case x of
-      VA0 x: ""
+      VA0: ""
     | VA1 x: " " +++ show/arity1/s x
     | VA2 x: " " +++ show/arity2/s x
     | VA3 x: " " +++ show/arity3/s x
@@ -60,10 +60,10 @@ val show/flowoperand/s op =
 
 val show/instruction/s insn =
    case insn of
-      AAA x: "AAA"
+      AAA: "AAA"
     | AAD x: "AAD" -++ show/arity1/s x
     | AAM x: "AAM" -++ show/arity1/s x
-    | AAS x: "AAS"
+    | AAS: "AAS"
     | ADC x: "ADC" -++ show/arity2/s x
     | ADD x: "ADD" -++ show/arity2/s x
     | ADDPD x: "ADDPD" -++ show/arity2/s x
@@ -97,15 +97,15 @@ val show/instruction/s insn =
     | BTR x: "BTR" -++ show/arity2/s x
     | BTS x: "BTS" -++ show/arity2/s x
     | CALL x: "CALL" -++ show/flow1/s x
-    | CBW x: "CBW"
-    | CDQ x: "CDQ"
-    | CDQE x: "CDQE"
-    | CLC x: "CLC"
-    | CLD x: "CLD"
+    | CBW: "CBW"
+    | CDQ: "CDQ"
+    | CDQE: "CDQE"
+    | CLC: "CLC"
+    | CLD: "CLD"
     | CLFLUSH x: "CLFLUSH" -++ show/arity1/s x
-    | CLI x: "CLI"
-    | CLTS x: "CLTS"
-    | CMC x: "CMC"
+    | CLI: "CLI"
+    | CLTS: "CLTS"
+    | CMC: "CMC"
     | CMOVA x: "CMOVA" -++ show/arity2/s x
     | CMOVAE x: "CMOVAE" -++ show/arity2/s x
     | CMOVB x: "CMOVB" -++ show/arity2/s x
@@ -147,8 +147,8 @@ val show/instruction/s insn =
     | CMPXCHG8B x: "CMPXCHG8B" -++ show/arity1/s x
     | COMISD x: "COMISD" -++ show/arity2/s x
     | COMISS x: "COMISS" -++ show/arity2/s x
-    | CPUID x: "CPUID"
-    | CQO x: "CQO"
+    | CPUID: "CPUID"
+    | CQO: "CQO"
     | CRC32 x: "CRC32" -++ show/arity2/s x
     | CVTDQ2PD x: "CVTDQ2PD" -++ show/arity2/s x
     | CVTDQ2PS x: "CVTDQ2PS" -++ show/arity2/s x
@@ -172,10 +172,10 @@ val show/instruction/s insn =
     | CVTTPS2PI x: "CVTTPS2PI" -++ show/arity2/s x
     | CVTTSD2SI x: "CVTTSD2SI" -++ show/arity2/s x
     | CVTTSS2SI x: "CVTTSS2SI" -++ show/arity2/s x
-    | CWD x: "CWD"
-    | CWDE x: "CWDE"
-    | DAA x: "DAA"
-    | DAS x: "DAS"
+    | CWD: "CWD"
+    | CWDE: "CWDE"
+    | DAA: "DAA"
+    | DAS: "DAS"
     | DEC x: "DEC" -++ show/arity1/s x
     | DIV x: "DIV" -++ show/arity1/s x
     | DIVPD x: "DIVPD" -++ show/arity2/s x
@@ -184,17 +184,17 @@ val show/instruction/s insn =
     | DIVSS x: "DIVSS" -++ show/arity2/s x
     | DPPD x: "DPPD" -++ show/arity3/s x
     | DPPS x: "DPPS" -++ show/arity3/s x
-    | EMMS x: "EMMS"
+    | EMMS: "EMMS"
     | ENTER x: "ENTER" -++ show/arity2/s x
     | EXTRACTPS x: "EXTRACTPS" -++ show/arity3/s x
-    | F2XM1 x: "F2XM1"
-    | FABS x: "FABS"
+    | F2XM1: "F2XM1"
+    | FABS: "FABS"
     | FADD x: "FADD" -++ show/arity2/s x
     | FADDP x: "FADDP" -++ show/arity2/s x
     | FBLD x: "FBLD" -++ show/arity1/s x
     | FBSTP x: "FBSTP" -++ show/arity1/s x
-    | FCHS x: "FCHS"
-    | FCLEX x: "FCLEX"
+    | FCHS: "FCHS"
+    | FCLEX: "FCLEX"
     | FCMOVB x: "FCMOVB" -++ show/arity2/s x
     | FCMOVBE x: "FCMOVBE" -++ show/arity2/s x
     | FCMOVE x: "FCMOVE" -++ show/arity2/s x
@@ -207,9 +207,9 @@ val show/instruction/s insn =
     | FCOMI x: "FCOMI" -++ show/arity2/s x
     | FCOMIP x: "FCOMIP" -++ show/arity2/s x
     | FCOMP x: "FCOMP" -++ show/arity1/s x
-    | FCOMPP x: "FCOMPP"
-    | FCOS x: "FCOS"
-    | FDECSTP x: "FDECSTP"
+    | FCOMPP: "FCOMPP"
+    | FCOS: "FCOS"
+    | FDECSTP: "FDECSTP"
     | FDIV x: "FDIV" -++ show/arity2/s x
     | FDIVP x: "FDIVP" -++ show/arity2/s x
     | FDIVR x: "FDIVR" -++ show/arity2/s x
@@ -222,43 +222,43 @@ val show/instruction/s insn =
     | FIDIVR x: "FIDIVR" -++ show/arity1/s x
     | FILD x: "FILD" -++ show/arity1/s x
     | FIMUL x: "FIMUL" -++ show/arity1/s x
-    | FINCSTP x: "FINCSTP"
-    | FINIT x: "FINIT"
+    | FINCSTP: "FINCSTP"
+    | FINIT: "FINIT"
     | FIST x: "FIST" -++ show/arity1/s x
     | FISTP x: "FISTP" -++ show/arity1/s x
     | FISTTP x: "FISTTP" -++ show/arity1/s x
     | FISUB x: "FISUB" -++ show/arity1/s x
     | FISUBR x: "FISUBR" -++ show/arity1/s x
     | FLD x: "FLD" -++ show/arity1/s x
-    | FLD1 x: "FLD1"
+    | FLD1: "FLD1"
     | FLDCW x: "FLDCW" -++ show/arity1/s x
     | FLDENV x: "FLDENV" -++ show/arity1/s x
-    | FLDL2E x: "FLDL2E"
-    | FLDL2T x: "FLDL2T"
-    | FLDLG2 x: "FLDLG2"
-    | FLDLN2 x: "FLDLN2"
-    | FLDPI x: "FLDPI"
-    | FLDZ x: "FLDZ"
+    | FLDL2E: "FLDL2E"
+    | FLDL2T: "FLDL2T"
+    | FLDLG2: "FLDLG2"
+    | FLDLN2: "FLDLN2"
+    | FLDPI: "FLDPI"
+    | FLDZ: "FLDZ"
     | FMUL x: "FMUL" -++ show/arity2/s x
     | FMULP x: "FMULP" -++ show/arity2/s x
-    | FNCLEX x: "FNCLEX"
-    | FNINIT x: "FNINIT"
-    | FNOP x: "FNOP"
+    | FNCLEX: "FNCLEX"
+    | FNINIT: "FNINIT"
+    | FNOP: "FNOP"
     | FNSAVE x: "FNSAVE" -++ show/arity1/s x
     | FNSTCW x: "FNSTCW" -++ show/arity1/s x
     | FNSTENV x: "FNSTENV" -++ show/arity1/s x
     | FNSTSW x: "FNSTSW" -++ show/arity1/s x
-    | FPATAN x: "FPATAN"
-    | FPREM1 x: "FPREM1"
-    | FPREM x: "FPREM"
-    | FPTAN x: "FPTAN"
-    | FRNDINT x: "FRNDINT"
+    | FPATAN: "FPATAN"
+    | FPREM1: "FPREM1"
+    | FPREM: "FPREM"
+    | FPTAN: "FPTAN"
+    | FRNDINT: "FRNDINT"
     | FRSTOR x: "FRSTOR" -++ show/arity1/s x
     | FSAVE x: "FSAVE" -++ show/arity1/s x
-    | FSCALE x: "FSCALE"
-    | FSIN x: "FSIN"
-    | FSINCOS x: "FSINCOS"
-    | FSQRT x: "FSQRT"
+    | FSCALE: "FSCALE"
+    | FSIN: "FSIN"
+    | FSINCOS: "FSINCOS"
+    | FSQRT: "FSQRT"
     | FST x: "FST" -++ show/arity1/s x
     | FSTCW x: "FSTCW" -++ show/arity1/s x
     | FSTENV x: "FSTENV" -++ show/arity1/s x
@@ -268,43 +268,43 @@ val show/instruction/s insn =
     | FSUBP x: "FSUBP" -++ show/arity2/s x
     | FSUBR x: "FSUBR" -++ show/arity2/s x
     | FSUBRP x: "FSUBRP" -++ show/arity2/s x
-    | FTST x: "FTST"
+    | FTST: "FTST"
     | FUCOM x: "FUCOM" -++ show/arity1/s x
     | FUCOMI x: "FUCOMI" -++ show/arity1/s x
     | FUCOMIP x: "FUCOMIP" -++ show/arity1/s x
     | FUCOMP x: "FUCOMP" -++ show/arity1/s x
-    | FUCOMPP x: "FUCOMPP"
-    | FXAM x: "FXAM"
+    | FUCOMPP: "FUCOMPP"
+    | FXAM: "FXAM"
     | FXCH x: "FXCH" -++ show/arity1/s x
     | FXRSTOR x: "FXRSTOR" -++ show/arity1/s x
     | FXRSTOR64 x: "FXRSTOR64" -++ show/arity1/s x
     | FXSAVE x: "FXSAVE" -++ show/arity1/s x
     | FXSAVE64 x: "FXSAVE64" -++ show/arity1/s x
-    | FXTRACT x: "FXTRACT"
-    | FYL2X x: "FYL2X"
-    | FYL2XP1 x: "FYL2XP1"
+    | FXTRACT: "FXTRACT"
+    | FYL2X: "FYL2X"
+    | FYL2XP1: "FYL2XP1"
     | HADDPD x: "HADDPD" -++ show/arity2/s x
     | HADDPS x: "HADDPS" -++ show/arity2/s x
-    | HLT x: "HLT"
+    | HLT: "HLT"
     | HSUBPD x: "HSUBPD" -++ show/arity2/s x
     | HSUBPS x: "HSUBPS" -++ show/arity2/s x
     | IDIV x: "IDIV" -++ show/arity1/s x
     | IMUL x: "IMUL" +++ show/varity/s x
     | IN x: "IN" -++ show/arity2/s x
     | INC x: "INC" -++ show/arity1/s x
-    | INSB x: "INSB"
-    | INSD x: "INSD"
+    | INSB: "INSB"
+    | INSD: "INSD"
     | INSERTPS x: "INSERTPS" -++ show/arity3/s x
-    | INSW x: "INSW"
+    | INSW: "INSW"
     | INT x: "INT" -++ show/arity1/s x
-    | INT0 x: "INT0"
-    | INT3 x: "INT3"
-    | INVD x: "INVD"
+    | INT0: "INT0"
+    | INT3: "INT3"
+    | INVD: "INVD"
     | INVLPG x: "INVLPG" -++ show/arity1/s x
     | INVPCID x: "INVPCID" -++ show/arity2/s x
-    | IRET x: "IRET"
-    | IRETD x: "IRETD"
-    | IRETQ x: "IRETQ"
+    | IRET: "IRET"
+    | IRETD: "IRETD"
+    | IRETQ: "IRETQ"
     | JA x: "JA" -++ show/flow1/s x
     | JAE x: "JAE" -++ show/flow1/s x
     | JB x: "JB" -++ show/flow1/s x
@@ -339,15 +339,15 @@ val show/instruction/s insn =
     | JRCXZ x: "JRCXZ" -++ show/flow1/s x
     | JS x: "JS" -++ show/flow1/s x
     | JZ x: "JZ" -++ show/flow1/s x
-    | LAHF x: "LAHF"
+    | LAHF: "LAHF"
     | LAR x: "LAR" -++ show/arity2/s x
     | LDDQU x: "LDDQU" -++ show/arity2/s x
     | LDMXCSR x: "LDMXCSR" -++ show/arity1/s x
     | LDS x: "LDS" -++ show/arity2/s x
     | LEA x: "LEA" -++ show/arity2/s x
-    | LEAVE x: "LEAVE"
+    | LEAVE: "LEAVE"
     | LES x: "LES" -++ show/arity2/s x
-    | LFENCE x: "LFENCE"
+    | LFENCE: "LFENCE"
     | LFS x: "LFS" -++ show/arity2/s x
     | LGDT x: "LGDT" -++ show/arity1/s x
     | LGS x: "LGS" -++ show/arity2/s x
@@ -367,12 +367,12 @@ val show/instruction/s insn =
     | MAXPS x: "MAXPS" -++ show/arity2/s x
     | MAXSD x: "MAXSD" -++ show/arity2/s x
     | MAXSS x: "MAXSS" -++ show/arity2/s x
-    | MFENCE x: "MFENCE"
+    | MFENCE: "MFENCE"
     | MINPD x: "MINPD" -++ show/arity2/s x
     | MINPS x: "MINPS" -++ show/arity2/s x
     | MINSD x: "MINSD" -++ show/arity2/s x
     | MINSS x: "MINSS" -++ show/arity2/s x
-    | MONITOR x: "MONITOR"
+    | MONITOR: "MONITOR"
     | MOV x: "MOV" -++ show/arity2/s x
     | MOVAPD x: "MOVAPD" -++ show/arity2/s x
     | MOVAPS x: "MOVAPS" -++ show/arity2/s x
@@ -415,7 +415,7 @@ val show/instruction/s insn =
     | MULPS x: "MULPS" -++ show/arity2/s x
     | MULSD x: "MULSD" -++ show/arity2/s x
     | MULSS x: "MULSS" -++ show/arity2/s x
-    | MWAIT x: "MWAIT"
+    | MWAIT: "MWAIT"
     | NEG x: "NEG" -++ show/arity1/s x
     | NOP x: "NOP" +++ show/varity/s x
     | NOT x: "NOT" -++ show/arity1/s x
@@ -423,10 +423,10 @@ val show/instruction/s insn =
     | ORPD x: "ORPD" -++ show/arity2/s x
     | ORPS x: "ORPS" -++ show/arity2/s x
     | OUT x: "OUT" -++ show/arity2/s x
-    | OUTS x: "OUTS"
-    | OUTSB x: "OUTSB"
-    | OUTSD x: "OUTSD"
-    | OUTSW x: "OUTSW"
+    | OUTS: "OUTS"
+    | OUTSB: "OUTSB"
+    | OUTSD: "OUTSD"
+    | OUTSW: "OUTSW"
     | PABSB x: "PABSB" -++ show/arity2/s x
     | PABSD x: "PABSD" -++ show/arity2/s x
     | PABSW x: "PABSW" -++ show/arity2/s x
@@ -445,7 +445,7 @@ val show/instruction/s insn =
     | PALIGNR x: "PALIGNR" -++ show/arity3/s x
     | PAND x: "PAND" -++ show/arity2/s x
     | PANDN x: "PANDN" -++ show/arity2/s x
-    | PAUSE x: "PAUSE"
+    | PAUSE: "PAUSE"
     | PAVGB x: "PAVGB" -++ show/arity2/s x
     | PAVGW x: "PAVGW" -++ show/arity2/s x
     | PBLENDVB x: "PBLENDVB" -++ show/arity2/s x
@@ -514,12 +514,12 @@ val show/instruction/s insn =
     | PMULLW x: "PMULLW" -++ show/arity2/s x
     | PMULUDQ x: "PMULUDQ" -++ show/arity2/s x
     | POP x: "POP" -++ show/arity1/s x
-    | POPA x: "POPA"
-    | POPAD x: "POPAD"
+    | POPA: "POPA"
+    | POPAD: "POPAD"
     | POPCNT x: "POPCNT" -++ show/arity2/s x
-    | POPF x: "POPF"
-    | POPFD x: "POPFD"
-    | POPFQ x: "POPFQ"
+    | POPF: "POPF"
+    | POPFD: "POPFD"
+    | POPFQ: "POPFQ"
     | POR x: "POR" -++ show/arity2/s x
     | PREFETCHNTA x: "PREFETCHNTA" -++ show/arity1/s x
     | PREFETCHT0 x: "PREFETCHT0" -++ show/arity1/s x
@@ -563,11 +563,11 @@ val show/instruction/s insn =
     | PUNPCKLQDQ x: "PUNPCKLQDQ" -++ show/arity2/s x
     | PUNPCKLWD x: "PUNPCKLWD" -++ show/arity2/s x
     | PUSH x: "PUSH" -++ show/arity1/s x
-    | PUSHA x: "PUSHA"
-    | PUSHAD x: "PUSHAD"
-    | PUSHF x: "PUSHF"
-    | PUSHFD x: "PUSHFD"
-    | PUSHFQ x: "PUSHFQ"
+    | PUSHA: "PUSHA"
+    | PUSHAD: "PUSHAD"
+    | PUSHF: "PUSHF"
+    | PUSHFD: "PUSHFD"
+    | PUSHFQ: "PUSHFQ"
     | PXOR x: "PXOR" -++ show/arity2/s x
     | RCL x: "RCL" -++ show/arity2/s x
     | RCPPS x: "RCPPS" -++ show/arity2/s x
@@ -575,11 +575,11 @@ val show/instruction/s insn =
     | RCR x: "RCR" -++ show/arity2/s x
     | RDFSBASE x: "RDFSBASE" -++ show/arity1/s x
     | RDGSBASE x: "RDGSBASE" -++ show/arity1/s x
-    | RDMSR x: "RDMSR"
-    | RDPMC x: "RDPMC"
+    | RDMSR: "RDMSR"
+    | RDPMC: "RDPMC"
     | RDRAND x: "RDRAND" -++ show/arity1/s x
-    | RDTSC x: "RDTSC"
-    | RDTSCP x: "RDTSCP"
+    | RDTSC: "RDTSC"
+    | RDTSCP: "RDTSCP"
     | RET x: "RET" +++ show/varity/s x
     | RET_FAR x: "RET_FAR" +++ show/varity/s x
     | ROL x: "ROL" -++ show/arity2/s x
@@ -588,17 +588,17 @@ val show/instruction/s insn =
     | ROUNDPS x: "ROUNDPS" -++ show/arity3/s x
     | ROUNDSD x: "ROUNDSD" -++ show/arity3/s x
     | ROUNDSS x: "ROUNDSS" -++ show/arity3/s x
-    | RSM x: "RSM"
+    | RSM: "RSM"
     | RSQRTPS x: "RSQRTPS" -++ show/arity2/s x
     | RSQRTSS x: "RSQRTSS" -++ show/arity2/s x
-    | SAHF x: "SAHF"
+    | SAHF: "SAHF"
     | SAL x: "SAL" -++ show/arity2/s x
     | SAR x: "SAR" -++ show/arity2/s x
     | SBB x: "SBB" -++ show/arity2/s x
-    | SCASB x: "SCASB"
-    | SCASD x: "SCASD"
-    | SCASQ x: "SCASQ"
-    | SCASW x: "SCASW"
+    | SCASB: "SCASB"
+    | SCASD: "SCASD"
+    | SCASQ: "SCASQ"
+    | SCASW: "SCASW"
     | SETA x: "SETA" -++ show/arity1/s x
     | SETAE x: "SETAE" -++ show/arity1/s x
     | SETB x: "SETB" -++ show/arity1/s x
@@ -629,7 +629,7 @@ val show/instruction/s insn =
     | SETPO x: "SETPO" -++ show/arity1/s x
     | SETS x: "SETS" -++ show/arity1/s x
     | SETZ x: "SETZ" -++ show/arity1/s x
-    | SFENCE x: "SFENCE"
+    | SFENCE: "SFENCE"
     | SGDT x: "SGDT" -++ show/arity1/s x
     | SHL x: "SHL" -++ show/arity2/s x
     | SHLD x: "SHLD" -++ show/arity3/s x
@@ -644,29 +644,29 @@ val show/instruction/s insn =
     | SQRTPS x: "SQRTPS" -++ show/arity2/s x
     | SQRTSD x: "SQRTSD" -++ show/arity2/s x
     | SQRTSS x: "SQRTSS" -++ show/arity2/s x
-    | STC x: "STC"
-    | STD x: "STD"
-    | STI x: "STI"
+    | STC: "STC"
+    | STD: "STD"
+    | STI: "STI"
     | STMXCSR x: "STMXCSR" -++ show/arity1/s x
-    | STOSB x: "STOSB"
-    | STOSD x: "STOSD"
-    | STOSQ x: "STOSQ"
-    | STOSW x: "STOSW"
+    | STOSB: "STOSB"
+    | STOSD: "STOSD"
+    | STOSQ: "STOSQ"
+    | STOSW: "STOSW"
     | STR x: "STR" -++ show/arity1/s x
     | SUB x: "SUB" -++ show/arity2/s x
     | SUBPD x: "SUBPD" -++ show/arity2/s x
     | SUBPS x: "SUBPS" -++ show/arity2/s x
     | SUBSD x: "SUBSD" -++ show/arity2/s x
     | SUBSS x: "SUBSS" -++ show/arity2/s x
-    | SWAPGS x: "SWAPGS"
-    | SYSCALL x: "SYSCALL"
-    | SYSENTER x: "SYSENTER"
-    | SYSEXIT x: "SYSEXIT"
-    | SYSRET x: "SYSRET"
+    | SWAPGS: "SWAPGS"
+    | SYSCALL: "SYSCALL"
+    | SYSENTER: "SYSENTER"
+    | SYSEXIT: "SYSEXIT"
+    | SYSRET: "SYSRET"
     | TEST x: "TEST" -++ show/arity2/s x
     | UCOMISD x: "UCOMISD" -++ show/arity2/s x
     | UCOMISS x: "UCOMISS" -++ show/arity2/s x
-    | UD2 x: "UD2"
+    | UD2: "UD2"
     | UNPCKHPD x: "UNPCKHPD" -++ show/arity2/s x
     | UNPCKHPS x: "UNPCKHPS" -++ show/arity2/s x
     | UNPCKLPD x: "UNPCKLPD" -++ show/arity2/s x
@@ -937,15 +937,15 @@ val show/instruction/s insn =
     | VXORPS x: "VXORPS" +++ show/varity/s x
     | VZEROALL x: "VZEROALL" +++ show/varity/s x
     | VZEROUPPER x: "VZEROUPPER" +++ show/varity/s x
-    | WAIT x: "WAIT"
-    | WBINVD x: "WBINVD"
+    | WAIT: "WAIT"
+    | WBINVD: "WBINVD"
     | WRFSBASE x: "WRFSBASE" -++ show/arity1/s x
     | WRGSBASE x: "WRGSBASE" -++ show/arity1/s x
-    | WRMSR x: "WRMSR"
+    | WRMSR: "WRMSR"
     | XADD x: "XADD" -++ show/arity2/s x
     | XCHG x: "XCHG" -++ show/arity2/s x
-    | XGETBV x: "XGETBV"
-    | XLATB x: "XLATB"
+    | XGETBV: "XGETBV"
+    | XLATB: "XLATB"
     | XOR x: "XOR" -++ show/arity2/s x
     | XORPD x: "XORPD" -++ show/arity2/s x
     | XORPS x: "XORPS" -++ show/arity2/s x
@@ -955,7 +955,7 @@ val show/instruction/s insn =
     | XSAVE64 x: "XSAVE64" -++ show/arity1/s x
     | XSAVEOPT x: "XSAVEOPT" -++ show/arity1/s x
     | XSAVEOPT64 x: "XSAVEOPT64" -++ show/arity1/s x
-    | XSETBV x: "XSETBV"
+    | XSETBV: "XSETBV"
     #| PSLRDQ x: "PSLRDQ" -++ show/arity2/s x
     #| VPSLRDQ x: "VPSLRDQ" +++ show/varity/s x
    end

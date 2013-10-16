@@ -701,27 +701,28 @@ val illegal-repne         = return (illegal-repne_ 0)
 val illegal-lock          = return (illegal-lock_ 0)
 val illegal-lock-register = return (illegal-lock-register_ 0)
 
-val features-get insn = (zx insn.features)
+val features-get insndata = (zx insndata.features)
 
-type flow1 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:flowopnd}
-type arity0 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1}
-type arity1 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd}
-type arity2 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd}
-type arity3 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+type flow1 = {opnd1:flowopnd}
+type arity1 = {opnd1:opnd}
+type arity2 = {opnd1:opnd,opnd2:opnd}
+type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
+type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+
+type insndata = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:insn}
 
 type varity =
-   VA0 of arity0
+   VA0
  | VA1 of arity1
  | VA2 of arity2
  | VA3 of arity3
  | VA4 of arity4
 
 type insn =
-   AAA of arity0
+   AAA
  | AAD of arity1
  | AAM of arity1
- | AAS of arity0
+ | AAS
  | ADC of arity2
  | ADD of arity2
  | ADDPD of arity2
@@ -755,15 +756,15 @@ type insn =
  | BTR of arity2
  | BTS of arity2
  | CALL of flow1
- | CBW of arity0
- | CDQ of arity0
- | CDQE of arity0
- | CLC of arity0
- | CLD of arity0
+ | CBW
+ | CDQ
+ | CDQE
+ | CLC
+ | CLD
  | CLFLUSH of arity1
- | CLI of arity0
- | CLTS of arity0
- | CMC of arity0
+ | CLI
+ | CLTS
+ | CMC
  | CMOVA of arity2
  | CMOVAE of arity2
  | CMOVB of arity2
@@ -805,8 +806,8 @@ type insn =
  | CMPXCHG8B of arity1
  | COMISD of arity2
  | COMISS of arity2
- | CPUID of arity0
- | CQO of arity0
+ | CPUID
+ | CQO
  | CRC32 of arity2
  | CVTDQ2PD of arity2
  | CVTDQ2PS of arity2
@@ -830,10 +831,10 @@ type insn =
  | CVTTPS2PI of arity2
  | CVTTSD2SI of arity2
  | CVTTSS2SI of arity2
- | CWD of arity0
- | CWDE of arity0
- | DAA of arity0
- | DAS of arity0
+ | CWD
+ | CWDE
+ | DAA
+ | DAS
  | DEC of arity1
  | DIV of arity1
  | DIVPD of arity2
@@ -842,17 +843,17 @@ type insn =
  | DIVSS of arity2
  | DPPD of arity3
  | DPPS of arity3
- | EMMS of arity0
+ | EMMS
  | ENTER of arity2
  | EXTRACTPS of arity3
- | F2XM1 of arity0
- | FABS of arity0
+ | F2XM1
+ | FABS
  | FADD of arity2
  | FADDP of arity2
  | FBLD of arity1
  | FBSTP of arity1
- | FCHS of arity0
- | FCLEX of arity0
+ | FCHS
+ | FCLEX
  | FCMOVB of arity2
  | FCMOVBE of arity2
  | FCMOVE of arity2
@@ -865,9 +866,9 @@ type insn =
  | FCOMI of arity2
  | FCOMIP of arity2
  | FCOMP of arity1
- | FCOMPP of arity0
- | FCOS of arity0
- | FDECSTP of arity0
+ | FCOMPP
+ | FCOS
+ | FDECSTP
  | FDIV of arity2
  | FDIVP of arity2
  | FDIVR of arity2
@@ -880,43 +881,43 @@ type insn =
  | FIDIVR of arity1
  | FILD of arity1
  | FIMUL of arity1
- | FINCSTP of arity0
- | FINIT of arity0
+ | FINCSTP
+ | FINIT
  | FIST of arity1
  | FISTP of arity1
  | FISTTP of arity1
  | FISUB of arity1
  | FISUBR of arity1
  | FLD of arity1
- | FLD1 of arity0
+ | FLD1
  | FLDCW of arity1
  | FLDENV of arity1
- | FLDL2E of arity0
- | FLDL2T of arity0
- | FLDLG2 of arity0
- | FLDLN2 of arity0
- | FLDPI of arity0
- | FLDZ of arity0
+ | FLDL2E
+ | FLDL2T
+ | FLDLG2
+ | FLDLN2
+ | FLDPI
+ | FLDZ
  | FMUL of arity2
  | FMULP of arity2
- | FNCLEX of arity0
- | FNINIT of arity0
- | FNOP of arity0
+ | FNCLEX
+ | FNINIT
+ | FNOP
  | FNSAVE of arity1
  | FNSTCW of arity1
  | FNSTENV of arity1
  | FNSTSW of arity1
- | FPATAN of arity0
- | FPREM of arity0
- | FPREM1 of arity0
- | FPTAN of arity0
- | FRNDINT of arity0
+ | FPATAN
+ | FPREM
+ | FPREM1
+ | FPTAN
+ | FRNDINT
  | FRSTOR of arity1
  | FSAVE of arity1
- | FSCALE of arity0
- | FSIN of arity0
- | FSINCOS of arity0
- | FSQRT of arity0
+ | FSCALE
+ | FSIN
+ | FSINCOS
+ | FSQRT
  | FST of arity1
  | FSTCW of arity1
  | FSTENV of arity1
@@ -926,43 +927,43 @@ type insn =
  | FSUBP of arity2
  | FSUBR of arity2
  | FSUBRP of arity2
- | FTST of arity0
+ | FTST
  | FUCOM of arity1
  | FUCOMI of arity1
  | FUCOMIP of arity1
  | FUCOMP of arity1
- | FUCOMPP of arity0
- | FXAM of arity0
+ | FUCOMPP
+ | FXAM
  | FXCH of arity1
  | FXRSTOR of arity1
  | FXRSTOR64 of arity1
  | FXSAVE of arity1
  | FXSAVE64 of arity1
- | FXTRACT of arity0
- | FYL2X of arity0
- | FYL2XP1 of arity0
+ | FXTRACT
+ | FYL2X
+ | FYL2XP1
  | HADDPD of arity2
  | HADDPS of arity2
- | HLT of arity0
+ | HLT
  | HSUBPD of arity2
  | HSUBPS of arity2
  | IDIV of arity1
  | IMUL of varity
  | IN of arity2
  | INC of arity1
- | INSB of arity0
- | INSD of arity0
+ | INSB
+ | INSD
  | INSERTPS of arity3
- | INSW of arity0
+ | INSW
  | INT of arity1
- | INT0 of arity0
- | INT3 of arity0
- | INVD of arity0
+ | INT0
+ | INT3
+ | INVD
  | INVLPG of arity1
  | INVPCID of arity2
- | IRET of arity0
- | IRETD of arity0
- | IRETQ of arity0
+ | IRET
+ | IRETD
+ | IRETQ
  | JA of flow1
  | JAE of flow1
  | JB of flow1
@@ -997,15 +998,15 @@ type insn =
  | JRCXZ of flow1
  | JS of flow1
  | JZ of flow1
- | LAHF of arity0
+ | LAHF
  | LAR of arity2
  | LDDQU of arity2
  | LDMXCSR of arity1
  | LDS of arity2
  | LEA of arity2
- | LEAVE of arity0
+ | LEAVE
  | LES of arity2
- | LFENCE of arity0
+ | LFENCE
  | LFS of arity2
  | LGDT of arity1
  | LGS of arity2
@@ -1025,12 +1026,12 @@ type insn =
  | MAXPS of arity2
  | MAXSD of arity2
  | MAXSS of arity2
- | MFENCE of arity0
+ | MFENCE
  | MINPD of arity2
  | MINPS of arity2
  | MINSD of arity2
  | MINSS of arity2
- | MONITOR of arity0
+ | MONITOR
  | MOV of arity2
  | MOVAPD of arity2
  | MOVAPS of arity2
@@ -1073,7 +1074,7 @@ type insn =
  | MULPS of arity2
  | MULSD of arity2
  | MULSS of arity2
- | MWAIT of arity0
+ | MWAIT
  | NEG of arity1
  | NOP of varity
  | NOT of arity1
@@ -1081,10 +1082,10 @@ type insn =
  | ORPD of arity2
  | ORPS of arity2
  | OUT of arity2
- | OUTS of arity0
- | OUTSB of arity0
- | OUTSD of arity0
- | OUTSW of arity0
+ | OUTS
+ | OUTSB
+ | OUTSD
+ | OUTSW
  | PABSB of arity2
  | PABSD of arity2
  | PABSW of arity2
@@ -1103,7 +1104,7 @@ type insn =
  | PALIGNR of arity3
  | PAND of arity2
  | PANDN of arity2
- | PAUSE of arity0
+ | PAUSE
  | PAVGB of arity2
  | PAVGW of arity2
  | PBLENDVB of arity2
@@ -1172,12 +1173,12 @@ type insn =
  | PMULLW of arity2
  | PMULUDQ of arity2
  | POP of arity1
- | POPA of arity0
- | POPAD of arity0
+ | POPA
+ | POPAD
  | POPCNT of arity2
- | POPF of arity0
- | POPFD of arity0
- | POPFQ of arity0
+ | POPF
+ | POPFD
+ | POPFQ
  | POR of arity2
  | PREFETCHNTA of arity1
  | PREFETCHT0 of arity1
@@ -1221,11 +1222,11 @@ type insn =
  | PUNPCKLQDQ of arity2
  | PUNPCKLWD of arity2
  | PUSH of arity1
- | PUSHA of arity0
- | PUSHAD of arity0
- | PUSHF of arity0
- | PUSHFD of arity0
- | PUSHFQ of arity0
+ | PUSHA
+ | PUSHAD
+ | PUSHF
+ | PUSHFD
+ | PUSHFQ
  | PXOR of arity2
  | RCL of arity2
  | RCPPS of arity2
@@ -1233,11 +1234,11 @@ type insn =
  | RCR of arity2
  | RDFSBASE of arity1
  | RDGSBASE of arity1
- | RDMSR of arity0
- | RDPMC of arity0
+ | RDMSR
+ | RDPMC
  | RDRAND of arity1
- | RDTSC of arity0
- | RDTSCP of arity0
+ | RDTSC
+ | RDTSCP
  | RET of varity
  | RET_FAR of varity
  | ROL of arity2
@@ -1246,17 +1247,17 @@ type insn =
  | ROUNDPS of arity3
  | ROUNDSD of arity3
  | ROUNDSS of arity3
- | RSM of arity0
+ | RSM
  | RSQRTPS of arity2
  | RSQRTSS of arity2
- | SAHF of arity0
+ | SAHF
  | SAL of arity2
  | SAR of arity2
  | SBB of arity2
- | SCASB of arity0
- | SCASD of arity0
- | SCASQ of arity0
- | SCASW of arity0
+ | SCASB
+ | SCASD
+ | SCASQ
+ | SCASW
  | SETA of arity1
  | SETAE of arity1
  | SETB of arity1
@@ -1287,7 +1288,7 @@ type insn =
  | SETPO of arity1
  | SETS of arity1
  | SETZ of arity1
- | SFENCE of arity0
+ | SFENCE
  | SGDT of arity1
  | SHL of arity2
  | SHLD of arity3
@@ -1302,29 +1303,29 @@ type insn =
  | SQRTPS of arity2
  | SQRTSD of arity2
  | SQRTSS of arity2
- | STC of arity0
- | STD of arity0
- | STI of arity0
+ | STC
+ | STD
+ | STI
  | STMXCSR of arity1
- | STOSB of arity0
- | STOSD of arity0
- | STOSQ of arity0
- | STOSW of arity0
+ | STOSB
+ | STOSD
+ | STOSQ
+ | STOSW
  | STR of arity1
  | SUB of arity2
  | SUBPD of arity2
  | SUBPS of arity2
  | SUBSD of arity2
  | SUBSS of arity2
- | SWAPGS of arity0
- | SYSCALL of arity0
- | SYSENTER of arity0
- | SYSEXIT of arity0
- | SYSRET of arity0
+ | SWAPGS
+ | SYSCALL
+ | SYSENTER
+ | SYSEXIT
+ | SYSRET
  | TEST of arity2
  | UCOMISD of arity2
  | UCOMISS of arity2
- | UD2 of arity0
+ | UD2
  | UNPCKHPD of arity2
  | UNPCKHPS of arity2
  | UNPCKLPD of arity2
@@ -1595,15 +1596,15 @@ type insn =
  | VXORPS of varity
  | VZEROALL of varity
  | VZEROUPPER of varity
- | WAIT of arity0
- | WBINVD of arity0
+ | WAIT
+ | WBINVD
  | WRFSBASE of arity1
  | WRGSBASE of arity1
- | WRMSR of arity0
+ | WRMSR
  | XADD of arity2
  | XCHG of arity2
- | XGETBV of arity0
- | XLATB of arity0
+ | XGETBV
+ | XLATB
  | XOR of arity2
  | XORPD of arity2
  | XORPS of arity2
@@ -1613,7 +1614,7 @@ type insn =
  | XSAVE64 of arity1
  | XSAVEOPT of arity1
  | XSAVEOPT64 of arity1
- | XSETBV of arity0
+ | XSETBV
 
 val al = return (REG AL)
 val ah = return (REG AH)
@@ -2503,7 +2504,7 @@ val varity0 features cons = do
   features <- exception-rep-repne-lock features;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA0 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0'}))
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons VA0}
 end
 
 val varity0-def-opnd-sz-64 features cons = do
@@ -2522,7 +2523,7 @@ val varity1 features cons giveOp1 = do
   op1 <- giveOp1;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA1 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1}))
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons (VA1 {opnd1=op1})}
 end
 
 val varity1-def-opnd-sz-64 features cons giveOp1 = do
@@ -2542,7 +2543,7 @@ val varity2 features cons giveOp1 giveOp2 = do
   op2 <- giveOp2;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA2 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2}))
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons (VA2 {opnd1=op1,opnd2=op2})}
 end
 
 val varity3 features cons giveOp1 giveOp2 giveOp3 = do
@@ -2553,7 +2554,7 @@ val varity3 features cons giveOp1 giveOp2 giveOp3 = do
   op3 <- giveOp3;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA3 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3}))
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons (VA3 {opnd1=op1,opnd2=op2,opnd3=op3})}
 end
 
 val varity4 features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
@@ -2565,7 +2566,7 @@ val varity4 features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
   op4 <- giveOp4;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons (VA4 {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}))
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons (VA4 {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})}
 end
 
 val arity0-all features cons = do
@@ -2574,7 +2575,7 @@ val arity0-all features cons = do
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,insn=cons}
 end
 
 val arity0-rep-repne features cons = do
@@ -2607,7 +2608,7 @@ val unop-all features cons op1 = do
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,insn=cons {opnd1=op1}}
 end
 
 val unop-rep-repne features cons giveOp1 = do
@@ -2645,7 +2646,7 @@ val binop-all features cons op1 op2 = do
   rep <- query $rep;
   repne <- query $repne;
   lock <- query $lock;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,opnd1=op1,opnd2=op2})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep=rep,repne=repne,lock=lock,insn=cons{opnd1=op1,opnd2=op2}}
 end
 
 val binop-rep-repne features cons giveOp1 giveOp2 = do
@@ -2689,7 +2690,7 @@ val ternop features cons giveOp1 giveOp2 giveOp3 = do
   op3 <- giveOp3;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons {opnd1=op1,opnd2=op2,opnd3=op3}}
 end
 
 val quaternop features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
@@ -2701,7 +2702,7 @@ val quaternop features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
   op4 <- giveOp4;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons {opnd1=op1,opnd2=op2,opnd3=op3,opnd4=op4}}
 end
 
 val near-abs features cons giveOp = do
@@ -2717,7 +2718,7 @@ val near-abs features cons giveOp = do
     ;
   op <- giveOp;
   addr-sz <- address-size;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=NEARABS op})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons {opnd1=NEARABS op}}
 end
 
 val near-rel features cons giveOp = do
@@ -2733,7 +2734,7 @@ val near-rel features cons giveOp = do
     ;
   op <- giveOp;
   addr-sz <- address-size;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons {opnd1=op}}
 end
 
 val far-dir features cons giveOp = do
@@ -2749,7 +2750,7 @@ val far-dir features cons giveOp = do
     ;
   op <- giveOp;
   addr-sz <- address-size;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=op})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons {opnd1=op}}
 end
 
 val far-ind features cons giveOp = do
@@ -2765,7 +2766,7 @@ val far-ind features cons giveOp = do
     ;
   op <- giveOp;
   addr-sz <- address-size;
-  return (cons {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',opnd1=FARABS op})
+  return {features=features,opnd-sz=opnd-sz,addr-sz=addr-sz,rep='0',repne='0',lock='0',insn=cons {opnd1=FARABS op}}
 end
 
 val one = return (IMM8 {imm='00000001',address=0})

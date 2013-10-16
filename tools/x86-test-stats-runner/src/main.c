@@ -83,6 +83,9 @@ static char test_instruction(struct feature_data *features, struct hash_array *i
 
 	struct tester_result result = tester_test_binary(&for_name, 1, data, data_size, test_unused);
 
+	if(result.type == TESTER_RTYPE_DECODING_ERROR)
+		return 1;
+
 	if(insn_data) {
 		insn_data->count++;
 
@@ -169,17 +172,17 @@ static char test_instruction(struct feature_data *features, struct hash_array *i
 			}
 		}
 
-		if(result.type != TESTER_RTYPE_DECODING_ERROR) { //Always true ;-)
+//		if(result.type != TESTER_RTYPE_DECODING_ERROR) { //Always true ;-)
 
-			for(size_t i = 1; i < X86_FEATURES_COUNT; ++i)
-				if(result.features & (1 << (i - 1)))
-					incf(&result, features, i);
-			if(!result.features)
-				incf(&result, features, 0);
-		}
-		return 0;
-	} else
-		return 1;
+		for(size_t i = 1; i < X86_FEATURES_COUNT; ++i)
+			if(result.features & (1 << (i - 1)))
+				incf(&result, features, i);
+		if(!result.features)
+			incf(&result, features, 0);
+//		}
+	}
+
+	return 0;
 }
 
 static char args_parse(int argc, char **argv, struct options *options) {
