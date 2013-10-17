@@ -603,6 +603,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun genFlow ((p,exp), nEnv) =
             let
                val expEnv = infMatch (st,E.popKappa nEnv) (p,exp)
+               val expEnv = E.reduceFlow expEnv
                val env = E.meetFlow (nEnv, expEnv)
                   handle S.UnificationFailure str =>
                      refineError (str,

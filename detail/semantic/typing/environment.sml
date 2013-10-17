@@ -116,6 +116,8 @@ structure Environment : sig
    val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
          environment -> environment
 
+   val reduceFlow :  environment -> environment
+
    val meetSizeConstraint : (SizeConstraint.size_constraint_set ->
                              SizeConstraint.size_constraint_set) *
                              environment -> environment
@@ -854,6 +856,10 @@ end = struct
 
    fun meetBoolean (update, env as (scs, state)) =
       (scs, Scope.setFlow (update (Scope.getFlow state)) state)
+         handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env])
+
+   fun reduceFlow (env as (scs, state)) =
+      (scs, Scope.setFlow (BD.projectOnto (Scope.getBVars env, Scope.getFlow state)) state)
          handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env])
 
    fun meetSizeConstraint (update, (scs, state)) =
