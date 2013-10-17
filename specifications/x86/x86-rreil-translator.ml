@@ -534,6 +534,20 @@ val sem-default-arity1-generic avx-encoded insn x = do
 end
 val sem-default-arity1 insn x = sem-default-arity1-generic '0' insn x
 
+val sem-default-arity2-ro-generic avx-encoded insn x = do
+  src1-sz <- sizeof1 x.opnd1;
+  src2-sz <- sizeof1 x.opnd2;
+
+  src1 <- rval src1-sz x.opnd1;
+  src2 <- rval src2-sz x.opnd2;
+
+  src1-up <- unpack-lin src1-sz src1;
+  src2-up <- unpack-lin src2-sz src2;
+
+  prim-generic (show/mnemonic insn) varls-none (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
+end
+val sem-default-arity2-ro insn x = sem-default-arity2-ro-generic '0' insn x
+
 val sem-default-arity2-generic avx-encoded insn x = do
   dst-sz <- sizeof1 x.opnd1;
   src1-sz <- return dst-sz;
@@ -1332,7 +1346,7 @@ in
    | OR x: sem-or (comb x)
    | ORPD x: sem-default-arity2 insn.insn (comb x)
    | ORPS x: sem-default-arity2 insn.insn (comb x)
-   | OUT x: sem-default-arity2 insn.insn (comb x)
+   | OUT x: sem-default-arity2-ro insn.insn (comb x)
    | OUTS: sem-default-arity0 insn.insn
    | OUTSB: sem-default-arity0 insn.insn
    | OUTSD: sem-default-arity0 insn.insn
