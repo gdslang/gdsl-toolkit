@@ -600,13 +600,13 @@ val sem-default-arity4-generic avx-encoded insn x = do
 end
 val sem-default-arity4 insn x = sem-default-arity4-generic '0' insn x
 
-val sem-default-varity insn x = do
-  case x of
+val sem-default-varity va insn x = do
+  case va of
      VA0: sem-default-arity0-generic '1' insn
-   | VA1 x: sem-default-arity1-generic '1' insn x
-   | VA2 x: sem-default-arity2-generic '1' insn x
-   | VA3 x: sem-default-arity3-generic '1' insn x
-   | VA4 x: sem-default-arity4-generic '1' insn x
+   | VA1 v: sem-default-arity1-generic '1' insn x
+   | VA2 v: sem-default-arity2-generic '1' insn x
+   | VA3 v: sem-default-arity3-generic '1' insn x
+   | VA4 v: sem-default-arity4-generic '1' insn x
   end
 end
 
@@ -1584,97 +1584,97 @@ in
    | UNPCKHPS x: sem-default-arity2 insn.insn (comb x)
    | UNPCKLPD x: sem-default-arity2 insn.insn (comb x)
    | UNPCKLPS x: sem-default-arity2 insn.insn (comb x)
-   | VADDPD x: sem-default-varity insn.insn (vcomb x)
-   | VADDPS x: sem-default-varity insn.insn (vcomb x)
-   | VADDSD x: sem-default-varity insn.insn (vcomb x)
-   | VADDSS x: sem-default-varity insn.insn (vcomb x)
-   | VADDSUBPD x: sem-default-varity insn.insn (vcomb x)
-   | VADDSUBPS x: sem-default-varity insn.insn (vcomb x)
+   | VADDPD x: sem-default-varity x insn.insn (vcomb x)
+   | VADDPS x: sem-default-varity x insn.insn (vcomb x)
+   | VADDSD x: sem-default-varity x insn.insn (vcomb x)
+   | VADDSS x: sem-default-varity x insn.insn (vcomb x)
+   | VADDSUBPD x: sem-default-varity x insn.insn (vcomb x)
+   | VADDSUBPS x: sem-default-varity x insn.insn (vcomb x)
    | VAESDEC v:
        case v of
           VA3 x: sem-vaesdec (comb x)
        end
-   | VAESDECLAST x: sem-default-varity insn.insn (vcomb x)
-   | VAESENC x: sem-default-varity insn.insn (vcomb x)
-   | VAESENCLAST x: sem-default-varity insn.insn (vcomb x)
-   | VAESIMC x: sem-default-varity insn.insn (vcomb x)
-   | VAESKEYGENASSIST x: sem-default-varity insn.insn (vcomb x)
+   | VAESDECLAST x: sem-default-varity x insn.insn (vcomb x)
+   | VAESENC x: sem-default-varity x insn.insn (vcomb x)
+   | VAESENCLAST x: sem-default-varity x insn.insn (vcomb x)
+   | VAESIMC x: sem-default-varity x insn.insn (vcomb x)
+   | VAESKEYGENASSIST x: sem-default-varity x insn.insn (vcomb x)
    | VANDNPD v: sem-default-varity (vcomb v) v
-   | VANDNPS x: sem-default-varity insn.insn (vcomb x)
+   | VANDNPS x: sem-default-varity x insn.insn (vcomb x)
    | VANDPD v:
        case v of
           VA3 x: sem-vandpd (comb x)
        end
-   | VANDPS x: sem-default-varity insn.insn (vcomb x)
-   | VBLENDPD x: sem-default-varity insn.insn (vcomb x)
-   | VBLENDPS x: sem-default-varity insn.insn (vcomb x)
-   | VBLENDVPD x: sem-default-varity insn.insn (vcomb x)
-   | VBLENDVPS x: sem-default-varity insn.insn (vcomb x)
+   | VANDPS x: sem-default-varity x insn.insn (vcomb x)
+   | VBLENDPD x: sem-default-varity x insn.insn (vcomb x)
+   | VBLENDPS x: sem-default-varity x insn.insn (vcomb x)
+   | VBLENDVPD x: sem-default-varity x insn.insn (vcomb x)
+   | VBLENDVPS x: sem-default-varity x insn.insn (vcomb x)
    | VBROADCASTF128 v: sem-vbroadcast v
    | VBROADCASTSD v: sem-vbroadcast v
    | VBROADCASTSS v: sem-vbroadcast v
-   | VCMPEQB x: sem-default-varity insn.insn (vcomb x)
-   | VCMPEQD x: sem-default-varity insn.insn (vcomb x)
-   | VCMPEQW x: sem-default-varity insn.insn (vcomb x)
-   | VCMPPD x: sem-default-varity insn.insn (vcomb x)
-   | VCMPPS x: sem-default-varity insn.insn (vcomb x)
-   | VCMPSD x: sem-default-varity insn.insn (vcomb x)
-   | VCMPSS x: sem-default-varity insn.insn (vcomb x)
-   | VCOMISD x: sem-default-varity insn.insn (vcomb x)
-   | VCOMISS x: sem-default-varity insn.insn (vcomb x)
-   | VCVTDQ2PD x: sem-default-varity insn.insn (vcomb x)
-   | VCVTDQ2PS x: sem-default-varity insn.insn (vcomb x)
-   | VCVTPD2DQ x: sem-default-varity insn.insn (vcomb x)
-   | VCVTPD2PS x: sem-default-varity insn.insn (vcomb x)
-   | VCVTPH2PS x: sem-default-varity insn.insn (vcomb x)
-   | VCVTPS2DQ x: sem-default-varity insn.insn (vcomb x)
-   | VCVTPS2PD x: sem-default-varity insn.insn (vcomb x)
-   | VCVTPS2PH x: sem-default-varity insn.insn (vcomb x)
-   | VCVTSD2SI x: sem-default-varity insn.insn (vcomb x)
-   | VCVTSD2SS x: sem-default-varity insn.insn (vcomb x)
-   | VCVTSI2SD x: sem-default-varity insn.insn (vcomb x)
-   | VCVTSI2SS x: sem-default-varity insn.insn (vcomb x)
-   | VCVTSS2SD x: sem-default-varity insn.insn (vcomb x)
-   | VCVTSS2SI x: sem-default-varity insn.insn (vcomb x)
-   | VCVTTPD2DQ x: sem-default-varity insn.insn (vcomb x)
-   | VCVTTPS2DQ x: sem-default-varity insn.insn (vcomb x)
-   | VCVTTSD2SI x: sem-default-varity insn.insn (vcomb x)
-   | VCVTTSS2SI x: sem-default-varity insn.insn (vcomb x)
-   | VDIVPD x: sem-default-varity insn.insn (vcomb x)
-   | VDIVPS x: sem-default-varity insn.insn (vcomb x)
-   | VDIVSD x: sem-default-varity insn.insn (vcomb x)
-   | VDIVSS x: sem-default-varity insn.insn (vcomb x)
-   | VDPPD x: sem-default-varity insn.insn (vcomb x)
-   | VDPPS x: sem-default-varity insn.insn (vcomb x)
-   | VERR x: sem-default-arity1 insn.insn (vcomb x)
-   | VERW x: sem-default-arity1 insn.insn (vcomb x)
-   | VEXTRACTF128 x: sem-default-varity insn.insn (vcomb x)
-   | VEXTRACTPS x: sem-default-varity insn.insn (vcomb x)
-   | VHADDPD x: sem-default-varity insn.insn (vcomb x)
-   | VHADDPS x: sem-default-varity insn.insn (vcomb x)
-   | VHSUBPD x: sem-default-varity insn.insn (vcomb x)
-   | VHSUBPS x: sem-default-varity insn.insn (vcomb x)
-   | VINSERTF128 x: sem-default-varity insn.insn (vcomb x)
-   | VINSERTPS x: sem-default-varity insn.insn (vcomb x)
+   | VCMPEQB x: sem-default-varity x insn.insn (vcomb x)
+   | VCMPEQD x: sem-default-varity x insn.insn (vcomb x)
+   | VCMPEQW x: sem-default-varity x insn.insn (vcomb x)
+   | VCMPPD x: sem-default-varity x insn.insn (vcomb x)
+   | VCMPPS x: sem-default-varity x insn.insn (vcomb x)
+   | VCMPSD x: sem-default-varity x insn.insn (vcomb x)
+   | VCMPSS x: sem-default-varity x insn.insn (vcomb x)
+   | VCOMISD x: sem-default-varity x insn.insn (vcomb x)
+   | VCOMISS x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTDQ2PD x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTDQ2PS x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTPD2DQ x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTPD2PS x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTPH2PS x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTPS2DQ x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTPS2PD x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTPS2PH x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTSD2SI x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTSD2SS x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTSI2SD x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTSI2SS x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTSS2SD x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTSS2SI x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTTPD2DQ x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTTPS2DQ x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTTSD2SI x: sem-default-varity x insn.insn (vcomb x)
+   | VCVTTSS2SI x: sem-default-varity x insn.insn (vcomb x)
+   | VDIVPD x: sem-default-varity x insn.insn (vcomb x)
+   | VDIVPS x: sem-default-varity x insn.insn (vcomb x)
+   | VDIVSD x: sem-default-varity x insn.insn (vcomb x)
+   | VDIVSS x: sem-default-varity x insn.insn (vcomb x)
+   | VDPPD x: sem-default-varity x insn.insn (vcomb x)
+   | VDPPS x: sem-default-varity x insn.insn (vcomb x)
+   | VERR x: sem-default-arity1 insn.insn (comb x)
+   | VERW x: sem-default-arity1 insn.insn (comb x)
+   | VEXTRACTF128 x: sem-default-varity x insn.insn (vcomb x)
+   | VEXTRACTPS x: sem-default-varity x insn.insn (vcomb x)
+   | VHADDPD x: sem-default-varity x insn.insn (vcomb x)
+   | VHADDPS x: sem-default-varity x insn.insn (vcomb x)
+   | VHSUBPD x: sem-default-varity x insn.insn (vcomb x)
+   | VHSUBPS x: sem-default-varity x insn.insn (vcomb x)
+   | VINSERTF128 x: sem-default-varity x insn.insn (vcomb x)
+   | VINSERTPS x: sem-default-varity x insn.insn (vcomb x)
    | VLDDQU v:
        case v of
          VA2 x: sem-mov '1' (comb x)
        end
-   | VLDMXCSR x: sem-default-varity insn.insn (comb x)
+   | VLDMXCSR x: sem-default-varity x insn.insn (vcomb x)
    | VMASKMOVDQU v:
        case v of
           VA3 x: sem-maskmovdqu-vmaskmovdqu (comb x)
        end
    | VMASKMOVPD x: sem-vmaskmovp 64 (vcomb x)
    | VMASKMOVPS x: sem-vmaskmovp 32 (vcomb x)
-   | VMAXPD x: sem-default-varity insn.insn (vcomb x)
-   | VMAXPS x: sem-default-varity insn.insn (vcomb x)
-   | VMAXSD x: sem-default-varity insn.insn (vcomb x)
-   | VMAXSS x: sem-default-varity insn.insn (vcomb x)
-   | VMINPD x: sem-default-varity insn.insn (vcomb x)
-   | VMINPS x: sem-default-varity insn.insn (vcomb x)
-   | VMINSD: sem-default-varity insn.insn
-   | VMINSS x: sem-default-varity insn.insn (vcomb x)
+   | VMAXPD x: sem-default-varity x insn.insn (vcomb x)
+   | VMAXPS x: sem-default-varity x insn.insn (vcomb x)
+   | VMAXSD x: sem-default-varity x insn.insn (vcomb x)
+   | VMAXSS x: sem-default-varity x insn.insn (vcomb x)
+   | VMINPD x: sem-default-varity x insn.insn (vcomb x)
+   | VMINPS x: sem-default-varity x insn.insn (vcomb x)
+   | VMINSD x: sem-default-varity x insn.insn (vcomb x)
+   | VMINSS x: sem-default-varity x insn.insn (vcomb x)
    | VMOVAPD v:
        case v of
           VA2 x: sem-mov '1' (comb x)
@@ -1687,7 +1687,7 @@ in
        case v of
           VA2 x: sem-movzx '1' (comb x)
        end
-   | VMOVDDUP x: sem-default-varity insn.insn (comb x)
+   | VMOVDDUP x: sem-default-varity x insn.insn (comb x)
    | VMOVDQA v:
        case v of
           VA2 x: sem-mov '1' (comb x)
@@ -1696,14 +1696,14 @@ in
        case v of
           VA2 x: sem-mov '1' (comb x)
        end
-   | VMOVHLPS x: sem-default-varity insn.insn (vcomb x)
-   | VMOVHPD x: sem-default-varity insn.insn (vcomb x)
-   | VMOVHPS x: sem-default-varity insn.insn (vcomb x)
-   | VMOVLHPS x: sem-default-varity insn.insn (vcomb x)
-   | VMOVLPD x: sem-default-varity insn.insn (vcomb x)
-   | VMOVLPS x: sem-default-varity insn.insn (vcomb x)
-   | VMOVMSKPD x: sem-default-varity insn.insn (vcomb x)
-   | VMOVMSKPS x: sem-default-varity insn.insn (vcomb x)
+   | VMOVHLPS x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVHPD x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVHPS x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVLHPS x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVLPD x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVLPS x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVMSKPD x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVMSKPS x: sem-default-varity x insn.insn (vcomb x)
    | VMOVNTDQ v:
        case v of
           VA2 x: sem-mov '1' (comb x)
@@ -1712,25 +1712,25 @@ in
        case v of
           VA2 x: sem-mov '1' (comb x)
        end
-   | VMOVNTPD x: sem-default-varity insn.insn (comb x)
-   | VMOVNTPS x: sem-default-varity insn.insn (comb x)
+   | VMOVNTPD x: sem-default-varity x insn.insn (comb x)
+   | VMOVNTPS x: sem-default-varity x insn.insn (comb x)
    | VMOVQ v:
        case v of
           VA2 x: sem-movzx '1' (comb x)
        end
-   | VMOVSD x: sem-default-varity insn.insn (vcomb x)
-   | VMOVSHDUP x: sem-default-varity insn.insn (vcomb x)
-   | VMOVSLDUP x: sem-default-varity insn.insn (vcomb x)
-   | VMOVSS x: sem-default-varity insn.insn (vcomb x)
-   | VMOVUPD x: sem-default-varity insn.insn (vcomb x)
-   | VMOVUPS x: sem-default-varity insn.insn (vcomb x)
-   | VMPSADBW x: sem-default-varity insn.insn (vcomb x)
-   | VMULPD x: sem-default-varity insn.insn (vcomb x)
-   | VMULPS x: sem-default-varity insn.insn (vcomb x)
-   | VMULSD x: sem-default-varity insn.insn (vcomb x)
-   | VMULSS x: sem-default-varity insn.insn (vcomb x)
-   | VORPD x: sem-default-varity insn.insn (vcomb x)
-   | VORPS x: sem-default-varity insn.insn (vcomb x)
+   | VMOVSD x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVSHDUP x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVSLDUP x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVSS x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVUPD x: sem-default-varity x insn.insn (vcomb x)
+   | VMOVUPS x: sem-default-varity x insn.insn (vcomb x)
+   | VMPSADBW x: sem-default-varity x insn.insn (vcomb x)
+   | VMULPD x: sem-default-varity x insn.insn (vcomb x)
+   | VMULPS x: sem-default-varity x insn.insn (vcomb x)
+   | VMULSD x: sem-default-varity x insn.insn (vcomb x)
+   | VMULSS x: sem-default-varity x insn.insn (vcomb x)
+   | VORPD x: sem-default-varity x insn.insn (vcomb x)
+   | VORPS x: sem-default-varity x insn.insn (vcomb x)
    | VPABSB v:
        case v of
           VA2 x: sem-pabs '1' 8 (comb x)
@@ -1839,8 +1839,8 @@ in
        case v of
           VA3 x: sem-vpcmpeq 16 (comb x)
        end
-   | VPCMPESTRI x: sem-default-varity insn.insn (vcomb x)
-   | VPCMPESTRM x: sem-default-varity insn.insn (vcomb x)
+   | VPCMPESTRI x: sem-default-varity x insn.insn (vcomb x)
+   | VPCMPESTRM x: sem-default-varity x insn.insn (vcomb x)
    | VPCMPGTB v:
        case v of
           VA3 x: sem-vpcmpgt 8 (comb x)
@@ -1857,11 +1857,11 @@ in
        case v of
           VA3 x: sem-vpcmpgt 16 (comb x)
        end
-   | VPCMPISTRI x: sem-default-varity insn.insn (vcomb x)
-   | VPCMPISTRM x: sem-default-varity insn.insn (vcomb x)
-   | VPERM2F128 x: sem-default-varity insn.insn (vcomb x)
-   | VPERMILPD x: sem-default-varity insn.insn (vcomb x)
-   | VPERMILPS x: sem-default-varity insn.insn (vcomb x)
+   | VPCMPISTRI x: sem-default-varity x insn.insn (vcomb x)
+   | VPCMPISTRM x: sem-default-varity x insn.insn (vcomb x)
+   | VPERM2F128 x: sem-default-varity x insn.insn (vcomb x)
+   | VPERMILPD x: sem-default-varity x insn.insn (vcomb x)
+   | VPERMILPS x: sem-default-varity x insn.insn (vcomb x)
    | VPEXTRB v:
        case v of
           VA3 x: sem-pextr-vpextr 8 (comb x)
@@ -2206,35 +2206,35 @@ in
        case v of
           VA3 x: sem-vpxor (comb x)
        end
-   | VRCPPS x: sem-default-varity insn.insn (vcomb x)
-   | VRCPSS x: sem-default-varity insn.insn (vcomb x)
-   | VROUNDPD x: sem-default-varity insn.insn (vcomb x)
-   | VROUNDPS x: sem-default-varity insn.insn (vcomb x)
-   | VROUNDSD x: sem-default-varity insn.insn (vcomb x)
-   | VROUNDSS x: sem-default-varity insn.insn (vcomb x)
-   | VRSQRTPS x: sem-default-varity insn.insn (vcomb x)
-   | VRSQRTSS x: sem-default-varity insn.insn (vcomb x)
-   | VSHUFPD x: sem-default-varity insn.insn (vcomb x)
-   | VSHUFPS x: sem-default-varity insn.insn (vcomb x)
-   | VSQRTPD x: sem-default-varity insn.insn (vcomb x)
-   | VSQRTPS x: sem-default-varity insn.insn (vcomb x)
-   | VSQRTSD x: sem-default-varity insn.insn (vcomb x)
-   | VSQRTSS x: sem-default-varity insn.insn (vcomb x)
-   | VSTMXCSR x: sem-default-varity insn.insn (vcomb x)
-   | VSUBPD x: sem-default-varity insn.insn (vcomb x)
-   | VSUBPS x: sem-default-varity insn.insn (vcomb x)
-   | VSUBSD x: sem-default-varity insn.insn (vcomb x)
-   | VSUBSS x: sem-default-varity insn.insn (vcomb x)
-   | VTESTPD x: sem-default-varity insn.insn (vcomb x)
-   | VTESTPS x: sem-default-varity insn.insn (vcomb x)
-   | VUCOMISD x: sem-default-varity insn.insn (vcomb x)
-   | VUCOMISS x: sem-default-varity insn.insn (vcomb x)
-   | VUNPCKHPD x: sem-default-varity insn.insn (vcomb x)
-   | VUNPCKHPS x: sem-default-varity insn.insn (vcomb x)
-   | VUNPCKLPD x: sem-default-varity insn.insn (vcomb x)
-   | VUNPCKLPS x: sem-default-varity insn.insn (vcomb x)
-   | VXORPD x: sem-default-varity insn.insn (vcomb x)
-   | VXORPS x: sem-default-varity insn.insn (vcomb x)
+   | VRCPPS x: sem-default-varity x insn.insn (vcomb x)
+   | VRCPSS x: sem-default-varity x insn.insn (vcomb x)
+   | VROUNDPD x: sem-default-varity x insn.insn (vcomb x)
+   | VROUNDPS x: sem-default-varity x insn.insn (vcomb x)
+   | VROUNDSD x: sem-default-varity x insn.insn (vcomb x)
+   | VROUNDSS x: sem-default-varity x insn.insn (vcomb x)
+   | VRSQRTPS x: sem-default-varity x insn.insn (vcomb x)
+   | VRSQRTSS x: sem-default-varity x insn.insn (vcomb x)
+   | VSHUFPD x: sem-default-varity x insn.insn (vcomb x)
+   | VSHUFPS x: sem-default-varity x insn.insn (vcomb x)
+   | VSQRTPD x: sem-default-varity x insn.insn (vcomb x)
+   | VSQRTPS x: sem-default-varity x insn.insn (vcomb x)
+   | VSQRTSD x: sem-default-varity x insn.insn (vcomb x)
+   | VSQRTSS x: sem-default-varity x insn.insn (vcomb x)
+   | VSTMXCSR x: sem-default-varity x insn.insn (vcomb x)
+   | VSUBPD x: sem-default-varity x insn.insn (vcomb x)
+   | VSUBPS x: sem-default-varity x insn.insn (vcomb x)
+   | VSUBSD x: sem-default-varity x insn.insn (vcomb x)
+   | VSUBSS x: sem-default-varity x insn.insn (vcomb x)
+   | VTESTPD x: sem-default-varity x insn.insn (vcomb x)
+   | VTESTPS x: sem-default-varity x insn.insn (vcomb x)
+   | VUCOMISD x: sem-default-varity x insn.insn (vcomb x)
+   | VUCOMISS x: sem-default-varity x insn.insn (vcomb x)
+   | VUNPCKHPD x: sem-default-varity x insn.insn (vcomb x)
+   | VUNPCKHPS x: sem-default-varity x insn.insn (vcomb x)
+   | VUNPCKLPD x: sem-default-varity x insn.insn (vcomb x)
+   | VUNPCKLPS x: sem-default-varity x insn.insn (vcomb x)
+   | VXORPD x: sem-default-varity x insn.insn (vcomb x)
+   | VXORPS x: sem-default-varity x insn.insn (vcomb x)
    | VZEROALL v: sem-vzeroall
    | VZEROUPPER v: sem-vzeroupper
    | WAIT: sem-default-arity0 insn.insn
