@@ -1885,11 +1885,9 @@ val sem-pusha-pushad x = do
 end
 
 val sem-pushf x = do
-  mask <- return 0x0000000000fcffff;
+  #mask <- return 0x0000000000fcffff;
+  mask <- return 0x0000000000244eff;
   flags <- rflags;
-
-  temp <- mktemp;
-  andb flags.size temp (var flags) (imm mask);
 
   mode64 <- mode64?;
   size <- return (
@@ -1901,6 +1899,10 @@ val sem-pushf x = do
     else
       x.opnd-sz
   );
+
+  temp <- mktemp;
+  mov size temp (imm 0);
+  andb flags.size temp (var flags) (imm mask);
 
   ps-push size (var temp)
 end

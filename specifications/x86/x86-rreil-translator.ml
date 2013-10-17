@@ -2288,6 +2288,10 @@ end
 val translate insn =
    do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
 #case 0 of 1: return 0 end;
+      
+      ifl <- fIF;
+      mov 1 ifl (imm 1);
+
       semantics insn;
       stack <- query $stack;
       return (rreil-stmts-rev stack)
