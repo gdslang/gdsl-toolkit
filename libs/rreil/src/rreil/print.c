@@ -358,17 +358,25 @@ void rreil_statement_print(struct rreil_statement *statement) {
 			rreil_varl_print(stdout, statement->flop.lhs);
 			fprintf(stdout, " = $");
 			rreil_flop_print(stdout, statement->flop.op);
-			fprintf(stdout, " ");
-			rreil_varls_print(stdout, statement->flop.rhs);
+			if(statement->flop.rhs->variables_length) {
+				fprintf(stdout, " ");
+				rreil_varls_print(stdout, statement->flop.rhs);
+			}
 			fprintf(stdout, " [flags:");
 			rreil_variable_print(stdout, statement->flop.flags);
 			fprintf(stdout, "]");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_PRIM: {
-			rreil_varls_print(stdout, statement->prim.lhs);
-			fprintf(stdout, " = $%s ", statement->prim.op);
-			rreil_varls_print(stdout, statement->prim.rhs);
+			if(statement->prim.lhs->variables_length) {
+				rreil_varls_print(stdout, statement->prim.lhs);
+				fprintf(stdout, " = ");
+			}
+			fprintf(stdout, "$%s", statement->prim.op);
+			if(statement->prim.rhs->variables_length) {
+				fprintf(stdout, " ");
+				rreil_varls_print(stdout, statement->prim.rhs);
+			}
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_THROW: {

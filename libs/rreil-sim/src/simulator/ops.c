@@ -160,7 +160,7 @@ __uint128_t opnd_data_unsigned(struct data opnd) {
 	if(opnd.bit_length == 128)
 		return result;
 	else
-		return result & (((__uint128_t)1 << opnd.bit_length) - 1);
+		return result & (((__uint128_t )1 << opnd.bit_length) - 1);
 }
 
 __int128_t opnd_data_signed(struct data opnd) {
@@ -194,8 +194,8 @@ __int128_t opnd_data_signed(struct data opnd) {
 		return result;
 	else
 		return
-				((result >> (opnd.bit_length - 1)) & 1) ? ~(((__uint128_t)1 << opnd.bit_length) - 1) | result :
-						(((__uint128_t)1 << opnd.bit_length) - 1) & result;
+				((result >> (opnd.bit_length - 1)) & 1) ? ~(((__uint128_t )1 << opnd.bit_length) - 1) | result :
+						(((__uint128_t )1 << opnd.bit_length) - 1) & result;
 }
 
 struct data simulator_op_mul(struct data opnd1, struct data opnd2) {
@@ -560,7 +560,11 @@ struct data simulator_op_and(struct data opnd1, struct data opnd2) {
 	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
 		result.data[i] = opnd1.data[i] & opnd2.data[i];
 
-	simulator_op_definition_bitwise(opnd1, opnd2, &result);
+//	simulator_op_definition_bitwise(opnd1, opnd2, &result);
+	result.defined = (uint8_t*)malloc(bit_length / 8 + 1);
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
+		result.defined[i] = (opnd1.defined[i] & opnd2.defined[i]) | (~opnd1.data[i] & opnd1.defined[i])
+				| (~opnd2.data[i] & opnd2.defined[i]);
 
 	return result;
 }

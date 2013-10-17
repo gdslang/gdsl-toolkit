@@ -518,6 +518,17 @@ end
 val sem-default-arity0-generic avx-encoded insn = prim-generic (show/mnemonic insn) varls-none varls-none
 val sem-default-arity0 insn = sem-default-arity0-generic '0' insn
 
+val sem-default-arity1-ro-generic avx-encoded insn x = do
+  src1-sz <- sizeof1 x.opnd1;
+
+  src1 <- rval src1-sz x.opnd1;
+
+  src1-up <- unpack-lin src1-sz src1;
+
+  prim-generic (show/mnemonic insn) varls-none (varls-one (varl src1-sz src1-up))
+end
+val sem-default-arity1-ro insn x = sem-default-arity1-ro-generic '0' insn x
+
 val sem-default-arity1-generic avx-encoded insn x = do
   dst-sz <- sizeof1 x.opnd1;
   src1-sz <- return dst-sz;
@@ -533,6 +544,20 @@ val sem-default-arity1-generic avx-encoded insn x = do
   write-extend avx-encoded dst-sz dst (var temp-dst)
 end
 val sem-default-arity1 insn x = sem-default-arity1-generic '0' insn x
+
+val sem-default-arity2-ro-generic avx-encoded insn x = do
+  src1-sz <- sizeof1 x.opnd1;
+  src2-sz <- sizeof1 x.opnd2;
+
+  src1 <- rval src1-sz x.opnd1;
+  src2 <- rval src2-sz x.opnd2;
+
+  src1-up <- unpack-lin src1-sz src1;
+  src2-up <- unpack-lin src2-sz src2;
+
+  prim-generic (show/mnemonic insn) varls-none (varls-more (varl src1-sz src1-up) (varls-one (varl src2-sz src2-up)))
+end
+val sem-default-arity2-ro insn x = sem-default-arity2-ro-generic '0' insn x
 
 val sem-default-arity2-generic avx-encoded insn x = do
   dst-sz <- sizeof1 x.opnd1;
@@ -1090,7 +1115,7 @@ in
    | DPPD x: sem-default-arity3 insn.insn (comb x)
    | DPPS x: sem-default-arity3 insn.insn (comb x)
    | EMMS: sem-default-arity0 insn.insn
-   | ENTER x: sem-default-arity2 insn.insn (comb x)
+   | ENTER x: sem-default-arity2-ro insn.insn (comb x)
    | EXTRACTPS x: sem-default-arity3 insn.insn (comb x)
    | F2XM1: sem-default-arity0 insn.insn
    | FABS: sem-default-arity0 insn.insn
@@ -1206,7 +1231,7 @@ in
    | INSD: sem-default-arity0 insn.insn
    | INSERTPS x: sem-default-arity3 insn.insn (comb x)
    | INSW: sem-default-arity0 insn.insn
-   | INT x: sem-default-arity1 insn.insn (comb x)
+   | INT x: sem-default-arity1-ro insn.insn (comb x)
    | INT0: sem-default-arity0 insn.insn
    | INT3: sem-default-arity0 insn.insn
    | INVD: sem-invd
@@ -1332,7 +1357,7 @@ in
    | OR x: sem-or (comb x)
    | ORPD x: sem-default-arity2 insn.insn (comb x)
    | ORPS x: sem-default-arity2 insn.insn (comb x)
-   | OUT x: sem-default-arity2 insn.insn (comb x)
+   | OUT x: sem-default-arity2-ro insn.insn (comb x)
    | OUTS: sem-default-arity0 insn.insn
    | OUTSB: sem-default-arity0 insn.insn
    | OUTSD: sem-default-arity0 insn.insn
@@ -2263,6 +2288,10 @@ end
 val translate insn =
    do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
 #case 0 of 1: return 0 end;
+      
+      ifl <- fIF;
+      mov 1 ifl (imm 1);
+
       semantics insn;
       stack <- query $stack;
       return (rreil-stmts-rev stack)
