@@ -851,7 +851,7 @@ end = struct
          val fStr = if Types.concisePrint then fStr else
                     fStr ^ " with vars " ^ BD.setToString bVar
       in
-         raise UnificationFailure (Clash, fStr ^ " cannot flow here")
+         raise UnificationFailure (Clash, fStr ^ " may not be present")
       end
 
    fun meetBoolean (update, env as (scs, state)) =
