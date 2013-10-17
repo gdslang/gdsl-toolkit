@@ -1104,7 +1104,7 @@ in
    | DPPD x: sem-default-arity3 insn.insn (comb x)
    | DPPS x: sem-default-arity3 insn.insn (comb x)
    | EMMS: sem-default-arity0 insn.insn
-   | ENTER x: sem-default-arity2 insn.insn (comb x)
+   | ENTER x: sem-default-arity2-ro insn.insn (comb x)
    | EXTRACTPS x: sem-default-arity3 insn.insn (comb x)
    | F2XM1: sem-default-arity0 insn.insn
    | FABS: sem-default-arity0 insn.insn
