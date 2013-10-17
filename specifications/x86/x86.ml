@@ -701,6 +701,11 @@ val illegal-repne         = return (illegal-repne_ 0)
 val illegal-lock          = return (illegal-lock_ 0)
 val illegal-lock-register = return (illegal-lock-register_ 0)
 
+val flow-features-get = do
+  inge <- decode config-default;
+  return (features-get inge)
+end
+
 val features-get insndata = (zx insndata.features)
 
 type flow1 = {opnd1:flowopnd}
