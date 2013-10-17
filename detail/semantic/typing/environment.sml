@@ -548,7 +548,7 @@ end = struct
       end
    
    fun topToStringSI ((scs, state), si) =
-        toStringSI (((List.rev (List.drop (List.rev scs, 1))), state), si)
+        toStringSI (((List.rev (List.drop (List.rev scs, 2))), state), si)
 
    fun topToString env =
       let
