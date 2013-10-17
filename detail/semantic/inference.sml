@@ -267,18 +267,26 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
    fun getSpan {span = s,component} = s
-   fun hasSymbol ({span, component = SCC.SIMPLE n},s) = SymbolTable.eq_symid (s,n)
-     | hasSymbol ({span, component = SCC.RECURSIVE ns},s) =
-         List.exists (fn n => SymbolTable.eq_symid (s,n)) ns
-   fun addComponent (comp,{span, component = c}) =
+   fun hasSymbol ({span, component = sccs},s) =
       let
-         fun sccToList scc = case scc of 
-              SCC.SIMPLE s => [s]
-            | SCC.RECURSIVE ss => ss
-         val comps = sccToList c @ sccToList comp
+         fun hS (SCC.SIMPLE n :: sccs) = SymbolTable.eq_symid (s,n) orelse hS sccs
+           | hS (SCC.RECURSIVE ns :: sccs) = 
+            List.exists (fn n => SymbolTable.eq_symid (s,n)) ns orelse hS sccs
+           | hS [] = false
       in
-         {span = span, component = SCC.RECURSIVE comps}
+         hS sccs
       end
+   fun hasRecursiveSymbol ({span, component = sccs},s) =
+      let
+         fun hS (SCC.SIMPLE n :: sccs) = hS sccs
+           | hS (SCC.RECURSIVE ns :: sccs) = 
+            List.exists (fn n => SymbolTable.eq_symid (s,n)) ns orelse hS sccs
+           | hS [] = false
+      in
+         hS sccs
+      end
+   fun addComponent (comp,{span, component = sccs}) =
+         {span = span, component = comp :: sccs}
 
    (* define a traversal that is a full inference of the tree *)
    
@@ -737,7 +745,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp stenv (AST.SEQexp l) = infSeqexp stenv l
      | infExp (st,env) (AST.IDexp v) =
       let
-         val env = E.pushSymbol (v, getSpan st, hasSymbol (st,v), true, env)
+         val env = E.pushSymbol (v, getSpan st, hasRecursiveSymbol (st,v), true, env)
 
          (*val ctxt = E.getCtxt env
          val _ = if List.all (fn x => SymbolTable.toInt x<>debugSymbol) ctxt then () else
@@ -1006,10 +1014,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
-                                  component = comp},env) d
+                                  component = [comp]},env) d
                         handle TypeError =>
                         setDummyType ({span = SymbolTable.noSpan,
-                                  component = comp},env) d
+                                  component = [comp]},env) d
                    ) env ast
          (*val _ = TextIO.print ("after checking component " ^ prComp comp ^  E.topToString env)*)
          val env = case comp of
