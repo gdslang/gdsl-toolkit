@@ -2175,16 +2175,16 @@ val sem-rep-insn x sem =
   else
     sem x
 
-val sem-ret x = do
-  case x of
-     VA0 x:
+val sem-ret insn x = do
+  case insn of
+     VA0:
        do
          address <- sem-ret-without-operand x;
          ret address
        end
-   | VA1 x:
+   | VA1 v:
        do
-	       address <- sem-ret-without-operand x;
+	       address <- sem-ret-without-operand (@{opnd1=v.opnd1} x);
          release-from-stack x;
          ret address
        end
@@ -2192,16 +2192,16 @@ val sem-ret x = do
   update @{foundJump='1'}
 end
 
-val sem-ret-far x = do
-  case x of
-     VA0 x:
+val sem-ret-far insn x = do
+  case insn of
+     VA0:
        do
          address <- sem-ret-far-without-operand x;
          ret address
        end
-   | VA1 x:
+   | VA1 v:
        do
-         address <- sem-ret-far-without-operand x;
+         address <- sem-ret-far-without-operand (@{opnd1=v.opnd1} x);
          release-from-stack x;
          ret address
        end
@@ -2314,7 +2314,18 @@ val sem-sal-shl x = do
       mov 1 cf (var temp-c)
     end _else
       undef 1 cf
-  end;
+    ;
+
+    sf <- fSF;
+    cmplts sz sf (var tdst) (imm 0);
+    
+    zf <- fZF;
+    cmpeq sz zf (var tdst) (imm 0);
+    
+    emit-parity-flag (var tdst)
+  end _else
+    mov sz tdst src
+  ;
 
   ov <- fOF;
   _if (/eq sz (var temp-count) (imm 1)) _then
@@ -2323,13 +2334,6 @@ val sem-sal-shl x = do
     undef 1 ov)
   ;
 
-  sf <- fSF;
-  cmplts sz sf (var tdst) (imm 0);
-
-  zf <- fZF;
-  cmpeq sz zf (var tdst) (imm 0);
-
-  emit-parity-flag (var tdst);
   emit-virt-flags;
 
   write sz dst (var tdst)

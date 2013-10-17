@@ -1,8 +1,8 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = pretty
+export = pretty{lock, rep, repne, features, insn}
 
-val pretty i = show/instruction i
+val pretty i = show/prefixes i +++ show/instruction i.insn -++ (show/features i)
 
 val show/features i =
   if i.features == (none_ 0) then
@@ -72,14 +72,14 @@ in
     ""
 end
 
-val show/arity1 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ (show/features x)
-val show/arity2 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ (show/features x)
-val show/arity3 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ (show/features x)
-val show/arity4 x = show/prefixes x +++ show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ ", " +++ show/operand '0' x.opnd4 +++ (show/features x)
-val show/flow1 x = show/prefixes x +++ show/flowoperand x.opnd1 +++ (show/features x)
+val show/arity1 x = show/operand '0' x.opnd1
+val show/arity2 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2
+val show/arity3 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3
+val show/arity4 x = show/operand '0' x.opnd1 +++ ", " +++ show/operand '0' x.opnd2 +++ ", " +++ show/operand '0' x.opnd3 +++ ", " +++ show/operand '0' x.opnd4
+val show/flow1 x = show/flowoperand x.opnd1
 val show/varity x =
    case x of
-      VA0 x: " " +++ show/prefixes x +++ show/features x
+      VA0: ""
     | VA1 x: " " +++ show/arity1 x
     | VA2 x: " " +++ show/arity2 x
     | VA3 x: " " +++ show/arity3 x
@@ -278,10 +278,10 @@ val show/flowoperand op =
 
 val show/instruction insn =
    case insn of
-      AAA x: show/mnemonic insn
+      AAA: show/mnemonic insn
     | AAD x: show/mnemonic insn -++ show/arity1 x
     | AAM x: show/mnemonic insn -++ show/arity1 x
-    | AAS x: show/mnemonic insn
+    | AAS: show/mnemonic insn
     | ADC x: show/mnemonic insn -++ show/arity2 x
     | ADD x: show/mnemonic insn -++ show/arity2 x
     | ADDPD x: show/mnemonic insn -++ show/arity2 x
@@ -315,15 +315,15 @@ val show/instruction insn =
     | BTR x: show/mnemonic insn -++ show/arity2 x
     | BTS x: show/mnemonic insn -++ show/arity2 x
     | CALL x: show/mnemonic insn -++ show/flow1 x
-    | CBW x: show/mnemonic insn
-    | CDQ x: show/mnemonic insn
-    | CDQE x: show/mnemonic insn
-    | CLC x: show/mnemonic insn
-    | CLD x: show/mnemonic insn
+    | CBW: show/mnemonic insn
+    | CDQ: show/mnemonic insn
+    | CDQE: show/mnemonic insn
+    | CLC: show/mnemonic insn
+    | CLD: show/mnemonic insn
     | CLFLUSH x: show/mnemonic insn -++ show/arity1 x
-    | CLI x: show/mnemonic insn
-    | CLTS x: show/mnemonic insn
-    | CMC x: show/mnemonic insn
+    | CLI: show/mnemonic insn
+    | CLTS: show/mnemonic insn
+    | CMC: show/mnemonic insn
     | CMOVA x: show/mnemonic insn -++ show/arity2 x
     | CMOVAE x: show/mnemonic insn -++ show/arity2 x
     | CMOVB x: show/mnemonic insn -++ show/arity2 x
@@ -365,8 +365,8 @@ val show/instruction insn =
     | CMPXCHG8B x: show/mnemonic insn -++ show/arity1 x
     | COMISD x: show/mnemonic insn -++ show/arity2 x
     | COMISS x: show/mnemonic insn -++ show/arity2 x
-    | CPUID x: show/mnemonic insn
-    | CQO x: show/mnemonic insn
+    | CPUID: show/mnemonic insn
+    | CQO: show/mnemonic insn
     | CRC32 x: show/mnemonic insn -++ show/arity2 x
     | CVTDQ2PD x: show/mnemonic insn -++ show/arity2 x
     | CVTDQ2PS x: show/mnemonic insn -++ show/arity2 x
@@ -390,10 +390,10 @@ val show/instruction insn =
     | CVTTPS2PI x: show/mnemonic insn -++ show/arity2 x
     | CVTTSD2SI x: show/mnemonic insn -++ show/arity2 x
     | CVTTSS2SI x: show/mnemonic insn -++ show/arity2 x
-    | CWD x: show/mnemonic insn
-    | CWDE x: show/mnemonic insn
-    | DAA x: show/mnemonic insn
-    | DAS x: show/mnemonic insn
+    | CWD: show/mnemonic insn
+    | CWDE: show/mnemonic insn
+    | DAA: show/mnemonic insn
+    | DAS: show/mnemonic insn
     | DEC x: show/mnemonic insn -++ show/arity1 x
     | DIV x: show/mnemonic insn -++ show/arity1 x
     | DIVPD x: show/mnemonic insn -++ show/arity2 x
@@ -402,17 +402,17 @@ val show/instruction insn =
     | DIVSS x: show/mnemonic insn -++ show/arity2 x
     | DPPD x: show/mnemonic insn -++ show/arity3 x
     | DPPS x: show/mnemonic insn -++ show/arity3 x
-    | EMMS x: show/mnemonic insn
+    | EMMS: show/mnemonic insn
     | ENTER x: show/mnemonic insn -++ show/arity2 x
     | EXTRACTPS x: show/mnemonic insn -++ show/arity3 x
-    | F2XM1 x: show/mnemonic insn
-    | FABS x: show/mnemonic insn
+    | F2XM1: show/mnemonic insn
+    | FABS: show/mnemonic insn
     | FADD x: show/mnemonic insn -++ show/arity2 x
     | FADDP x: show/mnemonic insn -++ show/arity2 x
     | FBLD x: show/mnemonic insn -++ show/arity1 x
     | FBSTP x: show/mnemonic insn -++ show/arity1 x
-    | FCHS x: show/mnemonic insn
-    | FCLEX x: show/mnemonic insn
+    | FCHS: show/mnemonic insn
+    | FCLEX: show/mnemonic insn
     | FCMOVB x: show/mnemonic insn -++ show/arity2 x
     | FCMOVBE x: show/mnemonic insn -++ show/arity2 x
     | FCMOVE x: show/mnemonic insn -++ show/arity2 x
@@ -425,9 +425,9 @@ val show/instruction insn =
     | FCOMI x: show/mnemonic insn -++ show/arity2 x
     | FCOMIP x: show/mnemonic insn -++ show/arity2 x
     | FCOMP x: show/mnemonic insn -++ show/arity1 x
-    | FCOMPP x: show/mnemonic insn
-    | FCOS x: show/mnemonic insn
-    | FDECSTP x: show/mnemonic insn
+    | FCOMPP: show/mnemonic insn
+    | FCOS: show/mnemonic insn
+    | FDECSTP: show/mnemonic insn
     | FDIV x: show/mnemonic insn -++ show/arity2 x
     | FDIVP x: show/mnemonic insn -++ show/arity2 x
     | FDIVR x: show/mnemonic insn -++ show/arity2 x
@@ -440,43 +440,43 @@ val show/instruction insn =
     | FIDIVR x: show/mnemonic insn -++ show/arity1 x
     | FILD x: show/mnemonic insn -++ show/arity1 x
     | FIMUL x: show/mnemonic insn -++ show/arity1 x
-    | FINCSTP x: show/mnemonic insn
-    | FINIT x: show/mnemonic insn
+    | FINCSTP: show/mnemonic insn
+    | FINIT: show/mnemonic insn
     | FIST x: show/mnemonic insn -++ show/arity1 x
     | FISTP x: show/mnemonic insn -++ show/arity1 x
     | FISTTP x: show/mnemonic insn -++ show/arity1 x
     | FISUB x: show/mnemonic insn -++ show/arity1 x
     | FISUBR x: show/mnemonic insn -++ show/arity1 x
     | FLD x: show/mnemonic insn -++ show/arity1 x
-    | FLD1 x: show/mnemonic insn
+    | FLD1: show/mnemonic insn
     | FLDCW x: show/mnemonic insn -++ show/arity1 x
     | FLDENV x: show/mnemonic insn -++ show/arity1 x
-    | FLDL2E x: show/mnemonic insn
-    | FLDL2T x: show/mnemonic insn
-    | FLDLG2 x: show/mnemonic insn
-    | FLDLN2 x: show/mnemonic insn
-    | FLDPI x: show/mnemonic insn
-    | FLDZ x: show/mnemonic insn
+    | FLDL2E: show/mnemonic insn
+    | FLDL2T: show/mnemonic insn
+    | FLDLG2: show/mnemonic insn
+    | FLDLN2: show/mnemonic insn
+    | FLDPI: show/mnemonic insn
+    | FLDZ: show/mnemonic insn
     | FMUL x: show/mnemonic insn -++ show/arity2 x
     | FMULP x: show/mnemonic insn -++ show/arity2 x
-    | FNCLEX x: show/mnemonic insn
-    | FNINIT x: show/mnemonic insn
-    | FNOP x: show/mnemonic insn
+    | FNCLEX: show/mnemonic insn
+    | FNINIT: show/mnemonic insn
+    | FNOP: show/mnemonic insn
     | FNSAVE x: show/mnemonic insn -++ show/arity1 x
     | FNSTCW x: show/mnemonic insn -++ show/arity1 x
     | FNSTENV x: show/mnemonic insn -++ show/arity1 x
     | FNSTSW x: show/mnemonic insn -++ show/arity1 x
-    | FPATAN x: show/mnemonic insn
-    | FPREM1 x: show/mnemonic insn
-    | FPREM x: show/mnemonic insn
-    | FPTAN x: show/mnemonic insn
-    | FRNDINT x: show/mnemonic insn
+    | FPATAN: show/mnemonic insn
+    | FPREM1: show/mnemonic insn
+    | FPREM: show/mnemonic insn
+    | FPTAN: show/mnemonic insn
+    | FRNDINT: show/mnemonic insn
     | FRSTOR x: show/mnemonic insn -++ show/arity1 x
     | FSAVE x: show/mnemonic insn -++ show/arity1 x
-    | FSCALE x: show/mnemonic insn
-    | FSIN x: show/mnemonic insn
-    | FSINCOS x: show/mnemonic insn
-    | FSQRT x: show/mnemonic insn
+    | FSCALE: show/mnemonic insn
+    | FSIN: show/mnemonic insn
+    | FSINCOS: show/mnemonic insn
+    | FSQRT: show/mnemonic insn
     | FST x: show/mnemonic insn -++ show/arity1 x
     | FSTCW x: show/mnemonic insn -++ show/arity1 x
     | FSTENV x: show/mnemonic insn -++ show/arity1 x
@@ -486,43 +486,43 @@ val show/instruction insn =
     | FSUBP x: show/mnemonic insn -++ show/arity2 x
     | FSUBR x: show/mnemonic insn -++ show/arity2 x
     | FSUBRP x: show/mnemonic insn -++ show/arity2 x
-    | FTST x: show/mnemonic insn
+    | FTST: show/mnemonic insn
     | FUCOM x: show/mnemonic insn -++ show/arity1 x
     | FUCOMI x: show/mnemonic insn -++ show/arity1 x
     | FUCOMIP x: show/mnemonic insn -++ show/arity1 x
     | FUCOMP x: show/mnemonic insn -++ show/arity1 x
-    | FUCOMPP x: show/mnemonic insn
-    | FXAM x: show/mnemonic insn
+    | FUCOMPP: show/mnemonic insn
+    | FXAM: show/mnemonic insn
     | FXCH x: show/mnemonic insn -++ show/arity1 x
     | FXRSTOR x: show/mnemonic insn -++ show/arity1 x
     | FXRSTOR64 x: show/mnemonic insn -++ show/arity1 x
     | FXSAVE x: show/mnemonic insn -++ show/arity1 x
     | FXSAVE64 x: show/mnemonic insn -++ show/arity1 x
-    | FXTRACT x: show/mnemonic insn
-    | FYL2X x: show/mnemonic insn
-    | FYL2XP1 x: show/mnemonic insn
+    | FXTRACT: show/mnemonic insn
+    | FYL2X: show/mnemonic insn
+    | FYL2XP1: show/mnemonic insn
     | HADDPD x: show/mnemonic insn -++ show/arity2 x
     | HADDPS x: show/mnemonic insn -++ show/arity2 x
-    | HLT x: show/mnemonic insn
+    | HLT: show/mnemonic insn
     | HSUBPD x: show/mnemonic insn -++ show/arity2 x
     | HSUBPS x: show/mnemonic insn -++ show/arity2 x
     | IDIV x: show/mnemonic insn -++ show/arity1 x
     | IMUL x: show/mnemonic insn +++ show/varity x
     | IN x: show/mnemonic insn -++ show/arity2 x
     | INC x: show/mnemonic insn -++ show/arity1 x
-    | INSB x: show/mnemonic insn
-    | INSD x: show/mnemonic insn
+    | INSB: show/mnemonic insn
+    | INSD: show/mnemonic insn
     | INSERTPS x: show/mnemonic insn -++ show/arity3 x
-    | INSW x: show/mnemonic insn
+    | INSW: show/mnemonic insn
     | INT x: show/mnemonic insn -++ show/arity1 x
-    | INT0 x: show/mnemonic insn
-    | INT3 x: show/mnemonic insn
-    | INVD x: show/mnemonic insn
+    | INT0: show/mnemonic insn
+    | INT3: show/mnemonic insn
+    | INVD: show/mnemonic insn
     | INVLPG x: show/mnemonic insn -++ show/arity1 x
     | INVPCID x: show/mnemonic insn -++ show/arity2 x
-    | IRET x: show/mnemonic insn
-    | IRETD x: show/mnemonic insn
-    | IRETQ x: show/mnemonic insn
+    | IRET: show/mnemonic insn
+    | IRETD: show/mnemonic insn
+    | IRETQ: show/mnemonic insn
     | JA x: show/mnemonic insn -++ show/flow1 x
     | JAE x: show/mnemonic insn -++ show/flow1 x
     | JB x: show/mnemonic insn -++ show/flow1 x
@@ -557,15 +557,15 @@ val show/instruction insn =
     | JRCXZ x: show/mnemonic insn -++ show/flow1 x
     | JS x: show/mnemonic insn -++ show/flow1 x
     | JZ x: show/mnemonic insn -++ show/flow1 x
-    | LAHF x: show/mnemonic insn
+    | LAHF: show/mnemonic insn
     | LAR x: show/mnemonic insn -++ show/arity2 x
     | LDDQU x: show/mnemonic insn -++ show/arity2 x
     | LDMXCSR x: show/mnemonic insn -++ show/arity1 x
     | LDS x: show/mnemonic insn -++ show/arity2 x
     | LEA x: show/mnemonic insn -++ show/arity2 x
-    | LEAVE x: show/mnemonic insn
+    | LEAVE: show/mnemonic insn
     | LES x: show/mnemonic insn -++ show/arity2 x
-    | LFENCE x: show/mnemonic insn
+    | LFENCE: show/mnemonic insn
     | LFS x: show/mnemonic insn -++ show/arity2 x
     | LGDT x: show/mnemonic insn -++ show/arity1 x
     | LGS x: show/mnemonic insn -++ show/arity2 x
@@ -585,12 +585,12 @@ val show/instruction insn =
     | MAXPS x: show/mnemonic insn -++ show/arity2 x
     | MAXSD x: show/mnemonic insn -++ show/arity2 x
     | MAXSS x: show/mnemonic insn -++ show/arity2 x
-    | MFENCE x: show/mnemonic insn
+    | MFENCE: show/mnemonic insn
     | MINPD x: show/mnemonic insn -++ show/arity2 x
     | MINPS x: show/mnemonic insn -++ show/arity2 x
     | MINSD x: show/mnemonic insn -++ show/arity2 x
     | MINSS x: show/mnemonic insn -++ show/arity2 x
-    | MONITOR x: show/mnemonic insn
+    | MONITOR: show/mnemonic insn
     | MOV x: show/mnemonic insn -++ show/arity2 x
     | MOVAPD x: show/mnemonic insn -++ show/arity2 x
     | MOVAPS x: show/mnemonic insn -++ show/arity2 x
@@ -633,7 +633,7 @@ val show/instruction insn =
     | MULPS x: show/mnemonic insn -++ show/arity2 x
     | MULSD x: show/mnemonic insn -++ show/arity2 x
     | MULSS x: show/mnemonic insn -++ show/arity2 x
-    | MWAIT x: show/mnemonic insn
+    | MWAIT: show/mnemonic insn
     | NEG x: show/mnemonic insn -++ show/arity1 x
     | NOP x: show/mnemonic insn +++ show/varity x
     | NOT x: show/mnemonic insn -++ show/arity1 x
@@ -641,10 +641,10 @@ val show/instruction insn =
     | ORPD x: show/mnemonic insn -++ show/arity2 x
     | ORPS x: show/mnemonic insn -++ show/arity2 x
     | OUT x: show/mnemonic insn -++ show/arity2 x
-    | OUTS x: show/mnemonic insn
-    | OUTSB x: show/mnemonic insn
-    | OUTSD x: show/mnemonic insn
-    | OUTSW x: show/mnemonic insn
+    | OUTS: show/mnemonic insn
+    | OUTSB: show/mnemonic insn
+    | OUTSD: show/mnemonic insn
+    | OUTSW: show/mnemonic insn
     | PABSB x: show/mnemonic insn -++ show/arity2 x
     | PABSD x: show/mnemonic insn -++ show/arity2 x
     | PABSW x: show/mnemonic insn -++ show/arity2 x
@@ -663,7 +663,7 @@ val show/instruction insn =
     | PALIGNR x: show/mnemonic insn -++ show/arity3 x
     | PAND x: show/mnemonic insn -++ show/arity2 x
     | PANDN x: show/mnemonic insn -++ show/arity2 x
-    | PAUSE x: show/mnemonic insn
+    | PAUSE: show/mnemonic insn
     | PAVGB x: show/mnemonic insn -++ show/arity2 x
     | PAVGW x: show/mnemonic insn -++ show/arity2 x
     | PBLENDVB x: show/mnemonic insn -++ show/arity2 x
@@ -732,12 +732,12 @@ val show/instruction insn =
     | PMULLW x: show/mnemonic insn -++ show/arity2 x
     | PMULUDQ x: show/mnemonic insn -++ show/arity2 x
     | POP x: show/mnemonic insn -++ show/arity1 x
-    | POPA x: show/mnemonic insn
-    | POPAD x: show/mnemonic insn
+    | POPA: show/mnemonic insn
+    | POPAD: show/mnemonic insn
     | POPCNT x: show/mnemonic insn -++ show/arity2 x
-    | POPF x: show/mnemonic insn
-    | POPFD x: show/mnemonic insn
-    | POPFQ x: show/mnemonic insn
+    | POPF: show/mnemonic insn
+    | POPFD: show/mnemonic insn
+    | POPFQ: show/mnemonic insn
     | POR x: show/mnemonic insn -++ show/arity2 x
     | PREFETCHNTA x: show/mnemonic insn -++ show/arity1 x
     | PREFETCHT0 x: show/mnemonic insn -++ show/arity1 x
@@ -781,11 +781,11 @@ val show/instruction insn =
     | PUNPCKLQDQ x: show/mnemonic insn -++ show/arity2 x
     | PUNPCKLWD x: show/mnemonic insn -++ show/arity2 x
     | PUSH x: show/mnemonic insn -++ show/arity1 x
-    | PUSHA x: show/mnemonic insn
-    | PUSHAD x: show/mnemonic insn
-    | PUSHF x: show/mnemonic insn
-    | PUSHFD x: show/mnemonic insn
-    | PUSHFQ x: show/mnemonic insn
+    | PUSHA: show/mnemonic insn
+    | PUSHAD: show/mnemonic insn
+    | PUSHF: show/mnemonic insn
+    | PUSHFD: show/mnemonic insn
+    | PUSHFQ: show/mnemonic insn
     | PXOR x: show/mnemonic insn -++ show/arity2 x
     | RCL x: show/mnemonic insn -++ show/arity2 x
     | RCPPS x: show/mnemonic insn -++ show/arity2 x
@@ -793,11 +793,11 @@ val show/instruction insn =
     | RCR x: show/mnemonic insn -++ show/arity2 x
     | RDFSBASE x: show/mnemonic insn -++ show/arity1 x
     | RDGSBASE x: show/mnemonic insn -++ show/arity1 x
-    | RDMSR x: show/mnemonic insn
-    | RDPMC x: show/mnemonic insn
+    | RDMSR: show/mnemonic insn
+    | RDPMC: show/mnemonic insn
     | RDRAND x: show/mnemonic insn -++ show/arity1 x
-    | RDTSC x: show/mnemonic insn
-    | RDTSCP x: show/mnemonic insn
+    | RDTSC: show/mnemonic insn
+    | RDTSCP: show/mnemonic insn
     | RET x: show/mnemonic insn +++ show/varity x
     | RET_FAR x: show/mnemonic insn +++ show/varity x
     | ROL x: show/mnemonic insn -++ show/arity2 x
@@ -806,17 +806,17 @@ val show/instruction insn =
     | ROUNDPS x: show/mnemonic insn -++ show/arity3 x
     | ROUNDSD x: show/mnemonic insn -++ show/arity3 x
     | ROUNDSS x: show/mnemonic insn -++ show/arity3 x
-    | RSM x: show/mnemonic insn
+    | RSM: show/mnemonic insn
     | RSQRTPS x: show/mnemonic insn -++ show/arity2 x
     | RSQRTSS x: show/mnemonic insn -++ show/arity2 x
-    | SAHF x: show/mnemonic insn
+    | SAHF: show/mnemonic insn
     | SAL x: show/mnemonic insn -++ show/arity2 x
     | SAR x: show/mnemonic insn -++ show/arity2 x
     | SBB x: show/mnemonic insn -++ show/arity2 x
-    | SCASB x: show/mnemonic insn
-    | SCASD x: show/mnemonic insn
-    | SCASQ x: show/mnemonic insn
-    | SCASW x: show/mnemonic insn
+    | SCASB: show/mnemonic insn
+    | SCASD: show/mnemonic insn
+    | SCASQ: show/mnemonic insn
+    | SCASW: show/mnemonic insn
     | SETA x: show/mnemonic insn -++ show/arity1 x
     | SETAE x: show/mnemonic insn -++ show/arity1 x
     | SETB x: show/mnemonic insn -++ show/arity1 x
@@ -847,7 +847,7 @@ val show/instruction insn =
     | SETPO x: show/mnemonic insn -++ show/arity1 x
     | SETS x: show/mnemonic insn -++ show/arity1 x
     | SETZ x: show/mnemonic insn -++ show/arity1 x
-    | SFENCE x: show/mnemonic insn
+    | SFENCE: show/mnemonic insn
     | SGDT x: show/mnemonic insn -++ show/arity1 x
     | SHL x: show/mnemonic insn -++ show/arity2 x
     | SHLD x: show/mnemonic insn -++ show/arity3 x
@@ -862,29 +862,29 @@ val show/instruction insn =
     | SQRTPS x: show/mnemonic insn -++ show/arity2 x
     | SQRTSD x: show/mnemonic insn -++ show/arity2 x
     | SQRTSS x: show/mnemonic insn -++ show/arity2 x
-    | STC x: show/mnemonic insn
-    | STD x: show/mnemonic insn
-    | STI x: show/mnemonic insn
+    | STC: show/mnemonic insn
+    | STD: show/mnemonic insn
+    | STI: show/mnemonic insn
     | STMXCSR x: show/mnemonic insn -++ show/arity1 x
-    | STOSB x: show/mnemonic insn
-    | STOSD x: show/mnemonic insn
-    | STOSQ x: show/mnemonic insn
-    | STOSW x: show/mnemonic insn
+    | STOSB: show/mnemonic insn
+    | STOSD: show/mnemonic insn
+    | STOSQ: show/mnemonic insn
+    | STOSW: show/mnemonic insn
     | STR x: show/mnemonic insn -++ show/arity1 x
     | SUB x: show/mnemonic insn -++ show/arity2 x
     | SUBPD x: show/mnemonic insn -++ show/arity2 x
     | SUBPS x: show/mnemonic insn -++ show/arity2 x
     | SUBSD x: show/mnemonic insn -++ show/arity2 x
     | SUBSS x: show/mnemonic insn -++ show/arity2 x
-    | SWAPGS x: show/mnemonic insn
-    | SYSCALL x: show/mnemonic insn
-    | SYSENTER x: show/mnemonic insn
-    | SYSEXIT x: show/mnemonic insn
-    | SYSRET x: show/mnemonic insn
+    | SWAPGS: show/mnemonic insn
+    | SYSCALL: show/mnemonic insn
+    | SYSENTER: show/mnemonic insn
+    | SYSEXIT: show/mnemonic insn
+    | SYSRET: show/mnemonic insn
     | TEST x: show/mnemonic insn -++ show/arity2 x
     | UCOMISD x: show/mnemonic insn -++ show/arity2 x
     | UCOMISS x: show/mnemonic insn -++ show/arity2 x
-    | UD2 x: show/mnemonic insn
+    | UD2: show/mnemonic insn
     | UNPCKHPD x: show/mnemonic insn -++ show/arity2 x
     | UNPCKHPS x: show/mnemonic insn -++ show/arity2 x
     | UNPCKLPD x: show/mnemonic insn -++ show/arity2 x
@@ -1155,15 +1155,15 @@ val show/instruction insn =
     | VXORPS x: show/mnemonic insn +++ show/varity x
     | VZEROALL x: show/mnemonic insn +++ show/varity x
     | VZEROUPPER x: show/mnemonic insn +++ show/varity x
-    | WAIT x: show/mnemonic insn
-    | WBINVD x: show/mnemonic insn
+    | WAIT: show/mnemonic insn
+    | WBINVD: show/mnemonic insn
     | WRFSBASE x: show/mnemonic insn -++ show/arity1 x
     | WRGSBASE x: show/mnemonic insn -++ show/arity1 x
-    | WRMSR x: show/mnemonic insn
+    | WRMSR: show/mnemonic insn
     | XADD x: show/mnemonic insn -++ show/arity2 x
     | XCHG x: show/mnemonic insn -++ show/arity2 x
-    | XGETBV x: show/mnemonic insn
-    | XLATB x: show/mnemonic insn
+    | XGETBV: show/mnemonic insn
+    | XLATB: show/mnemonic insn
     | XOR x: show/mnemonic insn -++ show/arity2 x
     | XORPD x: show/mnemonic insn -++ show/arity2 x
     | XORPS x: show/mnemonic insn -++ show/arity2 x
@@ -1173,19 +1173,19 @@ val show/instruction insn =
     | XSAVE64 x: show/mnemonic insn -++ show/arity1 x
     | XSAVEOPT x: show/mnemonic insn -++ show/arity1 x
     | XSAVEOPT64 x: show/mnemonic insn -++ show/arity1 x
-    | XSETBV x: show/mnemonic insn
-    #| PSLRDQ x: show/mnemonic insn -++ show/arity2 x
-    #| VPSLRDQ x: show/mnemonic insn +++ show/varity x
+    | XSETBV: show/mnemonic insn
+    #| PSLRDQ: show/mnemonic insn -++ show/arity2 x
+    #| VPSLRDQ: show/mnemonic insn +++ show/varity x
    end
 #s/^\(...\)\(\S*\)\s*$/\1\2: show/mnemonic insn/
 #s/^\(...\)\(\S*\) of \(\S*\)\s*$/\1\2 x: show/mnemonic insn -++ show\/\3 x/
 
 val show/mnemonic insn =
-   case insn of
-      AAA x: "AAA"
+    case insn of
+      AAA: show/mnemonic insn
     | AAD x: "AAD"
     | AAM x: "AAM"
-    | AAS x: "AAS"
+    | AAS: "AAS"
     | ADC x: "ADC"
     | ADD x: "ADD"
     | ADDPD x: "ADDPD"
@@ -1219,15 +1219,15 @@ val show/mnemonic insn =
     | BTR x: "BTR"
     | BTS x: "BTS"
     | CALL x: "CALL"
-    | CBW x: "CBW"
-    | CDQ x: "CDQ"
-    | CDQE x: "CDQE"
-    | CLC x: "CLC"
-    | CLD x: "CLD"
+    | CBW: "CBW"
+    | CDQ: "CDQ"
+    | CDQE: "CDQE"
+    | CLC: "CLC"
+    | CLD: "CLD"
     | CLFLUSH x: "CLFLUSH"
-    | CLI x: "CLI"
-    | CLTS x: "CLTS"
-    | CMC x: "CMC"
+    | CLI: "CLI"
+    | CLTS: "CLTS"
+    | CMC: "CMC"
     | CMOVA x: "CMOVA"
     | CMOVAE x: "CMOVAE"
     | CMOVB x: "CMOVB"
@@ -1269,8 +1269,8 @@ val show/mnemonic insn =
     | CMPXCHG8B x: "CMPXCHG8B"
     | COMISD x: "COMISD"
     | COMISS x: "COMISS"
-    | CPUID x: "CPUID"
-    | CQO x: "CQO"
+    | CPUID: "CPUID"
+    | CQO: "CQO"
     | CRC32 x: "CRC32"
     | CVTDQ2PD x: "CVTDQ2PD"
     | CVTDQ2PS x: "CVTDQ2PS"
@@ -1294,10 +1294,10 @@ val show/mnemonic insn =
     | CVTTPS2PI x: "CVTTPS2PI"
     | CVTTSD2SI x: "CVTTSD2SI"
     | CVTTSS2SI x: "CVTTSS2SI"
-    | CWD x: "CWD"
-    | CWDE x: "CWDE"
-    | DAA x: "DAA"
-    | DAS x: "DAS"
+    | CWD: "CWD"
+    | CWDE: "CWDE"
+    | DAA: "DAA"
+    | DAS: "DAS"
     | DEC x: "DEC"
     | DIV x: "DIV"
     | DIVPD x: "DIVPD"
@@ -1306,17 +1306,17 @@ val show/mnemonic insn =
     | DIVSS x: "DIVSS"
     | DPPD x: "DPPD"
     | DPPS x: "DPPS"
-    | EMMS x: "EMMS"
+    | EMMS: "EMMS"
     | ENTER x: "ENTER"
     | EXTRACTPS x: "EXTRACTPS"
-    | F2XM1 x: "F2XM1"
-    | FABS x: "FABS"
+    | F2XM1: "F2XM1"
+    | FABS: "FABS"
     | FADD x: "FADD"
     | FADDP x: "FADDP"
     | FBLD x: "FBLD"
     | FBSTP x: "FBSTP"
-    | FCHS x: "FCHS"
-    | FCLEX x: "FCLEX"
+    | FCHS: "FCHS"
+    | FCLEX: "FCLEX"
     | FCMOVB x: "FCMOVB"
     | FCMOVBE x: "FCMOVBE"
     | FCMOVE x: "FCMOVE"
@@ -1329,9 +1329,9 @@ val show/mnemonic insn =
     | FCOMI x: "FCOMI"
     | FCOMIP x: "FCOMIP"
     | FCOMP x: "FCOMP"
-    | FCOMPP x: "FCOMPP"
-    | FCOS x: "FCOS"
-    | FDECSTP x: "FDECSTP"
+    | FCOMPP: "FCOMPP"
+    | FCOS: "FCOS"
+    | FDECSTP: "FDECSTP"
     | FDIV x: "FDIV"
     | FDIVP x: "FDIVP"
     | FDIVR x: "FDIVR"
@@ -1344,43 +1344,43 @@ val show/mnemonic insn =
     | FIDIVR x: "FIDIVR"
     | FILD x: "FILD"
     | FIMUL x: "FIMUL"
-    | FINCSTP x: "FINCSTP"
-    | FINIT x: "FINIT"
+    | FINCSTP: "FINCSTP"
+    | FINIT: "FINIT"
     | FIST x: "FIST"
     | FISTP x: "FISTP"
     | FISTTP x: "FISTTP"
     | FISUB x: "FISUB"
     | FISUBR x: "FISUBR"
     | FLD x: "FLD"
-    | FLD1 x: "FLD1"
+    | FLD1: "FLD1"
     | FLDCW x: "FLDCW"
     | FLDENV x: "FLDENV"
-    | FLDL2E x: "FLDL2E"
-    | FLDL2T x: "FLDL2T"
-    | FLDLG2 x: "FLDLG2"
-    | FLDLN2 x: "FLDLN2"
-    | FLDPI x: "FLDPI"
-    | FLDZ x: "FLDZ"
+    | FLDL2E: "FLDL2E"
+    | FLDL2T: "FLDL2T"
+    | FLDLG2: "FLDLG2"
+    | FLDLN2: "FLDLN2"
+    | FLDPI: "FLDPI"
+    | FLDZ: "FLDZ"
     | FMUL x: "FMUL"
     | FMULP x: "FMULP"
-    | FNCLEX x: "FNCLEX"
-    | FNINIT x: "FNINIT"
-    | FNOP x: "FNOP"
+    | FNCLEX: "FNCLEX"
+    | FNINIT: "FNINIT"
+    | FNOP: "FNOP"
     | FNSAVE x: "FNSAVE"
     | FNSTCW x: "FNSTCW"
     | FNSTENV x: "FNSTENV"
     | FNSTSW x: "FNSTSW"
-    | FPATAN x: "FPATAN"
-    | FPREM1 x: "FPREM1"
-    | FPREM x: "FPREM"
-    | FPTAN x: "FPTAN"
-    | FRNDINT x: "FRNDINT"
+    | FPATAN: "FPATAN"
+    | FPREM1: "FPREM1"
+    | FPREM: "FPREM"
+    | FPTAN: "FPTAN"
+    | FRNDINT: "FRNDINT"
     | FRSTOR x: "FRSTOR"
     | FSAVE x: "FSAVE"
-    | FSCALE x: "FSCALE"
-    | FSIN x: "FSIN"
-    | FSINCOS x: "FSINCOS"
-    | FSQRT x: "FSQRT"
+    | FSCALE: "FSCALE"
+    | FSIN: "FSIN"
+    | FSINCOS: "FSINCOS"
+    | FSQRT: "FSQRT"
     | FST x: "FST"
     | FSTCW x: "FSTCW"
     | FSTENV x: "FSTENV"
@@ -1390,43 +1390,43 @@ val show/mnemonic insn =
     | FSUBP x: "FSUBP"
     | FSUBR x: "FSUBR"
     | FSUBRP x: "FSUBRP"
-    | FTST x: "FTST"
+    | FTST: "FTST"
     | FUCOM x: "FUCOM"
     | FUCOMI x: "FUCOMI"
     | FUCOMIP x: "FUCOMIP"
     | FUCOMP x: "FUCOMP"
-    | FUCOMPP x: "FUCOMPP"
-    | FXAM x: "FXAM"
+    | FUCOMPP: "FUCOMPP"
+    | FXAM: "FXAM"
     | FXCH x: "FXCH"
     | FXRSTOR x: "FXRSTOR"
     | FXRSTOR64 x: "FXRSTOR64"
     | FXSAVE x: "FXSAVE"
     | FXSAVE64 x: "FXSAVE64"
-    | FXTRACT x: "FXTRACT"
-    | FYL2X x: "FYL2X"
-    | FYL2XP1 x: "FYL2XP1"
+    | FXTRACT: "FXTRACT"
+    | FYL2X: "FYL2X"
+    | FYL2XP1: "FYL2XP1"
     | HADDPD x: "HADDPD"
     | HADDPS x: "HADDPS"
-    | HLT x: "HLT"
+    | HLT: "HLT"
     | HSUBPD x: "HSUBPD"
     | HSUBPS x: "HSUBPS"
     | IDIV x: "IDIV"
     | IMUL x: "IMUL"
     | IN x: "IN"
     | INC x: "INC"
-    | INSB x: "INSB"
-    | INSD x: "INSD"
+    | INSB: "INSB"
+    | INSD: "INSD"
     | INSERTPS x: "INSERTPS"
-    | INSW x: "INSW"
+    | INSW: "INSW"
     | INT x: "INT"
-    | INT0 x: "INT0"
-    | INT3 x: "INT3"
-    | INVD x: "INVD"
+    | INT0: "INT0"
+    | INT3: "INT3"
+    | INVD: "INVD"
     | INVLPG x: "INVLPG"
     | INVPCID x: "INVPCID"
-    | IRET x: "IRET"
-    | IRETD x: "IRETD"
-    | IRETQ x: "IRETQ"
+    | IRET: "IRET"
+    | IRETD: "IRETD"
+    | IRETQ: "IRETQ"
     | JA x: "JA"
     | JAE x: "JAE"
     | JB x: "JB"
@@ -1461,15 +1461,15 @@ val show/mnemonic insn =
     | JRCXZ x: "JRCXZ"
     | JS x: "JS"
     | JZ x: "JZ"
-    | LAHF x: "LAHF"
+    | LAHF: "LAHF"
     | LAR x: "LAR"
     | LDDQU x: "LDDQU"
     | LDMXCSR x: "LDMXCSR"
     | LDS x: "LDS"
     | LEA x: "LEA"
-    | LEAVE x: "LEAVE"
+    | LEAVE: "LEAVE"
     | LES x: "LES"
-    | LFENCE x: "LFENCE"
+    | LFENCE: "LFENCE"
     | LFS x: "LFS"
     | LGDT x: "LGDT"
     | LGS x: "LGS"
@@ -1489,12 +1489,12 @@ val show/mnemonic insn =
     | MAXPS x: "MAXPS"
     | MAXSD x: "MAXSD"
     | MAXSS x: "MAXSS"
-    | MFENCE x: "MFENCE"
+    | MFENCE: "MFENCE"
     | MINPD x: "MINPD"
     | MINPS x: "MINPS"
     | MINSD x: "MINSD"
     | MINSS x: "MINSS"
-    | MONITOR x: "MONITOR"
+    | MONITOR: "MONITOR"
     | MOV x: "MOV"
     | MOVAPD x: "MOVAPD"
     | MOVAPS x: "MOVAPS"
@@ -1537,7 +1537,7 @@ val show/mnemonic insn =
     | MULPS x: "MULPS"
     | MULSD x: "MULSD"
     | MULSS x: "MULSS"
-    | MWAIT x: "MWAIT"
+    | MWAIT: "MWAIT"
     | NEG x: "NEG"
     | NOP x: "NOP"
     | NOT x: "NOT"
@@ -1545,10 +1545,10 @@ val show/mnemonic insn =
     | ORPD x: "ORPD"
     | ORPS x: "ORPS"
     | OUT x: "OUT"
-    | OUTS x: "OUTS"
-    | OUTSB x: "OUTSB"
-    | OUTSD x: "OUTSD"
-    | OUTSW x: "OUTSW"
+    | OUTS: "OUTS"
+    | OUTSB: "OUTSB"
+    | OUTSD: "OUTSD"
+    | OUTSW: "OUTSW"
     | PABSB x: "PABSB"
     | PABSD x: "PABSD"
     | PABSW x: "PABSW"
@@ -1567,7 +1567,7 @@ val show/mnemonic insn =
     | PALIGNR x: "PALIGNR"
     | PAND x: "PAND"
     | PANDN x: "PANDN"
-    | PAUSE x: "PAUSE"
+    | PAUSE: "PAUSE"
     | PAVGB x: "PAVGB"
     | PAVGW x: "PAVGW"
     | PBLENDVB x: "PBLENDVB"
@@ -1636,12 +1636,12 @@ val show/mnemonic insn =
     | PMULLW x: "PMULLW"
     | PMULUDQ x: "PMULUDQ"
     | POP x: "POP"
-    | POPA x: "POPA"
-    | POPAD x: "POPAD"
+    | POPA: "POPA"
+    | POPAD: "POPAD"
     | POPCNT x: "POPCNT"
-    | POPF x: "POPF"
-    | POPFD x: "POPFD"
-    | POPFQ x: "POPFQ"
+    | POPF: "POPF"
+    | POPFD: "POPFD"
+    | POPFQ: "POPFQ"
     | POR x: "POR"
     | PREFETCHNTA x: "PREFETCHNTA"
     | PREFETCHT0 x: "PREFETCHT0"
@@ -1685,11 +1685,11 @@ val show/mnemonic insn =
     | PUNPCKLQDQ x: "PUNPCKLQDQ"
     | PUNPCKLWD x: "PUNPCKLWD"
     | PUSH x: "PUSH"
-    | PUSHA x: "PUSHA"
-    | PUSHAD x: "PUSHAD"
-    | PUSHF x: "PUSHF"
-    | PUSHFD x: "PUSHFD"
-    | PUSHFQ x: "PUSHFQ"
+    | PUSHA: "PUSHA"
+    | PUSHAD: "PUSHAD"
+    | PUSHF: "PUSHF"
+    | PUSHFD: "PUSHFD"
+    | PUSHFQ: "PUSHFQ"
     | PXOR x: "PXOR"
     | RCL x: "RCL"
     | RCPPS x: "RCPPS"
@@ -1697,11 +1697,11 @@ val show/mnemonic insn =
     | RCR x: "RCR"
     | RDFSBASE x: "RDFSBASE"
     | RDGSBASE x: "RDGSBASE"
-    | RDMSR x: "RDMSR"
-    | RDPMC x: "RDPMC"
+    | RDMSR: "RDMSR"
+    | RDPMC: "RDPMC"
     | RDRAND x: "RDRAND"
-    | RDTSC x: "RDTSC"
-    | RDTSCP x: "RDTSCP"
+    | RDTSC: "RDTSC"
+    | RDTSCP: "RDTSCP"
     | RET x: "RET"
     | RET_FAR x: "RET_FAR"
     | ROL x: "ROL"
@@ -1710,17 +1710,17 @@ val show/mnemonic insn =
     | ROUNDPS x: "ROUNDPS"
     | ROUNDSD x: "ROUNDSD"
     | ROUNDSS x: "ROUNDSS"
-    | RSM x: "RSM"
+    | RSM: "RSM"
     | RSQRTPS x: "RSQRTPS"
     | RSQRTSS x: "RSQRTSS"
-    | SAHF x: "SAHF"
+    | SAHF: "SAHF"
     | SAL x: "SAL"
     | SAR x: "SAR"
     | SBB x: "SBB"
-    | SCASB x: "SCASB"
-    | SCASD x: "SCASD"
-    | SCASQ x: "SCASQ"
-    | SCASW x: "SCASW"
+    | SCASB: "SCASB"
+    | SCASD: "SCASD"
+    | SCASQ: "SCASQ"
+    | SCASW: "SCASW"
     | SETA x: "SETA"
     | SETAE x: "SETAE"
     | SETB x: "SETB"
@@ -1751,7 +1751,7 @@ val show/mnemonic insn =
     | SETPO x: "SETPO"
     | SETS x: "SETS"
     | SETZ x: "SETZ"
-    | SFENCE x: "SFENCE"
+    | SFENCE: "SFENCE"
     | SGDT x: "SGDT"
     | SHL x: "SHL"
     | SHLD x: "SHLD"
@@ -1766,29 +1766,29 @@ val show/mnemonic insn =
     | SQRTPS x: "SQRTPS"
     | SQRTSD x: "SQRTSD"
     | SQRTSS x: "SQRTSS"
-    | STC x: "STC"
-    | STD x: "STD"
-    | STI x: "STI"
+    | STC: "STC"
+    | STD: "STD"
+    | STI: "STI"
     | STMXCSR x: "STMXCSR"
-    | STOSB x: "STOSB"
-    | STOSD x: "STOSD"
-    | STOSQ x: "STOSQ"
-    | STOSW x: "STOSW"
+    | STOSB: "STOSB"
+    | STOSD: "STOSD"
+    | STOSQ: "STOSQ"
+    | STOSW: "STOSW"
     | STR x: "STR"
     | SUB x: "SUB"
     | SUBPD x: "SUBPD"
     | SUBPS x: "SUBPS"
     | SUBSD x: "SUBSD"
     | SUBSS x: "SUBSS"
-    | SWAPGS x: "SWAPGS"
-    | SYSCALL x: "SYSCALL"
-    | SYSENTER x: "SYSENTER"
-    | SYSEXIT x: "SYSEXIT"
-    | SYSRET x: "SYSRET"
+    | SWAPGS: "SWAPGS"
+    | SYSCALL: "SYSCALL"
+    | SYSENTER: "SYSENTER"
+    | SYSEXIT: "SYSEXIT"
+    | SYSRET: "SYSRET"
     | TEST x: "TEST"
     | UCOMISD x: "UCOMISD"
     | UCOMISS x: "UCOMISS"
-    | UD2 x: "UD2"
+    | UD2: "UD2"
     | UNPCKHPD x: "UNPCKHPD"
     | UNPCKHPS x: "UNPCKHPS"
     | UNPCKLPD x: "UNPCKLPD"
@@ -2059,15 +2059,15 @@ val show/mnemonic insn =
     | VXORPS x: "VXORPS"
     | VZEROALL x: "VZEROALL"
     | VZEROUPPER x: "VZEROUPPER"
-    | WAIT x: "WAIT"
-    | WBINVD x: "WBINVD"
+    | WAIT: "WAIT"
+    | WBINVD: "WBINVD"
     | WRFSBASE x: "WRFSBASE"
     | WRGSBASE x: "WRGSBASE"
-    | WRMSR x: "WRMSR"
+    | WRMSR: "WRMSR"
     | XADD x: "XADD"
     | XCHG x: "XCHG"
-    | XGETBV x: "XGETBV"
-    | XLATB x: "XLATB"
+    | XGETBV: "XGETBV"
+    | XLATB: "XLATB"
     | XOR x: "XOR"
     | XORPD x: "XORPD"
     | XORPS x: "XORPS"
@@ -2077,7 +2077,8 @@ val show/mnemonic insn =
     | XSAVE64 x: "XSAVE64"
     | XSAVEOPT x: "XSAVEOPT"
     | XSAVEOPT64 x: "XSAVEOPT64"
-    | XSETBV x: "XSETBV"
-    #| PSLRDQ x: "PSLRDQ"
-    #| VPSLRDQ x: "VPSLRDQ"
+    | XSETBV: "XSETBV"
+    #| PSLRDQ: "PSLRDQ"
+    #| VPSLRDQ: "VPSLRDQ"
    end
+#:'<,'>s/\(.*\)| \(\S*\)\( x\)\=:.*/\1| \2\3: "\2"/g

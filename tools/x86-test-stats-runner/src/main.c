@@ -24,13 +24,18 @@ struct options {
 	char test_unused;
 };
 
+#define LOG_SIMULATOR_ERROR_UNALIGNED_STORE 0
+#define LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS 1
+#define LOG_SIMULATOR_ERROR_UNDEFINED_STORE 2
+#define LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH 3
+#define LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED 4
+#define LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN 5
+#define LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID 6
+#define LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED 7
+#define LOG_SIMULATOR_ERROR_EXCEPTION 8
+
 struct insn_data {
 	size_t errors[TESTER_RESULT_TYPES_LENGTH];
-	/*
-	 * SIMULATOR_ERROR_UNALIGNED_STORE => 0
-	 * SIMULATOR_ERROR_UNDEFINED_ADDRESS => 1
-	 * SIMULATOR_ERROR_UNDEFINED_BRANCH => 2
-	 */
 	size_t simulation_errors[SIMULATOR_ERRORS_COUNT - 1];
 	size_t execution_errors[EXECUTOR_RESULTS_COUNT];
 	size_t sigsegv_count;
@@ -72,31 +77,61 @@ static void incf(struct tester_result *result, struct feature_data *features, si
 		features[i].failed++;
 }
 
-static char test_instruction(struct feature_data *features,
-		struct hash_array *insn_types_, uint8_t *data, size_t data_size,
-		char test_unused) {
+static char test_instruction(struct feature_data *features, struct hash_array *insn_types_, uint8_t *data,
+		size_t data_size, char test_unused) {
 	insn_types = insn_types_;
 
-	struct tester_result result = tester_test_binary(&for_name, 1, data,
-			data_size, test_unused);
+	struct tester_result result = tester_test_binary(&for_name, 1, data, data_size, test_unused);
+
+	if(result.type == TESTER_RTYPE_DECODING_ERROR)
+		return 1;
 
 	if(insn_data) {
 		insn_data->count++;
-		insn_data->errors[result.type]++;
 
 		switch(result.type) {
 			case TESTER_RTYPE_SIMULATION_ERROR: {
-				if(result.simulator_error & SIMULATOR_ERROR_UNALIGNED_STORE)
-					insn_data->simulation_errors[0]++;
-				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_ADDRESS)
-					insn_data->simulation_errors[1]++;
-				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_STORE)
-					insn_data->simulation_errors[2]++;
-				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_BRANCH)
-					insn_data->simulation_errors[3]++;
+				if(result.simulator_error & SIMULATOR_ERROR_UNALIGNED_STORE) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNALIGNED_STORE]++;
+				}
+				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_ADDRESS) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS]++;
+				}
+				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_STORE) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_STORE]++;
+				}
+				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_BRANCH) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH]++;
+				}
+				if(result.simulator_error & SIMULATOR_ERROR_FLOP_UNIMPLEMENTED) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED]++;
+				}
+				if(result.simulator_error & SIMULATOR_ERROR_PRIMITIVE_UNKNOWN) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN]++;
+				}
+				if(result.simulator_error & SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID]++;
+				}
+				if(result.simulator_error & SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED]++;
+				}
+				if(result.simulator_error & SIMULATOR_ERROR_EXCEPTION) {
+					insn_data->errors[result.type]++;
+					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_EXCEPTION]++;
+				}
 				break;
 			}
 			case TESTER_RTYPE_EXECUTION_ERROR: {
+				insn_data->errors[result.type]++;
+
 				insn_data->execution_errors[result.execution_result.type]++;
 				if(result.execution_result.type == EXECUTION_RTYPE_SIGNAL)
 					switch(result.execution_result.signum) {
@@ -131,21 +166,23 @@ static char test_instruction(struct feature_data *features,
 					}
 				break;
 			}
-			default:
+			default: {
+				insn_data->errors[result.type]++;
 				break;
+			}
 		}
 
-		if(result.type != TESTER_RTYPE_DECODING_ERROR) { //Always true ;-)
+//		if(result.type != TESTER_RTYPE_DECODING_ERROR) { //Always true ;-)
 
-			for(size_t i = 1; i < X86_FEATURES_COUNT; ++i)
-				if(result.features & (1 << (i - 1)))
-					incf(&result, features, i);
-			if(!result.features)
-				incf(&result, features, 0);
-		}
-		return 0;
-	} else
-		return 1;
+		for(size_t i = 1; i < X86_FEATURES_COUNT; ++i)
+			if(result.features & (1 << (i - 1)))
+				incf(&result, features, i);
+		if(!result.features)
+			incf(&result, features, 0);
+//		}
+	}
+
+	return 0;
 }
 
 static char args_parse(int argc, char **argv, struct options *options) {
@@ -260,7 +297,7 @@ int main(int argc, char **argv) {
 
 	struct hash_array *insn_types = hash_array_init(32768);
 	struct feature_data *features = (struct feature_data *)calloc(
-			X86_FEATURES_COUNT, sizeof(struct feature_data));
+	X86_FEATURES_COUNT, sizeof(struct feature_data));
 
 	size_t decode_errors = 0;
 
@@ -278,8 +315,7 @@ int main(int argc, char **argv) {
 		generator_tree_execute(root, stream);
 		fclose(stream);
 
-		decode_errors += test_instruction(features, insn_types, (uint8_t *)buffer,
-				length, options.test_unused);
+		decode_errors += test_instruction(features, insn_types, (uint8_t *)buffer, length, options.test_unused);
 
 		free(buffer);
 	}
@@ -293,12 +329,10 @@ int main(int argc, char **argv) {
 	for(size_t i = 0; i < entries_length; ++i) {
 		struct insn_data *data = (struct insn_data*)entries[i].data;
 		printf(
-				"%s: %lu, successful tests: %lu, translation errors: %lu, simulation errors: %lu, execution errors: %lu, comparison errors: %lu, crashes: %lu\n",
-				entries[i].key, data->count, data->errors[TESTER_RTYPE_SUCCESS],
-				data->errors[TESTER_RTYPE_TRANSLATION_ERROR],
-				data->errors[TESTER_RTYPE_SIMULATION_ERROR],
-				data->errors[TESTER_RTYPE_EXECUTION_ERROR],
-				data->errors[TESTER_RTYPE_COMPARISON_ERROR],
+				"%s: %lu, successful tests: %lu, translation errors: %lu, simulation errors: %lu, tbgen errors: %lu, execution errors: %lu, comparison errors: %lu, crashes: %lu\n",
+				entries[i].key, data->count, data->errors[TESTER_RTYPE_SUCCESS], data->errors[TESTER_RTYPE_TRANSLATION_ERROR],
+				data->errors[TESTER_RTYPE_SIMULATION_ERROR], data->errors[TESTER_RTYPE_TBGEN_ERROR],
+				data->errors[TESTER_RTYPE_EXECUTION_ERROR], data->errors[TESTER_RTYPE_COMPARISON_ERROR],
 				data->errors[TESTER_RTYPE_CRASH]);
 
 		for(size_t i = 0; i < TESTER_RESULT_TYPES_LENGTH; ++i)
@@ -317,84 +351,81 @@ int main(int argc, char **argv) {
 		accumulator.count += data->count;
 	}
 	printf("Summary:\n");
-	printf("%lu instructions generated (%lu decodable ones, %f%%)\n", options.n,
-			options.n - decode_errors,
+	printf("%lu instructions generated (%lu decodable ones, %f%%)\n", options.n, options.n - decode_errors,
 			100 * (options.n - decode_errors) / (double)options.n);
-	printf("%lu instruction tests (%lu different instruction types)\n",
-			accumulator.count, entries_length);
-	printf("%lu successful tests (%f%%)\n",
-			accumulator.errors[TESTER_RTYPE_SUCCESS],
-			100 * accumulator.errors[TESTER_RTYPE_SUCCESS]
-					/ (double)accumulator.count);
-	printf("%lu translation errors (%f%%)\n",
-			accumulator.errors[TESTER_RTYPE_TRANSLATION_ERROR],
-			100 * accumulator.errors[TESTER_RTYPE_TRANSLATION_ERROR]
-					/ (double)accumulator.count);
-	printf("%lu simulation errors (%f%%)\n",
-			accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR],
-			100 * accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]
-					/ (double)accumulator.count);
-	printf("%lu execution errors (%f%%)\n",
-			accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR],
-			100 * accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR]
-					/ (double)accumulator.count);
-	printf("%lu comparison errors (%f%%)\n",
-			accumulator.errors[TESTER_RTYPE_COMPARISON_ERROR],
-			100 * accumulator.errors[TESTER_RTYPE_COMPARISON_ERROR]
-					/ (double)accumulator.count);
+	printf("%lu instruction tests (%lu different instruction types)\n", accumulator.count, entries_length);
+	printf("%lu successful tests (%f%%)\n", accumulator.errors[TESTER_RTYPE_SUCCESS],
+			100 * accumulator.errors[TESTER_RTYPE_SUCCESS] / (double)accumulator.count);
+	printf("%lu translation errors (%f%%)\n", accumulator.errors[TESTER_RTYPE_TRANSLATION_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_TRANSLATION_ERROR] / (double)accumulator.count);
+	printf("%lu simulation errors (%f%%)\n", accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR] / (double)accumulator.count);
+	printf("%lu tbgen errors (%f%%)\n", accumulator.errors[TESTER_RTYPE_TBGEN_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_TBGEN_ERROR] / (double)accumulator.count);
+	printf("%lu execution errors (%f%%)\n", accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR] / (double)accumulator.count);
+	printf("%lu comparison errors (%f%%)\n", accumulator.errors[TESTER_RTYPE_COMPARISON_ERROR],
+			100 * accumulator.errors[TESTER_RTYPE_COMPARISON_ERROR] / (double)accumulator.count);
 	printf("%lu crashes (%f%%)\n", accumulator.errors[TESTER_RTYPE_CRASH],
 			100 * accumulator.errors[TESTER_RTYPE_CRASH] / (double)accumulator.count);
 
 	printf("Simulation errors:\n");
 	printf("%lu unaligned (bit level) store errors (%f%%)\n",
-			accumulator.simulation_errors[0],
-			100 * accumulator.simulation_errors[0]
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNALIGNED_STORE],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNALIGNED_STORE]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
-	printf("%lu undefined address errors (%f%%)\n",
-			accumulator.simulation_errors[1],
-			100 * accumulator.simulation_errors[1]
+	printf("%lu undefined address errors (%f%%)\n", accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
 	printf("%lu undefined data (to be stored) errors (%f%%)\n",
-			accumulator.simulation_errors[2],
-			100 * accumulator.simulation_errors[2]
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_STORE],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_STORE]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
-	printf("%lu undefined branch errors (%f%%)\n",
-			accumulator.simulation_errors[3],
-			100 * accumulator.simulation_errors[3]
+	printf("%lu undefined branch errors (%f%%)\n", accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu unimplemented flop errors (%f%%)\n",
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu unknown primitive errors (%f%%)\n", accumulator.simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu invalid primitive signature errors (%f%%)\n",
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu loop iteration count limit exceedance errors (%f%%)\n",
+			accumulator.simulation_errors[LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED]
+					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
+	printf("%lu unexpected exception errors (%f%%)\n", accumulator.simulation_errors[LOG_SIMULATOR_ERROR_EXCEPTION],
+			100 * accumulator.simulation_errors[LOG_SIMULATOR_ERROR_EXCEPTION]
 					/ (double)accumulator.errors[TESTER_RTYPE_SIMULATION_ERROR]);
 
 	printf("Execution errors:\n");
-	printf("%lu mapping errors (%f%%)\n",
-			accumulator.execution_errors[EXECUTION_RTYPE_MAPPING_ERROR],
+	printf("%lu mapping errors (%f%%)\n", accumulator.execution_errors[EXECUTION_RTYPE_MAPPING_ERROR],
 			100 * accumulator.execution_errors[EXECUTION_RTYPE_MAPPING_ERROR]
 					/ (double)accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR]);
-	printf("%lu signals (%f%%)\n",
-			accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL],
+	printf("%lu signals (%f%%)\n", accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL],
 			100 * accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]
 					/ (double)accumulator.errors[TESTER_RTYPE_EXECUTION_ERROR]);
 
 	printf("Signals:\n");
 	printf("%lu SIGSEGV (%f%%)\n", accumulator.sigsegv_count,
-			100 * accumulator.sigsegv_count
-					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+			100 * accumulator.sigsegv_count / (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 	printf("%lu SIGILL (%f%%)\n", accumulator.sigill_count,
-			100 * accumulator.sigill_count
-					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+			100 * accumulator.sigill_count / (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 	printf("%lu SIGALRM (%f%%)\n", accumulator.sigalrm_count,
-			100 * accumulator.sigalrm_count
-					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+			100 * accumulator.sigalrm_count / (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 	printf("%lu SIGBUS (%f%%)\n", accumulator.sigbus_count,
-			100 * accumulator.sigbus_count
-					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+			100 * accumulator.sigbus_count / (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 	printf("%lu SIGFPE (%f%%)\n", accumulator.sigfpe_count,
-			100 * accumulator.sigfpe_count
-					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+			100 * accumulator.sigfpe_count / (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 	printf("%lu SIGSYS (%f%%)\n", accumulator.sigsys_count,
-			100 * accumulator.sigsys_count
-					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+			100 * accumulator.sigsys_count / (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 	printf("%lu SIGTRAP (%f%%)\n", accumulator.sigtrap_count,
-			100 * accumulator.sigtrap_count
-					/ (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
+			100 * accumulator.sigtrap_count / (double)accumulator.execution_errors[EXECUTION_RTYPE_SIGNAL]);
 
 	printf("Instruction tests by feature:\n");
 	for(size_t i = 0; i < X86_FEATURES_COUNT; ++i) {
