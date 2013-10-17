@@ -1,6 +1,8 @@
+# vim: noexpandtab
+
 AUTOMAKE_OPTIONS = -Wno-override
 
-CLEANFILES = STATS
+CLEANFILES = STATS gdslc.c
 noinst_PROGRAMS =
 bin_PROGRAMS =
 EXTRA_PROGRAMS =
@@ -15,6 +17,8 @@ include_HEADERS =
 #if X86_RREIL
 #HAVE_X86 = 1
 #endif
+
+EXEEXT=
 
 # we need to add a dependency to the actual backend to this variable
 libjrreil_la_LIBADD = 
@@ -125,10 +129,13 @@ JAR=jrreil.jar
 $(builddir)/gdslc$(EXEEXT): $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
 	$(MLTON) $(MLFLAGS) -output $@ $(srcdir)/gdslc.mlb
 
+gdslc.c: $(builddir)/gdslc$(EXEEXT)
+	touch gdslc.c
+
 if INSTALL_GDSLC
-bin_PROGRAMS += $(builddir)/gdslc
+bin_PROGRAMS += $(builddir)/gdslc$(EXEEXT)
 else
-noinst_PROGRAMS += $(builddir)/gdslc
+noinst_PROGRAMS += $(builddir)/gdslc$(EXEEXT)
 endif
 
 gdslc_MAIN = $(gdslc_SOURCES)
@@ -627,4 +634,4 @@ x86_test_stats_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la l
 private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 endif
 
-EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h
+EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
