@@ -518,6 +518,17 @@ end
 val sem-default-arity0-generic avx-encoded insn = prim-generic (show/mnemonic insn) varls-none varls-none
 val sem-default-arity0 insn = sem-default-arity0-generic '0' insn
 
+val sem-default-arity1-ro-generic avx-encoded insn x = do
+  src1-sz <- sizeof1 x.opnd1;
+
+  src1 <- rval src1-sz x.opnd1;
+
+  src1-up <- unpack-lin src1-sz src1;
+
+  prim-generic (show/mnemonic insn) varls-none (varls-one (varl src1-sz src1-up))
+end
+val sem-default-arity1-ro insn x = sem-default-arity1-ro-generic '0' insn x
+
 val sem-default-arity1-generic avx-encoded insn x = do
   dst-sz <- sizeof1 x.opnd1;
   src1-sz <- return dst-sz;
@@ -1220,7 +1231,7 @@ in
    | INSD: sem-default-arity0 insn.insn
    | INSERTPS x: sem-default-arity3 insn.insn (comb x)
    | INSW: sem-default-arity0 insn.insn
-   | INT x: sem-default-arity1 insn.insn (comb x)
+   | INT x: sem-default-arity1-ro insn.insn (comb x)
    | INT0: sem-default-arity0 insn.insn
    | INT3: sem-default-arity0 insn.insn
    | INVD: sem-invd
