@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
 			break;
 		}
 		default: {
-			printf("Usage: sweep file offset length\n");
+			printf("Usage: sweep file offset length / sweep elf-file\n");
 			return 1;
 		}
 	}
@@ -227,6 +227,6 @@ int main(int argc, char** argv) {
 	fprintf(stderr, "Decoder + Translator: Total memoy: %zu, maximal memoy: %zu\n", memory_dec_tran, memory_dec_tran_max);
 	fprintf(stderr, "time: %lf seconds\n", time / (double)(1000000000));
 
-	return 1;
+	return 0;
 }
 

@@ -25,7 +25,7 @@ INCDS=-I../include
 CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(DEFINES) $(INCDS)
 
 PROJECTS=
-EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep liveness-sweep
+EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep semantics-opt liveness-sweep
 ifdef GDSL_X86
 PROJECTS+=x86-test-runner x86-test-stats-runner xed-cmp
 endif
@@ -68,6 +68,13 @@ sweep: sweep.o
 
 sweep.o: sweep.c
 	$(CC) $(CFLAGS) sweep.c -o $@
+	
+### semantics-opt
+semantics-opt: semantics-opt.o
+	$(CC) $(LDFLAGS) semantics-opt.o $(LIBFLAGS) -o $@
+
+semantics-opt.o: semantics-opt.c
+	$(CC) $(CFLAGS) semantics-opt.c -o $@
 
 ### liveness-sweep
 liveness-sweep: liveness-sweep.o
