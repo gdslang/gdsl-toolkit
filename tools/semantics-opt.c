@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <getopt.h>
 
 #include <err.h>
 #include <fcntl.h>
@@ -83,6 +84,73 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	return retval;
 }
 
+struct options {
+	long preservation;
+	char elf;
+	char *file;
+	size_t offset;
+	size_t length;
+};
+
+enum p_option {
+	OPTION_ELF, OPTION_FILE, OPTION_OFFSET, OPTION_LENGTH, OPTION_PRESERVATION
+};
+
+static char args_parse(int argc, char **argv, struct options *options) {
+	options->elf = 0;
+	options->file = NULL;
+	options->preservation = CON_SEM_PRESERVATION_EVERYWHERE;
+	options->offset = 0;
+	options->length = 0;
+
+	struct option long_options[] = { { "elf", no_argument, NULL, OPTION_ELF }, { "file", required_argument, NULL,
+			OPTION_FILE }, { "offset", required_argument, NULL, OPTION_FILE }, { "length", required_argument, NULL,
+			OPTION_LENGTH }, { "preserve", required_argument, NULL, OPTION_PRESERVATION } };
+
+	while(1) {
+		int result = getopt_long(argc, argv, "", long_options, NULL);
+		if(result < 0)
+			break;
+		switch(result) {
+			case OPTION_ELF: {
+				options->elf = 1;
+				break;
+			}
+			case OPTION_FILE: {
+				options->file = optarg;
+				break;
+			}
+			case OPTION_OFFSET: {
+				sscanf(optarg, "%lu", &options->offset);
+				break;
+			}
+			case OPTION_LENGTH: {
+				sscanf(optarg, "%lu", &options->length);
+				break;
+			}
+			case OPTION_PRESERVATION: {
+				if(!strcmp("everywhere", optarg)) {
+					options->preservation = CON_SEM_PRESERVATION_EVERYWHERE;
+					break;
+				}
+				if(!strcmp("block", optarg)) {
+					options->preservation = CON_SEM_PRESERVATION_BLOCK;
+					break;
+				}
+				if(!strcmp("context", optarg)) {
+					options->preservation = CON_SEM_PRESERVATION_CONTEXT;
+					break;
+				}
+				return 2;
+			}
+			case '?':
+				return 1;
+		}
+	}
+
+	return 0;
+}
+
 int main(int argc, char** argv) {
 	const rlim_t kStackSize = 64L * 1024L * 1024L; // min stack size = 64 Mb
 	struct rlimit rl;
@@ -99,53 +167,30 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	size_t offset;
-	size_t length;
-	char *file;
-
-	switch(argc) {
-		case 2: {
-			file = argv[1];
-
-			char e = elf_section_boundary_get(file, &offset, &length);
-			if(e)
-				exit(2);
-//			offset = 0;
-//
-//			struct stat buf;
-//			stat(file, &buf);
-//			length = buf.st_size;
-			break;
-		}
-		case 3: {
-			file = argv[1];
-			sscanf(argv[2], "%zu", &offset);
-
-			struct stat buf;
-			stat(file, &buf);
-			length = buf.st_size;
-			break;
-		}
-		case 4: {
-			file = argv[1];
-			sscanf(argv[2], "%zu", &offset);
-			sscanf(argv[3], "%zu", &length);
-			break;
-		}
-		default: {
-			printf("Usage: semantics-opt file offset length / semantics-opt elf-file\n");
-			return 1;
-		}
+	struct options options;
+	if(args_parse(argc, argv, &options)) {
+		printf(
+				"Usage: semantics-opt [--elf] [--offset offset] [--length length] --file file [--preserve everywhere|block|context]\n");
+		return 1;
 	}
 
-	FILE *f = fopen(file, "r");
+	if(options.elf) {
+		if(elf_section_boundary_get(options.file, &options.offset, &options.length))
+			exit(2);
+	} else if(!options.length) {
+		struct stat buf;
+		stat(options.file, &buf);
+		options.length = buf.st_size;
+	}
+
+	FILE *f = fopen(options.file, "r");
 	if(!f) {
 		printf("Unable to open file.\n");
 		return 1;
 	}
-	fseek(f, offset, SEEK_SET);
+	fseek(f, options.offset, SEEK_SET);
 
-	size_t buffer_size = length + 15;
+	size_t buffer_size = options.length + 15;
 	char *buffer = (char*)malloc(buffer_size);
 	size_t buffer_length = fread(buffer, 1, buffer_size, f);
 
@@ -159,9 +204,9 @@ int main(int argc, char** argv) {
 
 	//uint64_t consumed = 0;
 	size_t last_offset = 0;
-	while(last_offset < length) {
+	while(last_offset < options.length) {
 		obj_t rreil = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state), gdsl_int_max(state),
-		CON_SEM_PRESERVATION_EVERYWHERE);
+				options.preservation);
 
 		string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 		puts(fmt);
@@ -170,8 +215,6 @@ int main(int argc, char** argv) {
 
 		last_offset = gdsl_get_ip_offset(state);
 	}
-
-	printf("\n");
 
 	gdsl_destroy(state);
 
