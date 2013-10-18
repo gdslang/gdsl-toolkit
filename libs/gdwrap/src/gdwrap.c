@@ -47,7 +47,7 @@ char gdwrap_translate_block(obj_t state, obj_t *rreil) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return 1;
 	else {
-		*rreil = gdsl_translateBlock(state, gdsl_config_default(state), gdsl_int_max(state));
+		*rreil = gdsl_decode_translate_block(state, gdsl_config_default(state), gdsl_int_max(state));
 		return 0;
 	}
 }

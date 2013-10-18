@@ -23,35 +23,34 @@ val io a b = {a=a,b=b}
 val io-to a = {a=a,b=IO_NONE}
 val io-tw a = {a=a,b=a}
 
-val relative-next-generic sem_ip stmts = let
+val relative-next-generic is_sem_ip stmts = let
   val raddress addr =
 	  case addr.address of
 		   SEM_LIN_ADD s:
 			   case s.opnd1 of
 				    SEM_LIN_VAR v:
-						  case v.id of
-							   sem_ip:
-								   case s.opnd2 of
-									    SEM_LIN_IMM i: IO_SOME i.const
-									  | _: IO_NONE
-									 end
-							 | _: IO_NONE
-							end
+						  if (is_sem_ip v.id) then
+								case s.opnd2 of
+								   SEM_LIN_IMM i: IO_SOME i.const
+								 | _: IO_NONE
+								end
+						  else
+                IO_NONE
 				  | SEM_LIN_IMM i:
 					    case s.opnd2 of
 							   SEM_LIN_VAR v:
-								   case v.id of
-									    sem_ip: IO_SOME i.const
-									  | _: IO_NONE
-									 end
+								   if (is_sem_ip v.id) then
+									   IO_SOME i.const
+									 else
+                     IO_NONE
 							 | _: IO_NONE
 							end
 				 end
 		 | SEM_LIN_VAR v:
-		     case v.id of
-				    sem_ip: IO_SOME 0
-				  | _: IO_NONE
-				 end
+		     if (is_sem_ip v.id) then
+				   IO_SOME 0
+				 else
+           IO_NONE
 		 | _: IO_NONE
 		end
 in
