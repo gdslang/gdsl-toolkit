@@ -1,6 +1,6 @@
 # vim: filetype=sml:ts=3:sw=3:expandtab
 
-export = translate{addr-sz, opnd-sz, lock, rep, repne, features, insn} translateBlock translateSingle translateSuperBlock succ_pretty
+export = translate{addr-sz, opnd-sz, lock, rep, repne, features, insn}
 
 type sem_exception =
    SEM_DIVISION_OVERFLOW
@@ -2285,157 +2285,36 @@ end
 #s/^ | \(\S*\)\s*$/ | \1: sem-default-arity0 insn/g
 #s/\(.*\)| \(\S*\):.*/\1| \2 x: sem-default-arity0 insn x/g
 
-val translate insn =
-   do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
-#case 0 of 1: return 0 end;
-      
-      ifl <- fIF;
-      mov 1 ifl (imm 1);
+val translate-x86 insn = do
+  update@{mode64='1'};
+  
+  ifl <- fIF;
+  mov 1 ifl (imm 1);
 
-      semantics insn;
-      stack <- query $stack;
-      return (rreil-stmts-rev stack)
-   end
+  semantics insn
+end
 
-val translate-bottom-up insn =
-   do update@{stack=SEM_NIL,tmp=0,lab=0};
-      semantics insn;
-      stack <- query $stack;
-      return stack
-   end
+val translate insn = do
+  update@{stack=SEM_NIL,tmp=0,lab=0};
+  
+  translate-x86 insn;
+  
+  stack <- query $stack;
+  return (rreil-stmts-rev stack)
+end
 
-val transInstr config = do
+#val translate-bottom-up insn =
+#   do update@{stack=SEM_NIL,tmp=0,lab=0};
+#      semantics insn;
+#      stack <- query $stack;
+#      return stack
+#   end
+
+val translate-block-single insn = do
    ic <- query $ins_count;
    update@{tmp=0,ins_count=ic+1};
-   insn <- decode config;
-   semantics insn
+   
+   translate-x86 insn
 end
 
-val transBlock config limit = do
-   transInstr config;
-   jmp <- query $foundJump;
-   idx <- idxget;
-   if jmp or (idx >= limit) then query $stack else transBlock config limit
-end
-
-val translateBlock config limit = do
-   update @{ins_count=0};
-   update@{stack=SEM_NIL,foundJump='0'};
-   # the type checker is does not instanitate types of decoders; what seemed to be
-   # a fine specialization turns out to be a bad idea since records need to be
-   # newly instantiated
-   update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-	 stmts <- transBlock config limit;
-   return (rreil-stmts-rev stmts)
-end
-
-val translateSingle config = do
-   update @{ins_count=0,mode64='1'};
-   update@{stack=SEM_NIL,foundJump='0'};
-   # the type checker is seriously broken when it comes to infinite recursion,
-   # I cannot as of yet reproduce this bug
-   update @{ptrsz=0, reg/opcode='000', rm='000', mod='00', vexm='00001', vexv='0000', vexl='0', vexw='0'};
-
-   transInstr config;
-   jmp <- query $foundJump;
-   stmts <- query $stack;
-
-   return (rreil-stmts-rev stmts)
-end
-
-val io a b = {a=a,b=b}
-val io-to a = {a=a,b=IO_NONE}
-val io-tw a = {a=a,b=a}
-
-val relative-next stmts = let
-  val raddress addr =
-	  case addr.address of
-		   SEM_LIN_ADD s:
-			   case s.opnd1 of
-				    SEM_LIN_VAR v:
-						  case v.id of
-							   Sem_IP:
-								   case s.opnd2 of
-									    SEM_LIN_IMM i: IO_SOME i.const
-									  | _: IO_NONE
-									 end
-							 | _: IO_NONE
-							end
-				  | SEM_LIN_IMM i:
-					    case s.opnd2 of
-							   SEM_LIN_VAR v:
-								   case v.id of
-									    Sem_IP: IO_SOME i.const
-									  | _: IO_NONE
-									 end
-							 | _: IO_NONE
-							end
-				 end
-		 | SEM_LIN_VAR v:
-		     case v.id of
-				    Sem_IP: IO_SOME 0
-				  | _: IO_NONE
-				 end
-		 | _: IO_NONE
-		end
-in
-  case stmts of
-	   SEM_CONS x:
-		   case x.hd of
-			    SEM_CBRANCH b: io (raddress b.target-true) (raddress b.target-false)
-				| SEM_BRANCH b: io-to (raddress b.target)
-				| SEM_ITE c: io (relative-next (rreil-stmts-rev c.then_branch)).a (relative-next (rreil-stmts-rev c.else_branch)).a
-			  | _: io-tw IO_NONE
-			 end
-	 | SEM_NIL: (io-tw IO_NONE)
-	end
-end
-
-type stmts_option =
-   SO_SOME of sem_stmts
- | SO_NONE
-
-type translate-result = {insns:int, succ_a:int, succ_b:int}
-
-val translateSuperBlock config limit = let
-  val translate-block-at idx = do
-	  current <- idxget;
-		#error <- rseek idx;
-		error <- seek (current + idx);
-		result <- if error === 0 then do
-		  stmts <- translateBlock config int-max;
-		  seek current;
-			return (SO_SOME stmts)
-		end else
-		  return SO_NONE
-		;
-		return result
-  end
-
-  val seek-translate-block-at idx-opt = do
-	  case idx-opt of
-		   IO_SOME i: translate-block-at i
-		 | IO_NONE: return SO_NONE
-		end
-	end
-in do
-   update @{ins_count=0,mode64='1'};
-   update @{stack=SEM_NIL,foundJump='0'};
-	stmts <- transBlock config limit;
-
-   ic <- query $ins_count;
-
-   succs <- return (relative-next stmts);
-   succ_a <- seek-translate-block-at succs.a;
-   succ_b <- seek-translate-block-at succs.b;
-
-   update@{ins_count=ic};
-
-   return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
-end end
-
-val succ_pretty succ name =
-  case succ of
-	   SO_SOME i: "Succ " +++ (from-string-lit name) +++ ":\n" +++ (rreil-pretty i)
-	 | SO_NONE: "Succ " +++ (from-string-lit name) +++ ": NONE :-("
-	end
+val relative-next stmts = relative-next-generic Sem_IP stmts 
