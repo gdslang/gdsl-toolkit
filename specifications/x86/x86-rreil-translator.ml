@@ -2317,4 +2317,11 @@ val translate-block-single insn = do
    translate-x86 insn
 end
 
-val relative-next stmts = relative-next-generic Sem_IP stmts 
+val relative-next stmts = let
+  val is_sem_ip x = case x of
+     Sem_IP: '1'
+   | _: '0'
+  end
+in
+  relative-next-generic is_sem_ip stmts
+end

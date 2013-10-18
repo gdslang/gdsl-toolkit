@@ -169,21 +169,21 @@ static char args_parse(int argc, char **argv, struct options *options) {
 obj_t translate_single(state_t state) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	obj_t rreil_insns = gdsl_translateSingle(state, gdsl_config_default(state));
+	obj_t rreil_insns = gdsl_decode_translate_single(state, gdsl_config_default(state));
 	return rreil_insns;
 }
 
 obj_t translate(state_t state) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	obj_t rreil_insns = gdsl_translateBlock(state, gdsl_config_default(state), gdsl_int_max(state));
+	obj_t rreil_insns = gdsl_decode_translate_block(state, gdsl_config_default(state), gdsl_int_max(state));
 	return rreil_insns;
 }
 
 translate_result_t translate_super(state_t state, obj_t *rreil_insns) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
-	translate_result_t rreil_insns_succs = gdsl_translateSuperBlock(state, gdsl_config_default(state),
+	translate_result_t rreil_insns_succs = gdsl_decode_translate_super_block(state, gdsl_config_default(state),
 			gdsl_int_max(state));
 	*rreil_insns = rreil_insns_succs->insns;
 	return rreil_insns_succs;
