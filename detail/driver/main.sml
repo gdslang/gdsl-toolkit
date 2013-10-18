@@ -182,4 +182,6 @@ structure Main = struct
    fun main () =
       (processArgs (CommandLine.arguments())
       ;OS.Process.exit OS.Process.success)
+   fun njMain (_,args) = (processArgs args; OS.Process.success)
+
 end

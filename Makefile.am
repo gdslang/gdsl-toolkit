@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = -Wno-override
 
-CLEANFILES = STATS gdslc.c
+CLEANFILES = STATS
 noinst_PROGRAMS =
 bin_PROGRAMS =
 EXTRA_PROGRAMS =
@@ -38,7 +38,7 @@ AM_CFLAGS = -Wall
 
 # the gdsl compiler
 
-MLTON = @MLTON@
+SMLNJ = @SMLNJ@
 MLULEX = @MLULEX@
 MLANTLR = @MLANTLR@
 
@@ -126,20 +126,14 @@ GDSLC_SML_FILES = \
 
 JAR=jrreil.jar
 
-$(builddir)/gdslc$(EXEEXT): $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
-	$(MLTON) $(MLFLAGS) -output $@ $(srcdir)/gdslc.mlb
+$(builddir)/gdslc-image: $(srcdir)/gdsl.cm $(GDSLC_SML_FILES)
+	echo 'CM.make("'$(srcdir)/gdsl.cm'"); SMLofNJ.exportFn ("'$@'",Main.njMain);' | $(SMLNJ)
+	cd $(builddir) && $(LN_S) $@.* gdslc-image
 
-gdslc.c: $(builddir)/gdslc$(EXEEXT)
-	touch gdslc.c
+CLEANFILES += $(builddir)/gdslc-image
 
-if INSTALL_GDSLC
-bin_PROGRAMS += $(builddir)/gdslc$(EXEEXT)
-else
-noinst_PROGRAMS += $(builddir)/gdslc$(EXEEXT)
-endif
+GDSLC = $(SMLNJ) @SMLload=$(builddir)/gdslc-image
 
-gdslc_MAIN = $(gdslc_SOURCES)
-gdslc_SOURCES = $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
 
 RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
   $(srcdir)/detail/codegen/c0/runtime.c \
@@ -147,17 +141,13 @@ RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
   $(srcdir)/detail/codegen/c1/runtime.c \
   $(srcdir)/detail/codegen/js0/runtime.js
 
-#gdslc_SOURCES += $(RUNTIME)
-
 %.l.sml	: %.l
 	$(MLULEX) $<
 
 %.g.sml	: %.g
 	$(MLANTLR) $<
 
-GDSLC = $(abspath $(builddir)/gdslc$(EXEEXT))
-GDSLC_DEP = $(builddir)/gdslc$(EXEEXT) detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
-#GDSLC_DEP = gdslc$(EXEEXT)
+GDSLC_DEP = $(builddir)/gdslc-image detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
 GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
 # the decoders
@@ -374,13 +364,13 @@ $(JAR): pre-build $(JSOURCES:%=libs/jrreil/%)
 	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jrreil && javac $(JSOURCES) -d $$ABS_DST/
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
 
-clean-local:
-	-rm -rf build/
-
 CLEANFILES += jrreil.jar
 
 endif
 
+clean-local:
+	-rm -rf build/
+	-rm -f $(builddir)/gdslc-image.*
 
 if INSTALL_AUXLIBS
 lib_LTLIBRARIES += libreadhex.la libutil.la
@@ -407,13 +397,17 @@ endif
 if X86_RREIL
 if INSTALL_AUXLIBS
 if HAVE_POSIX200809_C11
+if LINUX
 lib_LTLIBRARIES += libx86-tester.la
+endif
 endif
 lib_LTLIBRARIES += libx86.la libgdwrap.la
 else
 if BUILD_AUXLIBS
 if HAVE_POSIX200809_C11
+if LINUX
 noinst_LTLIBRARIES += libx86-tester.la
+endif
 endif
 noinst_LTLIBRARIES += libx86.la libgdwrap.la
 endif
@@ -423,15 +417,23 @@ endif
 if HAVE_POSIX200809_C11
 if HAVE_RREIL
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += librreil.la
+if LINUX
 lib_LTLIBRARIES += librreil-sim.la
+endif
+lib_LTLIBRARIES += librreil.la
+if HAVE_JNI_H
 lib_LTLIBRARIES += libjrreil.la
+endif
 lib_LTLIBRARIES += libgdsl-multiplex.la
 else
 if BUILD_AUXLIBS
-noinst_LTLIBRARIES += librreil.la
+if LINUX
 noinst_LTLIBRARIES += librreil-sim.la
+endif
+noinst_LTLIBRARIES += librreil.la
+if HAVE_JNI_H
 noinst_LTLIBRARIES += libjrreil.la
+endif
 noinst_LTLIBRARIES += libgdsl-multiplex.la
 endif
 endif
@@ -570,8 +572,10 @@ endif
 if X86_RREIL
 if INSTALL_AUXBINS
 if HAVE_POSIX200809_C11
+if LINUX
 bin_PROGRAMS += x86_test_runner
 bin_PROGRAMS += x86_test_stats_runner
+endif
 endif
 if HAVE_ELF
 bin_PROGRAMS += liveness_sweep
@@ -579,8 +583,10 @@ endif
 else
 if BUILD_AUXBINS
 if HAVE_POSIX200809_C11
+if LINUX
 noinst_PROGRAMS += x86_test_runner
 noinst_PROGRAMS += x86_test_stats_runner
+endif
 endif
 if HAVE_ELF
 noinst_PROGRAMS += liveness_sweep
@@ -634,4 +640,4 @@ x86_test_stats_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la l
 private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 endif
 
-EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(GDSLC_SML_FILES)
+EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES)
