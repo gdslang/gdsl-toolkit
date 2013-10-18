@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
 			break;
 		}
 		default: {
-			printf("Usage: sweep file offset length / sweep elf-file\n");
+			printf("Usage: semantics-opt file offset length / semantics-opt elf-file\n");
 			return 1;
 		}
 	}
@@ -152,80 +152,28 @@ int main(int argc, char** argv) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, buffer, buffer_length, 0);
 
-	struct timespec start;
-	struct timespec end;
-
-	size_t memory_dec = 0;
-	size_t memory_dec_tran = 0;
-
-	size_t memory_dec_max = 0;
-	size_t memory_dec_tran_max = 0;
-
-	size_t instructions = 0;
-
-	clock_gettime(CLOCK_REALTIME, &start);
+	if(setjmp(*gdsl_err_tgt(state))) {
+		fprintf(stderr, "failure: %s\n", gdsl_get_error_message(state));
+		exit(1);
+	}
 
 	//uint64_t consumed = 0;
 	size_t last_offset = 0;
 	while(last_offset < length) {
-		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
+		obj_t rreil = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state), gdsl_int_max(state),
+		CON_SEM_PRESERVATION_EVERYWHERE);
 
-		if(setjmp(*gdsl_err_tgt(state))) {
-			fprintf(stderr, "decode failed: %s\n", gdsl_get_error_message(state));
-			break;
-		}
-		obj_t insn = gdsl_decode(state, gdsl_config_default(state));
-
-		printf("[");
-		size_t decoded = gdsl_get_ip_offset(state) - last_offset;
-		for(size_t i = 0; i < decoded; ++i) {
-			if(i)
-				printf(" ");
-			printf("%02x", ((uint8_t*)buffer)[last_offset + i]);
-		}
-		printf("] ");
-
-		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
+		string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
 		puts(fmt);
-
-		size_t residency = gdsl_heap_residency(state);
-		memory_dec += residency;
-		if(residency > memory_dec_max)
-			memory_dec_max = residency;
-
-		printf("---------------------------\n");
-
-		if(setjmp(*gdsl_err_tgt(state))) {
-			fprintf(stderr, "translate failed: %s\n", gdsl_get_error_message(state));
-			break;
-		}
-		obj_t rreil = gdsl_translate(state, insn);
-
-		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
-		puts(fmt);
-
-		residency = gdsl_heap_residency(state);
-		memory_dec_tran += residency;
-		if(residency > memory_dec_tran_max)
-			memory_dec_tran_max = residency;
 
 		gdsl_reset_heap(state);
 
-		instructions++;
 		last_offset = gdsl_get_ip_offset(state);
 	}
 
-	clock_gettime(CLOCK_REALTIME, &end);
-	long time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
+	printf("\n");
 
 	gdsl_destroy(state);
-
-	fprintf(stderr, "---------------------------\n");
-	fprintf(stderr, "Statistics\n");
-	fprintf(stderr, "Instruction count: %zu\n", instructions);
-	fprintf(stderr, "Decoder: Total memoy: %zu, maximal memoy: %zu\n", memory_dec, memory_dec_max);
-	fprintf(stderr, "Decoder + Translator: Total memoy: %zu, maximal memoy: %zu\n", memory_dec_tran, memory_dec_tran_max);
-	fprintf(stderr, "time: %lf seconds\n", time / (double)(1000000000));
 
 	return 0;
 }
