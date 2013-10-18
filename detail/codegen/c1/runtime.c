@@ -270,7 +270,7 @@ static string_t int_to_string(state_t s, int_t v) {
   char* str = alloc(s, 25);
   if(negate)
   	str[0] = '(';
-  int size = snprintf(str + negate, 23, "%ld", v);
+  int size = snprintf(str + negate, 23, "%lld", v);
   if(size && negate) {
   	str[negate + size - 1] = ')';
   	str[negate + size] = 0;

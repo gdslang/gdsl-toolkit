@@ -8,14 +8,15 @@ AC_CONFIG_SRCDIR([LICENSE])
 
 AM_PROG_CC_C_O()
 AM_PROG_AR()
+AC_PROG_LN_S()
 AC_PROG_LIBTOOL()
 AC_PROG_INSTALL()
 
-AC_ARG_VAR(MLTON)
-AC_PATH_PROG(MLTON, mlton, ["not-found"])
+AC_ARG_VAR(SMLNJ)
+AC_PATH_PROG(SMLNJ, sml, ["not-found"])
 
-if test [$MLTON == "not-found"]; then
-    echo "You must install MLton."
+if test [$SMLNJ == "not-found"]; then
+    echo "You must install SML/NJ."
     exit 1
 fi
 
@@ -23,7 +24,7 @@ AC_ARG_VAR(MLULEX)
 AC_PATH_PROG(MLULEX, ml-ulex, ["not-found"])
 
 if test [$MLULEX == "not-found"]; then
-    echo "You must install MLton (to get ml-ulex)."
+    echo "You must install SML/NJ (to get ml-ulex)."
     exit 1
 fi
 
@@ -31,18 +32,21 @@ AC_ARG_VAR(MLANTLR)
 AC_PATH_PROG(MLANTLR, ml-antlr, ["not-found"])
 
 if test [$MLANTLR == "not-found"]; then
-    echo "You must install MLton (to get ml-antlr)."
+    echo "You must install SML/NJ (to get ml-antlr)."
     exit 1
 fi
 
-dnl check if the GDSL compiler should be installed
-AC_ARG_ENABLE([install-gdslc],
-  [AS_HELP_STRING(
-    [--enable-install-gdslc],
-    [install the GDSL compiler])],
-  [], [enable_install_gdslc=no])
-AM_CONDITIONAL([INSTALL_GDSLC],[test x$enable_install_gdslc = xyes])
+dnl define a variable that helps us to only build Linux-specific stuff on Linux
+case "$host_os" in
+  *linux* )
+    LINUX=yes;;
+  *)
+    LINUX=no;;
+esac
+AM_CONDITIONAL(LINUX, test "$LINUX" = "yes")
 
+AC_CHECK_HEADERS_ONCE(jni.h)
+AM_CONDITIONAL(HAVE_JNI_H, test "$HAVE_JNI_H" != "")
 dnl conditionals for the various decoders, either with or without semantics
 
 FRONTENDS="x86 x86-rreil avr avr-rreil";
@@ -149,8 +153,7 @@ cat <<EOF
 GDSL toolkit configuration:
   directory prefix:             $prefix
   C flags:                      $CFLAGS
-  front-end to build:          	$with_frontend
-  install compiler:             $enable_install_gdslc
+  front-end to build:           $with_frontend
   build auxiliary libraries:    $enable_build_auxlibs
   install auxiliary libraries:  $enable_install_auxlibs
   build auxiliary programs:     $enable_build_auxbins

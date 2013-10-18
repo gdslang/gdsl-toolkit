@@ -15,7 +15,7 @@
 #endif
 
 void rreil_address_print(struct rreil_address *address) {
-	printf("{%lu} ", address->size);
+	printf("{%llu} ", address->size);
 	rreil_linear_print(address->address);
 }
 
@@ -79,7 +79,7 @@ void rreil_id_print(FILE *stream, struct rreil_id *id) {
 			break;
 		}
 		case RREIL_ID_TYPE_TEMPORARY: {
-			fprintf(stream, "T%lu", id->temporary);
+			fprintf(stream, "T%llu", id->temporary);
 			break;
 		}
 #ifdef GDSL_X86
@@ -126,7 +126,7 @@ void rreil_linear_print(struct rreil_linear *linear) {
 			break;
 		}
 		case RREIL_LINEAR_TYPE_IMMEDIATE: {
-			printf("%lu", linear->immediate);
+			printf("%llu", linear->immediate);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SUM: {
@@ -146,7 +146,7 @@ void rreil_linear_print(struct rreil_linear *linear) {
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SCALE: {
-			printf("%lu*", linear->scale.imm);
+			printf("%llu*", linear->scale.imm);
 			rreil_linear_print(linear->scale.opnd);
 			break;
 		}
@@ -226,12 +226,12 @@ void rreil_expr_print(struct rreil_expr *expr) {
 			break;
 		}
 		case RREIL_EXPR_TYPE_SX: {
-			printf("{%lu->s*} ", expr->sx.fromsize);
+			printf("{%llu->s*} ", expr->sx.fromsize);
 			rreil_linear_print(expr->sx.opnd);
 			break;
 		}
 		case RREIL_EXPR_TYPE_ZX: {
-			printf("{%lu->u*} ", expr->zx.fromsize);
+			printf("{%llu->u*} ", expr->zx.fromsize);
 			rreil_linear_print(expr->zx.opnd);
 			break;
 		}
@@ -258,14 +258,14 @@ void rreil_sexpr_print(struct rreil_sexpr *sexpr) {
 void rreil_variable_print(FILE *stream, struct rreil_variable *variable) {
 	rreil_id_print(stream, variable->id);
 	if(variable->offset)
-		fprintf(stream, "/%lu", variable->offset);
+		fprintf(stream, "/%llu", variable->offset);
 }
 
 void rreil_varl_print(FILE *stream, struct rreil_variable_limited *varl) {
 	rreil_id_print(stream, varl->id);
 	if(varl->offset)
-		fprintf(stream, "/%lu", varl->offset);
-	fprintf(stream, ":%lu", varl->size);
+		fprintf(stream, "/%llu", varl->offset);
+	fprintf(stream, ":%llu", varl->size);
 }
 
 void rreil_varls_print(FILE *stream, struct rreil_variable_limited_tuple *varls) {
@@ -301,13 +301,13 @@ void rreil_statement_print(struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
 			rreil_variable_print(stdout, statement->assign.lhs);
-			printf(" =:%lu ", statement->assign.size);
+			printf(" =:%llu ", statement->assign.size);
 			rreil_expr_print(statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
 			rreil_variable_print(stdout, statement->load.lhs);
-			printf(" =:%lu *(", statement->load.size);
+			printf(" =:%llu *(", statement->load.size);
 			rreil_address_print(statement->load.address);
 			printf(")");
 			break;
@@ -315,7 +315,7 @@ void rreil_statement_print(struct rreil_statement *statement) {
 		case RREIL_STATEMENT_TYPE_STORE: {
 			printf("*(");
 			rreil_address_print(statement->store.address);
-			printf(") =:%lu ", statement->store.size);
+			printf(") =:%llu ", statement->store.size);
 			rreil_expr_print(statement->store.rhs);
 			break;
 		}
