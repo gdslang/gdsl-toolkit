@@ -1160,10 +1160,29 @@ val semantics insn =
   | XCH x: sem-xch x
 end
 
+val translate-avr insn = semantics insn
+
 val translate insn = do
-  update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
-#case 0 of 1: return 0 end;
-  semantics insn;
+  update@{stack=SEM_NIL,tmp=0,lab=0};
+  
+  translate-avr insn;
+  
   stack <- query $stack;
   return (rreil-stmts-rev stack)
+end
+
+val translate-block-single insn = do
+   ic <- query $ins_count;
+   update@{tmp=0,ins_count=ic+1};
+   
+   translate-avr insn
+end
+
+val relative-next stmts = let
+  val is_sem_ip x = case x of
+     Sem_PC: '1'
+   | _: '0'
+  end
+in
+  relative-next-generic is_sem_ip stmts
 end

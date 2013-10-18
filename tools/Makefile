@@ -1,3 +1,5 @@
+# vim: noexpandtab
+
 CC=gcc
 #CC=clang
 MAKE=make
@@ -23,10 +25,9 @@ INCDS=-I../include
 CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(DEFINES) $(INCDS)
 
 PROJECTS=
-EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep
+EXECUTABLES=semantics-cli decoder-cli semantics-cli-dynamic semantics-cif-cli sweep liveness-sweep
 ifdef GDSL_X86
 PROJECTS+=x86-test-runner x86-test-stats-runner xed-cmp
-EXECUTABLES+=liveness-sweep
 endif
 
 .PHONY: $(PROJECTS) clean-projects
@@ -68,7 +69,6 @@ sweep: sweep.o
 sweep.o: sweep.c
 	$(CC) $(CFLAGS) sweep.c -o $@
 
-ifdef GDSL_X86
 ### liveness-sweep
 liveness-sweep: liveness-sweep.o
 	$(CC) $(LDFLAGS) liveness-sweep.o $(LIBFLAGS) -o $@
@@ -76,6 +76,7 @@ liveness-sweep: liveness-sweep.o
 liveness-sweep.o: liveness-sweep.c
 	$(CC) $(CFLAGS) liveness-sweep.c -o $@
 
+ifdef GDSL_X86
 ### x86-test-runner
 x86-test-runner:
 	$(MAKE) -C $@

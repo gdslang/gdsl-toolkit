@@ -2303,13 +2303,6 @@ val translate insn = do
   return (rreil-stmts-rev stack)
 end
 
-#val translate-bottom-up insn =
-#   do update@{stack=SEM_NIL,tmp=0,lab=0};
-#      semantics insn;
-#      stack <- query $stack;
-#      return stack
-#   end
-
 val translate-block-single insn = do
    ic <- query $ins_count;
    update@{tmp=0,ins_count=ic+1};
