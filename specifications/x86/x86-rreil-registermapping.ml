@@ -6,6 +6,7 @@ val fPF = return (_var Sem_FLAGS _offset 2)
 val fAF = return (_var Sem_FLAGS _offset 4)
 val fZF = return (_var Sem_FLAGS _offset 6)
 val fSF = return (_var Sem_FLAGS _offset 7)
+val fIF = return (_var Sem_FLAGS _offset 9)
 val fDF = return (_var Sem_FLAGS _offset 10)
 val fOF = return (_var Sem_FLAGS _offset 11)
 

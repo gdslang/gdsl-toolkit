@@ -2,6 +2,11 @@
 
 export = pretty{lock, rep, repne, features, insn}
 
+val flow_decode_pretty = do
+  inge <- decode config-default;
+  return (pretty inge)
+end
+
 val pretty i = show/prefixes i +++ show/instruction i.insn -++ (show/features i)
 
 val show/features i =

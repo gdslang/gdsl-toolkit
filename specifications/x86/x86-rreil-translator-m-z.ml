@@ -1885,11 +1885,9 @@ val sem-pusha-pushad x = do
 end
 
 val sem-pushf x = do
-  mask <- return 0x0000000000fcffff;
+  #mask <- return 0x0000000000fcffff;
+  mask <- return 0x0000000000244eff;
   flags <- rflags;
-
-  temp <- mktemp;
-  andb flags.size temp (var flags) (imm mask);
 
   mode64 <- mode64?;
   size <- return (
@@ -1901,6 +1899,10 @@ val sem-pushf x = do
     else
       x.opnd-sz
   );
+
+  temp <- mktemp;
+  mov size temp (imm 0);
+  andb flags.size temp (var flags) (imm mask);
 
   ps-push size (var temp)
 end
@@ -2175,8 +2177,8 @@ val sem-rep-insn x sem =
   else
     sem x
 
-val sem-ret insn x = do
-  case insn of
+val sem-ret va x = do
+  case va of
      VA0:
        do
          address <- sem-ret-without-operand x;
@@ -2184,16 +2186,17 @@ val sem-ret insn x = do
        end
    | VA1 v:
        do
-	       address <- sem-ret-without-operand (@{opnd1=v.opnd1} x);
-         release-from-stack x;
+         comb <- return (@{opnd1=v.opnd1} x);
+	       address <- sem-ret-without-operand comb;
+         release-from-stack comb;
          ret address
        end
   end;
   update @{foundJump='1'}
 end
 
-val sem-ret-far insn x = do
-  case insn of
+val sem-ret-far va x = do
+  case va of
      VA0:
        do
          address <- sem-ret-far-without-operand x;
@@ -2201,8 +2204,9 @@ val sem-ret-far insn x = do
        end
    | VA1 v:
        do
-         address <- sem-ret-far-without-operand (@{opnd1=v.opnd1} x);
-         release-from-stack x;
+         comb <- return (@{opnd1=v.opnd1} x);
+         address <- sem-ret-far-without-operand comb;
+         release-from-stack comb;
          ret address
        end
   end;

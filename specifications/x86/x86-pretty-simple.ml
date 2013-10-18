@@ -1,8 +1,13 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = pretty_simple
+export = pretty_simple{insn}
 
-val pretty_simple i = show/instruction/s i
+val flow_decode_pretty_simple = do
+  inge <- decode config-default;
+  return (pretty_simple inge)
+end
+
+val pretty_simple i = show/instruction/s i.insn
 
 val show/arity1/s x = show/operand/s x.opnd1
 val show/arity2/s x = show/operand/s x.opnd1 +++ ", " +++ show/operand/s x.opnd2
