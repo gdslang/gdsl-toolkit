@@ -2285,24 +2285,23 @@ end
 #s/^ | \(\S*\)\s*$/ | \1: sem-default-arity0 insn/g
 #s/\(.*\)| \(\S*\):.*/\1| \2 x: sem-default-arity0 insn x/g
 
-val translate insn =
-   do update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
-#case 0 of 1: return 0 end;
-      
-      ifl <- fIF;
-      mov 1 ifl (imm 1);
+val translate insn = do
+  update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
+  
+  ifl <- fIF;
+  mov 1 ifl (imm 1);
 
-      semantics insn;
-      stack <- query $stack;
-      return (rreil-stmts-rev stack)
-   end
+  semantics insn;
+  stack <- query $stack;
+  return (rreil-stmts-rev stack)
+end
 
-val translate-bottom-up insn =
-   do update@{stack=SEM_NIL,tmp=0,lab=0};
-      semantics insn;
-      stack <- query $stack;
-      return stack
-   end
+#val translate-bottom-up insn =
+#   do update@{stack=SEM_NIL,tmp=0,lab=0};
+#      semantics insn;
+#      stack <- query $stack;
+#      return stack
+#   end
 
 val transInstr config = do
    ic <- query $ins_count;
