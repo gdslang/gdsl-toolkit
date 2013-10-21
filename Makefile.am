@@ -26,6 +26,7 @@ decoder_cli_LDADD =
 semantics_cli_LDADD = 
 semantics_cli_dynamic_LDADD = 
 semantics_cif_cli_LDADD = 
+semantics_opt_LDADD = 
 sweep_LDADD = 
 liveness_sweep_LDADD = 
 x86_test_runner_LDADD = libx86-tester.la libgdwrap.la
@@ -153,7 +154,8 @@ GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 # the decoders
 
 GDSL_BASIS = \
-	$(srcdir)/specifications/basis/prelude.ml
+	$(srcdir)/specifications/basis/prelude.ml \
+	$(srcdir)/specifications/basis/selectors.ml 
 
 GDSL_X86 = \
 	$(srcdir)/specifications/x86/x86.ml \
@@ -186,7 +188,8 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/rreil-pretty.ml \
 	$(srcdir)/specifications/rreil/rreil-liveness.ml \
 	$(srcdir)/specifications/rreil/rreil-cleanup.ml \
-	$(srcdir)/specifications/basis/selectors.ml 
+  $(srcdir)/specifications/rreil/rreil-opt.ml \
+  $(srcdir)/specifications/rreil/rreil-translator.ml
 
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
@@ -196,6 +199,7 @@ decoder_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_dynamic_LDADD += libgdsl-x86-rreil.la
 semantics_cif_cli_LDADD += libgdsl-x86-rreil.la
+semantics_opt_LDADD += libgdsl-x86-rreil.la
 sweep_LDADD += libgdsl-x86-rreil.la
 liveness_sweep_LDADD += libgdsl-x86-rreil.la
 x86_test_runner_LDADD += libgdsl-x86-rreil.la
@@ -232,6 +236,7 @@ decoder_cli_LDADD += libgdsl-avr-rreil.la
 semantics_cli_LDADD += libgdsl-avr-rreil.la
 semantics_cli_dynamic_LDADD += libgdsl-avr-rreil.la
 semantics_cif_cli_LDADD += libgdsl-avr-rreil.la
+semantics_opt_LDADD += libgdsl-avr-rreil.la
 sweep_LDADD += libgdsl-avr-rreil.la
 liveness_sweep_LDADD += libgdsl-avr-rreil.la
 x86_test_runner_LDADD += libgdsl-avr-rreil.la
@@ -551,8 +556,9 @@ endif
 bin_PROGRAMS += decoder-cli
 bin_PROGRAMS += semantics-cli
 bin_PROGRAMS += semantics-cif-cli
+bin_PROGRAMS += semantics-opt
 if HAVE_ELF
-bin_PROGRAMS += sweep
+bin_PROGRAMS += sweep liveness-sweep
 endif
 else
 if BUILD_AUXBINS
@@ -562,8 +568,9 @@ endif
 noinst_PROGRAMS += decoder-cli
 noinst_PROGRAMS += semantics-cli
 noinst_PROGRAMS += semantics-cif-cli
+noinst_PROGRAMS += semantics-opt
 if HAVE_ELF
-noinst_PROGRAMS += sweep
+noinst_PROGRAMS += sweep liveness-sweep
 endif
 endif
 endif
@@ -578,7 +585,7 @@ bin_PROGRAMS += x86_test_stats_runner
 endif
 endif
 if HAVE_ELF
-bin_PROGRAMS += liveness_sweep
+bin_PROGRAMS +=
 endif
 else
 if BUILD_AUXBINS
@@ -589,7 +596,7 @@ noinst_PROGRAMS += x86_test_stats_runner
 endif
 endif
 if HAVE_ELF
-noinst_PROGRAMS += liveness_sweep
+noinst_PROGRAMS +=
 endif
 endif
 endif
@@ -608,6 +615,10 @@ if HAVE_X86
 semantics_cli_CFLAGS += -DGDSL_X86
 endif
 semantics_cli_LDADD += libreadhex.la
+
+semantics_opt_SOURCES = $(srcdir)/tools/semantics-opt.c
+semantics_opt_CFLAGS = -std=gnu99
+semantics_opt_LDFLAGS = -lelf
 
 semantics_cli_dynamic_SOURCES = $(srcdir)/tools/semantics-cli-dynamic.c
 semantics_cli_dynamic_CFLAGS = -std=c99 -I$(srcdir)/libs/readhex/include -I$(srcdir)/libs/gdsl-multiplex/include
