@@ -26,6 +26,7 @@
 /tools/.cproject
 /tools/.project
 /tools/.settings/
+/config.h.in~
 *.cm/
 
 ### Manual make
