@@ -26,6 +26,7 @@ decoder_cli_LDADD =
 semantics_cli_LDADD = 
 semantics_cli_dynamic_LDADD = 
 semantics_cif_cli_LDADD = 
+semantics_opt_LDADD = 
 sweep_LDADD = 
 liveness_sweep_LDADD = 
 x86_test_runner_LDADD = libx86-tester.la libgdwrap.la
@@ -153,7 +154,8 @@ GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 # the decoders
 
 GDSL_BASIS = \
-	$(srcdir)/specifications/basis/prelude.ml
+	$(srcdir)/specifications/basis/prelude.ml \
+	$(srcdir)/specifications/basis/selectors.ml 
 
 GDSL_X86 = \
 	$(srcdir)/specifications/x86/x86.ml \
@@ -186,7 +188,8 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/rreil-pretty.ml \
 	$(srcdir)/specifications/rreil/rreil-liveness.ml \
 	$(srcdir)/specifications/rreil/rreil-cleanup.ml \
-	$(srcdir)/specifications/basis/selectors.ml 
+  $(srcdir)/specifications/rreil/rreil-opt.ml \
+  $(srcdir)/specifications/rreil/rreil-translator.ml
 
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
@@ -196,6 +199,7 @@ decoder_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_dynamic_LDADD += libgdsl-x86-rreil.la
 semantics_cif_cli_LDADD += libgdsl-x86-rreil.la
+semantics_opt_LDADD += libgdsl-x86-rreil.la
 sweep_LDADD += libgdsl-x86-rreil.la
 liveness_sweep_LDADD += libgdsl-x86-rreil.la
 x86_test_runner_LDADD += libgdsl-x86-rreil.la
@@ -232,6 +236,7 @@ decoder_cli_LDADD += libgdsl-avr-rreil.la
 semantics_cli_LDADD += libgdsl-avr-rreil.la
 semantics_cli_dynamic_LDADD += libgdsl-avr-rreil.la
 semantics_cif_cli_LDADD += libgdsl-avr-rreil.la
+semantics_opt_LDADD += libgdsl-avr-rreil.la
 sweep_LDADD += libgdsl-avr-rreil.la
 liveness_sweep_LDADD += libgdsl-avr-rreil.la
 x86_test_runner_LDADD += libgdsl-avr-rreil.la
@@ -373,70 +378,74 @@ clean-local:
 	-rm -f $(builddir)/gdslc-image.*
 
 if INSTALL_AUXLIBS
-lib_LTLIBRARIES += libreadhex.la libutil.la
-else
-if BUILD_AUXLIBS
-noinst_LTLIBRARIES += libreadhex.la libutil.la
+if HAVE_RREIL_LIB
+lib_LTLIBRARIES += librreil.la
 endif
-endif
-
-if HAVE_X86
-if INSTALL_AUXLIBS
-if HAVE_POSIX200809_C11
-lib_LTLIBRARIES += libx86-generator.la
-endif
-else
-if BUILD_AUXLIBS
-if HAVE_POSIX200809_C11
-noinst_LTLIBRARIES += libx86-generator.la
-endif
-endif
-endif
-endif
-
-if X86_RREIL
-if INSTALL_AUXLIBS
-if HAVE_POSIX200809_C11
-if LINUX
-lib_LTLIBRARIES += libx86-tester.la
-endif
-endif
-lib_LTLIBRARIES += libx86.la libgdwrap.la
-else
-if BUILD_AUXLIBS
-if HAVE_POSIX200809_C11
-if LINUX
-noinst_LTLIBRARIES += libx86-tester.la
-endif
-endif
-noinst_LTLIBRARIES += libx86.la libgdwrap.la
-endif
-endif
-endif
-
-if HAVE_POSIX200809_C11
-if HAVE_RREIL
-if INSTALL_AUXLIBS
-if LINUX
+if HAVE_RREIL_SIM
 lib_LTLIBRARIES += librreil-sim.la
 endif
-lib_LTLIBRARIES += librreil.la
-if HAVE_JNI_H
+if HAVE_GDWRAP
+lib_LTLIBRARIES += libgdwrap.la
+endif
+if HAVE_GDSL_MULTIPLEX
+lib_LTLIBRARIES += libgdsl-multiplex.la
+endif
+if HAVE_JRREIL
 lib_LTLIBRARIES += libjrreil.la
 endif
-lib_LTLIBRARIES += libgdsl-multiplex.la
-else
+if HAVE_X86_LIB
+lib_LTLIBRARIES += libx86.la
+endif
+if HAVE_READHEX
+lib_LTLIBRARIES += libreadhex.la
+endif
+if HAVE_UTIL
+lib_LTLIBRARIES += libutil.la
+endif
+if HAVE_X86_TESTER
+lib_LTLIBRARIES += libx86-tester.la
+endif
+if HAVE_X86_GENERATOR
+lib_LTLIBRARIES += libx86-generator.la
+endif
+if HAVE_MEMSTREAM
+lib_LTLIBRARIES += libmemstream.la
+endif
+endif
+
 if BUILD_AUXLIBS
-if LINUX
+if HAVE_RREIL_LIB
+noinst_LTLIBRARIES += librreil.la
+endif
+if HAVE_RREIL_SIM
 noinst_LTLIBRARIES += librreil-sim.la
 endif
-noinst_LTLIBRARIES += librreil.la
-if HAVE_JNI_H
-noinst_LTLIBRARIES += libjrreil.la
+if HAVE_GDWRAP
+noinst_LTLIBRARIES += libgdwrap.la
 endif
+if HAVE_GDSL_MULTIPLEX
 noinst_LTLIBRARIES += libgdsl-multiplex.la
 endif
+if HAVE_JRREIL
+noinst_LTLIBRARIES += libjrreil.la
 endif
+if HAVE_X86_LIB
+noinst_LTLIBRARIES += libx86.la
+endif
+if HAVE_READHEX
+noinst_LTLIBRARIES += libreadhex.la
+endif
+if HAVE_UTIL
+noinst_LTLIBRARIES += libutil.la
+endif
+if HAVE_X86_TESTER
+noinst_LTLIBRARIES += libx86-tester.la
+endif
+if HAVE_X86_GENERATOR
+noinst_LTLIBRARIES += libx86-generator.la
+endif
+if HAVE_MEMSTREAM
+noinst_LTLIBRARIES += libmemstream.la
 endif
 endif
 
@@ -448,20 +457,20 @@ libutil_la_SOURCES = $(srcdir)/libs/util/src/util.c $(srcdir)/libs/util/src/stac
 libutil_la_CFLAGS = -std=c99 -I$(srcdir)/libs/util/include
 include_HEADERS += $(srcdir)/libs/util/include/util.h $(srcdir)/libs/util/include/stack.h
 
-if HAVE_X86
+if HAVE_X86_LIB
 libx86_la_SOURCES = $(srcdir)/libs/x86/src/x86.c $(srcdir)/libs/x86/src/x86_features.c
 libx86_la_CFLAGS = -std=c99 -I$(srcdir)/libs/x86/include
 include_HEADERS += libs/x86/include/x86.h libs/x86/include/x86_features.h
 endif
 
-if HAVE_RREIL
+if HAVE_RREIL_LIB
 librreil_la_SOURCES = $(srcdir)/libs/rreil/src/rreil/copy.c \
                       $(srcdir)/libs/rreil/src/rreil/print.c \
                       $(srcdir)/libs/rreil/src/rreil/gdrr_builder.c \
                       $(srcdir)/libs/rreil/src/rreil/free.c \
                       $(srcdir)/libs/rreil/src/rreil/rreil_id.c
 librreil_la_CFLAGS = -std=c11 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/util/include
-if HAVE_X86
+if HAVE_X86_LIB
 librreil_la_CFLAGS += -DGDSL_X86 -I$(srcdir)/libs/x86/include
 endif
 include_HEADERS += $(srcdir)/libs/rreil/include/rreil/rreil.h \
@@ -543,55 +552,67 @@ libgdsl_multiplex_la_LDFLAGS = -ldl
 include_HEADERS += $(srcdir)/libs/gdsl-multiplex/include/gdsl_multiplex.h
 endif
 
-if HAVE_RREIL
+libmemstream_la_SOURCES = $(srcdir)/libs/memstream/src/memstream.c
+libmemstream_la_CFLAGS = -I$(srcdir)/libs/memstream/include
+include_HEADERS += $(srcdir)/libs/memstream/include/memstream.h
+
 if INSTALL_AUXBINS
-if HAVE_POSIX200809_C11
+if HAVE_DECODER_CLI
+bin_PROGRAMS += decoder-cli
+endif
+if HAVE_SEMANTICS_CLI
+bin_PROGRAMS += semantics-cli
+endif
+if HAVE_SEMANTICS_CLI_DYNAMIC
 bin_PROGRAMS += semantics-cli-dynamic
 endif
-bin_PROGRAMS += decoder-cli
-bin_PROGRAMS += semantics-cli
+if HAVE_SEMANTICS_CIF_CLI
 bin_PROGRAMS += semantics-cif-cli
-if HAVE_ELF
+endif
+if HAVE_SWEEP
 bin_PROGRAMS += sweep
 endif
-else
-if BUILD_AUXBINS
-if HAVE_POSIX200809_C11
-noinst_PROGRAMS += semantics-cli-dynamic
+if HAVE_SEMANTICS_OPT
+bin_PROGRAMS += semantics-opt
 endif
-noinst_PROGRAMS += decoder-cli
-noinst_PROGRAMS += semantics-cli
-noinst_PROGRAMS += semantics-cif-cli
-if HAVE_ELF
-noinst_PROGRAMS += sweep
+if HAVE_LIVENESS_SWEEP
+bin_PROGRAMS += liveness-sweep
 endif
-endif
-endif
-endif
-
-if X86_RREIL
-if INSTALL_AUXBINS
-if HAVE_POSIX200809_C11
-if LINUX
+if HAVE_X86_TEST_RUNNER
 bin_PROGRAMS += x86_test_runner
+endif
+if HAVE_X86_TEST_STATS_RUNNER
 bin_PROGRAMS += x86_test_stats_runner
 endif
 endif
-if HAVE_ELF
-bin_PROGRAMS += liveness_sweep
-endif
-else
+
 if BUILD_AUXBINS
-if HAVE_POSIX200809_C11
-if LINUX
+if HAVE_DECODER_CLI
+noinst_PROGRAMS += decoder-cli
+endif
+if HAVE_SEMANTICS_CLI
+noinst_PROGRAMS += semantics-cli
+endif
+if HAVE_SEMANTICS_CLI_DYNAMIC
+noinst_PROGRAMS += semantics-cli-dynamic
+endif
+if HAVE_SEMANTICS_CIF_CLI
+noinst_PROGRAMS += semantics-cif-cli
+endif
+if HAVE_SWEEP
+noinst_PROGRAMS += sweep
+endif
+if HAVE_SEMANTICS_OPT
+noinst_PROGRAMS += semantics-opt
+endif
+if HAVE_LIVENESS_SWEEP
+noinst_PROGRAMS += liveness-sweep
+endif
+if HAVE_X86_TEST_RUNNER
 noinst_PROGRAMS += x86_test_runner
+endif
+if HAVE_X86_TEST_STATS_RUNNER
 noinst_PROGRAMS += x86_test_stats_runner
-endif
-endif
-if HAVE_ELF
-noinst_PROGRAMS += liveness_sweep
-endif
-endif
 endif
 endif
 
@@ -608,6 +629,10 @@ if HAVE_X86
 semantics_cli_CFLAGS += -DGDSL_X86
 endif
 semantics_cli_LDADD += libreadhex.la
+
+semantics_opt_SOURCES = $(srcdir)/tools/semantics-opt.c
+semantics_opt_CFLAGS = -std=gnu99
+semantics_opt_LDFLAGS = -lelf
 
 semantics_cli_dynamic_SOURCES = $(srcdir)/tools/semantics-cli-dynamic.c
 semantics_cli_dynamic_CFLAGS = -std=c99 -I$(srcdir)/libs/readhex/include -I$(srcdir)/libs/gdsl-multiplex/include
