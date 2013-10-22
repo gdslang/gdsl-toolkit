@@ -50,6 +50,7 @@ struct frontend {
 
 extern size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs);
 extern char gdsl_multiplex_frontend_get(struct frontend *backend, struct frontend_desc desc);
+extern void gdsl_multiplex_descs_free(struct frontend_desc *descs, size_t descs_length);
 extern void gdsl_multiplex_frontend_close(struct frontend *frontend);
 
 #endif /* GDSL_MULTIPLEX_H_ */

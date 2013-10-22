@@ -131,6 +131,12 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 	return GDSL_MULTIPLEX_ERROR_NONE;
 }
 
+void gdsl_multiplex_descs_free(struct frontend_desc *descs, size_t descs_length) {
+	for (size_t i = 0; i < descs_length; ++i)
+		free(descs[i].name);
+	free(descs);
+}
+
 void gdsl_multiplex_frontend_close(struct frontend *backend) {
 	dlclose(backend->dl);
 }
