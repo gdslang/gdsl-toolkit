@@ -45,8 +45,8 @@ case "$host_os" in
 esac
 AM_CONDITIONAL(LINUX, test "$LINUX" = "yes")
 
-AC_CHECK_HEADERS_ONCE(jni.h)
-AM_CONDITIONAL(HAVE_JNI_H, test "$HAVE_JNI_H" != "")
+#AC_CHECK_HEADERS_ONCE(jni.h)
+#AM_CONDITIONAL(HAVE_JNI_H, test "$HAVE_JNI_H" != "")
 dnl conditionals for the various decoders, either with or without semantics
 
 FRONTENDS="x86 x86-rreil avr avr-rreil";
@@ -81,15 +81,22 @@ case $with_frontend in
 	*) has_x86=no;;
 esac
 
+AC_MSG_CHECKING([whether C structs may contain anonymous members])
 AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     [[;]],
     [[struct inge { union { int a; int b }; }; struct inge i; i.a = 42;]])], [has_anon_members=yes],
     has_anon_members=no)
+AC_MSG_RESULT($has_anon_members)
 
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
-    [[#include <stdio.h>]],
-    [[char *c; size_t s; FILE *f = open_memstream(&c, &s);]])], [has_open_memstream=yes],
-    has_open_memstream=no)
+AC_MSG_CHECKING([whether the open_memstream() is available])
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[#include <stdio.h>]],
+        [[char *c; size_t s; FILE *f = open_memstream(&c, &s);]])],
+    [AC_MSG_RESULT([yes])
+        has_open_memstream=1;],
+    [AC_MSG_RESULT([no])
+        LIBS=$OLD_LIBS; dnl reset to old value since XXX was not found
+        has_open_memstream=0;])
 
 AC_CHECK_HEADERS([gelf.h], [has_elf=yes], [has_elf=no])
 AC_CHECK_HEADERS([jni.h], [has_jni=yes], [has_jni=no])
