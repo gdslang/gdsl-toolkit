@@ -33,8 +33,8 @@ public class NativeInterface {
 		return (IRReilCollection<IStatement>) decodeAndTranslateNative(bytes);
 	}
 
-	public String[] getBackends() {
-		return getBackendsNative();
+	public String[] getFrontends() {
+		return getFrontendsNative();
 	}
 
 	public void useBackend(String backend) {
@@ -620,7 +620,7 @@ public class NativeInterface {
 
 	private native Object decodeAndTranslateNative(byte[] bytes);
 
-	private native String[] getBackendsNative();
+	private native String[] getFrontendsNative();
 
 	private native void useBackendNative(String backend);
 

@@ -22,30 +22,30 @@ public class Program {
 			DefaultRReilBuilder builder = new DefaultRReilBuilder();
 			NativeInterface n = new NativeInterface(builder);
 
-			String[] backends = n.getBackends();
+			String[] frontends = n.getFrontends();
 
-			if (backends.length == 0)
-				throw new RuntimeException("No backends available");
+			if (frontends.length == 0)
+				throw new RuntimeException("No frontends available");
 
 			int backend_ind = 0;
 
-			if (backends.length > 1) {
-				System.out.println("Available backends:");
-				for (int i = 0; i < backends.length; i++)
-					System.out.println("\t[" + i + "] " + backends[i]);
+			if (frontends.length > 1) {
+				System.out.println("Available frontends:");
+				for (int i = 0; i < frontends.length; i++)
+					System.out.println("\t[" + i + "] " + frontends[i]);
 				System.out.print("Your choice? ");
 
 				Scanner in = new Scanner(System.in);
 				backend_ind = in.nextInt();
 				
-				if(backend_ind >= backends.length)
-					throw new RuntimeException("Invalid backend");
+				if(backend_ind >= frontends.length)
+					throw new RuntimeException("Invalid frontend");
 			}
 
 			System.out
-					.println("Using backend " + backends[backend_ind] + "...");
+					.println("Using frontend " + frontends[backend_ind] + "...");
 
-			n.useBackend(backends[backend_ind]);
+			n.useBackend(frontends[backend_ind]);
 			
 			String line = reader.readLine();
 			if (line == null)

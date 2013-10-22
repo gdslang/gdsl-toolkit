@@ -19,7 +19,7 @@ static char *backend_get(char *file) {
 
 	char *prefix = "libgdsl-";
 	size_t prefix_length = strlen(prefix);
-	char *suffix = ".so";
+	char *suffix = ".dylib";
 	size_t suffix_length = strlen(suffix);
 
 	if(!strncmp(file, prefix, prefix_length) && length > suffix_length
@@ -34,7 +34,7 @@ static char *backend_get(char *file) {
 }
 
 size_t gdsl_multiplex_backends_list(char ***backends) {
-	char *base = getenv("GDSL_BACKENDS");
+	char *base = getenv("GDSL_FRONTENDS");
 	if(!base)
 		return 0;
 
@@ -70,14 +70,14 @@ size_t gdsl_multiplex_backends_list(char ***backends) {
 #define ADD_FUNCTION(CAT,FUNC) ADD_FUNCTION_GENERIC(CAT,FUNC,"gdsl_" #FUNC)
 
 char gdsl_multiplex_backend_get(struct backend *backend, const char *name) {
-	char *base = getenv("GDSL_BACKENDS");
+	char *base = getenv("GDSL_FRONTENDS");
 	if(!base)
 		return GDSL_MULTIPLEX_ERROR_BACKENDS_PATH_NOT_SET;
 
 	char *lib;
 	size_t lib_length;
 	FILE *libf = open_memstream(&lib, &lib_length);
-	fprintf(libf, "%s/libgdsl-%s.so", base, name);
+	fprintf(libf, "%s/libgdsl-%s.dylib", base, name);
 	fputc(0, libf);
 	fclose(libf);
 

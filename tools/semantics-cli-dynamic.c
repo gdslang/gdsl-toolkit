@@ -20,11 +20,11 @@ int main(int argc, char** argv) {
 
 	size_t backend_ind = 0;
 	if(!backends_count) {
-		fprintf(stderr, "No backends available.\n");
+		fprintf(stderr, "No frontends available.\n");
 		return 1;
 	}
 	if(backends_count > 1) {
-		printf("Available backends:\n");
+		printf("Available frontends:\n");
 		for(size_t i = 0; i < backends_count; ++i)
 			printf("\t[%zu] %s\n", i, backends[i]);
 		printf("Your choice? ");
@@ -32,11 +32,11 @@ int main(int argc, char** argv) {
 	}
 
 	if(backend_ind >= backends_count) {
-		fprintf(stderr, "Backend %zu is invalid.\n", backend_ind);
+		fprintf(stderr, "Frontend %zu is invalid.\n", backend_ind);
 		return 1;
 	}
 
-	printf("Using backend %s...\n", backends[backend_ind]);
+	printf("Using frontend %s...\n", backends[backend_ind]);
 
 //	__fpurge(stdin);
 
@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
 
 	struct backend backend;
 	if(gdsl_multiplex_backend_get(&backend, backends[backend_ind])) {
-		fprintf(stderr, "Unable to open backend.\n");
+		fprintf(stderr, "Unable to open frontend.\n");
 		return 1;
 	}
 

@@ -860,7 +860,7 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 
 JNIEXPORT
 jobjectArray
-JNICALL Java_rnati_NativeInterface_getBackendsNative(JNIEnv *env, jobject obj) {
+JNICALL Java_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) {
 	char **backends;
 	size_t backends_length = gdsl_multiplex_backends_list(&backends);
 
