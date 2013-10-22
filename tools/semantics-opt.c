@@ -45,7 +45,7 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	}
 
 	size_t shstrndx;
-	if(elf_getshdrstrndx(e, &shstrndx) != 0) {
+	if(elf_getshstrndx(e, &shstrndx) != 0) {
 		retval = 5;
 		goto end_1;
 	}
