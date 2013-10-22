@@ -29,7 +29,7 @@ public class NativeInterface {
 	@SuppressWarnings("unchecked")
 	public IRReilCollection<IStatement> decodeAndTranslate(byte[] bytes) {
 		if (!backendSet)
-			throw new RuntimeException("Backend not set");
+			throw new RuntimeException("Frontend not set");
 		return (IRReilCollection<IStatement>) decodeAndTranslateNative(bytes);
 	}
 
@@ -37,17 +37,21 @@ public class NativeInterface {
 		return getFrontendsNative();
 	}
 
-	public void useBackend(String backend) {
+	public void useFrontend(long backend) {
 		if (backendSet)
-			throw new RuntimeException("Backend already set");
-		useBackendNative(backend);
+			throw new RuntimeException("Frontend already set");
+		useFrontendNative(backend);
 		backendSet = true;
+	}
+	
+	public void frontendDescsFree() {
+		frontendDescsFreeNative();
 	}
 
 	public void closeBackend() {
 		if (!backendSet)
-			throw new RuntimeException("Backend not set");
-		closeBackendNative();
+			throw new RuntimeException("Frontend not set");
+		closeFrontendNative();
 		backendSet = false;
 	}
 
@@ -622,7 +626,9 @@ public class NativeInterface {
 
 	private native String[] getFrontendsNative();
 
-	private native void useBackendNative(String backend);
+	private native void useFrontendNative(long backend);
+	
+	private native void frontendDescsFreeNative();
 
-	private native void closeBackendNative();
+	private native void closeFrontendNative();
 }

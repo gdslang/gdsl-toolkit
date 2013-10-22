@@ -858,18 +858,18 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 	return frontend.translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
 }
 
-struct frontend_desc *descs;
-size_t frontends_length;
+struct frontend_desc *descs = NULL;
+size_t descs_length = 0;
 
 JNIEXPORT
 jobjectArray
 JNICALL Java_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) {
-	frontends_length = gdsl_multiplex_frontends_list(&descs);
+	descs_length = gdsl_multiplex_frontends_list(&descs);
 
-	jobjectArray jfrontends = (*env)->NewObjectArray(env, frontends_length, (*env)->FindClass(env, "java/lang/String"),
+	jobjectArray jfrontends = (*env)->NewObjectArray(env, descs_length, (*env)->FindClass(env, "java/lang/String"),
 			(*env)->NewStringUTF(env, ""));
 
-	for(size_t i = 0; i < frontends_length; ++i) {
+	for(size_t i = 0; i < descs_length; ++i) {
 		jstring next = (*env)->NewStringUTF(env, descs[i].name);
 //		free(frontends[i]);
 		(*env)->SetObjectArrayElement(env, jfrontends, i, next);
@@ -888,10 +888,13 @@ JNICALL Java_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) 
 
 JNIEXPORT
 void
-JNICALL Java_rnati_NativeInterface_usefrontendNative(JNIEnv *env, jobject obj, jlong frontend) {
+JNICALL Java_rnati_NativeInterface_useFrontendNative(JNIEnv *env, jobject obj, jlong frontend_idx) {
 //  const char *frontend_str_n = (*env)->GetStringUTFChars(env, frontend_str, 0);
 
-  switch(gdsl_multiplex_frontend_get(&frontend, descs[(long)frontend])) {
+	if(!descs || frontend_idx >= descs_length)
+		THROW_RUNTIME("Invalid frontend")
+
+  switch(gdsl_multiplex_frontend_get(&frontend, descs[frontend_idx])) {
   	case GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET: THROW_RUNTIME("Unable to open frontend: Path to frontends not set")
   	case GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN: THROW_RUNTIME("Unable to open frontend: Unable to open frontend library")
   	case GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND: THROW_RUNTIME("Unable to open frontend: Symbol not found")
@@ -899,6 +902,14 @@ JNICALL Java_rnati_NativeInterface_usefrontendNative(JNIEnv *env, jobject obj, j
   }
 
 //  (*env)->ReleaseStringUTFChars(env, frontend_str, frontend_str_n);
+}
+
+JNIEXPORT
+void
+JNICALL Java_rnati_NativeInterface_frontendDescsFreeNative(JNIEnv *env, jobject obj) {
+	gdsl_multiplex_descs_free(descs, descs_length);
+	descs = NULL;
+	descs_length = 0;
 }
 
 JNIEXPORT

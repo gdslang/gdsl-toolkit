@@ -16,6 +16,7 @@ JNIEXPORT jobject JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JN
 
 JNIEXPORT jobjectArray JNICALL Java_rnati_NativeInterface_getFrontendsNative(JNIEnv *, jobject);
 JNIEXPORT void JNICALL Java_rnati_NativeInterface_useFrontendNative(JNIEnv *, jobject, jlong);
+JNIEXPORT void JNICALL Java_rnati_NativeInterface_frontendDescsFreeNative(JNIEnv *, jobject);
 JNIEXPORT void JNICALL Java_rnati_NativeInterface_closeFrontendNative(JNIEnv *, jobject);
 
 #ifdef __cplusplus

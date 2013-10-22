@@ -45,7 +45,7 @@ public class Program {
 			System.out
 					.println("Using frontend " + frontends[backend_ind] + "...");
 
-			n.useBackend(frontends[backend_ind]);
+			n.useFrontend(backend_ind);
 			
 			String line = reader.readLine();
 			if (line == null)
@@ -88,6 +88,7 @@ public class Program {
 			System.out.println("Decoding and translating...");
 			IRReilCollection<IStatement> c = n.decodeAndTranslate(bytes);
 
+			n.frontendDescsFree();
 			n.closeBackend();
 
 			// IRReilCollection c = n.decodeAndTranslate(new byte[] { 0x66,
