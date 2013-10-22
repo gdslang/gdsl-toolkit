@@ -152,9 +152,6 @@ RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
 	$(MLANTLR) $<
 
 GDSLC_DEP = $(builddir)/gdslc-image detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
-if HAVE_MEMSTREAM
-GDSLC_DEP += libmemstream.la
-endif
 GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
 # the decoders
@@ -542,6 +539,9 @@ include_HEADERS += $(srcdir)/libs/x86-tester/include/tbgen.h \
                    $(srcdir)/libs/x86-tester/include/tbgen_alloc.h \
                    $(srcdir)/libs/x86-tester/include/executor.h \
                    $(srcdir)/libs/x86-tester/include/tester.h
+#if HAVE_MEMSTREAM
+#libx86_tester_la_DEPENDENCIES = libmemstream.la
+#endif
 endif
 
 if HAVE_RREIL
@@ -556,6 +556,9 @@ libgdsl_multiplex_la_SOURCES = $(srcdir)/libs/gdsl-multiplex/src/gdsl_multiplex.
 libgdsl_multiplex_la_CFLAGS = -I$(srcdir)/libs/gdsl-multiplex/include
 libgdsl_multiplex_la_LDFLAGS = -ldl
 include_HEADERS += $(srcdir)/libs/gdsl-multiplex/include/gdsl_multiplex.h
+#if HAVE_MEMSTREAM
+#libgdsl_multiplex_la_DEPENDENCIES = libmemstream.la
+#endif
 endif
 
 libmemstream_la_SOURCES = $(srcdir)/libs/memstream/src/memstream.c
@@ -662,12 +665,18 @@ if X86_RREIL
 x86_test_runner_SOURCES = $(srcdir)/tools/x86-test-runner/src/main.c
 x86_test_runner_CFLAGS = -std=gnu99 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/x86/include -I$(srcdir)/libs/x86-generator/include -I$(srcdir)/libs/x86-tester/include -I$(srcdir)/libs/readhex/include
 x86_test_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
+#if HAVE_MEMSTREAM
+#x86_test_runner_DEPENDENCIES = libmemstream.la
+#endif
 endif
 
 if X86_RREIL
 x86_test_stats_runner_SOURCES = $(srcdir)/tools/x86-test-stats-runner/src/main.c $(srcdir)/tools/x86-test-stats-runner/src/hash_array.c
 x86_test_stats_runner_CFLAGS = -std=gnu99 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/x86/include -I$(srcdir)/libs/x86-generator/include -I$(srcdir)/libs/x86-tester/include -I$(srcdir)/libs/readhex/include
 x86_test_stats_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
+#if HAVE_MEMSTREAM
+#x86_test_stats_runner_DEPENDENCIES = libmemstream.la
+#endif
 private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 endif
 
