@@ -22,7 +22,7 @@ size_t readhex_hex_read(FILE *f, uint8_t **buffer) {
 			if(feof(f))
 				goto end_read;
 			char next = getc(f);
-			if(next == '\n')
+			if(next == '\n' && length)
 				goto end_read;
 			if(length_str && !target[length_str - 1] && next == 'x') {
 				length_str--;

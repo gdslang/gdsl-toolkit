@@ -6,7 +6,6 @@
  */
 
 #include <stdio.h>
-#include <stdio_ext.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <readhex.h>
@@ -39,7 +38,7 @@ int main(int argc, char** argv) {
 
 	printf("Using backend %s...\n", backends[backend_ind]);
 
-	__fpurge(stdin);
+//	__fpurge(stdin);
 
 	uint8_t *buffer;
 	size_t size = readhex_hex_read(stdin, &buffer);
