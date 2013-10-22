@@ -53,6 +53,9 @@ GDSLC_SML_FILES = \
          $(srcdir)/detail/common/sum.sml \
          $(srcdir)/detail/common/float-lit.sml \
          $(srcdir)/detail/common/integer-lit.sml \
+Undefined symbols for architecture x86_64:
+  "_open_memstream", referenced from:
+      _gdsl_multiplex_backend_get in libgdsl-multiplex.a(libgdsl_multiplex_la-gdsl_multiplex.o)
          $(srcdir)/detail/common/literal.sml \
          $(srcdir)/detail/common/stamp.sml \
          $(srcdir)/detail/common/basis.sml \
@@ -149,6 +152,9 @@ RUNTIME =  $(srcdir)/detail/codegen/c0/runtime.h \
 	$(MLANTLR) $<
 
 GDSLC_DEP = $(builddir)/gdslc-image detail/codegen/c1/runtime.c detail/codegen/c1/runtime.h
+if HAVE_MEMSTREAM
+GDSLC_DEP += libmemstream.la
+endif
 GDSLFLAGS = --runtime=$(srcdir)/detail/codegen
 
 # the decoders
