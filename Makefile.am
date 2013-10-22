@@ -540,6 +540,7 @@ include_HEADERS += $(srcdir)/libs/x86-tester/include/tbgen.h \
                    $(srcdir)/libs/x86-tester/include/executor.h \
                    $(srcdir)/libs/x86-tester/include/tester.h
 if HAVE_MEMSTREAM
+libx86_tester_la_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 libx86_tester_la_LIBADD += libmemstream.la
 endif
 endif
@@ -557,6 +558,7 @@ libgdsl_multiplex_la_CFLAGS = -I$(srcdir)/libs/gdsl-multiplex/include
 libgdsl_multiplex_la_LDFLAGS = -ldl
 include_HEADERS += $(srcdir)/libs/gdsl-multiplex/include/gdsl_multiplex.h
 if HAVE_MEMSTREAM
+libgdsl_multiplex_la_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 libgdsl_multiplex_la_LIBADD += libmemstream.la
 endif
 endif
@@ -684,6 +686,7 @@ x86_test_runner_SOURCES = $(srcdir)/tools/x86-test-runner/src/main.c
 x86_test_runner_CFLAGS = -std=gnu99 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/x86/include -I$(srcdir)/libs/x86-generator/include -I$(srcdir)/libs/x86-tester/include -I$(srcdir)/libs/readhex/include
 x86_test_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
 if HAVE_MEMSTREAM
+x86_test_runner_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 x86_test_runner_LDADD += libmemstream.la
 endif
 endif
@@ -693,6 +696,7 @@ x86_test_stats_runner_SOURCES = $(srcdir)/tools/x86-test-stats-runner/src/main.c
 x86_test_stats_runner_CFLAGS = -std=gnu99 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/x86/include -I$(srcdir)/libs/x86-generator/include -I$(srcdir)/libs/x86-tester/include -I$(srcdir)/libs/readhex/include
 x86_test_stats_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
 if HAVE_MEMSTREAM
+x86_test_stats_runner_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 x86_test_stats_runner_LDADD += libmemstream.la
 endif
 private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
