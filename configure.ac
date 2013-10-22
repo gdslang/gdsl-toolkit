@@ -93,10 +93,10 @@ AC_LINK_IFELSE(
     [AC_LANG_PROGRAM([[#include <stdio.h>]],
         [[char *c; size_t s; FILE *f = open_memstream(&c, &s);]])],
     [AC_MSG_RESULT([yes])
-        has_open_memstream=1;],
+        has_open_memstream=yes;],
     [AC_MSG_RESULT([no])
         LIBS=$OLD_LIBS; dnl reset to old value since XXX was not found
-        has_open_memstream=0;])
+        has_open_memstream=no;])
 
 AC_CHECK_HEADERS([gelf.h], [has_elf=yes], [has_elf=no])
 AC_CHECK_HEADERS([jni.h], [has_jni=yes], [has_jni=no])
@@ -208,6 +208,11 @@ AM_COND_IF([ENV_LIVENESS_SWEEP], [AM_CONDITIONAL([HAVE_LIVENESS_SWEEP], true)])
 AM_COND_IF([ENV_X86_TEST_RUNNER], [AM_COND_IF([HAVE_READHEX], [AM_COND_IF([HAVE_X86_GENERATOR], [AM_COND_IF([HAVE_X86_TESTER], [AM_CONDITIONAL([HAVE_X86_TEST_RUNNER], true)])])])])
 AM_COND_IF([ENV_X86_TEST_STATS_RUNNER], [AM_COND_IF([HAVE_X86_GENERATOR], [AM_COND_IF([HAVE_X86_TESTER], [AM_CONDITIONAL([HAVE_X86_TEST_STATS_RUNNER], true)])])])
 AM_COND_IF([HAVE_OPEN_MEMSTREAM], [AM_CONDITIONAL([HAVE_MEMSTREAM], false)])
+
+#echo HAVE_OPEN_MEMSTREAM_TRUE $HAVE_OPEN_MEMSTREAM_TRUE
+#echo HAVE_MEMSTREAM_TRUE $HAVE_MEMSTREAM_TRUE
+#echo HAVE_OPEN_MEMSTREAM_FALSE $HAVE_OPEN_MEMSTREAM_FALSE
+#echo HAVE_MEMSTREAM_FALSE $HAVE_MEMSTREAM_FALSE
 
 dnl check if the helper executables should be build and/or installed
 AC_ARG_ENABLE([install-auxbins],

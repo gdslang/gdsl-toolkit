@@ -22,6 +22,9 @@ EXEEXT=
 
 # we need to add a dependency to the actual backend to this variable
 libjrreil_la_LIBADD = 
+libx86_tester_la_LIBADD = 
+libgdsl_multiplex_la_LIBADD = 
+
 decoder_cli_LDADD = 
 semantics_cli_LDADD = 
 semantics_cli_dynamic_LDADD = 
@@ -537,7 +540,7 @@ include_HEADERS += $(srcdir)/libs/x86-tester/include/tbgen.h \
                    $(srcdir)/libs/x86-tester/include/executor.h \
                    $(srcdir)/libs/x86-tester/include/tester.h
 if HAVE_MEMSTREAM
-libx86_tester_la_LDADD += libmemstream.la
+libx86_tester_la_LIBADD += libmemstream.la
 endif
 endif
 
@@ -554,13 +557,27 @@ libgdsl_multiplex_la_CFLAGS = -I$(srcdir)/libs/gdsl-multiplex/include
 libgdsl_multiplex_la_LDFLAGS = -ldl
 include_HEADERS += $(srcdir)/libs/gdsl-multiplex/include/gdsl_multiplex.h
 if HAVE_MEMSTREAM
-libgdsl_multiplex_la_LDADD += libmemstream.la
+libgdsl_multiplex_la_LIBADD += libmemstream.la
 endif
 endif
 
+if HAVE_MEMSTREAM
 libmemstream_la_SOURCES = $(srcdir)/libs/memstream/src/memstream.c
 libmemstream_la_CFLAGS = -I$(srcdir)/libs/memstream/include
 include_HEADERS += $(srcdir)/libs/memstream/include/memstream.h
+endif
+
+#if HAVE_MEMSTREAM
+#$(info HAVE_MEMSTREAM)
+#else
+#$(info NOT HAVE_MEMSTREAM)
+#endif
+#
+#if HAVE_OPEN_MEMSTREAM
+#$(info HAVE_OPEN_MEMSTREAM)
+#else
+#$(info NOT HAVE_OPEN_MEMSTREAM)
+#endif
 
 if INSTALL_AUXBINS
 if HAVE_DECODER_CLI
