@@ -11,7 +11,12 @@
 #include <gdsl.h>
 #include <stdint.h>
 
-struct backend {
+struct frontend_desc {
+	char *name;
+	char *ext;
+};
+
+struct frontend {
 	struct {
 		state_t (*init)();
 		void (*set_code)(state_t state, char *buffer, uint64_t size, uint64_t base);
@@ -39,12 +44,12 @@ struct backend {
 };
 
 #define GDSL_MULTIPLEX_ERROR_NONE 0
-#define GDSL_MULTIPLEX_ERROR_BACKENDS_PATH_NOT_SET 1
+#define GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET 1
 #define GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN 2
 #define GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND 3
 
-size_t gdsl_multiplex_backends_list(char ***backends);
-char gdsl_multiplex_backend_get(struct backend *backend, const char *name);
-void gdsl_multiplex_backend_close(struct backend *backend);
+extern size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs);
+extern char gdsl_multiplex_frontend_get(struct frontend *backend, struct frontend_desc desc);
+extern void gdsl_multiplex_frontend_close(struct frontend *frontend);
 
 #endif /* GDSL_MULTIPLEX_H_ */

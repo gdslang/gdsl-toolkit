@@ -692,7 +692,7 @@ static obj_t sem_stmts_init(state_t state, obj_t nothing) {
 	return (obj_t)ret;
 }
 
-struct backend backend;
+struct frontend frontend;
 
 JNIEXPORT
 jobject
@@ -706,22 +706,22 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 	size_t length = (*env)->GetArrayLength(env, input);
 	char *bytes = (char*)(*env)->GetByteArrayElements(env, input, 0);
 
-	state_t state = backend.generic.init();
-	backend.generic.set_code(state, bytes, length, 0);
+	state_t state = frontend.generic.init();
+	frontend.generic.set_code(state, bytes, length, 0);
 
-	if(setjmp(*backend.generic.err_tgt(state))) {
+	if(setjmp(*frontend.generic.err_tgt(state))) {
 		jclass exp = (*env)->FindClass(env, "rnati/GdslDecodeException");
 		(*env)->ThrowNew(env, exp, "Decode failed.");
 		return NULL;
 	}
-	obj_t insn = backend.decoder.decode(state, backend.decoder.config_default(state));
+	obj_t insn = frontend.decoder.decode(state, frontend.decoder.config_default(state));
 
-	if(setjmp(*backend.generic.err_tgt(state))) {
+	if(setjmp(*frontend.generic.err_tgt(state))) {
 		jclass exp = (*env)->FindClass(env, "rnati/RReilTranslateException");
 		(*env)->ThrowNew(env, exp, "Translate failed.");
 		return NULL;
 	}
-	obj_t rreil = backend.translator.translate(state, insn);
+	obj_t rreil = frontend.translator.translate(state, insn);
 
 //			__pretty(__rreil_pretty__, r, fmt, 2048);
 //			printf("---------------------------\n");
@@ -853,29 +853,31 @@ JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject
 	ud.env = env;
 	ud.obj = obj;
 
-	backend.translator.rreil_cif_userdata_set(state, &ud);
+	frontend.translator.rreil_cif_userdata_set(state, &ud);
 
-	return backend.translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
+	return frontend.translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
 }
+
+struct frontend_desc *descs;
+size_t frontends_length;
 
 JNIEXPORT
 jobjectArray
 JNICALL Java_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) {
-	char **backends;
-	size_t backends_length = gdsl_multiplex_backends_list(&backends);
+	frontends_length = gdsl_multiplex_frontends_list(&descs);
 
-	jobjectArray jbackends = (*env)->NewObjectArray(env, backends_length, (*env)->FindClass(env, "java/lang/String"),
+	jobjectArray jfrontends = (*env)->NewObjectArray(env, frontends_length, (*env)->FindClass(env, "java/lang/String"),
 			(*env)->NewStringUTF(env, ""));
 
-	for(size_t i = 0; i < backends_length; ++i) {
-		jstring next = (*env)->NewStringUTF(env, backends[i]);
-		free(backends[i]);
-		(*env)->SetObjectArrayElement(env, jbackends, i, next);
+	for(size_t i = 0; i < frontends_length; ++i) {
+		jstring next = (*env)->NewStringUTF(env, descs[i].name);
+//		free(frontends[i]);
+		(*env)->SetObjectArrayElement(env, jfrontends, i, next);
 	}
-	if(backends_length)
-		free(backends);
+//	if(frontends_length)
+//		free(frontends);
 
-	return jbackends;
+	return jfrontends;
 }
 
 #define THROW_RUNTIME(MSG) {\
@@ -886,21 +888,21 @@ JNICALL Java_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) 
 
 JNIEXPORT
 void
-JNICALL Java_rnati_NativeInterface_useBackendNative(JNIEnv *env, jobject obj, jstring backend_str) {
-  const char *backend_str_n = (*env)->GetStringUTFChars(env, backend_str, 0);
+JNICALL Java_rnati_NativeInterface_usefrontendNative(JNIEnv *env, jobject obj, jlong frontend) {
+//  const char *frontend_str_n = (*env)->GetStringUTFChars(env, frontend_str, 0);
 
-  switch(gdsl_multiplex_backend_get(&backend, backend_str_n)) {
-  	case GDSL_MULTIPLEX_ERROR_BACKENDS_PATH_NOT_SET: THROW_RUNTIME("Unable to open backend: Path to backends not set")
-  	case GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN: THROW_RUNTIME("Unable to open backend: Unable to open backend library")
-  	case GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND: THROW_RUNTIME("Unable to open backend: Symbol not found")
+  switch(gdsl_multiplex_frontend_get(&frontend, descs[(long)frontend])) {
+  	case GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET: THROW_RUNTIME("Unable to open frontend: Path to frontends not set")
+  	case GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN: THROW_RUNTIME("Unable to open frontend: Unable to open frontend library")
+  	case GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND: THROW_RUNTIME("Unable to open frontend: Symbol not found")
   	case GDSL_MULTIPLEX_ERROR_NONE: break;
   }
 
-  (*env)->ReleaseStringUTFChars(env, backend_str, backend_str_n);
+//  (*env)->ReleaseStringUTFChars(env, frontend_str, frontend_str_n);
 }
 
 JNIEXPORT
 void
-JNICALL Java_rnati_NativeInterface_closeBackendNative(JNIEnv *env, jobject obj) {
-	gdsl_multiplex_backend_close(&backend);
+JNICALL Java_rnati_NativeInterface_closeFrontendNative(JNIEnv *env, jobject obj) {
+	gdsl_multiplex_frontend_close(&frontend);
 }

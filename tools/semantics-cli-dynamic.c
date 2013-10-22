@@ -15,36 +15,36 @@
 int main(int argc, char** argv) {
 	char retval = 0;
 
-	char **backends;
-	size_t backends_count = gdsl_multiplex_backends_list(&backends);
+	struct frontend_desc *frontends;
+	size_t frontends_count = gdsl_multiplex_frontends_list(&frontends);
 
-	size_t backend_ind = 0;
-	if(!backends_count) {
+	size_t frontend_ind = 0;
+	if(!frontends_count) {
 		fprintf(stderr, "No frontends available.\n");
 		return 1;
 	}
-	if(backends_count > 1) {
+	if(frontends_count > 1) {
 		printf("Available frontends:\n");
-		for(size_t i = 0; i < backends_count; ++i)
-			printf("\t[%zu] %s\n", i, backends[i]);
+		for(size_t i = 0; i < frontends_count; ++i)
+			printf("\t[%zu] %s\n", i, frontends[i].name);
 		printf("Your choice? ");
-		scanf("%zu", &backend_ind);
+		scanf("%zu", &frontend_ind);
 	}
 
-	if(backend_ind >= backends_count) {
-		fprintf(stderr, "Frontend %zu is invalid.\n", backend_ind);
+	if(frontend_ind >= frontends_count) {
+		fprintf(stderr, "Frontend %zu is invalid.\n", frontend_ind);
 		return 1;
 	}
 
-	printf("Using frontend %s...\n", backends[backend_ind]);
+	printf("Using frontend %s...\n", frontends[frontend_ind].name);
 
 //	__fpurge(stdin);
 
 	uint8_t *buffer;
 	size_t size = readhex_hex_read(stdin, &buffer);
 
-	struct backend backend;
-	if(gdsl_multiplex_backend_get(&backend, backends[backend_ind])) {
+	struct frontend backend;
+	if(gdsl_multiplex_frontend_get(&backend, frontends[frontend_ind])) {
 		fprintf(stderr, "Unable to open frontend.\n");
 		return 1;
 	}
@@ -89,11 +89,11 @@ int main(int argc, char** argv) {
 	backend.generic.destroy(state);
 	free(buffer);
 
-	for (size_t i = 0; i < backends_count; ++i)
-		free(backends[i]);
-	free(backends);
+//	for (size_t i = 0; i < frontends_count; ++i)
+//		free(frontends[i]);
+//	free(frontends);
 
-	gdsl_multiplex_backend_close(&backend);
+	gdsl_multiplex_frontend_close(&backend);
 
 	return retval;
 }

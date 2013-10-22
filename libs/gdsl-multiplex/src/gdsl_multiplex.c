@@ -14,70 +14,90 @@
 
 #include <gdsl_multiplex.h>
 
-static char *backend_get(char *file) {
+static char frontend_get(struct frontend_desc *desc, char *file) {
 	size_t length = strlen(file);
 
 	char *prefix = "libgdsl-";
 	size_t prefix_length = strlen(prefix);
-	char *suffix = ".dylib";
-	size_t suffix_length = strlen(suffix);
 
-	if(!strncmp(file, prefix, prefix_length) && length > suffix_length
-			&& !strcmp(file + length - suffix_length, suffix)) {
-		size_t decoder_length = length - prefix_length - suffix_length;
-		char *decoder = (char*)malloc(decoder_length + 1);
-		memcpy(decoder, file + prefix_length, decoder_length);
-		decoder[decoder_length] = 0;
-		return decoder;
+	size_t suffixes_length = 2;
+	char *suffix[] = { ".so", ".dylib" };
+
+	size_t suffix_length[suffixes_length];
+	for (size_t i = 0; i < suffixes_length; ++i)
+		suffix_length[i] = strlen(suffix[i]);
+
+	for (size_t i = 0; i < suffixes_length; ++i) {
+		char *suffix_next = suffix[i];
+		size_t suffix_length_next = suffix_length[i];
+
+		if(!strncmp(file, prefix, prefix_length) && length > suffix_length_next
+				&& !strcmp(file + length - suffix_length_next, suffix_next)) {
+			size_t decoder_length = length - prefix_length - suffix_length_next;
+
+			char *decoder = (char*)malloc(decoder_length + 1);
+			memcpy(decoder, file + prefix_length, decoder_length);
+			decoder[decoder_length] = 0;
+
+//			char *suffix_ = (char*)malloc(suffix_length + 1);
+//			memcpy(suffix_, suffix, suffix_length + 1);
+
+			desc->name = decoder;
+			desc->ext = suffix_next;
+
+			return 1;
+		}
 	}
-	return NULL;
+
+	return 0;
 }
 
-size_t gdsl_multiplex_backends_list(char ***backends) {
+size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
 	char *base = getenv("GDSL_FRONTENDS");
 	if(!base)
 		return 0;
 
-	size_t backends_length = 0;
-	size_t backends_size = 8;
-	*backends = (char**)malloc(sizeof(char*) * backends_size);
+	size_t frontends_length = 0;
+	size_t frontends_size = 8;
+	*descs = (struct frontend_desc*)malloc(sizeof(struct frontend_desc) * frontends_size);
 
 	DIR *dir;
 	struct dirent *ent;
 	dir = opendir(base);
 	if(dir) {
 		while((ent = readdir(dir)) != NULL) {
-			char *backend = backend_get(ent->d_name);
-			if(backend) {
-				if(backends_length == backends_size) {
-					backends_size <<= 1;
-					*backends = (char**)realloc(*backends, sizeof(char*)*backends_size);
+			struct frontend_desc desc;
+			char frontend = frontend_get(&desc, ent->d_name);
+			if(frontend) {
+				if(frontends_length == frontends_size) {
+					frontends_size <<= 1;
+					*descs = (struct frontend_desc*)realloc(descs, sizeof(struct frontend_desc) * frontends_size);
 				}
-				(*backends)[backends_length++] = backend;
+				(*descs)[frontends_length++] = desc;
 			}
 		}
 
 		closedir(dir);
 	}
 
-	return backends_length;
+	return frontends_length;
 }
 
 #define ADD_FUNCTION_GENERIC(CAT,FUNC,NAME)\
-		backend->CAT.FUNC = (__typeof__(backend->CAT.FUNC))dlsym(dl, NAME);\
-		if(!backend->CAT.FUNC)\
+		frontend->CAT.FUNC = (__typeof__(frontend->CAT.FUNC))dlsym(dl, NAME);\
+		if(!frontend->CAT.FUNC)\
 			error = 1;
 #define ADD_FUNCTION(CAT,FUNC) ADD_FUNCTION_GENERIC(CAT,FUNC,"gdsl_" #FUNC)
 
-char gdsl_multiplex_backend_get(struct backend *backend, const char *name) {
+char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc desc) {
 	char *base = getenv("GDSL_FRONTENDS");
 	if(!base)
-		return GDSL_MULTIPLEX_ERROR_BACKENDS_PATH_NOT_SET;
+		return GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET;
 
 	char *lib;
 	size_t lib_length;
 	FILE *libf = open_memstream(&lib, &lib_length);
-	fprintf(libf, "%s/libgdsl-%s.dylib", base, name);
+	fprintf(libf, "%s/libgdsl-%s%s", base, desc.name, desc.ext);
 	fputc(0, libf);
 	fclose(libf);
 
@@ -106,11 +126,11 @@ char gdsl_multiplex_backend_get(struct backend *backend, const char *name) {
 	if(error)
 		return GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND;
 
-	backend->dl = dl;
+	frontend->dl = dl;
 
 	return GDSL_MULTIPLEX_ERROR_NONE;
 }
 
-void gdsl_multiplex_backend_close(struct backend *backend) {
+void gdsl_multiplex_frontend_close(struct frontend *backend) {
 	dlclose(backend->dl);
 }

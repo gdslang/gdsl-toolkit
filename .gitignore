@@ -66,3 +66,16 @@
 /tools/x86-test-runner/x86-test-runner
 /tools/x86-test-stats-runner/x86-test-stats-runner
 /tools/xed-cmp/xed-cmp
+
+libs/gdsl-multiplex/build/
+libs/gdwrap/build/
+libs/jrreil/build/
+libs/readhex/build/
+libs/rreil-sim/build/
+libs/rreil/build/
+libs/util/build/
+libs/x86-generator/build/
+libs/x86-tester/build/
+tools/x86-test-runner/build/
+tools/x86-test-stats-runner/build/
+tools/xed-cmp/build/
