@@ -661,6 +661,7 @@ semantics_cli_dynamic_SOURCES = $(srcdir)/tools/semantics-cli-dynamic.c
 semantics_cli_dynamic_CFLAGS = -std=c99 -I$(srcdir)/libs/readhex/include -I$(srcdir)/libs/gdsl-multiplex/include
 semantics_cli_dynamic_LDADD += libreadhex.la libgdsl-multiplex.la
 if HAVE_MEMSTREAM
+semantics_cli_dynamic_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 semantics_cli_dynamic_LDADD += libmemstream.la
 endif
 
