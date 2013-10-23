@@ -218,7 +218,6 @@ GS_X86_RREIL = $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
 gdsl-x86-rreil.c: $(GDSLC_DEP) $(GS_X86_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86_RREIL)
 
-
 if X86
 lib_LTLIBRARIES += libgdsl-x86.la
 decoder_cli_LDADD += libgdsl-x86.la
@@ -255,7 +254,6 @@ libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
 gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
-
 
 if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
