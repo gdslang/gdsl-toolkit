@@ -1,3 +1,7 @@
+/*
+ * This source file originates from http://piumarta.com/software/memstream
+ */
+
 /* Use funopen(3) to provide open_memstream(3) like functionality. */
 
 #include <stdio.h>
