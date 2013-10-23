@@ -13,8 +13,8 @@
 
 struct rreil_variable_limited {
 	struct rreil_id *id;
-	uint64_t offset;
-	uint64_t size;
+	long long unsigned offset;
+	long long unsigned size;
 };
 
 struct rreil_variable_limited_tuple {

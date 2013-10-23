@@ -46,11 +46,11 @@ static obj_t shared(state_t state, int_t con) {
 	return (obj_t)0;
 }
 static obj_t virt_t(state_t state, int_t t) {
-	printf("> t%ld\n", t);
+	printf("> t%lld\n", t);
 	return (obj_t)0;
 }
 static obj_t arch(state_t state, int_t con) {
-	printf("> arch#%ld\n", con);
+	printf("> arch#%lld\n", con);
 	return (obj_t)0;
 }
 
@@ -65,7 +65,7 @@ static obj_t exception_shared(state_t state, int_t con) {
 	return (obj_t)0;
 }
 static obj_t exception_arch(state_t state, int_t con) {
-	printf("> exception_arch#%ld\n", con);
+	printf("> exception_arch#%lld\n", con);
 	return (obj_t)0;
 }
 
@@ -330,14 +330,14 @@ static obj_t exception_arch(state_t state, int_t con) {
 static obj_t sem_address(state_t state, int_t size,
 		obj_t address) {
 	obj_t indent = indent_unary(address);
-	printf("> sem_address {size=%lu}\n", size);
+	printf("> sem_address {size=%lld}\n", size);
 	return indent;
 }
 
 // sem_var
 static obj_t sem_var(state_t state, obj_t id, int_t offset) {
 	obj_t indent = indent_unary(id);
-	printf("> var {offset=%lu}\n", offset);
+	printf("> var {offset=%lld}\n", offset);
 	return indent;
 }
 
@@ -348,7 +348,7 @@ static obj_t sem_lin_var(state_t state, obj_t this) {
 	return indent;
 }
 static obj_t sem_lin_imm(state_t state, int_t imm) {
-	printf("> sem_lin_imm {imm=%lu}\n", imm);
+	printf("> sem_lin_imm {imm=%lld}\n", imm);
 	return (obj_t)0;
 }
 static obj_t sem_lin_add(state_t state, obj_t opnd1,
@@ -366,7 +366,7 @@ static obj_t sem_lin_sub(state_t state, obj_t opnd1,
 static obj_t sem_lin_scale(state_t state, int_t imm,
 		obj_t opnd) {
 	obj_t indent = indent_unary(opnd);
-	printf("> sem_lin_scale {imm=%lu}\n", imm);
+	printf("> sem_lin_scale {imm=%lld}\n", imm);
 	return indent;
 }
 
@@ -500,20 +500,20 @@ static obj_t sem_xor(state_t state,
 static obj_t sem_sx(state_t state, int_t fromsize,
 		obj_t opnd1) {
 	obj_t indent = indent_unary(opnd1);
-	printf("> sx {fromsize=%lu}\n", fromsize);
+	printf("> sx {fromsize=%lld}\n", fromsize);
 	return indent;
 }
 static obj_t sem_zx(state_t state, int_t fromsize,
 		obj_t opnd1) {
 	obj_t indent = indent_unary(opnd1);
-	printf("> zx {fromsize=%lu}\n", fromsize);
+	printf("> zx {fromsize=%lld}\n", fromsize);
 	return indent;
 }
 
 // sem_varl
 static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
 	obj_t indent = indent_unary(id);
-	printf("> sem_varl {offset=%ld, size=%ld}\n", offset, size);
+	printf("> sem_varl {offset=%lld, size=%lld}\n", offset, size);
 	return indent;
 }
 
@@ -530,7 +530,7 @@ static obj_t sem_varls_init(state_t state, obj_t nothing) {
 
 // sem_flop
 static obj_t sem_flop(state_t state, int_t con) {
-	printf("> sem_flop %ld\n", con);
+	printf("> sem_flop %lld\n", con);
 	return (obj_t)0;
 }
 
@@ -552,19 +552,19 @@ static obj_t sem_flop(state_t state, int_t con) {
 static obj_t sem_assign(state_t state, int_t size, obj_t lhs,
 		obj_t rhs) {
 	obj_t indent = indent_binary(lhs, rhs);
-	printf("> assign {size=%lu}\n", size);
+	printf("> assign {size=%lld}\n", size);
 	return indent;
 }
 static obj_t sem_load(state_t state, int_t size, obj_t lhs,
 		obj_t address) {
 	obj_t indent = indent_binary(lhs, address);
-	printf("> load {size=%lu}\n", size);
+	printf("> load {size=%lld}\n", size);
 	return indent;
 }
 static obj_t sem_store(state_t state, int_t size, obj_t address,
 		obj_t rhs) {
 	obj_t indent = indent_binary(address, rhs);
-	printf("> store {size=%lu}\n", size);
+	printf("> store {size=%lld}\n", size);
 	return indent;
 }
 static obj_t sem_ite(state_t state, obj_t cond,
@@ -609,7 +609,7 @@ static obj_t sem_throw(state_t state, obj_t exception) {
 
 // branch_hint
 static obj_t branch_hint(state_t state, int_t con) {
-	printf("> branch_hint#%lu\n", con);
+	printf("> branch_hint#%lld\n", con);
 	return (obj_t)0;
 }
 

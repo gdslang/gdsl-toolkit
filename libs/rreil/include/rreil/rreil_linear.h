@@ -23,7 +23,7 @@ struct rreil_linear {
 	enum rreil_linear_type type;
 	union {
 		struct rreil_variable *variable;
-		uint64_t immediate;
+		long long unsigned int immediate;
 		struct {
 			struct rreil_linear *opnd1;
 			struct rreil_linear *opnd2;
@@ -33,7 +33,7 @@ struct rreil_linear {
 			struct rreil_linear *opnd2;
 		} difference;
 		struct {
-			uint64_t imm;
+			long long unsigned int imm;
 			struct rreil_linear *opnd;
 		} scale;
 	};

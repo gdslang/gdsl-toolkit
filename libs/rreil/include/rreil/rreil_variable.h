@@ -13,7 +13,7 @@
 
 struct rreil_variable {
 	struct rreil_id *id;
-	uint64_t offset;
+	long long unsigned offset;
 };
 
 

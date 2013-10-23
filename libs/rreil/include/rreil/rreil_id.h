@@ -42,7 +42,7 @@ struct rreil_id {
 			uint32_t arch;
 #endif
 		};
-		uint64_t temporary;
+		long long unsigned temporary;
 	};
 };
 

@@ -10,7 +10,7 @@
 /* data types used in decoder programs */
 typedef void* obj_t;
 typedef struct state* state_t;
-typedef int64_t int_t;
+typedef long long int int_t;
 typedef char* string_t;
 typedef uint64_t vec_data_t;
 

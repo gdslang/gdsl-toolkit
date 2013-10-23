@@ -34,17 +34,17 @@ struct rreil_statement {
 	enum rreil_statement_type type;
 	union {
 		struct {
-			uint64_t size;
+			long long unsigned int size;
 			struct rreil_variable *lhs;
 			struct rreil_expr *rhs;
 		} assign;
 		struct {
-			uint64_t size;
+			long long unsigned int size;
 			struct rreil_variable *lhs;
 			struct rreil_address *address;
 		} load;
 		struct {
-			uint64_t size;
+			long long unsigned int size;
 			struct rreil_address *address;
 			struct rreil_expr *rhs;
 		} store;

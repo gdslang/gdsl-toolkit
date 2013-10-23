@@ -32,8 +32,8 @@ enum rreil_expr_type {
 };
 
 struct rreil_size_change {
-	uint64_t size;
-	uint64_t fromsize;
+	long long unsigned int size;
+	long long unsigned int fromsize;
 	struct rreil_linear *opnd;
 };
 

@@ -12,7 +12,7 @@
 #include <rreil/rreil_linear.h>
 
 struct rreil_address {
-	uint64_t size;
+	long long unsigned int size;
 	struct rreil_linear *address;
 };
 
