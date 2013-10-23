@@ -181,7 +181,8 @@ GDSL_AVR = \
 GDSL_AVRSEM = \
 	$(srcdir)/specifications/avr/avr-rreil-translator.ml \
 	$(srcdir)/specifications/avr/avr-rreil-registermapping.ml \
-	$(srcdir)/specifications/avr/avr-rreil-pretty.ml
+	$(srcdir)/specifications/avr/avr-rreil-pretty.ml \
+	$(srcdir)/specifications/avr/avr-liveness.ml
 
 GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/fmap.ml \
@@ -673,7 +674,7 @@ sweep_SOURCES = $(srcdir)/tools/sweep.c
 sweep_CFLAGS = -std=gnu99
 sweep_LDFLAGS = -lelf
 
-if X86_RREIL
+if HAVE_RREIL
 liveness_sweep_SOURCES = $(srcdir)/tools/liveness-sweep.c
 liveness_sweep_CFLAGS = -std=gnu99
 liveness_sweep_LDFLAGS = -lelf
