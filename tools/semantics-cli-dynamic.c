@@ -28,7 +28,8 @@ int main(int argc, char** argv) {
 		for(size_t i = 0; i < frontends_count; ++i)
 			printf("\t[%zu] %s\n", i, frontends[i].name);
 		printf("Your choice? ");
-		scanf("%zu", &frontend_ind);
+		if(scanf("%zu", &frontend_ind) <= 0)
+			frontend_ind = 0;
 	}
 
 	if(frontend_ind >= frontends_count) {

@@ -554,7 +554,7 @@ endif
 
 if HAVE_RREIL
 libgdsl_multiplex_la_SOURCES = $(srcdir)/libs/gdsl-multiplex/src/gdsl_multiplex.c
-libgdsl_multiplex_la_CFLAGS = -I$(srcdir)/libs/gdsl-multiplex/include
+libgdsl_multiplex_la_CFLAGS = -std=c99 -I$(srcdir)/libs/gdsl-multiplex/include
 libgdsl_multiplex_la_LDFLAGS = -ldl
 include_HEADERS += $(srcdir)/libs/gdsl-multiplex/include/gdsl_multiplex.h
 if HAVE_MEMSTREAM

@@ -9,6 +9,7 @@
 #define EXECUTOR_H_
 
 #include <signal.h>
+#include <x86.h>
 
 enum execution_result_type {
 	EXECUTION_RTYPE_SUCCESS, EXECUTION_RTYPE_MAPPING_ERROR, EXECUTION_RTYPE_SIGNAL
