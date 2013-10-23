@@ -95,8 +95,18 @@ AC_LINK_IFELSE(
     [AC_MSG_RESULT([yes])
         has_open_memstream=yes;],
     [AC_MSG_RESULT([no])
-        LIBS=$OLD_LIBS; dnl reset to old value since XXX was not found
+ #       LIBS=$OLD_LIBS; dnl reset to old value since XXX was not found
         has_open_memstream=no;])
+
+AC_MSG_CHECKING([whether the clock_gettime(CLOCK_REALTIME, ...) is available])
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[#include <time.h>]],
+        [[struct timespec ts; clock_gettime(CLOCK_REALTIME, &ts);]])],
+    [AC_MSG_RESULT([yes])
+        has_clock_gettime=yes;],
+    [AC_MSG_RESULT([no])
+#        LIBS=$OLD_LIBS; dnl reset to old value since XXX was not found
+        has_clock_gettime=no;])
 
 AC_CHECK_HEADERS([gelf.h], [has_elf=yes], [has_elf=no])
 AC_CHECK_HEADERS([jni.h], [has_jni=yes], [has_jni=no])
@@ -112,6 +122,7 @@ AM_CONDITIONAL([HAVE_X86], [test x$has_x86 = xyes])
 #AM_CONDITIONAL([HAVE_POSIX200809], [test `getconf _POSIX_VERSION` -ge 200809 >/dev/null 2>&1])
 AM_CONDITIONAL([HAVE_ANON_MEMBERS], [test x$has_anon_members = xyes])
 AM_CONDITIONAL([HAVE_OPEN_MEMSTREAM], [test x$has_open_memstream = xyes])
+AM_CONDITIONAL([HAVE_CLOCK_GETTIME], [test x$has_clock_gettime = xyes])
 AM_CONDITIONAL([HAVE_POSIX200809_C11], [test x$has_anon_members = xyes && test x$has_open_memstream = xyes])
 AM_CONDITIONAL([HAVE_STDINT_GCC], [test x$has_stdint_gcc = xyes])
 AM_CONDITIONAL([HAVE_ELF], [test x$has_elf = xyes])
@@ -157,9 +168,9 @@ AM_CONDITIONAL([ENV_DECODER_CLI], true)
 AM_COND_IF([HAVE_RREIL], [AM_CONDITIONAL([ENV_SEMANTICS_CLI], true)], [AM_CONDITIONAL([ENV_SEMANTICS_CLI], false)])
 AM_COND_IF([HAVE_RREIL], [AM_CONDITIONAL([ENV_SEMANTICS_CLI_DYNAMIC], true)], [AM_CONDITIONAL([ENV_SEMANTICS_CLI_DYNAMIC], false)])
 AM_COND_IF([HAVE_RREIL], [AM_CONDITIONAL([ENV_SEMANTICS_CIF_CLI], true)], [AM_CONDITIONAL([ENV_SEMANTICS_CIF_CLI], false)])
-AM_COND_IF([HAVE_RREIL], [AM_COND_IF([HAVE_ELF], [AM_CONDITIONAL([ENV_SWEEP], true)], [AM_CONDITIONAL([ENV_SWEEP], false)])])
+AM_COND_IF([HAVE_RREIL], [AM_COND_IF([HAVE_ELF], [AM_COND_IF([HAVE_CLOCK_GETTIME], [AM_CONDITIONAL([ENV_SWEEP], true)], [AM_CONDITIONAL([ENV_SWEEP], false)])])])
 AM_COND_IF([HAVE_RREIL], [AM_COND_IF([HAVE_ELF], [AM_CONDITIONAL([ENV_SEMANTICS_OPT], true)], [AM_CONDITIONAL([ENV_SEMANTICS_OPT], false)])])
-AM_COND_IF([HAVE_RREIL], [AM_COND_IF([HAVE_ELF], [AM_CONDITIONAL([ENV_LIVENESS_SWEEP], true)], [AM_CONDITIONAL([ENV_LIVENESS_SWEEP], false)])])
+AM_COND_IF([HAVE_RREIL], [AM_COND_IF([HAVE_ELF], [AM_COND_IF([HAVE_CLOCK_GETTIME], [AM_CONDITIONAL([ENV_LIVENESS_SWEEP], true)], [AM_CONDITIONAL([ENV_LIVENESS_SWEEP], false)])])])
 AM_COND_IF([X86_RREIL], [AM_CONDITIONAL([ENV_X86_TEST_RUNNER], true)], [AM_CONDITIONAL([ENV_X86_TEST_RUNNER], false)])
 AM_COND_IF([X86_RREIL], [AM_CONDITIONAL([ENV_X86_TEST_STATS_RUNNER], true)], [AM_CONDITIONAL([ENV_X86_TEST_STATS_RUNNER], false)])
 
