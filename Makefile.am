@@ -10,6 +10,7 @@ noinst_LTLIBRARIES =
 lib_LTLIBRARIES =
 EXTRA_LTLIBRARIES =
 include_HEADERS =
+nodist_include_HEADERS =
 
 #if X86
 #HAVE_X86 = 1
@@ -196,7 +197,7 @@ GDSL_RREIL = \
 
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
-include_HEADERS += gdsl-x86-rreil.h
+nodist_include_HEADERS += gdsl-x86-rreil.h
 libjrreil_la_LIBADD += libgdsl-x86-rreil.la
 decoder_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_LDADD += libgdsl-x86-rreil.la
@@ -207,28 +208,28 @@ sweep_LDADD += libgdsl-x86-rreil.la
 liveness_sweep_LDADD += libgdsl-x86-rreil.la
 x86_test_runner_LDADD += libgdsl-x86-rreil.la
 x86_test_stats_runner_LDADD += libgdsl-x86-rreil.la
+CLEANFILES += gdsl-x86-rreil.c gdsl-x86-rreil.h
 endif
 libgdsl_x86_rreil_la_SOURCES =
 nodist_libgdsl_x86_rreil_la_SOURCES = gdsl-x86-rreil.c
 libgdsl_x86_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
-CLEANFILES += gdsl-x86-rreil.c
 
-GS_X86_RREIL := $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
+GS_X86_RREIL = $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
 gdsl-x86-rreil.c: $(GDSLC_DEP) $(GS_X86_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86_RREIL)
 
-CLEANFILES += gdsl-x86-rreil.c gdsl-x86-rreil.h
 
 if X86
 lib_LTLIBRARIES += libgdsl-x86.la
 decoder_cli_LDADD += libgdsl-x86.la
+nodist_include_HEADERS += gdsl-x86.h
+CLEANFILES += gdsl-x86.c gdsl-x86.h
 endif
 libgdsl_x86_la_SOURCES =
 nodist_libgdsl_x86_la_SOURCES = gdsl-x86.c
 libgdsl_x86_la_DEPENDENCIES = $(GDSLC_DEP)
-CLEANFILES += gdsl-x86.c
 
-GS_X86 := $(GDSL_BASIS) $(GDSL_X86)
+GS_X86 = $(GDSL_BASIS) $(GDSL_X86)
 gdsl-x86.c: $(GDSLC_DEP) $(GS_X86)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86)
 
@@ -244,32 +245,31 @@ sweep_LDADD += libgdsl-avr-rreil.la
 liveness_sweep_LDADD += libgdsl-avr-rreil.la
 x86_test_runner_LDADD += libgdsl-avr-rreil.la
 x86_test_stats_runner_LDADD += libgdsl-avr-rreil.la
+nodist_include_HEADERS += gdsl-avr-rreil.h
+CLEANFILES += gdsl-avr-rreil.c gdsl-avr-rreil.h
 endif
 libgdsl_avr_rreil_la_SOURCES =
 nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
 libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
-CLEANFILES += gdsl-avr-rreil.c
 
-GS_AVR_RREIL :=  $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
+GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
 gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
 
-CLEANFILES += gdsl-avr-rreil.c gdsl-avr-rreil.h
 
 if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
 decoder_cli_LDADD += libgdsl-avr.la
+nodist_include_HEADERS += gdsl-avr.h
+CLEANFILES += gdsl-avr.c gdsl-avr.h
 endif
 libgdsl_avr_la_SOURCES =
 nodist_libgdsl_avr_la_SOURCES = gdsl-avr.c
 libgdsl_avr_la_DEPENDENCIES = $(GDSLC_DEP)
-CLEANFILES += gdsl-avr.c
 
-GS_AVR := $(GDSL_BASIS) $(GDSL_AVR)
+GS_AVR = $(GDSL_BASIS) $(GDSL_AVR)
 gdsl-avr.c: $(GDSLC_DEP) $(GS_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
-
-CLEANFILES += gdsl-avr.c gdsl-avr.h
 
 if HAVE_RREIL
 JSOURCES = src/rreil/DefaultLimitedVariableCollection.java \
@@ -702,4 +702,4 @@ endif
 private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 endif
 
-EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES)
+EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm
