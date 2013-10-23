@@ -174,6 +174,7 @@ AM_CONDITIONAL([HAVE_READHEX], false)
 AM_CONDITIONAL([HAVE_UTIL], false)
 AM_CONDITIONAL([HAVE_X86_TESTER], false)
 AM_CONDITIONAL([HAVE_X86_GENERATOR], false)
+AM_CONDITIONAL([HAVE_MEMSTREAM], true)
 
 AM_COND_IF([ENV_RREIL_LIB], [AM_CONDITIONAL([HAVE_RREIL_LIB], true)])
 AM_COND_IF([ENV_RREIL_SIM], [AM_COND_IF([HAVE_RREIL_LIB], [AM_CONDITIONAL([HAVE_RREIL_SIM], true)])])
@@ -185,6 +186,7 @@ AM_COND_IF([ENV_READHEX], [AM_CONDITIONAL([HAVE_READHEX], true)])
 AM_COND_IF([ENV_UTIL], [AM_CONDITIONAL([HAVE_UTIL], true)])
 AM_COND_IF([ENV_X86_TESTER], [AM_COND_IF([HAVE_UTIL], [AM_COND_IF([HAVE_RREIL_LIB], [AM_COND_IF([HAVE_GDWRAP], [AM_COND_IF([HAVE_X86_LIB], [AM_COND_IF([HAVE_RREIL_SIM], [AM_CONDITIONAL([HAVE_X86_TESTER], true)])])])])])])
 AM_COND_IF([ENV_X86_GENERATOR], [AM_CONDITIONAL([HAVE_X86_GENERATOR], true)])
+AM_COND_IF([HAVE_OPEN_MEMSTREAM], [AM_CONDITIONAL([HAVE_MEMSTREAM], false)])
 
 #Tool dependencies
 AM_CONDITIONAL([HAVE_DECODER_CLI], false)
@@ -196,7 +198,6 @@ AM_CONDITIONAL([HAVE_SEMANTICS_OPT], false)
 AM_CONDITIONAL([HAVE_LIVENESS_SWEEP], false)
 AM_CONDITIONAL([HAVE_X86_TEST_RUNNER], false)
 AM_CONDITIONAL([HAVE_X86_TEST_STATS_RUNNER], false)
-AM_CONDITIONAL([HAVE_MEMSTREAM], true)
 
 AM_COND_IF([ENV_DECODER_CLI], [AM_COND_IF([HAVE_READHEX], [AM_CONDITIONAL([HAVE_DECODER_CLI], true)])])
 AM_COND_IF([ENV_SEMANTICS_CLI], [AM_COND_IF([HAVE_READHEX], [AM_CONDITIONAL([HAVE_SEMANTICS_CLI], true)])])
@@ -207,7 +208,6 @@ AM_COND_IF([ENV_SEMANTICS_OPT], [AM_CONDITIONAL([HAVE_SEMANTICS_OPT], true)])
 AM_COND_IF([ENV_LIVENESS_SWEEP], [AM_CONDITIONAL([HAVE_LIVENESS_SWEEP], true)])
 AM_COND_IF([ENV_X86_TEST_RUNNER], [AM_COND_IF([HAVE_READHEX], [AM_COND_IF([HAVE_X86_GENERATOR], [AM_COND_IF([HAVE_X86_TESTER], [AM_CONDITIONAL([HAVE_X86_TEST_RUNNER], true)])])])])
 AM_COND_IF([ENV_X86_TEST_STATS_RUNNER], [AM_COND_IF([HAVE_X86_GENERATOR], [AM_COND_IF([HAVE_X86_TESTER], [AM_CONDITIONAL([HAVE_X86_TEST_STATS_RUNNER], true)])])])
-AM_COND_IF([HAVE_OPEN_MEMSTREAM], [AM_CONDITIONAL([HAVE_MEMSTREAM], false)])
 
 #echo HAVE_OPEN_MEMSTREAM_TRUE $HAVE_OPEN_MEMSTREAM_TRUE
 #echo HAVE_MEMSTREAM_TRUE $HAVE_MEMSTREAM_TRUE
@@ -268,3 +268,27 @@ GDSL toolkit configuration:
   install auxiliary programs:   $enable_install_auxbins
   version:                      $VERSION
 EOF
+echo Libraries:
+echo -n "  librreil:                     "; AM_COND_IF([HAVE_RREIL_LIB], echo yes, echo no)
+echo -n "  librreil-sim:                 "; AM_COND_IF([HAVE_RREIL_SIM], echo yes, echo no)
+echo -n "  libgdwrap:                    "; AM_COND_IF([HAVE_GDWRAP], echo yes, echo no)
+echo -n "  libgdsl-multiplex:            "; AM_COND_IF([HAVE_GDSL_MULTIPLEX], echo yes, echo no)
+echo -n "  libjrreil:                    "; AM_COND_IF([HAVE_JRREIL], echo yes, echo no)
+echo -n "  libx86:                       "; AM_COND_IF([HAVE_X86_LIB], echo yes, echo no)
+echo -n "  libreadhex:                   "; AM_COND_IF([HAVE_READHEX], echo yes, echo no)
+echo -n "  libutil:                      "; AM_COND_IF([HAVE_UTIL], echo yes, echo no)
+echo -n "  libx86-tester:                "; AM_COND_IF([HAVE_X86_TESTER], echo yes, echo no)
+echo -n "  libx86-generator:             "; AM_COND_IF([HAVE_X86_GENERATOR], echo yes, echo no)
+echo -n "  libmemstream:                 "; AM_COND_IF([HAVE_MEMSTREAM], echo yes, echo no)
+echo Tools:
+echo -n "  decoder-cli:                  "; AM_COND_IF([HAVE_DECODER_CLI], echo yes, echo no)
+echo -n "  semantics-cli:                "; AM_COND_IF([HAVE_SEMANTICS_CLI], echo yes, echo no)
+echo -n "  semantics-cli-dynamic:        "; AM_COND_IF([HAVE_SEMANTICS_CLI_DYNAMIC], echo yes, echo no)
+echo -n "  semantics-cif-cli:            "; AM_COND_IF([HAVE_SEMANTICS_CIF_CLI], echo yes, echo no)
+echo -n "  sweep:                        "; AM_COND_IF([HAVE_SWEEP], echo yes, echo no)
+echo -n "  semantics-opt:                "; AM_COND_IF([HAVE_SEMANTICS_OPT], echo yes, echo no)
+echo -n "  liveness-sweep:               "; AM_COND_IF([HAVE_LIVENESS_SWEEP], echo yes, echo no)
+echo -n "  x86-test-runner:              "; AM_COND_IF([HAVE_X86_TEST_RUNNER], echo yes, echo no)
+echo -n "  x86-test-stats-runner:        "; AM_COND_IF([HAVE_X86_TEST_STATS_RUNNER], echo yes, echo no)
+echo
+
