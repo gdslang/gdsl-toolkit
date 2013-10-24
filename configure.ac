@@ -1,7 +1,7 @@
 dnl configure file for the GDSL compiler and the decoders shipped with it
 AC_INIT([gdsl], [1.0.0], [http://code.google.com/p/gdsl-toolkit/], [gdsl-toolkit])
 
-AM_INIT_AUTOMAKE([no-dependencies -Wall foreign no-define])
+AM_INIT_AUTOMAKE([no-dependencies -Wall foreign no-define subdir-objects])
 
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR([LICENSE])
