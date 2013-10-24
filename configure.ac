@@ -1,5 +1,5 @@
 dnl configure file for the GDSL compiler and the decoders shipped with it
-AC_INIT([gdsl], [0.9.0], [http://code.google.com/p/gdsl-toolkit/], [gdsl-toolkit])
+AC_INIT([gdsl], [0.9.1], [http://code.google.com/p/gdsl-toolkit/], [gdsl-toolkit])
 
 AM_INIT_AUTOMAKE([no-dependencies -Wall foreign no-define])
 
