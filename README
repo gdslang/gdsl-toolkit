@@ -8,7 +8,7 @@ following steps need to be followed.
 The GDSL compiler and core libraries require the following software to be on the
 current search PATH:
 
-- Standard ML of New Jersey interactive compiler [>= version 110.75]
+- Standard ML of New Jersey interactive compiler (including ml-lpt) [>= version 110.75]
 - Make
 - A C compiler 
 
@@ -44,15 +44,16 @@ build and install the respective frontend. The demo applications and libraries
 are built but not installed by default; see "./configure --help" for information
 on how to change this.
 
-*** Building from Sources
+*** Building from Repository Sources
 
-Building from sources requires the following tools to be on the current search
-PATH:
+Checking out the current sources and building them requires the following tools
+to be on the current search PATH:
 
 - Automake
 - Git 
 
-The configure script has to be generated using the following command:
+After checking out the sources, the configure script has to be generated using
+the following command:
 
 autoreconf -i
 
