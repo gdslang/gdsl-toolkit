@@ -88,6 +88,13 @@ AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
     has_anon_members=no)
 AC_MSG_RESULT($has_anon_members)
 
+AC_MSG_CHECKING([whether __uint128_t and __int128_t are available])
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
+    [[#include <stdint.h>]],
+    [[__uint128_t a = 42; __int128_t b = -42;]])], [has_int128=yes],
+    has_int128=no)
+AC_MSG_RESULT($has_int128)
+
 AC_MSG_CHECKING([whether the open_memstream() is available])
 AC_LINK_IFELSE(
     [AC_LANG_PROGRAM([[#include <stdio.h>]],
@@ -125,6 +132,7 @@ AM_CONDITIONAL([HAVE_OPEN_MEMSTREAM], [test x$has_open_memstream = xyes])
 AM_CONDITIONAL([HAVE_CLOCK_GETTIME], [test x$has_clock_gettime = xyes])
 AM_CONDITIONAL([HAVE_POSIX200809_C11], [test x$has_anon_members = xyes && test x$has_open_memstream = xyes])
 AM_CONDITIONAL([HAVE_STDINT_GCC], [test x$has_stdint_gcc = xyes])
+AM_CONDITIONAL([HAVE_INT128], [test x$has_int128 = xyes])
 AM_CONDITIONAL([HAVE_ELF], [test x$has_elf = xyes])
 
 #AM_COND_IF([HAVE_RREIL], [AM_COND_IF([HAVE_POSIX200809_C11], [has_semantics_cli=yes], [has_semantics_cli=yes])])
@@ -149,7 +157,7 @@ AM_CONDITIONAL([ENV_READHEX], true)
 AM_COND_IF([HAVE_RREIL], [AM_COND_IF([HAVE_ANON_MEMBERS], [AM_COND_IF([HAVE_POSIX200809_C11], [AM_CONDITIONAL([ENV_RREIL_LIB], true)])])])
 AM_CONDITIONAL([ENV_JRREIL], [test x$has_jni = xyes])
 AM_COND_IF([X86_RREIL], [AM_CONDITIONAL([ENV_X86_LIB], true)])
-AM_COND_IF([X86_RREIL], [AM_COND_IF([HAVE_ANON_MEMBERS], [AM_COND_IF([HAVE_POSIX200809_C11], [AM_COND_IF([HAVE_STDINT_GCC], [AM_CONDITIONAL([ENV_RREIL_SIM], true)])])])])
+AM_COND_IF([X86_RREIL], [AM_COND_IF([HAVE_ANON_MEMBERS], [AM_COND_IF([HAVE_POSIX200809_C11], [AM_COND_IF([HAVE_STDINT_GCC], [AM_COND_IF([HAVE_INT128], [AM_CONDITIONAL([ENV_RREIL_SIM], true)])])])])])
 AM_COND_IF([X86_RREIL], [AM_COND_IF([HAVE_ANON_MEMBERS], [AM_COND_IF([HAVE_POSIX200809_C11], [AM_CONDITIONAL([ENV_X86_TESTER], true)])])])
 AM_CONDITIONAL([ENV_X86_GENERATOR], true)
 
