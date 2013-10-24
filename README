@@ -3,41 +3,34 @@
 In order to build the GDSL toolkit with its demo applications and libraries the
 following steps need to be followed.
 
-Dependencies
+*** Dependencies
 
-The GDSL compiler and core libraries require the following software to be
-installed beforehand:
+The GDSL compiler and core libraries require the following software to be on the
+current search PATH:
 
 - Standard ML of New Jersey interactive compiler [>= version 110.75]
 - Make
-- A C compiler, preferably GCC
+- A C compiler 
 
 Furthermore, the following software packages and features are required by some
 of the optional demo applications:
 
 - GNU C library extensions
-- A C compiler that supports the C11 standard
-- Libelf (http://www.mr511.de/software/) [>= version 0.152]
-- Automake and Git (only needed in order to work with the sources from the
-  version control system)
+- A C compiler that supports the C11 standard, e.g. a recent GCC
+- Libelf (http://www.mr511.de/software/) [>= version 0.152] 
 
-Building the Application
+*** Building the Application
 
-The first build step only needs to be performed if the sources are checked out
-from the version control system. In this case, change to the the main directory
-of the sources and run the following command:
-
-autoreconf -i
-
-After this or as a first step if the source archieve is used, the sources need
-to be configured; the following command uses the default build settings that
-compile the x86 decoder with semantic translation:
+As a first step, the sources need to be configured; the following command uses
+the default build settings that compile the x86 decoder with semantic
+translation:
 
 ./configure
 
 Other architectures can be chosen by passing the "--with-frontend=..." option to
 "./configure". For an overview of all available frontends and other options run
-"./configure --help".
+"./configure --help". Details about the various tools and libraries can be found
+here.
 
 Finally,
 
@@ -50,6 +43,22 @@ make install
 build and install the respective frontend. The demo applications and libraries
 are built but not installed by default; see "./configure --help" for information
 on how to change this.
+
+*** Building from Sources
+
+Building from sources requires the following tools to be on the current search
+PATH:
+
+- Automake
+- Git 
+
+The configure script has to be generated using the following command:
+
+autoreconf -i
+
+Then follow the instructions above.
+
+*** Demos and Libraries
 
 The GDSL toolkit contains a number of demo applications and libraries. Depending
 on the whether the build machine satisfies all dependencies, some or all of them
