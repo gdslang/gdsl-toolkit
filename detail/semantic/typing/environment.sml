@@ -94,6 +94,12 @@ structure Environment : sig
 
    val popKappa : environment -> environment
 
+   (*stack: [..., t2, t1], meet t1=t2 for types and flow *)
+   val equateKappas : environment -> environment
+
+   (*stack: [..., t2, t1], meet t1=t2 for types and t2=>t1 for flow*)
+   val equateKappasFlow : environment -> environment
+   
    (*stack: [...,t] -> [...] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
 
@@ -1097,6 +1103,44 @@ end = struct
             Scope.wrap (KAPPA {ty = t2}, env)
          | _ => raise InferenceBug
 
+   (* local helper: equate or imply the flags of two types *)
+   fun flowForType (directed,t1,t2,bFun) =
+      let
+         fun genImpl (t1,t2) ((contra1,f1), (contra2,f2),bFun) =
+            if contra1<>contra2 then
+               let
+                  val (t1Str, si) = showTypeSI (t1,TVar.emptyShowInfo)
+                  val (t2Str, si) = showTypeSI (t2,si)
+                  val (mStr, si) = showSubstsSI (mgu (t1,t2,emptySubsts), si)
+                  val _ = TextIO.print ("cannot gen impl flow from\n" ^ t1Str ^ "\nand\n" ^ t2Str ^ "\nsince mgu = " ^ mStr ^ "\n")
+               in
+                  raise InferenceBug
+               end
+            else if BD.eq(f1,f2) then bFun else
+            let
+               (*val _ = TextIO.print ("add directed flow: " ^ BD.showVar f1 ^
+                  (if contra1 then "<-" else "->") ^ BD.showVar f2 ^ "\n")*)
+            in
+               if contra1 then BD.meetVarImpliesVar (f2,f1) bFun
+               else BD.meetVarImpliesVar (f1,f2) bFun
+            end
+      in
+         if directed then
+            ListPair.foldlEq (genImpl (t1,t2)) bFun
+               (texpBVarset (op ::) (t1, []), texpBVarset (op ::) (t2, []))
+         else
+         let
+            (*val _ = TextIO.print ("forcing bVars to be equal:" ^
+               ListPair.foldlEq (fn (f1,f2,str) => str ^ " " ^ BD.showVar f1 ^ "=" ^ BD.showVar f2) ""
+               (texpBVarset (fn ((_,f),fs) => f::fs) (t1, []),
+                texpBVarset (fn ((_,f),fs) => f::fs) (t2, [])) ^ "\n")*)
+         in
+            ListPair.foldlEq BD.meetEqual bFun
+               (texpBVarset (fn ((_,f),fs) => f::fs) (t1, []),
+                texpBVarset (fn ((_,f),fs) => f::fs) (t2, []))
+         end
+      end
+
    fun applySubsts (substs, ei, bFun, directed, newUses1, newUses2, env1, env2) =
       let
          val substs = substsFilter (substs, TVar.union (Scope.getVars env1,
@@ -1143,79 +1187,46 @@ end = struct
                in
                   (GROUP (List.map substB bs), !usesRef, !eiRef)
                end
-         fun genImpl (t1,t2) ((contra1,f1), (contra2,f2),bFun) =
-            if contra1<>contra2 then
-               let
-                  val (e1Str, si) = kappaToStringSI (env1,TVar.emptyShowInfo)
-                  val (e2Str, si) = kappaToStringSI (env2,si)
-                  val (t1Str, si) = showTypeSI (t1,si)
-                  val (t2Str, si) = showTypeSI (t2,si)
-                  val (mStr, si) = showSubstsSI (mgu (t1,t2,emptySubsts), si)
-                  val _ = TextIO.print ("cannot gen impl flow from\n" ^ e1Str ^ "to\n" ^ e2Str ^ "with types\n" ^ t1Str ^ "\nand\n" ^ t2Str ^ "\nsince mgu = " ^ mStr ^ "\n")
-               in
-                  raise InferenceBug
-               end
-            else if BD.eq(f1,f2) then bFun else
-            let
-               (*val _ = TextIO.print ("add directed flow: " ^ BD.showVar f1 ^
-                  (if contra1 then "<-" else "->") ^ BD.showVar f2 ^ "\n")*)
-            in
-               if contra1 then BD.meetVarImpliesVar (f2,f1) bFun
-               else BD.meetVarImpliesVar (f1,f2) bFun
-            end
-         fun flowForType (t1,t2,bFun) =
-            if directed then
-               (t1,
-                ListPair.foldlEq (genImpl (t1,t2)) bFun
-                  (texpBVarset (op ::) (t1, []), texpBVarset (op ::) (t2, []))
-                  handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2]))
-            else
-            let
-               (*val _ = TextIO.print ("forcing bVars to be equal:" ^
-                  ListPair.foldlEq (fn (f1,f2,str) => str ^ " " ^ BD.showVar f1 ^ "=" ^ BD.showVar f2) ""
-                  (texpBVarset (fn ((_,f),fs) => f::fs) (t1, []),
-                   texpBVarset (fn ((_,f),fs) => f::fs) (t2, [])) ^ "\n")*)
-            in
-               (t1,
-                ListPair.foldlEq BD.meetEqual bFun
-                  (texpBVarset (fn ((_,f),fs) => f::fs) (t1, []),
-                   texpBVarset (fn ((_,f),fs) => f::fs) (t2, [])))
-            end
          fun uniteFlowInfo (KAPPA {ty=t1}, KAPPA {ty=t2}, bFun) =
                let
-                  val (t,bFun) = flowForType (t1,t2,bFun)
+                  val bFun = flowForType (directed,t1,t2,bFun)
+                     handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
                in
-                  (KAPPA {ty=t}, bFun)
+                  (KAPPA {ty=t1}, bFun)
                end
            | uniteFlowInfo (SINGLE {ty=t1, name = n1}, SINGLE {ty=t2, name = n2}, bFun) =
                let
-                  val (t,bFun) = flowForType (t1,t2,bFun)
+                  val bFun = flowForType (directed,t1,t2,bFun)
+                     handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
                in
-                  (SINGLE {ty=t, name = n2}, bFun)
+                  (SINGLE {ty=t1, name = n2}, bFun)
                end
            | uniteFlowInfo (GROUP bs1, GROUP bs2, bFun) =
                let
                   fun flowOpt (SOME t1,SOME t2,bFun) =
                      let
-                        val (t,bFun) = flowForType (t1,t2,bFun)
+                        val bFun = flowForType (directed,t1,t2,bFun)
+                        handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
                      in
-                        (SOME t, bFun)
+                        (SOME t1, bFun)
                      end
                     | flowOpt (NONE,NONE,bFun) = (NONE, bFun)
                     | flowOpt _ = raise InferenceBug
                   fun bflowOpt (SOME (t1,flow),SOME (t2,_),bFun) =
                      let
-                        val (t,bFun) = flowForType (t1,t2,bFun)
+                        val bFun = flowForType (directed,t1,t2,bFun)
+                           handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
                      in
-                        (SOME (t,flow), bFun)
+                        (SOME (t1,flow), bFun)
                      end
                     | bflowOpt (NONE,NONE,bFun) = (NONE, bFun)
                     | bflowOpt _ = raise InferenceBug
                   fun genUsesFlow ((span,(ctxt,t1)),(_,(_,t2)),(sm,bFun)) =
                      let
-                        val (t,bFun) = flowForType (t1,t2,bFun)
+                        val bFun = flowForType (directed,t1,t2,bFun)
+                           handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
                      in
-                        (SpanMap.insert (sm, span, (ctxt,t)), bFun)
+                        (SpanMap.insert (sm, span, (ctxt,t1)), bFun)
                      end
                   fun genBindFlow ({name = n1, ty=t1, width=w1, uses = us1, nested = ns1},
                                    {name = n2, ty=t2, width=w2, uses = us2, nested = ns2},(bs,bFun)) =
@@ -1281,6 +1292,93 @@ end = struct
    fun popKappa env = case Scope.unwrap env of
         (KAPPA {ty}, env) => env
       | _ => raise InferenceBug
+
+   fun equateKappasGeneric (env,directed) =
+      let
+         fun getKappaTypes env =
+            case Scope.unwrap env of
+              (KAPPA {ty=t1}, env) => (case Scope.unwrap env of
+                 (KAPPA {ty=t2}, env) => (t2,t1)
+               | _ => raise InferenceBug) 
+            | _ => raise InferenceBug
+
+         fun substBinding (substs, KAPPA {ty=t}, ei) =
+            (case applySubstsToExp substs (t,ei) of (t,ei) =>
+               (KAPPA {ty = t}, ei))
+           | substBinding (substs, SINGLE {name = n, ty = t}, ei) =
+            (case applySubstsToExp substs (t,ei) of (t,ei) =>
+               (SINGLE {name = n, ty = t}, ei))
+           | substBinding (substs, GROUP bs, ei) =
+               let
+                  val eiRef = ref ei
+                  fun optSubst (SOME t) =
+                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
+                        (eiRef := ei; SOME t))
+                    | optSubst NONE = NONE
+                  fun optBSubst (SOME (t,bFun)) =
+                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
+                        (eiRef := ei; SOME (t,bFun)))
+                    | optBSubst NONE = NONE
+                  fun usesSubst (ctxt,t) =
+                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
+                        (eiRef := ei; (ctxt,t)))
+                  fun substB {name = n, ty = t, width = w, uses = us, nested = ns} =
+                     {name = n, ty = optBSubst t, width = optSubst w,
+                      uses = SpanMap.map usesSubst us,
+                      nested = List.map (fn b =>
+                           case substBinding (substs, b, !eiRef) of
+                              (b, ei) => (eiRef := ei; b)
+                        ) ns
+                     }
+               in
+                  (GROUP (List.map substB bs), !eiRef)
+               end
+
+         fun descent (ei,substs,env) =
+            if isEmpty substs then (ei,env) else
+            let
+               val (b, env) = Scope.unwrap env
+               val (b, ei) = substBinding (substs, b, ei)
+               val substs = substsFilter (substs, Scope.getVars env)
+               val (ei, env) = descent (ei,substs,env)
+            in
+               (ei, Scope.wrap (b,env))
+            end
+
+         val (t1,t2) = getKappaTypes env
+         val substs = mgu (t1,t2,emptySubsts)
+         
+         (* apply substitutions to types *)
+         val (ei,env) = descent (emptyExpandInfo,substs,env)
+                     
+         (* apply substitutions to sizes *)
+         val (scs, state) = env
+         val (sCons, substs) = applySizeConstraints (Scope.getSize state, substs)
+         val state = Scope.setSize sCons state
+
+         (* apply expand info ei to Boolean formula *)
+         val bVars = Scope.getBVars env
+         val bVars = expandInfoGetBVars (ei, bVars)
+         
+         val bFun = Scope.getFlow state
+         val bFun = BD.projectOnto (bVars, bFun)
+         val bFun = applyExpandInfo ei bFun
+            handle (BD.Unsatisfiable bVar) =>
+               flowError (bVar, NONE, [env])
+
+         (* generate flow between kappas *)
+         val (t1,t2) = getKappaTypes env
+         val bFun = flowForType (directed,t1,t2,bFun)
+            handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [return (1,env),popKappa env])
+         val state = Scope.setFlow bFun state
+
+      in
+         (scs, state)
+      end
+      
+
+   fun equateKappas env = equateKappasGeneric (env,true) 
+   fun equateKappasFlow env = equateKappasGeneric (env,false)
 
    fun popToFunction (sym, env) =
       let

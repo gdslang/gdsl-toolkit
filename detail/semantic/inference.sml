@@ -578,25 +578,29 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.IFexp (e1,e2,e3)) =
       let
-         val envWant = E.pushType (false, VEC (CONST 1), env)
-         val envHave = infExp (st,env) e1
-         val env = E.meet (envWant, envHave)
+         val env = E.pushType (false, VEC (CONST 1), env)
+         val env = infExp (st,env) e1
+         val env = E.equateKappas env
          val env = E.popKappa env
-         val envM = E.pushTop env
-         val envT = infExp (st,env) e2
-         (*val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString envT)*)
-         val envM = E.meetFlow (envM,envT)
-         val envE = infExp (st,env) e3
-         (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString envE)*)
-         val envM = E.meetFlow (envM,envE)
+         val env = E.popKappa env
+         
+         val env = E.pushTop env
+         val env = infExp (st,env) e2
+         (*val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString env)*)
+         val env = E.equateKappasFlow env
+         val env = E.popKappa env
+         val env = infExp (st,env) e3
+         (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString env)*)
+         val env = E.equateKappasFlow env
                   handle S.UnificationFailure str =>
                      refineError (str,
                                   " in the branches of if-statment",
-                                  [(envM, "then-branch "),
-                                   (envE, "else-branch ")])
-         (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString envM)*)
+                                  [(E.popKappa env, "then-branch "),
+                                   (E.return (1,env), "else-branch ")])
+         val env = E.popKappa env
+         (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString env)*)
       in
-         envM
+         env
       end
      | infExp (st,env) (AST.CASEexp (e,l)) =
       let
@@ -636,7 +640,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.APPLYexp (e1,es2)) =
       let                                      
-         val envFun = infExp (st,env) e1
          val envArg = List.foldl (fn (e2,env) => infExp (st,env) e2) env es2
 
          (*val ctxt = E.getCtxt env
@@ -645,13 +648,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val _ = if List.all (fn x => SymbolTable.toInt x<>debugSymbol) ctxt then () else
                  TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
 
-         val envArgRes = E.pushTop envArg
-         val envArgRes = E.reduceToFunction (envArgRes, List.length es2)
+         val env = E.pushTop envArg
+         val env = E.reduceToFunction (env, List.length es2)
+
+         val env = infExp (st,env) e1
+
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.toString envArgRes)*)
          (* make the result of the call-site depend on the result of the
          function; the flow expressing that formal parameters depend on actual
          parameters follows from contra-variance*)
-         val env = E.meetFlow (envArgRes, envFun)
+         val env = E.equateKappasFlow env
             handle S.UnificationFailure str =>
                refineError (str,
                             " while passing",
@@ -660,7 +666,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                               ((env, "argument    " ^ showProg (20, PP.exp, e2))::res,
                                E.popKappa env)
                             ) ([], envArg) es2)) @
-                            [(envFun, "to function " ^ showProg (20, PP.exp, e1))])
+                            [(env, "to function " ^ showProg (20, PP.exp, e1))])
+
+         val env = E.popKappa env
          (*val _ = TextIO.print ("**** app fun,res unified:\n" ^ E.topToString env)*)
          val env = E.reduceToResult env
       in
