@@ -133,7 +133,7 @@ JAR=jrreil.jar
 
 $(builddir)/gdslc-image: $(srcdir)/gdsl.cm $(GDSLC_SML_FILES)
 	echo 'CM.make("'$(srcdir)/gdsl.cm'"); SMLofNJ.exportFn ("'$@'",Main.njMain);' | $(SMLNJ)
-	cd $(builddir) && $(LN_S) $@.* gdslc-image
+	cd $(builddir) && rm -f gdslc-image && $(LN_S) $@.* gdslc-image
 
 CLEANFILES += $(builddir)/gdslc-image
 
