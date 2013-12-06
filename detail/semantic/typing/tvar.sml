@@ -7,6 +7,8 @@ structure TVar : sig
    val eq : (tvar * tvar) -> bool
    val compare : tvar * tvar -> order
 
+   val hash : tvar -> word
+
    (*displaying type variables*)
    type varmap
    val emptyShowInfo : varmap
@@ -36,6 +38,8 @@ end = struct
 
    fun eq (TVAR v1, TVAR v2) = v1=v2
    fun compare (TVAR v1, TVAR v2) = Int.compare (v1,v2)
+
+   fun hash (TVAR v) = Word.fromInt v
 
    val tvarGenerator = ref 0
 

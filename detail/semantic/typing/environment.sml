@@ -156,6 +156,7 @@ end = struct
    structure ST = SymbolTable
    structure BD = BooleanDomain
    structure SC = SizeConstraint
+   structure TT = TypeTable
    structure SpanMap = SpanMap
    open Types
    open Substitutions
@@ -201,9 +202,10 @@ end = struct
       val getCtxt : constraints -> VarInfo.symid list
       val getCurFun : constraints -> VarInfo.symid
       val setCtxt : VarInfo.symid list -> constraints -> constraints
-
+      val getTypeTable : constraints -> TypeTable.table
+      
       type environment = scope list * constraints
-      val initial : binding * SC.size_constraint_set -> environment
+      val initial : binding * SC.size_constraint_set * TypeTable.table -> environment
       val wrap : binding * environment -> environment
       val unwrap : environment -> (binding * environment)
       val unwrapDifferent : environment * environment ->
@@ -227,22 +229,24 @@ end = struct
       type constraints = {
          flowInfo : BD.bfun,
          sizeInfo : SC.size_constraint_set,
-         context : VarInfo.symid list
+         context : VarInfo.symid list,
+         typeInfo : TT.table
       }
       
-      fun getFlow { flowInfo = fi, sizeInfo, context } = fi
-      fun setFlow fi { flowInfo = _, sizeInfo = si, context = ctxt } =
-         { flowInfo = fi, sizeInfo = si, context = ctxt }
-      fun getSize { flowInfo, sizeInfo = si, context } = si
-      fun setSize si { flowInfo = fi, sizeInfo = _, context = ctxt } =
-         { flowInfo = fi, sizeInfo = si, context = ctxt }
-      fun getCtxt { flowInfo, sizeInfo, context = ctxt } = ctxt
-      fun getCurFun { flowInfo, sizeInfo, context = ctxt } = case ctxt of
-           (curFun :: _) => curFun
-         | [] => raise InferenceBug
-      fun setCtxt ctxt { flowInfo = fi, sizeInfo = si, context = _ } =
-         { flowInfo = fi, sizeInfo = si, context = ctxt }
-
+      fun getFlow { flowInfo = fi, sizeInfo, context, typeInfo } = fi
+      fun setFlow fi { flowInfo = _, sizeInfo = si, context = ctxt, typeInfo = tt } =
+         { flowInfo = fi, sizeInfo = si, context = ctxt, typeInfo = tt }
+      fun getSize { flowInfo, sizeInfo = si, context, typeInfo } = si
+      fun setSize si { flowInfo = fi, sizeInfo = _, context = ctxt, typeInfo = tt } =
+         { flowInfo = fi, sizeInfo = si, context = ctxt, typeInfo = tt }
+      fun getCtxt { flowInfo, sizeInfo, context = ctxt, typeInfo } = ctxt
+      fun getCurFun { flowInfo, sizeInfo, context = ctxt, typeInfo } =
+         case ctxt of
+              (curFun :: _) => curFun
+            | [] => raise InferenceBug
+      fun setCtxt ctxt { flowInfo = fi, sizeInfo = si, context = _, typeInfo = tt } =
+         { flowInfo = fi, sizeInfo = si, context = ctxt, typeInfo = tt }
+      fun getTypeTable { flowInfo, sizeInfo, context, typeInfo = tt } = tt
       type environment = scope list * constraints
    
       val verCounter = ref 1
@@ -326,7 +330,7 @@ end = struct
             List.foldl getGroupVars (TVar.empty, BD.emptySet) scs
          end
 
-      fun initial (b, scs) =
+      fun initial (b, scs, tt) =
          ([{
             bindInfo = b,
             typeVars = varsOfBinding (b, TVar.empty),
@@ -335,7 +339,8 @@ end = struct
           }], {
             flowInfo = BD.empty,
             sizeInfo = scs,
-            context = []
+            context = [],
+            typeInfo = tt
           })
       fun wrap (b, (scs, state)) =
          ({
@@ -546,9 +551,11 @@ end = struct
          fun showCtxt [] = "top level"
            | showCtxt [f] = ST.getString(!SymbolTables.varTable, f)
            | showCtxt (f::fs) = showCtxt [f] ^ ";" ^ showCtxt fs
+         val (ttStr, si) = TypeTable.toStringSI (fn _ => true, Scope.getTypeTable state, si)
       in
          ("environment at " ^ showCtxt (Scope.getCtxt state) ^ "\n" ^
-          envConsStr ^ BD.showBFun (Scope.getFlow state) ^ "\n", si)
+          envConsStr ^ BD.showBFun (Scope.getFlow state) ^ "\n" ^
+          ttStr ^ "\n", si)
       end
 
    fun toString env =
@@ -595,7 +602,11 @@ end = struct
       (GROUP (List.map (fn (s,t,bFunGen,ow) =>
          {name = s, ty = SOME (t,bFunGen BD.empty),
           width = ow, uses = SpanMap.empty, nested = []}) l),
-       scs)
+       scs,
+       List.foldl (fn ((s,t,bFunGen,ow),tt) =>
+         (TT.addSymbol (s,t,tt); tt)
+         ) TT.emptyTable l
+       )
    
    fun pushSingle (sym, t, env) = Scope.wrap (SINGLE {name = sym, ty = t},env)
    
