@@ -300,6 +300,8 @@ void print_results_latex(char *file, struct context *single, struct context *int
 			file_offset = i + 1;
 	}
 
+	printf("%% program, native instructions, non-optimized statement count, decoding + translation time, non-optimized size factor, (single, intra, inter)*(statement count, time, reduction, size factor)\n");
+
 	printf(
 			"%s & %lu%s & %lu%s & %.1lf%s & %.1lf & %lu%s & %.1lf%s & %.0lf\\%% & %.1f & %lu%s & %.1lf%s & %.0lf\\%% & %.1f & %lu%s & %.1lf%s & %.0lf\\%% & %.1f \\\\\n",
 			file + file_offset, fit_sz(inter->native_instructions), symbol_sz(inter->native_instructions),
@@ -581,6 +583,8 @@ static void run(struct options options, size_t *offset, size_t *size_max, double
 		memset(&single, 0, sizeof(single));
 
 		file_bounds_set(options, offset, size_max, options.files[index]);
+
+		fprintf(stderr, "Size: %lu\n", size_max);
 
 		analyze(options.files[index], print, MODE_SINGLE, options.cleanup, *offset, *size_max, options.offset, &single);
 		analyze(options.files[index], print, MODE_DEFAULT, options.cleanup, *offset, *size_max, options.offset, &intra);
