@@ -29,9 +29,13 @@ At present, you must set your Python path to the folder where the library is. Fo
 Check the installation by running this command: `python tests/single_instrs.py`. You should get
 this output:
 
+; b8 05 00 00 00  mov eax, 0x5
+
     FLAGS.9 =:1 1
     A =:32 5
     A.32 =:32 0
+
+; 81 c3 04 00 00 00 add ebx, 0x4
 
     FLAGS.9 =:1 1
     T0 =:32 (B + 4)
@@ -59,6 +63,8 @@ this output:
     LES =:1 LTS | FLAGS.6
     B =:32 T0
     B.32 =:32 0
+
+; 0f af c3    imul eax, ebx
 
     FLAGS.9 =:1 1
     T0 =:64 sx[32->64]A
