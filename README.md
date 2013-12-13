@@ -1,24 +1,30 @@
-#Installation
+# What is it?
 
-## Prerequisites
+This is a simplified Python wrapper for [GDSL](http://code.google.com/p/gdsl-toolkit/).
+
+# Prerequisites
 
 * Linux. Only Ubuntu-like systems are tested right now.
-* [GDSL](http://code.google.com/p/gdsl-toolkit/). Configure with the following options
-  for good measure, then install as root:
+* [GDSL](http://code.google.com/p/gdsl-toolkit/). Clone the repository, read the installation instructions for
+  prerequisites (Standard ML, libelf, and whatever else it says), then follow this process to install:
 
-    1. `--enable-install-auxbins`       install auxiliary binaries
-    2. `--enable-build-auxbins`         build auxiliary binaries
-    3. `--enable-install-auxlibs`       install auxiliary libraries
-    4. `--enable-build-auxlibs`         build auxiliary libraries
+        cd $GDSL_DIR
+        autoreconf -i
+        ./configure --enable-install-auxbins --enable-build-auxbins --enable-install-auxlibs --enable-build-auxlibs
+        make
+        sudo make install
+        sudo ldconfig
 
 * Python dev package (for headers).
+* Python distutils.
 * SWIG.
 
-##Installation
+#Installation
 
 Extract the source folder within the `gdsl-toolkit` repository folder.
 
-If everything works, just running `make` in the `pygdsl` folder will build the library wrappers.
+If everything works, just running `make` in the `pygdsl` folder will build the library wrappers. You
+can test with `make test` to run the example below.
 
 #Usage
 
@@ -29,14 +35,14 @@ At present, you must set your Python path to the folder where the library is. Fo
 Check the installation by running this command: `python tests/single_instrs.py`. You should get
 this output:
 
-; b8 05 00 00 00  mov eax, 0x5
-
+    export PYTHONPATH=.
+    python tests/single_instrs.py
+    ; b8 05 00 00 00      mov eax, 0x5
     FLAGS.9 =:1 1
     A =:32 5
     A.32 =:32 0
 
-; 81 c3 04 00 00 00 add ebx, 0x4
-
+    ; 81 c3 04 00 00 00   add ebx, 0x4
     FLAGS.9 =:1 1
     T0 =:32 (B + 4)
     T1 =:32 T0 ^ B
@@ -64,8 +70,7 @@ this output:
     B =:32 T0
     B.32 =:32 0
 
-; 0f af c3    imul eax, ebx
-
+    ; 0f af c3            imul eax, ebx
     FLAGS.9 =:1 1
     T0 =:64 sx[32->64]A
     T1 =:64 sx[32->64]B
@@ -82,4 +87,7 @@ this output:
     LES =:1 LTS | FLAGS.6
     A =:32 T2
     A.32 =:32 0
+
+    Successfully generated exception:
+    Exception message: decode failed: UnsatisfiableGuardCombination
 

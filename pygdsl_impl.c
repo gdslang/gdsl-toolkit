@@ -8,6 +8,35 @@
 #include <getopt.h>
 #include <gdsl.h>
 
+#include "pygdsl_error.h"
+#include "pygdsl_funcs.h"
+
+static char error_message[MAX_ERROR_LENGTH];
+static int error_status = 0;
+
+void throw_exception(char *msg) {
+    strncpy(error_message,msg,sizeof(error_message));
+    error_status = 1;
+}
+
+void set_exception(void) {
+    error_status = 1;
+}
+
+void clear_exception(void) {
+    error_message[0] = '\0';
+    error_status = 0;
+}
+
+int check_exception(void) {
+    return error_status;
+}
+
+void copy_error(char* buffer, size_t buffer_size) {
+    buffer[0] = '\0';
+    strncpy(buffer, error_message, buffer_size);
+}
+
 #ifdef GDSL_X86
 struct options {
     char mode64;
@@ -23,6 +52,7 @@ static char options_init(struct options *options) {
 #endif
 
 void semantics_str(char* buffer, size_t buffer_length, char* resultString, size_t resultStringSize, size_t* decoded, int* errorState) {
+    clear_exception();
     errorState = 0;
 #ifdef GDSL_X86
     struct options options;
@@ -33,8 +63,8 @@ void semantics_str(char* buffer, size_t buffer_length, char* resultString, size_
     gdsl_set_code(state, buffer, buffer_length, 0);
 
     if(setjmp(*gdsl_err_tgt(state))) {
-        snprintf(resultString, resultStringSize, "\n#decode failed: %s\n", gdsl_get_error_message(state));
-        *errorState = 1;
+        snprintf(error_message, sizeof(error_message), "decode failed: %s", gdsl_get_error_message(state));
+        set_exception();
         goto cleanup;
     }
 
@@ -54,8 +84,8 @@ void semantics_str(char* buffer, size_t buffer_length, char* resultString, size_
     /* strcat(resultString, fmt); */
 
     if(setjmp(*gdsl_err_tgt(state))) {
-        snprintf(resultString, resultStringSize, "translate failed: %s\n", gdsl_get_error_message(state));
-        *errorState = 1;
+        snprintf(error_message, sizeof(error_message), "translate failed: %s", gdsl_get_error_message(state));
+        set_exception();
         goto cleanup;
     }
 
