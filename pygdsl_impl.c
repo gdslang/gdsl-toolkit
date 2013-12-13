@@ -6,6 +6,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+
+#include <sys/resource.h>
+
 #include <gdsl.h>
 
 #include "pygdsl_error.h"
@@ -51,7 +54,7 @@ static char options_init(struct options *options) {
 }
 #endif
 
-void semantics_instr(char* input, unsigned int in_size, char** output) {
+void semantics_instr(char* input, unsigned int in_size, char** output, unsigned int* out_size) {
     clear_exception();
 #ifdef GDSL_X86
     struct options options;
@@ -93,6 +96,7 @@ void semantics_instr(char* input, unsigned int in_size, char** output) {
     size_t outputSize = strlen(fmt)+1;
     *output = malloc(outputSize);
     strncpy(*output, fmt, outputSize);
+    *out_size = outputSize;
 
     cleanup:
 
@@ -100,4 +104,131 @@ void semantics_instr(char* input, unsigned int in_size, char** output) {
 
     gdsl_destroy(state);
 
+}
+
+void semantics_multi_opt(char* input, unsigned int in_size, char** output, unsigned int* out_size, long preservation) {
+    const rlim_t kStackSize = 64L * 1024L * 1024L; // min stack size = 64 Mb
+    struct rlimit rl;
+    int result;
+
+    result = getrlimit(RLIMIT_STACK, &rl);
+    if(result == 0) {
+        if(rl.rlim_cur < kStackSize) {
+            rl.rlim_cur = kStackSize;
+            result = setrlimit(RLIMIT_STACK, &rl);
+            if(result != 0) {
+                fprintf(stderr, "setrlimit returned result = %d\n", result);
+            }
+        }
+    }
+
+    state_t state = gdsl_init();
+    gdsl_set_code(state, input, in_size, 0);
+
+    if(setjmp(*gdsl_err_tgt(state))) {
+        snprintf(error_message, sizeof(error_message), "failure: %s", gdsl_get_error_message(state));
+        set_exception();
+        goto cleanup;
+    }
+
+    unsigned int size_increment = 100000;
+    size_t reallocated_times = 0;
+    size_t last_offset = 0;
+    size_t out_max_size = 1000;
+
+    *output = malloc(out_max_size);
+    **output = '\0';
+    *out_size = 1;
+
+    while(last_offset < in_size) {
+        obj_t rreil = gdsl_decode_translate_block_optimized(state, gdsl_config_default(state), gdsl_int_max(state),
+                preservation);
+        string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
+
+        while(strlen(fmt) > out_max_size - *out_size) {
+            reallocated_times++;
+            char* tmp = realloc(*output, out_max_size + size_increment);
+            if(tmp == NULL) {
+                snprintf(error_message, sizeof(error_message), "unable to resize output buffer: oldsize=%u,newsize = %u",
+                    *out_size, (*out_size) + size_increment);
+                set_exception();
+                goto cleanup;
+            }
+            else {
+                out_max_size = *out_size + size_increment;
+                *output = tmp;
+            }
+        }
+
+        *out_size = *out_size + strlen(fmt);
+        strncat(*output, fmt, strlen(fmt));
+        gdsl_reset_heap(state);
+        last_offset = gdsl_get_ip_offset(state);
+    }
+
+    cleanup:
+    gdsl_destroy(state);
+}
+
+void semantics_multi(char* input, unsigned int in_size, char** output, unsigned int* out_size) {
+    const rlim_t kStackSize = 64L * 1024L * 1024L; // min stack size = 64 Mb
+    struct rlimit rl;
+    int result;
+
+    result = getrlimit(RLIMIT_STACK, &rl);
+    if(result == 0) {
+        if(rl.rlim_cur < kStackSize) {
+            rl.rlim_cur = kStackSize;
+            result = setrlimit(RLIMIT_STACK, &rl);
+            if(result != 0) {
+                fprintf(stderr, "setrlimit returned result = %d\n", result);
+            }
+        }
+    }
+
+    state_t state = gdsl_init();
+    gdsl_set_code(state, input, in_size, 0);
+
+    if(setjmp(*gdsl_err_tgt(state))) {
+        snprintf(error_message, sizeof(error_message), "failure: %s", gdsl_get_error_message(state));
+        set_exception();
+        goto cleanup;
+    }
+
+    unsigned int size_increment = 100000;
+    size_t reallocated_times = 0;
+    size_t last_offset = 0;
+    size_t out_max_size = 1000;
+
+    *output = malloc(out_max_size);
+    **output = '\0';
+    *out_size = 1;
+
+    while(last_offset < in_size) {
+        obj_t rreil = gdsl_decode_translate_block(state, gdsl_config_default(state), gdsl_int_max(state));
+        string_t fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
+
+        while(strlen(fmt) > out_max_size - *out_size) {
+            reallocated_times++;
+            char* tmp = realloc(*output, out_max_size + size_increment);
+            if(tmp == NULL) {
+                snprintf(error_message, sizeof(error_message), "unable to resize output buffer: oldsize=%u,newsize = %u",
+                    *out_size, (*out_size) + size_increment);
+                set_exception();
+                goto cleanup;
+            }
+            else {
+                out_max_size = *out_size + size_increment;
+                *output = tmp;
+            }
+        }
+
+        *out_size = *out_size + strlen(fmt);
+        strncat(*output, fmt, strlen(fmt));
+        gdsl_reset_heap(state);
+        last_offset = gdsl_get_ip_offset(state);
+    }
+
+    cleanup:
+    gdsl_destroy(state);
 }

@@ -11,7 +11,9 @@ pygdsl_extension = Extension(
                         sources = ['pygdsl.i', 'pygdsl_impl.c'],
                         include_dirs = ['../','./'],
                         library_dirs = ['/usr/local/lib/'],
-                        libraries = ['gdsl-x86-rreil']
+                        libraries = ['gdsl-x86-rreil'],
+                        define_macros = [('HAVE_CONFIG_H','1'), ('GDSL_X86','1')],
+                        extra_compile_args = ['-std=c11']
                         )
 
 setup(name = 'pygdsl',

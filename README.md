@@ -24,11 +24,14 @@ This is a simplified Python wrapper for [GDSL](http://code.google.com/p/gdsl-too
 Extract the source folder within the `gdsl-toolkit` repository folder.
 
 If everything works, just running `make` in the `pygdsl` folder will build the library wrappers. You
-can test with `make test` to run the example below.
+can test with `make test` to run all the tests (you might want to pipe that output to a file or pager,
+it's much too fast to read).
+
+To install on the system globally, run `make install` or `python setup.py install` as root.
 
 #Usage
 
-At present, you must set your Python path to the folder where the library is. For example:
+If you are not installing system-wide, you must set the Python path appropriately. Example:
 
     export PYTHONPATH=$PYTHONPATH:/home/user/pygdsl
 
