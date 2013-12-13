@@ -5,6 +5,7 @@ This is a simplified Python wrapper for [GDSL](http://code.google.com/p/gdsl-too
 # Prerequisites
 
 * Linux. Only Ubuntu-like systems are tested right now.
+* A recent version of GCC that supports the C11 standard (`-std=c11`). The oldest I tried was 4.7.3.
 * [GDSL](http://code.google.com/p/gdsl-toolkit/). Clone the repository, read the installation instructions for
   prerequisites (Standard ML, libelf, and whatever else it says), then follow this process to install:
 
