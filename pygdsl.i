@@ -22,5 +22,5 @@
 }
 
 %cstring_output_allocate(char** output, free(*$1));
-%apply (char *STRING, int LENGTH) { (char *input, int in_size) };
-void semantics_instr(char* input, int in_size, char** output);
+%apply (char *STRING, int LENGTH) { (char *input, unsigned int in_size) };
+void semantics_instr(char* input, unsigned int in_size, char** output);
