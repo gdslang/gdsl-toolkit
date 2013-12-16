@@ -1,8 +1,6 @@
 all: _pygdsl.so
 
-SOURCES=$(wildcard *.i *.c *.h)
-
-_pygdsl.so: $(SOURCES)
+_pygdsl.so: pygdsl_impl.c pygdsl_error.h pygdsl_funcs.h pygdsl.i
 	python setup.py build_ext --inplace
 test: _pygdsl.so
 	export PYTHONPATH=.

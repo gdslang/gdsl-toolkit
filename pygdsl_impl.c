@@ -96,8 +96,7 @@ void semantics_instr(char* input, unsigned int in_size, char** output, unsigned 
     size_t outputSize = strlen(fmt)+1;
     *output = malloc(outputSize);
     strncpy(*output, fmt, outputSize);
-    *out_size = outputSize;
-
+    *out_size = outputSize - 1; // Python expects size without null...
     cleanup:
 
     gdsl_reset_heap(state);
@@ -167,6 +166,7 @@ void semantics_multi_opt(char* input, unsigned int in_size, char** output, unsig
     }
 
     cleanup:
+    *out_size = *out_size - 1;
     gdsl_destroy(state);
 }
 
@@ -230,5 +230,6 @@ void semantics_multi(char* input, unsigned int in_size, char** output, unsigned 
     }
 
     cleanup:
+    *out_size = *out_size - 1;
     gdsl_destroy(state);
 }
