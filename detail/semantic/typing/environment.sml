@@ -539,6 +539,7 @@ end = struct
 
    fun toStringSI ((scs, state),si) = 
       let
+         val (ttStr, si) = TypeTable.toStringSI (fn _ => true, Scope.getTypeTable state, si)
          fun showCons (s, (str, si)) =
             let
                val (bStr, si) = Scope.toString (s, si)
@@ -551,10 +552,9 @@ end = struct
          fun showCtxt [] = "top level"
            | showCtxt [f] = ST.getString(!SymbolTables.varTable, f)
            | showCtxt (f::fs) = showCtxt [f] ^ ";" ^ showCtxt fs
-         val (ttStr, si) = TypeTable.toStringSI (fn _ => true, Scope.getTypeTable state, si)
       in
          ("environment at " ^ showCtxt (Scope.getCtxt state) ^ "\n" ^
-          envConsStr ^ BD.showBFun (Scope.getFlow state) ^ "\n" ^
+          (*envConsStr ^ BD.showBFun (Scope.getFlow state) ^ "\n" ^*)
           ttStr ^ "\n", si)
       end
 

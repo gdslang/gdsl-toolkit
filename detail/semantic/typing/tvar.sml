@@ -8,6 +8,8 @@ structure TVar : sig
    val compare : tvar * tvar -> order
 
    val hash : tvar -> word
+   val toIdx : tvar -> int
+   val fromIdx : int -> tvar
 
    (*displaying type variables*)
    type varmap
@@ -32,7 +34,7 @@ structure TVar : sig
 
 end = struct
 
-   val explicitPrint : bool = false
+   val explicitPrint : bool = true
    
    datatype tvar = TVAR of int
 
@@ -40,6 +42,8 @@ end = struct
    fun compare (TVAR v1, TVAR v2) = Int.compare (v1,v2)
 
    fun hash (TVAR v) = Word.fromInt v
+   fun toIdx (TVAR v) = v
+   fun fromIdx v = (TVAR v)
 
    val tvarGenerator = ref 0
 
@@ -78,7 +82,7 @@ end = struct
    fun fromList l = IntSet.fromList (List.map (fn (TVAR v) => v) l)
    fun listItems vs = List.map (fn v => (TVAR v)) (IntSet.listItems vs)
    fun add (TVAR v, l) = IntSet.add' (v, l)
-   fun del (TVAR v, l) = IntSet.delete (l, v)
+   fun del (TVAR v, l) = if IntSet.member (l,v) then IntSet.delete (l, v) else l
    val union = IntSet.union
    val intersection = IntSet.intersection
    val difference = IntSet.difference
