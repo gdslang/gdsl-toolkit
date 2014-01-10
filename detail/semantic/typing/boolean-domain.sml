@@ -46,6 +46,8 @@ structure BooleanDomain : sig
 
    val projectOnto : bvarset * bfun -> bfun
 
+   val projectOut : bvarset * bfun -> bfun
+
    val expand : bvar list * (bool * bvar) list * bfun -> bfun
    
    val meet : bfun * bfun -> bfun
@@ -254,6 +256,13 @@ end = struct
          (US.filter (fn v => IS.member (keep, Int.abs v)) us, cs)
       end
 
+   fun projectOut (bad, (us, cs)) =
+      let
+         val (us,cs) =  resolve (IS.listItems bad, (us, cs))
+      in
+         (US.filter (fn v => not (IS.member (bad, Int.abs v))) us, cs)
+      end
+
    structure HT = IntHashTable
    exception Bug
    
@@ -277,14 +286,14 @@ end = struct
                   | (NONE, SOME v2) => (v1,v2) :: set
                   | (SOME v1, SOME v2) => (v1,v2) :: set
                ) [] cs
-         (*val (_,l1Str) = List.foldl (fn (BVAR v,(sep,str)) =>
+         val (_,l1Str) = List.foldl (fn (BVAR v,(sep,str)) =>
                         (",",str ^ sep ^ Int.toString v)) ("","") l1
-         val (_,l2Str) = List.foldl (fn ((_,BVAR v),(sep,str)) =>
-                        (",",str ^ sep ^ Int.toString v)) ("","") l2
+         val (_,l2Str) = List.foldl (fn ((c,BVAR v),(sep,str)) =>
+                        (",",str ^ sep ^ (if c then "!" else "") ^ Int.toString v)) ("","") l2
          val _ = TextIO.print ("expanding " ^ l1Str ^ " to " ^ l2Str ^
                      " by adding " ^
                      showBFun (US.fromList newUnits, CS.fromList newClauses)
-                     ^ "\n")*)
+                     ^ "\n")
       in
          List.foldl addClause (addUnits (newUnits, (us, cs))) newClauses
          handle Unsatisfiable set =>
