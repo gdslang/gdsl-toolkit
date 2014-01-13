@@ -283,8 +283,10 @@ end = struct
     | TT_CONST of int
       (* an algebraic data type with a list of type arguments *)
     | TT_ALG of (TypeInfo.symid * index list)
-      (* a record *)
-    | TT_RECORD of (index * (FieldInfo.symid * index) list)
+      (* a record, the variable points to a set of fields *)
+    | TT_RECORD of index
+      (* a record field *)
+    | TT_FIELD of (FieldInfo.symid * index * index)
       (* the state monad: return value, input state, output state *)
     | TT_MONAD of index * index * index
  
@@ -302,10 +304,12 @@ end = struct
      | typeterm_hash (TT_VEC v) = hash_list [Word.fromInt 98028,TVar.hash v]
      | typeterm_hash (TT_CONST i) = Word.fromInt 9823*Word.fromInt i+Word.fromInt 2834
      | typeterm_hash (TT_ALG (s,is)) = hash_list (sym_hash s :: map TVar.hash is)
-     | typeterm_hash (TT_RECORD (i,fs)) = Word.fromInt 78342+
-      hash_list (TVar.hash i::map (sym_hash o #1) fs @ map (TVar.hash o #2) fs)
+     | typeterm_hash (TT_RECORD i) = Word.fromInt 78342+TVar.hash i
+     | typeterm_hash (TT_FIELD (f,i1,i2)) = sym_hash f + TVar.hash i1 + TVar.hash i2
      | typeterm_hash (TT_MONAD (i1,i2,i3)) = Word.fromInt 5345+hash_list [TVar.hash i1,TVar.hash i2, TVar.hash i3]
 
+   (* structural equality, records with the same set of fields are different
+   under this order *)
    fun typeterm_eq (TT_FUN (is1,i1),TT_FUN (is2,i2)) =
       ListPair.allEq TVar.eq (is1,is2) andalso TVar.eq (i1,i2)
      | typeterm_eq (TT_SYN (s1,i1),TT_SYN (s2,i2)) =
@@ -318,11 +322,9 @@ end = struct
      | typeterm_eq (TT_CONST c1,TT_CONST c2) = c1=c2
      | typeterm_eq (TT_ALG (s1,is1), TT_ALG (s2,is2)) =
       SymbolTable.eq_symid (s1,s2) andalso ListPair.allEq TVar.eq (is1,is2)
-     | typeterm_eq (TT_RECORD (i1,fs1), TT_RECORD (i2,fs2)) =
-      TVar.eq (i1,i2) andalso
-      ListPair.allEq (fn ((f1,i1),(f2,i2)) =>
-         SymbolTable.eq_symid (f1,f2) andalso TVar.eq (i1,i2)
-      ) (fs1,fs2)
+     | typeterm_eq (TT_RECORD i1, TT_RECORD i2) = TVar.eq (i1,i2)
+     | typeterm_eq (TT_FIELD (f1,i1,j1), TT_FIELD (f2,i2,j2)) =
+      SymbolTable.eq_symid (f1,f2) andalso TVar.eq (i1,i2) andalso TVar.eq (j1,j2)
      | typeterm_eq (TT_MONAD (i1,i2,i3),TT_MONAD (j1,j2,j3)) =
       TVar.eq (i1,j1) andalso TVar.eq (i2,j2) andalso TVar.eq (i3,j3)
      | typeterm_eq _ = false
@@ -351,8 +353,9 @@ end = struct
             conStr ^ 
             (if List.null l then "" else ("[" ^ sep "," (List.map showVar l) ^ "]"))
          end
-        | sT (TT_RECORD (v,fs)) =
-           "{" ^ sep ", " (List.map sTF fs @ [showVar v])  ^ "}"
+        | sT (TT_RECORD i) = "{" ^ showVar i ^ "}"
+        | sT (TT_FIELD (f,i,j)) = SymbolTable.getString(!SymbolTables.fieldTable, f) ^
+           ": " ^ showVar i ^ ", " ^ showVar j  
         | sT (TT_MONAD (r,f,t)) = "S " ^ showVar r ^
            " <" ^ showVar f ^ " => " ^ showVar t ^ ">"
        and showVar var =
@@ -361,9 +364,6 @@ end = struct
          in
             (siTab := newSiTab; str)
          end
-      and sTF (fid, fty) =
-            SymbolTable.getString(!SymbolTables.fieldTable, fid) ^
-            ": " ^ showVar fty
    in
       (sT ty, !siTab) 
    end
@@ -377,7 +377,8 @@ end = struct
       | getVars (TT_VEC t) = [t]
       | getVars (TT_CONST c) = []
       | getVars (TT_ALG (ty, l)) = l
-      | getVars (TT_RECORD (v,fs)) = v :: List.map #2 fs
+      | getVars (TT_RECORD i) = [i]
+      | getVars (TT_FIELD (f,i,j)) = [i,j]
       | getVars (TT_MONAD (r,f,t)) = [r,f,t]
 
    datatype typeinfo
@@ -499,6 +500,7 @@ end = struct
                   in
                     printFixpoint (str ^ out, vars, si, done)
                   end
+               | _ => raise IndexError
               ) handle IndexError => raise IndexError
       in
          printFixpoint ("", todo, si, done)
@@ -549,11 +551,12 @@ end = struct
          DA.foldri getVar [] tt
       end
 
-   fun newType (ty,table : table) =
+   fun allocType (t,table : table) =
       let
-         val hc = #hashCons table
          val tt = #typeTable table
-         fun allocType t = case HT.find hc t of
+         val hc = #hashCons table
+      in
+         case HT.find hc t of
             SOME idx => idx
           | NONE =>
             let
@@ -563,6 +566,12 @@ end = struct
             in
                idx
             end
+      end
+
+   fun newType (ty,table : table) =
+      let
+         val tt = #typeTable table
+         val allocType = fn t => allocType (t,table)
          fun conv (FUN (ts, t)) = allocType (TT_FUN (List.map conv ts, conv t))
            | conv (SYN (syn, t)) = allocType (TT_SYN (syn, conv t))
            | conv (ZENO) = allocType TT_ZENO
@@ -572,13 +581,18 @@ end = struct
            | conv (VEC t) = allocType (TT_VEC (conv t))
            | conv (CONST c) = allocType (TT_CONST c)
            | conv (ALG (sym, l)) = allocType (TT_ALG (sym, List.map conv l))
-           | conv (RECORD (v,_,l)) = allocType (TT_RECORD (v,List.map convF l))
+           | conv (RECORD (v,_,l)) = allocType (TT_RECORD (convF (v,l)))
            | conv (MONAD (r,f,t)) = allocType (TT_MONAD (conv r, conv f, conv t))
            | conv (VAR (v,_)) = (case ttGet (tt, v) of
                  (LEAF _) => v
                | _ => raise IndexError
              )
-          and convF (RField {name = n, fty = t, exists = b}) = (n,conv t)
+          and convF (v, RField {name = n, fty = t, exists = b} :: l) =
+               allocType (TT_FIELD (n,conv t, convF (v,l)))
+            | convF (v, []) = (case ttGet (tt, v) of
+                 (LEAF _) => v
+               | _ => raise IndexError
+             )
       in
          conv ty
       end
@@ -639,7 +653,9 @@ end = struct
            | fromTerm (TT_VEC index) =  fromType index
            | fromTerm (TT_CONST _) = []
            | fromTerm (TT_ALG (_, is)) = downFrom (length is) (List.map fromType is)
-           (*| fromTerm (TT_RECORD _) =*)
+           | fromTerm (TT_RECORD _) = fromType index
+           | fromTerm (TT_FIELD (f,i,j)) = (Path.emptySteps, Path.mkFieldLeaf f) ::
+              List.map (Path.prependFieldStep f) (fromType i) @ fromType j
            | fromTerm (TT_MONAD (res,inp,out)) =
             List.map (Path.prependIntStep 0) (fromType res) @
             List.map (Path.prependIntStep (~1)) (fromType inp) @
@@ -738,66 +754,35 @@ end = struct
            if c1=c2 then [] else raise S.UnificationFailure (S.Clash,
             "incompatible bit vectors sizes (" ^ Int.toString c1 ^ " and " ^
             Int.toString c2 ^ ")")
-        | genPairs (v1,v2,TT_RECORD (row1,l1), TT_RECORD (row2,l2)) =
+        | genPairs (v1,v2,TT_RECORD row1, TT_RECORD row2) =
          let
-         (*   fun applySubsts (v, b, fs) = (case findSubstForVar (v) of
-                 NONE => (v,b,fs)
-               | SOME (WITH_FIELD (fs',v',b')) => (v', b', List.foldl insertField fs fs')
-               | _ => raise SubstitutionBug
-            )
-            val (v1,b1,l1) = applySubsts (v1,b1,l1)
-            val (v2,b2,l2) = applySubsts (v2,b2,l2)
-
-            fun unify (v1, v2, [], []) =
-               addSubst (v2, WITH_FIELD ([], v1, b1)) s
-              | unify (v1, v2, (f1 as RField e1) :: fs1,
-                       (f2 as RField e2) :: fs2) =
-               (case compare_rfield (f1,f2) of
-                  EQUAL =>
-                  let
-                     val s = genPairs (#fty e1, #fty e2)
-                   in
-                     unify (v1, v2, fs1, fs2)
-                  end
-                | LESS =>
-                  let
-                     val newVar = freshTVar ()
-                     val newBVar = BD.freshBVar ()
-                     val (f1,ei) = applySubstsToRField s (f1,emptyExpandInfo)
-                     val s = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) s
-                  in
-                     unify (v1, newVar, fs1, f2 :: fs2)
-                  end
-                | GREATER =>
-                  let
-                     val newVar = freshTVar ()
-                     val newBVar = BD.freshBVar ()
-                     val (f2,ei) = applySubstsToRField s (f2,emptyExpandInfo)
-                     val s = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) s
-                  in
-                     unify (newVar, v2, f1 :: fs1, fs2)
-                  end
-               )
-              | unify (v1, v2, f1 :: fs1, []) =
-               let
-                  val newVar = freshTVar ()
-                  val newBVar = BD.freshBVar ()
-                  val (f1,ei) = applySubstsToRField s (f1,emptyExpandInfo)
-                  val s = addSubst (v2, WITH_FIELD ([f1], newVar, newBVar)) s
-               in
-                  unify (v1, newVar, fs1, [])
-               end
-              | unify (v1, v2, [], f2 :: fs2) =
-               let
-                  val newVar = freshTVar ()
-                  val newBVar = BD.freshBVar ()
-                  val (f2,ei) = applySubstsToRField s (f2,emptyExpandInfo)
-                  val s = addSubst (v1, WITH_FIELD ([f2], newVar, newBVar)) s
-               in
-                  unify (newVar, v2, [], fs2)
-               end*)
+            fun gatherFields (fs,i) = case ttGet (tt,i) of
+               TERM (TT_FIELD (f,i,j)) => gatherFields (SymMap.insert (fs,f,i), j)
+             | LEAF symSet => (fs,i,symSet)
+             | _ => raise IndexError
+            val (fs1,row1,symSet1) = gatherFields (SymMap.empty, row1)
+            val (fs2,row2,symSet2) = gatherFields (SymMap.empty, row2)
+            val newIn1 = ref ([] : (FieldInfo.symid * index) list)
+            val newIn2 = ref ([] : (FieldInfo.symid * index) list)
+            val rPairs = ref ([] : (index * index) list)
+            fun addRef (f, SOME fIdx1, SOME fIdx2) =
+               (rPairs := (fIdx1,fIdx2) :: !rPairs; NONE)
+              | addRef (f, SOME fIdx1, NONE) =
+               (newIn2 := (f, fIdx1) :: !newIn2; NONE)
+              | addRef (f, NONE, SOME fIdx2) =
+               (newIn1 := (f, fIdx2) :: !newIn1; NONE)
+              | addRef _ = raise IndexError
+            val _ = SymMap.mergeWithi addRef (fs1,fs2)
+            fun addField ((f,fIdx),row) = allocType (TT_FIELD (f,fIdx,row), table)
+            val newRow = TVar.freshTVar ()
+            val newFields1 = foldl addField newRow (!newIn1)
+            val newFields2 = foldl addField newRow (!newIn2)
+            fun getField (TERM t) = t
+              | getField _ = raise IndexError
+            val pairs1 = substVar (row1,symSet1,newFields2,getField (ttGet(tt,newFields2)))
+            val pairs2 = substVar (row2,symSet2,newFields1,getField (ttGet(tt,newFields1)))
          in
-            [] (*unify (v1,v2,l1,l2,s)*)
+            pairs1 @ pairs2 @ !rPairs
          end
         | genPairs (v1,v2,TT_MONAD (r1,f1,t1), TT_MONAD (r2,f2,t2)) =
             [(r1, r2), (f1, f2), (t1, t2)]
@@ -814,23 +799,26 @@ end = struct
          | EQAL => ListPair.zipEq (l1,l2)
          end
         | genPairs (v1,v2,t1,t2) =
-         let fun descr (TT_FUN _) = "a function type"
-               | descr (TT_ZENO) = "int"
-               | descr (TT_FLOAT) = "float"
-               | descr (TT_STRING) = "string"
-               | descr (TT_UNIT) = "()"
-               | descr (TT_VEC t) = (case ttGet (tt,t) of
-                  TERM (TT_CONST c) => "a vector of " ^ Int.toString c ^ " bits"
-                | _ => "a bit vector"
-               )
-               | descr (TT_ALG (ty, _)) = "type " ^
+         let
+            fun descrF (TERM (TT_FIELD (f,i,j))) =
+                  SymbolTable.getString(!SymbolTables.fieldTable, f) ^
+                  ", " ^ descrF (ttGet (tt,j))
+              | descrF (LEAF _) = "..." 
+              | descrF _ = "something that shouldn't be here"
+            fun descr (TT_FUN _) = "a function type"
+              | descr (TT_ZENO) = "int"
+              | descr (TT_FLOAT) = "float"
+              | descr (TT_STRING) = "string"
+              | descr (TT_UNIT) = "()"
+              | descr (TT_VEC t) = (case ttGet (tt,t) of
+                 TERM (TT_CONST c) => "a vector of " ^ Int.toString c ^ " bits"
+               | _ => "a bit vector"
+              )
+              | descr (TT_ALG (ty, _)) = "type " ^
                   SymbolTable.getString(!SymbolTables.typeTable, ty)
-               | descr (TT_RECORD (_,fs)) = "a record {" ^
-                  List.foldl (fn ((n,_),str) =>
-                     SymbolTable.getString(!SymbolTables.fieldTable, n) ^
-                     ", " ^ str) "..." fs ^ "}"
-               | descr (TT_MONAD _) = "an action"
-               | descr _ = "something that shouldn't be here"
+              | descr (TT_RECORD i) = "a record {" ^ descrF (ttGet (tt,i)) ^ "}"
+              | descr (TT_MONAD _) = "an action"
+              | descr _ = "something that shouldn't be here"
          in
             raise S.UnificationFailure (S.Clash, "cannot match " ^ descr t1 ^
                                         " against " ^ descr t2)
@@ -923,6 +911,14 @@ end = struct
          val (st,yVar) = SymbolTable.fresh (st, Atom.atom "y")
          val (st,zVar) = SymbolTable.fresh (st, Atom.atom "z")
          val _ = SymbolTables.varTable := st
+         val ft = !SymbolTables.fieldTable
+         val (ft,foo) = SymbolTable.fresh (ft, Atom.atom "foo")
+         val (ft,bar) = SymbolTable.fresh (ft, Atom.atom "bar")
+         val (ft,baz) = SymbolTable.fresh (ft, Atom.atom "baz")
+         val (ft,bro) = SymbolTable.fresh (ft, Atom.atom "bro")
+         val (ft,bru) = SymbolTable.fresh (ft, Atom.atom "bru")
+         val (ft,ban) = SymbolTable.fresh (ft, Atom.atom "ban")
+         val _ = SymbolTables.fieldTable := ft
          val t = TVar.freshTVar ()
          val s = TVar.freshTVar ()
          val u = TVar.freshTVar ()
@@ -930,9 +926,22 @@ end = struct
          val w = TVar.freshTVar ()
          fun wBV tVar = VAR (tVar, BD.freshBVar ())
          fun getTVar (VAR (tv,bv)) = tv
+         val rTy1 = Types.RECORD (TVar.freshTVar (),BD.freshBVar (),[
+               Types.RField { name = foo, fty = Types.ZENO, exists = BD.freshBVar () },
+               Types.RField { name = bar, fty = wBV s, exists = BD.freshBVar () },
+               Types.RField { name = ban, fty = wBV t, exists = BD.freshBVar () }
+            ])
+         val rTy2 = Types.RECORD (TVar.freshTVar (),BD.freshBVar (),[
+               Types.RField { name = bro, fty = Types.ZENO, exists = BD.freshBVar () },
+               Types.RField { name = bru, fty = wBV s, exists = BD.freshBVar () },
+               Types.RField { name = bar, fty = wBV w, exists = BD.freshBVar () },
+               Types.RField { name = baz, fty = wBV t, exists = BD.freshBVar () }
+            ])
+         val rIdx1 = newType (rTy1, table)
+         val rIdx2 = newType (rTy2, table)
          val idxX = addSymbol (xVar,FUN ([ZENO,wBV t],VEC (wBV u)),table)
          val idxY = addSymbol (yVar,FUN ([wBV s,wBV t],wBV t),table)
-         val idxZ = addSymbol (zVar,FUN ([wBV t,wBV  v],wBV w),table)
+         val idxZ = addSymbol (zVar,FUN ([wBV t,wBV  v],rTy1),table)
          val idx = newType (Types.VEC (Types.VAR (TVar.freshTVar (), BooleanDomain.freshBVar ())), table)
          val x = TVar.freshTVar ()
          val y = TVar.freshTVar ()
@@ -950,7 +959,7 @@ end = struct
          val (tSetStr, si) = TVar.setToString (tVars,si)
          val bSetStr = BD.setToString bVars
          val _ = TextIO.print ("no more references to " ^ tSetStr ^ " and " ^ bSetStr ^ "\n")*)
-         val _ = unify (t,fIdx,table)
+         val _ = unify (rIdx1,rIdx2,table)
 
          (*val (tStr,si,varset) = showTableSI (table, ttGetVars (#typeTable table), si, TVar.empty);*)
          val (tStr,si) = dumpTableSI (table, si);
