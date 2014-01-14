@@ -22,6 +22,8 @@ structure SizeConstraint : sig
                size_constraint_set
    val rename : TVar.tvar * TVar.tvar * size_constraint_set ->
                 size_constraint_set
+   val expand : (TVar.tvar, TVar.tvar) HashTable.hash_table * size_constraint_set ->
+                size_constraint_set
    val getVarset : size_constraint_set -> TVar.set
    val toStringSI : size_constraint_set * TVar.set option * TVar.varmap ->
                     string * TVar.varmap
@@ -253,5 +255,27 @@ end = struct
                (fn {terms=ts,const} => not (List.null ts)) renamed
       in
          merge (renamed, retained)
+      end
+   
+   structure HT = HashTable
+
+   fun expand (ht,scs) =
+      let
+         (*val (tVar1, si) = TVar.varToString (v1, TVar.emptyShowInfo)
+         val (tVar2, si) = TVar.varToString (v2, si)
+         val (sStr, si) = toStringSI (scs, NONE, si)
+         val _ = TextIO.print ("renaming " ^ tVar1 ^ " to " ^ tVar2 ^ " in " ^ sStr ^ "\n")*)
+         fun hasVs {terms = ts,const} =
+            List.exists (fn (_,v) => HT.inDomain ht v) ts
+         val withVar = List.filter hasVs scs
+         fun renameVars (sc as {terms = ts,const}) =
+            List.foldl (fn (v,sc) => case lookupVarSC (v,sc) of f =>
+               addTermToSC (f,HT.lookup ht v, addTermToSC (~f,v, sc)))
+               sc (List.filter (HT.inDomain ht) (List.map #2 ts))
+         val renamed = List.map renameVars withVar
+         val renamed = List.filter
+               (fn {terms=ts,const} => not (List.null ts)) renamed
+      in
+         merge (renamed, scs)
       end
 end

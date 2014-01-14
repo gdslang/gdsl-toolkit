@@ -15,7 +15,10 @@ structure Path : sig
    val getVarLeaf : leaf -> TVar.tvar option
    
    type steps
+   val showSteps : steps -> string
    val emptySteps : steps
+   val appendIntStep : int -> steps -> steps
+   val appendFieldStep : FieldInfo.symid -> steps -> steps
    val prependIntStep : int -> (steps * leaf) -> (steps * leaf)
    val prependFieldStep : FieldInfo.symid -> (steps * leaf) -> (steps * leaf)
    val createFlowpoints : (steps * leaf) list -> flowpoints
@@ -26,7 +29,8 @@ structure Path : sig
    (* Replace the given type variable by the set of steps and new leaves. *)
    val insertSteps : flowpoints * TVar.tvar * (steps * leaf) list ->
          flowpoints * (BooleanDomain.bvar * BooleanDomain.bvar list) list
-
+   val getFlag : flowpoints * (steps * leaf) -> BooleanDomain.bvar
+   
    val toStringSI : (flowpoints * TVar.varmap) -> (string * TVar.varmap)
 
 end = struct
@@ -185,6 +189,8 @@ end = struct
       end
 
    val emptySteps = []
+   fun appendIntStep idx steps = steps @ [StepIndex idx]
+   fun appendFieldStep sym steps = steps @ [StepField sym]
    fun prependIntStep idx (steps, leaf) = (StepIndex idx :: steps, leaf)
    fun prependFieldStep sym (steps, leaf) = (StepField sym :: steps, leaf)
 
@@ -245,6 +251,10 @@ end = struct
          (List.foldl addSteps (tVarMap,fieldMap) stepsBVar, !expandInfo)     
       end
 
+   fun getFlag ((varM, fieldM), (steps, LeafVar v)) =
+      StepsMap.lookup (TVarMap.lookup(varM,v), steps)
+     | getFlag ((varM, fieldM), (steps, LeafField f)) =
+      StepsMap.lookup (SymMap.lookup(fieldM,f), steps)
 
 end
 
@@ -262,9 +272,19 @@ structure TypeTable : sig
    val showTableSI : table * TVar.tvar list * TVar.varmap * TVar.set -> string * TVar.varmap * TVar.set
    
    val newType : Types.texp * table -> TVar.tvar
-
-   val addSymbol : SymbolTable.symid * Types.texp * table -> TVar.tvar
+   
+   (* Add the given symbol as having the given type. The other domains remain
+   unaltered. *)
+   val addSymbol : SymbolTable.symid * Types.texp * table -> TVar.tvar              
+   
+   (* Remove a symbol and all information from other domains regarding this symbol. *)
    val delSymbol : SymbolTable.symid * table -> TVar.set
+
+   (* Remove the given symbol from the map and returns its type expression.
+      The other domains remain unaltered so that (parts of) the type
+      can be re-added using addSymbol. *)
+   val getSymbol : SymbolTable.symid * table -> Types.texp
+   
    val equateSymbols : SymbolTable.symid * SymbolTable.symid * table -> unit
    val equateSymbolsFlow : SymbolTable.symid * SymbolTable.symid * table -> unit
    val instantiateSymbol : SymbolTable.symid * SymSet.set * SymbolTable.symid * table -> unit
@@ -666,6 +686,65 @@ end = struct
          !unusedTVars
       end
 
+   fun getSymbol (sym,table : table) =
+      let
+         val tt = #typeTable table
+         val st = #symTable table
+         val { flow = fp, info = idx } = HT.remove st sym
+         fun downFrom (n,s,[]) = []
+           | downFrom (n,s,v::vs) = gT (Path.appendIntStep n s,v) :: downFrom (n-1,s,vs)
+         and gT (s,idx) = case ttGet (tt,idx) of
+             TERM (TT_FUN (fs1, f2)) => FUN (downFrom (~1,s,fs1), gT (Path.appendIntStep 0 s,f2) )
+           | TERM (TT_SYN (syn, t)) => SYN (syn, gT (s,t))
+           | TERM (TT_ZENO) => ZENO
+           | TERM (TT_FLOAT) => FLOAT
+           | TERM (TT_STRING) => STRING
+           | TERM (TT_UNIT) => UNIT
+           | TERM (TT_VEC t) => VEC (gT (s,t))
+           | TERM (TT_CONST c) => CONST c
+           | TERM (TT_ALG (sym, vs)) => ALG (sym, downFrom (length vs,s,vs))
+           | TERM (TT_RECORD i) => RECORD (gR (s,i))
+           | TERM (TT_FIELD (f,i,j)) => raise IndexError
+           | TERM (TT_MONAD (res,inp,out)) => MONAD (
+               gT (Path.appendIntStep 0 s,res),
+               gT (Path.appendIntStep (~1) s,inp),
+               gT (Path.appendIntStep 1 s,out))
+           | LEAF symSet =>
+               let
+                  val symSet = if SymSet.member (symSet,sym)
+                     then SymSet.delete (symSet,sym) else symSet
+                  val _ = ttSet (tt,idx,LEAF symSet)
+                  val idx' = find tt idx
+                  val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx'))
+               in
+                  VAR (idx,bVar)
+               end
+           | _ => raise IndexError
+         and gR (s,idx) = case ttGet (tt,idx) of
+             TERM (TT_FIELD (fSym,i,j)) =>
+               let
+                  val (rowVar,bVar,fs) = gR (s,j)
+                  val fType = gT (Path.appendFieldStep fSym s,i)
+                  val fBVar = Path.getFlag (fp,(s,Path.mkFieldLeaf fSym))
+                  val f = RField { name = fSym, fty = fType, exists = fBVar }
+               in
+                  (rowVar,bVar,f :: fs)
+               end
+           | LEAF symSet =>
+               let
+                  val symSet = if SymSet.member (symSet,sym)
+                     then SymSet.delete (symSet,sym) else symSet
+                  val _ = ttSet (tt,idx,LEAF symSet)
+                  val idx = find tt idx
+                  val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
+               in
+                  (idx,bVar,[])
+               end
+           | _ => raise IndexError
+      in
+         gT (Path.emptySteps, idx)
+      end
+
    fun termToSteps (index,table : table) =
       let
          val tt = #typeTable table
@@ -980,9 +1059,25 @@ end = struct
            | dupTerm (TT_RECORD i) = TT_RECORD (dup i)
            | dupTerm (TT_FIELD (f,i,j)) = TT_FIELD (f,dup i, dup j)
            | dupTerm (TT_MONAD (r,f,t)) = TT_MONAD (dup r, dup f, dup t)
-         val idx = dup idx
-         val fp = Path.createFlowpoints (termToSteps (idx, table))
-         val _ = HT.insert st (newSym,{ flow = fp, info = idx })
+         val newIdx = dup idx
+         val newFp = Path.createFlowpoints (termToSteps (newIdx, table))
+         val _ = HT.insert st (newSym,{ flow = newFp, info = newIdx })
+         (* perform expansion on the Boolean flags of oldSym,args to
+         newSym,args' where the flags of args' are fresh variables that need
+         to be discarded after expansion *)
+         val oldSymFlags = List.map #2 (Path.flagsOfFlowpoints fp)
+         val newSymFlags = List.map (fn (_,f) => (false,f)) (Path.flagsOfFlowpoints newFp)
+         val oldArgsFlags = List.map #2 (List.concat (List.map (
+               Path.flagsOfFlowpoints o #flow o HT.lookup st
+            ) (SymSet.listItems args)))
+         val newArgsFlags =List. map (fn f => (false, BD.freshBVar ())) oldArgsFlags
+         val bdRef = #boolDom table
+         val _ = bdRef := BD.expand (oldSymFlags @ oldArgsFlags, newSymFlags @ newArgsFlags, !bdRef)
+         val staleBVars = List.foldl BD.addToSet BD.emptySet (List.map #2 newArgsFlags)
+         val _ = bdRef := BD.projectOut (staleBVars, !bdRef)
+         
+         val scRef = #sizeDom table
+         val _ = scRef := SC.expand (subst,!scRef)
       in
          ()
       end
@@ -1011,6 +1106,7 @@ end = struct
          val (st,xVar) = SymbolTable.fresh (st, Atom.atom "x")
          val (st,yVar) = SymbolTable.fresh (st, Atom.atom "y")
          val (st,zVar) = SymbolTable.fresh (st, Atom.atom "z")
+         val (st,yNewVar) = SymbolTable.fresh (st, Atom.atom "yNew")
          val _ = SymbolTables.varTable := st
          val ft = !SymbolTables.fieldTable
          val (ft,foo) = SymbolTable.fresh (ft, Atom.atom "foo")
@@ -1042,8 +1138,8 @@ end = struct
             ])
          val rIdx1 = newType (rTy1 (), table)
          val rIdx2 = newType (rTy2 (), table)
-         val idxX = addSymbol (xVar,FUN ([ZENO,wBV t],VEC (wBV u)),table)
-         val idxY = addSymbol (yVar,FUN ([wBV s,wBV t],wBV t),table)
+         val idxX = addSymbol (xVar,FUN ([ZENO,wBV t],VEC (wBV s)),table)
+         val idxY = addSymbol (yVar,FUN ([wBV u,wBV t],wBV t),table)
          val idxZ = addSymbol (zVar,FUN ([rTy1 (), wBV t,wBV  v],rTy1 ()),table)
          val idx = newType (Types.VEC (Types.VAR (TVar.freshTVar (), BooleanDomain.freshBVar ())), table)
 
@@ -1058,8 +1154,12 @@ end = struct
          val (tSetStr, si) = TVar.setToString (tVars,si)
          val bSetStr = BD.setToString bVars
          val _ = TextIO.print ("no more references to " ^ tSetStr ^ " and " ^ bSetStr ^ "\n")*)
-         val _ = unify (rIdx1,rIdx2,table)
-
+         (*val _ = unify (rIdx1,rIdx2,table)*)
+         (*val _ = instantiateSymbol (yVar, SymSet.singleton (xVar), yNewVar, table)*)
+         val ty = getSymbol (zVar,table)
+         val (tyStr,si) = showTypeSI (ty,si)
+         val _ = TextIO.print ("z has the type " ^ tyStr ^ "\n")
+         val _ = addSymbol (zVar,ty,table)
          (*val (tStr,si,varset) = showTableSI (table, ttGetVars (#typeTable table), si, TVar.empty);*)
          val (tStr,si) = dumpTableSI (table, si);
          val _ = TextIO.print ("again:\n" ^ tStr)

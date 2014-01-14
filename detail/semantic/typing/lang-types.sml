@@ -6,7 +6,7 @@ structure Types = struct
    type varset = TVar.set
    val freshTVar = TVar.freshTVar
 
-   val concisePrint = true
+   val concisePrint = false
 
    datatype texp =
       (* a function taking at least one argument *)
