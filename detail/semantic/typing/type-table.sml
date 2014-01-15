@@ -31,6 +31,8 @@ structure Path : sig
          flowpoints * (BooleanDomain.bvar * BooleanDomain.bvar list) list
    val getFlag : flowpoints * (steps * leaf) -> BooleanDomain.bvar
    
+   val findField : BooleanDomain.bvarset * flowpoints -> FieldInfo.symid option
+   
    val toStringSI : (flowpoints * TVar.varmap) -> (string * TVar.varmap)
 
 end = struct
@@ -256,6 +258,17 @@ end = struct
      | getFlag ((varM, fieldM), (steps, LeafField f)) =
       StepsMap.lookup (SymMap.lookup(fieldM,f), steps)
 
+   fun findField (bVars, (varMap, symMap)) =
+      let
+         val resRef = ref (NONE : FieldInfo.symid option)
+         fun findVar field (_,bVar) =
+            if BD.member (bVars,bVar) then resRef := SOME field else ()
+         fun findField (field,sm) = StepsMap.appi (findVar field) sm
+         val _ = SymMap.appi findField symMap
+      in
+         !resRef
+      end
+
 end
 
 
@@ -271,6 +284,13 @@ structure TypeTable : sig
    val toStringSI : (SymbolTable.symid -> bool) * table * TVar.varmap -> string * TVar.varmap
    val showTableSI : table * TVar.tvar list * TVar.varmap * TVar.set -> string * TVar.varmap * TVar.set
    
+   val getSizes : table -> SizeConstraint.size_constraint_set
+   val getFlow : table -> BooleanDomain.bfun
+   
+   val modifySizes : (SizeConstraint.size_constraint_set ->
+                     SizeConstraint.size_constraint_set) * table -> table
+   val modifyFlow : (BooleanDomain.bfun -> BooleanDomain.bfun) * table -> table
+
    val newType : Types.texp * table -> TVar.tvar
    
    (* Add the given symbol as having the given type. The other domains remain
@@ -284,10 +304,16 @@ structure TypeTable : sig
       The other domains remain unaltered so that (parts of) the type
       can be re-added using addSymbol. *)
    val getSymbol : SymbolTable.symid * table -> Types.texp
+
+   (* Merely extract the type of the symbol without removing the symbol or the
+   constraints of the type. *)
+   val peekSymbol : SymbolTable.symid * table -> Types.texp
    
    val equateSymbols : SymbolTable.symid * SymbolTable.symid * table -> unit
    val equateSymbolsFlow : SymbolTable.symid * SymbolTable.symid * table -> unit
    val instantiateSymbol : SymbolTable.symid * SymSet.set * SymbolTable.symid * table -> unit
+   
+   val affectedField : BooleanDomain.bvarset * table -> FieldInfo.symid option
    
    val addPair : ((TVar.tvar * TVar.tvar) * TVar.set list) -> TVar.set list
    val getPair : TVar.set list -> (TVar.tvar * TVar.tvar * TVar.set list) option
@@ -302,6 +328,8 @@ structure TypeTable : sig
    val test2 : unit -> unit
 
 end = struct
+
+   val verbose = false
 
    type index = TVar.tvar
 
@@ -575,6 +603,14 @@ end = struct
          (sStr, si)
       end
 
+   fun getSizes (table : table) = !(#sizeDom table)
+   fun getFlow (table : table) = !(#boolDom table) 
+   
+   fun modifySizes (scFun, table : table) =
+      ((#sizeDom table) := scFun (!(#sizeDom table)); table)
+   fun modifyFlow (bFun, table : table) =
+      ((#boolDom table) := bFun (!(#boolDom table)); table)
+
    fun find tt v =
       let
          fun resolve (v,v') = case DA.sub (tt,TVar.toIdx v') of
@@ -648,6 +684,8 @@ end = struct
 
    fun addSymbol (sym,ty,table) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("addSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val idx = newType (ty,table)
          val fp = Path.typeToFlowpoints ty
          val st = #symTable (table : table)
@@ -663,6 +701,8 @@ end = struct
 
    fun delSymbol (sym,table) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("delSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val st = #symTable (table : table)
          val { flow = fp, info } = HT.remove st sym
          val unusedTVars = ref TVar.empty
@@ -688,6 +728,8 @@ end = struct
 
    fun getSymbol (sym,table : table) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("getSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val tt = #typeTable table
          val st = #symTable table
          val { flow = fp, info = idx } = HT.remove st sym
@@ -743,6 +785,14 @@ end = struct
            | _ => raise IndexError
       in
          gT (Path.emptySteps, idx)
+      end
+   
+   fun peekSymbol (sym,table : table) =
+      let
+         val ty = getSymbol (sym,table)
+         val _ = addSymbol (sym,ty,table)
+      in
+         ty
       end
 
    fun termToSteps (index,table : table) =
@@ -962,7 +1012,8 @@ end = struct
               | transpose rows = (map hd rows) :: (transpose (map tl rows))
             val vectorsTransposed = transpose vectorsToExpandTo
             val contra = List.map (Path.stepsContra o #1) stepsLeafList
-            val _ = TextIO.print ("length of vars: " ^ Int.toString (length varsToExpand) ^
+            val _ = if not verbose then () else
+                    TextIO.print ("length of vars: " ^ Int.toString (length varsToExpand) ^
                                   ", length of contra: "^ Int.toString (length contra) ^
                                   "length of vec: " ^ Int.toString (length vectorsTransposed) ^
                                   foldl (fn (s,ss) => s ^ " " ^ ss) "" (map (Int.toString o length) vectorsTransposed) ^
@@ -998,6 +1049,8 @@ end = struct
          
    fun equateSymbols (sym1,sym2,table : table) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("equateSymbols " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
          val st = #symTable table
          val { flow = fp1, info = idx1 } = HT.lookup st sym1
          val { flow = fp2, info = idx2 } = HT.lookup st sym2
@@ -1011,6 +1064,8 @@ end = struct
 
    fun equateSymbolsFlow (sym1,sym2,table : table) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("equateSymbolsFlow " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
          val st = #symTable table
          val { flow = fp1, info = idx1 } = HT.lookup st sym1
          val { flow = fp2, info = idx2 } = HT.lookup st sym2
@@ -1028,6 +1083,8 @@ end = struct
 
    fun instantiateSymbol (oldSym, args, newSym, table : table) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("instantiateSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " to " ^ SymbolTable.getString(!SymbolTables.varTable, newSym) ^ "\n")
          val tt = #typeTable table
          val st = #symTable table
          val { flow = fp, info = idx } = HT.lookup st oldSym
@@ -1067,9 +1124,11 @@ end = struct
          to be discarded after expansion *)
          val oldSymFlags = List.map #2 (Path.flagsOfFlowpoints fp)
          val newSymFlags = List.map (fn (_,f) => (false,f)) (Path.flagsOfFlowpoints newFp)
+         
          val oldArgsFlags = List.map #2 (List.concat (List.map (
                Path.flagsOfFlowpoints o #flow o HT.lookup st
             ) (SymSet.listItems args)))
+            handle IndexError => (TextIO.print (#1 (dumpTableSI (table,TVar.emptyShowInfo))); raise IndexError)
          val newArgsFlags =List. map (fn f => (false, BD.freshBVar ())) oldArgsFlags
          val bdRef = #boolDom table
          val _ = bdRef := BD.expand (oldSymFlags @ oldArgsFlags, newSymFlags @ newArgsFlags, !bdRef)
@@ -1081,6 +1140,12 @@ end = struct
       in
          ()
       end
+
+   fun affectedField (bVars, table : table) =
+      HT.fold (fn (entry,res) => case res of
+            SOME f => SOME f
+          | NONE => Path.findField (bVars,#flow entry)
+         ) NONE (#symTable table)
 
    val aVar = TVar.freshTVar ()      
    val bVar = TVar.freshTVar ()      

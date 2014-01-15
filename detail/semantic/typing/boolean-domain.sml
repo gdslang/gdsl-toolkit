@@ -16,6 +16,8 @@ structure BooleanDomain : sig
    
    val showBFun : bfun -> string
 
+   val showBFunPart : bvarset * bfun -> string
+
    exception Unsatisfiable of bvarset
    
    val meetVarImpliesVar : bvar * bvar -> bfun -> bfun
@@ -121,6 +123,9 @@ end = struct
             "error") ^ " "
          ) ""
    fun showBFun (us, cs) = showUS us ^ showCS cs
+   fun showBFunPart (vs, (us, cs)) =
+      showBFun (US.filter (fn v => IS.member (vs,v)) us,
+                CS.filter (fn (v1,v2) => IS.member (vs,v1) orelse IS.member (vs,v2)) cs)
 
    exception Unsatisfiable of bvarset
    

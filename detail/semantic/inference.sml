@@ -249,8 +249,6 @@ end = struct
 
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val { tsynDefs, typeDefs, conParents} = ti
-   val caseExpSymId = SymbolTable.lookup(!SymbolTables.varTable,
-                                         Atom.atom Primitives.caseExpression)
    val granularitySymId = SymbolTable.lookup(!SymbolTables.varTable,
                                              Atom.atom Primitives.granularity)
    
@@ -618,6 +616,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.CASEexp (e,l)) =
       let
+         val (caseExpSymId,env) = E.acquireTempSymbol env
          val (t,env) = E.pushLambdaVar' (caseExpSymId, env)
          val env = infExp (st,env) e
          (*val _ = TextIO.print ("**** after case exp:\n" ^ E.topToString envExp)*)
@@ -627,7 +626,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val envNeutral = E.pushTop env
          fun genFlow ((p,exp), env) =
             let
-               val env = infMatch (st,env) (p,exp)
+               val env = infMatch (st,env,caseExpSymId) (p,exp)
                val env = E.equateKappasFlow env
                   handle S.UnificationFailure str =>
                      refineError (str,
@@ -640,6 +639,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                env
             end
          val env = List.foldl genFlow envNeutral l
+         val env = E.releaseTempSymbol (caseExpSymId,env)
          (*val _ = TextIO.print ("**** all envs:\n" ^ E.topToString env)*)
       in
          E.return (1,env)
@@ -917,7 +917,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infTokpat stenv (AST.MARKtokpat m) = reportError infTokpat stenv m
      | infTokpat (st,env) (AST.TOKtokpat i) = (0, env)
      | infTokpat (st,env) (AST.NAMEDtokpat v) = (0, env)
-   and infMatch (st,env) (p,e) =
+   and infMatch (st,env,caseExpSymId) (p,e) =
       let
          val (n,env) = infPat (st,env) p
          (*val _ = TextIO.print ("**** after pat:\n" ^ E.topToString env)*)
@@ -997,6 +997,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    val toplevelEnv = E.pushGroup (toplevelDecls ast, primEnv)
    
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    (*we set functions to have type 'a whenever there was an error; otherwise the
    function has no type and the inference will add a usage which can severely
    slow down the inference*)
