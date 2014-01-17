@@ -304,7 +304,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
                (*warn about refinement of the definition due to a call site*)
                fun raiseWarning (substs, syms) =
-                  if E.SymbolSet.isEmpty syms orelse not printWarn then ()
+                  if SymSet.isEmpty syms orelse not printWarn then ()
                   else
                   let
                      val si = TVar.emptyShowInfo
@@ -319,7 +319,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                         end
                      val (symsStr, _, _) =
                         List.foldl showSyms ("","\n\tfor call ", si)
-                           (E.SymbolSet.listItems syms)
+                           (SymSet.listItems syms)
                   in 
                      (Error.warningAt (errStrm, s, [
                      "call to ",
@@ -335,10 +335,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                (*val (sStr, si) = S.showSubstsSI (substs, TVar.emptyShowInfo)
                val _ = TextIO.print ("subset: subst=:" ^ sStr ^ ", unstable: " ^
                   List.foldl (fn (sym, res) => res ^ ", " ^ SymbolTable.getString
-                   (!SymbolTables.varTable, sym)) "" (E.SymbolSet.listItems affectedSyms) ^ "\n")*)
+                   (!SymbolTables.varTable, sym)) "" (SymSet.listItems affectedSyms) ^ "\n")*)
                val _ = raiseWarning (substs, affectedSyms)
             in
-               E.SymbolSet.isEmpty affectedSyms 
+               SymSet.isEmpty affectedSyms 
             end
          val usages = E.getUsages (sym, env)
          (*val _ = TextIO.print ("***** checking subset of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
@@ -349,10 +349,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    fun calcSubsets printWarn (syms,env) =
          List.foldl (fn (sym,unstable) =>
                (if calcSubset (printWarn,sym,env) then unstable else
-                  E.SymbolSet.add (unstable, sym))
+                  SymSet.add (unstable, sym))
                handle (S.UnificationFailure (_,str)) =>
-                  ((*TextIO.print ("calcSubsets: " ^ str ^ "\n");*) E.SymbolSet.add (unstable, sym))
-            ) E.SymbolSet.empty syms
+                  ((*TextIO.print ("calcSubsets: " ^ str ^ "\n");*) SymSet.add (unstable, sym))
+            ) SymSet.empty syms
 
    fun calcIteration (sym, env) =
       let
@@ -414,10 +414,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    fun calcFixpoints curIter (syms,env) =
          case calcSubsets (curIter=Controls.get BasicControl.maxIter) (syms,env) of unstable =>
-         if E.SymbolSet.isEmpty unstable then env else
+         if SymSet.isEmpty unstable then env else
          if curIter<Controls.get BasicControl.maxIter then
             calcFixpoints (curIter+1) (syms,
-               List.foldl calcIteration env (E.SymbolSet.listItems unstable)
+               List.foldl calcIteration env (SymSet.listItems unstable)
             )
          else
          let
@@ -431,7 +431,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                in
                   (res ^ pre ^ sStr ^ " : " ^ sType, ", ", si)
                end
-            val symIds = E.SymbolSet.listItems unstable
+            val symIds = SymSet.listItems unstable
             val (symsStr, _, _) = List.foldl showSyms ("", "", si) symIds
             val s = case symIds of [] => raise TypeError | (sym :: _) =>
                     SymbolTable.getSpan(!SymbolTables.varTable, sym)
@@ -1049,7 +1049,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                         setDummyType ({span = SymbolTable.noSpan,
                                   component = [comp]},env) d
                    ) env ast
-         (*val _ = TextIO.print ("after checking component " ^ prComp comp ^  E.topToString env)*)
+         val _ = TextIO.print ("after checking component " ^ prComp comp ^  E.topToString env)
          val env = case comp of
               SCC.SIMPLE _ => env
             | SCC.RECURSIVE syms => calcFixpoints (syms, env)

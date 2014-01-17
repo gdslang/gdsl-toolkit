@@ -16,6 +16,8 @@ structure Substitutions : sig
 
    val substsFilter : Substs * TVar.set -> Substs
    
+   val getDomain : Substs -> TVar.set
+   
    val applySubstsToVarset : Substs * TVar.set -> TVar.set
    
    val isEmpty : Substs -> bool
@@ -73,6 +75,9 @@ end = struct
 
    fun substsFilter (Substs ss, set) =
      Substs (List.filter (fn (v,_) => TVar.member (set,v)) ss)
+
+   fun getDomain (Substs ss) =
+      List.foldl TVar.add TVar.empty (List.map #1 ss)
 
    fun applySubstsToVarset (Substs ss, set) =
       let
