@@ -47,7 +47,7 @@ static struct decode_result xed_decode_blob(unsigned char *blob, size_t size) {
 	unsigned char* blobb = blob;
 	xed_error_enum_t r;
 
-	clock_gettime(CLOCK_REALTIME, &start);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	do {
 		xed_decoded_inst_zero_set_mode(&insn, &state);
 		xed_decoded_inst_set_input_chip(&insn, XED_CHIP_INVALID);
@@ -69,7 +69,7 @@ static struct decode_result xed_decode_blob(unsigned char *blob, size_t size) {
 		size -= len;
 		result.decoded++;
 	} while(len > 0 && size > 0);
-	clock_gettime(CLOCK_REALTIME, &end);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);
 	result.time = end.tv_sec * NANOS + end.tv_nsec - start.tv_nsec - start.tv_sec * NANOS;
 
 	return result;
@@ -85,7 +85,7 @@ static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 	state_t state = gdsl_init();
 	gdsl_set_code(state, (char*)blob, size, 0);
 
-	clock_gettime(CLOCK_REALTIME, &start);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &start);
 	while(1) {
 		if(setjmp(*gdsl_err_tgt(state))) {
 //			fprintf(stderr, "decode failed: %s\n", gdsl_get_error_message(state));
@@ -111,7 +111,7 @@ static struct decode_result gdsl_decode_blob(unsigned char *blob, size_t size) {
 
 		result.decoded++;
 	}
-	clock_gettime(CLOCK_REALTIME, &end);
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &end);
 
 	gdsl_destroy(state);
 
