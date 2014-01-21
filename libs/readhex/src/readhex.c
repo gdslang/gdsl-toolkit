@@ -37,7 +37,7 @@ size_t readhex_hex_read(FILE *f, uint8_t **buffer) {
 			if(length_str == size_str)
 				break;
 		}
-		if(size_str + 1 > size) {
+		if(length + 1 > size) {
 			size *= 2;
 			*buffer = (uint8_t*)realloc(*buffer, size);
 		}
