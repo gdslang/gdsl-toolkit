@@ -114,6 +114,7 @@ AC_LINK_IFELSE(
     [AC_MSG_RESULT([no])
 #        LIBS=$OLD_LIBS; dnl reset to old value since XXX was not found
         has_clock_gettime=no;])
+AC_SEARCH_LIBS([clock_gettime], [rt posix4])
 
 AC_CHECK_HEADERS([gelf.h], [has_elf=yes], [has_elf=no])
 AC_CHECK_HEADERS([jni.h], [has_jni=yes], [has_jni=no])
