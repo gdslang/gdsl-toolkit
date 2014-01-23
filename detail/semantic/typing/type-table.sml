@@ -1116,7 +1116,7 @@ end = struct
    fun instantiateSymbol (oldSym, args, newSym, table : table) =
       let
          val _ = if not verbose then () else
-            TextIO.print ("instantiateSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " to " ^ SymbolTable.getString(!SymbolTables.varTable, newSym) ^ "\n")
+            TextIO.print ("instantiateSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ "\n")
          val tt = #typeTable table
          val st = #symTable table
          val { flow = fp, info = idx } = HT.lookup st oldSym

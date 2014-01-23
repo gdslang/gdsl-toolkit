@@ -623,7 +623,6 @@ end = struct
          val (kProto,env) = Scope.acquireKappa env
          val (k,env) = Scope.acquireKappa env
          val _ = TT.addSymbol (kProto,t,tt)
-         val _ = TT.addSymbol (k,VAR (TVar.freshTVar (), BD.freshBVar ()), tt)
          val _ = TT.instantiateSymbol (kProto,SymSet.empty,k,tt)
          val _ = TT.delSymbol (kProto,tt)
          val env = Scope.releaseKappa (kProto,env)
