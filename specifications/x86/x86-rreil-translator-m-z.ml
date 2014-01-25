@@ -60,7 +60,7 @@ val sem-maskmovq x = sem-maskmov-opnd 8 x.opnd1 x.opnd2 x.opnd3
 val sem-mov avx-encoded x = do
   sz <- sizeof1 x.opnd1;
   a <- lval sz x.opnd1;
-  b <- rval sz x.opnd2;
+  b <- rvals Signed sz x.opnd2;
   write-extend avx-encoded sz a b
 end
 

@@ -105,7 +105,6 @@ struct rreil_size_change rreil_size_change_copy(struct rreil_size_change size_ch
 	struct rreil_size_change size_change_copy;
 
 	size_change_copy.fromsize = size_change.fromsize;
-	size_change_copy.size = size_change.size;
 	size_change_copy.opnd = rreil_linear_copy(size_change.opnd);
 
 	return size_change_copy;

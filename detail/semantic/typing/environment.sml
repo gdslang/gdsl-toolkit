@@ -89,6 +89,9 @@ structure Environment : sig
    (*stack: [...,t1 -> t2] -> [...t2]*)
    val reduceToResult : environment -> environment
 
+   (*stack: [...,t1 -> t2] -> [...t1]*)
+   val reduceToArgument : environment -> environment
+
    (*stack: [..., tn, ..., t2, t1, t0] -> [..., t0]*)
    val return : int * environment -> environment
 
@@ -99,7 +102,16 @@ structure Environment : sig
 
    (*stack: [..., t2, t1], meet t1=t2 for types and t2=>t1 for flow*)
    val equateKappasFlow : environment -> environment
-   
+
+   (*stack: [..., t2, t1] -> [..., t1, t2] *)
+   val flipKappas : environment -> environment
+
+   (*stack: [..., t1, t2], compute mgu(t1,t2) and return the set
+     of substitutions for t1; this set is empty if t1 is smaller
+     (more specific) than t2; when testing for stability t1 is
+     the usage site and t2 the fresh function instance *)
+   val subsetKappas : environment -> Substitutions.Substs
+
    (*stack: [...,t] -> [...] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
 
@@ -110,10 +122,10 @@ structure Environment : sig
    (*pop the last function from the current context*)
    val leaveFunction : VarInfo.symid * environment -> environment
    
-   (*unset the type of function f, if the function type was set, return an
-   environment in which the function type was pushed*)
-   val clearFunction : VarInfo.symid * environment ->
-         environment option * environment
+   (*unset the type of function f if possible; if the function type was set,
+   return an environment in which the function type was pushed, otherwise
+   return nothing*)
+   val clearFunction : VarInfo.symid * environment -> environment option
    
    val forceNoInputs : VarInfo.symid * VarInfo.symid list *
                      environment -> VarInfo.symid list
@@ -127,13 +139,6 @@ structure Environment : sig
    val meetSizeConstraint : (SizeConstraint.size_constraint_set ->
                              SizeConstraint.size_constraint_set) *
                              environment -> environment
-
-   val meetFlow : environment * environment -> environment
-   val meet : environment * environment -> environment
-
-   (*returns the set of substitutions for the first environment, this is empty
-   if the the first environment is more specific (smaller) than the second*)
-   val subseteq : environment * environment -> Substitutions.Substs
 
    (*query all function symbols in binding groups that would be modified by
    the given substitutions*)
@@ -1103,6 +1108,11 @@ end = struct
             Scope.wrap (KAPPA {ty = t2}, env)
          | _ => raise InferenceBug
 
+   fun reduceToArgument env = case Scope.unwrap env of
+           (KAPPA {ty = FUN ([t1],t2)}, env) =>
+            Scope.wrap (KAPPA {ty = t1}, env)
+         | _ => raise InferenceBug
+
    (* local helper: equate or imply the flags of two types *)
    fun flowForType (directed,t1,t2,bFun) =
       let
@@ -1141,140 +1151,6 @@ end = struct
          end
       end
 
-   fun applySubsts (substs, ei, bFun, directed, newUses1, newUses2, env1, env2) =
-      let
-         val substs = substsFilter (substs, TVar.union (Scope.getVars env1,
-                                                        Scope.getVars env2))
-         fun substBinding (KAPPA {ty=t}, newUses, ei) =
-            (case applySubstsToExp substs (t,ei) of (t,ei) =>
-               (KAPPA {ty = t}, newUses, ei))
-           | substBinding (SINGLE {name = n, ty = t}, newUses, ei) =
-            (case applySubstsToExp substs (t,ei) of (t,ei) =>
-               (SINGLE {name = n, ty = t}, newUses, ei))
-           | substBinding (GROUP bs, newUses, ei) =
-               let
-                  val eiRef = ref ei
-                  val usesRef = ref newUses
-                  fun optSubst (SOME t) =
-                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
-                        (eiRef := ei; SOME t))
-                    | optSubst NONE = NONE
-                  fun optBSubst (SOME (t,bFun)) =
-                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
-                        (eiRef := ei; SOME (t,bFun)))
-                    | optBSubst NONE = NONE
-                  fun usesSubst (ctxt,t) =
-                     (case applySubstsToExp substs (t,!eiRef) of (t,ei) =>
-                        (eiRef := ei; (ctxt,t)))
-                  fun substB {name = n, ty = t, width = w, uses = us, nested = ns} =
-                     {name = n, ty = optBSubst t, width = optSubst w,
-                      uses = SpanMap.map usesSubst
-                        (case SymMap.find (newUses,n) of
-                          NONE => us
-                        | SOME nUs =>
-                           let
-                              val _ = usesRef := #1 (SymMap.remove (!usesRef,n))
-                           in
-                              List.foldl SpanMap.insert' us nUs
-                           end),
-                      nested = List.map (fn b =>
-                        case substBinding (b, !usesRef, !eiRef) of
-                           (b, us, ei) =>
-                              (usesRef := us
-                              ;eiRef := ei
-                              ;b)) ns
-                     }
-               in
-                  (GROUP (List.map substB bs), !usesRef, !eiRef)
-               end
-         fun uniteFlowInfo (KAPPA {ty=t1}, KAPPA {ty=t2}, bFun) =
-               let
-                  val bFun = flowForType (directed,t1,t2,bFun)
-                     handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
-               in
-                  (KAPPA {ty=t1}, bFun)
-               end
-           | uniteFlowInfo (SINGLE {ty=t1, name = n1}, SINGLE {ty=t2, name = n2}, bFun) =
-               let
-                  val bFun = flowForType (directed,t1,t2,bFun)
-                     handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
-               in
-                  (SINGLE {ty=t1, name = n2}, bFun)
-               end
-           | uniteFlowInfo (GROUP bs1, GROUP bs2, bFun) =
-               let
-                  fun flowOpt (SOME t1,SOME t2,bFun) =
-                     let
-                        val bFun = flowForType (directed,t1,t2,bFun)
-                        handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
-                     in
-                        (SOME t1, bFun)
-                     end
-                    | flowOpt (NONE,NONE,bFun) = (NONE, bFun)
-                    | flowOpt _ = raise InferenceBug
-                  fun bflowOpt (SOME (t1,flow),SOME (t2,_),bFun) =
-                     let
-                        val bFun = flowForType (directed,t1,t2,bFun)
-                           handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
-                     in
-                        (SOME (t1,flow), bFun)
-                     end
-                    | bflowOpt (NONE,NONE,bFun) = (NONE, bFun)
-                    | bflowOpt _ = raise InferenceBug
-                  fun genUsesFlow ((span,(ctxt,t1)),(_,(_,t2)),(sm,bFun)) =
-                     let
-                        val bFun = flowForType (directed,t1,t2,bFun)
-                           handle (BD.Unsatisfiable bVar) => flowError (bVar, NONE, [env1,env2])
-                     in
-                        (SpanMap.insert (sm, span, (ctxt,t1)), bFun)
-                     end
-                  fun genBindFlow ({name = n1, ty=t1, width=w1, uses = us1, nested = ns1},
-                                   {name = n2, ty=t2, width=w2, uses = us2, nested = ns2},(bs,bFun)) =
-                     let
-                        val (t,bFun) = bflowOpt (t1,t2,bFun)
-                        val (w,bFun) = flowOpt (w1,w2,bFun)
-                        val (us,bFun) = ListPair.foldr genUsesFlow (SpanMap.empty,bFun)
-                                 (SpanMap.listItemsi us1,SpanMap.listItemsi us2)
-                        fun foldAcc f (x::xs,acc) =
-                           let
-                              val (x,acc) = f (x,acc)
-                              val (xs,acc) = foldAcc f (xs, acc)
-                           in
-                              (x::xs,acc)
-                           end
-                           | foldAcc f ([], acc) = ([],acc)
-                        fun mergeNested (ns1::nss1, ns2::nss2) = (ns1,ns2)::mergeNested (nss1,nss2)
-                          | mergeNested ([], nss2) = ListPair.zip (nss2,nss2)
-                          | mergeNested (nss1, []) = ListPair.zip (nss1,nss1)
-                        
-                        val (ns,bFun) = foldAcc (fn ((b1,b2),bFun) =>
-                                                 uniteFlowInfo (b1,b2,bFun))
-                                           (mergeNested (ns1,ns2),bFun)
-                     in
-                        ({name = n1, ty = t, width = w, uses = us, nested = ns} :: bs, bFun)
-                     end
-                  val (bs,bFun) = ListPair.foldr genBindFlow ([], bFun) (bs1,bs2)
-               in
-                 (GROUP bs, bFun)
-               end
-           | uniteFlowInfo _ = raise InferenceBug
-      in
-         if isEmpty substs andalso SymMap.isEmpty newUses1 andalso
-            SymMap.isEmpty newUses2 then (ei, bFun, env1) else
-            let
-               val curVars = Scope.getVars env1
-               val (b1, env1) = Scope.unwrap env1
-               val (b2, env2) = Scope.unwrap env2
-               val (b1', newUses1, ei) = substBinding (b1, newUses1, ei)
-               val (b2', newUses2, ei) = substBinding (b2, newUses2, ei)
-               val (b,bFun) = uniteFlowInfo (b1', b2', bFun)
-               val (ei, bFun, env) =
-                     applySubsts (substs, ei, bFun, false, newUses1, newUses2, env1, env2)
-            in
-               (ei, bFun, Scope.wrap (b, env))
-            end
-      end
-
    fun return (n,env) =
       let
          val (t, env) = Scope.unwrap env
@@ -1287,7 +1163,6 @@ end = struct
       in
          Scope.wrap (t, popN (n,env))
       end
-      
 
    fun popKappa env = case Scope.unwrap env of
         (KAPPA {ty}, env) => env
@@ -1299,6 +1174,7 @@ end = struct
             case Scope.unwrap env of
               (KAPPA {ty=t1}, env) => (case Scope.unwrap env of
                  (KAPPA {ty=t2}, env) => (t2,t1)
+               | (SINGLE {ty=t2, ...}, env) => (t2,t1)
                | _ => raise InferenceBug) 
             | _ => raise InferenceBug
 
@@ -1379,6 +1255,36 @@ end = struct
 
    fun equateKappas env = equateKappasGeneric (env,true) 
    fun equateKappasFlow env = equateKappasGeneric (env,false)
+
+   fun flipKappas env = case Scope.unwrap env of
+              (KAPPA {ty=t1}, env) => (case Scope.unwrap env of
+                 (KAPPA {ty=t2}, env) => Scope.wrap (KAPPA {ty=t2},Scope.wrap (KAPPA {ty=t1},env))
+               | _ => raise InferenceBug) 
+            | _ => raise InferenceBug
+
+   fun subsetKappas env =
+      let
+         fun getKappaTypes env =
+            case Scope.unwrap env of
+              (KAPPA {ty=t2}, env) => (case Scope.unwrap env of
+                 (KAPPA {ty=t1}, env) => (t1,t2)
+               | (SINGLE {ty=t1, ...}, env) => (t1,t2)
+               | _ => raise InferenceBug) 
+            | _ => raise InferenceBug
+
+         val (t1,t2) = getKappaTypes env
+         val substs = mgu (t1,t2,emptySubsts)
+         val substs = substsFilter (substs, texpVarset (t1, TVar.empty))
+
+         (*val (t1Str,si) = showTypeSI (t1,TVar.emptyShowInfo)
+         val (t2Str,si) = showTypeSI (t2,si)
+         val (sStr, _) = showSubstsSI (substs,si)
+         val _ = TextIO.print ("subsetKappas: " ^ t1Str ^ " <= " ^ t2Str ^ " gives " ^ sStr ^ "\n")*)
+
+
+      in
+         substs
+      end
 
    fun popToFunction (sym, env) =
       let
@@ -1493,16 +1399,14 @@ in () end;*)
                (tOptRef := tOpt
                ;(COMPOUND {ty = NONE, width = width, uses = uses, nested = nested}, cons))
            | resetType _ = raise InferenceBug
-         val (scs,state) = Scope.update (sym, resetType, env)
-         val env = (scs,state)
-         val envOpt = case !tOptRef of
+         val env = Scope.update (sym, resetType, env)
+      in
+         case !tOptRef of
               NONE => NONE
             | SOME (ty,flow) =>
                SOME (meetBoolean (
                      fn bFun => BD.meet (flow,bFun),
                      Scope.wrap (KAPPA { ty = ty },env)))
-      in
-         (envOpt, env)
       end
    
    fun forceNoInputs (sym, fields, env) = case Scope.lookup (sym,env) of
@@ -1531,135 +1435,5 @@ in () end;*)
                end
              | (_,COMPOUND {ty = NONE, width, uses, nested}) => []  (*allow type errors*)
              | _ => raise InferenceBug
-
-   fun unify (env1, env2, newUses1, newUses2, substs) =
-      (case Scope.unwrapDifferent (env1, env2) of
-           (SOME (KAPPA {ty = t1}, KAPPA {ty = t2}), env1, env2) =>
-            unify (env1, env2, newUses1, newUses2, mgu (t1,t2,substs))
-         | (SOME (SINGLE {ty = t1, ...}, SINGLE {ty = t2, ...}), env1, env2) =>
-            unify (env1, env2, newUses1, newUses2, mgu (t1,t2,substs))
-         | (SOME (GROUP bs1, GROUP bs2), env1, env2) =>
-            let
-               fun mguOpt (SOME t1, SOME t2, substs) = mgu (t1,t2,substs)
-                 | mguOpt (NONE, NONE, substs) = substs
-                 | mguOpt (_, _, _) = raise InferenceBug
-               fun mguBOpt (SOME (t1,_), SOME (t2,_), substs) = mgu (t1,t2,substs)
-                 | mguBOpt (NONE, NONE, substs) = substs
-                 | mguBOpt (_, _, _) = raise InferenceBug
-               fun mguUses ((s1,(ctxt1,t1)) :: us1, (s2,(ctxt2,t2)) :: us2,
-                           nUs1, nUs2, substs) =
-                  (case SymbolTable.compare_span (s1,s2) of
-                       EQUAL => mguUses (us1, us2, nUs1, nUs2, mgu (t1,t2,substs))
-                     | LESS => mguUses (us1, (s2,(ctxt2,t2)) :: us2,
-                        nUs1, (s1,(ctxt1,t1)) :: nUs2, substs)
-                     | GREATER => mguUses ((s1,(ctxt1,t1)) :: us1, us2,
-                        (s2,(ctxt2,t2)) :: nUs1, nUs2, substs)
-                  )
-                  | mguUses (us1, us2, nUs1, nUs2, substs) =
-                     (us2 @ nUs1, us1 @ nUs2, substs)
-               fun uB (({name = n1, ty = t1, width = w1, uses = u1, nested = _},
-                        {name = n2, ty = t2, width = w2, uses = u2, nested = _}),
-                        (newUses1, newUses2, substs)) =
-                  if not (ST.eq_symid (n1,n2)) then raise InferenceBug else
-                  case mguUses (SpanMap.listItemsi u1, SpanMap.listItemsi u2,
-                               [], [],
-                               mguBOpt (t1, t2, mguOpt (w1, w2, substs))) of
-                    ([],[], substs) => (newUses1, newUses2, substs)
-                  | (nUs1,[], substs) =>
-                     (SymMap.insert (newUses1,n1,nUs1), newUses2, substs)
-                  | ([],nUs2, substs) =>
-                     (newUses1, SymMap.insert (newUses2,n2,nUs2), substs)
-                  | (nUs1,nUs2, substs) =>
-                     (SymMap.insert (newUses1,n1,nUs1),
-                      SymMap.insert (newUses2,n2,nUs2), substs)
-               val (newUses1, newUses2, substs) =
-                  List.foldl uB (newUses1, newUses2, substs) (ListPair.zipEq (bs1,bs2))
-            in
-               unify (env1, env2, newUses1, newUses2, substs)
-            end      
-         | (NONE, env1, env2) => (newUses1, newUses2, substs)
-         | (SOME _, _, _) => raise InferenceBug
-      )
-
-   fun meetGeneral (env1, env2, directed) =
-      let
-
-         (*val (e1Str,si) = topToStringSI (env1, TVar.emptyShowInfo)
-         val (e2Str,si) = topToStringSI (env2, si)
-         val kind = if directed then "directed" else "equalizing"
-         val _ = TextIO.print ("**** meet " ^ kind ^ ":\n" ^ e1Str ^ "++++ intersected with\n" ^ e2Str)*)
-
-         val (newUses1, newUses2, substs) =
-            unify (env1, env2, SymMap.empty, SymMap.empty, emptySubsts)
-         (*val (scs, cons) = env1
-         val (_, cons') = env2
-         val _ = if cons<>cons' then raise InferenceBug else ()
-         val (bFun, sCons) = !cons
-         val bFun = applyExpandInfo ei bFun
-            handle (BD.Unsatisfiable bVar) =>
-               flowError (bVar, NONE, [env1,env2])
-         val _ = cons := (bFun, sCons)
-         val env1 = (scs,cons)*)
-      
-         val (_, state1) = env1
-         val (_, state2) = env2
-         val sCons = SC.merge (Scope.getSize state1,Scope.getSize state2)
-         val (sCons, substs) = applySizeConstraints (sCons, substs)
-
-         val (ei, bFunFlow, env) =
-            applySubsts (substs, emptyExpandInfo, BD.empty, directed, 
-                         newUses1, newUses2, env1, env2)
-         
-         val bVars1 = Scope.getBVars env1
-         val bVars2 = Scope.getBVars env2
-         val bVars = BD.union (bVars1,bVars2)
-         val bVars = expandInfoGetBVars (ei, bVars)
-         val bFun = BD.meet (Scope.getFlow state1, Scope.getFlow state2)
-         (*val _ = TextIO.print ("meet of Boolean function:\n" ^ BD.showBFun (Scope.getFlow state1) ^
-                              "\nand\n" ^ BD.showBFun (Scope.getFlow state2) ^ 
-                              "\nis\n" ^ BD.showBFun bFun ^ "\n")*)
-
-
-         val bFun = BD.projectOnto (bVars, bFun)
-         val bFun = applyExpandInfo ei bFun
-            handle (BD.Unsatisfiable bVar) =>
-               flowError (bVar, NONE, [env,env1,env2])
-         val bFun = BD.meet (bFunFlow, bFun)
-            handle (BD.Unsatisfiable bVar) =>
-               flowError (bVar, NONE, [env,env1,env2])
-         val (scs,state) = env
-         val env = (scs,Scope.setSize sCons (Scope.setFlow bFun state))
-
-         (*val (envStr,si) = topToStringSI (env, si)
-         val (eStr, si) = showExpandInfoSI (ei,si)
-         val (sStr,si) = showSubstsSI (substs,si)
-         val _ = TextIO.print ("applying substitution " ^ sStr ^ " to\n" ^ e1Str ^ "and\n" ^ e2Str ^ 
-                  "resulting in\n" ^ envStr ^ 
-                  "thereby projecting onto " ^ BD.setToString bVars ^
-                  "\nadding flow " ^ BD.showBFun bFunFlow ^
-                  "\nand expanding\n" ^ eStr ^ "yielding " ^ BD.showBFun bFun ^ "\n")*)
-      in
-         env
-      end
-
-   fun meetFlow (env1,env2) = meetGeneral (env1,env2,true)
-
-   fun meet (env1,env2) = meetGeneral (env1,env2,false)
-   
-   fun subseteq (env1, env2) =
-      let
-         val (_, _, substs) =
-            unify (env1, env2, SymMap.empty, SymMap.empty, emptySubsts)
-         (*val si = TVar.emptyShowInfo
-         val (e1Str, si) = toStringSI (env1, si)
-         val (e2Str, si) = toStringSI (env2, si)
-         val (sStr, si) = showSubstsSI (substs, si)*)
-         val substs = substsFilter (substs, Scope.getVars env1)
-         (*val _ = TextIO.print ("+++++ substitution " ^ sStr ^ " indicates" ^
-                  (if isEmpty substs then "" else " not") ^
-                  " stable in env1:\n" ^ e1Str ^ "and env2:\n" ^ e2Str)*)
-      in
-         substs
-      end
 
 end
