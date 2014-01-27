@@ -1,6 +1,6 @@
 # vim: noexpandtab
 
-all: prepare _pygdsl.so
+all: _pygdsl.so
 
 prepare:
 	ln -f -s ../build/gdsl-x86-rreil.h ../build/gdsl.h
