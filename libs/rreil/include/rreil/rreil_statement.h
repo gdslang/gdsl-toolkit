@@ -14,6 +14,7 @@
 #include <rreil/rreil_address.h>
 #include <rreil/rreil_sexpr.h>
 #include <rreil/rreil_branch_hint.h>
+#include <rreil/rreil_flop.h>
 
 struct rreil_statements;
 
