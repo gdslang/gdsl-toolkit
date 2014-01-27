@@ -163,3 +163,11 @@ libs/x86-tester/build/
 tools/x86-test-runner/build/
 tools/x86-test-stats-runner/build/
 tools/xed-cmp/build/
+
+### pygdsl
+
+/pygdsl/_pygdsl.so
+/pygdsl/build/
+/pygdsl/pygdsl.py
+/pygdsl/pygdsl.pyc
+/pygdsl/pygdsl_wrap.c

@@ -1,4 +1,9 @@
-all: _pygdsl.so
+# vim: noexpandtab
+
+all: prepare _pygdsl.so
+
+prepare:
+	ln -f -s ../build/gdsl-x86-rreil.h ../build/gdsl.h
 
 _pygdsl.so: pygdsl_impl.c pygdsl_error.h pygdsl_funcs.h pygdsl.i
 	python setup.py build_ext --inplace
