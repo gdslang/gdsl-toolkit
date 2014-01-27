@@ -111,3 +111,7 @@ this output:
 
     Successfully generated exception:
     Exception message: decode failed: UnsatisfiableGuardCombination
+
+#Authorship Attribution
+
+Pygdsl has been developed by Jessie Castille.
