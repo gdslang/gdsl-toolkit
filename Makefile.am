@@ -466,7 +466,8 @@ include_HEADERS += libs/x86/include/x86.h libs/x86/include/x86_features.h
 endif
 
 if HAVE_RREIL_LIB
-librreil_la_SOURCES = $(srcdir)/libs/rreil/src/rreil/copy.c \
+librreil_la_SOURCES = $(srcdir)/libs/rreil/src/rreil/alloc.c \
+											$(srcdir)/libs/rreil/src/rreil/copy.c \
                       $(srcdir)/libs/rreil/src/rreil/print.c \
                       $(srcdir)/libs/rreil/src/rreil/gdrr_builder.c \
                       $(srcdir)/libs/rreil/src/rreil/free.c \
