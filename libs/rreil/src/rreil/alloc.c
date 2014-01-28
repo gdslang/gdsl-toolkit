@@ -4,6 +4,8 @@
  *  Created on: Jan 28, 2014
  *      Author: jucs
  */
+#include <rreil/rreil_address.h>
+#include <rreil/rreil_branch_hint.h>
 #include <rreil/rreil_expr.h>
 #include <rreil/rreil_id.h>
 #include <rreil/rreil_linear.h>
@@ -18,6 +20,26 @@ struct rreil_statement *rreil_assignment_alloc(long long unsigned int size, stru
 	stmt->assign.size = size;
 	stmt->assign.lhs = lhs;
 	stmt->assign.rhs = rhs;
+	return stmt;
+}
+
+struct rreil_statement *rreil_branch_alloc(enum rreil_branch_hint hint, struct rreil_address *target) {
+	enum rreil_branch_hint *hint_heap = (enum rreil_branch_hint *)malloc(sizeof(enum rreil_branch_hint));
+	*hint_heap = hint;
+	struct rreil_statement *stmt = (struct rreil_statement*)malloc(sizeof(struct rreil_statement));
+	stmt->type = RREIL_STATEMENT_TYPE_BRANCH;
+	stmt->branch.hint = hint_heap;
+	stmt->branch.target = target;
+	return stmt;
+}
+
+struct rreil_statement *rreil_cbranch_alloc(struct rreil_sexpr *cond, struct rreil_address *target_true,
+		struct rreil_address *target_false) {
+	struct rreil_statement *stmt = (struct rreil_statement*)malloc(sizeof(struct rreil_statement));
+	stmt->type = RREIL_STATEMENT_TYPE_CBRANCH;
+	stmt->cbranch.cond = cond;
+	stmt->cbranch.target_true = target_true;
+	stmt->cbranch.target_false = target_false;
 	return stmt;
 }
 
@@ -42,6 +64,21 @@ struct rreil_linear *rreil_linear_variable_alloc(struct rreil_variable *variable
 	return linear;
 }
 
+struct rreil_linear *rreil_linear_immediate_alloc(long long unsigned int immediate) {
+	struct rreil_linear *linear = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
+	linear->type = RREIL_LINEAR_TYPE_IMMEDIATE;
+	linear->immediate = immediate;
+	return linear;
+}
+
+struct rreil_linear *rreil_linear_sum_alloc(struct rreil_linear *l1, struct rreil_linear *l2) {
+	struct rreil_linear *linear = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
+	linear->type = RREIL_LINEAR_TYPE_SUM;
+	linear->sum.opnd1 = l1;
+	linear->sum.opnd2 = l2;
+	return linear;
+}
+
 struct rreil_sexpr *rreil_sexpr_linear_alloc(struct rreil_linear *linear) {
 	struct rreil_sexpr *sexpr = (struct rreil_sexpr*)malloc(sizeof(struct rreil_sexpr));
 	sexpr->type = RREIL_SEXPR_TYPE_LIN;
@@ -54,4 +91,11 @@ struct rreil_expr *rreil_expr_sexpr_alloc(struct rreil_sexpr *sexpr) {
 	expr->type = RREIL_EXPR_TYPE_SEXPR;
 	expr->sexpr = sexpr;
 	return expr;
+}
+
+struct rreil_address *rreil_address_alloc(long long unsigned int size, struct rreil_linear *addr_lin) {
+	struct rreil_address *address = (struct rreil_address*)malloc(sizeof(struct rreil_address));
+	address->size = size;
+	address->address = addr_lin;
+	return address;
 }

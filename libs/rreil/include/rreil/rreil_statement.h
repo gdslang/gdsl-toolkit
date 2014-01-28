@@ -92,5 +92,8 @@ struct rreil_statements {
 
 extern struct rreil_statement *rreil_assignment_alloc(long long unsigned int size, struct rreil_variable *lhs,
 		struct rreil_expr *rhs);
+extern struct rreil_statement *rreil_branch_alloc(enum rreil_branch_hint hint, struct rreil_address *target);
+extern struct rreil_statement *rreil_cbranch_alloc(struct rreil_sexpr *cond, struct rreil_address *target_true,
+		struct rreil_address *target_false);
 
 #endif /* RREIL_STATEMENT_H_ */
