@@ -90,4 +90,7 @@ struct rreil_statements {
 	size_t statements_size;
 };
 
+extern struct rreil_statement *rreil_assignment_alloc(long long unsigned int size, struct rreil_variable *lhs,
+		struct rreil_expr *rhs);
+
 #endif /* RREIL_STATEMENT_H_ */

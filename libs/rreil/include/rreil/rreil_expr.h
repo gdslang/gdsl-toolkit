@@ -56,4 +56,6 @@ struct rreil_expr {
 	};
 };
 
+extern struct rreil_expr *rreil_expr_sexpr_alloc(struct rreil_sexpr *sexpr);
+
 #endif /* RREIL_OP_H_ */

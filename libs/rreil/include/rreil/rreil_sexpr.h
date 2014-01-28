@@ -25,5 +25,6 @@ struct rreil_sexpr {
 	};
 };
 
+extern struct rreil_sexpr *rreil_sexpr_linear_alloc(struct rreil_linear *linear);
 
 #endif /* RREIL_SEXPR_H_ */

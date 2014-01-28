@@ -16,5 +16,6 @@ struct rreil_variable {
 	long long unsigned offset;
 };
 
+extern struct rreil_variable *rreil_variable_alloc(struct rreil_id *id, long long unsigned offset);
 
 #endif /* RREIL_VARIABLE_H_ */

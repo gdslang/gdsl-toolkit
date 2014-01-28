@@ -39,4 +39,6 @@ struct rreil_linear {
 	};
 };
 
+extern struct rreil_linear *rreil_linear_variable_alloc(struct rreil_variable *variable);
+
 #endif /* RREIL_LINEAR_H_ */
