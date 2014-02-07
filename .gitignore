@@ -171,3 +171,7 @@ tools/xed-cmp/build/
 /pygdsl/pygdsl.py
 /pygdsl/pygdsl.pyc
 /pygdsl/pygdsl_wrap.c
+
+###
+
+/frontends

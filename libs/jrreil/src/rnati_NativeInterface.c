@@ -696,7 +696,7 @@ struct frontend frontend;
 
 JNIEXPORT
 jobject
-JNICALL Java_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj, jbyteArray input) {
+JNICALL Java_gdsl_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj, jbyteArray input) {
 	if(input == NULL) {
 		jclass exp = (*env)->FindClass(env, "java/lang/IllegalArgumentException");
 		(*env)->ThrowNew(env, exp, "Input must not be null.");
@@ -863,7 +863,7 @@ size_t descs_length = 0;
 
 JNIEXPORT
 jobjectArray
-JNICALL Java_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) {
+JNICALL Java_gdsl_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) {
 	descs_length = gdsl_multiplex_frontends_list(&descs);
 
 	jobjectArray jfrontends = (*env)->NewObjectArray(env, descs_length, (*env)->FindClass(env, "java/lang/String"),
@@ -888,7 +888,7 @@ JNICALL Java_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) 
 
 JNIEXPORT
 void
-JNICALL Java_rnati_NativeInterface_useFrontendNative(JNIEnv *env, jobject obj, jlong frontend_idx) {
+JNICALL Java_gdsl_rnati_NativeInterface_useFrontendNative(JNIEnv *env, jobject obj, jlong frontend_idx) {
 //  const char *frontend_str_n = (*env)->GetStringUTFChars(env, frontend_str, 0);
 
 	if(!descs || frontend_idx >= descs_length)
@@ -906,7 +906,7 @@ JNICALL Java_rnati_NativeInterface_useFrontendNative(JNIEnv *env, jobject obj, j
 
 JNIEXPORT
 void
-JNICALL Java_rnati_NativeInterface_frontendDescsFreeNative(JNIEnv *env, jobject obj) {
+JNICALL Java_gdsl_rnati_NativeInterface_frontendDescsFreeNative(JNIEnv *env, jobject obj) {
 	gdsl_multiplex_descs_free(descs, descs_length);
 	descs = NULL;
 	descs_length = 0;
@@ -914,6 +914,6 @@ JNICALL Java_rnati_NativeInterface_frontendDescsFreeNative(JNIEnv *env, jobject 
 
 JNIEXPORT
 void
-JNICALL Java_rnati_NativeInterface_closeFrontendNative(JNIEnv *env, jobject obj) {
+JNICALL Java_gdsl_rnati_NativeInterface_closeFrontendNative(JNIEnv *env, jobject obj) {
 	gdsl_multiplex_frontend_close(&frontend);
 }
