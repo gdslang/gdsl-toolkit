@@ -37,6 +37,7 @@ struct frontend {
 		obj_t (*translate)(state_t state, obj_t insn);
 		obj_t *(*pretty)(state_t state, obj_t rreil);
 		void (*rreil_cif_userdata_set)(state_t s, obj_t userdata);
+		obj_t (*rreil_cif_userdata_get)(state_t s);
 		obj_t (*rreil_convert_sem_stmts)(state_t s, callbacks_t cbs, obj_t stmts);
 	} translator;
 

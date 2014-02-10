@@ -122,6 +122,7 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 	ADD_FUNCTION(translator, translate)
 	ADD_FUNCTION_GENERIC(translator, pretty, "gdsl_rreil_pretty")
 	ADD_FUNCTION(translator, rreil_cif_userdata_set)
+	ADD_FUNCTION(translator, rreil_cif_userdata_get)
 	ADD_FUNCTION(translator, rreil_convert_sem_stmts)
 
 	if(error)

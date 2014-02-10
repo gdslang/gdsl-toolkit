@@ -14,11 +14,13 @@ struct userdata {
 	jobject obj;
 };
 
+struct frontend frontend;
+
 static jobject java_method_call(state_t state, char *name, int numargs, ...) {
 	if(numargs > 4)
 		return NULL; //Todo: Handle error
 
-	struct userdata *ud = (struct userdata*)gdsl_rreil_cif_userdata_get(state);
+	struct userdata *ud = (struct userdata*)frontend.translator.rreil_cif_userdata_get(state);
 
 	jclass class = (*ud->env)->GetObjectClass(ud->env, ud->obj);
 
@@ -83,7 +85,7 @@ static jobject java_method_call(state_t state, char *name, int numargs, ...) {
 }
 
 static jobject java_long_create(state_t state, long int x) {
-	struct userdata *ud = (struct userdata*)gdsl_rreil_cif_userdata_get(state);
+	struct userdata *ud = (struct userdata*)frontend.translator.rreil_cif_userdata_get(state);
 
 	jclass class = (*ud->env)->FindClass(ud->env, "java/lang/Long");
 	jmethodID method_id = (*ud->env)->GetMethodID(ud->env, class, "<init>", "(J)V");
@@ -93,7 +95,7 @@ static jobject java_long_create(state_t state, long int x) {
 }
 
 static jstring java_string_create(state_t state, char *x) {
-	struct userdata *ud = (struct userdata*)gdsl_rreil_cif_userdata_get(state);
+	struct userdata *ud = (struct userdata*)frontend.translator.rreil_cif_userdata_get(state);
 	jstring str = (*ud->env)->NewStringUTF(ud->env, x);
 	return str;
 }
@@ -691,8 +693,6 @@ static obj_t sem_stmts_init(state_t state, obj_t nothing) {
 	jobject ret = java_method_call(state, "sem_stmts_init", 0);
 	return (obj_t)ret;
 }
-
-struct frontend frontend;
 
 JNIEXPORT
 jobject
