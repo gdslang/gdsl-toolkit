@@ -1,7 +1,7 @@
 package gdsl.rreil.statement;
 
 import gdsl.rreil.Address;
-import gdsl.rreil.expression.Expression;
+import gdsl.rreil.linear.LinearExpression;
 import gdsl.rreil.statement.Statement;
 
 public class StoreStatement extends Statement {
@@ -17,13 +17,13 @@ public class StoreStatement extends Statement {
 		return address;
 	}
 
-	protected Expression rhs;
+	protected LinearExpression rhs;
 
-	public Expression getRhs() {
+	public LinearExpression getRhs() {
 		return rhs;
 	}
 
-	public StoreStatement(long size, Address address, Expression rhs) {
+	public StoreStatement(long size, Address address, LinearExpression rhs) {
 		this.size = size;
 		this.address = address;
 		this.rhs = rhs;

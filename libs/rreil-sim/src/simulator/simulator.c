@@ -376,7 +376,7 @@ static enum simulator_error simulator_statement_simulate(struct context *context
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
-			struct data data = simulator_expr_simulate(context, statement->store.rhs, statement->store.size);
+			struct data data = simulator_linear_simulate(context, statement->store.rhs, statement->store.size);
 			if(data.bit_length % 8) {
 				printf("Warning: Unable to store unaligned (8 Bit) data.\n");
 				error |= SIMULATOR_ERROR_UNALIGNED_STORE;

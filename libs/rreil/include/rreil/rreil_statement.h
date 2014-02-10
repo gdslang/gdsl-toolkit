@@ -47,7 +47,7 @@ struct rreil_statement {
 		struct {
 			long long unsigned int size;
 			struct rreil_address *address;
-			struct rreil_expr *rhs;
+			struct rreil_linear *rhs;
 		} store;
 		struct {
 			struct rreil_sexpr *cond;

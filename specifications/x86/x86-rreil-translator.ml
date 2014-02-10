@@ -344,7 +344,7 @@ val write-extend avx-encoded sz a b =
    case a of
       SEM_WRITE_MEM x:
          #store x (SEM_LIN{size=sz,opnd1=b})
-	 segmented-store sz x (SEM_SEXPR (SEM_SEXPR_LIN b)) x.segment
+	 segmented-store sz x b x.segment
     | SEM_WRITE_VAR x: do
         #if mode64 then
 	#  mov 32 (semantic-register-of EAX) (imm 100)
@@ -2294,6 +2294,7 @@ val translate-x86 insn = do
   semantics insn
 end
 
+#val translate insn = example_lin
 val translate insn = do
   update@{stack=SEM_NIL,tmp=0,lab=0};
   

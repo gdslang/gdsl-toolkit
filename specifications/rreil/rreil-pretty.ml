@@ -58,7 +58,7 @@ val rreil-show-stmt s =
   case s of
      SEM_ASSIGN x: rreil-show-var x.lhs +++ " =:" +++ show-int (rreil-size-by-expr-type x.size x.rhs) +++ " " +++ rreil-show-expr x.size x.rhs 
    | SEM_LOAD x: rreil-show-var x.lhs +++ " =:" +++ show-int x.size +++ " " +++ rreil-show-ptrderef x.size x.address
-   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " =:" +++ show-int (rreil-size-by-expr-type x.size x.rhs) +++ " " +++ rreil-show-expr x.size x.rhs
+   | SEM_STORE x: "*" +++ rreil-show-address x.address +++ " =:" +++ show-int x.size +++ " " +++ rreil-show-linear x.rhs
    | SEM_ITE x: "if (" +++ rreil-show-sexpr 1 x.cond +++ ") {\n" +++ rreil-show-stmts x.then_branch +++ "} else {\n" +++ rreil-show-stmts x.else_branch +++ "}"
    | SEM_WHILE x: "while (" +++ rreil-show-sexpr 1 x.cond +++ ") {\n" +++ rreil-show-stmts x.body +++ "}"
    | SEM_CBRANCH x: "if (" +++ rreil-show-sexpr 1 x.cond +++ ") goto " +++ rreil-show-address x.target-true +++ " else goto " +++ rreil-show-address x.target-false

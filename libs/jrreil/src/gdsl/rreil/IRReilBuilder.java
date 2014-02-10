@@ -296,7 +296,7 @@ public interface IRReilBuilder {
 
 	IStatement sem_load(long size, IVariable lhs, IAddress address);
 
-	IStatement sem_store(long size, IAddress address, IExpression rhs);
+	IStatement sem_store(long size, IAddress address, ILinearExpression rhs);
 
 	IStatement sem_ite(ISimpleExpression cond, IRReilCollection<IStatement> then_branch,
 			IRReilCollection<IStatement> else_branch);

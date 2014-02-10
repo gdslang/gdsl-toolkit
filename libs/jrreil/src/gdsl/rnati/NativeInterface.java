@@ -549,7 +549,7 @@ public class NativeInterface {
 
 	private Object sem_store(Object size, Object address, Object rhs) {
 		return builder.sem_store((Long) size, (IAddress) address,
-				(IExpression) rhs);
+				(ILinearExpression) rhs);
 	}
 
 	@SuppressWarnings("unchecked")

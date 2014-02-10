@@ -682,8 +682,8 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	@Override
-	public Statement sem_store(long size, IAddress lhs, IExpression rhs) {
-		return new StoreStatement(size, (Address) lhs, (Expression) rhs);
+	public Statement sem_store(long size, IAddress lhs, ILinearExpression rhs) {
+		return new StoreStatement(size, (Address) lhs, (LinearExpression) rhs);
 	}
 
 	@Override

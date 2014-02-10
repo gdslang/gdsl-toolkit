@@ -316,7 +316,7 @@ void rreil_statement_print(struct rreil_statement *statement) {
 			printf("*(");
 			rreil_address_print(statement->store.address);
 			printf(") =:%llu ", statement->store.size);
-			rreil_expr_print(statement->store.rhs);
+			rreil_linear_print(statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {

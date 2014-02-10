@@ -262,7 +262,7 @@ struct rreil_statement *rreil_statement_copy(struct rreil_statement *statement) 
 		case RREIL_STATEMENT_TYPE_STORE: {
 			statement_copy->store.size = statement->store.size;
 			statement_copy->store.address = rreil_address_copy(statement->store.address);
-			statement_copy->store.rhs = rreil_expr_copy(statement->store.rhs);
+			statement_copy->store.rhs = rreil_linear_copy(statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
