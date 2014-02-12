@@ -736,7 +736,7 @@ public class DefaultRReilBuilder implements IRReilBuilder {
 	}
 
 	/*
-	 * sem_branch_hint
+	 * branch_hint
 	 */
 
 	@Override

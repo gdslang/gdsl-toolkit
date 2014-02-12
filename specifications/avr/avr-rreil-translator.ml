@@ -421,7 +421,7 @@ val sem-lac bo = do
 
 	andb size t (var t) (var zv);
 
-	store size (address ptrsz z) (lin (var t))
+	store size (address ptrsz z) (var t)
 end
 
 val sem-las-lat bw bo = do
@@ -436,7 +436,7 @@ val sem-las-lat bw bo = do
   r <- mktemp;
 	bw size r (var zv) rd;
 
-	store size (address ptrsz z) (lin (var r));
+	store size (address ptrsz z) (var r);
 	write bo.second (var zv)
 end
 
@@ -742,7 +742,7 @@ val sem-spm uo = do
 	pmptr <- mktemp;
   add ptrsz pmptr ptr (var pm);
 
-  store r.size (address ptrsz (var pmptr)) (lin (var r))
+  store r.size (address ptrsz (var pmptr)) (var r)
 end
 
 val sem-st-std-sts bo = do
@@ -751,7 +751,7 @@ val sem-st-std-sts bo = do
   rr <- rval Unsigned bo.second;
   size <- return (sizeof bo.second);
 
-  store size (address ptrsz ptr) (lin rr)  
+  store size (address ptrsz ptr) rr  
 end
 
 val sem-sub-subi bo = sem-sub '1' bo
@@ -784,14 +784,14 @@ val sem-xch bo = do
   t <- mktemp;
   load size t zsz z;
 
-  store size (address zsz z) (lin rd);
+  store size (address zsz z) rd;
 
   write bo.second (var t)
 end
 
 val ps-push size x = do
   sp <- return (semantic-register-of SP);
-	store size (address sp.size (var sp)) (lin x);
+	store size (address sp.size (var sp)) x;
 	sub sp.size sp (var sp) (imm (/p size 8))
 end
 
