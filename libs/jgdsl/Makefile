@@ -16,6 +16,8 @@ CFLAGS=-std=c11 -g3 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(IN
 LIBRARY=libjgdsl.so
 JAR=jgdsl.jar
 
+C_SOURCES=src/gdsl_NativeInterface.c src/gdsl_Gdsl.c
+
 all: pre-build $(LIBRARY) $(JAR)
 
 SPRE=src
@@ -25,8 +27,8 @@ BDIRS=$(BPRE)
 pre-build:
 	mkdir -p $(BDIRS)
 
-$(LIBRARY): src/gdsl_NativeInterface.c
-	$(CC) $(CFLAGS) $< $(LIBFLAGS) -o $@
+$(LIBRARY): $(C_SOURCES)
+	$(CC) $(CFLAGS) $(C_SOURCES) $(LIBFLAGS) -o $@
 #	$(CC) $(CFLAGS) -Wl,-soname,$(LIBRARY) $< $(LIBFLAGS) -o $@
 
 JSOURCES=$(shell find src/ -type f -name '*.java')

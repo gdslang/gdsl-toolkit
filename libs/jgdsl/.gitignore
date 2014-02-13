@@ -1,6 +1,8 @@
 /.classpath
 /.externalToolBuilders/*
+/.settings/*
 /build/*
 /.project
 /libjgdsl.so
 /jgdsl.jar
+/hs_err_*

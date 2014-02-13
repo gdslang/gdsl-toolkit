@@ -890,7 +890,6 @@ JNIEXPORT
 void
 JNICALL Java_gdsl_NativeInterface_useFrontendNative(JNIEnv *env, jobject obj, jlong frontend_idx) {
 //  const char *frontend_str_n = (*env)->GetStringUTFChars(env, frontend_str, 0);
-
 	if(!descs || frontend_idx >= descs_length)
 		THROW_RUNTIME("Invalid frontend")
 
