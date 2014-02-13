@@ -122,8 +122,6 @@ tools/x86-test-stats-runner/src/x86_test_stats_runner-main.o
 /libgdsl.so
 /libs/gdsl-multiplex/libgdsl-multiplex.a
 /libs/gdwrap/libgdwrap.a
-/libs/jrreil/jrreil.jar
-/libs/jrreil/libjrreil.so
 /libs/readhex/libreadhex.a
 /libs/rreil-sim/librreil-sim.a
 /libs/rreil/librreil.a

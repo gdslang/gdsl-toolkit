@@ -1,4 +1,4 @@
-import gdsl.rnati.*;
+import gdsl.NativeInterface;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
@@ -7,10 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Scanner;
-
-import gdsl.rnati.NativeInterface;
 
 public class Program {
 	/**

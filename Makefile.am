@@ -355,9 +355,9 @@ JSOURCES = src/gdsl/rreil/DefaultLimitedVariableCollection.java \
            src/gdsl/rreil/exception/x86/X86Exception.java \
            src/gdsl/rreil/exception/GenericArchException.java \
            src/gdsl/rreil/IBranchHint.java \
-           src/gdsl/rnati/RReilTranslateException.java \
-           src/gdsl/rnati/GdslDecodeException.java \
-           src/gdsl/rnati/NativeInterface.java \
+           src/gdsl/RReilTranslateException.java \
+           src/gdsl/GdslDecodeException.java \
+           src/gdsl/NativeInterface.java \
            src/Program.java
 
 SPRE=src
@@ -546,10 +546,10 @@ endif
 endif
 
 if HAVE_RREIL
-libjrreil_la_SOURCES = $(srcdir)/libs/jrreil/src/rnati_NativeInterface.c
+libjrreil_la_SOURCES = $(srcdir)/libs/jrreil/src/gdsl_NativeInterface.c
 libjrreil_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
 libjrreil_la_LIBADD += libgdsl-multiplex.la
-private_headers += $(srcdir)/libs/jrreil/src/rnati_NativeInterface.h
+private_headers += $(srcdir)/libs/jrreil/src/gdsl_NativeInterface.h
 endif
 
 if HAVE_RREIL

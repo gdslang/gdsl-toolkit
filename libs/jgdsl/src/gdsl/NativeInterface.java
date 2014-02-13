@@ -1,4 +1,4 @@
-package gdsl.rnati;
+package gdsl;
 
 import gdsl.rreil.IAddress;
 import gdsl.rreil.IBranchHint;
@@ -21,7 +21,7 @@ public class NativeInterface {
 	private boolean backendSet = false;
 
 	public NativeInterface(IRReilBuilder builder) {
-		System.loadLibrary("jrreil");
+		System.loadLibrary("jgdsl");
 
 		this.builder = builder;
 	}

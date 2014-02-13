@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <gdsl.h>
 #include <gdsl_multiplex.h>
-#include "rnati_NativeInterface.h"
+#include "gdsl_NativeInterface.h"
 
 //gcc -std=c99 -fPIC -shared -Wl,-soname,libjgdrr.so -I/usr/lib/jvm/java-6-openjdk-amd64/include -I/usr/lib/jvm/java-7-openjdk-amd64/include -I../.. -I../../include -o ../bin/libjgdrr.so rnati_NativeInterface.c ../../gdrr/Debug/libgdrr.a -L../../lib -lgdsl-x86 -lavcall
 //echo "48 83 ec 08" | java -ss134217728 -Djava.library.path=. Program
@@ -696,7 +696,7 @@ static obj_t sem_stmts_init(state_t state, obj_t nothing) {
 
 JNIEXPORT
 jobject
-JNICALL Java_gdsl_rnati_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj, jbyteArray input) {
+JNICALL Java_gdsl_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj, jbyteArray input) {
 	if(input == NULL) {
 		jclass exp = (*env)->FindClass(env, "java/lang/IllegalArgumentException");
 		(*env)->ThrowNew(env, exp, "Input must not be null.");
@@ -863,7 +863,7 @@ size_t descs_length = 0;
 
 JNIEXPORT
 jobjectArray
-JNICALL Java_gdsl_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) {
+JNICALL Java_gdsl_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) {
 	descs_length = gdsl_multiplex_frontends_list(&descs);
 
 	jobjectArray jfrontends = (*env)->NewObjectArray(env, descs_length, (*env)->FindClass(env, "java/lang/String"),
@@ -888,7 +888,7 @@ JNICALL Java_gdsl_rnati_NativeInterface_getFrontendsNative(JNIEnv *env, jobject 
 
 JNIEXPORT
 void
-JNICALL Java_gdsl_rnati_NativeInterface_useFrontendNative(JNIEnv *env, jobject obj, jlong frontend_idx) {
+JNICALL Java_gdsl_NativeInterface_useFrontendNative(JNIEnv *env, jobject obj, jlong frontend_idx) {
 //  const char *frontend_str_n = (*env)->GetStringUTFChars(env, frontend_str, 0);
 
 	if(!descs || frontend_idx >= descs_length)
@@ -906,7 +906,7 @@ JNICALL Java_gdsl_rnati_NativeInterface_useFrontendNative(JNIEnv *env, jobject o
 
 JNIEXPORT
 void
-JNICALL Java_gdsl_rnati_NativeInterface_frontendDescsFreeNative(JNIEnv *env, jobject obj) {
+JNICALL Java_gdsl_NativeInterface_frontendDescsFreeNative(JNIEnv *env, jobject obj) {
 	gdsl_multiplex_descs_free(descs, descs_length);
 	descs = NULL;
 	descs_length = 0;
@@ -914,6 +914,6 @@ JNICALL Java_gdsl_rnati_NativeInterface_frontendDescsFreeNative(JNIEnv *env, job
 
 JNIEXPORT
 void
-JNICALL Java_gdsl_rnati_NativeInterface_closeFrontendNative(JNIEnv *env, jobject obj) {
+JNICALL Java_gdsl_NativeInterface_closeFrontendNative(JNIEnv *env, jobject obj) {
 	gdsl_multiplex_frontend_close(&frontend);
 }

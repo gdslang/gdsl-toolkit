@@ -1,0 +1,6 @@
+/.classpath
+/.externalToolBuilders/*
+/build/*
+/.project
+/libjgdsl.so
+/jgdsl.jar

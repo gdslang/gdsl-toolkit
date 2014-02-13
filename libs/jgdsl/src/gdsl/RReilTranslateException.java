@@ -1,28 +1,27 @@
-package gdsl.rnati;
+package gdsl;
 
-public class GdslDecodeException extends RuntimeException {
+public class RReilTranslateException extends RuntimeException {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public GdslDecodeException() {
+	public RReilTranslateException() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public GdslDecodeException(String message) {
+	public RReilTranslateException(String message) {
 		super(message);
 		// TODO Auto-generated constructor stub
 	}
 
-	public GdslDecodeException(Throwable cause) {
+	public RReilTranslateException(Throwable cause) {
 		super(cause);
 		// TODO Auto-generated constructor stub
 	}
 
-	public GdslDecodeException(String message, Throwable cause) {
+	public RReilTranslateException(String message, Throwable cause) {
 		super(message, cause);
 		// TODO Auto-generated constructor stub
 	}
-
 }

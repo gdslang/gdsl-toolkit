@@ -13,8 +13,8 @@ endif
 
 CFLAGS=-std=c11 -g3 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
-LIBRARY=libjrreil.so
-JAR=jrreil.jar
+LIBRARY=libjgdsl.so
+JAR=jgdsl.jar
 
 all: pre-build $(LIBRARY) $(JAR)
 
@@ -25,7 +25,7 @@ BDIRS=$(BPRE)
 pre-build:
 	mkdir -p $(BDIRS)
 
-$(LIBRARY): src/rnati_NativeInterface.c
+$(LIBRARY): src/gdsl_NativeInterface.c
 	$(CC) $(CFLAGS) $< $(LIBFLAGS) -o $@
 #	$(CC) $(CFLAGS) -Wl,-soname,$(LIBRARY) $< $(LIBFLAGS) -o $@
 
