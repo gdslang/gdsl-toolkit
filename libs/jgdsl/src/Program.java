@@ -2,19 +2,13 @@ import gdsl.Frontend;
 import gdsl.Gdsl;
 import gdsl.decoder.Decoder;
 import gdsl.decoder.Instruction;
-import gdsl.rreil.BuilderBackend;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
 import gdsl.translator.Translator;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Scanner;
 
 public class Program {
   /**
@@ -36,7 +30,7 @@ public class Program {
     buffer.put((byte) 0);
     buffer.put((byte) 0);
 
-    Decoder dec = new Decoder(gdsl, buffer);
+    Decoder dec = new Decoder(gdsl);
     Instruction insn = dec.decodeOne();
     System.out.println(insn);
 

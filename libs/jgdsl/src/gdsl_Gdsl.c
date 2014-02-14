@@ -123,12 +123,12 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne(JNIEnv *env, jobject this, jlon
 	return (jlong)insn;
 }
 
-JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getIpOffset(JNIEnv *, jobject, jlong, jlong) {
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getIpOffset(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
 
 	if(setjmp(*frontend->generic.err_tgt(state)))
-	THROW_GDSL_ERROR()
+	THROW_GDSL_ERROR(0)
 
 	return (jlong)frontend->generic.get_ip_offset(state);
 }
