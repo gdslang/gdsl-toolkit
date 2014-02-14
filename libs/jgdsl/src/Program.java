@@ -1,11 +1,12 @@
 import gdsl.Frontend;
 import gdsl.Gdsl;
-import gdsl.NativeInterface;
 import gdsl.decoder.Decoder;
 import gdsl.decoder.Instruction;
+import gdsl.rreil.BuilderBackend;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
+import gdsl.translator.Translator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,23 +28,37 @@ public class Program {
     for (Frontend frontend : frontends) {
       System.out.println(frontend);
     }
-    
+
     gdsl.setFrontend(frontends[0]);
-    
+    gdsl.initFrontend();
+
     ByteBuffer buffer = ByteBuffer.allocateDirect(2);
-    buffer.put((byte)0);
-    buffer.put((byte)0);
-    
+    buffer.put((byte) 0);
+    buffer.put((byte) 0);
+
     Decoder dec = new Decoder(gdsl, buffer);
     Instruction insn = dec.decodeOne();
     System.out.println(insn);
-    
+
     int operands = insn.operands();
     System.out.println("Number of operands: " + operands);
     for (int i = 0; i < operands; i++) {
-      System.out.println(insn.OperandToString(i));
+      System.out.println("Operand " + i + ": " + insn.OperandToString(i));
+    }
+    System.out.println("-----");
+
+    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
+
+    IRReilCollection<IStatement> stmts = t.translate(insn);
+
+    for (int i = 0; i < stmts.size(); i++) {
+      System.out.println(stmts.get(i));
     }
 
+    gdsl.resetHeap();
+    gdsl.destroyFrontend();
+    
+    System.out.println("~~~ Done.");
 
 //		BufferedReader reader = new BufferedReader(new InputStreamReader(
 //				System.in));

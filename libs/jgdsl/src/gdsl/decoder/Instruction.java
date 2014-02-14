@@ -5,16 +5,22 @@ import gdsl.Gdsl;
 public class Instruction {
   private long insnPtr = 0;
   private Gdsl gdsl;
-
+  private long size;
+  
   public long getInsnPtr () {
     if (insnPtr == 0)
       throw new NullPointerException();
     return insnPtr;
   }
+  
+  public long getSize () {
+    return size;
+  }
 
-  public Instruction (Gdsl gdsl, long insnPtr) {
+  public Instruction (Gdsl gdsl, long insnPtr, long size) {
     this.gdsl = gdsl;
     this.insnPtr = insnPtr;
+    this.size = size;
   }
 
   @Override public String toString () {

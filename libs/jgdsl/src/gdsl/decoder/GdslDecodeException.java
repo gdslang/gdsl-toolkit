@@ -1,6 +1,8 @@
 package gdsl.decoder;
 
-public class GdslDecodeException extends RuntimeException {
+import gdsl.GdslException;
+
+public class GdslDecodeException extends GdslException {
 	/**
 	 * 
 	 */

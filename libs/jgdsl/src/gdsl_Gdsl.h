@@ -47,6 +47,30 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode
 JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne
   (JNIEnv *, jobject, jlong, jlong);
 
+/*
+ * Class:     gdsl_Gdsl
+ * Method:    getIpOffset
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getIpOffset
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     gdsl_Gdsl
+ * Method:    resetHeap
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_gdsl_Gdsl_resetHeap
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     gdsl_Gdsl
+ * Method:    destroyFrontend
+ * Signature: (JJ)V
+ */
+JNIEXPORT void JNICALL Java_gdsl_Gdsl_destroyFrontend
+  (JNIEnv *, jobject, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

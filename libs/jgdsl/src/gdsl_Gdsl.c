@@ -19,6 +19,12 @@
 		return RET;\
 }
 
+#define THROW_GDSL_ERROR(RET) {\
+		jclass exp = (*env)->FindClass(env, "gdsl/GdslException");\
+		(*env)->ThrowNew(env, exp, frontend->generic.get_error_message(state));\
+		return RET;\
+}
+
 JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative(JNIEnv *env, jobject this) {
 	struct frontend_desc *descs = NULL;
 	size_t descs_length = gdsl_multiplex_frontends_list(&descs);
@@ -97,6 +103,9 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode(JNIEnv *env, jobject this, jlong f
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
 
+	if(setjmp(*frontend->generic.err_tgt(state)))
+	THROW_GDSL_ERROR()
+
 	frontend->generic.set_code(state, (char*)buffer, (uint64_t)size, (uint64_t)base);
 }
 
@@ -104,6 +113,45 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne(JNIEnv *env, jobject this, jlon
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
 
+	if(setjmp(*frontend->generic.err_tgt(state))) {
+		jclass exp = (*env)->FindClass(env, "gdsl/decoder/GdslDecodeException");
+		(*env)->ThrowNew(env, exp, "Decode failed");
+		return 0;
+	}
+
 	obj_t insn = frontend->decoder.decode(state, frontend->decoder.config_default(state));
 	return (jlong)insn;
+}
+
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getIpOffset(JNIEnv *, jobject, jlong, jlong) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+
+	if(setjmp(*frontend->generic.err_tgt(state)))
+	THROW_GDSL_ERROR()
+
+	return (jlong)frontend->generic.get_ip_offset(state);
+}
+
+JNIEXPORT void JNICALL Java_gdsl_Gdsl_resetHeap(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+
+	if(setjmp(*frontend->generic.err_tgt(state)))
+	THROW_GDSL_ERROR()
+
+	frontend->generic.reset_heap(state);
+}
+
+JNIEXPORT void JNICALL Java_gdsl_Gdsl_destroyFrontend(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+
+	if(setjmp(*frontend->generic.err_tgt(state)))
+	THROW_GDSL_ERROR()
+
+	frontend->generic.destroy(state);
+
+	gdsl_multiplex_frontend_close(frontend);
+	free(frontend);
 }

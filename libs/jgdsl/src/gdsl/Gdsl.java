@@ -11,7 +11,7 @@ public class Gdsl {
 
   public long getGdslStatePtr () {
     if (gdslStatePtr == 0)
-      throw new RuntimeException("Gdsl not initialized");
+      throw new RuntimeException("Gdsl Frontend not initialized");
     return gdslStatePtr;
   }
   
@@ -43,7 +43,7 @@ public class Gdsl {
     frontendPtr = getFrontendPtr(frontend);
   }
 
-  public void init () {
+  public void initFrontend () {
     if (gdslStatePtr == 0)
       gdslStatePtr = init(getFrontendPtr());
   }
@@ -58,6 +58,20 @@ public class Gdsl {
   public long decodeOne () {
     return decodeOne(getFrontendPtr(), getGdslStatePtr());
   }
+  
+  public long getIpOffset() {
+    return getIpOffset(getFrontendPtr(), getGdslStatePtr());
+  }
+  
+  public void resetHeap() {
+    resetHeap(getFrontendPtr(), getGdslStatePtr());
+  }
+  
+  public void destroyFrontend() {
+    destroyFrontend(getFrontendPtr(), getGdslStatePtr());
+    gdslStatePtr = 0;
+    frontendPtr = 0;
+  }
 
   private native Frontend[] getFrontendsNative ();
 
@@ -68,4 +82,10 @@ public class Gdsl {
   private native void setCode (long frontendPtr, long gdslStatePtr, ByteBuffer buffer, long base);
 
   private native long decodeOne (long frontendPtr, long gdslStatePtr);
+  
+  private native long getIpOffset(long frontendPtr, long gdslStatePtr);
+  
+  private native void resetHeap(long frontendPtr, long gdslStatePtr);
+  
+  private native void destroyFrontend(long frontendPtr, long gdslStatePtr);
 }

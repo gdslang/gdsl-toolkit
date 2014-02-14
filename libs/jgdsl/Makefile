@@ -16,7 +16,7 @@ CFLAGS=-std=c11 -g3 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(IN
 LIBRARY=libjgdsl.so
 JAR=jgdsl.jar
 
-C_SOURCES=src/gdsl_NativeInterface.c src/gdsl_Gdsl.c src/gdsl_decoder_Instruction.c
+C_SOURCES=src/gdsl_rreil_BuilderBackend.c src/gdsl_Gdsl.c src/gdsl_decoder_Instruction.c
 
 all: pre-build $(LIBRARY) $(JAR)
 

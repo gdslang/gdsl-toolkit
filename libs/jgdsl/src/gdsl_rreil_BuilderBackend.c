@@ -4,23 +4,28 @@
 #include <stdint.h>
 #include <gdsl.h>
 #include <gdsl_multiplex.h>
-#include "gdsl_NativeInterface.h"
+#include "gdsl_rreil_BuilderBackend.h"
 
-//gcc -std=c99 -fPIC -shared -Wl,-soname,libjgdrr.so -I/usr/lib/jvm/java-6-openjdk-amd64/include -I/usr/lib/jvm/java-7-openjdk-amd64/include -I../.. -I../../include -o ../bin/libjgdrr.so rnati_NativeInterface.c ../../gdrr/Debug/libgdrr.a -L../../lib -lgdsl-x86 -lavcall
-//echo "48 83 ec 08" | java -ss134217728 -Djava.library.path=. Program
+#define THROW_RUNTIME(MSG) {\
+		jclass exp = (*env)->FindClass(env, "java/lang/RuntimeException");\
+		(*env)->ThrowNew(env, exp, MSG);\
+		return;\
+}
 
 struct userdata {
 	JNIEnv *env;
 	jobject obj;
 };
 
-struct frontend frontend;
+/*
+ * Todo: Horrible hack
+ */
+void *(*rreil_cif_userdata_get)(state_t state);
 
 static jobject java_method_call(state_t state, char *name, int numargs, ...) {
-	if(numargs > 4)
-		return NULL; //Todo: Handle error
+	if(numargs > 4) return NULL; //Todo: Handle error
 
-	struct userdata *ud = (struct userdata*)frontend.translator.rreil_cif_userdata_get(state);
+	struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
 
 	jclass class = (*ud->env)->GetObjectClass(ud->env, ud->obj);
 
@@ -85,7 +90,7 @@ static jobject java_method_call(state_t state, char *name, int numargs, ...) {
 }
 
 static jobject java_long_create(state_t state, long int x) {
-	struct userdata *ud = (struct userdata*)frontend.translator.rreil_cif_userdata_get(state);
+	struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
 
 	jclass class = (*ud->env)->FindClass(ud->env, "java/lang/Long");
 	jmethodID method_id = (*ud->env)->GetMethodID(ud->env, class, "<init>", "(J)V");
@@ -95,7 +100,7 @@ static jobject java_long_create(state_t state, long int x) {
 }
 
 static jstring java_string_create(state_t state, char *x) {
-	struct userdata *ud = (struct userdata*)frontend.translator.rreil_cif_userdata_get(state);
+	struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
 	jstring str = (*ud->env)->NewStringUTF(ud->env, x);
 	return str;
 }
@@ -103,7 +108,7 @@ static jstring java_string_create(state_t state, char *x) {
 // sem_id
 static obj_t shared(state_t state, int_t con) {
 	jobject ret = NULL;
-	switch (con) {
+	switch(con) {
 		case CON_FLOATING_FLAGS: {
 			ret = java_method_call(state, "shared_floating_flags", 0);
 			break;
@@ -404,7 +409,7 @@ static obj_t arch(state_t state, int_t con) {
 // sem_exception
 static obj_t exception_shared(state_t state, int_t con) {
 	jobject ret = NULL;
-	switch (con) {
+	switch(con) {
 		case CON_SEM_DIVISION_BY_ZERO: {
 			ret = java_method_call(state, "exception_shared_division_by_zero", 0);
 			break;
@@ -415,13 +420,13 @@ static obj_t exception_shared(state_t state, int_t con) {
 #ifdef GDSL_X86
 static obj_t exception_arch(state_t state, int_t con) {
 	jobject ret;
-		switch(con) {
-			case CON_SEM_DIVISION_OVERFLOW: {
-				ret = java_method_call(state, "exception_x86_division_overflow", 0);
-				break;
-			}
+	switch(con) {
+		case CON_SEM_DIVISION_OVERFLOW: {
+			ret = java_method_call(state, "exception_x86_division_overflow", 0);
+			break;
 		}
-		return (obj_t)ret;
+	}
+	return (obj_t)ret;
 }
 #else
 static obj_t exception_arch(state_t state, int_t con) {
@@ -480,33 +485,27 @@ static obj_t sem_sexpr_arb(state_t state, obj_t nothing) {
 
 // sem_expr_cmp
 static obj_t sem_cmpeq(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmpeq", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_cmpeq", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_cmpneq(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmpneq", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_cmpneq", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_cmples(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmples", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_cmples", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_cmpleu(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmpleu", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_cmpleu", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_cmplts(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmplts", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_cmplts", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_cmpltu(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_cmpltu", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_cmpltu", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 
@@ -516,68 +515,55 @@ static obj_t sem_sexpr(state_t state, obj_t opnd1) {
 	return (obj_t)ret;
 }
 static obj_t sem_mul(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_mul", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_mul", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_div(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_div", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_div", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_divs(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_divs", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_divs", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_mod(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_mod", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_mod", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_mods(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_mod", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_mod", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_shl(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_shl", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_shl", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_shr(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_shr", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_shr", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_shrs(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_shrs", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_shrs", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_and(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_and", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_and", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_or(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_or", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_or", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_xor(state_t state, obj_t opnd1, obj_t opnd2) {
-	jobject ret = java_method_call(state, "sem_xor", 2, (jobject)opnd1,
-			(jobject)opnd2);
+	jobject ret = java_method_call(state, "sem_xor", 2, (jobject)opnd1, (jobject)opnd2);
 	return (obj_t)ret;
 }
 static obj_t sem_sx(state_t state, int_t fromsize, obj_t opnd1) {
-	jobject ret = java_method_call(state, "sem_sx", 2,
-			java_long_create(state, (long int)fromsize), (jobject)opnd1);
+	jobject ret = java_method_call(state, "sem_sx", 2, java_long_create(state, (long int)fromsize), (jobject)opnd1);
 	return (obj_t)ret;
 }
 static obj_t sem_zx(state_t state, int_t fromsize, obj_t opnd1) {
-	jobject ret = java_method_call(state, "sem_zx", 2,
-			java_long_create(state, (long int)fromsize), (jobject)opnd1);
+	jobject ret = java_method_call(state, "sem_zx", 2, java_long_create(state, (long int)fromsize), (jobject)opnd1);
 	return (obj_t)ret;
 }
 static obj_t sem_throw(state_t state, obj_t exception) {
@@ -587,8 +573,8 @@ static obj_t sem_throw(state_t state, obj_t exception) {
 
 // sem_varl
 static obj_t sem_varl(state_t state, obj_t id, int_t offset, int_t size) {
-	jobject ret = java_method_call(state, "sem_varl", 3, (jobject)id,
-			java_long_create(state, (long int)offset), java_long_create(state, (long int)size));
+	jobject ret = java_method_call(state, "sem_varl", 3, (jobject)id, java_long_create(state, (long int)offset),
+			java_long_create(state, (long int)size));
 	return (obj_t)ret;
 }
 
@@ -605,7 +591,7 @@ static obj_t sem_varls_init(state_t state, obj_t nothing) {
 // sem_flop
 static obj_t sem_flop(state_t state, int_t con) {
 	jobject ret;
-	switch (con) {
+	switch(con) {
 		case CON_SEM_FADD: {
 			ret = java_method_call(state, "sem_flop_fadd", 0);
 			break;
@@ -624,7 +610,8 @@ static obj_t sem_flop(state_t state, int_t con) {
 
 // sem_stmt
 static obj_t sem_assign(state_t state, int_t size, obj_t lhs, obj_t rhs) {
-	jobject ret = java_method_call(state, "sem_assign", 3, java_long_create(state, (long)size), (jobject)lhs, (jobject)rhs);
+	jobject ret = java_method_call(state, "sem_assign", 3, java_long_create(state, (long)size), (jobject)lhs,
+			(jobject)rhs);
 	return (obj_t)ret;
 }
 static obj_t sem_load(state_t state, int_t size, obj_t lhs, obj_t address) {
@@ -633,11 +620,11 @@ static obj_t sem_load(state_t state, int_t size, obj_t lhs, obj_t address) {
 	return (obj_t)ret;
 }
 static obj_t sem_store(state_t state, int_t size, obj_t address, obj_t rhs) {
-	jobject ret = java_method_call(state, "sem_store", 3, java_long_create(state, (long)size), (jobject)address, (jobject)rhs);
+	jobject ret = java_method_call(state, "sem_store", 3, java_long_create(state, (long)size), (jobject)address,
+			(jobject)rhs);
 	return (obj_t)ret;
 }
-static obj_t sem_ite(state_t state, obj_t cond, obj_t then_branch,
-		obj_t else_branch) {
+static obj_t sem_ite(state_t state, obj_t cond, obj_t then_branch, obj_t else_branch) {
 	jobject ret = java_method_call(state, "sem_ite", 3, (jobject)cond, (jobject)then_branch, (jobject)else_branch);
 	return (obj_t)ret;
 }
@@ -645,8 +632,7 @@ static obj_t sem_while(state_t state, obj_t cond, obj_t body) {
 	jobject ret = java_method_call(state, "sem_while", 2, (jobject)cond, (jobject)body);
 	return (obj_t)ret;
 }
-static obj_t sem_cbranch(state_t state, obj_t cond, obj_t target_true,
-		obj_t target_false) {
+static obj_t sem_cbranch(state_t state, obj_t cond, obj_t target_true, obj_t target_false) {
 	jobject ret = java_method_call(state, "sem_cbranch", 3, (jobject)cond, (jobject)target_true, (jobject)target_false);
 	return (obj_t)ret;
 }
@@ -659,7 +645,8 @@ static obj_t sem_flop_stmt(state_t state, obj_t op, obj_t flags, obj_t lhs, obj_
 	return (obj_t)ret;
 }
 static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
-	jobject ret = java_method_call(state, "sem_prim", 3, java_string_create(state, (char*)op), (jobject)lhs, (jobject)rhs);
+	jobject ret = java_method_call(state, "sem_prim", 3, java_string_create(state, (char*)op), (jobject)lhs,
+			(jobject)rhs);
 	return (obj_t)ret;
 }
 
@@ -694,34 +681,28 @@ static obj_t sem_stmts_init(state_t state, obj_t nothing) {
 	return (obj_t)ret;
 }
 
-JNIEXPORT
-jobject
-JNICALL Java_gdsl_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject obj, jbyteArray input) {
-	if(input == NULL) {
-		jclass exp = (*env)->FindClass(env, "java/lang/IllegalArgumentException");
-		(*env)->ThrowNew(env, exp, "Input must not be null.");
+JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, jobject this, jlong frontendPtr,
+		jlong gdslStatePtr, jlong insnPtr) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+	obj_t insn = (obj_t)insnPtr;
+
+//	size_t length = (*env)->GetArrayLength(env, input);
+//	char *bytes = (char*)(*env)->GetByteArrayElements(env, input, 0);
+
+//	if(setjmp(*frontend.generic.err_tgt(state))) {
+//		jclass exp = (*env)->FindClass(env, "rnati/GdslDecodeException");
+//		(*env)->ThrowNew(env, exp, "Decode failed.");
+//		return NULL;
+//	}
+//	obj_t insn = frontend.decoder.decode(state, frontend.decoder.config_default(state));
+
+	if(setjmp(*frontend->generic.err_tgt(state))) {
+		jclass exp = (*env)->FindClass(env, "gdsl/translator/RReilTranslateException");
+		(*env)->ThrowNew(env, exp, "Translate failed");
 		return NULL;
 	}
-
-	size_t length = (*env)->GetArrayLength(env, input);
-	char *bytes = (char*)(*env)->GetByteArrayElements(env, input, 0);
-
-	state_t state = frontend.generic.init();
-	frontend.generic.set_code(state, bytes, length, 0);
-
-	if(setjmp(*frontend.generic.err_tgt(state))) {
-		jclass exp = (*env)->FindClass(env, "rnati/GdslDecodeException");
-		(*env)->ThrowNew(env, exp, "Decode failed.");
-		return NULL;
-	}
-	obj_t insn = frontend.decoder.decode(state, frontend.decoder.config_default(state));
-
-	if(setjmp(*frontend.generic.err_tgt(state))) {
-		jclass exp = (*env)->FindClass(env, "rnati/RReilTranslateException");
-		(*env)->ThrowNew(env, exp, "Translate failed.");
-		return NULL;
-	}
-	obj_t rreil = frontend.translator.translate(state, insn);
+	obj_t rreil = frontend->translator.translate(state, insn);
 
 //			__pretty(__rreil_pretty__, r, fmt, 2048);
 //			printf("---------------------------\n");
@@ -729,121 +710,54 @@ JNICALL Java_gdsl_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject 
 
 	//%s/obj_t .(.\(.*\))(void .closure);/config.callbacks.arch.x86.sem_id.\1 = \&\1;/g
 
-	unboxed_sem_id_callbacks_t sem_id_callbacks = {
-			.shared = &shared,
-			.virt_t = &virt_t,
-			.arch = &arch
-	};
+	unboxed_sem_id_callbacks_t sem_id_callbacks = { .shared = &shared, .virt_t = &virt_t, .arch = &arch };
 
-	unboxed_sem_exception_callbacks_t sem_exception_callbacks = {
-			.shared = &exception_shared,
-			.arch = &exception_arch
-	};
+	unboxed_sem_exception_callbacks_t sem_exception_callbacks = { .shared = &exception_shared, .arch = &exception_arch };
 
-	unboxed_sem_address_callbacks_t sem_address_callbacks = {
-			.sem_address_ = &sem_address
-	};
+	unboxed_sem_address_callbacks_t sem_address_callbacks = { .sem_address_ = &sem_address };
 
-	unboxed_sem_var_callbacks_t sem_var_callbacks = {
-			.sem_var_ = &sem_var
-	};
+	unboxed_sem_var_callbacks_t sem_var_callbacks = { .sem_var_ = &sem_var };
 
-	unboxed_sem_linear_callbacks_t sem_linear_callbacks = {
-			.sem_lin_var = &sem_lin_var,
-			.sem_lin_imm = &sem_lin_imm,
-			.sem_lin_add = &sem_lin_add,
-			.sem_lin_sub = &sem_lin_sub,
-			.sem_lin_scale = &sem_lin_scale
-	};
+	unboxed_sem_linear_callbacks_t sem_linear_callbacks = { .sem_lin_var = &sem_lin_var, .sem_lin_imm = &sem_lin_imm,
+			.sem_lin_add = &sem_lin_add, .sem_lin_sub = &sem_lin_sub, .sem_lin_scale = &sem_lin_scale };
 
-	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = {
-			.sem_sexpr_lin = &sem_sexpr_lin,
-			.sem_sexpr_cmp = &sem_sexpr_cmp,
-			.sem_sexpr_arb = &sem_sexpr_arb
-	};
+	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = { .sem_sexpr_lin = &sem_sexpr_lin,
+			.sem_sexpr_cmp = &sem_sexpr_cmp, .sem_sexpr_arb = &sem_sexpr_arb };
 
-	unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = {
-			.sem_cmpeq = &sem_cmpeq,
-			.sem_cmpneq = &sem_cmpneq,
-			.sem_cmples = &sem_cmples,
-			.sem_cmpleu = &sem_cmpleu,
-			.sem_cmplts = &sem_cmplts,
-			.sem_cmpltu = &sem_cmpltu
-	};
+	unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = { .sem_cmpeq = &sem_cmpeq, .sem_cmpneq = &sem_cmpneq,
+			.sem_cmples = &sem_cmples, .sem_cmpleu = &sem_cmpleu, .sem_cmplts = &sem_cmplts, .sem_cmpltu = &sem_cmpltu };
 
-	unboxed_sem_expr_callbacks_t sem_expr_callbacks = {
-			.sem_sexpr = &sem_sexpr,
-			.sem_mul = &sem_mul,
-			.sem_div = &sem_div,
-			.sem_divs = &sem_divs,
-			.sem_mod = &sem_mod,
-			.sem_mods = &sem_mods,
-			.sem_shl = &sem_shl,
-			.sem_shr = &sem_shr,
-			.sem_shrs = &sem_shrs,
-			.sem_and = &sem_and,
-			.sem_or = &sem_or,
-			.sem_xor = &sem_xor,
-			.sem_sx = &sem_sx,
-			.sem_zx = &sem_zx,
-	};
+	unboxed_sem_expr_callbacks_t sem_expr_callbacks = { .sem_sexpr = &sem_sexpr, .sem_mul = &sem_mul, .sem_div = &sem_div,
+			.sem_divs = &sem_divs, .sem_mod = &sem_mod, .sem_mods = &sem_mods, .sem_shl = &sem_shl, .sem_shr = &sem_shr,
+			.sem_shrs = &sem_shrs, .sem_and = &sem_and, .sem_or = &sem_or, .sem_xor = &sem_xor, .sem_sx = &sem_sx, .sem_zx =
+					&sem_zx, };
 
-	unboxed_sem_varl_callbacks_t sem_varl_callbacks = {
-			.sem_varl_ = &sem_varl
-	};
+	unboxed_sem_varl_callbacks_t sem_varl_callbacks = { .sem_varl_ = &sem_varl };
 
-	unboxed_sem_varls_callbacks_t sem_varls_callbacks = {
-			.sem_varls_next = &sem_varls_next,
-			.sem_varls_init = &sem_varls_init
-	};
+	unboxed_sem_varls_callbacks_t sem_varls_callbacks = { .sem_varls_next = &sem_varls_next, .sem_varls_init =
+			&sem_varls_init };
 
-	unboxed_sem_flop_callbacks_t sem_flop_callbacks = {
-			.sem_flop_ = &sem_flop
-	};
+	unboxed_sem_flop_callbacks_t sem_flop_callbacks = { .sem_flop_ = &sem_flop };
 
-	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = {
-			.sem_assign = &sem_assign,
-			.sem_load = &sem_load,
-			.sem_store = &sem_store,
-			.sem_ite = &sem_ite,
-			.sem_while = &sem_while,
-			.sem_cbranch = &sem_cbranch,
-			.sem_branch = &sem_branch,
-			.sem_flop = &sem_flop_stmt,
-			.sem_prim = &sem_prim,
-			.sem_throw = &sem_throw
-	};
+	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = { .sem_assign = &sem_assign, .sem_load = &sem_load, .sem_store =
+			&sem_store, .sem_ite = &sem_ite, .sem_while = &sem_while, .sem_cbranch = &sem_cbranch, .sem_branch = &sem_branch,
+			.sem_flop = &sem_flop_stmt, .sem_prim = &sem_prim, .sem_throw = &sem_throw };
 
-	unboxed_branch_hint_callbacks_t branch_hint_callbacks = {
-			.branch_hint_ = &branch_hint
-	};
+	unboxed_branch_hint_callbacks_t branch_hint_callbacks = { .branch_hint_ = &branch_hint };
 
 //	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
 //			.list_init = &list_init,
 //			.list_next = &list_next
 //	};
 
-	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = {
-			.sem_stmts_next = &sem_stmts_next,
-			.sem_stmts_init = &sem_stmts_init
-	};
+	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = { .sem_stmts_next = &sem_stmts_next, .sem_stmts_init =
+			&sem_stmts_init };
 
-	unboxed_callbacks_t callbacks = {
-			.sem_id = &sem_id_callbacks,
-			.sem_address = &sem_address_callbacks,
-			.sem_var = &sem_var_callbacks,
-			.sem_linear = &sem_linear_callbacks,
-			.sem_sexpr = &sem_sexpr_callbacks,
-			.sem_expr_cmp = &sem_expr_cmp_callbacks,
-			.sem_expr = &sem_expr_callbacks,
-			.sem_varl = &sem_varl_callbacks,
-			.sem_varls = &sem_varls_callbacks,
-			.sem_flop = &sem_flop_callbacks,
-			.sem_stmt = &sem_stmt_callbacks,
-			.branch_hint = &branch_hint_callbacks,
-			.sem_exception = &sem_exception_callbacks,
-			.sem_stmts = &sem_stmts_callbacks
-	};
+	unboxed_callbacks_t callbacks = { .sem_id = &sem_id_callbacks, .sem_address = &sem_address_callbacks, .sem_var =
+			&sem_var_callbacks, .sem_linear = &sem_linear_callbacks, .sem_sexpr = &sem_sexpr_callbacks, .sem_expr_cmp =
+			&sem_expr_cmp_callbacks, .sem_expr = &sem_expr_callbacks, .sem_varl = &sem_varl_callbacks, .sem_varls =
+			&sem_varls_callbacks, .sem_flop = &sem_flop_callbacks, .sem_stmt = &sem_stmt_callbacks, .branch_hint =
+			&branch_hint_callbacks, .sem_exception = &sem_exception_callbacks, .sem_stmts = &sem_stmts_callbacks };
 
 //		config.callbacks.sem_stmts.sem_cons = &sem_cons;
 //		config.callbacks.sem_stmts.sem_nil = &sem_nil;
@@ -851,68 +765,20 @@ JNICALL Java_gdsl_NativeInterface_decodeAndTranslateNative(JNIEnv *env, jobject 
 
 	struct userdata ud;
 	ud.env = env;
-	ud.obj = obj;
+	ud.obj = this;
 
-	frontend.translator.rreil_cif_userdata_set(state, &ud);
+	frontend->translator.rreil_cif_userdata_set(state, &ud);
+	rreil_cif_userdata_get = frontend->translator.rreil_cif_userdata_get;
 
-	return frontend.translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
+//	char *fmt = frontend->generic.merge_rope(state, frontend->translator.pretty(state, rreil));
+//	puts(fmt);
+//	return NULL;
+
+	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
 }
 
-struct frontend_desc *descs = NULL;
-size_t descs_length = 0;
-
-JNIEXPORT
-jobjectArray
-JNICALL Java_gdsl_NativeInterface_getFrontendsNative(JNIEnv *env, jobject obj) {
-	descs_length = gdsl_multiplex_frontends_list(&descs);
-
-	jobjectArray jfrontends = (*env)->NewObjectArray(env, descs_length, (*env)->FindClass(env, "java/lang/String"),
-			(*env)->NewStringUTF(env, ""));
-
-	for(size_t i = 0; i < descs_length; ++i) {
-		jstring next = (*env)->NewStringUTF(env, descs[i].name);
-//		free(frontends[i]);
-		(*env)->SetObjectArrayElement(env, jfrontends, i, next);
-	}
-//	if(frontends_length)
-//		free(frontends);
-
-	return jfrontends;
-}
-
-#define THROW_RUNTIME(MSG) {\
-		jclass exp = (*env)->FindClass(env, "java/lang/RuntimeException");\
-		(*env)->ThrowNew(env, exp, MSG);\
-		return;\
-}
-
-JNIEXPORT
-void
-JNICALL Java_gdsl_NativeInterface_useFrontendNative(JNIEnv *env, jobject obj, jlong frontend_idx) {
-//  const char *frontend_str_n = (*env)->GetStringUTFChars(env, frontend_str, 0);
-	if(!descs || frontend_idx >= descs_length)
-		THROW_RUNTIME("Invalid frontend")
-
-  switch(gdsl_multiplex_frontend_get(&frontend, descs[frontend_idx])) {
-  	case GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET: THROW_RUNTIME("Unable to open frontend: Path to frontends not set")
-  	case GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN: THROW_RUNTIME("Unable to open frontend: Unable to open frontend library")
-  	case GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND: THROW_RUNTIME("Unable to open frontend: Symbol not found")
-  	case GDSL_MULTIPLEX_ERROR_NONE: break;
-  }
-
-//  (*env)->ReleaseStringUTFChars(env, frontend_str, frontend_str_n);
-}
-
-JNIEXPORT
-void
-JNICALL Java_gdsl_NativeInterface_frontendDescsFreeNative(JNIEnv *env, jobject obj) {
-	gdsl_multiplex_descs_free(descs, descs_length);
-	descs = NULL;
-	descs_length = 0;
-}
-
-JNIEXPORT
-void
-JNICALL Java_gdsl_NativeInterface_closeFrontendNative(JNIEnv *env, jobject obj) {
-	gdsl_multiplex_frontend_close(&frontend);
-}
+//JNIEXPORT
+//void
+//JNICALL Java_gdsl_NativeInterface_closeFrontendNative(JNIEnv *env, jobject obj) {
+//	gdsl_multiplex_frontend_close(&frontend);
+//}

@@ -1,6 +1,8 @@
 package gdsl.translator;
 
-public class RReilTranslateException extends RuntimeException {
+import gdsl.GdslException;
+
+public class RReilTranslateException extends GdslException {
 	/**
 	 * 
 	 */

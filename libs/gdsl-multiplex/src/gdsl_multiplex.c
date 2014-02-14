@@ -113,6 +113,7 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 	ADD_FUNCTION(generic, set_code)
 	ADD_FUNCTION(generic, err_tgt)
 	ADD_FUNCTION(generic, get_error_message)
+	ADD_FUNCTION(generic, reset_heap)
 	ADD_FUNCTION(generic, destroy)
 	ADD_FUNCTION(generic, get_ip_offset)
 	ADD_FUNCTION(generic, merge_rope)

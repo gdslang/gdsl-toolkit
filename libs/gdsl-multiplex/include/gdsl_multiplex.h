@@ -24,6 +24,7 @@ struct frontend {
 		string_t (*merge_rope)(state_t s, obj_t rope);
 		char* (*get_error_message)(state_t s);
 		uint64_t (*get_ip_offset)(state_t s);
+		void (*reset_heap)(state_t state);
 		void (*destroy)(state_t state);
 	} generic;
 
