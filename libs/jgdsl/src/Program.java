@@ -1,6 +1,8 @@
 import gdsl.Frontend;
 import gdsl.Gdsl;
 import gdsl.NativeInterface;
+import gdsl.decoder.Decoder;
+import gdsl.decoder.Instruction;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
@@ -10,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Scanner;
 
 public class Program {
@@ -26,11 +29,20 @@ public class Program {
     }
     
     gdsl.setFrontend(frontends[0]);
-    gdsl.init();
     
-    ByteBuffer bb = ByteBuffer.allocateDirect(1);
-    bb.put((byte)42);
-    gdsl.setCode(bb, 0);
+    ByteBuffer buffer = ByteBuffer.allocateDirect(2);
+    buffer.put((byte)0);
+    buffer.put((byte)0);
+    
+    Decoder dec = new Decoder(gdsl, buffer);
+    Instruction insn = dec.decodeOne();
+    System.out.println(insn);
+    
+    int operands = insn.operands();
+    System.out.println("Number of operands: " + operands);
+    for (int i = 0; i < operands; i++) {
+      System.out.println(insn.OperandToString(i));
+    }
 
 
 //		BufferedReader reader = new BufferedReader(new InputStreamReader(

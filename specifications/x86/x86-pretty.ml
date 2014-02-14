@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = pretty{lock, rep, repne, features, insn}
+export = pretty{lock, rep, repne, features, insn} pretty-operand{insn}
 
 val flow_decode_pretty = do
   inge <- decode config-default;
@@ -2087,3 +2087,30 @@ val show/mnemonic insn =
     #| VPSLRDQ: "VPSLRDQ"
    end
 #:'<,'>s/\(.*\)| \(\S*\)\( x\)\=:.*/\1| \2\3: "\2"/g
+
+val pretty-operand x i =
+  case (uarity-of x.insn) of
+     UA1 v: case i of
+        0: show/operand '0' v.opnd1
+     end
+   | UA2 v: case i of
+        0: show/operand '0' v.opnd1
+      | 1: show/operand '0' v.opnd2
+     end
+   | UA3 v: case i of
+        0: show/operand '0' v.opnd1
+      | 1: show/operand '0' v.opnd2
+      | 2: show/operand '0' v.opnd3
+     end
+   | UA4 v: case i of
+        0: show/operand '0' v.opnd1
+      | 1: show/operand '0' v.opnd2
+      | 2: show/operand '0' v.opnd3
+      | 3: show/operand '0' v.opnd4
+     end
+   | UAF v: case i of
+        0: show/flowoperand v.opnd1
+     end
+  end
+
+val pretty-operand-force-types x = pretty x +++ (pretty-operand x 0)

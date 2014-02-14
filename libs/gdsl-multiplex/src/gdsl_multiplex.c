@@ -118,7 +118,9 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 	ADD_FUNCTION(generic, merge_rope)
 	ADD_FUNCTION(decoder, config_default)
 	ADD_FUNCTION(decoder, decode)
+	ADD_FUNCTION(decoder, operands)
 	ADD_FUNCTION(decoder, pretty)
+	ADD_FUNCTION(decoder, pretty_operand)
 	ADD_FUNCTION(translator, translate)
 	ADD_FUNCTION_GENERIC(translator, pretty, "gdsl_rreil_pretty")
 	ADD_FUNCTION(translator, rreil_cif_userdata_set)
@@ -133,9 +135,12 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 	return GDSL_MULTIPLEX_ERROR_NONE;
 }
 
+/*
+ * Todo: Fix? What about .ext?
+ */
 void gdsl_multiplex_descs_free(struct frontend_desc *descs, size_t descs_length) {
 	for (size_t i = 0; i < descs_length; ++i)
-		free(descs[i].name);
+		free((char*)descs[i].name);
 	free(descs);
 }
 

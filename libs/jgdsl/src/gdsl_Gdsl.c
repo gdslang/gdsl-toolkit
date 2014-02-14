@@ -99,3 +99,11 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode(JNIEnv *env, jobject this, jlong f
 
 	frontend->generic.set_code(state, (char*)buffer, (uint64_t)size, (uint64_t)base);
 }
+
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+
+	obj_t insn = frontend->decoder.decode(state, frontend->decoder.config_default(state));
+	return (jlong)insn;
+}

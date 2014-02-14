@@ -1,4 +1,4 @@
-package gdsl;
+package gdsl.decoder;
 
 public class GdslDecodeException extends RuntimeException {
 	/**

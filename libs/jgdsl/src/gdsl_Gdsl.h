@@ -42,10 +42,10 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode
 /*
  * Class:     gdsl_Gdsl
  * Method:    decodeOne
- * Signature: (J)J
+ * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne
-  (JNIEnv *, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus
 }

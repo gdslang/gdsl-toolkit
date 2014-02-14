@@ -9,13 +9,13 @@ public class Gdsl {
   private long gdslStatePtr = 0;
   private ByteBuffer buffer;
 
-  private long getGdslStatePtr () {
+  public long getGdslStatePtr () {
     if (gdslStatePtr == 0)
       throw new RuntimeException("Gdsl not initialized");
     return gdslStatePtr;
   }
   
-  private long getFrontendPtr() {
+  public long getFrontendPtr() {
     if (frontendPtr == 0)
       throw new RuntimeException("Frontend not set");
     return frontendPtr;
@@ -56,7 +56,7 @@ public class Gdsl {
   }
 
   public long decodeOne () {
-    return decodeOne(getGdslStatePtr());
+    return decodeOne(getFrontendPtr(), getGdslStatePtr());
   }
 
   private native Frontend[] getFrontendsNative ();
@@ -67,5 +67,5 @@ public class Gdsl {
 
   private native void setCode (long frontendPtr, long gdslStatePtr, ByteBuffer buffer, long base);
 
-  private native long decodeOne (long gdslStatePtr);
+  private native long decodeOne (long frontendPtr, long gdslStatePtr);
 }

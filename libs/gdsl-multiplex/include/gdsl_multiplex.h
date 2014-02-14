@@ -30,7 +30,9 @@ struct frontend {
 	struct {
 		int_t (*config_default)(state_t state);
 		obj_t (*decode)(state_t state, int_t config);
+		int_t (*operands)(state_t state, obj_t insn);
 		obj_t *(*pretty)(state_t state, obj_t insn);
+		obj_t *(*pretty_operand)(state_t state, obj_t insn, int_t i);
 	} decoder;
 
 	struct {

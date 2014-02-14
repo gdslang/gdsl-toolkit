@@ -1,4 +1,4 @@
-package gdsl;
+package gdsl.translator;
 
 public class RReilTranslateException extends RuntimeException {
 	/**
