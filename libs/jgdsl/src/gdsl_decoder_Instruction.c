@@ -58,3 +58,17 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_prettyOperand(JNIEnv *en
 
 	return (*env)->NewStringUTF(env, str);
 }
+
+JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_mnemonic(JNIEnv *env, jobject this, jlong frontendPtr,
+		jlong gdslStatePtr, jlong insnPtr) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+	obj_t insn = (obj_t)insnPtr;
+
+	if(setjmp(*frontend->generic.err_tgt(state)))
+	THROW_GDSL_ERROR(NULL)
+
+	string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_mnemonic(state, insn));
+
+	return (*env)->NewStringUTF(env, str);
+}

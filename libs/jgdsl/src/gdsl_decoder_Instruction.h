@@ -31,6 +31,14 @@ JNIEXPORT jint JNICALL Java_gdsl_decoder_Instruction_operands
 JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_prettyOperand
   (JNIEnv *, jobject, jlong, jlong, jlong, jint);
 
+/*
+ * Class:     gdsl_decoder_Instruction
+ * Method:    mnemonic
+ * Signature: (JJJ)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_mnemonic
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

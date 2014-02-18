@@ -37,7 +37,7 @@ public class Program {
     int operands = insn.operands();
     System.out.println("Number of operands: " + operands);
     for (int i = 0; i < operands; i++) {
-      System.out.println("Operand " + i + ": " + insn.OperandToString(i));
+      System.out.println("Operand " + i + ": " + insn.operandToString(i));
     }
     System.out.println("-----");
 

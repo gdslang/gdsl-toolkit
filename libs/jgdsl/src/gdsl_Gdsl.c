@@ -93,7 +93,7 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_init(JNIEnv *env, jobject this, jlong fro
 }
 
 JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr,
-		jobject byteBuffer, jlong base) {
+		jobject byteBuffer, jlong offset, jlong base) {
 	jclass java_Nio_ByteBuffer = (*env)->FindClass(env, "java/nio/ByteBuffer");
 	jmethodID capacity = (*env)->GetMethodID(env, java_Nio_ByteBuffer, "capacity", "()I");
 
@@ -106,7 +106,7 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode(JNIEnv *env, jobject this, jlong f
 	if(setjmp(*frontend->generic.err_tgt(state)))
 	THROW_GDSL_ERROR()
 
-	frontend->generic.set_code(state, (char*)buffer, (uint64_t)size, (uint64_t)base);
+	frontend->generic.set_code(state, (char*)(buffer + offset), (uint64_t)(size - offset), (uint64_t)base);
 }
 
 JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {

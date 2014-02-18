@@ -34,10 +34,10 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_init
 /*
  * Class:     gdsl_Gdsl
  * Method:    setCode
- * Signature: (JJLjava/nio/ByteBuffer;J)V
+ * Signature: (JJLjava/nio/ByteBuffer;JJ)V
  */
 JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode
-  (JNIEnv *, jobject, jlong, jlong, jobject, jlong);
+  (JNIEnv *, jobject, jlong, jlong, jobject, jlong, jlong);
 
 /*
  * Class:     gdsl_Gdsl

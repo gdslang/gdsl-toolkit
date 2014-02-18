@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = pretty{lock, rep, repne, features, insn} pretty-operand{insn}
+export = pretty{lock, rep, repne, features, insn} pretty-operand{insn} pretty-mnemonic{insn}
 
 val flow_decode_pretty = do
   inge <- decode config-default;
@@ -2114,3 +2114,7 @@ val pretty-operand x i =
   end
 
 val pretty-operand-force-types x = pretty x +++ (pretty-operand x 0)
+
+val pretty-mnemonic x = show/mnemonic x.insn
+
+val pretty-mnemonic-force-types x = pretty x +++ (pretty-mnemonic x)
