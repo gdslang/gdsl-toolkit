@@ -6,3 +6,8 @@
 /libjgdsl.so
 /jgdsl.jar
 /hs_err_*
+
+/src/.libs/*
+/src/*.o
+/src/*.lo
+/src/.dirstamp

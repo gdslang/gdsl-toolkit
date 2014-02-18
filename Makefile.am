@@ -22,7 +22,7 @@ nodist_include_HEADERS =
 EXEEXT=
 
 # we need to add a dependency to the actual backend to this variable
-libjrreil_la_LIBADD = 
+libjgdsl_la_LIBADD = 
 libx86_tester_la_LIBADD = 
 libgdsl_multiplex_la_LIBADD = 
 
@@ -129,7 +129,7 @@ GDSLC_SML_FILES = \
          $(srcdir)/detail/driver/main.sml \
          $(srcdir)/detail/ml/mlton/main.sml
 
-JAR=jrreil.jar
+JAR=jgdsl.jar
 
 $(builddir)/gdslc-image: $(srcdir)/gdsl.cm $(GDSLC_SML_FILES)
 	echo 'CM.make("'$(srcdir)/gdsl.cm'"); SMLofNJ.exportFn ("'$@'",Main.njMain);' | $(SMLNJ)
@@ -163,6 +163,7 @@ GDSL_BASIS = \
 
 GDSL_X86 = \
 	$(srcdir)/specifications/x86/x86.ml \
+	$(srcdir)/specifications/x86/x86-util.ml \
 	$(srcdir)/specifications/x86/x86-pretty.ml \
 	$(srcdir)/specifications/x86/x86-pretty-simple.ml
 
@@ -199,7 +200,7 @@ GDSL_RREIL = \
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 nodist_include_HEADERS += gdsl-x86-rreil.h
-libjrreil_la_LIBADD += libgdsl-x86-rreil.la
+libjgdsl_la_LIBADD += libgdsl-x86-rreil.la
 decoder_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_dynamic_LDADD += libgdsl-x86-rreil.la
@@ -235,7 +236,7 @@ gdsl-x86.c: $(GDSLC_DEP) $(GS_X86)
 
 if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
-libjrreil_la_LIBADD += libgdsl-avr-rreil.la
+libjgdsl_la_LIBADD += libgdsl-avr-rreil.la
 decoder_cli_LDADD += libgdsl-avr-rreil.la
 semantics_cli_LDADD += libgdsl-avr-rreil.la
 semantics_cli_dynamic_LDADD += libgdsl-avr-rreil.la
@@ -355,9 +356,15 @@ JSOURCES = src/gdsl/rreil/DefaultLimitedVariableCollection.java \
            src/gdsl/rreil/exception/x86/X86Exception.java \
            src/gdsl/rreil/exception/GenericArchException.java \
            src/gdsl/rreil/IBranchHint.java \
-           src/gdsl/RReilTranslateException.java \
-           src/gdsl/GdslDecodeException.java \
-           src/gdsl/NativeInterface.java \
+           src/gdsl/rreil/BuilderBackend.java \
+           src/gdsl/decoder/GdslDecodeException.java \
+           src/gdsl/decoder/Decoder.java \
+           src/gdsl/decoder/Instruction.java \
+           src/gdsl/translator/RReilTranslateException.java \
+           src/gdsl/translator/Translator.java \
+           src/gdsl/Frontend.java \
+           src/gdsl/Gdsl.java \
+           src/gdsl/GdslException.java \
            src/Program.java
 
 SPRE=src
@@ -367,11 +374,11 @@ BDIRS=$(BPRE)
 pre-build:
 	mkdir -p $(BDIRS)
 
-$(JAR): pre-build $(JSOURCES:%=libs/jrreil/%)
-	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jrreil && javac $(JSOURCES) -d $$ABS_DST/
+$(JAR): pre-build $(JSOURCES:%=libs/jgdsl/%)
+	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jgdsl && javac $(JSOURCES) -d $$ABS_DST/
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
 
-CLEANFILES += jrreil.jar
+CLEANFILES += jgdsl.jar
 
 endif
 
@@ -393,7 +400,7 @@ if HAVE_GDSL_MULTIPLEX
 lib_LTLIBRARIES += libgdsl-multiplex.la
 endif
 if HAVE_JRREIL
-lib_LTLIBRARIES += libjrreil.la
+lib_LTLIBRARIES += libjgdsl.la
 endif
 if HAVE_X86_LIB
 lib_LTLIBRARIES += libx86.la
@@ -429,7 +436,7 @@ if HAVE_GDSL_MULTIPLEX
 noinst_LTLIBRARIES += libgdsl-multiplex.la
 endif
 if HAVE_JRREIL
-noinst_LTLIBRARIES += libjrreil.la
+noinst_LTLIBRARIES += libjgdsl.la
 endif
 if HAVE_X86_LIB
 noinst_LTLIBRARIES += libx86.la
@@ -546,10 +553,10 @@ endif
 endif
 
 if HAVE_RREIL
-libjrreil_la_SOURCES = $(srcdir)/libs/jrreil/src/gdsl_NativeInterface.c
-libjrreil_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
-libjrreil_la_LIBADD += libgdsl-multiplex.la
-private_headers += $(srcdir)/libs/jrreil/src/gdsl_NativeInterface.h
+libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.c
+libjgdsl_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
+libjgdsl_la_LIBADD += libgdsl-multiplex.la
+private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.h
 endif
 
 if HAVE_RREIL
