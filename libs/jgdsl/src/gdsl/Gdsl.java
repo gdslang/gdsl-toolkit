@@ -30,6 +30,16 @@ public class Gdsl {
 
     frontends = getFrontendsNative();
   }
+  
+  public Gdsl (String base) {
+    System.loadLibrary("jgdsl");
+
+    frontends = getFrontendsNativeWithBase(base);
+  }
+
+  private native Frontend[] getFrontendsNative ();
+  
+  private native Frontend[] getFrontendsNativeWithBase (String base);
 
   public void setFrontend (Frontend frontend) {
     boolean found = false;
@@ -76,8 +86,6 @@ public class Gdsl {
     gdslStatePtr = 0;
     frontendPtr = 0;
   }
-
-  private native Frontend[] getFrontendsNative ();
 
   private native long getFrontendPtr (Frontend frontend);
 

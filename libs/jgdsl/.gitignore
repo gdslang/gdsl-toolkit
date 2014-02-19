@@ -5,6 +5,7 @@
 /.project
 /libjgdsl.so
 /jgdsl.jar
+/jgdsl-src.jar
 /hs_err_*
 
 /src/.libs/*

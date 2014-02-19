@@ -1,4 +1,4 @@
-package blockwise;
+package gdsl.blockwise;
 
 public class BlockwiseTransformer {
 

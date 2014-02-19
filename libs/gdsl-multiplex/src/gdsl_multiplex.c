@@ -25,10 +25,10 @@ static char frontend_get(struct frontend_desc *desc, char *file) {
 	char *suffix[] = { ".so", ".dylib" };
 
 	size_t suffix_length[suffixes_length];
-	for (size_t i = 0; i < suffixes_length; ++i)
+	for(size_t i = 0; i < suffixes_length; ++i)
 		suffix_length[i] = strlen(suffix[i]);
 
-	for (size_t i = 0; i < suffixes_length; ++i) {
+	for(size_t i = 0; i < suffixes_length; ++i) {
 		char *suffix_next = suffix[i];
 		size_t suffix_length_next = suffix_length[i];
 
@@ -53,10 +53,8 @@ static char frontend_get(struct frontend_desc *desc, char *file) {
 	return 0;
 }
 
-size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
-	char *base = getenv("GDSL_FRONTENDS");
-	if(!base)
-		return 0;
+size_t gdsl_multiplex_frontends_list_with_base(struct frontend_desc **descs, char const *base) {
+	if(!base) return 0;
 
 	size_t frontends_length = 0;
 	size_t frontends_size = 8;
@@ -84,6 +82,11 @@ size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
 	return frontends_length;
 }
 
+size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
+	char *base = getenv("GDSL_FRONTENDS");
+	return gdsl_multiplex_frontends_list_with_base(descs, base);
+}
+
 #define ADD_FUNCTION_GENERIC(CAT,FUNC,NAME)\
 		frontend->CAT.FUNC = (__typeof__(frontend->CAT.FUNC))dlsym(dl, NAME);\
 		if(!frontend->CAT.FUNC)\
@@ -92,8 +95,7 @@ size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
 
 char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc desc) {
 	char *base = getenv("GDSL_FRONTENDS");
-	if(!base)
-		return GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET;
+	if(!base) return GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET;
 
 	char *lib;
 	size_t lib_length;
@@ -104,8 +106,7 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 
 	void *dl = dlopen(lib, RTLD_LAZY);
 	free(lib);
-	if(!dl)
-		return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;
+	if(!dl) return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;
 
 	char error = 0;
 
@@ -129,8 +130,7 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 	ADD_FUNCTION(translator, rreil_cif_userdata_get)
 	ADD_FUNCTION(translator, rreil_convert_sem_stmts)
 
-	if(error)
-		return GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND;
+	if(error) return GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND;
 
 	frontend->dl = dl;
 
@@ -141,7 +141,7 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
  * Todo: Fix? What about .ext?
  */
 void gdsl_multiplex_descs_free(struct frontend_desc *descs, size_t descs_length) {
-	for (size_t i = 0; i < descs_length; ++i)
+	for(size_t i = 0; i < descs_length; ++i)
 		free((char*)descs[i].name);
 	free(descs);
 }

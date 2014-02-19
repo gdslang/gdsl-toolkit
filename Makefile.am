@@ -362,6 +362,7 @@ JSOURCES = src/gdsl/rreil/DefaultLimitedVariableCollection.java \
            src/gdsl/decoder/Instruction.java \
            src/gdsl/translator/RReilTranslateException.java \
            src/gdsl/translator/Translator.java \
+           src/gdsl/blockwise/BlockwiseTransformer.java \
            src/gdsl/Frontend.java \
            src/gdsl/Gdsl.java \
            src/gdsl/GdslException.java \

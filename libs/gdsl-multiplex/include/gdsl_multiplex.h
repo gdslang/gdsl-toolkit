@@ -54,6 +54,7 @@ struct frontend {
 #define GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND 3
 
 extern size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs);
+extern size_t gdsl_multiplex_frontends_list_with_base(struct frontend_desc **descs, char const *base);
 extern char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc desc);
 extern void gdsl_multiplex_descs_free(struct frontend_desc *descs, size_t descs_length);
 extern void gdsl_multiplex_frontend_close(struct frontend *frontend);

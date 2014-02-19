@@ -25,10 +25,7 @@
 		return RET;\
 }
 
-JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative(JNIEnv *env, jobject this) {
-	struct frontend_desc *descs = NULL;
-	size_t descs_length = gdsl_multiplex_frontends_list(&descs);
-
+static jobjectArray get_frontends_with_descs(JNIEnv *env, struct frontend_desc *descs, size_t descs_length) {
 	jclass Gdsl_Frontend = (*env)->FindClass(env, "gdsl/Frontend");
 
 	jobjectArray jfrontends = (*env)->NewObjectArray(env, descs_length, Gdsl_Frontend, (*env)->NewStringUTF(env, ""));
@@ -46,6 +43,23 @@ JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative(JNIEnv *env, jo
 	gdsl_multiplex_descs_free(descs, descs_length);
 
 	return jfrontends;
+}
+
+JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative(JNIEnv *env, jobject this) {
+	struct frontend_desc *descs = NULL;
+	size_t descs_length = gdsl_multiplex_frontends_list(&descs);
+
+	return get_frontends_with_descs(env, descs, descs_length);
+}
+
+JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNativeWithBase(JNIEnv *env, jobject this,
+		jstring jbase) {
+	const char *base = (*env)->GetStringUTFChars(env, jbase, 0);
+	struct frontend_desc *descs = NULL;
+	size_t descs_length = gdsl_multiplex_frontends_list_with_base(&descs, base);
+	jobjectArray result = get_frontends_with_descs(env, descs, descs_length);
+	(*env)->ReleaseStringUTFChars(env, jbase, base);
+	return result;
 }
 
 JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getFrontendPtr(JNIEnv *env, jobject this, jobject jfrontend) {

@@ -12,8 +12,16 @@ extern "C" {
  * Method:    getFrontendsNative
  * Signature: ()[Lgdsl/Frontend;
  */
-JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative
+JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative__
   (JNIEnv *, jobject);
+
+/*
+ * Class:     gdsl_Gdsl
+ * Method:    getFrontendsNative
+ * Signature: (Ljava/lang/String;)[Lgdsl/Frontend;
+ */
+JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNativeWithBase
+  (JNIEnv *, jobject, jstring);
 
 /*
  * Class:     gdsl_Gdsl

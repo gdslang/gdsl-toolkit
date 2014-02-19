@@ -14,11 +14,12 @@ endif
 CFLAGS=-std=c11 -g3 -fPIC -shared -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
 LIBRARY=libjgdsl.so
+JAR_SRC=jgdsl-src.jar
 JAR=jgdsl.jar
 
 C_SOURCES=src/gdsl_rreil_BuilderBackend.c src/gdsl_Gdsl.c src/gdsl_decoder_Instruction.c
 
-all: pre-build $(LIBRARY) $(JAR)
+all: pre-build $(LIBRARY) $(JAR_SRC) $(JAR)
 
 SPRE=src
 BPRE=build
@@ -33,6 +34,9 @@ $(LIBRARY): $(C_SOURCES)
 
 JSOURCES=$(shell find src/ -type f -name '*.java')
 #JSOURCES=$(wildcard src/**/*.java)
+
+$(JAR_SRC): $(JSOURCES)
+	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(SPRE) %.java)
 
 $(JAR): $(JSOURCES)
 	javac $(JSOURCES) -d $(BPRE)/
