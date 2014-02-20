@@ -123,7 +123,7 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode(JNIEnv *env, jobject this, jlong f
 	frontend->generic.set_code(state, (char*)(buffer + offset), (uint64_t)(size - offset), (uint64_t)base);
 }
 
-JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
+static obj_t decode_one(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr, int_t decode_config) {
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
 
@@ -133,8 +133,20 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne(JNIEnv *env, jobject this, jlon
 		return 0;
 	}
 
-	obj_t insn = frontend->decoder.decode(state, frontend->decoder.config_default(state));
-	return (jlong)insn;
+	obj_t insn = frontend->decoder.decode(state, decode_config);
+	return insn;
+}
+
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+
+	return (jlong)decode_one(env, this, frontendPtr, gdslStatePtr, frontend->decoder.config_default(state));
+}
+
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOneWithConfig
+  (JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr, jlong decodeConfig) {
+	return (jlong)decode_one(env, this, frontendPtr, gdslStatePtr, decodeConfig);
 }
 
 JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getIpOffset(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {

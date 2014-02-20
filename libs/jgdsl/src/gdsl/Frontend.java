@@ -3,13 +3,42 @@ package gdsl;
 public class Frontend {
   private final String name;
   private final String ext;
-
+  
+  private IFrontendConfig config;
+  private boolean configured = false;
+  
+  private long pointer;
+  
   public String getName () {
     return name;
   }
 
   public String getExt () {
     return ext;
+  }
+  
+  public IFrontendConfig getConfig () {
+    if(!configured)
+      throw new UnsupportedOperationException();
+    return config;
+  }
+  
+  public void setConfig (IFrontendConfig config) {
+    this.config = config;
+  }
+  
+  public boolean isConfigured () {
+    return configured;
+  }
+  
+  void setPointer (long pointer) {
+    this.pointer = pointer;
+  }
+  
+  long getPointer () {
+    if(pointer == 0)
+      throw new RuntimeException("Pointer to native frontend object missing");
+    return pointer;
   }
 
   public Frontend (String name, String ext) {
@@ -22,7 +51,7 @@ public class Frontend {
     return name + "|" + ext;
   }
 
-  @Override public boolean equals (Object obj) {
+  public boolean identifies (Object obj) {
     if (!(obj instanceof Frontend))
       return false;
     Frontend other = (Frontend) obj;

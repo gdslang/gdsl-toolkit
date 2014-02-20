@@ -12,16 +12,32 @@ extern "C" {
  * Method:    getFrontendsNative
  * Signature: ()[Lgdsl/Frontend;
  */
-JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative__
+JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative
   (JNIEnv *, jobject);
 
 /*
  * Class:     gdsl_Gdsl
- * Method:    getFrontendsNative
+ * Method:    getFrontendsNativeWithBase
  * Signature: (Ljava/lang/String;)[Lgdsl/Frontend;
  */
 JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNativeWithBase
   (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     gdsl_Gdsl
+ * Method:    decodeOne
+ * Signature: (JJ)J
+ */
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne
+  (JNIEnv *, jobject, jlong, jlong);
+
+/*
+ * Class:     gdsl_Gdsl
+ * Method:    decodeOneWithConfig
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOneWithConfig
+  (JNIEnv *, jobject, jlong, jlong, jlong);
 
 /*
  * Class:     gdsl_Gdsl
@@ -46,14 +62,6 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_init
  */
 JNIEXPORT void JNICALL Java_gdsl_Gdsl_setCode
   (JNIEnv *, jobject, jlong, jlong, jobject, jlong, jlong);
-
-/*
- * Class:     gdsl_Gdsl
- * Method:    decodeOne
- * Signature: (JJ)J
- */
-JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne
-  (JNIEnv *, jobject, jlong, jlong);
 
 /*
  * Class:     gdsl_Gdsl

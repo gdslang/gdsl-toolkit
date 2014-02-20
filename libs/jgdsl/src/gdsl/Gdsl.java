@@ -5,7 +5,9 @@ import java.nio.ByteBuffer;
 
 public class Gdsl {
   private final Frontend[] frontends;
-  private long frontendPtr = 0;
+
+  private Frontend frontend;
+
   private long gdslStatePtr = 0;
   private ByteBuffer buffer;
 
@@ -15,10 +17,14 @@ public class Gdsl {
     return gdslStatePtr;
   }
 
-  public long getFrontendPtr () {
-    if (frontendPtr == 0)
+  public Frontend getFrontend () {
+    if (frontend == null)
       throw new RuntimeException("Frontend not set");
-    return frontendPtr;
+    return frontend;
+  }
+  
+  public long getFrontendPtr() {
+    return getFrontend().getPointer();
   }
 
   public Frontend[] getFrontends () {
@@ -30,27 +36,29 @@ public class Gdsl {
 
     frontends = getFrontendsNative();
   }
-  
+
+  private native Frontend[] getFrontendsNative ();
+
   public Gdsl (String base) {
     System.loadLibrary("jgdsl");
 
     frontends = getFrontendsNativeWithBase(base);
   }
 
-  private native Frontend[] getFrontendsNative ();
-  
   private native Frontend[] getFrontendsNativeWithBase (String base);
 
   public void setFrontend (Frontend frontend) {
     boolean found = false;
     for (Frontend f : frontends)
-      if (f.equals(frontend)) {
+      if (f.identifies(frontend)) {
         found = true;
         break;
       }
     if (!found)
       throw new RuntimeException("Invalid frontend");
-    frontendPtr = getFrontendPtr(frontend);
+    long frontendPtr = getFrontendPtr(frontend);
+    frontend.setPointer(frontendPtr);
+    this.frontend = frontend;
   }
 
   public void initFrontend () {
@@ -70,21 +78,28 @@ public class Gdsl {
   }
 
   public long decodeOne () {
-    return decodeOne(getFrontendPtr(), getGdslStatePtr());
+    if (frontend.isConfigured())
+      return decodeOneWithConfig(getFrontendPtr(), getGdslStatePtr(), frontend.getConfig().vector());
+    else
+      return decodeOne(getFrontendPtr(), getGdslStatePtr());
   }
 
+  private native long decodeOne (long frontendPtr, long gdslStatePtr);
+
+  private native long decodeOneWithConfig (long frontendPtr, long gdslStatePtr, long decodeConfig);
+
   public long getIpOffset () {
-    return getIpOffset(getFrontendPtr(), getGdslStatePtr());
+    return getIpOffset(getFrontend().getPointer(), getGdslStatePtr());
   }
 
   public void resetHeap () {
-    resetHeap(getFrontendPtr(), getGdslStatePtr());
+    resetHeap(getFrontend().getPointer(), getGdslStatePtr());
   }
 
   public void destroyFrontend () {
-    destroyFrontend(getFrontendPtr(), getGdslStatePtr());
+    destroyFrontend(getFrontend().getPointer(), getGdslStatePtr());
     gdslStatePtr = 0;
-    frontendPtr = 0;
+    frontend = null;
   }
 
   private native long getFrontendPtr (Frontend frontend);
@@ -92,8 +107,6 @@ public class Gdsl {
   private native long init (long frontendPtr);
 
   private native void setCode (long frontendPtr, long gdslStatePtr, ByteBuffer buffer, long offset, long base);
-
-  private native long decodeOne (long frontendPtr, long gdslStatePtr);
 
   private native long getIpOffset (long frontendPtr, long gdslStatePtr);
 
