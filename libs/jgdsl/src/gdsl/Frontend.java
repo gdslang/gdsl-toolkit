@@ -25,6 +25,7 @@ public class Frontend {
   
   public void setConfig (IFrontendConfig config) {
     this.config = config;
+    this.configured = true;
   }
   
   public boolean isConfigured () {

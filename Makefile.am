@@ -367,6 +367,12 @@ JSOURCES = src/gdsl/rreil/DefaultLimitedVariableCollection.java \
            src/gdsl/IFrontendConfig.java \
            src/gdsl/Gdsl.java \
            src/gdsl/GdslException.java \
+					 src/gdsl/arch/AVRBinder.java \
+					 src/gdsl/arch/ArchBinder.java \
+					 src/gdsl/arch/ArchId.java \
+					 src/gdsl/arch/IConfigFlag.java \
+					 src/gdsl/arch/X86Binder.java \
+					 src/gdsl/arch/X86ConfigFlag.java \
            src/Program.java
 
 SPRE=src
