@@ -36,7 +36,7 @@ public class Frontend {
     this.pointer = pointer;
   }
   
-  long getPointer () {
+  public long getPointer () {
     if(pointer == 0)
       throw new RuntimeException("Pointer to native frontend object missing");
     return pointer;

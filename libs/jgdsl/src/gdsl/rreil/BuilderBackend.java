@@ -584,13 +584,12 @@ public class BuilderBackend {
     return builder.sem_stmts_init();
   }
 
-//	private native Object decodeAndTranslateNative(byte[] bytes);
-
-
-//	private native void closeFrontendNative();
-
   public native IRReilCollection<IStatement> translate (long frontendPtr, long gdslStatePtr, long insnPtr);
 
   public native IRReilCollection<IStatement> translateOptimizeBlock (long frontendPtr, long gdslStatePtr, long limit,
+      int preservation);
+
+  public native IRReilCollection<IStatement> translateOptimizeBlockWithConfig (long frontendPtr, long gdslStatePtr,
+      long config, long limit,
       int preservation);
 }

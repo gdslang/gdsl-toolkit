@@ -1,5 +1,6 @@
 package gdsl.translator;
 
+import gdsl.Frontend;
 import gdsl.Gdsl;
 import gdsl.decoder.Instruction;
 import gdsl.rreil.BuilderBackend;
@@ -21,6 +22,11 @@ public class Translator {
   }
 
   public IRReilCollection<IStatement> translateOptimizeBlock (long limit, SemPres preservation) {
-    return backend.translateOptimizeBlock(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), limit, preservation.getId());
+    Frontend frontend = gdsl.getFrontend();
+    if (frontend.isConfigured())
+      return backend.translateOptimizeBlockWithConfig(frontend.getPointer(), gdsl.getGdslStatePtr(), frontend
+          .getConfig().vector(), limit, preservation.getId());
+    else
+      return backend.translateOptimizeBlock(frontend.getPointer(), gdsl.getGdslStatePtr(), limit, preservation.getId());
   }
 }

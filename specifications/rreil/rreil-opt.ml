@@ -1,4 +1,4 @@
-export = decode-translate-block-optimized
+export = decode-translate-block-optimized decode-translate-block-optimized-int
 
 type sem_preservation =
    SEM_PRESERVATION_EVERYWHERE

@@ -18,10 +18,18 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate
 /*
  * Class:     gdsl_rreil_BuilderBackend
  * Method:    translateOptimizeBlock
- * Signature: (JJJLgdsl/translator/SemPres;)Lgdsl/rreil/IRReilCollection;
+ * Signature: (JJJI)Lgdsl/rreil/IRReilCollection;
  */
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock
   (JNIEnv *, jobject, jlong, jlong, jlong, jint);
+
+/*
+ * Class:     gdsl_rreil_BuilderBackend
+ * Method:    translateOptimizeBlockWithConfig
+ * Signature: (JJJJI)Lgdsl/rreil/IRReilCollection;
+ */
+JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlockWithConfig
+  (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jint);
 
 #ifdef __cplusplus
 }

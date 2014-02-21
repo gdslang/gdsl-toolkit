@@ -682,64 +682,36 @@ static obj_t sem_stmts_init(state_t state, obj_t nothing) {
 	return (obj_t)ret;
 }
 
-static unboxed_callbacks_t build_callbacks() {
-	//%s/obj_t .(.\(.*\))(void .closure);/config.callbacks.arch.x86.sem_id.\1 = \&\1;/g
-
-	unboxed_sem_id_callbacks_t sem_id_callbacks = { .shared = &shared, .virt_t = &virt_t, .arch = &arch };
-
-	unboxed_sem_exception_callbacks_t sem_exception_callbacks = { .shared = &exception_shared, .arch = &exception_arch };
-
-	unboxed_sem_address_callbacks_t sem_address_callbacks = { .sem_address_ = &sem_address };
-
-	unboxed_sem_var_callbacks_t sem_var_callbacks = { .sem_var_ = &sem_var };
-
-	unboxed_sem_linear_callbacks_t sem_linear_callbacks = { .sem_lin_var = &sem_lin_var, .sem_lin_imm = &sem_lin_imm,
-			.sem_lin_add = &sem_lin_add, .sem_lin_sub = &sem_lin_sub, .sem_lin_scale = &sem_lin_scale };
-
-	unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = { .sem_sexpr_lin = &sem_sexpr_lin,
-			.sem_sexpr_cmp = &sem_sexpr_cmp, .sem_sexpr_arb = &sem_sexpr_arb };
-
-	unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = { .sem_cmpeq = &sem_cmpeq, .sem_cmpneq = &sem_cmpneq,
-			.sem_cmples = &sem_cmples, .sem_cmpleu = &sem_cmpleu, .sem_cmplts = &sem_cmplts, .sem_cmpltu = &sem_cmpltu };
-
-	unboxed_sem_expr_callbacks_t sem_expr_callbacks = { .sem_sexpr = &sem_sexpr, .sem_mul = &sem_mul, .sem_div = &sem_div,
-			.sem_divs = &sem_divs, .sem_mod = &sem_mod, .sem_mods = &sem_mods, .sem_shl = &sem_shl, .sem_shr = &sem_shr,
-			.sem_shrs = &sem_shrs, .sem_and = &sem_and, .sem_or = &sem_or, .sem_xor = &sem_xor, .sem_sx = &sem_sx, .sem_zx =
-					&sem_zx, };
-
-	unboxed_sem_varl_callbacks_t sem_varl_callbacks = { .sem_varl_ = &sem_varl };
-
-	unboxed_sem_varls_callbacks_t sem_varls_callbacks = { .sem_varls_next = &sem_varls_next, .sem_varls_init =
-			&sem_varls_init };
-
-	unboxed_sem_flop_callbacks_t sem_flop_callbacks = { .sem_flop_ = &sem_flop };
-
-	unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = { .sem_assign = &sem_assign, .sem_load = &sem_load, .sem_store =
-			&sem_store, .sem_ite = &sem_ite, .sem_while = &sem_while, .sem_cbranch = &sem_cbranch, .sem_branch = &sem_branch,
-			.sem_flop = &sem_flop_stmt, .sem_prim = &sem_prim, .sem_throw = &sem_throw };
-
-	unboxed_branch_hint_callbacks_t branch_hint_callbacks = { .branch_hint_ = &branch_hint };
-
-//	unboxed_sem_stmts_list_callbacks_t sem_stmts_list_callbacks = {
-//			.list_init = &list_init,
-//			.list_next = &list_next
-//	};
-
-	unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = { .sem_stmts_next = &sem_stmts_next, .sem_stmts_init =
-			&sem_stmts_init };
-
-	unboxed_callbacks_t callbacks = { .sem_id = &sem_id_callbacks, .sem_address = &sem_address_callbacks, .sem_var =
-			&sem_var_callbacks, .sem_linear = &sem_linear_callbacks, .sem_sexpr = &sem_sexpr_callbacks, .sem_expr_cmp =
-			&sem_expr_cmp_callbacks, .sem_expr = &sem_expr_callbacks, .sem_varl = &sem_varl_callbacks, .sem_varls =
-			&sem_varls_callbacks, .sem_flop = &sem_flop_callbacks, .sem_stmt = &sem_stmt_callbacks, .branch_hint =
-			&branch_hint_callbacks, .sem_exception = &sem_exception_callbacks, .sem_stmts = &sem_stmts_callbacks };
-
-//		config.callbacks.sem_stmts.sem_cons = &sem_cons;
-//		config.callbacks.sem_stmts.sem_nil = &sem_nil;
-//		config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
-
-	return callbacks;
-}
+#define BUILD_CALLBACKS \
+		unboxed_sem_id_callbacks_t sem_id_callbacks = { .shared = &shared, .virt_t = &virt_t, .arch = &arch };\
+		unboxed_sem_exception_callbacks_t sem_exception_callbacks = { .shared = &exception_shared, .arch = &exception_arch };\
+		unboxed_sem_address_callbacks_t sem_address_callbacks = { .sem_address_ = &sem_address };\
+		unboxed_sem_var_callbacks_t sem_var_callbacks = { .sem_var_ = &sem_var };\
+		unboxed_sem_linear_callbacks_t sem_linear_callbacks = { .sem_lin_var = &sem_lin_var, .sem_lin_imm = &sem_lin_imm,\
+				.sem_lin_add = &sem_lin_add, .sem_lin_sub = &sem_lin_sub, .sem_lin_scale = &sem_lin_scale };\
+		unboxed_sem_sexpr_callbacks_t sem_sexpr_callbacks = { .sem_sexpr_lin = &sem_sexpr_lin,\
+				.sem_sexpr_cmp = &sem_sexpr_cmp, .sem_sexpr_arb = &sem_sexpr_arb };\
+		unboxed_sem_expr_cmp_callbacks_t sem_expr_cmp_callbacks = { .sem_cmpeq = &sem_cmpeq, .sem_cmpneq = &sem_cmpneq,\
+				.sem_cmples = &sem_cmples, .sem_cmpleu = &sem_cmpleu, .sem_cmplts = &sem_cmplts, .sem_cmpltu = &sem_cmpltu };\
+		unboxed_sem_expr_callbacks_t sem_expr_callbacks = { .sem_sexpr = &sem_sexpr, .sem_mul = &sem_mul, .sem_div = &sem_div,\
+				.sem_divs = &sem_divs, .sem_mod = &sem_mod, .sem_mods = &sem_mods, .sem_shl = &sem_shl, .sem_shr = &sem_shr,\
+				.sem_shrs = &sem_shrs, .sem_and = &sem_and, .sem_or = &sem_or, .sem_xor = &sem_xor, .sem_sx = &sem_sx, .sem_zx =\
+						&sem_zx, };\
+		unboxed_sem_varl_callbacks_t sem_varl_callbacks = { .sem_varl_ = &sem_varl };\
+		unboxed_sem_varls_callbacks_t sem_varls_callbacks = { .sem_varls_next = &sem_varls_next, .sem_varls_init =\
+				&sem_varls_init };\
+		unboxed_sem_flop_callbacks_t sem_flop_callbacks = { .sem_flop_ = &sem_flop };\
+		unboxed_sem_stmt_callbacks_t sem_stmt_callbacks = { .sem_assign = &sem_assign, .sem_load = &sem_load, .sem_store =\
+				&sem_store, .sem_ite = &sem_ite, .sem_while = &sem_while, .sem_cbranch = &sem_cbranch, .sem_branch = &sem_branch,\
+				.sem_flop = &sem_flop_stmt, .sem_prim = &sem_prim, .sem_throw = &sem_throw };\
+		unboxed_branch_hint_callbacks_t branch_hint_callbacks = { .branch_hint_ = &branch_hint };\
+		unboxed_sem_stmts_callbacks_t sem_stmts_callbacks = { .sem_stmts_next = &sem_stmts_next, .sem_stmts_init =\
+				&sem_stmts_init };\
+		unboxed_callbacks_t callbacks = { .sem_id = &sem_id_callbacks, .sem_address = &sem_address_callbacks, .sem_var =\
+				&sem_var_callbacks, .sem_linear = &sem_linear_callbacks, .sem_sexpr = &sem_sexpr_callbacks, .sem_expr_cmp =\
+				&sem_expr_cmp_callbacks, .sem_expr = &sem_expr_callbacks, .sem_varl = &sem_varl_callbacks, .sem_varls =\
+				&sem_varls_callbacks, .sem_flop = &sem_flop_callbacks, .sem_stmt = &sem_stmt_callbacks, .branch_hint =\
+				&branch_hint_callbacks, .sem_exception = &sem_exception_callbacks, .sem_stmts = &sem_stmts_callbacks };\
 
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, jobject this, jlong frontendPtr,
 		jlong gdslStatePtr, jlong insnPtr) {
@@ -779,12 +751,12 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, 
 //	puts(fmt);
 //	return NULL;
 
-	unboxed_callbacks_t callbacks = build_callbacks();
+	BUILD_CALLBACKS
 	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
 }
 
-JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock(JNIEnv *env, jobject this,
-		jlong frontendPtr, jlong gdslStatePtr, jlong limit, jint preservation) {
+jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr,
+		int_t config, jlong limit, jint preservation) {
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
 
@@ -804,10 +776,24 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock(
 //	}
 //	(*env)->ReleaseStringUTFChars(env, jpreservationStr, preservationStr);
 
-	obj_t rreil = frontend->translator.decode_translate_block_optimized_int(state, 0xff, limit, preservation);
+	obj_t rreil = frontend->translator.decode_translate_block_optimized_int(state, config, limit, preservation);
 
-	unboxed_callbacks_t callbacks = build_callbacks();
+	BUILD_CALLBACKS
 	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
+}
+
+JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock(JNIEnv *env, jobject this,
+		jlong frontendPtr, jlong gdslStatePtr, jlong limit, jint preservation) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+
+	return translate_block_optimized_with_config(env, this, frontendPtr, gdslStatePtr,
+			frontend->decoder.config_default(state), limit, preservation);
+}
+
+JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlockWithConfig(JNIEnv *env, jobject this,
+		jlong frontendPtr, jlong gdslStatePtr, jlong config, jlong limit, jint preservation) {
+	return translate_block_optimized_with_config(env, this, frontendPtr, gdslStatePtr, config, limit, preservation);
 }
 
 //JNIEXPORT
