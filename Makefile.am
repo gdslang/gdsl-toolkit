@@ -407,7 +407,7 @@ endif
 if HAVE_GDSL_MULTIPLEX
 lib_LTLIBRARIES += libgdsl-multiplex.la
 endif
-if HAVE_JRREIL
+if HAVE_JGDSL
 lib_LTLIBRARIES += libjgdsl.la
 endif
 if HAVE_X86_LIB
@@ -443,7 +443,7 @@ endif
 if HAVE_GDSL_MULTIPLEX
 noinst_LTLIBRARIES += libgdsl-multiplex.la
 endif
-if HAVE_JRREIL
+if HAVE_JGDSL
 noinst_LTLIBRARIES += libjgdsl.la
 endif
 if HAVE_X86_LIB
