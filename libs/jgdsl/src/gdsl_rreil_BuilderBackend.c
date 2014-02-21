@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <gdsl.h>
 #include <gdsl_multiplex.h>
 #include "gdsl_rreil_BuilderBackend.h"
@@ -681,33 +682,7 @@ static obj_t sem_stmts_init(state_t state, obj_t nothing) {
 	return (obj_t)ret;
 }
 
-JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, jobject this, jlong frontendPtr,
-		jlong gdslStatePtr, jlong insnPtr) {
-	struct frontend *frontend = (struct frontend*)frontendPtr;
-	state_t state = (state_t)gdslStatePtr;
-	obj_t insn = (obj_t)insnPtr;
-
-//	size_t length = (*env)->GetArrayLength(env, input);
-//	char *bytes = (char*)(*env)->GetByteArrayElements(env, input, 0);
-
-//	if(setjmp(*frontend.generic.err_tgt(state))) {
-//		jclass exp = (*env)->FindClass(env, "rnati/GdslDecodeException");
-//		(*env)->ThrowNew(env, exp, "Decode failed.");
-//		return NULL;
-//	}
-//	obj_t insn = frontend.decoder.decode(state, frontend.decoder.config_default(state));
-
-	if(setjmp(*frontend->generic.err_tgt(state))) {
-		jclass exp = (*env)->FindClass(env, "gdsl/translator/RReilTranslateException");
-		(*env)->ThrowNew(env, exp, "Translate failed");
-		return NULL;
-	}
-	obj_t rreil = frontend->translator.translate(state, insn);
-
-//			__pretty(__rreil_pretty__, r, fmt, 2048);
-//			printf("---------------------------\n");
-//			puts(fmt);
-
+static unboxed_callbacks_t build_callbacks() {
 	//%s/obj_t .(.\(.*\))(void .closure);/config.callbacks.arch.x86.sem_id.\1 = \&\1;/g
 
 	unboxed_sem_id_callbacks_t sem_id_callbacks = { .shared = &shared, .virt_t = &virt_t, .arch = &arch };
@@ -763,6 +738,36 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, 
 //		config.callbacks.sem_stmts.sem_nil = &sem_nil;
 //		config.gdrr_config_stmts_handling = GDRR_CONFIG_STMTS_HANDLING_RECURSIVE;
 
+	return callbacks;
+}
+
+JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, jobject this, jlong frontendPtr,
+		jlong gdslStatePtr, jlong insnPtr) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+	obj_t insn = (obj_t)insnPtr;
+
+//	size_t length = (*env)->GetArrayLength(env, input);
+//	char *bytes = (char*)(*env)->GetByteArrayElements(env, input, 0);
+
+//	if(setjmp(*frontend.generic.err_tgt(state))) {
+//		jclass exp = (*env)->FindClass(env, "rnati/GdslDecodeException");
+//		(*env)->ThrowNew(env, exp, "Decode failed.");
+//		return NULL;
+//	}
+//	obj_t insn = frontend.decoder.decode(state, frontend.decoder.config_default(state));
+
+	if(setjmp(*frontend->generic.err_tgt(state))) {
+		jclass exp = (*env)->FindClass(env, "gdsl/translator/RReilTranslateException");
+		(*env)->ThrowNew(env, exp, "Translate failed");
+		return NULL;
+	}
+	obj_t rreil = frontend->translator.translate(state, insn);
+
+//			__pretty(__rreil_pretty__, r, fmt, 2048);
+//			printf("---------------------------\n");
+//			puts(fmt);
+
 	struct userdata ud;
 	ud.env = env;
 	ud.obj = this;
@@ -774,6 +779,34 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, 
 //	puts(fmt);
 //	return NULL;
 
+	unboxed_callbacks_t callbacks = build_callbacks();
+	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
+}
+
+JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock(JNIEnv *env, jobject this,
+		jlong frontendPtr, jlong gdslStatePtr, jlong limit, jint preservation) {
+	struct frontend *frontend = (struct frontend*)frontendPtr;
+	state_t state = (state_t)gdslStatePtr;
+
+	if(setjmp(*frontend->generic.err_tgt(state))) {
+		jclass exp = (*env)->FindClass(env, "gdsl/GdslException");
+		(*env)->ThrowNew(env, exp, "TranslateOptimizeBlock failed");
+		return NULL;
+	}
+
+//	jclass semPresClass = env->FindClass("gdsl/translator/SemPres");
+//	jmethodID nameMethod = env->GetMethodID(semPresClass, "name", "()Ljava/lang/String;");
+//	jstring jpreservationStr = (jstring)env->CallObjectMethod(preservation, nameMethod);
+//	int cpreservation;
+//	const char* preservationStr = env->GetStringUTFChars(jpreservationStr, 0);
+//	if(strcmpi(preservationStr, "EVERYWHERE") == 0) {
+//		cpreservation =
+//	}
+//	(*env)->ReleaseStringUTFChars(env, jpreservationStr, preservationStr);
+
+	obj_t rreil = frontend->translator.decode_translate_block_optimized_int(state, 0xff, limit, preservation);
+
+	unboxed_callbacks_t callbacks = build_callbacks();
 	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
 }
 

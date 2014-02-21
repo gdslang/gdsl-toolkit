@@ -7,6 +7,7 @@ import gdsl.rreil.id.IId;
 import gdsl.rreil.linear.ILinearExpression;
 import gdsl.rreil.sexpression.ISimpleExpression;
 import gdsl.rreil.statement.IStatement;
+import gdsl.translator.SemPres;
 
 public class BuilderBackend {
   private IRReilBuilder builder;
@@ -589,4 +590,7 @@ public class BuilderBackend {
 //	private native void closeFrontendNative();
 
   public native IRReilCollection<IStatement> translate (long frontendPtr, long gdslStatePtr, long insnPtr);
+
+  public native IRReilCollection<IStatement> translateOptimizeBlock (long frontendPtr, long gdslStatePtr, long limit,
+      int preservation);
 }

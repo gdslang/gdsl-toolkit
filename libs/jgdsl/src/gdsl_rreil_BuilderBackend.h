@@ -15,6 +15,14 @@ extern "C" {
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate
   (JNIEnv *, jobject, jlong, jlong, jlong);
 
+/*
+ * Class:     gdsl_rreil_BuilderBackend
+ * Method:    translateOptimizeBlock
+ * Signature: (JJJLgdsl/translator/SemPres;)Lgdsl/rreil/IRReilCollection;
+ */
+JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock
+  (JNIEnv *, jobject, jlong, jlong, jlong, jint);
+
 #ifdef __cplusplus
 }
 #endif

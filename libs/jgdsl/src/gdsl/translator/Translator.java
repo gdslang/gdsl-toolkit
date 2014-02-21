@@ -19,4 +19,8 @@ public class Translator {
   public IRReilCollection<IStatement> translate (Instruction insn) {
     return backend.translate(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), insn.getInsnPtr());
   }
+
+  public IRReilCollection<IStatement> translateOptimizeBlock (long limit, SemPres preservation) {
+    return backend.translateOptimizeBlock(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), limit, preservation.getId());
+  }
 }
