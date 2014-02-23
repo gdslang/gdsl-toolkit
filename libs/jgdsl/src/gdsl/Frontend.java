@@ -59,6 +59,10 @@ public class Frontend {
     this.configured = true;
   }
 
+  /**
+   * Check whether the frontends has been configured using a IFrontendConfig
+   * configurator.
+   */
   public boolean isConfigured () {
     return configured;
   }
@@ -67,12 +71,23 @@ public class Frontend {
     this.pointer = pointer;
   }
 
+  /**
+   * Get the address of the corresponding native object.
+   * 
+   * @return the value of the pointer
+   */
   public long getPointer () {
     if (pointer == 0)
       throw new RuntimeException("Pointer to native frontend object missing");
     return pointer;
   }
 
+  /**
+   * Construct a new Frontend object
+   * 
+   * @param name the name of the frontend, i.e. the architecture name
+   * @param ext the file extension of the frontend
+   */
   public Frontend (String name, String ext) {
     super();
     this.name = name;
@@ -83,6 +98,15 @@ public class Frontend {
     return name + "|" + ext;
   }
 
+  /**
+   * Checks whether this object identifies the other object. A
+   * frontend object identifies another object if it also is an
+   * object of type Frontend and has got the same name and file
+   * extension.
+   * 
+   * @param obj the object to check
+   * @return a boolean indicating the result
+   */
   public boolean identifies (Object obj) {
     if (!(obj instanceof Frontend))
       return false;
