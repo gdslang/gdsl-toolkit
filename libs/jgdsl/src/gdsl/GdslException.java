@@ -1,5 +1,12 @@
 package gdsl;
 
+/**
+ * The GdslException class is the base class for all Gdsl specific
+ * exceptions.
+ * 
+ * @author Julian Kranz
+ *
+ */
 public class GdslException extends RuntimeException {
 	/**
 	 * 

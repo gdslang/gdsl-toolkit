@@ -15,6 +15,12 @@ import gdsl.IFrontendConfig;
 public abstract class ArchBinder implements IFrontendConfig {
   private Frontend frontend;
 
+  /**
+   * Get the Gdsl frontend that corresponds to the given
+   * architecture
+   * 
+   * @return the respective Gdsl frontend
+   */
   public Frontend getFrontend () {
     return frontend;
   }
@@ -34,11 +40,25 @@ public abstract class ArchBinder implements IFrontendConfig {
     throw new IllegalArgumentException("Unable to find frontend " + id.toString() + "...");
   }
   
+  /**
+   * Set one architecture-specific configuration
+   * flag.
+   * 
+   * @param flag the configuration flag to set
+   * @return the callee object
+   */
   public ArchBinder setConfigFlag(IConfigFlag flag) {
     this.configVector |= flag.getFlag();
     return this;
   }
   
+  /**
+   * Reset one architecture-specific configuration
+   * flag.
+   * 
+   * @param flag the configuration flag to reset
+   * @return the callee object
+   */
   public ArchBinder resetConfigFlag(IConfigFlag flag) {
     this.configVector &= ~flag.getFlag();
     return this;
