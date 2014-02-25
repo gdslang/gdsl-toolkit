@@ -23,14 +23,31 @@ public class Instruction {
     return insnPtr;
   }
 
+  /**
+   * Get the size of the instruction
+   * 
+   * @return the size of the instruction
+   */
   public long getSize () {
     return size;
   }
   
+  /**
+   * Get the associated {@link Gdsl} object
+   * 
+   * @return the associated {@link Gdsl} object
+   */
   public Gdsl getGdsl () {
     return gdsl;
   }
 
+  /**
+   * Construct the instruction object
+   * 
+   * @param gdsl the associated {@link Gdsl} object
+   * @param insnPtr the address of the native instruction object
+   * @param size the size of the instruction
+   */
   public Instruction (Gdsl gdsl, long insnPtr, long size) {
     this.gdsl = gdsl;
     this.insnPtr = insnPtr;
@@ -43,18 +60,34 @@ public class Instruction {
 
   private native String pretty (long frontendPtr, long gdslStatePtr, long insnPtr);
 
+  /**
+   * Get the number of operands
+   * 
+   * @return the number of operands
+   */
   public int operands () {
     return operands(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
   }
 
   private native int operands (long frontendPtr, long gdslStatePtr, long insnPtr);
 
+  /**
+   * Print an operand
+   * 
+   * @param operand the operand to print
+   * @return the string representation of the operand
+   */
   public String operandToString (int operand) {
     return prettyOperand(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr(), operand);
   }
 
   private native String prettyOperand (long frontendPtr, long gdslStatePtr, long insnPtr, int operand);
 
+  /**
+   * Get the mnemonic of the instruction
+   * 
+   * @return the mnemonic of the instruction
+   */
   public String mnemonic () {
     return mnemonic(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
   }
