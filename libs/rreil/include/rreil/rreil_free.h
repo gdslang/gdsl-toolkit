@@ -8,6 +8,18 @@
 #ifndef RREIL_FREE_H_
 #define RREIL_FREE_H_
 
+#include <rreil/rreil_address.h>
+#include <rreil/rreil_arity.h>
+#include <rreil/rreil_branch_hint.h>
+#include <rreil/rreil_comparator.h>
+#include <rreil/rreil_expr.h>
+#include <rreil/rreil_id.h>
+#include <rreil/rreil_linear.h>
+#include <rreil/rreil_sexpr.h>
+#include <rreil/rreil_statement.h>
+#include <rreil/rreil_statement.h>
+#include <rreil/rreil_variable.h>
+
 extern void rreil_address_free(struct rreil_address *address);
 extern void rreil_arity1_clear(struct rreil_arity1 *arity1);
 extern void rreil_arity2_clear(struct rreil_arity2 *arity2);

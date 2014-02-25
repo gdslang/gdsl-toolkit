@@ -24,8 +24,7 @@ static void tracking_variable_access_trace(struct tracking_trace *trace, struct 
 
 static void tracking_id_access_trace(struct tracking_trace *trace, struct rreil_id *id, uint64_t offset,
 		size_t bit_length, enum simulator_access_type type) {
-	if(id->type != RREIL_ID_TYPE_X86)
-		return;
+	if(id->type != RREIL_ID_TYPE_X86) return;
 
 	{
 		struct rreil_variable new_;
@@ -98,9 +97,8 @@ static void tracking_id_access_trace(struct tracking_trace *trace, struct rreil_
 			found = 1;
 			break;
 		}
-	if(!found)
-		util_array_generic_add((void**)&access->x86_indices, &index, sizeof(index), &access->x86_indices_length,
-				&access->x86_indices_size);
+	if(!found) util_array_generic_add((void**)&access->x86_indices, &index, sizeof(index), &access->x86_indices_length,
+			&access->x86_indices_size);
 }
 
 static void tracking_variable_access_trace(struct tracking_trace *trace, struct rreil_variable *variable,
@@ -282,7 +280,7 @@ static void tracking_statement_trace(struct tracking_trace *trace, struct rreil_
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
-			tracking_expr_trace(trace, statement->store.rhs, statement->store.size);
+			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_READ, statement->store.rhs, statement->store.size);
 			tracking_linear_trace(trace, SIMULATOR_ACCESS_TYPE_DEREFERENCE, statement->store.address->address,
 					statement->store.address->size);
 			trace->mem.used = 1;
@@ -444,8 +442,7 @@ static void access_print(struct register_access *access) {
 
 		size_t rest = 0;
 		size_t reg_size = x86_amd64_sizeof(id_x86);
-		if(reg_size > reg->bit_length)
-			rest = reg_size - reg->bit_length;
+		if(reg_size > reg->bit_length) rest = reg_size - reg->bit_length;
 		for(size_t i = 0; i < rest / 8; ++i)
 			printf("00");
 		if(reg->bit_length) {

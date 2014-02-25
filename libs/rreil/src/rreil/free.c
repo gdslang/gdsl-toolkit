@@ -184,7 +184,7 @@ void rreil_statement_free(struct rreil_statement *statement) {
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
 			rreil_address_free(statement->store.address);
-			rreil_expr_free(statement->store.rhs);
+			rreil_linear_free(statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {

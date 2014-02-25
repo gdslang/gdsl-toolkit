@@ -1,45 +1,67 @@
-In order to build the decoder and semantics translations (for x86 or Atmel
-AVR) and to test the liveness analysis follow the steps below.
+# vim: tw=80:fo+=t
 
-Dependencies
+In order to build the GDSL toolkit with its demo applications and libraries the
+following steps need to be followed.
 
-The following software packages are needed to compile the liveness analysis:
+*** Dependencies
 
-- Mlton (see http://www.mlton.org/) [version from 15/07/2013]
-- GNU autoconf and make
-- Libelf (http://www.mr511.de/software/) [>= version 0.152]
+The GDSL compiler and core libraries require the following software to be on the
+current search PATH:
 
-Building the Application
+- Standard ML of New Jersey interactive compiler (including ml-lpt) [>= version 110.75]
+- Make
+- A C compiler 
 
-The following steps need to be taken in order to build the application. It is
-assumed that the GDSL root directory is the current working directory.
+Furthermore, the following software packages and features are required by some
+of the optional demo applications:
 
-autoreconf -i
+- GNU C library extensions
+- A C compiler that supports the C11 standard, e.g. a recent GCC
+- Libelf (http://www.mr511.de/software/) [>= version 0.152] 
+
+*** Building the Application
+
+As a first step, the sources need to be configured; the following command uses
+the default build settings that compile the x86 decoder with semantic
+translation:
+
 ./configure
+
+Other architectures can be chosen by passing the "--with-frontend=..." option to
+"./configure". For an overview of all available frontends and other options run
+"./configure --help". Details about the various tools and libraries can be found
+here.
+
+Finally,
+
 make
 
-By default, the x86 decoder and semantic translation to RReil are built.
-Furthermore, there are a few supporting libraries and some demo applications
-that are by default built but not installed. In order to generate a different front-end pass the --with-frontend= option to ./configure.
+and (optionally)
 
-The sources of the decoders can be found under the specifications/ directory.
-In particular, the decoder for the x86 is in specifications/x86/x86.ml.
+make install
 
-The liveness analyzer itself is a small C program that uses the API offered by the GDSL modules. The following commands compile the liveness analyzer:
+build and install the respective frontend. The demo applications and libraries
+are built but not installed by default; see "./configure --help" for information
+on how to change this.
 
-cd specifications/x86/c
-make liveness-sweep
+*** Building from Repository Sources
 
-The compilation outputs an executable file called "liveness-sweep". It
-analyses a binary passed as command line argument:
+Checking out the current sources and building them requires the following tools
+to be on the current search PATH:
 
-./liveness-sweep liveness-example.bin
+- Automake
+- Git 
 
-The above example file only contains a bunch of instructions to be decoded,
-translated and optimised. In case however one wishes to analyse the ".text"
-section of a standard ELF executable it also is possible to directly pass such
-a file:
+After checking out the sources, the configure script has to be generated using
+the following command:
 
-./liveness-sweep --elf `which ls`
+autoreconf -i
 
-This command analyses the binary of the "ls" command.
+Then follow the instructions above.
+
+*** Demos and Libraries
+
+The GDSL toolkit contains a number of demo applications and libraries. Depending
+on the whether the build machine satisfies all dependencies, some or all of them
+are built together with the GDSL frontend. The tools and libraries are presented
+on the website of the toolkit (http://code.google.com/p/gdsl-toolkit/).

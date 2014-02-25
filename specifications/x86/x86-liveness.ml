@@ -1,7 +1,10 @@
 val registers-live-map = let #Todo: Segment base addresses
+	val add-sem map reg-sem = do
+   return (fmap-add-range map reg-sem.id reg-sem.size reg-sem.offset)
+	end
 	val add map r = do
 	 reg-sem <- return (semantic-register-of r);
-   return (fmap-add-range map reg-sem.id reg-sem.size reg-sem.offset)
+   add-sem map reg-sem
 	end
 in do
   map <- return (fmap-empty {});
@@ -125,7 +128,11 @@ in do
   map <- add map ST6;
   map <- add map ST7;
   map <- add map RIP;
+
   map <- add map FLAGS;
+  map <- add-sem map {id=VIRT_LES,offset=0,size=1};
+  map <- add-sem map {id=VIRT_LEU,offset=0,size=1};
+  map <- add-sem map {id=VIRT_LTS,offset=0,size=1};
 
 	return map
 end end

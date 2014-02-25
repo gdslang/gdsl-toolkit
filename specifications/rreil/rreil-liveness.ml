@@ -111,7 +111,7 @@ val lv-gen gens stmt =
          case stmt of
             SEM_ASSIGN x: visit-expr x.size gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
-          | SEM_STORE x: lv-union (visit-address gens x.address) (visit-expr x.size gens x.rhs)
+          | SEM_STORE x: lv-union (visit-address gens x.address) (visit-lin gens x.size x.rhs)
 					| SEM_WHILE x: visit-sexpr 1 gens x.cond
 					| SEM_ITE x: visit-sexpr 1 gens x.cond
 					| SEM_BRANCH x: visit-address gens x.target

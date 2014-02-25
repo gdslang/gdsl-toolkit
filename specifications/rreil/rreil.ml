@@ -68,7 +68,7 @@ type sem_flop =
 type sem_stmt =
    SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr}
  | SEM_LOAD of {size:int, lhs:sem_var, address:sem_address}
- | SEM_STORE of {size:int, address:sem_address, rhs:sem_expr}
+ | SEM_STORE of {size:int, address:sem_address, rhs:sem_linear}
  | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmts, else_branch:sem_stmts}
  | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
  | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
@@ -103,7 +103,6 @@ val at-offset v o = @{offset=o} v
 val var x = SEM_LIN_VAR x
 val varl sz x = @{size=sz}x
 val lin-sum x y = SEM_LIN_ADD {opnd1=x, opnd2=y}
-val lin l = SEM_SEXPR (SEM_SEXPR_LIN l)
 val address sz addr = {size=sz, address=addr}
 
 val varl-from-var sz v = @{size=sz}v

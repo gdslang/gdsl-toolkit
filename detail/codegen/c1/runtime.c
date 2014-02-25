@@ -4,6 +4,7 @@
 @include-prefix@
 #include <string.h>
 #include <stdio.h>
+#include <limits.h>
 
 /* generated declarations for records with fixed fields */
 @records@
@@ -250,32 +251,28 @@ static inline vec_t vec_concat(state_t s, vec_t v1, vec_t v2) {
 }
 
 static string_t int_to_string(state_t s, int_t v) {
-  int negate = v<0;
-//  char* str = alloc(s, 25)+24;
-//  int_t r;
-//  *str = 0;
-//  if (negate) {
-//    v = -v;
-//    *--str = ')';
-//  };
-//  do {
-//    r = v % 10;
-//    v = v / 10;
-//    *--str = '0'+(unsigned char) r;
-//  } while (v!=0);
-//  if (negate) {
-//    *--str = '-';
-//    *--str = '(';
-//  };
-  char* str = alloc(s, 25);
-  if(negate)
-  	str[0] = '(';
-  int size = snprintf(str + negate, 23, "%lld", v);
-  if(size && negate) {
-  	str[negate + size - 1] = ')';
-  	str[negate + size] = 0;
+  if(v == LLONG_MIN)
+    return "(-9223372036854775807)";
+  else {
+    char *str = alloc(s, 23)+22;
+    int negate = v<0;
+    int_t r;
+    *str = 0;
+    if (negate) {
+      v = -v;
+      *--str = ')';
+    };
+    do {
+      r = v % 10;
+      v = v / 10;
+      *--str = '0'+(unsigned char) r;
+    } while (v!=0);
+    if (negate) {
+      *--str = '-';
+      *--str = '(';
+    }
+    return alloc_string(s,str);
   }
-  return alloc_string(s,str);
 };
 
 state_t 

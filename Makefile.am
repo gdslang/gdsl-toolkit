@@ -22,7 +22,7 @@ nodist_include_HEADERS =
 EXEEXT=
 
 # we need to add a dependency to the actual backend to this variable
-libjrreil_la_LIBADD = 
+libjgdsl_la_LIBADD = 
 libx86_tester_la_LIBADD = 
 libgdsl_multiplex_la_LIBADD = 
 
@@ -129,7 +129,7 @@ GDSLC_SML_FILES = \
          $(srcdir)/detail/driver/main.sml \
          $(srcdir)/detail/ml/mlton/main.sml
 
-JAR=jrreil.jar
+JAR=jgdsl.jar
 
 $(builddir)/gdslc-image: $(srcdir)/gdsl.cm $(GDSLC_SML_FILES)
 	echo 'CM.make("'$(srcdir)/gdsl.cm'"); SMLofNJ.exportFn ("'$@'",Main.njMain);' | $(SMLNJ)
@@ -163,6 +163,7 @@ GDSL_BASIS = \
 
 GDSL_X86 = \
 	$(srcdir)/specifications/x86/x86.ml \
+	$(srcdir)/specifications/x86/x86-util.ml \
 	$(srcdir)/specifications/x86/x86-pretty.ml \
 	$(srcdir)/specifications/x86/x86-pretty-simple.ml
 
@@ -181,7 +182,8 @@ GDSL_AVR = \
 GDSL_AVRSEM = \
 	$(srcdir)/specifications/avr/avr-rreil-translator.ml \
 	$(srcdir)/specifications/avr/avr-rreil-registermapping.ml \
-	$(srcdir)/specifications/avr/avr-rreil-pretty.ml
+	$(srcdir)/specifications/avr/avr-rreil-pretty.ml \
+	$(srcdir)/specifications/avr/avr-liveness.ml
 
 GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/fmap.ml \
@@ -198,7 +200,7 @@ GDSL_RREIL = \
 if X86_RREIL
 lib_LTLIBRARIES += libgdsl-x86-rreil.la
 nodist_include_HEADERS += gdsl-x86-rreil.h
-libjrreil_la_LIBADD += libgdsl-x86-rreil.la
+libjgdsl_la_LIBADD += libgdsl-x86-rreil.la
 decoder_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_LDADD += libgdsl-x86-rreil.la
 semantics_cli_dynamic_LDADD += libgdsl-x86-rreil.la
@@ -218,7 +220,6 @@ GS_X86_RREIL = $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM)
 gdsl-x86-rreil.c: $(GDSLC_DEP) $(GS_X86_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_X86_RREIL)
 
-
 if X86
 lib_LTLIBRARIES += libgdsl-x86.la
 decoder_cli_LDADD += libgdsl-x86.la
@@ -235,7 +236,7 @@ gdsl-x86.c: $(GDSLC_DEP) $(GS_X86)
 
 if AVR_RREIL
 lib_LTLIBRARIES += libgdsl-avr-rreil.la
-libjrreil_la_LIBADD += libgdsl-avr-rreil.la
+libjgdsl_la_LIBADD += libgdsl-avr-rreil.la
 decoder_cli_LDADD += libgdsl-avr-rreil.la
 semantics_cli_LDADD += libgdsl-avr-rreil.la
 semantics_cli_dynamic_LDADD += libgdsl-avr-rreil.la
@@ -256,7 +257,6 @@ GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
 gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
 
-
 if AVR
 lib_LTLIBRARIES += libgdsl-avr.la
 decoder_cli_LDADD += libgdsl-avr.la
@@ -272,93 +272,107 @@ gdsl-avr.c: $(GDSLC_DEP) $(GS_AVR)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR)
 
 if HAVE_RREIL
-JSOURCES = src/rreil/DefaultLimitedVariableCollection.java \
-           src/rreil/IAddress.java \
-           src/rreil/LimitedVariable.java \
-           src/rreil/BranchHint.java \
-           src/rreil/id/FloatingFlags.java \
-           src/rreil/id/VirtualLessOrEqualSignedId.java \
-           src/rreil/id/VirtualLessSignedId.java \
-           src/rreil/id/GenericArchRegister.java \
-           src/rreil/id/VirtualLessUnsignedId.java \
-           src/rreil/id/Id.java \
-           src/rreil/id/IId.java \
-           src/rreil/id/VirtualEqualsNotId.java \
-           src/rreil/id/VirtualTemporaryId.java \
-           src/rreil/id/x86/X86RegisterId.java \
-           src/rreil/id/x86/X86Register.java \
-           src/rreil/id/VirtualLessOrEqualUnsignedId.java \
-           src/rreil/id/VirtualEqualsId.java \
-           src/rreil/statement/ConditionalBranchStatement.java \
-           src/rreil/statement/AssignStatement.java \
-           src/rreil/statement/WhileStatement.java \
-           src/rreil/statement/PrimitiveStatement.java \
-           src/rreil/statement/LoadStatement.java \
-           src/rreil/statement/StoreStatement.java \
-           src/rreil/statement/Statement.java \
-           src/rreil/statement/FlopStatement.java \
-           src/rreil/statement/BranchStatement.java \
-           src/rreil/statement/IStatement.java \
-           src/rreil/statement/IfThenElseStatement.java \
-           src/rreil/statement/ThrowStatement.java \
-           src/rreil/DefaultStatementCollection.java \
-           src/rreil/Flop.java \
-           src/rreil/IRReilBuilder.java \
-           src/rreil/linear/LinearImmediateExpression.java \
-           src/rreil/linear/ILinearExpression.java \
-           src/rreil/linear/LinearVariableExpression.java \
-           src/rreil/linear/LinearBinaryExpression.java \
-           src/rreil/linear/LinearScaleExpression.java \
-           src/rreil/linear/LinearExpression.java \
-           src/rreil/linear/LinearAdditionExpression.java \
-           src/rreil/linear/LinearSubtractionExpression.java \
-           src/rreil/sexpression/SimpleLinearExpression.java \
-           src/rreil/sexpression/SimpleCompareExpression.java \
-           src/rreil/sexpression/SimpleExpression.java \
-           src/rreil/sexpression/ISimpleExpression.java \
-           src/rreil/sexpression/Arbitrary.java \
-           src/rreil/Variable.java \
-           src/rreil/DefaultRReilBuilder.java \
-           src/rreil/Address.java \
-           src/rreil/IVariable.java \
-           src/rreil/ILimitedVariable.java \
-           src/rreil/IRReilCollection.java \
-           src/rreil/IFlop.java \
-           src/rreil/expression/CompareLessSigned.java \
-           src/rreil/expression/SignExtend.java \
-           src/rreil/expression/And.java \
-           src/rreil/expression/Unary.java \
-           src/rreil/expression/CompareNotEqual.java \
-           src/rreil/expression/Simple.java \
-           src/rreil/expression/ShiftRight.java \
-           src/rreil/expression/ZeroExtend.java \
-           src/rreil/expression/ICompare.java \
-           src/rreil/expression/Modulo.java \
-           src/rreil/expression/SignedModulo.java \
-           src/rreil/expression/CompareEqual.java \
-           src/rreil/expression/CompareLessOrEqualUnsigned.java \
-           src/rreil/expression/ShiftLeft.java \
-           src/rreil/expression/Multiplication.java \
-           src/rreil/expression/Binary.java \
-           src/rreil/expression/Division.java \
-           src/rreil/expression/Or.java \
-           src/rreil/expression/CompareLessOrEqualSigned.java \
-           src/rreil/expression/Expression.java \
-           src/rreil/expression/ShiftRightSigned.java \
-           src/rreil/expression/IExpression.java \
-           src/rreil/expression/Compare.java \
-           src/rreil/expression/CompareLessUnsigned.java \
-           src/rreil/expression/SignedDivision.java \
-           src/rreil/expression/Extend.java \
-           src/rreil/expression/Xor.java \
-           src/rreil/exception/IException.java \
-           src/rreil/exception/Exception.java \
-           src/rreil/exception/x86/X86Exception.java \
-           src/rreil/exception/GenericArchException.java \
-           src/rreil/IBranchHint.java \
-           src/rnati/RReilTranslateException.java \
-           src/rnati/GdslDecodeException.java \
-           src/rnati/NativeInterface.java \
+JSOURCES = src/gdsl/rreil/DefaultLimitedVariableCollection.java \
+           src/gdsl/rreil/IAddress.java \
+           src/gdsl/rreil/LimitedVariable.java \
+           src/gdsl/rreil/BranchHint.java \
+           src/gdsl/rreil/id/FloatingFlags.java \
+           src/gdsl/rreil/id/VirtualLessOrEqualSignedId.java \
+           src/gdsl/rreil/id/VirtualLessSignedId.java \
+           src/gdsl/rreil/id/GenericArchRegister.java \
+           src/gdsl/rreil/id/VirtualLessUnsignedId.java \
+           src/gdsl/rreil/id/Id.java \
+           src/gdsl/rreil/id/IId.java \
+           src/gdsl/rreil/id/VirtualEqualsNotId.java \
+           src/gdsl/rreil/id/VirtualTemporaryId.java \
+           src/gdsl/rreil/id/x86/X86RegisterId.java \
+           src/gdsl/rreil/id/x86/X86Register.java \
+           src/gdsl/rreil/id/VirtualLessOrEqualUnsignedId.java \
+           src/gdsl/rreil/id/VirtualEqualsId.java \
+           src/gdsl/rreil/statement/ConditionalBranchStatement.java \
+           src/gdsl/rreil/statement/AssignStatement.java \
+           src/gdsl/rreil/statement/WhileStatement.java \
+           src/gdsl/rreil/statement/PrimitiveStatement.java \
+           src/gdsl/rreil/statement/LoadStatement.java \
+           src/gdsl/rreil/statement/StoreStatement.java \
+           src/gdsl/rreil/statement/Statement.java \
+           src/gdsl/rreil/statement/FlopStatement.java \
+           src/gdsl/rreil/statement/BranchStatement.java \
+           src/gdsl/rreil/statement/IStatement.java \
+           src/gdsl/rreil/statement/IfThenElseStatement.java \
+           src/gdsl/rreil/statement/ThrowStatement.java \
+           src/gdsl/rreil/DefaultStatementCollection.java \
+           src/gdsl/rreil/Flop.java \
+           src/gdsl/rreil/IRReilBuilder.java \
+           src/gdsl/rreil/linear/LinearImmediateExpression.java \
+           src/gdsl/rreil/linear/ILinearExpression.java \
+           src/gdsl/rreil/linear/LinearVariableExpression.java \
+           src/gdsl/rreil/linear/LinearBinaryExpression.java \
+           src/gdsl/rreil/linear/LinearScaleExpression.java \
+           src/gdsl/rreil/linear/LinearExpression.java \
+           src/gdsl/rreil/linear/LinearAdditionExpression.java \
+           src/gdsl/rreil/linear/LinearSubtractionExpression.java \
+           src/gdsl/rreil/sexpression/SimpleLinearExpression.java \
+           src/gdsl/rreil/sexpression/SimpleCompareExpression.java \
+           src/gdsl/rreil/sexpression/SimpleExpression.java \
+           src/gdsl/rreil/sexpression/ISimpleExpression.java \
+           src/gdsl/rreil/sexpression/Arbitrary.java \
+           src/gdsl/rreil/Variable.java \
+           src/gdsl/rreil/DefaultRReilBuilder.java \
+           src/gdsl/rreil/Address.java \
+           src/gdsl/rreil/IVariable.java \
+           src/gdsl/rreil/ILimitedVariable.java \
+           src/gdsl/rreil/IRReilCollection.java \
+           src/gdsl/rreil/IFlop.java \
+           src/gdsl/rreil/expression/CompareLessSigned.java \
+           src/gdsl/rreil/expression/SignExtend.java \
+           src/gdsl/rreil/expression/And.java \
+           src/gdsl/rreil/expression/Unary.java \
+           src/gdsl/rreil/expression/CompareNotEqual.java \
+           src/gdsl/rreil/expression/Simple.java \
+           src/gdsl/rreil/expression/ShiftRight.java \
+           src/gdsl/rreil/expression/ZeroExtend.java \
+           src/gdsl/rreil/expression/ICompare.java \
+           src/gdsl/rreil/expression/Modulo.java \
+           src/gdsl/rreil/expression/SignedModulo.java \
+           src/gdsl/rreil/expression/CompareEqual.java \
+           src/gdsl/rreil/expression/CompareLessOrEqualUnsigned.java \
+           src/gdsl/rreil/expression/ShiftLeft.java \
+           src/gdsl/rreil/expression/Multiplication.java \
+           src/gdsl/rreil/expression/Binary.java \
+           src/gdsl/rreil/expression/Division.java \
+           src/gdsl/rreil/expression/Or.java \
+           src/gdsl/rreil/expression/CompareLessOrEqualSigned.java \
+           src/gdsl/rreil/expression/Expression.java \
+           src/gdsl/rreil/expression/ShiftRightSigned.java \
+           src/gdsl/rreil/expression/IExpression.java \
+           src/gdsl/rreil/expression/Compare.java \
+           src/gdsl/rreil/expression/CompareLessUnsigned.java \
+           src/gdsl/rreil/expression/SignedDivision.java \
+           src/gdsl/rreil/expression/Extend.java \
+           src/gdsl/rreil/expression/Xor.java \
+           src/gdsl/rreil/exception/IException.java \
+           src/gdsl/rreil/exception/Exception.java \
+           src/gdsl/rreil/exception/x86/X86Exception.java \
+           src/gdsl/rreil/exception/GenericArchException.java \
+           src/gdsl/rreil/IBranchHint.java \
+           src/gdsl/rreil/BuilderBackend.java \
+           src/gdsl/decoder/GdslDecodeException.java \
+           src/gdsl/decoder/Decoder.java \
+           src/gdsl/decoder/Instruction.java \
+           src/gdsl/translator/RReilTranslateException.java \
+           src/gdsl/translator/Translator.java \
+           src/gdsl/translator/SemPres.java \
+           src/gdsl/Frontend.java \
+           src/gdsl/IFrontendConfig.java \
+           src/gdsl/Gdsl.java \
+           src/gdsl/GdslException.java \
+					 src/gdsl/arch/AVRBinder.java \
+					 src/gdsl/arch/ArchBinder.java \
+					 src/gdsl/arch/ArchId.java \
+					 src/gdsl/arch/IConfigFlag.java \
+					 src/gdsl/arch/X86Binder.java \
+					 src/gdsl/arch/X86ConfigFlag.java \
            src/Program.java
 
 SPRE=src
@@ -368,11 +382,11 @@ BDIRS=$(BPRE)
 pre-build:
 	mkdir -p $(BDIRS)
 
-$(JAR): pre-build $(JSOURCES:%=libs/jrreil/%)
-	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jrreil && javac $(JSOURCES) -d $$ABS_DST/
+$(JAR): pre-build $(JSOURCES:%=libs/jgdsl/%)
+	ABS_DST=$$(pwd)/$(BPRE) && cd $(srcdir)/libs/jgdsl && javac $(JSOURCES) -d $$ABS_DST/
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
 
-CLEANFILES += jrreil.jar
+CLEANFILES += jgdsl.jar
 
 endif
 
@@ -393,8 +407,8 @@ endif
 if HAVE_GDSL_MULTIPLEX
 lib_LTLIBRARIES += libgdsl-multiplex.la
 endif
-if HAVE_JRREIL
-lib_LTLIBRARIES += libjrreil.la
+if HAVE_JGDSL
+lib_LTLIBRARIES += libjgdsl.la
 endif
 if HAVE_X86_LIB
 lib_LTLIBRARIES += libx86.la
@@ -429,8 +443,8 @@ endif
 if HAVE_GDSL_MULTIPLEX
 noinst_LTLIBRARIES += libgdsl-multiplex.la
 endif
-if HAVE_JRREIL
-noinst_LTLIBRARIES += libjrreil.la
+if HAVE_JGDSL
+noinst_LTLIBRARIES += libjgdsl.la
 endif
 if HAVE_X86_LIB
 noinst_LTLIBRARIES += libx86.la
@@ -467,7 +481,8 @@ include_HEADERS += libs/x86/include/x86.h libs/x86/include/x86_features.h
 endif
 
 if HAVE_RREIL_LIB
-librreil_la_SOURCES = $(srcdir)/libs/rreil/src/rreil/copy.c \
+librreil_la_SOURCES = $(srcdir)/libs/rreil/src/rreil/alloc.c \
+											$(srcdir)/libs/rreil/src/rreil/copy.c \
                       $(srcdir)/libs/rreil/src/rreil/print.c \
                       $(srcdir)/libs/rreil/src/rreil/gdrr_builder.c \
                       $(srcdir)/libs/rreil/src/rreil/free.c \
@@ -546,10 +561,10 @@ endif
 endif
 
 if HAVE_RREIL
-libjrreil_la_SOURCES = $(srcdir)/libs/jrreil/src/rnati_NativeInterface.c
-libjrreil_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
-libjrreil_la_LIBADD += libgdsl-multiplex.la
-private_headers += $(srcdir)/libs/jrreil/src/rnati_NativeInterface.h
+libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.c
+libjgdsl_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
+libjgdsl_la_LIBADD += libgdsl-multiplex.la
+private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.h
 endif
 
 if HAVE_RREIL
@@ -675,7 +690,7 @@ sweep_SOURCES = $(srcdir)/tools/sweep.c
 sweep_CFLAGS = -std=gnu99
 sweep_LDFLAGS = -lelf
 
-if X86_RREIL
+if HAVE_RREIL
 liveness_sweep_SOURCES = $(srcdir)/tools/liveness-sweep.c
 liveness_sweep_CFLAGS = -std=gnu99
 liveness_sweep_LDFLAGS = -lelf

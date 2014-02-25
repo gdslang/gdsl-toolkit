@@ -91,40 +91,32 @@ static char test_instruction(struct feature_data *features, struct hash_array *i
 
 		switch(result.type) {
 			case TESTER_RTYPE_SIMULATION_ERROR: {
+				insn_data->errors[result.type]++;
 				if(result.simulator_error & SIMULATOR_ERROR_UNALIGNED_STORE) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNALIGNED_STORE]++;
 				}
 				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_ADDRESS) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_ADDRESS]++;
 				}
 				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_STORE) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_STORE]++;
 				}
 				if(result.simulator_error & SIMULATOR_ERROR_UNDEFINED_BRANCH) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_UNDEFINED_BRANCH]++;
 				}
 				if(result.simulator_error & SIMULATOR_ERROR_FLOP_UNIMPLEMENTED) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_FLOP_UNIMPLEMENTED]++;
 				}
 				if(result.simulator_error & SIMULATOR_ERROR_PRIMITIVE_UNKNOWN) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_UNKNOWN]++;
 				}
 				if(result.simulator_error & SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_PRIMITIVE_SIGNATURE_INVALID]++;
 				}
 				if(result.simulator_error & SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_MAX_LOOP_ITERATIONS_COUNT_EXCEEDED]++;
 				}
 				if(result.simulator_error & SIMULATOR_ERROR_EXCEPTION) {
-					insn_data->errors[result.type]++;
 					insn_data->simulation_errors[LOG_SIMULATOR_ERROR_EXCEPTION]++;
 				}
 				break;

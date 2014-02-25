@@ -16,5 +16,6 @@ struct rreil_address {
 	struct rreil_linear *address;
 };
 
+extern struct rreil_address *rreil_address_alloc(long long unsigned int size, struct rreil_linear *addr_lin);
 
 #endif /* RREIL_ADDRESS_H_ */

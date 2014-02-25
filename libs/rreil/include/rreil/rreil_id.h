@@ -47,5 +47,7 @@ struct rreil_id {
 };
 
 extern char rreil_id_equals(struct rreil_id *a, struct rreil_id *b);
+extern char rreil_id_compare(struct rreil_id *a, struct rreil_id *b);
+extern struct rreil_id *rreil_temporary_alloc(long long unsigned temporary);
 
 #endif /* RREIL_ID_H_ */

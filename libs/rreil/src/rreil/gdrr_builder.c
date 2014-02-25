@@ -418,7 +418,7 @@ static obj_t sem_store(state_t state, int_t size, obj_t address,
 	statement->type = RREIL_STATEMENT_TYPE_STORE;
 	statement->store.size = size;
 	statement->store.address = (struct rreil_address*)address;
-	statement->store.rhs = (struct rreil_expr*)rhs;
+	statement->store.rhs = (struct rreil_linear*)rhs;
 	return (obj_t)statement;
 }
 static obj_t sem_ite(state_t state, obj_t cond,
