@@ -25,7 +25,7 @@ public class Gdsl {
   private ByteBuffer buffer;
 
   /**
-   * Get the address of the associated native gdsl state object.
+   * Get the address of the associated native Gdsl state object
    * 
    * @return the value of the pointer
    */
@@ -47,7 +47,7 @@ public class Gdsl {
   }
   
   /**
-   * Get the address of the associated native frontend object.
+   * Get the address of the associated native frontend object
    * 
    * @return the value of the pointer
    */
@@ -56,7 +56,7 @@ public class Gdsl {
   }
 
   /**
-   * Get the list of available frontends.
+   * Get the list of available frontends
    * 
    * @return the list of frontends
    */

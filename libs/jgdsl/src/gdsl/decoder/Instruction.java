@@ -2,11 +2,21 @@ package gdsl.decoder;
 
 import gdsl.Gdsl;
 
+/**
+ * This class represents a decoded instruction.
+ * 
+ * @author Julian Kranz
+ */
 public class Instruction {
   private long insnPtr = 0;
   private Gdsl gdsl;
   private long size;
 
+  /**
+   * Get the address of the associated native instruction object
+   * 
+   * @return the value of the pointer
+   */
   public long getInsnPtr () {
     if (insnPtr == 0)
       throw new NullPointerException();

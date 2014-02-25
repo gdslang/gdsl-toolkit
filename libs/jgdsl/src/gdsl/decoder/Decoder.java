@@ -2,6 +2,11 @@ package gdsl.decoder;
 
 import gdsl.Gdsl;
 
+/**
+ * This class represents the decoder interface of Gdsl.
+ * 
+ * @author Julian Kranz
+ */
 public class Decoder {
   private Gdsl gdsl;
 
@@ -9,6 +14,11 @@ public class Decoder {
     this.gdsl = gdsl;
   }
 
+  /**
+   * Decode one instruction
+   * 
+   * @return the decoded instruction
+   */
   public Instruction decodeOne () {
     long offset_before = gdsl.getIpOffset();
     long insnPtr = gdsl.decodeOne();
