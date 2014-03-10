@@ -79,6 +79,14 @@ struct rreil_linear *rreil_linear_sum_alloc(struct rreil_linear *l1, struct rrei
 	return linear;
 }
 
+struct rreil_linear *rreil_linear_difference_alloc(struct rreil_linear *l1, struct rreil_linear *l2) {
+	struct rreil_linear *linear = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
+	linear->type = RREIL_LINEAR_TYPE_DIFFERENCE;
+	linear->sum.opnd1 = l1;
+	linear->sum.opnd2 = l2;
+	return linear;
+}
+
 struct rreil_sexpr *rreil_sexpr_linear_alloc(struct rreil_linear *linear) {
 	struct rreil_sexpr *sexpr = (struct rreil_sexpr*)malloc(sizeof(struct rreil_sexpr));
 	sexpr->type = RREIL_SEXPR_TYPE_LIN;
