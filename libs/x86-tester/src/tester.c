@@ -189,7 +189,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	struct tester_result result;
 	result.type = TESTER_RTYPE_SUCCESS;
 
-	rreil_statements_print(statements);
+	rreil_statements_print(stdout, statements);
 
 	struct context *context_cpu;
 	struct context *context_rreil;
