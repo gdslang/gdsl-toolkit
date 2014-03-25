@@ -43,7 +43,7 @@ val main config = do
         opndsz='0',
         lock='0',
         segment=SEG_NONE,
-	      default-operand-size=if test-opt config-mode64 config then 32 else 16,
+	      default-operand-size=if test-opt config-default-opnd-sz-32 config then 32 else 16,
         ptrty=32, #TODO: check
         ~tab};
    instr <- p64;

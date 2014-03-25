@@ -317,11 +317,11 @@ val sem-call x = do
     target <- read-flow ip-sz x.opnd1;
     result <- if (relative x.opnd1) then do
       result <- if (x.opnd-sz === 16) then do
-          add ip-sz temp-ip ip target;
-          mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0);
-					return (var temp-ip)
+        add ip-sz temp-ip ip target;
+        mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0);
+			  return (var temp-ip)
       end else
-         return (lin-sum ip target)
+        return (lin-sum ip target)
 			;
 			return result
     end else

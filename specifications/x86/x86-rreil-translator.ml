@@ -1,6 +1,6 @@
 # vim: filetype=sml:ts=3:sw=3:expandtab
 
-export = translate{addr-sz, opnd-sz, lock, rep, repne, features, insn}
+export = translate{addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64}
 
 type sem_exception =
    SEM_DIVISION_OVERFLOW
@@ -2286,7 +2286,7 @@ end
 #s/\(.*\)| \(\S*\):.*/\1| \2 x: sem-default-arity0 insn x/g
 
 val translate-x86 insn = do
-  update@{mode64='1'};
+#  update@{mode64='1'};
   
   ifl <- fIF;
   mov 1 ifl (imm 1);
