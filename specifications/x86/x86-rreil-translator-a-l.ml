@@ -312,6 +312,7 @@ val sem-call x = do
   temp-ip <- mktemp;
 
   ip <- ip-get;
+  ip <- return (var ip);
   
   result <- if (near x.opnd1) then do
     target <- read-flow ip-sz x.opnd1;
@@ -698,6 +699,7 @@ val sem-jcc x cond = do
       return 32
   ;
   ip <- ip-get;
+  ip <- return (var ip);
 
   target <- read-flow ip-sz x.opnd1;
 
@@ -732,6 +734,7 @@ val sem-jmp x = do
     target <- read-flow ip-sz x.opnd1;
     result <- if (relative x.opnd1) then do
       ip <- ip-get;
+      ip <- return (var ip);
       #add ip-sz temp-ip ip target
 			return (lin-sum ip target)
     end else

@@ -19,7 +19,7 @@ val runtime-stack-address-size = do
 end
 
 val ip-get = do
-  return (var (semantic-register-of RIP))
+  return (semantic-register-of RIP)
 #  k <- ipget;
 #  return (imm k)
 end
@@ -2307,6 +2307,11 @@ end
 val translate-block-single insn = do
    ic <- query $ins_count;
    update@{tmp=0,ins_count=ic+1};
+
+   mode64 <- mode64?;
+   ip-sz <- runtime-stack-address-size;
+   ip <- ip-get;
+   add ip-sz ip (var ip) (imm insn.length);
    
    translate-x86 insn
 end

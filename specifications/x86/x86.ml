@@ -46,9 +46,13 @@ val main config = do
 	      default-operand-size=if test-opt config-default-opnd-sz-32 config then 32 else 16,
         ptrty=32, #TODO: check
         ~tab};
+
+   idx-before <- idxget;
    instr <- p64;
+   idx-after <- idxget;
+
    update @{tab=t};
-   return instr
+   return (@{length=(idx-after - idx-before)} instr)
 end
 
 val complement v = not v
@@ -714,7 +718,7 @@ type arity2 = {opnd1:opnd,opnd2:opnd}
 type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
 type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
-type insndata = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:insn}
+type insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:insn}
 
 type varity =
    VA0
