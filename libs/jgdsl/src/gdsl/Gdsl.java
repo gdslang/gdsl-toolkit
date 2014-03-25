@@ -12,7 +12,7 @@ import java.nio.ByteBuffer;
  * 4. Initialize the frontend,
  * 5. (Optionally) configure the frontend,
  * 6. Use the Decoder and Translator classes for the decoding and
- *    semantic translation of instructions.
+ * semantic translation of instructions.
  * 
  * @author Julian Kranz
  */
@@ -45,13 +45,13 @@ public class Gdsl {
       throw new RuntimeException("Frontend not set");
     return frontend;
   }
-  
+
   /**
    * Get the address of the associated native frontend object
    * 
    * @return the value of the pointer
    */
-  public long getFrontendPtr() {
+  public long getFrontendPtr () {
     return getFrontend().getPointer();
   }
 
@@ -98,8 +98,8 @@ public class Gdsl {
    * @param frontend the frontend to associate with
    */
   public void setFrontend (Frontend frontend) {
-	if(this.frontend != null)
-		throw new RuntimeException("Already set");
+    if (this.frontend != null)
+      throw new RuntimeException("Already set");
     boolean found = false;
     for (Frontend f : frontends)
       if (f.identifies(frontend)) {
@@ -121,7 +121,7 @@ public class Gdsl {
     if (gdslStatePtr == 0)
       gdslStatePtr = init(getFrontendPtr());
     else
-    	throw new RuntimeException("Already initialized");
+      throw new RuntimeException("Already initialized");
   }
 
   /**
@@ -131,7 +131,7 @@ public class Gdsl {
    * 
    * @param buffer the directly allocated {@link ByteBuffer} object
    * @param offset an offset into the byte buffer; Gdsl will start to decode
-   * from that offset.
+   *          from that offset.
    * @param base the base pointer to use for relative addresses
    */
   public void setCode (ByteBuffer buffer, long offset, long base) {

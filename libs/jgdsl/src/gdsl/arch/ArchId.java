@@ -7,5 +7,32 @@ package gdsl.arch;
  * @author Julian Kranz
  */
 public enum ArchId {
-  X86, AVR
-}
+  X86, AVR;
+  
+  private String name;
+  
+  private ArchId() {
+    this.name = super.toString();
+  }
+  
+  /**
+   * Set the name of this architecture
+   * 
+   * @param name the new name of the architecture
+   * @return this
+   */
+  public ArchId setName(String name) {
+    this.name = name;
+    
+    return this;
+  }
+  
+  /**
+   * Get the name of the architecture
+   * 
+   * @return the name of the architecture
+   */
+  public String getName () {
+    return name;
+  }
+ }

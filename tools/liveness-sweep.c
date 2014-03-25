@@ -584,7 +584,7 @@ static void run(struct options options, size_t *offset, size_t *size_max, double
 
 		file_bounds_set(options, offset, size_max, options.files[index]);
 
-		fprintf(stderr, "Size: %zu\n", size_max);
+		//fprintf(stderr, "Size: %zu\n", *size_max);
 
 		analyze(options.files[index], print, MODE_SINGLE, options.cleanup, *offset, *size_max, options.offset, &single);
 		analyze(options.files[index], print, MODE_DEFAULT, options.cleanup, *offset, *size_max, options.offset, &intra);

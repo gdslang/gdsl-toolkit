@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
 	size_t size = readhex_hex_read(stdin, &buffer);
 
 	struct frontend frontend;
-	if(gdsl_multiplex_frontend_get(&frontend, frontends[frontend_ind])) {
+	if(gdsl_multiplex_frontend_get_by_desc(&frontend, frontends[frontend_ind])) {
 		fprintf(stderr, "Unable to open frontend.\n");
 		return 1;
 	}

@@ -79,7 +79,7 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getFrontendPtr(JNIEnv *env, jobject this,
 	desc.ext = ext;
 
 	struct frontend *frontend = (struct frontend*)malloc(sizeof(struct frontend));
-	char error = gdsl_multiplex_frontend_get(frontend, desc);
+	char error = gdsl_multiplex_frontend_get_by_desc(frontend, desc);
 
 	if(error != GDSL_MULTIPLEX_ERROR_NONE) free(frontend);
 

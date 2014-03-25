@@ -93,22 +93,8 @@ size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
 			error = 1;
 #define ADD_FUNCTION(CAT,FUNC) ADD_FUNCTION_GENERIC(CAT,FUNC,"gdsl_" #FUNC)
 
-char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc desc) {
-	char *base = getenv("GDSL_FRONTENDS");
-	if(!base) return GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET;
-
-	char *lib;
-	size_t lib_length;
-	FILE *libf = open_memstream(&lib, &lib_length);
-	fprintf(libf, "%s/libgdsl-%s%s", base, desc.name, desc.ext);
-	fputc(0, libf);
-	fclose(libf);
-
-	void *dl = dlopen(lib, RTLD_LAZY);
-	free(lib);
-	if(!dl) return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;
-
-	char error = 0;
+static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
+	char error;
 
 	ADD_FUNCTION(generic, init)
 	ADD_FUNCTION(generic, set_code)
@@ -136,6 +122,48 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 	frontend->dl = dl;
 
 	return GDSL_MULTIPLEX_ERROR_NONE;
+}
+
+static char gdsl_multiplex_frontend_library_open_desc(void **dl, struct frontend_desc desc) {
+	char *base = getenv("GDSL_FRONTENDS");
+	if(!base) return GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET;
+
+	char *lib;
+	size_t lib_length;
+	FILE *libf = open_memstream(&lib, &lib_length);
+	fprintf(libf, "%s/libgdsl-%s%s", base, desc.name, desc.ext);
+	fputc(0, libf);
+	fclose(libf);
+
+	*dl = dlopen(lib, RTLD_LAZY);
+	free(lib);
+	if(!*dl) return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;
+
+	return 0;
+}
+
+char gdsl_multiplex_frontend_get_by_desc(struct frontend *frontend, struct frontend_desc desc) {
+	void *dl;
+	char error = gdsl_multiplex_frontend_library_open_desc(&dl, desc);
+	if(error)
+		return error;
+
+	return gdsl_multiplex_frontend_get(frontend, dl);
+}
+
+char gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char *name) {
+	char *lib;
+	size_t lib_length;
+	FILE *libf = open_memstream(&lib, &lib_length);
+	fprintf(libf, "libgdsl-%s", name);
+	fputc(0, libf);
+	fclose(libf);
+
+	void *dl = dlopen(lib, RTLD_LAZY);
+	free(lib);
+	if(!dl) return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;
+
+	return gdsl_multiplex_frontend_get(frontend, dl);
 }
 
 /*
