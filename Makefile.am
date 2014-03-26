@@ -718,3 +718,13 @@ private_headers += $(srcdir)/tools/x86-test-stats-runner/src/hash_array.h
 endif
 
 EXTRA_DIST = LICENSE $(GDSL_BASIS) $(GDSL_X86) $(GDSL_RREIL) $(GDSL_X86SEM) $(GDSL_AVR) $(GDSL_AVRSEM) $(private_headers) $(RUNTIME) $(srcdir)/gdsl.h $(srcdir)/gdslc.mlb $(srcdir)/gdsl.cm $(GDSLC_SML_FILES) $(srcdir)/detail/ml/smlnj/unsealed.cm
+
+if X86_RREIL
+install-data-hook:
+	ln -fs $(DESTDIR)$(libdir)/libgdsl-x86-rreil.so $(DESTDIR)$(libdir)/libgdsl-x86.so
+endif
+
+if AVR_RREIL
+install-data-hook:
+	ln -fs $(DESTDIR)$(libdir)/libgdsl-avr-rreil.so $(DESTDIR)$(libdir)/libgdsl-avr.so
+endif
