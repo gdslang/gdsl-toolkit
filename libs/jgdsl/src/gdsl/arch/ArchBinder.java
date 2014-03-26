@@ -32,9 +32,13 @@ public abstract class ArchBinder implements IFrontendConfig {
     this.frontend.setConfig(this);
   }
   
+  protected static boolean checkFrontend(ArchId id, Frontend frontend) {
+    return frontend.getName().equalsIgnoreCase(id.toString());
+  }
+  
   protected static Frontend specific(Frontend[] frontends, ArchId id) {
     for (Frontend frontend : frontends) {
-      if(frontend.getName().equalsIgnoreCase(id.toString()))
+      if(checkFrontend(id, frontend))
         return frontend;
     }
     throw new IllegalArgumentException("Unable to find frontend " + id.toString() + "...");

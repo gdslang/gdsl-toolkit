@@ -26,16 +26,16 @@
 }
 
 static jobjectArray get_frontends_with_descs(JNIEnv *env, struct frontend_desc *descs, size_t descs_length) {
-	jclass Gdsl_Frontend = (*env)->FindClass(env, "gdsl/Frontend");
+	jclass Gdsl_ListFrontend = (*env)->FindClass(env, "gdsl/ListFrontend");
 
-	jobjectArray jfrontends = (*env)->NewObjectArray(env, descs_length, Gdsl_Frontend, (*env)->NewStringUTF(env, ""));
+	jobjectArray jfrontends = (*env)->NewObjectArray(env, descs_length, Gdsl_ListFrontend, (*env)->NewStringUTF(env, ""));
 
 	for(size_t i = 0; i < descs_length; ++i) {
 		jstring name = (*env)->NewStringUTF(env, descs[i].name);
 		jstring ext = (*env)->NewStringUTF(env, descs[i].ext);
 
-		jmethodID cons = (*env)->GetMethodID(env, Gdsl_Frontend, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
-		jobject frontend = (*env)->NewObject(env, Gdsl_Frontend, cons, name, ext);
+		jmethodID cons = (*env)->GetMethodID(env, Gdsl_ListFrontend, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
+		jobject frontend = (*env)->NewObject(env, Gdsl_ListFrontend, cons, name, ext);
 
 		(*env)->SetObjectArrayElement(env, jfrontends, i, frontend);
 	}
@@ -52,52 +52,13 @@ JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative(JNIEnv *env, jo
 	return get_frontends_with_descs(env, descs, descs_length);
 }
 
-JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNativeWithBase(JNIEnv *env, jobject this,
-		jstring jbase) {
+JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNativeWithBase(JNIEnv *env, jobject this, jstring jbase) {
 	const char *base = (*env)->GetStringUTFChars(env, jbase, 0);
 	struct frontend_desc *descs = NULL;
 	size_t descs_length = gdsl_multiplex_frontends_list_with_base(&descs, base);
 	jobjectArray result = get_frontends_with_descs(env, descs, descs_length);
 	(*env)->ReleaseStringUTFChars(env, jbase, base);
 	return result;
-}
-
-JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getFrontendPtr(JNIEnv *env, jobject this, jobject jfrontend) {
-	jclass Gdsl_Frontend = (*env)->FindClass(env, "gdsl/Frontend");
-
-	jmethodID getName = (*env)->GetMethodID(env, Gdsl_Frontend, "getName", "()Ljava/lang/String;");
-	jmethodID getExt = (*env)->GetMethodID(env, Gdsl_Frontend, "getExt", "()Ljava/lang/String;");
-
-	jstring jname = (*env)->CallObjectMethod(env, jfrontend, getName);
-	jstring jext = (*env)->CallObjectMethod(env, jfrontend, getExt);
-
-	const char *name = (*env)->GetStringUTFChars(env, jname, 0);
-	const char *ext = (*env)->GetStringUTFChars(env, jext, 0);
-
-	struct frontend_desc desc;
-	desc.name = name;
-	desc.ext = ext;
-
-	struct frontend *frontend = (struct frontend*)malloc(sizeof(struct frontend));
-	char error = gdsl_multiplex_frontend_get_by_desc(frontend, desc);
-
-	if(error != GDSL_MULTIPLEX_ERROR_NONE) free(frontend);
-
-	switch(error) {
-		case GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET:
-			THROW_RUNTIME(0, "Unable to open frontend: Path to frontends not set")
-		case GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN:
-			THROW_RUNTIME(0, "Unable to open frontend: Unable to open frontend library")
-		case GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND:
-			THROW_RUNTIME(0, "Unable to open frontend: Symbol not found")
-		case GDSL_MULTIPLEX_ERROR_NONE:
-			break;
-	}
-
-	(*env)->ReleaseStringUTFChars(env, jname, name);
-	(*env)->ReleaseStringUTFChars(env, jext, ext);
-
-	return (jlong)frontend;
 }
 
 JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_init(JNIEnv *env, jobject this, jlong frontendPtr) {
@@ -144,8 +105,8 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOne(JNIEnv *env, jobject this, jlon
 	return (jlong)decode_one(env, this, frontendPtr, gdslStatePtr, frontend->decoder.config_default(state));
 }
 
-JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOneWithConfig
-  (JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr, jlong decodeConfig) {
+JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOneWithConfig(JNIEnv *env, jobject this, jlong frontendPtr,
+		jlong gdslStatePtr, jlong decodeConfig) {
 	return (jlong)decode_one(env, this, frontendPtr, gdslStatePtr, decodeConfig);
 }
 

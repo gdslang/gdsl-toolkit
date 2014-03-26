@@ -151,11 +151,11 @@ char gdsl_multiplex_frontend_get_by_desc(struct frontend *frontend, struct front
 	return gdsl_multiplex_frontend_get(frontend, dl);
 }
 
-char gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char *name) {
+char gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char const *name) {
 	char *lib;
 	size_t lib_length;
 	FILE *libf = open_memstream(&lib, &lib_length);
-	fprintf(libf, "libgdsl-%s", name);
+	fprintf(libf, "libgdsl-%s.so", name);
 	fputc(0, libf);
 	fclose(libf);
 

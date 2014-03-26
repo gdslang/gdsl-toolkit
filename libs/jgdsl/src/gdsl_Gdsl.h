@@ -41,14 +41,6 @@ JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_decodeOneWithConfig
 
 /*
  * Class:     gdsl_Gdsl
- * Method:    getFrontendPtr
- * Signature: (Lgdsl/Frontend;)J
- */
-JNIEXPORT jlong JNICALL Java_gdsl_Gdsl_getFrontendPtr
-  (JNIEnv *, jobject, jobject);
-
-/*
- * Class:     gdsl_Gdsl
  * Method:    init
  * Signature: (J)J
  */

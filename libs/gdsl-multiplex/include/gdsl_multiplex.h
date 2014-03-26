@@ -57,7 +57,7 @@ struct frontend {
 extern size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs);
 extern size_t gdsl_multiplex_frontends_list_with_base(struct frontend_desc **descs, char const *base);
 extern char gdsl_multiplex_frontend_get_by_desc(struct frontend *frontend, struct frontend_desc desc);
-extern char gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char *name);
+extern char gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char const *name);
 extern void gdsl_multiplex_descs_free(struct frontend_desc *descs, size_t descs_length);
 extern void gdsl_multiplex_frontend_close(struct frontend *frontend);
 

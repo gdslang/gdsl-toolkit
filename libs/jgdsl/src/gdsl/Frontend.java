@@ -7,33 +7,31 @@ package gdsl;
  * 
  * @author Julian Kranz
  */
-public class Frontend {
-  private final String name;
-  private final String ext;
-
+public abstract class Frontend {
+  private long pointer;
+  
+  /**
+   * Get the address of the corresponding native object.
+   * 
+   * @return the value of the pointer
+   */
+  public long getPointer () {
+    if(pointer == 0)
+      initializeNative();
+    if (pointer == 0)
+      throw new RuntimeException("Pointer to native frontend object missing");
+    return pointer;
+  }
+  
+  protected abstract void initializeNative();
+  
+  void setPointer (long pointer) {
+    this.pointer = pointer;
+  }
+  
   private IFrontendConfig config;
   private boolean configured = false;
-
-  private long pointer;
-
-  /**
-   * Get the name of the frontend
-   * 
-   * @return the name of the frontend
-   */
-  public String getName () {
-    return name;
-  }
-
-  /**
-   * Get the file extension of the frontend's library
-   * 
-   * @return the corresponding file extension
-   */
-  public String getExt () {
-    return ext;
-  }
-
+  
   /**
    * Get the configurator for the frontend; it is used to configure
    * the frontend - for instance, the configurator might set the default
@@ -46,7 +44,7 @@ public class Frontend {
       throw new UnsupportedOperationException();
     return config;
   }
-
+  
   /**
    * Set the configurator for the frontend; it is used to configure
    * the frontend - for instance, the configurator might set the default
@@ -58,6 +56,21 @@ public class Frontend {
     this.config = config;
     this.configured = true;
   }
+  
+  private final String name;
+  
+  /**
+   * Get the name of the frontend
+   * 
+   * @return the name of the frontend
+   */
+  public String getName () {
+    return name;
+  }
+  
+  public Frontend(String name) {
+    this.name = name;
+  }
 
   /**
    * Check whether the frontends has been configured using a IFrontendConfig
@@ -65,52 +78,5 @@ public class Frontend {
    */
   public boolean isConfigured () {
     return configured;
-  }
-
-  void setPointer (long pointer) {
-    this.pointer = pointer;
-  }
-
-  /**
-   * Get the address of the corresponding native object.
-   * 
-   * @return the value of the pointer
-   */
-  public long getPointer () {
-    if (pointer == 0)
-      throw new RuntimeException("Pointer to native frontend object missing");
-    return pointer;
-  }
-
-  /**
-   * Construct a new Frontend object
-   * 
-   * @param name the name of the frontend, i.e. the architecture name
-   * @param ext the file extension of the frontend
-   */
-  public Frontend (String name, String ext) {
-    super();
-    this.name = name;
-    this.ext = ext;
-  }
-
-  @Override public String toString () {
-    return name + "|" + ext;
-  }
-
-  /**
-   * Checks whether this object identifies the other object. A
-   * frontend object identifies another object if it also is an
-   * object of type Frontend and has got the same name and file
-   * extension.
-   * 
-   * @param obj the object to check
-   * @return a boolean indicating the result
-   */
-  public boolean identifies (Object obj) {
-    if (!(obj instanceof Frontend))
-      return false;
-    Frontend other = (Frontend) obj;
-    return name.equals(other.name) && ext.equals(other.ext);
   }
 }

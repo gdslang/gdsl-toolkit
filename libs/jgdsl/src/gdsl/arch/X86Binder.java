@@ -1,5 +1,6 @@
 package gdsl.arch;
 
+import gdsl.BareFrontend;
 import gdsl.Frontend;
 
 /**
@@ -19,7 +20,17 @@ public class X86Binder extends ArchBinder {
    */
   public X86Binder (Frontend[] frontends) {
     super(specific(frontends, ArchId.X86));
+
+    setConfigFlag(X86ConfigFlag.MODE64);
+    setConfigFlag(X86ConfigFlag.DefaultOpndSz32);
+  }
+
+  public X86Binder (BareFrontend frontend) {
+    super(frontend);
     
+    if (!checkFrontend(ArchId.X86, frontend))
+      throw new IllegalArgumentException();
+
     setConfigFlag(X86ConfigFlag.MODE64);
     setConfigFlag(X86ConfigFlag.DefaultOpndSz32);
   }

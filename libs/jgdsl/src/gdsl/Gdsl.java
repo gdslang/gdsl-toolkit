@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
  * @author Julian Kranz
  */
 public class Gdsl {
-  private final Frontend[] frontends;
+  private ListFrontend[] frontends;
 
   private Frontend frontend;
 
@@ -56,13 +56,19 @@ public class Gdsl {
   }
 
   /**
-   * Get the list of available frontends
+   * Get the list of available frontends; in case the list is
+   * queried the first time, the environment variable "GDSL_FRONTENDS"
+   * is used to search for frontends
    * 
    * @return the list of frontends
    */
   public Frontend[] getFrontends () {
+    if(frontends == null)
+      frontends = getFrontendsNative();
     return frontends;
   }
+  
+  private native ListFrontend[] getFrontendsNative ();
 
   /**
    * Construct the Gdsl object; this constructor uses the
@@ -71,14 +77,11 @@ public class Gdsl {
    */
   public Gdsl () {
     System.loadLibrary("jgdsl");
-
-    frontends = getFrontendsNative();
   }
 
-  private native Frontend[] getFrontendsNative ();
-
   /**
-   * Construct the Gdsl object
+   * Construct the Gdsl object using a given path to search
+   * for frontends
    * 
    * @param base the path to search frontends in
    */
@@ -88,7 +91,7 @@ public class Gdsl {
     frontends = getFrontendsNativeWithBase(base);
   }
 
-  private native Frontend[] getFrontendsNativeWithBase (String base);
+  private native ListFrontend[] getFrontendsNativeWithBase (String base);
 
   /**
    * Associate the Gdsl object with a {@link Frontend} object; the frontend
@@ -100,18 +103,31 @@ public class Gdsl {
   public void setFrontend (Frontend frontend) {
     if (this.frontend != null)
       throw new RuntimeException("Already set");
-    boolean found = false;
-    for (Frontend f : frontends)
-      if (f.identifies(frontend)) {
-        found = true;
-        break;
-      }
-    if (!found)
-      throw new RuntimeException("Invalid frontend");
-    long frontendPtr = getFrontendPtr(frontend);
-    frontend.setPointer(frontendPtr);
+//    boolean found = false;
+//    for (Frontend f : frontends)
+//      if (f.identifies(frontend)) {
+//        found = true;
+//        break;
+//      }
+//    if (!found)
+//      throw new RuntimeException("Invalid frontend");
     this.frontend = frontend;
   }
+  
+  
+  /**
+   * Associate the Gdsl object with a {@link Frontend} object; the frontend is
+   * constructed from the given name. The name is also used for the name of
+   * the Gdsl library to load; therefore, libgdsl-name needs to be locatable by dlopen().
+   * 
+   * @param name the name of the frontend
+   */
+//  public void setFrontend(String name) {
+//    long frontendPtr = getFrontendPtrByLibName(name);
+//    this.frontend = new Frontend(name, "");
+//  }
+
+
 
   /**
    * Initialize the associated frontend; this creates a native gdsl state
@@ -192,8 +208,6 @@ public class Gdsl {
     frontend = null;
   }
 
-  private native long getFrontendPtr (Frontend frontend);
-
   private native long init (long frontendPtr);
 
   private native void setCode (long frontendPtr, long gdslStatePtr, ByteBuffer buffer, long offset, long base);
@@ -202,5 +216,8 @@ public class Gdsl {
 
   private native void resetHeap (long frontendPtr, long gdslStatePtr);
 
+  /*
+   * TODO: Move to frontend?
+   */
   private native void destroyFrontend (long frontendPtr, long gdslStatePtr);
 }
