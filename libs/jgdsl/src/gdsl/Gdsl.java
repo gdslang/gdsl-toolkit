@@ -6,11 +6,11 @@ import java.nio.ByteBuffer;
  * The Gdsl class represents the main interface to Gdsl. The
  * user needs to perform the following steps:
  * 
- * 1. Create a new instance of the Gdsl class,
- * 2. Request the list of available frontends,
- * 3. Choose a frontend (for example using an architecture binder),
- * 4. Initialize the frontend,
- * 5. (Optionally) configure the frontend,
+ * 1. Create a new instance of the Gdsl class;
+ * 2. (Optionally) Request the list of available frontends;
+ * 3. Choose a frontend (for example using an architecture binder);
+ * 4. Initialize the frontend;
+ * 5. (Optionally) configure the frontend;
  * 6. Use the Decoder and Translator classes for the decoding and
  * semantic translation of instructions.
  * 
@@ -57,8 +57,9 @@ public class Gdsl {
 
   /**
    * Get the list of available frontends; in case the list is
-   * queried the first time, the environment variable "GDSL_FRONTENDS"
-   * is used to search for frontends
+   * queried the first time and has not been set by the constructor,
+   * the environment variable "GDSL_FRONTENDS" is used to search for
+   * frontends.
    * 
    * @return the list of frontends
    */
@@ -71,9 +72,7 @@ public class Gdsl {
   private native ListFrontend[] getFrontendsNative ();
 
   /**
-   * Construct the Gdsl object; this constructor uses the
-   * environment variable "GDSL_FRONTENDS" to search for
-   * frontends.
+   * Construct the Gdsl object
    */
   public Gdsl () {
     System.loadLibrary("jgdsl");
@@ -94,9 +93,8 @@ public class Gdsl {
   private native ListFrontend[] getFrontendsNativeWithBase (String base);
 
   /**
-   * Associate the Gdsl object with a {@link Frontend} object; the frontend
-   * must be available, i.e. in the list of frontends. The method should only
-   * be called once per Gdsl object.
+   * Associate the Gdsl object with a {@link Frontend} object; the frontend.
+   * The method should only be called once per Gdsl object.
    * 
    * @param frontend the frontend to associate with
    */
@@ -115,19 +113,17 @@ public class Gdsl {
   }
   
   
-  /**
-   * Associate the Gdsl object with a {@link Frontend} object; the frontend is
-   * constructed from the given name. The name is also used for the name of
-   * the Gdsl library to load; therefore, libgdsl-name needs to be locatable by dlopen().
-   * 
-   * @param name the name of the frontend
-   */
+//  /**
+//   * Associate the Gdsl object with a {@link Frontend} object; the frontend is
+//   * constructed from the given name. The name is also used for the name of
+//   * the Gdsl library to load; therefore, libgdsl-name needs to be locatable by dlopen().
+//   * 
+//   * @param name the name of the frontend
+//   */
 //  public void setFrontend(String name) {
 //    long frontendPtr = getFrontendPtrByLibName(name);
 //    this.frontend = new Frontend(name, "");
 //  }
-
-
 
   /**
    * Initialize the associated frontend; this creates a native gdsl state
@@ -216,8 +212,5 @@ public class Gdsl {
 
   private native void resetHeap (long frontendPtr, long gdslStatePtr);
 
-  /*
-   * TODO: Move to frontend?
-   */
   private native void destroyFrontend (long frontendPtr, long gdslStatePtr);
 }

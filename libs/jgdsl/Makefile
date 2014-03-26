@@ -17,7 +17,7 @@ LIBRARY=libjgdsl.so
 JAR_SRC=jgdsl-src.jar
 JAR=jgdsl.jar
 
-C_SOURCES=src/gdsl_rreil_BuilderBackend.c src/gdsl_Gdsl.c src/gdsl_decoder_Instruction.c src/gdsl_BareFrontend.c src/gdsl_ListFrontend.c
+C_SOURCES=src/gdsl_rreil_BuilderBackend.c src/gdsl_Gdsl.c src/gdsl_decoder_Instruction.c src/gdsl_BareFrontend.c src/gdsl_ListFrontend.c src/util.c
 
 all: pre-build $(LIBRARY) $(JAR_SRC) $(JAR)
 

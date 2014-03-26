@@ -159,6 +159,8 @@ char gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char con
 	fputc(0, libf);
 	fclose(libf);
 
+	printf("ZZZ %s\n", lib);
+
 	void *dl = dlopen(lib, RTLD_LAZY);
 	free(lib);
 	if(!dl) return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;

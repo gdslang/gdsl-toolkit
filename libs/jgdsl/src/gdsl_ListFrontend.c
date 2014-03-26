@@ -12,35 +12,7 @@
 #include <gdsl.h>
 #include <gdsl_multiplex.h>
 #include "gdsl_ListFrontend.h"
-
-#define THROW_RUNTIME(RET, MSG) {\
-		jclass exp = (*env)->FindClass(env, "java/lang/RuntimeException");\
-		(*env)->ThrowNew(env, exp, MSG);\
-		return RET;\
-}
-
-#define THROW_GDSL_ERROR(RET) {\
-		jclass exp = (*env)->FindClass(env, "gdsl/GdslException");\
-		(*env)->ThrowNew(env, exp, frontend->generic.get_error_message(state));\
-		return RET;\
-}
-
-/*
- * Todo: Merge with gdslBarefront.c->
- */
-static char handle_frontend_getter_error(JNIEnv *env, char error) {
-	switch(error) {
-		case GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET:
-			THROW_RUNTIME(error, "Unable to open frontend: Path to frontends not set")
-		case GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN:
-			THROW_RUNTIME(error, "Unable to open frontend: Unable to open frontend library")
-		case GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND:
-			THROW_RUNTIME(error, "Unable to open frontend: Symbol not found")
-		case GDSL_MULTIPLEX_ERROR_NONE:
-			break;
-	}
-	return 0;
-}
+#include "util.h"
 
 JNIEXPORT jlong JNICALL Java_gdsl_ListFrontend_getFrontendPtrByDesc(JNIEnv *env, jobject this, jobject jfrontend) {
 	jclass Gdsl_ListFrontend = (*env)->FindClass(env, "gdsl/ListFrontend");

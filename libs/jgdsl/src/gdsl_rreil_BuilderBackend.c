@@ -6,12 +6,7 @@
 #include <gdsl.h>
 #include <gdsl_multiplex.h>
 #include "gdsl_rreil_BuilderBackend.h"
-
-#define THROW_RUNTIME(MSG) {\
-		jclass exp = (*env)->FindClass(env, "java/lang/RuntimeException");\
-		(*env)->ThrowNew(env, exp, MSG);\
-		return;\
-}
+#include "util.h"
 
 struct userdata {
 	JNIEnv *env;

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <jni.h>
+
 /*
  * Class:     gdsl_ListFrontend
  * Method:    getFrontendPtrByDesc

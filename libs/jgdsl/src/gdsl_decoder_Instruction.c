@@ -12,12 +12,7 @@
 #include <gdsl.h>
 #include <gdsl_multiplex.h>
 #include "gdsl_decoder_Instruction.h"
-
-#define THROW_GDSL_ERROR(RET) {\
-		jclass exp = (*env)->FindClass(env, "gdsl/GdslException");\
-		(*env)->ThrowNew(env, exp, frontend->generic.get_error_message(state));\
-		return RET;\
-}
+#include "util.h"
 
 JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_pretty(JNIEnv *env, jobject this, jlong frontendPtr,
 		jlong gdslStatePtr, jlong insnPtr) {
@@ -26,7 +21,7 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_pretty(JNIEnv *env, jobj
 	obj_t insn = (obj_t)insnPtr;
 
 	if(setjmp(*frontend->generic.err_tgt(state)))
-	THROW_GDSL_ERROR(NULL)
+	THROW_GDSL_EXCEPTION_RET(NULL)
 
 	string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty(state, insn));
 
@@ -40,7 +35,7 @@ JNIEXPORT jint JNICALL Java_gdsl_decoder_Instruction_operands(JNIEnv *env, jobje
 	obj_t insn = (obj_t)insnPtr;
 
 	if(setjmp(*frontend->generic.err_tgt(state)))
-	THROW_GDSL_ERROR(0)
+	THROW_GDSL_EXCEPTION_RET(0)
 
 	return (jint)frontend->decoder.operands(state, insn);
 }
@@ -52,7 +47,7 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_prettyOperand(JNIEnv *en
 	obj_t insn = (obj_t)insnPtr;
 
 	if(setjmp(*frontend->generic.err_tgt(state)))
-	THROW_GDSL_ERROR(NULL)
+	THROW_GDSL_EXCEPTION_RET(NULL)
 
 	string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_operand(state, insn, (int_t)operand));
 
@@ -66,7 +61,7 @@ JNIEXPORT jstring JNICALL Java_gdsl_decoder_Instruction_mnemonic(JNIEnv *env, jo
 	obj_t insn = (obj_t)insnPtr;
 
 	if(setjmp(*frontend->generic.err_tgt(state)))
-	THROW_GDSL_ERROR(NULL)
+	THROW_GDSL_EXCEPTION_RET(NULL)
 
 	string_t str = frontend->generic.merge_rope(state, frontend->decoder.pretty_mnemonic(state, insn));
 

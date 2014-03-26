@@ -25,10 +25,16 @@ public class X86Binder extends ArchBinder {
     setConfigFlag(X86ConfigFlag.DefaultOpndSz32);
   }
 
-  public X86Binder (BareFrontend frontend) {
-    super(frontend);
+  /**
+   * This constructor uses a {@link BareFrontend} as
+   * frontend and uses the string representation of the
+   * {@link ArchId} item of the X86 architecture
+   * to determine the name of the corresponding Gdsl library.
+   */
+  public X86Binder () {
+    super(new BareFrontend(ArchId.X86));
     
-    if (!checkFrontend(ArchId.X86, frontend))
+    if (!checkFrontend(ArchId.X86, getFrontend()))
       throw new IllegalArgumentException();
 
     setConfigFlag(X86ConfigFlag.MODE64);

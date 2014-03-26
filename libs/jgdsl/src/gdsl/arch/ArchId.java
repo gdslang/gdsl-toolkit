@@ -8,25 +8,25 @@ package gdsl.arch;
  */
 public enum ArchId {
   X86, AVR;
-  
+
   private String name;
-  
-  private ArchId() {
+
+  private ArchId () {
     this.name = super.toString();
   }
-  
+
   /**
    * Set the name of this architecture
    * 
    * @param name the new name of the architecture
    * @return this
    */
-  public ArchId setName(String name) {
+  public ArchId setName (String name) {
     this.name = name;
-    
+
     return this;
   }
-  
+
   /**
    * Get the name of the architecture
    * 
@@ -35,4 +35,8 @@ public enum ArchId {
   public String getName () {
     return name;
   }
- }
+
+  @Override public String toString () {
+    return super.toString().toLowerCase();
+  }
+}

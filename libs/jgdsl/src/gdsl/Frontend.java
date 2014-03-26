@@ -68,7 +68,7 @@ public abstract class Frontend {
     return name;
   }
   
-  public Frontend(String name) {
+  protected Frontend(String name) {
     this.name = name;
   }
 
