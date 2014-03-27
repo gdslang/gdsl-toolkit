@@ -40,6 +40,12 @@ private_headers =
 
 # options for the C compiler
 AM_CFLAGS = -Wall
+if HAVE_X86
+AM_CFLAGS += -DGDSL_X86
+endif
+#if HAVE_AVR
+#AM_CFLAGS += -DGDSL_AVR
+#endif
 
 # the gdsl compiler
 
@@ -489,7 +495,7 @@ librreil_la_SOURCES = $(srcdir)/libs/rreil/src/rreil/alloc.c \
                       $(srcdir)/libs/rreil/src/rreil/rreil_id.c
 librreil_la_CFLAGS = -std=c11 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/util/include
 if HAVE_X86_LIB
-librreil_la_CFLAGS += -DGDSL_X86 -I$(srcdir)/libs/x86/include
+librreil_la_CFLAGS += -I$(srcdir)/libs/x86/include
 endif
 include_HEADERS += $(srcdir)/libs/rreil/include/rreil/rreil.h \
                    $(srcdir)/libs/rreil/include/rreil/rreil_copy.h \
