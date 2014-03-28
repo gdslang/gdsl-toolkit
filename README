@@ -11,6 +11,7 @@ current search PATH:
 - Standard ML of New Jersey interactive compiler (including ml-lpt) [>= version 110.75]
 - Make
 - A C compiler 
+- Libtool
 
 Furthermore, the following software packages and features are required by some
 of the optional demo applications:
