@@ -91,7 +91,7 @@ end = struct
       val compare = TVar.compare
    end)           
 
-   structure StepsMap = RedBlackMapFn(struct
+   structure StepsMap = SplayMapFn(struct
       type ord_key = steps
       val compare = compareSteps
    end)           
@@ -277,9 +277,9 @@ structure TypeTable : sig
    type table
    
    (*a type variable was not found in the type table*)
-   exception IndexError
+   exception TypeTableError
 
-   val emptyTable : table
+   val emptyTable : unit -> table
 
    val toStringSI : SymbolTable.symid list * TVar.tvar list * table * TVar.varmap -> string * TVar.varmap
    val dumpTableSI : table * TVar.varmap -> string * TVar.varmap
@@ -483,7 +483,7 @@ end = struct
    exception IndexError
    exception TypeTableError
 
-   val emptyTable = {
+   fun emptyTable () = {
       hashCons = HT.mkTable (typeterm_hash,typeterm_eq) (10000, CondensingError),
       symTable = HT.mkTable (sym_hash,SymbolTable.eq_symid) (100, IndexError),
       typeTable = DA.array (100000, LEAF SymSet.empty),
@@ -638,10 +638,13 @@ end = struct
          val siRef = ref TVar.emptyShowInfo
          fun err (str,syms,vars) =
             let
-               val (sStr,si) = toStringSI (syms, vars, table, !siRef)
+               val si = !siRef
+               val (symsStr,_) = foldl (fn (sym,(str,sep)) => (str ^ sep ^ SymbolTable.getString(!SymbolTables.varTable, sym), ", ")) ("","") syms
+               val (varsStr,si,_) = foldl (fn (var,(str,si,sep)) => let val (vStr,si) = TVar.varToString (var,si) in (str ^ sep ^ vStr, si, ", ") end) ("",si,"") vars
+               val (sStr,si) = toStringSI (syms, vars, table, si)
                val (tStr,si) = dumpTableSI (table, si)
                val _ = siRef := si
-               val _ = TextIO.print ("\nINVARIANT ERROR: " ^ str ^ sStr ^ "\n")
+               val _ = TextIO.print ("\nINVARIANT ERROR: " ^ str ^ ": " ^ symsStr ^ "; " ^ varsStr ^ ":" ^ sStr ^ "\n")
                val _ = TextIO.print ("current table:\n" ^ tStr ^ "\n")
 
             in
@@ -722,6 +725,7 @@ end = struct
             TextIO.print ("delSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val st = #symTable (table : table)
          val { flow = fp, info } = HT.remove st sym
+            handle IndexError => (TextIO.print ("delSymbol: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
          val unusedTVars = ref TVar.empty
          fun delRef (v,LEAF syms) =
             let
@@ -751,56 +755,65 @@ end = struct
          val tt = #typeTable table
          val st = #symTable table
          val { flow = fp, info = idx } = HT.remove st sym
+            handle IndexError => (TextIO.print ("getSymbol: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
          fun downFrom (n,s,[]) = []
            | downFrom (n,s,v::vs) = gT (Path.appendIntStep n s,v) :: downFrom (n-1,s,vs)
-         and gT (s,idx) = case ttGet (tt,idx) of
-             TERM (TT_FUN (fs1, f2)) => FUN (downFrom (~1,s,fs1), gT (Path.appendIntStep 0 s,f2) )
-           | TERM (TT_SYN (syn, t)) => SYN (syn, gT (s,t))
-           | TERM (TT_ZENO) => ZENO
-           | TERM (TT_FLOAT) => FLOAT
-           | TERM (TT_STRING) => STRING
-           | TERM (TT_UNIT) => UNIT
-           | TERM (TT_VEC t) => VEC (gT (s,t))
-           | TERM (TT_CONST c) => CONST c
-           | TERM (TT_ALG (sym, vs)) => ALG (sym, downFrom (length vs,s,vs))
-           | TERM (TT_RECORD i) => RECORD (gR (s,i))
-           | TERM (TT_FIELD (f,i,j)) => raise IndexError
-           | TERM (TT_MONAD (res,inp,out)) => MONAD (
-               gT (Path.appendIntStep 0 s,res),
-               gT (Path.appendIntStep (~1) s,inp),
-               gT (Path.appendIntStep 1 s,out))
-           | LEAF symSet =>
-               let
-                  val symSet = if SymSet.member (symSet,sym)
-                     then SymSet.delete (symSet,sym) else symSet
-                  val _ = ttSet (tt,idx,LEAF symSet)
-                  val idx' = find tt idx
-                  val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx'))
-               in
-                  VAR (idx,bVar)
-               end
-           | _ => raise IndexError
-         and gR (s,idx) = case ttGet (tt,idx) of
-             TERM (TT_FIELD (fSym,i,j)) =>
-               let
-                  val (rowVar,bVar,fs) = gR (s,j)
-                  val fType = gT (Path.appendFieldStep fSym s,i)
-                  val fBVar = Path.getFlag (fp,(s,Path.mkFieldLeaf fSym))
-                  val f = RField { name = fSym, fty = fType, exists = fBVar }
-               in
-                  (rowVar,bVar,f :: fs)
-               end
-           | LEAF symSet =>
-               let
-                  val symSet = if SymSet.member (symSet,sym)
-                     then SymSet.delete (symSet,sym) else symSet
-                  val _ = ttSet (tt,idx,LEAF symSet)
-                  val idx = find tt idx
-                  val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
-               in
-                  (idx,bVar,[])
-               end
-           | _ => raise IndexError
+         and gT (s,idx) =
+            let
+               val idx = find tt idx
+            in
+                case ttGet (tt,idx) of
+                   TERM (TT_FUN (fs1, f2)) => FUN (downFrom (~1,s,fs1), gT (Path.appendIntStep 0 s,f2) )
+                 | TERM (TT_SYN (syn, t)) => SYN (syn, gT (s,t))
+                 | TERM (TT_ZENO) => ZENO
+                 | TERM (TT_FLOAT) => FLOAT
+                 | TERM (TT_STRING) => STRING
+                 | TERM (TT_UNIT) => UNIT
+                 | TERM (TT_VEC t) => VEC (gT (s,t))
+                 | TERM (TT_CONST c) => CONST c
+                 | TERM (TT_ALG (sym, vs)) => ALG (sym, downFrom (length vs,s,vs))
+                 | TERM (TT_RECORD i) => RECORD (gR (s,i))
+                 | TERM (TT_FIELD (f,i,j)) => raise IndexError
+                 | TERM (TT_MONAD (res,inp,out)) => MONAD (
+                     gT (Path.appendIntStep 0 s,res),
+                     gT (Path.appendIntStep (~1) s,inp),
+                     gT (Path.appendIntStep 1 s,out))
+                 | LEAF symSet =>
+                     let
+                        val symSet = if SymSet.member (symSet,sym)
+                           then SymSet.delete (symSet,sym) else symSet
+                        val _ = ttSet (tt,idx,LEAF symSet)
+                        val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
+                     in
+                        VAR (idx,bVar)
+                     end
+                 | _ => raise IndexError
+            end
+         and gR (s,idx) =
+            let
+               val idx = find tt idx
+            in
+               case ttGet (tt,idx) of
+                   TERM (TT_FIELD (fSym,i,j)) =>
+                     let
+                        val (rowVar,bVar,fs) = gR (s,j)
+                        val fType = gT (Path.appendFieldStep fSym s,i)
+                        val fBVar = Path.getFlag (fp,(s,Path.mkFieldLeaf fSym))
+                        val f = RField { name = fSym, fty = fType, exists = fBVar }
+                     in
+                        (rowVar,bVar,f :: fs)
+                     end
+                 | LEAF symSet =>
+                     let
+                        val symSet = if SymSet.member (symSet,sym)
+                           then SymSet.delete (symSet,sym) else symSet
+                        val _ = ttSet (tt,idx,LEAF symSet)
+                        val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
+                     in
+                        (idx,bVar,[])
+                     end
+                 | _ => raise IndexError
+            end
          val ty = gT (Path.emptySteps, idx)
          val _ = sane (table)
       in
@@ -900,17 +913,15 @@ end = struct
                         (v1,symSet1,v2,symSet2) else (v2,symSet2,v1,symSet1)
                   val _ = ttSet (tt,vBad, FORW vGood)
                   val _ = ttSet (tt,vGood, LEAF symSet12)
-                  val _ = TextIO.print ("here1\n")
                   fun update sym =
                      let
-                        val _ = TextIO.print ("here2\n")
                         val { flow = fp, info = idx } = HT.lookup st sym
-                        val (vBadStr, si) = TVar.varToString (vBad, TVar.emptyShowInfo)
+                           handle IndexError => (TextIO.print ("unify: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
+                        (*val (vBadStr, si) = TVar.varToString (vBad, TVar.emptyShowInfo)
                         val (vGoodStr, si) = TVar.varToString (vGood, si)
                         val (fpStr, si) = Path.toStringSI (fp,si)
-                        val _ = TextIO.print ("renaming " ^ vBadStr ^ " to " ^ vGoodStr ^ " in " ^ fpStr ^ "\n")
+                        val _ = TextIO.print ("renaming " ^ vBadStr ^ " to " ^ vGoodStr ^ " in " ^ fpStr ^ "\n")*)
                         val fp = Path.renameVariable (vBad,vGood,fp)
-                        val _ = TextIO.print ("here4\n")
                         val idx = if TVar.eq (idx,v1) then v2 else idx
                         val _ = HT.insert st (sym, {flow = fp, info = idx})
                      in
@@ -1084,11 +1095,18 @@ end = struct
          val _ = if not verbose then () else
             TextIO.print ("equateSymbols " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
          val st = #symTable table
-         val { flow = fp1, info = idx1 } = HT.lookup st sym1
-         val { flow = fp2, info = idx2 } = HT.lookup st sym2
+         val { info = idx1, ... } = HT.lookup st sym1
+         val { info = idx2, ... } = HT.lookup st sym2
          val _ = unify (idx1,idx2,table)
+         val { flow = fp1, ... } = HT.lookup st sym1
+         val { flow = fp2, ... } = HT.lookup st sym2
          val bdRef = #boolDom table
          val flags = ListPair.zip (Path.flagsOfFlowpoints fp1, Path.flagsOfFlowpoints fp2)
+
+         (*val (str,si) = toStringSI ([sym1,sym2],[],table,TVar.emptyShowInfo)
+         val _ = TextIO.print ("equatSymbols: bool func = " ^ BD.showBFun (!bdRef) ^ str ^ "\n")
+         val _ = TextIO.print (foldl (fn (((_,f1),(_,f2)),str) => BD.showVar f1 ^ "," ^ BD.showVar f2 ^ "; " ^ str) "" flags ^ "\n")*)
+
          val _ = List.app (fn ((_,f1),(_,f2)) => bdRef := BD.meetEqual (f1,f2,!bdRef)) flags
       in
          sane (table)
@@ -1099,9 +1117,11 @@ end = struct
          val _ = if not verbose then () else
             TextIO.print ("equateSymbolsFlow " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
          val st = #symTable table
-         val { flow = fp1, info = idx1 } = HT.lookup st sym1
-         val { flow = fp2, info = idx2 } = HT.lookup st sym2
+         val { info = idx1, ... } = HT.lookup st sym1
+         val { info = idx2, ... } = HT.lookup st sym2
          val _ = unify (idx1,idx2,table)
+         val { flow = fp1, ... } = HT.lookup st sym1
+         val { flow = fp2, ... } = HT.lookup st sym2
          val bdRef = #boolDom table
          val flags = ListPair.zip (Path.flagsOfFlowpoints fp1, Path.flagsOfFlowpoints fp2)
          val _ = List.app (fn ((contra,f1),(_,f2)) =>
@@ -1200,7 +1220,7 @@ end = struct
 
    fun test _ =
       let
-         val table = emptyTable
+         val table = emptyTable ()
          val st = !SymbolTables.varTable
          val st = SymbolTable.push st
          val (st,xVar) = SymbolTable.fresh (st, Atom.atom "x")
@@ -1223,6 +1243,7 @@ end = struct
          val w = TVar.freshTVar ()
          fun wBV tVar = VAR (tVar, BD.freshBVar ())
          fun getTVar (VAR (tv,bv)) = tv
+           | getTVar _ = TVar.freshTVar ()
          val row1 = TVar.freshTVar ()
          fun rTy1 _ = Types.RECORD (row1,BD.freshBVar (),[
                Types.RField { name = foo, fty = Types.ZENO, exists = BD.freshBVar () },
