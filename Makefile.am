@@ -567,10 +567,10 @@ endif
 endif
 
 if HAVE_RREIL
-libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.c
+libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.c $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.c $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.c $(srcdir)/libs/jgdsl/src/util.c
 libjgdsl_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
 libjgdsl_la_LIBADD += libgdsl-multiplex.la
-private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.h
+private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.h $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.h $(srcdir)/libs/jgdsl/src/util.h
 endif
 
 if HAVE_RREIL
