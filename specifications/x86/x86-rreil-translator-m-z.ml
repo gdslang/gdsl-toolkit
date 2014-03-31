@@ -2182,14 +2182,14 @@ val sem-ret va x = do
      VA0:
        do
          address <- sem-ret-without-operand x;
-         ret address
+         x86-branch ret address
        end
    | VA1 v:
        do
          comb <- return (@{opnd1=v.opnd1} x);
 	       address <- sem-ret-without-operand comb;
          release-from-stack comb;
-         ret address
+         x86-branch ret address
        end
   end;
   update @{foundJump='1'}
@@ -2200,14 +2200,14 @@ val sem-ret-far va x = do
      VA0:
        do
          address <- sem-ret-far-without-operand x;
-         ret address
+         x86-branch ret address
        end
    | VA1 v:
        do
          comb <- return (@{opnd1=v.opnd1} x);
          address <- sem-ret-far-without-operand comb;
          release-from-stack comb;
-         ret address
+         x86-branch ret address
        end
   end;
   update @{foundJump='1'}
