@@ -1,6 +1,6 @@
 # vim: filetype=sml:ts=3:sw=3:expandtab
 
-export = translate{addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64}
+export = translate{length, addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64}
 
 type sem_exception =
    SEM_DIVISION_OVERFLOW
@@ -2287,6 +2287,11 @@ end
 
 val translate-x86 insn = do
 #  update@{mode64='1'};
+
+  mode64 <- mode64?;
+  ip-sz <- runtime-stack-address-size;
+  ip <- ip-get;
+  add ip-sz ip (var ip) (imm insn.length);
   
   ifl <- fIF;
   mov 1 ifl (imm 1);
@@ -2307,11 +2312,6 @@ end
 val translate-block-single insn = do
    ic <- query $ins_count;
    update@{tmp=0,ins_count=ic+1};
-
-   mode64 <- mode64?;
-   ip-sz <- runtime-stack-address-size;
-   ip <- ip-get;
-   add ip-sz ip (var ip) (imm insn.length);
    
    translate-x86 insn
 end

@@ -1,4 +1,4 @@
-export = translate{addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64} decode-translate-block decode-translate-single decode-translate-super-block succ-pretty
+export = translate{length, addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64} decode-translate-block decode-translate-single decode-translate-super-block succ-pretty
 
 val decode-translate-block-headless config limit = do
    insn <- decode config;
