@@ -164,9 +164,19 @@ val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-
 val /PRIM op lhs rhs = SEM_PRIM{op=op,lhs=lhs,rhs=rhs}
 val /THROW exception = SEM_THROW exception
 
-val push insn = do
-   tl <- query $stack;
-   update @{stack=SEM_CONS{hd=insn,tl=tl}}
+val push insn = let
+  val push-inner insn = do
+    tl <- query $stack;
+    update @{stack=SEM_CONS{hd=insn,tl=tl}}
+  end
+in
+  case insn of
+     SEM_ASSIGN s: if s.size > 0 then
+         push-inner insn
+       else
+         return void
+   | _: push-inner insn
+  end
 end
 
 val pop-all = do
