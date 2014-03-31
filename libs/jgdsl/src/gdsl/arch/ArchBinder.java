@@ -46,7 +46,7 @@ public abstract class ArchBinder implements IFrontendConfig {
   
   /**
    * Set one architecture-specific configuration
-   * flag.
+   * flag
    * 
    * @param flag the configuration flag to set
    * @return the callee object
@@ -58,13 +58,23 @@ public abstract class ArchBinder implements IFrontendConfig {
   
   /**
    * Reset one architecture-specific configuration
-   * flag.
+   * flag
    * 
    * @param flag the configuration flag to reset
    * @return the callee object
    */
   public ArchBinder resetConfigFlag(IConfigFlag flag) {
     this.configVector &= ~flag.getFlag();
+    return this;
+  }
+  
+  /**
+   * Clear the current architecture configuration
+   * 
+   * @return the callee object
+   */
+  public ArchBinder resetConfig() {
+    this.configVector = 0;
     return this;
   }
   
