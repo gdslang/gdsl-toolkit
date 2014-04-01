@@ -233,25 +233,21 @@ end = struct
    fun streamSymId () = SymbolTable.lookup(!SymbolTables.fieldTable,
                                            Atom.atom Primitives.streamField)
 
-   fun clearDecoder (sym,env) =
+   fun pushDecoderType (sym,span,env) =
       let
-         val envOpt = E.clearFunction (sym,env)
-         fun pushInitial env =
-            let
-               val bVar = BD.freshBVar ()
-               val env = E.meetBoolean (BD.meetVarOne bVar, env)
-            in
-               E.pushType (false,
-                  MONAD (freshVar (),
-                              RECORD (freshTVar (), BD.freshBVar (),
-                                 [RField {name=streamSymId (),fty=UNIT,exists=bVar}]),
-                              freshVar ()),
-                  env)
-            end
+         val bVar = BD.freshBVar ()
+         val env = E.meetBoolean (BD.meetVarOne bVar, env)
+         val env = E.pushType (false,
+            MONAD (freshVar (),
+                        RECORD (freshTVar (), BD.freshBVar (),
+                           [RField {name=streamSymId (),fty=UNIT,exists=bVar}]),
+                        freshVar ()),
+            env)
+         val env = E.pushSymbol (sym,span,false,false,env)
+         val env = E.equateKappas env
+         val env = E.popKappa env
       in
-         case envOpt of
-              SOME envCleared => envCleared
-            | NONE => pushInitial env
+         env
       end
 
 
@@ -525,7 +521,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       if not (hasSymbol (st,v)) then env else
       let
          val env = E.enterFunction (v,env)
-         val env = clearDecoder (v,env)
+         val env = pushDecoderType (v,getSpan st,env)
          (*val _ = TextIO.print ("**** prev type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString envPrev)*)
          val env = infRhs (st,env) (v, l, NONE, [], e)
          (*val _ = TextIO.print ("**** new type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
@@ -547,7 +543,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.enterFunction (v,env)
          val env = List.foldl
             (fn ((guard, rhs), env) => let
-               val env = clearDecoder (v,env)
+               val env = pushDecoderType (v,getSpan st,env)
                val env = infRhs (st,env) (v, l, SOME guard, [], rhs)
                val env = E.equateKappas env
                   handle S.UnificationFailure str =>
@@ -798,10 +794,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                  NONE => E.pushType (true, ALG (dcon, List.map VAR vs), env)
                | SOME t =>
             let
-               val _ = TextIO.print ("**** instantiating constructor " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n")
+               (*val _ = TextIO.print ("**** instantiating constructor " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n")*)
                val env = E.pushType (true, FUN ([t],ALG (dcon, List.map VAR vs)), env)
                val env = E.genConstructorFlow (false,env)
-               val _ = TextIO.print ("**** done instantiating constructor " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n")
+               (*val _ = TextIO.print ("**** done instantiating constructor " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n")*)
             in
                env
             end
@@ -828,7 +824,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val inpTy = freshVar ()
          val outTy = freshVar ()
          val env = E.pushType (false, MONAD (resTy,inpTy,outTy),env)
-         val _ = TextIO.print ("monadic actions: expression matched against monad type:" ^ E.topToString env ^ "\n")
+         (*val _ = TextIO.print ("monadic actions: expression matched against monad type:" ^ E.topToString env ^ "\n")*)
          val env = E.equateKappas env
       in
          E.popKappa env
@@ -844,7 +840,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.pushTop env
          val env = E.reduceToFunction (env,1)
          val env = E.flipKappas env
-         val _ = TextIO.print ("function to unify with bind: " ^ E.topToString env ^ "\n")
+         (*val _ = TextIO.print ("function to unify with bind: " ^ E.topToString env ^ "\n")*)
          val env = E.equateKappasFlow env
             handle S.UnificationFailure (kind, str) =>
                raise S.UnificationFailure (kind, str ^ " in statement\n\t" ^
@@ -857,7 +853,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                | NONE => infSeqexp (st, env) l
          val env = E.pushTop env
          val env = E.reduceToFunction (env,1)
-         val _ = TextIO.print ("monadic actions: before flipping fun and res\n")
+         (*val _ = TextIO.print ("monadic actions: before flipping fun and res\n")*)
          val env = E.flipKappas env
          val env = E.equateKappasFlow env
             handle S.UnificationFailure str =>
@@ -867,7 +863,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                              ((2,false), "with the following transformer ")])
          val env = E.popKappa env
          val env = E.reduceToResult env
-         val _ = TextIO.print ("monadic actions: after reducing to res\n")
+         (*val _ = TextIO.print ("monadic actions: after reducing to res\n")*)
       in
          env
       end

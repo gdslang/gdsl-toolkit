@@ -124,11 +124,6 @@ structure Environment : sig
    (*pop the last function from the current context*)
    val leaveFunction : VarInfo.symid * environment -> environment
    
-   (*unset the type of function f if possible; if the function type was set,
-   return an environment in which the function type was pushed, otherwise
-   return nothing*)
-   val clearFunction : VarInfo.symid * environment -> environment option
-
    (*mark the given symbol and its local definitions as stable which means
    that any uses of them will use the inferred type rather than leaving a hole*)
    val markAsStable : VarInfo.symid * environment -> environment
@@ -898,7 +893,7 @@ end = struct
                end
               | action kUsage _ = raise InferenceBug
             val env =
-               if not recordUsage andalso isStable then env else
+               if (not recordUsage) orelse isStable then env else
                   let
                      val (kUsage,env) = Scope.acquireKappa env
                      val _ = TT.addSymbol (kUsage, VAR (TVar.freshTVar (), BD.freshBVar ()), tt)
@@ -941,42 +936,26 @@ end = struct
 
    fun getCtxt env = Scope.getCtxt env
 
-   fun popToUsage (sym, span, env) = raise Unimplemented
-(*  (case Scope.unwrap env of
-        (KAPPA {ty = tUse}, env) =>
+   fun popToUsage (sym, span, env) =
          let
-            val funRef = ref (NONE : SymbolTable.symid option)
-            fun setUsage (COMPOUND {ty, width, uses = us, nested}, cons) =
-               (case SpanMap.find (us,span) of
-                    NONE => raise InferenceBug
-                  | SOME (fid, _) =>
-                     (funRef := SOME fid;
-                     (COMPOUND {
-                        ty = ty, width = width,
-                        uses = SpanMap.insert (us,span,(fid,tUse)),
-                        nested = nested
-                     }, cons))
-               )
-              | setUsage _ = raise InferenceBug
-            val env = Scope.update (sym, setUsage, env)
-            fun setType t (COMPOUND {ty = _, width, uses, nested}, cons) =
-                  (COMPOUND {ty = SOME t, width = width, uses = uses, nested = nested},
-                   cons)
-              | setType t _ = raise InferenceBug
-            val fid = case !funRef of
-                 SOME fid => fid
-               | NONE => raise InferenceBug
-            (*val _ = TextIO.print ("popToUsage " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n")*)
-      
-            val env = case Scope.lookup (fid,env) of
-                 (_, COMPOUND { ty = SOME (t,_), width, uses, nested}) =>
-                  reduceBooleanFormula (fid,t,setType,true,env)
-               | _ => raise InferenceBug
+            val tt = Scope.getTypeTable env
+            val (tUse,env) = case Scope.unwrap env of
+                     (KAPPA {kappa}, env) => (TT.getSymbol (kappa,tt), Scope.releaseKappa (kappa,env))
+                   | _ => raise InferenceBug
+            val env = case Scope.lookup (sym, env) of
+                  (_, COMPOUND {ty, width, uses = us, nested}) =>
+                     (case SpanMap.find (us,span) of
+                       NONE => raise InferenceBug
+                     | SOME (kappaTy, fid) =>
+                        (TT.delSymbol (kappaTy,tt);
+                         TT.addSymbol (kappaTy,tUse,tt);
+                        env)
+                     )
+                   | _ => raise InferenceBug
          in
             env
          end
-     | _ => raise InferenceBug)
-*)
+
    fun pushLambdaVar' (sym, env) =
       let
          val t = VAR (TVar.freshTVar (), BD.freshBVar ())
@@ -1022,17 +1001,26 @@ end = struct
          genFields ([], bns, env)
       end
 
-   fun reduceToSum (n, env) = raise Unimplemented
-(* 
+   fun reduceToSum (n, env) =
       let
+         val tt = Scope.getTypeTable env
+         fun getKappa env = case Scope.unwrap env of
+                    (KAPPA {kappa}, env) => (TT.getSymbol (kappa,tt),Scope.releaseKappa (kappa,env))
+                  | _ => raise InferenceBug
+         fun setKappa (ty,env) =
+            let
+               val (kappa,env) = Scope.acquireKappa env
+               val _ = TT.addSymbol (kappa,ty,tt)
+            in
+               Scope.wrap (KAPPA {kappa=kappa}, env)
+            end
          fun rTS (n, vars, const, env) = if n>0 then
-               case Scope.unwrap env of
-                    (KAPPA {ty = CONST c}, env) => rTS (n-1, vars, c+const, env)
-                  | (KAPPA {ty = VAR (v,_)}, env) => rTS (n-1, v::vars, const, env)
+               case getKappa env of
+                    (CONST c, env) => rTS (n-1, vars, c+const, env)
+                  | (VAR (v,_), env) => rTS (n-1, v::vars, const, env)
                   | _ => raise InferenceBug
             else case vars of
-                 [] => Scope.wrap (KAPPA {ty = CONST const}, env)
-               | [v] => Scope.wrap (KAPPA {ty = VAR (v, BD.freshBVar ())}, env)
+                 [] => setKappa (CONST const, env)
                | vs =>
                   let
                      val v = TVar.freshTVar ()
@@ -1043,12 +1031,12 @@ end = struct
                      val (eStr, si) = topToStringSI (env, si)
                      val _ = TextIO.print ("reduceToSum: " ^ scsStr ^ ", resulting in\n" ^ eStr ^ "\n")*)
                   in
-                     Scope.wrap (KAPPA { ty = VAR (v, BD.freshBVar ())}, env)
+                     setKappa (VAR (v, BD.freshBVar ()), env)
                   end
       in
          rTS (n, [], 0, env)
       end
-*)
+
    fun reduceToFunction (env,nArgs) = if nArgs=0 then env else
       let
          val tt = Scope.getTypeTable env
@@ -1182,8 +1170,8 @@ end = struct
                TT.equateSymbols (t1,t2,tt)
             ) handle (BD.Unsatisfiable bVar) =>
                flowError (bVar, NONE, env)
-                   | (NotFound) =>
-               (TextIO.print (#1 (TT.dumpTableSI (tt,TVar.emptyShowInfo))); raise InferenceBug)
+                   (*| (NotFound) =>
+               (TextIO.print (#1 (TT.dumpTableSI (tt,TVar.emptyShowInfo))); raise InferenceBug)*)
       in
          env
       end
@@ -1240,7 +1228,7 @@ end = struct
            | setType kappa _ = (TextIO.print ("popToFunction " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
       in
          case Scope.unwrap env of
-              (KAPPA {kappa}, env) => Scope.update (sym, setType kappa, env)
+              (KAPPA {kappa}, env) => Scope.update (sym, setType kappa, Scope.releaseKappa (kappa,env))
             | _ => raise InferenceBug
       end
 
@@ -1292,8 +1280,7 @@ end = struct
             | SOME r => r
       end
 
-   fun popNested (n, env) = raise Unimplemented
-(* if n<=0 then env else
+   fun popNested (n, env) = if n<=0 then env else
       case Scope.unwrap env of
         (GROUP bs, env) => (case Scope.unwrap env of
              (GROUP bsPrev, env) =>
@@ -1317,26 +1304,7 @@ end = struct
             | _ => raise InferenceBug
           )
       | (_, env) => raise InferenceBug
-*)
 
-   fun clearFunction (sym, env) = raise Unimplemented
-(*
-      let
-         val tOptRef = ref (NONE : (texp * BD.bfun) option)
-         fun resetType (COMPOUND {ty = tOpt, width, uses, nested}, cons) =
-               (tOptRef := tOpt
-               ;(COMPOUND {ty = NONE, width = width, uses = uses, nested = nested}, cons))
-           | resetType _ = raise InferenceBug
-         val env = Scope.update (sym, resetType, env)
-      in
-         case !tOptRef of
-              NONE => NONE
-            | SOME (ty,flow) =>
-               SOME (meetBoolean (
-                     fn bFun => BD.meet (flow,bFun),
-                     Scope.wrap (KAPPA { ty = ty },env)))
-      end
-*)   
 
    fun markAsStable (sym, env) =
       let

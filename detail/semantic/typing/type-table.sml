@@ -332,8 +332,9 @@ structure TypeTable : sig
 
 end = struct
 
-   val verbose = true
-
+   val verbose = false
+   val unifyVerbose = false
+   
    type index = TVar.tvar
 
    structure HT = HashTable
@@ -644,8 +645,8 @@ end = struct
                val (sStr,si) = toStringSI (syms, vars, table, si)
                val (tStr,si) = dumpTableSI (table, si)
                val _ = siRef := si
-               val _ = TextIO.print ("\nINVARIANT ERROR: " ^ str ^ ": " ^ symsStr ^ "; " ^ varsStr ^ ":" ^ sStr ^ "\n")
                val _ = TextIO.print ("current table:\n" ^ tStr ^ "\n")
+               val _ = TextIO.print ("\nINVARIANT ERROR: " ^ str ^ ": " ^ symsStr ^ "; " ^ varsStr ^ ":" ^ sStr ^ "\n")
 
             in
                raise IndexError
@@ -906,7 +907,7 @@ end = struct
             end
          and unifyTT (v1, v2, LEAF symSet1, LEAF symSet2) =
                let
-                  val _ = TextIO.print ("unifying LEAFs\n")
+                  val _ = if not unifyVerbose then () else TextIO.print ("unifying LEAFs\n")
                   val symSet12 = SymSet.union (symSet1,symSet2)
                   val (vGood,sGood,vBad,sBad) =
                      if TVar.toIdx v1<TVar.toIdx v2 then
@@ -916,7 +917,7 @@ end = struct
                   fun update sym =
                      let
                         val { flow = fp, info = idx } = HT.lookup st sym
-                           handle IndexError => (TextIO.print ("unify: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
+                           handle IndexError => (if not unifyVerbose then () else TextIO.print ("unify: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
                         (*val (vBadStr, si) = TVar.varToString (vBad, TVar.emptyShowInfo)
                         val (vGoodStr, si) = TVar.varToString (vGood, si)
                         val (fpStr, si) = Path.toStringSI (fp,si)
@@ -933,7 +934,7 @@ end = struct
                in
                   []
                end
-           | unifyTT (v1, v2, TERM t1, TERM t2) = (TextIO.print ("unifying TERM/TERM\n"); genPairs (v1,v2, t1,t2))
+           | unifyTT (v1, v2, TERM t1, TERM t2) = (if not unifyVerbose then () else TextIO.print ("unifying TERM/TERM " ^ #1 (showTypeTermSI (t1,TVar.emptyShowInfo)) ^ "="  ^ #1 (showTypeTermSI (t2,TVar.emptyShowInfo)) ^ "\n"); genPairs (v1,v2, t1,t2))
            | unifyTT (v1, v2, LEAF symSet, TERM t2) = substVar (v1,symSet,v2,t2)
            | unifyTT (v1, v2, TERM t1, LEAF symSet) = substVar (v2,symSet,v1,t1)
            | unifyTT _ = raise TypeTableError
@@ -957,7 +958,10 @@ end = struct
             Int.toString c2 ^ ")")
         | genPairs (v1,v2,TT_RECORD row1, TT_RECORD row2) =
          let
-            val _ = ttSet (tt, v1, FORW v2)
+            val (v1,v2,row1,row2) =
+               if TVar.toIdx v1<TVar.toIdx v2 then
+                  (v2,v1,row2,row1) else (v1,v2,row1,row2)
+            (*val _ = ttSet (tt, v1, FORW v2)*)
             fun gatherFields (fs,i) = case ttGet (tt,i) of
                TERM (TT_FIELD (f,i,j)) => gatherFields (SymMap.insert (fs,f,i), j)
              | LEAF symSet => (fs,i,symSet)
@@ -1029,7 +1033,7 @@ end = struct
          end
       and substVar (vVar,symSet,vType,termType) = 
          let
-            val _ = TextIO.print ("unifying TERM/LEAF\n")
+            val _ = if not unifyVerbose then () else TextIO.print ("unifying LEAF/TERM " ^ #1 (TVar.varToString (vVar,TVar.emptyShowInfo)) ^ "=" ^ #1 (showTypeTermSI (termType,TVar.emptyShowInfo)) ^ "\n")
             val _ = ttSet (tt, vVar, FORW vType)
             val stepsLeafList = termToSteps (vType,table)
             fun updateNewLeaf (_,leaf) = case Path.getVarLeaf leaf of
@@ -1058,8 +1062,8 @@ end = struct
             val _ = if not verbose then () else
                     TextIO.print ("length of vars: " ^ Int.toString (length varsToExpand) ^
                                   ", length of contra: "^ Int.toString (length contra) ^
-                                  "length of vec: " ^ Int.toString (length vectorsTransposed) ^
-                                  foldl (fn (s,ss) => s ^ " " ^ ss) "" (map (Int.toString o length) vectorsTransposed) ^
+                                  ", length of vec: " ^ Int.toString (length vectorsTransposed) ^
+                                  foldl (fn (s,ss) => s ^ " " ^ ss) ", " (map (Int.toString o length) vectorsTransposed) ^
                                   "\n")
             val bdRef = (#boolDom table)
             fun doExpand [] =
