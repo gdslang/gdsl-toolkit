@@ -2288,7 +2288,6 @@ end
 val translate-x86 insn = do
 #  update@{mode64='1'};
 
-  mode64 <- mode64?;
   ip-sz <- runtime-stack-address-size;
   ip <- ip-get;
   add ip-sz ip (var ip) (imm insn.length);
