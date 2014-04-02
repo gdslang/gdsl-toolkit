@@ -982,23 +982,6 @@ val x86-branch jumper address = do
   jumper (@{address=(var ip)} address)
 end
 
-val x86-cbranch cond target-true target-false = do
-  size <- if target-true.size === target-false.size then
-    return target-true.size
-  else
-    case 0 of 1: return 0 end
-  ;
-
-  ip <- ip-get;
-  _if (/d cond) _then
-    mov size ip target-true.address
-  _else
-    mov size ip target-false.address
-  ;
-
-  jump {size=size, address=(var ip)}
-end
-
 val flow_semantics = do
   hugo <- decode config-default;
   semantics hugo

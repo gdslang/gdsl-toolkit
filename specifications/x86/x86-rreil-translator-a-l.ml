@@ -708,7 +708,7 @@ val sem-jcc x cond = do
   temp-ip <- return (lin-sum target ip);
 
   cond <- cond;
-  x86-cbranch cond (address ip-sz temp-ip) (address ip-sz ip)
+  cbranch cond (address ip-sz temp-ip) (address ip-sz ip)
 end
 
 val sem-jregz x reg = do
