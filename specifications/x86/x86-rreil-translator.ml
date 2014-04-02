@@ -975,13 +975,6 @@ end
 
 val sub-unsigned-saturating size dst src1 src2 = binop-unsigned-saturating sub /gtu 0 size dst src1 src2
 
-val x86-branch jumper address = do
-  ip <- ip-get;
-  mov address.size ip address.address;
-
-  jumper (@{address=(var ip)} address)
-end
-
 val flow_semantics = do
   hugo <- decode config-default;
   semantics hugo
@@ -2295,6 +2288,7 @@ end
 val translate-x86 insn = do
 #  update@{mode64='1'};
 
+  mode64 <- mode64?;
   ip-sz <- runtime-stack-address-size;
   ip <- ip-get;
   add ip-sz ip (var ip) (imm insn.length);

@@ -353,7 +353,7 @@ val sem-call x = do
 		return (var temp-ip)
   end;
 
-  x86-branch call (address ip-sz result)
+  call (address ip-sz result)
 end
 
 val sem-convert size = do
@@ -772,7 +772,7 @@ val sem-jmp x = do
     return (var temp-ip)
   ;
 
-  x86-branch jump (address ip-sz result)
+  jump (address ip-sz result)
 end
 
 ## K>>
