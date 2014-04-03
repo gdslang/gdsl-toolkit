@@ -87,7 +87,8 @@ gdsl_destroy(state_t s);
 /* Records that are represented as C structs. */
 
 /* Exported functions. */
-obj_t gdsl_varity3(state_t s,obj_t features,obj_t cons,obj_t op1,obj_t op2,obj_t op3);
+int_t gdsl_even(state_t s,int_t (*f)(state_t,int_t),int_t x);
+int_t gdsl_odd(state_t s,int_t (*f)(state_t,int_t),int_t x);
 #ifdef GDSL_NO_PREFIX
 #define gdsl_init \
 gdsl_init
@@ -109,7 +110,8 @@ gdsl_heap_residency
 gdsl_merge_rope
 #define gdsl_destroy \
 gdsl_destroy
-#define gdsl_varity3 gdsl_varity3
+#define gdsl_even gdsl_even
+#define gdsl_odd gdsl_odd
 #endif
 
 #endif /* __GDSL_H */
@@ -117,17 +119,3 @@ gdsl_destroy
 /* The following defines are accumulative. */
 
 /* Exported tags of constructors. */
-#ifdef CON_IMMEDIATE
-  #if (CON_IMMEDIATE!=1)
-    #error "merging GDSL libraries with incompatible definition for CON_IMMEDIATE."
-  #endif
-#else
-  #define CON_IMMEDIATE 1
-#endif
-#ifdef CON_VA0
-  #if (CON_VA0!=2)
-    #error "merging GDSL libraries with incompatible definition for CON_VA0."
-  #endif
-#else
-  #define CON_VA0 2
-#endif

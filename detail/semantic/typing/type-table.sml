@@ -319,8 +319,6 @@ structure TypeTable : sig
    
    val sane : table -> unit
 
-   val addPair : ((TVar.tvar * TVar.tvar) * TVar.set list) -> TVar.set list
-   val getPair : TVar.set list -> (TVar.tvar * TVar.tvar * TVar.set list) option
    val aVar : TVar.tvar
    val bVar : TVar.tvar
    val cVar : TVar.tvar
@@ -332,9 +330,10 @@ structure TypeTable : sig
 
 end = struct
 
-   val verbose = false
+   val verbose = true
    val unifyVerbose = false
-   
+   val runSane = false
+
    type index = TVar.tvar
 
    structure HT = HashTable
@@ -632,7 +631,7 @@ end = struct
             end
       end
 
-   fun sane (table : table) =
+   fun sane (table : table) = if not runSane then () else
       let
          val tt = #typeTable table
          val st = #symTable table
@@ -645,7 +644,7 @@ end = struct
                val (sStr,si) = toStringSI (syms, vars, table, si)
                val (tStr,si) = dumpTableSI (table, si)
                val _ = siRef := si
-               val _ = TextIO.print ("current table:\n" ^ tStr ^ "\n")
+               val _ = TextIO.print ("INVARIANT ERROR in current table:\n" ^ tStr ^ "\n")
                val _ = TextIO.print ("\nINVARIANT ERROR: " ^ str ^ ": " ^ symsStr ^ "; " ^ varsStr ^ ":" ^ sStr ^ "\n")
 
             in
@@ -714,6 +713,11 @@ end = struct
          val tt = #typeTable table
          fun updateRef idx = ttSet (tt, idx, addRef (ttGet (tt, idx)))
          val _ = List.app updateRef (Path.varsOfFlowpoints fp)
+         val _ = if HT.inDomain st sym then
+            (TextIO.print ("addSymbol: error, previous type for " ^
+               SymbolTable.getString(!SymbolTables.varTable, sym) ^ " exists with " ^
+                #1 (toStringSI ([sym], [#info (HT.lookup st sym)], table, TVar.emptyShowInfo)) ^ "\n");
+             raise IndexError) else ()
          val _ = HT.insert st (sym,{ flow = fp, info = idx })
          val _ = sane (table)
       in
@@ -859,49 +863,20 @@ end = struct
          fromType index
       end
 
-    (* pending unification constraints are represented as a set of
-       variable sets where each variable set contains variables that
-       are to be made equal; no two sets of variables overlap *)
-   type u_pairs = TVar.set list
-
-   fun addPair ((v1,v2), pairs : u_pairs) =
-      let
-         fun getSet (v,pairs) =
-            let
-               val (vYes,vNo) = List.partition (fn set => TVar.member (set,v)) pairs
-               val vYes = if List.null vYes then [TVar.singleton v] else vYes
-            in
-               (List.foldl TVar.union TVar.empty vYes, vNo)
-            end
-         val (withV1,pairs) = getSet (v1,pairs)
-         val (withV2,pairs) = getSet (v2,pairs)
-      in
-         TVar.union (withV1, withV2) :: pairs
-      end
-   
-   (* return a pair (v1,v2) that should be unified, v1 is to be removed
-      from the system *)
-   fun getPair ([] : u_pairs) = NONE
-     | getPair (s :: ss) = (case TVar.listItems s of
-        (v2 :: v1 :: []) => SOME (v1,v2, ss)
-      | (v2 :: v1 :: vs) => SOME (v1,v2, TVar.del (v1,s) :: ss)
-      | _ => getPair ss
-     )
-   
    fun unify (v1,v2, table : table) =
       let
          val tt = #typeTable table
          val st = #symTable table
-         fun fixpoint pairs = case getPair pairs of
-            NONE => ()
-          | SOME (v1,v2,pairs) =>
+         fun fixpoint [] = ()
+           | fixpoint ((v1,v2) :: pairs) =
             let
                val _  = sane (table)
                val v1 = find tt v1
                val v2 = find tt v2
-               val newPairs = if TVar.eq (v1,v2) then [] else
-                  unifyTT (v1, v2, ttGet (tt,v1), ttGet (tt,v2))
-               val pairs = foldl addPair pairs newPairs
+               val pairs = if TVar.eq (v1,v2) then pairs else
+                  case unifyTT (v1, v2, ttGet (tt,v1), ttGet (tt,v2)) of
+                     [] => pairs
+                   | newPairs => pairs @ newPairs
             in
                fixpoint pairs
             end
@@ -1091,7 +1066,7 @@ end = struct
          end
 
    in
-      fixpoint (addPair ((v1,v2),[]))
+      fixpoint [(v1,v2)]
    end
          
    fun equateSymbols (sym1,sym2,table : table) =
@@ -1185,7 +1160,7 @@ end = struct
                Path.flagsOfFlowpoints o #flow o HT.lookup st
             ) (SymSet.listItems args)))
             handle IndexError => (TextIO.print (#1 (dumpTableSI (table,TVar.emptyShowInfo))); raise IndexError)
-         val newArgsFlags =List. map (fn f => (false, BD.freshBVar ())) oldArgsFlags
+         val newArgsFlags = List.map (fn f => (false, BD.freshBVar ())) oldArgsFlags
          val bdRef = #boolDom table
          val _ = bdRef := BD.expand (oldSymFlags @ oldArgsFlags, newSymFlags @ newArgsFlags, !bdRef)
          val staleBVars = List.foldl BD.addToSet BD.emptySet (List.map #2 newArgsFlags)

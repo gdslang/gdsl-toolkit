@@ -38,6 +38,8 @@ signature SymbolTableSig  = sig
    val getSpan : (table * symid) -> Error.span
 
    val toString : table -> string
+   val spanToString : Error.span -> string
+   
    val toInt: symid -> int
    val unsafeFromWord: word -> symid
    val unsafeFromInt: int -> symid
@@ -182,6 +184,8 @@ structure SymbolTable :> SymbolTableSig = struct
           )
       end
 
+   fun spanToString {file=f,span=sp} = AntlrStreamPos.spanToString f sp
+    
 end
 
 structure ord_symid = struct

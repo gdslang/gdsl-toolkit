@@ -145,13 +145,14 @@ structure Environment : sig
    the given substitutions*)
    val affectedFunctions : Substitutions.Substs * environment -> SymSet.set
 
+   val dumpTypeTableSI : environment * TVar.varmap -> string * TVar.varmap
    val toString : environment -> string
    val toStringSI : environment * TVar.varmap -> string * TVar.varmap
    val topToString : environment -> string
    val topToStringSI : environment * TVar.varmap -> string * TVar.varmap
    val kappaToString : environment -> string
-   (*show the nth kappa on the stack, if second arg is true, then only show the argument of the function*)
-   val kappaToStringSI : (int * bool) * environment * TVar.varmap -> string * TVar.varmap
+   (*show the nth kappa on the stack, if second arg is non-zero, then only show the nth argument of the function*)
+   val kappaToStringSI : (int * int) * environment * TVar.varmap -> string * TVar.varmap
    val funTypeToStringSI  : environment * VarInfo.symid * TVar.varmap ->
                             string * TVar.varmap
 end = struct
@@ -203,6 +204,9 @@ end = struct
       val acquireKappa : environment -> VarInfo.symid * environment
       val releaseKappa : VarInfo.symid * environment -> environment
       
+      val acquireUsageSymbol : VarInfo.symid * Error.span * environment ->
+                               VarInfo.symid * environment
+
       val getCurFun : environment -> VarInfo.symid
       val setCtxt : VarInfo.symid list -> environment -> environment
       val getCtxt : environment -> VarInfo.symid list
@@ -240,6 +244,19 @@ end = struct
          (k, (scs,{ context = ctxt, typeTable = ti, kappas = ks, kappaCount = kc }))
       fun releaseKappa (k,(scs,{ context = ctxt, typeTable = ti, kappas = ks, kappaCount = kc })) =
          (scs, { context = ctxt, typeTable = ti, kappas = k::ks, kappaCount = kc })
+
+      fun acquireUsageSymbol (sym,span,env) =
+         let
+            val st = !SymbolTables.varTable
+            val symStr = ST.getString(st, sym)
+            val atom = Atom.atom (symStr ^ "@" ^ ST.spanToString span)
+            val (st, usageSym) = case ST.find (st, atom) of
+                  SOME usageSym => (st, usageSym)
+                | NONE => ST.fresh (st,atom)
+            val _ = SymbolTables.varTable := st
+         in
+            (usageSym,env)
+         end
 
       fun getCurFun (scs,{ context = ctxt, typeTable, kappas, kappaCount = kc }) =
          case ctxt of
@@ -378,17 +395,15 @@ end = struct
                  in
                      (str ^ tStr ^ bStr ^ sStr, si)
                  end
-               fun printU (({span=(p1,p2),file=_}, (ctxt,kappa)), (str, sep, si)) =
+               fun printU ((span, (ctxt,useSym)), (str, sep, si)) =
                   let
-                     val ty = TT.peekSymbol (kappa,tt)
+                     val ty = TT.peekSymbol (useSym,tt)
                      val (tStr, si) = showTypeSI (ty, si)
                   in
                      (str ^
-                      sep ^ Int.toString(Position.toInt p1) ^
-                      "-" ^ Int.toString(Position.toInt p2) ^
-                      "@" ^ ST.getString(!SymbolTables.varTable, ctxt) ^
+                      sep ^ ST.getString(!SymbolTables.varTable, useSym) ^
                       ":" ^ tStr
-                     ,"\n\tuse at ", si)
+                     ,"\nuse at ", si)
                   end
                fun printB ({name,ty,width,uses,nested}, (str, si)) =
                   let
@@ -398,7 +413,7 @@ end = struct
                      val (tStr, si) = prBTyOpt (ty, name, " : ", si)
                      val (wStr, si) = prTyOpt (width, ", width = ", si)
                      val (uStr, _, si) = 
-                           List.foldl printU ("", "\n\tuse at ", si)
+                           List.foldl printU ("", "\nuse at ", si)
                                       (SpanMap.listItemsi uses)
                      fun showBindInfosSI n (b :: bs,si) =
                         let
@@ -434,6 +449,8 @@ end = struct
 
    type environment = Scope.environment
 
+   fun dumpTypeTableSI (env,si) = TT.dumpTableSI (Scope.getTypeTable env, si)
+   
    fun toStringSI (env,si) = 
       let
          val tt = Scope.getTypeTable env
@@ -472,7 +489,7 @@ end = struct
          str
       end
 
-   fun kappaToStringSI ((kappaNo, onlyArg), env, si) =
+   fun kappaToStringSI ((kappaNo, argSel), env, si) =
       let
          fun getKappa (n,env) = case Scope.unwrap env of
               (KAPPA {kappa = k}, env) => if n<=1 then k else getKappa (n-1,env)
@@ -480,8 +497,8 @@ end = struct
          val k = getKappa (kappaNo,env)
          val tt = Scope.getTypeTable env
          val ty = TT.peekSymbol (k,tt)
-         val ty = if not onlyArg then ty else case ty of
-            FUN ([ty],_) => ty
+         val ty = if argSel<=0 then ty else case ty of
+            FUN (tys,_) => List.nth (tys,argSel-1)
           | _ => ty
          val (tStr, si) = showTypeSI (ty,si)
       in
@@ -490,7 +507,7 @@ end = struct
 
    fun kappaToString env =
       let
-         val (str, _) = kappaToStringSI ((1,false), env,TVar.emptyShowInfo)
+         val (str, _) = kappaToStringSI ((1,0), env,TVar.emptyShowInfo)
       in
          str
       end
@@ -713,10 +730,6 @@ end = struct
 
    exception LookupNeedsToAddUse
 
-   fun eq_span ((p1s,p1e), (p2s,p2e)) =
-      Position.toInt p1s=Position.toInt p2s andalso
-      Position.toInt p1e=Position.toInt p2e
-
    fun reduceBooleanFormula (sym,t,setType,reduceToMono,env) = raise Unimplemented
 (* 
       let
@@ -895,7 +908,7 @@ end = struct
             val env =
                if (not recordUsage) orelse isStable then env else
                   let
-                     val (kUsage,env) = Scope.acquireKappa env
+                     val (kUsage,env) = Scope.acquireUsageSymbol (sym,span,env)
                      val _ = TT.addSymbol (kUsage, VAR (TVar.freshTVar (), BD.freshBVar ()), tt)
                      val _ = TT.equateSymbols (k,kUsage,tt)
                   in
