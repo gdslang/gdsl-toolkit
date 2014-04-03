@@ -1,5 +1,5 @@
 granularity = 8
-export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features}
+export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn}
 
 # Optional arguments
 #
@@ -650,6 +650,52 @@ type opnd =
  | MEM of {sz:int,psz:int,segment:seg_override,opnd:opnd}
  | SUM of {a:opnd,b:opnd}
  | SCALE of {imm:2,opnd:opnd}
+
+# Operand types:
+# Immediate - 0
+# Register - 1
+# Memory - 2
+# Linear expression - 3
+# Flow operand - 4
+val typeof-opnd x i = let
+  val typeof-one o =
+    case o of
+       IMM8 a: 0
+     | IMM16 a: 0
+     | IMM32 a: 0
+     | IMM64 a: 0
+     | REG a: 1
+     | MEM a: 2
+     | SUM a: 3
+     | SCALE a: 3
+    end
+in
+  case (uarity-of x.insn) of
+     UA1 v: case i of
+        0: typeof-one v.opnd1
+     end
+   | UA2 v: case i of
+        0: typeof-one v.opnd1
+      | 1: typeof-one v.opnd2
+     end
+   | UA3 v: case i of
+        0: typeof-one v.opnd1
+      | 1: typeof-one v.opnd2
+      | 2: typeof-one v.opnd3
+     end
+   | UA4 v: case i of
+        0: typeof-one v.opnd1
+      | 1: typeof-one v.opnd2
+      | 2: typeof-one v.opnd3
+      | 3: typeof-one v.opnd4
+     end
+   | UAF v: case i of
+        0: 4
+     end
+  end
+end
+
+val typeof-opnd-force-types x = pretty x +++ (show-int (typeof-opnd x 0))
 
 type flowopnd =
    REL8 of 8

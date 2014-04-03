@@ -110,6 +110,7 @@ static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
 	ADD_FUNCTION(decoder, pretty)
 	ADD_FUNCTION(decoder, pretty_operand)
 	ADD_FUNCTION(decoder, pretty_mnemonic)
+	ADD_FUNCTION(decoder, typeof_opnd)
 	ADD_FUNCTION(translator, translate)
 	ADD_FUNCTION_GENERIC(translator, pretty, "gdsl_rreil_pretty")
 	ADD_FUNCTION(translator, rreil_cif_userdata_set)

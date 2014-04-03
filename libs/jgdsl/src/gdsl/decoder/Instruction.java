@@ -82,6 +82,12 @@ public class Instruction {
   }
 
   private native String prettyOperand (long frontendPtr, long gdslStatePtr, long insnPtr, int operand);
+  
+  public OperandType operandType(int operand) {
+    return OperandType.fromGdslId(operandType(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr(), operand));
+  }
+  
+  private native int operandType(long frontendPtr, long gdslStatePtr, long insnPtr, int operand);
 
   /**
    * Get the mnemonic of the instruction
