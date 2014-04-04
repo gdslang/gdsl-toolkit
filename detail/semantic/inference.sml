@@ -608,11 +608,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          
          val env = E.pushTop env
          val env = infExp (st,env) e2
-         (*val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString env)*)
+         val _ = TextIO.print ("**** after if-then:\n" ^ E.topToString env)
          val env = E.equateKappasFlow env
          val env = E.popKappa env
          val env = infExp (st,env) e3
-         (*val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString env)*)
+         val _ = TextIO.print ("**** after if-else:\n" ^ E.topToString env)
          val env = E.equateKappasFlow env
                   handle S.UnificationFailure str =>
                      refineError (env, str,
@@ -620,7 +620,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                                   [((2,0), "then-branch "),
                                    ((1,0), "else-branch ")])
          val env = E.popKappa env
-         (*val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString env)*)
+         val _ = TextIO.print ("table before update:\n" ^ #1 (E.dumpTypeTableSI (env, TVar.emptyShowInfo)) ^ "\n")
+         val _ = TextIO.print ("**** after if-merge:\n" ^ E.topToString env)
       in
          env
       end

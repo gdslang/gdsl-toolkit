@@ -364,9 +364,7 @@ end = struct
       (* an algebraic data type with a list of type arguments *)
     | TT_ALG of (TypeInfo.symid * index list)
       (* a record, the variable points to a set of fields *)
-    | TT_RECORD of index
-      (* a record field *)
-    | TT_FIELD of (FieldInfo.symid * index * index)
+    | TT_RECORD of index SymMap.map * index
       (* the state monad: return value, input state, output state *)
     | TT_MONAD of index * index * index
  
@@ -384,8 +382,9 @@ end = struct
      | typeterm_hash (TT_VEC v) = hash_list [Word.fromInt 98028,TVar.hash v]
      | typeterm_hash (TT_CONST i) = Word.fromInt 9823*Word.fromInt i+Word.fromInt 2834
      | typeterm_hash (TT_ALG (s,is)) = hash_list (sym_hash s :: map TVar.hash is)
-     | typeterm_hash (TT_RECORD i) = Word.fromInt 78342+TVar.hash i
-     | typeterm_hash (TT_FIELD (f,i1,i2)) = sym_hash f + TVar.hash i1 + TVar.hash i2
+     | typeterm_hash (TT_RECORD (fs,i)) =
+         SymMap.foldli (fn (f,i,sum) => Word.fromInt 7*sym_hash f+Word.fromInt 3*TVar.hash i+sum)
+            (Word.fromInt 0) fs + Word.fromInt 78342+ TVar.hash i
      | typeterm_hash (TT_MONAD (i1,i2,i3)) = Word.fromInt 5345+hash_list [TVar.hash i1,TVar.hash i2, TVar.hash i3]
 
    (* structural equality, records with the same set of fields are different
@@ -402,9 +401,8 @@ end = struct
      | typeterm_eq (TT_CONST c1,TT_CONST c2) = c1=c2
      | typeterm_eq (TT_ALG (s1,is1), TT_ALG (s2,is2)) =
       SymbolTable.eq_symid (s1,s2) andalso ListPair.allEq TVar.eq (is1,is2)
-     | typeterm_eq (TT_RECORD i1, TT_RECORD i2) = TVar.eq (i1,i2)
-     | typeterm_eq (TT_FIELD (f1,i1,j1), TT_FIELD (f2,i2,j2)) =
-      SymbolTable.eq_symid (f1,f2) andalso TVar.eq (i1,i2) andalso TVar.eq (j1,j2)
+     | typeterm_eq (TT_RECORD (fs1,i1), TT_RECORD (fs2,i2)) =
+      SymMap.collate TVar.compare (fs1,fs2)=EQUAL andalso TVar.eq (i1,i2)
      | typeterm_eq (TT_MONAD (i1,i2,i3),TT_MONAD (j1,j2,j3)) =
       TVar.eq (i1,j1) andalso TVar.eq (i2,j2) andalso TVar.eq (i3,j3)
      | typeterm_eq _ = false
@@ -433,9 +431,14 @@ end = struct
             conStr ^ 
             (if List.null l then "" else ("[" ^ sep "," (List.map showVar l) ^ "]"))
          end
-        | sT (TT_RECORD i) = "{" ^ showVar i ^ "}"
-        | sT (TT_FIELD (f,i,j)) = SymbolTable.getString(!SymbolTables.fieldTable, f) ^
-           ": " ^ showVar i ^ ", " ^ showVar j  
+        | sT (TT_RECORD (fs,i)) =
+            let
+               fun showField (f,i,str) =
+                  SymbolTable.getString(!SymbolTables.fieldTable, f) ^
+                  ": " ^ showVar i ^ ", " ^ str
+            in
+               "{" ^ SymMap.foldri showField (showVar i) fs ^ "}"
+            end
         | sT (TT_MONAD (r,f,t)) = "S " ^ showVar r ^
            " <" ^ showVar f ^ " => " ^ showVar t ^ ">"
        and showVar var =
@@ -448,18 +451,17 @@ end = struct
       (sT ty, !siTab) 
    end
 
-    fun getVars (TT_FUN (fs1, f2)) = f2::fs1
-      | getVars (TT_SYN (syn, t)) = [t]
-      | getVars (TT_ZENO) = []
-      | getVars (TT_FLOAT) = []
-      | getVars (TT_STRING) = []
-      | getVars (TT_UNIT) = []
-      | getVars (TT_VEC t) = [t]
-      | getVars (TT_CONST c) = []
-      | getVars (TT_ALG (ty, l)) = l
-      | getVars (TT_RECORD i) = [i]
-      | getVars (TT_FIELD (f,i,j)) = [i,j]
-      | getVars (TT_MONAD (r,f,t)) = [r,f,t]
+   fun getVars (TT_FUN (fs1, f2)) = f2::fs1
+     | getVars (TT_SYN (syn, t)) = [t]
+     | getVars (TT_ZENO) = []
+     | getVars (TT_FLOAT) = []
+     | getVars (TT_STRING) = []
+     | getVars (TT_UNIT) = []
+     | getVars (TT_VEC t) = [t]
+     | getVars (TT_CONST c) = []
+     | getVars (TT_ALG (ty, l)) = l
+     | getVars (TT_RECORD (fs,i)) = i :: SymMap.foldl (fn (i,is) => i::is) [] fs
+     | getVars (TT_MONAD (r,f,t)) = [r,f,t]
 
    datatype typeinfo
       = TERM of typeterm
@@ -684,18 +686,15 @@ end = struct
            | conv (VEC t) = allocType (TT_VEC (conv t))
            | conv (CONST c) = allocType (TT_CONST c)
            | conv (ALG (sym, l)) = allocType (TT_ALG (sym, List.map conv l))
-           | conv (RECORD (v,_,l)) = allocType (TT_RECORD (convF (v,l)))
+           | conv (RECORD (i,_,fs)) = allocType (TT_RECORD (convF fs,convV i))
            | conv (MONAD (r,f,t)) = allocType (TT_MONAD (conv r, conv f, conv t))
-           | conv (VAR (v,_)) = (case ttGet (tt, v) of
+           | conv (VAR (v,_)) = convV v
+          and convV v = case ttGet (tt, v) of
                  (LEAF _) => v
                | _ => raise IndexError
-             )
-          and convF (v, RField {name = n, fty = t, exists = b} :: l) =
-               allocType (TT_FIELD (n,conv t, convF (v,l)))
-            | convF (v, []) = (case ttGet (tt, v) of
-                 (LEAF _) => v
-               | _ => raise IndexError
-             )
+          and convF (RField {name = f, fty = t, exists = b} :: l) =
+               SymMap.insert (convF l, f, conv t)
+            | convF [] = SymMap.empty
          val _ = sane (table)
       in
          conv ty
@@ -777,8 +776,23 @@ end = struct
                  | TERM (TT_VEC t) => VEC (gT (s,t))
                  | TERM (TT_CONST c) => CONST c
                  | TERM (TT_ALG (sym, vs)) => ALG (sym, downFrom (length vs,s,vs))
-                 | TERM (TT_RECORD i) => RECORD (gR (s,i))
-                 | TERM (TT_FIELD (f,i,j)) => raise IndexError
+                 | TERM (TT_RECORD (fsMap,i)) =>
+                  let
+                     fun genField (fSym,idx,fs) =
+                        let
+                           val fType = gT (Path.appendFieldStep fSym s,idx)
+                           val _ = TextIO.print ("genField for " ^ Path.showSteps s ^ "." ^ SymbolTable.getString(!SymbolTables.fieldTable, fSym) ^ " in\n" ^ #1 (Path.toStringSI (fp,TVar.emptyShowInfo)) ^ "\n")
+                           val fBVar = Path.getFlag (fp,(s,Path.mkFieldLeaf fSym))
+                           val _ = TextIO.print ("done\n")
+                        in
+                           RField { name = fSym, fty = fType, exists = fBVar } :: fs
+                        end
+                        val fs = SymMap.foldri genField [] fsMap
+                  in
+                     case gT (s,i) of
+                        VAR (tVar,bVar) => RECORD (tVar,bVar,fs)
+                      | _ =>  raise IndexError
+                  end
                  | TERM (TT_MONAD (res,inp,out)) => MONAD (
                      gT (Path.appendIntStep 0 s,res),
                      gT (Path.appendIntStep (~1) s,inp),
@@ -791,31 +805,6 @@ end = struct
                         val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
                      in
                         VAR (idx,bVar)
-                     end
-                 | _ => raise IndexError
-            end
-         and gR (s,idx) =
-            let
-               val idx = find tt idx
-            in
-               case ttGet (tt,idx) of
-                   TERM (TT_FIELD (fSym,i,j)) =>
-                     let
-                        val (rowVar,bVar,fs) = gR (s,j)
-                        val fType = gT (Path.appendFieldStep fSym s,i)
-                        val fBVar = Path.getFlag (fp,(s,Path.mkFieldLeaf fSym))
-                        val f = RField { name = fSym, fty = fType, exists = fBVar }
-                     in
-                        (rowVar,bVar,f :: fs)
-                     end
-                 | LEAF symSet =>
-                     let
-                        val symSet = if SymSet.member (symSet,sym)
-                           then SymSet.delete (symSet,sym) else symSet
-                        val _ = ttSet (tt,idx,LEAF symSet)
-                        val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
-                     in
-                        (idx,bVar,[])
                      end
                  | _ => raise IndexError
             end
@@ -852,9 +841,10 @@ end = struct
            | fromTerm (TT_VEC index) =  fromType index
            | fromTerm (TT_CONST _) = []
            | fromTerm (TT_ALG (_, is)) = downFrom (length is) (List.map fromType is)
-           | fromTerm (TT_RECORD index) = fromType index
-           | fromTerm (TT_FIELD (f,i,j)) = (Path.emptySteps, Path.mkFieldLeaf f) ::
-              List.map (Path.prependFieldStep f) (fromType i) @ fromType j
+           | fromTerm (TT_RECORD (fsMap,i)) = fromType i @ SymMap.foldri
+            (fn (f,i,fs) => (Path.emptySteps, Path.mkFieldLeaf f) ::
+                            List.map (Path.prependFieldStep f) (fromType i) @ fs
+            ) [] fsMap
            | fromTerm (TT_MONAD (res,inp,out)) =
             List.map (Path.prependIntStep 0) (fromType res) @
             List.map (Path.prependIntStep (~1)) (fromType inp) @
@@ -931,41 +921,42 @@ end = struct
            if c1=c2 then [] else raise S.UnificationFailure (S.Clash,
             "incompatible bit vectors sizes (" ^ Int.toString c1 ^ " and " ^
             Int.toString c2 ^ ")")
-        | genPairs (v1,v2,TT_RECORD row1, TT_RECORD row2) =
+        | genPairs (v1,v2,TT_RECORD (fs1,row1), TT_RECORD (fs2,row2)) =
          let
-            val (v1,v2,row1,row2) =
-               if TVar.toIdx v1<TVar.toIdx v2 then
-                  (v2,v1,row2,row1) else (v1,v2,row1,row2)
-            (*val _ = ttSet (tt, v1, FORW v2)*)
-            fun gatherFields (fs,i) = case ttGet (tt,i) of
-               TERM (TT_FIELD (f,i,j)) => gatherFields (SymMap.insert (fs,f,i), j)
-             | LEAF symSet => (fs,i,symSet)
-             | _ => raise IndexError
-            val (fs1,row1,symSet1) = gatherFields (SymMap.empty, row1)
-            val (fs2,row2,symSet2) = gatherFields (SymMap.empty, row2)
+            val symSet1 = case ttGet (tt,row1) of   
+                 LEAF symSet => symSet
+               | _ => raise IndexError
+            val symSet2 = case ttGet (tt,row2) of   
+                 LEAF symSet => symSet
+               | _ => raise IndexError
             val newIn1 = ref ([] : (FieldInfo.symid * index) list)
             val newIn2 = ref ([] : (FieldInfo.symid * index) list)
             val rPairs = ref ([] : (index * index) list)
             fun addRef (f, SOME fIdx1, SOME fIdx2) =
-               (rPairs := (fIdx1,fIdx2) :: !rPairs; NONE)
+               (rPairs := (fIdx1,fIdx2) :: !rPairs;
+                SOME (if TVar.toIdx fIdx1<TVar.toIdx fIdx2 then fIdx1 else fIdx2))
               | addRef (f, SOME fIdx1, NONE) =
-               (newIn2 := (f, fIdx1) :: !newIn2; NONE)
+               (newIn2 := (f, fIdx1) :: !newIn2; SOME fIdx1)
               | addRef (f, NONE, SOME fIdx2) =
-               (newIn1 := (f, fIdx2) :: !newIn1; NONE)
+               (newIn1 := (f, fIdx2) :: !newIn1; SOME fIdx2)
               | addRef _ = raise IndexError
-            val _ = SymMap.mergeWithi addRef (fs1,fs2)
-            fun addField ((f,fIdx),row) = allocType (TT_FIELD (f,fIdx,row), table)
-            val newRow = TVar.freshTVar ()
-            val newFields1 = foldl addField newRow (!newIn1)
-            val newFields2 = foldl addField newRow (!newIn2)
-            val pairs1 = case ttGet(tt,newFields1) of
-                  TERM t => substVar (row1,symSet1,newFields1,t)
-                | _ => [(row1,newRow)]
-            val pairs2 = case ttGet(tt,newFields2) of
-                  TERM t => substVar (row2,symSet2,newFields2,t)
-                | _ => [(row2,newRow)]
+            val fs = SymMap.mergeWithi addRef (fs1,fs2)
+            fun genPath (f,fIdx) = 
+               List.map (Path.prependFieldStep f) (termToSteps (fIdx, table))
+            val row = TVar.freshTVar ()
+            val rowPath = (Path.emptySteps, Path.mkVarLeaf row)
+            val newPaths1 = rowPath :: List.concat (List.map genPath (!newIn1))
+            val newPaths2 = rowPath :: List.concat (List.map genPath (!newIn2))
+            val _ = ttSet (tt,row1,TERM TT_UNIT)
+            val _ = ttSet (tt,row2,TERM TT_UNIT)
+            val _ = updateFlow (row1,symSet1,newPaths1)
+            val _ = updateFlow (row2,symSet2,newPaths2)
+            val _ = if TVar.toIdx v1<TVar.toIdx v2 then
+                  (ttSet (tt, v2, FORW v1); ttSet (tt, v1, TERM (TT_RECORD (fs,row))))
+               else
+                  (ttSet (tt, v1, FORW v2); ttSet (tt, v2, TERM (TT_RECORD (fs,row))))
          in
-            pairs1 @ pairs2 @ !rPairs
+            !rPairs
          end
         | genPairs (v1,v2,TT_MONAD (r1,f1,t1), TT_MONAD (r2,f2,t2)) =
             [(r1, r2), (f1, f2), (t1, t2)]
@@ -983,11 +974,6 @@ end = struct
          end
         | genPairs (v1,v2,t1,t2) =
          let
-            fun descrF (TERM (TT_FIELD (f,i,j))) =
-                  SymbolTable.getString(!SymbolTables.fieldTable, f) ^
-                  ", " ^ descrF (ttGet (tt,j))
-              | descrF (LEAF _) = "..." 
-              | descrF _ = "something that shouldn't be here"
             fun descr (TT_FUN _) = "a function type"
               | descr (TT_ZENO) = "int"
               | descr (TT_FLOAT) = "float"
@@ -999,7 +985,14 @@ end = struct
               )
               | descr (TT_ALG (ty, _)) = "type " ^
                   SymbolTable.getString(!SymbolTables.typeTable, ty)
-              | descr (TT_RECORD i) = "a record {" ^ descrF (ttGet (tt,i)) ^ "}"
+              | descr (TT_RECORD (fs,i)) =
+               let
+                  fun showField (f,i,str) =
+                     SymbolTable.getString(!SymbolTables.fieldTable, f) ^
+                     ", " ^ str
+               in
+                  "a record {" ^ SymMap.foldri showField "..." fs ^ "}"
+               end
               | descr (TT_MONAD _) = "an action"
               | descr _ = "something that shouldn't be here"
          in
@@ -1011,6 +1004,28 @@ end = struct
             val _ = if not unifyVerbose then () else TextIO.print ("unifying LEAF/TERM " ^ #1 (TVar.varToString (vVar,TVar.emptyShowInfo)) ^ "=" ^ #1 (showTypeTermSI (termType,TVar.emptyShowInfo)) ^ "\n")
             val _ = ttSet (tt, vVar, FORW vType)
             val stepsLeafList = termToSteps (vType,table)
+            val _ = updateFlow (vVar,symSet,stepsLeafList)
+            val scRef = (#sizeDom table)
+            val newPairs = case termType of
+                  TT_CONST n => (case SC.add (SC.equality (vVar,[],n), !scRef) of
+                      SC.RESULT (newConsts,sCons) => (scRef := sCons;
+                         List.map (fn (v,c) => (v, newType (CONST c,table))) newConsts
+                         )
+                     | SC.UNSATISFIABLE => raise S.UnificationFailure (S.Clash,
+                        "size constraints over vectors are unsatisfiable")
+                     | SC.FRACTIONAL => raise S.UnificationFailure (S.Clash,
+                        "solution to size constraint is not integral")
+                     | SC.NEGATIVE => raise S.UnificationFailure (S.Clash,
+                        "constraint implies that vector has non-positive size")
+                    )
+               | _ => []
+         in
+            newPairs
+         end
+      (* When a variable vVar is replaced by a type that has the paths in stepsLeafList,
+         this function updates the flow and reverse information. *)
+      and updateFlow (vVar,symSet,stepsLeafList) =
+         let
             fun updateNewLeaf (_,leaf) = case Path.getVarLeaf leaf of
                   NONE => ()
                 | SOME v => (case ttGet (tt,v) of
@@ -1047,22 +1062,8 @@ end = struct
                (bdRef := BD.expand (varsToExpand, map (fn v => (contra, v)) vs, !bdRef);
                doExpand cvss)
             val _ = doExpand (ListPair.zip (contra, vectorsTransposed))
-            val scRef = (#sizeDom table)
-            val newPairs = case termType of
-                  TT_CONST n => (case SC.add (SC.equality (vVar,[],n), !scRef) of
-                      SC.RESULT (newConsts,sCons) => (scRef := sCons;
-                         List.map (fn (v,c) => (v, newType (CONST c,table))) newConsts
-                         )
-                     | SC.UNSATISFIABLE => raise S.UnificationFailure (S.Clash,
-                        "size constraints over vectors are unsatisfiable")
-                     | SC.FRACTIONAL => raise S.UnificationFailure (S.Clash,
-                        "solution to size constraint is not integral")
-                     | SC.NEGATIVE => raise S.UnificationFailure (S.Clash,
-                        "constraint implies that vector has non-positive size")
-                    )
-               | _ => []
          in
-            newPairs
+            ()
          end
 
    in
@@ -1144,8 +1145,7 @@ end = struct
            | dupTerm (TT_VEC t) = TT_VEC (dup t)
            | dupTerm (TT_CONST c) = TT_CONST c
            | dupTerm (TT_ALG (ty, l)) = TT_ALG (ty, map dup l)
-           | dupTerm (TT_RECORD i) = TT_RECORD (dup i)
-           | dupTerm (TT_FIELD (f,i,j)) = TT_FIELD (f,dup i, dup j)
+           | dupTerm (TT_RECORD (fs,i)) = TT_RECORD (SymMap.map dup fs, dup i)
            | dupTerm (TT_MONAD (r,f,t)) = TT_MONAD (dup r, dup f, dup t)
          val newIdx = dup idx
          val newFp = Path.createFlowpoints (termToSteps (newIdx, table))
