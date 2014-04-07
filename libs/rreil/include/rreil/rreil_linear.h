@@ -43,5 +43,6 @@ extern struct rreil_linear *rreil_linear_variable_alloc(struct rreil_variable *v
 extern struct rreil_linear *rreil_linear_immediate_alloc(long long unsigned int immediate);
 extern struct rreil_linear *rreil_linear_sum_alloc(struct rreil_linear *l1, struct rreil_linear *l2);
 extern struct rreil_linear *rreil_linear_difference_alloc(struct rreil_linear *l1, struct rreil_linear *l2);
+extern struct rreil_linear *rreil_linear_scale_alloc(long long unsigned int scale, struct rreil_linear *l2);
 
 #endif /* RREIL_LINEAR_H_ */

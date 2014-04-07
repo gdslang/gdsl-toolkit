@@ -102,8 +102,16 @@ struct rreil_linear *rreil_linear_sum_alloc(struct rreil_linear *l1, struct rrei
 struct rreil_linear *rreil_linear_difference_alloc(struct rreil_linear *l1, struct rreil_linear *l2) {
 	struct rreil_linear *linear = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
 	linear->type = RREIL_LINEAR_TYPE_DIFFERENCE;
-	linear->sum.opnd1 = l1;
-	linear->sum.opnd2 = l2;
+	linear->difference.opnd1 = l1;
+	linear->difference.opnd2 = l2;
+	return linear;
+}
+
+struct rreil_linear *rreil_linear_scale_alloc(long long unsigned int scale, struct rreil_linear *l2) {
+	struct rreil_linear *linear = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
+	linear->type = RREIL_LINEAR_TYPE_SCALE;
+	linear->scale.imm = scale;
+	linear->scale.opnd = l2;
 	return linear;
 }
 
