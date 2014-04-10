@@ -94,7 +94,7 @@ void *executor_segment_base_get(enum x86_id reg) {
 }
 
 struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, size_t instruction_length,
-		struct tracking_trace *trace, struct context *context, void **memory, void **next_instruction_address,
+		struct tracking_trace *trace, struct context *context, void **memory, void **instruction_address,
 		char test_unused) {
 	struct tbgen_result tbgen_result = tbgen_code_generate(instruction, instruction_length, trace, context, test_unused);
 	if(tbgen_result.result == TBGEN_RTYPE_ERROR)
@@ -102,7 +102,7 @@ struct tbgen_result executor_instruction_mapped_generate(uint8_t *instruction, s
 	*memory = mmap(NULL, tbgen_result.buffer_length,
 	PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, 0, 0);
 	memcpy(*memory, tbgen_result.buffer, tbgen_result.buffer_length);
-	*next_instruction_address = *memory + tbgen_result.instruction_offset + instruction_length;
+	*instruction_address = *memory + tbgen_result.instruction_offset;
 	return tbgen_result;
 }
 
