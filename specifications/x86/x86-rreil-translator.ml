@@ -688,20 +688,19 @@ val emit-add-adc-flags sz sum s0 s1 carry set-carry = let
     # Hacker's Delight - Unsigned Add/Subtract
     if set-carry then (
       _if (/d carry) _then do
+        cmpleu 4 af sum s0;
         cmpleu sz cf sum s0
       end _else do
+        cmpltu 4 af sum s0;
         cmpltu sz cf sum s0
       end
-    ) else
-      return void
-    ;
-
-    #_if (/d carry) _then do
-    #  cmpleu 4 af sum s0
-    #end _else do
-    #  cmpltu 4 af sum s0
-    #end;
-    emit-arithmetic-adjust-flag sz sum s0 s1;
+    ) else (
+      _if (/d carry) _then do
+        cmpleu 4 af sum s0
+      end _else do
+        cmpltu 4 af sum s0
+      end
+    );
 
     emit-parity-flag sum;
     emit-virt-flags
@@ -722,21 +721,12 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
     t3 <- mktemp;
 
     cmplts sz sf difference (imm 0);
-    #cmpeq sz z difference (imm 0);
-
-   _if (/d carry) _then do
-      #cmples sz sf minuend subtrahend;
-      #cmplts sz sf difference (imm 0);
-
-      add sz t1 subtrahend (imm 1);
-      cmpeq sz z minuend (var t1)
-    end _else do
-      #cmplts sz sf minuend subtrahend;
-      cmpeq sz z minuend subtrahend
-    end;
 
     # Hacker's Delight - Unsigned Add/Subtract
     _if (/d carry) _then do
+      add sz t1 subtrahend (imm 1);
+      cmpeq sz z minuend (var t1);
+
       cmples sz ov minuend subtrahend;
       xorb 1 ov (var ov) (var sf);
 
@@ -748,6 +738,8 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
       cmpleu 4 af minuend subtrahend;
       emit-virt-flags
     end _else do
+      cmpeq sz z minuend subtrahend;
+
       if set-carry then do
         cmpltu sz cf minuend subtrahend;
         leu <- fLEU;
