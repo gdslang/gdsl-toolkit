@@ -351,8 +351,7 @@ end = struct
 
       and toString (KAPPA {kappa}, tt, si) =
             let
-               val ty = TT.getSymbol (kappa,tt)
-               val _ = TT.addSymbol (kappa,ty,tt)
+               val ty = TT.peekSymbol (kappa,tt)
                val (tStr, si) = showTypeSI (ty,si)
             in
                case debugSymbol of
@@ -361,8 +360,7 @@ end = struct
             end
         | toString (SINGLE {name}, tt, si) =
             let
-               val ty = TT.getSymbol (name,tt)
-               val _ = TT.addSymbol (name,ty,tt)
+               val ty = TT.peekSymbol (name,tt)
                val (tStr, si) = showTypeSI (ty,si)
                val visible = case debugSymbol of
                      NONE => true
@@ -467,8 +465,8 @@ end = struct
            | showCtxt [f] = ST.getString(!SymbolTables.varTable, f)
            | showCtxt (f::fs) = showCtxt [f] ^ ";" ^ showCtxt fs
       in
-         ("environment at " ^ showCtxt (Scope.getCtxt env) ^ "\n" ^
-          envConsStr ^ "\n", si)
+         ("environment at " ^ showCtxt (Scope.getCtxt env) ^
+          "\n" ^ envConsStr ^ sStr ^ "\n", si)
       end
 
    fun toString env =
@@ -567,7 +565,7 @@ end = struct
          fun genGroup [] = []
            | genGroup ((sym,dec) :: syms) =
                let
-                  val _ = TextIO.print ("pushGroup: symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+                  (*val _ = TextIO.print ("pushGroup: symbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
                   val _ = TT.addSymbol (sym,VAR (TVar.freshTVar (), BD.freshBVar ()), tt)
                   val w = if not dec then NONE else
                      let
@@ -1321,8 +1319,13 @@ end = struct
 
    fun markAsStable (sym, env) =
       let
+         fun markNested {name,ty,width,uses,nested} =
+            {name=name,ty=true,width=width,uses=uses,nested=map markBinding nested}
+         and markBinding (GROUP bs) = GROUP (map markNested bs)
+           | markBinding other = other 
+         
          fun setStable (COMPOUND {ty, width, uses, nested}, cons) =
-               (COMPOUND {ty = true, width = width, uses = uses, nested = nested}, cons)
+               (COMPOUND {ty = true, width = width, uses = uses, nested = map markBinding nested}, cons)
            | setStable _ = (TextIO.print ("markAsStable " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
       in
          Scope.update (sym, setStable, env)

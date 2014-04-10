@@ -10,7 +10,9 @@ structure TVar : sig
    val hash : tvar -> word
    val toIdx : tvar -> int
    val fromIdx : int -> tvar
-
+   val set : int -> unit
+   val get : unit -> int
+   
    (*displaying type variables*)
    type varmap
    val emptyShowInfo : varmap
@@ -46,6 +48,8 @@ end = struct
    fun fromIdx v = (TVAR v)
 
    val tvarGenerator = ref 0
+   fun get () = !tvarGenerator
+   fun set n = (tvarGenerator := n; ())
 
    fun freshTVar () = let
      val v = !tvarGenerator
