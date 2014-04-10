@@ -832,13 +832,14 @@ val move-to-rflags size lin = let
   val emit = do
     flags <- rflags;
   
-    in-mask <- return 0x0000000000245fd5;
-    out-mask <- return 0xffffffffffc3a02a;
+    mask <- return 0x0000000000240cd5;
+
+    tud <- mktemp;
+    undef size tud;
+    andb size tud (var tud) (imm (0xffffffffffffffff - mask));
   
-    temp <- mktemp;
-    andb size temp lin (imm in-mask);
-    andb size flags (var flags) (imm out-mask);
-    orb size flags (var flags) (var temp)
+    undef size flags;
+    xorb size flags (var tud) lin
   end
 in
   with-subscope emit

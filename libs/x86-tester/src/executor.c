@@ -29,7 +29,7 @@ extern int arch_prctl(int code, unsigned long *addr);
  * Clean up RFLAGS
  */
 void executor_rflags_clean(struct context *context) {
-	uint64_t rflags_mask = 0x0000000000244cd5;
+	uint64_t rflags_mask = 0x0000000000240cd5;
 	uint8_t *rflags_mask_ptr = (uint8_t*)&rflags_mask;
 
 	for(size_t i = 0; i < context->x86_registers[X86_ID_FLAGS].bit_length / 8; ++i) {

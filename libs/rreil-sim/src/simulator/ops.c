@@ -45,6 +45,21 @@ static void simulator_op_definition_bitwise(struct data opnd1, struct data opnd2
 		result->defined[i] = opnd1.defined[i] & opnd2.defined[i];
 }
 
+static void simulator_op_definition_bitwise_or(struct data opnd1, struct data opnd2, struct data *result) {
+	/*
+	 * Todo: Handle different sizes
+	 */
+	size_t bit_length = result->bit_length;
+
+	result->defined = (uint8_t*)malloc(bit_length / 8 + 1);
+
+	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i) {
+		result->defined[i] = opnd1.defined[i] & opnd1.data[i];
+		result->defined[i] |= opnd2.defined[i] & opnd2.data[i];
+		result->defined[i] |= opnd1.defined[i] & opnd2.defined[i];
+	}
+}
+
 static void simulator_op_definition_simple(struct data opnd1, struct data opnd2, struct data *result) {
 	/*
 	 * Todo: Handle different sizes
@@ -582,7 +597,7 @@ struct data simulator_op_or(struct data opnd1, struct data opnd2) {
 	for(size_t i = 0; i < bit_length / 8 + (bit_length % 8 > 0); ++i)
 		result.data[i] = opnd1.data[i] | opnd2.data[i];
 
-	simulator_op_definition_bitwise(opnd1, opnd2, &result);
+	simulator_op_definition_bitwise_or(opnd1, opnd2, &result);
 
 	return result;
 }
