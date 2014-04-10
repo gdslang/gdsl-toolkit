@@ -750,6 +750,10 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, 
 	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
 }
 
+static obj_t insn_cb(state_t state, obj_t insn) {
+	printf("Instruction!\n");
+}
+
 jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr,
 		int_t config, jlong limit, jint preservation) {
 	struct frontend *frontend = (struct frontend*)frontendPtr;
@@ -771,7 +775,7 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
 //	}
 //	(*env)->ReleaseStringUTFChars(env, jpreservationStr, preservationStr);
 
-	obj_t rreil = frontend->translator.decode_translate_block_optimized_int(state, config, limit, preservation);
+	obj_t rreil = frontend->translator.decode_translate_block_optimized_int(state, config, limit, preservation, &insn_cb);
 
 	BUILD_CALLBACKS
 	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);

@@ -18,7 +18,7 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate
 /*
  * Class:     gdsl_rreil_BuilderBackend
  * Method:    translateOptimizeBlock
- * Signature: (JJJI)Lgdsl/rreil/IRReilCollection;
+ * Signature: (JJJI)Lgdsl/translator/TranslatedBlock;
  */
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock
   (JNIEnv *, jobject, jlong, jlong, jlong, jint);
@@ -26,7 +26,7 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock
 /*
  * Class:     gdsl_rreil_BuilderBackend
  * Method:    translateOptimizeBlockWithConfig
- * Signature: (JJJJI)Lgdsl/rreil/IRReilCollection;
+ * Signature: (JJJJI)Lgdsl/translator/TranslatedBlock;
  */
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlockWithConfig
   (JNIEnv *, jobject, jlong, jlong, jlong, jlong, jint);
