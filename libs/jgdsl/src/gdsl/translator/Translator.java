@@ -46,7 +46,7 @@ public class Translator {
    * 
    * @return a collection of RReil statements built by the associated RReil builder
    */
-  public IRReilCollection<IStatement> translateOptimizeBlock (long limit, SemPres preservation) {
+  public TranslatedBlock translateOptimizeBlock (long limit, SemPres preservation) {
     Frontend frontend = gdsl.getFrontend();
     if (frontend.isConfigured())
       return backend.translateOptimizeBlockWithConfig(frontend.getPointer(), gdsl.getGdslStatePtr(), frontend

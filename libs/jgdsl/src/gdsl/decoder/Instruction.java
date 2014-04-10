@@ -42,7 +42,7 @@ public class Instruction {
   }
 
   /**
-   * Construct the instruction object
+   * Construct an instruction object
    * 
    * @param gdsl the associated {@link Gdsl} object
    * @param insnPtr the address of the native instruction object
