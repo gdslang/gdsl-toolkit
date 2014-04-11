@@ -203,6 +203,13 @@ public class Gdsl {
     gdslStatePtr = 0;
     frontend = null;
   }
+  
+  @Override protected void finalize () throws Throwable {
+    /*
+     * Todo: Free Gdsl resources
+     */
+    super.finalize();
+  }
 
   private native long init (long frontendPtr);
 

@@ -750,8 +750,20 @@ JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translate(JNIEnv *env, 
 	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
 }
 
-static obj_t insn_cb(state_t state, obj_t insn) {
-	printf("Instruction!\n");
+struct insn_collection {
+	obj_t **insns;
+	size_t length;
+	size_t size;
+};
+
+static obj_t insn_cb(state_t state, obj_t insns, obj_t insn) {
+	struct insn_collection *coll = (struct insn_collection*)insns;
+	if(coll->length + 1 > coll->size) {
+		coll->size = coll->size ? coll->size*2 : 8;
+		coll->insns = (obj_t**)realloc(coll->insns, coll->size);
+	}
+	coll->insns[coll->length++] = insn;
+	return insns;
 }
 
 jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr,
@@ -761,11 +773,13 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
 
 	if(setjmp(*frontend->generic.err_tgt(state))) {
 		jclass exp = (*env)->FindClass(env, "gdsl/GdslException");
+		printf("%s\n", frontend->generic.get_error_message(state));
 		(*env)->ThrowNew(env, exp, "TranslateOptimizeBlock failed");
 		return NULL;
 	}
 
 //	jclass semPresClass = env->FindClass("gdsl/translator/SemPres");
+
 //	jmethodID nameMethod = env->GetMethodID(semPresClass, "name", "()Ljava/lang/String;");
 //	jstring jpreservationStr = (jstring)env->CallObjectMethod(preservation, nameMethod);
 //	int cpreservation;
@@ -775,10 +789,44 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
 //	}
 //	(*env)->ReleaseStringUTFChars(env, jpreservationStr, preservationStr);
 
-	obj_t rreil = frontend->translator.decode_translate_block_optimized_int(state, config, limit, preservation, &insn_cb);
+	printf("XXXX\n");
+	fflush(stdout);
+
+	struct insn_collection coll;
+	coll.insns = NULL;
+	coll.length = 0;
+	coll.size = 0;
+
+	opt_result_t opt_result = frontend->translator.decode_translate_block_optimized_int(state, config, limit, preservation, &coll, &insn_cb);
+
+	jlongArray instructions = (*env)->NewLongArray(env, coll.length);
+	(*env)->SetLongArrayRegion(env, instructions, 0, coll.length, (jlong*)coll.insns);
+
+	free(coll.insns);
+
+	printf("ResulT!\n");
+	fflush(stdout);
+
+	obj_t rreil = opt_result->rreil;
+
+	struct userdata ud;
+	ud.env = env;
+	ud.obj = this;
+
+	frontend->translator.rreil_cif_userdata_set(state, &ud);
+	rreil_cif_userdata_get = frontend->translator.rreil_cif_userdata_get;
 
 	BUILD_CALLBACKS
-	return frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
+	jobject converted_rreil = frontend->translator.rreil_convert_sem_stmts(state, &callbacks, rreil);
+
+	printf(":_((((\n");
+
+	jclass TranslatedBlock = (*env)->FindClass(env, "gdsl/translator/TranslatedBlockRaw");
+	jmethodID TranslatedBlock_ctor = (*env)->GetMethodID(env, TranslatedBlock, "<init>", "([JLgdsl/rreil/IRReilCollection;)V");
+
+	printf(":_(((( %p\n", TranslatedBlock_ctor);
+
+	return (*env)->NewObject(env, TranslatedBlock, TranslatedBlock_ctor, instructions, converted_rreil);
 }
 
 JNIEXPORT jobject JNICALL Java_gdsl_rreil_BuilderBackend_translateOptimizeBlock(JNIEnv *env, jobject this,

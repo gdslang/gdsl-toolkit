@@ -5,6 +5,9 @@ import gdsl.decoder.Instruction;
 import gdsl.rreil.DefaultRReilBuilder;
 import gdsl.rreil.IRReilCollection;
 import gdsl.rreil.statement.IStatement;
+import gdsl.translator.SemPres;
+import gdsl.translator.TranslatedBlock;
+import gdsl.translator.TranslatedBlockRaw;
 import gdsl.translator.Translator;
 
 import java.io.IOException;
@@ -22,37 +25,60 @@ public class Program {
     for (Frontend frontend : frontends) {
       System.out.println(frontend);
     }
-
+    
     gdsl.setFrontend(frontends[0]);
     gdsl.initFrontend();
-
-    ByteBuffer buffer = ByteBuffer.allocateDirect(2);
-    buffer.put((byte) 0);
-    buffer.put((byte) 0);
-
-    Decoder dec = new Decoder(gdsl);
-    Instruction insn = dec.decodeOne();
-    System.out.println(insn);
-
-    int operands = insn.operands();
-    System.out.println("Number of operands: " + operands);
-    for (int i = 0; i < operands; i++) {
-      System.out.println("Operand " + i + ": " + insn.operandToString(i));
-    }
-    System.out.println("-----");
-
-    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
-
-    IRReilCollection<IStatement> stmts = t.translate(insn);
-
-    for (int i = 0; i < stmts.size(); i++) {
-      System.out.println(stmts.get(i));
-    }
-
-    gdsl.resetHeap();
-    gdsl.destroyFrontend();
     
-    System.out.println("~~~ Done.");
+    System.out.println("...");
+    System.out.flush();
+
+    ByteBuffer buffer = ByteBuffer.allocateDirect(5);
+    buffer.put((byte) 0);
+    buffer.put((byte) 0);
+    buffer.put((byte) 0);
+    buffer.put((byte) 0);
+    buffer.put((byte) 0xc3);
+    
+    gdsl.setCode(buffer, 0, 0);
+    
+    System.out.println("...");
+    System.out.flush();
+    
+    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
+    
+    TranslatedBlock b = t.translateOptimizeBlock(buffer.limit(), SemPres.BLOCK);
+    
+    for (int i = 0; i < b.getInstructions().length; i++) {
+      System.out.println(b.getInstructions()[i]);
+    }
+    
+    System.out.println("+++++++++++++++++++++++++++++");
+    
+    System.out.println(b.getRreil());
+
+//    Decoder dec = new Decoder(gdsl);
+//    Instruction insn = dec.decodeOne();
+//    System.out.println(insn);
+//
+//    int operands = insn.operands();
+//    System.out.println("Number of operands: " + operands);
+//    for (int i = 0; i < operands; i++) {
+//      System.out.println("Operand " + i + ": " + insn.operandToString(i));
+//    }
+//    System.out.println("-----");
+//
+//    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
+//
+//    IRReilCollection<IStatement> stmts = t.translate(insn);
+//
+//    for (int i = 0; i < stmts.size(); i++) {
+//      System.out.println(stmts.get(i));
+//    }
+//
+//    gdsl.resetHeap();
+//    gdsl.destroyFrontend();
+//    
+//    System.out.println("~~~ Done.");
 
 //		BufferedReader reader = new BufferedReader(new InputStreamReader(
 //				System.in));
