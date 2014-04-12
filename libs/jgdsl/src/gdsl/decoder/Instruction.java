@@ -11,6 +11,8 @@ public class Instruction {
   private long insnPtr = 0;
   private Gdsl gdsl;
   private long size;
+  
+  private long heapRevision;
 
   /**
    * Get the address of the associated native instruction object
@@ -18,6 +20,8 @@ public class Instruction {
    * @return the value of the pointer
    */
   public long getInsnPtr () {
+    if (heapRevision != gdsl.getHeapRevision())
+      throw new RuntimeException("Heap expired");
     if (insnPtr == 0)
       throw new NullPointerException();
     return insnPtr;
@@ -50,6 +54,8 @@ public class Instruction {
    */
   public Instruction (Gdsl gdsl, long insnPtr, long size) {
     this.gdsl = gdsl;
+    this.heapRevision = gdsl.getHeapRevision();
+    gdsl.lockHeap();
     this.insnPtr = insnPtr;
     this.size = size;
   }
@@ -99,4 +105,9 @@ public class Instruction {
   }
 
   private native String mnemonic (long frontendPtr, long gdslStatePtr, long insnPtr);
+  
+  @Override protected void finalize () throws Throwable {
+    gdsl.unlockHeap();
+    super.finalize();
+  }
 }

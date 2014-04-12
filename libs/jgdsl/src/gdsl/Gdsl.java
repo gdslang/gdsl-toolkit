@@ -23,6 +23,13 @@ public class Gdsl {
 
   private long gdslStatePtr = 0;
   private ByteBuffer buffer;
+  
+  private long heapRevision = 0;
+  private long references = 0;
+  
+  public long getHeapRevision () {
+    return heapRevision;
+  }
 
   /**
    * Get the address of the associated native Gdsl state object
@@ -191,6 +198,7 @@ public class Gdsl {
    */
   public void resetHeap () {
     resetHeap(getFrontend().getPointer(), getGdslStatePtr());
+    heapRevision++;
   }
 
   /**
@@ -209,6 +217,21 @@ public class Gdsl {
      * Todo: Free Gdsl resources
      */
     super.finalize();
+  }
+  
+  public void lockHeap () {
+    references++;
+  }
+  
+  public void unlockHeap () {
+    references--;
+    if(references == 0) {
+      resetHeap();
+    }
+  }
+  
+  public HeapLock generateHeapLock() {
+    return new HeapLock(this);
   }
 
   private native long init (long frontendPtr);

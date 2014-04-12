@@ -1,5 +1,6 @@
 import gdsl.Frontend;
 import gdsl.Gdsl;
+import gdsl.HeapLock;
 import gdsl.decoder.Decoder;
 import gdsl.decoder.Instruction;
 import gdsl.rreil.DefaultRReilBuilder;
@@ -18,19 +19,18 @@ public class Program {
    * @param args
    * @throws IOException
    */
-  public static void main (String[] args) throws IOException {
+  private static void sub () {
     Gdsl gdsl = new Gdsl();
     Frontend[] frontends = gdsl.getFrontends();
+
+    HeapLock lock = gdsl.generateHeapLock();
 
     for (Frontend frontend : frontends) {
       System.out.println(frontend);
     }
-    
+
     gdsl.setFrontend(frontends[0]);
     gdsl.initFrontend();
-    
-    System.out.println("...");
-    System.out.flush();
 
     ByteBuffer buffer = ByteBuffer.allocateDirect(5);
     buffer.put((byte) 0);
@@ -38,23 +38,32 @@ public class Program {
     buffer.put((byte) 0);
     buffer.put((byte) 0);
     buffer.put((byte) 0xc3);
-    
+
     gdsl.setCode(buffer, 0, 0);
-    
-    System.out.println("...");
-    System.out.flush();
-    
+
     Translator t = new Translator(gdsl, new DefaultRReilBuilder());
-    
+
     TranslatedBlock b = t.translateOptimizeBlock(buffer.limit(), SemPres.BLOCK);
     
     for (int i = 0; i < b.getInstructions().length; i++) {
       System.out.println(b.getInstructions()[i]);
     }
-    
+
     System.out.println("+++++++++++++++++++++++++++++");
-    
+
     System.out.println(b.getRreil());
+  }
+
+  public static void main (String[] args) throws IOException, InterruptedException {
+    sub();
+    
+    System.gc();
+    while(true) {
+      int[] x = new int[10000];
+      x[22] = 99;
+      System.out.println(x[33]);
+      Thread.sleep(1000);
+    }
 
 //    Decoder dec = new Decoder(gdsl);
 //    Instruction insn = dec.decodeOne();

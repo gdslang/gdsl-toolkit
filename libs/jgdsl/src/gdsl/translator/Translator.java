@@ -47,6 +47,7 @@ public class Translator {
    * @return a collection of RReil statements built by the associated RReil builder
    */
   public TranslatedBlock translateOptimizeBlock (long limit, SemPres preservation) {
+    gdsl.lockHeap();
     Frontend frontend = gdsl.getFrontend();
     TranslatedBlockRaw blockRaw;
     if (frontend.isConfigured())
@@ -59,6 +60,7 @@ public class Translator {
     Instruction[] instructions = new Instruction[instructionPointers.length];
     for (int i = 0; i < instructions.length; i++)
       instructions[i] = new Instruction(gdsl, instructionPointers[i], 0);
+    gdsl.unlockHeap();
     return new TranslatedBlock(instructions, blockRaw.getRreil());
   }
 }
