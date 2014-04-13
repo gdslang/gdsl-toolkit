@@ -18,6 +18,9 @@ JNIEXPORT void JNICALL Java_gdsl_Frontend_destroy
   (JNIEnv *env, jobject this, jlong frontendPtr) {
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 
+//	printf("Destroying frontend...\n");
+//	fflush(stdout);
+
 	gdsl_multiplex_frontend_close(frontend);
 	free(frontend);
 }

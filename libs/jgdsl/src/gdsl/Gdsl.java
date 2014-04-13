@@ -16,14 +16,15 @@ import java.nio.ByteBuffer;
  * 
  * @author Julian Kranz
  */
-public class Gdsl {
+public class Gdsl implements IReferable {
   private Frontend frontend;
 
   private long gdslStatePtr = 0;
   private ByteBuffer buffer;
   
   private long heapRevision = 0;
-  private long references = 0;
+  
+  public final ReferenceManager heapManager = new ReferenceManager(this);
   
   public long getHeapRevision () {
     return heapRevision;
@@ -88,7 +89,7 @@ public class Gdsl {
    */
   public Gdsl (Frontend frontend) {
     this.frontend = frontend;
-    this.frontend.ref();
+    this.frontend.referenceManager.ref();
     gdslStatePtr = init(getFrontendPtr());
   }
 
@@ -224,20 +225,14 @@ public class Gdsl {
      * Todo: finally
      */
     destroy(getFrontend().getPointer(), getGdslStatePtr());
-    getFrontend().unref();
+    getFrontend().referenceManager.unref();
     gdslStatePtr = 0;
     super.finalize();
   }
   
-  public void lockHeap () {
-    references++;
-  }
-  
-  public void unlockHeap () {
-    references--;
-    if(references == 0 && gdslStatePtr != 0) {
-      resetHeap();
-    }
+  @Override public void free () {
+   if(gdslStatePtr != 0)
+     resetHeap();
   }
   
   public HeapUseIndicator heapUseIndicator() {

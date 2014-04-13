@@ -7,7 +7,7 @@ public class HeapUseIndicator {
   
   protected HeapUseIndicator(Gdsl gdsl) {
     this.gdsl = gdsl;
-    gdsl.lockHeap();
+    gdsl.heapManager.ref();
   }
   
   @Override protected void finalize () throws Throwable {
@@ -17,6 +17,6 @@ public class HeapUseIndicator {
   
   public void free() {
     if(gdsl != null)
-      gdsl.unlockHeap();
+      gdsl.heapManager.unref();
   }
 }

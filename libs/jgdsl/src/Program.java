@@ -20,7 +20,9 @@ public class Program {
    * @throws Throwable 
    * @throws IOException
    */
-  private static void sub () throws Throwable {
+  private static void sub (ByteBuffer buffer) throws Throwable {
+    System.out.println("\nsub()\n");
+    
     Frontend[] frontends = Gdsl.getFrontends();
 
     for (Frontend frontend : frontends) {
@@ -28,39 +30,42 @@ public class Program {
     }
 
     Gdsl gdsl = new Gdsl(frontends[0]);
-    HeapUseIndicator lock = gdsl.heapUseIndicator();
 
-    ByteBuffer buffer = ByteBuffer.allocateDirect(5);
+    gdsl.setCode(buffer, 0, 0);
+    
+    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
+
+    TranslatedBlock b = t.translateOptimizeBlock(buffer.limit(), SemPres.EVERYWHERE);
+
+//    gdsl.finalize();
+//    frontends[0].finalize();
+//    
+//    System.exit(0);
+
+    for (int i = 0; i < b.getInstructions().length; i++) {
+      System.out.println(b.getInstructions()[i]);
+    }
+
+    System.out.println("+++++++++++++++++++++++++++++");
+
+    System.out.println(b.getRreil());
+  }
+
+  public static void main (String[] args) throws Throwable {
+    ByteBuffer buffer = ByteBuffer.allocateDirect(8);
     buffer.put((byte) 0);
     buffer.put((byte) 0);
     buffer.put((byte) 0);
     buffer.put((byte) 0);
     buffer.put((byte) 0xc3);
-
-    gdsl.setCode(buffer, 0, 0);
-
-    Translator t = new Translator(gdsl, new DefaultRReilBuilder());
-
-    TranslatedBlock b = t.translateOptimizeBlock(buffer.limit(), SemPres.BLOCK);
-
-    lock.free();
     
-//    gdsl.finalize();
-//    frontends[0].finalize();
-//    
-//    System.exit(0);
-//
-//    for (int i = 0; i < b.getInstructions().length; i++) {
-//      System.out.println(b.getInstructions()[i]);
-//    }
-//
-//    System.out.println("+++++++++++++++++++++++++++++");
-//
-//    System.out.println(b.getRreil());
-  }
-
-  public static void main (String[] args) throws Throwable {
-    sub();
+    buffer.put((byte) 0);
+    buffer.put((byte) 0);
+    buffer.put((byte) 0xc3);
+    
+    for (long i = 0; i < 10000000; i++) {
+      sub(buffer);
+    }
 
     System.gc();
     

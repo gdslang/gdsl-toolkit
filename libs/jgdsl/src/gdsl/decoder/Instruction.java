@@ -58,7 +58,7 @@ public class Instruction {
   public Instruction (Gdsl gdsl, long insnPtr, long size) {
     this.gdsl = gdsl;
     this.heapRevision = gdsl.getHeapRevision();
-    gdsl.lockHeap();
+    gdsl.heapManager.ref();
     this.insnPtr = insnPtr;
     this.size = size;
   }
@@ -113,7 +113,7 @@ public class Instruction {
     /*
      * Todo: finally
      */
-    gdsl.unlockHeap();
+    gdsl.heapManager.unref();
     super.finalize();
   }
 }

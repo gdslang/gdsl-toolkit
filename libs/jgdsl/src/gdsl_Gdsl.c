@@ -124,6 +124,9 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_resetHeap(JNIEnv *env, jobject this, jlong
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
 
+//	printf("Resetting heap...\n");
+//	fflush(stdout);
+
 	if(setjmp(*frontend->generic.err_tgt(state)))
 	THROW_GDSL_ERROR()
 
@@ -133,6 +136,9 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_resetHeap(JNIEnv *env, jobject this, jlong
 JNIEXPORT void JNICALL Java_gdsl_Gdsl_destroy(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
+
+//	printf("Destroying Gdsl...\n");
+//	fflush(stdout);
 
 	if(setjmp(*frontend->generic.err_tgt(state)))
 	THROW_GDSL_ERROR()

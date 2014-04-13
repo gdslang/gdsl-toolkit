@@ -7,10 +7,10 @@ package gdsl;
  * 
  * @author Julian Kranz
  */
-public abstract class Frontend {
+public abstract class Frontend implements IReferable {
   private long pointer;
   
-  private long references = 0;
+  public final ReferenceManager referenceManager = new ReferenceManager(this);
   
   /**
    * Get the address of the corresponding native object.
@@ -86,24 +86,15 @@ public abstract class Frontend {
     /*
      * Todo: finally
      */
-    free();
+    referenceManager.checkRef();
     super.finalize();
   }
   
-  private void free() {
-    if(references == 0 && pointer != 0) {
+  public void free() {
+    if(pointer != 0) {
       destroy(getPointer());
       pointer = 0;
     }
-  }
-  
-  protected void ref () {
-    references++;
-  }
-  
-  protected void unref () {
-    references--;
-    free();
   }
   
   private native void destroy (long frontendPtr);
