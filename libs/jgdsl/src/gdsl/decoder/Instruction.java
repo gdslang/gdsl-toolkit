@@ -15,7 +15,10 @@ public class Instruction {
   private long heapRevision;
 
   /**
-   * Get the address of the associated native instruction object
+   * Get the address of the associated native instruction object;
+   * 
+   * Warning: This pointer is only valid as long as this {@link Instruction} object
+   * is reachable. This method should only be used by the jgdsl library.
    * 
    * @return the value of the pointer
    */
@@ -107,6 +110,9 @@ public class Instruction {
   private native String mnemonic (long frontendPtr, long gdslStatePtr, long insnPtr);
   
   @Override protected void finalize () throws Throwable {
+    /*
+     * Todo: finally
+     */
     gdsl.unlockHeap();
     super.finalize();
   }

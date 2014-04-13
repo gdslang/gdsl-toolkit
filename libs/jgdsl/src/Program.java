@@ -1,6 +1,6 @@
 import gdsl.Frontend;
 import gdsl.Gdsl;
-import gdsl.HeapLock;
+import gdsl.HeapUseIndicator;
 import gdsl.decoder.Decoder;
 import gdsl.decoder.Instruction;
 import gdsl.rreil.DefaultRReilBuilder;
@@ -17,20 +17,18 @@ import java.nio.ByteBuffer;
 public class Program {
   /**
    * @param args
+   * @throws Throwable 
    * @throws IOException
    */
-  private static void sub () {
-    Gdsl gdsl = new Gdsl();
-    Frontend[] frontends = gdsl.getFrontends();
-
-    HeapLock lock = gdsl.generateHeapLock();
+  private static void sub () throws Throwable {
+    Frontend[] frontends = Gdsl.getFrontends();
 
     for (Frontend frontend : frontends) {
-      System.out.println(frontend);
+      System.out.println("Frontend: " + frontend);
     }
 
-    gdsl.setFrontend(frontends[0]);
-    gdsl.initFrontend();
+    Gdsl gdsl = new Gdsl(frontends[0]);
+    HeapUseIndicator lock = gdsl.heapUseIndicator();
 
     ByteBuffer buffer = ByteBuffer.allocateDirect(5);
     buffer.put((byte) 0);
@@ -44,24 +42,32 @@ public class Program {
     Translator t = new Translator(gdsl, new DefaultRReilBuilder());
 
     TranslatedBlock b = t.translateOptimizeBlock(buffer.limit(), SemPres.BLOCK);
+
+    lock.free();
     
-    for (int i = 0; i < b.getInstructions().length; i++) {
-      System.out.println(b.getInstructions()[i]);
-    }
-
-    System.out.println("+++++++++++++++++++++++++++++");
-
-    System.out.println(b.getRreil());
+//    gdsl.finalize();
+//    frontends[0].finalize();
+//    
+//    System.exit(0);
+//
+//    for (int i = 0; i < b.getInstructions().length; i++) {
+//      System.out.println(b.getInstructions()[i]);
+//    }
+//
+//    System.out.println("+++++++++++++++++++++++++++++");
+//
+//    System.out.println(b.getRreil());
   }
 
-  public static void main (String[] args) throws IOException, InterruptedException {
+  public static void main (String[] args) throws Throwable {
     sub();
-    
+
     System.gc();
+    
     while(true) {
-      int[] x = new int[10000];
-      x[22] = 99;
-      System.out.println(x[33]);
+      int[] x = new int[18000];
+      x[99] = 33;
+      System.out.println(x[1]);
       Thread.sleep(1000);
     }
 

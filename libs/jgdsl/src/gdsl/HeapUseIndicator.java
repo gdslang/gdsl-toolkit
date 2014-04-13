@@ -2,16 +2,21 @@ package gdsl;
 import gdsl.Gdsl;
 
 
-public class HeapLock {
+public class HeapUseIndicator {
   private Gdsl gdsl;
   
-  protected HeapLock(Gdsl gdsl) {
+  protected HeapUseIndicator(Gdsl gdsl) {
     this.gdsl = gdsl;
     gdsl.lockHeap();
   }
   
   @Override protected void finalize () throws Throwable {
-    gdsl.unlockHeap();
+    free();
     super.finalize();
+  }
+  
+  public void free() {
+    if(gdsl != null)
+      gdsl.unlockHeap();
   }
 }

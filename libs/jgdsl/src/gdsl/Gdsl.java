@@ -17,8 +17,6 @@ import java.nio.ByteBuffer;
  * @author Julian Kranz
  */
 public class Gdsl {
-  private ListFrontend[] frontends;
-
   private Frontend frontend;
 
   private long gdslStatePtr = 0;
@@ -70,54 +68,62 @@ public class Gdsl {
    * 
    * @return the list of frontends
    */
-  public Frontend[] getFrontends () {
-    if(frontends == null)
-      frontends = getFrontendsNative();
-    return frontends;
+  public static Frontend[] getFrontends () {
+    return getFrontendsNative();
   }
   
-  private native ListFrontend[] getFrontendsNative ();
+  public static Frontend[] getFrontends (String base) {
+    return getFrontendsNativeWithBase(base);
+  }
+  
+  private static native ListFrontend[] getFrontendsNative ();
+  private static native ListFrontend[] getFrontendsNativeWithBase (String base);
 
+  static {
+    System.loadLibrary("jgdsl");
+  }
+  
   /**
    * Construct the Gdsl object
    */
-  public Gdsl () {
-    System.loadLibrary("jgdsl");
-  }
-
-  /**
-   * Construct the Gdsl object using a given path to search
-   * for frontends
-   * 
-   * @param base the path to search frontends in
-   */
-  public Gdsl (String base) {
-    System.loadLibrary("jgdsl");
-
-    frontends = getFrontendsNativeWithBase(base);
-  }
-
-  private native ListFrontend[] getFrontendsNativeWithBase (String base);
-
-  /**
-   * Associate the Gdsl object with a {@link Frontend} object; the frontend.
-   * The method should only be called once per Gdsl object.
-   * 
-   * @param frontend the frontend to associate with
-   */
-  public void setFrontend (Frontend frontend) {
-    if (this.frontend != null)
-      throw new RuntimeException("Already set");
-//    boolean found = false;
-//    for (Frontend f : frontends)
-//      if (f.identifies(frontend)) {
-//        found = true;
-//        break;
-//      }
-//    if (!found)
-//      throw new RuntimeException("Invalid frontend");
+  public Gdsl (Frontend frontend) {
     this.frontend = frontend;
+    this.frontend.ref();
+    gdslStatePtr = init(getFrontendPtr());
   }
+
+//  /**
+//   * Construct the Gdsl object using a given path to search
+//   * for frontends
+//   * 
+//   * @param base the path to search frontends in
+//   */
+//  public Gdsl (String base) {
+//    System.loadLibrary("jgdsl");
+//
+//   throw new RuntimeException();
+////    frontends = getFrontendsNativeWithBase(base);
+//  }
+
+//  /**
+//   * Associate the Gdsl object with a {@link Frontend} object; the frontend.
+//   * The method should only be called once per Gdsl object.
+//   * 
+//   * @param frontend the frontend to associate with
+//   */
+//  public void setFrontend (Frontend frontend) {
+//    if (this.frontend != null)
+//      throw new RuntimeException("Already set");
+////    boolean found = false;
+////    for (Frontend f : frontends)
+////      if (f.identifies(frontend)) {
+////        found = true;
+////        break;
+////      }
+////    if (!found)
+////      throw new RuntimeException("Invalid frontend");
+//    this.frontend = frontend;
+//  }
   
   
 //  /**
@@ -131,17 +137,16 @@ public class Gdsl {
 //    long frontendPtr = getFrontendPtrByLibName(name);
 //    this.frontend = new Frontend(name, "");
 //  }
-
-  /**
-   * Initialize the associated frontend; this creates a native gdsl state
-   * object. The method should only be called once per Gdsl object.
-   */
-  public void initFrontend () {
-    if (gdslStatePtr == 0)
-      gdslStatePtr = init(getFrontendPtr());
-    else
-      throw new RuntimeException("Already initialized");
-  }
+//
+//  /**
+//   * Initialize the associated frontend; this creates a native gdsl state
+//   * object. The method should only be called once per Gdsl object.
+//   */
+//  public void initFrontend () {
+//    if (gdslStatePtr == 0)
+//    else
+//      throw new RuntimeException("Already initialized");
+//  }
 
   /**
    * Set the code input stream for Gdsl. The data is shared between
@@ -201,21 +206,26 @@ public class Gdsl {
     heapRevision++;
   }
 
-  /**
-   * Cleanup the complete state on the native side. This frees all natively allocated data.
-   * After this operation the Gdsl object is in the same state as it was after calling the
-   * constructor.
-   */
-  public void destroyFrontend () {
-    destroyFrontend(getFrontend().getPointer(), getGdslStatePtr());
-    gdslStatePtr = 0;
-    frontend = null;
-  }
+//  /**
+//   * Todo: Adapt doc
+//   * 
+//   * Cleanup the complete state on the native side. This frees all natively allocated data.
+//   * After this operation the Gdsl object is in the same state as it was after calling the
+//   * constructor.
+//   */
+//  public void destroyFrontend () {
+//    destroy(getFrontend().getPointer(), getGdslStatePtr());
+//    gdslStatePtr = 0;
+//    frontend = null;
+//  }
   
   @Override protected void finalize () throws Throwable {
     /*
-     * Todo: Free Gdsl resources
+     * Todo: finally
      */
+    destroy(getFrontend().getPointer(), getGdslStatePtr());
+    getFrontend().unref();
+    gdslStatePtr = 0;
     super.finalize();
   }
   
@@ -225,13 +235,13 @@ public class Gdsl {
   
   public void unlockHeap () {
     references--;
-    if(references == 0) {
+    if(references == 0 && gdslStatePtr != 0) {
       resetHeap();
     }
   }
   
-  public HeapLock generateHeapLock() {
-    return new HeapLock(this);
+  public HeapUseIndicator heapUseIndicator() {
+    return new HeapUseIndicator(this);
   }
 
   private native long init (long frontendPtr);
@@ -242,5 +252,5 @@ public class Gdsl {
 
   private native void resetHeap (long frontendPtr, long gdslStatePtr);
 
-  private native void destroyFrontend (long frontendPtr, long gdslStatePtr);
+  private native void destroy (long frontendPtr, long gdslStatePtr);
 }

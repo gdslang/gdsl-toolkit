@@ -10,6 +10,8 @@ package gdsl;
 public abstract class Frontend {
   private long pointer;
   
+  private long references = 0;
+  
   /**
    * Get the address of the corresponding native object.
    * 
@@ -25,7 +27,7 @@ public abstract class Frontend {
   
   protected abstract void initializeNative();
   
-  void setPointer (long pointer) {
+  protected void setPointer (long pointer) {
     this.pointer = pointer;
   }
   
@@ -79,4 +81,30 @@ public abstract class Frontend {
   public boolean isConfigured () {
     return configured;
   }
+  
+  @Override protected void finalize () throws Throwable {
+    /*
+     * Todo: finally
+     */
+    free();
+    super.finalize();
+  }
+  
+  private void free() {
+    if(references == 0 && pointer != 0) {
+      destroy(getPointer());
+      pointer = 0;
+    }
+  }
+  
+  protected void ref () {
+    references++;
+  }
+  
+  protected void unref () {
+    references--;
+    free();
+  }
+  
+  private native void destroy (long frontendPtr);
 }
