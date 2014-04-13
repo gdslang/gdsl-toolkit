@@ -21,4 +21,12 @@ public class TranslatedBlock {
     this.rreil = rreil;
   }
 
+  @Override public String toString () {
+    StringBuilder s = new StringBuilder();
+    for (int i = 0; i < instructions.length; i++)
+      s.append(instructions[i] + "\n");
+    s.append("---------------------\n");
+    s.append(rreil + "\n");
+    return s.toString();
+  }
 }

@@ -26,6 +26,10 @@ public class Gdsl implements IReferable {
   
   public final ReferenceManager heapManager = new ReferenceManager(this);
   
+  public ByteBuffer getBuffer () {
+    return buffer;
+  }
+  
   public long getHeapRevision () {
     return heapRevision;
   }
