@@ -1,6 +1,7 @@
 package gdsl.decoder;
 
 import gdsl.Gdsl;
+import gdsl.HeapExpiredException;
 
 /**
  * This class represents a decoded instruction.
@@ -24,7 +25,7 @@ public class Instruction {
    */
   public long getInsnPtr () {
     if (heapRevision != gdsl.getHeapRevision())
-      throw new RuntimeException("Heap expired");
+      throw new HeapExpiredException();
     if (insnPtr == 0)
       throw new NullPointerException();
     return insnPtr;

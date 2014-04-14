@@ -41,7 +41,7 @@ public class Gdsl implements IReferable {
    */
   public long getGdslStatePtr () {
     if (gdslStatePtr == 0)
-      throw new RuntimeException("Gdsl Frontend not initialized");
+      throw new ResourceUnavailableException("Gdsl Frontend not initialized");
     return gdslStatePtr;
   }
 

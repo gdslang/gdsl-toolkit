@@ -28,13 +28,15 @@ public class BareFrontend extends Frontend {
    */
   public BareFrontend (ArchId id) {
     super(id.toString().toLowerCase());
+    
+    initializeNative();
   }
 
   @Override public String toString () {
     return getName();
   }
   
-  @Override protected void initializeNative () {
+  private void initializeNative () {
     setPointer(getFrontendPtrByLibName(getName()));
   }
   

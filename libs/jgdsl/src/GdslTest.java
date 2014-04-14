@@ -2,6 +2,8 @@ import static org.junit.Assert.*;
 import gdsl.BareFrontend;
 import gdsl.Frontend;
 import gdsl.Gdsl;
+import gdsl.HeapExpiredException;
+import gdsl.ResourceUnavailableException;
 import gdsl.arch.ArchId;
 import gdsl.decoder.Decoder;
 import gdsl.decoder.Instruction;
@@ -29,7 +31,7 @@ public class GdslTest {
     buffer.put((byte) 0);
     buffer.put((byte) 0);
     buffer.put((byte) 0xc3);
-    
+
     buffer.position(0);
 
     return buffer;
@@ -56,37 +58,38 @@ public class GdslTest {
   private Frontend frontend () {
     return new BareFrontend(ArchId.X86);
   }
-  
-  private void block(Gdsl gdsl) {
+
+  private void block (Gdsl gdsl) {
     Translator t = new Translator(gdsl, new DefaultRReilBuilder());
-    TranslatedBlock b = t.translateOptimizeBlock(gdsl.getBuffer().limit() - gdsl.getBuffer().position(), SemPres.EVERYWHERE);
+    TranslatedBlock b =
+      t.translateOptimizeBlock(gdsl.getBuffer().limit() - gdsl.getBuffer().position(), SemPres.EVERYWHERE);
     System.out.println(b);
   }
-  
-  private void single(Gdsl gdsl) {
+
+  private void single (Gdsl gdsl) {
     Decoder decoder = new Decoder(gdsl);
-    
+
     Instruction insn = decoder.decodeOne();
-    
+
     System.out.println(insn);
     for (int i = 0; i < insn.operands(); i++) {
       System.out.println("\tOperand " + i + ": " + insn.operandToString(i));
       System.out.println("\tOperandType " + i + ": " + insn.operandType(i));
     }
-    
+
     Translator t = new Translator(gdsl, new DefaultRReilBuilder());
-    
+
     IRReilCollection<IStatement> rreil = t.translate(insn);
     System.out.println(rreil);
   }
-  
+
   @Test public void testBlock () {
     System.out.println("testBlock()");
     Gdsl gdsl = new Gdsl(frontend());
     gdsl.setCode(buffer(), 0, 0);
     block(gdsl);
   }
-  
+
   @Test public void testSingle () {
     System.out.println("testSingle()");
 
@@ -94,19 +97,71 @@ public class GdslTest {
     gdsl.setCode(buffer(), 0, 0);
     single(gdsl);
   }
-  
+
   @Test public void testBlockSingleOneFrontend () {
     System.out.println("testBlockSingleOneFrontend()");
-    
+
     Frontend f = frontendFromListBase();
-    
+
     Gdsl gdslBlock = new Gdsl(f);
     gdslBlock.setCode(buffer(), 0, 0);
     block(gdslBlock);
-    
+
     Gdsl gdslSingle = new Gdsl(f);
     gdslSingle.setCode(buffer(), 0, 0);
     single(gdslSingle);
+  }
+
+  @Test(expected = ResourceUnavailableException.class) public void testBlockDestroyHeap () {
+    System.out.println("testBlockDestroyedFrontend()");
+
+    Frontend f = frontendFromListBase();
+    Gdsl gdslBlock = new Gdsl(f);
+
+    f.free();
+
+    gdslBlock.setCode(buffer(), 0, 0);
+
+    Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
+    TranslatedBlock b =
+      t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
+
+    System.out.println(b);
+  }
+
+  @Test(expected = HeapExpiredException.class) public void testBlockDestroyedHeap () {
+    System.out.println("testBlockDestroyedGdsl()");
+
+    Frontend f = frontendFromListBase();
+
+    Gdsl gdslBlock = new Gdsl(f);
+    gdslBlock.setCode(buffer(), 0, 0);
+
+    Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
+    TranslatedBlock b =
+      t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
+
+    gdslBlock.free();
+
+    System.out.println(b);
+  }
+
+  @Test public void testLooping () {
+    System.out.println("testLooping()");
+    for (int i = 0; i < 1000000; i++) {
+      Frontend f = frontendFromListBase();
+      for (int j = 0; j < 1000; j++) {
+        Gdsl gdslBlock = new Gdsl(f);
+        gdslBlock.setCode(buffer(), 0, 0);
+
+        Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
+        TranslatedBlock b =
+          t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
+
+        b.toString();
+      }
+      System.out.println("Outer " + i);
+    }
   }
 
 }

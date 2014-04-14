@@ -18,16 +18,16 @@ public abstract class Frontend implements IReferable {
    * @return the value of the pointer
    */
   public long getPointer () {
-    if(pointer == 0)
-      initializeNative();
     if (pointer == 0)
-      throw new RuntimeException("Pointer to native frontend object missing");
+      throw new ResourceUnavailableException("Pointer to native frontend object missing");
+    else if(pointer < 0)
+      throw new ResourceUnavailableException("Frontend destroyed");
     return pointer;
   }
   
-  protected abstract void initializeNative();
-  
   protected void setPointer (long pointer) {
+    if(pointer == 0)
+      throw new RuntimeException("Invalid pointer");
     this.pointer = pointer;
   }
   
@@ -73,7 +73,7 @@ public abstract class Frontend implements IReferable {
   protected Frontend(String name) {
     this.name = name;
   }
-
+  
   /**
    * Check whether the frontends has been configured using a IFrontendConfig
    * configurator.
@@ -93,7 +93,7 @@ public abstract class Frontend implements IReferable {
   public void free() {
     if(pointer != 0) {
       destroy(getPointer());
-      pointer = 0;
+      pointer = -1;
     }
   }
   
