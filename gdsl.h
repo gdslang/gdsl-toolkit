@@ -96,8 +96,6 @@ typedef struct {
 } unboxed_insndata_t;
 typedef unboxed_insndata_t* insndata_t;
 /* Exported functions. */
-obj_t gdsl_pretty_simple(state_t s,insndata_t i);
-obj_t gdsl_pretty(state_t s,insndata_t i);
 int_t gdsl_features_get(state_t s,insndata_t insndata);
 insndata_t gdsl_decode(state_t s,int_t config);
 int_t gdsl_config_default_opnd_sz_32(state_t s);
@@ -130,8 +128,6 @@ gdsl_heap_residency
 gdsl_merge_rope
 #define gdsl_destroy \
 gdsl_destroy
-#define gdsl_pretty_simple gdsl_pretty_simple
-#define gdsl_pretty gdsl_pretty
 #define gdsl_features_get gdsl_features_get
 #define gdsl_decode gdsl_decode
 #define gdsl_config_default_opnd_sz_32 gdsl_config_default_opnd_sz_32

@@ -484,7 +484,7 @@ end = struct
       hashCons = HT.mkTable (typeterm_hash,typeterm_eq) (10000, CondensingError),
       symTable = HT.mkTable (sym_hash,SymbolTable.eq_symid) (100, IndexError),
       typeTable = DA.array (10000, LEAF SymSet.empty),
-      boolDom = ref BD.empty,
+      boolDom = ref (BD.empty ()),
       sizeDom = ref SC.empty
    } : table
 

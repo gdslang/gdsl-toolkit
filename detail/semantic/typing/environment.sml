@@ -393,15 +393,15 @@ end = struct
                  in
                      (str ^ tStr ^ bStr ^ sStr, si)
                  end
-               fun printU ((span, (ctxt,useSym)), (str, sep, si)) =
+               fun printU ((span, (useSym,ctxt)), (str, sep, si)) =
                   let
                      val ty = TT.peekSymbol (useSym,tt)
                      val (tStr, si) = showTypeSI (ty, si)
                   in
                      (str ^
                       sep ^ ST.getString(!SymbolTables.varTable, useSym) ^
-                      ":" ^ tStr
-                     ,"\nuse at ", si)
+                      ":" ^ tStr ^ " in " ^ ST.getString(!SymbolTables.varTable, ctxt)
+                     ,"\nuse as ", si)
                   end
                fun printB ({name,ty,width,uses,nested}, (str, si)) =
                   let
@@ -728,41 +728,6 @@ end = struct
 
    exception LookupNeedsToAddUse
 
-   fun reduceBooleanFormula (sym,t,setType,reduceToMono,env) = raise Unimplemented
-(* 
-      let
-         (*we need to restrict the size of the Boolean formula in two
-         ways: first, for the function we need all Boolean variables
-         in its type, all lambda- and kappa-bound types in the
-         environment as well as all the uses of other functions that
-         occur in it; secondly, the analysis must continue with a
-         Boolean formula that contians the Boolean variables of all
-         lambda- and kappa-bound types in the environment. Since the
-         latter is usually an empty environment (namely for all
-         top-level functions), we first calculate the set of Boolean
-         variables in kappa- and lambda-bound types and use that for
-         the Boolean formula of the function; then we project onto
-         the variables in kappa- and lambda-bound types*)
-         val texpBVarset = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs))
-
-         val (monoTVars, monoBVars) = Scope.getMonoVars env
-         val (usesTVars, usesBVars) = Scope.getVarsUses (sym, env)
-         val funBVars = texpBVarset (t,
-                           BD.union (monoBVars, usesBVars))
-                           
-         val (scs, state) = env
-         val bFun = BD.projectOnto (funBVars,Scope.getFlow state)
-         val bFunRem = if reduceToMono then BD.projectOnto (monoBVars,bFun)
-                       else bFun
-         (*val _ = TextIO.print ("projecting for " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": " ^ showType t ^ " where \n" ^ toString env)*)
-         val groupTVars = texpVarset (t,Scope.getVars env)
-         val sCons = SC.filter (groupTVars, Scope.getSize state)
-         val state = Scope.setSize sCons (Scope.setFlow bFunRem state)
-         val env = Scope.update (sym, setType (t,bFun), (scs, state))
-      in
-         env
-      end
-*)
    fun affectedFunctions (substs, env) =
       let
          fun deleteSym (ss,s) =
@@ -776,7 +741,7 @@ end = struct
                fun aFL (ss, affected, []) = aF (ss, affected, env)
                  | aFL (ss, affected, {name = n, ty, width, uses = us, nested = ns} :: l) =
                      List.foldl (fn (b,acc) => aFB acc (b,env))
-                     (if List.all (fn (_,kappa) => not (SymSet.member (affected,kappa)))
+                     (if List.all (fn (kappa,_) => not (SymSet.member (affected,kappa)))
                            (SpanMap.listItems us)
                      then aFL (ss, affected, l)
                      else aFL (SymSet.add' (n, ss), SymSet.difference (affected,
@@ -859,8 +824,7 @@ end = struct
             val dtVars = List.map (fn v => case v of
                              VAR p => p
                            | _ => raise InferenceBug) vs
-            val flow = texpConstructorFlow dtVars contra t
-            val _ = TT.modifyFlow (fn bFun => BD.meet (flow,bFun), tt)
+            val _ = TT.modifyFlow (fn bFun => texpConstructorFlow dtVars contra t bFun, tt)
          in
             env
          end
@@ -896,8 +860,7 @@ end = struct
             functions*)
             fun action kUsage (COMPOUND {ty, width, uses, nested},cons) =
                let
-                  (*val _ = TextIO.print ("added usage for " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " with state " ^ #1 (TVar.setToString (Scope.getVars env,TVar.emptyShowInfo)) ^ "\n")*)
-                  val uses = SpanMap.insert (uses, span, (Scope.getCurFun env, kUsage))
+                  val uses = SpanMap.insert (uses, span, (kUsage, Scope.getCurFun env))
                in
                   (COMPOUND { ty = ty, width = width,
                               uses = uses, nested = nested}, cons)
@@ -929,14 +892,14 @@ end = struct
       case Scope.lookup (sym, env) of
            (_, SIMPLE) => raise InferenceBug
          | (_, COMPOUND {ty, width, uses = us, nested}) => 
-           #1 (SpanMap.lookup (us, span))
+           #2 (SpanMap.lookup (us, span))
 
    fun pushUsage (sym, span, env) =
       case Scope.lookup (sym, env) of
            (_, SIMPLE) => raise InferenceBug
          | (_, COMPOUND {ty, width, uses = us, nested}) =>
             let
-               val (fid, kUsage) = SpanMap.lookup (us, span)
+               val (kUsage, fid) = SpanMap.lookup (us, span)
                val tt = Scope.getTypeTable env
                val (k,env) = Scope.acquireKappa env
                val _ = TT.addSymbol (k, VAR (TVar.freshTVar (), BD.freshBVar ()), tt)

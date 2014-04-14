@@ -36,7 +36,7 @@ structure TVar : sig
 
 end = struct
 
-   val explicitPrint : bool = true
+   val explicitPrint : bool = false
    
    datatype tvar = TVAR of int
 

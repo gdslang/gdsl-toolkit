@@ -333,6 +333,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      symsStr]))
                   end
                val substs = E.subsetKappas env
+                  handle S.UnificationFailure uf =>
+                     (E.leaveFunction (fid,E.popNested (n1+n2,E.popKappa (E.popKappa env)));
+                     raise S.UnificationFailure uf)
                val env = E.popKappa env
                val env = E.popKappa env
                val env = E.popNested (n1+n2,env)
@@ -377,6 +380,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      val si = TVar.emptyShowInfo
                      val (sFun, si) = E.kappaToStringSI ((1,0), env, si)
                      val (sCall, si) = E.kappaToStringSI ((2,0), env, si)
+                     val env = E.pushTop env
+                     val env = E.popToFunction (sym,env)
                   in 
                      (Error.errorAt (errStrm, s, [str,
                      " when checking call to ",
@@ -400,11 +405,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val env = E.popKappa env
 
                val env = E.pushSymbol (sym, s, false, true, env)
-               (*val _ = TextIO.print ("pushed instance of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.kappaToString env)*)
+               (*val _ = TextIO.print ("pushed instance of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)*)
 
                val env = E.equateKappasFlow env
-                  handle (S.UnificationFailure (_,str)) =>
-                     (raiseError (str,env); env)
+                  handle (S.UnificationFailure (_,str)) => (raiseError (str,env); env)
                (*val _ = TextIO.print ("popping to usage of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " in " ^ SymbolTable.getString(!SymbolTables.varTable, fid) ^ ":\n" ^ E.topToString env)*)
                val env = E.popKappa env
                val env = E.popToUsage (sym, s, env)
@@ -414,7 +418,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                env
             end
          val usages = E.getUsages (sym, env)
-         (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
+         (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " in" ^ E.topToString env ^ "\n")*)
       in
          List.foldl checkUsage env usages
       end
@@ -435,6 +439,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      (!SymbolTables.varTable, sym)
                   val env = E.pushSymbol (sym, SymbolTable.noSpan, false, true, env)
                   val (sType, si) = E.kappaToStringSI ((1,0), env, si)
+                  val env = E.popKappa env
                in
                   (res ^ pre ^ sStr ^ " : " ^ sType, ", ", si)
                end
@@ -1069,7 +1074,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | checkExports s _ = ()
    val _ = List.app (checkExports SymbolTable.noSpan) ast
    
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes

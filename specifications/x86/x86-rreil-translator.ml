@@ -423,7 +423,7 @@ val sem-c sem-cc x = do
   sem-cc x (/d (var cf))
 end
 val sem-b sem-cc x = sem-c sem-cc x
-val sem-nae sem-cc x = sem-nae sem-cc x
+val sem-nae sem-cc x = sem-b sem-cc x
 
 val sem-be sem-cc x = do
   leu <- fLEU;
