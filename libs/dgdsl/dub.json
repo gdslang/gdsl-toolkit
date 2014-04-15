@@ -1,0 +1,6 @@
+{
+	"name" : "dgdsl",
+	"description" : "A minimal D bundle.",
+	"dependencies" : {
+	}
+}
