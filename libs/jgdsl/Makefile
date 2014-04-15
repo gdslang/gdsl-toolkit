@@ -39,7 +39,7 @@ $(JAR_SRC): $(JSOURCES)
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(SPRE) %.java)
 
 $(JAR): $(JSOURCES)
-	javac $(JSOURCES) -d $(BPRE)/
+	javac -cp /usr/share/java/junit4.jar:. $(JSOURCES) -d $(BPRE)/
 	jar -cf $@ $(JSOURCES:$(SPRE)/%.java=-C $(BPRE) %.class)
 
 clean:

@@ -1,4 +1,3 @@
-import static org.junit.Assert.*;
 import gdsl.BareFrontend;
 import gdsl.Frontend;
 import gdsl.Gdsl;
@@ -146,11 +145,30 @@ public class GdslTest {
     System.out.println(b);
   }
 
-//  @Test public void testLooping1 () {
-//    System.out.println("testLooping1()");
-//    for (int i = 0; i < 1000000; i++) {
+  @Test public void testLooping1 () {
+    System.out.println("testLooping1()");
+    for (int i = 0; i < 1000000; i++) {
+      Frontend f = frontend();
+      for (int j = 0; j < 10; j++) {
+        Gdsl gdslBlock = new Gdsl(f);
+        gdslBlock.setCode(buffer(), 0, 0);
+
+        Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
+        TranslatedBlock b =
+          t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
+
+        b.toString();
+      }
+      if (i % 1000 == 0)
+        System.out.println("Outer " + i);
+    }
+  }
+
+//  @Test public void testLooping2 () {
+//    System.out.println("testLooping2()");
+//    for (int i = 0; i < 10; i++) {
 //      Frontend f = frontendFromListBase();
-//      for (int j = 0; j < 10; j++) {
+//      for (int j = 0; j < 1000000; j++) {
 //        Gdsl gdslBlock = new Gdsl(f);
 //        gdslBlock.setCode(buffer(), 0, 0);
 //
@@ -163,23 +181,5 @@ public class GdslTest {
 //      System.out.println("Outer " + i);
 //    }
 //  }
-  
-  @Test public void testLooping2 () {
-    System.out.println("testLooping2()");
-    for (int i = 0; i < 10; i++) {
-      Frontend f = frontendFromListBase();
-      for (int j = 0; j < 1000000; j++) {
-        Gdsl gdslBlock = new Gdsl(f);
-        gdslBlock.setCode(buffer(), 0, 0);
-
-        Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
-        TranslatedBlock b =
-          t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
-
-        b.toString();
-      }
-      System.out.println("Outer " + i);
-    }
-  }
 
 }
