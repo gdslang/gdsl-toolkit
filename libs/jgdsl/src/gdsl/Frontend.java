@@ -10,7 +10,7 @@ package gdsl;
 public abstract class Frontend implements IReferable {
   private long pointer;
   
-  public final ReferenceManager referenceManager = new ReferenceManager(this);
+  public final ReferenceManager referenceManager = new ReferenceManager(this, 1);
   
   /**
    * Get the address of the corresponding native object.
@@ -86,7 +86,7 @@ public abstract class Frontend implements IReferable {
     /*
      * Todo: finally
      */
-    referenceManager.checkRef();
+    referenceManager.unref();
     super.finalize();
   }
   

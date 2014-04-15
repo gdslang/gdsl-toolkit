@@ -9,6 +9,12 @@ public class ReferenceManager {
     this.referable = referable;
   }
   
+  
+  public ReferenceManager (IReferable referable, long references) {
+    this.referable = referable;
+    this.references = references;
+  }
+  
   public void ref() {
     this.references++;
   }
