@@ -101,7 +101,7 @@ structure SymbolTable :> SymbolTableSig = struct
    fun lookup (ts, atom) =
      case find (ts, atom) of
          (SOME id) => id
-       | NONE => raise InvalidSymbol atom
+       | NONE => ((*TextIO.print ("SymbolTable.lookup: " ^ Atom.toString atom ^ " not found\n"); *)raise InvalidSymbol atom)
 
    fun create (ts as (st, revs), atom, span) =
       let val (rev::r) = revs in

@@ -6,6 +6,9 @@ structure Primitives = struct
    
    (* result type of the decoder function *)
    val size = freshVar ()
+   val size' = newFlow size
+   val size'' = newFlow size
+   val size''' = newFlow size
    val stateA = freshVar ()
    val stateA' = newFlow stateA
    val stateB = freshVar ()
@@ -93,9 +96,9 @@ structure Primitives = struct
 
    (*create a type from two vectors to one vector, all of size s*)
    fun func (a,b) = FUN ([a],b)
-   fun vvv s = FUN ([VEC s, VEC s], VEC s)
-   fun vv  s = FUN ([VEC s], VEC s)
-   fun vvb s = FUN ([VEC s, VEC s], VEC (CONST 1))
+   fun vvv s = FUN ([VEC s, VEC (newFlow s)], VEC (newFlow s))
+   fun vv  s = FUN ([VEC s], VEC (newFlow s))
+   fun vvb s = FUN ([VEC s, VEC (newFlow s)], VEC (CONST 1))
 
    val granularity : string = "stream granularity"
    val globalState : string = "global state"
@@ -114,30 +117,28 @@ structure Primitives = struct
                BD.meetVarImpliesVar (bvar stateA', bvar stateA)},
        {name="unconsume8", ty=MONAD (UNIT,stateB, stateB'),
         flow = BD.meetVarImpliesVar (bvar stateB', bvar stateB)}, 
-       {name="consume16", ty=MONAD (VEC size,stateA, stateA'),
-        flow = BD.meetVarZero (bvar size) o
-               BD.meetVarImpliesVar (bvar stateA', bvar stateA)},
-       {name="unconsume16", ty=MONAD (UNIT,stateB, stateB'),
-        flow = BD.meetVarImpliesVar (bvar stateB', bvar stateB)}, 
-       {name="consume32", ty=MONAD (VEC size,stateA, stateA'),
-        flow = BD.meetVarZero (bvar size) o
-               BD.meetVarImpliesVar (bvar stateA', bvar stateA)},
-       {name="unconsume32", ty=MONAD (UNIT,stateB, stateB'),
-        flow = BD.meetVarImpliesVar (bvar stateB', bvar stateB)}, 
+       {name="consume16", ty=MONAD (VEC size',stateJ, stateJ'),
+        flow = BD.meetVarZero (bvar size') o
+               BD.meetVarImpliesVar (bvar stateJ', bvar stateJ)},      
+       {name="unconsume16", ty=MONAD (UNIT,stateK, stateK'),
+        flow = BD.meetVarImpliesVar (bvar stateK', bvar stateK)}, 
+       {name="consume32", ty=MONAD (VEC size'',stateL, stateL'),
+        flow = BD.meetVarZero (bvar size'') o
+               BD.meetVarImpliesVar (bvar stateL', bvar stateL)},    
+       {name="unconsume32", ty=MONAD (UNIT,stateM, stateM'),
+        flow = BD.meetVarImpliesVar (bvar stateM', bvar stateM)}, 
        {name="slice", ty=MONAD (freshVar (),stateC, stateC'),
         flow = BD.meetVarImpliesVar (bvar stateC', bvar stateC)},
        {name="raise", ty=MONAD (freshVar (),stateD, stateD'),
         flow = noFlow},
-       {name="idxget", ty=MONAD (ZENO, stateM, stateM'),
-        flow = BD.meetVarImpliesVar (bvar stateM', bvar stateM)},
-       (*{name="rseek", ty=func (ZENO, MONAD (ZENO, stateN, stateN')),
-        flow = BD.meetVarImpliesVar (bvar stateN', bvar stateN)},*)
+       {name="idxget", ty=MONAD (ZENO, stateN, stateN'),
+        flow = BD.meetVarImpliesVar (bvar stateN', bvar stateN)},   
        {name="seek", ty=func (ZENO, MONAD (ZENO, stateO, stateO')),
         flow = BD.meetVarImpliesVar (bvar stateO', bvar stateO)},
        {name="/z", ty=FUN([ZENO, ZENO],ZENO),flow=noFlow},
        {name="index", ty=func (h, ZENO), flow = noFlow},
-       {name="puts", ty=func (i, MONAD (ZENO, stateL, stateL')),
-         flow = BD.meetVarImpliesVar (bvar stateL', bvar stateL)},
+       {name="puts", ty=func (i, MONAD (ZENO, stateP, stateP')),
+         flow = BD.meetVarImpliesVar (bvar stateP', bvar stateP)},   
        {name="%raise", ty=UNIT, flow = noFlow},
        {name="%and", ty=UNIT, flow = noFlow},
        {name="%or", ty=UNIT, flow = noFlow},
@@ -196,18 +197,12 @@ structure Primitives = struct
        {name="<=", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
        {name=">=", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
        {name="===", ty=FUN([ZENO,ZENO],VEC (CONST 1)),flow=noFlow},
-       {name="++", ty=vvv s1,
-        flow = BD.meetVarZero (bvar s1)},
-       {name="--", ty=vvv s2,
-        flow = BD.meetVarZero (bvar s2)},
-       {name="**", ty=vvv s3,
-        flow = BD.meetVarZero (bvar s3)},
+       {name="++", ty=vvv s1, flow = noFlow},
+       {name="--", ty=vvv s2, flow = noFlow},
+       {name="**", ty=vvv s3, flow = noFlow},
        {name="strlen", ty=FUN([STRING], ZENO), flow = noFlow},
        {name="strcat", ty=FUN([STRING,STRING,ZENO], STRING), flow = noFlow},
-       {name="^", ty=FUN ([VEC s4, VEC s5], VEC s6),
-        flow = BD.meetVarZero (bvar s4) o
-               BD.meetVarZero (bvar s5) o
-               BD.meetVarZero (bvar s6)},
+       {name="^", ty=FUN ([VEC s4, VEC s5], VEC s6), flow = noFlow},
        {name="bits8", ty=func (ZENO, VEC (CONST 8)),
         flow = noFlow},
        {name=Atom.toString Op.orElse, ty = vvv s7,
@@ -263,8 +258,7 @@ structure Primitives = struct
       ]
 
    val primitiveDecoders =
-      [{name=granularity, ty=size},
-       {name="consume", ty=size},
+      [{name=granularity, ty=size'''},
        {name="prefix", ty=s16}, (* hack to get s16 expanded with s14,s15 *)
        {name="suffix", ty=s19}]
 

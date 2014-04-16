@@ -128,6 +128,8 @@ structure Environment : sig
    that any uses of them will use the inferred type rather than leaving a hole*)
    val markAsStable : VarInfo.symid * environment -> environment
 
+   val clearUses : VarInfo.symid * environment -> environment
+
    val forceNoInputs : VarInfo.symid * VarInfo.symid list *
                      environment -> VarInfo.symid list
 
@@ -184,6 +186,8 @@ end = struct
          ty : bool,
          (*this is SOME k if this is a decode function with pattern width tt(k)*)
          width : kappa option,
+         (*for each location that name is used, track the kappa symbol that holds the instantiated
+           type of name and the context, that is, the symid of the function in which name is mentioned *)
          uses : (kappa * ST.symid) SpanMap.map,
          (*a tree of nested binding groups*)
          nested : binding list
@@ -215,7 +219,8 @@ end = struct
       val initial : binding * SC.size_constraint_set * TypeTable.table -> environment
       val wrap : binding * environment -> environment
       val unwrap : environment -> (binding * environment)
-      val lookup : ST.symid * environment -> SymSet.set * bind_info
+      val lookup : ST.symid * environment -> bind_info
+      val restrictToInScope : ST.symid * SymSet.set * environment -> SymSet.set 
       val update : ST.symid  *
                    (bind_info * constraints -> bind_info * constraints) *
                    environment-> environment
@@ -280,24 +285,53 @@ end = struct
 
       fun lookup (sym, (scs, cons) : environment) =
          let    
-            fun l (ss, []) =
+            fun l [] =
                   (TextIO.print ("urk, tried to lookup non-existent symbol " ^ Int.toString (SymbolTable.toInt sym) ^ ": " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                   ;raise InferenceBug)
-              | l (ss, KAPPA {kappa}::scs) = l (ss, scs)
-              | l (ss, SINGLE {name}::scs) =
-                  if ST.eq_symid (sym,name) then (ss,SIMPLE) else l (SymSet.add (ss,name), scs)
-              | l (ss, GROUP bs::scs) =
-                  let fun lG other [] = l (SymSet.empty, scs)
-                        | lG other ((b as {name, ty, width, uses, nested})::bs) =
+              | l (KAPPA {kappa}::scs) = l scs
+              | l (SINGLE {name}::scs) =
+                  if ST.eq_symid (sym,name) then SIMPLE else l scs
+              | l (GROUP bs::scs) =
+                  let
+                     fun lG [] = l scs
+                       | lG ({name, ty, width, uses, nested}::bs) =
                            if ST.eq_symid (sym,name) then
-                              (ss, COMPOUND { ty = ty, width = width, uses = uses, nested = nested })
-                           else lG (b :: other) bs
+                              COMPOUND { ty = ty, width = width, uses = uses, nested = nested }
+                           else lG bs
                   in
-                     lG [] bs                     
+                     lG bs                     
                   end
       
          in
-            l (SymSet.empty, scs)
+            l scs
+         end
+
+      fun restrictToInScope (sym, ss, (scs, cons) : environment) =
+         let
+            fun restrict (ss, scs) =
+               if SymSet.isEmpty ss then SymSet.empty else
+               (*(TextIO.print ("restrictToInScope: current args of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " are" ^ SymSet.foldl (fn (sym,str) => SymbolTable.getString(!SymbolTables.varTable, sym) ^ str) "" ss ^ "\n");*)
+               case scs of
+                    [] => 
+                     (TextIO.print ("restrictToInScope: non-existent symbol " ^ Int.toString (SymbolTable.toInt sym) ^ ": " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
+                     ;raise InferenceBug)
+                  | KAPPA {kappa}::scs => restrict (if SymSet.member (ss,kappa) then SymSet.delete (ss,kappa) else ss, scs)
+                  | SINGLE {name}::scs => restrict (if SymSet.member (ss,name) then SymSet.delete (ss,name) else ss, scs)
+                  | GROUP bs::scs =>
+                     let
+                        fun rmUses (sm,ss) =
+                           SpanMap.foldl (fn ((kappa,ctxt),ss) =>
+                              if SymSet.member (ss,kappa) then SymSet.delete (ss,kappa) else ss)
+                              ss sm
+                        fun r ss [] = restrict (ss,scs)
+                          | r ss ((b as {name, ty, width, uses, nested})::bs) =
+                            if ST.eq_symid (sym,name) then rmUses (uses,ss) else r (rmUses (uses,ss)) bs
+                     in
+                        r ss bs
+                     end
+               (*)*)
+         in
+            restrict (ss,scs)
          end
 
       fun update (sym, action, env) =
@@ -512,7 +546,7 @@ end = struct
 
    fun funTypeToStringSI (env, f, si) = raise Unimplemented
 (*  (case Scope.lookup (f,env) of
-        (_, COMPOUND { ty = SOME (t,_), width, uses, nested }) =>
+        (COMPOUND { ty = SOME (t,_), width, uses, nested }) =>
             showTypeSI (t,si)
       | _ => raise InferenceBug
    )
@@ -716,7 +750,7 @@ end = struct
       let
          val tt = Scope.getTypeTable env
          val sizeSym = case Scope.lookup (sym,env) of
-                (_, COMPOUND {ty, width = SOME sizeSym, uses, nested}) => sizeSym
+                (COMPOUND {ty, width = SOME sizeSym, uses, nested}) => sizeSym
               | _ => raise (UnificationFailure (Clash, SymbolTable.getString(!SymbolTables.varTable, sym) ^
                              " is not a decoder"))
          val (k,env) = Scope.acquireKappa env
@@ -835,7 +869,7 @@ end = struct
       if SOME (SymbolTable.toInt sym)=debugSymbol then
          TextIO.print ("pushSymbol debug symbol:\n" ^ toString env) else ();
       case Scope.lookup (sym,env) of
-          (_, SIMPLE) =>
+          (SIMPLE) =>
          let
             val (k,env) = Scope.acquireKappa env
             val tt = Scope.getTypeTable env
@@ -845,12 +879,18 @@ end = struct
          in
             env
          end
-        | (ss, COMPOUND {ty = isStable, width = w, uses, nested}) =>
+        | (COMPOUND {ty = isStable, width = w, uses, nested}) =>
          let
             val (k,env) = Scope.acquireKappa env
             val tt = Scope.getTypeTable env
             val _ = if createInstance then
-                  TT.instantiateSymbol (sym,ss,k,tt)
+               let
+                  val sharingSyms = TT.getSharingSyms (sym,tt)
+                  val inScope = Scope.restrictToInScope (sym,sharingSyms,env)
+                  val args = SymSet.difference (sharingSyms,inScope)
+               in
+                  TT.instantiateSymbol (sym,args,k,tt)
+               end
                else
                   (TT.addSymbol (k, VAR (TVar.freshTVar (), BD.freshBVar ()), tt)
                   ;TT.equateSymbolsFlow (k,sym,tt))
@@ -885,19 +925,19 @@ end = struct
 
    fun getUsages (sym, env) =
       case Scope.lookup (sym, env) of
-           (_, SIMPLE) => []
-         | (_, COMPOUND {ty, width, uses = us, nested}) => SpanMap.listKeys us
+           (SIMPLE) => []
+         | (COMPOUND {ty, width, uses = us, nested}) => SpanMap.listKeys us
 
    fun getContextOfUsage (sym, span, env) =
       case Scope.lookup (sym, env) of
-           (_, SIMPLE) => raise InferenceBug
-         | (_, COMPOUND {ty, width, uses = us, nested}) => 
+           (SIMPLE) => raise InferenceBug
+         | (COMPOUND {ty, width, uses = us, nested}) => 
            #2 (SpanMap.lookup (us, span))
 
    fun pushUsage (sym, span, env) =
       case Scope.lookup (sym, env) of
-           (_, SIMPLE) => raise InferenceBug
-         | (_, COMPOUND {ty, width, uses = us, nested}) =>
+           (SIMPLE) => raise InferenceBug
+         | (COMPOUND {ty, width, uses = us, nested}) =>
             let
                val (kUsage, fid) = SpanMap.lookup (us, span)
                val tt = Scope.getTypeTable env
@@ -917,7 +957,7 @@ end = struct
                      (KAPPA {kappa}, env) => (TT.getSymbol (kappa,tt), Scope.releaseKappa (kappa,env))
                    | _ => raise InferenceBug
             val env = case Scope.lookup (sym, env) of
-                  (_, COMPOUND {ty, width, uses = us, nested}) =>
+                  (COMPOUND {ty, width, uses = us, nested}) =>
                      (case SpanMap.find (us,span) of
                        NONE => raise InferenceBug
                      | SOME (kappaTy, fid) =>
@@ -1026,7 +1066,7 @@ end = struct
                | _ => raise InferenceBug
          val (tArgs,env) = getArgs ([],nArgs,env)
          val (k,env) = Scope.acquireKappa env
-         val _ = TT.addSymbol (k,FUN (tArgs,tRes),tt)
+         val _ = TT.addSymbol (k,FUN (tArgs,tRes),tt) 
       in
          Scope.wrap (KAPPA {kappa=k}, env)
       end
@@ -1282,6 +1322,7 @@ end = struct
 
    fun markAsStable (sym, env) =
       let
+         val tt = Scope.getTypeTable env
          fun markNested {name,ty,width,uses,nested} =
             {name=name,ty=true,width=width,uses=uses,nested=map markBinding nested}
          and markBinding (GROUP bs) = GROUP (map markNested bs)
@@ -1289,6 +1330,25 @@ end = struct
          
          fun setStable (COMPOUND {ty, width, uses, nested}, cons) =
                (COMPOUND {ty = true, width = width, uses = uses, nested = map markBinding nested}, cons)
+           | setStable _ = (TextIO.print ("markAsStable " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
+      in
+         Scope.update (sym, setStable, env)
+      end                                                         
+
+   fun clearUses (sym, env) =
+      let
+         val tt = Scope.getTypeTable env
+         fun markNested {name,ty,width,uses,nested} =
+            (SpanMap.app (fn (kappa,ctxt) => TT.delSymbol (kappa,tt)) uses;
+             {name=name,ty=true,width=width,uses=SpanMap.empty,nested=map markBinding nested}
+            )
+         and markBinding (GROUP bs) = GROUP (map markNested bs)
+           | markBinding other = other 
+         
+         fun setStable (COMPOUND {ty, width, uses, nested}, cons) =
+            (SpanMap.app (fn (kappa,ctxt) => TT.delSymbol (kappa,tt)) uses;
+             (COMPOUND {ty=true,width=width,uses=SpanMap.empty,nested=map markBinding nested}, cons)
+            )
            | setStable _ = (TextIO.print ("markAsStable " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
       in
          Scope.update (sym, setStable, env)

@@ -6,7 +6,7 @@ structure Types = struct
    type varset = TVar.set
    val freshTVar = TVar.freshTVar
 
-   val concisePrint = true
+   val concisePrint = false
 
    datatype texp =
       (* a function taking at least one argument *)
@@ -211,7 +211,7 @@ structure Types = struct
    type condescr = texp option SymMap.map
 
    type typedescr = { tdVars : (TVar.tvar * BD.bvar) SymMap.map,
-                     tdCons : condescr }
+                      tdCons : condescr }
 
    fun showTypeSI (ty, showInfo) = let
     val siTab = ref showInfo

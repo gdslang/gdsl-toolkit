@@ -48,12 +48,12 @@ structure BooleanDomain : sig
 
    val expand : bvar list * (bool * bvar) list * bfun -> bfun
    
-   val b1 : bvar
    val b2 : bvar
    val b3 : bvar
    val b4 : bvar
    val b5 : bvar
    val b6 : bvar
+   val b7 : bvar
    
    val f1 : bfun
    val f2 : bfun
@@ -85,7 +85,7 @@ end = struct
    fun combineEI (x : edge_info, y : edge_info) = () : edge_info
    
    structure HT = IntHashTable
-   structure ES = IntListMap
+   structure ES = IntBinaryMap
    
    type edgeset = edge_info ES.map
 
@@ -159,13 +159,34 @@ end = struct
       end
 
    exception Unsatisfiable of bvarset
-   
-   fun meetSetOne vs {forward = fw, backward = bw, constants = co} =
+
+   fun genUnsatPath bVar {forward = fw, backward = bw, constants = co} =
+      let
+         val vars = IS.singleton bVar
+         fun search edges v vs = case HT.find edges v of
+              NONE => vs
+            | SOME ns =>
+               let
+                  fun findPath [] = vs
+                    | findPath (n :: ns) =
+                    if IS.member (vs,n) then findPath ns else
+                    if not (HT.inDomain co n) then findPath ns else
+                    if n<2 then vs else search edges n (IS.add (vs,n))
+               in
+                  findPath (ES.listKeys ns)
+               end
+         val vars = search fw bVar vars
+         val vars = search bw bVar vars
+      in
+         raise Unsatisfiable vars
+      end
+
+   fun meetSetOne vs (bFun as {forward = fw, backward = bw, constants = co}) =
       let
          fun run [] = ()
            | run (v :: vs) = case HT.find co v of
                 SOME true => run vs
-              | SOME false => raise Unsatisfiable (IS.singleton v)
+              | SOME false => genUnsatPath v bFun
               | NONE => (HT.insert co (v,true); case HT.find fw v of
                    NONE => run vs
                  | SOME es => run (ES.foldli (fn (target,_,vs) => target::vs) vs es)
@@ -175,12 +196,12 @@ end = struct
          ()
       end
    
-   fun meetSetZero vs {forward = fw, backward = bw, constants = co} =
+   fun meetSetZero vs (bFun as {forward = fw, backward = bw, constants = co}) =
       let
          fun run [] = ()
            | run (v :: vs) = case HT.find co v of
                 SOME false => run vs
-              | SOME true => raise Unsatisfiable (IS.singleton v)
+              | SOME true => genUnsatPath v bFun
               | NONE => (HT.insert co (v,false); case HT.find bw v of
                    NONE => run vs
                  | SOME es => run (ES.foldli (fn (source,_,vs) => source::vs) vs es)
@@ -222,14 +243,22 @@ end = struct
          bFun
       end
 
+   (*fun meetEqual  (_,_, bFun) = bFun
+   fun meetVarImpliesVar _ bFun = bFun
+   fun meetVarOne (BVAR v) bFun = bFun
+   fun meetVarZero (BVAR v)  bFun = bFun
+   fun meetVarSetOne is bFun = bFun
+   fun meetVarSetZero is bFun = bFun*)
+
+
    fun meetEqual  (BVAR v1, BVAR v2, bFun) =
       varImpliesVar (v1,v2) (varImpliesVar (v2,v1) bFun)
 
    fun meetVarImpliesVar (BVAR v1, BVAR v2) bFun = varImpliesVar (v1,v2) bFun
 
-   fun meetVarOne (BVAR v) bFun = (varImpliesVar (v, trueVar) bFun; bFun)
+   fun meetVarOne (BVAR v) bFun = (varImpliesVar (trueVar, v) bFun; bFun)
 
-   fun meetVarZero (BVAR v)  bFun = (varImpliesVar (falseVar, v) bFun; bFun)
+   fun meetVarZero (BVAR v)  bFun = (varImpliesVar (v, falseVar) bFun; bFun)
 
 
    fun meetVarSetOne is bFun = (meetSetOne (IS.listItems is) bFun; bFun)
@@ -326,19 +355,19 @@ end = struct
       end                               
    
    
-   val b1 = freshBVar ()
    val b2 = freshBVar ()
    val b3 = freshBVar ()
    val b4 = freshBVar ()
    val b5 = freshBVar ()
    val b6 = freshBVar ()
+   val b7 = freshBVar ()
    
-   val f1 = meetVarImpliesVar (b2,b1) (empty ())
+   val f1 = meetVarImpliesVar (b2,b7) (empty ())
    val _ = meetVarImpliesVar (b3,b2) f1
    val _ = meetVarImpliesVar (b5,b4) f1
    val _ = meetVarImpliesVar (b6,b5) f1
    
-   val f2 = meetVarImpliesVar (b1,b2) (empty ())
+   val f2 = meetVarImpliesVar (b7,b2) (empty ())
    val _ = meetVarImpliesVar (b2,b3) f2
    val _ = meetVarImpliesVar (b3,b4) f2
    val _ = meetVarImpliesVar (b4,b5) f2

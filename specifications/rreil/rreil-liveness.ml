@@ -8,7 +8,7 @@ export =
    lv-gen
    lv-gens
    lv-union
-   lv-pretty
+#   lv-pretty
    lv-analyze
    liveness liveness_super{insns,succ_a,succ_b}
 #   lvstate-pretty
@@ -202,12 +202,12 @@ val lv-any-live? state kill =
       fmap-fold live? '0' kill
    end
 
-val lv-pretty t =
+(*val lv-pretty t =
    let
       val fields x = rreil-show-id x.id +++ ":" +++ fitree-pretty x.fields
    in
       bbtree-pretty fields t
-   end
+   end*)
 
 val live-stack-backup-and-reset = do
   live <- query $live;
@@ -442,7 +442,7 @@ val lvstate-empty initial-live stmts =
    {greedy=initial-live,
     conservative=lv-union (lv-kills stmts) (fmap-empty {})}
 
-val lvstate-pretty state = lv-pretty state.greedy
+#val lvstate-pretty state = lv-pretty state.greedy
 
 ## Map labels to (liveness) states
 

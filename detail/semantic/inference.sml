@@ -236,7 +236,7 @@ end = struct
    fun pushDecoderType (sym,span,env) =
       let
          val bVar = BD.freshBVar ()
-         val env = E.meetBoolean (BD.meetVarOne bVar, env)
+         (*val env = E.meetBoolean (BD.meetVarOne bVar, env)*)
          val env = E.pushType (false,
             MONAD (freshVar (),
                         RECORD (freshTVar (), BD.freshBVar (),
@@ -464,7 +464,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun checkGuard (g,env) =
             let
                val stateVar = VAR (freshTVar (), BD.freshBVar ())
-               val monadType = MONAD (VEC (CONST 1), stateVar, stateVar)
+               val monadType = MONAD (VEC (CONST 1), stateVar, newFlow stateVar)
                val env = infExp (st, env) g
                val env = E.pushType (false, monadType, env)
                val env = E.equateKappas env
@@ -1032,7 +1032,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             | SCC.RECURSIVE _ => "") ^ ")\r"
          val _ = TextIO.print str
          
-         (*val _ = TextIO.print ("before checking component " ^ prComp comp ^ "\n")*)
+         val _ = TextIO.print ("before checking component " ^ prComp comp ^ "\n")
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
                                   component = [comp]},env) d
@@ -1045,6 +1045,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
               SCC.SIMPLE _ => env
             | SCC.RECURSIVE syms => calcFixpoints (syms, env)
             ) handle TypeError => env
+
+         val env = case comp of
+              SCC.SIMPLE sym => E.clearUses (sym, env)
+            | SCC.RECURSIVE syms => foldl E.clearUses env syms
             
          val _ = TextIO.print (String.implode (List.tabulate (String.size str, fn _ => #" ") @ [#"\r"]))
          val _ = cnt := (!cnt + 100)
@@ -1074,7 +1078,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | checkExports s _ = ()
    val _ = List.app (checkExports SymbolTable.noSpan) ast
    
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes

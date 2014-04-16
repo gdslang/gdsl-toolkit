@@ -79,9 +79,9 @@ end = struct
       
    fun showSteps p =
       let
-         fun showStep (StepIndex i) = Int.toString i ^ "-"
+         fun showStep (StepIndex i) = Int.toString i ^ "."
            | showStep (StepField f) =
-            SymbolTable.getString (!SymbolTables.fieldTable,f) ^ "-"
+            SymbolTable.getString (!SymbolTables.fieldTable,f) ^ "."
       in
          String.concat (List.map showStep p)
       end
@@ -298,7 +298,7 @@ structure TypeTable : sig
    val addSymbol : SymbolTable.symid * Types.texp * table -> TVar.tvar              
    
    (* Remove a symbol and all information from other domains regarding this symbol. *)
-   val delSymbol : SymbolTable.symid * table -> TVar.set
+   val delSymbol : SymbolTable.symid * table -> unit
 
    (* Remove the given symbol from the map and returns its type expression.
       The other domains remain unaltered so that (parts of) the type
@@ -311,6 +311,7 @@ structure TypeTable : sig
    
    val equateSymbols : SymbolTable.symid * SymbolTable.symid * table -> unit
    val equateSymbolsFlow : SymbolTable.symid * SymbolTable.symid * table -> unit
+   val getSharingSyms : SymbolTable.symid * table -> SymSet.set
    val instantiateSymbol : SymbolTable.symid * SymSet.set * SymbolTable.symid * table -> unit
 
    val symbolsWithVars : TVar.set * table -> SymSet.set
@@ -632,7 +633,7 @@ end = struct
             end
       end
 
-   fun sane (table : table) = if not runSane then () else
+   fun sane (table : table) =
       let
          val tt = #typeTable table
          val st = #symTable table
@@ -649,15 +650,24 @@ end = struct
             in
                raise IndexError
             end
-         fun checkSym (sym,{flow = fp, info = idx}) =
-               List.app (fn var => case ttGet(tt,var) of
-                  LEAF symSet => if SymSet.member (symSet,sym) then () else
-                     err ("no reference from type variable to symbol" , [sym], [idx,var])
-                | TERM t => err ("flow information does not relate to type variable", [sym], [idx,var])
-                | FORW _ => err ("variable in flow information not replaced", [sym], [idx,var])
-                | OCCURS => (TextIO.print "an occurs placeholder has not been removed\n"; raise IndexError)
-               ) (Path.varsOfFlowpoints fp)
-         val _ = HT.appi checkSym st
+         fun checkSym (sym,{flow = fp, info = idx},bVars) =
+            let
+               val newBVars = Path.flagsOfFlowpoints fp
+               val bVars = foldl (fn ((_,bVar),bVars) => if BD.member (bVars,bVar)
+                  then err ("boolean var " ^ BD.showVar bVar ^ " already used", [sym], [idx])
+                  else BD.addToSet (bVar,bVars)) bVars newBVars
+               val _ =
+                  List.app (fn var => case ttGet(tt,var) of
+                     LEAF symSet => if SymSet.member (symSet,sym) then () else
+                        err ("no reference from type variable to symbol" , [sym], [idx,var])
+                   | TERM t => err ("flow information does not relate to type variable", [sym], [idx,var])
+                   | FORW _ => err ("variable in flow information not replaced", [sym], [idx,var])
+                   | OCCURS => (TextIO.print "an occurs placeholder has not been removed\n"; raise IndexError)
+                  ) (Path.varsOfFlowpoints fp)
+            in
+               bVars
+            end
+         val _ = HT.foldi checkSym BD.emptySet st
          fun checkVar (idx, LEAF symSet) =
                List.app (fn sym => case HT.find st sym of
                   NONE => err ("symbol referenced in variable not in symbol", [sym], [TVar.fromIdx idx])
@@ -680,6 +690,8 @@ end = struct
       in 
          ()
       end
+   
+   fun localSane tt =  if not runSane then () else sane tt
 
    fun newType (ty,table : table) =
       let
@@ -702,7 +714,7 @@ end = struct
           and convV v = case ttGet (tt, v) of
                  (LEAF _) => v
                | _ => raise IndexError
-         val _ = sane (table)
+         val _ = localSane (table)
       in
          conv ty
       end
@@ -725,7 +737,7 @@ end = struct
                 #1 (toStringSI ([sym], [#info (HT.lookup st sym)], table, TVar.emptyShowInfo)) ^ "\n");
              raise IndexError) else ()
          val _ = HT.insert st (sym,{ flow = fp, info = idx })
-         val _ = sane (table)
+         val _ = localSane (table)
       in
         idx
       end
@@ -753,10 +765,12 @@ end = struct
          val _ = List.app updateRef tVars
          val bdRef = #boolDom table
          val bVarsToKill = foldl BD.addToSet BD.emptySet (map #2 (Path.flagsOfFlowpoints fp))
+         (*val _ = TextIO.print ("projecting out " ^ BD.setToString bVarsToKill ^ " form\n" ^ BD.showBFun (!bdRef) ^ "\n")*)
          val _ = bdRef := BD.projectOut (bVarsToKill, !bdRef)
-         val _ = sane (table)
+         (*val _ = TextIO.print ("resulting in\n" ^ BD.showBFun (!bdRef) ^ "\n")*)
+         val _ = localSane (table)
       in
-         !unusedTVars
+         ()
       end
 
    (* turn a type of a symbol into a ADT type; returns the set of indices
@@ -894,7 +908,7 @@ end = struct
                LEAF symSet => ttSet (tt,TVar.fromIdx idx,LEAF (SymSet.delete (symSet,sym)))
              | _ => raise IndexError
              ) vars
-         val _ = sane (table)
+         val _ = localSane (table)
       in
          ty
       end
@@ -926,7 +940,7 @@ end = struct
                   end
                val (pStr,_,si) = foldl pairToString ("","",TVar.emptyShowInfo) ((v1,v2) :: pairs)
                (*val _ = TextIO.print ("unifying " ^ pStr ^ "\n")*)
-               val _  = sane (table)
+               val _  = localSane (table)
 
                val v1 = ttFind (tt,v1)
                val v2 = ttFind (tt,v2)
@@ -1191,7 +1205,7 @@ end = struct
 
          val _ = List.app (fn ((_,f1),(_,f2)) => bdRef := BD.meetEqual (f1,f2,!bdRef)) flags
       in
-         sane (table)
+         localSane (table)
       end
 
    fun equateSymbolsFlow (sym1,sym2,table : table) =
@@ -1212,7 +1226,22 @@ end = struct
             else
                bdRef := BD.meetVarImpliesVar (f1,f2) (!bdRef)) flags
       in
-         sane (table)
+         localSane (table)
+      end
+
+   fun getSharingSyms (sym, table : table) =
+      let
+         val tt = #typeTable table
+         val st = #symTable table
+         val { flow = fp, info = idx } = HT.lookup st sym
+         val candidates = Path.varsOfFlowpoints fp
+         val ss = List.foldl (fn (v,ss) => case ttGet(tt, v) of
+                 LEAF symSet => SymSet.union (symSet,ss)
+               | _ => raise IndexError
+             ) SymSet.empty candidates
+         val ss = if SymSet.member (ss,sym) then SymSet.delete (ss,sym) else ss
+      in
+         ss
       end
 
    fun instantiateSymbol (oldSym, args, newSym, table : table) =
@@ -1270,8 +1299,11 @@ end = struct
          
          val scRef = #sizeDom table
          val _ = scRef := SC.expand (subst,!scRef) 
+
+         (*val _ = TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
+         val _ = TextIO.print ("syms with vars are " ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" args ^ "\n")*)
       in
-         sane (table)
+         localSane (table)
       end
 
    fun affectedField (bVars, table : table) =
