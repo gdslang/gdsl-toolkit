@@ -1202,8 +1202,12 @@ end = struct
          (*val (str,si) = toStringSI ([sym1,sym2],[],table,TVar.emptyShowInfo)
          val _ = TextIO.print ("equatSymbols: bool func = " ^ BD.showBFun (!bdRef) ^ str ^ "\n")
          val _ = TextIO.print (foldl (fn (((_,f1),(_,f2)),str) => BD.showVar f1 ^ "," ^ BD.showVar f2 ^ "; " ^ str) "" flags ^ "\n")*)
-
-         val _ = List.app (fn ((_,f1),(_,f2)) => bdRef := BD.meetEqual (f1,f2,!bdRef)) flags
+         
+         val unsatRef = ref IS.empty
+         val _ = List.app (fn ((_,f1),(_,f2)) => bdRef := BD.meetEqual (f1,f2,!bdRef)
+               handle BD.Unsatisfiable vars => (unsatRef := IS.union (!unsatRef,vars))
+            ) flags
+         val _ = if IS.isEmpty (!unsatRef) then () else raise BD.Unsatisfiable (!unsatRef)
       in
          localSane (table)
       end
@@ -1220,11 +1224,16 @@ end = struct
          val { flow = fp2, ... } = HT.lookup st sym2
          val bdRef = #boolDom table
          val flags = ListPair.zip (Path.flagsOfFlowpoints fp1, Path.flagsOfFlowpoints fp2)
+
+         val unsatRef = ref IS.empty
          val _ = List.app (fn ((contra,f1),(_,f2)) =>
-            if contra then
-               bdRef := BD.meetVarImpliesVar (f2,f1) (!bdRef)
-            else
-               bdRef := BD.meetVarImpliesVar (f1,f2) (!bdRef)) flags
+               (if contra then
+                  bdRef := BD.meetVarImpliesVar (f2,f1) (!bdRef)
+               else
+                  bdRef := BD.meetVarImpliesVar (f1,f2) (!bdRef)
+               ) handle BD.Unsatisfiable vars => (unsatRef := IS.union (!unsatRef,vars))
+            ) flags
+         val _ = if IS.isEmpty (!unsatRef) then () else raise BD.Unsatisfiable (!unsatRef)
       in
          localSane (table)
       end
@@ -1299,9 +1308,16 @@ end = struct
          
          val scRef = #sizeDom table
          val _ = scRef := SC.expand (subst,!scRef) 
-
-         (*val _ = TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
-         val _ = TextIO.print ("syms with vars are " ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" args ^ "\n")*)
+         
+         (*val _ = if List.exists (fn (_,v) => BD.eq(v,BD.bBad)) (newSymFlags @ newArgsFlags) then
+            let
+               val _ = TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
+               val _ = TextIO.print ("syms with vars are " ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" args ^ "\n")
+            in
+               ()
+            end
+            else ()*)
+            
       in
          localSane (table)
       end

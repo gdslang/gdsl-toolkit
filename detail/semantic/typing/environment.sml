@@ -169,7 +169,7 @@ end = struct
    type kappa = ST.symid
 
    (*restrict which symbols toString prints*)
-   val debugSymbol : int option = NONE
+   val debugSymbol : int option = SOME 911
 
    (*any error that is not due to unification*)
    exception InferenceBug
@@ -831,7 +831,7 @@ end = struct
                | SOME f => "field " ^
                   SymbolTable.getString(!SymbolTables.fieldTable, f)
          val fStr = if Types.concisePrint then fStr else
-                    fStr ^ " with vars " ^ BD.setToString bVars
+                    fStr ^ " with flow " ^ BD.showBFunPart (bVars, TT.getFlow (Scope.getTypeTable env))
       in
          raise UnificationFailure (Clash, fStr ^ " may not be present")
       end
@@ -888,8 +888,11 @@ end = struct
                   val sharingSyms = TT.getSharingSyms (sym,tt)
                   val inScope = Scope.restrictToInScope (sym,sharingSyms,env)
                   val args = SymSet.difference (sharingSyms,inScope)
+                  val _ = TT.instantiateSymbol (sym,args,k,tt)
+                  (*val _ = if SOME (SymbolTable.toInt sym)=debugSymbol then
+                        TextIO.print ("after instantiation:\n" ^ #1 (TT.toStringSI ([sym,k],[],tt,TVar.emptyShowInfo)) ^ "\n") else ()*)
                in
-                  TT.instantiateSymbol (sym,args,k,tt)
+                  ()
                end
                else
                   (TT.addSymbol (k, VAR (TVar.freshTVar (), BD.freshBVar ()), tt)

@@ -54,6 +54,7 @@ structure BooleanDomain : sig
    val b5 : bvar
    val b6 : bvar
    val b7 : bvar
+   val bBad : bvar
    
    val f1 : bfun
    val f2 : bfun
@@ -159,7 +160,8 @@ end = struct
       end
 
    exception Unsatisfiable of bvarset
-
+   exception Bug
+   
    fun genUnsatPath bVar {forward = fw, backward = bw, constants = co} =
       let
          val vars = IS.singleton bVar
@@ -183,32 +185,38 @@ end = struct
 
    fun meetSetOne vs (bFun as {forward = fw, backward = bw, constants = co}) =
       let
+         val unsatRef = ref IS.empty
          fun run [] = ()
            | run (v :: vs) = case HT.find co v of
                 SOME true => run vs
-              | SOME false => genUnsatPath v bFun
+              | SOME false => (genUnsatPath v bFun
+                  handle Unsatisfiable vars => (unsatRef := IS.union (!unsatRef,vars); run vs)
+               )
               | NONE => (HT.insert co (v,true); case HT.find fw v of
                    NONE => run vs
                  | SOME es => run (ES.foldli (fn (target,_,vs) => target::vs) vs es)
                )
          val _ = run vs
       in
-         ()
+         if IS.isEmpty (!unsatRef) then () else raise Unsatisfiable (!unsatRef)
       end
    
    fun meetSetZero vs (bFun as {forward = fw, backward = bw, constants = co}) =
       let
+         val unsatRef = ref IS.empty
          fun run [] = ()
            | run (v :: vs) = case HT.find co v of
                 SOME false => run vs
-              | SOME true => genUnsatPath v bFun
+              | SOME true => (genUnsatPath v bFun
+                  handle Unsatisfiable vars => (unsatRef := IS.union (!unsatRef,vars); run vs)
+               )
               | NONE => (HT.insert co (v,false); case HT.find bw v of
                    NONE => run vs
                  | SOME es => run (ES.foldli (fn (source,_,vs) => source::vs) vs es)
                )
          val _ = run vs
       in
-         ()
+         if IS.isEmpty (!unsatRef) then () else raise Unsatisfiable (!unsatRef)
       end
  
    fun getEdgeSet (ht : edgeset HT.hash_table, key) = case HT.find ht key of
@@ -265,8 +273,6 @@ end = struct
 
    fun meetVarSetZero is bFun = (meetSetZero (IS.listItems is) bFun; bFun)
 
-   exception Bug
-   
    fun removeVar (v, bFun as {forward = fw, backward = bw, constants = co}) =
       let
          val _ = if HT.inDomain co v then HT.remove co v else false
@@ -361,6 +367,7 @@ end = struct
    val b5 = freshBVar ()
    val b6 = freshBVar ()
    val b7 = freshBVar ()
+   val bBad = BVAR 2529505
    
    val f1 = meetVarImpliesVar (b2,b7) (empty ())
    val _ = meetVarImpliesVar (b3,b2) f1

@@ -73,6 +73,7 @@ end = struct
          val (str, si) = List.foldl
                            genRow
                            (str ^ msg ^ "\n", TVar.emptyShowInfo) symSelStrings
+                           
       in
          raise S.UnificationFailure (kind, str)
       end
@@ -236,7 +237,7 @@ end = struct
    fun pushDecoderType (sym,span,env) =
       let
          val bVar = BD.freshBVar ()
-         (*val env = E.meetBoolean (BD.meetVarOne bVar, env)*)
+         val env = E.meetBoolean (BD.meetVarOne bVar, env)
          val env = E.pushType (false,
             MONAD (freshVar (),
                         RECORD (freshTVar (), BD.freshBVar (),
@@ -862,8 +863,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             handle S.UnificationFailure str =>
                refineError (env, str,
                             " when merging the requirements gathered after",
-                            [((2,1), "statement " ^ showProg (21, PP.exp, e)),
-                             ((2,0), "with the following transformer ")])
+                            [((1,1), "statement " ^ showProg (21, PP.exp, e)),
+                             ((2,1), "with the following transformer ")])
          val env = E.popKappa env
          val env = E.reduceToResult env
          (*val _ = TextIO.print ("monadic actions: after reducing to res\n")*)
