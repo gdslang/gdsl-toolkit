@@ -203,7 +203,7 @@ public class GdslTest {
    */
 //  @Test public void testLooping2 () {
 //    System.out.println("testLooping2()");
-//    for (int i = 0; i < 10; i++) {
+//    for (int i = 0; i < 10; i++) { 
 //      Frontend f = frontendFromListBase();
 //      for (int j = 0; j < 1000000; j++) {
 //        Gdsl gdslBlock = new Gdsl(f);

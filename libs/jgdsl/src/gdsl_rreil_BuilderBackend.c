@@ -786,7 +786,7 @@ jobject translate_block_optimized_with_config(JNIEnv *env, jobject this, jlong f
   coll.length = 0;
   coll.size = 0;
 
-  opt_result_t opt_result = frontend->translator.decode_translate_block_optimized_int(state, config, limit,
+  opt_result_t opt_result = frontend->translator.decode_translate_block_optimized_int_insncb(state, config, limit,
       preservation, &coll, &insn_cb);
 
   jlongArray instructions = (*env)->NewLongArray(env, coll.length);

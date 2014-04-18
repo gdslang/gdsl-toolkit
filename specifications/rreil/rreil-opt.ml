@@ -1,4 +1,4 @@
-export = decode-translate-block-optimized{insns} decode-translate-block-optimized-int{insns}
+export = decode-translate-block-optimized{insns} decode-translate-block-optimized-int{insns} decode-translate-block-optimized-int-insncb{insns}
 
 type sem_preservation =
    SEM_PRESERVATION_EVERYWHERE
@@ -31,7 +31,7 @@ type opt_result = {
   insns:int, rreil:sem_stmts
 }
 
-val decode-translate-block-optimized-int config limit pres insns-initv insn-append = do
+val decode-translate-block-optimized-int-insncb config limit pres insns-initv insn-append = do
   update @{insns=insns-initv};
   rreil <- case pres of
      0: decode-translate-block-optimized config limit SEM_PRESERVATION_EVERYWHERE insn-append
@@ -40,4 +40,10 @@ val decode-translate-block-optimized-int config limit pres insns-initv insn-appe
   end;
   insns <- query $insns;
   return {rreil=rreil, insns=insns}
+end
+
+val decode-translate-block-optimized-int config limit pres = let
+  val default-append a b = a
+in
+  decode-translate-block-optimized-int-insncb config limit pres {} default-append
 end
