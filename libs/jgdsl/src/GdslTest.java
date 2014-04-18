@@ -17,7 +17,11 @@ import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
-
+/**
+ * This class contains test cases for the GDSL Java interface library.
+ * 
+ * @author Julian Kranz
+ */
 public class GdslTest {
   private ByteBuffer buffer () {
     ByteBuffer buffer = ByteBuffer.allocateDirect(8);
@@ -82,6 +86,10 @@ public class GdslTest {
     System.out.println(rreil);
   }
 
+  /**
+   * This test case tests the decoding and translation of
+   * a basic block using the (optimizing) block translator.
+   */
   @Test public void testBlock () {
     System.out.println("testBlock()");
     Gdsl gdsl = new Gdsl(frontend());
@@ -89,6 +97,10 @@ public class GdslTest {
     block(gdsl);
   }
 
+  /**
+   * This test case tests the decoding and translation of
+   * a single instruction.
+   */
   @Test public void testSingle () {
     System.out.println("testSingle()");
 
@@ -97,6 +109,11 @@ public class GdslTest {
     single(gdsl);
   }
 
+  /**
+   * This test case tests the decoding and translation of
+   * a single instrution and a basic block using one frontend
+   * object only.
+   */
   @Test public void testBlockSingleOneFrontend () {
     System.out.println("testBlockSingleOneFrontend()");
 
@@ -111,7 +128,12 @@ public class GdslTest {
     single(gdslSingle);
   }
 
-  @Test(expected = ResourceUnavailableException.class) public void testBlockDestroyHeap () {
+  /**
+   * This test case tests the sane behaviour of the library in
+   * case the GDSL frontend is destroyed and later used by a GDSL
+   * object.
+   */
+  @Test(expected = ResourceUnavailableException.class) public void testBlockDestroyedFrontend () {
     System.out.println("testBlockDestroyedFrontend()");
 
     Frontend f = frontendFromListBase();
@@ -128,6 +150,11 @@ public class GdslTest {
     System.out.println(b);
   }
 
+  /**
+   * This test case tests the sane behaviour of the library in
+   * case the GDSL heap is destroyed and later tried to access
+   * through an instruction object.
+   */
   @Test(expected = HeapExpiredException.class) public void testBlockDestroyedHeap () {
     System.out.println("testBlockDestroyedGdsl()");
 
@@ -145,25 +172,35 @@ public class GdslTest {
     System.out.println(b);
   }
 
-  @Test public void testLooping1 () {
-    System.out.println("testLooping1()");
-    for (int i = 0; i < 1000000; i++) {
-      Frontend f = frontend();
-      for (int j = 0; j < 10; j++) {
-        Gdsl gdslBlock = new Gdsl(f);
-        gdslBlock.setCode(buffer(), 0, 0);
+  /**
+   * This test case tries decode and translate lots of instructions using
+   * different GDSL objects. That way the correct garbage collection can
+   * be tested.
+   */
+//  @Test public void testLooping1 () {
+//    System.out.println("testLooping1()");
+//    for (int i = 0; i < 1000000; i++) {
+//      Frontend f = frontend();
+//      for (int j = 0; j < 10; j++) {
+//        Gdsl gdslBlock = new Gdsl(f);
+//        gdslBlock.setCode(buffer(), 0, 0);
+//
+//        Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
+//        TranslatedBlock b =
+//          t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
+//
+//        b.toString();
+//      }
+//      if (i % 1000 == 0)
+//        System.out.println("Outer " + i);
+//    }
+//  }
 
-        Translator t = new Translator(gdslBlock, new DefaultRReilBuilder());
-        TranslatedBlock b =
-          t.translateOptimizeBlock(gdslBlock.getBuffer().limit() - gdslBlock.getBuffer().position(), SemPres.EVERYWHERE);
-
-        b.toString();
-      }
-      if (i % 1000 == 0)
-        System.out.println("Outer " + i);
-    }
-  }
-
+  /**
+   * This test case tries decode and translate lots of instructions using
+   * different GDSL objects. That way the correct garbage collection can
+   * be tested.
+   */
 //  @Test public void testLooping2 () {
 //    System.out.println("testLooping2()");
 //    for (int i = 0; i < 10; i++) {
