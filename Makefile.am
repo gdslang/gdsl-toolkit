@@ -366,19 +366,24 @@ JSOURCES = src/gdsl/rreil/DefaultLimitedVariableCollection.java \
            src/gdsl/decoder/GdslDecodeException.java \
            src/gdsl/decoder/Decoder.java \
            src/gdsl/decoder/Instruction.java \
+           src/gdsl/decoder/OperandType.java \
            src/gdsl/translator/RReilTranslateException.java \
            src/gdsl/translator/Translator.java \
            src/gdsl/translator/SemPres.java \
+           src/gdsl/translator/TranslatorBlock.java \
+           src/gdsl/translator/TranslatorBlockRaw.java \
            src/gdsl/Frontend.java \
            src/gdsl/IFrontendConfig.java \
            src/gdsl/Gdsl.java \
            src/gdsl/GdslException.java \
-					 src/gdsl/arch/AVRBinder.java \
-					 src/gdsl/arch/ArchBinder.java \
-					 src/gdsl/arch/ArchId.java \
-					 src/gdsl/arch/IConfigFlag.java \
-					 src/gdsl/arch/X86Binder.java \
-					 src/gdsl/arch/X86ConfigFlag.java \
+           src/gdsl/HeapExpiredException.java \
+           src/gdsl/HeapUseIndicator.java \
+	   src/gdsl/arch/AVRBinder.java \
+	   src/gdsl/arch/ArchBinder.java \
+	   src/gdsl/arch/ArchId.java \
+	   src/gdsl/arch/IConfigFlag.java \
+	   src/gdsl/arch/X86Binder.java \
+	   src/gdsl/arch/X86ConfigFlag.java \
            src/Program.java
 
 SPRE=src
@@ -567,10 +572,10 @@ endif
 endif
 
 if HAVE_RREIL
-libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.c $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.c $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.c $(srcdir)/libs/jgdsl/src/util.c
+libjgdsl_la_SOURCES = $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.c $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.c $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.c $(srcdir)/libs/jgdsl/src/gdsl_Frontend.c $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.c $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.c $(srcdir)/libs/jgdsl/src/util.c
 libjgdsl_la_CFLAGS = -std=c99 -I/usr/lib/jvm/java-7-openjdk-amd64/include -I$(srcdir)/libs/gdsl-multiplex/include
 libjgdsl_la_LIBADD += libgdsl-multiplex.la
-private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.h $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.h $(srcdir)/libs/jgdsl/src/util.h
+private_headers += $(srcdir)/libs/jgdsl/src/gdsl_rreil_BuilderBackend.h $(srcdir)/libs/jgdsl/src/gdsl_Gdsl.h $(srcdir)/libs/jgdsl/src/gdsl_decoder_Instruction.h $(srcdir)/libs/jgdsl/src/gdsl_Frontend.h $(srcdir)/libs/jgdsl/src/gdsl_BareFrontend.h $(srcdir)/libs/jgdsl/src/gdsl_ListFrontend.h $(srcdir)/libs/jgdsl/src/util.h
 endif
 
 if HAVE_RREIL
