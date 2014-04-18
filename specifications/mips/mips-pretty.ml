@@ -32,130 +32,19 @@ val show/operand opnd =
 
 val show/operand/imm imm =
    case imm of
-      IMM3 x: show-int (zx x)
-    | IMM4 x: show-int (zx x)
-    | IMM6 x: show-int (zx x)
-    | IMM7 x: show-int (zx x)
-    | IMM8 x: show-int (zx x)
-    | IMM12 x: show-int (zx x)
-    | IMM16 x: show-int (zx x)
-    | IMM22 x: show-int (zx x)
+      IMM16 x: show-int (zx x)
+    | IMM32 x: show-int (zx x)
     | IMMi i: show-int i
   end
 
 val show/instruction i =
    case i of
-      PEW x: "PEW" -++ show/ternop x    
-    | ADC x: "ADC" -++ show/binop x    
-    | ADD x: "LOL" -++ show/binop x
-    | ADIW x: "ADIW" -++ show/binop x
-    | AND x: "AND" -++ show/binop x
-    | ANDI x: "ANDI" -++ show/binop x
-    | ASR x: "ASR" -++ show/unop x
-    | BLD x: "BLD" -++ show/binop x
-    | BRCC x: "BRCC" -++ show/unop x
-    | BRCS x: "BRCS" -++ show/unop x
-    | BREAK: "BREAK"
-    | BREQ x: "BREQ" -++ show/unop x
-    | BRGE x: "BRGE" -++ show/unop x
-    | BRHC x: "BRHC" -++ show/unop x
-    | BRHS x: "BRHS" -++ show/unop x
-    | BRID x: "BRID" -++ show/unop x
-    | BRIE x: "BRIE" -++ show/unop x
-    | BRLT x: "BRLT" -++ show/unop x
-    | BRMI x: "BRMI" -++ show/unop x
-    | BRNE x: "BRNE" -++ show/unop x
-    | BRPL x: "BRPL" -++ show/unop x
-    | BRTC x: "BRTC" -++ show/unop x
-    | BRTS x: "BRTS" -++ show/unop x
-    | BRVC x: "BRVC" -++ show/unop x
-    | BRVS x: "BRVS" -++ show/unop x
-    | BST x: "BST" -++ show/binop x
-    | CALL x: "CALL" -++ show/unop x
-    | CBI x: "CBI" -++ show/binop x
-    | CBR x: "CBR" -++ show/binop x
-    | CLC: "CLC" 
-    | CLH: "CLH"
-    | CLI: "CLI"
-    | CLN: "CLN"
-    | CLR x: "CLR" -++ show/unop x
-    | CLS: "CLS"
-    | CLT: "CLT"
-    | CLV: "CLV"
-    | CLZ: "CLZ"
-    | COM x: "COM" -++ show/unop x
-    | CP x: "CP" -++ show/binop x
-    | CPC x: "CPC" -++ show/binop x
-    | CPI x: "CPI" -++ show/binop x
-    | CPSE x: "CPSE" -++ show/ternop x
-    | DEC x: "DEC" -++ show/unop x
-    | DES x: "DES" -++ show/unop x
-    | EICALL: "EICALL"
-    | EIJMP: "EIJMP"
-    | ELPM x: "ELPM" -++ show/binop x
-    | EOR x: "EOR" -++ show/binop x
-    | FMUL x: "FMUL" -++ show/binop x
-    | FMULS x: "FMULS" -++ show/binop x
-    | FMULSU x: "FMULSU" -++ show/binop x
-    | ICALL: "ICALL"
-    | IJMP: "IJMP"
-    | IN x: "IN" -++ show/binop x
-    | INC x: "INC" -++ show/unop x
-    | JMP x: "JMP" -++ show/unop x
-    | LAC x: "LAC" -++ show/binop x
-    | LAS x: "LAS" -++ show/binop x
-    | LAT x: "LAT" -++ show/binop x
-    | LD x: "LD" -++ show/binop x
-    | LDI x: "LDI" -++ show/binop x
-    | LDS x: "LDS" -++ show/binop x
-    | LPM x: "LPM" -++ show/binop x
-    | LSL x: "LSL" -++ show/unop x
-    | LSR x: "LSR" -++ show/unop x
-    | MOV x: "MOV" -++ show/binop x
-    | MOVW x: "MOVW" -++ show/binop x
-    | MUL x: "MUL" -++ show/binop x
-    | MULS x: "MULS" -++ show/binop x
-    | MULSU x: "MULSU" -++ show/binop x
-    | NEG x: "NEG" -++ show/unop x
-    | NOP: "NOP"
-    | OR x: "OR" -++ show/binop x
-    | ORI x: "ORI" -++ show/binop x
-    | OUT x: "OUT" -++ show/binop x
-    | POP x: "POP" -++ show/unop x
-    | PUSH x: "PUSH" -++ show/unop x
-    | RCALL x: "RCALL" -++ show/unop x
-    | RET: "RET"
-    | RETI: "RETI"
-    | RJMP x: "RJMP" -++ show/unop x
-    | ROL x: "ROL" -++ show/unop x
-    | ROR x: "ROR" -++ show/unop x
-    | SBC x: "SBC" -++ show/binop x
-    | SBCI x: "SBCI" -++ show/binop x
-    | SBI x: "SBI" -++ show/binop x
-    | SBIC x: "SBIC" -++ show/ternop x
-    | SBIS x: "SBIS" -++ show/ternop x
-    | SBIW x: "SBIW" -++ show/binop x
-    | SBR x: "SBR" -++ show/binop x
-    | SBRC x: "SBRC" -++ show/ternop x
-    | SBRS x: "SBRS" -++ show/ternop x
-    | SEC: "SEC"
-    | SEH: "SEH"
-    | SEI: "SEI"
-    | SEN: "SEN"
-    | SES: "SES"
-    | SET: "SET"
-    | SEV: "SEV"
-    | SEZ: "SEZ"
-    | SLEEP: "SLEEP"
-    | SPM x: "SPM" -++ show/unop x
-    | ST x: "ST" -++ show/binop x
-    | STS x: "STS" -++ show/binop x
-    | SUB x: "SUB" -++ show/binop x
-    | SUBI x: "SUBI" -++ show/binop x
-    | SWAP x: "SWAP" -++ show/unop x
-    | TST x: "TST" -++ show/unop x
-    | WDR: "WDR"
-    | XCH x: "XCH" -++ show/binop x    
+      ADD x: "ADD" -++ show/ternop x    
+    | ADDI x: "ADDI" -++ show/ternop x    
+    | ADDIU x: "ADDIU" -++ show/ternop x
+    | ADDU x: "ADDU" -++ show/ternop x
+    | AND x: "AND" -++ show/ternop x    
+    | ANDI x: "ANDI" -++ show/ternop x    
    end
 
 val show/register r =

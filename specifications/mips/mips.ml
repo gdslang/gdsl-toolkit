@@ -16,15 +16,42 @@ val d ['bit:1'] = do
  update@{rd=rd ^ bit}
 end
 
+val k ['bit:1'] = do
+ ck <- query $ck;
+ update@{ck=ck ^ bit}
+end
 
-### PEW
-###  - PEW with Carry
-val / ['000000 s s s s s t t t t t d d d d d 00000 100000'] = ternop PEW rs5 rt5 rd5
+
+### ADD
+###  - ADD
+val / ['000000 s s s s s t t t t t d d d d d 00000 100000'] = ternop ADD rs5 rt5 rd5
+
+### ADDI
+###  - Add Immediate Word
+val / ['001000 s s s s s t t t t t k k k k k k k k k k k k k k k k'] = ternop ADDI rs5 rt5 ck16
+
+### ADDIU
+###  - Add Immediate Unsigned Word
+val / ['001001 s s s s s t t t t t k k k k k k k k k k k k k k k k'] = ternop ADDIU rs5 rt5 ck16
+
+### ADDU
+###  - Add Unsigned Word
+val / ['000000 s s s s s t t t t t d d d d d 00000 100001'] = ternop ADDU rs5 rt5 rd5
+
+### AND
+###  - Logical AND
+val / ['000000 s s s s s t t t t t d d d d d 00000 100100'] = ternop AND rs5 rt5 rd5
+
+### ANDI
+###  - Logical AND with Immediate
+val / ['001100 s s s s s t t t t t k k k k k k k k k k k k k k k k'] = ternop ANDI rs5 rt5 ck32
+
+
 
 val config-default = ''
 
 val decode config = do
-  update@{rs='',rt='',rd=''};
+  update@{rs='',rt='',rd='',ck=''};
   /
 end
 
@@ -36,14 +63,8 @@ type side-effect =
  | DECR
 
 type imm =
-   IMM3 of 3
- | IMM4 of 4
- | IMM6 of 6
- | IMM7 of 7
- | IMM8 of 8
- | IMM12 of 12
- | IMM16 of 16
- | IMM22 of 22
+   IMM16 of 16
+ | IMM32 of 32
  | IMMi of int
 
 type reghl = {regh:register,regl:register} 
@@ -62,117 +83,12 @@ type binop = {first:operand,second:operand}
 type unop = {operand:operand}
 
 type instruction =
-   ADC of binop
- | PEW of ternop
- | ADD of binop
- | ADIW of binop
- | AND of binop
- | ANDI of binop
- | ASR of unop
- | BLD of binop
- | BRCC of unop
- | BRCS of unop
- | BREAK
- | BREQ of unop
- | BRGE of unop
- | BRHC of unop
- | BRHS of unop
- | BRID of unop
- | BRIE of unop
- | BRLT of unop
- | BRMI of unop
- | BRNE of unop
- | BRPL of unop
- | BRTC of unop
- | BRTS of unop
- | BRVC of unop
- | BRVS of unop
- | BST of binop
- | CALL of unop
- | CBI of binop
- | CBR of binop
- | CLC
- | CLH
- | CLI
- | CLN
- | CLR of unop
- | CLS
- | CLT
- | CLV
- | CLZ
- | COM of unop
- | CP of binop
- | CPC of binop
- | CPI of binop
- | CPSE of ternop
- | DEC of unop
- | DES of unop
- | EICALL
- | EIJMP
- | ELPM of binop
- | EOR of binop
- | FMUL of binop
- | FMULS of binop
- | FMULSU of binop
- | ICALL
- | IJMP
- | IN of binop
- | INC of unop
- | JMP of unop
- | LAC of binop
- | LAS of binop
- | LAT of binop
- | LD of binop
- | LDI of binop
- | LDS of binop
- | LPM of binop
- | LSL of unop
- | LSR of unop
- | MOV of binop
- | MOVW of binop
- | MUL of binop
- | MULS of binop
- | MULSU of binop
- | NEG of unop
- | NOP
- | OR of binop
- | ORI of binop
- | OUT of binop
- | POP of unop
- | PUSH of unop
- | RCALL of unop
- | RET
- | RETI
- | RJMP of unop
- | ROL of unop
- | ROR of unop
- | SBC of binop
- | SBCI of binop
- | SBI of binop
- | SBIC of ternop
- | SBIS of ternop
- | SBIW of binop
- | SBR of binop
- | SBRC of ternop
- | SBRS of ternop
- | SEC
- | SEH
- | SEI
- | SEN
- | SES
- | SET
- | SEV
- | SEZ
- | SLEEP
- | SPM of unop
- | ST of binop
- | STS of binop
- | SUB of binop
- | SUBI of binop
- | SWAP of unop
- | TST of unop
- | WDR
- | XCH of binop
+   ADD of ternop
+ | ADDI of ternop
+ | ADDIU of ternop
+ | ADDU of ternop
+ | AND of ternop
+ | ANDI of ternop
 
 type register =
    R0
@@ -446,6 +362,18 @@ val rd5 = do
  rd <- query $rd;
  update @{rd=''};
  return (REG (register-from-bits rd))
+end
+
+val ck16 = do
+ ck <- query $ck;
+ update @{ck=''};
+ return (IMM (IMM16 ck))
+end
+
+val ck32 = do
+ ck <- query $ck;
+ update @{ck=''};
+ return (IMM (IMM32 ('0000000000000000' ^ ck)))
 end
  
 val sizeof-next = do

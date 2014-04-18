@@ -921,14 +921,8 @@ val sizeof x =
 	 | REGIHL r: 24
 	 | IOREG i: 8
 	 | IMM imm: case imm of
-	      IMM3 i: 3
-	    | IMM4 i: 4
-	    | IMM6 i: 6
-	    | IMM7 i: 7
-	    | IMM8 i: 8
-	    | IMM12 i: 12
-	    | IMM16 i: 16
-	    | IMM22 i: 22
+	      IMM16 i: 16
+	    | IMM32 i: 32
 	    | IMMi i: 64
 		 end
 	 | OPSE o: sizeof o.op
@@ -962,14 +956,8 @@ val rval sn x = let
 
 	val from-imm sn imm =
 	  case imm of
-	     IMM3 i: from-vec sn i
-	   | IMM4 i: from-vec sn i
-	   | IMM6 i: from-vec sn i
-	   | IMM7 i: from-vec sn i
-	   | IMM8 i: from-vec sn i
-	   | IMM12 i: from-vec sn i
-	   | IMM16 i: from-vec sn i
-	   | IMM22 i: from-vec sn i
+	     IMM16 i: from-vec sn i
+	   | IMM32 i: from-vec sn i
 	   | IMMi i: SEM_LIN_IMM {const=i}
 		end
 in
@@ -1020,14 +1008,8 @@ end
 val rval-uint x =
   case x of
 	   IMM imm: case imm of
-	      IMM3 i: zx i
-	    | IMM4 i: zx i
-	    | IMM6 i: zx i
-	    | IMM7 i: zx i
-	    | IMM8 i: zx i
-	    | IMM12 i: zx i
-	    | IMM16 i: zx i
-	    | IMM22 i: zx i
+	      IMM16 i: zx i
+	    | IMM32 i: zx i
 	    | IMMi i: i
 		 end
 	end
@@ -1047,118 +1029,12 @@ end
 
 val semantics insn =
  case insn of
-    PEW x: sem-break
-  | ADC x: sem-adc x
-  | ADD x: sem-add x
-  | ADIW x: sem-adiw x
-  | AND x: sem-and-andi x
-  | ANDI x: sem-and-andi x
-  | ASR x: sem-asr x
-  | BLD x: sem-bld x
-  | BRCC x: sem-brbc x 0
-  | BRCS x: sem-brbs x 0
-  | BREAK: sem-break
-  | BREQ x: sem-brbs x 1
-  | BRGE x: sem-brbc x 4
-  | BRHC x: sem-brbc x 5
-  | BRHS x: sem-brbs x 5
-  | BRID x: sem-brbc x 7
-  | BRIE x: sem-brbs x 7
-  | BRLT x: sem-brbs x 4
-  | BRMI x: sem-brbs x 2
-  | BRNE x: sem-brbc x 1
-  | BRPL x: sem-brbc x 2
-  | BRTC x: sem-brbc x 6
-  | BRTS x: sem-brbs x 6
-  | BRVC x: sem-brbc x 3
-  | BRVS x: sem-brbs x 3
-#  | BSET x: sem-undef-unop x
-  | BST x: sem-bst x
-  | CALL x: sem-call x
-  | CBI x: sem-cbi x
-  | CBR x: sem-undef-binop x
-  | CLC: sem-bclr 0
-  | CLH: sem-bclr 5
-  | CLI: sem-bclr 7
-  | CLN: sem-bclr 2
-  | CLR x: sem-undef-unop x
-  | CLS: sem-bclr 4
-  | CLT: sem-bclr 6
-  | CLV: sem-bclr 3
-  | CLZ: sem-bclr 1
-  | COM x: sem-com x
-  | CP x: sem-cp-cpi x
-  | CPC x: sem-cpc x
-  | CPI x: sem-cp-cpi x
-  | CPSE x: sem-cpse x
-  | DEC x: sem-dec x
-  | DES x: sem-des x
-  | EICALL: sem-eicall
-  | EIJMP: sem-eijmp
-  | ELPM x: sem-elpm x
-  | EOR x: sem-eor x
-  | FMUL x: sem-fmul x
-  | FMULS x: sem-fmuls x
-  | FMULSU x: sem-fmulsu x
-  | ICALL: sem-icall
-  | IJMP: sem-ijmp
-  | IN x: sem-in x
-  | INC x: sem-inc x
-  | JMP x: sem-jmp x
-  | LAC x: sem-lac x
-  | LAS x: sem-las x
-  | LAT x: sem-lat x
-  | LD x: sem-ld-ldd-lds x
-  | LDI x: sem-ldi x
-  | LDS x: sem-ld-ldd-lds x
-  | LPM x: sem-lpm x
-#  | LSL x: sem-undef-unop x
-  | LSR x: sem-lsr x
-  | MOV x: sem-mov-movw x
-  | MOVW x: sem-mov-movw x
-  | MUL x: sem-mul x
-  | MULS x: sem-muls x
-  | MULSU x: sem-mulsu x
-  | NEG x: sem-neg x
-  | NOP: sem-nop
-  | OR x: sem-or-ori x
-  | ORI x: sem-or-ori x
-  | OUT x: sem-out x
-  | POP x: sem-pop x
-  | PUSH x: sem-push x
-  | RCALL x: sem-rcall x
-  | RET: sem-ret
-  | RETI: sem-reti
-  | RJMP x: sem-rjmp x
-#  | ROL x: sem-undef-unop x
-  | ROR x: sem-ror x
-  | SBC x: sem-sbc-sbci x
-  | SBCI x: sem-sbc-sbci x
-  | SBI x: sem-sbi x
-  | SBIC x: sem-sbic-sbrc x
-  | SBIS x: sem-sbis-sbrs x
-  | SBIW x: sem-sbiw x
-#  | SBR x: sem-undef-binop x
-  | SBRC x: sem-sbic-sbrc x
-  | SBRS x: sem-sbis-sbrs x
-  | SEC: sem-bset 0
-  | SEH: sem-bset 5
-  | SEI: sem-bset 7
-  | SEN: sem-bset 2
-  | SES: sem-bset 4
-  | SET: sem-bset 6
-  | SEV: sem-bset 3
-  | SEZ: sem-bset 1
-  | SLEEP: sem-sleep
-  | SPM x: sem-spm x
-  | ST x: sem-st-std-sts x
-  | STS x: sem-st-std-sts x
-  | SUB x: sem-sub-subi x
-  | SUBI x: sem-sub-subi x
-  | SWAP x: sem-swap x
-#  | TST x: sem-undef-unop x
-  | WDR: sem-wdr
-  | XCH x: sem-xch x
+    ADD x: sem-break
+  | ADDI x: sem-break
+  | ADDIU x: sem-break
+  | ADDU x: sem-break
+  | AND x: sem-break
+  | ANDI x: sem-break
 end
 
 val translate-avr insn = semantics insn
