@@ -116,7 +116,7 @@ static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
 	ADD_FUNCTION(translator, rreil_cif_userdata_set)
 	ADD_FUNCTION(translator, rreil_cif_userdata_get)
 	ADD_FUNCTION(translator, rreil_convert_sem_stmts)
-	ADD_FUNCTION(translator, decode_translate_block_optimized_int)
+	ADD_FUNCTION(translator, decode_translate_block_optimized_int_insncb)
 
 	if(error) return GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND;
 
