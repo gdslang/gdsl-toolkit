@@ -82,7 +82,7 @@ type stmts_option =
 
 type translate-result = {insns:int, succ_a:int, succ_b:int}
 
-val decode-translate-super-block config limit insn-append = let
+val decode-translate-super-block-insncb config limit insn-append = let
   val translate-block-at idx = do
 	  current <- idxget;
 		#error <- rseek idx;
@@ -117,6 +117,12 @@ in do
 
   return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
 end end
+
+val decode-translate-super-block config limit = let
+  val default-append a b = a
+in
+  decode-translate-super-block-insncb config limit default-append
+end
 
 val succ-pretty succ name =
   case succ of

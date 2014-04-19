@@ -11,6 +11,10 @@ struct frontend_desc {
 }
 
 struct _generic {
+  struct {
+    int x = 20;
+  } blah;
+  
   state_t function () init;
   void function (state_t, char*, ulong, ulong) set_code;
   jmp_buf* function (state_t) err_tgt;
@@ -56,4 +60,5 @@ unittest {
   import std.stdio;
   frontend f;
   writeln(f.sizeof);
+  f.generic.blah.x = 99;
 }

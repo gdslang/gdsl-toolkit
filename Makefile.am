@@ -370,14 +370,19 @@ JSOURCES = src/gdsl/rreil/DefaultLimitedVariableCollection.java \
            src/gdsl/translator/RReilTranslateException.java \
            src/gdsl/translator/Translator.java \
            src/gdsl/translator/SemPres.java \
-           src/gdsl/translator/TranslatorBlock.java \
-           src/gdsl/translator/TranslatorBlockRaw.java \
+           src/gdsl/translator/TranslatedBlock.java \
+           src/gdsl/translator/TranslatedBlockRaw.java \
            src/gdsl/Frontend.java \
+           src/gdsl/BareFrontend.java \
+           src/gdsl/ListFrontend.java \
            src/gdsl/IFrontendConfig.java \
            src/gdsl/Gdsl.java \
            src/gdsl/GdslException.java \
            src/gdsl/HeapExpiredException.java \
            src/gdsl/HeapUseIndicator.java \
+           src/gdsl/IReferable.java \
+           src/gdsl/ReferenceManager.java \
+           src/gdsl/ResourceUnavailableException.java \
 	   src/gdsl/arch/AVRBinder.java \
 	   src/gdsl/arch/ArchBinder.java \
 	   src/gdsl/arch/ArchId.java \
