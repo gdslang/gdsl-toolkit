@@ -3,5 +3,5 @@
 	"description" : "A minimal D bundle.",
 	"dependencies" : {
 	},
-	"libs" : [ "gdsl", "gdsl-multiplex" ]
+	"libs" : [ "gdsl", "gdsl-multiplex", "dl" ]
 }

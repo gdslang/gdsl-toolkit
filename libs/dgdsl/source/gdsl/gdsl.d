@@ -1,19 +1,42 @@
 module gdsl.gdsl;
 
-extern (C):
+import std.stdio;
+import gdsl.reference_manager;
+import gdsl.generated;
+import gdsl.frontend;
+import gdsl.generated;
+import gdsl.multiplex;
 
-//struct state;
-//
-//alias long int_t;
-//alias char* string_t;
-//alias void* obj_t;
-//alias state* state_t;
+class Gdsl : IReferable {
+  private state_t _gdslState;
+  private Frontend _frontend;
+  private ReferenceManager heapManager;
+  
+  @property Frontend frontend() {
+    return _frontend;
+  }
+  
+  this(Frontend frontend) {
+    this.heapManager = new ReferenceManager(this);
+    this._frontend = frontend;
+    this._frontend.refManager.reference();
+    this._gdslState = frontend.init();
+  }
+  
+  ~this() {
+    if(_gdslState != null) {
+      _frontend.destroyGdsl(_gdslState);
+      _frontend.refManager.unreference();
+      _gdslState = null;
+    }
+  }
+  
+  override void free() {
+    _frontend.resetHeap(_gdslState);
+  }
+}
 
-//extern (C) {
-//  state_t gdsl_init();
-//}
-//
-//unittest {
-//  state_t state = gdsl_init();
-//  assert(state);
-//}
+unittest {
+  Frontend f = new Frontend("x86");
+  Gdsl gdsl = new Gdsl(f);
+}

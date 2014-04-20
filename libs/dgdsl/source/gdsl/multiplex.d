@@ -11,10 +11,6 @@ struct frontend_desc {
 }
 
 struct _generic {
-  struct {
-    int x = 20;
-  } blah;
-  
   state_t function () init;
   void function (state_t, char*, ulong, ulong) set_code;
   jmp_buf* function (state_t) err_tgt;
@@ -49,6 +45,13 @@ struct frontend {
   void *dl;
 }
 
+enum MultiplexError {
+  none = 0,
+  frontendsPathNotSet = 1,
+  unableToOpen = 2,
+  symbolNotFound = 3
+}
+
 size_t gdsl_multiplex_frontends_list (frontend_desc** descs);
 size_t gdsl_multiplex_frontends_list_with_base (frontend_desc** descs, const(char)* base);
 char gdsl_multiplex_frontend_get_by_desc (frontend* frontend, frontend_desc desc);
@@ -60,5 +63,4 @@ unittest {
   import std.stdio;
   frontend f;
   writeln(f.sizeof);
-  f.generic.blah.x = 99;
 }
