@@ -1,36 +1,33 @@
 module gdsl.frontend;
 
 import std.stdio;
-import std.string;
 import gdsl.generated;
 import gdsl.multiplex;
 import gdsl.reference_manager;
 
-import core.memory;
-
 class Frontend : IReferable {
   private gdsl.multiplex.frontend _native;
   private bool valid = false;
+  
+  private ReferenceManager _refManager;
   
 //  //Todo: immutable
 //  @property public ref auto native() {
 //    return _native;
 //  }
   
-//  @property public ReferenceManager refManager() {
-//    return _refManager;
-//  }
+  @property public ReferenceManager refManager() {
+    return _refManager;
+  }
   
   this(string name) {
-//    _refManager = new ReferenceManager(this, 1);
+    _refManager = new ReferenceManager(this, 1);
     
-    ubyte result = gdsl_multiplex_frontend_get_by_lib_name(&_native, name.ptr);
+    char result = gdsl_multiplex_frontend_get_by_lib_name(&_native, name.ptr);
     if(result != MultiplexError.none)
-      throw new Exception(format(":-( %s", result));
+      throw new Exception(":-(");
     else
       valid = true;
-      
-//    GC.setAttr(cast(void*)this, GC.BlkAttr.NO_MOVE);
   }
   
   override public void free() {
@@ -43,8 +40,9 @@ class Frontend : IReferable {
   }
   
   ~this() {
-    free();
         writefln("Hallo c");
+        if(_refManager !is null)
+          _refManager.unreference();
         writefln("Hallo d");
   }
   
@@ -62,6 +60,6 @@ class Frontend : IReferable {
 }
 
 unittest {
-//  Frontend f = new Frontend("x86");
-//  clear(f);
+  Frontend f = new Frontend("x86");
+  clear(f);
 }

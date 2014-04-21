@@ -7,8 +7,6 @@ import gdsl.frontend;
 import gdsl.generated;
 import gdsl.multiplex;
 
-import core.memory;
-
 class Gdsl : IReferable {
   private state_t _gdslState;
   private Frontend _frontend;
@@ -21,16 +19,14 @@ class Gdsl : IReferable {
   this(Frontend frontend) {
     this.heapManager = new ReferenceManager(this);
     this._frontend = frontend;
-//    this._frontend.refManager.reference();
-    GC.addRoot(cast(void*)this._frontend);
+    this._frontend.refManager.reference();
     this._gdslState = frontend.init();
   }
   
   ~this() {
     if(_gdslState != null) {
       _frontend.destroyGdsl(_gdslState);
-      GC.removeRoot(cast(void*)this._frontend);
-//      _frontend.refManager.unreference();
+      _frontend.refManager.unreference();
       _gdslState = null;
     }
   }
@@ -41,8 +37,6 @@ class Gdsl : IReferable {
 }
 
 unittest {
-  for(int i = 0; i < 10000; i++) {
-    Frontend f = new Frontend("x86");
-    Gdsl gdsl = new Gdsl(f);
-  }
+  Frontend f = new Frontend("x86");
+  Gdsl gdsl = new Gdsl(f);
 }
