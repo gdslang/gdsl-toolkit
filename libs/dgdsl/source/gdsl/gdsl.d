@@ -17,7 +17,7 @@ class Gdsl : IReferable {
   }
   
   this(Frontend frontend) {
-    this.heapManager = new ReferenceManager(this);
+    this.heapManager = new ReferenceManager(this, false);
     this._frontend = frontend;
     this._frontend.refManager.reference();
     this._gdslState = frontend.init();
@@ -37,6 +37,10 @@ class Gdsl : IReferable {
 }
 
 unittest {
-  Frontend f = new Frontend("x86");
-  Gdsl gdsl = new Gdsl(f);
+  for(uint i = 0; i < 1000; i++) {
+    Frontend f = new Frontend("x86");
+    Gdsl gdsl = new Gdsl(f);
+  }
+  import core.memory;
+  GC.collect();
 }

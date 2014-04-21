@@ -21,9 +21,9 @@ class Frontend : IReferable {
   }
   
   this(string name) {
-    _refManager = new ReferenceManager(this, 1);
+    _refManager = new ReferenceManager(this);
     
-    char result = gdsl_multiplex_frontend_get_by_lib_name(&_native, name.ptr);
+    char result = gdsl_multiplex_frontend_get_by_lib_name(&_native, (name ~ '\0').ptr);
     if(result != MultiplexError.none)
       throw new Exception(":-(");
     else
@@ -31,19 +31,15 @@ class Frontend : IReferable {
   }
   
   override public void free() {
+    writefln("Freeing frontend");
     if(valid) {
-        writefln("Hallo a");
       gdsl_multiplex_frontend_close(&_native);
-        writefln("Hallo b");
       valid = false;
     }
   }
   
   ~this() {
-        writefln("Hallo c");
-        if(_refManager !is null)
-          _refManager.unreference();
-        writefln("Hallo d");
+    free();
   }
   
   package state_t init() {

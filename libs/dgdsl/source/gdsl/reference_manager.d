@@ -1,10 +1,12 @@
 module gdsl.reference_manager;
 
 public import gdsl.ireferable;
+import core.memory;
 
 class ReferenceManager {
   private ulong _references = 0;
   private IReferable referable;
+  private bool manageGC = true;
   
   @property public ulong references() {
     return _references;
@@ -12,24 +14,36 @@ class ReferenceManager {
   
   this(IReferable referable) {
     this.referable = referable;
+    if(manageGC && references)
+      GC.addRoot(cast(void*)this);
   }
   
-  this(IReferable referable, ulong references) {
+//  this(IReferable referable, ulong references) {
+//    this(referable);
+//    this._references = references;
+
+//  }
+  
+  this(IReferable referable, bool manageGC) {
+    this.manageGC = manageGC;
     this(referable);
-    this._references = references;
   }
   
   public void reference() {
     _references++;
+    if(manageGC && _references == 1)
+      GC.addRoot(cast(void*)this);
   }
   
   public void unreference() {
     _references--;
     checkRef();
+    if(manageGC && !_references)
+      GC.removeRoot(cast(void*)this);
   }
   
   public void checkRef() {
-    if(_references == 0)
+    if(!_references)
       referable.free();
   }
 }
