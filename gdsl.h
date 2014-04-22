@@ -109,8 +109,8 @@ typedef unboxed_lv_super_result_t* lv_super_result_t;
 typedef struct {
   obj_t greedy;
   obj_t conservative;
-} unboxed_struct17_t;
-typedef unboxed_struct17_t* struct17_t;
+} unboxed_struct16_t;
+typedef unboxed_struct16_t* struct16_t;
 typedef struct {
   obj_t (*sem_varl_)(state_t,obj_t,int_t,int_t);
 } unboxed_sem_varl_callbacks_t;
@@ -232,7 +232,7 @@ obj_t gdsl_decode_translate_block_optimized(state_t s,int_t config,int_t limit,i
 obj_t gdsl_cleanup(state_t s,obj_t stmts);
 lv_super_result_t gdsl_liveness_super(state_t s,translate_result_t data);
 obj_t gdsl_liveness(state_t s,obj_t instructions);
-struct17_t gdsl_lv_analyze(state_t s,obj_t initial_live,obj_t stack);
+struct16_t gdsl_lv_analyze(state_t s,obj_t initial_live,obj_t stack);
 obj_t gdsl_lv_union(state_t s,obj_t a,obj_t b);
 obj_t gdsl_lv_kills(state_t s,obj_t stmts);
 obj_t gdsl_lv_gens(state_t s,obj_t stmts);

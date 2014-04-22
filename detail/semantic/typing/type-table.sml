@@ -335,6 +335,9 @@ end = struct
    val unifyVerbose = false
    val runSane = false
 
+   (*restrict which symbols toString prints*)
+   val debugSymbol : int option = NONE (*SOME 191*) (*SOME 911*)
+
    type index = TVar.tvar
 
    structure HT = HashTable
@@ -559,7 +562,8 @@ end = struct
             else
                let
                   val newVars = case DA.sub (tt, TVar.toIdx var) of TERM t => getVars t
-                                                     | _ => []
+                                                                  | FORW v => [v]
+                                                                  | _ => []
                in
                   printFixpoint (showEntry (TVar.toIdx var, DA.sub (tt,TVar.toIdx var), (str,si)), vars @ newVars, TVar.add (var,done))
                end
@@ -897,13 +901,13 @@ end = struct
 
    fun getSymbol (sym,table : table) =
       let
-         val _ = if not verbose then () else
-            TextIO.print ("getSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val tt = #typeTable table
          val st = #symTable table
          val ti = HT.remove st sym
             handle IndexError => (TextIO.print ("getSymbol: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
          val (ty,vars) = termToType (ti,table)
+         val _ = if not verbose then () else
+            TextIO.print ("getSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " with " ^ #1 (showTypeSI (ty,TVar.emptyShowInfo)) ^ "\n")
          val _ = IS.app (fn idx => case ttGet(tt,TVar.fromIdx idx) of
                LEAF symSet => ttSet (tt,TVar.fromIdx idx,LEAF (SymSet.delete (symSet,sym)))
              | _ => raise IndexError
@@ -1256,7 +1260,7 @@ end = struct
    fun instantiateSymbol (oldSym, args, newSym, table : table) =
       let
          val _ = if not verbose then () else
-            TextIO.print ("instantiateSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ "\n")
+            TextIO.print ("instantiateSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " to " ^ SymbolTable.getString(!SymbolTables.varTable, newSym) ^ " omitting vars in " ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" args ^ "\n")
          val tt = #typeTable table
          val st = #symTable table
          val { flow = fp, info = idx } = HT.lookup st oldSym
@@ -1309,14 +1313,9 @@ end = struct
          val scRef = #sizeDom table
          val _ = scRef := SC.expand (subst,!scRef) 
          
-         (*val _ = if List.exists (fn (_,v) => BD.eq(v,BD.bBad)) (newSymFlags @ newArgsFlags) then
-            let
-               val _ = TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
-               val _ = TextIO.print ("syms with vars are " ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" args ^ "\n")
-            in
-               ()
-            end
-            else ()*)
+         (*val _ = if SOME (SymbolTable.toInt oldSym)=debugSymbol then
+            (TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
+            ) else ()*)
             
       in
          localSane (table)

@@ -139,6 +139,8 @@ structure Environment : sig
 
    val reduceFlow :  environment -> environment
 
+   val cleanEnvironment : environment -> environment
+
    val meetSizeConstraint : (SizeConstraint.size_constraint_set ->
                              SizeConstraint.size_constraint_set) *
                              environment -> environment
@@ -169,7 +171,7 @@ end = struct
    type kappa = ST.symid
 
    (*restrict which symbols toString prints*)
-   val debugSymbol : int option = SOME 911
+   val debugSymbol : int option = NONE (*SOME 911*)
 
    (*any error that is not due to unification*)
    exception InferenceBug
@@ -224,6 +226,8 @@ end = struct
       val update : ST.symid  *
                    (bind_info * constraints -> bind_info * constraints) *
                    environment-> environment
+      val sane : environment -> unit
+      val cleanEnvironment : environment -> environment
       val toString : binding * TT.table * TVar.varmap -> string * TVar.varmap
    end = struct
       type scopes = binding list
@@ -325,7 +329,22 @@ end = struct
                               ss sm
                         fun r ss [] = restrict (ss,scs)
                           | r ss ((b as {name, ty, width, uses, nested})::bs) =
-                            if ST.eq_symid (sym,name) then rmUses (uses,ss) else r (rmUses (uses,ss)) bs
+                          let
+                             fun rmGroup ({name, ty, width, uses, nested},ss) =
+                                let
+                                   val ss = rmUses (uses,ss)
+                                   val ss = foldl rmNested ss nested
+                                in 
+                                   if SymSet.member (ss,name) then SymSet.delete (ss,name) else ss
+                                end
+                             and rmNested (GROUP bs,ss) = foldl rmGroup ss bs
+                               | rmNested (_, ss) = raise InferenceBug
+
+                             val ss = rmUses (uses,ss)
+                             val ss = foldl rmNested ss nested
+                          in
+                             if ST.eq_symid (sym,name) then ss else r ss bs
+                          end
                      in
                         r ss bs
                      end
@@ -474,6 +493,43 @@ end = struct
             in
                ("GROUP" ^ bsStr, si)
             end
+
+      fun sane ([], cons) = ()
+        | sane (KAPPA _ :: scs, cons) = sane (scs, cons)
+        | sane (SINGLE _ :: scs, cons) = sane (scs, cons)
+        | sane (GROUP bs :: scs, cons) =
+         let
+            val tt = #typeTable (cons : constraints)
+            fun checkNoIntersect (s,vs) {name=sym, ty, width, uses, nested} =
+               let
+                  val otherVars = texpVarset (TT.peekSymbol (sym,tt), TVar.empty)
+                  val inBoth = TVar.intersection (vs,otherVars)
+               in
+                  if TVar.isEmpty inBoth then () else
+                     (TextIO.print ("tyVars " ^ #1 (TVar.setToString (inBoth,TVar.emptyShowInfo)) ^ " in symbol " ^ ST.getString(!SymbolTables.varTable, s) ^ " also occur in symbol " ^ ST.getString(!SymbolTables.varTable, sym) ^ "\n" ^ #1 (toString (GROUP bs,tt,TVar.emptyShowInfo)) );
+                      raise InferenceBug)
+               end
+               
+            fun check (prevBs, []) = ()
+              | check (prevBs, (b as {name=sym, ty, width, uses, nested}) :: nextBs) =
+               let
+                  val tyVars = texpVarset (TT.peekSymbol (sym,tt), TVar.empty)
+                  val _ = app (checkNoIntersect (sym,tyVars)) (prevBs @ nextBs)
+               in
+                  check (b :: prevBs, nextBs)
+               end
+         in
+            (check ([], bs); sane (scs, cons))
+         end
+      
+      fun cleanEnvironment (bs, { context = ctxt, typeTable = tt, kappas = ks, kappaCount = kc }) =
+         let                             
+            fun killKappa kappa = TT.delSymbol (kappa,tt)
+               handle IndexError => ()
+            val _ = List.app killKappa ks
+         in
+            (bs, { context = ctxt, typeTable = tt, kappas = ks, kappaCount = kc })
+         end
                
    end
    
@@ -842,6 +898,8 @@ end = struct
 
    fun reduceFlow env = env
 
+   fun cleanEnvironment env = Scope.cleanEnvironment env
+
    fun meetSizeConstraint (update, (scs, state)) = raise Unimplemented
 (* 
       (scs, Scope.setSize (update (Scope.getSize state)) state)
@@ -889,8 +947,10 @@ end = struct
                   val inScope = Scope.restrictToInScope (sym,sharingSyms,env)
                   val args = SymSet.difference (sharingSyms,inScope)
                   val _ = TT.instantiateSymbol (sym,args,k,tt)
-                  (*val _ = if SOME (SymbolTable.toInt sym)=debugSymbol then
-                        TextIO.print ("after instantiation:\n" ^ #1 (TT.toStringSI ([sym,k],[],tt,TVar.emptyShowInfo)) ^ "\n") else ()*)
+                  (*val _ = if SOME (SymbolTable.toInt sym)=SOME 191 then
+                     TextIO.print ("pushSymbol: instantiate " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " to " ^ SymbolTable.getString(!SymbolTables.varTable, k) ^ ", sharing syms" ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" sharingSyms ^ ", of which" ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" inScope ^ " are in scope\n")
+                        (*TextIO.print ("after instantiation:\n" ^ #1 (TT.toStringSI ([sym,k],[],tt,TVar.emptyShowInfo)) ^ "\n") else ()*)
+                     else ()*)
                in
                   ()
                end
@@ -1341,16 +1401,18 @@ end = struct
    fun clearUses (sym, env) =
       let
          val tt = Scope.getTypeTable env
-         fun markNested {name,ty,width,uses,nested} =
-            (SpanMap.app (fn (kappa,ctxt) => TT.delSymbol (kappa,tt)) uses;
-             {name=name,ty=true,width=width,uses=SpanMap.empty,nested=map markBinding nested}
+         fun killNested {name,ty,width,uses,nested} =
+            (TT.delSymbol (name,tt);
+             SpanMap.app (fn (kappa,ctxt) => TT.delSymbol (kappa,tt)) uses;
+             List.app killBinding nested
             )
-         and markBinding (GROUP bs) = GROUP (map markNested bs)
-           | markBinding other = other 
+         and killBinding (GROUP bs) = List.app killNested bs
+           | killBinding other = raise InferenceBug
          
          fun setStable (COMPOUND {ty, width, uses, nested}, cons) =
             (SpanMap.app (fn (kappa,ctxt) => TT.delSymbol (kappa,tt)) uses;
-             (COMPOUND {ty=true,width=width,uses=SpanMap.empty,nested=map markBinding nested}, cons)
+             List.app killBinding nested;
+             (COMPOUND {ty=true,width=width,uses=SpanMap.empty,nested=[]}, cons)
             )
            | setStable _ = (TextIO.print ("markAsStable " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ toString env); raise InferenceBug)
       in

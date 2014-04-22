@@ -18,7 +18,8 @@ structure TypeInference : sig
    
 end = struct
 
-   (*val debugSymbol = 8*)
+   val debugSymbol = NONE (*SOME 191*)
+   val verbose = false
    
    structure AST = SpecAbstractTree
    structure E = Environment
@@ -75,7 +76,9 @@ end = struct
                            (str ^ msg ^ "\n", TVar.emptyShowInfo) symSelStrings
                            
       in
-         raise S.UnificationFailure (kind, str)
+         ((*TextIO.print (E.toString env);*)
+          raise S.UnificationFailure (kind, str)
+         )
       end
 
    fun getBitpatLitLength bp =
@@ -266,7 +269,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       handle
          (S.UnificationFailure (kind, str)) =>
             (Error.errorAt (errStrm, s, [str]); raise TypeError)
-       | ListPair.UnequalLengths =>
+       | _ (*ListPair.UnequalLengths*) =>
             (Error.warningAt (errStrm, s, ["supressed follow-up error"]); raise TypeError)
 
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
@@ -298,6 +301,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          fun checkUsage sym s =
             let
+               val _ = if not verbose then () else
+                  TextIO.print ("checkUsage (subset) of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                val fid = E.getContextOfUsage (sym, s, env)
                val env = E.enterFunction (fid,env)
                val (n1,env) = E.pushNested (sym, env)
@@ -369,6 +374,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          fun checkUsage (s, env) =
             let
+               val _ = if not verbose then () else
+                  TextIO.print ("checkUsage (iter) of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                val fid = E.getContextOfUsage (sym, s, env)
                val env = E.enterFunction (fid,env)
                val (n1,env) = E.pushNested (sym, env)
@@ -461,7 +468,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    (*local helper function to infer types for a binding group*)
    fun infRhs (st,env) (sym, dec, guard, args, rhs) =
       let
-         (*val _ = TextIO.print ("checking binding " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
          fun checkGuard (g,env) =
             let
                val stateVar = VAR (freshTVar (), BD.freshBVar ())
@@ -498,7 +504,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infBinding (st,env) (sym, args, rhs) =
       let
          val env = E.enterFunction (sym,env)
+         val _ = if not verbose then () else
+            TextIO.print ("**** infBinding, start: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val env = infRhs (st,env) (sym, [], NONE, args, rhs)
+         val _ = if not verbose then () else
+            TextIO.print ("**** infBinding, done: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
          val env = E.popToFunction (sym,env)
          val env = E.leaveFunction (sym,env)
       in
@@ -524,6 +534,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infDecodedecl (st,env) (v, l, Sum.INL e) =
       if not (hasSymbol (st,v)) then env else
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** checking decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n")
          val env = E.enterFunction (v,env)
          val env = pushDecoderType (v,getSpan st,env)
          (*val _ = TextIO.print ("**** prev type of decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString envPrev)*)
@@ -544,6 +556,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infDecodedecl (st,env) (v, l, Sum.INR el) =
       if not (hasSymbol (st,v)) then env else
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** checking guarded decoder " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n")
          val env = E.enterFunction (v,env)
          val env = List.foldl
             (fn ((guard, rhs), env) => let
@@ -571,7 +585,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val names = List.map topLetrecDecl l
          val env = E.pushGroup (List.concat names, env)
          val sccs = List.rev (sccsLetrec l)
-         (*val _ = TextIO.print ("SCCs:\n" ^ List.foldl (fn (c,str) => str ^ prComp c) "" sccs)*)
+         val _ = if not verbose then () else
+            TextIO.print ("**** checking let-rec " ^ List.foldl (fn (c,str) => str ^ prComp c) "" sccs ^ ":\n")
 
          val env = List.foldl (fn (comp,env) =>
             let
@@ -579,12 +594,13 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val env = List.foldl (fn ((v,l,e),env) =>
                               (if not (hasSymbol (st,v)) then env else
                                  infBinding (st, env) (v, l, e))
-                              handle TypeError => env) env l
-               (*val _ = TextIO.print ("after checking local components " ^ prComp comp ^ E.topToString env)*)
+                              handle TypeError => E.cleanEnvironment env) env l
+               val _ = if not verbose then () else
+                  TextIO.print ("**** after checking local components " ^ prComp comp ^ "\n")
                val env = case comp of
                     SCC.SIMPLE _ => env
                   | SCC.RECURSIVE syms => calcFixpoints (syms, env)
-                              handle TypeError => env
+                              handle TypeError => E.cleanEnvironment env
                in
                   env
                end
@@ -602,6 +618,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.IFexp (e1,e2,e3)) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** if-expresssion\n")
          val env = E.pushType (false, VEC (CONST 1), env)
          val env = infExp (st,env) e1
          val env = E.equateKappas env
@@ -628,12 +646,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.CASEexp (e,l)) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** case expression " ^ showProg (20, PP.exp, AST.CASEexp (e,l)) ^ "\n")
          val (caseExpSymId,env) = E.acquireTempSymbol env
          val (t,env) = E.pushLambdaVar' (caseExpSymId, env)
          val env = infExp (st,env) e
-         (*val _ = TextIO.print ("**** after case exp:\n" ^ E.topToString envExp)*)
+         val _ = if not verbose then () else
+            TextIO.print ("**** after case exp:\n")
          val env = E.equateKappas env
-         (*val _ = TextIO.print ("**** after case dup:\n" ^ E.topToString envVar)*)
+                  val _ = if not verbose then () else
+            TextIO.print ("**** after case dup:\n")
          val env = E.popKappa env
          val envNeutral = E.pushTop env
          fun genFlow ((p,exp), env) =
@@ -666,16 +688,18 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.APPLYexp (e1,es2)) =
       let                                      
+         val _ = if not verbose then () else
+            TextIO.print ("**** application: " ^ showProg (20, PP.exp, AST.APPLYexp (e1,es2)) ^ "\n")
          val env = List.foldl (fn (e2,env) => infExp (st,env) e2) env es2
 
-         (*val ctxt = E.getCtxt env
-         val _ = if List.all (fn x => SymbolTable.toInt x<>debugSymbol) ctxt then () else
-                 TextIO.print ("**** app func:\n" ^ E.topToString envFun)
-         val _ = if List.all (fn x => SymbolTable.toInt x<>debugSymbol) ctxt then () else
-                 TextIO.print ("**** app arg:\n" ^ E.topToString envArg)*)
+         val ctxt = E.getCtxt env
+         val _ = if List.all (fn x => SOME (SymbolTable.toInt x)<>debugSymbol) ctxt then () else
+                 TextIO.print ("**** app func:\n" ^ E.topToString env)
 
          val env = E.pushTop env
          val env = E.reduceToFunction (env, List.length es2)
+         val _ = if List.all (fn x => SOME (SymbolTable.toInt x)<>debugSymbol) ctxt then () else
+                 TextIO.print ("**** app arg:\n" ^ E.topToString env)
 
          val env = infExp (st,env) e1
 
@@ -703,6 +727,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
         
      | infExp (st,env) (AST.RECORDexp l) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** record constant " ^ showProg (20, PP.exp, AST.RECORDexp l) ^ "\n")
          val t = freshVar ()
          val env = E.meetBoolean (BD.meetVarZero (bvar t), env)
          val env = E.pushType (false, t, env)
@@ -724,6 +750,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          
      | infExp (st,env) (AST.SELECTexp f) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** record selector " ^ showProg (20, PP.exp, AST.SELECTexp f) ^ "\n")
          val env = E.pushTop env
          val tf = freshVar ()
          val tf' = newFlow tf
@@ -742,6 +770,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.UPDATEexp fs) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** record update " ^ showProg (20, PP.exp, AST.UPDATEexp fs) ^ "\n")
          val fieldsVar = freshVar ()
          val env = E.pushType (false, fieldsVar, env)
          fun pushInpField ((fid,e), (nts, env)) =
@@ -779,16 +809,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infExp stenv (AST.SEQexp l) = infSeqexp stenv l
      | infExp (st,env) (AST.IDexp v) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** identifier " ^ showProg (20, PP.exp, AST.IDexp v) ^ "\n")
          val env = E.pushSymbol (v, getSpan st, hasRecursiveSymbol (st,v), true, env)
 
-         (*val ctxt = E.getCtxt env
-         val _ = if List.all (fn x => SymbolTable.toInt x<>debugSymbol) ctxt then () else
-                 TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)*)
+         val ctxt = E.getCtxt env
+         val _ = if List.all (fn x => SOME (SymbolTable.toInt x)<>debugSymbol) ctxt then () else
+                 TextIO.print ("**** after pushing symbol " ^ SymbolTable.getString(!SymbolTables.varTable, v) ^ ":\n" ^ E.topToString env)
       in
          env
       end
      | infExp (st,env) (AST.CONexp c) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** constructor " ^ showProg (20, PP.exp, AST.CONexp c) ^ "\n")
          val dcon = SymMap.lookup (conParents, c)
          val { tdVars = vs, tdCons = cs } = SymMap.lookup (typeDefs, dcon)
          val vs = SymMap.listItems vs
@@ -823,6 +857,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          reportError (fn stenv => fn e => infSeqexp stenv (e :: l)) stenv m
      | infSeqexp (st,env) [AST.ACTIONseqexp e] =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** final monadic action " ^ showProg (20, PP.seqexp, AST.ACTIONseqexp e) ^ "\n")
          val env = infExp (st,env) e
          val resTy = freshVar ()
          val inpTy = freshVar ()
@@ -835,6 +871,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infSeqexp (st,env) (s :: l) =
       let
+         val _ = if not verbose then () else
+            TextIO.print ("**** inner monadic action " ^ showProg (20, PP.seqexp, s) ^ "\n")
          val (bind, vOpt,e) = case s of
                AST.ACTIONseqexp e => (bindSymId, NONE, e)
              | AST.BINDseqexp (v,e) => (bindASymId, SOME v, e)
@@ -1079,7 +1117,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | checkExports s _ = ()
    val _ = List.app (checkExports SymbolTable.noSpan) ast
    
-   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
