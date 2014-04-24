@@ -33,6 +33,8 @@ structure BooleanDomain : sig
    val meetVarSetZero : bvarset -> bfun -> bfun
 
    val meetVarSetOne : bvarset -> bfun -> bfun
+   
+   val isEmpty : bvarset -> bool
 
    val emptySet : bvarset
    
@@ -61,32 +63,32 @@ structure BooleanDomain : sig
 
 end = struct
 
-   type var = int
+   type var = Word.word
    
    datatype bvar = BVAR of var
 
    fun eq (BVAR v1, BVAR v2) = v1=v2
 
-   val bvarGenerator = ref 2
+   val bvarGenerator = ref (Word.fromInt 2)
    
    fun freshBVar () = let
      val v = !bvarGenerator
    in
-     (bvarGenerator := v+1; BVAR v)
+     (bvarGenerator := v+(Word.fromInt 1); BVAR v)
    end
    
-   val falseVar = 0
-   val trueVar = 1
+   val falseVar = (Word.fromInt 0) : var
+   val trueVar = (Word.fromInt 1) : var
    
-   structure IS = IntBinarySet
+   structure IS = WordRedBlackSet
    type bvarset = IS.set
 
    type edge_info = unit
    
    fun combineEI (x : edge_info, y : edge_info) = () : edge_info
    
-   structure HT = IntHashTable
-   structure ES = IntBinaryMap
+   structure HT = WordHashTable
+   structure ES = WordRedBlackMap
    
    type edgeset = edge_info ES.map
 
@@ -112,17 +114,17 @@ end = struct
          } : bfun
       end
 
-   fun i v = Int.toString v
+   fun i v = Int.toString (Word.toInt v)
 
    fun showVar (BVAR v) = "." ^ i v
 
-   fun showConst (var,true,str) = str ^ " " ^ Int.toString var
-     | showConst (var,false,str) = str ^ " !" ^ Int.toString var
+   fun showConst (var,true,str) = str ^ " " ^ i var
+     | showConst (var,false,str) = str ^ " !" ^ i var
 
    fun showEdge (false, source) (target, ei, str) =
-      str ^ " " ^ Int.toString source ^ "->" ^ Int.toString target
+      str ^ " " ^ i source ^ "->" ^ i target
      | showEdge (true, source) (target, ei, str) =
-      str ^ " " ^ Int.toString target ^ "->" ^ Int.toString source
+      str ^ " " ^ i target ^ "->" ^ i source
 
    fun showBFun ({forward = fw, backward = bw, constants = co} : bfun) =
       let
@@ -173,7 +175,7 @@ end = struct
                     | findPath (n :: ns) =
                     if IS.member (vs,n) then findPath ns else
                     if not (HT.inDomain co n) then findPath ns else
-                    if n<2 then vs else search edges n (IS.add (vs,n))
+                    if n<= trueVar then vs else search edges n (IS.add (vs,n))
                in
                   findPath (ES.listKeys ns)
                end
@@ -302,7 +304,7 @@ end = struct
          bFun
       end
 
-   fun projectOut (bad, bFun) = (List.foldl removeVar bFun (IS.listItems bad); bFun)
+   fun projectOut (bad, bFun) = (IS.foldl removeVar bFun bad; bFun)
 
    (* this is a lazy implementation of expansion that only works when both
       variables of an edge are always expanded together (which happens to hold here) *)
@@ -311,17 +313,16 @@ end = struct
       let
          val h = HT.mkTable (List.length l1, Bug)
          val _ = ListPair.appEq (fn (BVAR v1, (invert, BVAR v2)) =>
-                                 HT.insert h (v1,if invert then ~v2 else v2))
+                                 HT.insert h (v1,(invert,v2)))
                                 (l1, l2)
          fun expandEdges ht (BVAR v1) =
             let
-               val v1' = HT.lookup h v1
-               val pos = v1'>0
+               val (invert,v1') = HT.lookup h v1
                val es = getEdgeSet (ht,v1)
                fun renameEdge (v2,ei) =
                   let
-                     val v2' = case HT.find h v2 of SOME v => v | NONE => v2
-                     val (v1New, v2New) = if pos then (v1', v2') else (~v2', ~v1')
+                     val v2' = case HT.find h v2 of SOME (_,v) => v | NONE => v2
+                     val (v1New, v2New) = if invert then (v2', v1') else  (v1', v2')
                   in
                      setEdgeSet (ht, v1New, ES.insert (getEdgeSet (ht, v1New),v2New,ei))
                   end
@@ -335,17 +336,16 @@ end = struct
               NONE => ()
             | SOME truth =>
                let
-                  val v' = HT.lookup h v
-                  val pos = v'>0
-                  
+                  val (invert,v') = HT.lookup h v
                in
-                  if pos then HT.insert co (v',truth) else HT.insert co (~v',not truth)
+                  HT.insert co (v',if invert then not truth else truth)
                end
          val _ = List.app expandConst l1
       in
          bFun
       end
 
+   val isEmpty = IS.isEmpty
    val emptySet = IS.empty
    val union = IS.union
 
@@ -367,7 +367,7 @@ end = struct
    val b5 = freshBVar ()
    val b6 = freshBVar ()
    val b7 = freshBVar ()
-   val bBad = BVAR 2529505
+   val bBad = BVAR (Word.fromInt 2529505)
    
    val f1 = meetVarImpliesVar (b2,b7) (empty ())
    val _ = meetVarImpliesVar (b3,b2) f1

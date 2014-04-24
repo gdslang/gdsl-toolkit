@@ -10,8 +10,8 @@ structure TVar : sig
    val hash : tvar -> word
    val toIdx : tvar -> int
    val fromIdx : int -> tvar
-   val set : int -> unit
-   val get : unit -> int
+   val set : Word.word -> unit
+   val get : unit -> Word.word
    
    (*displaying type variables*)
    type varmap
@@ -32,6 +32,7 @@ structure TVar : sig
    val difference : set * set -> set
    val member : set * tvar -> bool
    val isEmpty : set -> bool
+   val app : (tvar -> unit) -> set -> unit
    val setToString : set * varmap -> (string * varmap)
 
 end = struct
@@ -47,14 +48,14 @@ end = struct
    fun toIdx (TVAR v) = v
    fun fromIdx v = (TVAR v)
 
-   val tvarGenerator = ref 0
+   val tvarGenerator = ref (Word.fromInt 0)
    fun get () = !tvarGenerator
    fun set n = (tvarGenerator := n; ())
 
    fun freshTVar () = let
      val v = !tvarGenerator
    in
-     (tvarGenerator := v+1; TVAR v)
+     (tvarGenerator := v + Word.fromInt 1; TVAR (Word.toIntX v))
    end
 
    structure VarMap = IntRedBlackMap
@@ -92,6 +93,7 @@ end = struct
    val difference = IntSet.difference
    fun member (l,TVAR v) = IntSet.member (l,v)
    val isEmpty = IntSet.isEmpty
+   fun app f = IntSet.app (fn v => f (TVAR v))
    fun setToString (set, si) =
       let
          fun show (v, (str, sep, si)) =
@@ -101,8 +103,8 @@ end = struct
                (str ^ sep ^ vStr, ", ", si)
             end
          val (res, _, si) =
-            List.foldl show ("", "{", si) (IntSet.listItems set)
+            List.foldl show ("", "", si) (IntSet.listItems set)
       in
-         (res  ^ "}", si)
+         ("{" ^ res  ^ "}", si)
       end                               
 end

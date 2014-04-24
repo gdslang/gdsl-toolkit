@@ -241,7 +241,7 @@ end = struct
       let
          val bVar = BD.freshBVar ()
          val env = E.meetBoolean (BD.meetVarOne bVar, env)
-         val env = E.pushType (false,
+         val env = E.pushType (
             MONAD (freshVar (),
                         RECORD (freshTVar (), BD.freshBVar (),
                            [RField {name=streamSymId (),fty=UNIT,exists=bVar}]),
@@ -269,7 +269,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       handle
          (S.UnificationFailure (kind, str)) =>
             (Error.errorAt (errStrm, s, [str]); raise TypeError)
-       | _ (*ListPair.UnequalLengths*) =>
+       | ListPair.UnequalLengths =>
             (Error.warningAt (errStrm, s, ["supressed follow-up error"]); raise TypeError)
 
    val reportBadSizes = List.app (fn (s,str) => Error.errorAt (errStrm, s, [str]))
@@ -473,7 +473,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                val stateVar = VAR (freshTVar (), BD.freshBVar ())
                val monadType = MONAD (VEC (CONST 1), stateVar, newFlow stateVar)
                val env = infExp (st, env) g
-               val env = E.pushType (false, monadType, env)
+               val env = E.pushType (monadType, env)
                val env = E.equateKappas env
                handle S.UnificationFailure str =>
                   refineError (env, str,
@@ -519,7 +519,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infDecl (st,env) (AST.GRANULARITYdecl w) =
       let
          val env = E.pushWidth (granularitySymId, env)
-         val env = E.pushType (false, CONST (IntInf.toInt w), env)
+         val env = E.pushType (CONST (IntInf.toInt w), env)
          val env = E.equateKappas env
          val env = E.popKappa env
          val env = E.popKappa env
@@ -550,6 +550,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.popKappa env
          val env = E.popToFunction (v,env)
          val env = E.leaveFunction (v,env)
+         val env = E.garbageCollect env   
       in
          env
       end
@@ -575,6 +576,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                env
             end) env el
          val env = E.leaveFunction (v,env)
+         val env = E.garbageCollect env   
       in
          env
       end
@@ -620,7 +622,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val _ = if not verbose then () else
             TextIO.print ("**** if-expresssion\n")
-         val env = E.pushType (false, VEC (CONST 1), env)
+         val env = E.pushType (VEC (CONST 1), env)
          val env = infExp (st,env) e1
          val env = E.equateKappas env
          val env = E.popKappa env
@@ -731,7 +733,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             TextIO.print ("**** record constant " ^ showProg (20, PP.exp, AST.RECORDexp l) ^ "\n")
          val t = freshVar ()
          val env = E.meetBoolean (BD.meetVarZero (bvar t), env)
-         val env = E.pushType (false, t, env)
+         val env = E.pushType (t, env)
          fun pushField ((fid,e), (nts, env)) =
             let
                val env = infExp (st,env) e
@@ -755,14 +757,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = E.pushTop env
          val tf = freshVar ()
          val tf' = newFlow tf
-         val env = E.pushType (false, tf, env)
+         val env = E.pushType (tf, env)
          val exists = BD.freshBVar ()
          (*val _ = TextIO.print ("**** before rec reduce:\n" ^ E.toString env ^ "\n")*)
          val env = E.reduceToRecord ([(exists, f)], env)
          val env = E.meetBoolean (BD.meetVarImpliesVar (bvar tf', bvar tf) o
                                   BD.meetVarOne exists, env)
          (*val _ = TextIO.print ("**** after rec reduce:\n" ^ E.toString env ^ "\n")*)
-         val env = E.pushType (false, tf', env)
+         val env = E.pushType (tf', env)
          val env = E.reduceToFunction (env,1)
          (*val _ = TextIO.print ("**** rec selector:\n" ^ E.topToString env ^ "\n")*)
       in
@@ -773,7 +775,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val _ = if not verbose then () else
             TextIO.print ("**** record update " ^ showProg (20, PP.exp, AST.UPDATEexp fs) ^ "\n")
          val fieldsVar = freshVar ()
-         val env = E.pushType (false, fieldsVar, env)
+         val env = E.pushType (fieldsVar, env)
          fun pushInpField ((fid,e), (nts, env)) =
             let
                val env = E.pushTop env
@@ -786,7 +788,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
          val fieldsVar' = newFlow fieldsVar
          val env = E.meetBoolean (BD.meetVarImpliesVar (bvar fieldsVar', bvar fieldsVar), env)
-         val env = E.pushType (false, fieldsVar', env)
+         val env = E.pushType (fieldsVar', env)
          fun pushOutField ((fid,eOpt), (nts, env)) =
             let
                (*val _ = TextIO.print ("**** rec update: pushing field " ^ SymbolTable.getString(!SymbolTables.fieldTable, fid) ^ ".\n")*)
@@ -829,11 +831,15 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val tArgOpt = SymMap.lookup (cs, c)
          val env =
             case tArgOpt of
-                 NONE => E.pushType (true, ALG (dcon, List.map VAR vs), env)
+                 NONE => E.pushType (ALG (dcon, List.map (fn (v,bv) => VAR (TVar.freshTVar (),BD.freshBVar ())) vs), env)
                | SOME t =>
             let
                (*val _ = TextIO.print ("**** instantiating constructor " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n")*)
-               val env = E.pushType (true, FUN ([t],ALG (dcon, List.map VAR vs)), env)
+               val ty = FUN ([t],ALG (dcon, List.map VAR vs))
+               val vs = texpVarset (ty,TVar.empty)
+               val ty = replaceTVars (ty,map (fn v => (v,TVar.freshTVar ())) (TVar.listItems vs))
+               val ty = setFlagsToTop ty
+               val env = E.pushType (ty, env)
                val env = E.genConstructorFlow (false,env)
                (*val _ = TextIO.print ("**** done instantiating constructor " ^ SymbolTable.getString(!SymbolTables.conTable, c) ^ ":\n")*)
             in
@@ -863,7 +869,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val resTy = freshVar ()
          val inpTy = freshVar ()
          val outTy = freshVar ()
-         val env = E.pushType (false, MONAD (resTy,inpTy,outTy),env)
+         val env = E.pushType (MONAD (resTy,inpTy,outTy),env)
          (*val _ = TextIO.print ("monadic actions: expression matched against monad type:" ^ E.topToString env ^ "\n")*)
          val env = E.equateKappas env
       in
@@ -951,10 +957,10 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    and infBitpatSize stenv (AST.MARKbitpat m) =
          reportError infBitpatSize stenv m
      | infBitpatSize (st,env) (AST.BITSTRbitpat str) =
-         E.pushType (false, CONST (getBitpatLitLength str), env)
+         E.pushType (CONST (getBitpatLitLength str), env)
      | infBitpatSize (st,env) (AST.NAMEDbitpat v) = E.pushWidth (v,env)
      | infBitpatSize (st,env) (AST.BITVECbitpat (v,s)) =
-         E.pushType (false, CONST (getBitpatLitLength s), env)
+         E.pushType (CONST (getBitpatLitLength s), env)
    and infBitpat stenv (AST.MARKbitpat m) = reportError infBitpat stenv m
      | infBitpat (st,env) (AST.BITSTRbitpat str) = (0,env)
      | infBitpat (st,env) (AST.NAMEDbitpat v) = (0,env)
@@ -962,7 +968,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val env = E.pushLambdaVar (v,env)
          val env = E.pushSymbol (v, getSpan st, hasSymbol (st,v), true, env)
-         val env = E.pushType (false, VEC (CONST (getBitpatLitLength s)), env)
+         val env = E.pushType (VEC (CONST (getBitpatLitLength s)), env)
          val env = E.equateKappas env
          val env = E.popKappa env
          val env = E.popKappa env
@@ -1001,7 +1007,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val t' = newFlow t
          val env = E.meetBoolean (BD.meetVarImpliesVar (bvar t, bvar t'), env)
       in
-         (1, E.pushType (false, t', env))
+         (1, E.pushType (t', env))
       end
      | infPat (st,env) (AST.CONpat (c, SOME p)) =
       let
@@ -1019,7 +1025,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                   SymbolTable.getString(!SymbolTables.conTable, c) ^ 
                   " may not have an argument")
                | SOME t => t
-         val env = E.pushType (true, FUN ([t],ALG (dcon, List.map VAR vs)), env)
+         val ty = FUN ([t],ALG (dcon, List.map VAR vs))
+         val vs = texpVarset (ty,TVar.empty)
+         val ty = replaceTVars (ty,map (fn v => (v,TVar.freshTVar ())) (TVar.listItems vs))
+         val ty = setFlagsToTop ty
+         val env = E.pushType (ty, env)
          val env = E.genConstructorFlow (true,env)
 
          val env = E.flipKappas env
@@ -1040,11 +1050,11 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infPat (st,env) (AST.CONpat (c, NONE)) =
          (0, infExp (st,env) (AST.CONexp c))
      | infPat (st,env) (AST.WILDpat) = (0, E.pushTop env)
-   and infLit (st,env) (AST.INTlit i) = E.pushType (false, ZENO, env)
-     | infLit (st,env) (AST.FLTlit f) = E.pushType (false, FLOAT, env)
-     | infLit (st,env) (AST.STRlit str) = E.pushType (false, STRING, env)
+   and infLit (st,env) (AST.INTlit i) = E.pushType (ZENO, env)
+     | infLit (st,env) (AST.FLTlit f) = E.pushType (FLOAT, env)
+     | infLit (st,env) (AST.STRlit str) = E.pushType (STRING, env)
      | infLit (st,env) (AST.VEClit str) =
-         E.pushType (false, VEC (CONST (getBitpatLitLength str)), env)
+         E.pushType (VEC (CONST (getBitpatLitLength str)), env)
 
    (*enforce the size constraints of the primitives*)
    val primEnv = E.primitiveEnvironment (Primitives.getSymbolTypes (),
@@ -1071,7 +1081,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             | SCC.RECURSIVE _ => "") ^ ")\r"
          val _ = TextIO.print str
          
-         val _ = TextIO.print ("before checking component " ^ prComp comp ^ "\n")
+         (*val _ = TextIO.print ("before checking component " ^ prComp comp ^ "\n")*)
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
                                   component = [comp]},env) d
@@ -1088,7 +1098,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val env = case comp of
               SCC.SIMPLE sym => E.clearUses (sym, env)
             | SCC.RECURSIVE syms => foldl E.clearUses env syms
-            
+         
+         val env = E.garbageCollect env   
          val _ = TextIO.print (String.implode (List.tabulate (String.size str, fn _ => #" ") @ [#"\r"]))
          val _ = cnt := (!cnt + 100)
       in
@@ -1117,7 +1128,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | checkExports s _ = ()
    val _ = List.app (checkExports SymbolTable.noSpan) ast
    
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
+   val _ = TextIO.print ("table:\n" ^ #1 (E.dumpTypeTableSI (toplevelEnv, TVar.emptyShowInfo)))*)
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes

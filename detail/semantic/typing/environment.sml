@@ -28,9 +28,8 @@ structure Environment : sig
    
    val pushTop : environment -> environment
    
-   (*pushes the given type onto the stack, if the flag is true, type variables
-   are renamed*)
-   val pushType : bool * Types.texp * environment -> environment
+   (*pushes the given type onto the stack*)
+   val pushType : Types.texp * environment -> environment
 
    val pushMonadType : Types.texp * environment -> environment
    
@@ -149,6 +148,8 @@ structure Environment : sig
    the given substitutions*)
    val affectedFunctions : Substitutions.Substs * environment -> SymSet.set
 
+   val garbageCollect : environment -> environment
+   
    val dumpTypeTableSI : environment * TVar.varmap -> string * TVar.varmap
    val toString : environment -> string
    val toStringSI : environment * TVar.varmap -> string * TVar.varmap
@@ -218,6 +219,7 @@ end = struct
       val getCtxt : environment -> VarInfo.symid list
       
       val getTypeTable : environment -> TypeTable.table
+      val setTypeTable : TypeTable.table -> environment -> environment
       val initial : binding * SC.size_constraint_set * TypeTable.table -> environment
       val wrap : binding * environment -> environment
       val unwrap : environment -> (binding * environment)
@@ -276,6 +278,9 @@ end = struct
       fun getCtxt (_,{ context = ctxt, typeTable, kappas, kappaCount }) = ctxt
 
       fun getTypeTable (_,{ context, typeTable = tt, kappas, kappaCount }) = tt
+      fun setTypeTable tt (scs,{ context = ctxt, typeTable = _, kappas = ks, kappaCount = kc }) =
+         (scs,{ context = ctxt, typeTable = tt, kappas = ks, kappaCount = kc })
+
       fun initial (b, scs, tt) =
          ([b], {
             context = [],
@@ -494,7 +499,7 @@ end = struct
                ("GROUP" ^ bsStr, si)
             end
 
-      fun sane ([], cons) = ()
+      fun sane ([], cons) = raise InferenceBug
         | sane (KAPPA _ :: scs, cons) = sane (scs, cons)
         | sane (SINGLE _ :: scs, cons) = sane (scs, cons)
         | sane (GROUP bs :: scs, cons) =
@@ -524,7 +529,7 @@ end = struct
       
       fun cleanEnvironment (bs, { context = ctxt, typeTable = tt, kappas = ks, kappaCount = kc }) =
          let                             
-            fun killKappa kappa = TT.delSymbol (kappa,tt)
+            fun killKappa kappa = (TT.delSymbol (kappa,tt); ())
                handle IndexError => ()
             val _ = List.app killKappa ks
          in
@@ -764,19 +769,7 @@ end = struct
          Scope.wrap (KAPPA {kappa = k}, env)
       end
 
-   fun pushType (true, t, env) =
-      let
-         val tt = Scope.getTypeTable env
-         val (kProto,env) = Scope.acquireKappa env
-         val (k,env) = Scope.acquireKappa env
-         val _ = TT.addSymbol (kProto,t,tt)
-         val _ = TT.instantiateSymbol (kProto,SymSet.empty,k,tt)
-         val _ = TT.delSymbol (kProto,tt)
-         val env = Scope.releaseKappa (kProto,env)
-      in
-         Scope.wrap (KAPPA {kappa = k}, env)
-      end
-     | pushType (false, t, env) =
+   fun pushType (t, env) =
       let
          val (k,env) = Scope.acquireKappa env
          val _ = TT.addSymbol (k,t,Scope.getTypeTable env)
@@ -814,6 +807,14 @@ end = struct
          val _ = TT.equateSymbols (k,sizeSym,tt)
       in
          Scope.wrap (KAPPA {kappa = k}, env)
+      end
+
+   fun garbageCollect env =
+      let
+         val tt = Scope.getTypeTable env
+         val tt = TT.garbageCollect tt
+      in
+         Scope.setTypeTable tt env
       end
 
    exception LookupNeedsToAddUse
@@ -1143,10 +1144,7 @@ end = struct
                val (t1,t2) = case ty of
                      FUN (t1,t2) => (t1,t2)
                    | _ => raise InferenceBug
-               val bVars = List.foldl
-                  (texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)))
-                  BD.emptySet t1
-               val _ = TT.modifyFlow (fn bFun => BD.projectOut (bVars,bFun), tt)
+               val tt = List.foldl TT.removeConstraints tt t1
                val _ = TT.addSymbol (kappa,t2,tt)
             in
                Scope.wrap (KAPPA {kappa=kappa}, env)
@@ -1400,17 +1398,21 @@ end = struct
 
    fun clearUses (sym, env) =
       let
+         (*val _ = if List.null scsBad then () else
+            raise S.UnificationFailure (S.Clash,
+                        "ambiguous vectors size " ^ #1 (SC.toStringSI (!scRef,SOME (!unusedTVars),TVar.emptyShowInfo)) ^ 
+                        " when removing " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " : " ^ "\n")*)
          val tt = Scope.getTypeTable env
          fun killNested {name,ty,width,uses,nested} =
             (TT.delSymbol (name,tt);
-             SpanMap.app (fn (kappa,ctxt) => TT.delSymbol (kappa,tt)) uses;
+             SpanMap.app (fn (kappa,ctxt) => (TT.delSymbol (kappa,tt); ())) uses;
              List.app killBinding nested
             )
          and killBinding (GROUP bs) = List.app killNested bs
            | killBinding other = raise InferenceBug
          
          fun setStable (COMPOUND {ty, width, uses, nested}, cons) =
-            (SpanMap.app (fn (kappa,ctxt) => TT.delSymbol (kappa,tt)) uses;
+            (SpanMap.app (fn (kappa,ctxt) => (TT.delSymbol (kappa,tt); ())) uses;
              List.app killBinding nested;
              (COMPOUND {ty=true,width=width,uses=SpanMap.empty,nested=[]}, cons)
             )

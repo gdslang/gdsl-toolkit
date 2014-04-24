@@ -8,6 +8,9 @@ structure Path : sig
    
    (* rename the first variable to the second one *)
    val renameVariable : TVar.tvar * TVar.tvar * flowpoints -> flowpoints
+   
+   (* rename all type variables *)
+   val renameVariables : (TVar.tvar, TVar.tvar) HashTable.hash_table * flowpoints -> flowpoints
              
    type leaf
    val mkVarLeaf : TVar.tvar -> leaf
@@ -190,6 +193,12 @@ end = struct
          (vm,fm)
       end
    
+   fun renameVariables (ht,(vm,fm)) =
+         (TVarMap.foldli
+            (fn (v,path,vmNew) => TVarMap.insert (vmNew,HashTable.lookup ht v,path))
+            TVarMap.empty vm
+         ,fm)
+
    val emptySteps = []
    fun appendIntStep idx steps = steps @ [StepIndex idx]
    fun appendFieldStep sym steps = steps @ [StepField sym]
@@ -291,6 +300,9 @@ structure TypeTable : sig
                      SizeConstraint.size_constraint_set) * table -> table
    val modifyFlow : (BooleanDomain.bfun -> BooleanDomain.bfun) * table -> table
 
+   (* Removes all type information not referenced by the current set of symbols. *)
+   val garbageCollect : table -> table
+
    val newType : Types.texp * table -> TVar.tvar
    
    (* Add the given symbol as having the given type. The other domains remain
@@ -298,13 +310,16 @@ structure TypeTable : sig
    val addSymbol : SymbolTable.symid * Types.texp * table -> TVar.tvar              
    
    (* Remove a symbol and all information from other domains regarding this symbol. *)
-   val delSymbol : SymbolTable.symid * table -> unit
+   val delSymbol : SymbolTable.symid * table -> TVar.set
 
    (* Remove the given symbol from the map and returns its type expression.
       The other domains remain unaltered so that (parts of) the type
       can be re-added using addSymbol. *)
    val getSymbol : SymbolTable.symid * table -> Types.texp
 
+   (* Remove flow and size constraints on the given type expression. This function must be called if part of the type returned by getSymbol is discarded. *)
+   val removeConstraints : Types.texp * table -> table
+   
    (* Merely extract the type of the symbol without removing the symbol or the
    constraints of the type. *)
    val peekSymbol : SymbolTable.symid * table -> Types.texp
@@ -336,7 +351,7 @@ end = struct
    val runSane = false
 
    (*restrict which symbols toString prints*)
-   val debugSymbol : int option = NONE (*SOME 191*) (*SOME 911*)
+   val debugSymbol : int option = NONE (*SOME 911*)
 
    type index = TVar.tvar
 
@@ -476,6 +491,7 @@ end = struct
       hashCons : (typeterm, index) HT.hash_table,
       symTable : (SymbolTable.symid,entry) HT.hash_table,
       typeTable : typeinfo DA.array,
+      lastSize : int,
       boolDom : BD.bfun ref,
       sizeDom : SC.size_constraint_set ref
    }
@@ -484,10 +500,13 @@ end = struct
    exception IndexError
    exception TypeTableError
 
+   val initialSize = 1000 : int
+   
    fun emptyTable () = {
-      hashCons = HT.mkTable (typeterm_hash,typeterm_eq) (10000, CondensingError),
+      hashCons = HT.mkTable (typeterm_hash,typeterm_eq) (initialSize, CondensingError),
       symTable = HT.mkTable (sym_hash,SymbolTable.eq_symid) (100, IndexError),
-      typeTable = DA.array (10000, LEAF SymSet.empty),
+      typeTable = DA.array (initialSize, LEAF SymSet.empty),
+      lastSize = initialSize,
       boolDom = ref (BD.empty ()),
       sizeDom = ref SC.empty
    } : table
@@ -691,6 +710,12 @@ end = struct
            | checkVar (idx, _) = ()
          val _ = if DA.bound tt<=1 then () else DA.appi checkVar tt
                (*handle IndexError => (TextIO.print ("sane: table broken at index " ^ #1 (TVar.varToString (TVar.fromIdx (DA.bound tt),TVar.emptyShowInfo)) ^ "\n"); TextIO.print (#1 (dumpTableSI (table, TVar.emptyShowInfo))); raise IndexError)*)
+         val scs = !(#sizeDom table)
+         val scVars = SC.getVarset scs
+         fun checkSizeVar var = case ttGet (tt,var) of
+              LEAF symSet => if SymSet.isEmpty symSet then err ("size constraints contain ref to unsed variable", [], [var]) else ()
+            | _ => err ("size constraint contains variable that is a type", [], [var])
+         val _ = List.app checkSizeVar (TVar.listItems scVars)
       in 
          ()
       end
@@ -718,63 +743,9 @@ end = struct
           and convV v = case ttGet (tt, v) of
                  (LEAF _) => v
                | _ => raise IndexError
-         val _ = localSane (table)
+         (*val _ = localSane (table)*)
       in
          conv ty
-      end
-
-   fun addSymbol (sym,ty,table) =
-      let
-         val _ = if not verbose then () else
-            TextIO.print ("addSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " with type " ^ #1 (showTypeSI (ty,TVar.emptyShowInfo)) ^ "\n")
-         val idx = newType (ty,table)
-         val fp = Path.typeToFlowpoints ty
-         val st = #symTable (table : table)
-         fun addRef (LEAF syms) = LEAF (SymSet.add (syms,sym))
-           | addRef _ = raise IndexError
-         val tt = #typeTable table
-         fun updateRef idx = ttSet (tt, idx, addRef (ttGet (tt, idx)))
-         val _ = List.app updateRef (Path.varsOfFlowpoints fp)
-         val _ = if HT.inDomain st sym then
-            (TextIO.print ("addSymbol: error, previous type for " ^
-               SymbolTable.getString(!SymbolTables.varTable, sym) ^ " exists with " ^
-                #1 (toStringSI ([sym], [#info (HT.lookup st sym)], table, TVar.emptyShowInfo)) ^ "\n");
-             raise IndexError) else ()
-         val _ = HT.insert st (sym,{ flow = fp, info = idx })
-         val _ = localSane (table)
-      in
-        idx
-      end
-
-   fun delSymbol (sym,table) =
-      let
-         val _ = if not verbose then () else
-            TextIO.print ("delSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
-         val st = #symTable (table : table)
-         val { flow = fp, info } = HT.remove st sym
-            handle IndexError => (TextIO.print ("delSymbol: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
-         val unusedTVars = ref TVar.empty
-         fun delRef (v,LEAF syms) =
-            let
-               val newSet = SymSet.delete (syms,sym)
-               val _ = if SymSet.isEmpty newSet then
-                  unusedTVars := TVar.add (v,!unusedTVars) else ()
-            in
-               LEAF newSet
-            end
-           | delRef _ = raise IndexError
-         val tt = #typeTable table
-         fun updateRef v = ttSet (tt, v, delRef (v, ttGet (tt, v)))
-         val tVars = Path.varsOfFlowpoints fp
-         val _ = List.app updateRef tVars
-         val bdRef = #boolDom table
-         val bVarsToKill = foldl BD.addToSet BD.emptySet (map #2 (Path.flagsOfFlowpoints fp))
-         (*val _ = TextIO.print ("projecting out " ^ BD.setToString bVarsToKill ^ " form\n" ^ BD.showBFun (!bdRef) ^ "\n")*)
-         val _ = bdRef := BD.projectOut (bVarsToKill, !bdRef)
-         (*val _ = TextIO.print ("resulting in\n" ^ BD.showBFun (!bdRef) ^ "\n")*)
-         val _ = localSane (table)
-      in
-         ()
       end
 
    (* turn a type of a symbol into a ADT type; returns the set of indices
@@ -782,7 +753,7 @@ end = struct
       altered *)
    fun termToType ({ flow = fp, info = idx }, table : table) =
       let
-         val varsRef = ref IS.empty
+         val varsRef = ref TVar.empty
          val occursRef = ref NONE : TVar.tvar option ref
          val tt = #typeTable table
          fun downFrom (n,s,[]) = []
@@ -828,7 +799,7 @@ end = struct
                      gT (Path.appendIntStep 1 s,out))
                  | LEAF symSet =>
                      let
-                        val _ = varsRef := IS.add (!varsRef,TVar.toIdx idx)
+                        val _ = varsRef := TVar.add (idx,!varsRef)
                         val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
                            handle NotFound => raise IndexError
                      in
@@ -898,6 +869,143 @@ end = struct
       in
          fromType index
       end
+   exception BadVarMap
+   
+   fun garbageCollect (table as
+      { hashCons = hc, symTable = st, typeTable = tt,
+        lastSize = ls, boolDom = bd, sizeDom = sd } : table) =
+      if ls>DA.bound tt then table else
+      let
+         (*val _ = TextIO.print ("GC start\n")*)
+         val hcNew = HT.mkTable (typeterm_hash,typeterm_eq) (HT.numItems hc, CondensingError)
+         val stNew = HT.mkTable (sym_hash,SymbolTable.eq_symid) (HT.numItems st, IndexError) 
+         val ttNew = DA.array (DA.bound tt, LEAF SymSet.empty)
+         val tableNew =
+            { hashCons = hcNew, symTable = stNew, typeTable = ttNew,
+              lastSize = ls, boolDom = bd, sizeDom = sd } : table
+         val varMap = HT.mkTable (TVar.hash,TVar.eq) (1000, BadVarMap)
+         fun renameVar idx =
+            (if HT.inDomain varMap idx then () else HT.insert varMap (idx,TVar.freshTVar ())
+            ;HT.lookup varMap idx)
+         fun repl (FUN (f1, f2)) = FUN (List.map repl f1, repl f2)
+           | repl (SYN (syn, t)) = SYN (syn, repl t)
+           | repl (ZENO) = ZENO
+           | repl (FLOAT) = FLOAT
+           | repl (STRING) = STRING
+           | repl (UNIT) = UNIT
+           | repl (VEC t) = VEC (repl t)
+           | repl (CONST c) = CONST c
+           | repl (ALG (ty, l)) = ALG (ty, List.map repl l)
+           | repl (RECORD (v,bv,l)) = RECORD (renameVar  v, bv, List.map replF l)
+           | repl (MONAD (r,f,t)) = MONAD (repl r, repl f, repl t)
+           | repl (VAR (v,bv)) = VAR (renameVar v,bv)
+         and replF (RField {name = n, fty = t, exists = b}) =
+            RField {name = n, fty = repl t, exists = b}
+          
+         fun copy (sym,{ flow = fp, info = idx }) =
+            let
+               (*val _ = TextIO.print ("GC: copying " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": ")*)
+               val (ty,_) = termToType ({ flow = fp, info = idx },table)
+               (*val _ = TextIO.print (showType ty ^ " renamed to ")*)
+               val ty = repl ty
+               (*val _ = TextIO.print (showType ty ^ "\n")*)
+               val idxNew = newType (ty,tableNew)
+               val fpNew = Path.renameVariables (varMap,fp)
+            in
+               HT.insert stNew (sym, { flow = fpNew, info = idxNew })
+            end
+         val _ = TVar.set (Word.fromInt 0)
+         val _ = HT.appi copy st
+         fun checkVar (all as (LEAF _)) = all
+           | checkVar _ = raise IndexError
+         val _ = HT.appi (fn (v,vNew) => ttSet (ttNew, vNew, checkVar (ttGet (tt,v)))) varMap
+         val _ = sd := SC.renameAll (varMap,!sd)
+                  handle BadVarMap => (TextIO.print ("bad variable in size constraints:\n" ^ #1 (SC.toStringSI (!sd,NONE,TVar.emptyShowInfo)) ^ "\n" ^ #1 (dumpTableSI (tableNew, TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
+         val lsNew = Word.toInt (TVar.get ())+5000
+         (*val _ = TextIO.print ("tvar cnt=" ^ Int.toString (Word.toInt (TVar.get ())) ^ " old table size " ^ Int.toString ls ^ ", new size is " ^ Int.toString lsNew ^ ", hc size " ^ Int.toString (HT.numItems hc) ^ "\n")*)
+         (*val _ = sane tableNew*)
+      in
+         { hashCons = hcNew, symTable = stNew, typeTable = ttNew,
+           lastSize = lsNew, boolDom = bd, sizeDom = sd }
+      end
+
+   fun addSymbol (sym,ty,table) =
+      let
+         val _ = if not verbose then () else
+            TextIO.print ("addSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " with type " ^ #1 (showTypeSI (ty,TVar.emptyShowInfo)) ^ "\n")
+         val idx = newType (ty,table)
+         val fp = Path.typeToFlowpoints ty
+         val st = #symTable (table : table)
+         fun addRef (LEAF syms) = LEAF (SymSet.add (syms,sym))
+           | addRef _ = raise IndexError
+         val tt = #typeTable table
+         fun updateRef idx = ttSet (tt, idx, addRef (ttGet (tt, idx)))
+         val _ = List.app updateRef (Path.varsOfFlowpoints fp)
+         val _ = if HT.inDomain st sym then
+            (TextIO.print ("addSymbol: error, previous type for " ^
+               SymbolTable.getString(!SymbolTables.varTable, sym) ^ " exists with " ^
+                #1 (toStringSI ([sym], [#info (HT.lookup st sym)], table, TVar.emptyShowInfo)) ^ "\n");
+             raise IndexError) else ()
+         val _ = HT.insert st (sym,{ flow = fp, info = idx })
+         val _ = localSane (table)
+      in
+        idx
+      end
+
+   fun removeConstraints (ty, table : table) =
+      let
+         val tt = #typeTable table
+         val bVars = texpBVarset (fn ((_,v),vs) => BD.addToSet (v,vs)) (ty,BD.emptySet)
+         val bdRef = #boolDom table
+         val _ = bdRef := BD.projectOut (bVars, !bdRef)
+         fun isEmpty (LEAF syms) = SymSet.isEmpty syms
+           | isEmpty _ = raise IndexError
+         val tVars = texpVarset (ty,TVar.empty)
+         val tVars = List.foldl (fn (v,tVars) => if isEmpty (ttGet (tt,v)) then TVar.add (v,tVars) else tVars)
+            TVar.empty (TVar.listItems tVars)
+         val scRef = #sizeDom table
+         val (badVars,scsGood) = SC.projectOut (tVars,!scRef)
+         val _ = scRef := scsGood
+         (*val _ = TextIO.print ("removeConstraints: killed sizes " ^ #1 (TVar.setToString (tVars,TVar.emptyShowInfo)) ^ " of type " ^ #1 (showTypeSI (ty,TVar.emptyShowInfo)) ^ "\n")*)
+      in
+         table
+      end
+
+   fun delSymbol (sym,table) =
+      let
+         val st = #symTable (table : table)
+         val { flow = fp, info = idx } = HT.remove st sym
+            handle IndexError => (TextIO.print ("delSymbol: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
+         val _ = if not verbose then () else
+            TextIO.print ("delSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " : " ^
+               #1 (showTypeSI (#1 (termToType ({ flow = fp, info = idx },table)), TVar.emptyShowInfo)) ^ "\n")
+         val unusedTVars = ref TVar.empty
+         fun delRef (v,LEAF syms) =
+            let
+               val newSet = SymSet.delete (syms,sym)
+               val _ = if SymSet.isEmpty newSet then
+                  unusedTVars := TVar.add (v,!unusedTVars) else ()
+            in
+               LEAF newSet
+            end
+           | delRef _ = raise IndexError
+         val tt = #typeTable table
+         fun updateRef v = ttSet (tt, v, delRef (v, ttGet (tt, v)))
+         val tVars = Path.varsOfFlowpoints fp
+         val _ = List.app updateRef tVars
+         val bdRef = #boolDom table
+         val bVarsToKill = foldl BD.addToSet BD.emptySet (map #2 (Path.flagsOfFlowpoints fp))
+         (*val _ = TextIO.print ("projecting out " ^ BD.setToString bVarsToKill ^ " form\n" ^ BD.showBFun (!bdRef) ^ "\n")*)
+         val _ = bdRef := BD.projectOut (bVarsToKill, !bdRef)
+         (*val _ = TextIO.print ("resulting in\n" ^ BD.showBFun (!bdRef) ^ "\n")*)
+         val scRef = #sizeDom table
+         (*val _ = TextIO.print ("removed stale size vars " ^ #1 (TVar.setToString (!unusedTVars,TVar.emptyShowInfo)) ^ " from " ^ #1 (SC.toStringSI (!scRef,NONE,TVar.emptyShowInfo)) ^ "\n")*)
+         val (badVars,scsGood) = SC.projectOut (!unusedTVars,!scRef)
+         val _ = scRef := scsGood
+         val _ = localSane (table)
+      in
+         badVars
+      end
 
    fun getSymbol (sym,table : table) =
       let
@@ -908,8 +1016,8 @@ end = struct
          val (ty,vars) = termToType (ti,table)
          val _ = if not verbose then () else
             TextIO.print ("getSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " with " ^ #1 (showTypeSI (ty,TVar.emptyShowInfo)) ^ "\n")
-         val _ = IS.app (fn idx => case ttGet(tt,TVar.fromIdx idx) of
-               LEAF symSet => ttSet (tt,TVar.fromIdx idx,LEAF (SymSet.delete (symSet,sym)))
+         val _ = TVar.app (fn idx => case ttGet(tt,idx) of
+               LEAF symSet => ttSet (tt,idx,LEAF (SymSet.delete (symSet,sym)))
              | _ => raise IndexError
              ) vars
          val _ = localSane (table)
@@ -1130,10 +1238,10 @@ end = struct
                      val { flow = fp, info = idx } = HT.lookup st sym
                         handle IndexError => (if not unifyVerbose then () else TextIO.print ("updateFlow: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
 
-                     val (vBadStr, si) = TVar.varToString (vVar, TVar.emptyShowInfo)
+                     (*val (vBadStr, si) = TVar.varToString (vVar, TVar.emptyShowInfo)
                      val (vGoodStr, si) = TVar.varToString (rVar, si)
                      val (fpStr, si) = Path.toStringSI (fp,si)
-                     (*val _ = TextIO.print ("renaming " ^ vBadStr ^ " to " ^ vGoodStr ^ " in " ^ fpStr ^ "\n")*)
+                     val _ = TextIO.print ("renaming " ^ vBadStr ^ " to " ^ vGoodStr ^ " in " ^ fpStr ^ "\n")*)
 
                      val fp = Path.renameVariable (vVar,rVar,fp)
                      val _ = HT.insert st (sym, {flow = fp, info = idx})
@@ -1207,11 +1315,11 @@ end = struct
          val _ = TextIO.print ("equatSymbols: bool func = " ^ BD.showBFun (!bdRef) ^ str ^ "\n")
          val _ = TextIO.print (foldl (fn (((_,f1),(_,f2)),str) => BD.showVar f1 ^ "," ^ BD.showVar f2 ^ "; " ^ str) "" flags ^ "\n")*)
          
-         val unsatRef = ref IS.empty
+         val unsatRef = ref BD.emptySet
          val _ = List.app (fn ((_,f1),(_,f2)) => bdRef := BD.meetEqual (f1,f2,!bdRef)
-               handle BD.Unsatisfiable vars => (unsatRef := IS.union (!unsatRef,vars))
+               handle BD.Unsatisfiable vars => (unsatRef := BD.union (!unsatRef,vars))
             ) flags
-         val _ = if IS.isEmpty (!unsatRef) then () else raise BD.Unsatisfiable (!unsatRef)
+         val _ = if BD.isEmpty (!unsatRef) then () else raise BD.Unsatisfiable (!unsatRef)
       in
          localSane (table)
       end
@@ -1229,15 +1337,15 @@ end = struct
          val bdRef = #boolDom table
          val flags = ListPair.zip (Path.flagsOfFlowpoints fp1, Path.flagsOfFlowpoints fp2)
 
-         val unsatRef = ref IS.empty
+         val unsatRef = ref BD.emptySet
          val _ = List.app (fn ((contra,f1),(_,f2)) =>
                (if contra then
                   bdRef := BD.meetVarImpliesVar (f2,f1) (!bdRef)
                else
                   bdRef := BD.meetVarImpliesVar (f1,f2) (!bdRef)
-               ) handle BD.Unsatisfiable vars => (unsatRef := IS.union (!unsatRef,vars))
+               ) handle BD.Unsatisfiable vars => (unsatRef := BD.union (!unsatRef,vars))
             ) flags
-         val _ = if IS.isEmpty (!unsatRef) then () else raise BD.Unsatisfiable (!unsatRef)
+         val _ = if BD.isEmpty (!unsatRef) then () else raise BD.Unsatisfiable (!unsatRef)
       in
          localSane (table)
       end
@@ -1313,9 +1421,9 @@ end = struct
          val scRef = #sizeDom table
          val _ = scRef := SC.expand (subst,!scRef) 
          
-         (*val _ = if SOME (SymbolTable.toInt oldSym)=debugSymbol then
+         val _ = if SOME (SymbolTable.toInt oldSym)=debugSymbol then
             (TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
-            ) else ()*)
+            ) else ()
             
       in
          localSane (table)
