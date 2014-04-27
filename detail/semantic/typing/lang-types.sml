@@ -96,7 +96,7 @@ structure Types = struct
    expression to a datatype. If the flag is True, the flow is revered, which
    is used when dissecting a data type. In every case, record fields are all
    required and no other fields are allowed, e.g. 4 and 5 and 6 and not 7. *)
-   fun texpConstructorFlow vars co e = let
+   fun texpConstructorFlow vars co e bFun = let
       fun tCF co (FUN (f1, f2), bFun) = tCF co (f2, List.foldl (tCF (not co)) bFun f1)
         | tCF co (SYN (syn, t), bFun) = tCF co (t, bFun)
         | tCF co (ZENO, bFun) = bFun
@@ -118,7 +118,7 @@ structure Types = struct
                   else BD.meetVarImpliesVar (bVar,b) bFun
       and tCFF co (RField {name = n, fty = t, exists = b}, bFun) =
         BD.meetVarOne b (tCF co (t, bFun))
-      in (tCF co (e, BD.empty))
+      in (tCF co (e, bFun))
    end                   
 
    fun fieldOfBVar (bVars, e) = let
@@ -211,7 +211,7 @@ structure Types = struct
    type condescr = texp option SymMap.map
 
    type typedescr = { tdVars : (TVar.tvar * BD.bvar) SymMap.map,
-                     tdCons : condescr }
+                      tdCons : condescr }
 
    fun showTypeSI (ty, showInfo) = let
     val siTab = ref showInfo

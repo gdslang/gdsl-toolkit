@@ -423,7 +423,7 @@ val sem-c sem-cc x = do
   sem-cc x (/d (var cf))
 end
 val sem-b sem-cc x = sem-c sem-cc x
-val sem-nae sem-cc x = sem-nae sem-cc x
+val sem-nae sem-cc x = sem-b sem-cc x
 
 val sem-be sem-cc x = do
   leu <- fLEU;
@@ -985,7 +985,7 @@ val semantics insn = let
 in
   case insn.insn of
      AAA: sem-default-arity0 insn.insn
-   | AAD x: sem-default-arity1 insn.insn (comb x)
+   (*| AAD x: sem-default-arity1 insn.insn (comb x)
    | AAM x: sem-default-arity1 insn.insn (comb x)
    | AAS: sem-default-arity0 insn.insn
    | ADC x: sem-adc (comb x)
@@ -1062,9 +1062,9 @@ in
    | CMOVZ x: sem-z sem-cmovcc (comb x)
    | CMP x: sem-cmp (comb x)
    | CMPPD x: sem-default-arity3 insn.insn (comb x)
-   | CMPPS x: sem-default-arity3 insn.insn (comb x)
+   | CMPPS x: sem-default-arity3 insn.insn (comb x) *)
    | CMPS x: sem-repe-repne-insn (comb x) sem-cmps
-   | CMPSD x: sem-default-arity3 insn.insn (comb x)
+   (*| CMPSD x: sem-default-arity3 insn.insn (comb x)
 #   | CMPSD x:
 #       case x of
 #         VA0: sem-cmpsd
@@ -2277,7 +2277,7 @@ in
    | XSAVE64 x: sem-default-arity1 insn.insn (comb x)
    | XSAVEOPT x: sem-default-arity1 insn.insn (comb x)
    | XSAVEOPT64 x: sem-default-arity1 insn.insn (comb x)
-   | XSETBV: sem-default-arity0 insn.insn
+   | XSETBV: sem-default-arity0 insn.insn*)
   end
 end
 #s/^ | \([^\s]*\) of \(arity\|flow\)\(.\)\s*/ | \1 x: sem-undef-\2\3 x/g

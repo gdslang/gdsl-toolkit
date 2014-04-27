@@ -46,6 +46,7 @@ in
          detail/semantic/typing/lang-types.sml
          detail/semantic/typing/size-constraint.sml
          detail/semantic/typing/substitutions.sml
+         detail/semantic/typing/type-table.sml
          detail/semantic/typing/environment.sml
 
          detail/spec/spec.sml
