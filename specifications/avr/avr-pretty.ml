@@ -1,6 +1,6 @@
 # vim:ts=3:sw=3:expandtab
 
-export = pretty
+export = pretty pretty-operand pretty-mnemonic
 
 val pretty i = show/instruction i
 
@@ -43,100 +43,137 @@ val show/operand/imm imm =
     | IMMi i: show-int i
   end
 
-val show/instruction i =
+val show/operands insn_cl =
+  case insn_cl of
+     TERNOP o: show/ternop o
+   | BINOP o: show/binop o
+   | UNOP o: show/unop o
+   | NOOP: ""
+  end
+
+val pretty-operand insn i = let
+  val ith3 o = case i of
+     0: show/operand o.first
+   | 1: show/operand o.second
+   | 2: show/operand o.third
+  end
+
+  val ith2 o = case i of
+     0: show/operand o.first
+   | 1: show/operand o.second
+  end
+
+  val ith1 o = case i of
+     0: show/operand o.operand
+  end
+in
+  case (classify insn) of
+     TERNOP o: ith3 o
+   | BINOP o: ith2 o
+   | UNOP o: ith1 o
+  end
+end
+
+val show/instruction i = let
+  val insn_cl = classify i
+in
+ show/mnemonic i -++ show/operands insn_cl
+end
+
+val show/mnemonic i =
    case i of
-      ADC x: "ADC" -++ show/binop x    
-    | ADD x: "ADD" -++ show/binop x
-    | ADIW x: "ADIW" -++ show/binop x
-    | AND x: "AND" -++ show/binop x
-    | ANDI x: "ANDI" -++ show/binop x
-    | ASR x: "ASR" -++ show/unop x
-    | BLD x: "BLD" -++ show/binop x
-    | BRCC x: "BRCC" -++ show/unop x
-    | BRCS x: "BRCS" -++ show/unop x
+      ADC x: "ADC"
+    | ADD x: "ADD"
+    | ADIW x: "ADIW"
+    | AND x: "AND"
+    | ANDI x: "ANDI"
+    | ASR x: "ASR"
+    | BLD x: "BLD"
+    | BRCC x: "BRCC"
+    | BRCS x: "BRCS"
     | BREAK: "BREAK"
-    | BREQ x: "BREQ" -++ show/unop x
-    | BRGE x: "BRGE" -++ show/unop x
-    | BRHC x: "BRHC" -++ show/unop x
-    | BRHS x: "BRHS" -++ show/unop x
-    | BRID x: "BRID" -++ show/unop x
-    | BRIE x: "BRIE" -++ show/unop x
-    | BRLT x: "BRLT" -++ show/unop x
-    | BRMI x: "BRMI" -++ show/unop x
-    | BRNE x: "BRNE" -++ show/unop x
-    | BRPL x: "BRPL" -++ show/unop x
-    | BRTC x: "BRTC" -++ show/unop x
-    | BRTS x: "BRTS" -++ show/unop x
-    | BRVC x: "BRVC" -++ show/unop x
-    | BRVS x: "BRVS" -++ show/unop x
-    | BST x: "BST" -++ show/binop x
-    | CALL x: "CALL" -++ show/unop x
-    | CBI x: "CBI" -++ show/binop x
-    | CBR x: "CBR" -++ show/binop x
+    | BREQ x: "BREQ"
+    | BRGE x: "BRGE"
+    | BRHC x: "BRHC"
+    | BRHS x: "BRHS"
+    | BRID x: "BRID"
+    | BRIE x: "BRIE"
+    | BRLT x: "BRLT"
+    | BRMI x: "BRMI"
+    | BRNE x: "BRNE"
+    | BRPL x: "BRPL"
+    | BRTC x: "BRTC"
+    | BRTS x: "BRTS"
+    | BRVC x: "BRVC"
+    | BRVS x: "BRVS"
+    | BST x: "BST"
+    | CALL x: "CALL"
+    | CBI x: "CBI"
+    | CBR x: "CBR"
     | CLC: "CLC" 
     | CLH: "CLH"
     | CLI: "CLI"
     | CLN: "CLN"
-    | CLR x: "CLR" -++ show/unop x
+    | CLR x: "CLR"
     | CLS: "CLS"
     | CLT: "CLT"
     | CLV: "CLV"
     | CLZ: "CLZ"
-    | COM x: "COM" -++ show/unop x
-    | CP x: "CP" -++ show/binop x
-    | CPC x: "CPC" -++ show/binop x
-    | CPI x: "CPI" -++ show/binop x
-    | CPSE x: "CPSE" -++ show/ternop x
-    | DEC x: "DEC" -++ show/unop x
-    | DES x: "DES" -++ show/unop x
+    | COM x: "COM"
+    | CP x: "CP"
+    | CPC x: "CPC"
+    | CPI x: "CPI"
+    | CPSE x: "CPSE"
+    | DEC x: "DEC"
+    | DES x: "DES"
     | EICALL: "EICALL"
     | EIJMP: "EIJMP"
-    | ELPM x: "ELPM" -++ show/binop x
-    | EOR x: "EOR" -++ show/binop x
-    | FMUL x: "FMUL" -++ show/binop x
-    | FMULS x: "FMULS" -++ show/binop x
-    | FMULSU x: "FMULSU" -++ show/binop x
+    | ELPM x: "ELPM"
+    | EOR x: "EOR"
+    | FMUL x: "FMUL"
+    | FMULS x: "FMULS"
+    | FMULSU x: "FMULSU"
     | ICALL: "ICALL"
     | IJMP: "IJMP"
-    | IN x: "IN" -++ show/binop x
-    | INC x: "INC" -++ show/unop x
-    | JMP x: "JMP" -++ show/unop x
-    | LAC x: "LAC" -++ show/binop x
-    | LAS x: "LAS" -++ show/binop x
-    | LAT x: "LAT" -++ show/binop x
-    | LD x: "LD" -++ show/binop x
-    | LDI x: "LDI" -++ show/binop x
-    | LDS x: "LDS" -++ show/binop x
-    | LPM x: "LPM" -++ show/binop x
-    | LSL x: "LSL" -++ show/unop x
-    | LSR x: "LSR" -++ show/unop x
-    | MOV x: "MOV" -++ show/binop x
-    | MOVW x: "MOVW" -++ show/binop x
-    | MUL x: "MUL" -++ show/binop x
-    | MULS x: "MULS" -++ show/binop x
-    | MULSU x: "MULSU" -++ show/binop x
-    | NEG x: "NEG" -++ show/unop x
+    | IN x: "IN"
+    | INC x: "INC"
+    | JMP x: "JMP"
+    | LAC x: "LAC"
+    | LAS x: "LAS"
+    | LAT x: "LAT"
+    | LD x: "LD"
+    | LDI x: "LDI"
+    | LDS x: "LDS"
+    | LPM x: "LPM"
+    | LSL x: "LSL"
+    | LSR x: "LSR"
+    | MOV x: "MOV"
+    | MOVW x: "MOVW"
+    | MUL x: "MUL"
+    | MULS x: "MULS"
+    | MULSU x: "MULSU"
+    | NEG x: "NEG"
     | NOP: "NOP"
-    | OR x: "OR" -++ show/binop x
-    | ORI x: "ORI" -++ show/binop x
-    | OUT x: "OUT" -++ show/binop x
-    | POP x: "POP" -++ show/unop x
-    | PUSH x: "PUSH" -++ show/unop x
-    | RCALL x: "RCALL" -++ show/unop x
+    | OR x: "OR"
+    | ORI x: "ORI"
+    | OUT x: "OUT"
+    | POP x: "POP"
+    | PUSH x: "PUSH"
+    | RCALL x: "RCALL"
     | RET: "RET"
     | RETI: "RETI"
-    | RJMP x: "RJMP" -++ show/unop x
-    | ROL x: "ROL" -++ show/unop x
-    | ROR x: "ROR" -++ show/unop x
-    | SBC x: "SBC" -++ show/binop x
-    | SBCI x: "SBCI" -++ show/binop x
-    | SBI x: "SBI" -++ show/binop x
-    | SBIC x: "SBIC" -++ show/ternop x
-    | SBIS x: "SBIS" -++ show/ternop x
-    | SBIW x: "SBIW" -++ show/binop x
-    | SBR x: "SBR" -++ show/binop x
-    | SBRC x: "SBRC" -++ show/ternop x
-    | SBRS x: "SBRS" -++ show/ternop x
+    | RJMP x: "RJMP"
+    | ROL x: "ROL"
+    | ROR x: "ROR"
+    | SBC x: "SBC"
+    | SBCI x: "SBCI"
+    | SBI x: "SBI"
+    | SBIC x: "SBIC"
+    | SBIS x: "SBIS"
+    | SBIW x: "SBIW"
+    | SBR x: "SBR"
+    | SBRC x: "SBRC"
+    | SBRS x: "SBRS"
     | SEC: "SEC"
     | SEH: "SEH"
     | SEI: "SEI"
@@ -146,16 +183,18 @@ val show/instruction i =
     | SEV: "SEV"
     | SEZ: "SEZ"
     | SLEEP: "SLEEP"
-    | SPM x: "SPM" -++ show/unop x
-    | ST x: "ST" -++ show/binop x
-    | STS x: "STS" -++ show/binop x
-    | SUB x: "SUB" -++ show/binop x
-    | SUBI x: "SUBI" -++ show/binop x
-    | SWAP x: "SWAP" -++ show/unop x
-    | TST x: "TST" -++ show/unop x
+    | SPM x: "SPM"
+    | ST x: "ST"
+    | STS x: "STS"
+    | SUB x: "SUB"
+    | SUBI x: "SUBI"
+    | SWAP x: "SWAP"
+    | TST x: "TST"
     | WDR: "WDR"
-    | XCH x: "XCH" -++ show/binop x    
+    | XCH x: "XCH"
    end
+
+val pretty-mnemonic i = show/mnemonic i
 
 val show/register r =
    case r of
