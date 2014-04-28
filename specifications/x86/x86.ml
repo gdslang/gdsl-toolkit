@@ -651,6 +651,7 @@ type opnd =
  | SUM of {a:opnd,b:opnd}
  | SCALE of {imm:2,opnd:opnd}
 
+# Todo: Centralize
 # Operand types:
 # Immediate - 0
 # Register - 1
