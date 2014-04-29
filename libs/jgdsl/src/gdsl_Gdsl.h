@@ -10,18 +10,18 @@ extern "C" {
 /*
  * Class:     gdsl_Gdsl
  * Method:    getFrontendsNative
- * Signature: ()[Lgdsl/Frontend;
+ * Signature: ()[Lgdsl/ListFrontend;
  */
 JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative
-  (JNIEnv *, jobject);
+  (JNIEnv *, jclass);
 
 /*
  * Class:     gdsl_Gdsl
  * Method:    getFrontendsNativeWithBase
- * Signature: (Ljava/lang/String;)[Lgdsl/Frontend;
+ * Signature: (Ljava/lang/String;)[Lgdsl/ListFrontend;
  */
 JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNativeWithBase
-  (JNIEnv *, jobject, jstring);
+  (JNIEnv *, jclass, jstring);
 
 /*
  * Class:     gdsl_Gdsl
@@ -76,7 +76,7 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_resetHeap
  * Method:    destroyFrontend
  * Signature: (JJ)V
  */
-JNIEXPORT void JNICALL Java_gdsl_Gdsl_destroyFrontend
+JNIEXPORT void JNICALL Java_gdsl_Gdsl_destroy
   (JNIEnv *, jobject, jlong, jlong);
 
 #ifdef __cplusplus

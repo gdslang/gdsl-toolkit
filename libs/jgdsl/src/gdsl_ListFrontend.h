@@ -15,4 +15,4 @@
  * Signature: (Lgdsl/Frontend;)J
  */
 JNIEXPORT jlong JNICALL Java_gdsl_ListFrontend_getFrontendPtrByDesc
-  (JNIEnv *, jobject, jobject);
+  (JNIEnv *, jobject);

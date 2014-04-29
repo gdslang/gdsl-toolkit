@@ -669,44 +669,40 @@ end
 
 val emit-add-adc-flags sz sum s0 s1 carry set-carry = let
   val emit = do
-#    eq <- fEQ;
-#    les <- fLES;
-#    leu <- fLEU;
-#    lts <- fLTS;
-#    ltu <- fLTU;
     sf <- fSF;
     ov <- fOF;
     zf <- fZF;
     cf <- fCF;
+    af <- fAF;
     t1 <- mktemp;
     t2 <- mktemp;
     t3 <- mktemp;
   
-#    cmpltu sz ltu s0 s1;
     xorb sz t1 sum s0;
     xorb sz t2 sum s1;
     andb sz t3 (var t1) (var t2);
     cmplts sz ov (var t3) (imm 0);
     cmplts sz sf sum (imm 0);
-#   cmpeq sz eq sum (imm 0);
-#    xorb 1 lts (var sf) (var ov);
-#   orb 1 leu (var ltu) (var eq);
-#   orb 1 les (var lts) (var eq);
     cmpeq sz zf sum (imm 0);
   
     # Hacker's Delight - Unsigned Add/Subtract
     if set-carry then (
       _if (/d carry) _then do
+        cmpleu 4 af sum s0;
         cmpleu sz cf sum s0
       end _else do
+        cmpltu 4 af sum s0;
         cmpltu sz cf sum s0
       end
-    ) else
-      return void
-    ;
-  
+    ) else (
+      _if (/d carry) _then do
+        cmpleu 4 af sum s0
+      end _else do
+        cmpltu 4 af sum s0
+      end
+    );
+
     emit-parity-flag sum;
-    emit-arithmetic-adjust-flag sz sum s0 s1;
     emit-virt-flags
   end
 in
@@ -718,34 +714,32 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
     sf <- fSF;
     ov <- fOF;
     cf <- fCF;
+    af <- fAF;
     z <- fZF;
     t1 <- mktemp;
     t2 <- mktemp;
     t3 <- mktemp;
 
     cmplts sz sf difference (imm 0);
-    cmpeq sz z difference (imm 0);
-
-    #xorb 1 ov (var tlts) (var sf);
-    #t <- mktemp;
-    #xorb sz t difference minuend;
-    #xorb sz t (var t) subtrahend;
-    #cmplts sz ov (var t) (imm 0);
-
-    tlts <- mktemp;
-    add sz tlts subtrahend carry;
-    cmplts sz tlts minuend (var tlts);
-    xorb 1 ov (var tlts) (var sf);
 
     # Hacker's Delight - Unsigned Add/Subtract
     _if (/d carry) _then do
+      add sz t1 subtrahend (imm 1);
+      cmpeq sz z minuend (var t1);
+
+      cmples sz ov minuend subtrahend;
+      xorb 1 ov (var ov) (var sf);
+
       if set-carry then
         cmpleu sz cf minuend subtrahend
       else
         return void
       ;
+      cmpleu 4 af minuend subtrahend;
       emit-virt-flags
     end _else do
+      cmpeq sz z minuend subtrahend;
+
       if set-carry then do
         cmpltu sz cf minuend subtrahend;
         leu <- fLEU;
@@ -753,18 +747,15 @@ val emit-sub-sbb-flags sz difference minuend subtrahend carry set-carry = let
       end else
         emit-virt-leu
       ;
-#     eq <- fEQ;
       les <- fLES;
-#     ltu <- fLTU;
       lts <- fLTS;
-#     cmpltu sz ltu minuend subtrahend;
-      mov 1 lts (var tlts);
-      cmples sz les minuend subtrahend
- #    cmpeq sz eq minuend subtrahend
+      cmplts sz lts minuend subtrahend;
+      xorb 1 ov (var lts) (var sf);
+      cmples sz les minuend subtrahend;
+      cmpltu 4 af minuend subtrahend
     end;
   
-    emit-parity-flag difference;
-    emit-arithmetic-adjust-flag sz difference minuend subtrahend
+    emit-parity-flag difference
   end
 in
   with-subscope emit
@@ -841,13 +832,14 @@ val move-to-rflags size lin = let
   val emit = do
     flags <- rflags;
   
-    in-mask <- return 0x0000000000245fd5;
-    out-mask <- return 0xffffffffffc3a02a;
+    mask <- return 0x0000000000240cd5;
+
+    tud <- mktemp;
+    undef size tud;
+    andb size tud (var tud) (imm (0xffffffffffffffff - mask));
   
-    temp <- mktemp;
-    andb size temp lin (imm in-mask);
-    andb size flags (var flags) (imm out-mask);
-    orb size flags (var flags) (var temp)
+    undef size flags;
+    xorb size flags (var tud) lin
   end
 in
   with-subscope emit

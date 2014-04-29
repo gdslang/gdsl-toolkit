@@ -14,14 +14,14 @@
 #include "gdsl_ListFrontend.h"
 #include "util.h"
 
-JNIEXPORT jlong JNICALL Java_gdsl_ListFrontend_getFrontendPtrByDesc(JNIEnv *env, jobject this, jobject jfrontend) {
+JNIEXPORT jlong JNICALL Java_gdsl_ListFrontend_getFrontendPtrByDesc(JNIEnv *env, jobject this) {
 	jclass Gdsl_ListFrontend = (*env)->FindClass(env, "gdsl/ListFrontend");
 
 	jmethodID getName = (*env)->GetMethodID(env, Gdsl_ListFrontend, "getName", "()Ljava/lang/String;");
 	jmethodID getExt = (*env)->GetMethodID(env, Gdsl_ListFrontend, "getExt", "()Ljava/lang/String;");
 
-	jstring jname = (*env)->CallObjectMethod(env, jfrontend, getName);
-	jstring jext = (*env)->CallObjectMethod(env, jfrontend, getExt);
+	jstring jname = (*env)->CallObjectMethod(env, this, getName);
+	jstring jext = (*env)->CallObjectMethod(env, this, getExt);
 
 	const char *name = (*env)->GetStringUTFChars(env, jname, 0);
 	const char *ext = (*env)->GetStringUTFChars(env, jext, 0);

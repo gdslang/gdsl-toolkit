@@ -1,5 +1,5 @@
 granularity = 16
-export = config-default decode
+export = config-default decode typeof-opnd
 
 val d ['bit:1'] = do
  rd <- query $rd;
@@ -554,6 +554,39 @@ type operand =
 type ternop = {first:operand,second:operand,third:operand}
 type binop = {first:operand,second:operand}
 type unop = {operand:operand}
+
+# Todo: Centralize
+# Operand types:
+# Immediate - 0
+# Register - 1
+# Memory - 2
+val typeof-opnd x i = let
+  val typeof-one o =
+    case o of
+       IMM a: 0
+     | REG a: 1
+     | REGHL a: 1
+     | REGIHL a: 1
+     | IOREG a: 1
+     | OPDI a: 2
+     | OPSE a: 2
+    end
+in
+  case (classify x) of
+     UNOP o: case i of
+        0: typeof-one o.operand
+     end
+   | BINOP o: case i of
+        0: typeof-one o.first
+      | 1: typeof-one o.second
+     end
+   | TERNOP o: case i of
+        0: typeof-one o.first
+      | 1: typeof-one o.second
+      | 2: typeof-one o.third
+     end
+  end
+end
 
 type instruction =
    ADC of binop

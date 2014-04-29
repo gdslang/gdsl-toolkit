@@ -7,8 +7,10 @@ package gdsl;
  * 
  * @author Julian Kranz
  */
-public abstract class Frontend {
+public abstract class Frontend implements IReferable {
   private long pointer;
+  
+  public final ReferenceManager referenceManager = new ReferenceManager(this, 1);
   
   /**
    * Get the address of the corresponding native object.
@@ -16,16 +18,16 @@ public abstract class Frontend {
    * @return the value of the pointer
    */
   public long getPointer () {
-    if(pointer == 0)
-      initializeNative();
     if (pointer == 0)
-      throw new RuntimeException("Pointer to native frontend object missing");
+      throw new ResourceUnavailableException("Pointer to native frontend object missing");
+    else if(pointer < 0)
+      throw new ResourceUnavailableException("Frontend destroyed");
     return pointer;
   }
   
-  protected abstract void initializeNative();
-  
-  void setPointer (long pointer) {
+  protected void setPointer (long pointer) {
+    if(pointer == 0)
+      throw new RuntimeException("Invalid pointer");
     this.pointer = pointer;
   }
   
@@ -71,7 +73,7 @@ public abstract class Frontend {
   protected Frontend(String name) {
     this.name = name;
   }
-
+  
   /**
    * Check whether the frontends has been configured using a IFrontendConfig
    * configurator.
@@ -79,4 +81,21 @@ public abstract class Frontend {
   public boolean isConfigured () {
     return configured;
   }
+  
+  @Override protected void finalize () throws Throwable {
+    /*
+     * Todo: finally
+     */
+    referenceManager.unref();
+    super.finalize();
+  }
+  
+  public void free() {
+    if(pointer != 0) {
+      destroy(getPointer());
+      pointer = -1;
+    }
+  }
+  
+  private native void destroy (long frontendPtr);
 }

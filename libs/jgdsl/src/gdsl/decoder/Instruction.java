@@ -1,6 +1,7 @@
 package gdsl.decoder;
 
 import gdsl.Gdsl;
+import gdsl.HeapExpiredException;
 
 /**
  * This class represents a decoded instruction.
@@ -11,13 +12,20 @@ public class Instruction {
   private long insnPtr = 0;
   private Gdsl gdsl;
   private long size;
+  
+  private long heapRevision;
 
   /**
-   * Get the address of the associated native instruction object
+   * Get the address of the associated native instruction object;
+   * 
+   * Warning: This pointer is only valid as long as this {@link Instruction} object
+   * is reachable. This method should only be used by the jgdsl library.
    * 
    * @return the value of the pointer
    */
   public long getInsnPtr () {
+    if (heapRevision != gdsl.getHeapRevision())
+      throw new HeapExpiredException();
     if (insnPtr == 0)
       throw new NullPointerException();
     return insnPtr;
@@ -42,7 +50,7 @@ public class Instruction {
   }
 
   /**
-   * Construct the instruction object
+   * Construct an instruction object
    * 
    * @param gdsl the associated {@link Gdsl} object
    * @param insnPtr the address of the native instruction object
@@ -50,6 +58,8 @@ public class Instruction {
    */
   public Instruction (Gdsl gdsl, long insnPtr, long size) {
     this.gdsl = gdsl;
+    this.heapRevision = gdsl.getHeapRevision();
+    gdsl.heapManager.ref();
     this.insnPtr = insnPtr;
     this.size = size;
   }
@@ -99,4 +109,12 @@ public class Instruction {
   }
 
   private native String mnemonic (long frontendPtr, long gdslStatePtr, long insnPtr);
+  
+  @Override protected void finalize () throws Throwable {
+    /*
+     * Todo: finally
+     */
+    gdsl.heapManager.unref();
+    super.finalize();
+  }
 }

@@ -49,7 +49,7 @@ AM_CONDITIONAL(LINUX, test "$LINUX" = "yes")
 #AM_CONDITIONAL(HAVE_JNI_H, test "$HAVE_JNI_H" != "")
 dnl conditionals for the various decoders, either with or without semantics
 
-FRONTENDS="x86 x86-rreil avr avr-rreil";
+FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil";
 
 AC_ARG_WITH([frontend],
   [AS_HELP_STRING(
@@ -70,6 +70,12 @@ case $with_frontend in
 	avr-rreil)
 		AC_DEFINE([USE_AVR_RREIL],[1],[build AVR decoder and RReil semantics])
 		with_frontend=avr-rreil;;
+	mips)
+		AC_DEFINE([USE_MIPS],[1],[build MIPS bare decoder])
+		with_frontend=mips;;
+	mips-rreil)
+		AC_DEFINE([USE_MIPS_RREIL],[1],[build MIPS decoder and RReil semantics])
+		with_frontend=mips-rreil;;
 	*) AC_MSG_FAILURE([invalid frontend, choose one of ]$FRONTENDS);;
 esac
 case $with_frontend in
@@ -124,6 +130,8 @@ AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil])
 AM_CONDITIONAL([X86],[test x$with_frontend = xx86])
 AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil])
 AM_CONDITIONAL([AVR],[test x$with_frontend = xavr])
+AM_CONDITIONAL([MIPS_RREIL],[test x$with_frontend = xmips-rreil])
+AM_CONDITIONAL([MIPS],[test x$with_frontend = xmips])
 AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes])
 AM_CONDITIONAL([HAVE_X86], [test x$has_x86 = xyes])
 #AM_CONDITIONAL([HAVE_GNU_C11], [echo "int main(void) { return 0; }" | gcc -std=gnu11 -xc - -o /dev/null])

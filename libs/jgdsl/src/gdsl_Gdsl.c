@@ -45,14 +45,14 @@ static jobjectArray get_frontends_with_descs(JNIEnv *env, struct frontend_desc *
 	return jfrontends;
 }
 
-JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative(JNIEnv *env, jobject this) {
+JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNative(JNIEnv *env, jclass cls) {
 	struct frontend_desc *descs = NULL;
 	size_t descs_length = gdsl_multiplex_frontends_list(&descs);
 
 	return get_frontends_with_descs(env, descs, descs_length);
 }
 
-JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNativeWithBase(JNIEnv *env, jobject this, jstring jbase) {
+JNIEXPORT jobjectArray JNICALL Java_gdsl_Gdsl_getFrontendsNativeWithBase(JNIEnv *env, jclass cls, jstring jbase) {
 	const char *base = (*env)->GetStringUTFChars(env, jbase, 0);
 	struct frontend_desc *descs = NULL;
 	size_t descs_length = gdsl_multiplex_frontends_list_with_base(&descs, base);
@@ -124,21 +124,24 @@ JNIEXPORT void JNICALL Java_gdsl_Gdsl_resetHeap(JNIEnv *env, jobject this, jlong
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
 
+//	printf("Resetting heap...\n");
+//	fflush(stdout);
+
 	if(setjmp(*frontend->generic.err_tgt(state)))
 	THROW_GDSL_ERROR()
 
 	frontend->generic.reset_heap(state);
 }
 
-JNIEXPORT void JNICALL Java_gdsl_Gdsl_destroyFrontend(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
+JNIEXPORT void JNICALL Java_gdsl_Gdsl_destroy(JNIEnv *env, jobject this, jlong frontendPtr, jlong gdslStatePtr) {
 	struct frontend *frontend = (struct frontend*)frontendPtr;
 	state_t state = (state_t)gdslStatePtr;
+
+//	printf("Destroying Gdsl...\n");
+//	fflush(stdout);
 
 	if(setjmp(*frontend->generic.err_tgt(state)))
 	THROW_GDSL_ERROR()
 
 	frontend->generic.destroy(state);
-
-	gdsl_multiplex_frontend_close(frontend);
-	free(frontend);
 }

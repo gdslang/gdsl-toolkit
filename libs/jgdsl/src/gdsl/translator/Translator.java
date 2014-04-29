@@ -46,12 +46,21 @@ public class Translator {
    * 
    * @return a collection of RReil statements built by the associated RReil builder
    */
-  public IRReilCollection<IStatement> translateOptimizeBlock (long limit, SemPres preservation) {
+  public TranslatedBlock translateOptimizeBlock (long limit, SemPres preservation) {
+    gdsl.heapManager.ref();
     Frontend frontend = gdsl.getFrontend();
+    TranslatedBlockRaw blockRaw;
     if (frontend.isConfigured())
-      return backend.translateOptimizeBlockWithConfig(frontend.getPointer(), gdsl.getGdslStatePtr(), frontend
+      blockRaw = backend.translateOptimizeBlockWithConfig(frontend.getPointer(), gdsl.getGdslStatePtr(), frontend
           .getConfig().vector(), limit, preservation.getId());
-    else
-      return backend.translateOptimizeBlock(frontend.getPointer(), gdsl.getGdslStatePtr(), limit, preservation.getId());
+    else {
+      blockRaw = backend.translateOptimizeBlock(frontend.getPointer(), gdsl.getGdslStatePtr(), limit, preservation.getId());
+    }
+    long[] instructionPointers = blockRaw.getInstructions();
+    Instruction[] instructions = new Instruction[instructionPointers.length];
+    for (int i = 0; i < instructions.length; i++)
+      instructions[i] = new Instruction(gdsl, instructionPointers[i], 0);
+    gdsl.heapManager.unref();
+    return new TranslatedBlock(instructions, blockRaw.getRreil());
   }
 }

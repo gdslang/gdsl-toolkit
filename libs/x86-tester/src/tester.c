@@ -129,14 +129,19 @@ static void registers_x86_rreil_init(struct context *context_rreil, struct track
 	executor_virt_calc(context_rreil);
 }
 
-static void ip_set(struct context *context_rreil, struct context *context_cpu, void *next_instruction_address) {
+static void ip_set(struct context *context_rreil, struct context *context_cpu, void *instruction_address,
+		size_t instruction_length) {
 	struct data insn_address;
-	insn_address.data = (uint8_t*)&next_instruction_address;
-	insn_address.bit_length = sizeof(next_instruction_address) * 8;
+	insn_address.data = (uint8_t*)&instruction_address;
+	insn_address.bit_length = sizeof(instruction_address) * 8;
 	context_data_define(&insn_address);
 
-	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP], insn_address, 0);
 	simulator_register_generic_write(&context_rreil->x86_registers[X86_ID_IP], insn_address, 0);
+
+	size_t next_instruction_address = (size_t)instruction_address + instruction_length;
+	insn_address.data = (uint8_t*)&next_instruction_address;
+
+	simulator_register_generic_write(&context_cpu->x86_registers[X86_ID_IP], insn_address, 0);
 
 	free(insn_address.defined);
 }
@@ -219,15 +224,15 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	cls.trace = trace;
 
 	void *code;
-	void *next_instruction_address;
+	void *instruction_address;
 	struct tbgen_result tbgen_result = executor_instruction_mapped_generate(instruction, instruction_length, trace,
-			context_cpu, &code, &next_instruction_address, test_unused);
+			context_cpu, &code, &instruction_address, test_unused);
 	if(tbgen_result.result != TBGEN_RTYPE_SUCCESS) {
 		result.type = TESTER_RTYPE_TBGEN_ERROR;
 		goto cu_c;
 	}
 
-	ip_set(context_rreil, context_cpu, next_instruction_address);
+	ip_set(context_rreil, context_cpu, instruction_address, instruction_length);
 
 	printf("------------------\n");
 	context_x86_print(context_rreil);
@@ -287,8 +292,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 	printf("------------------\n");
 //	if(!retval) {
 	char retval = context_compare_print(trace, context_cpu, context_rreil, test_unused);
-	if(retval)
-		result.type = TESTER_RTYPE_COMPARISON_ERROR;
+	if(retval) result.type = TESTER_RTYPE_COMPARISON_ERROR;
 //	} else
 //		printf(
 //				"Comparison skipped because of the failure to execute the test function.\n");
@@ -300,7 +304,7 @@ struct tester_result tester_test_translated(struct rreil_statements *statements,
 
 	munmap(code, tbgen_result.buffer_length);
 
-	cu_c:;
+	cu_c: ;
 
 	context_free(context_cpu);
 
@@ -362,8 +366,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 
 	printf("[");
 	for(size_t i = 0; i < data_size; ++i) {
-		if(i)
-			printf(" ");
+		if(i) printf(" ");
 		printf("%02x", data[i]);
 	}
 	printf("] ");
@@ -378,8 +381,7 @@ struct tester_result tester_test_binary(void (*name)(char *), char fork_, uint8_
 	str = gdwrap_x86_pretty(state, insn, GDSL_X86_PRINT_MODE_SIMPLE);
 	if(str) {
 		puts(str);
-		if(name)
-			name(str);
+		if(name) name(str);
 	} else
 		printf("NULL\n");
 //	free(str);

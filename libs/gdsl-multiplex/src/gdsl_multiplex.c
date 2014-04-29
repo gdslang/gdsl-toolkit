@@ -94,7 +94,7 @@ size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
 #define ADD_FUNCTION(CAT,FUNC) ADD_FUNCTION_GENERIC(CAT,FUNC,"gdsl_" #FUNC)
 
 static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
-	char error;
+	char error = 0;
 
 	ADD_FUNCTION(generic, init)
 	ADD_FUNCTION(generic, set_code)
@@ -116,7 +116,7 @@ static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
 	ADD_FUNCTION(translator, rreil_cif_userdata_set)
 	ADD_FUNCTION(translator, rreil_cif_userdata_get)
 	ADD_FUNCTION(translator, rreil_convert_sem_stmts)
-	ADD_FUNCTION(translator, decode_translate_block_optimized_int)
+	ADD_FUNCTION(translator, decode_translate_block_optimized_int_insncb)
 
 	if(error) return GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND;
 

@@ -28,6 +28,8 @@ public class ListFrontend extends Frontend {
   public ListFrontend (String name, String ext) {
     super(name);
     this.ext = ext;
+    
+    initializeNative();
   }
 
   /**
@@ -46,7 +48,7 @@ public class ListFrontend extends Frontend {
     return getName().equals(other.getName()) && ext.equals(other.ext);
   }
 
-  @Override protected void initializeNative () {
+  private void initializeNative () {
     setPointer(getFrontendPtrByDesc());
   }
 
