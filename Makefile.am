@@ -181,6 +181,16 @@ GDSL_X86SEM = \
 	$(srcdir)/specifications/x86/x86-rreil-registermapping.ml \
 	$(srcdir)/specifications/x86/x86-liveness.ml
 
+GDSL_MIPS = \
+	$(srcdir)/specifications/mips/mips.ml \
+	$(srcdir)/specifications/mips/mips-pretty.ml
+
+GDSL_MIPSSEM = \
+	$(srcdir)/specifications/mips/mips-rreil-translator.ml \
+	$(srcdir)/specifications/mips/mips-rreil-registermapping.ml \
+	$(srcdir)/specifications/mips/mips-rreil-pretty.ml \
+	$(srcdir)/specifications/mips/mips-liveness.ml
+
 GDSL_AVR = \
 	$(srcdir)/specifications/avr/avr.ml \
 	$(srcdir)/specifications/avr/avr-util.ml \
@@ -272,6 +282,11 @@ nodist_libgdsl_avr_rreil_la_SOURCES = gdsl-avr-rreil.c
 libgdsl_avr_rreil_la_DEPENDENCIES = $(GDSLC_DEP)
 
 GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_AVR) $(GDSL_RREIL) $(GDSL_AVRSEM)
+gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
+	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
+
+## MIPS SELECTOR
+GS_AVR_RREIL =  $(GDSL_BASIS) $(GDSL_MIPS) $(GDSL_RREIL) $(GDSL_MIPSSEM)
 gdsl-avr-rreil.c: $(GDSLC_DEP) $(GS_AVR_RREIL)
 	$(GDSLC) -o $(basename $@) $(GDSLFLAGS) $(GS_AVR_RREIL)
 
