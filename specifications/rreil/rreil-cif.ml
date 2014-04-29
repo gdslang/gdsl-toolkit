@@ -153,7 +153,7 @@ end
 
 val rreil-convert-sem-exception cbs exception = case exception of
    SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared 0
- | _: cbs.sem_exception.arch (index exception)
+ | _: cbs.sem_exception.arch (pretty-arch-exception exception)
 end
 
 val rreil-convert-sem-stmt cbs stmt = case stmt of

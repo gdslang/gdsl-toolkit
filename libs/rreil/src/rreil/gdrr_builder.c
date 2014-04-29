@@ -53,22 +53,26 @@ obj_t sem_id_arch(state_t state, int_t con) {
 
 // sem_exception
 static obj_t exception_shared(state_t state, int_t con) {
-	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
-	id->type = RREIL_ID_TYPE_SHARED;
+	struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
+	exception->type = RREIL_EXCEPTION_TYPE_SHARED;
 	switch(con) {
-		case FLOATING_FLAGS: {
-			id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
+		case DIVISION_BY_ZERO: {
+			exception->type = RREIL_EXCEPTION_SHARED_DIVISION_BY_ZERO;
 			break;
 		}
+		default: {
+			free(exception);
+			return NULL;
+		}
 	}
-	return (obj_t)id;
+	return (obj_t)exception;
 }
 
 #ifdef GDSL_X86
-obj_t exception_arch(state_t state, int_t con) {
+obj_t exception_arch(state_t state, obj_t ex_rope) {
 	struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
 	exception->type = RREIL_EXCEPTION_TYPE_X86;
-	exception->x86 = x86_exception_from_con(con);
+	exception->x86 = x86_exception_from_name(gdsl_merge_rope(state, ex_rope));
 	return exception;
 }
 #else

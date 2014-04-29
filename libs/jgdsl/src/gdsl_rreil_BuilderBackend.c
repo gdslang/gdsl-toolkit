@@ -110,9 +110,9 @@ static obj_t shared(state_t state, int_t con) {
 			ret = java_method_call(state, "shared_floating_flags", 0);
 			break;
 		}
-		/*
-		 * Todo: Throw exception in default case
-		 */
+			/*
+			 * Todo: Throw exception in default case
+			 */
 	}
 	return (obj_t)ret;
 }
@@ -143,23 +143,14 @@ static obj_t exception_shared(state_t state, int_t con) {
 	}
 	return (obj_t)ret;
 }
-#ifdef GDSL_X86
-static obj_t exception_arch(state_t state, int_t con) {
-	jobject ret = NULL;
-//	switch(con) {
-//		case CON_SEM_DIVISION_OVERFLOW: {
-//			ret = java_method_call(state, "exception_x86_division_overflow", 0);
-//			break;
-//		}
-//	}
+static obj_t exception_arch(state_t state, obj_t ex_rope) {
+	struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
+	jstring id_str = java_string_create(state,
+			ud->frontend->generic.merge_rope(state, ud->frontend->translator.pretty_id(state, ex_rope)));
+
+	jobject ret = java_method_call(state, "exception_arch", 1, (jobject)id_str);
 	return (obj_t)ret;
 }
-#else
-static obj_t exception_arch(state_t state, int_t con) {
-	jobject ret = java_method_call(state, "exception_arch", 1, java_long_create(state, (long int) con));
-	return (obj_t) ret;
-}
-#endif
 
 // sem_address
 static obj_t sem_address(state_t state, int_t size, obj_t address) {

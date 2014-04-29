@@ -65,8 +65,8 @@ static obj_t exception_shared(state_t state, int_t con) {
 	}
 	return (obj_t)0;
 }
-static obj_t exception_arch(state_t state, int_t con) {
-	printf("> exception_arch#%lld\n", con);
+static obj_t exception_arch(state_t state, obj_t ex_rope) {
+	printf("> exception_arch#%s\n", gdsl_merge_rope(state, ex_rope));
 	return (obj_t)0;
 }
 

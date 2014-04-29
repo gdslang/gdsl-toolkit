@@ -1,4 +1,4 @@
-export = pretty-id
+export = pretty-id pretty-arch-exception
 
 val arch-show-id r = case r of
      Sem_IP : "IP"
@@ -78,3 +78,5 @@ val arch-show-exception exception =
    case exception of
       SEM_DIVISION_OVERFLOW: "{Exception: Division overflow}"
    end
+
+val pretty-arch-exception exception = arch-show-exception exception

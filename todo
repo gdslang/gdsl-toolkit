@@ -4,3 +4,8 @@
 - Register als String im rreil-cif (statt Callback für jedes Register)
 - Anderer Name für libutil
 - (!!) multiplex von gdsl.h entkoppeln
+- pretty-id => pretty-arch-id
+
+Weniger wichtig:
+
+- Für Register / Exceptions: IDs + Strings statt nur Strings?

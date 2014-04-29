@@ -31,9 +31,7 @@ public interface IRReilBuilder {
 
   IException exception_shared_division_by_zero ();
 
-  IException exception_x86_division_overflow ();
-
-  IException exception_arch (long con);
+  IException exception_arch (String ex);
 
   /*
    * sem_address

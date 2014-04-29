@@ -664,11 +664,9 @@ enum x86_id x86_reg_from_name(char const *name) {
 	return 0;
 }
 
-enum x86_exception x86_exception_from_con(int_t con) {
-	switch(con) {
-		case CON_SEM_DIVISION_OVERFLOW: {
-			return X86_EXCEPTION_DIVISION_OVERFLOW;
-		}
+enum x86_exception x86_exception_from_name(char const *name) {
+	if(!strcmp(name, "{Exception: Division overflow}")) {
+		return X86_EXCEPTION_DIVISION_OVERFLOW;
 	}
 	return 0;
 }

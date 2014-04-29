@@ -139,6 +139,6 @@ extern void x86_exception_print(FILE *stream, enum x86_exception exception);
 extern size_t x86_amd64_sizeof(enum x86_id id);
 extern enum x86_id_type x86_id_type_get(enum x86_id id);
 extern enum x86_id x86_reg_from_name(char const *name);
-extern enum x86_exception x86_exception_from_con(int_t con);
+extern enum x86_exception x86_exception_from_name(char const *name);
 
 #endif /* X86_H_ */

@@ -38,12 +38,8 @@ public class BuilderBackend {
     return builder.exception_shared_division_by_zero();
   }
 
-  private Object exception_x86_division_overflow () {
-    return builder.exception_x86_division_overflow();
-  }
-
   private Object exception_arch (Object t) {
-    return builder.exception_arch((Long) t);
+    return builder.exception_arch((String) t);
   }
 
   private Object virt_t (Object t) {

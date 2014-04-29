@@ -99,12 +99,8 @@ public class DefaultRReilBuilder implements IRReilBuilder {
     return gdsl.rreil.exception.Exception.DIVISION_BY_ZERO;
   }
 
-  @Override public IException exception_x86_division_overflow () {
-    return X86Exception.DIVISION_OVERFLOW;
-  }
-
-  @Override public IException exception_arch (long con) {
-    return new GenericArchException(con);
+  @Override public IException exception_arch (String ex) {
+    return new GenericArchException(ex);
   }
 
   /*
