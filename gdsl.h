@@ -9,6 +9,10 @@
 #include "gdsl-avr.h"
 #elif USE_AVR_RREIL
 #include "gdsl-avr-rreil.h"
+#elif USE_MIPS
+#include "gdsl-mips.h"
+#elif USE_MIPS_RREIL
+#include "gdsl-mips-rreil.h"
 #endif
  
 
