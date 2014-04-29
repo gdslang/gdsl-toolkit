@@ -46,30 +46,6 @@ public class BuilderBackend {
     return builder.exception_arch((Long) t);
   }
 
-  // private Object virt_eq() {
-  // return builder.virt_eq();
-  // }
-  //
-  // private Object virt_neq() {
-  // return builder.virt_neq();
-  // }
-
-  private Object virt_les () {
-    return builder.virt_les();
-  }
-
-  private Object virt_leu () {
-    return builder.virt_leu();
-  }
-
-  private Object virt_lts () {
-    return builder.virt_lts();
-  }
-
-  // private Object virt_ltu() {
-  // return builder.virt_ltu();
-  // }
-
   private Object virt_t (Object t) {
     return builder.virt_t((Long) t);
   }

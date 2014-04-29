@@ -21,18 +21,6 @@ public interface IRReilBuilder {
 
   IId shared_floating_flags ();
 
-//	IId virt_eq();
-//
-//	IId virt_neq();
-
-  IId virt_les ();
-
-  IId virt_leu ();
-
-  IId virt_lts ();
-
-//	IId virt_ltu();
-
   IId virt_t (long t);
 
   IId arch (String name);

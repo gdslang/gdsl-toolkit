@@ -58,12 +58,6 @@ val rreil-cif-userdata-get = query $userdata
 #val rreil-callbacks sem_id sem_address sem_var sem_linear sem_sexpr sem_expr_cmp sem_expr sem_stmt branch_hint sem_stmts sem_stmts_list = {sem_id=sem_id, sem_address=sem_address, sem_var=sem_var, sem_linear=sem_linear, sem_sexpr=sem_sexpr, sem_expr_cmp=sem_expr_cmp, sem_expr=sem_expr, sem_stmt=sem_stmt, branch_hint=branch_hint, sem_stmts=sem_stmts, sem_stmts_list=sem_stmts_list}
 
 val rreil-convert-sem-id cbs id = case id of
-#   VIRT_EQ: cbs.sem_id.virt_na (index id)
-# | VIRT_NEQ: cbs.sem_id.virt_na (index id)
-# | VIRT_LES: cbs.sem_id.virt_na (index id)
-# | VIRT_LEU: cbs.sem_id.virt_na (index id)
-# | VIRT_LTS: cbs.sem_id.virt_na (index id)
-# | VIRT_LTU: cbs.sem_id.virt_na (index id)
    FLOATING_FLAGS: cbs.sem_id.shared (index id)
  | VIRT_T t: cbs.sem_id.virt_t t
  | _: cbs.sem_id.arch id
