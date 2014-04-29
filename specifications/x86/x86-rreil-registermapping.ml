@@ -242,6 +242,17 @@ val semantic-register-of-operand-with-size opnd size =
 
 val semantic-register id offset size = {id=id,offset=offset,size=size}
 
+#val translate-id id = let
+#  val from-rid rid = let
+#    val sem = semantic-register-of rid
+#  in
+#    {id=arch-show-id sem.id, offset=sem.offset, size=sem.size}
+#  end
+#in
+#  if id == "AL" then (from-rid AL)
+#  else (from-rid FLAGS)
+#end
+
 val is-avx-sse id =
   case id of
      Sem_XMM0 : '1'

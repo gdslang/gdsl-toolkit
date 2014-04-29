@@ -66,7 +66,7 @@ val rreil-convert-sem-id cbs id = case id of
 # | VIRT_LTU: cbs.sem_id.virt_na (index id)
    FLOATING_FLAGS: cbs.sem_id.shared (index id)
  | VIRT_T t: cbs.sem_id.virt_t t
- | _: cbs.sem_id.arch (index id)
+ | _: cbs.sem_id.arch id
 end
 
 val rreil-convert-sem-address cbs address = cbs.sem_address.sem_address_ address.size (rreil-convert-sem-linear cbs address.address)
