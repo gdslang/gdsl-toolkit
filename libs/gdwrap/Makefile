@@ -2,7 +2,13 @@ MLTK=../..
 CC=gcc
 #CC=clang
 INCDS=-Iinclude -I$(MLTK)/include
-CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
+
+
+DEFINES=-DRELAXEDFATAL
+ifdef GDSL_X86
+DEFINES+=-DGDSL_X86
+endif
+CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
 LIBRARY=libgdwrap.a
 SOURCES=gdwrap.c

@@ -595,7 +595,7 @@ endif
 
 if X86_RREIL
 libgdwrap_la_SOURCES = $(srcdir)/libs/gdwrap/src/gdwrap.c
-libgdwrap_la_CFLAGS = -I$(srcdir)/libs/gdwrap/include
+libgdwrap_la_CFLAGS = -DGDSL_X86 -I$(srcdir)/libs/gdwrap/include
 include_HEADERS += $(srcdir)/libs/gdwrap/include/gdwrap.h
 endif
 
@@ -636,7 +636,7 @@ if HAVE_RREIL
 libgdsl_multiplex_la_SOURCES = $(srcdir)/libs/gdsl-multiplex/src/gdsl_multiplex.c
 libgdsl_multiplex_la_CFLAGS = -std=c99 -I$(srcdir)/libs/gdsl-multiplex/include
 libgdsl_multiplex_la_LDFLAGS = -ldl
-include_HEADERS += $(srcdir)/libs/gdsl-multiplex/include/gdsl_multiplex.h
+include_HEADERS += $(srcdir)/libs/gdsl-multiplex/include/gdsl_multiplex.h $(srcdir)/libs/gdsl-multiplex/include/gdsl_generic.h
 if HAVE_MEMSTREAM
 libgdsl_multiplex_la_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 libgdsl_multiplex_la_LIBADD += libmemstream.la

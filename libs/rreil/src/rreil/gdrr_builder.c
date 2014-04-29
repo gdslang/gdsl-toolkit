@@ -43,10 +43,10 @@ obj_t sem_id_arch(state_t state, obj_t name_rope) {
 	return id;
 }
 #else
-obj_t sem_id_arch(state_t state, int_t con) {
+obj_t sem_id_arch(state_t state, obj_t name_rope) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_ARCH;
-	id->arch = (uint32_t)con;
+	id->arch = -1;
 	return id;
 }
 #endif
@@ -76,10 +76,10 @@ obj_t exception_arch(state_t state, obj_t ex_rope) {
 	return exception;
 }
 #else
-obj_t exception_arch(state_t state, int_t con) {
+obj_t exception_arch(state_t state, obj_t ex_rope) {
 	struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
 	exception->type = RREIL_EXCEPTION_TYPE_ARCH;
-	exception->arch = (uint32_t)con;
+	exception->arch = -1;
 	return exception;
 }
 #endif

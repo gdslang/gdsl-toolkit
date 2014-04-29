@@ -1,4 +1,4 @@
-export = pretty-id
+export = pretty-id pretty-arch-exception
 
 val arch-show-id r =
   case r of
@@ -10,3 +10,5 @@ val arch-show-id r =
 val pretty-id r = arch-show-id r
 
 val arch-show-exception exception = case 0 of 1: "" end
+
+val pretty-arch-exception exception = arch-show-exception exception
