@@ -7,7 +7,7 @@ package gdsl.arch;
  * @author Julian Kranz
  */
 public enum ArchId {
-  X86, AVR;
+  X86, AVR, MIPS;
 
   private String name;
 
