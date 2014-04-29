@@ -58,7 +58,7 @@ val rreil-cif-userdata-get = query $userdata
 #val rreil-callbacks sem_id sem_address sem_var sem_linear sem_sexpr sem_expr_cmp sem_expr sem_stmt branch_hint sem_stmts sem_stmts_list = {sem_id=sem_id, sem_address=sem_address, sem_var=sem_var, sem_linear=sem_linear, sem_sexpr=sem_sexpr, sem_expr_cmp=sem_expr_cmp, sem_expr=sem_expr, sem_stmt=sem_stmt, branch_hint=branch_hint, sem_stmts=sem_stmts, sem_stmts_list=sem_stmts_list}
 
 val rreil-convert-sem-id cbs id = case id of
-   FLOATING_FLAGS: cbs.sem_id.shared (index id)
+   FLOATING_FLAGS: cbs.sem_id.shared 0
  | VIRT_T t: cbs.sem_id.virt_t t
  | _: cbs.sem_id.arch id
 end
@@ -107,7 +107,15 @@ val rreil-convert-sem-expr cbs expr = case expr of
  | SEM_ZX s: cbs.sem_expr.sem_zx s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
 end
 
-val rreil-convert-branch-hint cbs hint = cbs.branch_hint.branch_hint_ (index hint)
+val rreil-convert-branch-hint cbs hint = let
+  val enum = case hint of
+     HINT_JUMP: 0
+   | HINT_CALL: 1
+   | HINT_RET: 2 
+end
+in
+  cbs.branch_hint.branch_hint_ enum
+end
 
 val rreil-convert-sem-varl cbs varl = cbs.sem_varl.sem_varl_ (rreil-convert-sem-id cbs varl.id) varl.offset varl.size
 
@@ -133,10 +141,18 @@ val rreil-sem-varls-has-more varls = case varls of
  | SEM_VARLS_NIL: '0'
 end
 
-val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (index flop)
+val rreil-convert-sem-flop cbs flop = let
+  val enum = case flop of
+     SEM_FADD: 0
+   | SEM_FSUB: 1
+   | SEM_FMUL: 2 
+  end
+in
+  cbs.sem_flop.sem_flop_ enum
+end
 
 val rreil-convert-sem-exception cbs exception = case exception of
-   SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared (index exception)
+   SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared 0
  | _: cbs.sem_exception.arch (index exception)
 end
 

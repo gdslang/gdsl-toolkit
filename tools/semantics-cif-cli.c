@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <readhex.h>
 #include <gdsl.h>
+#include <gdsl_generic.h>
 
 static obj_t indent_unary(obj_t a) {
 	size_t me = (size_t)a + 1;
@@ -38,7 +39,7 @@ static obj_t indent_quaternary(obj_t a, obj_t b, obj_t c, obj_t d) {
 //}
 static obj_t shared(state_t state, int_t con) {
 	switch(con) {
-		case CON_FLOATING_FLAGS: {
+		case FLOATING_FLAGS: {
 			printf("> FLOATING_FLAGS\n");
 			break;
 		}
@@ -49,16 +50,16 @@ static obj_t virt_t(state_t state, int_t t) {
 	printf("> t%lld\n", t);
 	return (obj_t)0;
 }
-static obj_t arch(state_t state, int_t con) {
-	printf("> arch#%lld\n", con);
+static obj_t arch(state_t state, obj_t name_rope) {
+	printf("> %s\n", gdsl_merge_rope(state, name_rope));
 	return (obj_t)0;
 }
 
 // sem_exception
 static obj_t exception_shared(state_t state, int_t con) {
 	switch(con) {
-		case CON_SEM_DIVISION_BY_ZERO: {
-			printf("> CON_SEM_DIVISION_BY_ZERO\n");
+		case DIVISION_BY_ZERO: {
+			printf("> DIVISION_BY_ZERO\n");
 			break;
 		}
 	}

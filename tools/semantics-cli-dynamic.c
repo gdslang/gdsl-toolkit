@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <readhex.h>
-#include <gdsl_multiplex.h>
 #include <gdsl.h>
+#include <gdsl_multiplex.h>
 
 int main(int argc, char** argv) {
 	char retval = 0;

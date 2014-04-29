@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <gdsl.h>
+#include <gdsl_generic.h>
 #include <gdsl_multiplex.h>
 #include "gdsl_rreil_BuilderBackend.h"
 #include "util.h"
@@ -106,44 +106,17 @@ static jstring java_string_create(state_t state, char *x) {
 static obj_t shared(state_t state, int_t con) {
 	jobject ret = NULL;
 	switch(con) {
-		case CON_FLOATING_FLAGS: {
+		case FLOATING_FLAGS: {
 			ret = java_method_call(state, "shared_floating_flags", 0);
 			break;
 		}
+		/*
+		 * Todo: Throw exception in default case
+		 */
 	}
 	return (obj_t)ret;
 }
 
-//static obj_t virt_na(state_t state, int_t con) {
-//	jobject ret;
-//	switch(con) {
-//		case CON_VIRT_EQ: {
-//			ret = java_method_call(state, "virt_eq", 0);
-//			break;
-//		}
-//		case CON_VIRT_NEQ: {
-//			ret = java_method_call(state, "virt_neq", 0);
-//			break;
-//		}
-//		case CON_VIRT_LES: {
-//			ret = java_method_call(state, "virt_les", 0);
-//			break;
-//		}
-//		case CON_VIRT_LEU: {
-//			ret = java_method_call(state, "virt_leu", 0);
-//			break;
-//		}
-//		case CON_VIRT_LTS: {
-//			ret = java_method_call(state, "virt_lts", 0);
-//			break;
-//		}
-//		case CON_VIRT_LTU: {
-//			ret = java_method_call(state, "virt_ltu", 0);
-//			break;
-//		}
-//	}
-//	return (obj_t)ret;
-//}
 static obj_t virt_t(state_t state, int_t t) {
 	jobject ret = java_method_call(state, "virt_t", 1, java_long_create(state, (long int)t));
 	return (obj_t)ret;
@@ -163,7 +136,7 @@ static obj_t arch(state_t state, obj_t id) {
 static obj_t exception_shared(state_t state, int_t con) {
 	jobject ret = NULL;
 	switch(con) {
-		case CON_SEM_DIVISION_BY_ZERO: {
+		case DIVISION_BY_ZERO: {
 			ret = java_method_call(state, "exception_shared_division_by_zero", 0);
 			break;
 		}
@@ -172,13 +145,13 @@ static obj_t exception_shared(state_t state, int_t con) {
 }
 #ifdef GDSL_X86
 static obj_t exception_arch(state_t state, int_t con) {
-	jobject ret;
-	switch(con) {
-		case CON_SEM_DIVISION_OVERFLOW: {
-			ret = java_method_call(state, "exception_x86_division_overflow", 0);
-			break;
-		}
-	}
+	jobject ret = NULL;
+//	switch(con) {
+//		case CON_SEM_DIVISION_OVERFLOW: {
+//			ret = java_method_call(state, "exception_x86_division_overflow", 0);
+//			break;
+//		}
+//	}
 	return (obj_t)ret;
 }
 #else
@@ -345,15 +318,15 @@ static obj_t sem_varls_init(state_t state, obj_t nothing) {
 static obj_t sem_flop(state_t state, int_t con) {
 	jobject ret;
 	switch(con) {
-		case CON_SEM_FADD: {
+		case FADD: {
 			ret = java_method_call(state, "sem_flop_fadd", 0);
 			break;
 		}
-		case CON_SEM_FSUB: {
+		case FSUB: {
 			ret = java_method_call(state, "sem_flop_fsub", 0);
 			break;
 		}
-		case CON_SEM_FMUL: {
+		case FMUL: {
 			ret = java_method_call(state, "sem_flop_fmul", 0);
 			break;
 		}
@@ -407,17 +380,23 @@ static obj_t sem_prim(state_t state, obj_t op, obj_t lhs, obj_t rhs) {
 static obj_t branch_hint(state_t state, int_t con) {
 	char *func_n;
 	switch(con) {
-		case CON_HINT_JUMP: {
+		case HINT_JUMP: {
 			func_n = "hint_jump";
 			break;
 		}
-		case CON_HINT_CALL: {
+		case HINT_CALL: {
 			func_n = "hint_call";
 			break;
 		}
-		case CON_HINT_RET: {
+		case HINT_RET: {
 			func_n = "hint_ret";
 			break;
+		}
+		default: {
+			return NULL;
+			/*
+			 * Todo: Exception
+			 */
 		}
 	}
 	jobject ret = java_method_call(state, func_n, 0);

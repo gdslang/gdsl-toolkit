@@ -8,7 +8,8 @@
 #ifndef GDSL_MULTIPLEX_H_
 #define GDSL_MULTIPLEX_H_
 
-#include <gdsl.h>
+#include <gdsl_generic.h>
+#include <setjmp.h>
 #include <stdint.h>
 
 struct frontend_desc {

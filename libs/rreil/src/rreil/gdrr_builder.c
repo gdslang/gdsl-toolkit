@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <gdsl.h>
+#include <gdsl_generic.h>
 #include <rreil/rreil.h>
 
 #ifdef GDSL_X86
@@ -20,7 +21,7 @@ static obj_t shared(state_t state, int_t con) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_SHARED;
 	switch(con) {
-		case CON_FLOATING_FLAGS: {
+		case FLOATING_FLAGS: {
 			id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
 			break;
 		}
@@ -55,7 +56,7 @@ static obj_t exception_shared(state_t state, int_t con) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_SHARED;
 	switch(con) {
-		case CON_FLOATING_FLAGS: {
+		case FLOATING_FLAGS: {
 			id->shared = RREIL_ID_SHARED_FLOATING_FLAGS;
 			break;
 		}
@@ -326,15 +327,15 @@ static obj_t sem_varls_init(state_t state, obj_t nothing) {
 static obj_t sem_flop(state_t state, int_t con) {
 	enum rreil_flop *rreil_flop = (enum rreil_flop*)malloc(sizeof(enum rreil_flop));
 	switch(con) {
-		case CON_SEM_FADD: {
+		case FADD: {
 			*rreil_flop = RREIL_FLOP_SEM_FADD;
 			break;
 		}
-		case CON_SEM_FSUB: {
+		case FSUB: {
 			*rreil_flop = RREIL_FLOP_SEM_FSUB;
 			break;
 		}
-		case CON_SEM_FMUL: {
+		case FMUL: {
 			*rreil_flop = RREIL_FLOP_SEM_FMUL;
 			break;
 		}
@@ -425,15 +426,15 @@ static obj_t sem_throw(state_t state, obj_t exception) {
 static obj_t branch_hint(state_t state, int_t con) {
 	enum rreil_branch_hint *hint = (enum rreil_branch_hint*)malloc(sizeof(enum rreil_branch_hint));
 	switch(con) {
-		case CON_HINT_JUMP: {
+		case HINT_JUMP: {
 			*hint = RREIL_BRANCH_HINT_JUMP;
 			break;
 		}
-		case CON_HINT_CALL: {
+		case HINT_CALL: {
 			*hint = RREIL_BRANCH_HINT_CALL;
 			break;
 		}
-		case CON_HINT_RET: {
+		case HINT_RET: {
 			*hint = RREIL_BRANCH_HINT_RET;
 			break;
 		}
