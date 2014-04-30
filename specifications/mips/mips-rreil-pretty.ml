@@ -1,4 +1,4 @@
-export = pretty-id pretty-arch-exception
+export = pretty-arch-id pretty-arch-exception
 
 val arch-show-id r =
   case r of
@@ -7,7 +7,7 @@ val arch-show-id r =
 	 | Sem_PM: "PM"
 	end
 
-val pretty-id r = arch-show-id r
+val pretty-arch-id r = arch-show-id r
 
 val arch-show-exception exception = case 0 of 1: "" end
 

@@ -1,4 +1,4 @@
-export = pretty-id pretty-arch-exception
+export = pretty-arch-id pretty-arch-exception
 
 val arch-show-id r = case r of
      Sem_IP : "IP"
@@ -72,7 +72,7 @@ val arch-show-id r = case r of
 #    | VIRT_LTU: "LTU"
 end
 
-val pretty-id r = arch-show-id r
+val pretty-arch-id r = arch-show-id r
 
 val arch-show-exception exception =
    case exception of

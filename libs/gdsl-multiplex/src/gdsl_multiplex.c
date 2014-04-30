@@ -113,7 +113,7 @@ static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
 	ADD_FUNCTION(decoder, typeof_opnd)
 	ADD_FUNCTION(translator, translate)
 	ADD_FUNCTION_GENERIC(translator, pretty, "gdsl_rreil_pretty")
-	ADD_FUNCTION(translator, pretty_id)
+	ADD_FUNCTION(translator, pretty_arch_id)
 	ADD_FUNCTION(translator, rreil_cif_userdata_set)
 	ADD_FUNCTION(translator, rreil_cif_userdata_get)
 	ADD_FUNCTION(translator, rreil_convert_sem_stmts)

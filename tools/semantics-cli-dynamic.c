@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <readhex.h>
-#include <gdsl.h>
 #include <gdsl_multiplex.h>
 
 int main(int argc, char** argv) {
@@ -72,9 +71,9 @@ int main(int argc, char** argv) {
 
 	printf("Mnemonic: %s\n", frontend.generic.merge_rope(state, frontend.decoder.pretty_mnemonic(state, insn)));
 	int_t operands = frontend.decoder.operands(state, insn);
-	printf("Number of operands: %ld\n", operands);
+	printf("Number of operands: %lld\n", operands);
 	for(int_t i = 0; i < operands; ++i) {
-		printf("Operand %ld (type: %ld): %s\n", i, frontend.decoder.typeof_opnd(state, insn, i),
+		printf("Operand %lld (type: %lld): %s\n", i, frontend.decoder.typeof_opnd(state, insn, i),
 				frontend.generic.merge_rope(state, frontend.decoder.pretty_operand(state, insn, i)));
 	}
 

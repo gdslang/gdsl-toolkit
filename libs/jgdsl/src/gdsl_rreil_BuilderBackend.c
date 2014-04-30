@@ -125,7 +125,7 @@ static obj_t virt_t(state_t state, int_t t) {
 static obj_t arch(state_t state, obj_t id) {
 	struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
 	jstring id_str = java_string_create(state,
-			ud->frontend->generic.merge_rope(state, ud->frontend->translator.pretty_id(state, id)));
+			ud->frontend->generic.merge_rope(state, ud->frontend->translator.pretty_arch_id(state, id)));
 
 	jobject ret = java_method_call(state, "arch", 1, (jobject)id_str);
 
@@ -146,7 +146,7 @@ static obj_t exception_shared(state_t state, int_t con) {
 static obj_t exception_arch(state_t state, obj_t ex_rope) {
 	struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
 	jstring id_str = java_string_create(state,
-			ud->frontend->generic.merge_rope(state, ud->frontend->translator.pretty_id(state, ex_rope)));
+			ud->frontend->generic.merge_rope(state, ud->frontend->translator.pretty_arch_id(state, ex_rope)));
 
 	jobject ret = java_method_call(state, "exception_arch", 1, (jobject)id_str);
 	return (obj_t)ret;
