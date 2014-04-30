@@ -4,7 +4,7 @@ CC=gcc
 INCDS=-Iinclude -I$(MLTK)/include
 CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 
-LIBRARY=libutil.a
+LIBRARY=libgdutil.a
 SOURCES=stack.c util.c
 
 all: pre-build $(LIBRARY)

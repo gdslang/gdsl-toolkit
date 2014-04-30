@@ -69,12 +69,12 @@ libs/rreil/src/rreil/librreil_la-print.lo
 libs/rreil/src/rreil/librreil_la-print.o
 libs/rreil/src/rreil/librreil_la-rreil_id.lo
 libs/rreil/src/rreil/librreil_la-rreil_id.o
-libs/util/src/.dirstamp
-libs/util/src/.libs/
-libs/util/src/libutil_la-stack.lo
-libs/util/src/libutil_la-stack.o
-libs/util/src/libutil_la-util.lo
-libs/util/src/libutil_la-util.o
+libs/gdutil/src/.dirstamp
+libs/gdutil/src/.libs/
+libs/gdutil/src/libgdutil_la-stack.lo
+libs/gdutil/src/libgdutil_la-stack.o
+libs/gdutil/src/libgdutil_la-util.lo
+libs/gdutil/src/libgdutil_la-util.o
 libs/x86-generator/src/.dirstamp
 libs/x86-generator/src/.libs/
 libs/x86-generator/src/libx86_generator_la-generator.lo
@@ -125,7 +125,7 @@ tools/x86-test-stats-runner/src/x86_test_stats_runner-main.o
 /libs/readhex/libreadhex.a
 /libs/rreil-sim/librreil-sim.a
 /libs/rreil/librreil.a
-/libs/util/libutil.a
+/libs/gdutil/libgdutil.a
 /libs/x86-generator/libx86-generator.a
 /libs/x86-tester/libx86-tester.a
 /libs/x86/libx86.a
@@ -155,7 +155,7 @@ libs/jrreil/build/
 libs/readhex/build/
 libs/rreil-sim/build/
 libs/rreil/build/
-libs/util/build/
+libs/gdutil/build/
 libs/x86-generator/build/
 libs/x86-tester/build/
 tools/x86-test-runner/build/
@@ -192,7 +192,7 @@ tools/xed-cmp/build/
 /libreadhex.la
 /librreil.la
 /libtool
-/libutil.la
+/libgdutil.la
 /libx86-generator.la
 /semantics-cif-cli
 /semantics-cli

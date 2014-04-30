@@ -481,8 +481,8 @@ endif
 if HAVE_READHEX
 lib_LTLIBRARIES += libreadhex.la
 endif
-if HAVE_UTIL
-lib_LTLIBRARIES += libutil.la
+if HAVE_GDUTIL
+lib_LTLIBRARIES += libgdutil.la
 endif
 if HAVE_X86_TESTER
 lib_LTLIBRARIES += libx86-tester.la
@@ -517,8 +517,8 @@ endif
 if HAVE_READHEX
 noinst_LTLIBRARIES += libreadhex.la
 endif
-if HAVE_UTIL
-noinst_LTLIBRARIES += libutil.la
+if HAVE_GDUTIL
+noinst_LTLIBRARIES += libgdutil.la
 endif
 if HAVE_X86_TESTER
 noinst_LTLIBRARIES += libx86-tester.la
@@ -535,9 +535,9 @@ libreadhex_la_SOURCES = $(srcdir)/libs/readhex/src/readhex.c
 libreadhex_la_CFLAGS = -I$(srcdir)/libs/readhex/include
 include_HEADERS += $(srcdir)/libs/readhex/include/readhex.h
 
-libutil_la_SOURCES = $(srcdir)/libs/util/src/util.c $(srcdir)/libs/util/src/stack.c
-libutil_la_CFLAGS = -std=c99 -I$(srcdir)/libs/util/include
-include_HEADERS += $(srcdir)/libs/util/include/util.h $(srcdir)/libs/util/include/stack.h
+libgdutil_la_SOURCES = $(srcdir)/libs/gdutil/src/util.c $(srcdir)/libs/gdutil/src/stack.c
+libgdutil_la_CFLAGS = -std=c99 -I$(srcdir)/libs/gdutil/include
+include_HEADERS += $(srcdir)/libs/gdutil/include/util.h $(srcdir)/libs/gdutil/include/stack.h
 
 if HAVE_X86_LIB
 libx86_la_SOURCES = $(srcdir)/libs/x86/src/x86.c $(srcdir)/libs/x86/src/x86_features.c
@@ -552,7 +552,7 @@ librreil_la_SOURCES = $(srcdir)/libs/rreil/src/rreil/alloc.c \
                       $(srcdir)/libs/rreil/src/rreil/gdrr_builder.c \
                       $(srcdir)/libs/rreil/src/rreil/free.c \
                       $(srcdir)/libs/rreil/src/rreil/rreil_id.c
-librreil_la_CFLAGS = -std=c11 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/util/include
+librreil_la_CFLAGS = -std=c11 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/gdutil/include
 if HAVE_X86_LIB
 librreil_la_CFLAGS += -I$(srcdir)/libs/x86/include
 endif
@@ -583,7 +583,7 @@ librreil_sim_la_SOURCES = $(srcdir)/libs/rreil-sim/src/simulator/simulator.c \
                       $(srcdir)/libs/rreil-sim/src/simulator/tracking.c \
                       $(srcdir)/libs/rreil-sim/src/memory.c \
                       $(srcdir)/libs/rreil-sim/src/context.c
-librreil_sim_la_CFLAGS = -std=c99 -DGDSL_X86 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/util/include -I$(srcdir)/libs/x86/include
+librreil_sim_la_CFLAGS = -std=c99 -DGDSL_X86 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/gdutil/include -I$(srcdir)/libs/x86/include
 include_HEADERS += $(srcdir)/libs/rreil-sim/include/memory.h \
                    $(srcdir)/libs/rreil-sim/include/simulator/register.h \
                    $(srcdir)/libs/rreil-sim/include/simulator/tracking.h \
@@ -603,7 +603,7 @@ if HAVE_X86
 libx86_generator_la_SOURCES = $(srcdir)/libs/x86-generator/src/generator_tree.c \
                              $(srcdir)/libs/x86-generator/src/x86_opcodes.c \
                              $(srcdir)/libs/x86-generator/src/generator.c
-libx86_generator_la_CFLAGS = -std=c99 -I$(srcdir)/libs/x86-generator/include -I$(srcdir)/libs/util/include
+libx86_generator_la_CFLAGS = -std=c99 -I$(srcdir)/libs/x86-generator/include -I$(srcdir)/libs/gdutil/include
 include_HEADERS += $(srcdir)/libs/x86-generator/include/x86_opcodes.h \
                    $(srcdir)/libs/x86-generator/include/generator_tree.h \
                    $(srcdir)/libs/x86-generator/include/generator.h
@@ -614,7 +614,7 @@ libx86_tester_la_SOURCES = $(srcdir)/libs/x86-tester/src/executor.c \
                            $(srcdir)/libs/x86-tester/src/tbgen.c \
                            $(srcdir)/libs/x86-tester/src/tester.c \
                            $(srcdir)/libs/x86-tester/src/tbgen_alloc.c
-libx86_tester_la_CFLAGS = -std=gnu99 -I$(srcdir)/libs/x86-tester/include -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/x86/include -I$(srcdir)/libs/util/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/gdwrap/include
+libx86_tester_la_CFLAGS = -std=gnu99 -I$(srcdir)/libs/x86-tester/include -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/x86/include -I$(srcdir)/libs/gdutil/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/gdwrap/include
 include_HEADERS += $(srcdir)/libs/x86-tester/include/tbgen.h \
                    $(srcdir)/libs/x86-tester/include/tbgen_alloc.h \
                    $(srcdir)/libs/x86-tester/include/executor.h \
@@ -764,7 +764,7 @@ endif
 if X86_RREIL
 x86_test_runner_SOURCES = $(srcdir)/tools/x86-test-runner/src/main.c
 x86_test_runner_CFLAGS = -std=gnu99 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/x86/include -I$(srcdir)/libs/x86-generator/include -I$(srcdir)/libs/x86-tester/include -I$(srcdir)/libs/readhex/include
-x86_test_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
+x86_test_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libgdutil.la
 if HAVE_MEMSTREAM
 x86_test_runner_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 x86_test_runner_LDADD += libmemstream.la
@@ -774,7 +774,7 @@ endif
 if X86_RREIL
 x86_test_stats_runner_SOURCES = $(srcdir)/tools/x86-test-stats-runner/src/main.c $(srcdir)/tools/x86-test-stats-runner/src/hash_array.c
 x86_test_stats_runner_CFLAGS = -std=gnu99 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/rreil-sim/include -I$(srcdir)/libs/x86/include -I$(srcdir)/libs/x86-generator/include -I$(srcdir)/libs/x86-tester/include -I$(srcdir)/libs/readhex/include
-x86_test_stats_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libutil.la
+x86_test_stats_runner_LDADD += librreil.la librreil-sim.la libx86-generator.la libx86.la libreadhex.la libgdutil.la
 if HAVE_MEMSTREAM
 x86_test_stats_runner_CFLAGS += -include$(srcdir)/libs/memstream/include/memstream.h
 x86_test_stats_runner_LDADD += libmemstream.la
