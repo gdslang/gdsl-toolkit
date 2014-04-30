@@ -69,10 +69,10 @@ static obj_t exception_shared(state_t state, int_t con) {
 }
 
 #ifdef GDSL_X86
-obj_t exception_arch(state_t state, obj_t ex_rope) {
+obj_t exception_arch(state_t state, obj_t ex) {
 	struct rreil_exception *exception = (struct rreil_exception*)malloc(sizeof(struct rreil_exception));
 	exception->type = RREIL_EXCEPTION_TYPE_X86;
-	exception->x86 = x86_exception_from_name(gdsl_merge_rope(state, ex_rope));
+	exception->x86 = x86_exception_from_name(gdsl_merge_rope(state, gdsl_pretty_arch_exception(state, ex)));
 	return exception;
 }
 #else

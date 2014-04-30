@@ -38,6 +38,9 @@ typedef uint64_t vec_data_t;
 
 #ifndef GDSL_SPECIFIC
 typedef struct {
+} unboxed_struct1_t;
+typedef unboxed_struct1_t* struct1_t;
+typedef struct {
   obj_t initial;
   obj_t after;
 } unboxed_lv_super_result_t;
@@ -51,13 +54,10 @@ typedef unboxed_translate_result_t* translate_result_t;
 typedef struct {
   obj_t greedy;
   obj_t conservative;
-} unboxed_struct6_t;
-typedef unboxed_struct6_t* struct6_t;
-typedef struct {
 } unboxed_struct7_t;
 typedef unboxed_struct7_t* struct7_t;
 typedef struct {
-  struct7_t insns;
+  struct1_t insns;
   obj_t rreil;
 } unboxed_opt_result_t;
 typedef unboxed_opt_result_t* opt_result_t;

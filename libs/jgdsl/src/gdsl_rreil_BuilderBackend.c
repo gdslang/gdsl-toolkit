@@ -143,10 +143,10 @@ static obj_t exception_shared(state_t state, int_t con) {
 	}
 	return (obj_t)ret;
 }
-static obj_t exception_arch(state_t state, obj_t ex_rope) {
+static obj_t exception_arch(state_t state, obj_t ex) {
 	struct userdata *ud = (struct userdata*)rreil_cif_userdata_get(state);
 	jstring id_str = java_string_create(state,
-			ud->frontend->generic.merge_rope(state, ud->frontend->translator.pretty_arch_id(state, ex_rope)));
+			ud->frontend->generic.merge_rope(state, ud->frontend->translator.pretty_arch_exception(state, ex)));
 
 	jobject ret = java_method_call(state, "exception_arch", 1, (jobject)id_str);
 	return (obj_t)ret;
