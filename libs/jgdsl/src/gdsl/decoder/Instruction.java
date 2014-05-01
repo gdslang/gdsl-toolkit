@@ -93,6 +93,12 @@ public class Instruction {
 
   private native String prettyOperand (long frontendPtr, long gdslStatePtr, long insnPtr, int operand);
   
+  /**
+   * Get the {@link OperandType} of an operand
+   * 
+   * @param operand the index of the respective operand
+   * @return the {@link OperandType} object
+   */
   public OperandType operandType(int operand) {
     return OperandType.fromGdslId(operandType(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr(), operand));
   }

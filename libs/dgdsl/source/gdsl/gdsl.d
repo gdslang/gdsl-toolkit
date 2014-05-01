@@ -2,10 +2,8 @@ module gdsl.gdsl;
 
 import std.stdio;
 import gdsl.reference_manager;
-import gdsl.generated;
 import gdsl.frontend;
-import gdsl.generated;
-import gdsl.multiplex;
+import gdsl.multiplex.multiplex;
 
 class Gdsl : IReferable {
   private state_t _gdslState;
@@ -17,7 +15,7 @@ class Gdsl : IReferable {
   }
   
   this(Frontend frontend) {
-    this.heapManager = new ReferenceManager(this, false);
+    this.heapManager = new ReferenceManager(this);
     this._frontend = frontend;
     this._frontend.refManager.reference();
     this._gdslState = frontend.init();
@@ -37,7 +35,7 @@ class Gdsl : IReferable {
 }
 
 unittest {
-  for(uint i = 0; i < 1000; i++) {
+  for(uint i = 0; i < 10; i++) {
     Frontend f = new Frontend("x86");
     Gdsl gdsl = new Gdsl(f);
   }

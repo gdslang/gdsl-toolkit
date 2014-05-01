@@ -1,12 +1,11 @@
 module gdsl.frontend;
 
 import std.stdio;
-import gdsl.generated;
-import gdsl.multiplex;
+import gdsl.multiplex.multiplex;
 import gdsl.reference_manager;
 
 class Frontend : IReferable {
-  private gdsl.multiplex.frontend _native;
+  private gdsl.multiplex.multiplex.frontend _native;
   private bool valid = false;
   
   private ReferenceManager _refManager;
@@ -31,7 +30,7 @@ class Frontend : IReferable {
   }
   
   override public void free() {
-    writefln("Freeing frontend");
+//    writefln("Freeing frontend");
     if(valid) {
       gdsl_multiplex_frontend_close(&_native);
       valid = false;

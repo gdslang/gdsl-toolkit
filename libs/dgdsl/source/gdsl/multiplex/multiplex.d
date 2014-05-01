@@ -1,7 +1,7 @@
-module gdsl.multiplex;
+module gdsl.multiplex.multiplex;
 
 import core.sys.posix.setjmp;
-import gdsl.generated;
+public import gdsl.multiplex.gdsl_generic;
 
 extern (C):
 
@@ -32,6 +32,8 @@ struct _decoder {
 struct _translator {
   obj_t function (state_t, obj_t) translate;
   obj_t* function (state_t, obj_t) pretty;
+  obj_t* function (state_t, obj_t) pretty_arch_id;
+  obj_t* function (state_t, obj_t) pretty_arch_exception;
   void function (state_t, obj_t) rreil_cif_userdata_set;
   obj_t function (state_t) rreil_cif_userdata_get;
   obj_t function (state_t, callbacks_t, obj_t) rreil_convert_sem_stmts;
