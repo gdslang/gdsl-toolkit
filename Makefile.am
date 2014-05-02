@@ -748,7 +748,7 @@ semantics_cli_dynamic_LDADD += libmemstream.la
 endif
 
 semantics_cif_cli_SOURCES = $(srcdir)/tools/semantics-cif-cli.c
-semantics_cif_cli_CFLAGS = -std=c99 -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/readhex/include
+semantics_cif_cli_CFLAGS = -std=c99 -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/readhex/include -I$(srcdir)/libs/gdsl-multiplex/include
 semantics_cif_cli_LDADD += libreadhex.la
 
 sweep_SOURCES = $(srcdir)/tools/sweep.c
