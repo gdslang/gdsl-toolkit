@@ -36,14 +36,14 @@ static obj_t virt_t(state_t state, int_t t) {
 }
 
 #ifdef GDSL_X86
-obj_t sem_id_arch(state_t state, obj_t name_rope) {
+obj_t sem_id_arch(state_t state, obj_t gid) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_X86;
-	id->x86 = x86_reg_from_name(gdsl_merge_rope(state, name_rope));
+	id->x86 = x86_reg_from_name(gdsl_merge_rope(state, gdsl_pretty_arch_id(state, gid)));
 	return id;
 }
 #else
-obj_t sem_id_arch(state_t state, obj_t name_rope) {
+obj_t sem_id_arch(state_t state, obj_t gid) {
 	struct rreil_id *id = (struct rreil_id*)malloc(sizeof(struct rreil_id));
 	id->type = RREIL_ID_TYPE_ARCH;
 	id->arch = -1;
