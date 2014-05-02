@@ -552,7 +552,7 @@ librreil_la_SOURCES = $(srcdir)/libs/rreil/src/rreil/alloc.c \
                       $(srcdir)/libs/rreil/src/rreil/gdrr_builder.c \
                       $(srcdir)/libs/rreil/src/rreil/free.c \
                       $(srcdir)/libs/rreil/src/rreil/rreil_id.c
-librreil_la_CFLAGS = -std=c11 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/gdutil/include
+librreil_la_CFLAGS = -std=c11 -I$(srcdir)/libs/rreil/include -I$(srcdir)/libs/gdrr/include -I$(srcdir)/libs/gdutil/include -I$(srcdir)/libs/gdsl-multiplex/include
 if HAVE_X86_LIB
 librreil_la_CFLAGS += -I$(srcdir)/libs/x86/include
 endif
