@@ -1081,6 +1081,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             | SCC.RECURSIVE _ => "") ^ ")\r"
          val _ = TextIO.print str
          
+         val env = E.garbageCollect env   
          (*val _ = TextIO.print ("before checking component " ^ prComp comp ^ "\n")*)
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
@@ -1099,7 +1100,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
               SCC.SIMPLE sym => E.clearUses (sym, env)
             | SCC.RECURSIVE syms => foldl E.clearUses env syms
          
-         val env = E.garbageCollect env   
          val _ = TextIO.print (String.implode (List.tabulate (String.size str, fn _ => #" ") @ [#"\r"]))
          val _ = cnt := (!cnt + 100)
       in

@@ -261,7 +261,7 @@ end = struct
          fun rename { terms = ts, const = c } =
             {terms = map (fn (f,v) => (f,
                case HT.find ht v of SOME v => v
-                                  | NONE => (TextIO.print ("renameAll: var " ^ #1 (TVar.varToString (v,TVar.emptyShowInfo)) ^ " not mapped when renaming size constraints:\n"); HT.lookup ht v)
+                                  | NONE => v
                )) ts, const = c}
       in
          fromList (map rename scs)

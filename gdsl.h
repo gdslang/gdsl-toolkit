@@ -86,16 +86,6 @@ gdsl_destroy(state_t s);
 
 /* Records that are represented as C structs. */
 typedef struct {
-  vec_t features;
-  int_t repne;
-  int_t rep;
-  int_t lock;
-  int_t opnd_sz;
-  int_t addr_sz;
-  obj_t insn;
-} unboxed_insndata_t;
-typedef unboxed_insndata_t* insndata_t;
-typedef struct {
   obj_t insns;
   obj_t succ_a;
   obj_t succ_b;
@@ -109,8 +99,8 @@ typedef unboxed_lv_super_result_t* lv_super_result_t;
 typedef struct {
   obj_t greedy;
   obj_t conservative;
-} unboxed_struct16_t;
-typedef unboxed_struct16_t* struct16_t;
+} unboxed_struct27_t;
+typedef unboxed_struct27_t* struct27_t;
 typedef struct {
   obj_t (*sem_varl_)(state_t,obj_t,int_t,int_t);
 } unboxed_sem_varl_callbacks_t;
@@ -223,7 +213,7 @@ typedef struct {
 } unboxed_callbacks_t;
 typedef unboxed_callbacks_t* callbacks_t;
 /* Exported functions. */
-obj_t gdsl_translate(state_t s,insndata_t insn);
+obj_t gdsl_translate(state_t s,obj_t insn);
 obj_t gdsl_succ_pretty(state_t s,obj_t succ,obj_t name);
 translate_result_t gdsl_decode_translate_super_block(state_t s,int_t config,int_t limit);
 obj_t gdsl_decode_translate_single(state_t s,int_t config);
@@ -232,7 +222,7 @@ obj_t gdsl_decode_translate_block_optimized(state_t s,int_t config,int_t limit,i
 obj_t gdsl_cleanup(state_t s,obj_t stmts);
 lv_super_result_t gdsl_liveness_super(state_t s,translate_result_t data);
 obj_t gdsl_liveness(state_t s,obj_t instructions);
-struct16_t gdsl_lv_analyze(state_t s,obj_t initial_live,obj_t stack);
+struct27_t gdsl_lv_analyze(state_t s,obj_t initial_live,obj_t stack);
 obj_t gdsl_lv_union(state_t s,obj_t a,obj_t b);
 obj_t gdsl_lv_kills(state_t s,obj_t stmts);
 obj_t gdsl_lv_gens(state_t s,obj_t stmts);
@@ -253,10 +243,10 @@ void gdsl_rreil_cif_userdata_set(state_t s,obj_t userdata);
 obj_t gdsl_example_b(state_t s);
 obj_t gdsl_example_a(state_t s);
 int_t gdsl_rreil_stmts_count(state_t s,obj_t stmts);
-obj_t gdsl_pretty_simple(state_t s,insndata_t i);
-obj_t gdsl_pretty(state_t s,insndata_t i);
-int_t gdsl_features_get(state_t s,insndata_t insndata);
-insndata_t gdsl_decode(state_t s,int_t config);
+obj_t gdsl_pretty_simple(state_t s,obj_t i);
+obj_t gdsl_pretty(state_t s,obj_t i);
+int_t gdsl_features_get(state_t s,obj_t insndata);
+obj_t gdsl_decode(state_t s,int_t config);
 int_t gdsl_config_default_opnd_sz_32(state_t s);
 int_t gdsl_config_mode64(state_t s);
 int_t gdsl_config_default(state_t s);
