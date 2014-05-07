@@ -169,7 +169,7 @@ functor MkAst (Core: AST_CORE) = struct
       and decodepat t =
          case t of
             MARKdecodepat t' => decodepat (#tree t')
-          | BITdecodepat bp => listex "'" "'" " " (map bitpat bp)
+          | BITdecodepat bp => listex "'" "'" "" (map bitpat bp)
           | TOKENdecodepat tp => tokpat tp
 
       and bitpat t =

@@ -936,18 +936,18 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infDecodepat sym (st,env) (AST.BITdecodepat l) =
       let
          val env = E.pushWidth (sym, env)
-         (*val _ = TextIO.print ("**** decpat pushing granularity:\n" ^ E.topToString envGra)*)
+         (*val _ = TextIO.print ("**** decpat pushing granularity:\n" ^ E.topToString env)*)
          val env = List.foldl (fn (b,env) => infBitpatSize (st,env) b)
                                  env l
-         (*val _ = TextIO.print ("**** decpat pushing " ^ Int.toString(List.length l) ^ " sizes:\n" ^ E.topToString envPat)*)
+         (*val _ = TextIO.print ("**** decpat pushing " ^ Int.toString(List.length l) ^ " sizes:\n" ^ E.topToString env)*)
          val env = E.reduceToSum (List.length l,env)
-         (*val _ = TextIO.print ("**** decpat sum:\n" ^ E.topToString envPat)*)
+         (*val _ = TextIO.print ("**** decpat sum:\n" ^ E.topToString env)*)
          val env = E.equateKappas env
             handle S.UnificationFailure str =>
                refineError (env, str,
                             " when checking bits in token",
-                            [((2,0), "granularity                     "),
-                             ((1,0), "pattern " ^ showProg (20, PP.decodepat, (AST.BITdecodepat l)))])
+                            [((2,0), "previous patterns                     "),
+                             ((1,0), "pattern " ^ showProg (30, PP.decodepat, (AST.BITdecodepat l)))])
          val env = E.popKappa env
          val env = E.popKappa env
       in

@@ -892,6 +892,9 @@ end = struct
       end
    exception BadVarMap
    
+   (* This function keeps two generations. It does not work since we cannot guarantee that
+      forward references always point to smaller indices, so that there may be pointers
+      from the old generation to the new generation. *)
    fun garbageCollect2 (table as
       { hashCons = { old = hcOld, new = hcNew }, symTable = st, typeTable = tt,
         lastSize = lastSize, boolDom = bd, sizeDom = sd } : table) =
@@ -1447,7 +1450,6 @@ end = struct
          val { info = idx1, ... } = HT.lookup st sym1
          val { info = idx2, ... } = HT.lookup st sym2
          val _ = unify (idx1,idx2,table)
-               handle NotFound => (TextIO.print ("equateSymbolsFlow: NotFound " ^ #1 (dumpTableSI (table, TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
          val { flow = fp1, ... } = HT.lookup st sym1
          val { flow = fp2, ... } = HT.lookup st sym2
          val bdRef = #boolDom table
