@@ -1,6 +1,17 @@
 granularity = 32
 export = config-default decode
 
+val size r = do
+  size <- query $..
+  return (r@{size=size})
+end
+
+val ternop cons a b c = do
+  r <- a {};
+  r <- b r;
+  r <- c r;
+  return (cons r);
+end
 
 ### ADD
 ###  - ADD
