@@ -22,7 +22,7 @@ end = struct
    val verbose = false
    
    structure AST = SpecAbstractTree
-   structure E = Environment
+   structure E = Environment(*Profiling*)
    structure BD = BooleanDomain
    structure TI = ResolveTypeInfo
    structure S = Substitutions
@@ -1135,6 +1135,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)
    val _ = reportBadSizes badSizes
+   val _ = E.finalize ()
    val _ = TVar.set var_counter
    in
       toplevelEnv

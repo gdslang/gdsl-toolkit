@@ -10,8 +10,6 @@ structure Environment : sig
                                SizeConstraint.size_constraint list ->
                                environment
    
-   val pushSingle : VarInfo.symid * Types.texp * environment -> environment
-   
    (*add a group of bindings to the current environment, each element in a
    binding is identified by its symbol, the flag is true if the symbol
    is a decoder function*)
@@ -31,8 +29,6 @@ structure Environment : sig
    (*pushes the given type onto the stack*)
    val pushType : Types.texp * environment -> environment
 
-   val pushMonadType : Types.texp * environment -> environment
-   
    (* push the width of a decode onto the stack*)
    val pushWidth : VarInfo.symid * environment -> environment
 
@@ -89,9 +85,6 @@ structure Environment : sig
    
    (*stack: [...,t1 -> t2] -> [...t2]*)
    val reduceToResult : environment -> environment
-
-   (*stack: [...,t1 -> t2] -> [...t1]*)
-   val reduceToArgument : environment -> environment
 
    (*stack: [..., tn, ..., t2, t1, t0] -> [..., t0]*)
    val return : int * environment -> environment
@@ -160,6 +153,7 @@ structure Environment : sig
    val kappaToStringSI : (int * int) * environment * TVar.varmap -> string * TVar.varmap
    val funTypeToStringSI  : environment * VarInfo.symid * TVar.varmap ->
                             string * TVar.varmap
+   val finalize : unit -> unit
 end = struct
    structure ST = SymbolTable
    structure BD = BooleanDomain
@@ -538,8 +532,6 @@ end = struct
                
    end
    
-   exception Unimplemented
-
    type environment = Scope.environment
 
    fun dumpTypeTableSI (env,si) = TT.dumpTableSI (Scope.getTypeTable env, si)
@@ -598,20 +590,20 @@ end = struct
          (tStr ^ "\n", si)
       end
 
+   fun funTypeToStringSI (env, f, si) =
+      let
+         val tt = Scope.getTypeTable env
+         val ty = TT.peekSymbol (f,tt)
+      in
+         showTypeSI (ty, si)
+      end
+
    fun kappaToString env =
       let
          val (str, _) = kappaToStringSI ((1,0), env,TVar.emptyShowInfo)
       in
          str
       end
-
-   fun funTypeToStringSI (env, f, si) = raise Unimplemented
-(*  (case Scope.lookup (f,env) of
-        (COMPOUND { ty = SOME (t,_), width, uses, nested }) =>
-            showTypeSI (t,si)
-      | _ => raise InferenceBug
-   )
-*)
 
    fun genSizeSymbol baseSym =
       let
@@ -651,9 +643,6 @@ end = struct
          Scope.initial (GROUP bs, scs, tt)
       end
 
-   fun pushSingle (sym, t, env) = raise Unimplemented
-(*  Scope.wrap (SINGLE {name = sym, ty = t},env)
-*)
    fun pushGroup (syms, env) =
       let
          val tt = Scope.getTypeTable env
@@ -777,24 +766,6 @@ end = struct
          Scope.wrap (KAPPA {kappa = k}, env)
       end
 
-   fun pushMonadType (t, (scs, state)) = raise Unimplemented
-(* 
-      let
-         val tvar = TVar.freshTVar ()
-         val fromBVar = BD.freshBVar ()
-         val toBVar = BD.freshBVar ()
-         val fromVar = VAR (tvar, fromBVar)
-         val toVar = VAR (tvar, toBVar)
-         val bFun = BD.meetVarImpliesVar (fromBVar, toBVar) (Scope.getFlow state)
-         val (t,bFun,sCons) = instantiateType (texpVarset(t,TVar.empty),t,
-                                               TVar.empty,
-                                               bFun,
-                                               Scope.getSize state)
-      in
-         Scope.wrap (KAPPA {ty = MONAD (t, fromVar, toVar)},
-                     (scs, Scope.setSize sCons (Scope.setFlow bFun state)))
-      end
-*)
    fun pushWidth (sym, env) =
       let
          val tt = Scope.getTypeTable env
@@ -852,34 +823,6 @@ end = struct
          ss
       end
 
-   fun affectedField (bVars, env as (scs,state)) = raise Unimplemented
-(* 
-      let
-         fun aF (_, SOME f) = SOME f
-           | aF (([],_), NONE) = NONE
-           | aF (env, NONE) = case Scope.unwrap env of
-              (KAPPA {ty = t}, env) =>
-               aF (env, fieldOfBVar (bVars, t))
-            | (SINGLE {name, ty = t}, env) => aF (env, fieldOfBVar (bVars, t))
-            | (GROUP l, env) =>
-            let
-               fun findField ((_,t), SOME f) = SOME f
-                 | findField ((_,t), NONE) = fieldOfBVar (bVars, t)
-               fun aFL {name, ty = tOpt, width, uses, nested} =
-                  List.foldl findField
-                     (case tOpt of
-                          NONE => NONE
-                        | SOME (t,_) => fieldOfBVar (bVars, t))
-                     (SpanMap.listItems uses)
-            in
-               aF (env, case List.mapPartial aFL l of
-                       [] => NONE
-                     | (f :: _) => SOME f)
-            end
-      in
-         aF (env, NONE)
-      end
-*)
    fun flowError (bVars, fOpt, env) =
       let
          val tt = Scope.getTypeTable env
@@ -900,7 +843,8 @@ end = struct
    fun reduceFlow env = env
 
    fun cleanEnvironment env = Scope.cleanEnvironment env
-
+   
+   exception Unimplemented
    fun meetSizeConstraint (update, (scs, state)) = raise Unimplemented
 (* 
       (scs, Scope.setSize (update (Scope.getSize state)) state)
@@ -1151,51 +1095,6 @@ end = struct
             end
          | _ => raise InferenceBug
 
-   fun reduceToArgument env = raise Unimplemented
-(*  case Scope.unwrap env of
-           (KAPPA {ty = FUN ([t1],t2)}, env) =>
-            Scope.wrap (KAPPA {ty = t1}, env)
-         | _ => raise InferenceBug
-*)
-   (* local helper: equate or imply the flags of two types *)
-   fun flowForType (directed,t1,t2,bFun) = raise Unimplemented
-(* 
-      let
-         fun genImpl (t1,t2) ((contra1,f1), (contra2,f2),bFun) =
-            if contra1<>contra2 then
-               let
-                  val (t1Str, si) = showTypeSI (t1,TVar.emptyShowInfo)
-                  val (t2Str, si) = showTypeSI (t2,si)
-                  val (mStr, si) = showSubstsSI (mgu (t1,t2,emptySubsts), si)
-                  val _ = TextIO.print ("cannot gen impl flow from\n" ^ t1Str ^ "\nand\n" ^ t2Str ^ "\nsince mgu = " ^ mStr ^ "\n")
-               in
-                  raise InferenceBug
-               end
-            else if BD.eq(f1,f2) then bFun else
-            let
-               (*val _ = TextIO.print ("add directed flow: " ^ BD.showVar f1 ^
-                  (if contra1 then "<-" else "->") ^ BD.showVar f2 ^ "\n")*)
-            in
-               if contra1 then BD.meetVarImpliesVar (f2,f1) bFun
-               else BD.meetVarImpliesVar (f1,f2) bFun
-            end
-      in
-         if directed then
-            ListPair.foldlEq (genImpl (t1,t2)) bFun
-               (texpBVarset (op ::) (t1, []), texpBVarset (op ::) (t2, []))
-         else
-         let
-            (*val _ = TextIO.print ("forcing bVars to be equal:" ^
-               ListPair.foldlEq (fn (f1,f2,str) => str ^ " " ^ BD.showVar f1 ^ "=" ^ BD.showVar f2) ""
-               (texpBVarset (fn ((_,f),fs) => f::fs) (t1, []),
-                texpBVarset (fn ((_,f),fs) => f::fs) (t2, [])) ^ "\n")*)
-         in
-            ListPair.foldlEq BD.meetEqual bFun
-               (texpBVarset (fn ((_,f),fs) => f::fs) (t1, []),
-                texpBVarset (fn ((_,f),fs) => f::fs) (t2, []))
-         end
-      end
-*)
    fun return (n,env) =  
       let
          val (t, env) = Scope.unwrap env
@@ -1447,4 +1346,6 @@ end = struct
          [] fs
       end
 
+   fun finalize _ = ()
+   
 end

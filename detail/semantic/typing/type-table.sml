@@ -1254,12 +1254,10 @@ end = struct
             
             fun genPath (f,fIdx) = (Path.emptySteps, Path.mkFieldLeaf f) ::
                List.map (Path.prependFieldStep f) (termToSteps (fIdx, table))
-            val newPaths1 = (Path.emptySteps, Path.mkVarLeaf newRow) ::
-                            List.concat (List.map genPath (SymMap.listItemsi (!newIn1)))
-            val newPaths2 = (Path.emptySteps, Path.mkVarLeaf newRow) ::
-                            List.concat (List.map genPath (SymMap.listItemsi (!newIn2)))
-            val _ = if update1 then updateFlow (row1,symSet1,newPaths1) else ()
-            val _ = if update2 then updateFlow (row2,symSet2,newPaths2) else ()
+            fun genPaths newFm = (Path.emptySteps, Path.mkVarLeaf newRow) ::
+               List.concat (List.map genPath (SymMap.listItemsi newFm))
+            val _ = if update1 then updateFlow (row1,symSet1,genPaths (!newIn1)) else ()
+            val _ = if update2 then updateFlow (row2,symSet2,genPaths (!newIn2)) else ()
          in
             !rPairs
          end
@@ -1369,10 +1367,13 @@ end = struct
           )
         | updateFlow (vVar,symSet,stepsLeafList) =
          let
-            val (vStr,si) = TVar.varToString (vVar,TVar.emptyShowInfo)
-            val (pStr,si) = Path.toStringSI (Path.createFlowpoints stepsLeafList, si)
             val _ = if not verbose then () else
-               TextIO.print ("FLOW: update " ^ vStr ^  " with" ^ pStr ^ "\n")
+               let
+                  val (vStr,si) = TVar.varToString (vVar,TVar.emptyShowInfo)
+                  val (pStr,si) = Path.toStringSI (Path.createFlowpoints stepsLeafList, si)
+               in
+                  TextIO.print ("FLOW: update " ^ vStr ^  " with" ^ pStr ^ "\n")
+               end
             fun updateNewLeaf (_,leaf) = case Path.getVarLeaf leaf of
                   NONE => ()
                 | SOME v => (case ttGet (tt,v) of
