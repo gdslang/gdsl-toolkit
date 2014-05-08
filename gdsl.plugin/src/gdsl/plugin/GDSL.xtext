@@ -1,0 +1,9 @@
+grammar gdsl.plugin.GDSL with org.eclipse.xtext.common.Terminals
+
+generate gDSL "http://www.plugin.gdsl/GDSL"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID '!';
