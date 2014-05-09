@@ -1,9 +1,36 @@
-grammar gdsl.plugin.GDSL with org.eclipse.xtext.common.Terminals
+grammar gdsl.plugin.GDSL /** with gdsl.plugin.Terminals /*/ with org.eclipse.xtext.common.Terminals /**/
 
 generate gDSL "http://www.plugin.gdsl/GDSL"
 
 Model:
-	greetings+=Greeting*;
-	
-Greeting:
-	'Hello' name=ID '!';
+	decl += Decl (';'? decl += Decl)*
+;
+
+Decl:
+	DeclGranularity | DeclExport | DeclType | DeclVal
+;
+
+DeclGranularity:
+	name='granularity' '=' granularity=Integer
+;
+
+DeclExport:
+	name='export' '=' exports+=Export*
+;
+
+DeclType:
+	'type' name=ID
+;
+
+DeclVal:
+	'val' name=ID (attr += ID)*
+;
+
+Export:
+	name='todo'
+;
+
+Integer:
+//	POSINT | NEGINT 
+	INT 
+;

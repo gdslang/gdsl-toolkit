@@ -8,6 +8,19 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: gdsl.plugin;visibility:=reexport,
  org.eclipse.xtext.ui,
  org.eclipse.ui.editors;bundle-version="3.5.0",
- org.eclipse.ui.ide;bundle-version="3.5.0"
-Import-Package: org.apache.log4j
+ org.eclipse.ui.ide;bundle-version="3.5.0",
+ org.eclipse.xtext.ui.shared,
+ org.eclipse.ui,
+ org.eclipse.xtext.builder,
+ org.antlr.runtime,
+ org.eclipse.xtext.common.types.ui,
+ org.eclipse.xtext.ui.codetemplates.ui,
+ org.eclipse.compare
+Import-Package: org.apache.log4j,
+ org.eclipse.xtext.xbase.lib
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Export-Package: gdsl.plugin.ui.quickfix,
+ gdsl.plugin.ui.contentassist,
+ gdsl.plugin.ui.contentassist.antlr,
+ gdsl.plugin.ui.internal
+Bundle-Activator: gdsl.plugin.ui.internal.GDSLActivator
