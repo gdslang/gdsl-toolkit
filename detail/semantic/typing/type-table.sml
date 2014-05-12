@@ -139,6 +139,8 @@ end = struct
            | paths (VEC t) = paths t
            | paths (CONST c) = []
            | paths (ALG (sym, l)) = addIs (List.length l, List.map paths l)
+           | paths (SET (v,f,l)) = ([],LeafVar v,f) :: 
+            List.concat (List.map (fn ({span=(s,_),...},t) => addI (s,paths t)) l)
            | paths (RECORD (v,f,fs)) =
                ([],LeafVar v,f) :: List.concat (List.map pathsF fs)
            | paths (MONAD (r,a,b)) = addI (0,paths r) @ addI (~1,paths a) @ addI (1, paths b)
@@ -329,6 +331,13 @@ structure TypeTable : sig
    
    val equateSymbols : SymbolTable.symid * SymbolTable.symid * table -> unit
    val equateSymbolsFlow : SymbolTable.symid * SymbolTable.symid * table -> unit
+
+   (* Like equateSymbolsFlow, but checks if the first symbol is a sub-type
+      of the second. If the first symbol is not a sub-type, it returns
+      SOME subst where subst is a substitution on the first symbol that
+      is (at least) required to make it a sub-type of the second type. *)
+   val subsetSymbols : SymbolTable.symid * SymbolTable.symid * table -> (TVar.tvar * Types.texp) list
+
    val getSharingSyms : SymbolTable.symid * table -> SymSet.set
    val instantiateSymbol : SymbolTable.symid * SymSet.set * SymbolTable.symid * table -> unit
 
@@ -354,7 +363,7 @@ end = struct
    val runSane = false
 
    (*restrict which symbols toString prints*)
-   val debugSymbol : int option = NONE (*SOME 911*)
+   val debugSymbol : int option = NONE (*SOME 821*)
 
    type index = TVar.tvar
 
@@ -386,6 +395,8 @@ end = struct
     | TT_CONST of int
       (* an algebraic data type with a list of type arguments *)
     | TT_ALG of (TypeInfo.symid * index list)
+      (* a set of types used to avoid the precision loss due to unifying them *)
+    | TT_SET of index SpanMap.map * index
       (* a record containing the given field and possible other fields that
          are determined by the last index that points to more TT_RECORDs *)
     | TT_RECORD of index SymMap.map * index
@@ -406,6 +417,7 @@ end = struct
      | typeterm_hash (TT_VEC v) = hash_list [Word.fromInt 98028,TVar.hash v]
      | typeterm_hash (TT_CONST i) = Word.fromInt 9823*Word.fromInt i+Word.fromInt 2834
      | typeterm_hash (TT_ALG (s,is)) = hash_list (sym_hash s :: map TVar.hash is)
+     | typeterm_hash (TT_SET (fm,i)) = SpanMap.foldli (fn ({span=(p1,p2),...},ty,h) => Word.fromInt (13*p1)+Word.fromInt (11*p2)+Word.fromInt 7*TVar.hash ty+Word.fromInt 3*h) (TVar.hash i) fm
      | typeterm_hash (TT_RECORD (fm,i)) = SymMap.foldli (fn (f,ft,h) => Word.fromInt 11*sym_hash f+Word.fromInt 7*TVar.hash ft+Word.fromInt 3*h) (TVar.hash i) fm
      | typeterm_hash (TT_MONAD (i1,i2,i3)) = Word.fromInt 5345+hash_list [TVar.hash i1,TVar.hash i2, TVar.hash i3]
 
@@ -423,6 +435,8 @@ end = struct
      | typeterm_eq (TT_CONST c1,TT_CONST c2) = c1=c2
      | typeterm_eq (TT_ALG (s1,is1), TT_ALG (s2,is2)) =
       SymbolTable.eq_symid (s1,s2) andalso ListPair.allEq TVar.eq (is1,is2)
+     | typeterm_eq (TT_SET (fm1,i1), TT_SET (fm2,i2)) =
+      TVar.eq (i1,i2) andalso SpanMap.collate TVar.compare (fm1,fm2) = EQUAL
      | typeterm_eq (TT_RECORD (fm1,i1), TT_RECORD (fm2,i2)) =
       TVar.eq (i1,i2) andalso SymMap.collate TVar.compare (fm1,fm2) = EQUAL
      | typeterm_eq (TT_MONAD (i1,i2,i3),TT_MONAD (j1,j2,j3)) =
@@ -453,6 +467,9 @@ end = struct
             conStr ^ 
             (if List.null l then "" else ("[" ^ sep "," (List.map showVar l) ^ "]"))
          end
+        | sT (TT_SET (sm,i)) = "{" ^ SpanMap.foldri (fn (s,ty,str) =>
+            SymbolTable.spanToString s ^
+            ": " ^ showVar ty ^ ", " ^ str) (showVar i) sm ^ "}"
         | sT (TT_RECORD (fm,i)) = "{" ^ SymMap.foldri (fn (f,ft,str) =>
             SymbolTable.getString(!SymbolTables.fieldTable, f) ^
             ": " ^ showVar ft ^ ", " ^ str) (showVar i) fm ^ "}"
@@ -477,6 +494,7 @@ end = struct
      | getVars (TT_VEC t) = [t]
      | getVars (TT_CONST c) = []
      | getVars (TT_ALG (ty, l)) = l
+     | getVars (TT_SET (sm,i)) = i :: SpanMap.listItems sm
      | getVars (TT_RECORD (fm,i)) = i :: SymMap.listItems fm
      | getVars (TT_MONAD (r,f,t)) = [r,f,t]
 
@@ -752,7 +770,11 @@ end = struct
            | conv (VEC t) = allocType (TT_VEC (conv t))
            | conv (CONST c) = allocType (TT_CONST c)
            | conv (ALG (sym, l)) = allocType (TT_ALG (sym, List.map conv l))
-           | conv (RECORD (i,e,fs)) = allocType (TT_RECORD (foldl
+           | conv (SET (v,_,l)) = allocType (TT_SET (foldl
+               (fn ((s,t),sm) =>
+                  SpanMap.insert (sm,s,conv t)) SpanMap.empty l,
+               convV v))
+           | conv (RECORD (i,_,fs)) = allocType (TT_RECORD (foldl
                (fn (RField { name = f, fty = ft, exists},fm) =>
                   SymMap.insert (fm,f, conv ft)) SymMap.empty fs,
                 convV i))
@@ -791,6 +813,20 @@ end = struct
                  | TERM (TT_VEC t) => VEC (gT (s,t))
                  | TERM (TT_CONST c) => CONST c
                  | TERM (TT_ALG (sym, vs)) => ALG (sym, downFrom (length vs,s,vs))
+                 | TERM (TT_SET (sm,i)) =>
+                  let
+                     fun gather (sm,i) = case ttGet (tt,i) of
+                             TERM (TT_SET (sm',i')) => gather (SpanMap.unionWith (fn _ => raise TypeTableError) (sm,sm'),i')
+                           | _ => (sm, i)
+                     val (sm,i) = gather (sm,i)
+                        handle TypeTableError => (TextIO.print ("set chain overlapping " ^ #1 (TVar.varToString (idx,TVar.emptyShowInfo)) ^ "\n" ^ #1 (toStringSI ([], [idx], table, TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
+                     fun genSite (sp as {span=(p1s,_),...} : Error.span,ty) = (sp, gT (Path.appendIntStep p1s s,ty))
+                     val sites = SpanMap.foldli (fn (sp,ty,sites) => genSite (sp,ty) :: sites) [] sm
+                  in
+                     case gT (s,i) of
+                          VAR (tVar,bVar) => SET (tVar,bVar,sites)
+                        | _ =>  (TextIO.print ("expected row variable in " ^ #1 (TVar.varToString (idx,TVar.emptyShowInfo)) ^ "\n" ^ #1 (dumpTableSI (table, TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
+                  end
                  | TERM (TT_RECORD (fm,i)) =>
                   let
                      fun gather (fm,i) = case ttGet (tt,i) of
@@ -820,7 +856,7 @@ end = struct
                      let
                         val _ = varsRef := TVar.add (idx,!varsRef)
                         val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
-                           handle NotFound => raise IndexError
+                           handle NotFound => (*(TextIO.print ("reverse map error:\n" ^ #1 (dumpTableSI (table, TVar.emptyShowInfo)) ^ "\n"); *)raise IndexError(*)*)
                      in
                         VAR (idx,bVar)
                      end
@@ -879,6 +915,9 @@ end = struct
            | fromTerm (TT_VEC index) =  fromType index
            | fromTerm (TT_CONST _) = []
            | fromTerm (TT_ALG (_, is)) = downFrom (length is) (List.map fromType is)
+           | fromTerm (TT_SET (sm,i)) = SpanMap.foldli (fn ({span=(s,_),...},t,ps) =>
+               List.map (Path.prependIntStep s) (fromType t) @ ps)
+            (fromType i) sm
            | fromTerm (TT_RECORD (fm,i)) = SymMap.foldli (fn (f,ft,ps) =>
                (Path.emptySteps, Path.mkFieldLeaf f) ::
                List.map (Path.prependFieldStep f) (fromType ft) @ ps)
@@ -940,6 +979,7 @@ end = struct
            | TERM (t as (TT_VEC sz)) => allocIfDiff (idx,t,TT_VEC (repl sz))
            | TERM (TT_CONST c) => if TVar.toIdx idx<lastSize then idx else allocType (TT_CONST c)
            | TERM (t as (TT_ALG (sym, vs))) => allocIfDiff (idx,t,TT_ALG (sym, map repl vs))
+           | TERM (t as (TT_SET (sm,i))) => allocIfDiff (idx,t,TT_SET (SpanMap.map repl sm, repl i))
            | TERM (t as (TT_RECORD (fm,i))) => allocIfDiff (idx,t,TT_RECORD (SymMap.map repl fm, repl i))
            | TERM (t as (TT_MONAD (res,inp,out))) => allocIfDiff (idx,t,TT_MONAD (repl res, repl inp, repl out))       
            | LEAF symSet => (if TVar.toIdx idx<lastSize then idx else case HT.find varMap idx of
@@ -1002,7 +1042,8 @@ end = struct
            | repl (VEC t) = VEC (repl t)
            | repl (CONST c) = CONST c
            | repl (ALG (ty, l)) = ALG (ty, List.map repl l)
-           | repl (RECORD (v,bv,l)) = RECORD (renameVar  v, bv, List.map replF l)
+           | repl (SET (v,bv,l)) = SET (renameVar v, bv, List.map (fn (s,t) => (s,repl t)) l)
+           | repl (RECORD (v,bv,l)) = RECORD (renameVar v, bv, List.map replF l)
            | repl (MONAD (r,f,t)) = MONAD (repl r, repl f, repl t)
            | repl (VAR (v,bv)) = VAR (renameVar v,bv)
          and replF (RField {name = n, fty = t, exists = b}) =
@@ -1238,7 +1279,7 @@ end = struct
               | addRef _ = raise IndexError
             val newFs = SymMap.mergeWithi addRef (fs1,fs2)
             val (update1,update2,newRow) = case (SymMap.isEmpty (!newIn1), SymMap.isEmpty (!newIn2)) of
-                 (true, true) => if TVar.toIdx row1 < TVar.toIdx row2 then (true,false,row2) else (false,true,row1)
+                 (true, true) => if TVar.toIdx row1 > TVar.toIdx row2 then (true,false,row2) else (false,true,row1)
                | (false, true) => (true,false,row2)
                | (true, false) => (false,true,row1)
                | (false, false) => (true,true,TVar.freshTVar ())
@@ -1247,8 +1288,10 @@ end = struct
             (*val _ = TextIO.print ("unify TT_RECORD: row1=" ^ #1 (TVar.varToString (row1,TVar.emptyShowInfo)) ^ ", " ^ Int.toString (SymMap.numItems (!newIn1)) ^ " new items\n")
             val _ = TextIO.print ("unify TT_RECORD: row2=" ^ #1 (TVar.varToString (row2,TVar.emptyShowInfo)) ^ ", " ^ Int.toString (SymMap.numItems (!newIn2)) ^ " new items\n")
             val _ = TextIO.print ("unify TT_RECORD: newRow=" ^ #1 (TVar.varToString (newRow,TVar.emptyShowInfo)) ^ "\n")*)
-            val _ = if TVar.toIdx row1=TVar.toIdx newRow then () else ttSet (tt,row1,TERM (TT_RECORD (!newIn1,newRow)))
-            val _ = if TVar.toIdx row2=TVar.toIdx newRow then () else ttSet (tt,row2,TERM (TT_RECORD (!newIn2,newRow)))
+            val _ = if TVar.toIdx row1=TVar.toIdx newRow then () else
+               ttSet (tt,row1,if SymMap.isEmpty (!newIn1) then FORW newRow else TERM (TT_RECORD (!newIn1,newRow)))
+            val _ = if TVar.toIdx row2=TVar.toIdx newRow then () else
+               ttSet (tt,row2,if SymMap.isEmpty (!newIn2) then FORW newRow else TERM (TT_RECORD (!newIn2,newRow)))
             val _ = if TVar.toIdx v1 < TVar.toIdx v2 then
                   (ttSet (tt,v1,TERM (TT_RECORD (newFs,newRow))); ttSet (tt,v2,FORW v1))
                else if TVar.toIdx row1 > TVar.toIdx row2 then
@@ -1278,6 +1321,61 @@ end = struct
          | GREATER => incompat ()
          | EQAL => ListPair.zipEq (l1,l2)
          end
+        | genPairs (v1,v2,TT_SET r1, TT_SET r2) =
+         let
+            (*val _ = TextIO.print ("set unificaiton:\n" ^ #1 (dumpTableSI (table,TVar.emptyShowInfo)) ^ "\n")*)
+            fun gatherFields sm (fm,i) = case ttGet (tt,i) of
+                 LEAF symSet => (SpanMap.unionWith (fn _ => raise TypeTableError) (sm,fm), ttFind (tt,i), symSet)
+               | TERM (TT_SET r) => gatherFields (SpanMap.unionWith (fn _ => raise TypeTableError) (sm,fm)) r
+               | _ => raise IndexError
+            val (fs1,row1,symSet1) = gatherFields SpanMap.empty r1
+               handle TypeTableError => (TextIO.print ("gatherFields: set chain overlapping " ^ #1 (TVar.varToString (v1,TVar.emptyShowInfo)) ^ "\n" ^ #1 (dumpTableSI (table, TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
+            val (fs2,row2,symSet2) = gatherFields SpanMap.empty r2
+               handle TypeTableError => (TextIO.print ("gatherFields: set chain overlapping " ^ #1 (TVar.varToString (v2,TVar.emptyShowInfo)) ^ "\n" ^ #1 (dumpTableSI (table, TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
+
+            val newIn1 = ref (SpanMap.empty : index SpanMap.map)
+            val newIn2 = ref (SpanMap.empty : index SpanMap.map)
+            val rPairs = ref ([] : (index * index) list)
+            fun addRef (f, SOME fIdx1, SOME fIdx2) =
+               (rPairs := (fIdx1,fIdx2) :: !rPairs;
+                  SOME (if TVar.toIdx fIdx1<TVar.toIdx fIdx2 then fIdx1 else fIdx2))
+              | addRef (f, SOME fIdx1, NONE) =
+               (newIn2 := SpanMap.insert (!newIn2, f, fIdx1); SOME fIdx1)
+              | addRef (f, NONE, SOME fIdx2) =
+               (newIn1 := SpanMap.insert (!newIn1, f, fIdx2); SOME fIdx2)
+              | addRef _ = raise IndexError
+            val newFs = SpanMap.mergeWithi addRef (fs1,fs2)
+            val (update1,update2,newRow) = case (SpanMap.isEmpty (!newIn1), SpanMap.isEmpty (!newIn2)) of
+                 (true, true) => if TVar.toIdx row1 > TVar.toIdx row2 then (true,false,row2) else (false,true,row1)
+               | (false, true) => (true,false,row2)
+               | (true, false) => (false,true,row1)
+               | (false, false) => (true,true,TVar.freshTVar ())
+            val newSymSet = SymSet.union (symSet1, symSet2)
+            val _ = ttSet (tt,newRow,LEAF newSymSet)
+            (*val _ = TextIO.print ("unify TT_SET: row1=" ^ #1 (TVar.varToString (row1,TVar.emptyShowInfo)) ^ ", " ^ Int.toString (SpanMap.numItems (!newIn1)) ^ " new items\n")
+            val _ = TextIO.print ("unify TT_SET: row2=" ^ #1 (TVar.varToString (row2,TVar.emptyShowInfo)) ^ ", " ^ Int.toString (SpanMap.numItems (!newIn2)) ^ " new items\n")
+            val _ = TextIO.print ("unify TT_SET: newRow=" ^ #1 (TVar.varToString (newRow,TVar.emptyShowInfo)) ^ "\n")*)
+            val _ = if TVar.toIdx row1=TVar.toIdx newRow then () else
+               ttSet (tt,row1,if SpanMap.isEmpty (!newIn1) then FORW newRow else TERM (TT_SET (!newIn1,newRow)))
+            val _ = if TVar.toIdx row2=TVar.toIdx newRow then () else
+               ttSet (tt,row2,if SpanMap.isEmpty (!newIn2) then FORW newRow else TERM (TT_SET (!newIn2,newRow)))
+            val _ = if TVar.toIdx v1 < TVar.toIdx v2 then
+                  (ttSet (tt,v1,TERM (TT_SET (newFs,newRow))); ttSet (tt,v2,FORW v1))
+               else if TVar.toIdx row1 > TVar.toIdx row2 then
+                  (ttSet (tt,v2,TERM (TT_SET (newFs,newRow))); ttSet (tt,v1,FORW v2))
+               else ()
+            
+            fun genPath ({span=(s,_),...} : Error.span,fIdx) =
+               List.map (Path.prependIntStep s) (termToSteps (fIdx, table))
+            fun genPaths newFm = (Path.emptySteps, Path.mkVarLeaf newRow) ::
+               List.concat (List.map genPath (SpanMap.listItemsi newFm))
+            val _ = if update1 then updateFlow (row1,symSet1,genPaths (!newIn1)) else ()
+            val _ = if update2 then updateFlow (row2,symSet2,genPaths (!newIn2)) else ()
+         in
+            !rPairs
+         end
+        | genPairs (v1,v2,TT_SET r1, TT_FUN (f1, f2)) = genPairs (v2,v1,TT_FUN (f1, f2), TT_SET r1)
+        | genPairs (v1,v2,TT_FUN (f1, f2), TT_SET r1) = raise IndexError
         | genPairs (v1,v2,t1,t2) =
          let
             fun descr (TT_FUN _) = "a function type"
@@ -1468,6 +1566,35 @@ end = struct
          localSane (table)
       end
 
+   structure BM = IntBinaryMap
+   fun subsetSymbols (sym1,sym2,table : table) =
+      let
+         val _ = if not verbose then () else
+            TextIO.print ("subsetSymbols " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
+         val tt = #typeTable table
+         val st = #symTable table
+         val { info = idx1, flow = fp1 } = HT.lookup st sym1
+         val vars = Path.varsOfFlowpoints fp1
+         val { info = idx2, ... } = HT.lookup st sym2
+         val _ = unify (idx1,idx2,table)
+         
+         fun genFakeType idx = #1
+            (termToType ({ flow = Path.createFlowpoints (termToSteps (idx,table)),
+                           info = idx },table))
+         fun checkUnificationResult (var,(substs,ss)) = (case ttGet (tt,var) of
+                 LEAF _ => if BM.inDomain (ss,TVar.toIdx var) then
+                     ((BM.lookup (ss,TVar.toIdx var), genFakeType var) :: substs, ss)
+                  else
+                     (substs, BM.insert (ss,TVar.toIdx var,ttFind (tt,var)))
+               | TERM t => ((var, genFakeType var) :: substs, ss)
+               | _ => raise IndexError
+            )
+                 
+         val (substs,_) = foldl checkUnificationResult ([],BM.empty) vars
+      in
+         substs
+      end
+
    fun getSharingSyms (sym, table : table) =
       let
          val tt = #typeTable table
@@ -1515,6 +1642,7 @@ end = struct
            | dupTerm (TT_VEC t) = TT_VEC (dup t)
            | dupTerm (TT_CONST c) = TT_CONST c
            | dupTerm (TT_ALG (ty, l)) = TT_ALG (ty, map dup l)
+           | dupTerm (TT_SET (l,i)) = TT_SET (SpanMap.map dup l, dup i)
            | dupTerm (TT_RECORD (fm,i)) = TT_RECORD (SymMap.map dup fm, dup i)
            | dupTerm (TT_MONAD (r,f,t)) = TT_MONAD (dup r, dup f, dup t)
          val newIdx = dup idx
@@ -1540,7 +1668,7 @@ end = struct
          val _ = scRef := SC.expand (subst,!scRef) 
          
          val _ = if SOME (SymbolTable.toInt oldSym)=debugSymbol then
-            (TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
+            (TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " without arg vars " ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" args ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
             ) else ()
             
       in
