@@ -181,7 +181,7 @@ structure BasicControl :  sig
 	    pri = [0],
 	    obscurity = 0,
 	    help = "maximum number of fixpoint iterations in type checker",
-	    default = 2
+	    default = 3
     }
 
 

@@ -37,12 +37,23 @@ structure EnvironmentProfiling : sig
    algebraic data type to the argument of this function. *)
    val genConstructorFlow : (bool * environment) -> environment
    
+   type push_mode = Environment.push_mode
+
     (*given an occurrence of a symbol at a position, push its type onto the
-    stack; arguments are the symbol to look up, the position it occurred and a
-    Boolean flag indicating if this usage should be recorded (True) or if an
-    existing type should be used (False), and a flag that indicates if
-    a fresh instance or the plain type should be pushed *)
-   val pushSymbol : VarInfo.symid * Error.span * bool * bool * environment -> environment
+    stack; arguments are the symbol to look up, the position it occurred and
+    tag indicating if this usage should be recorded (LetForw), if a
+    non-instantiated type should be pushed (LetMono), if a symbol in
+    function position should be pushed (AnyFun) or in argument position (AnyArg).
+    The tag determines if a let-bound variable is instantiated, its usage recorded
+    or if a lambda-bound variable should be an element of a set of types:
+                           let-bound         lambda-bound
+                     inst     record            set
+      LetMono        no       no                n/a
+      LetForw        yes      yes               n/a
+      AnyFun         yes      no                yes  
+      AnyArg         yes      no                no
+    *)
+   val pushSymbol : VarInfo.symid * Error.span * push_mode * environment -> environment
 
    (*search in the current stack for the symbol and, if unsuccessful, in the
    nested definitions and push all nested groups onto the stack, returns the
@@ -104,7 +115,7 @@ structure EnvironmentProfiling : sig
      of substitutions for t1; this set is empty if t1 is smaller
      (more specific) than t2; when testing for stability t1 is
      the usage site and t2 the fresh function instance *)
-   val subsetKappas : environment -> Substitutions.Substs
+   val subsetKappas : environment -> (TVar.tvar * Types.texp) list
 
    (*stack: [...,t] -> [...] and type of function f is set to t*)
    val popToFunction : VarInfo.symid * environment -> environment
@@ -137,9 +148,9 @@ structure EnvironmentProfiling : sig
                              SizeConstraint.size_constraint_set) *
                              environment -> environment
 
-   (*query all function symbols in binding groups that would be modified by
-   the given substitutions*)
-   val affectedFunctions : Substitutions.Substs * environment -> SymSet.set
+   (*return all function symbols in binding groups that would have to be
+   re-checked if any type variable in the current kappa change*)
+   val affectedFunctions : environment -> SymSet.set
 
    val garbageCollect : environment -> environment
    
@@ -196,6 +207,7 @@ end = struct
    val pushType = wrap (E.pushType, pushData)
    val pushWidth = wrap (E.pushWidth, pushData)
    val genConstructorFlow = wrap (E.genConstructorFlow, otherData)
+   type push_mode = Environment.push_mode
    val pushSymbol = wrap (E.pushSymbol, pushData)
    val pushNested = wrap (E.pushNested, pushData)
    val popNested = wrap (E.popNested, popData)

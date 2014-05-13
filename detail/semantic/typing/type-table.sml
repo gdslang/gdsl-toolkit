@@ -140,7 +140,7 @@ end = struct
            | paths (CONST c) = []
            | paths (ALG (sym, l)) = addIs (List.length l, List.map paths l)
            | paths (SET (v,f,l)) = ([],LeafVar v,f) :: 
-            List.concat (List.map (fn ({span=(s,_),...},t) => addI (s,paths t)) l)
+            List.concat (List.map (fn ({span=(s,_),...},t) => addI (Position.toInt s,paths t)) l)
            | paths (RECORD (v,f,fs)) =
                ([],LeafVar v,f) :: List.concat (List.map pathsF fs)
            | paths (MONAD (r,a,b)) = addI (0,paths r) @ addI (~1,paths a) @ addI (1, paths b)
@@ -417,7 +417,7 @@ end = struct
      | typeterm_hash (TT_VEC v) = hash_list [Word.fromInt 98028,TVar.hash v]
      | typeterm_hash (TT_CONST i) = Word.fromInt 9823*Word.fromInt i+Word.fromInt 2834
      | typeterm_hash (TT_ALG (s,is)) = hash_list (sym_hash s :: map TVar.hash is)
-     | typeterm_hash (TT_SET (fm,i)) = SpanMap.foldli (fn ({span=(p1,p2),...},ty,h) => Word.fromInt (13*p1)+Word.fromInt (11*p2)+Word.fromInt 7*TVar.hash ty+Word.fromInt 3*h) (TVar.hash i) fm
+     | typeterm_hash (TT_SET (fm,i)) = SpanMap.foldli (fn ({span=(p1,p2),...},ty,h) => Word.fromInt (13*Position.toInt p1)+Word.fromInt (11*Position.toInt p2)+Word.fromInt 7*TVar.hash ty+Word.fromInt 3*h) (TVar.hash i) fm
      | typeterm_hash (TT_RECORD (fm,i)) = SymMap.foldli (fn (f,ft,h) => Word.fromInt 11*sym_hash f+Word.fromInt 7*TVar.hash ft+Word.fromInt 3*h) (TVar.hash i) fm
      | typeterm_hash (TT_MONAD (i1,i2,i3)) = Word.fromInt 5345+hash_list [TVar.hash i1,TVar.hash i2, TVar.hash i3]
 
@@ -820,7 +820,7 @@ end = struct
                            | _ => (sm, i)
                      val (sm,i) = gather (sm,i)
                         handle TypeTableError => (TextIO.print ("set chain overlapping " ^ #1 (TVar.varToString (idx,TVar.emptyShowInfo)) ^ "\n" ^ #1 (toStringSI ([], [idx], table, TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
-                     fun genSite (sp as {span=(p1s,_),...} : Error.span,ty) = (sp, gT (Path.appendIntStep p1s s,ty))
+                     fun genSite (sp as {span=(p1s,_),...} : Error.span,ty) = (sp, gT (Path.appendIntStep (Position.toInt p1s) s,ty))
                      val sites = SpanMap.foldli (fn (sp,ty,sites) => genSite (sp,ty) :: sites) [] sm
                   in
                      case gT (s,i) of
@@ -916,7 +916,7 @@ end = struct
            | fromTerm (TT_CONST _) = []
            | fromTerm (TT_ALG (_, is)) = downFrom (length is) (List.map fromType is)
            | fromTerm (TT_SET (sm,i)) = SpanMap.foldli (fn ({span=(s,_),...},t,ps) =>
-               List.map (Path.prependIntStep s) (fromType t) @ ps)
+               List.map (Path.prependIntStep (Position.toInt s)) (fromType t) @ ps)
             (fromType i) sm
            | fromTerm (TT_RECORD (fm,i)) = SymMap.foldli (fn (f,ft,ps) =>
                (Path.emptySteps, Path.mkFieldLeaf f) ::
@@ -1366,7 +1366,7 @@ end = struct
                else ()
             
             fun genPath ({span=(s,_),...} : Error.span,fIdx) =
-               List.map (Path.prependIntStep s) (termToSteps (fIdx, table))
+               List.map (Path.prependIntStep (Position.toInt s)) (termToSteps (fIdx, table))
             fun genPaths newFm = (Path.emptySteps, Path.mkVarLeaf newRow) ::
                List.concat (List.map genPath (SpanMap.listItemsi newFm))
             val _ = if update1 then updateFlow (row1,symSet1,genPaths (!newIn1)) else ()
