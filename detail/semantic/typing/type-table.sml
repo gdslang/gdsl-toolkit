@@ -25,7 +25,9 @@ structure Path : sig
    val prependIntStep : int -> (steps * leaf) -> (steps * leaf)
    val prependFieldStep : FieldInfo.symid -> (steps * leaf) -> (steps * leaf)
    val createFlowpoints : (steps * leaf) list -> flowpoints
-   
+   (* Combine [fp0, fp1, ... fpn] as 0:fp0 @ -1:fp1 @ ... -n:fpn *)
+   val combineIndexedFlowpoints : flowpoints list -> flowpoints
+
    (* Determine if the new steps descend to a contravariant position *)
    val stepsContra : steps -> bool
    
@@ -233,7 +235,31 @@ end = struct
       in
          foldl insert (TVarMap.empty, SymMap.empty) sls
       end
-   
+
+   exception BadExtend
+   fun combineIndexedFlowpoints fps =
+      let
+         fun extend i sm =
+            foldl (fn ((s,leaf),smAcc) => StepsMap.insert (smAcc, StepIndex i :: s,leaf))
+               StepsMap.empty (StepsMap.listItemsi sm)
+         fun combine (vmAcc,fmAcc,i,[]) = (vmAcc,fmAcc)
+           | combine (vmAcc,fmAcc,i,(vm,fm) :: fps) =
+            let
+               val vmNew = TVarMap.map (extend i) vm
+               val fmNew = SymMap.map (extend i) fm
+               (*val _ = TextIO.print ("\nextended indices" ^ #1 (toStringSI ((vm,fm),TVar.emptyShowInfo)) ^
+                                     "\nto" ^ #1 (toStringSI ((vmNew,fmNew),TVar.emptyShowInfo)) ^
+                                     "\nwhich are merged with" ^ #1 (toStringSI ((vmAcc,fmAcc),TVar.emptyShowInfo)) ^ "\n")*)
+               val vmAcc = TVarMap.unionWith (StepsMap.unionWith (fn _ => raise BadExtend)) (vmAcc,vmNew)
+               val fmAcc = SymMap.unionWith (StepsMap.unionWithi (fn _ => raise BadExtend)) (fmAcc,fmNew)
+            in
+             
+               combine (vmAcc,fmAcc,i-1,fps)
+            end
+      in
+         combine (TVarMap.empty, SymMap.empty,0,fps)
+      end
+
    fun insertSteps ((tVarMap,fieldMap), oldVar, stepsLeafList) =
       if not (TVarMap.inDomain (tVarMap,oldVar)) then ((tVarMap,fieldMap), []) else
       let
@@ -322,6 +348,10 @@ structure TypeTable : sig
       can be re-added using addSymbol. *)
    val getSymbol : SymbolTable.symid * table -> Types.texp
 
+   (* Take an unallocated symbol, symbols of arguments and a result symbol
+      and create a function type. *)
+   val reduceToFunction : SymbolTable.symid * SymbolTable.symid list * SymbolTable.symid * table -> unit
+   
    (* Remove flow and size constraints on the given type expression. This function must be called if part of the type returned by getSymbol is discarded. *)
    val removeConstraints : Types.texp * table -> table
    
@@ -1170,7 +1200,33 @@ end = struct
       in
          ty
       end
-   
+
+   fun reduceToFunction (funSym, argSyms, resSym, table : table) =
+      let
+         val tt = #typeTable table
+         val st = #symTable table
+         val { flow = fpRes, info = idxRes } = HT.remove st resSym
+            handle IndexError => (TextIO.print ("TypeTable.reduceToFunction: " ^ SymbolTable.getString(!SymbolTables.varTable, resSym) ^ " not mapped.\n"); raise TypeTableError)
+         fun getArg (argSym,(fps,idxs)) =
+            let
+               val { flow = fp, info = idx } = HT.remove st argSym
+                  handle IndexError => (TextIO.print ("TypeTable.reduceToFunction: " ^ SymbolTable.getString(!SymbolTables.varTable, argSym) ^ " not mapped.\n"); raise TypeTableError)
+            in
+               (fp::fps,idx::idxs)
+            end
+         val (fpArgs, idxArgs) = foldr getArg ([],[]) argSyms
+         val ty = allocType (TT_FUN (idxArgs, idxRes),table)
+         val fp = Path.combineIndexedFlowpoints (fpRes :: fpArgs)
+         val _ = HT.insert st (funSym, {flow = fp, info = ty})
+         val vars = Path.varsOfFlowpoints fp
+         val badSyms = SymSet.addList (SymSet.singleton resSym, argSyms)
+         val _ = List.app (fn idx => case ttGet (tt,idx) of
+               LEAF symSet => ttSet (tt,idx,LEAF (SymSet.add (SymSet.difference (symSet,badSyms),funSym)))
+             | _ => raise IndexError) vars
+      in
+         ()
+      end
+
    fun peekSymbol (sym,table : table) =
       let
          val st = #symTable table

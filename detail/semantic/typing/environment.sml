@@ -1115,19 +1115,18 @@ end = struct
    fun reduceToFunction (env,nArgs) = if nArgs=0 then env else
       let
          val tt = Scope.getTypeTable env
-         val (tSym, env) = case Scope.unwrap env of
+         val (tRes, env) = case Scope.unwrap env of
                              (KAPPA {kappa}, env) => (kappa,Scope.releaseKappa (kappa,env))
                            | (SINGLE {name}, env) => (name,env)
                            | _ => raise InferenceBug
-         val tRes = TT.getSymbol (tSym,tt)
          fun getArgs (tys,n,env) = if n=0 then (tys,env) else
             case Scope.unwrap env of
-                 (KAPPA {kappa}, env) => getArgs (TT.getSymbol (kappa,tt) :: tys,n-1,Scope.releaseKappa (kappa,env))
-               | (SINGLE {name}, env) => getArgs (TT.getSymbol (name,tt) :: tys,n-1,env)
+                 (KAPPA {kappa}, env) => getArgs (kappa :: tys,n-1,Scope.releaseKappa (kappa,env))
+               | (SINGLE {name}, env) => getArgs (name :: tys,n-1,env)
                | _ => raise InferenceBug
          val (tArgs,env) = getArgs ([],nArgs,env)
          val (k,env) = Scope.acquireKappa env
-         val _ = TT.addSymbol (k,FUN (tArgs,tRes),tt) 
+         val _ = TT.reduceToFunction (k, tArgs, tRes, tt)
       in
          Scope.wrap (KAPPA {kappa=k}, env)
       end
