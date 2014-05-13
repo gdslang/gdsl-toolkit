@@ -1209,10 +1209,8 @@ end = struct
 
                val v1 = ttFind (tt,v1)
                val v2 = ttFind (tt,v2)
-               val pairs = if TVar.eq (v1,v2) then pairs else
-                  case unifyTT (v1, v2, ttGet (tt,v1), ttGet (tt,v2)) of
-                     [] => pairs
-                   | newPairs => newPairs @ pairs
+               val _ = if TVar.eq (v1,v2) then () else
+                  unifyTT (v1, v2, ttGet (tt,v1), ttGet (tt,v2))
             in
                fixpoint pairs
             end
@@ -1229,7 +1227,7 @@ end = struct
                   val scRef = #sizeDom table
                   val _ = scRef := SC.rename (vBad,vGood,!scRef)
                in
-                  []
+                  ()
                end
            | unifyTT (v1, v2, TERM t1, TERM t2) = (if not unifyVerbose then () else TextIO.print ("unifying TERM/TERM " ^ #1 (showTypeTermSI (t1,TVar.emptyShowInfo)) ^ "="  ^ #1 (showTypeTermSI (t2,TVar.emptyShowInfo)) ^ "\n"); genPairs (v1,v2, t1,t2))
            | unifyTT (v1, v2, LEAF symSet, TERM t2) = substVar (v1,symSet,v2,t2)
@@ -1242,16 +1240,16 @@ end = struct
                Int.toString (List.length g1) ^ ")"
             )
          else (setMinVar (v1,v2,TT_FUN (map tVarMin (ListPair.zip (f1,g1)),tVarMin (f2,g2)))
-              ;(f2,g2)::ListPair.zip (f1,g1))
+              ;fixpoint ((f2,g2)::ListPair.zip (f1,g1)))
         | genPairs (_ ,v2,TT_SYN (_,v1),t2) = unifyTT (ttFind (tt,v1), v2, ttGet (tt,v1), TERM t2)
         | genPairs (v1,_ ,t1,TT_SYN (_,v2)) = unifyTT (v1, ttFind (tt,v2), TERM t1, ttGet (tt, v2))
-        | genPairs (v1,v2,TT_ZENO, TT_ZENO) = []
-        | genPairs (v1,v2,TT_FLOAT, TT_FLOAT) = []
-        | genPairs (v1,v2,TT_STRING, TT_STRING) = []
-        | genPairs (v1,v2,TT_UNIT, TT_UNIT) = []
-        | genPairs (v1,v2,TT_VEC t1, TT_VEC t2) = (setMinVar (v1,v2,TT_VEC (tVarMin (t1,t2))); [(t1, t2)])
+        | genPairs (v1,v2,TT_ZENO, TT_ZENO) = ()
+        | genPairs (v1,v2,TT_FLOAT, TT_FLOAT) = ()
+        | genPairs (v1,v2,TT_STRING, TT_STRING) = ()
+        | genPairs (v1,v2,TT_UNIT, TT_UNIT) = ()
+        | genPairs (v1,v2,TT_VEC t1, TT_VEC t2) = (setMinVar (v1,v2,TT_VEC (tVarMin (t1,t2))); fixpoint [(t1, t2)])
         | genPairs (v1,v2,TT_CONST c1, TT_CONST c2) =
-           if c1=c2 then [] else raise S.UnificationFailure (S.Clash,
+           if c1=c2 then () else raise S.UnificationFailure (S.Clash,
             "incompatible bit vectors sizes (" ^ Int.toString c1 ^ " and " ^
             Int.toString c2 ^ ")")
         | genPairs (v1,v2,TT_RECORD r1, TT_RECORD r2) =
@@ -1305,10 +1303,10 @@ end = struct
             val _ = if update1 then updateFlow (row1,symSet1,genPaths (!newIn1)) else ()
             val _ = if update2 then updateFlow (row2,symSet2,genPaths (!newIn2)) else ()
          in
-            !rPairs
+            fixpoint (!rPairs)
          end
         | genPairs (v1,v2,TT_MONAD (r1,f1,t1), TT_MONAD (r2,f2,t2)) =
-            [(r1, r2), (f1, f2), (t1, t2)]
+            fixpoint [(r1, r2), (f1, f2), (t1, t2)]
         | genPairs (v1,v2,TT_ALG (ty1, l1), TT_ALG (ty2, l2)) =
          let 
             fun incompat () = raise S.UnificationFailure (S.Clash,
@@ -1319,7 +1317,7 @@ end = struct
          in case SymbolTable.compare_symid (ty1, ty2) of
            LESS => incompat ()
          | GREATER => incompat ()
-         | EQAL => ListPair.zipEq (l1,l2)
+         | EQAL => fixpoint (ListPair.zipEq (l1,l2))
          end
         | genPairs (v1,v2,TT_SET r1, TT_SET r2) =
          let
@@ -1372,7 +1370,7 @@ end = struct
             val _ = if update1 then updateFlow (row1,symSet1,genPaths (!newIn1)) else ()
             val _ = if update2 then updateFlow (row2,symSet2,genPaths (!newIn2)) else ()
          in
-            !rPairs
+            fixpoint (!rPairs)
          end
         | genPairs (v1,v2,TT_SET r1, TT_FUN (f1, f2)) = genPairs (v2,v1,TT_FUN (f1, f2), TT_SET r1)
         | genPairs (v1,v2,TT_FUN (f1, f2), TT_SET r1) = raise IndexError
@@ -1438,7 +1436,7 @@ end = struct
                     )
                | _ => []
          in                              
-            newPairs
+            fixpoint newPairs
          end
       (* When a variable vVar is replaced by a type that has the paths in stepsLeafList,
          this function updates the flow and reverse information. *)
