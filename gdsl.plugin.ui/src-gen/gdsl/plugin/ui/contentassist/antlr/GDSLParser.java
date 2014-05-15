@@ -38,12 +38,16 @@ public class GDSLParser extends AbstractContentAssistParser {
 				private static final long serialVersionUID = 1L;
 				{
 					put(grammarAccess.getDeclAccess().getAlternatives(), "rule__Decl__Alternatives");
+					put(grammarAccess.getIntegerAccess().getAlternatives(), "rule__Integer__Alternatives");
 					put(grammarAccess.getModelAccess().getGroup(), "rule__Model__Group__0");
 					put(grammarAccess.getModelAccess().getGroup_1(), "rule__Model__Group_1__0");
 					put(grammarAccess.getDeclGranularityAccess().getGroup(), "rule__DeclGranularity__Group__0");
 					put(grammarAccess.getDeclExportAccess().getGroup(), "rule__DeclExport__Group__0");
 					put(grammarAccess.getDeclTypeAccess().getGroup(), "rule__DeclType__Group__0");
 					put(grammarAccess.getDeclValAccess().getGroup(), "rule__DeclVal__Group__0");
+					put(grammarAccess.getExportAccess().getGroup(), "rule__Export__Group__0");
+					put(grammarAccess.getExportAccess().getGroup_1(), "rule__Export__Group_1__0");
+					put(grammarAccess.getExportAccess().getGroup_1_2(), "rule__Export__Group_1_2__0");
 					put(grammarAccess.getModelAccess().getDeclAssignment_0(), "rule__Model__DeclAssignment_0");
 					put(grammarAccess.getModelAccess().getDeclAssignment_1_1(), "rule__Model__DeclAssignment_1_1");
 					put(grammarAccess.getDeclGranularityAccess().getNameAssignment_0(), "rule__DeclGranularity__NameAssignment_0");
@@ -53,7 +57,9 @@ public class GDSLParser extends AbstractContentAssistParser {
 					put(grammarAccess.getDeclTypeAccess().getNameAssignment_1(), "rule__DeclType__NameAssignment_1");
 					put(grammarAccess.getDeclValAccess().getNameAssignment_1(), "rule__DeclVal__NameAssignment_1");
 					put(grammarAccess.getDeclValAccess().getAttrAssignment_2(), "rule__DeclVal__AttrAssignment_2");
-					put(grammarAccess.getExportAccess().getNameAssignment(), "rule__Export__NameAssignment");
+					put(grammarAccess.getExportAccess().getNameAssignment_0(), "rule__Export__NameAssignment_0");
+					put(grammarAccess.getExportAccess().getAttrNameAssignment_1_1(), "rule__Export__AttrNameAssignment_1_1");
+					put(grammarAccess.getExportAccess().getAttrNameAssignment_1_2_1(), "rule__Export__AttrNameAssignment_1_2_1");
 				}
 			};
 		}

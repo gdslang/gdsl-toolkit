@@ -336,7 +336,15 @@ ruleDeclType returns [EObject current=null]
 	    }
 
 )
-))
+)	otherlv_2='=' 
+    {
+    	newLeafNode(otherlv_2, grammarAccess.getDeclTypeAccess().getEqualsSignKeyword_2());
+    }
+	otherlv_3='todo' 
+    {
+    	newLeafNode(otherlv_3, grammarAccess.getDeclTypeAccess().getTodoKeyword_3());
+    }
+)
 ;
 
 
@@ -418,22 +426,73 @@ ruleExport returns [EObject current=null]
     @init { enterRule(); 
     }
     @after { leaveRule(); }:
+((
 (
-(
-		lv_name_0_0=	'todo' 
-    {
-        newLeafNode(lv_name_0_0, grammarAccess.getExportAccess().getNameTodoKeyword_0());
-    }
- 
-	    {
+		{ 
+	        newCompositeNode(grammarAccess.getExportAccess().getNameQidParserRuleCall_0_0()); 
+	    }
+		lv_name_0_0=ruleQid		{
 	        if ($current==null) {
-	            $current = createModelElement(grammarAccess.getExportRule());
+	            $current = createModelElementForParent(grammarAccess.getExportRule());
 	        }
-       		setWithLastConsumed($current, "name", lv_name_0_0, "todo");
+       		set(
+       			$current, 
+       			"name",
+        		lv_name_0_0, 
+        		"Qid");
+	        afterParserOrEnumRuleCall();
 	    }
 
 )
+)(	otherlv_1='{' 
+    {
+    	newLeafNode(otherlv_1, grammarAccess.getExportAccess().getLeftCurlyBracketKeyword_1_0());
+    }
+(
+(
+		lv_attrName_2_0=RULE_ID
+		{
+			newLeafNode(lv_attrName_2_0, grammarAccess.getExportAccess().getAttrNameIDTerminalRuleCall_1_1_0()); 
+		}
+		{
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getExportRule());
+	        }
+       		addWithLastConsumed(
+       			$current, 
+       			"attrName",
+        		lv_attrName_2_0, 
+        		"ID");
+	    }
+
 )
+)(	otherlv_3=',' 
+    {
+    	newLeafNode(otherlv_3, grammarAccess.getExportAccess().getCommaKeyword_1_2_0());
+    }
+(
+(
+		lv_attrName_4_0=RULE_ID
+		{
+			newLeafNode(lv_attrName_4_0, grammarAccess.getExportAccess().getAttrNameIDTerminalRuleCall_1_2_1_0()); 
+		}
+		{
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getExportRule());
+	        }
+       		addWithLastConsumed(
+       			$current, 
+       			"attrName",
+        		lv_attrName_4_0, 
+        		"ID");
+	    }
+
+)
+))*	otherlv_5='}' 
+    {
+    	newLeafNode(otherlv_5, grammarAccess.getExportAccess().getRightCurlyBracketKeyword_1_3());
+    }
+)?)
 ;
 
 
@@ -454,12 +513,48 @@ ruleInteger returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()
     @init { enterRule(); 
     }
     @after { leaveRule(); }:
-    this_INT_0=RULE_INT    {
-		$current.merge(this_INT_0);
+(    this_POSINT_0=RULE_POSINT    {
+		$current.merge(this_POSINT_0);
     }
 
     { 
-    newLeafNode(this_INT_0, grammarAccess.getIntegerAccess().getINTTerminalRuleCall()); 
+    newLeafNode(this_POSINT_0, grammarAccess.getIntegerAccess().getPOSINTTerminalRuleCall_0()); 
+    }
+
+    |    this_NEGINT_1=RULE_NEGINT    {
+		$current.merge(this_NEGINT_1);
+    }
+
+    { 
+    newLeafNode(this_NEGINT_1, grammarAccess.getIntegerAccess().getNEGINTTerminalRuleCall_1()); 
+    }
+)
+    ;
+
+
+
+
+
+// Entry rule entryRuleQid
+entryRuleQid returns [String current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getQidRule()); } 
+	 iv_ruleQid=ruleQid 
+	 { $current=$iv_ruleQid.current.getText(); }  
+	 EOF 
+;
+
+// Rule Qid
+ruleQid returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+    this_ID_0=RULE_ID    {
+		$current.merge(this_ID_0);
+    }
+
+    { 
+    newLeafNode(this_ID_0, grammarAccess.getQidAccess().getIDTerminalRuleCall()); 
     }
 
     ;
@@ -470,16 +565,14 @@ ruleInteger returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()
 
 RULE_ID : '^'? ('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
 
-RULE_INT : ('0'..'9')+;
+RULE_POSINT : ('0'..'9')+;
 
-RULE_STRING : ('"' ('\\' ('b'|'t'|'n'|'f'|'r'|'u'|'"'|'\''|'\\')|~(('\\'|'"')))* '"'|'\'' ('\\' ('b'|'t'|'n'|'f'|'r'|'u'|'"'|'\''|'\\')|~(('\\'|'\'')))* '\'');
+RULE_NEGINT : '~' '1'..'9' ('0'..'9')*;
 
-RULE_ML_COMMENT : '/*' ( options {greedy=false;} : . )*'*/';
+RULE_ML_COMMENT : '(*' ( options {greedy=false;} : . )*'*)';
 
-RULE_SL_COMMENT : '//' ~(('\n'|'\r'))* ('\r'? '\n')?;
+RULE_SL_COMMENT : '#' ~('\n')* '\n';
 
 RULE_WS : (' '|'\t'|'\r'|'\n')+;
-
-RULE_ANY_OTHER : .;
 
 

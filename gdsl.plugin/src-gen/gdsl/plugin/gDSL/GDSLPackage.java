@@ -271,13 +271,22 @@ public interface GDSLPackage extends EPackage
   int EXPORT__NAME = 0;
 
   /**
+   * The feature id for the '<em><b>Attr Name</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int EXPORT__ATTR_NAME = 1;
+
+  /**
    * The number of structural features of the '<em>Export</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int EXPORT_FEATURE_COUNT = 1;
+  int EXPORT_FEATURE_COUNT = 2;
 
 
   /**
@@ -415,6 +424,17 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EAttribute getExport_Name();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.Export#getAttrName <em>Attr Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Attr Name</em>'.
+   * @see gdsl.plugin.gDSL.Export#getAttrName()
+   * @see #getExport()
+   * @generated
+   */
+  EAttribute getExport_AttrName();
 
   /**
    * Returns the factory that creates the instances of the model.
@@ -556,6 +576,14 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EAttribute EXPORT__NAME = eINSTANCE.getExport_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Attr Name</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute EXPORT__ATTR_NAME = eINSTANCE.getExport_AttrName();
 
   }
 

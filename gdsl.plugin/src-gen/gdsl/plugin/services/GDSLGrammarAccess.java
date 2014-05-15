@@ -12,7 +12,6 @@ import org.eclipse.xtext.*;
 import org.eclipse.xtext.service.GrammarProvider;
 import org.eclipse.xtext.service.AbstractElementFinder.*;
 
-import org.eclipse.xtext.common.services.TerminalsGrammarAccess;
 
 @Singleton
 public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
@@ -62,6 +61,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cDeclTypeParserRuleCall_2 = (RuleCall)cAlternatives.eContents().get(2);
 		private final RuleCall cDeclValParserRuleCall_3 = (RuleCall)cAlternatives.eContents().get(3);
 		
+		//// *****************************
 		//Decl:
 		//	DeclGranularity | DeclExport | DeclType | DeclVal;
 		public ParserRule getRule() { return rule; }
@@ -91,6 +91,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final Assignment cGranularityAssignment_2 = (Assignment)cGroup.eContents().get(2);
 		private final RuleCall cGranularityIntegerParserRuleCall_2_0 = (RuleCall)cGranularityAssignment_2.eContents().get(0);
 		
+		//// *****************************
 		//DeclGranularity:
 		//	name="granularity" "=" granularity=Integer;
 		public ParserRule getRule() { return rule; }
@@ -152,12 +153,14 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final Keyword cTypeKeyword_0 = (Keyword)cGroup.eContents().get(0);
 		private final Assignment cNameAssignment_1 = (Assignment)cGroup.eContents().get(1);
 		private final RuleCall cNameIDTerminalRuleCall_1_0 = (RuleCall)cNameAssignment_1.eContents().get(0);
+		private final Keyword cEqualsSignKeyword_2 = (Keyword)cGroup.eContents().get(2);
+		private final Keyword cTodoKeyword_3 = (Keyword)cGroup.eContents().get(3);
 		
 		//DeclType:
-		//	"type" name=ID;
+		//	"type" name=ID "=" "todo";
 		public ParserRule getRule() { return rule; }
 
-		//"type" name=ID
+		//"type" name=ID "=" "todo"
 		public Group getGroup() { return cGroup; }
 
 		//"type"
@@ -168,6 +171,12 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 
 		//ID
 		public RuleCall getNameIDTerminalRuleCall_1_0() { return cNameIDTerminalRuleCall_1_0; }
+
+		//"="
+		public Keyword getEqualsSignKeyword_2() { return cEqualsSignKeyword_2; }
+
+		//"todo"
+		public Keyword getTodoKeyword_3() { return cTodoKeyword_3; }
 	}
 
 	public class DeclValElements extends AbstractParserRuleElementFinder {
@@ -204,31 +213,92 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 
 	public class ExportElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Export");
-		private final Assignment cNameAssignment = (Assignment)rule.eContents().get(1);
-		private final Keyword cNameTodoKeyword_0 = (Keyword)cNameAssignment.eContents().get(0);
+		private final Group cGroup = (Group)rule.eContents().get(1);
+		private final Assignment cNameAssignment_0 = (Assignment)cGroup.eContents().get(0);
+		private final RuleCall cNameQidParserRuleCall_0_0 = (RuleCall)cNameAssignment_0.eContents().get(0);
+		private final Group cGroup_1 = (Group)cGroup.eContents().get(1);
+		private final Keyword cLeftCurlyBracketKeyword_1_0 = (Keyword)cGroup_1.eContents().get(0);
+		private final Assignment cAttrNameAssignment_1_1 = (Assignment)cGroup_1.eContents().get(1);
+		private final RuleCall cAttrNameIDTerminalRuleCall_1_1_0 = (RuleCall)cAttrNameAssignment_1_1.eContents().get(0);
+		private final Group cGroup_1_2 = (Group)cGroup_1.eContents().get(2);
+		private final Keyword cCommaKeyword_1_2_0 = (Keyword)cGroup_1_2.eContents().get(0);
+		private final Assignment cAttrNameAssignment_1_2_1 = (Assignment)cGroup_1_2.eContents().get(1);
+		private final RuleCall cAttrNameIDTerminalRuleCall_1_2_1_0 = (RuleCall)cAttrNameAssignment_1_2_1.eContents().get(0);
+		private final Keyword cRightCurlyBracketKeyword_1_3 = (Keyword)cGroup_1.eContents().get(3);
 		
+		//// *****************************
 		//Export:
-		//	name="todo";
+		//	name=Qid ("{" attrName+=ID ("," attrName+=ID)* "}")?;
 		public ParserRule getRule() { return rule; }
 
-		//name="todo"
-		public Assignment getNameAssignment() { return cNameAssignment; }
+		//name=Qid ("{" attrName+=ID ("," attrName+=ID)* "}")?
+		public Group getGroup() { return cGroup; }
 
-		//"todo"
-		public Keyword getNameTodoKeyword_0() { return cNameTodoKeyword_0; }
+		//name=Qid
+		public Assignment getNameAssignment_0() { return cNameAssignment_0; }
+
+		//Qid
+		public RuleCall getNameQidParserRuleCall_0_0() { return cNameQidParserRuleCall_0_0; }
+
+		//("{" attrName+=ID ("," attrName+=ID)* "}")?
+		public Group getGroup_1() { return cGroup_1; }
+
+		//"{"
+		public Keyword getLeftCurlyBracketKeyword_1_0() { return cLeftCurlyBracketKeyword_1_0; }
+
+		//attrName+=ID
+		public Assignment getAttrNameAssignment_1_1() { return cAttrNameAssignment_1_1; }
+
+		//ID
+		public RuleCall getAttrNameIDTerminalRuleCall_1_1_0() { return cAttrNameIDTerminalRuleCall_1_1_0; }
+
+		//("," attrName+=ID)*
+		public Group getGroup_1_2() { return cGroup_1_2; }
+
+		//","
+		public Keyword getCommaKeyword_1_2_0() { return cCommaKeyword_1_2_0; }
+
+		//attrName+=ID
+		public Assignment getAttrNameAssignment_1_2_1() { return cAttrNameAssignment_1_2_1; }
+
+		//ID
+		public RuleCall getAttrNameIDTerminalRuleCall_1_2_1_0() { return cAttrNameIDTerminalRuleCall_1_2_1_0; }
+
+		//"}"
+		public Keyword getRightCurlyBracketKeyword_1_3() { return cRightCurlyBracketKeyword_1_3; }
 	}
 
 	public class IntegerElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Integer");
-		private final RuleCall cINTTerminalRuleCall = (RuleCall)rule.eContents().get(1);
+		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
+		private final RuleCall cPOSINTTerminalRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
+		private final RuleCall cNEGINTTerminalRuleCall_1 = (RuleCall)cAlternatives.eContents().get(1);
 		
-		//Integer: //	POSINT | NEGINT 
-		//	INT;
+		////Quite Terminal symbols
+		//Integer:
+		//	POSINT | NEGINT;
 		public ParserRule getRule() { return rule; }
 
-		////	POSINT | NEGINT 
-		//INT
-		public RuleCall getINTTerminalRuleCall() { return cINTTerminalRuleCall; }
+		//POSINT | NEGINT
+		public Alternatives getAlternatives() { return cAlternatives; }
+
+		//POSINT
+		public RuleCall getPOSINTTerminalRuleCall_0() { return cPOSINTTerminalRuleCall_0; }
+
+		//NEGINT
+		public RuleCall getNEGINTTerminalRuleCall_1() { return cNEGINTTerminalRuleCall_1; }
+	}
+
+	public class QidElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Qid");
+		private final RuleCall cIDTerminalRuleCall = (RuleCall)rule.eContents().get(1);
+		
+		//Qid:
+		//	ID;
+		public ParserRule getRule() { return rule; }
+
+		//ID
+		public RuleCall getIDTerminalRuleCall() { return cIDTerminalRuleCall; }
 	}
 	
 	
@@ -240,16 +310,19 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	private DeclValElements pDeclVal;
 	private ExportElements pExport;
 	private IntegerElements pInteger;
+	private QidElements pQid;
+	private TerminalRule tID;
+	private TerminalRule tPOSINT;
+	private TerminalRule tNEGINT;
+	private TerminalRule tML_COMMENT;
+	private TerminalRule tSL_COMMENT;
+	private TerminalRule tWS;
 	
 	private final Grammar grammar;
 
-	private TerminalsGrammarAccess gaTerminals;
-
 	@Inject
-	public GDSLGrammarAccess(GrammarProvider grammarProvider,
-		TerminalsGrammarAccess gaTerminals) {
+	public GDSLGrammarAccess(GrammarProvider grammarProvider) {
 		this.grammar = internalFindGrammar(grammarProvider);
-		this.gaTerminals = gaTerminals;
 	}
 	
 	protected Grammar internalFindGrammar(GrammarProvider grammarProvider) {
@@ -274,10 +347,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 	
 
-	public TerminalsGrammarAccess getTerminalsGrammarAccess() {
-		return gaTerminals;
-	}
-
 	
 	//Model:
 	//	decl+=Decl (";"? decl+=Decl)*;
@@ -289,6 +358,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getModelAccess().getRule();
 	}
 
+	//// *****************************
 	//Decl:
 	//	DeclGranularity | DeclExport | DeclType | DeclVal;
 	public DeclElements getDeclAccess() {
@@ -299,6 +369,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getDeclAccess().getRule();
 	}
 
+	//// *****************************
 	//DeclGranularity:
 	//	name="granularity" "=" granularity=Integer;
 	public DeclGranularityElements getDeclGranularityAccess() {
@@ -320,7 +391,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//DeclType:
-	//	"type" name=ID;
+	//	"type" name=ID "=" "todo";
 	public DeclTypeElements getDeclTypeAccess() {
 		return (pDeclType != null) ? pDeclType : (pDeclType = new DeclTypeElements());
 	}
@@ -339,8 +410,9 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getDeclValAccess().getRule();
 	}
 
+	//// *****************************
 	//Export:
-	//	name="todo";
+	//	name=Qid ("{" attrName+=ID ("," attrName+=ID)* "}")?;
 	public ExportElements getExportAccess() {
 		return (pExport != null) ? pExport : (pExport = new ExportElements());
 	}
@@ -349,8 +421,9 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getExportAccess().getRule();
 	}
 
-	//Integer: //	POSINT | NEGINT 
-	//	INT;
+	////Quite Terminal symbols
+	//Integer:
+	//	POSINT | NEGINT;
 	public IntegerElements getIntegerAccess() {
 		return (pInteger != null) ? pInteger : (pInteger = new IntegerElements());
 	}
@@ -359,46 +432,50 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getIntegerAccess().getRule();
 	}
 
+	//Qid:
+	//	ID;
+	public QidElements getQidAccess() {
+		return (pQid != null) ? pQid : (pQid = new QidElements());
+	}
+	
+	public ParserRule getQidRule() {
+		return getQidAccess().getRule();
+	}
+
+	////Terminal symbols	
 	//terminal ID:
 	//	"^"? ("a".."z" | "A".."Z" | "_") ("a".."z" | "A".."Z" | "_" | "0".."9")*;
 	public TerminalRule getIDRule() {
-		return gaTerminals.getIDRule();
+		return (tID != null) ? tID : (tID = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "ID"));
 	} 
 
-	//terminal INT returns ecore::EInt:
+	//terminal POSINT returns ecore::EInt:
 	//	"0".."9"+;
-	public TerminalRule getINTRule() {
-		return gaTerminals.getINTRule();
+	public TerminalRule getPOSINTRule() {
+		return (tPOSINT != null) ? tPOSINT : (tPOSINT = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "POSINT"));
 	} 
 
-	//terminal STRING:
-	//	"\"" ("\\" ("b" | "t" | "n" | "f" | "r" | "u" | "\"" | "\'" | "\\") | !("\\" | "\""))* "\"" | "\'" ("\\" ("b" | "t" |
-	//	"n" | "f" | "r" | "u" | "\"" | "\'" | "\\") | !("\\" | "\'"))* "\'";
-	public TerminalRule getSTRINGRule() {
-		return gaTerminals.getSTRINGRule();
+	//terminal NEGINT:
+	//	"~" "1".."9" "0".."9"*;
+	public TerminalRule getNEGINTRule() {
+		return (tNEGINT != null) ? tNEGINT : (tNEGINT = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "NEGINT"));
 	} 
 
 	//terminal ML_COMMENT:
-	//	"/ *"->"* /";
+	//	"(*"->"*)";
 	public TerminalRule getML_COMMENTRule() {
-		return gaTerminals.getML_COMMENTRule();
+		return (tML_COMMENT != null) ? tML_COMMENT : (tML_COMMENT = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "ML_COMMENT"));
 	} 
 
 	//terminal SL_COMMENT:
-	//	"//" !("\n" | "\r")* ("\r"? "\n")?;
+	//	"#" !"\n"* "\n";
 	public TerminalRule getSL_COMMENTRule() {
-		return gaTerminals.getSL_COMMENTRule();
+		return (tSL_COMMENT != null) ? tSL_COMMENT : (tSL_COMMENT = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "SL_COMMENT"));
 	} 
 
 	//terminal WS:
 	//	(" " | "\t" | "\r" | "\n")+;
 	public TerminalRule getWSRule() {
-		return gaTerminals.getWSRule();
-	} 
-
-	//terminal ANY_OTHER:
-	//	.;
-	public TerminalRule getANY_OTHERRule() {
-		return gaTerminals.getANY_OTHERRule();
+		return (tWS != null) ? tWS : (tWS = (TerminalRule) GrammarUtil.findRuleForName(getGrammar(), "WS"));
 	} 
 }

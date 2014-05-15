@@ -25,6 +25,7 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//Export">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Export/name"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Export/attrName"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

@@ -1,15 +1,19 @@
-grammar gdsl.plugin.GDSL /** with gdsl.plugin.Terminals /*/ with org.eclipse.xtext.common.Terminals /**/
+grammar gdsl.plugin.GDSL hidden(WS, ML_COMMENT, SL_COMMENT)//with org.eclipse.xtext.common.Terminals
 
 generate gDSL "http://www.plugin.gdsl/GDSL"
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 Model:
 	decl += Decl (';'? decl += Decl)*
 ;
 
+//*****************************
 Decl:
 	DeclGranularity | DeclExport | DeclType | DeclVal
 ;
 
+//*****************************
 DeclGranularity:
 	name='granularity' '=' granularity=Integer
 ;
@@ -19,18 +23,32 @@ DeclExport:
 ;
 
 DeclType:
-	'type' name=ID
+	'type' name=ID '=' 'todo'
 ;
 
 DeclVal:
 	'val' name=ID (attr += ID)*
 ;
 
+//*****************************
 Export:
-	name='todo'
+	name=Qid ('{' attrName+=ID (',' attrName+=ID)* '}')?
 ;
 
+//Quite Terminal symbols
 Integer:
-//	POSINT | NEGINT 
-	INT 
+	POSINT | NEGINT 
 ;
+
+Qid:
+	ID
+;
+
+//Terminal symbols	
+terminal ID : '^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
+terminal POSINT returns ecore::EInt: ('0'..'9')+;
+terminal NEGINT: '~'('1'..'9')('0'..'9')*;
+terminal ML_COMMENT	: '(*' -> '*)';
+terminal SL_COMMENT 	: '#' !('\n')* '\n';
+terminal WS			: (' '|'\t'|'\r'|'\n')+;
+

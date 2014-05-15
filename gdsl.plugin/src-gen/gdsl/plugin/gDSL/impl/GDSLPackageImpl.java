@@ -274,6 +274,16 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EAttribute getExport_AttrName()
+  {
+    return (EAttribute)exportEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public GDSLFactory getGDSLFactory()
   {
     return (GDSLFactory)getEFactoryInstance();
@@ -318,6 +328,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
 
     exportEClass = createEClass(EXPORT);
     createEAttribute(exportEClass, EXPORT__NAME);
+    createEAttribute(exportEClass, EXPORT__ATTR_NAME);
   }
 
   /**
@@ -374,6 +385,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
 
     initEClass(exportEClass, Export.class, "Export", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getExport_Name(), ecorePackage.getEString(), "name", null, 0, 1, Export.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getExport_AttrName(), ecorePackage.getEString(), "attrName", null, 0, -1, Export.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     // Create resource
     createResource(eNS_URI);
