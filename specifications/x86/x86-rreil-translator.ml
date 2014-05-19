@@ -2284,8 +2284,8 @@ val translate-x86 insn = do
   ip <- ip-get;
   add ip-sz ip (var ip) (imm insn.length);
   
-  ifl <- fIF;
-  mov 1 ifl (imm 1);
+#  ifl <- fIF;
+#  mov 1 ifl (imm 1);
 
   semantics insn
 end
