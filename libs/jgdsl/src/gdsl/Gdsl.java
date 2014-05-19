@@ -29,6 +29,10 @@ public class Gdsl implements IReferable {
    * reset if the number of references to it drops to zero.
    */
   public final ReferenceManager heapManager = new ReferenceManager(this);
+  
+  static {
+    System.loadLibrary("jgdsl");
+  }
  
   /**
    * Get the buffer associated with the GDSL object; it is used as input
@@ -105,10 +109,6 @@ public class Gdsl implements IReferable {
   
   private static native ListFrontend[] getFrontendsNative ();
   private static native ListFrontend[] getFrontendsNativeWithBase (String base);
-
-  static {
-    System.loadLibrary("jgdsl");
-  }
   
   /**
    * Construct the Gdsl object
