@@ -18,8 +18,8 @@ structure TypeInference : sig
    
 end = struct
 
-   val debugSymbol = NONE (*SOME 821*)
-   val verbose = false
+   val debugSymbol = (*NONE *)SOME 89
+   val verbose = true
    
    structure AST = SpecAbstractTree
    structure E = Environment(*Profiling*)
@@ -264,7 +264,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val bindSymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>")
    val bindASymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>=")
 
-   val anyFun = E.AnyArg
+   val anyFun = E.AnyFun
    type path_info = bool
    val emptyPathInfo = false
 
@@ -761,27 +761,33 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
      | infExp (st,env) (AST.APPLYexp (e1,es2)) =
       let
-         val st = clearFunPos st                                      
          val _ = if not verbose then () else
             TextIO.print ("**** application: " ^ showProg (20, PP.exp, AST.APPLYexp (e1,es2)) ^ "\n")
+         val noOfArgs = List.length es2
+         
+         val env = infExp (setFunPos st,env) e1
+
+         val st = clearFunPos st                                      
          val env = List.foldl (fn (e2,env) => infExp (st,env) e2) env es2
 
          val ctxt = E.getCtxt env
          val _ = if List.all (fn x => SOME (SymbolTable.toInt x)<>debugSymbol) ctxt then () else
                  TextIO.print ("**** app func:\n" ^ E.topToString env)
 
+         (* Expand each argument of the function to a set if the function type requires that. *)
+         val env = E.expandArguments (env,noOfArgs)
+
          val env = E.pushTop env
-         val env = E.reduceToFunction (env, List.length es2)
+         val env = E.reduceToFunction (env, noOfArgs)
          val _ = if List.all (fn x => SOME (SymbolTable.toInt x)<>debugSymbol) ctxt then () else
                  TextIO.print ("**** app arg:\n" ^ E.topToString env)
-
-         val env = infExp (setFunPos st,env) e1
 
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString env)*)
          (* make the result of the call-site depend on the result of the
          function; the flow expressing that formal parameters depend on actual
          parameters follows from contra-variance*)
-         val env = E.equateKappasFlow env
+         val env = E.flipKappas env
+         val env = E.equateKappas env
             handle S.UnificationFailure str =>
                refineError (env, str,
                             " while passing",
@@ -789,7 +795,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                             (fn (e2,(res,argNo)) => 
                               (((2,argNo), "argument    " ^ showProg (20, PP.exp, e2))::res,
                                argNo-1)
-                            ) ([], length es2) es2)) @
+                            ) ([], noOfArgs) es2)) @
                             [((1,0), "to function " ^ showProg (20, PP.exp, e1))])
 
          val env = E.popKappa env
@@ -1155,7 +1161,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          val _ = TextIO.print str
          
          val env = E.garbageCollect env   
-         (*val _ = TextIO.print ("before checking component " ^ prComp comp ^ "\n")*)
+         val _ = if not verbose then () else
+               TextIO.print ("before checking component " ^ prComp comp ^ "\n")
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
                                   component = [comp],
@@ -1202,7 +1209,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | checkExports s _ = ()
    val _ = List.app (checkExports SymbolTable.noSpan) ast
    
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
    (*val _ = TextIO.print ("table:\n" ^ #1 (E.dumpTypeTableSI (toplevelEnv, TVar.emptyShowInfo)))*)
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)

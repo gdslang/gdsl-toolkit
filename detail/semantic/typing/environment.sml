@@ -94,7 +94,11 @@ structure Environment : sig
 
    (*stack: [..., tn, ..., t2, t1, t0] -> [..., SUM (tn,..t0)]*)
    val reduceToSum : int * environment -> environment
-   
+
+   (*stack: [...,(a1,..an) -> r,t1,t2,...,tn] -> [...,(a1,..an) -> r,{t1},{t2},...,{tn}]
+      if ai is a set *)
+   val expandArguments : environment * int -> environment
+
    (*stack: [...,t1,t2,...,tn] -> [...,(t1, ... t n-1) -> tn]*)
    val reduceToFunction : environment * int -> environment
    
@@ -245,25 +249,15 @@ end = struct
 
       type constraints = {
          context : VarInfo.symid list,
-         typeTable : TT.table,
-         kappas : VarInfo.symid list,
-         kappaCount : int
+         typeTable : TT.table
       }
 
       type environment = scopes * constraints
 
-      fun acquireKappa (scs,{ context = ctxt, typeTable = ti, kappas = [], kappaCount = kc }) =
-         let
-            val st = !SymbolTables.varTable
-            val (st, kappaSym) = SymbolTable.fresh (st,Atom.atom ("kappa" ^ Int.toString kc))
-            val _ = SymbolTables.varTable := st
-         in
-            (kappaSym, (scs,{ context = ctxt, typeTable = ti, kappas = [], kappaCount = kc+1 }))
-         end
-        | acquireKappa (scs,{ context = ctxt, typeTable = ti, kappas = k::ks, kappaCount = kc }) =
-         (k, (scs,{ context = ctxt, typeTable = ti, kappas = ks, kappaCount = kc }))
-      fun releaseKappa (k,(scs,{ context = ctxt, typeTable = ti, kappas = ks, kappaCount = kc })) =
-         (scs, { context = ctxt, typeTable = ti, kappas = k::ks, kappaCount = kc })
+      fun acquireKappa (scs,{ context = ctxt, typeTable = ti }) = 
+         (TT.acquireKappa ti, (scs,{ context = ctxt, typeTable = ti }))
+      fun releaseKappa (k,(scs,{ context = ctxt, typeTable = ti })) =
+         (TT.releaseKappa (k,ti); (scs, { context = ctxt, typeTable = ti }))
 
       fun acquireUsageSymbol (sym,span,env) =
          let
@@ -278,24 +272,22 @@ end = struct
             (usageSym,env)
          end
 
-      fun getCurFun (scs,{ context = ctxt, typeTable, kappas, kappaCount = kc }) =
+      fun getCurFun (scs,{ context = ctxt, typeTable }) =
          case ctxt of
               (curFun :: _) => curFun
             | [] => raise InferenceBug
-      fun setCtxt ctxt (scs,{ context = _, typeTable = tt, kappas = ks, kappaCount = kc }) =
-         (scs,{ context = ctxt, typeTable = tt, kappas = ks, kappaCount = kc })
-      fun getCtxt (_,{ context = ctxt, typeTable, kappas, kappaCount }) = ctxt
+      fun setCtxt ctxt (scs,{ context = _, typeTable = tt }) =
+         (scs,{ context = ctxt, typeTable = tt })
+      fun getCtxt (_,{ context = ctxt, typeTable }) = ctxt
 
-      fun getTypeTable (_,{ context, typeTable = tt, kappas, kappaCount }) = tt
-      fun setTypeTable tt (scs,{ context = ctxt, typeTable = _, kappas = ks, kappaCount = kc }) =
-         (scs,{ context = ctxt, typeTable = tt, kappas = ks, kappaCount = kc })
+      fun getTypeTable (_,{ context, typeTable = tt }) = tt
+      fun setTypeTable tt (scs,{ context = ctxt, typeTable = _ }) =
+         (scs,{ context = ctxt, typeTable = tt })
 
       fun initial (b, scs, tt) =
          ([b], {
             context = [],
-            typeTable = TT.modifySizes (fn scs' => SC.merge (scs,scs'), tt),
-            kappas = [],
-            kappaCount = 0
+            typeTable = TT.modifySizes (fn scs' => SC.merge (scs,scs'), tt)
           })
       fun wrap (b, (scs, state)) = (b::scs,state)
       fun unwrap (bi :: scs, state) = (bi, (scs, state))
@@ -536,13 +528,11 @@ end = struct
             (check ([], bs); sane (scs, cons))
          end
       
-      fun cleanEnvironment (bs, { context = ctxt, typeTable = tt, kappas = ks, kappaCount = kc }) =
+      fun cleanEnvironment (bs, { context = ctxt, typeTable = tt }) =
          let                             
-            fun killKappa kappa = (TT.delSymbol (kappa,tt); ())
-               handle IndexError => ()
-            val _ = List.app killKappa ks
+            val _ = TT.killKappas tt
          in
-            (bs, { context = ctxt, typeTable = tt, kappas = ks, kappaCount = kc })
+            (bs, { context = ctxt, typeTable = tt })
          end
                
    end
@@ -918,7 +908,7 @@ end = struct
                   val tVar = TVar.freshTVar ()
                   val _ = TT.addSymbol (k, VAR (tVar, BD.freshBVar ()), tt)
                   val _ = TT.addSymbol (k', SET (TVar.freshTVar (), BD.freshBVar (), [(span, VAR (tVar, BD.freshBVar ()))]), tt)
-                  val _ =TextIO.print ("pushSymbol: equating to set:\n" ^ #1 (TT.dumpTableSI (tt,TVar.emptyShowInfo)))
+                  (*val _ =TextIO.print ("pushSymbol: equating to set:\n" ^ #1 (TT.dumpTableSI (tt,TVar.emptyShowInfo)))*)
                   val _ = TT.equateSymbolsFlow (k',sym,tt)
                   val _ = TT.delSymbol (k', tt)
                   val env = Scope.releaseKappa (k',env)
@@ -1110,6 +1100,53 @@ end = struct
                   end
       in
          rTS (n, [], 0, env)
+      end
+
+   fun expandArguments (env,nArgs) = if nArgs=0 then env else
+      let
+         val tt = Scope.getTypeTable env
+         fun getArgs (tys,n,env) = if n=0 then (tys,env) else
+            case Scope.unwrap env of
+                 (KAPPA {kappa}, env) => getArgs (kappa :: tys,n-1,env)
+               | (SINGLE {name}, env) => getArgs (name :: tys,n-1,env)
+               | _ => raise InferenceBug
+         val (tArgs,envTmp) = getArgs ([],nArgs,env)
+         val (tFun, _) = case Scope.unwrap envTmp of
+                             (KAPPA {kappa}, env) => (kappa,env)
+                           | (SINGLE {name}, env) => (name,env)
+                           | _ => raise InferenceBug
+         val labels = TT.getSetLabels (tFun, tt)
+         fun expandSym (tySym,[],env) =
+               (TT.delSymbol (tySym,tt)
+               ;TT.addSymbol (tySym,SET (TVar.freshTVar (),BD.freshBVar (),[]),tt)
+               ;env)
+           | expandSym (tySym,(use :: uses),env) =
+            let                                          
+               fun addKappas ([], env) = ([], env)
+                 | addKappas (use :: uses, env) =
+                  let
+                     val (useKappas,env) = addKappas (uses, env)
+                     val (kappa,env) = Scope.acquireKappa env
+                  in
+                     ((use,kappa) :: useKappas, env)
+                  end
+               val (useKappas,env) = addKappas (uses,env)
+               val _ = List.app (fn (_,kappa) => TT.instantiateSymbol (tySym,SymSet.empty,kappa,tt)) useKappas
+               val useTypes = List.map (fn (use,kappa) => (use,TT.getSymbol (kappa,tt))) ((use,tySym) :: useKappas)
+               val _ = TT.addSymbol (tySym, SET (TVar.freshTVar (),BD.freshBVar (), useTypes),tt)
+               val env = List.foldl (fn ((use,kappa),env) => Scope.releaseKappa (kappa,env)) env useKappas
+            in
+               env
+            end
+         fun instantiateArg (tySym,NONE,env) = env
+           | instantiateArg (tySym,SOME labels,env) = expandSym (tySym,labels,env)
+            
+      in
+         if List.null labels then env else
+         if List.length labels=nArgs then
+            ListPair.foldlEq instantiateArg env (tArgs, labels)
+         else raise
+            (UnificationFailure (Clash, "function is applied to incorrect number of arguments"))
       end
 
    fun reduceToFunction (env,nArgs) = if nArgs=0 then env else

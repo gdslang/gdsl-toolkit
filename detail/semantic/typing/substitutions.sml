@@ -289,6 +289,7 @@ end = struct
         | aS (CONST c) = CONST c
         | aS (ALG (ty, l)) = ALG (ty, List.map aS l)
         | aS (SET (v,b,l)) = raise SubstitutionBug
+        | aS (FORALL s) = FORALL s
         | aS (RECORD (var, b, fs)) =
          let
             val (fs, ei) = applySubstToRFields subst (fs, !eiRef)

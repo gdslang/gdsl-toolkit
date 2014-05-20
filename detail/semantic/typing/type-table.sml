@@ -143,6 +143,7 @@ end = struct
            | paths (ALG (sym, l)) = addIs (List.length l, List.map paths l)
            | paths (SET (v,f,l)) = ([],LeafVar v,f) :: 
             List.concat (List.map (fn ({span=(s,_),...},t) => addI (Position.toInt s,paths t)) l)
+           | paths (FORALL s) = []
            | paths (RECORD (v,f,fs)) =
                ([],LeafVar v,f) :: List.concat (List.map pathsF fs)
            | paths (MONAD (r,a,b)) = addI (0,paths r) @ addI (~1,paths a) @ addI (1, paths b)
@@ -168,8 +169,9 @@ end = struct
             in
                (varMap, SymMap.insert (fieldMap, f, pathMap))
             end
+         val fp = List.foldl insert (TVarMap.empty, SymMap.empty) (paths ty)
       in
-         List.foldl insert (TVarMap.empty, SymMap.empty) (paths ty)
+         fp
       end
 
    fun varsOfFlowpoints (vm,_) = TVarMap.listKeys vm
@@ -331,10 +333,14 @@ structure TypeTable : sig
                      SizeConstraint.size_constraint_set) * table -> table
    val modifyFlow : (BooleanDomain.bfun -> BooleanDomain.bfun) * table -> table
 
+   val acquireKappa : table -> VarInfo.symid
+   val releaseKappa : VarInfo.symid * table -> unit
+   val killKappas : table -> unit
+   
    (* Removes all type information not referenced by the current set of symbols. *)
    val garbageCollect : table -> table
 
-   val newType : Types.texp * table -> TVar.tvar
+   val newType : Types.texp * table -> TVar.tvar * SymSet.set
    
    (* Add the given symbol as having the given type. The other domains remain
    unaltered. *)
@@ -351,6 +357,10 @@ structure TypeTable : sig
    (* Take an unallocated symbol, symbols of arguments and a result symbol
       and create a function type. *)
    val reduceToFunction : SymbolTable.symid * SymbolTable.symid list * SymbolTable.symid * table -> unit
+
+   (* Query the set labels in each argument of the given function, returns the
+      empty list if the given index is not a function (yet). *)
+   val getSetLabels : SymbolTable.symid * table -> Error.span list option list
    
    (* Remove flow and size constraints on the given type expression. This function must be called if part of the type returned by getSymbol is discarded. *)
    val removeConstraints : Types.texp * table -> table
@@ -388,8 +398,8 @@ structure TypeTable : sig
 
 end = struct
 
-   val verbose = false
-   val unifyVerbose = false
+   val verbose = true
+   val unifyVerbose = true
    val runSane = false
 
    (*restrict which symbols toString prints*)
@@ -427,6 +437,8 @@ end = struct
     | TT_ALG of (TypeInfo.symid * index list)
       (* a set of types used to avoid the precision loss due to unifying them *)
     | TT_SET of index SpanMap.map * index
+      (* a quantified type stored in the environment *)
+    | TT_FORALL of SymbolTable.symid
       (* a record containing the given field and possible other fields that
          are determined by the last index that points to more TT_RECORDs *)
     | TT_RECORD of index SymMap.map * index
@@ -448,6 +460,7 @@ end = struct
      | typeterm_hash (TT_CONST i) = Word.fromInt 9823*Word.fromInt i+Word.fromInt 2834
      | typeterm_hash (TT_ALG (s,is)) = hash_list (sym_hash s :: map TVar.hash is)
      | typeterm_hash (TT_SET (fm,i)) = SpanMap.foldli (fn ({span=(p1,p2),...},ty,h) => Word.fromInt (13*Position.toInt p1)+Word.fromInt (11*Position.toInt p2)+Word.fromInt 7*TVar.hash ty+Word.fromInt 3*h) (TVar.hash i) fm
+     | typeterm_hash (TT_FORALL s) = sym_hash s
      | typeterm_hash (TT_RECORD (fm,i)) = SymMap.foldli (fn (f,ft,h) => Word.fromInt 11*sym_hash f+Word.fromInt 7*TVar.hash ft+Word.fromInt 3*h) (TVar.hash i) fm
      | typeterm_hash (TT_MONAD (i1,i2,i3)) = Word.fromInt 5345+hash_list [TVar.hash i1,TVar.hash i2, TVar.hash i3]
 
@@ -467,6 +480,7 @@ end = struct
       SymbolTable.eq_symid (s1,s2) andalso ListPair.allEq TVar.eq (is1,is2)
      | typeterm_eq (TT_SET (fm1,i1), TT_SET (fm2,i2)) =
       TVar.eq (i1,i2) andalso SpanMap.collate TVar.compare (fm1,fm2) = EQUAL
+     | typeterm_eq (TT_FORALL s1, TT_FORALL s2) = SymbolTable.eq_symid (s1,s2)
      | typeterm_eq (TT_RECORD (fm1,i1), TT_RECORD (fm2,i2)) =
       TVar.eq (i1,i2) andalso SymMap.collate TVar.compare (fm1,fm2) = EQUAL
      | typeterm_eq (TT_MONAD (i1,i2,i3),TT_MONAD (j1,j2,j3)) =
@@ -500,6 +514,7 @@ end = struct
         | sT (TT_SET (sm,i)) = "{" ^ SpanMap.foldri (fn (s,ty,str) =>
             SymbolTable.spanToString s ^
             ": " ^ showVar ty ^ ", " ^ str) (showVar i) sm ^ "}"
+        | sT (TT_FORALL s) = SymbolTable.getString(!SymbolTables.varTable, s)
         | sT (TT_RECORD (fm,i)) = "{" ^ SymMap.foldri (fn (f,ft,str) =>
             SymbolTable.getString(!SymbolTables.fieldTable, f) ^
             ": " ^ showVar ft ^ ", " ^ str) (showVar i) fm ^ "}"
@@ -525,6 +540,7 @@ end = struct
      | getVars (TT_CONST c) = []
      | getVars (TT_ALG (ty, l)) = l
      | getVars (TT_SET (sm,i)) = i :: SpanMap.listItems sm
+     | getVars (TT_FORALL s) = []
      | getVars (TT_RECORD (fm,i)) = i :: SymMap.listItems fm
      | getVars (TT_MONAD (r,f,t)) = [r,f,t]
 
@@ -536,7 +552,8 @@ end = struct
 
    type entry = {
       flow : Path.flowpoints,
-      info : index
+      info : index,
+      forall : SymSet.set
    }
    
    type 'a generation = {old : 'a, new : 'a }
@@ -544,10 +561,12 @@ end = struct
    type table = {
       hashCons : ((typeterm, index) HT.hash_table) generation,
       symTable : (SymbolTable.symid,entry) HT.hash_table,
+      forallSyms : SymbolTable.symid SymMap.map ref,
       typeTable : typeinfo DA.array,
       lastSize : int,
       boolDom : BD.bfun ref,
-      sizeDom : SC.size_constraint_set ref
+      sizeDom : SC.size_constraint_set ref,
+      kappas : (VarInfo.symid list * int) ref
    }
 
    exception CondensingError
@@ -560,18 +579,44 @@ end = struct
       hashCons = { old = HT.mkTable (typeterm_hash,typeterm_eq) (initialSize, CondensingError),
                    new = HT.mkTable (typeterm_hash,typeterm_eq) (initialSize, CondensingError) },
       symTable = HT.mkTable (sym_hash,SymbolTable.eq_symid) (100, IndexError),
+      forallSyms = ref SymMap.empty,
       typeTable = DA.array (initialSize, LEAF SymSet.empty),
       lastSize = 0,
       boolDom = ref (BD.empty ()),
-      sizeDom = ref SC.empty
+      sizeDom = ref SC.empty,
+      kappas = ref ([],0)
    } : table
 
-   fun showSym (sym, { flow = fp, info = index },(str, si)) =
+   fun acquireKappa (table : table) = case !(#kappas table) of
+        ([],kc) =>
+         let
+            val st = !SymbolTables.varTable
+            val (st, kappaSym) = SymbolTable.fresh (st,Atom.atom ("kappa" ^ Int.toString kc))
+            val _ = SymbolTables.varTable := st
+            val _ = #kappas table := ([],kc+1)
+         in
+            kappaSym
+         end
+     | (k::ks, kc) =>
+         (#kappas table := (ks,kc); k)
+
+   fun releaseKappa (k,table : table) =
+      let
+         val (ks,kc) = !(#kappas table)
+         val _ = (#kappas table) := (k::ks,kc)
+      in
+         ()
+      end
+
+   fun showSym (sym, { flow = fp, info = index, forall = ss },(str, si)) =
       let
          val symStr = SymbolTable.getString(!SymbolTables.varTable, sym)
          val (vStr,si) =  TVar.varToString (index,si)
          val (fpStr, si) = Path.toStringSI (fp, si)
-         val out = "\nvar " ^ symStr ^ ": " ^ vStr ^ fpStr
+         fun showSym (sym,(sep,str)) = (",", str ^ sep ^
+             SymbolTable.getString(!SymbolTables.varTable, sym))
+         val (_,ssStr) = SymSet.foldl showSym ("; ","") ss
+         val out = "\nvar " ^ symStr ^ ": " ^ vStr ^ ssStr ^ fpStr
       in
          (str ^ out, si)
       end
@@ -656,8 +701,8 @@ end = struct
          val st = #symTable table
          fun showSymbol (sym,(str,tVars,si)) =
             let
-               val {flow=fp,info=i} = HT.lookup st sym
-               val (str, si) = showSym (sym, {flow=fp,info=i}, (str,si))
+               val {flow=fp,info=i, forall=ss} = HT.lookup st sym
+               val (str, si) = showSym (sym, {flow=fp,info=i,forall=ss}, (str,si))
                val (tabStr,tVars,si) =
                   showTableSI (table, i :: Path.varsOfFlowpoints fp, tVars, si)
             in
@@ -723,6 +768,7 @@ end = struct
       let
          val tt = #typeTable table
          val st = #symTable table
+         val fs = #forallSyms table
          val siRef = ref TVar.emptyShowInfo
          fun err (str,syms,vars) =
             let
@@ -736,7 +782,7 @@ end = struct
             in
                raise IndexError
             end
-         fun checkSym (sym,{flow = fp, info = idx},bVars) =
+         fun checkSym (sym,{flow = fp, info = idx, forall = ss},bVars) =
             let
                val newBVars = Path.flagsOfFlowpoints fp
                val bVars = foldl (fn ((_,bVar),bVars) => if BD.member (bVars,bVar)
@@ -750,6 +796,11 @@ end = struct
                    | FORW _ => err ("variable in flow information not replaced", [sym], [idx,var])
                    | OCCURS => (TextIO.print "an occurs placeholder has not been removed\n"; raise IndexError)
                   ) (Path.varsOfFlowpoints fp)
+              val _ =
+                  SymSet.app (fn s => case SymMap.find (!fs,s) of
+                     NONE => err ("forall-table lacks entry", [sym,s], [])
+                   | SOME use => if SymbolTable.eq_symid (use,sym) then () else
+                     err ("forall-table lacks reference", [sym,s], []))
             in
                bVars
             end
@@ -757,7 +808,7 @@ end = struct
          fun checkVar (idx, LEAF symSet) =
                List.app (fn sym => case HT.find st sym of
                   NONE => err ("symbol referenced in variable not in symbol", [sym], [TVar.fromIdx idx])
-                | SOME {flow = fp, info = tvar} =>
+                | SOME {flow = fp, info = tvar, forall } =>
                   if List.exists (fn v => TVar.toIdx v=idx) (Path.varsOfFlowpoints fp) then () else
                      err ("no reference from symbol to type variable", [sym], [TVar.fromIdx idx,tvar])
                ) (SymSet.listItems symSet)
@@ -790,6 +841,7 @@ end = struct
    fun newType (ty,table : table) =
       let
          val tt = #typeTable table
+         val ssRef = ref SymSet.empty
          val allocType = fn t => allocType (t,table)
          fun conv (FUN (ts, t)) = allocType (TT_FUN (List.map conv ts, conv t))
            | conv (SYN (syn, t)) = allocType (TT_SYN (syn, conv t))
@@ -804,6 +856,7 @@ end = struct
                (fn ((s,t),sm) =>
                   SpanMap.insert (sm,s,conv t)) SpanMap.empty l,
                convV v))
+           | conv (FORALL s) = (ssRef := SymSet.add (!ssRef,s); allocType (TT_FORALL s))
            | conv (RECORD (i,_,fs)) = allocType (TT_RECORD (foldl
                (fn (RField { name = f, fty = ft, exists},fm) =>
                   SymMap.insert (fm,f, conv ft)) SymMap.empty fs,
@@ -814,14 +867,15 @@ end = struct
                  (LEAF _) => v
                | _ => raise IndexError
          (*val _ = localSane (table)*)
+         val idx = conv ty
       in
-         conv ty
+         (idx, !ssRef)
       end
 
    (* turn a type of a symbol into a ADT type; returns the set of indices
       at which variables of this type lie so that their symbol set can be
       altered *)
-   fun termToType ({ flow = fp, info = idx }, table : table) =
+   fun termToType ({ flow = fp, info = idx, forall = fa }, table : table) =
       let
          val varsRef = ref TVar.empty
          val occursRef = ref NONE : TVar.tvar option ref
@@ -948,6 +1002,7 @@ end = struct
            | fromTerm (TT_SET (sm,i)) = SpanMap.foldli (fn ({span=(s,_),...},t,ps) =>
                List.map (Path.prependIntStep (Position.toInt s)) (fromType t) @ ps)
             (fromType i) sm
+           | fromTerm (TT_FORALL s) = []
            | fromTerm (TT_RECORD (fm,i)) = SymMap.foldli (fn (f,ft,ps) =>
                (Path.emptySteps, Path.mkFieldLeaf f) ::
                List.map (Path.prependFieldStep f) (fromType ft) @ ps)
@@ -959,6 +1014,17 @@ end = struct
       in
          fromType index
       end
+
+   (* Add references to sym to the forall symbols ss. *)
+   fun addForallRefs (sym, ss, table : table) =
+      let
+         val fmRef = #forallSyms table
+         fun addRef (faSym,fa) = SymMap.insert (fa,faSym,sym)
+         val _ = fmRef := SymSet.foldl addRef (!fmRef) ss
+      in
+         ()
+      end
+
    exception BadVarMap
    
    (* This function keeps two generations. It does not work since we cannot guarantee that
@@ -966,7 +1032,7 @@ end = struct
       from the old generation to the new generation. *)
    fun garbageCollect2 (table as
       { hashCons = { old = hcOld, new = hcNew }, symTable = st, typeTable = tt,
-        lastSize = lastSize, boolDom = bd, sizeDom = sd } : table) =
+        forallSyms = fs, lastSize = lastSize, boolDom = bd, sizeDom = sd, kappas = ks } : table) =
       if lastSize+1000>DA.bound tt then table else
       let
          val _ = TextIO.print ("GC start\n" (*^ #1 (dumpTableSI (table,TVar.emptyShowInfo))*))
@@ -1026,7 +1092,7 @@ end = struct
            | FORW idx => repl idx
            | _ => raise IndexError
           
-         fun copy (sym,{ flow = fp, info = idx }) =
+         fun copy (sym,{ flow = fp, info = idx, forall = fa }) =
             let
                val _ = TextIO.print ("GC: copying " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                val idxNew = repl idx
@@ -1034,14 +1100,14 @@ end = struct
                   handle BadVarMap => (TextIO.print ("cannot rename flow points for type " ^ #1 (toStringSI ([sym],[idxNew],table,TVar.emptyShowInfo)) ^ "\nwhere all vars below " ^ #1 (TVar.varToString (TVar.fromIdx lastSize,TVar.emptyShowInfo)) ^ " are unchanged\n"); raise IndexError)
                (*val _ = TextIO.print ("GC: done    " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
             in
-               { flow = fpNew, info = idxNew }
+               { flow = fpNew, info = idxNew, forall = fa }
             end
          val st = HT.mapi copy st
          val _ = sd := SC.renameAll (varMap,!sd)
          val _ = TextIO.print ("tvar cnt=" ^ Int.toString (Word.toInt (TVar.get ())) ^ " old table size " ^ Int.toString lastSize ^ ", new size is " ^ Int.toString newSize ^ ", hc size " ^ Int.toString (HT.numItems hcOld) ^ "\n")
          val table = 
                { hashCons = { old = hcOld, new = hcNew }, symTable = st, typeTable = tt,
-                 lastSize = newSize, boolDom = bd, sizeDom = sd }
+                 forallSyms = fs, lastSize = newSize, boolDom = bd, sizeDom = sd, kappas = ks }
          val _ = sane table
       in
          table
@@ -1049,16 +1115,17 @@ end = struct
 
    fun garbageCollect (table as
       { hashCons = { new = hc, old = hcOld }, symTable = st, typeTable = tt,
-        lastSize = ls, boolDom = bd, sizeDom = sd } : table) =
+        forallSyms = fs, lastSize = ls, boolDom = bd, sizeDom = sd, kappas = ks } : table) =
       if ls>DA.bound tt then table else
       let
          (*val _ = TextIO.print ("GC start\n")*)
          val hcNew = HT.mkTable (typeterm_hash,typeterm_eq) (HT.numItems hc, CondensingError)
          val stNew = HT.mkTable (sym_hash,SymbolTable.eq_symid) (HT.numItems st, IndexError) 
          val ttNew = DA.array (DA.bound tt, LEAF SymSet.empty)
+         val fsNew = ref SymMap.empty
          val tableNew =
             { hashCons = { new = hcNew, old = hcOld }, symTable = stNew, typeTable = ttNew,
-              lastSize = ls, boolDom = bd, sizeDom = sd } : table
+              forallSyms = fsNew, lastSize = ls, boolDom = bd, sizeDom = sd, kappas = ks } : table
          val varMap = HT.mkTable (TVar.hash,TVar.eq) (1000, BadVarMap)
          fun renameVar idx =
             (if HT.inDomain varMap idx then () else HT.insert varMap (idx,TVar.freshTVar ())
@@ -1074,22 +1141,24 @@ end = struct
            | repl (ALG (ty, l)) = ALG (ty, List.map repl l)
            | repl (SET (v,bv,l)) = SET (renameVar v, bv, List.map (fn (s,t) => (s,repl t)) l)
            | repl (RECORD (v,bv,l)) = RECORD (renameVar v, bv, List.map replF l)
+           | repl (FORALL s) = FORALL s
            | repl (MONAD (r,f,t)) = MONAD (repl r, repl f, repl t)
            | repl (VAR (v,bv)) = VAR (renameVar v,bv)
          and replF (RField {name = n, fty = t, exists = b}) =
             RField {name = n, fty = repl t, exists = b}
           
-         fun copy (sym,{ flow = fp, info = idx }) =
+         fun copy (sym,{ flow = fp, info = idx, forall = fa }) =
             let
                (*val _ = TextIO.print ("GC: copying " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ": ")*)
-               val (ty,_) = termToType ({ flow = fp, info = idx },table)
+               val (ty,_) = termToType ({ flow = fp, info = idx, forall = fa },table)
                (*val _ = TextIO.print (showType ty ^ " renamed to ")*)
                val ty = repl ty
                (*val _ = TextIO.print (showType ty ^ "\n")*)
-               val idxNew = newType (ty,tableNew)
+               val (idxNew,ss) = newType (ty,tableNew)
+               val _ = addForallRefs (sym,ss,tableNew)
                val fpNew = Path.renameVariables (varMap,fp)
             in
-               HT.insert stNew (sym, { flow = fpNew, info = idxNew })
+               HT.insert stNew (sym, { flow = fpNew, info = idxNew, forall = ss })
             end
          val _ = TVar.set (Word.fromInt 0)
          val _ = HT.appi copy st
@@ -1103,14 +1172,14 @@ end = struct
          (*val _ = sane tableNew*)
       in
          { hashCons = { new = hcNew, old = hcOld }, symTable = stNew, typeTable = ttNew,
-           lastSize = lsNew, boolDom = bd, sizeDom = sd }
+           forallSyms =fsNew, lastSize = lsNew, boolDom = bd, sizeDom = sd, kappas = ks }
       end
 
    fun addSymbol (sym,ty,table) =
       let
          val _ = if not verbose then () else
             TextIO.print ("addSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " with type " ^ #1 (showTypeSI (ty,TVar.emptyShowInfo)) ^ "\n")
-         val idx = newType (ty,table)
+         val (idx,ss) = newType (ty,table)
          val fp = Path.typeToFlowpoints ty
          val st = #symTable (table : table)
          fun addRef (LEAF syms) = LEAF (SymSet.add (syms,sym))
@@ -1118,15 +1187,27 @@ end = struct
          val tt = #typeTable table
          fun updateRef idx = ttSet (tt, idx, addRef (ttGet (tt, idx)))
          val _ = List.app updateRef (Path.varsOfFlowpoints fp)
+         val _ = addForallRefs (sym, ss, table)
          val _ = if HT.inDomain st sym then
             (TextIO.print ("addSymbol: error, previous type for " ^
                SymbolTable.getString(!SymbolTables.varTable, sym) ^ " exists with " ^
                 #1 (toStringSI ([sym], [#info (HT.lookup st sym)], table, TVar.emptyShowInfo)) ^ "\n");
              raise IndexError) else ()
-         val _ = HT.insert st (sym,{ flow = fp, info = idx })
+         val _ = HT.insert st (sym,{ flow = fp, info = idx, forall = ss })
          val _ = localSane (table)
       in
         idx
+      end
+
+   (* Remove all references to a symbol from the forall symbols ss. *)
+   fun removeForallRefs (ss, table : table) =
+      let
+         val fmRef = #forallSyms table
+         fun removeRef (faSym,fm) = #1 (SymMap.remove (fm,faSym))
+         val _ = fmRef := SymSet.foldl removeRef (!fmRef) ss
+            handle LibBase.NotFound => raise IndexError
+      in
+         ()
       end
 
    fun removeConstraints (ty, table : table) =
@@ -1143,6 +1224,7 @@ end = struct
          val scRef = #sizeDom table
          val (badVars,scsGood) = SC.projectOut (tVars,!scRef)
          val _ = scRef := scsGood
+         val _ = removeForallRefs (texpForallSet ty, table)
          (*val _ = TextIO.print ("removeConstraints: killed sizes " ^ #1 (TVar.setToString (tVars,TVar.emptyShowInfo)) ^ " of type " ^ #1 (showTypeSI (ty,TVar.emptyShowInfo)) ^ "\n")*)
       in
          table
@@ -1151,11 +1233,11 @@ end = struct
    fun delSymbol (sym,table) =
       let
          val st = #symTable (table : table)
-         val { flow = fp, info = idx } = HT.remove st sym
+         val { flow = fp, info = idx, forall = ss } = HT.remove st sym
             handle IndexError => (TextIO.print ("delSymbol: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
          val _ = if not verbose then () else
             TextIO.print ("delSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " : " ^
-               #1 (showTypeSI (#1 (termToType ({ flow = fp, info = idx },table)), TVar.emptyShowInfo)) ^ "\n")
+               #1 (showTypeSI (#1 (termToType ({ flow = fp, info = idx, forall = ss },table)), TVar.emptyShowInfo)) ^ "\n")
          val unusedTVars = ref TVar.empty
          fun delRef (v,LEAF syms) =
             let
@@ -1179,11 +1261,15 @@ end = struct
          (*val _ = TextIO.print ("removed stale size vars " ^ #1 (TVar.setToString (!unusedTVars,TVar.emptyShowInfo)) ^ " from " ^ #1 (SC.toStringSI (!scRef,NONE,TVar.emptyShowInfo)) ^ "\n")*)
          val (badVars,scsGood) = SC.projectOut (!unusedTVars,!scRef)
          val _ = scRef := scsGood
+         val _ = removeForallRefs (ss, table)
          val _ = localSane (table)
       in
          badVars
       end
 
+   fun killKappas (table : table) =
+      List.app (fn k => (delSymbol (k,table); ())) (#1 (!(#kappas table)))
+   
    fun getSymbol (sym,table : table) =
       let
          val tt = #typeTable table
@@ -1197,6 +1283,7 @@ end = struct
                LEAF symSet => ttSet (tt,idx,LEAF (SymSet.delete (symSet,sym)))
              | _ => raise IndexError
              ) vars
+         val _ = removeForallRefs (#forall ti, table)
       in
          ty
       end
@@ -1205,26 +1292,51 @@ end = struct
       let
          val tt = #typeTable table
          val st = #symTable table
-         val { flow = fpRes, info = idxRes } = HT.remove st resSym
+         val { flow = fpRes, info = idxRes, forall = ss } = HT.remove st resSym
             handle IndexError => (TextIO.print ("TypeTable.reduceToFunction: " ^ SymbolTable.getString(!SymbolTables.varTable, resSym) ^ " not mapped.\n"); raise TypeTableError)
-         fun getArg (argSym,(fps,idxs)) =
+         fun getArg (argSym,(fps,idxs,ss)) =
             let
-               val { flow = fp, info = idx } = HT.remove st argSym
+               val { flow = fp, info = idx, forall = ss' } = HT.remove st argSym
                   handle IndexError => (TextIO.print ("TypeTable.reduceToFunction: " ^ SymbolTable.getString(!SymbolTables.varTable, argSym) ^ " not mapped.\n"); raise TypeTableError)
             in
-               (fp::fps,idx::idxs)
+               (fp::fps,idx::idxs,SymSet.union (ss,ss'))
             end
-         val (fpArgs, idxArgs) = foldr getArg ([],[]) argSyms
+         val (fpArgs, idxArgs,ss) = foldr getArg ([],[],ss) argSyms
          val ty = allocType (TT_FUN (idxArgs, idxRes),table)
          val fp = Path.combineIndexedFlowpoints (fpRes :: fpArgs)
-         val _ = HT.insert st (funSym, {flow = fp, info = ty})
+         val _ = HT.insert st (funSym, {flow = fp, info = ty, forall = ss})
          val vars = Path.varsOfFlowpoints fp
          val badSyms = SymSet.addList (SymSet.singleton resSym, argSyms)
          val _ = List.app (fn idx => case ttGet (tt,idx) of
                LEAF symSet => ttSet (tt,idx,LEAF (SymSet.add (SymSet.difference (symSet,badSyms),funSym)))
              | _ => raise IndexError) vars
+         val fmRef = #forallSyms table
+         fun setRef (faSym,fm) = SymMap.insert (fm,faSym,funSym)
+         val _ = fmRef := SymSet.foldl setRef (!fmRef) ss
+            handle LibBase.NotFound => raise IndexError
       in
          ()
+      end
+
+   fun getSetLabels (sym, table : table) =
+      let
+         val tt = #typeTable table
+         val st = #symTable table
+         val symInfo as { info = idx, ... } = HT.lookup st sym
+            handle IndexError => (TextIO.print ("getSetLabels: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
+         val argIdxs = case ttGet (tt,idx) of
+              TERM (TT_FUN (argIdxs,_)) => argIdxs
+            | _ => []
+         fun gatherFields sm i = case ttGet (tt,i) of
+              TERM (TT_SET (fm,i)) => (
+               case sm of
+                    NONE => gatherFields (SOME fm) i
+                  | SOME sm => gatherFields (SOME (SpanMap.unionWith (fn _ => raise TypeTableError) (sm,fm))) i
+               )
+            | _ => sm
+         val setMaps = List.map (Option.map SpanMap.listKeys o gatherFields NONE) argIdxs
+      in
+         setMaps
       end
 
    fun peekSymbol (sym,table : table) =
@@ -1428,8 +1540,33 @@ end = struct
          in
             fixpoint (!rPairs)
          end
-        | genPairs (v1,v2,TT_SET r1, TT_FUN (f1, f2)) = genPairs (v2,v1,TT_FUN (f1, f2), TT_SET r1)
-        | genPairs (v1,v2,TT_FUN (f1, f2), TT_SET r1) = raise IndexError
+        | genPairs (v1,v2,TT_FORALL s1, TT_FORALL s2) =
+         (* this rule is right based on the assumption that these symbols only appear once *)
+         if SymbolTable.eq_symid (s1,s2) then () else
+         let
+            val (sGood,vGood,sBad,vBad) = if TVar.toIdx v2>TVar.toIdx v1 then
+                  (s1,v1,s2,v2) else (s2,v2,s1,v1)
+            val _ = equateSymbols (sGood,sBad,table)
+            val faRef = #forallSyms table
+            val (fa,sym) = SymMap.remove (!faRef,sBad)
+            val _ = faRef := SymMap.insert (fa,sGood,sym)
+            val _ = releaseKappa (sBad,table)
+            val _ = ttSet (tt, vGood, FORW vBad)
+         in
+            ()
+         end
+        | genPairs (v1,v2,TT_SET r1, TT_FORALL s2) = genPairs (v2,v1,TT_FORALL s2, TT_SET r1)
+        | genPairs (v1,v2,TT_FORALL s, TT_SET r) =
+         let
+            fun gatherFields sm (fm,i) = case ttGet (tt,i) of
+                 LEAF symSet => (SpanMap.unionWith (fn _ => raise TypeTableError) (sm,fm), ttFind (tt,i), symSet)
+               | TERM (TT_SET r) => gatherFields (SpanMap.unionWith (fn _ => raise TypeTableError) (sm,fm)) r
+               | _ => raise IndexError
+            val (fs,row,symSet) = gatherFields SpanMap.empty r
+               handle TypeTableError => (TextIO.print ("gatherFields: set chain overlapping " ^ #1 (TVar.varToString (v1,TVar.emptyShowInfo)) ^ "\n" ^ #1 (dumpTableSI (table, TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
+         in 
+            ()
+         end
         | genPairs (v1,v2,t1,t2) =
          let
             fun descr (TT_FUN _) = "a function type"
@@ -1481,7 +1618,7 @@ end = struct
             val newPairs = case termType of
                   TT_CONST n => (case SC.add (SC.equality (vVar,[],n), !scRef) of
                       SC.RESULT (newConsts,sCons) => (scRef := sCons;
-                         List.map (fn (v,c) => (v, newType (CONST c,table))) newConsts
+                         List.map (fn (v,c) => (v, #1 (newType (CONST c,table)))) newConsts
                          )
                      | SC.UNSATISFIABLE => raise S.UnificationFailure (S.Clash,
                         "size constraints over vectors are unsatisfiable")
@@ -1502,7 +1639,7 @@ end = struct
             let
                fun update sym =
                   let
-                     val { flow = fp, info = idx } = HT.lookup st sym
+                     val { flow = fp, info = idx, forall = ss } = HT.lookup st sym
                         handle IndexError => (if not unifyVerbose then () else TextIO.print ("updateFlow: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
 
                      (*val (vBadStr, si) = TVar.varToString (vVar, TVar.emptyShowInfo)
@@ -1511,7 +1648,7 @@ end = struct
                      val _ = TextIO.print ("renaming " ^ vBadStr ^ " to " ^ vGoodStr ^ " in " ^ fpStr ^ "\n")*)
 
                      val fp = Path.renameVariable (vVar,rVar,fp)
-                     val _ = HT.insert st (sym, {flow = fp, info = idx})
+                     val _ = HT.insert st (sym, {flow = fp, info = idx, forall = ss})
                   in
                      ()
                   end
@@ -1538,9 +1675,10 @@ end = struct
             val _ = List.app updateNewLeaf stepsLeafList
             fun getExpandInfoForSym sym =
                let
-                  val { flow = fp, info = index } = HT.lookup st sym
+                  val { flow = fp, info = index, forall = ss } = HT.lookup st sym
+                     handle IndexError => (TextIO.print ("getExpandInfoForSym: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
                   val (fp, expandInfo) = Path.insertSteps (fp,vVar,stepsLeafList)
-                  val _ = HT.insert st (sym, { flow = fp, info = index })
+                  val _ = HT.insert st (sym, { flow = fp, info = index, forall = ss })
                in
                   expandInfo
                end
@@ -1568,13 +1706,15 @@ end = struct
 
    end
          
-   fun equateSymbols (sym1,sym2,table : table) =
+   and equateSymbols (sym1,sym2,table : table) =
       let
          val _ = if not verbose then () else
             TextIO.print ("equateSymbols " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
          val st = #symTable table
          val { info = idx1, ... } = HT.lookup st sym1
+            handle IndexError => (TextIO.print ("equateSymbols: " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " not mapped.\n"); raise TypeTableError)
          val { info = idx2, ... } = HT.lookup st sym2
+            handle IndexError => (TextIO.print ("equateSymbols: " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ " not mapped.\n"); raise TypeTableError)
          val _ = unify (idx1,idx2,table)
          val { flow = fp1, ... } = HT.lookup st sym1
          val { flow = fp2, ... } = HT.lookup st sym2
@@ -1600,7 +1740,9 @@ end = struct
             TextIO.print ("equateSymbolsFlow " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
          val st = #symTable table
          val { info = idx1, ... } = HT.lookup st sym1
+            handle IndexError => (TextIO.print ("equateSymbolsFlow: " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " not mapped.\n"); raise TypeTableError)
          val { info = idx2, ... } = HT.lookup st sym2
+            handle IndexError => (TextIO.print ("equateSymbolsFlow: " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ " not mapped.\n"); raise TypeTableError)
          val _ = unify (idx1,idx2,table)
          val { flow = fp1, ... } = HT.lookup st sym1
          val { flow = fp2, ... } = HT.lookup st sym2
@@ -1627,14 +1769,16 @@ end = struct
             TextIO.print ("subsetSymbols " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " and " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ "\n")
          val tt = #typeTable table
          val st = #symTable table
-         val { info = idx1, flow = fp1 } = HT.lookup st sym1
+         val { info = idx1, flow = fp1, ... } = HT.lookup st sym1
+            handle IndexError => (TextIO.print ("subsetSymbols: " ^ SymbolTable.getString(!SymbolTables.varTable, sym1) ^ " not mapped.\n"); raise TypeTableError)
          val vars = Path.varsOfFlowpoints fp1
          val { info = idx2, ... } = HT.lookup st sym2
+            handle IndexError => (TextIO.print ("subsetSymbols: " ^ SymbolTable.getString(!SymbolTables.varTable, sym2) ^ " not mapped.\n"); raise TypeTableError)
          val _ = unify (idx1,idx2,table)
          
          fun genFakeType idx = #1
             (termToType ({ flow = Path.createFlowpoints (termToSteps (idx,table)),
-                           info = idx },table))
+                           info = idx, forall = SymSet.empty },table))
          fun checkUnificationResult (var,(substs,ss)) = (case ttGet (tt,var) of
                  LEAF _ => if BM.inDomain (ss,TVar.toIdx var) then
                      ((BM.lookup (ss,TVar.toIdx var), genFakeType var) :: substs, ss)
@@ -1653,7 +1797,8 @@ end = struct
       let
          val tt = #typeTable table
          val st = #symTable table
-         val { flow = fp, info = idx } = HT.lookup st sym
+         val { flow = fp, info = idx, forall = _ } = HT.lookup st sym
+            handle IndexError => (TextIO.print ("getSharingSyms: " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " not mapped.\n"); raise TypeTableError)
          val candidates = Path.varsOfFlowpoints fp
          val ss = List.foldl (fn (v,ss) => case ttGet(tt, v) of
                  LEAF symSet => SymSet.union (symSet,ss)
@@ -1670,7 +1815,9 @@ end = struct
             TextIO.print ("instantiateSymbol " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " to " ^ SymbolTable.getString(!SymbolTables.varTable, newSym) ^ " omitting vars in " ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" args ^ "\n")
          val tt = #typeTable table
          val st = #symTable table
-         val { flow = fp, info = idx } = HT.lookup st oldSym
+         val fs = #forallSyms table
+         val { flow = fp, info = idx, forall = ss } = HT.lookup st oldSym
+            handle IndexError => (TextIO.print ("instantiateSymbol: " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " not mapped.\n"); raise TypeTableError)
          val candidates = Path.varsOfFlowpoints fp
          val symsToIgnore = SymSet.add (args,oldSym)
          fun notInEnv v = case ttGet(tt, v) of
@@ -1679,6 +1826,7 @@ end = struct
          val instantiate = List.filter notInEnv candidates
          val subst = HT.mkTable (TVar.hash, TVar.eq) (List.length instantiate, IndexError)
          val _ = List.app (fn v => HT.insert subst (v,TVar.freshTVar ())) instantiate
+         val kappasInstances = ref ([] : (SymbolTable.symid * SymbolTable.symid) list)
          fun dup v = case ttGet(tt, v) of
              TERM t => allocType (dupTerm t, table)
            | LEAF symSet => (
@@ -1698,10 +1846,17 @@ end = struct
            | dupTerm (TT_ALG (ty, l)) = TT_ALG (ty, map dup l)
            | dupTerm (TT_SET (l,i)) = TT_SET (SpanMap.map dup l, dup i)
            | dupTerm (TT_RECORD (fm,i)) = TT_RECORD (SymMap.map dup fm, dup i)
+           | dupTerm (TT_FORALL s) = 
+            let
+               val newKappa = acquireKappa table
+               val _ = kappasInstances := (s,newKappa) :: !kappasInstances
+            in
+               TT_FORALL newKappa
+            end
            | dupTerm (TT_MONAD (r,f,t)) = TT_MONAD (dup r, dup f, dup t)
          val newIdx = dup idx
          val newFp = Path.createFlowpoints (termToSteps (newIdx, table))
-         val _ = HT.insert st (newSym,{ flow = newFp, info = newIdx })
+         val _ = HT.insert st (newSym,{ flow = newFp, info = newIdx, forall = ss })
          (* perform expansion on the Boolean flags of oldSym,args to
          newSym,args' where the flags of args' are fresh variables that need
          to be discarded after expansion *)
@@ -1720,6 +1875,9 @@ end = struct
          
          val scRef = #sizeDom table
          val _ = scRef := SC.expand (subst,!scRef) 
+         
+         val _ = List.app (fn (oldKappa,newKappa) =>
+            instantiateSymbol (oldKappa,SymSet.empty,newKappa,table)) (!kappasInstances)
          
          val _ = if SOME (SymbolTable.toInt oldSym)=debugSymbol then
             (TextIO.print ("instantiating " ^ SymbolTable.getString(!SymbolTables.varTable, oldSym) ^ " from " ^ showType (peekSymbol (oldSym,table)) ^ " to " ^ showType (peekSymbol (newSym,table)) ^ " without arg vars " ^ SymSet.foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" args ^ " by expanding " ^ List.foldl (fn (v,str) => BD.showVar v ^ " " ^ str) "" (oldSymFlags @ oldArgsFlags) ^ ", " ^ List.foldl (fn ((_,v),str) => BD.showVar v ^ " " ^ str) "" (newSymFlags @ newArgsFlags) ^ "\n")
@@ -1793,12 +1951,12 @@ end = struct
                Types.RField { name = bar, fty = wBV w, exists = BD.freshBVar () },
                Types.RField { name = baz, fty = wBV t, exists = BD.freshBVar () }
             ])
-         val rIdx1 = newType (rTy1 (), table)
-         val rIdx2 = newType (rTy2 (), table)
+         val (rIdx1,_) = newType (rTy1 (), table)
+         val (rIdx2,_) = newType (rTy2 (), table)
          val idxX = addSymbol (xVar,FUN ([ZENO,wBV t],VEC (wBV s)),table)
          val idxY = addSymbol (yVar,FUN ([wBV u,wBV t],wBV t),table)
          val idxZ = addSymbol (zVar,FUN ([rTy1 (), wBV t,wBV  v],rTy1 ()),table)
-         val idx = newType (Types.VEC (Types.VAR (TVar.freshTVar (), BooleanDomain.freshBVar ())), table)
+         val (idx,_) = newType (Types.VEC (Types.VAR (TVar.freshTVar (), BooleanDomain.freshBVar ())), table)
 
          val si = TVar.emptyShowInfo
          (*val (str,si) = toStringSI (fn _ => true, table, si);*)
