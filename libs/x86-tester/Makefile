@@ -19,7 +19,7 @@ pre-build:
 OBJECTS=$(addprefix $(BPRE), $(SOURCES:.c=.o))
 
 $(LIBRARY): $(OBJECTS)
-	ar -r  $@  $(OBJECTS)
+	ar -r $@ $(OBJECTS)
 
 $(OBJECTS): $(BPRE)%.o : $(SPRE)%.c
 	$(CC) $(CFLAGS) $< -o $@
