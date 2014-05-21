@@ -11,7 +11,7 @@ namespace gdsl {
 namespace rreil {
 
 enum branch_hint {
-  HINT_JUMP, HINT_CALL, HINT_RET
+  BRANCH_HINT_JUMP, BRANCH_HINT_CALL, BRANCH_HINT_RET
 };
 
 }

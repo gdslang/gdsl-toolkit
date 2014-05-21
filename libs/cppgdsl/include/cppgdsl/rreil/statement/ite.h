@@ -29,8 +29,6 @@ public:
     return cond;
   }
 
-
-
   statement const *get_then_branch() const {
     return then_branch;
   }
