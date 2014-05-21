@@ -8,18 +8,24 @@
 #pragma once
 
 #include "linear.h"
+#include "binop_lin_op.h"
 
 namespace gdsl {
 namespace rreil {
 
-class lin_sub : public linear {
+class lin_binop : public linear {
 private:
+  binop_lin_op op;
   linear *opnd1;
   linear *opnd2;
 
 public:
-  lin_sub(linear *opnd1, linear *opnd2);
-  ~lin_sub();
+  lin_binop(binop_lin_op op, linear *opnd1, linear *opnd2);
+  ~lin_binop();
+
+  binop_lin_op get_op() const {
+    return op;
+  }
 
   linear *get_opnd1() const {
     return opnd1;
@@ -30,4 +36,5 @@ public:
   }
 };
 
-}}
+}
+}
