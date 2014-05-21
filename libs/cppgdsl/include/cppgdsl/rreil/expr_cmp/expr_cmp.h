@@ -1,25 +1,24 @@
 /*
- * lin_add.h
+ * expr_cmp.h
  *
  *  Created on: May 21, 2014
  *      Author: Julian Kranz
  */
 
 #pragma once
-
-#include "linear.h"
+#include <cppgdsl/rreil/linear/linear.h>
 
 namespace gdsl {
 namespace rreil {
 
-class lin_add : public linear {
-private:
+class expr_cmp {
+protected:
   linear *opnd1;
   linear *opnd2;
 
 public:
-  lin_add(linear *opnd1, linear *opnd2);
-  ~lin_add();
+  expr_cmp(linear *opnd1, linear *opnd2);
+  ~expr_cmp();
 
   linear *get_opnd1() const {
     return opnd1;
