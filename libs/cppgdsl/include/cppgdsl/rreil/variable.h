@@ -13,13 +13,13 @@ namespace gdsl {
 namespace rreil {
 
 class variable {
-private:
+protected:
   id *_id;
   int_t offset;
 
 public:
   variable(id *_id, int_t offset);
-  ~variable();
+  virtual ~variable();
 
   id *get_id() const {
     return _id;

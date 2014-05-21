@@ -9,7 +9,7 @@
 
 #include "statement.h"
 #include <cppgdsl/rreil/address.h>
-#include <cppgdsl/rreil/variable.h>
+#include <cppgdsl/rreil/linear/linear.h>
 extern "C" {
 #include <gdsl_generic.h>
 }
@@ -17,26 +17,26 @@ extern "C" {
 namespace gdsl {
 namespace rreil {
 
-class load : public statement {
+class store : public statement {
 private:
   int_t size;
-  variable *lhs;
   address *_address;
+  linear *rhs;
 
 public:
-  load(int_t size, variable *lhs, address *_address);
-  ~load();
+  store(int_t size, address *_address, linear *rhs);
+  ~store();
 
   int_t get_size() const {
     return size;
   }
 
-  variable *get_lhs() const {
-    return lhs;
+  address const *get_address() const {
+    return _address;
   }
 
-  const address *get_address() const {
-    return _address;
+  linear const *get_rhs() const {
+    return rhs;
   }
 };
 
