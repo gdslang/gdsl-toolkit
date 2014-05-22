@@ -13,6 +13,9 @@ namespace rreil {
 
 class statement {
 public:
+  virtual ~statement() {
+  }
+
   virtual std::string to_string() = 0;
 };
 

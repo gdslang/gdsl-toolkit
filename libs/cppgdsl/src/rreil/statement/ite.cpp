@@ -7,6 +7,8 @@
 
 #include <cppgdsl/rreil/statement/ite.h>
 
+using namespace std;
+
 gdsl::rreil::ite::ite(sexpr *cond, statement *then_branch, statement *else_branch) {
   this->cond = cond;
   this->then_branch = then_branch;
@@ -20,5 +22,8 @@ gdsl::rreil::ite::~ite() {
 }
 
 std::string gdsl::rreil::ite::to_string() {
-  return "ite";
+  string r = "if(" + cond->to_string() + ") {\n";
+  r += then_branch->to_string() + "\n}{\n";
+  r += else_branch->to_string();
+  return r + "\n}";
 }

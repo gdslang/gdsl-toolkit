@@ -19,5 +19,5 @@ gdsl::rreil::load::~load() {
 }
 
 std::string gdsl::rreil::load::to_string() {
-  return "load";
+  return lhs->to_string() + " =:" + std::to_string(size) + " *" + _address->to_string();
 }

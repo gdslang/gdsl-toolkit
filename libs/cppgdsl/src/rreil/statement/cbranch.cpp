@@ -20,5 +20,5 @@ gdsl::rreil::cbranch::~cbranch() {
 }
 
 std::string gdsl::rreil::cbranch::to_string() {
-  return "cbranch";
+  return cond->to_string() + " ? goto " + target_true->to_string() + " : goto " + target_false->to_string();
 }

@@ -17,5 +17,5 @@ gdsl::rreil::branch::~branch() {
 }
 
 std::string gdsl::rreil::branch::to_string() {
-  return "branch";
+  return branch_hint_to_string(hint) + " => " + target->to_string();
 }

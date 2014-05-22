@@ -17,5 +17,5 @@ gdsl::rreil::address::~address() {
 }
 
 std::string gdsl::rreil::address::to_string() {
-  return lin->to_string() + "/" + std::to_string(size);
+  return "(" + lin->to_string() + "/" + std::to_string(size) + ")";
 }

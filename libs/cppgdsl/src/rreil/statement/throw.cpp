@@ -16,5 +16,5 @@ gdsl::rreil::_throw::~_throw() {
 }
 
 std::string gdsl::rreil::_throw::to_string() {
-  return "throw";
+  return "throw " + inner->to_string();
 }

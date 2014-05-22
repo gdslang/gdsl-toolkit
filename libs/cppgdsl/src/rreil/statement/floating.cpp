@@ -7,6 +7,8 @@
 
 #include <cppgdsl/rreil/statement/floating.h>
 
+using namespace std;
+
 gdsl::rreil::floating::floating(flop op, variable *flags, variable_limited *lhs, std::vector<variable_limited*> rhs) {
   this->op = op;
   this->flags = flags;
@@ -22,5 +24,11 @@ gdsl::rreil::floating::~floating() {
 }
 
 std::string gdsl::rreil::floating::to_string() {
-  return "floating";
+  string r = lhs->to_string() + " = (" + flop_to_string(op) + ")(";
+  for (size_t i = 0; i < rhs.size(); ++i) {
+    if(i)
+      r += ", ";
+    r += rhs[i]->to_string();
+  }
+  return r + ")";
 }

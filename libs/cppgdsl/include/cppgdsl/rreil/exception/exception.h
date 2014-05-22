@@ -6,12 +6,17 @@
  */
 
 #pragma once
+#include <string>
 
 namespace gdsl {
 namespace rreil {
 
 class exception {
+public:
+  virtual ~exception() {
+  }
 
+  virtual std::string to_string() = 0;
 };
 
 

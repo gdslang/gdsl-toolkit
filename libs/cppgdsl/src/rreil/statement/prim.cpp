@@ -7,6 +7,8 @@
 
 #include <cppgdsl/rreil/statement/prim.h>
 
+using namespace std;
+
 gdsl::rreil::prim::prim(std::string op, std::vector<variable_limited*> lhs, std::vector<variable_limited*> rhs) {
   this->op = op;
   this->lhs = lhs;
@@ -21,5 +23,18 @@ gdsl::rreil::prim::~prim() {
 }
 
 std::string gdsl::rreil::prim::to_string() {
-  return "prim";
+  string r = "(";
+  for (size_t i = 0; i < lhs.size(); ++i) {
+    if(i)
+      r += ", ";
+    r += lhs[i]->to_string();
+  }
+  r += ") = " + op + "(";
+  for (size_t i = 0; i < rhs.size(); ++i) {
+    if(i)
+      r += ", ";
+    r += rhs[i]->to_string();
+  }
+  r += ")";
+  return r;
 }
