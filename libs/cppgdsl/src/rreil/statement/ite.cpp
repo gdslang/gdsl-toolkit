@@ -18,3 +18,7 @@ gdsl::rreil::ite::~ite() {
   delete this->then_branch;
   delete this->else_branch;
 }
+
+std::string gdsl::rreil::ite::to_string() {
+  return "ite";
+}

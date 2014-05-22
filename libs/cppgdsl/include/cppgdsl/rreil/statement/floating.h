@@ -45,6 +45,8 @@ public:
   std::vector<variable_limited*> const &get_rhs() const {
     return rhs;
   }
+
+  std::string to_string();
 };
 
 }

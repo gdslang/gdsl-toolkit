@@ -15,15 +15,17 @@ namespace rreil {
 
 class sexpr_lin : public sexpr {
 private:
-  linear *lin;
+  linear *inner;
 
 public:
-  sexpr_lin(linear *lin);
+  sexpr_lin(linear *inner);
   ~sexpr_lin();
 
   linear *get_lin() const {
-    return lin;
+    return inner;
   }
+
+  std::string to_string();
 };
 
 }

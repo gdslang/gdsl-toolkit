@@ -17,3 +17,7 @@ gdsl::rreil::assign::~assign() {
   delete this->lhs;
   delete this->rhs;
 }
+
+std::string gdsl::rreil::assign::to_string() {
+  return lhs->to_string() + " =:" + std::to_string(size) + " " + rhs->to_string();
+}

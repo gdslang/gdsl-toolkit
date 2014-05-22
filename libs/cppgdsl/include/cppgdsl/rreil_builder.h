@@ -6,11 +6,14 @@
  */
 
 #pragma once
+#include <cppgdsl/rreil/statement/statement.h>
+#include <vector>
 
 namespace gdsl {
 
 class rreil_builder {
-
+public:
+  std::vector<rreil::statement*> *translate();
 };
 
 }

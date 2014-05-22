@@ -6,8 +6,11 @@
  */
 
 #pragma once
-#include <gdsl_generic.h>
 #include "id.h"
+#include <string>
+extern "C" {
+#include <gdsl_generic.h>
+}
 
 namespace gdsl {
 namespace rreil {
@@ -20,6 +23,8 @@ public:
   _virtual(int_t t);
 
   int_t get_t();
+
+  std::string to_string();
 };
 
 }  // namespace rreil

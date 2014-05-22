@@ -8,6 +8,7 @@
 #pragma once
 #include <cppgdsl/rreil/variable.h>
 #include "linear.h"
+#include <string>
 
 namespace gdsl {
 namespace rreil {
@@ -23,6 +24,8 @@ public:
   variable *get_var() const {
     return var;
   }
+
+  std::string to_string();
 };
 
 }  // namespace rreil

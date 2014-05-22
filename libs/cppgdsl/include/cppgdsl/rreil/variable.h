@@ -7,7 +7,10 @@
 
 #pragma once
 #include <cppgdsl/rreil/id/id.h>
+#include <string>
+extern "C" {
 #include <gdsl_generic.h>
+}
 
 namespace gdsl {
 namespace rreil {
@@ -28,6 +31,8 @@ public:
   int_t get_offset() const {
     return offset;
   }
+
+  virtual std::string to_string();
 };
 
 }

@@ -38,6 +38,8 @@ public:
   linear const *get_rhs() const {
     return rhs;
   }
+
+  std::string to_string();
 };
 
 }}

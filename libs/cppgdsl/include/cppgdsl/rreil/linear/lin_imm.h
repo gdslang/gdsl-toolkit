@@ -9,6 +9,7 @@
 
 #include <gdsl_generic.h>
 #include "linear.h"
+#include <string>
 
 namespace gdsl {
 namespace rreil {
@@ -23,6 +24,8 @@ public:
   int_t get_imm() const {
     return _const;
   }
+
+  std::string to_string();
 };
 
 }}

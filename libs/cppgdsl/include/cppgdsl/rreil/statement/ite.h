@@ -36,6 +36,8 @@ public:
   statement const *get_else_branch() const {
     return else_branch;
   }
+
+  std::string to_string();
 };
 
 }}

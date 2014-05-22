@@ -6,12 +6,14 @@
  */
 
 #pragma once
+#include <string>
 
 namespace gdsl {
 namespace rreil {
 
 class statement {
-
+public:
+  virtual std::string to_string() = 0;
 };
 
 }

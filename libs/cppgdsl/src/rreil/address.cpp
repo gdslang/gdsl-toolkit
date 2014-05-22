@@ -15,3 +15,7 @@ gdsl::rreil::address::address(int_t size, linear *lin) {
 gdsl::rreil::address::~address() {
   delete this->lin;
 }
+
+std::string gdsl::rreil::address::to_string() {
+  return lin->to_string() + "/" + std::to_string(size);
+}

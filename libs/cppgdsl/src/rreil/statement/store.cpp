@@ -18,3 +18,7 @@ gdsl::rreil::store::~store() {
   delete this->_address;
   delete this->rhs;
 }
+
+std::string gdsl::rreil::store::to_string() {
+  return "store";
+}

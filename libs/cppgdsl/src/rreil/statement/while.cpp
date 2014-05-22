@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/statement/while.h>
+#include <string>
 
 gdsl::rreil::_while::_while(sexpr *cond, statement *body) {
   this->cond = cond;
@@ -15,4 +16,8 @@ gdsl::rreil::_while::_while(sexpr *cond, statement *body) {
 gdsl::rreil::_while::~_while() {
   delete this->cond;
   delete this->body;
+}
+
+std::string gdsl::rreil::_while::to_string() {
+  return "while";
 }

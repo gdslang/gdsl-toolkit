@@ -20,3 +20,7 @@ gdsl::rreil::floating::~floating() {
   for(variable_limited *v : this->rhs)
     delete v;
 }
+
+std::string gdsl::rreil::floating::to_string() {
+  return "floating";
+}

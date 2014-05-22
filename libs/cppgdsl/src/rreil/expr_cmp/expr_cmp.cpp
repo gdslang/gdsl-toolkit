@@ -19,3 +19,6 @@ gdsl::rreil::expr_cmp::~expr_cmp() {
   delete this->opnd2;
 }
 
+std::string gdsl::rreil::expr_cmp::to_string() {
+  return opnd1->to_string() + " " + cmp_op_to_string(op) + " " + opnd2->to_string();
+}

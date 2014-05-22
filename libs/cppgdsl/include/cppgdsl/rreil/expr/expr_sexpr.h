@@ -23,6 +23,8 @@ public:
   sexpr *get_inner() const {
     return inner;
   }
+
+  std::string to_string();
 };
 
 }  // namespace rreil

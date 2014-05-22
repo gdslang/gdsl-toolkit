@@ -8,7 +8,10 @@
 #pragma once
 
 #include <cppgdsl/rreil/linear/linear.h>
+#include <string>
+extern "C" {
 #include <gdsl_generic.h>
+}
 
 namespace gdsl {
 namespace rreil {
@@ -29,6 +32,8 @@ public:
   int_t get_size() const {
     return size;
   }
+
+  std::string to_string();
 };
 
 }

@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <string>
 
 namespace gdsl {
 namespace rreil {
@@ -13,6 +14,8 @@ namespace rreil {
 enum flop {
   FLOP_FADD, FLOP_FSUB, FLOP_FMUL
 };
+
+std::string flop_to_string(flop f);
 
 }
 }

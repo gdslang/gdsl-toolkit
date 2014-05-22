@@ -19,7 +19,11 @@ private:
 public:
   arch_id(std::string name);
 
-  std::string get_name();
+  const std::string& get_name() const {
+    return name;
+  }
+
+  std::string to_string();
 };
 
 }  // namespace rreil

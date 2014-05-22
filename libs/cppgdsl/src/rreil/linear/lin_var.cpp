@@ -14,3 +14,7 @@ gdsl::rreil::lin_var::lin_var(variable *var) {
 gdsl::rreil::lin_var::~lin_var() {
   delete this->var;
 }
+
+std::string gdsl::rreil::lin_var::to_string() {
+  return var->to_string();
+}

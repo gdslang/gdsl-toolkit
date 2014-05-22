@@ -11,3 +11,7 @@ gdsl::rreil::variable_limited::variable_limited(id *_id, int_t offset, int_t siz
     variable(_id, offset) {
   this->size = size;
 }
+
+std::string gdsl::rreil::variable_limited::to_string() {
+  return variable::to_string() + "/" + std::to_string(size);
+}

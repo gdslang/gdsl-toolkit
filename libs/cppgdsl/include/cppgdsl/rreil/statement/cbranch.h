@@ -38,6 +38,8 @@ public:
   address const *get_target_true() const {
     return target_true;
   }
+
+  std::string to_string();
 };
 
 }}

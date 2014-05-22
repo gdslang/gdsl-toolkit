@@ -15,6 +15,6 @@ arch_id::arch_id(string name) {
   this->name = name;
 }
 
-string arch_id::get_name() {
-  return this->name;
+std::string gdsl::rreil::arch_id::to_string() {
+  return name;
 }

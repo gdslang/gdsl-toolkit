@@ -33,6 +33,8 @@ public:
   branch_hint get_hint() const {
     return hint;
   }
+
+  std::string to_string();
 };
 
 }}

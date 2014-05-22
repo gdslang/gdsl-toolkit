@@ -9,6 +9,7 @@
 #include <cppgdsl/rreil/expr/expr.h>
 #include <cppgdsl/rreil/linear/linear.h>
 #include <gdsl_generic.h>
+#include <string>
 
 namespace gdsl {
 namespace rreil {
@@ -16,6 +17,8 @@ namespace rreil {
 enum ext_op {
   EXT_SX, EXT_ZX
 };
+
+std::string ext_op_to_string(ext_op op);
 
 class expr_ext : public expr {
 private:
@@ -38,6 +41,8 @@ public:
   linear *get_opnd() const {
     return opnd;
   }
+
+  std::string to_string();
 };
 
 }

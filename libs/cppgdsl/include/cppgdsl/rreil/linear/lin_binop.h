@@ -34,6 +34,8 @@ public:
   linear *get_opnd2() const {
     return opnd2;
   }
+
+  std::string to_string();
 };
 
 }

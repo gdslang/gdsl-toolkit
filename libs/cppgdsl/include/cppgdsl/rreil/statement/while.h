@@ -31,6 +31,8 @@ public:
   statement const *get_body() const {
     return body;
   }
+
+  std::string to_string();
 };
 
 }}

@@ -1,7 +1,7 @@
 GDSL=../../
 CC=gcc
 #CC=clang
-CPP=g++
+CPP=clang++
 INCDS=-Iinclude -I$(GDSL)/include
 CFLAGS=-c -MMD -ggdb3 -std=gnu99 -Wall -Wfatal-errors -DRELAXEDFATAL $(INCDS)
 CPPFLAGS=-c -MMD -ggdb3 -std=c++11 -Wall -Wno-overloaded-virtual -Wno-deprecated $(INCDS)

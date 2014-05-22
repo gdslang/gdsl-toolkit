@@ -10,3 +10,7 @@
 gdsl::rreil::lin_imm::lin_imm(int_t _const) {
   this->_const = _const;
 }
+
+std::string gdsl::rreil::lin_imm::to_string() {
+  return std::to_string(_const);
+}

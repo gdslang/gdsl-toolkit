@@ -13,6 +13,8 @@ namespace gdsl {
 namespace rreil {
 
 class arbitrary : public sexpr {
+public:
+  std::string to_string();
 };
 
 }

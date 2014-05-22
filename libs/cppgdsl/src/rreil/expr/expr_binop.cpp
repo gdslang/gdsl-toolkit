@@ -17,3 +17,7 @@ gdsl::rreil::expr_binop::~expr_binop() {
   delete this->opnd1;
   delete this->opnd2;
 }
+
+std::string gdsl::rreil::expr_binop::to_string() {
+  return opnd1->to_string() + " " + binop_op_to_string(op) + " " + opnd2->to_string();
+}

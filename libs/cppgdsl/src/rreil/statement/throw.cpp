@@ -14,3 +14,7 @@ gdsl::rreil::_throw::_throw(exception *inner) {
 gdsl::rreil::_throw::~_throw() {
   delete this->inner;
 }
+
+std::string gdsl::rreil::_throw::to_string() {
+  return "throw";
+}

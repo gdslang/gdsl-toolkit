@@ -15,3 +15,7 @@ gdsl::rreil::branch::branch(address *target, branch_hint hint) {
 gdsl::rreil::branch::~branch() {
   delete target;
 }
+
+std::string gdsl::rreil::branch::to_string() {
+  return "branch";
+}

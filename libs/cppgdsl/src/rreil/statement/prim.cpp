@@ -20,4 +20,6 @@ gdsl::rreil::prim::~prim() {
     delete v;
 }
 
-
+std::string gdsl::rreil::prim::to_string() {
+  return "prim";
+}

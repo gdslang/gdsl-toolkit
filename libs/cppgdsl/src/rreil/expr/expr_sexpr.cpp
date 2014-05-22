@@ -14,3 +14,7 @@ gdsl::rreil::expr_sexpr::expr_sexpr(sexpr *inner) {
 gdsl::rreil::expr_sexpr::~expr_sexpr() {
   delete this->inner;
 }
+
+std::string gdsl::rreil::expr_sexpr::to_string() {
+  return inner->to_string();
+}

@@ -22,6 +22,8 @@ public:
   int_t get_size() const {
     return size;
   }
+
+  std::string to_string();
 };
 
 }

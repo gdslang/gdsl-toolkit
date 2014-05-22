@@ -18,3 +18,7 @@ gdsl::rreil::cbranch::~cbranch() {
   delete this->target_true;
   delete this->target_false;
 }
+
+std::string gdsl::rreil::cbranch::to_string() {
+  return "cbranch";
+}

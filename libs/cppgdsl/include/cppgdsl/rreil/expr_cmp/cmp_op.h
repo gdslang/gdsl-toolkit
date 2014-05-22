@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include <string>
 
 namespace gdsl {
 namespace rreil {
@@ -13,6 +14,8 @@ namespace rreil {
 enum cmp_op {
   CMP_EQ, CMP_NEQ, CMP_LES, CMP_LEU, CMP_LTS, CMP_LTU
 };
+
+std::string cmp_op_to_string(cmp_op op);
 
 }
 }

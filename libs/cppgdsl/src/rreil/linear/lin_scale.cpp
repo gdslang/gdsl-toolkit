@@ -15,3 +15,7 @@ gdsl::rreil::lin_scale::lin_scale(int_t _const, linear *opnd) {
 gdsl::rreil::lin_scale::~lin_scale() {
   delete this->opnd;
 }
+
+std::string gdsl::rreil::lin_scale::to_string() {
+  return std::to_string(_const) + "*" + opnd->to_string();
+}

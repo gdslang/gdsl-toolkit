@@ -6,7 +6,7 @@
  */
 
 #pragma once
-#include "exception"
+#include <cppgdsl/rreil/exception/exception.h>
 #include <string>
 
 namespace gdsl {
@@ -19,7 +19,9 @@ private:
 public:
   arch_exception(std::string name);
 
-  std::string get_name();
+  const std::string& get_name() const {
+    return name;
+  }
 };
 
 }  // namespace rreil

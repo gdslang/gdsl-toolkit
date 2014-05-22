@@ -29,6 +29,8 @@ public:
   linear *get_opnd() const {
     return opnd;
   }
+
+  std::string to_string();
 };
 
 }}

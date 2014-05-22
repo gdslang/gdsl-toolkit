@@ -15,15 +15,17 @@ namespace rreil {
 
 class sexpr_cmp : public sexpr {
 private:
-  expr_cmp *cmp;
+  expr_cmp *inner;
 
 public:
-  sexpr_cmp(expr_cmp *cmp);
+  sexpr_cmp(expr_cmp *inner);
   ~sexpr_cmp();
 
-  expr_cmp *get_cmp() const {
-    return cmp;
+  expr_cmp *get_inner() const {
+    return inner;
   }
+
+  std::string to_string();
 };
 
 }

@@ -17,3 +17,7 @@ gdsl::rreil::load::~load() {
   delete this->lhs;
   delete this->_address;
 }
+
+std::string gdsl::rreil::load::to_string() {
+  return "load";
+}
