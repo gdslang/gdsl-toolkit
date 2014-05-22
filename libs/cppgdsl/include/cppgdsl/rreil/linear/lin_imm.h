@@ -7,9 +7,12 @@
 
 #pragma once
 
-#include <gdsl_generic.h>
 #include "linear.h"
 #include <string>
+
+extern "C" {
+#include <gdsl_generic.h>
+}
 
 namespace gdsl {
 namespace rreil {

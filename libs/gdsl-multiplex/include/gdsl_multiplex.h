@@ -11,6 +11,7 @@
 #include <gdsl_generic.h>
 #include <setjmp.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 struct frontend_desc {
 	const char *name;

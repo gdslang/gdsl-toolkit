@@ -7,7 +7,9 @@
 
 #pragma once
 #include <cppgdsl/rreil/variable.h>
+extern "C" {
 #include <gdsl_generic.h>
+}
 
 namespace gdsl {
 namespace rreil {

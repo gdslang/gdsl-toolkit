@@ -56,7 +56,7 @@ extern "C" {
 using namespace gdsl::rreil;
 using namespace std;
 
-struct frontend frontend;
+struct frontend frontend_glob;
 
 // sem_id
 static obj_t _shared(state_t state, int_t con) {
@@ -75,7 +75,7 @@ static obj_t virt_t(state_t state, int_t t) {
 }
 
 obj_t sem_id_arch(state_t state, obj_t gid) {
-  char *arch_str = frontend.generic.merge_rope(state, frontend.translator.pretty_arch_id(state, gid));
+  char *arch_str = frontend_glob.generic.merge_rope(state, frontend_glob.translator.pretty_arch_id(state, gid));
   return new arch_id(string(arch_str));
 }
 
@@ -92,7 +92,7 @@ static obj_t exception_shared(state_t state, int_t con) {
 }
 
 static obj_t exception_arch(state_t state, obj_t ex) {
-  char *ex_str = frontend.generic.merge_rope(state, frontend.translator.pretty_arch_exception(state, ex));
+  char *ex_str = frontend_glob.generic.merge_rope(state, frontend_glob.translator.pretty_arch_exception(state, ex));
   return new arch_exception(string(ex_str));
 }
 
@@ -462,24 +462,37 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
   return &callbacks_heap->callbacks;
 }
 
-std::vector<statement*> *gdsl::rreil_builder::translate() {
-  char err = gdsl_multiplex_frontend_get_by_lib_name(&frontend, "x86");
-  if(err != GDSL_MULTIPLEX_ERROR_NONE) throw "blah";
-
-  uint16_t buffer = 0;
-  state_t s = frontend.generic.init();
-  frontend.generic.set_code(s, (char*)&buffer, 2, 0);
-
-  obj_t insn = frontend.decoder.decode(s, frontend.decoder.config_default(s));
-  obj_t rreil = frontend.translator.translate(s, insn);
-
-  callbacks_t cbs = rreil_gdrr_builder_callbacks_get(s);
-
-  auto v = (std::vector<statement*> *)frontend.translator.rreil_convert_sem_stmts(s, cbs, rreil);
-
-  for (statement *stmt : *v) {
-    printf("%s\n", stmt->to_string().c_str());
-  }
-
-  return NULL;
+gdsl::rreil_builder::rreil_builder(state_t gdsl_state, _frontend* frontend) {
+  this->gdsl_state = gdsl_state;
+  this->frontend = frontend;
 }
+
+std::vector<gdsl::rreil::statement*>* gdsl::rreil_builder::convert(obj_t rreil) {
+  frontend_glob = frontend->native();
+
+  callbacks_t cbs = rreil_gdrr_builder_callbacks_get(gdsl_state);
+  auto v = (std::vector<statement*> *)frontend_glob.translator.rreil_convert_sem_stmts(gdsl_state, cbs, rreil);
+
+  return v;
+}
+//std::vector<statement*> *gdsl::rreil_builder::translate() {
+//  char err = gdsl_multiplex_frontend_get_by_lib_name(&frontend, "x86");
+//  if(err != GDSL_MULTIPLEX_ERROR_NONE) throw "blah";
+//
+//  uint16_t buffer = 0;
+//  state_t s = frontend.generic.init();
+//  frontend.generic.set_code(s, (char*)&buffer, 2, 0);
+//
+//  obj_t insn = frontend.decoder.decode(s, frontend.decoder.config_default(s));
+//  obj_t rreil = frontend.translator.translate(s, insn);
+//
+//  callbacks_t cbs = rreil_gdrr_builder_callbacks_get(s);
+//
+//  auto v = (std::vector<statement*> *)frontend.translator.rreil_convert_sem_stmts(s, cbs, rreil);
+//
+//  for (statement *stmt : *v) {
+//    printf("%s\n", stmt->to_string().c_str());
+//  }
+//
+//  return NULL;
+//}

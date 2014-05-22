@@ -19,6 +19,5 @@ public:
   virtual std::string to_string() = 0;
 };
 
-
 }  // namespace rreil
 }  // namespace gdsl

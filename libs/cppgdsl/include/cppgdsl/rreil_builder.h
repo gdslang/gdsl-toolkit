@@ -6,14 +6,20 @@
  */
 
 #pragma once
+#include <cppgdsl/frontend/frontend.h>
 #include <cppgdsl/rreil/statement/statement.h>
 #include <vector>
 
 namespace gdsl {
 
 class rreil_builder {
+private:
+  state_t gdsl_state;
+  _frontend *frontend;
 public:
-  std::vector<rreil::statement*> *translate();
+  rreil_builder(state_t gdsl_state, _frontend *frontend);
+
+  std::vector<rreil::statement*> *convert(obj_t rreil);
 };
 
 }
