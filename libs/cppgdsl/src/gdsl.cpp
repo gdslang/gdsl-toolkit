@@ -52,7 +52,7 @@ struct gdsl_insns {
   std::vector<instruction> *instructions;
 };
 
-static obj_t insn_cb(state_t s, obj_t next, obj_t cls) {
+static obj_t insn_cb(state_t s, obj_t cls, obj_t next) {
   gdsl_insns *cls_typed = (gdsl_insns*)cls;
   cls_typed->instructions->push_back(instruction(cls_typed->_this, next));
   return cls;
@@ -61,7 +61,7 @@ static obj_t insn_cb(state_t s, obj_t next, obj_t cls) {
 block gdsl::gdsl::decode_translate_block() {
   gdsl_insns cls = { this, new std::vector<instruction>() };
   obj_t rreil = frontend->native().translator.decode_translate_block_optimized_int_insncb(gdsl_state,
-      frontend->native().decoder.config_default(gdsl_state), 4 * 1024 * 1024 * 1024, 0, &cls, insn_cb);
+      frontend->native().decoder.config_default(gdsl_state), 4 * 1024 * 1024, 0, &cls, insn_cb)->rreil;
   std::vector<rreil::statement*> *statements = convert(rreil);
   return block(cls.instructions, statements);
 }
