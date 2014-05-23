@@ -18,3 +18,7 @@ gdsl::rreil::_throw::~_throw() {
 std::string gdsl::rreil::_throw::to_string() {
   return "throw " + inner->to_string();
 }
+
+void gdsl::rreil::_throw::accept(statement_visitor& v) {
+  v.visit(this);
+}

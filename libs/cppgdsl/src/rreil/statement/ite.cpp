@@ -27,3 +27,7 @@ std::string gdsl::rreil::ite::to_string() {
   r += else_branch->to_string();
   return r + "\n}";
 }
+
+void gdsl::rreil::ite::accept(statement_visitor &v) {
+  v.visit(this);
+}

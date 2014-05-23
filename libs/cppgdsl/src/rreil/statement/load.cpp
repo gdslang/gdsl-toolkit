@@ -21,3 +21,7 @@ gdsl::rreil::load::~load() {
 std::string gdsl::rreil::load::to_string() {
   return lhs->to_string() + " =:" + std::to_string(size) + " *" + _address->to_string();
 }
+
+void gdsl::rreil::load::accept(statement_visitor &v) {
+  v.visit(this);
+}

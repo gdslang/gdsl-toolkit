@@ -19,3 +19,7 @@ gdsl::rreil::branch::~branch() {
 std::string gdsl::rreil::branch::to_string() {
   return branch_hint_to_string(hint) + " => " + target->to_string();
 }
+
+void gdsl::rreil::branch::accept(statement_visitor &v) {
+  v.visit(this);
+}

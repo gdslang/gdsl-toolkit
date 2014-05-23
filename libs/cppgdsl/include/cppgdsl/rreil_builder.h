@@ -7,6 +7,7 @@
 
 #pragma once
 #include <cppgdsl/frontend/frontend.h>
+#include <cppgdsl/gdsl.h>
 #include <cppgdsl/rreil/statement/statement.h>
 #include <vector>
 
@@ -14,10 +15,9 @@ namespace gdsl {
 
 class rreil_builder {
 private:
-  state_t gdsl_state;
-  _frontend *frontend;
+  gdsl *g;
 public:
-  rreil_builder(state_t gdsl_state, _frontend *frontend);
+  rreil_builder(gdsl::gdsl *g);
 
   std::vector<rreil::statement*> *convert(obj_t rreil);
 };

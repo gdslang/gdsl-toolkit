@@ -12,6 +12,9 @@
 
 namespace gdsl {
 
+class instruction;
+class block;
+
 extern "C" {
 #include <gdsl_multiplex.h>
 #include <gdsl_generic.h>
@@ -22,6 +25,7 @@ private:
   state_t gdsl_state;
   _frontend *frontend;
 
+  std::vector<rreil::statement*> *convert(obj_t rreil);
 public:
   gdsl(_frontend *frontend);
 
@@ -29,18 +33,26 @@ public:
    * generic
    */
   int_t get_ip_offset();
+  void set_code(char *buffer, uint64_t size, uint64_t base);
 
   /*
    * decoder
    */
-  obj_t decode();
+  instruction decode();
 
   /*
    * translator
    */
-  obj_t translate(obj_t insn);
-  obj_t decode_translate_block();
-  std::vector<rreil::statement*> *convert(obj_t rreil);
+  std::vector<rreil::statement*> *translate(obj_t insn);
+  block decode_translate_block();
+
+  state_t get_state() const {
+    return gdsl_state;
+  }
+
+  _frontend const *get_frontend() const {
+    return frontend;
+  }
 };
 
 }

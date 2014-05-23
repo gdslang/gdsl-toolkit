@@ -38,3 +38,7 @@ std::string gdsl::rreil::prim::to_string() {
   r += ")";
   return r;
 }
+
+void gdsl::rreil::prim::accept(statement_visitor &v) {
+  v.visit(this);
+}

@@ -462,16 +462,15 @@ callbacks_t rreil_gdrr_builder_callbacks_get(state_t state) {
   return &callbacks_heap->callbacks;
 }
 
-gdsl::rreil_builder::rreil_builder(state_t gdsl_state, _frontend* frontend) {
-  this->gdsl_state = gdsl_state;
-  this->frontend = frontend;
+gdsl::rreil_builder::rreil_builder(gdsl::gdsl *g) {
+  this->g = g;
 }
 
 std::vector<gdsl::rreil::statement*>* gdsl::rreil_builder::convert(obj_t rreil) {
-  frontend_glob = frontend->native();
+  frontend_glob = g->get_frontend()->native();
 
-  callbacks_t cbs = rreil_gdrr_builder_callbacks_get(gdsl_state);
-  auto v = (std::vector<statement*> *)frontend_glob.translator.rreil_convert_sem_stmts(gdsl_state, cbs, rreil);
+  callbacks_t cbs = rreil_gdrr_builder_callbacks_get(g->get_state());
+  auto v = (std::vector<statement*> *)frontend_glob.translator.rreil_convert_sem_stmts(g->get_state(), cbs, rreil);
 
   return v;
 }

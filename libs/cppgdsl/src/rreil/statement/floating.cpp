@@ -32,3 +32,7 @@ std::string gdsl::rreil::floating::to_string() {
   }
   return r + ")";
 }
+
+void gdsl::rreil::floating::accept(statement_visitor &v) {
+  v.visit(this);
+}

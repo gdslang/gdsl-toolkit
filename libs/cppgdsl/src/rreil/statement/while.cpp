@@ -26,3 +26,7 @@ std::string gdsl::rreil::_while::to_string() {
   r += "\n}";
   return r;
 }
+
+void gdsl::rreil::_while::accept(statement_visitor &v) {
+  v.visit(this);
+}

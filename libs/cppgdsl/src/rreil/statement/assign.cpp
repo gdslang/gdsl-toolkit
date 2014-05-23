@@ -21,3 +21,7 @@ gdsl::rreil::assign::~assign() {
 std::string gdsl::rreil::assign::to_string() {
   return lhs->to_string() + " =:" + std::to_string(size) + " " + rhs->to_string();
 }
+
+void gdsl::rreil::assign::accept(statement_visitor &v) {
+  v.visit(this);
+}
