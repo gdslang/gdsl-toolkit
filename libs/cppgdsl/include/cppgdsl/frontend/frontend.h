@@ -16,8 +16,7 @@ class _frontend {
 protected:
   struct frontend frontend;
 protected:
-  virtual ~_frontend() {
-  }
+  virtual ~_frontend();
 
 public:
   const struct frontend &native() const {

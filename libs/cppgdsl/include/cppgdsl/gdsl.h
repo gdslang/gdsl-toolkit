@@ -28,6 +28,7 @@ private:
   std::vector<rreil::statement*> *convert(obj_t rreil);
 public:
   gdsl(_frontend *frontend);
+  ~gdsl();
 
   /*
    * generic

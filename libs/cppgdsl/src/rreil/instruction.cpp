@@ -12,6 +12,9 @@ gdsl::instruction::instruction(gdsl::gdsl *g, obj_t native) {
   this->native = native;
 }
 
+gdsl::instruction::~instruction() {
+}
+
 std::string gdsl::instruction::to_string() {
   return g->pretty_instruction(native);
 }

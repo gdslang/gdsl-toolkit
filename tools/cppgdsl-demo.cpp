@@ -86,11 +86,11 @@ void demo_block(gdsl::gdsl &g) {
 
 int main(void) {
   gdsl::bare_frontend f("x86");
-  gdsl::gdsl g(&f);
-
-  demo_single(g);
-
-  printf("\n###############################\n\n");
-
-  demo_block(g);
+//  gdsl::gdsl g(&f);
+//
+//  demo_single(g);
+//
+//  printf("\n###############################\n\n");
+//
+//  demo_block(g);
 }

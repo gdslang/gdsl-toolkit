@@ -10,6 +10,7 @@
 #include <cppgdsl/rreil/linear/linear.h>
 
 gdsl::rreil::expr_cmp::expr_cmp(cmp_op op, linear *opnd1, linear *opnd2) {
+  this->op = op;
   this->opnd1 = opnd1;
   this->opnd2 = opnd2;
 }

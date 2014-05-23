@@ -12,6 +12,10 @@ gdsl::block::block(std::vector<instruction> *instructions, std::vector<rreil::st
   this->statements = statements;
 }
 
+gdsl::block::~block() {
+  delete instructions;
+}
+
 int_t gdsl::block::length() {
   throw "Unimplemented";
 }

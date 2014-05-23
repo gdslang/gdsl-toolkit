@@ -22,6 +22,7 @@ private:
   std::vector<rreil::statement*> *statements;
 public:
   block(std::vector<instruction> *instructions, std::vector<rreil::statement*> *statements);
+  ~block();
 
   int_t length();
 

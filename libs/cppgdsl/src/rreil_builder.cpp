@@ -472,6 +472,8 @@ std::vector<gdsl::rreil::statement*>* gdsl::rreil_builder::convert(obj_t rreil) 
   callbacks_t cbs = rreil_gdrr_builder_callbacks_get(g->get_state());
   auto v = (std::vector<statement*> *)frontend_glob.translator.rreil_convert_sem_stmts(g->get_state(), cbs, rreil);
 
+  free(cbs);
+
   return v;
 }
 //std::vector<statement*> *gdsl::rreil_builder::translate() {

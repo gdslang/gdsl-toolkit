@@ -29,6 +29,10 @@ gdsl::gdsl::gdsl(_frontend *frontend) {
   this->gdsl_state = frontend->native().generic.init();
 }
 
+gdsl::gdsl::~gdsl() {
+  frontend->native().generic.destroy(gdsl_state);
+}
+
 int_t gdsl::gdsl::get_ip_offset() {
   return frontend->native().generic.get_ip_offset(gdsl_state);
 }
@@ -70,5 +74,3 @@ block gdsl::gdsl::decode_translate_block() {
   std::vector<rreil::statement*> *statements = convert(rreil);
   return block(cls.instructions, statements);
 }
-
-
