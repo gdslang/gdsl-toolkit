@@ -24,3 +24,7 @@ gdsl::rreil::shared_id::shared_id(shared_id_type _id) {
 std::string gdsl::rreil::shared_id::to_string() {
   return shared_id_type_to_string(this->inner);
 }
+
+void gdsl::rreil::shared_id::accept(id_visitor &v) {
+  v.visit(this);
+}

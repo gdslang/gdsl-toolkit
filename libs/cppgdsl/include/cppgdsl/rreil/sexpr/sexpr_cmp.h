@@ -26,6 +26,7 @@ public:
   }
 
   std::string to_string();
+  void accept(sexpr_visitor &v);
 };
 
 }

@@ -24,6 +24,7 @@ public:
   }
 
   std::string to_string();
+  void accept(id_visitor &v);
 };
 
 }  // namespace rreil

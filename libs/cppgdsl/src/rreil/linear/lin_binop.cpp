@@ -21,3 +21,7 @@ gdsl::rreil::lin_binop::~lin_binop() {
 std::string gdsl::rreil::lin_binop::to_string() {
   return "(" + opnd1->to_string() + " " + bin_lin_op_to_string(op) + " " + opnd2->to_string() + ")";
 }
+
+void gdsl::rreil::lin_binop::accept(linear_visitor& v) {
+  v.visit(this);
+}

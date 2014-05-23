@@ -21,3 +21,7 @@ gdsl::rreil::expr_binop::~expr_binop() {
 std::string gdsl::rreil::expr_binop::to_string() {
   return opnd1->to_string() + " " + binop_op_to_string(op) + " " + opnd2->to_string();
 }
+
+void gdsl::rreil::expr_binop::accept(expr_visitor &v) {
+  v.visit(this);
+}

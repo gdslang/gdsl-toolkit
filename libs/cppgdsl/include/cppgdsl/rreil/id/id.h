@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "id_visitor.h"
 #include <string>
 
 namespace gdsl {
@@ -17,6 +18,7 @@ public:
   }
 
   virtual std::string to_string() = 0;
+  virtual void accept(id_visitor &v) = 0;
 };
 
 }

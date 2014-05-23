@@ -28,6 +28,7 @@ public:
   }
 
   std::string to_string();
+  void accept(exception_visitor &v);
 };
 
 }  // namespace rreil

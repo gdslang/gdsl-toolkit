@@ -33,6 +33,7 @@ public:
   }
 
   std::string to_string();
+  void accept(linear_visitor &v);
 };
 
 }}

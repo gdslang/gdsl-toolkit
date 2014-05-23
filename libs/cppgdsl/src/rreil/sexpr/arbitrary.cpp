@@ -11,3 +11,6 @@ std::string gdsl::rreil::arbitrary::to_string() {
   return "arbitrary";
 }
 
+void gdsl::rreil::arbitrary::accept(sexpr_visitor &v) {
+  v.visit(this);
+}

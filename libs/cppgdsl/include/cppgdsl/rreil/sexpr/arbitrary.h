@@ -15,6 +15,7 @@ namespace rreil {
 class arbitrary : public sexpr {
 public:
   std::string to_string();
+  void accept(sexpr_visitor &v);
 };
 
 }

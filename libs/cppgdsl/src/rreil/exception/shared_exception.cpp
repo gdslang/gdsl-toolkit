@@ -23,3 +23,6 @@ std::string gdsl::rreil::shared_exception::to_string() {
 
 }
 
+void gdsl::rreil::shared_exception::accept(exception_visitor &v) {
+  v.visit(this);
+}

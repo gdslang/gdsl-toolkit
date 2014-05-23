@@ -18,3 +18,7 @@ arch_id::arch_id(string name) {
 std::string gdsl::rreil::arch_id::to_string() {
   return name;
 }
+
+void gdsl::rreil::arch_id::accept(id_visitor &v) {
+  v.visit(this);
+}

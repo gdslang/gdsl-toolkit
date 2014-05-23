@@ -18,3 +18,7 @@ gdsl::rreil::expr_sexpr::~expr_sexpr() {
 std::string gdsl::rreil::expr_sexpr::to_string() {
   return inner->to_string();
 }
+
+void gdsl::rreil::expr_sexpr::accept(expr_visitor &v) {
+  v.visit(this);
+}

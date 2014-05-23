@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "exception_visitor.h"
 #include <string>
 
 namespace gdsl {
@@ -17,6 +18,7 @@ public:
   }
 
   virtual std::string to_string() = 0;
+  virtual void accept(exception_visitor &v) = 0;
 };
 
 }  // namespace rreil

@@ -33,3 +33,6 @@ std::string gdsl::rreil::expr_ext::to_string() {
 
 }
 
+void gdsl::rreil::expr_ext::accept(expr_visitor &v) {
+  v.visit(this);
+}

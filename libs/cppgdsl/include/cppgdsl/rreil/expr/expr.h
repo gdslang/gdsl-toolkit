@@ -8,6 +8,8 @@
 #pragma once
 #include <string>
 
+#include "expr_visitor.h"
+
 namespace gdsl {
 namespace rreil {
 
@@ -17,6 +19,7 @@ public:
   }
 
   virtual std::string to_string() = 0;
+  virtual void accept(expr_visitor &v) = 0;
 };
 
 }

@@ -18,3 +18,7 @@ gdsl::rreil::lin_var::~lin_var() {
 std::string gdsl::rreil::lin_var::to_string() {
   return var->to_string();
 }
+
+void gdsl::rreil::lin_var::accept(linear_visitor &v) {
+  v.visit(this);
+}

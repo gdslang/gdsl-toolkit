@@ -19,3 +19,7 @@ gdsl::rreil::lin_scale::~lin_scale() {
 std::string gdsl::rreil::lin_scale::to_string() {
   return std::to_string(_const) + "*" + opnd->to_string();
 }
+
+void gdsl::rreil::lin_scale::accept(linear_visitor &v) {
+  v.visit(this);
+}

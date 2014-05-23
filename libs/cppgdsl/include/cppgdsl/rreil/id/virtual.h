@@ -25,6 +25,7 @@ public:
   int_t get_t();
 
   std::string to_string();
+  void accept(id_visitor &v);
 };
 
 }  // namespace rreil

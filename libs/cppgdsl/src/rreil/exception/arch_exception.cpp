@@ -14,3 +14,7 @@ gdsl::rreil::arch_exception::arch_exception(std::string name) {
 std::string gdsl::rreil::arch_exception::to_string() {
   return "[architecture specific exception:" + name + "]";
 }
+
+void gdsl::rreil::arch_exception::accept(exception_visitor &v) {
+  return v.visit(this);
+}
