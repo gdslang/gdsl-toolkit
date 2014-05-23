@@ -1,5 +1,5 @@
 granularity = 8
-export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn}
+export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn} insn-length{length}
 
 # Optional arguments
 #
@@ -766,6 +766,11 @@ type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
 type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
 type insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:insn}
+
+val insn-length insn = do
+ insn <- return (@{fooooobarrrrrrr=42}insn);
+ return insn.length
+end
 
 type varity =
    VA0

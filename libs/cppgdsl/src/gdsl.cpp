@@ -74,3 +74,7 @@ block gdsl::gdsl::decode_translate_block() {
   std::vector<rreil::statement*> *statements = convert(rreil);
   return block(cls.instructions, statements);
 }
+
+int_t gdsl::gdsl::insn_length(obj_t insn) {
+  return frontend->native().decoder.insn_length(gdsl_state, insn);
+}

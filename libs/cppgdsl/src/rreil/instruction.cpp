@@ -20,7 +20,7 @@ std::string gdsl::instruction::to_string() {
 }
 
 int_t gdsl::instruction::length() {
-  throw "Unimplemented";
+  return g->insn_length(native);
 }
 
 std::vector<gdsl::rreil::statement*>* gdsl::instruction::translate() {

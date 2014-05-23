@@ -68,7 +68,7 @@ void demo_block(gdsl::gdsl &g) {
 
   printf("Instructions:\n");
   for(gdsl::instruction i : *insns)
-    printf("%s\n", i.to_string().c_str());
+    printf("%s /length: %lld\n", i.to_string().c_str(), i.length());
 
   printf("---------------------------------\n");
 
@@ -86,11 +86,11 @@ void demo_block(gdsl::gdsl &g) {
 
 int main(void) {
   gdsl::bare_frontend f("x86");
-//  gdsl::gdsl g(&f);
-//
-//  demo_single(g);
-//
-//  printf("\n###############################\n\n");
-//
-//  demo_block(g);
+  gdsl::gdsl g(&f);
+
+  demo_single(g);
+
+  printf("\n###############################\n\n");
+
+  demo_block(g);
 }

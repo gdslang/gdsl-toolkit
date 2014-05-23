@@ -106,6 +106,7 @@ static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
 	ADD_FUNCTION(generic, merge_rope)
 	ADD_FUNCTION(decoder, config_default)
 	ADD_FUNCTION(decoder, decode)
+	ADD_FUNCTION(decoder, insn_length)
 	ADD_FUNCTION(decoder, operands)
 	ADD_FUNCTION(decoder, pretty)
 	ADD_FUNCTION(decoder, pretty_operand)
