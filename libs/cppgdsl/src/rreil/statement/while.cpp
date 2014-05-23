@@ -30,3 +30,7 @@ std::string gdsl::rreil::_while::to_string() {
 void gdsl::rreil::_while::accept(statement_visitor &v) {
   v.visit(this);
 }
+
+void gdsl::rreil::_while::put(ostream &out) {
+  out << to_string();
+}

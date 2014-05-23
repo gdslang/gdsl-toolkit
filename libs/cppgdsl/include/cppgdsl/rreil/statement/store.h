@@ -23,6 +23,7 @@ private:
   address *_address;
   linear *rhs;
 
+  void put(std::ostream &out);
 public:
   store(int_t size, address *_address, linear *rhs);
   ~store();

@@ -23,6 +23,7 @@ private:
   variable *lhs;
   address *_address;
 
+  void put(std::ostream &out);
 public:
   load(int_t size, variable *lhs, address *_address);
   ~load();

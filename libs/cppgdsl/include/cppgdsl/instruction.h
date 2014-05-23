@@ -8,7 +8,10 @@
 #pragma once
 #include <cppgdsl/gdsl.h>
 #include <cppgdsl/rreil/statement/statement.h>
+#include <iosfwd>
 #include <vector>
+
+using std::ostream;
 extern "C" {
 #include <gdsl_generic.h>
 }
@@ -24,6 +27,8 @@ public:
   ~instruction();
 
   std::string to_string();
+  friend ostream& operator<< (ostream &out, instruction &_this);
+
   int_t length();
   std::vector<rreil::statement*> *translate();
 
@@ -31,5 +36,7 @@ public:
     return native;
   }
 };
+
+ostream& operator<< (ostream &out, instruction &cPoint);
 
 }

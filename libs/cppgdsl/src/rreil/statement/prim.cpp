@@ -42,3 +42,7 @@ std::string gdsl::rreil::prim::to_string() {
 void gdsl::rreil::prim::accept(statement_visitor &v) {
   v.visit(this);
 }
+
+void gdsl::rreil::prim::put(std::ostream &out) {
+  out << to_string();
+}

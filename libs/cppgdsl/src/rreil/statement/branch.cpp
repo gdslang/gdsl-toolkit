@@ -23,3 +23,7 @@ std::string gdsl::rreil::branch::to_string() {
 void gdsl::rreil::branch::accept(statement_visitor &v) {
   v.visit(this);
 }
+
+void gdsl::rreil::branch::put(std::ostream &out) {
+  out << to_string();
+}

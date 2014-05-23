@@ -22,6 +22,7 @@ private:
   address *target;
   branch_hint hint;
 
+  void put(std::ostream &out);
 public:
   branch(address *target, branch_hint hint);
   ~branch();

@@ -23,6 +23,7 @@ private:
   address *target_true;
   address *target_false;
 
+  void put(std::ostream &out);
 public:
   cbranch(sexpr *cond, address *target_true, address *target_false);
   ~cbranch();

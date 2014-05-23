@@ -20,6 +20,8 @@ std::string shared_exception_type_to_string(shared_exception_type t);
 class shared_exception : public exception {
 private:
   shared_exception_type type;
+
+  void put(std::ostream &out);
 public:
   shared_exception(shared_exception_type type);
 
@@ -27,7 +29,6 @@ public:
     return type;
   }
 
-  std::string to_string();
   void accept(exception_visitor &v);
 };
 

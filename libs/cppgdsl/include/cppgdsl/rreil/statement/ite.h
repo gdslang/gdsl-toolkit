@@ -21,6 +21,7 @@ private:
   statement *then_branch;
   statement *else_branch;
 
+  void put(std::ostream &out);
 public:
   ite(sexpr *cond, statement *then_branch, statement *else_branch);
   ~ite();

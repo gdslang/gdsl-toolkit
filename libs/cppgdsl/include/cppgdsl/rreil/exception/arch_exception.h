@@ -16,6 +16,7 @@ class arch_exception : public exception {
 private:
   std::string name;
 
+  void put(std::ostream &out);
 public:
   arch_exception(std::string name);
 
@@ -23,7 +24,6 @@ public:
     return name;
   }
 
-  std::string to_string();
   void accept(exception_visitor &v);
 };
 

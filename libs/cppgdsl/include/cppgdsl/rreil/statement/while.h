@@ -20,6 +20,7 @@ private:
   sexpr *cond;
   statement *body;
 
+  void put(std::ostream &out);
 public:
   _while(sexpr *cond, statement *body);
   ~_while();

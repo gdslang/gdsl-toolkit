@@ -20,6 +20,7 @@ class _throw : public statement {
 private:
   exception *inner;
 
+  void put(std::ostream &out);
 public:
   _throw(exception *inner);
   ~_throw();

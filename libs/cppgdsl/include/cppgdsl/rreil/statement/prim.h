@@ -25,6 +25,7 @@ private:
   std::vector<variable_limited*> lhs;
   std::vector<variable_limited*> rhs;
 
+  void put(std::ostream &out);
 public:
   prim(std::string op, std::vector<variable_limited*> lhs, std::vector<variable_limited*> rhs);
   ~prim();

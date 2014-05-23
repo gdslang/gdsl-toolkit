@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/exception/shared_exception.h>
+#include <iostream>
 
 std::string gdsl::rreil::shared_exception_type_to_string(shared_exception_type t) {
   switch(t) {
@@ -18,11 +19,12 @@ gdsl::rreil::shared_exception::shared_exception(shared_exception_type type) {
   this->type = type;
 }
 
-std::string gdsl::rreil::shared_exception::to_string() {
-  return "[architecture specific exception: " + shared_exception_type_to_string(type) + "]";
-
-}
-
 void gdsl::rreil::shared_exception::accept(exception_visitor &v) {
   v.visit(this);
+}
+
+void gdsl::rreil::shared_exception::put(std::ostream &out) {
+  out << "[architecture specific exception: ";
+  out << shared_exception_type_to_string(type);
+  out << "]";
 }

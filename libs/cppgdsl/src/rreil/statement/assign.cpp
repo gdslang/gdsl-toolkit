@@ -25,3 +25,7 @@ std::string gdsl::rreil::assign::to_string() {
 void gdsl::rreil::assign::accept(statement_visitor &v) {
   v.visit(this);
 }
+
+void gdsl::rreil::assign::put(std::ostream &out) {
+  out << to_string();
+}

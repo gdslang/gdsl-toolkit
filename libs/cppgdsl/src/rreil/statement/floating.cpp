@@ -36,3 +36,7 @@ std::string gdsl::rreil::floating::to_string() {
 void gdsl::rreil::floating::accept(statement_visitor &v) {
   v.visit(this);
 }
+
+void gdsl::rreil::floating::put(std::ostream &out) {
+  out << to_string();
+}

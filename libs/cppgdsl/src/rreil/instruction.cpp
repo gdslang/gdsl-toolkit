@@ -26,3 +26,8 @@ int_t gdsl::instruction::length() {
 std::vector<gdsl::rreil::statement*>* gdsl::instruction::translate() {
   return g->translate(native);
 }
+
+ostream& gdsl::operator <<(ostream& out, instruction& _this) {
+  out << _this.to_string();
+  return out;
+}

@@ -26,6 +26,7 @@ private:
   variable_limited *lhs;
   std::vector<variable_limited*> rhs;
 
+  void put(std::ostream &out);
 public:
   floating(flop op, variable *flags, variable_limited *lhs, std::vector<variable_limited*> rhs);
   ~floating();

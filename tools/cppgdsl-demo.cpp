@@ -18,6 +18,8 @@
 #include <cppgdsl/rreil/statement/statement_visitor.h>
 #include <stdio.h>
 #include <climits>
+#include <stdlib.h>
+#include <iostream>
 
 using gdsl::block;
 using gdsl::preservation;
@@ -80,7 +82,8 @@ void demo_block(gdsl::gdsl &g) {
 
   printf("RReil:\n");
   for(statement *s : *rreil)
-    printf("%s\n", s->to_string().c_str());
+    //printf("%s\n", s->to_string().c_str());
+    std::cout << *s << std::endl;
 
   // Cleanup
   for(statement *s : *rreil)

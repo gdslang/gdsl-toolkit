@@ -22,6 +22,7 @@ private:
   variable *lhs;
   expr *rhs;
 
+  void put(std::ostream &out);
 public:
   assign(int_t size, variable *lhs, expr *rhs);
   ~assign();
