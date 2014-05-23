@@ -39,6 +39,7 @@ public:
    * decoder
    */
   instruction decode();
+  std::string pretty_instruction(obj_t insn);
 
   /*
    * translator

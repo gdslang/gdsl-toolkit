@@ -143,6 +143,8 @@ tools/x86-test-stats-runner/src/x86_test_stats_runner-main.o
 /tools/sweep.o
 /tools/semantics-opt
 /tools/semantics-opt.o
+/tools/cppgdsl-demo
+/tools/cppgdsl-demo.o
 /tools/x86-test-runner/x86-test-runner
 /tools/x86-test-stats-runner/x86-test-stats-runner
 /tools/xed-cmp/xed-cmp

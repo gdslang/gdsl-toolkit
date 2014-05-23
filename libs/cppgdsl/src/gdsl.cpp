@@ -42,6 +42,11 @@ instruction gdsl::gdsl::decode() {
   return instruction(this, native);
 }
 
+std::string gdsl::gdsl::pretty_instruction(obj_t insn) {
+  obj_t rope = frontend->native().decoder.pretty(gdsl_state, insn);
+  return std::string(frontend->native().generic.merge_rope(gdsl_state, rope));
+}
+
 std::vector<gdsl::rreil::statement*> *gdsl::gdsl::translate(obj_t insn) {
   obj_t rreil = frontend->native().translator.translate(gdsl_state, insn);
   return convert(rreil);
@@ -65,3 +70,5 @@ block gdsl::gdsl::decode_translate_block() {
   std::vector<rreil::statement*> *statements = convert(rreil);
   return block(cls.instructions, statements);
 }
+
+

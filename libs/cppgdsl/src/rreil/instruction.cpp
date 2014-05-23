@@ -13,7 +13,7 @@ gdsl::instruction::instruction(gdsl::gdsl *g, obj_t native) {
 }
 
 std::string gdsl::instruction::to_string() {
-  throw "Unimplemented";
+  return g->pretty_instruction(native);
 }
 
 int_t gdsl::instruction::length() {
