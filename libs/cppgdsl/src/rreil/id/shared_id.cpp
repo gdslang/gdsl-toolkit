@@ -17,12 +17,12 @@ std::string gdsl::rreil::shared_id_type_to_string(shared_id_type t) {
   }
 }
 
-gdsl::rreil::shared_id::shared_id(shared_id_type _id) {
-  this->inner = _id;
+void gdsl::rreil::shared_id::put(std::ostream &out) {
+  out << shared_id_type_to_string(this->inner);
 }
 
-std::string gdsl::rreil::shared_id::to_string() {
-  return shared_id_type_to_string(this->inner);
+gdsl::rreil::shared_id::shared_id(shared_id_type _id) {
+  this->inner = _id;
 }
 
 void gdsl::rreil::shared_id::accept(id_visitor &v) {

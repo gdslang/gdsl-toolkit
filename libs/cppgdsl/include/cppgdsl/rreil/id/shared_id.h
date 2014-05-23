@@ -23,6 +23,7 @@ class shared_id : public id {
 private:
   shared_id_type inner;
 
+  void put(std::ostream &out);
 public:
   shared_id(shared_id_type _id);
 

@@ -16,6 +16,7 @@ class arch_id : public id {
 private:
   std::string name;
 
+  void put(std::ostream &out);
 public:
   arch_id(std::string name);
 
@@ -23,7 +24,6 @@ public:
     return name;
   }
 
-  std::string to_string();
   void accept(id_visitor &v);
 };
 

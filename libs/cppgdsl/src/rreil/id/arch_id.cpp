@@ -11,12 +11,12 @@
 using namespace gdsl::rreil;
 using namespace std;
 
-arch_id::arch_id(string name) {
-  this->name = name;
+void gdsl::rreil::arch_id::put(std::ostream &out) {
+  out << name;
 }
 
-std::string gdsl::rreil::arch_id::to_string() {
-  return name;
+arch_id::arch_id(string name) {
+  this->name = name;
 }
 
 void gdsl::rreil::arch_id::accept(id_visitor &v) {

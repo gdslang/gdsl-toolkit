@@ -26,6 +26,7 @@ private:
   int_t fromsize;
   linear *opnd;
 
+  void put(std::ostream &out);
 public:
   expr_ext(ext_op op, int_t fromsize, linear *opnd);
   ~expr_ext();
@@ -42,7 +43,6 @@ public:
     return opnd;
   }
 
-  std::string to_string();
   void accept(expr_visitor &v);
 };
 

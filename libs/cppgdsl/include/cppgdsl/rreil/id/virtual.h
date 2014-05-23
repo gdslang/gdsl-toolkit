@@ -19,12 +19,12 @@ class _virtual : public id {
 private:
   int_t t;
 
+  void put(std::ostream &out);
 public:
   _virtual(int_t t);
 
   int_t get_t();
 
-  std::string to_string();
   void accept(id_visitor &v);
 };
 

@@ -16,6 +16,7 @@ class expr_sexpr : public expr {
 private:
   sexpr *inner;
 
+  void put(std::ostream &out);
 public:
   expr_sexpr(sexpr *inner);
   ~expr_sexpr();
@@ -24,7 +25,6 @@ public:
     return inner;
   }
 
-  std::string to_string();
   void accept(expr_visitor &v);
 };
 

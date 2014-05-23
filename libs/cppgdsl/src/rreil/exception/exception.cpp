@@ -15,6 +15,6 @@ std::ostream &gdsl::rreil::operator <<(std::ostream &out, exception &_this) {
 
 std::string gdsl::rreil::exception::to_string() {
   std::stringstream o;
-  o << this;
+  o << *this;
   return o.str();
 }

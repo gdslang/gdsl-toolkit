@@ -6,8 +6,13 @@
  */
 
 #include <cppgdsl/rreil/id/virtual.h>
+#include <iostream>
 
 using namespace gdsl::rreil;
+
+void gdsl::rreil::_virtual::put(std::ostream &out) {
+  out << "t" << t;
+}
 
 _virtual::_virtual(int_t t) {
   this->t = t;
@@ -15,10 +20,6 @@ _virtual::_virtual(int_t t) {
 
 int_t _virtual::get_t() {
   return this->t;
-}
-
-std::string gdsl::rreil::_virtual::to_string() {
-  return "t" + std::to_string(t);
 }
 
 void gdsl::rreil::_virtual::accept(id_visitor &v) {

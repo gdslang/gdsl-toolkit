@@ -21,12 +21,12 @@ public:
   }
 
   std::string to_string();
-  friend std::ostream& operator<< (std::ostream &out, exception &_this);
+  friend std::ostream &operator<< (std::ostream &out, exception &_this);
 
   virtual void accept(exception_visitor &v) = 0;
 };
 
-std::ostream& operator<<(std::ostream &out, exception &_this);
+std::ostream &operator<<(std::ostream &out, exception &_this);
 
 }  // namespace rreil
 }  // namespace gdsl

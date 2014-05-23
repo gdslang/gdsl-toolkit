@@ -7,20 +7,26 @@
 
 #pragma once
 #include <string>
-
+#include <iosfwd>
 #include "expr_visitor.h"
 
 namespace gdsl {
 namespace rreil {
 
 class expr {
+private:
+  virtual void put(std::ostream &out) = 0;
 public:
   virtual ~expr() {
   }
 
-  virtual std::string to_string() = 0;
+  std::string to_string();
+  friend std::ostream& operator<< (std::ostream &out, expr &_this);
+
   virtual void accept(expr_visitor &v) = 0;
 };
+
+std::ostream& operator<<(std::ostream &out, expr &_this);
 
 }
 }

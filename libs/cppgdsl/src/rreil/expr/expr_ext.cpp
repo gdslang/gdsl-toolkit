@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/expr/expr_ext.h>
+#include <iostream>
 
 std::string gdsl::rreil::ext_op_to_string(ext_op op) {
   switch(op) {
@@ -18,6 +19,10 @@ std::string gdsl::rreil::ext_op_to_string(ext_op op) {
   }
 }
 
+void gdsl::rreil::expr_ext::put(std::ostream &out) {
+  out << "[" << ext_op_to_string(op) << "->" << fromsize << "]" << opnd;
+}
+
 gdsl::rreil::expr_ext::expr_ext(ext_op op, int_t fromsize, linear *opnd) {
   this->op = op;
   this->fromsize = fromsize;
@@ -28,11 +33,8 @@ gdsl::rreil::expr_ext::~expr_ext() {
   delete this->opnd;
 }
 
-std::string gdsl::rreil::expr_ext::to_string() {
-  return "[" + ext_op_to_string(op) + "->" + std::to_string(fromsize) + "]" + opnd->to_string();
-
-}
-
 void gdsl::rreil::expr_ext::accept(expr_visitor &v) {
   v.visit(this);
 }
+
+
