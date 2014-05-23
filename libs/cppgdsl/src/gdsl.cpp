@@ -8,6 +8,7 @@
 #include <cppgdsl/block.h>
 #include <cppgdsl/gdsl.h>
 #include <cppgdsl/instruction.h>
+#include <cppgdsl/preservation.h>
 #include <cppgdsl/rreil/statement/statement.h>
 #include <cppgdsl/rreil_builder.h>
 #include <vector>
@@ -67,10 +68,10 @@ static obj_t insn_cb(state_t s, obj_t cls, obj_t next) {
   return cls;
 }
 
-block gdsl::gdsl::decode_translate_block() {
-  gdsl_insns cls = { this, new std::vector<instruction>() };
+block gdsl::gdsl::decode_translate_block(preservation pres, int_t limit) {
+  gdsl_insns cls = {this, new std::vector<instruction>()};
   obj_t rreil = frontend->native().translator.decode_translate_block_optimized_int_insncb(gdsl_state,
-      frontend->native().decoder.config_default(gdsl_state), 4 * 1024 * 1024, 0, &cls, insn_cb)->rreil;
+      frontend->native().decoder.config_default(gdsl_state), limit, pres, &cls, insn_cb)->rreil;
   std::vector<rreil::statement*> *statements = convert(rreil);
   return block(cls.instructions, statements);
 }

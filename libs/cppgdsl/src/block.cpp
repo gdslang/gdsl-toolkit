@@ -17,5 +17,8 @@ gdsl::block::~block() {
 }
 
 int_t gdsl::block::length() {
-  throw "Unimplemented";
+  int_t r = 0;
+  for (size_t i = 0; i < instructions->size(); ++i)
+    r += instructions->at(i).length();
+  return r;
 }

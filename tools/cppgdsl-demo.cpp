@@ -12,11 +12,15 @@
 #include <cppgdsl/rreil/statement/statement.h>
 #include <cppgdsl/rreil_builder.h>
 #include <cppgdsl/gdsl.h>
+#include <cppgdsl/preservation.h>
+
 #include <cppgdsl/rreil/statement/assign.h>
 #include <cppgdsl/rreil/statement/statement_visitor.h>
 #include <stdio.h>
+#include <climits>
 
 using gdsl::block;
+using gdsl::preservation;
 
 using namespace gdsl::rreil;
 
@@ -59,14 +63,14 @@ void demo_single(gdsl::gdsl &g) {
 }
 
 void demo_block(gdsl::gdsl &g) {
-  uint8_t buffer[] = {0x00, 0x00, 0xc3};
+  uint8_t buffer[] = {0x00, 0x00, 0x00, 0x00, 0xc3};
   g.set_code((char*)buffer, sizeof(buffer), 0);
 
-  block b = g.decode_translate_block();
+  block b = g.decode_translate_block(gdsl::BLOCK, LONG_MAX);
 
   auto insns = b.get_instructions();
 
-  printf("Instructions:\n");
+  printf("Instructions (total length: %lld):\n", b.length());
   for(gdsl::instruction i : *insns)
     printf("%s /length: %lld\n", i.to_string().c_str(), i.length());
 
