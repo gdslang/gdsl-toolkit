@@ -22,6 +22,7 @@ struct frontend {
 	struct {
 		state_t (*init)();
 		void (*set_code)(state_t state, char *buffer, uint64_t size, uint64_t base);
+		char (*seek)(state_t state, int_t ip);
 		jmp_buf *(*err_tgt)(state_t s);
 		string_t (*merge_rope)(state_t s, obj_t rope);
 		char* (*get_error_message)(state_t s);

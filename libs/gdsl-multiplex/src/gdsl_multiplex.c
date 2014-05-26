@@ -98,6 +98,7 @@ static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
 
 	ADD_FUNCTION(generic, init)
 	ADD_FUNCTION(generic, set_code)
+	ADD_FUNCTION(generic, seek)
 	ADD_FUNCTION(generic, err_tgt)
 	ADD_FUNCTION(generic, get_error_message)
 	ADD_FUNCTION(generic, reset_heap)

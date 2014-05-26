@@ -42,6 +42,10 @@ void gdsl::gdsl::set_code(char *buffer, uint64_t size, uint64_t base) {
   frontend->native().generic.set_code(gdsl_state, buffer, size, base);
 }
 
+bool gdsl::gdsl::seek(int_t ip) {
+  return frontend->native().generic.seek(gdsl_state, ip);
+}
+
 instruction gdsl::gdsl::decode() {
   obj_t native = frontend->native().decoder.decode(gdsl_state, frontend->native().decoder.config_default(gdsl_state));
   return instruction(this, native);

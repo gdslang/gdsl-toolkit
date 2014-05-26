@@ -33,7 +33,7 @@ std::string gdsl::rreil::expr_cmp::to_string() {
   return o.str();
 }
 
-std::ostream& gdsl::rreil::operator <<(std::ostream &out, expr_cmp &_this) {
+std::ostream &gdsl::rreil::operator <<(std::ostream &out, expr_cmp &_this) {
   _this.put(out);
   return out;
 }

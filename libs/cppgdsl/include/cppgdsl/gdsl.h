@@ -36,6 +36,7 @@ public:
    */
   int_t get_ip_offset();
   void set_code(char *buffer, uint64_t size, uint64_t base);
+  bool seek(int_t ip);
 
   /*
    * decoder
