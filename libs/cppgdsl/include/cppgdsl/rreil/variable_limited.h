@@ -14,10 +14,11 @@ extern "C" {
 namespace gdsl {
 namespace rreil {
 
-class variable_limited : variable {
+class variable_limited : public variable {
 private:
   int_t size;
-
+protected:
+  void put(std::ostream &out);
 public:
   variable_limited(id *_id, int_t offset, int_t size);
 
@@ -25,7 +26,6 @@ public:
     return size;
   }
 
-  std::string to_string();
 };
 
 }

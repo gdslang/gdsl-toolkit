@@ -17,6 +17,7 @@ class sexpr_cmp : public sexpr {
 private:
   expr_cmp *inner;
 
+  void put(std::ostream &out);
 public:
   sexpr_cmp(expr_cmp *inner);
   ~sexpr_cmp();
@@ -25,7 +26,6 @@ public:
     return inner;
   }
 
-  std::string to_string();
   void accept(sexpr_visitor &v);
 };
 

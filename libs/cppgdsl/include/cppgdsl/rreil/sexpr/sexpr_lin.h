@@ -17,6 +17,7 @@ class sexpr_lin : public sexpr {
 private:
   linear *inner;
 
+  void put(std::ostream &out);
 public:
   sexpr_lin(linear *inner);
   ~sexpr_lin();
@@ -25,7 +26,6 @@ public:
     return inner;
   }
 
-  std::string to_string();
   void accept(sexpr_visitor &v);
 };
 

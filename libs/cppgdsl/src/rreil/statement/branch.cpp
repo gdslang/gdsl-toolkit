@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/statement/branch.h>
+#include <iostream>
 
 gdsl::rreil::branch::branch(address *target, branch_hint hint) {
   this->target = target;
@@ -16,14 +17,10 @@ gdsl::rreil::branch::~branch() {
   delete target;
 }
 
-std::string gdsl::rreil::branch::to_string() {
-  return branch_hint_to_string(hint) + " => " + target->to_string();
-}
-
 void gdsl::rreil::branch::accept(statement_visitor &v) {
   v.visit(this);
 }
 
 void gdsl::rreil::branch::put(std::ostream &out) {
-  out << to_string();
+  out << branch_hint_to_string(hint) << " => " << *target;
 }

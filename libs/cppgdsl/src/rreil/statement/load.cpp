@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/statement/load.h>
+#include <iostream>
 
 gdsl::rreil::load::load(int_t size, variable *lhs, address *_address) {
   this->size = size;
@@ -18,14 +19,10 @@ gdsl::rreil::load::~load() {
   delete this->_address;
 }
 
-std::string gdsl::rreil::load::to_string() {
-  return lhs->to_string() + " =:" + std::to_string(size) + " *" + _address->to_string();
-}
-
 void gdsl::rreil::load::accept(statement_visitor &v) {
   v.visit(this);
 }
 
 void gdsl::rreil::load::put(std::ostream &out) {
-  out << to_string();
+  out << *lhs << " =:" << size << " *" << *_address;
 }

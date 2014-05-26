@@ -17,6 +17,7 @@ class lin_var : public linear {
 private:
   variable *var;
 
+  void put(std::ostream &out);
 public:
   lin_var(variable *var);
   ~lin_var();
@@ -25,7 +26,6 @@ public:
     return var;
   }
 
-  std::string to_string();
   void accept(linear_visitor &v);
 };
 

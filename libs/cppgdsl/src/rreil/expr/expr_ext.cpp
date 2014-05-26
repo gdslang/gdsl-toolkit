@@ -20,7 +20,7 @@ std::string gdsl::rreil::ext_op_to_string(ext_op op) {
 }
 
 void gdsl::rreil::expr_ext::put(std::ostream &out) {
-  out << "[" << ext_op_to_string(op) << "->" << fromsize << "]" << opnd;
+  out << "[" << ext_op_to_string(op) << "->" << fromsize << "]" << *opnd;
 }
 
 gdsl::rreil::expr_ext::expr_ext(ext_op op, int_t fromsize, linear *opnd) {

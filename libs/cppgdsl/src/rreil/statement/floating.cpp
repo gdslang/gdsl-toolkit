@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/statement/floating.h>
+#include <iostream>
 
 using namespace std;
 
@@ -23,20 +24,16 @@ gdsl::rreil::floating::~floating() {
     delete v;
 }
 
-std::string gdsl::rreil::floating::to_string() {
-  string r = lhs->to_string() + " = (" + flop_to_string(op) + ")(";
-  for (size_t i = 0; i < rhs.size(); ++i) {
-    if(i)
-      r += ", ";
-    r += rhs[i]->to_string();
-  }
-  return r + ")";
-}
-
 void gdsl::rreil::floating::accept(statement_visitor &v) {
   v.visit(this);
 }
 
 void gdsl::rreil::floating::put(std::ostream &out) {
-  out << to_string();
+  out << *lhs << " = (" << flop_to_string(op) << ")(";
+  for (size_t i = 0; i < rhs.size(); ++i) {
+    if(i)
+      out << ", ";
+    out << *rhs[i];
+  }
+  out << ")";
 }

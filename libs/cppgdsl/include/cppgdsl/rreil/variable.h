@@ -7,6 +7,7 @@
 
 #pragma once
 #include <cppgdsl/rreil/id/id.h>
+#include <iosfwd>
 #include <string>
 extern "C" {
 #include <gdsl_generic.h>
@@ -20,6 +21,7 @@ protected:
   id *_id;
   int_t offset;
 
+  virtual void put(std::ostream &out);
 public:
   variable(id *_id, int_t offset);
   virtual ~variable();
@@ -32,8 +34,11 @@ public:
     return offset;
   }
 
-  virtual std::string to_string();
+  std::string to_string();
+  friend std::ostream &operator<< (std::ostream &out, variable &_this);
 };
+
+std::ostream &operator<<(std::ostream &out, variable &_this);
 
 }
 }

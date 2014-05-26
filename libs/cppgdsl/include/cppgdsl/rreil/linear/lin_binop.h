@@ -19,6 +19,7 @@ private:
   linear *opnd1;
   linear *opnd2;
 
+  void put(std::ostream &out);
 public:
   lin_binop(binop_lin_op op, linear *opnd1, linear *opnd2);
   ~lin_binop();
@@ -35,7 +36,6 @@ public:
     return opnd2;
   }
 
-  std::string to_string();
   void accept(linear_visitor &v);
 };
 

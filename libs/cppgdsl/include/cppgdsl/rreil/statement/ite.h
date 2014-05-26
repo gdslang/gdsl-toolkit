@@ -38,7 +38,6 @@ public:
     return else_branch;
   }
 
-  std::string to_string();
   void accept(statement_visitor &v);
 };
 

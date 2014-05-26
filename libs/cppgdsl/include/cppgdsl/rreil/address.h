@@ -34,7 +34,10 @@ public:
   }
 
   std::string to_string();
+  friend std::ostream &operator<< (std::ostream &out, address &_this);
 };
+
+std::ostream &operator<<(std::ostream &out, address &_this);
 
 }
 }

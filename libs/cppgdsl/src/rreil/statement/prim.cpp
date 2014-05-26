@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/statement/prim.h>
+#include <iostream>
 
 using namespace std;
 
@@ -22,27 +23,22 @@ gdsl::rreil::prim::~prim() {
     delete v;
 }
 
-std::string gdsl::rreil::prim::to_string() {
-  string r = "(";
-  for (size_t i = 0; i < lhs.size(); ++i) {
-    if(i)
-      r += ", ";
-    r += lhs[i]->to_string();
-  }
-  r += ") = " + op + "(";
-  for (size_t i = 0; i < rhs.size(); ++i) {
-    if(i)
-      r += ", ";
-    r += rhs[i]->to_string();
-  }
-  r += ")";
-  return r;
-}
-
 void gdsl::rreil::prim::accept(statement_visitor &v) {
   v.visit(this);
 }
 
 void gdsl::rreil::prim::put(std::ostream &out) {
-  out << to_string();
+  out << "(";
+  for (size_t i = 0; i < lhs.size(); ++i) {
+    if(i)
+      out << ", ";
+    out << *lhs[i];
+  }
+  out << ") = " << op << "(";
+  for (size_t i = 0; i < rhs.size(); ++i) {
+    if(i)
+      out << ", ";
+    out << *rhs[i];
+  }
+  out << ")";
 }

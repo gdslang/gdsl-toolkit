@@ -6,9 +6,10 @@
  */
 
 #include <cppgdsl/rreil/expr/expr_sexpr.h>
+#include <iostream>
 
 void gdsl::rreil::expr_sexpr::put(std::ostream &out) {
-  out << inner;
+  out << *inner;
 }
 
 gdsl::rreil::expr_sexpr::expr_sexpr(sexpr *inner) {

@@ -6,13 +6,14 @@
  */
 
 #include <cppgdsl/rreil/linear/lin_imm.h>
+#include <iostream>
+
+void gdsl::rreil::lin_imm::put(std::ostream &out) {
+  out << _const;
+}
 
 gdsl::rreil::lin_imm::lin_imm(int_t _const) {
   this->_const = _const;
-}
-
-std::string gdsl::rreil::lin_imm::to_string() {
-  return std::to_string(_const);
 }
 
 void gdsl::rreil::lin_imm::accept(linear_visitor &v) {

@@ -21,6 +21,7 @@ class lin_imm : public linear {
 private:
   int_t _const;
 
+  void put(std::ostream &out);
 public:
   lin_imm(int_t _const);
 
@@ -28,7 +29,6 @@ public:
     return _const;
   }
 
-  std::string to_string();
   void accept(linear_visitor &v);
 };
 

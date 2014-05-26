@@ -33,7 +33,6 @@ public:
     return body;
   }
 
-  std::string to_string();
   void accept(statement_visitor &v);
 };
 

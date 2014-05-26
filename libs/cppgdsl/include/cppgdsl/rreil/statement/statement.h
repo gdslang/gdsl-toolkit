@@ -20,7 +20,7 @@ public:
   virtual ~statement() {
   }
 
-  virtual std::string to_string() = 0;
+  virtual std::string to_string();
   friend std::ostream& operator<< (std::ostream &out, statement &_this);
 
   virtual void accept(statement_visitor &v) = 0;

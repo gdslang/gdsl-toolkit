@@ -7,16 +7,16 @@
 
 #include <cppgdsl/rreil/linear/lin_var.h>
 
+void gdsl::rreil::lin_var::put(std::ostream &out) {
+  out << *var;
+}
+
 gdsl::rreil::lin_var::lin_var(variable *var) {
   this->var = var;
 }
 
 gdsl::rreil::lin_var::~lin_var() {
   delete this->var;
-}
-
-std::string gdsl::rreil::lin_var::to_string() {
-  return var->to_string();
 }
 
 void gdsl::rreil::lin_var::accept(linear_visitor &v) {

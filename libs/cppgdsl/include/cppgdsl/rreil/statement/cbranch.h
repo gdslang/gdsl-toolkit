@@ -40,7 +40,6 @@ public:
     return target_true;
   }
 
-  std::string to_string();
   void accept(statement_visitor &v);
 };
 

@@ -21,7 +21,7 @@ public:
   }
 
   std::string to_string();
-  friend std::ostream& operator<< (std::ostream &out, expr &_this);
+  friend std::ostream &operator<< (std::ostream &out, expr &_this);
 
   virtual void accept(expr_visitor &v) = 0;
 };

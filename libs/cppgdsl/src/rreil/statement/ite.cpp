@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/statement/ite.h>
+#include <iostream>
 
 using namespace std;
 
@@ -21,17 +22,13 @@ gdsl::rreil::ite::~ite() {
   delete this->else_branch;
 }
 
-std::string gdsl::rreil::ite::to_string() {
-  string r = "if(" + cond->to_string() + ") {\n";
-  r += then_branch->to_string() + "\n}{\n";
-  r += else_branch->to_string();
-  return r + "\n}";
-}
-
 void gdsl::rreil::ite::accept(statement_visitor &v) {
   v.visit(this);
 }
 
 void gdsl::rreil::ite::put(std::ostream &out) {
-  out << to_string();
+  out << "if(" << *cond << ") {\n";
+  out << *then_branch << "\n}{\n";
+  out << *else_branch;
+  out << "\n}";
 }

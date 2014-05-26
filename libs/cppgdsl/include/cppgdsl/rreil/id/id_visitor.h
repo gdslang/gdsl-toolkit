@@ -16,6 +16,9 @@ class _virtual;
 
 class id_visitor {
 public:
+  virtual ~id_visitor() {
+  }
+
   virtual void visit(arch_id *a) {
     _default();
   }

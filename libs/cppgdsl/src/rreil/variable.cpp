@@ -6,9 +6,14 @@
  */
 
 #include <cppgdsl/rreil/variable.h>
+#include <sstream>
 
 using namespace gdsl::rreil;
 using namespace std;
+
+void gdsl::rreil::variable::put(std::ostream &out) {
+  this->offset ? out << *_id << "." << offset : out << *_id;
+}
 
 gdsl::rreil::variable::variable(id *_id, int_t offset) {
   this->_id = _id;
@@ -20,6 +25,12 @@ gdsl::rreil::variable::~variable() {
 }
 
 std::string gdsl::rreil::variable::to_string() {
-  string r = _id->to_string();
-  return this->offset ? r + "." + std::to_string(offset) : r;
+  std::stringstream o;
+  o << *this;
+  return o.str();
+}
+
+std::ostream &gdsl::rreil::operator <<(std::ostream &out, variable &_this) {
+  _this.put(out);
+  return out;
 }

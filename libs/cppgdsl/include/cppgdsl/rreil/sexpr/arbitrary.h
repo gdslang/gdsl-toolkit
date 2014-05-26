@@ -13,8 +13,9 @@ namespace gdsl {
 namespace rreil {
 
 class arbitrary : public sexpr {
+private:
+  void put(std::ostream &out);
 public:
-  std::string to_string();
   void accept(sexpr_visitor &v);
 };
 

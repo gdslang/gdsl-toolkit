@@ -6,6 +6,11 @@
  */
 
 #include <cppgdsl/rreil/linear/lin_scale.h>
+#include <iostream>
+
+void gdsl::rreil::lin_scale::put(std::ostream &out) {
+  out << _const << "*" << *opnd;
+}
 
 gdsl::rreil::lin_scale::lin_scale(int_t _const, linear *opnd) {
   this->_const = _const;
@@ -14,10 +19,6 @@ gdsl::rreil::lin_scale::lin_scale(int_t _const, linear *opnd) {
 
 gdsl::rreil::lin_scale::~lin_scale() {
   delete this->opnd;
-}
-
-std::string gdsl::rreil::lin_scale::to_string() {
-  return std::to_string(_const) + "*" + opnd->to_string();
 }
 
 void gdsl::rreil::lin_scale::accept(linear_visitor &v) {

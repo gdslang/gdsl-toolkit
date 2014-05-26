@@ -6,6 +6,7 @@
  */
 
 #include <cppgdsl/rreil/statement/assign.h>
+#include <iostream>
 
 gdsl::rreil::assign::assign(int_t size, variable *lhs, expr *rhs) {
   this->size = size;
@@ -18,14 +19,10 @@ gdsl::rreil::assign::~assign() {
   delete this->rhs;
 }
 
-std::string gdsl::rreil::assign::to_string() {
-  return lhs->to_string() + " =:" + std::to_string(size) + " " + rhs->to_string();
-}
-
 void gdsl::rreil::assign::accept(statement_visitor &v) {
   v.visit(this);
 }
 
 void gdsl::rreil::assign::put(std::ostream &out) {
-  out << to_string();
+  out << *lhs << " =:" << size << " " << *rhs;
 }

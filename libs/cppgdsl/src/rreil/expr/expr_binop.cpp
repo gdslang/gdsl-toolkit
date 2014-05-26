@@ -9,7 +9,7 @@
 #include <iostream>
 
 void gdsl::rreil::expr_binop::put(std::ostream &out) {
-  out << opnd1 << " " << binop_op_to_string(op) << " " << opnd2;
+  out << *opnd1 << " " << binop_op_to_string(op) << " " << *opnd2;
 }
 
 gdsl::rreil::expr_binop::expr_binop(binop_op op, linear *opnd1, linear *opnd2) {

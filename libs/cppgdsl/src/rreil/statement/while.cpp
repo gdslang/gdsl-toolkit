@@ -7,6 +7,7 @@
 
 #include <cppgdsl/rreil/statement/while.h>
 #include <string>
+#include <iostream>
 
 using namespace std;
 
@@ -20,17 +21,11 @@ gdsl::rreil::_while::~_while() {
   delete this->body;
 }
 
-std::string gdsl::rreil::_while::to_string() {
-  string r = "while(" + cond->to_string() + ") {\n";
-  r += body->to_string();
-  r += "\n}";
-  return r;
-}
-
 void gdsl::rreil::_while::accept(statement_visitor &v) {
   v.visit(this);
 }
 
 void gdsl::rreil::_while::put(ostream &out) {
-  out << to_string();
+  out << "while(" << *cond << ") {\n";
+  out << *body << "\n}";
 }

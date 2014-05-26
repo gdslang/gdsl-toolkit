@@ -6,9 +6,10 @@
  */
 
 #include <cppgdsl/rreil/sexpr/arbitrary.h>
+#include <iostream>
 
-std::string gdsl::rreil::arbitrary::to_string() {
-  return "arbitrary";
+void gdsl::rreil::arbitrary::put(std::ostream &out) {
+  out << "arbitrary";
 }
 
 void gdsl::rreil::arbitrary::accept(sexpr_visitor &v) {

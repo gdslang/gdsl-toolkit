@@ -13,6 +13,9 @@ namespace gdsl {
 namespace rreil {
 
 class expr_cmp {
+private:
+  void put(std::ostream &out);
+
 protected:
   cmp_op op;
   linear *opnd1;
@@ -35,7 +38,10 @@ public:
   }
 
   std::string to_string();
+  friend std::ostream &operator<< (std::ostream &out, expr_cmp &_this);
 };
+
+std::ostream& operator<<(std::ostream &out, expr_cmp &_this);
 
 }
 }

@@ -20,6 +20,7 @@ private:
   int_t _const;
   linear *opnd;
 
+  void put(std::ostream &out);
 public:
   lin_scale(int_t _const, linear *opnd);
   ~lin_scale();

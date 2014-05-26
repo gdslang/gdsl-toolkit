@@ -17,6 +17,9 @@ class lin_var;
 
 class linear_visitor {
 public:
+  virtual ~linear_visitor() {
+  }
+
   virtual void visit(lin_binop *a) {
     _default();
   }

@@ -7,6 +7,7 @@
  */
 
 #include <cppgdsl/rreil/statement/store.h>
+#include <iostream>
 
 gdsl::rreil::store::store(int_t size, address *_address, linear *rhs) {
   this->size = size;
@@ -19,14 +20,10 @@ gdsl::rreil::store::~store() {
   delete this->rhs;
 }
 
-std::string gdsl::rreil::store::to_string() {
-  return "*" + _address->to_string() + " =:" + std::to_string(size) + " " + rhs->to_string();
-}
-
 void gdsl::rreil::store::accept(statement_visitor &v) {
   v.visit(this);
 }
 
 void gdsl::rreil::store::put(std::ostream &out) {
-  out << to_string();
+  out << "*" << *_address << " =:" << size << " " << *rhs;
 }
