@@ -12,10 +12,19 @@ import java.util.ArrayList;
 
 @SuppressWarnings("all")
 public class InternalGDSLLexer extends Lexer {
-    public static final int T__19=19;
     public static final int RULE_ID=4;
-    public static final int RULE_POSINT=5;
+    public static final int RULE_POSINT=6;
+    public static final int T__24=24;
+    public static final int T__23=23;
+    public static final int T__22=22;
+    public static final int T__21=21;
+    public static final int T__20=20;
+    public static final int EOF=-1;
+    public static final int RULE_SL_COMMENT=9;
+    public static final int RULE_ML_COMMENT=8;
+    public static final int T__19=19;
     public static final int T__16=16;
+    public static final int RULE_CONS=5;
     public static final int T__15=15;
     public static final int T__18=18;
     public static final int T__17=17;
@@ -23,12 +32,8 @@ public class InternalGDSLLexer extends Lexer {
     public static final int T__11=11;
     public static final int T__14=14;
     public static final int T__13=13;
-    public static final int T__10=10;
-    public static final int RULE_NEGINT=6;
-    public static final int RULE_WS=9;
-    public static final int RULE_SL_COMMENT=8;
-    public static final int EOF=-1;
-    public static final int RULE_ML_COMMENT=7;
+    public static final int RULE_NEGINT=7;
+    public static final int RULE_WS=10;
 
     // delegates
     // delegators
@@ -43,36 +48,15 @@ public class InternalGDSLLexer extends Lexer {
     }
     public String getGrammarFileName() { return "../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g"; }
 
-    // $ANTLR start "T__10"
-    public final void mT__10() throws RecognitionException {
-        try {
-            int _type = T__10;
-            int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:11:7: ( ';' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:11:9: ';'
-            {
-            match(';'); 
-
-            }
-
-            state.type = _type;
-            state.channel = _channel;
-        }
-        finally {
-        }
-    }
-    // $ANTLR end "T__10"
-
     // $ANTLR start "T__11"
     public final void mT__11() throws RecognitionException {
         try {
             int _type = T__11;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:12:7: ( 'granularity' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:12:9: 'granularity'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:11:7: ( ';' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:11:9: ';'
             {
-            match("granularity"); 
-
+            match(';'); 
 
             }
 
@@ -89,10 +73,11 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = T__12;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:13:7: ( '=' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:13:9: '='
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:12:7: ( 'granularity' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:12:9: 'granularity'
             {
-            match('='); 
+            match("granularity"); 
+
 
             }
 
@@ -109,11 +94,10 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = T__13;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:14:7: ( 'export' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:14:9: 'export'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:13:7: ( '=' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:13:9: '='
             {
-            match("export"); 
-
+            match('='); 
 
             }
 
@@ -130,10 +114,10 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = T__14;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:15:7: ( 'type' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:15:9: 'type'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:14:7: ( 'export' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:14:9: 'export'
             {
-            match("type"); 
+            match("export"); 
 
 
             }
@@ -151,10 +135,10 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = T__15;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:16:7: ( 'todo' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:16:9: 'todo'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:15:7: ( 'type' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:15:9: 'type'
             {
-            match("todo"); 
+            match("type"); 
 
 
             }
@@ -172,11 +156,10 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = T__16;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:17:7: ( 'val' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:17:9: 'val'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:16:7: ( '[' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:16:9: '['
             {
-            match("val"); 
-
+            match('['); 
 
             }
 
@@ -193,10 +176,10 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = T__17;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:18:7: ( '{' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:18:9: '{'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:17:7: ( ',' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:17:9: ','
             {
-            match('{'); 
+            match(','); 
 
             }
 
@@ -213,10 +196,10 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = T__18;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:19:7: ( ',' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:19:9: ','
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:18:7: ( ']' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:18:9: ']'
             {
-            match(','); 
+            match(']'); 
 
             }
 
@@ -233,10 +216,11 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = T__19;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:20:7: ( '}' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:20:9: '}'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:19:7: ( 'val' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:19:9: 'val'
             {
-            match('}'); 
+            match("val"); 
+
 
             }
 
@@ -248,15 +232,137 @@ public class InternalGDSLLexer extends Lexer {
     }
     // $ANTLR end "T__19"
 
+    // $ANTLR start "T__20"
+    public final void mT__20() throws RecognitionException {
+        try {
+            int _type = T__20;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:20:7: ( '{' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:20:9: '{'
+            {
+            match('{'); 
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "T__20"
+
+    // $ANTLR start "T__21"
+    public final void mT__21() throws RecognitionException {
+        try {
+            int _type = T__21;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:21:7: ( '}' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:21:9: '}'
+            {
+            match('}'); 
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "T__21"
+
+    // $ANTLR start "T__22"
+    public final void mT__22() throws RecognitionException {
+        try {
+            int _type = T__22;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:22:7: ( '|' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:22:9: '|'
+            {
+            match('|'); 
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "T__22"
+
+    // $ANTLR start "T__23"
+    public final void mT__23() throws RecognitionException {
+        try {
+            int _type = T__23;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:23:7: ( 'of' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:23:9: 'of'
+            {
+            match("of"); 
+
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "T__23"
+
+    // $ANTLR start "T__24"
+    public final void mT__24() throws RecognitionException {
+        try {
+            int _type = T__24;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:24:7: ( ':' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:24:9: ':'
+            {
+            match(':'); 
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "T__24"
+
+    // $ANTLR start "RULE_CONS"
+    public final void mRULE_CONS() throws RecognitionException {
+        try {
+            int _type = RULE_CONS;
+            int _channel = DEFAULT_TOKEN_CHANNEL;
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1145:11: ( 'constodo' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1145:13: 'constodo'
+            {
+            match("constodo"); 
+
+
+            }
+
+            state.type = _type;
+            state.channel = _channel;
+        }
+        finally {
+        }
+    }
+    // $ANTLR end "RULE_CONS"
+
     // $ANTLR start "RULE_ID"
     public final void mRULE_ID() throws RecognitionException {
         try {
             int _type = RULE_ID;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:566:9: ( ( '^' )? ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )* )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:566:11: ( '^' )? ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )*
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1147:9: ( ( '^' )? ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )* )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1147:11: ( '^' )? ( 'a' .. 'z' | 'A' .. 'Z' | '_' ) ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )*
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:566:11: ( '^' )?
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1147:11: ( '^' )?
             int alt1=2;
             int LA1_0 = input.LA(1);
 
@@ -265,7 +371,7 @@ public class InternalGDSLLexer extends Lexer {
             }
             switch (alt1) {
                 case 1 :
-                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:566:11: '^'
+                    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1147:11: '^'
                     {
                     match('^'); 
 
@@ -283,7 +389,7 @@ public class InternalGDSLLexer extends Lexer {
                 recover(mse);
                 throw mse;}
 
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:566:40: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )*
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1147:40: ( 'a' .. 'z' | 'A' .. 'Z' | '_' | '0' .. '9' )*
             loop2:
             do {
                 int alt2=2;
@@ -332,10 +438,10 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = RULE_POSINT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:568:13: ( ( '0' .. '9' )+ )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:568:15: ( '0' .. '9' )+
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1149:13: ( ( '0' .. '9' )+ )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1149:15: ( '0' .. '9' )+
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:568:15: ( '0' .. '9' )+
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1149:15: ( '0' .. '9' )+
             int cnt3=0;
             loop3:
             do {
@@ -349,7 +455,7 @@ public class InternalGDSLLexer extends Lexer {
 
                 switch (alt3) {
             	case 1 :
-            	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:568:16: '0' .. '9'
+            	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1149:16: '0' .. '9'
             	    {
             	    matchRange('0','9'); 
 
@@ -381,12 +487,12 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = RULE_NEGINT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:570:13: ( '~' '1' .. '9' ( '0' .. '9' )* )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:570:15: '~' '1' .. '9' ( '0' .. '9' )*
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1151:13: ( '~' '1' .. '9' ( '0' .. '9' )* )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1151:15: '~' '1' .. '9' ( '0' .. '9' )*
             {
             match('~'); 
             matchRange('1','9'); 
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:570:28: ( '0' .. '9' )*
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1151:28: ( '0' .. '9' )*
             loop4:
             do {
                 int alt4=2;
@@ -399,7 +505,7 @@ public class InternalGDSLLexer extends Lexer {
 
                 switch (alt4) {
             	case 1 :
-            	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:570:29: '0' .. '9'
+            	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1151:29: '0' .. '9'
             	    {
             	    matchRange('0','9'); 
 
@@ -427,12 +533,12 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = RULE_ML_COMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:572:17: ( '(*' ( options {greedy=false; } : . )* '*)' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:572:19: '(*' ( options {greedy=false; } : . )* '*)'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1153:17: ( '(*' ( options {greedy=false; } : . )* '*)' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1153:19: '(*' ( options {greedy=false; } : . )* '*)'
             {
             match("(*"); 
 
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:572:24: ( options {greedy=false; } : . )*
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1153:24: ( options {greedy=false; } : . )*
             loop5:
             do {
                 int alt5=2;
@@ -457,7 +563,7 @@ public class InternalGDSLLexer extends Lexer {
 
                 switch (alt5) {
             	case 1 :
-            	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:572:52: .
+            	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1153:52: .
             	    {
             	    matchAny(); 
 
@@ -487,11 +593,11 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = RULE_SL_COMMENT;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:574:17: ( '#' (~ ( '\\n' ) )* '\\n' )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:574:19: '#' (~ ( '\\n' ) )* '\\n'
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1155:17: ( '#' (~ ( '\\n' ) )* '\\n' )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1155:19: '#' (~ ( '\\n' ) )* '\\n'
             {
             match('#'); 
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:574:23: (~ ( '\\n' ) )*
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1155:23: (~ ( '\\n' ) )*
             loop6:
             do {
                 int alt6=2;
@@ -504,7 +610,7 @@ public class InternalGDSLLexer extends Lexer {
 
                 switch (alt6) {
             	case 1 :
-            	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:574:23: ~ ( '\\n' )
+            	    // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1155:23: ~ ( '\\n' )
             	    {
             	    if ( (input.LA(1)>='\u0000' && input.LA(1)<='\t')||(input.LA(1)>='\u000B' && input.LA(1)<='\uFFFF') ) {
             	        input.consume();
@@ -541,10 +647,10 @@ public class InternalGDSLLexer extends Lexer {
         try {
             int _type = RULE_WS;
             int _channel = DEFAULT_TOKEN_CHANNEL;
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:576:9: ( ( ' ' | '\\t' | '\\r' | '\\n' )+ )
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:576:11: ( ' ' | '\\t' | '\\r' | '\\n' )+
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1157:9: ( ( ' ' | '\\t' | '\\r' | '\\n' )+ )
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1157:11: ( ' ' | '\\t' | '\\r' | '\\n' )+
             {
-            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:576:11: ( ' ' | '\\t' | '\\r' | '\\n' )+
+            // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1157:11: ( ' ' | '\\t' | '\\r' | '\\n' )+
             int cnt7=0;
             loop7:
             do {
@@ -594,117 +700,152 @@ public class InternalGDSLLexer extends Lexer {
     // $ANTLR end "RULE_WS"
 
     public void mTokens() throws RecognitionException {
-        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:8: ( T__10 | T__11 | T__12 | T__13 | T__14 | T__15 | T__16 | T__17 | T__18 | T__19 | RULE_ID | RULE_POSINT | RULE_NEGINT | RULE_ML_COMMENT | RULE_SL_COMMENT | RULE_WS )
-        int alt8=16;
+        // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:8: ( T__11 | T__12 | T__13 | T__14 | T__15 | T__16 | T__17 | T__18 | T__19 | T__20 | T__21 | T__22 | T__23 | T__24 | RULE_CONS | RULE_ID | RULE_POSINT | RULE_NEGINT | RULE_ML_COMMENT | RULE_SL_COMMENT | RULE_WS )
+        int alt8=21;
         alt8 = dfa8.predict(input);
         switch (alt8) {
             case 1 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:10: T__10
-                {
-                mT__10(); 
-
-                }
-                break;
-            case 2 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:16: T__11
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:10: T__11
                 {
                 mT__11(); 
 
                 }
                 break;
-            case 3 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:22: T__12
+            case 2 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:16: T__12
                 {
                 mT__12(); 
 
                 }
                 break;
-            case 4 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:28: T__13
+            case 3 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:22: T__13
                 {
                 mT__13(); 
 
                 }
                 break;
-            case 5 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:34: T__14
+            case 4 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:28: T__14
                 {
                 mT__14(); 
 
                 }
                 break;
-            case 6 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:40: T__15
+            case 5 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:34: T__15
                 {
                 mT__15(); 
 
                 }
                 break;
-            case 7 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:46: T__16
+            case 6 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:40: T__16
                 {
                 mT__16(); 
 
                 }
                 break;
-            case 8 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:52: T__17
+            case 7 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:46: T__17
                 {
                 mT__17(); 
 
                 }
                 break;
-            case 9 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:58: T__18
+            case 8 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:52: T__18
                 {
                 mT__18(); 
 
                 }
                 break;
-            case 10 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:64: T__19
+            case 9 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:58: T__19
                 {
                 mT__19(); 
 
                 }
                 break;
+            case 10 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:64: T__20
+                {
+                mT__20(); 
+
+                }
+                break;
             case 11 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:70: RULE_ID
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:70: T__21
+                {
+                mT__21(); 
+
+                }
+                break;
+            case 12 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:76: T__22
+                {
+                mT__22(); 
+
+                }
+                break;
+            case 13 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:82: T__23
+                {
+                mT__23(); 
+
+                }
+                break;
+            case 14 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:88: T__24
+                {
+                mT__24(); 
+
+                }
+                break;
+            case 15 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:94: RULE_CONS
+                {
+                mRULE_CONS(); 
+
+                }
+                break;
+            case 16 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:104: RULE_ID
                 {
                 mRULE_ID(); 
 
                 }
                 break;
-            case 12 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:78: RULE_POSINT
+            case 17 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:112: RULE_POSINT
                 {
                 mRULE_POSINT(); 
 
                 }
                 break;
-            case 13 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:90: RULE_NEGINT
+            case 18 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:124: RULE_NEGINT
                 {
                 mRULE_NEGINT(); 
 
                 }
                 break;
-            case 14 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:102: RULE_ML_COMMENT
+            case 19 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:136: RULE_ML_COMMENT
                 {
                 mRULE_ML_COMMENT(); 
 
                 }
                 break;
-            case 15 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:118: RULE_SL_COMMENT
+            case 20 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:152: RULE_SL_COMMENT
                 {
                 mRULE_SL_COMMENT(); 
 
                 }
                 break;
-            case 16 :
-                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:134: RULE_WS
+            case 21 :
+                // ../gdsl.plugin/src-gen/gdsl/plugin/parser/antlr/internal/InternalGDSL.g:1:168: RULE_WS
                 {
                 mRULE_WS(); 
 
@@ -718,73 +859,89 @@ public class InternalGDSLLexer extends Lexer {
 
     protected DFA8 dfa8 = new DFA8(this);
     static final String DFA8_eotS =
-        "\2\uffff\1\12\1\uffff\3\12\11\uffff\11\12\1\36\2\12\1\41\1\42\1"+
-        "\uffff\2\12\2\uffff\1\12\1\46\1\12\1\uffff\3\12\1\53\1\uffff";
+        "\2\uffff\1\20\1\uffff\2\20\3\uffff\1\20\3\uffff\1\20\1\uffff\1\20"+
+        "\6\uffff\4\20\1\40\4\20\1\45\1\uffff\3\20\1\51\1\uffff\3\20\1\uffff"+
+        "\2\20\1\57\2\20\1\uffff\2\20\1\64\1\20\1\uffff\1\20\1\67\1\uffff";
     static final String DFA8_eofS =
-        "\54\uffff";
+        "\70\uffff";
     static final String DFA8_minS =
-        "\1\11\1\uffff\1\162\1\uffff\1\170\1\157\1\141\11\uffff\1\141\2\160"+
-        "\1\144\1\154\1\156\1\157\1\145\1\157\1\60\1\165\1\162\2\60\1\uffff"+
-        "\1\154\1\164\2\uffff\1\141\1\60\1\162\1\uffff\1\151\1\164\1\171"+
-        "\1\60\1\uffff";
+        "\1\11\1\uffff\1\162\1\uffff\1\170\1\171\3\uffff\1\141\3\uffff\1"+
+        "\146\1\uffff\1\157\6\uffff\1\141\2\160\1\154\1\60\2\156\1\157\1"+
+        "\145\1\60\1\uffff\1\163\1\165\1\162\1\60\1\uffff\1\164\1\154\1\164"+
+        "\1\uffff\1\157\1\141\1\60\1\144\1\162\1\uffff\1\157\1\151\1\60\1"+
+        "\164\1\uffff\1\171\1\60\1\uffff";
     static final String DFA8_maxS =
-        "\1\176\1\uffff\1\162\1\uffff\1\170\1\171\1\141\11\uffff\1\141\2"+
-        "\160\1\144\1\154\1\156\1\157\1\145\1\157\1\172\1\165\1\162\2\172"+
-        "\1\uffff\1\154\1\164\2\uffff\1\141\1\172\1\162\1\uffff\1\151\1\164"+
-        "\1\171\1\172\1\uffff";
+        "\1\176\1\uffff\1\162\1\uffff\1\170\1\171\3\uffff\1\141\3\uffff\1"+
+        "\146\1\uffff\1\157\6\uffff\1\141\2\160\1\154\1\172\2\156\1\157\1"+
+        "\145\1\172\1\uffff\1\163\1\165\1\162\1\172\1\uffff\1\164\1\154\1"+
+        "\164\1\uffff\1\157\1\141\1\172\1\144\1\162\1\uffff\1\157\1\151\1"+
+        "\172\1\164\1\uffff\1\171\1\172\1\uffff";
     static final String DFA8_acceptS =
-        "\1\uffff\1\1\1\uffff\1\3\3\uffff\1\10\1\11\1\12\1\13\1\14\1\15\1"+
-        "\16\1\17\1\20\16\uffff\1\7\2\uffff\1\5\1\6\3\uffff\1\4\4\uffff\1"+
-        "\2";
+        "\1\uffff\1\1\1\uffff\1\3\2\uffff\1\6\1\7\1\10\1\uffff\1\12\1\13"+
+        "\1\14\1\uffff\1\16\1\uffff\1\20\1\21\1\22\1\23\1\24\1\25\12\uffff"+
+        "\1\15\4\uffff\1\11\3\uffff\1\5\5\uffff\1\4\4\uffff\1\17\2\uffff"+
+        "\1\2";
     static final String DFA8_specialS =
-        "\54\uffff}>";
+        "\70\uffff}>";
     static final String[] DFA8_transitionS = {
-            "\2\17\2\uffff\1\17\22\uffff\1\17\2\uffff\1\16\4\uffff\1\15\3"+
-            "\uffff\1\10\3\uffff\12\13\1\uffff\1\1\1\uffff\1\3\3\uffff\32"+
-            "\12\3\uffff\2\12\1\uffff\4\12\1\4\1\12\1\2\14\12\1\5\1\12\1"+
-            "\6\4\12\1\7\1\uffff\1\11\1\14",
+            "\2\25\2\uffff\1\25\22\uffff\1\25\2\uffff\1\24\4\uffff\1\23\3"+
+            "\uffff\1\7\3\uffff\12\21\1\16\1\1\1\uffff\1\3\3\uffff\32\20"+
+            "\1\6\1\uffff\1\10\2\20\1\uffff\2\20\1\17\1\20\1\4\1\20\1\2\7"+
+            "\20\1\15\4\20\1\5\1\20\1\11\4\20\1\12\1\14\1\13\1\22",
             "",
-            "\1\20",
-            "",
-            "\1\21",
-            "\1\23\11\uffff\1\22",
-            "\1\24",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "\1\25",
             "\1\26",
+            "",
             "\1\27",
             "\1\30",
+            "",
+            "",
+            "",
             "\1\31",
+            "",
+            "",
+            "",
             "\1\32",
+            "",
             "\1\33",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
             "\1\34",
             "\1\35",
-            "\12\12\7\uffff\32\12\4\uffff\1\12\1\uffff\32\12",
+            "\1\36",
             "\1\37",
-            "\1\40",
-            "\12\12\7\uffff\32\12\4\uffff\1\12\1\uffff\32\12",
-            "\12\12\7\uffff\32\12\4\uffff\1\12\1\uffff\32\12",
-            "",
+            "\12\20\7\uffff\32\20\4\uffff\1\20\1\uffff\32\20",
+            "\1\41",
+            "\1\42",
             "\1\43",
             "\1\44",
+            "\12\20\7\uffff\32\20\4\uffff\1\20\1\uffff\32\20",
             "",
-            "",
-            "\1\45",
-            "\12\12\7\uffff\32\12\4\uffff\1\12\1\uffff\32\12",
+            "\1\46",
             "\1\47",
-            "",
             "\1\50",
-            "\1\51",
+            "\12\20\7\uffff\32\20\4\uffff\1\20\1\uffff\32\20",
+            "",
             "\1\52",
-            "\12\12\7\uffff\32\12\4\uffff\1\12\1\uffff\32\12",
+            "\1\53",
+            "\1\54",
+            "",
+            "\1\55",
+            "\1\56",
+            "\12\20\7\uffff\32\20\4\uffff\1\20\1\uffff\32\20",
+            "\1\60",
+            "\1\61",
+            "",
+            "\1\62",
+            "\1\63",
+            "\12\20\7\uffff\32\20\4\uffff\1\20\1\uffff\32\20",
+            "\1\65",
+            "",
+            "\1\66",
+            "\12\20\7\uffff\32\20\4\uffff\1\20\1\uffff\32\20",
             ""
     };
 
@@ -818,7 +975,7 @@ public class InternalGDSLLexer extends Lexer {
             this.transition = DFA8_transition;
         }
         public String getDescription() {
-            return "1:1: Tokens : ( T__10 | T__11 | T__12 | T__13 | T__14 | T__15 | T__16 | T__17 | T__18 | T__19 | RULE_ID | RULE_POSINT | RULE_NEGINT | RULE_ML_COMMENT | RULE_SL_COMMENT | RULE_WS );";
+            return "1:1: Tokens : ( T__11 | T__12 | T__13 | T__14 | T__15 | T__16 | T__17 | T__18 | T__19 | T__20 | T__21 | T__22 | T__23 | T__24 | RULE_CONS | RULE_ID | RULE_POSINT | RULE_NEGINT | RULE_ML_COMMENT | RULE_SL_COMMENT | RULE_WS );";
         }
     }
  

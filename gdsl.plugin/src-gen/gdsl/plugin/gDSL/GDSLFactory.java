@@ -86,6 +86,51 @@ public interface GDSLFactory extends EFactory
   Export createExport();
 
   /**
+   * Returns a new object of class '<em>Con Decls</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Con Decls</em>'.
+   * @generated
+   */
+  ConDecls createConDecls();
+
+  /**
+   * Returns a new object of class '<em>Con Decl</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Con Decl</em>'.
+   * @generated
+   */
+  ConDecl createConDecl();
+
+  /**
+   * Returns a new object of class '<em>Ty</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Ty</em>'.
+   * @generated
+   */
+  Ty createTy();
+
+  /**
+   * Returns a new object of class '<em>Ty Element</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Ty Element</em>'.
+   * @generated
+   */
+  TyElement createTyElement();
+
+  /**
+   * Returns a new object of class '<em>Ty Bind</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Ty Bind</em>'.
+   * @generated
+   */
+  TyBind createTyBind();
+
+  /**
    * Returns the package supported by this factory.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->

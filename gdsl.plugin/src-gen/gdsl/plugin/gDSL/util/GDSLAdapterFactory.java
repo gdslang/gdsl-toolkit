@@ -110,6 +110,31 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createExportAdapter();
       }
       @Override
+      public Adapter caseConDecls(ConDecls object)
+      {
+        return createConDeclsAdapter();
+      }
+      @Override
+      public Adapter caseConDecl(ConDecl object)
+      {
+        return createConDeclAdapter();
+      }
+      @Override
+      public Adapter caseTy(Ty object)
+      {
+        return createTyAdapter();
+      }
+      @Override
+      public Adapter caseTyElement(TyElement object)
+      {
+        return createTyElementAdapter();
+      }
+      @Override
+      public Adapter caseTyBind(TyBind object)
+      {
+        return createTyBindAdapter();
+      }
+      @Override
       public Adapter defaultCase(EObject object)
       {
         return createEObjectAdapter();
@@ -232,6 +257,81 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createExportAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.ConDecls <em>Con Decls</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.ConDecls
+   * @generated
+   */
+  public Adapter createConDeclsAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.ConDecl <em>Con Decl</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.ConDecl
+   * @generated
+   */
+  public Adapter createConDeclAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Ty <em>Ty</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.Ty
+   * @generated
+   */
+  public Adapter createTyAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.TyElement <em>Ty Element</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.TyElement
+   * @generated
+   */
+  public Adapter createTyElementAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.TyBind <em>Ty Bind</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.TyBind
+   * @generated
+   */
+  public Adapter createTyBindAdapter()
   {
     return null;
   }

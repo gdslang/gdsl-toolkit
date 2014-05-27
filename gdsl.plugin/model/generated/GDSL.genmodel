@@ -19,13 +19,36 @@
     <genClasses ecoreClass="GDSL.ecore#//DeclExport">
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclExport/exports"/>
     </genClasses>
-    <genClasses ecoreClass="GDSL.ecore#//DeclType"/>
+    <genClasses ecoreClass="GDSL.ecore#//DeclType">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclType/value"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclType/attrName"/>
+    </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//DeclVal">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/attr"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//Export">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Export/name"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Export/attrName"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//ConDecls">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ConDecls/conDecls"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//ConDecl">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//ConDecl/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ConDecl/ty"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//Ty">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Ty/value"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/tyBind"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Ty/elements"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//TyElement">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//TyElement/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//TyElement/value"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//TyBind">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//TyBind/key"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//TyBind/value"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

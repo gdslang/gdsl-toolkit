@@ -15,7 +15,7 @@ Decl:
 
 //*****************************
 DeclGranularity:
-	name='granularity' '=' granularity=Integer
+	name='granularity' '=' granularity=Int
 ;
 
 DeclExport:
@@ -23,7 +23,8 @@ DeclExport:
 ;
 
 DeclType:
-	'type' name=ID '=' 'todo'
+	'type' name=ID '=' value=(ConDecls | Ty) |
+	'type' name=ID '[' attrName+=ID (',' attrName+=ID)* ']' '=' value=ConDecls
 ;
 
 DeclVal:
@@ -35,8 +36,35 @@ Export:
 	name=Qid ('{' attrName+=ID (',' attrName+=ID)* '}')?
 ;
 
-//Quite Terminal symbols
-Integer:
+ConDecls:
+	conDecls+=ConDecl ('|' conDecls+=ConDecl)*
+;
+
+ConDecl:
+	name=ConBind ('of' ty=Ty)?
+;
+
+Ty:
+	value=Int |
+	'|' value=Int '|' |
+	value=Qid ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
+	'{' elements+=TyElement (',' elements+=TyElement)* '}'
+;
+
+TyElement:
+	name=ID ':' value=Ty
+;
+
+TyBind:
+	key=Qid ('=' value=Ty)?
+;
+
+//DataType Rules
+ConBind:
+	CONS
+;
+
+Int:
 	POSINT | NEGINT 
 ;
 
@@ -45,6 +73,7 @@ Qid:
 ;
 
 //Terminal symbols	
+terminal CONS: 'constodo'; //TODO
 terminal ID : '^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
 terminal POSINT returns ecore::EInt: ('0'..'9')+;
 terminal NEGINT: '~'('1'..'9')('0'..'9')*;

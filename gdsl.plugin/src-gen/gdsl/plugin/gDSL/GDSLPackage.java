@@ -206,13 +206,31 @@ public interface GDSLPackage extends EPackage
   int DECL_TYPE__NAME = DECL__NAME;
 
   /**
+   * The feature id for the '<em><b>Value</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_TYPE__VALUE = DECL_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Attr Name</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_TYPE__ATTR_NAME = DECL_FEATURE_COUNT + 1;
+
+  /**
    * The number of structural features of the '<em>Decl Type</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_TYPE_FEATURE_COUNT = DECL_FEATURE_COUNT + 0;
+  int DECL_TYPE_FEATURE_COUNT = DECL_FEATURE_COUNT + 2;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DeclValImpl <em>Decl Val</em>}' class.
@@ -287,6 +305,191 @@ public interface GDSLPackage extends EPackage
    * @ordered
    */
   int EXPORT_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ConDeclsImpl <em>Con Decls</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.ConDeclsImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getConDecls()
+   * @generated
+   */
+  int CON_DECLS = 7;
+
+  /**
+   * The feature id for the '<em><b>Con Decls</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CON_DECLS__CON_DECLS = 0;
+
+  /**
+   * The number of structural features of the '<em>Con Decls</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CON_DECLS_FEATURE_COUNT = 1;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ConDeclImpl <em>Con Decl</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.ConDeclImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getConDecl()
+   * @generated
+   */
+  int CON_DECL = 8;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CON_DECL__NAME = 0;
+
+  /**
+   * The feature id for the '<em><b>Ty</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CON_DECL__TY = 1;
+
+  /**
+   * The number of structural features of the '<em>Con Decl</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CON_DECL_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyImpl <em>Ty</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.TyImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTy()
+   * @generated
+   */
+  int TY = 9;
+
+  /**
+   * The feature id for the '<em><b>Value</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__VALUE = 0;
+
+  /**
+   * The feature id for the '<em><b>Ty Bind</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__TY_BIND = 1;
+
+  /**
+   * The feature id for the '<em><b>Elements</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY__ELEMENTS = 2;
+
+  /**
+   * The number of structural features of the '<em>Ty</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_FEATURE_COUNT = 3;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyElementImpl <em>Ty Element</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.TyElementImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyElement()
+   * @generated
+   */
+  int TY_ELEMENT = 10;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_ELEMENT__NAME = 0;
+
+  /**
+   * The feature id for the '<em><b>Value</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_ELEMENT__VALUE = 1;
+
+  /**
+   * The number of structural features of the '<em>Ty Element</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_ELEMENT_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TyBindImpl <em>Ty Bind</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.TyBindImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyBind()
+   * @generated
+   */
+  int TY_BIND = 11;
+
+  /**
+   * The feature id for the '<em><b>Key</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_BIND__KEY = 0;
+
+  /**
+   * The feature id for the '<em><b>Value</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_BIND__VALUE = 1;
+
+  /**
+   * The number of structural features of the '<em>Ty Bind</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TY_BIND_FEATURE_COUNT = 2;
 
 
   /**
@@ -384,6 +587,28 @@ public interface GDSLPackage extends EPackage
   EClass getDeclType();
 
   /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclType#getValue <em>Value</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Value</em>'.
+   * @see gdsl.plugin.gDSL.DeclType#getValue()
+   * @see #getDeclType()
+   * @generated
+   */
+  EReference getDeclType_Value();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclType#getAttrName <em>Attr Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Attr Name</em>'.
+   * @see gdsl.plugin.gDSL.DeclType#getAttrName()
+   * @see #getDeclType()
+   * @generated
+   */
+  EAttribute getDeclType_AttrName();
+
+  /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.DeclVal <em>Decl Val</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -435,6 +660,166 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EAttribute getExport_AttrName();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.ConDecls <em>Con Decls</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Con Decls</em>'.
+   * @see gdsl.plugin.gDSL.ConDecls
+   * @generated
+   */
+  EClass getConDecls();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.ConDecls#getConDecls <em>Con Decls</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Con Decls</em>'.
+   * @see gdsl.plugin.gDSL.ConDecls#getConDecls()
+   * @see #getConDecls()
+   * @generated
+   */
+  EReference getConDecls_ConDecls();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.ConDecl <em>Con Decl</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Con Decl</em>'.
+   * @see gdsl.plugin.gDSL.ConDecl
+   * @generated
+   */
+  EClass getConDecl();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.ConDecl#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.ConDecl#getName()
+   * @see #getConDecl()
+   * @generated
+   */
+  EAttribute getConDecl_Name();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ConDecl#getTy <em>Ty</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Ty</em>'.
+   * @see gdsl.plugin.gDSL.ConDecl#getTy()
+   * @see #getConDecl()
+   * @generated
+   */
+  EReference getConDecl_Ty();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Ty <em>Ty</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Ty</em>'.
+   * @see gdsl.plugin.gDSL.Ty
+   * @generated
+   */
+  EClass getTy();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Ty#getValue <em>Value</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Value</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getValue()
+   * @see #getTy()
+   * @generated
+   */
+  EAttribute getTy_Value();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Ty#getTyBind <em>Ty Bind</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Ty Bind</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getTyBind()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_TyBind();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Ty#getElements <em>Elements</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Elements</em>'.
+   * @see gdsl.plugin.gDSL.Ty#getElements()
+   * @see #getTy()
+   * @generated
+   */
+  EReference getTy_Elements();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.TyElement <em>Ty Element</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Ty Element</em>'.
+   * @see gdsl.plugin.gDSL.TyElement
+   * @generated
+   */
+  EClass getTyElement();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.TyElement#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.TyElement#getName()
+   * @see #getTyElement()
+   * @generated
+   */
+  EAttribute getTyElement_Name();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.TyElement#getValue <em>Value</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Value</em>'.
+   * @see gdsl.plugin.gDSL.TyElement#getValue()
+   * @see #getTyElement()
+   * @generated
+   */
+  EReference getTyElement_Value();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.TyBind <em>Ty Bind</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Ty Bind</em>'.
+   * @see gdsl.plugin.gDSL.TyBind
+   * @generated
+   */
+  EClass getTyBind();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.TyBind#getKey <em>Key</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Key</em>'.
+   * @see gdsl.plugin.gDSL.TyBind#getKey()
+   * @see #getTyBind()
+   * @generated
+   */
+  EAttribute getTyBind_Key();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.TyBind#getValue <em>Value</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Value</em>'.
+   * @see gdsl.plugin.gDSL.TyBind#getValue()
+   * @see #getTyBind()
+   * @generated
+   */
+  EReference getTyBind_Value();
 
   /**
    * Returns the factory that creates the instances of the model.
@@ -542,6 +927,22 @@ public interface GDSLPackage extends EPackage
     EClass DECL_TYPE = eINSTANCE.getDeclType();
 
     /**
+     * The meta object literal for the '<em><b>Value</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference DECL_TYPE__VALUE = eINSTANCE.getDeclType_Value();
+
+    /**
+     * The meta object literal for the '<em><b>Attr Name</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute DECL_TYPE__ATTR_NAME = eINSTANCE.getDeclType_AttrName();
+
+    /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DeclValImpl <em>Decl Val</em>}' class.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
@@ -584,6 +985,136 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EAttribute EXPORT__ATTR_NAME = eINSTANCE.getExport_AttrName();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ConDeclsImpl <em>Con Decls</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.ConDeclsImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getConDecls()
+     * @generated
+     */
+    EClass CON_DECLS = eINSTANCE.getConDecls();
+
+    /**
+     * The meta object literal for the '<em><b>Con Decls</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CON_DECLS__CON_DECLS = eINSTANCE.getConDecls_ConDecls();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ConDeclImpl <em>Con Decl</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.ConDeclImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getConDecl()
+     * @generated
+     */
+    EClass CON_DECL = eINSTANCE.getConDecl();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute CON_DECL__NAME = eINSTANCE.getConDecl_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Ty</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CON_DECL__TY = eINSTANCE.getConDecl_Ty();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyImpl <em>Ty</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.TyImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTy()
+     * @generated
+     */
+    EClass TY = eINSTANCE.getTy();
+
+    /**
+     * The meta object literal for the '<em><b>Value</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute TY__VALUE = eINSTANCE.getTy_Value();
+
+    /**
+     * The meta object literal for the '<em><b>Ty Bind</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__TY_BIND = eINSTANCE.getTy_TyBind();
+
+    /**
+     * The meta object literal for the '<em><b>Elements</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY__ELEMENTS = eINSTANCE.getTy_Elements();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyElementImpl <em>Ty Element</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.TyElementImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyElement()
+     * @generated
+     */
+    EClass TY_ELEMENT = eINSTANCE.getTyElement();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute TY_ELEMENT__NAME = eINSTANCE.getTyElement_Name();
+
+    /**
+     * The meta object literal for the '<em><b>Value</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY_ELEMENT__VALUE = eINSTANCE.getTyElement_Value();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TyBindImpl <em>Ty Bind</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.TyBindImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTyBind()
+     * @generated
+     */
+    EClass TY_BIND = eINSTANCE.getTyBind();
+
+    /**
+     * The meta object literal for the '<em><b>Key</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute TY_BIND__KEY = eINSTANCE.getTyBind_Key();
+
+    /**
+     * The meta object literal for the '<em><b>Value</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference TY_BIND__VALUE = eINSTANCE.getTyBind_Value();
 
   }
 

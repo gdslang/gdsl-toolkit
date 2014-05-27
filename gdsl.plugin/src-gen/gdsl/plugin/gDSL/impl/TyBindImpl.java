@@ -2,40 +2,55 @@
  */
 package gdsl.plugin.gDSL.impl;
 
-import gdsl.plugin.gDSL.DeclType;
 import gdsl.plugin.gDSL.GDSLPackage;
-
-import java.util.Collection;
+import gdsl.plugin.gDSL.Ty;
+import gdsl.plugin.gDSL.TyBind;
 
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
 
-import org.eclipse.emf.common.util.EList;
-
 import org.eclipse.emf.ecore.EClass;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
-
-import org.eclipse.emf.ecore.util.EDataTypeEList;
+import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 /**
  * <!-- begin-user-doc -->
- * An implementation of the model object '<em><b>Decl Type</b></em>'.
+ * An implementation of the model object '<em><b>Ty Bind</b></em>'.
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.DeclTypeImpl#getValue <em>Value</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.DeclTypeImpl#getAttrName <em>Attr Name</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TyBindImpl#getKey <em>Key</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.TyBindImpl#getValue <em>Value</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class DeclTypeImpl extends DeclImpl implements DeclType
+public class TyBindImpl extends MinimalEObjectImpl.Container implements TyBind
 {
+  /**
+   * The default value of the '{@link #getKey() <em>Key</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getKey()
+   * @generated
+   * @ordered
+   */
+  protected static final String KEY_EDEFAULT = null;
+
+  /**
+   * The cached value of the '{@link #getKey() <em>Key</em>}' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getKey()
+   * @generated
+   * @ordered
+   */
+  protected String key = KEY_EDEFAULT;
+
   /**
    * The cached value of the '{@link #getValue() <em>Value</em>}' containment reference.
    * <!-- begin-user-doc -->
@@ -44,24 +59,14 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
    * @generated
    * @ordered
    */
-  protected EObject value;
-
-  /**
-   * The cached value of the '{@link #getAttrName() <em>Attr Name</em>}' attribute list.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see #getAttrName()
-   * @generated
-   * @ordered
-   */
-  protected EList<String> attrName;
+  protected Ty value;
 
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    */
-  protected DeclTypeImpl()
+  protected TyBindImpl()
   {
     super();
   }
@@ -74,7 +79,7 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   @Override
   protected EClass eStaticClass()
   {
-    return GDSLPackage.Literals.DECL_TYPE;
+    return GDSLPackage.Literals.TY_BIND;
   }
 
   /**
@@ -82,7 +87,30 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
    * <!-- end-user-doc -->
    * @generated
    */
-  public EObject getValue()
+  public String getKey()
+  {
+    return key;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setKey(String newKey)
+  {
+    String oldKey = key;
+    key = newKey;
+    if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TY_BIND__KEY, oldKey, key));
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Ty getValue()
   {
     return value;
   }
@@ -92,13 +120,13 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
    * <!-- end-user-doc -->
    * @generated
    */
-  public NotificationChain basicSetValue(EObject newValue, NotificationChain msgs)
+  public NotificationChain basicSetValue(Ty newValue, NotificationChain msgs)
   {
-    EObject oldValue = value;
+    Ty oldValue = value;
     value = newValue;
     if (eNotificationRequired())
     {
-      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_TYPE__VALUE, oldValue, newValue);
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.TY_BIND__VALUE, oldValue, newValue);
       if (msgs == null) msgs = notification; else msgs.add(notification);
     }
     return msgs;
@@ -109,34 +137,20 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setValue(EObject newValue)
+  public void setValue(Ty newValue)
   {
     if (newValue != value)
     {
       NotificationChain msgs = null;
       if (value != null)
-        msgs = ((InternalEObject)value).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.DECL_TYPE__VALUE, null, msgs);
+        msgs = ((InternalEObject)value).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.TY_BIND__VALUE, null, msgs);
       if (newValue != null)
-        msgs = ((InternalEObject)newValue).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.DECL_TYPE__VALUE, null, msgs);
+        msgs = ((InternalEObject)newValue).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.TY_BIND__VALUE, null, msgs);
       msgs = basicSetValue(newValue, msgs);
       if (msgs != null) msgs.dispatch();
     }
     else if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_TYPE__VALUE, newValue, newValue));
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EList<String> getAttrName()
-  {
-    if (attrName == null)
-    {
-      attrName = new EDataTypeEList<String>(String.class, this, GDSLPackage.DECL_TYPE__ATTR_NAME);
-    }
-    return attrName;
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.TY_BIND__VALUE, newValue, newValue));
   }
 
   /**
@@ -149,7 +163,7 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__VALUE:
+      case GDSLPackage.TY_BIND__VALUE:
         return basicSetValue(null, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
@@ -165,10 +179,10 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__VALUE:
+      case GDSLPackage.TY_BIND__KEY:
+        return getKey();
+      case GDSLPackage.TY_BIND__VALUE:
         return getValue();
-      case GDSLPackage.DECL_TYPE__ATTR_NAME:
-        return getAttrName();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -178,18 +192,16 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
    * <!-- end-user-doc -->
    * @generated
    */
-  @SuppressWarnings("unchecked")
   @Override
   public void eSet(int featureID, Object newValue)
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__VALUE:
-        setValue((EObject)newValue);
+      case GDSLPackage.TY_BIND__KEY:
+        setKey((String)newValue);
         return;
-      case GDSLPackage.DECL_TYPE__ATTR_NAME:
-        getAttrName().clear();
-        getAttrName().addAll((Collection<? extends String>)newValue);
+      case GDSLPackage.TY_BIND__VALUE:
+        setValue((Ty)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -205,11 +217,11 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__VALUE:
-        setValue((EObject)null);
+      case GDSLPackage.TY_BIND__KEY:
+        setKey(KEY_EDEFAULT);
         return;
-      case GDSLPackage.DECL_TYPE__ATTR_NAME:
-        getAttrName().clear();
+      case GDSLPackage.TY_BIND__VALUE:
+        setValue((Ty)null);
         return;
     }
     super.eUnset(featureID);
@@ -225,10 +237,10 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
   {
     switch (featureID)
     {
-      case GDSLPackage.DECL_TYPE__VALUE:
+      case GDSLPackage.TY_BIND__KEY:
+        return KEY_EDEFAULT == null ? key != null : !KEY_EDEFAULT.equals(key);
+      case GDSLPackage.TY_BIND__VALUE:
         return value != null;
-      case GDSLPackage.DECL_TYPE__ATTR_NAME:
-        return attrName != null && !attrName.isEmpty();
     }
     return super.eIsSet(featureID);
   }
@@ -244,10 +256,10 @@ public class DeclTypeImpl extends DeclImpl implements DeclType
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (attrName: ");
-    result.append(attrName);
+    result.append(" (key: ");
+    result.append(key);
     result.append(')');
     return result.toString();
   }
 
-} //DeclTypeImpl
+} //TyBindImpl

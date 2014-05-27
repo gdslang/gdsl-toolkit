@@ -71,6 +71,11 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.DECL_TYPE: return createDeclType();
       case GDSLPackage.DECL_VAL: return createDeclVal();
       case GDSLPackage.EXPORT: return createExport();
+      case GDSLPackage.CON_DECLS: return createConDecls();
+      case GDSLPackage.CON_DECL: return createConDecl();
+      case GDSLPackage.TY: return createTy();
+      case GDSLPackage.TY_ELEMENT: return createTyElement();
+      case GDSLPackage.TY_BIND: return createTyBind();
       default:
         throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
     }
@@ -151,6 +156,61 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     ExportImpl export = new ExportImpl();
     return export;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public ConDecls createConDecls()
+  {
+    ConDeclsImpl conDecls = new ConDeclsImpl();
+    return conDecls;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public ConDecl createConDecl()
+  {
+    ConDeclImpl conDecl = new ConDeclImpl();
+    return conDecl;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Ty createTy()
+  {
+    TyImpl ty = new TyImpl();
+    return ty;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public TyElement createTyElement()
+  {
+    TyElementImpl tyElement = new TyElementImpl();
+    return tyElement;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public TyBind createTyBind()
+  {
+    TyBindImpl tyBind = new TyBindImpl();
+    return tyBind;
   }
 
   /**
