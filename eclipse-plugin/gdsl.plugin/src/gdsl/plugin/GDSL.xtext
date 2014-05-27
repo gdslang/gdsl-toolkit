@@ -1,0 +1,83 @@
+grammar gdsl.plugin.GDSL hidden(WS, ML_COMMENT, SL_COMMENT)//with org.eclipse.xtext.common.Terminals
+
+generate gDSL "http://www.plugin.gdsl/GDSL"
+
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+Model:
+	decl += Decl (';'? decl += Decl)*
+;
+
+//*****************************
+Decl:
+	DeclGranularity | DeclExport | DeclType | DeclVal
+;
+
+//*****************************
+DeclGranularity:
+	name='granularity' '=' granularity=Int
+;
+
+DeclExport:
+	name='export' '=' exports+=Export*
+;
+
+DeclType:
+	'type' name=ID '=' value=(ConDecls | Ty) |
+	'type' name=ID '[' attrName+=ID (',' attrName+=ID)* ']' '=' value=ConDecls
+;
+
+DeclVal:
+	'val' name=ID (attr += ID)*
+;
+
+//*****************************
+Export:
+	name=Qid ('{' attrName+=ID (',' attrName+=ID)* '}')?
+;
+
+ConDecls:
+	conDecls+=ConDecl ('|' conDecls+=ConDecl)*
+;
+
+ConDecl:
+	name=ConBind ('of' ty=Ty)?
+;
+
+Ty:
+	value=Int |
+	'|' value=Int '|' |
+	value=Qid ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
+	'{' elements+=TyElement (',' elements+=TyElement)* '}'
+;
+
+TyElement:
+	name=ID ':' value=Ty
+;
+
+TyBind:
+	key=Qid ('=' value=Ty)?
+;
+
+//DataType Rules
+ConBind:
+	CONS
+;
+
+Int:
+	POSINT | NEGINT 
+;
+
+Qid:
+	ID
+;
+
+//Terminal symbols	
+terminal CONS: 'constodo'; //TODO
+terminal ID : '^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
+terminal POSINT returns ecore::EInt: ('0'..'9')+;
+terminal NEGINT: '~'('1'..'9')('0'..'9')*;
+terminal ML_COMMENT	: '(*' -> '*)';
+terminal SL_COMMENT 	: '#' !('\n')* '\n';
+terminal WS			: (' '|'\t'|'\r'|'\n')+;
+
