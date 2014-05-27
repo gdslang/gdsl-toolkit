@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Pref
+Bundle-SymbolicName: gdsl.plugin.ui.pref;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: gdsl.plugin.pref.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ gdsl.plugin;bundle-version="1.0.0",
+ gdsl.plugin.ui;bundle-version="1.0.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy

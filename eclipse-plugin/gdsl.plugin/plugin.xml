@@ -10,6 +10,12 @@
        genModel = "model/generated/GDSL.genmodel" /> 
 	
   </extension>
+  <extension
+        point="org.eclipse.core.runtime.preferences">
+     <initializer
+           class="gdsl.plugin.preferences.PreferenceInitializer">
+     </initializer>
+  </extension>
 
 
 

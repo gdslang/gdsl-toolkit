@@ -4,6 +4,7 @@
 package gdsl.plugin.generator;
 
 import gdsl.plugin.generator.RunCompiler;
+import gdsl.plugin.preferences.GDSLPluginPreferences;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.xtext.generator.IFileSystemAccess;
 import org.eclipse.xtext.generator.IGenerator;
@@ -17,6 +18,9 @@ import org.eclipse.xtext.xbase.lib.InputOutput;
 @SuppressWarnings("all")
 public class GDSLGenerator implements IGenerator {
   public void doGenerate(final Resource resource, final IFileSystemAccess fsa) {
+    String _compilerPath = GDSLPluginPreferences.getCompilerPath();
+    String _plus = ("GDSLCompilerPath: " + _compilerPath);
+    InputOutput.<String>println(_plus);
     RunCompiler.compile();
     InputOutput.<String>print("\n\n");
   }

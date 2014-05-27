@@ -3,9 +3,10 @@
  */
 package gdsl.plugin.generator
 
+import gdsl.plugin.preferences.GDSLPluginPreferences
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
 
 /**
  * Generates code from your model files on save.
@@ -20,7 +21,8 @@ class GDSLGenerator implements IGenerator {
 //				.filter(typeof(Greeting))
 //				.map[name]
 //				.join(', '))\
-		
+
+		println("GDSLCompilerPath: " + GDSLPluginPreferences.compilerPath)
 		RunCompiler.compile()
 		print("\n\n")
 	}
