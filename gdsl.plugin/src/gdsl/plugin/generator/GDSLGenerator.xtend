@@ -19,6 +19,9 @@ class GDSLGenerator implements IGenerator {
 //			resource.allContents
 //				.filter(typeof(Greeting))
 //				.map[name]
-//				.join(', '))
+//				.join(', '))\
+		
+		RunCompiler.compile()
+		print("\n\n")
 	}
 }
