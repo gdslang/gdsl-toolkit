@@ -5,6 +5,7 @@
  *      Author: Julian Kranz
  */
 
+#include <cppgdsl/gdsl_exception.h>
 #include <cppgdsl/rreil/exception/exception.h>
 #include <cppgdsl/rreil_builder.h>
 
@@ -51,6 +52,7 @@
 extern "C" {
 #include <gdsl_generic.h>
 #include <gdsl_multiplex.h>
+#include <setjmp.h>
 }
 
 using namespace gdsl::rreil;
@@ -65,7 +67,7 @@ static obj_t _shared(state_t state, int_t con) {
       return new shared_id(TYPE_FLOATING_FLAGS);
     }
     default: {
-      throw "Invalid shared con";
+      throw string("Invalid shared con");
     }
   }
 }
@@ -86,7 +88,7 @@ static obj_t exception_shared(state_t state, int_t con) {
       return new shared_exception(TYPE_DIVISION_BY_ZERO);
     }
     default: {
-      throw "Invalid shared exception con";
+      throw string("Invalid shared exception con");
     }
   }
 }
@@ -255,7 +257,7 @@ static obj_t sem_flop(state_t state, int_t con) {
     }
     default: {
       free(f);
-      throw "Invalid flop con";
+      throw string("Invalid flop con");
     }
   }
 }
@@ -333,7 +335,7 @@ static obj_t _branch_hint(state_t state, int_t con) {
     }
     default: {
       free(hint);
-      throw "Invalid flop con";
+      throw string("Invalid flop con");
     }
   }
   return (obj_t)hint;
@@ -468,6 +470,9 @@ gdsl::rreil_builder::rreil_builder(gdsl::gdsl *g) {
 
 std::vector<gdsl::rreil::statement*>* gdsl::rreil_builder::convert(obj_t rreil) {
   frontend_glob = g->get_frontend()->native();
+
+  if(setjmp(*frontend_glob.generic.err_tgt(g->get_state())))
+    throw gdsl_exception("convert() failed", string(frontend_glob.generic.get_error_message(g->get_state())));
 
   callbacks_t cbs = rreil_gdrr_builder_callbacks_get(g->get_state());
   auto v = (std::vector<statement*> *)frontend_glob.translator.rreil_convert_sem_stmts(g->get_state(), cbs, rreil);
