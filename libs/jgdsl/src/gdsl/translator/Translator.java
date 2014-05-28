@@ -59,7 +59,7 @@ public class Translator {
     long[] instructionPointers = blockRaw.getInstructions();
     Instruction[] instructions = new Instruction[instructionPointers.length];
     for (int i = 0; i < instructions.length; i++)
-      instructions[i] = new Instruction(gdsl, instructionPointers[i], 0);
+      instructions[i] = new Instruction(gdsl, instructionPointers[i]);
     gdsl.heapManager.unref();
     return new TranslatedBlock(instructions, blockRaw.getRreil());
   }

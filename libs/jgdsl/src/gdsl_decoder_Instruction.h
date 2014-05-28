@@ -9,6 +9,14 @@ extern "C" {
 #endif
 /*
  * Class:     gdsl_decoder_Instruction
+ * Method:    size
+ * Signature: (JJJ)J
+ */
+JNIEXPORT jlong JNICALL Java_gdsl_decoder_Instruction_size
+  (JNIEnv *, jobject, jlong, jlong, jlong);
+
+/*
+ * Class:     gdsl_decoder_Instruction
  * Method:    pretty
  * Signature: (JJJ)Ljava/lang/String;
  */

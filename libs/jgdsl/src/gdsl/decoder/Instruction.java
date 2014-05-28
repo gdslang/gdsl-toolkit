@@ -11,7 +11,6 @@ import gdsl.HeapExpiredException;
 public class Instruction {
   private long insnPtr = 0;
   private Gdsl gdsl;
-  private long size;
   
   private long heapRevision;
 
@@ -37,8 +36,10 @@ public class Instruction {
    * @return the size of the instruction
    */
   public long getSize () {
-    return size;
+    return size(gdsl.getFrontendPtr(), gdsl.getGdslStatePtr(), getInsnPtr());
   }
+  
+  private native long size(long frontendPtr, long gdslStatePtr, long insnPtr);
   
   /**
    * Get the associated {@link Gdsl} object
@@ -56,12 +57,11 @@ public class Instruction {
    * @param insnPtr the address of the native instruction object
    * @param size the size of the instruction
    */
-  public Instruction (Gdsl gdsl, long insnPtr, long size) {
+  public Instruction (Gdsl gdsl, long insnPtr) {
     this.gdsl = gdsl;
     this.heapRevision = gdsl.getHeapRevision();
     gdsl.heapManager.ref();
     this.insnPtr = insnPtr;
-    this.size = size;
   }
 
   @Override public String toString () {
