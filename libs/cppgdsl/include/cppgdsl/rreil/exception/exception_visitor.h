@@ -15,6 +15,9 @@ class shared_exception;
 
 class exception_visitor {
 public:
+  virtual ~exception_visitor() {
+  }
+
   virtual void visit(arch_exception *a) {
     _default();
   }

@@ -23,6 +23,9 @@ class _throw;
 
 class statement_visitor {
 public:
+  virtual ~statement_visitor() {
+  }
+
   virtual void visit(assign *a) {
     _default();
   }

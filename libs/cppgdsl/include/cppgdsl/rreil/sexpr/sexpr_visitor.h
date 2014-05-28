@@ -16,6 +16,9 @@ class sexpr_lin;
 
 class sexpr_visitor {
 public:
+  virtual ~sexpr_visitor() {
+  }
+
   virtual void visit(arbitrary *a) {
     _default();
   }

@@ -16,6 +16,9 @@ class expr_sexpr;
 
 class expr_visitor {
 public:
+  virtual ~expr_visitor() {
+  }
+
   virtual void visit(expr_binop *a) {
     _default();
   }
