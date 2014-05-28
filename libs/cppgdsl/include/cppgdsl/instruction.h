@@ -37,6 +37,6 @@ public:
   }
 };
 
-ostream& operator<< (ostream &out, instruction &cPoint);
+ostream &operator<< (ostream &out, instruction &cPoint);
 
 }
