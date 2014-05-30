@@ -288,8 +288,10 @@ end = struct
         | aS (VEC t) = VEC (aS t)
         | aS (CONST c) = CONST c
         | aS (ALG (ty, l)) = ALG (ty, List.map aS l)
-        | aS (SET (v,b,l)) = raise SubstitutionBug
-        | aS (FORALL s) = FORALL s
+        | aS (SET (s,l)) = raise SubstitutionBug
+        | aS (FORALL (v,b,s)) = (case aS (VAR (v,b)) of
+            VAR (v,b) => FORALL (v,b,s)
+          | _ => raise SubstitutionBug)
         | aS (RECORD (var, b, fs)) =
          let
             val (fs, ei) = applySubstToRFields subst (fs, !eiRef)

@@ -43,15 +43,15 @@ structure EnvironmentProfiling : sig
     stack; arguments are the symbol to look up, the position it occurred and
     tag indicating if this usage should be recorded (LetForw), if a
     non-instantiated type should be pushed (LetMono), if a symbol in
-    function position should be pushed (AnyFun) or in argument position (AnyArg).
+    function position should be pushed (FunInSet) or in argument position (ArgPos).
     The tag determines if a let-bound variable is instantiated, its usage recorded
     or if a lambda-bound variable should be an element of a set of types:
                            let-bound         lambda-bound
                      inst     record            set
       LetMono        no       no                n/a
       LetForw        yes      yes               n/a
-      AnyFun         yes      no                yes  
-      AnyArg         yes      no                no
+      FunInSet         yes      no                yes  
+      ArgPos         yes      no                no
     *)
    val pushSymbol : VarInfo.symid * Error.span * push_mode * environment -> environment
 

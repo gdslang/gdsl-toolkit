@@ -28,9 +28,9 @@ structure Types = struct
       (* an algebraic data type with a list of type arguments *)
     | ALG of (TypeInfo.symid * texp list)
       (* a set of types, not unified for precision *)
-    | SET of TVar.tvar * BD.bvar * (Error.span * texp) list
+    | SET of texp * (Error.span * texp) list
       (* a quantified type stored in the environment *)
-    | FORALL of SymbolTable.symid
+    | FORALL of TVar.tvar * BD.bvar * SymbolTable.symid
       (* a record *)
     | RECORD of (TVar.tvar * BD.bvar * rfield list)
       (* the state monad: return value, input state, output state *)
@@ -64,8 +64,8 @@ structure Types = struct
         | tV (VEC t, vs) = tV (t, vs)
         | tV (CONST c, vs) = vs
         | tV (ALG (ty, l), vs) = List.foldl tV vs l
-        | tV (SET (v,_,l), vs) = List.foldl tV (TVar.add (v,vs)) (List.map (#2) l)
-        | tV (FORALL _, vs) = vs
+        | tV (SET (r,l), vs) = List.foldl tV (tV (r,vs)) (List.map (#2) l)
+        | tV (FORALL (v,b,s), vs) = TVar.add (v,vs)
         | tV (RECORD (v,_,l), vs) = List.foldl tVF (TVar.add (v,vs)) l
         | tV (MONAD (r,f,t), vs) = tV (r, tV (f, tV (t, vs)))
         | tV (VAR (v,_), vs) = TVar.add (v,vs)
@@ -83,8 +83,8 @@ structure Types = struct
         | tV (VEC t, vs) = tV (t, vs)
         | tV (CONST c, vs) = vs
         | tV (ALG (ty, l), vs) = List.foldl tV vs l
-        | tV (SET (v,_,l),vs) = List.foldl tV vs (List.map (#2) l)
-        | tV (FORALL s, vs) = SymSet.add (vs,s)
+        | tV (SET (r,l),vs) = List.foldl tV (tV (r, vs)) (List.map (#2) l)
+        | tV (FORALL (v,b,s), vs) = SymSet.add (vs,s)
         | tV (RECORD (v,_,l), vs) = List.foldl tVF vs l
         | tV (MONAD (r,f,t), vs) = tV (r, tV (f, tV (t, vs)))
         | tV (VAR (v,_), vs) = vs
@@ -104,9 +104,9 @@ structure Types = struct
         | tV co (VEC t, bs) = tV co (t, bs)
         | tV co (CONST c, bs) = bs
         | tV co (ALG (ty, l), bs) = List.foldl (tV co) bs l
-        | tV co (SET (v,b,l), bs) =
-            cons ((co,b), List.foldl (tV co) bs (List.map (#2) l))
-        | tV co (FORALL _, bs) = bs
+        | tV co (SET (r,l), bs) =
+            List.foldl (tV co) (tV co (r,bs)) (List.map (#2) l)
+        | tV co (FORALL (v,b,s), bs) = cons ((co,b),bs)
         | tV co (RECORD (v,b,l), bs) =
             cons ((co,b), List.foldl (tVF co) bs l)
         | tV co (MONAD (r,f,t), bs) =
@@ -134,9 +134,9 @@ structure Types = struct
         | tCF co (VEC t, bFun) = tCF co (t, bFun)
         | tCF co (CONST c, bFun) = bFun
         | tCF co (ALG (ty, l), bFun) = List.foldl (tCF co) bFun l
-        | tCF co (SET (v,b,l), bFun) = 
-            BD.meetVarZero b (List.foldl (tCF co) bFun (List.map (#2) l))
-        | tCF co (FORALL _, bFun) = bFun
+        | tCF co (SET (r,l), bFun) = 
+            List.foldl (tCF co) (tCF co (r,bFun)) (List.map (#2) l)
+        | tCF co (FORALL (v,b,s), bFun) = tCF co (VAR (v,b), bFun)
         | tCF co (RECORD (v,b,l), bFun) =
             BD.meetVarZero b (List.foldl (tCFF co) bFun l)
         | tCF co (MONAD (r,f,t), bFun) =
@@ -166,7 +166,7 @@ structure Types = struct
         | ff (VEC t) = ff t
         | ff (CONST c) = NONE
         | ff (ALG (ty, l)) = List.foldl takeIfSome NONE l
-        | ff (SET (_,_,l)) = List.foldl takeIfSome NONE (List.map (#2) l)
+        | ff (SET (_,l)) = List.foldl takeIfSome NONE (List.map (#2) l)
         | ff (FORALL _) = NONE
         | ff (RECORD (_,b,l)) = (case List.mapPartial ffF l of
               (f :: _) => SOME f
@@ -187,9 +187,9 @@ structure Types = struct
      | setFlagsToTop (VEC t) = VEC (setFlagsToTop t)
      | setFlagsToTop (CONST c) = CONST c
      | setFlagsToTop (ALG (ty, l)) = ALG (ty, List.map setFlagsToTop l)
-     | setFlagsToTop (SET (v,b,l)) =
-         SET (v, BD.freshBVar (), List.map (fn (s,t) => (s,setFlagsToTop t)) l)
-     | setFlagsToTop (FORALL s) = FORALL s
+     | setFlagsToTop (SET (s,l)) =
+         SET (setFlagsToTop s, List.map (fn (s,t) => (s,setFlagsToTop t)) l)
+     | setFlagsToTop (FORALL (v,b,s)) = FORALL (v,BD.freshBVar (),s)
      | setFlagsToTop (RECORD (var, b, l)) =
          RECORD (var, BD.freshBVar (), List.map setFlagsToTopF l)
      | setFlagsToTop (MONAD (r,f,t)) =
@@ -212,8 +212,8 @@ structure Types = struct
         | repl (VEC t) = VEC (repl t)
         | repl (CONST c) = CONST c
         | repl (ALG (ty, l)) = ALG (ty, List.map repl l)
-        | repl (SET (v,bv,l)) = SET (chg v, bv, List.map (fn (s,t) => (s,repl t)) l)
-        | repl (FORALL s) = FORALL s
+        | repl (SET (r,l)) = SET (repl r, List.map (fn (s,t) => (s,repl t)) l)
+        | repl (FORALL (v,b,s)) = FORALL (chg v,b,s)
         | repl (RECORD (v,bv,l)) = RECORD (chg v, bv, List.map replF l)
         | repl (MONAD (r,f,t)) = MONAD (repl r, repl f, repl t)
         | repl (VAR (v,bv)) = VAR (chg v,bv)
@@ -235,8 +235,8 @@ structure Types = struct
         | repl (VEC t) = VEC (repl t)
         | repl (CONST c) = CONST c
         | repl (ALG (ty, l)) = ALG (ty, List.map repl l)
-        | repl (SET (v,bv,l)) = SET (v, chg bv, List.map (fn (s,t) => (s,repl t)) l)
-        | repl (FORALL s) = FORALL s
+        | repl (SET (r,l)) = SET (repl r, List.map (fn (s,t) => (s,repl t)) l)
+        | repl (FORALL (v,b,s)) = FORALL (v,chg b,s)
         | repl (RECORD (v,bv,l)) = RECORD (v, chg bv, List.map replF l)
         | repl (MONAD (r,f,t)) = MONAD (repl r, repl f, repl t)
         | repl (VAR (v,bv)) = VAR (v,chg bv)
@@ -282,11 +282,12 @@ structure Types = struct
                ("","") l
             ) ^ "]"
           end
-      | sT (p, SET (v,b,l)) =
+      | sT (p, SET (r,l)) =
          "{" ^ List.foldl (fn ((s,t),str) => (SymbolTable.spanToString s ^ ":" ^ sT (0, t) ^ ", " ^ str))
-               (showVar v ^ (if concisePrint then "" else BD.showVar b)) l
+               "" l
           ^ "}"
-      | sT (p, FORALL s) = "forall " ^ SymbolTable.getString(!SymbolTables.varTable, s)
+      | sT (p, FORALL (v,b,s)) = "forall " ^ (showVar v ^ (if concisePrint then "" else BD.showVar b)) ^
+                                 " " ^ SymbolTable.getString(!SymbolTables.varTable, s)
       | sT (p, RECORD (v,b,l)) =
          "{" ^ (
             (*if List.length l>4

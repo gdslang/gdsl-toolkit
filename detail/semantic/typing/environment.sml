@@ -40,24 +40,23 @@ structure Environment : sig
    datatype push_mode =
       LetMono
     | LetForw
-    | AnyFun
-    | AnyArg
+    | Normal
 
     (*given an occurrence of a symbol at a position, push its type onto the
-    stack; arguments are the symbol to look up, the position it occurred and
+    stack; arguments are the symbol to look up, the position it occurred at,
+    wheather functions are represetned as sets of types and a
     tag indicating if this usage should be recorded (LetForw), if a
-    non-instantiated type should be pushed (LetMono), if a symbol in
-    function position should be pushed (AnyFun) or in argument position (AnyArg).
+    non-instantiated type should be pushed (LetMono), or if the
+    argument is to be instantiated/used normally.
     The tag determines if a let-bound variable is instantiated, its usage recorded
     or if a lambda-bound variable should be an element of a set of types:
-                           let-bound         lambda-bound
-                     inst     record            set
+                     let-bound         lambda-bound
+                   inst    record            set
       LetMono        no       no                n/a
       LetForw        yes      yes               n/a
-      AnyFun         yes      no                yes  
-      AnyArg         yes      no                no
+      Normal         yes      no                yes  
     *)
-   val pushSymbol : VarInfo.symid * Error.span * push_mode * environment -> environment
+   val pushSymbol : VarInfo.symid * Error.span * bool * push_mode * environment -> environment
 
    (*search in the current stack for the symbol and, if unsuccessful, in the
    nested definitions and push all nested groups onto the stack, returns the
@@ -881,43 +880,23 @@ end = struct
    datatype push_mode =
       LetMono
     | LetForw
-    | AnyFun
-    | AnyArg
+    | Normal
 
-   fun pushSymbol (sym, span, pm, env) =
+   fun pushSymbol (sym, span, useSets, pm, env) =
       (
       if SOME (SymbolTable.toInt sym)=debugSymbol then
          TextIO.print ("pushSymbol debug symbol:\n" ^ toString env) else ();
       case Scope.lookup (sym,env) of
-          (SIMPLE) => (case pm of
-              AnyArg =>
-               let
-                  val (k,env) = Scope.acquireKappa env
-                  val tt = Scope.getTypeTable env
-                  val _ = TT.addSymbol (k, VAR (TVar.freshTVar (), BD.freshBVar ()), tt)
-                  val _ = TT.equateSymbolsFlow (k,sym,tt)
-                  val env = Scope.wrap (KAPPA {kappa = k}, env)
-               in
-                  env
-               end
-            | AnyFun =>
-               let
-                  val (k,env) = Scope.acquireKappa env
-                  val (k',env) = Scope.acquireKappa env
-                  val tt = Scope.getTypeTable env
-                  val tVar = TVar.freshTVar ()
-                  val _ = TT.addSymbol (k, VAR (tVar, BD.freshBVar ()), tt)
-                  val _ = TT.addSymbol (k', SET (TVar.freshTVar (), BD.freshBVar (), [(span, VAR (tVar, BD.freshBVar ()))]), tt)
-                  (*val _ =TextIO.print ("pushSymbol: equating to set:\n" ^ #1 (TT.dumpTableSI (tt,TVar.emptyShowInfo)))*)
-                  val _ = TT.equateSymbolsFlow (k',sym,tt)
-                  val _ = TT.delSymbol (k', tt)
-                  val env = Scope.releaseKappa (k',env)
-                  val env = Scope.wrap (KAPPA {kappa = k}, env)
-               in
-                  env
-               end
-            | _ => raise InferenceBug
-          )  
+          (SIMPLE) =>
+           let
+              val (k,env) = Scope.acquireKappa env
+              val tt = Scope.getTypeTable env
+              val _ = TT.addSymbol (k, VAR (TVar.freshTVar (), BD.freshBVar ()), tt)
+              val _ = TT.equateSymbolsFlow (k,sym,tt)
+              val env = Scope.wrap (KAPPA {kappa = k}, env)
+           in
+              env
+           end
         | (COMPOUND {ty = isStable, width = w, uses, nested}) =>
          let
             val (k,env) = Scope.acquireKappa env
@@ -1118,7 +1097,7 @@ end = struct
          val labels = TT.getSetLabels (tFun, tt)
          fun expandSym (tySym,[],env) =
                (TT.delSymbol (tySym,tt)
-               ;TT.addSymbol (tySym,SET (TVar.freshTVar (),BD.freshBVar (),[]),tt)
+               ;TT.addSymbol (tySym,SET (VAR (TVar.freshTVar (),BD.freshBVar ()),[]),tt)
                ;env)
            | expandSym (tySym,(use :: uses),env) =
             let                                          
@@ -1133,7 +1112,7 @@ end = struct
                val (useKappas,env) = addKappas (uses,env)
                val _ = List.app (fn (_,kappa) => TT.instantiateSymbol (tySym,SymSet.empty,kappa,tt)) useKappas
                val useTypes = List.map (fn (use,kappa) => (use,TT.getSymbol (kappa,tt))) ((use,tySym) :: useKappas)
-               val _ = TT.addSymbol (tySym, SET (TVar.freshTVar (),BD.freshBVar (), useTypes),tt)
+               val _ = TT.addSymbol (tySym, SET (VAR (TVar.freshTVar (),BD.freshBVar ()), useTypes),tt)
                val env = List.foldl (fn ((use,kappa),env) => Scope.releaseKappa (kappa,env)) env useKappas
             in
                env
@@ -1177,8 +1156,8 @@ end = struct
                val (t1,t2) = case ty of
                      FUN (t1,t2) => (t1,t2)
                    | _ => raise InferenceBug
-               val tt = List.foldl TT.removeConstraints tt t1
                val _ = TT.addSymbol (kappa,t2,tt)
+               val tt = List.foldl TT.removeConstraints tt t1
             in
                Scope.wrap (KAPPA {kappa=kappa}, env)
             end
