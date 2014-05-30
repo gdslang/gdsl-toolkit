@@ -18,11 +18,11 @@ structure TypeInference : sig
    
 end = struct
 
-   val debugSymbol = NONE (*SOME 191*)
+   val debugSymbol = NONE (*SOME 89*)
    val verbose = false
    
    structure AST = SpecAbstractTree
-   structure E = Environment
+   structure E = Environment(*Profiling*)
    structure BD = BooleanDomain
    structure TI = ResolveTypeInfo
    structure S = Substitutions
@@ -247,7 +247,7 @@ end = struct
                            [RField {name=streamSymId (),fty=UNIT,exists=bVar}]),
                         freshVar ()),
             env)
-         val env = E.pushSymbol (sym,span,false,false,env)
+         val env = E.pushSymbol (sym,span,false,E.LetMono,env)
          val env = E.equateKappas env
          val env = E.popKappa env
       in
@@ -263,6 +263,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    
    val bindSymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>")
    val bindASymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>=")
+
+   val useFunctionSets = Controls.get BasicControl.principalTypings
 
    fun reportError conv ({span,component=comp}, env) {span=s, tree=t} =
       conv ({span=s,component=comp},env) t
@@ -296,30 +298,41 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          {span = span, component = comp :: sccs}
 
    (* define a traversal that is a full inference of the tree *)
+
+   fun showSubstsSI (substs,si) =
+      foldl (fn ((v,ty),(sStr,si)) =>
+         let
+            val (vStr,si) = TVar.varToString (v,si)
+            val (tyStr,si) = showTypeSI (ty,si)
+         in
+            ("[" ^ vStr ^ " / " ^ tyStr ^ "]" ^ sStr, si)
+         end
+         ) ("", si) substs
    
-   fun calcSubset (printWarn,sym,env) =
+   fun calcIteration (printWarn,sym,env) =
       let
          fun checkUsage sym s =
             let
-               val _ = if not verbose then () else
+               val _ = if not verbose then () else 
                   TextIO.print ("checkUsage (subset) of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")
                val fid = E.getContextOfUsage (sym, s, env)
                val env = E.enterFunction (fid,env)
                val (n1,env) = E.pushNested (sym, env)
                val (n2,env) = E.pushNested (fid, env)
-
+               
                val env = E.pushUsage (sym, s, env)
+               val affectedSyms = E.affectedFunctions env
                (*val _ = TextIO.print ("pushed usage (subset):\n" ^ E.topToString env)*)
-               val env = E.pushSymbol (sym, s, false, true, env)
+               val env = E.pushSymbol (sym, s, useFunctionSets, E.Normal, env)
                (*val _ = TextIO.print ("pushed instance (subset) " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " symbol:\n" ^ E.topToString env)*)
 
                (*warn about refinement of the definition due to a call site*)
                fun raiseWarning (substs, syms) =
-                  if SymSet.isEmpty syms orelse not printWarn then ()
+                  if List.null substs orelse not printWarn then ()
                   else
                   let
                      val si = TVar.emptyShowInfo
-                     val (sSubst, si) = S.showSubstsSI (substs, si)
+                     val (sSubst, si) = showSubstsSI (substs, si)
                      fun showSyms (sym, (res, pre, si)) =
                         let
                            val sStr = SymbolTable.getString
@@ -338,23 +351,73 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                      " requires refinement ", sSubst,
                      symsStr]))
                   end
+
+               (*inform about a unification failure when checking call site
+               with definition*)
+               fun raiseError (str,env) =
+                  let
+                     val si = TVar.emptyShowInfo
+                     val (sFun, si) = E.kappaToStringSI ((1,0), env, si)
+                     val (sCall, si) = E.kappaToStringSI ((2,0), env, si)
+                     val env = E.pushTop env
+                     val env = E.popToFunction (sym,env)
+                  in 
+                     (Error.errorAt (errStrm, s, [str,
+                     " when checking call to ",
+                     SymbolTable.getString(!SymbolTables.varTable, sym),
+                     "\n\tcall site has type  " ^ sCall,
+                     "\tdefinition has type " ^ sFun]))
+                  end
+
                val substs = E.subsetKappas env
-                  handle S.UnificationFailure uf =>
-                     (E.leaveFunction (fid,E.popNested (n1+n2,E.popKappa (E.popKappa env)));
-                     raise S.UnificationFailure uf)
-               val env = E.popKappa env
-               val env = E.popKappa env
+                  handle (S.UnificationFailure (_,str)) => (raiseError (str,env); [])
+               val _ = raiseWarning (substs, affectedSyms)
+
+               val env = if List.null substs then (* do clean up *)
+                  let
+                     val env = E.popKappa env
+                     val env = E.popKappa env
+                  in
+                     env
+                  end
+                  else (* do a fixpoint iteration *)
+                  let
+                     val env = E.equateKappasFlow env
+                        handle (S.UnificationFailure (_,str)) => (raiseError (str,env); env)
+                     (*val _ = TextIO.print ("popping to usage of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " in " ^ SymbolTable.getString(!SymbolTables.varTable, fid) ^ ":\n" ^ E.topToString env)*)
+                     val env = E.popKappa env
+                     val env = E.popToUsage (sym, s, env)
+
+                     (* check for infinite refinement due to instantiation; we check
+                     this by triggering an occurs check *)
+                     val env = E.pushUsage (sym, s, env)
+                     val env = E.pushSymbol (sym, s, useFunctionSets, E.LetMono, env)
+                     val _ = E.subsetKappas env
+                        handle (S.UnificationFailure (kind, str)) =>
+                           (case kind of
+                              S.Clash => [] (* ignore this, it might stabilize *) 
+                            | S.OccursCheck => ((Error.errorAt (errStrm, s, [str,
+                                 " when checking call to ",
+                                 SymbolTable.getString(!SymbolTables.varTable, sym)]))
+                                 ; raise TypeError)
+                              )
+                     val env = E.popKappa env
+                     val env = E.popKappa env
+                  in
+                     env
+                  end
+
                val env = E.popNested (n1+n2,env)
                val env = E.leaveFunction (fid,env)
-               val affectedSyms = E.affectedFunctions (substs,env)
                
-               (*val (sStr, si) = S.showSubstsSI (substs, TVar.emptyShowInfo)
-               val _ = TextIO.print ("subset: subst=:" ^ sStr ^ ", unstable: " ^
-                  List.foldl (fn (sym, res) => res ^ ", " ^ SymbolTable.getString
-                   (!SymbolTables.varTable, sym)) "" (SymSet.listItems affectedSyms) ^ "\n")*)
+               val _ = if not verbose then () else
+                  TextIO.print ("subset: " ^ #1 (showSubstsSI (substs, TVar.emptyShowInfo)) ^ ", unstable: " ^
+                     List.foldl (fn (sym, res) => res ^ ", " ^ SymbolTable.getString
+                      (!SymbolTables.varTable, sym)) "" (SymSet.listItems affectedSyms) ^ "\n")
+
                val _ = raiseWarning (substs, affectedSyms)
             in
-               SymSet.isEmpty affectedSyms 
+               List.null substs 
             end
          val usages = E.getUsages (sym, env)
          (*val _ = TextIO.print ("***** checking subset of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ "\n")*)
@@ -362,15 +425,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          List.all (checkUsage sym) usages
       end
 
-   fun calcSubsets printWarn (syms,env) =
-         List.foldl (fn (sym,unstable) =>
-               (if calcSubset (printWarn,sym,env) then unstable else
-                  SymSet.add (unstable, sym))
-               handle (S.UnificationFailure (_,str)) =>
-                  ((*TextIO.print ("calcSubsets: " ^ str ^ "\n");*) SymSet.add (unstable, sym))
-            ) SymSet.empty syms
-
-   fun calcIteration (sym, env) =
+   (*fun calcIteration (sym, env) =
       let
          fun checkUsage (s, env) =
             let
@@ -403,16 +458,16 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
                (* check for infinite refinement due to instantiation; we check
                this by triggering an occurs check *)
-               val env = E.pushSymbol (sym, s, false, false, env)
+               val env = E.pushSymbol (sym, s, useFunctionSets, E.LetMono, env)
                val _ = E.subsetKappas env
                   handle (S.UnificationFailure (kind, str)) =>
                      (case kind of
-                        S.Clash => S.emptySubsts (* ignore this, it might stabilize *) 
+                        S.Clash => [] (* ignore this, it might stabilize *) 
                       | S.OccursCheck => (raiseError (str,env); raise TypeError)
                      )
                val env = E.popKappa env
 
-               val env = E.pushSymbol (sym, s, false, true, env)
+               val env = E.pushSymbol (sym, s, useFunctionSets, E.Normal, env)
                (*val _ = TextIO.print ("pushed instance of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ ":\n" ^ E.topToString env)*)
 
                val env = E.equateKappasFlow env
@@ -429,15 +484,20 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          (*val _ = TextIO.print ("***** re-eval of " ^ Int.toString (List.length usages) ^ " usages of " ^ SymbolTable.getString(!SymbolTables.varTable, sym) ^ " in" ^ E.topToString env ^ "\n")*)
       in
          List.foldl checkUsage env usages
-      end
+      end*)
+
+   fun calcGroup printWarn (syms,env) =
+         List.foldl (fn (sym,unstable) =>
+               (if calcIteration (printWarn,sym,env) then unstable else
+                  SymSet.add (unstable, sym))
+            ) SymSet.empty syms
+
 
    fun calcFixpoints curIter (syms,env) =
-         case calcSubsets (curIter=Controls.get BasicControl.maxIter) (syms,env) of unstable =>
+         case calcGroup (curIter=Controls.get BasicControl.maxIter) (syms,env) of unstable =>
          if SymSet.isEmpty unstable then env else
          if curIter<Controls.get BasicControl.maxIter then
-            calcFixpoints (curIter+1) (syms,
-               List.foldl calcIteration env (SymSet.listItems unstable)
-            )
+            calcFixpoints (curIter+1) (syms, env)
          else
          let
             val si = TVar.emptyShowInfo
@@ -445,7 +505,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                let
                   val sStr = SymbolTable.getString
                      (!SymbolTables.varTable, sym)
-                  val env = E.pushSymbol (sym, SymbolTable.noSpan, false, true, env)
+                  val env = E.pushSymbol (sym, SymbolTable.noSpan,  useFunctionSets, E.Normal, env)
                   val (sType, si) = E.kappaToStringSI ((1,0), env, si)
                   val env = E.popKappa env
                in
@@ -675,7 +735,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                env
             end
          val env = List.foldl genFlow envNeutral l
-         val env = E.releaseTempSymbol (caseExpSymId,env)
+         val env = E.releaseTempSymbol (caseExpSymId,env) 
          (*val _ = TextIO.print ("**** all envs:\n" ^ E.topToString env)*)
       in
          E.return (1,env)
@@ -689,27 +749,51 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          infExp stenv (AST.APPLYexp (infixToExp binop, [e1, e2]))
       end
      | infExp (st,env) (AST.APPLYexp (e1,es2)) =
-      let                                      
+      let
          val _ = if not verbose then () else
             TextIO.print ("**** application: " ^ showProg (20, PP.exp, AST.APPLYexp (e1,es2)) ^ "\n")
+         val noOfArgs = List.length es2
+         
+         val env = infExp (st,env) e1
+
+(*            if (case pm of ArgPos => false | FunPos => useSets | _ => raise InferenceBug) then
+               let
+                  val (k,env) = Scope.acquireKappa env
+                  val (k',env) = Scope.acquireKappa env
+                  val tt = Scope.getTypeTable env
+                  val tVar = TVar.freshTVar ()
+                  val _ = TT.addSymbol (k, VAR (tVar, BD.freshBVar ()), tt)
+                  val _ = TT.addSymbol (k', SET (VAR (TVar.freshTVar (), BD.freshBVar ()), [(span, VAR (tVar, BD.freshBVar ()))]), tt)
+                  (*val _ =TextIO.print ("pushSymbol: equating to set:\n" ^ #1 (TT.dumpTableSI (tt,TVar.emptyShowInfo)))*)
+                  val _ = TT.equateSymbolsFlow (k',sym,tt)
+                  val _ = TT.delSymbol (k', tt)
+                  val env = Scope.releaseKappa (k',env)
+                  val env = Scope.wrap (KAPPA {kappa = k}, env)
+               in
+                  env
+               end
+            else'
+*)
          val env = List.foldl (fn (e2,env) => infExp (st,env) e2) env es2
 
          val ctxt = E.getCtxt env
          val _ = if List.all (fn x => SOME (SymbolTable.toInt x)<>debugSymbol) ctxt then () else
                  TextIO.print ("**** app func:\n" ^ E.topToString env)
 
+         (* Expand each argument of the function to a set if the function type requires that. *)
+         val env = E.expandArguments (env,noOfArgs)
+
          val env = E.pushTop env
-         val env = E.reduceToFunction (env, List.length es2)
+         val env = E.reduceToFunction (env, noOfArgs)
          val _ = if List.all (fn x => SOME (SymbolTable.toInt x)<>debugSymbol) ctxt then () else
                  TextIO.print ("**** app arg:\n" ^ E.topToString env)
-
-         val env = infExp (st,env) e1
 
          (*val _ = TextIO.print ("**** app turning arg:\n" ^ E.topToString env)*)
          (* make the result of the call-site depend on the result of the
          function; the flow expressing that formal parameters depend on actual
          parameters follows from contra-variance*)
-         val env = E.equateKappasFlow env
+         val env = E.flipKappas env
+         val env = E.equateKappas env
             handle S.UnificationFailure str =>
                refineError (env, str,
                             " while passing",
@@ -717,7 +801,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                             (fn (e2,(res,argNo)) => 
                               (((2,argNo), "argument    " ^ showProg (20, PP.exp, e2))::res,
                                argNo-1)
-                            ) ([], length es2) es2)) @
+                            ) ([], noOfArgs) es2)) @
                             [((1,0), "to function " ^ showProg (20, PP.exp, e1))])
 
          val env = E.popKappa env
@@ -813,7 +897,8 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val _ = if not verbose then () else
             TextIO.print ("**** identifier " ^ showProg (20, PP.exp, AST.IDexp v) ^ "\n")
-         val env = E.pushSymbol (v, getSpan st, hasRecursiveSymbol (st,v), true, env)
+         val env = E.pushSymbol (v, getSpan st,  useFunctionSets,
+              if hasRecursiveSymbol (st,v) then E.LetForw else E.Normal, env)
 
          val ctxt = E.getCtxt env
          val _ = if List.all (fn x => SOME (SymbolTable.toInt x)<>debugSymbol) ctxt then () else
@@ -883,7 +968,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
                AST.ACTIONseqexp e => (bindSymId, NONE, e)
              | AST.BINDseqexp (v,e) => (bindASymId, SOME v, e)
              | _ => raise TypeError
-         val env = E.pushSymbol (bind, getSpan st, false, true, env)
+         val env = E.pushSymbol (bind, getSpan st,  useFunctionSets, E.Normal, env)
          val env = infExp (st,env) e
          val env = E.pushTop env
          val env = E.reduceToFunction (env,1)
@@ -936,18 +1021,18 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infDecodepat sym (st,env) (AST.BITdecodepat l) =
       let
          val env = E.pushWidth (sym, env)
-         (*val _ = TextIO.print ("**** decpat pushing granularity:\n" ^ E.topToString envGra)*)
+         (*val _ = TextIO.print ("**** decpat pushing granularity:\n" ^ E.topToString env)*)
          val env = List.foldl (fn (b,env) => infBitpatSize (st,env) b)
                                  env l
-         (*val _ = TextIO.print ("**** decpat pushing " ^ Int.toString(List.length l) ^ " sizes:\n" ^ E.topToString envPat)*)
+         (*val _ = TextIO.print ("**** decpat pushing " ^ Int.toString(List.length l) ^ " sizes:\n" ^ E.topToString env)*)
          val env = E.reduceToSum (List.length l,env)
-         (*val _ = TextIO.print ("**** decpat sum:\n" ^ E.topToString envPat)*)
+         (*val _ = TextIO.print ("**** decpat sum:\n" ^ E.topToString env)*)
          val env = E.equateKappas env
             handle S.UnificationFailure str =>
                refineError (env, str,
                             " when checking bits in token",
-                            [((2,0), "granularity                     "),
-                             ((1,0), "pattern " ^ showProg (20, PP.decodepat, (AST.BITdecodepat l)))])
+                            [((2,0), "previous patterns                     "),
+                             ((1,0), "pattern " ^ showProg (30, PP.decodepat, (AST.BITdecodepat l)))])
          val env = E.popKappa env
          val env = E.popKappa env
       in
@@ -967,7 +1052,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | infBitpat (st,env) (AST.BITVECbitpat (v,s)) =
       let
          val env = E.pushLambdaVar (v,env)
-         val env = E.pushSymbol (v, getSpan st, hasSymbol (st,v), true, env)
+         val env = E.pushSymbol (v, getSpan st, useFunctionSets, if hasSymbol (st,v) then E.LetForw else E.Normal, env)
          val env = E.pushType (VEC (CONST (getBitpatLitLength s)), env)
          val env = E.equateKappas env
          val env = E.popKappa env
@@ -982,7 +1067,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       let
          val (n,env) = infPat (st,env) p
          (*val _ = TextIO.print ("**** after pat:\n" ^ E.topToString env)*)
-         val env = E.pushSymbol (caseExpSymId, SymbolTable.noSpan, false, true, env)
+         val env = E.pushSymbol (caseExpSymId, SymbolTable.noSpan, useFunctionSets, E.Normal, env)
          (*val _ = TextIO.print ("**** after case dup:\n" ^ E.topToString env)*)
          val env = E.equateKappasFlow env
             handle S.UnificationFailure str =>
@@ -1081,7 +1166,9 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
             | SCC.RECURSIVE _ => "") ^ ")\r"
          val _ = TextIO.print str
          
-         (*val _ = TextIO.print ("before checking component " ^ prComp comp ^ "\n")*)
+         val env = E.garbageCollect env   
+         val _ = if not verbose then () else
+               TextIO.print ("before checking component " ^ prComp comp ^ "\n")
          val env = List.foldl (fn (d,env) =>
                         infDecl ({span = SymbolTable.noSpan,
                                   component = [comp]},env) d
@@ -1099,7 +1186,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
               SCC.SIMPLE sym => E.clearUses (sym, env)
             | SCC.RECURSIVE syms => foldl E.clearUses env syms
          
-         val env = E.garbageCollect env   
          val _ = TextIO.print (String.implode (List.tabulate (String.size str, fn _ => #" ") @ [#"\r"]))
          val _ = cnt := (!cnt + 100)
       in
@@ -1128,13 +1214,14 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
      | checkExports s _ = ()
    val _ = List.app (checkExports SymbolTable.noSpan) ast
    
-   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)
-   val _ = TextIO.print ("table:\n" ^ #1 (E.dumpTypeTableSI (toplevelEnv, TVar.emptyShowInfo)))*)
+   (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
+   (*val _ = TextIO.print ("table:\n" ^ #1 (E.dumpTypeTableSI (toplevelEnv, TVar.emptyShowInfo)))*)
 
    val (badSizes, primEnv) = E.popGroup (toplevelEnv, false)
    val _ = reportBadSizes badSizes
    val (badSizes, _) = E.popGroup (primEnv, false)
    val _ = reportBadSizes badSizes
+   val _ = E.finalize ()
    val _ = TVar.set var_counter
    in
       toplevelEnv
