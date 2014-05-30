@@ -40,20 +40,8 @@ structure EnvironmentProfiling : sig
    type push_mode = Environment.push_mode
 
     (*given an occurrence of a symbol at a position, push its type onto the
-    stack; arguments are the symbol to look up, the position it occurred and
-    tag indicating if this usage should be recorded (LetForw), if a
-    non-instantiated type should be pushed (LetMono), if a symbol in
-    function position should be pushed (FunInSet) or in argument position (ArgPos).
-    The tag determines if a let-bound variable is instantiated, its usage recorded
-    or if a lambda-bound variable should be an element of a set of types:
-                           let-bound         lambda-bound
-                     inst     record            set
-      LetMono        no       no                n/a
-      LetForw        yes      yes               n/a
-      FunInSet         yes      no                yes  
-      ArgPos         yes      no                no
-    *)
-   val pushSymbol : VarInfo.symid * Error.span * push_mode * environment -> environment
+    stack*)
+   val pushSymbol : VarInfo.symid * Error.span * bool * push_mode * environment -> environment
 
    (*search in the current stack for the symbol and, if unsuccessful, in the
    nested definitions and push all nested groups onto the stack, returns the
