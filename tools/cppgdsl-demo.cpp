@@ -47,6 +47,8 @@ void demo_single(gdsl::gdsl &g) {
 
   auto rreil = insn.translate();
 
+  g.reset_heap();
+
   printf("RReil:\n");
   for(statement *s : *rreil)
     printf("%s\n", s->to_string().c_str());
@@ -75,6 +77,8 @@ void demo_block(gdsl::gdsl &g) {
   printf("Instructions (total length: %lld):\n", b.length());
   for(gdsl::instruction i : *insns)
     printf("%s /length: %lld\n", i.to_string().c_str(), i.length());
+
+  g.reset_heap();
 
   printf("---------------------------------\n");
 

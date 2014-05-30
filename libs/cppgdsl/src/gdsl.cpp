@@ -62,6 +62,10 @@ bool gdsl::gdsl::seek(int_t ip) {
   return frontend->native().generic.seek(gdsl_state, ip);
 }
 
+void gdsl::gdsl::reset_heap() {
+  frontend->native().generic.reset_heap(gdsl_state);
+}
+
 instruction gdsl::gdsl::decode() {
   if(setjmp(*frontend->native().generic.err_tgt(gdsl_state)))
     throw gdsl_exception("decode() failed", string(frontend->native().generic.get_error_message(gdsl_state)));
