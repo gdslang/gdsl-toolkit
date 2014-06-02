@@ -12,6 +12,8 @@
 #include <cppgdsl/rreil/statement/statement.h>
 #include <cppgdsl/rreil_builder.h>
 #include <cppgdsl/gdsl.h>
+#include <cppgdsl/rreil/statement/load.h>
+
 #include <cppgdsl/preservation.h>
 
 #include <cppgdsl/rreil/statement/assign.h>
@@ -57,6 +59,17 @@ void demo_single(gdsl::gdsl &g) {
   printf("Sizes of assignments:\n");
   for(statement *s : *rreil) {
     example_visitor v;
+    s->accept(v);
+  }
+  printf("Sizes of assignments and loads:\n");
+  for(statement *s : *rreil) {
+    statement_visitor v;
+    v._([&](assign *a) {
+      printf("Size of assignment: %lld\n", a->get_size());
+    });
+    v._([&](load *l) {
+      printf("Size of load: %lld\n", l->get_size());
+    });
     s->accept(v);
   }
 

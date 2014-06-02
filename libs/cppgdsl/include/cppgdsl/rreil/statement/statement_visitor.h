@@ -92,34 +92,34 @@ public:
   virtual void _default() {
   }
 
-  void assign(std::function<void(assign*)> assign_callback) {
+  void _(std::function<void(assign*)> assign_callback) {
     this->assign_callback = assign_callback;
   }
-  void load(std::function<void(load*)> load_callback) {
+  void _(std::function<void(load*)> load_callback) {
     this->load_callback = load_callback;
   }
-  void store(std::function<void(store*)> store_callback) {
+  void _(std::function<void(store*)> store_callback) {
     this->store_callback = store_callback;
   }
-  void ite(std::function<void(ite*)> ite_callback) {
+  void _(std::function<void(ite*)> ite_callback) {
     this->ite_callback = ite_callback;
   }
-  void _while(std::function<void(_while*)> _while_callback) {
+  void _(std::function<void(_while*)> _while_callback) {
     this->_while_callback = _while_callback;
   }
-  void cbranch(std::function<void(cbranch*)> cbranch_callback) {
+  void _(std::function<void(cbranch*)> cbranch_callback) {
     this->cbranch_callback = cbranch_callback;
   }
-  void branch(std::function<void(branch*)> branch_callback) {
+  void _(std::function<void(branch*)> branch_callback) {
     this->branch_callback = branch_callback;
   }
-  void floating(std::function<void(floating*)> floating_callback) {
+  void _(std::function<void(floating*)> floating_callback) {
     this->floating_callback = floating_callback;
   }
-  void prim(std::function<void(prim*)> prim_callback) {
+  void _(std::function<void(prim*)> prim_callback) {
     this->prim_callback = prim_callback;
   }
-  void _throw(std::function<void(_throw*)> _throw_callback) {
+  void _(std::function<void(_throw*)> _throw_callback) {
     this->_throw_callback = _throw_callback;
   }
 };
