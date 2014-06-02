@@ -25,7 +25,7 @@ public:
   _throw(exception *inner);
   ~_throw();
 
-  exception const *get_inner() const {
+  exception *get_inner() {
     return inner;
   }
 

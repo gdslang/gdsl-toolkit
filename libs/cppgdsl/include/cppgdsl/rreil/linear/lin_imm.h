@@ -25,7 +25,7 @@ private:
 public:
   lin_imm(int_t _const);
 
-  int_t get_imm() const {
+  int_t get_imm() {
     return _const;
   }
 

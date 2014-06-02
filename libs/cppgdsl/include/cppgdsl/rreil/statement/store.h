@@ -28,15 +28,15 @@ public:
   store(int_t size, address *_address, linear *rhs);
   ~store();
 
-  int_t get_size() const {
+  int_t get_size() {
     return size;
   }
 
-  address const *get_address() const {
+  address *get_address() {
     return _address;
   }
 
-  linear const *get_rhs() const {
+  linear *get_rhs() {
     return rhs;
   }
 

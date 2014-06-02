@@ -13,6 +13,7 @@
 #include <cppgdsl/rreil_builder.h>
 #include <cppgdsl/gdsl.h>
 #include <cppgdsl/rreil/statement/load.h>
+#include <cppgdsl/rreil/visitor.h>
 
 #include <cppgdsl/preservation.h>
 
@@ -72,6 +73,22 @@ void demo_single(gdsl::gdsl &g) {
     });
     s->accept(v);
   }
+  printf("Counting variables...\n");
+  size_t vars = 0;
+  for(statement *s : *rreil) {
+    visitor *v = new visitor();
+    ((statement_visitor*)v)->_([&](assign *a) {
+      printf("Assignment\n");
+    });
+    v->_([&](variable *a) {
+      vars++;
+      printf("Variable!\n");
+    });
+    s->accept(*v);
+    delete v;
+  }
+  printf("Number of variables: %zu\n", vars);
+
 
   // Cleanup
   for(statement *s : *rreil)

@@ -31,19 +31,19 @@ public:
   floating(flop op, variable *flags, variable_limited *lhs, std::vector<variable_limited*> rhs);
   ~floating();
 
-  flop get_op() const {
+  flop get_op() {
     return op;
   }
 
-  variable const *get_flags() const {
+  variable *get_flags() {
     return flags;
   }
 
-  variable_limited const *get_lhs() const {
+  variable_limited *get_lhs() {
     return lhs;
   }
 
-  std::vector<variable_limited*> const &get_rhs() const {
+  std::vector<variable_limited*> const &get_rhs() {
     return rhs;
   }
 

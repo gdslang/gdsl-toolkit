@@ -26,15 +26,15 @@ public:
   ite(sexpr *cond, statement *then_branch, statement *else_branch);
   ~ite();
 
-  sexpr const *get_cond() const {
+  sexpr *get_cond() {
     return cond;
   }
 
-  statement const *get_then_branch() const {
+  statement *get_then_branch() {
     return then_branch;
   }
 
-  statement const *get_else_branch() const {
+  statement *get_else_branch() {
     return else_branch;
   }
 

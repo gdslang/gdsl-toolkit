@@ -8,6 +8,7 @@
 #pragma once
 
 #include <cppgdsl/rreil/linear/linear.h>
+#include <cppgdsl/rreil/visitor.h>
 #include <string>
 extern "C" {
 #include <gdsl_generic.h>
@@ -25,16 +26,18 @@ public:
   address(int_t size, linear *lin);
   ~address();
 
-  linear *get_lin() const {
+  linear *get_lin() {
     return lin;
   }
 
-  int_t get_size() const {
+  int_t get_size() {
     return size;
   }
 
   std::string to_string();
   friend std::ostream &operator<< (std::ostream &out, address &_this);
+
+  void accept(visitor &v);
 };
 
 std::ostream &operator<<(std::ostream &out, address &_this);

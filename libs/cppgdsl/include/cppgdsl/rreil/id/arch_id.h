@@ -20,7 +20,7 @@ private:
 public:
   arch_id(std::string name);
 
-  const std::string& get_name() const {
+  const std::string& get_name() {
     return name;
   }
 

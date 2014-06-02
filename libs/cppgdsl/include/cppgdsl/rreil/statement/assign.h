@@ -27,15 +27,15 @@ public:
   assign(int_t size, variable *lhs, expr *rhs);
   ~assign();
 
-  int_t get_size() const {
+  int_t get_size() {
     return size;
   }
 
-  variable *get_lhs() const {
+  variable *get_lhs() {
     return lhs;
   }
 
-  expr *get_rhs() const {
+  expr *get_rhs() {
     return rhs;
   }
 

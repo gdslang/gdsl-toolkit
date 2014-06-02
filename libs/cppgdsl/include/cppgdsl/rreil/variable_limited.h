@@ -7,6 +7,7 @@
 
 #pragma once
 #include <cppgdsl/rreil/variable.h>
+#include <cppgdsl/rreil/visitor.h>
 extern "C" {
 #include <gdsl_generic.h>
 }
@@ -22,10 +23,11 @@ protected:
 public:
   variable_limited(id *_id, int_t offset, int_t size);
 
-  int_t get_size() const {
+  int_t get_size() {
     return size;
   }
 
+  void accept(visitor &v);
 };
 
 }

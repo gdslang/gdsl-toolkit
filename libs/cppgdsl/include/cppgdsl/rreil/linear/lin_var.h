@@ -22,7 +22,7 @@ public:
   lin_var(variable *var);
   ~lin_var();
 
-  variable *get_var() const {
+  variable *get_var() {
     return var;
   }
 

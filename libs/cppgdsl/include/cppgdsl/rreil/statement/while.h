@@ -25,11 +25,11 @@ public:
   _while(sexpr *cond, statement *body);
   ~_while();
 
-  sexpr const *get_cond() const {
+  sexpr *get_cond() {
     return cond;
   }
 
-  statement const *get_body() const {
+  statement *get_body() {
     return body;
   }
 

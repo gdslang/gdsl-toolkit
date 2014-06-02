@@ -27,11 +27,11 @@ public:
   branch(address *target, branch_hint hint);
   ~branch();
 
-  address const *get_target() const {
+  address *get_target() {
     return target;
   }
 
-  branch_hint get_hint() const {
+  branch_hint get_hint() {
     return hint;
   }
 
