@@ -1272,7 +1272,7 @@ in
    | LDMXCSR x: sem-default-arity1 insn.insn (comb x)
    | LDS x: sem-lds-les-lfs-lgs-lss (comb x) DS
    | LEA x: sem-lea (comb x)
-   | LEAVE: sem-default-arity0 insn.insn
+   | LEAVE: sem-leave insn
    | LES x: sem-lds-les-lfs-lgs-lss (comb x) ES
    | LFENCE: sem-default-arity0 insn.insn
    | LFS x: sem-lds-les-lfs-lgs-lss (comb x) FS

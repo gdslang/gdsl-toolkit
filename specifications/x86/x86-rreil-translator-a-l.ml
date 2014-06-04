@@ -830,6 +830,14 @@ val sem-lea x = do
   write opnd-sz dst (var temp)
 end
 
+val sem-leave x = do
+  sp-sem <- return (semantic-register-of (register-by-size high SP_ x.opnd-sz));
+  bp-sem <- return (semantic-register-of (register-by-size high BP_ x.opnd-sz));
+  
+  mov x.opnd-sz sp-sem (var bp-sem);
+  ps-pop x.opnd-sz bp-sem  
+end
+
 val sem-lods x = do
   sz <- sizeof1 x.opnd1;
   src <- rval sz x.opnd1;

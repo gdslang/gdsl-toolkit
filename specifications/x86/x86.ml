@@ -4174,7 +4174,9 @@ val / [0x8d /r-mem]
 ### LEAVE
 ###  - High Level Procedure Exit
 #Todo: handle different effects to BP/EBP/RBP
-val / [0xc9] = arity0 none LEAVE
+val / [0xc9]
+ | mode64? = do update@{default-operand-size=64}; arity0 none LEAVE end
+ | otherwise = arity0 none LEAVE
 
 ### LFENCE
 ###  - Load Fence
