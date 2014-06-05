@@ -66,7 +66,7 @@ type sem_flop =
  | SEM_FMUL
 
 type sem_stmt =
-   SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr}
+   SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr} #size denotes the size of right-hand side operands
  | SEM_LOAD of {size:int, lhs:sem_var, address:sem_address}
  | SEM_STORE of {size:int, address:sem_address, rhs:sem_linear}
  | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmts, else_branch:sem_stmts}

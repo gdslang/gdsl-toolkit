@@ -22,10 +22,17 @@ end
 val lv-kill kills stmt =
    let
       val visit-semvar kills sz x = fmap-add-range kills x.id sz x.offset
+      val size-lhs size rhs = case rhs of
+         SEM_SEXPR s: case s of
+            SEM_SEXPR_CMP c: 1
+          | _: size
+         end
+       | _: size
+      end
 
       val visit-stmt kills stmt =
          case stmt of
-            SEM_ASSIGN x: visit-semvar kills x.size x.lhs
+            SEM_ASSIGN x: visit-semvar kills (size-lhs x.size x.rhs) x.lhs
           | SEM_LOAD x: visit-semvar kills x.size x.lhs
 					| SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
           | SEM_FLOP x: visit-semvar kills x.lhs.size x.lhs
