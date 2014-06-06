@@ -131,6 +131,33 @@ public interface GDSLFactory extends EFactory
   TyBind createTyBind();
 
   /**
+   * Returns a new object of class '<em>Decode Pat</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Decode Pat</em>'.
+   * @generated
+   */
+  DecodePat createDecodePat();
+
+  /**
+   * Returns a new object of class '<em>Bit Pat</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Bit Pat</em>'.
+   * @generated
+   */
+  BitPat createBitPat();
+
+  /**
+   * Returns a new object of class '<em>Tok Pat</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Tok Pat</em>'.
+   * @generated
+   */
+  TokPat createTokPat();
+
+  /**
    * Returns the package supported by this factory.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->

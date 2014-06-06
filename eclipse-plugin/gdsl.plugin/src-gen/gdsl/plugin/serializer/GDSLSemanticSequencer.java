@@ -2,6 +2,7 @@ package gdsl.plugin.serializer;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import gdsl.plugin.gDSL.BitPat;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.ConDecls;
 import gdsl.plugin.gDSL.DeclExport;
@@ -11,6 +12,7 @@ import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.Export;
 import gdsl.plugin.gDSL.GDSLPackage;
 import gdsl.plugin.gDSL.Model;
+import gdsl.plugin.gDSL.TokPat;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyBind;
 import gdsl.plugin.gDSL.TyElement;
@@ -35,6 +37,13 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	public void createSequence(EObject context, EObject semanticObject) {
 		if(semanticObject.eClass().getEPackage() == GDSLPackage.eINSTANCE) switch(semanticObject.eClass().getClassifierID()) {
+			case GDSLPackage.BIT_PAT:
+				if(context == grammarAccess.getBitPatRule() ||
+				   context == grammarAccess.getDecodePatRule()) {
+					sequence_BitPat(context, (BitPat) semanticObject); 
+					return; 
+				}
+				else break;
 			case GDSLPackage.CON_DECL:
 				if(context == grammarAccess.getConDeclRule()) {
 					sequence_ConDecl(context, (ConDecl) semanticObject); 
@@ -87,6 +96,13 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 					return; 
 				}
 				else break;
+			case GDSLPackage.TOK_PAT:
+				if(context == grammarAccess.getDecodePatRule() ||
+				   context == grammarAccess.getTokPatRule()) {
+					sequence_TokPat(context, (TokPat) semanticObject); 
+					return; 
+				}
+				else break;
 			case GDSLPackage.TY:
 				if(context == grammarAccess.getTyRule()) {
 					sequence_Ty(context, (Ty) semanticObject); 
@@ -108,6 +124,15 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 			}
 		if (errorAcceptor != null) errorAcceptor.accept(diagnosticProvider.createInvalidContextOrTypeDiagnostic(semanticObject, context));
 	}
+	
+	/**
+	 * Constraint:
+	 *     (bitpat+=PrimBitPat bitpat+=PrimBitPat*)
+	 */
+	protected void sequence_BitPat(EObject context, BitPat semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
 	
 	/**
 	 * Constraint:
@@ -157,7 +182,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     ((name=ID (value=ConDecls | value=Ty)) | (name=ID attrName+=ID attrName+=ID* value=ConDecls))
+	 *     ((name=Name (value=ConDecls | value=Ty)) | (name=Name attrName+=Name attrName+=Name* value=ConDecls))
 	 */
 	protected void sequence_DeclType(EObject context, DeclType semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
@@ -166,7 +191,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     (name=ID attr+=ID*)
+	 *     (((name=Name | name=SYM) attr+=Name* exp=Exp) | (name=Name decPat+=DecodePat* (exp=Exp | (exps+=Exp exps+=Exp)+)))
 	 */
 	protected void sequence_DeclVal(EObject context, DeclVal semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
@@ -175,7 +200,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     (name=Qid (attrName+=ID attrName+=ID*)?)
+	 *     (name=Qid (attrName+=Name attrName+=Name*)?)
 	 */
 	protected void sequence_Export(EObject context, Export semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
@@ -193,6 +218,15 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
+	 *     (tokPat=Int | tokPat=Qid)
+	 */
+	protected void sequence_TokPat(EObject context, TokPat semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Constraint:
 	 *     (key=Qid value=Ty?)
 	 */
 	protected void sequence_TyBind(EObject context, TyBind semanticObject) {
@@ -202,7 +236,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     (name=ID value=Ty)
+	 *     (name=Name value=Ty)
 	 */
 	protected void sequence_TyElement(EObject context, TyElement semanticObject) {
 		if(errorAcceptor != null) {
@@ -213,7 +247,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 		}
 		INodesForEObjectProvider nodes = createNodeProvider(semanticObject);
 		SequenceFeeder feeder = createSequencerFeeder(semanticObject, nodes);
-		feeder.accept(grammarAccess.getTyElementAccess().getNameIDTerminalRuleCall_0_0(), semanticObject.getName());
+		feeder.accept(grammarAccess.getTyElementAccess().getNameNameParserRuleCall_0_0(), semanticObject.getName());
 		feeder.accept(grammarAccess.getTyElementAccess().getValueTyParserRuleCall_2_0(), semanticObject.getValue());
 		feeder.finish();
 	}

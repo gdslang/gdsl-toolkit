@@ -24,6 +24,11 @@
   <eClassifiers xsi:type="ecore:EClass" name="DeclVal" eSuperTypes="#//Decl">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="attr" unique="false" upperBound="-1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exp" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="decPat" upperBound="-1"
+        eType="#//DecodePat" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exps" unique="false" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Export">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -52,5 +57,13 @@
   <eClassifiers xsi:type="ecore:EClass" name="TyBind">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="value" eType="#//Ty" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="DecodePat"/>
+  <eClassifiers xsi:type="ecore:EClass" name="BitPat" eSuperTypes="#//DecodePat">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bitpat" unique="false"
+        upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TokPat" eSuperTypes="#//DecodePat">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="tokPat" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 </ecore:EPackage>

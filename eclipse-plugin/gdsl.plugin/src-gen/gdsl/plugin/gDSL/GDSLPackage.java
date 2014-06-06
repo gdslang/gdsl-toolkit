@@ -261,13 +261,40 @@ public interface GDSLPackage extends EPackage
   int DECL_VAL__ATTR = DECL_FEATURE_COUNT + 0;
 
   /**
+   * The feature id for the '<em><b>Exp</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_VAL__EXP = DECL_FEATURE_COUNT + 1;
+
+  /**
+   * The feature id for the '<em><b>Dec Pat</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_VAL__DEC_PAT = DECL_FEATURE_COUNT + 2;
+
+  /**
+   * The feature id for the '<em><b>Exps</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECL_VAL__EXPS = DECL_FEATURE_COUNT + 3;
+
+  /**
    * The number of structural features of the '<em>Decl Val</em>' class.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    * @ordered
    */
-  int DECL_VAL_FEATURE_COUNT = DECL_FEATURE_COUNT + 1;
+  int DECL_VAL_FEATURE_COUNT = DECL_FEATURE_COUNT + 4;
 
   /**
    * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ExportImpl <em>Export</em>}' class.
@@ -491,6 +518,81 @@ public interface GDSLPackage extends EPackage
    */
   int TY_BIND_FEATURE_COUNT = 2;
 
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.DecodePatImpl <em>Decode Pat</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.DecodePatImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDecodePat()
+   * @generated
+   */
+  int DECODE_PAT = 12;
+
+  /**
+   * The number of structural features of the '<em>Decode Pat</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int DECODE_PAT_FEATURE_COUNT = 0;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.BitPatImpl <em>Bit Pat</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.BitPatImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getBitPat()
+   * @generated
+   */
+  int BIT_PAT = 13;
+
+  /**
+   * The feature id for the '<em><b>Bitpat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int BIT_PAT__BITPAT = DECODE_PAT_FEATURE_COUNT + 0;
+
+  /**
+   * The number of structural features of the '<em>Bit Pat</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int BIT_PAT_FEATURE_COUNT = DECODE_PAT_FEATURE_COUNT + 1;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.TokPatImpl <em>Tok Pat</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.TokPatImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTokPat()
+   * @generated
+   */
+  int TOK_PAT = 14;
+
+  /**
+   * The feature id for the '<em><b>Tok Pat</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TOK_PAT__TOK_PAT = DECODE_PAT_FEATURE_COUNT + 0;
+
+  /**
+   * The number of structural features of the '<em>Tok Pat</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int TOK_PAT_FEATURE_COUNT = DECODE_PAT_FEATURE_COUNT + 1;
+
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.Model <em>Model</em>}'.
@@ -628,6 +730,39 @@ public interface GDSLPackage extends EPackage
    * @generated
    */
   EAttribute getDeclVal_Attr();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getExp()
+   * @see #getDeclVal()
+   * @generated
+   */
+  EAttribute getDeclVal_Exp();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclVal#getDecPat <em>Dec Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Dec Pat</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getDecPat()
+   * @see #getDeclVal()
+   * @generated
+   */
+  EReference getDeclVal_DecPat();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclVal#getExps <em>Exps</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Exps</em>'.
+   * @see gdsl.plugin.gDSL.DeclVal#getExps()
+   * @see #getDeclVal()
+   * @generated
+   */
+  EAttribute getDeclVal_Exps();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.Export <em>Export</em>}'.
@@ -822,6 +957,58 @@ public interface GDSLPackage extends EPackage
   EReference getTyBind_Value();
 
   /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.DecodePat <em>Decode Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Decode Pat</em>'.
+   * @see gdsl.plugin.gDSL.DecodePat
+   * @generated
+   */
+  EClass getDecodePat();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.BitPat <em>Bit Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Bit Pat</em>'.
+   * @see gdsl.plugin.gDSL.BitPat
+   * @generated
+   */
+  EClass getBitPat();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.BitPat#getBitpat <em>Bitpat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Bitpat</em>'.
+   * @see gdsl.plugin.gDSL.BitPat#getBitpat()
+   * @see #getBitPat()
+   * @generated
+   */
+  EAttribute getBitPat_Bitpat();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.TokPat <em>Tok Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Tok Pat</em>'.
+   * @see gdsl.plugin.gDSL.TokPat
+   * @generated
+   */
+  EClass getTokPat();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.TokPat#getTokPat <em>Tok Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Tok Pat</em>'.
+   * @see gdsl.plugin.gDSL.TokPat#getTokPat()
+   * @see #getTokPat()
+   * @generated
+   */
+  EAttribute getTokPat_TokPat();
+
+  /**
    * Returns the factory that creates the instances of the model.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -959,6 +1146,30 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EAttribute DECL_VAL__ATTR = eINSTANCE.getDeclVal_Attr();
+
+    /**
+     * The meta object literal for the '<em><b>Exp</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute DECL_VAL__EXP = eINSTANCE.getDeclVal_Exp();
+
+    /**
+     * The meta object literal for the '<em><b>Dec Pat</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference DECL_VAL__DEC_PAT = eINSTANCE.getDeclVal_DecPat();
+
+    /**
+     * The meta object literal for the '<em><b>Exps</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute DECL_VAL__EXPS = eINSTANCE.getDeclVal_Exps();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ExportImpl <em>Export</em>}' class.
@@ -1115,6 +1326,52 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EReference TY_BIND__VALUE = eINSTANCE.getTyBind_Value();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.DecodePatImpl <em>Decode Pat</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.DecodePatImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getDecodePat()
+     * @generated
+     */
+    EClass DECODE_PAT = eINSTANCE.getDecodePat();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.BitPatImpl <em>Bit Pat</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.BitPatImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getBitPat()
+     * @generated
+     */
+    EClass BIT_PAT = eINSTANCE.getBitPat();
+
+    /**
+     * The meta object literal for the '<em><b>Bitpat</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute BIT_PAT__BITPAT = eINSTANCE.getBitPat_Bitpat();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.TokPatImpl <em>Tok Pat</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.TokPatImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getTokPat()
+     * @generated
+     */
+    EClass TOK_PAT = eINSTANCE.getTokPat();
+
+    /**
+     * The meta object literal for the '<em><b>Tok Pat</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute TOK_PAT__TOK_PAT = eINSTANCE.getTokPat_TokPat();
 
   }
 

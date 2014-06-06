@@ -23,17 +23,20 @@ DeclExport:
 ;
 
 DeclType:
-	'type' name=ID '=' value=(ConDecls | Ty) |
-	'type' name=ID '[' attrName+=ID (',' attrName+=ID)* ']' '=' value=ConDecls
+	'type' name=Name '=' value=(ConDecls | Ty) |
+	'type' name=Name '[' attrName+=Name (',' attrName+=Name)* ']' '=' value=ConDecls
 ;
 
 DeclVal:
-	'val' name=ID (attr += ID)*
+	'val' name=(Name|SYM) (attr += Name)* '=' exp=Exp |
+//	'val' (MID Name => ((MID,Name)))* |
+	'val' name=Name '[' decPat+=DecodePat* ']' (('=' exp=Exp) | ('|' exps+=Exp '=' exps+=Exp)+)
 ;
+
 
 //*****************************
 Export:
-	name=Qid ('{' attrName+=ID (',' attrName+=ID)* '}')?
+	name=Qid ('{' attrName+=Name (',' attrName+=Name)* '}')?
 ;
 
 ConDecls:
@@ -52,32 +55,62 @@ Ty:
 ;
 
 TyElement:
-	name=ID ':' value=Ty
+	name=Name ':' value=Ty
 ;
 
 TyBind:
 	key=Qid ('=' value=Ty)?
 ;
 
+DecodePat:
+	BitPat | TokPat
+;
+
+BitPat:
+	"'"  bitpat+=PrimBitPat (',' bitpat+=PrimBitPat)* "'"
+;
+
+TokPat:
+	tokPat = (Int | Qid)
+;
+
 //DataType Rules
-ConBind:
-	CONS
-;
-
-Int:
-	POSINT | NEGINT 
-;
-
-Qid:
-	ID
-;
+PrimBitPat: BITSTR | (Qid (BitPatOrInt)?);
+BitPatOrInt: (':' POSINT) | ('@' BITSTR);
+Exp: 'exptodo';
+Int: POSINT | NEGINT;
+Name: ID;
+ConBind: CONS;
+Conuse: CONS;
+Qid: ID;
 
 //Terminal symbols	
-terminal CONS: 'constodo'; //TODO
-terminal ID : '^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
-terminal POSINT returns ecore::EInt: ('0'..'9')+;
-terminal NEGINT: '~'('1'..'9')('0'..'9')*;
+//terminal POSINT returns ecore::EInt: ('0'..'9')+;
+//terminal NEGINT: '~'('1'..'9')('0'..'9')*;
+
+POSINT: '+' NUM | HEXNUM; //FIXME
+NEGINT: '~' NUM;
+NUM: DIG+;
+HEXNUM: '0x' HEXDIGIT+;
+SYMID: SYM+;
+BITSTR: BINARY+;
+MIXID: '_' IDCHAR+;
+CONS: CONSTART IDCHAR*;
+
+terminal BITSTRIDCHAR: 'bistridchar';//LETTER | DIG | '_' | '-' | '?' | '!';
+terminal BITSTRID: 'bitstrid';//LETTER BITSTRIDCHAR*;
+terminal ESC: 'esc';//'\\' (('a'|'b'|'f'|'n'|'r'|'t'|'v'|'\\'|'\"') | (DIG DIG DIG));
+terminal SGOOD: 'sgoodtodo'; //TODO
+
+terminal SYM: '-'|'!'|'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'?'|'@'|'~'|'`'|'\\'|'^'|'|'|'#'|'*';
+terminal BINARY: '0'|'1'|'\\'|'.'|'|';
+terminal DIG: ('0'..'9');
+terminal HEXDIGIT: ('0'..'9'|'a'..'f'|'A'..'F');
+terminal CONSTART: ('A'..'Z');
+terminal LETTER: ('a'..'z'|'A'..'Z'|'\\');
+terminal IDCHAR: LETTER | DIG | '_' | '-' | '?' | '\'' | '!';
+terminal ID: LETTER IDCHAR*;//'^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
+
+terminal WS: (' '|'\t'|'\r'|'\n')+; //TODO
 terminal ML_COMMENT	: '(*' -> '*)';
 terminal SL_COMMENT 	: '#' !('\n')* '\n';
-terminal WS			: (' '|'\t'|'\r'|'\n')+;
-

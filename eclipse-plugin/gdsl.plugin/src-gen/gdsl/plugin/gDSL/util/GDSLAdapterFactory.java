@@ -135,6 +135,21 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createTyBindAdapter();
       }
       @Override
+      public Adapter caseDecodePat(DecodePat object)
+      {
+        return createDecodePatAdapter();
+      }
+      @Override
+      public Adapter caseBitPat(BitPat object)
+      {
+        return createBitPatAdapter();
+      }
+      @Override
+      public Adapter caseTokPat(TokPat object)
+      {
+        return createTokPatAdapter();
+      }
+      @Override
       public Adapter defaultCase(EObject object)
       {
         return createEObjectAdapter();
@@ -332,6 +347,51 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createTyBindAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.DecodePat <em>Decode Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.DecodePat
+   * @generated
+   */
+  public Adapter createDecodePatAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.BitPat <em>Bit Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.BitPat
+   * @generated
+   */
+  public Adapter createBitPatAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.TokPat <em>Tok Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.TokPat
+   * @generated
+   */
+  public Adapter createTokPatAdapter()
   {
     return null;
   }

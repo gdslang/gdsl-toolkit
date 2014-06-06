@@ -2,6 +2,7 @@
  */
 package gdsl.plugin.gDSL.impl;
 
+import gdsl.plugin.gDSL.BitPat;
 import gdsl.plugin.gDSL.ConDecl;
 import gdsl.plugin.gDSL.ConDecls;
 import gdsl.plugin.gDSL.Decl;
@@ -9,10 +10,12 @@ import gdsl.plugin.gDSL.DeclExport;
 import gdsl.plugin.gDSL.DeclGranularity;
 import gdsl.plugin.gDSL.DeclType;
 import gdsl.plugin.gDSL.DeclVal;
+import gdsl.plugin.gDSL.DecodePat;
 import gdsl.plugin.gDSL.Export;
 import gdsl.plugin.gDSL.GDSLFactory;
 import gdsl.plugin.gDSL.GDSLPackage;
 import gdsl.plugin.gDSL.Model;
+import gdsl.plugin.gDSL.TokPat;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyBind;
 import gdsl.plugin.gDSL.TyElement;
@@ -115,6 +118,27 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * @generated
    */
   private EClass tyBindEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass decodePatEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass bitPatEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass tokPatEClass = null;
 
   /**
    * Creates an instance of the model <b>Package</b>, registered with
@@ -314,6 +338,36 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EAttribute getDeclVal_Exp()
+  {
+    return (EAttribute)declValEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getDeclVal_DecPat()
+  {
+    return (EReference)declValEClass.getEStructuralFeatures().get(2);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getDeclVal_Exps()
+  {
+    return (EAttribute)declValEClass.getEStructuralFeatures().get(3);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EClass getExport()
   {
     return exportEClass;
@@ -494,6 +548,56 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EClass getDecodePat()
+  {
+    return decodePatEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getBitPat()
+  {
+    return bitPatEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getBitPat_Bitpat()
+  {
+    return (EAttribute)bitPatEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getTokPat()
+  {
+    return tokPatEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getTokPat_TokPat()
+  {
+    return (EAttribute)tokPatEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public GDSLFactory getGDSLFactory()
   {
     return (GDSLFactory)getEFactoryInstance();
@@ -537,6 +641,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
 
     declValEClass = createEClass(DECL_VAL);
     createEAttribute(declValEClass, DECL_VAL__ATTR);
+    createEAttribute(declValEClass, DECL_VAL__EXP);
+    createEReference(declValEClass, DECL_VAL__DEC_PAT);
+    createEAttribute(declValEClass, DECL_VAL__EXPS);
 
     exportEClass = createEClass(EXPORT);
     createEAttribute(exportEClass, EXPORT__NAME);
@@ -561,6 +668,14 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     tyBindEClass = createEClass(TY_BIND);
     createEAttribute(tyBindEClass, TY_BIND__KEY);
     createEReference(tyBindEClass, TY_BIND__VALUE);
+
+    decodePatEClass = createEClass(DECODE_PAT);
+
+    bitPatEClass = createEClass(BIT_PAT);
+    createEAttribute(bitPatEClass, BIT_PAT__BITPAT);
+
+    tokPatEClass = createEClass(TOK_PAT);
+    createEAttribute(tokPatEClass, TOK_PAT__TOK_PAT);
   }
 
   /**
@@ -596,6 +711,8 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     declExportEClass.getESuperTypes().add(this.getDecl());
     declTypeEClass.getESuperTypes().add(this.getDecl());
     declValEClass.getESuperTypes().add(this.getDecl());
+    bitPatEClass.getESuperTypes().add(this.getDecodePat());
+    tokPatEClass.getESuperTypes().add(this.getDecodePat());
 
     // Initialize classes and features; add operations and parameters
     initEClass(modelEClass, Model.class, "Model", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
@@ -616,6 +733,9 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
 
     initEClass(declValEClass, DeclVal.class, "DeclVal", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getDeclVal_Attr(), ecorePackage.getEString(), "attr", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getDeclVal_Exp(), ecorePackage.getEString(), "exp", null, 0, 1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getDeclVal_DecPat(), this.getDecodePat(), null, "decPat", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getDeclVal_Exps(), ecorePackage.getEString(), "exps", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(exportEClass, Export.class, "Export", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getExport_Name(), ecorePackage.getEString(), "name", null, 0, 1, Export.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -640,6 +760,14 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEClass(tyBindEClass, TyBind.class, "TyBind", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getTyBind_Key(), ecorePackage.getEString(), "key", null, 0, 1, TyBind.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getTyBind_Value(), this.getTy(), null, "value", null, 0, 1, TyBind.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(decodePatEClass, DecodePat.class, "DecodePat", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+
+    initEClass(bitPatEClass, BitPat.class, "BitPat", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getBitPat_Bitpat(), ecorePackage.getEString(), "bitpat", null, 0, -1, BitPat.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(tokPatEClass, TokPat.class, "TokPat", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getTokPat_TokPat(), ecorePackage.getEString(), "tokPat", null, 0, 1, TokPat.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     // Create resource
     createResource(eNS_URI);

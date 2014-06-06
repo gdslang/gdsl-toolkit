@@ -25,6 +25,9 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//DeclVal">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/attr"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/exp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/decPat"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/exps"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//Export">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Export/name"/>
@@ -49,6 +52,13 @@
     <genClasses ecoreClass="GDSL.ecore#//TyBind">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//TyBind/key"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//TyBind/value"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//DecodePat"/>
+    <genClasses ecoreClass="GDSL.ecore#//BitPat">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//BitPat/bitpat"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//TokPat">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//TokPat/tokPat"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

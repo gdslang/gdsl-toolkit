@@ -76,6 +76,9 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.TY: return createTy();
       case GDSLPackage.TY_ELEMENT: return createTyElement();
       case GDSLPackage.TY_BIND: return createTyBind();
+      case GDSLPackage.DECODE_PAT: return createDecodePat();
+      case GDSLPackage.BIT_PAT: return createBitPat();
+      case GDSLPackage.TOK_PAT: return createTokPat();
       default:
         throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
     }
@@ -211,6 +214,39 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     TyBindImpl tyBind = new TyBindImpl();
     return tyBind;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public DecodePat createDecodePat()
+  {
+    DecodePatImpl decodePat = new DecodePatImpl();
+    return decodePat;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public BitPat createBitPat()
+  {
+    BitPatImpl bitPat = new BitPatImpl();
+    return bitPat;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public TokPat createTokPat()
+  {
+    TokPatImpl tokPat = new TokPatImpl();
+    return tokPat;
   }
 
   /**

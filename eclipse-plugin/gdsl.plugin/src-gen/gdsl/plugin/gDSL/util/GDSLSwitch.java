@@ -160,6 +160,29 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
+      case GDSLPackage.DECODE_PAT:
+      {
+        DecodePat decodePat = (DecodePat)theEObject;
+        T result = caseDecodePat(decodePat);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.BIT_PAT:
+      {
+        BitPat bitPat = (BitPat)theEObject;
+        T result = caseBitPat(bitPat);
+        if (result == null) result = caseDecodePat(bitPat);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.TOK_PAT:
+      {
+        TokPat tokPat = (TokPat)theEObject;
+        T result = caseTokPat(tokPat);
+        if (result == null) result = caseDecodePat(tokPat);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
       default: return defaultCase(theEObject);
     }
   }
@@ -352,6 +375,54 @@ public class GDSLSwitch<T> extends Switch<T>
    * @generated
    */
   public T caseTyBind(TyBind object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Decode Pat</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Decode Pat</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseDecodePat(DecodePat object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Bit Pat</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Bit Pat</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseBitPat(BitPat object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Tok Pat</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Tok Pat</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseTokPat(TokPat object)
   {
     return null;
   }
