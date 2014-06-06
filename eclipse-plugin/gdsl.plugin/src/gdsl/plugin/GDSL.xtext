@@ -23,14 +23,16 @@ DeclExport:
 ;
 
 DeclType:
-	'type' name=Name '=' value=(ConDecls | Ty) |
-	'type' name=Name '[' attrName+=Name (',' attrName+=Name)* ']' '=' value=ConDecls
+	'type' name=Name (
+		('=' =>value=ConDecls | value=Ty) | 
+		('[' attrName+=Name (',' attrName+=Name)* ']' '=' value=ConDecls)
+	)
 ;
 
 DeclVal:
-	'val' name=(Name|SYM) (attr += Name)* '=' exp=Exp |
+	'val' (name=Name | =>name=SYM) (attr += Name)* '=' exp=Exp |
 //	'val' (MID Name => ((MID,Name)))* |
-	'val' name=Name '[' decPat+=DecodePat* ']' (('=' exp=Exp) | ('|' exps+=Exp '=' exps+=Exp)+)
+	'val' name=Name '[' (decPat+=DecodePat (decPat+=DecodePat)*)? ']' (('=' exp=Exp) | (PIPE exps+=Exp '=' exps+=Exp)+)
 ;
 
 
@@ -40,7 +42,7 @@ Export:
 ;
 
 ConDecls:
-	conDecls+=ConDecl ('|' conDecls+=ConDecl)*
+	conDecls+=ConDecl (PIPE conDecls+=ConDecl)*
 ;
 
 ConDecl:
@@ -49,7 +51,7 @@ ConDecl:
 
 Ty:
 	value=Int |
-	'|' value=Int '|' |
+	PIPE value=Int PIPE |
 	value=Qid ('[' tyBind+=TyBind (',' tyBind+=TyBind)* ']')? |
 	'{' elements+=TyElement (',' elements+=TyElement)* '}'
 ;
@@ -67,7 +69,7 @@ DecodePat:
 ;
 
 BitPat:
-	"'"  bitpat+=PrimBitPat (',' bitpat+=PrimBitPat)* "'"
+	"'"  bitpat+=PrimBitPat (bitpat+=PrimBitPat)* "'"
 ;
 
 TokPat:
@@ -75,7 +77,7 @@ TokPat:
 ;
 
 //DataType Rules
-PrimBitPat: BITSTR | (Qid (BitPatOrInt)?);
+PrimBitPat: =>BITSTR | (Qid (BitPatOrInt)?);
 BitPatOrInt: (':' POSINT) | ('@' BITSTR);
 Exp: 'exptodo';
 Int: POSINT | NEGINT;
@@ -84,32 +86,45 @@ ConBind: CONS;
 Conuse: CONS;
 Qid: ID;
 
-//Terminal symbols	
-//terminal POSINT returns ecore::EInt: ('0'..'9')+;
-//terminal NEGINT: '~'('1'..'9')('0'..'9')*;
-
-POSINT: '+' NUM | HEXNUM; //FIXME
+POSINT: NUM | HEXNUM;
 NEGINT: '~' NUM;
-NUM: DIG+;
-HEXNUM: '0x' HEXDIGIT+;
+NUM: =>DIG+;
+HEXNUM: '0x' =>HEXDIGIT+;
 SYMID: SYM+;
-BITSTR: BINARY+;
+BITSTR: =>BINARY+;
 MIXID: '_' IDCHAR+;
-CONS: CONSTART IDCHAR*;
+CONS: ULETTER IDCHAR*;
 
-terminal BITSTRIDCHAR: 'bistridchar';//LETTER | DIG | '_' | '-' | '?' | '!';
-terminal BITSTRID: 'bitstrid';//LETTER BITSTRIDCHAR*;
-terminal ESC: 'esc';//'\\' (('a'|'b'|'f'|'n'|'r'|'t'|'v'|'\\'|'\"') | (DIG DIG DIG));
-terminal SGOOD: 'sgoodtodo'; //TODO
+ID: LETTER =>IDCHAR*;
+HEXDIGIT: DIG | HEXCHAR;
+HEXCHAR: LHEXCHAR | UHEXCHAR;
+ULETTER: UHEXCHAR | UNHEXCHAR;
+LETTER: LHEXCHAR | LNHEXCHAR | ULETTER | SLASH;
+IDCHAR: LETTER | DIG | CHARSYM;
+BINARY: BINDIG | BS | DOT | PIPE;
+DIG: BINDIG | NBINDIG;
+SYM: BS | SLASH | DOT | CHARSYM | OTHERSYM;
 
-terminal SYM: '-'|'!'|'%'|'&'|'$'|'+'|'/'|':'|'<'|'='|'>'|'?'|'@'|'~'|'`'|'\\'|'^'|'|'|'#'|'*';
-terminal BINARY: '0'|'1'|'\\'|'.'|'|';
-terminal DIG: ('0'..'9');
-terminal HEXDIGIT: ('0'..'9'|'a'..'f'|'A'..'F');
-terminal CONSTART: ('A'..'Z');
-terminal LETTER: ('a'..'z'|'A'..'Z'|'\\');
-terminal IDCHAR: LETTER | DIG | '_' | '-' | '?' | '\'' | '!';
-terminal ID: LETTER IDCHAR*;//'^'?('a'..'z'|'A'..'Z'|'_') ('a'..'z'|'A'..'Z'|'_'|'0'..'9')*;
+
+//Terminal symbols	
+
+//terminal BITSTRIDCHAR: 'bistridchar';//LETTER | DIG | '_' | '-' | '?' | '!';
+//terminal BITSTRID: 'bitstrid';//LETTER BITSTRIDCHAR*;
+//terminal ESC: 'esc';//'\\' (('a'|'b'|'f'|'n'|'r'|'t'|'v'|'\\'|'\"') | (DIG DIG DIG));
+//terminal SGOOD: 'sgoodtodo'; //TODO
+
+terminal BINDIG: '0'|'1';
+terminal NBINDIG: ('2'..'9');
+terminal LHEXCHAR: ('a'..'f');
+terminal UHEXCHAR: ('A'..'F');
+terminal LNHEXCHAR: ('g'..'z');
+terminal UNHEXCHAR: ('G'..'Z');
+terminal BS: '\\';
+terminal SLASH: '/';
+terminal DOT: '.';
+terminal PIPE: '|';
+terminal CHARSYM: '_'|'-'|'?'|"'"|'!';
+terminal OTHERSYM: '%'|'&'|'$'|'+'|':'|'<'|'='|'>'|'@'|'~'|'`'|'^'|'#'|'*';
 
 terminal WS: (' '|'\t'|'\r'|'\n')+; //TODO
 terminal ML_COMMENT	: '(*' -> '*)';

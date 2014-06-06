@@ -182,7 +182,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     ((name=Name (value=ConDecls | value=Ty)) | (name=Name attrName+=Name attrName+=Name* value=ConDecls))
+	 *     (name=Name (value=ConDecls | value=Ty | (attrName+=Name attrName+=Name* value=ConDecls)))
 	 */
 	protected void sequence_DeclType(EObject context, DeclType semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
@@ -191,7 +191,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     (((name=Name | name=SYM) attr+=Name* exp=Exp) | (name=Name decPat+=DecodePat* (exp=Exp | (exps+=Exp exps+=Exp)+)))
+	 *     (((name=Name | name=SYM) attr+=Name* exp=Exp) | (name=Name (decPat+=DecodePat decPat+=DecodePat*)? (exp=Exp | (exps+=Exp exps+=Exp)+)))
 	 */
 	protected void sequence_DeclVal(EObject context, DeclVal semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
