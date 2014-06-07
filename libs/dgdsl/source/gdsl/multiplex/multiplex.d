@@ -13,6 +13,7 @@ struct frontend_desc {
 struct _generic {
   state_t function () init;
   void function (state_t, char*, ulong, ulong) set_code;
+  char function (state_t, int_t) seek;
   jmp_buf* function (state_t) err_tgt;
   string_t function (state_t, obj_t) merge_rope;
   char* function (state_t) get_error_message;
@@ -23,6 +24,7 @@ struct _generic {
 struct _decoder {
   int_t function (state_t) config_default;
   obj_t function (state_t, int_t) decode;
+  int_t function (state_t, obj_t) insn_length;
   int_t function (state_t, obj_t) operands;
   obj_t* function (state_t, obj_t) pretty;
   obj_t* function (state_t, obj_t, int_t) pretty_operand;

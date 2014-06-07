@@ -10,11 +10,6 @@ class Frontend : IReferable {
   
   private ReferenceManager _refManager;
   
-//  //Todo: immutable
-//  @property public ref auto native() {
-//    return _native;
-//  }
-  
   @property public ReferenceManager refManager() {
     return _refManager;
   }

@@ -18,12 +18,6 @@ class ReferenceManager {
       GC.addRoot(cast(void*)this);
   }
   
-//  this(IReferable referable, ulong references) {
-//    this(referable);
-//    this._references = references;
-
-//  }
-  
   this(IReferable referable, bool manageGC) {
     this.manageGC = manageGC;
     this(referable);
