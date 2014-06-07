@@ -1,0 +1,15 @@
+module gdsl.rreil.id.arch_id;
+
+import gdsl.rreil.id.id;
+
+class ArchId : Id {
+  private string _id;
+  
+  @property public string id() {
+    return _id;
+  }
+  
+  public this(string _id) {
+    this._id = _id;
+  }
+}
