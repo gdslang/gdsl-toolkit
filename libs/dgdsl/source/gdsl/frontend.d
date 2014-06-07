@@ -19,7 +19,7 @@ class Frontend : IReferable {
     return _refManager;
   }
   
-  this(string name) {
+  this(string name) {   
     _refManager = new ReferenceManager(this);
     
     char result = gdsl_multiplex_frontend_get_by_lib_name(&_native, (name ~ '\0').ptr);

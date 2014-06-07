@@ -1,4 +1,4 @@
-module gdsl.rreil.linear.binop;
+module gdsl.rreil.linear.lin_binop;
 
 import gdsl.rreil.linear.linear;
 
