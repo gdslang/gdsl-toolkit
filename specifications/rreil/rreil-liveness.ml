@@ -22,12 +22,19 @@ end
 val lv-kill kills stmt =
    let
       val visit-semvar kills sz x = fmap-add-range kills x.id sz x.offset
+      val size-lhs size rhs = case rhs of
+         SEM_SEXPR s: case s of
+            SEM_SEXPR_CMP c: 1
+          | _: size
+         end
+       | _: size
+      end
 
       val visit-stmt kills stmt =
          case stmt of
-            SEM_ASSIGN x: visit-semvar kills x.size x.lhs
+            SEM_ASSIGN x: visit-semvar kills (size-lhs x.size x.rhs) x.lhs
           | SEM_LOAD x: visit-semvar kills x.size x.lhs
-					| SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
+			 | SEM_ITE x: lv-union kills (lv-intersection (lv-kills x.then_branch) (lv-kills x.else_branch))
           | SEM_FLOP x: visit-semvar kills x.lhs.size x.lhs
           | SEM_PRIM x: visit-semvarls visit-semvar kills x.lhs
           | _ : kills
@@ -112,18 +119,13 @@ val lv-gen gens stmt =
             SEM_ASSIGN x: visit-expr x.size gens x.rhs
           | SEM_LOAD x: visit-address gens x.address
           | SEM_STORE x: lv-union (visit-address gens x.address) (visit-lin gens x.size x.rhs)
-					| SEM_WHILE x: visit-sexpr 1 gens x.cond
-					| SEM_ITE x: visit-sexpr 1 gens x.cond
-					| SEM_BRANCH x: visit-address gens x.target
-					| SEM_CBRANCH x: visit-flow 1 gens x
+			 | SEM_WHILE x: visit-sexpr 1 gens x.cond
+			 | SEM_ITE x: visit-sexpr 1 gens x.cond
+			 | SEM_BRANCH x: visit-address gens x.target
+			 | SEM_CBRANCH x: visit-flow 1 gens x
           | SEM_FLOP x: lv-union (visit-semvar gens (sizeof-id x.flags.id) x.flags) (visit-semvarls visit-semvar gens x.rhs)
           | SEM_PRIM x: visit-semvarls visit-semvar gens x.rhs
           | SEM_THROW x: gens
-#          | SEM_LABEL x: gens
-#          | SEM_IF_GOTO_LABEL x: visit-lin gens 1 x.cond
-#          | SEM_IF_GOTO x: visit-flow gens x
-#          | SEM_CALL x: visit-flow gens x
-#          | SEM_RETURN x: visit-flow gens x
          end
    in
       visit-stmt gens stmt
@@ -218,28 +220,6 @@ end
 
 val live-stack-restore backup = update @{live=backup.live,maybelive=backup.maybelive}
 
-#val lv-sweep-and-collect-upto-native-flow =
-#   let
-#      val sweep =
-#         do insn <- decode;
-#            semantics insn;
-#            stack <- query $stack;
-#            case stack of
-#               SEM_CONS x:
-#                  case x.hd of
-#                     SEM_IF_GOTO x: return stack 
-#                   | SEM_CALL x: return stack
-#                   | SEM_RETURN x: return stack
-#                   | _ : sweep
-#                  end
-#            end
-#         end 
-#   in
-#      do update@{stack=SEM_NIL,tmp=0,lab=0};
-#         sweep
-#      end
-#   end
-
 val lv-analyze initial-live stack =
    let
       val sweep stack state =
@@ -248,8 +228,8 @@ val lv-analyze initial-live stack =
           | SEM_CONS x: let
               val cont kill cont-state =
                  if lv-any-live? state.greedy kill
-                    then
-                       do lv-push-live x.hd;
+                    then do 
+                          lv-push-live x.hd;
                           sweep x.tl cont-state
                        end
                  else if lv-any-live? state.conservative kill
@@ -339,7 +319,10 @@ val lv-analyze initial-live stack =
 							   end
                | SEM_ASSIGN y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
                | SEM_FLOP y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
-               | SEM_PRIM y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
+               | SEM_PRIM y: do
+                   lv-push-live x.hd;
+                   sweep x.tl (lvstate-eval state x.hd)
+                 end
                | SEM_THROW y: cont (lv-kill1 x.hd) (lvstate-eval state x.hd)
               end
             end
