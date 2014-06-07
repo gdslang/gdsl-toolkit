@@ -2,8 +2,8 @@ module gdsl.rreil.id.shared_id;
 
 import gdsl.rreil.id.id;
 
-enum SharedIdType {
-  FLOATING_FLAGS
+enum SharedIdType : string {
+  FloatingFlags = "FloatingFlags"
 }
 
 class SharedId : Id {
@@ -17,7 +17,12 @@ class SharedId : Id {
     this._inner = _inner;
   }
   
-  public override string opCast(T : string)() const {
-    return _inner.stringof;
+  public override string toString() const {
+    return cast(string)_inner;
   }
+}
+
+unittest {
+  SharedId sid = new SharedId(SharedIdType.FloatingFlags);
+  assert(sid.toString == "FloatingFlags");
 }

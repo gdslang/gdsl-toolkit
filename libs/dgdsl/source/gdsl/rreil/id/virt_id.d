@@ -15,12 +15,12 @@ class VirtId : Id {
     this._t = _t;
   }
   
-  public string opCast(T : string)() const {
+  public override string toString() const {
     return "t" ~ to!(string)(_t);
   }
 }
 
 unittest {
   VirtId vid = new VirtId(99);
-  assert(cast(string)vid == "t99");
+  assert(vid.toString == "t99");
 }
