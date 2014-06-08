@@ -3,6 +3,6 @@
 	"description" : "A minimal D bundle.",
 	"dependencies" : {
 	},
-	"libs" : [ "gdsl-multiplex", "gdsl", "dl" ]
+	"lflags-linux" : [ "-lgdsl-multiplex", "-lgdsl", "-ldl" ]
 	
 }

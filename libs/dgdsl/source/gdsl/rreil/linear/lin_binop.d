@@ -2,8 +2,8 @@ module gdsl.rreil.linear.lin_binop;
 
 import gdsl.rreil.linear.linear;
 
-enum LinearBinopOp {
-  Add, Sub
+enum LinearBinopOp : string {
+  Add = "+", Sub = "+"
 }
 
 class LinearBinop : Linear {
@@ -27,4 +27,16 @@ class LinearBinop : Linear {
     this._opnd1 = _opnd1;
     this._opnd2 = _opnd2;
   }
+  
+  public override string toString() {
+    return "(" ~ _opnd1.toString() ~ " " ~ cast(string)_op ~ " " ~ _opnd2.toString() ~ ")";
+  }
+}
+
+unittest {
+  import gdsl.rreil.linear.lin_imm;
+  auto lb = new LinearBinop(LinearBinopOp.Add, new LinImm(99), new LinImm(11));
+//  import std.stdio;
+//  writefln(lb.toString);
+  assert(lb.toString() == "(99 + 11)");
 }

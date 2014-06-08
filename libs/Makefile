@@ -6,7 +6,7 @@ LIBS=gdutil gdsl-multiplex gdwrap readhex rreil jgdsl dgdsl cppgdsl
 #endif
 
 ifdef GDSL_X86
-LIBS+=x86 rreil-sim x86-tester x86-generator 
+LIBS+=x86 x86-tester x86-generator 
 endif
 
 .PHONY all: $(LIBS)

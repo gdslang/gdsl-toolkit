@@ -1,5 +1,5 @@
 module gdsl.rreil.linear.linear;
 
-class Linear {
-  
+abstract class Linear {
+  public abstract override string toString();
 }

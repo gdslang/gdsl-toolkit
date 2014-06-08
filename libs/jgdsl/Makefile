@@ -4,7 +4,7 @@ CC=gcc
 LIBDS=-L$(MLTK)/lib
 LIBS=-lgdsl-multiplex
 LIBFLAGS=$(LIBDS) $(LIBS)
-INCDS=-Iinclude -I$(MLTK)/include -I/usr/lib/jvm/java-7-openjdk-amd64/include
+INCDS=-Iinclude -I$(MLTK)/include -I/usr/lib/jvm/java-7-openjdk-i386/include
 
 DEFINES=-DRELAXEDFATAL
 ifdef GDSL_X86
