@@ -259,10 +259,14 @@ val show/scale s =
 
 val show/operand ext op =
    case op of
-      IMM8 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
-    | IMM16 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
-    | IMM32 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
-    | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+#      IMM8 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+#    | IMM16 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+#    | IMM32 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+#    | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+      IMM8 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
+    | IMM16 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
+    | IMM32 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
+    | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
     | REG x: show/register x
     | MEM x: show/memsz x.sz -++ show/segment x.segment +++ "[" +++ show/operand '1' x.opnd +++ "]" 
     | SUM x: show/operand ext x.a +++ "+" +++ show/operand ext x.b
@@ -271,10 +275,10 @@ val show/operand ext op =
 
 val show/flowoperand op =
    case op of
-      REL8 x: show-int (sx x)
-    | REL16 x: show-int (sx x)
-    | REL32 x: show-int (sx x)
-    | REL64 x: show-int (sx x)
+      REL8 x: "(IP + " +++ show-int (sx x) +++ ")"
+    | REL16 x: "(IP + " +++ show-int (sx x) +++ ")"
+    | REL32 x: "(IP + " +++ show-int (sx x) +++ ")"
+    | REL64 x: "(IP + " +++ show-int (sx x) +++ ")"
     | PTR16/16 x: "[16/16: " +++ show-int (sx x) +++ "]"
     | PTR16/32 x: "[16/32: " +++ show-int (sx x) +++ "]"
     | NEARABS x: show/operand '1' x 

@@ -1,7 +1,7 @@
 export GDSL:=gdsl
 export MANAGED:=1
 
-archs:=x86 avr
+archs:=x86 avr mips
 
 $(archs):
 	$(MAKE) -f Makefile_$@

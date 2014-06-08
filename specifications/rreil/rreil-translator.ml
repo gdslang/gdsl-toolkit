@@ -1,19 +1,29 @@
-export = translate{addr-sz, opnd-sz, lock, rep, repne, features, insn} decode-translate-block decode-translate-single decode-translate-super-block succ-pretty
+export = translate{length, addr-sz, opnd-sz, lock, rep, repne, features, insn, mode64} decode-translate-block{insns} decode-translate-block-insns{insns} decode-translate-single{insns} decode-translate-super-block{insns} succ-pretty
 
-val decode-translate-block-headless config limit = do
+val insn-append-default a b = a
+
+val decode-translate-block-headless config limit insn-append = do
    insn <- decode config;
+   insns <- query $insns;
+   update @{insns=insn-append insns insn};
    translate-block-single insn;
    jmp <- query $foundJump;
    idx <- idxget;
    if jmp or (idx >= limit) then
      query $stack
    else
-     decode-translate-block-headless config limit
+     decode-translate-block-headless config limit insn-append
 end
 
 val decode-translate-block config limit = do
    update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
-	stmts <- decode-translate-block-headless config limit;
+	stmts <- decode-translate-block-headless config limit insn-append-default;
+   return (rreil-stmts-rev stmts)
+end
+
+val decode-translate-block-insns config limit insn-append = do
+   update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
+	stmts <- decode-translate-block-headless config limit insn-append;
    return (rreil-stmts-rev stmts)
 end
 
@@ -72,7 +82,7 @@ type stmts_option =
 
 type translate-result = {insns:int, succ_a:int, succ_b:int}
 
-val decode-translate-super-block config limit = let
+val decode-translate-super-block-insncb config limit insn-append = let
   val translate-block-at idx = do
 	  current <- idxget;
 		#error <- rseek idx;
@@ -95,7 +105,7 @@ val decode-translate-super-block config limit = let
 	end
 in do
   update @{ins_count=0,stack=SEM_NIL,foundJump='0'};
-  stmts <- decode-translate-block-headless config limit;
+  stmts <- decode-translate-block-headless config limit insn-append;
 
   ic <- query $ins_count;
 
@@ -107,6 +117,12 @@ in do
 
   return {insns=(rreil-stmts-rev stmts), succ_a=succ_a, succ_b=succ_b}
 end end
+
+val decode-translate-super-block config limit = let
+  val default-append a b = a
+in
+  decode-translate-super-block-insncb config limit default-append
+end
 
 val succ-pretty succ name =
   case succ of

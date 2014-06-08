@@ -6,23 +6,55 @@ import java.nio.ByteBuffer;
  * The Gdsl class represents the main interface to Gdsl. The
  * user needs to perform the following steps:
  * 
- * 1. Create a new instance of the Gdsl class,
- * 2. Request the list of available frontends,
- * 3. Choose a frontend (for example using an architecture binder),
- * 4. Initialize the frontend,
- * 5. (Optionally) configure the frontend,
+ * 1. Create a new instance of the Gdsl class;
+ * 2. (Optionally) Request the list of available frontends;
+ * 3. Choose a frontend (for example using an architecture binder);
+ * 4. Initialize the frontend;
+ * 5. (Optionally) configure the frontend;
  * 6. Use the Decoder and Translator classes for the decoding and
- *    semantic translation of instructions.
+ * semantic translation of instructions.
  * 
  * @author Julian Kranz
  */
-public class Gdsl {
-  private final Frontend[] frontends;
-
+public class Gdsl implements IReferable {
   private Frontend frontend;
 
   private long gdslStatePtr = 0;
   private ByteBuffer buffer;
+  
+  private long heapRevision = 0;
+  
+  /**
+   * A reference manager for the GDSL heap; the GDSL heap is automatically
+   * reset if the number of references to it drops to zero.
+   */
+  public final ReferenceManager heapManager = new ReferenceManager(this);
+  
+  static {
+    System.loadLibrary("jgdsl");
+  }
+ 
+  /**
+   * Get the buffer associated with the GDSL object; it is used as input
+   * buffer for the decoder.
+   * 
+   * @return the respective {@link ByteBuffer} object
+   */
+  public ByteBuffer getBuffer () {
+    return buffer;
+  }
+  
+  /**
+   * Get the current revision of the GDSL heap; the revision is incremented
+   * whenever the heap is reset. This is allows associated objects to make
+   * sure to only access valid memory, i.e. to abort an access to a native
+   * GDSL object if the heap revision does not match.
+   * 
+   * @return the heap revision
+   */
+  public long getHeapRevision () {
+    return heapRevision;
+  }
 
   /**
    * Get the address of the associated native Gdsl state object
@@ -31,7 +63,7 @@ public class Gdsl {
    */
   public long getGdslStatePtr () {
     if (gdslStatePtr == 0)
-      throw new RuntimeException("Gdsl Frontend not initialized");
+      throw new ResourceUnavailableException("Gdsl Frontend not initialized");
     return gdslStatePtr;
   }
 
@@ -45,83 +77,46 @@ public class Gdsl {
       throw new RuntimeException("Frontend not set");
     return frontend;
   }
-  
+
   /**
    * Get the address of the associated native frontend object
    * 
    * @return the value of the pointer
    */
-  public long getFrontendPtr() {
+  public long getFrontendPtr () {
     return getFrontend().getPointer();
   }
 
   /**
-   * Get the list of available frontends
+   * Get the list of available frontends; the environment variable
+   * "GDSL_FRONTENDS" is used to search for frontends.
    * 
    * @return the list of frontends
    */
-  public Frontend[] getFrontends () {
-    return frontends;
+  public static Frontend[] getFrontends () {
+    return getFrontendsNative();
   }
-
+  
   /**
-   * Construct the Gdsl object; this constructor uses the
-   * environment variable "GDSL_FRONTENDS" to search for
-   * frontends.
+   * Get the list of available frontends using a specified path
+   * 
+   * @param base the path to search the frontends in
+   * @return the list of frontends
    */
-  public Gdsl () {
-    System.loadLibrary("jgdsl");
-
-    frontends = getFrontendsNative();
+  public static Frontend[] getFrontends (String base) {
+    return getFrontendsNativeWithBase(base);
   }
-
-  private native Frontend[] getFrontendsNative ();
-
+  
+  private static native ListFrontend[] getFrontendsNative ();
+  private static native ListFrontend[] getFrontendsNativeWithBase (String base);
+  
   /**
    * Construct the Gdsl object
-   * 
-   * @param base the path to search frontends in
    */
-  public Gdsl (String base) {
-    System.loadLibrary("jgdsl");
-
-    frontends = getFrontendsNativeWithBase(base);
-  }
-
-  private native Frontend[] getFrontendsNativeWithBase (String base);
-
-  /**
-   * Associate the Gdsl object with a {@link Frontend} object; the frontend
-   * must be available, i.e. in the list of frontends. The method should only
-   * be called once per Gdsl object.
-   * 
-   * @param frontend the frontend to associate with
-   */
-  public void setFrontend (Frontend frontend) {
-	if(this.frontend != null)
-		throw new RuntimeException("Already set");
-    boolean found = false;
-    for (Frontend f : frontends)
-      if (f.identifies(frontend)) {
-        found = true;
-        break;
-      }
-    if (!found)
-      throw new RuntimeException("Invalid frontend");
-    long frontendPtr = getFrontendPtr(frontend);
-    frontend.setPointer(frontendPtr);
+  public Gdsl (Frontend frontend) {
     this.frontend = frontend;
-  }
-
-  /**
-   * Initialize the associated frontend; this creates a native gdsl state
-   * object. The method should only be called once per Gdsl object.
-   */
-  public void initFrontend () {
-    if (gdslStatePtr == 0)
-      gdslStatePtr = init(getFrontendPtr());
-    else
-    	throw new RuntimeException("Already initialized");
+    this.frontend.referenceManager.ref();
+    gdslStatePtr = init(getFrontendPtr());
   }
 
   /**
@@ -131,7 +126,7 @@ public class Gdsl {
    * 
    * @param buffer the directly allocated {@link ByteBuffer} object
    * @param offset an offset into the byte buffer; Gdsl will start to decode
-   * from that offset.
+   *          from that offset.
    * @param base the base pointer to use for relative addresses
    */
   public void setCode (ByteBuffer buffer, long offset, long base) {
@@ -179,20 +174,58 @@ public class Gdsl {
    */
   public void resetHeap () {
     resetHeap(getFrontend().getPointer(), getGdslStatePtr());
+    heapRevision++;
   }
 
-  /**
-   * Cleanup the complete state on the native side. This frees all natively allocated data.
-   * After this operation the Gdsl object is in the same state as it was after calling the
-   * constructor.
-   */
-  public void destroyFrontend () {
-    destroyFrontend(getFrontend().getPointer(), getGdslStatePtr());
+//  /**
+//   * Todo: Adapt doc
+//   * 
+//   * Cleanup the complete state on the native side. This frees all natively allocated data.
+//   * After this operation the Gdsl object is in the same state as it was after calling the
+//   * constructor.
+//   */
+//  public void destroyFrontend () {
+//    destroy(getFrontend().getPointer(), getGdslStatePtr());
+//    gdslStatePtr = 0;
+//    frontend = null;
+//  }
+  
+  @Override protected void finalize () throws Throwable {
+    /*
+     * Todo: finally
+     */
+    destroy(getFrontend().getPointer(), getGdslStatePtr());
+    getFrontend().referenceManager.unref();
     gdslStatePtr = 0;
-    frontend = null;
+    super.finalize();
   }
-
-  private native long getFrontendPtr (Frontend frontend);
+  
+  /**
+   * This function resets the GDSL heap; it is automatically called by the
+   * reference manager if the number of references drops to zero. User code
+   * may also call this function; a subsequent access to the already freed
+   * heap will not cause undefined behaviour since the heap is revisioned.
+   * Therefore, calling this function is always safe.
+   */
+  @Override public void free () {
+   if(gdslStatePtr != 0)
+     resetHeap();
+  }
+  
+  /**
+   * Create a heap usage indicator; such an indicator is usful to make sure
+   * that the GDSL heap is always reset as early as possible: If no reference
+   * to the heap is ever created, the reference count will never drop to zero
+   * (because it stays zero) and therefore the heap will never be reset (it will,
+   * however, be freed once the GDSL object itself is destructed). The heap
+   * usage indicator will initiate the resetting of the heap when its
+   * destructor is called and no other references exist.
+   * 
+   * @return the heap usage indicator
+   */
+  public HeapUseIndicator heapUseIndicator() {
+    return new HeapUseIndicator(this);
+  }
 
   private native long init (long frontendPtr);
 
@@ -202,5 +235,5 @@ public class Gdsl {
 
   private native void resetHeap (long frontendPtr, long gdslStatePtr);
 
-  private native void destroyFrontend (long frontendPtr, long gdslStatePtr);
+  private native void destroy (long frontendPtr, long gdslStatePtr);
 }

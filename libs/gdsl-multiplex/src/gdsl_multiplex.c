@@ -93,7 +93,43 @@ size_t gdsl_multiplex_frontends_list(struct frontend_desc **descs) {
 			error = 1;
 #define ADD_FUNCTION(CAT,FUNC) ADD_FUNCTION_GENERIC(CAT,FUNC,"gdsl_" #FUNC)
 
-char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc desc) {
+static char gdsl_multiplex_frontend_get(struct frontend *frontend, void *dl) {
+	char error = 0;
+
+	ADD_FUNCTION(generic, init)
+	ADD_FUNCTION(generic, set_code)
+	ADD_FUNCTION(generic, seek)
+	ADD_FUNCTION(generic, err_tgt)
+	ADD_FUNCTION(generic, get_error_message)
+	ADD_FUNCTION(generic, reset_heap)
+	ADD_FUNCTION(generic, destroy)
+	ADD_FUNCTION(generic, get_ip_offset)
+	ADD_FUNCTION(generic, merge_rope)
+	ADD_FUNCTION(decoder, config_default)
+	ADD_FUNCTION(decoder, decode)
+	ADD_FUNCTION(decoder, insn_length)
+	ADD_FUNCTION(decoder, operands)
+	ADD_FUNCTION(decoder, pretty)
+	ADD_FUNCTION(decoder, pretty_operand)
+	ADD_FUNCTION(decoder, pretty_mnemonic)
+	ADD_FUNCTION(decoder, typeof_opnd)
+	ADD_FUNCTION(translator, translate)
+	ADD_FUNCTION_GENERIC(translator, pretty, "gdsl_rreil_pretty")
+	ADD_FUNCTION(translator, pretty_arch_id)
+	ADD_FUNCTION(translator, pretty_arch_exception)
+	ADD_FUNCTION(translator, rreil_cif_userdata_set)
+	ADD_FUNCTION(translator, rreil_cif_userdata_get)
+	ADD_FUNCTION(translator, rreil_convert_sem_stmts)
+	ADD_FUNCTION(translator, decode_translate_block_optimized_int_insncb)
+
+	if(error) return GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND;
+
+	frontend->dl = dl;
+
+	return GDSL_MULTIPLEX_ERROR_NONE;
+}
+
+static char gdsl_multiplex_frontend_library_open_desc(void **dl, struct frontend_desc desc) {
 	char *base = getenv("GDSL_FRONTENDS");
 	if(!base) return GDSL_MULTIPLEX_ERROR_FRONTENDS_PATH_NOT_SET;
 
@@ -104,38 +140,35 @@ char gdsl_multiplex_frontend_get(struct frontend *frontend, struct frontend_desc
 	fputc(0, libf);
 	fclose(libf);
 
+	*dl = dlopen(lib, RTLD_LAZY);
+	free(lib);
+	if(!*dl) return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;
+
+	return 0;
+}
+
+char gdsl_multiplex_frontend_get_by_desc(struct frontend *frontend, struct frontend_desc desc) {
+	void *dl;
+	char error = gdsl_multiplex_frontend_library_open_desc(&dl, desc);
+	if(error)
+		return error;
+
+	return gdsl_multiplex_frontend_get(frontend, dl);
+}
+
+char gdsl_multiplex_frontend_get_by_lib_name(struct frontend *frontend, char const *name) {
+	char *lib;
+	size_t lib_length;
+	FILE *libf = open_memstream(&lib, &lib_length);
+	fprintf(libf, "libgdsl-%s.so", name);
+	fputc(0, libf);
+	fclose(libf);
+
 	void *dl = dlopen(lib, RTLD_LAZY);
 	free(lib);
 	if(!dl) return GDSL_MULTIPLEX_ERROR_UNABLE_TO_OPEN;
 
-	char error = 0;
-
-	ADD_FUNCTION(generic, init)
-	ADD_FUNCTION(generic, set_code)
-	ADD_FUNCTION(generic, err_tgt)
-	ADD_FUNCTION(generic, get_error_message)
-	ADD_FUNCTION(generic, reset_heap)
-	ADD_FUNCTION(generic, destroy)
-	ADD_FUNCTION(generic, get_ip_offset)
-	ADD_FUNCTION(generic, merge_rope)
-	ADD_FUNCTION(decoder, config_default)
-	ADD_FUNCTION(decoder, decode)
-	ADD_FUNCTION(decoder, operands)
-	ADD_FUNCTION(decoder, pretty)
-	ADD_FUNCTION(decoder, pretty_operand)
-	ADD_FUNCTION(decoder, pretty_mnemonic)
-	ADD_FUNCTION(translator, translate)
-	ADD_FUNCTION_GENERIC(translator, pretty, "gdsl_rreil_pretty")
-	ADD_FUNCTION(translator, rreil_cif_userdata_set)
-	ADD_FUNCTION(translator, rreil_cif_userdata_get)
-	ADD_FUNCTION(translator, rreil_convert_sem_stmts)
-	ADD_FUNCTION(translator, decode_translate_block_optimized_int)
-
-	if(error) return GDSL_MULTIPLEX_ERROR_SYMBOL_NOT_FOUND;
-
-	frontend->dl = dl;
-
-	return GDSL_MULTIPLEX_ERROR_NONE;
+	return gdsl_multiplex_frontend_get(frontend, dl);
 }
 
 /*

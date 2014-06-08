@@ -20,6 +20,7 @@ char gdwrap_decode(state_t state, obj_t *insn) {
 	}
 }
 
+#ifdef GDSL_X86
 char *gdwrap_x86_pretty(state_t state, obj_t insn, enum gdwrap_x86_print_mode mode) {
 	if(setjmp(*gdsl_err_tgt(state)))
 		return NULL;
@@ -33,6 +34,7 @@ char *gdwrap_x86_pretty(state_t state, obj_t insn, enum gdwrap_x86_print_mode mo
 
 	return NULL;
 }
+#endif
 
 char gdwrap_translate(obj_t state, obj_t *rreil, obj_t insn) {
 	if(setjmp(*gdsl_err_tgt(state)))

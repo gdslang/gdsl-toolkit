@@ -15,320 +15,192 @@ import gdsl.rreil.sexpression.ISimpleExpression;
 import gdsl.rreil.statement.IStatement;
 
 public interface IRReilBuilder {
-	/*
-	 * sem_id
-	 */
+  /*
+   * sem_id
+   */
 
-	IId shared_floating_flags();
-	
-//	IId virt_eq();
-//
-//	IId virt_neq();
+  IId shared_floating_flags ();
 
-	IId virt_les();
+  IId virt_t (long t);
 
-	IId virt_leu();
+  IId arch (String name);
 
-	IId virt_lts();
+  /*
+   * sem_exception
+   */
 
-//	IId virt_ltu();
+  IException exception_shared_division_by_zero ();
 
-	IId virt_t(long t);
+  IException exception_arch (String ex);
 
-	IId sem_ip();
+  /*
+   * sem_address
+   */
 
-	IId sem_flags();
+  IAddress sem_address (long size, ILinearExpression address);
 
-	IId sem_mxcsr();
+  /*
+   * sem_var
+   */
 
-	IId sem_a();
+  IVariable sem_var (IId id, long offset);
 
-	IId sem_b();
+  /*
+   * sem_linear
+   */
 
-	IId sem_c();
+  ILinearExpression sem_lin_var (IVariable _this);
 
-	IId sem_d();
+  ILinearExpression sem_lin_imm (long imm);
 
-	IId sem_si();
+  ILinearExpression sem_lin_add (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_di();
+  ILinearExpression sem_lin_sub (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_sp();
+  ILinearExpression sem_lin_scale (long imm, ILinearExpression opnd);
 
-	IId sem_bp();
+  /*
+   * sem_sexpr
+   */
 
-	IId sem_r8();
+  ISimpleExpression sem_sexpr_lin (ILinearExpression _this);
 
-	IId sem_r9();
+  ISimpleExpression sem_sexpr_cmp (ICompare _this);
 
-	IId sem_r10();
+  ISimpleExpression sem_sexpr_arb ();
 
-	IId sem_r11();
+  /*
+   * sem_op_cmp
+   */
 
-	IId sem_r12();
+  ICompare sem_cmpeq (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_r13();
+  ICompare sem_cmpneq (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_r14();
+  ICompare sem_cmples (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_r15();
+  ICompare sem_cmpleu (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_cs_base();
+  ICompare sem_cmplts (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_ds_base();
+  ICompare sem_cmpltu (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_ss_base();
+  /*
+   * sem_expr
+   */
 
-	IId sem_es_base();
+  IExpression sem_sexpr (ISimpleExpression opnd1);
 
-	IId sem_fs_base();
+  IExpression sem_mul (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_gs_base();
+  IExpression sem_div (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_st0();
+  IExpression sem_divs (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_st1();
+  IExpression sem_mod (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_st2();
+  IExpression sem_mods (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_st3();
+  IExpression sem_shl (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_st4();
+  IExpression sem_shr (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_st5();
+  IExpression sem_shrs (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_st6();
+  IExpression sem_and (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_st7();
+  IExpression sem_or (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_mm0();
+  IExpression sem_xor (ILinearExpression opnd1,
+      ILinearExpression opnd2);
 
-	IId sem_mm1();
+  IExpression sem_sx (long fromsize, ILinearExpression opnd1);
 
-	IId sem_mm2();
+  IExpression sem_zx (long fromsize, ILinearExpression opnd1);
 
-	IId sem_mm3();
+  /*
+   * sem_varl
+   */
 
-	IId sem_mm4();
+  ILimitedVariable sem_varl (IId id, long offset, long size);
 
-	IId sem_mm5();
+  /*
+   * sem_varls
+   */
 
-	IId sem_mm6();
+  IRReilCollection<ILimitedVariable> sem_varls_next (ILimitedVariable next, IRReilCollection<ILimitedVariable> list);
 
-	IId sem_mm7();
+  IRReilCollection<ILimitedVariable> sem_varls_init ();
 
-	IId sem_xmm0();
+  /*
+   * sem_flop
+   */
 
-	IId sem_xmm1();
+  IFlop sem_flop_fadd ();
 
-	IId sem_xmm2();
+  IFlop sem_flop_fsub ();
 
-	IId sem_xmm3();
+  IFlop sem_flop_fmul ();
 
-	IId sem_xmm4();
+  /*
+   * sem_stmt
+   */
 
-	IId sem_xmm5();
+  IStatement sem_assign (long size, IVariable lhs, IExpression rhs);
 
-	IId sem_xmm6();
+  IStatement sem_load (long size, IVariable lhs, IAddress address);
 
-	IId sem_xmm7();
+  IStatement sem_store (long size, IAddress address, ILinearExpression rhs);
 
-	IId sem_xmm8();
+  IStatement sem_ite (ISimpleExpression cond, IRReilCollection<IStatement> then_branch,
+      IRReilCollection<IStatement> else_branch);
 
-	IId sem_xmm9();
+  IStatement sem_while (ISimpleExpression cond, IRReilCollection<IStatement> body);
 
-	IId sem_xmm10();
+  IStatement sem_cbranch (ISimpleExpression cond, IAddress target_true,
+      IAddress target_false);
 
-	IId sem_xmm11();
+  IStatement sem_branch (IBranchHint branch_hint, IAddress target);
 
-	IId sem_xmm12();
+  IStatement sem_flop_stmt (IFlop op, IVariable flags, ILimitedVariable lhs, IRReilCollection<ILimitedVariable> rhs);
 
-	IId sem_xmm13();
+  IStatement sem_prim (String op, IRReilCollection<ILimitedVariable> lhs, IRReilCollection<ILimitedVariable> rhs);
 
-	IId sem_xmm14();
+  IStatement sem_throw (IException exception);
 
-	IId sem_xmm15();
-	
-	IId id_arch(long id);
-	
-	/*
-	 * sem_exception
-	 */
-	
-	IException exception_shared_division_by_zero();
-	
-	IException exception_x86_division_overflow();
-	
-	IException exception_arch(long con);
+  /*
+   * sem_branch_hint
+   */
 
-	/*
-	 * sem_address
-	 */
+  IBranchHint hint_jump ();
 
-	IAddress sem_address(long size, ILinearExpression address);
+  IBranchHint hint_call ();
 
-	/*
-	 * sem_var
-	 */
+  IBranchHint hint_ret ();
 
-	IVariable sem_var(IId id, long offset);
+  /*
+   * sem_stmts
+   */
 
-	/*
-	 * sem_linear
-	 */
+  IRReilCollection<IStatement> sem_stmts_next (IStatement next, IRReilCollection<IStatement> list);
 
-	ILinearExpression sem_lin_var(IVariable _this);
-
-	ILinearExpression sem_lin_imm(long imm);
-
-	ILinearExpression sem_lin_add(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	ILinearExpression sem_lin_sub(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	ILinearExpression sem_lin_scale(long imm, ILinearExpression opnd);
-	
-	/*
-	 * sem_sexpr
-	 */
-	
-	ISimpleExpression sem_sexpr_lin(ILinearExpression _this);
-	
-	ISimpleExpression sem_sexpr_cmp(ICompare _this);
-	
-	ISimpleExpression sem_sexpr_arb();
-	
-	/*
-	 * sem_op_cmp
-	 */
-	
-	ICompare sem_cmpeq(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	ICompare sem_cmpneq(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	ICompare sem_cmples(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	ICompare sem_cmpleu(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	ICompare sem_cmplts(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	ICompare sem_cmpltu(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	/*
-	 * sem_expr
-	 */
-
-	IExpression sem_sexpr(ISimpleExpression opnd1);
-
-	IExpression sem_mul(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_div(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_divs(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_mod(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-	
-	IExpression sem_mods(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_shl(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_shr(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_shrs(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_and(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_or(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_xor(ILinearExpression opnd1,
-			ILinearExpression opnd2);
-
-	IExpression sem_sx(long fromsize, ILinearExpression opnd1);
-
-	IExpression sem_zx(long fromsize, ILinearExpression opnd1);
-	
-	/*
-	 * sem_varl
-	 */
-	
-	ILimitedVariable sem_varl(IId id, long offset, long size);
-	
-	/*
-	 * sem_varls
-	 */
-	
-	IRReilCollection<ILimitedVariable> sem_varls_next(ILimitedVariable next, IRReilCollection<ILimitedVariable> list);
-
-	IRReilCollection<ILimitedVariable> sem_varls_init();
-	
-	/*
-	 * sem_flop
-	 */
-	
-	IFlop sem_flop_fadd();
-	
-	IFlop sem_flop_fsub();
-	
-	IFlop sem_flop_fmul();
-	
-	/*
-	 * sem_stmt
-	 */
-
-	IStatement sem_assign(long size, IVariable lhs, IExpression rhs);
-
-	IStatement sem_load(long size, IVariable lhs, IAddress address);
-
-	IStatement sem_store(long size, IAddress address, ILinearExpression rhs);
-
-	IStatement sem_ite(ISimpleExpression cond, IRReilCollection<IStatement> then_branch,
-			IRReilCollection<IStatement> else_branch);
-
-	IStatement sem_while(ISimpleExpression cond, IRReilCollection<IStatement> body);
-
-	IStatement sem_cbranch(ISimpleExpression cond, IAddress target_true,
-			IAddress target_false);
-
-	IStatement sem_branch(IBranchHint branch_hint, IAddress target);
-	
-	IStatement sem_flop_stmt(IFlop op, IVariable flags, ILimitedVariable lhs, IRReilCollection<ILimitedVariable> rhs);
-	
-	IStatement sem_prim(String op, IRReilCollection<ILimitedVariable> lhs, IRReilCollection<ILimitedVariable> rhs);
-	
-	IStatement sem_throw(IException exception);
-	
-	/*
-	 * sem_branch_hint
-	 */
-
-	IBranchHint hint_jump();
-
-	IBranchHint hint_call();
-
-	IBranchHint hint_ret();
-
-	/*
-	 * sem_stmts
-	 */
-
-	IRReilCollection<IStatement> sem_stmts_next(IStatement next, IRReilCollection<IStatement> list);
-
-	IRReilCollection<IStatement> sem_stmts_init();
+  IRReilCollection<IStatement> sem_stmts_init ();
 }

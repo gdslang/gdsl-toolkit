@@ -1,5 +1,6 @@
 package gdsl.arch;
 
+import gdsl.BareFrontend;
 import gdsl.Frontend;
 
 /**
@@ -19,5 +20,18 @@ public class AVRBinder extends ArchBinder {
    */
   public AVRBinder (Frontend[] frontends) {
     super(specific(frontends, ArchId.AVR));
+  }
+  
+  /**
+   * This constructor uses a {@link BareFrontend} as
+   * frontend and uses the string representation of the
+   * {@link ArchId} item of the AVR architecture
+   * to determine the name of the corresponding Gdsl library.
+   */
+  public AVRBinder () {
+    super(new BareFrontend(ArchId.AVR));
+    
+    if (!checkFrontend(ArchId.AVR, getFrontend()))
+      throw new IllegalArgumentException();
   }
 }

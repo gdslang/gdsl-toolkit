@@ -1,0 +1,8 @@
+{
+	"name" : "dgdsl",
+	"description" : "A minimal D bundle.",
+	"dependencies" : {
+	},
+	"libs" : [ "gdsl-multiplex", "gdsl", "dl" ]
+	
+}

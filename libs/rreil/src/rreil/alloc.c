@@ -23,6 +23,26 @@ struct rreil_statement *rreil_assignment_alloc(long long unsigned int size, stru
 	return stmt;
 }
 
+struct rreil_statement *rreil_store_alloc(long long unsigned int size, struct rreil_address *address,
+		struct rreil_linear *rhs) {
+	struct rreil_statement *stmt = (struct rreil_statement*)malloc(sizeof(struct rreil_statement));
+	stmt->type = RREIL_STATEMENT_TYPE_STORE;
+	stmt->store.size = size;
+	stmt->store.address = address;
+	stmt->store.rhs = rhs;
+	return stmt;
+}
+
+struct rreil_statement *rreil_load_alloc(long long unsigned int size, struct rreil_variable *lhs,
+		struct rreil_address *address) {
+	struct rreil_statement *stmt = (struct rreil_statement*)malloc(sizeof(struct rreil_statement));
+	stmt->type = RREIL_STATEMENT_TYPE_LOAD;
+	stmt->load.size = size;
+	stmt->load.lhs = lhs;
+	stmt->load.address = address;
+	return stmt;
+}
+
 struct rreil_statement *rreil_branch_alloc(enum rreil_branch_hint hint, struct rreil_address *target) {
 	enum rreil_branch_hint *hint_heap = (enum rreil_branch_hint *)malloc(sizeof(enum rreil_branch_hint));
 	*hint_heap = hint;
@@ -76,6 +96,22 @@ struct rreil_linear *rreil_linear_sum_alloc(struct rreil_linear *l1, struct rrei
 	linear->type = RREIL_LINEAR_TYPE_SUM;
 	linear->sum.opnd1 = l1;
 	linear->sum.opnd2 = l2;
+	return linear;
+}
+
+struct rreil_linear *rreil_linear_difference_alloc(struct rreil_linear *l1, struct rreil_linear *l2) {
+	struct rreil_linear *linear = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
+	linear->type = RREIL_LINEAR_TYPE_DIFFERENCE;
+	linear->difference.opnd1 = l1;
+	linear->difference.opnd2 = l2;
+	return linear;
+}
+
+struct rreil_linear *rreil_linear_scale_alloc(long long unsigned int scale, struct rreil_linear *l2) {
+	struct rreil_linear *linear = (struct rreil_linear*)malloc(sizeof(struct rreil_linear));
+	linear->type = RREIL_LINEAR_TYPE_SCALE;
+	linear->scale.imm = scale;
+	linear->scale.opnd = l2;
 	return linear;
 }
 

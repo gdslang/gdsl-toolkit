@@ -49,7 +49,7 @@ AM_CONDITIONAL(LINUX, test "$LINUX" = "yes")
 #AM_CONDITIONAL(HAVE_JNI_H, test "$HAVE_JNI_H" != "")
 dnl conditionals for the various decoders, either with or without semantics
 
-FRONTENDS="x86 x86-rreil avr avr-rreil";
+FRONTENDS="x86 x86-rreil avr avr-rreil mips mips-rreil";
 
 AC_ARG_WITH([frontend],
   [AS_HELP_STRING(
@@ -70,6 +70,12 @@ case $with_frontend in
 	avr-rreil)
 		AC_DEFINE([USE_AVR_RREIL],[1],[build AVR decoder and RReil semantics])
 		with_frontend=avr-rreil;;
+	mips)
+		AC_DEFINE([USE_MIPS],[1],[build MIPS bare decoder])
+		with_frontend=mips;;
+	mips-rreil)
+		AC_DEFINE([USE_MIPS_RREIL],[1],[build MIPS decoder and RReil semantics])
+		with_frontend=mips-rreil;;
 	*) AC_MSG_FAILURE([invalid frontend, choose one of ]$FRONTENDS);;
 esac
 case $with_frontend in
@@ -124,6 +130,8 @@ AM_CONDITIONAL([X86_RREIL],[test x$with_frontend = xx86-rreil])
 AM_CONDITIONAL([X86],[test x$with_frontend = xx86])
 AM_CONDITIONAL([AVR_RREIL],[test x$with_frontend = xavr-rreil])
 AM_CONDITIONAL([AVR],[test x$with_frontend = xavr])
+AM_CONDITIONAL([MIPS_RREIL],[test x$with_frontend = xmips-rreil])
+AM_CONDITIONAL([MIPS],[test x$with_frontend = xmips])
 AM_CONDITIONAL([HAVE_RREIL],[test x$has_rreil = xyes])
 AM_CONDITIONAL([HAVE_X86], [test x$has_x86 = xyes])
 #AM_CONDITIONAL([HAVE_GNU_C11], [echo "int main(void) { return 0; }" | gcc -std=gnu11 -xc - -o /dev/null])
@@ -140,6 +148,7 @@ AM_CONDITIONAL([HAVE_ELF], [test x$has_elf = xyes])
 #AM_COND_IF([HAVE_RREIL], [AM_COND_IF([HAVE_POSIX200809_C11], [AM_CONDITIONAL([HAVE_SEMANTICS_CLI], true)], [AM_CONDITIONAL([HAVE_SEMANTICS_CLI], true)])])
 
 #Library requirements
+AM_CONDITIONAL([ENV_CPPGDSL_LIB], false)
 AM_CONDITIONAL([ENV_RREIL_LIB], false)
 AM_CONDITIONAL([ENV_RREIL_SIM], false)
 AM_CONDITIONAL([ENV_GDWRAP], false)
@@ -147,11 +156,11 @@ AM_CONDITIONAL([ENV_GDSL_MULTIPLEX], false)
 AM_CONDITIONAL([ENV_JGDSL], false)
 AM_CONDITIONAL([ENV_X86_LIB], false)
 AM_CONDITIONAL([ENV_READHEX], false)
-AM_CONDITIONAL([ENV_UTIL], false)
+AM_CONDITIONAL([ENV_GDUTIL], false)
 AM_CONDITIONAL([ENV_X86_TESTER], false)
 AM_CONDITIONAL([ENV_X86_GENERATOR], false)
 
-AM_CONDITIONAL([ENV_UTIL], true)
+AM_CONDITIONAL([ENV_GDUTIL], true)
 AM_CONDITIONAL([ENV_GDSL_MULTIPLEX], true)
 AM_CONDITIONAL([ENV_GDWRAP], true)
 AM_CONDITIONAL([ENV_READHEX], true)
@@ -184,6 +193,7 @@ AM_COND_IF([X86_RREIL], [AM_CONDITIONAL([ENV_X86_TEST_RUNNER], true)], [AM_CONDI
 AM_COND_IF([X86_RREIL], [AM_CONDITIONAL([ENV_X86_TEST_STATS_RUNNER], true)], [AM_CONDITIONAL([ENV_X86_TEST_STATS_RUNNER], false)])
 
 #Library dependencies
+AM_CONDITIONAL([HAVE_CPPGDSL_LIB], false)
 AM_CONDITIONAL([HAVE_RREIL_LIB], false)
 AM_CONDITIONAL([HAVE_RREIL_SIM], false)
 AM_CONDITIONAL([HAVE_GDWRAP], false)
@@ -191,7 +201,7 @@ AM_CONDITIONAL([HAVE_GDSL_MULTIPLEX], false)
 AM_CONDITIONAL([HAVE_JGDSL], false)
 AM_CONDITIONAL([HAVE_X86_LIB], false)
 AM_CONDITIONAL([HAVE_READHEX], false)
-AM_CONDITIONAL([HAVE_UTIL], false)
+AM_CONDITIONAL([HAVE_GDUTIL], false)
 AM_CONDITIONAL([HAVE_X86_TESTER], false)
 AM_CONDITIONAL([HAVE_X86_GENERATOR], false)
 AM_CONDITIONAL([HAVE_MEMSTREAM], true)
@@ -203,8 +213,8 @@ AM_COND_IF([ENV_GDSL_MULTIPLEX], [AM_CONDITIONAL([HAVE_GDSL_MULTIPLEX], true)])
 AM_COND_IF([ENV_JGDSL], [AM_COND_IF([HAVE_GDSL_MULTIPLEX], [AM_CONDITIONAL([HAVE_JGDSL], true)])])
 AM_COND_IF([ENV_X86_LIB], [AM_CONDITIONAL([HAVE_X86_LIB], true)])
 AM_COND_IF([ENV_READHEX], [AM_CONDITIONAL([HAVE_READHEX], true)])
-AM_COND_IF([ENV_UTIL], [AM_CONDITIONAL([HAVE_UTIL], true)])
-AM_COND_IF([ENV_X86_TESTER], [AM_COND_IF([HAVE_UTIL], [AM_COND_IF([HAVE_RREIL_LIB], [AM_COND_IF([HAVE_GDWRAP], [AM_COND_IF([HAVE_X86_LIB], [AM_COND_IF([HAVE_RREIL_SIM], [AM_CONDITIONAL([HAVE_X86_TESTER], true)])])])])])])
+AM_COND_IF([ENV_GDUTIL], [AM_CONDITIONAL([HAVE_GDUTIL], true)])
+AM_COND_IF([ENV_X86_TESTER], [AM_COND_IF([HAVE_GDUTIL], [AM_COND_IF([HAVE_RREIL_LIB], [AM_COND_IF([HAVE_GDWRAP], [AM_COND_IF([HAVE_X86_LIB], [AM_COND_IF([HAVE_RREIL_SIM], [AM_CONDITIONAL([HAVE_X86_TESTER], true)])])])])])])
 AM_COND_IF([ENV_X86_GENERATOR], [AM_CONDITIONAL([HAVE_X86_GENERATOR], true)])
 AM_COND_IF([HAVE_OPEN_MEMSTREAM], [AM_CONDITIONAL([HAVE_MEMSTREAM], false)])
 
@@ -296,7 +306,7 @@ AS_ECHO_N "  libgdsl-multiplex:            "; AM_COND_IF([HAVE_GDSL_MULTIPLEX], 
 AS_ECHO_N "  libjgdsl:                     "; AM_COND_IF([HAVE_JGDSL], echo yes, echo no)
 AS_ECHO_N "  libx86:                       "; AM_COND_IF([HAVE_X86_LIB], echo yes, echo no)
 AS_ECHO_N "  libreadhex:                   "; AM_COND_IF([HAVE_READHEX], echo yes, echo no)
-AS_ECHO_N "  libutil:                      "; AM_COND_IF([HAVE_UTIL], echo yes, echo no)
+AS_ECHO_N "  libgdutil:                    "; AM_COND_IF([HAVE_GDUTIL], echo yes, echo no)
 AS_ECHO_N "  libx86-tester:                "; AM_COND_IF([HAVE_X86_TESTER], echo yes, echo no)
 AS_ECHO_N "  libx86-generator:             "; AM_COND_IF([HAVE_X86_GENERATOR], echo yes, echo no)
 AS_ECHO_N "  libmemstream:                 "; AM_COND_IF([HAVE_MEMSTREAM], echo yes, echo no)

@@ -9,9 +9,7 @@ import gdsl.GdslException;
  * @author Julian Kranz
  */
 public class GdslDecodeException extends GdslException {
-  /**
-	 * 
-	 */
+
   private static final long serialVersionUID = 1L;
 
   public GdslDecodeException () {
@@ -28,5 +26,4 @@ public class GdslDecodeException extends GdslException {
   public GdslDecodeException (String message, Throwable cause) {
     super(message, cause);
   }
-
 }

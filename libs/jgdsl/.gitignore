@@ -12,3 +12,4 @@
 /src/*.o
 /src/*.lo
 /src/.dirstamp
+/build

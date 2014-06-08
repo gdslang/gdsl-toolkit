@@ -20,10 +20,8 @@ public class Decoder {
    * @return the decoded instruction
    */
   public Instruction decodeOne () {
-    long offset_before = gdsl.getIpOffset();
     long insnPtr = gdsl.decodeOne();
-    long offset_after = gdsl.getIpOffset();
 
-    return new Instruction(gdsl, insnPtr, offset_after - offset_before);
+    return new Instruction(gdsl, insnPtr);
   }
 }
