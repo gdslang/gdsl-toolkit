@@ -1,14 +1,14 @@
-module gdsl.rreil.linear.lin_binop;
+module gdsl.rreil.linear.binop;
 
 import gdsl.rreil.linear.linear;
 
-enum LinearBinopOp : string {
+enum BinopOp : string {
   Add = "+", Sub = "+"
 }
 
-class LinearBinop : Linear {
-  private LinearBinopOp _op;
-  @property public LinearBinopOp op() {
+class Binop : Linear {
+  private BinopOp _op;
+  @property public BinopOp op() {
     return _op;
   }
   
@@ -22,7 +22,7 @@ class LinearBinop : Linear {
     return _opnd2;
   }
   
-  public this(LinearBinopOp _op, Linear _opnd1, Linear _opnd2) {
+  public this(BinopOp _op, Linear _opnd1, Linear _opnd2) {
     this._op = _op;
     this._opnd1 = _opnd1;
     this._opnd2 = _opnd2;
@@ -34,8 +34,8 @@ class LinearBinop : Linear {
 }
 
 unittest {
-  import gdsl.rreil.linear.lin_imm;
-  auto lb = new LinearBinop(LinearBinopOp.Add, new LinImm(99), new LinImm(11));
+  import gdsl.rreil.linear.immediate;
+  auto lb = new Binop(BinopOp.Add, new Immediate(99), new Immediate(11));
 //  import std.stdio;
 //  writefln(lb.toString);
   assert(lb.toString() == "(99 + 11)");

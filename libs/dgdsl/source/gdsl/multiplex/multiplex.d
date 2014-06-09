@@ -66,5 +66,5 @@ void gdsl_multiplex_frontend_close (frontend* frontend);
 unittest {
   import std.stdio;
   frontend f;
-  writeln(f.sizeof);
+//  writeln(f.sizeof);
 }

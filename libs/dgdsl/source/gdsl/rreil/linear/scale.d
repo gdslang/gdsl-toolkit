@@ -1,10 +1,10 @@
-module gdsl.rreil.linear.lin_scale;
+module gdsl.rreil.linear.scale;
 
 import gdsl.rreil.linear.linear;
 import gdsl.multiplex.gdsl_generic;
 import std.conv;
 
-class LinearScale : Linear {
+class Scale : Linear {
   private int_t _scale;
   @property public int_t scale() {
     return _scale;
@@ -26,7 +26,7 @@ class LinearScale : Linear {
 }
 
 unittest {
-  import gdsl.rreil.linear.lin_imm;
-  auto ls = new LinearScale(22, new LinImm(32));
+  import gdsl.rreil.linear.immediate;
+  auto ls = new Scale(22, new Immediate(32));
   assert(ls.toString == "22*(32)");
 }

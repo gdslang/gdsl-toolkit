@@ -1,10 +1,10 @@
-module gdsl.rreil.linear.lin_imm;
+module gdsl.rreil.linear.immediate;
 
 import gdsl.rreil.linear.linear;
 import gdsl.multiplex.gdsl_generic;
 import std.conv;
 
-class LinImm : Linear {
+class Immediate : Linear {
   private int_t _inner;
   
   @property public int_t inner() {
@@ -21,6 +21,6 @@ class LinImm : Linear {
 }
 
 unittest {
-  LinImm li = new LinImm(88);
+  Immediate li = new Immediate(88);
   assert(li.toString == "88");
 }
