@@ -449,3 +449,31 @@ val rreil-stmts-count stmts = let
 in
   count 0 stmts
 end
+
+val rreil-ltid? a b =
+   let
+      val ltf? a b =
+         case b of
+            VIRT_T x: '0'
+          | _ : index a < index b
+         end
+   in
+      case a of
+         VIRT_T x:
+            case b of
+               VIRT_T y: x < y
+             | _ : '1'
+            end
+       | _: ltf? a b
+      end
+   end
+
+val rreil-ltvar? a b = if rreil-ltid? a.id b.id then
+  true
+else
+  a.offset < b.offset
+
+val rreil-ltvarl? a b = if rreil-ltvar? a b then
+  true
+else
+  a.size < b.size

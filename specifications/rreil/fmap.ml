@@ -20,26 +20,3 @@ val fmap-fold f s t = bbtree-fold f s t
 val to-field sz offs = {lo=offs, hi=offs + sz - 1}
 val fmap-add-field t x f = fmap-update t {id=x, fields=fitree-singleton f}
 val fmap-add-range t x sz offs = fmap-add-field t x (to-field sz offs)
-val rreil-ltid? a b =
-   let
-      val ltf? a b =
-         case b of
- #           ARCH_R x: '1'
-            VIRT_T x: '0'
-          | _ : index a < index b
-         end
-   in
-      case a of
-#         ARCH_R x:
-#            case b of
-#               ARCH_R y: x < y
-#             | _ : '0'
-#            end
-         VIRT_T x:
-            case b of
-               VIRT_T y: x < y
-             | _ : '1'
-            end
-       | _: ltf? a b
-      end
-   end 
