@@ -12,17 +12,14 @@ pub enum Id {
   Virtual(Box<VirtualId>)
 }
 
+fn cc<'a, T>(x: &'a T) -> &'a T { x }
+//        (|fop: &'a ArchId| -> &'a ArchId { fop })(*id) as &'a SuperId
+
 impl Id {
   pub fn inner<'a>(&'a self) -> &'a SuperId {
     match *self {
-      Arch(ref id) => {
-        let id: &ArchId = *id;
-        id as &'a SuperId
-      }
-      Virtual(ref id) => {
-        let id: &VirtualId = *id;
-        id as &'a SuperId
-      }
+      Arch(ref id) => cc(*id) as &'a SuperId,
+      Virtual(ref id) => cc(*id) as &'a SuperId
     }
   }
 }
