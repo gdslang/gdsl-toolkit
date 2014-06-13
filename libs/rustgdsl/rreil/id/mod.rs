@@ -4,9 +4,8 @@ use std::fmt::Result;
 
 pub use rreil::id::arch::ArchId;
 
-#[path="arch.rs"]
+//#[path="arch.rs"]
 mod arch;
-
 
 pub enum Id {
   Arch(Box<ArchId>),
@@ -16,8 +15,14 @@ pub enum Id {
 impl Id {
   pub fn inner<'a>(&'a self) -> &'a SuperId {
     match *self {
-      Arch(ref id) => id as &SuperId,
-      Virtual(ref id) => id as &SuperId
+      Arch(ref id) => {
+        let id: &ArchId = *id;
+        id as &'a SuperId
+      }
+      Virtual(ref id) => {
+        let id: &VirtualId = *id;
+        id as &'a SuperId
+      }
     }
   }
 }
@@ -50,5 +55,5 @@ impl fmt::Show for VirtualId {
   }
 }
 
-impl SuperId for Box<VirtualId> {
+impl SuperId for VirtualId {
 }

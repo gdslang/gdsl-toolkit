@@ -17,5 +17,5 @@ impl fmt::Show for ArchId {
   }
 }
 
-impl SuperId for Box<ArchId> {
+impl SuperId for ArchId {
 }

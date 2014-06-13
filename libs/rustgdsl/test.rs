@@ -17,4 +17,6 @@ fn main() {
 //  let p: &SuperId = y.inner();
 //  let q: &fmt::Show = p as &fmt::Show;
   println!("{}", y);
+
+  let q: Box<SuperId> = box ArchId::new(String::from_str("inge"));
 }
