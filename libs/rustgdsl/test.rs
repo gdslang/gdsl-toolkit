@@ -17,5 +17,4 @@ fn main() {
 //  let p: &SuperId = y.inner();
 //  let q: &fmt::Show = p as &fmt::Show;
   println!("{}", y);
-  y.inner().fap();
 }

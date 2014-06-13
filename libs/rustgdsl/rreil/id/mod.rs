@@ -2,13 +2,19 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::fmt::Result;
 
+pub use rreil::id::arch::ArchId;
+
+#[path="arch.rs"]
+mod arch;
+
+
 pub enum Id {
   Arch(Box<ArchId>),
   Virtual(Box<VirtualId>)
 }
 
 impl Id {
-  pub fn inner<'a>(&'a self) ->&'a SuperId {
+  pub fn inner<'a>(&'a self) -> &'a SuperId {
     match *self {
       Arch(ref id) => id as &SuperId,
       Virtual(ref id) => id as &SuperId
@@ -16,11 +22,7 @@ impl Id {
   }
 }
 
-pub trait Fap {
-  fn fap(&self);
-}
-
-pub trait SuperId : fmt::Show + Fap {}
+pub trait SuperId : fmt::Show {}
 
 impl fmt::Show for Id {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -29,31 +31,6 @@ impl fmt::Show for Id {
 //    Virtual(ref id) => id.fmt(f)
 //    }
     (*self).inner().fmt(f)
-  }
-}
-
-pub struct ArchId {
-  name: String
-}
-
-impl ArchId {
-  pub fn new(name: String) -> ArchId {
-    ArchId {name:name}
-  }
-}
-
-impl fmt::Show for ArchId {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-      write!(f, "{}", self.name)
-  }
-}
-
-impl SuperId for Box<ArchId> {
-}
-
-impl Fap for Box<ArchId> {
-  fn fap(&self) {
-    println!("ArchMöp");
   }
 }
 
@@ -74,10 +51,4 @@ impl fmt::Show for VirtualId {
 }
 
 impl SuperId for Box<VirtualId> {
-}
-
-impl Fap for Box<VirtualId> {
-  fn fap(&self) {
-    println!("ArchMöp");
-  }
 }
