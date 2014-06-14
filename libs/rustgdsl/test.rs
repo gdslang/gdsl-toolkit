@@ -6,6 +6,10 @@ use rreil::id::Arch;
 use rreil::id::Shared;
 use rreil::id::SuperId;
 
+use rreil::linear::Linear;
+use rreil::linear::Immediate;
+use rreil::linear::Variable;
+
 use std::fmt;
 
 mod rreil;
@@ -25,4 +29,10 @@ fn main() {
 
   let fup = Shared(box FloatingFlags);
   println!("{}", fup)
+
+  let lin = Immediate(55);
+  println!("{}", lin);
+
+  let lin2 = Variable(box y);
+  println!("{}", lin2);
 }

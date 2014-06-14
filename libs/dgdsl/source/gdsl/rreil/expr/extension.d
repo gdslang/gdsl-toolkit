@@ -19,7 +19,7 @@ class Extension : Expression {
   
   private int_t _fromSize;
   @property public int_t fromSize() {
-    return fromSize;
+    return _fromSize;
   }
   
   private Linear _opnd;
@@ -34,7 +34,8 @@ class Extension : Expression {
   }
   
   public override string toString() {
-    return "[" ~ to!string(fromSize) ~ "->" ~ cast(string)_op ~ "]" ~ _opnd.toString();
+    //return "[" ~ to!string(fromSize) ~ "->" ~ cast(string)_op ~ "]" ~ _opnd.toString();
+    return "[" ~ to!string(_fromSize) ~ "->" ~ cast(string)_op ~ "]" ~ _opnd.toString();
   }
 }
 
