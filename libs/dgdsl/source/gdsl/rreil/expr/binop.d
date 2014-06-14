@@ -1,6 +1,7 @@
 module gdsl.rreil.expr.binop;
 
 import gdsl.rreil.expr.expr;
+import gdsl.rreil.linear.linear;
 
 enum BinopType : string {
   MUL = "*",
@@ -22,17 +23,17 @@ class Binop : Expression {
     return _type;
   }
   
-  private Expression _opnd1;
-  @property public Expression opnd1() {
+  private Linear _opnd1;
+  @property public Linear opnd1() {
     return _opnd1;
   }
   
-  private Expression _opnd2;
-  @property public Expression opnd2() {
+  private Linear _opnd2;
+  @property public Linear opnd2() {
     return _opnd2;
   }
   
-  public this(BinopType type, Expression opnd1, Expression opnd2) {
+  public this(BinopType type, Linear opnd1, Linear opnd2) {
     this._type = type;
     this._opnd1 = opnd1;
     this._opnd2 = opnd2;
@@ -44,4 +45,7 @@ class Binop : Expression {
 }
 
 unittest {
+  import gdsl.rreil.linear.immediate;
+  auto bep = new Binop(BinopType.AND, new Immediate(42), new Immediate(123));
+  assert(bep.toString == "42 & 123");
 }
