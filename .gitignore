@@ -200,3 +200,5 @@ tools/xed-cmp/build/
 /semantics-opt
 /stamp-h1
 *~
+
+*.swp

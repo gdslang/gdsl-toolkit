@@ -1,6 +1,9 @@
 use rreil::id::VirtualId;
 use rreil::id::ArchId;
+//use rreil::id::SharedId;
+use rreil::id::shared::FloatingFlags;
 use rreil::id::Arch;
+use rreil::id::Shared;
 use rreil::id::SuperId;
 
 use std::fmt;
@@ -19,4 +22,7 @@ fn main() {
   println!("{}", y);
 
   let q: Box<SuperId> = box ArchId::new(String::from_str("inge"));
+
+  let fup = Shared(box FloatingFlags);
+  println!("{}", fup)
 }
