@@ -1,8 +1,14 @@
 val set-empty = bbtree-empty {}
+val map-empty = set-empty
+
 val varlset-add set varl = bbtree-add rreil-ltvarl? set varl
 
 val varset-add set var = bbtree-add rreil-ltvar? set var
 val varset-contains? set var = bbtree-contains? rreil-ltvar? set var
+
+val expr-map-lt? a b = rreil-ltvar? a.key b.key
+val expr-map-add map item = bbtree-add expr-map-lt? map item
+val expr-map-contains map key = bbtree-contains? expr-map-lt? map {key=key, value={}}
 
 val vars lin size = let
   val visit-var set var = varset-add set var #(@{size=size}var)
