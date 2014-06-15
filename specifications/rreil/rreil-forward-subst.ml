@@ -1,6 +1,8 @@
 val set-empty = bbtree-empty {}
 val varlset-add set varl = bbtree-add rreil-ltvarl? set varl
+
 val varset-add set var = bbtree-add rreil-ltvar? set var
+val varset-contains? set var = bbtree-contains? rreil-ltvar? set var
 
 val vars lin size = let
   val visit-var set var = varset-add set var #(@{size=size}var)
@@ -15,14 +17,29 @@ end
 # ( ) expr: varls -> lin     { x.0/32 -> 2*y.5 + x.9, u.0/32 -> 2*y.5 + 3 }
 # ( ) dep: varls -> 2^{vars} { y.5/32 -> {x.0, u.0}, x.9/32 -> {x.0} }
 
-# (x) expr: varls -> lin     { x.0 -> (size, 2*y.5 + x.9), u.0 -> (size, 2*y.5 + 3) }
+# (x) expr: vars -> (int*lin)     { x.0 -> (size, 2*y.5 + x.9), u.0 -> (size, 2*y.5 + 3) }
 # ( ) dep: varls -> 2^{vars} { y -> ([5/32], {x.0, u.0}), x -> ([9/32], {x.0}) }; inaccurate?
 # (x) dep: varls -> 2^{vars} { y -> {[5/32] => {x.0, u.0}}, x -> {[9/32] => {x.0}} };
 
-val substitude state stmt = stmt(* case cons.hd of
-   SEM_LOAD l: @{address=(substitude state l.address)}l
-   
-end*)
+val substitude state stmt = let
+  val substitude-linear linear = case linear of
+     SEM_LIN_VAR v: SEM_LIN_VAR v
+   | l: l
+  end
+  val substitude-address address = @{address=substitude-linear address.address}address
+  val substitude-sexpr sexpr = case sexpr of
+     SEM_SEXPR_LIN l: SEM_SEXPR_LIN (substitude-linear l)
+   | x: x
+  end
+  val substitude-expr expr = case expr of
+     SEM_SEXPR s: SEM_SEXPR (substitude-sexpr s)
+   | x: x
+  end
+in case stmt of
+   SEM_LOAD l: SEM_LOAD (@{address=(substitude-address l.address)}l)
+ | SEM_ASSIGN a: SEM_ASSIGN (@{rhs=substitude-expr a.rhs}a)
+ | s: s
+end end
 
 val update-state state stmt = state
 
