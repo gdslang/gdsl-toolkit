@@ -2,6 +2,8 @@ use std::fmt;
 use std::fmt::Formatter;
 use std::fmt::Result;
 
+pub use rreil::cc;
+
 pub use rreil::id::arch::ArchId;
 pub use rreil::id::virtual_::VirtualId;
 pub use rreil::id::shared::SharedId;
@@ -17,7 +19,6 @@ pub enum Id {
   Shared(Box<SharedId>)
 }
 
-fn cc<'a, T>(x: &'a T) -> &'a T { x }
 //        (|fop: &'a ArchId| -> &'a ArchId { fop })(*id) as &'a SuperId
 
 pub trait SuperId : fmt::Show {}
