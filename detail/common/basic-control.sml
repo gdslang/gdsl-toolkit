@@ -41,6 +41,9 @@ structure BasicControl :  sig
   (* maximum number of iterations in the type checker before giving up *)
     val maxIter : int Controls.control
 
+  (* wheather to infer principal typings *)
+    val principalTypings : bool Controls.control
+
   (* the number of fields in a fixed record after which it is allocated
       on the heap rather than passed by value *)
     val boxThreshold : int Controls.control
@@ -181,7 +184,16 @@ structure BasicControl :  sig
 	    pri = [0],
 	    obscurity = 0,
 	    help = "maximum number of fixpoint iterations in type checker",
-	    default = 4
+	    default = 3
+    }
+
+  (* wheather to infer principal typings *)
+    val principalTypings : bool Controls.control = Controls.genControl {
+	    name = "m",
+	    pri = [0],
+	    obscurity = 0,
+	    help = "infer Hindley-Milner rather than exact types",
+	    default = false
     }
 
 

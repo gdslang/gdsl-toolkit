@@ -117,7 +117,7 @@ end = struct
           | AST.BITty i => T.VEC (T.CONST (IntInf.toInt i))
           | AST.NAMEDty (n, args) =>
                (case S.find (!synTable, n) of
-                  SOME t => T.SYN (n, t)
+                  SOME t => T.SYN (n, Types.setFlagsToTop t)
                 | NONE => (case D.find (!dtyTable, n) of
                      SOME {tdVars=varMap,tdCons=_} =>
                         let
@@ -126,7 +126,7 @@ end = struct
                            fun findType v = case SymMap.find (argMap,v) of
                                 SOME t => vType tvs (s, t)
                               | NONE => case V.find (tvs,v) of
-                                   SOME varPair => T.VAR varPair
+                                   SOME (tVar,bVar) => T.VAR (tVar,BD.freshBVar ())
                                  | NONE => (Error.errorAt
                                     (errStrm, s,
                                      ["unknown type variable ",
@@ -136,7 +136,7 @@ end = struct
                            T.ALG (n, List.map findType (V.listKeys varMap))
                         end
                    | NONE => (case V.find (tvs,n) of
-                        SOME varPair => T.VAR varPair
+                        SOME (tVar,bVar) => T.VAR (tVar,BD.freshBVar ())
                       | NONE => (Error.errorAt
                            (errStrm, s,
                             ["type synonym or data type ",

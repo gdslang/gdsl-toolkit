@@ -423,7 +423,7 @@ val sem-c sem-cc x = do
   sem-cc x (/d (var cf))
 end
 val sem-b sem-cc x = sem-c sem-cc x
-val sem-nae sem-cc x = sem-nae sem-cc x
+val sem-nae sem-cc x = sem-b sem-cc x
 
 val sem-be sem-cc x = do
   leu <- fLEU;
@@ -1054,7 +1054,7 @@ in
    | CMOVZ x: sem-z sem-cmovcc (comb x)
    | CMP x: sem-cmp (comb x)
    | CMPPD x: sem-default-arity3 insn.insn (comb x)
-   | CMPPS x: sem-default-arity3 insn.insn (comb x)
+   | CMPPS x: sem-default-arity3 insn.insn (comb x) 
    | CMPS x: sem-repe-repne-insn (comb x) sem-cmps
    | CMPSD x: sem-default-arity3 insn.insn (comb x)
 #   | CMPSD x:
