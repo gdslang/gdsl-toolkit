@@ -8,6 +8,7 @@
 #include <cppgdsl/block.h>
 #include <cppgdsl/frontend/bare_frontend.h>
 #include <cppgdsl/frontend/frontend.h>
+#include <cppgdsl/rreil/linear/lin_imm.h>
 #include <cppgdsl/instruction.h>
 #include <cppgdsl/rreil/statement/statement.h>
 #include <cppgdsl/rreil_builder.h>
@@ -16,6 +17,9 @@
 #include <cppgdsl/rreil/visitor.h>
 
 #include <cppgdsl/preservation.h>
+#include <cppgdsl/rreil/linear/lin_var.h>
+
+#include <cppgdsl/rreil/linear/lin_binop.h>
 
 #include <cppgdsl/rreil/statement/assign.h>
 #include <cppgdsl/rreil/statement/statement_visitor.h>
@@ -64,14 +68,40 @@ void demo_single(gdsl::gdsl &g) {
   }
   printf("Sizes of assignments and loads:\n");
   for(statement *s : *rreil) {
+
+    bool ip = false;
+    int_t ip_offset;
+
     statement_visitor v;
     v._([&](assign *a) {
+      visitor *ev = new visitor();
+      ((linear_visitor*)ev)->_([&](lin_binop *a) {
+        if(a->get_op() == BIN_LIN_ADD) {
+          linear_visitor lv;
+          lv._([&](lin_var *v) {
+            if(v->get_var()->get_id()->to_string() == "IP") {
+              ip = true;
+            }
+          });
+          a->get_opnd1()->accept(lv);
+          lv._([&](lin_imm *i) {
+            ip_offset = i->get_imm();
+          });
+          a->get_opnd2()->accept(lv);
+        }
+       });
+      a->accept(*ev);
       printf("Size of assignment: %lld\n", a->get_size());
     });
+
     v._([&](load *l) {
       printf("Size of load: %lld\n", l->get_size());
     });
     s->accept(v);
+
+    if(ip) {
+      printf("IP added offset: %llu\n", ip_offset);
+    }
   }
   printf("Counting variables...\n");
   size_t vars = 0;
@@ -80,6 +110,7 @@ void demo_single(gdsl::gdsl &g) {
     ((statement_visitor*)v)->_([&](assign *a) {
       printf("Assignment\n");
     });
+
     v->_([&](variable *a) {
       vars++;
       printf("Variable!\n");
@@ -88,7 +119,6 @@ void demo_single(gdsl::gdsl &g) {
     delete v;
   }
   printf("Number of variables: %zu\n", vars);
-
 
   // Cleanup
   for(statement *s : *rreil)

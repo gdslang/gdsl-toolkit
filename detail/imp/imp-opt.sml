@@ -949,18 +949,13 @@ structure TypeRefinement = struct
                val _ = iter := (!iter) + 1
                val xTy = DynamicArray.sub (tt,xRoot)
                val yTy = DynamicArray.sub (tt,yRoot)
-               val _ = if !iter>40 then
-                        raise TypeOptBug
-                     else if !iter>30 then
-                        TextIO.print ("non-termination for lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ ", xTy = " ^ showSType xTy ^ ", yTy = " ^ showSType yTy ^"\n")
-                     else ()
                (*val _ = if (xRoot=18419 orelse yRoot=18419) andalso (xRoot<>yRoot) then TextIO.print ("lub of " ^ showSType t1 ^ " and " ^ showSType t2 ^ ", that is, of " ^showSType (inlineSType s t1) ^ " and " ^ showSType (inlineSType s t2) ^ "\n") else ()*)
                val ecr = VARstype (Int.min (xRoot, yRoot))
                val ty = case (xTy,yTy) of
                   (VARstype xRoot, VARstype yRoot) => ecr
                 | (VARstype xRoot, t) => t
                 | (t, VARstype yRoot) => t
-                | (t1,t2) => lub (t1,t2)
+                | (t1,t2) => if !iter>30 then OBJstype else lub (t1,t2)
                val _ = DynamicArray.update (tt,Int.max (xRoot,yRoot),ecr)
                val _ = DynamicArray.update (tt,Int.min (xRoot,yRoot),ty)
             in
