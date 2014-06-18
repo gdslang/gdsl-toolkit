@@ -15,6 +15,7 @@ namespace gdsl {
 class _frontend {
 protected:
   struct frontend frontend;
+  bool initialized = false;
 protected:
   virtual ~_frontend();
 

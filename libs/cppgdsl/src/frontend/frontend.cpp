@@ -6,8 +6,9 @@
  */
 
 #include <cppgdsl/frontend/frontend.h>
+#include <stdio.h>
 
 gdsl::_frontend::~_frontend() {
-  gdsl_multiplex_frontend_close(&frontend);
+  if(initialized) gdsl_multiplex_frontend_close(&frontend);
 }
 
