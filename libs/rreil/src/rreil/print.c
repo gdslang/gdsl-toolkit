@@ -14,57 +14,57 @@
 #include <x86.h>
 #endif
 
-void rreil_address_print(struct rreil_address *address) {
-	printf("{%llu} ", address->size);
-	rreil_linear_print(address->address);
+void rreil_address_print(FILE *stream, struct rreil_address *address) {
+	fprintf(stream, "{%llu} ", address->size);
+	rreil_linear_print(stream, address->address);
 }
 
-void rreil_branch_hint_print(enum rreil_branch_hint *hint) {
+void rreil_branch_hint_print(FILE *stream, enum rreil_branch_hint *hint) {
 	switch(*hint) {
 		case RREIL_BRANCH_HINT_JUMP: {
-			printf("JUMP");
+			fprintf(stream, "JUMP");
 			break;
 		}
 		case RREIL_BRANCH_HINT_CALL: {
-			printf("CALL");
+			fprintf(stream, "CALL");
 			break;
 		}
 		case RREIL_BRANCH_HINT_RET: {
-			printf("RET");
+			fprintf(stream, "RET");
 			break;
 		}
 	}
 }
 
-void rreil_comparator_print(struct rreil_comparator *comparator) {
-	rreil_linear_print(comparator->arity2.opnd1);
+void rreil_comparator_print(FILE *stream, struct rreil_comparator *comparator) {
+	rreil_linear_print(stream, comparator->arity2.opnd1);
 	switch(comparator->type) {
 		case RREIL_COMPARATOR_TYPE_EQ: {
-			printf(" == ");
+			fprintf(stream, " == ");
 			break;
 		}
 		case RREIL_COMPARATOR_TYPE_NEQ: {
-			printf(" != ");
+			fprintf(stream, " != ");
 			break;
 		}
 		case RREIL_COMPARATOR_TYPE_LES: {
-			printf(" <=s ");
+			fprintf(stream, " <=s ");
 			break;
 		}
 		case RREIL_COMPARATOR_TYPE_LEU: {
-			printf(" <=u ");
+			fprintf(stream, " <=u ");
 			break;
 		}
 		case RREIL_COMPARATOR_TYPE_LTS: {
-			printf(" <s ");
+			fprintf(stream, " <s ");
 			break;
 		}
 		case RREIL_COMPARATOR_TYPE_LTU: {
-			printf(" <u ");
+			fprintf(stream, " <u ");
 			break;
 		}
 	}
-	rreil_linear_print(comparator->arity2.opnd2);
+	rreil_linear_print(stream, comparator->arity2.opnd2);
 }
 
 void rreil_id_print(FILE *stream, struct rreil_id *id) {
@@ -119,137 +119,137 @@ void rreil_exception_print(FILE *stream, struct rreil_exception *exception) {
 	}
 }
 
-void rreil_linear_print(struct rreil_linear *linear) {
+void rreil_linear_print(FILE *stream, struct rreil_linear *linear) {
 	switch(linear->type) {
 		case RREIL_LINEAR_TYPE_VARIABLE: {
-			rreil_variable_print(stdout, linear->variable);
+			rreil_variable_print(stream, linear->variable);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_IMMEDIATE: {
-			printf("%llu", linear->immediate);
+			fprintf(stream, "%llu", linear->immediate);
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SUM: {
-			printf("(");
-			rreil_linear_print(linear->sum.opnd1);
-			printf(" + ");
-			rreil_linear_print(linear->sum.opnd2);
-			printf(")");
+			fprintf(stream, "(");
+			rreil_linear_print(stream, linear->sum.opnd1);
+			fprintf(stream, " + ");
+			rreil_linear_print(stream, linear->sum.opnd2);
+			fprintf(stream, ")");
 			break;
 		}
 		case RREIL_LINEAR_TYPE_DIFFERENCE: {
-			printf("(");
-			rreil_linear_print(linear->difference.opnd1);
-			printf(" - ");
-			rreil_linear_print(linear->difference.opnd2);
-			printf(")");
+			fprintf(stream, "(");
+			rreil_linear_print(stream, linear->difference.opnd1);
+			fprintf(stream, " - ");
+			rreil_linear_print(stream, linear->difference.opnd2);
+			fprintf(stream, ")");
 			break;
 		}
 		case RREIL_LINEAR_TYPE_SCALE: {
-			printf("%llu*", linear->scale.imm);
-			rreil_linear_print(linear->scale.opnd);
+			fprintf(stream, "%llu*", linear->scale.imm);
+			rreil_linear_print(stream, linear->scale.opnd);
 			break;
 		}
 	}
 }
 
-void rreil_expr_print(struct rreil_expr *expr) {
+void rreil_expr_print(FILE *stream, struct rreil_expr *expr) {
 	switch(expr->type) {
 		case RREIL_EXPR_TYPE_SEXPR: {
-			rreil_sexpr_print(expr->sexpr);
+			rreil_sexpr_print(stream, expr->sexpr);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MUL: {
-			rreil_linear_print(expr->mul.opnd1);
-			printf(" * ");
-			rreil_linear_print(expr->mul.opnd2);
+			rreil_linear_print(stream, expr->mul.opnd1);
+			fprintf(stream, " * ");
+			rreil_linear_print(stream, expr->mul.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIV: {
-			rreil_linear_print(expr->div.opnd1);
-			printf(" /u ");
-			rreil_linear_print(expr->div.opnd2);
+			rreil_linear_print(stream, expr->div.opnd1);
+			fprintf(stream, " /u ");
+			rreil_linear_print(stream, expr->div.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_DIVS: {
-			rreil_linear_print(expr->divs.opnd1);
-			printf(" /s ");
-			rreil_linear_print(expr->divs.opnd2);
+			rreil_linear_print(stream, expr->divs.opnd1);
+			fprintf(stream, " /s ");
+			rreil_linear_print(stream, expr->divs.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MOD: {
-			rreil_linear_print(expr->mod.opnd1);
-			printf(" %% ");
-			rreil_linear_print(expr->mod.opnd2);
+			rreil_linear_print(stream, expr->mod.opnd1);
+			fprintf(stream, " %% ");
+			rreil_linear_print(stream, expr->mod.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_MODS: {
-			rreil_linear_print(expr->mods.opnd1);
-			printf(" %%s ");
-			rreil_linear_print(expr->mods.opnd2);
+			rreil_linear_print(stream, expr->mods.opnd1);
+			fprintf(stream, " %%s ");
+			rreil_linear_print(stream, expr->mods.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHL: {
-			rreil_linear_print(expr->shl.opnd1);
-			printf(" << ");
-			rreil_linear_print(expr->shl.opnd2);
+			rreil_linear_print(stream, expr->shl.opnd1);
+			fprintf(stream, " << ");
+			rreil_linear_print(stream, expr->shl.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHR: {
-			rreil_linear_print(expr->shr.opnd1);
-			printf(" >>u ");
-			rreil_linear_print(expr->shr.opnd2);
+			rreil_linear_print(stream, expr->shr.opnd1);
+			fprintf(stream, " >>u ");
+			rreil_linear_print(stream, expr->shr.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SHRS: {
-			rreil_linear_print(expr->shrs.opnd1);
-			printf(" >>s ");
-			rreil_linear_print(expr->shrs.opnd2);
+			rreil_linear_print(stream, expr->shrs.opnd1);
+			fprintf(stream, " >>s ");
+			rreil_linear_print(stream, expr->shrs.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_AND: {
-			rreil_linear_print(expr->and_.opnd1);
-			printf(" & ");
-			rreil_linear_print(expr->and_.opnd2);
+			rreil_linear_print(stream, expr->and_.opnd1);
+			fprintf(stream, " & ");
+			rreil_linear_print(stream, expr->and_.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_OR: {
-			rreil_linear_print(expr->or_.opnd1);
-			printf(" | ");
-			rreil_linear_print(expr->or_.opnd2);
+			rreil_linear_print(stream, expr->or_.opnd1);
+			fprintf(stream, " | ");
+			rreil_linear_print(stream, expr->or_.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_XOR: {
-			rreil_linear_print(expr->xor_.opnd1);
-			printf(" ^ ");
-			rreil_linear_print(expr->xor_.opnd2);
+			rreil_linear_print(stream, expr->xor_.opnd1);
+			fprintf(stream, " ^ ");
+			rreil_linear_print(stream, expr->xor_.opnd2);
 			break;
 		}
 		case RREIL_EXPR_TYPE_SX: {
-			printf("{%llu->s*} ", expr->sx.fromsize);
-			rreil_linear_print(expr->sx.opnd);
+			fprintf(stream, "{%llu->s*} ", expr->sx.fromsize);
+			rreil_linear_print(stream, expr->sx.opnd);
 			break;
 		}
 		case RREIL_EXPR_TYPE_ZX: {
-			printf("{%llu->u*} ", expr->zx.fromsize);
-			rreil_linear_print(expr->zx.opnd);
+			fprintf(stream, "{%llu->u*} ", expr->zx.fromsize);
+			rreil_linear_print(stream, expr->zx.opnd);
 			break;
 		}
 	}
 }
 
-void rreil_sexpr_print(struct rreil_sexpr *sexpr) {
+void rreil_sexpr_print(FILE *stream, struct rreil_sexpr *sexpr) {
 	switch(sexpr->type) {
 		case RREIL_SEXPR_TYPE_LIN: {
-			rreil_linear_print(sexpr->lin);
+			rreil_linear_print(stream, sexpr->lin);
 			break;
 		}
 		case RREIL_SEXPR_TYPE_CMP: {
-			rreil_comparator_print(sexpr->cmp);
+			rreil_comparator_print(stream, sexpr->cmp);
 			break;
 		}
 		case RREIL_SEXPR_TYPE_ARB: {
-			printf("arbitrary");
+			fprintf(stream, "arbitrary");
 			break;
 		}
 	}
@@ -257,27 +257,22 @@ void rreil_sexpr_print(struct rreil_sexpr *sexpr) {
 
 void rreil_variable_print(FILE *stream, struct rreil_variable *variable) {
 	rreil_id_print(stream, variable->id);
-	if(variable->offset)
-		fprintf(stream, "/%llu", variable->offset);
+	if(variable->offset) fprintf(stream, "/%llu", variable->offset);
 }
 
 void rreil_varl_print(FILE *stream, struct rreil_variable_limited *varl) {
 	rreil_id_print(stream, varl->id);
-	if(varl->offset)
-		fprintf(stream, "/%llu", varl->offset);
+	if(varl->offset) fprintf(stream, "/%llu", varl->offset);
 	fprintf(stream, ":%llu", varl->size);
 }
 
 void rreil_varls_print(FILE *stream, struct rreil_variable_limited_tuple *varls) {
-	if(varls->variables_length > 1)
-		fprintf(stream, "(");
+	if(varls->variables_length > 1) fprintf(stream, "(");
 	for(size_t i = 0; i < varls->variables_length; ++i) {
-		if(i)
-			fprintf(stream, ", ");
+		if(i) fprintf(stream, ", ");
 		rreil_varl_print(stream, varls->variables[i]);
 	}
-	if(varls->variables_length > 1)
-		fprintf(stream, ")");
+	if(varls->variables_length > 1) fprintf(stream, ")");
 }
 
 void rreil_flop_print(FILE *stream, enum rreil_flop *flop) {
@@ -297,99 +292,99 @@ void rreil_flop_print(FILE *stream, enum rreil_flop *flop) {
 	}
 }
 
-void rreil_statement_print(struct rreil_statement *statement) {
+void rreil_statement_print(FILE *stream, struct rreil_statement *statement) {
 	switch(statement->type) {
 		case RREIL_STATEMENT_TYPE_ASSIGN: {
-			rreil_variable_print(stdout, statement->assign.lhs);
-			printf(" =:%llu ", statement->assign.size);
-			rreil_expr_print(statement->assign.rhs);
+			rreil_variable_print(stream, statement->assign.lhs);
+			fprintf(stream, " =:%llu ", statement->assign.size);
+			rreil_expr_print(stream, statement->assign.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_LOAD: {
-			rreil_variable_print(stdout, statement->load.lhs);
-			printf(" =:%llu *(", statement->load.size);
-			rreil_address_print(statement->load.address);
-			printf(")");
+			rreil_variable_print(stream, statement->load.lhs);
+			fprintf(stream, " =:%llu *(", statement->load.size);
+			rreil_address_print(stream, statement->load.address);
+			fprintf(stream, ")");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_STORE: {
-			printf("*(");
-			rreil_address_print(statement->store.address);
-			printf(") =:%llu ", statement->store.size);
-			rreil_expr_print(statement->store.rhs);
+			fprintf(stream, "*(");
+			rreil_address_print(stream, statement->store.address);
+			fprintf(stream, ") =:%llu ", statement->store.size);
+			rreil_linear_print(stream, statement->store.rhs);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_ITE: {
-			printf("if(");
-			rreil_sexpr_print(statement->ite.cond);
-			printf(") {\n");
-			rreil_statements_print(statement->ite.then_branch);
-			printf("} else {\n");
-			rreil_statements_print(statement->ite.else_branch);
-			printf("}");
+			fprintf(stream, "if(");
+			rreil_sexpr_print(stream, statement->ite.cond);
+			fprintf(stream, ") {\n");
+			rreil_statements_print(stream, statement->ite.then_branch);
+			fprintf(stream, "} else {\n");
+			rreil_statements_print(stream, statement->ite.else_branch);
+			fprintf(stream, "}");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_WHILE: {
-			printf("while(");
-			rreil_sexpr_print(statement->while_.cond);
-			printf(") {\n");
-			rreil_statements_print(statement->while_.body);
-			printf("}");
+			fprintf(stream, "while(");
+			rreil_sexpr_print(stream, statement->while_.cond);
+			fprintf(stream, ") {\n");
+			rreil_statements_print(stream, statement->while_.body);
+			fprintf(stream, "}");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_CBRANCH: {
-			printf("if(");
-			rreil_sexpr_print(statement->cbranch.cond);
-			printf(") { goto");
-			rreil_address_print(statement->cbranch.target_true);
-			printf(" } else { goto");
-			rreil_address_print(statement->cbranch.target_false);
-			printf(" }");
+			fprintf(stream, "if(");
+			rreil_sexpr_print(stream, statement->cbranch.cond);
+			fprintf(stream, ") { goto");
+			rreil_address_print(stream, statement->cbranch.target_true);
+			fprintf(stream, " } else { goto");
+			rreil_address_print(stream, statement->cbranch.target_false);
+			fprintf(stream, " }");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_BRANCH: {
-			printf("goto [");
-			rreil_branch_hint_print(statement->branch.hint);
-			printf("] ");
-			rreil_address_print(statement->branch.target);
+			fprintf(stream, "goto [");
+			rreil_branch_hint_print(stream, statement->branch.hint);
+			fprintf(stream, "] ");
+			rreil_address_print(stream, statement->branch.target);
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_FLOP: {
-			rreil_varl_print(stdout, statement->flop.lhs);
-			fprintf(stdout, " = $");
-			rreil_flop_print(stdout, statement->flop.op);
+			rreil_varl_print(stream, statement->flop.lhs);
+			fprintf(stream, " = $");
+			rreil_flop_print(stream, statement->flop.op);
 			if(statement->flop.rhs->variables_length) {
-				fprintf(stdout, " ");
-				rreil_varls_print(stdout, statement->flop.rhs);
+				fprintf(stream, " ");
+				rreil_varls_print(stream, statement->flop.rhs);
 			}
-			fprintf(stdout, " [flags:");
-			rreil_variable_print(stdout, statement->flop.flags);
-			fprintf(stdout, "]");
+			fprintf(stream, " [flags:");
+			rreil_variable_print(stream, statement->flop.flags);
+			fprintf(stream, "]");
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_PRIM: {
 			if(statement->prim.lhs->variables_length) {
-				rreil_varls_print(stdout, statement->prim.lhs);
-				fprintf(stdout, " = ");
+				rreil_varls_print(stream, statement->prim.lhs);
+				fprintf(stream, " = ");
 			}
-			fprintf(stdout, "$%s", statement->prim.op);
+			fprintf(stream, "$%s", statement->prim.op);
 			if(statement->prim.rhs->variables_length) {
-				fprintf(stdout, " ");
-				rreil_varls_print(stdout, statement->prim.rhs);
+				fprintf(stream, " ");
+				rreil_varls_print(stream, statement->prim.rhs);
 			}
 			break;
 		}
 		case RREIL_STATEMENT_TYPE_THROW: {
-			fprintf(stdout, "throw ");
-			rreil_exception_print(stdout, statement->throw_.exception);
+			fprintf(stream, "throw ");
+			rreil_exception_print(stream, statement->throw_.exception);
 			break;
 		}
 	}
 }
 
-void rreil_statements_print(struct rreil_statements *statements) {
+void rreil_statements_print(FILE *stream, struct rreil_statements *statements) {
 	for(size_t i = 0; i < statements->statements_length; ++i) {
-		rreil_statement_print(statements->statements[i]);
-		printf("\n");
+		rreil_statement_print(stream, statements->statements[i]);
+		fprintf(stream, "\n");
 	}
 }

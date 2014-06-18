@@ -58,15 +58,9 @@ val rreil-cif-userdata-get = query $userdata
 #val rreil-callbacks sem_id sem_address sem_var sem_linear sem_sexpr sem_expr_cmp sem_expr sem_stmt branch_hint sem_stmts sem_stmts_list = {sem_id=sem_id, sem_address=sem_address, sem_var=sem_var, sem_linear=sem_linear, sem_sexpr=sem_sexpr, sem_expr_cmp=sem_expr_cmp, sem_expr=sem_expr, sem_stmt=sem_stmt, branch_hint=branch_hint, sem_stmts=sem_stmts, sem_stmts_list=sem_stmts_list}
 
 val rreil-convert-sem-id cbs id = case id of
-#   VIRT_EQ: cbs.sem_id.virt_na (index id)
-# | VIRT_NEQ: cbs.sem_id.virt_na (index id)
-# | VIRT_LES: cbs.sem_id.virt_na (index id)
-# | VIRT_LEU: cbs.sem_id.virt_na (index id)
-# | VIRT_LTS: cbs.sem_id.virt_na (index id)
-# | VIRT_LTU: cbs.sem_id.virt_na (index id)
-   FLOATING_FLAGS: cbs.sem_id.shared (index id)
+   FLOATING_FLAGS: cbs.sem_id.shared 0
  | VIRT_T t: cbs.sem_id.virt_t t
- | _: cbs.sem_id.arch (index id)
+ | _: cbs.sem_id.arch id
 end
 
 val rreil-convert-sem-address cbs address = cbs.sem_address.sem_address_ address.size (rreil-convert-sem-linear cbs address.address)
@@ -113,7 +107,15 @@ val rreil-convert-sem-expr cbs expr = case expr of
  | SEM_ZX s: cbs.sem_expr.sem_zx s.fromsize (rreil-convert-sem-linear cbs s.opnd1)
 end
 
-val rreil-convert-branch-hint cbs hint = cbs.branch_hint.branch_hint_ (index hint)
+val rreil-convert-branch-hint cbs hint = let
+  val enum = case hint of
+     HINT_JUMP: 0
+   | HINT_CALL: 1
+   | HINT_RET: 2 
+end
+in
+  cbs.branch_hint.branch_hint_ enum
+end
 
 val rreil-convert-sem-varl cbs varl = cbs.sem_varl.sem_varl_ (rreil-convert-sem-id cbs varl.id) varl.offset varl.size
 
@@ -139,17 +141,28 @@ val rreil-sem-varls-has-more varls = case varls of
  | SEM_VARLS_NIL: '0'
 end
 
-val rreil-convert-sem-flop cbs flop = cbs.sem_flop.sem_flop_ (index flop)
+val rreil-convert-sem-flop cbs flop = let
+  val enum = case flop of
+     SEM_FADD: 0
+   | SEM_FSUB: 1
+   | SEM_FMUL: 2 
+  end
+in
+  cbs.sem_flop.sem_flop_ enum
+end
+
+type sem_exception =
+   FIX_INTERFACE of int
 
 val rreil-convert-sem-exception cbs exception = case exception of
-   SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared (index exception)
- | _: cbs.sem_exception.arch (index exception)
+   SEM_DIVISION_BY_ZERO: cbs.sem_exception.shared 0
+ | _: cbs.sem_exception.arch exception
 end
 
 val rreil-convert-sem-stmt cbs stmt = case stmt of
    SEM_ASSIGN s: cbs.sem_stmt.sem_assign s.size (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
  | SEM_LOAD l: cbs.sem_stmt.sem_load l.size (rreil-convert-sem-var cbs l.lhs) (rreil-convert-sem-address cbs l.address)
- | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-expr cbs s.rhs)
+ | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-linear cbs s.rhs)
  | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) (rreil-convert-sem-stmts cbs i.then_branch) (rreil-convert-sem-stmts cbs i.else_branch)
  | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) (rreil-convert-sem-stmts cbs w.body)
  | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)
@@ -162,7 +175,7 @@ end
 val rreil-convert-sem-stmt-manual cbs stmt = case stmt of
    SEM_ASSIGN s: cbs.sem_stmt.sem_assign s.size (rreil-convert-sem-var cbs s.lhs) (rreil-convert-sem-expr cbs s.rhs)
  | SEM_LOAD l: cbs.sem_stmt.sem_load l.size (rreil-convert-sem-var cbs l.lhs) (rreil-convert-sem-address cbs l.address)
- | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-expr cbs s.rhs)
+ | SEM_STORE s: cbs.sem_stmt.sem_store s.size (rreil-convert-sem-address cbs s.address) (rreil-convert-sem-linear cbs s.rhs)
  | SEM_ITE i: cbs.sem_stmt.sem_ite (rreil-convert-sem-sexpr cbs i.cond) i.then_branch i.else_branch
  | SEM_WHILE w: cbs.sem_stmt.sem_while (rreil-convert-sem-sexpr cbs w.cond) w.body
  | SEM_CBRANCH c: cbs.sem_stmt.sem_cbranch (rreil-convert-sem-sexpr cbs c.cond) (rreil-convert-sem-address cbs c.target-true) (rreil-convert-sem-address cbs c.target-false)

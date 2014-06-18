@@ -1,0 +1,2387 @@
+FLAGS.9 =:1 1
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+BP =:64 SP
+FLAGS.9 =:1 1
+T0 =:64 B
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 (SP - 440)
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+T4 =:64 (440 + 0)
+T4 =:1 SP <s:64 T4
+FLAGS.11 =:1 T4 ^ FLAGS.7
+FLAGS =:1 SP <u:64 440
+LEU =:1 SP <=u:64 440
+LTS =:1 T4
+LES =:1 SP <=s:64 440
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 440
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+FLAGS.9 =:1 1
+*[64](BP + (-44)) =:64 DI
+FLAGS.9 =:1 1
+*[64](BP + (-44)) =:64 SI
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:32 16
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-42)) =:8 0
+FLAGS.9 =:1 1
+*[64](BP + (-42)) =:32 0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+FLAGS.9 =:1 1
+*[64](BP + (-38)) =:64 A
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-38))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-41)) =:64 A
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-38))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-40)) =:64 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 152)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-37)) =:64 A
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+FLAGS.9 =:1 1
+T0 =:8 *[64->8](BP + (-42))
+T1 =:8 (A - T0)
+FLAGS.7 =:1 T1 <s:8 0
+FLAGS.6 =:1 T1 ==:8 0
+T5 =:8 (T0 + 0)
+T5 =:1 A <s:8 T5
+FLAGS.11 =:1 T5 ^ FLAGS.7
+FLAGS =:1 A <u:8 T0
+LEU =:1 A <=u:8 T0
+LTS =:1 T5
+LES =:1 A <=s:8 T0
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:8 T1 ^ A
+T7 =:8 T7 ^ T0
+T7 =:8 T7 & 16
+FLAGS.4 =:1 T7 !=:8 0
+FLAGS.9 =:1 1
+if (FLAGS.6) goto [64](90 + IP) else goto [64]IP
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-42))
+T1 =:32 (T0 - 0)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+T5 =:32 (0 + 0)
+T5 =:1 T0 <s:32 T5
+FLAGS.11 =:1 T5 ^ FLAGS.7
+FLAGS =:1 T0 <u:32 0
+LEU =:1 T0 <=u:32 0
+LTS =:1 T5
+LES =:1 T0 <=s:32 0
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 0
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+if (FLAGS.6) goto [64](23 + IP) else goto [64]IP
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-42))
+D =:32 T0
+D.32 =:32 0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:32 D
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+FLAGS.9 =:1 1
+T0 =:32 sx[8->32]A
+D =:32 T0
+D.32 =:32 0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:32 D
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-42)) =:32 1
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+FLAGS.9 =:1 1
+*[64](BP + (-42)) =:8 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 7)
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-42))
+T1 =:32 (T0 + 1)
+T2 =:32 T1 ^ T0
+T3 =:32 T1 ^ 1
+T4 =:32 T2 & T3
+FLAGS.11 =:1 T4 <s:32 0
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T1 <u:32 T0
+T5 =:8 T1
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:32 T1 ^ T0
+T6 =:32 T6 ^ 1
+T6 =:32 T6 & 16
+FLAGS.4 =:1 T6 !=:32 0
+LEU =:1 FLAGS | FLAGS.6
+LTS =:1 FLAGS.7 !=:1 FLAGS.11
+LES =:1 LTS | FLAGS.6
+*[64](BP + (-42)) =:32 T1
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-40))
+D =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:64 D
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:8 A & A
+FLAGS.7 =:1 T0 <s:8 0
+FLAGS.6 =:1 T0 ==:8 0
+T1 =:8 T0
+FLAGS.2 =:1 T1.7 ==:1 T1.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T1
+FLAGS =:1 0
+FLAGS.11 =:1 0
+FLAGS.4 =:1 arbitrary
+LEU =:1 FLAGS | FLAGS.6
+LTS =:1 FLAGS.7 !=:1 FLAGS.11
+LES =:1 LTS | FLAGS.6
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64]((-18) + IP) else goto [64]IP
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+D =:64 T0
+FLAGS.9 =:1 1
+SI =:64 D
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 36)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+A =:64 B
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 0)
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 (SP + 440)
+T1 =:64 T0 ^ SP
+T2 =:64 T0 ^ 440
+T3 =:64 T1 & T2
+FLAGS.11 =:1 T3 <s:64 0
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+FLAGS =:1 T0 <u:64 SP
+T4 =:8 T0
+FLAGS.2 =:1 T4.7 ==:1 T4.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T4
+T5 =:64 T0 ^ SP
+T5 =:64 T5 ^ 440
+T5 =:64 T5 & 16
+FLAGS.4 =:1 T5 !=:64 0
+LEU =:1 FLAGS | FLAGS.6
+LTS =:1 FLAGS.7 !=:1 FLAGS.11
+LES =:1 LTS | FLAGS.6
+SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+B =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+T0.64 =:0 0
+goto [RET] [64]T0
+FLAGS.9 =:1 1
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+BP =:64 SP
+FLAGS.9 =:1 1
+T0 =:64 B
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 (SP - 56)
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+T4 =:64 (56 + 0)
+T4 =:1 SP <s:64 T4
+FLAGS.11 =:1 T4 ^ FLAGS.7
+FLAGS =:1 SP <u:64 56
+LEU =:1 SP <=u:64 56
+LTS =:1 T4
+LES =:1 SP <=s:64 56
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 56
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+D =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:32 0
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+D =:64 T0
+FLAGS.9 =:1 1
+SI =:64 D
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:64 A
+FLAGS.9 =:1 1
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+SI =:32 0
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+A =:32 0
+A.32 =:32 0
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 60)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+A =:64 B
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 (SP + 56)
+T1 =:64 T0 ^ SP
+T2 =:64 T0 ^ 56
+T3 =:64 T1 & T2
+FLAGS.11 =:1 T3 <s:64 0
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+FLAGS =:1 T0 <u:64 SP
+T4 =:8 T0
+FLAGS.2 =:1 T4.7 ==:1 T4.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T4
+T5 =:64 T0 ^ SP
+T5 =:64 T5 ^ 56
+T5 =:64 T5 & 16
+FLAGS.4 =:1 T5 !=:64 0
+LEU =:1 FLAGS | FLAGS.6
+LTS =:1 FLAGS.7 !=:1 FLAGS.11
+LES =:1 LTS | FLAGS.6
+SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+B =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+T0.64 =:0 0
+goto [RET] [64]T0
+FLAGS.9 =:1 1
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+BP =:64 SP
+FLAGS.9 =:1 1
+T0 =:64 (SP - 16)
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+T4 =:64 (16 + 0)
+T4 =:1 SP <s:64 T4
+FLAGS.11 =:1 T4 ^ FLAGS.7
+FLAGS =:1 SP <u:64 16
+LEU =:1 SP <=u:64 16
+LTS =:1 T4
+LES =:1 SP <=s:64 16
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 16
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+FLAGS.9 =:1 1
+*[64](BP + (-)) =:32 DI
+FLAGS.9 =:1 1
+*[64](BP + (-)) =:32 SI
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-))
+T1 =:32 (T0 - 1)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+T5 =:32 (1 + 0)
+T5 =:1 T0 <s:32 T5
+FLAGS.11 =:1 T5 ^ FLAGS.7
+FLAGS =:1 T0 <u:32 1
+LEU =:1 T0 <=u:32 1
+LTS =:1 T5
+LES =:1 T0 <=s:32 1
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 1
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64](39 + IP) else goto [64]IP
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-))
+T1 =:32 (T0 - 65535)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+T5 =:32 (65535 + 0)
+T5 =:1 T0 <s:32 T5
+FLAGS.11 =:1 T5 ^ FLAGS.7
+FLAGS =:1 T0 <u:32 65535
+LEU =:1 T0 <=u:32 65535
+LTS =:1 T5
+LES =:1 T0 <=s:32 65535
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 65535
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64](30 + IP) else goto [64]IP
+FLAGS.9 =:1 1
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+D =:32 0
+D.32 =:32 0
+FLAGS.9 =:1 1
+SI =:32 0
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+$LEAVE
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+T0.64 =:0 0
+goto [RET] [64]T0
+FLAGS.9 =:1 1
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+BP =:64 SP
+FLAGS.9 =:1 1
+SI =:32 65535
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:32 1
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + (-8))
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+T0.64 =:0 0
+goto [RET] [64]T0
+
+FLAGS.9 =:1 1
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+BP =:64 SP
+FLAGS.9 =:1 1
+T0 =:64 B
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 (SP - 440)
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+T4 =:64 (440 + 0)
+T4 =:1 SP <s:64 T4
+FLAGS.11 =:1 T4 ^ FLAGS.7
+FLAGS =:1 SP <u:64 440
+LEU =:1 SP <=u:64 440
+LTS =:1 T4
+LES =:1 SP <=s:64 440
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 440
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+FLAGS.9 =:1 1
+*[64](BP + (-44)) =:64 DI
+FLAGS.9 =:1 1
+*[64](BP + (-44)) =:64 SI
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:32 16
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-42)) =:8 0
+FLAGS.9 =:1 1
+*[64](BP + (-42)) =:32 0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+FLAGS.9 =:1 1
+*[64](BP + (-38)) =:64 A
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-38))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-41)) =:64 A
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-38))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-40)) =:64 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 152)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-37)) =:64 A
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+FLAGS.9 =:1 1
+T0 =:8 *[64->8](BP + (-42))
+T1 =:8 (A - T0)
+FLAGS.7 =:1 T1 <s:8 0
+FLAGS.6 =:1 T1 ==:8 0
+T5 =:8 (T0 + 0)
+T5 =:1 A <s:8 T5
+FLAGS.11 =:1 T5 ^ FLAGS.7
+FLAGS =:1 A <u:8 T0
+LEU =:1 A <=u:8 T0
+LTS =:1 T5
+LES =:1 A <=s:8 T0
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:8 T1 ^ A
+T7 =:8 T7 ^ T0
+T7 =:8 T7 & 16
+FLAGS.4 =:1 T7 !=:8 0
+FLAGS.9 =:1 1
+if (FLAGS.6) goto [64](90 + IP) else goto [64]IP
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-42))
+T1 =:32 (T0 - 0)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+T5 =:32 (0 + 0)
+T5 =:1 T0 <s:32 T5
+FLAGS.11 =:1 T5 ^ FLAGS.7
+FLAGS =:1 T0 <u:32 0
+LEU =:1 T0 <=u:32 0
+LTS =:1 T5
+LES =:1 T0 <=s:32 0
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 0
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+if (FLAGS.6) goto [64](23 + IP) else goto [64]IP
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-42))
+D =:32 T0
+D.32 =:32 0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:32 D
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+FLAGS.9 =:1 1
+T0 =:32 sx[8->32]A
+D =:32 T0
+D.32 =:32 0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:32 D
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+*[64](BP + (-42)) =:32 1
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+FLAGS.9 =:1 1
+*[64](BP + (-42)) =:8 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 7)
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-42))
+T1 =:32 (T0 + 1)
+T2 =:32 T1 ^ T0
+T3 =:32 T1 ^ 1
+T4 =:32 T2 & T3
+FLAGS.11 =:1 T4 <s:32 0
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T1 <u:32 T0
+T5 =:8 T1
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:32 T1 ^ T0
+T6 =:32 T6 ^ 1
+T6 =:32 T6 & 16
+FLAGS.4 =:1 T6 !=:32 0
+LEU =:1 FLAGS | FLAGS.6
+LTS =:1 FLAGS.7 !=:1 FLAGS.11
+LES =:1 LTS | FLAGS.6
+*[64](BP + (-42)) =:32 T1
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-40))
+D =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:64 D
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:8 A & A
+FLAGS.7 =:1 T0 <s:8 0
+FLAGS.6 =:1 T0 ==:8 0
+T1 =:8 T0
+FLAGS.2 =:1 T1.7 ==:1 T1.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T1
+FLAGS =:1 0
+FLAGS.11 =:1 0
+FLAGS.4 =:1 arbitrary
+LEU =:1 FLAGS | FLAGS.6
+LTS =:1 FLAGS.7 !=:1 FLAGS.11
+LES =:1 LTS | FLAGS.6
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64]((-18) + IP) else goto [64]IP
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+D =:64 T0
+FLAGS.9 =:1 1
+SI =:64 D
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 36)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+A =:64 B
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 0)
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 (SP + 440)
+T1 =:64 T0 ^ SP
+T2 =:64 T0 ^ 440
+T3 =:64 T1 & T2
+FLAGS.11 =:1 T3 <s:64 0
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+FLAGS =:1 T0 <u:64 SP
+T4 =:8 T0
+FLAGS.2 =:1 T4.7 ==:1 T4.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T4
+T5 =:64 T0 ^ SP
+T5 =:64 T5 ^ 440
+T5 =:64 T5 & 16
+FLAGS.4 =:1 T5 !=:64 0
+LEU =:1 FLAGS | FLAGS.6
+LTS =:1 FLAGS.7 !=:1 FLAGS.11
+LES =:1 LTS | FLAGS.6
+SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+B =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+T0.64 =:0 0
+goto [RET] [64]T0
+FLAGS.9 =:1 1
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+BP =:64 SP
+FLAGS.9 =:1 1
+T0 =:64 B
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 (SP - 56)
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+T4 =:64 (56 + 0)
+T4 =:1 SP <s:64 T4
+FLAGS.11 =:1 T4 ^ FLAGS.7
+FLAGS =:1 SP <u:64 56
+LEU =:1 SP <=u:64 56
+LTS =:1 T4
+LES =:1 SP <=s:64 56
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 56
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+D =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:32 0
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+D =:64 T0
+FLAGS.9 =:1 1
+SI =:64 D
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+FLAGS.9 =:1 1
+SI =:64 A
+FLAGS.9 =:1 1
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+SI =:32 0
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+A =:32 0
+A.32 =:32 0
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 60)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+FLAGS.9 =:1 1
+B =:64 A
+FLAGS.9 =:1 1
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+A =:64 B
+FLAGS.9 =:1 1
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 (SP + 56)
+T1 =:64 T0 ^ SP
+T2 =:64 T0 ^ 56
+T3 =:64 T1 & T2
+FLAGS.11 =:1 T3 <s:64 0
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+FLAGS =:1 T0 <u:64 SP
+T4 =:8 T0
+FLAGS.2 =:1 T4.7 ==:1 T4.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T4
+T5 =:64 T0 ^ SP
+T5 =:64 T5 ^ 56
+T5 =:64 T5 & 16
+FLAGS.4 =:1 T5 !=:64 0
+LEU =:1 FLAGS | FLAGS.6
+LTS =:1 FLAGS.7 !=:1 FLAGS.11
+LES =:1 LTS | FLAGS.6
+SP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+B =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+T0.64 =:0 0
+goto [RET] [64]T0
+FLAGS.9 =:1 1
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+BP =:64 SP
+FLAGS.9 =:1 1
+T0 =:64 (SP - 16)
+FLAGS.7 =:1 T0 <s:64 0
+FLAGS.6 =:1 T0 ==:64 0
+T4 =:64 (16 + 0)
+T4 =:1 SP <s:64 T4
+FLAGS.11 =:1 T4 ^ FLAGS.7
+FLAGS =:1 SP <u:64 16
+LEU =:1 SP <=u:64 16
+LTS =:1 T4
+LES =:1 SP <=s:64 16
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 16
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+FLAGS.9 =:1 1
+*[64](BP + (-)) =:32 DI
+FLAGS.9 =:1 1
+*[64](BP + (-)) =:32 SI
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-))
+T1 =:32 (T0 - 1)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+T5 =:32 (1 + 0)
+T5 =:1 T0 <s:32 T5
+FLAGS.11 =:1 T5 ^ FLAGS.7
+FLAGS =:1 T0 <u:32 1
+LEU =:1 T0 <=u:32 1
+LTS =:1 T5
+LES =:1 T0 <=s:32 1
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 1
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64](39 + IP) else goto [64]IP
+FLAGS.9 =:1 1
+T0 =:32 *[64->32](BP + (-))
+T1 =:32 (T0 - 65535)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+T5 =:32 (65535 + 0)
+T5 =:1 T0 <s:32 T5
+FLAGS.11 =:1 T5 ^ FLAGS.7
+FLAGS =:1 T0 <u:32 65535
+LEU =:1 T0 <=u:32 65535
+LTS =:1 T5
+LES =:1 T0 <=s:32 65535
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 65535
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64](30 + IP) else goto [64]IP
+FLAGS.9 =:1 1
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+D =:32 0
+D.32 =:32 0
+FLAGS.9 =:1 1
+SI =:32 0
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+$LEAVE
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+T0.64 =:0 0
+goto [RET] [64]T0
+FLAGS.9 =:1 1
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+FLAGS.9 =:1 1
+BP =:64 SP
+FLAGS.9 =:1 1
+SI =:32 65535
+SI.32 =:32 0
+FLAGS.9 =:1 1
+DI =:32 1
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + (-8))
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+T0.64 =:0 0
+goto [RET] [64]T0
+
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+BP =:64 SP
+T0 =:64 B
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+T0 =:64 (SP - 440)
+FLAGS =:1 SP <u:64 440
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 440
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+*[64](BP + (-44)) =:64 DI
+*[64](BP + (-44)) =:64 SI
+SI =:32 16
+SI.32 =:32 0
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-42)) =:8 0
+*[64](BP + (-42)) =:32 0
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+*[64](BP + (-38)) =:64 A
+T0 =:64 *[64->64](BP + (-38))
+A =:64 T0
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-41)) =:64 A
+T0 =:64 *[64->64](BP + (-38))
+A =:64 T0
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-40)) =:64 A
+goto [JUMP] [64](IP + 152)
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-37)) =:64 A
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+T0 =:8 *[64->8](BP + (-42))
+T1 =:8 (A - T0)
+T7 =:8 T1 ^ A
+T7 =:8 T7 ^ T0
+T7 =:8 T7 & 16
+FLAGS.4 =:1 T7 !=:8 0
+if (FLAGS.6) goto [64](90 + IP) else goto [64]IP
+T0 =:32 *[64->32](BP + (-42))
+T1 =:32 (T0 - 0)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T0 <u:32 0
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 0
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+if (FLAGS.6) goto [64](23 + IP) else goto [64]IP
+T0 =:32 *[64->32](BP + (-42))
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+T0 =:32 sx[8->32]A
+D =:32 T0
+D.32 =:32 0
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+SI =:32 D
+SI.32 =:32 0
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-42)) =:32 1
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+*[64](BP + (-42)) =:8 A
+goto [JUMP] [64](IP + 7)
+T0 =:32 *[64->32](BP + (-42))
+T1 =:32 (T0 + 1)
+T2 =:32 T1 ^ T0
+T3 =:32 T1 ^ 1
+T4 =:32 T2 & T3
+FLAGS.11 =:1 T4 <s:32 0
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T1 <u:32 T0
+T5 =:8 T1
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:32 T1 ^ T0
+T6 =:32 T6 ^ 1
+T6 =:32 T6 & 16
+FLAGS.4 =:1 T6 !=:32 0
+*[64](BP + (-42)) =:32 T1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-40))
+D =:64 T0
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+SI =:64 D
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:8 A & A
+FLAGS.7 =:1 T0 <s:8 0
+FLAGS.6 =:1 T0 ==:8 0
+T1 =:8 T0
+FLAGS.2 =:1 T1.7 ==:1 T1.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T1
+FLAGS =:1 0
+FLAGS.11 =:1 0
+FLAGS.4 =:1 arbitrary
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64]((-18) + IP) else goto [64]IP
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 *[64->64](BP + (-44))
+T0 =:64 zx[64->64](BP + (-36))
+D =:64 T0
+SI =:64 D
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+goto [JUMP] [64](IP + 36)
+B =:64 A
+goto [JUMP] [64](IP + 3)
+B =:64 A
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+A =:64 B
+goto [JUMP] [64](IP + 0)
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+T0 =:64 (SP + 440)
+FLAGS =:1 T0 <u:64 SP
+T4 =:8 T0
+FLAGS.2 =:1 T4.7 ==:1 T4.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T4
+T5 =:64 T0 ^ SP
+T5 =:64 T5 ^ 440
+T5 =:64 T5 & 16
+FLAGS.4 =:1 T5 !=:64 0
+SP =:64 T0
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+B =:64 T0
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+goto [RET] [64]T0
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+BP =:64 SP
+T0 =:64 B
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+T0 =:64 (SP - 56)
+FLAGS =:1 SP <u:64 56
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 56
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-4))
+D =:64 T0
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+SI =:32 0
+SI.32 =:32 0
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+A =:32 0
+A.32 =:32 0
+goto [JUMP] [64](IP + 60)
+B =:64 A
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+goto [JUMP] [64](IP + 3)
+B =:64 A
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+goto [JUMP] [64](IP + 3)
+B =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+A =:64 B
+DI =:64 A
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 (SP + 56)
+FLAGS =:1 T0 <u:64 SP
+T4 =:8 T0
+FLAGS.2 =:1 T4.7 ==:1 T4.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T4
+T5 =:64 T0 ^ SP
+T5 =:64 T5 ^ 56
+T5 =:64 T5 & 16
+FLAGS.4 =:1 T5 !=:64 0
+SP =:64 T0
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+B =:64 T0
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+goto [RET] [64]T0
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+BP =:64 SP
+T0 =:64 (SP - 16)
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 16
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+*[64](BP + (-)) =:32 DI
+*[64](BP + (-)) =:32 SI
+T0 =:32 *[64->32](BP + (-))
+T1 =:32 (T0 - 1)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T0 <u:32 1
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 1
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64](39 + IP) else goto [64]IP
+T0 =:32 *[64->32](BP + (-))
+T1 =:32 (T0 - 65535)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T0 <u:32 65535
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 65535
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64](30 + IP) else goto [64]IP
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+D =:32 0
+D.32 =:32 0
+SI =:32 0
+SI.32 =:32 0
+DI =:32 0
+DI.32 =:32 0
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+goto [RET] [64]T0
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+BP =:64 SP
+SI =:32 65535
+SI.32 =:32 0
+DI =:32 1
+DI.32 =:32 0
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + (-8))
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+goto [RET] [64]T0
+
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+BP =:64 SP
+T0 =:64 B
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+T0 =:64 (SP - 440)
+FLAGS =:1 SP <u:64 440
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 440
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+*[64](BP + (-44)) =:64 DI
+*[64](BP + (-44)) =:64 SI
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+SI =:32 16
+SI.32 =:32 0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-42)) =:8 0
+*[64](BP + (-42)) =:32 0
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+*[64](BP + (-38)) =:64 A
+T0 =:64 *[64->64](BP + (-38))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-41)) =:64 A
+T0 =:64 *[64->64](BP + (-38))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-40)) =:64 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 152)
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-37)) =:64 A
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+T0 =:8 *[64->8](BP + (-42))
+T1 =:8 (A - T0)
+FLAGS.7 =:1 T1 <s:8 0
+FLAGS.6 =:1 T1 ==:8 0
+FLAGS =:1 A <u:8 T0
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:8 T1 ^ A
+T7 =:8 T7 ^ T0
+T7 =:8 T7 & 16
+FLAGS.4 =:1 T7 !=:8 0
+FLAGS.9 =:1 1
+if (FLAGS.6) goto [64](90 + IP) else goto [64]IP
+T0 =:32 *[64->32](BP + (-42))
+T1 =:32 (T0 - 0)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T0 <u:32 0
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 0
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+if (FLAGS.6) goto [64](23 + IP) else goto [64]IP
+T0 =:32 *[64->32](BP + (-42))
+D =:32 T0
+D.32 =:32 0
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+SI =:32 D
+SI.32 =:32 0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+T0 =:32 sx[8->32]A
+D =:32 T0
+D.32 =:32 0
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+SI =:32 D
+SI.32 =:32 0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+*[64](BP + (-42)) =:32 1
+T0 =:64 *[64->64](BP + (-37))
+A =:64 T0
+T0 =:8 *[64->8]A
+T1 =:32 zx[8->32]T0
+A =:32 T1
+A.32 =:32 0
+*[64](BP + (-42)) =:8 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 7)
+T0 =:32 *[64->32](BP + (-42))
+T1 =:32 (T0 + 1)
+T2 =:32 T1 ^ T0
+T3 =:32 T1 ^ 1
+T4 =:32 T2 & T3
+FLAGS.11 =:1 T4 <s:32 0
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T1 <u:32 T0
+T5 =:8 T1
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:32 T1 ^ T0
+T6 =:32 T6 ^ 1
+T6 =:32 T6 & 16
+FLAGS.4 =:1 T6 !=:32 0
+*[64](BP + (-42)) =:32 T1
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-40))
+D =:64 T0
+T0 =:64 zx[64->64](BP + (-41))
+A =:64 T0
+SI =:64 D
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:8 A & A
+FLAGS.7 =:1 T0 <s:8 0
+FLAGS.6 =:1 T0 ==:8 0
+T1 =:8 T0
+FLAGS.2 =:1 T1.7 ==:1 T1.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T1.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T1
+FLAGS =:1 0
+FLAGS.11 =:1 0
+FLAGS.4 =:1 arbitrary
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64]((-18) + IP) else goto [64]IP
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+T0 =:64 zx[64->64](BP + (-36))
+D =:64 T0
+SI =:64 D
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 36)
+B =:64 A
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+B =:64 A
+T0 =:64 zx[64->64](BP + (-36))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+A =:64 B
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 0)
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 *[64->64](BP + (-44))
+A =:64 T0
+T0 =:64 (SP + 440)
+FLAGS =:1 T0 <u:64 SP
+T4 =:8 T0
+FLAGS.2 =:1 T4.7 ==:1 T4.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T4
+T5 =:64 T0 ^ SP
+T5 =:64 T5 ^ 440
+T5 =:64 T5 & 16
+FLAGS.4 =:1 T5 !=:64 0
+SP =:64 T0
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+B =:64 T0
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+goto [RET] [64]T0
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+BP =:64 SP
+T0 =:64 B
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+T0 =:64 (SP - 56)
+FLAGS =:1 SP <u:64 56
+T5 =:8 T0
+FLAGS.2 =:1 T5.7 ==:1 T5.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T5.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T5
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 56
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-4))
+D =:64 T0
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+SI =:32 0
+SI.32 =:32 0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+T0 =:64 zx[64->64](BP + (-4))
+D =:64 T0
+SI =:64 D
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+SI =:64 A
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+SI =:32 0
+SI.32 =:32 0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+A =:32 0
+A.32 =:32 0
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 60)
+B =:64 A
+T0 =:64 zx[64->64](BP + (-3))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+B =:64 A
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+goto [JUMP] [64](IP + 3)
+B =:64 A
+T0 =:64 zx[64->64](BP + (-4))
+A =:64 T0
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+A =:64 B
+DI =:64 A
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+T0 =:64 (SP + 56)
+FLAGS =:1 T0 <u:64 SP
+T4 =:8 T0
+FLAGS.2 =:1 T4.7 ==:1 T4.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T4.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T4
+T5 =:64 T0 ^ SP
+T5 =:64 T5 ^ 56
+T5 =:64 T5 & 16
+FLAGS.4 =:1 T5 !=:64 0
+SP =:64 T0
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+B =:64 T0
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+goto [RET] [64]T0
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+BP =:64 SP
+T0 =:64 (SP - 16)
+T6 =:64 T0 ^ SP
+T6 =:64 T6 ^ 16
+T6 =:64 T6 & 16
+FLAGS.4 =:1 T6 !=:64 0
+SP =:64 T0
+*[64](BP + (-)) =:32 DI
+*[64](BP + (-)) =:32 SI
+T0 =:32 *[64->32](BP + (-))
+T1 =:32 (T0 - 1)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T0 <u:32 1
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 1
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64](39 + IP) else goto [64]IP
+T0 =:32 *[64->32](BP + (-))
+T1 =:32 (T0 - 65535)
+FLAGS.7 =:1 T1 <s:32 0
+FLAGS.6 =:1 T1 ==:32 0
+FLAGS =:1 T0 <u:32 65535
+T6 =:8 T1
+FLAGS.2 =:1 T6.7 ==:1 T6.6
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.5
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.4
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.3
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.2
+FLAGS.2 =:1 FLAGS.2 ==:1 T6.1
+FLAGS.2 =:1 FLAGS.2 ==:1 T6
+T7 =:32 T1 ^ T0
+T7 =:32 T7 ^ 65535
+T7 =:32 T7 & 16
+FLAGS.4 =:1 T7 !=:32 0
+FLAGS.9 =:1 1
+T0 =:1 FLAGS.6 ^ 1
+if (T0) goto [64](30 + IP) else goto [64]IP
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+D =:32 0
+D.32 =:32 0
+SI =:32 0
+SI.32 =:32 0
+DI =:32 0
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + 0)
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+goto [RET] [64]T0
+T0 =:64 BP
+SP =:64 (SP - 8)
+*[64]SP =:64 T0
+BP =:64 SP
+SI =:32 65535
+SI.32 =:32 0
+DI =:32 1
+DI.32 =:32 0
+FLAGS.9 =:1 1
+SP =:64 (SP - 8)
+*[64]SP =:64 IP
+goto [CALL] [64](IP + (-8))
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+BP =:64 T0
+FLAGS.9 =:1 1
+T0 =:64 *[64->64]SP
+SP =:64 (SP + 8)
+goto [RET] [64]T0
+

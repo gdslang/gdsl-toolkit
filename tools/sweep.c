@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
 	//uint64_t consumed = 0;
 	size_t last_offset = 0;
 	while(last_offset < length) {
-		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
+//		printf("++++++++++++ DECODING NEXT INSTRUCTION ++++++++++++\n");
 
 		if(setjmp(*gdsl_err_tgt(state))) {
 			fprintf(stderr, "decode failed: %s\n", gdsl_get_error_message(state));
@@ -176,24 +176,24 @@ int main(int argc, char** argv) {
 		}
 		obj_t insn = gdsl_decode(state, gdsl_config_default(state));
 
-		printf("[");
-		size_t decoded = gdsl_get_ip_offset(state) - last_offset;
-		for(size_t i = 0; i < decoded; ++i) {
-			if(i)
-				printf(" ");
-			printf("%02x", ((uint8_t*)buffer)[last_offset + i]);
-		}
-		printf("] ");
+//		printf("[");
+//		size_t decoded = gdsl_get_ip_offset(state) - last_offset;
+//		for(size_t i = 0; i < decoded; ++i) {
+//			if(i)
+//				printf(" ");
+//			printf("%02x", ((uint8_t*)buffer)[last_offset + i]);
+//		}
+//		printf("] ");
 
-		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
-		puts(fmt);
+//		string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
+//		puts(fmt);
 
 		size_t residency = gdsl_heap_residency(state);
 		memory_dec += residency;
 		if(residency > memory_dec_max)
 			memory_dec_max = residency;
 
-		printf("---------------------------\n");
+//		printf("---------------------------\n");
 
 		if(setjmp(*gdsl_err_tgt(state))) {
 			fprintf(stderr, "translate failed: %s\n", gdsl_get_error_message(state));
@@ -201,8 +201,8 @@ int main(int argc, char** argv) {
 		}
 		obj_t rreil = gdsl_translate(state, insn);
 
-		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
-		puts(fmt);
+//		fmt = gdsl_merge_rope(state, gdsl_rreil_pretty(state, rreil));
+//		puts(fmt);
 
 		residency = gdsl_heap_residency(state);
 		memory_dec_tran += residency;

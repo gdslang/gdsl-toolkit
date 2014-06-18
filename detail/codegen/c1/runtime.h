@@ -3,6 +3,8 @@
 #ifndef __GDSL_RUNTIME_H
 #define __GDSL_RUNTIME_H
 
+#define GDSL_SPECIFIC
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <setjmp.h>
@@ -27,21 +29,21 @@ typedef int_t con_tag_t;
 /* The following declarations are individual for each decoder. */
 @if-guard-prefix@
 
-/* Create a new decoder state. Should be destroyed by 
+/* Create a new decoder state. Should be destroyed by
 @destroy@
 (). */
-state_t 
+state_t
 @init@
 (void);
 
 /* Set the code buffer. The parameter base denotes the address that ip_get
    in GDSL returns when no bytes have been consumed. */
-void 
+void
 @set_code@
 (state_t s, char* buf, size_t buf_len, size_t base);
 
 /* Query the offset of the current IP relative to base. */
-size_t 
+size_t
 @get_ip_offset@
 (state_t s);
 
@@ -62,24 +64,24 @@ int_t
  * value 2 if there has been an error (e.g. pattern match failure). In
  * both cases, an error message can be retrieved using get_error_message().
  */
-jmp_buf* 
+jmp_buf*
 @err_tgt@
 (state_t s);
 
 /* Retrieve the error message after an exception has been raised. */
-char* 
+char*
 @get_error_message@
 (state_t s);
 
 /* Reset the heap. Objects returned by exported function are no longer valid
    after a call to this funciton. This function does not necessarily
    deallocate all of the heap. */
-void 
+void
 @reset_heap@
 (state_t s);
 
 /* Query the no of bytes currently allocated on the heap. */
-size_t 
+size_t
 @heap_residency@
 (state_t s);
 
@@ -90,7 +92,7 @@ string_t
 (state_t s, obj_t rope);
 
 /* Frees the heap and the decoder state. */
-void 
+void
 @destroy@
 (state_t s);
 

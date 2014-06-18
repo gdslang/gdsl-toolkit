@@ -1,0 +1,52 @@
+MLTK=.
+CC=gcc
+MLTON=mlton
+MLTONFLAGS=
+CFLAGS=-g3 -fPIC -Wall -Iinclude
+LFLAGS=-shared
+
+export GDSL_MIPS := 1
+
+#GDSL=gdsl
+GDSL_MEX=_manual
+GDSL_COMP=$(GDSL)$(GDSL_MEX)
+GDSL_EXEC=$(GDSL)c
+GPREFIX=
+GDSLFLAGS=
+
+GDSL_BASIS_HL=specifications/basis/prelude.ml specifications/basis/bbtree.ml specifications/basis/selectors.ml
+#GDSL_RREIL_EMIT_HL=specifications/rreil/rreil-emit.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml
+#GDSL_RREIL_DECL_HL=specifications/rreil/rreil-decl.ml
+GDSL_RREIL_HL=specifications/rreil/rreil.ml specifications/rreil/rreil-examples.ml specifications/rreil/rreil-cif.ml specifications/rreil/rreil-pretty.ml specifications/rreil/fmap.ml specifications/rreil/rreil-opt.ml specifications/rreil/rreil-translator.ml
+GDSL_OPT_HL=specifications/rreil/rreil-liveness.ml specifications/rreil/rreil-cleanup.ml
+
+GDSL_MIPS_HL=specifications/mips/mips.ml specifications/mips/mips-pretty.ml specifications/mips/mips-rreil-pretty.ml specifications/mips/mips-rreil-registermapping.ml specifications/mips/mips-rreil-translator.ml specifications/mips/mips-liveness.ml
+GDSL_MIPS_TRANS_HL=
+
+GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_MIPS_HL) $(GDSL_MIPS_TRANS_HL) $(GDSL_OPT_HL)
+
+.PHONY: libs tools
+
+all: $(GDSL_EXEC) lib$(GDSL).so libs tools
+
+$(GDSL_EXEC): $(GDSL_EXEC).mlb $(shell find detail/ -type f -name '*')
+	$(MLTON) $(MLTONFLAGS) $<
+
+lib$(GDSL).so: $(GDSL_COMP).c
+	$(CC) $(CFLAGS) -c $< -o $(<:$(GDSL_MEX).c=.o)
+	$(CC) $(LFLAGS) -o lib$(<:$(GDSL_MEX).c=.so) $(<:$(GDSL_MEX).c=.o)
+#	$(CC) $(LFLAGS) -Wl,-soname,lib$(<:.c=.so) -o lib$(<:.c=.so) $(<:.c=.o)
+
+$(GDSL_COMP).c: $(GDSL_EXEC) $(GDSL_SOURCES)
+	./$< -o $(GDSL_COMP) $(GDSLFLAGS) $(GDSL_SOURCES:%="%")
+
+tools: lib$(GDSL).so libs
+	$(MAKE) -C $@/
+
+libs: lib$(GDSL).so
+	$(MAKE) -C $@/
+
+clean:
+	$(MAKE) -C libs/	clean
+	$(MAKE) -C tools/ clean
+	rm -f $(GDSL_EXEC) $(GDSL).o $(GDSL_COMP).c $(GDSL_COMP).h lib$(GDSL).so

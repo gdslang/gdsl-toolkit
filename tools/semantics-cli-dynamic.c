@@ -10,7 +10,6 @@
 #include <stdint.h>
 #include <readhex.h>
 #include <gdsl_multiplex.h>
-#include <gdsl.h>
 
 int main(int argc, char** argv) {
 	char retval = 0;
@@ -28,8 +27,7 @@ int main(int argc, char** argv) {
 		for(size_t i = 0; i < frontends_count; ++i)
 			printf("\t[%zu] %s\n", i, frontends[i].name);
 		printf("Your choice? ");
-		if(scanf("%zu", &frontend_ind) <= 0)
-			frontend_ind = 0;
+		if(scanf("%zu", &frontend_ind) <= 0) frontend_ind = 0;
 	}
 
 	if(frontend_ind >= frontends_count) {
@@ -45,7 +43,7 @@ int main(int argc, char** argv) {
 	size_t size = readhex_hex_read(stdin, &buffer);
 
 	struct frontend frontend;
-	if(gdsl_multiplex_frontend_get(&frontend, frontends[frontend_ind])) {
+	if(gdsl_multiplex_frontend_get_by_desc(&frontend, frontends[frontend_ind])) {
 		fprintf(stderr, "Unable to open frontend.\n");
 		return 1;
 	}
@@ -62,15 +60,22 @@ int main(int argc, char** argv) {
 
 	printf("[");
 	size_t decoded = frontend.generic.get_ip_offset(state);
-	for (size_t i = 0; i < decoded; ++i) {
-		if(i)
-			printf(" ");
+	for(size_t i = 0; i < decoded; ++i) {
+		if(i) printf(" ");
 		printf("%02x", buffer[i]);
 	}
 	printf("] ");
 
 	string_t fmt = frontend.generic.merge_rope(state, frontend.decoder.pretty(state, insn));
 	puts(fmt);
+
+	printf("Mnemonic: %s\n", frontend.generic.merge_rope(state, frontend.decoder.pretty_mnemonic(state, insn)));
+	int_t operands = frontend.decoder.operands(state, insn);
+	printf("Number of operands: %lld\n", operands);
+	for(int_t i = 0; i < operands; ++i) {
+		printf("Operand %lld (type: %lld): %s\n", i, frontend.decoder.typeof_opnd(state, insn, i),
+				frontend.generic.merge_rope(state, frontend.decoder.pretty_operand(state, insn, i)));
+	}
 
 	printf("---------------------------\n");
 

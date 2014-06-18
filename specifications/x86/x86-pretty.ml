@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = pretty{lock, rep, repne, features, insn}
+export = pretty{lock, rep, repne, features, insn} pretty-operand{insn} pretty-mnemonic{insn}
 
 val flow_decode_pretty = do
   inge <- decode config-default;
@@ -259,10 +259,14 @@ val show/scale s =
 
 val show/operand ext op =
    case op of
-      IMM8 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
-    | IMM16 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
-    | IMM32 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
-    | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+#      IMM8 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+#    | IMM16 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+#    | IMM32 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+#    | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end) +++ "@" +++ show-int x.address
+      IMM8 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
+    | IMM16 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
+    | IMM32 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
+    | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
     | REG x: show/register x
     | MEM x: show/memsz x.sz -++ show/segment x.segment +++ "[" +++ show/operand '1' x.opnd +++ "]" 
     | SUM x: show/operand ext x.a +++ "+" +++ show/operand ext x.b
@@ -271,10 +275,10 @@ val show/operand ext op =
 
 val show/flowoperand op =
    case op of
-      REL8 x: show-int (sx x)
-    | REL16 x: show-int (sx x)
-    | REL32 x: show-int (sx x)
-    | REL64 x: show-int (sx x)
+      REL8 x: "(IP + " +++ show-int (sx x) +++ ")"
+    | REL16 x: "(IP + " +++ show-int (sx x) +++ ")"
+    | REL32 x: "(IP + " +++ show-int (sx x) +++ ")"
+    | REL64 x: "(IP + " +++ show-int (sx x) +++ ")"
     | PTR16/16 x: "[16/16: " +++ show-int (sx x) +++ "]"
     | PTR16/32 x: "[16/32: " +++ show-int (sx x) +++ "]"
     | NEARABS x: show/operand '1' x 
@@ -2087,3 +2091,34 @@ val show/mnemonic insn =
     #| VPSLRDQ: "VPSLRDQ"
    end
 #:'<,'>s/\(.*\)| \(\S*\)\( x\)\=:.*/\1| \2\3: "\2"/g
+
+val pretty-operand x i =
+  case (uarity-of x.insn) of
+     UA1 v: case i of
+        0: show/operand '0' v.opnd1
+     end
+   | UA2 v: case i of
+        0: show/operand '0' v.opnd1
+      | 1: show/operand '0' v.opnd2
+     end
+   | UA3 v: case i of
+        0: show/operand '0' v.opnd1
+      | 1: show/operand '0' v.opnd2
+      | 2: show/operand '0' v.opnd3
+     end
+   | UA4 v: case i of
+        0: show/operand '0' v.opnd1
+      | 1: show/operand '0' v.opnd2
+      | 2: show/operand '0' v.opnd3
+      | 3: show/operand '0' v.opnd4
+     end
+   | UAF v: case i of
+        0: show/flowoperand v.opnd1
+     end
+  end
+
+val pretty-operand-force-types x = pretty x +++ (pretty-operand x 0)
+
+val pretty-mnemonic x = show/mnemonic x.insn
+
+val pretty-mnemonic-force-types x = pretty x +++ (pretty-mnemonic x)

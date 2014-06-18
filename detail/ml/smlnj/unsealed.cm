@@ -36,6 +36,7 @@ group is
    ../../semantic/typing/substitutions.sml
    ../../semantic/typing/tvar.sml
    ../../semantic/typing/environment.sml
+   ../../semantic/typing/type-table.sml
    ../../semantic/typing/size-constraint.sml
    ../../semantic/inference.sml
    ../../semantic/primitives.sml

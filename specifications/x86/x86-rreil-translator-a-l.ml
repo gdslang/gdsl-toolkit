@@ -312,16 +312,17 @@ val sem-call x = do
   temp-ip <- mktemp;
 
   ip <- ip-get;
+  ip <- return (var ip);
   
   result <- if (near x.opnd1) then do
     target <- read-flow ip-sz x.opnd1;
     result <- if (relative x.opnd1) then do
       result <- if (x.opnd-sz === 16) then do
-          add ip-sz temp-ip ip target;
-          mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0);
-					return (var temp-ip)
+        add ip-sz temp-ip ip target;
+        mov (ip-sz - x.opnd-sz) (at-offset temp-ip x.opnd-sz) (imm 0);
+			  return (var temp-ip)
       end else
-         return (lin-sum ip target)
+        return (lin-sum ip target)
 			;
 			return result
     end else
@@ -698,6 +699,7 @@ val sem-jcc x cond = do
       return 32
   ;
   ip <- ip-get;
+  ip <- return (var ip);
 
   target <- read-flow ip-sz x.opnd1;
 
@@ -732,6 +734,7 @@ val sem-jmp x = do
     target <- read-flow ip-sz x.opnd1;
     result <- if (relative x.opnd1) then do
       ip <- ip-get;
+      ip <- return (var ip);
       #add ip-sz temp-ip ip target
 			return (lin-sum ip target)
     end else
@@ -825,6 +828,14 @@ val sem-lea x = do
   movzx opnd-sz temp addr-sz address;
 
   write opnd-sz dst (var temp)
+end
+
+val sem-leave x = do
+  sp-sem <- return (semantic-register-of (register-by-size high SP_ x.opnd-sz));
+  bp-sem <- return (semantic-register-of (register-by-size high BP_ x.opnd-sz));
+  
+  mov x.opnd-sz sp-sem (var bp-sem);
+  ps-pop x.opnd-sz bp-sem  
 end
 
 val sem-lods x = do

@@ -1,5 +1,5 @@
 granularity = 8
-export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features}
+export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn} insn-length{length}
 
 # Optional arguments
 #
@@ -43,12 +43,16 @@ val main config = do
         opndsz='0',
         lock='0',
         segment=SEG_NONE,
-	      default-operand-size=if test-opt config-mode64 config then 32 else 16,
+	      default-operand-size=if test-opt config-default-opnd-sz-32 config then 32 else 16,
         ptrty=32, #TODO: check
         ~tab};
+
+   idx-before <- idxget;
    instr <- p64;
+   idx-after <- idxget;
+
    update @{tab=t};
-   return instr
+   return (@{length=(idx-after - idx-before)} instr)
 end
 
 val complement v = not v
@@ -647,6 +651,53 @@ type opnd =
  | SUM of {a:opnd,b:opnd}
  | SCALE of {imm:2,opnd:opnd}
 
+# Todo: Centralize
+# Operand types:
+# Immediate - 0
+# Register - 1
+# Memory - 2
+# Linear expression - 3
+# Flow operand - 4
+val typeof-opnd x i = let
+  val typeof-one o =
+    case o of
+       IMM8 a: 0
+     | IMM16 a: 0
+     | IMM32 a: 0
+     | IMM64 a: 0
+     | REG a: 1
+     | MEM a: 2
+     | SUM a: 3
+     | SCALE a: 3
+    end
+in
+  case (uarity-of x.insn) of
+     UA1 v: case i of
+        0: typeof-one v.opnd1
+     end
+   | UA2 v: case i of
+        0: typeof-one v.opnd1
+      | 1: typeof-one v.opnd2
+     end
+   | UA3 v: case i of
+        0: typeof-one v.opnd1
+      | 1: typeof-one v.opnd2
+      | 2: typeof-one v.opnd3
+     end
+   | UA4 v: case i of
+        0: typeof-one v.opnd1
+      | 1: typeof-one v.opnd2
+      | 2: typeof-one v.opnd3
+      | 3: typeof-one v.opnd4
+     end
+   | UAF v: case i of
+        0: 4
+     end
+  end
+end
+
+val typeof-opnd-force-types x = pretty x +++ (show-int (typeof-opnd x 0))
+
 type flowopnd =
    REL8 of 8
  | REL16 of 16
@@ -714,7 +765,12 @@ type arity2 = {opnd1:opnd,opnd2:opnd}
 type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
 type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
 
-type insndata = {features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:insn}
+type insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:insn}
+
+val insn-length insn = do
+ insn <- return (@{fooooobarrrrrrr=42}insn);
+ return insn.length
+end
 
 type varity =
    VA0
@@ -4118,7 +4174,9 @@ val / [0x8d /r-mem]
 ### LEAVE
 ###  - High Level Procedure Exit
 #Todo: handle different effects to BP/EBP/RBP
-val / [0xc9] = arity0 none LEAVE
+val / [0xc9]
+ | mode64? = do update@{default-operand-size=64}; arity0 none LEAVE end
+ | otherwise = arity0 none LEAVE
 
 ### LFENCE
 ###  - Load Fence

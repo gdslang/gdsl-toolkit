@@ -32,7 +32,6 @@ enum rreil_expr_type {
 };
 
 struct rreil_size_change {
-	long long unsigned int size;
 	long long unsigned int fromsize;
 	struct rreil_linear *opnd;
 };
@@ -56,5 +55,7 @@ struct rreil_expr {
 		struct rreil_size_change zx;
 	};
 };
+
+extern struct rreil_expr *rreil_expr_sexpr_alloc(struct rreil_sexpr *sexpr);
 
 #endif /* RREIL_OP_H_ */

@@ -66,9 +66,9 @@ type sem_flop =
  | SEM_FMUL
 
 type sem_stmt =
-   SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr}
+   SEM_ASSIGN of {size:int, lhs:sem_var, rhs:sem_expr} #size denotes the size of right-hand side operands
  | SEM_LOAD of {size:int, lhs:sem_var, address:sem_address}
- | SEM_STORE of {size:int, address:sem_address, rhs:sem_expr}
+ | SEM_STORE of {size:int, address:sem_address, rhs:sem_linear}
  | SEM_ITE of {cond:sem_sexpr, then_branch:sem_stmts, else_branch:sem_stmts}
  | SEM_WHILE of {cond:sem_sexpr, body:sem_stmts}
  | SEM_CBRANCH of {cond:sem_sexpr, target-true:sem_address, target-false:sem_address}
@@ -103,7 +103,6 @@ val at-offset v o = @{offset=o} v
 val var x = SEM_LIN_VAR x
 val varl sz x = @{size=sz}x
 val lin-sum x y = SEM_LIN_ADD {opnd1=x, opnd2=y}
-val lin l = SEM_SEXPR (SEM_SEXPR_LIN l)
 val address sz addr = {size=sz, address=addr}
 
 val varl-from-var sz v = @{size=sz}v
@@ -165,9 +164,19 @@ val /BFLOP sz op r a b = SEM_FLOP{op=op,flags=_var FLOATING_FLAGS,lhs=varl-from-
 val /PRIM op lhs rhs = SEM_PRIM{op=op,lhs=lhs,rhs=rhs}
 val /THROW exception = SEM_THROW exception
 
-val push insn = do
-   tl <- query $stack;
-   update @{stack=SEM_CONS{hd=insn,tl=tl}}
+val push insn = let
+  val push-inner insn = do
+    tl <- query $stack;
+    update @{stack=SEM_CONS{hd=insn,tl=tl}}
+  end
+in
+  case insn of
+     SEM_ASSIGN s: if s.size > 0 then
+         push-inner insn
+       else
+         return void
+   | _: push-inner insn
+  end
 end
 
 val pop-all = do
@@ -440,3 +449,31 @@ val rreil-stmts-count stmts = let
 in
   count 0 stmts
 end
+
+val rreil-ltid? a b =
+   let
+      val ltf? a b =
+         case b of
+            VIRT_T x: '0'
+          | _ : index a < index b
+         end
+   in
+      case a of
+         VIRT_T x:
+            case b of
+               VIRT_T y: x < y
+             | _ : '1'
+            end
+       | _: ltf? a b
+      end
+   end
+
+val rreil-ltvar? a b = if rreil-ltid? a.id b.id then
+  true
+else
+  a.offset < b.offset
+
+val rreil-ltvarl? a b = if rreil-ltvar? a b then
+  true
+else
+  a.size < b.size

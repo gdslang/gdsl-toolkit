@@ -60,7 +60,7 @@ val sem-maskmovq x = sem-maskmov-opnd 8 x.opnd1 x.opnd2 x.opnd3
 val sem-mov avx-encoded x = do
   sz <- sizeof1 x.opnd1;
   a <- lval sz x.opnd1;
-  b <- rval sz x.opnd2;
+  b <- rvals Signed sz x.opnd2;
   write-extend avx-encoded sz a b
 end
 
@@ -1823,7 +1823,7 @@ val ps-push opnd-sz opnd = do
       sub sp.size sp (var sp) (imm 2)
   ;
 
-  segmented-store opnd-sz (address sp.size (var sp)) (lin opnd) (SEG_OVERRIDE SS)
+  segmented-store opnd-sz (address sp.size (var sp)) opnd (SEG_OVERRIDE SS)
 
   #store (address sp.size (segment-add (var sp) segment)) (lin opnd-sz opnd)
 end
@@ -2563,7 +2563,7 @@ val sem-stos size x = let
     mem-sem <- return (semantic-register-of (register-by-size low DI_ x.addr-sz));
     a <- return (semantic-register-of (register-by-size low A size));
 
-    segmented-store a.size (address x.addr-sz (var mem-sem)) (lin (var a)) (SEG_OVERRIDE ES);
+    segmented-store a.size (address x.addr-sz (var mem-sem)) (var a) (SEG_OVERRIDE ES);
 
     direction-adjust mem-sem.size mem-sem size
   end

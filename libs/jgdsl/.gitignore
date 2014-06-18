@@ -1,0 +1,15 @@
+/.classpath
+/.externalToolBuilders/*
+/.settings/*
+/build/*
+/.project
+/libjgdsl.so
+/jgdsl.jar
+/jgdsl-src.jar
+/hs_err_*
+
+/src/.libs/*
+/src/*.o
+/src/*.lo
+/src/.dirstamp
+/build

@@ -38,3 +38,16 @@ val example_b = do
 	stack <- query $stack;
   return (rreil-stmts-rev stack)
 end
+
+val example_lin = do
+  update@{stack=SEM_NIL,tmp=0,lab=0,mode64='1'};
+
+  t0 <- mktemp;
+	t1 <- mktemp;
+
+  b <- return (SEM_LIN_ADD {opnd1=var t0,opnd2=SEM_LIN_SCALE{const=99,opnd=SEM_LIN_ADD {opnd1=var t1,opnd2=imm 42}}});
+  push (/ASSIGN 64 t0 (SEM_SEXPR (SEM_SEXPR_LIN b)));
+
+	stack <- query $stack;
+  return (rreil-stmts-rev stack)
+end

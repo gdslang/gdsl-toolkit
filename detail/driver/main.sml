@@ -59,7 +59,7 @@ structure Main = struct
    end
 
    val usageMsg = "\
-\usage: spec [options] file\n\
+\usage: gdslc [options] file\n\
 \  options:\n\
 \    -C<control>=<v>  set named control\n\
 \    -h               show help message\n\
@@ -152,6 +152,7 @@ structure Main = struct
       else
          case arg of
             "-h" => usage ()
+          | "-m" => (Controls.set (BasicControl.principalTypings, false); processArgs args)
           | "-t" => (Controls.set (BasicControl.skipTypeCheck, true); processArgs args)
           | "-verbose" => (Controls.set(BasicControl.verbose, 1); processArgs args)
           | "-p" => (case args of

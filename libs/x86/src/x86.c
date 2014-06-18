@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <x86.h>
 #include <gdsl.h>
 
@@ -526,215 +527,146 @@ enum x86_id_type x86_id_type_get(enum x86_id id) {
 	}
 }
 
-enum x86_id x86_reg_from_con(int_t con) {
-	switch(con) {
-		case CON_Sem_IP: {
-			return X86_ID_IP;
-		}
-		case CON_Sem_FLAGS: {
-			return X86_ID_FLAGS;
-		}
-		case CON_Sem_MXCSR: {
-			return X86_ID_MXCSR;
-		}
-		case CON_Sem_A: {
-			return X86_ID_A;
-		}
-		case CON_Sem_B: {
-			return X86_ID_B;
-		}
-		case CON_Sem_C: {
-			return X86_ID_C;
-		}
-		case CON_Sem_D: {
-			return X86_ID_D;
-		}
-		case CON_Sem_SI: {
-			return X86_ID_SI;
-		}
-		case CON_Sem_DI: {
-			return X86_ID_DI;
-		}
-		case CON_Sem_SP: {
-			return X86_ID_SP;
-		}
-		case CON_Sem_BP: {
-			return X86_ID_BP;
-		}
-		case CON_Sem_R8: {
-			return X86_ID_R8;
-		}
-		case CON_Sem_R9: {
-			return X86_ID_R9;
-		}
-		case CON_Sem_R10: {
-			return X86_ID_R10;
-		}
-		case CON_Sem_R11: {
-			return X86_ID_R11;
-		}
-		case CON_Sem_R12: {
-			return X86_ID_R12;
-		}
-		case CON_Sem_R13: {
-			return X86_ID_R13;
-		}
-		case CON_Sem_R14: {
-			return X86_ID_R14;
-		}
-		case CON_Sem_R15: {
-			return X86_ID_R15;
-		}
-		case CON_Sem_CS: {
-			return X86_ID_CS;
-		}
-		case CON_Sem_DS: {
-			return X86_ID_DS;
-		}
-		case CON_Sem_SS: {
-			return X86_ID_SS;
-		}
-		case CON_Sem_ES: {
-			return X86_ID_ES;
-		}
-		case CON_Sem_FS: {
-			return X86_ID_FS;
-		}
-		case CON_Sem_GS: {
-			return X86_ID_GS;
-		}
-		case CON_Sem_CS_Base: {
-			return X86_ID_CS_Base;
-		}
-		case CON_Sem_DS_Base: {
-			return X86_ID_DS_Base;
-		}
-		case CON_Sem_SS_Base: {
-			return X86_ID_SS_Base;
-		}
-		case CON_Sem_ES_Base: {
-			return X86_ID_ES_Base;
-		}
-		case CON_Sem_FS_Base: {
-			return X86_ID_FS_Base;
-		}
-		case CON_Sem_GS_Base: {
-			return X86_ID_GS_Base;
-		}
-		case CON_Sem_ST0: {
-			return X86_ID_ST0;
-		}
-		case CON_Sem_ST1: {
-			return X86_ID_ST1;
-		}
-		case CON_Sem_ST2: {
-			return X86_ID_ST2;
-		}
-		case CON_Sem_ST3: {
-			return X86_ID_ST3;
-		}
-		case CON_Sem_ST4: {
-			return X86_ID_ST4;
-		}
-		case CON_Sem_ST5: {
-			return X86_ID_ST5;
-		}
-		case CON_Sem_ST6: {
-			return X86_ID_ST6;
-		}
-		case CON_Sem_ST7: {
-			return X86_ID_ST7;
-		}
-		case CON_Sem_MM0: {
-			return X86_ID_MM0;
-		}
-		case CON_Sem_MM1: {
-			return X86_ID_MM1;
-		}
-		case CON_Sem_MM2: {
-			return X86_ID_MM2;
-		}
-		case CON_Sem_MM3: {
-			return X86_ID_MM3;
-		}
-		case CON_Sem_MM4: {
-			return X86_ID_MM4;
-		}
-		case CON_Sem_MM5: {
-			return X86_ID_MM5;
-		}
-		case CON_Sem_MM6: {
-			return X86_ID_MM6;
-		}
-		case CON_Sem_MM7: {
-			return X86_ID_MM7;
-		}
-		case CON_Sem_XMM0: {
-			return X86_ID_XMM0;
-		}
-		case CON_Sem_XMM1: {
-			return X86_ID_XMM1;
-		}
-		case CON_Sem_XMM2: {
-			return X86_ID_XMM2;
-		}
-		case CON_Sem_XMM3: {
-			return X86_ID_XMM3;
-		}
-		case CON_Sem_XMM4: {
-			return X86_ID_XMM4;
-		}
-		case CON_Sem_XMM5: {
-			return X86_ID_XMM5;
-		}
-		case CON_Sem_XMM6: {
-			return X86_ID_XMM6;
-		}
-		case CON_Sem_XMM7: {
-			return X86_ID_XMM7;
-		}
-		case CON_Sem_XMM8: {
-			return X86_ID_XMM8;
-		}
-		case CON_Sem_XMM9: {
-			return X86_ID_XMM9;
-		}
-		case CON_Sem_XMM10: {
-			return X86_ID_XMM10;
-		}
-		case CON_Sem_XMM11: {
-			return X86_ID_XMM11;
-		}
-		case CON_Sem_XMM12: {
-			return X86_ID_XMM12;
-		}
-		case CON_Sem_XMM13: {
-			return X86_ID_XMM13;
-		}
-		case CON_Sem_XMM14: {
-			return X86_ID_XMM14;
-		}
-		case CON_Sem_XMM15: {
-			return X86_ID_XMM15;
-		}
-		case CON_VIRT_LES: {
-			return X86_ID_VIRT_LES;
-		}
-		case CON_VIRT_LEU: {
-			return X86_ID_VIRT_LEU;
-		}
-		case CON_VIRT_LTS: {
-			return X86_ID_VIRT_LTS;
-		}
+enum x86_id x86_reg_from_name(char const *name) {
+	if(!strcmp(name, "IP")) {
+		return X86_ID_IP;
+	} else if(!strcmp(name, "FLAGS")) {
+		return X86_ID_FLAGS;
+	} else if(!strcmp(name, "MXCSR")) {
+		return X86_ID_MXCSR;
+	} else if(!strcmp(name, "A")) {
+		return X86_ID_A;
+	} else if(!strcmp(name, "B")) {
+		return X86_ID_B;
+	} else if(!strcmp(name, "C")) {
+		return X86_ID_C;
+	} else if(!strcmp(name, "D")) {
+		return X86_ID_D;
+	} else if(!strcmp(name, "SI")) {
+		return X86_ID_SI;
+	} else if(!strcmp(name, "DI")) {
+		return X86_ID_DI;
+	} else if(!strcmp(name, "SP")) {
+		return X86_ID_SP;
+	} else if(!strcmp(name, "BP")) {
+		return X86_ID_BP;
+	} else if(!strcmp(name, "R8")) {
+		return X86_ID_R8;
+	} else if(!strcmp(name, "R9")) {
+		return X86_ID_R9;
+	} else if(!strcmp(name, "R10")) {
+		return X86_ID_R10;
+	} else if(!strcmp(name, "R11")) {
+		return X86_ID_R11;
+	} else if(!strcmp(name, "R12")) {
+		return X86_ID_R12;
+	} else if(!strcmp(name, "R13")) {
+		return X86_ID_R13;
+	} else if(!strcmp(name, "R14")) {
+		return X86_ID_R14;
+	} else if(!strcmp(name, "R15")) {
+		return X86_ID_R15;
+	} else if(!strcmp(name, "CS")) {
+		return X86_ID_CS;
+	} else if(!strcmp(name, "DS")) {
+		return X86_ID_DS;
+	} else if(!strcmp(name, "SS")) {
+		return X86_ID_SS;
+	} else if(!strcmp(name, "ES")) {
+		return X86_ID_ES;
+	} else if(!strcmp(name, "FS")) {
+		return X86_ID_FS;
+	} else if(!strcmp(name, "GS")) {
+		return X86_ID_GS;
+	} else if(!strcmp(name, "CS_Base")) {
+		return X86_ID_CS_Base;
+	} else if(!strcmp(name, "DS_Base")) {
+		return X86_ID_DS_Base;
+	} else if(!strcmp(name, "SS_Base")) {
+		return X86_ID_SS_Base;
+	} else if(!strcmp(name, "ES_Base")) {
+		return X86_ID_ES_Base;
+	} else if(!strcmp(name, "FS_Base")) {
+		return X86_ID_FS_Base;
+	} else if(!strcmp(name, "GS_Base")) {
+		return X86_ID_GS_Base;
+	} else if(!strcmp(name, "ST0")) {
+		return X86_ID_ST0;
+	} else if(!strcmp(name, "ST1")) {
+		return X86_ID_ST1;
+	} else if(!strcmp(name, "ST2")) {
+		return X86_ID_ST2;
+	} else if(!strcmp(name, "ST3")) {
+		return X86_ID_ST3;
+	} else if(!strcmp(name, "ST4")) {
+		return X86_ID_ST4;
+	} else if(!strcmp(name, "ST5")) {
+		return X86_ID_ST5;
+	} else if(!strcmp(name, "ST6")) {
+		return X86_ID_ST6;
+	} else if(!strcmp(name, "ST7")) {
+		return X86_ID_ST7;
+	} else if(!strcmp(name, "MM0")) {
+		return X86_ID_MM0;
+	} else if(!strcmp(name, "MM1")) {
+		return X86_ID_MM1;
+	} else if(!strcmp(name, "MM2")) {
+		return X86_ID_MM2;
+	} else if(!strcmp(name, "MM3")) {
+		return X86_ID_MM3;
+	} else if(!strcmp(name, "MM4")) {
+		return X86_ID_MM4;
+	} else if(!strcmp(name, "MM5")) {
+		return X86_ID_MM5;
+	} else if(!strcmp(name, "MM6")) {
+		return X86_ID_MM6;
+	} else if(!strcmp(name, "MM7")) {
+		return X86_ID_MM7;
+	} else if(!strcmp(name, "XMM0")) {
+		return X86_ID_XMM0;
+	} else if(!strcmp(name, "XMM1")) {
+		return X86_ID_XMM1;
+	} else if(!strcmp(name, "XMM2")) {
+		return X86_ID_XMM2;
+	} else if(!strcmp(name, "XMM3")) {
+		return X86_ID_XMM3;
+	} else if(!strcmp(name, "XMM4")) {
+		return X86_ID_XMM4;
+	} else if(!strcmp(name, "XMM5")) {
+		return X86_ID_XMM5;
+	} else if(!strcmp(name, "XMM6")) {
+		return X86_ID_XMM6;
+	} else if(!strcmp(name, "XMM7")) {
+		return X86_ID_XMM7;
+	} else if(!strcmp(name, "XMM8")) {
+		return X86_ID_XMM8;
+	} else if(!strcmp(name, "XMM9")) {
+		return X86_ID_XMM9;
+	} else if(!strcmp(name, "XMM10")) {
+		return X86_ID_XMM10;
+	} else if(!strcmp(name, "XMM11")) {
+		return X86_ID_XMM11;
+	} else if(!strcmp(name, "XMM12")) {
+		return X86_ID_XMM12;
+	} else if(!strcmp(name, "XMM13")) {
+		return X86_ID_XMM13;
+	} else if(!strcmp(name, "XMM14")) {
+		return X86_ID_XMM14;
+	} else if(!strcmp(name, "XMM15")) {
+		return X86_ID_XMM15;
+	} else if(!strcmp(name, "LES")) {
+		return X86_ID_VIRT_LES;
+	} else if(!strcmp(name, "LEU")) {
+		return X86_ID_VIRT_LEU;
+	} else if(!strcmp(name, "LTS")) {
+		return X86_ID_VIRT_LTS;
 	}
 	return 0;
 }
 
-enum x86_exception x86_exception_from_con(int_t con) {
-	switch(con) {
-		case CON_SEM_DIVISION_OVERFLOW: {
-			return X86_EXCEPTION_DIVISION_OVERFLOW;
-		}
+enum x86_exception x86_exception_from_name(char const *name) {
+	if(!strcmp(name, "{Exception: Division overflow}")) {
+		return X86_EXCEPTION_DIVISION_OVERFLOW;
 	}
 	return 0;
 }

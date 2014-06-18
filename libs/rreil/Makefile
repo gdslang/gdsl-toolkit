@@ -11,7 +11,7 @@ endif
 CFLAGS=-c -g3 -std=c11 -pedantic -Wall -Wfatal-errors $(DEFINES) $(INCDS)
 
 LIBRARY=librreil.a
-SOURCES=rreil/free.c rreil/print.c rreil/copy.c rreil/rreil_id.c rreil/gdrr_builder.c
+SOURCES=rreil/alloc.c rreil/free.c rreil/print.c rreil/copy.c rreil/rreil_id.c rreil/gdrr_builder.c
 
 all: pre-build $(LIBRARY)
 

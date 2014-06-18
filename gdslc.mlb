@@ -7,6 +7,7 @@ local
    $(SML_LIB)/smlnj-lib/RegExp/regexp-lib.mlb
    $(SML_LIB)/mllpt-lib/ml-lpt-lib.mlb
    (*$(SML_LIB)/ml-lpt/lib/ml-lpt-lib.mlb*)
+   $(SML_LIB)/basis/mlton.mlb
 in
    ann
       "forceUsed"
@@ -46,7 +47,9 @@ in
          detail/semantic/typing/lang-types.sml
          detail/semantic/typing/size-constraint.sml
          detail/semantic/typing/substitutions.sml
+         detail/semantic/typing/type-table.sml
          detail/semantic/typing/environment.sml
+         detail/semantic/typing/environment-profiling.sml
 
          detail/spec/spec.sml
          detail/spec/core.sml
