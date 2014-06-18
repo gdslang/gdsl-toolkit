@@ -38,7 +38,8 @@ gdsl::gdsl::~gdsl() {
   if(setjmp(*frontend->native().generic.err_tgt(gdsl_state)))
     throw gdsl_exception("destructor failed", string(frontend->native().generic.get_error_message(gdsl_state)));
 
-  frontend->native().generic.destroy(gdsl_state);
+  if(gdsl_state)
+    frontend->native().generic.destroy(gdsl_state);
 }
 
 int_t gdsl::gdsl::get_ip_offset() {

@@ -18,9 +18,11 @@ endif
 
 ifdef GDSL_X86
 endif
-LIBS+=-lgdsl -lelf -lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil
+LIBS +=-lgdsl -lelf -lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil
+LIBS_MULT +=-lelf -lrt -lreadhex -lgdsl-multiplex -ldl -lgdutil
 
 LIBFLAGS=$(LIBDS) $(LIBS)
+LIB_MULTFLAGS=$(LIBDS) $(LIBS_MULT)
 LDFLAGS=
 INCDS=-I../include
 CFLAGS=-c -g3 -std=gnu11 -pedantic -Wall -Wfatal-errors -DRELAXEDFATAL $(DEFINES) $(INCDS)
@@ -64,7 +66,7 @@ semantics-cif-cli.o: semantics-cif-cli.c
 ### cppgdsl-demo
 
 cppgdsl-demo: cppgdsl-demo.o
-	$(CPPC) $(LDFLAGS) cppgdsl-demo.o -lcppgdsl $(LIBFLAGS) -o $@
+	$(CPPC) $(LDFLAGS) cppgdsl-demo.o -lcppgdsl $(LIB_MULTFLAGS) -o $@
 
 cppgdsl-demo.o: cppgdsl-demo.cpp
 	$(CPPC) $(CPPFLAGS) cppgdsl-demo.cpp -o $@

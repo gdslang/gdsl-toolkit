@@ -23,8 +23,8 @@ extern "C" {
 
 class gdsl {
 private:
-  state_t gdsl_state;
-  _frontend *frontend;
+  state_t gdsl_state = NULL;
+  _frontend *frontend = NULL;
 
   std::vector<rreil::statement*> *convert(obj_t rreil);
 public:

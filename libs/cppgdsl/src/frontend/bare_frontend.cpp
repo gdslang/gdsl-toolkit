@@ -13,4 +13,5 @@ gdsl::bare_frontend::bare_frontend(string name) {
   char err = gdsl_multiplex_frontend_get_by_lib_name(&frontend, name.c_str());
   if(err != GDSL_MULTIPLEX_ERROR_NONE)
     throw string("Unable to open frontend");
+  initialized = true;
 }
