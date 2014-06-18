@@ -167,7 +167,7 @@ int main(void) {
 
     demo_block(g);
   }
-  catch(std::string s) {
+  catch(std::string &s) {
     printf("Exception: %s\n", s.c_str());
   }
 }
