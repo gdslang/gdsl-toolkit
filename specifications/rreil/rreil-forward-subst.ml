@@ -8,7 +8,8 @@ val varset-contains? set var = bbtree-contains? rreil-ltvar? set var
 
 val expr-map-lt? a b = rreil-ltvar? a.key b.key
 val expr-map-add map item = bbtree-add expr-map-lt? map item
-val expr-map-contains map key = bbtree-contains? expr-map-lt? map {key=key, value={}}
+val expr-map-at map item = bbtree-get expr-map-lt? map {key=item, value={}}
+val expr-map-contains? map key = bbtree-contains? expr-map-lt? map {key=key, value={}}
 
 val vars lin size = let
   val visit-var set var = varset-add set var #(@{size=size}var)
@@ -29,7 +30,10 @@ end
 
 val substitude state stmt = let
   val substitude-linear linear = case linear of
-     SEM_LIN_VAR v: SEM_LIN_VAR v
+     SEM_LIN_VAR v: if expr-map-contains? state v then
+       expr-map-at state v
+     else
+       SEM_LIN_VAR v
    | l: l
   end
   val substitude-address address = @{address=substitude-linear address.address}address
