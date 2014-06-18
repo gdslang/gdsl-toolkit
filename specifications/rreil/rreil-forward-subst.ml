@@ -1,4 +1,4 @@
-(*val set-empty = bbtree-empty {}
+val set-empty = bbtree-empty {}
 val map-empty = set-empty
 
 val varlset-add set varl = bbtree-add rreil-ltvarl? set varl
@@ -56,7 +56,7 @@ val update-state state stmt = state
 val sweep state tail = case tail of
    SEM_NIL: SEM_NIL
  | SEM_CONS cons: SEM_CONS {hd=substitude state cons.hd, tl=sweep (update-state state cons.hd) cons.tl}
-end*)
+end
 
 val forward-subst stmts = do
   return 0
