@@ -9,6 +9,7 @@ use rreil::id::SuperId;
 use rreil::linear::Linear;
 use rreil::linear::Immediate;
 use rreil::linear::Variable;
+use rreil::linear::BinaryLinear;
 
 use std::fmt;
 
@@ -35,4 +36,6 @@ fn main() {
 
   let lin2 = Variable(box y);
   println!("{}", lin2);
+
+  let lin_bin = BinaryLinear::new(rreil::linear::binary::Add, box lin, box lin2);
 }
