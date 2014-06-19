@@ -1015,12 +1015,13 @@ structure TypeRefinement = struct
                (* the following condition holds if the record always contains
                   the fields in fs; if it may contain fewer fields at any point
                   we return OBJstype and use the flex record mechanism *)
-               val resTy = if List.all #1 fs then
+               (*val resTy = if List.all #1 fs then
                      RECORDstype (lub (boxed1,boxed2), fs, always1 andalso always2)
                   else
-                     (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
+                     (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)*)
             in
-               resTy
+               RECORDstype (lub (boxed1,boxed2), fs, always1 andalso always2)
+               (*resTy*)
             end
            | lub (RECORDstype (_,fs,b), _) =
                (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
@@ -1130,10 +1131,10 @@ structure TypeRefinement = struct
          fieldType s f)
      | visitExp s (UPDATEexp (rs,t,fs,e)) =
          let
-            val sFields = map (fn (f,e) => (true,f,lub (s,fieldType s f, visitExp s e))) fs
-            val _ = lub (s, symType s rs, RECORDstype (freshTVar s,sFields,true))
+            val sFields = map (fn (f,e) => (true,f,visitExp s e)) fs
+            val ty = lub (s, symType s rs, RECORDstype (freshTVar s,sFields,true))
          in
-            lub (s, lub (s,OBJstype, symType s rs), visitExp s e)
+            lub (s, ty, visitExp s e)
          end
      | visitExp s (LITexp (ty,lit)) = vtypeToStype s ty
      | visitExp s (BOXexp (t,e)) = BOXstype (visitExp s e)
@@ -1307,7 +1308,7 @@ structure TypeRefinement = struct
            | genAdj (FUNstype (r,cl,args)) =
                FUNvtype (adjustType s (OBJvtype, r), isOBJstype cl, map (fn arg => adjustType s (OBJvtype, arg)) args)
            | genAdj (MONADstype r) = MONADvtype (genAdj r)
-           | genAdj (RECORDstype (boxed,fs,b)) = if List.all #1 fs then RECORDvtype (isOBJstype boxed, map (fn (_,f,t) => (f, genAdj t)) fs) else OBJvtype
+           | genAdj (RECORDstype (boxed,fs,b)) = RECORDvtype (isOBJstype boxed, map (fn (_,f,t) => (f, genAdj t)) fs)
            | genAdj t = (TextIO.print ("adjustType of " ^ showSType new ^ ", that is, " ^ showSType (inlineSType s new) ^ "\n"); raise TypeOptBug)
       in
          case orig of
