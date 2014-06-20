@@ -183,6 +183,72 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
+      case GDSLPackage.EXP:
+      {
+        Exp exp = (Exp)theEObject;
+        T result = caseExp(exp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.CASE_EXP:
+      {
+        CaseExp caseExp = (CaseExp)theEObject;
+        T result = caseCaseExp(caseExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.CLOSED_EXP:
+      {
+        ClosedExp closedExp = (ClosedExp)theEObject;
+        T result = caseClosedExp(closedExp);
+        if (result == null) result = caseCaseExp(closedExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.MONADIC_EXP:
+      {
+        MonadicExp monadicExp = (MonadicExp)theEObject;
+        T result = caseMonadicExp(monadicExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.CASES:
+      {
+        Cases cases = (Cases)theEObject;
+        T result = caseCases(cases);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.OR_ELSE_EXP:
+      {
+        OrElseExp orElseExp = (OrElseExp)theEObject;
+        T result = caseOrElseExp(orElseExp);
+        if (result == null) result = caseClosedExp(orElseExp);
+        if (result == null) result = caseCaseExp(orElseExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.AND_ALSO_EXP:
+      {
+        AndAlsoExp andAlsoExp = (AndAlsoExp)theEObject;
+        T result = caseAndAlsoExp(andAlsoExp);
+        if (result == null) result = caseOrElseExp(andAlsoExp);
+        if (result == null) result = caseClosedExp(andAlsoExp);
+        if (result == null) result = caseCaseExp(andAlsoExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.REXP:
+      {
+        RExp rExp = (RExp)theEObject;
+        T result = caseRExp(rExp);
+        if (result == null) result = caseAndAlsoExp(rExp);
+        if (result == null) result = caseOrElseExp(rExp);
+        if (result == null) result = caseClosedExp(rExp);
+        if (result == null) result = caseCaseExp(rExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
       default: return defaultCase(theEObject);
     }
   }
@@ -423,6 +489,134 @@ public class GDSLSwitch<T> extends Switch<T>
    * @generated
    */
   public T caseTokPat(TokPat object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseExp(Exp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Case Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Case Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseCaseExp(CaseExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Closed Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Closed Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseClosedExp(ClosedExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Monadic Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Monadic Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseMonadicExp(MonadicExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Cases</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Cases</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseCases(Cases object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Or Else Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Or Else Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseOrElseExp(OrElseExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>And Also Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>And Also Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseAndAlsoExp(AndAlsoExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>RExp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>RExp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseRExp(RExp object)
   {
     return null;
   }

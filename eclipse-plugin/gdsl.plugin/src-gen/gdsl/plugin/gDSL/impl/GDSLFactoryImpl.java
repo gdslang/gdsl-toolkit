@@ -79,6 +79,14 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.DECODE_PAT: return createDecodePat();
       case GDSLPackage.BIT_PAT: return createBitPat();
       case GDSLPackage.TOK_PAT: return createTokPat();
+      case GDSLPackage.EXP: return createExp();
+      case GDSLPackage.CASE_EXP: return createCaseExp();
+      case GDSLPackage.CLOSED_EXP: return createClosedExp();
+      case GDSLPackage.MONADIC_EXP: return createMonadicExp();
+      case GDSLPackage.CASES: return createCases();
+      case GDSLPackage.OR_ELSE_EXP: return createOrElseExp();
+      case GDSLPackage.AND_ALSO_EXP: return createAndAlsoExp();
+      case GDSLPackage.REXP: return createRExp();
       default:
         throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
     }
@@ -247,6 +255,94 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     TokPatImpl tokPat = new TokPatImpl();
     return tokPat;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Exp createExp()
+  {
+    ExpImpl exp = new ExpImpl();
+    return exp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public CaseExp createCaseExp()
+  {
+    CaseExpImpl caseExp = new CaseExpImpl();
+    return caseExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public ClosedExp createClosedExp()
+  {
+    ClosedExpImpl closedExp = new ClosedExpImpl();
+    return closedExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public MonadicExp createMonadicExp()
+  {
+    MonadicExpImpl monadicExp = new MonadicExpImpl();
+    return monadicExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Cases createCases()
+  {
+    CasesImpl cases = new CasesImpl();
+    return cases;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public OrElseExp createOrElseExp()
+  {
+    OrElseExpImpl orElseExp = new OrElseExpImpl();
+    return orElseExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public AndAlsoExp createAndAlsoExp()
+  {
+    AndAlsoExpImpl andAlsoExp = new AndAlsoExpImpl();
+    return andAlsoExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public RExp createRExp()
+  {
+    RExpImpl rExp = new RExpImpl();
+    return rExp;
   }
 
   /**

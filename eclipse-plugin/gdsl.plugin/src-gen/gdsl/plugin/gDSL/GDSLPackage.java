@@ -261,7 +261,7 @@ public interface GDSLPackage extends EPackage
   int DECL_VAL__ATTR = DECL_FEATURE_COUNT + 0;
 
   /**
-   * The feature id for the '<em><b>Exp</b></em>' attribute.
+   * The feature id for the '<em><b>Exp</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -279,7 +279,7 @@ public interface GDSLPackage extends EPackage
   int DECL_VAL__DEC_PAT = DECL_FEATURE_COUNT + 2;
 
   /**
-   * The feature id for the '<em><b>Exps</b></em>' attribute list.
+   * The feature id for the '<em><b>Exps</b></em>' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
@@ -593,6 +593,509 @@ public interface GDSLPackage extends EPackage
    */
   int TOK_PAT_FEATURE_COUNT = DECODE_PAT_FEATURE_COUNT + 1;
 
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ExpImpl <em>Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.ExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExp()
+   * @generated
+   */
+  int EXP = 15;
+
+  /**
+   * The feature id for the '<em><b>Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int EXP__CASE_EXP = 0;
+
+  /**
+   * The feature id for the '<em><b>Mid</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int EXP__MID = 1;
+
+  /**
+   * The number of structural features of the '<em>Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int EXP_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.CaseExpImpl <em>Case Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.CaseExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCaseExp()
+   * @generated
+   */
+  int CASE_EXP = 16;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASE_EXP__CLOSED_EXP = 0;
+
+  /**
+   * The feature id for the '<em><b>Cases</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASE_EXP__CASES = 1;
+
+  /**
+   * The number of structural features of the '<em>Case Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASE_EXP_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.ClosedExpImpl <em>Closed Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.ClosedExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getClosedExp()
+   * @generated
+   */
+  int CLOSED_EXP = 17;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__CLOSED_EXP = CASE_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Cases</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__CASES = CASE_EXP__CASES;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__IF_CASE_EXP = CASE_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__THEN_CASE_EXP = CASE_EXP_FEATURE_COUNT + 1;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__ELSE_CASE_EXP = CASE_EXP_FEATURE_COUNT + 2;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP__DO_EXP = CASE_EXP_FEATURE_COUNT + 3;
+
+  /**
+   * The number of structural features of the '<em>Closed Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CLOSED_EXP_FEATURE_COUNT = CASE_EXP_FEATURE_COUNT + 4;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.MonadicExpImpl <em>Monadic Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.MonadicExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getMonadicExp()
+   * @generated
+   */
+  int MONADIC_EXP = 18;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MONADIC_EXP__EXP = 0;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MONADIC_EXP__NAME = 1;
+
+  /**
+   * The number of structural features of the '<em>Monadic Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int MONADIC_EXP_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.CasesImpl <em>Cases</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.CasesImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCases()
+   * @generated
+   */
+  int CASES = 19;
+
+  /**
+   * The feature id for the '<em><b>Pat</b></em>' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASES__PAT = 0;
+
+  /**
+   * The feature id for the '<em><b>Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASES__EXP = 1;
+
+  /**
+   * The number of structural features of the '<em>Cases</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int CASES_FEATURE_COUNT = 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.OrElseExpImpl <em>Or Else Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.OrElseExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getOrElseExp()
+   * @generated
+   */
+  int OR_ELSE_EXP = 20;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__CLOSED_EXP = CLOSED_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Cases</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__CASES = CLOSED_EXP__CASES;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__IF_CASE_EXP = CLOSED_EXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__THEN_CASE_EXP = CLOSED_EXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__ELSE_CASE_EXP = CLOSED_EXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__DO_EXP = CLOSED_EXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__LEFT = CLOSED_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP__RIGHT = CLOSED_EXP_FEATURE_COUNT + 1;
+
+  /**
+   * The number of structural features of the '<em>Or Else Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int OR_ELSE_EXP_FEATURE_COUNT = CLOSED_EXP_FEATURE_COUNT + 2;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.AndAlsoExpImpl <em>And Also Exp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.AndAlsoExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAndAlsoExp()
+   * @generated
+   */
+  int AND_ALSO_EXP = 21;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__CLOSED_EXP = OR_ELSE_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Cases</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__CASES = OR_ELSE_EXP__CASES;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__IF_CASE_EXP = OR_ELSE_EXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__THEN_CASE_EXP = OR_ELSE_EXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__ELSE_CASE_EXP = OR_ELSE_EXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__DO_EXP = OR_ELSE_EXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__LEFT = OR_ELSE_EXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP__RIGHT = OR_ELSE_EXP__RIGHT;
+
+  /**
+   * The number of structural features of the '<em>And Also Exp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int AND_ALSO_EXP_FEATURE_COUNT = OR_ELSE_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The meta object id for the '{@link gdsl.plugin.gDSL.impl.RExpImpl <em>RExp</em>}' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see gdsl.plugin.gDSL.impl.RExpImpl
+   * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getRExp()
+   * @generated
+   */
+  int REXP = 22;
+
+  /**
+   * The feature id for the '<em><b>Closed Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__CLOSED_EXP = AND_ALSO_EXP__CLOSED_EXP;
+
+  /**
+   * The feature id for the '<em><b>Cases</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__CASES = AND_ALSO_EXP__CASES;
+
+  /**
+   * The feature id for the '<em><b>If Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__IF_CASE_EXP = AND_ALSO_EXP__IF_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Then Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__THEN_CASE_EXP = AND_ALSO_EXP__THEN_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Else Case Exp</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__ELSE_CASE_EXP = AND_ALSO_EXP__ELSE_CASE_EXP;
+
+  /**
+   * The feature id for the '<em><b>Do Exp</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__DO_EXP = AND_ALSO_EXP__DO_EXP;
+
+  /**
+   * The feature id for the '<em><b>Left</b></em>' containment reference.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__LEFT = AND_ALSO_EXP__LEFT;
+
+  /**
+   * The feature id for the '<em><b>Right</b></em>' containment reference list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__RIGHT = AND_ALSO_EXP__RIGHT;
+
+  /**
+   * The feature id for the '<em><b>Name</b></em>' attribute.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP__NAME = AND_ALSO_EXP_FEATURE_COUNT + 0;
+
+  /**
+   * The number of structural features of the '<em>RExp</em>' class.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   * @ordered
+   */
+  int REXP_FEATURE_COUNT = AND_ALSO_EXP_FEATURE_COUNT + 1;
+
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.Model <em>Model</em>}'.
@@ -732,15 +1235,15 @@ public interface GDSLPackage extends EPackage
   EAttribute getDeclVal_Attr();
 
   /**
-   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}'.
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute '<em>Exp</em>'.
+   * @return the meta object for the containment reference '<em>Exp</em>'.
    * @see gdsl.plugin.gDSL.DeclVal#getExp()
    * @see #getDeclVal()
    * @generated
    */
-  EAttribute getDeclVal_Exp();
+  EReference getDeclVal_Exp();
 
   /**
    * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclVal#getDecPat <em>Dec Pat</em>}'.
@@ -754,15 +1257,15 @@ public interface GDSLPackage extends EPackage
   EReference getDeclVal_DecPat();
 
   /**
-   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.DeclVal#getExps <em>Exps</em>}'.
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.DeclVal#getExps <em>Exps</em>}'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @return the meta object for the attribute list '<em>Exps</em>'.
+   * @return the meta object for the containment reference list '<em>Exps</em>'.
    * @see gdsl.plugin.gDSL.DeclVal#getExps()
    * @see #getDeclVal()
    * @generated
    */
-  EAttribute getDeclVal_Exps();
+  EReference getDeclVal_Exps();
 
   /**
    * Returns the meta object for class '{@link gdsl.plugin.gDSL.Export <em>Export</em>}'.
@@ -1009,6 +1512,251 @@ public interface GDSLPackage extends EPackage
   EAttribute getTokPat_TokPat();
 
   /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Exp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.Exp
+   * @generated
+   */
+  EClass getExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.Exp#getCaseExp <em>Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.Exp#getCaseExp()
+   * @see #getExp()
+   * @generated
+   */
+  EReference getExp_CaseExp();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.Exp#getMid <em>Mid</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Mid</em>'.
+   * @see gdsl.plugin.gDSL.Exp#getMid()
+   * @see #getExp()
+   * @generated
+   */
+  EAttribute getExp_Mid();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.CaseExp <em>Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.CaseExp
+   * @generated
+   */
+  EClass getCaseExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.CaseExp#getClosedExp <em>Closed Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Closed Exp</em>'.
+   * @see gdsl.plugin.gDSL.CaseExp#getClosedExp()
+   * @see #getCaseExp()
+   * @generated
+   */
+  EReference getCaseExp_ClosedExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.CaseExp#getCases <em>Cases</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Cases</em>'.
+   * @see gdsl.plugin.gDSL.CaseExp#getCases()
+   * @see #getCaseExp()
+   * @generated
+   */
+  EReference getCaseExp_Cases();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.ClosedExp <em>Closed Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Closed Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp
+   * @generated
+   */
+  EClass getClosedExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ClosedExp#getIfCaseExp <em>If Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>If Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp#getIfCaseExp()
+   * @see #getClosedExp()
+   * @generated
+   */
+  EReference getClosedExp_IfCaseExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ClosedExp#getThenCaseExp <em>Then Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Then Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp#getThenCaseExp()
+   * @see #getClosedExp()
+   * @generated
+   */
+  EReference getClosedExp_ThenCaseExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.ClosedExp#getElseCaseExp <em>Else Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Else Case Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp#getElseCaseExp()
+   * @see #getClosedExp()
+   * @generated
+   */
+  EReference getClosedExp_ElseCaseExp();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.ClosedExp#getDoExp <em>Do Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Do Exp</em>'.
+   * @see gdsl.plugin.gDSL.ClosedExp#getDoExp()
+   * @see #getClosedExp()
+   * @generated
+   */
+  EReference getClosedExp_DoExp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.MonadicExp <em>Monadic Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Monadic Exp</em>'.
+   * @see gdsl.plugin.gDSL.MonadicExp
+   * @generated
+   */
+  EClass getMonadicExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.MonadicExp#getExp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.MonadicExp#getExp()
+   * @see #getMonadicExp()
+   * @generated
+   */
+  EReference getMonadicExp_Exp();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.MonadicExp#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.MonadicExp#getName()
+   * @see #getMonadicExp()
+   * @generated
+   */
+  EAttribute getMonadicExp_Name();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.Cases <em>Cases</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Cases</em>'.
+   * @see gdsl.plugin.gDSL.Cases
+   * @generated
+   */
+  EClass getCases();
+
+  /**
+   * Returns the meta object for the attribute list '{@link gdsl.plugin.gDSL.Cases#getPat <em>Pat</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute list '<em>Pat</em>'.
+   * @see gdsl.plugin.gDSL.Cases#getPat()
+   * @see #getCases()
+   * @generated
+   */
+  EAttribute getCases_Pat();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.Cases#getExp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Exp</em>'.
+   * @see gdsl.plugin.gDSL.Cases#getExp()
+   * @see #getCases()
+   * @generated
+   */
+  EReference getCases_Exp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.OrElseExp <em>Or Else Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>Or Else Exp</em>'.
+   * @see gdsl.plugin.gDSL.OrElseExp
+   * @generated
+   */
+  EClass getOrElseExp();
+
+  /**
+   * Returns the meta object for the containment reference '{@link gdsl.plugin.gDSL.OrElseExp#getLeft <em>Left</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference '<em>Left</em>'.
+   * @see gdsl.plugin.gDSL.OrElseExp#getLeft()
+   * @see #getOrElseExp()
+   * @generated
+   */
+  EReference getOrElseExp_Left();
+
+  /**
+   * Returns the meta object for the containment reference list '{@link gdsl.plugin.gDSL.OrElseExp#getRight <em>Right</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the containment reference list '<em>Right</em>'.
+   * @see gdsl.plugin.gDSL.OrElseExp#getRight()
+   * @see #getOrElseExp()
+   * @generated
+   */
+  EReference getOrElseExp_Right();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.AndAlsoExp <em>And Also Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>And Also Exp</em>'.
+   * @see gdsl.plugin.gDSL.AndAlsoExp
+   * @generated
+   */
+  EClass getAndAlsoExp();
+
+  /**
+   * Returns the meta object for class '{@link gdsl.plugin.gDSL.RExp <em>RExp</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for class '<em>RExp</em>'.
+   * @see gdsl.plugin.gDSL.RExp
+   * @generated
+   */
+  EClass getRExp();
+
+  /**
+   * Returns the meta object for the attribute '{@link gdsl.plugin.gDSL.RExp#getName <em>Name</em>}'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return the meta object for the attribute '<em>Name</em>'.
+   * @see gdsl.plugin.gDSL.RExp#getName()
+   * @see #getRExp()
+   * @generated
+   */
+  EAttribute getRExp_Name();
+
+  /**
    * Returns the factory that creates the instances of the model.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -1148,12 +1896,12 @@ public interface GDSLPackage extends EPackage
     EAttribute DECL_VAL__ATTR = eINSTANCE.getDeclVal_Attr();
 
     /**
-     * The meta object literal for the '<em><b>Exp</b></em>' attribute feature.
+     * The meta object literal for the '<em><b>Exp</b></em>' containment reference feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute DECL_VAL__EXP = eINSTANCE.getDeclVal_Exp();
+    EReference DECL_VAL__EXP = eINSTANCE.getDeclVal_Exp();
 
     /**
      * The meta object literal for the '<em><b>Dec Pat</b></em>' containment reference list feature.
@@ -1164,12 +1912,12 @@ public interface GDSLPackage extends EPackage
     EReference DECL_VAL__DEC_PAT = eINSTANCE.getDeclVal_DecPat();
 
     /**
-     * The meta object literal for the '<em><b>Exps</b></em>' attribute list feature.
+     * The meta object literal for the '<em><b>Exps</b></em>' containment reference list feature.
      * <!-- begin-user-doc -->
      * <!-- end-user-doc -->
      * @generated
      */
-    EAttribute DECL_VAL__EXPS = eINSTANCE.getDeclVal_Exps();
+    EReference DECL_VAL__EXPS = eINSTANCE.getDeclVal_Exps();
 
     /**
      * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ExportImpl <em>Export</em>}' class.
@@ -1372,6 +2120,206 @@ public interface GDSLPackage extends EPackage
      * @generated
      */
     EAttribute TOK_PAT__TOK_PAT = eINSTANCE.getTokPat_TokPat();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ExpImpl <em>Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.ExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getExp()
+     * @generated
+     */
+    EClass EXP = eINSTANCE.getExp();
+
+    /**
+     * The meta object literal for the '<em><b>Case Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference EXP__CASE_EXP = eINSTANCE.getExp_CaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Mid</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute EXP__MID = eINSTANCE.getExp_Mid();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.CaseExpImpl <em>Case Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.CaseExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCaseExp()
+     * @generated
+     */
+    EClass CASE_EXP = eINSTANCE.getCaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Closed Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CASE_EXP__CLOSED_EXP = eINSTANCE.getCaseExp_ClosedExp();
+
+    /**
+     * The meta object literal for the '<em><b>Cases</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CASE_EXP__CASES = eINSTANCE.getCaseExp_Cases();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.ClosedExpImpl <em>Closed Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.ClosedExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getClosedExp()
+     * @generated
+     */
+    EClass CLOSED_EXP = eINSTANCE.getClosedExp();
+
+    /**
+     * The meta object literal for the '<em><b>If Case Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CLOSED_EXP__IF_CASE_EXP = eINSTANCE.getClosedExp_IfCaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Then Case Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CLOSED_EXP__THEN_CASE_EXP = eINSTANCE.getClosedExp_ThenCaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Else Case Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CLOSED_EXP__ELSE_CASE_EXP = eINSTANCE.getClosedExp_ElseCaseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Do Exp</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CLOSED_EXP__DO_EXP = eINSTANCE.getClosedExp_DoExp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.MonadicExpImpl <em>Monadic Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.MonadicExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getMonadicExp()
+     * @generated
+     */
+    EClass MONADIC_EXP = eINSTANCE.getMonadicExp();
+
+    /**
+     * The meta object literal for the '<em><b>Exp</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference MONADIC_EXP__EXP = eINSTANCE.getMonadicExp_Exp();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute MONADIC_EXP__NAME = eINSTANCE.getMonadicExp_Name();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.CasesImpl <em>Cases</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.CasesImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getCases()
+     * @generated
+     */
+    EClass CASES = eINSTANCE.getCases();
+
+    /**
+     * The meta object literal for the '<em><b>Pat</b></em>' attribute list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute CASES__PAT = eINSTANCE.getCases_Pat();
+
+    /**
+     * The meta object literal for the '<em><b>Exp</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference CASES__EXP = eINSTANCE.getCases_Exp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.OrElseExpImpl <em>Or Else Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.OrElseExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getOrElseExp()
+     * @generated
+     */
+    EClass OR_ELSE_EXP = eINSTANCE.getOrElseExp();
+
+    /**
+     * The meta object literal for the '<em><b>Left</b></em>' containment reference feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference OR_ELSE_EXP__LEFT = eINSTANCE.getOrElseExp_Left();
+
+    /**
+     * The meta object literal for the '<em><b>Right</b></em>' containment reference list feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EReference OR_ELSE_EXP__RIGHT = eINSTANCE.getOrElseExp_Right();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.AndAlsoExpImpl <em>And Also Exp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.AndAlsoExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getAndAlsoExp()
+     * @generated
+     */
+    EClass AND_ALSO_EXP = eINSTANCE.getAndAlsoExp();
+
+    /**
+     * The meta object literal for the '{@link gdsl.plugin.gDSL.impl.RExpImpl <em>RExp</em>}' class.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @see gdsl.plugin.gDSL.impl.RExpImpl
+     * @see gdsl.plugin.gDSL.impl.GDSLPackageImpl#getRExp()
+     * @generated
+     */
+    EClass REXP = eINSTANCE.getRExp();
+
+    /**
+     * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
+     * <!-- begin-user-doc -->
+     * <!-- end-user-doc -->
+     * @generated
+     */
+    EAttribute REXP__NAME = eINSTANCE.getRExp_Name();
 
   }
 

@@ -811,6 +811,449 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		public RuleCall getTokPatQidParserRuleCall_0_1() { return cTokPatQidParserRuleCall_0_1; }
 	}
 
+	public class ExpElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Exp");
+		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
+		private final Assignment cCaseExpAssignment_0 = (Assignment)cAlternatives.eContents().get(0);
+		private final RuleCall cCaseExpCaseExpParserRuleCall_0_0 = (RuleCall)cCaseExpAssignment_0.eContents().get(0);
+		private final Group cGroup_1 = (Group)cAlternatives.eContents().get(1);
+		private final Assignment cMidAssignment_1_0 = (Assignment)cGroup_1.eContents().get(0);
+		private final RuleCall cMidMIXIDParserRuleCall_1_0_0 = (RuleCall)cMidAssignment_1_0.eContents().get(0);
+		private final Assignment cCaseExpAssignment_1_1 = (Assignment)cGroup_1.eContents().get(1);
+		private final RuleCall cCaseExpCaseExpParserRuleCall_1_1_0 = (RuleCall)cCaseExpAssignment_1_1.eContents().get(0);
+		
+		//Exp:
+		//	caseExp=CaseExp | mid=MIXID caseExp=CaseExp;
+		public ParserRule getRule() { return rule; }
+
+		//caseExp=CaseExp | mid=MIXID caseExp=CaseExp
+		public Alternatives getAlternatives() { return cAlternatives; }
+
+		//caseExp=CaseExp
+		public Assignment getCaseExpAssignment_0() { return cCaseExpAssignment_0; }
+
+		//CaseExp
+		public RuleCall getCaseExpCaseExpParserRuleCall_0_0() { return cCaseExpCaseExpParserRuleCall_0_0; }
+
+		//mid=MIXID caseExp=CaseExp
+		public Group getGroup_1() { return cGroup_1; }
+
+		//mid=MIXID
+		public Assignment getMidAssignment_1_0() { return cMidAssignment_1_0; }
+
+		//MIXID
+		public RuleCall getMidMIXIDParserRuleCall_1_0_0() { return cMidMIXIDParserRuleCall_1_0_0; }
+
+		//caseExp=CaseExp
+		public Assignment getCaseExpAssignment_1_1() { return cCaseExpAssignment_1_1; }
+
+		//CaseExp
+		public RuleCall getCaseExpCaseExpParserRuleCall_1_1_0() { return cCaseExpCaseExpParserRuleCall_1_1_0; }
+	}
+
+	public class CaseExpElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "CaseExp");
+		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
+		private final RuleCall cClosedExpParserRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
+		private final Group cGroup_1 = (Group)cAlternatives.eContents().get(1);
+		private final Keyword cCaseKeyword_1_0 = (Keyword)cGroup_1.eContents().get(0);
+		private final Assignment cClosedExpAssignment_1_1 = (Assignment)cGroup_1.eContents().get(1);
+		private final RuleCall cClosedExpClosedExpParserRuleCall_1_1_0 = (RuleCall)cClosedExpAssignment_1_1.eContents().get(0);
+		private final Keyword cOfKeyword_1_2 = (Keyword)cGroup_1.eContents().get(2);
+		private final Assignment cCasesAssignment_1_3 = (Assignment)cGroup_1.eContents().get(3);
+		private final RuleCall cCasesCasesParserRuleCall_1_3_0 = (RuleCall)cCasesAssignment_1_3.eContents().get(0);
+		private final Keyword cEndKeyword_1_4 = (Keyword)cGroup_1.eContents().get(4);
+		
+		//CaseExp:
+		//	ClosedExp | "case" closedExp=ClosedExp "of" cases=Cases "end";
+		public ParserRule getRule() { return rule; }
+
+		//ClosedExp | "case" closedExp=ClosedExp "of" cases=Cases "end"
+		public Alternatives getAlternatives() { return cAlternatives; }
+
+		//ClosedExp
+		public RuleCall getClosedExpParserRuleCall_0() { return cClosedExpParserRuleCall_0; }
+
+		//"case" closedExp=ClosedExp "of" cases=Cases "end"
+		public Group getGroup_1() { return cGroup_1; }
+
+		//"case"
+		public Keyword getCaseKeyword_1_0() { return cCaseKeyword_1_0; }
+
+		//closedExp=ClosedExp
+		public Assignment getClosedExpAssignment_1_1() { return cClosedExpAssignment_1_1; }
+
+		//ClosedExp
+		public RuleCall getClosedExpClosedExpParserRuleCall_1_1_0() { return cClosedExpClosedExpParserRuleCall_1_1_0; }
+
+		//"of"
+		public Keyword getOfKeyword_1_2() { return cOfKeyword_1_2; }
+
+		//cases=Cases
+		public Assignment getCasesAssignment_1_3() { return cCasesAssignment_1_3; }
+
+		//Cases
+		public RuleCall getCasesCasesParserRuleCall_1_3_0() { return cCasesCasesParserRuleCall_1_3_0; }
+
+		//"end"
+		public Keyword getEndKeyword_1_4() { return cEndKeyword_1_4; }
+	}
+
+	public class ClosedExpElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "ClosedExp");
+		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
+		private final RuleCall cOrElseExpParserRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
+		private final Group cGroup_1 = (Group)cAlternatives.eContents().get(1);
+		private final Keyword cIfKeyword_1_0 = (Keyword)cGroup_1.eContents().get(0);
+		private final Assignment cIfCaseExpAssignment_1_1 = (Assignment)cGroup_1.eContents().get(1);
+		private final RuleCall cIfCaseExpCaseExpParserRuleCall_1_1_0 = (RuleCall)cIfCaseExpAssignment_1_1.eContents().get(0);
+		private final Keyword cThenKeyword_1_2 = (Keyword)cGroup_1.eContents().get(2);
+		private final Assignment cThenCaseExpAssignment_1_3 = (Assignment)cGroup_1.eContents().get(3);
+		private final RuleCall cThenCaseExpCaseExpParserRuleCall_1_3_0 = (RuleCall)cThenCaseExpAssignment_1_3.eContents().get(0);
+		private final Keyword cElseKeyword_1_4 = (Keyword)cGroup_1.eContents().get(4);
+		private final Assignment cElseCaseExpAssignment_1_5 = (Assignment)cGroup_1.eContents().get(5);
+		private final RuleCall cElseCaseExpCaseExpParserRuleCall_1_5_0 = (RuleCall)cElseCaseExpAssignment_1_5.eContents().get(0);
+		private final Group cGroup_2 = (Group)cAlternatives.eContents().get(2);
+		private final Keyword cDoKeyword_2_0 = (Keyword)cGroup_2.eContents().get(0);
+		private final Assignment cDoExpAssignment_2_1 = (Assignment)cGroup_2.eContents().get(1);
+		private final RuleCall cDoExpMonadicExpParserRuleCall_2_1_0 = (RuleCall)cDoExpAssignment_2_1.eContents().get(0);
+		private final Group cGroup_2_2 = (Group)cGroup_2.eContents().get(2);
+		private final Keyword cSemicolonKeyword_2_2_0 = (Keyword)cGroup_2_2.eContents().get(0);
+		private final Assignment cDoExpAssignment_2_2_1 = (Assignment)cGroup_2_2.eContents().get(1);
+		private final RuleCall cDoExpMonadicExpParserRuleCall_2_2_1_0 = (RuleCall)cDoExpAssignment_2_2_1.eContents().get(0);
+		private final Keyword cEndKeyword_2_3 = (Keyword)cGroup_2.eContents().get(3);
+		
+		//ClosedExp:
+		//	OrElseExp | "if" ifCaseExp=CaseExp "then" thenCaseExp=CaseExp "else" elseCaseExp=CaseExp | "do" doExp+=MonadicExp (";"
+		//	doExp+=MonadicExp)* "end";
+		public ParserRule getRule() { return rule; }
+
+		//OrElseExp | "if" ifCaseExp=CaseExp "then" thenCaseExp=CaseExp "else" elseCaseExp=CaseExp | "do" doExp+=MonadicExp (";"
+		//doExp+=MonadicExp)* "end"
+		public Alternatives getAlternatives() { return cAlternatives; }
+
+		//OrElseExp
+		public RuleCall getOrElseExpParserRuleCall_0() { return cOrElseExpParserRuleCall_0; }
+
+		//"if" ifCaseExp=CaseExp "then" thenCaseExp=CaseExp "else" elseCaseExp=CaseExp
+		public Group getGroup_1() { return cGroup_1; }
+
+		//"if"
+		public Keyword getIfKeyword_1_0() { return cIfKeyword_1_0; }
+
+		//ifCaseExp=CaseExp
+		public Assignment getIfCaseExpAssignment_1_1() { return cIfCaseExpAssignment_1_1; }
+
+		//CaseExp
+		public RuleCall getIfCaseExpCaseExpParserRuleCall_1_1_0() { return cIfCaseExpCaseExpParserRuleCall_1_1_0; }
+
+		//"then"
+		public Keyword getThenKeyword_1_2() { return cThenKeyword_1_2; }
+
+		//thenCaseExp=CaseExp
+		public Assignment getThenCaseExpAssignment_1_3() { return cThenCaseExpAssignment_1_3; }
+
+		//CaseExp
+		public RuleCall getThenCaseExpCaseExpParserRuleCall_1_3_0() { return cThenCaseExpCaseExpParserRuleCall_1_3_0; }
+
+		//"else"
+		public Keyword getElseKeyword_1_4() { return cElseKeyword_1_4; }
+
+		//elseCaseExp=CaseExp
+		public Assignment getElseCaseExpAssignment_1_5() { return cElseCaseExpAssignment_1_5; }
+
+		//CaseExp
+		public RuleCall getElseCaseExpCaseExpParserRuleCall_1_5_0() { return cElseCaseExpCaseExpParserRuleCall_1_5_0; }
+
+		//"do" doExp+=MonadicExp (";" doExp+=MonadicExp)* "end"
+		public Group getGroup_2() { return cGroup_2; }
+
+		//"do"
+		public Keyword getDoKeyword_2_0() { return cDoKeyword_2_0; }
+
+		//doExp+=MonadicExp
+		public Assignment getDoExpAssignment_2_1() { return cDoExpAssignment_2_1; }
+
+		//MonadicExp
+		public RuleCall getDoExpMonadicExpParserRuleCall_2_1_0() { return cDoExpMonadicExpParserRuleCall_2_1_0; }
+
+		//(";" doExp+=MonadicExp)*
+		public Group getGroup_2_2() { return cGroup_2_2; }
+
+		//";"
+		public Keyword getSemicolonKeyword_2_2_0() { return cSemicolonKeyword_2_2_0; }
+
+		//doExp+=MonadicExp
+		public Assignment getDoExpAssignment_2_2_1() { return cDoExpAssignment_2_2_1; }
+
+		//MonadicExp
+		public RuleCall getDoExpMonadicExpParserRuleCall_2_2_1_0() { return cDoExpMonadicExpParserRuleCall_2_2_1_0; }
+
+		//"end"
+		public Keyword getEndKeyword_2_3() { return cEndKeyword_2_3; }
+	}
+
+	public class MonadicExpElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "MonadicExp");
+		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
+		private final Assignment cExpAssignment_0 = (Assignment)cAlternatives.eContents().get(0);
+		private final RuleCall cExpExpParserRuleCall_0_0 = (RuleCall)cExpAssignment_0.eContents().get(0);
+		private final Group cGroup_1 = (Group)cAlternatives.eContents().get(1);
+		private final Assignment cNameAssignment_1_0 = (Assignment)cGroup_1.eContents().get(0);
+		private final RuleCall cNameNameParserRuleCall_1_0_0 = (RuleCall)cNameAssignment_1_0.eContents().get(0);
+		private final Keyword cLessThanSignHyphenMinusKeyword_1_1 = (Keyword)cGroup_1.eContents().get(1);
+		private final Assignment cExpAssignment_1_2 = (Assignment)cGroup_1.eContents().get(2);
+		private final RuleCall cExpExpParserRuleCall_1_2_0 = (RuleCall)cExpAssignment_1_2.eContents().get(0);
+		
+		//MonadicExp:
+		//	exp=Exp | name=Name "<-" exp=Exp;
+		public ParserRule getRule() { return rule; }
+
+		//exp=Exp | name=Name "<-" exp=Exp
+		public Alternatives getAlternatives() { return cAlternatives; }
+
+		//exp=Exp
+		public Assignment getExpAssignment_0() { return cExpAssignment_0; }
+
+		//Exp
+		public RuleCall getExpExpParserRuleCall_0_0() { return cExpExpParserRuleCall_0_0; }
+
+		//name=Name "<-" exp=Exp
+		public Group getGroup_1() { return cGroup_1; }
+
+		//name=Name
+		public Assignment getNameAssignment_1_0() { return cNameAssignment_1_0; }
+
+		//Name
+		public RuleCall getNameNameParserRuleCall_1_0_0() { return cNameNameParserRuleCall_1_0_0; }
+
+		//"<-"
+		public Keyword getLessThanSignHyphenMinusKeyword_1_1() { return cLessThanSignHyphenMinusKeyword_1_1; }
+
+		//exp=Exp
+		public Assignment getExpAssignment_1_2() { return cExpAssignment_1_2; }
+
+		//Exp
+		public RuleCall getExpExpParserRuleCall_1_2_0() { return cExpExpParserRuleCall_1_2_0; }
+	}
+
+	public class CasesElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Cases");
+		private final Group cGroup = (Group)rule.eContents().get(1);
+		private final Assignment cPatAssignment_0 = (Assignment)cGroup.eContents().get(0);
+		private final RuleCall cPatPatParserRuleCall_0_0 = (RuleCall)cPatAssignment_0.eContents().get(0);
+		private final Keyword cColonKeyword_1 = (Keyword)cGroup.eContents().get(1);
+		private final Assignment cExpAssignment_2 = (Assignment)cGroup.eContents().get(2);
+		private final RuleCall cExpExpParserRuleCall_2_0 = (RuleCall)cExpAssignment_2.eContents().get(0);
+		private final Group cGroup_3 = (Group)cGroup.eContents().get(3);
+		private final RuleCall cPIPETerminalRuleCall_3_0 = (RuleCall)cGroup_3.eContents().get(0);
+		private final Assignment cPatAssignment_3_1 = (Assignment)cGroup_3.eContents().get(1);
+		private final RuleCall cPatPatParserRuleCall_3_1_0 = (RuleCall)cPatAssignment_3_1.eContents().get(0);
+		private final Keyword cColonKeyword_3_2 = (Keyword)cGroup_3.eContents().get(2);
+		private final Assignment cExpAssignment_3_3 = (Assignment)cGroup_3.eContents().get(3);
+		private final RuleCall cExpExpParserRuleCall_3_3_0 = (RuleCall)cExpAssignment_3_3.eContents().get(0);
+		
+		//Cases:
+		//	pat+=Pat ":" exp+=Exp (PIPE pat+=Pat ":" exp+=Exp)*;
+		public ParserRule getRule() { return rule; }
+
+		//pat+=Pat ":" exp+=Exp (PIPE pat+=Pat ":" exp+=Exp)*
+		public Group getGroup() { return cGroup; }
+
+		//pat+=Pat
+		public Assignment getPatAssignment_0() { return cPatAssignment_0; }
+
+		//Pat
+		public RuleCall getPatPatParserRuleCall_0_0() { return cPatPatParserRuleCall_0_0; }
+
+		//":"
+		public Keyword getColonKeyword_1() { return cColonKeyword_1; }
+
+		//exp+=Exp
+		public Assignment getExpAssignment_2() { return cExpAssignment_2; }
+
+		//Exp
+		public RuleCall getExpExpParserRuleCall_2_0() { return cExpExpParserRuleCall_2_0; }
+
+		//(PIPE pat+=Pat ":" exp+=Exp)*
+		public Group getGroup_3() { return cGroup_3; }
+
+		//PIPE
+		public RuleCall getPIPETerminalRuleCall_3_0() { return cPIPETerminalRuleCall_3_0; }
+
+		//pat+=Pat
+		public Assignment getPatAssignment_3_1() { return cPatAssignment_3_1; }
+
+		//Pat
+		public RuleCall getPatPatParserRuleCall_3_1_0() { return cPatPatParserRuleCall_3_1_0; }
+
+		//":"
+		public Keyword getColonKeyword_3_2() { return cColonKeyword_3_2; }
+
+		//exp+=Exp
+		public Assignment getExpAssignment_3_3() { return cExpAssignment_3_3; }
+
+		//Exp
+		public RuleCall getExpExpParserRuleCall_3_3_0() { return cExpExpParserRuleCall_3_3_0; }
+	}
+
+	public class OrElseExpElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "OrElseExp");
+		private final Group cGroup = (Group)rule.eContents().get(1);
+		private final RuleCall cAndAlsoExpParserRuleCall_0 = (RuleCall)cGroup.eContents().get(0);
+		private final Group cGroup_1 = (Group)cGroup.eContents().get(1);
+		private final Action cOrElseExpLeftAction_1_0 = (Action)cGroup_1.eContents().get(0);
+		private final Keyword cOrKeyword_1_1 = (Keyword)cGroup_1.eContents().get(1);
+		private final Assignment cRightAssignment_1_2 = (Assignment)cGroup_1.eContents().get(2);
+		private final RuleCall cRightAndAlsoExpParserRuleCall_1_2_0 = (RuleCall)cRightAssignment_1_2.eContents().get(0);
+		
+		//OrElseExp:
+		//	AndAlsoExp ({OrElseExp.left=current} "or" right+=AndAlsoExp)*;
+		public ParserRule getRule() { return rule; }
+
+		//AndAlsoExp ({OrElseExp.left=current} "or" right+=AndAlsoExp)*
+		public Group getGroup() { return cGroup; }
+
+		//AndAlsoExp
+		public RuleCall getAndAlsoExpParserRuleCall_0() { return cAndAlsoExpParserRuleCall_0; }
+
+		//({OrElseExp.left=current} "or" right+=AndAlsoExp)*
+		public Group getGroup_1() { return cGroup_1; }
+
+		//{OrElseExp.left=current}
+		public Action getOrElseExpLeftAction_1_0() { return cOrElseExpLeftAction_1_0; }
+
+		//"or"
+		public Keyword getOrKeyword_1_1() { return cOrKeyword_1_1; }
+
+		//right+=AndAlsoExp
+		public Assignment getRightAssignment_1_2() { return cRightAssignment_1_2; }
+
+		//AndAlsoExp
+		public RuleCall getRightAndAlsoExpParserRuleCall_1_2_0() { return cRightAndAlsoExpParserRuleCall_1_2_0; }
+	}
+
+	public class AndAlsoExpElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "AndAlsoExp");
+		private final Group cGroup = (Group)rule.eContents().get(1);
+		private final RuleCall cRExpParserRuleCall_0 = (RuleCall)cGroup.eContents().get(0);
+		private final Group cGroup_1 = (Group)cGroup.eContents().get(1);
+		private final Action cAndAlsoExpLeftAction_1_0 = (Action)cGroup_1.eContents().get(0);
+		private final Keyword cAndKeyword_1_1 = (Keyword)cGroup_1.eContents().get(1);
+		private final Assignment cRightAssignment_1_2 = (Assignment)cGroup_1.eContents().get(2);
+		private final RuleCall cRightRExpParserRuleCall_1_2_0 = (RuleCall)cRightAssignment_1_2.eContents().get(0);
+		
+		//AndAlsoExp:
+		//	RExp ({AndAlsoExp.left=current} "and" right+=RExp)*;
+		public ParserRule getRule() { return rule; }
+
+		//RExp ({AndAlsoExp.left=current} "and" right+=RExp)*
+		public Group getGroup() { return cGroup; }
+
+		//RExp
+		public RuleCall getRExpParserRuleCall_0() { return cRExpParserRuleCall_0; }
+
+		//({AndAlsoExp.left=current} "and" right+=RExp)*
+		public Group getGroup_1() { return cGroup_1; }
+
+		//{AndAlsoExp.left=current}
+		public Action getAndAlsoExpLeftAction_1_0() { return cAndAlsoExpLeftAction_1_0; }
+
+		//"and"
+		public Keyword getAndKeyword_1_1() { return cAndKeyword_1_1; }
+
+		//right+=RExp
+		public Assignment getRightAssignment_1_2() { return cRightAssignment_1_2; }
+
+		//RExp
+		public RuleCall getRightRExpParserRuleCall_1_2_0() { return cRightRExpParserRuleCall_1_2_0; }
+	}
+
+	public class RExpElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "RExp");
+		private final Assignment cNameAssignment = (Assignment)rule.eContents().get(1);
+		private final Keyword cNameTodoKeyword_0 = (Keyword)cNameAssignment.eContents().get(0);
+		
+		//RExp:
+		//	name="todo";
+		public ParserRule getRule() { return rule; }
+
+		//name="todo"
+		public Assignment getNameAssignment() { return cNameAssignment; }
+
+		//"todo"
+		public Keyword getNameTodoKeyword_0() { return cNameTodoKeyword_0; }
+	}
+
+	public class PatElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Pat");
+		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
+		private final Keyword c_Keyword_0 = (Keyword)cAlternatives.eContents().get(0);
+		private final RuleCall cLitParserRuleCall_1 = (RuleCall)cAlternatives.eContents().get(1);
+		private final RuleCall cNameParserRuleCall_2 = (RuleCall)cAlternatives.eContents().get(2);
+		private final Group cGroup_3 = (Group)cAlternatives.eContents().get(3);
+		private final RuleCall cConUseParserRuleCall_3_0 = (RuleCall)cGroup_3.eContents().get(0);
+		private final RuleCall cPatParserRuleCall_3_1 = (RuleCall)cGroup_3.eContents().get(1);
+		
+		////DataType Rules
+		//Pat:
+		//	"_" | Lit | => Name | ConUse Pat?;
+		public ParserRule getRule() { return rule; }
+
+		//"_" | Lit | => Name | ConUse Pat?
+		public Alternatives getAlternatives() { return cAlternatives; }
+
+		//"_"
+		public Keyword get_Keyword_0() { return c_Keyword_0; }
+
+		//Lit
+		public RuleCall getLitParserRuleCall_1() { return cLitParserRuleCall_1; }
+
+		//=> Name
+		public RuleCall getNameParserRuleCall_2() { return cNameParserRuleCall_2; }
+
+		//ConUse Pat?
+		public Group getGroup_3() { return cGroup_3; }
+
+		//ConUse
+		public RuleCall getConUseParserRuleCall_3_0() { return cConUseParserRuleCall_3_0; }
+
+		//Pat?
+		public RuleCall getPatParserRuleCall_3_1() { return cPatParserRuleCall_3_1; }
+	}
+
+	public class LitElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Lit");
+		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
+		private final RuleCall cIntParserRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
+		private final Group cGroup_1 = (Group)cAlternatives.eContents().get(1);
+		private final Keyword cApostropheKeyword_1_0 = (Keyword)cGroup_1.eContents().get(0);
+		private final RuleCall cBITSTRParserRuleCall_1_1 = (RuleCall)cGroup_1.eContents().get(1);
+		private final Keyword cApostropheKeyword_1_2 = (Keyword)cGroup_1.eContents().get(2);
+		
+		//Lit:
+		//	Int | "\'" BITSTR? "\'";
+		public ParserRule getRule() { return rule; }
+
+		//Int | "\'" BITSTR? "\'"
+		public Alternatives getAlternatives() { return cAlternatives; }
+
+		//Int
+		public RuleCall getIntParserRuleCall_0() { return cIntParserRuleCall_0; }
+
+		//"\'" BITSTR? "\'"
+		public Group getGroup_1() { return cGroup_1; }
+
+		//"\'"
+		public Keyword getApostropheKeyword_1_0() { return cApostropheKeyword_1_0; }
+
+		//BITSTR?
+		public RuleCall getBITSTRParserRuleCall_1_1() { return cBITSTRParserRuleCall_1_1; }
+
+		//"\'"
+		public Keyword getApostropheKeyword_1_2() { return cApostropheKeyword_1_2; }
+	}
+
 	public class PrimBitPatElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "PrimBitPat");
 		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
@@ -819,7 +1262,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cQidParserRuleCall_1_0 = (RuleCall)cGroup_1.eContents().get(0);
 		private final RuleCall cBitPatOrIntParserRuleCall_1_1 = (RuleCall)cGroup_1.eContents().get(1);
 		
-		////DataType Rules
 		//PrimBitPat:
 		//	BITSTR | Qid BitPatOrInt?;
 		public ParserRule getRule() { return rule; }
@@ -876,18 +1318,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		public RuleCall getBITSTRParserRuleCall_1_1() { return cBITSTRParserRuleCall_1_1; }
 	}
 
-	public class ExpElements extends AbstractParserRuleElementFinder {
-		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Exp");
-		private final Keyword cExptodoKeyword = (Keyword)rule.eContents().get(1);
-		
-		//Exp:
-		//	"exptodo";
-		public ParserRule getRule() { return rule; }
-
-		//"exptodo"
-		public Keyword getExptodoKeyword() { return cExptodoKeyword; }
-	}
-
 	public class IntElements extends AbstractParserRuleElementFinder {
 		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Int");
 		private final Alternatives cAlternatives = (Alternatives)rule.eContents().get(1);
@@ -932,11 +1362,11 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		public RuleCall getCONSParserRuleCall() { return cCONSParserRuleCall; }
 	}
 
-	public class ConuseElements extends AbstractParserRuleElementFinder {
-		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "Conuse");
+	public class ConUseElements extends AbstractParserRuleElementFinder {
+		private final ParserRule rule = (ParserRule) GrammarUtil.findRuleForName(getGrammar(), "ConUse");
 		private final RuleCall cCONSParserRuleCall = (RuleCall)rule.eContents().get(1);
 		
-		//Conuse:
+		//ConUse:
 		//	CONS;
 		public ParserRule getRule() { return rule; }
 
@@ -962,7 +1392,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cNUMParserRuleCall_0 = (RuleCall)cAlternatives.eContents().get(0);
 		private final RuleCall cHEXNUMParserRuleCall_1 = (RuleCall)cAlternatives.eContents().get(1);
 		
-		////FIXME plus sign shouldn't be needed
 		//POSINT:
 		//	NUM | HEXNUM;
 		public ParserRule getRule() { return rule; }
@@ -1080,16 +1509,16 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		private final RuleCall cIDCHARParserRuleCall_1 = (RuleCall)cGroup.eContents().get(1);
 		
 		//CONS:
-		//	ULETTER IDCHAR*;
+		//	ULETTER => IDCHAR*;
 		public ParserRule getRule() { return rule; }
 
-		//ULETTER IDCHAR*
+		//ULETTER => IDCHAR*
 		public Group getGroup() { return cGroup; }
 
 		//ULETTER
 		public RuleCall getULETTERParserRuleCall_0() { return cULETTERParserRuleCall_0; }
 
-		//IDCHAR*
+		//=> IDCHAR*
 		public RuleCall getIDCHARParserRuleCall_1() { return cIDCHARParserRuleCall_1; }
 	}
 
@@ -1321,13 +1750,22 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	private DecodePatElements pDecodePat;
 	private BitPatElements pBitPat;
 	private TokPatElements pTokPat;
+	private ExpElements pExp;
+	private CaseExpElements pCaseExp;
+	private ClosedExpElements pClosedExp;
+	private MonadicExpElements pMonadicExp;
+	private CasesElements pCases;
+	private OrElseExpElements pOrElseExp;
+	private AndAlsoExpElements pAndAlsoExp;
+	private RExpElements pRExp;
+	private PatElements pPat;
+	private LitElements pLit;
 	private PrimBitPatElements pPrimBitPat;
 	private BitPatOrIntElements pBitPatOrInt;
-	private ExpElements pExp;
 	private IntElements pInt;
 	private NameElements pName;
 	private ConBindElements pConBind;
-	private ConuseElements pConuse;
+	private ConUseElements pConUse;
 	private QidElements pQid;
 	private POSINTElements pPOSINT;
 	private NEGINTElements pNEGINT;
@@ -1548,7 +1986,108 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getTokPatAccess().getRule();
 	}
 
+	//Exp:
+	//	caseExp=CaseExp | mid=MIXID caseExp=CaseExp;
+	public ExpElements getExpAccess() {
+		return (pExp != null) ? pExp : (pExp = new ExpElements());
+	}
+	
+	public ParserRule getExpRule() {
+		return getExpAccess().getRule();
+	}
+
+	//CaseExp:
+	//	ClosedExp | "case" closedExp=ClosedExp "of" cases=Cases "end";
+	public CaseExpElements getCaseExpAccess() {
+		return (pCaseExp != null) ? pCaseExp : (pCaseExp = new CaseExpElements());
+	}
+	
+	public ParserRule getCaseExpRule() {
+		return getCaseExpAccess().getRule();
+	}
+
+	//ClosedExp:
+	//	OrElseExp | "if" ifCaseExp=CaseExp "then" thenCaseExp=CaseExp "else" elseCaseExp=CaseExp | "do" doExp+=MonadicExp (";"
+	//	doExp+=MonadicExp)* "end";
+	public ClosedExpElements getClosedExpAccess() {
+		return (pClosedExp != null) ? pClosedExp : (pClosedExp = new ClosedExpElements());
+	}
+	
+	public ParserRule getClosedExpRule() {
+		return getClosedExpAccess().getRule();
+	}
+
+	//MonadicExp:
+	//	exp=Exp | name=Name "<-" exp=Exp;
+	public MonadicExpElements getMonadicExpAccess() {
+		return (pMonadicExp != null) ? pMonadicExp : (pMonadicExp = new MonadicExpElements());
+	}
+	
+	public ParserRule getMonadicExpRule() {
+		return getMonadicExpAccess().getRule();
+	}
+
+	//Cases:
+	//	pat+=Pat ":" exp+=Exp (PIPE pat+=Pat ":" exp+=Exp)*;
+	public CasesElements getCasesAccess() {
+		return (pCases != null) ? pCases : (pCases = new CasesElements());
+	}
+	
+	public ParserRule getCasesRule() {
+		return getCasesAccess().getRule();
+	}
+
+	//OrElseExp:
+	//	AndAlsoExp ({OrElseExp.left=current} "or" right+=AndAlsoExp)*;
+	public OrElseExpElements getOrElseExpAccess() {
+		return (pOrElseExp != null) ? pOrElseExp : (pOrElseExp = new OrElseExpElements());
+	}
+	
+	public ParserRule getOrElseExpRule() {
+		return getOrElseExpAccess().getRule();
+	}
+
+	//AndAlsoExp:
+	//	RExp ({AndAlsoExp.left=current} "and" right+=RExp)*;
+	public AndAlsoExpElements getAndAlsoExpAccess() {
+		return (pAndAlsoExp != null) ? pAndAlsoExp : (pAndAlsoExp = new AndAlsoExpElements());
+	}
+	
+	public ParserRule getAndAlsoExpRule() {
+		return getAndAlsoExpAccess().getRule();
+	}
+
+	//RExp:
+	//	name="todo";
+	public RExpElements getRExpAccess() {
+		return (pRExp != null) ? pRExp : (pRExp = new RExpElements());
+	}
+	
+	public ParserRule getRExpRule() {
+		return getRExpAccess().getRule();
+	}
+
 	////DataType Rules
+	//Pat:
+	//	"_" | Lit | => Name | ConUse Pat?;
+	public PatElements getPatAccess() {
+		return (pPat != null) ? pPat : (pPat = new PatElements());
+	}
+	
+	public ParserRule getPatRule() {
+		return getPatAccess().getRule();
+	}
+
+	//Lit:
+	//	Int | "\'" BITSTR? "\'";
+	public LitElements getLitAccess() {
+		return (pLit != null) ? pLit : (pLit = new LitElements());
+	}
+	
+	public ParserRule getLitRule() {
+		return getLitAccess().getRule();
+	}
+
 	//PrimBitPat:
 	//	BITSTR | Qid BitPatOrInt?;
 	public PrimBitPatElements getPrimBitPatAccess() {
@@ -1567,16 +2106,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	
 	public ParserRule getBitPatOrIntRule() {
 		return getBitPatOrIntAccess().getRule();
-	}
-
-	//Exp:
-	//	"exptodo";
-	public ExpElements getExpAccess() {
-		return (pExp != null) ? pExp : (pExp = new ExpElements());
-	}
-	
-	public ParserRule getExpRule() {
-		return getExpAccess().getRule();
 	}
 
 	//Int:
@@ -1609,14 +2138,14 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getConBindAccess().getRule();
 	}
 
-	//Conuse:
+	//ConUse:
 	//	CONS;
-	public ConuseElements getConuseAccess() {
-		return (pConuse != null) ? pConuse : (pConuse = new ConuseElements());
+	public ConUseElements getConUseAccess() {
+		return (pConUse != null) ? pConUse : (pConUse = new ConUseElements());
 	}
 	
-	public ParserRule getConuseRule() {
-		return getConuseAccess().getRule();
+	public ParserRule getConUseRule() {
+		return getConUseAccess().getRule();
 	}
 
 	//Qid:
@@ -1629,7 +2158,6 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 		return getQidAccess().getRule();
 	}
 
-	////FIXME plus sign shouldn't be needed
 	//POSINT:
 	//	NUM | HEXNUM;
 	public POSINTElements getPOSINTAccess() {
@@ -1701,7 +2229,7 @@ public class GDSLGrammarAccess extends AbstractGrammarElementFinder {
 	}
 
 	//CONS:
-	//	ULETTER IDCHAR*;
+	//	ULETTER => IDCHAR*;
 	public CONSElements getCONSAccess() {
 		return (pCONS != null) ? pCONS : (pCONS = new CONSElements());
 	}

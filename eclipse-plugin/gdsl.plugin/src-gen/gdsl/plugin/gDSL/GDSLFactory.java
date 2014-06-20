@@ -158,6 +158,78 @@ public interface GDSLFactory extends EFactory
   TokPat createTokPat();
 
   /**
+   * Returns a new object of class '<em>Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Exp</em>'.
+   * @generated
+   */
+  Exp createExp();
+
+  /**
+   * Returns a new object of class '<em>Case Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Case Exp</em>'.
+   * @generated
+   */
+  CaseExp createCaseExp();
+
+  /**
+   * Returns a new object of class '<em>Closed Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Closed Exp</em>'.
+   * @generated
+   */
+  ClosedExp createClosedExp();
+
+  /**
+   * Returns a new object of class '<em>Monadic Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Monadic Exp</em>'.
+   * @generated
+   */
+  MonadicExp createMonadicExp();
+
+  /**
+   * Returns a new object of class '<em>Cases</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Cases</em>'.
+   * @generated
+   */
+  Cases createCases();
+
+  /**
+   * Returns a new object of class '<em>Or Else Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Or Else Exp</em>'.
+   * @generated
+   */
+  OrElseExp createOrElseExp();
+
+  /**
+   * Returns a new object of class '<em>And Also Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>And Also Exp</em>'.
+   * @generated
+   */
+  AndAlsoExp createAndAlsoExp();
+
+  /**
+   * Returns a new object of class '<em>RExp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>RExp</em>'.
+   * @generated
+   */
+  RExp createRExp();
+
+  /**
    * Returns the package supported by this factory.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->

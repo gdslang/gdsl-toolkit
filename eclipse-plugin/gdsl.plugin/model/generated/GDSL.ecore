@@ -24,11 +24,11 @@
   <eClassifiers xsi:type="ecore:EClass" name="DeclVal" eSuperTypes="#//Decl">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="attr" unique="false" upperBound="-1"
         eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exp" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Exp" containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EReference" name="decPat" upperBound="-1"
         eType="#//DecodePat" containment="true"/>
-    <eStructuralFeatures xsi:type="ecore:EAttribute" name="exps" unique="false" upperBound="-1"
-        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exps" upperBound="-1" eType="#//Exp"
+        containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Export">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -65,5 +65,46 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="TokPat" eSuperTypes="#//DecodePat">
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="tokPat" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Exp">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="caseExp" eType="#//CaseExp"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="mid" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="CaseExp">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="closedExp" eType="#//ClosedExp"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="cases" eType="#//Cases"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="ClosedExp" eSuperTypes="#//CaseExp">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ifCaseExp" eType="#//CaseExp"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="thenCaseExp" eType="#//CaseExp"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="elseCaseExp" eType="#//CaseExp"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="doExp" upperBound="-1"
+        eType="#//MonadicExp" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MonadicExp">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" eType="#//Exp" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Cases">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="pat" unique="false" upperBound="-1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="exp" upperBound="-1" eType="#//Exp"
+        containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="OrElseExp" eSuperTypes="#//ClosedExp">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="left" eType="#//AndAlsoExp"
+        containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="right" upperBound="-1"
+        eType="#//AndAlsoExp" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="AndAlsoExp" eSuperTypes="#//OrElseExp"/>
+  <eClassifiers xsi:type="ecore:EClass" name="RExp" eSuperTypes="#//AndAlsoExp">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
   </eClassifiers>
 </ecore:EPackage>

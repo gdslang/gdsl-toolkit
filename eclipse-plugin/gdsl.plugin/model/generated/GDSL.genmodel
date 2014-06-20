@@ -25,9 +25,9 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//DeclVal">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/attr"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/exp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exp"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/decPat"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/exps"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exps"/>
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//Export">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Export/name"/>
@@ -59,6 +59,36 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//TokPat">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//TokPat/tokPat"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//Exp">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Exp/caseExp"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Exp/mid"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//CaseExp">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//CaseExp/closedExp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//CaseExp/cases"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//ClosedExp">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ClosedExp/ifCaseExp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ClosedExp/thenCaseExp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ClosedExp/elseCaseExp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ClosedExp/doExp"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//MonadicExp">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//MonadicExp/exp"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//MonadicExp/name"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//Cases">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Cases/pat"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Cases/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//OrElseExp">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//OrElseExp/left"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//OrElseExp/right"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//AndAlsoExp"/>
+    <genClasses ecoreClass="GDSL.ecore#//RExp">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//RExp/name"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

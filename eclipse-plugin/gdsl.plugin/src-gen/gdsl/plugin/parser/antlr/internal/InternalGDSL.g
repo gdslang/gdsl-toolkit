@@ -1374,6 +1374,774 @@ ruleTokPat returns [EObject current=null]
 
 
 
+// Entry rule entryRuleExp
+entryRuleExp returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getExpRule()); }
+	 iv_ruleExp=ruleExp 
+	 { $current=$iv_ruleExp.current; } 
+	 EOF 
+;
+
+// Rule Exp
+ruleExp returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+((
+(
+		{ 
+	        newCompositeNode(grammarAccess.getExpAccess().getCaseExpCaseExpParserRuleCall_0_0()); 
+	    }
+		lv_caseExp_0_0=ruleCaseExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getExpRule());
+	        }
+       		set(
+       			$current, 
+       			"caseExp",
+        		lv_caseExp_0_0, 
+        		"CaseExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)
+    |((
+(
+		{ 
+	        newCompositeNode(grammarAccess.getExpAccess().getMidMIXIDParserRuleCall_1_0_0()); 
+	    }
+		lv_mid_1_0=ruleMIXID		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getExpRule());
+	        }
+       		set(
+       			$current, 
+       			"mid",
+        		lv_mid_1_0, 
+        		"MIXID");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getExpAccess().getCaseExpCaseExpParserRuleCall_1_1_0()); 
+	    }
+		lv_caseExp_2_0=ruleCaseExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getExpRule());
+	        }
+       		set(
+       			$current, 
+       			"caseExp",
+        		lv_caseExp_2_0, 
+        		"CaseExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)))
+;
+
+
+
+
+
+// Entry rule entryRuleCaseExp
+entryRuleCaseExp returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getCaseExpRule()); }
+	 iv_ruleCaseExp=ruleCaseExp 
+	 { $current=$iv_ruleCaseExp.current; } 
+	 EOF 
+;
+
+// Rule CaseExp
+ruleCaseExp returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+    { 
+        newCompositeNode(grammarAccess.getCaseExpAccess().getClosedExpParserRuleCall_0()); 
+    }
+    this_ClosedExp_0=ruleClosedExp
+    { 
+        $current = $this_ClosedExp_0.current; 
+        afterParserOrEnumRuleCall();
+    }
+
+    |(	otherlv_1='case' 
+    {
+    	newLeafNode(otherlv_1, grammarAccess.getCaseExpAccess().getCaseKeyword_1_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getCaseExpAccess().getClosedExpClosedExpParserRuleCall_1_1_0()); 
+	    }
+		lv_closedExp_2_0=ruleClosedExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getCaseExpRule());
+	        }
+       		set(
+       			$current, 
+       			"closedExp",
+        		lv_closedExp_2_0, 
+        		"ClosedExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)	otherlv_3='of' 
+    {
+    	newLeafNode(otherlv_3, grammarAccess.getCaseExpAccess().getOfKeyword_1_2());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getCaseExpAccess().getCasesCasesParserRuleCall_1_3_0()); 
+	    }
+		lv_cases_4_0=ruleCases		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getCaseExpRule());
+	        }
+       		set(
+       			$current, 
+       			"cases",
+        		lv_cases_4_0, 
+        		"Cases");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)	otherlv_5='end' 
+    {
+    	newLeafNode(otherlv_5, grammarAccess.getCaseExpAccess().getEndKeyword_1_4());
+    }
+))
+;
+
+
+
+
+
+// Entry rule entryRuleClosedExp
+entryRuleClosedExp returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getClosedExpRule()); }
+	 iv_ruleClosedExp=ruleClosedExp 
+	 { $current=$iv_ruleClosedExp.current; } 
+	 EOF 
+;
+
+// Rule ClosedExp
+ruleClosedExp returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+    { 
+        newCompositeNode(grammarAccess.getClosedExpAccess().getOrElseExpParserRuleCall_0()); 
+    }
+    this_OrElseExp_0=ruleOrElseExp
+    { 
+        $current = $this_OrElseExp_0.current; 
+        afterParserOrEnumRuleCall();
+    }
+
+    |(	otherlv_1='if' 
+    {
+    	newLeafNode(otherlv_1, grammarAccess.getClosedExpAccess().getIfKeyword_1_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getClosedExpAccess().getIfCaseExpCaseExpParserRuleCall_1_1_0()); 
+	    }
+		lv_ifCaseExp_2_0=ruleCaseExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getClosedExpRule());
+	        }
+       		set(
+       			$current, 
+       			"ifCaseExp",
+        		lv_ifCaseExp_2_0, 
+        		"CaseExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)	otherlv_3='then' 
+    {
+    	newLeafNode(otherlv_3, grammarAccess.getClosedExpAccess().getThenKeyword_1_2());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getClosedExpAccess().getThenCaseExpCaseExpParserRuleCall_1_3_0()); 
+	    }
+		lv_thenCaseExp_4_0=ruleCaseExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getClosedExpRule());
+	        }
+       		set(
+       			$current, 
+       			"thenCaseExp",
+        		lv_thenCaseExp_4_0, 
+        		"CaseExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)	otherlv_5='else' 
+    {
+    	newLeafNode(otherlv_5, grammarAccess.getClosedExpAccess().getElseKeyword_1_4());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getClosedExpAccess().getElseCaseExpCaseExpParserRuleCall_1_5_0()); 
+	    }
+		lv_elseCaseExp_6_0=ruleCaseExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getClosedExpRule());
+	        }
+       		set(
+       			$current, 
+       			"elseCaseExp",
+        		lv_elseCaseExp_6_0, 
+        		"CaseExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))
+    |(	otherlv_7='do' 
+    {
+    	newLeafNode(otherlv_7, grammarAccess.getClosedExpAccess().getDoKeyword_2_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getClosedExpAccess().getDoExpMonadicExpParserRuleCall_2_1_0()); 
+	    }
+		lv_doExp_8_0=ruleMonadicExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getClosedExpRule());
+	        }
+       		add(
+       			$current, 
+       			"doExp",
+        		lv_doExp_8_0, 
+        		"MonadicExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)(	otherlv_9=';' 
+    {
+    	newLeafNode(otherlv_9, grammarAccess.getClosedExpAccess().getSemicolonKeyword_2_2_0());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getClosedExpAccess().getDoExpMonadicExpParserRuleCall_2_2_1_0()); 
+	    }
+		lv_doExp_10_0=ruleMonadicExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getClosedExpRule());
+	        }
+       		add(
+       			$current, 
+       			"doExp",
+        		lv_doExp_10_0, 
+        		"MonadicExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))*	otherlv_11='end' 
+    {
+    	newLeafNode(otherlv_11, grammarAccess.getClosedExpAccess().getEndKeyword_2_3());
+    }
+))
+;
+
+
+
+
+
+// Entry rule entryRuleMonadicExp
+entryRuleMonadicExp returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getMonadicExpRule()); }
+	 iv_ruleMonadicExp=ruleMonadicExp 
+	 { $current=$iv_ruleMonadicExp.current; } 
+	 EOF 
+;
+
+// Rule MonadicExp
+ruleMonadicExp returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+((
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMonadicExpAccess().getExpExpParserRuleCall_0_0()); 
+	    }
+		lv_exp_0_0=ruleExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMonadicExpRule());
+	        }
+       		set(
+       			$current, 
+       			"exp",
+        		lv_exp_0_0, 
+        		"Exp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)
+    |((
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMonadicExpAccess().getNameNameParserRuleCall_1_0_0()); 
+	    }
+		lv_name_1_0=ruleName		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMonadicExpRule());
+	        }
+       		set(
+       			$current, 
+       			"name",
+        		lv_name_1_0, 
+        		"Name");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)	otherlv_2='<-' 
+    {
+    	newLeafNode(otherlv_2, grammarAccess.getMonadicExpAccess().getLessThanSignHyphenMinusKeyword_1_1());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getMonadicExpAccess().getExpExpParserRuleCall_1_2_0()); 
+	    }
+		lv_exp_3_0=ruleExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getMonadicExpRule());
+	        }
+       		set(
+       			$current, 
+       			"exp",
+        		lv_exp_3_0, 
+        		"Exp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)))
+;
+
+
+
+
+
+// Entry rule entryRuleCases
+entryRuleCases returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getCasesRule()); }
+	 iv_ruleCases=ruleCases 
+	 { $current=$iv_ruleCases.current; } 
+	 EOF 
+;
+
+// Rule Cases
+ruleCases returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+((
+(
+		{ 
+	        newCompositeNode(grammarAccess.getCasesAccess().getPatPatParserRuleCall_0_0()); 
+	    }
+		lv_pat_0_0=rulePat		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getCasesRule());
+	        }
+       		add(
+       			$current, 
+       			"pat",
+        		lv_pat_0_0, 
+        		"Pat");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)	otherlv_1=':' 
+    {
+    	newLeafNode(otherlv_1, grammarAccess.getCasesAccess().getColonKeyword_1());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getCasesAccess().getExpExpParserRuleCall_2_0()); 
+	    }
+		lv_exp_2_0=ruleExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getCasesRule());
+	        }
+       		add(
+       			$current, 
+       			"exp",
+        		lv_exp_2_0, 
+        		"Exp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)(this_PIPE_3=RULE_PIPE
+    { 
+    newLeafNode(this_PIPE_3, grammarAccess.getCasesAccess().getPIPETerminalRuleCall_3_0()); 
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getCasesAccess().getPatPatParserRuleCall_3_1_0()); 
+	    }
+		lv_pat_4_0=rulePat		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getCasesRule());
+	        }
+       		add(
+       			$current, 
+       			"pat",
+        		lv_pat_4_0, 
+        		"Pat");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+)	otherlv_5=':' 
+    {
+    	newLeafNode(otherlv_5, grammarAccess.getCasesAccess().getColonKeyword_3_2());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getCasesAccess().getExpExpParserRuleCall_3_3_0()); 
+	    }
+		lv_exp_6_0=ruleExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getCasesRule());
+	        }
+       		add(
+       			$current, 
+       			"exp",
+        		lv_exp_6_0, 
+        		"Exp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))*)
+;
+
+
+
+
+
+// Entry rule entryRuleOrElseExp
+entryRuleOrElseExp returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getOrElseExpRule()); }
+	 iv_ruleOrElseExp=ruleOrElseExp 
+	 { $current=$iv_ruleOrElseExp.current; } 
+	 EOF 
+;
+
+// Rule OrElseExp
+ruleOrElseExp returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+    { 
+        newCompositeNode(grammarAccess.getOrElseExpAccess().getAndAlsoExpParserRuleCall_0()); 
+    }
+    this_AndAlsoExp_0=ruleAndAlsoExp
+    { 
+        $current = $this_AndAlsoExp_0.current; 
+        afterParserOrEnumRuleCall();
+    }
+((
+    {
+        $current = forceCreateModelElementAndSet(
+            grammarAccess.getOrElseExpAccess().getOrElseExpLeftAction_1_0(),
+            $current);
+    }
+)	otherlv_2='or' 
+    {
+    	newLeafNode(otherlv_2, grammarAccess.getOrElseExpAccess().getOrKeyword_1_1());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getOrElseExpAccess().getRightAndAlsoExpParserRuleCall_1_2_0()); 
+	    }
+		lv_right_3_0=ruleAndAlsoExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getOrElseExpRule());
+	        }
+       		add(
+       			$current, 
+       			"right",
+        		lv_right_3_0, 
+        		"AndAlsoExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))*)
+;
+
+
+
+
+
+// Entry rule entryRuleAndAlsoExp
+entryRuleAndAlsoExp returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getAndAlsoExpRule()); }
+	 iv_ruleAndAlsoExp=ruleAndAlsoExp 
+	 { $current=$iv_ruleAndAlsoExp.current; } 
+	 EOF 
+;
+
+// Rule AndAlsoExp
+ruleAndAlsoExp returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+    { 
+        newCompositeNode(grammarAccess.getAndAlsoExpAccess().getRExpParserRuleCall_0()); 
+    }
+    this_RExp_0=ruleRExp
+    { 
+        $current = $this_RExp_0.current; 
+        afterParserOrEnumRuleCall();
+    }
+((
+    {
+        $current = forceCreateModelElementAndSet(
+            grammarAccess.getAndAlsoExpAccess().getAndAlsoExpLeftAction_1_0(),
+            $current);
+    }
+)	otherlv_2='and' 
+    {
+    	newLeafNode(otherlv_2, grammarAccess.getAndAlsoExpAccess().getAndKeyword_1_1());
+    }
+(
+(
+		{ 
+	        newCompositeNode(grammarAccess.getAndAlsoExpAccess().getRightRExpParserRuleCall_1_2_0()); 
+	    }
+		lv_right_3_0=ruleRExp		{
+	        if ($current==null) {
+	            $current = createModelElementForParent(grammarAccess.getAndAlsoExpRule());
+	        }
+       		add(
+       			$current, 
+       			"right",
+        		lv_right_3_0, 
+        		"RExp");
+	        afterParserOrEnumRuleCall();
+	    }
+
+)
+))*)
+;
+
+
+
+
+
+// Entry rule entryRuleRExp
+entryRuleRExp returns [EObject current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getRExpRule()); }
+	 iv_ruleRExp=ruleRExp 
+	 { $current=$iv_ruleRExp.current; } 
+	 EOF 
+;
+
+// Rule RExp
+ruleRExp returns [EObject current=null] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+(
+		lv_name_0_0=	'todo' 
+    {
+        newLeafNode(lv_name_0_0, grammarAccess.getRExpAccess().getNameTodoKeyword_0());
+    }
+ 
+	    {
+	        if ($current==null) {
+	            $current = createModelElement(grammarAccess.getRExpRule());
+	        }
+       		setWithLastConsumed($current, "name", lv_name_0_0, "todo");
+	    }
+
+)
+)
+;
+
+
+
+
+
+// Entry rule entryRulePat
+entryRulePat returns [String current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getPatRule()); } 
+	 iv_rulePat=rulePat 
+	 { $current=$iv_rulePat.current.getText(); }  
+	 EOF 
+;
+
+// Rule Pat
+rulePat returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+	kw='_' 
+    {
+        $current.merge(kw);
+        newLeafNode(kw, grammarAccess.getPatAccess().get_Keyword_0()); 
+    }
+
+    |
+    { 
+        newCompositeNode(grammarAccess.getPatAccess().getLitParserRuleCall_1()); 
+    }
+    this_Lit_1=ruleLit    {
+		$current.merge(this_Lit_1);
+    }
+
+    { 
+        afterParserOrEnumRuleCall();
+    }
+
+    |(( ruleName)=>
+    { 
+        newCompositeNode(grammarAccess.getPatAccess().getNameParserRuleCall_2()); 
+    }
+    this_Name_2=ruleName    {
+		$current.merge(this_Name_2);
+    }
+
+    { 
+        afterParserOrEnumRuleCall();
+    }
+)
+    |(
+    { 
+        newCompositeNode(grammarAccess.getPatAccess().getConUseParserRuleCall_3_0()); 
+    }
+    this_ConUse_3=ruleConUse    {
+		$current.merge(this_ConUse_3);
+    }
+
+    { 
+        afterParserOrEnumRuleCall();
+    }
+(
+    { 
+        newCompositeNode(grammarAccess.getPatAccess().getPatParserRuleCall_3_1()); 
+    }
+    this_Pat_4=rulePat    {
+		$current.merge(this_Pat_4);
+    }
+
+    { 
+        afterParserOrEnumRuleCall();
+    }
+)?))
+    ;
+
+
+
+
+
+// Entry rule entryRuleLit
+entryRuleLit returns [String current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getLitRule()); } 
+	 iv_ruleLit=ruleLit 
+	 { $current=$iv_ruleLit.current.getText(); }  
+	 EOF 
+;
+
+// Rule Lit
+ruleLit returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+    { 
+        newCompositeNode(grammarAccess.getLitAccess().getIntParserRuleCall_0()); 
+    }
+    this_Int_0=ruleInt    {
+		$current.merge(this_Int_0);
+    }
+
+    { 
+        afterParserOrEnumRuleCall();
+    }
+
+    |(
+	kw='\'' 
+    {
+        $current.merge(kw);
+        newLeafNode(kw, grammarAccess.getLitAccess().getApostropheKeyword_1_0()); 
+    }
+(
+    { 
+        newCompositeNode(grammarAccess.getLitAccess().getBITSTRParserRuleCall_1_1()); 
+    }
+    this_BITSTR_2=ruleBITSTR    {
+		$current.merge(this_BITSTR_2);
+    }
+
+    { 
+        afterParserOrEnumRuleCall();
+    }
+)?
+	kw='\'' 
+    {
+        $current.merge(kw);
+        newLeafNode(kw, grammarAccess.getLitAccess().getApostropheKeyword_1_2()); 
+    }
+))
+    ;
+
+
+
+
+
 // Entry rule entryRulePrimBitPat
 entryRulePrimBitPat returns [String current=null] 
 	:
@@ -1485,33 +2253,6 @@ ruleBitPatOrInt returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleTok
 
 
 
-// Entry rule entryRuleExp
-entryRuleExp returns [String current=null] 
-	:
-	{ newCompositeNode(grammarAccess.getExpRule()); } 
-	 iv_ruleExp=ruleExp 
-	 { $current=$iv_ruleExp.current.getText(); }  
-	 EOF 
-;
-
-// Rule Exp
-ruleExp returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] 
-    @init { enterRule(); 
-    }
-    @after { leaveRule(); }:
-
-	kw='exptodo' 
-    {
-        $current.merge(kw);
-        newLeafNode(kw, grammarAccess.getExpAccess().getExptodoKeyword()); 
-    }
-
-    ;
-
-
-
-
-
 // Entry rule entryRuleInt
 entryRuleInt returns [String current=null] 
 	:
@@ -1617,6 +2358,36 @@ ruleConBind returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()
     ;
 
 
+
+
+
+// Entry rule entryRuleConUse
+entryRuleConUse returns [String current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getConUseRule()); } 
+	 iv_ruleConUse=ruleConUse 
+	 { $current=$iv_ruleConUse.current.getText(); }  
+	 EOF 
+;
+
+// Rule ConUse
+ruleConUse returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+
+    { 
+        newCompositeNode(grammarAccess.getConUseAccess().getCONSParserRuleCall()); 
+    }
+    this_CONS_0=ruleCONS    {
+		$current.merge(this_CONS_0);
+    }
+
+    { 
+        afterParserOrEnumRuleCall();
+    }
+
+    ;
 
 
 
@@ -1840,6 +2611,42 @@ ruleBITSTR returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()]
 
 
 
+// Entry rule entryRuleMIXID
+entryRuleMIXID returns [String current=null] 
+	:
+	{ newCompositeNode(grammarAccess.getMIXIDRule()); } 
+	 iv_ruleMIXID=ruleMIXID 
+	 { $current=$iv_ruleMIXID.current.getText(); }  
+	 EOF 
+;
+
+// Rule MIXID
+ruleMIXID returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()] 
+    @init { enterRule(); 
+    }
+    @after { leaveRule(); }:
+(
+	kw='_' 
+    {
+        $current.merge(kw);
+        newLeafNode(kw, grammarAccess.getMIXIDAccess().get_Keyword_0()); 
+    }
+(
+    { 
+        newCompositeNode(grammarAccess.getMIXIDAccess().getIDCHARParserRuleCall_1()); 
+    }
+    this_IDCHAR_1=ruleIDCHAR    {
+		$current.merge(this_IDCHAR_1);
+    }
+
+    { 
+        afterParserOrEnumRuleCall();
+    }
+)+)
+    ;
+
+
+
 
 
 // Entry rule entryRuleCONS
@@ -1867,7 +2674,7 @@ ruleCONS returns [AntlrDatatypeRuleToken current=new AntlrDatatypeRuleToken()]
     { 
         afterParserOrEnumRuleCall();
     }
-(
+(( ruleIDCHAR)=>
     { 
         newCompositeNode(grammarAccess.getCONSAccess().getIDCHARParserRuleCall_1()); 
     }

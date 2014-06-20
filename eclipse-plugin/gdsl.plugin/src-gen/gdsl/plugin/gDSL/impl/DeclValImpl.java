@@ -4,6 +4,7 @@ package gdsl.plugin.gDSL.impl;
 
 import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.DecodePat;
+import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.GDSLPackage;
 
 import java.util.Collection;
@@ -51,24 +52,14 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   protected EList<String> attr;
 
   /**
-   * The default value of the '{@link #getExp() <em>Exp</em>}' attribute.
+   * The cached value of the '{@link #getExp() <em>Exp</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @see #getExp()
    * @generated
    * @ordered
    */
-  protected static final String EXP_EDEFAULT = null;
-
-  /**
-   * The cached value of the '{@link #getExp() <em>Exp</em>}' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @see #getExp()
-   * @generated
-   * @ordered
-   */
-  protected String exp = EXP_EDEFAULT;
+  protected Exp exp;
 
   /**
    * The cached value of the '{@link #getDecPat() <em>Dec Pat</em>}' containment reference list.
@@ -81,14 +72,14 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   protected EList<DecodePat> decPat;
 
   /**
-   * The cached value of the '{@link #getExps() <em>Exps</em>}' attribute list.
+   * The cached value of the '{@link #getExps() <em>Exps</em>}' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @see #getExps()
    * @generated
    * @ordered
    */
-  protected EList<String> exps;
+  protected EList<Exp> exps;
 
   /**
    * <!-- begin-user-doc -->
@@ -130,7 +121,7 @@ public class DeclValImpl extends DeclImpl implements DeclVal
    * <!-- end-user-doc -->
    * @generated
    */
-  public String getExp()
+  public Exp getExp()
   {
     return exp;
   }
@@ -140,12 +131,37 @@ public class DeclValImpl extends DeclImpl implements DeclVal
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setExp(String newExp)
+  public NotificationChain basicSetExp(Exp newExp, NotificationChain msgs)
   {
-    String oldExp = exp;
+    Exp oldExp = exp;
     exp = newExp;
     if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_VAL__EXP, oldExp, exp));
+    {
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_VAL__EXP, oldExp, newExp);
+      if (msgs == null) msgs = notification; else msgs.add(notification);
+    }
+    return msgs;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public void setExp(Exp newExp)
+  {
+    if (newExp != exp)
+    {
+      NotificationChain msgs = null;
+      if (exp != null)
+        msgs = ((InternalEObject)exp).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.DECL_VAL__EXP, null, msgs);
+      if (newExp != null)
+        msgs = ((InternalEObject)newExp).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.DECL_VAL__EXP, null, msgs);
+      msgs = basicSetExp(newExp, msgs);
+      if (msgs != null) msgs.dispatch();
+    }
+    else if (eNotificationRequired())
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.DECL_VAL__EXP, newExp, newExp));
   }
 
   /**
@@ -167,11 +183,11 @@ public class DeclValImpl extends DeclImpl implements DeclVal
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<String> getExps()
+  public EList<Exp> getExps()
   {
     if (exps == null)
     {
-      exps = new EDataTypeEList<String>(String.class, this, GDSLPackage.DECL_VAL__EXPS);
+      exps = new EObjectContainmentEList<Exp>(Exp.class, this, GDSLPackage.DECL_VAL__EXPS);
     }
     return exps;
   }
@@ -186,8 +202,12 @@ public class DeclValImpl extends DeclImpl implements DeclVal
   {
     switch (featureID)
     {
+      case GDSLPackage.DECL_VAL__EXP:
+        return basicSetExp(null, msgs);
       case GDSLPackage.DECL_VAL__DEC_PAT:
         return ((InternalEList<?>)getDecPat()).basicRemove(otherEnd, msgs);
+      case GDSLPackage.DECL_VAL__EXPS:
+        return ((InternalEList<?>)getExps()).basicRemove(otherEnd, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
   }
@@ -230,7 +250,7 @@ public class DeclValImpl extends DeclImpl implements DeclVal
         getAttr().addAll((Collection<? extends String>)newValue);
         return;
       case GDSLPackage.DECL_VAL__EXP:
-        setExp((String)newValue);
+        setExp((Exp)newValue);
         return;
       case GDSLPackage.DECL_VAL__DEC_PAT:
         getDecPat().clear();
@@ -238,7 +258,7 @@ public class DeclValImpl extends DeclImpl implements DeclVal
         return;
       case GDSLPackage.DECL_VAL__EXPS:
         getExps().clear();
-        getExps().addAll((Collection<? extends String>)newValue);
+        getExps().addAll((Collection<? extends Exp>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -258,7 +278,7 @@ public class DeclValImpl extends DeclImpl implements DeclVal
         getAttr().clear();
         return;
       case GDSLPackage.DECL_VAL__EXP:
-        setExp(EXP_EDEFAULT);
+        setExp((Exp)null);
         return;
       case GDSLPackage.DECL_VAL__DEC_PAT:
         getDecPat().clear();
@@ -283,7 +303,7 @@ public class DeclValImpl extends DeclImpl implements DeclVal
       case GDSLPackage.DECL_VAL__ATTR:
         return attr != null && !attr.isEmpty();
       case GDSLPackage.DECL_VAL__EXP:
-        return EXP_EDEFAULT == null ? exp != null : !EXP_EDEFAULT.equals(exp);
+        return exp != null;
       case GDSLPackage.DECL_VAL__DEC_PAT:
         return decPat != null && !decPat.isEmpty();
       case GDSLPackage.DECL_VAL__EXPS:
@@ -305,10 +325,6 @@ public class DeclValImpl extends DeclImpl implements DeclVal
     StringBuffer result = new StringBuffer(super.toString());
     result.append(" (attr: ");
     result.append(attr);
-    result.append(", exp: ");
-    result.append(exp);
-    result.append(", exps: ");
-    result.append(exps);
     result.append(')');
     return result.toString();
   }

@@ -150,6 +150,46 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createTokPatAdapter();
       }
       @Override
+      public Adapter caseExp(Exp object)
+      {
+        return createExpAdapter();
+      }
+      @Override
+      public Adapter caseCaseExp(CaseExp object)
+      {
+        return createCaseExpAdapter();
+      }
+      @Override
+      public Adapter caseClosedExp(ClosedExp object)
+      {
+        return createClosedExpAdapter();
+      }
+      @Override
+      public Adapter caseMonadicExp(MonadicExp object)
+      {
+        return createMonadicExpAdapter();
+      }
+      @Override
+      public Adapter caseCases(Cases object)
+      {
+        return createCasesAdapter();
+      }
+      @Override
+      public Adapter caseOrElseExp(OrElseExp object)
+      {
+        return createOrElseExpAdapter();
+      }
+      @Override
+      public Adapter caseAndAlsoExp(AndAlsoExp object)
+      {
+        return createAndAlsoExpAdapter();
+      }
+      @Override
+      public Adapter caseRExp(RExp object)
+      {
+        return createRExpAdapter();
+      }
+      @Override
       public Adapter defaultCase(EObject object)
       {
         return createEObjectAdapter();
@@ -392,6 +432,126 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createTokPatAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Exp <em>Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.Exp
+   * @generated
+   */
+  public Adapter createExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.CaseExp <em>Case Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.CaseExp
+   * @generated
+   */
+  public Adapter createCaseExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.ClosedExp <em>Closed Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.ClosedExp
+   * @generated
+   */
+  public Adapter createClosedExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.MonadicExp <em>Monadic Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.MonadicExp
+   * @generated
+   */
+  public Adapter createMonadicExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Cases <em>Cases</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.Cases
+   * @generated
+   */
+  public Adapter createCasesAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.OrElseExp <em>Or Else Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.OrElseExp
+   * @generated
+   */
+  public Adapter createOrElseExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.AndAlsoExp <em>And Also Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.AndAlsoExp
+   * @generated
+   */
+  public Adapter createAndAlsoExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.RExp <em>RExp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.RExp
+   * @generated
+   */
+  public Adapter createRExpAdapter()
   {
     return null;
   }

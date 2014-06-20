@@ -76,14 +76,51 @@ TokPat:
 	tokPat = (Int | Qid)
 ;
 
+Exp: 
+	caseExp=CaseExp | mid=MIXID caseExp=CaseExp
+;
+
+CaseExp:
+	ClosedExp |
+	'case' closedExp=ClosedExp 'of' cases=Cases 'end'
+;
+
+ClosedExp:
+	OrElseExp |
+	'if' ifCaseExp=CaseExp 'then' thenCaseExp=CaseExp 'else' elseCaseExp=CaseExp |
+	'do' doExp+=MonadicExp (';' doExp+=MonadicExp)* 'end'
+;
+
+MonadicExp:
+	exp=Exp |
+	name=Name '<-' exp=Exp
+;
+
+Cases:
+	pat+=Pat ':' exp+=Exp (PIPE pat+=Pat ':' exp+=Exp)*
+;
+
+OrElseExp:
+	AndAlsoExp ({OrElseExp.left=current} 'or' right+=AndAlsoExp)*
+;
+
+AndAlsoExp:
+	RExp ({AndAlsoExp.left=current} 'and' right+=RExp)*
+;
+
+RExp:
+	name='todo'
+;
+
 //DataType Rules
+Pat: '_' | Lit | =>Name | ConUse Pat?;
+Lit: Int | "'" BITSTR? "'";
 PrimBitPat: =>BITSTR | (Qid (BitPatOrInt)?);
 BitPatOrInt: (':' POSINT) | ('@' BITSTR);
-Exp: 'exptodo';
 Int: POSINT | NEGINT;
 Name: ID;
 ConBind: CONS;
-Conuse: CONS;
+ConUse: CONS;
 Qid: ID;
 
 POSINT: NUM | HEXNUM;
@@ -93,7 +130,7 @@ HEXNUM: '0x' =>HEXDIGIT+;
 SYMID: SYM+;
 BITSTR: =>BINARY+;
 MIXID: '_' IDCHAR+;
-CONS: ULETTER IDCHAR*;
+CONS: ULETTER =>IDCHAR*;
 
 ID: LETTER =>IDCHAR*;
 HEXDIGIT: DIG | HEXCHAR;

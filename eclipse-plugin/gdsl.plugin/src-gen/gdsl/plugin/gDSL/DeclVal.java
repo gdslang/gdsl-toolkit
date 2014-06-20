@@ -42,30 +42,30 @@ public interface DeclVal extends Decl
   EList<String> getAttr();
 
   /**
-   * Returns the value of the '<em><b>Exp</b></em>' attribute.
+   * Returns the value of the '<em><b>Exp</b></em>' containment reference.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Exp</em>' attribute isn't clear,
+   * If the meaning of the '<em>Exp</em>' containment reference isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Exp</em>' attribute.
-   * @see #setExp(String)
+   * @return the value of the '<em>Exp</em>' containment reference.
+   * @see #setExp(Exp)
    * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_Exp()
-   * @model
+   * @model containment="true"
    * @generated
    */
-  String getExp();
+  Exp getExp();
 
   /**
-   * Sets the value of the '{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}' attribute.
+   * Sets the value of the '{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Exp</em>' attribute.
+   * @param value the new value of the '<em>Exp</em>' containment reference.
    * @see #getExp()
    * @generated
    */
-  void setExp(String value);
+  void setExp(Exp value);
 
   /**
    * Returns the value of the '<em><b>Dec Pat</b></em>' containment reference list.
@@ -84,19 +84,19 @@ public interface DeclVal extends Decl
   EList<DecodePat> getDecPat();
 
   /**
-   * Returns the value of the '<em><b>Exps</b></em>' attribute list.
-   * The list contents are of type {@link java.lang.String}.
+   * Returns the value of the '<em><b>Exps</b></em>' containment reference list.
+   * The list contents are of type {@link gdsl.plugin.gDSL.Exp}.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Exps</em>' attribute list isn't clear,
+   * If the meaning of the '<em>Exps</em>' containment reference list isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Exps</em>' attribute list.
+   * @return the value of the '<em>Exps</em>' containment reference list.
    * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_Exps()
-   * @model unique="false"
+   * @model containment="true"
    * @generated
    */
-  EList<String> getExps();
+  EList<Exp> getExps();
 
 } // DeclVal
