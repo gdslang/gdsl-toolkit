@@ -93,6 +93,8 @@ void demo_single(gdsl::gdsl &g) {
        });
       a->accept(*ev);
       printf("Size of assignment: %lld\n", a->get_size());
+
+      delete ev;
     });
 
     v._([&](load *l) {
