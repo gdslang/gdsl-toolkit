@@ -5,6 +5,10 @@ use std::fmt::Result;
 use rreil::id::Id;
 use rreil::cc;
 
+pub use rreil::linear::binary::BinaryLinear;
+
+pub mod binary;
+
 pub enum Linear {
   Immediate(u64),
   Variable(Box<Id>)
