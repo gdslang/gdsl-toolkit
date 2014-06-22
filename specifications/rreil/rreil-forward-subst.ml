@@ -28,6 +28,14 @@ end
 # ( ) dep: varls -> 2^{vars} { y -> ([5/32], {x.0, u.0}), x -> ([9/32], {x.0}) }; inaccurate?
 # (x) dep: ids -> 2^{vars} { y -> {[5/32] => {x.0, u.0}}, x -> {[9/32] => {x.0}} };
 
+  val substitude-linear state linear = case linear of
+     SEM_LIN_VAR v: if expr-map-contains? state v then
+       expr-map-at state v
+     else
+       SEM_LIN_VAR v
+   | l: l
+  end
+
 val substitude state stmt = let
   val substitude-linear linear = case linear of
      SEM_LIN_VAR v: if expr-map-contains? state v then

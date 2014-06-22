@@ -1241,7 +1241,19 @@ end = struct
       end
 
    fun killKappas (table : table) =
-      List.app (fn k => (delSymbol (k,table); ())) (#1 (!(#kappas table)))
+      let
+         val _ = if not verbose then () else
+               TextIO.print ("killKappas " ^ String.concat (
+                  List.map (fn k => SymbolTable.getString(!SymbolTables.varTable, k) ^ " ")
+                  (#1 (!(#kappas table)))
+               ) ^ "\n")
+         val st = #symTable (table : table)
+         fun killSym k =
+            if HT.inDomain st k then (delSymbol (k,table); ()) else ()
+         val _ = List.app killSym (#1 (!(#kappas table)))
+      in
+         ()
+      end
    
    fun getSymbol (sym,table : table) =
       let
