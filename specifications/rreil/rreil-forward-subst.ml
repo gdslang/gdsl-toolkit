@@ -8,7 +8,7 @@ val varset-contains? set var = bbtree-contains? rreil-ltvar? set var
 
 val expr-map-lt? a b = rreil-ltvar? a.key b.key
 val expr-map-add map item = bbtree-add expr-map-lt? map item
-val expr-map-at map item = bbtree-get expr-map-lt? map {key=item, value={}}
+val expr-map-at map item = (bbtree-get expr-map-lt? map {key=item, value={}}).value
 val expr-map-contains? map key = bbtree-contains? expr-map-lt? map {key=key, value={}}
 
 val vars lin size = let
@@ -30,7 +30,7 @@ end
 
   val substitute-linear state linear = case linear of
      SEM_LIN_VAR v: if expr-map-contains? state v then
-       expr-map-at state v
+       (expr-map-at state v).lin
      else
        SEM_LIN_VAR v
    | l: l
@@ -39,7 +39,7 @@ end
 val substitute state stmt = let
   val substitute-linear linear = case linear of
      SEM_LIN_VAR v: if expr-map-contains? state v then
-       expr-map-at state v
+       (expr-map-at state v).lin
      else
        SEM_LIN_VAR v
    | l: l
