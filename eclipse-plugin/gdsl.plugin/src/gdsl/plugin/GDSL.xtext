@@ -31,7 +31,7 @@ DeclType:
 
 DeclVal:
 	'val' (name=Name | =>name=SYM) (attr += Name)* '=' exp=Exp |
-//	'val' (MID Name => ((MID,Name)))* |
+	'val' (mid+=MIXID attr+=Name)* '=' exp=Exp |
 	'val' name=Name '[' (decPat+=DecodePat (decPat+=DecodePat)*)? ']' (('=' exp=Exp) | (PIPE exps+=Exp '=' exps+=Exp)+)
 ;
 
@@ -92,7 +92,7 @@ ClosedExp:
 ;
 
 MonadicExp:
-	exp=Exp |
+	=>exp=Exp |
 	name=Name '<-' exp=Exp
 ;
 
@@ -109,7 +109,44 @@ AndAlsoExp:
 ;
 
 RExp:
-	name='todo'
+	aexp=AExp (=>sym+=SYM aexps+=AExp)*
+;
+
+AExp:
+	mexp=MExp (sign+=('+'|'-') mexps+=MExp)*
+;
+
+MExp:
+	applyexps+=ApplyExp ('^' applyexps+=ApplyExp)*
+;
+
+ApplyExp:
+	(neg?='~')? =>exp=AtomicExp
+;
+
+AtomicExp:
+	{AtomicExp} Lit |
+	{AtomicExp} String |
+	=>id+=Qid (=>DOT id+=Qid)* |
+	{AtomicExp} ConUse |
+	'@' '{' fields+=Field (',' fields+=Field)* '}' |
+	{AtomicExp} '$' Qid |
+	'(' exp=Exp ')' (=>DOT id+=Qid)* |
+	{AtomicExp} '{' (id+=Name '=' exps+=Exp (=>id+=Name '=' exps+=Exp)*)? '}' |
+	'let' valDecl+=ValueDecl+ 'in' exp=Exp 'end'
+;
+
+Field:
+	name=Name '=' exp=Exp |
+	'~' name=Name
+;
+
+ValueDecl:
+	'val' Name Name* '=' Exp
+;
+
+String:
+	'"' STRCHAR* '"'
 ;
 
 //DataType Rules
@@ -129,10 +166,11 @@ NUM: =>DIG+;
 HEXNUM: '0x' =>HEXDIGIT+;
 SYMID: SYM+;
 BITSTR: =>BINARY+;
-MIXID: '_' IDCHAR+;
+MIXID: '_' =>IDCHAR+;
 CONS: ULETTER =>IDCHAR*;
 
 ID: LETTER =>IDCHAR*;
+STRCHAR: LETTER; //TODO
 HEXDIGIT: DIG | HEXCHAR;
 HEXCHAR: LHEXCHAR | UHEXCHAR;
 ULETTER: UHEXCHAR | UNHEXCHAR;

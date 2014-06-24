@@ -2,7 +2,10 @@
  */
 package gdsl.plugin.gDSL.impl;
 
+import gdsl.plugin.gDSL.AExp;
 import gdsl.plugin.gDSL.AndAlsoExp;
+import gdsl.plugin.gDSL.ApplyExp;
+import gdsl.plugin.gDSL.AtomicExp;
 import gdsl.plugin.gDSL.BitPat;
 import gdsl.plugin.gDSL.CaseExp;
 import gdsl.plugin.gDSL.Cases;
@@ -17,8 +20,10 @@ import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.DecodePat;
 import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.Export;
+import gdsl.plugin.gDSL.Field;
 import gdsl.plugin.gDSL.GDSLFactory;
 import gdsl.plugin.gDSL.GDSLPackage;
+import gdsl.plugin.gDSL.MExp;
 import gdsl.plugin.gDSL.Model;
 import gdsl.plugin.gDSL.MonadicExp;
 import gdsl.plugin.gDSL.OrElseExp;
@@ -27,6 +32,7 @@ import gdsl.plugin.gDSL.TokPat;
 import gdsl.plugin.gDSL.Ty;
 import gdsl.plugin.gDSL.TyBind;
 import gdsl.plugin.gDSL.TyElement;
+import gdsl.plugin.gDSL.ValueDecl;
 
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -203,6 +209,48 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * @generated
    */
   private EClass rExpEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass aExpEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass mExpEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass applyExpEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass atomicExpEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass fieldEClass = null;
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  private EClass valueDeclEClass = null;
 
   /**
    * Creates an instance of the model <b>Package</b>, registered with
@@ -412,9 +460,19 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
+  public EAttribute getDeclVal_Mid()
+  {
+    return (EAttribute)declValEClass.getEStructuralFeatures().get(2);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EReference getDeclVal_DecPat()
   {
-    return (EReference)declValEClass.getEStructuralFeatures().get(2);
+    return (EReference)declValEClass.getEStructuralFeatures().get(3);
   }
 
   /**
@@ -424,7 +482,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    */
   public EReference getDeclVal_Exps()
   {
-    return (EReference)declValEClass.getEStructuralFeatures().get(3);
+    return (EReference)declValEClass.getEStructuralFeatures().get(4);
   }
 
   /**
@@ -882,9 +940,219 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getRExp_Name()
+  public EReference getRExp_Aexp()
   {
-    return (EAttribute)rExpEClass.getEStructuralFeatures().get(0);
+    return (EReference)rExpEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getRExp_Sym()
+  {
+    return (EAttribute)rExpEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getRExp_Aexps()
+  {
+    return (EReference)rExpEClass.getEStructuralFeatures().get(2);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getAExp()
+  {
+    return aExpEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getAExp_Mexp()
+  {
+    return (EReference)aExpEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getAExp_Sign()
+  {
+    return (EAttribute)aExpEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getAExp_Mexps()
+  {
+    return (EReference)aExpEClass.getEStructuralFeatures().get(2);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getMExp()
+  {
+    return mExpEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getMExp_Applyexps()
+  {
+    return (EReference)mExpEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getApplyExp()
+  {
+    return applyExpEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getApplyExp_Neg()
+  {
+    return (EAttribute)applyExpEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getApplyExp_Exp()
+  {
+    return (EReference)applyExpEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getAtomicExp()
+  {
+    return atomicExpEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getAtomicExp_Id()
+  {
+    return (EAttribute)atomicExpEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getAtomicExp_Fields()
+  {
+    return (EReference)atomicExpEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getAtomicExp_Exp()
+  {
+    return (EReference)atomicExpEClass.getEStructuralFeatures().get(2);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getAtomicExp_Exps()
+  {
+    return (EReference)atomicExpEClass.getEStructuralFeatures().get(3);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getAtomicExp_ValDecl()
+  {
+    return (EReference)atomicExpEClass.getEStructuralFeatures().get(4);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getField()
+  {
+    return fieldEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getField_Name()
+  {
+    return (EAttribute)fieldEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getField_Exp()
+  {
+    return (EReference)fieldEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getValueDecl()
+  {
+    return valueDeclEClass;
   }
 
   /**
@@ -936,6 +1204,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     declValEClass = createEClass(DECL_VAL);
     createEAttribute(declValEClass, DECL_VAL__ATTR);
     createEReference(declValEClass, DECL_VAL__EXP);
+    createEAttribute(declValEClass, DECL_VAL__MID);
     createEReference(declValEClass, DECL_VAL__DEC_PAT);
     createEReference(declValEClass, DECL_VAL__EXPS);
 
@@ -1000,7 +1269,34 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     andAlsoExpEClass = createEClass(AND_ALSO_EXP);
 
     rExpEClass = createEClass(REXP);
-    createEAttribute(rExpEClass, REXP__NAME);
+    createEReference(rExpEClass, REXP__AEXP);
+    createEAttribute(rExpEClass, REXP__SYM);
+    createEReference(rExpEClass, REXP__AEXPS);
+
+    aExpEClass = createEClass(AEXP);
+    createEReference(aExpEClass, AEXP__MEXP);
+    createEAttribute(aExpEClass, AEXP__SIGN);
+    createEReference(aExpEClass, AEXP__MEXPS);
+
+    mExpEClass = createEClass(MEXP);
+    createEReference(mExpEClass, MEXP__APPLYEXPS);
+
+    applyExpEClass = createEClass(APPLY_EXP);
+    createEAttribute(applyExpEClass, APPLY_EXP__NEG);
+    createEReference(applyExpEClass, APPLY_EXP__EXP);
+
+    atomicExpEClass = createEClass(ATOMIC_EXP);
+    createEAttribute(atomicExpEClass, ATOMIC_EXP__ID);
+    createEReference(atomicExpEClass, ATOMIC_EXP__FIELDS);
+    createEReference(atomicExpEClass, ATOMIC_EXP__EXP);
+    createEReference(atomicExpEClass, ATOMIC_EXP__EXPS);
+    createEReference(atomicExpEClass, ATOMIC_EXP__VAL_DECL);
+
+    fieldEClass = createEClass(FIELD);
+    createEAttribute(fieldEClass, FIELD__NAME);
+    createEReference(fieldEClass, FIELD__EXP);
+
+    valueDeclEClass = createEClass(VALUE_DECL);
   }
 
   /**
@@ -1038,6 +1334,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     declValEClass.getESuperTypes().add(this.getDecl());
     bitPatEClass.getESuperTypes().add(this.getDecodePat());
     tokPatEClass.getESuperTypes().add(this.getDecodePat());
+    expEClass.getESuperTypes().add(this.getValueDecl());
     closedExpEClass.getESuperTypes().add(this.getCaseExp());
     orElseExpEClass.getESuperTypes().add(this.getClosedExp());
     andAlsoExpEClass.getESuperTypes().add(this.getOrElseExp());
@@ -1063,6 +1360,7 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEClass(declValEClass, DeclVal.class, "DeclVal", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getDeclVal_Attr(), ecorePackage.getEString(), "attr", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getDeclVal_Exp(), this.getExp(), null, "exp", null, 0, 1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getDeclVal_Mid(), ecorePackage.getEString(), "mid", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getDeclVal_DecPat(), this.getDecodePat(), null, "decPat", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getDeclVal_Exps(), this.getExp(), null, "exps", null, 0, -1, DeclVal.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
@@ -1127,7 +1425,34 @@ public class GDSLPackageImpl extends EPackageImpl implements GDSLPackage
     initEClass(andAlsoExpEClass, AndAlsoExp.class, "AndAlsoExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 
     initEClass(rExpEClass, RExp.class, "RExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEAttribute(getRExp_Name(), ecorePackage.getEString(), "name", null, 0, 1, RExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getRExp_Aexp(), this.getAExp(), null, "aexp", null, 0, 1, RExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getRExp_Sym(), ecorePackage.getEString(), "sym", null, 0, -1, RExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getRExp_Aexps(), this.getAExp(), null, "aexps", null, 0, -1, RExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(aExpEClass, AExp.class, "AExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEReference(getAExp_Mexp(), this.getMExp(), null, "mexp", null, 0, 1, AExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getAExp_Sign(), ecorePackage.getEString(), "sign", null, 0, -1, AExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getAExp_Mexps(), this.getMExp(), null, "mexps", null, 0, -1, AExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(mExpEClass, MExp.class, "MExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEReference(getMExp_Applyexps(), this.getApplyExp(), null, "applyexps", null, 0, -1, MExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(applyExpEClass, ApplyExp.class, "ApplyExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getApplyExp_Neg(), ecorePackage.getEBoolean(), "neg", null, 0, 1, ApplyExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getApplyExp_Exp(), this.getAtomicExp(), null, "exp", null, 0, 1, ApplyExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(atomicExpEClass, AtomicExp.class, "AtomicExp", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getAtomicExp_Id(), ecorePackage.getEString(), "id", null, 0, -1, AtomicExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, !IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getAtomicExp_Fields(), this.getField(), null, "fields", null, 0, -1, AtomicExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getAtomicExp_Exp(), this.getExp(), null, "exp", null, 0, 1, AtomicExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getAtomicExp_Exps(), this.getExp(), null, "exps", null, 0, -1, AtomicExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getAtomicExp_ValDecl(), this.getValueDecl(), null, "valDecl", null, 0, -1, AtomicExp.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(fieldEClass, Field.class, "Field", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getField_Name(), ecorePackage.getEString(), "name", null, 0, 1, Field.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getField_Exp(), this.getExp(), null, "exp", null, 0, 1, Field.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(valueDeclEClass, ValueDecl.class, "ValueDecl", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 
     // Create resource
     createResource(eNS_URI);

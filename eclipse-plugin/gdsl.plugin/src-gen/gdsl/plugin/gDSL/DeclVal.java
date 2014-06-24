@@ -14,6 +14,7 @@ import org.eclipse.emf.common.util.EList;
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.DeclVal#getAttr <em>Attr</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.DeclVal#getExp <em>Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.DeclVal#getMid <em>Mid</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.DeclVal#getDecPat <em>Dec Pat</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.DeclVal#getExps <em>Exps</em>}</li>
  * </ul>
@@ -66,6 +67,22 @@ public interface DeclVal extends Decl
    * @generated
    */
   void setExp(Exp value);
+
+  /**
+   * Returns the value of the '<em><b>Mid</b></em>' attribute list.
+   * The list contents are of type {@link java.lang.String}.
+   * <!-- begin-user-doc -->
+   * <p>
+   * If the meaning of the '<em>Mid</em>' attribute list isn't clear,
+   * there really should be more of a description here...
+   * </p>
+   * <!-- end-user-doc -->
+   * @return the value of the '<em>Mid</em>' attribute list.
+   * @see gdsl.plugin.gDSL.GDSLPackage#getDeclVal_Mid()
+   * @model unique="false"
+   * @generated
+   */
+  EList<String> getMid();
 
   /**
    * Returns the value of the '<em><b>Dec Pat</b></em>' containment reference list.

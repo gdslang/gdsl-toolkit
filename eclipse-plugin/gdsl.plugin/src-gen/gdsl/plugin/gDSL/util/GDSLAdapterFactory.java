@@ -190,6 +190,36 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
         return createRExpAdapter();
       }
       @Override
+      public Adapter caseAExp(AExp object)
+      {
+        return createAExpAdapter();
+      }
+      @Override
+      public Adapter caseMExp(MExp object)
+      {
+        return createMExpAdapter();
+      }
+      @Override
+      public Adapter caseApplyExp(ApplyExp object)
+      {
+        return createApplyExpAdapter();
+      }
+      @Override
+      public Adapter caseAtomicExp(AtomicExp object)
+      {
+        return createAtomicExpAdapter();
+      }
+      @Override
+      public Adapter caseField(Field object)
+      {
+        return createFieldAdapter();
+      }
+      @Override
+      public Adapter caseValueDecl(ValueDecl object)
+      {
+        return createValueDeclAdapter();
+      }
+      @Override
       public Adapter defaultCase(EObject object)
       {
         return createEObjectAdapter();
@@ -552,6 +582,96 @@ public class GDSLAdapterFactory extends AdapterFactoryImpl
    * @generated
    */
   public Adapter createRExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.AExp <em>AExp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.AExp
+   * @generated
+   */
+  public Adapter createAExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.MExp <em>MExp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.MExp
+   * @generated
+   */
+  public Adapter createMExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.ApplyExp <em>Apply Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.ApplyExp
+   * @generated
+   */
+  public Adapter createApplyExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.AtomicExp <em>Atomic Exp</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.AtomicExp
+   * @generated
+   */
+  public Adapter createAtomicExpAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.Field <em>Field</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.Field
+   * @generated
+   */
+  public Adapter createFieldAdapter()
+  {
+    return null;
+  }
+
+  /**
+   * Creates a new adapter for an object of class '{@link gdsl.plugin.gDSL.ValueDecl <em>Value Decl</em>}'.
+   * <!-- begin-user-doc -->
+   * This default implementation returns null so that we can easily ignore cases;
+   * it's useful to ignore a case when inheritance will catch all the cases anyway.
+   * <!-- end-user-doc -->
+   * @return the new adapter.
+   * @see gdsl.plugin.gDSL.ValueDecl
+   * @generated
+   */
+  public Adapter createValueDeclAdapter()
   {
     return null;
   }

@@ -230,6 +230,60 @@ public interface GDSLFactory extends EFactory
   RExp createRExp();
 
   /**
+   * Returns a new object of class '<em>AExp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>AExp</em>'.
+   * @generated
+   */
+  AExp createAExp();
+
+  /**
+   * Returns a new object of class '<em>MExp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>MExp</em>'.
+   * @generated
+   */
+  MExp createMExp();
+
+  /**
+   * Returns a new object of class '<em>Apply Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Apply Exp</em>'.
+   * @generated
+   */
+  ApplyExp createApplyExp();
+
+  /**
+   * Returns a new object of class '<em>Atomic Exp</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Atomic Exp</em>'.
+   * @generated
+   */
+  AtomicExp createAtomicExp();
+
+  /**
+   * Returns a new object of class '<em>Field</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Field</em>'.
+   * @generated
+   */
+  Field createField();
+
+  /**
+   * Returns a new object of class '<em>Value Decl</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Value Decl</em>'.
+   * @generated
+   */
+  ValueDecl createValueDecl();
+
+  /**
    * Returns the package supported by this factory.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->

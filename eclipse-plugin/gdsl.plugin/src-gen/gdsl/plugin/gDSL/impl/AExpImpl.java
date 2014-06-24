@@ -4,7 +4,7 @@ package gdsl.plugin.gDSL.impl;
 
 import gdsl.plugin.gDSL.AExp;
 import gdsl.plugin.gDSL.GDSLPackage;
-import gdsl.plugin.gDSL.RExp;
+import gdsl.plugin.gDSL.MExp;
 
 import java.util.Collection;
 
@@ -17,6 +17,7 @@ import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
+import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 import org.eclipse.emf.ecore.util.EDataTypeEList;
 import org.eclipse.emf.ecore.util.EObjectContainmentEList;
@@ -24,57 +25,57 @@ import org.eclipse.emf.ecore.util.InternalEList;
 
 /**
  * <!-- begin-user-doc -->
- * An implementation of the model object '<em><b>RExp</b></em>'.
+ * An implementation of the model object '<em><b>AExp</b></em>'.
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
  * <ul>
- *   <li>{@link gdsl.plugin.gDSL.impl.RExpImpl#getAexp <em>Aexp</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.RExpImpl#getSym <em>Sym</em>}</li>
- *   <li>{@link gdsl.plugin.gDSL.impl.RExpImpl#getAexps <em>Aexps</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.AExpImpl#getMexp <em>Mexp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.AExpImpl#getSign <em>Sign</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.AExpImpl#getMexps <em>Mexps</em>}</li>
  * </ul>
  * </p>
  *
  * @generated
  */
-public class RExpImpl extends AndAlsoExpImpl implements RExp
+public class AExpImpl extends MinimalEObjectImpl.Container implements AExp
 {
   /**
-   * The cached value of the '{@link #getAexp() <em>Aexp</em>}' containment reference.
+   * The cached value of the '{@link #getMexp() <em>Mexp</em>}' containment reference.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getAexp()
+   * @see #getMexp()
    * @generated
    * @ordered
    */
-  protected AExp aexp;
+  protected MExp mexp;
 
   /**
-   * The cached value of the '{@link #getSym() <em>Sym</em>}' attribute list.
+   * The cached value of the '{@link #getSign() <em>Sign</em>}' attribute list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getSym()
+   * @see #getSign()
    * @generated
    * @ordered
    */
-  protected EList<String> sym;
+  protected EList<String> sign;
 
   /**
-   * The cached value of the '{@link #getAexps() <em>Aexps</em>}' containment reference list.
+   * The cached value of the '{@link #getMexps() <em>Mexps</em>}' containment reference list.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @see #getAexps()
+   * @see #getMexps()
    * @generated
    * @ordered
    */
-  protected EList<AExp> aexps;
+  protected EList<MExp> mexps;
 
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    */
-  protected RExpImpl()
+  protected AExpImpl()
   {
     super();
   }
@@ -87,7 +88,7 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
   @Override
   protected EClass eStaticClass()
   {
-    return GDSLPackage.Literals.REXP;
+    return GDSLPackage.Literals.AEXP;
   }
 
   /**
@@ -95,9 +96,9 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public AExp getAexp()
+  public MExp getMexp()
   {
-    return aexp;
+    return mexp;
   }
 
   /**
@@ -105,13 +106,13 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public NotificationChain basicSetAexp(AExp newAexp, NotificationChain msgs)
+  public NotificationChain basicSetMexp(MExp newMexp, NotificationChain msgs)
   {
-    AExp oldAexp = aexp;
-    aexp = newAexp;
+    MExp oldMexp = mexp;
+    mexp = newMexp;
     if (eNotificationRequired())
     {
-      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.REXP__AEXP, oldAexp, newAexp);
+      ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, GDSLPackage.AEXP__MEXP, oldMexp, newMexp);
       if (msgs == null) msgs = notification; else msgs.add(notification);
     }
     return msgs;
@@ -122,20 +123,20 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public void setAexp(AExp newAexp)
+  public void setMexp(MExp newMexp)
   {
-    if (newAexp != aexp)
+    if (newMexp != mexp)
     {
       NotificationChain msgs = null;
-      if (aexp != null)
-        msgs = ((InternalEObject)aexp).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.REXP__AEXP, null, msgs);
-      if (newAexp != null)
-        msgs = ((InternalEObject)newAexp).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.REXP__AEXP, null, msgs);
-      msgs = basicSetAexp(newAexp, msgs);
+      if (mexp != null)
+        msgs = ((InternalEObject)mexp).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.AEXP__MEXP, null, msgs);
+      if (newMexp != null)
+        msgs = ((InternalEObject)newMexp).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - GDSLPackage.AEXP__MEXP, null, msgs);
+      msgs = basicSetMexp(newMexp, msgs);
       if (msgs != null) msgs.dispatch();
     }
     else if (eNotificationRequired())
-      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.REXP__AEXP, newAexp, newAexp));
+      eNotify(new ENotificationImpl(this, Notification.SET, GDSLPackage.AEXP__MEXP, newMexp, newMexp));
   }
 
   /**
@@ -143,13 +144,13 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<String> getSym()
+  public EList<String> getSign()
   {
-    if (sym == null)
+    if (sign == null)
     {
-      sym = new EDataTypeEList<String>(String.class, this, GDSLPackage.REXP__SYM);
+      sign = new EDataTypeEList<String>(String.class, this, GDSLPackage.AEXP__SIGN);
     }
-    return sym;
+    return sign;
   }
 
   /**
@@ -157,13 +158,13 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
    * <!-- end-user-doc -->
    * @generated
    */
-  public EList<AExp> getAexps()
+  public EList<MExp> getMexps()
   {
-    if (aexps == null)
+    if (mexps == null)
     {
-      aexps = new EObjectContainmentEList<AExp>(AExp.class, this, GDSLPackage.REXP__AEXPS);
+      mexps = new EObjectContainmentEList<MExp>(MExp.class, this, GDSLPackage.AEXP__MEXPS);
     }
-    return aexps;
+    return mexps;
   }
 
   /**
@@ -176,10 +177,10 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
   {
     switch (featureID)
     {
-      case GDSLPackage.REXP__AEXP:
-        return basicSetAexp(null, msgs);
-      case GDSLPackage.REXP__AEXPS:
-        return ((InternalEList<?>)getAexps()).basicRemove(otherEnd, msgs);
+      case GDSLPackage.AEXP__MEXP:
+        return basicSetMexp(null, msgs);
+      case GDSLPackage.AEXP__MEXPS:
+        return ((InternalEList<?>)getMexps()).basicRemove(otherEnd, msgs);
     }
     return super.eInverseRemove(otherEnd, featureID, msgs);
   }
@@ -194,12 +195,12 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
   {
     switch (featureID)
     {
-      case GDSLPackage.REXP__AEXP:
-        return getAexp();
-      case GDSLPackage.REXP__SYM:
-        return getSym();
-      case GDSLPackage.REXP__AEXPS:
-        return getAexps();
+      case GDSLPackage.AEXP__MEXP:
+        return getMexp();
+      case GDSLPackage.AEXP__SIGN:
+        return getSign();
+      case GDSLPackage.AEXP__MEXPS:
+        return getMexps();
     }
     return super.eGet(featureID, resolve, coreType);
   }
@@ -215,16 +216,16 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
   {
     switch (featureID)
     {
-      case GDSLPackage.REXP__AEXP:
-        setAexp((AExp)newValue);
+      case GDSLPackage.AEXP__MEXP:
+        setMexp((MExp)newValue);
         return;
-      case GDSLPackage.REXP__SYM:
-        getSym().clear();
-        getSym().addAll((Collection<? extends String>)newValue);
+      case GDSLPackage.AEXP__SIGN:
+        getSign().clear();
+        getSign().addAll((Collection<? extends String>)newValue);
         return;
-      case GDSLPackage.REXP__AEXPS:
-        getAexps().clear();
-        getAexps().addAll((Collection<? extends AExp>)newValue);
+      case GDSLPackage.AEXP__MEXPS:
+        getMexps().clear();
+        getMexps().addAll((Collection<? extends MExp>)newValue);
         return;
     }
     super.eSet(featureID, newValue);
@@ -240,14 +241,14 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
   {
     switch (featureID)
     {
-      case GDSLPackage.REXP__AEXP:
-        setAexp((AExp)null);
+      case GDSLPackage.AEXP__MEXP:
+        setMexp((MExp)null);
         return;
-      case GDSLPackage.REXP__SYM:
-        getSym().clear();
+      case GDSLPackage.AEXP__SIGN:
+        getSign().clear();
         return;
-      case GDSLPackage.REXP__AEXPS:
-        getAexps().clear();
+      case GDSLPackage.AEXP__MEXPS:
+        getMexps().clear();
         return;
     }
     super.eUnset(featureID);
@@ -263,12 +264,12 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
   {
     switch (featureID)
     {
-      case GDSLPackage.REXP__AEXP:
-        return aexp != null;
-      case GDSLPackage.REXP__SYM:
-        return sym != null && !sym.isEmpty();
-      case GDSLPackage.REXP__AEXPS:
-        return aexps != null && !aexps.isEmpty();
+      case GDSLPackage.AEXP__MEXP:
+        return mexp != null;
+      case GDSLPackage.AEXP__SIGN:
+        return sign != null && !sign.isEmpty();
+      case GDSLPackage.AEXP__MEXPS:
+        return mexps != null && !mexps.isEmpty();
     }
     return super.eIsSet(featureID);
   }
@@ -284,10 +285,10 @@ public class RExpImpl extends AndAlsoExpImpl implements RExp
     if (eIsProxy()) return super.toString();
 
     StringBuffer result = new StringBuffer(super.toString());
-    result.append(" (sym: ");
-    result.append(sym);
+    result.append(" (sign: ");
+    result.append(sign);
     result.append(')');
     return result.toString();
   }
 
-} //RExpImpl
+} //AExpImpl

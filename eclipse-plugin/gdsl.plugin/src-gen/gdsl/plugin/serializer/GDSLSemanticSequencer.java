@@ -2,7 +2,10 @@ package gdsl.plugin.serializer;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import gdsl.plugin.gDSL.AExp;
 import gdsl.plugin.gDSL.AndAlsoExp;
+import gdsl.plugin.gDSL.ApplyExp;
+import gdsl.plugin.gDSL.AtomicExp;
 import gdsl.plugin.gDSL.BitPat;
 import gdsl.plugin.gDSL.CaseExp;
 import gdsl.plugin.gDSL.Cases;
@@ -15,7 +18,9 @@ import gdsl.plugin.gDSL.DeclType;
 import gdsl.plugin.gDSL.DeclVal;
 import gdsl.plugin.gDSL.Exp;
 import gdsl.plugin.gDSL.Export;
+import gdsl.plugin.gDSL.Field;
 import gdsl.plugin.gDSL.GDSLPackage;
+import gdsl.plugin.gDSL.MExp;
 import gdsl.plugin.gDSL.Model;
 import gdsl.plugin.gDSL.MonadicExp;
 import gdsl.plugin.gDSL.OrElseExp;
@@ -45,6 +50,12 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	public void createSequence(EObject context, EObject semanticObject) {
 		if(semanticObject.eClass().getEPackage() == GDSLPackage.eINSTANCE) switch(semanticObject.eClass().getClassifierID()) {
+			case GDSLPackage.AEXP:
+				if(context == grammarAccess.getAExpRule()) {
+					sequence_AExp(context, (AExp) semanticObject); 
+					return; 
+				}
+				else break;
 			case GDSLPackage.AND_ALSO_EXP:
 				if(context == grammarAccess.getAndAlsoExpRule() ||
 				   context == grammarAccess.getAndAlsoExpAccess().getAndAlsoExpLeftAction_1_0() ||
@@ -53,6 +64,18 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 				   context == grammarAccess.getOrElseExpRule() ||
 				   context == grammarAccess.getOrElseExpAccess().getOrElseExpLeftAction_1_0()) {
 					sequence_AndAlsoExp(context, (AndAlsoExp) semanticObject); 
+					return; 
+				}
+				else break;
+			case GDSLPackage.APPLY_EXP:
+				if(context == grammarAccess.getApplyExpRule()) {
+					sequence_ApplyExp(context, (ApplyExp) semanticObject); 
+					return; 
+				}
+				else break;
+			case GDSLPackage.ATOMIC_EXP:
+				if(context == grammarAccess.getAtomicExpRule()) {
+					sequence_AtomicExp(context, (AtomicExp) semanticObject); 
 					return; 
 				}
 				else break;
@@ -123,7 +146,8 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 				}
 				else break;
 			case GDSLPackage.EXP:
-				if(context == grammarAccess.getExpRule()) {
+				if(context == grammarAccess.getExpRule() ||
+				   context == grammarAccess.getValueDeclRule()) {
 					sequence_Exp(context, (Exp) semanticObject); 
 					return; 
 				}
@@ -131,6 +155,18 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 			case GDSLPackage.EXPORT:
 				if(context == grammarAccess.getExportRule()) {
 					sequence_Export(context, (Export) semanticObject); 
+					return; 
+				}
+				else break;
+			case GDSLPackage.FIELD:
+				if(context == grammarAccess.getFieldRule()) {
+					sequence_Field(context, (Field) semanticObject); 
+					return; 
+				}
+				else break;
+			case GDSLPackage.MEXP:
+				if(context == grammarAccess.getMExpRule()) {
+					sequence_MExp(context, (MExp) semanticObject); 
 					return; 
 				}
 				else break;
@@ -198,9 +234,36 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
+	 *     (mexp=MExp ((sign+='+' | sign+='-') mexps+=MExp)*)
+	 */
+	protected void sequence_AExp(EObject context, AExp semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Constraint:
 	 *     (left=AndAlsoExp_AndAlsoExp_1_0 right+=RExp)
 	 */
 	protected void sequence_AndAlsoExp(EObject context, AndAlsoExp semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Constraint:
+	 *     (neg?='~'? exp=AtomicExp)
+	 */
+	protected void sequence_ApplyExp(EObject context, ApplyExp semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Constraint:
+	 *     ((id+=Name exps+=Exp (id+=Name exps+=Exp)*)?)
+	 */
+	protected void sequence_AtomicExp(EObject context, AtomicExp semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
 	}
 	
@@ -308,7 +371,11 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     (((name=Name | name=SYM) attr+=Name* exp=Exp) | (name=Name (decPat+=DecodePat decPat+=DecodePat*)? (exp=Exp | (exps+=Exp exps+=Exp)+)))
+	 *     (
+	 *         ((name=Name | name=SYM) attr+=Name* exp=Exp) | 
+	 *         ((mid+=MIXID attr+=Name)* exp=Exp) | 
+	 *         (name=Name (decPat+=DecodePat decPat+=DecodePat*)? (exp=Exp | (exps+=Exp exps+=Exp)+))
+	 *     )
 	 */
 	protected void sequence_DeclVal(EObject context, DeclVal semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
@@ -329,6 +396,24 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	 *     (name=Qid (attrName+=Name attrName+=Name*)?)
 	 */
 	protected void sequence_Export(EObject context, Export semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Constraint:
+	 *     ((name=Name exp=Exp) | name=Name)
+	 */
+	protected void sequence_Field(EObject context, Field semanticObject) {
+		genericSequencer.createSequence(context, semanticObject);
+	}
+	
+	
+	/**
+	 * Constraint:
+	 *     (applyexps+=ApplyExp applyexps+=ApplyExp*)
+	 */
+	protected void sequence_MExp(EObject context, MExp semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);
 	}
 	
@@ -362,7 +447,7 @@ public class GDSLSemanticSequencer extends AbstractDelegatingSemanticSequencer {
 	
 	/**
 	 * Constraint:
-	 *     name='todo'
+	 *     (aexp=AExp (sym+=SYM aexps+=AExp)*)
 	 */
 	protected void sequence_RExp(EObject context, RExp semanticObject) {
 		genericSequencer.createSequence(context, semanticObject);

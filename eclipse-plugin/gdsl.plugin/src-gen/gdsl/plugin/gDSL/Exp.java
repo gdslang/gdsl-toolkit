@@ -2,7 +2,6 @@
  */
 package gdsl.plugin.gDSL;
 
-import org.eclipse.emf.ecore.EObject;
 
 /**
  * <!-- begin-user-doc -->
@@ -21,7 +20,7 @@ import org.eclipse.emf.ecore.EObject;
  * @model
  * @generated
  */
-public interface Exp extends EObject
+public interface Exp extends ValueDecl
 {
   /**
    * Returns the value of the '<em><b>Case Exp</b></em>' containment reference.

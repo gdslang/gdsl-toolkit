@@ -26,6 +26,7 @@
     <genClasses ecoreClass="GDSL.ecore#//DeclVal">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/attr"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exp"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//DeclVal/mid"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/decPat"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//DeclVal/exps"/>
     </genClasses>
@@ -88,7 +89,33 @@
     </genClasses>
     <genClasses ecoreClass="GDSL.ecore#//AndAlsoExp"/>
     <genClasses ecoreClass="GDSL.ecore#//RExp">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//RExp/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//RExp/aexp"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//RExp/sym"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//RExp/aexps"/>
     </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//AExp">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//AExp/mexp"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//AExp/sign"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//AExp/mexps"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//MExp">
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//MExp/applyexps"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//ApplyExp">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//ApplyExp/neg"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//ApplyExp/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//AtomicExp">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//AtomicExp/id"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//AtomicExp/fields"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//AtomicExp/exp"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//AtomicExp/exps"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//AtomicExp/valDecl"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//Field">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute GDSL.ecore#//Field/name"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference GDSL.ecore#//Field/exp"/>
+    </genClasses>
+    <genClasses ecoreClass="GDSL.ecore#//ValueDecl"/>
   </genPackages>
 </genmodel:GenModel>

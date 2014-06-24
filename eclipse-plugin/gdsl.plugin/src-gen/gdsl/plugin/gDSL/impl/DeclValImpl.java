@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * <ul>
  *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getAttr <em>Attr</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getExp <em>Exp</em>}</li>
+ *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getMid <em>Mid</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getDecPat <em>Dec Pat</em>}</li>
  *   <li>{@link gdsl.plugin.gDSL.impl.DeclValImpl#getExps <em>Exps</em>}</li>
  * </ul>
@@ -60,6 +61,16 @@ public class DeclValImpl extends DeclImpl implements DeclVal
    * @ordered
    */
   protected Exp exp;
+
+  /**
+   * The cached value of the '{@link #getMid() <em>Mid</em>}' attribute list.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @see #getMid()
+   * @generated
+   * @ordered
+   */
+  protected EList<String> mid;
 
   /**
    * The cached value of the '{@link #getDecPat() <em>Dec Pat</em>}' containment reference list.
@@ -169,6 +180,20 @@ public class DeclValImpl extends DeclImpl implements DeclVal
    * <!-- end-user-doc -->
    * @generated
    */
+  public EList<String> getMid()
+  {
+    if (mid == null)
+    {
+      mid = new EDataTypeEList<String>(String.class, this, GDSLPackage.DECL_VAL__MID);
+    }
+    return mid;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
   public EList<DecodePat> getDecPat()
   {
     if (decPat == null)
@@ -226,6 +251,8 @@ public class DeclValImpl extends DeclImpl implements DeclVal
         return getAttr();
       case GDSLPackage.DECL_VAL__EXP:
         return getExp();
+      case GDSLPackage.DECL_VAL__MID:
+        return getMid();
       case GDSLPackage.DECL_VAL__DEC_PAT:
         return getDecPat();
       case GDSLPackage.DECL_VAL__EXPS:
@@ -251,6 +278,10 @@ public class DeclValImpl extends DeclImpl implements DeclVal
         return;
       case GDSLPackage.DECL_VAL__EXP:
         setExp((Exp)newValue);
+        return;
+      case GDSLPackage.DECL_VAL__MID:
+        getMid().clear();
+        getMid().addAll((Collection<? extends String>)newValue);
         return;
       case GDSLPackage.DECL_VAL__DEC_PAT:
         getDecPat().clear();
@@ -280,6 +311,9 @@ public class DeclValImpl extends DeclImpl implements DeclVal
       case GDSLPackage.DECL_VAL__EXP:
         setExp((Exp)null);
         return;
+      case GDSLPackage.DECL_VAL__MID:
+        getMid().clear();
+        return;
       case GDSLPackage.DECL_VAL__DEC_PAT:
         getDecPat().clear();
         return;
@@ -304,6 +338,8 @@ public class DeclValImpl extends DeclImpl implements DeclVal
         return attr != null && !attr.isEmpty();
       case GDSLPackage.DECL_VAL__EXP:
         return exp != null;
+      case GDSLPackage.DECL_VAL__MID:
+        return mid != null && !mid.isEmpty();
       case GDSLPackage.DECL_VAL__DEC_PAT:
         return decPat != null && !decPat.isEmpty();
       case GDSLPackage.DECL_VAL__EXPS:
@@ -325,6 +361,8 @@ public class DeclValImpl extends DeclImpl implements DeclVal
     StringBuffer result = new StringBuffer(super.toString());
     result.append(" (attr: ");
     result.append(attr);
+    result.append(", mid: ");
+    result.append(mid);
     result.append(')');
     return result.toString();
   }

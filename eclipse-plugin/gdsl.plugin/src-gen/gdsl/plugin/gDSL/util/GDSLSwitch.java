@@ -187,6 +187,7 @@ public class GDSLSwitch<T> extends Switch<T>
       {
         Exp exp = (Exp)theEObject;
         T result = caseExp(exp);
+        if (result == null) result = caseValueDecl(exp);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -246,6 +247,48 @@ public class GDSLSwitch<T> extends Switch<T>
         if (result == null) result = caseOrElseExp(rExp);
         if (result == null) result = caseClosedExp(rExp);
         if (result == null) result = caseCaseExp(rExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.AEXP:
+      {
+        AExp aExp = (AExp)theEObject;
+        T result = caseAExp(aExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.MEXP:
+      {
+        MExp mExp = (MExp)theEObject;
+        T result = caseMExp(mExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.APPLY_EXP:
+      {
+        ApplyExp applyExp = (ApplyExp)theEObject;
+        T result = caseApplyExp(applyExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.ATOMIC_EXP:
+      {
+        AtomicExp atomicExp = (AtomicExp)theEObject;
+        T result = caseAtomicExp(atomicExp);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.FIELD:
+      {
+        Field field = (Field)theEObject;
+        T result = caseField(field);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case GDSLPackage.VALUE_DECL:
+      {
+        ValueDecl valueDecl = (ValueDecl)theEObject;
+        T result = caseValueDecl(valueDecl);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -617,6 +660,102 @@ public class GDSLSwitch<T> extends Switch<T>
    * @generated
    */
   public T caseRExp(RExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>AExp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>AExp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseAExp(AExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>MExp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>MExp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseMExp(MExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Apply Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Apply Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseApplyExp(ApplyExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Atomic Exp</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Atomic Exp</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseAtomicExp(AtomicExp object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Field</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Field</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseField(Field object)
+  {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Value Decl</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Value Decl</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T caseValueDecl(ValueDecl object)
   {
     return null;
   }

@@ -87,6 +87,12 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
       case GDSLPackage.OR_ELSE_EXP: return createOrElseExp();
       case GDSLPackage.AND_ALSO_EXP: return createAndAlsoExp();
       case GDSLPackage.REXP: return createRExp();
+      case GDSLPackage.AEXP: return createAExp();
+      case GDSLPackage.MEXP: return createMExp();
+      case GDSLPackage.APPLY_EXP: return createApplyExp();
+      case GDSLPackage.ATOMIC_EXP: return createAtomicExp();
+      case GDSLPackage.FIELD: return createField();
+      case GDSLPackage.VALUE_DECL: return createValueDecl();
       default:
         throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
     }
@@ -343,6 +349,72 @@ public class GDSLFactoryImpl extends EFactoryImpl implements GDSLFactory
   {
     RExpImpl rExp = new RExpImpl();
     return rExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public AExp createAExp()
+  {
+    AExpImpl aExp = new AExpImpl();
+    return aExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public MExp createMExp()
+  {
+    MExpImpl mExp = new MExpImpl();
+    return mExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public ApplyExp createApplyExp()
+  {
+    ApplyExpImpl applyExp = new ApplyExpImpl();
+    return applyExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public AtomicExp createAtomicExp()
+  {
+    AtomicExpImpl atomicExp = new AtomicExpImpl();
+    return atomicExp;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public Field createField()
+  {
+    FieldImpl field = new FieldImpl();
+    return field;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public ValueDecl createValueDecl()
+  {
+    ValueDeclImpl valueDecl = new ValueDeclImpl();
+    return valueDecl;
   }
 
   /**
