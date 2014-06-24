@@ -8,7 +8,6 @@ structure Primitives = struct
    val size = freshVar ()
    val size' = newFlow size
    val size'' = newFlow size
-   val size''' = newFlow size
    val stateA = freshVar ()
    val stateA' = newFlow stateA
    val stateB = freshVar ()
@@ -100,7 +99,6 @@ structure Primitives = struct
    fun vv  s = FUN ([VEC s], VEC (newFlow s))
    fun vvb s = FUN ([VEC s, VEC (newFlow s)], VEC (CONST 1))
 
-   val granularity : string = "stream granularity"
    val globalState : string = "global state"
    val caseExpression : string = "case expression"
    val streamField : string = "input stream"
@@ -159,8 +157,6 @@ structure Primitives = struct
         flow = noFlow},
        (*{name=globalState, ty=state,
         flow = noFlow},*)
-       {name=granularity, ty=UNIT,
-        flow = noFlow},
        (* 'a M -> ('a -> 'b M) -> 'b M *)
        {name=">>=", ty=func (MONAD (a, stateE, stateE'),
             func (func (a', MONAD (b,stateE'', stateE''')),
@@ -258,8 +254,7 @@ structure Primitives = struct
       ]
 
    val primitiveDecoders =
-      [{name=granularity, ty=size'''},
-       {name="prefix", ty=s16}, (* hack to get s16 expanded with s14,s15 *)
+      [{name="prefix", ty=s16}, (* hack to get s16 expanded with s14,s15 *)
        {name="suffix", ty=s19}]
 
    val primitiveTypes =

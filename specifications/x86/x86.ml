@@ -1,4 +1,3 @@
-granularity = 8
 export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn} insn-length{length}
 
 # Optional arguments

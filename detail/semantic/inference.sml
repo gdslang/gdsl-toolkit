@@ -258,8 +258,6 @@ end = struct
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val var_counter = TVar.get ()
    val { tsynDefs, typeDefs, conParents} = ti
-   val granularitySymId = SymbolTable.lookup(!SymbolTables.varTable,
-                                             Atom.atom Primitives.granularity)
    
    val bindSymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>")
    val bindASymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>=")
@@ -576,16 +574,6 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
 
    and infDecl stenv (AST.MARKdecl m) = reportError infDecl stenv m
-     | infDecl (st,env) (AST.GRANULARITYdecl w) =
-      let
-         val env = E.pushWidth (granularitySymId, env)
-         val env = E.pushType (CONST (IntInf.toInt w), env)
-         val env = E.equateKappas env
-         val env = E.popKappa env
-         val env = E.popKappa env
-      in
-         env
-      end
      | infDecl stenv (AST.DECODEdecl dd) = infDecodedecl stenv dd
      | infDecl (st,env) (AST.LETRECdecl (v,l,e)) = 
       if hasSymbol (st,v) then infBinding (st,env) (v, l, e) else env
@@ -1003,21 +991,7 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
 
    and infDecodepat sym stenv (AST.MARKdecodepat m) =
       reportError (infDecodepat sym) stenv m
-      | infDecodepat sym (st, env) (AST.TOKENdecodepat t) =
-         let
-            val env = E.pushWidth (granularitySymId, env)
-            val env = E.pushWidth (sym, env)
-            val env = E.equateKappas env
-            handle S.UnificationFailure str =>
-               refineError (env, str,
-                            " when checking decoder",
-                            [((2,0), "granularity                     "),
-                             ((1,0), "token " ^ showProg (20, PP.tokpat, t))])
-            val env = E.popKappa env
-            val env = E.popKappa env
-         in
-            infTokpat (st, env) t
-         end
+      | infDecodepat sym (st, env) (AST.TOKENdecodepat t) = infTokpat sym (st, env) t
      | infDecodepat sym (st,env) (AST.BITdecodepat l) =
       let
          val env = E.pushWidth (sym, env)
@@ -1060,9 +1034,37 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       in
          (1, env)
       end
-   and infTokpat stenv (AST.MARKtokpat m) = reportError infTokpat stenv m
-     | infTokpat (st,env) (AST.TOKtokpat i) = (0, env)
-     | infTokpat (st,env) (AST.NAMEDtokpat v) = (0, env)
+   and infTokpat sym stenv (AST.MARKtokpat m) = reportError (infTokpat sym) stenv m
+     | infTokpat sym (st,env) (AST.TOKtokpat (size,i)) =
+      let
+         val env = E.pushType (CONST size, env)
+         val env = E.pushWidth (sym, env)
+         val env = E.equateKappas env
+            handle S.UnificationFailure str =>
+              refineError (env, str,
+                          " when checking decoder",
+                          [((1,0), "decoder " ^ SymbolTable.getString(!SymbolTables.varTable, sym)),
+                           ((2,0), "token   " ^ showProg (20, PP.tokpat, AST.TOKtokpat (size,i)))])
+         val env = E.popKappa env
+         val env = E.popKappa env
+      in
+        (0, env)
+      end
+     | infTokpat sym (st,env) (AST.NAMEDtokpat v) =
+      let
+         val env = E.pushWidth (v, env)
+         val env = E.pushWidth (sym, env)
+         val env = E.equateKappas env
+         handle S.UnificationFailure str =>
+            refineError (env, str,
+                        " when checking decoder",
+                        [((1,0), "decoder " ^ SymbolTable.getString(!SymbolTables.varTable, sym)),
+                         ((2,0), "sub-decoder     " ^ showProg (20, PP.tokpat, (AST.NAMEDtokpat v)))])
+         val env = E.popKappa env
+         val env = E.popKappa env
+      in
+         (0, env)
+      end
    and infMatch (st,env,caseExpSymId) (p,e) =
       let
          val (n,env) = infPat (st,env) p

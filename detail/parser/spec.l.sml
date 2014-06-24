@@ -114,7 +114,7 @@ Vector.fromList []
         (* start position of token -- can be updated via skip() *)
 	  val yystartPos = ref (yygetPos())
 	(* get one char of input *)
-	  fun yygetc strm = (case UTF8.getu ULexBuffer.getc strm
+	  fun yygetc strm = (case ULexBuffer.getu strm
                 of (SOME (0w10, s')) => 
 		     (AntlrStreamPos.markNewLine yysm (ULexBuffer.getpos strm);
 		      SOME (0w10, s'))
@@ -264,7 +264,8 @@ fun yyAction52 (strm, lastMatch : yymatch) = let
 fun yyAction53 (strm, lastMatch : yymatch) = let
       val yytext = yymktext(strm)
       in
-        yystrm := strm;  T.POSINT(fromHexString yytext)
+        yystrm := strm;
+         T.HEXINT((String.size yytext-2)*4, fromHexString yytext)
       end
 fun yyAction54 (strm, lastMatch : yymatch) = (yystrm := strm;  skip ())
 fun yyAction55 (strm, lastMatch : yymatch) = (yystrm := strm;

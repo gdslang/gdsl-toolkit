@@ -1012,16 +1012,8 @@ structure TypeRefinement = struct
                  | mergeFields ([],fs2) = map (fn (e,f,t) => (always1,f,t)) fs2
                  | mergeFields (fs1,[]) = map (fn (e,f,t) => (always2,f,t)) fs1
                val fs = mergeFields (fs1,fs2)
-               (* the following condition holds if the record always contains
-                  the fields in fs; if it may contain fewer fields at any point
-                  we return OBJstype and use the flex record mechanism *)
-               (*val resTy = if List.all #1 fs then
-                     RECORDstype (lub (boxed1,boxed2), fs, always1 andalso always2)
-                  else
-                     (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)*)
             in
                RECORDstype (lub (boxed1,boxed2), fs, always1 andalso always2)
-               (*resTy*)
             end
            | lub (RECORDstype (_,fs,b), _) =
                (map (fn (b,f,t) => lub (fieldType s f, t)) fs; OBJstype)
