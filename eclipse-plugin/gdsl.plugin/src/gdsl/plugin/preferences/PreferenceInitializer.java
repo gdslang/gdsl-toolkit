@@ -15,7 +15,9 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 	 * @see org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer#initializeDefaultPreferences()
 	 */
 	public void initializeDefaultPreferences() {
-		getPreferenceStore().put(GDSLPluginPreferences.P_COMPILER_PATH, "");
+		IEclipsePreferences store = getPreferenceStore();
+		store.put(GDSLPluginPreferences.P_COMPILER_CALL, "/usr/bin/sml");
+		store.put(GDSLPluginPreferences.P_COMPILE_ARGUMENTS, "-o gdsl-x86-rreil");
 	}
 
 	public static IEclipsePreferences getPreferenceStore() {

@@ -3,8 +3,11 @@ package gdsl.plugin.ui.pref.preferences;
 import gdsl.plugin.preferences.GDSLPluginPreferences;
 
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.StringButtonFieldEditor;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -27,9 +30,11 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 public class GdslPreferencePage
 	extends FieldEditorPreferencePage
 	implements IWorkbenchPreferencePage {
+	
+	private final String[] FILE_EXTENSIONS = {"*.ml", "*"};
 
 	public GdslPreferencePage() {
-		super(GRID);
+		super(org.eclipse.jface.preference.FieldEditorPreferencePage.FLAT);
 		IPreferenceStore store = new ScopedPreferenceStore(InstanceScope.INSTANCE, "gdsl.plugin");
 		setPreferenceStore(store);
 		setDescription("Settings for the external GDSL Compiler");
@@ -42,10 +47,19 @@ public class GdslPreferencePage
 	 * restore itself.
 	 */
 	public void createFieldEditors() {
-		addField(
-			new StringFieldEditor(GDSLPluginPreferences.P_COMPILER_PATH, "Compiler path:", getFieldEditorParent()));
+		final FileFieldEditor compilerCall = new FileFieldEditor(GDSLPluginPreferences.P_COMPILER_CALL, "Compiler call", true, StringButtonFieldEditor.VALIDATE_ON_KEY_STROKE, getFieldEditorParent());
+		final FileFieldEditor compilerPath = new FileFieldEditor(GDSLPluginPreferences.P_COMPILER_PATH, "SML Load", true, StringButtonFieldEditor.VALIDATE_ON_KEY_STROKE, getFieldEditorParent());
+		final StringFieldEditor compileArguments = new StringFieldEditor(GDSLPluginPreferences.P_COMPILE_ARGUMENTS, "Arguments", getFieldEditorParent());
+		final DirectoryFieldEditor runtimeEnvironment = new DirectoryFieldEditor(GDSLPluginPreferences.P_RUNTIME_FOLDER, "Codegen Folder", getFieldEditorParent());
+		final FilePathEditor compileFiles = new FilePathEditor(GDSLPluginPreferences.P_COMPILE_FILES, "Files to compile", FILE_EXTENSIONS, getFieldEditorParent());
+		
+		addField(compilerCall);
+		addField(compilerPath);
+		addField(compileArguments);
+		addField(runtimeEnvironment);
+		addField(compileFiles);
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
 	 */
