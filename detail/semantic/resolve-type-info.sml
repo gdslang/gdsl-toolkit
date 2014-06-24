@@ -16,6 +16,7 @@ end = struct
 
    structure AST = SpecAbstractTree
    structure S = SymMap
+   structure F = SymMap
    structure D = SymMap
    structure C = SymMap
    structure V = SymMap
@@ -78,6 +79,7 @@ end = struct
          ) : synonym_map)
       val dtyTable = ref (D.empty : datatype_map)
       val conTable = ref (C.empty : constructor_map)
+      val synForwardTable = ref (F.empty : AST.ty SymMap.map)
 
       fun convMark conv {span, tree} = {span=span, tree=conv span tree}
     
@@ -96,6 +98,8 @@ end = struct
                (dtyTable := D.insert (!dtyTable, d,
                                      {tdVars=varMap, tdCons=C.empty}))
             end
+          | AST.TYPEdecl (v, t) =>
+             (synForwardTable := F.insert (!synForwardTable, v, t))
           | _ => ()
       
       fun vDecl (s, d) =
@@ -118,30 +122,40 @@ end = struct
           | AST.NAMEDty (n, args) =>
                (case S.find (!synTable, n) of
                   SOME t => T.SYN (n, Types.setFlagsToTop t)
-                | NONE => (case D.find (!dtyTable, n) of
-                     SOME {tdVars=varMap,tdCons=_} =>
-                        let
-                           val argMap =
-                              List.foldl SymMap.insert' SymMap.empty args
-                           fun findType v = case SymMap.find (argMap,v) of
-                                SOME t => vType tvs (s, t)
-                              | NONE => case V.find (tvs,v) of
-                                   SOME (tVar,bVar) => T.VAR (tVar,BD.freshBVar ())
-                                 | NONE => (Error.errorAt
-                                    (errStrm, s,
-                                     ["unknown type variable ",
-                                      TypeInfo.getString (types, v),
-                                      " in argument "]); T.UNIT)
-                        in
-                           T.ALG (n, List.map findType (V.listKeys varMap))
-                        end
-                   | NONE => (case V.find (tvs,n) of
-                        SOME (tVar,bVar) => T.VAR (tVar,BD.freshBVar ())
-                      | NONE => (Error.errorAt
-                           (errStrm, s,
-                            ["type synonym or data type ",
-                             TypeInfo.getString (types, n),
-                             " not declared "]); T.UNIT))))
+                | NONE => (case F.find (!synForwardTable, n) of
+                     SOME t =>
+                     let
+                        (* prevent infinite loop in case of recursive definitons *)
+                        val _ = synForwardTable := #1 (F.remove (!synForwardTable, n))
+                        val res = vType tvs (s, t)
+                        val _ = synForwardTable := F.insert (!synForwardTable, n, t)
+                     in
+                        res
+                     end
+                   | NONE => (case D.find (!dtyTable, n) of
+                        SOME {tdVars=varMap,tdCons=_} =>
+                           let
+                              val argMap =
+                                 List.foldl SymMap.insert' SymMap.empty args
+                              fun findType v = case SymMap.find (argMap,v) of
+                                   SOME t => vType tvs (s, t)
+                                 | NONE => case V.find (tvs,v) of
+                                      SOME (tVar,bVar) => T.VAR (tVar,BD.freshBVar ())
+                                    | NONE => (Error.errorAt
+                                       (errStrm, s,
+                                        ["unknown type variable ",
+                                         TypeInfo.getString (types, v),
+                                         " in argument "]); T.UNIT)
+                           in
+                              T.ALG (n, List.map findType (V.listKeys varMap))
+                           end
+                      | NONE => (case V.find (tvs,n) of
+                           SOME (tVar,bVar) => T.VAR (tVar,BD.freshBVar ())
+                         | NONE => (Error.errorAt
+                              (errStrm, s,
+                               ["type synonym or data type ",
+                                TypeInfo.getString (types, n),
+                                " not declared "]); T.UNIT)))))
           | AST.RECORDty l =>
                T.RECORD
                   (Types.freshTVar (), BD.freshBVar (),
