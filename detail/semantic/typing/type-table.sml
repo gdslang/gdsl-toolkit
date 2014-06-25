@@ -930,7 +930,7 @@ end = struct
                      let
                         val _ = varsRef := TVar.add (idx,!varsRef)
                         val bVar = Path.getFlag (fp,(s,Path.mkVarLeaf idx))
-                           handle NotFound => (*(TextIO.print ("reverse map error:\n" ^ #1 (dumpTableSI (table, TVar.emptyShowInfo)) ^ "\n"); *)raise IndexError(*)*)
+                           handle NotFound => BD.freshBVar () (*(TextIO.print ("reverse map error:\n" ^ #1 (toStringSI (SymSet.listItems symSet, [idx], table, TVar.emptyShowInfo)) ^ "\n");raise IndexError)*)
                      in
                         case kOpt of
                             NONE => VAR (idx,bVar)

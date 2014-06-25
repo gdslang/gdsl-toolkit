@@ -102,7 +102,7 @@ structure Primitives = struct
    val globalState : string = "global state"
    val caseExpression : string = "case expression"
    val streamField : string = "input stream"
-
+   
    fun noFlow bFun = bFun
 
    val primitiveValues =

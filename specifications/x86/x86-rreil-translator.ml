@@ -11,7 +11,7 @@ type sem_writeback =
 
 #Todo: fix
 val runtime-stack-address-size = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   if mode64 then
     return 64
   else
@@ -110,7 +110,7 @@ val real-addr-sz = return 64
 
 val segmented-lin lin sz segment = do
   real-addr-sz <- real-addr-sz;
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
 
   expanded <- expand mktemp Unsigned lin sz real-addr-sz;
   return (segment-add mode64 expanded segment)
@@ -324,7 +324,7 @@ val register? x =
   end
 
 val postproc-reg avx-encoded sz id = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   if (mode64 and (not (is-avx-sse id.id)) and sz === 32) then
     #Todo: Only if sz == 32? - Yes (tested)!
     #Todo: Only for a subset of all registers?

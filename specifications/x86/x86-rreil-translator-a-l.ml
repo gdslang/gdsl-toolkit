@@ -300,7 +300,7 @@ end
 ## C>>
 
 val sem-call x = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   ip-sz <-
     #Todo: mode64 => RIP?
     #Todo: x.opnd-sz === 64 => RIP?
@@ -721,7 +721,7 @@ val sem-jecxz x = sem-jregz x ECX
 val sem-jrcxz x = sem-jregz x RCX
 
 val sem-jmp x = do
-  mode64 <- mode64?;
+  mode64 <- query mode64?;
   ip-sz <-
     if mode64 then
       return 64

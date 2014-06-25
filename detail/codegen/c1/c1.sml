@@ -154,7 +154,8 @@ structure C1 = struct
              | #"^" => "_hat_"
              | #"/" => "_slash_"
              | #"?" => "_q_"
-             | #"&" => "_and_"
+             | #"&" => "_amp_"
+             | #"|" => "_bar_"
              | #"'" => "_tick_"
              | _ => String.str c
       in

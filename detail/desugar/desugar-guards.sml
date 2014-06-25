@@ -20,7 +20,8 @@ end = struct
 
    val bool = Atom.atom "g"
    val raisee = Atom.atom "raise"
-   
+   val query = Atom.atom "query"
+
    fun bind (map, n, d) =
       Map.unionWith op@ (map, Map.singleton (n, d))
 
@@ -44,10 +45,10 @@ end = struct
    fun iff (guard, thenn, elsee) = let
       open AST
       val cond = freshBool ()
-      val bindCond = BINDseqexp (cond, guard)
+      val query = VarInfo.lookup (!SymbolTables.varTable, query)
    in
       SEQexp
-         [BINDseqexp (cond, guard),
+         [BINDseqexp (cond, APPLYexp (IDexp query, [guard])),
           ACTIONseqexp
             (IFexp
                (IDexp cond,

@@ -103,6 +103,9 @@ structure Environment : sig
    
    (*stack: [...,t1 -> t2] -> [...t2]*)
    val reduceToResult : environment -> environment
+   
+   (*stack: [...,S |1| <i => o>] -> [...,S r <i => o>] *)
+   val reduceGuardToAction : environment -> environment
 
    (*stack: [..., tn, ..., t2, t1, t0] -> [..., t0]*)
    val return : int * environment -> environment
@@ -1163,6 +1166,21 @@ end = struct
             end
          | _ => raise InferenceBug
 
+   fun reduceGuardToAction env =
+      case Scope.unwrap env of
+         (KAPPA {kappa}, env) =>
+          let
+             val tt = Scope.getTypeTable env
+             val ty = TT.getSymbol (kappa,tt)
+             val (inp, out) = case ty of
+                   MONAD (VEC (CONST 1), inp, out) => (inp, out)
+                 | _ => raise InferenceBug
+             val _ = TT.addSymbol (kappa,MONAD (freshVar (), inp, out),tt)
+          in
+             Scope.wrap (KAPPA {kappa=kappa}, env)
+          end
+       | _ => raise InferenceBug
+   
    fun return (n,env) =  
       let
          val (t, env) = Scope.unwrap env

@@ -96,9 +96,18 @@ end = struct
       end
    
    (*convert calls in a decoder pattern into a list of monadic actions*)
-   fun decsToSeq e ds = case List.concat (List.map decToSeqDecodepat ds) of
+   fun decsToSeq e NONE ds = (case List.concat (List.map decToSeqDecodepat ds) of
         [] => e
       | es => AST.SEQexp (es @ [AST.ACTIONseqexp e])
+      )
+     | decsToSeq e (SOME g) ds =
+     let
+        val querySymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom "query")
+     in
+        AST.SEQexp (List.concat (List.map decToSeqDecodepat ds) @
+                   [AST.ACTIONseqexp (AST.APPLYexp (AST.IDexp querySymId, [g])),
+                    AST.ACTIONseqexp e])
+     end
    and decToSeqDecodepat (AST.MARKdecodepat {tree=t, span=s}) =
          List.map (fn a => AST.MARKseqexp {tree=a, span=s})
             (decToSeqDecodepat t)
@@ -529,28 +538,30 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
          fun checkGuard (g,env) =
             let
                val stateVar = VAR (freshTVar (), BD.freshBVar ())
-               val monadType = MONAD (VEC (CONST 1), stateVar, newFlow stateVar)
+               val guardType = FUN ([stateVar], VEC (CONST 1))
                val env = infExp (st, env) g
-               val env = E.pushType (monadType, env)
+               val env = E.pushType (guardType, env)
                val env = E.equateKappas env
                handle S.UnificationFailure str =>
                   refineError (env, str,
-                               " when checking guards",
+                               " when checking guard",
                                [((2,0), "required guard type        "),
                                 ((1,0), "guard " ^ showProg (20, PP.exp, g))])
                val env = E.popKappa env
+               val env = E.popKappa env
             in
-               E.popKappa env
+               env
             end
          val env = case guard of SOME g => checkGuard (g,env)
                                | NONE => env
+
          fun pushDecoderBindings(d,(n, env)) =
             case infDecodepat sym (st,env) d of (nArgs, env) => (n+nArgs, env)
          val (n,env) = List.foldl pushDecoderBindings (0,env) dec
          val env = List.foldl E.pushLambdaVar env args
          (*val _ = if List.null dec then () else
                (TextIO.print "rhs before:\n"; Pretty.pretty (AST.PP.exp rhs); TextIO.print "\n")*)
-         val rhs = decsToSeq rhs dec
+         val rhs = decsToSeq rhs guard dec
          (*val _ = if List.null dec then () else
                (TextIO.print "rhs after:\n"; Pretty.pretty (AST.PP.exp rhs); TextIO.print "\n")*)
          val env = infExp (st,env) rhs
