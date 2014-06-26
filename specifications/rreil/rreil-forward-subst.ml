@@ -35,10 +35,6 @@ end
 # (x) dep: ids -> 2^{vars} { y -> {[5/32] => {x.0, u.0}}, x -> {[9/32] => {x.0}} };
 
 val substitute state stmt = let
-  type lin_option =
-     LIN_SOME of sem_linear
-   | LIN_NONE
-
   val substitute-linear linear = case linear of
      SEM_LIN_VAR v: if expr-map-contains? state v then
        (expr-map-at state v).lin
@@ -61,13 +57,19 @@ in case stmt of
  | s: s
 end end
 
+type linear_option =
+   LIN_SOME of sem_linear
+ | NONE
+
 val update-state state stmt = let
-  val update-expr size expr
+  val update-expr size expr = NONE
 
 in case stmt of
-   SEM_ASSIGN a: state
+   SEM_ASSIGN a: case update-expr a.rhs a.size of
+      NONE: state
+   end
  | s: state
-end
+end end
 
 val sweep state tail = case tail of
    SEM_NIL: SEM_NIL
