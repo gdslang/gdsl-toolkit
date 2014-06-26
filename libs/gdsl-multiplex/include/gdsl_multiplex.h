@@ -39,7 +39,7 @@ struct frontend {
 		obj_t *(*pretty)(state_t state, obj_t insn);
 		obj_t *(*pretty_operand)(state_t state, obj_t insn, int_t i);
 		obj_t *(*pretty_mnemonic)(state_t state, obj_t insn);
-		int_t (*typeof_opnd)(state_t state, obj_t insn, int i);
+		int_t (*typeof_opnd)(state_t state, obj_t insn, int_t i);
 	} decoder;
 
 	struct {
