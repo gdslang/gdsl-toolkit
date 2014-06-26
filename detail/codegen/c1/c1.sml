@@ -56,6 +56,7 @@ structure C1 = struct
                   closureToFun : SymbolTable.symid SymMap.map,
                   recordMapping : Atom.atom AtomMap.map,
                   allocFuncs : int AtomMap.map ref,
+                  constSymbols : SymSet.set,
                   preDeclEmit : Layout.t list ref,
                   stateType : Imp.vtype ref }
 
@@ -196,6 +197,7 @@ structure C1 = struct
            constrs = #constrs s,
            closureToFun = #closureToFun s,
            allocFuncs = #allocFuncs s,
+           constSymbols = #constSymbols s,
            recordMapping = #recordMapping s,
            preDeclEmit = #preDeclEmit s,
            stateType = #stateType s } : state
@@ -214,6 +216,23 @@ structure C1 = struct
         constrs = #constrs s,
         closureToFun = #closureToFun s,
         allocFuncs = #allocFuncs s,
+        constSymbols = #constSymbols s,
+        recordMapping = #recordMapping s,
+        preDeclEmit = #preDeclEmit s,
+        stateType = #stateType s } : state
+
+   fun setSym (sym, atom, s : state) =
+      { names = #names s,
+        prefix = #prefix s,
+        symbols = SymMap.insert (#symbols s,sym,atom),
+        fieldTypes = #fieldTypes s,
+        ret = #ret s,
+        onlyDecls = #onlyDecls s,
+        exports = #exports s,
+        constrs = #constrs s,
+        closureToFun = #closureToFun s,
+        allocFuncs = #allocFuncs s,
+        constSymbols = #constSymbols s,
         recordMapping = #recordMapping s,
         preDeclEmit = #preDeclEmit s,
         stateType = #stateType s } : state
@@ -671,6 +690,11 @@ structure C1 = struct
          FUNvtype (_,_,args) => emitPrim s (f,es,args)
        | _ => emitPrim s (f,es,[])
       )
+     | emitExp s (CALLexp (IDexp sym,[])) =
+         if SymSet.member (#constSymbols s,sym) then
+            seq [str "s->", emitSym s sym]
+         else
+            seq [emitExp s (IDexp sym), fArgs []]
      | emitExp s (CALLexp (e,es)) = seq [emitExp s e, fArgs (map (emitExp s) es)]
      | emitExp s (INVOKEexp (FUNvtype (_,false,_),e,es)) =
          seq [emitExp s e, fArgs (map (emitExp s) es)]
@@ -800,6 +824,11 @@ structure C1 = struct
      | emitPrim s _ = raise CodeGenBug
      
    fun emitDecl s (FUNCdecl {
+        funcIsConst = true,
+        ...
+      }) = seq []
+     | emitDecl s (FUNCdecl {
+        funcIsConst = false,
         funcClosure = clArgs,
         funcType = ty,
         funcName = name,
@@ -935,6 +964,46 @@ structure C1 = struct
          addRec ty
       end
 
+   fun emitConstDecl s (FUNCdecl {
+        funcIsConst = true,
+        funcClosure = clArgs,
+        funcType = ty,
+        funcName = name,
+        funcArgs = args,
+        funcBody = block,
+        funcRes = res
+      }) =
+      let
+         val cTy = case ty of FUNvtype (res,_,[]) => res
+                            | _ => raise CodeGenBug
+      in
+         indent 2 (seq [emitSymType s (name,cTy), str ";"])
+      end
+     | emitConstDecl s _ = seq []
+
+     fun emitConstInit s (FUNCdecl {
+          funcIsConst = true,
+          funcClosure = clArgs,
+          funcType = ty,
+          funcName = name,
+          funcArgs = args,
+          funcBody = block,
+          funcRes = res
+        }) =
+        let
+           val fAtom = case SymMap.find (#symbols (s : state), name) of
+                 SOME name => name
+               | NONE => raise CodeGenBug
+           val constLVal = Atom.atom ("s->" ^ Atom.toString fAtom)
+           val s = setSym (res,constLVal,s)
+        in
+           emitBlock s block
+        end
+       | emitConstInit s _ = seq []
+
+   fun isConstant (FUNCdecl { funcIsConst = res, ... }) = res
+     | isConstant _ = false
+     
    fun codegen spec =
       let
          val _ = anonActMap := AtomMap.empty
@@ -976,6 +1045,8 @@ structure C1 = struct
          val (st, genericSym) = SymbolTable.fresh (st,Atom.atom "v")
          val _ = SymbolTables.varTable := st
          val exports = SymSet.fromList (Spec.get #exports spec)
+         val constSymbols = SymSet.fromList
+            (List.map getDeclName (List.filter isConstant ds))
          val s = {
                names = reservedNames,
                prefix = prefix,
@@ -987,12 +1058,15 @@ structure C1 = struct
                constrs = conMap,
                closureToFun = closureToFunMap,
                allocFuncs = ref AtomMap.empty,
+               constSymbols = constSymbols,
                recordMapping = recordMapping,
                preDeclEmit = ref [],
                stateType = ref OBJvtype
             } : state
          val s = foldl registerSymbol s (map getDeclName ds)
          val funs = map (emitDecl s) ds
+         val const_decl = map (emitConstDecl s) ds
+         val const_init = map (emitConstInit s) ds
          val s = {
                names = #names s,
                prefix = #prefix s,
@@ -1004,6 +1078,7 @@ structure C1 = struct
                constrs = #constrs s,
                closureToFun = #closureToFun s,
                allocFuncs = #allocFuncs s,
+               constSymbols = #constSymbols s,
                recordMapping = #recordMapping s,
                preDeclEmit = #preDeclEmit s,
                stateType = #stateType s
@@ -1068,6 +1143,9 @@ structure C1 = struct
                C1Templates.mkHook ("alloc_funcs", align recAllocFuncs),
                C1Templates.mkHook ("records", align (genRecordDecl s false)),
                C1Templates.mkHook ("state_type", indent 2 state),
+               C1Templates.mkHook ("gdsl_constants", align const_decl),
+               C1Templates.mkHook ("gdsl_init_constants", align const_init),
+               
                C1Templates.mkHook ("prototypes", align funDeclsPrivate),
                C1Templates.mkHook ("functions", align funs)
             ]

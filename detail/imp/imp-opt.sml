@@ -42,6 +42,7 @@ structure PatchFunctionCalls = struct
          
 
    fun visitDecl s (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -49,6 +50,7 @@ structure PatchFunctionCalls = struct
         funcBody = stmts,
         funcRes = res
       }) = FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -144,6 +146,7 @@ structure ActionClosures = struct
          val body = BASICblock (decls, stmts @ [ASSIGNstmt (SOME rSym, e)])
 
          val anonF = FUNCdecl {
+            funcIsConst = false,
             funcClosure = used,
             funcType = FUNvtype (t,cl,map #1 used),
             funcName = fSym,
@@ -207,6 +210,7 @@ structure ActionClosures = struct
      | visitExp s (EXECexp (t, e)) = INVOKEexp (remMonad t, visitExp s e, [])
 
    fun visitDecl s (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -224,6 +228,7 @@ structure ActionClosures = struct
          val body = visitBlock s' body
       in
          FUNCdecl {
+           funcIsConst = isConst,
            funcClosure = clArgs,
            funcType = remMonad vtype,
            funcName = name,
@@ -463,6 +468,7 @@ structure ActionReduce = struct
      | visitExp s e = e
 
    fun visitDecl (s : stateVar) (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -471,22 +477,23 @@ structure ActionReduce = struct
         funcRes = res
       }) =
       let
-         val (execSyms, transTy) = if isMonVar (s,name) then
+         val (execSyms, transTy, isConst) = if isMonVar (s,name) then
                let
                   val vtype =  case vtype of
                            FUNvtype (MONADvtype retTy,isCl,argsTy) => FUNvtype (retTy, isCl, argsTy)
                          | FUNvtype (_,isCl,argsTy) => FUNvtype (OBJvtype, isCl, argsTy)
                          | _ => FUNvtype (OBJvtype,false,map #1 args)
                in
-                  (SymSet.singleton res, vtype)
+                  (SymSet.singleton res, vtype, false)
                end
-            else (SymSet.empty,vtype)
+            else (SymSet.empty,vtype, isConst)
          val execSyms = getMonBlock (SymSet.singleton res, execSyms) body
          (*val _ = TextIO.print ("action, decl " ^ SymbolTable.getString(!SymbolTables.varTable, name) ^
             " has exec syms" ^ foldl (fn (sym,str) => str ^ " " ^ SymbolTable.getString(!SymbolTables.varTable, sym)) "" (SymSet.listItems execSyms) ^ "\n")*)
          val body = visitBlock (addMonSyms (s,execSyms)) body
       in
          FUNCdecl {
+           funcIsConst = isConst,
            funcClosure = clArgs,
            funcType = transTy,
            funcName = name,
@@ -702,6 +709,7 @@ structure Simplify = struct
      | getTrivialFunctionBody _ = NONE
 
    fun visitDecl s (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -709,6 +717,7 @@ structure Simplify = struct
         funcBody = stmts,
         funcRes = res
       }) = FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -1186,6 +1195,7 @@ structure TypeRefinement = struct
       end
 
    fun visitDecl s (f as FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -1322,6 +1332,7 @@ structure TypeRefinement = struct
       end
 
    fun patchDecl s (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -1343,6 +1354,7 @@ structure TypeRefinement = struct
          val body' = patchBlock s body
       in
          FUNCdecl {
+            funcIsConst = isConst,
             funcClosure = clArgs',
             funcType = vtype',
             funcName = name,
@@ -1993,6 +2005,7 @@ structure SwitchReduce = struct
      | visitExp s e = e
 
    fun visitDecl s (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -2000,6 +2013,7 @@ structure SwitchReduce = struct
         funcBody = body,
         funcRes = res
       }) = FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -2100,6 +2114,7 @@ structure DeadFunctions = struct
      | visitExp s e = e
 
    fun visitDecl s (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -2107,6 +2122,7 @@ structure DeadFunctions = struct
         funcBody = body,
         funcRes = res
       }) = (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -2290,6 +2306,7 @@ structure DeadVariables = struct
      | hasSidePrim _ = false
 
    fun visitDecl (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,
@@ -2297,6 +2314,7 @@ structure DeadVariables = struct
         funcBody = body,
         funcRes = res
       }) = (FUNCdecl {
+        funcIsConst = isConst,
         funcClosure = clArgs,
         funcType = vtype,
         funcName = name,

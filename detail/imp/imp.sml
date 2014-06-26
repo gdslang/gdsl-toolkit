@@ -115,6 +115,7 @@ structure Imp = struct
 
    datatype decl =
       FUNCdecl of {
+        funcIsConst : bool,
         funcClosure : arg list,
         funcType : vtype,
         funcName : sym,
@@ -212,6 +213,7 @@ structure Imp = struct
 
       fun arg (t,n) = seq [vtype t, space, var n]
       fun decl (FUNCdecl {
+           funcIsConst,
            funcClosure,
            funcType,
            funcName,
@@ -221,6 +223,7 @@ structure Imp = struct
          }) =
             align [
                seq ([vtype funcType, space, var funcName] @
+                   (if funcIsConst then [str " CONST"] else []) @
                    (if null funcClosure then [] else
                      args ("[", arg, funcClosure, "]")) @
                    (args ("(", arg, funcArgs, ")")) @

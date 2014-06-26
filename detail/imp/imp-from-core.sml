@@ -191,7 +191,8 @@ end = struct
                      UPDATEexp (symDummy, OBJvtype, fieldsExps, IDexp symArg))])
                   val fArgs = map (fn arg => (OBJvtype,arg)) (args @ [symArg])
                   val _ = addDecl s 
-                           (FUNCdecl { funcClosure = [],
+                           (FUNCdecl { funcIsConst = false,
+                                       funcClosure = [],
                                        funcType = fType,
                                        funcName = sym,
                                        funcArgs = fArgs,
@@ -235,7 +236,8 @@ end = struct
                         ASSIGNstmt (SOME symRes, SELECTexp (symDum, OBJvtype, field, IDexp symArg))
                      ])
                   val _ = addDecl s 
-                           (FUNCdecl { funcClosure = [],
+                           (FUNCdecl { funcIsConst = false,
+                                       funcClosure = [],
                                        funcType = fType,
                                        funcName = sym,
                                        funcArgs = [(OBJvtype,symArg)],
@@ -593,6 +595,7 @@ end = struct
       in
          fn body =>
             addDecl s (FUNCdecl {
+              funcIsConst = null stdArgs andalso null clArgs,
               funcClosure = clArgs,
               funcType = fType,
               funcName = sym,
