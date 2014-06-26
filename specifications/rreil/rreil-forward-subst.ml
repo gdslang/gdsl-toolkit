@@ -1,4 +1,4 @@
-val set-empty = bbtree-empty {}
+val set-empty = bbtree-empty
 val map-empty = set-empty
 
 val varlset-add set varl = bbtree-add rreil-ltvarl? set varl

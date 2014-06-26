@@ -431,6 +431,8 @@ fun Field_PROD_2_ACT (Name, TILDE, Name_SPAN : (Lex.pos * Lex.pos), TILDE_SPAN :
   ( (Name, NONE))
 fun ValueDecl_PROD_1_ACT (EQ, Exp, Name1, Name2, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( Name1, Name2, Exp)
+fun ValueDecl_PROD_2_ACT (EQ, Exp, Sym, Name, KW_val, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
+  ( Sym, Name, Exp)
 fun Lit_PROD_1_ACT (Int, Int_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
   ( PT.INTlit Int)
 fun Lit_PROD_2_ACT (TICK1, TICK2, TICK1_SPAN : (Lex.pos * Lex.pos), TICK2_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)) = 
@@ -824,18 +826,18 @@ fun Pat_NT (strm) = let
           | _ => fail()
         (* end case *))
       end
-fun Qid_NT (strm) = let
-      val (ID_RES, ID_SPAN, strm') = matchID(strm)
-      val FULL_SPAN = (#1(ID_SPAN), #2(ID_SPAN))
-      in
-        (UserCode.Qid_PROD_1_ACT (ID_RES, ID_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
-      end
 fun Sym_NT (strm) = let
       val (SYMBOL_RES, SYMBOL_SPAN, strm') = matchSYMBOL(strm)
       val FULL_SPAN = (#1(SYMBOL_SPAN), #2(SYMBOL_SPAN))
       in
         (UserCode.Sym_PROD_1_ACT (SYMBOL_RES, SYMBOL_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+          FULL_SPAN, strm')
+      end
+fun Qid_NT (strm) = let
+      val (ID_RES, ID_SPAN, strm') = matchID(strm)
+      val FULL_SPAN = (#1(ID_SPAN), #2(ID_SPAN))
+      in
+        (UserCode.Qid_PROD_1_ACT (ID_RES, ID_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
           FULL_SPAN, strm')
       end
 fun AndAlso_NT (strm) = let
@@ -1537,25 +1539,58 @@ and AtomicExp_NT (strm) = let
         (* end case *))
       end
 and ValueDecl_NT (strm) = let
-      val (KW_val_RES, KW_val_SPAN, strm') = matchKW_val(strm)
-      val (Name1_RES, Name1_SPAN, strm') = Name_NT(strm')
-      fun ValueDecl_PROD_1_SUBRULE_1_NT (strm) = let
-            val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
-            val FULL_SPAN = (#1(Name_SPAN), #2(Name_SPAN))
+      fun ValueDecl_PROD_1 (strm) = let
+            val (KW_val_RES, KW_val_SPAN, strm') = matchKW_val(strm)
+            val (Name1_RES, Name1_SPAN, strm') = Name_NT(strm')
+            fun ValueDecl_PROD_1_SUBRULE_1_NT (strm) = let
+                  val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
+                  val FULL_SPAN = (#1(Name_SPAN), #2(Name_SPAN))
+                  in
+                    ((Name_RES), FULL_SPAN, strm')
+                  end
+            fun ValueDecl_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
+                   of (Tok.ID(_), _, strm') => true
+                    | _ => false
+                  (* end case *))
+            val (Name2_RES, Name2_SPAN, strm') = EBNF.closure(ValueDecl_PROD_1_SUBRULE_1_PRED, ValueDecl_PROD_1_SUBRULE_1_NT, strm')
+            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
+            val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
+            val FULL_SPAN = (#1(KW_val_SPAN), #2(Exp_SPAN))
             in
-              ((Name_RES), FULL_SPAN, strm')
+              (UserCode.ValueDecl_PROD_1_ACT (EQ_RES, Exp_RES, Name1_RES, Name2_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
             end
-      fun ValueDecl_PROD_1_SUBRULE_1_PRED (strm) = (case (lex(strm))
-             of (Tok.ID(_), _, strm') => true
-              | _ => false
-            (* end case *))
-      val (Name2_RES, Name2_SPAN, strm') = EBNF.closure(ValueDecl_PROD_1_SUBRULE_1_PRED, ValueDecl_PROD_1_SUBRULE_1_NT, strm')
-      val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
-      val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
-      val FULL_SPAN = (#1(KW_val_SPAN), #2(Exp_SPAN))
+      fun ValueDecl_PROD_2 (strm) = let
+            val (KW_val_RES, KW_val_SPAN, strm') = matchKW_val(strm)
+            val (Sym_RES, Sym_SPAN, strm') = Sym_NT(strm')
+            fun ValueDecl_PROD_2_SUBRULE_1_NT (strm) = let
+                  val (Name_RES, Name_SPAN, strm') = Name_NT(strm)
+                  val FULL_SPAN = (#1(Name_SPAN), #2(Name_SPAN))
+                  in
+                    ((Name_RES), FULL_SPAN, strm')
+                  end
+            fun ValueDecl_PROD_2_SUBRULE_1_PRED (strm) = (case (lex(strm))
+                   of (Tok.ID(_), _, strm') => true
+                    | _ => false
+                  (* end case *))
+            val (Name_RES, Name_SPAN, strm') = EBNF.closure(ValueDecl_PROD_2_SUBRULE_1_PRED, ValueDecl_PROD_2_SUBRULE_1_NT, strm')
+            val (EQ_RES, EQ_SPAN, strm') = matchEQ(strm')
+            val (Exp_RES, Exp_SPAN, strm') = Exp_NT(strm')
+            val FULL_SPAN = (#1(KW_val_SPAN), #2(Exp_SPAN))
+            in
+              (UserCode.ValueDecl_PROD_2_ACT (EQ_RES, Exp_RES, Sym_RES, Name_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Sym_SPAN : (Lex.pos * Lex.pos), Name_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
+                FULL_SPAN, strm')
+            end
       in
-        (UserCode.ValueDecl_PROD_1_ACT (EQ_RES, Exp_RES, Name1_RES, Name2_RES, KW_val_RES, EQ_SPAN : (Lex.pos * Lex.pos), Exp_SPAN : (Lex.pos * Lex.pos), Name1_SPAN : (Lex.pos * Lex.pos), Name2_SPAN : (Lex.pos * Lex.pos), KW_val_SPAN : (Lex.pos * Lex.pos), FULL_SPAN : (Lex.pos * Lex.pos)),
-          FULL_SPAN, strm')
+        (case (lex(strm))
+         of (Tok.KW_val, _, strm') =>
+              (case (lex(strm'))
+               of (Tok.ID(_), _, strm') => ValueDecl_PROD_1(strm)
+                | (Tok.SYMBOL(_), _, strm') => ValueDecl_PROD_2(strm)
+                | _ => fail()
+              (* end case *))
+          | _ => fail()
+        (* end case *))
       end
 and Field_NT (strm) = let
       fun Field_PROD_1 (strm) = let

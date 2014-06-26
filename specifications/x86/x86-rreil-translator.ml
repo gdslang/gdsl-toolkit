@@ -1627,9 +1627,6 @@ in
    | VBROADCASTF128 v: sem-vbroadcast v
    | VBROADCASTSD v: sem-vbroadcast v
    | VBROADCASTSS v: sem-vbroadcast v
-   | VCMPEQB x: sem-default-varity x insn.insn
-   | VCMPEQD x: sem-default-varity x insn.insn
-   | VCMPEQW x: sem-default-varity x insn.insn
    | VCMPPD x: sem-default-varity x insn.insn
    | VCMPPS x: sem-default-varity x insn.insn
    | VCMPSD x: sem-default-varity x insn.insn

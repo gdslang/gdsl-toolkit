@@ -340,22 +340,6 @@ void
 @prototypes@
 
 
-state_t 
-@init@
-() {
-  state_t s = calloc(1,sizeof(struct state));
-  s->handle = stdout;
-  /* compute all constant expressions */
-@gdsl_init_constants@
-
-  /* keep the heap of constant expressions separate */
-  s->const_heap_base = s->heap_base;
-  s->heap_base = NULL;
-  s->heap_limit = NULL;
-  s->heap = NULL;
-  return s;
-}
-
 #ifdef WITHMAIN
 #ifdef GDSL_NO_PREFIX
 
@@ -424,5 +408,23 @@ done:
 #endif
 
 @functions@
+
+
+state_t 
+@init@
+() {
+  state_t s = calloc(1,sizeof(struct state));
+  s->handle = stdout;
+  /* compute all constant expressions */
+@gdsl_init_constants@
+
+  /* keep the heap of constant expressions separate */
+  s->const_heap_base = s->heap_base;
+  s->heap_base = NULL;
+  s->heap_limit = NULL;
+  s->heap = NULL;
+  return s;
+}
+
 
 

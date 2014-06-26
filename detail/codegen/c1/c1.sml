@@ -39,12 +39,77 @@ structure C1 = struct
    structure CM = CompilationMonad
    structure CI = ConInfo
    structure FI = FieldInfo
+   structure SCC = GraphSCCFn(ord_symid)
 
    open Imp
    open Layout Pretty
 
    exception CodeGenBug
+
+   fun sortTopologically ds =
+      let
+         val dom = List.map getDeclName ds
+         val domSet = SymSet.fromList dom
+
+         fun calleesBlock ss (BASICblock (decls,stmts)) =
+            foldl (fn (stmt,ss) => calleesStmt ss stmt) ss stmts
+
+         and calleesStmt ss (ASSIGNstmt (res,exp)) = calleesExp ss exp
+           | calleesStmt ss (IFstmt (c,t,e)) = SymSet.union (calleesExp ss c,
+               SymSet.union (calleesBlock ss t, calleesBlock ss e))
+           | calleesStmt ss (CASEstmt (e,ps)) =
+               foldl (fn (p,ss) => calleesCase ss p) (calleesExp ss e) ps
+
+         and calleesCase ss (p,stmts) = calleesBlock ss stmts
    
+         and calleesExp ss (IDexp sym) =
+            if SymSet.member (domSet,sym) then SymSet.add (ss,sym) else ss
+           | calleesExp ss (PRIexp (f,t,es)) = foldl (fn (e,ss) => calleesExp ss e) ss es
+           | calleesExp ss (CALLexp (e,es)) = foldl (fn (e,ss) => calleesExp ss e) (calleesExp ss e) es
+           | calleesExp ss (INVOKEexp (t,e,es)) = foldl (fn (e,ss) => calleesExp ss e) (calleesExp ss e) es
+           | calleesExp ss (RECORDexp (rs,t,fs)) = foldl (fn ((_,e),ss) => calleesExp ss e) ss fs
+           | calleesExp ss (SELECTexp (rs,t,f,e)) = calleesExp ss e
+           | calleesExp ss (UPDATEexp (rs,t,fs,e)) = foldl (fn ((_,e),ss) => calleesExp ss e) (calleesExp ss e) fs
+           | calleesExp ss (LITexp l) = ss
+           | calleesExp ss (BOXexp (t,e)) = calleesExp ss e
+           | calleesExp ss (UNBOXexp (t,e)) = calleesExp ss e
+           | calleesExp ss (VEC2INTexp (sz,e)) = calleesExp ss e
+           | calleesExp ss (INT2VECexp (sz,e)) = calleesExp ss e
+           | calleesExp ss (CLOSUREexp (t,sym,es)) = foldl (fn (e,ss) => calleesExp ss e)
+               (if SymSet.member (domSet,sym) then SymSet.add (ss,sym) else ss) es
+           | calleesExp ss (STATEexp (bb,t,e)) = calleesBlock (calleesExp ss e) bb
+           | calleesExp ss (EXECexp (t, e)) = calleesExp ss e
+
+         fun calleesDecl
+            (FUNCdecl {
+              funcName = name,
+              funcBody = bb,
+              ...
+            },sm) = SymMap.insert (sm,name,calleesBlock SymSet.empty bb)
+           | calleesDecl
+            (CLOSUREdecl {
+               closureName = name,
+               closureDelegate = del,
+               ...
+            },sm) = SymMap.insert (sm,name,SymSet.singleton del)
+           | calleesDecl (CONdecl {...},sm) = sm
+
+         val sm = List.foldl calleesDecl SymMap.empty ds
+         fun getCallees s = case SymMap.find (sm,s) of
+               SOME ss => SymSet.listItems ss
+             | NONE => []
+         val order = SCC.topOrder' {roots = List.map getDeclName ds,
+                                    follow = getCallees }
+         val sm = List.foldl (fn (d,sm) => SymMap.insert (sm,getDeclName d,d))
+                     SymMap.empty ds
+         fun genSeq (SCC.SIMPLE sym) = [(false,SymMap.lookup (sm,sym))]
+           | genSeq (SCC.RECURSIVE [sym]) = [(false,SymMap.lookup (sm,sym))]
+           | genSeq (SCC.RECURSIVE ss) =
+              List.map (fn sym => (true,SymMap.lookup (sm,sym))) ss
+      in
+         List.concat (List.map genSeq (List.rev order))
+      end
+
    type state = { prefix : string,
                   names : AtomSet.set,
                   symbols : Atom.atom SymMap.map,
@@ -823,11 +888,11 @@ structure C1 = struct
      | emitPrim s (VOIDprim, [],_) = str "0 /* void value */"
      | emitPrim s _ = raise CodeGenBug
      
-   fun emitDecl s (FUNCdecl {
+   fun emitDecl s (inSCC,FUNCdecl {
         funcIsConst = true,
         ...
       }) = seq []
-     | emitDecl s (FUNCdecl {
+     | emitDecl s (inSCC,FUNCdecl {
         funcIsConst = false,
         funcClosure = clArgs,
         funcType = ty,
@@ -839,19 +904,23 @@ structure C1 = struct
       let
          val s = setRet (res,foldl registerSymbol s (map #2 (clArgs @ args)))
          val static = if SymSet.member(#exports s, name) then seq [] else str "static "
-         val _ = if SymSet.member(#exports s, name) then markTypeAsExport s ty else ()
+         val isExported = SymSet.member(#exports s, name)
+         val _ = if isExported then markTypeAsExport s ty else ()
       in
          if #onlyDecls s then
-         let
-            val fTy = emitFunType s (name, (clArgs @ args), ty)
-            val preDecl = !(#preDeclEmit s)
-            val _ = (#preDeclEmit s) := []
-         in
-            align (
-               preDecl @ [
-               seq [static, fTy, str ";"]
-            ])
-         end
+            if inSCC orelse isExported then
+               let
+                  val fTy = emitFunType s (name, (clArgs @ args), ty)
+                  val preDecl = !(#preDeclEmit s)
+                  val _ = (#preDeclEmit s) := []
+               in
+                  align (
+                     preDecl @ [
+                     seq [static, fTy, str ";"]
+                  ])
+               end
+            else
+               seq []
          else
          let
             val block = emitBlock s block
@@ -866,7 +935,7 @@ structure C1 = struct
             ])
          end
       end
-     | emitDecl s (CONdecl {
+     | emitDecl s (inSCC,CONdecl {
          conName = name,
          conTag = tag,
          conArg = arg as (argTy, argName),
@@ -874,8 +943,9 @@ structure C1 = struct
      }) =
       let
          val s = registerSymbol (argName,s)
+         val _ = if inSCC then raise CodeGenBug else ()
       in
-         if #onlyDecls s then
+         if #onlyDecls s then seq [] else
          let
             val fTy = emitFunType s (name, [arg], ty)
             val preDecl = !(#preDeclEmit s)
@@ -890,9 +960,8 @@ structure C1 = struct
                str "}"
          ])
          end
-         else seq []
       end
-     | emitDecl s (CLOSUREdecl {
+     | emitDecl s (inSCC,CLOSUREdecl {
         closureName = name,
         closureArgs = clTys,
         closureDelegate = del,
@@ -906,16 +975,19 @@ structure C1 = struct
          val funArgs = (OBJvtype, closureVar) :: delArgs
       in
          if #onlyDecls s then
-         let
-            val fTy = emitFunType s (name, funArgs, FUNvtype (retTy, false, map #1 funArgs))
-            val preDecl = !(#preDeclEmit s)
-            val _ = (#preDeclEmit s) := []
-         in
-            align (
-               preDecl @ [
-               seq [str "static ", fTy, str ";"]
-            ])
-         end
+         if inSCC then
+               let
+                  val fTy = emitFunType s (name, funArgs, FUNvtype (retTy, false, map #1 funArgs))
+                  val preDecl = !(#preDeclEmit s)
+                  val _ = (#preDeclEmit s) := []
+               in
+                  align (
+                     preDecl @ [
+                     seq [str "static ", fTy, str ";"]
+                  ])
+               end
+            else
+               seq []
          else
          let
             val (structName, closureArgs) = emitClosureStruct s (retTy, clTys)
@@ -964,7 +1036,7 @@ structure C1 = struct
          addRec ty
       end
 
-   fun emitConstDecl s (FUNCdecl {
+   fun emitConstDecl s (false,FUNCdecl {
         funcIsConst = true,
         funcClosure = clArgs,
         funcType = ty,
@@ -979,9 +1051,12 @@ structure C1 = struct
       in
          indent 2 (seq [emitSymType s (name,cTy), str ";"])
       end
+     | emitConstDecl s (true,FUNCdecl { funcIsConst = true, ...}) =
+        (* a cyclic dependency between constants is not evaluable *)
+        raise CodeGenBug
      | emitConstDecl s _ = seq []
 
-     fun emitConstInit s (FUNCdecl {
+     fun emitConstInit s (false,FUNCdecl {
           funcIsConst = true,
           funcClosure = clArgs,
           funcType = ty,
@@ -1001,7 +1076,7 @@ structure C1 = struct
         end
        | emitConstInit s _ = seq []
 
-   fun isConstant (FUNCdecl { funcIsConst = res, ... }) = res
+   fun isConstant (inSCC,FUNCdecl { funcIsConst = res, ... }) = res
      | isConstant _ = false
      
    fun codegen spec =
@@ -1012,18 +1087,19 @@ structure C1 = struct
          val _ = invokeClosureSet := AtomSet.empty
 
          val { decls = ds, fdecls = fs, exports, monad = mt } = Spec.get #declarations spec
-
+         val ds = sortTopologically ds
+         
          val recordMapping = case mt of
             RECORDvtype (_,fs) => AtomMap.singleton (genRecSignature fs, Atom.atom "monad")
           | _ => AtomMap.empty
          val recordMapping = foldl genRecordMapping recordMapping (Spec.get #typealias spec)
          
          val closureToFunMap = foldl (fn (d,m) => case d of
-                  CLOSUREdecl {
+                  (_,CLOSUREdecl {
                     closureName = clName,
                     closureDelegate = delName,
                     ...
-                  } => SymMap.insert (m,clName,delName)
+                  }) => SymMap.insert (m,clName,delName)
                 | _ => m
               ) SymMap.empty ds
          (* compute a list of constructors that are to be public; since
@@ -1046,7 +1122,7 @@ structure C1 = struct
          val _ = SymbolTables.varTable := st
          val exports = SymSet.fromList (Spec.get #exports spec)
          val constSymbols = SymSet.fromList
-            (List.map getDeclName (List.filter isConstant ds))
+            (List.map (getDeclName o #2) (List.filter isConstant ds))
          val s = {
                names = reservedNames,
                prefix = prefix,
@@ -1063,7 +1139,7 @@ structure C1 = struct
                preDeclEmit = ref [],
                stateType = ref OBJvtype
             } : state
-         val s = foldl registerSymbol s (map getDeclName ds)
+         val s = foldl registerSymbol s (map (getDeclName o #2) ds)
          val funs = map (emitDecl s) ds
          val const_decl = map (emitConstDecl s) ds
          val const_init = map (emitConstInit s) ds
@@ -1084,9 +1160,9 @@ structure C1 = struct
                stateType = #stateType s
             } : state
          val funDeclsPublic = map (emitDecl s) 
-            (List.filter (fn d => SymSet.member(exports, getDeclName d)) ds)
+            (List.filter (fn (_,d) => SymSet.member(exports, getDeclName d)) ds)
          (* Generate the macros that rename functions from prefix_foo to gdsl_foo. *)
-         fun genRenamingMacro d =
+         fun genRenamingMacro (_,d) =
             let
                val prefLen = String.size prefix
                val prefSym = Layout.tostring (emitSym s (getDeclName d))
@@ -1095,10 +1171,10 @@ structure C1 = struct
                str ("#define gdsl_" ^ gdslSym ^ " " ^ prefSym)
             end
          val renamings = map genRenamingMacro
-            (List.filter (fn d => SymSet.member(exports, getDeclName d)) ds)
+            (List.filter (fn (_,d) => SymSet.member(exports, getDeclName d)) ds)
 
          val funDeclsPrivate = map (emitDecl s)
-            (List.filter (fn d => not (SymSet.member(exports, getDeclName d))) ds)
+            (List.filter (fn (_,d) => not (SymSet.member(exports, getDeclName d))) ds)
          val constructors = map emitConDefine (SymMap.listItemsi conMap)
          (* generate a list of macros in the order in which they were added *)
          val recAllocFuncs =

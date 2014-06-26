@@ -4,7 +4,7 @@ val registers-live-map = let
    return (fmap-add-range map reg-sem.id reg-sem.size reg-sem.offset)
 	end
 in do
-  map <- return (fmap-empty {});
+  map <- return fmap-empty;
 
   map <- add map R0;
   map <- add map R1;

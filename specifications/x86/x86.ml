@@ -1,19 +1,5 @@
 export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn} insn-length{length}
 
-# Optional arguments
-#
-# Limit:
-#   - Restricts the maximium size of the decode-stream
-# Recursion-depth:
-#   - Annotate the maximum number of recursion steps for
-#     the given decoder. This way, we can compute an upper
-#     bound for the maximum used storage for the emitted AST.
-#     Additionally, the decoder may fail if during runtime
-#     a recrusion depth violation occurs.
-#
-# limit = 120
-# recursion-depth = p64 = 4
-
 val config-default            = '11'
 val config-mode64             = '01'
 val config-default-opnd-sz-32 = '10'
@@ -708,49 +694,26 @@ type flowopnd =
 
 #feature vector: aes, avx, f16c, invpcid, mmx, clmul, rdrand, fsgsbase, sse, sse2, sse3, sse4_1, sse4_2, ssse3, xsaveopt, illegal rep, illegal repne, illegal lock, illegal lock (for register)
 
-val none_ a                  = '0000000000000000000' 
-val aes_ a                   = '0000000000000000001' 
-val avx_ a                   = '0000000000000000010'
-val f16c_ a                  = '0000000000000000100'
-val invpcid_ a               = '0000000000000001000'
-val mmx_ a                   = '0000000000000010000'
-val clmul_ a                 = '0000000000000100000'
-val rdrand_ a                = '0000000000001000000'
-val fsgsbase_ a              = '0000000000010000000'
-val sse_ a                   = '0000000000100000000'
-val sse2_ a                  = '0000000001000000000'
-val sse3_ a                  = '0000000010000000000'
-val sse4_1_ a                = '0000000100000000000'
-val sse4_2_ a                = '0000001000000000000'
-val ssse3_ a                 = '0000010000000000000'
-val xsaveopt_ a              = '0000100000000000000'
-val illegal-rep_ a           = '0001000000000000000'
-val illegal-repne_ a         = '0010000000000000000'
-val illegal-lock_ a          = '0100000000000000000'
-val illegal-lock-register_ a = '1000000000000000000'
-
-val none                  = return (none_ 0)
-val aes                   = return (aes_ 0)
-val avx                   = return (avx_ 0)
-val f16c                  = return (f16c_ 0)
-val invpcid               = return (invpcid_ 0)
-val mmx                   = return (mmx_ 0)
-val clmul                 = return (clmul_ 0)
-val rdrand                = return (rdrand_ 0)
-val fsgsbase              = return (fsgsbase_ 0)
-val sse                   = return (sse_ 0)
-val sse2                  = return (sse2_ 0)
-val sse3                  = return (sse3_ 0)
-val sse4_1                = return (sse4_1_ 0)
-val sse4_2                = return (sse4_2_ 0)
-val ssse3                 = return (ssse3_ 0)
-val xsaveopt              = return (xsaveopt_ 0)
-val illegal-rep           = return (illegal-rep_ 0)
-val illegal-repne         = return (illegal-repne_ 0)
-val illegal-lock          = return (illegal-lock_ 0)
-val illegal-lock-register = return (illegal-lock-register_ 0)
-val clmul_avx             = return (clmul_ 0 or avx_ 0)
-val aes_avx               = return (aes_ 0 or avx_ 0)
+val none                  = '0000000000000000000' 
+val aes                   = '0000000000000000001' 
+val avx                   = '0000000000000000010'
+val f16c                  = '0000000000000000100'
+val invpcid               = '0000000000000001000'
+val mmx                   = '0000000000000010000'
+val clmul                 = '0000000000000100000'
+val rdrand                = '0000000000001000000'
+val fsgsbase              = '0000000000010000000'
+val sse                   = '0000000000100000000'
+val sse2                  = '0000000001000000000'
+val sse3                  = '0000000010000000000'
+val sse4_1                = '0000000100000000000'
+val sse4_2                = '0000001000000000000'
+val ssse3                 = '0000010000000000000'
+val xsaveopt              = '0000100000000000000'
+val illegal-rep           = '0001000000000000000'
+val illegal-repne         = '0010000000000000000'
+val illegal-lock          = '0100000000000000000'
+val illegal-lock-register = '1000000000000000000'
 
 val flow-features-get = do
   inge <- decode config-default;
@@ -1414,9 +1377,6 @@ type insn =
  | VBROADCASTF128 of varity
  | VBROADCASTSD of varity
  | VBROADCASTSS of varity
- | VCMPEQB of varity
- | VCMPEQD of varity
- | VCMPEQW of varity
  | VCMPPD of varity
  | VCMPPS of varity
  | VCMPSD of varity
@@ -2189,7 +2149,7 @@ val mem op = do
        seg <- query $segment;
        case seg of
           SEG_NONE: return SEG_NONE
-  | SEG_OVERRIDE r:
+        | SEG_OVERRIDE r:
       do
         mode64 <- query mode64?;
         if mode64 then
@@ -2471,7 +2431,6 @@ end
 
 val exception-rep features = do
   v <- query $rep;
-  illegal-rep <- illegal-rep;
   case v of
      '0': return features
    | '1': return (features or illegal-rep)
@@ -2480,7 +2439,6 @@ end
 
 val exception-repne features = do
   v <- query $repne;
-  illegal-repne <- illegal-repne;
   case v of
      '0': return features
    | '1': return (features or illegal-repne)
@@ -2489,7 +2447,6 @@ end
 
 val exception-lock features = do
   v <- query $lock;
-  illegal-lock <- illegal-lock;
   case v of
      '0': return features
    | '1': return (features or illegal-lock)
@@ -2498,7 +2455,6 @@ end
 
 val exception-lock-reg features op = do
   v <- query $lock;
-  illegal-lock-register <- illegal-lock-register;
   if v then do
     case op of
        MEM x: return features
@@ -2518,7 +2474,6 @@ val exception-repne-lock features = exception-both exception-repne exception-loc
 val exception-rep-repne-lock features = exception-both exception-rep-repne exception-lock features
 
 val varity0 features cons = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   opnd-sz <- operand-size;
   addr-sz <- address-size;
@@ -2536,7 +2491,6 @@ val varity0-def-opnd-sz-64 features cons = do
 end
 
 val varity1 features cons giveOp1 = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   opnd-sz <- operand-size;
@@ -2555,7 +2509,6 @@ val varity1-def-opnd-sz-64 features cons giveOp1 = do
 end
 
 val varity2 features cons giveOp1 giveOp2 = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2565,7 +2518,6 @@ val varity2 features cons giveOp1 giveOp2 = do
 end
 
 val varity3 features cons giveOp1 giveOp2 giveOp3 = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2576,7 +2528,6 @@ val varity3 features cons giveOp1 giveOp2 giveOp3 = do
 end
 
 val varity4 features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2597,25 +2548,21 @@ val arity0-all features cons = do
 end
 
 val arity0-rep-repne features cons = do
-  features <- features;
   features <- exception-lock features;
   arity0-all features cons
 end
 
 val arity0-rep features cons = do
-  features <- features;
   features <- exception-repne-lock features;
   arity0-all features cons
 end
 
 val arity0-lock features cons = do
-  features <- features;
   features <- exception-rep-repne features;
   arity0-all features cons
 end
 
 val arity0 features cons = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   arity0-all features cons
 end
@@ -2631,21 +2578,18 @@ end
 
 val unop-rep-repne features cons giveOp1 = do
   op1 <- giveOp1;
-  features <- features;
   features <- exception-lock features;
   unop-all features cons op1
 end
 
 val unop-rep features cons giveOp1 = do
   op1 <- giveOp1;
-  features <- features;
   features <- exception-repne-lock features;
   unop-all features cons op1
 end
 
 val unop-lock features cons giveOp1 = do
   op1 <- giveOp1;
-  features <- features;
   features <- exception-rep-repne features;
   features <- exception-lock-reg features op1;
   unop-all features cons op1
@@ -2653,7 +2597,6 @@ end
 
 val unop features cons giveOp1 = do
   op1 <- giveOp1;
-  features <- features;
   features <- exception-rep-repne-lock features;
   unop-all features cons op1
 end
@@ -2670,7 +2613,6 @@ end
 val binop-rep-repne features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
-  features <- features;
   features <- exception-lock features;
   binop-all features cons op1 op2
 end
@@ -2678,7 +2620,6 @@ end
 val binop-rep features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
-  features <- features;
   features <- exception-repne-lock features;
   binop-all features cons op1 op2
 end
@@ -2686,7 +2627,6 @@ end
 val binop-lock features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
-  features <- features;
   features <- exception-rep-repne features;
   features <- exception-lock-reg features op1;
   binop-all features cons op1 op2
@@ -2695,13 +2635,11 @@ end
 val binop features cons giveOp1 giveOp2 = do
   op1 <- giveOp1;
   op2 <- giveOp2;
-  features <- features;
   features <- exception-rep-repne-lock features;
   binop-all features cons op1 op2
 end
 
 val ternop features cons giveOp1 giveOp2 giveOp3 = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2712,7 +2650,6 @@ val ternop features cons giveOp1 giveOp2 giveOp3 = do
 end
 
 val quaternop features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   op1 <- giveOp1;
   op2 <- giveOp2;
@@ -2724,7 +2661,6 @@ val quaternop features cons giveOp1 giveOp2 giveOp3 giveOp4 = do
 end
 
 val near-abs features cons giveOp = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   mode64 <- query mode64?;
   opnd-sz <-
@@ -2740,7 +2676,6 @@ val near-abs features cons giveOp = do
 end
 
 val near-rel features cons giveOp = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   mode64 <- query mode64?;
   opnd-sz <-
@@ -2756,7 +2691,6 @@ val near-rel features cons giveOp = do
 end
 
 val far-dir features cons giveOp = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   mode64 <- query mode64?;
   opnd-sz <-
@@ -2772,7 +2706,6 @@ val far-dir features cons giveOp = do
 end
 
 val far-ind features cons giveOp = do
-  features <- features;
   features <- exception-rep-repne-lock features;
   mode64 <- query mode64?;
   opnd-sz <-
@@ -2900,32 +2833,32 @@ val /vex/f2/0f/vexv [0xd0 /r]
 ### AESDEC
 ###  - Perform One Round of an AES Decryption Flow
 val /66 [0x0f 0x38 0xde /r] = binop aes AESDEC xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xde /r] | vex128? = varity3 aes_avx VAESDEC xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xde /r] | vex128? = varity3 (aes or avx) VAESDEC xmm128 v/xmm xmm/m128
 
 ### AESDECLAST
 ###  - Perform Last Round of an AES Decryption Flow
 val /66 [0x0f 0x38 0xdf /r] = binop aes AESDECLAST xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdf /r] | vex128? = varity3 aes_avx VAESDECLAST xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdf /r] | vex128? = varity3 (aes or avx) VAESDECLAST xmm128 v/xmm xmm/m128
 
 ### AESENC
 ###  - Perform One Round of an AES Encryption Flow
 val /66 [0x0f 0x38 0xdc /r] = binop aes AESENC xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdc /r] | vex128? = varity3 aes_avx VAESENC xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdc /r] | vex128? = varity3 (aes or avx) VAESENC xmm128 v/xmm xmm/m128
 
 ### AESENCLAST
 ###  - Perform Last Round of an AES Encryption Flow
 val /66 [0x0f 0x38 0xdd /r] = binop aes AESENCLAST xmm128 xmm/m128
-val /vex/66/0f/38/vexv [0xdd /r] | vex128? = varity3 aes_avx VAESENCLAST xmm128 v/xmm xmm/m128
+val /vex/66/0f/38/vexv [0xdd /r] | vex128? = varity3 (aes or avx) VAESENCLAST xmm128 v/xmm xmm/m128
 
 ### AESIMC
 ###  - Perform the AES InvMixColumn Transformation
 val /66 [0x0f 0x38 0xdb /r] = binop aes AESIMC xmm128 xmm/m128
-val /vex/66/0f/38 [0xdb /r] | vex128? = varity2 aes_avx VAESIMC xmm128 xmm/m128
+val /vex/66/0f/38 [0xdb /r] | vex128? = varity2 (aes or avx) VAESIMC xmm128 xmm/m128
 
 ### AESKEYGENASSIST
 ###  - AES Round Key Generation Assist
 val /66 [0x0f 0x3a 0xdf /r] = ternop aes AESKEYGENASSIST xmm128 xmm/m128 imm8
-val /vex/66/0f/3a [0xdf /r] | vex128? = varity3 aes_avx VAESKEYGENASSIST xmm128 xmm/m128 imm8
+val /vex/66/0f/3a [0xdf /r] | vex128? = varity3 (aes or avx) VAESKEYGENASSIST xmm128 xmm/m128 imm8
 
 ### AND
 ###  - Logical AND
@@ -4199,7 +4132,7 @@ val /vex/66/0f/vexv [0x5f /r]
 ### MAXPS
 ###  - Return Maximum Packed Single-Precision Floating-Point Values
 val / [0x0f 0x5f /r] = binop sse MAXPS xmm128 xmm/m128
-val vex/0f/vexv [0x5f /r]
+val /vex/0f/vexv [0x5f /r]
  | vex128? = varity3 avx VMAXPS xmm128 v/xmm xmm/m128
  | vex256? = varity3 avx VMAXPS ymm256 v/ymm ymm/m256
 
@@ -4818,7 +4751,7 @@ val /vex/66/0f/3a/vexv [0x0e /r] | vex128? = varity4 avx VPBLENDW xmm128 v/xmm x
 ### PCLMULQDQ
 ###  - Carry-Less Multiplication Quadword
 val /66 [0x0f 0x3a 0x44 /r] = ternop clmul PCLMULQDQ xmm128 xmm/m128 imm8
-val /vex/66/0f/3a/vexv [0x44 /r] | vex128? = varity4 clmul_avx VPCLMULQDQ xmm128 v/xmm xmm/m128 imm8
+val /vex/66/0f/3a/vexv [0x44 /r] | vex128? = varity4 (clmul or avx) VPCLMULQDQ xmm128 v/xmm xmm/m128 imm8
 
 ### PCMPEQB/PCMPEQW/PCMPEQD
 ###  - Compare Packed Data for Equal
@@ -5877,7 +5810,7 @@ val / [0x0f 0x35]
 ###  - Return From Fast System Call
 val / [0x0f 0x07]
  | mode64? && rexw? = arity0 none SYSRET
- | mode64? && otherwise = arity0 none SYSRET
+ | mode64? = arity0 none SYSRET
 
 ### TEST
 ###  - Logical Compare

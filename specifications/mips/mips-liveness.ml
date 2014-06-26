@@ -1,1 +1,1 @@
-val registers-live-map = return (fmap-empty {})
+val registers-live-map = fmap-empty

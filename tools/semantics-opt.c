@@ -45,10 +45,7 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	}
 
 	size_t shstrndx;
-	if(elf_getshstrndx(e, &shstrndx) != 0) {
-		retval = 5;
-		goto end_1;
-	}
+	elf_getshstrndx(e, &shstrndx); // return value is negative on MacOS although result seems ok: we ignore it for now
 
 	Elf_Scn *scn = NULL;
 
@@ -153,19 +150,7 @@ static char args_parse(int argc, char **argv, struct options *options) {
 
 int main(int argc, char** argv) {
 	const rlim_t kStackSize = 64L * 1024L * 1024L; // min stack size = 64 Mb
-	struct rlimit rl;
 	int result;
-
-	result = getrlimit(RLIMIT_STACK, &rl);
-	if(result == 0) {
-		if(rl.rlim_cur < kStackSize) {
-			rl.rlim_cur = kStackSize;
-			result = setrlimit(RLIMIT_STACK, &rl);
-			if(result != 0) {
-				fprintf(stderr, "setrlimit returned result = %d\n", result);
-			}
-		}
-	}
 
 	struct options options;
 	if(args_parse(argc, argv, &options)) {
@@ -175,8 +160,10 @@ int main(int argc, char** argv) {
 	}
 
 	if(options.elf) {
-		if(elf_section_boundary_get(options.file, &options.offset, &options.length))
-			exit(2);
+		if(elf_section_boundary_get(options.file, &options.offset, &options.length)) {
+      printf("cannot read section boundary\n");
+			exit(1);
+		}
 	} else if(!options.length) {
 		struct stat buf;
 		stat(options.file, &buf);

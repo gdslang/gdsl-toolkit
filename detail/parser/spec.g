@@ -318,6 +318,7 @@ Field
 
 ValueDecl
    : "val" Name Name* "=" Exp => (Name1, Name2, Exp)
+   | "val" Sym Name* "=" Exp => (Sym, Name, Exp)
    ;
 
 Lit

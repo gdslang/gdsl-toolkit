@@ -68,7 +68,8 @@ end = struct
      | freeVars _ = SymSet.empty
 
 
-   type state = { globalExp : exp SymMap.map ref,
+   type state = { exported : SymSet.set,
+                  globalExp : exp SymMap.map ref,
                   declVars : SymSet.set ref,
                   resVar : SymbolTable.symid,
                   functions : decl list ref,
@@ -93,6 +94,7 @@ end = struct
          val (tab, res) = SymbolTable.fresh (tab, Atom.atom (str ^ "Res"))
          val _ = SymbolTables.varTable := tab
          val s' = {
+               exported = #exported s,
                globalExp = #globalExp s,
                declVars = #declVars s,
                resVar = res,
@@ -141,6 +143,7 @@ end = struct
       let
          val localDecls = ref SymSet.empty
          val s' = f {
+               exported = #exported s,
                globalExp = #globalExp s,
                declVars = localDecls,
                resVar = #resVar s,
@@ -595,7 +598,8 @@ end = struct
       in
          fn body =>
             addDecl s (FUNCdecl {
-              funcIsConst = null stdArgs andalso null clArgs,
+              funcIsConst = null stdArgs andalso null clArgs andalso
+               not (SymSet.member (#exported s,sym)),
               funcClosure = clArgs,
               funcType = fType,
               funcName = sym,
@@ -611,28 +615,15 @@ end = struct
             let
                val () = constructors := Spec.get#constructors spec
                val () = datatypes := Spec.get#datatypes spec
-               fun exports clauses =
-                  rev (foldl
-                     (fn ((f, _, _), acc) => 
-                        let
-                           val fld =  f
-                        in
-                           (fld, Exp.ID f)::acc
-                        end)
-                     [] clauses)
-               fun exports spec =
-                  let 
-                     val es = Spec.get#exports spec
-                  in
-                     map (fn e => (Exp.ID e)) es
-                  end
                val decls = ref ([] : decl list)
                val fields = ref (SymMap.empty : vtype SymMap.map)
                val globs = foldl (fn (sym,m) => SymMap.insert (m,sym,IDexp sym))
                               SymMap.empty
                               (SymMap.listKeys (!Primitives.prim_map) @
                                SymMap.listKeys (!Primitives.prim_val_map))
-               val initialState = { globalExp = ref globs,
+               val exported = SymSet.fromList (Spec.get#exports spec)
+               val initialState = { exported = exported,
+                                    globalExp = ref globs,
                                     declVars = ref SymSet.empty,
                                     resVar = SymbolTable.unsafeFromInt 1,
                                     functions = decls,
