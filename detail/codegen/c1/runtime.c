@@ -340,8 +340,27 @@ void
 @prototypes@
 
 
+@functions@
+
+
+state_t 
+@init@
+() {
+  state_t s = calloc(1,sizeof(struct state));
+  s->handle = stdout;
+  /* compute all constant expressions */
+@gdsl_init_constants@
+
+  /* keep the heap of constant expressions separate */
+  s->const_heap_base = s->heap_base;
+  s->heap_base = NULL;
+  s->heap_limit = NULL;
+  s->heap = NULL;
+  return s;
+}
+
+
 #ifdef WITHMAIN
-#ifdef GDSL_NO_PREFIX
 
 #define BUF_SIZE 32*1024*1024
 static char blob[BUF_SIZE];
@@ -373,11 +392,17 @@ done:
   while (gdsl_get_ip_offset(s)<buf_size) {
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (argc>1) {
-#if defined(gdsl_translateBlock) && defined(gdsl_rreil_pretty)
-        obj_t rreil = gdsl_translateBlock(s, gdsl_config_default(s));
+#if defined(gdsl_decode_translate_block_optimized) && defined(gdsl_rreil_pretty)
+        obj_t rreil = gdsl_decode_translate_block_optimized(s,
+          gdsl_config_default(s),
+          gdsl_int_max(s),
+          CON_SEM_PRESERVATION_EVERYWHERE);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
+#else
+        fputs("GDSL modules contain no semantic translation\n")
+        return 1;
 #endif
       } else {
 #if defined(gdsl_decode) && defined(gdsl_pretty)
@@ -385,12 +410,15 @@ done:
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
+#else
+        fputs("GDSL modules contain no decoder function\n")
+        return 1;
 #endif
       }
     } else {
       fputs("exception: ",stdout);
       fputs(gdsl_get_error_message(s),stdout);
-			if (gdsl_get_ip_offset(s)<buf_size) consume8(s);
+      if (gdsl_seek(s,gdsl_get_ip_offset(s)+1)) break;
     }
     fputs("\n",stdout);
     int_t size = gdsl_heap_residency(s);
@@ -405,26 +433,5 @@ done:
 }
 
 #endif
-#endif
-
-@functions@
-
-
-state_t 
-@init@
-() {
-  state_t s = calloc(1,sizeof(struct state));
-  s->handle = stdout;
-  /* compute all constant expressions */
-@gdsl_init_constants@
-
-  /* keep the heap of constant expressions separate */
-  s->const_heap_base = s->heap_base;
-  s->heap_base = NULL;
-  s->heap_limit = NULL;
-  s->heap = NULL;
-  return s;
-}
-
 
 

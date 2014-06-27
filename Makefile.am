@@ -210,7 +210,6 @@ GDSL_RREIL = \
 	$(srcdir)/specifications/rreil/rreil-cif.ml \
 	$(srcdir)/specifications/rreil/rreil-pretty.ml \
 	$(srcdir)/specifications/rreil/rreil-liveness.ml \
-	$(srcdir)/specifications/rreil/rreil-forward-subst.ml \
 	$(srcdir)/specifications/rreil/rreil-cleanup.ml \
   $(srcdir)/specifications/rreil/rreil-opt.ml \
   $(srcdir)/specifications/rreil/rreil-translator.ml
