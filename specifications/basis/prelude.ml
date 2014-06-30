@@ -94,3 +94,35 @@ val io-binop binop a b =
   end
 
 val int-max = 0x7fffffffffffffff
+
+# logical and for guards: since a guard is a function that is applied to the
+# internal state, stating that two guards must hold requires special functions
+# that apply each of the guard to the internal state and that returns the
+# logical and of the result; this is implemented using the infix function &&
+
+val && fA fB =
+   let
+     val res s = fA s and fB s
+   in
+     res
+   end
+
+# as above for logical or
+val || fA fB =
+  let
+    val res s = fA s or fB s
+  in
+    res
+  end
+
+# as above for not, note that we use // since it is a normal function name in GDSL
+val // fA =
+  let
+    val res s = not (fA s)
+  in
+    res
+  end
+
+# this is a guard that is always true; it is useful to implement the catch-all case
+val otherwise s = '1'
+

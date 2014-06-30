@@ -10,7 +10,7 @@ end
 val pretty i = show/prefixes i +++ show/instruction i.insn -++ (show/features i)
 
 val show/features i =
-  if i.features == (none_ 0) then
+  if i.features == none then
 	  ""
 	else
 	  " {" +++ (show/features/any "" i.features '1') +++ "}"
@@ -23,31 +23,31 @@ val show/features/any acc features first = let
 		  ", " +++ this
 
 	val next me me-str rest =
-    if (features and (me 0)) == (me 0) then
-	     show/features/any (append me-str) (features and (not (me 0))) '0'
+    if (features and me) == me then
+	     show/features/any (append me-str) (features and (not me)) '0'
 	  else
 	    rest
 in
   acc +++
-  next aes_ "AES" (
-  next avx_ "AVX" (
-  next f16c_ "F16C" (
-  next invpcid_ "INVPCID" (
-  next mmx_ "MMX" (
-  next clmul_ "CLMUL" (
-  next rdrand_ "RDRAND" (
-  next fsgsbase_ "FSGSBASE" (
-  next sse_ "SSE" (
-  next sse2_ "SSE2" (
-  next sse3_ "SSE3" (
-  next sse4_1_ "SSE4_1" (
-  next sse4_2_ "SSE4_2" (
-  next ssse3_ "SSSE3" (
-  next xsaveopt_ "XSAVEOPT" (
-  next illegal-rep_ "ILLEGAL REP" (
-  next illegal-repne_ "ILLEGAL REPNE" (
-  next illegal-lock_ "ILLEGAL LOCK" (
-  next illegal-lock-register_ "ILLEGAL LOCK REGISTER" 
+  next aes "AES" (
+  next avx "AVX" (
+  next f16c "F16C" (
+  next invpcid "INVPCID" (
+  next mmx "MMX" (
+  next clmul "CLMUL" (
+  next rdrand "RDRAND" (
+  next fsgsbase "FSGSBASE" (
+  next sse "SSE" (
+  next sse2 "SSE2" (
+  next sse3 "SSE3" (
+  next sse4_1 "SSE41" (
+  next sse4_2 "SSE42" (
+  next ssse3 "SSSE3" (
+  next xsaveopt "XSAVEOPT" (
+  next illegal-rep "ILLEGAL REP" (
+  next illegal-repne "ILLEGAL REPNE" (
+  next illegal-lock "ILLEGAL LOCK" (
+  next illegal-lock-register "ILLEGAL LOCK REGISTER" 
   ""))))))))))))))))))
 end
 
@@ -921,9 +921,6 @@ val show/instruction insn =
     | VBROADCASTF128 x: show/mnemonic insn +++ show/varity x
     | VBROADCASTSD x: show/mnemonic insn +++ show/varity x
     | VBROADCASTSS x: show/mnemonic insn +++ show/varity x
-    | VCMPEQB x: show/mnemonic insn +++ show/varity x
-    | VCMPEQD x: show/mnemonic insn +++ show/varity x
-    | VCMPEQW x: show/mnemonic insn +++ show/varity x
     | VCMPPD x: show/mnemonic insn +++ show/varity x
     | VCMPPS x: show/mnemonic insn +++ show/varity x
     | VCMPSD x: show/mnemonic insn +++ show/varity x
@@ -1825,9 +1822,6 @@ val show/mnemonic insn =
     | VBROADCASTF128 x: "VBROADCASTF128"
     | VBROADCASTSD x: "VBROADCASTSD"
     | VBROADCASTSS x: "VBROADCASTSS"
-    | VCMPEQB x: "VCMPEQB"
-    | VCMPEQD x: "VCMPEQD"
-    | VCMPEQW x: "VCMPEQW"
     | VCMPPD x: "VCMPPD"
     | VCMPPS x: "VCMPPS"
     | VCMPSD x: "VCMPSD"

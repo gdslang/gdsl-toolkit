@@ -47,6 +47,7 @@
    | MID of Atom.atom
    | CONS of Atom.atom
    | POSINT of IntInf.int (* positive integer *)
+   | HEXINT of int * IntInf.int (* hex number with bit size *)
    | NEGINT of IntInf.int (* negative integer *)
    | FLOAT of FloatLit.float
    | STRING of string
@@ -100,8 +101,7 @@ Program
    ;
 
 Decl
-   : "granularity" "=" Int => (markDecl (FULL_SPAN, PT.GRANULARITYdecl Int))
-   | "export" "=" Export* => (markDecl (FULL_SPAN, PT.EXPORTdecl Export))
+   : "export" "=" Export* => (markDecl (FULL_SPAN, PT.EXPORTdecl Export))
    | "type" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, [], ConDecls)))
    | "type" Name "[" Name ("," Name)* "]" "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name1, Name2 :: SR, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
@@ -162,7 +162,7 @@ BitPat
    ;
 
 TokPat
-   : Int => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat Int))
+   : HEXINT => (mark PT.MARKtokpat (FULL_SPAN, PT.TOKtokpat HEXINT))
    | Qid => (mark PT.MARKtokpat (FULL_SPAN, PT.NAMEDtokpat Qid))
    ;
 
@@ -318,6 +318,7 @@ Field
 
 ValueDecl
    : "val" Name Name* "=" Exp => (Name1, Name2, Exp)
+   | "val" Sym Name* "=" Exp => (Sym, Name, Exp)
    ;
 
 Lit
@@ -328,6 +329,7 @@ Lit
 
 Int
    : POSINT => (POSINT)
+   | HEXINT => (case (HEXINT) of (size,i) => i)
    | NEGINT => (NEGINT)
    ;
 

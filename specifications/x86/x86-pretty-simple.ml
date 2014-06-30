@@ -699,9 +699,6 @@ val show/instruction/s insn =
     | VBROADCASTF128 x: "VBROADCASTF128" +++ show/varity/s x
     | VBROADCASTSD x: "VBROADCASTSD" +++ show/varity/s x
     | VBROADCASTSS x: "VBROADCASTSS" +++ show/varity/s x
-    | VCMPEQB x: "VCMPEQB" +++ show/varity/s x
-    | VCMPEQD x: "VCMPEQD" +++ show/varity/s x
-    | VCMPEQW x: "VCMPEQW" +++ show/varity/s x
     | VCMPPD x: "VCMPPD" +++ show/varity/s x
     | VCMPPS x: "VCMPPS" +++ show/varity/s x
     | VCMPSD x: "VCMPSD" +++ show/varity/s x

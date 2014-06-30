@@ -7,13 +7,13 @@ val fmap-add-with f t x = bbtree-add-with fmap-lt? f t x
 val fmap-update t x = fmap-add-with fmap-value-merge t x
 val fmap-remove t x = bbtree-remove fmap-lt? t x
 val fmap-remove-min t = bbtree-remove-min t
-val fmap-get t x = bbtree-get fmap-lt? t {id=x.id,fields=fitree-empty {}} 
+val fmap-get t x = bbtree-get fmap-lt? t {id=x.id,fields=fitree-empty} 
 val fmap-get-orelse t x = bbtree-get-orelse fmap-lt? t x
 val fmap-union a b = bbtree-union fmap-lt? a b
 val fmap-intersection a b = bbtree-intersection fmap-lt? a b
 val fmap-difference a b = bbtree-difference fmap-lt? a b
 val fmap-contains? t x = bbtree-contains? fmap-lt? t x
-val fmap-empty x = bbtree-empty x
+val fmap-empty = bbtree-empty
 val fmap-singleton x = bbtree-singleton x
 val fmap-size t = bbtree-size t
 val fmap-fold f s t = bbtree-fold f s t

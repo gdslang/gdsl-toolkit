@@ -144,7 +144,7 @@
 <INITIAL,BITPATNUM>{num} => (T.POSINT(valOf (IntInf.fromString yytext)));
 <INITIAL>"~"{num} => (T.NEGINT(valOf (IntInf.fromString yytext)));
 <INITIAL>"~"?{num}"."{num}([eE][+~]?{num})? => (mkFloat yysubstr);
-<INITIAL>{hexnum} => (T.POSINT(fromHexString yytext));
+<INITIAL>{hexnum} => (T.HEXINT((String.size yytext-2)*4, fromHexString yytext));
 <INITIAL>{ws} => (skip ());
 <INITIAL>"(*" => (YYBEGIN COMMENT; depth := 1; skip());
 <INITIAL>"\"" => (YYBEGIN STRING; skip());

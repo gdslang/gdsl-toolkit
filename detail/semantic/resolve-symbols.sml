@@ -132,7 +132,6 @@ end = struct
           | PT.EXPORTdecl es => AST.EXPORTdecl (map (fn (v,fs) =>
                (useVar (s, v), map (fn f => newField (s,f)) fs))
             es)
-          | PT.GRANULARITYdecl i => AST.GRANULARITYdecl i
           | PT.TYPEdecl (tb, t) =>
                AST.TYPEdecl (useType (s,{span=s, tree=tb}), convTy s t)
           | PT.DATATYPEdecl (tb, tvars, l) =>

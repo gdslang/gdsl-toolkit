@@ -13,7 +13,8 @@ structure DesugaredTree = struct
    end
 
    type value = Exp.decl
-   type decode = Pat.t list list * Exp.t
+	 type toksize = int
+   type decode = Pat.t list list * toksize * Exp.t
    type spec = (value list * decode list SymMap.map) Spec.t
 
    (** Returns the size in bits of the given pattern `pat` *)
@@ -134,11 +135,11 @@ structure DesugaredTree = struct
             (fn (n, ds) => align (map (fn d => dec (n, d)) ds))
             (SymMap.listItemsi ds)
 
-      and dec (n, (ps, e)) =
+      and dec (n, (ps, size, e)) =
          align
             [seq
                [str "val", space, var n,
-                list (map tokpat ps), space, str "="],
+                list (map tokpat ps), str (Int.toString size), space, str "="],
              indent 3 (exp e)]
 
       and tokpat pats = listex "'" "'" " " (map pat pats)

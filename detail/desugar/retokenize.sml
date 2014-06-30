@@ -8,10 +8,10 @@ end = struct
    structure CM = CompilationMonad
    structure DT = DesugaredTree
 
-   fun retokenize granularity ds = List.mapPartial (retok granularity) ds
+   fun retokenize ds = List.mapPartial retok ds
 
-   and retok granularity (ps, e) =
-      case retokPats granularity ps of SOME ps => SOME (ps,e) | _ => NONE
+   and retok (ps, granularity, e) =
+      case retokPats granularity ps of SOME ps => SOME (ps,granularity,e) | _ => NONE
 
    and retokPats granularity pats = let
       fun lp (p, len, tok, pats) =
@@ -19,7 +19,8 @@ end = struct
             [] =>
                if len <> 0 orelse List.length tok <> 0
                   then
-                     (* TODO: Make this a proper warning *)
+                     (* some sub-byte decoders need to be discarded, but there might be some
+										    that are discarded for the wrong reasons *)
                      ((*print "Retokenize: skipping decoder that reads less than a token\n";*)
                      NONE) 
                else SOME (rev pats) 
@@ -45,9 +46,7 @@ end = struct
          (fn (vs, ds) =>
             (vs,
              SymMap.filter (not o null)
-               (SymMap.map
-                  (retokenize
-                     (IntInf.toInt (Spec.get#granularity spec))) ds)))
+               (SymMap.map retokenize ds)))
          spec
 
    val pass =

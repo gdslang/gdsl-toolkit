@@ -1,4 +1,3 @@
-granularity = 16
 export = config-default decode typeof-opnd
 
 val d ['bit:1'] = do

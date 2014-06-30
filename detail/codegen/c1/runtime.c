@@ -18,13 +18,17 @@ struct state {
   char* heap;         /* current top of the heap */
 @state_type@
 ;      /* the current monadic state */
-  char* ip_start;      /* beginning of code buffer */
-  size_t ip_base;      /* base address of code */
+  char* ip_start;     /* beginning of code buffer */
+  size_t ip_base;     /* base address of code */
   char* ip_limit;     /* first byte beyond the code buffer */
   char* ip;           /* current pointer into the buffer */
   char* err_str;      /* a string describing the fatal error that occurred */
   jmp_buf err_tgt;    /* the position of the exception handler */
   FILE* handle;       /* the file that the puts primitve uses */
+  char* const_heap_base;
+  /* the following fields contain the values of constant GDSL expressions */
+  @gdsl_constants@
+
 };
 
 #define CHUNK_SIZE (4*1024)
@@ -277,14 +281,6 @@ static string_t int_to_string(state_t s, int_t v) {
   }
 };
 
-state_t 
-@init@
-() {
-  state_t s = calloc(1,sizeof(struct state));
-  s->handle = stdout;
-  return s;
-}
-
 void 
 @set_code@
 (state_t s, char* buf, size_t buf_len, size_t base) {
@@ -311,17 +307,6 @@ int_t
 	return 0;
 }
 
-/*
-int_t 
-(state_t s, int_t i) {
-  char *new_ip = s->ip + i;
-	if(new_ip >= s->ip_limit || new_ip < s->ip_base)
-	  return 1;
-	s->ip = new_ip;
-	return 0;
-}
-*/
-
 string_t
 @merge_rope@
 (state_t s, obj_t rope) {
@@ -342,13 +327,40 @@ void
 @reset_heap@
 (s);
   free(s->heap_base);
+  /* free heap of GDSL constants */
+  char* heap = s->const_heap_base;
+  while (heap!=NULL) {
+    char* prev = *((char**) heap);
+    free (heap);
+    heap = prev;
+  }
   free(s);
 }
 
 @prototypes@
 
+
+@functions@
+
+
+state_t 
+@init@
+() {
+  state_t s = calloc(1,sizeof(struct state));
+  s->handle = stdout;
+  /* compute all constant expressions */
+@gdsl_init_constants@
+
+  /* keep the heap of constant expressions separate */
+  s->const_heap_base = s->heap_base;
+  s->heap_base = NULL;
+  s->heap_limit = NULL;
+  s->heap = NULL;
+  return s;
+}
+
+
 #ifdef WITHMAIN
-#ifdef GDSL_NO_PREFIX
 
 #define BUF_SIZE 32*1024*1024
 static char blob[BUF_SIZE];
@@ -380,11 +392,17 @@ done:
   while (gdsl_get_ip_offset(s)<buf_size) {
     if (setjmp(*gdsl_err_tgt(s))==0) {
       if (argc>1) {
-#if defined(gdsl_translateBlock) && defined(gdsl_rreil_pretty)
-        obj_t rreil = gdsl_translateBlock(s, gdsl_config_default(s));
+#if defined(gdsl_decode_translate_block_optimized) && defined(gdsl_rreil_pretty)
+        obj_t rreil = gdsl_decode_translate_block_optimized(s,
+          gdsl_config_default(s),
+          gdsl_int_max(s),
+          CON_SEM_PRESERVATION_EVERYWHERE);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
+#else
+        fputs("GDSL modules contain no semantic translation\n")
+        return 1;
 #endif
       } else {
 #if defined(gdsl_decode) && defined(gdsl_pretty)
@@ -392,12 +410,15 @@ done:
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
+#else
+        fputs("GDSL modules contain no decoder function\n")
+        return 1;
 #endif
       }
     } else {
       fputs("exception: ",stdout);
       fputs(gdsl_get_error_message(s),stdout);
-			if (gdsl_get_ip_offset(s)<buf_size) consume8(s);
+      if (gdsl_seek(s,gdsl_get_ip_offset(s)+1)) break;
     }
     fputs("\n",stdout);
     int_t size = gdsl_heap_residency(s);
@@ -412,7 +433,5 @@ done:
 }
 
 #endif
-#endif
 
-@functions@
 

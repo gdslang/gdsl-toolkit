@@ -248,7 +248,7 @@ val bbtree-max bt =
          end
    end
 
-val bbtree-empty x = Lf
+val bbtree-empty = Lf
 val bbtree-singleton x = mkBr x 1 Lf Lf
 
 val bbtree-concat3 lt? btl x btr =
@@ -433,7 +433,7 @@ val intset-union a b = bbtree-union intset-lt? a b
 val intset-intersection a b = bbtree-intersection intset-lt? a b
 val intset-difference a b = bbtree-difference intset-lt? a b
 val intset-contains? s x = bbtree-contains? intset-lt? s x
-val intset-empty x = bbtree-empty x
+val intset-empty = bbtree-empty
 val intset-singleton x = bbtree-singleton x
 val intset-size s = bbtree-size s
 val intset-fold f s t = bbtree-fold f s t
@@ -481,7 +481,7 @@ val fitree-collect p? it x =
                       else acc))
          end
    in
-      search it (fitree-empty {})
+      search it fitree-empty
    end
 
 val fitree-any p? it x =
@@ -547,7 +547,7 @@ val fitree-interval-split t x =
             then split acc x y
          else fitree-add acc y
    in
-      fitree-fold interval-split (fitree-empty {}) t
+      fitree-fold interval-split fitree-empty t
    end
 
 
@@ -570,7 +570,7 @@ val fitree-union a b = bbtree-union fitree-lt? a b
 val fitree-intersection a b = bbtree-intersection fitree-lt? a b
 val fitree-difference a b = bbtree-difference fitree-lt? a b
 val fitree-contains? s x = bbtree-contains? fitree-lt? s x
-val fitree-empty x = bbtree-empty x
+val fitree-empty = bbtree-empty
 val fitree-singleton x = bbtree-singleton x
 val fitree-size s = bbtree-size s
 val fitree-fold f s t = bbtree-fold f s t

@@ -131,8 +131,8 @@ val lv-gen gens stmt =
       visit-stmt gens stmt
    end
 
-val lv-gen1 stmt = lv-gen (fmap-empty {}) stmt
-val lv-kill1 stmt = lv-kill (fmap-empty {}) stmt
+val lv-gen1 stmt = lv-gen fmap-empty stmt
+val lv-kill1 stmt = lv-kill fmap-empty stmt
 
 val lv-gens stmts =
    let
@@ -142,7 +142,7 @@ val lv-gens stmts =
           | _ : gens
          end
    in
-      visit (fmap-empty {}) stmts
+      visit fmap-empty stmts
    end
 
 val lv-kills stmts =
@@ -153,7 +153,7 @@ val lv-kills stmts =
           | _ : kills
          end
    in
-      visit (fmap-empty {}) stmts
+      visit fmap-empty stmts
    end
 
 val lv-union a b =
@@ -194,7 +194,7 @@ val lv-any-live? state kill =
                l or fitree-any-overlapping?
                   (fmap-get-orelse
                      state
-                     {id=x.id, fields=fitree-empty{}}).fields
+                     {id=x.id, fields=fitree-empty}).fields
                   i
          in
             fitree-fold overlaps-interval? '0' x.fields
@@ -252,7 +252,7 @@ val lv-analyze initial-live stack =
 							 		backup <- live-stack-backup-and-reset;
 
 							 		body-rev <- return (rreil-stmts-rev y.body);
-							 		body-state <- sweep body-rev (lvstate-empty (fmap-empty {}) body-rev);
+							 		body-state <- sweep body-rev (lvstate-empty fmap-empty body-rev);
 							 		state-new <- return (lvstate-union-conservative state body-state);
 
 							 		maybelive <- query $maybelive;
@@ -385,7 +385,7 @@ val lvstate-eval state stmt =
                (lv-difference state kill)
                (if lv-any-live? state kill
                    then gen
-                else fmap-empty {})
+                else fmap-empty)
 
       val eval kill gen =
          {greedy=lvstate-eval-greedy state.greedy kill gen,
@@ -412,7 +412,7 @@ val lvstate-eval state stmt =
 #               (lv-difference state kill)
 #               (if lv-any-live? state kill
 #                   then gen
-#                else fmap-empty {})
+#                else fmap-empty)
 #
 #      val eval =
 #         {greedy=lvstate-eval-greedy state.greedy (lv-kill1 ite-greedy) (lv-gen1 ite-greedy),
@@ -423,7 +423,7 @@ val lvstate-eval state stmt =
 
 val lvstate-empty initial-live stmts =
    {greedy=initial-live,
-    conservative=lv-union (lv-kills stmts) (fmap-empty {})}
+    conservative=lv-union (lv-kills stmts) fmap-empty}
 
 #val lvstate-pretty state = lv-pretty state.greedy
 
@@ -437,7 +437,7 @@ val lmap-update t x = lmap-add-with lmap-value-merge t x
 #val lmap-get-orelse t x = bbtree-get-orelse lmap-lt? t x
 #val lmap-union a b = bbtree-union lmap-lt? a b
 #val lmap-contains? t x = bbtree-contains? lmap-lt? t x
-val lmap-empty x = bbtree-empty x
+val lmap-empty = bbtree-empty
 #val lmap-size t = bbtree-size t
 #val lmap-fold f s t = bbtree-fold f s t
 #val lmap-pretty t = 
@@ -449,8 +449,7 @@ val lmap-empty x = bbtree-empty x
 
 
 val liveness instructions = do
-  live-registers <- registers-live-map;
-  lv-state <- lv-analyze live-registers (rreil-stmts-rev instructions);
+  lv-state <- lv-analyze registers-live-map (rreil-stmts-rev instructions);
   return lv-state.greedy 
 end
 
@@ -463,7 +462,7 @@ val liveness_super data = let
 			   state <- lv-analyze live-registers (rreil-stmts-rev stmts);
 				 return state.greedy
 			 end
-		 | SO_NONE: return (fmap-empty {})
+     | SO_NONE: return fmap-empty
 		end
 
 	val lv-some-succ live-registers = do
@@ -472,15 +471,13 @@ val liveness_super data = let
 		return (lv-union lv-succ-a lv-succ-b)
 	end
 in do
-  live-registers <- registers-live-map;
-	live-registers <-
-	  case data.succ_a of
+	live-registers <- case data.succ_a of
 		   SO_NONE:
 		  	  case data.succ_b of
-	  	 		   SO_NONE: return live-registers
-	  	 		 | SO_SOME a: lv-some-succ live-registers
+	  	 		   SO_NONE: return registers-live-map
+	  	 		 | SO_SOME a: lv-some-succ registers-live-map
 	  	 	  end
-		 | SO_SOME a: lv-some-succ live-registers
+		 | SO_SOME a: lv-some-succ registers-live-map
 		end
 	;
   lv-state <- lv-analyze live-registers (rreil-stmts-rev data.insns);

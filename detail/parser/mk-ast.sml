@@ -44,7 +44,6 @@ functor MkAst (Core: AST_CORE) = struct
 
    datatype decl =
       MARKdecl of decl mark
-    | GRANULARITYdecl of IntInf.int
     | TYPEdecl of syn_bind * ty
     | DATATYPEdecl of con_bind * ty_bind list * (con_bind * ty option) list
     | DECODEdecl of var_bind * decodepat list * (exp, (exp * exp) list) Sum.t
@@ -95,7 +94,7 @@ functor MkAst (Core: AST_CORE) = struct
 
    and tokpat =
       MARKtokpat of tokpat mark
-    | TOKtokpat of IntInf.int
+    | TOKtokpat of int * IntInf.int (* first int is size in bits *)
     | NAMEDtokpat of var_use
 
    and pat =
@@ -123,7 +122,6 @@ functor MkAst (Core: AST_CORE) = struct
       and decl t =
          case t of
             MARKdecl t' => decl (#tree t')
-          | GRANULARITYdecl i => seq [str "granularity", is, space, int i]
           | EXPORTdecl es =>
             let
                fun export_decl (v,[]) = var_use v
@@ -182,7 +180,8 @@ functor MkAst (Core: AST_CORE) = struct
       and tokpat t =
          case t of
             MARKtokpat t' => tokpat (#tree t')
-          | TOKtokpat tok => str (IntInf.fmt StringCvt.HEX tok)
+          | TOKtokpat (size,tok) =>
+             seq [str "0x", str (IntInf.fmt StringCvt.HEX tok), str ":", str (Int.toString size)]
           | NAMEDtokpat n => var_use n
 
       and guardedexp gexp = tuple2 (exp, exp) gexp
