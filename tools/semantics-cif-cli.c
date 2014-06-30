@@ -50,8 +50,8 @@ static obj_t virt_t(state_t state, int_t t) {
 	printf("> t%lld\n", t);
 	return (obj_t)0;
 }
-static obj_t arch(state_t state, obj_t name_rope) {
-	printf("> %s\n", gdsl_merge_rope(state, name_rope));
+static obj_t arch(state_t state, obj_t id) {
+	printf("> %s\n", gdsl_merge_rope(state, gdsl_pretty_arch_id(state, id)));
 	return (obj_t)0;
 }
 

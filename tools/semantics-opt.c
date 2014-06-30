@@ -45,7 +45,11 @@ char elf_section_boundary_get(char *path, size_t *offset, size_t *size) {
 	}
 
 	size_t shstrndx;
-	elf_getshstrndx(e, &shstrndx); // return value is negative on MacOS although result seems ok: we ignore it for now
+	elf_getshstrndx(e, &shstrndx); 
+//	if(elf_getshstrndx(e, &shstrndx) != 0) { // return value is negative on MacOS although result seems ok: we ignore it for now
+//		retval = 5;
+//		goto end_1;
+//	}
 
 	Elf_Scn *scn = NULL;
 
