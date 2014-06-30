@@ -362,28 +362,99 @@ state_t
 
 #ifdef WITHMAIN
 
+#if defined(gdsl_decode_translate_block_optimized) && defined(gdsl_rreil_pretty)
+  #define HAVE_TRANS
+#endif
+#if defined(gdsl_decode) && defined(gdsl_pretty)
+  #define HAVE_DECODE
+#endif
+
 #define BUF_SIZE 32*1024*1024
 static char blob[BUF_SIZE];
 
 int main (int argc, char** argv) {
   uint64_t buf_size = BUF_SIZE;
+  FILE* file = NULL;
+  int_t decode_options = 0;
+  int_t run_translate = 0;
+  int_t translate_options = 0;
+  int_t base_address = 0;
+  int_t start_address = 0;
   unsigned int i,c;
-  for (i=0;i<buf_size;i++) {
-     int x = fscanf(stdin,"%x",&c);
-     switch (x) {
-        case EOF:
-           goto done;
-        case 0: {
-           fprintf(stderr, "invalid input; should be in hex form: '0f 0b ..'");
-           return 1;
-        }
-     }
-     blob[i] = c & 0xff;
-  }
-done:
-  buf_size = i;
   state_t s = gdsl_init();
-  gdsl_set_code(s, blob, buf_size, 0);
+
+  /* read command line parameters */
+  for(i=1; i<argc; i++) {
+    char* arg = argv[i];
+    if (strncmp(arg,"--",2)) {
+      file = fopen(arg,"r");
+      if (file==NULL) {
+        printf("file '%s' not found, please run %s --help for usage\n", arg, argv[0]);
+        return 1;
+      }
+    } else {
+      arg+=2;
+#if defined(gdsl_decoder_config)
+      obj_t config;
+      for (config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
+        config = gdsl_conf_next(s,config)) {
+        if (strcmp(arg,gdsl_conf_short(s,config))==0) {
+          decode_options |= gdsl_conf_data(s,config);
+          break;
+        }
+      }
+      if (gdsl_has_conf(s,config)) continue;
+#endif
+      if (strncmp(arg,"base=",5)==0) {
+        scanf(arg+5,"%lli",&base_address);
+        continue;
+      }
+      if (strncmp(arg,"start=",6)==0) {
+        scanf(arg+6,"%lli",&start_address);
+        continue;
+      }
+      if (strcmp(arg,"trans")==0) {
+        run_translate = 1;
+        continue;
+      }
+      fprintf(stderr,
+        "usage: %s [options] filename\nwhere\n"
+        "  --trans          translate to semantics\n"
+        "  --base=addr      print addresses relative to addr\n"
+        "  --start=addr     decode starting from addr\n", argv[0]);
+#if defined(gdsl_decoder_config)
+      for (obj_t config = gdsl_decoder_config(s); gdsl_has_conf(s,config);
+        config = gdsl_conf_next(s,config))
+        fprintf(stderr,"  --%s\t\t%s\n",
+          gdsl_conf_short(s,config), gdsl_conf_long(s,config));
+#endif
+      return 1;
+    }
+  }
+  /* fill the buffer, either in binary from file or as sequence
+     of hex bytes separated by space or newlines */
+  if (file) {
+    ssize_t bytes_read = fread(blob, 1, BUF_SIZE, file);
+    if (bytes_read<0) return 1;
+    buf_size = bytes_read;
+  } else {
+    for (i=0;i<buf_size;i++) {
+       int x = fscanf(stdin,"%x",&c);
+       switch (x) {
+          case EOF: {
+            buf_size = i;
+          }; break;
+          case 0: {
+             fprintf(stderr, "invalid input; should be in hex form: '0f 0b ..'");
+             return 1;
+          }
+       }
+       blob[i] = c & 0xff;
+    }
+  }  
+  /* initialize the GDSL program */
+  gdsl_set_code(s, blob, buf_size, base_address);
+  gdsl_seek(s, start_address);
   
   int_t alloc_size = 0;
   int_t alloc_no = 0;
@@ -391,22 +462,24 @@ done:
 
   while (gdsl_get_ip_offset(s)<buf_size) {
     if (setjmp(*gdsl_err_tgt(s))==0) {
-      if (argc>1) {
-#if defined(gdsl_decode_translate_block_optimized) && defined(gdsl_rreil_pretty)
+      if (run_translate) {
+#ifdef HAVE_TRANS
+        int_t address = gdsl_get_ip_offset(s);
         obj_t rreil = gdsl_decode_translate_block_optimized(s,
-          gdsl_config_default(s),
+          decode_options,
           gdsl_int_max(s),
-          CON_SEM_PRESERVATION_EVERYWHERE);
+          CON_SEM_PRESERVATION_CONTEXT);
         obj_t res = gdsl_rreil_pretty(s,rreil);
         string_t str = gdsl_merge_rope(s,res);
+        printf("%llx:\n",address);
         fputs(str,stdout);
 #else
         fputs("GDSL modules contain no semantic translation\n")
         return 1;
 #endif
       } else {
-#if defined(gdsl_decode) && defined(gdsl_pretty)
-        obj_t instr = gdsl_decode(s, gdsl_config_default(s));
+#ifdef HAVE_DECODE
+        obj_t instr = gdsl_decode(s, decode_options);
         obj_t res = gdsl_pretty(s,instr);
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);

@@ -1,4 +1,9 @@
 export = config-default config-mode64 config-default-opnd-sz-32 decode features-get{features} typeof-opnd{insn} insn-length{length}
+export = decoder-config
+
+val decoder-config =
+ conf '01' "mode64" "decode x86-64 instructions" &*
+ conf '10' "opndsz32" "assume that default operand size is 32 bit"
 
 val config-default            = '11'
 val config-mode64             = '01'
