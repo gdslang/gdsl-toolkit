@@ -93,7 +93,7 @@ val show/varity x =
 
 val -++ a b = a +++ " " +++ b
 
-val show/register r =
+val show/x86-register r =
    case r of
       AL   : "AL"
     | AH   : "AH"
@@ -245,7 +245,7 @@ val show/segment s =
     | SEG_OVERRIDE r:
         case r of
 	   DS: ""
-	 | s: show/register s +++ ":"
+	 | s: show/x86-register s +++ ":"
         end
    end
 
@@ -267,7 +267,7 @@ val show/operand ext op =
     | IMM16 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
     | IMM32 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
     | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
-    | REG x: show/register x
+    | REG x: show/x86-register x
     | MEM x: show/memsz x.sz -++ show/segment x.segment +++ "[" +++ show/operand '1' x.opnd +++ "]" 
     | X86_SUM x: show/operand ext x.a +++ "+" +++ show/operand ext x.b
     | X86_SCALE x: show/scale x.imm +++ show/operand ext x.opnd
