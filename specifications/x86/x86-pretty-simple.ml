@@ -49,8 +49,8 @@ val show/operand/s op =
     | IMM64 x: "IMM"
     | REG x: "REG"
     | MEM x: show/segment/s x.segment +++ "[" +++ show/operand/s x.opnd +++ "]" 
-    | SUM x: show/operand/s x.a +++ "+" +++ show/operand/s x.b
-    | SCALE x: show/scale/s x.imm +++ show/operand/s x.opnd
+    | X86_SUM x: show/operand/s x.a +++ "+" +++ show/operand/s x.b
+    | X86_SCALE x: show/scale/s x.imm +++ show/operand/s x.opnd
    end
 
 val show/flowoperand/s op =

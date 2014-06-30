@@ -25,7 +25,9 @@ GDSL_X86_HL=specifications/x86/x86.ml specifications/x86/x86-util.ml specificati
 GDSL_X86_TRANS_HL=specifications/x86/x86-rreil-translator.ml specifications/x86/x86-rreil-translator-a-l.ml specifications/x86/x86-rreil-translator-m-z.ml specifications/x86/x86-rreil-registermapping.ml specifications/x86/x86-rreil-pretty.ml
 GDSL_X86_OPT_HL=specifications/x86/x86-liveness.ml
 
-GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_X86_HL) $(GDSL_X86_TRANS_HL) $(GDSL_OPT_HL) $(GDSL_X86_OPT_HL)
+GDSL_ASM_HL=specifications/asm/asm.ml
+
+GDSL_SOURCES=$(GDSL_BASIS_HL) $(GDSL_RREIL_HL) $(GDSL_X86_HL) $(GDSL_X86_TRANS_HL) $(GDSL_OPT_HL) $(GDSL_X86_OPT_HL) $(GDSL_ASM_HL)
 
 .PHONY: libs tools
 

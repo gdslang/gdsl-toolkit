@@ -269,8 +269,8 @@ val show/operand ext op =
     | IMM64 x: show-int (case ext of '0': zx x.imm | '1': sx x.imm end)
     | REG x: show/register x
     | MEM x: show/memsz x.sz -++ show/segment x.segment +++ "[" +++ show/operand '1' x.opnd +++ "]" 
-    | SUM x: show/operand ext x.a +++ "+" +++ show/operand ext x.b
-    | SCALE x: show/scale x.imm +++ show/operand ext x.opnd
+    | X86_SUM x: show/operand ext x.a +++ "+" +++ show/operand ext x.b
+    | X86_SCALE x: show/scale x.imm +++ show/operand ext x.opnd
    end
 
 val show/flowoperand op =

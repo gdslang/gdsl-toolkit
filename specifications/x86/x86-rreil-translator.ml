@@ -205,8 +205,8 @@ val conv-with is-mem ptro conv sz x =
        | IMM32 x: conv-imm conv x.imm
        | IMM64 x: conv-imm conv x.imm
        | REG x: conv-reg conv sz x
-       | SUM x: conv-sum conv sz x
-       | SCALE x: conv-scale conv sz x
+       | X86_SUM x: conv-sum conv sz x
+       | X86_SCALE x: conv-scale conv sz x
        | MEM x:
          let
             val m expanded = do

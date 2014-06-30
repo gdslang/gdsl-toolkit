@@ -45,7 +45,7 @@ val complement v = not v
 # Segment prefix handling
 type seg_override =
      SEG_NONE
-   | SEG_OVERRIDE of register
+   | SEG_OVERRIDE of x86-register
 
 val set-CS = update@{segment=SEG_OVERRIDE CS}
 val set-DS = update@{segment=SEG_OVERRIDE DS}
@@ -499,7 +499,7 @@ val /vex/66/0f/3a [] = /vex/66/0f/3a/vexv
 #val /vex/f2/0f/3a [] = /vex/f2/0f/3a/vexv
 #val /vex/f3/0f/3a [] = /vex/f3/0f/3a/vexv
 
-type register =
+type x86-register =
    AL
  | AH
  | AX
@@ -625,15 +625,15 @@ type register =
  | RIP
  | FLAGS
 
-type opnd =
+type x86-opnd =
    IMM8 of {imm:8,address:int}
  | IMM16 of {imm:16,address:int}
  | IMM32 of {imm:32,address:int}
  | IMM64 of {imm:64,address:int}
- | REG of register
- | MEM of {sz:int,psz:int,segment:seg_override,opnd:opnd}
- | SUM of {a:opnd,b:opnd}
- | SCALE of {imm:2,opnd:opnd}
+ | REG of x86-register
+ | MEM of {sz:int,psz:int,segment:seg_override,opnd:x86-opnd}
+ | X86_SUM of {a:x86-opnd,b:x86-opnd}
+ | X86_SCALE of {imm:2,opnd:x86-opnd}
 
 # Todo: Centralize
 # Operand types:
@@ -651,8 +651,8 @@ val typeof-opnd x i = let
      | IMM64 a: 0
      | REG a: 1
      | MEM a: 2
-     | SUM a: 3
-     | SCALE a: 3
+     | X86_SUM a: 3
+     | X86_SCALE a: 3
     end
 in
   case (uarity-of x.insn) of
@@ -689,8 +689,8 @@ type flowopnd =
  | REL64 of 64
  | PTR16/16 of 32
  | PTR16/32 of 48
- | NEARABS of opnd
- | FARABS of opnd
+ | NEARABS of x86-opnd
+ | FARABS of x86-opnd
 
 #feature vector: aes, avx, f16c, invpcid, mmx, clmul, rdrand, fsgsbase, sse, sse2, sse3, sse4_1, sse4_2, ssse3, xsaveopt, illegal rep, illegal repne, illegal lock, illegal lock (for register)
 
@@ -723,12 +723,12 @@ end
 val features-get insndata = (zx insndata.features)
 
 type flow1 = {opnd1:flowopnd}
-type arity1 = {opnd1:opnd}
-type arity2 = {opnd1:opnd,opnd2:opnd}
-type arity3 = {opnd1:opnd,opnd2:opnd,opnd3:opnd}
-type arity4 = {opnd1:opnd,opnd2:opnd,opnd3:opnd,opnd4:opnd}
+type arity1 = {opnd1:x86-opnd}
+type arity2 = {opnd1:x86-opnd,opnd2:x86-opnd}
+type arity3 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd}
+type arity4 = {opnd1:x86-opnd,opnd2:x86-opnd,opnd3:x86-opnd,opnd4:x86-opnd}
 
-type insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:insn}
+type x86-insndata = {length:int,features:19,opnd-sz:int,addr-sz:int,rep:1,repne:1,lock:1,insn:x86-insn}
 
 val insn-length insn = do
  insn <- return (@{fooooobarrrrrrr=42}insn);
@@ -742,7 +742,7 @@ type varity =
  | VA3 of arity3
  | VA4 of arity4
 
-type insn =
+type x86-insn =
    AAA
  | AAD of arity1
  | AAM of arity1
@@ -2077,19 +2077,19 @@ end
 val sib-without-base reg scale index = do
    rex <- query $rex;
    rexx <- query $rexx;
-   scaled <- return (SCALE{imm=scale, opnd=reg rex rexx index});
+   scaled <- return (X86_SCALE{imm=scale, opnd=reg rex rexx index});
    mod <- query $mod;
    rexb <- query $rexb;
    case mod of
       '00':
          do
             i <- imm32;
-            return (SUM{a=scaled, b=i})
+            return (X86_SUM{a=scaled, b=i})
          end
     | _:
       do
         base <- return (reg rex rexb '101'); # rBP
-        return (SUM{a=scaled, b=base})
+        return (X86_SUM{a=scaled, b=base})
       end
    end
 end
@@ -2119,7 +2119,7 @@ val sib-with-index-and-base psz reg s i b = do
       do
         base <- return (reg rex rexb b);
         segmentation-set-for-base base;
-              return (SUM{b=SCALE{imm=s, opnd=reg rex rexx i}, a=base})
+              return (X86_SUM{b=X86_SCALE{imm=s, opnd=reg rex rexx i}, a=base})
       end
          end
    end
@@ -2175,12 +2175,12 @@ val r/m-with-sib = do
     | '01':
          do
             i <- imm8;
-            mem (SUM{a=sibOpnd, b=i})
+            mem (X86_SUM{a=sibOpnd, b=i})
          end
     | '10':
          do
             i <- imm32;
-            mem (SUM{a=sibOpnd, b=i})
+            mem (X86_SUM{a=sibOpnd, b=i})
          end
    end
 end
@@ -2199,7 +2199,7 @@ val r/m-without-sib = do
                   mode <- query $mode64;
                   i <- imm32;
                   if mode
-                     then mem (SUM{a=REG RIP,b=i})
+                     then mem (X86_SUM{a=REG RIP,b=i})
                   else mem i
                end
           | _ :
@@ -2214,14 +2214,14 @@ val r/m-without-sib = do
             i <- imm8;
       base <- return (addr-reg rex rexb rm);
             segmentation-set-for-base base;
-            mem (SUM{a=base, b=i})
+            mem (X86_SUM{a=base, b=i})
          end
     | '10':
          do
             i <- imm32;
       base <- return (addr-reg rex rexb rm);
             segmentation-set-for-base base;
-            mem (SUM{a=base, b=i})
+            mem (X86_SUM{a=base, b=i})
          end
    end
 end
