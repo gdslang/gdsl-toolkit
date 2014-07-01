@@ -1,4 +1,4 @@
-type asm-insn = {length:int, mnemonic:string, flags:asm-annotation-list, opnds:asm-opnd-list}
+type asm-insn = {length:int, mnemonic:string, annotations:asm-annotation-list, opnds:asm-opnd-list}
 
 type asm-opnd-list =
    ASM_OPNDS_NIL
@@ -20,8 +20,8 @@ type asm-register =
  | ASM_REGISTER_SO of {mnemonic:string, size:int, offset:int}
 
 type asm-annotation-list =
-   ASM_ANNOTATIONS_NIL
- | ASM_ANNOTATIONS_CONS of {hd:asm-annotation, tl:asm-annotation-list}
+   ASM_ANNS_NIL
+ | ASM_ANNS_CONS of {hd:asm-annotation, tl:asm-annotation-list}
 
 type asm-annotation =
    ASM_ANN_STRING of string
@@ -34,8 +34,8 @@ type asm-immediate =
    ASM_IMMEDIATE of int
  | ASM_UNKNOWN_SIGNEDNESS of {value:int, size:int}
 
-val asm-insn l m o = {length=l, mnemonic=m, flags=ASM_ANNOTATIONS_NIL, opnds=o}
-val asm-insn-flags l m f o = {length=l, mnemonic=m, flags=f, opnds=o}
+val asm-insn l m o = {length=l, mnemonic=m, annotations=asm-anns-none, opnds=o}
+val asm-insn-flags l m a o = {length=l, mnemonic=m, annotations=a, opnds=o}
 
 val asm-opnds-none = ASM_OPNDS_NIL
 val asm-opnds-one hd = ASM_OPNDS_CONS {hd=hd, tl=ASM_OPNDS_NIL}
@@ -54,9 +54,9 @@ val asm-scale f r = ASM_SCALE {factor=f, rhs=r}
 val asm-register mnemonic = ASM_REGISTER_NAME mnemonic
 val asm-register-so mnemonic size offset = ASM_REGISTER_SO {mnemonic=mnemonic, size=size, offset=offset}
 
-val asm-annotations-none = ASM_ANNOTATIONS_NIL
-val asm-annotations-one hd = ASM_ANNOTATIONS_CONS {hd=hd, tl=ASM_ANNOTATIONS_NIL}
-val asm-annotations-more hd tl = ASM_ANNOTATIONS_CONS {hd=hd, tl=tl}
+val asm-anns-none = ASM_ANNS_NIL
+val asm-anns-one hd = ASM_ANNS_CONS {hd=hd, tl=ASM_ANNS_NIL}
+val asm-anns-more hd tl = ASM_ANNS_CONS {hd=hd, tl=tl}
 
 val asm-ann-string s = ASM_ANN_STRING s
 val asm-ann-function name args = ASM_ANN_FUNCTION {name=name, args=args}
