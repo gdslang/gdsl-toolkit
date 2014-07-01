@@ -4,9 +4,11 @@ type asm-opnd-list =
    ASM_OPNDS_NIL
  | ASM_OPNDS_CONS of {hd:asm-opnd, tl:asm-opnd-list}
 
+# Memory: boundary (mem (boundary pointer))
+
 type asm-opnd =
-   ASM_REGISTER of asm-register
- | ASM_MEMORY of asm-memory
+   ASM_REGISTER of string
+ | ASM_MEMORY of asm-opnd
  | ASM_IMM of asm-immediate
  | ASM_POST_OP of {expr:asm-opnd, opnd:asm-opnd}
  | ASM_PRE_OP of {expr:asm-opnd, opnd:asm-opnd}
@@ -14,10 +16,13 @@ type asm-opnd =
  | ASM_ANNOTATION of asm-annotation
  | ASM_SUM of {lhs:asm-opnd, rhs:asm-opnd}
  | ASM_SCALE of {factor:int, rhs:asm-opnd}
+ | ASM_BOUNDED of {boundary: asm-boundary, opnd:asm-opnd}
 
-type asm-register =
-   ASM_REGISTER_NAME of string
- | ASM_REGISTER_SO of {mnemonic:string, size:int, offset:int}
+type asm-boundary =
+ | ASM_BOUNDARY_SZ of int
+ | ASM_BOUNDARY_SZ_O of {size:int, offset:int}
+
+type asm-register = string
 
 type asm-annotation-list =
    ASM_ANNS_NIL
@@ -27,8 +32,6 @@ type asm-annotation =
    ASM_ANN_STRING of string
  | ASM_ANN_FUNCTION of {name:string, args:asm-opnd-list}
  | ASM_ANN_OPND of {name:string, opnd:asm-opnd}
-
-type asm-memory = {deref-size:int, pointer:asm-opnd}
 
 type asm-immediate =
    ASM_IMMEDIATE of int
@@ -51,7 +54,6 @@ val asm-annotation a = ASM_ANNOTATION a
 val asm-sum l r = ASM_SUM {lhs=l, rhs=r}
 val asm-scale f r = ASM_SCALE {factor=f, rhs=r}
 
-val asm-register mnemonic = ASM_REGISTER_NAME mnemonic
 val asm-register-so mnemonic size offset = ASM_REGISTER_SO {mnemonic=mnemonic, size=size, offset=offset}
 
 val asm-anns-none = ASM_ANNS_NIL
