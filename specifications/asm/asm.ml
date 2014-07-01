@@ -4,22 +4,22 @@ type opnd_list =
    OPNDS_NIL
  | OPNDS_CONS of {hd:opnd, tl:opnd_list}
 
-type aso =
+type rso =
    FLO of lso
  | IMM of {signedness:signedness, immediate:immediate}
- | SUM of {lhs:aso, rhs:aso}
- | SCALE of {factor:int, rhs:aso}
- | REL of aso
+ | SUM of {lhs:rso, rhs:rso}
+ | SCALE of {factor:int, rhs:rso}
+ | REL of rso
 
 type lso =
    REGISTER of register
  | MEMORY of {deref-size:int, pointer:opnd}
- | POST_OP of {expr:aso, lso:lso}
- | PRE_OP of {expr:aso, lso:lso}
+ | POST_OP of {expr:rso, lso:lso}
+ | PRE_OP of {expr:rso, lso:lso}
 
 type opnd =
    LSO of lso
- | ASO of aso
+ | RSO of rso
  | CATEGORY of {category:string, opnd:opnd}
 
 type register = {mnemonic:string, size:int, offset:int}
@@ -46,6 +46,7 @@ type immediate =
 type flags =
    CONDITION of opnd
  | SFLAGS of string
+ | NOFLAGS
 
 val imm-as-uint imm = case imm of
    I1 i: zx i
@@ -76,3 +77,23 @@ val imm-as-int imm = case imm of
  | I256 i: sx i
  | I512 i: sx i
 end
+
+val asm-rreg r = FLO (asm-lreg r)
+val asm-rmem dsize ptr = FLO (asm-lmem dsize ptr)
+val asm-rpo expr lso = FLO (asm-lpo expr lso)
+val asm-rpr expr lso = FLO (asm-lpr expr lso)
+
+
+val asm-lreg r = REGISTER r
+val asm-lmem dsize ptr = MEMORY {deref-size=dsize, pointer=ptr}
+val asm-lpo expr lso = POST_OP {expr=expr, lso=lso}
+val asm-lpr expr lso = PRE_OP {expr=expr, lso=lso}
+
+val asm-register mnemonic size offset = {mnemonic=mnemonic, size=size, offset=offset}
+
+val asm-int imm = {signedness=SIGNED, immediate=imm}
+val asm-uint imm = {signedness=UNSIGNED, immediate=imm}
+val asm-imm imm = {signedness=UNSPEC, immediate=imm}
+
+val asm-condition opnd = CONDITION opnd
+val asm-flags s = SFLAGS s
