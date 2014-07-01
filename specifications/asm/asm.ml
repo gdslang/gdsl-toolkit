@@ -11,6 +11,9 @@ type rso =
  | SCALE of {factor:int, rhs:rso}
  | REL of rso
 
+#Todo: Gemeiner Typ für Ops
+#Todo: Prefixe für Namen
+
 type lso =
    REGISTER of register
  | MEMORY of {deref-size:int, pointer:opnd}
@@ -22,12 +25,16 @@ type opnd =
  | RSO of rso
  | CATEGORY of {category:string, opnd:opnd}
 
-type register = {mnemonic:string, size:int, offset:int}
+type register =
+   REGISTER_NAME of string
+ | REGISTER_SO of {mnemonic:string, size:int, offset:int}
 
 type signedness =
    UNSIGNED
  | SIGNED
  | UNSPEC
+
+#Todo: int + size statt v
 
 type immediate =
    I1 of 1
@@ -78,18 +85,34 @@ val imm-as-int imm = case imm of
  | I512 i: sx i
 end
 
+val asm-insn l m o = {length=l, mnemonic=m, flags=NOFLAGS, opnds=o}
+val asm-insn-flags l m f o = {length=l, mnemonic=m, flags=f, opnds=o}
+
+val asm-opnds-none = OPNDS_NIL
+val asm-opnds-one hd = OPNDS_CONS {hd=hd, tl=OPNDS_NIL}
+val asm-opnds-more hd tl = OPNDS_CONS {hd=hd, tl=tl}
+
+val asm-froml l = FLO l
 val asm-rreg r = FLO (asm-lreg r)
 val asm-rmem dsize ptr = FLO (asm-lmem dsize ptr)
 val asm-rpo expr lso = FLO (asm-lpo expr lso)
 val asm-rpr expr lso = FLO (asm-lpr expr lso)
-
+val asm-rimm simm = IMM simm
+val asm-rsum l r = SUM {lhs=l, rhs=r}
+val asm-rscale f r = SCALE {factor=f, rhs=r}
+val asm-rel o = REL o
 
 val asm-lreg r = REGISTER r
 val asm-lmem dsize ptr = MEMORY {deref-size=dsize, pointer=ptr}
 val asm-lpo expr lso = POST_OP {expr=expr, lso=lso}
 val asm-lpr expr lso = PRE_OP {expr=expr, lso=lso}
 
-val asm-register mnemonic size offset = {mnemonic=mnemonic, size=size, offset=offset}
+val asm-lopnd l = LSO l
+val asm-ropnd r = RSO r
+val asm-copnd c o = CATEGORY {category=c, opnd=o}
+
+val asm-register mnemonic = REGISTER_NAME mnemonic
+val asm-register-so mnemonic size offset = REGISTER_SO {mnemonic=mnemonic, size=size, offset=offset}
 
 val asm-int imm = {signedness=SIGNED, immediate=imm}
 val asm-uint imm = {signedness=UNSIGNED, immediate=imm}

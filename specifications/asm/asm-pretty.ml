@@ -38,10 +38,13 @@ val show/lso l = case l of
  | PRE_OP pr: "([" +++ show/lso pr.lso +++ " := " +++ show/rso pr.expr +++ "] " +++ show/lso pr.lso +++ ")"
 end
 
-val show/register r = from-string-lit r.mnemonic +++ (if (r.offset === 0) == '0' then
-    "." +++ show-int r.offset
-  else
-    ""
-  ) +++ "/" +++ show-int r.size
+val show/register r = case r of
+   REGISTER_NAME n: from-string-lit n
+ | REGISTER_SO r: from-string-lit r.mnemonic +++ (if (r.offset === 0) == '0' then
+     "." +++ show-int r.offset
+   else
+     ""
+   ) +++ "/" +++ show-int r.size
+end
 
 val show/memory m = "*" +++ show/opnd m.pointer
