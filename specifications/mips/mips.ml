@@ -1,5 +1,5 @@
 granularity = 32
-export = config-default decode
+export = config-default decode typeof-opnd insn-length
 
 val force-int-for-decode-config = decode config-default
 
@@ -8,8 +8,6 @@ type imm =
  | IMM16 of 16
  | OFFSET9 of 9
  | OFFSET16 of 16
- | FMT3 of 3
- | FMT5 of 5
  | SEL of 3
  | IMPL of 16
  | CODE10 of 10
@@ -26,34 +24,126 @@ type imm =
  | COND of 4
  | OP of 5
 
-type leftop =
+type lvalue =
    GPR of register
  | FPR of register
  | FPC of register
 
-type rightop =
-   LEFTOP of leftop
+type rvalue =
+   LVALUE of lvalue
  | IMM of imm
 
-val right leftop = do
-  leftop <- leftop;
-  return (LEFTOP leftop)
+type format = 
+   S
+ | D
+ | W
+ | L
+ | PS
+
+val right lvalue = do
+  lvalue <- lvalue;
+  return (LVALUE lvalue)
 end
 
 val config-default = ''
 
+val insn-length insn = 4
 
-# -> script from here
+# Immediate - 0
+# Register  - 1
+val typeof-opnd x i = let
+  val typeof-lvalue o =
+    case o of
+       GPR a: 1
+     | FPR a: 1
+    end
+  val typeof-rvalue o =
+    case o of
+       IMM a: 0
+     | LVALUE a:
+          case a of
+             GPR k: 1
+           | FPR k: 1
+          end
+    end
+# -> sftl
+in
+   case (classify x) of
+      UNOP_SRC o:
+         case i of
+            0: typeof-rvalue o.source
+         end
+    | UNOP o:
+         case i of
+            0: typeof-lvalue o.destination
+         end
+    | BINOP_SRC o:
+         case i of
+            0: typeof-rvalue o.source1
+          | 1: typeof-rvalue o.source2
+         end
+    | BINOP_FMT o:
+         case i of
+            0: typeof-lvalue o.destination
+          | 1: typeof-rvalue o.source
+         end
+    | BINOP o:
+         case i of
+            0: typeof-lvalue o.destination
+          | 1: typeof-rvalue o.source
+         end
+    | TERNOP_SRC o:
+         case i of
+            0: typeof-rvalue o.source1
+          | 1: typeof-rvalue o.source2
+          | 2: typeof-rvalue o.source3
+         end
+    | TERNOP o:
+         case i of
+            0: typeof-lvalue o.destination
+          | 1: typeof-rvalue o.source1
+          | 2: typeof-rvalue o.source2
+         end
+    | TERNOP_FMT o:
+         case i of
+            0: typeof-lvalue o.destination
+          | 1: typeof-rvalue o.source1
+          | 2: typeof-rvalue o.source2
+         end
+    | QUADOP o:
+         case i of
+            0: typeof-lvalue o.destination
+          | 1: typeof-rvalue o.source1
+          | 2: typeof-rvalue o.source2
+          | 3: typeof-rvalue o.source3
+         end
+    | QUADOP_FMT o:
+         case i of
+            0: typeof-lvalue o.destination
+          | 1: typeof-rvalue o.source1
+          | 2: typeof-rvalue o.source2
+          | 3: typeof-rvalue o.source3
+         end
+    | QUADOP_FMT_SRC o:
+         case i of
+            0: typeof-rvalue o.source1
+          | 1: typeof-rvalue o.source2
+          | 2: typeof-rvalue o.source3
+          | 3: typeof-rvalue o.source4
+         end
+   end
+end
+
 
 val decode config = do
-  update@{rs='',rt='',rd='',fr='',fs='',ft='',fd='',immediate='',offset='',fmt='',sel='',impl='',code10='',code19='',code20='',stype='',msb='',msbd='',lsb='',hint='',sa='',instr_index='',cofun='',cc='',cond='',op=''};
+  update@{rs='',rt='',rd='',fr='',fs='',ft='',fd='',immediate='',offset='',sel='',impl='',code10='',code19='',code20='',stype='',msb='',msbd='',lsb='',sa='',instr_index='',cofun='',cc='',cond='',op='',hint='',fmt=''};
   /
 end
 
 
 ### ABS-fmt
 ###  - Floating Point Absolute Value
-val / ['010001 1 /fmt4 00000 /fs /fd 000101'] = ternop ABS-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sdps 00000 /fs /fd 000101'] = binop-fmt ABS-fmt fmt fd (right fs) 
 
 ### ADD
 ###  - Add Word
@@ -61,7 +151,7 @@ val / ['000000 /rs /rt /rd 00000 100000'] = ternop ADD rd (right rs) (right rt)
 
 ### ADD-fmt
 ###  - Floating Point Add
-val / ['010001 1 /fmt4 /ft /fs /fd 000000'] = quadop ADD-fmt fd fmt4 (right ft) (right fs) 
+val / ['010001 /fmt5sdps /ft /fs /fd 000000'] = ternop-fmt ADD-fmt fmt fd (right ft) (right fs) 
 
 ### ADDI
 ###  - Add Immediate Word
@@ -197,7 +287,7 @@ val / ['000000 /code20 001101'] = unop-src BREAK code20
 
 ### C-cond-fmt
 ###  - Floating Point Compare
-val / ['010001 1 /fmt4 /ft /fs /cc 0 0 11 /cond'] = quinop-src C-cond-fmt fmt4 (right ft) (right fs) cc cond 
+val / ['010001 /fmt5sdps /ft /fs /cc 0 0 11 /cond'] = quadop-fmt-src C-cond-fmt fmt (right ft) (right fs) cc cond 
 
 ### CACHE
 ###  - Perform Cache Operation
@@ -209,11 +299,11 @@ val / ['011111 /rs /op /offset9 0 011011'] = ternop-src CACHEE (right rs) op off
 
 ### CEIL-L-fmt
 ###  - Fixed Point Ceiling Convert to Long Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 001010'] = ternop CEIL-L-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 001010'] = binop-fmt CEIL-L-fmt fmt fd (right fs) 
 
 ### CEIL-W-fmt
 ###  - Floating Point Ceiling Convert to Word Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 001110'] = ternop CEIL-W-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 001110'] = binop-fmt CEIL-W-fmt fmt fd (right fs) 
 
 ### CFC1
 ###  - Move Control Word From Floating Point
@@ -245,11 +335,11 @@ val / ['010010 00110 /rt /impl'] = binop-src CTC2 (right rt) impl
 
 ### CVT-D-fmt
 ###  - Floating Point Convert To Double Floating Point
-val / ['010001 1 /fmt4 00000 /fs /fd 100001'] = ternop CVT-D-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5swl 00000 /fs /fd 100001'] = binop-fmt CVT-D-fmt fmt fd (right fs) 
 
 ### CVT-L-fmt
 ###  - Floating Point Convert to Long Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 100101'] = ternop CVT-L-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 100101'] = binop-fmt CVT-L-fmt fmt fd (right fs) 
 
 ### CVT-PS-S
 ###  - Floating Point Convert Pair to Paired Single
@@ -257,7 +347,7 @@ val / ['010001 10000 /ft /fs /fd 100110'] = ternop CVT-PS-S fd (right ft) (right
 
 ### CVT-S-fmt
 ###  - Floating Point Convert to Single Floating Point
-val / ['010001 1 /fmt4 00000 /fs /fd 100000'] = ternop CVT-S-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5dwl 00000 /fs /fd 100000'] = binop-fmt CVT-S-fmt fmt fd (right fs) 
 
 ### CVT-S-PL
 ###  - Floating Point Convert Pair Lower to Single Floating Point
@@ -265,11 +355,11 @@ val / ['010001 10110 00000 /fs /fd 101000'] = binop CVT-S-PL fd (right fs)
 
 ### CVT-S-PU
 ###  - Floating Point Convert Pair Upper to Single Floating Point
-###  -> see CVT-S-fmt 10110, fs, FD
+val / ['010001 10110 00000 /fs /fd 100000'] = binop CVT-S-PU fd (right fs) 
 
 ### CVT-W-fmt
 ###  - Floating Point Convert to Word Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 100100'] = ternop CVT-W-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 100100'] = binop-fmt CVT-W-fmt fmt fd (right fs) 
 
 ### DERET
 ###  - Debug Exception Return
@@ -285,7 +375,7 @@ val / ['000000 /rs /rt 0000000000 011010'] = binop-src DIV (right rs) (right rt)
 
 ### DIV-fmt
 ###  - Floating Point Divide
-val / ['010001 1 /fmt4 /ft /fs /fd 000011'] = quadop DIV-fmt fd fmt4 (right ft) (right fs) 
+val / ['010001 /fmt5sd /ft /fs /fd 000011'] = ternop-fmt DIV-fmt fmt fd (right ft) (right fs) 
 
 ### DIVU
 ###  - Divide Unsigned Word
@@ -309,11 +399,11 @@ val / ['011111 /rs /rt /msbd /lsb 000000'] = quadop EXT rt (right rs) msbd lsb
 
 ### FLOOR-L-fmt
 ###  - Floating Point Floor Convert to Long Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 001011'] = ternop FLOOR-L-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 001011'] = binop-fmt FLOOR-L-fmt fmt fd (right fs) 
 
 ### FLOOR-W-fmt
 ###  - Floating Point Floor Convert to Word Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 001111'] = ternop FLOOR-W-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 001111'] = binop-fmt FLOOR-W-fmt fmt fd (right fs) 
 
 ### INS
 ###  - Insert Bit Field
@@ -329,7 +419,11 @@ val / ['000011 /instr_index'] = unop-src JAL instr_index
 
 ### JALR
 ###  - Jump And Link Register
-val / ['000000 /rs 00000 /rd /hint 001001'] = ternop JALR rd (right rs) hint 
+val / ['000000 /rs 00000 /rd /hint5zero 001001'] = ternop JALR rd (right rs) hint5 
+
+### JALR-HB
+###  - Jump and Link Register with Hazard Barrier
+val / ['000000 /rs 00000 /rd 1 /hint4zero 001001'] = ternop JALR-HB rd (right rs) hint5 
 
 ### JALX
 ###  - Jump and Link Exchange
@@ -337,7 +431,11 @@ val / ['011101 /instr_index'] = unop-src JALX instr_index
 
 ### JR
 ###  - Jump Register
-val / ['000000 /rs 0000000000 /hint 001000'] = binop-src JR (right rs) hint 
+val / ['000000 /rs 0000000000 /hint5zero 001000'] = binop-src JR (right rs) hint5 
+
+### JR-HB
+###  - Jump Register with Hazard Barrier
+val / ['000000 /rs 0000000000 1 /hint4zero 001000'] = binop-src JR-HB (right rs) hint5 
 
 ### LB
 ###  - Load Byte
@@ -441,7 +539,7 @@ val / ['011100 /rs /rt 00000 00000 000000'] = binop-src MADD (right rs) (right r
 
 ### MADD-fmt
 ###  - Floating Point Multiply Add
-val / ['010011 /fr /ft /fs /fd 100 /fmt3'] = quinop MADD-fmt fd (right fr) (right ft) (right fs) fmt3 
+val / ['010011 /fr /ft /fs /fd 100 /fmt3sdps'] = quadop-fmt MADD-fmt fmt fd (right fr) (right ft) (right fs) 
 
 ### MADDU
 ###  - Multiply and Add Unsigned Word to Hi,Lo
@@ -477,7 +575,7 @@ val / ['000000 0000000000 /rd 00000 010010'] = unop MFLO rd
 
 ### MOV-fmt
 ###  - Floating Point Move
-val / ['010001 1 /fmt4 00000 /fs /fd 000110'] = ternop MOV-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sdps 00000 /fs /fd 000110'] = binop-fmt MOV-fmt fmt fd (right fs) 
 
 ### MOVF
 ###  - Move Conditional on Floating Point False
@@ -485,7 +583,7 @@ val / ['000000 /rs /cc 0 0 /rd 00000 000001'] = ternop MOVF rd (right rs) cc
 
 ### MOVF-fmt
 ###  - Floating Point Move Conditional on Floating Point False
-val / ['010001 1 /fmt4 /cc 0 0 /fs /fd 010001'] = quadop MOVF-fmt fd fmt4 cc (right fs) 
+val / ['010001 /fmt5sdps /cc 0 0 /fs /fd 010001'] = ternop-fmt MOVF-fmt fmt fd cc (right fs) 
 
 ### MOVN
 ###  - Move Conditional on Not Zero
@@ -493,7 +591,7 @@ val / ['000000 /rs /rt /rd 00000 001011'] = ternop MOVN rd (right rs) (right rt)
 
 ### MOVN-fmt
 ###  - Floating Point Move Conditional on Not Zero
-val / ['010001 1 /fmt4 /rt /fs /fd 010011'] = quadop MOVN-fmt fd fmt4 (right rt) (right fs) 
+val / ['010001 /fmt5sdps /rt /fs /fd 010011'] = ternop-fmt MOVN-fmt fmt fd (right rt) (right fs) 
 
 ### MOVT
 ###  - Move Conditional on Floating Point True
@@ -501,7 +599,7 @@ val / ['000000 /rs /cc 0 1 /rd 00000 000001'] = ternop MOVT rd (right rs) cc
 
 ### MOVT-fmt
 ###  - Floating Point Move Conditional on Floating Point True
-val / ['010001 1 /fmt4 /cc 0 1 /fs /fd 010001'] = quadop MOVT-fmt fd fmt4 cc (right fs) 
+val / ['010001 /fmt5sdps /cc 0 1 /fs /fd 010001'] = ternop-fmt MOVT-fmt fmt fd cc (right fs) 
 
 ### MOVZ
 ###  - Move Conditional on Not Zero
@@ -509,7 +607,7 @@ val / ['000000 /rs /rt /rd 00000 001010'] = ternop MOVZ rd (right rs) (right rt)
 
 ### MOVZ-fmt
 ###  - Floating Point Move Conditional on Zero
-val / ['010001 1 /fmt4 /rt /fs /fd 010010'] = quadop MOVZ-fmt fd fmt4 (right rt) (right fs) 
+val / ['010001 /fmt5sdps /rt /fs /fd 010010'] = ternop-fmt MOVZ-fmt fmt fd (right rt) (right fs) 
 
 ### MSUB
 ###  - Multiply and Subtract Word to Hi,Lo
@@ -517,7 +615,7 @@ val / ['011100 /rs /rt 00000 00000 000100'] = binop-src MSUB (right rs) (right r
 
 ### MSUB-fmt
 ###  - Floating Point Multiply Subtract
-val / ['010011 /fr /ft /fs /fd 101 /fmt3'] = quinop MSUB-fmt fd (right fr) (right ft) (right fs) fmt3 
+val / ['010011 /fr /ft /fs /fd 101 /fmt3sdps'] = quadop-fmt MSUB-fmt fmt fd (right fr) (right ft) (right fs) 
 
 ### MSUBU
 ###  - Multiply and Subtract Word to Hi,Lo
@@ -557,7 +655,7 @@ val / ['011100 /rs /rt /rd 00000 000010'] = ternop MUL rd (right rs) (right rt)
 
 ### MUL-fmt
 ###  - Floating Point Multiply
-val / ['010001 1 /fmt4 /ft /fs /fd 000010'] = quadop MUL-fmt fd fmt4 (right ft) (right fs) 
+val / ['010001 /fmt5sdps /ft /fs /fd 000010'] = ternop-fmt MUL-fmt fmt fd (right ft) (right fs) 
 
 ### MULT
 ###  - Multiply Word
@@ -569,15 +667,15 @@ val / ['000000 /rs /rt 0000000000 011001'] = binop-src MULTU (right rs) (right r
 
 ### NEG-fmt
 ###  - Floating Point Negate
-val / ['010001 1 /fmt4 00000 /fs /fd 000111'] = ternop NEG-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sdps 00000 /fs /fd 000111'] = binop-fmt NEG-fmt fmt fd (right fs) 
 
 ### NMADD-fmt
 ###  - Floating Point Negative Multiply Add
-val / ['010011 /fr /ft /fs /fd 110 /fmt3'] = quinop NMADD-fmt fd (right fr) (right ft) (right fs) fmt3 
+val / ['010011 /fr /ft /fs /fd 110 /fmt3sdps'] = quadop-fmt NMADD-fmt fmt fd (right fr) (right ft) (right fs) 
 
 ### NMSUB-fmt
 ###  - Floating Point Negative Multiply Subtract
-val / ['010011 /fr /ft /fs /fd 111 /fmt3'] = quinop NMSUB-fmt fd (right fr) (right ft) (right fs) fmt3 
+val / ['010011 /fr /ft /fs /fd 111 /fmt3sdps'] = quadop-fmt NMSUB-fmt fmt fd (right fr) (right ft) (right fs) 
 
 ### NOP
 ###  - No Operation
@@ -609,15 +707,15 @@ val / ['010001 10110 /ft /fs /fd 101101'] = ternop PLU-PS fd (right ft) (right f
 
 ### PREF
 ###  - Prefetch
-val / ['110011 /rs /hint /offset16'] = ternop-src PREF (right rs) hint offset16 
+val / ['110011 /rs /hint5 /offset16'] = ternop-src PREF (right rs) hint5 offset16 
 
 ### PREFE
 ###  - Prefetch EVA
-val / ['011111 /rs /hint /offset9 0 100011'] = ternop-src PREFE (right rs) hint offset9 
+val / ['011111 /rs /hint5 /offset9 0 100011'] = ternop-src PREFE (right rs) hint5 offset9 
 
 ### PREFX
 ###  - Prefetch Indexed
-val / ['010011 /rs /rt /hint 00000 001111'] = ternop-src PREFX (right rs) (right rt) hint 
+val / ['010011 /rs /rt /hint5 00000 001111'] = ternop-src PREFX (right rs) (right rt) hint5 
 
 ### PUL-PS
 ###  - Pair Upper Lower
@@ -637,7 +735,7 @@ val / ['010000 01010 /rt /rd 00000000000'] = binop RDPGPR rd rt/imm
 
 ### RECIP-fmt
 ###  - Reciprocal Approximation
-val / ['010001 1 /fmt4 00000 /fs /fd 010101'] = ternop RECIP-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 010101'] = binop-fmt RECIP-fmt fmt fd (right fs) 
 
 ### ROTR
 ###  - Rotate Word Right
@@ -649,15 +747,15 @@ val / ['000000 /rs /rt /rd 0000 1 000110'] = ternop ROTRV rd (right rs) (right r
 
 ### ROUND-L-fmt
 ###  - Floating Point Round to Long Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 001000'] = ternop ROUND-L-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 001000'] = binop-fmt ROUND-L-fmt fmt fd (right fs) 
 
 ### ROUND-W-fmt
 ###  - Floating Point Round to Word Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 001100'] = ternop ROUND-W-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 001100'] = binop-fmt ROUND-W-fmt fmt fd (right fs) 
 
 ### RSQRT-fmt
 ###  - Reciprocal Square Root Approximation
-val / ['010001 1 /fmt4 00000 /fs /fd 010110'] = ternop RSQRT-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 010110'] = binop-fmt RSQRT-fmt fmt fd (right fs) 
 
 ### SB
 ###  - Store Byte
@@ -733,7 +831,7 @@ val / ['000000 /rs /rt /rd 00000 101011'] = ternop SLTU rd (right rs) (right rt)
 
 ### SQRT-fmt
 ###  - Floating Point Square Root
-val / ['010001 1 /fmt4 00000 /fs /fd 000100'] = ternop SQRT-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 000100'] = binop-fmt SQRT-fmt fmt fd (right fs) 
 
 ### SRA
 ###  - Shift Word Right Arithmetic
@@ -761,7 +859,7 @@ val / ['000000 /rs /rt /rd 00000 100010'] = ternop SUB rd (right rs) (right rt)
 
 ### SUB-fmt
 ###  - Floating Point Subtract
-val / ['010001 1 /fmt4 /ft /fs /fd 000001'] = quadop SUB-fmt fd fmt4 (right ft) (right fs) 
+val / ['010001 /fmt5sdps /ft /fs /fd 000001'] = ternop-fmt SUB-fmt fmt fd (right ft) (right fs) 
 
 ### SUBU
 ###  - Subtract Unsigned Word
@@ -893,11 +991,11 @@ val / ['000001 /rs 01110 /immediate'] = binop-src TNEI (right rs) immediate
 
 ### TRUNC-L-fmt
 ###  - Floating Point Truncate to Long Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 001001'] = ternop TRUNC-L-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 001001'] = binop-fmt TRUNC-L-fmt fmt fd (right fs) 
 
 ### TRUNC-W-fmt
 ###  - Floating Point Truncate to Word Fixed Point
-val / ['010001 1 /fmt4 00000 /fs /fd 001101'] = ternop TRUNC-W-fmt fd fmt4 (right fs) 
+val / ['010001 /fmt5sd 00000 /fs /fd 001101'] = binop-fmt TRUNC-W-fmt fmt fd (right fs) 
 
 ### WAIT
 ###  - Enter Standby Mode
@@ -998,18 +1096,6 @@ val offset9 = do
   return (IMM (OFFSET9 offset))
 end
 
-val fmt4 = do
-  fmt <- query $fmt;
-  update @{fmt=''};
-  return (IMM (FMT5 ('1' ^ fmt)))
-end
-
-val fmt3 = do
-  fmt <- query $fmt;
-  update @{fmt=''};
-  return (IMM (FMT3 fmt))
-end
-
 val sel = do
   sel <- query $sel;
   update @{sel=''};
@@ -1064,12 +1150,6 @@ val lsb = do
   return (IMM (POS lsb))
 end
 
-val hint = do
-  hint <- query $hint;
-  update @{hint=''};
-  return (IMM (HINT hint))
-end
-
 val sa = do
   sa <- query $sa;
   update @{sa=''};
@@ -1106,6 +1186,18 @@ val op = do
   return (IMM (OP op))
 end
 
+val hint5 = do
+  hint <- query $hint;
+  update @{hint=''};
+  return (IMM (HINT hint))
+end
+
+val fmt = do
+  fmt <- query $fmt;
+  update @{fmt=''};
+  return (format-from-bits (fmt))
+end
+
 
 val /rs ['rs:5'] = update@{rs=rs}
 val /rt ['rt:5'] = update@{rt=rt}
@@ -1117,8 +1209,6 @@ val /fd ['fd:5'] = update@{fd=fd}
 val /immediate ['immediate:16'] = update@{immediate=immediate}
 val /offset16 ['offset:16'] = update@{offset=offset}
 val /offset9 ['offset:9'] = update@{offset=offset}
-val /fmt4 ['fmt:4'] = update@{fmt=fmt}
-val /fmt3 ['fmt:3'] = update@{fmt=fmt}
 val /sel ['sel:3'] = update@{sel=sel}
 val /impl ['impl:16'] = update@{impl=impl}
 val /code10 ['code10:10'] = update@{code10=code10}
@@ -1128,24 +1218,42 @@ val /stype ['stype:5'] = update@{stype=stype}
 val /msb ['msb:5'] = update@{msb=msb}
 val /msbd ['msbd:5'] = update@{msbd=msbd}
 val /lsb ['lsb:5'] = update@{lsb=lsb}
-val /hint ['hint:5'] = update@{hint=hint}
 val /sa ['sa:5'] = update@{sa=sa}
 val /instr_index ['instr_index:26'] = update@{instr_index=instr_index}
 val /cofun ['cofun:25'] = update@{cofun=cofun}
 val /cc ['cc:3'] = update@{cc=cc}
 val /cond ['cond:4'] = update@{cond=cond}
 val /op ['op:5'] = update@{op=op}
+val /hint5 ['hint:5'] = update@{hint=hint}
+val /hint5zero ['00000'] = update@{hint='00000'}
+val /hint4zero ['0000'] = update@{hint='00000'}
+val /fmt5sd ['10000'] = update@{fmt='10000'}
+val /fmt5sd ['10001'] = update@{fmt='10001'}
+val /fmt5sdps ['10000'] = update@{fmt='10000'}
+val /fmt5sdps ['10001'] = update@{fmt='10001'}
+val /fmt5sdps ['10110'] = update@{fmt='10110'}
+val /fmt5dwl ['10001'] = update@{fmt='10001'}
+val /fmt5dwl ['10100'] = update@{fmt='10100'}
+val /fmt5dwl ['10101'] = update@{fmt='10101'}
+val /fmt5swl ['10000'] = update@{fmt='10000'}
+val /fmt5swl ['10100'] = update@{fmt='10100'}
+val /fmt5swl ['10101'] = update@{fmt='10101'}
+val /fmt3sdps ['000'] = update@{fmt='10000'}
+val /fmt3sdps ['001'] = update@{fmt='10001'}
+val /fmt3sdps ['110'] = update@{fmt='10110'}
 
 
-type unop-src = {source:rightop}
-type unop = {destination:leftop}
-type binop-src = {source1:rightop,source2:rightop}
-type binop = {destination:leftop,source:rightop}
-type ternop-src = {source1:rightop,source2:rightop,source3:rightop}
-type ternop = {destination:leftop,source1:rightop,source2:rightop}
-type quadop = {destination:leftop,source1:rightop,source2:rightop,source3:rightop}
-type quinop-src = {source1:rightop,source2:rightop,source3:rightop,source4:rightop,source5:rightop}
-type quinop = {destination:leftop,source1:rightop,source2:rightop,source3:rightop,source4:rightop}
+type unop-src = {source:rvalue}
+type unop = {destination:lvalue}
+type binop-src = {source1:rvalue,source2:rvalue}
+type binop-fmt = {fmt:format,destination:lvalue,source:rvalue}
+type binop = {destination:lvalue,source:rvalue}
+type ternop-src = {source1:rvalue,source2:rvalue,source3:rvalue}
+type ternop = {destination:lvalue,source1:rvalue,source2:rvalue}
+type ternop-fmt = {fmt:format,destination:lvalue,source1:rvalue,source2:rvalue}
+type quadop = {destination:lvalue,source1:rvalue,source2:rvalue,source3:rvalue}
+type quadop-fmt = {fmt:format,destination:lvalue,source1:rvalue,source2:rvalue,source3:rvalue}
+type quadop-fmt-src = {fmt:format,source1:rvalue,source2:rvalue,source3:rvalue,source4:rvalue}
 
 
 val nullop cons = do
@@ -1168,6 +1276,13 @@ val binop-src cons source1 source2 = do
  return (cons {source1=source1, source2=source2})
 end
 
+val binop-fmt cons fmt destination source = do
+ fmt <- fmt;
+ destination <- destination;
+ source <- source;
+ return (cons {fmt=fmt, destination=destination, source=source})
+end
+
 val binop cons destination source = do
  destination <- destination;
  source <- source;
@@ -1188,6 +1303,14 @@ val ternop cons destination source1 source2 = do
  return (cons {destination=destination, source1=source1, source2=source2})
 end
 
+val ternop-fmt cons fmt destination source1 source2 = do
+ fmt <- fmt;
+ destination <- destination;
+ source1 <- source1;
+ source2 <- source2;
+ return (cons {fmt=fmt, destination=destination, source1=source1, source2=source2})
+end
+
 val quadop cons destination source1 source2 source3 = do
  destination <- destination;
  source1 <- source1;
@@ -1196,29 +1319,29 @@ val quadop cons destination source1 source2 source3 = do
  return (cons {destination=destination, source1=source1, source2=source2, source3=source3})
 end
 
-val quinop-src cons source1 source2 source3 source4 source5 = do
- source1 <- source1;
- source2 <- source2;
- source3 <- source3;
- source4 <- source4;
- source5 <- source5;
- return (cons {source1=source1, source2=source2, source3=source3, source4=source4, source5=source5})
-end
-
-val quinop cons destination source1 source2 source3 source4 = do
+val quadop-fmt cons fmt destination source1 source2 source3 = do
+ fmt <- fmt;
  destination <- destination;
  source1 <- source1;
  source2 <- source2;
  source3 <- source3;
+ return (cons {fmt=fmt, destination=destination, source1=source1, source2=source2, source3=source3})
+end
+
+val quadop-fmt-src cons fmt source1 source2 source3 source4 = do
+ fmt <- fmt;
+ source1 <- source1;
+ source2 <- source2;
+ source3 <- source3;
  source4 <- source4;
- return (cons {destination=destination, source1=source1, source2=source2, source3=source3, source4=source4})
+ return (cons {fmt=fmt, source1=source1, source2=source2, source3=source3, source4=source4})
 end
 
 
 type instruction = 
-   ABS-fmt of ternop
+   ABS-fmt of binop-fmt
  | ADD of ternop
- | ADD-fmt of quadop
+ | ADD-fmt of ternop-fmt
  | ADDI of ternop
  | ADDIU of ternop
  | ADDU of ternop
@@ -1250,11 +1373,11 @@ type instruction =
  | BNE of ternop-src
  | BNEL of ternop-src
  | BREAK of unop-src
- | C-cond-fmt of quinop-src
+ | C-cond-fmt of quadop-fmt-src
  | CACHE of ternop-src
  | CACHEE of ternop-src
- | CEIL-L-fmt of ternop
- | CEIL-W-fmt of ternop
+ | CEIL-L-fmt of binop-fmt
+ | CEIL-W-fmt of binop-fmt
  | CFC1 of binop
  | CFC2 of binop
  | CLO of ternop
@@ -1262,28 +1385,31 @@ type instruction =
  | COP2 of unop-src
  | CTC1 of binop
  | CTC2 of binop-src
- | CVT-D-fmt of ternop
- | CVT-L-fmt of ternop
+ | CVT-D-fmt of binop-fmt
+ | CVT-L-fmt of binop-fmt
  | CVT-PS-S of ternop
- | CVT-S-fmt of ternop
+ | CVT-S-fmt of binop-fmt
  | CVT-S-PL of binop
- | CVT-W-fmt of ternop
+ | CVT-S-PU of binop
+ | CVT-W-fmt of binop-fmt
  | DERET
  | DI of unop
  | DIV of binop-src
- | DIV-fmt of quadop
+ | DIV-fmt of ternop-fmt
  | DIVU of binop-src
  | EI of unop
  | ERET
  | EXT of quadop
- | FLOOR-L-fmt of ternop
- | FLOOR-W-fmt of ternop
+ | FLOOR-L-fmt of binop-fmt
+ | FLOOR-W-fmt of binop-fmt
  | INS of quadop
  | J of unop-src
  | JAL of unop-src
  | JALR of ternop
+ | JALR-HB of ternop
  | JALX of unop-src
  | JR of binop-src
+ | JR-HB of binop-src
  | LB of ternop
  | LBE of ternop
  | LBU of ternop
@@ -1309,7 +1435,7 @@ type instruction =
  | LWRE of ternop
  | LWXC1 of ternop
  | MADD of binop-src
- | MADD-fmt of quinop
+ | MADD-fmt of quadop-fmt
  | MADDU of binop-src
  | MFC0 of ternop
  | MFC1 of binop
@@ -1318,17 +1444,17 @@ type instruction =
  | MFHC2 of binop
  | MFHI of unop
  | MFLO of unop
- | MOV-fmt of ternop
+ | MOV-fmt of binop-fmt
  | MOVF of ternop
- | MOVF-fmt of quadop
+ | MOVF-fmt of ternop-fmt
  | MOVN of ternop
- | MOVN-fmt of quadop
+ | MOVN-fmt of ternop-fmt
  | MOVT of ternop
- | MOVT-fmt of quadop
+ | MOVT-fmt of ternop-fmt
  | MOVZ of ternop
- | MOVZ-fmt of quadop
+ | MOVZ-fmt of ternop-fmt
  | MSUB of binop-src
- | MSUB-fmt of quinop
+ | MSUB-fmt of quadop-fmt
  | MSUBU of binop-src
  | MTC0 of ternop-src
  | MTC1 of binop
@@ -1338,12 +1464,12 @@ type instruction =
  | MTHI of unop-src
  | MTLO of unop-src
  | MUL of ternop
- | MUL-fmt of quadop
+ | MUL-fmt of ternop-fmt
  | MULT of binop-src
  | MULTU of binop-src
- | NEG-fmt of ternop
- | NMADD-fmt of quinop
- | NMSUB-fmt of quinop
+ | NEG-fmt of binop-fmt
+ | NMADD-fmt of quadop-fmt
+ | NMSUB-fmt of quadop-fmt
  | NOR of ternop
  | OR of ternop
  | ORI of ternop
@@ -1356,12 +1482,12 @@ type instruction =
  | PUU-PS of ternop
  | RDHWR of binop
  | RDPGPR of binop
- | RECIP-fmt of ternop
+ | RECIP-fmt of binop-fmt
  | ROTR of ternop
  | ROTRV of ternop
- | ROUND-L-fmt of ternop
- | ROUND-W-fmt of ternop
- | RSQRT-fmt of ternop
+ | ROUND-L-fmt of binop-fmt
+ | ROUND-W-fmt of binop-fmt
+ | RSQRT-fmt of binop-fmt
  | SB of ternop-src
  | SBE of ternop-src
  | SC of ternop
@@ -1380,13 +1506,13 @@ type instruction =
  | SLTI of ternop
  | SLTIU of ternop
  | SLTU of ternop
- | SQRT-fmt of ternop
+ | SQRT-fmt of binop-fmt
  | SRA of ternop
  | SRAV of ternop
  | SRL of ternop
  | SRLV of ternop
  | SUB of ternop
- | SUB-fmt of quadop
+ | SUB-fmt of ternop-fmt
  | SUBU of ternop
  | SUXC1 of ternop-src
  | SW of ternop-src
@@ -1419,15 +1545,15 @@ type instruction =
  | TLTU of ternop-src
  | TNE of ternop-src
  | TNEI of binop-src
- | TRUNC-L-fmt of ternop
- | TRUNC-W-fmt of ternop
+ | TRUNC-L-fmt of binop-fmt
+ | TRUNC-W-fmt of binop-fmt
  | WAIT of unop-src
  | WRPGPR of binop-src
  | WSBH of binop
  | XOR of ternop
  | XORI of ternop
 
-# <- script until here
+# <- sutl
 
 
 type register =
@@ -1439,10 +1565,10 @@ type register =
  | A1
  | A2
  | A3
- | A4
- | A5
- | A6
- | A7
+ | T0
+ | T1
+ | T2
+ | T3
  | T4
  | T5
  | T6
@@ -1485,10 +1611,10 @@ val gpr-from-bits bits =
   | '00101': A1
   | '00110': A2
   | '00111': A3
-  | '01000': A4
-  | '01001': A5
-  | '01010': A6
-  | '01011': A7
+  | '01000': T0
+  | '01001': T1
+  | '01010': T2
+  | '01011': T3
   | '01100': T4
   | '01101': T5
   | '01110': T6
@@ -1510,6 +1636,16 @@ val gpr-from-bits bits =
   | '11110': S8
   | '11111': RA
  end
+
+val format-from-bits bits = 
+ case bits of
+    '10000': S
+  | '10001': D
+  | '10100': W
+  | '10101': L
+  | '10110': PS
+ end
+
 
 val fpr-from-bits bits = (F (zx bits))
 

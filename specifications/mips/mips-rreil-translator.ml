@@ -4,7 +4,7 @@ export = translate
 val sem-foo = return void
 
 
-# -> script from here
+# -> sftl
 
 val semantics i =
    case i of
@@ -59,6 +59,7 @@ val semantics i =
     | CVT-PS-S x: sem-foo
     | CVT-S-fmt x: sem-foo
     | CVT-S-PL x: sem-foo
+    | CVT-S-PU x: sem-foo
     | CVT-W-fmt x: sem-foo
     | DERET: sem-foo
     | DI x: sem-foo
@@ -74,8 +75,10 @@ val semantics i =
     | J x: sem-foo
     | JAL x: sem-foo
     | JALR x: sem-foo
+    | JALR-HB x: sem-foo
     | JALX x: sem-foo
     | JR x: sem-foo
+    | JR-HB x: sem-foo
     | LB x: sem-foo
     | LBE x: sem-foo
     | LBU x: sem-foo
@@ -220,7 +223,7 @@ val semantics i =
     | XORI x: sem-foo
    end
 
-# <- script until here
+# <- sutl
 
 val translate-mips insn = semantics insn
 
