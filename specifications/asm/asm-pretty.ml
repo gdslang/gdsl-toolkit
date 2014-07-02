@@ -1,6 +1,6 @@
-export = asm-pretty{mnemonic, opnds, annotataons}
+export = asm-pretty{mnemonic, opnds, annotations}
 
-val asm-pretty ai = ai.mnemonic +++ show/asm-annotations ai.annotataons -++ show/asm-opnds " " ai.opnds
+val asm-pretty ai = (from-string-lit ai.mnemonic) +++ show/asm-annotations ai.annotations -++ show/asm-opnds " " ai.opnds
 
 val show/asm-opnds dlim opnds = case opnds of
    ASM_OPNDS_NIL: ""
@@ -45,4 +45,4 @@ val show/asm-immediate i = case i of
  | ASM_UNKNOWN_SIGNEDNESS us: show-int us.value +++ "/" +++ show-int us.size #Todo: show as hex string
 end
 
-val show/asm-memory m = "*" +++ show/asm-opnd m
+val show/asm-memory m = "*(" +++ show/asm-opnd m +++ ")"
