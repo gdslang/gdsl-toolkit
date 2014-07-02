@@ -17,15 +17,32 @@ val generalize-opnd opnd = case opnd of
  | IMM16 i: asm-imm (asm-immediate-unk (zx i.imm) 16)
  | IMM32 i: asm-imm (asm-immediate-unk (zx i.imm) 32)
  | IMM64 i: asm-imm (asm-immediate-unk (zx i.imm) 64)
- | REG r: let
-     val rs = semantic-register-of r
-   in
-     asm-reg (asm-register-so (string-from-rope-lit (pretty-arch-id rs.id)) rs.size rs.offset)
-   end
-# | MEM m: 
+ | REG r: generalize-register r
+ | MEM m: generalize-memory m
  | X86_SUM s: asm-sum (generalize-opnd s.a) (generalize-opnd s.b)
  | X86_SCALE s: asm-scale (zx s.imm) (generalize-opnd s.opnd)
 end
+
+val generalize-register r = let
+  val rs = semantic-register-of r
+in
+  asm-bounded (asm-boundary-sz-o rs.size rs.offset) (asm-reg (string-from-rope-lit (pretty-arch-id rs.id)))
+end
+
+val generalize-memory m =
+  asm-bounded (asm-boundary-sz m.sz)
+    (asm-mem ((generalize-segment-override m.segment)
+      (asm-bounded (asm-boundary-sz m.psz)
+        (generalize-opnd m.opnd)
+)))
+
+val generalize-segment-override so = case so of
+   SEG_NONE: let val f o = o in f end
+ | SEG_OVERRIDE o: let
+     val f o = (asm-annotation (asm-ann-opnd "segment" generalize-register so.register) o)
+   in f end
+end
+
 
 # asm-ropnd (asm-rimm (asm-int (I1 '1')))
 

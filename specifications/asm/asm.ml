@@ -13,16 +13,14 @@ type asm-opnd =
  | ASM_POST_OP of {expr:asm-opnd, opnd:asm-opnd}
  | ASM_PRE_OP of {expr:asm-opnd, opnd:asm-opnd}
  | ASM_REL of asm-opnd
- | ASM_ANNOTATION of asm-annotation
+ | ASM_ANNOTATION of {ann:asm-annotation, opnd:asm-opnd}
  | ASM_SUM of {lhs:asm-opnd, rhs:asm-opnd}
  | ASM_SCALE of {factor:int, rhs:asm-opnd}
  | ASM_BOUNDED of {boundary: asm-boundary, opnd:asm-opnd}
 
 type asm-boundary =
- | ASM_BOUNDARY_SZ of int
+   ASM_BOUNDARY_SZ of int
  | ASM_BOUNDARY_SZ_O of {size:int, offset:int}
-
-type asm-register = string
 
 type asm-annotation-list =
    ASM_ANNS_NIL
@@ -45,16 +43,18 @@ val asm-opnds-one hd = ASM_OPNDS_CONS {hd=hd, tl=ASM_OPNDS_NIL}
 val asm-opnds-more hd tl = ASM_OPNDS_CONS {hd=hd, tl=tl}
 
 val asm-reg r = ASM_REGISTER r
-val asm-mem dsize ptr = ASM_MEMORY {deref-size=dsize, pointer=ptr}
+val asm-mem ptr = ASM_MEMORY ptr
 val asm-imm simm = ASM_IMM simm
 val asm-po expr opnd = ASM_POST_OP {expr=expr, opnd=opnd}
 val asm-pr expr opnd = ASM_PRE_OP {expr=expr, opnd=opnd}
 val asm-rel o = ASM_REL o
-val asm-annotation a = ASM_ANNOTATION a
+val asm-annotation a opnd = ASM_ANNOTATION {ann=a, opnd=opnd}
 val asm-sum l r = ASM_SUM {lhs=l, rhs=r}
 val asm-scale f r = ASM_SCALE {factor=f, rhs=r}
+val asm-bounded b o = ASM_BOUNDED {boundary=b, opnd=o}
 
-val asm-register-so mnemonic size offset = ASM_REGISTER_SO {mnemonic=mnemonic, size=size, offset=offset}
+val asm-boundary-sz sz = ASM_BOUNDARY_SZ sz
+val asm-boundary-sz-o sz o = ASM_BOUNDARY_SZ_O {size=sz, offset=o}
 
 val asm-anns-none = ASM_ANNS_NIL
 val asm-anns-one hd = ASM_ANNS_CONS {hd=hd, tl=ASM_ANNS_NIL}

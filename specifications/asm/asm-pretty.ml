@@ -8,24 +8,25 @@ val show/asm-opnds dlim opnds = case opnds of
 end
 
 val show/asm-opnd opnd = case opnd of
-   ASM_REGISTER r: show/asm-register r
+   ASM_REGISTER r: from-string-lit r
  | ASM_MEMORY m: show/asm-memory m
  | ASM_IMM i: show/asm-immediate i
  | ASM_POST_OP po: "(" +++ show/asm-opnd po.opnd +++ " [" +++ show/asm-opnd po.opnd +++ " := " +++ show/asm-opnd po.expr +++ "])"
  | ASM_PRE_OP pr: "([" +++ show/asm-opnd pr.opnd +++ " := " +++ show/asm-opnd pr.expr +++ "] " +++ show/asm-opnd pr.opnd +++ ")"
  | ASM_REL a: "(?+ " -++ show/asm-opnd a +++ ")"
- | ASM_ANNOTATION a: show/asm-annotation a
+ | ASM_ANNOTATION a: show/asm-annotation a.ann +++ ":" +++ show/asm-opnd a.opnd
  | ASM_SUM s: "(" +++ show/asm-opnd s.lhs -++ "+" -++ show/asm-opnd s.rhs +++ ")"
  | ASM_SCALE s: show-int s.factor +++ "*" +++ show/asm-opnd s.rhs
+ | ASM_BOUNDED b: show/asm-opnd b.opnd +++ show/asm-boundary b.boundary
 end
 
-val show/asm-register r = case r of
-   ASM_REGISTER_NAME n: from-string-lit n
- | ASM_REGISTER_SO r: from-string-lit r.mnemonic +++ (if (r.offset === 0) == '0' then
-     "." +++ show-int r.offset
+val show/asm-boundary b = case b of
+   ASM_BOUNDARY_SZ s: "/" +++ show-int s
+ | ASM_BOUNDARY_SZ_O szo: (if (szo.offset === 0) == '0' then
+     "." +++ show-int szo.offset
    else
      ""
-   ) +++ "/" +++ show-int r.size
+   ) +++ "/" +++ show-int szo.size
 end
 
 val show/asm-annotations anns = case anns of
@@ -44,4 +45,4 @@ val show/asm-immediate i = case i of
  | ASM_UNKNOWN_SIGNEDNESS us: show-int us.value +++ "/" +++ show-int us.size #Todo: show as hex string
 end
 
-val show/asm-memory m = "*" +++ show/asm-opnd m.pointer
+val show/asm-memory m = "*" +++ show/asm-opnd m
