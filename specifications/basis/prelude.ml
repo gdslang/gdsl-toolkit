@@ -1,6 +1,7 @@
 # Standard definitions.
 
 export = rope-length rope-print rope-to-string int-max
+export = has-conf conf-short conf-long conf-data conf-next
 
 type rope = RopeLeaf of { rope-size : int, rope-string: string }
           | RopeInner of { rope-size : int, rope-left : rope, rope-right : rope }
@@ -21,6 +22,7 @@ val rope-print r = do
    end
 end
 
+# this function is used by the runtime to convert a rope to a string
 val rope-to-string r buf = do
    let
       val add-to-string r ptr =
@@ -39,6 +41,8 @@ end
 # this function is applied to each string literal during parsing
 val from-string-lit s = RopeLeaf { rope-size = strlen s, rope-string = s }
 
+# convert a string literal to a simple string, this function will fail
+# for strings that are concatenated
 val string-from-rope-lit r = case r of
    RopeLeaf l: l.rope-string
 end
@@ -126,3 +130,71 @@ val // fA =
 # this is a guard that is always true; it is useful to implement the catch-all case
 val otherwise s = '1'
 
+# define a data structure to store configuration data in a generic way:
+# a configuration is a bit vector, it has several on off options
+# represented by one bit each, each option has a short descrption
+# without spaces and a long description
+
+type configuration [v]
+  = END
+  | CONF of { confShortName : string,
+              confLongName : string,
+              confData : v,
+              confNext : configuration }
+
+val has-conf co =
+  case co of
+    END : '0'
+  | _ : '1'
+end
+
+val conf-short co =
+  case co of
+    CONF c : $confShortName c
+end
+
+val conf-long co =
+  case co of
+    CONF c : $confLongName c
+end
+
+val conf-data co =
+  case co of
+    CONF c : $confData c
+end                                     
+
+val conf-next co =
+  case co of
+    CONF c : $confNext c
+end                                     
+
+# helper functions to construct a list of conf options
+# usage:
+# val decoder-confs =
+#   conf '0001' "short1" "long1" &*
+#   conf '0010' "short2" "long1" &*
+#   ....
+#   conf '1000' "shortN" "longN"
+
+val &* c cs = case c of
+    END : cs
+  | CONF r : CONF (@{confNext = cs} r)
+end
+
+val conf data short long = CONF
+  { confShortName = string-from-rope-lit short,
+    confLongName = string-from-rope-lit long,
+    confData = data,
+    confNext = END }
+
+val forceConfType x =
+   let
+     val c = conf '01' "foo" "foo"
+     val r1 = has-conf c
+     val r2 = conf-short c
+     val r3 = conf-long c
+     val r4 = conf-data c
+     val r5 = conf-next c
+   in
+     x
+   end
