@@ -182,7 +182,7 @@ structure Imp = struct
    type imp = {
       decls : decl list,
       fdecls : vtype SymMap.map,
-      exports : sym list,
+      exports : vtype SymMap.map,
       monad : vtype
    }
 

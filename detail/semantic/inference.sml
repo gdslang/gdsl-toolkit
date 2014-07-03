@@ -243,22 +243,9 @@ end = struct
      | calleesTokpat (AST.NAMEDtokpat v) = SymSet.singleton v
      | calleesTokpat _ = SymSet.empty
 
-   fun streamSymId () = SymbolTable.lookup(!SymbolTables.fieldTable,
-                                           Atom.atom Primitives.streamField)
-
    fun pushDecoderType (sym,span,env) =
       let
-         val bVar = BD.freshBVar ()
-         val env = E.meetBoolean (BD.meetVarOne bVar, env)
-         val env = E.pushType (
-            MONAD (freshVar (),
-                        RECORD (freshTVar (), BD.freshBVar (),
-                           [RField {name=streamSymId (),fty=UNIT,exists=bVar}]),
-                        freshVar ()),
-            env)
          val env = E.pushSymbol (sym,span,false,E.LetMono,env)
-         val env = E.equateKappas env
-         val env = E.popKappa env
       in
          env
       end
@@ -266,7 +253,7 @@ end = struct
 
 fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
    val var_counter = TVar.get ()
-   val { tsynDefs, typeDefs, conParents} = ti
+   val { tsynDefs, typeDefs, conParents, exportTypes } = ti
    
    val bindSymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>")
    val bindASymId = SymbolTable.lookup(!SymbolTables.varTable, Atom.atom ">>=")
@@ -1206,26 +1193,51 @@ fun typeInferencePass (errStrm, ti : TI.type_info, ast) = let
       end
       ) toplevelEnv sccs
 
-   (* check if all exported functions can be run with the specified fields *)
-   fun checkDecoder s (sym,fs) =
-      case E.forceNoInputs (sym,streamSymId () :: fs,toplevelEnv) of
-        [] => ()
-      | fs =>
-         let
-            val decStr = SymbolTable.getString(!SymbolTables.varTable, sym)
-            fun genFieldStr (f,(sep,str)) = (", ", str ^ sep ^
-                  SymbolTable.getString(!SymbolTables.fieldTable, f))
-            val (_,fsStr) = List.foldl genFieldStr ("", "") fs
-         in
-            Error.errorAt (errStrm, s,
-               [decStr," is exported but requires fields: ", fsStr]
-            )
-         end
+   (* check if all exported functions can take on the declared type *)
+   fun checkExport (s,sym,(params,ty),env) =
+      let
+         (*val _ = TextIO.print ("checking export of " ^
+            SymbolTable.getString(!SymbolTables.varTable, sym) ^
+            " with type " ^ #1 (showTypeSI (ty,TVar.emptyShowInfo)) ^ "\n")*)
 
-   fun checkExports _ (AST.MARKdecl {span=s, tree=t}) = checkExports s t
-     | checkExports s (AST.EXPORTdecl es) = List.app (checkDecoder s) es
-     | checkExports s _ = ()
-   val _ = List.app (checkExports SymbolTable.noSpan) ast
+         (* rename all type variables *)
+         val tvarsMap = List.map (fn t => (t,TVar.freshTVar ()))
+            (TVar.listItems (texpVarset (ty, TVar.empty)))
+         val ty = replaceTVars (ty, tvarsMap)
+         val params = List.map (fn (p,bVar) =>
+            case List.find (fn (orig,repl) => TVar.eq (p,orig)) tvarsMap of
+               SOME (orig,repl) => (repl,bVar)
+             | NONE => (p,bVar)
+            ) params
+
+         val env = E.meetBoolean (fn bFun => 
+            texpConstructorFlow params false ty bFun, env)
+
+         (* check that the type structure is unifiable *)
+         val env = E.pushSymbol (sym,s,false,E.LetMono,env)
+         val env = E.pushType (ty,env)
+         val env = E.equateKappas env
+            handle S.UnificationFailure str =>
+            (refineError (env, str,
+                         " when checking export declaration of " ^
+                         SymbolTable.getString(!SymbolTables.varTable, sym),
+                         [((2,0), "inferred type      "),
+                          ((1,0), "export declaration ")])
+               handle S.UnificationFailure (kind, str) =>
+                  Error.errorAt (errStrm, s, [str])
+            ;env)
+
+         val env = E.popKappa env
+         val env = E.popKappa env
+      in
+         env
+      end
+
+   fun checkExports _ (AST.MARKdecl {span=s, tree=t},env) = checkExports s (t,env)
+     | checkExports s (AST.EXPORTdecl (sym,_,_),env) =
+        checkExport (s,sym,SymMap.lookup (exportTypes,sym),env)
+     | checkExports s (_,env) = env
+   val toplevelEnv = List.foldl (checkExports SymbolTable.noSpan) toplevelEnv ast
    
    (*val _ = TextIO.print ("toplevel environment:\n" ^ E.toString toplevelEnv)*)
    (*val _ = TextIO.print ("table:\n" ^ #1 (E.dumpTypeTableSI (toplevelEnv, TVar.emptyShowInfo)))*)

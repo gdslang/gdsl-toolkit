@@ -98,6 +98,8 @@ end = struct
             (List.foldl gather SymSet.empty fs; fs)
          end
 
+      val tVarParams = ref (AtomMap.empty : (Atom.atom * TI.symid) list AtomMap.map)
+
       (* define a first traversal that registers:
        *   - type synonyms
        *   - datatype declarations including constructors
@@ -109,14 +111,19 @@ end = struct
             PT.MARKdecl {span, tree} => regDecl span tree
           | PT.DECODEdecl (n, pats, _) => regDec s n
           | PT.LETRECdecl (n, _, _) => ignore (newVar (s,n))
-          | PT.DATATYPEdecl (n, tvars, ds) => (regTy s n; app (regCon s) ds)
-          | PT.TYPEdecl (n, _) => regTy s n 
+          | PT.DATATYPEdecl (n, tvars, ds) => (regTy s (tvars, n); app (regCon s) ds)
+          | PT.TYPEdecl (n, _) => regTy s ([], n)
           | _ => ()
 
-      and regTy s n =
-         case TI.find (!ST.typeTable, n) of
-            NONE => ignore (newType (s, n))
-          | _ => ()
+      and regTy s (tvars,n) =
+         let
+            val tid = case TI.find (!ST.typeTable, n) of
+               NONE => newType (s, n)
+             | SOME tid => tid
+             val argToSym = List.map (fn t => (t,newType (s,t))) tvars
+          in
+             tVarParams := AtomMap.insert (!tVarParams,n,argToSym)
+          end
 
       and regCon s (c, _) = ignore (newCon (s, c))
 
@@ -129,17 +136,21 @@ end = struct
       fun convDecl s d =
          case d of
             PT.MARKdecl m => AST.MARKdecl (convMark convDecl m)
-          | PT.EXPORTdecl es => AST.EXPORTdecl (map (fn (v,fs) =>
-               (useVar (s, v), map (fn f => newField (s,f)) fs))
-            es)
+          | PT.EXPORTdecl (v, tvars, ty) =>
+            let
+               val _ = ST.typeTable := VI.push (!ST.typeTable)
+               val tySyms = List.map (fn t => newType (s,t)) tvars
+               val ty = convTy s ty
+               val _ = ST.typeTable := VI.pop (!ST.typeTable)
+            in
+               AST.EXPORTdecl (useVar (s, v), tySyms, ty)
+            end
           | PT.TYPEdecl (tb, t) =>
                AST.TYPEdecl (useType (s,{span=s, tree=tb}), convTy s t)
           | PT.DATATYPEdecl (tb, tvars, l) =>
             let
-               val _ = ST.typeTable := VI.push (!ST.typeTable)
-               val tvSyms = List.map (fn t => newType (s,t)) tvars
+               val tvSyms = List.map #2 (AtomMap.lookup (!tVarParams,tb))
                val rhs = List.map (convCondecl s) l
-               val _ = ST.typeTable := VI.pop (!ST.typeTable)
             in
                AST.DATATYPEdecl (useType (s, {span=s, tree=tb}), tvSyms, rhs)
             end
@@ -195,14 +206,41 @@ end = struct
             PT.MARKty m => AST.MARKty (convMark convTy m)
           | PT.BITty i => AST.BITty i
           | PT.NAMEDty (n, args) =>
+          (case List.find (fn r => Atom.same (#tree n,Atom.atom (#name r)))
+             ResolveTypeInfo.primitiveTypes of
+             SOME r => #tyAST r
+           | NONE => 
             let
-               fun convPair (var,ty) = (useType (s,var), convTy s ty)
+               val tyName = useType (s,n)
+               val _ = ST.typeTable := VI.push (!ST.typeTable)
+               val tvars = case AtomMap.find (!tVarParams,#tree n) of
+                     SOME tvars => tvars
+                   | NONE => []
+               fun getParamSym {span=s,tree=p} =
+                  case List.find (fn (t,_) => Atom.same (t,p)) tvars of
+                     SOME (_,sym) => sym
+                   | NONE => (Error.errorAt (errStrm, s,
+                      ["polymorphic parameter name ", Atom.toString p,
+                       " not defined for type ",
+                       SymbolTable.getString(!ST.typeTable, tyName)])
+                    ;raise SymbolTable.InvalidSymbol p)
+               fun convPair (arg,ty) = (getParamSym arg, convTy s ty)
+               val args = List.map convPair args
+               val _ = ST.typeTable := VI.pop (!ST.typeTable)
             in
-               AST.NAMEDty (useType (s,n), List.map convPair args)
+               AST.NAMEDty (tyName, args)
             end
+          )
           | PT.RECORDty fs =>
                AST.RECORDty (checkDupFields s
                   (List.map (fn (f,t) => (newField (s,f), convTy s t)) fs))
+          | PT.FUNCTIONty (ts,t) =>
+             AST.FUNCTIONty (List.map (convTy s) ts, convTy s t)
+          | PT.MONADty (res,inp,out) =>
+             AST.MONADty (convTy s res,convTy s inp,convTy s out)
+          | PT.INTty => AST.INTty
+          | PT.UNITty => AST.UNITty
+          | PT.STRINGty => AST.STRINGty
 
       and convExp s e =
          case e of

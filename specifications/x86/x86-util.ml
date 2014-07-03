@@ -1,4 +1,4 @@
-export = operands{insn}
+export operands : (insndata) -> int
 
 type uarity =
    UA0

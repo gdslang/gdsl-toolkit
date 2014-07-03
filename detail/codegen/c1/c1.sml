@@ -1120,7 +1120,7 @@ structure C1 = struct
          val st = !SymbolTables.varTable
          val (st, genericSym) = SymbolTable.fresh (st,Atom.atom "v")
          val _ = SymbolTables.varTable := st
-         val exports = SymSet.fromList (Spec.get #exports spec)
+         val exports = SymSet.fromList (SymMap.listKeys (Spec.get #exports spec))
          val constSymbols = SymSet.fromList
             (List.map (getDeclName o #2) (List.filter isConstant ds))
          val s = {

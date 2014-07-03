@@ -857,7 +857,7 @@ end = struct
            | conv (VAR (v,_)) = convV v
           and convV v = case ttGet (tt, v) of
                  (LEAF _) => v
-               | _ => raise IndexError
+               | _ => (TextIO.print ("newType: var " ^ #1 (TVar.varToString (v,TVar.emptyShowInfo)) ^ " already set to " ^ #1 (toStringSI ([],[v],table,TVar.emptyShowInfo)) ^ "\n"); raise IndexError)
          (*val _ = localSane (table)*)
          val idx = conv ty
       in
@@ -1333,12 +1333,24 @@ end = struct
       let
          val tt = #typeTable table
          val st = #symTable table
+
+         (* track all updates to the table so that we can revert them in case of a type error *)
+         val undoSet = ref ([] : (int * typeinfo) list)
+         fun ttSetLocal (v,t) = 
+            let
+               val idx = TVar.toIdx (ttFind (tt,v))
+               val _ = undoSet := (idx,DA.sub (tt,idx)):: !undoSet
+               val _ = DA.update (tt,idx,t)
+            in
+               ()
+            end
+
          fun tVarMin (v1,v2) = if TVar.toIdx v1<TVar.toIdx v2 then v1 else v2
          fun setMinVar (v1,v2,t) =
             if TVar.toIdx v1<TVar.toIdx v2 then
-              (ttSet (tt,v1,TERM t); ttSet (tt,v2,FORW v1))
+              (ttSetLocal (v1,TERM t); ttSetLocal (v2,FORW v1))
             else
-              (ttSet (tt,v2,TERM t); ttSet (tt,v1,FORW v2))
+              (ttSetLocal (v2,TERM t); ttSetLocal (v1,FORW v2))
 
          fun fixpoint [] = ()
            | fixpoint ((v1,v2) :: pairs) =
@@ -1382,8 +1394,8 @@ end = struct
                   val (vGood,sGood,vBad,sBad) =
                      if TVar.toIdx v1<TVar.toIdx v2 then
                         (v1,symSet1,v2,symSet2) else (v2,symSet2,v1,symSet1)
-                  val _ = ttSet (tt,vBad, FORW vGood)
-                  val _ = ttSet (tt,vGood, LEAF (kOpt,symSet12))
+                  val _ = ttSetLocal (vBad, FORW vGood)
+                  val _ = ttSetLocal (vGood, LEAF (kOpt,symSet12))
                   val _ = updateFlow (vBad,sBad,[(Path.emptySteps, Path.mkVarLeaf vGood)])
                   val scRef = #sizeDom table
                   val _ = scRef := SC.rename (vBad,vGood,!scRef)
@@ -1443,18 +1455,18 @@ end = struct
                | (true, false) => (false,true,row1)
                | (false, false) => (true,true,TVar.freshTVar ())
             val newSymSet = SymSet.union (symSet1, symSet2)
-            val _ = ttSet (tt,newRow,LEAF (NONE,newSymSet))
+            val _ = ttSetLocal (newRow,LEAF (NONE,newSymSet))
             (*val _ = TextIO.print ("unify TT_RECORD: row1=" ^ #1 (TVar.varToString (row1,TVar.emptyShowInfo)) ^ ", " ^ Int.toString (SymMap.numItems (!newIn1)) ^ " new items\n")
             val _ = TextIO.print ("unify TT_RECORD: row2=" ^ #1 (TVar.varToString (row2,TVar.emptyShowInfo)) ^ ", " ^ Int.toString (SymMap.numItems (!newIn2)) ^ " new items\n")
             val _ = TextIO.print ("unify TT_RECORD: newRow=" ^ #1 (TVar.varToString (newRow,TVar.emptyShowInfo)) ^ "\n")*)
             val _ = if TVar.toIdx row1=TVar.toIdx newRow then () else
-               ttSet (tt,row1,if SymMap.isEmpty (!newIn1) then FORW newRow else TERM (TT_RECORD (!newIn1,newRow)))
+               ttSetLocal (row1,if SymMap.isEmpty (!newIn1) then FORW newRow else TERM (TT_RECORD (!newIn1,newRow)))
             val _ = if TVar.toIdx row2=TVar.toIdx newRow then () else
-               ttSet (tt,row2,if SymMap.isEmpty (!newIn2) then FORW newRow else TERM (TT_RECORD (!newIn2,newRow)))
+               ttSetLocal (row2,if SymMap.isEmpty (!newIn2) then FORW newRow else TERM (TT_RECORD (!newIn2,newRow)))
             val _ = if TVar.toIdx v1 < TVar.toIdx v2 then
-                  (ttSet (tt,v1,TERM (TT_RECORD (newFs,newRow))); ttSet (tt,v2,FORW v1))
+                  (ttSetLocal (v1,TERM (TT_RECORD (newFs,newRow))); ttSetLocal (v2,FORW v1))
                else if TVar.toIdx row1 > TVar.toIdx row2 then
-                  (ttSet (tt,v2,TERM (TT_RECORD (newFs,newRow))); ttSet (tt,v1,FORW v2))
+                  (ttSetLocal (v2,TERM (TT_RECORD (newFs,newRow))); ttSetLocal (v1,FORW v2))
                else ()
             
             fun genPath (f,fIdx) = (Path.emptySteps, Path.mkFieldLeaf f) ::
@@ -1510,18 +1522,18 @@ end = struct
                | (true, false) => (false,true,row1)
                | (false, false) => (true,true,TVar.freshTVar ())
             val newSymSet = SymSet.union (symSet1, symSet2)
-            val _ = ttSet (tt,newRow,LEAF (NONE,newSymSet))
+            val _ = ttSetLocal (newRow,LEAF (NONE,newSymSet))
             (*val _ = TextIO.print ("unify TT_SET: row1=" ^ #1 (TVar.varToString (row1,TVar.emptyShowInfo)) ^ ", " ^ Int.toString (SpanMap.numItems (!newIn1)) ^ " new items\n")
             val _ = TextIO.print ("unify TT_SET: row2=" ^ #1 (TVar.varToString (row2,TVar.emptyShowInfo)) ^ ", " ^ Int.toString (SpanMap.numItems (!newIn2)) ^ " new items\n")
             val _ = TextIO.print ("unify TT_SET: newRow=" ^ #1 (TVar.varToString (newRow,TVar.emptyShowInfo)) ^ "\n")*)
             val _ = if TVar.toIdx row1=TVar.toIdx newRow then () else
-               ttSet (tt,row1,if SpanMap.isEmpty (!newIn1) then FORW newRow else TERM (TT_SET (!newIn1,newRow)))
+               ttSetLocal (row1,if SpanMap.isEmpty (!newIn1) then FORW newRow else TERM (TT_SET (!newIn1,newRow)))
             val _ = if TVar.toIdx row2=TVar.toIdx newRow then () else
-               ttSet (tt,row2,if SpanMap.isEmpty (!newIn2) then FORW newRow else TERM (TT_SET (!newIn2,newRow)))
+               ttSetLocal (row2,if SpanMap.isEmpty (!newIn2) then FORW newRow else TERM (TT_SET (!newIn2,newRow)))
             val _ = if TVar.toIdx v1 < TVar.toIdx v2 then
-                  (ttSet (tt,v1,TERM (TT_SET (newFs,newRow))); ttSet (tt,v2,FORW v1))
+                  (ttSetLocal (v1,TERM (TT_SET (newFs,newRow))); ttSetLocal (v2,FORW v1))
                else if TVar.toIdx row1 > TVar.toIdx row2 then
-                  (ttSet (tt,v2,TERM (TT_SET (newFs,newRow))); ttSet (tt,v1,FORW v2))
+                  (ttSetLocal (v2,TERM (TT_SET (newFs,newRow))); ttSetLocal (v1,FORW v2))
                else ()
             
             fun genPath ({span=(s,_),...} : Error.span,fIdx) =
@@ -1564,9 +1576,9 @@ end = struct
          let
             val _ = if not unifyVerbose then () else TextIO.print ("unifying LEAF/TERM " ^ #1 (TVar.varToString (vVar,TVar.emptyShowInfo)) ^ "=" ^ #1 (showTypeTermSI (termType,TVar.emptyShowInfo)) ^ "\n")
             val _ = if TVar.toIdx vVar>TVar.toIdx rVar then
-                  (ttSet (tt, vVar, FORW rVar); ttSet (tt, rVar, TERM termType))
+                  (ttSetLocal (vVar, FORW rVar); ttSetLocal (rVar, TERM termType))
                else
-                  (ttSet (tt, rVar, FORW vVar); ttSet (tt, vVar, TERM termType))
+                  (ttSetLocal (rVar, FORW vVar); ttSetLocal (vVar, TERM termType))
 
             val stepsLeafList = termToSteps (rVar,table)
             val _ = updateFlow (vVar,symSet,stepsLeafList)
@@ -1576,7 +1588,7 @@ end = struct
                | SOME var => IS.add (set,TVar.toIdx var)
             val targetVars = foldl getVarInLeaf IS.empty stepsLeafList
             fun updateRef idx = case ttGet(tt,TVar.fromIdx idx) of
-                 LEAF (kOpt,symSetVar) => ttSet (tt,TVar.fromIdx idx,LEAF (kOpt,SymSet.union (symSet, symSetVar)))
+                 LEAF (kOpt,symSetVar) => ttSetLocal (TVar.fromIdx idx,LEAF (kOpt,SymSet.union (symSet, symSetVar)))
                | _ => raise IndexError
             val _ = IS.app updateRef targetVars
 
@@ -1669,7 +1681,9 @@ end = struct
 
    in
       fixpoint [(v1,v2)]
-
+         handle S.UnificationFailure str =>
+            (List.app (fn (v,t) => DA.update (tt,v,t)) (!undoSet)
+            ;raise S.UnificationFailure str)
    end
          
    and equateSymbols (sym1,sym2,table : table) =

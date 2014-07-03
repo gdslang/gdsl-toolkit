@@ -101,7 +101,6 @@ structure Primitives = struct
 
    val globalState : string = "global state"
    val caseExpression : string = "case expression"
-   val streamField : string = "input stream"
    
    fun noFlow bFun = bFun
 
@@ -257,14 +256,8 @@ structure Primitives = struct
       [{name="prefix", ty=s16}, (* hack to get s16 expanded with s14,s15 *)
        {name="suffix", ty=s19}]
 
-   val primitiveTypes =
-      [{name="int", ty=ZENO, flow=noFlow},
-       {name="float", ty=FLOAT, flow=noFlow},
-       {name="unit", ty=UNIT, flow=noFlow},
-       {name="string", ty=STRING, flow=noFlow}]
-
    val primitiveFields =
-      [{name=streamField, ty=UNIT, flow=noFlow}]
+      []
       
    fun addPrim table {name, ty, flow} = let
       val (newTable, _) =
@@ -394,7 +387,9 @@ structure Primitives = struct
       ;ST.fieldTable := FieldInfo.empty
       ;app (addPrim ST.fieldTable) primitiveFields
       ;app (addPrim ST.varTable) primitiveValues
-      ;app (addPrim ST.typeTable) primitiveTypes
+      ;app (addPrim ST.typeTable)
+         (List.map (fn r => {name = #name r, ty = #ty r, flow = noFlow})
+            ResolveTypeInfo.primitiveTypes)
       ;prim_map :=
       let
          fun get s = VarInfo.lookup (!ST.varTable, Atom.atom s)

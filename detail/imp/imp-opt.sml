@@ -1585,31 +1585,22 @@ structure TypeRefinement = struct
      | voidsToTop boxRec (BITstype t) = BITstype (voidsToTop boxRec t)
      | voidsToTop boxRec t = t
 
-   fun setArgsToTop (es,s) (FUNCdecl {
+   fun setArgsToType (es,s) (FUNCdecl {
         funcName = f,
         funcArgs = args,
         ...
-      }) =
+      }) = (case SymMap.find (es,f) of NONE => () | SOME ty =>
       let
-         val boxRec = List.exists (fn s => SymbolTable.eq_symid (s,f)) es
-         val fTy =
-            case inlineSType s (symType s f) of
-               FUNstype (RECORDstype (boxed,fs,b),cl,args) =>
-                  FUNstype (RECORDstype (if boxRec then OBJstype else VOIDstype,fs,b),
-                     cl,map (voidsToTop boxRec) args)
-             | FUNstype (res,cl,args) =>
-                  FUNstype (res,cl,map (voidsToTop boxRec) args)
-             | _ => VOIDstype
-         val _ = lub (s, symType s f, fTy)
+         val _ = lub (s, symType s f, vtypeToStype s ty)
       in
          ()
-      end
-     | setArgsToTop (es,s) (CONdecl {
+      end)
+     | setArgsToType (es,s) (CONdecl {
         conArg = (_,sym),
 	     ...
       }) =
       ignore (lub (s, symType s sym, voidsToTop false (inlineSType s (symType s sym))))
-     | setArgsToTop (es,s) _ = ()
+     | setArgsToType (es,s) _ = ()
 
    fun mergeRecords s =
       let
@@ -1648,8 +1639,8 @@ structure TypeRefinement = struct
          val _ = map (visitDeclPrint state) ds
          (* unify the types of all records that have the same set of fields *)
          val _ = mergeRecords state
-         (* set all arguments in functions and constructors to OBJstype if they are void so that the (C) backend is not emitting invalid code *)
-         val _ = app (setArgsToTop (es,state)) ds
+         (* set all arguments in functions and constructors to the type declared in the export list *)
+         val _ = app (setArgsToType (es,state)) ds
          (* set all fields in the global state to non-void *)
          val _ = lub (state,symType state stateSym, voidsToTop false (inlineSType state (symType state stateSym)))
          
@@ -2147,7 +2138,7 @@ structure DeadFunctions = struct
          val s = { locals = SymSet.empty,
                    replace = ref SymMap.empty,
                    referenced = ref SymSet.empty } : state
-         val _ = app (refSym s) es
+         val _ = SymMap.appi (refSym s o #1) es
          fun fixpoint _ =
             let
                val reachable = List.filter (fn d => SymSet.member (!(#referenced s),getDeclName d)) ds

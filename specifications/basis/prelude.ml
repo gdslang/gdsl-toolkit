@@ -1,7 +1,14 @@
 # Standard definitions.
 
-export = rope-length rope-print rope-to-string int-max
-export = has-conf conf-short conf-long conf-data conf-next
+export rope-length : (rope) -> int
+export rope-print : (rope) -> S int <{} => {}>
+export rope-to-string : (rope, string) -> S string <{} => {}>
+export int-max : int
+export has-conf[vec] : (configuration[vec]) -> 1
+export conf-short[vec] : (configuration[vec]) -> string
+export conf-long[vec] : (configuration[vec]) -> string
+export conf-data[vec] : (configuration[vec]) -> vec
+export conf-next[vec] : (configuration[vec]) -> configuration[vec]
 
 type rope = RopeLeaf of { rope-size : int, rope-string: string }
           | RopeInner of { rope-size : int, rope-left : rope, rope-right : rope }
@@ -135,11 +142,11 @@ val otherwise s = '1'
 # represented by one bit each, each option has a short descrption
 # without spaces and a long description
 
-type configuration [v]
+type configuration [vec]
   = END
   | CONF of { confShortName : string,
               confLongName : string,
-              confData : v,
+              confData : vec,
               confNext : configuration }
 
 val has-conf co =

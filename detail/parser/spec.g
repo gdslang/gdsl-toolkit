@@ -19,12 +19,18 @@
    | KW_type ("type")
    | KW_and ("and")
    | KW_or ("or")
+   | MONAD ("S")
+   | SMALLER ("<")
+   | LARGER (">")
    | WITH ("@")
    | SELECT ("$")
    | BIND ("<-")
+   | TO ("->")
+   | DOUBLE_TO ("=>")
    | EQ ("=")
    | TICK ("'")
    | DOT (".")
+   | UNIT ("()")
    | LP ("(")
    | RP (")")
    | LB ("[")
@@ -101,9 +107,8 @@ Program
    ;
 
 Decl
-   : "export" "=" Export* => (markDecl (FULL_SPAN, PT.EXPORTdecl Export))
-   | "type" Name "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, [], ConDecls)))
-   | "type" Name "[" Name ("," Name)* "]" "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name1, Name2 :: SR, ConDecls)))
+   : "export" Qid TyVars ":" Ty => (markDecl (FULL_SPAN, PT.EXPORTdecl (Qid,TyVars,Ty)))
+   | "type" Name TyVars "=" ConDecls => (markDecl (FULL_SPAN, PT.DATATYPEdecl (Name, TyVars, ConDecls)))
    | "type" Name "=" Ty => (markDecl (FULL_SPAN, PT.TYPEdecl (Name, Ty)))
    | "val" Name Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Name1, Name2, Exp)))
    | "val" Sym Name* "=" Exp => (markDecl (FULL_SPAN, PT.LETRECdecl (Sym, Name, Exp)))
@@ -122,11 +127,10 @@ Decl
       (markDecl (FULL_SPAN, decl))
    ; 
 
-Export
-   : Qid => ((Qid,[]))
-   | Qid "{" Name ("," Name)* "}" => ((Qid,Name :: SR))
+TyVars
+   : "[" Name ("," Name)* "]" => (Name :: SR)
+   | (* empty *) => ([])
    ;
-
 ConDecls
    : ConDecl ("|" ConDecl)* => (ConDecl::SR)
    ;
@@ -137,13 +141,19 @@ ConDecl
 
 Ty
    : Int => (mark PT.MARKty (FULL_SPAN, PT.BITty Int))
-   | "|" Int "|" => (mark PT.MARKty (FULL_SPAN, PT.BITty Int))
    | Qid =>
          (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,[])))
    | Qid "[" TyBind ("," TyBind)* "]"=>
          (mark PT.MARKty (FULL_SPAN, PT.NAMEDty (Qid,TyBind :: SR)))
    | "{" Name ":" Ty ("," Name ":" Ty)* "}" =>
       (mark PT.MARKty (FULL_SPAN, PT.RECORDty ((Name, Ty)::SR)))
+   | "{" "}" =>
+      (mark PT.MARKty (FULL_SPAN, PT.RECORDty []))
+   | "(" Ty ("," Ty)* ")" "->" Ty =>
+      (mark PT.MARKty (FULL_SPAN, PT.FUNCTIONty (Ty1::SR,Ty2)))
+   | "()" => (mark PT.MARKty (FULL_SPAN, PT.UNITty))
+   | "S" Ty "<" Ty "=>" Ty ">" =>
+      (mark PT.MARKty (FULL_SPAN, PT.MONADty (Ty1,Ty2,Ty3)))
    ;
 
 TyBind
@@ -340,14 +350,18 @@ Name
 (* Constructors *)
 ConBind
    : CONS => (CONS)
+   | "S" => (Atom.atom "S")
    ;
 
 ConUse
    : CONS => ({span={file= !sourcemap, span=FULL_SPAN}, tree=CONS})
+   | "S" => ({span={file= !sourcemap, span=FULL_SPAN}, tree=Atom.atom "S"})
    ;
 
 Sym
    : SYMBOL => (SYMBOL)
+   | "<" => (Atom.atom "<")
+   | ">" => (Atom.atom ">")
    ;
 
 Qid

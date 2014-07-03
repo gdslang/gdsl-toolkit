@@ -1,6 +1,6 @@
 # vim:filetype=sml:ts=3:sw=3:expandtab
 
-export = pretty_simple{insn}
+export pretty_simple : (insndata) -> rope
 
 val flow_decode_pretty_simple = do
   inge <- decode config-default;

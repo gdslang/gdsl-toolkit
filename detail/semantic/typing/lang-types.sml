@@ -121,7 +121,7 @@ structure Types = struct
    variables of an algebraic data type, e.g. tree[a.1], and its constructors,
    e.g. Node {l.4:tree[a.2], key.5:int, r.6:tree[a.3], b.7}. When the Boolean
    flag is False, the generated flow is 1->2 and 1->3 for turning an
-   expression to a datatype. If the flag is True, the flow is revered, which
+   expression to a datatype. If the flag is True, the flow is reversed, which
    is used when dissecting a data type. In every case, record fields are all
    required and no other fields are allowed, e.g. 4 and 5 and 6 and not 7. *)
    fun texpConstructorFlow vars co e bFun = let
