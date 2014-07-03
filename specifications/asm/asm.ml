@@ -4,8 +4,6 @@ type asm-opnd-list =
    ASM_OPNDS_NIL
  | ASM_OPNDS_CONS of {hd:asm-opnd, tl:asm-opnd-list}
 
-# Memory: boundary (mem (boundary pointer))
-
 type asm-opnd =
    ASM_REGISTER of string
  | ASM_MEMORY of asm-opnd

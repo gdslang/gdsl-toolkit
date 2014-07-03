@@ -186,12 +186,12 @@ val rreil-convert-sem-stmt-manual cbs stmt = case stmt of
 end
 
 val rreil-convert-sem-stmts cbs stmts = let
-  val convert-inner cbs list stmts = case stmts of
-     SEM_CONS s: convert-inner cbs (cbs.sem_stmts.sem_stmts_next (rreil-convert-sem-stmt cbs s.hd) list) s.tl
+  val convert-inner list stmts = case stmts of
+     SEM_CONS s: convert-inner (cbs.sem_stmts.sem_stmts_next (rreil-convert-sem-stmt cbs s.hd) list) s.tl
    | SEM_NIL: list
   end
 in
-  convert-inner cbs (cbs.sem_stmts.sem_stmts_init void) stmts #Note: init is a function and, hence, has to be called by applying it to an argument
+  convert-inner (cbs.sem_stmts.sem_stmts_init void) stmts #Note: init is a function and, hence, has to be called by applying it to an argument
 end
 
 val rreil-sem-stmts-has-more stmts = case stmts of
