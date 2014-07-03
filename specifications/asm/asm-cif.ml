@@ -1,9 +1,9 @@
-export = 
+export = asm-convert-insn{opnd, insn, annotations, opnds, boundary, annotation, immediate, length, mnemonic, annotations, opnds}
 
-type asm_opnds_callbacks = {next:int, init:int}
+type asm_opnds_callbacks = {opnds_next:int, init:int}
 type asm_opnd_callbacks = {register:int, memory:int, imm:int, post_op:int, pre_op:int, rel:int, annotation:int, sum:int, scale:int, bounded:int}
 type asm_boundary_callbacks = {sz:int, sz_o:int}
-type asm_annotations_callbacks = {next:int, init:int}
+type asm_annotations_callbacks = {annotations_next:int, init:int}
 type asm_annotation_callbacks = {ann_string:int, function:int, opnd:int}
 type asm_immediate_callbacks = {immediate:int, unknown_signedness:int}
 
@@ -22,7 +22,7 @@ val asm-convert-insn cbs insn = cbs.insn insn.length insn.mnemonic (asm-convert-
 val asm-convert-opnds cbs opnds = let
   val convert-inner list opnds = case opnds of
      ASM_OPNDS_NIL: list
-   | ASM_OPNDS_CONS next: convert-inner (cbs.opnds.next (asm-convert-opnd cbs next.hd) list) next.tl
+   | ASM_OPNDS_CONS next: convert-inner (cbs.opnds.opnds_next (asm-convert-opnd cbs next.hd) list) next.tl
   end
 in
   convert-inner (cbs.opnds.init void) opnds
@@ -49,7 +49,7 @@ end
 val asm-convert-annotations cbs anns = let
   val convert-inner list anns = case anns of
      ASM_ANNS_NIL: list
-   | ASM_ANNS_CONS next: convert-inner (cbs.annotations.next (asm-convert-annotation cbs next.hd) list) next.tl
+   | ASM_ANNS_CONS next: convert-inner (cbs.annotations.annotations_next (asm-convert-annotation cbs next.hd) list) next.tl
   end
 in
   convert-inner (cbs.annotations.init void) anns
