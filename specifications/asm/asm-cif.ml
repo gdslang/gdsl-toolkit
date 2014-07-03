@@ -1,7 +1,7 @@
 export = asm-convert-insn{opnd, insn, annotations, opnds, boundary, annotation, immediate, length, mnemonic, annotations, opnds}
 
 type asm_opnds_callbacks = {opnds_next:int, init:int}
-type asm_opnd_callbacks = {register:int, memory:int, imm:int, post_op:int, pre_op:int, rel:int, annotation:int, sum:int, scale:int, bounded:int}
+type asm_opnd_callbacks = {opnd_register:int, memory:int, imm:int, post_op:int, pre_op:int, rel:int, annotation:int, sum:int, scale:int, bounded:int}
 type asm_boundary_callbacks = {sz:int, sz_o:int}
 type asm_annotations_callbacks = {annotations_next:int, init:int}
 type asm_annotation_callbacks = {ann_string:int, function:int, opnd:int}
@@ -29,7 +29,7 @@ in
 end
 
 val asm-convert-opnd cbs opnd = case opnd of
-   ASM_REGISTER r: cbs.opnd.register r
+   ASM_REGISTER r: cbs.opnd.opnd_register r
  | ASM_MEMORY m: cbs.opnd.memory (asm-convert-opnd cbs m)
  | ASM_IMM i: cbs.opnd.imm (asm-convert-immediate cbs i)
  | ASM_POST_OP po: cbs.opnd.post_op (asm-convert-opnd cbs po.expr) (asm-convert-opnd cbs po.opnd)

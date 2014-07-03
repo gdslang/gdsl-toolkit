@@ -34,140 +34,140 @@ static obj_t indent_quaternary(obj_t a, obj_t b, obj_t c, obj_t d) {
 
 // Generic ASM
 
-static obj_t asm_insn(obj_t state, int_t length, string_t mnemonic, obj_t annotations, obj_t opnds) {
+static obj_t asm_insn(state_t state, int_t length, string_t mnemonic, obj_t annotations, obj_t opnds) {
   obj_t indent = indent_binary(annotations, opnds);
-  printf("> insn {length=%lld, mnemonic=%s}", length, mnemonic);
+  printf("> insn {length=%lld, mnemonic=%s}\n\n", length, mnemonic);
   return indent;
 }
 
 // operand list
 
-static obj_t asm_opnds_next(obj_t state, obj_t next, obj_t list) {
+static obj_t asm_opnds_next(state_t state, obj_t next, obj_t list) {
   obj_t indent = indent_unary(next);
-  printf("> next operand");
+  printf("> next operand\n");
   return indent;
 }
 
-static obj_t asm_opnds_init(obj_t state, obj_t next, obj_t list) {
-  printf("> init operands");
-  return (obj_t)0;
+static obj_t asm_opnds_init(state_t state, obj_t next) {
+  printf("> init operands\n");
+  return (state_t)0;
 }
 
 // operand
 
-static obj_t asm_register(obj_t state, string_t mnemonic) {
-  printf("> register {mnemonic=%s}", mnemonic);
-  return (obj_t)0;
+static obj_t asm_register(state_t state, string_t mnemonic) {
+  printf("> register {mnemonic=%s}\n", mnemonic);
+  return (state_t)0;
 }
 
-static obj_t asm_memory(obj_t state, obj_t _this) {
+static obj_t asm_memory(state_t state, obj_t _this) {
   obj_t indent = indent_unary(_this);
-  printf("> memory");
+  printf("> memory\n");
   return indent;
 }
 
-static obj_t asm_imm(obj_t state, obj_t _this) {
+static obj_t asm_imm(state_t state, obj_t _this) {
   obj_t indent = indent_unary(_this);
-  printf("> immediate");
+  printf("> immediate\n");
   return indent;
 }
 
-static obj_t asm_post_op(obj_t state, obj_t expr, obj_t opnd) {
+static obj_t asm_post_op(state_t state, obj_t expr, obj_t opnd) {
   obj_t indent = indent_binary(expr, opnd);
-  printf("> post_op");
+  printf("> post_op\n");
   return indent;
 }
 
-static obj_t asm_pre_op(obj_t state, obj_t expr, obj_t opnd) {
+static obj_t asm_pre_op(state_t state, obj_t expr, obj_t opnd) {
   obj_t indent = indent_binary(expr, opnd);
-  printf("> pre_op");
+  printf("> pre_op\n");
   return indent;
 }
 
-static obj_t asm_rel(obj_t state, obj_t _this) {
+static obj_t asm_rel(state_t state, obj_t _this) {
   obj_t indent = indent_unary(_this);
-  printf("> rel");
+  printf("> rel\n");
   return indent;
 }
 
-static obj_t asm_annotation(obj_t state, obj_t ann, obj_t opnd) {
+static obj_t asm_annotation(state_t state, obj_t ann, obj_t opnd) {
   obj_t indent = indent_binary(ann, opnd);
-  printf("> annotation");
+  printf("> annotation\n");
   return indent;
 }
 
-static obj_t asm_sum(obj_t state, obj_t lhs, obj_t rhs) {
+static obj_t asm_sum(state_t state, obj_t lhs, obj_t rhs) {
   obj_t indent = indent_binary(lhs, rhs);
-  printf("> sum");
+  printf("> sum\n");
   return indent;
 }
 
-static obj_t asm_scale(obj_t state, int_t factor, obj_t rhs) {
+static obj_t asm_scale(state_t state, int_t factor, obj_t rhs) {
   obj_t indent = indent_unary(rhs);
-  printf("> scale {factor=%lld}", factor);
+  printf("> scale {factor=%lld}\n", factor);
   return indent;
 }
 
-static obj_t asm_bounded(obj_t state, obj_t ann, obj_t opnd) {
+static obj_t asm_bounded(state_t state, obj_t ann, obj_t opnd) {
   obj_t indent = indent_binary(ann, opnd);
-  printf("> bounded");
+  printf("> bounded\n");
   return indent;
 }
 
 // boundary
 
-static obj_t asm_sz(obj_t state, int_t sz) {
-  printf("> boundary {size=%lld}", sz);
-  return (obj_t)0;
+static obj_t asm_sz(state_t state, int_t sz) {
+  printf("> boundary {size=%lld}\n", sz);
+  return (state_t)0;
 }
 
-static obj_t asm_sz_o(obj_t state, int_t sz, int_t o) {
-  printf("> boundary {size=%lld, offset=%lld}", sz, o);
-  return (obj_t)0;
+static obj_t asm_sz_o(state_t state, int_t sz, int_t o) {
+  printf("> boundary {size=%lld, offset=%lld}\n", sz, o);
+  return (state_t)0;
 }
 
 // annotation list
 
-static obj_t asm_annotations_next(obj_t state, obj_t next, obj_t list) {
+static obj_t asm_annotations_next(state_t state, obj_t next, obj_t list) {
   obj_t indent = indent_unary(next);
-  printf("> next annotation");
+  printf("> next annotation\n");
   return indent;
 }
 
-static obj_t asm_annotations_init(obj_t state, obj_t next, obj_t list) {
-  printf("> init annotations");
-  return (obj_t)0;
+static obj_t asm_annotations_init(state_t state, obj_t next) {
+  printf("> init annotations\n");
+  return (state_t)0;
 }
 
 // annotation
 
-static obj_t asm_annotation_string(obj_t state, string_t _this) {
-  printf("> annotation {%s}", _this);
-  return (obj_t)0;
+static obj_t asm_annotation_string(state_t state, string_t _this) {
+  printf("> annotation {%s}\n", _this);
+  return (state_t)0;
 }
 
-static obj_t asm_annotation_function(obj_t state, string_t name, obj_t args) {
+static obj_t asm_annotation_function(state_t state, string_t name, obj_t args) {
   obj_t indent = indent_unary(args);
-  printf("> annotation {name=%s}", name);
+  printf("> annotation {name=%s}\n", name);
   return indent;
 }
 
-static obj_t asm_annotation_opnd(obj_t state, string_t name, obj_t opnd) {
+static obj_t asm_annotation_opnd(state_t state, string_t name, obj_t opnd) {
   obj_t indent = indent_unary(opnd);
-  printf("> annotation {name=%s}", name);
+  printf("> annotation {name=%s}\n", name);
   return indent;
 }
 
 // immediate
 
-static obj_t asm_immediate(obj_t state, int_t _this) {
-  printf("> immediate {%lld}", _this);
-  return (obj_t)0;
+static obj_t asm_immediate(state_t state, int_t _this) {
+  printf("> immediate {%lld}\n", _this);
+  return (state_t)0;
 }
 
-static obj_t asm_immediate_unknown_signedness(obj_t state, int_t value, int_t size) {
-  printf("> immediate {value=%lld, size=%lld}", value, size);
-  return (obj_t)0;
+static obj_t asm_immediate_unknown_signedness(state_t state, int_t value, int_t size) {
+  printf("> immediate {value=%lld, size=%lld}\n", value, size);
+  return (state_t)0;
 }
 
 // RReil
@@ -758,11 +758,35 @@ int main(int argc, char** argv) {
   string_t fmt = gdsl_merge_rope(state, gdsl_pretty(state, insn));
   puts(fmt);
 
+  printf("\n");
 
-  unboxed_asm_opnds_callbacks_t asm_opnds_callbacks = {.opnds_next = &asm_opnds_next, .init = &asm_opnds_init };
+  unboxed_asm_opnds_callbacks_t asm_opnds_callbacks = {.opnds_next = &asm_opnds_next, .init = &asm_opnds_init};
+  unboxed_asm_opnd_callbacks_t asm_opnd_callbacks = {.opnd_register = &asm_register, .memory = &asm_memory, .imm =
+      &asm_imm, .post_op = &asm_post_op, .pre_op = &asm_pre_op, .rel = &asm_rel, .annotation = &asm_annotation, .sum =
+      &asm_sum, .scale = &asm_scale, .bounded = &asm_bounded};
+  unboxed_asm_boundary_callbacks_t asm_boundary_callbacks = {.sz = &asm_sz, .sz_o = &asm_sz_o};
+  unboxed_asm_annotations_callbacks_t asm_annotations_callbacks = {.annotations_next = &asm_annotations_next, .init =
+      &asm_annotations_init};
+  unboxed_asm_annotation_callbacks_t asm_annotation_callbacks = {.ann_string = &asm_annotation_string, .function =
+      &asm_annotation_function, .opnd = &asm_annotation_opnd};
+  unboxed_asm_immediate_callbacks_t asm_immediate_callbacks = {.immediate = &asm_immediate, .unknown_signedness =
+      &asm_immediate_unknown_signedness};
 
+  unboxed_asm_callbacks_t asm_callbacks = {
+      .insn = &asm_insn,
+      .opnds = &asm_opnds_callbacks,
+      .opnd = &asm_opnd_callbacks,
+      .boundary = &asm_boundary_callbacks,
+      .annotations = &asm_annotations_callbacks,
+      .annotation = &asm_annotation_callbacks,
+      .immediate = &asm_immediate_callbacks
+  };
 
-  printf("---------------------------\n");
+  obj_t generic_insn = gdsl_generalize(state, insn);
+
+  obj_t ginsn_convert = gdsl_asm_convert_insn(state, &asm_callbacks, generic_insn);
+
+  printf("---------------------------\n\n");
 
   obj_t rreil = gdsl_translate(state, insn);
 
