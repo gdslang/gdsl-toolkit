@@ -175,18 +175,6 @@ static obj_t asm_annotation_opnd(state_t state, string_t name, obj_t opnd) {
   return indent;
 }
 
-// immediate
-
-static obj_t asm_immediate(state_t state, int_t _this) {
-  printf("> immediate {%lld}\n", _this);
-  return (state_t)0;
-}
-
-static obj_t asm_immediate_unknown_signedness(state_t state, int_t value, int_t size) {
-  printf("> immediate {value=%lld, size=%lld}\n", value, size);
-  return (state_t)0;
-}
-
 // RReil
 
 // sem_id

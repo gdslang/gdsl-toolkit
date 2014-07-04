@@ -2,6 +2,8 @@ package gdsl.decoder;
 
 import gdsl.Gdsl;
 import gdsl.HeapExpiredException;
+import gdsl.asm.Instruction;
+import gdsl.asm.GeneralizerBackend;
 
 /**
  * This class represents a decoded instruction.
@@ -123,4 +125,10 @@ public class NativeInstruction {
     gdsl.heapManager.unref();
     super.finalize();
   }
+  
+  public Instruction generalize() {
+    return null;
+  }
+  
+  private native Instruction generalize(GeneralizerBackend backend);
 }
