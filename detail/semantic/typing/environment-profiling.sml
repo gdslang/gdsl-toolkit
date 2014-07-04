@@ -121,9 +121,6 @@ structure EnvironmentProfiling : sig
 
    val clearUses : VarInfo.symid * environment -> environment
 
-   val forceNoInputs : VarInfo.symid * VarInfo.symid list *
-                     environment -> VarInfo.symid list
-
     (*apply the Boolean function*)
    val meetBoolean : (BooleanDomain.bfun -> BooleanDomain.bfun) *
          environment -> environment
@@ -223,7 +220,6 @@ end = struct
    val leaveFunction = wrap (E.leaveFunction, otherData)
    val markAsStable = wrap (E.markAsStable, otherData)
    val clearUses = wrap (E.clearUses, otherData)
-   val forceNoInputs = wrap (E.forceNoInputs, otherData)
    val meetBoolean = wrap (E.meetBoolean, otherData)
    val reduceFlow = wrap (E.reduceFlow, otherData)
    val cleanEnvironment = wrap (E.cleanEnvironment, otherData)

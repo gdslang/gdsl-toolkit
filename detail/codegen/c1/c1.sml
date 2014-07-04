@@ -890,8 +890,23 @@ structure C1 = struct
      
    fun emitDecl s (inSCC,FUNCdecl {
         funcIsConst = true,
-        ...
-      }) = seq []
+        funcClosure = clArgs,
+        funcType = ty,
+        funcName = name,
+        funcArgs = args,
+        funcBody = block,
+        funcRes = res
+      }) = emitDecl s (inSCC,FUNCdecl {
+        funcIsConst = false,
+        funcClosure = clArgs,
+        funcType = ty,
+        funcName = name,
+        funcArgs = args,
+        (* a call to a constant function is translated to an access to that
+           constant *)
+        funcBody = BASICblock ([],[ASSIGNstmt (SOME res,CALLexp (IDexp name,[]))]),
+        funcRes = res
+      })
      | emitDecl s (inSCC,FUNCdecl {
         funcIsConst = false,
         funcClosure = clArgs,
@@ -1086,7 +1101,7 @@ structure C1 = struct
          val _ = genClosureSet := AtomSet.empty
          val _ = invokeClosureSet := AtomSet.empty
 
-         val { decls = ds, fdecls = fs, exports, monad = mt } = Spec.get #declarations spec
+         val { decls = ds, fdecls = fs, exports, monad = mt, errs } = Spec.get #declarations spec
          val ds = sortTopologically ds
          
          val recordMapping = case mt of

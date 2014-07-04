@@ -23,6 +23,11 @@ end = struct
 
    infix >>= >>
 
+   val primitiveTypes =
+      [{name="int", tyAST=SpecAbstractTree.INTty},
+       {name="unit", tyAST=SpecAbstractTree.UNITty},
+       {name="string", tyAST=SpecAbstractTree.STRINGty}]
+
    val parseErr = Error.parseError SpecTokens.toString
    fun convMark conv {span, tree} = {span=span, tree=conv span tree}
    fun startScope () = ST.varTable := VI.push (!ST.varTable)
@@ -207,7 +212,7 @@ end = struct
           | PT.BITty i => AST.BITty i
           | PT.NAMEDty (n, args) =>
           (case List.find (fn r => Atom.same (#tree n,Atom.atom (#name r)))
-             ResolveTypeInfo.primitiveTypes of
+             primitiveTypes of
              SOME r => #tyAST r
            | NONE => 
             let

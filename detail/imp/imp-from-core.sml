@@ -71,7 +71,7 @@ end = struct
      | freeVars _ = SymSet.empty
 
 
-   type state = { exported : vtype SymMap.map,
+   type state = { exports : (sym list * SpecAbstractTree.ty) SymMap.map,
                   globalExp : exp SymMap.map ref,
                   declVars : SymSet.set ref,
                   resVar : SymbolTable.symid,
@@ -97,7 +97,7 @@ end = struct
          val (tab, res) = SymbolTable.fresh (tab, Atom.atom (str ^ "Res"))
          val _ = SymbolTables.varTable := tab
          val s' = {
-               exported = #exported s,
+               exports = #exports s,
                globalExp = #globalExp s,
                declVars = #declVars s,
                resVar = res,
@@ -146,7 +146,7 @@ end = struct
       let
          val localDecls = ref SymSet.empty
          val s' = f {
-               exported = #exported s,
+               exports = #exports s,
                globalExp = #globalExp s,
                declVars = localDecls,
                resVar = #resVar s,
@@ -611,28 +611,14 @@ end = struct
             })
       end
 
-   (* translate type only to check that exports have expected types *)
-   fun trType (AST.MARKty {span, tree=t}) = trType t
-     | trType (AST.BITty sz) = INTvtype
-     | trType (AST.NAMEDty (sym,_)) =
-        (case List.find (fn (s,_) => SymbolTable.eq_symid (s,sym)) (!typealias) of
-           NONE => OBJvtype
-         | SOME (_,ty) => trType ty
-        )
-     | trType (AST.RECORDty fs) = RECORDvtype (true,map (fn (f,ty) => (f,trType ty)) fs)
-     | trType (AST.FUNCTIONty (args,res)) = FUNvtype (trType res,false,map trType args)
-     | trType (AST.MONADty (res,inp,out)) = FUNvtype (trType res,false,[])
-     | trType AST.INTty = INTvtype
-     | trType AST.UNITty = VOIDvtype
-     | trType AST.STRINGty = STRINGvtype
-   
-   fun translate spec =
+   fun translate (errs,spec) =
       Spec.upd
          (fn clauses =>
             let
                val () = constructors := Spec.get#constructors spec
                val () = datatypes := Spec.get#datatypes spec
                val () = typealias := Spec.get#typealias spec
+               val exports = Spec.get#exports spec
 
                val decls = ref ([] : decl list)
                val fields = ref (SymMap.empty : vtype SymMap.map)
@@ -640,8 +626,8 @@ end = struct
                               SymMap.empty
                               (SymMap.listKeys (!Primitives.prim_map) @
                                SymMap.listKeys (!Primitives.prim_val_map))
-               val exported = SymMap.map (trType o #2) (Spec.get #exports spec)
-               val initialState = { exported = exported,
+
+               val initialState = { exports = exports,
                                     globalExp = ref globs,
                                     declVars = ref SymSet.empty,
                                     resVar = SymbolTable.unsafeFromInt 1,
@@ -655,11 +641,12 @@ end = struct
             in
                { decls = !decls,
                  fdecls = !fields,
-                 exports = exported,
-                 monad = OBJvtype }
+                 exports = exports,
+                 monad = OBJvtype,
+                 errs = errs }
             end) spec
 
-   fun dumpPre (os, spec) = Pretty.prettyTo (os, Core.PP.spec spec)
+   fun dumpPre (os, (_,spec)) = Pretty.prettyTo (os, Core.PP.spec spec)
    fun dumpPost (os, spec) = Pretty.prettyTo (os, Imp.PP.spec spec)
  
    val translate =
@@ -672,5 +659,8 @@ end = struct
           postExt="imp",
           postOutput=dumpPost}
 
-   fun run spec = CM.return (translate spec)
+   open CompilationMonad
+   infix >>=
+   fun run spec = getErrorStream >>= (fn errs =>
+                  return (translate (errs,spec)))
 end

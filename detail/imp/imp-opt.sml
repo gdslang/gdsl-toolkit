@@ -60,11 +60,11 @@ structure PatchFunctionCalls = struct
       }
      | visitDecl s d = d
 
-   fun run ({ decls = ds, fdecls = fs, exports = es, monad = mt } : imp) =
+   fun run ({ decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } : imp) =
       let
          val ds = map (visitDecl {}) ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt } : imp
+         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } : imp
       end
    
 end
@@ -248,12 +248,12 @@ structure ActionClosures = struct
       },s) = SymMap.insert (s, del, name)
      | genFunToClosure (d,s) = s 
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
       let
          val s = foldl genFunToClosure SymMap.empty ds
          val ds = visitDecl s ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt }
+         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
       end
    
 end
@@ -505,7 +505,7 @@ structure ActionReduce = struct
      | visitDecl s d = d
 
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
       let
          fun fixpoint (size,set) =
             let
@@ -528,7 +528,7 @@ structure ActionReduce = struct
          val sVar = { monVars = pureToMon } : stateVar
          val ds = map (visitDecl sVar) ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt }
+         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
       end
    
 end
@@ -728,7 +728,7 @@ structure Simplify = struct
       }
      | visitDecl s d = d
 
-   fun run ({ decls = ds, fdecls = fs, exports = es, monad = mt } : imp) =
+   fun run ({ decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } : imp) =
       let
          val declMap = foldl (fn (decl,m) => SymMap.insert (m,getDeclName decl, decl)) SymMap.empty ds
          val state = { decls = declMap,
@@ -736,7 +736,7 @@ structure Simplify = struct
                        stmtsRef = ref ([] : stmt list) } : state
          val ds = map (visitDecl state) ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt } : imp
+         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } : imp
       end
    
 end
@@ -1576,31 +1576,71 @@ structure TypeRefinement = struct
          (origTy, newTy)
       end
 
-   fun voidsToTop boxRec (VOIDstype) = OBJstype
-     | voidsToTop boxRec (BOXstype t) = BOXstype (voidsToTop boxRec t)
-     | voidsToTop boxRec (FUNstype (res,clos,args)) = FUNstype (voidsToTop boxRec res, clos, map (voidsToTop false) args)
-     | voidsToTop boxRec (MONADstype res) = MONADstype (voidsToTop boxRec res)
-     | voidsToTop boxRec (RECORDstype (boxed,fs,b)) =
-      RECORDstype (if boxRec then OBJstype else VOIDstype,map (fn (b,f,t) => (b,f,voidsToTop boxRec t)) fs,b)
-     | voidsToTop boxRec (BITstype t) = BITstype (voidsToTop boxRec t)
-     | voidsToTop boxRec t = t
+   structure AST = SpecAbstractTree
 
-   fun setArgsToType (es,s) (FUNCdecl {
+   (* translate AST types to check that exports have expected types *)
+   fun trType (AST.MARKty {span, tree=t}) = trType t
+     | trType (AST.BITty sz) = BOXstype (BITstype (CONSTstype (IntInf.toInt sz)))
+     | trType (AST.NAMEDty (sym,_)) = OBJstype
+     | trType (AST.RECORDty fs) = RECORDstype (OBJstype,map (fn (f,ty) => (true,f,trType ty)) fs,false)
+     | trType (AST.FUNCTIONty (args,res)) = FUNstype (trType res,VOIDstype,map trType args)
+     | trType (AST.MONADty (res,inp,out)) = trType res
+     | trType AST.INTty = BOXstype (INTstype)
+     | trType AST.UNITty = VOIDstype
+     | trType AST.STRINGty = STRINGstype
+
+   structure CM = CompilationMonad
+
+   fun setArgsToType (errs,es,s) (FUNCdecl {
         funcName = f,
         funcArgs = args,
         ...
-      }) = (case SymMap.find (es,f) of NONE => () | SOME ty =>
+      }) = (case SymMap.find (es,f) of NONE => () | SOME (_,ty) =>
       let
-         val _ = lub (s, symType s f, vtypeToStype s ty)
+         val srcloc = case ty of
+              (AST.MARKty {span=s, tree}) => s
+            | _ => SymbolTable.noSpan
+         val targetType = case trType ty of
+            FUNstype a => FUNstype a
+          | t => FUNstype (t,VOIDstype,[]) (* top-level constants are still functions *)
+         val originalType = inlineSType s (symType s f)
+
+         val obtainedType = inlineSType s (lub (s, symType s f, targetType))
+         fun compareTypes (VOIDstype,VOIDstype) = true
+           | compareTypes (BOXstype t1,BOXstype t2) = compareTypes (t1,t2)
+           | compareTypes (FUNstype (res1,clos1,args1), FUNstype (res2,clos2,args2)) =
+              compareTypes (res1,res2) andalso compareTypes (clos1,clos2) andalso
+              List.all  (fn b => b) (List.map compareTypes (ListPair.zip (args1,args2)))
+           | compareTypes (MONADstype t1, MONADstype t2) = compareTypes (t1,t2)
+           | compareTypes (RECORDstype (box1,fs1,_),RECORDstype (box2,fs2,_)) =
+           let
+              fun genMap fs = List.foldl (fn ((_,fid,ty),sm) => SymMap.insert (sm,fid,ty)) SymMap.empty fs
+              val sm1 = genMap fs1
+              val sm2 = genMap fs2
+              val res = compareTypes (box1,box2)
+              fun inBoth (SOME f1, SOME f2) = SOME (compareTypes (f1,f2))
+                | inBoth (_, _) = NONE
+              val boolMap = SymMap.mergeWith inBoth (sm1,sm2)
+           in
+              res andalso List.all (fn b => b) (SymMap.listItems boolMap)
+           end
+           | compareTypes (BITstype t1,BITstype t2) = compareTypes (t1,t2)
+           | compareTypes (CONSTstype i1,CONSTstype i2) = i1=i2
+           | compareTypes (STRINGstype,STRINGstype) = true
+           | compareTypes (INTstype,INTstype) = true
+           | compareTypes (OBJstype,OBJstype) = true
+           | compareTypes (t1,t2) = false (*(TextIO.print ("comparing " ^ showSType t1 ^ " with " ^ showSType t2 ^ "\n"); false)*)
+
       in
-         ()
+         if compareTypes (targetType,obtainedType) then () else
+         Error.warningAt (errs, srcloc,  ["export declaration of " ^
+            SymbolTable.getString(!SymbolTables.varTable, f) ^
+            " does not fit C type\n",
+            "C type   " ^ showSType originalType ^ "\n",
+            "exported " ^ showSType targetType ^ "\n",
+            "combined " ^ showSType obtainedType ^ "\n"])
       end)
-     | setArgsToType (es,s) (CONdecl {
-        conArg = (_,sym),
-	     ...
-      }) =
-      ignore (lub (s, symType s sym, voidsToTop false (inlineSType s (symType s sym))))
-     | setArgsToType (es,s) _ = ()
+     | setArgsToType (errs,es,s) _ = ()
 
    fun mergeRecords s =
       let
@@ -1619,7 +1659,7 @@ structure TypeRefinement = struct
          DynamicArray.foldl checkForRecord AtomMap.empty (#typeTable s)
       end
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
       let
          (* register one symbol to track the type of the global state *)
          val (tab, stateSym) = SymbolTable.fresh (!SymbolTables.varTable, Atom.atom Primitives.globalState)
@@ -1640,10 +1680,8 @@ structure TypeRefinement = struct
          (* unify the types of all records that have the same set of fields *)
          val _ = mergeRecords state
          (* set all arguments in functions and constructors to the type declared in the export list *)
-         val _ = app (setArgsToType (es,state)) ds
-         (* set all fields in the global state to non-void *)
-         val _ = lub (state,symType state stateSym, voidsToTop false (inlineSType state (symType state stateSym)))
-         
+         val _ = app (setArgsToType (errs,es,state)) ds
+      
          (*val _ = showState es state*)
          (*val _ = debugOn := false
          fun patchDeclPrint state d = (debugOn:=(SymbolTable.toInt(getDeclName d)= ~1); msg ("patching " ^ SymbolTable.getString(!SymbolTables.varTable, getDeclName d) ^ "\n"); patchDecl state d)*)
@@ -1651,7 +1689,7 @@ structure TypeRefinement = struct
          val fs = SymMap.mapi (fn (sym,ty) => adjustType state (ty, fieldType state sym)) fs
          val mt = adjustType state (mt, symType state stateSym)
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt }
+         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
       end
    
 end
@@ -2015,11 +2053,11 @@ structure SwitchReduce = struct
       }
      | visitDecl s d = d
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
       let
          val ds = map (visitDecl {}) ds
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt }
+         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
       end
    
 end
@@ -2133,7 +2171,7 @@ structure DeadFunctions = struct
      }) = if SymSet.member(!(#referenced s), name) then refSym (s : state) del else ()
      | visitCDecl s _ = ()
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
       let
          val s = { locals = SymSet.empty,
                    replace = ref SymMap.empty,
@@ -2151,7 +2189,7 @@ structure DeadFunctions = struct
             end
          val ds = fixpoint ()
       in
-         { decls = ds, fdecls = fs, exports = es, monad = mt }
+         { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs }
       end
    
 end
@@ -2322,11 +2360,11 @@ structure DeadVariables = struct
       }) = (pureSet := SymSet.add(!pureSet,sym))
      | addPure _ = ()
 
-   fun run { decls = ds, fdecls = fs, exports = es, monad = mt } =
+   fun run { decls = ds, fdecls = fs, exports = es, monad = mt, errs = errs } =
       let
          val _ = app addPure ds
       in
-         { decls = map visitDecl ds, fdecls = fs, exports = es, monad = mt }
+         { decls = map visitDecl ds, fdecls = fs, exports = es, monad = mt, errs = errs }
       end
    
 end

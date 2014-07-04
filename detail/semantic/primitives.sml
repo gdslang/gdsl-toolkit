@@ -134,7 +134,7 @@ structure Primitives = struct
         flow = BD.meetVarImpliesVar (bvar stateO', bvar stateO)},
        {name="/z", ty=FUN([ZENO, ZENO],ZENO),flow=noFlow},
        {name="index", ty=func (h, ZENO), flow = noFlow},
-       {name="puts", ty=func (i, MONAD (ZENO, stateP, stateP')),
+       {name="puts", ty=func (i, MONAD (UNIT, stateP, stateP')),
          flow = BD.meetVarImpliesVar (bvar stateP', bvar stateP)},   
        {name="%raise", ty=UNIT, flow = noFlow},
        {name="%and", ty=UNIT, flow = noFlow},
@@ -364,7 +364,7 @@ structure Primitives = struct
          ("unconsume8", (t 0, fn args => action (PRIexp (UNCONSUME8prim,v,args)))),
          ("unconsume16", (t 0, fn args => action (PRIexp (UNCONSUME16prim,v,args)))),
          ("unconsume32", (t 0, fn args => action (PRIexp (UNCONSUME32prim,v,args)))),
-         ("puts", (t ~1, fn args => action (PRIexp (PRINTLNprim,ov,args)))),
+         ("puts", (t ~1, fn args => action (PRIexp (PRINTLNprim,sv,args)))),
          ("return", (t ~1, fn args => (case args of
             [e] => action e
           | _ => raise ImpPrimTranslationBug)))
@@ -387,9 +387,6 @@ structure Primitives = struct
       ;ST.fieldTable := FieldInfo.empty
       ;app (addPrim ST.fieldTable) primitiveFields
       ;app (addPrim ST.varTable) primitiveValues
-      ;app (addPrim ST.typeTable)
-         (List.map (fn r => {name = #name r, ty = #ty r, flow = noFlow})
-            ResolveTypeInfo.primitiveTypes)
       ;prim_map :=
       let
          fun get s = VarInfo.lookup (!ST.varTable, Atom.atom s)

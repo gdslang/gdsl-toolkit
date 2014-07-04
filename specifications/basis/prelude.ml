@@ -1,7 +1,7 @@
 # Standard definitions.
 
 export rope-length : (rope) -> int
-export rope-print : (rope) -> S int <{} => {}>
+export rope-print : (rope) -> S () <{} => {}>
 export rope-to-string : (rope, string) -> S string <{} => {}>
 export int-max : int
 export has-conf[vec] : (configuration[vec]) -> 1

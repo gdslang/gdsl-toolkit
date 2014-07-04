@@ -473,7 +473,7 @@ int main (int argc, char** argv) {
         printf("%llx:\n",address);
         fputs(str,stdout);
 #else
-        fputs("GDSL modules contain no semantic translation\n")
+        fputs("GDSL modules contain no semantic translation\n",stdout);
         return 1;
 #endif
       } else {
@@ -483,7 +483,7 @@ int main (int argc, char** argv) {
         string_t str = gdsl_merge_rope(s,res);
         fputs(str,stdout);
 #else
-        fputs("GDSL modules contain no decoder function\n")
+        fputs("GDSL modules contain no decoder function\n",stdout);
         return 1;
 #endif
       }

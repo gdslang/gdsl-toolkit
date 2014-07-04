@@ -12,9 +12,6 @@ structure ResolveTypeInfo : sig
        conParents: constructor_map,
        exportTypes : export_map}
 
-   val primitiveTypes : { name : string, ty : Types.texp,
-                          tyAST : SpecAbstractTree.ty } list
-
    val resolveTypeInfoPass: (Error.err_stream * SpecAbstractTree.specification) -> type_info
    val run: SpecAbstractTree.specification -> type_info CompilationMonad.t
 end = struct
@@ -41,11 +38,6 @@ end = struct
        typeDefs: datatype_map,
        conParents: constructor_map,
        exportTypes : export_map}
-
-    val primitiveTypes =
-       [{name="int", ty=Types.ZENO, tyAST=SpecAbstractTree.INTty},
-        {name="unit", ty=Types.UNIT, tyAST=SpecAbstractTree.UNITty},
-        {name="string", ty=Types.STRING, tyAST=SpecAbstractTree.STRINGty}]
 
    fun typeInfoToString ({tsynDefs,typeDefs = tdm,conParents = cm,exportTypes = et} : type_info) =
       let
@@ -84,13 +76,7 @@ end = struct
       val cons = !SymbolTables.conTable
       val types = !SymbolTables.typeTable
       val fields = !SymbolTables.fieldTable
-      val synTable = ref (
-         (List.foldl
-            (fn ({name,ty,tyAST},t) =>
-               S.insert (t,TypeInfo.lookup(types,Atom.atom(name)),ty))
-            S.empty
-            primitiveTypes
-         ) : synonym_map)
+      val synTable = ref (S.empty : synonym_map)
       val dtyTable = ref (D.empty : datatype_map)
       val conTable = ref (C.empty : constructor_map)
       val synForwardTable = ref (F.empty : AST.ty SymMap.map)
