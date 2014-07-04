@@ -1585,7 +1585,8 @@ structure TypeRefinement = struct
           SOME ty => trType (List.foldl SymMap.insert' s args) ty
         | NONE => OBJstype
         )
-     | trType s (AST.RECORDty fs) = RECORDstype (OBJstype,map (fn (f,ty) => (true,f,trType s ty)) fs,false)
+     | trType s (AST.RECORDty fs) = RECORDstype (OBJstype,map (fn (f,ty) => (true,f,trType s ty)) 
+        (SymMap.listItemsi (List.foldl SymMap.insert' SymMap.empty fs)),false)
      | trType s (AST.FUNCTIONty (args,res)) = FUNstype (trType s res,VOIDstype,map (trType s) args)
      | trType s (AST.MONADty (res,inp,out)) = trType s res
      | trType s AST.INTty = BOXstype (INTstype)
